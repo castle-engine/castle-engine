@@ -236,6 +236,54 @@ type
 
   TVRMLScene = class;
 
+  { VRML bindable nodes stack.
+    This keeps a stack of TNodeX3DBindableNode, with comfortable routines
+    to examine top and push/pop from top. The stack is actually stored
+    as a list, with the last item being the top one. }
+  TVRMLBindableStack = class(TVRMLNodesList)
+  private
+    FParentScene: TVRMLScene;
+    { A useful utility: if the Node is not @nil, send isBound = Value and
+      bindTime events to it. }
+    procedure SendIsBound(Node: TNodeX3DBindableNode; const Value: boolean);
+  public
+    constructor Create(AParentScene: TVRMLScene);
+
+    property ParentScene: TVRMLScene read FParentScene;
+
+    { Returns top item on this stack, or @nil if not present. }
+    function Top: TNodeX3DBindableNode;
+
+    { Add new node to the top. }
+    procedure Push(Node: TNodeX3DBindableNode);
+
+    { Add new node to the top, but only if stack is currently empty.
+      If SendEvents, then isBound = true and bindTime events will be
+      send to newly bound node. }
+    procedure PushIfEmpty(Node: TNodeX3DBindableNode; SendEvents: boolean);
+
+    { Remove current top node. Returns removed node, or @nil if no current
+      node was present (that is, stack was empty). }
+    function Pop: TNodeX3DBindableNode;
+
+    { This should be used when you suspect that some nodes on the stack
+      are no longer present in current VRML graph (they were deleted).
+      In this case, they have to be removed from stack.
+
+      RootNode may be nil, in which case all nodes are considered removed.
+      This is only a special case for FreeResources(frRootNode).
+
+      If this will change the currently bound node, then the new bound
+      node will receive isBound = true and bindTime events (the old node
+      will not  receive any set_bind = false or isBound = false events, since it
+      may be destroyed by now). }
+    procedure CheckForDeletedNodes(RootNode: TVRMLNode; SendEvents: boolean);
+
+    { Handle set_bind event send to given Node.
+      This always generates appropriate events. }
+    procedure Set_Bind(Node: TNodeX3DBindableNode; const Value: boolean);
+  end;
+
   TVRMLSceneNotification = procedure (Scene: TVRMLScene) of object;
 
   { VRML scene, a final class to handle VRML models
@@ -370,6 +418,12 @@ type
       Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
     procedure TransformChangeTraverseAfter(
       Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+
+    { Bindable nodes helpers }
+    FBackgroundStack: TVRMLBindableStack;
+    FFogStack: TVRMLBindableStack;
+    FNavigationInfoStack: TVRMLBindableStack;
+    FViewpointStack: TVRMLBindableStack;
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
     destructor Destroy; override;
@@ -929,6 +983,24 @@ type
 
     { Call OnGeometryChanged, if assigned. }
     procedure DoGeometryChanged; virtual;
+
+    { Binding stack of X3DBackgroundNode nodes.
+      All descend from TNodeX3DBackgroundNode class. }
+    property BackgroundStack: TVRMLBindableStack read FBackgroundStack;
+
+    { Binding stack of Fog nodes.
+      All descend from TNodeFog class. }
+    property FogStack: TVRMLBindableStack read FFogStack;
+
+    { Binding stack of NavigatinInfo nodes.
+      All descend from TNodeNavigationInfo class. }
+    property NavigationInfoStack: TVRMLBindableStack read FNavigationInfoStack;
+
+    { Binding stack of Viewpoint  nodes.
+      All descend from TVRMLViewpointNode (not necessarily from
+      TNodeX3DViewpointNode, so VRML 1.0 camera nodes are also included in
+      this stack.) }
+    property ViewpointStack: TVRMLBindableStack read FViewpointStack;
   end;
 
 {$undef read_interface}
@@ -943,6 +1015,134 @@ uses VRMLCameraUtils;
 {$I dynarray_2.inc}
 {$I dynarray_3.inc}
 
+{ TVRMLBindableStack ----------------------------------------------------- }
+
+constructor TVRMLBindableStack.Create(AParentScene: TVRMLScene);
+begin
+  inherited Create;
+  FParentScene := AParentScene;
+end;
+
+procedure TVRMLBindableStack.SendIsBound(Node: TNodeX3DBindableNode;
+  const Value: boolean);
+begin
+  if Node <> nil then
+  begin
+    Node.EventIsBound.Send(Value, ParentScene.WorldTime);
+    Node.EventBindTime.Send(ParentScene.WorldTime, ParentScene.WorldTime);
+  end;
+end;
+
+function TVRMLBindableStack.Top: TNodeX3DBindableNode;
+begin
+  if Count <> 0 then
+    Result := Items[High] as TNodeX3DBindableNode else
+    Result := nil;
+end;
+
+procedure TVRMLBindableStack.Push(Node: TNodeX3DBindableNode);
+begin
+  Add(Node);
+end;
+
+procedure TVRMLBindableStack.PushIfEmpty(Node: TNodeX3DBindableNode;
+  SendEvents: boolean);
+begin
+  if Count = 0 then
+  begin
+    Push(Node);
+    if SendEvents then
+      SendIsBound(Node, true);
+  end;
+end;
+
+function TVRMLBindableStack.Pop: TNodeX3DBindableNode;
+begin
+  if Count <> 0 then
+  begin
+    Result := Items[High] as TNodeX3DBindableNode;
+    Count := Count - 1;
+  end else
+    Result := nil;
+end;
+
+procedure TVRMLBindableStack.CheckForDeletedNodes(RootNode: TVRMLNode;
+  SendEvents: boolean);
+var
+  I: Integer;
+  TopChanged: boolean;
+begin
+  if RootNode = nil then
+    { Just empty all, since all are possibly freed }
+    Count := 0 else
+  begin
+    { Remember that pointers on Items may be wrong now.
+      So don't call things like Top function now
+      (it typecasts to TNodeX3DBindableNode). }
+
+    TopChanged := false;
+
+    I := 0;
+    while I < Count do
+    begin
+      { Search also inactive part of VRML graph.
+        VRML doesn't allow a bound node to be in inactive VRML graph part,
+        but not bound (but present on the stack) node in inactive VRML
+        graph part is acceptable, as far as I understand. }
+      if not RootNode.IsNodePresent(Items[I], false) then
+      begin
+        TopChanged := I = High;
+        Delete(I);
+      end else
+        Inc(I);
+    end;
+
+    if TopChanged and SendEvents and (Count <> 0) then
+      SendIsBound(Top, true);
+  end;
+end;
+
+procedure TVRMLBindableStack.Set_Bind(Node: TNodeX3DBindableNode;
+  const Value: boolean);
+var
+  NodeIndex: Integer;
+begin
+  NodeIndex := IndexOf(Node);
+  if Value then
+  begin
+    if NodeIndex = -1 then
+    begin
+      { Node not on the stack. So add it, as new top node. }
+      SendIsBound(Top, false);
+      Push(Node);
+      SendIsBound(Top, true);
+    end else
+    if NodeIndex <> High then
+    begin
+      { Node on the stack, but not on top. So move it, as new top node. }
+      SendIsBound(Top, false);
+      Exchange(NodeIndex, High);
+      SendIsBound(Top, true);
+    end;
+    { set_bind = true for node already on the top is ignored. }
+  end else
+  begin
+    if NodeIndex <> -1 then
+    begin
+      if NodeIndex = High then
+      begin
+        SendIsBound(Top, false);
+        Delete(NodeIndex);
+        SendIsBound(Top, true);
+      end else
+      begin
+        Delete(NodeIndex);
+      end;
+    end;
+    { set_bind = false for node already outside of the stack is ignored. }
+  end;
+end;
+
 { TVRMLScene ----------------------------------------------------------- }
 
 constructor TVRMLScene.Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
@@ -955,6 +1155,11 @@ begin
  FOwnsDefaultShapeStateOctree := true;
 
  FShapeStates := TVRMLShapeStatesList.Create;
+
+ FBackgroundStack := TVRMLBindableStack.Create(Self);
+ FFogStack := TVRMLBindableStack.Create(Self);
+ FNavigationInfoStack := TVRMLBindableStack.Create(Self);
+ FViewpointStack := TVRMLBindableStack.Create(Self);
 
  ChangedAll;
 end;
@@ -973,6 +1178,11 @@ begin
    FreeAndNil(FManifoldEdges);
    FreeAndNil(FBorderEdges);
  end;
+
+ FreeAndNil(FBackgroundStack);
+ FreeAndNil(FFogStack);
+ FreeAndNil(FNavigationInfoStack);
+ FreeAndNil(FViewpointStack);
 
  ShapeStates.FreeWithContents;
 
@@ -1046,22 +1256,39 @@ end;
 
 procedure TVRMLScene.ChangedAll_Traverse(
   Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
-{ This does two things. These two things are independent, but both
-  require Traverse to be done, and both have to be done in ChangedAll call...
-  So it's efficient to do them at once.
-  1. Add shapes to ShapeStates
-  2. Add lights to ChangedAll_TraversedLights }
+const
+  { TODO: Bindable nodes should not be collected from inlined content.
+    TODO: we should also omit nodes created by
+    createX3DFromString() or createX3DFromURL, when scripting will be
+    implemented. }
+  InsideInline = false;
 begin
   if Node is TVRMLGeometryNode then
   begin
+    { Add shape to ShapeStates }
     ShapeStates.Add(
       TVRMLShapeState.Create(Node as TVRMLGeometryNode,
       TVRMLGraphTraverseState.CreateCopy(State)));
   end else
   if Node is TVRMLLightNode then
   begin
+    { Add lights to ChangedAll_TraversedLights }
     ChangedAll_TraversedLights.AppendItem(
       (Node as TVRMLLightNode).CreateActiveLight(State));
+  end else
+  if not InsideInline then
+  begin
+    { If some bindable stack is empty, push the node to it.
+      This way, upon reading VRML file, we will bind the first found
+      node for each stack. }
+    if Node is TNodeX3DBackgroundNode then
+      BackgroundStack.PushIfEmpty( TNodeX3DBackgroundNode(Node), true) else
+    if Node is TNodeFog then
+      FogStack.PushIfEmpty( TNodeFog(Node), true) else
+    if Node is TNodeNavigationInfo then
+      NavigationInfoStack.PushIfEmpty( TNodeNavigationInfo(Node), true) else
+    if Node is TVRMLViewpointNode then
+      ViewpointStack.PushIfEmpty( TVRMLViewpointNode(Node), true);
   end;
 end;
 
@@ -1121,6 +1348,11 @@ begin
   { TODO: FManifoldEdges and FBorderEdges and triangles lists should be freed
     (and removed from Validities) on any ChangedXxx call. }
 
+  BackgroundStack.CheckForDeletedNodes(RootNode, true);
+  FogStack.CheckForDeletedNodes(RootNode, true);
+  NavigationInfoStack.CheckForDeletedNodes(RootNode, true);
+  ViewpointStack.CheckForDeletedNodes(RootNode, true);
+
   ChangedAll_TraversedLights := TDynActiveLightArray.Create;
   try
     ShapeStates.FreeContents;
@@ -1170,13 +1402,35 @@ begin
       Inc(TransformChange_ShapeStateNum);
       TransformChange_AnythingChanged := true;
     end else
-    { X3DBindableNode takes into account Fog, Background, Viewpoint etc. }
-    if ( (Node is TNodeX3DBindableNode) or
-         (Node is TVRMLLightNode) ) and
-       { Actually, for X3DViewpointNode, no need to do anything ---
-         at least for now, since we don't do anything on it's animation
-         (TVRMLScene doesn't do anything with camera). }
-       not (Node is TNodeX3DViewpointNode) then
+    if Node is TNodeX3DBackgroundNode then
+    begin
+      { TODO: make this work to actually change displayed background }
+      if Node = BackgroundStack.Top then
+        raise BreakTransformChangeFailed.Create;
+    end else
+    if Node is TNodeFog then
+    begin
+      { TODO: make this work to actually change displayed fog }
+      if Node = FogStack.Top then
+        raise BreakTransformChangeFailed.Create;
+    end else
+    if Node is TNodeNavigationInfo then
+    begin
+      { TODO: make this work to actually change displayed NavigationInfo.
+        For now, this does nothing, since TVRMLScene doesn't deal with
+        NavigationInfo. }
+      { if Node = NavigationInfoStack.Top then
+        raise BreakTransformChangeFailed.Create; }
+    end else
+    if Node is TNodeViewpoint then
+    begin
+      { TODO: make this work to actually change displayed Viewpoint.
+        For now, this does nothing, since TVRMLScene doesn't deal with
+        Viewpoint. }
+      { if Node = ViewpointStack.Top then
+        raise BreakTransformChangeFailed.Create; }
+    end else
+    if Node is TVRMLLightNode then
     begin
       raise BreakTransformChangeFailed.Create;
     end;

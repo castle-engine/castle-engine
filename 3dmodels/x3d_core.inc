@@ -48,6 +48,11 @@ type
   end;
 
   TNodeX3DBindableNode = class(TNodeX3DChildNode)
+  private
+    FTransform: TMatrix4Single;
+    FAverageScaleTransform: Single;
+  protected
+    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -62,6 +67,23 @@ type
     { Event: SFBool, out } { }
     private FEventisBound: TVRMLEvent;
     public property EventisBound: TVRMLEvent read FEventisBound;
+
+    { Transformation of this bindable node.
+
+      Bound nodes cannot be instantiated multiple number of times
+      (this would make simple event like "set_bind" not possible,
+      as it would not be known in what coordinate space the node is bound),
+      so it's perfectly safe and comfortable to just keep their transformation
+      here, a their property.
+
+      It is gathered during traversing. Last BeforeTraverse call for this
+      node sets Transform properties. By default, these represent idenity
+      transformation.
+
+      @groupBegin }
+    property Transform: TMatrix4Single read FTransform;
+    property AverageScaleTransform: Single read FAverageScaleTransform;
+    { @groupEnd }
   end;
 
   TNodeX3DInfoNode = class(TNodeX3DChildNode)
@@ -241,6 +263,18 @@ begin
 
   FEventisBound := TVRMLEvent.Create(Self, 'isBound', TSFBool, false);
   Events.Add(FEventisBound);
+
+  FTransform := IdentityMatrix4Single;
+  FAverageScaleTransform := 1;
+end;
+
+procedure TNodeX3DBindableNode.BeforeTraverse(
+  var State: TVRMLGraphTraverseState);
+begin
+  inherited;
+
+  FTransform := State.Transform;
+  FAverageScaleTransform := State.AverageScaleTransform;
 end;
 
 constructor TNodeX3DSensorNode.Create(const ANodeName: string;

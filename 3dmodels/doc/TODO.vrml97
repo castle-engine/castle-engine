@@ -111,3 +111,15 @@ test implemented events:
 - IndexedFaceSet: set_colorIndex, set_coordIndex, set_normalIndex, set_texCoordIndex
 
 - Inline.set_url, InlineLoadControl.set_url
+------------------------------------------------------------------------------
+The way of rendering Background and TextureBackground by TBackgroundGL
+is bad. It's not intergrated with rest of VRML rendering, so it cannot
+render arbitrary VRML textures, it depends on static TImage instances
+at creation time. Also it cannot use VRML renderer cache (which would
+at least speed up TBackgroundGL recreation, although this recreation
+should also be less often needed).
+Also, it's static after creation. Any change to
+transformation causes costly recalculation of display list.
+
+This prevents clean TextureBackground implementation (that would support
+MovieTexture to animate sky).

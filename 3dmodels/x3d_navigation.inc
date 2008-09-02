@@ -24,6 +24,9 @@
   { A common class for both VRML 1.0 camera nodes and VRML >= 2.0 viewpoints
     nodes. }
   TVRMLViewpointNode = class(TNodeX3DBindableNode)
+  private
+    procedure EventSet_BindReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -197,6 +200,9 @@
   end;
 
   TNodeNavigationInfo = class(TNodeX3DBindableNode)
+  private
+    procedure EventSet_BindReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -334,6 +340,8 @@ begin
 
   FFdgravityUp := TSFVec3f.Create(Self, 'gravityUp', StdVRMLGravityUp);
   Fields.Add(FFdgravityUp);
+
+  Eventset_bind.OnReceive.AppendItem(@EventSet_BindReceive);
 end;
 
 procedure TVRMLViewpointNode.GetCameraVectors(
@@ -379,6 +387,14 @@ begin
 
   Assert(FloatsEqual(VectorLenSqr(CamDir), 1.0, 0.0001));
   Assert(FloatsEqual(VectorLenSqr(CamUp), 1.0, 0.0001));
+end;
+
+procedure TVRMLViewpointNode.EventSet_BindReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+begin
+  if ParentEventsProcessor <> nil then
+    (ParentEventsProcessor as TVRMLScene).
+      ViewpointStack.Set_Bind(Self, (Value as TSFBool).Value);
 end;
 
 constructor TNodeX3DViewpointNode.Create(const ANodeName: string;
@@ -597,6 +613,8 @@ begin
   Events.Add(FEventtransitionComplete);
 
   DefaultContainerField := 'children';
+
+  Eventset_bind.OnReceive.AppendItem(@EventSet_BindReceive);
 end;
 
 class function TNodeNavigationInfo.ClassNodeTypeName: string;
@@ -618,6 +636,14 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure TNodeNavigationInfo.EventSet_BindReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+begin
+  if ParentEventsProcessor <> nil then
+    (ParentEventsProcessor as TVRMLScene).
+      NavigationInfoStack.Set_Bind(Self, (Value as TSFBool).Value);
 end;
 
 constructor TNodeOrthoViewpoint.Create(const ANodeName: string;

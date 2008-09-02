@@ -20,6 +20,9 @@
 
 {$ifdef read_interface}
   TNodeX3DBackgroundNode = class(TNodeX3DBindableNode)
+  private
+    procedure EventSet_BindReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -143,6 +146,9 @@
   end;
 
   TNodeFog = class(TNodeX3DBindableNode, INodeX3DFogObject)
+  private
+    procedure EventSet_BindReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -271,6 +277,24 @@ begin
   { X3D specification comment: [0,1] }
 
   DefaultContainerField := 'children';
+
+  Eventset_bind.OnReceive.AppendItem(@EventSet_BindReceive);
+end;
+
+procedure TNodeX3DBackgroundNode.EventSet_BindReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+var
+  Scene: TVRMLScene;
+begin
+  if ParentEventsProcessor <> nil then
+  begin
+    Scene := ParentEventsProcessor as TVRMLScene;
+    Scene.BackgroundStack.Set_Bind(Self, (Value as TSFBool).Value);
+    { Background is something visible, so we must actually redisplay
+      for user to see the new scene. This is not done by Set_Bind method
+      automatically, as this is specific to Background node. }
+    Scene.DoPostRedisplay;
+  end;
 end;
 
 constructor TNodeBackground.Create(const ANodeName: string;
@@ -451,6 +475,8 @@ begin
   Fields.Add(FFdalternative);
 
   DefaultContainerField := 'children';
+
+  Eventset_bind.OnReceive.AppendItem(@EventSet_BindReceive);
 end;
 
 class function TNodeFog.ClassNodeTypeName: string;
@@ -479,6 +505,14 @@ begin
   if (FdAlternative.Value <> nil) and (FdAlternative.Value is TNodeFog) then
     Result := TNodeFog(FdAlternative.Value) else
     Result := nil;
+end;
+
+procedure TNodeFog.EventSet_BindReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+begin
+  if ParentEventsProcessor <> nil then
+    (ParentEventsProcessor as TVRMLScene).
+      FogStack.Set_Bind(Self, (Value as TSFBool).Value);
 end;
 
 constructor TNodeFogCoordinate.Create(const ANodeName: string;

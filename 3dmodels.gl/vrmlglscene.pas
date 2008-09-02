@@ -355,7 +355,7 @@ type
 
     Also this class can provide comfortable management for
     @link(TBackgroundGL) instance associated with this VRML model,
-    that may be used to render VRML's background.
+    that may be used to render currenly bound VRML background.
     See @link(Background) function.
 
     Connection with particular OpenGL context: from the 1st call
@@ -952,6 +952,8 @@ type
       const AllowSilhouetteOptimization: boolean = true);
   private
     FBackgroundSkySphereRadius: Single;
+    { Node for which FBackground is currently prepared. }
+    FBackgroundNode: TNodeX3DBindableNode;
     { Cached Background value }
     FBackground: TBackgroundGL;
     { Is FBackground valid ? We can't use "nil" FBackground value to flag this
@@ -979,11 +981,19 @@ type
     procedure PrepareBackground;
 
     { Returns TBackgroundGL instance for this scene. Background's properties
-      are based on the attributes of first "Background" VRML node in the
-      RootNode scene (and on his place in scene transformations).
+      are based on the attributes of currently bound X3DBackgroundNode
+      VRML node in the RootNode scene (and on his place in scene transformations).
+      When events are not concerned, this is simply the first X3DBackgroundNode
+      found in the scene (when events work, this may change through set_bind
+      events).
       They are also based on current value of BackgroundSkySphereRadius.
       And on the values of Attributes.ColorModulatorSingle/Byte.
-      If there is no "Background" node in VRML scene this function returns nil.
+
+      If there is no currently bound background node in VRML scene this
+      function returns nil.
+      TODO: Also, if currently bound background cannot be rendered,
+      we return @nil. For now this happens for TextureBakckground,
+      that temporarily cannot be rendered.
 
       Note: this Background object is managed (automatically created/freed
       etc.) by this TVRMLGLScene object but it is NOT used anywhere
@@ -1212,6 +1222,7 @@ begin
 
   FBackgroundSkySphereRadius := 1.0;
   FBackgroundValid := false;
+  FBackgroundNode := nil;
   FBackground := nil;
 
   FUsingProvidedRenderer := AUsingProvidedRenderer;
@@ -3076,6 +3087,7 @@ end;
 procedure TVRMLGLScene.FBackgroundInvalidate;
 begin
  FreeAndNil(FBackground);
+ FBackgroundNode := nil;
  FBackgroundValid := false;
 end;
 
@@ -3088,90 +3100,94 @@ end;
 procedure TVRMLGLScene.PrepareBackground;
 { After PrepareBackground assertion FBackgroundValid is valid }
 var
-  InitialState: TVRMLGraphTraverseState;
   BgTransform: TMatrix4Single;
-  BgAverageScaleTransform: Single;
   BgNode: TNodeBackground;
   SkyAngleCount: Integer;
   SkyColorCount: Integer;
   GroundAngleCount: Integer;
   GroundColorCount: Integer;
 begin
-  if FBackgroundValid then Exit;
+  if FBackgroundValid and (BackgroundStack.Top = FBackgroundNode) then
+    Exit;
 
-  InitialState := TVRMLGraphTraverseState.Create;
-  try
-    if (RootNode <> nil) and
-      RootNode.TryFindNodeTransform(InitialState, TNodeBackground,
-        TVRMLNode(BgNode), BgTransform, BgAverageScaleTransform) then
+  { Background is created, but not suitable for current
+    BackgroundStack.Top. So destroy it. }
+  if FBackgroundValid then
+    FBackgroundInvalidate;
+
+  if (BackgroundStack.Top <> nil) and
+     (BackgroundStack.Top is TNodeBackground) then
+  begin
+    BgNode := TNodeBackground(BackgroundStack.Top);
+    BgTransform := BgNode.Transform;
+
+    SkyAngleCount := BgNode.FdSkyAngle.Count;
+    SkyColorCount := BgNode.FdSkyColor.Count;
+
+    if SkyColorCount <= 0 then
     begin
-      SkyAngleCount := BgNode.FdSkyAngle.Count;
-      SkyColorCount := BgNode.FdSkyColor.Count;
-
-      if SkyColorCount <= 0 then
+      VRMLNonFatalError('Background node incorrect: ' +
+        'Sky must have at least one color');
+      FBackground := nil;
+    end else
+    begin
+      if SkyAngleCount + 1 <> SkyColorCount then
       begin
         VRMLNonFatalError('Background node incorrect: ' +
-          'Sky must have at least one color');
-        FBackground := nil;
-      end else
-      begin
-        if SkyAngleCount + 1 <> SkyColorCount then
-        begin
-          VRMLNonFatalError('Background node incorrect: ' +
-            'Sky must have exactly one more Color than Angles');
-          { We know now that SkyColorCount >= 1 and
-            SkyAngleCount >= 0 (since SkyAngleCount is a count of an array).
-            So we correct one of them to be smaller. }
-          if SkyAngleCount + 1 > SkyColorCount then
-            SkyAngleCount := SkyColorCount - 1 else
-            SkyColorCount := SkyAngleCount + 1;
-        end;
-
-        GroundAngleCount := BgNode.FdGroundAngle.Count;
-        GroundColorCount := BgNode.FdGroundColor.Count;
-
-        if (GroundAngleCount <> 0) and
-           (GroundAngleCount + 1 <> GroundColorCount) then
-        begin
-          VRMLNonFatalError('Background node incorrect: ' +
-            'Ground must have exactly one more Color than Angles');
-          { We know now that GroundColorCount >= 1 and
-            GroundAngleCount >= 0 (since GroundAngleCount is a count of an array).
-            So we correct one of them to be smaller. }
-          if GroundAngleCount + 1 > GroundColorCount then
-            GroundAngleCount := GroundColorCount - 1 else
-            GroundColorCount := GroundAngleCount + 1;
-        end;
-
-        { TODO: We should extract here only rotation from BgTransform matrix.
-          Below is a very hacky way of at least cancelling the translation.
-          This will work OK for any rigid body matrix, i.e. composed only from
-          rotation and translation. }
-        BgTransform[3, 0] := 0;
-        BgTransform[3, 1] := 0;
-        BgTransform[3, 2] := 0;
-
-        { The call to BgNode.BgImages is important here, as it may actually
-          load the images from file. So first we want to set AllowedBgImagesClasses
-          and ImagesCache as appropriate. }
-        BgNode.SetAllowedBgImagesClasses(GLImageClasses);
-        BgNode.ImagesCache := Renderer.Cache;
-
-        FBackground := TBackgroundGL.Create(BgTransform,
-          @(BgNode.FdGroundAngle.Items.Items[0]), GroundAngleCount,
-          @(BgNode.FdGroundColor.Items.Items[0]), GroundColorCount,
-          BgNode.BgImages,
-          @(BgNode.FdSkyAngle.Items.Items[0]), SkyAngleCount,
-          @(BgNode.FdSkyColor.Items.Items[0]), SkyColorCount,
-          BackgroundSkySphereRadius,
-          Attributes.ColorModulatorSingle,
-          Attributes.ColorModulatorByte);
+          'Sky must have exactly one more Color than Angles');
+        { We know now that SkyColorCount >= 1 and
+          SkyAngleCount >= 0 (since SkyAngleCount is a count of an array).
+          So we correct one of them to be smaller. }
+        if SkyAngleCount + 1 > SkyColorCount then
+          SkyAngleCount := SkyColorCount - 1 else
+          SkyColorCount := SkyAngleCount + 1;
       end;
-    end else
-      FBackground := nil;
 
-    FBackgroundValid := true;
-  finally InitialState.Free end;
+      GroundAngleCount := BgNode.FdGroundAngle.Count;
+      GroundColorCount := BgNode.FdGroundColor.Count;
+
+      if (GroundAngleCount <> 0) and
+         (GroundAngleCount + 1 <> GroundColorCount) then
+      begin
+        VRMLNonFatalError('Background node incorrect: ' +
+          'Ground must have exactly one more Color than Angles');
+        { We know now that GroundColorCount >= 1 and
+          GroundAngleCount >= 0 (since GroundAngleCount is a count of an array).
+          So we correct one of them to be smaller. }
+        if GroundAngleCount + 1 > GroundColorCount then
+          GroundAngleCount := GroundColorCount - 1 else
+          GroundColorCount := GroundAngleCount + 1;
+      end;
+
+      { TODO: We should extract here only rotation from BgTransform matrix.
+        Below is a very hacky way of at least cancelling the translation.
+        This will work OK for any rigid body matrix, i.e. composed only from
+        rotation and translation. }
+      BgTransform[3, 0] := 0;
+      BgTransform[3, 1] := 0;
+      BgTransform[3, 2] := 0;
+
+      { The call to BgNode.BgImages is important here, as it may actually
+        load the images from file. So first we want to set AllowedBgImagesClasses
+        and ImagesCache as appropriate. }
+      BgNode.SetAllowedBgImagesClasses(GLImageClasses);
+      BgNode.ImagesCache := Renderer.Cache;
+
+      FBackground := TBackgroundGL.Create(BgTransform,
+        @(BgNode.FdGroundAngle.Items.Items[0]), GroundAngleCount,
+        @(BgNode.FdGroundColor.Items.Items[0]), GroundColorCount,
+        BgNode.BgImages,
+        @(BgNode.FdSkyAngle.Items.Items[0]), SkyAngleCount,
+        @(BgNode.FdSkyColor.Items.Items[0]), SkyColorCount,
+        BackgroundSkySphereRadius,
+        Attributes.ColorModulatorSingle,
+        Attributes.ColorModulatorByte);
+    end;
+  end else
+    FBackground := nil;
+
+  FBackgroundNode := BackgroundStack.Top;
+  FBackgroundValid := true;
 end;
 
 function TVRMLGLScene.Background: TBackgroundGL;
