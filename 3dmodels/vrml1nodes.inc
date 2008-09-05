@@ -2403,10 +2403,14 @@ begin
     end;
     raise;
   end;
+
+  Inc(State.InsideInline);
 end;
 
 procedure TNodeWWWInline.AfterTraverse(var State: TVRMLGraphTraverseState);
 begin
+  Dec(State.InsideInline);
+
   if BeforeTraversePushedState then
   begin
     FreeAndNil(State);

@@ -543,7 +543,7 @@ type
     function EqualsNoTransform(SecondValue: TVRMLGraphTraverseState): boolean;
 
     { Returns proper texture node that should be used
-      for nodes within this State, regardless whether this in
+      for nodes within this State, regardless whether this is in
       VRML 1.0 or 2.0.
 
       Details:
@@ -559,6 +559,39 @@ type
       a KambiAppearance and it has BlendMode <> nil... then returns it.
       Otherwise @nil. }
     function BlendMode: TNodeBlendMode;
+
+    { Information if you're within any inline node or expanded prototype.
+      InsideInline = 0 means you're not inside any inline node,
+      1 means you're inside one inline, 2 means you're within content
+      inlined from yet another inline node, and so on.
+      Analogous for InsidePrototype.
+
+      These are measured from the node where you
+      started TVRMLNode.Traverse call, that is they assume that the initial
+      node from where you're traversing is at level 0 (not inside inline
+      or expanded prototype).
+
+      These are useful to establish "run-time name scope" of X3D,
+      see X3D spec 4.4.7 (needed e.g. when handling Anchor node with
+      "#Viewpoint" URL).
+      Interpreting this for our implementation,
+      specification says that if you traverse
+      from node X, then all traversed nodes with
+      InsideInline = InsidePrototype = 0 are within the same name scope.
+
+      Also this is useful for searching for the first bindable node after
+      loading the file. Specification says to ignore inline content
+      in this case (although prototype content is Ok in this case).
+
+      When scriping will be implemented, probably analogous
+      InsideScriptCreatedNode will also be needed, as the spec says
+      that bindable nodes should not be searched within things like
+      "Browser.createX3DFromString()".
+
+      @groupBegin }
+    InsideInline: Cardinal;
+    InsidePrototype: Cardinal;
+    { @groupEnd }
   end;
 
   PTraversingInfo = ^TTraversingInfo;
@@ -3352,6 +3385,8 @@ begin
   FLastNodes := Source.FLastNodes;
   OwnsLastNodes := false;
   ParentShape := Source.ParentShape;
+  InsideInline := Source.InsideInline;
+  InsidePrototype := Source.InsidePrototype;
 
   VRML1ActiveLights.AppendDynArray(Source.VRML1ActiveLights);
   VRML2ActiveLights.AppendDynArray(Source.VRML2ActiveLights);
@@ -3399,6 +3434,11 @@ function TVRMLGraphTraverseState.Equals(SecondValue: TVRMLGraphTraverseState):
 var
   I: Integer;
 begin
+  { InsideInline, InsidePrototype are currently ignored by Equals,
+    since Equals is used for TVRMLOpenGLRenderer where difference
+    in these is not important. This may be clarified in the interface
+    and improved later. }
+
   Result :=
     VRML1ActiveLights.Equals(SecondValue.VRML1ActiveLights) and
     VRML2ActiveLights.Equals(SecondValue.VRML2ActiveLights) and
@@ -3422,7 +3462,8 @@ function TVRMLGraphTraverseState.EqualsNoTransform(
 var
   I: Integer;
 begin
-  { ActiveLights, Transform, AverageScaleTransform, InvertedTransform,
+  { InsideInline, InsidePrototype,
+    ActiveLights, Transform, AverageScaleTransform, InvertedTransform,
     TextureTransform are ignored by
     TVRMLOpenGLRenderer.RenderShapeStateNoTransform }
 
@@ -3734,6 +3775,8 @@ end;
 
 procedure TVRMLNode.BeforeTraverse(var State: TVRMLGraphTraverseState);
 begin
+  if PrototypeInstance then
+    Inc(State.InsidePrototype);
 end;
 
 procedure TVRMLNode.MiddleTraverse(State: TVRMLGraphTraverseState);
@@ -3742,6 +3785,8 @@ end;
 
 procedure TVRMLNode.AfterTraverse(var State: TVRMLGraphTraverseState);
 begin
+  if PrototypeInstance then
+    Dec(State.InsidePrototype);
 end;
 
 type

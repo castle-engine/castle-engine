@@ -101,6 +101,7 @@
       Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
   protected
     procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
+    procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -537,6 +538,13 @@ procedure TNodeInlineLoadControl.BeforeTraverse(var State: TVRMLGraphTraverseSta
 begin
   inherited;
   LoadInlined(false);
+  Inc(State.InsideInline);
+end;
+
+procedure TNodeInlineLoadControl.AfterTraverse(var State: TVRMLGraphTraverseState);
+begin
+  Dec(State.InsideInline);
+  inherited;
 end;
 
 procedure TNodeInlineLoadControl.EventLoadReceive(

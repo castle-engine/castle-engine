@@ -1275,12 +1275,6 @@ end;
 
 procedure TVRMLScene.ChangedAll_Traverse(
   Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
-const
-  { TODO: Bindable nodes should not be collected from inlined content.
-    TODO: we should also omit nodes created by
-    createX3DFromString() or createX3DFromURL, when scripting will be
-    implemented. }
-  InsideInline = false;
 begin
   if Node is TVRMLGeometryNode then
   begin
@@ -1295,7 +1289,9 @@ begin
     ChangedAll_TraversedLights.AppendItem(
       (Node as TVRMLLightNode).CreateActiveLight(State));
   end else
-  if not InsideInline then
+  { Do not look for first bindable node within inlined content,
+    this is following VRML spec. }
+  if State.InsideInline = 0 then
   begin
     { If some bindable stack is empty, push the node to it.
       This way, upon reading VRML file, we will bind the first found

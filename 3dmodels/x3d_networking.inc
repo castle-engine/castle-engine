@@ -59,6 +59,7 @@
       Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
   protected
     procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
+    procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
     { You can override this to do anything after the Inline children were
       loaded. It's called only after actual loading occured, e.g. it's not
       called when LoadInlined was called on the already-loaded node with
@@ -294,6 +295,13 @@ procedure TNodeInline.BeforeTraverse(var State: TVRMLGraphTraverseState);
 begin
   inherited;
   LoadInlined(false);
+  Inc(State.InsideInline);
+end;
+
+procedure TNodeInline.AfterTraverse(var State: TVRMLGraphTraverseState);
+begin
+  Dec(State.InsideInline);
+  inherited;
 end;
 
 class function TNodeInline.ChildrenSaveToStream: boolean;
