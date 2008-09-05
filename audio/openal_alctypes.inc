@@ -11,27 +11,47 @@ type
 
 { Enumerant values begin at column 50. No tabs. }
 
-const
+{ Variables below are officially "constants" for OpenAL.
+  In practice, it's horrible and lame but they are different between
+  OpenAL implementations: implementations based on Windows Creative
+  versions (this also includes OpenAL soft on Unix) have different
+  values than OpenAL Sample Implementation.
 
-  { bad value }
-  ALC_INVALID = 0;
+  So they are declared as variables, and will be initialized
+  only when OpenAL is initialized (when ALInited is @true). }
 
-  {$ifdef UNIX}
+var
   {*
    * followed by <int> Hz
    } { }
-  ALC_FREQUENCY = $100;
+  ALC_FREQUENCY: Integer;
 
   {*
    * followed by <int> Hz
    } { }
-  ALC_REFRESH = $101;
+  ALC_REFRESH: Integer;
 
   {*
    * followed by AL_TRUE, AL_FALSE
    } { }
-  ALC_SYNC = $102;
-  {$endif}
+  ALC_SYNC: Integer;
+
+  {
+    The Specifier string for default device.
+  }
+  ALC_DEFAULT_DEVICE_SPECIFIER: Integer;
+  ALC_DEVICE_SPECIFIER: Integer;
+  ALC_EXTENSIONS: Integer;
+
+  ALC_MAJOR_VERSION: Integer;
+  ALC_MINOR_VERSION: Integer;
+
+  ALC_ATTRIBUTES_SIZE: Integer;
+  ALC_ALL_ATTRIBUTES: Integer;
+
+const
+  { bad value }
+  ALC_INVALID = 0;
 
   {*
    * errors
@@ -66,39 +86,6 @@ const
     Out of memory.
   }
   ALC_OUT_OF_MEMORY = $204;
-
-
-  {$ifdef UNIX}
-  {
-    The Specifier string for default device.
-  }
-  ALC_DEFAULT_DEVICE_SPECIFIER = $300;
-  ALC_DEVICE_SPECIFIER = $301;
-  ALC_EXTENSIONS = $302;
-
-  ALC_MAJOR_VERSION = $303;
-  ALC_MINOR_VERSION = $304;
-
-  ALC_ATTRIBUTES_SIZE = $305;
-  ALC_ALL_ATTRIBUTES = $306;
-  {$endif}
-
-  {$ifdef MSWINDOWS}
-  { Kambi: strange, but Windows (Creative) OpenAL implementation has different
-    values for these consts. } { }
-  ALC_MAJOR_VERSION = $1000;
-  ALC_MINOR_VERSION = $1001;
-  ALC_ATTRIBUTES_SIZE = $1002;
-  ALC_ALL_ATTRIBUTES = $1003;
-
-  ALC_DEFAULT_DEVICE_SPECIFIER = $1004;
-  ALC_DEVICE_SPECIFIER = $1005;
-  ALC_EXTENSIONS = $1006;
-
-  ALC_FREQUENCY = $1007;
-  ALC_REFRESH = $1008;
-  ALC_SYNC = $1009;
-  {$endif}
 
   {*
    * Not sure if the following are conformant

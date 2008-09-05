@@ -435,12 +435,11 @@ uses VectorMath, KambiStringUtils;
 procedure CheckALC(const situation: string); forward;
 {$endif}
 
-{$ifdef UNIX}
-function UnixALCDeviceName(const RealDeviceName: string): string;
+function SampleImpALCDeviceName(
+  const RealDeviceName: string): string;
 begin
   Result := '''(( devices ''(' + RealDeviceName + ') ))';
 end;
-{$endif}
 
 function EnumerationExtPresent(out pDeviceList: PChar): boolean;
 {$ifdef DARWIN}
@@ -457,6 +456,8 @@ begin
     if pDeviceList = nil then
     begin
       { This is normal on Darwin, thanks to buggy OpenAL implementation... }
+      { TODO: this is fixed now, it was my fault, non-OpenAL SI implementations
+        have different codes? }
       Result := false;
       { Clear AL_INVALID_VALUE set by alcGetString call above }
       Err := alGetError();
@@ -492,17 +493,11 @@ begin
       pDeviceList := StrEnd(pDeviceList);
       Inc(pDeviceList);
     end;
-  end
-
-  {$ifdef UNIX}
-   { Mac OS X Apple implementation doesn't use the same devices
-     as traditional Unix implementation (from Loki). }
-  {$ifndef DARWIN}
-  else
-  if ALInited then
+  end else
+  if ALInited and OpenALSampleImplementation then
   begin
-    DevicesList.Append(UnixALCDeviceName('native'));
-    DevicesList.Append(UnixALCDeviceName('sdl'));
+    DevicesList.Append(SampleImpALCDeviceName('native'));
+    DevicesList.Append(SampleImpALCDeviceName('sdl'));
 
     { aRts device is too unstable on my Linux:
 
@@ -521,15 +516,11 @@ begin
     DevicesList.Append(UnixALCDeviceName('arts'));
     }
 
-    DevicesList.Append(UnixALCDeviceName('esd'));
-    DevicesList.Append(UnixALCDeviceName('alsa'));
-    DevicesList.Append(UnixALCDeviceName('waveout'));
-    DevicesList.Append(UnixALCDeviceName('null'));
-  end
-  {$endif not DARWIN}
-  {$endif UNIX}
-
-  ;
+    DevicesList.Append(SampleImpALCDeviceName('esd'));
+    DevicesList.Append(SampleImpALCDeviceName('alsa'));
+    DevicesList.Append(SampleImpALCDeviceName('waveout'));
+    DevicesList.Append(SampleImpALCDeviceName('null'));
+  end;
 end;
 
 procedure OpenALOptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -611,22 +602,24 @@ function ALCDeviceToNiceStr(const ALCDevice: string): string;
 begin
   if ALCDevice = '' then
     Result := 'Default OpenAL device' else
-  {$ifdef UNIX}
-  if ALCDevice = UnixALCDeviceName('native') then
-    Result := 'Operating system native' else
-  if ALCDevice = UnixALCDeviceName('sdl') then
-    Result := 'SDL (Simple DirectMedia Layer)' else
-  if ALCDevice = UnixALCDeviceName('arts') then
-    Result := 'aRts (analog Real time synthesizer)' else
-  if ALCDevice = UnixALCDeviceName('esd') then
-    Result := 'Esound (Enlightened Sound Daemon)' else
-  if ALCDevice = UnixALCDeviceName('alsa') then
-    Result := 'ALSA (Advanced Linux Sound Architecture)' else
-  if ALCDevice = UnixALCDeviceName('waveout') then
-    Result := 'WAVE file output' else
-  if ALCDevice = UnixALCDeviceName('null') then
-    Result := 'Null device (no output)' else
-  {$endif UNIX}
+  if OpenALSampleImplementation then
+  begin
+    if ALCDevice = SampleImpALCDeviceName('native') then
+      Result := 'Operating system native' else
+    if ALCDevice = SampleImpALCDeviceName('sdl') then
+      Result := 'SDL (Simple DirectMedia Layer)' else
+    if ALCDevice = SampleImpALCDeviceName('arts') then
+      Result := 'aRts (analog Real time synthesizer)' else
+    if ALCDevice = SampleImpALCDeviceName('esd') then
+      Result := 'Esound (Enlightened Sound Daemon)' else
+    if ALCDevice = SampleImpALCDeviceName('alsa') then
+      Result := 'ALSA (Advanced Linux Sound Architecture)' else
+    if ALCDevice = SampleImpALCDeviceName('waveout') then
+      Result := 'WAVE file output' else
+    if ALCDevice = SampleImpALCDeviceName('null') then
+      Result := 'Null device (no output)' else
+      Result := ALCDevice;
+  end else
     Result := ALCDevice;
 end;
 
@@ -748,6 +741,9 @@ begin
  alutExit;
 
  {$else}
+ { CheckALC first, in case some error is "hanging" not catched yet. }
+ CheckALC('right before closing OpenAL context');
+
  if audio_context <> nil then
  begin
    (* The OpenAL specification says
@@ -759,7 +755,8 @@ begin
 
       (See [http://openal.org/openal_webstf/specs/oal11spec_html/oal11spec6.html])
 
-      However, sample implementation (used on most (all?) Unixes) can hang
+      However, sample implementation (used on most Unixes,
+      before OpenAL soft came) can hang
       on alcMakeContextCurrent(nil) call. Actually, it doesn't hang,
       but it stops for a *very* long time (even a couple of minutes).
       This is a known problem, see
@@ -775,10 +772,11 @@ begin
 
       ... and this seems a good idea, we do it also here.
       Initially I wanted to do $ifdef UNIX, but checking for Sample implementation
-      with alGetString(AL_VENDOR) feels more elegant (i.e. affecting more precisely
-      the problematic OpenAL implementations). *)
+      with alGetString(AL_VENDOR) is more elegant (i.e. affecting more precisely
+      the problematic OpenAL implementations, e.g. allowing us to work
+      correctly with OpenAL soft too). *)
 
-  if alGetString(AL_VENDOR) <> 'J. Valenzuela' then
+  if not OpenALSampleImplementation then
     alcMakeContextCurrent(nil);
 
   alcDestroyContext(audio_context);

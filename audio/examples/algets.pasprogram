@@ -59,17 +59,17 @@ procedure Gets;
 
   function DistanceModelToStr(enum:TALenum):string;
   begin
-   case enum of
-    AL_NONE : result:='NONE';
-    AL_INVERSE_DISTANCE : result:='INVERSE_DISTANCE';
-    AL_INVERSE_DISTANCE_CLAMPED : result:='INVERSE_DISTANCE_CLAMPED';
-    else result:='!!! UNKNOWN !!!!';
-   end;
+    case enum of
+      AL_NONE : result:='NONE';
+      AL_INVERSE_DISTANCE : result:='INVERSE_DISTANCE';
+      AL_INVERSE_DISTANCE_CLAMPED : result:='INVERSE_DISTANCE_CLAMPED';
+      else result:='!!! UNKNOWN !!!!';
+    end;
   end;
 
   function TwoVectorsToNiceStr(const tv:TALTwoVectors3f):string;
   begin
-   result:='at : ' +VectorToNiceStr(tv[0]) +', up : ' +VectorToNiceStr(tv[1]);
+    result:='at : ' +VectorToNiceStr(tv[0]) +', up : ' +VectorToNiceStr(tv[1]);
   end;
 
 var
@@ -123,78 +123,81 @@ var
 var
   TestSoundFileName: string;
 begin
- {$ifdef FORCE_COMPAT}
- alCreateSources(1, @SampleSource);
- alCreateBuffers(1, @SampleBuffer);
- {$else}
- alGenSources(1, @SampleSource);
- alGenBuffers(1, @SampleBuffer);
- {$endif}
+  {$ifdef FORCE_COMPAT}
+  alCreateSources(1, @SampleSource);
+  alCreateBuffers(1, @SampleBuffer);
+  {$else}
+  alGenSources(1, @SampleSource);
+  alGenBuffers(1, @SampleBuffer);
+  {$endif}
 
- Write(
-   'GetString --------------------------------', nl,
-   'VERSION : ', alGetString(AL_VERSION), nl,
-   'RENDERER : ', alGetString(AL_RENDERER), nl,
-   'VENDOR : ', alGetString(AL_VENDOR), nl,
-   'EXTENSIONS : ', alGetString(AL_EXTENSIONS), nl,
+  try
+    Write(
+      'GetString --------------------------------', nl,
+      'VERSION : ', alGetString(AL_VERSION), nl,
+      'RENDERER : ', alGetString(AL_RENDERER), nl,
+      'VENDOR : ', alGetString(AL_VENDOR), nl,
+      'EXTENSIONS : ', alGetString(AL_EXTENSIONS), nl,
 
-   'ALC_DEFAULT_DEVICE_SPECIFIER : ', GetALCStringTrapped(ALC_DEFAULT_DEVICE_SPECIFIER), nl,
-   'ALC_DEVICE_SPECIFIER : ', GetALCStringTrapped(ALC_DEVICE_SPECIFIER), nl,
-   'ALC_EXTENSIONS : ', GetALCStringTrapped(ALC_EXTENSIONS), nl,
+      'ALC_DEFAULT_DEVICE_SPECIFIER : ', GetALCStringTrapped(ALC_DEFAULT_DEVICE_SPECIFIER), nl,
+      'ALC_DEVICE_SPECIFIER : ', GetALCStringTrapped(ALC_DEVICE_SPECIFIER), nl,
+      'ALC_EXTENSIONS : ', GetALCStringTrapped(ALC_EXTENSIONS), nl,
 
-   nl,
-   'ENUMERATION_EXT  --------------------------------', nl,
-   'alcIsExtensionPresent(ALC_ENUMERATION_EXT) : ', alcIsExtensionPresent(nil, 'ALC_ENUMERATION_EXT'), nl,
-   'improved test for ALC_ENUMERATION_EXT : ', EnumerationExtPresent, nl,
+      nl,
+      'ENUMERATION_EXT  --------------------------------', nl,
+      'alcIsExtensionPresent(ALC_ENUMERATION_EXT) : ', alcIsExtensionPresent(nil, 'ALC_ENUMERATION_EXT'), nl,
+      'improved test for ALC_ENUMERATION_EXT : ', EnumerationExtPresent, nl,
 
-   nl,
-   'Get globals --------------------------------', nl,
-   'DISTANCE_MODEL : ',DistanceModelToStr(alGetInteger(AL_DISTANCE_MODEL)), nl,
-   'DOPPLER_FACTOR : ',FloatToNiceStr(alGetFloat(AL_DOPPLER_FACTOR)), nl,
-   { Undocumented in al specs, and not valid in Creative Windows implementation.
-     Not checked in Linux implementation yet.
-   'DISTANCE_SCALE : ',FloatToNiceStr(alGetFloat(AL_DISTANCE_SCALE)), nl, }
-   'DOPPLER_VELOCITY : ',FloatToNiceStr(alGetFloat(AL_DOPPLER_VELOCITY)), nl,
-   nl,
-   'Listener state -------------------------------', nl,
-   'POSITION : ', VectorToNiceStr(alGetListener3f(AL_POSITION)), nl,
-   'VELOCITY : ', VectorToNiceStr(alGetListener3f(AL_VELOCITY)), nl,
-   'GAIN : ', FloatToNiceStr(alGetListener1f(AL_GAIN)), nl,
-   'ORIENTATION : ', TwoVectorsToNiceStr(alGetListenerOrientation), nl,
-   { ENVIRONMENT_IASIG }
-   nl,
-   SampleSourceState,
-   SampleBufferState
- );
+      nl,
+      'Get globals --------------------------------', nl,
+      'DISTANCE_MODEL : ',DistanceModelToStr(alGetInteger(AL_DISTANCE_MODEL)), nl,
+      'DOPPLER_FACTOR : ',FloatToNiceStr(alGetFloat(AL_DOPPLER_FACTOR)), nl,
+      { Undocumented in al specs, and not valid in Creative Windows implementation.
+        Not checked in Linux implementation yet.
+      'DISTANCE_SCALE : ',FloatToNiceStr(alGetFloat(AL_DISTANCE_SCALE)), nl, }
+      'DOPPLER_VELOCITY : ',FloatToNiceStr(alGetFloat(AL_DOPPLER_VELOCITY)), nl,
+      nl,
+      'Listener state -------------------------------', nl,
+      'POSITION : ', VectorToNiceStr(alGetListener3f(AL_POSITION)), nl,
+      'VELOCITY : ', VectorToNiceStr(alGetListener3f(AL_VELOCITY)), nl,
+      'GAIN : ', FloatToNiceStr(alGetListener1f(AL_GAIN)), nl,
+      'ORIENTATION : ', TwoVectorsToNiceStr(alGetListenerOrientation), nl,
+      { ENVIRONMENT_IASIG }
+      nl,
+      SampleSourceState,
+      SampleBufferState
+    );
 
- if Parameters.High > 0 then
- begin
-   TestSoundFileName := Parameters[1];
+    if Parameters.High > 0 then
+    begin
+      TestSoundFileName := Parameters[1];
 
-   TALSoundFile.alBufferDataFromFile(SampleBuffer, TestSoundFileName);
-   alSourcei(SampleSource, AL_BUFFER, SampleBuffer);
+      TALSoundFile.alBufferDataFromFile(SampleBuffer, TestSoundFileName);
+      alSourcei(SampleSource, AL_BUFFER, SampleBuffer);
 
-   Write(
-     '----------------------------------------------------------------', nl,
-     'after loading ', TestSoundFileName, ' to SampleBuffer and linking', nl,
-     '  SampleBuffer with SampleSource :', nl,
-     nl,
-     SampleSourceState,
-     SampleBufferState
-   );
+      Write(
+        '----------------------------------------------------------------', nl,
+        'after loading ', TestSoundFileName, ' to SampleBuffer and linking', nl,
+        '  SampleBuffer with SampleSource :', nl,
+        nl,
+        SampleSourceState,
+        SampleBufferState
+      );
+    end;
 
-   alDeleteSources(1, @SampleSource);
-   alDeleteBuffers(1, @SampleBuffer);
- end;
+  finally
+    alDeleteSources(1, @SampleSource);
+    alDeleteBuffers(1, @SampleBuffer);
+  end;
 
- CheckAL('Gets');
+  CheckAL('Gets');
 end;
 
 begin
- OpenALOptionsParse;
+  OpenALOptionsParse;
 
- BeginAL(false);
- try
-  Gets;
- finally EndAL end;
+  BeginAL(false);
+  try
+    Gets;
+  finally EndAL end;
 end.

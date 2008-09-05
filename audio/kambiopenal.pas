@@ -204,6 +204,7 @@ const
       {$endif}
     {$endif}
     {$ifdef MSWINDOWS} {TODO: fix for win64?} 'OpenAL32.dll' {$endif};
+  OpenALDLLAlt = {$ifdef UNIX} 'libopenal.so.1' {$else} '' {$endif};
 
 { Reset OpenAL library.
 
@@ -239,6 +240,13 @@ const
   OpenAL library initialization again. And things work correctly. }
 procedure OpenALRestart;
 
+{ Detect OpenAL SI (Sample Implementation) from Loki.
+  This was the most common implementation on most Unixes,
+  until OpenAL-soft came.
+
+  Use this only when ALInited, since this is just a call to some alcGetString. }
+function OpenALSampleImplementation: boolean;
+
 implementation
 
 uses KambiUtils, KambiTimeUtils, KambiDynLib;
@@ -264,6 +272,11 @@ begin
  end;
 end;
 
+function OpenALSampleImplementation: boolean;
+begin
+  Result := alGetString(AL_VENDOR) = 'J. Valenzuela';
+end;
+
 { unit init/fini ------------------------------------------------------------ }
 
 procedure OpenALInitialization; forward;
@@ -285,6 +298,8 @@ begin
  OpenALFinalization;
 
  ALLibrary := TDynLib.Load(OpenALDLL, false);
+ if (ALLibrary = nil) and (OpenALDLLAlt <> '') then
+   ALLibrary := TDynLib.Load(OpenALDLLAlt, false);
  ALInited := ALLibrary <> nil;
  ALUTInited := false; { I know it is initialized in unit's interface... but just to be sure... }
 
@@ -374,6 +389,38 @@ begin
   ProcVarCast(alcGetContextsDevice) := ALLibrary.Symbol('alcGetContextsDevice');
   ProcVarCast(alcGetString) := ALLibrary.Symbol('alcGetString');
   ProcVarCast(alcGetIntegerv) := ALLibrary.Symbol('alcGetIntegerv');
+
+  { --------------------------------------------------------------------------
+    ALC_xxx constants depending on Sample Implementation or not }
+  if OpenALSampleImplementation then
+  begin
+    ALC_FREQUENCY := $100;
+    ALC_REFRESH := $101;
+    ALC_SYNC := $102;
+
+    ALC_DEFAULT_DEVICE_SPECIFIER := $300;
+    ALC_DEVICE_SPECIFIER := $301;
+    ALC_EXTENSIONS := $302;
+
+    ALC_MAJOR_VERSION := $303;
+    ALC_MINOR_VERSION := $304;
+    ALC_ATTRIBUTES_SIZE := $305;
+    ALC_ALL_ATTRIBUTES := $306;
+  end else
+  begin
+    ALC_MAJOR_VERSION := $1000;
+    ALC_MINOR_VERSION := $1001;
+    ALC_ATTRIBUTES_SIZE := $1002;
+    ALC_ALL_ATTRIBUTES := $1003;
+
+    ALC_DEFAULT_DEVICE_SPECIFIER := $1004;
+    ALC_DEVICE_SPECIFIER := $1005;
+    ALC_EXTENSIONS := $1006;
+
+    ALC_FREQUENCY := $1007;
+    ALC_REFRESH := $1008;
+    ALC_SYNC := $1009;
+  end;
 
   ALUTInited := {$ifdef ALUT_IN_AL_LIB} true {$else} false {$endif};
   if ALUTInited then
