@@ -191,6 +191,16 @@
     public property FdreplaceNodes: TMFNode read FFdreplaceNodes;
   end;
 
+  TNodeKambiNavigationInfo = class(TNodeNavigationInfo)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdtimeOriginAtLoad: TSFBool;
+    public property FdtimeOriginAtLoad: TSFBool read FFdtimeOriginAtLoad;
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -497,6 +507,25 @@ begin
     end;
 end;
 
+constructor TNodeKambiNavigationInfo.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdtimeOriginAtLoad := TSFBool.Create(Self, 'timeOriginAtLoad', false);
+  Fields.Add(FFdtimeOriginAtLoad);
+end;
+
+class function TNodeKambiNavigationInfo.ClassNodeTypeName: string;
+begin
+  Result := 'KambiNavigationInfo';
+end;
+
+class function TNodeKambiNavigationInfo.URNMatching(const URN: string): boolean;
+begin
+  Result := (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
 procedure RegisterKambiNodes;
 begin
   NodesManager.RegisterNodeClasses([
@@ -505,7 +534,8 @@ begin
     TNodeText3D,
     TNodeBlendMode,
     TNodeKambiAppearance,
-    TNodeKambiInline
+    TNodeKambiInline,
+    TNodeKambiNavigationInfo
   ]);
 end;
 

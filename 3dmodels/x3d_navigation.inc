@@ -601,6 +601,8 @@ begin
   Fields.Add(FFdtransitionType);
   { X3D specification comment: ["TELEPORT","LINEAR","ANIMATE",...] }
 
+  { TODO: default value was ["WALK", "ANY"] in VRML 97.
+    X3D changed default value. }
   FFdtype := TMFString.Create(Self, 'type', ['EXAMINE', 'ANY']);
   Fields.Add(FFdtype);
   { X3D specification comment: ["ANY","WALK","EXAMINE","FLY","LOOKAT","NONE",...] }
