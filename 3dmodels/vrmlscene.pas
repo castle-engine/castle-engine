@@ -420,6 +420,29 @@ type
     FFogStack: TVRMLBindableStack;
     FNavigationInfoStack: TVRMLBindableStack;
     FViewpointStack: TVRMLBindableStack;
+
+    { Mechanism to schedule geometry changed calls.
+
+      Since DoGeometryChanged call may be costly (rebuilding the octree),
+      and it's not immediately needed by TVRMLScene or TVRMLNode hierarchy,
+      it's sometimes not desirable to call DoGeometryChanged immediately
+      when geometry changed.
+
+      This mechanism allows to defer calling DoGeometryChanged.
+      Idea: BeginGeometryChangedSchedule increases internal GeometrySchedule
+      counter, EndGeometryChangedSchedule decreases it and calls
+      actual DoGeometryChanged if counter is zero and some
+      ScheduleGeometryChanged was called in between.
+
+      When ScheduleGeometryChanged is called when counter is zero,
+      DoGeometryChanged is called immediately, so it's safe to always
+      use ScheduleGeometryChanged instead of direct DoGeometryChanged
+      in this class. }
+    GeometrySchedule: Cardinal;
+    GeometryChangedScheduled: boolean;
+    procedure BeginGeometryChangedSchedule;
+    procedure ScheduleGeometryChanged;
+    procedure EndGeometryChangedSchedule;
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
     destructor Destroy; override;
@@ -1003,7 +1026,7 @@ type
 
 implementation
 
-uses VRMLCameraUtils;
+uses VRMLCameraUtils, KambiStringUtils;
 
 {$define read_implementation}
 {$I macprecalcvaluereturn.inc}
@@ -1369,7 +1392,7 @@ begin
     end;
   finally FreeAndNil(ChangedAll_TraversedLights) end;
 
-  DoGeometryChanged;
+  ScheduleGeometryChanged;
   DoPostRedisplay;
 end;
 
@@ -1472,7 +1495,16 @@ begin
   end else
     Field := nil;
 
-  { Tests: Writeln('ChangedFields ', Node.ClassName, ' (', Node.NodeTypeName, ')'); }
+  { $define Changed_Fields_Log}
+  {$ifdef Changed_Fields_Log}
+  begin
+    Write(Format('ChangedFields: Node %s (%s %s) at %s',
+      [ Node.NodeName, Node.NodeTypeName, Node.ClassName, PointerToStr(Node) ]));
+    if Field <> nil then
+      Write(Format('. Field %s (%s)', [ Field.Name, Field.VRMLTypeName ]));
+    Writeln;
+  end;
+  {$endif Changed_Fields_Log}
 
   { Ignore this ChangedFields call if node is not in our VRML graph.
     Or is the inactive part. The definition of "active" part
@@ -1533,7 +1565,7 @@ begin
 
     { Another special thing about Coordinate node is that it changes
       actual geometry. }
-    DoGeometryChanged;
+    ScheduleGeometryChanged;
   end else
   if NodeLastNodesIndex <> -1 then
   begin
@@ -1583,7 +1615,7 @@ begin
     for i := 0 to ShapeStates.Count-1 do
       if ShapeStates[i].GeometryNode = Node then
         ChangedShapeStateFields(i, false);
-    DoGeometryChanged;
+    ScheduleGeometryChanged;
   end else
   if (Field <> nil) and Field.Transform then
   begin
@@ -1626,11 +1658,11 @@ begin
           nil, @TransformChangeTraverseAfter);
 
         if not TransformChange_AnythingChanged then
-          { No need to do DoGeometryChanged, not even DoPostRedisplay
+          { No need to do ScheduleGeometryChanged, not even DoPostRedisplay
             at the end. }
           Exit;
 
-        DoGeometryChanged;
+        ScheduleGeometryChanged;
       finally InitialState.Free end;
     except
       on BreakTransformChangeFailed do
@@ -2498,25 +2530,30 @@ var
 begin
   if ProcessEvents then
   begin
-    SomethingChanged := false;
+    BeginGeometryChangedSchedule;
+    try
+      SomethingChanged := false;
 
-    for I := 0 to MovieTextureNodes.Count - 1 do
-      (MovieTextureNodes.Items[I] as TNodeMovieTexture).
-        TimeDependentNodeHandler.SetWorldTime(
-          WorldTime, NewValue, TimeIncrease, SomethingChanged);
+      for I := 0 to MovieTextureNodes.Count - 1 do
+        (MovieTextureNodes.Items[I] as TNodeMovieTexture).
+          TimeDependentNodeHandler.SetWorldTime(
+            WorldTime, NewValue, TimeIncrease, SomethingChanged);
 
-    { If SomethingChanged on MovieTexture nodes, then we have to redisplay.
-      Note that this is not needed for other time-dependent nodes
-      (like TimeSensor), as they are not visible (and so can influence
-      other nodes only by events, and this will change EventChanged
-      to catch it). }
-    if SomethingChanged then
-      DoPostRedisplay;
+      { If SomethingChanged on MovieTexture nodes, then we have to redisplay.
+        Note that this is not needed for other time-dependent nodes
+        (like TimeSensor), as they are not visible (and so can influence
+        other nodes only by events, and this will change EventChanged
+        to catch it). }
+      if SomethingChanged then
+        DoPostRedisplay;
 
-    for I := 0 to TimeSensorNodes.Count - 1 do
-      (TimeSensorNodes.Items[I] as TNodeTimeSensor).
-        TimeDependentNodeHandler.SetWorldTime(
-          WorldTime, NewValue, TimeIncrease, SomethingChanged);
+      for I := 0 to TimeSensorNodes.Count - 1 do
+        (TimeSensorNodes.Items[I] as TNodeTimeSensor).
+          TimeDependentNodeHandler.SetWorldTime(
+            WorldTime, NewValue, TimeIncrease, SomethingChanged);
+    finally
+      EndGeometryChangedSchedule;
+    end;
   end;
 
   FWorldTime := NewValue;
@@ -2550,6 +2587,33 @@ begin
   if RootNode <> nil then
     RootNode.EnumerateNodes(@ResetRoutesLastEventTime, false);
   InternalSetWorldTime(NewValue, 0);
+end;
+
+{ geometry changes schedule -------------------------------------------------- }
+
+procedure TVRMLScene.BeginGeometryChangedSchedule;
+begin
+  { GeometryChangedScheduled = false always when GeometrySchedule = 0. }
+  Assert((GeometrySchedule <> 0) or (not GeometryChangedScheduled));
+
+  Inc(GeometrySchedule);
+end;
+
+procedure TVRMLScene.ScheduleGeometryChanged;
+begin
+  if GeometrySchedule = 0 then
+    DoGeometryChanged else
+    GeometryChangedScheduled := true;
+end;
+
+procedure TVRMLScene.EndGeometryChangedSchedule;
+begin
+  Dec(GeometrySchedule);
+  if (GeometrySchedule = 0) and GeometryChangedScheduled then
+  begin
+    DoGeometryChanged;
+    GeometryChangedScheduled := false;
+  end;
 end;
 
 end.
