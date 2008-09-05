@@ -1581,8 +1581,14 @@ begin
      ) then
     Exit;
 
-  { Ignore this ChangedFields call if you're changing some metadata
-    or WorldInfo nodes, since they don't affect actual content. }
+  { Ignore this ChangedFields call if you're changing
+    something that doesn't *directly* affect actual content:
+    - metadata field
+    - metadata or WorldInfo nodes
+    - sensors (they don't affect actual content directly --- only when
+      they are routed somewhere, and this will be eventually
+      detected in another ChangedFields call)
+  }
 
   if (Node is TNodeX3DNode) and
      (TNodeX3DNode(Node).FdMetadata = Field) then
@@ -1593,7 +1599,9 @@ begin
      (Node is TNodeMetadataInteger) or
      (Node is TNodeMetadataSet) or
      (Node is TNodeMetadataString) or
-     (Node is TNodeWorldInfo) then
+     (Node is TNodeWorldInfo) or
+     (Node is TNodeX3DPointingDeviceSensorNode) or
+     (Node is TNodeTimeSensor) then
     Exit;
 
   { Test other changes: }
