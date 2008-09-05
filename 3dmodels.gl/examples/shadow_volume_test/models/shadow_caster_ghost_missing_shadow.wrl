@@ -17,5 +17,5 @@ DEF ShadowCasterNav_Matrix MatrixTransform {
   Scale { scaleFactor 500 500 500 }
 
   #WWWInline { name "/win/mojepasy/openGL/castle/trunk/data/creatures/alien/alien_still_final.wrl" }
-  WWWInline { name "/win/mojepasy/openGL/castle/trunk/data/creatures/ghost/ghost_stand_1_final.wrl" }
+  WWWInline { name "../../../../../castle/data/creatures/ghost/ghost_stand_1_final.wrl" }
 }
