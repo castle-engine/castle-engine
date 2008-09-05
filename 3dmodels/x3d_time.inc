@@ -506,10 +506,14 @@ end;
 procedure TNodeTimeSensor.EventElapsedTimeReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
 begin
-  { TODO: for now, elapsedTime/CycleInterval is simply passed to set_fraction event. }
-  Eventfraction_changed.Send(
-    Single((Value as TSFTime).Value / CycleInterval), Time);
-  EventTime.Send(Time, Time);
+  if FdEnabled.Value then
+  begin
+    { TODO: for now, elapsedTime/CycleInterval 
+      is simply passed to set_fraction event. }
+    Eventfraction_changed.Send(
+      Single((Value as TSFTime).Value / CycleInterval), Time);
+    EventTime.Send(Time, Time);
+  end;
 end;
 
 procedure RegisterTimeNodes;
