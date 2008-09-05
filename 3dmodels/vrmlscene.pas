@@ -55,9 +55,6 @@ type
   { @exclude }
   TVRMLSceneValidities = set of TVRMLSceneValidity;
 
-  TViewpointFunction = procedure (Node: TVRMLViewpointNode;
-    const Transform: TMatrix4Single) of object;
-
   { Scene edge that is between exactly two triangles.
     It's used by @link(TVRMLScene.ManifoldEdges),
     and this is crucial for rendering silhouette shadow volumes in OpenGL. }
@@ -820,15 +817,6 @@ type
       const ViewpointDescription: string = ''):
       TVRMLViewpointNode;
     { @groupEnd }
-
-    { This enumerates all viewpoint nodes (any X3DViewpointNode
-      for VRML >= 2.0, PerspectiveCamera and OrthographicCamera for VRML 1.0)
-      in the scene graph.
-      For each such node, it calls ViewpointFunction.
-
-      Essentially, this is a trivial wrapper over RootNode.Traverse
-      that returns only TVRMLViewpointNode. }
-    procedure EnumerateViewpoints(ViewpointFunction: TViewpointFunction);
 
     { Currently bound fog for this scene.
 
@@ -2003,42 +1991,6 @@ end;
 { viewpoints ----------------------------------------------------------------- }
 
 type
-  TViewpointsSeeker = class
-    ViewpointFunction: TViewpointFunction;
-    procedure Seek(ANode: TVRMLNode; AState: TVRMLGraphTraverseState;
-      ParentInfo: PTraversingInfo);
-  end;
-
-  procedure TViewpointsSeeker.Seek(
-    ANode: TVRMLNode; AState: TVRMLGraphTraverseState;
-    ParentInfo: PTraversingInfo);
-  begin
-    ViewpointFunction(
-      TVRMLViewpointNode(ANode),
-      AState.Transform);
-  end;
-
-procedure TVRMLScene.EnumerateViewpoints(
-  ViewpointFunction: TViewpointFunction);
-var
-  InitialState: TVRMLGraphTraverseState;
-  Seeker: TViewpointsSeeker;
-begin
-  if RootNode <> nil then
-  begin
-    InitialState := TVRMLGraphTraverseState.Create;
-    try
-      Seeker := TViewpointsSeeker.Create;
-      try
-        Seeker.ViewpointFunction := ViewpointFunction;
-        RootNode.Traverse(InitialState, TVRMLViewpointNode,
-          {$ifdef FPC_OBJFPC} @ {$endif} Seeker.Seek);
-      finally FreeAndNil(Seeker) end;
-    finally FreeAndNil(InitialState) end;
-  end;
-end;
-
-type
   BreakFirstViewpointFound = class(TCodeBreaker);
 
   TFirstViewpointSeeker = class
@@ -2046,22 +1998,27 @@ type
     ViewpointDescription: string;
     FoundNode: TVRMLViewpointNode;
     FoundTransform: PMatrix4Single;
-    procedure Seek(Node: TVRMLViewpointNode;
-      const Transform: TMatrix4Single);
+    procedure Seek(Node: TVRMLNode;
+      State: TVRMLGraphTraverseState;
+      ParentInfo: PTraversingInfo);
   end;
 
   procedure TFirstViewpointSeeker.Seek(
-    Node: TVRMLViewpointNode;
-    const Transform: TMatrix4Single);
+    Node: TVRMLNode;
+    State: TVRMLGraphTraverseState;
+    ParentInfo: PTraversingInfo);
+  var
+    V: TVRMLViewpointNode;
   begin
+    V := Node as TVRMLViewpointNode;
     if ( (not OnlyPerspective) or
-         (Node.CameraKind = ckPerspective) ) and
+         (V.CameraKind = ckPerspective) ) and
        ( (ViewpointDescription = '') or
          ( (Node is TNodeX3DViewpointNode) and
            (TNodeX3DViewpointNode(Node).FdDescription.Value = ViewpointDescription) ) ) then
     begin
-      FoundTransform^ := Transform;
-      FoundNode := Node;
+      FoundTransform^ := V.Transform;
+      FoundNode := V;
       raise BreakFirstViewpointFound.Create;
     end;
   end;
@@ -2076,20 +2033,26 @@ var
   Seeker: TFirstViewpointSeeker;
 begin
   Result := nil;
-  Seeker := TFirstViewpointSeeker.Create;
-  try
-    Seeker.OnlyPerspective := OnlyPerspective;
-    Seeker.ViewpointDescription := ViewpointDescription;
-    Seeker.FoundTransform := @CamTransform;
+
+  if RootNode <> nil then
+  begin
+    Seeker := TFirstViewpointSeeker.Create;
     try
-      EnumerateViewpoints({$ifdef FPC_OBJFPC} @ {$endif} Seeker.Seek);
-    except
-      on BreakFirstViewpointFound do
-      begin
-        Result := Seeker.FoundNode;
+      Seeker.OnlyPerspective := OnlyPerspective;
+      Seeker.ViewpointDescription := ViewpointDescription;
+      Seeker.FoundTransform := @CamTransform;
+
+      try
+        RootNode.TraverseFromDefaultState(TVRMLViewpointNode,
+          {$ifdef FPC_OBJFPC} @ {$endif} Seeker.Seek);
+      except
+        on BreakFirstViewpointFound do
+        begin
+          Result := Seeker.FoundNode;
+        end;
       end;
-    end;
-  finally FreeAndNil(Seeker) end;
+    finally FreeAndNil(Seeker) end;
+  end;
 
   if Result <> nil then
   begin
