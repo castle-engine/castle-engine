@@ -592,6 +592,17 @@ type
     InsideInline: Cardinal;
     InsidePrototype: Cardinal;
     { @groupEnd }
+
+    { Active pointing device sensors in this state.
+      This can contain only nodes descending from
+      X3DPointingDeviceSensorNode, and additionally an Anchor node.
+
+      This list automatically honours VRML / X3D rules for what
+      pointing device sensor is active: pointing device within some
+      group node affects all children in this group node.
+      (And when multiple pointing device sensors are within the same
+      grouping node, they all work.) }
+    PointingDeviceSensors: TVRMLNodesList;
   end;
 
   PTraversingInfo = ^TTraversingInfo;
@@ -3373,6 +3384,7 @@ begin
   inherited Create;
   VRML1ActiveLights := TDynActiveLightArray.Create;
   VRML2ActiveLights := TDynActiveLightArray.Create;
+  PointingDeviceSensors := TVRMLNodesList.Create;
 end;
 
 constructor TVRMLGraphTraverseState.CreateCopy(Source: TVRMLGraphTraverseState);
@@ -3388,6 +3400,7 @@ begin
   InsideInline := Source.InsideInline;
   InsidePrototype := Source.InsidePrototype;
 
+  PointingDeviceSensors.Assign(Source.PointingDeviceSensors);
   VRML1ActiveLights.AppendDynArray(Source.VRML1ActiveLights);
   VRML2ActiveLights.AppendDynArray(Source.VRML2ActiveLights);
 end;
@@ -3425,6 +3438,7 @@ begin
 
   FreeAndNil(VRML1ActiveLights);
   FreeAndNil(VRML2ActiveLights);
+  FreeAndNil(PointingDeviceSensors);
 
   inherited;
 end;
@@ -3434,7 +3448,8 @@ function TVRMLGraphTraverseState.Equals(SecondValue: TVRMLGraphTraverseState):
 var
   I: Integer;
 begin
-  { InsideInline, InsidePrototype are currently ignored by Equals,
+  { InsideInline, InsidePrototype, PointingDeviceSensors
+    are currently ignored by Equals,
     since Equals is used for TVRMLOpenGLRenderer where difference
     in these is not important. This may be clarified in the interface
     and improved later. }
@@ -3463,6 +3478,7 @@ var
   I: Integer;
 begin
   { InsideInline, InsidePrototype,
+    PointingDeviceSensors,
     ActiveLights, Transform, AverageScaleTransform, InvertedTransform,
     TextureTransform are ignored by
     TVRMLOpenGLRenderer.RenderShapeStateNoTransform }

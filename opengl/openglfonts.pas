@@ -173,6 +173,17 @@ type
       const InsideCol, BorderCol, TextCol: TVector4f; Stipple: PPolygonStipple;
       BoxPixelMargin: integer; const XPixelsRes, YPixelsRes: TGLfloat); overload;
 
+    { Draw strings in a box frame at the top of the window.
+
+      WindowTop specifies the top pixel of the window.
+
+      WindowTopMargin is the height between box and WindowTop, also in pixels. }
+    procedure PrintStringsBorderedRectTop(
+      strs: TStringList; BonusVerticalSpace: TGLint;
+      const InsideCol, BorderCol, TextCol: TVector4f; Stipple: PPolygonStipple;
+      BoxPixelMargin: integer; const XPixelsRes, YPixelsRes: TGLfloat;
+      WindowTop, WindowTopMargin: TGLint);
+
     { Temporarily switch to 2d projection and print given string.
       This is a comfortable routine in demo programs that generally have 3d
       projection, and need to switch to 2d projection only to set raster
@@ -403,6 +414,30 @@ begin
     InsideCol, BorderCol, Stipple);
   glColorv(TextCol);
   PrintStrings(strs, BonusVerticalSpace, BoxPixelMargin, BoxPixelMargin + Descend);
+end;
+
+procedure TGLBitmapFont_Abstract.PrintStringsBorderedRectTop(
+  strs: TStringList; BonusVerticalSpace: TGLint;
+  const InsideCol, BorderCol, TextCol: TVector4f; Stipple: PPolygonStipple;
+  BoxPixelMargin: integer; const XPixelsRes, YPixelsRes: TGLfloat;
+  WindowTop, WindowTopMargin: TGLint);
+var
+  X2, Y2: Integer;
+begin
+  X2 := MaxTextWidth(Strs) + 2 * BoxPixelMargin;
+  Y2 := (RowHeight + BonusVerticalSpace) * Strs.Count +
+    2 * BoxPixelMargin + Descend;
+  DrawGLBorderedRectangle(0,
+    (WindowTop - WindowTopMargin * 2 - Y2) / YPixelsRes,
+    X2 / XPixelsRes,
+    (WindowTop - WindowTopMargin) / YPixelsRes,
+    InsideCol, BorderCol, Stipple);
+  glColorv(TextCol);
+  glPushMatrix;
+    glTranslatef(0, (WindowTop - WindowTopMargin - Y2)  / YPixelsRes, 0);
+    PrintStrings(strs, BonusVerticalSpace, BoxPixelMargin,
+      BoxPixelMargin + Descend);
+  glPopMatrix;
 end;
 
 procedure TGLBitmapFont_Abstract.PrintStringsBorderedRect(

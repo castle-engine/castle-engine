@@ -443,6 +443,11 @@ type
     procedure BeginGeometryChangedSchedule;
     procedure ScheduleGeometryChanged;
     procedure EndGeometryChangedSchedule;
+
+    FPointingDeviceOverItem: POctreeItem;
+    FPointingDeviceActive: boolean;
+    FPointingDeviceActiveSensor: TNodeX3DPointingDeviceSensorNode;
+    procedure SetPointingDeviceActive(const Value: boolean);
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
     destructor Destroy; override;
@@ -945,6 +950,61 @@ type
 
     procedure KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans);
     procedure KeyUp(Key: TKey);
+
+    { Call this to when pointing-device moves.
+      This may generate the continously-generated events like
+      hitPoint_changed, also it updates PointingDeviceOverItem,
+      thus producing isOver and such events. }
+    procedure PointingDeviceMove(const OverPoint: TVector3Single;
+      const OverItem: POctreeItem);
+
+    { Current item over which the pointing device is. @nil if over none.
+      For example, you can investigate it's pointing device sensors
+      (in PointingDeviceOverItem^.State.PointingDeviceSensors),
+      although there's a shortcut for just this in @link(PointingDeviceSensors).
+      You can change this by PointingDeviceMove and PointingDeviceClear. }
+    property PointingDeviceOverItem: POctreeItem
+      read FPointingDeviceOverItem write FPointingDeviceOverItem;
+
+    { Pointing-device sensors over which the pointing device is.
+      This is just a shortcut for
+      PointingDeviceOverItem^.State.PointingDeviceSensors,
+      returning @nil if PointingDeviceOverItem = @nil. }
+    function PointingDeviceSensors: TVRMLNodesList;
+
+    { Currently active sensor. @nil if none.
+      Always @nil when PointingDeviceActive = @false.
+
+      Note that sensor specified here doesn't have to be one of the sensors of
+      PointingDeviceOverItem. When some sensor is activated, it grabs
+      further events until it's deactivated (like you set
+      PointingDeviceActive := false, which means that user released mouse
+      button). This means that when user moves the mouse while given
+      sensor is active, he can move mouse over other items, even the ones
+      where the sensor isn't listen --- but the sensor remains active. }
+    property PointingDeviceActiveSensor: TNodeX3DPointingDeviceSensorNode
+      read FPointingDeviceActiveSensor;
+
+    { Clear any references to OverItem passed previously to PointingDeviceMove.
+      This is sometimes useful, because PointingDeviceMove may save
+      the last passed OverItem, and SetPointingDeviceActive may even
+      save some sensor of it for a longer time.
+
+      You could free it by calling
+      @code(PointingDeviceMove(nil)), but this could cause other VRML events,
+      so it's undesirable to call this when you're going to e.g. release
+      the scene or it's octree. Also, you would have to deactivate sensor
+      first, causing even more events.
+
+      So this method clears any references to saved OverItem and
+      PointingDeviceActiveSensor, without calling any events. }
+    procedure PointingDeviceClear;
+
+    { Change this to indicate whether pointing device is currently active
+      (for example, mouse button is pressed down) or not. }
+    property PointingDeviceActive: boolean
+      read FPointingDeviceActive
+      write SetPointingDeviceActive default false;
 
     { These change world time, see WorldTime.
       It is crucial that you call this continously to have some VRML
@@ -2438,10 +2498,13 @@ begin
       FreeAndNil(TimeSensorNodes);
       FreeAndNil(MovieTextureNodes);
       UnregisterProcessEvents(RootNode);
+      PointingDeviceClear;
     end;
     FProcessEvents := Value;
   end;
 end;
+
+{ key sensors handling ------------------------------------------------------- }
 
 { Convert TKey to VRML "action" key code.
   As defined by X3D KeySensor node specification. }
@@ -2514,6 +2577,210 @@ begin
       end;
     end;
   end;
+end;
+
+{ pointing device handling --------------------------------------------------- }
+
+procedure TVRMLScene.PointingDeviceMove(const OverPoint: TVector3Single;
+  const OverItem: POctreeItem);
+var
+  TouchSensor: TNodeTouchSensor;
+  OldIsOver, NewIsOver: boolean;
+  OldSensors: TVRMLNodesList;
+  NewSensors: TVRMLNodesList;
+  I: Integer;
+begin
+  if ProcessEvents then
+  begin
+    BeginGeometryChangedSchedule;
+    try
+      { Handle isOver events }
+
+      if PointingDeviceOverItem <> OverItem then
+      begin
+        if PointingDeviceActiveSensor <> nil then
+        begin
+          Assert(PointingDeviceActive);
+
+          { This is quite special situation, as it means that
+            PointingDeviceActiveSensor has grabbed all events.
+            isOver (either TRUE or FALSE) may be generated for active
+            sensor, but no other sensors should receive any events. }
+
+          if (PointingDeviceActiveSensor is TNodeX3DPointingDeviceSensorNode) and
+            TNodeX3DPointingDeviceSensorNode(PointingDeviceActiveSensor).FdEnabled.Value then
+          begin
+            OldIsOver := (PointingDeviceOverItem <> nil) and
+              (PointingDeviceOverItem^.State.PointingDeviceSensors.
+                IndexOf(PointingDeviceActiveSensor) <> -1);
+
+            NewIsOver := (OverItem <> nil) and
+              (OverItem^.State.PointingDeviceSensors.
+                IndexOf(PointingDeviceActiveSensor) <> -1);
+
+            if OldIsOver <> NewIsOver then
+            begin
+              if NewIsOver then
+                PointingDeviceActiveSensor.EventIsOver.Send(true, WorldTime) else
+                PointingDeviceActiveSensor.EventIsOver.Send(false, WorldTime);
+            end;
+          end;
+        end else
+        if (PointingDeviceOverItem <> nil) and
+           (OverItem <> nil) then
+        begin
+          OldSensors := PointingDeviceOverItem^.State.PointingDeviceSensors;
+          NewSensors := OverItem^.State.PointingDeviceSensors;
+
+          { TODO: X3D spec says about isOver events that
+            "Events are not generated if the geometry itself is
+            animating and moving underneath the pointing device."
+            but doing this is complicated, and would force me to do
+            raycollision twice for each MouseMove (to get
+            OverPointBeforeMove and OverPoint). }
+
+          for I := 0 to OldSensors.Count - 1 do
+            if NewSensors.IndexOf(OldSensors[I]) = -1 then
+            begin
+              if (OldSensors[I] is TNodeX3DPointingDeviceSensorNode) and
+                TNodeX3DPointingDeviceSensorNode(OldSensors[I]).FdEnabled.Value then
+                TNodeX3DPointingDeviceSensorNode(OldSensors[I]).EventIsOver.Send(false, WorldTime);
+            end;
+
+          for I := 0 to NewSensors.Count - 1 do
+            if OldSensors.IndexOf(NewSensors[I]) = -1 then
+            begin
+              if (NewSensors[I] is TNodeX3DPointingDeviceSensorNode) and
+                TNodeX3DPointingDeviceSensorNode(NewSensors[I]).FdEnabled.Value then
+                TNodeX3DPointingDeviceSensorNode(NewSensors[I]).EventIsOver.Send(true, WorldTime);
+            end;
+        end else
+        if PointingDeviceOverItem <> nil then
+        begin
+          { So we previously pointed as something, and now at nothing.
+            So simply call isOver = FALSE for all. }
+
+          OldSensors := PointingDeviceOverItem^.State.PointingDeviceSensors;
+
+          for I := 0 to OldSensors.Count - 1 do
+            if (OldSensors[I] is TNodeX3DPointingDeviceSensorNode) and
+              TNodeX3DPointingDeviceSensorNode(OldSensors[I]).FdEnabled.Value then
+              TNodeX3DPointingDeviceSensorNode(OldSensors[I]).EventIsOver.Send(false, WorldTime);
+        end else
+        begin
+          Assert(OverItem <> nil);
+
+          { So we previously pointed as nothing, and now at something.
+            So simply call isOver = TRUE for all. }
+
+          NewSensors := OverItem^.State.PointingDeviceSensors;
+
+          for I := 0 to NewSensors.Count - 1 do
+            if (NewSensors[I] is TNodeX3DPointingDeviceSensorNode) and
+              TNodeX3DPointingDeviceSensorNode(NewSensors[I]).FdEnabled.Value then
+              TNodeX3DPointingDeviceSensorNode(NewSensors[I]).EventIsOver.Send(true, WorldTime);
+        end;
+
+        FPointingDeviceOverItem := OverItem;
+      end;
+
+      { Handle hitXxx_changed events }
+
+      if OverItem <> nil then
+      begin
+        NewSensors := OverItem^.State.PointingDeviceSensors;
+
+        for I := 0 to NewSensors.Count - 1 do
+          if NewSensors[I] is TNodeTouchSensor then
+          begin
+            TouchSensor := TNodeTouchSensor(NewSensors[I]);
+            if TouchSensor.FdEnabled.Value then
+            begin
+              TouchSensor.EventHitPoint_Changed.Send(
+                { hitPoint_changed event wants a point in local coords,
+                  we can get this by InverseTransform. }
+                MultMatrixPoint(OverItem^.State.InvertedTransform, OverPoint), WorldTime);
+
+              { The best normal I can generate for now is flat normal
+                for the hit triangle. }
+              TouchSensor.EventHitNormal_Changed.Send(
+                OverItem^.TriangleNormal, WorldTime);
+
+              { TODO: hitTexCoord_changed generation should also be done
+                here, but honestly I just cannot do this with current
+                information. Triangulation must be much improved to
+                provide this. }
+            end;
+          end;
+      end;
+    finally
+      EndGeometryChangedSchedule;
+    end;
+  end;
+end;
+
+procedure TVRMLScene.PointingDeviceClear;
+begin
+  FPointingDeviceOverItem := nil;
+  FPointingDeviceActive := false;
+  FPointingDeviceActiveSensor := nil;
+end;
+
+procedure TVRMLScene.SetPointingDeviceActive(const Value: boolean);
+var
+  ToActivate: TVRMLNode;
+begin
+  if ProcessEvents and (FPointingDeviceActive <> Value) then
+  begin
+    BeginGeometryChangedSchedule;
+    try
+      FPointingDeviceActive := Value;
+      if Value then
+      begin
+        if (PointingDeviceOverItem <> nil) and
+           (PointingDeviceOverItem^.State.PointingDeviceSensors.Count <> 0) then
+        begin
+          ToActivate := PointingDeviceOverItem^.State.PointingDeviceSensors[0];
+          if ToActivate is TNodeX3DPointingDeviceSensorNode then
+          begin
+            FPointingDeviceActiveSensor :=
+              TNodeX3DPointingDeviceSensorNode(ToActivate);
+            PointingDeviceActiveSensor.EventIsActive.Send(true, WorldTime);
+          end else
+          if ToActivate is TNodeAnchor then
+          begin
+            { TODO: handle anchor node }
+          end;
+        end;
+      end else
+      begin
+        { Deactivate PointingDeviceActiveSensor (if any) }
+        if PointingDeviceActiveSensor <> nil then
+        begin
+          PointingDeviceActiveSensor.EventIsActive.Send(false, WorldTime);
+          { If we're still over the sensor, generate touchTime for TouchSensor }
+          if (PointingDeviceOverItem <> nil) and
+             (PointingDeviceOverItem^.State.PointingDeviceSensors.
+               IndexOf(PointingDeviceActiveSensor) <> -1) and
+             (PointingDeviceActiveSensor is TNodeTouchSensor) then
+          begin
+            TNodeTouchSensor(PointingDeviceActiveSensor).
+              EventTouchTime.Send(WorldTime, WorldTime);
+          end;
+          FPointingDeviceActiveSensor := nil;
+        end;
+      end;
+    finally
+      EndGeometryChangedSchedule;
+    end;
+  end;
+end;
+
+function TVRMLScene.PointingDeviceSensors: TVRMLNodesList;
+begin
+  if PointingDeviceOverItem <> nil then
+    Result := PointingDeviceOverItem^.State.PointingDeviceSensors else
+    Result := nil;
 end;
 
 { WorldTime stuff ------------------------------------------------------------ }

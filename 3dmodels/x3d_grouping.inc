@@ -249,6 +249,7 @@ type
   TGeneralGroupingEnumerator = class
     Lights: TDynActiveLightArray;
     State: TVRMLGraphTraverseState;
+    WasPointingDeviceSensor: boolean;
     procedure EnumerateChildrenFunction(Node, Child: TVRMLNode);
   end;
 
@@ -262,7 +263,19 @@ type
         change inside (TNodeDirectionalLight doesn't do anything inside
         BeforeTraverse), so this is the same thing. }
       State.VRML2ActiveLights.AppendItem(
-        TVRMLDirectionalLightNode(Child).CreateActiveLight(State));
+        TVRMLDirectionalLightNode(Child).CreateActiveLight(State)) else
+    if Child is TNodeX3DPointingDeviceSensorNode then
+    begin
+      { Testing for WasPointingDeviceSensor guarantees that multiple
+        pointing devices within the same grouping node will all work. }
+      if not WasPointingDeviceSensor then
+      begin
+        State.PointingDeviceSensors.Clear;
+        WasPointingDeviceSensor := true;
+      end;
+
+      State.PointingDeviceSensors.Add(Child);
+    end;
   end;
 
 procedure TVRMLGroupingNode.BeforeTraverse(
@@ -319,9 +332,33 @@ begin
     It would be quite more convoluted and much slower than
     simple, correct solution below. *)
 
+  { We also use it to collect State.PointingDeviceSensors,
+    as it turns our that the same approach is possible, for the same reasons.
+    Moreover, we do it all in a single DirectEnumerateActive call,
+    so this doesn't slow down the code.
+  }
+
+  { It's a little unclean to test "Self is ...", since usually virtual
+    methods should replace this. But in this case, this is (for now)
+    the simplest solution. Anchor node serves as a pointing device
+    for all it's children, so it just places itself in
+    State.PointingDeviceSensors.
+
+    Note that if Anchor node itself has other pointing device sensors
+    inside, they will override the Anchor --- as far as I know, this
+    is what VRML specificaion expects? (if not, we should just set
+    Enumerator.WasPointingDeviceSensor := true when inside Anchor,
+    so the solution will be trivial). }
+  if Self is TNodeAnchor then
+  begin
+    State.PointingDeviceSensors.Clear;
+    State.PointingDeviceSensors.Add(Self);
+  end;
+
   Enumerator := TGeneralGroupingEnumerator.Create;
   try
     Enumerator.State := State;
+    Enumerator.WasPointingDeviceSensor := false;
     DirectEnumerateActive(
       {$ifdef FPC_OBJFPC} @ {$endif} Enumerator.EnumerateChildrenFunction);
   finally FreeAndNil(Enumerator) end;
