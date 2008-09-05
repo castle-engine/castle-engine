@@ -733,45 +733,48 @@ end;
 procedure TTriangleOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
 var
   AddedSomewhere: boolean;
+  Triangle: PTriangle3Single;
 
-  procedure PutIntoSubNode(SubNode: TOctreeNode; PItem: POctreeItem);
+  procedure JustAdd(SubNode: TOctreeNode);
   begin
-    if IsBox3dTriangleCollision(SubNode.Box, PItem^.Triangle) then
-    begin
-      SubNode.AddItem(ItemIndex);
-      AddedSomewhere := true;
-    end;
+    SubNode.AddItem(ItemIndex);
+    AddedSomewhere := true;
   end;
 
-  procedure PutItemIntoSubNodesLazy(PItem: POctreeItem);
-
-    procedure OCTREE_STEP_INTO_SUBNODES_PROC(SubNode: TOctreeNode;
-      var Stop: boolean);
+  procedure SecondTestAndAdd(SubNode: TOctreeNode);
+  begin
+    if IsBox3dTriangleCollision(SubNode.Box, Triangle^) then
     begin
       SubNode.AddItem(ItemIndex);
       AddedSomewhere := true;
     end;
-
-  OCTREE_STEP_INTO_SUBNODES_DECLARE
-  begin
-    OSIS_Box := TriangleBoundingBox(PItem^.Triangle);
-    OCTREE_STEP_INTO_SUBNODES
   end;
 
 var
-  PItem: POctreeItem;
+  OSIS_b_low, OSIS_b_high: TOctreeSubnodeIndex;
+  OSIS_b_0, OSIS_b_1, OSIS_b_2: boolean;
 begin
   AddedSomewhere := false;
 
-  PItem := ParentTree.OctreeItems.Pointers[ItemIndex];
-  PutIntoSubNode(TreeSubNodes[false, false, false], PItem);
-  PutIntoSubNode(TreeSubNodes[false, false, true ], PItem);
-  PutIntoSubNode(TreeSubNodes[false, true , false], PItem);
-  PutIntoSubNode(TreeSubNodes[false, true , true ], PItem);
-  PutIntoSubNode(TreeSubNodes[true , false, false], PItem);
-  PutIntoSubNode(TreeSubNodes[true , false, true ], PItem);
-  PutIntoSubNode(TreeSubNodes[true , true , false], PItem);
-  PutIntoSubNode(TreeSubNodes[true , true , true ], PItem);
+  Triangle := @(ParentTree.OctreeItems.Items[ItemIndex].Triangle);
+
+  { First prototype of this just run SecondTestAndAdd 8 times, without
+    initial SubnodesWithBox checking. It turns out that it's faster
+    to do SubnodesWithBox first, this way we eliminate many calls
+    to IsBox3dTriangleCollision.
+
+    Tests on http://www.web3d.org/x3d/content/examples/Basic/HumanoidAnimation/BoxMan.wrl :
+    Around 6.20 / 2.41 =~ 2.5 faster.
+    Tests on ../../castle/data/levels/gate/gate_final.wrl
+    Around 27.8 / 12.5 =~ 2.2 faster.
+  }
+
+  SubnodesWithBox(TriangleBoundingBox(Triangle^), OSIS_b_low, OSIS_b_high);
+
+  for OSIS_b_0 := OSIS_b_low[0] to OSIS_b_high[0] do
+    for OSIS_b_1 := OSIS_b_low[1] to OSIS_b_high[1] do
+      for OSIS_b_2 := OSIS_b_low[2] to OSIS_b_high[2] do
+        SecondTestAndAdd(TreeSubNodes[OSIS_b_0, OSIS_b_1, OSIS_b_2]);
 
   if not AddedSomewhere then
   begin
@@ -794,7 +797,11 @@ begin
       result in inserting the triangle into more nodes than
       necessary --- but that's not a problem (such triangle
       happens seldom, so it doesn't really make octree less optimal)). }
-    PutItemIntoSubNodesLazy(PItem);
+
+    for OSIS_b_0 := OSIS_b_low[0] to OSIS_b_high[0] do
+      for OSIS_b_1 := OSIS_b_low[1] to OSIS_b_high[1] do
+        for OSIS_b_2 := OSIS_b_low[2] to OSIS_b_high[2] do
+          JustAdd(TreeSubNodes[OSIS_b_0, OSIS_b_1, OSIS_b_2]);
   end;
 
 {  Assert(AddedSomewhere,
