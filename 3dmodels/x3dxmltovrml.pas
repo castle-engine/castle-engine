@@ -405,6 +405,18 @@ const
             begin
               Child.PositionInParent := PositionInParent;
               FieldIndex := Node.Fields.IndexOf(ContainerField);
+
+              if (FieldIndex = -1) and
+                 (ContainerField <> Child.DefaultContainerField) and
+                 (Child.DefaultContainerField <> '') then
+              begin
+                { Retry with DefaultContainerField value, since it exists
+                  and is different than current ContainerField. }
+                FieldIndex := Node.Fields.IndexOf(Child.DefaultContainerField);
+                if FieldIndex >= 0 then
+                  VRMLNonFatalError('X3D XML: containerField indicated unknown field name ("' + ContainerField + '" by node "' + Child.NodeTypeName + '" inside node "' + Node.NodeTypeName + '"), using the default containerField value "' + Child.DefaultContainerField + '" succeded');
+              end;
+
               if FieldIndex >= 0 then
               begin
                 if Node.Fields[FieldIndex] is TSFNode then
