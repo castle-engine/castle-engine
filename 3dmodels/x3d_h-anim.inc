@@ -322,9 +322,10 @@ begin
 
   FFdskeleton := TMFNode.Create(Self, 'skeleton', [TNodeHAnimJoint, TNodeHAnimSite]);
   Fields.Add(FFdskeleton);
-  { HAnim 200x specification examples are, uhm, nonsensible.
-    They specify PROTOtypes which suggest that main field name is
-    "humanoidBody", while "skeleton" is actually specified. }
+
+  { HAnim 1.1 specificaion uses "humanoidBody" instead of "skeleton",
+    also HAnim 200x specification examples show usage of this (although
+    HAnim 200x specs talks only about "skeleton"). }
   Fdskeleton.AddAlternativeName('humanoidBody', 0);
 
   FFdskin := TMFNode.Create(Self, 'skin', [TNodeX3DChildNode]);
