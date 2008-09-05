@@ -1329,6 +1329,7 @@ begin
   CursorHandles[gcStandard].NameForLoadCursor := IDC_ARROW;
   CursorHandles[gcWait].NameForLoadCursor := IDC_WAIT;
   CursorHandles[gcText].NameForLoadCursor := IDC_IBEAM;
+  CursorHandles[gcHand].NameForLoadCursor := IDC_HAND;
 
   { initialize Handle for CursorHandles }
 

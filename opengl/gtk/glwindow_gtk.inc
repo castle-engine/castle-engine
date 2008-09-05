@@ -731,8 +731,13 @@ const
     TGdkCursorType =
   ( { I think that GDK_ARROW was traditionally standard under XWindows
       (right-top arrow), but then gtk changed standard to much more standard
-      left-top arrow in GDK_LEFT_PTR. }
-    GDK_LEFT_PTR, GDK_WATCH, GDK_XTERM );
+      left-top arrow in GDK_LEFT_PTR.
+
+      See for example
+      http://library.gnome.org/devel/gdk/stable/gdk-Cursors.html
+      for the list.
+    }
+    GDK_LEFT_PTR, GDK_WATCH, GDK_XTERM, GDK_HAND2 );
 begin
   if Glwm.Cursors[Cursor] = nil then
   begin

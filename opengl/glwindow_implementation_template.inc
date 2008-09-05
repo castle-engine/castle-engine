@@ -107,7 +107,7 @@ end;
 { TGLWindow.*Dialog ---------------------------------------------------------- }
 
 function TGLWindow.FileDialog(const Title: string; var FileName: string;
-  OpenDialog: boolean): boolean;
+  OpenDialog: boolean; FileFilters: TFileFiltersList): boolean;
 begin
   { TODO }
 end;

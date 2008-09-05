@@ -374,7 +374,7 @@ procedure TGLWindow.UpdateCursor;
 
 const
   XCursorShapeFromMy: array [gcStandard .. High(TGLWindowCursor)] of LongWord =
-  ( XC_left_ptr, XC_watch, XC_xterm );
+  ( XC_left_ptr, XC_watch, XC_xterm, XC_hand2 );
 begin
   { TODO: for now gcCustom is treated like gcDefault }
   if (Cursor = gcDefault) or (Cursor = gcCustom) then

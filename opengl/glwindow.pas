@@ -785,7 +785,9 @@ type
     gcWait,
     { Text cursor, indicates that there's text under the cursor, which commonly means
       that it can be selectec, or that user can click to gain focus to text box. }
-    gcText);
+    gcText,
+    { Indicates something active is under cursor, usually for links. }
+    gcHand);
 
   {$define read_interface_types}
   {$I glwindow_implementation_specific.inc}
