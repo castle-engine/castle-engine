@@ -2620,9 +2620,7 @@ begin
 
             if OldIsOver <> NewIsOver then
             begin
-              if NewIsOver then
-                PointingDeviceActiveSensor.EventIsOver.Send(true, WorldTime) else
-                PointingDeviceActiveSensor.EventIsOver.Send(false, WorldTime);
+              PointingDeviceActiveSensor.EventIsOver.Send(NewIsOver, WorldTime);
             end;
           end;
         end else
