@@ -151,10 +151,10 @@ type
 
     { A really simple (but good enough for now) implementation of
       AddAlternativeName:
-      - there are only 1, 2, and 3 VRML major versions
+      - there are only 0 (none), 1, 2, and 3 VRML major versions
       - each VRML major version has exactly one alt name
       - alt name is never '' ('' means that alt name doesn't exist) }
-    FAlternativeNames: array [1..3] of string;
+    FAlternativeNames: array [0..3] of string;
 
     FParentNode: TVRMLFileItem;
     FParentInterfaceDeclaration: TVRMLFileItem;
@@ -204,6 +204,10 @@ type
       of this field/event. In some cases, when reading, we may also allow
       all versions (both original and alternative), but this is mostly
       for implementation simplicity --- don't count on it.
+
+      A special value 0 for VrmlMajorVersion means that this is just
+      an alternative name, that should be allowed when reading (as alternative
+      to normal Name), and never used when writing.
 
       Alternative names is a very handy mechanism for cases when
       the only thing that changed between VRML versions is the field
@@ -275,6 +279,8 @@ type
 
     procedure ExposedEventReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TKamTime);
+
+    FTransform: boolean;
   protected
 
     { Save field value to a stream. Must be overriden for each specific
@@ -538,6 +544,12 @@ type
 
     procedure AddAlternativeName(const AlternativeName: string;
       VrmlMajorVersion: Integer); override;
+
+    { Does this field specify a transformation (and nothing else) for
+      children of ParentNode? This is useful for optimizing changes
+      to VRML >= 2.0 Transform, Joint, Humanoid etc. nodes. }
+    property Transform: boolean read FTransform write FTransform
+      default false;
   end;
 
   TVRMLFieldClass = class of TVRMLField;

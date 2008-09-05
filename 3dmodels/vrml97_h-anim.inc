@@ -1,0 +1,179 @@
+{
+  Copyright 2008 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+}
+
+{ VRML 97 nodes for HAnim 1.0 and 200x specifications.
+
+  For X3D there's different file, x3d_h-anim, as for X3D nodes are
+  prefixed with "HAnim" before their name.
+
+  VRML 97 nodes actually inherit from X3D nodes, so you should write
+  your code to use X3D nodes (like TNodeHAnimDisplacer) and then VRML 97
+  versions will also be handled automatically. }
+{ }
+
+{$ifdef read_interface}
+  TNodeDisplacer = class(TNodeHAnimDisplacer)
+  public
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+  end;
+
+  TNodeHumanoid = class(TNodeHAnimHumanoid)
+  public
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+  end;
+
+  TNodeJoint = class(TNodeHAnimJoint)
+  public
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+  end;
+
+  TNodeSegment = class(TNodeHAnimSegment)
+  public
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+  end;
+
+  TNodeSite = class(TNodeHAnimSite)
+  public
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+  end;
+{$endif read_interface}
+
+{$ifdef read_implementation}
+class function TNodeDisplacer.ClassNodeTypeName: string;
+begin
+  Result := 'Displacer';
+end;
+
+function TNodeDisplacer.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 3000);
+end;
+
+class function TNodeDisplacer.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
+class function TNodeHumanoid.ClassNodeTypeName: string;
+begin
+  Result := 'Humanoid';
+end;
+
+function TNodeHumanoid.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 3000);
+end;
+
+class function TNodeHumanoid.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
+class function TNodeJoint.ClassNodeTypeName: string;
+begin
+  Result := 'Joint';
+end;
+
+function TNodeJoint.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 3000);
+end;
+
+class function TNodeJoint.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
+class function TNodeSegment.ClassNodeTypeName: string;
+begin
+  Result := 'Segment';
+end;
+
+function TNodeSegment.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 3000);
+end;
+
+class function TNodeSegment.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
+class function TNodeSite.ClassNodeTypeName: string;
+begin
+  Result := 'Site';
+end;
+
+function TNodeSite.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 3000);
+end;
+
+class function TNodeSite.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
+procedure RegisterVRML97HAnimNodes;
+begin
+  NodesManager.RegisterNodeClasses([
+    TNodeDisplacer,
+    TNodeHumanoid,
+    TNodeJoint,
+    TNodeSegment,
+    TNodeSite
+  ]);
+end;
+{$endif read_implementation}

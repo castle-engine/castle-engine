@@ -2303,6 +2303,7 @@ type
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
 {$I vrml97nodes.inc}
+{$I vrml97_h-anim.inc}
 {$I vrmlkambinodes.inc}
 {$I vrml_avalon_nodes.inc}
 
@@ -3253,6 +3254,7 @@ uses
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
 {$I vrml97nodes.inc}
+{$I vrml97_h-anim.inc}
 {$I vrmlkambinodes.inc}
 {$I vrml_avalon_nodes.inc}
 
@@ -7615,6 +7617,7 @@ initialization
   RegistedInventorNodes;
   RegisterVRML1Nodes;
   RegisterVRML97Nodes;
+  RegisterVRML97HAnimNodes;
   RegisterKambiNodes;
   RegisterAvalonNodes;
 

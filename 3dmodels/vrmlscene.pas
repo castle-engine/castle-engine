@@ -1585,12 +1585,13 @@ begin
         ChangedShapeStateFields(i, false);
     DoGeometryChanged;
   end else
-  if (Node is TNodeTransform_2) and
-     (TNodeTransform_2(Node).FdChildren <> Field) and
-     (TNodeTransform_2(Node).EventAddChildren <> FieldOrEvent) and
-     (TNodeTransform_2(Node).EventRemoveChildren <> FieldOrEvent) then
+  if (Field <> nil) and Field.Transform then
   begin
-    { In the simple cases, Transform node simply changes
+    { This is the optimization for changing VRML >= 2.0 transformation
+      (most fields of Transform node like translation, scale, center etc.,
+      also some HAnim nodes like Joint and Humanoid have this behavior.).
+
+      In the simple cases, Transform node simply changes
       TVRMLGraphTraverseState.Transform for children nodes.
 
       So we have to re-traverse from this Transform node, and change

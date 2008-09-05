@@ -620,22 +620,27 @@ begin
 
   FFdcenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
   Fields.Add(FFdcenter);
+  Fdcenter.Transform := true;
   { X3D specification comment: (-Inf,Inf) }
 
   FFdrotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdrotation);
+  Fdrotation.Transform := true;
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
   FFdscale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
   Fields.Add(FFdscale);
+  Fdscale.Transform := true;
   { X3D specification comment: (-Inf, Inf) }
 
   FFdscaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdscaleOrientation);
+  FdscaleOrientation.Transform := true;
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
   FFdtranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
   Fields.Add(FFdtranslation);
+  Fdtranslation.Transform := true;
   { X3D specification comment: (-Inf,Inf) }
 
   DefaultContainerField := 'children';
@@ -666,32 +671,39 @@ begin
     Func(Self, FdChildren.Items[I]);
 end;
 
-procedure TNodeTransform_2.BeforeTraverse(var State: TVRMLGraphTraverseState);
+{ Apply transformation to a TVRMLGraphTraverseState.
+  Useful for various classes that mimic Transform node behavior,
+  but for any reason do not want to descend from TNodeTransform_2. }
+
+procedure TransformState(State: TVRMLGraphTraverseState;
+  center: TSFVec3f;
+  rotation: TSFRotation;
+  scale: TSFVec3f;
+  scaleOrientation: TSFRotation;
+  translation: TSFVec3f);
 var
   M, IM, MRotateScaleOrient, IMRotateScaleOrient: TMatrix4Single;
 begin
-  inherited;
-
   { Inherited TVRMLGroupingNode already saved State.Transform and such.
 
     To make InvertedTransform, we multiply inverted matrices in inverted order
     below. }
 
-  TranslationMatrices(VectorAdd(FdTranslation.Value, FdCenter.Value), M, IM);
+  TranslationMatrices(VectorAdd(Translation.Value, Center.Value), M, IM);
   State.Transform := MultMatrices(State.Transform, M);
   State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
 
   { Note that even Axis = zero is OK, both M and IM will be identity in
     this case. }
-  RotationMatricesRad(FdRotation.RotationRad, FdRotation.Axis, M, IM);
+  RotationMatricesRad(Rotation.RotationRad, Rotation.Axis, M, IM);
   State.Transform := MultMatrices(State.Transform, M);
   State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
 
-  if (FdScale.Value[0] <> 1) or
-     (FdScale.Value[1] <> 1) or
-     (FdScale.Value[2] <> 1) then
+  if (Scale.Value[0] <> 1) or
+     (Scale.Value[1] <> 1) or
+     (Scale.Value[2] <> 1) then
   begin
-    RotationMatricesRad(FdScaleOrientation.RotationRad, FdScaleOrientation.Axis,
+    RotationMatricesRad(ScaleOrientation.RotationRad, ScaleOrientation.Axis,
       MRotateScaleOrient, IMRotateScaleOrient);
 
     State.Transform := MultMatrices(State.Transform, MRotateScaleOrient);
@@ -702,7 +714,7 @@ begin
       scaling factor to have 0 components (we need InvertedTransform only
       for special tricks). }
 
-    ScalingMatrices(FdScale.Value, true, M, IM);
+    ScalingMatrices(Scale.Value, true, M, IM);
     State.Transform := MultMatrices(State.Transform, M);
     State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
 
@@ -713,12 +725,60 @@ begin
     State.InvertedTransform := MultMatrices(MRotateScaleOrient, State.InvertedTransform);
   end;
 
-  TranslationMatrices(VectorNegate(FdCenter.Value), M, IM);
+  TranslationMatrices(VectorNegate(Center.Value), M, IM);
   State.Transform := MultMatrices(State.Transform, M);
   State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
 
   State.AverageScaleTransform *=
-    (FdScale.Value[0] + FdScale.Value[1] + FdScale.Value[2]) / 3;
+    (Scale.Value[0] + Scale.Value[1] + Scale.Value[2]) / 3;
+end;
+
+procedure TransformSimpleState(
+  State: TVRMLGraphTraverseState;
+  rotation: TSFRotation;
+  scale: TSFVec3f;
+  translation: TSFVec3f);
+var
+  M, IM: TMatrix4Single;
+begin
+  { Inherited TVRMLGroupingNode already saved State.Transform and such.
+
+    To make InvertedTransform, we multiply inverted matrices in inverted order
+    below. }
+
+  TranslationMatrices(Translation.Value, M, IM);
+  State.Transform := MultMatrices(State.Transform, M);
+  State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
+
+  { Note that even Axis = zero is OK, both M and IM will be identity in
+    this case. }
+  RotationMatricesRad(Rotation.RotationRad, Rotation.Axis, M, IM);
+  State.Transform := MultMatrices(State.Transform, M);
+  State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
+
+  if (Scale.Value[0] <> 1) or
+     (Scale.Value[1] <> 1) or
+     (Scale.Value[2] <> 1) then
+  begin
+    { For scaling, we explicitly request that if ScalingFactor contains
+      zero, IM will be forced to be identity. That's because VRML allows
+      scaling factor to have 0 components (we need InvertedTransform only
+      for special tricks). }
+
+    ScalingMatrices(Scale.Value, true, M, IM);
+    State.Transform := MultMatrices(State.Transform, M);
+    State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
+  end;
+
+  State.AverageScaleTransform *=
+    (Scale.Value[0] + Scale.Value[1] + Scale.Value[2]) / 3;
+end;
+
+procedure TNodeTransform_2.BeforeTraverse(var State: TVRMLGraphTraverseState);
+begin
+  inherited;
+  TransformState(State, Fdcenter, Fdrotation, Fdscale, FdscaleOrientation,
+    Fdtranslation);
 end;
 
 function TNodeTransform_2.SuggestedVRMLVersion(

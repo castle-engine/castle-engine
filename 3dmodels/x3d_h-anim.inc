@@ -41,6 +41,10 @@
   end;
 
   TNodeHAnimHumanoid = class(TNodeX3DChildNode, INodeX3DBoundedObject)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
+    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -104,6 +108,10 @@
   end;
 
   TNodeHAnimJoint = class(TNodeX3DGroupingNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
+    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -152,6 +160,10 @@
   end;
 
   TNodeHAnimSegment = class(TNodeX3DGroupingNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
+    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -176,9 +188,28 @@
 
     private FFdname: TSFString;
     public property Fdname: TSFString read FFdname;
+
+    { Segment.rotation, scale, translation are extensions of Blaxxun
+      avatars, at least that's what
+      [http://tecfa.unige.ch/vrml/objects/avatars/blaxxun/]
+      suggests.
+      They are not conforming to HAnim 1.0 or 200x specification. }
+
+    private FFdrotation: TSFRotation;
+    public property Fdrotation: TSFRotation read FFdrotation;
+
+    private FFdscale: TSFVec3f;
+    public property Fdscale: TSFVec3f read FFdscale;
+
+    private FFdtranslation: TSFVec3f;
+    public property Fdtranslation: TSFVec3f read FFdtranslation;
   end;
 
   TNodeHAnimSite = class(TNodeX3DGroupingNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
+    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -256,6 +287,7 @@ begin
 
   FFdcenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
   Fields.Add(FFdcenter);
+  Fdcenter.Transform := true;
   { X3D specification comment: (-Inf,Inf) }
 
   FFdinfo := TMFString.Create(Self, 'info', []);
@@ -269,14 +301,17 @@ begin
 
   FFdrotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdrotation);
+  Fdrotation.Transform := true;
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
   FFdscale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
   Fields.Add(FFdscale);
+  Fdscale.Transform := true;
   { X3D specification comment: (0,Inf) }
 
   FFdscaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdscaleOrientation);
+  FdscaleOrientation.Transform := true;
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
   FFdsegments := TMFNode.Create(Self, 'segments', [TNodeHAnimSegment]);
@@ -287,6 +322,10 @@ begin
 
   FFdskeleton := TMFNode.Create(Self, 'skeleton', [TNodeHAnimJoint, TNodeHAnimSite]);
   Fields.Add(FFdskeleton);
+  { HAnim 200x specification examples are, uhm, nonsensible.
+    They specify PROTOtypes which suggest that main field name is
+    "humanoidBody", while "skeleton" is actually specified. }
+  Fdskeleton.AddAlternativeName('humanoidBody', 0);
 
   FFdskin := TMFNode.Create(Self, 'skin', [TNodeX3DChildNode]);
   Fields.Add(FFdskin);
@@ -299,6 +338,7 @@ begin
 
   FFdtranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
   Fields.Add(FFdtranslation);
+  Fdtranslation.Transform := true;
   { X3D specification comment: (-Inf,Inf) }
 
   FFdversion := TSFString.Create(Self, 'version', '');
@@ -339,6 +379,32 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+procedure TNodeHAnimHumanoid.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+begin
+  { Between HAnim 1.0 and 200x hierarchy changed, in 1.0 there's no "skeleton"
+    field but root Joint is just simply placed directly in VRML file.
+    This means that I should simply render Joint node like a Transform,
+    both inside "skeleton" field and outside, and both versions will be happy. }
+  FdSkeleton.EnumerateValid(Func);
+
+  { To support skinned body, pass skin as an active node too
+    (of not nil, will be rendered.)
+    Note that SkinCoord and SkinNormal are not passed as active
+    (they should be referenced inside Skin object). }
+  FdSkin.EnumerateValid(Func);
+
+  { Note that joints, segments and sites is not passed to Func --- they
+    should already be part of Joint hierarchy (in skeleton for HAnim 200x
+    or outside of Humanoid node for HAnim 1.0). }
+end;
+
+procedure TNodeHAnimHumanoid.BeforeTraverse(var State: TVRMLGraphTraverseState);
+begin
+  inherited;
+  TransformState(State, Fdcenter, Fdrotation, Fdscale, FdscaleOrientation,
+    Fdtranslation);
+end;
+
 constructor TNodeHAnimJoint.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -346,6 +412,7 @@ begin
 
   FFdcenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
   Fields.Add(FFdcenter);
+  Fdcenter.Transform := true;
   { X3D specification comment: (-Inf,Inf) }
 
   FFddisplacers := TMFNode.Create(Self, 'displacers', [TNodeHAnimDisplacer]);
@@ -364,14 +431,17 @@ begin
 
   FFdrotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdrotation);
+  Fdrotation.Transform := true;
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
   FFdscale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
   Fields.Add(FFdscale);
+  Fdscale.Transform := true;
   { X3D specification comment: (0,Inf) }
 
   FFdscaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdscaleOrientation);
+  FdscaleOrientation.Transform := true;
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
   FFdskinCoordIndex := TMFInt32.Create(Self, 'skinCoordIndex', []);
@@ -386,6 +456,7 @@ begin
 
   FFdtranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
   Fields.Add(FFdtranslation);
+  Fdtranslation.Transform := true;
   { X3D specification comment: (-Inf,Inf) }
 
   FFdulimit := TMFFloat.Create(Self, 'ulimit', []);
@@ -414,6 +485,21 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+procedure TNodeHAnimJoint.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+var
+  I: Integer;
+begin
+  for I := 0 to FdChildren.Count - 1 do
+    Func(Self, FdChildren.Items[I]);
+end;
+
+procedure TNodeHAnimJoint.BeforeTraverse(var State: TVRMLGraphTraverseState);
+begin
+  inherited;
+  TransformState(State, Fdcenter, Fdrotation, Fdscale, FdscaleOrientation,
+    Fdtranslation);
+end;
+
 constructor TNodeHAnimSegment.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -440,6 +526,21 @@ begin
   FFdname := TSFString.Create(Self, 'name', '');
   Fields.Add(FFdname);
 
+  FFdrotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
+  Fields.Add(FFdrotation);
+  Fdrotation.Transform := true;
+  { X3D specification comment: [-1,1] or (-Inf,Inf) }
+
+  FFdscale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
+  Fields.Add(FFdscale);
+  Fdscale.Transform := true;
+  { X3D specification comment: (-Inf, Inf) }
+
+  FFdtranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
+  Fields.Add(FFdtranslation);
+  Fdtranslation.Transform := true;
+  { X3D specification comment: (-Inf,Inf) }
+
   DefaultContainerField := 'children';
 end;
 
@@ -462,6 +563,20 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+procedure TNodeHAnimSegment.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+var
+  I: Integer;
+begin
+  for I := 0 to FdChildren.Count - 1 do
+    Func(Self, FdChildren.Items[I]);
+end;
+
+procedure TNodeHAnimSegment.BeforeTraverse(var State: TVRMLGraphTraverseState);
+begin
+  inherited;
+  TransformSimpleState(State, Fdrotation, Fdscale, Fdtranslation);
+end;
+
 constructor TNodeHAnimSite.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -469,6 +584,7 @@ begin
 
   FFdcenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
   Fields.Add(FFdcenter);
+  Fdcenter.Transform := true;
   { X3D specification comment: (-Inf,Inf) }
 
   FFdname := TSFString.Create(Self, 'name', '');
@@ -476,18 +592,22 @@ begin
 
   FFdrotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdrotation);
+  Fdrotation.Transform := true;
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
   FFdscale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
   Fields.Add(FFdscale);
+  Fdscale.Transform := true;
   { X3D specification comment: (0,Inf) }
 
   FFdscaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdscaleOrientation);
+  FdscaleOrientation.Transform := true;
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
   FFdtranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
   Fields.Add(FFdtranslation);
+  Fdtranslation.Transform := true;
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
   DefaultContainerField := 'children';
@@ -510,6 +630,21 @@ class function TNodeHAnimSite.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure TNodeHAnimSite.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+var
+  I: Integer;
+begin
+  for I := 0 to FdChildren.Count - 1 do
+    Func(Self, FdChildren.Items[I]);
+end;
+
+procedure TNodeHAnimSite.BeforeTraverse(var State: TVRMLGraphTraverseState);
+begin
+  inherited;
+  TransformState(State, Fdcenter, Fdrotation, Fdscale, FdscaleOrientation,
+    Fdtranslation);
 end;
 
 procedure RegisterHAnimNodes;
