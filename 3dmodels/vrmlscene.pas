@@ -464,6 +464,8 @@ type
     FPointingDeviceActive: boolean;
     FPointingDeviceActiveSensor: TNodeX3DPointingDeviceSensorNode;
     procedure SetPointingDeviceActive(const Value: boolean);
+
+    FLogChanges: boolean;
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
     destructor Destroy; override;
@@ -572,9 +574,12 @@ type
     property OnPostRedisplay: TVRMLSceneNotification
       read FOnPostRedisplay write FOnPostRedisplay;
 
-    { Notification when the list of viewpoints in the scene changed.
+    { Notification when the list of viewpoints in the scene possibly
+      changed.
 
-      Note: if you want to get notified when currently @italic(bound)
+      Note that this doesn't necessarily mean that the current,
+      bound viewpoint changed (although it could).
+      If you only want to get notified when currently @italic(bound)
       viewpoint changes, then what you seek is rather
       @link(TVRMLBindableStack.OnBoundChanged ViewpointStack.OnBoundChanged). }
     property OnViewpointsChanged: TVRMLSceneNotification
@@ -1098,13 +1103,19 @@ type
       TNodeX3DViewpointNode, so VRML 1.0 camera nodes are also included in
       this stack.) }
     property ViewpointStack: TVRMLBindableStack read FViewpointStack;
+
+    { If true, and also KambiLog.Log is true, then we will log
+      ChangedFields and ChangedAll occurences. Useful only for debugging
+      and optimizing VRML events engine. }
+    property LogChanges: boolean
+      read FLogChanges write FLogChanges default false;
   end;
 
 {$undef read_interface}
 
 implementation
 
-uses VRMLCameraUtils, KambiStringUtils;
+uses VRMLCameraUtils, KambiStringUtils, KambiLog;
 
 {$define read_implementation}
 {$I macprecalcvaluereturn.inc}
@@ -1449,6 +1460,9 @@ procedure TVRMLScene.ChangedAll;
   end;
 
 begin
+  if Log and LogChanges then
+    WritelnLog('VRML changes', 'ChangedAll');
+
   { TODO: FManifoldEdges and FBorderEdges and triangles lists should be freed
     (and removed from Validities) on any ChangedXxx call. }
 
@@ -1475,6 +1489,7 @@ begin
 
   ScheduleGeometryChanged;
   DoPostRedisplay;
+  DoViewpointsChanged;
 end;
 
 procedure TVRMLScene.ChangedShapeStateFields(ShapeStateNum: integer;
@@ -1562,6 +1577,18 @@ var
   NodeLastNodesIndex, i: integer;
   Coord: TMFVec3f;
   Field: TVRMLField;
+
+  procedure DoLogChanges;
+  var
+    S: string;
+  begin
+    S := Format('ChangedFields: Node %s (%s %s) at %s',
+      [ Node.NodeName, Node.NodeTypeName, Node.ClassName, PointerToStr(Node) ]);
+    if Field <> nil then
+      S += Format('. Field %s (%s)', [ Field.Name, Field.VRMLTypeName ]);
+    WritelnLog('VRML changes', S);
+  end;
+
 begin
   NodeLastNodesIndex := Node.TraverseStateLastNodesIndex;
 
@@ -1575,16 +1602,8 @@ begin
   end else
     Field := nil;
 
-  { $define Changed_Fields_Log}
-  {$ifdef Changed_Fields_Log}
-  begin
-    Write(Format('ChangedFields: Node %s (%s %s) at %s',
-      [ Node.NodeName, Node.NodeTypeName, Node.ClassName, PointerToStr(Node) ]));
-    if Field <> nil then
-      Write(Format('. Field %s (%s)', [ Field.Name, Field.VRMLTypeName ]));
-    Writeln;
-  end;
-  {$endif Changed_Fields_Log}
+  if Log and LogChanges then
+    DoLogChanges;
 
   { Ignore this ChangedFields call if node is not in our VRML graph.
     Or is the inactive part. The definition of "active" part
