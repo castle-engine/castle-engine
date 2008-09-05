@@ -2550,6 +2550,8 @@ type
     FOwnsNavigator: boolean;
     FUseNavigator: boolean;
     FNavigator: TMatrixNavigator;
+    FCursorNonMouseLook: TGLWindowCursor;
+    procedure SetCursorNonMouseLook(const Value: TGLWindowCursor);
     function ReallyUseNavigator: boolean;
     function ReallyUseMouseLook: boolean;
   public
@@ -2641,13 +2643,10 @@ type
       and you want to use it's MouseLook feature then
       you should call this after you changed Navigator.MouseLook value.
 
-      This sets @link(Cursor) (to gcNone or gcDefault, based on
+      This sets @link(Cursor) (to gcNone or CursorNonMouseLook, based on
       whether mouse look is used now, that is Navigator.MouseLook is @true)
-      and, if mouse look is used,  repositions mouse cursor at the middle
+      and, if mouse look is used, repositions mouse cursor at the middle
       of the window.
-
-      TODO: when the need will be, cursor will not be so carelessly changed
-      to gcDefault.
 
       You should also call this after you changed Navigator's instance,
       or UseNavigator, as these things also effectively change the
@@ -2660,6 +2659,19 @@ type
       the mouse) --- so that you can figure out where exactly
       you have to use it. }
     procedure UpdateMouseLook;
+
+    { Cursor when not using mouse look.
+      Useful if you sometimes use mouse look and you want your cursor
+      hidden while mouse look,
+      but controlled by this property otherwise.
+
+      When mouse look is not in use, this will be equal to actual
+      TGLWindow.Cursor, thus changing cursor.
+      When mouse look is in use, TGLWindow.Cursor
+      will remain hidden. }
+    property CursorNonMouseLook: TGLWindowCursor
+      read FCursorNonMouseLook write SetCursorNonMouseLook
+      default gcDefault;
   end;
 
   TObjectsListItem_1 = TGLWindow;
@@ -4510,6 +4522,17 @@ begin
     TMatrixWalker(Navigator).MouseLook;
 end;
 
+procedure TGLWindowNavigated.SetCursorNonMouseLook(
+  const Value: TGLWindowCursor);
+begin
+  if Value <> FCursorNonMouseLook then
+  begin
+    FCursorNonMouseLook := Value;
+    if not ReallyUseMouseLook then
+      Cursor := CursorNonMouseLook;
+  end;
+end;
+
 procedure TGLWindowNavigated.UpdateMouseLook;
 var
   ML: boolean;
@@ -4517,7 +4540,7 @@ begin
   ML := ReallyUseMouseLook;
   if ML then
     Cursor := gcNone else
-    Cursor := gcDefault;
+    Cursor := CursorNonMouseLook;
   if ML then
     SetMousePosition(Width div 2, Height div 2);
 end;
