@@ -128,3 +128,12 @@ Also auto-turn off boundingbox calculation? this also can hurt us now...
 Seems to not be needed now, delaying for the future.
 
 React to NavigationInfo bound changes from view3dscene, something has to be done? We can registed to NavigationInfoStack.OnBoundChanged if needed.
+
+Anchor finishing touches:
+- for non-3D model data, X3D spec says:
+  If non-X3D data is retrieved, the browser shall determine how to handle that data; typically, it will be passed to an appropriate non-X3D browser
+- Anchor.paramater handle?
+- NewViewpointName for anchor should be searched with run-time name scope of Anchor (for NewRootNode = nil) (in what scope should it be searched for NewRootNode <> @nil? NewRootNode name scope (omits protos, inlines etc.), or just whole NewRootNode?)
+- when switching to new node, new NavigationInfo should be bound:
+  headlight from new navigation should be updated.
+  (actually, this is not specific to Anchor.)

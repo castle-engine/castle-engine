@@ -631,11 +631,13 @@ type
       This is useful because it allows to change viewed model
       (by changing RootNode) while preserving values of things
       like Attributes properties in subclass @link(TVRMLGLScene).
+      This is also used internally when user clicks on Anchor node,
+      if you have ProcessEvents.
 
       That's why it is possible to change RootNode and it is even
       possible to set it to nil. And when When RootNode = nil everything
       should work -- you can query such scene (with RootNode = nil)
-      for Vecrtices/TrianglesCount (answer will be 0),
+      for Vertices/TrianglesCount (answer will be 0),
       for BoundingBox (answer will be EmptyBox3d),
       you can render such scene (nothing will be rendered) etc.
       Scene RootNode = nil will act quite like a Scene with
@@ -645,11 +647,12 @@ type
 
       Note that there is also a trick to conserve memory use.
       After you've done PrepareRender some things are precalculated here,
-      and RootNode is actually not used. So you can free RootNode
+      and RootNode is actually not used, unless you use ProcessEvent.
+      So you can free RootNode
       (and set it to nil here) @italic(without calling ChangedAll)
       and some things will just continue to work, unaware of the fact
       that the underlying RootNode structure is lost.
-      Note that this is still considered a "trick", and you will
+      Note that this is still considered a "dirty trick", and you will
       have to be extra-careful then about what methods/properties
       from this class. Generally, use only things that you prepared
       with PrepareRender. So e.g. calling Render or using BoundingBox.
@@ -1115,7 +1118,7 @@ type
 
 implementation
 
-uses VRMLCameraUtils, KambiStringUtils, KambiLog;
+uses VRMLCameraUtils, KambiStringUtils, KambiLog, VRMLErrors;
 
 {$define read_implementation}
 {$I macprecalcvaluereturn.inc}
@@ -2753,6 +2756,26 @@ begin
 end;
 
 procedure TVRMLScene.SetPointingDeviceActive(const Value: boolean);
+
+  procedure AnchorActivate(Anchor: TNodeAnchor);
+  var
+    NewRootNode: TVRMLNode;
+    NewViewpoint: TVRMLViewpointNode;
+  begin
+    if Anchor.LoadAnchor(NewRootNode, NewViewpoint, RootNode) then
+    begin
+      if NewRootNode <> nil then
+      begin
+        if OwnsRootNode then FreeAndNil(FRootNode);
+        RootNode := NewRootNode;
+        OwnsRootNode := true;
+        ChangedAll;
+      end;
+      if NewViewpoint <> nil then
+        NewViewpoint.EventSet_Bind.Send(true, WorldTime);
+    end;
+  end;
+
 var
   ToActivate: TVRMLNode;
 begin
@@ -2774,9 +2797,7 @@ begin
             PointingDeviceActiveSensor.EventIsActive.Send(true, WorldTime);
           end else
           if ToActivate is TNodeAnchor then
-          begin
-            { TODO: handle anchor node }
-          end;
+            AnchorActivate(TNodeAnchor(ToActivate));
         end;
       end else
       begin

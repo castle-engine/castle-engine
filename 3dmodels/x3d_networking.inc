@@ -29,6 +29,8 @@
     property Fdurl: TMFString { read GetFdurl }; { }
   end;
 
+  TVRMLViewpointNode = class;
+
   TNodeAnchor = class(TNodeX3DGroupingNode)
   protected
     procedure DirectEnumerateActive(
@@ -48,6 +50,57 @@
 
     private FFdurl: TMFString;
     public property Fdurl: TMFString read FFdurl;
+
+    { Load the new world and viewpoint referenced by this Anchor node.
+
+      This iterates over url field, for each URL trying to load
+      referenced file. If URL specifies viewpoint name, we also search
+      for viewpoint within this file.
+      If it will succeed for some URL, returns @true,
+      setting output parameters. Returns @false if no loadable URL is found.
+
+      Output NewRootNode is the loaded world,
+      or @nil if actually we should stay within the same world.
+      @nil happens for URLs like @code(#ViewpointName), see X3D spec.
+
+      NewViewpoint is the new viewpoint that should be bound,
+      or @nil if URL doesn't specify viewpoint name.
+      This viewpoint is part of NewRootNode graph, if NewRootNode <> @nil,
+      or is part of CurrentRootNode if we should stay within
+      current world (NewRootNode = @nil).
+
+      Note that this means that NewRootNode = nil and
+      NewViewpoint = nil are valid output from this method,
+      and indicate that nothing should be done.
+      And this is Ok, following X3D spec AFAIK.
+
+      CurrentRootNode is required to detect invalid viewpoint names
+      within current file. An explanation why this is needed follows:
+
+      Invalid viewpoint names within newly loaded
+      files are harmless, that is newly loaded file is accepted anyway
+      and invalid viewpoint name is ignored. X3D spec says this explicitly.
+
+      But what should happen for invalid viewpoint names within current file?
+      X3D spec doesn't say anything clear here (the part before "#" is
+      valid in this case, since it just indicates current file, so someone
+      could argue that URL is valid, only viewpoint name is wrong and
+      so it should be ignored...). Consider url field like
+
+@preformatted(
+  [ "#NotExistingViewpoint", "#ExistingViewpoint" ]
+)
+
+      It seems sensible that we detect "#NotExistingViewpoint" as invalid,
+      and move on to the next URL (which may be local or not).
+      That's why we need CurrentRootNode instance.
+      When CurrentRootNode = nil, we understand that no file is currently
+      loaded (at least, you don't have it's VRML graph). It means that
+      any "#Viewpoint" within current model is considered invalid. }
+    function LoadAnchor(
+      out NewRootNode: TVRMLNode;
+      out NewViewpoint: TVRMLViewpointNode;
+      CurrentRootNode: TVRMLNode): boolean;
   end;
 
   TNodeInline = class(TVRMLGroupingNode, INodeX3DBoundedObject, INodeX3DUrlObject,
@@ -173,6 +226,94 @@ var
 begin
   for I := 0 to FdChildren.Count - 1 do
     Func(Self, FdChildren.Items[I]);
+end;
+
+function TNodeAnchor.LoadAnchor(
+  out NewRootNode: TVRMLNode;
+  out NewViewpoint: TVRMLViewpointNode;
+  CurrentRootNode: TVRMLNode): boolean;
+
+  procedure ViewpointNameInvalid(const NewViewpointName: string);
+  begin
+    VRMLNonFatalError(Format('Viewpoint "%s" specified by Anchor not found',
+      [NewViewpointName]));
+  end;
+
+var
+  I: Integer;
+  FullUrl, NewViewpointName: string;
+begin
+  for I := 0 to FdUrl.Count - 1 do
+  begin
+    FullUrl := FdUrl.Items[I];
+
+    { We have to call URLExtractAnchor first, to be able to detect
+      cases when the URL before # doesn't exist (so NewRootNode = nil
+      and exit with success). Otherwise, PathFromWWWBasePath would append
+      current path to empty URL, making it non-empty (and invalid...). }
+    URLExtractAnchor(FullUrl, NewViewpointName);
+
+    if FullUrl = '' then
+    begin
+      NewRootNode := nil;
+
+      if NewViewpointName = '' then
+      begin
+        NewViewpoint := nil;
+        Exit(true);
+      end else
+      begin
+        if CurrentRootNode <> nil then
+        begin
+          NewViewpoint := CurrentRootNode.TryFindNodeByName(TVRMLViewpointNode,
+            NewViewpointName, true) as TVRMLViewpointNode;
+          if NewViewpoint <> nil then
+            Exit(true) else
+            ViewpointNameInvalid(NewViewpointName);
+        end else
+          ViewpointNameInvalid(NewViewpointName);
+
+        { In this case invalid viewpoint name is treated as a failure,
+          that is we try to find next URL.
+          This happens when CurrentRootNode = nil or when
+          CurrentRootNode doesn't contain NewViewpointName. }
+      end;
+
+    end else
+    begin
+      FullUrl := PathFromWWWBasePath(FullUrl);
+      try
+        NewRootNode := LoadAsVRML(FullUrl, false);
+      except
+        on E: Exception do
+        begin
+          { Catch exception and produce VRMLNonFatalError, go to next URL }
+          VRMLNonFatalError(Format('Loading world from Anchor URL "%s" failed: %s',
+            [FullUrl, E.Message]));
+          Continue;
+        end;
+      end;
+
+      if NewViewpointName = '' then
+      begin
+        NewViewpoint := nil;
+      end else
+      begin
+        NewViewpoint := NewRootNode.TryFindNodeByName(TVRMLViewpointNode,
+          NewViewpointName, true) as TVRMLViewpointNode;
+        if NewViewpoint = nil then
+          ViewpointNameInvalid(NewViewpointName);
+
+        { In this case invalid viewpoint name is ignored,
+          that is we still accept this URL. This follows X3D spec
+          (also, this is sensible, otherwise we would have to free
+          loaded model just becuase viewpoint is invalid). }
+      end;
+
+      Exit(true);
+    end;
+  end;
+  Result := false;
 end;
 
 constructor TNodeInline.Create(const ANodeName: string;
