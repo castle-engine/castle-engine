@@ -267,7 +267,7 @@ type
       I found sample VRML models with node name @code("Crab!") (yes,
       with exclamation mark and double quotes as part of the node name).
 
-      @raises(EParserError When we really really cannot interpret contents
+      @raises(EVRMLParserError When we really really cannot interpret contents
         as vtName token here --- currently this may happen only if end of
         stream is reached. Note that this is reported as a parsing error.) }
     procedure NextTokenForceVTName;

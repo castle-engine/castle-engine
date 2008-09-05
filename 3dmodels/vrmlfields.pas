@@ -262,7 +262,7 @@ type
       @item(There are some exceptions, but usually
         assignment is possible only when source and destination field classes
         are equal.)
-      @item(Assignment (by @link(Assign), inherited from TPersistent)
+      @item(Assignment (by @code(Assign), inherited from TPersistent)
         tries to copy everything: name, default value,
         IsClause*, Exposed, and of course current value.
 
