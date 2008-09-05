@@ -238,6 +238,8 @@ type
 
   TVRMLScene = class;
 
+  TVRMLSceneNotification = procedure (Scene: TVRMLScene) of object;
+
   { VRML bindable nodes stack.
     This keeps a stack of TNodeX3DBindableNode, with comfortable routines
     to examine top and push/pop from top. The stack is actually stored
@@ -248,6 +250,24 @@ type
     { A useful utility: if the Node is not @nil, send isBound = Value and
       bindTime events to it. }
     procedure SendIsBound(Node: TNodeX3DBindableNode; const Value: boolean);
+
+    FOnBoundChanged: TVRMLSceneNotification;
+
+    { Call OnBoundChanged if assigned. }
+    procedure DoBoundChanged;
+
+    { Add new node to the top.
+
+      This is internal, note that it doesn't send any events
+      and doesn't produce DoBoundChanged. }
+    procedure Push(Node: TNodeX3DBindableNode);
+
+    { Remove current top node. Returns removed node, or @nil if no current
+      node was present (that is, stack was empty).
+
+      This is internal, note that it doesn't send any events
+      and doesn't produce DoBoundChanged. }
+    function Pop: TNodeX3DBindableNode;
   public
     constructor Create(AParentScene: TVRMLScene);
 
@@ -256,17 +276,10 @@ type
     { Returns top item on this stack, or @nil if not present. }
     function Top: TNodeX3DBindableNode;
 
-    { Add new node to the top. }
-    procedure Push(Node: TNodeX3DBindableNode);
-
     { Add new node to the top, but only if stack is currently empty.
       If SendEvents, then isBound = true and bindTime events will be
       send to newly bound node. }
     procedure PushIfEmpty(Node: TNodeX3DBindableNode; SendEvents: boolean);
-
-    { Remove current top node. Returns removed node, or @nil if no current
-      node was present (that is, stack was empty). }
-    function Pop: TNodeX3DBindableNode;
 
     { This should be used when you suspect that some nodes on the stack
       are no longer present in current VRML graph (they were deleted).
@@ -284,9 +297,14 @@ type
     { Handle set_bind event send to given Node.
       This always generates appropriate events. }
     procedure Set_Bind(Node: TNodeX3DBindableNode; const Value: boolean);
-  end;
 
-  TVRMLSceneNotification = procedure (Scene: TVRMLScene) of object;
+    { Notification when the currently bound node, that is
+      @link(Top), changed. This also includes notification
+      when @link(Top) changed to (or from) @nil, that is
+      when no node becomes bound or when some node is initially bound. }
+    property OnBoundChanged: TVRMLSceneNotification
+      read FOnBoundChanged write FOnBoundChanged;
+  end;
 
   { VRML scene, a final class to handle VRML models
     (with the exception of rendering, which is delegated to descendants,
@@ -383,6 +401,7 @@ type
 
     FOnGeometryChanged: TVRMLSceneNotification;
     FOnPostRedisplay: TVRMLSceneNotification;
+    FOnViewpointsChanged: TVRMLSceneNotification;
 
     FProcessEvents: boolean;
     procedure SetProcessEvents(const Value: boolean);
@@ -555,6 +574,23 @@ type
     { Notification when anything changed needing redisplay. }
     property OnPostRedisplay: TVRMLSceneNotification
       read FOnPostRedisplay write FOnPostRedisplay;
+
+    { Notification when the list of viewpoints in the scene changed.
+
+      Note: if you want to get notified when currently @italic(bound)
+      viewpoint changes, then what you seek is rather
+      @link(TVRMLBindableStack.OnBoundChanged ViewpointStack.OnBoundChanged). }
+    property OnViewpointsChanged: TVRMLSceneNotification
+      read FOnViewpointsChanged write FOnViewpointsChanged;
+
+    { Call OnPostRedisplay, if assigned. }
+    procedure DoPostRedisplay;
+
+    { Call OnGeometryChanged, if assigned. }
+    procedure DoGeometryChanged; virtual;
+
+    { Call OnViewpointsChanged, if assigned. }
+    procedure DoViewpointsChanged;
 
     { Returns short information about the scene.
       This consists of a few lines, separated by KambiUtils.NL.
@@ -1057,12 +1093,6 @@ type
     procedure ResetWorldTime(const NewValue: TKamTime);
     { @groupEnd }
 
-    { Call OnPostRedisplay, if assigned. }
-    procedure DoPostRedisplay;
-
-    { Call OnGeometryChanged, if assigned. }
-    procedure DoGeometryChanged; virtual;
-
     { Binding stack of X3DBackgroundNode nodes.
       All descend from TNodeX3DBackgroundNode class. }
     property BackgroundStack: TVRMLBindableStack read FBackgroundStack;
@@ -1132,6 +1162,7 @@ begin
     Push(Node);
     if SendEvents then
       SendIsBound(Node, true);
+    DoBoundChanged;
   end;
 end;
 
@@ -1178,6 +1209,9 @@ begin
 
     if TopChanged and SendEvents and (Count <> 0) then
       SendIsBound(Top, true);
+
+    if TopChanged then
+      DoBoundChanged;
   end;
 end;
 
@@ -1195,6 +1229,7 @@ begin
       SendIsBound(Top, false);
       Push(Node);
       SendIsBound(Top, true);
+      DoBoundChanged;
     end else
     if NodeIndex <> High then
     begin
@@ -1202,6 +1237,7 @@ begin
       SendIsBound(Top, false);
       Exchange(NodeIndex, High);
       SendIsBound(Top, true);
+      DoBoundChanged;
     end;
     { set_bind = true for node already on the top is ignored. }
   end else
@@ -1213,6 +1249,7 @@ begin
         SendIsBound(Top, false);
         Delete(NodeIndex);
         SendIsBound(Top, true);
+        DoBoundChanged;
       end else
       begin
         Delete(NodeIndex);
@@ -1220,6 +1257,12 @@ begin
     end;
     { set_bind = false for node already outside of the stack is ignored. }
   end;
+end;
+
+procedure TVRMLBindableStack.DoBoundChanged;
+begin
+  if Assigned(OnBoundChanged) then
+    OnBoundChanged(ParentScene);
 end;
 
 { TVRMLScene ----------------------------------------------------------- }
@@ -1764,6 +1807,12 @@ begin
 
   if Assigned(OnGeometryChanged) then
     OnGeometryChanged(Self);
+end;
+
+procedure TVRMLScene.DoViewpointsChanged;
+begin
+  if Assigned(OnViewpointsChanged) then
+    OnViewpointsChanged(Self);
 end;
 
 resourcestring

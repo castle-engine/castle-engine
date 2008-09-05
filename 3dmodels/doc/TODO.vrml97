@@ -126,3 +126,5 @@ LoadSensor - not so trivial, delaying for the future.
 
 Also auto-turn off boundingbox calculation? this also can hurt us now...
 Seems to not be needed now, delaying for the future.
+
+React to NavigationInfo bound changes from view3dscene, something has to be done? We can registed to NavigationInfoStack.OnBoundChanged if needed.
