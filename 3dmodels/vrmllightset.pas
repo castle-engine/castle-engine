@@ -77,15 +77,9 @@ begin
 end;
 
 procedure TVRMLLightSet.CalculateLights;
-var InitialState: TVRMLGraphTraverseState;
 begin
  Lights.Length := 0;
-
- InitialState := TVRMLGraphTraverseState.Create;
- try
-   RootNode.Traverse(InitialState, TVRMLLightNode,
-     {$ifdef FPC_OBJFPC} @ {$endif} AddToLights);
- finally InitialState.Free end;
+ RootNode.Traverse(TVRMLLightNode, @AddToLights);
 end;
 
 constructor TVRMLLightSet.Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);

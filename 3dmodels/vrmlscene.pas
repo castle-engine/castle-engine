@@ -1448,8 +1448,6 @@ procedure TVRMLScene.ChangedAll;
     end;
   end;
 
-var
-  InitialState: TVRMLGraphTraverseState;
 begin
   { TODO: FManifoldEdges and FBorderEdges and triangles lists should be freed
     (and removed from Validities) on any ChangedXxx call. }
@@ -1466,11 +1464,7 @@ begin
 
     if RootNode <> nil then
     begin
-      InitialState := TVRMLGraphTraverseState.Create;
-      try
-        RootNode.Traverse(InitialState, TVRMLNode,
-          {$ifdef FPC_OBJFPC} @ {$endif} ChangedAll_Traverse);
-      finally InitialState.Free end;
+      RootNode.Traverse(TVRMLNode, @ChangedAll_Traverse);
 
       UpdateVRML2ActiveLights;
 
@@ -1568,7 +1562,6 @@ var
   NodeLastNodesIndex, i: integer;
   Coord: TMFVec3f;
   Field: TVRMLField;
-  InitialState: TVRMLGraphTraverseState;
 begin
   NodeLastNodesIndex := Node.TraverseStateLastNodesIndex;
 
@@ -1742,23 +1735,20 @@ begin
       in such cases.
     }
     try
-      InitialState := TVRMLGraphTraverseState.Create;
-      try
-        TransformChange_ShapeStateNum := 0;
-        TransformChange_ChangingNode := Node;
-        TransformChange_AnythingChanged := false;
-        TransformChange_Inside := false;
+      TransformChange_ShapeStateNum := 0;
+      TransformChange_ChangingNode := Node;
+      TransformChange_AnythingChanged := false;
+      TransformChange_Inside := false;
 
-        RootNode.Traverse(InitialState, TVRMLNode, @TransformChangeTraverse,
-          nil, @TransformChangeTraverseAfter);
+      RootNode.Traverse(TVRMLNode, @TransformChangeTraverse,
+        @TransformChangeTraverseAfter);
 
-        if not TransformChange_AnythingChanged then
-          { No need to do ScheduleGeometryChanged, not even DoPostRedisplay
-            at the end. }
-          Exit;
+      if not TransformChange_AnythingChanged then
+        { No need to do ScheduleGeometryChanged, not even DoPostRedisplay
+          at the end. }
+        Exit;
 
-        ScheduleGeometryChanged;
-      finally InitialState.Free end;
+      ScheduleGeometryChanged;
     except
       on BreakTransformChangeFailed do
       begin
@@ -2043,8 +2033,7 @@ begin
       Seeker.FoundTransform := @CamTransform;
 
       try
-        RootNode.TraverseFromDefaultState(TVRMLViewpointNode,
-          {$ifdef FPC_OBJFPC} @ {$endif} Seeker.Seek);
+        RootNode.Traverse(TVRMLViewpointNode, @Seeker.Seek);
       except
         on BreakFirstViewpointFound do
         begin

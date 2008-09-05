@@ -708,6 +708,14 @@ type
     FCData: string;
     FDestructionNotifications: TDynNodeDestructionNotificationArray;
     FParentEventsProcessor: TObject;
+
+    { This is like @link(Traverse), but it takes explicit starting state
+      and starting ParentInfo. Not generally useful, use only for special
+      purposes. }
+    procedure TraverseInternal(State: TVRMLGraphTraverseState;
+      NodeClass: TVRMLNodeClass;
+      TraversingFunc, TraversingFuncAfter: TTraversingFunc;
+      ParentInfo: PTraversingInfo);
   protected
     fAllowedChildren: boolean;
     fParsingAllowedChildren: boolean;
@@ -1168,21 +1176,10 @@ type
       Kolejnosc w jakiej przechodzi graf jest naturalnie istotna.
       W czasie wykonywania Traverse mozesz modyfikowac tylko node'y dzieci
       (bezposrednie i niebezposrednie) node'a na ktorym wlasnie stoisz. }
-    procedure Traverse(State: TVRMLGraphTraverseState;
+    procedure Traverse(
       NodeClass: TVRMLNodeClass;
       TraversingFunc: TTraversingFunc;
-      ParentInfo: PTraversingInfo = nil;
       TraversingFuncAfter: TTraversingFunc = nil);
-
-    { This is like @link(Traverse), but it automatically handles
-      creating and destroying of TVRMLGraphTraverseState and it's LastNodes.
-
-      This is comfortable --- but see comments at
-      TVRMLGraphTraverseState.Create: if you want to save for later
-      State instances obtained during traversing,
-      than you shouldn't use this. }
-    procedure TraverseFromDefaultState(
-      NodeClass: TVRMLNodeClass; TraversingFunc: TTraversingFunc);
 
     { Enumerate all our children of some class. Recursively.
       Zwroci do proc() takze sam obiekt na ktorym EnumerateNodes zostalo
@@ -1248,8 +1245,7 @@ type
 
     { Znajdz pierwszy Node (zadanej klasy NodeClass) razem ze State
       (lub tylko z Transform).
-      Dziala jak Traverse ktore zatrzymuje sie po pierwszej udanej probie.
-      Pamietaj ze State nie jest pamietane nigdzie indziej i musisz je zwolnic.
+      Dziala jak TraverseFromDefaultState ktore zatrzymuje sie po pierwszej udanej probie.
       W przypadku TryFindNodeTransform nie musisz o tym pamietac,
       no i TryFindNodeTransform dziala nieco szybciej.
 
@@ -1258,12 +1254,10 @@ type
 
       @groupBegin }
     function TryFindNodeState(
-      InitialState: TVRMLGraphTraverseState;
       NodeClass: TVRMLNodeClass;
       out Node: TVRMLNode;
       out State: TVRMLGraphTraverseState): boolean;
     function TryFindNodeTransform(
-      InitialState: TVRMLGraphTraverseState;
       NodeClass: TVRMLNodeClass;
       out Node: TVRMLNode;
       out Transform: TMatrix4Single;
@@ -1556,18 +1550,9 @@ type
       this method may obviously not work. But it's guaranteed that this
       method will not crash or anything on any VRML model. The worst thing
       that can happen on all VRML models is simply that TraversingFunc will
-      enumerate something that doesn't correspond to any Blender object...
-
-      Overloaded version without State just creates default state internally.
-
-      @groupBegin }
-    procedure TraverseBlenderObjects(
-      State: TVRMLGraphTraverseState;
-      TraversingFunc: TBlenderTraversingFunc); overload;
-
+      enumerate something that doesn't correspond to any Blender object... }
     procedure TraverseBlenderObjects(
       TraversingFunc: TBlenderTraversingFunc); overload;
-    { @groupEnd }
 
     { Default value of "containerField" attribute for this node in X3D XML
       encoding. }
@@ -3818,14 +3803,14 @@ type
   procedure TTraverseEnumerator.EnumerateChildrenFunction(
     Node, Child: TVRMLNode);
   begin
-    Child.Traverse(State, NodeClass, TraversingFunc, ParentInfo,
-      TraversingFuncAfter);
+    Child.TraverseInternal(State, NodeClass, TraversingFunc,
+      TraversingFuncAfter, ParentInfo);
   end;
 
-procedure TVRMLNode.Traverse(State: TVRMLGraphTraverseState;
-  NodeClass: TVRMLNodeClass; TraversingFunc: TTraversingFunc;
-  ParentInfo: PTraversingInfo;
-  TraversingFuncAfter: TTraversingFunc);
+procedure TVRMLNode.TraverseInternal(State: TVRMLGraphTraverseState;
+  NodeClass: TVRMLNodeClass;
+  TraversingFunc, TraversingFuncAfter: TTraversingFunc;
+  ParentInfo: PTraversingInfo);
 var
   LastNodesIndex: Integer;
   Enumerator: TTraverseEnumerator;
@@ -3860,14 +3845,15 @@ begin
   if LastNodesIndex <> -1 then State.FLastNodes.Nodes[LastNodesIndex] := Self;
 end;
 
-procedure TVRMLNode.TraverseFromDefaultState(
-  NodeClass: TVRMLNodeClass; TraversingFunc: TTraversingFunc);
+procedure TVRMLNode.Traverse(
+  NodeClass: TVRMLNodeClass;
+  TraversingFunc, TraversingFuncAfter: TTraversingFunc);
 var
   InitialState: TVRMLGraphTraverseState;
 begin
   InitialState := TVRMLGraphTraverseState.Create;
   try
-    Traverse(InitialState, NodeClass, TraversingFunc);
+    TraverseInternal(InitialState, NodeClass, TraversingFunc, TraversingFuncAfter, nil);
   finally InitialState.Free end;
 end;
 
@@ -4295,7 +4281,6 @@ end;
   end;
 
 function TVRMLNode.TryFindNodeState(
-  InitialState: TVRMLGraphTraverseState;
   NodeClass: TVRMLNodeClass;
   out Node: TVRMLNode; out State: TVRMLGraphTraverseState): boolean;
 var
@@ -4306,8 +4291,7 @@ begin
     try
       Obj.PNode := @Node;
       Obj.PState := @State;
-      Traverse(InitialState, NodeClass,
-        {$ifdef FPC_OBJFPC} @ {$endif} Obj.TraverseFunc);
+      Traverse(NodeClass, @Obj.TraverseFunc);
       result := false;
     except
       on BreakTryFindNodeState do result := true;
@@ -4336,7 +4320,7 @@ end;
     raise BreakTryFindNodeState.Create;
   end;
 
-function TVRMLNode.TryFindNodeTransform(InitialState: TVRMLGraphTraverseState;
+function TVRMLNode.TryFindNodeTransform(
   NodeClass: TVRMLNodeClass;
   out Node: TVRMLNode;
   out Transform: TMatrix4Single;
@@ -4350,8 +4334,7 @@ begin
       Obj.PNode := @Node;
       Obj.PTransform := @Transform;
       Obj.PAverageScaleTransform := @AverageScaleTransform;
-      Traverse(InitialState, NodeClass,
-        {$ifdef FPC_OBJFPC} @ {$endif} Obj.TraverseFunc);
+      Traverse(NodeClass, @Obj.TraverseFunc);
       Result := false;
     except
       on BreakTryFindNodeState do Result := true;
@@ -4895,7 +4878,6 @@ begin
 end;
 
 procedure TVRMLNode.TraverseBlenderObjects(
-  State: TVRMLGraphTraverseState;
   TraversingFunc: TBlenderTraversingFunc);
 var
   Traverser: TBlenderObjectsTraverser;
@@ -4903,19 +4885,8 @@ begin
   Traverser := TBlenderObjectsTraverser.Create;
   try
     Traverser.TraversingFunc := TraversingFunc;
-    Traverse(State, TVRMLGeometryNode, @Traverser.Traverse);
+    Traverse(TVRMLGeometryNode, @Traverser.Traverse);
   finally FreeAndNil(Traverser) end;
-end;
-
-procedure TVRMLNode.TraverseBlenderObjects(
-  TraversingFunc: TBlenderTraversingFunc);
-var
-  InitialState: TVRMLGraphTraverseState;
-begin
-  InitialState := TVRMLGraphTraverseState.Create;
-  try
-    TraverseBlenderObjects(InitialState, TraversingFunc);
-  finally InitialState.Free end;
 end;
 
 function TVRMLNode.FieldOrEvent(const Name: string): TVRMLFieldOrEvent;
