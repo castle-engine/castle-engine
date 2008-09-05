@@ -841,10 +841,6 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  { TODO: node anchor dziala jak Separator, wartosci jego pol nie maja
-    nigdzie zadnego znaczenia. Trzebaby to zaimplementowac, co wymaga
-    1) TURLDataStream, patrz komentarz przy TNodeWWWInline
-    2) mechaznimu picking - to juz mamy w view3dscene }
   TNodeWWWAnchor = class(TVRMLSeparatorNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
