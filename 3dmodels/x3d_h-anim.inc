@@ -345,7 +345,17 @@ begin
   FFdversion := TSFString.Create(Self, 'version', '');
   Fields.Add(FFdversion);
 
-  FFdviewpoints := TMFNode.Create(Self, 'viewpoints', [TNodeHAnimSite]);
+  FFdviewpoints := TMFNode.Create(Self, 'viewpoints', [
+    { X3D specificaion indicates that TNodeHAnimSite is allowed here,
+      but textual description in HAnim specification indicates that
+      it's an error: viewpoints should be allowed here.
+      Confirmed by testing models from
+      http://www.web3d.org/x3d/content/examples/Basic/HumanoidAnimation/
+
+      To be on the safest side, I allow both TNodeHAnimSite and viewpoint
+      classes.  }
+    TNodeHAnimSite,
+    TNodeX3DViewpointNode, TNodeViewpointGroup ]);
   Fields.Add(FFdviewpoints);
 
   FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
@@ -394,9 +404,17 @@ begin
     (they should be referenced inside Skin object). }
   FdSkin.EnumerateValid(Func);
 
+  FdViewpoints.EnumerateValid(Func);
+
   { Note that joints, segments and sites is not passed to Func --- they
     should already be part of Joint hierarchy (in skeleton for HAnim 200x
     or outside of Humanoid node for HAnim 1.0). }
+
+  { Finally, the way we implement HAnimHumanoid is compatible with X3D
+    prototypes for this in
+    http://www.web3d.org/x3d/content/examples/Basic/HumanoidAnimation/BoxMan.wrl
+    Which means that comments above are probably true, as I'm not the
+    only one using this approach. }
 end;
 
 procedure TNodeHAnimHumanoid.BeforeTraverse(var State: TVRMLGraphTraverseState);
@@ -487,11 +505,8 @@ begin
 end;
 
 procedure TNodeHAnimJoint.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
-var
-  I: Integer;
 begin
-  for I := 0 to FdChildren.Count - 1 do
-    Func(Self, FdChildren.Items[I]);
+  FdChildren.EnumerateValid(Func);
 end;
 
 procedure TNodeHAnimJoint.BeforeTraverse(var State: TVRMLGraphTraverseState);
@@ -565,11 +580,8 @@ begin
 end;
 
 procedure TNodeHAnimSegment.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
-var
-  I: Integer;
 begin
-  for I := 0 to FdChildren.Count - 1 do
-    Func(Self, FdChildren.Items[I]);
+  FdChildren.EnumerateValid(Func);
 end;
 
 procedure TNodeHAnimSegment.BeforeTraverse(var State: TVRMLGraphTraverseState);
@@ -634,11 +646,8 @@ begin
 end;
 
 procedure TNodeHAnimSite.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
-var
-  I: Integer;
 begin
-  for I := 0 to FdChildren.Count - 1 do
-    Func(Self, FdChildren.Items[I]);
+  FdChildren.EnumerateValid(Func);
 end;
 
 procedure TNodeHAnimSite.BeforeTraverse(var State: TVRMLGraphTraverseState);
