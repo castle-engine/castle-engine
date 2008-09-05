@@ -3037,7 +3037,19 @@ begin
   if IsClause then Exit;
 
   Lexer.CheckTokenIs(vtInteger);
-  Value := Lexer.TokenInteger;
+
+  { Check is TokenInteger outside of 32-bit range. }
+  if (Lexer.TokenInteger >= Low(LongInt)) and
+     (Lexer.TokenInteger <= High(LongInt)) then
+  begin
+    Value := Lexer.TokenInteger;
+  end else
+  begin
+    VRMLNonFatalError(Format('Integer in the file is out of 32-bit range: %d',
+      [Lexer.TokenInteger]));
+    Value := -1;
+  end;
+
   Lexer.NextToken;
 end;
 
