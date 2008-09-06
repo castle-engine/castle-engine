@@ -264,13 +264,12 @@ function GetALCString(enum: TALCenum): string;
   alcGetString would return just nil).
 
   Actually, this @italic(also) checks normal al error (alGetError instead
-  of alcGetError).
-  That's because on Darwin (Mac OS X) Apple's OpenAL
+  of alcGetError). Seems that when Darwin (Mac OS X) Apple's OpenAL
   implementation fails to return some alcGetString
-  (e.g. ALC_DEFAULT_DEVICE_SPECIFIER, ALC_DEVICE_SPECIFIER,
-  ALC_EXTENSIONS) and reports this by setting AL error (instead of ALC one)
-  to "invalid value". Yes, that's Apple's bug (TODO: report ? check newer al
-  version ?).
+  it reports this by setting AL error (instead of ALC one)
+  to "invalid value". Although (after fixes to detect OpenALSampleImplementation
+  at runtime and change constants values) this shouldn't happen anymore
+  it you pass normal consts to this function.
 
   Just like all other functions that somehow check al[c]GetError,
   this function assumes that error state was "clear" before
@@ -442,30 +441,14 @@ begin
 end;
 
 function EnumerationExtPresent(out pDeviceList: PChar): boolean;
-{$ifdef DARWIN}
 var
   Err: TALenum;
-{$endif DARWIN}
 begin
   Result := alcIsExtensionPresent(nil, 'ALC_ENUMERATION_EXT');
   if Result then
   begin
     pDeviceList := alcGetString(nil, ALC_DEVICE_SPECIFIER);
-
-    {$ifdef DARWIN}
-    if pDeviceList = nil then
-    begin
-      { This is normal on Darwin, thanks to buggy OpenAL implementation... }
-      { TODO: this is fixed now, it was my fault, non-OpenAL SI implementations
-        have different codes? }
-      Result := false;
-      { Clear AL_INVALID_VALUE set by alcGetString call above }
-      Err := alGetError();
-      Assert(Err = AL_INVALID_VALUE);
-    end;
-    {$else DARWIN}
     Assert(pDeviceList <> nil);
-    {$endif DARWIN}
   end;
 end;
 
