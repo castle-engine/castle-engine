@@ -484,6 +484,10 @@ type
       it just frees resources for all possible Optimization values. }
     procedure OptimizationDestroy;
 
+    PreparedFogNode: TVRMLNode;
+    PreparedFogDistanceScaling: Single;
+    procedure CheckFogChanged;
+
     { Private things only for RenderFrustum ---------------------- }
 
     RenderFrustum_Frustum: PFrustum;
@@ -2090,6 +2094,43 @@ begin
   end;
 end;
 
+procedure TVRMLGLScene.CheckFogChanged;
+var
+  TG: TTransparentGroup;
+begin
+  if (PreparedFogNode <> FogNode) or
+     (PreparedFogDistanceScaling <> FogDistanceScaling) then
+  begin
+    case Optimization of
+      roSceneAsAWhole:
+        for TG := Low(TG) to High(TG) do
+          glFreeDisplayList(SAAW_DisplayList[TG]);
+      roSeparateShapeStates, roSeparateShapeStatesNoTransform:
+        begin
+          { Although it seems that only RenderBegin needs to be invalidated,
+            turns out that also RenderEnd. Otherwise, enter fog_set_bind_text.x3dv
+            and change fog: after 16 changes, it fails, on Radeon on MacBook Pro
+            (where 16 = attributes stack depth, both client and non-client).
+            I guess that client stack changes go "outside" of display list,
+            so they are actually done (not saved in disp list).
+            So RenderBegin and RenderEnd must always be recreated together. }
+
+          if SSSX_RenderBeginDisplayList <> 0 then
+          begin
+            Renderer.Cache.RenderBegin_DecReference(SSSX_RenderBeginDisplayList);
+            SSSX_RenderBeginDisplayList := 0;
+          end;
+
+          if SSSX_RenderEndDisplayList <> 0 then
+          begin
+            Renderer.Cache.RenderEnd_DecReference(SSSX_RenderEndDisplayList);
+            SSSX_RenderEndDisplayList := 0;
+          end;
+        end;
+    end;
+  end;
+end;
+
 procedure TVRMLGLScene.PrepareRender(
   TransparentGroups: TTransparentGroups;
   Options: TPrepareRenderOptions);
@@ -2097,6 +2138,8 @@ var
   ShapeStateNum: Integer;
   TG: TTransparentGroup;
 begin
+  CheckFogChanged;
+
   case Optimization of
     roSceneAsAWhole:
       for TG := Low(TG) to High(TG) do
@@ -2126,6 +2169,9 @@ begin
       end;
   end;
 
+  PreparedFogNode := FogNode;
+  PreparedFogDistanceScaling := FogDistanceScaling;
+
   if prBackground in Options then
     PrepareBackground;
 
@@ -2150,6 +2196,8 @@ procedure TVRMLGLScene.Render(
   var
     I: Integer;
   begin
+    CheckFogChanged;
+
     case Optimization of
       roNone:
         begin
@@ -2195,6 +2243,9 @@ procedure TVRMLGLScene.Render(
             TransparentGroup);
         end;
     end;
+
+    PreparedFogNode := FogNode;
+    PreparedFogDistanceScaling := FogDistanceScaling;
   end;
 
   procedure RenderWireframe(UseWireframeColor: boolean);
