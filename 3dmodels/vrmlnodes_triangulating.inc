@@ -165,25 +165,50 @@ begin
  NewTriangleProc(T, State, GeometryNode, MatNum, -1, -1);
 end;
 
-{ metody LocalTriangulate konkretnych node'ow ---------------------------------}
+{ Text nodes ----------------------------------------------------------------- }
+
+{ VRML >= 2.0 specs say that 2D Text doesn't participate in collision
+  detection. This is very sensible, as normal triangulation of Text would
+  produce a lot of triangles. On the other hard, I found many VRML models
+  that expect Text within Anchor and TouchSensor to be "clickable" ---
+  which means that some rough triangulation of text is desired.
+
+  So I generate 2 triangles based on Text bounding box.
+  TODO: I should somehow mark them as "not participate in collision
+  detection", and allow octree operations to optionally ignore
+  such marked triangles. }
 
 procedure TNodeAsciiText_1.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+var
+  Box: TBox3d;
 begin
- { TODO: triangulate }
+  Box := LocalBoundingBox(State);
+  LocalTriangulateRect(2, 0, Box[0][0], Box[0][1], Box[1][0], Box[1][1],
+    State, Self, false, NewTriangleProc, 0);
 end;
 
 procedure TNodeText.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+var
+  Box: TBox3d;
 begin
- { TODO: triangulate }
+  Box := LocalBoundingBox(State);
+  LocalTriangulateRect(2, 0, Box[0][0], Box[0][1], Box[1][0], Box[1][1],
+    State, Self, false, NewTriangleProc, 0);
 end;
 
 procedure TNodeText3D.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
- { TODO: triangulate }
+  { TODO: don't really know what to do for Text3D here, I certainly
+    don't want to triangulate them, and using their bounding box
+    could also be uncomfortable (for large depth, bbox would be large,
+    and transformed bbox would contain a lot of additional space ---
+    something that only oriented bounding boxes could remedy). }
 end;
+
+{ metody LocalTriangulate konkretnych node'ow ---------------------------------}
 
 {$define LOOP_OVER_CIRCLE_DECLARE:=
 var LOC_AngleRad: Single;

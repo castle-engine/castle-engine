@@ -180,15 +180,13 @@ end;
 
 { ------------------------------------------------------------------------ }
 
-function Text_BoundingBox(State: TVRMLGraphTraverseState;
+function Text_LocalBoundingBox(State: TVRMLGraphTraverseState;
   const Size, Spacing: Single;
   const Justify: TVRMLFontJustify;
   const TTFont: PTrueTypeFont;
   const Strings: TDynStringArray;
   const Depth: Single): TBox3d;
 var
-  points: array [0..7] of TVector3Single;
-  PointsCount: Cardinal;
   DescendScaled, yscale, XScale, maxRowWidth, minx, miny, maxx, maxy: Single;
   I: integer;
 begin
@@ -212,29 +210,17 @@ begin
     else raise EInternalError.Create('Invalid FontStyle Justify value');
   end;
 
-  points[0] := Vector3Single(minx, maxy, 0);
-  points[1] := Vector3Single(maxx, maxy, 0);
-  points[2] := Vector3Single(minx, miny, 0);
-  points[3] := Vector3Single(maxx, miny, 0);
-  PointsCount := 4;
-
-  if Depth <> 0 then
-  begin
-    { add another set of 4 points, on given -Depth }
-    PointsCount := 8;
-    for I := 4 to 7 do
-    begin
-      Points[I] := Points[I - 4];
-      Points[I][2] := -Depth;
-    end;
-  end;
-
-  result := CalculateBoundingBox(@Points, PointsCount, 0, State.Transform);
+  Result[0][0] := MinX;
+  Result[0][1] := MinY;
+  Result[0][2] := 0;
+  Result[1][0] := MaxX;
+  Result[1][1] := MaxY;
+  Result[1][2] := -Depth;
 end;
 
-function TNodeAsciiText_1.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TNodeAsciiText_1.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
 begin
-  Result := Text_BoundingBox(State,
+  Result := Text_LocalBoundingBox(State,
     State.LastNodes.FontStyle.FdSize.Value,
     FdSpacing.Value,
     Justify,
@@ -243,7 +229,7 @@ begin
     0);
 end;
 
-function TNodeText.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TNodeText.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
 var
   Size, Spacing: Single;
   Justify: TVRMLFontJustify;
@@ -263,11 +249,11 @@ begin
     TTFont := FontStyle.TTF_Font;
   end;
 
-  Result := Text_BoundingBox(State,
+  Result := Text_LocalBoundingBox(State,
     Size, Spacing, Justify, TTFont, FdString.Items, 0);
 end;
 
-function TNodeText3D.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TNodeText3D.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
 var
   Size, Spacing: Single;
   Justify: TVRMLFontJustify;
@@ -287,7 +273,7 @@ begin
     TTFont := FontStyle.TTF_Font;
   end;
 
-  Result := Text_BoundingBox(State,
+  Result := Text_LocalBoundingBox(State,
     Size, Spacing, Justify, TTFont, FdString.Items, FdDepth.Value);
 end;
 
