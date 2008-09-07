@@ -404,13 +404,11 @@ type
     procedure SetProcessEvents(const Value: boolean);
 
     { This is collected by CollectNodesForEvents. @nil if not ProcessEvents. }
-    KeySensorNodes, TimeSensorNodes, MovieTextureNodes: TVRMLNodesList;
+    KeySensorNodes, TimeSensorNodes, MovieTextureNodes,
+      ProximitySensorNodes: TVRMLNodesList;
 
     procedure CollectNodesForEvents;
-    procedure Collect_KeySensor(Node: TVRMLNode);
-    procedure Collect_TimeSensor(Node: TVRMLNode);
-    procedure Collect_MovieTexture(Node: TVRMLNode);
-    procedure Collect_ChangedFields(Node: TVRMLNode);
+    procedure CollectNode(Node: TVRMLNode);
     procedure UnCollect_ChangedFields(Node: TVRMLNode);
 
     FWorldTime: TKamTime;
@@ -2466,46 +2464,33 @@ end;
   - for other sensors, events would be passed twice.
 }
 
-procedure TVRMLScene.Collect_KeySensor(Node: TVRMLNode);
-begin
-  Assert(Node is TNodeKeySensor);
-  KeySensorNodes.AddIfNotExists(Node);
-end;
-
-procedure TVRMLScene.Collect_TimeSensor(Node: TVRMLNode);
-begin
-  Assert(Node is TNodeTimeSensor);
-  TimeSensorNodes.AddIfNotExists(Node);
-end;
-
-procedure TVRMLScene.Collect_MovieTexture(Node: TVRMLNode);
-begin
-  Assert(Node is TNodeMovieTexture);
-  MovieTextureNodes.AddIfNotExists(Node);
-end;
-
-procedure TVRMLScene.Collect_ChangedFields(Node: TVRMLNode);
+procedure TVRMLScene.CollectNode(Node: TVRMLNode);
 begin
   Node.ParentEventsProcessor := Self;
-end;
 
-procedure TVRMLScene.UnCollect_ChangedFields(Node: TVRMLNode);
-begin
-  Node.ParentEventsProcessor := nil;
+  if Node is TNodeKeySensor then
+    KeySensorNodes.AddIfNotExists(Node) else
+  if Node is TNodeTimeSensor then
+    TimeSensorNodes.AddIfNotExists(Node) else
+  if Node is TNodeMovieTexture then
+    MovieTextureNodes.AddIfNotExists(Node) else
+  if Node is TNodeProximitySensor then
+    ProximitySensorNodes.AddIfNotExists(Node);
 end;
 
 procedure TVRMLScene.CollectNodesForEvents;
 begin
   KeySensorNodes.Clear;
-  RootNode.EnumerateNodes(TNodeKeySensor, @Collect_KeySensor, false);
-
   TimeSensorNodes.Clear;
-  RootNode.EnumerateNodes(TNodeTimeSensor, @Collect_TimeSensor, false);
-
   MovieTextureNodes.Clear;
-  RootNode.EnumerateNodes(TNodeMovieTexture, @Collect_MovieTexture, false);
+  ProximitySensorNodes.Clear;
 
-  RootNode.EnumerateNodes(TVRMLNode, @Collect_ChangedFields, false);
+  RootNode.EnumerateNodes(TVRMLNode, @CollectNode, false);
+end;
+
+procedure TVRMLScene.UnCollect_ChangedFields(Node: TVRMLNode);
+begin
+  Node.ParentEventsProcessor := nil;
 end;
 
 procedure TVRMLScene.UnregisterProcessEvents(Node: TVRMLNode);
@@ -2522,12 +2507,14 @@ begin
       KeySensorNodes := TVRMLNodesList.Create;
       TimeSensorNodes := TVRMLNodesList.Create;
       MovieTextureNodes := TVRMLNodesList.Create;
+      ProximitySensorNodes := TVRMLNodesList.Create;
       CollectNodesForEvents;
     end else
     begin
       FreeAndNil(KeySensorNodes);
       FreeAndNil(TimeSensorNodes);
       FreeAndNil(MovieTextureNodes);
+      FreeAndNil(ProximitySensorNodes);
       UnregisterProcessEvents(RootNode);
       PointingDeviceClear;
     end;
