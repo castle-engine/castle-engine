@@ -258,6 +258,9 @@ type
     See @code(kambi_vrml_game_engine/opengl/examples/demo_matrix_navigation.pasprogram)
     example program in engine sources for simple demo how to use this class. }
   TMatrixNavigator = class
+  private
+    MatrixChangedSchedule: Cardinal;
+    IsMatrixChangedScheduled: boolean;
   protected
     { This is called always when @link(Matrix) changed.
       Actually, when any
@@ -271,6 +274,22 @@ type
       the frustum in TMatrixWalker), so always call inherited when
       overriding this.) }
     procedure MatrixChanged; virtual;
+
+    { Mechanism to schedule MatrixChanged calls.
+
+      This mechanism allows to defer calling MatrixChanged.
+      Idea: BeginMatrixChangedSchedule increases internal MatrixChangedSchedule
+      counter, EndMatrixChangedSchedule decreases it and calls
+      actual MatrixChanged if counter is zero and some
+      ScheduleMatrixChanged was called in between.
+
+      When ScheduleMatrixChanged is called when counter is zero,
+      MatrixChanged is called immediately, so it's safe to always
+      use ScheduleMatrixChanged instead of direct MatrixChanged
+      in this class. }
+    procedure BeginMatrixChangedSchedule;
+    procedure ScheduleMatrixChanged;
+    procedure EndMatrixChangedSchedule;
   public
     { Event called always when @link(Matrix) changed. Actually, when any
       property (of this class or descendant) changed, for example even
@@ -1515,6 +1534,31 @@ begin
   Result := false;
 end;
 
+procedure TMatrixNavigator.BeginMatrixChangedSchedule;
+begin
+  { IsMatrixChangedScheduled = false always when MatrixChangedSchedule = 0. }
+  Assert((MatrixChangedSchedule <> 0) or (not IsMatrixChangedScheduled));
+
+  Inc(MatrixChangedSchedule);
+end;
+
+procedure TMatrixNavigator.ScheduleMatrixChanged;
+begin
+  if MatrixChangedSchedule = 0 then
+    MatrixChanged else
+    IsMatrixChangedScheduled := true;
+end;
+
+procedure TMatrixNavigator.EndMatrixChangedSchedule;
+begin
+  Dec(MatrixChangedSchedule);
+  if (MatrixChangedSchedule = 0) and IsMatrixChangedScheduled then
+  begin
+    MatrixChanged;
+    IsMatrixChangedScheduled := false;
+  end;
+end;
+
 { TMatrixExaminer ------------------------------------------------------------ }
 
 constructor TMatrixExaminer.Create(
@@ -1531,7 +1575,7 @@ var
   B: boolean;
 begin
   inherited;
-  
+
   FMouseNavigation := true;
 
   FScaleFactor := 1;
@@ -2035,7 +2079,7 @@ begin
  FCameraUp := RotatePointAroundAxisDeg(AngleDeg, CameraUp, Axis);
  FCameraDir := RotatePointAroundAxisDeg(AngleDeg, CameraDir, Axis);
 
- MatrixChanged;
+ ScheduleMatrixChanged;
 end;
 
 procedure TMatrixWalker.RotateAroundUp(const AngleDeg: Single);
@@ -2122,7 +2166,7 @@ begin
     DoRealRotate;
   end;
 
-  MatrixChanged;
+  ScheduleMatrixChanged;
 end;
 
 procedure TMatrixWalker.Idle(const CompSpeed: Single;
@@ -2138,7 +2182,7 @@ procedure TMatrixWalker.Idle(const CompSpeed: Single;
   begin
     Result := DoMoveAllowed(ProposedNewPos, NewPos, BecauseOfGravity);
     if Result then
-      { Note that setting CameraPos automatically calls MatrixChanged }
+      { Note that setting CameraPos automatically calls ScheduleMatrixChanged }
       CameraPos := NewPos;
   end;
 
@@ -2440,7 +2484,8 @@ var
             SqrFallingDownVectorLength). So why initing it again here ?
 
             Answer: Because Move above called MoveTo, that set CameraPos
-            that actually called MatrixChanged that called OnMatrixChanged.
+            that actually called ScheduleMatrixChanged that possibly
+            called OnMatrixChanged.
             And OnMatrixChanged is used callback and user could do there
             things like
             - Changing FallingDownStartSpeed (but still it's unspecified
@@ -2542,7 +2587,7 @@ var
               Fde_CameraUpRotate := RandomPlusMinus *
                                     Fde_VerticalRotateDeviation * CompSpeed * 50;
 
-            MatrixChanged;
+            ScheduleMatrixChanged;
           end;
 
           { Note that when changing FFallingDownSpeed below I'm using CompSpeed * 50.
@@ -2584,7 +2629,7 @@ var
           Fde_CameraUpRotate := Min(Fde_CameraUpRotate + Change, 0.0) else
           Fde_CameraUpRotate := Max(Fde_CameraUpRotate - Change, 0.0);
 
-        MatrixChanged;
+        ScheduleMatrixChanged;
       end;
     end;
 
@@ -2809,84 +2854,90 @@ begin
   HeadBobbingAlreadyDone := false;
   MoveHorizontalDone := false;
 
-  FIsCrouching := Input_Crouch.IsPressed(KeysDown, CharactersDown, MousePressed);
+  BeginMatrixChangedSchedule;
+  try
 
-  if (not CheckModsDown) or
-     (ModsDown - [mkShift] = []) then
-  begin
-    CheckRotates(1.0);
+    FIsCrouching := Input_Crouch.IsPressed(KeysDown, CharactersDown, MousePressed);
 
-    if Input_Forward.IsPressed(KeysDown, CharactersDown, MousePressed) then
-      MoveHorizontal;
-    if Input_Backward.IsPressed(KeysDown, CharactersDown, MousePressed) then
-      MoveHorizontal(-1);
-
-    if Input_RightStrafe.IsPressed(KeysDown, CharactersDown, MousePressed) then
+    if (not CheckModsDown) or
+       (ModsDown - [mkShift] = []) then
     begin
-      RotateHorizontalForStrafeMove(-90);
-      MoveHorizontal;
-      RotateHorizontalForStrafeMove(90);
+      CheckRotates(1.0);
+
+      if Input_Forward.IsPressed(KeysDown, CharactersDown, MousePressed) then
+        MoveHorizontal;
+      if Input_Backward.IsPressed(KeysDown, CharactersDown, MousePressed) then
+        MoveHorizontal(-1);
+
+      if Input_RightStrafe.IsPressed(KeysDown, CharactersDown, MousePressed) then
+      begin
+        RotateHorizontalForStrafeMove(-90);
+        MoveHorizontal;
+        RotateHorizontalForStrafeMove(90);
+      end;
+
+      if Input_LeftStrafe.IsPressed(KeysDown, CharactersDown, MousePressed) then
+      begin
+        RotateHorizontalForStrafeMove(90);
+        MoveHorizontal;
+        RotateHorizontalForStrafeMove(-90);
+      end;
+
+      { A simple implementation of Input_UpMove was
+          RotateVertical(90); Move(MoveVerticalSpeed * CompSpeed * 50); RotateVertical(-90)
+        Similarly, simple implementation of Input_DownMove was
+          RotateVertical(-90); Move(MoveVerticalSpeed * CompSpeed * 50); RotateVertical(90)
+        But this is not good, because when PreferGravityUp, we want to move
+        along the GravityUp. (Also later note: RotateVertical is now bounded by
+        MinAngleRadFromGravityUp). }
+      if Input_UpMove.IsPressed(KeysDown, CharactersDown, MousePressed) then
+        MoveVertical( 1);
+      if Input_DownMove.IsPressed(KeysDown, CharactersDown, MousePressed) then
+        MoveVertical(-1);
+
+      { zmiana szybkosci nie wplywa na Matrix (nie od razu). Ale wywolujemy
+        ScheduleMatrixChanged - zmienilismy swoje wlasciwosci, moze sa one np. gdzies
+        wypisywane w oknie na statusie i okno potrzebuje miec PostRedisplay po zmianie
+        Move*Speed ?.
+
+        How to apply CompSpeed * 50 here ?
+        I can't just ignore CompSpeed * 50, but I can't also write
+          FMoveHorizontalSpeed *= 1.1 * CompSpeed * 50;
+        What I want is such (pl: ci±g³a) function that e.g.
+          F(FMoveHorizontalSpeed, 2) = F(F(FMoveHorizontalSpeed, 1), 1)
+        I.e. CompSpeed * 50 = 2 should work just like doing the same change twice.
+        So F is FMoveHorizontalSpeed * Power(1.1, CompSpeed * 50)
+        Easy!
+      }
+      if Input_MoveSpeedInc.IsPressed(KeysDown, CharactersDown, MousePressed) then
+      begin
+        FMoveHorizontalSpeed *= Power(1.1, CompSpeed * 50);
+        FMoveVerticalSpeed *= Power(1.1, CompSpeed * 50);
+        ScheduleMatrixChanged;
+      end;
+
+      if Input_MoveSpeedDec.IsPressed(KeysDown, CharactersDown, MousePressed) then
+      begin
+        FMoveHorizontalSpeed /= Power(1.1, CompSpeed * 50);
+        FMoveVerticalSpeed /= Power(1.1, CompSpeed * 50);
+        ScheduleMatrixChanged;
+      end;
+    end else
+    if AllowSlowerRotations and (ModsDown = [mkCtrl]) then
+    begin
+      CheckRotates(0.1);
     end;
 
-    if Input_LeftStrafe.IsPressed(KeysDown, CharactersDown, MousePressed) then
-    begin
-      RotateHorizontalForStrafeMove(90);
-      MoveHorizontal;
-      RotateHorizontalForStrafeMove(-90);
-    end;
+    PreferGravityUpForRotationsIdle;
 
-    { A simple implementation of Input_UpMove was
-        RotateVertical(90); Move(MoveVerticalSpeed * CompSpeed * 50); RotateVertical(-90)
-      Similarly, simple implementation of Input_DownMove was
-        RotateVertical(-90); Move(MoveVerticalSpeed * CompSpeed * 50); RotateVertical(90)
-      But this is not good, because when PreferGravityUp, we want to move
-      along the GravityUp. (Also later note: RotateVertical is now bounded by
-      MinAngleRadFromGravityUp). }
-    if Input_UpMove.IsPressed(KeysDown, CharactersDown, MousePressed) then
-      MoveVertical( 1);
-    if Input_DownMove.IsPressed(KeysDown, CharactersDown, MousePressed) then
-      MoveVertical(-1);
+    { These may be set to @true only inside GravityIdle }
+    FIsWalkingOnTheGround := false;
+    FIsOnTheGround := false;
 
-    { zmiana szybkosci nie wplywa na Matrix (nie od razu). Ale wywolujemy
-      MatrixChanged - zmienilismy swoje wlasciwosci, moze sa one np. gdzies
-      wypisywane w oknie na statusie i okno potrzebuje miec PostRedisplay po zmianie
-      Move*Speed ?.
-
-      How to apply CompSpeed * 50 here ?
-      I can't just ignore CompSpeed * 50, but I can't also write
-        FMoveHorizontalSpeed *= 1.1 * CompSpeed * 50;
-      What I want is such (pl: ci±g³a) function that e.g.
-        F(FMoveHorizontalSpeed, 2) = F(F(FMoveHorizontalSpeed, 1), 1)
-      I.e. CompSpeed * 50 = 2 should work just like doing the same change twice.
-      So F is FMoveHorizontalSpeed * Power(1.1, CompSpeed * 50)
-      Easy!
-    }
-    if Input_MoveSpeedInc.IsPressed(KeysDown, CharactersDown, MousePressed) then
-    begin
-      FMoveHorizontalSpeed *= Power(1.1, CompSpeed * 50);
-      FMoveVerticalSpeed *= Power(1.1, CompSpeed * 50);
-      MatrixChanged;
-    end;
-
-    if Input_MoveSpeedDec.IsPressed(KeysDown, CharactersDown, MousePressed) then
-    begin
-      FMoveHorizontalSpeed /= Power(1.1, CompSpeed * 50);
-      FMoveVerticalSpeed /= Power(1.1, CompSpeed * 50);
-      MatrixChanged;
-    end;
-  end else
-  if AllowSlowerRotations and (ModsDown = [mkCtrl]) then
-  begin
-    CheckRotates(0.1);
+    GravityIdle;
+  finally
+    EndMatrixChangedSchedule;
   end;
-
-  PreferGravityUpForRotationsIdle;
-
-  { These may be set to @true only inside GravityIdle }
-  FIsWalkingOnTheGround := false;
-  FIsOnTheGround := false;
-
-  GravityIdle;
 end;
 
 procedure TMatrixWalker.Home;
@@ -2894,7 +2945,7 @@ begin
   { I don't set here CameraXxx properties, instead I actually directly set
     FCameraXxx fields. Reason:
 
-    1. Speed (this way it's enough to call MatrixChanged only once).
+    1. Speed (this way it's enough to call ScheduleMatrixChanged only once).
 
     2. Also remember that setting CameraDir and CameraUp properties is followed
        by adjustment of up vector (to be orthogonal to dir vector).
@@ -2908,7 +2959,7 @@ begin
   FCameraPos := InitialCameraPos;
   FCameraDir := InitialCameraDir;
   FCameraUp := InitialCameraUp;
-  MatrixChanged;
+  ScheduleMatrixChanged;
 end;
 
 procedure TMatrixWalker.Jump;
@@ -3019,7 +3070,7 @@ begin
   FInitialCameraDir := AInitialCameraDir;
   FInitialCameraUp := AInitialCameraUp;
   MakeVectorsOrthoOnTheirPlane(FInitialCameraUp, FInitialCameraDir);
-  MatrixChanged;
+  ScheduleMatrixChanged;
 end;
 
 procedure TMatrixWalker.SetInitialCameraLookAt(const AInitialCameraPos,
@@ -3033,21 +3084,21 @@ end;
 procedure TMatrixWalker.SetCameraPos(const Value: TVector3Single);
 begin
   FCameraPos := Value;
-  MatrixChanged;
+  ScheduleMatrixChanged;
 end;
 
 procedure TMatrixWalker.SetCameraDir(const Value: TVector3Single);
 begin
   FCameraDir := Value;
   MakeVectorsOrthoOnTheirPlane(FCameraUp, FCameraDir);
-  MatrixChanged;
+  ScheduleMatrixChanged;
 end;
 
 procedure TMatrixWalker.SetCameraUp(const Value: TVector3Single);
 begin
   FCameraUp := Value;
   MakeVectorsOrthoOnTheirPlane(FCameraDir, FCameraUp);
-  MatrixChanged;
+  ScheduleMatrixChanged;
 end;
 
 procedure TMatrixWalker.RecalculateFrustum;
