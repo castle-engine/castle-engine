@@ -1871,10 +1871,13 @@ begin
     if (Field = TNodeProximitySensor(Node).FdCenter) or
        (Field = TNodeProximitySensor(Node).FdSize) then
     begin
-      { Update state for ProximitySensor nodes.
-        Actually, only an update for items where Node = this sensor are needed. }
-      {}{if WasLastViewerPosition then
-        ViewerPositionChanged(LastViewerPosition);}
+      { Update state for this ProximitySensor node. }
+      if IsLastViewerPosition then
+        for I := 0 to ProximitySensorInstances.Count - 1 do
+        begin
+          if ProximitySensorInstances.Items[I].Node = Node then
+            ProximitySensorUpdate(ProximitySensorInstances.Items[I]);
+        end;
     end else
     begin
       { Other changes to TNodeProximitySensor (enabled, metadata)
