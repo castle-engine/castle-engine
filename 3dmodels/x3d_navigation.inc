@@ -137,6 +137,8 @@
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
+    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
+    procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -511,6 +513,20 @@ var
 begin
   for I := 0 to FdChildren.Count - 1 do
     Func(Self, FdChildren.Items[I]);
+end;
+
+procedure TNodeCollision.BeforeTraverse(var State: TVRMLGraphTraverseState);
+begin
+  inherited;
+  if not FdEnabled.Value then
+    Inc(State.InsideIgnoreCollision);
+end;
+
+procedure TNodeCollision.AfterTraverse(var State: TVRMLGraphTraverseState);
+begin
+  Dec(State.InsideIgnoreCollision);
+  if not FdEnabled.Value then
+    inherited;
 end;
 
 constructor TNodeLOD_2.Create(const ANodeName: string; const AWWWBasePath: string);

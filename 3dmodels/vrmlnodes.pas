@@ -593,6 +593,10 @@ type
     InsidePrototype: Cardinal;
     { @groupEnd }
 
+    { How many times are we inside Collision node with enabled/collide = FALSE?
+      If this is > 0, you should not do collision detection for these nodes. }
+    InsideIgnoreCollision: Cardinal;
+
     { Active pointing device sensors in this state.
       This can contain only nodes descending from
       X3DPointingDeviceSensorNode, and additionally an Anchor node.
@@ -3384,6 +3388,7 @@ begin
   ParentShape := Source.ParentShape;
   InsideInline := Source.InsideInline;
   InsidePrototype := Source.InsidePrototype;
+  InsideIgnoreCollision := Source.InsideIgnoreCollision;
 
   PointingDeviceSensors.Assign(Source.PointingDeviceSensors);
   VRML1ActiveLights.AppendDynArray(Source.VRML1ActiveLights);
@@ -3433,7 +3438,7 @@ function TVRMLGraphTraverseState.Equals(SecondValue: TVRMLGraphTraverseState):
 var
   I: Integer;
 begin
-  { InsideInline, InsidePrototype, PointingDeviceSensors
+  { InsideInline, InsidePrototype, InsideIgnoreCollision, PointingDeviceSensors
     are currently ignored by Equals,
     since Equals is used for TVRMLOpenGLRenderer where difference
     in these is not important. This may be clarified in the interface
@@ -3462,7 +3467,7 @@ function TVRMLGraphTraverseState.EqualsNoTransform(
 var
   I: Integer;
 begin
-  { InsideInline, InsidePrototype,
+  { InsideInline, InsidePrototype, InsideIgnoreCollision,
     PointingDeviceSensors,
     ActiveLights, Transform, AverageScaleTransform, InvertedTransform,
     TextureTransform are ignored by
