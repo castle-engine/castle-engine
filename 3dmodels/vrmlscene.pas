@@ -444,16 +444,6 @@ type
 
     procedure ResetRoutesLastEventTime(Node: TVRMLNode);
 
-    { Helpers for the case when VRML >= 2.0 Transform changed it's fields. }
-    TransformChange_ShapeStateNum: Cardinal;
-    TransformChange_ChangingNode: TVRMLNode;
-    TransformChange_AnythingChanged: boolean;
-    TransformChange_Inside: boolean;
-    procedure TransformChangeTraverse(
-      Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
-    procedure TransformChangeTraverseAfter(
-      Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
-
     { Bindable nodes helpers }
     FBackgroundStack: TVRMLBindableStack;
     FFogStack: TVRMLBindableStack;
@@ -1553,24 +1543,49 @@ end;
 type
   BreakTransformChangeFailed = class(TCodeBreaker);
 
-procedure TVRMLScene.TransformChangeTraverse(
+  { We need a separate class to keep various helpful state
+    during traversal when Transform changed.
+    Changing VRML >= 2.0 Transform fields must be highly optimized.
+
+    Reason: one change of Transform may cause, during traversal,
+    another change of Transform and another traversal.
+    Consider e.g. proximity_sensor_transformed.x3dv: ProximitySensorUpdate
+    causes sending of Position_Changed, which may be routed to something
+    like Transfom.set_translation.
+
+    So many TransformChange traversals may run at once, so they must
+    have different state variables. }
+  TTransformChangeHelper = class
+    ShapeStateNum: Cardinal;
+    ProximitySensorNum: Cardinal;
+    ChangingNode: TVRMLNode;
+    AnythingChanged: boolean;
+    Inside: boolean;
+    ParentScene: TVRMLScene;
+    procedure TransformChangeTraverse(
+      Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+    procedure TransformChangeTraverseAfter(
+      Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+  end;
+
+procedure TTransformChangeHelper.TransformChangeTraverse(
   Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
 begin
-  if TransformChange_Inside then
+  if Inside then
   begin
     if Node is TVRMLGeometryNode then
     begin
-      ShapeStates[TransformChange_ShapeStateNum].State.AssignTransform(State);
+      ParentScene.ShapeStates[ShapeStateNum].State.AssignTransform(State);
       { TransformOnly = @true, suitable for roSeparateShapeStatesNoTransform,
         they don't have Transform compiled in display list. }
-      ChangedShapeStateFields(TransformChange_ShapeStateNum, true);
-      Inc(TransformChange_ShapeStateNum);
-      TransformChange_AnythingChanged := true;
+      ParentScene.ChangedShapeStateFields(ShapeStateNum, true);
+      Inc(ShapeStateNum);
+      AnythingChanged := true;
     end else
     if Node is TNodeX3DBackgroundNode then
     begin
       { TODO: make this work to actually change displayed background }
-      if Node = BackgroundStack.Top then
+      if Node = ParentScene.BackgroundStack.Top then
         raise BreakTransformChangeFailed.Create;
     end else
     if Node is TNodeFog then
@@ -1583,7 +1598,7 @@ begin
         Renderer in TVRMLGLScene should detect this, and eventually
         destroy display lists and such when rendering next time.
       }
-      DoPostRedisplay;
+      ParentScene.DoPostRedisplay;
     end else
     if Node is TNodeNavigationInfo then
     begin
@@ -1607,31 +1622,33 @@ begin
     end else
     if Node is TNodeProximitySensor then
     begin
-      { TODO: no... we need here something like TransformChange_ShapeStateNum,
-        to update proper proxsensor with InvertedTransform.
-        TODO: also, only the changed prox should be updated. }
-      {}{if WasLastViewerPosition then
-        ViewerPositionChanged(LastViewerPosition);}
+      ParentScene.ProximitySensorInstances.Items[ProximitySensorNum].
+        InvertedTransform := State.InvertedTransform;
+      { Call ProximitySensorUpdate, since the sensor's box moved,
+        so possibly it should be activated/deactivated, position_changed
+        called etc. }
+      if ParentScene.IsLastViewerPosition then
+        ParentScene.ProximitySensorUpdate(
+          ParentScene.ProximitySensorInstances.Items[ProximitySensorNum]);
+      Inc(ProximitySensorNum);
     end;
   end else
   begin
     if Node is TVRMLGeometryNode then
-    begin
-      Inc(TransformChange_ShapeStateNum);
-    end else
-    if Node = TransformChange_ChangingNode then
-    begin
-      TransformChange_Inside := true;
-    end;
+      Inc(ShapeStateNum) else
+    if Node is TNodeProximitySensor then
+      Inc(ProximitySensorNum) else
+    if Node = ChangingNode then
+      Inside := true;
   end;
 end;
 
-procedure TVRMLScene.TransformChangeTraverseAfter(
+procedure TTransformChangeHelper.TransformChangeTraverseAfter(
   Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
 begin
-  if Node = TransformChange_ChangingNode then
+  if Node = ChangingNode then
   begin
-    TransformChange_Inside := false;
+    Inside := false;
   end;
 end;
 
@@ -1653,6 +1670,8 @@ var
     WritelnLog('VRML changes', S);
   end;
 
+var
+  TransformChangeHelper: TTransformChangeHelper;
 begin
   NodeLastNodesIndex := Node.TraverseStateLastNodesIndex;
 
@@ -1818,18 +1837,25 @@ begin
       in such cases.
     }
     try
-      TransformChange_ShapeStateNum := 0;
-      TransformChange_ChangingNode := Node;
-      TransformChange_AnythingChanged := false;
-      TransformChange_Inside := false;
+      TransformChangeHelper := TTransformChangeHelper.Create;
+      try
+        TransformChangeHelper.ParentScene := Self;
+        TransformChangeHelper.ShapeStateNum := 0;
+        TransformChangeHelper.ProximitySensorNum := 0;
+        TransformChangeHelper.ChangingNode := Node;
+        TransformChangeHelper.AnythingChanged := false;
+        TransformChangeHelper.Inside := false;
 
-      RootNode.Traverse(TVRMLNode, @TransformChangeTraverse,
-        @TransformChangeTraverseAfter);
+        RootNode.Traverse(TVRMLNode,
+          @TransformChangeHelper.TransformChangeTraverse,
+          @TransformChangeHelper.TransformChangeTraverseAfter);
 
-      if not TransformChange_AnythingChanged then
-        { No need to do ScheduleGeometryChanged, not even DoPostRedisplay
-          at the end. }
-        Exit;
+        if not TransformChangeHelper.AnythingChanged then
+          { No need to do ScheduleGeometryChanged, not even DoPostRedisplay
+            at the end. }
+          Exit;
+
+      finally FreeAndNil(TransformChangeHelper) end;
 
       ScheduleGeometryChanged;
     except
