@@ -1498,6 +1498,16 @@ type
       parsed prototype node (and PrototypeInstanceSourceNode.Prototype
       gives you even a link to the actual prototype specification).
 
+      PrototypeInstanceSourceNode is used for events: any ROUTEs
+      specified @italic(outside) of prototype and
+      leading to/from instantiated prototype should actually lead
+      to PrototypeInstanceSourceNode events (not to events of Self).
+      Reason: prototype events may be different than actual expanded
+      node events, and ROUTEs want to lead to prototype events.
+      This is implemented when expanding prototype
+      (@link(TVRMLPrototypeNode.Instantiate))
+      and when linking ROUTE (TVRMLRoute.SetSource, TVRMLRoute.SetDestination).
+
       PrototypeInstanceHelpers may be @nil if empty, or may contain
       a list of other nodes duplicated along with the main prototype node.
       From VRML spec:
@@ -2562,9 +2572,12 @@ type
   private
     FPrototype: TVRMLPrototypeBase;
 
-    { This searches Node for fields with "IS" clauses, and expands them
-      using our current fields values (i.e. changes IsClause to @false
-      and fills appropriate value). It also descends into all children.
+    { This searches Node for fields/events with "IS" clauses, and handles them:
+      for fields, this means copying field value from Self to Child.
+      for events, this means adding internal routes to route event
+      from/to Self to/from Child.
+      In each case, IsClause is changed to @false.
+      It also descends into all children.
 
       Aborts if current node is from another prototype (PrototypeInstance is @true).
       We can do it, since "IS" always refers to innermost prototype.
@@ -2574,13 +2587,20 @@ type
       couldn't be instantiated within it's direct parent --- and proto
       must *always be instantiated within it's direct parent*, not higher,
       so says the spec. }
-    procedure InstantiateReplaceIsClauses(Node, Child: TVRMLNode);
+    procedure InstantiateHandleIsClauses(Node, Child: TVRMLNode);
 
-    { Basically, do Destination.AssignValue(Source).
+    { Handle IsClause on Destination field/event, by copying it's value
+      from Source.
+
+      For fields basically does Destination.AssignValue(Source).
+      In case of EVRMLFieldAssign, make VRMLNonFatalError with clear message.
+
+      For events establishes internal route.
+
       If Source.IsClause, then copies Source.IsClauseName to
-      Destination.IsClauseName.
-      In case of EVRMLFieldAssign, make VRMLNonFatalError with clear message. }
-    procedure FieldsAssignValue(Destination, Source: TVRMLField;
+      Destination.IsClauseName. }
+    procedure FieldOrEventHandleIsClause(
+      Destination, Source: TVRMLFieldOrEvent;
       UsingIsClause: boolean);
   public
     { This constructor will raise exception for TVRMLPrototypeNode.
@@ -2769,10 +2789,25 @@ type
       var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent;
       const DestEnding: boolean);
 
+    { Set ExposedField, Event, based on FieldOrEvent and DestEnding.
+      Assumes that ExposedField, Event are clear on enter (cleared by UnsetEnding). }
+    procedure SetEndingInternal(
+      const Node: TVRMLNode;
+      const FieldOrEvent: TVRMLFieldOrEvent;
+      var ExposedField: TVRMLField; var Event: TVRMLEvent;
+      const DestEnding: boolean);
+
+    procedure SetEndingDirectly(
+      const NewNode: TVRMLNode; const FieldOrEvent: TVRMLFieldOrEvent;
+      var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent;
+      const DestEnding: boolean);
+
     LastEventTime: TKamTime;
 
     procedure EventReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TKamTime);
+
+    FInternal: boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -2806,6 +2841,17 @@ type
     property DestinationEvent: TVRMLEvent read FDestinationEvent;
     { @groupEnd }
 
+    { Set source/destination of the route.
+
+      This does everything that VRML parser should
+      do when parsed VRML route. It looks for given node name in
+      NodeNameBinding, then it looks for field/event within this node,
+      and if everything is successfull --- sets route properties.
+
+      If something goes wrong, VRMLNonFatalError is generated
+      and route ending is left unset.
+
+      @groupBegin }
     procedure SetSource(
       const SourceNodeName, SourceFieldOrEventName: string;
       NodeNameBinding: TStringList);
@@ -2813,6 +2859,30 @@ type
     procedure SetDestination(
       const DestinationNodeName, DestinationFieldOrEventName: string;
       NodeNameBinding: TStringList);
+    { @groupEnd }
+
+    { These set source/destination of the route in more direct way.
+
+      FieldOrEvent is used to set SourceExposedField and SourceEvent
+      (or DestinationExposedField and DestinationEvent).
+
+      You specify explictly NewNode, which is not checked in any way
+      (we don't check whether it exists, whether it contains given
+      FieldOrEvent etc. --- you have to guarantee this yourself).
+      It is used to set SourceNode (or DestinationNode).
+      Overloaded versions that don't take NewNode parameter just assume
+      that NewNode can be taken from FieldOrEvent.ParentNode.
+
+      @groupBegin }
+    procedure SetSourceDirectly(
+      const NewNode: TVRMLNode; const FieldOrEvent: TVRMLFieldOrEvent);
+
+    procedure SetDestinationDirectly(
+      const NewNode: TVRMLNode; const FieldOrEvent: TVRMLFieldOrEvent);
+
+    procedure SetSourceDirectly(const FieldOrEvent: TVRMLFieldOrEvent);
+    procedure SetDestinationDirectly(const FieldOrEvent: TVRMLFieldOrEvent);
+    { @groupEnd }
 
     { Parses the route statement.
       Implementation should be able to safely assume that current token
@@ -2838,6 +2908,19 @@ type
       In practice, this should be used only by TVRMLScene.ResetWorldTime
       implementation. }
     procedure ResetLastEventTime;
+
+    { Internal routes are created by PROTO expansion code, which
+      needs to create internal routes to implement "IS" clauses for events.
+
+      These routes work exactly like normal routes, except:
+      @unorderedList(
+        @item(They are not saved to file (SaveToStream will ignore
+          internal route).)
+        @item(It's allowed (in fact, this will always happen for current
+          internal routes) to route one input event to another input event.)
+      )
+    }
+    property Internal: boolean read FInternal write FInternal default false;
   end;
 
   TObjectsListItem_5 = TVRMLRoute;
@@ -3563,6 +3646,7 @@ begin
   end;
 
   FreeWithContentsAndNil(FPrototypes);
+
   FreeWithContentsAndNil(FRoutes);
 
   { First free Fields and Events, before freeing InterfaceDeclarations.
@@ -5999,95 +6083,213 @@ begin
   Result := Prototype.Name;
 end;
 
-procedure TVRMLPrototypeNode.FieldsAssignValue(Destination, Source: TVRMLField;
+procedure TVRMLPrototypeNode.FieldOrEventHandleIsClause(
+  Destination, Source: TVRMLFieldOrEvent;
   UsingIsClause: boolean);
+var
+  DestinationField, SourceField: TVRMLField;
+  DestinationEvent, SourceEvent: TVRMLEvent;
+  Route: TVRMLRoute;
+const
+  InEventName: array [boolean] of string = ( 'output', 'input' );
 begin
   if Source.IsClause then
   begin
+    { Note that if Source.IsClause, then Destination will have
+      Source.IsClauseName assigned.
+
+      This means that the prototype (current Prototype) is expanded
+      within the definition of another prototype.
+      So Destination.IsClauseName referers to Source
+      (from current Prototype), but Source.IsClauseName refers to yet
+      another, enclosing, prototype (that will be expanded later --- for
+      now we're within enclosing prototype definition).
+
+      So solution is simple: Destination is expanded to also
+      refer to this enclosing prototype. }
+
     Destination.IsClauseName := Source.IsClauseName;
   end else
-  try
-    Destination.AssignValue(Source);
-  except
-    on E: EVRMLFieldAssign do
+  if Source is TVRMLField then
+  begin
+    Assert(Destination is TVRMLField);
+    SourceField := Source as TVRMLField;
+    DestinationField := Destination as TVRMLField;
+    try
+      DestinationField.AssignValue(SourceField);
+    except
+      on E: EVRMLFieldAssign do
+      begin
+        if (E is EVRMLFieldAssignInvalidClass) and UsingIsClause then
+          VRMLNonFatalError(Format('Within prototype "%s", ' +
+            'field of type %s (named "%s") references ' +
+            '(by "IS" clause) field of different type %s (named "%s")',
+            [Prototype.Name,
+             DestinationField.VRMLTypeName,
+             Destination.Name,
+             SourceField.VRMLTypeName,
+             Source.Name])) else
+          VRMLNonFatalError(Format('Error when expanding prototype "%s": ',
+            [Prototype.Name]) + E.Message);
+      end;
+    end;
+  end else
+  if Source is TVRMLEvent then
+  begin
+    Assert(Destination is TVRMLEvent);
+    SourceEvent := Source as TVRMLEvent;
+    DestinationEvent := Destination as TVRMLEvent;
+
+    if SourceEvent.InEvent <> DestinationEvent.InEvent then
     begin
-      if (E is EVRMLFieldAssignInvalidClass) and UsingIsClause then
-        VRMLNonFatalError(Format('Within prototype "%s", ' +
-          'field of type %s (named "%s") references ' +
-          '(by "IS" clause) field of different type %s (named "%s")',
-          [Prototype.Name,
-           Destination.VRMLTypeName,
-           Destination.Name,
-           Source.VRMLTypeName,
-           Source.Name])) else
-        VRMLNonFatalError(Format('Error when expanding prototype "%s": ',
-          [Prototype.Name]) + E.Message);
+      VRMLNonFatalError(Format('When expanding prototype "%s": "%s" event references (by "IS" clause) "%s" event',
+        [ Prototype.Name,
+          InEventName[DestinationEvent.InEvent],
+          InEventName[SourceEvent.InEvent] ]));
+      Exit;
+    end;
+
+    if SourceEvent.FieldClass <> DestinationEvent.FieldClass then
+    begin
+      VRMLNonFatalError(Format('When expanding prototype "%s": "%s" event references (by "IS" clause) "%s" event',
+        [ Prototype.Name,
+          DestinationEvent.FieldClass.VRMLTypeName,
+          SourceEvent.FieldClass.VRMLTypeName ]));
+      Exit;
+    end;
+
+    Route := TVRMLRoute.Create;
+    Route.Internal := true;
+
+    try
+      if SourceEvent.InEvent then
+      begin
+        Route.SetSourceDirectly(SourceEvent);
+        Route.SetDestinationDirectly(DestinationEvent);
+      end else
+      begin
+        Route.SetSourceDirectly(DestinationEvent);
+        Route.SetDestinationDirectly(SourceEvent);
+      end;
+
+      Routes.Add(Route);
+    except
+      FreeAndNil(Route);
+      raise;
     end;
   end;
 end;
 
-procedure TVRMLPrototypeNode.InstantiateReplaceIsClauses(
+procedure TVRMLPrototypeNode.InstantiateHandleIsClauses(
   Node, Child: TVRMLNode);
 
-  { @true if field is exposed, and it's IsClauseName references
-    one of our events (either explicit ones, in Events, or implicit,
-    in our own exposedFields). }
-  function ExposedFieldReferencesEvent(Field: TVRMLField): boolean;
-  begin
-    Result := Field.Exposed and (AnyEvent(Field.IsClauseName) <> nil);
-  end;
+  { In terminology of VRML/X3D specs,
+    InstanceField/Event is the one in "prototype definition"
+    (that is, inside prototype content) and
+    OutField/Event is the one in "prototype declaration".
 
-var
-  InstanceField, OurField: TVRMLField;
-  I, OurFieldIndex: Integer;
-begin
-  if Child.PrototypeInstance then Exit;
+    This is where we implement table "Rules for mapping PROTOTYPE
+    declarations to node instances" in specifications about
+    "PROTO definition semantics". }
 
-  for I := 0 to Child.Fields.Count - 1 do
+  procedure ExpandEvent(InstanceEvent: TVRMLEvent); forward;
+
+  procedure ExpandField(InstanceField: TVRMLField);
+  var
+    OurField: TVRMLField;
+    OurEvent: TVRMLEvent;
+    OurFieldIndex: Integer;
   begin
-    InstanceField := Child.Fields[I];
     if InstanceField.IsClause then
     begin
       OurFieldIndex := Fields.IndexOf(InstanceField.IsClauseName);
       if OurFieldIndex <> -1 then
       begin
         OurField := Fields[OurFieldIndex];
+        FieldOrEventHandleIsClause(InstanceField, OurField, true);
 
-        { Note that if OurField.IsClause, then InstanceField will have
-          OurField.IsClauseName assigned.
-
-          This means that the prototype (current Prototype) is expanded
-          within the definition of another prototype.
-          So InstanceField.IsClauseName referers to OurField
-          (from current Prototype), but OurField.IsClauseName refers to yet
-          another, enclosing, prototype (that will be expanded later --- for
-          now we're within enclosing prototype definition).
-
-          So solution is simple: InstanceField is expanded to also
-          refer to this enclosing prototype. }
-
-        FieldsAssignValue(InstanceField, OurField, true);
+        if InstanceField.Exposed and OurField.Exposed then
+        begin
+          FieldOrEventHandleIsClause(InstanceField.EventIn , OurField.EventIn , true);
+          FieldOrEventHandleIsClause(InstanceField.EventOut, OurField.EventOut, true);
+        end;
       end else
-      if not ExposedFieldReferencesEvent(InstanceField) then
+      if InstanceField.Exposed then
       begin
-        VRMLNonFatalError(Format('Within prototype "%s", field "%s" references ' +
-          '(by "IS" clause) non-existing field "%s"',
+        { exposed field may also reference by IS clause the simple
+          "only input" or "only output" event. }
+        { TODO: untested case }
+        OurEvent := AnyEvent(InstanceField.IsClauseName);
+        if OurEvent <> nil then
+        begin
+          if OurEvent.InEvent then
+            FieldOrEventHandleIsClause(InstanceField.EventIn , OurEvent, true) else
+            FieldOrEventHandleIsClause(InstanceField.EventOut, OurEvent, true);
+        end else
+          VRMLNonFatalError(Format('Within prototype "%s", exposed field "%s" references (by "IS" clause) non-existing field/event name "%s"',
+            [Prototype.Name, InstanceField.Name, InstanceField.IsClauseName]));
+      end else
+        VRMLNonFatalError(Format('Within prototype "%s", field "%s" references (by "IS" clause) non-existing field "%s"',
           [Prototype.Name, InstanceField.Name, InstanceField.IsClauseName]));
-      end;
+    end;
+
+    if InstanceField.Exposed then
+    begin
+      (*Completely independent from the fact whether InstanceField.IsClause,
+        it's exposed events may also have their own IS clauses, for example
+
+          DirectionalLight {
+            on IS light_on_initial_value
+            set_on IS light_on_setter
+            on_changed IS light_on_getter
+          }
+      *)
+
+      ExpandEvent(InstanceField.EventIn);
+      ExpandEvent(InstanceField.EventOut);
     end;
   end;
 
-  Child.DirectEnumerateAll(@InstantiateReplaceIsClauses);
+  procedure ExpandEvent(InstanceEvent: TVRMLEvent);
+  var
+    OurEvent: TVRMLEvent;
+    OurEventIndex: Integer;
+  begin
+    if InstanceEvent.IsClause then
+    begin
+      { Event from prototype definition can only correspond to the
+        same event type of prototype declaration. It cannot reference
+        implicit event (within exposed field) of prototype declaration.
+        Which is good, since otherwise it would be difficult to implement
+        (Self (TVRMLPrototypeNode) is used to keep events, but it doesn't
+        keep actual field values (there are kept within actual expanded nodes).
 
-  { TODO: some kind of events "IS" copying also should take place here.
-    For now I don't use events, so I don't do it.
+        This also means that searching below by Events.IndexOf is Ok,
+        no need to use AnyEvent to search. }
 
-    Also, above ExposedFieldReferencesEvent is used only to avoid
-    warnings... while in fact, it should have some effect on the field value
-    and associations with event.
+      OurEventIndex := Events.IndexOf(InstanceEvent.IsClauseName);
+      if OurEventIndex <> -1 then
+      begin
+        OurEvent := Events[OurEventIndex];
+        FieldOrEventHandleIsClause(InstanceEvent, OurEvent, true);
+      end else
+        VRMLNonFatalError(Format('Within prototype "%s", event "%s" references (by "IS" clause) non-existing event "%s"',
+          [Prototype.Name, InstanceEvent.Name, InstanceEvent.IsClauseName]));
+    end;
+  end;
 
-    file:///home/michalis/doc/web3d.org/vrml_97/ISO-IEC-14772-VRML97/part1/concepts.html#4.8.3
-  }
+var
+  I: Integer;
+begin
+  if Child.PrototypeInstance then Exit;
+
+  for I := 0 to Child.Fields.Count - 1 do
+    ExpandField(Child.Fields[I]);
+
+  for I := 0 to Child.Events.Count - 1 do
+    ExpandEvent(Child.Events[I]);
+
+  Child.DirectEnumerateAll(@InstantiateHandleIsClauses);
 end;
 
 function TVRMLPrototypeNode.Instantiate: TVRMLNode;
@@ -6106,6 +6308,13 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
       since they are already expanded; but still, preserving them
       "feels right"). }
     NodeCopy := VRMLNodeDeepCopy(Proto.Node);
+
+    try
+      InstantiateHandleIsClauses(nil, NodeCopy);
+    except
+      FreeAndNil(NodeCopy);
+      raise;
+    end;
 
     if (Proto.Node is TVRMLRootNode_1) or
        (Proto.Node is TVRMLRootNode_2) then
@@ -6137,18 +6346,8 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
 
     Result.NodeName := NodeName;
 
-    try
-      InstantiateReplaceIsClauses(nil, Result);
-    except
-      { Result.FPrototypeInstance is @false here, so make sure to free
-        FPrototypeInstanceHelpers specifically. }
-      FreeAndNil(Result.FPrototypeInstanceHelpers);
-      FreeAndNil(Result);
-      raise;
-    end;
-
-    { Note: set PrototypeInstance to @true *after* InstantiateReplaceIsClauses,
-      otherwise InstantiateReplaceIsClauses would not enter this node. }
+    { Note: set PrototypeInstance to @true *after* InstantiateHandleIsClauses,
+      otherwise InstantiateHandleIsClauses would not enter this node. }
     Result.FPrototypeInstance := true;
     Result.FPrototypeInstanceSourceNode := Self;
   end;
@@ -6173,7 +6372,7 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
         I := NodeExternalPrototype.Fields.IndexOf(F.Name);
         if I <> -1 then
         begin
-          { In case of type mismatch, FieldsAssignValue will make nice
+          { In case of type mismatch, FieldOrEventHandleIsClause will make nice
             VRMLNonFatalError.
 
             Note that if F.IsClause, then F.IsClauseName will be copied.
@@ -6183,7 +6382,7 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
             be copied to NodeExternalPrototype.Fields[I].IsClauseName,
             and this in turn will be eventually copied to fields inside
             the prototype expansion. }
-          FieldsAssignValue(NodeExternalPrototype.Fields[I], F, false);
+          FieldOrEventHandleIsClause(NodeExternalPrototype.Fields[I], F, false);
           NodeExternalPrototype.Fields[I].Exposed := F.Exposed;
         end else
           VRMLNonFatalError(Format(
@@ -6757,21 +6956,63 @@ end;
 type
   ERouteSetEndingError = class(EVRMLError);
 
+const
+  DestEndingNames: array [boolean] of string =
+  ('source', 'destination');
+
+procedure TVRMLRoute.SetEndingInternal(
+  const Node: TVRMLNode;
+  const FieldOrEvent: TVRMLFieldOrEvent;
+  var ExposedField: TVRMLField; var Event: TVRMLEvent;
+  const DestEnding: boolean);
+begin
+  if FieldOrEvent is TVRMLField then
+  begin
+    ExposedField := TVRMLField(FieldOrEvent);
+    if not ExposedField.Exposed then
+      raise ERouteSetEndingError.CreateFmt('Route %s specifies field "%s" (for node "%s"), but this is not an exposed field (cannot generate/receive events)',
+        [ DestEndingNames[DestEnding], FieldOrEvent.Name, Node.NodeName ]);
+    Event := TVRMLField(FieldOrEvent).ExposedEvents[DestEnding];
+  end else
+  begin
+    Assert(FieldOrEvent is TVRMLEvent);
+    Event := TVRMLEvent(FieldOrEvent);
+  end;
+
+  if (not Internal) and (Event.InEvent <> DestEnding) then
+  begin
+    if DestEnding then
+      raise ERouteSetEndingError.CreateFmt('Route uses wrong event: destination of the route (%s, type %s) can only be output event',
+        [ Event.Name, Event.FieldClass.VRMLTypeName ]) else
+      raise ERouteSetEndingError.CreateFmt('Route uses wrong event: source of the route (%s, type %s) can only be input event',
+        [ Event.Name, Event.FieldClass.VRMLTypeName ]);
+  end;
+
+  if (SourceEvent <> nil) and
+     (DestinationEvent <> nil) and
+     (SourceEvent.FieldClass <> DestinationEvent.FieldClass) and
+     { destination field can be XFAny (for Logger.write) as an exception. }
+     (not (DestinationEvent.FieldClass = TVRMLField)) then
+    raise ERouteSetEndingError.CreateFmt('Route has different event types for source (%s, type %s) and destination (%s, type %s)',
+      [ SourceEvent     .Name, SourceEvent     .FieldClass.VRMLTypeName,
+        DestinationEvent.Name, DestinationEvent.FieldClass.VRMLTypeName ]);
+
+  if (Event <> nil) and (not DestEnding) then
+    Event.OnReceive.AppendItem(@EventReceive);
+end;
+
 procedure TVRMLRoute.SetEnding(const NodeName, FieldOrEventName: string;
   NodeNameBinding: TStringList;
   var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent;
   const DestEnding: boolean);
-const
-  DestEndingNames: array [boolean] of string =
-  ('source', 'destination');
 var
   Index: Integer;
   FieldOrEvent: TVRMLFieldOrEvent;
+  SearchNode: TVRMLNode;
 begin
   UnsetEnding(Node, ExposedField, Event, DestEnding);
 
   try
-
     Index := NodeNameBinding.IndexOf(NodeName);
     if Index = -1 then
       raise ERouteSetEndingError.CreateFmt('Route %s node name "%s" not found',
@@ -6780,40 +7021,19 @@ begin
     Node := NodeNameBinding.Objects[Index] as TVRMLNode;
     Node.DestructionNotifications.AppendItem(@DestructionNotification);
 
-    FieldOrEvent := Node.FieldOrEvent(FieldOrEventName);
-    if FieldOrEvent = nil then
-      raise ERouteSetEndingError.CreateFmt('Route %s field/event name "%s" (for node "%s", type "%s") not found',
-        [ DestEndingNames[DestEnding], FieldOrEventName, NodeName, Node.NodeTypeName ]);
-
-    if FieldOrEvent is TVRMLField then
+    SearchNode := Node;
+    if SearchNode.PrototypeInstanceSourceNode <> nil then
     begin
-      ExposedField := TVRMLField(FieldOrEvent);
-      if not ExposedField.Exposed then
-        raise ERouteSetEndingError.CreateFmt('Route %s specifies field "%s" (for node "%s"), but this is not an exposed field (cannot generate/receive events)',
-          [ DestEndingNames[DestEnding], FieldOrEventName, NodeName ]);
-      Event := TVRMLField(FieldOrEvent).ExposedEvents[DestEnding];
-    end else
-    begin
-      Assert(FieldOrEvent is TVRMLEvent);
-      Event := TVRMLEvent(FieldOrEvent);
+      SearchNode := SearchNode.PrototypeInstanceSourceNode;
+      Assert(SearchNode.PrototypeInstanceSourceNode = nil);
     end;
 
-    if Event.InEvent <> DestEnding then
-      raise ERouteSetEndingError.CreateFmt('Route uses wrong event: source of the route (%s, type %s) can only be input event, and destination (%s, type %s) can only be output event',
-        [ SourceEvent     .Name, SourceEvent     .FieldClass.VRMLTypeName,
-          DestinationEvent.Name, DestinationEvent.FieldClass.VRMLTypeName ]);
+    FieldOrEvent := SearchNode.FieldOrEvent(FieldOrEventName);
+    if FieldOrEvent = nil then
+      raise ERouteSetEndingError.CreateFmt('Route %s field/event name "%s" (for node "%s", type "%s") not found',
+        [ DestEndingNames[DestEnding], FieldOrEventName, NodeName, SearchNode.NodeTypeName ]);
 
-    if (SourceEvent <> nil) and
-       (DestinationEvent <> nil) and
-       (SourceEvent.FieldClass <> DestinationEvent.FieldClass) and
-       { destination field can be XFAny (for Logger.write) as an exception. }
-       (not (DestinationEvent.FieldClass = TVRMLField)) then
-      raise ERouteSetEndingError.CreateFmt('Route has different event types for source (%s, type %s) and destination (%s, type %s)',
-        [ SourceEvent     .Name, SourceEvent     .FieldClass.VRMLTypeName,
-          DestinationEvent.Name, DestinationEvent.FieldClass.VRMLTypeName ]);
-
-    if (Event <> nil) and (not DestEnding) then
-      Event.OnReceive.AppendItem(@EventReceive);
+    SetEndingInternal(Node, FieldOrEvent, ExposedField, Event, DestEnding);
   except
     on E: ERouteSetEndingError do
     begin
@@ -6841,6 +7061,52 @@ begin
     NodeNameBinding,
     FDestinationNode, FDestinationExposedField, FDestinationEvent,
     true);
+end;
+
+procedure TVRMLRoute.SetEndingDirectly(
+  const NewNode: TVRMLNode; const FieldOrEvent: TVRMLFieldOrEvent;
+  var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent;
+  const DestEnding: boolean);
+begin
+  UnsetEnding(Node, ExposedField, Event, DestEnding);
+
+  try
+    Node := NewNode;
+    SetEndingInternal(Node, FieldOrEvent, ExposedField, Event, DestEnding);
+  except
+    on E: ERouteSetEndingError do
+    begin
+      UnsetEnding(Node, ExposedField, Event, DestEnding);
+      VRMLNonFatalError(E.Message);
+    end;
+  end;
+end;
+
+procedure TVRMLRoute.SetSourceDirectly(
+  const NewNode: TVRMLNode; const FieldOrEvent: TVRMLFieldOrEvent);
+begin
+  SetEndingDirectly(NewNode, FieldOrEvent,
+    FSourceNode, FSourceExposedField, FSourceEvent,
+    false);
+end;
+
+procedure TVRMLRoute.SetDestinationDirectly(
+  const NewNode: TVRMLNode; const FieldOrEvent: TVRMLFieldOrEvent);
+begin
+  SetEndingDirectly(NewNode, FieldOrEvent,
+    FDestinationNode, FDestinationExposedField, FDestinationEvent,
+    true);
+end;
+
+procedure TVRMLRoute.SetSourceDirectly(const FieldOrEvent: TVRMLFieldOrEvent);
+begin
+  SetSourceDirectly(FieldOrEvent.ParentNode as TVRMLNode, FieldOrEvent);
+end;
+
+procedure TVRMLRoute.SetDestinationDirectly(
+  const FieldOrEvent: TVRMLFieldOrEvent);
+begin
+  SetDestinationDirectly(FieldOrEvent.ParentNode as TVRMLNode, FieldOrEvent);
 end;
 
 type
@@ -6890,6 +7156,8 @@ var
   end;
 
 begin
+  if Internal then Exit;
+
   try
     Output := 'ROUTE ';
     WriteEnding(SourceNode     , SourceExposedField     , SourceEvent     , 'source'     );

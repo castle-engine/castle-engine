@@ -263,8 +263,12 @@ type
         assignment is possible only when source and destination field classes
         are equal.)
       @item(Assignment (by @code(Assign), inherited from TPersistent)
-        tries to copy everything: name, default value,
+        tries to copy everything: name (with alternative names), default value,
         IsClause*, Exposed, and of course current value.
+
+        One exception is that ParentNode is @italic(not copied), at least
+        for now. It changes graph hierarchy for this VRML node, so I don't
+        think it should be copied.
 
         If you want to copy only the current value, use AssignValue
         (or AssignLerp, where available).))
@@ -2199,20 +2203,64 @@ begin
 end;
 
 procedure TVRMLField.VRMLFieldAssignCommon(Source: TVRMLField);
+var
+  NameChanges, ExposedChanges: boolean;
+  I: Integer;
 begin
+  NameChanges := Name <> Source.Name;
+  ExposedChanges := Exposed <> Source.Exposed;
+
   FName := Source.Name;
-  FExposed := Source.Exposed;
   FIsClause := Source.IsClause;
   FIsClauseName := Source.IsClauseName;
-  FAlternativeNames := Source.FAlternativeNames;
+
   FPositionInParent := Source.PositionInParent;
   FParentInterfaceDeclaration := Source.ParentInterfaceDeclaration;
 
-  { TODO: exposed and AlternativeNames should be copied better,
-    to create/free ExposedEvents if needed and to copy FAlternativeNames
-    if needed.
+  Exposed := Source.Exposed;
+  Assert(Exposed = (ExposedEvents[false] <> nil));
+  Assert(Exposed = (ExposedEvents[true] <> nil));
 
-    Also, ParentNode should be copied? }
+  { This is a little tricky: we copied Exposed value by SetExposed,
+    to actually create or destroy exposed events.
+
+    But note that events in
+    ExposedEvents have names dependent on our name. So we have to eventually
+    change their names too. This is not needed if exposed
+    changes from true->false (then events will be destroyed),
+    changes from false->true (then events will be created with already new names),
+    stays as false->false (then events don't exist).
+    So it's needed only when exposed was true, and stays true, but name changed.
+  }
+  if NameChanges and Exposed and (not ExposedChanges) then
+  begin
+    FExposedEvents[false].FName := Name + ChangedSuffix;
+    FExposedEvents[true].FName := SetPrefix + Name;
+  end;
+
+  Assert((not Exposed) or (FExposedEvents[false].FName = Name + ChangedSuffix));
+  Assert((not Exposed) or (FExposedEvents[true].FName = SetPrefix + Name));
+
+  FAlternativeNames := Source.FAlternativeNames;
+
+  { Once again an issue with dependency of ExposedEvents on our name:
+    potentially alternative names changed,
+    so we have to redo this in exposed events. }
+  if Exposed then
+  begin
+    for I := Low(FAlternativeNames) to High(FAlternativeNames) do
+      if FAlternativeNames[I] <> '' then
+      begin
+        FExposedEvents[false].FAlternativeNames[I] :=
+          FAlternativeNames[I] + ChangedSuffix;
+        FExposedEvents[true].FAlternativeNames[I] :=
+          SetPrefix + FAlternativeNames[I];
+      end else
+      begin
+        FExposedEvents[false].FAlternativeNames[I] := '';
+        FExposedEvents[true].FAlternativeNames[I] := '';
+      end;
+  end;
 end;
 
 procedure TVRMLField.AssignValueRaiseInvalidClass(Source: TVRMLField);
