@@ -209,7 +209,7 @@
     function Equal(const Arr: array of TDynArrayItem_4; ArrCount: Integer): boolean; overload;
 
     { Returns -1 if not found }
-    function IndexOf(const Item: TDynArrayItem_4): Integer;
+    function IndexOf(const Item: TDynArrayItem_4; StartIndex: Integer = 0): Integer;
 
     { Returns -1 if not found, searches within
       Items[BeginIndex] .. Items[EndIndex].
@@ -227,6 +227,8 @@
     { If the Item is not already present in the array (checked like IndexOf)
       then add this item (like by AppendItem). }
     procedure AddIfNotExists(const Item: TDynArrayItem_4);
+
+    procedure DeleteDuplicates;
     {$endif}
 
     { Just like Delete from Pascal's RTL on strings:
@@ -455,11 +457,11 @@ begin
  result := true;
 end;
 
-function TDynArray_4.IndexOf(const Item: TDynArrayItem_4): integer;
+function TDynArray_4.IndexOf(const Item: TDynArrayItem_4; StartIndex: Integer): Integer;
 begin
- for Result := 0 to High do
-  if EqualItems(Items[Result], Item) then Exit;
- Result := -1;
+  for Result := StartIndex to High do
+    if EqualItems(Items[Result], Item) then Exit;
+  Result := -1;
 end;
 
 function TDynArray_4.IndexInRange(const Item: TDynArrayItem_4;
@@ -501,6 +503,24 @@ begin
   I := IndexOf(Item);
   if I = -1 then
     AppendItem(Item);
+end;
+
+procedure TDynArray_4.DeleteDuplicates;
+var
+  I, Index: integer;
+begin
+  I := 0;
+  while I < Count do
+  begin
+    Index := I + 1;
+    repeat
+      Index := IndexOf(Items[I], Index);
+      if Index = -1 then Break;
+      Delete(Index, 1);
+    until false;
+
+    Inc(I);
+  end;
 end;
 {$endif}
 

@@ -126,10 +126,8 @@
     procedure AddList(List: TObjectsList_2);
 
     { szuka zaczynajac od StartIndex obiektu Item , zwraca -1 jesli
-      nie znalazl. Jesli nie podasz StartIndex to tak jakbys podal
-      StartIndex = 0. }
-    function IndexOf(Item: TObjectsListItem_2; StartIndex: integer): integer; overload;
-    function IndexOf(Item: TObjectsListItem_2): integer; overload;
+      nie znalazl. }
+    function IndexOf(Item: TObjectsListItem_2; StartIndex: integer = 0): integer;
 
     { usuwanie ------------------------------------------------------------ }
 
@@ -391,9 +389,6 @@ begin
  result := -1;
 end;
 
-function TObjectsList_2.IndexOf(Item: TObjectsListItem_2): integer;
-begin result := IndexOf(Item, 0) end;
-
 procedure TObjectsList_2.Delete(Index: integer);
 var i: integer;
 begin
@@ -425,20 +420,21 @@ begin
 end;
 
 procedure TObjectsList_2.DeleteDuplicates;
-var i, index: integer;
+var
+  I, Index: integer;
 begin
- i := 0;
- while i < count do
- begin
-  index := i+1;
-  repeat
-   index := IndexOf(Items[i], index);
-   if index < 0 then break;
-   Delete(index);
-  until false;
+  I := 0;
+  while I < Count do
+  begin
+    Index := I + 1;
+    repeat
+      Index := IndexOf(Items[I], Index);
+      if Index = -1 then Break;
+      Delete(Index);
+    until false;
 
-  Inc(i);
- end;
+    Inc(I);
+  end;
 end;
 
 procedure TObjectsList_2.Clear;

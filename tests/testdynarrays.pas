@@ -120,6 +120,16 @@ begin
   iarr.Assign(iarr2);
   Assert(iarr.Equal(iarr2));
   Assert(iarr.Equal([99, 1, 3, 6, 8]));
+  
+  { simple DeleteDuplicates tests }
+  IArr.DeleteDuplicates;
+  Assert(iarr.Equal([99, 1, 3, 6, 8]));
+  IArr.Insert(0, 3);
+  IArr.DeleteDuplicates;
+  Assert(iarr.Equal([3, 99, 1, 6, 8]));
+  IArr.Count := 0;
+  IArr.DeleteDuplicates;
+  Assert(iarr.Equal([]));
  finally
   iarr.Free;
   iarr2.Free;
