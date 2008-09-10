@@ -4567,10 +4567,21 @@ begin
       FileItems.Add(Prototypes[I]);
 
     for I := 0 to Fields.Count - 1 do
+    begin
       { Saving InterfaceDeclarations already handled saving fields
         with ParentInterfaceDeclaration <> nil, so no need to save them again. }
       if Fields[I].ParentInterfaceDeclaration = nil then
         FileItems.Add(Fields[I]);
+
+      if Fields[I].Exposed then
+      begin
+        { exposed events may have their own IS clauses, save them }
+        if Fields[I].EventIn.IsClause then
+          FileItems.Add(Fields[I].EventIn);
+        if Fields[I].EventOut.IsClause then
+          FileItems.Add(Fields[I].EventOut);
+      end;
+    end;
 
     if ChildrenSaveToStream then
       for I := 0 to ChildrenCount - 1 do
@@ -6171,6 +6182,13 @@ begin
         Route.SetSourceDirectly(DestinationEvent);
         Route.SetDestinationDirectly(SourceEvent);
       end;
+
+      { Although not really needed in other code places, we mark
+        that "IS" clause of this event is resolved now by setting it's
+        IsClause to false. Consistent with what
+        DestinationField.AssignValue does. }
+
+      DestinationEvent.IsClause := false;
 
       Routes.Add(Route);
     except
