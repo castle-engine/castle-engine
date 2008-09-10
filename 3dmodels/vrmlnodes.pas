@@ -6111,10 +6111,13 @@ begin
 
       Since FieldOrEventHandleIsClause may be called many times
       when Destination.IsClauseNames has multiple items, it's safest
-      to make sure that IsClauseNames doesn't contain duplicates here. }
+      to make sure that IsClauseNames doesn't contain duplicates here.
+      
+      TODO: in case of events, simple Assign here is wrong --- I should
+      remove previous isclause, and add new one.}
 
     Destination.IsClauseNames.Assign(Source.IsClauseNames);
-    Destination.IsClauseNames.DeleteDuplicates;
+    Destination.IsClauseExpanded := false;
   end else
   if Source is TVRMLField then
   begin
@@ -6124,6 +6127,7 @@ begin
     try
       DestinationField.AssignValue(SourceField);
       DestinationField.ValueFromIsClause := true;
+      DestinationField.IsClauseExpanded := true;
     except
       on E: EVRMLFieldAssign do
       begin
@@ -6178,6 +6182,8 @@ begin
         Route.SetSourceDirectly(DestinationEvent);
         Route.SetDestinationDirectly(SourceEvent);
       end;
+
+      DestinationEvent.IsClauseExpanded := true;
 
       Routes.Add(Route);
     except
@@ -6380,7 +6386,7 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
     NodeExternalPrototype := TVRMLPrototypeNode.CreatePrototypeNode(NodeName,
       WWWBasePath, Proto.ReferencedPrototype);
     try
-    
+
       { TODO: this field copying will be removed. }
       for FieldIndex := 0 to Fields.Count - 1 do
       begin
@@ -6388,7 +6394,7 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
         I := NodeExternalPrototype.Fields.IndexOf(F.Name);
         if I <> -1 then
         begin
-          
+
           { In case of type mismatch, FieldOrEventHandleIsClause will make nice
             VRMLNonFatalError.
 

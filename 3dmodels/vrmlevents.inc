@@ -181,16 +181,19 @@ var
   N: string;
   I: Integer;
 begin
-  N := NameForVersion(SaveProperties);
-
-  { Actually, when N = '', we assume that field has only one "IS" clause
-    or simple value. }
-
-  for I := 0 to IsClauseNames.Count - 1 do
+  if not (SaveProperties.WriteExpandedPrototype and IsClauseExpanded) then
   begin
-    if N <> '' then
-      SaveProperties.WriteIndent(N + ' ');
-    SaveProperties.Writeln('IS ' + IsClauseNames.Items[I]);
+    N := NameForVersion(SaveProperties);
+
+    { Actually, when N = '', we assume that field has only one "IS" clause
+      or simple value. }
+
+    for I := 0 to IsClauseNames.Count - 1 do
+    begin
+      if N <> '' then
+        SaveProperties.WriteIndent(N + ' ');
+      SaveProperties.Writeln('IS ' + IsClauseNames.Items[I]);
+    end;
   end;
 end;
 

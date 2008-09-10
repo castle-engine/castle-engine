@@ -144,6 +144,7 @@ type
   TVRMLFieldOrEvent = class(TVRMLFileItem)
   private
     FIsClauseNames: TDynStringArray;
+    FIsClauseExpanded: boolean;
 
     FName: string;
 
@@ -202,6 +203,14 @@ type
       For example, for the TVRMLField descendant, this does not try to parse
       field value. }
     procedure ParseIsClause(Lexer: TVRMLLexer);
+
+    { Set this to mark that "IS" clause is expanded within this field.
+      This is used when saving field with WriteExpandedPrototype:
+      when IsClauseExpanded, we don't store IsClauseNames.
+
+      TODO: to remove, when better VRMLNodeDeepCopy done. }
+    property IsClauseExpanded: boolean
+      read FIsClauseExpanded write FIsClauseExpanded;
 
     { Add alternative name for the same field/event, to be used in different
       VRML version.
@@ -2178,14 +2187,18 @@ begin
   { Actually, when N = '', we assume that field has only one "IS" clause
     or simple value. }
 
-  for I := 0 to IsClauseNames.Count - 1 do
+  if not (SaveProperties.WriteExpandedPrototype and IsClauseExpanded) then
   begin
-    if N <> '' then
-      SaveProperties.WriteIndent(N + ' ');
-    SaveProperties.Writeln('IS ' + IsClauseNames.Items[I]);
+    for I := 0 to IsClauseNames.Count - 1 do
+    begin
+      if N <> '' then
+        SaveProperties.WriteIndent(N + ' ');
+      SaveProperties.Writeln('IS ' + IsClauseNames.Items[I]);
+    end;
   end;
 
-  if (not ValueFromIsClause) and
+  if ( (not ValueFromIsClause) or
+       (SaveProperties.WriteExpandedPrototype and IsClauseExpanded) ) and
      (FieldSaveWhenDefault or (not EqualsDefaultValue)) then
   begin
     if N <> '' then
@@ -2235,6 +2248,7 @@ begin
 
   FIsClauseNames.Assign(Source.IsClauseNames);
   ValueFromIsClause := Source.ValueFromIsClause;
+  IsClauseExpanded := Source.IsClauseExpanded;
 
   FPositionInParent := Source.PositionInParent;
   FParentInterfaceDeclaration := Source.ParentInterfaceDeclaration;
