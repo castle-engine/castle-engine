@@ -72,8 +72,7 @@
       etc. to send an event to a field. For output fields, this is used by
       node itself to send event to routes, scripts etc.
 
-      Field must be non-nil, of class FieldClass, and must have a value
-      (that is, Field.IsClause must be @false).
+      Field must be non-nil, of class FieldClass.
 
       The Field instance doesn't become owned in any way by the TVRMLEvent.
       That is, it's the caller responsibility to free the Field instance
@@ -159,9 +158,7 @@ constructor TVRMLEvent.Create(AParentNode: TVRMLFileItem;
   const AName: string; const AFieldClass: TVRMLFieldClass;
   const AInEvent: boolean);
 begin
-  inherited Create;
-  FName := AName;
-  FParentNode := AParentNode;
+  inherited Create(AParentNode, AName);
 
   FFieldClass := AFieldClass;
   FInEvent := AInEvent;
@@ -180,18 +177,27 @@ begin
 end;
 
 procedure TVRMLEvent.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+var
+  N: string;
+  I: Integer;
 begin
-  SaveProperties.WriteIndent(NameForVersion(SaveProperties) + ' ');
-  if IsClause then
-    SaveProperties.Write('IS ' + IsClauseName);
-  SaveProperties.Writeln;
+  N := NameForVersion(SaveProperties);
+
+  { Actually, when N = '', we assume that field has only one "IS" clause
+    or simple value. }
+
+  for I := 0 to IsClauseNames.Count - 1 do
+  begin
+    if N <> '' then
+      SaveProperties.WriteIndent(N + ' ');
+    SaveProperties.Writeln('IS ' + IsClauseNames.Items[I]);
+  end;
 end;
 
 procedure TVRMLEvent.Send(Field: TVRMLField; const Time: TKamTime);
 begin
   Assert(Field <> nil);
   Assert(Field is FieldClass);
-  Assert(not Field.IsClause);
   FOnReceive.ExecuteAll(Self, Field, Time);
 end;
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2007 Michalis Kamburelis.
+  Copyright 2002-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -32,7 +32,6 @@ uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
 type
   EVRMLFieldAssign = class(Exception);
   EVRMLFieldAssignInvalidClass = class(EVRMLFieldAssign);
-  EVRMLFieldAssignFromIsClause = class(EVRMLFieldAssign);
 
   TVRMLEvent = class;
 
@@ -144,8 +143,7 @@ type
   { Common class for VRML field or event. }
   TVRMLFieldOrEvent = class(TVRMLFileItem)
   private
-    FIsClause: boolean;
-    FIsClauseName: string;
+    FIsClauseNames: TDynStringArray;
 
     FName: string;
 
@@ -159,6 +157,9 @@ type
     FParentNode: TVRMLFileItem;
     FParentInterfaceDeclaration: TVRMLFileItem;
   public
+    constructor Create(AParentNode: TVRMLFileItem; const AName: string);
+    destructor Destroy; override;
+
     { Name of the field or event.
 
       Normal fields/events are inside some VRML node, and then
@@ -178,18 +179,24 @@ type
       It may be @nil for special fields/events when parent node is unknown. }
     property ParentNode: TVRMLFileItem read FParentNode;
 
-    { Does the field/event reference other field by "IS" clause.
-      This is usually caused by specifying "IS" clause instead
-      of field value in VRML file.
+    { "IS" clauses of this field/event, used when this field/event
+      is inside prototype definition.
 
-      Conceptually, we think of such field as "without any value".
-      So Equals and EqualsDefaultValue will always return @false for such field.
-      Yes, pretty much like in SQL the "null" value.
+      This is an array, as one item may have many "IS" clauses (for a field,
+      only one "IS" clause should refer to another field;
+      but you can have many "IS" clauses connecting events,
+      also exposedField may have "IS" clause that should be interpreted
+      actually as links to it's exposed events).
+      See e.g. @code(kambi_vrml_test_suite/x3d/proto_events_test_3.x3dv).
 
-      @groupBegin }
-    property IsClause: boolean read FIsClause write FIsClause;
-    property IsClauseName: string read FIsClauseName write FIsClauseName;
-    { @groupEnd }
+      Note that having "IS" clauses doesn't mean that the field should
+      be considered "without any value". This is not a good way of thinking,
+      as an exposed field may have an "IS" clause, but linking it to an event,
+      and thus such field has it's value (default value, if not specified
+      in the file), event though it also has an "IS" clause.
+      Although there is TVRMLField.ValueFromIsClause, which indicates
+      whether current value was obtained from "IS" clause. }
+    property IsClauseNames: TDynStringArray read FIsClauseNames;
 
     { Parse only "IS" clause, if it's not present --- don't do nothing.
       For example, for the TVRMLField descendant, this does not try to parse
@@ -264,7 +271,7 @@ type
         are equal.)
       @item(Assignment (by @code(Assign), inherited from TPersistent)
         tries to copy everything: name (with alternative names), default value,
-        IsClause*, Exposed, and of course current value.
+        IsClauseNames, ValueFromIsClause, Exposed, and of course current value.
 
         One exception is that ParentNode is @italic(not copied), at least
         for now. It changes graph hierarchy for this VRML node, so I don't
@@ -285,16 +292,19 @@ type
       const Time: TKamTime);
 
     FTransform: boolean;
-  protected
 
+    FValueFromIsClause: boolean;
+  protected
     { Save field value to a stream. Must be overriden for each specific
       field. FieldSaveToStream and SaveToStream write Indent, Name, ' ',
-      then call this SaveToStreamValue, then write @link(NL).
+      then call SaveToStreamValue, then write @link(NL).
 
-      Note that FieldSaveToStream and SaveToStream in this class
-      already takes care of IsClause. If IsClause, it will do
-      everything, and not call SaveToStreamValue. So when overriding
-      SaveToStreamValue, you can safely assume that IsClause is @false. }
+      FieldSaveToStream and SaveToStream in this class
+      already take care of saving IsClauseNames.
+      They also check ValueFromIsClause, if ValueFromIsClause
+      we will not call SaveToStreamValue. So when overriding
+      SaveToStreamValue, you can safely assume that ValueFromIsClause
+      is @false. }
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
       virtual; abstract;
 
@@ -305,7 +315,7 @@ type
 
     procedure AssignValueRaiseInvalidClass(Source: TVRMLField);
   public
-    { Normal constrctor.
+    { Normal constructor.
 
       @italic(Descendants implementors notes:)
       when implementing constructors in descendants,
@@ -346,24 +356,25 @@ type
 
     { Parse inits properties from Lexer.
 
-      In this class, Parse only sets IsClause and IsClauseName:
+      In this class, Parse only appends to IsClauseNames:
       if we stand on "IS" clause (see VRML 2.0 spec about "IS" clause)
-      and IsClauseAllowed then IsClause is set to @true and IsClauseName is set
-      appropriately.
+      and IsClauseAllowed then we append specified identifier to
+      IsClauseNames.
 
-      Descendants should override this to read actual field contents.
-      Always when overriding, call inherited first and check IsClause.
-      If IsClause, then abort any further reading, as the field was
-      specified using "IS" clause, so there's no actual value.
+      If "IS" clause not found, we call ParseValue which should
+      actually parse field's value.
+      Descendants should override ParseValue.
 
       Note that Lexer.NodeNameBinding is ignored by all
       TVRMLField descendants defined in this unit (it's used only
       by TSFNode and TMFNode). }
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); virtual;
+    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
+
+    procedure ParseValue(Lexer: TVRMLLexer); virtual; abstract;
 
     { Parse field value from X3D XML encoded attribute.
       Attributes in X3D are generally encoded such that normal
-      @code(Parse(Lexer, false)) call is appropriate,
+      @code(ParseValue(Lexer)) call is appropriate,
       so this is done in this class. }
     procedure ParseX3DXmlAttr(Lexer: TVRMLLexer); virtual;
 
@@ -396,11 +407,14 @@ type
       FieldSaveWhenDefault behavior. }
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
 
-    { zwraca zawsze false w tej klasie. Mozesz to przedefiniowac w podklasach
-      aby SaveToStream nie zapisywalo do strumienia pol o wartosci domyslnej.
+    { Does current field value came from expanding "IS" clause.
+      If yes, then saving this field to stream will only save it's "IS" clauses,
+      never saving actual value. }
+    property ValueFromIsClause: boolean
+      read FValueFromIsClause write FValueFromIsClause;
 
-      Note that when IsClause, this should always return @false
-      (as the field doesn't have any value, conceptually). }
+    { Zwraca zawsze false w tej klasie. Mozesz to przedefiniowac w podklasach
+      aby SaveToStream nie zapisywalo do strumienia pol o wartosci domyslnej. }
     function EqualsDefaultValue: boolean; virtual;
 
     { @true if the SecondValue object has exactly the same type and properties.
@@ -455,17 +469,13 @@ type
     { Copies the current field value. Contrary to TPersistent.Assign, this
       doesn't copy the rest of properties.
 
-      Source object must not have IsClause (since when IsClause, the Source
-      doesn't have any defined value). After setting, our IsClause is always
-      changed to @false.
+      After setting, our ValueFromIsClause is always changed to @false.
+      You can manually change it to @true, if this copy indeed was done
+      following "IS" clause.
 
       @raises(EVRMLFieldAssignInvalidClass
         Usually it's required the Source class to be equal to our class,
         if Source classes cannot be assigned we raise EVRMLFieldCannotAssignClass.)
-
-      @raises(EVRMLFieldAssignFromIsClause
-        Raised is Source has IsClause = @true. This prevents assignment,
-        since it means that Source has no defined value.)
 
       @raises(EVRMLFieldAssign (Previous two exceptions also inherit from this.)
         Raised in case of any field assignment problem. It's guaranteed that
@@ -475,8 +485,9 @@ type
       @italic(Descendants implementors notes):
 
       In this class, implementation takes care of
-      checking Source.IsClause (and eventually raising EVRMLFieldAssignFromIsClause)
-      and setting our IsClause to @false. In descendants, you should do like
+      setting our ValueFromIsClause to @false. In descendants,
+      you should do like
+
       @longCode(#
         if Source is <appropriate class> then
         begin
@@ -485,10 +496,7 @@ type
         end else
           AssignValueRaiseInvalidClass(Source);
       #)
-
-      This will make sure that in case of error (incompatible classes
-      or Source.IsClause) nothing will be changed (IsClause and Value will
-      remain as they were). }
+    }
     procedure AssignValue(Source: TVRMLField); virtual;
 
     { Set field's default value from the current value.
@@ -503,11 +511,7 @@ type
       one as default value. This is not a problem, since X3D specification
       doesn't specify too long default values. But it may be a problem
       for prototypes, since then user can assign any value as default value.
-      May be corrected in the future.
-
-      @raises(EVRMLFieldAssignFromIsClause
-        Raised if IsClause = @true. This prevents assignment,
-        since it means that we have no defined value.) }
+      May be corrected in the future. }
     procedure AssignDefaultValueFromValue; virtual;
 
     { Assigns value to this node calculated from linear interpolation
@@ -515,8 +519,8 @@ type
       functions in our units (like @link(VectorMath.Lerp)).
 
       Like AssignValue, this copies only the current value.
-      All other properties (like Name, IsClause, default value)
-      are untouched.
+      All other properties (like Name, IsClauseNames, ValueFromIsClause,
+      default value) are untouched.
 
       There are some special precautions for this:
 
@@ -524,9 +528,6 @@ type
         @item(First of all, AssignLerp is defined only for fields where
           CanAssignLerp returns @true, so always check CanAssignLerp first.
           All float-based VRML fields should have this implemented.)
-
-        @item(Use this only when you know the field actually has some value,
-          that is IsClause = @false.)
 
         @item(Use this only if Value1 and Value2
           are equal or descendant of target (Self) class.)
@@ -682,7 +683,7 @@ type
 
     { Parse MF field. This class handles parsing fully, usually no need to
       override this more in descendants. It uses ItemClass.Parse method. }
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    procedure ParseValue(Lexer: TVRMLLexer); override;
 
     destructor Destroy; override;
 
@@ -740,7 +741,7 @@ type
     property NoneString: string read fNoneString;
     { @groupEnd }
 
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    procedure ParseValue(Lexer: TVRMLLexer); override;
 
     { Are all flag values set to @true currently. }
     function AreAllFlags(value: boolean): boolean;
@@ -777,7 +778,7 @@ type
     DefaultValue: boolean;
     DefaultValueExists: boolean;
 
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    procedure ParseValue(Lexer: TVRMLLexer); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
@@ -814,7 +815,7 @@ type
 
     property EnumNames[i: integer]:string read GetEnumNames;
     function EnumNamesCount: integer;
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    procedure ParseValue(Lexer: TVRMLLexer); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -852,7 +853,7 @@ type
       negative sphere radius. }
     property MustBeNonnegative: boolean read FMustBeNonnegative default false;
 
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    procedure ParseValue(Lexer: TVRMLLexer); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -883,7 +884,7 @@ type
     DefaultValue: Double;
     DefaultValueExists: boolean;
 
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    procedure ParseValue(Lexer: TVRMLLexer); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -930,7 +931,7 @@ type
 
     destructor Destroy; override;
 
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    procedure ParseValue(Lexer: TVRMLLexer); override;
 
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
@@ -962,7 +963,7 @@ type
 
     { See TSFFloat.MustBeNonnegative for explanation of this. }
     property MustBeNonnegative: boolean read FMustBeNonnegative default false;
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    procedure ParseValue(Lexer: TVRMLLexer); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -993,7 +994,7 @@ type
 
     property Value: TMatrix3Single read FValue write FValue;
 
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    procedure ParseValue(Lexer: TVRMLLexer); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1021,7 +1022,7 @@ type
 
     property Value: TMatrix3Double read FValue write FValue;
 
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    procedure ParseValue(Lexer: TVRMLLexer); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1049,7 +1050,7 @@ type
 
     property Value: TMatrix4Single read FValue write FValue;
 
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    procedure ParseValue(Lexer: TVRMLLexer); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1091,7 +1092,7 @@ type
 
     property Value: TMatrix4Double read FValue write FValue;
 
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    procedure ParseValue(Lexer: TVRMLLexer); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1141,7 +1142,7 @@ type
       it only presents them to you differently. }
     property ValueDeg: TVector4Single read GetValueDeg write SetValueDeg;
 
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    procedure ParseValue(Lexer: TVRMLLexer); override;
     { Rotate point Pt around Self. }
     function RotatedPoint(const pt: TVector3Single): TVector3Single;
 
@@ -1170,7 +1171,7 @@ type
     DefaultValue: string;
     DefaultValueExists: boolean;
 
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    procedure ParseValue(Lexer: TVRMLLexer); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1195,7 +1196,7 @@ type
     DefaultValue: TVector2Single;
     DefaultValueExists: boolean;
 
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    procedure ParseValue(Lexer: TVRMLLexer); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1222,7 +1223,7 @@ type
     DefaultValue: TVector3Single;
     DefaultValueExists: boolean;
 
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    procedure ParseValue(Lexer: TVRMLLexer); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1254,7 +1255,7 @@ type
     DefaultValue: TVector4Single;
     DefaultValueExists: boolean;
 
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    procedure ParseValue(Lexer: TVRMLLexer); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1286,7 +1287,7 @@ type
     DefaultValue: TVector2Double;
     DefaultValueExists: boolean;
 
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    procedure ParseValue(Lexer: TVRMLLexer); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1313,7 +1314,7 @@ type
     DefaultValue: TVector3Double;
     DefaultValueExists: boolean;
 
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    procedure ParseValue(Lexer: TVRMLLexer); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1340,7 +1341,7 @@ type
     DefaultValue: TVector4Double;
     DefaultValueExists: boolean;
 
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    procedure ParseValue(Lexer: TVRMLLexer); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
@@ -1991,13 +1992,27 @@ end;
 
 { TVRMLFieldOrEvent ---------------------------------------------------------- }
 
+constructor TVRMLFieldOrEvent.Create(AParentNode: TVRMLFileItem;
+  const AName: string);
+begin
+  inherited Create;
+  FIsClauseNames := TDynStringArray.Create;
+  FParentNode := AParentNode;
+  FName := AName;
+end;
+
+destructor TVRMLFieldOrEvent.Destroy;
+begin
+  FreeAndNil(FIsClauseNames);
+  inherited;
+end;
+
 procedure TVRMLFieldOrEvent.ParseIsClause(Lexer: TVRMLLexer);
 begin
-  FIsClause := Lexer.TokenIsKeyword(vkIS);
-  if FIsClause then
+  if Lexer.TokenIsKeyword(vkIS) then
   begin
     Lexer.NextToken;
-    FIsClauseName := Lexer.TokenName;
+    IsClauseNames.AppendItem(Lexer.TokenName);
     Lexer.NextToken;
   end;
 end;
@@ -2053,9 +2068,7 @@ end;
 constructor TVRMLField.CreateUndefined(AParentNode: TVRMLFileItem;
   const AName: string);
 begin
-  inherited Create;
-  FParentNode := AParentNode;
-  FName := AName;
+  inherited Create(AParentNode, AName);
 
   { Set Exposed to true by the property, to force FExposedEvents initialization }
   FExposed := false;
@@ -2158,18 +2171,26 @@ procedure TVRMLField.FieldSaveToStream(
   FieldSaveWhenDefault: boolean);
 var
   N: string;
+  I: Integer;
 begin
-  if FieldSaveWhenDefault or (not EqualsDefaultValue) then
+  N := NameForVersion(SaveProperties);
+
+  { Actually, when N = '', we assume that field has only one "IS" clause
+    or simple value. }
+
+  for I := 0 to IsClauseNames.Count - 1 do
   begin
-    N := NameForVersion(SaveProperties);
     if N <> '' then
       SaveProperties.WriteIndent(N + ' ');
-    { We depend here on the fact that EqualsDefaultValue is always @false
-      when IsClause, otherwise fields with IsClause could be omitted by
-      check "if not EqualsDefaultValue then" above. }
-    if IsClause then
-      SaveProperties.Write('IS ' + IsClauseName) else
-      SaveToStreamValue(SaveProperties);
+    SaveProperties.Writeln('IS ' + IsClauseNames.Items[I]);
+  end;
+
+  if (not ValueFromIsClause) and
+     (FieldSaveWhenDefault or (not EqualsDefaultValue)) then
+  begin
+    if N <> '' then
+      SaveProperties.WriteIndent(N + ' ');
+    SaveToStreamValue(SaveProperties);
     SaveProperties.Writeln;
   end;
 end;
@@ -2187,19 +2208,19 @@ end;
 function TVRMLField.Equals(SecondValue: TVRMLField;
   const EqualityEpsilon: Double): boolean;
 begin
-  Result := (not IsClause) and (SecondValue.Name = Name);
+  Result := SecondValue.Name = Name;
 end;
 
 procedure TVRMLField.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
 begin
-  if IsClauseAllowed then
+  if IsClauseAllowed and Lexer.TokenIsKeyword(vkIS) then
     ParseIsClause(Lexer) else
-    FIsClause := false;
+    ParseValue(Lexer);
 end;
 
 procedure TVRMLField.ParseX3DXmlAttr(Lexer: TVRMLLexer);
 begin
-  Parse(Lexer, false);
+  ParseValue(Lexer);
 end;
 
 procedure TVRMLField.VRMLFieldAssignCommon(Source: TVRMLField);
@@ -2211,8 +2232,9 @@ begin
   ExposedChanges := Exposed <> Source.Exposed;
 
   FName := Source.Name;
-  FIsClause := Source.IsClause;
-  FIsClauseName := Source.IsClauseName;
+
+  FIsClauseNames.Assign(Source.IsClauseNames);
+  ValueFromIsClause := Source.ValueFromIsClause;
 
   FPositionInParent := Source.PositionInParent;
   FParentInterfaceDeclaration := Source.ParentInterfaceDeclaration;
@@ -2273,19 +2295,12 @@ end;
 
 procedure TVRMLField.AssignValue(Source: TVRMLField);
 begin
-  if Source.IsClause then
-    raise EVRMLFieldAssignFromIsClause.CreateFmt('Cannot assign from VRML field ' +
-      '%s (%s) because it has an IS "%s" clause',
-      [Source.Name, Source.VRMLTypeName, Source.IsClauseName]);
-  FIsClause := false;
+  ValueFromIsClause := false;
 end;
 
 procedure TVRMLField.AssignDefaultValueFromValue;
 begin
-  if IsClause then
-    raise EVRMLFieldAssignFromIsClause.CreateFmt('Cannot assign from VRML field ' +
-      '%s (%s) to default value because it has an IS "%s" clause',
-      [Name, VRMLTypeName, IsClauseName]);
+  { do nothing in this class }
 end;
 
 procedure TVRMLField.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
@@ -2399,15 +2414,10 @@ begin
  result := ItemClass.CreateUndefined(ParentNode, '');
 end;
 
-procedure TVRMLSimpleMultField.Parse(
-  Lexer: TVRMLLexer; IsClauseAllowed: boolean);
+procedure TVRMLSimpleMultField.ParseValue(Lexer: TVRMLLexer);
 var SingleItem: TVRMLSingleField;
 begin
-  inherited;
-
   RawItems.SetLength(0);
-
-  if IsClause then Exit;
 
   RawItems.AllowedCapacityOverflow := 100;
   SingleItem := nil;
@@ -2421,7 +2431,7 @@ begin
     while Lexer.Token <> vtCloseSqBracket do
     {zawsze w tym miejscu albo stoimy na "]" albo na kolejnej wartosci pola SF}
     begin
-     SingleItem.Parse(Lexer, false);
+     SingleItem.ParseValue(Lexer);
      RawItemsAdd(SingleItem);
 
      if Lexer.Token = vtCloseSqBracket then break;
@@ -2444,7 +2454,7 @@ begin
    end else
    begin
     {one single field - not enclosed in [] brackets}
-    SingleItem.Parse(Lexer, false);
+    SingleItem.ParseValue(Lexer);
     RawItemsAdd(SingleItem);
    end;
 
@@ -2470,7 +2480,7 @@ begin
   try
     while Lexer.Token <> vtEnd do
     begin
-      SingleItem.Parse(Lexer, false);
+      SingleItem.ParseValue(Lexer);
       RawItemsAdd(SingleItem);
     end;
   finally
@@ -2570,7 +2580,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSFBool.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
+procedure TSFBool.ParseValue(Lexer: TVRMLLexer);
 
   procedure VRML2BooleanIntegerNonFatalError;
   begin
@@ -2582,9 +2592,6 @@ procedure TSFBool.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
 const
   SBoolExpected = 'boolean constant (TRUE, FALSE)';
 begin
-  inherited;
-  if IsClause then Exit;
-
   Lexer.CheckTokenIs([vtKeyword, vtInteger], SBoolExpected);
   if Lexer.Token = vtKeyword then
   begin
@@ -2618,7 +2625,7 @@ end;
 
 function TSFBool.EqualsDefaultValue: boolean;
 begin
- result := (not IsClause) and DefaultValueExists and (DefaultValue = Value);
+ result := DefaultValueExists and (DefaultValue = Value);
 end;
 
 function TSFBool.Equals(SecondValue: TVRMLField;
@@ -2688,11 +2695,8 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSFFloat.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
+procedure TSFFloat.ParseValue(Lexer: TVRMLLexer);
 begin
-  inherited;
-  if IsClause then Exit;
-
   Value := ParseFloat(Lexer);
 end;
 
@@ -2703,7 +2707,7 @@ end;
 
 function TSFFloat.EqualsDefaultValue: boolean;
 begin
- result := (not IsClause) and DefaultValueExists and (DefaultValue = Value)
+ result := DefaultValueExists and (DefaultValue = Value)
 end;
 
 function TSFFloat.Equals(SecondValue: TVRMLField;
@@ -2776,11 +2780,8 @@ begin
   FValue := AValue;
 end;
 
-procedure TSFDouble.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
+procedure TSFDouble.ParseValue(Lexer: TVRMLLexer);
 begin
-  inherited;
-  if IsClause then Exit;
-
   Value := ParseFloat(Lexer);
 end;
 
@@ -2791,7 +2792,7 @@ end;
 
 function TSFDouble.EqualsDefaultValue: boolean;
 begin
-  Result := (not IsClause) and DefaultValueExists and (DefaultValue = Value);
+  Result := DefaultValueExists and (DefaultValue = Value);
 end;
 
 function TSFDouble.Equals(SecondValue: TVRMLField;
@@ -2882,7 +2883,7 @@ begin
  inherited;
 end;
 
-procedure TSFImage.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
+procedure TSFImage.ParseValue(Lexer: TVRMLLexer);
 
   procedure ReplaceValue(NewValue: TImage);
   begin
@@ -2896,8 +2897,6 @@ var
   RGBPixels: PArray_Vector3Byte;
   AlphaPixels: PArray_Vector4Byte;
 begin
-  inherited;
-
   { Note that we should never let Value to be nil too long,
     because even if this method exits with exception, Value should
     always remain non-nil.
@@ -2913,8 +2912,6 @@ begin
     }
 
   Value.Null;
-
-  if IsClause then Exit;
 
   { TODO: we convert here 1 and 2 components to 3 and 4 (that is,
     we convert grayscale to RGB). This is a limitation of our Images unit. }
@@ -3079,11 +3076,8 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSFLong.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
+procedure TSFLong.ParseValue(Lexer: TVRMLLexer);
 begin
-  inherited;
-  if IsClause then Exit;
-
   Lexer.CheckTokenIs(vtInteger);
 
   { Check is TokenInteger outside of 32-bit range. }
@@ -3108,7 +3102,7 @@ end;
 
 function TSFLong.EqualsDefaultValue: boolean;
 begin
- result := (not IsClause) and DefaultValueExists and (DefaultValue = Value)
+ result := DefaultValueExists and (DefaultValue = Value)
 end;
 
 function TSFLong.Equals(SecondValue: TVRMLField;
@@ -3176,13 +3170,10 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSF_CLASS.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
+procedure TSF_CLASS.ParseValue(Lexer: TVRMLLexer);
 var
   Column: integer;
 begin
-  inherited;
-  if IsClause then Exit;
-
   for Column := 0 to TSF_MATRIX_COLS - 1 do
     ParseVector(FValue[Column], Lexer);
 end;
@@ -3245,8 +3236,7 @@ end;
 
 function TSF_CLASS.EqualsDefaultValue: boolean;
 begin
-  Result := (not IsClause) and
-    DefaultValueExists and
+  Result := DefaultValueExists and
     MatricesPerfectlyEqual(DefaultValue, Value);
 end;
 
@@ -3360,11 +3350,8 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSFRotation.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
+procedure TSFRotation.ParseValue(Lexer: TVRMLLexer);
 begin
-  inherited;
-  if IsClause then Exit;
-
   ParseVector(Axis, Lexer);
   RotationRad := ParseFloat(Lexer);
 end;
@@ -3426,7 +3413,7 @@ end;
 
 function TSFRotation.EqualsDefaultValue: boolean;
 begin
-  Result := (not IsClause) and DefaultValueExists and
+  Result := DefaultValueExists and
     VectorsPerfectlyEqual(DefaultAxis, Axis) and
     (DefaultRotationRad = RotationRad);
 end;
@@ -3488,11 +3475,8 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSFString.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
+procedure TSFString.ParseValue(Lexer: TVRMLLexer);
 begin
-  inherited;
-  if IsClause then Exit;
-
   Lexer.CheckTokenIs(vtString);
   Value := Lexer.TokenString;
   Lexer.NextToken;
@@ -3505,7 +3489,7 @@ end;
 
 function TSFString.EqualsDefaultValue: boolean;
 begin
- result := (not IsClause) and DefaultValueExists and (DefaultValue = Value);
+ result := DefaultValueExists and (DefaultValue = Value);
 end;
 
 function TSFString.Equals(SecondValue: TVRMLField;
@@ -3563,11 +3547,8 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSF_CLASS.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
+procedure TSF_CLASS.ParseValue(Lexer: TVRMLLexer);
 begin
-  inherited;
-  if IsClause then Exit;
-
   ParseVector(Value, Lexer);
 end;
 
@@ -3578,8 +3559,7 @@ end;
 
 function TSF_CLASS.EqualsDefaultValue: boolean;
 begin
-  result := (not IsClause) and
-    DefaultValueExists and VectorsPerfectlyEqual(DefaultValue, Value);
+  result := DefaultValueExists and VectorsPerfectlyEqual(DefaultValue, Value);
 end;
 
 function TSF_CLASS.Equals(SecondValue: TVRMLField;
@@ -3750,7 +3730,7 @@ begin result := fFlagNames.Count end;
 function TSFBitMask.GetFlagNames(i: integer): string;
 begin result := fFlagNames[i] end;
 
-procedure TSFBitMask.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
+procedure TSFBitMask.ParseValue(Lexer: TVRMLLexer);
 
   procedure InterpretTokenAsFlagName;
   var i: integer;
@@ -3769,11 +3749,7 @@ procedure TSFBitMask.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
   end;
 
 begin
-  inherited;
-
   fFlags:=[];
-
-  if IsClause then Exit;
 
   if Lexer.Token = vtOpenBracket then
   begin
@@ -3887,13 +3863,10 @@ begin result := fEnumNames[i] end;
 function TSFEnum.EnumNamesCount: integer;
 begin result := fEnumNames.Count end;
 
-procedure TSFEnum.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
+procedure TSFEnum.ParseValue(Lexer: TVRMLLexer);
 var
   val: integer;
 begin
-  inherited;
-  if IsClause then Exit;
-
   Lexer.CheckTokenIs(vtName, 'enumerated type constant');
   val := fEnumNames.IndexOf(Lexer.TokenName);
   if val = -1 then
@@ -3910,7 +3883,7 @@ end;
 
 function TSFEnum.EqualsDefaultValue: boolean;
 begin
- result := (not IsClause) and DefaultValueExists and (DefaultValue = Value);
+ result := DefaultValueExists and (DefaultValue = Value);
 end;
 
 function TSFEnum.Equals(SecondValue: TVRMLField;
@@ -4065,7 +4038,7 @@ end;
 {$define IMPLEMENT_MF_CLASS_USING_EQUALITY_OP:=
 function TMF_CLASS.EqualsDefaultValue: boolean;
 begin
-  result := (not IsClause) and
+  result :=
     ((DefaultValuesCount = 0) and (Count = 0)) or
     ((DefaultValuesCount = 1) and (Count = 1) and
      (DefaultValue = Items.Items[0]));
@@ -4089,7 +4062,7 @@ end;
 {$define IMPLEMENT_MF_CLASS_USING_COMPARE_MEM:=
 function TMF_CLASS.EqualsDefaultValue: boolean;
 begin
-  result:= (not IsClause) and
+  result :=
     ((DefaultValuesCount = 0) and (Count = 0)) or
     ((DefaultValuesCount = 1) and (Count = 1) and
       CompareMem(@DefaultValue, Items.Pointers[0], SizeOf(TMF_STATIC_ITEM)) );
@@ -4114,7 +4087,7 @@ end;
 {$define IMPLEMENT_MF_CLASS_USING_VECTORS:=
 function TMF_CLASS.EqualsDefaultValue: boolean;
 begin
-  result := (not IsClause) and
+  result :=
     ((DefaultValuesCount = 0) and (Count = 0)) or
     ((DefaultValuesCount = 1) and (Count = 1) and
       VectorsPerfectlyEqual(DefaultValue, Items.Items[0]) );
@@ -4168,7 +4141,7 @@ end;
 {$define IMPLEMENT_MF_CLASS_USING_MATRICES:=
 function TMF_CLASS.EqualsDefaultValue: boolean;
 begin
-  result := (not IsClause) and
+  result :=
     ((DefaultValuesCount = 0) and (Count = 0)) or
     ((DefaultValuesCount = 1) and (Count = 1) and
       MatricesPerfectlyEqual(DefaultValue, Items.Items[0]) );
@@ -4226,7 +4199,7 @@ end;
 {$define IMPLEMENT_MF_CLASS_USING_FLOATS_EQUAL:=
 function TMF_CLASS.EqualsDefaultValue: boolean;
 begin
-  result := (not IsClause) and
+  result :=
     ((DefaultValuesCount = 0) and (Count = 0)) or
     ((DefaultValuesCount = 1) and (Count = 1) and
      (DefaultValue = Items.Items[0]) );

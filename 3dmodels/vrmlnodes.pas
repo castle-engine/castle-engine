@@ -1778,7 +1778,7 @@ type
       read FDefaultValueExists write SetDefaultValueExists default false;
 
     property Value: TVRMLNode read FValue write SetValue;
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    procedure ParseValue(Lexer: TVRMLLexer); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1905,7 +1905,7 @@ type
     { Just a shortcut for Items.Count }
     function Count: integer; override;
 
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    procedure ParseValue(Lexer: TVRMLLexer); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -2429,7 +2429,7 @@ type
     in FieldOrEvent. FieldOrEvent is @nil before parsing.
 
     Field value is not initialized if you passed FieldValue = @false
-    to @link(Parse) (although IsClause and IsClauseName will
+    to @link(Parse) (although IsClauseNames will
     always be initialized). FieldValue = @true is used for prototype
     (not external) declarations and nodes with interface declarations
     (Script, ComposedShader etc.).
@@ -2439,7 +2439,7 @@ type
     Interface declaration doesn't have much properties, since all
     the information is contained within FieldOrEvent
     instance, like Name, field class type, out or in (in case of event),
-    exposed or not (in case of field), IsClause and IsClauseName. }
+    exposed or not (in case of field), IsClauseNames. }
   TVRMLInterfaceDeclaration = class(TVRMLFileItem)
   private
     FFieldOrEvent: TVRMLFieldOrEvent;
@@ -2573,10 +2573,11 @@ type
     FPrototype: TVRMLPrototypeBase;
 
     { This searches Node for fields/events with "IS" clauses, and handles them:
-      for fields, this means copying field value from Self to Child.
+      for fields, this means copying field value from Self to Child
+      (and setting ValueFromIsClause).
       for events, this means adding internal routes to route event
       from/to Self to/from Child.
-      In each case, IsClause is changed to @false.
+
       It also descends into all children.
 
       Aborts if current node is from another prototype (PrototypeInstance is @true).
@@ -2589,7 +2590,7 @@ type
       so says the spec. }
     procedure InstantiateHandleIsClauses(Node, Child: TVRMLNode);
 
-    { Handle IsClause on Destination field/event, by copying it's value
+    { Handle "IS" clause on Destination field/event, by copying it's value
       from Source.
 
       For fields basically does Destination.AssignValue(Source).
@@ -2597,8 +2598,8 @@ type
 
       For events establishes internal route.
 
-      If Source.IsClause, then copies Source.IsClauseName to
-      Destination.IsClauseName. }
+      If Source.IsClauseNames exist, then copies Source.IsClauseNames to
+      Destination.IsClauseNames. }
     procedure FieldOrEventHandleIsClause(
       Destination, Source: TVRMLFieldOrEvent;
       UsingIsClause: boolean);
@@ -4576,10 +4577,8 @@ begin
       if Fields[I].Exposed then
       begin
         { exposed events may have their own IS clauses, save them }
-        if Fields[I].EventIn.IsClause then
-          FileItems.Add(Fields[I].EventIn);
-        if Fields[I].EventOut.IsClause then
-          FileItems.Add(Fields[I].EventOut);
+        FileItems.Add(Fields[I].EventIn);
+        FileItems.Add(Fields[I].EventOut);
       end;
     end;
 
@@ -4588,8 +4587,7 @@ begin
         FileItems.Add(Children[I]);
 
     for I := 0 to Events.Count - 1 do
-      if Events[I].IsClause and
-         { Saving InterfaceDeclarations already handled saving events
+      if { Saving InterfaceDeclarations already handled saving events
            with ParentInterfaceDeclaration <> nil, so no need to save them again. }
          (Events[I].ParentInterfaceDeclaration = nil) then
         FileItems.Add(Events[I]);
@@ -5207,11 +5205,8 @@ begin
     ChildNotAllowed;
 end;
 
-procedure TSFNode.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
+procedure TSFNode.ParseValue(Lexer: TVRMLLexer);
 begin
-  inherited;
-  if IsClause then Exit;
-
   if (Lexer.Token = vtKeyword) and (Lexer.TokenKeyword = vkNULL) then
   begin
     Value := nil;
@@ -5240,7 +5235,7 @@ end;
 
 function TSFNode.EqualsDefaultValue: boolean;
 begin
-  Result := (not IsClause) and DefaultValueExists and (Value = DefaultValue);
+  Result := DefaultValueExists and (Value = DefaultValue);
 end;
 
 function TSFNode.Equals(SecondValue: TVRMLField;
@@ -5524,8 +5519,7 @@ begin
     ChildNotAllowed;
 end;
 
-procedure TMFNode.Parse(Lexer: TVRMLLexer;
-  IsClauseAllowed: boolean);
+procedure TMFNode.ParseValue(Lexer: TVRMLLexer);
 
   procedure ParseOneItem;
   var
@@ -5537,11 +5531,7 @@ procedure TMFNode.Parse(Lexer: TVRMLLexer;
   end;
 
 begin
-  inherited;
-
   ClearItems;
-
-  if IsClause then Exit;
 
   { Note that we ignore commas here, because MFNode is in VRML 2.0 only. }
   if Lexer.Token = vtOpenSqBracket then
@@ -5561,8 +5551,7 @@ end;
 
 function TMFNode.EqualsDefaultValue: boolean;
 begin
-  Result := (not IsClause) and DefaultValueExists and
-    DefaultItems.Equals(Items);
+  Result := DefaultValueExists and DefaultItems.Equals(Items);
 end;
 
 function TMFNode.Equals(SecondValue: TVRMLField;
@@ -5974,10 +5963,10 @@ begin
       SaveProperties.WriteIndent(ATName(atInputOutput) + ' ') else
       SaveProperties.WriteIndent(ATName(atInitializeOnly) + ' ');
     SaveProperties.Write(Field.VRMLTypeName + ' ');
-    { Do not write field only if Field.IsClause is @false and
+    { Do not write field only if Field.IsClauseNames.Count = 0 and
       FieldValue = @false, so the field has a value but we don't want to
       output it. }
-    if Field.IsClause or FieldValue then
+    if (Field.IsClauseNames.Count = 0) or FieldValue then
     begin
       { Field.SaveToStream normally starts from new line with an indent...
         In this case, we want it to start on the same line, so indent must
@@ -6083,8 +6072,6 @@ begin
   for Index := 0 to Prototype.InterfaceDeclarations.Count - 1 do
   begin
     I := Prototype.InterfaceDeclarations.Items[Index];
-    Check(not I.FieldOrEvent.IsClause,
-      'Prototype interface field/event cannot have "IS" clause');
     I.CopyAndAddFieldOrEvent(Self);
   end;
 end;
@@ -6104,22 +6091,30 @@ var
 const
   InEventName: array [boolean] of string = ( 'output', 'input' );
 begin
-  if Source.IsClause then
+  if Source.IsClauseNames.Count <> 0 then
   begin
-    { Note that if Source.IsClause, then Destination will have
-      Source.IsClauseName assigned.
+    { Source came from prototype interface declaration, so it either has
+      exactly one "IS" clause, or it has actual value.
+
+      If Source has an "IS" clause, then Destination will have
+      Source.IsClauseNames assigned.
 
       This means that the prototype (current Prototype) is expanded
       within the definition of another prototype.
-      So Destination.IsClauseName referers to Source
-      (from current Prototype), but Source.IsClauseName refers to yet
+      So Destination.IsClauseNames referers to Source
+      (from current Prototype), but Source.IsClauseNames refers to yet
       another, enclosing, prototype (that will be expanded later --- for
       now we're within enclosing prototype definition).
 
       So solution is simple: Destination is expanded to also
-      refer to this enclosing prototype. }
+      refer to this enclosing prototype.
 
-    Destination.IsClauseName := Source.IsClauseName;
+      Since FieldOrEventHandleIsClause may be called many times
+      when Destination.IsClauseNames has multiple items, it's safest
+      to make sure that IsClauseNames doesn't contain duplicates here. }
+
+    Destination.IsClauseNames.Assign(Source.IsClauseNames);
+    Destination.IsClauseNames.DeleteDuplicates;
   end else
   if Source is TVRMLField then
   begin
@@ -6128,6 +6123,7 @@ begin
     DestinationField := Destination as TVRMLField;
     try
       DestinationField.AssignValue(SourceField);
+      DestinationField.ValueFromIsClause := true;
     except
       on E: EVRMLFieldAssign do
       begin
@@ -6183,13 +6179,6 @@ begin
         Route.SetDestinationDirectly(SourceEvent);
       end;
 
-      { Although not really needed in other code places, we mark
-        that "IS" clause of this event is resolved now by setting it's
-        IsClause to false. Consistent with what
-        DestinationField.AssignValue does. }
-
-      DestinationEvent.IsClause := false;
-
       Routes.Add(Route);
     except
       FreeAndNil(Route);
@@ -6217,10 +6206,13 @@ procedure TVRMLPrototypeNode.InstantiateHandleIsClauses(
     OurField: TVRMLField;
     OurEvent: TVRMLEvent;
     OurFieldIndex: Integer;
+    I: Integer;
+    IsClauseName: string;
   begin
-    if InstanceField.IsClause then
+    for I := 0 to InstanceField.IsClauseNames.Count - 1 do
     begin
-      OurFieldIndex := Fields.IndexOf(InstanceField.IsClauseName);
+      IsClauseName := InstanceField.IsClauseNames.Items[I];
+      OurFieldIndex := Fields.IndexOf(IsClauseName);
       if OurFieldIndex <> -1 then
       begin
         OurField := Fields[OurFieldIndex];
@@ -6237,7 +6229,7 @@ procedure TVRMLPrototypeNode.InstantiateHandleIsClauses(
         { exposed field may also reference by IS clause the simple
           "only input" or "only output" event. }
         { TODO: untested case }
-        OurEvent := AnyEvent(InstanceField.IsClauseName);
+        OurEvent := AnyEvent(IsClauseName);
         if OurEvent <> nil then
         begin
           if OurEvent.InEvent then
@@ -6245,10 +6237,10 @@ procedure TVRMLPrototypeNode.InstantiateHandleIsClauses(
             FieldOrEventHandleIsClause(InstanceField.EventOut, OurEvent, true);
         end else
           VRMLNonFatalError(Format('Within prototype "%s", exposed field "%s" references (by "IS" clause) non-existing field/event name "%s"',
-            [Prototype.Name, InstanceField.Name, InstanceField.IsClauseName]));
+            [Prototype.Name, InstanceField.Name, IsClauseName]));
       end else
         VRMLNonFatalError(Format('Within prototype "%s", field "%s" references (by "IS" clause) non-existing field "%s"',
-          [Prototype.Name, InstanceField.Name, InstanceField.IsClauseName]));
+          [Prototype.Name, InstanceField.Name, IsClauseName]));
     end;
 
     if InstanceField.Exposed then
@@ -6272,9 +6264,13 @@ procedure TVRMLPrototypeNode.InstantiateHandleIsClauses(
   var
     OurEvent: TVRMLEvent;
     OurEventIndex: Integer;
+    I: Integer;
+    IsClauseName: string;
   begin
-    if InstanceEvent.IsClause then
+    for I := 0 to InstanceEvent.IsClauseNames.Count - 1 do
     begin
+      IsClauseName := InstanceEvent.IsClauseNames.Items[I];
+
       { Event from prototype definition can only correspond to the
         same event type of prototype declaration. It cannot reference
         implicit event (within exposed field) of prototype declaration.
@@ -6285,14 +6281,14 @@ procedure TVRMLPrototypeNode.InstantiateHandleIsClauses(
         This also means that searching below by Events.IndexOf is Ok,
         no need to use AnyEvent to search. }
 
-      OurEventIndex := Events.IndexOf(InstanceEvent.IsClauseName);
+      OurEventIndex := Events.IndexOf(IsClauseName);
       if OurEventIndex <> -1 then
       begin
         OurEvent := Events[OurEventIndex];
         FieldOrEventHandleIsClause(InstanceEvent, OurEvent, true);
       end else
         VRMLNonFatalError(Format('Within prototype "%s", event "%s" references (by "IS" clause) non-existing event "%s"',
-          [Prototype.Name, InstanceEvent.Name, InstanceEvent.IsClauseName]));
+          [Prototype.Name, InstanceEvent.Name, IsClauseName]));
     end;
   end;
 
@@ -6384,12 +6380,15 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
     NodeExternalPrototype := TVRMLPrototypeNode.CreatePrototypeNode(NodeName,
       WWWBasePath, Proto.ReferencedPrototype);
     try
+    
+      { TODO: this field copying will be removed. }
       for FieldIndex := 0 to Fields.Count - 1 do
       begin
         F := Fields[FieldIndex];
         I := NodeExternalPrototype.Fields.IndexOf(F.Name);
         if I <> -1 then
         begin
+          
           { In case of type mismatch, FieldOrEventHandleIsClause will make nice
             VRMLNonFatalError.
 
@@ -7754,8 +7753,8 @@ begin
     if not Node.SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority) then
     begin
       { If nothing is suggested, we use X3D 3.2. Reason:
-        - For now, SuggestedVRMLVersion doesn't check IsClause.
-          But if IsClause is present anywhere, then this must use VRML >= 2.0
+        - For now, SuggestedVRMLVersion doesn't check IsClauseNames.
+          But if IsClauseNames is present anywhere, then this must use VRML >= 2.0
           features ("IS" is keyword only in VRML >= 2.0,
           it will not be understood in VRML 1.0).
         - Besides, we should promote newer VRML standard. }

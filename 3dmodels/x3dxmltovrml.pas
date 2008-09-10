@@ -289,8 +289,7 @@ const
           NodeFieldOrEvent := Node.FieldOrEvent(NodeField);
           if NodeFieldOrEvent <> nil then
           begin
-            NodeFieldOrEvent.IsClause := true;
-            NodeFieldOrEvent.IsClauseName := ProtoField;
+            NodeFieldOrEvent.IsClauseNames.AppendItem(ProtoField);
             NodeFieldOrEvent.PositionInParent := PositionInParent;
             Inc(PositionInParent);
           end else
