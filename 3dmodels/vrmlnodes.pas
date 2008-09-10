@@ -7072,6 +7072,8 @@ begin
 
   try
     Node := NewNode;
+    Node.DestructionNotifications.AppendItem(@DestructionNotification);
+
     SetEndingInternal(Node, FieldOrEvent, ExposedField, Event, DestEnding);
   except
     on E: ERouteSetEndingError do
