@@ -744,6 +744,14 @@ type
     { Does actual DeepCopy work. You can override this to copy some
       more properties for descendants. }
     function DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; virtual;
+
+    { This should be a mere call to constructor of your own class.
+
+      In TVRMLNode, this simply calls default virtual constructor,
+      which is Ok for all normal nodes. But we have some special nodes,
+      like TVRMLPrototypeNode or TVRMLUnknownNode, that simply cannot
+      be created by default constructor. They need to override this. }
+    function DeepCopyCreate(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; virtual;
   protected
     fAllowedChildren: boolean;
     fParsingAllowedChildren: boolean;
@@ -2450,6 +2458,8 @@ type
   TVRMLUnknownNode = class(TVRMLNode)
   private
     fNodeTypeName: string;
+  protected
+    function DeepCopyCreate(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; override;
   public
     function NodeTypeName: string; override;
     procedure Parse(Lexer: TVRMLLexer); override;
@@ -2649,6 +2659,8 @@ type
     procedure FieldOrEventHandleIsClause(
       Destination, Source: TVRMLFieldOrEvent;
       UsingIsClause: boolean);
+  protected
+    function DeepCopyCreate(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; override;
   public
     { This constructor will raise exception for TVRMLPrototypeNode.
       Always use CreatePrototypeNode for this node class. }
@@ -5118,12 +5130,33 @@ begin
   Destination.Assign(Source);
 end;
 
+function TVRMLNode.DeepCopyCreate(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;
+begin
+  Result := TVRMLNodeClass(ClassType).Create(NodeName, WWWBasePath);
+end;
+
 function TVRMLNode.DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;
 var
   I: Integer;
   IDecl: TVRMLInterfaceDeclaration;
 begin
-  Result := TVRMLNodeClass(ClassType).Create(NodeName, WWWBasePath);
+  Result := DeepCopyCreate(CopyState);
+
+  { We expand CopyState arrays now, right after DeepCopyCreate.
+    This is needed, as later during DeepCopyCore we may need this node
+    in case of loops within hierarchy.
+
+    For example, internal
+    routes from TVRMLPrototypeNode are established to handle "IS" clauses
+    for events. There routes are to/from TVRMLPrototypeNode, and are
+    also placed within this TVRMLPrototypeNode instance. So when copying
+    node routes, this node must already be present in CopyState arrays.
+
+    Also, in the future we will have to allow loops in Script nodes
+    (USE within Script node may refer to the same node). So again loop
+    will be created. }
+  CopyState.Original.Add(Self);
+  CopyState.New.Add(Result);
 
   for I := 0 to ChildrenCount - 1 do
     Result.AddChild(CopyState.DeepCopy(Children[I]));
@@ -5142,9 +5175,7 @@ begin
     end;
   end;
 
-  { TODO: No need to copy prototypes (direct inside node
-    and inside TVRMLPrototypeNode.Proto, can be left nil) for now,
-    and no need to copy their contents in Proto.Node?
+  { TODO: No need to copy prototypes for now?
 
     This DeepCopy is used for now by protos expanding and by TVRMLGLAnimation.
     Neither need prototype links (as protos are already expanded when copying,
@@ -5916,6 +5947,13 @@ begin
  Parse(Lexer);
 end;
 
+function TVRMLUnknownNode.DeepCopyCreate(
+  CopyState: TVRMLNodeDeepCopyState): TVRMLNode;
+begin
+  Result := TVRMLUnknownNode.CreateUnknown(NodeName, WWWBasePath,
+    NodeTypeName);
+end;
+
 { TVRMLInterfaceDeclaration -------------------------------------------------- }
 
 constructor TVRMLInterfaceDeclaration.Create(AParentNode: TVRMLNode);
@@ -6241,6 +6279,14 @@ begin
     I := Prototype.InterfaceDeclarations.Items[Index];
     I.CopyAndAddFieldOrEvent(Self);
   end;
+end;
+
+function TVRMLPrototypeNode.DeepCopyCreate(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;
+begin
+  Result := TVRMLPrototypeNode.CreatePrototypeNode(NodeName, WWWBasePath,
+    { TODO: for now, we don't copy proto, instead simply passing the same
+      proto reference. }
+    Prototype);
 end;
 
 function TVRMLPrototypeNode.NodeTypeName: string;
@@ -8045,9 +8091,9 @@ begin
   I := Original.IndexOf(OriginalNode);
   if I = -1 then
   begin
+    { DeepCopyCore will expand (Original, New) lists by (OriginalNode, Result).
+      This is needed, see DeepCopyCore comments. }
     Result := OriginalNode.DeepCopyCore(Self);
-    Original.Add(OriginalNode);
-    New.Add(Result);
   end else
     Result := Original[I];
 end;
