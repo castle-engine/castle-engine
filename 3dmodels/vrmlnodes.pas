@@ -2636,22 +2636,41 @@ type
   private
     FPrototype: TVRMLPrototypeBase;
 
-    { This searches Node for fields/events with "IS" clauses, and handles them:
+    (*This searches Node for fields/events with "IS" clauses, and handles them:
       for fields, this means copying field value from Self to Child
       (and setting ValueFromIsClause).
       for events, this means adding internal routes to route event
       from/to Self to/from Child.
 
-      It also descends into all children.
+      Handled IS clauses are removed (to not be seen by next calls
+      of InstantiateHandleIsClauses on the same node, or on it's copy,
+      see below).
 
-      Aborts if current node is from another prototype (PrototypeInstance is @true).
-      We can do it, since "IS" always refers to innermost prototype.
-      This is very useful, because it means that prototype can always be
-      instantiated right after it's defined. Actually, this is the only sensible
-      solution: if "IS" would refer to some non-innermost proto, then the proto
-      couldn't be instantiated within it's direct parent --- and proto
-      must *always be instantiated within it's direct parent*, not higher,
-      so says the spec. }
+      It also descends recursively into all children nodes.
+      Note that it descends into all
+      nodes, even the ones that came from another prototype
+      (PrototypeInstance is @true). It doesn't try to omit them,
+      as they may have "IS" clauses that refer to our fields.
+      Consider part of key_sensor.x3dv test:
+
+@preformatted(
+         PROTO SimpleText [
+           inputOutput MFString onestring ""
+         ] { Shape { geometry Text { string IS onestring } } }
+
+         PROTO PressedText [
+           inputOutput MFString againstring ""
+         ] { SimpleText { onestring IS againstring } }
+
+         PressedText { againstring "zero" }
+)
+
+      After expanding SimpleText within PressedText, we have
+      @code(Shape { geometry Text { string IS againstring } }),
+      that is we resolved "IS onestring" to yet another IS clause:
+      "IS againstring". Which means that when expanding PressedText,
+      we have to process everything again, to eventually fill "againstring"
+      value. *)
     procedure InstantiateHandleIsClauses(Node, Child: TVRMLNode);
 
     { Handle "IS" clause on Destination field/event, by copying it's value
@@ -2662,11 +2681,24 @@ type
 
       For events establishes internal route.
 
-      If Source.IsClauseNames exist, then copies Source.IsClauseNames to
-      Destination.IsClauseNames. }
+      Assumes that all Source "IS" clauses are not expanded yet.
+      In fact, Source field/event always comes from this node,
+      that is TVRMLPrototypeNode. So we just expand prototype within
+      TVRMLPrototypeNode. If this TVRMLPrototypeNode is itself within
+      another prototype, there's no way Source.IsClauseNames could be expanded
+      already.
+
+      Above paragraph means that when Source.IsClauseNames exist,
+      we know what to do. If this is about fields, then we have to copy
+      field's value (in case in Source field value was specified explicitly)
+      and also assign Source.IsClauseNames as new Destination.IsClauseNames
+      (eventually, higher IS clauses will override field's value).
+      For events, we also copy IsClauseNames, in addition to creating
+      internal route (is internal route still necessary? for exposedFields?
+      seems so, I'm not sure...). }
     procedure FieldOrEventHandleIsClause(
       Destination, Source: TVRMLFieldOrEvent;
-      UsingIsClause: boolean);
+      NewIsClauseNames: TDynStringArray);
   protected
     function DeepCopyCreate(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; override;
   public
@@ -6304,7 +6336,7 @@ end;
 
 procedure TVRMLPrototypeNode.FieldOrEventHandleIsClause(
   Destination, Source: TVRMLFieldOrEvent;
-  UsingIsClause: boolean);
+  NewIsClauseNames: TDynStringArray);
 var
   DestinationField, SourceField: TVRMLField;
   DestinationEvent, SourceEvent: TVRMLEvent;
@@ -6312,55 +6344,42 @@ var
 const
   InEventName: array [boolean] of string = ( 'output', 'input' );
 begin
-  if Source.IsClauseNames.Count <> 0 then
-  begin
-    { Source came from prototype interface declaration, so it either has
-      exactly one "IS" clause, or it has actual value.
+  { When Source.IsClauseNames.Count <> 0, then we're expanded
+    within the definition of another prototype.
+    So Destination.IsClauseNames referers to Source
+    (from current Prototype), but Source.IsClauseNames refers to yet
+    another, enclosing, prototype (that will be expanded later --- for
+    now we're within enclosing prototype definition).
 
-      If Source has an "IS" clause, then Destination will have
-      Source.IsClauseNames assigned.
+    See comments in the interface for more. }
 
-      This means that the prototype (current Prototype) is expanded
-      within the definition of another prototype.
-      So Destination.IsClauseNames referers to Source
-      (from current Prototype), but Source.IsClauseNames refers to yet
-      another, enclosing, prototype (that will be expanded later --- for
-      now we're within enclosing prototype definition).
+  NewIsClauseNames.AppendDynArray(Source.IsClauseNames);
 
-      So solution is simple: Destination is expanded to also
-      refer to this enclosing prototype.
-
-      Since FieldOrEventHandleIsClause may be called many times
-      when Destination.IsClauseNames has multiple items, it's safest
-      to make sure that IsClauseNames doesn't contain duplicates here.
-
-      TODO: in case of events, simple Assign here is wrong --- I should
-      remove previous isclause, and add new one.}
-
-    Destination.IsClauseNames.Assign(Source.IsClauseNames);
-  end else
   if Source is TVRMLField then
   begin
     Assert(Destination is TVRMLField);
     SourceField := Source as TVRMLField;
     DestinationField := Destination as TVRMLField;
+
     try
       DestinationField.AssignValue(SourceField);
       DestinationField.ValueFromIsClause := true;
     except
+      on E: EVRMLFieldAssignInvalidClass do
+      begin
+        VRMLNonFatalError(Format('Within prototype "%s", ' +
+          'field of type %s (named "%s") references ' +
+          '(by "IS" clause) field of different type %s (named "%s")',
+          [Prototype.Name,
+           DestinationField.VRMLTypeName,
+           Destination.Name,
+           SourceField.VRMLTypeName,
+           Source.Name]));
+      end;
       on E: EVRMLFieldAssign do
       begin
-        if (E is EVRMLFieldAssignInvalidClass) and UsingIsClause then
-          VRMLNonFatalError(Format('Within prototype "%s", ' +
-            'field of type %s (named "%s") references ' +
-            '(by "IS" clause) field of different type %s (named "%s")',
-            [Prototype.Name,
-             DestinationField.VRMLTypeName,
-             Destination.Name,
-             SourceField.VRMLTypeName,
-             Source.Name])) else
-          VRMLNonFatalError(Format('Error when expanding prototype "%s": ',
-            [Prototype.Name]) + E.Message);
+        VRMLNonFatalError(Format('Error when expanding prototype "%s": ',
+          [Prototype.Name]) + E.Message);
       end;
     end;
   end else
@@ -6431,39 +6450,56 @@ procedure TVRMLPrototypeNode.InstantiateHandleIsClauses(
     OurFieldIndex: Integer;
     I: Integer;
     IsClauseName: string;
+    NewIsClauseNames: TDynStringArray;
   begin
-    for I := 0 to InstanceField.IsClauseNames.Count - 1 do
+    if InstanceField.IsClauseNames.Count <> 0 then
     begin
-      IsClauseName := InstanceField.IsClauseNames.Items[I];
-      OurFieldIndex := Fields.IndexOf(IsClauseName);
-      if OurFieldIndex <> -1 then
-      begin
-        OurField := Fields[OurFieldIndex];
-        FieldOrEventHandleIsClause(InstanceField, OurField, true);
+      NewIsClauseNames := TDynStringArray.Create;
+      try
+        for I := 0 to InstanceField.IsClauseNames.Count - 1 do
+        begin
+          IsClauseName := InstanceField.IsClauseNames.Items[I];
+          OurFieldIndex := Fields.IndexOf(IsClauseName);
+          if OurFieldIndex <> -1 then
+          begin
+            OurField := Fields[OurFieldIndex];
+            FieldOrEventHandleIsClause(InstanceField, OurField, NewIsClauseNames);
 
-        if InstanceField.Exposed and OurField.Exposed then
-        begin
-          FieldOrEventHandleIsClause(InstanceField.EventIn , OurField.EventIn , true);
-          FieldOrEventHandleIsClause(InstanceField.EventOut, OurField.EventOut, true);
+            if InstanceField.Exposed and OurField.Exposed then
+            begin
+              { Note that I pass here NewIsClauseNames, that is
+                is our in/out event will have specialized IS clauses,
+                they will be assigned to whole exposed field.
+                This is Ok, as event may only point to another event
+                higher in proto nesting. And exposed field may also refer
+                to another event (inputOnly or outputOnly) higher in
+                proto nesting. }
+
+              FieldOrEventHandleIsClause(InstanceField.EventIn , OurField.EventIn , NewIsClauseNames);
+              FieldOrEventHandleIsClause(InstanceField.EventOut, OurField.EventOut, NewIsClauseNames);
+            end;
+          end else
+          if InstanceField.Exposed then
+          begin
+            { exposed field may also reference by IS clause the simple
+              "only input" or "only output" event. }
+            { TODO: untested case }
+            OurEvent := AnyEvent(IsClauseName);
+            if OurEvent <> nil then
+            begin
+              if OurEvent.InEvent then
+                FieldOrEventHandleIsClause(InstanceField.EventIn , OurEvent, NewIsClauseNames) else
+                FieldOrEventHandleIsClause(InstanceField.EventOut, OurEvent, NewIsClauseNames);
+            end else
+              VRMLNonFatalError(Format('Within prototype "%s", exposed field "%s" references (by "IS" clause) non-existing field/event name "%s"',
+                [Prototype.Name, InstanceField.Name, IsClauseName]));
+          end else
+            VRMLNonFatalError(Format('Within prototype "%s", field "%s" references (by "IS" clause) non-existing field "%s"',
+              [Prototype.Name, InstanceField.Name, IsClauseName]));
         end;
-      end else
-      if InstanceField.Exposed then
-      begin
-        { exposed field may also reference by IS clause the simple
-          "only input" or "only output" event. }
-        { TODO: untested case }
-        OurEvent := AnyEvent(IsClauseName);
-        if OurEvent <> nil then
-        begin
-          if OurEvent.InEvent then
-            FieldOrEventHandleIsClause(InstanceField.EventIn , OurEvent, true) else
-            FieldOrEventHandleIsClause(InstanceField.EventOut, OurEvent, true);
-        end else
-          VRMLNonFatalError(Format('Within prototype "%s", exposed field "%s" references (by "IS" clause) non-existing field/event name "%s"',
-            [Prototype.Name, InstanceField.Name, IsClauseName]));
-      end else
-        VRMLNonFatalError(Format('Within prototype "%s", field "%s" references (by "IS" clause) non-existing field "%s"',
-          [Prototype.Name, InstanceField.Name, IsClauseName]));
+
+        InstanceField.IsClauseNames.Assign(NewIsClauseNames);
+      finally FreeAndNil(NewIsClauseNames) end;
     end;
 
     if InstanceField.Exposed then
@@ -6489,37 +6525,45 @@ procedure TVRMLPrototypeNode.InstantiateHandleIsClauses(
     OurEventIndex: Integer;
     I: Integer;
     IsClauseName: string;
+    NewIsClauseNames: TDynStringArray;
   begin
-    for I := 0 to InstanceEvent.IsClauseNames.Count - 1 do
+    if InstanceEvent.IsClauseNames.Count <> 0 then
     begin
-      IsClauseName := InstanceEvent.IsClauseNames.Items[I];
+      NewIsClauseNames := TDynStringArray.Create;
+      try
+        for I := 0 to InstanceEvent.IsClauseNames.Count - 1 do
+        begin
+          IsClauseName := InstanceEvent.IsClauseNames.Items[I];
 
-      { Event from prototype definition can only correspond to the
-        same event type of prototype declaration. It cannot reference
-        implicit event (within exposed field) of prototype declaration.
-        Which is good, since otherwise it would be difficult to implement
-        (Self (TVRMLPrototypeNode) is used to keep events, but it doesn't
-        keep actual field values (there are kept within actual expanded nodes).
+          { Event from prototype definition can only correspond to the
+            same event type of prototype declaration. It cannot reference
+            implicit event (within exposed field) of prototype declaration.
+            Which is good, since otherwise it would be difficult to implement
+            (Self (TVRMLPrototypeNode) is used to keep events, but it doesn't
+            keep actual field values (there are kept within actual expanded nodes).
 
-        This also means that searching below by Events.IndexOf is Ok,
-        no need to use AnyEvent to search. }
+            This also means that searching below by Events.IndexOf is Ok,
+            no need to use AnyEvent to search. }
 
-      OurEventIndex := Events.IndexOf(IsClauseName);
-      if OurEventIndex <> -1 then
-      begin
-        OurEvent := Events[OurEventIndex];
-        FieldOrEventHandleIsClause(InstanceEvent, OurEvent, true);
-      end else
-        VRMLNonFatalError(Format('Within prototype "%s", event "%s" references (by "IS" clause) non-existing event "%s"',
-          [Prototype.Name, InstanceEvent.Name, IsClauseName]));
+          OurEventIndex := Events.IndexOf(IsClauseName);
+          if OurEventIndex <> -1 then
+          begin
+            OurEvent := Events[OurEventIndex];
+            FieldOrEventHandleIsClause(InstanceEvent, OurEvent,
+              NewIsClauseNames);
+          end else
+            VRMLNonFatalError(Format('Within prototype "%s", event "%s" references (by "IS" clause) non-existing event "%s"',
+              [Prototype.Name, InstanceEvent.Name, IsClauseName]));
+        end;
+
+        InstanceEvent.IsClauseNames.Assign(NewIsClauseNames);
+      finally FreeAndNil(NewIsClauseNames) end;
     end;
   end;
 
 var
   I: Integer;
 begin
-  if Child.PrototypeInstance then Exit;
-
   for I := 0 to Child.Fields.Count - 1 do
     ExpandField(Child.Fields[I]);
 
@@ -6662,6 +6706,8 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
     NodeExternalPrototype := TVRMLPrototypeNode.CreatePrototypeNode(NodeName,
       WWWBasePath, Proto.ReferencedPrototype);
     try
+(*
+THIS IS BROKEN CURRENTLY * THIS IS BROKEN CURRENTLY * THIS IS BROKEN CURRENTLY
 
       { TODO: this field copying will be removed. }
       for FieldIndex := 0 to Fields.Count - 1 do
@@ -6691,7 +6737,7 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
       end;
 
       { TODO: I should probably copy events somehow too }
-
+*)
       Result := NodeExternalPrototype.Instantiate;
     except
       { In case of exceptions, NodeExternalPrototype is to be freed.
