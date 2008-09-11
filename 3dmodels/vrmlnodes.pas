@@ -1579,6 +1579,14 @@ type
       be freed only if Self is freed) causing some memory to be left
       always allocated.
 
+      Note that for TVRMLPrototypeNode (within PrototypeInstanceSourceNode)
+      these have a little different meaning: they describe the
+      @italic(nested prototype), if any, that was used to create this node.
+      This may happen if the node was expanded from one prototype within
+      another. (Usually, you shouldn't be concerned about this;
+      see TVRMLPrototypeNode.Instantiate implementation comments for
+      gory details about this.)
+
       @groupBegin }
     property PrototypeInstance: boolean read FPrototypeInstance;
     property PrototypeInstanceSourceNode: TVRMLPrototypeNode
@@ -6525,18 +6533,20 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
 
   procedure InstantiateNonExternalPrototype(Proto: TVRMLPrototype);
   var
-    NodeCopy: TVRMLNode;
+    NodeCopy, NewPrototypeInstanceHelpers: TVRMLNode;
   begin
     { Even when Proto.Node is a wrapper (TVRMLRootNode_*),
       we want to copy the whole Proto.Node, instead of copying separately
       Proto.Node.SmartChildren[0], Proto.Node.SmartChildren[1] etc.
-      This way, DEF / USE links within are preserved as they should.
+      This way, DEF / USE links, routes links (internal, for nested
+      protos "IS" clauses, and non-internal) are preserved as they should. }
 
-      Moreover, we can keep Routes and prototypes correctly.
-      (although nested prototypes are not important at this point,
-      since they are already expanded; but still, preserving them
-      "feels right"). }
     NodeCopy := Proto.Node.DeepCopy;
+
+    Assert(NodeCopy.PrototypeInstance =
+      (NodeCopy.PrototypeInstanceSourceNode <> nil));
+    Assert(NodeCopy.PrototypeInstance or
+      (NodeCopy.PrototypeInstanceHelpers = nil));
 
     try
       InstantiateHandleIsClauses(nil, NodeCopy);
@@ -6567,18 +6577,75 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
         At the same time, Result must not be freed here because of ref count = 0... }
       Result := NodeCopy.SmartExtractChild(0);
 
-      { Result.FPrototypeInstanceHelpers is used to keep the rest of
+      Assert(Result.PrototypeInstance =
+        (Result.PrototypeInstanceSourceNode <> nil));
+      Assert(Result.PrototypeInstance or
+        (Result.PrototypeInstanceHelpers = nil));
+
+      { NewPrototypeInstanceHelpers is used to keep the rest of
         NodeCopy.SmartChildren[1...] that should accompany this node. }
-      Result.FPrototypeInstanceHelpers := NodeCopy;
+      NewPrototypeInstanceHelpers := NodeCopy;
     end else
+    begin
       Result := NodeCopy;
+      NewPrototypeInstanceHelpers := nil;
+    end;
 
     Result.NodeName := NodeName;
 
+    (* Result and NodeCopy may come from another prototype.
+       For example,
+
+         PROTO SimpleText [
+           inputOutput MFString string ""
+         ] { Shape { geometry Text { string IS string } } }
+
+         PROTO PressedText [
+           inputOutput MFString string ""
+         ] { SimpleText { string IS string } }
+
+         PressedText { string "zero" }
+
+       (this is a simplified part of ../../kambi_vrml_test_suite/x3d/key_sensor.x3dv
+       file). In such case, when PressedText, you may get Shape that already
+       was expanded from SimpleText. So NodeCopy will have PrototypeInstance
+       = true. Or NodeCopy may be TVRMLRootNode_1/2 wrapper, then it's
+       first item (that is assigned to Result) will
+       have PrototypeInstance = true.
+
+       We have assertions above to check that their PrototypeInstance*
+       properties are in valid state.
+
+       Note that we take proper actions to not leak memory (so do
+       not blindly overwrite Result.PrototypeInstanceSourceNode and ...Helpers).
+       Also, existing Result.PrototypeInstanceSourceNode and ...Helpers
+       must be retained, as they may contain routes for proper functioning
+       of this nested prototype.
+
+       What can we do? We have to keep them somewhere, but move out
+       of the way. Current approach is to overuse
+       TVRMLPrototypeNode.PrototypeInstanceSourceNode and ...Helpers
+       fiels for this. (They should be empty right now, as one
+       TVRMLPrototypeNode is expanded only once.)
+       We store there information about nested prototype.
+    *)
+    if Result.PrototypeInstance then
+    begin
+      Assert(not PrototypeInstance);
+      Assert(PrototypeInstanceSourceNode = nil);
+      Assert(PrototypeInstanceHelpers = nil);
+
+      FPrototypeInstance := Result.PrototypeInstance;
+      FPrototypeInstanceSourceNode := Result.PrototypeInstanceSourceNode;
+      FPrototypeInstanceHelpers := Result.PrototypeInstanceHelpers;
+    end;
+
     { Note: set PrototypeInstance to @true *after* InstantiateHandleIsClauses,
-      otherwise InstantiateHandleIsClauses would not enter this node. }
+      otherwise InstantiateHandleIsClauses would not enter this node.
+      TODO: bad comment above? }
     Result.FPrototypeInstance := true;
     Result.FPrototypeInstanceSourceNode := Self;
+    Result.FPrototypeInstanceHelpers := NewPrototypeInstanceHelpers;
   end;
 
   procedure InstantiateExternalPrototype(Proto: TVRMLExternalPrototype);
