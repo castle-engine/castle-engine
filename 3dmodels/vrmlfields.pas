@@ -47,14 +47,6 @@ type
 
     NodeNameBinding: TStringList;
 
-    { If @true, TVRMLNode.SaveToStream will write the expanded
-      prototype contents. This means that prototype definitions in the
-      file will be actually useless, as every prototype is already
-      expanded into normal built-in nodes. Usually you want to pass
-      this as @false (default), since user wants to see his prototype
-      calls in the file just like they were in source file. }
-    WriteExpandedPrototype: boolean;
-
     { Which VRML version are we writing. }
     VerMajor, VerMinor: Integer;
 
@@ -144,7 +136,6 @@ type
   TVRMLFieldOrEvent = class(TVRMLFileItem)
   private
     FIsClauseNames: TDynStringArray;
-    FIsClauseExpanded: boolean;
 
     FName: string;
 
@@ -157,6 +148,8 @@ type
 
     FParentNode: TVRMLFileItem;
     FParentInterfaceDeclaration: TVRMLFileItem;
+  protected
+    procedure FieldOrEventAssignCommon(Source: TVRMLFieldOrEvent);
   public
     constructor Create(AParentNode: TVRMLFileItem; const AName: string);
     destructor Destroy; override;
@@ -203,14 +196,6 @@ type
       For example, for the TVRMLField descendant, this does not try to parse
       field value. }
     procedure ParseIsClause(Lexer: TVRMLLexer);
-
-    { Set this to mark that "IS" clause is expanded within this field.
-      This is used when saving field with WriteExpandedPrototype:
-      when IsClauseExpanded, we don't store IsClauseNames.
-
-      TODO: to remove, when better VRMLNodeDeepCopy done. }
-    property IsClauseExpanded: boolean
-      read FIsClauseExpanded write FIsClauseExpanded;
 
     { Add alternative name for the same field/event, to be used in different
       VRML version.
@@ -278,13 +263,13 @@ type
       @item(There are some exceptions, but usually
         assignment is possible only when source and destination field classes
         are equal.)
+
       @item(Assignment (by @code(Assign), inherited from TPersistent)
         tries to copy everything: name (with alternative names), default value,
         IsClauseNames, ValueFromIsClause, Exposed, and of course current value.
 
-        One exception is that ParentNode is @italic(not copied), at least
-        for now. It changes graph hierarchy for this VRML node, so I don't
-        think it should be copied.
+        Exceptions are things related to hierarchy of containers:
+        ParentNode, ParentInterfaceDeclaration.
 
         If you want to copy only the current value, use AssignValue
         (or AssignLerp, where available).))
@@ -2066,6 +2051,18 @@ begin
   Result := NameForVersion(SaveProperties.VerMajor, SaveProperties.VerMinor);
 end;
 
+procedure TVRMLFieldOrEvent.FieldOrEventAssignCommon(
+  Source: TVRMLFieldOrEvent);
+begin
+  FName := Source.Name;
+
+  FIsClauseNames.Assign(Source.IsClauseNames);
+
+  FPositionInParent := Source.PositionInParent;
+
+  FAlternativeNames := Source.FAlternativeNames;
+end;
+
 { TVRMLField ------------------------------------------------------------- }
 
 constructor TVRMLField.Create(AParentNode: TVRMLFileItem;
@@ -2187,18 +2184,14 @@ begin
   { Actually, when N = '', we assume that field has only one "IS" clause
     or simple value. }
 
-  if not (SaveProperties.WriteExpandedPrototype and IsClauseExpanded) then
+  for I := 0 to IsClauseNames.Count - 1 do
   begin
-    for I := 0 to IsClauseNames.Count - 1 do
-    begin
-      if N <> '' then
-        SaveProperties.WriteIndent(N + ' ');
-      SaveProperties.Writeln('IS ' + IsClauseNames.Items[I]);
-    end;
+    if N <> '' then
+      SaveProperties.WriteIndent(N + ' ');
+    SaveProperties.Writeln('IS ' + IsClauseNames.Items[I]);
   end;
 
-  if ( (not ValueFromIsClause) or
-       (SaveProperties.WriteExpandedPrototype and IsClauseExpanded) ) and
+  if (not ValueFromIsClause) and
      (FieldSaveWhenDefault or (not EqualsDefaultValue)) then
   begin
     if N <> '' then
@@ -2244,14 +2237,9 @@ begin
   NameChanges := Name <> Source.Name;
   ExposedChanges := Exposed <> Source.Exposed;
 
-  FName := Source.Name;
+  FieldOrEventAssignCommon(Source);
 
-  FIsClauseNames.Assign(Source.IsClauseNames);
   ValueFromIsClause := Source.ValueFromIsClause;
-  IsClauseExpanded := Source.IsClauseExpanded;
-
-  FPositionInParent := Source.PositionInParent;
-  FParentInterfaceDeclaration := Source.ParentInterfaceDeclaration;
 
   Exposed := Source.Exposed;
   Assert(Exposed = (ExposedEvents[false] <> nil));
@@ -2276,8 +2264,6 @@ begin
 
   Assert((not Exposed) or (FExposedEvents[false].FName = Name + ChangedSuffix));
   Assert((not Exposed) or (FExposedEvents[true].FName = SetPrefix + Name));
-
-  FAlternativeNames := Source.FAlternativeNames;
 
   { Once again an issue with dependency of ExposedEvents on our name:
     potentially alternative names changed,

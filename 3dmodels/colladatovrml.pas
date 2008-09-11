@@ -454,7 +454,7 @@ var
           EffectIndex := Effects.FindNodeName(EffectId);
           if EffectIndex <> -1 then
           begin
-            Mat := VRMLNodeDeepCopy(Effects[EffectIndex]) as TNodeMaterial_2;
+            Mat := Effects[EffectIndex].DeepCopy as TNodeMaterial_2;
             Mat.NodeName := MatId;
             Materials.Add(Mat);
           end else

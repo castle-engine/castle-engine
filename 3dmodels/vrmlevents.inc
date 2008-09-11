@@ -126,6 +126,15 @@
       For now, this simply returns whether any OnReceive callback is registered. }
 
     function SendNeeded: boolean;
+
+    { Assign from another event.
+      Note that FieldClass, InEvent is copied.
+
+      OnReceive, ParentExposedField are not copied, since they shouldn't
+      be copied so easily (ParentExposedField is related to hierarchy
+      of containers, and OnReceive requires some knowledge of the caller
+      when his callback is copied). }
+    procedure Assign(Source: TPersistent); override;
   end;
 
   TObjectsListItem_3 = TVRMLEvent;
@@ -181,19 +190,16 @@ var
   N: string;
   I: Integer;
 begin
-  if not (SaveProperties.WriteExpandedPrototype and IsClauseExpanded) then
+  N := NameForVersion(SaveProperties);
+
+  { Actually, when N = '', we assume that field has only one "IS" clause
+    or simple value. }
+
+  for I := 0 to IsClauseNames.Count - 1 do
   begin
-    N := NameForVersion(SaveProperties);
-
-    { Actually, when N = '', we assume that field has only one "IS" clause
-      or simple value. }
-
-    for I := 0 to IsClauseNames.Count - 1 do
-    begin
-      if N <> '' then
-        SaveProperties.WriteIndent(N + ' ');
-      SaveProperties.Writeln('IS ' + IsClauseNames.Items[I]);
-    end;
+    if N <> '' then
+      SaveProperties.WriteIndent(N + ' ');
+    SaveProperties.Writeln('IS ' + IsClauseNames.Items[I]);
   end;
 end;
 
@@ -333,6 +339,17 @@ end;
 function TVRMLEvent.SendNeeded: boolean;
 begin
   Result := OnReceive.Count <> 0;
+end;
+
+procedure TVRMLEvent.Assign(Source: TPersistent);
+begin
+  if Source is TVRMLEvent then
+  begin
+    FieldOrEventAssignCommon(TVRMLEvent(Source));
+
+    FFieldClass := TVRMLEvent(Source).FieldClass;
+    FInEvent := TVRMLEvent(Source).InEvent;
+  end;
 end;
 
 { TVRMLEventsList ------------------------------------------------------------ }

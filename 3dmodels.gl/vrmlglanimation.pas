@@ -1109,7 +1109,7 @@ begin
     LoadFromVRMLEvents_Scene.ResetWorldTime(Time) else
     LoadFromVRMLEvents_Scene.SetWorldTime(Time);
 
-  RootNode := VRMLNodeDeepCopy(LoadFromVRMLEvents_Scene.RootNode);
+  RootNode := LoadFromVRMLEvents_Scene.RootNode.DeepCopy;
 end;
 
 procedure TVRMLGLAnimation.LoadFromVRMLEvents_GetRootNodeWithTime_Progress(

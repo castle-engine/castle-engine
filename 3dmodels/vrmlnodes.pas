@@ -662,6 +662,25 @@ type
     procedure ExecuteAll(Node: TVRMLNode);
   end;
 
+  { Private stuff for TVRMLNode.DeepCopy and friends implementation. }
+  TVRMLNodeDeepCopyState = class
+  private
+    { These two lists must always have exactly the same length. }
+    Original, New: TVRMLNodesList;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    { Return a copy or OriginalNode.
+
+      To keep sharing of nodes (DEF/USE mechanism) within the newly
+      created copy, we need a list of already duplicated children.
+      This method uses and updates such list. When called for the
+      first time with OriginalNode, it actually creates a duplicate
+      (by OriginalNode.DeepCopy). Next time, it will just return
+      this copy. }
+    function DeepCopy(OriginalNode: TVRMLNode): TVRMLNode;
+  end;
+
   { Basic VRML node interface class, all other interfaces for VRML nodes descend
     from this. }
   IVRMLNode = interface
@@ -720,6 +739,11 @@ type
       NodeClass: TVRMLNodeClass;
       TraversingFunc, TraversingFuncAfter: TTraversingFunc;
       ParentInfo: PTraversingInfo);
+
+  protected
+    { Does actual DeepCopy work. You can override this to copy some
+      more properties for descendants. }
+    function DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; virtual;
   protected
     fAllowedChildren: boolean;
     fParsingAllowedChildren: boolean;
@@ -1487,6 +1511,25 @@ type
     property Prototypes: TVRMLPrototypeBasesList read FPrototypes;
     property Routes: TVRMLRoutesList read FRoutes;
 
+    { Create a deep copy of this node and all it's children.
+
+      New copy is completely independent from original,
+      having all children nodes (in both VRML 1.0 sense (Children)
+      and VRML >= 2.0 (inside SFNode and MFNode fields)) also
+      duplicated. New copy has protypes, routes, interface declarations
+      and generally everything established like in the original, using copied
+      nodes.
+
+      Doesn't copy things which are dependent on container hierarchy.
+      (So copying them would be more dangerous than useful.)
+      This means: DestructionNotifications, ParentEventsProcessor, ParentNodes,
+      ParentFields. ParentNodes and ParentFields will be set for children
+      anyway (to appropriate copies).
+
+      Caller owns this newly created copy --- as returned by this method,
+      it's not linked anywhere. }
+    function DeepCopy: TVRMLNode;
+
     { Add Self (NodeName must be initialized) to nodes namespace.
       Doesn't do anything if NodeName = ''. }
     procedure Bind(NodeNameBinding: TStringList);
@@ -1532,7 +1575,7 @@ type
     property PrototypeInstance: boolean read FPrototypeInstance;
     property PrototypeInstanceSourceNode: TVRMLPrototypeNode
       read FPrototypeInstanceSourceNode;
-    property PrototypeInstanceHelpers: TVRMLNodesList;
+    property PrototypeInstanceHelpers: TVRMLNode read FPrototypeInstanceHelpers;
     { @groupEnd }
 
     { Should we use this node when URN is required by EXTERNPROTO ?
@@ -2528,6 +2571,9 @@ type
       (e.g. parsed) yet) or when both are non-nil (which should never
       happen). }
     function AccessType: TVRMLAccessType;
+
+    function DeepCopy(NewParentNode: TVRMLNode;
+      CopyState: TVRMLNodeDeepCopyState): TVRMLInterfaceDeclaration;
   end;
 
   TObjectsListItem_2 = TVRMLInterfaceDeclaration;
@@ -2771,36 +2817,34 @@ type
   TVRMLRoute = class(TVRMLFileItem)
   private
     FSourceNode: TVRMLNode;
-    FSourceExposedField: TVRMLField;
     FSourceEvent: TVRMLEvent;
 
     FDestinationNode: TVRMLNode;
-    FDestinationExposedField: TVRMLField;
     FDestinationEvent: TVRMLEvent;
 
     procedure DestructionNotification(Node: TVRMLNode);
 
     procedure UnsetEnding(
-      var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent;
+      var Node: TVRMLNode; var Event: TVRMLEvent;
       const DestEnding: boolean;
       RemoveFromDestructionNotification: boolean = true);
 
     procedure SetEnding(const NodeName, FieldOrEventName: string;
       NodeNameBinding: TStringList;
-      var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent;
+      var Node: TVRMLNode; var Event: TVRMLEvent;
       const DestEnding: boolean);
 
-    { Set ExposedField, Event, based on FieldOrEvent and DestEnding.
-      Assumes that ExposedField, Event are clear on enter (cleared by UnsetEnding). }
+    { Set Event, based on FieldOrEvent (may be actual event,
+      or exposed field containing it) and DestEnding.
+      Assumes that Event is clear on enter (cleared by UnsetEnding). }
     procedure SetEndingInternal(
-      const Node: TVRMLNode;
-      const FieldOrEvent: TVRMLFieldOrEvent;
-      var ExposedField: TVRMLField; var Event: TVRMLEvent;
+      const Node: TVRMLNode; const FieldOrEvent: TVRMLFieldOrEvent;
+      var Event: TVRMLEvent;
       const DestEnding: boolean);
 
     procedure SetEndingDirectly(
       const NewNode: TVRMLNode; const FieldOrEvent: TVRMLFieldOrEvent;
-      var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent;
+      var Node: TVRMLNode; var Event: TVRMLEvent;
       const DestEnding: boolean);
 
     LastEventTime: TKamTime;
@@ -2816,29 +2860,27 @@ type
     { Source event properties. Either all three are @nil, or:
 
       @unorderedList(
-        @item(SourceEvent is assigned, meaning is self-explanatory.)
+        @item(SourceEvent is assigned, meaning is self-explanatory.
+
+          Note: if you want to get it's exposed field, remember this
+          is available in SourceEvent.ParentExposedField.)
 
         @item(SourceNode must also be assigned and
           this must be the node enclosing SourceEvent. That is, the node that
           has SourceEvent as one of explicit (on TVRMLNode.Events list) or
           implicit (exposed by some field) event.)
-
-        @item(If this event is exposed by some field, then SourceExposedField
-          is also assigned. Otherwise SourceExposedField is @nil.)
       )
 
       @groupBegin }
     property SourceNode: TVRMLNode read FSourceNode;
-    property SourceExposedField: TVRMLField read FSourceExposedField;
     property SourceEvent: TVRMLEvent read FSourceEvent;
     { @groupEnd }
 
     { Destination event properties.
-      Analogous to SourceEvent, SourceExposedField, SourceNode.
+      Analogous to SourceEvent, SourceNode.
 
       @groupBegin }
     property DestinationNode: TVRMLNode read FDestinationNode;
-    property DestinationExposedField: TVRMLField read FDestinationExposedField;
     property DestinationEvent: TVRMLEvent read FDestinationEvent;
     { @groupEnd }
 
@@ -2864,8 +2906,9 @@ type
 
     { These set source/destination of the route in more direct way.
 
-      FieldOrEvent is used to set SourceExposedField and SourceEvent
-      (or DestinationExposedField and DestinationEvent).
+      FieldOrEvent is used to set SourceEvent (or DestinationEvent).
+      FieldOrEvent may be the actual event to set,
+      or exposed field containing this event.
 
       You specify explictly NewNode, which is not checked in any way
       (we don't check whether it exists, whether it contains given
@@ -2922,6 +2965,8 @@ type
       )
     }
     property Internal: boolean read FInternal write FInternal default false;
+
+    function DeepCopy(CopyState: TVRMLNodeDeepCopyState): TVRMLRoute;
   end;
 
   TObjectsListItem_5 = TVRMLRoute;
@@ -3077,19 +3122,11 @@ function ParseVRMLFile(const FileName: string;
     If PrecedingComment <> '' then we will write a comment
     '# '+ PrecedingComment at the beginning. This is for you
     to optionally put name of the generator program or source filename
-    or time/date of generation etc.)
-
-  @param(WriteExpandedPrototype
-    See TVRMLSaveToStreamProperties.WriteExpandedPrototype. In pretty much
-    all normal cases (i.e. when you save your VRML node hierarchy into a file
-    for user) you can leave this as @false.)
-  }
+    or time/date of generation etc.) }
 procedure SaveToVRMLFile(Node: TVRMLNode;
-  Stream: TStream; const PrecedingComment: string;
-  WriteExpandedPrototype: boolean = false); overload;
+  Stream: TStream; const PrecedingComment: string); overload;
 procedure SaveToVRMLFile(Node: TVRMLNode;
-  const Filename, PrecedingComment: string;
-  WriteExpandedPrototype: boolean = false); overload;
+  const Filename, PrecedingComment: string); overload;
 
 const
   { File filters for TGLWindow.FileDialog if you want to open a file and then
@@ -3110,11 +3147,6 @@ procedure TraverseState_CreateNodes(var StateNodes: TTraverseStateLastNodes);
 
 { Free and nil all State.Nodes. }
 procedure TraverseState_FreeAndNilNodes(var StateNodes: TTraverseStateLastNodes);
-
-{ Create a new node with exactly the same VRML node hierarchy.
-  Everything in the hierarchy is a new node instance, although the same
-  node classess are present, with the same names, field values etc. }
-function VRMLNodeDeepCopy(SourceNode: TVRMLNode): TVRMLNode;
 
 { Free all VRML nodes with no parents on the list, then free and @nil the list
   itself. }
@@ -4601,7 +4633,7 @@ end;
 
 procedure TVRMLNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
 begin
-  if PrototypeInstance and (not SaveProperties.WriteExpandedPrototype) then
+  if PrototypeInstance then
   begin
     { If this is an expanded prototype, than delegate writing to the
       PrototypeInstanceSourceNode. }
@@ -5045,6 +5077,126 @@ begin
       FreeWithContentsAndNil(FInterfaceDeclarations);
     end;
   end;
+end;
+
+{ I couldn't implement this as TVRMLField method, as VRMLFields
+  cannot declare TVRMLNode in the interface, so also
+  cannot declare TVRMLNodeDeepCopyState. }
+procedure FieldDeepCopyContents(Destination, Source: TVRMLField;
+  CopyState: TVRMLNodeDeepCopyState);
+var
+  J: Integer;
+  SF: TSFNode;
+  MF: TMFNode;
+begin
+  { First make "shallow copy" of the field by simple Assign }
+  Destination.Assign(Source);
+
+  if Destination is TSFNode then
+  begin
+    SF := TSFNode(Destination);
+    if SF.Value <> nil then
+      SF.Value := CopyState.DeepCopy(SF.Value);
+  end else
+  if Destination is TMFNode then
+  begin
+    MF := TMFNode(Destination);
+    for J := 0 to MF.Count - 1 do
+      MF.ReplaceItem(J, CopyState.DeepCopy(MF.Items[J]));
+  end;
+end;
+
+procedure EventDeepCopyContents(Destination, Source: TVRMLEvent);
+begin
+  { For events, simple Assign does all copy we need --- at least for now. }
+  Destination.Assign(Source);
+end;
+
+function TVRMLNode.DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;
+var
+  I: Integer;
+  IDecl: TVRMLInterfaceDeclaration;
+begin
+  Result := TVRMLNodeClass(ClassType).Create(NodeName, WWWBasePath);
+
+  for I := 0 to ChildrenCount - 1 do
+    Result.AddChild(CopyState.DeepCopy(Children[I]));
+
+  { Copy InterfaceDeclarations first, before copying Fields and Events
+    (as some Fields and Events come from InterfaceDeclarations). }
+  Result.HasInterfaceDeclarations := HasInterfaceDeclarations;
+
+  if InterfaceDeclarations <> nil then
+  begin
+    for I := 0 to InterfaceDeclarations.Count - 1 do
+    begin
+      IDecl := InterfaceDeclarations[I].DeepCopy(Result, CopyState);
+      Result.InterfaceDeclarations.Add(IDecl);
+      IDecl.AddFieldOrEvent(Result);
+    end;
+  end;
+
+  { TODO: No need to copy prototypes (direct inside node
+    and inside TVRMLPrototypeNode.Proto, can be left nil) for now,
+    and no need to copy their contents in Proto.Node?
+
+    This DeepCopy is used for now by protos expanding and by TVRMLGLAnimation.
+    Neither need prototype links (as protos are already expanded when copying,
+    and they don't need anything more).
+
+    for I := 0 to Prototypes.Count - 1 do
+      ...(Prototypes[I]);
+  }
+
+  Assert(Fields.Count = Result.Fields.Count);
+  Assert(Events.Count = Result.Events.Count);
+
+  for I := 0 to Fields.Count - 1 do
+    { Copying InterfaceDeclarations field/event already handled. }
+    if Fields[I].ParentInterfaceDeclaration = nil then
+    begin
+      FieldDeepCopyContents(Result.Fields[I], Fields[I], CopyState);
+
+      if Result.Fields[I].Exposed then
+      begin
+        EventDeepCopyContents(Result.Fields[I].EventIn , Fields[I].EventIn );
+        EventDeepCopyContents(Result.Fields[I].EventOut, Fields[I].EventOut);
+      end;
+    end;
+
+  for I := 0 to Events.Count - 1 do
+    { Copying InterfaceDeclarations field/event already handled. }
+    if Events[I].ParentInterfaceDeclaration = nil then
+      EventDeepCopyContents(Result.Events[I], Events[I]);
+
+  for I := 0 to Routes.Count - 1 do
+    Result.Routes.Add(Routes[I].DeepCopy(CopyState));
+
+  if PrototypeInstance then
+  begin
+    Result.FPrototypeInstance := PrototypeInstance;
+    Result.FPrototypeInstanceSourceNode :=
+      CopyState.DeepCopy(PrototypeInstanceSourceNode) as TVRMLPrototypeNode;
+    if PrototypeInstanceHelpers <> nil then
+      Result.FPrototypeInstanceHelpers := CopyState.DeepCopy(PrototypeInstanceHelpers);
+  end;
+
+  Result.CDataAllowed := CDataAllowed;
+  Result.CDataExists := CDataExists;
+  Result.CData := CData;
+
+  Result.DefaultContainerField := DefaultContainerField;
+  Result.ExplicitContainerField := ExplicitContainerField;
+end;
+
+function TVRMLNode.DeepCopy: TVRMLNode;
+var
+  CopyState: TVRMLNodeDeepCopyState;
+begin
+  CopyState := TVRMLNodeDeepCopyState.Create;
+  try
+    Result := CopyState.DeepCopy(Self);
+  finally FreeAndNil(CopyState); end;
 end;
 
 { TVRMLNodeClassesList ------------------------------------------------------- }
@@ -6007,6 +6159,15 @@ begin
     Result := atInitializeOnly
 end;
 
+function TVRMLInterfaceDeclaration.DeepCopy(
+  NewParentNode: TVRMLNode;
+  CopyState: TVRMLNodeDeepCopyState): TVRMLInterfaceDeclaration;
+begin
+  Result := TVRMLInterfaceDeclaration.Create(NewParentNode);
+  Result.FieldOrEvent := CopyFieldOrEvent(NewParentNode);
+  Result.FieldOrEvent.ParentInterfaceDeclaration := Result;
+end;
+
 { TVRMLInterfaceDeclarationsList --------------------------------------------- }
 
 function TVRMLInterfaceDeclarationsList.TryFindName(
@@ -6112,12 +6273,11 @@ begin
       Since FieldOrEventHandleIsClause may be called many times
       when Destination.IsClauseNames has multiple items, it's safest
       to make sure that IsClauseNames doesn't contain duplicates here.
-      
+
       TODO: in case of events, simple Assign here is wrong --- I should
       remove previous isclause, and add new one.}
 
     Destination.IsClauseNames.Assign(Source.IsClauseNames);
-    Destination.IsClauseExpanded := false;
   end else
   if Source is TVRMLField then
   begin
@@ -6127,7 +6287,6 @@ begin
     try
       DestinationField.AssignValue(SourceField);
       DestinationField.ValueFromIsClause := true;
-      DestinationField.IsClauseExpanded := true;
     except
       on E: EVRMLFieldAssign do
       begin
@@ -6182,8 +6341,6 @@ begin
         Route.SetSourceDirectly(DestinationEvent);
         Route.SetDestinationDirectly(SourceEvent);
       end;
-
-      DestinationEvent.IsClauseExpanded := true;
 
       Routes.Add(Route);
     except
@@ -6327,7 +6484,7 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
       (although nested prototypes are not important at this point,
       since they are already expanded; but still, preserving them
       "feels right"). }
-    NodeCopy := VRMLNodeDeepCopy(Proto.Node);
+    NodeCopy := Proto.Node.DeepCopy;
 
     try
       InstantiateHandleIsClauses(nil, NodeCopy);
@@ -6889,8 +7046,8 @@ begin
     we get destroyed. Otherwise nodes would have invalid references
     on DestructionNotifications list. }
 
-  UnsetEnding(FSourceNode     , FSourceExposedField     , FSourceEvent     , false);
-  UnsetEnding(FDestinationNode, FDestinationExposedField, FDestinationEvent, true);
+  UnsetEnding(FSourceNode     , FSourceEvent     , false);
+  UnsetEnding(FDestinationNode, FDestinationEvent, true);
   inherited;
 end;
 
@@ -6935,7 +7092,7 @@ begin
 end;
 
 procedure TVRMLRoute.UnsetEnding(
-  var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent;
+  var Node: TVRMLNode; var Event: TVRMLEvent;
   const DestEnding: boolean;
   RemoveFromDestructionNotification: boolean);
 begin
@@ -6948,7 +7105,7 @@ begin
       Node.DestructionNotifications.DeleteFirstEqual(@DestructionNotification);
     Node := nil;
   end;
-  ExposedField := nil;
+
   Event := nil;
 end;
 
@@ -6986,8 +7143,10 @@ const
 procedure TVRMLRoute.SetEndingInternal(
   const Node: TVRMLNode;
   const FieldOrEvent: TVRMLFieldOrEvent;
-  var ExposedField: TVRMLField; var Event: TVRMLEvent;
+  var Event: TVRMLEvent;
   const DestEnding: boolean);
+var
+  ExposedField: TVRMLField;
 begin
   if FieldOrEvent is TVRMLField then
   begin
@@ -6995,7 +7154,7 @@ begin
     if not ExposedField.Exposed then
       raise ERouteSetEndingError.CreateFmt('Route %s specifies field "%s" (for node "%s"), but this is not an exposed field (cannot generate/receive events)',
         [ DestEndingNames[DestEnding], FieldOrEvent.Name, Node.NodeName ]);
-    Event := TVRMLField(FieldOrEvent).ExposedEvents[DestEnding];
+    Event := ExposedField.ExposedEvents[DestEnding];
   end else
   begin
     Assert(FieldOrEvent is TVRMLEvent);
@@ -7026,14 +7185,14 @@ end;
 
 procedure TVRMLRoute.SetEnding(const NodeName, FieldOrEventName: string;
   NodeNameBinding: TStringList;
-  var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent;
+  var Node: TVRMLNode; var Event: TVRMLEvent;
   const DestEnding: boolean);
 var
   Index: Integer;
   FieldOrEvent: TVRMLFieldOrEvent;
   SearchNode: TVRMLNode;
 begin
-  UnsetEnding(Node, ExposedField, Event, DestEnding);
+  UnsetEnding(Node, Event, DestEnding);
 
   try
     Index := NodeNameBinding.IndexOf(NodeName);
@@ -7056,11 +7215,11 @@ begin
       raise ERouteSetEndingError.CreateFmt('Route %s field/event name "%s" (for node "%s", type "%s") not found',
         [ DestEndingNames[DestEnding], FieldOrEventName, NodeName, SearchNode.NodeTypeName ]);
 
-    SetEndingInternal(Node, FieldOrEvent, ExposedField, Event, DestEnding);
+    SetEndingInternal(Node, FieldOrEvent, Event, DestEnding);
   except
     on E: ERouteSetEndingError do
     begin
-      UnsetEnding(Node, ExposedField, Event, DestEnding);
+      UnsetEnding(Node, Event, DestEnding);
       VRMLNonFatalError(E.Message);
     end;
   end;
@@ -7072,7 +7231,7 @@ procedure TVRMLRoute.SetSource(
 begin
   SetEnding(SourceNodeName, SourceFieldOrEventName,
     NodeNameBinding,
-    FSourceNode, FSourceExposedField, FSourceEvent,
+    FSourceNode, FSourceEvent,
     false);
 end;
 
@@ -7082,26 +7241,26 @@ procedure TVRMLRoute.SetDestination(
 begin
   SetEnding(DestinationNodeName, DestinationFieldOrEventName,
     NodeNameBinding,
-    FDestinationNode, FDestinationExposedField, FDestinationEvent,
+    FDestinationNode, FDestinationEvent,
     true);
 end;
 
 procedure TVRMLRoute.SetEndingDirectly(
   const NewNode: TVRMLNode; const FieldOrEvent: TVRMLFieldOrEvent;
-  var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent;
+  var Node: TVRMLNode; var Event: TVRMLEvent;
   const DestEnding: boolean);
 begin
-  UnsetEnding(Node, ExposedField, Event, DestEnding);
+  UnsetEnding(Node, Event, DestEnding);
 
   try
     Node := NewNode;
     Node.DestructionNotifications.AppendItem(@DestructionNotification);
 
-    SetEndingInternal(Node, FieldOrEvent, ExposedField, Event, DestEnding);
+    SetEndingInternal(Node, FieldOrEvent, Event, DestEnding);
   except
     on E: ERouteSetEndingError do
     begin
-      UnsetEnding(Node, ExposedField, Event, DestEnding);
+      UnsetEnding(Node, Event, DestEnding);
       VRMLNonFatalError(E.Message);
     end;
   end;
@@ -7111,7 +7270,7 @@ procedure TVRMLRoute.SetSourceDirectly(
   const NewNode: TVRMLNode; const FieldOrEvent: TVRMLFieldOrEvent);
 begin
   SetEndingDirectly(NewNode, FieldOrEvent,
-    FSourceNode, FSourceExposedField, FSourceEvent,
+    FSourceNode, FSourceEvent,
     false);
 end;
 
@@ -7119,7 +7278,7 @@ procedure TVRMLRoute.SetDestinationDirectly(
   const NewNode: TVRMLNode; const FieldOrEvent: TVRMLFieldOrEvent);
 begin
   SetEndingDirectly(NewNode, FieldOrEvent,
-    FDestinationNode, FDestinationExposedField, FDestinationEvent,
+    FDestinationNode, FDestinationEvent,
     true);
 end;
 
@@ -7141,7 +7300,7 @@ procedure TVRMLRoute.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
 var
   Output: string;
 
-  procedure WriteEnding(Node: TVRMLNode; ExposedField: TVRMLField;
+  procedure WriteEnding(Node: TVRMLNode;
     Event: TVRMLEvent; const S: string);
   var
     Index: Integer;
@@ -7166,18 +7325,10 @@ var
     if Event = nil then
       raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s event not assigned', [S]);
 
-    { Check ExposedField }
-    if ExposedField = nil then
-    begin
-      if Event.Name = '' then
-        raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s event not named', [S]);
-      Output += Event.Name;
-    end else
-    begin
-      if ExposedField.Name = '' then
-        raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s exposed field not named', [S]);
-      Output += ExposedField.Name;
-    end;
+    { Check we have a name. }
+    if Event.Name = '' then
+      raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s event not named', [S]);
+    Output += Event.Name;
   end;
 
 begin
@@ -7185,9 +7336,9 @@ begin
 
   try
     Output := 'ROUTE ';
-    WriteEnding(SourceNode     , SourceExposedField     , SourceEvent     , 'source'     );
+    WriteEnding(SourceNode     , SourceEvent     , 'source'     );
     Output += ' TO ';
-    WriteEnding(DestinationNode, DestinationExposedField, DestinationEvent, 'destination');
+    WriteEnding(DestinationNode, DestinationEvent, 'destination');
     SaveProperties.WritelnIndent(Output);
   except
     on E: EVRMLRouteSaveError do
@@ -7209,10 +7360,43 @@ begin
        pointers change if reallocation occurs). }
 
   if Node = FSourceNode then
-    UnsetEnding(FSourceNode     , FSourceExposedField     , FSourceEvent     , false, false);
+    UnsetEnding(FSourceNode     , FSourceEvent     , false, false);
 
   if Node = FDestinationNode then
-    UnsetEnding(FDestinationNode, FDestinationExposedField, FDestinationEvent, true , false);
+    UnsetEnding(FDestinationNode, FDestinationEvent, true , false);
+end;
+
+function TVRMLRoute.DeepCopy(CopyState: TVRMLNodeDeepCopyState): TVRMLRoute;
+var
+  NewSourceNode, NewDestinationNode: TVRMLNode;
+  NewSourceEvent, NewDestinationEvent: TVRMLEvent;
+begin
+  Result := TVRMLRoute.Create;
+  Result.Internal := Internal;
+
+  if (SourceNode <> nil) and
+     (SourceEvent <> nil) then
+  begin
+    NewSourceNode := CopyState.DeepCopy(SourceNode);
+    NewSourceEvent := NewSourceNode.AnyEvent(SourceEvent.Name);
+    if NewSourceEvent = nil then
+      raise EInternalError.CreateFmt('Route source node "%s" (%s) has event "%s", which is not found in this node''s deep copy',
+        [ NewSourceNode.NodeName, NewSourceNode.NodeTypeName,
+	  NewSourceEvent.Name ]);
+    Result.SetSourceDirectly(NewSourceNode, NewSourceEvent);
+  end;
+
+  if (DestinationNode <> nil) and
+     (DestinationEvent <> nil) then
+  begin
+    NewDestinationNode := CopyState.DeepCopy(DestinationNode);
+    NewDestinationEvent := NewDestinationNode.AnyEvent(DestinationEvent.Name);
+    if NewDestinationEvent = nil then
+      raise EInternalError.CreateFmt('Route destination node "%s" (%s) has event "%s", which is not found in this node''s deep copy',
+        [ NewDestinationNode.NodeName, NewDestinationNode.NodeTypeName,
+	  NewDestinationEvent.Name ]);
+    Result.SetDestinationDirectly(NewDestinationNode, NewDestinationEvent);
+  end;
 end;
 
 { global procedures ---------------------------------------------------------- }
@@ -7702,8 +7886,7 @@ begin
 end;
 
 procedure SaveToVRMLFile(Node: TVRMLNode; Stream: TStream;
-  const PrecedingComment: string;
-  WriteExpandedPrototype: boolean);
+  const PrecedingComment: string);
 var
   SaveProperties: TVRMLSaveToStreamProperties;
 
@@ -7754,8 +7937,6 @@ var
 begin
   SaveProperties := TVRMLSaveToStreamProperties.Create(Stream);
   try
-    SaveProperties.WriteExpandedPrototype := WriteExpandedPrototype;
-
     if not Node.SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority) then
     begin
       { If nothing is suggested, we use X3D 3.2. Reason:
@@ -7797,14 +7978,13 @@ begin
 end;
 
 procedure SaveToVRMLFile(Node: TVRMLNode;
-  const Filename, PrecedingComment: string;
-  WriteExpandedPrototype: boolean);
+  const Filename, PrecedingComment: string);
 var
   Stream: TFileStream;
 begin
   Stream := TFileStream.Create(Filename, fmCreate);
   try
-    SaveToVRMLFile(Node, Stream, PrecedingComment, WriteExpandedPrototype);
+    SaveToVRMLFile(Node, Stream, PrecedingComment);
   finally Stream.Free end;
 end;
 
@@ -7824,84 +8004,6 @@ begin
     FreeAndNil(StateNodes.Nodes[i]);
 end;
 
-function VRMLNodeDeepCopy(SourceNode: TVRMLNode): TVRMLNode;
-
-  procedure Rewrap(WrapperClass: TVRMLNodeClass);
-  var
-    NewResult: TVRMLNode;
-  begin
-    NewResult := WrapperClass.Create('', '');
-    NewResult.SmartAddChild(Result);
-    Result := NewResult;
-  end;
-
-var
-  S: TMemoryStream;
-  SPeek: TPeekCharStream;
-  NewResult: TVRMLNode;
-begin
-  S := TMemoryStream.Create;
-  try
-    { TODO: this implementation works 100% correctly, but,
-      in case you didn't notice, it's a terrible hack actually,
-      it can be made dramatically faster
-      and less resource hungry. It saves SourceNode to stream, then loads
-      new node hierarchy from this stream...
-
-      We should instead copy VRML hierarchy by doing nice traverse of the graph.
-      See TVRMLGLAnimation.Load implementation, when merging VRML nodes
-      this also iterates everything that should be copied.
-    }
-
-    { It's crucial that we use WriteExpandedPrototype = @true here. Otherwise:
-
-      1. We would cause unnecessary expanding of prototypes.
-         SourceNode may have prototypes already
-         expanded, but when saving it to stream, SaveToStream would
-         discard the expanded version and save the prototype call instead.
-         Which means that ParseVRMLFile will have to expand it again...
-
-         This may hurt performance badly in case of nested large prototypes,
-         as prototype Instantiate itself uses VRMLNodeDeepCopy.
-
-      2. Moreover, this can cause actual errors, see e.g.
-         kambi_vrml_test_suite/vrml_2/proto_nested.wrl test.
-         Reason: inside a prototype, we may use a prototype defined at higher
-         level. Which means that this prototype definition will not be
-         recorded by SaveToVRMLFile below... but it we will write unexpanded
-         prototype, this definition will be needed by ParseVRMLFile. }
-    SaveToVRMLFile(SourceNode, S, '', true);
-
-    S.Position := 0;
-    SPeek := TBufferedReadStream.Create(S, false);
-    try
-      Result := ParseVRMLFile(SPeek, SourceNode.WWWBasePath);
-
-      { SaveToVRMLFile always strips TVRMLRootNode_* wrapper.
-        ParseVRMLFile adds TVRMLRootNode_* wrapper,
-        currently always.
-
-        We want to guarantee that Result has a wrapper if and only if
-        SourceNode has a wrapper. So we optionally strip the wrapper
-        added by ParseVRMLFile. }
-      if (not Supports(SourceNode, IVRMLRootNode)) and
-         Supports(Result, IVRMLRootNode) then
-      begin
-        Assert(Result.SmartChildrenCount = 1);
-        NewResult := Result.SmartExtractChild(0);
-        FreeAndNil(Result);
-        Result := NewResult;
-      end;
-
-      Assert(
-        Supports(SourceNode, IVRMLRootNode) =
-        Supports(Result, IVRMLRootNode) );
-
-      Assert(SourceNode.ClassType = Result.ClassType);
-    finally FreeAndNil(SPeek) end;
-  finally FreeAndNil(S) end;
-end;
-
 { TDynNodeDestructionNotifications ------------------------------------------- }
 
 procedure TDynNodeDestructionNotificationArray.ExecuteAll(Node: TVRMLNode);
@@ -7910,6 +8012,38 @@ var
 begin
   for I := 0 to Length - 1 do
     Items[I](Node);
+end;
+
+{ TVRMLNodeDeepCopyState ----------------------------------------------------- }
+
+constructor TVRMLNodeDeepCopyState.Create;
+begin
+  inherited;
+  Original := TVRMLNodesList.Create;
+  New := TVRMLNodesList.Create;
+end;
+
+destructor TVRMLNodeDeepCopyState.Destroy;
+begin
+  FreeAndNil(Original);
+  FreeAndNil(New);
+  inherited;
+end;
+
+function TVRMLNodeDeepCopyState.DeepCopy(OriginalNode: TVRMLNode): TVRMLNode;
+var
+  I: Integer;
+begin
+  Assert(New.Count = Original.Count);
+
+  I := Original.IndexOf(OriginalNode);
+  if I = -1 then
+  begin
+    Result := OriginalNode.DeepCopyCore(Self);
+    Original.Add(OriginalNode);
+    New.Add(Result);
+  end else
+    Result := Original[I];
 end;
 
 { TNodeNameBinding ----------------------------------------------------------- }
