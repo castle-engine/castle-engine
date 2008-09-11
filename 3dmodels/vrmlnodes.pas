@@ -4707,7 +4707,15 @@ end;
 
 procedure TVRMLNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
 begin
-  if PrototypeInstance then
+  if PrototypeInstance and
+     { TVRMLPrototypeNode has somewhat different meaning of PrototypeInstance,
+       we want to save it directly (otherwise
+       PrototypeInstanceSourceNode.SaveToStream could cause another
+       recursive PrototypeInstanceSourceNode.SaveToStream with
+       nested proto). For example test read + save
+       kambi_vrml_test_suite/x3d/key_sensor.x3dv, to see that check
+       below is needed. }
+     not (Self is TVRMLPrototypeNode) then
   begin
     { If this is an expanded prototype, than delegate writing to the
       PrototypeInstanceSourceNode. }
@@ -6207,8 +6215,20 @@ begin
       SaveProperties.WriteIndent(ATName(atInputOnly) + ' ') else
       SaveProperties.WriteIndent(ATName(atOutputOnly) + ' ');
     SaveProperties.Write(Event.FieldClass.VRMLTypeName + ' ');
-    SaveProperties.DiscardNextIndent;
-    Event.SaveToStream(SaveProperties);
+
+    if Event.IsClauseNames.Count > 0 then
+    begin
+      { Saving doesn't produce sensible results for
+        Event.IsClauseNames.Count > 1, there's no way to save it
+        from single interface decl. }
+      Assert(Event.IsClauseNames.Count = 1);
+
+      SaveProperties.DiscardNextIndent;
+      Event.SaveToStream(SaveProperties);
+    end else
+    begin
+      SaveProperties.Writeln;
+    end;
   end else
   begin
     if Field.Exposed then
