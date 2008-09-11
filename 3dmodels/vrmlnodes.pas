@@ -3688,15 +3688,21 @@ begin
     So these references have to be valid, and omitted by checking
     ParentInterfaceDeclaration <> nil. }
 
-  for I := 0 to FEvents.Count - 1 do
-    if FEvents[I].ParentInterfaceDeclaration = nil then
-      FEvents.FreeAndNil(I);
-  FreeAndNil(FEvents);
+  if FEvents <> nil then
+  begin
+    for I := 0 to FEvents.Count - 1 do
+      if FEvents[I].ParentInterfaceDeclaration = nil then
+        FEvents.FreeAndNil(I);
+    FreeAndNil(FEvents);
+  end;
 
-  for I := 0 to FFields.Count - 1 do
-    if FFields[I].ParentInterfaceDeclaration = nil then
-      FFields.FreeAndNil(I);
-  FreeAndNil(FFields);
+  if FFields <> nil then
+  begin
+    for I := 0 to FFields.Count - 1 do
+      if FFields[I].ParentInterfaceDeclaration = nil then
+        FFields.FreeAndNil(I);
+    FreeAndNil(FFields);
+  end;
 
   FreeWithContentsAndNil(FInterfaceDeclarations);
 
