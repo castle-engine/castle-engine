@@ -441,8 +441,6 @@ begin
 end;
 
 function EnumerationExtPresent(out pDeviceList: PChar): boolean;
-var
-  Err: TALenum;
 begin
   Result := alcIsExtensionPresent(nil, 'ALC_ENUMERATION_EXT');
   if Result then
