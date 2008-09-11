@@ -782,7 +782,9 @@ type
 
     { This simply enumerates all direct descendant nodes of
       this node. I.e. all children in VRML 1.0 style and
-      all nodes in SFNode and MFNode fields. }
+      all nodes in SFNode and MFNode fields.
+      This includes prototype stuff, if this node is expanded
+      from prototype: PrototypeInstanceSourceNode and PrototypeInstanceHelpers. }
     procedure DirectEnumerateAll(
       Func: TEnumerateChildrenFunction);
 
@@ -1223,11 +1225,16 @@ type
 
       This enumerates both VRML 1.0 @link(Children) as well as
       nodes in TSFNode and TMFNode fields.
+
       If OnlyActive then it will enumerate only active parts
       of the graph ("active" as defined by @link(Traverse)),
       so it will work as a simpler version of Traverse
       (simpler, because it doesn't track any state).
+
       If not OnlyActive then it will simply enumerate all nodes.
+      This will include then also prototype helpers, if this node
+      was expanded from prototype: see PrototypeInstanceSourceNode
+      and PrototypeInstanceHelpers.
 
       Wersja z argumentem SeekNodeName wymaga ponadto aby node mial NodeName=
       SeekNodeName (gdy SeekNodeName = '' to znajduje nienazwane node'y,
@@ -3942,6 +3949,15 @@ begin
       for J := 0 to MF.Items.Count - 1 do
         Func(Self, MF.Items[J]);
     end;
+  end;
+
+  if PrototypeInstance then
+  begin
+    Assert(PrototypeInstanceSourceNode <> nil);
+    Func(Self, PrototypeInstanceSourceNode);
+
+    if PrototypeInstanceHelpers <> nil then
+      Func(Self, PrototypeInstanceHelpers);
   end;
 end;
 
