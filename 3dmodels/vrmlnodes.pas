@@ -6356,12 +6356,29 @@ constructor TVRMLPrototypeNode.CreatePrototypeNode(
 var
   I: TVRMLInterfaceDeclaration;
   Index: Integer;
+  ProtoInitial: TVRMLPrototypeBase;
 begin
   inherited Create(ANodeName, AWWWBasePath);
   FPrototype := APrototype;
-  for Index := 0 to Prototype.InterfaceDeclarations.Count - 1 do
+
+  ProtoInitial := Prototype;
+
+  if (ProtoInitial is TVRMLExternalPrototype) and
+     (TVRMLExternalPrototype(ProtoInitial).ReferencedPrototype <> nil) then
+    { It's important to use ReferencedPrototype, not just current
+      Prototype, in this case. That's because field's default values
+      should be set by constructor (before parsing the specified
+      fields), and TVRMLExternalPrototype doesn't have default values
+      available.
+
+      If ReferencedPrototype = nil (e.g. because couldn't
+      be loaded) then Instantiate will not be able to instantiate
+      it anyway (and will produce appropriate VRMLNonFatalError). }
+    ProtoInitial := TVRMLExternalPrototype(ProtoInitial).ReferencedPrototype;
+
+  for Index := 0 to ProtoInitial.InterfaceDeclarations.Count - 1 do
   begin
-    I := Prototype.InterfaceDeclarations.Items[Index];
+    I := ProtoInitial.InterfaceDeclarations.Items[Index];
     I.CopyAndAddFieldOrEvent(Self);
   end;
 end;
@@ -6738,64 +6755,19 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
   end;
 
   procedure InstantiateExternalPrototype(Proto: TVRMLExternalPrototype);
-  var
-    NodeExternalPrototype: TVRMLPrototypeNode;
-    F: TVRMLField;
-    FieldIndex, I: Integer;
   begin
     if Proto.ReferencedPrototype = nil then
       raise EVRMLPrototypeInstantiateError.CreateFmt(
         'External prototype "%s" cannot be loaded, so cannot instantiate nodes using it',
         [Proto.Name]);
 
-    NodeExternalPrototype := TVRMLPrototypeNode.CreatePrototypeNode(NodeName,
-      WWWBasePath, Proto.ReferencedPrototype);
-    try
-(*
-THIS IS BROKEN CURRENTLY * THIS IS BROKEN CURRENTLY * THIS IS BROKEN CURRENTLY
+    { Note that we do not check whether ReferencedPrototype actually
+      has the same fields/events as declared for externproto.
+      Although when expanding IS clauses, missing declarations
+      or incorrect types or field/event will be catched, so the necessary
+      things will be checked when expanding. }
 
-      { TODO: this field copying will be removed. }
-      for FieldIndex := 0 to Fields.Count - 1 do
-      begin
-        F := Fields[FieldIndex];
-        I := NodeExternalPrototype.Fields.IndexOf(F.Name);
-        if I <> -1 then
-        begin
-
-          { In case of type mismatch, FieldOrEventHandleIsClause will make nice
-            VRMLNonFatalError.
-
-            Note that if F.IsClause, then F.IsClauseName will be copied.
-            That's OK. This means that external prototype is expanded within
-            other (more outside, non-external) prototype. So F.IsClauseName
-            refers to this outside prototype. So F.IsClauseName should
-            be copied to NodeExternalPrototype.Fields[I].IsClauseName,
-            and this in turn will be eventually copied to fields inside
-            the prototype expansion. }
-          FieldOrEventHandleIsClause(NodeExternalPrototype.Fields[I], F, false);
-          NodeExternalPrototype.Fields[I].Exposed := F.Exposed;
-        end else
-          VRMLNonFatalError(Format(
-            'Error when expanding external prototype "%s": ' +
-            'prototype implementation doesn''t have field "%s"',
-            [Proto.Name, F.Name]));
-      end;
-
-      { TODO: I should probably copy events somehow too }
-*)
-      Result := NodeExternalPrototype.Instantiate;
-    except
-      { In case of exceptions, NodeExternalPrototype is to be freed.
-        (In case of no exception, NodeExternalPrototype will also be
-        freed, by FreeAndNil(Result.FPrototypeInstanceSourceNode)). }
-      FreeAndNil(NodeExternalPrototype);
-      raise;
-    end;
-
-    { We use NodeExternalPrototype to instantiate, but then we want
-      Result.FPrototypeInstanceSourceNode to be Self. }
-    FreeAndNil(Result.FPrototypeInstanceSourceNode);
-    Result.FPrototypeInstanceSourceNode := Self;
+    InstantiateNonExternalPrototype(Proto.ReferencedPrototype);
   end;
 
 begin
