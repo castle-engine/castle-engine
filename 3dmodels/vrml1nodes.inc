@@ -759,6 +759,8 @@
     FForceVersion: boolean;
     FForceVersionMajor: Integer;
     FForceVersionMinor: Integer;
+  protected
+    function DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; override;
   public
     (*Save TVRMLRootNode_* contents to stream.
 
@@ -2182,6 +2184,19 @@ begin
 
     FileItems.SaveToStream(SaveProperties);
   finally FreeAndNil(FileItems) end;
+end;
+
+function TVRMLRootNode_1.DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;
+var
+  Res: TVRMLRootNode_1;
+begin
+  Result := inherited;
+
+  Res := Result as TVRMLRootNode_1;
+
+  Res.ForceVersion := ForceVersion;
+  Res.ForceVersionMajor := ForceVersionMajor;
+  Res.ForceVersionMinor := ForceVersionMinor;
 end;
 
 function TVRMLRootNode_1.SuggestedVRMLVersion(

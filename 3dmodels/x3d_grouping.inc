@@ -114,6 +114,8 @@
     FX3DComponentLevels: TDynLongIntArray;
     FX3DMetaKeys: TDynStringArray;
     FX3DMetaValues: TDynStringArray;
+  protected
+    function DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     destructor Destroy; override;
@@ -545,6 +547,26 @@ begin
   if ForceVersion then
     AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
       true, ForceVersionMajor, ForceVersionMinor, 10 * 1000);
+end;
+
+function TVRMLRootNode_2.DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;
+var
+  Res: TVRMLRootNode_2;
+begin
+  Result := inherited;
+
+  Res := Result as TVRMLRootNode_2;
+
+  Res.ForceVersion := ForceVersion;
+  Res.ForceVersionMajor := ForceVersionMajor;
+  Res.ForceVersionMinor := ForceVersionMinor;
+
+  Res.X3DProfile := X3DProfile;
+
+  Res.X3DComponentNames.Assign(X3DComponentNames);
+  Res.X3DComponentLevels.Assign(X3DComponentLevels);
+  Res.X3DMetaKeys.Assign(X3DMetaKeys);
+  Res.X3DMetaValues.Assign(X3DMetaValues);
 end;
 
 constructor TNodeStaticGroup.Create(const ANodeName: string;
