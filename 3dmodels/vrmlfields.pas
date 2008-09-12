@@ -389,7 +389,8 @@ type
       TVRMLField descendants defined in this unit (it's used only
       by TSFNode and TMFNode). }
     procedure FieldSaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
-      FieldSaveWhenDefault: boolean = false);
+      FieldSaveWhenDefault: boolean = false;
+      AllowSavingFieldValue: boolean = true);
 
     { Save the field to the stream.
 
@@ -2174,7 +2175,7 @@ end;
 
 procedure TVRMLField.FieldSaveToStream(
   SaveProperties: TVRMLSaveToStreamProperties;
-  FieldSaveWhenDefault: boolean);
+  FieldSaveWhenDefault, AllowSavingFieldValue: boolean);
 var
   N: string;
   I: Integer;
@@ -2191,7 +2192,8 @@ begin
     SaveProperties.Writeln('IS ' + IsClauseNames.Items[I]);
   end;
 
-  if (not ValueFromIsClause) and
+  if AllowSavingFieldValue and
+     (not ValueFromIsClause) and
      (FieldSaveWhenDefault or (not EqualsDefaultValue)) then
   begin
     if N <> '' then

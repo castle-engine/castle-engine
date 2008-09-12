@@ -6232,20 +6232,32 @@ begin
       SaveProperties.WriteIndent(ATName(atInputOutput) + ' ') else
       SaveProperties.WriteIndent(ATName(atInitializeOnly) + ' ');
     SaveProperties.Write(Field.VRMLTypeName + ' ');
-    { Do not write field only if Field.IsClauseNames.Count = 0 and
-      FieldValue = @false, so the field has a value but we don't want to
-      output it. }
-    if (Field.IsClauseNames.Count = 0) or FieldValue then
+
+    { When saving from interface declaration, you can only
+      1. write sole field name
+      2. write field name + value (if FieldValue = @true)
+      3. write field name + exactly one IS clause }
+
+    if ( FieldValue and
+         (not Field.ValueFromIsClause) and
+         (Field.IsClauseNames.Count = 0) ) then
     begin
       { Field.SaveToStream normally starts from new line with an indent...
         In this case, we want it to start on the same line, so indent must
         be discarded. }
       SaveProperties.DiscardNextIndent;
-      Field.FieldSaveToStream(SaveProperties, true);
+      Field.FieldSaveToStream(SaveProperties, true, true);
       { In this case, SaveProperties.Writeln will be done by Field.SaveToStream.
         (we pass SaveWhenDefault anyway, so we can be sure that
         this newline will be done). }
     end else
+
+    if Field.IsClauseNames.Count = 1 then
+    begin
+      SaveProperties.DiscardNextIndent;
+      Field.FieldSaveToStream(SaveProperties, true, false);
+    end else
+
     begin
       SaveProperties.Writeln(Field.Name);
     end;
