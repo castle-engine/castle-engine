@@ -1885,6 +1885,14 @@ begin
       Exit;
     end;
   end else
+  if (Node is TNodeMovieTexture) or
+     (Node is TNodeTimeSensor) then
+  begin
+    { No need to do anything.
+      Everything updated in time-dependent nodes will be catched by next
+      IncreaseWorldTime run. }
+    Exit;
+  end else
   begin
     { node jest czyms innym; wiec musimy zalozyc ze zmiana jego pol wplynela
       jakos na State nastepujacych po nim node'ow (a moze nawet wplynela na to
