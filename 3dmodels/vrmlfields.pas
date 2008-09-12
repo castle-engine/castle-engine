@@ -269,7 +269,7 @@ type
         IsClauseNames, ValueFromIsClause, Exposed, and of course current value.
 
         Exceptions are things related to hierarchy of containers:
-        ParentNode, ParentInterfaceDeclaration.
+        ParentNode, ParentInterfaceDeclaration. Also ExposedEventsLinked.
 
         If you want to copy only the current value, use AssignValue
         (or AssignLerp, where available).))
@@ -288,6 +288,9 @@ type
     FTransform: boolean;
 
     FValueFromIsClause: boolean;
+
+    FExposedEventsLinked: boolean;
+    procedure SetExposedEventsLinked(const Value: boolean);
   protected
     { Save field value to a stream. Must be overriden for each specific
       field. FieldSaveToStream and SaveToStream write Indent, Name, ' ',
@@ -457,6 +460,24 @@ type
     function EventIn: TVRMLEvent;
     function EventOut: TVRMLEvent;
     { @groupEnd }
+
+    { When @true (default) we will automatically handle exposed events
+      behavior. This means that we will listen on EventIn,
+      and when something will be received we will set current field's value
+      and produce appropriate EventOut.
+
+      You almost certainly want to leave this as @true in all typical
+      situations, as it takes care of implementing required exposed events
+      behavior.
+
+      That said, in special cases you may decide to break this,
+      for example when you want to implement this yourself for any reason
+      (e.g. maybe specificaion adds some non-standard behavior
+      to exposed field, for example TimeSensor.set_startTime should
+      be sometimes ignored). }
+    property ExposedEventsLinked: boolean
+      read FExposedEventsLinked write SetExposedEventsLinked
+      default true;
 
     { This returns fieldType as for VRML interface declaration statements. }
     class function VRMLTypeName: string; virtual; abstract;
@@ -2077,6 +2098,8 @@ constructor TVRMLField.CreateUndefined(AParentNode: TVRMLFileItem;
 begin
   inherited Create(AParentNode, AName);
 
+  FExposedEventsLinked := true;
+
   { Set Exposed to true by the property, to force FExposedEvents initialization }
   FExposed := false;
   Exposed := true;
@@ -2134,6 +2157,20 @@ const
   SetPrefix = 'set_';
   ChangedSuffix = '_changed';
 
+procedure TVRMLField.SetExposedEventsLinked(const Value: boolean);
+begin
+  if FExposedEventsLinked <> Value then
+  begin
+    FExposedEventsLinked := Value;
+    if Exposed then
+    begin
+      if ExposedEventsLinked then
+        FExposedEvents[true].OnReceive.AppendItem(@ExposedEventReceive) else
+        FExposedEvents[true].OnReceive.DeleteFirstEqual(@ExposedEventReceive);
+    end;
+  end;
+end;
+
 procedure TVRMLField.SetExposed(Value: boolean);
 var
   I: Integer;
@@ -2162,10 +2199,12 @@ begin
             SetPrefix + FAlternativeNames[I], I);
         end;
 
-      FExposedEvents[true].OnReceive.AppendItem(@ExposedEventReceive);
+      if ExposedEventsLinked then
+        FExposedEvents[true].OnReceive.AppendItem(@ExposedEventReceive);
     end else
     begin
-      FExposedEvents[true].OnReceive.DeleteFirstEqual(@ExposedEventReceive);
+      if ExposedEventsLinked then
+        FExposedEvents[true].OnReceive.DeleteFirstEqual(@ExposedEventReceive);
 
       FreeAndNil(FExposedEvents[false]);
       FreeAndNil(FExposedEvents[true]);

@@ -6529,6 +6529,30 @@ procedure TVRMLPrototypeNode.InstantiateHandleIsClauses(
 
             if InstanceField.Exposed and OurField.Exposed then
             begin
+              { We have to "break" exposed fields inside TVRMLPrototypeNode,
+                that is they will not automatically get changes and forwarding
+                in event to out event. Reason:
+
+                - This causes cycles in routes (remember that
+                  FieldOrEventHandleIsClause creates internal routes
+                  for "IS" between events.) When something sets event,
+                  by sending to InstanceField.EventIn, then this will
+                  be forwarded to InstanceField.EventOut. But also
+                  will be forwarded to OurField.EventIn (this must be done,
+                  in case other "IS" clauses interact with these exposed
+                  events). Without breaking ExposedEventsLinked,
+                  OurField.EventIn would forward this once again to
+                  InstanceField.EventOut, causing all routes from
+                  InstanceField.EventOut to the outside be detected as loops,
+                  as another event travels through them.
+
+                - Lastly, this is not needed. Copying field's value
+                  is useless, as field's value in TVRMLPrototypeNode
+                  is useless (field value must get to actual field in expanded
+                  hierarchy).
+              }
+              OurField.ExposedEventsLinked := false;
+
               { Note that I pass here NewIsClauseNames, that is
                 is our in/out event will have specialized IS clauses,
                 they will be assigned to whole exposed field.
