@@ -19,6 +19,7 @@
 }
 
 {$ifdef read_interface}
+  { }
   TVRMLCameraKind = (ckOrthographic, ckPerspective);
 
   { A common class for both VRML 1.0 camera nodes and VRML >= 2.0 viewpoints

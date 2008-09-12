@@ -19,6 +19,7 @@
 }
 
 {$ifdef read_interface}
+  { }
   TNodeX3DFollowerNode = class(TNodeX3DChildNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;

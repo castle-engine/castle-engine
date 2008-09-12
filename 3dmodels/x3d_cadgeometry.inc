@@ -19,6 +19,7 @@
 }
 
 {$ifdef read_interface}
+  { }
   INodeX3DProductStructureChildNode = interface(INodeX3DChildNode)
   ['{318249E0-BACF-4F16-9E49-3E912F24E0AA}']
     property Fdname: TSFString { read FFdname} { };

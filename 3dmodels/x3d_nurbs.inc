@@ -23,6 +23,7 @@
   in vrml97nodes.inc. }
 
 {$ifdef read_interface}
+  { }
   TNodeX3DNurbsControlCurveNode = class(TNodeX3DNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;

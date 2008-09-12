@@ -19,6 +19,7 @@
 }
 
 {$ifdef read_interface}
+  { }
   TNodeX3DGeometricPropertyNode = class(TNodeX3DNode)
   end;
 

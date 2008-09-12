@@ -19,6 +19,7 @@
 }
 
 {$ifdef read_interface}
+  { }
   TNodeX3DEnvironmentTextureNode = class(TNodeX3DTextureNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;

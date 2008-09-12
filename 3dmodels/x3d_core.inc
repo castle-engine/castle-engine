@@ -21,6 +21,7 @@
 {$ifdef read_interface}
 
 type
+  { }
   INodeX3DNode = interface(IVRMLNode)
   ['{399AC6B2-C2B3-4EEA-AB74-D52C4836B3B9}']
     property Fdmetadata: TSFNode;

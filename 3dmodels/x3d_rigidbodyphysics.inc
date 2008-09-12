@@ -19,6 +19,7 @@
 }
 
 {$ifdef read_interface}
+  { }
   TNodeX3DNBodyCollidableNode = class(TNodeX3DChildNode, INodeX3DBoundedObject)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;

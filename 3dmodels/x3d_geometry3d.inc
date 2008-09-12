@@ -19,6 +19,7 @@
 }
 
 {$ifdef read_interface}
+  { }
   TNodeBox = class(TNodeX3DGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;

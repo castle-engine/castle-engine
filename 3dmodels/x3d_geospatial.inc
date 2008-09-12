@@ -38,6 +38,7 @@
 }
 
 {$ifdef read_interface}
+  { }
   TNodeGeoCoordinate = class(TNodeX3DCoordinateNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;

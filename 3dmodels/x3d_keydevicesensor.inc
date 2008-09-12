@@ -19,6 +19,7 @@
 }
 
 {$ifdef read_interface}
+  { }
   TNodeX3DKeyDeviceSensorNode = class(TNodeX3DSensorNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;

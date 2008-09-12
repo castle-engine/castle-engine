@@ -19,6 +19,7 @@
 }
 
 {$ifdef read_interface}
+  { }
   TNodeX3DFontStyleNode = class(TNodeX3DNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;

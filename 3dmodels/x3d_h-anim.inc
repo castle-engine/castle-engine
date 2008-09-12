@@ -19,6 +19,7 @@
 }
 
 {$ifdef read_interface}
+  { }
   TNodeHAnimDisplacer = class(TNodeX3DGeometricPropertyNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;

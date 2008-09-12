@@ -19,6 +19,7 @@
 }
 
 {$ifdef read_interface}
+  { }
   TNodeX3DSequencerNode = class(TNodeX3DChildNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;

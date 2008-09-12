@@ -19,6 +19,7 @@
 }
 
 {$ifdef read_interface}
+  { }
   TNodeX3DInterpolatorNode = class(TNodeX3DChildNode)
   protected
     { Find a range within "key" field corresponding to given Fraction.

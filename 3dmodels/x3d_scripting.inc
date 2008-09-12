@@ -19,6 +19,7 @@
 }
 
 {$ifdef read_interface}
+  { }
   TNodeX3DScriptNode = class(TNodeX3DChildNode, INodeX3DURLObject)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;

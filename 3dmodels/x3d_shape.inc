@@ -19,6 +19,7 @@
 }
 
 {$ifdef read_interface}
+  { }
   TNodeX3DAppearanceChildNode = class(TNodeX3DNode)
   end;
 

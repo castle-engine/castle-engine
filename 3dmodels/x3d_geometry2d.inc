@@ -19,6 +19,7 @@
 }
 
 {$ifdef read_interface}
+  { }
   TNodeArc2D = class(TNodeX3DGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;

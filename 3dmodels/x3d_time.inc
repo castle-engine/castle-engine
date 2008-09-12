@@ -19,6 +19,7 @@
 }
 
 {$ifdef read_interface}
+  { }
   INodeX3DTimeDependentNode = interface(INodeX3DChildNode)
   ['{19D68914-F2BA-4CFA-90A1-F561DB264678}']
     property Fdloop: TSFBool { read FFdloop } { };

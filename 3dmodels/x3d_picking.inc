@@ -19,6 +19,7 @@
 }
 
 {$ifdef read_interface}
+  { }
   INodeX3DPickableObject = interface(IVRMLNode)
   ['{700E1CE8-97BD-44D2-A60F-D8639F4E72EC}']
     property FdobjectType: TMFString { read GetFdobjectType }; { }

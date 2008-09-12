@@ -19,6 +19,7 @@
 }
 
 {$ifdef read_interface}
+  { }
   TNodeX3DBackgroundNode = class(TNodeX3DBindableNode)
   private
     procedure EventSet_BindReceive(
