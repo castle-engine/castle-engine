@@ -161,7 +161,14 @@ procedure TDynVRMLTokenInfoArray.AssertEqual(
     Assert(
       (T1.Token = T2.Token) and
       ( (T1.Token <> vtKeyword) or (T1.Keyword = T2.Keyword) ) and
-      ( (T1.Token <> vtName) or (T1.Name = T2.Name) ) and
+      ( (T1.Token <> vtName) or
+        (T1.Name = T2.Name) or
+        { route events from exposed fields may be resolved on save }
+        (T1.Name = 'set_' + T2.Name) or
+        (T2.Name = 'set_' + T1.Name) or
+        (T1.Name = T2.Name + '_changed') or
+        (T2.Name = T1.Name + '_changed')
+      ) and
       ( (T1.Token <> vtFloat) or (T1.Float = T2.Float) ) and
       ( (T1.Token <> vtInteger) or ( (T1.Float = T2.Float) and
                                         (T1.Integer = T2.Integer) ) ) and
@@ -234,7 +241,7 @@ procedure TTestVRMLNodes.TestParseSaveToFile;
 
       Node := ParseVRMLFile(FileName, false);
       NewFile := GetTempPath + 'test_kambi_vrml_game_engine.wrl';
-      SaveToVRMLFile(Node, NewFile, '', false);
+      SaveToVRMLFile(Node, NewFile, '');
 
       Second := TDynVRMLTokenInfoArray.Create;
       Second.ReadFromFile(NewFile);
