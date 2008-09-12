@@ -23,6 +23,7 @@ uses
   kambitimeutils,
   kambiutils,
   kambixmlcfg,
+  kambixmlread,
   kambixmlutils,
   kambizlib,
   kambizstream,
