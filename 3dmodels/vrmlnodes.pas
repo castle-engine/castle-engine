@@ -2969,9 +2969,12 @@ type
       FieldOrEvent may be the actual event to set,
       or exposed field containing this event.
 
-      You specify explictly NewNode, which is not checked in any way
-      (we don't check whether it exists, whether it contains given
-      FieldOrEvent etc. --- you have to guarantee this yourself).
+      You specify explictly NewNode, which is not checked in any way.
+      We don't check whether it exists, whether it contains given
+      FieldOrEvent,  etc. --- you have to guarantee this yourself.
+      Also, remember that normal SetSource actually look for events
+      inside PrototypeInstanceSourceNode, if exists --- if you want this,
+      you have to do this yourself when using these SetXxxDirectly.
       It is used to set SourceNode (or DestinationNode).
       Overloaded versions that don't take NewNode parameter just assume
       that NewNode can be taken from FieldOrEvent.ParentNode.
@@ -5206,88 +5209,94 @@ var
 begin
   Result := DeepCopyCreate(CopyState);
 
-  { We expand CopyState arrays now, right after DeepCopyCreate.
-    This is needed, as later during DeepCopyCore we may need this node
-    in case of loops within hierarchy.
+  try
 
-    For example, internal
-    routes from TVRMLPrototypeNode are established to handle "IS" clauses
-    for events. There routes are to/from TVRMLPrototypeNode, and are
-    also placed within this TVRMLPrototypeNode instance. So when copying
-    node routes, this node must already be present in CopyState arrays.
+    { We expand CopyState arrays now, right after DeepCopyCreate.
+      This is needed, as later during DeepCopyCore we may need this node
+      in case of loops within hierarchy.
 
-    Also, in the future we will have to allow loops in Script nodes
-    (USE within Script node may refer to the same node). So again loop
-    will be created. }
-  CopyState.Original.Add(Self);
-  CopyState.New.Add(Result);
+      For example, internal
+      routes from TVRMLPrototypeNode are established to handle "IS" clauses
+      for events. There routes are to/from TVRMLPrototypeNode, and are
+      also placed within this TVRMLPrototypeNode instance. So when copying
+      node routes, this node must already be present in CopyState arrays.
 
-  for I := 0 to ChildrenCount - 1 do
-    Result.AddChild(CopyState.DeepCopy(Children[I]));
+      Also, in the future we will have to allow loops in Script nodes
+      (USE within Script node may refer to the same node). So again loop
+      will be created. }
+    CopyState.Original.Add(Self);
+    CopyState.New.Add(Result);
 
-  { Copy InterfaceDeclarations first, before copying Fields and Events
-    (as some Fields and Events come from InterfaceDeclarations). }
-  Result.HasInterfaceDeclarations := HasInterfaceDeclarations;
+    for I := 0 to ChildrenCount - 1 do
+      Result.AddChild(CopyState.DeepCopy(Children[I]));
 
-  if InterfaceDeclarations <> nil then
-  begin
-    for I := 0 to InterfaceDeclarations.Count - 1 do
+    { Copy InterfaceDeclarations first, before copying Fields and Events
+      (as some Fields and Events come from InterfaceDeclarations). }
+    Result.HasInterfaceDeclarations := HasInterfaceDeclarations;
+
+    if InterfaceDeclarations <> nil then
     begin
-      IDecl := InterfaceDeclarations[I].DeepCopy(Result, CopyState);
-      Result.InterfaceDeclarations.Add(IDecl);
-      IDecl.AddFieldOrEvent(Result);
-    end;
-  end;
-
-  { TODO: No need to copy prototypes for now?
-
-    This DeepCopy is used for now by protos expanding and by TVRMLGLAnimation.
-    Neither need prototype links (as protos are already expanded when copying,
-    and they don't need anything more).
-
-    for I := 0 to Prototypes.Count - 1 do
-      ...(Prototypes[I]);
-  }
-
-  Assert(Fields.Count = Result.Fields.Count);
-  Assert(Events.Count = Result.Events.Count);
-
-  for I := 0 to Fields.Count - 1 do
-    { Copying InterfaceDeclarations field/event already handled. }
-    if Fields[I].ParentInterfaceDeclaration = nil then
-    begin
-      FieldDeepCopyContents(Result.Fields[I], Fields[I], CopyState);
-
-      if Result.Fields[I].Exposed then
+      for I := 0 to InterfaceDeclarations.Count - 1 do
       begin
-        EventDeepCopyContents(Result.Fields[I].EventIn , Fields[I].EventIn );
-        EventDeepCopyContents(Result.Fields[I].EventOut, Fields[I].EventOut);
+        IDecl := InterfaceDeclarations[I].DeepCopy(Result, CopyState);
+        Result.InterfaceDeclarations.Add(IDecl);
+        IDecl.AddFieldOrEvent(Result);
       end;
     end;
 
-  for I := 0 to Events.Count - 1 do
-    { Copying InterfaceDeclarations field/event already handled. }
-    if Events[I].ParentInterfaceDeclaration = nil then
-      EventDeepCopyContents(Result.Events[I], Events[I]);
+    { TODO: No need to copy prototypes for now?
 
-  for I := 0 to Routes.Count - 1 do
-    Result.Routes.Add(Routes[I].DeepCopy(CopyState));
+      This DeepCopy is used for now by protos expanding and by TVRMLGLAnimation.
+      Neither need prototype links (as protos are already expanded when copying,
+      and they don't need anything more).
 
-  if PrototypeInstance then
-  begin
-    Result.FPrototypeInstance := PrototypeInstance;
-    Result.FPrototypeInstanceSourceNode :=
-      CopyState.DeepCopy(PrototypeInstanceSourceNode) as TVRMLPrototypeNode;
-    if PrototypeInstanceHelpers <> nil then
-      Result.FPrototypeInstanceHelpers := CopyState.DeepCopy(PrototypeInstanceHelpers);
+      for I := 0 to Prototypes.Count - 1 do
+        ...(Prototypes[I]);
+    }
+
+    Assert(Fields.Count = Result.Fields.Count);
+    Assert(Events.Count = Result.Events.Count);
+
+    for I := 0 to Fields.Count - 1 do
+      { Copying InterfaceDeclarations field/event already handled. }
+      if Fields[I].ParentInterfaceDeclaration = nil then
+      begin
+        FieldDeepCopyContents(Result.Fields[I], Fields[I], CopyState);
+
+        if Result.Fields[I].Exposed then
+        begin
+          EventDeepCopyContents(Result.Fields[I].EventIn , Fields[I].EventIn );
+          EventDeepCopyContents(Result.Fields[I].EventOut, Fields[I].EventOut);
+        end;
+      end;
+
+    for I := 0 to Events.Count - 1 do
+      { Copying InterfaceDeclarations field/event already handled. }
+      if Events[I].ParentInterfaceDeclaration = nil then
+        EventDeepCopyContents(Result.Events[I], Events[I]);
+
+    for I := 0 to Routes.Count - 1 do
+      Result.Routes.Add(Routes[I].DeepCopy(CopyState));
+
+    if PrototypeInstance then
+    begin
+      Result.FPrototypeInstance := PrototypeInstance;
+      Result.FPrototypeInstanceSourceNode :=
+        CopyState.DeepCopy(PrototypeInstanceSourceNode) as TVRMLPrototypeNode;
+      if PrototypeInstanceHelpers <> nil then
+        Result.FPrototypeInstanceHelpers := CopyState.DeepCopy(PrototypeInstanceHelpers);
+    end;
+
+    Result.CDataAllowed := CDataAllowed;
+    Result.CDataExists := CDataExists;
+    Result.CData := CData;
+
+    Result.DefaultContainerField := DefaultContainerField;
+    Result.ExplicitContainerField := ExplicitContainerField;
+  except
+    FreeAndNil(Result);
+    raise;
   end;
-
-  Result.CDataAllowed := CDataAllowed;
-  Result.CDataExists := CDataExists;
-  Result.CData := CData;
-
-  Result.DefaultContainerField := DefaultContainerField;
-  Result.ExplicitContainerField := ExplicitContainerField;
 end;
 
 function TVRMLNode.DeepCopy: TVRMLNode;
@@ -7391,7 +7400,6 @@ procedure TVRMLRoute.SetEnding(const NodeName, FieldOrEventName: string;
 var
   Index: Integer;
   FieldOrEvent: TVRMLFieldOrEvent;
-  SearchNode: TVRMLNode;
 begin
   UnsetEnding(Node, Event, DestEnding);
 
@@ -7402,19 +7410,22 @@ begin
         [ DestEndingNames[DestEnding], NodeName ]);
 
     Node := NodeNameBinding.Objects[Index] as TVRMLNode;
-    Node.DestructionNotifications.AppendItem(@DestructionNotification);
-
-    SearchNode := Node;
-    if SearchNode.PrototypeInstanceSourceNode <> nil then
+    if Node.PrototypeInstanceSourceNode <> nil then
     begin
-      SearchNode := SearchNode.PrototypeInstanceSourceNode;
-      Assert(SearchNode.PrototypeInstanceSourceNode = nil);
+      Node := Node.PrototypeInstanceSourceNode;
+      { Actually, SearchNode.PrototypeInstanceSourceNode may also be non-nil,
+        in case we have nested prototype. But it doesn't matter,
+        that is we don't want to go all the way down to find the
+        final PrototypeInstanceSourceNode --- we only want to see the first
+        PrototypeInstanceSourceNode. }
     end;
 
-    FieldOrEvent := SearchNode.FieldOrEvent(FieldOrEventName);
+    Node.DestructionNotifications.AppendItem(@DestructionNotification);
+
+    FieldOrEvent := Node.FieldOrEvent(FieldOrEventName);
     if FieldOrEvent = nil then
       raise ERouteSetEndingError.CreateFmt('Route %s field/event name "%s" (for node "%s", type "%s") not found',
-        [ DestEndingNames[DestEnding], FieldOrEventName, NodeName, SearchNode.NodeTypeName ]);
+        [ DestEndingNames[DestEnding], FieldOrEventName, NodeName, Node.NodeTypeName ]);
 
     SetEndingInternal(Node, FieldOrEvent, Event, DestEnding);
   except
@@ -8244,7 +8255,7 @@ begin
       This is needed, see DeepCopyCore comments. }
     Result := OriginalNode.DeepCopyCore(Self);
   end else
-    Result := Original[I];
+    Result := New[I];
 end;
 
 { TNodeNameBinding ----------------------------------------------------------- }
