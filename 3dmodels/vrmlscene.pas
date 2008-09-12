@@ -2900,7 +2900,9 @@ procedure TVRMLScene.SetPointingDeviceActive(const Value: boolean);
   end;
 
 var
+  I: Integer;
   ToActivate: TVRMLNode;
+  Sensors: TVRMLNodesList;
 begin
   if ProcessEvents and (FPointingDeviceActive <> Value) then
   begin
@@ -2909,18 +2911,29 @@ begin
       FPointingDeviceActive := Value;
       if Value then
       begin
-        if (PointingDeviceOverItem <> nil) and
-           (PointingDeviceOverItem^.State.PointingDeviceSensors.Count <> 0) then
+        if PointingDeviceOverItem <> nil then
         begin
-          ToActivate := PointingDeviceOverItem^.State.PointingDeviceSensors[0];
-          if ToActivate is TNodeX3DPointingDeviceSensorNode then
+          Sensors := PointingDeviceOverItem^.State.PointingDeviceSensors;
+          for I := 0 to Sensors.Count - 1 do
           begin
-            FPointingDeviceActiveSensor :=
-              TNodeX3DPointingDeviceSensorNode(ToActivate);
-            PointingDeviceActiveSensor.EventIsActive.Send(true, WorldTime);
-          end else
-          if ToActivate is TNodeAnchor then
-            AnchorActivate(TNodeAnchor(ToActivate));
+            { Activate the first enabled sensor.
+              TODO: this is actually bad, spec says to activate
+              simultaneouly all sensors on Sensors list (tied for this node). }
+            ToActivate := Sensors[I];
+            if (ToActivate is TNodeX3DPointingDeviceSensorNode) and
+               (TNodeX3DPointingDeviceSensorNode(ToActivate).FdEnabled.Value) then
+            begin
+              FPointingDeviceActiveSensor :=
+                TNodeX3DPointingDeviceSensorNode(ToActivate);
+              PointingDeviceActiveSensor.EventIsActive.Send(true, WorldTime);
+              Break;
+            end else
+            if ToActivate is TNodeAnchor then
+            begin
+              AnchorActivate(TNodeAnchor(ToActivate));
+              Break;
+            end;
+          end;
         end;
       end else
       begin
