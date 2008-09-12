@@ -524,9 +524,9 @@ end;
 
 procedure TNodeCollision.AfterTraverse(var State: TVRMLGraphTraverseState);
 begin
-  Dec(State.InsideIgnoreCollision);
   if not FdEnabled.Value then
-    inherited;
+    Dec(State.InsideIgnoreCollision);
+  inherited;
 end;
 
 constructor TNodeLOD_2.Create(const ANodeName: string; const AWWWBasePath: string);
