@@ -6224,20 +6224,8 @@ begin
       SaveProperties.WriteIndent(ATName(atInputOnly) + ' ') else
       SaveProperties.WriteIndent(ATName(atOutputOnly) + ' ');
     SaveProperties.Write(Event.FieldClass.VRMLTypeName + ' ');
-
-    if Event.IsClauseNames.Count > 0 then
-    begin
-      { Saving doesn't produce sensible results for
-        Event.IsClauseNames.Count > 1, there's no way to save it
-        from single interface decl. }
-      Assert(Event.IsClauseNames.Count = 1);
-
-      SaveProperties.DiscardNextIndent;
-      Event.SaveToStream(SaveProperties);
-    end else
-    begin
-      SaveProperties.Writeln;
-    end;
+    SaveProperties.DiscardNextIndent;
+    Event.EventSaveToStream(SaveProperties, true);
   end else
   begin
     if Field.Exposed then
@@ -7516,6 +7504,7 @@ var
     Event: TVRMLEvent; const S: string);
   var
     Index: Integer;
+    BoundNode: TVRMLNode;
   begin
     { Check Node }
     if Node = nil then
@@ -7527,7 +7516,14 @@ var
     if Index = -1 then
       raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s node name "%s" not bound',
         [S, Node.NodeName]);
-    if SaveProperties.NodeNameBinding.Objects[Index] <> Node then
+
+    BoundNode := SaveProperties.NodeNameBinding.Objects[Index] as TVRMLNode;
+    { Just like when setting node by TVRMLRoute.SetEnding:
+      we actually keep the Node that contains the route, which is
+      sometimes TVRMLPrototypeNode hidden inside PrototypeInstanceSourceNode. }
+    if BoundNode.PrototypeInstanceSourceNode <> nil then
+      BoundNode := BoundNode.PrototypeInstanceSourceNode;
+    if BoundNode <> Node then
       raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s node name "%s" not bound (another node bound to the same name)',
         [S, Node.NodeName]);
 

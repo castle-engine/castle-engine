@@ -60,7 +60,16 @@
       in VRML nodeBodyStatement. }
     procedure Parse(Lexer: TVRMLLexer);
 
-    { Write event name, and (if present) "IS" clause of the event. }
+    { For each IS clause, writeln event name followed by "IS" clause.
+
+      If WriteExactlyOnce then we will write exactly one line:
+      only name (if no IS clauses), or just name + first IS clause.
+      Assertion checks that we cannot have more than 1 IS clause in this case.
+      This is suitable for saving VRML interface declaration
+      containing an event. }
+    procedure EventSaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+      WriteExactlyOnce: boolean);
+
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
 
     { If this event is an exposed event belonging to some field,
@@ -185,22 +194,46 @@ begin
   ParseIsClause(Lexer);
 end;
 
-procedure TVRMLEvent.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TVRMLEvent.EventSaveToStream(
+  SaveProperties: TVRMLSaveToStreamProperties;
+  WriteExactlyOnce: boolean);
 var
   N: string;
   I: Integer;
 begin
   N := NameForVersion(SaveProperties);
 
-  { Actually, when N = '', we assume that field has only one "IS" clause
-    or simple value. }
-
-  for I := 0 to IsClauseNames.Count - 1 do
+  if WriteExactlyOnce then
   begin
+    { Saving interface declaration doesn't produce sensible results for
+      Event.IsClauseNames.Count > 1, there's no way to save it
+      from single interface decl. }
+    Assert(IsClauseNames.Count <= 1, 'saving event with many IS clauses from single interface decl not possible');
+
     if N <> '' then
       SaveProperties.WriteIndent(N + ' ');
-    SaveProperties.Writeln('IS ' + IsClauseNames.Items[I]);
+
+    if IsClauseNames.Count = 1 then
+      SaveProperties.Write('IS ' + IsClauseNames.Items[0]);
+
+    SaveProperties.Writeln;
+  end else
+  begin
+    { Actually, when N = '', we assume that event has only one "IS" clause.
+      Otherwise results don't make any sense. }
+
+    for I := 0 to IsClauseNames.Count - 1 do
+    begin
+      if N <> '' then
+        SaveProperties.WriteIndent(N + ' ');
+      SaveProperties.Writeln('IS ' + IsClauseNames.Items[I]);
+    end;
   end;
+end;
+
+procedure TVRMLEvent.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+begin
+  EventSaveToStream(SaveProperties, false);
 end;
 
 procedure TVRMLEvent.Send(Field: TVRMLField; const Time: TKamTime);
