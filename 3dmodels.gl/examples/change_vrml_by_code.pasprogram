@@ -1,0 +1,133 @@
+{
+  Copyright 2003-2008 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
+}
+
+{ This is a simple example how to change the VRML graph
+  from your program, that is using Pascal code.
+  Run this program without any parameters in this directory
+  (it opens file "models/boxes.x3dv") and watch the trivial animation.
+  You can rotate/move the scene by dragging with mouse,
+  see view3dscene docs (we use the same "Examine" navigation).
+
+  For programmers:
+
+  Generally, you just change VRML graph (rooted in Scene.RootNode)
+  however you like, whenever you like. TVRMLNode class has a lot of methods
+  to find and change nodes within the graph, you can insert/delete/change
+  any of their children nodes, fields, and generally do everything.
+  The only thing to keep in ming is to call one of Scene.ChangedXxx
+  methods after changes. More info about this is on
+  [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.flat_scene.html#section.flat_scene_caching].
+
+  Of course, in case of trivial animation in this program, we could
+  also express it directly in VRML/X3D and just load the scene,
+  setting Scene.ProcessEvents := true and then constantly calling
+  Scene.IncreaseWorldTime. This would make the scene "animate itself",
+  without the need for any Pascal code to do this. But, for example sake,
+  we animate it by code.
+}
+
+program change_vrml_by_code;
+
+uses VectorMath, Boxes3d, VRMLNodes, GL, GLU, GLExt, GLWindow,
+  GLW_Navigated, KambiUtils, SysUtils, Object3dAsVRML,
+  KambiGLUtils, VRMLGLScene, MatrixNavigation,
+  KambiFilesUtils, VRMLErrors;
+
+var
+  Scene: TVRMLGLScene;
+
+procedure Draw(glwin: TGLWindow);
+begin
+  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+  glLoadMatrix(glw.Navigator.Matrix);
+  Scene.Render(nil, tgAll);
+end;
+
+procedure Init(glwin: TGLWindow);
+begin
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+end;
+
+procedure Close(glwin: TGLWindow);
+begin
+  Scene.CloseGL;
+end;
+
+procedure Resize(glwin: TGLWindow);
+begin
+  glViewport(0, 0, glwin.Width, glwin.Height);
+  ProjectionGLPerspective(45.0, glwin.Width/glwin.Height,
+    Box3dMaxSize(Scene.BoundingBox) * 0.05,
+    Box3dMaxSize(Scene.BoundingBox) * 3.0);
+end;
+
+var
+  TransformBox2: TNodeTransform_2;
+  TransformBox3: TNodeTransform_2;
+  TransformBox4: TNodeTransform_2;
+
+procedure Idle(glwin: TGLWindow);
+begin
+  { We didn't turn Scene.ProcessEvents = true, so actually
+    we don't have to "feed" time changes to Scene.IncreaseWorldTime.
+    But we want to keep track of current time anyway (for calculating rotations
+    below), so it's natural to just use Scene.WorldTime property for this. }
+  Scene.IncreaseWorldTime(Glwin.IdleSpeed);
+
+  TransformBox2.FdRotation.RotationRad := Scene.WorldTime;
+  Scene.ChangedFields(TransformBox2, TransformBox2.FdRotation);
+
+  TransformBox3.FdRotation.RotationRad := Scene.WorldTime * 2;
+  Scene.ChangedFields(TransformBox3, TransformBox3.FdRotation);
+
+  TransformBox4.FdRotation.RotationRad := Scene.WorldTime * 4;
+  Scene.ChangedFields(TransformBox4, TransformBox4.FdRotation);
+end;
+
+begin
+  Parameters.CheckHigh(0);
+  VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
+
+  Scene := TVRMLGLScene.Create('models' + PathDelim + 'boxes.x3dv',
+    roSeparateShapeStates);
+  try
+    TransformBox2 := Scene.RootNode.FindNodeByName(TNodeTransform_2,
+      'Box2Transform', true) as TNodeTransform_2;
+    TransformBox3 := Scene.RootNode.FindNodeByName(TNodeTransform_2,
+      'Box3Transform', true) as TNodeTransform_2;
+    TransformBox4 := Scene.RootNode.FindNodeByName(TNodeTransform_2,
+      'Box4Transform', true) as TNodeTransform_2;
+
+    { init Glw.Navigator }
+    Glw.Navigator := TMatrixExaminer.Create(@Glw.PostRedisplayOnMatrixChanged);
+    Glw.NavExaminer.Init(Scene.BoundingBox);
+
+    Glw.AutoRedisplay := true;
+
+    Glw.OnInit := @Init;
+    Glw.OnClose := @Close;
+    Glw.OnResize := @Resize;
+    Glw.OnIdle := @Idle;
+    Glw.InitLoop(ProgramName, @Draw);
+  finally Scene.Free end;
+end.
