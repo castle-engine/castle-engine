@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2007 Michalis Kamburelis.
+  Copyright 2003-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -59,30 +59,35 @@ begin
     alCreateBuffers(1, @Buffer);
     alCreateSources(1, @Source);
     CheckAL('preparing source and buffer');
-
-    { parse params }
-    Parameters.CheckHigh(1);
-    FileName:=Parameters[1];
-
-    { load file to Buffer, and print some info about file format. }
-    FAL := TALSoundFile.Create(TSoundFile.CreateFromFile(FileName), true);
+    
     try
-      FAL.alBufferData(Buffer);
-      Writeln(
-        'File ' + FileName + ' loaded :' + nl +
-        '  Class : ' + FAL.SoundFile.ClassName + nl +
-        '  Format : ' + ALDataFormatToStr(FAL.SoundFile.DataFormat) + nl +
-        '  Size (of sample in file) : ', FAL.SoundFile.DataSize, nl,
-        '  Frequency : ',FAL.SoundFile.Frequency, nl,
-        'Size (as returned by querying Buffer) : ', alGetBuffer1sizei(Buffer, AL_SIZE), nl
-      );
-    finally FAL.Free end;
+      { parse params }
+      Parameters.CheckHigh(1);
+      FileName := Parameters[1];
 
-    { play sound }
-    alSourcei(Source, AL_BUFFER, Buffer);
-    alSourcePlay(Source);
-    CheckAL('starting playing sound');
-    while alGetSource1i(Source, AL_SOURCE_STATE) = AL_PLAYING do Delay(1000);
-    CheckAL('playing sound');
+      { load file to Buffer, and print some info about file format. }
+      FAL := TALSoundFile.Create(TSoundFile.CreateFromFile(FileName), true);
+      try
+        FAL.alBufferData(Buffer);
+        Writeln(
+          'File ' + FileName + ' loaded :' + nl +
+          '  Class : ' + FAL.SoundFile.ClassName + nl +
+          '  Format : ' + ALDataFormatToStr(FAL.SoundFile.DataFormat) + nl +
+          '  Size (of sample in file) : ', FAL.SoundFile.DataSize, nl,
+          '  Frequency : ',FAL.SoundFile.Frequency, nl,
+          'Size (as returned by querying Buffer) : ', alGetBuffer1sizei(Buffer, AL_SIZE), nl
+        );
+      finally FAL.Free end;
+
+      { play sound }
+      alSourcei(Source, AL_BUFFER, Buffer);
+      alSourcePlay(Source);
+      CheckAL('starting playing sound');
+      while alGetSource1i(Source, AL_SOURCE_STATE) = AL_PLAYING do Delay(1000);
+      CheckAL('playing sound');
+    finally
+      alDeleteSources(1, @Source);
+      alDeleteBuffers(1, @Buffer);
+    end;
   finally EndAL end;
 end.
