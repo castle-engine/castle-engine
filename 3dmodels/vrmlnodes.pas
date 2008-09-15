@@ -415,7 +415,7 @@ type
     Innymi slowy, gwarantuje sie ze zmiana wartosci na jakims polu jkaiegos
     node'a z grupy LastNodesKinds nie wplynie w zaden sposob na sposob
     w jaki powinien byc renderowany shape ktorego State nie zawiera
-    danego LastNode'a. Korzystam z tego w TFLatScene.ChangedFields.
+    danego LastNode'a. Korzystam z tego w TVRMLScene.ChangedFields.
 
     Podobnie swiatla trafiaja na ActiveLights i w zaden inny sposob nie moga
     zmieniac State trawersowania. }

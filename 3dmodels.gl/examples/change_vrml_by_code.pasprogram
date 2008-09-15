@@ -94,14 +94,28 @@ begin
     below), so it's natural to just use Scene.WorldTime property for this. }
   Scene.IncreaseWorldTime(Glwin.IdleSpeed);
 
+  { Note that in this simple example you could avoid calling ChangedXxx by using
+      TransformBox2.FdRotation.EventIn.Send(Vector4Single(1, 0, 0, Scene.WorldTime));
+    That is, changing field's value by event automatically calls appropriate
+    ChangedField method.
+
+    Below we show the more tedious way, by manually calling ChangedField, as:
+    1. it allows you to change anything in the VRML graph (as opposed to
+       sending events, that generally allow you to change only exposed fields).
+    2. it's sometimes more efficient, as there are many ChangedXxx methods
+       and sometimes (when really intensively changing VRML graph) you
+       can avoid calling ChangedXxx after every change. E.g. you can
+       just call ChangedFields(Node, nil) once after changing many fields
+       of given node. }
+
   TransformBox2.FdRotation.RotationRad := Scene.WorldTime;
-  Scene.ChangedFields(TransformBox2, TransformBox2.FdRotation);
+  Scene.ChangedField(TransformBox2.FdRotation);
 
   TransformBox3.FdRotation.RotationRad := Scene.WorldTime * 2;
-  Scene.ChangedFields(TransformBox3, TransformBox3.FdRotation);
+  Scene.ChangedField(TransformBox3.FdRotation);
 
   TransformBox4.FdRotation.RotationRad := Scene.WorldTime * 4;
-  Scene.ChangedFields(TransformBox4, TransformBox4.FdRotation);
+  Scene.ChangedField(TransformBox4.FdRotation);
 end;
 
 begin

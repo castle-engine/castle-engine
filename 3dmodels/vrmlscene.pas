@@ -561,6 +561,11 @@ type
       This must belong then to the given Node.
       Pass FieldOrEvent = @nil if you don't know this, or if many fields changed.
 
+      Call ChangedField(Field) if you only changed exactly this one field.
+      This is actually just a shortcut for ChangedFields(Field.ParentNode, Field),
+      so don't expect to get more optimizations than ChangedFields.
+      It's just shorter to type in many circumstances.
+
       @italic(Descendant implementors notes:) ChangedAll and
       ChangedShapeStateFields are virtual, so of course you can override them
       (remember to always call @code(inherited)). ChangedAll is also
@@ -572,6 +577,7 @@ type
     procedure ChangedShapeStateFields(ShapeStateNum: Integer;
       const TransformOnly: boolean); virtual;
     procedure ChangedFields(Node: TVRMLNode; FieldOrEvent: TVRMLFieldOrEvent);
+    procedure ChangedField(Field: TVRMLField);
     { @groupEnd }
 
     { Notification when geometry changed, so you may need to rebuild
@@ -1903,6 +1909,22 @@ begin
   end;
 
   DoPostRedisplay;
+end;
+
+procedure TVRMLScene.ChangedField(Field: TVRMLField);
+begin
+  if Field.ParentNode <> nil then
+    ChangedFields(Field.ParentNode as TVRMLNode, Field) else
+  begin
+    if Log and LogChanges then
+    begin
+      { It's useful to warn about this if LogChanges, as this can
+        potentially be much optimized by fixing ParentNode. }
+      WritelnLog('VRML changes', Format('WARNING: Field %s (%s) changed, but has no ParentNode assigned, falling back on (slow) ChangedAll', [ Field.Name, Field.VRMLTypeName ]));
+    end;
+
+    ChangedAll;
+  end;
 end;
 
 procedure TVRMLScene.DoPostRedisplay;
