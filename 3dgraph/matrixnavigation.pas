@@ -427,7 +427,7 @@ type
     { Current camera properties ---------------------------------------------- }
 
     { RotationsAngle is the current rotation of the model, around each base
-      axis. RotationsSpeed is the speed how fast RotationsAngle change.
+      axis, in degress. RotationsSpeed is the speed how fast RotationsAngle change.
       Rotation is done around ModelBox middle (with MoveAmount added).
       Default values of these are zero vectors.
       @groupBegin }
