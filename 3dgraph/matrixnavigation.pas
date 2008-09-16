@@ -932,10 +932,24 @@ type
     property InitialCameraUp : TVector3Single read FInitialCameraUp;
     { @groupEnd }
 
-    procedure SetInitialCameraLookDir(const AInitialCameraPos, AInitialCameraDir,
-      AInitialCameraUp: TVector3Single);
-    procedure SetInitialCameraLookAt(const AInitialCameraPos, AInitialCameraCenter,
-      AInitialCameraUp: TVector3Single);
+    { These set three initial camera vectors.
+
+      If TransformCurrentCamera = @true, then they will also
+      try to change current camera relative to the InitialCameraXxx
+      changes. This implements VRML desired behavior that
+      "viewer position/orientation is conceptually a child of
+      viewpoint position/orientation, and when viewpoint position/orientation
+      changes, viewer should also change".
+
+      For now, only changes InitialCameraPos are reflected by the same
+      (relative) change in current CameraPos. TODO - more. }
+    procedure SetInitialCameraLookDir(
+      const AInitialCameraPos, AInitialCameraDir, AInitialCameraUp: TVector3Single;
+      const TransformCurrentCamera: boolean);
+
+    procedure SetInitialCameraLookAt(
+      const AInitialCameraPos, AInitialCameraCenter, AInitialCameraUp: TVector3Single;
+      const TransformCurrentCamera: boolean);
 
     { This returns CameraDir vector rotated such that it is
       orthogonal to GravityUp. This way it returns CameraDir projected
@@ -3034,7 +3048,8 @@ procedure TMatrixWalker.Init(
   const ACameraPreferredHeight: Single;
   const ACameraRadius: Single);
 begin
-  SetInitialCameraLookDir(AInitialCameraPos, AInitialCameraDir, AInitialCameraUp);
+  SetInitialCameraLookDir(AInitialCameraPos, AInitialCameraDir,
+    AInitialCameraUp, false);
   FGravityUp := AGravityUp;
   CameraPreferredHeight := ACameraPreferredHeight;
   CorrectCameraPreferredHeight(ACameraRadius);
@@ -3064,8 +3079,17 @@ begin
 end;
 
 procedure TMatrixWalker.SetInitialCameraLookDir(const AInitialCameraPos,
-  AInitialCameraDir, AInitialCameraUp: TVector3Single);
+  AInitialCameraDir, AInitialCameraUp: TVector3Single;
+  const TransformCurrentCamera: boolean);
 begin
+  if TransformCurrentCamera then
+  begin
+    { We change FCameraPos directly, not by SetCameraPos.
+      This is Ok, ScheduleMatrixChanged will be called anyway at the end. }
+    VectorAddTo1st(FCameraPos,
+      VectorSubtract(AInitialCameraPos, FInitialCameraPos));
+  end;
+
   FInitialCameraPos := AInitialCameraPos;
   FInitialCameraDir := AInitialCameraDir;
   FInitialCameraUp := AInitialCameraUp;
@@ -3074,11 +3098,12 @@ begin
 end;
 
 procedure TMatrixWalker.SetInitialCameraLookAt(const AInitialCameraPos,
-  AInitialCameraCenter, AInitialCameraUp: TVector3Single);
+  AInitialCameraCenter, AInitialCameraUp: TVector3Single;
+  const TransformCurrentCamera: boolean);
 begin
   SetInitialCameraLookDir(AInitialCameraPos,
     VectorSubtract(AInitialCameraCenter, AInitialCameraPos),
-    AInitialCameraUp);
+    AInitialCameraUp, TransformCurrentCamera);
 end;
 
 procedure TMatrixWalker.SetCameraPos(const Value: TVector3Single);
