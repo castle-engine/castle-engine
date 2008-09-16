@@ -62,7 +62,9 @@
   CamDir = (0, 0, -1) rotated by FdOrientation,
   CamUp = (0, 1, 0) rotated by FdOrientation,
   GravityUp = (0, 1, 0) (not rotated by FdOrientation!),
-  and everything is transformed by given CamTransform.
+
+  and everything is transformed by current camera transform
+  (that is stored inside TVRMLViewpointNode.Transform automatically).
 )
       (you should give here the actual VRML transformation at the point in file
       where camera is defined).
@@ -92,11 +94,8 @@
           NormalizeTo1st(CamDir), bo przeciez czesto w ponizszej procedurze
           wiadomo ze nie trzea normalizowac (a wiec wywolanie NormalizeTo1st
           i wywolywany w jego srodku Sqrt sa zbedne).)
-      )
-
-      TODO: FocalDistance powinien tez byc tu zwracany (po przeliczeniu
-      przez CamTransform) for TVRMLCameraNode_1. }
-    procedure GetCameraVectors(const CamTransform: TMatrix4Single;
+      ) }
+    procedure GetCameraVectors(
       out CamPos, CamDir, CamUp, GravityUp: TVector3Single);
   end;
 
@@ -348,7 +347,6 @@ begin
 end;
 
 procedure TVRMLViewpointNode.GetCameraVectors(
-  const CamTransform: TMatrix4Single;
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single);
 begin
   CamPos := Position.Value;
@@ -383,10 +381,10 @@ begin
     uzylismy FdOrientation.RotatedPoint( StdVRMLCamDir/Up ) i wiemy ze CamDir/Up
     jest znormalizowane - to i tak musimy je tutaj znormalizowac.
     TODO: byloby dobrze uzyc tutaj czegos jak MultMatrixPointNoTranslationNoScale }
-  CamPos := MultMatrixPoint(CamTransform, CamPos);
-  CamDir := Normalized( MultMatrixPointNoTranslation(CamTransform, CamDir) );
-  CamUp := Normalized( MultMatrixPointNoTranslation(CamTransform, CamUp) );
-  GravityUp := Normalized( MultMatrixPointNoTranslation(CamTransform, GravityUp) );
+  CamPos := MultMatrixPoint(Transform, CamPos);
+  CamDir := Normalized( MultMatrixPointNoTranslation(Transform, CamDir) );
+  CamUp := Normalized( MultMatrixPointNoTranslation(Transform, CamUp) );
+  GravityUp := Normalized( MultMatrixPointNoTranslation(Transform, GravityUp) );
 
   Assert(FloatsEqual(VectorLenSqr(CamDir), 1.0, 0.0001));
   Assert(FloatsEqual(VectorLenSqr(CamUp), 1.0, 0.0001));
