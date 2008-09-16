@@ -704,22 +704,28 @@ begin
   FTextureUsedFullUrl := '';
 
   for I := 0 to FdUrl.Count - 1 do
-  begin
-    FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
-    try
-      FTextureImage := ImagesVideosCache.LoadImage_IncReference(FullUrl);
-      CacheUsed := true;
-      FTextureUsedFullUrl := FullUrl;
-      Break;
-    except
-      on E: Exception do
-        { pamietajmy ze VRMLNonFatalError moze spowodowac rzucenie wyjatku
-          (chociaz nie musi) }
-        VRMLNonFatalError('Exception ' + E.ClassName +
-          ' occured when trying to load ' +
-          'texture from filename "' + FullUrl + '" : ' + E.Message);
+    if FdUrl.Items[I] = '' then
+    begin
+      { Empty URL would be expanded by PathFromWWWBasePath to directory
+        and produce unclear error message. }
+      VRMLNonFatalError(Format('Empty URL for %s ignored', [NodeTypeName]));
+    end else
+    begin
+      FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
+      try
+        FTextureImage := ImagesVideosCache.LoadImage_IncReference(FullUrl);
+        CacheUsed := true;
+        FTextureUsedFullUrl := FullUrl;
+        Break;
+      except
+        on E: Exception do
+          { pamietajmy ze VRMLNonFatalError moze spowodowac rzucenie wyjatku
+            (chociaz nie musi) }
+          VRMLNonFatalError('Exception ' + E.ClassName +
+            ' occured when trying to load ' +
+            'texture from filename "' + FullUrl + '" : ' + E.Message);
+      end;
     end;
-  end;
 end;
 
 function TNodeImageTexture.TextureDescription: string;
