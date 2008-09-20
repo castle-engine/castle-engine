@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2006 Michalis Kamburelis.
+  Copyright 2001-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -19,63 +19,36 @@
 }
 
 (*
-  @abstract(Parser wyrazenia matematycznego.
-  Zrobiony specjalnie aby obejmowac mozliwie
-  wygodna skladnia wszystko co moze zaoferowac klasa TMathExpr.)
+  @abstract(Parser for KambiScript language, see
+  [http://vrmlengine.sourceforge.net/kambi_script.php].)
 
-  Gramatyka w EBNF :
-  (wiele komentarzy jest w dokumentacji
-  [http://vrmlengine.sourceforge.net/glplotter_and_gen_function.php#section_math_expr_syntax].
-  Usunalem je stad zeby nie duplikowac informacji.)
-
-  czynnik = NAZWA_ZMIENNEJ | STALA | "-" czynnik | "(" wyrazenie_math ")" |
-            NAZWA_FUNKCJI [ "(" wyrazenie_math [{"," wyrazenie_math}] ")" ] |
-            "[" wyrazenie_math operator_relacyjny wyrazenie_math "]"
-  skladnik = czynnik [{operator_multiplikatywny czynnik}]
-  wyrazenie_math = skladnik [{operator_addytywny skladnik}]
-  operator_multiplikatywny = "^" | "*" | "/" | "%"
-  operator_addytywny = "+" | "-"
-  operator_relacyjny = "<" | ">" | "<=" | ">=" | "=" | "<>"
-
-  (czesc rozwiazywana przez Lexer :)
-  NAZWA_ZMIENNEJ = LITERA [{LITERA | CYFRA}]
-  STALA = "pi" | "enat" | CYFRA [{CYFRA}] ["." CYFRA [{CYFRA}] ]
-  NAZWA_FUNKCJI = (see glplotter and gen_function docs)
-  LITERA = nieformalnie 'a' .. 'z' | 'A' .. 'Z' | "_"
-                  (tak, znaku podkreslenia mozna uzyc wszedzie tam gdzie litery)
-  CYFRA = '0' .. '9'
-
-  (token = terminal w czesci gramatyki rozwiazywanej przez parser
-           lub nieterminal w czesci gramatyki rozwiazywanej przez Lexer.
-   Generalnie pomiedzy kazdymi dwoma tokenami musi byc przynajmniej jeden
-   bialy znak - spacja, #10, #13, lub tab. Ale sa wyjatki gdy mozna
-   jednoznacznie rozpoznac koniec jednego tokenu, np. gdy dwa tokeny
-   pochodza z dwoch roznych zbiorow - jeden sposrod cyfr/liter/_ a drugi
-   z reszty. W razie watpliwosci Lexer bedzie pobieral tokeny zachlannie.
-  )
+  Can parse whole program in KambiScript language, is also prepared
+  to parse only a single expression (usefull for cases when I need
+  to input only a mathematical expression, like for glplotter function
+  expression).
 *)
 
-unit MathExprParser;
+unit KambiScriptParser;
 
 interface
 
-uses MathExpr, MathExprLexer, Math;
+uses MathExpr, KambiScriptLexer, Math;
 
 { Creates and returns instance of TMathExpr, that represents parsed tree
   of expression in S. }
-function ParseMathExpr(const S: string): TMathExpr;
+function ParseFloatExpression(const S: string): TMathExpr;
 
 { This can be used as a great replacement for StrToFloat.
   This takes a string with any constant mathematical expression,
   parses it and calculates (with all variable names undefined,
   i.e. EUndefinedVariable will be raised if expression will try
   to use some variable name). }
-function EvalConstMathExpr(const S: string): Float;
+function ParseConstantFloatExpression(const S: string): Float;
 
 type
   { Reexported in this unit, so that the identifier EMathSyntaxError
     will be visible when using this unit. }
-  EMathSyntaxError = MathExprLexer.EMathSyntaxError;
+  EMathSyntaxError = KambiScriptLexer.EMathSyntaxError;
 
   EMathParserError = class(EMathSyntaxError);
 
@@ -84,21 +57,19 @@ implementation
 uses SysUtils;
 
 const
-  { Polish "czynnik" (= argument of multiplication operators (*, /, ^ etc.)
-    translated to English as "factor", I'm not sure what's the pricice
-    English word for this. }
   SErrRightParenExpected = 'right paren ")" expected';
-  SErrWrongCzynnik = 'wrong factor (expected variable, constant, "-", "(" or function name)';
+  SErrWrongFactor = 'wrong factor (expected variable, constant, "-", "(" or function name)';
   SErrKoniecExpected = 'end of expression expected, but "%s" found';
   SErrOperRelacExpected = 'comparison operator (>, <, >=, <=, = or <>) expected';
   SErrRightQarenExpected = 'right paren "]" expected';
 
-function ParseMathExpr(const S: string): TMathExpr;
+function ParseFloatExpression(const S: string): TMathExpr;
 var Lexer: TMathLexer;
 
-  const operatory_multi = [tokMultiply, tokDivide, tokPower, tokModulo];
-        operatory_addy = [tokPlus, tokMinus];
-        operatory_relac = [tokGreater, tokLesser, tokGreaterEqual, tokLesserEqual, tokEqual, tokNotEqual];
+  const
+    FactorOperator = [tokMultiply, tokDivide, tokPower, tokModulo];
+    TermOperator = [tokPlus, tokMinus];
+    RelationalOperator = [tokGreater, tokLesser, tokGreaterEqual, tokLesserEqual, tokEqual, tokNotEqual];
 
   function binaryOper(tok: TToken): TFunctionKind;
   begin
@@ -129,40 +100,55 @@ var Lexer: TMathLexer;
        ', but got ' + Lexer.TokenDescription);
   end;
 
-  function skladnik: TMathExpr; forward;
-  function czynnik: TMathExpr; forward;
+  function Term: TMathExpr; forward;
+  function Factor: TMathExpr; forward;
 
-  function wyrazenie_math: TMathExpr;
+  function SimpleExpression: TMathExpr;
   var fk: TFunctionKind;
   begin
    result := nil;
    try
-    result := skladnik;
-    while Lexer.token in operatory_addy do
+    result := Term;
+    while Lexer.token in TermOperator do
     begin
      fk := binaryOper(Lexer.token);
      Lexer.nexttoken;
-     result := TMathFunction.Create(fk, [result, skladnik]);
+     result := TMathFunction.Create(fk, [result, Term]);
     end;
    except result.free; raise end;
   end;
 
-  function skladnik: TMathExpr;
+  function Expression: TMathExpr;
   var fk: TFunctionKind;
   begin
    result := nil;
    try
-    result := czynnik;
-    while Lexer.token in operatory_multi do
+    result := SimpleExpression;
+    while Lexer.token in RelationalOperator do
     begin
      fk := binaryOper(Lexer.token);
      Lexer.nexttoken;
-     result := TMathFunction.Create(fk, [result, czynnik]);
+     result := TMathFunction.Create(fk, [result, SimpleExpression]);
     end;
    except result.free; raise end;
   end;
 
-  function czynnik: TMathExpr;
+  function Term: TMathExpr;
+  var fk: TFunctionKind;
+  begin
+   result := nil;
+   try
+    result := Factor;
+    while Lexer.token in FactorOperator do
+    begin
+     fk := binaryOper(Lexer.token);
+     Lexer.nexttoken;
+     result := TMathFunction.Create(fk, [result, Factor]);
+    end;
+   except result.free; raise end;
+  end;
+
+  function Factor: TMathExpr;
   var fk: TFunctionKind;
       fparams: TMathExprList;
   begin
@@ -171,10 +157,10 @@ var Lexer: TMathLexer;
     case Lexer.token of
      tokVariable: begin Lexer.nexttoken; result := TMathVar.Create(Lexer.TokenString) end;
      tokConst: begin Lexer.nexttoken; result := TMathConst.Create(Lexer.TokenFloat); end;
-     tokMinus: begin Lexer.nexttoken; result := TMathFunction.Create(fkNegate, [czynnik()]) end;
+     tokMinus: begin Lexer.nexttoken; result := TMathFunction.Create(fkNegate, [Factor()]) end;
      tokLParen: begin
         Lexer.nexttoken;
-        result := wyrazenie_math;
+        result := Expression;
         checkTokenIs(tokRParen, SErrRightParenExpected);
         Lexer.nexttoken;
        end;
@@ -186,29 +172,14 @@ var Lexer: TMathLexer;
          if Lexer.token = tokLParen then
          repeat
           Lexer.nexttoken; { pomin ostatni "," lub "(" }
-          fparams.Add(wyrazenie_math);
+          fparams.Add(Expression);
          until Lexer.token <> tokComma;
          checkTokenIs(tokRParen, SErrRightParenExpected);
          Lexer.nexttoken;
          result := TMathFunction.Create(fk, fparams);
         finally fparams.free end;
        end;
-     tokLQaren: begin
-        Lexer.nexttoken;
-        fparams := TMathExprList.Create;
-        try
-         fparams.Add(wyrazenie_math);
-         if not (Lexer.token in operatory_relac) then
-          raise EMathParserError.Create(Lexer, SErrOperRelacExpected);
-         fk := binaryOper(Lexer.token);
-         Lexer.nexttoken;
-         fparams.Add(wyrazenie_math);
-         checkTokenIs(tokRQaren, SErrRightQarenExpected);
-         Lexer.nexttoken;
-         result := TMathFunction.Create(fk, fparams);
-        finally fparams.free end;
-       end;
-     else raise EMathParserError.Create(Lexer, SErrWrongCzynnik +
+     else raise EMathParserError.Create(Lexer, SErrWrongFactor +
        ', but got ' + Lexer.TokenDescription);
     end;
    except result.free; raise end;
@@ -219,7 +190,7 @@ begin
   try
     result := nil;
     try
-      result := wyrazenie_math;
+      result := Expression;
       if Lexer.token <> tokEnd then
         raise EMathParserError.Create(Lexer,
           Format(SErrKoniecExpected, [Lexer.TokenDescription]));
@@ -227,14 +198,14 @@ begin
   finally Lexer.Free end;
 end;
 
-{ EvalConstMathExpr ---------------------------------------- }
+{ ParseConstantFloatExpression ----------------------------------------------- }
 
-function EvalConstMathExpr(const S: string): Float;
+function ParseConstantFloatExpression(const S: string): Float;
 var
   Expr: TMathExpr;
 begin
   try
-    Expr := ParseMathExpr(s);
+    Expr := ParseFloatExpression(s);
   except
     on E: EMathSyntaxError do
     begin

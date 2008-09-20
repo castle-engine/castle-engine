@@ -1,19 +1,19 @@
 { Simple command-line calculator.
 
   Calculates value of 1st param, e.g. '1 + 2' or 'sin(5)' etc. --
-  any expression that can be parsed with MathExprParser 
+  any expression that can be parsed with KambiScriptParser
   to TMathExpr object.
 
   This is a simplest example of some usable program using MathExpr
-  and MathExprParser units. }
+  and KambiScriptParser units. }
 
 {$apptype CONSOLE}
 
 program kambi_calc;
 
-uses KambiUtils, MathExprParser;
+uses KambiUtils, KambiScriptParser;
 
 begin
   { testing :  Writeln('Expression is ',E.ToString); }
-  Writeln(EvalConstMathExpr(Parameters[1]): 10: 10);
+  Writeln(ParseConstantFloatExpression(Parameters[1]): 10: 10);
 end.

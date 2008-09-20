@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2006 Michalis Kamburelis.
+  Copyright 2001-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -18,12 +18,13 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(Lexer of mathematical expression, for MathExprParser.)
+{ @abstract(Lexer for KambiScript language, see
+  [http://vrmlengine.sourceforge.net/kambi_script.php].)
 
   For specification of tokens that this lexer understands,
-  see documentation of MathExprParser unit. }
+  see documentation of KambiScriptParser unit. }
 
-unit MathExprLexer;
+unit KambiScriptLexer;
 
 interface
 
@@ -262,6 +263,8 @@ begin
     tokDivide: Result := '/';
     tokLParen: Result := '(';
     tokRParen: Result := ')';
+    tokLQaren: Result := '[';
+    tokRQaren: Result := ']';
     tokComma: Result := ',';
     tokEnd: Result := 'end of stream';
     else raise EInternalError.Create('TMathExptLexer.TokenDescription');

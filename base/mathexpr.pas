@@ -46,7 +46,7 @@
 
   Jasne zastosowanie klasy TMathExpr jest do budowy parserow
   ktore musza zbudowac sobie wyrazenie matematyczne w czasie
-  runtime. Patrz unit @link(MathExprParser).
+  runtime. Patrz unit @link(KambiScriptParser).
 }
 
 unit MathExpr;
@@ -148,19 +148,19 @@ const
     It also specifies some things about how such function can be specified
     as a text -- this is useful for both converting TMathExpr to a string
     (using TMathExpr.ToString method) and converting a string
-    to TMathExpr (using ParseMathExpr function from MathExprParser).
+    to TMathExpr (using ParseMathExpr function from KambiScriptParser).
 
-    Note that not every property needed by MathExprParser is encoded
+    Note that not every property needed by KambiScriptParser is encoded
     in this array. Stating it shortly, you cannot fully control behaviour
-    of MathExprParser by only modifying FunctionKinds array. For some
-    more advanced control over MathExprParser (e.g. adding new operators,
+    of KambiScriptParser by only modifying FunctionKinds array. For some
+    more advanced control over KambiScriptParser (e.g. adding new operators,
     changing priority of operators) you will just have to modify
-    MathExprParser unit. I may improve this with time.
+    KambiScriptParser unit. I may improve this with time.
 
     For now the only functions that can be fully controlled from
     FunctionKinds are functions with InfixOperatorName = '' and
     only FunctionName <> ''. When you add or modify such function,
-    you don't have to do anything inside MathExprParser, everything
+    you don't have to do anything inside KambiScriptParser, everything
     will just work. }
   FunctionKinds : array[TFunctionKind]of
   record
