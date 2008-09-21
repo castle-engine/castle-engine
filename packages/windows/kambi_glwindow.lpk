@@ -5,7 +5,7 @@
     <Name Value="kambi_glwindow"/>
     <Author Value="Michalis Kamburelis"/>
     <CompilerOptions>
-      <Version Value="5"/>
+      <Version Value="8"/>
       <PathDelim Value="\"/>
       <SearchPaths>
         <IncludeFiles Value="..\..\opengl\windows\"/>
@@ -14,6 +14,7 @@
       </SearchPaths>
       <Parsing>
         <SyntaxOptions>
+          <IncludeAssertionCode Value="True"/>
           <CStyleMacros Value="True"/>
           <UseAnsiStrings Value="True"/>
         </SyntaxOptions>
@@ -21,14 +22,16 @@
       <CodeGeneration>
         <Checks>
           <IOChecks Value="True"/>
+          <RangeChecks Value="True"/>
         </Checks>
-        <Generate Value="Faster"/>
       </CodeGeneration>
       <Other>
         <Verbosity>
           <ShowNotes Value="False"/>
           <ShowHints Value="False"/>
         </Verbosity>
+        <CustomOptions Value="-Sh
+"/>
         <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
