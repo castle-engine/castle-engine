@@ -1,0 +1,309 @@
+{
+  Copyright 2003-2008 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
+}
+
+{ This opens VRML/X3D file, renders it, allows to move in the scene
+  (with Walk navigation, see view3dscene docs:
+  [http://vrmlengine.sourceforge.net/view3dscene.php]) and makes
+  events working.
+
+  Run with $1 command-line option as 3D model filename. For example,
+    ./view_model_with_events ../../../kambi_vrml_test_suite/x3d/fog_animate_transform.x3dv
+  (get kambi_vrml_test_suite from
+  [http://vrmlengine.sourceforge.net/kambi_vrml_test_suite.php]).
+
+  This program is a minimal VRML browser, passing all user interactions
+  to the Scene (so that they can be processed by VRML events).
+  It looks like a lot of code, but this is all a simple
+  code that reacts to TGLWindow callbacks (and passes them to Scene)
+  or the other way around (reacting to Scene callbacks).
+  If you're making actual game around VRML engine, you may want to
+  customize many things here, as some user interface may be different
+  in specific situations. Almost all processing here is optional,
+  for example you don't have to call Scene.KeyDown/KeyUp if you don't
+  need to handle KeySensor and StringSensor.
+}
+
+program view_model_with_events;
+
+{ This is the weak point of our engine right now: updating octree on changes
+  of geometry. It takes some time, as we currently just rebuild the octree.
+  On the other hand, it's needed to perform collision detection
+  (this also includes picking touch sensors and such) on the up-to-date
+  model (in case e.g. touch sensor geometry moves). In some rare
+  cases (more precisely: when TVRMLScene.ChangedFields is not optimized
+  for this particular field and falls back to TVRMLScene.ChangedAll)
+  not updating octree may even cause the octree pointers to be invalid.
+
+  Both problems are being worked on. In the meantime
+  - you can define REBUILD_OCTREE to have always accurate and stable
+    collision detection, at the expense of a slowdowns in case of intensive
+    animations.
+  - you can undefine REBUILD_OCTREE to always use the first octree.
+    This makes collision detection work with the original geometry,
+    and sometimes may make it unstable. OTOH, all works fast. }
+{ $define REBUILD_OCTREE}
+
+uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
+  GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
+  KambiGLUtils, VRMLScene, VRMLGLScene, MatrixNavigation,
+  ProgressUnit, ProgressConsole, KambiFilesUtils, VRMLTriangleOctree,
+  VRMLErrors, RaysWindow;
+
+var
+  Scene: TVRMLGLScene;
+  { CameraRadius is needed for collision detection }
+  CameraRadius: Single;
+
+procedure BeforeDraw(glwin: TGLWindow);
+begin
+  Scene.PrepareRender([tgAll], [prBoundingBox]);
+end;
+
+procedure Draw(glwin: TGLWindow);
+begin
+  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+  glLoadMatrix(glw.Navigator.Matrix);
+  Scene.RenderFrustumOctree(Glw.NavWalker.Frustum, tgAll);
+end;
+
+procedure Init(glwin: TGLWindow);
+begin
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+end;
+
+procedure Close(glwin: TGLWindow);
+begin
+  Scene.CloseGL;
+end;
+
+procedure Idle(glwin: TGLWindow);
+begin
+  Scene.IncreaseWorldTime(Glwin.IdleSpeed);
+end;
+
+const
+  AngleOfViewY = 45.0;
+
+function AngleOfViewX: Single;
+begin
+  Result := AdjustViewAngleDegToAspectRatio(
+    AngleOfViewY, Glw.Width / Glw.Height);
+end;
+
+procedure Resize(glwin: TGLWindow);
+
+  procedure UpdateNavigatorProjectionMatrix;
+  var
+    ProjectionMatrix: TMatrix4f;
+  begin
+    glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
+    Glw.NavWalker.ProjectionMatrix := ProjectionMatrix;
+  end;
+
+begin
+  glViewport(0, 0, glwin.Width, glwin.Height);
+  ProjectionGLPerspective(AngleOfViewY, glwin.Width/glwin.Height,
+    CameraRadius * 0.6,
+    Box3dMaxSize(Scene.BoundingBox) * 3.0);
+
+  UpdateNavigatorProjectionMatrix;
+end;
+
+procedure MouseDown(Glwin: TGLWindow; Btn: TMouseButton);
+begin
+  if Btn = mbLeft then
+    Scene.PointingDeviceActive := true;
+end;
+
+procedure MouseUp(Glwin: TGLWindow; Btn: TMouseButton);
+begin
+  if Btn = mbLeft then
+    Scene.PointingDeviceActive := false;
+end;
+
+procedure MouseMove(Glwin: TGLWindow; NewX, NewY: Integer);
+var
+  Ray0, RayVector: TVector3Single;
+  OverPoint: TVector3Single;
+  Item: POctreeItem;
+  ItemIndex: Integer;
+
+  function SensorsCount: Cardinal;
+  begin
+    if Scene.PointingDeviceSensors <> nil then
+      Result := Scene.PointingDeviceSensors.Count else
+      Result := 0;
+    if Scene.PointingDeviceActiveSensor <> nil then
+      Inc(Result);
+  end;
+
+begin
+  if Scene.DefaultTriangleOctree <> nil then
+  begin
+    Glw.Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, Ray0, RayVector);
+
+    ItemIndex := Scene.DefaultTriangleOctree.RayCollision(
+      OverPoint, Ray0, RayVector, true, NoItemIndex, false, nil);
+
+    if ItemIndex = NoItemIndex then
+      Item := nil else
+      Item := Scene.DefaultTriangleOctree.OctreeItems.Pointers[ItemIndex];
+
+    Scene.PointingDeviceMove(OverPoint, Item);
+
+    { I want to keep assertion that Glwin.CursorNonMouseLook = gcHand when
+      we're over or keeping active some pointing-device sensors. }
+    if SensorsCount <> 0 then
+      Glw.CursorNonMouseLook := gcHand else
+      Glw.CursorNonMouseLook := gcDefault;
+  end;
+end;
+
+procedure KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
+begin
+  Scene.KeyDown(Key, C, @Glwin.KeysDown);
+end;
+
+procedure KeyUp(Glwin: TGLWindow; Key: TKey);
+begin
+  Scene.KeyUp(Key);
+end;
+
+type
+  THelperObj = class
+    class function MoveAllowed(Navigator: TMatrixWalker;
+      const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const BecauseOfGravity: boolean): boolean;
+    class procedure PostRedisplay(Scene: TVRMLScene);
+    class procedure MatrixChanged(Navigator: TMatrixNavigator);
+    class procedure BoundViewpointVectorsChanged(Scene: TVRMLScene);
+    class procedure GeometryChanged(Scene: TVRMLScene);
+  end;
+
+class function THelperObj.MoveAllowed(Navigator: TMatrixWalker;
+  const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+  const BecauseOfGravity: boolean): boolean;
+begin
+  Result := Scene.DefaultTriangleOctree.MoveAllowed(
+    Navigator.CameraPos, ProposedNewPos, NewPos, CameraRadius,
+    NoItemIndex, nil);
+end;
+
+class procedure THelperObj.PostRedisplay(Scene: TVRMLScene);
+begin
+  Glw.PostRedisplay;
+end;
+
+class procedure THelperObj.MatrixChanged(Navigator: TMatrixNavigator);
+begin
+  Scene.ViewerPositionChanged(Glw.NavWalker.CameraPos);
+  Glw.PostRedisplay;
+end;
+
+class procedure THelperObj.BoundViewpointVectorsChanged(Scene: TVRMLScene);
+var
+  CameraPos: TVector3Single;
+  CameraDir: TVector3Single;
+  CameraUp: TVector3Single;
+  GravityUp: TVector3Single;
+begin
+  writeln(Scene.ViewpointStack.Top.ClassName);
+  TVRMLViewpointNode(Scene.ViewpointStack.Top).GetCameraVectors(
+    CameraPos, CameraDir, CameraUp, GravityUp);
+  Glw.NavWalker.SetInitialCameraLookDir(CameraPos, CameraDir, CameraUp, true);
+end;
+
+class procedure THelperObj.GeometryChanged(Scene: TVRMLScene);
+begin
+{$ifdef REBUILD_OCTREE}
+  Scene.PointingDeviceClear;
+  Glw.CursorNonMouseLook := gcDefault;
+
+  Scene.DefaultTriangleOctree.Free;
+  Scene.DefaultShapeStateOctree.Free;
+
+  Scene.DefaultTriangleOctree :=
+    Scene.CreateTriangleOctree('Building triangle octree');
+  Scene.DefaultShapeStateOctree :=
+    Scene.CreateShapeStateOctree('Building ShapeState octree');
+{$endif REBUILD_OCTREE}
+end;
+
+var
+  CamPos, CamDir, CamUp, GravityUp: TVector3Single;
+begin
+  Parameters.CheckHigh(1);
+  try
+    VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
+
+    Scene := TVRMLGLScene.Create(Parameters[1], roSeparateShapeStates);
+
+    Writeln(Scene.Info(true, true, false));
+
+    { build octrees }
+    Progress.UserInterface := ProgressConsoleInterface;
+    Scene.DefaultTriangleOctree :=
+      Scene.CreateTriangleOctree('Building triangle octree');
+    Scene.DefaultShapeStateOctree :=
+      Scene.CreateShapeStateOctree('Building ShapeState octree');
+
+    Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
+
+    { init Glw.Navigator }
+    Glw.Navigator := TMatrixWalker.Create(@THelperObj(nil).MatrixChanged);
+    Glw.NavWalker.Init(CamPos,
+      VectorAdjustToLength(CamDir, Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
+      CamUp, GravityUp,
+      0.0, 0.0 { unused, we don't use Gravity here });
+
+    { init collision detection }
+    if IsEmptyBox3d(Scene.BoundingBox) then
+     CameraRadius := 1.0 { any non-zero dummy value } else
+     CameraRadius := Box3dAvgSize(Scene.BoundingBox) * 0.01;
+    Glw.NavWalker.OnMoveAllowed := @THelperObj(nil).MoveAllowed;
+
+    { allow the scene to use it's own lights }
+    Scene.Attributes.UseLights := true;
+    Scene.Attributes.FirstGLFreeLight := 1;
+
+    { initialize events procesing }
+    Scene.ProcessEvents := true;
+    Scene.ResetWorldTimeAtLoad;
+    Scene.OnPostRedisplay := @THelperObj(nil).PostRedisplay;
+    Scene.OnBoundViewpointVectorsChanged := @THelperObj(nil).BoundViewpointVectorsChanged;
+    Scene.OnGeometryChanged := @THelperObj(nil).GeometryChanged;
+
+    Glw.OnInit := @Init;
+    Glw.OnClose := @Close;
+    Glw.OnResize := @Resize;
+    Glw.OnBeforeDraw := @BeforeDraw;
+    Glw.OnIdle := @Idle;
+    Glw.OnMouseDown := @MouseDown;
+    Glw.OnMouseUp := @MouseUp;
+    Glw.OnMouseMove := @MouseMove;
+    Glw.OnKeyDown := @KeyDown;
+    Glw.OnKeyUp := @KeyUp;
+
+    Glw.InitLoop(ProgramName, @Draw);
+  finally Scene.Free end;
+end.
