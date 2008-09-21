@@ -79,6 +79,10 @@ D   intrects.pas
 D   kambidynlib.pas
 |   kambifilesutils.pas
 D   kambilog.pas
+D   kambiscript
+D   kambiscriptlexer
+D   kambiscriptmathfunctions
+D   kambiscriptparser
 |   kambistringutils.pas
 |   kambitimeutils.pas
 |   kambiutils.pas
@@ -86,9 +90,6 @@ D   kambixmlcfg.pas
 D   kambixmlutils.pas
 D   kambizlib.pas
 D   kambizstream.pas
-D   mathexprlexer.pas
--   mathexprparser.pas
--   mathexpr.pas
 -   parseparametersunit.pas
 D   progressconsole.pas
 |   progressunit.pas

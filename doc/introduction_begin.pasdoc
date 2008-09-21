@@ -174,8 +174,12 @@ units are allowed to be used by units in specific group.
     (see dynarray.inc, dim2array.inc, dim3array.inc, objectslist.inc,
     and their automatically duplicated versions in templates/ subdirectory).
 
-    There are also units for parsing and evaluating mathematical expressions
-    (MathExprLexer, MathExprParser, MathExpr), unit @link(ParseParametersUnit)
+    There are also units for parsing and executing expressions and
+    programs in KambiScript language
+    [http://vrmlengine.sourceforge.net/kambi_script.php],
+    these are KambiScriptLexer, KambiScriptParser, KambiScript unit.
+
+    There's unit @link(ParseParametersUnit)
     for command-line parsing, VectorMath unit with a lot of primitive
     geometry types and functions. And some more.
 

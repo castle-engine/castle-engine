@@ -29,7 +29,7 @@ uses
   kambi_units,
   {$endif}
   TestKambiStringUtils,
-  TestMathExpr;
+  TestKambiScript;
 
 begin
   Application.Initialize;

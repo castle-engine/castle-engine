@@ -28,13 +28,13 @@ unit KambiScriptLexer;
 
 interface
 
-uses KambiUtils, MathExpr, SysUtils, Math;
+uses KambiUtils, KambiScript, SysUtils, Math;
 
 type
   TToken = (tokEnd,
-    tokConst, {< Value of given constant will be in w TMathLexer.TokenFloat. }
-    tokVariable, {< Name of given variable will be in TMathLexer.TokenString. }
-    tokFuncName, {< Function kind of given function will be in TMathLexer.TokenFunctionKind. }
+    tokConst, {< Value of given constant will be in w TKamScriptLexer.TokenFloat. }
+    tokIdentifier, {< Identifier will be in TKamScriptLexer.TokenString. }
+    tokFuncName, {< Function class of given function will be in TKamScriptLexer.TokenFunctionClass. }
 
     tokMinus, tokPlus,
 
@@ -44,12 +44,12 @@ type
 
     tokLParen, tokRParen, tokComma, tokLQaren, tokRQaren);
 
-  TMathLexer = class
+  TKamScriptLexer = class
   private
     FToken: TToken;
     FTokenFloat: Float;
     FTokenString: string;
-    FTokenFunctionKind: TFunctionKind;
+    FTokenFunctionClass: TKamScriptFunctionClass;
 
     FTextPos: Integer;
     FText: string;
@@ -58,7 +58,7 @@ type
 
     property TokenString: string read FTokenString;
     property TokenFloat: Float read FTokenFloat;
-    property TokenFunctionKind: TFunctionKind read FTokenFunctionKind;
+    property TokenFunctionClass: TKamScriptFunctionClass read FTokenFunctionClass;
 
     { Position of lexer in the @link(Text) string. }
     property TextPos: Integer read FTextPos;
@@ -67,7 +67,7 @@ type
     property Text: string read FText;
 
     { NextToken moves to next token (updating fields @link(Token),
-      and eventually TokenFloat, TokenString and TokenFunctionKind)
+      and eventually TokenFloat, TokenString and TokenFunctionClass)
       and returns the value of field @link(Token).
 
       When @link(Token) is tokEnd, then NextToken doesn't do anything,
@@ -80,8 +80,8 @@ type
     function TokenDescription: string;
   end;
 
-  { A common class for EMathLexerError and EMathParserError }
-  EMathSyntaxError = class(EWrongMathExpr)
+  { A common class for EKamScriptLexerError and EKamScriptParserError }
+  EKamScriptSyntaxError = class(EKamScriptError)
   private
     FLexerTextPos: Integer;
     FLexerText: string;
@@ -92,12 +92,12 @@ type
       not access it before you Freed it; too troublesome, usually) }
     property LexerTextPos: Integer read FLexerTextPos;
     property LexerText: string read FLexerText;
-    constructor Create(Lexer: TMathLexer; const s: string);
-    constructor CreateFmt(Lexer: TMathLexer; const s: string;
+    constructor Create(Lexer: TKamScriptLexer; const s: string);
+    constructor CreateFmt(Lexer: TKamScriptLexer; const s: string;
       const args: array of const);
   end;
 
-  EMathLexerError = class(EMathSyntaxError);
+  EKamScriptLexerError = class(EKamScriptSyntaxError);
 
 implementation
 
@@ -112,7 +112,7 @@ begin
  end;
 end;
 
-constructor TMathLexer.Create(const atext: string);
+constructor TKamScriptLexer.Create(const atext: string);
 begin
  inherited Create;
  ftext := atext;
@@ -120,7 +120,7 @@ begin
  NextToken;
 end;
 
-function TMathLexer.NextToken: TToken;
+function TKamScriptLexer.NextToken: TToken;
 const
   whiteChars = [' ', #9, #10, #13];
   digits = ['0'..'9'];
@@ -173,7 +173,7 @@ const
    begin
     Inc(fTextPos);
     if not SCharIs(text, fTextPos, digits) then
-     raise EMathLexerError.Create(Self, 'digit expected');
+     raise EKamScriptLexerError.Create(Self, 'digit expected');
     digitsCount := 1;
     val := DigitAsByte(text[fTextPos]);
     Inc(fTextPos);
@@ -199,7 +199,7 @@ const
   var startPos: integer;
   begin
    if not (text[fTextPos] in identStartChars) then
-    raise EMathLexerError.Create(Self, 'wrong token');
+    raise EKamScriptLexerError.Create(Self, 'wrong token');
    startPos := fTextPos;
    Inc(fTextPos);
    while SCharIs(text, fTextPos, identChars) do Inc(fTextPos);
@@ -209,8 +209,9 @@ const
 const
   consts_str: array[0..1]of string = ('pi', 'enat');
   consts_values: array[0..High(consts_str)]of float = (pi, enatural);
-var p: integer;
-    fk: TFunctionKind;
+var
+  p: integer;
+  fc: TKamScriptFunctionClass;
 begin
  while SCharIs(text, TextPos, whiteChars) do Inc(fTextPos);
  if TextPos > Length(text) then
@@ -220,22 +221,19 @@ begin
   if not ReadConstant then
   begin
    { jest to zmienna, nazwa funkcji lub stalej }
-   ftoken := tokVariable;
+   ftoken := tokIdentifier;
    fTokenString := ReadIdentifier;
 
    { sprawdzamy czy jest to nazwa funkcji }
-   for fk := Low(TFunctionKind) to High(TFunctionKind) do
+   fc := FunctionHandlers.SearchFunctionShortName(fTokenString);
+   if fc <> nil then
    begin
-    if SameText(FunctionKinds[fk].FunctionName, fTokenString) then
-    begin
-     ftoken := tokFuncName;
-     fTokenFunctionKind := fk;
-     break;
-    end;
+    ftoken := tokFuncName;
+    fTokenFunctionClass := fc;
    end;
 
    { jesli nie jest to nazwa funkcji sprawdzamy czy jest to nazwa stalej }
-   if ftoken = tokVariable then
+   if ftoken = tokIdentifier then
    begin
     p := ArrayPosText(fTokenString, consts_str);
     if p >= 0 then
@@ -250,13 +248,12 @@ begin
  result := token;
 end;
 
-function TMathLexer.TokenDescription: string;
+function TKamScriptLexer.TokenDescription: string;
 begin
   case Token of
     tokConst: Result := Format('constant %g', [TokenFloat]);
-    tokVariable: Result := Format('variable %s', [TokenString]);
-    tokFuncName: Result := Format('function (internal number %d)',
-      [Ord(TokenFunctionKind)]);
+    tokIdentifier: Result := Format('identifier %s', [TokenString]);
+    tokFuncName: Result := Format('function %s', [TokenFunctionClass.Name]);
     tokMinus: Result := '-';
     tokPlus: Result := '+';
     tokMultiply: Result := '*';
@@ -267,20 +264,20 @@ begin
     tokRQaren: Result := ']';
     tokComma: Result := ',';
     tokEnd: Result := 'end of stream';
-    else raise EInternalError.Create('TMathExptLexer.TokenDescription');
+    else raise EInternalError.Create('TKamScriptLexer.TokenDescription');
   end;
 end;
 
-{ EMathSyntaxError --------------------------------------- }
+{ EKamScriptSyntaxError --------------------------------------- }
 
-constructor EMathSyntaxError.Create(Lexer: TMathLexer; const s: string);
+constructor EKamScriptSyntaxError.Create(Lexer: TKamScriptLexer; const s: string);
 begin
  inherited Create(s);
  FLexerTextPos := Lexer.TextPos;
  FLexerText := Lexer.Text;
 end;
 
-constructor EMathSyntaxError.CreateFmt(Lexer: TMathLexer; const s: string;
+constructor EKamScriptSyntaxError.CreateFmt(Lexer: TKamScriptLexer; const s: string;
   const args: array of const);
 begin
  Create(Lexer, Format(s, args))

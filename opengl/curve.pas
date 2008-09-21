@@ -24,7 +24,7 @@ unit Curve;
 
 interface
 
-uses VectorMath, Boxes3d, KambiUtils, MathExpr, Polynomials,
+uses VectorMath, Boxes3d, KambiUtils, KambiScript, Polynomials,
   KambiClassUtils;
 
 {$define read_interface}
@@ -84,20 +84,25 @@ type
   TCurvesList = TObjectsList_2;
 
   { @abstract(This is a curve defined by explicitly giving functions for
-    Point(t) = x(t), y(t), z(t).) }
-  TMathExprCurve = class(TCurve)
+    Point(t) = x(t), y(t), z(t) as KambiScript expressions.) }
+  TKamScriptCurve = class(TCurve)
   protected
-    FXFunction, FYFunction, FZFunction: TMathExpr;
+    FTVariable: TKamScriptFloat;
+    FXFunction, FYFunction, FZFunction: TKamScriptExpression;
     FBoundingBox: TBox3d;
   public
     function Point(const t: Float): TVector3Single; override;
 
     { XFunction, YFunction, ZFunction are functions based on variable 't'.
       @groupBegin }
-    property XFunction: TMathExpr read FXFunction;
-    property YFunction: TMathExpr read FYFunction;
-    property ZFunction: TMathExpr read FZFunction;
+    property XFunction: TKamScriptExpression read FXFunction;
+    property YFunction: TKamScriptExpression read FYFunction;
+    property ZFunction: TKamScriptExpression read FZFunction;
     { @groupEnd }
+
+    { This is the variable controlling 't' value, embedded also in
+      XFunction, YFunction, ZFunction. }
+    property TVariable: TKamScriptFloat read FTVariable;
 
     { This class provides simple implementation for BoundingBox: it is simply
       a BoundingBox of Point(i, SegmentsForBoundingBox)
@@ -108,10 +113,10 @@ type
     { XFunction, YFunction, ZFunction references are copied here,
       and will be freed in destructor (so don't Free them yourself). }
     constructor Create(const ATBegin, ATEnd: Float;
-      AXFunction, AYFunction, AZFunction: TMathExpr;
+      AXFunction, AYFunction, AZFunction: TKamScriptExpression;
       ASegmentsForBoundingBox: Cardinal); overload;
     constructor Create(const ATBegin, ATEnd: Float;
-      AXFunction, AYFunction, AZFunction: TMathExpr
+      AXFunction, AYFunction, AZFunction: TKamScriptExpression
       { ASegmentsForBoundingBox = 100 } ); overload;
     { }
     destructor Destroy; override;
@@ -170,14 +175,14 @@ type
     procedure RenderConvexHull;
 
     { Constructor.
-      This is virtual because it's called by CreateDivideMathExprCurve.
+      This is virtual because it's called by CreateDivideKamScriptCurve.
       It's also useful in many places in curves.pasprogram. }
     constructor Create(const ATBegin, ATEnd: Float); virtual;
 
     { Calculates ControlPoints taking Point(i, ControlPointsCount-1)
-      for i in [0 .. ControlPointsCount-1] from MathExprCurve.
-      TBegin and TEnd are copied from MathExprCurve. }
-    constructor CreateDivideMathExprCurve(MathExprCurve: TMathExprCurve;
+      for i in [0 .. ControlPointsCount-1] from KamScriptCurve.
+      TBegin and TEnd are copied from KamScriptCurve. }
+    constructor CreateDivideKamScriptCurve(KamScriptCurve: TKamScriptCurve;
       ControlPointsCount: Cardinal);
 
     destructor Destroy; override;
@@ -312,27 +317,26 @@ begin
  FTEnd := ATEnd;
 end;
 
-{ TMathExprCurve ------------------------------------------------------------ }
+{ TKamScriptCurve ------------------------------------------------------------ }
 
-function TMathExprCurve.Point(const t: Float): TVector3Single;
+function TKamScriptCurve.Point(const t: Float): TVector3Single;
 begin
- SingleVariableName := 't';
- SingleVariable := t;
- Result[0] := XFunction.Value(@ReturnSingleVariable);
- Result[1] := YFunction.Value(@ReturnSingleVariable);
- Result[2] := ZFunction.Value(@ReturnSingleVariable);
+  TVariable.Value := t;
+  Result[0] := (XFunction.Execute as TKamScriptFloat).Value;
+  Result[1] := (YFunction.Execute as TKamScriptFloat).Value;
+  Result[2] := (ZFunction.Execute as TKamScriptFloat).Value;
 
  {test: Writeln('Point at t = ',FloatToNiceStr(Single(t)), ' is (',
    VectorToNiceStr(Result), ')');}
 end;
 
-function TMathExprCurve.BoundingBox: TBox3d;
+function TKamScriptCurve.BoundingBox: TBox3d;
 begin
  Result := FBoundingBox;
 end;
 
-constructor TMathExprCurve.Create(const ATBegin, ATEnd: Float;
-  AXFunction, AYFunction, AZFunction: TMathExpr;
+constructor TKamScriptCurve.Create(const ATBegin, ATEnd: Float;
+  AXFunction, AYFunction, AZFunction: TKamScriptExpression;
   ASegmentsForBoundingBox: Cardinal);
 var i, k: Integer;
     P: TVector3Single;
@@ -357,13 +361,13 @@ begin
  end;
 end;
 
-constructor TMathExprCurve.Create(const ATBegin, ATEnd: Float;
-  AXFunction, AYFunction, AZFunction: TMathExpr);
+constructor TKamScriptCurve.Create(const ATBegin, ATEnd: Float;
+  AXFunction, AYFunction, AZFunction: TKamScriptExpression);
 begin
  Create(ATBegin, ATEnd, AXFunction, AYFunction, AZFunction, 100);
 end;
 
-destructor TMathExprCurve.Destroy;
+destructor TKamScriptCurve.Destroy;
 begin
  FreeAndNil(FXFunction);
  FreeAndNil(FYFunction);
@@ -428,14 +432,14 @@ begin
  FBoundingBox := EmptyBox3d;
 end;
 
-constructor TControlPointsCurve.CreateDivideMathExprCurve(
-  MathExprCurve: TMathExprCurve; ControlPointsCount: Cardinal);
+constructor TControlPointsCurve.CreateDivideKamScriptCurve(
+  KamScriptCurve: TKamScriptCurve; ControlPointsCount: Cardinal);
 var i: Integer;
 begin
- Create(MathExprCurve.TBegin, MathExprCurve.TEnd);
+ Create(KamScriptCurve.TBegin, KamScriptCurve.TEnd);
  ControlPoints.Count := ControlPointsCount;
  for i := 0 to ControlPointsCount-1 do
-  ControlPoints.Items[i] := MathExprCurve.PointOfSegment(i, ControlPointsCount-1);
+  ControlPoints.Items[i] := KamScriptCurve.PointOfSegment(i, ControlPointsCount-1);
  UpdateControlPoints;
 end;
 

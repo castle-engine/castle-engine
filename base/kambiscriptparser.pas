@@ -32,63 +32,78 @@ unit KambiScriptParser;
 
 interface
 
-uses MathExpr, KambiScriptLexer, Math;
+uses KambiScript, KambiScriptLexer, Math;
 
-{ Creates and returns instance of TMathExpr, that represents parsed tree
-  of expression in S. }
-function ParseFloatExpression(const S: string): TMathExpr;
+{ Creates and returns instance of TKamScriptExpression,
+  that represents parsed tree of expression in S.
 
-{ This can be used as a great replacement for StrToFloat.
-  This takes a string with any constant mathematical expression,
-  parses it and calculates (with all variable names undefined,
-  i.e. EUndefinedVariable will be raised if expression will try
-  to use some variable name). }
+  @params(Variables contains a list of named values you want
+    to allow in this expression.
+
+    Important: They will all have
+    OwnedByParentExpression set to @false, and you will have to
+    free them yourself.
+    That's because given expression may use the same variable more than once
+    (so freeing it twice would cause bugs), or not use it at all
+    (so it will be automatically freed at all).
+
+    So setting OwnedByParentExpression and freeing it yourself
+    is the only sensible thing to do.) }
+function ParseFloatExpression(const S: string;
+  Variables: array of TKamScriptValue): TKamScriptExpression;
+
+{ Parse constant float expression.
+  This can be used as a great replacement for StrToFloat.
+  Takes a string with any constant mathematical expression,
+  according to KambiScript syntax, parses it and calculates. }
 function ParseConstantFloatExpression(const S: string): Float;
 
 type
-  { Reexported in this unit, so that the identifier EMathSyntaxError
+  { Reexported in this unit, so that the identifier EKamScriptSyntaxError
     will be visible when using this unit. }
-  EMathSyntaxError = KambiScriptLexer.EMathSyntaxError;
+  EKamScriptSyntaxError = KambiScriptLexer.EKamScriptSyntaxError;
 
-  EMathParserError = class(EMathSyntaxError);
+  EKamScriptParserError = class(EKamScriptSyntaxError);
 
 implementation
 
-uses SysUtils;
+uses SysUtils, KambiScriptMathFunctions;
 
 const
   SErrRightParenExpected = 'right paren ")" expected';
-  SErrWrongFactor = 'wrong factor (expected variable, constant, "-", "(" or function name)';
+  SErrWrongFactor = 'wrong factor (expected identifier, constant, "-", "(" or function name)';
   SErrKoniecExpected = 'end of expression expected, but "%s" found';
   SErrOperRelacExpected = 'comparison operator (>, <, >=, <=, = or <>) expected';
   SErrRightQarenExpected = 'right paren "]" expected';
 
-function ParseFloatExpression(const S: string): TMathExpr;
-var Lexer: TMathLexer;
+function ParseFloatExpression(const S: string;
+  Variables: array of TKamScriptValue): TKamScriptExpression;
+var Lexer: TKamScriptLexer;
 
   const
     FactorOperator = [tokMultiply, tokDivide, tokPower, tokModulo];
     TermOperator = [tokPlus, tokMinus];
     RelationalOperator = [tokGreater, tokLesser, tokGreaterEqual, tokLesserEqual, tokEqual, tokNotEqual];
 
-  function binaryOper(tok: TToken): TFunctionKind;
+  function binaryOper(tok: TToken): TKamScriptFunctionClass;
   begin
    case tok of
-    tokPlus: result := fkAdd;
-    tokMinus: result := fkSubtract;
+    tokPlus: result := TKamScriptAdd;
+    tokMinus: result := TKamScriptSubtract;
 
-    tokMultiply: result := fkMultiply;
-    tokDivide: result := fkDivide;
-    tokPower: result := fkPower;
-    tokModulo: result := fkModulo;
+    tokMultiply: result := TKamScriptMultiply;
+    tokDivide: result := TKamScriptDivide;
+    tokPower: result := TKamScriptPower;
+    tokModulo: result := TKamScriptModulo;
 
-    tokGreater: result := fkGreater;
-    tokLesser: result := fkLesser;
-    tokGreaterEqual: result := fkGreaterEq;
-    tokLesserEqual: result := fkLesserEq;
-    tokEqual: result := fkEqual;
-    tokNotEqual: result := fkNotEqual;
-    else raise EMathParserError.Create(Lexer,
+    tokGreater: result := TKamScriptGreater;
+    tokLesser: result := TKamScriptLesser;
+    tokGreaterEqual: result := TKamScriptGreaterEq;
+    tokLesserEqual: result := TKamScriptLesserEq;
+    tokEqual: result := TKamScriptEqual;
+    tokNotEqual: result := TKamScriptNotEqual;
+
+    else raise EKamScriptParserError.Create(Lexer,
       'internal error : token not a binary operator');
    end
   end;
@@ -96,68 +111,90 @@ var Lexer: TMathLexer;
   procedure checkTokenIs(tok: TToken; const errString: string);
   begin
    if Lexer.token <> tok then
-     raise EMathParserError.Create(Lexer, errString +
+     raise EKamScriptParserError.Create(Lexer, errString +
        ', but got ' + Lexer.TokenDescription);
   end;
 
-  function Term: TMathExpr; forward;
-  function Factor: TMathExpr; forward;
+  function Term: TKamScriptExpression; forward;
+  function Factor: TKamScriptExpression; forward;
 
-  function SimpleExpression: TMathExpr;
-  var fk: TFunctionKind;
+  function SimpleExpression: TKamScriptExpression;
+  var FC: TKamScriptFunctionClass;
   begin
    result := nil;
    try
     result := Term;
     while Lexer.token in TermOperator do
     begin
-     fk := binaryOper(Lexer.token);
+     FC := binaryOper(Lexer.token);
      Lexer.nexttoken;
-     result := TMathFunction.Create(fk, [result, Term]);
+     result := FC.Create([result, Term]);
     end;
    except result.free; raise end;
   end;
 
-  function Expression: TMathExpr;
-  var fk: TFunctionKind;
+  function Expression: TKamScriptExpression;
+  var FC: TKamScriptFunctionClass;
   begin
    result := nil;
    try
     result := SimpleExpression;
     while Lexer.token in RelationalOperator do
     begin
-     fk := binaryOper(Lexer.token);
+     FC := binaryOper(Lexer.token);
      Lexer.nexttoken;
-     result := TMathFunction.Create(fk, [result, SimpleExpression]);
+     result := FC.Create([result, SimpleExpression]);
     end;
    except result.free; raise end;
   end;
 
-  function Term: TMathExpr;
-  var fk: TFunctionKind;
+  function Term: TKamScriptExpression;
+  var FC: TKamScriptFunctionClass;
   begin
    result := nil;
    try
     result := Factor;
     while Lexer.token in FactorOperator do
     begin
-     fk := binaryOper(Lexer.token);
+     FC := binaryOper(Lexer.token);
      Lexer.nexttoken;
-     result := TMathFunction.Create(fk, [result, Factor]);
+     result := FC.Create([result, Factor]);
     end;
    except result.free; raise end;
   end;
 
-  function Factor: TMathExpr;
-  var fk: TFunctionKind;
-      fparams: TMathExprList;
+  function VariableFromName(const Name: string): TKamScriptValue;
+  var
+    I: Integer;
+  begin
+    for I := 0 to Length(Variables) - 1 do
+      if SameText(Variables[I].Name, Name) then
+        Exit(Variables[I]);
+    Result := nil;
+  end;
+
+  function Factor: TKamScriptExpression;
+  var FC: TKamScriptFunctionClass;
+      fparams: TKamScriptExpressionsList;
   begin
    result := nil;
    try
     case Lexer.token of
-     tokVariable: begin Lexer.nexttoken; result := TMathVar.Create(Lexer.TokenString) end;
-     tokConst: begin Lexer.nexttoken; result := TMathConst.Create(Lexer.TokenFloat); end;
-     tokMinus: begin Lexer.nexttoken; result := TMathFunction.Create(fkNegate, [Factor()]) end;
+     tokIdentifier: begin
+        Lexer.nexttoken;
+        Result := VariableFromName(Lexer.TokenString);
+        if Result = nil then
+          raise EKamScriptParserError.CreateFmt(Lexer, 'Undefined identifier "%s"',
+            [Lexer.TokenString]);
+       end;
+     tokConst: begin
+        Lexer.nexttoken;
+        result := TKamScriptFloat.Create(Lexer.TokenFloat);
+       end;
+     tokMinus: begin
+        Lexer.nexttoken;
+        result := TKamScriptNegate.Create([Factor()])
+       end;
      tokLParen: begin
         Lexer.nexttoken;
         result := Expression;
@@ -165,9 +202,9 @@ var Lexer: TMathLexer;
         Lexer.nexttoken;
        end;
      tokFuncName: begin
-        fk := Lexer.TokenFunctionKind;
+        FC := Lexer.TokenFunctionClass;
         Lexer.nexttoken;
-        fparams := TMathExprList.Create;
+        fparams := TKamScriptExpressionsList.Create;
         try
          if Lexer.token = tokLParen then
          repeat
@@ -176,23 +213,28 @@ var Lexer: TMathLexer;
          until Lexer.token <> tokComma;
          checkTokenIs(tokRParen, SErrRightParenExpected);
          Lexer.nexttoken;
-         result := TMathFunction.Create(fk, fparams);
+         result := FC.Create(fparams);
         finally fparams.free end;
        end;
-     else raise EMathParserError.Create(Lexer, SErrWrongFactor +
+     else raise EKamScriptParserError.Create(Lexer, SErrWrongFactor +
        ', but got ' + Lexer.TokenDescription);
     end;
    except result.free; raise end;
   end;
 
+var
+  I: Integer;
 begin
-  Lexer := TMathLexer.Create(s);
+  for I := 0 to Length(Variables) - 1 do
+    Variables[I].OwnedByParentExpression := false;
+
+  Lexer := TKamScriptLexer.Create(s);
   try
     result := nil;
     try
       result := Expression;
       if Lexer.token <> tokEnd then
-        raise EMathParserError.Create(Lexer,
+        raise EKamScriptParserError.Create(Lexer,
           Format(SErrKoniecExpected, [Lexer.TokenDescription]));
     except result.Free; raise end;
   finally Lexer.Free end;
@@ -202,12 +244,12 @@ end;
 
 function ParseConstantFloatExpression(const S: string): Float;
 var
-  Expr: TMathExpr;
+  Expr: TKamScriptExpression;
 begin
   try
-    Expr := ParseFloatExpression(s);
+    Expr := ParseFloatExpression(s, []);
   except
-    on E: EMathSyntaxError do
+    on E: EKamScriptSyntaxError do
     begin
       E.Message := 'Error when parsing constant expression: ' + E.Message;
       raise;
@@ -215,7 +257,7 @@ begin
   end;
 
   try
-    Result := Expr.Value(@ReturnNoVariable);
+    Result := (Expr.Execute as TKamScriptFloat).Value;
   finally Expr.Free end;
 end;
 

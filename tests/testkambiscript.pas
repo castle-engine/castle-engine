@@ -1,5 +1,5 @@
 {
-  Copyright 2007 Michalis Kamburelis.
+  Copyright 2007-2008 Michalis Kamburelis.
 
   This file is part of test_kambi_units.
 
@@ -18,7 +18,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-unit TestMathExpr;
+unit TestKambiScript;
 
 {$mode objfpc}{$H+}
 
@@ -28,22 +28,22 @@ uses
   Classes, SysUtils, fpcunit, testutils, testregistry;
 
 type
-  TTestMathExpr= class(TTestCase)
+  TTestKambiScript = class(TTestCase)
   published
     procedure Test1;
   end;
 
 implementation
 
-uses VectorMath, MathExpr, MathExprLexer, MathExprParser;
+uses VectorMath, KambiScript, KambiScriptLexer, KambiScriptParser;
 
-procedure TTestMathExpr.Test1;
+procedure TTestKambiScript.Test1;
 
-  procedure WritelnMathLexer(const s: string);
+  procedure WritelnLexer(const s: string);
   var
-    Lexer: TMathLexer;
+    Lexer: TKamScriptLexer;
   begin
-    Lexer := TMathLexer.Create(s);
+    Lexer := TKamScriptLexer.Create(s);
     repeat
       Writeln(Lexer.TokenDescription);
       Lexer.NextToken;
@@ -53,11 +53,11 @@ procedure TTestMathExpr.Test1;
 
 begin
 { Interactive test:
-  WritelnMathLexer('-10 * Pi');
+  WritelnLexer('-10 * Pi');
 }
-  Assert(FloatsEqual(EvalConstMathExpr('-10 * Pi'), -10 * Pi));
+  Assert(FloatsEqual(ParseConstantFloatExpression('-10 * Pi'), -10 * Pi));
 end;
 
 initialization
-  RegisterTest(TTestMathExpr);
+  RegisterTest(TTestKambiScript);
 end.

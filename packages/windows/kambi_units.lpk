@@ -231,8 +231,8 @@
         <UnitName Value="KambiZStream"/>
       </Item48>
       <Item49>
-        <Filename Value="..\..\base\mathexpr.pas"/>
-        <UnitName Value="MathExpr"/>
+        <Filename Value="..\..\base\kambiscript.pas"/>
+        <UnitName Value="KambiScript"/>
       </Item49>
       <Item50>
         <Filename Value="..\..\base\parseparametersunit.pas"/>
