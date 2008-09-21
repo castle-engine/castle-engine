@@ -37,7 +37,7 @@ uses KambiScript, KambiScriptLexer, Math;
 { Creates and returns instance of TKamScriptExpression,
   that represents parsed tree of expression in S.
 
-  @params(Variables contains a list of named values you want
+  @param(Variables contains a list of named values you want
     to allow in this expression.
 
     Important: They will all have
