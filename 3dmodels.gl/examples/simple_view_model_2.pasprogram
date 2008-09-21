@@ -16,6 +16,8 @@
   You should have received a copy of the GNU General Public License
   along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
 }
 
 { This is the next version of simple_view_model.pasprogram.
@@ -59,118 +61,116 @@ var
   { CameraRadius is needed for collision detection }
   CameraRadius: Single;
 
-procedure BeforeDraw(glwin: TGLWindow);
+procedure BeforeDraw(Glwin: TGLWindow);
 begin
- Scene.PrepareRender([tgAll], [prBoundingBox]);
+  Scene.PrepareRender([tgAll], [prBoundingBox]);
 end;
 
-procedure Draw(glwin: TGLWindow);
+procedure Draw(Glwin: TGLWindow);
 begin
- glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
- glLoadMatrix(glw.Navigator.Matrix);
- Scene.RenderFrustumOctree(Glw.NavWalker.Frustum, tgAll);
+  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+  glLoadMatrix(glw.Navigator.Matrix);
+  Scene.RenderFrustumOctree(Glw.NavWalker.Frustum, tgAll);
 end;
 
-procedure Init(glwin: TGLWindow);
+procedure Init(Glwin: TGLWindow);
 begin
- glEnable(GL_LIGHTING);
- glEnable(GL_LIGHT0);
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
 end;
 
-procedure Close(glwin: TGLWindow);
+procedure Close(Glwin: TGLWindow);
 begin
- Scene.CloseGL;
+  Scene.CloseGL;
 end;
 
-procedure Resize(glwin: TGLWindow);
+procedure Resize(Glwin: TGLWindow);
 
   procedure UpdateNavigatorProjectionMatrix;
   var
     ProjectionMatrix: TMatrix4f;
   begin
-   glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
-   Glw.NavWalker.ProjectionMatrix := ProjectionMatrix;
+    glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
+    Glw.NavWalker.ProjectionMatrix := ProjectionMatrix;
   end;
 
 begin
- glViewport(0, 0, glwin.Width, glwin.Height);
- ProjectionGLPerspective(45.0, glwin.Width/glwin.Height,
-   CameraRadius * 0.6,
-   Box3dMaxSize(Scene.BoundingBox) * 3.0);
+  glViewport(0, 0, glwin.Width, glwin.Height);
+  ProjectionGLPerspective(45.0, glwin.Width/glwin.Height,
+    CameraRadius * 0.6,
+    Box3dMaxSize(Scene.BoundingBox) * 3.0);
 
- UpdateNavigatorProjectionMatrix;
+  UpdateNavigatorProjectionMatrix;
 end;
 
 type
-  TDummy = class
+  THelperObj = class
     class function MoveAllowed(Navigator: TMatrixWalker;
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean;
   end;
 
-class function TDummy.MoveAllowed(Navigator: TMatrixWalker;
+class function THelperObj.MoveAllowed(Navigator: TMatrixWalker;
   const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const BecauseOfGravity: boolean): boolean;
 begin
- Result := Scene.DefaultTriangleOctree.MoveAllowed(
-   Navigator.CameraPos, ProposedNewPos, NewPos, CameraRadius,
-   NoItemIndex, nil);
+  Result := Scene.DefaultTriangleOctree.MoveAllowed(
+    Navigator.CameraPos, ProposedNewPos, NewPos, CameraRadius,
+    NoItemIndex, nil);
 end;
 
 var
   //i: Integer;
   CamPos, CamDir, CamUp, GravityUp: TVector3Single;
-  Dummy: TDummy;
 begin
- Parameters.CheckHigh(1);
- try
-  VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
+  Parameters.CheckHigh(1);
+  try
+    VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
 
-  Scene := TVRMLGLScene.Create(Parameters[1],
-    {roSceneAsAWhole} roSeparateShapeStates);
+    Scene := TVRMLGLScene.Create(Parameters[1],
+      {roSceneAsAWhole} roSeparateShapeStates);
 
-  Writeln(Scene.Info(true, true, false));
+    Writeln(Scene.Info(true, true, false));
 
-  { Uncomment this to get some info about scene nodes:
-  for i := 0 to Scene.ShapeStates.Count-1 do
-   with Scene.ShapeStates[i] do
-   begin
-    Writeln(Format('Shape name ''%10s'' (''%20s'') : LocalBBox = %50s, BBox = %50s',
-      [GeometryNode.NodeName, GeometryNode.NodeTypeName,
-       Box3dToNiceStr(LocalBoundingBox), Box3dToNiceStr(BoundingBox)]));
-   end;}
+    { Uncomment this to get some info about scene nodes:
+    for i := 0 to Scene.ShapeStates.Count-1 do
+      with Scene.ShapeStates[i] do
+      begin
+       Writeln(Format('Shape name ''%10s'' (''%20s'') : LocalBBox = %50s, BBox = %50s',
+         [GeometryNode.NodeName, GeometryNode.NodeTypeName,
+          Box3dToNiceStr(LocalBoundingBox), Box3dToNiceStr(BoundingBox)]));
+      end;}
 
-  { build octrees }
-  Progress.UserInterface := ProgressConsoleInterface;
-  Scene.DefaultTriangleOctree :=
-    Scene.CreateTriangleOctree('Building triangle octree');
-  Scene.DefaultShapeStateOctree :=
-    Scene.CreateShapeStateOctree('Building ShapeState octree');
+    { build octrees }
+    Progress.UserInterface := ProgressConsoleInterface;
+    Scene.DefaultTriangleOctree :=
+      Scene.CreateTriangleOctree('Building triangle octree');
+    Scene.DefaultShapeStateOctree :=
+      Scene.CreateShapeStateOctree('Building ShapeState octree');
 
-  Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
+    Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
 
-  { init Glw.Navigator }
-  Glw.Navigator := TMatrixWalker.Create(@Glw.PostRedisplayOnMatrixChanged);
-  Glw.NavWalker.Init(CamPos,
-    VectorAdjustToLength(CamDir, Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
-    CamUp, GravityUp,
-    0.0, 0.0 { unused, we don't use Gravity here });
+    { init Glw.Navigator }
+    Glw.Navigator := TMatrixWalker.Create(@Glw.PostRedisplayOnMatrixChanged);
+    Glw.NavWalker.Init(CamPos,
+      VectorAdjustToLength(CamDir, Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
+      CamUp, GravityUp,
+      0.0, 0.0 { unused, we don't use Gravity here });
 
-  { init collision detection }
-  if IsEmptyBox3d(Scene.BoundingBox) then
-   CameraRadius := 1.0 { any non-zero dummy value } else
-   CameraRadius := Box3dAvgSize(Scene.BoundingBox) * 0.01;
-  Dummy := nil;
-  Glw.NavWalker.OnMoveAllowed := @Dummy.MoveAllowed;
+    { init collision detection }
+    if IsEmptyBox3d(Scene.BoundingBox) then
+     CameraRadius := 1.0 { any non-zero dummy value } else
+     CameraRadius := Box3dAvgSize(Scene.BoundingBox) * 0.01;
+    Glw.NavWalker.OnMoveAllowed := @THelperObj(nil).MoveAllowed;
 
-  { allow the scene to use it's own lights }
-  Scene.Attributes.UseLights := true;
-  Scene.Attributes.FirstGLFreeLight := 1;
+    { allow the scene to use it's own lights }
+    Scene.Attributes.UseLights := true;
+    Scene.Attributes.FirstGLFreeLight := 1;
 
-  Glw.OnInit := @Init;
-  Glw.OnClose := @Close;
-  Glw.OnResize := @Resize;
-  Glw.OnBeforeDraw := @BeforeDraw;
-  Glw.InitLoop(ProgramName, @Draw);
- finally Scene.Free end;
+    Glw.OnInit := @Init;
+    Glw.OnClose := @Close;
+    Glw.OnResize := @Resize;
+    Glw.OnBeforeDraw := @BeforeDraw;
+    Glw.InitLoop(ProgramName, @Draw);
+  finally Scene.Free end;
 end.
