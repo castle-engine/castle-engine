@@ -1147,6 +1147,13 @@ type
     procedure ResetWorldTime(const NewValue: TKamTime);
     { @groupEnd }
 
+    { Set WorldTime to initial value after loading a world.
+
+      This honours VRML specification about VRML time origin,
+      and our extension
+      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_time_origin_at_load]. }
+    procedure ResetWorldTimeAtLoad;
+
     { Binding stack of X3DBackgroundNode nodes.
       All descend from TNodeX3DBackgroundNode class. }
     property BackgroundStack: TVRMLBindableStack read FBackgroundStack;
@@ -1179,7 +1186,7 @@ type
 
 implementation
 
-uses VRMLCameraUtils, KambiStringUtils, KambiLog, VRMLErrors;
+uses VRMLCameraUtils, KambiStringUtils, KambiLog, VRMLErrors, DateUtils;
 
 {$define read_implementation}
 {$I macprecalcvaluereturn.inc}
@@ -3088,6 +3095,19 @@ begin
   if RootNode <> nil then
     RootNode.EnumerateNodes(@ResetRoutesLastEventTime, false);
   InternalSetWorldTime(NewValue, 0);
+end;
+
+procedure TVRMLScene.ResetWorldTimeAtLoad;
+var
+  WorldTimeAtLoad: TKamTime;
+begin
+  if (NavigationInfoStack.Top <> nil) and
+     (NavigationInfoStack.Top is TNodeKambiNavigationInfo) and
+     TNodeKambiNavigationInfo(NavigationInfoStack.Top).FdTimeOriginAtLoad.Value
+    then
+    WorldTimeAtLoad := 0.0 else
+    WorldTimeAtLoad := DateTimeToUnix(Now);
+  ResetWorldTime(WorldTimeAtLoad);
 end;
 
 { geometry changes schedule -------------------------------------------------- }
