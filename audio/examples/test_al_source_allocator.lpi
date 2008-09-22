@@ -31,7 +31,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="8">
+    <Units Count="9">
       <Unit0>
         <Filename Value="test_al_source_allocator.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -90,20 +90,26 @@
         <TopLine Value="1"/>
         <UsageCount Value="10"/>
       </Unit7>
+      <Unit8>
+        <Filename Value="../../base/kambidynlib.pas"/>
+        <UnitName Value="KambiDynLib"/>
+        <CursorPos X="22" Y="210"/>
+        <TopLine Value="183"/>
+        <UsageCount Value="10"/>
+      </Unit8>
     </Units>
     <JumpHistory Count="0" HistoryIndex="-1"/>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="5"/>
+    <Version Value="8"/>
     <SearchPaths>
       <SrcPath Value="$(LazarusDir)/lcl/;$(LazarusDir)/lcl/interfaces/$(LCLWidgetType)/"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
-        <D2Extensions Value="False"/>
+        <SyntaxMode Value="Delphi"/>
         <IncludeAssertionCode Value="True"/>
         <CStyleMacros Value="True"/>
-        <DelphiCompat Value="True"/>
         <UseAnsiStrings Value="True"/>
       </SyntaxOptions>
     </Parsing>
@@ -114,7 +120,6 @@
         <OverflowChecks Value="True"/>
         <StackChecks Value="True"/>
       </Checks>
-      <Generate Value="Faster"/>
     </CodeGeneration>
     <Linking>
       <Debugging>

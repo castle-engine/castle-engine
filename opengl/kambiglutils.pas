@@ -282,10 +282,18 @@ var
 
 {$ifdef NEEDS_FOG_COORD_FIX}
 var
-  glFogCoordfEXT: procedure(coord: GLfloat); OPENGL_CALL
-  glFogCoorddEXT: procedure(coord: GLdouble); OPENGL_CALL
-  glFogCoordfvEXT: procedure(coord: PGLfloat); OPENGL_CALL
-  glFogCoorddvEXT: procedure(coord: PGLdouble); OPENGL_CALL
+  glFogCoordfEXT: procedure(coord: GLfloat);
+    {$ifdef OPENGL_CDECL} cdecl; {$endif}
+    {$ifdef OPENGL_STDCALL} stdcall; {$endif}
+  glFogCoorddEXT: procedure(coord: GLdouble);
+    {$ifdef OPENGL_CDECL} cdecl; {$endif}
+    {$ifdef OPENGL_STDCALL} stdcall; {$endif}
+  glFogCoordfvEXT: procedure(coord: PGLfloat);
+    {$ifdef OPENGL_CDECL} cdecl; {$endif}
+    {$ifdef OPENGL_STDCALL} stdcall; {$endif}
+  glFogCoorddvEXT: procedure(coord: PGLdouble);
+    {$ifdef OPENGL_CDECL} cdecl; {$endif}
+    {$ifdef OPENGL_STDCALL} stdcall; {$endif}
 {$endif}
 
 { Initialize all extensions and OpenGL versions.
@@ -348,7 +356,9 @@ procedure CheckGLErrors(const AdditionalComment: string {$ifdef DEFPARS} = '' {$
 { ReportGLError = raise EOpenGLError.Create(ErroCode);
   ReportGLError jest dobra aby ja zerejestrowac jako GLU_TESS_ERROR
   przez gluTessCallback albo GLU_ERROR przez gluQuadricCallback. }
-procedure ReportGLError(ErrorCode: TGLenum); OPENGL_CALLBACK_CALL
+procedure ReportGLError(ErrorCode: TGLenum);
+  {$ifdef OPENGL_CALLBACK_CDECL} cdecl; {$endif}
+  {$ifdef OPENGL_CALLBACK_STDCALL} stdcall; {$endif}
 
 { ------------------------------------------------------------------------------
   wersje funkcyjne procedur glGet*. Moga byc uzywane tylko do zastepowania glGet*
@@ -690,7 +700,9 @@ function RandomPolyStippleBy8(const BlackChance: Extended): TPolygonStipple;
 var
   { This is equivalent to glPolygonStipple, but takes
     PPolygonStipple as a parameter. }
-  KamGLPolygonStipple: procedure(mask: PPolygonStipple); OPENGL_CALL
+  KamGLPolygonStipple: procedure(mask: PPolygonStipple);
+    {$ifdef OPENGL_CDECL} cdecl; {$endif}
+    {$ifdef OPENGL_STDCALL} stdcall; {$endif}
 
 { others  --------------------------------------------------------------- }
 
@@ -1007,7 +1019,9 @@ procedure glFreeTexture(var Tex: TGLuint);
   the actual list number is LongWord(-100) = <some big integer around 4 * 10^9>.
   So you can say that Base was positive. }
 var
-  glListIBase: procedure(base: TGLint); OPENGL_CALL
+  glListIBase: procedure(base: TGLint);
+    {$ifdef OPENGL_CDECL} cdecl; {$endif}
+    {$ifdef OPENGL_STDCALL} stdcall; {$endif}
 
 { Set color buffer and depth buffer writeable or not writeable.
   This is just a shortcut for
@@ -1261,7 +1275,9 @@ begin
   raise EOpenGLError.Create(ErrorCode, AdditionalComment);
 end;
 
-procedure ReportGLError(ErrorCode: TGLenum); OPENGL_CALLBACK_CALL
+procedure ReportGLError(ErrorCode: TGLenum);
+  {$ifdef OPENGL_CALLBACK_CDECL} cdecl; {$endif}
+  {$ifdef OPENGL_CALLBACK_STDCALL} stdcall; {$endif}
 begin
  raise EOpenGLError.Create(ErrorCode);
 end;
