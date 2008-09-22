@@ -55,6 +55,9 @@ procedure URLExtractAnchor(var URL: string; out Anchor: string);
 }
 function RawUrlDecode(const S: string): string;
 
+function UrlProtocol(const S: string): string;
+function UrlDeleteProtocol(const S: string): string;
+
 implementation
 
 uses SysUtils, KambiStringUtils, DataErrors;
@@ -147,6 +150,26 @@ begin
   end;
 
   SetLength(Result, ResultI - 1);
+end;
+
+function UrlProtocol(const S: string): string;
+var
+  P: Integer;
+begin
+  P := Pos(':', S);
+  if P = 0 then
+    Result := '' else
+    Result := Copy(S, 1, P - 1);
+end;
+
+function UrlDeleteProtocol(const S: string): string;
+var
+  P: Integer;
+begin
+  P := Pos(':', S);
+  if P = 0 then
+    Result := S else
+    Result := SEnding(S, P + 1);
 end;
 
 end.

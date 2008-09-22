@@ -325,6 +325,27 @@ type
     more than once --- it will produce more than one entry in this array). }
   TDynProximitySensorInstanceArray = TDynArray_4;
 
+  TCompiledScriptHandler = procedure (
+    Value: TVRMLField; const Time: TKamTime) of object;
+
+  { @exclude }
+  TCompiledScriptHandlerInfo = record
+    Handler: TCompiledScriptHandler;
+    Name: string;
+  end;
+  { @exclude }
+  PCompiledScriptHandlerInfo = ^TCompiledScriptHandlerInfo;
+  { @exclude }
+  TDynArrayItem_5 = TCompiledScriptHandlerInfo;
+  { @exclude }
+  PDynArrayItem_5 = PCompiledScriptHandlerInfo;
+  {$define DYNARRAY_5_IS_STRUCT}
+  {$define DYNARRAY_5_IS_INIT_FINI_TYPE}
+  { @exclude }
+  {$I dynarray_5.inc}
+  { @exclude }
+  TDynCompiledScriptHandlerInfoArray = TDynArray_5;
+
   { VRML scene, a final class to handle VRML models
     (with the exception of rendering, which is delegated to descendants,
     like TVRMLGLScene for OpenGL).
@@ -494,6 +515,8 @@ type
       ProximitySensor box (center, size) (or it's transform) }
     LastViewerPosition: TVector3Single;
     IsLastViewerPosition: boolean;
+
+    FCompiledScriptHandlers: TDynCompiledScriptHandlerInfoArray;
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
     destructor Destroy; override;
@@ -1180,6 +1203,17 @@ type
 
     { Call when viewer position changed, to update sensors. }
     procedure ViewerPositionChanged(const ViewerPosition: TVector3Single);
+
+    { List of handlers for VRML Script node with "compiled:" protocol.
+      This is read-only, change this only by RegisterCompiledScript. }
+    property CompiledScriptHandlers: TDynCompiledScriptHandlerInfoArray
+      read FCompiledScriptHandlers;
+
+    { Register compiled script handler, for VRML Script node with
+      "compiled:" protocol.
+      See [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_script_compiled]. }
+    procedure RegisterCompiledScript(const HandlerName: string;
+      Handler: TCompiledScriptHandler);
   end;
 
 {$undef read_interface}
@@ -1194,6 +1228,7 @@ uses VRMLCameraUtils, KambiStringUtils, KambiLog, VRMLErrors, DateUtils;
 {$I dynarray_2.inc}
 {$I dynarray_3.inc}
 {$I dynarray_4.inc}
+{$I dynarray_5.inc}
 
 { TVRMLBindableStack ----------------------------------------------------- }
 
@@ -1354,6 +1389,8 @@ begin
  FNavigationInfoStack := TVRMLBindableStack.Create(Self);
  FViewpointStack := TVRMLBindableStack.Create(Self);
 
+ FCompiledScriptHandlers := TDynCompiledScriptHandlerInfoArray.Create;
+
  ChangedAll;
 end;
 
@@ -1371,6 +1408,8 @@ begin
    FreeAndNil(FManifoldEdges);
    FreeAndNil(FBorderEdges);
  end;
+
+ FreeAndNil(FCompiledScriptHandlers);
 
  FreeAndNil(FBackgroundStack);
  FreeAndNil(FFogStack);
@@ -1743,6 +1782,8 @@ begin
     - sensors (they don't affect actual content directly --- only when
       they are routed somewhere, and this will be eventually
       detected in another ChangedFields call)
+    - script (like for sensors; script nodes take care themselves
+      to react to events send to them)
   }
 
   if (Node is TNodeX3DNode) and
@@ -1756,7 +1797,8 @@ begin
      (Node is TNodeMetadataString) or
      (Node is TNodeWorldInfo) or
      (Node is TNodeX3DPointingDeviceSensorNode) or
-     (Node is TNodeTimeSensor) then
+     (Node is TNodeTimeSensor) or
+     (Node is TNodeScript) then
     Exit;
 
   { Test other changes: }
@@ -2653,7 +2695,9 @@ begin
   if Node is TNodeTimeSensor then
     TimeSensorNodes.AddIfNotExists(Node) else
   if Node is TNodeMovieTexture then
-    MovieTextureNodes.AddIfNotExists(Node);
+    MovieTextureNodes.AddIfNotExists(Node) else
+  if Node is TNodeScript then
+    TNodeScript(Node).Initialized := true;
 end;
 
 procedure TVRMLScene.TraverseForEvents(Node: TVRMLNode;
@@ -2687,6 +2731,9 @@ end;
 
 procedure TVRMLScene.UnCollectForEvents(Node: TVRMLNode);
 begin
+  if Node is TNodeScript then
+    TNodeScript(Node).Initialized := false;
+
   Node.ParentEventsProcessor := nil;
 end;
 
@@ -3222,6 +3269,19 @@ begin
       EndGeometryChangedSchedule;
     end;
   end;
+end;
+
+{ compiled scripts ----------------------------------------------------------- }
+
+procedure TVRMLScene.RegisterCompiledScript(const HandlerName: string;
+  Handler: TCompiledScriptHandler);
+var
+  HandlerInfo: PCompiledScriptHandlerInfo;
+begin
+  CompiledScriptHandlers.IncLength;
+  HandlerInfo := CompiledScriptHandlers.Pointers[CompiledScriptHandlers.High];
+  HandlerInfo^.Handler := Handler;
+  HandlerInfo^.Name := HandlerName;
 end;
 
 end.

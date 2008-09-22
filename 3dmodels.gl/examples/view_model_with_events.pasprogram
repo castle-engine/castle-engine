@@ -62,11 +62,13 @@ program view_model_with_events;
     and sometimes may make it unstable. OTOH, all works fast. }
 { $define REBUILD_OCTREE}
 
+{$apptype CONSOLE}
+
 uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLScene, VRMLGLScene, MatrixNavigation,
   ProgressUnit, ProgressConsole, KambiFilesUtils, VRMLTriangleOctree,
-  VRMLErrors, RaysWindow;
+  VRMLErrors, RaysWindow, VRMLFields, KambiTimeUtils;
 
 var
   Scene: TVRMLGLScene;
@@ -198,6 +200,9 @@ type
     class procedure MatrixChanged(Navigator: TMatrixNavigator);
     class procedure BoundViewpointVectorsChanged(Scene: TVRMLScene);
     class procedure GeometryChanged(Scene: TVRMLScene);
+
+    class procedure ScriptTouchInitialize(Value: TVRMLField; const Time: TKamTime);
+    class procedure ScriptTouch(Value: TVRMLField; const Time: TKamTime);
   end;
 
 class function THelperObj.MoveAllowed(Navigator: TMatrixWalker;
@@ -249,6 +254,19 @@ begin
 {$endif REBUILD_OCTREE}
 end;
 
+{ THelperObj.Script* methods below are only to demonstrate using
+  "compiled:" Script protocol, see
+  [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_script_compiled]. }
+class procedure THelperObj.ScriptTouchInitialize(Value: TVRMLField; const Time: TKamTime);
+begin
+  Writeln(Format('Script is initialized (timestamp: %f)', [Time]));
+end;
+
+class procedure THelperObj.ScriptTouch(Value: TVRMLField; const Time: TKamTime);
+begin
+  Writeln(Format('Touch! (timestamp: %f)', [Time]));
+end;
+
 var
   CamPos, CamDir, CamUp, GravityUp: TVector3Single;
 begin
@@ -287,11 +305,17 @@ begin
     Scene.Attributes.FirstGLFreeLight := 1;
 
     { initialize events procesing }
-    Scene.ProcessEvents := true;
     Scene.ResetWorldTimeAtLoad;
     Scene.OnPostRedisplay := @THelperObj(nil).PostRedisplay;
     Scene.OnBoundViewpointVectorsChanged := @THelperObj(nil).BoundViewpointVectorsChanged;
     Scene.OnGeometryChanged := @THelperObj(nil).GeometryChanged;
+
+    Scene.RegisterCompiledScript('touch_initialize',
+      @THelperObj(nil).ScriptTouchInitialize);
+    Scene.RegisterCompiledScript('touch',
+      @THelperObj(nil).ScriptTouch);
+
+    Scene.ProcessEvents := true;
 
     Glw.OnInit := @Init;
     Glw.OnClose := @Close;
