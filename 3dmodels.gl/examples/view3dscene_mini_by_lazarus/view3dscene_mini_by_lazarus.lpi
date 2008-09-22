@@ -7,6 +7,7 @@
       <MainUnit Value="0"/>
       <IconPath Value="./"/>
       <TargetFileExt Value=""/>
+      <ActiveEditorIndexAtStart Value="1"/>
     </General>
     <PublishOptions>
       <Version Value="2"/>
@@ -36,7 +37,7 @@
         <MinVersion Valid="True"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="14">
+    <Units Count="16">
       <Unit0>
         <Filename Value="view3dscene_mini_by_lazarus.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -61,15 +62,15 @@
       <Unit2>
         <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
         <UnitName Value="KambiGLControl"/>
-        <CursorPos X="31" Y="8"/>
+        <CursorPos X="69" Y="407"/>
         <TopLine Value="1"/>
         <UsageCount Value="11"/>
       </Unit2>
       <Unit3>
         <Filename Value="../../../opengl/kambiglutils.pas"/>
         <UnitName Value="KambiGLUtils"/>
-        <CursorPos X="3" Y="285"/>
-        <TopLine Value="270"/>
+        <CursorPos X="3" Y="286"/>
+        <TopLine Value="272"/>
         <UsageCount Value="10"/>
       </Unit3>
       <Unit4>
@@ -145,11 +146,34 @@
         <TopLine Value="908"/>
         <UsageCount Value="10"/>
       </Unit13>
+      <Unit14>
+        <Filename Value="../../../base/kambidynlib.pas"/>
+        <UnitName Value="KambiDynLib"/>
+        <CursorPos X="1" Y="221"/>
+        <TopLine Value="183"/>
+        <EditorIndex Value="0"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="../../../3dmodels/vrmlscene.pas"/>
+        <UnitName Value="VRMLScene"/>
+        <CursorPos X="1" Y="2256"/>
+        <TopLine Value="2232"/>
+        <EditorIndex Value="1"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit15>
     </Units>
-    <JumpHistory Count="0" HistoryIndex="-1"/>
+    <JumpHistory Count="1" HistoryIndex="0">
+      <Position1>
+        <Filename Value="../../../base/kambidynlib.pas"/>
+        <Caret Line="221" Column="1" TopLine="183"/>
+      </Position1>
+    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="5"/>
+    <Version Value="8"/>
     <SearchPaths>
       <SrcPath Value="$(LazarusDir)/lcl/;$(LazarusDir)/lcl/interfaces/$(LCLWidgetType)/"/>
     </SearchPaths>
@@ -167,7 +191,6 @@
         <OverflowChecks Value="True"/>
         <StackChecks Value="True"/>
       </Checks>
-      <Generate Value="Faster"/>
     </CodeGeneration>
     <Linking>
       <Debugging>
@@ -188,13 +211,16 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="2">
+    <Exceptions Count="3">
       <Item1>
         <Name Value="ECodetoolError"/>
       </Item1>
       <Item2>
         <Name Value="EFOpenError"/>
       </Item2>
+      <Item3>
+        <Name Value="BreakFirstViewpointFound"/>
+      </Item3>
     </Exceptions>
   </Debugging>
 </CONFIG>
