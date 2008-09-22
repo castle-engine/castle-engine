@@ -404,7 +404,7 @@ begin
   LastIdleStartTime := NewLastIdleStartTime;
 
   if ReallyUseNavigator and (Navigator is TMatrixNavigatorWithIdle) then
-    TMatrixNavigatorWithIdle(Navigator).Idle(FIdleSpeed, @KeysDown,
+    TMatrixNavigatorWithIdle(Navigator).Idle(FIdleSpeed, @KeysDown, nil,
       MousePressed);
 end;
 
