@@ -204,6 +204,7 @@ EXAMPLES_BASE_NAMES := \
   opengl/examples/test_menu_change_from_keyup \
   opengl/examples/bezier_surfaces/animate_surface \
   opengl/examples/bezier_surfaces/design_surface \
+  opengl/examples/interpolated_curves \
   3dgraph/examples/draw_space_filling_curve \
   3dmodels/examples/many2vrml \
   3dmodels/examples/test_blender_exported_hierarchy \

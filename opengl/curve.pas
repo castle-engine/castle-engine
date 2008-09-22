@@ -114,11 +114,9 @@ type
       and will be freed in destructor (so don't Free them yourself). }
     constructor Create(const ATBegin, ATEnd: Float;
       AXFunction, AYFunction, AZFunction: TKamScriptExpression;
-      ASegmentsForBoundingBox: Cardinal); overload;
-    constructor Create(const ATBegin, ATEnd: Float;
-      AXFunction, AYFunction, AZFunction: TKamScriptExpression
-      { ASegmentsForBoundingBox = 100 } ); overload;
-    { }
+      ATVariable: TKamScriptFloat;
+      ASegmentsForBoundingBox: Cardinal = 100);
+
     destructor Destroy; override;
   end;
 
@@ -337,6 +335,7 @@ end;
 
 constructor TKamScriptCurve.Create(const ATBegin, ATEnd: Float;
   AXFunction, AYFunction, AZFunction: TKamScriptExpression;
+  ATVariable: TKamScriptFloat;
   ASegmentsForBoundingBox: Cardinal);
 var i, k: Integer;
     P: TVector3Single;
@@ -345,6 +344,7 @@ begin
  FXFunction := AXFunction;
  FYFunction := AYFunction;
  FZFunction := AZFunction;
+ FTVariable := ATVariable;
 
  { calculate FBoundingBox }
  P := PointOfSegment(0, ASegmentsForBoundingBox); { = Point(TBegin) }
@@ -361,17 +361,11 @@ begin
  end;
 end;
 
-constructor TKamScriptCurve.Create(const ATBegin, ATEnd: Float;
-  AXFunction, AYFunction, AZFunction: TKamScriptExpression);
-begin
- Create(ATBegin, ATEnd, AXFunction, AYFunction, AZFunction, 100);
-end;
-
 destructor TKamScriptCurve.Destroy;
 begin
- FreeAndNil(FXFunction);
- FreeAndNil(FYFunction);
- FreeAndNil(FZFunction);
+ FXFunction.FreeByParentExpression;
+ FYFunction.FreeByParentExpression;
+ FZFunction.FreeByParentExpression;
  inherited;
 end;
 
