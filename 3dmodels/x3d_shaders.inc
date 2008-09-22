@@ -468,7 +468,7 @@ begin
   begin
     FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
     try
-      Result := FileToString(PathFromWWWBasePath(FullUrl));
+      Result := FileToString(FullUrl);
       FUsedFullUrl := FullUrl;
       Exit;
     except
