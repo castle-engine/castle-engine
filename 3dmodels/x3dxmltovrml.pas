@@ -387,7 +387,7 @@ const
               if IDecl.AccessType in Node.HasInterfaceDeclarations then
               begin
                 Node.InterfaceDeclarations.Add(IDecl);
-                IDecl.AddFieldOrEvent(Node);
+                Node.PostAddInterfaceDeclaration(IDecl);
               end else
               begin
                 FreeAndNil(IDecl);

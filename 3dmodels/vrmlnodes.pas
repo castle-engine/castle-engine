@@ -642,6 +642,7 @@ type
   TVRMLPrototypeNode = class;
   TVRMLPrototypeBasesList = class;
   TVRMLRoutesList = class;
+  TVRMLInterfaceDeclaration = class;
 
   TVRMLAccessType = (atInputOnly, atOutputOnly, atInitializeOnly, atInputOutput);
   TVRMLAccessTypes = set of TVRMLAccessType;
@@ -1721,6 +1722,16 @@ type
       purposes, it's only for events processing things! }
     property ParentEventsProcessor: TObject
       read FParentEventsProcessor write FParentEventsProcessor;
+
+    { This will be always called by VRML parsers after adding new item
+      to our InterfaceDeclarations.
+
+      In this class, this simply adds
+      IDecl.FieldOrEvent to our normal fields/events by IDecl.AddFieldOrEvent.
+      You may override this in subclasses to react in some special way
+      to new fields/events, for example Script node may register here
+      to receive notification when input event is received. }
+    procedure PostAddInterfaceDeclaration(IDecl: TVRMLInterfaceDeclaration); virtual;
   end;
 
   TObjectsListItem_3 = TVRMLNode;
@@ -3746,7 +3757,7 @@ begin
 
   { First free Fields and Events, before freeing InterfaceDeclarations.
     Reason: Fields and Events may contains references to InterfaceDeclarations
-    items (since parsing added them there by IDecl.AddFieldOrEvent(Node)).
+    items (since parsing added them there by PostAddInterfaceDeclaration(IDecl)).
     So these references have to be valid, and omitted by checking
     ParentInterfaceDeclaration <> nil. }
 
@@ -4274,7 +4285,7 @@ begin
     InterfaceDeclarations.Add(IDecl);
     IDecl.Parse(Lexer, true, true);
     IDecl.PositionInParent := APositionInParent;
-    IDecl.AddFieldOrEvent(Self);
+    PostAddInterfaceDeclaration(IDecl);
   end else
   if Lexer.TokenIsKeyword(vkPROTO) then
   begin
@@ -5240,7 +5251,7 @@ begin
       begin
         IDecl := InterfaceDeclarations[I].DeepCopy(Result, CopyState);
         Result.InterfaceDeclarations.Add(IDecl);
-        IDecl.AddFieldOrEvent(Result);
+        Result.PostAddInterfaceDeclaration(IDecl);
       end;
     end;
 
@@ -5307,6 +5318,11 @@ begin
   try
     Result := CopyState.DeepCopy(Self);
   finally FreeAndNil(CopyState); end;
+end;
+
+procedure TVRMLNode.PostAddInterfaceDeclaration(IDecl: TVRMLInterfaceDeclaration);
+begin
+  IDecl.AddFieldOrEvent(Self);
 end;
 
 { TVRMLNodeClassesList ------------------------------------------------------- }
