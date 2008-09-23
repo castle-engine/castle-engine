@@ -76,6 +76,7 @@ uses SysUtils, Math, Contnrs, KambiUtils, KambiClassUtils;
 {$define read_interface}
 
 type
+  { }
   TKamScriptValue = class;
 
   TKamScriptExpression = class
@@ -407,6 +408,30 @@ uses KambiScriptMathFunctions;
 {$define read_implementation}
 {$I objectslist_1.inc}
 
+{ FPC 2.2.2 has bug http://bugs.freepascal.org/view.php?id=12214
+  that strongly hits calculating invalid expressions.
+  This results in calls like
+    gen_function "ln(x)" -10 10 0.1
+    gen_function "sqrt(x)" -10 10 0.1
+  to fail after a couple of "break" lines with
+
+    gen_function: Exception EInvalidOp (at address 0x080488B5) :
+    Invalid floating point operation
+    An unhandled exception occurred at $080488B5 :
+    EInvalidOp : Invalid floating point operation
+      $080488B5  main,  line 127 of gen_function.pasprogram
+
+  I tried to make more elegant workarounds by doing dummy fp
+  operations at the end of function calculation or TryExecute, to cause
+  the exception, but it just looks like EInvalidOp is never cleared by
+  try..except block.
+
+  The only workaround seems to be to use Set8087CW to mask exceptions,
+  and then compare with NaN to make proper TryExecute implementation. }
+{$ifdef VER2_2_2}
+  {$define WORKAROUND_EXCEPTIONS_FOR_SCRIPT_EXPRESSIONS}
+{$endif}
+
 { TKamScriptExpression ------------------------------------------------------- }
 
 procedure TKamScriptExpression.FreeByParentExpression;
@@ -421,6 +446,13 @@ function TKamScriptExpression.TryExecute: TKamScriptValue;
 begin
   try
     Result := Execute;
+    {$ifdef WORKAROUND_EXCEPTIONS_FOR_SCRIPT_EXPRESSIONS}
+    {$I norqcheckbegin.inc}
+    if (Result is TKamScriptFloat) and
+       IsNan(TKamScriptFloat(Result).Value) then
+      Result := nil;
+    {$I norqcheckend.inc}
+    {$endif}
   except
     Result := nil;
   end;
@@ -982,6 +1014,10 @@ end;
 { unit init/fini ------------------------------------------------------------- }
 
 initialization
+  {$ifdef WORKAROUND_EXCEPTIONS_FOR_SCRIPT_EXPRESSIONS}
+  Set8087CW($133F);
+  {$endif}
+
   FunctionHandlers := TKamScriptFunctionHandlers.Create;
 
   { Register handlers for TKamScriptFloat for functions in
