@@ -605,7 +605,7 @@ uses
   {$ifdef GLWINDOW_LOGFILE} LogFile, {$endif}
   KambiUtils, KambiClassUtils, KambiGLUtils, Images, Keys, MatrixNavigation,
   RaysWindow, KambiStringUtils, KambiFilesUtils, KambiTimeUtils,
-  GLWindowFileFilters;
+  FileFilters;
 
 {$define read_interface}
 

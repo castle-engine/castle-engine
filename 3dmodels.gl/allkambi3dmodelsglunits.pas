@@ -11,6 +11,7 @@ interface
 
 uses
   backgroundgl,
+  glwindowvrmlbrowser,
   object3dopengl,
   vrmlglanimation,
   vrmlglheadlight,

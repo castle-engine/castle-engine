@@ -20,8 +20,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ File filters for TGLWindow.FileDialog. }
-unit GLWindowFileFilters;
+{ File filters, for TGLWindow.FileDialog and for Lazarus file dialogs. }
+unit FileFilters;
 
 interface
 
@@ -80,29 +80,11 @@ type
     procedure AddFiltersFromString(const FiltersStr: string);
   end;
 
-var
-  { File filters suitable for TGLWindow.FileDialog
-    if you want to choose a file that can be loaded/saved
-    by appropriate functions from Images unit.
-
-    These objects should be treated as read-only outside this unit.
-    Initialization / finalization of this unit automatically take care of them.
-
-    Development notes: Conceptually these would fit better inside Images unit,
-    not GLWindowFileFilters unit, but Images unit cannot depend on
-    opengl-related units.
-
-    @groupBegin }
-  LoadRGBImage_FileFilters: TFileFiltersList;
-  LoadImage_FileFilters: TFileFiltersList;
-  SaveImage_FileFilters: TFileFiltersList;
-  { @groupEnd }
-
 {$undef read_interface}
 
 implementation
 
-uses StrUtils, KambiStringUtils, Images;
+uses StrUtils, KambiStringUtils;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -207,87 +189,4 @@ begin
   until LastSeparator = 0;
 end;
 
-{ unit initialization / finalization ----------------------------------------- }
-
-procedure InitializeImagesFileFilters;
-
-  function CreateImagesFilters: TFileFiltersList;
-  begin
-    Result := TFileFiltersList.Create;
-    Result.AddFilter('All Files', ['*']);
-    Result.AddFilter('All Images', []);
-    Result.DefaultFilter := 1;
-  end;
-
-  procedure AddImageFormat(Filters: TFileFiltersList; Format: TImageFormatInfo);
-  var
-    F: TFileFilter;
-    ExtIndex: Integer;
-    Pattern: string;
-  begin
-    F := TFileFilter.Create;
-    Filters.Add(F);
-    F.Name := Format.FormatName + ' (';
-
-    for ExtIndex := 1 to Format.ExtsCount do
-    begin
-      Pattern := '*.' + Format.Exts[ExtIndex];
-
-      { add to "All images" filter }
-      Filters[Filters.DefaultFilter].Patterns.Append(Pattern);
-
-      { add to this filter }
-      F.Patterns.Append(Pattern);
-
-      { add to this filter visible name }
-      if ExtIndex <> 1 then F.Name := F.Name + ', ';
-      F.Name := F.Name + Pattern;
-    end;
-
-    F.Name := F.Name + ')';
-  end;
-
-var
-  Format: TImageFormat;
-begin
-  LoadRGBImage_FileFilters := CreateImagesFilters;
-  LoadImage_FileFilters := CreateImagesFilters;
-  SaveImage_FileFilters := CreateImagesFilters;
-
-  for Format := Low(Format) to High(Format) do
-  begin
-    if Assigned(ImageFormatInfos[Format].LoadRGB) then
-    begin
-      AddImageFormat(LoadRGBImage_FileFilters, ImageFormatInfos[Format]);
-
-      { For LoadImage, the allowed formats list is specified implicitly
-        by LoadImage documentation. As it happens, for now every image
-        can be loaded to RGBImage, and so every image can be loaded by
-        LoadImage.
-
-        So actually LoadImage_FileFilters is (for now) always equal
-        to LoadRGBImage_FileFilters. }
-
-      AddImageFormat(LoadImage_FileFilters, ImageFormatInfos[Format]);
-    end;
-
-    { For SaveImage, the allowed formats list is specified implicitly
-      by SaveImage documentation.
-
-      For now, this means that SaveImage can save anything that can be saved
-      to RGB format and additionally directly handles RGBE and PNG image formats.
-      As it happens, these last two formats can also be saved directly from
-      RGB pixel format, so for now check below is simple. }
-
-    if Assigned(ImageFormatInfos[Format].SaveRGB) then
-      AddImageFormat(SaveImage_FileFilters, ImageFormatInfos[Format]);
-  end;
-end;
-
-initialization
-  InitializeImagesFileFilters;
-finalization
-  FreeWithContentsAndNil(LoadRGBImage_FileFilters);
-  FreeWithContentsAndNil(LoadImage_FileFilters);
-  FreeWithContentsAndNil(SaveImage_FileFilters);
 end.

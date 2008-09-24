@@ -22,7 +22,6 @@ uses
   glw_navigated,
   glw_win,
   glwindow,
-  glwindowfilefilters,
   glwindowrecentmenu,
   glwininputs,
   glwinmessages,
