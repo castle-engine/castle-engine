@@ -3,50 +3,50 @@
 { we should include here OpenAL_altypes.inc but they are already included
   with OpenAL_al.inc }
 
-{$I OpenAL_alctypes.inc}
+{$I openal_alctypes.inc}
 
 { #define ALC_VERSION_0_1         1 }
 
 var
   { }
-  alcCreateContext : function( dev:PALCdevice; attrlist:PALint ):PALCcontext; alc_call
+  alcCreateContext : function( dev:PALCdevice; attrlist:PALint ):PALCcontext; extdecl;
 
   {*
    * There is no current context, as we can mix
    *  several active contexts. But al* calls
    *  only affect the current context.
    } { }
-  alcMakeContextCurrent : function( alcHandle:PALCcontext ):TALCenum; alc_call
+  alcMakeContextCurrent : function( alcHandle:PALCcontext ):TALCenum; extdecl;
 
   {
     Perform processing on a synced context, non-op on a asynchronous
     context.
   }
-  alcProcessContext : function( alcHandle:PALCcontext ):PALCcontext; alc_call
+  alcProcessContext : function( alcHandle:PALCcontext ):PALCcontext; extdecl;
 
   {
     Suspend processing on an asynchronous context, non-op on a
     synced context.
   }
-  alcSuspendContext : procedure( alcHandle:PALCcontext ); alc_call
+  alcSuspendContext : procedure( alcHandle:PALCcontext ); extdecl;
 
-  alcDestroyContext : function( alcHandle:PALCcontext ):TALCenum; alc_call
+  alcDestroyContext : function( alcHandle:PALCcontext ):TALCenum; extdecl;
 
-  alcGetError : function( dev:PALCdevice ):TALCenum; alc_call
+  alcGetError : function( dev:PALCdevice ):TALCenum; extdecl;
 
-  alcGetCurrentContext : function():PALCcontext; alc_call
+  alcGetCurrentContext : function():PALCcontext; extdecl;
 
-  alcOpenDevice : function( tokstr:PChar ):PALCdevice; alc_call
-  alcCloseDevice : procedure( dev:PALCdevice ); alc_call
+  alcOpenDevice : function( tokstr:PChar ):PALCdevice; extdecl;
+  alcCloseDevice : procedure( dev:PALCdevice ); extdecl;
 
-  alcIsExtensionPresent : function(device:PALCdevice; extName:PChar):TALboolean; alc_call
-  alcGetProcAddress : function(device:PALCdevice; funcName:PChar):PALvoid; alc_call
-  alcGetEnumValue : function(device:PALCdevice; enumName:PChar):TALenum; alc_call
+  alcIsExtensionPresent : function(device:PALCdevice; extName:PChar):TALboolean; extdecl;
+  alcGetProcAddress : function(device:PALCdevice; funcName:PChar):PALvoid; extdecl;
+  alcGetEnumValue : function(device:PALCdevice; enumName:PChar):TALenum; extdecl;
 
-  alcGetContextsDevice : function(context:PALCcontext):PALCdevice; alc_call
+  alcGetContextsDevice : function(context:PALCcontext):PALCdevice; extdecl;
 
   {*
    * Query functions
    } { }
-  alcGetString : function(deviceHandle:PALCdevice; token:TALenum):PChar; alc_call
-  alcGetIntegerv : procedure(deviceHandle:PALCdevice; token:TALenum; size:TALsizei; dest:PALint); alc_call
+  alcGetString : function(deviceHandle:PALCdevice; token:TALenum):PChar; extdecl;
+  alcGetIntegerv : procedure(deviceHandle:PALCdevice; token:TALenum; size:TALsizei; dest:PALint); extdecl;

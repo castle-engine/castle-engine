@@ -111,13 +111,13 @@ uses SysUtils, VectorMath;
   {$linklib pthread}
 {$endif}
 
-{$define al_call := cdecl;}
-{$define alc_call := cdecl;}
-{$define alut_call := cdecl;}
+{ Macro below must be named "extdecl", to workaround Lazarus code tools
+  known bug http://bugs.freepascal.org/view.php?id=7431 }
+{$define extdecl := cdecl}
 
-{$I OpenAL_al.inc}
-{$I OpenAL_alc.inc}
-{$I OpenAL_alut.inc}
+{$I openal_al.inc}
+{$I openal_alc.inc}
+{$I openal_alut.inc}
 
 { ---------------------------------------------------------------------------- }
 

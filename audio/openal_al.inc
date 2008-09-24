@@ -20,7 +20,7 @@
  * Or go to http://www.gnu.org/copyleft/lgpl.html
  *}
 
-{$I OpenAL_altypes.inc}
+{$I openal_altypes.inc}
 
 var
 
@@ -32,63 +32,63 @@ var
    }
 
   { Renderer State management. } { }
-  alEnable : procedure( capability:TALenum ); al_call
+  alEnable : procedure( capability:TALenum ); extdecl;
 
-  alDisable : procedure( capability:TALenum ); al_call
+  alDisable : procedure( capability:TALenum ); extdecl;
 
-  alIsEnabled : function( capability:TALenum ):TALboolean; al_call
+  alIsEnabled : function( capability:TALenum ):TALboolean; extdecl;
 
   {$ifndef OLD_OPENAL}
   { Application preferences for driver performance choices. }
-  alHint : procedure( target:TALenum ; mode:TALenum ); al_call
+  alHint : procedure( target:TALenum ; mode:TALenum ); extdecl;
   {$endif}
 
   { State retrieval. }
-  alGetBooleanv : procedure( param:TALenum; data:PALboolean ); al_call
+  alGetBooleanv : procedure( param:TALenum; data:PALboolean ); extdecl;
 
   { State retrieval. }
-  alGetIntegerv : procedure( param:TALenum; data:PALint  ); al_call
+  alGetIntegerv : procedure( param:TALenum; data:PALint  ); extdecl;
 
   { State retrieval. }
-  alGetFloatv : procedure( param:TALenum; data:PALfloat  ); al_call
+  alGetFloatv : procedure( param:TALenum; data:PALfloat  ); extdecl;
 
   { State retrieval. }
-  alGetDoublev : procedure( param:TALenum; data:PALdouble  ); al_call
+  alGetDoublev : procedure( param:TALenum; data:PALdouble  ); extdecl;
 
   { State retrieval. }
-  alGetString : function( param:TALenum ):PChar; al_call
+  alGetString : function( param:TALenum ):PChar; extdecl;
 
   { State retrieval through return value ( for compatibility ). }
-  alGetBoolean : function( param:TALenum ):TALboolean; al_call
-  alGetInteger : function( param:TALenum ):TALint; al_call
-  alGetFloat : function( param:TALenum ):TALfloat; al_call
-  alGetDouble : function( param:TALenum ):TALdouble; al_call
+  alGetBoolean : function( param:TALenum ):TALboolean; extdecl;
+  alGetInteger : function( param:TALenum ):TALint; extdecl;
+  alGetFloat : function( param:TALenum ):TALfloat; extdecl;
+  alGetDouble : function( param:TALenum ):TALdouble; extdecl;
 
   {
     Error support.
     Obtain the most recent error generated in the AL state machine.
   }
-  alGetError : function():TALenum; al_call
+  alGetError : function():TALenum; extdecl;
 
   {
     Extension support.
     Obtain the address of a function (usually an extension)
     with the name fname. All addresses are context-independent.
   }
-  alIsExtensionPresent : function( fname:PChar ):TALboolean; al_call
+  alIsExtensionPresent : function( fname:PChar ):TALboolean; extdecl;
 
   {
     Extension support.
     Obtain the address of a function (usually an extension)
     with the name fname. All addresses are context-independent.
   }
-  alGetProcAddress : function( fname:PChar ):Pointer; al_call
+  alGetProcAddress : function( fname:PChar ):Pointer; extdecl;
 
   {
     Extension support.
     Obtain the integer value of an enumeration (usually an extension) with the name ename.
   }
-  alGetEnumValue : function( ename:PChar ):TALenum; al_call
+  alGetEnumValue : function( ename:PChar ):TALenum; extdecl;
 
   {*
    * LISTENER
@@ -102,16 +102,16 @@ var
   {
     Listener Gain:  default 1.0f.
   }
-  alListenerf : procedure( pname:TALenum; param:TALfloat ); al_call
+  alListenerf : procedure( pname:TALenum; param:TALfloat ); extdecl;
 
-  alListeneri : procedure( pname:TALenum; param:TALint ); al_call
+  alListeneri : procedure( pname:TALenum; param:TALint ); extdecl;
 
   {*
    *
    * Listener Position:        ALfloat[3]
    * Listener Velocity:        ALfloat[3]
    } { }
-  alListener3f : procedure( pname:TALenum; f1, f2, f3:TALfloat ); al_call
+  alListener3f : procedure( pname:TALenum; f1, f2, f3:TALfloat ); extdecl;
 
   {*
    *
@@ -119,20 +119,20 @@ var
    * Listener Velocity:        ALfloat[3]
    * Listener Orientation:     ALfloat[6]  (forward and up vector).
    } { }
-  alListenerfv : procedure( pname:TALenum; param:PALfloat ); al_call
+  alListenerfv : procedure( pname:TALenum; param:PALfloat ); extdecl;
 
   {
     Retrieve listener information.
   }
-  alGetListeneri : procedure( pname:TALenum; value:PALint ); al_call
-  alGetListenerf : procedure( pname:TALenum; value:PALfloat ); al_call
+  alGetListeneri : procedure( pname:TALenum; value:PALint ); extdecl;
+  alGetListenerf : procedure( pname:TALenum; value:PALfloat ); extdecl;
 
   {$ifndef OLD_OPENAL}
-  alGetListeneriv : procedure( pname:TALenum; value:PALint ); al_call
+  alGetListeneriv : procedure( pname:TALenum; value:PALint ); extdecl;
   {$endif}
-  alGetListenerfv : procedure( pname:TALenum; values:PALfloat ); al_call
+  alGetListenerfv : procedure( pname:TALenum; values:PALfloat ); extdecl;
 
-  alGetListener3f : procedure( pname:TALenum; f1, f2, f3:PALfloat ); al_call
+  alGetListener3f : procedure( pname:TALenum; f1, f2, f3:PALfloat ); extdecl;
 
   {*
    * SOURCE
@@ -144,50 +144,50 @@ var
    }
 
   { Create Source objects. }
-  alGenSources : procedure( n:TALsizei; sources:PALuint ); al_call
+  alGenSources : procedure( n:TALsizei; sources:PALuint ); extdecl;
 
   { Delete Source objects. }
-  alDeleteSources : procedure( n:TALsizei; sources:PALuint ); al_call
+  alDeleteSources : procedure( n:TALsizei; sources:PALuint ); extdecl;
 
   { Verify a handle is a valid Source. }
-  alIsSource : function( sid:TALuint ):TALboolean; al_call
+  alIsSource : function( sid:TALuint ):TALboolean; extdecl;
 
   { Set an integer parameter for a Source object. }
-  alSourcei : procedure( sid:TALuint; param:TALenum; value:TALint ); al_call
-  alSourcef : procedure( sid:TALuint; param:TALenum; value:TALfloat ); al_call
-  alSource3f : procedure( sid:TALuint; param:TALenum; f1, f2, f3:TALfloat ); al_call
-  alSourcefv : procedure( sid:TALuint; param:TALenum; values:PALfloat ); al_call
+  alSourcei : procedure( sid:TALuint; param:TALenum; value:TALint ); extdecl;
+  alSourcef : procedure( sid:TALuint; param:TALenum; value:TALfloat ); extdecl;
+  alSource3f : procedure( sid:TALuint; param:TALenum; f1, f2, f3:TALfloat ); extdecl;
+  alSourcefv : procedure( sid:TALuint; param:TALenum; values:PALfloat ); extdecl;
 
   { Get an integer parameter for a Source object. }
-  alGetSourcei : procedure( sid:TALuint;  pname:TALenum; value:PALint  ); al_call
+  alGetSourcei : procedure( sid:TALuint;  pname:TALenum; value:PALint  ); extdecl;
   {$ifndef OLD_OPENAL}
-  alGetSourceiv : procedure( sid:TALuint;  pname:TALenum; values:PALint  ); al_call
+  alGetSourceiv : procedure( sid:TALuint;  pname:TALenum; values:PALint  ); extdecl;
   {$endif}
-  alGetSourcef : procedure( sid:TALuint; pname:TALenum; value:PALfloat ); al_call
-  alGetSourcefv : procedure( sid:TALuint; pname:TALenum; values:PALfloat ); al_call
+  alGetSourcef : procedure( sid:TALuint; pname:TALenum; value:PALfloat ); extdecl;
+  alGetSourcefv : procedure( sid:TALuint; pname:TALenum; values:PALfloat ); extdecl;
 
   { Deprecated, included for Win compatibility. @deprecated }
-  alGetSource3f : procedure( sid:TALuint; pname:TALenum; value1, value2, value3:PALfloat); al_call
+  alGetSource3f : procedure( sid:TALuint; pname:TALenum; value1, value2, value3:PALfloat); extdecl;
 
-  alSourcePlayv : procedure( ns:TALsizei; ids:PALuint ); al_call
-  alSourceStopv : procedure( ns:TALsizei; ids:PALuint ); al_call
-  alSourceRewindv : procedure( ns:TALsizei; ids:PALuint ); al_call
-  alSourcePausev : procedure( ns:TALsizei; ids:PALuint ); al_call
+  alSourcePlayv : procedure( ns:TALsizei; ids:PALuint ); extdecl;
+  alSourceStopv : procedure( ns:TALsizei; ids:PALuint ); extdecl;
+  alSourceRewindv : procedure( ns:TALsizei; ids:PALuint ); extdecl;
+  alSourcePausev : procedure( ns:TALsizei; ids:PALuint ); extdecl;
 
   { Activate a source, start replay. }
-  alSourcePlay : procedure( sid:TALuint ); al_call
+  alSourcePlay : procedure( sid:TALuint ); extdecl;
 
   {
     Pause a source,
     temporarily remove it from the mixer list.
   }
-  alSourcePause : procedure( sid:TALuint ); al_call
+  alSourcePause : procedure( sid:TALuint ); extdecl;
 
   {
     Rewind a source,
     set the source to play at the beginning.
   }
-  alSourceRewind : procedure( sid:TALuint ); al_call
+  alSourceRewind : procedure( sid:TALuint ); extdecl;
 
   {
     Stop a source,
@@ -196,7 +196,7 @@ var
     To remove a Source completely, it has to be
     deleted following Stop, or before Play.
   }
-  alSourceStop : procedure( sid:TALuint ); al_call
+  alSourceStop : procedure( sid:TALuint ); extdecl;
 
   {*
    * BUFFER
@@ -209,21 +209,21 @@ var
    }
 
   { Buffer object generation. }
-  alGenBuffers : procedure( n:TALsizei; buffers:PALuint ); al_call
+  alGenBuffers : procedure( n:TALsizei; buffers:PALuint ); extdecl;
 
-  alDeleteBuffers : procedure( n:TALsizei; buffers:PALuint ); al_call
-  alIsBuffer : function( buffer:TALuint ):TALboolean; al_call
+  alDeleteBuffers : procedure( n:TALsizei; buffers:PALuint ); extdecl;
+  alIsBuffer : function( buffer:TALuint ):TALboolean; extdecl;
 
   {
     Specify the data to be filled into a buffer.
   }
-  alBufferData : procedure( buffer:TALuint; format:TALenum; data:PALvoid; size, freq:TALsizei ); al_call
+  alBufferData : procedure( buffer:TALuint; format:TALenum; data:PALvoid; size, freq:TALsizei ); extdecl;
 
-  alGetBufferi : procedure( buffer:TALuint; param:TALenum; value:PALint    ); al_call
-  alGetBufferf : procedure( buffer:TALuint; param:TALenum; value:PALfloat ); al_call
+  alGetBufferi : procedure( buffer:TALuint; param:TALenum; value:PALint    ); extdecl;
+  alGetBufferf : procedure( buffer:TALuint; param:TALenum; value:PALfloat ); extdecl;
   {$ifndef OLD_OPENAL}
-  alGetBufferiv : procedure( buffer:TALuint; param:TALenum;  v:PALint); al_call
-  alGetBufferfv : procedure( buffer:TALuint; param:TALenum;  v:PALfloat); al_call
+  alGetBufferiv : procedure( buffer:TALuint; param:TALenum;  v:PALint); extdecl;
+  alGetBufferfv : procedure( buffer:TALuint; param:TALenum;  v:PALfloat); extdecl;
   {$endif}
 
   {*
@@ -249,28 +249,28 @@ var
     Allocate n environment ids and store them in the array environs.
     Returns the number of environments actually allocated.
   }
-  alGenEnvironmentIASIG : function( n:TALsizei;  environs:PALuint ):TALsizei; al_call
-  alDeleteEnvironmentIASIG : procedure( n:TALsizei;  environs:PALuint ); al_call
-  alIsEnvironmentIASIG : function( environ:TALuint ):TALboolean; al_call
-  alEnvironmentiIASIG : procedure( eid:TALuint; param:TALenum; value:TALint ); al_call
+  alGenEnvironmentIASIG : function( n:TALsizei;  environs:PALuint ):TALsizei; extdecl;
+  alDeleteEnvironmentIASIG : procedure( n:TALsizei;  environs:PALuint ); extdecl;
+  alIsEnvironmentIASIG : function( environ:TALuint ):TALboolean; extdecl;
+  alEnvironmentiIASIG : procedure( eid:TALuint; param:TALenum; value:TALint ); extdecl;
   { commented out by Kambi: is it not an error in OpenAL headers ?
     value:TALuint ? Should not it be value:TALfloat.
     As soon as I will know how to use this procedure I will test this.
-  alEnvironmentfIASIG : procedure( eid:TALuint; param:TALenum; value:TALuint ); al_call
+  alEnvironmentfIASIG : procedure( eid:TALuint; param:TALenum; value:TALuint ); extdecl;
   }
 
   {*
    * Queue stuff
    } { }
-  alSourceQueueBuffers : procedure( sid:TALuint; numEntries:TALsizei; bids:PALuint ); al_call
-  alSourceUnqueueBuffers : procedure( sid:TALuint; numEntries:TALsizei; bids:PALuint ); al_call
+  alSourceQueueBuffers : procedure( sid:TALuint; numEntries:TALsizei; bids:PALuint ); extdecl;
+  alSourceUnqueueBuffers : procedure( sid:TALuint; numEntries:TALsizei; bids:PALuint ); extdecl;
   {$ifndef OLD_OPENAL}
-  alQueuei : procedure( sid:TALuint; param:TALenum; value:TALint ); al_call
+  alQueuei : procedure( sid:TALuint; param:TALenum; value:TALint ); extdecl;
   {$endif}
 
   {*
    * Knobs and dials
    } { }
-  alDopplerFactor : procedure( value:TALfloat ); al_call
-  alDopplerVelocity : procedure( value:TALfloat ); al_call
-  alDistanceModel : procedure( distanceModel:TALenum ); al_call
+  alDopplerFactor : procedure( value:TALfloat ); extdecl;
+  alDopplerVelocity : procedure( value:TALfloat ); extdecl;
+  alDistanceModel : procedure( distanceModel:TALenum ); extdecl;
