@@ -119,6 +119,13 @@
   {$endif}
 {$endif}
 
-{$ifdef FPC} {$define SUPPORTS_INLINE} {$endif}
+{$ifdef FPC}
+  { We do *not* define inline functions/methods when compiling from
+    Lazarus package. This is to workaround FPC bug
+    http://bugs.freepascal.org/view.php?id=12223 }
+  {$ifndef KAMBI_FROM_LAZARUS_PACKAGE}
+    {$define SUPPORTS_INLINE}
+  {$endif}
+{$endif}
 
 {$endif not KambiConf_ALREADY_INCLUDED}

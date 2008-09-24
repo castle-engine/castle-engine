@@ -1143,12 +1143,12 @@ function VectorsEqual(const v1, v2: TVector4Double; const EqualityEpsilon: Doubl
 { czy dwa wektory sa rowne ? Uzywa operatora "=" wiec wymaga dokladnej
   rownosci. Zazwyczaj nie tego chcesz uzyc - zazwyczaj powinienes uzywac
   VectorsEqual. }
-function VectorsPerfectlyEqual(const v1, v2: TVector2Single): boolean; overload; inline;
-function VectorsPerfectlyEqual(const v1, v2: TVector2Double): boolean; overload; inline;
-function VectorsPerfectlyEqual(const v1, v2: TVector3Single): boolean; overload; inline;
-function VectorsPerfectlyEqual(const v1, v2: TVector3Double): boolean; overload; inline;
-function VectorsPerfectlyEqual(const v1, v2: TVector4Single): boolean; overload; inline;
-function VectorsPerfectlyEqual(const v1, v2: TVector4Double): boolean; overload; inline;
+function VectorsPerfectlyEqual(const v1, v2: TVector2Single): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function VectorsPerfectlyEqual(const v1, v2: TVector2Double): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function VectorsPerfectlyEqual(const v1, v2: TVector3Single): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function VectorsPerfectlyEqual(const v1, v2: TVector3Double): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function VectorsPerfectlyEqual(const v1, v2: TVector4Single): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function VectorsPerfectlyEqual(const v1, v2: TVector4Double): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 
 function MatricesEqual(const M1, M2: TMatrix3Single; const EqualityEpsilon: Single): boolean; overload;
 function MatricesEqual(const M1, M2: TMatrix3Double; const EqualityEpsilon: Double): boolean; overload;
