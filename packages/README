@@ -21,41 +21,6 @@ Usage:
 
 Mini-FAQ about these packages:
 
-- When compiling kambi_glwindow package, I'm getting error indicating that
-  KambiStringUtils unit must be recompiled.
-
-  I don't know the source of this problem, but the workaround is simple:
-  recompile kambi_units package explicitly, and then proceed to compiling
-  kambi_glwindow.
-
-  In other words, it may be needed to compile kambi_units package twice in a row
-  for everything to work Ok.
-
-- When compiling kambi_glwindow_navigated.lpk, I'm getting error
-  Fatal: Can't open include file "glwindow_winapi.inc"
-
-  This is similar to previous problem. When compiling kambi_glwindow_navigated.lpk,
-  Lazarus shouldn't even search for "glwindow_winapi.inc", as it's used
-  only by GLWindow unit, which is used by kambi_glwindow.lpk package
-  (*not* by kambi_glwindow_navigated.lpk).
-
-  Solution is analogous: go back to kambi_glwindow.lpk package,
-  compile it *once again*, and then return to kambi_glwindow_navigated.lpk
-  package and try to compile it.
-
-- When compiling kambi_glwindow_navigated.lpk, I'm getting error
-  "Error: Illegal unit name: GLWindow"
-
-  This is a manifestation of the same Lazarus problem as previous
-  two questions. This time with a very strange error message,
-  for reasons see
-  http://www.hu.freepascal.org/lists/fpc-devel/2008-February/013028.html and
-  http://bugs.freepascal.org/bug_view_page.php?bug_id=5942 .
-
-  Solution is the same: go back to kambi_glwindow.lpk package,
-  compile it *once again*, and then return to kambi_glwindow_navigated.lpk
-  package.
-
 - Do I need Lazarus to compile Kambi VRML game engine ?
 
   No. Packages here are provided to easily compile and use the engine
