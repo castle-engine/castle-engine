@@ -7,7 +7,7 @@
       <MainUnit Value="0"/>
       <IconPath Value="./"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="1"/>
+      <ActiveEditorIndexAtStart Value="0"/>
     </General>
     <PublishOptions>
       <Version Value="2"/>
@@ -23,21 +23,21 @@
     </RunParams>
     <RequiredPackages Count="4">
       <Item1>
-        <PackageName Value="LCL"/>
-      </Item1>
-      <Item2>
-        <PackageName Value="LazOpenGLContext"/>
-        <MinVersion Valid="True"/>
-      </Item2>
-      <Item3>
-        <PackageName Value="kambi_units"/>
-      </Item3>
-      <Item4>
         <PackageName Value="kambi_components"/>
         <MinVersion Valid="True"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="kambi_units"/>
+      </Item2>
+      <Item3>
+        <PackageName Value="LazOpenGLContext"/>
+        <MinVersion Valid="True"/>
+      </Item3>
+      <Item4>
+        <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="16">
+    <Units Count="17">
       <Unit0>
         <Filename Value="view3dscene_mini_by_lazarus.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -52,12 +52,14 @@
         <IsPartOfProject Value="True"/>
         <ResourceFilename Value="mainf.lrs"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="30" Y="130"/>
-        <TopLine Value="114"/>
+        <CursorPos X="52" Y="286"/>
+        <TopLine Value="269"/>
+        <EditorIndex Value="0"/>
         <UsageCount Value="33"/>
         <Bookmarks Count="1">
           <Item0 X="12" Y="130" ID="1"/>
         </Bookmarks>
+        <Loaded Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
@@ -149,31 +151,33 @@
       <Unit14>
         <Filename Value="../../../base/kambidynlib.pas"/>
         <UnitName Value="KambiDynLib"/>
-        <CursorPos X="1" Y="221"/>
-        <TopLine Value="183"/>
-        <EditorIndex Value="0"/>
+        <CursorPos X="1" Y="196"/>
+        <TopLine Value="180"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
       </Unit14>
       <Unit15>
         <Filename Value="../../../3dmodels/vrmlscene.pas"/>
         <UnitName Value="VRMLScene"/>
-        <CursorPos X="1" Y="2256"/>
-        <TopLine Value="2232"/>
-        <EditorIndex Value="1"/>
+        <CursorPos X="62" Y="20"/>
+        <TopLine Value="1"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
       </Unit15>
+      <Unit16>
+        <Filename Value="../../../base/kambiutils_miscella.inc"/>
+        <CursorPos X="1" Y="233"/>
+        <TopLine Value="217"/>
+        <UsageCount Value="10"/>
+      </Unit16>
     </Units>
     <JumpHistory Count="1" HistoryIndex="0">
       <Position1>
-        <Filename Value="../../../base/kambidynlib.pas"/>
-        <Caret Line="221" Column="1" TopLine="183"/>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="286" Column="52" TopLine="269"/>
       </Position1>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="8"/>
+    <Version Value="5"/>
     <SearchPaths>
       <SrcPath Value="$(LazarusDir)/lcl/;$(LazarusDir)/lcl/interfaces/$(LCLWidgetType)/"/>
     </SearchPaths>

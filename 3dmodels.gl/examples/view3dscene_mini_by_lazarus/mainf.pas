@@ -97,7 +97,7 @@ begin
   Navigator.Init(
     CamPos,
     VectorAdjustToLength(CamDir,
-      Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
+      Box3dAvgSize(Scene.BoundingBox, 1.0) * 0.01 * 0.4),
     CamUp, GravityUp,
     0.0, 0.0 { unused, we don't use Gravity here });
 
@@ -282,8 +282,8 @@ begin
   begin
     ProjectionGLPerspective(45.0,
       GLControl.Width / GLControl.Height,
-      Box3dMaxSize(Scene.BoundingBox) * 0.01,
-      Box3dMaxSize(Scene.BoundingBox) * 20.0);
+      Box3dMaxSize(Scene.BoundingBox, 1.0) * 0.01,
+      Box3dMaxSize(Scene.BoundingBox, 1.0) * 20.0);
   end;
 
   UpdateNavigatorProjectionMatrix;

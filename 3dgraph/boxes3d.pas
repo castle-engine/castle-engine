@@ -82,6 +82,12 @@ function Box3dSizeY(const box: TBox3d): Single;
 function Box3dSizeZ(const box: TBox3d): Single;
 { @groupEnd }
 
+{ Calculate average size of TBox3d, or return EmptyBoxSize is box empty. }
+function Box3dAvgSize(const Box: TBox3d; const EmptyBoxSize: Single): Single;
+
+{ Calculate maximum size of TBox3d, or return EmptyBoxSize is box empty. }
+function Box3dMaxSize(const box: TBox3d; const EmptyBoxSize: Single): Single;
+
 { This decreases Box[0, 0], Box[0, 1], Box[0, 2] by Expand
    and increases Box[1, 0], Box[1, 1], Box[1, 2] by Expand.
   So you get Box with all sizes increased by 2 * Expand.
@@ -394,12 +400,32 @@ begin
             (Box[1, 2]-Box[0, 2]))/3;
 end;
 
-function Box3dMaxSize(const box: TBox3d): Single;
-var sizes: TVector3Single;
+function Box3dAvgSize(const Box: TBox3d; const EmptyBoxSize: Single): Single;
 begin
- Check(not IsEmptyBox3d(Box), 'Empty box 3d - no maximum size');
- sizes := Box3dSizes(box);
- result := sizes[MaxVectorCoord(sizes)];
+  if IsEmptyBox3d(Box) then
+    Result := EmptyBoxSize else
+    Result := ((Box[1, 0]-Box[0, 0]) +
+               (Box[1, 1]-Box[0, 1]) +
+               (Box[1, 2]-Box[0, 2]))/3;
+end;
+
+function Box3dMaxSize(const box: TBox3d): Single;
+begin
+  Check(not IsEmptyBox3d(Box), 'Empty box 3d - no maximum size');
+  Result := Max(
+     Box[1, 0] - Box[0, 0],
+     Box[1, 1] - Box[0, 1],
+     Box[1, 2] - Box[0, 2]);
+end;
+
+function Box3dMaxSize(const box: TBox3d; const EmptyBoxSize: Single): Single;
+begin
+  if IsEmptyBox3d(Box) then
+    Result := EmptyBoxSize else
+    Result := Max(
+      Box[1, 0] - Box[0, 0],
+      Box[1, 1] - Box[0, 1],
+      Box[1, 2] - Box[0, 2]);
 end;
 
 function Box3dMinSize(const box: TBox3d): Single;
