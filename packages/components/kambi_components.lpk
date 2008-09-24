@@ -22,7 +22,7 @@
     </CompilerOptions>
     <Description Value="Kambi VRML game engine - Lazarus components.
 "/>
-    <Files Count="2">
+    <Files Count="3">
       <Item1>
         <Filename Value="kambiglcontrol.pas"/>
         <HasRegisterProc Value="True"/>
@@ -33,6 +33,10 @@
         <HasRegisterProc Value="True"/>
         <UnitName Value="KambiVRMLBrowser"/>
       </Item2>
+      <Item3>
+        <Filename Value="kambilclutils.pas"/>
+        <UnitName Value="kambilclutils"/>
+      </Item3>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="3">

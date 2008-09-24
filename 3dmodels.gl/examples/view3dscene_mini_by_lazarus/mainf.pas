@@ -69,7 +69,7 @@ implementation
 uses LCLType, VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer,
   GL, GLU, GLExt, KambiClassUtils, KambiUtils, Object3dAsVRML,
   KambiGLUtils, VRMLScene, KambiFilesUtils,
-  OpenGLInformation;
+  OpenGLInformation, KambiLCLUtils;
 
 procedure TMain.OpenScene(const FileName: string);
 begin
@@ -107,6 +107,8 @@ end;
 
 procedure TMain.FormCreate(Sender: TObject);
 begin
+  FileFiltersToOpenDialog(LoadAsVRML_FileFilters, OpenDialog1);
+
   UpdateCaption;
 
   MenuFocusGLControl.ShortCut := ShortCut(VK_Escape, []);
