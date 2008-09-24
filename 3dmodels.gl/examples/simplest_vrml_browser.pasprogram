@@ -1,0 +1,67 @@
+{
+  Copyright 2008 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
+}
+
+{ This opens VRML/X3D file, renders it, allows to move in the scene
+  (with Walk navigation, see view3dscene docs:
+  [http://vrmlengine.sourceforge.net/view3dscene.php]) and makes
+  events working.
+
+  Run with $1 command-line option as 3D model filename. For example,
+    ./simplest_vrml_browser ../../../kambi_vrml_test_suite/x3d/fog_animate_transform.x3dv
+  (get kambi_vrml_test_suite from
+  [http://vrmlengine.sourceforge.net/kambi_vrml_test_suite.php]).
+
+  This program is a minimal VRML browser, passing all user interactions
+  to the Scene (so that they can be processed by VRML events).
+  If you're looking for more low-level access, TGLWindowVRMLBrowser
+  may be too simple and not provide you all the flexibility.
+  In this case, you can use TVRMLGLScene directly,
+  see simple_view_model.pasprogram and simple_view_model_2.pasprogram
+  examples.
+}
+
+program simplest_vrml_browser;
+
+{$apptype CONSOLE}
+
+uses KambiUtils, GLWindowVRMLBrowser, ProgressUnit, ProgressConsole, VRMLErrors;
+
+var
+  BrowserWindow: TGLWindowVRMLBrowser;
+
+begin
+  Parameters.CheckHigh(1);
+
+  VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
+  Progress.UserInterface := ProgressConsoleInterface;
+
+  BrowserWindow := TGLWindowVRMLBrowser.Create;
+  try
+    BrowserWindow.Load(Parameters[1]);
+
+    Writeln(BrowserWindow.Scene.Info(true, true, false));
+
+    BrowserWindow.Scene.ProcessEvents := true;
+
+    BrowserWindow.InitLoop;
+  finally BrowserWindow.Free end;
+end.

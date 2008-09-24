@@ -219,7 +219,8 @@ EXAMPLES_BASE_NAMES := \
   3dmodels.gl/examples/plane_mirror_and_shadow \
   3dmodels.gl/examples/change_vrml_by_code \
   3dmodels.gl/examples/change_vrml_by_code_2 \
-  3dmodels.gl/examples/view_model_with_events
+  3dmodels.gl/examples/vrml_browser_script_compiled \
+  3dmodels.gl/examples/simplest_vrml_browser
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   audio/examples/test_al_source_allocator \
