@@ -756,7 +756,8 @@ type
       will be configurable in the future by some parameter.)
 
       If ProgressTitle <> '' (and progress is not active already,
-      so we avoid starting "progress bar within progress bar")
+      so we avoid starting "progress bar within progress bar",
+      and progress user interface is initialized)
       then it uses @link(Progress) while building octree.
 
       Remember that such octree has a reference to Shape nodes
@@ -2170,7 +2171,9 @@ begin
  try
   result.OctreeItems.AllowedCapacityOverflow := TrianglesCount(false);
   try
-   if (ProgressTitle <> '') and (not Progress.Active) then
+   if (ProgressTitle <> '') and
+      (Progress.UserInterface <> nil) and
+      (not Progress.Active) then
    begin
     Progress.Init(TrianglesCount(false), ProgressTitle, true);
     try
@@ -2205,7 +2208,9 @@ begin
    BoundingBox, ShapeStates);
  try
 
-  if (ProgressTitle <> '') and (not Progress.Active) then
+  if (ProgressTitle <> '') and
+     (Progress.UserInterface <> nil) and
+     (not Progress.Active) then
   begin
    Progress.Init(ShapeStates.Count, ProgressTitle, true);
    try

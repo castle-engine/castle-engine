@@ -20,9 +20,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ TGLWindowVRMLBrowser class, simple VRML browser in a single
-  TGLWindow window. }
-unit GLWindowVRMLBrowser;
+{ TKamVRMLBrowser component, simple VRML browser in a Lazarus component. }
+unit KambiVRMLBrowser;
 
 { This is the weak point of our engine right now: updating octree on changes
   of geometry. It takes some time, as we currently just rebuild the octree.
@@ -44,10 +43,11 @@ unit GLWindowVRMLBrowser;
 
 interface
 
-uses VectorMath, GLWindow, VRMLNodes, VRMLGLScene, VRMLScene, MatrixNavigation;
+uses Classes, KambiGLControl, VectorMath,
+  VRMLNodes, VRMLGLScene, VRMLScene, MatrixNavigation;
 
 type
-  { A simple VRML browser in a window. This manages TVRMLGLScene,
+  { A simple VRML browser as a Lazarus component. This manages TVRMLGLScene,
     navigator (only Walk navigation) and octrees.
     You simply call @link(Load) method and all is done.
 
@@ -59,10 +59,10 @@ type
     a simple "glue" between the key components of our engine.
     For specialized cases, more complex scenarios may be needed.
 
-    If you're looking for Lazarus component that does basically the same
-    (easy VRML browser), you want to check out TKamVRMLBrowser
-    (file @code(../packages/components/kambivrmlbrowser.pas)). }
-  TGLWindowVRMLBrowser = class(TGLWindowNavigated)
+    If you're looking for GLWindow descendants that does basically the same
+    (easy VRML browser), you want to check out TGLWindowVRMLBrowser
+    (file @code(../../3dmodels.gl/glwindowvrmlbrowser.pas)). }
+  TKamVRMLBrowser = class(TKamOpenGLControl)
   private
     FScene: TVRMLGLScene;
 
@@ -78,8 +78,20 @@ type
     procedure MatrixChanged(ANavigator: TMatrixNavigator);
     procedure BoundViewpointVectorsChanged(Scene: TVRMLScene);
     procedure GeometryChanged(Scene: TVRMLScene);
+  protected
+    procedure Paint; override;
+    procedure DoGLContextInit; override;
+    procedure DoGLContextClose; override;
+
+    {
+    procedure EventIdle; override;
+    procedure EventMouseDown(Btn: TMouseButton); override;
+    procedure EventMouseUp(Btn: TMouseButton); override;
+    procedure EventMouseMove(NewX, NewY: Integer); override;
+    procedure EventKeyDown(Key: TKey; C: char); override;
+    procedure EventKeyUp(Key: TKey); override;}
   public
-    constructor Create;
+    constructor Create(AOwner :TComponent); override;
     destructor Destroy; override;
 
     { Creates new @link(Scene), with new navigator and such. }
@@ -88,27 +100,26 @@ type
 
     property Scene: TVRMLGLScene read FScene;
 
-    procedure EventBeforeDraw; override;
-    procedure EventDraw; override;
-    procedure EventInit; override;
-    procedure EventClose; override;
-    procedure EventIdle; override;
-    procedure EventResize; override;
-    procedure EventMouseDown(Btn: TMouseButton); override;
-    procedure EventMouseUp(Btn: TMouseButton); override;
-    procedure EventMouseMove(NewX, NewY: Integer); override;
-    procedure EventKeyDown(Key: TKey; C: char); override;
-    procedure EventKeyUp(Key: TKey); override;
+    procedure Resize; override;
   end;
+
+procedure Register;
 
 implementation
 
 uses Boxes3d, VRMLOpenGLRenderer, GL, GLU,
-  KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
+  KambiClassUtils, KambiUtils, SysUtils, Object3dAsVRML,
   KambiGLUtils, KambiFilesUtils, VRMLTriangleOctree,
   RaysWindow, BackgroundGL;
 
-constructor TGLWindowVRMLBrowser.Create;
+procedure Register;
+begin
+  RegisterComponents('Kambi',[TKamVRMLBrowser]);
+end;
+
+{ TKamVRMLBrowser ----------------------------------------------------------- }
+
+constructor TKamVRMLBrowser.Create(AOwner :TComponent);
 begin
   inherited;
 
@@ -118,18 +129,18 @@ begin
   Load(nil, true);
 end;
 
-destructor TGLWindowVRMLBrowser.Destroy;
+destructor TKamVRMLBrowser.Destroy;
 begin
   FreeAndNil(Scene);
   inherited;
 end;
 
-procedure TGLWindowVRMLBrowser.Load(const SceneFileName: string);
+procedure TKamVRMLBrowser.Load(const SceneFileName: string);
 begin
   Load(LoadAsVRML(SceneFileName, false), true);
 end;
 
-procedure TGLWindowVRMLBrowser.Load(ARootNode: TVRMLNode; const OwnsRootNode: boolean);
+procedure TKamVRMLBrowser.Load(ARootNode: TVRMLNode; const OwnsRootNode: boolean);
 var
   CamPos, CamDir, CamUp, GravityUp: TVector3Single;
 begin
@@ -167,13 +178,15 @@ begin
   Scene.Attributes.FirstGLFreeLight := 1;
 end;
 
-procedure TGLWindowVRMLBrowser.EventBeforeDraw;
+{ TODO: nowhere to put this for TKamVRMLBrowser. Needed?
+procedure TKamVRMLBrowser.EventBeforeDraw;
 begin
   inherited;
   Scene.PrepareRender([tgAll], [prBackground, prBoundingBox]);
 end;
+}
 
-procedure TGLWindowVRMLBrowser.EventDraw;
+procedure TKamVRMLBrowser.Paint;
 begin
   inherited;
 
@@ -187,37 +200,43 @@ begin
 
   glLoadMatrix(Navigator.Matrix);
   Scene.RenderFrustumOctree(NavWalker.Frustum, tgAll);
+
+  SwapBuffers;
 end;
 
-procedure TGLWindowVRMLBrowser.EventInit;
+procedure TKamVRMLBrowser.DoGLContextInit;
 begin
   inherited;
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
+  { Manually call Resize now, to set projection. }
+  Resize;
 end;
 
-procedure TGLWindowVRMLBrowser.EventClose;
+procedure TKamVRMLBrowser.DoGLContextClose;
 begin
   Scene.CloseGL;
   inherited;
 end;
 
-procedure TGLWindowVRMLBrowser.EventIdle;
+{TODO:
+procedure TKamVRMLBrowser.EventIdle;
 begin
   inherited;
   Scene.IncreaseWorldTime(IdleSpeed);
 end;
+}
 
 const
   AngleOfViewY = 45.0;
 
-function TGLWindowVRMLBrowser.AngleOfViewX: Single;
+function TKamVRMLBrowser.AngleOfViewX: Single;
 begin
   Result := AdjustViewAngleDegToAspectRatio(
     AngleOfViewY, Width / Height);
 end;
 
-procedure TGLWindowVRMLBrowser.EventResize;
+procedure TKamVRMLBrowser.Resize;
 
   procedure UpdateNavigatorProjectionMatrix;
   var
@@ -231,6 +250,8 @@ var
   WalkProjectionNear, WalkProjectionFar: Single;
 begin
   inherited;
+  if not MakeCurrent then Exit;
+
   glViewport(0, 0, Width, Height);
 
   WalkProjectionNear := CameraRadius * 0.6;
@@ -246,21 +267,22 @@ begin
   UpdateNavigatorProjectionMatrix;
 end;
 
-procedure TGLWindowVRMLBrowser.EventMouseDown(Btn: TMouseButton);
+(*TODO:
+procedure TKamVRMLBrowser.EventMouseDown(Btn: TMouseButton);
 begin
   inherited;
   if Btn = mbLeft then
     Scene.PointingDeviceActive := true;
 end;
 
-procedure TGLWindowVRMLBrowser.EventMouseUp(Btn: TMouseButton);
+procedure TKamVRMLBrowser.EventMouseUp(Btn: TMouseButton);
 begin
   inherited;
   if Btn = mbLeft then
     Scene.PointingDeviceActive := false;
 end;
 
-procedure TGLWindowVRMLBrowser.EventMouseMove(NewX, NewY: Integer);
+procedure TKamVRMLBrowser.EventMouseMove(NewX, NewY: Integer);
 var
   Ray0, RayVector: TVector3Single;
   OverPoint: TVector3Single;
@@ -300,19 +322,20 @@ begin
   end;
 end;
 
-procedure TGLWindowVRMLBrowser.EventKeyDown(Key: TKey; C: char);
+procedure TKamVRMLBrowser.EventKeyDown(Key: TKey; C: char);
 begin
   inherited;
   Scene.KeyDown(Key, C, @KeysDown);
 end;
 
-procedure TGLWindowVRMLBrowser.EventKeyUp(Key: TKey);
+procedure TKamVRMLBrowser.EventKeyUp(Key: TKey);
 begin
   inherited;
   Scene.KeyUp(Key);
 end;
+*)
 
-function TGLWindowVRMLBrowser.MoveAllowed(ANavigator: TMatrixWalker;
+function TKamVRMLBrowser.MoveAllowed(ANavigator: TMatrixWalker;
   const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const BecauseOfGravity: boolean): boolean;
 begin
@@ -321,12 +344,12 @@ begin
     NoItemIndex, nil);
 end;
 
-procedure TGLWindowVRMLBrowser.ScenePostRedisplay(Scene: TVRMLScene);
+procedure TKamVRMLBrowser.ScenePostRedisplay(Scene: TVRMLScene);
 begin
-  PostRedisplay;
+  Invalidate;
 end;
 
-procedure TGLWindowVRMLBrowser.MatrixChanged(ANavigator: TMatrixNavigator);
+procedure TKamVRMLBrowser.MatrixChanged(ANavigator: TMatrixNavigator);
 begin
   { Navigator.OnMatrixChanged callback is initialized in constructor
     before Scene is initialized. So to be on the safest side, we check
@@ -334,10 +357,10 @@ begin
 
   if Scene <> nil then
     Scene.ViewerPositionChanged(NavWalker.CameraPos);
-  PostRedisplay;
+  Invalidate;
 end;
 
-procedure TGLWindowVRMLBrowser.BoundViewpointVectorsChanged(Scene: TVRMLScene);
+procedure TKamVRMLBrowser.BoundViewpointVectorsChanged(Scene: TVRMLScene);
 var
   CameraPos: TVector3Single;
   CameraDir: TVector3Single;
@@ -349,7 +372,7 @@ begin
   NavWalker.SetInitialCameraLookDir(CameraPos, CameraDir, CameraUp, true);
 end;
 
-procedure TGLWindowVRMLBrowser.GeometryChanged(Scene: TVRMLScene);
+procedure TKamVRMLBrowser.GeometryChanged(Scene: TVRMLScene);
 begin
 {$ifdef REBUILD_OCTREE}
   Scene.PointingDeviceClear;
