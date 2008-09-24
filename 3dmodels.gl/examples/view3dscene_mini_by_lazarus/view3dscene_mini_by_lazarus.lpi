@@ -37,35 +37,36 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="17">
+    <Units Count="20">
       <Unit0>
         <Filename Value="view3dscene_mini_by_lazarus.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="view3dscene_mini_by_lazarus"/>
         <CursorPos X="45" Y="16"/>
         <TopLine Value="1"/>
-        <UsageCount Value="33"/>
+        <UsageCount Value="34"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
         <ComponentName Value="Main"/>
         <IsPartOfProject Value="True"/>
+        <ResourceBaseClass Value="Form"/>
         <ResourceFilename Value="mainf.lrs"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="52" Y="286"/>
-        <TopLine Value="269"/>
+        <CursorPos X="57" Y="137"/>
+        <TopLine Value="110"/>
         <EditorIndex Value="0"/>
-        <UsageCount Value="33"/>
+        <UsageCount Value="34"/>
         <Bookmarks Count="1">
-          <Item0 X="12" Y="130" ID="1"/>
+          <Item0 X="12" Y="125" ID="1"/>
         </Bookmarks>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
         <UnitName Value="KambiGLControl"/>
-        <CursorPos X="69" Y="407"/>
-        <TopLine Value="1"/>
+        <CursorPos X="1" Y="228"/>
+        <TopLine Value="205"/>
         <UsageCount Value="11"/>
       </Unit2>
       <Unit3>
@@ -125,12 +126,12 @@
         <UnitName Value="OpenGLInformation"/>
         <CursorPos X="30" Y="36"/>
         <TopLine Value="18"/>
-        <UsageCount Value="21"/>
+        <UsageCount Value="22"/>
       </Unit10>
       <Unit11>
         <Filename Value="mainf.lfm"/>
-        <CursorPos X="1" Y="1"/>
-        <TopLine Value="1"/>
+        <CursorPos X="63" Y="111"/>
+        <TopLine Value="84"/>
         <UsageCount Value="10"/>
         <SyntaxHighlighter Value="LFM"/>
       </Unit11>
@@ -151,15 +152,17 @@
       <Unit14>
         <Filename Value="../../../base/kambidynlib.pas"/>
         <UnitName Value="KambiDynLib"/>
-        <CursorPos X="1" Y="196"/>
-        <TopLine Value="180"/>
+        <CursorPos X="1" Y="221"/>
+        <TopLine Value="179"/>
+        <EditorIndex Value="1"/>
         <UsageCount Value="10"/>
+        <Loaded Value="True"/>
       </Unit14>
       <Unit15>
         <Filename Value="../../../3dmodels/vrmlscene.pas"/>
         <UnitName Value="VRMLScene"/>
-        <CursorPos X="62" Y="20"/>
-        <TopLine Value="1"/>
+        <CursorPos X="1" Y="2718"/>
+        <TopLine Value="2688"/>
         <UsageCount Value="10"/>
       </Unit15>
       <Unit16>
@@ -168,16 +171,104 @@
         <TopLine Value="217"/>
         <UsageCount Value="10"/>
       </Unit16>
+      <Unit17>
+        <Filename Value="../../../packages/components/kambivrmlbrowser.pas"/>
+        <UnitName Value="KambiVRMLBrowser"/>
+        <CursorPos X="24" Y="46"/>
+        <TopLine Value="38"/>
+        <UsageCount Value="10"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="../../../3dmodels/vrml97nodes.inc"/>
+        <CursorPos X="3" Y="321"/>
+        <TopLine Value="298"/>
+        <UsageCount Value="10"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="../../../../../../pasdoc/trunk/source/component/PasDoc_Serialize.pas"/>
+        <UnitName Value="PasDoc_Serialize"/>
+        <CursorPos X="14" Y="93"/>
+        <TopLine Value="85"/>
+        <UsageCount Value="10"/>
+      </Unit19>
     </Units>
-    <JumpHistory Count="1" HistoryIndex="0">
+    <JumpHistory Count="18" HistoryIndex="17">
       <Position1>
         <Filename Value="mainf.pas"/>
-        <Caret Line="286" Column="52" TopLine="269"/>
+        <Caret Line="9" Column="63" TopLine="1"/>
       </Position1>
+      <Position2>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="29" Column="29" TopLine="1"/>
+      </Position2>
+      <Position3>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="83" Column="11" TopLine="48"/>
+      </Position3>
+      <Position4>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="130" Column="11" TopLine="102"/>
+      </Position4>
+      <Position5>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="163" Column="11" TopLine="133"/>
+      </Position5>
+      <Position6>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="156" Column="21" TopLine="133"/>
+      </Position6>
+      <Position7>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="158" Column="20" TopLine="133"/>
+      </Position7>
+      <Position8>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="191" Column="12" TopLine="168"/>
+      </Position8>
+      <Position9>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="200" Column="12" TopLine="177"/>
+      </Position9>
+      <Position10>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="205" Column="7" TopLine="182"/>
+      </Position10>
+      <Position11>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="50" Column="1" TopLine="27"/>
+      </Position11>
+      <Position12>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="54" Column="39" TopLine="29"/>
+      </Position12>
+      <Position13>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="21" Column="32" TopLine="1"/>
+      </Position13>
+      <Position14>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="21" Column="32" TopLine="1"/>
+      </Position14>
+      <Position15>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="126" Column="3" TopLine="102"/>
+      </Position15>
+      <Position16>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="121" Column="10" TopLine="76"/>
+      </Position16>
+      <Position17>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="31" Column="38" TopLine="30"/>
+      </Position17>
+      <Position18>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="29" Column="1" TopLine="18"/>
+      </Position18>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="5"/>
+    <Version Value="8"/>
     <SearchPaths>
       <SrcPath Value="$(LazarusDir)/lcl/;$(LazarusDir)/lcl/interfaces/$(LCLWidgetType)/"/>
     </SearchPaths>

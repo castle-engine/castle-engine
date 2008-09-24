@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs,
-  OpenGLContext, Menus, VRMLGLScene, MatrixNavigation, KambiGLControl,
+  OpenGLContext, Menus, VRMLGLScene, MatrixNavigation, KambiVRMLBrowser,
   Buttons, ExtCtrls, StdCtrls;
 
 type
@@ -26,8 +26,8 @@ type
     EditUpZ: TEdit;
     EditUpY: TEdit;
     EditUpX: TEdit;
-    GLControl: TKamOpenGLControl;
     GroupBox1: TGroupBox;
+    Browser: TKamVRMLBrowser;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
@@ -47,24 +47,15 @@ type
     procedure EditGLControlFocusExit(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
     procedure EditGLControlFocusKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure EditGLControlFocusKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure GLControlGLContextClose(Sender: TObject);
-    procedure GLControlGLContextInit(Sender: TObject);
     procedure MenuAboutOpenGLClick(Sender: TObject);
     procedure MenuFocusGLControlClick(Sender: TObject);
     procedure MenuOpenClick(Sender: TObject);
     procedure MenuQuitClick(Sender: TObject);
-    procedure GLControlPaint(Sender: TObject);
-    procedure GLControlResize(Sender: TObject);
   private
-    Scene: TVRMLGLScene;
-    { This is always non-nil. }
-    Navigator: TMatrixWalker;
     SceneFileName: string;
     procedure OpenScene(const FileName: string);
-    procedure NavigatorChanged(ANavigator: TMatrixNavigator);
     procedure UpdateCaption;
   public
     { public declarations }
@@ -81,28 +72,11 @@ uses LCLType, VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer,
   OpenGLInformation;
 
 procedure TMain.OpenScene(const FileName: string);
-var
-  CamPos, CamDir, CamUp, GravityUp: TVector3Single;
 begin
-  FreeAndNil(Scene);
+  Browser.Load(FileName);
 
-  Scene := TVRMLGLScene.Create(FileName, roSceneAsAWhole);
-
-  { allow the scene to use it's own lights }
-  Scene.Attributes.UseLights := true;
-  Scene.Attributes.FirstGLFreeLight := 1;
-
-  Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
-
-  Navigator.Init(
-    CamPos,
-    VectorAdjustToLength(CamDir,
-      Box3dAvgSize(Scene.BoundingBox, 1.0) * 0.01 * 0.4),
-    CamUp, GravityUp,
-    0.0, 0.0 { unused, we don't use Gravity here });
-
-  GLControlResize(GLControl);
-  GLControl.Invalidate;
+  Browser.Resize;
+  Browser.Invalidate;
 
   SceneFileName := FileName;
   UpdateCaption;
@@ -121,13 +95,6 @@ begin
   Close;
 end;
 
-procedure TMain.GLControlGLContextInit(Sender: TObject);
-begin
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
-  GLControlResize(GLControl);
-end;
-
 procedure TMain.MenuAboutOpenGLClick(Sender: TObject);
 begin
   TOpenGLInformation.Execute;
@@ -138,23 +105,8 @@ begin
   EditGLControlFocus.SetFocus;
 end;
 
-procedure TMain.GLControlGLContextClose(Sender: TObject);
-begin
-  if Scene <> nil then
-  begin
-    { Actually for now this would be done by FreeAndNil(Scene) too,
-      but just to be clean I do it also here. }
-    SCene.CloseGL;
-  end;
-
-  FreeAndNil(Scene);
-end;
-
 procedure TMain.FormCreate(Sender: TObject);
 begin
-  Navigator := TMatrixWalker.Create(@NavigatorChanged);
-  GLControl.Navigator := Navigator;
-
   UpdateCaption;
 
   MenuFocusGLControl.ShortCut := ShortCut(VK_Escape, []);
@@ -165,12 +117,12 @@ end;
 
 procedure TMain.FormDeactivate(Sender: TObject);
 begin
-  GLControl.ReleaseAllKeysAndMouse;
+  Browser.ReleaseAllKeysAndMouse;
 end;
 
 procedure TMain.ApplicationProperties1Idle(Sender: TObject; var Done: Boolean);
 begin
-  GLControl.NavigatorIdle;
+  Browser.NavigatorIdle;
   Done := false;
 end;
 
@@ -196,19 +148,14 @@ begin
   { First convert all to float. Then set Navigator properties.
     This way in case of exception in StrToFloat all remains OK. }
 
-  Navigator.CameraPos := Pos;
-  Navigator.CameraDir := Dir;
-  Navigator.CameraUp := Up;
+  Browser.NavWalker.CameraPos := Pos;
+  Browser.NavWalker.CameraDir := Dir;
+  Browser.NavWalker.CameraUp := Up;
 end;
 
 procedure TMain.EditGLControlFocusExit(Sender: TObject);
 begin
-  GLControl.ReleaseAllKeysAndMouse;
-end;
-
-procedure TMain.FormDestroy(Sender: TObject);
-begin
-  FreeAndNil(Navigator);
+  Browser.ReleaseAllKeysAndMouse;
 end;
 
 procedure TMain.EditGLControlFocusKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -236,7 +183,7 @@ begin
   { I must avoid catching tab, to allow user to switch between controls. }
   if Key <> VK_TAB then
   begin
-    GLControl.KeyDown(Key, Shift);
+    Browser.KeyDown(Key, Shift);
     Key := 0;
   end;
 end;
@@ -245,50 +192,12 @@ procedure TMain.EditGLControlFocusKeyUp(Sender: TObject; var Key: Word; Shift: T
 begin
   if Key <> VK_TAB then
   begin
-    GLControl.KeyUp(Key, Shift);
+    Browser.KeyUp(Key, Shift);
     Key := 0;
   end;
 end;
 
-procedure TMain.GLControlPaint(Sender: TObject);
-begin
-  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(Navigator.Matrix);
-
-  if Scene <> nil then
-  begin
-    Scene.Render(nil, tgAll);
-  end;
-
-  GLControl.SwapBuffers;
-end;
-
-procedure TMain.GLControlResize(Sender: TObject);
-
-  procedure UpdateNavigatorProjectionMatrix;
-  var
-    ProjectionMatrix: TMatrix4f;
-  begin
-    glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
-    Navigator.ProjectionMatrix := ProjectionMatrix;
-  end;
-
-begin
-  if not GLControl.MakeCurrent then Exit;
-
-  glViewport(0, 0, GLControl.Width, GLControl.Height);
-
-  if Scene <> nil then
-  begin
-    ProjectionGLPerspective(45.0,
-      GLControl.Width / GLControl.Height,
-      Box3dMaxSize(Scene.BoundingBox, 1.0) * 0.01,
-      Box3dMaxSize(Scene.BoundingBox, 1.0) * 20.0);
-  end;
-
-  UpdateNavigatorProjectionMatrix;
-end;
-
+{TODO:
 procedure TMain.NavigatorChanged(ANavigator: TMatrixNavigator);
 begin
   GLControl.Invalidate;
@@ -305,6 +214,7 @@ begin
   EditUpY.Text := FloatToNiceStr(Navigator.CameraUp[1]);
   EditUpZ.Text := FloatToNiceStr(Navigator.CameraUp[2]);
 end;
+}
 
 procedure TMain.UpdateCaption;
 var
