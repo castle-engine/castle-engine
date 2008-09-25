@@ -1,9 +1,10 @@
 object Main: TMain
-  Left = 299
+  Left = 415
   Height = 430
-  Top = 183
+  Top = 181
   Width = 676
   ActiveControl = Browser
+  AutoSize = True
   Caption = 'Main'
   ClientHeight = 402
   ClientWidth = 676
@@ -12,25 +13,25 @@ object Main: TMain
   OnDeactivate = FormDeactivate
   LCLVersion = '0.9.25'
   object PanelBottom: TPanel
-    Height = 140
-    Top = 262
+    Height = 141
+    Top = 261
     Width = 676
     Align = alBottom
-    ClientHeight = 140
+    ClientHeight = 141
     ClientWidth = 676
     TabOrder = 1
     object GroupBox1: TGroupBox
       Left = 1
-      Height = 138
+      Height = 139
       Top = 1
-      Width = 447
+      Width = 512
       Align = alLeft
       Caption = 'Camera'
-      ClientHeight = 117
-      ClientWidth = 443
+      ClientHeight = 118
+      ClientWidth = 508
       TabOrder = 0
       object Label1: TLabel
-        Left = 9
+        Left = 13
         Height = 17
         Top = 7
         Width = 62
@@ -38,7 +39,7 @@ object Main: TMain
         ParentColor = False
       end
       object Label2: TLabel
-        Left = 9
+        Left = 13
         Height = 17
         Top = 40
         Width = 68
@@ -46,7 +47,7 @@ object Main: TMain
         ParentColor = False
       end
       object Label3: TLabel
-        Left = 9
+        Left = 13
         Height = 17
         Top = 72
         Width = 26
@@ -54,76 +55,80 @@ object Main: TMain
         ParentColor = False
       end
       object EditPositionX: TEdit
-        Left = 69
+        Left = 93
         Height = 23
+        Top = 2
         Width = 80
         TabOrder = 0
       end
       object EditPositionY: TEdit
         Tag = 1
-        Left = 157
+        Left = 181
         Height = 23
+        Top = 2
         Width = 80
         TabOrder = 1
       end
       object EditPositionZ: TEdit
         Tag = 2
-        Left = 245
+        Left = 269
         Height = 23
+        Top = 2
         Width = 80
         TabOrder = 2
       end
       object EditDirectionX: TEdit
-        Left = 69
+        Left = 93
         Height = 23
-        Top = 32
+        Top = 34
         Width = 80
         TabOrder = 3
       end
       object EditDirectionY: TEdit
         Tag = 1
-        Left = 157
+        Left = 181
         Height = 23
-        Top = 32
+        Top = 34
         Width = 80
         TabOrder = 4
       end
       object EditDirectionZ: TEdit
         Tag = 2
-        Left = 245
+        Left = 269
         Height = 23
-        Top = 32
+        Top = 34
         Width = 80
         TabOrder = 5
       end
       object EditUpX: TEdit
-        Left = 69
+        Left = 93
         Height = 23
-        Top = 64
+        Top = 66
         Width = 80
         TabOrder = 6
       end
       object EditUpY: TEdit
         Tag = 1
-        Left = 157
+        Left = 181
         Height = 23
-        Top = 64
+        Top = 66
         Width = 80
         TabOrder = 7
       end
       object EditUpZ: TEdit
         Tag = 2
-        Left = 245
+        Left = 269
         Height = 23
-        Top = 62
+        Top = 64
         Width = 80
         TabOrder = 8
       end
       object ButtonChangeCamera: TButton
-        Left = 349
-        Height = 25
-        Top = 64
-        Width = 75
+        Left = 365
+        Height = 38
+        Top = 51
+        Width = 71
+        AutoSize = True
         BorderSpacing.InnerBorder = 4
         Caption = 'Change'
         OnClick = ButtonChangeCameraClick
@@ -132,13 +137,14 @@ object Main: TMain
     end
   end
   object Browser: TKamVRMLBrowser
-    Height = 262
+    Height = 261
     Width = 676
     Align = alClient
+    OnNavigatorChanged = BrowserNavigatorChanged
   end
   object MainMenu1: TMainMenu
-    left = 48
-    top = 262
+    left = 40
+    top = 136
     object MenuFile: TMenuItem
       Caption = 'File'
       object MenuOpen: TMenuItem
@@ -172,7 +178,7 @@ object Main: TMain
   object OpenDialog1: TOpenDialog
     Title = 'Open 3d model file'
     FilterIndex = 0
-    left = 48
-    top = 304
+    left = 40
+    top = 184
   end
 end

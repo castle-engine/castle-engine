@@ -40,6 +40,7 @@ type
     MenuOpen: TMenuItem;
     OpenDialog1: TOpenDialog;
     PanelBottom: TPanel;
+    procedure BrowserNavigatorChanged(Navigator: TMatrixNavigator);
     procedure ButtonChangeCameraClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
@@ -80,6 +81,17 @@ begin
     OpenDialog1.FileName := SceneFileName;
   if OpenDialog1.Execute then
     OpenScene(OpenDialog1.FileName);
+end;
+
+procedure TMain.UpdateCaption;
+var
+  S: string;
+begin
+  if SceneFileName <> '' then
+    S := ExtractFileName(SceneFileName) else
+    S := 'No Scene';
+  S += ' - lazarus_vrml_browser';
+  Caption := S;
 end;
 
 procedure TMain.MenuQuitClick(Sender: TObject);
@@ -133,42 +145,46 @@ begin
     StrToFloat(EditUpY.Text),
     StrToFloat(EditUpZ.Text));
 
+  { Length of direction vector affects speed.
+    For simplicity, we don't allow user to change this here
+    (although keys +/- do this in Walk mode), we keep previous CameraDir
+    length. }
+  VectorAdjustToLengthTo1st(Dir, VectorLen(Browser.NavWalker.CameraDir));
+
   { First convert all to float. Then set Navigator properties.
-    This way in case of exception in StrToFloat all remains OK. }
+    This way in case of exception in StrToFloat, previous
+    Navigator properties remain OK. }
 
   Browser.NavWalker.CameraPos := Pos;
   Browser.NavWalker.CameraDir := Dir;
   Browser.NavWalker.CameraUp := Up;
 end;
 
-{TODO:
-procedure TMain.NavigatorChanged(ANavigator: TMatrixNavigator);
-begin
-  GLControl.Invalidate;
-
-  EditPositionX.Text := FloatToNiceStr(Navigator.CameraPos[0]);
-  EditPositionY.Text := FloatToNiceStr(Navigator.CameraPos[1]);
-  EditPositionZ.Text := FloatToNiceStr(Navigator.CameraPos[2]);
-
-  EditDirectionX.Text := FloatToNiceStr(Navigator.CameraDir[0]);
-  EditDirectionY.Text := FloatToNiceStr(Navigator.CameraDir[1]);
-  EditDirectionZ.Text := FloatToNiceStr(Navigator.CameraDir[2]);
-
-  EditUpX.Text := FloatToNiceStr(Navigator.CameraUp[0]);
-  EditUpY.Text := FloatToNiceStr(Navigator.CameraUp[1]);
-  EditUpZ.Text := FloatToNiceStr(Navigator.CameraUp[2]);
-end;
-}
-
-procedure TMain.UpdateCaption;
+procedure TMain.BrowserNavigatorChanged(Navigator: TMatrixNavigator);
 var
-  S: string;
+  Dir: TVector3Single;
 begin
-  if SceneFileName <> '' then
-    S := ExtractFileName(SceneFileName) else
-    S := 'No Scene';
-  S += ' - view3dscene_mini_by_lazarus';
-  Caption := S;
+  if Navigator is TMatrixWalker then
+  begin
+    { Browser.NavWalker is now the same thing as (Navigator as TMatrixWalker) }
+    EditPositionX.Text := FloatToNiceStr(Browser.NavWalker.CameraPos[0]);
+    EditPositionY.Text := FloatToNiceStr(Browser.NavWalker.CameraPos[1]);
+    EditPositionZ.Text := FloatToNiceStr(Browser.NavWalker.CameraPos[2]);
+
+    { Length of direction vector affects speed.
+      For simplicity, we don't show it to user here (it could have small
+      values, and would look like all "0.00" while in fact being non-zero).
+      Instead. we show the normalized dir. }
+    Dir := Normalized(Browser.NavWalker.CameraDir);
+
+    EditDirectionX.Text := FloatToNiceStr(Dir[0]);
+    EditDirectionY.Text := FloatToNiceStr(Dir[1]);
+    EditDirectionZ.Text := FloatToNiceStr(Dir[2]);
+
+    EditUpX.Text := FloatToNiceStr(Browser.NavWalker.CameraUp[0]);
+    EditUpY.Text := FloatToNiceStr(Browser.NavWalker.CameraUp[1]);
+    EditUpZ.Text := FloatToNiceStr(Browser.NavWalker.CameraUp[2]);
+  end;
 end;
 
 initialization

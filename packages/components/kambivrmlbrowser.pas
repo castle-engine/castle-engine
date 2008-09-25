@@ -62,8 +62,12 @@ type
     If you're looking for GLWindow descendants that does basically the same
     (easy VRML browser), you want to check out TGLWindowVRMLBrowser
     (file @code(../../3dmodels.gl/glwindowvrmlbrowser.pas)). }
+
+  { TKamVRMLBrowser }
+
   TKamVRMLBrowser = class(TKamOpenGLControl)
   private
+    FOnNavigatorChanged: TMatrixNavigatorNotifyFunc;
     FScene: TVRMLGLScene;
 
     { CameraRadius is needed for collision detection }
@@ -101,6 +105,9 @@ type
 
     procedure Resize; override;
     procedure Idle; override;
+  published
+    property OnNavigatorChanged: TMatrixNavigatorNotifyFunc
+      read FOnNavigatorChanged write FOnNavigatorChanged;
   end;
 
 procedure Register;
@@ -388,6 +395,9 @@ begin
   if Scene <> nil then
     Scene.ViewerPositionChanged(NavWalker.CameraPos);
   Invalidate;
+
+  if Assigned(OnNavigatorChanged) then
+    OnNavigatorChanged(ANavigator);
 end;
 
 procedure TKamVRMLBrowser.BoundViewpointVectorsChanged(Scene: TVRMLScene);
