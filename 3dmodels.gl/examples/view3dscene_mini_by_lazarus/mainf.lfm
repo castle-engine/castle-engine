@@ -3,7 +3,7 @@ object Main: TMain
   Height = 430
   Top = 183
   Width = 676
-  ActiveControl = EditGLControlFocus
+  ActiveControl = Browser
   Caption = 'Main'
   ClientHeight = 402
   ClientWidth = 676
@@ -130,15 +130,6 @@ object Main: TMain
         TabOrder = 9
       end
     end
-  end
-  object EditGLControlFocus: TEdit
-    Height = 1
-    Width = 1
-    OnExit = EditGLControlFocusExit
-    OnKeyDown = EditGLControlFocusKeyDown
-    OnKeyUp = EditGLControlFocusKeyUp
-    TabOrder = 0
-    Text = 'EditGLControlFocus'
   end
   object Browser: TKamVRMLBrowser
     Height = 262

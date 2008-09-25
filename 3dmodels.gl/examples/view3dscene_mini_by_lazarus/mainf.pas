@@ -15,7 +15,6 @@ type
 
   TMain = class(TForm)
     ButtonChangeCamera: TButton;
-    EditGLControlFocus: TEdit;
     EditPositionX: TEdit;
     EditPositionY: TEdit;
     EditPositionZ: TEdit;
@@ -42,11 +41,8 @@ type
     OpenDialog1: TOpenDialog;
     PanelBottom: TPanel;
     procedure ButtonChangeCameraClick(Sender: TObject);
-    procedure EditGLControlFocusExit(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
-    procedure EditGLControlFocusKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure EditGLControlFocusKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure MenuAboutOpenGLClick(Sender: TObject);
     procedure MenuFocusGLControlClick(Sender: TObject);
     procedure MenuOpenClick(Sender: TObject);
@@ -74,9 +70,6 @@ begin
   Browser.Load(FileName);
   Browser.Scene.ProcessEvents := true;
 
-  Browser.Resize;
-  Browser.Invalidate;
-
   SceneFileName := FileName;
   UpdateCaption;
 end;
@@ -101,7 +94,7 @@ end;
 
 procedure TMain.MenuFocusGLControlClick(Sender: TObject);
 begin
-  EditGLControlFocus.SetFocus;
+  Browser.FocusableControl.SetFocus;
 end;
 
 procedure TMain.FormCreate(Sender: TObject);
@@ -146,50 +139,6 @@ begin
   Browser.NavWalker.CameraPos := Pos;
   Browser.NavWalker.CameraDir := Dir;
   Browser.NavWalker.CameraUp := Up;
-end;
-
-procedure TMain.EditGLControlFocusExit(Sender: TObject);
-begin
-  Browser.ReleaseAllKeysAndMouse;
-end;
-
-procedure TMain.EditGLControlFocusKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-begin
-  { EditGLControlFocus is an ugly hack.
-
-    The problem:
-    TOpenGLControl cannot catch focus,so when I placed some
-    focusable controls (edit boxes, buttons)
-    on the form, it was not possible to pass key presses to GLControl.
-
-    Poor workaround:
-    Make form KeyPreview and pass OnKeyDown/Up from our Form
-    to GLControl. This is poor workaround, because it makes funny
-    effects when user tries to operate on edit boxes with arrows:
-    both 3d view changes and the cursor inside edit box moves.
-
-    Better workaround:
-    Create EditGLControlFocus that can have focus, but is not visible
-    --- so I set it's size to minimum (1, 1 in Lazarus)
-    (I can't set Visible to false, then it would not be focusable).
-    Then the only purpose of EditGLControlFocus is to call
-    appropriate GLControl events. }
-
-  { I must avoid catching tab, to allow user to switch between controls. }
-  if Key <> VK_TAB then
-  begin
-    Browser.KeyDown(Key, Shift);
-    Key := 0;
-  end;
-end;
-
-procedure TMain.EditGLControlFocusKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
-begin
-  if Key <> VK_TAB then
-  begin
-    Browser.KeyUp(Key, Shift);
-    Key := 0;
-  end;
 end;
 
 {TODO:

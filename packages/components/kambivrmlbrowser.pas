@@ -176,6 +176,12 @@ begin
   { allow the scene to use it's own lights }
   Scene.Attributes.UseLights := true;
   Scene.Attributes.FirstGLFreeLight := 1;
+
+  if ContextInitialized then
+  begin
+    Resize;
+    Invalidate;
+  end;
 end;
 
 { TODO: nowhere to put this for TKamVRMLBrowser. Needed?

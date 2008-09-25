@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, OpenGLContext, MatrixNavigation, Controls, Forms,
-  VectorMath, Keys, KambiUtils, KambiTimeUtils;
+  VectorMath, Keys, KambiUtils, KambiTimeUtils, StdCtrls;
 
 type
   { This adds some comfortable things to TOpenGLControl.
@@ -37,7 +37,8 @@ type
     FOwnsNavigator: boolean;
     FUseNavigator: boolean;
     FNavigator: TMatrixNavigator;
-    ContextInitialized: boolean;
+    FContextInitialized: boolean;
+
     function ReallyUseNavigator: boolean;
 
     FOnGLContextInit: TNotifyEvent;
@@ -50,6 +51,11 @@ type
 
     ApplicationProperties: TApplicationProperties;
     procedure ApplicationPropertiesIdle(Sender: TObject; var Done: Boolean);
+
+    FFocusableControl: TEdit;
+    procedure FocusableControlExit(Sender: TObject);
+    procedure FocusableControlKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure FocusableControlKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
   protected
     procedure DestroyHandle; override;
 
@@ -59,6 +65,8 @@ type
     { In this class this just calls OnGLContextClose. }
     procedure DoGLContextClose; virtual;
 
+    property ContextInitialized: boolean read FContextInitialized;
+
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyUp(var Key: Word; Shift: TShiftState); override;
     procedure MouseDown(Button: Controls.TMouseButton;
@@ -66,6 +74,8 @@ type
     procedure MouseUp(Button: Controls.TMouseButton;
       Shift:TShiftState; X,Y:Integer); override;
     procedure MouseMove(Shift: TShiftState; NewX, NewY: Integer); override;
+
+    procedure SetParent(NewParent: TWinControl); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -122,6 +132,27 @@ type
 
     property MouseX: Integer read FMouseX;
     property MouseY: Integer read FMouseY;
+
+    { This is the internal control that provides focus (and ability to receive
+      key events) for this TKamOpenGLControl.
+
+      Reason: TOpenGLControl cannot catch focus, so when I placed some
+      focusable controls (edit boxes, buttons)
+      on the form, it was not possible to pass key presses to GLControl.
+
+      Poor workaround:
+      Make form KeyPreview and pass OnKeyDown/Up from our Form
+      to GLControl. This is poor workaround, because it makes funny
+      effects when user tries to operate on edit boxes with arrows:
+      both 3d view changes and the cursor inside edit box moves.
+
+      Better workaround:
+      Create FFocusableControl that can have focus, but is not visible
+      --- so I set it's size to minimum (1, 1 in Lazarus)
+      (I can't set Visible to false, then it would not be focusable).
+      Then the only purpose of FFocusableControl is to call
+      appropriate GLControl events. }
+    function FocusableControl: TWinControl;
   published
 
     { This will be called right after GL context
@@ -169,12 +200,26 @@ begin
 
   ApplicationProperties := TApplicationProperties.Create(Self);
   ApplicationProperties.OnIdle := @ApplicationPropertiesIdle;
+
+  FFocusableControl := TEdit.Create(Self);
+  FFocusableControl.Width := 1;
+  FFocusableControl.Height := 1;
+  FFocusableControl.OnExit := @FocusableControlExit;
+  FFocusableControl.OnKeyDown := @FocusableControlKeyDown;
+  FFocusableControl.OnKeyUp := @FocusableControlKeyUp;
+  FFocusableControl.Parent := Parent;
+  FFocusableControl.TabOrder := TabOrder;
 end;
 
 destructor TKamOpenGLControl.Destroy;
 begin
   if OwnsNavigator then Navigator.Free;
   inherited;
+end;
+
+function TKamOpenGLControl.FocusableControl: TWinControl;
+begin
+  Result := FFocusableControl;
 end;
 
 procedure TKamOpenGLControl.ApplicationPropertiesIdle(Sender: TObject; var Done: Boolean);
@@ -221,7 +266,7 @@ begin
 
   if not ContextInitialized then
   begin
-    ContextInitialized := true;
+    FContextInitialized := true;
     DoGLContextInit;
   end;
 end;
@@ -231,7 +276,7 @@ begin
   if ContextInitialized then
   begin
     DoGLContextClose;
-    ContextInitialized := false;
+    FContextInitialized := false;
   end;
   inherited DestroyHandle;
 end;
@@ -431,6 +476,16 @@ begin
   FMouseY := NewY;
 end;
 
+procedure TKamOpenGLControl.SetParent(NewParent: TWinControl);
+begin
+  inherited SetParent(NewParent);
+
+  if FFocusableControl <> nil then
+    { Keep FFocusableControl.Parent synchronized with our Parent
+      (needed, so FFocusableControl can receive normal focus) }
+    FFocusableControl.Parent := Parent;
+end;
+
 procedure TKamOpenGLControl.Idle;
 var
   NewLastIdleStartTime: TKamTimerResult;
@@ -485,6 +540,30 @@ begin
     Width, Height,
     Nav.CameraPos, Nav.CameraDir, Nav.CameraUp,
     ViewAngleDegX, ViewAngleDegY);
+end;
+
+procedure TKamOpenGLControl.FocusableControlExit(Sender: TObject);
+begin
+  ReleaseAllKeysAndMouse;
+end;
+
+procedure TKamOpenGLControl.FocusableControlKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  { I must avoid catching tab, to allow user to switch between controls. }
+  if Key <> VK_TAB then
+  begin
+    KeyDown(Key, Shift);
+    Key := 0;
+  end;
+end;
+
+procedure TKamOpenGLControl.FocusableControlKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key <> VK_TAB then
+  begin
+    KeyUp(Key, Shift);
+    Key := 0;
+  end;
 end;
 
 initialization
