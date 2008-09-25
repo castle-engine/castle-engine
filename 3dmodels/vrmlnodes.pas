@@ -2379,13 +2379,6 @@ type
 
 { Specific VRML nodes from specifications, part 2 -------------------------- }
 
-{$define GeometryNotImplemented :=
-  function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-  function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-  function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-  procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
-}
-
 {$I x3d_time.inc}
 {$I x3d_grouping.inc}
 {$I x3d_networking.inc}

@@ -33,7 +33,11 @@
   end;
 
   TNodeX3DParametricGeometryNode = class(TNodeX3DGeometryNode)
-    GeometryNotImplemented
+    { Geometry node not implemented } { }
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeX3DNurbsSurfaceGeometryNode = class(TNodeX3DParametricGeometryNode)
@@ -109,7 +113,11 @@
     private FFdchildren: TMFNode;
     public property Fdchildren: TMFNode read FFdchildren;
     
-    GeometryNotImplemented
+    { Geometry node not implemented } { }
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeContourPolyline2D = class(TNodeX3DNurbsControlCurveNode)

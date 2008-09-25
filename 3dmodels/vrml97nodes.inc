@@ -158,7 +158,11 @@
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean; override;
 
-    GeometryNotImplemented
+    { Geometry node not implemented } { }
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeNurbsGroup = class(TNodeX3DGroupingNode)
@@ -257,7 +261,11 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    GeometryNotImplemented
+    { Geometry node not implemented } { }
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeNurbsTextureSurface = class(TVRMLNode)
@@ -317,7 +325,11 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    GeometryNotImplemented
+    { Geometry node not implemented } { }
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 {$endif read_interface}
 
