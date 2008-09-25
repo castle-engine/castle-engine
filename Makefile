@@ -224,11 +224,11 @@ EXAMPLES_BASE_NAMES := \
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   audio/examples/test_al_source_allocator \
-  3dmodels.gl/examples/view3dscene_mini_by_lazarus/view3dscene_mini_by_lazarus
+  3dmodels.gl/examples/lazarus_vrml_browser/lazarus_vrml_browser
 
 EXAMPLES_WINDOWS_EXECUTABLES := $(addsuffix .exe,$(EXAMPLES_BASE_NAMES)) \
   audio/examples/test_al_source_allocator.exe \
-  3dmodels.gl/examples/view3dscene_mini_by_lazarus/view3dscene_mini_by_lazarus.exe
+  3dmodels.gl/examples/lazarus_vrml_browser/lazarus_vrml_browser.exe
 
 .PHONY: examples
 examples:

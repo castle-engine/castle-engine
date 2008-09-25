@@ -26,7 +26,7 @@ Mini-FAQ about these packages:
   No. Packages here are provided to easily compile and use the engine
   with Lazarus. But actually units in kambi_vrml_game_engine don't use
   any Lazarus units (LCL) (besides Lazarus-specific components in components/
-  subdirectory, but there's not much for now).
+  subdirectory).
 
   So all you actually need is bare FPC installation.
   Use kambi_vrml_game_engine/Makefile to compile all units and use compile.sh
@@ -60,7 +60,7 @@ some Lazarus components (that use my units), and you're supposed to just
 install this package in Lazarus. This also automatically installs kambi_units
 package --- that's OK.
 
-See ../3dmodels.gl/examples/view3dscene_mini_by_lazarus/
+See ../3dmodels.gl/examples/lazarus_vrml_browser/
 for demo program using this package.
 
 Michalis
