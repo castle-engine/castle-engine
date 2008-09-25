@@ -39,9 +39,9 @@
     </RequiredPackages>
     <Units Count="27">
       <Unit0>
-        <Filename Value="view3dscene_mini_by_lazarus.lpr"/>
+        <Filename Value="lazarus_vrml_browser.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="view3dscene_mini_by_lazarus"/>
+        <UnitName Value="lazarus_vrml_browser"/>
         <CursorPos X="45" Y="16"/>
         <TopLine Value="1"/>
         <UsageCount Value="40"/>
