@@ -184,15 +184,4 @@ object Main: TMain
     left = 48
     top = 304
   end
-  object ApplicationProperties1: TApplicationProperties
-    CaptureExceptions = True
-    HintColor = clInfoBk
-    HintHidePause = 2500
-    HintPause = 500
-    HintShortCuts = True
-    ShowHint = True
-    OnIdle = ApplicationProperties1Idle
-    left = 50
-    top = 147
-  end
 end

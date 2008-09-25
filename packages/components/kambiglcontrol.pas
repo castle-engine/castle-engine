@@ -5,7 +5,7 @@ unit KambiGLControl;
 interface
 
 uses
-  Classes, SysUtils, OpenGLContext, MatrixNavigation, Controls,
+  Classes, SysUtils, OpenGLContext, MatrixNavigation, Controls, Forms,
   VectorMath, Keys, KambiUtils, KambiTimeUtils;
 
 type
@@ -47,6 +47,9 @@ type
 
     FIdleSpeed: Single;
     DoIgnoreNextIdleSpeed: boolean;
+
+    ApplicationProperties: TApplicationProperties;
+    procedure ApplicationPropertiesIdle(Sender: TObject; var Done: Boolean);
   protected
     procedure DestroyHandle; override;
 
@@ -152,7 +155,7 @@ uses LCLType, RaysWindow, GL, GLU, GLExt, KambiGLUtils;
 
 procedure Register;
 begin
-  RegisterComponents('Kambi',[TKamOpenGLControl]);
+  RegisterComponents('Kambi', [TKamOpenGLControl]);
 end;
 
 { TKamOpenGLControl --------------------------------------------------------- }
@@ -163,12 +166,21 @@ begin
   UseNavigator := true;
   OwnsNavigator := false;
   IgnoreNextIdleSpeed;
+
+  ApplicationProperties := TApplicationProperties.Create(Self);
+  ApplicationProperties.OnIdle := @ApplicationPropertiesIdle;
 end;
 
 destructor TKamOpenGLControl.Destroy;
 begin
   if OwnsNavigator then Navigator.Free;
   inherited;
+end;
+
+procedure TKamOpenGLControl.ApplicationPropertiesIdle(Sender: TObject; var Done: Boolean);
+begin
+  Idle;
+  Done := false;
 end;
 
 function TKamOpenGLControl.ReallyUseNavigator: boolean;

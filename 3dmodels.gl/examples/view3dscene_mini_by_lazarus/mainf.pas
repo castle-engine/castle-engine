@@ -14,7 +14,6 @@ type
   { TMain }
 
   TMain = class(TForm)
-    ApplicationProperties1: TApplicationProperties;
     ButtonChangeCamera: TButton;
     EditGLControlFocus: TEdit;
     EditPositionX: TEdit;
@@ -42,7 +41,6 @@ type
     MenuOpen: TMenuItem;
     OpenDialog1: TOpenDialog;
     PanelBottom: TPanel;
-    procedure ApplicationProperties1Idle(Sender: TObject; var Done: Boolean);
     procedure ButtonChangeCameraClick(Sender: TObject);
     procedure EditGLControlFocusExit(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -121,12 +119,6 @@ end;
 procedure TMain.FormDeactivate(Sender: TObject);
 begin
   Browser.ReleaseAllKeysAndMouse;
-end;
-
-procedure TMain.ApplicationProperties1Idle(Sender: TObject; var Done: Boolean);
-begin
-  Browser.Idle;
-  Done := false;
 end;
 
 procedure TMain.ButtonChangeCameraClick(Sender: TObject);

@@ -37,14 +37,14 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="24">
+    <Units Count="25">
       <Unit0>
         <Filename Value="view3dscene_mini_by_lazarus.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="view3dscene_mini_by_lazarus"/>
         <CursorPos X="45" Y="16"/>
         <TopLine Value="1"/>
-        <UsageCount Value="37"/>
+        <UsageCount Value="38"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
@@ -53,21 +53,23 @@
         <ResourceBaseClass Value="Form"/>
         <ResourceFilename Value="mainf.lrs"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="31" Y="68"/>
-        <TopLine Value="48"/>
+        <CursorPos X="1" Y="123"/>
+        <TopLine Value="101"/>
         <EditorIndex Value="0"/>
-        <UsageCount Value="37"/>
+        <UsageCount Value="38"/>
         <Bookmarks Count="1">
-          <Item0 X="12" Y="128" ID="1"/>
+          <Item0 X="12" Y="123" ID="1"/>
         </Bookmarks>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
         <UnitName Value="KambiGLControl"/>
-        <CursorPos X="45" Y="347"/>
-        <TopLine Value="314"/>
+        <CursorPos X="31" Y="158"/>
+        <TopLine Value="147"/>
+        <EditorIndex Value="3"/>
         <UsageCount Value="12"/>
+        <Loaded Value="True"/>
       </Unit2>
       <Unit3>
         <Filename Value="../../../opengl/kambiglutils.pas"/>
@@ -126,7 +128,7 @@
         <UnitName Value="OpenGLInformation"/>
         <CursorPos X="30" Y="36"/>
         <TopLine Value="18"/>
-        <UsageCount Value="25"/>
+        <UsageCount Value="26"/>
       </Unit10>
       <Unit11>
         <Filename Value="mainf.lfm"/>
@@ -172,9 +174,9 @@
       <Unit17>
         <Filename Value="../../../packages/components/kambivrmlbrowser.pas"/>
         <UnitName Value="KambiVRMLBrowser"/>
-        <CursorPos X="7" Y="181"/>
-        <TopLine Value="158"/>
-        <EditorIndex Value="1"/>
+        <CursorPos X="24" Y="46"/>
+        <TopLine Value="1"/>
+        <EditorIndex Value="2"/>
         <UsageCount Value="11"/>
         <Loaded Value="True"/>
       </Unit17>
@@ -219,8 +221,17 @@
         <TopLine Value="136"/>
         <UsageCount Value="11"/>
       </Unit23>
+      <Unit24>
+        <Filename Value="../../../../../../../installed/lazarus/current/lcl/forms.pp"/>
+        <UnitName Value="Forms"/>
+        <CursorPos X="3" Y="1194"/>
+        <TopLine Value="1239"/>
+        <EditorIndex Value="1"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit24>
     </Units>
-    <JumpHistory Count="7" HistoryIndex="6">
+    <JumpHistory Count="21" HistoryIndex="20">
       <Position1>
         <Filename Value="../../../packages/components/kambivrmlbrowser.pas"/>
         <Caret Line="129" Column="20" TopLine="96"/>
@@ -249,6 +260,62 @@
         <Filename Value="mainf.pas"/>
         <Caret Line="3" Column="51" TopLine="1"/>
       </Position7>
+      <Position8>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="1" Column="31" TopLine="1"/>
+      </Position8>
+      <Position9>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="9" Column="64" TopLine="1"/>
+      </Position9>
+      <Position10>
+        <Filename Value="../../../packages/components/kambivrmlbrowser.pas"/>
+        <Caret Line="46" Column="24" TopLine="25"/>
+      </Position10>
+      <Position11>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="9" Column="64" TopLine="1"/>
+      </Position11>
+      <Position12>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="17" Column="44" TopLine="1"/>
+      </Position12>
+      <Position13>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="45" Column="78" TopLine="22"/>
+      </Position13>
+      <Position14>
+        <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
+        <Caret Line="170" Column="34" TopLine="147"/>
+      </Position14>
+      <Position15>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="17" Column="38" TopLine="1"/>
+      </Position15>
+      <Position16>
+        <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
+        <Caret Line="8" Column="71" TopLine="3"/>
+      </Position16>
+      <Position17>
+        <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
+        <Caret Line="51" Column="43" TopLine="28"/>
+      </Position17>
+      <Position18>
+        <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
+        <Caret Line="52" Column="29" TopLine="29"/>
+      </Position18>
+      <Position19>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="17" Column="38" TopLine="1"/>
+      </Position19>
+      <Position20>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="12" Column="15" TopLine="1"/>
+      </Position20>
+      <Position21>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="44" Column="1" TopLine="21"/>
+      </Position21>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
