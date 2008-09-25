@@ -3,18 +3,20 @@ object OpenGLInformation: TOpenGLInformation
   Height = 300
   Top = 208
   Width = 400
-  HorzScrollBar.Page = 399
-  VertScrollBar.Page = 299
   Caption = 'OpenGL Information'
+  ClientHeight = 300
+  ClientWidth = 400
+  ParentFont = False
+  LCLVersion = '0.9.25'
   object ButtonClose: TButton
-    Left = 324
-    Height = 30
-    Top = 259
-    Width = 71
+    Left = 323
+    Height = 37
+    Top = 252
+    Width = 72
     Anchors = [akRight, akBottom]
     AutoSize = True
     BorderSpacing.InnerBorder = 4
-    Caption = 'Zamknij'
+    Caption = 'Close'
     ModalResult = 1
     TabOrder = 0
   end
