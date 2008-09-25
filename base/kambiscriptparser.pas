@@ -241,10 +241,19 @@ begin
   try
     Result := nil;
     try
-      Result := Expression;
-      if Lexer.Token <> tokEnd then
-        raise EKamScriptParserError.Create(Lexer,
-          Format(SErrKoniecExpected, [Lexer.TokenDescription]));
+      try
+        Result := Expression;
+        if Lexer.Token <> tokEnd then
+          raise EKamScriptParserError.Create(Lexer,
+            Format(SErrKoniecExpected, [Lexer.TokenDescription]));
+      except
+        { Change EKamScriptFunctionArgumentsError (raised when
+          creating functions) to EKamScriptParserError.
+          This allows the caller to catch only EKamScriptParserError,
+          and adds position information to error message. }
+        on E: EKamScriptFunctionArgumentsError do
+          raise EKamScriptParserError.Create(Lexer, E.Message);
+      end;
     except Result.Free; raise end;
   finally Lexer.Free end;
 end;

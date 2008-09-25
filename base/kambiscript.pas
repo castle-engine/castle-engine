@@ -195,7 +195,11 @@ type
       AArgs list contents is copied, i.e. AArgs refence is not
       stored or freed by TKamScriptFunction. But items on AArags are not copied
       recursively, we copy references from AArags items, and so we become
-      their owners. }
+      their owners.
+
+      @raises(EKamScriptFunctionArgumentsError if you specified invalid
+        number of arguments for this function.)
+    }
     constructor Create(AArgs: TKamScriptExpressionsList); overload;
     constructor Create(const AArgs: array of TKamScriptExpression); overload;
     destructor Destroy; override;
