@@ -416,7 +416,7 @@ procedure TKamVRMLBrowser.GeometryChanged(Scene: TVRMLScene);
 begin
 {$ifdef REBUILD_OCTREE}
   Scene.PointingDeviceClear;
-  CursorNonMouseLook := gcDefault;
+  Cursor := crDefault;
 
   Scene.DefaultTriangleOctree.Free;
   Scene.DefaultShapeStateOctree.Free;
