@@ -43,7 +43,7 @@ unit KambiVRMLBrowser;
 
 interface
 
-uses Classes, KambiGLControl, VectorMath,
+uses Classes, KambiGLControl, VectorMath, Controls,
   VRMLNodes, VRMLGLScene, VRMLScene, MatrixNavigation;
 
 type
@@ -82,13 +82,15 @@ type
     procedure Paint; override;
     procedure DoGLContextInit; override;
     procedure DoGLContextClose; override;
+    procedure MouseDown(Button: Controls.TMouseButton;
+      Shift:TShiftState; X,Y:Integer); override;
+    procedure MouseUp(Button: Controls.TMouseButton;
+      Shift:TShiftState; X,Y:Integer); override;
+    procedure MouseMove(Shift: TShiftState; NewX, NewY: Integer); override;
 
     {
-    procedure EventIdle; override;
-    procedure EventMouseDown(Btn: TMouseButton); override;
-    procedure EventMouseUp(Btn: TMouseButton); override;
-    procedure EventMouseMove(NewX, NewY: Integer); override;
-    procedure EventKeyDown(Key: TKey; C: char); override;
+    procedure EventIdle; override;}
+{    procedure EventKeyDown(Key: TKey; C: char); override;
     procedure EventKeyUp(Key: TKey); override;}
   public
     constructor Create(AOwner :TComponent); override;
@@ -101,6 +103,7 @@ type
     property Scene: TVRMLGLScene read FScene;
 
     procedure Resize; override;
+    procedure Idle; override;
   end;
 
 procedure Register;
@@ -223,13 +226,11 @@ begin
   inherited;
 end;
 
-{TODO:
-procedure TKamVRMLBrowser.EventIdle;
+procedure TKamVRMLBrowser.Idle;
 begin
   inherited;
   Scene.IncreaseWorldTime(IdleSpeed);
 end;
-}
 
 const
   AngleOfViewY = 45.0;
@@ -271,22 +272,28 @@ begin
   UpdateNavigatorProjectionMatrix;
 end;
 
-(*TODO:
-procedure TKamVRMLBrowser.EventMouseDown(Btn: TMouseButton);
+const
+  { Cannot access Controls.mbLeft within TKamVRMLBrowser, as we have there
+    method named "Controls". }
+  ContolsMBLeft = Controls.mbLeft;
+
+procedure TKamVRMLBrowser.MouseDown(Button: Controls.TMouseButton;
+  Shift:TShiftState; X,Y:Integer);
 begin
   inherited;
-  if Btn = mbLeft then
+  if Button = ContolsMBLeft then
     Scene.PointingDeviceActive := true;
 end;
 
-procedure TKamVRMLBrowser.EventMouseUp(Btn: TMouseButton);
+procedure TKamVRMLBrowser.MouseUp(Button: Controls.TMouseButton;
+  Shift:TShiftState; X,Y:Integer);
 begin
   inherited;
-  if Btn = mbLeft then
+  if Button = ContolsMBLeft then
     Scene.PointingDeviceActive := false;
 end;
 
-procedure TKamVRMLBrowser.EventMouseMove(NewX, NewY: Integer);
+procedure TKamVRMLBrowser.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
 var
   Ray0, RayVector: TVector3Single;
   OverPoint: TVector3Single;
@@ -319,13 +326,16 @@ begin
     Scene.PointingDeviceMove(OverPoint, Item);
 
     { I want to keep assertion that CursorNonMouseLook = gcHand when
-      we're over or keeping active some pointing-device sensors. }
+      we're over or keeping active some pointing-device sensors.
+      (Since we don't use MouseLook with TKamGLControl for now, I just
+      directly change Cursor. }
     if SensorsCount <> 0 then
-      CursorNonMouseLook := gcHand else
-      CursorNonMouseLook := gcDefault;
+      Cursor := crHandPoint else
+      Cursor := crDefault;
   end;
 end;
 
+(*TODO:
 procedure TKamVRMLBrowser.EventKeyDown(Key: TKey; C: char);
 begin
   inherited;

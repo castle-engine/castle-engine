@@ -74,6 +74,7 @@ uses LCLType, VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer,
 procedure TMain.OpenScene(const FileName: string);
 begin
   Browser.Load(FileName);
+  Browser.Scene.ProcessEvents := true;
 
   Browser.Resize;
   Browser.Invalidate;
@@ -124,7 +125,7 @@ end;
 
 procedure TMain.ApplicationProperties1Idle(Sender: TObject; var Done: Boolean);
 begin
-  Browser.NavigatorIdle;
+  Browser.Idle;
   Done := false;
 end;
 

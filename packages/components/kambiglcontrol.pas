@@ -27,8 +27,13 @@ type
 
     TODO: integrate also MouseLook features of TMatrixNavigator,
     call MouseMove from TMatrixWalker and TMatrixExaminer. }
+
+  { TKamOpenGLControl }
+
   TKamOpenGLControl = class(TOpenGLControl)
   private
+    FMouseX: Integer;
+    FMouseY: Integer;
     FOwnsNavigator: boolean;
     FUseNavigator: boolean;
     FNavigator: TMatrixNavigator;
@@ -40,6 +45,7 @@ type
 
     LastIdleStartTime: TKamTimerResult;
 
+    FIdleSpeed: Single;
     DoIgnoreNextIdleSpeed: boolean;
   protected
     procedure DestroyHandle; override;
@@ -56,6 +62,7 @@ type
       Shift:TShiftState; X,Y:Integer); override;
     procedure MouseUp(Button: Controls.TMouseButton;
       Shift:TShiftState; X,Y:Integer); override;
+    procedure MouseMove(Shift: TShiftState; NewX, NewY: Integer); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -103,11 +110,15 @@ type
 
     function MakeCurrent(SaveOldToStack: boolean = false): boolean; override;
 
-    procedure NavigatorIdle;
+    property IdleSpeed: Single read FIdleSpeed;
+    procedure Idle; virtual;
 
     KeysDown: TKeysBooleans;
     MousePressed: MatrixNavigation.TMouseButtons;
     procedure ReleaseAllKeysAndMouse;
+
+    property MouseX: Integer read FMouseX;
+    property MouseY: Integer read FMouseY;
   published
 
     { This will be called right after GL context
@@ -364,6 +375,9 @@ var
 begin
   inherited MouseDown(Button, Shift, X, Y);
 
+  FMouseX := X;
+  FMouseY := Y;
+
   if LMouseButtonToMyMouseButton(Button, MyButton) then
   begin
     Include(MousePressed, MyButton);
@@ -379,6 +393,9 @@ var
 begin
   inherited MouseUp(Button, Shift, X, Y);
 
+  FMouseX := X;
+  FMouseY := Y;
+
   if LMouseButtonToMyMouseButton(Button, MyButton) then
   begin
     Exclude(MousePressed, MyButton);
@@ -386,9 +403,21 @@ begin
 
 end;
 
-procedure TKamOpenGLControl.NavigatorIdle;
+procedure TKamOpenGLControl.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
+begin
+  inherited;
+
+  if ReallyUseNavigator and
+     (Navigator is TMatrixExaminer) then
+    TMatrixExaminer(Navigator).MouseMove(
+      MouseX, MouseY, NewX, NewY, MousePressed, @KeysDown);
+
+  FMouseX := NewX;
+  FMouseY := NewY;
+end;
+
+procedure TKamOpenGLControl.Idle;
 var
-  FIdleSpeed: Single;
   NewLastIdleStartTime: TKamTimerResult;
 begin
   { update FIdleSpeed, DoIgnoreNextIdleSpeed, LastIdleStartTime }

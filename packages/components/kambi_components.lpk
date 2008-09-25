@@ -15,8 +15,13 @@
         </SyntaxOptions>
       </Parsing>
       <Other>
+        <Verbosity>
+          <ShowHints Value="False"/>
+          <ShowGenInfo Value="False"/>
+        </Verbosity>
         <CustomOptions Value="-Sh
--dKAMBI_FROM_LAZARUS_PACKAGE"/>
+-dKAMBI_FROM_LAZARUS_PACKAGE
+"/>
         <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
@@ -35,7 +40,7 @@
       </Item2>
       <Item3>
         <Filename Value="kambilclutils.pas"/>
-        <UnitName Value="kambilclutils"/>
+        <UnitName Value="KambiLCLUtils"/>
       </Item3>
     </Files>
     <Type Value="RunAndDesignTime"/>
