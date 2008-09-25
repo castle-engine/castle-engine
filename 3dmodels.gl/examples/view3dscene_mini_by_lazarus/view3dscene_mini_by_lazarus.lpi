@@ -37,14 +37,14 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="20">
+    <Units Count="22">
       <Unit0>
         <Filename Value="view3dscene_mini_by_lazarus.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="view3dscene_mini_by_lazarus"/>
         <CursorPos X="45" Y="16"/>
         <TopLine Value="1"/>
-        <UsageCount Value="34"/>
+        <UsageCount Value="35"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
@@ -53,12 +53,12 @@
         <ResourceBaseClass Value="Form"/>
         <ResourceFilename Value="mainf.lrs"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="57" Y="137"/>
-        <TopLine Value="110"/>
+        <CursorPos X="64" Y="110"/>
+        <TopLine Value="106"/>
         <EditorIndex Value="0"/>
-        <UsageCount Value="34"/>
+        <UsageCount Value="35"/>
         <Bookmarks Count="1">
-          <Item0 X="12" Y="125" ID="1"/>
+          <Item0 X="12" Y="127" ID="1"/>
         </Bookmarks>
         <Loaded Value="True"/>
       </Unit1>
@@ -126,7 +126,7 @@
         <UnitName Value="OpenGLInformation"/>
         <CursorPos X="30" Y="36"/>
         <TopLine Value="18"/>
-        <UsageCount Value="22"/>
+        <UsageCount Value="23"/>
       </Unit10>
       <Unit11>
         <Filename Value="mainf.lfm"/>
@@ -154,9 +154,7 @@
         <UnitName Value="KambiDynLib"/>
         <CursorPos X="1" Y="221"/>
         <TopLine Value="179"/>
-        <EditorIndex Value="1"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
       </Unit14>
       <Unit15>
         <Filename Value="../../../3dmodels/vrmlscene.pas"/>
@@ -191,8 +189,22 @@
         <TopLine Value="85"/>
         <UsageCount Value="10"/>
       </Unit19>
+      <Unit20>
+        <Filename Value="../../../packages/components/kambilclutils.pas"/>
+        <UnitName Value="KambiLCLUtils"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="10"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="../../../base/filefilters.pas"/>
+        <UnitName Value="FileFilters"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="37"/>
+        <UsageCount Value="10"/>
+      </Unit21>
     </Units>
-    <JumpHistory Count="18" HistoryIndex="17">
+    <JumpHistory Count="23" HistoryIndex="22">
       <Position1>
         <Filename Value="mainf.pas"/>
         <Caret Line="9" Column="63" TopLine="1"/>
@@ -265,6 +277,26 @@
         <Filename Value="mainf.pas"/>
         <Caret Line="29" Column="1" TopLine="18"/>
       </Position18>
+      <Position19>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="88" Column="17" TopLine="46"/>
+      </Position19>
+      <Position20>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="89" Column="12" TopLine="66"/>
+      </Position20>
+      <Position21>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="110" Column="63" TopLine="84"/>
+      </Position21>
+      <Position22>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="72" Column="31" TopLine="41"/>
+      </Position22>
+      <Position23>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="112" Column="67" TopLine="85"/>
+      </Position23>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

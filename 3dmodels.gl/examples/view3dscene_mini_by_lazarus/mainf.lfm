@@ -180,7 +180,6 @@ object Main: TMain
   end
   object OpenDialog1: TOpenDialog
     Title = 'Open 3d model file'
-    Filter = 'All supported files (*.wrl;*.3ds;*.obj;*.geo)|*.wrl;*.3ds;*.obj;*.geo|VRML files (*.wrl)|*.wrl|3DS files (*.3ds)|*.3ds|All files|*'
     FilterIndex = 0
     left = 48
     top = 304
