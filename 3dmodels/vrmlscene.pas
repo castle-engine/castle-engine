@@ -1063,7 +1063,7 @@ type
     procedure UnregisterProcessEvents(Node: TVRMLNode);
 
     procedure KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans);
-    procedure KeyUp(Key: TKey);
+    procedure KeyUp(Key: TKey; C: char);
 
     { Call this to when pointing-device moves.
       This may generate the continously-generated events like
@@ -2809,7 +2809,8 @@ begin
         KeySensor.EventIsActive.Send(true, WorldTime);
         if KeyToActionKey(Key, ActionKey) then
           KeySensor.EventActionKeyPress.Send(ActionKey, WorldTime);
-        KeySensor.EventKeyPress.Send(C, WorldTime);
+        if C <> #0 then
+          KeySensor.EventKeyPress.Send(C, WorldTime);
         case Key of
           K_Alt: KeySensor.EventAltKey.Send(true, WorldTime);
           K_Ctrl: KeySensor.EventControlKey.Send(true, WorldTime);
@@ -2820,7 +2821,7 @@ begin
   end;
 end;
 
-procedure TVRMLScene.KeyUp(Key: TKey);
+procedure TVRMLScene.KeyUp(Key: TKey; C: char);
 var
   I: Integer;
   KeySensor: TNodeKeySensor;
@@ -2836,7 +2837,8 @@ begin
         KeySensor.EventIsActive.Send(false, WorldTime);
         if KeyToActionKey(Key, ActionKey) then
           KeySensor.EventActionKeyRelease.Send(ActionKey, WorldTime);
-        { TODO: KeySensor.EventKeyRelease.Send(C, WorldTime) would be nice here }
+        if C <> #0 then
+          KeySensor.EventKeyRelease.Send(C, WorldTime);
         case Key of
           K_Alt: KeySensor.EventAltKey.Send(false, WorldTime);
           K_Ctrl: KeySensor.EventControlKey.Send(false, WorldTime);
