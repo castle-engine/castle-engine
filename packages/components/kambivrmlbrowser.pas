@@ -87,11 +87,8 @@ type
     procedure MouseUp(Button: Controls.TMouseButton;
       Shift:TShiftState; X,Y:Integer); override;
     procedure MouseMove(Shift: TShiftState; NewX, NewY: Integer); override;
-
-    {
-    procedure EventIdle; override;}
-{    procedure EventKeyDown(Key: TKey; C: char); override;
-    procedure EventKeyUp(Key: TKey); override;}
+    procedure KeyDown(var Key: Word; Shift: TShiftState); override;
+    procedure KeyUp(var Key: Word; Shift: TShiftState); override;
   public
     constructor Create(AOwner :TComponent); override;
     destructor Destroy; override;
@@ -113,7 +110,7 @@ implementation
 uses Boxes3d, VRMLOpenGLRenderer, GL, GLU,
   KambiClassUtils, KambiUtils, SysUtils, Object3dAsVRML,
   KambiGLUtils, KambiFilesUtils, VRMLTriangleOctree,
-  RaysWindow, BackgroundGL;
+  RaysWindow, BackgroundGL, Keys;
 
 procedure Register;
 begin
@@ -335,19 +332,32 @@ begin
   end;
 end;
 
-(*TODO:
-procedure TKamVRMLBrowser.EventKeyDown(Key: TKey; C: char);
+procedure TKamVRMLBrowser.KeyDown(var Key: Word; Shift: TShiftState);
+var
+  MyKey: TKey;
+  MyCharKey: char;
 begin
   inherited;
-  Scene.KeyDown(Key, C, @KeysDown);
+
+  LKeyToMyKey(Key, Shift, MyKey, MyCharKey);
+
+  if (MyKey <> K_None) or (MyCharKey <> #0) then
+    Scene.KeyDown(MyKey, MyCharKey, @KeysDown);
 end;
 
-procedure TKamVRMLBrowser.EventKeyUp(Key: TKey);
+procedure TKamVRMLBrowser.KeyUp(var Key: Word; Shift: TShiftState);
+var
+  MyKey: TKey;
+  MyCharKey: char;
 begin
   inherited;
-  Scene.KeyUp(Key);
+
+  LKeyToMyKey(Key, Shift, MyKey, MyCharKey);
+
+  if (MyKey <> K_None) or (MyCharKey <> #0) then
+    Scene.KeyUp(Key, MyCharKey);
 end;
-*)
+
 
 function TKamVRMLBrowser.MoveAllowed(ANavigator: TMatrixWalker;
   const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;

@@ -134,6 +134,16 @@ type
     procedure IgnoreNextIdleSpeed;
   end;
 
+{ This converts Key (Lazarus key codes) to my TKey value.
+
+  In addition, this tries to convert Key to a character (MyCharKey).
+  It's awful that this function has to do convertion to Char,
+  but that's the way of VCL and LCL: KeyPress and KeyDown
+  are separate events. While I want to have them in one event,
+  and passed as one event to Navigator.KeyDown. }
+procedure LKeyToMyKey(const Key: Word; Shift: TShiftState;
+  out MyKey: TKey; out MyCharKey: char);
+
 procedure Register;
 
 implementation
@@ -240,13 +250,6 @@ begin
   MousePressed := [];
 end;
 
-{ This converts Key (Lazarus key codes) to my TKey value.
-
-  In addition, this tries to convert Key to a character (MyCharKey).
-  It's awful that this function has to do convertion to Char,
-  but that's the way of VCL and LCL: KeyPress and KeyDown
-  are separate events. While I want to have them in one event,
-  and passed as one event to Navigator.KeyDown. }
 procedure LKeyToMyKey(const Key: Word; Shift: TShiftState;
   out MyKey: TKey; out MyCharKey: char);
 begin
