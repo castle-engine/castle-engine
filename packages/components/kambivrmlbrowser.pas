@@ -51,6 +51,46 @@ type
     navigator (only Walk navigation) and octrees.
     You simply call @link(Load) method and all is done.
 
+    This class tries to be a thin (not really "opaque")
+    wrapper around Scene / Navigator objects. Which means that
+    you can access many functionality by directly accessing
+    Scene or Navigator objects methods/properties.
+    In particular you're permitted to access and call:
+
+    @unorderedList(
+      @item(@link(TVRMLScene.ProcessEvents Scene.ProcessEvents))
+      @item(@link(TVRMLScene.RegisterCompiledScript Scene.RegisterCompiledScript))
+      @item(@link(TVRMLScene.LogChanges Scene.LogChanges))
+      @item(Changing VRML graph:
+
+        You can freely change @link(TVRMLScene.RootNode Scene.RootNode)
+        contents, provided that you call appropriate Scene.ChangedXxx method.
+
+        You can also freely call events on the VRML nodes.
+
+        You can access BackgroundStack and other stacks.)
+
+      @item(Automatically managed Scene properties, like
+        @link(TVRMLScene.BoundingBox Scene.BoundingBox),
+        @link(TVRMLScene.TrianglesList Scene.TrianglesList),
+        @link(TVRMLScene.ManifoldEdges Scene.ManifoldEdges),
+        @link(TVRMLScene.ManifoldEdges Scene.BorderEdges)
+        are also free to use.)
+
+      @item(You can change @link(TVRMLGLScene.Optimization
+        Scene.Optimization). You can also change rendering attributes
+        by @link(TVRMLGLScene.Attributes Scene.Attributes).)
+    )
+
+    Some important things that you @italic(cannot) mess with:
+
+    @unorderedList(
+      @item(Don't create/free octrees in Scene.DefaultTriangleOctree,
+        Scene.DefaultShapeStateOctree. This class manages them completely.)
+      @item(Don't create/free Scene, Navigator and such objects yourself.
+        This class manages them, they are always non-nil.)
+    )
+
     This is very simple to use, but note that for more advanced uses
     you're not really expected to extend this class. Instead, you can
     implement something more suitable for you using your own
@@ -62,9 +102,6 @@ type
     If you're looking for GLWindow descendants that does basically the same
     (easy VRML browser), you want to check out TGLWindowVRMLBrowser
     (file @code(../../3dmodels.gl/glwindowvrmlbrowser.pas)). }
-
-  { TKamVRMLBrowser }
-
   TKamVRMLBrowser = class(TKamOpenGLControl)
   private
     FOnNavigatorChanged: TMatrixNavigatorNotifyFunc;
