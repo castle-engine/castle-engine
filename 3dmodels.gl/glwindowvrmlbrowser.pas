@@ -309,7 +309,7 @@ end;
 procedure TGLWindowVRMLBrowser.EventKeyUp(Key: TKey);
 begin
   inherited;
-  Scene.KeyUp(Key);
+  Scene.KeyUp(Key, #0 { TODO });
 end;
 
 function TGLWindowVRMLBrowser.MoveAllowed(ANavigator: TMatrixWalker;
