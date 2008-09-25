@@ -280,7 +280,8 @@ interface
 
 uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
   VRMLFields, Boxes3d, Images, TTFontsTypes, BackgroundBase, VRMLErrors,
-  ImagesCache, VideosCache, KambiInterfaces, Videos, KambiTimeUtils;
+  ImagesCache, VideosCache, KambiInterfaces, Videos, KambiTimeUtils,
+  KambiScript;
 
 {$define read_interface}
 
@@ -3393,7 +3394,7 @@ uses
 
   Math, Triangulator, Object3dAsVRML, KambiZStream, VRMLCameraUtils,
   KambiStringUtils, KambiFilesUtils, RaysWindow, StrUtils, KambiURLUtils,
-  VRMLGeometry, KambiLog, VRMLScene;
+  VRMLGeometry, KambiLog, VRMLScene, KambiScriptParser;
 
 {$define read_implementation}
 

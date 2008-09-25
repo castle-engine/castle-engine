@@ -34,6 +34,11 @@ interface
 
 uses KambiScript, KambiScriptLexer, Math;
 
+type
+  { Reexported in this unit, so that the identifier EKamScriptSyntaxError
+    will be visible when using this unit. }
+  EKamScriptSyntaxError = KambiScriptLexer.EKamScriptSyntaxError;
+
 { Creates and returns instance of TKamScriptExpression,
   that represents parsed tree of expression in S.
 
@@ -50,46 +55,39 @@ uses KambiScript, KambiScriptLexer, Math;
     So setting OwnedByParentExpression and freeing it yourself
     is the only sensible thing to do.)
 
-  @raises(EKamScriptParserError in case of error when parsing expression.) }
+  @raises(EKamScriptSyntaxError in case of error when parsing expression.) }
 function ParseFloatExpression(const S: string;
-  Variables: array of TKamScriptValue): TKamScriptExpression;
+  const Variables: array of TKamScriptValue): TKamScriptExpression;
 
 { Parse constant float expression.
   This can be used as a great replacement for StrToFloat.
   Takes a string with any constant mathematical expression,
   according to KambiScript syntax, parses it and calculates.
 
-  @raises(EKamScriptParserError in case of error when parsing expression.) }
+  @raises(EKamScriptSyntaxError in case of error when parsing expression.) }
 function ParseConstantFloatExpression(const S: string): Float;
 
-type
-  { Reexported in this unit, so that the identifier EKamScriptSyntaxError
-    will be visible when using this unit. }
-  EKamScriptSyntaxError = KambiScriptLexer.EKamScriptSyntaxError;
+{ Parse KambiScript program.
 
-  EKamScriptParserError = class(EKamScriptSyntaxError);
+  Variable list works like for ParseFloatExpression, see there for
+  description.
+
+  @raises(EKamScriptSyntaxError in case of error when parsing expression.) }
+function ParseProgram(const S: string;
+  const Variables: array of TKamScriptValue): TKamScriptProgram;
 
 implementation
 
 uses SysUtils, KambiScriptMathFunctions;
 
-function ParseFloatExpression(const S: string;
-  Variables: array of TKamScriptValue): TKamScriptExpression;
+function Expression(
+  const Lexer: TKamScriptLexer;
+  const Variables: array of TKamScriptValue): TKamScriptExpression; forward;
 
-const
-  SErrRightParenExpected = 'right paren ")" expected';
-  SErrWrongFactor = 'wrong factor (expected identifier, constant, "-", "(" or function name)';
-  SErrKoniecExpected = 'end of expression expected, but "%s" found';
-  SErrOperRelacExpected = 'comparison operator (>, <, >=, <=, = or <>) expected';
-  SErrRightQarenExpected = 'right paren "]" expected';
-
-var
-  Lexer: TKamScriptLexer;
-
-  const
-    FactorOperator = [tokMultiply, tokDivide, tokPower, tokModulo];
-    TermOperator = [tokPlus, tokMinus];
-    RelationalOperator = [tokGreater, tokLesser, tokGreaterEqual, tokLesserEqual, tokEqual, tokNotEqual];
+function NonAssignmentExpression(
+  const Lexer: TKamScriptLexer;
+  const AllowFullExpressionInFactor: boolean;
+  const Variables: array of TKamScriptValue): TKamScriptExpression;
 
   function BinaryOper(tok: TToken): TKamScriptFunctionClass;
   begin
@@ -114,14 +112,13 @@ var
     end
   end;
 
-  procedure CheckTokenIs(tok: TToken; const errString: string);
-  begin
-    if Lexer.Token <> tok then
-      raise EKamScriptParserError.Create(Lexer, errString +
-        ', but got ' + Lexer.TokenDescription);
-  end;
+const
+  SErrWrongFactor = 'wrong factor (expected identifier, constant, "-", "(" or function name)';
+  SErrOperRelacExpected = 'comparison operator (>, <, >=, <=, = or <>) expected';
 
-  function Expression: TKamScriptExpression; forward;
+  FactorOperator = [tokMultiply, tokDivide, tokPower, tokModulo];
+  TermOperator = [tokPlus, tokMinus];
+  ComparisonOperator = [tokGreater, tokLesser, tokGreaterEqual, tokLesserEqual, tokEqual, tokNotEqual];
 
   function VariableFromName(const Name: string): TKamScriptValue;
   var
@@ -131,6 +128,16 @@ var
       if SameText(Variables[I].Name, Name) then
         Exit(Variables[I]);
     Result := nil;
+  end;
+
+  { Returns either Expression or NonAssignmentExpression, depending on
+    AllowFullExpressionInFactor value. }
+  function ExpressionInsideFactor: TKamScriptExpression;
+  begin
+    if AllowFullExpressionInFactor then
+      Result := Expression(Lexer, Variables) else
+      Result := NonAssignmentExpression(Lexer,
+        AllowFullExpressionInFactor, Variables);
   end;
 
   function Factor: TKamScriptExpression;
@@ -158,8 +165,8 @@ var
           end;
         tokLParen: begin
             Lexer.NextToken;
-            Result := Expression;
-            CheckTokenIs(tokRParen, SErrRightParenExpected);
+            Result := ExpressionInsideFactor;
+            Lexer.CheckTokenIs(tokRParen);
             Lexer.NextToken;
           end;
         tokFuncName: begin
@@ -170,17 +177,17 @@ var
               if Lexer.Token = tokLParen then
               repeat
                 Lexer.NextToken; { pomin ostatni "," lub "(" }
-                FParams.Add(Expression);
+                FParams.Add(ExpressionInsideFactor);
               until Lexer.Token <> tokComma;
-              CheckTokenIs(tokRParen, SErrRightParenExpected);
+              Lexer.CheckTokenIs(tokRParen);
               Lexer.NextToken;
               Result := FC.Create(FParams);
             finally FParams.Free end;
           end;
         else raise EKamScriptParserError.Create(Lexer, SErrWrongFactor +
-          ', but got ' + Lexer.TokenDescription);
+          ', but got "' + Lexer.TokenDescription + '"');
       end;
-    except Result.Free; raise end;
+    except Result.FreeByParentExpression; raise end;
   end;
 
   function Term: TKamScriptExpression;
@@ -196,10 +203,10 @@ var
         Lexer.NextToken;
         Result := FC.Create([Result, Factor]);
       end;
-    except Result.Free; raise end;
+    except Result.FreeByParentExpression; raise end;
   end;
 
-  function SimpleExpression: TKamScriptExpression;
+  function ComparisonArgument: TKamScriptExpression;
   var
     FC: TKamScriptFunctionClass;
   begin
@@ -212,26 +219,137 @@ var
         Lexer.NextToken;
         Result := FC.Create([Result, Term]);
       end;
-    except Result.Free; raise end;
-  end;
-
-  function Expression: TKamScriptExpression;
-  var
-    FC: TKamScriptFunctionClass;
-  begin
-    Result := nil;
-    try
-      Result := SimpleExpression;
-      while Lexer.Token in RelationalOperator do
-      begin
-        FC := BinaryOper(Lexer.Token);
-        Lexer.NextToken;
-        Result := FC.Create([Result, SimpleExpression]);
-      end;
-    except Result.Free; raise end;
+    except Result.FreeByParentExpression; raise end;
   end;
 
 var
+  FC: TKamScriptFunctionClass;
+begin
+  Result := nil;
+  try
+    Result := ComparisonArgument;
+    while Lexer.Token in ComparisonOperator do
+    begin
+      FC := BinaryOper(Lexer.Token);
+      Lexer.NextToken;
+      Result := FC.Create([Result, ComparisonArgument]);
+    end;
+  except Result.FreeByParentExpression; raise end;
+end;
+
+function Expression(
+  const Lexer: TKamScriptLexer;
+  const Variables: TKamScriptValuesList): TKamScriptExpression;
+var
+  VariablesArray: array of TKamScriptValue;
+  I: Integer;
+begin
+  SetLength(VariablesArray, Variables.Count);
+  for I := 0 to Variables.High do VariablesArray[I] := Variables[I];
+  Result := Expression(Lexer, VariablesArray);
+end;
+
+function Expression(
+  const Lexer: TKamScriptLexer;
+  const Variables: array of TKamScriptValue): TKamScriptExpression;
+{TODO: assignment operator not handled}
+var
+  SequenceArgs: TKamScriptExpressionsList;
+begin
+  Result := nil;
+  try
+    Result := NonAssignmentExpression(Lexer, true, Variables);
+
+    if Lexer.Token = tokSemicolon then
+    begin
+      SequenceArgs := TKamScriptExpressionsList.Create;
+      try
+        try
+          SequenceArgs.Add(Result);
+          Result := nil;
+
+          while Lexer.Token = tokSemicolon do
+          begin
+            Lexer.NextToken;
+            SequenceArgs.Add(NonAssignmentExpression(Lexer, true, Variables));
+          end;
+        except SequenceArgs.FreeContentsByParentExpression; raise end;
+
+        Result := TKamScriptSequence.Create(SequenceArgs);
+      finally FreeAndNil(SequenceArgs) end;
+    end;
+  except Result.FreeByParentExpression; raise end;
+end;
+
+function AProgram(
+  const Lexer: TKamScriptLexer;
+  const GlobalVariables: array of TKamScriptValue): TKamScriptProgram;
+
+  function AFunction: TKamScriptFunctionDefinition;
+  var
+    BodyVariables: TKamScriptValuesList;
+    Parameter: TKamScriptValue;
+  begin
+    Result := TKamScriptFunctionDefinition.Create;
+    try
+      Lexer.CheckTokenIs(tokIdentifier);
+      Result.Name := Lexer.TokenString;
+      Lexer.NextToken;
+
+      BodyVariables := TKamScriptValuesList.Create;
+      try
+        Lexer.CheckTokenIs(tokLParen);
+        Lexer.NextToken;
+
+        if Lexer.Token <> tokRParen then
+        begin
+          repeat
+            Lexer.CheckTokenIs(tokIdentifier);
+            Parameter := TKamScriptFloat.Create;
+            Parameter.Name := Lexer.TokenString;
+            Parameter.OwnedByParentExpression := false;
+            Result.Parameters.Add(Parameter);
+            BodyVariables.Add(Parameter);
+            Lexer.NextToken;
+
+            if Lexer.Token = tokRParen then
+              Break else
+              begin
+                Lexer.CheckTokenIs(tokComma);
+                Lexer.NextToken;
+              end;
+          until false;
+        end;
+
+        Lexer.NextToken; { eat ")" }
+
+        { We first added parameters, then added GlobalVariables,
+          so when resolving, parameter names will hide global
+          variable names, just like they should in normal language. }
+        BodyVariables.AddArray(GlobalVariables);
+
+        Result.Body := Expression(Lexer, BodyVariables);
+      finally FreeAndNil(BodyVariables); end;
+    except FreeAndNil(Result); raise end;
+  end;
+
+begin
+  Result := TKamScriptProgram.Create;
+  try
+    while Lexer.Token = tokFunctionKeyword do
+    begin
+      Lexer.NextToken;
+      Result.Functions.Add(AFunction);
+    end;
+  except FreeAndNil(Result); raise end;
+end;
+
+{ ParseFloatExpression ------------------------------------------------------- }
+
+function ParseFloatExpression(const S: string;
+  const Variables: array of TKamScriptValue): TKamScriptExpression;
+var
+  Lexer: TKamScriptLexer;
   I: Integer;
 begin
   for I := 0 to Length(Variables) - 1 do
@@ -242,19 +360,17 @@ begin
     Result := nil;
     try
       try
-        Result := Expression;
-        if Lexer.Token <> tokEnd then
-          raise EKamScriptParserError.Create(Lexer,
-            Format(SErrKoniecExpected, [Lexer.TokenDescription]));
+        Result := NonAssignmentExpression(Lexer, false, Variables);
+        Lexer.CheckTokenIs(tokEnd);
       except
         { Change EKamScriptFunctionArgumentsError (raised when
           creating functions) to EKamScriptParserError.
-          This allows the caller to catch only EKamScriptParserError,
+          This allows the caller to catch only EKamScriptSyntaxError,
           and adds position information to error message. }
         on E: EKamScriptFunctionArgumentsError do
           raise EKamScriptParserError.Create(Lexer, E.Message);
       end;
-    except Result.Free; raise end;
+    except Result.FreeByParentExpression; raise end;
   finally Lexer.Free end;
 end;
 
@@ -277,6 +393,36 @@ begin
   try
     Result := (Expr.Execute as TKamScriptFloat).Value;
   finally Expr.Free end;
+end;
+
+{ ParseProgram --------------------------------------------------------------- }
+
+function ParseProgram(const S: string;
+  const Variables: array of TKamScriptValue): TKamScriptProgram;
+var
+  Lexer: TKamScriptLexer;
+  I: Integer;
+begin
+  for I := 0 to Length(Variables) - 1 do
+    Variables[I].OwnedByParentExpression := false;
+
+  Lexer := TKamScriptLexer.Create(s);
+  try
+    Result := nil;
+    try
+      try
+        Result := AProgram(Lexer, Variables);
+        Lexer.CheckTokenIs(tokEnd);
+      except
+        { Change EKamScriptFunctionArgumentsError (raised when
+          creating functions) to EKamScriptParserError.
+          This allows the caller to catch only EKamScriptSyntaxError,
+          and adds position information to error message. }
+        on E: EKamScriptFunctionArgumentsError do
+          raise EKamScriptParserError.Create(Lexer, E.Message);
+      end;
+    except Result.Free; raise end;
+  finally Lexer.Free end;
 end;
 
 end.

@@ -31,6 +31,7 @@ type
   TTestKambiScript = class(TTestCase)
   published
     procedure Test1;
+    procedure TestInheritsFrom;
   end;
 
 implementation
@@ -56,6 +57,14 @@ begin
   WritelnLexer('-10 * Pi');
 }
   Assert(FloatsEqual(ParseConstantFloatExpression('-10 * Pi'), -10 * Pi));
+end;
+
+procedure TTestKambiScript.TestInheritsFrom;
+begin
+  Assert(TKamScriptFloat.InheritsFrom(TKamScriptFloat));
+  Assert(TKamScriptValue.InheritsFrom(TKamScriptValue));
+  Assert(TKamScriptFloat.InheritsFrom(TKamScriptValue));
+  Assert(not TKamScriptValue.InheritsFrom(TKamScriptFloat));
 end;
 
 initialization

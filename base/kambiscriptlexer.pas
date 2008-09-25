@@ -35,6 +35,7 @@ type
     tokConst, {< Value of given constant will be in w TKamScriptLexer.TokenFloat. }
     tokIdentifier, {< Identifier will be in TKamScriptLexer.TokenString. }
     tokFuncName, {< Function class of given function will be in TKamScriptLexer.TokenFunctionClass. }
+    tokFunctionKeyword,
 
     tokMinus, tokPlus,
 
@@ -42,7 +43,7 @@ type
 
     tokGreater, tokLesser, tokGreaterEqual, tokLesserEqual, tokEqual, tokNotEqual,
 
-    tokLParen, tokRParen, tokComma, tokLQaren, tokRQaren);
+    tokLParen, tokRParen, tokComma, tokSemicolon, tokLQaren, tokRQaren);
 
   TKamScriptLexer = class
   private
@@ -71,13 +72,22 @@ type
       and returns the value of field @link(Token).
 
       When @link(Token) is tokEnd, then NextToken doesn't do anything,
-      i.e. @link(Token) will remain tokEnd forever. }
+      i.e. @link(Token) will remain tokEnd forever.
+
+      @raises EKamScriptLexerError }
     function NextToken: TToken;
 
     constructor Create(const AText: string);
 
     { Current token textual description. Useful mainly for debugging lexer. }
     function TokenDescription: string;
+
+    { Check is current token Tok, eventually rise parser error.
+      This is an utility for parser.
+
+      @raises(EKamScriptParserError
+        if current Token doesn't match required Tok.) }
+    procedure CheckTokenIs(Tok: TToken);
   end;
 
   { A common class for EKamScriptLexerError and EKamScriptParserError }
@@ -98,6 +108,8 @@ type
   end;
 
   EKamScriptLexerError = class(EKamScriptSyntaxError);
+
+  EKamScriptParserError = class(EKamScriptSyntaxError);
 
 implementation
 
@@ -130,12 +142,13 @@ const
   const
     { kolejnosc w toks_strs MA znaczenie - pierwszy zostanie dopasowany string dluzszy,
       wiec aby Lexer pracowal zachlannnie stringi dluzsze musza byc pierwsze. }
-    toks_strs : array[0..16] of string=
-     ('<>', '<=', '>=', '<', '>', '=', '+', '-', '*', '/', ',', '(', ')', '^', '[', ']', '%');
+    toks_strs : array[0..17] of string=
+     ('<>', '<=', '>=', '<', '>', '=', '+', '-', '*', '/', ',',
+      '(', ')', '^', '[', ']', '%', ';');
     toks_tokens : array[0..High(toks_strs)]of TToken =
      (tokNotEqual, tokLesserEqual, tokGreaterEqual, tokLesser, tokGreater,
       tokEqual, tokPlus, tokMinus, tokMultiply, tokDivide, tokComma, tokLParen, tokRParen,
-      tokPower, tokLQaren, tokRQaren, tokModulo);
+      tokPower, tokLQaren, tokRQaren, tokModulo, tokSemicolon);
   var i: integer;
   begin
    for i := 0 to High(toks_strs) do
@@ -220,19 +233,32 @@ begin
   if not ReadSimpleToken then
   if not ReadConstant then
   begin
-   { jest to zmienna, nazwa funkcji lub stalej }
+   { It's something that *may* be an identifier.
+     Unless it matches some keyword, built-in function or constant. }
    ftoken := tokIdentifier;
    fTokenString := ReadIdentifier;
 
-   { sprawdzamy czy jest to nazwa funkcji }
-   fc := FunctionHandlers.SearchFunctionShortName(fTokenString);
-   if fc <> nil then
+   { Maybe it's tokFunctionKeyword (the only keyword for now) }
+   if ftoken = tokIdentifier then
    begin
-    ftoken := tokFuncName;
-    fTokenFunctionClass := fc;
+     if SameText(fTokenString, 'function') then
+     begin
+       ftoken := tokFunctionKeyword;
+     end;
    end;
 
-   { jesli nie jest to nazwa funkcji sprawdzamy czy jest to nazwa stalej }
+   { Maybe it's tokFuncName }
+   if ftoken = tokIdentifier then
+   begin
+     fc := FunctionHandlers.SearchFunctionShortName(fTokenString);
+     if fc <> nil then
+     begin
+      ftoken := tokFuncName;
+      fTokenFunctionClass := fc;
+     end;
+   end;
+
+   { Maybe it's tokConst }
    if ftoken = tokIdentifier then
    begin
     p := ArrayPosText(fTokenString, consts_str);
@@ -242,30 +268,41 @@ begin
      fTokenFloat := consts_values[p];
     end;
    end;
-
   end;
  end;
  result := token;
 end;
 
+const
+  TokenShortDescription: array [TToken] of string =
+  ( 'end of stream',
+    'constant',
+    'identifier',
+    'built-in function',
+    'function',
+    '-', '+',
+    '*', '/', '^', '%',
+    '>', '<', '>=', '<=', '=', '<>',
+    '(', ')',
+    ',', ';',
+    '[', ']');
+
 function TKamScriptLexer.TokenDescription: string;
 begin
+  Result := TokenShortDescription[Token];
   case Token of
-    tokConst: Result := Format('constant %g', [TokenFloat]);
-    tokIdentifier: Result := Format('identifier %s', [TokenString]);
-    tokFuncName: Result := Format('function %s', [TokenFunctionClass.Name]);
-    tokMinus: Result := '-';
-    tokPlus: Result := '+';
-    tokMultiply: Result := '*';
-    tokDivide: Result := '/';
-    tokLParen: Result := '(';
-    tokRParen: Result := ')';
-    tokLQaren: Result := '[';
-    tokRQaren: Result := ']';
-    tokComma: Result := ',';
-    tokEnd: Result := 'end of stream';
-    else raise EInternalError.Create('TKamScriptLexer.TokenDescription');
+    tokConst: Result += Format(' %g', [TokenFloat]);
+    tokIdentifier: Result += Format(' %s', [TokenString]);
+    tokFuncName: Result += Format(' %s', [TokenFunctionClass.Name]);
   end;
+end;
+
+procedure TKamScriptLexer.CheckTokenIs(Tok: TToken);
+begin
+  if Token <> Tok then
+    raise EKamScriptParserError.CreateFmt(Self,
+      'Expected "%s", but got "%s"',
+      [ TokenShortDescription[Tok], TokenDescription ]);
 end;
 
 { EKamScriptSyntaxError --------------------------------------- }

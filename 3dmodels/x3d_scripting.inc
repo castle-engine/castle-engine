@@ -20,7 +20,7 @@
 
 {$ifdef read_interface}
   { }
-  TScriptType = (stCompiled);
+  TScriptType = (stCompiled, stKambiScript);
 
   TNodeX3DScriptNode = class(TNodeX3DChildNode, INodeX3DURLObject)
   private
@@ -30,6 +30,8 @@
     FInitializedScriptType: TScriptType;
 
     CompiledScriptContents: TStringList;
+
+    KambiScriptProgram: TKamScriptProgram;
 
     procedure EventUrlReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
@@ -107,6 +109,7 @@ begin
     is partially destroyed here). }
   FInitialized := false;
   FreeAndNil(CompiledScriptContents);
+  FreeAndNil(KambiScriptProgram);
   inherited;
 end;
 
@@ -157,6 +160,7 @@ begin
               the handler of the same name. }
             ExecuteCompiledHandler(FunctionName);
         end;
+      stKambiScript: {TODO};
       else raise EInternalError.Create('Unknown script type initialized');
     end;
   end;
@@ -164,9 +168,18 @@ end;
 
 procedure TNodeX3DScriptNode.SetInitialized(const Value: boolean);
 
+  { @raises(EKamScriptSyntaxError in case of program parsing error
+      (we just let through EKamScriptSyntaxError from ParseProgram).) }
+  procedure KambiScriptInitialize(const ProgramContent: string);
+  begin
+    FreeAndNil(KambiScriptProgram);
+    KambiScriptProgram := ParseProgram(ProgramContent, []);
+    {TODO: init vars with our fields, events.}
+  end;
+
   function LoadUrl(Url: string): boolean;
   var
-    Protocol: string;
+    Protocol, PotentialFullUrl, ScriptContents: string;
   begin
     Result := false;
     Protocol := UrlProtocol(Url);
@@ -182,40 +195,58 @@ procedure TNodeX3DScriptNode.SetInitialized(const Value: boolean);
       FInitializedFullUrl := Url;
     end else
 
-    (*
-    To be used later for KambiScript:
-
     if Protocol = 'kambiscript' then
     begin
-      KambiScriptInitialize(UrlDeleteProtocol(Url));
-      Result := true;
-      FInitializedScriptType := stKambiScript;
-      FInitializedFullUrl := Url;
+      try
+        KambiScriptInitialize(UrlDeleteProtocol(Url));
+
+        Result := true;
+        FInitializedScriptType := stKambiScript;
+        FInitializedFullUrl := Url;
+      except
+        { This catches exceptions from KambiScriptInitialize }
+        on E: EKamScriptSyntaxError do
+          VRMLNonFatalError(Format(
+            'Exception %s when parsing KambiScript: %s',
+              [E.ClassName, E.Message ]));
+      end;
     end else
+
     if (Protocol = '') and
        SameText(ExtractFileExt(Url), '.kscript') then
     begin
       PotentialFullUrl := PathFromWWWBasePath(Url);
       try
         ScriptContents := FileToString(PotentialFullUrl);
+
         KambiScriptInitialize(ScriptContents);
+
         Result := true;
         FInitializedScriptType := stKambiScript;
         FInitializedFullUrl := PotentialFullUrl;
       except
+        { This catches exceptions from FileToString,
+          and exceptions from KambiScriptInitialize
+          (EKamScriptSyntaxError only). }
         on E: Exception do
           VRMLNonFatalError(Format(
             'Exception %s when loading Script from URL "%s": %s',
-              [E.ClassName, PotentialUrl, E.Message ]));
+              [E.ClassName, PotentialFullUrl, E.Message ]));
       end;
-    end;
-    *)
+    end else
 
     begin
       if Protocol <> '' then
         VRMLNonFatalError(Format('Script protocol "%s" not handled', [Protocol])) else
         VRMLNonFatalError(Format('Script from URL "%s" not handled', [Url]));
     end;
+
+    { TODO: checks for Protocol <> '', above and below, are done
+      to avoid showing full Script content in case of inline scripts.
+      We currently assume that Protocol <> '' then we have inline script
+      content --- but this is bad in the long run, as URLs to files
+      may also have protocol (http, file etc.). We just don't handle
+      URLs to files right now. }
 
     if Result and Log then
     begin
