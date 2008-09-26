@@ -32,6 +32,7 @@
     CompiledScriptContents: TStringList;
 
     KambiScriptProgram: TKamScriptProgram;
+    KambiScriptVariables: TKamScriptValuesList;
 
     procedure EventUrlReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
@@ -108,8 +109,12 @@ begin
     we don't want to call ExecuteScript at this point (as VRML graph
     is partially destroyed here). }
   FInitialized := false;
+
   FreeAndNil(CompiledScriptContents);
+
   FreeAndNil(KambiScriptProgram);
+  FreeWithContentsAndNil(KambiScriptVariables);
+
   inherited;
 end;
 
@@ -119,6 +124,62 @@ begin
   { Simply shutdown + initialize from new URL }
   Initialized := false;
   Initialized := true;
+end;
+
+procedure KamScriptValueAssignVRMLField(Value: TKamScriptValue;
+  Field: TVRMLField);
+begin
+  { TODO: this is a hack. Intention was to have other TKamScriptValue
+    descendants for various field classes. For now, we just use
+    TKamScriptFloat always. }
+
+  if Field is TSFFloat then
+    (Value as TKamScriptFloat).Value := TSFFloat(Field).Value else
+  if Field is TSFDouble then
+    (Value as TKamScriptFloat).Value := TSFDouble(Field).Value else
+  if Field is TSFBool then
+    (Value as TKamScriptFloat).AsBoolean := TSFBool(Field).Value else
+  if Field is TSFEnum then
+    (Value as TKamScriptFloat).Value := TSFEnum(Field).Value else
+  if Field is TSFLong then
+    (Value as TKamScriptFloat).Value := TSFLong(Field).Value else
+
+  if (Field is TMFFloat) and
+     (TMFFloat(Field).Items.Count = 1) then
+    (Value as TKamScriptFloat).Value := TMFFloat(Field).Items.Items[0] else
+  if (Field is TMFDouble) and
+     (TMFDouble(Field).Items.Count = 1) then
+    (Value as TKamScriptFloat).Value := TMFDouble(Field).Items.Items[0] else
+  if (Field is TMFBool) and
+     (TMFBool(Field).Items.Count = 1) then
+    (Value as TKamScriptFloat).AsBoolean := TMFBool(Field).Items.Items[0] else
+  if (Field is TMFLong) and
+     (TMFLong(Field).Items.Count = 1) then
+    (Value as TKamScriptFloat).Value := TMFLong(Field).Items.Items[0] else
+
+    { No sensible way to convert, just fall back to 0.0. }
+    (Value as TKamScriptFloat).Value := 0.0;
+end;
+
+function VRMLFieldToKamScriptValue(Field: TVRMLField): TKamScriptValue;
+begin
+  { TODO: this is a hack. Intention was to have other TKamScriptValue
+    descendants for various field classes. For now, we just use
+    TKamScriptFloat always. }
+
+  Result := TKamScriptFloat.Create;
+  Result.Name := Field.Name;
+  KamScriptValueAssignVRMLField(Result, Field);
+end;
+
+function VRMLEventToKamScriptValue(Event: TVRMLEvent): TKamScriptValue;
+begin
+  { TODO: this is a hack. Intention was to have other TKamScriptValue
+    descendants for various field classes. For now, we just use
+    TKamScriptFloat always. }
+
+  Result := TKamScriptFloat.Create;
+  Result.Name := Event.Name;
 end;
 
 procedure TNodeX3DScriptNode.ExecuteScript(const FunctionName: string;
@@ -141,6 +202,7 @@ procedure TNodeX3DScriptNode.ExecuteScript(const FunctionName: string;
 
 var
   I: Integer;
+  ParameterValue: TKamScriptFloat;
 begin
   if Initialized and
      (ParentEventsProcessor <> nil) and
@@ -160,7 +222,21 @@ begin
               the handler of the same name. }
             ExecuteCompiledHandler(FunctionName);
         end;
-      stKambiScript: {TODO};
+      stKambiScript:
+        begin
+          ParameterValue := TKamScriptFloat.Create;
+          try
+            KamScriptValueAssignVRMLField(ParameterValue, ReceivedValue);
+            try
+              KambiScriptProgram.ExecuteFunction(FunctionName,
+                [ ParameterValue.Value,
+                  TVRMLScene(ParentEventsProcessor).WorldTime ], true);
+            except
+              on E: EKamScriptError do
+                VRMLNonFatalError('Error when executing KambiScript: ' + E.Message);
+            end;
+          finally FreeAndNil(ParameterValue); end;
+        end;
       else raise EInternalError.Create('Unknown script type initialized');
     end;
   end;
@@ -171,10 +247,20 @@ procedure TNodeX3DScriptNode.SetInitialized(const Value: boolean);
   { @raises(EKamScriptSyntaxError in case of program parsing error
       (we just let through EKamScriptSyntaxError from ParseProgram).) }
   procedure KambiScriptInitialize(const ProgramContent: string);
+  var
+    I: Integer;
   begin
     FreeAndNil(KambiScriptProgram);
-    KambiScriptProgram := ParseProgram(ProgramContent, []);
-    {TODO: init vars with our fields, events.}
+    FreeWithContentsAndNil(KambiScriptVariables);
+
+    KambiScriptVariables := TKamScriptValuesList.Create;
+    for I := 0 to Fields.Count - 1 do
+      KambiScriptVariables.Add(VRMLFieldToKamScriptValue(Fields[I]));
+    for I := 0 to Events.Count - 1 do
+      if not Events[I].InEvent then
+        KambiScriptVariables.Add(VRMLEventToKamScriptValue(Events[I]));
+
+    KambiScriptProgram := ParseProgram(ProgramContent, KambiScriptVariables);
   end;
 
   function LoadUrl(Url: string): boolean;

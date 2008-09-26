@@ -72,9 +72,14 @@ function ParseConstantFloatExpression(const S: string): Float;
   Variable list works like for ParseFloatExpression, see there for
   description.
 
-  @raises(EKamScriptSyntaxError in case of error when parsing expression.) }
+  @raises(EKamScriptSyntaxError in case of error when parsing expression.)
+
+  @groupBegin }
 function ParseProgram(const S: string;
-  const Variables: array of TKamScriptValue): TKamScriptProgram;
+  const Variables: array of TKamScriptValue): TKamScriptProgram; overload;
+function ParseProgram(const S: string;
+  const Variables: TKamScriptValuesList): TKamScriptProgram; overload;
+{ @groupEnd }
 
 implementation
 
@@ -242,16 +247,24 @@ begin
   except Result.FreeByParentExpression; raise end;
 end;
 
+type
+  TKamScriptValuesArray = array of TKamScriptValue;
+
+function VariablesListToArray(
+  const Variables: TKamScriptValuesList): TKamScriptValuesArray;
+var
+  I: Integer;
+begin
+  SetLength(Result, Variables.Count);
+  for I := 0 to Variables.High do
+    Result[I] := Variables[I];
+end;
+
 function Expression(
   const Lexer: TKamScriptLexer;
   const Variables: TKamScriptValuesList): TKamScriptExpression;
-var
-  VariablesArray: array of TKamScriptValue;
-  I: Integer;
 begin
-  SetLength(VariablesArray, Variables.Count);
-  for I := 0 to Variables.High do VariablesArray[I] := Variables[I];
-  Result := Expression(Lexer, VariablesArray);
+  Result := Expression(Lexer, VariablesListToArray(Variables));
 end;
 
 function Expression(
@@ -442,6 +455,12 @@ begin
 end;
 
 { ParseProgram --------------------------------------------------------------- }
+
+function ParseProgram(const S: string;
+  const Variables: TKamScriptValuesList): TKamScriptProgram;
+begin
+  Result := ParseProgram(S, VariablesListToArray(Variables));
+end;
 
 function ParseProgram(const S: string;
   const Variables: array of TKamScriptValue): TKamScriptProgram;

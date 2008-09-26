@@ -188,6 +188,9 @@ type
     class procedure HandleOr(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleAnd(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleNot(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    function GetAsBoolean: boolean;
+    procedure SetAsBoolean(const AValue: boolean);
   public
     Value: Float;
 
@@ -197,6 +200,13 @@ type
     constructor Create(AValue: Float);
 
     constructor Create; override;
+
+    { Read/write Value as boolean. This automatically does simple
+      convertion between Float and boolean.
+
+      When setting, false results in 0 and true in 1.
+      When reading, anything different than 0 results in true. }
+    property AsBoolean: boolean read GetAsBoolean write SetAsBoolean;
 
     procedure AssignValue(Source: TKamScriptValue); override;
   end;
@@ -493,15 +503,20 @@ type
     { Execute a user-defined function (from Functions list of this program).
 
       @unorderedList(
-        @item(Looks for given FunctionName (exception EKamScriptMissingFunction
-          if not found).)
+        @item(Looks for given FunctionName.
+
+          IgnoreMissingFunction says what to do in case of missing function:
+          if true, it will be simply ignored (ExecuteFunction will
+          silently do nothng). If false (default)
+          then we will raise exception EKamScriptMissingFunction.)
         @item(Sets function parameters to given values
          (number of parameters must match, otherwise EKamScriptError).)
         @item(Finally executes function body.)
       )
     }
     procedure ExecuteFunction(const FunctionName: string;
-      const Parameters: array of Float);
+      const Parameters: array of Float;
+      const IgnoreMissingFunction: boolean = false);
   end;
 
 var
@@ -821,83 +836,75 @@ begin
   TKamScriptFloat(AResult).Value := Floor( TKamScriptFloat(Arguments[0]).Value );
 end;
 
-const
-  BoolToFloat: array [boolean] of Float = (0, 1);
-
-function FloatToBool(const A: Float): boolean;
-begin
-  Result := A <> 0;
-end;
-
 class procedure TKamScriptFloat.HandleGreater(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).Value := BoolToFloat[
+  TKamScriptFloat(AResult).AsBoolean :=
     TKamScriptFloat(Arguments[0]).Value >
-    TKamScriptFloat(Arguments[1]).Value];
+    TKamScriptFloat(Arguments[1]).Value;
 end;
 
 class procedure TKamScriptFloat.HandleLesser(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).Value := BoolToFloat[
+  TKamScriptFloat(AResult).AsBoolean :=
     TKamScriptFloat(Arguments[0]).Value <
-    TKamScriptFloat(Arguments[1]).Value];
+    TKamScriptFloat(Arguments[1]).Value;
 end;
 
 class procedure TKamScriptFloat.HandleGreaterEq(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).Value := BoolToFloat[
+  TKamScriptFloat(AResult).AsBoolean :=
     TKamScriptFloat(Arguments[0]).Value >=
-    TKamScriptFloat(Arguments[1]).Value];
+    TKamScriptFloat(Arguments[1]).Value;
 end;
 
 class procedure TKamScriptFloat.HandleLesserEq(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).Value := BoolToFloat[
+  TKamScriptFloat(AResult).AsBoolean :=
     TKamScriptFloat(Arguments[0]).Value <=
-    TKamScriptFloat(Arguments[1]).Value];
+    TKamScriptFloat(Arguments[1]).Value;
 end;
 
 class procedure TKamScriptFloat.HandleEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).Value := BoolToFloat[
+  TKamScriptFloat(AResult).AsBoolean :=
     TKamScriptFloat(Arguments[0]).Value =
-    TKamScriptFloat(Arguments[1]).Value];
+    TKamScriptFloat(Arguments[1]).Value;
 end;
 
 class procedure TKamScriptFloat.HandleNotEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).Value := BoolToFloat[
+  TKamScriptFloat(AResult).AsBoolean :=
     TKamScriptFloat(Arguments[0]).Value <>
-    TKamScriptFloat(Arguments[1]).Value];
+    TKamScriptFloat(Arguments[1]).Value;
 end;
 
 class procedure TKamScriptFloat.HandleOr(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).Value := BoolToFloat[
-    FloatToBool(TKamScriptFloat(Arguments[0]).Value) or
-    FloatToBool(TKamScriptFloat(Arguments[1]).Value) ];
+  TKamScriptFloat(AResult).AsBoolean :=
+    TKamScriptFloat(Arguments[0]).AsBoolean or
+    TKamScriptFloat(Arguments[1]).AsBoolean;
 end;
 
 class procedure TKamScriptFloat.HandleAnd(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).Value := BoolToFloat[
-    FloatToBool(TKamScriptFloat(Arguments[0]).Value) and
-    FloatToBool(TKamScriptFloat(Arguments[1]).Value) ];
+  TKamScriptFloat(AResult).AsBoolean :=
+    TKamScriptFloat(Arguments[0]).AsBoolean and
+    TKamScriptFloat(Arguments[1]).AsBoolean;
 end;
 
 class procedure TKamScriptFloat.HandleNot(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).Value := BoolToFloat[
-    not FloatToBool(TKamScriptFloat(Arguments[0]).Value) ];
+  TKamScriptFloat(AResult).AsBoolean :=
+    not TKamScriptFloat(Arguments[0]).AsBoolean;
 end;
 
 procedure TKamScriptFloat.AssignValue(Source: TKamScriptValue);
@@ -905,6 +912,18 @@ begin
   if Source is TKamScriptFloat then
     Value := TKamScriptFloat(Source).Value else
     raise EKamAssignValueError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
+end;
+
+function TKamScriptFloat.GetAsBoolean: boolean;
+begin
+  Result := Value <> 0;
+end;
+
+procedure TKamScriptFloat.SetAsBoolean(const AValue: boolean);
+const
+  BoolToFloat: array [boolean] of Float = (0, 1);
+begin
+  Value := BoolToFloat[AValue];
 end;
 
 { TKamScriptFunction --------------------------------------------------------- }
@@ -1266,14 +1285,19 @@ end;
       @raises EKamScriptError
     }
 procedure TKamScriptProgram.ExecuteFunction(const FunctionName: string;
-  const Parameters: array of Float);
+  const Parameters: array of Float;
+  const IgnoreMissingFunction: boolean);
 var
   Func: TKamScriptFunctionDefinition;
   FuncIndex, I: Integer;
 begin
   FuncIndex := Functions.IndexOf(FunctionName);
   if FuncIndex = -1 then
-    raise EKamScriptMissingFunction.CreateFmt('KambiScript function "%s" is not defined', [FunctionName]);
+  begin
+    if IgnoreMissingFunction then
+      Exit else
+      raise EKamScriptMissingFunction.CreateFmt('KambiScript function "%s" is not defined', [FunctionName]);
+  end;
   Func := Functions[FuncIndex];
 
   if High(Parameters) <> Func.Parameters.High then
