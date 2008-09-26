@@ -32,11 +32,13 @@ type
   published
     procedure Test1;
     procedure TestInheritsFrom;
+    procedure TestFloatPrograms;
   end;
 
 implementation
 
-uses VectorMath, KambiScript, KambiScriptLexer, KambiScriptParser;
+uses VectorMath, KambiScript, KambiScriptLexer, KambiScriptParser,
+  KambiStringUtils;
 
 procedure TTestKambiScript.Test1;
 
@@ -65,6 +67,34 @@ begin
   Assert(TKamScriptValue.InheritsFrom(TKamScriptValue));
   Assert(TKamScriptFloat.InheritsFrom(TKamScriptValue));
   Assert(not TKamScriptValue.InheritsFrom(TKamScriptFloat));
+end;
+
+procedure TTestKambiScript.TestFloatPrograms;
+var
+  Vars: array [0..3] of TKamScriptFloat;
+  VarsAsValue: array [Low(Vars)..High(Vars)] of TKamScriptValue absolute Vars;
+  Prog: TKamScriptProgram;
+  I: Integer;
+begin
+  for I := 0 to High(Vars) do
+  begin
+    Vars[I] := TKamScriptFloat.Create;
+    Vars[I].Value := I;
+    Vars[I].Name := 'x' + IntToStr(I);
+  end;
+
+  try
+    Prog := ParseProgram(FileToString('test_script.kscript'), VarsAsValue);
+
+    Prog.ExecuteFunction('main', []);
+
+    Assert(Vars[0].Value = 0);
+    Assert(Vars[1].Value = 3);
+    Assert(Vars[2].Value = 100 + 100 + 2 * 3);
+    Assert(Vars[3].Value = 666);
+  finally
+    for I := 0 to High(Vars) do FreeAndNil(Vars[I]);
+  end;
 end;
 
 initialization

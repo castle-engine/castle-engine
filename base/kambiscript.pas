@@ -475,7 +475,11 @@ type
 
   TObjectsListItem_3 = TKamScriptFunctionDefinition;
   {$I objectslist_3.inc}
-  TKamScriptFunctionDefinitionsList = TObjectsList_3;
+  TKamScriptFunctionDefinitionsList = class(TObjectsList_3)
+    function IndexOf(const FunctionName: string): Integer;
+  end;
+
+  EKamScriptMissingFunction = class(EKamScriptError);
 
   TKamScriptProgram = class
   private
@@ -485,6 +489,19 @@ type
     destructor Destroy; override;
 
     property Functions: TKamScriptFunctionDefinitionsList read FFunctions;
+
+    { Execute a user-defined function (from Functions list of this program).
+
+      @unorderedList(
+        @item(Looks for given FunctionName (exception EKamScriptMissingFunction
+          if not found).)
+        @item(Sets function parameters to given values
+         (number of parameters must match, otherwise EKamScriptError).)
+        @item(Finally executes function body.)
+      )
+    }
+    procedure ExecuteFunction(const FunctionName: string;
+      const Parameters: array of Float);
   end;
 
 var
@@ -1059,9 +1076,9 @@ begin
     AResult.FreeByParentExpression else
     AResult := nil;
 
-  (Args[0] as TKamScriptValue).AssignValue(Arguments[1]);
+  (Arguments[0] as TKamScriptValue).AssignValue(Arguments[1]);
 
-  AResult := Args[0] as TKamScriptValue;
+  AResult := Arguments[0] as TKamScriptValue;
   ParentOfResult := false;
 end;
 
@@ -1210,6 +1227,17 @@ begin
   inherited;
 end;
 
+{ TKamScriptFunctionDefinitionsList ------------------------------------------ }
+
+function TKamScriptFunctionDefinitionsList.IndexOf(
+  const FunctionName: string): Integer;
+begin
+  for Result := 0 to Count - 1 do
+    if SameText(FunctionName, Items[Result].Name) then
+      Exit;
+  Result := -1;
+end;
+
 { TKamScriptProgram ---------------------------------------------------------- }
 
 constructor TKamScriptProgram.Create;
@@ -1222,6 +1250,43 @@ destructor TKamScriptProgram.Destroy;
 begin
   FreeWithContentsAndNil(FFunctions);
   inherited;
+end;
+
+    { Execute a user-defined function (from Functions list of this program).
+
+      @unorderedList(
+        @item(Looks for given FunctionName (exception EKamScriptMissingFunction
+          if not found).)
+        @item(Sets function parameters to given values
+         (number of parameters must match, otherwise EKamScriptError).)
+        @item(Finally executes function body (various EKamScriptError
+          may be raised there).)
+      )
+
+      @raises EKamScriptError
+    }
+procedure TKamScriptProgram.ExecuteFunction(const FunctionName: string;
+  const Parameters: array of Float);
+var
+  Func: TKamScriptFunctionDefinition;
+  FuncIndex, I: Integer;
+begin
+  FuncIndex := Functions.IndexOf(FunctionName);
+  if FuncIndex = -1 then
+    raise EKamScriptMissingFunction.CreateFmt('KambiScript function "%s" is not defined', [FunctionName]);
+  Func := Functions[FuncIndex];
+
+  if High(Parameters) <> Func.Parameters.High then
+    raise EKamScriptError.CreateFmt('KambiScript function "%s" requires %d parameters, but passed %d parameters',
+      [FunctionName, Func.Parameters.Count, High(Parameters) + 1]);
+
+  { TODO: this is directed at only TKamScriptFloat now, so
+    Parameters are Float and below we just cast to TKamScriptFloat. }
+
+  for I := 0 to High(Parameters) do
+    (Func.Parameters[I] as TKamScriptFloat).Value := Parameters[I];
+
+  Func.Body.Execute;
 end;
 
 { procedural utils ----------------------------------------------------------- }
