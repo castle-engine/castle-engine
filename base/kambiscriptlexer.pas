@@ -214,7 +214,8 @@ const
   var startPos: integer;
   begin
    if not (text[fTextPos] in identStartChars) then
-    raise EKamScriptLexerError.Create(Self, 'wrong token');
+    raise EKamScriptLexerError.CreateFmt(Self,
+      'Invalid character "%s" not allowed in KambiScript', [text[fTextPos]]);
    startPos := fTextPos;
    Inc(fTextPos);
    while SCharIs(text, fTextPos, identChars) do Inc(fTextPos);
