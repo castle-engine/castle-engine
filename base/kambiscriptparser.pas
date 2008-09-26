@@ -120,14 +120,25 @@ const
   TermOperator = [tokPlus, tokMinus];
   ComparisonOperator = [tokGreater, tokLesser, tokGreaterEqual, tokLesserEqual, tokEqual, tokNotEqual];
 
-  function VariableFromName(const Name: string): TKamScriptValue;
+  function Operand: TKamScriptValue;
   var
     I: Integer;
   begin
-    for I := 0 to Length(Variables) - 1 do
-      if SameText(Variables[I].Name, Name) then
-        Exit(Variables[I]);
+    Lexer.CheckTokenIs(tokIdentifier);
+
     Result := nil;
+    for I := 0 to Length(Variables) - 1 do
+      if SameText(Variables[I].Name, Lexer.TokenString) then
+      begin
+        Result := Variables[I];
+        Break;
+      end;
+
+    if Result = nil then
+      raise EKamScriptParserError.CreateFmt(Lexer, 'Undefined identifier "%s"',
+        [Lexer.TokenString]);
+
+    Lexer.NextToken;
   end;
 
   { Returns either Expression or NonAssignmentExpression, depending on
@@ -148,16 +159,10 @@ const
     Result := nil;
     try
       case Lexer.Token of
-        tokIdentifier: begin
-            Lexer.NextToken;
-            Result := VariableFromName(Lexer.TokenString);
-            if Result = nil then
-              raise EKamScriptParserError.CreateFmt(Lexer, 'Undefined identifier "%s"',
-                [Lexer.TokenString]);
-          end;
+        tokIdentifier: Result := Operand;
         tokConst: begin
-            Lexer.NextToken;
             Result := TKamScriptFloat.Create(Lexer.TokenFloat);
+            Lexer.NextToken;
           end;
         tokMinus: begin
             Lexer.NextToken;
@@ -252,13 +257,54 @@ end;
 function Expression(
   const Lexer: TKamScriptLexer;
   const Variables: array of TKamScriptValue): TKamScriptExpression;
-{TODO: assignment operator not handled}
+
+  function PossiblyAssignmentExpression: TKamScriptExpression;
+  { How to parse this?
+
+    Straighforward approach is to try parsing
+    Operand, then check is it followed by ":=".
+    In case of parsing errors (we can catch them by EKamScriptParserError),
+    or something else than ":=", we rollback and parse NonAssignmentExpression.
+
+    The trouble with this approach: "rollback". This is uneasy,
+    as you have to carefully remember all tokens eaten during
+    Operand parsing, and unget them to lexer (or otherwise reparse them).
+
+    Simpler and faster approach used: just always parse an
+    NonAssignmentExpression. This uses the fact that Operand is
+    also a valid NonAssignmentExpression, and NonAssignmentExpression
+    will not eat anything after ":=" (following the grammar, ":="
+    cannot occur within NonAssignmentExpression without parenthesis).
+    After parsing NonAssignmentExpression, we can check for ":=". }
+  var
+    Operand, AssignedValue: TKamScriptExpression;
+  begin
+    Result := NonAssignmentExpression(Lexer, true, Variables);
+    try
+      if Lexer.Token = tokAssignment then
+      begin
+        Lexer.NextToken;
+
+        AssignedValue := PossiblyAssignmentExpression();
+
+        Operand := Result;
+        { set Result to nil, in case of exception from TKamScriptAssignment
+          constructor. }
+        Result := nil;
+
+        { TKamScriptAssignment in constructor checks that
+          Operand is actually a simple writeable operand. }
+        Result := TKamScriptAssignment.Create([Operand, AssignedValue]);
+      end;
+    except Result.FreeByParentExpression; raise end;
+  end;
+
 var
   SequenceArgs: TKamScriptExpressionsList;
 begin
   Result := nil;
   try
-    Result := NonAssignmentExpression(Lexer, true, Variables);
+    Result := PossiblyAssignmentExpression;
 
     if Lexer.Token = tokSemicolon then
     begin
@@ -271,7 +317,7 @@ begin
           while Lexer.Token = tokSemicolon do
           begin
             Lexer.NextToken;
-            SequenceArgs.Add(NonAssignmentExpression(Lexer, true, Variables));
+            SequenceArgs.Add(PossiblyAssignmentExpression);
           end;
         except SequenceArgs.FreeContentsByParentExpression; raise end;
 

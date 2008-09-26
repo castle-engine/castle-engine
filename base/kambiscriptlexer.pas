@@ -43,7 +43,9 @@ type
 
     tokGreater, tokLesser, tokGreaterEqual, tokLesserEqual, tokEqual, tokNotEqual,
 
-    tokLParen, tokRParen, tokComma, tokSemicolon, tokLQaren, tokRQaren);
+    tokLParen, tokRParen,
+    tokLQaren, tokRQaren,
+    tokComma, tokSemicolon, tokAssignment);
 
   TKamScriptLexer = class
   private
@@ -142,13 +144,13 @@ const
   const
     { kolejnosc w toks_strs MA znaczenie - pierwszy zostanie dopasowany string dluzszy,
       wiec aby Lexer pracowal zachlannnie stringi dluzsze musza byc pierwsze. }
-    toks_strs : array[0..17] of string=
+    toks_strs: array [0..18] of string=
      ('<>', '<=', '>=', '<', '>', '=', '+', '-', '*', '/', ',',
-      '(', ')', '^', '[', ']', '%', ';');
-    toks_tokens : array[0..High(toks_strs)]of TToken =
+      '(', ')', '^', '[', ']', '%', ';', ':=');
+    toks_tokens: array[0..High(toks_strs)]of TToken =
      (tokNotEqual, tokLesserEqual, tokGreaterEqual, tokLesser, tokGreater,
       tokEqual, tokPlus, tokMinus, tokMultiply, tokDivide, tokComma, tokLParen, tokRParen,
-      tokPower, tokLQaren, tokRQaren, tokModulo, tokSemicolon);
+      tokPower, tokLQaren, tokRQaren, tokModulo, tokSemicolon, tokAssignment);
   var i: integer;
   begin
    for i := 0 to High(toks_strs) do
@@ -284,8 +286,8 @@ const
     '*', '/', '^', '%',
     '>', '<', '>=', '<=', '=', '<>',
     '(', ')',
-    ',', ';',
-    '[', ']');
+    '[', ']',
+    ',', ';', ':=');
 
 function TKamScriptLexer.TokenDescription: string;
 begin

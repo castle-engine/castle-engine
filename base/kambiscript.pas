@@ -79,6 +79,9 @@ type
   { }
   TKamScriptValue = class;
 
+  EKamScriptError = class(Exception);
+  EKamAssignValueError = class(EKamScriptError);
+
   TKamScriptExpression = class
   public
     { Execute and calculate this expression.
@@ -131,6 +134,11 @@ type
     { Name of this value, or '' if not named.
       Named value can be recognized in expressions by KambiScriptParser. }
     property Name: string read FName write FName;
+
+    { Assign value from Source to Self.
+      @raises(EKamAssignValueError if assignment is not possible
+      because types don't match.) }
+    procedure AssignValue(Source: TKamScriptValue); virtual; abstract;
   end;
 
   TKamScriptValueClass = class of TKamScriptValue;
@@ -189,6 +197,8 @@ type
     constructor Create(AValue: Float);
 
     constructor Create; override;
+
+    procedure AssignValue(Source: TKamScriptValue); override;
   end;
 
   TKamScriptFunction = class(TKamScriptExpression)
@@ -196,7 +206,11 @@ type
     FArgs: TKamScriptExpressionsList;
     LastExecuteResult: TKamScriptValue;
     ParentOfLastExecuteResult: boolean;
-    procedure CreateFinish;
+  protected
+    { Used by constructor to check are args valid.
+      @raises(EKamScriptFunctionArgumentsError on invalid Args passed to
+      function.) }
+    procedure CheckArguments; virtual;
   public
     { Constructor initializing Args from given TKamScriptExpressionsList.
       AArgs list contents is copied, i.e. AArgs refence is not
@@ -315,6 +329,23 @@ type
     class function InfixOperatorName: string; override;
   end;
 
+  { KambiScript assignment operator. This is a special function,
+    that must have settable TKamScriptValue as it's 1st argument.
+
+    For now, we check TKamScriptValue.Name <> '', this determines if
+    this is settable (in the future, more explicit check may be done). }
+  TKamScriptAssignment = class(TKamScriptFunction)
+  private
+    class procedure HandleAssignment(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+  protected
+    procedure CheckArguments; override;
+  public
+    class function AllowedArgumentsCount: Integer; override;
+    class function Name: string; override;
+    class function ShortName: string; override;
+    class function InfixOperatorName: string; override;
+  end;
+
   TKamScriptRegisteredHandler = class
   private
     FHandler: TKamScriptFunctionHandler;
@@ -408,7 +439,6 @@ type
     function SearchFunctionShortName(const AShortName: string): TKamScriptFunctionClass;
   end;
 
-  EKamScriptError = class(Exception);
   EKamScriptFunctionArgumentsError = class(EKamScriptError);
   EKamScriptFunctionNoHandler = class(EKamScriptError);
 
@@ -853,23 +883,30 @@ begin
     not FloatToBool(TKamScriptFloat(Arguments[0]).Value) ];
 end;
 
+procedure TKamScriptFloat.AssignValue(Source: TKamScriptValue);
+begin
+  if Source is TKamScriptFloat then
+    Value := TKamScriptFloat(Source).Value else
+    raise EKamAssignValueError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
+end;
+
 { TKamScriptFunction --------------------------------------------------------- }
 
 constructor TKamScriptFunction.Create(AArgs: TKamScriptExpressionsList);
 begin
   inherited Create;
   FArgs := TKamScriptExpressionsList.CreateFromList(AArgs);
-  CreateFinish;
+  CheckArguments;
 end;
 
 constructor TKamScriptFunction.Create(const AArgs: array of TKamScriptExpression);
 begin
   inherited Create;
   FArgs := TKamScriptExpressionsList.CreateFromArray(AArgs);
-  CreateFinish;
+  CheckArguments;
 end;
 
-procedure TKamScriptFunction.CreateFinish;
+procedure TKamScriptFunction.CheckArguments;
 const
   SFuncArgsCountMustEqual = 'The %s function must have exactly %d parameters';
   SFuncArgsCountMustGreaterEq = 'The %s function must have %d or more parameters';
@@ -991,6 +1028,49 @@ begin
 
   AResult := Arguments[High(Arguments)];
   ParentOfResult := false;
+end;
+
+{ TKamScriptAssignment --------------------------------------------------------- }
+
+class function TKamScriptAssignment.AllowedArgumentsCount: Integer;
+begin
+  Result := 2;
+end;
+
+class function TKamScriptAssignment.Name: string;
+begin
+  Result := 'assignment (:=)';
+end;
+
+class function TKamScriptAssignment.ShortName: string;
+begin
+  Result := '';
+end;
+
+class function TKamScriptAssignment.InfixOperatorName: string;
+begin
+  Result := ':=';
+end;
+
+class procedure TKamScriptAssignment.HandleAssignment(
+  const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  if ParentOfResult then
+    AResult.FreeByParentExpression else
+    AResult := nil;
+
+  (Args[0] as TKamScriptValue).AssignValue(Arguments[1]);
+
+  AResult := Args[0] as TKamScriptValue;
+  ParentOfResult := false;
+end;
+
+procedure TKamScriptAssignment.CheckArguments;
+begin
+  inherited;
+  if not ( (Args[0] is TKamScriptValue) and
+           (TKamScriptValue(Args[0]).Name <> '') ) then
+    raise EKamScriptFunctionArgumentsError.Create('Left side of assignment expression is not a writeable operand');
 end;
 
 { TKamScriptFunctionHandlers ------------------------------------------------- }
@@ -1125,7 +1205,6 @@ end;
 destructor TKamScriptFunctionDefinition.Destroy;
 begin
   if Body <> nil then
-    { TODO: test this works, just make function body returning the param }
     Body.FreeByParentExpression;
   FreeWithContentsAndNil(FParameters);
   inherited;
@@ -1177,6 +1256,7 @@ initialization
   FunctionHandlers := TKamScriptFunctionHandlers.Create;
 
   FunctionHandlers.RegisterHandler(@TKamScriptSequence(nil).HandleSequence, TKamScriptSequence, TKamScriptValue);
+  FunctionHandlers.RegisterHandler(@TKamScriptAssignment(nil).HandleAssignment, TKamScriptAssignment, TKamScriptValue);
 
   { Register handlers for TKamScriptFloat for functions in
     KambiScriptMathFunctions. }
