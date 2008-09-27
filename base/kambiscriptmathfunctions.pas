@@ -805,7 +805,7 @@ end;
 
 class function TKamScriptGreater.ShortName: string;
 begin
-  Result := 'Greater';
+  Result := '';
 end;
 
 class function TKamScriptGreater.InfixOperatorName: string;
@@ -825,7 +825,7 @@ end;
 
 class function TKamScriptLesser.ShortName: string;
 begin
-  Result := 'Lesser';
+  Result := '';
 end;
 
 class function TKamScriptLesser.InfixOperatorName: string;
@@ -840,12 +840,12 @@ end;
 
 class function TKamScriptGreaterEq.Name: string;
 begin
-  Result := 'greaterEq (>=)';
+  Result := 'greater/equal (>=)';
 end;
 
 class function TKamScriptGreaterEq.ShortName: string;
 begin
-  Result := 'GreaterEq';
+  Result := '';
 end;
 
 class function TKamScriptGreaterEq.InfixOperatorName: string;
@@ -860,12 +860,12 @@ end;
 
 class function TKamScriptLesserEq.Name: string;
 begin
-  Result := 'lesserEq (<=)';
+  Result := 'lesser/equal (<=)';
 end;
 
 class function TKamScriptLesserEq.ShortName: string;
 begin
-  Result := 'LesserEq';
+  Result := '';
 end;
 
 class function TKamScriptLesserEq.InfixOperatorName: string;
@@ -885,7 +885,7 @@ end;
 
 class function TKamScriptEqual.ShortName: string;
 begin
-  Result := 'Equal';
+  Result := '';
 end;
 
 class function TKamScriptEqual.InfixOperatorName: string;
@@ -905,7 +905,7 @@ end;
 
 class function TKamScriptNotEqual.ShortName: string;
 begin
-  Result := 'NotEqual';
+  Result := '';
 end;
 
 class function TKamScriptNotEqual.InfixOperatorName: string;
