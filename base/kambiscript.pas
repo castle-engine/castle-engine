@@ -123,6 +123,7 @@ type
   private
     FOwnedByParentExpression: boolean;
     FName: string;
+    FValueAssigned: boolean;
   public
     constructor Create; virtual;
     function Execute: TKamScriptValue; override;
@@ -139,6 +140,19 @@ type
       @raises(EKamAssignValueError if assignment is not possible
       because types don't match.) }
     procedure AssignValue(Source: TKamScriptValue); virtual; abstract;
+
+    { Set to @true on each assign to Value. You can reset it at any time
+      to @false.
+
+      This allows the caller to know which variables were
+      assigned during script execution, which is useful if changes to
+      KambiScript variables should be propagated to some other things
+      after the script finished execution. This is essential for behavior
+      in VRML Script node.
+
+      Descendants note: you have to set this to @true in SetValue. }
+    property ValueAssigned: boolean read FValueAssigned write FValueAssigned
+      default false;
   end;
 
   TKamScriptValueClass = class of TKamScriptValue;
@@ -191,9 +205,10 @@ type
 
     function GetAsBoolean: boolean;
     procedure SetAsBoolean(const AValue: boolean);
-  public
-    Value: Float;
 
+    FValue: Float;
+    procedure SetValue(const AValue: Float);
+  public
     { Comfortable constructor to set initial Value.
       Note that the inherited constructor without parameters is
       also fine to use, it will set value to zero. }
@@ -201,7 +216,9 @@ type
 
     constructor Create; override;
 
-    { Read/write Value as boolean. This automatically does simple
+    property Value: Float read FValue write SetValue;
+
+    { Read/write @link(Value) as boolean. This automatically does simple
       convertion between Float and boolean.
 
       When setting, false results in 0 and true in 1.
@@ -640,7 +657,8 @@ begin
     the first arg as TKamScriptFloat. }
   TKamScriptFloat(AResult).Value := TKamScriptFloat(Arguments[0]).Value;
   for I := 1 to Length(Arguments) - 1 do
-    TKamScriptFloat(AResult).Value += TKamScriptFloat(Arguments[I]).Value;
+    TKamScriptFloat(AResult).Value :=
+      TKamScriptFloat(AResult).Value + TKamScriptFloat(Arguments[I]).Value;
 end;
 
 class procedure TKamScriptFloat.HandleSubtract(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -650,7 +668,8 @@ begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
   TKamScriptFloat(AResult).Value := TKamScriptFloat(Arguments[0]).Value;
   for I := 1 to Length(Arguments) - 1 do
-    TKamScriptFloat(AResult).Value -= TKamScriptFloat(Arguments[I]).Value;
+    TKamScriptFloat(AResult).Value :=
+      TKamScriptFloat(AResult).Value - TKamScriptFloat(Arguments[I]).Value;
 end;
 
 class procedure TKamScriptFloat.HandleMultiply(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -660,7 +679,8 @@ begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
   TKamScriptFloat(AResult).Value := TKamScriptFloat(Arguments[0]).Value;
   for I := 1 to Length(Arguments) - 1 do
-    TKamScriptFloat(AResult).Value *= TKamScriptFloat(Arguments[I]).Value;
+    TKamScriptFloat(AResult).Value :=
+      TKamScriptFloat(AResult).Value * TKamScriptFloat(Arguments[I]).Value;
 end;
 
 class procedure TKamScriptFloat.HandleDivide(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -670,7 +690,8 @@ begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
   TKamScriptFloat(AResult).Value := TKamScriptFloat(Arguments[0]).Value;
   for I := 1 to Length(Arguments) - 1 do
-    TKamScriptFloat(AResult).Value /= TKamScriptFloat(Arguments[I]).Value;
+    TKamScriptFloat(AResult).Value :=
+      TKamScriptFloat(AResult).Value / TKamScriptFloat(Arguments[I]).Value;
 end;
 
 class procedure TKamScriptFloat.HandleNegate(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -924,6 +945,12 @@ const
   BoolToFloat: array [boolean] of Float = (0, 1);
 begin
   Value := BoolToFloat[AValue];
+end;
+
+procedure TKamScriptFloat.SetValue(const AValue: Float);
+begin
+  FValue := AValue;
+  ValueAssigned := true;
 end;
 
 { TKamScriptFunction --------------------------------------------------------- }

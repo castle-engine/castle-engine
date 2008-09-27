@@ -32,7 +32,7 @@
     CompiledScriptContents: TStringList;
 
     KambiScriptProgram: TKamScriptProgram;
-    KambiScriptVariables: TKamScriptValuesList;
+    KambiScriptVariables: TKamScriptVRMLValuesList;
 
     procedure EventUrlReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
@@ -126,62 +126,6 @@ begin
   Initialized := true;
 end;
 
-procedure KamScriptValueAssignVRMLField(Value: TKamScriptValue;
-  Field: TVRMLField);
-begin
-  { TODO: this is a hack. Intention was to have other TKamScriptValue
-    descendants for various field classes. For now, we just use
-    TKamScriptFloat always. }
-
-  if Field is TSFFloat then
-    (Value as TKamScriptFloat).Value := TSFFloat(Field).Value else
-  if Field is TSFDouble then
-    (Value as TKamScriptFloat).Value := TSFDouble(Field).Value else
-  if Field is TSFBool then
-    (Value as TKamScriptFloat).AsBoolean := TSFBool(Field).Value else
-  if Field is TSFEnum then
-    (Value as TKamScriptFloat).Value := TSFEnum(Field).Value else
-  if Field is TSFLong then
-    (Value as TKamScriptFloat).Value := TSFLong(Field).Value else
-
-  if (Field is TMFFloat) and
-     (TMFFloat(Field).Items.Count = 1) then
-    (Value as TKamScriptFloat).Value := TMFFloat(Field).Items.Items[0] else
-  if (Field is TMFDouble) and
-     (TMFDouble(Field).Items.Count = 1) then
-    (Value as TKamScriptFloat).Value := TMFDouble(Field).Items.Items[0] else
-  if (Field is TMFBool) and
-     (TMFBool(Field).Items.Count = 1) then
-    (Value as TKamScriptFloat).AsBoolean := TMFBool(Field).Items.Items[0] else
-  if (Field is TMFLong) and
-     (TMFLong(Field).Items.Count = 1) then
-    (Value as TKamScriptFloat).Value := TMFLong(Field).Items.Items[0] else
-
-    { No sensible way to convert, just fall back to 0.0. }
-    (Value as TKamScriptFloat).Value := 0.0;
-end;
-
-function VRMLFieldToKamScriptValue(Field: TVRMLField): TKamScriptValue;
-begin
-  { TODO: this is a hack. Intention was to have other TKamScriptValue
-    descendants for various field classes. For now, we just use
-    TKamScriptFloat always. }
-
-  Result := TKamScriptFloat.Create;
-  Result.Name := Field.Name;
-  KamScriptValueAssignVRMLField(Result, Field);
-end;
-
-function VRMLEventToKamScriptValue(Event: TVRMLEvent): TKamScriptValue;
-begin
-  { TODO: this is a hack. Intention was to have other TKamScriptValue
-    descendants for various field classes. For now, we just use
-    TKamScriptFloat always. }
-
-  Result := TKamScriptFloat.Create;
-  Result.Name := Event.Name;
-end;
-
 procedure TNodeX3DScriptNode.ExecuteScript(const FunctionName: string;
   ReceivedValue: TVRMLField);
 
@@ -202,7 +146,7 @@ procedure TNodeX3DScriptNode.ExecuteScript(const FunctionName: string;
 
 var
   I: Integer;
-  ParameterValue: TKamScriptFloat;
+  ParameterValue: TKamScriptVRMLValue;
 begin
   if Initialized and
      (ParentEventsProcessor <> nil) and
@@ -224,17 +168,36 @@ begin
         end;
       stKambiScript:
         begin
-          ParameterValue := TKamScriptFloat.Create;
+          { ReceivedValue may be nil for initialize/shutdown calls. }
+          if ReceivedValue <> nil then
+          begin
+            ParameterValue := TKamScriptVRMLValue.Create(ReceivedValue);
+            ParameterValue.BeforeExecute;
+          end else
+            ParameterValue := nil;
           try
-            KamScriptValueAssignVRMLField(ParameterValue, ReceivedValue);
+            KambiScriptVariables.BeforeExecute;
             try
-              KambiScriptProgram.ExecuteFunction(FunctionName,
-                [ ParameterValue.Value,
-                  TVRMLScene(ParentEventsProcessor).WorldTime ], true);
+              if ParameterValue <> nil then
+                KambiScriptProgram.ExecuteFunction(FunctionName,
+                  [ ParameterValue.Value,
+                    TVRMLScene(ParentEventsProcessor).WorldTime ], true) else
+                KambiScriptProgram.ExecuteFunction(FunctionName,
+                  [ TVRMLScene(ParentEventsProcessor).WorldTime ], true);
             except
               on E: EKamScriptError do
+              begin
                 VRMLNonFatalError('Error when executing KambiScript: ' + E.Message);
+                Exit;
+              end;
             end;
+
+            { ParameterValue.AfterExecute is not called, we don't want
+              to propagate changes to parameter in script to ReceivedValue.
+              ReceivedValue should not be even changed by event handler.
+              Actually, ParameterValue should be constant in script. }
+
+            KambiScriptVariables.AfterExecute;
           finally FreeAndNil(ParameterValue); end;
         end;
       else raise EInternalError.Create('Unknown script type initialized');
@@ -253,12 +216,19 @@ procedure TNodeX3DScriptNode.SetInitialized(const Value: boolean);
     FreeAndNil(KambiScriptProgram);
     FreeWithContentsAndNil(KambiScriptVariables);
 
-    KambiScriptVariables := TKamScriptValuesList.Create;
+    KambiScriptVariables := TKamScriptVRMLValuesList.Create;
+
+    { Add fields and output events (coming from interface decl,
+      not normal Script fields/events) to KambiScriptVariables. }
+
     for I := 0 to Fields.Count - 1 do
-      KambiScriptVariables.Add(VRMLFieldToKamScriptValue(Fields[I]));
+      if Fields[I].ParentInterfaceDeclaration <> nil then
+        KambiScriptVariables.Add(TKamScriptVRMLValue.Create(Fields[I]));
+
     for I := 0 to Events.Count - 1 do
-      if not Events[I].InEvent then
-        KambiScriptVariables.Add(VRMLEventToKamScriptValue(Events[I]));
+      if (not Events[I].InEvent) and
+         (Events[I].ParentInterfaceDeclaration <> nil) then
+        KambiScriptVariables.Add(TKamScriptVRMLValue.Create(Events[I]));
 
     KambiScriptProgram := ParseProgram(ProgramContent, KambiScriptVariables);
   end;
