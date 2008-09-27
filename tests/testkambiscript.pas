@@ -31,6 +31,7 @@ type
   TTestKambiScript = class(TTestCase)
   published
     procedure Test1;
+    procedure TestCodeCreatedExprs;
     procedure TestInheritsFrom;
     procedure TestFloatPrograms;
   end;
@@ -38,7 +39,7 @@ type
 implementation
 
 uses VectorMath, KambiScript, KambiScriptLexer, KambiScriptParser,
-  KambiStringUtils;
+  KambiStringUtils, KambiScriptMathFunctions;
 
 procedure TTestKambiScript.Test1;
 
@@ -59,6 +60,37 @@ begin
   WritelnLexer('-10 * Pi');
 }
   Assert(FloatsEqual(ParseConstantFloatExpression('-10 * Pi'), -10 * Pi));
+end;
+
+procedure TTestKambiScript.TestCodeCreatedExprs;
+var
+  Expr: TKamScriptExpression;
+  MyVariable: TKamScriptFloat;
+begin
+  Expr := TKamScriptAdd.Create([
+      TKamScriptSin.Create([TKamScriptFloat.Create(3)]),
+      TKamScriptFloat.Create(10),
+      TKamScriptFloat.Create(1)
+    ]);
+  try
+    Assert((Expr.Execute as TKamScriptFloat).Value = sin(3) + 10 + 1);
+  finally FreeAndNil(Expr) end;
+
+  MyVariable := TKamScriptFloat.Create(3);
+  Expr := TKamScriptAdd.Create([
+      TKamScriptSin.Create([MyVariable]),
+      TKamScriptFloat.Create(10),
+      TKamScriptFloat.Create(1)
+    ]);
+  try
+    Assert((Expr.Execute as TKamScriptFloat).Value = sin(3) + 10 + 1);
+
+    MyVariable.Value := 4;
+    Assert((Expr.Execute as TKamScriptFloat).Value = sin(4) + 10 + 1);
+
+    MyVariable.Value := 5;
+    Assert((Expr.Execute as TKamScriptFloat).Value = sin(5) + 10 + 1);
+  finally FreeAndNil(Expr) end;
 end;
 
 procedure TTestKambiScript.TestInheritsFrom;
