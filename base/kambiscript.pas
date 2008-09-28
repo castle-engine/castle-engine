@@ -1076,8 +1076,8 @@ end;
 
 class procedure TKamScriptFloat.HandleSgn(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).Value := Sign( TKamScriptFloat(Arguments[0]).Value );
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
+  TKamScriptInteger(AResult).Value := Sign( TKamScriptFloat(Arguments[0]).Value );
 end;
 
 class procedure TKamScriptFloat.HandleAbs(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
