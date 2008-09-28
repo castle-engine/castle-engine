@@ -330,20 +330,6 @@ type
     constructor Create(const AArgs: array of TKamScriptExpression); overload;
     destructor Destroy; override;
 
-    { Number of allowed function arguments.
-      This is checked when parsing expression.
-      In function handlers (see TKamScriptFunctionHandlers) you may assume
-      that you have specified number of arguments.
-
-      Value 0 means that any number of arguments is Ok (including
-      no arguments !).
-
-      Value < 0 means that at least -Value arguments are required,
-      but any more are allowed too. For example, ArgsCount = -1
-      means that any non-zero number of argumenrs is allowed.
-      ArgsCount = -2 mean that we require >= 2 arguments. }
-    class function AllowedArgumentsCount: Integer; virtual; abstract;
-
     { Long function name for user. This is possibly with spaces,
       parenthesis and other funny characters. It will be used in
       error messages and such to describe this function. }
@@ -428,7 +414,6 @@ type
   private
     class procedure HandleSequence(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
   public
-    class function AllowedArgumentsCount: Integer; override;
     class function Name: string; override;
     class function ShortName: string; override;
     class function InfixOperatorName: string; override;
@@ -445,31 +430,47 @@ type
   protected
     procedure CheckArguments; override;
   public
-    class function AllowedArgumentsCount: Integer; override;
     class function Name: string; override;
     class function ShortName: string; override;
     class function InfixOperatorName: string; override;
   end;
 
+  TKamScriptValueClassArray = array of TKamScriptValueClass;
+
   TKamScriptRegisteredHandler = class
   private
     FHandler: TKamScriptFunctionHandler;
     FFunctionClass: TKamScriptFunctionClass;
-    FArgumentClass: TKamScriptValueClass;
+    FArgumentClasses: TKamScriptValueClassArray;
+    FVariableArgumentsCount: boolean;
   public
     constructor Create(
       AHandler: TKamScriptFunctionHandler;
       AFunctionClass: TKamScriptFunctionClass;
-      AArgumentClass: TKamScriptValueClass);
+      const AArgumentClasses: TKamScriptValueClassArray;
+      const AVariableArgumentsCount: boolean);
     property Handler: TKamScriptFunctionHandler read FHandler;
     property FunctionClass: TKamScriptFunctionClass read FFunctionClass;
-    property ArgumentClass: TKamScriptValueClass read FArgumentClass;
+    property ArgumentClasses: TKamScriptValueClassArray read FArgumentClasses;
+
+    { Is the handler able to receive any number of arguments.
+
+      If yes, then the last argument class
+      may be repeated any number of times (but must occur
+      at least once). That is, the ArgumentClasses array
+      dictates the required arguments, and more arguments are allowed.
+      Note that this means that at least one argument
+      must be allowed (we have to know the argument class that can
+      be repeated at the end), otherwise the handler will not be able to receive
+      variable number of arguments anyway. }
+    property VariableArgumentsCount: boolean read FVariableArgumentsCount;
   end;
 
-  { This specifies for each type (TKamScriptValue class)
+  { This specifies for each type combination (array of TKamScriptValue classes)
     and for each function (TKamScriptFunction class) how they should
-    be handled. You can think of this as a 2D table that has a handler
-    for each TKamScriptValue and TKamScriptFunction combination.
+    be handled. You can think of this as a table that has a handler
+    for each possible TKamScriptValue sequence and TKamScriptFunction
+    combination.
 
     The idea is to allow programmer to extend KambiScipt by
 
@@ -491,14 +492,10 @@ type
         private decision.)
     )
 
-    The limitation of this approach is that a function call when
-    some arguments have different type than the others is immediately
-    invalid (since TKamScriptRegisteredHandler has only one
-    ArgumentClass field, and it must be satisfied by all arguments).
-
     You have a guarantee that every registered here Handler will be called
     only with AFunction of registstered type and all Arguments
-    of registered type.
+    matching the array of registered types and satisfying
+    VariableArgumentsCount setting.
 
     As a bonus, this also provides a list of all usable function classes.
     That's because you have to register at least one handler for each
@@ -521,14 +518,14 @@ type
       FunctionClass: TKamScriptFunctionClass;
       out HandlersByArgument: TObjectList): boolean; overload;
 
-    function SearchArgumentClass(
+    function SearchArgumentClasses(
       HandlersByArgument: TObjectList;
-      ArgumentClass: TKamScriptValueClass;
+      const ArgumentClasses: TKamScriptValueClassArray;
       out ArgumentIndex: Integer;
       out Handler: TKamScriptRegisteredHandler): boolean; overload;
-    function SearchArgumentClass(
+    function SearchArgumentClasses(
       HandlersByArgument: TObjectList;
-      ArgumentClass: TKamScriptValueClass;
+      const ArgumentClasses: TKamScriptValueClassArray;
       out Handler: TKamScriptRegisteredHandler): boolean; overload;
   public
     constructor Create;
@@ -537,7 +534,8 @@ type
     procedure RegisterHandler(
       AHandler: TKamScriptFunctionHandler;
       AFunctionClass: TKamScriptFunctionClass;
-      AArgumentClass: TKamScriptValueClass);
+      const AArgumentClasses: array of TKamScriptValueClass;
+      const AVariableArgumentsCount: boolean);
 
     { Search for function class with matching ShortName.
       Returns @nil if not found. }
@@ -1090,14 +1088,14 @@ end;
 
 class procedure TKamScriptFloat.HandleCeil(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).Value := Ceil( TKamScriptFloat(Arguments[0]).Value );
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
+  TKamScriptInteger(AResult).Value := Ceil( TKamScriptFloat(Arguments[0]).Value );
 end;
 
 class procedure TKamScriptFloat.HandleFloor(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).Value := Floor( TKamScriptFloat(Arguments[0]).Value );
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
+  TKamScriptInteger(AResult).Value := Floor( TKamScriptFloat(Arguments[0]).Value );
 end;
 
 class procedure TKamScriptFloat.HandleGreater(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -1363,22 +1361,7 @@ begin
 end;
 
 procedure TKamScriptFunction.CheckArguments;
-const
-  SFuncArgsCountMustEqual = 'The %s function must have exactly %d parameters';
-  SFuncArgsCountMustGreaterEq = 'The %s function must have %d or more parameters';
 begin
-  if AllowedArgumentsCount > 0 then
-  begin
-    if AllowedArgumentsCount <> Args.Count then
-      raise EKamScriptFunctionArgumentsError.CreateFmt(
-        SFuncArgsCountMustEqual, [Name, AllowedArgumentsCount]);
-  end else
-  if AllowedArgumentsCount < 0 then
-  begin
-    if -AllowedArgumentsCount > Args.Count then
-      raise EKamScriptFunctionArgumentsError.CreateFmt(
-        SFuncArgsCountMustGreaterEq, [Name, -AllowedArgumentsCount]);
-  end;
 end;
 
 destructor TKamScriptFunction.Destroy;
@@ -1402,10 +1385,25 @@ begin
 end;
 
 function TKamScriptFunction.Execute: TKamScriptValue;
+
+  function ArgumentClassesToStr(const A: TKamScriptValueClassArray): string;
+  var
+    I: Integer;
+  begin
+    Result := '';
+    for I := 0 to Length(A) - 1 do
+    begin
+      if I > 0 then Result += ', ';
+      Result += A[I].ClassName;
+    end;
+    Result := '(' + Result + ')';
+  end;
+
 var
   HandlersByArgument: TObjectList;
   Handler: TKamScriptRegisteredHandler;
   Arguments: array of TKamScriptValue;
+  ArgumentClasses: TKamScriptValueClassArray;
   I: Integer;
 begin
   if FunctionHandlers.SearchFunctionClass(
@@ -1414,22 +1412,18 @@ begin
     { We have to calculate arguments first, to know their type,
       to decide which handler is suitable. }
     SetLength(Arguments, Args.Count);
+    SetLength(ArgumentClasses, Args.Count);
     for I := 0 to Args.Count - 1 do
+    begin
       Arguments[I] := Args[I].Execute;
+      ArgumentClasses[I] := TKamScriptValueClass(Arguments[I].ClassType);
+    end;
 
     { calculate Handler }
-    if Args.Count = 0 then
-    begin
-      { function without arguments? use any handler. }
-      Handler := HandlersByArgument[0] as TKamScriptRegisteredHandler;
-    end else
-    begin
-      if not FunctionHandlers.SearchArgumentClass(
-        HandlersByArgument,
-        TKamScriptValueClass(Arguments[0].ClassType), Handler) then
-        raise EKamScriptFunctionNoHandler.CreateFmt('Function "%s" is not defined for arguments of type "%s"',
-          [Name, Arguments[0].ClassName]);
-    end;
+    if not FunctionHandlers.SearchArgumentClasses(
+      HandlersByArgument, ArgumentClasses, Handler) then
+      raise EKamScriptFunctionNoHandler.CreateFmt('Function "%s" is not defined for this combination of arguments: %s',
+        [Name, ArgumentClassesToStr(ArgumentClasses)]);
 
     Handler.Handler(Arguments, LastExecuteResult, ParentOfLastExecuteResult);
 
@@ -1446,19 +1440,16 @@ end;
 constructor TKamScriptRegisteredHandler.Create(
   AHandler: TKamScriptFunctionHandler;
   AFunctionClass: TKamScriptFunctionClass;
-  AArgumentClass: TKamScriptValueClass);
+  const AArgumentClasses: TKamScriptValueClassArray;
+  const AVariableArgumentsCount: boolean);
 begin
   FHandler := AHandler;
   FFunctionClass := AFunctionClass;
-  FArgumentClass := AArgumentClass;
+  FArgumentClasses := AArgumentClasses;
+  FVariableArgumentsCount := AVariableArgumentsCount;
 end;
 
 { TKamScriptSequence --------------------------------------------------------- }
-
-class function TKamScriptSequence.AllowedArgumentsCount: Integer;
-begin
-  Result := -1;
-end;
 
 class function TKamScriptSequence.Name: string;
 begin
@@ -1487,11 +1478,6 @@ begin
 end;
 
 { TKamScriptAssignment --------------------------------------------------------- }
-
-class function TKamScriptAssignment.AllowedArgumentsCount: Integer;
-begin
-  Result := 2;
-end;
 
 class function TKamScriptAssignment.Name: string;
 begin
@@ -1574,52 +1560,76 @@ begin
     FunctionClass, FunctionIndex, HandlersByArgument);
 end;
 
-function TKamScriptFunctionHandlers.SearchArgumentClass(
+function TKamScriptFunctionHandlers.SearchArgumentClasses(
   HandlersByArgument: TObjectList;
-  ArgumentClass: TKamScriptValueClass;
+  const ArgumentClasses: TKamScriptValueClassArray;
   out ArgumentIndex: Integer;
   out Handler: TKamScriptRegisteredHandler): boolean;
 var
-  I: Integer;
+  I, J: Integer;
 begin
   for I := 0 to HandlersByArgument.Count - 1 do
   begin
     Handler := HandlersByArgument[I] as TKamScriptRegisteredHandler;
-    if ArgumentClass.InheritsFrom(Handler.ArgumentClass)  then
+    Result := true;
+    for J := 0 to Length(ArgumentClasses) - 1 do
+    begin
+      Assert(Result);
+
+      if J < Length(Handler.ArgumentClasses) then
+        Result := ArgumentClasses[J].InheritsFrom(Handler.ArgumentClasses[J]) else
+        { This is more than required number of arguments.
+          Still it's Ok if it matches last argument and function allows variable
+          number of arguments. }
+        Result := Handler.VariableArgumentsCount and
+          (Length(Handler.ArgumentClasses) > 0) and
+          ArgumentClasses[J].InheritsFrom(
+            Handler.ArgumentClasses[High(Handler.ArgumentClasses)]);
+
+      if not Result then Break;
+    end;
+
+    if Result then
     begin
       ArgumentIndex := I;
-      Result := true;
       Exit;
     end
   end;
   Result := false;
 end;
 
-function TKamScriptFunctionHandlers.SearchArgumentClass(
+function TKamScriptFunctionHandlers.SearchArgumentClasses(
   HandlersByArgument: TObjectList;
-  ArgumentClass: TKamScriptValueClass;
+  const ArgumentClasses: TKamScriptValueClassArray;
   out Handler: TKamScriptRegisteredHandler): boolean;
 var
   ArgumentIndex: Integer;
 begin
-  Result := SearchArgumentClass(
-    HandlersByArgument, ArgumentClass, ArgumentIndex, Handler);
+  Result := SearchArgumentClasses(
+    HandlersByArgument, ArgumentClasses, ArgumentIndex, Handler);
 end;
 
 procedure TKamScriptFunctionHandlers.RegisterHandler(
   AHandler: TKamScriptFunctionHandler;
   AFunctionClass: TKamScriptFunctionClass;
-  AArgumentClass: TKamScriptValueClass);
+  const AArgumentClasses: array of TKamScriptValueClass;
+  const AVariableArgumentsCount: boolean);
 var
   HandlersByArgument: TObjectList;
   Handler: TKamScriptRegisteredHandler;
+  ArgumentClassesDyn: TKamScriptValueClassArray;
 begin
+  SetLength(ArgumentClassesDyn, High(AArgumentClasses) + 1);
+  if Length(ArgumentClassesDyn) > 0 then
+    Move(AArgumentClasses[0], ArgumentClassesDyn[0],
+      SizeOf(TKamScriptValueClass) * Length(ArgumentClassesDyn));
+
   if SearchFunctionClass(AFunctionClass, HandlersByArgument) then
   begin
-    if not SearchArgumentClass(HandlersByArgument, AArgumentClass, Handler) then
+    if not SearchArgumentClasses(HandlersByArgument, ArgumentClassesDyn, Handler) then
     begin
       Handler := TKamScriptRegisteredHandler.Create(
-        AHandler, AFunctionClass, AArgumentClass);
+        AHandler, AFunctionClass, ArgumentClassesDyn, AVariableArgumentsCount);
       HandlersByArgument.Add(Handler);
     end;
   end else
@@ -1628,7 +1638,7 @@ begin
     FHandlersByFunction.Add(HandlersByArgument);
 
     Handler := TKamScriptRegisteredHandler.Create(
-      AHandler, AFunctionClass, AArgumentClass);
+      AHandler, AFunctionClass, ArgumentClassesDyn, AVariableArgumentsCount);
     HandlersByArgument.Add(Handler);
   end;
 end;
@@ -1751,93 +1761,93 @@ initialization
 
   FunctionHandlers := TKamScriptFunctionHandlers.Create;
 
-  FunctionHandlers.RegisterHandler(@TKamScriptSequence(nil).HandleSequence, TKamScriptSequence, TKamScriptValue);
-  FunctionHandlers.RegisterHandler(@TKamScriptAssignment(nil).HandleAssignment, TKamScriptAssignment, TKamScriptValue);
+  FunctionHandlers.RegisterHandler(@TKamScriptSequence(nil).HandleSequence, TKamScriptSequence, [TKamScriptValue], true);
+  FunctionHandlers.RegisterHandler(@TKamScriptAssignment(nil).HandleAssignment, TKamScriptAssignment, [TKamScriptValue, TKamScriptValue], false);
 
   { Register handlers for TKamScriptInteger for functions in
     KambiScriptMathFunctions. }
-  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleAdd, TKamScriptAdd, TKamScriptInteger);
-  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleSubtract, TKamScriptSubtract, TKamScriptInteger);
-  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleNegate, TKamScriptNegate, TKamScriptInteger);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleAdd, TKamScriptAdd, [TKamScriptInteger], true);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleSubtract, TKamScriptSubtract, [TKamScriptInteger], true);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleNegate, TKamScriptNegate, [TKamScriptInteger], false);
 
-  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleMultiply, TKamScriptMultiply, TKamScriptInteger);
-  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleDivide, TKamScriptDivide, TKamScriptInteger);
-  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleModulo, TKamScriptModulo, TKamScriptInteger);
-  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandlePower, TKamScriptPower, TKamScriptInteger);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleMultiply, TKamScriptMultiply, [TKamScriptInteger], true);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleDivide, TKamScriptDivide, [TKamScriptInteger], true);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleModulo, TKamScriptModulo, [TKamScriptInteger, TKamScriptInteger], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandlePower, TKamScriptPower, [TKamScriptInteger, TKamScriptInteger], false);
 
-  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleSqr, TKamScriptSqr, TKamScriptInteger);
-  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleSgn, TKamScriptSgn, TKamScriptInteger);
-  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleAbs, TKamScriptAbs, TKamScriptInteger);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleSqr, TKamScriptSqr, [TKamScriptInteger], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleSgn, TKamScriptSgn, [TKamScriptInteger], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleAbs, TKamScriptAbs, [TKamScriptInteger], false);
 
-  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleGreater, TKamScriptGreater, TKamScriptInteger);
-  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleLesser, TKamScriptLesser, TKamScriptInteger);
-  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleGreaterEq, TKamScriptGreaterEq, TKamScriptInteger);
-  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleLesserEq, TKamScriptLesserEq, TKamScriptInteger);
-  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleEqual, TKamScriptEqual, TKamScriptInteger);
-  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleNotEqual, TKamScriptNotEqual, TKamScriptInteger);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleGreater, TKamScriptGreater, [TKamScriptInteger, TKamScriptInteger], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleLesser, TKamScriptLesser, [TKamScriptInteger, TKamScriptInteger], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleGreaterEq, TKamScriptGreaterEq, [TKamScriptInteger, TKamScriptInteger], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleLesserEq, TKamScriptLesserEq, [TKamScriptInteger, TKamScriptInteger], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleEqual, TKamScriptEqual, [TKamScriptInteger, TKamScriptInteger], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleNotEqual, TKamScriptNotEqual, [TKamScriptInteger, TKamScriptInteger], false);
 
   { Register handlers for TKamScriptFloat for functions in
     KambiScriptMathFunctions. }
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleAdd, TKamScriptAdd, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleSubtract, TKamScriptSubtract, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleMultiply, TKamScriptMultiply, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleDivide, TKamScriptDivide, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleNegate, TKamScriptNegate, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleModulo, TKamScriptModulo, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleSin, TKamScriptSin, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleCos, TKamScriptCos, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleTan, TKamScriptTan, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleCotan, TKamScriptCotan, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleArcSin, TKamScriptArcSin, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleArcCos, TKamScriptArcCos, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleArcTan, TKamScriptArcTan, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleArcCotan, TKamScriptArcCotan, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleSinh, TKamScriptSinh, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleCosh, TKamScriptCosh, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleTanh, TKamScriptTanh, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleCotanh, TKamScriptCotanh, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleLog2, TKamScriptLog2, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleLn, TKamScriptLn, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleLog, TKamScriptLog, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandlePower2, TKamScriptPower2, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleExp, TKamScriptExp, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandlePower, TKamScriptPower, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleSqr, TKamScriptSqr, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleSqrt, TKamScriptSqrt, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleSgn, TKamScriptSgn, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleAbs, TKamScriptAbs, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleCeil, TKamScriptCeil, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleFloor, TKamScriptFloor, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleGreater, TKamScriptGreater, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleLesser, TKamScriptLesser, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleGreaterEq, TKamScriptGreaterEq, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleLesserEq, TKamScriptLesserEq, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleEqual, TKamScriptEqual, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleNotEqual, TKamScriptNotEqual, TKamScriptFloat);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleAdd, TKamScriptAdd, [TKamScriptFloat], true);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleSubtract, TKamScriptSubtract, [TKamScriptFloat], true);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleMultiply, TKamScriptMultiply, [TKamScriptFloat], true);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleDivide, TKamScriptDivide, [TKamScriptFloat], true);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleNegate, TKamScriptNegate, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleModulo, TKamScriptModulo, [TKamScriptFloat, TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleSin, TKamScriptSin, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleCos, TKamScriptCos, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleTan, TKamScriptTan, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleCotan, TKamScriptCotan, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleArcSin, TKamScriptArcSin, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleArcCos, TKamScriptArcCos, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleArcTan, TKamScriptArcTan, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleArcCotan, TKamScriptArcCotan, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleSinh, TKamScriptSinh, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleCosh, TKamScriptCosh, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleTanh, TKamScriptTanh, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleCotanh, TKamScriptCotanh, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleLog2, TKamScriptLog2, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleLn, TKamScriptLn, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleLog, TKamScriptLog, [TKamScriptFloat, TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandlePower2, TKamScriptPower2, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleExp, TKamScriptExp, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandlePower, TKamScriptPower, [TKamScriptFloat, TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleSqr, TKamScriptSqr, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleSqrt, TKamScriptSqrt, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleSgn, TKamScriptSgn, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleAbs, TKamScriptAbs, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleCeil, TKamScriptCeil, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleFloor, TKamScriptFloor, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleGreater, TKamScriptGreater, [TKamScriptFloat, TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleLesser, TKamScriptLesser, [TKamScriptFloat, TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleGreaterEq, TKamScriptGreaterEq, [TKamScriptFloat, TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleLesserEq, TKamScriptLesserEq, [TKamScriptFloat, TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleEqual, TKamScriptEqual, [TKamScriptFloat, TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleNotEqual, TKamScriptNotEqual, [TKamScriptFloat, TKamScriptFloat], false);
 
   { Register handlers for TKamScriptBoolean for functions in
     KambiScriptMathFunctions. }
-  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleOr, TKamScriptOr, TKamScriptBoolean);
-  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleAnd, TKamScriptAnd, TKamScriptBoolean);
-  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleNot, TKamScriptNot, TKamScriptBoolean);
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleOr, TKamScriptOr, [TKamScriptBoolean, TKamScriptBoolean], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleAnd, TKamScriptAnd, [TKamScriptBoolean, TKamScriptBoolean], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleNot, TKamScriptNot, [TKamScriptBoolean], false);
 
-  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleGreater, TKamScriptGreater, TKamScriptBoolean);
-  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleLesser, TKamScriptLesser, TKamScriptBoolean);
-  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleGreaterEq, TKamScriptGreaterEq, TKamScriptBoolean);
-  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleLesserEq, TKamScriptLesserEq, TKamScriptBoolean);
-  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleEqual, TKamScriptEqual, TKamScriptBoolean);
-  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleNotEqual, TKamScriptNotEqual, TKamScriptBoolean);
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleGreater, TKamScriptGreater, [TKamScriptBoolean, TKamScriptBoolean], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleLesser, TKamScriptLesser, [TKamScriptBoolean, TKamScriptBoolean], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleGreaterEq, TKamScriptGreaterEq, [TKamScriptBoolean, TKamScriptBoolean], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleLesserEq, TKamScriptLesserEq, [TKamScriptBoolean, TKamScriptBoolean], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleEqual, TKamScriptEqual, [TKamScriptBoolean, TKamScriptBoolean], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleNotEqual, TKamScriptNotEqual, [TKamScriptBoolean, TKamScriptBoolean], false);
 
   { Register handlers for TKamScriptString for functions in
     KambiScriptMathFunctions. }
-  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleAdd, TKamScriptAdd, TKamScriptString);
+  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleAdd, TKamScriptAdd, [TKamScriptString, TKamScriptString], false);
 
-  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleGreater, TKamScriptGreater, TKamScriptString);
-  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleLesser, TKamScriptLesser, TKamScriptString);
-  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleGreaterEq, TKamScriptGreaterEq, TKamScriptString);
-  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleLesserEq, TKamScriptLesserEq, TKamScriptString);
-  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleEqual, TKamScriptEqual, TKamScriptString);
-  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleNotEqual, TKamScriptNotEqual, TKamScriptString);
+  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleGreater, TKamScriptGreater, [TKamScriptString, TKamScriptString], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleLesser, TKamScriptLesser, [TKamScriptString, TKamScriptString], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleGreaterEq, TKamScriptGreaterEq, [TKamScriptString, TKamScriptString], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleLesserEq, TKamScriptLesserEq, [TKamScriptString, TKamScriptString], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleEqual, TKamScriptEqual, [TKamScriptString, TKamScriptString], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleNotEqual, TKamScriptNotEqual, [TKamScriptString, TKamScriptString], false);
 finalization
   FreeAndNil(FunctionHandlers);
 end.
