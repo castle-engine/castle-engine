@@ -760,7 +760,7 @@ begin
   if FPromoteToFloat = nil then
     FPromoteToFloat := TKamScriptFloat.Create;
   FPromoteToFloat.Value := Value;
-  Result := FPromoteToFloat;
+  Result := FPromoteToFloat; 
 end;
 
 class procedure TKamScriptInteger.HandleAdd(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
