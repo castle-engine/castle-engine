@@ -84,7 +84,7 @@ type
 
   TKamScriptExpression = class
   public
-    { Execute and calculate this expression.
+    (*Execute and calculate this expression.
 
       Returned value is owned by this object. Which should be comfortable
       for you usually, as you do not have to worry about freeing it.
@@ -92,13 +92,26 @@ type
       creating/destroying lots of temporary TKamScriptExpression
       instances during calculation of complex expression.
 
+      The disadvantage of this is that returned object value is valid
+      only until you executed this same expression again,
+      or until you freed this expression. If you need to remember the
+      execute result for longer, you have to copy it somewhere.
+      For example you can do
+
+@longCode(#
+  { This will always work, thanks to virtual TKamScriptValue.Create
+    and AssignValue methods. }
+  Copy := TKamScriptValue(ReturnedValue.ClassType).Create;
+  Copy.AssignValue(ReturnedValue);
+#)
+
       Execute is guaranteed to raise an exception if some
       calculation fails, e.g. if expression will be 'ln(-3)'.
       Stating it directly, Execute may even call Math.ClearExceptions(true)
       if it is needed to force generating proper exceptions.
 
       This ensures that we can safely execute even invalid expressions
-      (like 'ln(-3)') and get reliable exceptions. }
+      (like 'ln(-3)') and get reliable exceptions.*)
     function Execute: TKamScriptValue; virtual; abstract;
 
     { Try to execute expression, or return @nil if an error within
@@ -161,6 +174,8 @@ type
   {$I objectslist_2.inc}
   TKamScriptValuesList = TObjectsList_2;
 
+  TKamScriptFloat = class;
+
   TKamScriptInteger = class(TKamScriptValue)
   private
     class procedure HandleAdd(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -183,6 +198,8 @@ type
     class procedure HandleEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleNotEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+    FPromoteToFloat: TKamScriptFloat;
+
     FValue: Int64;
     procedure SetValue(const AValue: Int64);
   public
@@ -190,12 +207,21 @@ type
       Note that the inherited constructor without parameters is
       also fine to use, it will set value to zero. }
     constructor Create(AValue: Int64);
-
     constructor Create; override;
+    destructor Destroy; override;
 
     property Value: Int64 read FValue write SetValue;
 
     procedure AssignValue(Source: TKamScriptValue); override;
+
+    { Returns this integer promoted to float.
+
+      This object is kept and owned by this TKamScriptInteger instance,
+      so it's valid as long as this TKamScriptInteger instance is valid.
+      This allows you to safely use this (since you may have to return
+      PromoteToFloat as return value of some Execute expressions,
+      so it desirable that it's valid object reference). }
+    function PromoteToFloat: TKamScriptFloat;
   end;
 
   TKamScriptFloat = class(TKamScriptValue)
@@ -723,6 +749,20 @@ begin
   inherited Create;
 end;
 
+destructor TKamScriptInteger.Destroy;
+begin
+  FPromoteToFloat.FreeByParentExpression;
+  inherited;
+end;
+
+function TKamScriptInteger.PromoteToFloat: TKamScriptFloat;
+begin
+  if FPromoteToFloat = nil then
+    FPromoteToFloat := TKamScriptFloat.Create;
+  FPromoteToFloat.Value := Value;
+  Result := FPromoteToFloat;
+end;
+
 class procedure TKamScriptInteger.HandleAdd(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 var
   I: Integer;
@@ -1150,6 +1190,9 @@ procedure TKamScriptFloat.AssignValue(Source: TKamScriptValue);
 begin
   if Source is TKamScriptFloat then
     Value := TKamScriptFloat(Source).Value else
+  { This allows for type promotion integer->float at assignment. }
+  if Source is TKamScriptInteger then
+    Value := TKamScriptInteger(Source).Value else
     raise EKamAssignValueError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
 end;
 
@@ -1422,8 +1465,28 @@ begin
     { calculate Handler }
     if not FunctionHandlers.SearchArgumentClasses(
       HandlersByArgument, ArgumentClasses, Handler) then
-      raise EKamScriptFunctionNoHandler.CreateFmt('Function "%s" is not defined for this combination of arguments: %s',
-        [Name, ArgumentClassesToStr(ArgumentClasses)]);
+    begin
+      { try promoting integer arguments to float, see if it will work then }
+      for I := 0 to Length(ArgumentClasses) - 1 do
+        if ArgumentClasses[I].InheritsFrom(TKamScriptInteger) then
+          ArgumentClasses[I] := TKamScriptFloat;
+
+      if FunctionHandlers.SearchArgumentClasses(
+        HandlersByArgument, ArgumentClasses, Handler) then
+      begin
+        { So I found a handler, that will be valid if all integer args will
+          get promoted to float. Cool, let's do it.
+
+          I use PromoteToFloat method, that will keep it's result valid
+          for some time, since (depending on function handler) we may
+          return PromoteToFloat result to the user. }
+        for I := 0 to Length(Arguments) - 1 do
+          if Arguments[I] is TKamScriptInteger then
+            Arguments[I] := TKamScriptInteger(Arguments[I]).PromoteToFloat;
+      end else
+        raise EKamScriptFunctionNoHandler.CreateFmt('Function "%s" is not defined for this combination of arguments: %s',
+          [Name, ArgumentClassesToStr(ArgumentClasses)]);
+    end;
 
     Handler.Handler(Arguments, LastExecuteResult, ParentOfLastExecuteResult);
 
