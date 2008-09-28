@@ -142,7 +142,7 @@ function SZeroPad(const s: string; len: integer): string;
   A-Z -> a-z letters. }
 function LoCase(c: char): char;
 
-function CharPos(c: char; const s: string): integer;
+function CharPos(c: char; const s: string; Offset: Integer = 1): integer;
 
 { Find first occurence of any character in Chars in string S.
   This is quite like FirstDelimiter but it takes parameter as TSetOfChars
@@ -919,10 +919,10 @@ begin
   result := c;
 end;
 
-function CharPos(c: char; const s: string): integer;
+function CharPos(c: char; const s: string; Offset: Integer): integer;
 var i: integer;
 begin
- for i := 1 to length(s) do
+ for i := Offset to length(s) do
   if s[i] = c then begin result := i; exit end;
  result := 0;
 end;

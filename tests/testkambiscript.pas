@@ -34,12 +34,13 @@ type
     procedure TestCodeCreatedExprs;
     procedure TestInheritsFrom;
     procedure TestFloatPrograms;
+    procedure TestVariousTypesPrograms;
   end;
 
 implementation
 
 uses VectorMath, KambiScript, KambiScriptLexer, KambiScriptParser,
-  KambiStringUtils, KambiScriptMathFunctions;
+  KambiStringUtils, KambiScriptMathFunctions, KambiClassUtils;
 
 procedure TTestKambiScript.Test1;
 
@@ -126,6 +127,44 @@ begin
     Assert(Vars[3].Value = 666);
   finally
     for I := 0 to High(Vars) do FreeAndNil(Vars[I]);
+  end;
+end;
+
+procedure TTestKambiScript.TestVariousTypesPrograms;
+var
+  Vars: TKamScriptValuesList;
+  Prog: TKamScriptProgram;
+begin
+  Vars := TKamScriptValuesList.Create;
+  try
+    Vars.Add(TKamScriptInteger.Create(23));
+    Vars.Add(TKamScriptFloat.Create(3.14));
+    Vars.Add(TKamScriptBoolean.Create(false));
+    Vars.Add(TKamScriptString.Create('foo'));
+
+    Vars[0].Name := 'my_int';
+    Vars[1].Name := 'my_float';
+    Vars[2].Name := 'my_bool';
+    Vars[3].Name := 'my_string';
+
+    Prog := ParseProgram('function main() 666', Vars);
+    { return any dummy value }
+    Prog.ExecuteFunction('main', []);
+
+    Assert((Vars[0] as TKamScriptInteger).Value = 23);
+    Assert((Vars[1] as TKamScriptFloat).Value = 3.14);
+    Assert((Vars[2] as TKamScriptBoolean).Value = false);
+    Assert((Vars[3] as TKamScriptString).Value = 'foo');
+
+    Prog := ParseProgram(FileToString('test_script2.kscript'), Vars);
+    Prog.ExecuteFunction('main', []);
+
+    Assert((Vars[0] as TKamScriptInteger).Value = 23 + 12);
+    Assert((Vars[1] as TKamScriptFloat).Value = Sqrt(3.14 + 2.0));
+    Assert((Vars[2] as TKamScriptBoolean).Value = true);
+    Assert((Vars[3] as TKamScriptString).Value = 'barfooxyz');
+  finally
+    FreeWithContentsAndNil(Vars);
   end;
 end;
 

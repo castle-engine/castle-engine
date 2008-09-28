@@ -97,8 +97,9 @@ procedure TKamScriptVRMLValue.BeforeExecute;
       Value := TSFFloat(Field).Value else
     if Field is TSFDouble then
       Value := TSFDouble(Field).Value else
+{TODO: use native bool
     if Field is TSFBool then
-      AsBoolean := TSFBool(Field).Value else
+      AsBoolean := TSFBool(Field).Value else}
     if Field is TSFEnum then
       Value := TSFEnum(Field).Value else
     if Field is TSFLong then
@@ -110,9 +111,10 @@ procedure TKamScriptVRMLValue.BeforeExecute;
     if (Field is TMFDouble) and
        (TMFDouble(Field).Items.Count = 1) then
       Value := TMFDouble(Field).Items.Items[0] else
+{TODO: use native bool      
     if (Field is TMFBool) and
        (TMFBool(Field).Items.Count = 1) then
-      AsBoolean := TMFBool(Field).Items.Items[0] else
+      AsBoolean := TMFBool(Field).Items.Items[0] else}
     if (Field is TMFLong) and
        (TMFLong(Field).Items.Count = 1) then
       Value := TMFLong(Field).Items.Items[0] else
@@ -190,8 +192,9 @@ begin
       TSFFloat(Field).Value := Value else
     if Field is TSFDouble then
       TSFDouble(Field).Value := Value else
+{TODO: use native bool      
     if Field is TSFBool then
-      TSFBool(Field).Value := AsBoolean else
+      TSFBool(Field).Value := AsBoolean else}
     if Field is TSFEnum then
       TSFEnum(Field).Value := Round(Value) else
     if Field is TSFLong then
@@ -207,11 +210,12 @@ begin
       TMFDouble(Field).Items.Count := 1;
       TMFDouble(Field).Items.Items[0] := Value;
     end else
+{TODO: use native bool    
     if Field is TMFBool then
     begin
       TMFBool(Field).Items.Count := 1;
       TMFBool(Field).Items.Items[0] := AsBoolean;
-    end else
+    end else}
     if Field is TMFLong then
     begin
       TMFLong(Field).Items.Count := 1;

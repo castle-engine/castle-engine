@@ -32,7 +32,11 @@ uses KambiUtils, KambiScript, SysUtils, Math;
 
 type
   TToken = (tokEnd,
-    tokConst, {< Value of given constant will be in w TKamScriptLexer.TokenFloat. }
+    tokInteger, {< Value of constant integer will be in w TKamScriptLexer.TokenInteger. }
+    tokFloat, {< Value of constant float will be in w TKamScriptLexer.TokenFloat. }
+    tokBoolean, {< Value of constant boolean will be in w TKamScriptLexer.TokenBoolean. }
+    tokString, {< Value of constant string will be in w TKamScriptLexer.TokenString. }
+
     tokIdentifier, {< Identifier will be in TKamScriptLexer.TokenString. }
     tokFuncName, {< Function class of given function will be in TKamScriptLexer.TokenFunctionClass. }
     tokFunctionKeyword,
@@ -50,7 +54,9 @@ type
   TKamScriptLexer = class
   private
     FToken: TToken;
+    FTokenInteger: Int64;
     FTokenFloat: Float;
+    FTokenBoolean: boolean;
     FTokenString: string;
     FTokenFunctionClass: TKamScriptFunctionClass;
 
@@ -59,8 +65,10 @@ type
   public
     property Token: TToken read FToken;
 
-    property TokenString: string read FTokenString;
+    property TokenInteger: Int64 read FTokenInteger;
     property TokenFloat: Float read FTokenFloat;
+    property TokenString: string read FTokenString;
+    property TokenBoolean: boolean read FTokenBoolean;
     property TokenFunctionClass: TKamScriptFunctionClass read FTokenFunctionClass;
 
     { Position of lexer in the @link(Text) string. }
@@ -138,7 +146,7 @@ function TKamScriptLexer.NextToken: TToken;
 const
   whiteChars = [' ', #9, #10, #13];
   digits = ['0'..'9'];
-  litery = ['a'..'z', 'A'..'Z', '_'];
+  Letters = ['a'..'z', 'A'..'Z', '_'];
 
   function ReadSimpleToken: boolean;
   const
@@ -164,31 +172,69 @@ const
    result := false;
   end;
 
-  function ReadConstant: boolean;
-  { czytaj constant od aktualnego miejsca (a wiec uaktualnij
-    ftoken i fTokenFloat). Zwraca false jesli nie stoimy na constant. }
-  var digitsCount: cardinal;
-      val: Int64;
+  { Read a string, to a tokString token.
+    Read from current TexPos.
+    Update ftoken and fTokenString, and advance TextPos, and return true
+    if success.
+
+    Results in false if we're not standing at an apostrophe now. }
+  function ReadString: boolean;
+  var
+    NextApos: Integer;
+  begin
+    Result := Text[FTextPos] = '''';
+    if not Result then Exit;
+
+    FToken := tokString;
+    FTokenString := '';
+
+    repeat
+      NextApos := CharPos('''', Text, FTextPos + 1);
+      if NextApos = 0 then
+        raise EKamScriptLexerError.Create(Self, 'Unfinished string');
+      FTokenString += CopyPos(Text, FTextPos + 1, NextApos - 1);
+      FTextPos := NextApos + 1;
+
+      if SCharIs(Text, FTextPos, '''') then
+        FTokenString += '''' else
+        Break;
+    until false;
+  end;
+
+  { Read a number, to a tokFloat or tokInteger token.
+    Read from current TexPos.
+    Update ftoken and fTokenFloat, and advance TextPos, and return true
+    if success.
+
+    Results in false if we're not standing at a digit now. }
+  function ReadNumber: boolean;
+  var
+    digitsCount: cardinal;
+    val: Int64;
   begin
    result := text[fTextPos] in digits;
    if not result then exit;
 
-   ftoken := tokConst;
-   val := DigitAsByte(text[fTextPos]);
+   { Assume it's an integer token at first, until we will encounter the dot. }
+
+   Ftoken := tokInteger;
+   FTokenInteger := DigitAsByte(text[fTextPos]);
    Inc(fTextPos);
    while SCharIs(text, fTextPos, digits) do
    begin
-    val := 10*val+DigitAsByte(text[fTextPos]);
+    FTokenInteger := 10 * FTokenInteger + DigitAsByte(text[fTextPos]);
     Inc(fTextPos);
    end;
-   fTokenFloat := val;
 
-   { czytaj czesc ulamkowa }
    if SCharIs(text, fTextPos, '.') then
    begin
+    { So it's a float. Read fractional part. }
+    FToken := tokFloat;
+    FTokenFloat := FTokenInteger;
+
     Inc(fTextPos);
     if not SCharIs(text, fTextPos, digits) then
-     raise EKamScriptLexerError.Create(Self, 'digit expected');
+     raise EKamScriptLexerError.Create(Self, 'Digit expected');
     digitsCount := 1;
     val := DigitAsByte(text[fTextPos]);
     Inc(fTextPos);
@@ -209,7 +255,7 @@ const
     nalezy do identChars.
 
     Always returns non-empty string (length >= 1) }
-  const identStartChars = litery;
+  const identStartChars = Letters;
         identChars = identStartChars + digits;
   var startPos: integer;
   begin
@@ -223,8 +269,10 @@ const
   end;
 
 const
-  consts_str: array[0..1]of string = ('pi', 'enat');
-  consts_values: array[0..High(consts_str)]of float = (pi, enatural);
+  FloatConsts: array [0..1] of string = ('pi', 'enat');
+  FloatConstsValues: array [0..High(FloatConsts)] of float = (pi, enatural);
+  BooleanConsts: array [0..1] of string = ('false', 'true');
+  BooleanConstsValues: array [0..High(BooleanConsts)] of boolean = (false, true);
 var
   p: integer;
   fc: TKamScriptFunctionClass;
@@ -233,8 +281,9 @@ begin
  if TextPos > Length(text) then
   ftoken := tokEnd else
  begin
+  if not ReadString then
+  if not ReadNumber then
   if not ReadSimpleToken then
-  if not ReadConstant then
   begin
    { It's something that *may* be an identifier.
      Unless it matches some keyword, built-in function or constant. }
@@ -261,16 +310,28 @@ begin
      end;
    end;
 
-   { Maybe it's tokConst }
+   { Maybe it's a named constant float }
    if ftoken = tokIdentifier then
    begin
-    p := ArrayPosText(fTokenString, consts_str);
+    p := ArrayPosText(fTokenString, FloatConsts);
     if p >= 0 then
     begin
-     ftoken := tokConst;
-     fTokenFloat := consts_values[p];
+     ftoken := tokFloat;
+     fTokenFloat := FloatConstsValues[p];
     end;
    end;
+
+   { Maybe it's a named constant boolean }
+   if ftoken = tokIdentifier then
+   begin
+    p := ArrayPosText(fTokenString, BooleanConsts);
+    if p >= 0 then
+    begin
+     ftoken := tokBoolean;
+     fTokenBoolean := BooleanConstsValues[p];
+    end;
+   end;
+
   end;
  end;
  result := token;
@@ -279,7 +340,10 @@ end;
 const
   TokenShortDescription: array [TToken] of string =
   ( 'end of stream',
-    'constant',
+    'integer',
+    'float',
+    'boolean',
+    'string',
     'identifier',
     'built-in function',
     'function',
@@ -294,7 +358,10 @@ function TKamScriptLexer.TokenDescription: string;
 begin
   Result := TokenShortDescription[Token];
   case Token of
-    tokConst: Result += Format(' %g', [TokenFloat]);
+    tokInteger: Result += Format(' %d', [TokenInteger]);
+    tokFloat: Result += Format(' %g', [TokenFloat]);
+    tokBoolean: Result += Format(' %s', [BoolToStr[TokenBoolean]]);
+    tokString: Result += Format(' ''%s''', [TokenString]);
     tokIdentifier: Result += Format(' %s', [TokenString]);
     tokFuncName: Result += Format(' %s', [TokenFunctionClass.Name]);
   end;

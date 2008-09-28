@@ -165,8 +165,20 @@ const
     try
       case Lexer.Token of
         tokIdentifier: Result := Operand;
-        tokConst: begin
+        tokInteger: begin
+            Result := TKamScriptInteger.Create(Lexer.TokenInteger);
+            Lexer.NextToken;
+          end;
+        tokFloat: begin
             Result := TKamScriptFloat.Create(Lexer.TokenFloat);
+            Lexer.NextToken;
+          end;
+        tokBoolean: begin
+            Result := TKamScriptBoolean.Create(Lexer.TokenBoolean);
+            Lexer.NextToken;
+          end;
+        tokString: begin
+            Result := TKamScriptString.Create(Lexer.TokenString);
             Lexer.NextToken;
           end;
         tokMinus: begin

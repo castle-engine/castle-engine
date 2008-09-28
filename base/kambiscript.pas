@@ -161,6 +161,43 @@ type
   {$I objectslist_2.inc}
   TKamScriptValuesList = TObjectsList_2;
 
+  TKamScriptInteger = class(TKamScriptValue)
+  private
+    class procedure HandleAdd(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleSubtract(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleNegate(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    class procedure HandleMultiply(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleDivide(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleModulo(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandlePower(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    class procedure HandleSqr(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleSgn(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleAbs(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    class procedure HandleGreater(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleLesser(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleGreaterEq(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleLesserEq(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleNotEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    FValue: Int64;
+    procedure SetValue(const AValue: Int64);
+  public
+    { Comfortable constructor to set initial Value.
+      Note that the inherited constructor without parameters is
+      also fine to use, it will set value to zero. }
+    constructor Create(AValue: Int64);
+
+    constructor Create; override;
+
+    property Value: Int64 read FValue write SetValue;
+
+    procedure AssignValue(Source: TKamScriptValue); override;
+  end;
+
   TKamScriptFloat = class(TKamScriptValue)
   private
     class procedure HandleAdd(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -199,12 +236,6 @@ type
     class procedure HandleLesserEq(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleNotEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleOr(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleAnd(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNot(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-
-    function GetAsBoolean: boolean;
-    procedure SetAsBoolean(const AValue: boolean);
 
     FValue: Float;
     procedure SetValue(const AValue: Float);
@@ -218,12 +249,59 @@ type
 
     property Value: Float read FValue write SetValue;
 
-    { Read/write @link(Value) as boolean. This automatically does simple
-      convertion between Float and boolean.
+    procedure AssignValue(Source: TKamScriptValue); override;
+  end;
 
-      When setting, false results in 0 and true in 1.
-      When reading, anything different than 0 results in true. }
-    property AsBoolean: boolean read GetAsBoolean write SetAsBoolean;
+  TKamScriptBoolean = class(TKamScriptValue)
+  private
+    class procedure HandleOr(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleAnd(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleNot(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    class procedure HandleGreater(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleLesser(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleGreaterEq(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleLesserEq(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleNotEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    FValue: boolean;
+    procedure SetValue(const AValue: boolean);
+  public
+    { Comfortable constructor to set initial Value.
+      Note that the inherited constructor without parameters is
+      also fine to use, it will set value to zero. }
+    constructor Create(AValue: boolean);
+
+    constructor Create; override;
+
+    property Value: boolean read FValue write SetValue;
+
+    procedure AssignValue(Source: TKamScriptValue); override;
+  end;
+
+  TKamScriptString = class(TKamScriptValue)
+  private
+    class procedure HandleAdd(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    class procedure HandleGreater(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleLesser(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleGreaterEq(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleLesserEq(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleNotEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    FValue: string;
+    procedure SetValue(const AValue: string);
+  public
+    { Comfortable constructor to set initial Value.
+      Note that the inherited constructor without parameters is
+      also fine to use, it will set value to zero. }
+    constructor Create(AValue: string);
+
+    constructor Create; override;
+
+    property Value: string read FValue write SetValue;
 
     procedure AssignValue(Source: TKamScriptValue); override;
   end;
@@ -634,6 +712,171 @@ begin
   Result := Self;
 end;
 
+{ TKamScriptInteger ---------------------------------------------------------- }
+
+constructor TKamScriptInteger.Create(AValue: Int64);
+begin
+  Create;
+  Value := AValue;
+end;
+
+constructor TKamScriptInteger.Create;
+begin
+  inherited Create;
+end;
+
+class procedure TKamScriptInteger.HandleAdd(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
+  { The function allows only >= 1 arguments, and this handler is
+    registered only for TKamScriptInteger values, so we can safely take
+    the first arg as TKamScriptInteger. }
+  TKamScriptInteger(AResult).Value := TKamScriptInteger(Arguments[0]).Value;
+  for I := 1 to Length(Arguments) - 1 do
+    TKamScriptInteger(AResult).Value :=
+      TKamScriptInteger(AResult).Value + TKamScriptInteger(Arguments[I]).Value;
+end;
+
+class procedure TKamScriptInteger.HandleSubtract(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
+  TKamScriptInteger(AResult).Value := TKamScriptInteger(Arguments[0]).Value;
+  for I := 1 to Length(Arguments) - 1 do
+    TKamScriptInteger(AResult).Value :=
+      TKamScriptInteger(AResult).Value - TKamScriptInteger(Arguments[I]).Value;
+end;
+
+class procedure TKamScriptInteger.HandleMultiply(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
+  TKamScriptInteger(AResult).Value := TKamScriptInteger(Arguments[0]).Value;
+  for I := 1 to Length(Arguments) - 1 do
+    TKamScriptInteger(AResult).Value :=
+      TKamScriptInteger(AResult).Value * TKamScriptInteger(Arguments[I]).Value;
+end;
+
+class procedure TKamScriptInteger.HandleDivide(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
+  TKamScriptInteger(AResult).Value := TKamScriptInteger(Arguments[0]).Value;
+  for I := 1 to Length(Arguments) - 1 do
+    TKamScriptInteger(AResult).Value :=
+      TKamScriptInteger(AResult).Value div TKamScriptInteger(Arguments[I]).Value;
+end;
+
+class procedure TKamScriptInteger.HandleNegate(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
+  TKamScriptInteger(AResult).Value := - TKamScriptInteger(Arguments[0]).Value;
+end;
+
+class procedure TKamScriptInteger.HandleModulo(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
+  TKamScriptInteger(AResult).Value :=
+    TKamScriptInteger(Arguments[0]).Value mod
+    TKamScriptInteger(Arguments[1]).Value;
+end;
+
+class procedure TKamScriptInteger.HandlePower(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
+  if (TKamScriptInteger(Arguments[0]).Value < 0) or
+     (TKamScriptInteger(Arguments[1]).Value < 0) then
+    raise EKamScriptError.Create('Power function on integer operands expects both arguments to be >= 0');
+
+  TKamScriptInteger(AResult).Value := NatNatPower(
+    TKamScriptInteger(Arguments[0]).Value,
+    TKamScriptInteger(Arguments[1]).Value );
+end;
+
+class procedure TKamScriptInteger.HandleSqr(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
+  TKamScriptInteger(AResult).Value := Sqr( TKamScriptInteger(Arguments[0]).Value );
+end;
+
+class procedure TKamScriptInteger.HandleSgn(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
+  TKamScriptInteger(AResult).Value := Sign( TKamScriptInteger(Arguments[0]).Value );
+end;
+
+class procedure TKamScriptInteger.HandleAbs(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
+  TKamScriptInteger(AResult).Value := Abs( TKamScriptInteger(Arguments[0]).Value );
+end;
+
+class procedure TKamScriptInteger.HandleGreater(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
+    TKamScriptInteger(Arguments[0]).Value >
+    TKamScriptInteger(Arguments[1]).Value;
+end;
+
+class procedure TKamScriptInteger.HandleLesser(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
+    TKamScriptInteger(Arguments[0]).Value <
+    TKamScriptInteger(Arguments[1]).Value;
+end;
+
+class procedure TKamScriptInteger.HandleGreaterEq(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
+    TKamScriptInteger(Arguments[0]).Value >=
+    TKamScriptInteger(Arguments[1]).Value;
+end;
+
+class procedure TKamScriptInteger.HandleLesserEq(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
+    TKamScriptInteger(Arguments[0]).Value <=
+    TKamScriptInteger(Arguments[1]).Value;
+end;
+
+class procedure TKamScriptInteger.HandleEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
+    TKamScriptInteger(Arguments[0]).Value =
+    TKamScriptInteger(Arguments[1]).Value;
+end;
+
+class procedure TKamScriptInteger.HandleNotEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
+    TKamScriptInteger(Arguments[0]).Value <>
+    TKamScriptInteger(Arguments[1]).Value;
+end;
+
+procedure TKamScriptInteger.AssignValue(Source: TKamScriptValue);
+begin
+  if Source is TKamScriptInteger then
+    Value := TKamScriptInteger(Source).Value else
+    raise EKamAssignValueError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
+end;
+
+procedure TKamScriptInteger.SetValue(const AValue: Int64);
+begin
+  FValue := AValue;
+  ValueAssigned := true;
+end;
+
 { TKamScriptFloat ------------------------------------------------------- }
 
 constructor TKamScriptFloat.Create(AValue: Float);
@@ -859,73 +1102,50 @@ end;
 
 class procedure TKamScriptFloat.HandleGreater(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).AsBoolean :=
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
     TKamScriptFloat(Arguments[0]).Value >
     TKamScriptFloat(Arguments[1]).Value;
 end;
 
 class procedure TKamScriptFloat.HandleLesser(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).AsBoolean :=
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
     TKamScriptFloat(Arguments[0]).Value <
     TKamScriptFloat(Arguments[1]).Value;
 end;
 
 class procedure TKamScriptFloat.HandleGreaterEq(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).AsBoolean :=
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
     TKamScriptFloat(Arguments[0]).Value >=
     TKamScriptFloat(Arguments[1]).Value;
 end;
 
 class procedure TKamScriptFloat.HandleLesserEq(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).AsBoolean :=
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
     TKamScriptFloat(Arguments[0]).Value <=
     TKamScriptFloat(Arguments[1]).Value;
 end;
 
 class procedure TKamScriptFloat.HandleEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).AsBoolean :=
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
     TKamScriptFloat(Arguments[0]).Value =
     TKamScriptFloat(Arguments[1]).Value;
 end;
 
 class procedure TKamScriptFloat.HandleNotEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).AsBoolean :=
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
     TKamScriptFloat(Arguments[0]).Value <>
     TKamScriptFloat(Arguments[1]).Value;
-end;
-
-class procedure TKamScriptFloat.HandleOr(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).AsBoolean :=
-    TKamScriptFloat(Arguments[0]).AsBoolean or
-    TKamScriptFloat(Arguments[1]).AsBoolean;
-end;
-
-class procedure TKamScriptFloat.HandleAnd(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).AsBoolean :=
-    TKamScriptFloat(Arguments[0]).AsBoolean and
-    TKamScriptFloat(Arguments[1]).AsBoolean;
-end;
-
-class procedure TKamScriptFloat.HandleNot(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).AsBoolean :=
-    not TKamScriptFloat(Arguments[0]).AsBoolean;
 end;
 
 procedure TKamScriptFloat.AssignValue(Source: TKamScriptValue);
@@ -935,19 +1155,192 @@ begin
     raise EKamAssignValueError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
 end;
 
-function TKamScriptFloat.GetAsBoolean: boolean;
-begin
-  Result := Value <> 0;
-end;
-
-procedure TKamScriptFloat.SetAsBoolean(const AValue: boolean);
-const
-  BoolToFloat: array [boolean] of Float = (0, 1);
-begin
-  Value := BoolToFloat[AValue];
-end;
-
 procedure TKamScriptFloat.SetValue(const AValue: Float);
+begin
+  FValue := AValue;
+  ValueAssigned := true;
+end;
+
+{ TKamScriptBoolean ---------------------------------------------------------- }
+
+constructor TKamScriptBoolean.Create(AValue: boolean);
+begin
+  Create;
+  Value := AValue;
+end;
+
+constructor TKamScriptBoolean.Create;
+begin
+  inherited Create;
+end;
+
+class procedure TKamScriptBoolean.HandleOr(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
+    TKamScriptBoolean(Arguments[0]).Value or
+    TKamScriptBoolean(Arguments[1]).Value;
+end;
+
+class procedure TKamScriptBoolean.HandleAnd(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
+    TKamScriptBoolean(Arguments[0]).Value and
+    TKamScriptBoolean(Arguments[1]).Value;
+end;
+
+class procedure TKamScriptBoolean.HandleNot(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
+    not TKamScriptBoolean(Arguments[0]).Value;
+end;
+
+class procedure TKamScriptBoolean.HandleGreater(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
+    TKamScriptBoolean(Arguments[0]).Value >
+    TKamScriptBoolean(Arguments[1]).Value;
+end;
+
+class procedure TKamScriptBoolean.HandleLesser(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
+    TKamScriptBoolean(Arguments[0]).Value <
+    TKamScriptBoolean(Arguments[1]).Value;
+end;
+
+class procedure TKamScriptBoolean.HandleGreaterEq(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
+    TKamScriptBoolean(Arguments[0]).Value >=
+    TKamScriptBoolean(Arguments[1]).Value;
+end;
+
+class procedure TKamScriptBoolean.HandleLesserEq(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
+    TKamScriptBoolean(Arguments[0]).Value <=
+    TKamScriptBoolean(Arguments[1]).Value;
+end;
+
+class procedure TKamScriptBoolean.HandleEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
+    TKamScriptBoolean(Arguments[0]).Value =
+    TKamScriptBoolean(Arguments[1]).Value;
+end;
+
+class procedure TKamScriptBoolean.HandleNotEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
+    TKamScriptBoolean(Arguments[0]).Value <>
+    TKamScriptBoolean(Arguments[1]).Value;
+end;
+
+procedure TKamScriptBoolean.AssignValue(Source: TKamScriptValue);
+begin
+  if Source is TKamScriptBoolean then
+    Value := TKamScriptBoolean(Source).Value else
+    raise EKamAssignValueError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
+end;
+
+procedure TKamScriptBoolean.SetValue(const AValue: Boolean);
+begin
+  FValue := AValue;
+  ValueAssigned := true;
+end;
+
+{ TKamScriptString ---------------------------------------------------------- }
+
+constructor TKamScriptString.Create(AValue: string);
+begin
+  Create;
+  Value := AValue;
+end;
+
+constructor TKamScriptString.Create;
+begin
+  inherited Create;
+end;
+
+class procedure TKamScriptString.HandleAdd(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptString);
+  { The function allows only >= 1 arguments, and this handler is
+    registered only for TKamScriptString values, so we can safely take
+    the first arg as TKamScriptString. }
+  TKamScriptString(AResult).Value := TKamScriptString(Arguments[0]).Value;
+  for I := 1 to Length(Arguments) - 1 do
+    TKamScriptString(AResult).Value :=
+      TKamScriptString(AResult).Value + TKamScriptString(Arguments[I]).Value;
+end;
+
+class procedure TKamScriptString.HandleGreater(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
+    TKamScriptString(Arguments[0]).Value >
+    TKamScriptString(Arguments[1]).Value;
+end;
+
+class procedure TKamScriptString.HandleLesser(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
+    TKamScriptString(Arguments[0]).Value <
+    TKamScriptString(Arguments[1]).Value;
+end;
+
+class procedure TKamScriptString.HandleGreaterEq(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
+    TKamScriptString(Arguments[0]).Value >=
+    TKamScriptString(Arguments[1]).Value;
+end;
+
+class procedure TKamScriptString.HandleLesserEq(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
+    TKamScriptString(Arguments[0]).Value <=
+    TKamScriptString(Arguments[1]).Value;
+end;
+
+class procedure TKamScriptString.HandleEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
+    TKamScriptString(Arguments[0]).Value =
+    TKamScriptString(Arguments[1]).Value;
+end;
+
+class procedure TKamScriptString.HandleNotEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value :=
+    TKamScriptString(Arguments[0]).Value <>
+    TKamScriptString(Arguments[1]).Value;
+end;
+
+procedure TKamScriptString.AssignValue(Source: TKamScriptValue);
+begin
+  if Source is TKamScriptString then
+    Value := TKamScriptString(Source).Value else
+    raise EKamAssignValueError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
+end;
+
+procedure TKamScriptString.SetValue(const AValue: String);
 begin
   FValue := AValue;
   ValueAssigned := true;
@@ -1298,19 +1691,6 @@ begin
   inherited;
 end;
 
-    { Execute a user-defined function (from Functions list of this program).
-
-      @unorderedList(
-        @item(Looks for given FunctionName (exception EKamScriptMissingFunction
-          if not found).)
-        @item(Sets function parameters to given values
-         (number of parameters must match, otherwise EKamScriptError).)
-        @item(Finally executes function body (various EKamScriptError
-          may be raised there).)
-      )
-
-      @raises EKamScriptError
-    }
 procedure TKamScriptProgram.ExecuteFunction(const FunctionName: string;
   const Parameters: array of Float;
   const IgnoreMissingFunction: boolean);
@@ -1374,6 +1754,28 @@ initialization
   FunctionHandlers.RegisterHandler(@TKamScriptSequence(nil).HandleSequence, TKamScriptSequence, TKamScriptValue);
   FunctionHandlers.RegisterHandler(@TKamScriptAssignment(nil).HandleAssignment, TKamScriptAssignment, TKamScriptValue);
 
+  { Register handlers for TKamScriptInteger for functions in
+    KambiScriptMathFunctions. }
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleAdd, TKamScriptAdd, TKamScriptInteger);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleSubtract, TKamScriptSubtract, TKamScriptInteger);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleNegate, TKamScriptNegate, TKamScriptInteger);
+
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleMultiply, TKamScriptMultiply, TKamScriptInteger);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleDivide, TKamScriptDivide, TKamScriptInteger);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleModulo, TKamScriptModulo, TKamScriptInteger);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandlePower, TKamScriptPower, TKamScriptInteger);
+
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleSqr, TKamScriptSqr, TKamScriptInteger);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleSgn, TKamScriptSgn, TKamScriptInteger);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleAbs, TKamScriptAbs, TKamScriptInteger);
+
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleGreater, TKamScriptGreater, TKamScriptInteger);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleLesser, TKamScriptLesser, TKamScriptInteger);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleGreaterEq, TKamScriptGreaterEq, TKamScriptInteger);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleLesserEq, TKamScriptLesserEq, TKamScriptInteger);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleEqual, TKamScriptEqual, TKamScriptInteger);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleNotEqual, TKamScriptNotEqual, TKamScriptInteger);
+
   { Register handlers for TKamScriptFloat for functions in
     KambiScriptMathFunctions. }
   FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleAdd, TKamScriptAdd, TKamScriptFloat);
@@ -1412,9 +1814,30 @@ initialization
   FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleLesserEq, TKamScriptLesserEq, TKamScriptFloat);
   FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleEqual, TKamScriptEqual, TKamScriptFloat);
   FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleNotEqual, TKamScriptNotEqual, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleOr, TKamScriptOr, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleAnd, TKamScriptAnd, TKamScriptFloat);
-  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleNot, TKamScriptNot, TKamScriptFloat);
+
+  { Register handlers for TKamScriptBoolean for functions in
+    KambiScriptMathFunctions. }
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleOr, TKamScriptOr, TKamScriptBoolean);
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleAnd, TKamScriptAnd, TKamScriptBoolean);
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleNot, TKamScriptNot, TKamScriptBoolean);
+
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleGreater, TKamScriptGreater, TKamScriptBoolean);
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleLesser, TKamScriptLesser, TKamScriptBoolean);
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleGreaterEq, TKamScriptGreaterEq, TKamScriptBoolean);
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleLesserEq, TKamScriptLesserEq, TKamScriptBoolean);
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleEqual, TKamScriptEqual, TKamScriptBoolean);
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleNotEqual, TKamScriptNotEqual, TKamScriptBoolean);
+
+  { Register handlers for TKamScriptString for functions in
+    KambiScriptMathFunctions. }
+  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleAdd, TKamScriptAdd, TKamScriptString);
+
+  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleGreater, TKamScriptGreater, TKamScriptString);
+  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleLesser, TKamScriptLesser, TKamScriptString);
+  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleGreaterEq, TKamScriptGreaterEq, TKamScriptString);
+  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleLesserEq, TKamScriptLesserEq, TKamScriptString);
+  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleEqual, TKamScriptEqual, TKamScriptString);
+  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleNotEqual, TKamScriptNotEqual, TKamScriptString);
 finalization
   FreeAndNil(FunctionHandlers);
 end.

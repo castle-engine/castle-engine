@@ -31,7 +31,12 @@ uses
   TestKambiStringUtils,
   TestKambiScript;
 
+var
+  T: TTestKambiScript;
 begin
+  T := TTestKambiScript.Create;
+  T.TestVariousTypesPrograms;
+  
   Application.Initialize;
   {$ifndef TEXT_RUNNER}
   Application.CreateForm(TGuiTestRunner, TestRunner);
