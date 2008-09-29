@@ -148,6 +148,22 @@ const
   digits = ['0'..'9'];
   Letters = ['a'..'z', 'A'..'Z', '_'];
 
+  procedure OmitWhiteSpace;
+  begin
+    while SCharIs(text, TextPos, whiteChars) do Inc(fTextPos);
+    if SCharIs(text, TextPos, '{') then
+    begin
+      while Text[TextPos] <> '}' do
+      begin
+        Inc(fTextPos);
+        if TextPos > Length(Text) then
+          raise EKamScriptLexerError.Create(Self, 'Unfinished comment');
+      end;
+      Inc(TextPos);
+      OmitWhiteSpace; { recusively omit the rest of whitespace }
+    end;
+  end;
+
   function ReadSimpleToken: boolean;
   const
     { kolejnosc w toks_strs MA znaczenie - pierwszy zostanie dopasowany string dluzszy,
@@ -277,7 +293,8 @@ var
   p: integer;
   fc: TKamScriptFunctionClass;
 begin
- while SCharIs(text, TextPos, whiteChars) do Inc(fTextPos);
+ OmitWhiteSpace;
+
  if TextPos > Length(text) then
   ftoken := tokEnd else
  begin
