@@ -42,6 +42,16 @@ type
 { Creates and returns instance of TKamScriptExpression,
   that represents parsed tree of expression in S.
 
+  This parses a subset of KambiScript language, that allows you
+  to define only one expression without any assignments.
+  Also the end result is always casted to the float() type
+  (just like it would be wrapped inside float() function call ---
+  in fact this is exactly what happens.)
+
+  The end result is that this is perfect for describing things
+  like function expressions, ideal e.g. for
+  [http://vrmlengine.sourceforge.net/glplotter_and_gen_function.php].
+
   @param(Variables contains a list of named values you want
     to allow in this expression.
 
@@ -441,6 +451,9 @@ begin
         on E: EKamScriptFunctionArgumentsError do
           raise EKamScriptParserError.Create(Lexer, E.Message);
       end;
+
+      { At the end, wrap Result in float() cast. }
+      Result := TKamScriptFloatFun.Create([Result]);
     except Result.FreeByParentExpression; raise end;
   finally Lexer.Free end;
 end;
