@@ -174,6 +174,31 @@ type
   {$I objectslist_2.inc}
   TKamScriptValuesList = TObjectsList_2;
 
+  { This is a very special KambiScript value, used to represent user-defined
+    function parameter. This poses itself as a TKamScriptValue descendant,
+    and it has working AssignValue and everything else. This way it can
+    be used in "Variables" list for various KambiScriptParser functions.
+
+    Except it's cheating: it doesn't actually store the value.
+    Instead, it has SourceValue property that is used when doing
+    AssignValue. So AssignValue is handled by SourceValue.AssignValue,
+    and Execute is handled by SourceValue.Execute, and so reading/writing
+    this works.
+
+    The advantage: the exact type of function parameter is not known,
+    and still we can parse the function expression. This is crucial
+    for parser implementation: when parsing you need to create
+    TKamScriptParameterValue instance, but you don't know actual
+    type of parameter that will be passed here. }
+  TKamScriptParameterValue = class(TKamScriptValue)
+  private
+    FSourceValue: TKamScriptValue;
+  public
+    property SourceValue: TKamScriptValue read FSourceValue write FSourceValue;
+    function Execute: TKamScriptValue; override;
+    procedure AssignValue(Source: TKamScriptValue); override;
+  end;
+
   TKamScriptFloat = class;
 
   TKamScriptInteger = class(TKamScriptValue)
@@ -615,7 +640,9 @@ type
 
       These are always fresh variables, not referenced anywhere outside
       of Body. This means that they are owned (always, regardless of
-      OwnedByParentExpression) by this class. }
+      OwnedByParentExpression) by this class.
+
+      They must always be of TKamScriptParameterValue class. }
     property Parameters: TKamScriptValuesList read FParameters;
 
     { Function body. }
@@ -648,13 +675,18 @@ type
           if true, it will be simply ignored (ExecuteFunction will
           silently do nothng). If false (default)
           then we will raise exception EKamScriptMissingFunction.)
+
         @item(Sets function parameters to given values
-         (number of parameters must match, otherwise EKamScriptError).)
+         (number of parameters must match, otherwise EKamScriptError).
+         Values from your parameters are set as our parameters
+         TKamScriptParameterValue.SourceValue, so script can read and write
+         your values.)
+
         @item(Finally executes function body.)
       )
     }
     procedure ExecuteFunction(const FunctionName: string;
-      const Parameters: array of Float;
+      const Parameters: array of TKamScriptValue;
       const IgnoreMissingFunction: boolean = false);
   end;
 
@@ -754,6 +786,18 @@ function TKamScriptValue.Execute: TKamScriptValue;
 begin
   { Since we own Execute result, we can simply return self here. }
   Result := Self;
+end;
+
+{ TKamScriptParameterValue --------------------------------------------------- }
+
+function TKamScriptParameterValue.Execute: TKamScriptValue;
+begin
+  Result := SourceValue.Execute;
+end;
+
+procedure TKamScriptParameterValue.AssignValue(Source: TKamScriptValue);
+begin
+  SourceValue.AssignValue(Source);
 end;
 
 { TKamScriptInteger ---------------------------------------------------------- }
@@ -1936,7 +1980,7 @@ begin
 end;
 
 procedure TKamScriptProgram.ExecuteFunction(const FunctionName: string;
-  const Parameters: array of Float;
+  const Parameters: array of TKamScriptValue;
   const IgnoreMissingFunction: boolean);
 var
   Func: TKamScriptFunctionDefinition;
@@ -1955,13 +1999,14 @@ begin
     raise EKamScriptError.CreateFmt('KambiScript function "%s" requires %d parameters, but passed %d parameters',
       [FunctionName, Func.Parameters.Count, High(Parameters) + 1]);
 
-  { TODO: this is directed at only TKamScriptFloat now, so
-    Parameters are Float and below we just cast to TKamScriptFloat. }
-
   for I := 0 to High(Parameters) do
-    (Func.Parameters[I] as TKamScriptFloat).Value := Parameters[I];
+    (Func.Parameters[I] as TKamScriptParameterValue).SourceValue := Parameters[I];
 
   Func.Body.Execute;
+
+  { Just for safety, clear SourceValue references. }
+  for I := 0 to High(Parameters) do
+    (Func.Parameters[I] as TKamScriptParameterValue).SourceValue := nil;
 end;
 
 { procedural utils ----------------------------------------------------------- }

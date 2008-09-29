@@ -146,7 +146,7 @@ procedure TNodeX3DScriptNode.ExecuteScript(const FunctionName: string;
 
 var
   I: Integer;
-  ParameterValue: TKamScriptVRMLValue;
+  ParameterValue, ParameterTime: TKamScriptValue;
 begin
   if Initialized and
      (ParentEventsProcessor <> nil) and
@@ -171,19 +171,20 @@ begin
           { ReceivedValue may be nil for initialize/shutdown calls. }
           if ReceivedValue <> nil then
           begin
-            ParameterValue := TKamScriptVRMLValue.Create(ReceivedValue);
-            ParameterValue.BeforeExecute;
+            ParameterValue := VRMLKamScriptCreateValue(ReceivedValue);
+            VRMLKamScriptBeforeExecute(ParameterValue, ReceivedValue);
           end else
             ParameterValue := nil;
+          ParameterTime := TKamScriptFloat.Create(
+            TVRMLScene(ParentEventsProcessor).WorldTime);
           try
             KambiScriptVariables.BeforeExecute;
             try
               if ParameterValue <> nil then
                 KambiScriptProgram.ExecuteFunction(FunctionName,
-                  [ ParameterValue.Value,
-                    TVRMLScene(ParentEventsProcessor).WorldTime ], true) else
+                  [ ParameterValue, ParameterTime ], true) else
                 KambiScriptProgram.ExecuteFunction(FunctionName,
-                  [ TVRMLScene(ParentEventsProcessor).WorldTime ], true);
+                  [ ParameterTime ], true);
             except
               on E: EKamScriptError do
               begin
@@ -192,13 +193,17 @@ begin
               end;
             end;
 
-            { ParameterValue.AfterExecute is not called, we don't want
+            { VRMLKamScriptAfterExecute(ParameterValue, ...) is not called,
+              we don't want
               to propagate changes to parameter in script to ReceivedValue.
               ReceivedValue should not be even changed by event handler.
               Actually, ParameterValue should be constant in script. }
 
             KambiScriptVariables.AfterExecute;
-          finally FreeAndNil(ParameterValue); end;
+          finally
+            FreeAndNil(ParameterValue);
+            FreeAndNil(ParameterTime)
+          end;
         end;
       else raise EInternalError.Create('Unknown script type initialized');
     end;
@@ -223,12 +228,12 @@ procedure TNodeX3DScriptNode.SetInitialized(const Value: boolean);
 
     for I := 0 to Fields.Count - 1 do
       if Fields[I].ParentInterfaceDeclaration <> nil then
-        KambiScriptVariables.Add(TKamScriptVRMLValue.Create(Fields[I]));
+        KambiScriptVariables.Add(Fields[I]);
 
     for I := 0 to Events.Count - 1 do
       if (not Events[I].InEvent) and
          (Events[I].ParentInterfaceDeclaration <> nil) then
-        KambiScriptVariables.Add(TKamScriptVRMLValue.Create(Events[I]));
+        KambiScriptVariables.Add(Events[I]);
 
     KambiScriptProgram := ParseProgram(ProgramContent, KambiScriptVariables);
   end;

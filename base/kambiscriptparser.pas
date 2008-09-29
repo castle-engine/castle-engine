@@ -386,7 +386,7 @@ function AProgram(
         begin
           repeat
             Lexer.CheckTokenIs(tokIdentifier);
-            Parameter := TKamScriptFloat.Create;
+            Parameter := TKamScriptParameterValue.Create;
             Parameter.Name := Lexer.TokenString;
             Parameter.OwnedByParentExpression := false;
             Result.Parameters.Add(Parameter);

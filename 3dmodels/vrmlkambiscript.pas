@@ -28,109 +28,132 @@ uses VRMLFields, KambiScript, KambiUtils, KambiClassUtils;
 {$define read_interface}
 
 type
-  TKamScriptVRMLValue = class(TKamScriptFloat)
-  private
-    FFieldOrEvent: TVRMLFieldOrEvent;
-  public
-    { TKamScriptVRMLValue constructor.
-
-      We reintroduce this constructor, hiding virtual constructor for
-      TKamScriptValue, which means that you cannot construct this class
-      by virtual constructor in descendant. This is Ok, as you must
-      provide FieldOrEvent when constructing this. This class cannot
-      be created by calculating expression (like CreateValueIfNeeded). }
-    constructor Create(AFieldOrEvent: TVRMLFieldOrEvent); reintroduce;
-
-    property FieldOrEvent: TVRMLFieldOrEvent read FFieldOrEvent;
-
-    { Do common things before script with this variable is executed.
-      This resets ValueAssigned (will be used in AfterExecute),
-      and sets current variable's value from FieldOrEvent (if this is a field). }
-    procedure BeforeExecute;
-
-    { Do common things after script with this variable is executed.
-      This checks ValueAssigned, and propagates value change to appropriate
-      field/event, sending event/setting field. }
-    procedure AfterExecute;
-  end;
-
   TKamScriptVRMLValuesList = class(TKamScriptValuesList)
   private
-    function GetItems(I: Integer): TKamScriptVRMLValue;
+    FFieldOrEvents: TVRMLFieldOrEventsList;
   public
-    property Items[I: Integer]: TKamScriptVRMLValue read GetItems; default;
+    constructor Create;
+    destructor Destroy; override;
+
+    { List of field/events associated with this list's KamScript variables.
+      This list is read-only (use @link(Add) to add here).
+      It always has the same Count as our own count. }
+    property FieldOrEvents: TVRMLFieldOrEventsList read FFieldOrEvents;
+
+    { Create TKamScriptValue descendant suitable to hold FieldOrEvent
+      value, and add it to Items.
+      FieldOrEvent is added to FieldOrEvents list, so we keep
+      all information. }
+    procedure Add(FieldOrEvent: TVRMLFieldOrEvent);
+
     procedure BeforeExecute;
     procedure AfterExecute;
   end;
+
+function VRMLKamScriptCreateValue(FieldOrEvent: TVRMLFieldOrEvent): TKamScriptValue;
+
+{ Do common things before VRML script with this variable is executed.
+  This resets ValueAssigned (will be used in AfterExecute),
+  and sets current variable's value from FieldOrEvent (if this is a field). }
+procedure VRMLKamScriptBeforeExecute(Value: TKamScriptValue;
+  FieldOrEvent: TVRMLFieldOrEvent);
+
+{ Do common things after VRML script with this variable is executed.
+  This checks ValueAssigned, and propagates value change to appropriate
+  field/event, sending event/setting field. }
+procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
+  FieldOrEvent: TVRMLFieldOrEvent);
 
 {$undef read_interface}
 
 implementation
 
-uses SysUtils, KambiTimeUtils, VRMLNodes, VRMLScene;
+uses SysUtils, KambiTimeUtils, VRMLNodes, VRMLScene, VRMLErrors;
 
 {$define read_implementation}
 
-{ TKamScriptVRMLValue -------------------------------------------------------- }
+{ general utils -------------------------------------------------------- }
 
-{ TODO: For now we descend TKamScriptVRMLValue from TKamScriptFloat.
-  This means that every VRML field value is encoded/decoded
-  as a simple Float... Clearly, this just doesn't work for many types
-  (string, image, vectors, matrices), and for other types may be suboptimal/
-  non-precise (single,double,int,bool).
-
-  Intention was to have other TKamScriptValue descendants for
-  various field classes. }
-
-constructor TKamScriptVRMLValue.Create(AFieldOrEvent: TVRMLFieldOrEvent);
+function VRMLKamScriptCreateValue(FieldOrEvent: TVRMLFieldOrEvent): TKamScriptValue;
+var
+  FieldClass: TVRMLFieldClass;
 begin
-  inherited Create;
-  FFieldOrEvent := AFieldOrEvent;
-  Name := FieldOrEvent.Name;
+  if FieldOrEvent is TVRMLEvent then
+    FieldClass := TVRMLEvent(FieldOrEvent).FieldClass else
+    FieldClass := TVRMLFieldClass(FieldOrEvent.ClassType);
+
+  if FieldClass.InheritsFrom(TSFEnum) or
+     FieldClass.InheritsFrom(TSFLong) or
+     FieldClass.InheritsFrom(TMFLong) then
+    Result := TKamScriptInteger.Create else
+  if FieldClass.InheritsFrom(TSFFloat) or
+     FieldClass.InheritsFrom(TSFDouble) or
+     FieldClass.InheritsFrom(TMFFloat) or
+     FieldClass.InheritsFrom(TMFDouble) then
+    Result := TKamScriptFloat.Create else
+  if FieldClass.InheritsFrom(TSFBool) or
+     FieldClass.InheritsFrom(TMFBool) then
+    Result := TKamScriptBoolean.Create else
+  if FieldClass.InheritsFrom(TSFString) or
+     FieldClass.InheritsFrom(TMFString) then
+    Result := TKamScriptBoolean.Create else
+  begin
+    VRMLNonFatalError('Note that KambiScript is not yet suitable to process values of type ' + FieldClass.VrmlTypeName);
+    Result := TKamScriptFloat.Create;
+  end;
+
+  Result.Name := FieldOrEvent.Name;
 end;
 
-procedure TKamScriptVRMLValue.BeforeExecute;
+procedure VRMLKamScriptBeforeExecute(Value: TKamScriptValue;
+  FieldOrEvent: TVRMLFieldOrEvent);
 
   procedure AssignVRMLFieldValue(Field: TVRMLField);
   begin
-    if Field is TSFFloat then
-      Value := TSFFloat(Field).Value else
-    if Field is TSFDouble then
-      Value := TSFDouble(Field).Value else
-{TODO: use native bool
-    if Field is TSFBool then
-      AsBoolean := TSFBool(Field).Value else}
     if Field is TSFEnum then
-      Value := TSFEnum(Field).Value else
+      TKamScriptInteger(Value).Value := TSFEnum(Field).Value else
     if Field is TSFLong then
-      Value := TSFLong(Field).Value else
-
-    if (Field is TMFFloat) and
-       (TMFFloat(Field).Items.Count = 1) then
-      Value := TMFFloat(Field).Items.Items[0] else
-    if (Field is TMFDouble) and
-       (TMFDouble(Field).Items.Count = 1) then
-      Value := TMFDouble(Field).Items.Items[0] else
-{TODO: use native bool      
-    if (Field is TMFBool) and
-       (TMFBool(Field).Items.Count = 1) then
-      AsBoolean := TMFBool(Field).Items.Items[0] else}
+      TKamScriptInteger(Value).Value := TSFLong(Field).Value else
     if (Field is TMFLong) and
        (TMFLong(Field).Items.Count = 1) then
-      Value := TMFLong(Field).Items.Items[0] else
+      TKamScriptInteger(Value).Value := TMFLong(Field).Items.Items[0] else
 
-      { No sensible way to convert, just fall back to 0.0. }
-      Value := 0.0;
+    if Field is TSFFloat then
+      TKamScriptFloat(Value).Value := TSFFloat(Field).Value else
+    if Field is TSFDouble then
+      TKamScriptFloat(Value).Value := TSFDouble(Field).Value else
+    if (Field is TMFFloat) and
+       (TMFFloat(Field).Items.Count = 1) then
+      TKamScriptFloat(Value).Value := TMFFloat(Field).Items.Items[0] else
+    if (Field is TMFDouble) and
+       (TMFDouble(Field).Items.Count = 1) then
+      TKamScriptFloat(Value).Value := TMFDouble(Field).Items.Items[0] else
+
+    if Field is TSFBool then
+      TKamScriptBoolean(Value).Value := TSFBool(Field).Value else
+    if (Field is TMFBool) and
+       (TMFBool(Field).Items.Count = 1) then
+      TKamScriptBoolean(Value).Value := TMFBool(Field).Items.Items[0] else
+
+    if Field is TSFString then
+      TKamScriptString(Value).Value := TSFString(Field).Value else
+    if (Field is TMFString) and
+       (TMFString(Field).Items.Count = 1) then
+      TKamScriptString(Value).Value := TMFString(Field).Items.Items[0] else
+
+      { No sensible way to convert, just fall back to predictable 0.0. }
+      TKamScriptFloat(Value).Value := 0.0;
   end;
 
 begin
-  ValueAssigned := false;
+  Value.ValueAssigned := false;
 
   if FieldOrEvent is TVRMLField then
     AssignVRMLFieldValue(TVRMLField(FieldOrEvent));
 end;
 
-procedure TKamScriptVRMLValue.AfterExecute;
+procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
+  FieldOrEvent: TVRMLFieldOrEvent);
 
   function GetTimestamp(out Time: TKamTime): boolean;
   begin
@@ -158,7 +181,7 @@ var
   Field: TVRMLField;
   Timestamp: TKamTime;
 begin
-  if ValueAssigned then
+  if Value.ValueAssigned then
   begin
     { calculate Field, will be set based on our current Value }
 
@@ -188,38 +211,45 @@ begin
     { set Field value (and leave AbortSending as false),
       or leave Field value (and set AbortSending as true). }
 
-    if Field is TSFFloat then
-      TSFFloat(Field).Value := Value else
-    if Field is TSFDouble then
-      TSFDouble(Field).Value := Value else
-{TODO: use native bool      
-    if Field is TSFBool then
-      TSFBool(Field).Value := AsBoolean else}
     if Field is TSFEnum then
-      TSFEnum(Field).Value := Round(Value) else
+      TSFEnum(Field).Value := TKamScriptInteger(Value).Value else
     if Field is TSFLong then
-      TSFLong(Field).Value := Round(Value) else
+      TSFLong(Field).Value := TKamScriptInteger(Value).Value else
+    if Field is TMFLong then
+    begin
+      TMFLong(Field).Items.Count := 1;
+      TMFLong(Field).Items.Items[0] := TKamScriptInteger(Value).Value;
+    end else
 
+    if Field is TSFFloat then
+      TSFFloat(Field).Value := TKamScriptFloat(Value).Value else
+    if Field is TSFDouble then
+      TSFDouble(Field).Value := TKamScriptFloat(Value).Value else
     if Field is TMFFloat then
     begin
       TMFFloat(Field).Items.Count := 1;
-      TMFFloat(Field).Items.Items[0] := Value;
+      TMFFloat(Field).Items.Items[0] := TKamScriptFloat(Value).Value;
     end else
     if Field is TMFDouble then
     begin
       TMFDouble(Field).Items.Count := 1;
-      TMFDouble(Field).Items.Items[0] := Value;
+      TMFDouble(Field).Items.Items[0] := TKamScriptFloat(Value).Value;
     end else
-{TODO: use native bool    
+
+    if Field is TSFBool then
+      TSFBool(Field).Value := TKamScriptBoolean(Value).Value else
     if Field is TMFBool then
     begin
       TMFBool(Field).Items.Count := 1;
-      TMFBool(Field).Items.Items[0] := AsBoolean;
-    end else}
-    if Field is TMFLong then
+      TMFBool(Field).Items.Items[0] := TKamScriptBoolean(Value).Value;
+    end else
+
+    if Field is TSFString then
+      TSFString(Field).Value := TKamScriptString(Value).Value else
+    if Field is TMFString then
     begin
-      TMFLong(Field).Items.Count := 1;
-      TMFLong(Field).Items.Items[0] := Round(Value);
+      TMFString(Field).Items.Count := 1;
+      TMFString(Field).Items.Items[0] := TKamScriptString(Value).Value;
     end else
 
     begin
@@ -241,14 +271,32 @@ begin
         TVRMLField(FieldOrEvent).EventIn.Send(Field, Timestamp);
       FreeAndNil(Field);
     end;
+
+    { Theoretically, we should call now Scene.ChangedFields now
+      if FieldOrEvent was initializeOnly field (and not AbortSending).
+      But in this case, we know FieldOrEvent comes from a Script node,
+      and in this situation ChangedFields doesn't do anything anyway. }
   end;
 end;
 
 { TKamScriptVRMLValuesList -------------------------------------------------- }
 
-function TKamScriptVRMLValuesList.GetItems(I: Integer): TKamScriptVRMLValue;
+constructor TKamScriptVRMLValuesList.Create;
 begin
-  Result := (inherited Items[I]) as TKamScriptVRMLValue;
+  inherited Create;
+  FFieldOrEvents := TVRMLFieldOrEventsList.Create;
+end;
+
+destructor TKamScriptVRMLValuesList.Destroy;
+begin
+  SysUtils.FreeAndNil(FFieldOrEvents);
+  inherited;
+end;
+
+procedure TKamScriptVRMLValuesList.Add(FieldOrEvent: TVRMLFieldOrEvent);
+begin
+  inherited Add(VRMLKamScriptCreateValue(FieldOrEvent));
+  FieldOrEvents.Add(FieldOrEvent);
 end;
 
 procedure TKamScriptVRMLValuesList.BeforeExecute;
@@ -256,7 +304,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    Items[I].BeforeExecute;
+    VRMLKamScriptBeforeExecute(Items[I], FieldOrEvents[I]);
 end;
 
 procedure TKamScriptVRMLValuesList.AfterExecute;
@@ -264,7 +312,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    Items[I].AfterExecute;
+    VRMLKamScriptAfterExecute(Items[I], FieldOrEvents[I]);
 end;
 
 end.

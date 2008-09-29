@@ -244,6 +244,10 @@ type
       read FParentInterfaceDeclaration write FParentInterfaceDeclaration;
   end;
 
+  TObjectsListItem_5 = TVRMLFieldOrEvent;
+  {$I objectslist_5.inc}
+  TVRMLFieldOrEventsList = TObjectsList_5;
+
   { Base class for all VRML fields.
 
     Common notes for all descendants: most of them expose field or property
@@ -1904,6 +1908,7 @@ uses Math, VRMLErrors, VRMLNodes, VRMLScene;
 {$I objectslist_1.inc}
 {$I objectslist_2.inc}
 {$I objectslist_4.inc}
+{$I objectslist_5.inc}
 
 {$I vrmlevents.inc}
 
