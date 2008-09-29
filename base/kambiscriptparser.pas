@@ -206,13 +206,15 @@ const
             Lexer.NextToken;
             FParams := TKamScriptExpressionsList.Create;
             try
-              if Lexer.Token = tokLParen then
-              repeat
-                Lexer.NextToken; { pomin ostatni "," lub "(" }
-                FParams.Add(ExpressionInsideFactor);
-              until Lexer.Token <> tokComma;
-              Lexer.CheckTokenIs(tokRParen);
-              Lexer.NextToken;
+              try
+                if Lexer.Token = tokLParen then
+                repeat
+                  Lexer.NextToken; { pomin ostatni "," lub "(" }
+                  FParams.Add(ExpressionInsideFactor);
+                until Lexer.Token <> tokComma;
+                Lexer.CheckTokenIs(tokRParen);
+                Lexer.NextToken;
+              except FParams.FreeContentsByParentExpression; raise; end;
               Result := FC.Create(FParams);
             finally FParams.Free end;
           end;
