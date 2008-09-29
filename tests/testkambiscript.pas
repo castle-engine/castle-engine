@@ -317,6 +317,30 @@ begin
     Prog := ParseProgram('function main() my_string := string(0 <> 0)', Vars);
     Prog.ExecuteFunction('main', []);
     Assert((Vars[3] as TKamScriptString).Value = 'false');
+
+    { test if() }
+
+    Prog := ParseProgram(FileToString('test_script3.kscript'), Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[0] as TKamScriptInteger).Value = 12);
+    Assert((Vars[1] as TKamScriptFloat).Value = 0);
+    Assert((Vars[2] as TKamScriptBoolean).Value = true);
+
+    Prog.ExecuteFunction('main_alt', []);
+    Assert((Vars[0] as TKamScriptInteger).Value = 44);
+    Assert((Vars[1] as TKamScriptFloat).Value = 13);
+    Assert((Vars[2] as TKamScriptBoolean).Value = false);
+
+    { test while() }
+
+    Prog.ExecuteFunction('main_alt_while', []);
+    Assert((Vars[0] as TKamScriptInteger).Value = 13);
+    Assert((Vars[3] as TKamScriptString).Value = 'foo 1 2 3 4 5 6 7 8 9 10 11 12');
+
+    { test for() }
+
+    Prog.ExecuteFunction('main_alt_for', []);
+    Assert((Vars[3] as TKamScriptString).Value = 'xxxxxxxxxxxfooxxxxxxxxxxx');
   finally
     FreeWithContentsAndNil(Vars);
   end;
