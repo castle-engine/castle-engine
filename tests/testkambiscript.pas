@@ -132,8 +132,20 @@ end;
 
 procedure TTestKambiScript.TestVariousTypesPrograms;
 var
-  Vars: TKamScriptValuesList;
   Prog: TKamScriptProgram;
+
+  procedure ExecuteExpectError;
+  begin
+    try
+      Prog.ExecuteFunction('main', []);
+      Assert(false, 'should not get here');
+    except
+      on EKamScriptError do ;
+    end;
+  end;
+
+var
+  Vars: TKamScriptValuesList;
 begin
   Vars := TKamScriptValuesList.Create;
   try
@@ -163,6 +175,148 @@ begin
     Assert((Vars[1] as TKamScriptFloat).Value = Sqrt(3.14 + 2.0));
     Assert((Vars[2] as TKamScriptBoolean).Value = true);
     Assert((Vars[3] as TKamScriptString).Value = 'barfooxyz');
+
+    { should raise EKamScriptError }
+
+    Prog := ParseProgram('function main() my_int := 123.0', Vars);
+    ExecuteExpectError;
+
+    Prog := ParseProgram('function main() my_int := string(123.0)', Vars);
+    ExecuteExpectError;
+
+    { test int() }
+
+    Prog := ParseProgram('function main() my_int := int(3.14)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[0] as TKamScriptInteger).Value = 3);
+
+    Prog := ParseProgram('function main() my_int := int(-3.14)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[0] as TKamScriptInteger).Value = -3);
+
+    Prog := ParseProgram('function main() my_int := int(666)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[0] as TKamScriptInteger).Value = 666);
+
+    Prog := ParseProgram('function main() my_int := int(''44'')', Vars);
+    Prog.ExecuteFunction('main', []);
+
+    Assert((Vars[0] as TKamScriptInteger).Value = 44);
+    Prog := ParseProgram('function main() my_int := int(''blah'')', Vars);
+    ExecuteExpectError;
+
+    Prog := ParseProgram('function main() my_int := int(false)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[0] as TKamScriptInteger).Value = 0);
+
+    Prog := ParseProgram('function main() my_int := int(true)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[0] as TKamScriptInteger).Value = 1);
+
+    Prog := ParseProgram('function main() my_int := int(5 < 6)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[0] as TKamScriptInteger).Value = 1);
+
+    { test float() }
+
+    Prog := ParseProgram('function main() my_float := float(3.14)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[1] as TKamScriptFloat).Value = 3.14);
+
+    Prog := ParseProgram('function main() my_float := float(-3.14)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[1] as TKamScriptFloat).Value = -3.14);
+
+    Prog := ParseProgram('function main() my_float := float(666)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[1] as TKamScriptFloat).Value = 666);
+
+    Prog := ParseProgram('function main() my_float := 123', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[1] as TKamScriptFloat).Value = 123);
+
+    Prog := ParseProgram('function main() my_float := float(''44.456'')', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[1] as TKamScriptFloat).Value = 44.456);
+
+    Prog := ParseProgram('function main() my_float := float(false)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[1] as TKamScriptFloat).Value = 0);
+
+    Prog := ParseProgram('function main() my_float := float(true)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[1] as TKamScriptFloat).Value = 1);
+
+    Prog := ParseProgram('function main() my_float := float(0 <> 0)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[1] as TKamScriptFloat).Value = 0);
+
+    { test bool() }
+
+    Prog := ParseProgram('function main() my_bool := bool(3.14)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[2] as TKamScriptBoolean).Value = true);
+
+    Prog := ParseProgram('function main() my_bool := bool(0.0)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[2] as TKamScriptBoolean).Value = false);
+
+    Prog := ParseProgram('function main() my_bool := bool(0)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[2] as TKamScriptBoolean).Value = false);
+
+    Prog := ParseProgram('function main() my_bool := bool(''44.456'')', Vars);
+    ExecuteExpectError;
+
+    Prog := ParseProgram('function main() my_bool := bool(''faLSE'')', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[2] as TKamScriptBoolean).Value = false);
+
+    Prog := ParseProgram('function main() my_bool := bool(''true'')', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[2] as TKamScriptBoolean).Value = true);
+
+    Prog := ParseProgram('function main() my_bool := bool(false)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[2] as TKamScriptBoolean).Value = false);
+
+    Prog := ParseProgram('function main() my_bool := bool(true)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[2] as TKamScriptBoolean).Value = true);
+
+    Prog := ParseProgram('function main() my_bool := bool(0 <> 0)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[2] as TKamScriptBoolean).Value = false);
+
+    { test string() }
+
+    Prog := ParseProgram('function main() my_string := string(3.14)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[3] as TKamScriptString).Value = '3.14');
+
+    Prog := ParseProgram('function main() my_string := string(0.0)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[3] as TKamScriptString).Value = '0');
+
+    Prog := ParseProgram('function main() my_string := string(0)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[3] as TKamScriptString).Value = '0');
+
+    Prog := ParseProgram('function main() my_string := string(''44.456hoho'')', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[3] as TKamScriptString).Value = '44.456hoho');
+
+    Prog := ParseProgram('function main() my_string := string(true)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[3] as TKamScriptString).Value = 'true');
+
+    Prog := ParseProgram('function main() my_string := string(false)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[3] as TKamScriptString).Value = 'false');
+
+    Prog := ParseProgram('function main() my_string := string(0 <> 0)', Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert((Vars[3] as TKamScriptString).Value = 'false');
   finally
     FreeWithContentsAndNil(Vars);
   end;

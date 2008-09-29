@@ -198,6 +198,11 @@ type
     class procedure HandleEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleNotEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+    class procedure ConvertFromInt(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure ConvertFromFloat(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure ConvertFromBool(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure ConvertFromString(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
     FPromoteToFloat: TKamScriptFloat;
 
     FValue: Int64;
@@ -263,6 +268,11 @@ type
     class procedure HandleEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleNotEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+    class procedure ConvertFromInt(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure ConvertFromFloat(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure ConvertFromBool(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure ConvertFromString(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
     FValue: Float;
     procedure SetValue(const AValue: Float);
   public
@@ -291,6 +301,11 @@ type
     class procedure HandleEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleNotEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+    class procedure ConvertFromInt(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure ConvertFromFloat(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure ConvertFromBool(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure ConvertFromString(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
     FValue: boolean;
     procedure SetValue(const AValue: boolean);
   public
@@ -316,6 +331,11 @@ type
     class procedure HandleLesserEq(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleNotEqual(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    class procedure ConvertFromInt(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure ConvertFromFloat(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure ConvertFromBool(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure ConvertFromString(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
     FValue: string;
     procedure SetValue(const AValue: string);
@@ -760,7 +780,7 @@ begin
   if FPromoteToFloat = nil then
     FPromoteToFloat := TKamScriptFloat.Create;
   FPromoteToFloat.Value := Value;
-  Result := FPromoteToFloat; 
+  Result := FPromoteToFloat;
 end;
 
 class procedure TKamScriptInteger.HandleAdd(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -900,6 +920,51 @@ begin
   TKamScriptBoolean(AResult).Value :=
     TKamScriptInteger(Arguments[0]).Value <>
     TKamScriptInteger(Arguments[1]).Value;
+end;
+
+class procedure TKamScriptInteger.ConvertFromInt(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  if ParentOfResult then
+    AResult.FreeByParentExpression else
+    AResult := nil;
+
+  AResult := Arguments[0];
+  Assert(AResult is TKamScriptInteger);
+  ParentOfResult := false;
+end;
+
+class procedure TKamScriptInteger.ConvertFromFloat(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  F: Float;
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
+  { Can't use Int function, as it returns float value }
+
+  F := TKamScriptFloat(Arguments[0]).Value;
+  if F >= 0 then
+    TKamScriptInteger(AResult).Value := Floor(F) else
+    TKamScriptInteger(AResult).Value := Ceil(F);
+end;
+
+class procedure TKamScriptInteger.ConvertFromBool(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  BoolTo01: array [boolean] of Int64 = (0, 1);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
+  TKamScriptInteger(AResult).Value := BoolTo01[TKamScriptBoolean(Arguments[0]).Value];
+end;
+
+class procedure TKamScriptInteger.ConvertFromString(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
+  try
+    TKamScriptInteger(AResult).Value := StrToInt64(TKamScriptString(Arguments[0]).Value);
+  except
+    on E: EConvertError do
+      { Change EConvertError to EKamScriptError }
+      raise EKamScriptError.CreateFmt('Error when converting string "%s" to integer: %s',
+        [TKamScriptString(Arguments[0]).Value, E.Message]);
+  end;
 end;
 
 procedure TKamScriptInteger.AssignValue(Source: TKamScriptValue);
@@ -1186,6 +1251,44 @@ begin
     TKamScriptFloat(Arguments[1]).Value;
 end;
 
+class procedure TKamScriptFloat.ConvertFromInt(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
+  TKamScriptFloat(AResult).Value := TKamScriptInteger(Arguments[0]).Value;
+end;
+
+class procedure TKamScriptFloat.ConvertFromFloat(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  if ParentOfResult then
+    AResult.FreeByParentExpression else
+    AResult := nil;
+
+  AResult := Arguments[0];
+  Assert(AResult is TKamScriptFloat);
+  ParentOfResult := false;
+end;
+
+class procedure TKamScriptFloat.ConvertFromBool(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  BoolTo01: array [boolean] of Float = (0, 1);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
+  TKamScriptFloat(AResult).Value := BoolTo01[TKamScriptBoolean(Arguments[0]).Value];
+end;
+
+class procedure TKamScriptFloat.ConvertFromString(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
+  try
+    TKamScriptFloat(AResult).Value := StrToFloat(TKamScriptString(Arguments[0]).Value);
+  except
+    on E: EConvertError do
+      { Change EConvertError to EKamScriptError }
+      raise EKamScriptError.CreateFmt('Error when converting string "%s" to float: %s',
+        [TKamScriptString(Arguments[0]).Value, E.Message]);
+  end;
+end;
+
 procedure TKamScriptFloat.AssignValue(Source: TKamScriptValue);
 begin
   if Source is TKamScriptFloat then
@@ -1286,6 +1389,43 @@ begin
     TKamScriptBoolean(Arguments[1]).Value;
 end;
 
+class procedure TKamScriptBoolean.ConvertFromInt(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value := TKamScriptInteger(Arguments[0]).Value <> 0;
+end;
+
+class procedure TKamScriptBoolean.ConvertFromFloat(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  TKamScriptBoolean(AResult).Value := TKamScriptFloat(Arguments[0]).Value <> 0;
+end;
+
+class procedure TKamScriptBoolean.ConvertFromBool(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  if ParentOfResult then
+    AResult.FreeByParentExpression else
+    AResult := nil;
+
+  AResult := Arguments[0];
+  Assert(AResult is TKamScriptBoolean);
+  ParentOfResult := false;
+end;
+
+class procedure TKamScriptBoolean.ConvertFromString(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  S: string;
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
+  S := LowerCase(TKamScriptString(Arguments[0]).Value);
+  if S = 'false' then
+    TKamScriptBoolean(AResult).Value := false else
+  if S = 'true' then
+    TKamScriptBoolean(AResult).Value := true else
+    raise EKamScriptError.CreateFmt('Error when converting string "%s" to boolean: invalid value, must be "false" or "true"',
+      [TKamScriptString(Arguments[0]).Value]);
+end;
+
 procedure TKamScriptBoolean.AssignValue(Source: TKamScriptValue);
 begin
   if Source is TKamScriptBoolean then
@@ -1372,6 +1512,37 @@ begin
   TKamScriptBoolean(AResult).Value :=
     TKamScriptString(Arguments[0]).Value <>
     TKamScriptString(Arguments[1]).Value;
+end;
+
+class procedure TKamScriptString.ConvertFromInt(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptString);
+  TKamScriptString(AResult).Value := IntToStr(TKamScriptInteger(Arguments[0]).Value);
+end;
+
+class procedure TKamScriptString.ConvertFromFloat(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptString);
+  TKamScriptString(AResult).Value := FloatToStr(TKamScriptFloat(Arguments[0]).Value);
+end;
+
+class procedure TKamScriptString.ConvertFromBool(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  BoolTo01: array [boolean] of string = ('false', 'true');
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptString);
+  TKamScriptString(AResult).Value := BoolTo01[TKamScriptBoolean(Arguments[0]).Value];
+end;
+
+class procedure TKamScriptString.ConvertFromString(const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  if ParentOfResult then
+    AResult.FreeByParentExpression else
+    AResult := nil;
+
+  AResult := Arguments[0];
+  Assert(AResult is TKamScriptString);
+  ParentOfResult := false;
 end;
 
 procedure TKamScriptString.AssignValue(Source: TKamScriptValue);
@@ -1849,6 +2020,11 @@ initialization
   FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleEqual, TKamScriptEqual, [TKamScriptInteger, TKamScriptInteger], false);
   FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleNotEqual, TKamScriptNotEqual, [TKamScriptInteger, TKamScriptInteger], false);
 
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).ConvertFromInt   , TKamScriptInt, [TKamScriptInteger], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).ConvertFromFloat , TKamScriptInt, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).ConvertFromBool  , TKamScriptInt, [TKamScriptBoolean], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).ConvertFromString, TKamScriptInt, [TKamScriptString], false);
+
   { Register handlers for TKamScriptFloat for functions in
     KambiScriptMathFunctions. }
   FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleAdd, TKamScriptAdd, [TKamScriptFloat], true);
@@ -1888,6 +2064,11 @@ initialization
   FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleEqual, TKamScriptEqual, [TKamScriptFloat, TKamScriptFloat], false);
   FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleNotEqual, TKamScriptNotEqual, [TKamScriptFloat, TKamScriptFloat], false);
 
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).ConvertFromInt   , TKamScriptFloatFun, [TKamScriptInteger], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).ConvertFromFloat , TKamScriptFloatFun, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).ConvertFromBool  , TKamScriptFloatFun, [TKamScriptBoolean], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).ConvertFromString, TKamScriptFloatFun, [TKamScriptString], false);
+
   { Register handlers for TKamScriptBoolean for functions in
     KambiScriptMathFunctions. }
   FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleOr, TKamScriptOr, [TKamScriptBoolean, TKamScriptBoolean], false);
@@ -1901,6 +2082,11 @@ initialization
   FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleEqual, TKamScriptEqual, [TKamScriptBoolean, TKamScriptBoolean], false);
   FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleNotEqual, TKamScriptNotEqual, [TKamScriptBoolean, TKamScriptBoolean], false);
 
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).ConvertFromInt   , TKamScriptBool, [TKamScriptInteger], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).ConvertFromFloat , TKamScriptBool, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).ConvertFromBool  , TKamScriptBool, [TKamScriptBoolean], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).ConvertFromString, TKamScriptBool, [TKamScriptString], false);
+
   { Register handlers for TKamScriptString for functions in
     KambiScriptMathFunctions. }
   FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleAdd, TKamScriptAdd, [TKamScriptString, TKamScriptString], false);
@@ -1911,6 +2097,11 @@ initialization
   FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleLesserEq, TKamScriptLesserEq, [TKamScriptString, TKamScriptString], false);
   FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleEqual, TKamScriptEqual, [TKamScriptString, TKamScriptString], false);
   FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleNotEqual, TKamScriptNotEqual, [TKamScriptString, TKamScriptString], false);
+
+  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).ConvertFromInt   , TKamScriptStringFun, [TKamScriptInteger], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).ConvertFromFloat , TKamScriptStringFun, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).ConvertFromBool  , TKamScriptStringFun, [TKamScriptBoolean], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).ConvertFromString, TKamScriptStringFun, [TKamScriptString], false);
 finalization
   FreeAndNil(FunctionHandlers);
 end.

@@ -272,6 +272,30 @@ type
     class function ShortName: string; override;
   end;
 
+  TKamScriptInt = class(TKamScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
+  TKamScriptFloatFun = class(TKamScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
+  TKamScriptBool = class(TKamScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
+  TKamScriptStringFun = class(TKamScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
 implementation
 
 class function TKamScriptAdd.Name: string;
@@ -722,6 +746,46 @@ end;
 class function TKamScriptNot.ShortName: string;
 begin
   Result := 'Not';
+end;
+
+class function TKamScriptInt.Name: string;
+begin
+  Result := 'int';
+end;
+
+class function TKamScriptInt.ShortName: string;
+begin
+  Result := 'int';
+end;
+
+class function TKamScriptFloatFun.Name: string;
+begin
+  Result := 'float';
+end;
+
+class function TKamScriptFloatFun.ShortName: string;
+begin
+  Result := 'float';
+end;
+
+class function TKamScriptBool.Name: string;
+begin
+  Result := 'bool';
+end;
+
+class function TKamScriptBool.ShortName: string;
+begin
+  Result := 'bool';
+end;
+
+class function TKamScriptStringFun.Name: string;
+begin
+  Result := 'string';
+end;
+
+class function TKamScriptStringFun.ShortName: string;
+begin
+  Result := 'string';
 end;
 
 end.
