@@ -2241,7 +2241,17 @@ begin
 
   Func.Body.Execute;
 
-  { Just for safety, clear SourceValue references. }
+  { Just for safety, clear SourceValue references.
+
+    This is safe, since no code can access Parameters instances
+    (trying to get their value directly or by AssignValue) after
+    ExecuteFunction. Code from the outside can only access it's own
+    global variables after execution, which have values directly stored.
+
+    This *could* become a problem if we want to return function's value
+    in the future, then this will possibly have to be removed,
+    as Func.Body.Execute may directly return one of our Parameters. }
+
   for I := 0 to High(Parameters) do
     (Func.Parameters[I] as TKamScriptParameterValue).SourceValue := nil;
 end;
