@@ -103,131 +103,14 @@ type
 
 implementation
 
-uses KambiScriptCoreFunctions;
+uses KambiScriptCoreFunctions, KambiUtils;
 
-{ TKamScriptVec2f ---------------------------------------------------------- }
-
-class procedure TKamScriptVec2f.HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-var
-  I: Integer;
-begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptVec2f);
-  { The function allows only >= 1 arguments, and this handler is
-    registered only for TKamScriptVec2f values, so we can safely take
-    the first arg as TKamScriptVec2f. }
-  TKamScriptVec2f(AResult).Value := TKamScriptVec2f(Arguments[0]).Value;
-  for I := 1 to Length(Arguments) - 1 do
-    TKamScriptVec2f(AResult).Value := VectorAdd(
-      TKamScriptVec2f(AResult).Value, TKamScriptVec2f(Arguments[I]).Value);
-end;
-
-class procedure TKamScriptVec2f.HandleSubtract(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-var
-  I: Integer;
-begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptVec2f);
-  TKamScriptVec2f(AResult).Value := TKamScriptVec2f(Arguments[0]).Value;
-  for I := 1 to Length(Arguments) - 1 do
-    TKamScriptVec2f(AResult).Value := VectorSubtract(
-      TKamScriptVec2f(AResult).Value, TKamScriptVec2f(Arguments[I]).Value);
-end;
-
-class procedure TKamScriptVec2f.HandleNegate(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptVec2f);
-  TKamScriptVec2f(AResult).Value := VectorNegate(TKamScriptVec2f(Arguments[0]).Value);
-end;
-
-class procedure TKamScriptVec2f.HandleEqual(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
-  TKamScriptBoolean(AResult).Value :=
-    VectorsPerfectlyEqual(
-      TKamScriptVec2f(Arguments[0]).Value,
-      TKamScriptVec2f(Arguments[1]).Value);
-end;
-
-class procedure TKamScriptVec2f.HandleNotEqual(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
-  TKamScriptBoolean(AResult).Value :=
-    not VectorsPerfectlyEqual(
-      TKamScriptVec2f(Arguments[0]).Value,
-      TKamScriptVec2f(Arguments[1]).Value);
-end;
-
-class procedure TKamScriptVec2f.HandleVector(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptVec2f);
-  TKamScriptVec2f(AResult).FValue[0] := TKamScriptFloat(Arguments[0]).Value;
-  TKamScriptVec2f(AResult).FValue[1] := TKamScriptFloat(Arguments[1]).Value;
-  TKamScriptVec2f(AResult).ValueAssigned := true;
-end;
-
-class procedure TKamScriptVec2f.HandleVectorGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).Value :=
-    TKamScriptVec2f(Arguments[0]).Value[TKamScriptInteger(Arguments[1]).Value];
-end;
-
-class procedure TKamScriptVec2f.HandleVectorSet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-begin
-  if ParentOfResult then
-    AResult.FreeByParentExpression;
-  AResult := nil;
-  ParentOfResult := false;
-
-  TKamScriptVec2f(Arguments[0]).FValue[TKamScriptInteger(Arguments[1]).Value] :=
-    TKamScriptFloat(Arguments[2]).Value;
-  TKamScriptVec2f(Arguments[0]).ValueAssigned := true;
-
-  AResult := Arguments[0];
-end;
-
-class procedure TKamScriptVec2f.HandleVectorGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
-  TKamScriptInteger(AResult).Value := 2;
-end;
-
-class procedure TKamScriptVec2f.HandleVectorLength(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).Value :=
-    VectorLen(TKamScriptVec2f(Arguments[0]).Value);
-end;
-
-class procedure TKamScriptVec2f.HandleVectorSqrLength(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).Value :=
-    VectorLenSqr(TKamScriptVec2f(Arguments[0]).Value);
-end;
-
-class procedure TKamScriptVec2f.HandleVectorDot(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).Value :=
-    VectorDotProduct( TKamScriptVec2f(Arguments[0]).Value,
-                      TKamScriptVec2f(Arguments[1]).Value );
-end;
-
-procedure TKamScriptVec2f.AssignValue(Source: TKamScriptValue);
-begin
-  if Source is TKamScriptVec2f then
-    Value := TKamScriptVec2f(Source).Value else
-    raise EKamAssignValueError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
-end;
-
-procedure TKamScriptVec2f.SetValue(const AValue: TVector2Single);
-begin
-  FValue := AValue;
-  ValueAssigned := true;
-end;
+{$define VectorGetCount := 2}
+{$define TKamScriptVecXx := TKamScriptVec2f}
+{$define TVectorXxx := TVector2Single}
+{$I kambiscriptvectors_implement_vector.inc}
 
 {
-
 class procedure HandleVectorCross(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptVec3f);

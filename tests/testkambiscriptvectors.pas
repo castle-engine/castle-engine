@@ -40,8 +40,20 @@ uses VectorMath, KambiScript, KambiScriptLexer, KambiScriptParser,
 
 procedure TTestKambiScriptVectors.Test1;
 var
-  Vars: TKamScriptValuesList;
   Prog: TKamScriptProgram;
+
+  procedure ExecuteExpectError;
+  begin
+    try
+      Prog.ExecuteFunction('main', []);
+      Assert(false, 'should not get here');
+    except
+      on EKamScriptError do ;
+    end;
+  end;
+
+var
+  Vars: TKamScriptValuesList;
 begin
   Vars := TKamScriptValuesList.Create;
   try
@@ -64,6 +76,18 @@ begin
     Assert(VectorsEqual(
       (Vars[2] as TKamScriptVec2f).Value,
       Vector2Single(456 + 44, VectorLen(Vector2Single(456 + 44, 10 + 13)))));
+
+    Prog := ParseProgram('function main() vector_get(my_vec2f, -1)', Vars);
+    ExecuteExpectError;
+
+    Prog := ParseProgram('function main() vector_get(my_vec2f, 100)', Vars);
+    ExecuteExpectError;
+
+    Prog := ParseProgram('function main() vector_set(my_vec2f, -1, 123)', Vars);
+    ExecuteExpectError;
+
+    Prog := ParseProgram('function main() vector_set(my_vec2f, 100, 123)', Vars);
+    ExecuteExpectError;
   finally
     FreeWithContentsAndNil(Vars);
   end;
