@@ -7346,7 +7346,7 @@ end;
 
 procedure TVRMLRoute.ResetLastEventTime;
 begin
-  LastEventTime := -MaxDouble;
+  LastEventTime := OldestTime;
 end;
 
 type

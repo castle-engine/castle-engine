@@ -69,6 +69,9 @@ type
   }
   TKamTime = Double;
 
+const
+  OldestTime = -MaxDouble;
+
 procedure Delay(MiliSec: Word); {nie robiac Process messages}
 
 type
