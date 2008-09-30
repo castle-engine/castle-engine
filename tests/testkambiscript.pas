@@ -40,7 +40,7 @@ type
 implementation
 
 uses VectorMath, KambiScript, KambiScriptLexer, KambiScriptParser,
-  KambiStringUtils, KambiScriptMathFunctions, KambiClassUtils;
+  KambiStringUtils, KambiScriptCoreFunctions, KambiClassUtils;
 
 procedure TTestKambiScript.Test1;
 

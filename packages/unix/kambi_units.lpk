@@ -319,8 +319,8 @@
         <UnitName Value="KambiScriptLexer"/>
       </Item67>
       <Item68>
-        <Filename Value="../../base/kambiscriptmathfunctions.pas"/>
-        <UnitName Value="KambiScriptMathFunctions"/>
+        <Filename Value="../../base/kambiscriptcorefunctions.pas"/>
+        <UnitName Value="KambiScriptCoreFunctions"/>
       </Item68>
       <Item69>
         <Filename Value="../../base/kambiscriptparser.pas"/>

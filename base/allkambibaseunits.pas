@@ -22,7 +22,7 @@ uses
   kambilog,
   kambiscript,
   kambiscriptlexer,
-  kambiscriptmathfunctions,
+  kambiscriptcorefunctions,
   kambiscriptparser,
   kambistringutils,
   kambitimeutils,

@@ -30,7 +30,7 @@ program interpolated_curves;
 
 uses GL, GLU, GLWindow, GLW_Navigated, KambiGLUtils, SysUtils, VectorMath,
   Curve, MatrixNavigation, Boxes3d, KambiScript, GLWinMessages,
-  KambiUtils, KambiScriptParser, KambiScriptMathFunctions,
+  KambiUtils, KambiScriptParser, KambiScriptCoreFunctions,
   BFNT_BitstreamVeraSansMono_m14_Unit,
   OpenGLBmpFonts, Classes, KambiStringUtils;
 

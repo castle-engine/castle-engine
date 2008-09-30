@@ -93,7 +93,7 @@ function ParseProgram(const S: string;
 
 implementation
 
-uses SysUtils, KambiScriptMathFunctions;
+uses SysUtils, KambiScriptCoreFunctions;
 
 function Expression(
   const Lexer: TKamScriptLexer;

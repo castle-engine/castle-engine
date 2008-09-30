@@ -766,7 +766,7 @@ procedure CreateValueIfNeeded(var Value: TKamScriptValue;
 
 implementation
 
-uses KambiScriptMathFunctions;
+uses KambiScriptCoreFunctions;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -2297,7 +2297,7 @@ initialization
   FunctionHandlers.RegisterHandler(@TKamScriptFor(nil).HandleFor, TKamScriptFor, [TKamScriptInteger, TKamScriptInteger, TKamScriptInteger, TKamScriptValue], false);
 
   { Register handlers for TKamScriptInteger for functions in
-    KambiScriptMathFunctions. }
+    KambiScriptCoreFunctions. }
   FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleAdd, TKamScriptAdd, [TKamScriptInteger], true);
   FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleSubtract, TKamScriptSubtract, [TKamScriptInteger], true);
   FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleNegate, TKamScriptNegate, [TKamScriptInteger], false);
@@ -2324,7 +2324,7 @@ initialization
   FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).ConvertFromString, TKamScriptInt, [TKamScriptString], false);
 
   { Register handlers for TKamScriptFloat for functions in
-    KambiScriptMathFunctions. }
+    KambiScriptCoreFunctions. }
   FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleAdd, TKamScriptAdd, [TKamScriptFloat], true);
   FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleSubtract, TKamScriptSubtract, [TKamScriptFloat], true);
   FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleMultiply, TKamScriptMultiply, [TKamScriptFloat], true);
@@ -2368,7 +2368,7 @@ initialization
   FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).ConvertFromString, TKamScriptFloatFun, [TKamScriptString], false);
 
   { Register handlers for TKamScriptBoolean for functions in
-    KambiScriptMathFunctions. }
+    KambiScriptCoreFunctions. }
   FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleOr, TKamScriptOr, [TKamScriptBoolean, TKamScriptBoolean], false);
   FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleAnd, TKamScriptAnd, [TKamScriptBoolean, TKamScriptBoolean], false);
   FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleNot, TKamScriptNot, [TKamScriptBoolean], false);
@@ -2386,7 +2386,7 @@ initialization
   FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).ConvertFromString, TKamScriptBool, [TKamScriptString], false);
 
   { Register handlers for TKamScriptString for functions in
-    KambiScriptMathFunctions. }
+    KambiScriptCoreFunctions. }
   FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleAdd, TKamScriptAdd, [TKamScriptString, TKamScriptString], false);
 
   FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleGreater, TKamScriptGreater, [TKamScriptString, TKamScriptString], false);
