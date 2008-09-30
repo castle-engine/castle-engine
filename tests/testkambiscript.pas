@@ -350,6 +350,10 @@ begin
     except
       on EKamScriptError do ;
     end;
+
+    { test "if" with missing else is catched correctly }
+    Prog := ParseProgram('function main() if(true, 123)', []);
+    ExecuteExpectError;
   finally
     FreeWithContentsAndNil(Vars);
   end;
