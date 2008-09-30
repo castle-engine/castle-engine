@@ -280,6 +280,7 @@ begin
 
     Prog := ParseProgram('function main() my_bool := bool(0.0)', Vars);
     Prog.ExecuteFunction('main', []);
+    FreeAndNil(Prog);
     Assert((Vars[2] as TKamScriptBoolean).Value = false);
 
     Prog := ParseProgram('function main() my_bool := bool(0)', Vars);

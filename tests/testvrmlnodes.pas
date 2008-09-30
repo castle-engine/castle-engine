@@ -307,34 +307,36 @@ begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
     N := NodesManager.Registered[I].Create('', '');
+    try
 
-    { Writeln(N.NodeTypeName, ' ', Supports(N, INodeX3DChildNode)); }
+      { Writeln(N.NodeTypeName, ' ', Supports(N, INodeX3DChildNode)); }
 
-    { Test that all fields, events names are different.
+      { Test that all fields, events names are different.
 
-      Doesn't detect if two alternative names match each other for now!
-      (Although will detect if some alternative name will match non-alternative
-      name, since uses IsName comparison).
+        Doesn't detect if two alternative names match each other for now!
+        (Although will detect if some alternative name will match non-alternative
+        name, since uses IsName comparison).
 
-      Also, doesn't check the implicitly exposed events for now. }
+        Also, doesn't check the implicitly exposed events for now. }
 
-    for J := 0 to N.Fields.Count - 1 do
-    begin
-      CurrentName := N.Fields[J].Name;
-      for K := 0 to N.Fields.Count - 1 do
-        Assert((K = J) or (not N.Fields[K].IsName(CurrentName)));
-      for K := 0 to N.Events.Count - 1 do
-        Assert(not N.Events[K].IsName(CurrentName));
-    end;
+      for J := 0 to N.Fields.Count - 1 do
+      begin
+        CurrentName := N.Fields[J].Name;
+        for K := 0 to N.Fields.Count - 1 do
+          Assert((K = J) or (not N.Fields[K].IsName(CurrentName)));
+        for K := 0 to N.Events.Count - 1 do
+          Assert(not N.Events[K].IsName(CurrentName));
+      end;
 
-    for J := 0 to N.Events.Count - 1 do
-    begin
-      CurrentName := N.Events[J].Name;
-      for K := 0 to N.Fields.Count - 1 do
-        Assert(not N.Fields[K].IsName(CurrentName));
-      for K := 0 to N.Events.Count - 1 do
-        Assert((K = J) or (not N.Events[K].IsName(CurrentName)));
-    end;
+      for J := 0 to N.Events.Count - 1 do
+      begin
+        CurrentName := N.Events[J].Name;
+        for K := 0 to N.Fields.Count - 1 do
+          Assert(not N.Fields[K].IsName(CurrentName));
+        for K := 0 to N.Events.Count - 1 do
+          Assert((K = J) or (not N.Events[K].IsName(CurrentName)));
+      end;
+    finally FreeAndNil(N) end;
   end;
 end;
 
