@@ -68,6 +68,7 @@ begin
     Prog := ParseProgram(FileToString('test_script_vectors.kscript'), Vars);
     { return any dummy value }
     Prog.ExecuteFunction('main', []);
+    FreeAndNil(Prog);
 
     Assert((Vars[0] as TKamScriptInteger).Value = 0);
     Assert((Vars[1] as TKamScriptFloat).Value =
@@ -79,15 +80,19 @@ begin
 
     Prog := ParseProgram('function main() vector_get(my_vec2f, -1)', Vars);
     ExecuteExpectError;
+    FreeAndNil(Prog);
 
     Prog := ParseProgram('function main() vector_get(my_vec2f, 100)', Vars);
     ExecuteExpectError;
+    FreeAndNil(Prog);
 
     Prog := ParseProgram('function main() vector_set(my_vec2f, -1, 123)', Vars);
     ExecuteExpectError;
+    FreeAndNil(Prog);
 
     Prog := ParseProgram('function main() vector_set(my_vec2f, 100, 123)', Vars);
     ExecuteExpectError;
+    FreeAndNil(Prog);
   finally
     FreeWithContentsAndNil(Vars);
   end;
