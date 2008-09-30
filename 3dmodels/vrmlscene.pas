@@ -464,7 +464,7 @@ type
     procedure InternalSetWorldTime(
       const NewValue, TimeIncrease: TKamTime);
 
-    procedure ResetRoutesLastEventTime(Node: TVRMLNode);
+    procedure ResetLastEventTime(Node: TVRMLNode);
 
     { Bindable nodes helpers }
     FBackgroundStack: TVRMLBindableStack;
@@ -3136,18 +3136,20 @@ begin
     InternalSetWorldTime(FWorldTime + TimeIncrease, TimeIncrease);
 end;
 
-procedure TVRMLScene.ResetRoutesLastEventTime(Node: TVRMLNode);
+procedure TVRMLScene.ResetLastEventTime(Node: TVRMLNode);
 var
   I: Integer;
 begin
   for I := 0 to Node.Routes.Count - 1 do
     Node.Routes[I].ResetLastEventTime;
+  if Node is TNodeX3DScriptNode then
+    TNodeX3DScriptNode(Node).ResetLastEventTimes;
 end;
 
 procedure TVRMLScene.ResetWorldTime(const NewValue: TKamTime);
 begin
   if RootNode <> nil then
-    RootNode.EnumerateNodes(@ResetRoutesLastEventTime, false);
+    RootNode.EnumerateNodes(@ResetLastEventTime, false);
   InternalSetWorldTime(NewValue, 0);
 end;
 

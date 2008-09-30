@@ -62,6 +62,12 @@
       practice. }
     property Initialized: boolean read FInitialized write SetInitialized
       default false;
+
+    { Clear the memory when the last events were generated from this script.
+
+      @seealso TVRMLRoute.ResetLastEventTime
+        TKamScriptVRMLValuesList.ResetLastEventTimes }
+    procedure ResetLastEventTimes;
   end;
 
   TNodeScript = class(TNodeX3DScriptNode)
@@ -356,6 +362,12 @@ begin
       FInitialized := Value;
     end;
   end;
+end;
+
+procedure TNodeX3DScriptNode.ResetLastEventTimes;
+begin
+  if Initialized and (FInitializedScriptType = stKambiScript) then
+    KambiScriptVariables.ResetLastEventTimes;
 end;
 
 constructor TNodeScript.Create(const ANodeName: string;

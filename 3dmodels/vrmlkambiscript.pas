@@ -23,7 +23,7 @@ unit VRMLKambiScript;
 
 interface
 
-uses VRMLFields, KambiScript, KambiUtils, KambiClassUtils;
+uses VRMLFields, KambiScript, KambiUtils, KambiClassUtils, KambiTimeUtils;
 
 {$define read_interface}
 
@@ -31,6 +31,7 @@ type
   TKamScriptVRMLValuesList = class(TKamScriptValuesList)
   private
     FFieldOrEvents: TVRMLFieldOrEventsList;
+    FLastEventTimes: TDynDoubleArray;
   public
     constructor Create;
     destructor Destroy; override;
@@ -48,6 +49,36 @@ type
 
     procedure BeforeExecute;
     procedure AfterExecute;
+
+    { Clear the memory when the last events were generated from this script.
+      For each script output-capable field (inputOutput or outputOnly)
+      on this list, we keep track of when it last generated an event.
+
+      This is needed to avoid loops.
+
+      @italic(Some background info why this is needed:)
+
+      X3D spec says (4.4.8.3 Execution model):
+      Nodes that contain output events shall produce at most
+      one event per field per timestamp. [...] This also applies to scripts.
+
+      "[...]" above talks about ROUTE breaking rule, we handle this
+      generally in TVRMLRoute. The trouble with script is that it can
+      make loops even without the help of ROUTEs: script receives it's inputs,
+      and sends it's outputs, so when you send an output that causes your own
+      input you made a loop... The most trivial example of this
+      is when on receiving inputOutput you will set the very same inputOutput
+      field, thus making a loop.
+
+      Scripts with directOutput (although not implemented yet) can
+      cause even more trouble, as you can generate input event on another node
+      that will get back to you. If two scripts generate events on each
+      other, this can again make a loop, without the help of ROUTEs.
+
+      So we have to secure against this. This is done pretty much like
+      with ROUTEs: we just remember the last timestamp, and ignore sending
+      events again. }
+    procedure ResetLastEventTimes;
   end;
 
 function VRMLKamScriptCreateValue(FieldOrEvent: TVRMLFieldOrEvent): TKamScriptValue;
@@ -62,13 +93,13 @@ procedure VRMLKamScriptBeforeExecute(Value: TKamScriptValue;
   This checks ValueAssigned, and propagates value change to appropriate
   field/event, sending event/setting field. }
 procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
-  FieldOrEvent: TVRMLFieldOrEvent);
+  FieldOrEvent: TVRMLFieldOrEvent; var LastEventTime: TKamTime);
 
 {$undef read_interface}
 
 implementation
 
-uses SysUtils, KambiTimeUtils, VRMLNodes, VRMLScene, VRMLErrors;
+uses SysUtils, VRMLNodes, VRMLScene, VRMLErrors, KambiLog;
 
 {$define read_implementation}
 
@@ -168,7 +199,7 @@ begin
 end;
 
 procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
-  FieldOrEvent: TVRMLFieldOrEvent);
+  FieldOrEvent: TVRMLFieldOrEvent; var LastEventTime: TKamTime);
 
   function GetTimestamp(out Time: TKamTime): boolean;
   begin
@@ -207,7 +238,8 @@ procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
 var
   AbortSending: boolean;
   Field: TVRMLField;
-  Timestamp: TKamTime;
+  Time: TKamTime;
+  SendToEvent: TVRMLEvent;
 begin
   if Value.ValueAssigned then
   begin
@@ -215,13 +247,16 @@ begin
 
     if FieldOrEvent is TVRMLEvent then
     begin
-      Field := CreateTempField(TVRMLEvent(FieldOrEvent));
+      SendToEvent := TVRMLEvent(FieldOrEvent);
+      Field := CreateTempField(SendToEvent);
     end else
     if (FieldOrEvent as TVRMLField).Exposed then
     begin
-      Field := CreateTempField(TVRMLField(FieldOrEvent).EventIn);
+      SendToEvent := TVRMLField(FieldOrEvent).EventIn;
+      Field := CreateTempField(SendToEvent);
     end else
     begin
+      SendToEvent := nil;
       Assert(FieldOrEvent is TVRMLField);
       Assert(not TVRMLField(FieldOrEvent).Exposed);
       { For initializeOnly fields, we will set them directly. }
@@ -279,18 +314,23 @@ begin
       AbortSending := true;
     end;
 
-    { send and free Field, for output events or exposed fields }
+    { send and free Field, for output events or exposed fields. }
 
-    if FieldOrEvent is TVRMLEvent then
+    if SendToEvent <> nil then
     begin
-      if (not AbortSending) and GetTimestamp(Timestamp) then
-        TVRMLEvent(FieldOrEvent).Send(Field, Timestamp);
-      FreeAndNil(Field);
-    end else
-    if (FieldOrEvent as TVRMLField).Exposed then
-    begin
-      if (not AbortSending) and GetTimestamp(Timestamp) then
-        TVRMLField(FieldOrEvent).EventIn.Send(Field, Timestamp);
+      if (not AbortSending) and
+        GetTimestamp(Time) then
+      begin
+        if Time > LastEventTime then
+        begin
+          LastEventTime := Time;
+          SendToEvent.Send(Field, Time);
+        end else
+        if Log then
+          WritelnLog('VRML Script', Format(
+            'Sending event %s from Script ignored at <= timestamp (%f, while last event was on %f). Potential loop avoided',
+            [ SendToEvent.Name, Time, LastEventTime ]));
+      end;
       FreeAndNil(Field);
     end;
 
@@ -307,11 +347,13 @@ constructor TKamScriptVRMLValuesList.Create;
 begin
   inherited Create;
   FFieldOrEvents := TVRMLFieldOrEventsList.Create;
+  FLastEventTimes := TDynDoubleArray.Create;
 end;
 
 destructor TKamScriptVRMLValuesList.Destroy;
 begin
   SysUtils.FreeAndNil(FFieldOrEvents);
+  SysUtils.FreeAndNil(FLastEventTimes);
   inherited;
 end;
 
@@ -319,6 +361,7 @@ procedure TKamScriptVRMLValuesList.Add(FieldOrEvent: TVRMLFieldOrEvent);
 begin
   inherited Add(VRMLKamScriptCreateValue(FieldOrEvent));
   FieldOrEvents.Add(FieldOrEvent);
+  FLastEventTimes.AppendItem(OldestTime);
 end;
 
 procedure TKamScriptVRMLValuesList.BeforeExecute;
@@ -334,7 +377,15 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    VRMLKamScriptAfterExecute(Items[I], FieldOrEvents[I]);
+    VRMLKamScriptAfterExecute(Items[I], FieldOrEvents[I], FLastEventTimes.Items[I]);
+end;
+
+procedure TKamScriptVRMLValuesList.ResetLastEventTimes;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    FLastEventTimes.Items[I] := OldestTime;
 end;
 
 end.
