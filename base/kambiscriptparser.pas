@@ -176,19 +176,19 @@ const
       case Lexer.Token of
         tokIdentifier: Result := Operand;
         tokInteger: begin
-            Result := TKamScriptInteger.Create(Lexer.TokenInteger);
+            Result := TKamScriptInteger.Create(false, Lexer.TokenInteger);
             Lexer.NextToken;
           end;
         tokFloat: begin
-            Result := TKamScriptFloat.Create(Lexer.TokenFloat);
+            Result := TKamScriptFloat.Create(false, Lexer.TokenFloat);
             Lexer.NextToken;
           end;
         tokBoolean: begin
-            Result := TKamScriptBoolean.Create(Lexer.TokenBoolean);
+            Result := TKamScriptBoolean.Create(false, Lexer.TokenBoolean);
             Lexer.NextToken;
           end;
         tokString: begin
-            Result := TKamScriptString.Create(Lexer.TokenString);
+            Result := TKamScriptString.Create(false, Lexer.TokenString);
             Lexer.NextToken;
           end;
         tokMinus: begin
@@ -388,7 +388,7 @@ function AProgram(
         begin
           repeat
             Lexer.CheckTokenIs(tokIdentifier);
-            Parameter := TKamScriptParameterValue.Create;
+            Parameter := TKamScriptParameterValue.Create(true);
             Parameter.Name := Lexer.TokenString;
             Parameter.OwnedByParentExpression := false;
             Result.Parameters.Add(Parameter);

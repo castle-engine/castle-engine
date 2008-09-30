@@ -69,19 +69,19 @@ var
   MyVariable: TKamScriptFloat;
 begin
   Expr := TKamScriptAdd.Create([
-      TKamScriptSin.Create([TKamScriptFloat.Create(3)]),
-      TKamScriptFloat.Create(10),
-      TKamScriptFloat.Create(1)
+      TKamScriptSin.Create([TKamScriptFloat.Create(false, 3)]),
+      TKamScriptFloat.Create(false, 10),
+      TKamScriptFloat.Create(false, 1)
     ]);
   try
     Assert((Expr.Execute as TKamScriptFloat).Value = sin(3) + 10 + 1);
   finally FreeAndNil(Expr) end;
 
-  MyVariable := TKamScriptFloat.Create(3);
+  MyVariable := TKamScriptFloat.Create(false, 3);
   Expr := TKamScriptAdd.Create([
       TKamScriptSin.Create([MyVariable]),
-      TKamScriptFloat.Create(10),
-      TKamScriptFloat.Create(1)
+      TKamScriptFloat.Create(false, 10),
+      TKamScriptFloat.Create(false, 1)
     ]);
   try
     Assert((Expr.Execute as TKamScriptFloat).Value = sin(3) + 10 + 1);
@@ -111,7 +111,7 @@ var
 begin
   for I := 0 to High(Vars) do
   begin
-    Vars[I] := TKamScriptFloat.Create;
+    Vars[I] := TKamScriptFloat.Create(true);
     Vars[I].Value := I;
     Vars[I].Name := 'x' + IntToStr(I);
   end;
@@ -149,10 +149,10 @@ var
 begin
   Vars := TKamScriptValuesList.Create;
   try
-    Vars.Add(TKamScriptInteger.Create(23));
-    Vars.Add(TKamScriptFloat.Create(3.14));
-    Vars.Add(TKamScriptBoolean.Create(false));
-    Vars.Add(TKamScriptString.Create('foo'));
+    Vars.Add(TKamScriptInteger.Create(true, 23));
+    Vars.Add(TKamScriptFloat.Create(true, 3.14));
+    Vars.Add(TKamScriptBoolean.Create(true, false));
+    Vars.Add(TKamScriptString.Create(true, 'foo'));
 
     Vars[0].Name := 'my_int';
     Vars[1].Name := 'my_float';
@@ -341,6 +341,15 @@ begin
 
     Prog.ExecuteFunction('main_alt_for', []);
     Assert((Vars[3] as TKamScriptString).Value = 'xxxxxxxxxxxfooxxxxxxxxxxx');
+
+    { test not Writeable }
+    Vars[0].Writeable := false;
+    try
+      Prog := ParseProgram('function main() my_int := 123', Vars);
+      Assert(false, 'should not get here');
+    except
+      on EKamScriptError do ;
+    end;
   finally
     FreeWithContentsAndNil(Vars);
   end;

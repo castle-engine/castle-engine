@@ -181,7 +181,7 @@ begin
             VRMLKamScriptBeforeExecute(ParameterValue, ReceivedValue);
           end else
             ParameterValue := nil;
-          ParameterTime := TKamScriptFloat.Create(
+          ParameterTime := TKamScriptFloat.Create(true,
             TVRMLScene(ParentEventsProcessor).WorldTime);
           try
             KambiScriptVariables.BeforeExecute;

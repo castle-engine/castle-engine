@@ -116,21 +116,21 @@ begin
   if FieldClass.InheritsFrom(TSFEnum) or
      FieldClass.InheritsFrom(TSFLong) or
      FieldClass.InheritsFrom(TMFLong) then
-    Result := TKamScriptInteger.Create else
+    Result := TKamScriptInteger.Create(true) else
   if FieldClass.InheritsFrom(TSFFloat) or
      FieldClass.InheritsFrom(TSFDouble) or
      FieldClass.InheritsFrom(TMFFloat) or
      FieldClass.InheritsFrom(TMFDouble) then
-    Result := TKamScriptFloat.Create else
+    Result := TKamScriptFloat.Create(true) else
   if FieldClass.InheritsFrom(TSFBool) or
      FieldClass.InheritsFrom(TMFBool) then
-    Result := TKamScriptBoolean.Create else
+    Result := TKamScriptBoolean.Create(true) else
   if FieldClass.InheritsFrom(TSFString) or
      FieldClass.InheritsFrom(TMFString) then
-    Result := TKamScriptBoolean.Create else
+    Result := TKamScriptBoolean.Create(true) else
   begin
     VRMLNonFatalError('Note that KambiScript is not yet suitable to process values of type ' + FieldClass.VrmlTypeName);
-    Result := TKamScriptFloat.Create;
+    Result := TKamScriptFloat.Create(true);
   end;
 
   Result.Name := FieldOrEvent.Name;

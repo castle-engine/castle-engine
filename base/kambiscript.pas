@@ -30,9 +30,9 @@
 
 @longcode(#
   Expr := TKamScriptAdd.Create([
-      TKamScriptSin.Create([TKamScriptFloat.Create(3)]),
-      TKamScriptFloat.Create(10),
-      TKamScriptFloat.Create(1)
+      TKamScriptSin.Create([TKamScriptFloat.Create(false, 3)]),
+      TKamScriptFloat.Create(false, 10),
+      TKamScriptFloat.Create(false, 1)
     ]);
 #)
 
@@ -43,11 +43,11 @@
   @code(Expr.Execute) calls. For example
 
 @longcode(#
-  MyVariable := TKamScriptFloat.Create(3);
+  MyVariable := TKamScriptFloat.Create(false, 3);
   Expr := TKamScriptAdd.Create([
       TKamScriptSin.Create([MyVariable]),
-      TKamScriptFloat.Create(10),
-      TKamScriptFloat.Create(1)
+      TKamScriptFloat.Create(false, 10),
+      TKamScriptFloat.Create(false, 1)
     ]);
 
   Writeln((Expr.Execute as TKamStringFloat).Value); // calculate "sin(3) + 10 + 1"
@@ -137,9 +137,17 @@ type
     FOwnedByParentExpression: boolean;
     FName: string;
     FValueAssigned: boolean;
+    FWriteable: boolean;
   public
-    constructor Create; virtual;
+    constructor Create(const AWriteable: boolean); virtual;
     function Execute: TKamScriptValue; override;
+
+    { Is this value writeable.
+      If not, this will not be allowed to change by KambiScript assignment
+      and such functions. Note that Writeable = @false will not prevent
+      you from changing value internally, by AssignValue or changin
+      Value property directly (that would be too uncomfortable). }
+    property Writeable: boolean read FWriteable write FWriteable;
 
     property OwnedByParentExpression: boolean
       read FOwnedByParentExpression write FOwnedByParentExpression
@@ -235,10 +243,10 @@ type
     procedure SetValue(const AValue: Int64);
   public
     { Comfortable constructor to set initial Value.
-      Note that the inherited constructor without parameters is
-      also fine to use, it will set value to zero. }
-    constructor Create(AValue: Int64);
-    constructor Create; override;
+      Note that the inherited constructor (without AValue parameter)
+      is also fine to use, it will set value to zero. }
+    constructor Create(const AWriteable: boolean; const AValue: Int64);
+    constructor Create(const AWriteable: boolean); override;
     destructor Destroy; override;
 
     property Value: Int64 read FValue write SetValue;
@@ -303,11 +311,10 @@ type
     procedure SetValue(const AValue: Float);
   public
     { Comfortable constructor to set initial Value.
-      Note that the inherited constructor without parameters is
-      also fine to use, it will set value to zero. }
-    constructor Create(AValue: Float);
-
-    constructor Create; override;
+      Note that the inherited constructor (without AValue parameter)
+      is also fine to use, it will set value to zero. }
+    constructor Create(const AWriteable: boolean; const AValue: Float);
+    constructor Create(const AWriteable: boolean); override;
 
     property Value: Float read FValue write SetValue;
 
@@ -336,11 +343,10 @@ type
     procedure SetValue(const AValue: boolean);
   public
     { Comfortable constructor to set initial Value.
-      Note that the inherited constructor without parameters is
-      also fine to use, it will set value to zero. }
-    constructor Create(AValue: boolean);
-
-    constructor Create; override;
+      Note that the inherited constructor (without AValue parameter)
+      is also fine to use, it will set value to false. }
+    constructor Create(const AWriteable: boolean; const AValue: boolean);
+    constructor Create(const AWriteable: boolean); override;
 
     property Value: boolean read FValue write SetValue;
 
@@ -367,11 +373,10 @@ type
     procedure SetValue(const AValue: string);
   public
     { Comfortable constructor to set initial Value.
-      Note that the inherited constructor without parameters is
-      also fine to use, it will set value to zero. }
-    constructor Create(AValue: string);
-
-    constructor Create; override;
+      Note that the inherited constructor (without AValue parameter)
+      is also fine to use, it will set value to ''. }
+    constructor Create(const AWriteable: boolean; const AValue: string);
+    constructor Create(const AWriteable: boolean); override;
 
     property Value: string read FValue write SetValue;
 
@@ -522,10 +527,7 @@ type
   end;
 
   { KambiScript assignment operator. This is a special function,
-    that must have settable TKamScriptValue as it's 1st argument.
-
-    For now, we check TKamScriptValue.Name <> '', this determines if
-    this is settable (in the future, more explicit check may be done). }
+    that must have TKamScriptValue (with Writeable = true) as it's 1st argument. }
   TKamScriptAssignment = class(TKamScriptFunction)
   private
     class procedure HandleAssignment(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -836,10 +838,11 @@ end;
 
 { TKamScriptValue ------------------------------------------------------------ }
 
-constructor TKamScriptValue.Create;
+constructor TKamScriptValue.Create(const AWriteable: boolean);
 begin
-  inherited;
+  inherited Create;
   FOwnedByParentExpression := true;
+  FWriteable := AWriteable;
 end;
 
 function TKamScriptValue.Execute: TKamScriptValue;
@@ -862,15 +865,15 @@ end;
 
 { TKamScriptInteger ---------------------------------------------------------- }
 
-constructor TKamScriptInteger.Create(AValue: Int64);
+constructor TKamScriptInteger.Create(const AWriteable: boolean; const AValue: Int64);
 begin
-  Create;
+  Create(AWriteable);
   Value := AValue;
 end;
 
-constructor TKamScriptInteger.Create;
+constructor TKamScriptInteger.Create(const AWriteable: boolean);
 begin
-  inherited Create;
+  inherited Create(AWriteable);
 end;
 
 destructor TKamScriptInteger.Destroy;
@@ -882,8 +885,7 @@ end;
 function TKamScriptInteger.PromoteToFloat: TKamScriptFloat;
 begin
   if FPromoteToFloat = nil then
-    FPromoteToFloat := TKamScriptFloat.Create;
-  FPromoteToFloat.Value := Value;
+    FPromoteToFloat := TKamScriptFloat.Create(false, Value);
   Result := FPromoteToFloat;
 end;
 
@@ -1086,15 +1088,15 @@ end;
 
 { TKamScriptFloat ------------------------------------------------------- }
 
-constructor TKamScriptFloat.Create(AValue: Float);
+constructor TKamScriptFloat.Create(const AWriteable: boolean; const AValue: Float);
 begin
-  Create;
+  Create(AWriteable);
   Value := AValue;
 end;
 
-constructor TKamScriptFloat.Create;
+constructor TKamScriptFloat.Create(const AWriteable: boolean);
 begin
-  inherited Create;
+  inherited Create(AWriteable);
 end;
 
 class procedure TKamScriptFloat.HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -1411,15 +1413,15 @@ end;
 
 { TKamScriptBoolean ---------------------------------------------------------- }
 
-constructor TKamScriptBoolean.Create(AValue: boolean);
+constructor TKamScriptBoolean.Create(const AWriteable: boolean; const AValue: boolean);
 begin
-  Create;
+  Create(AWriteable);
   Value := AValue;
 end;
 
-constructor TKamScriptBoolean.Create;
+constructor TKamScriptBoolean.Create(const AWriteable: boolean);
 begin
-  inherited Create;
+  inherited Create(AWriteable);
 end;
 
 class procedure TKamScriptBoolean.HandleOr(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -1545,15 +1547,15 @@ end;
 
 { TKamScriptString ---------------------------------------------------------- }
 
-constructor TKamScriptString.Create(AValue: string);
+constructor TKamScriptString.Create(const AWriteable: boolean; const AValue: string);
 begin
-  Create;
+  Create(AWriteable);
   Value := AValue;
 end;
 
-constructor TKamScriptString.Create;
+constructor TKamScriptString.Create(const AWriteable: boolean);
 begin
-  inherited Create;
+  inherited Create(AWriteable);
 end;
 
 class procedure TKamScriptString.HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -1866,7 +1868,7 @@ procedure TKamScriptAssignment.CheckArguments;
 begin
   inherited;
   if not ( (Args[0] is TKamScriptValue) and
-           (TKamScriptValue(Args[0]).Name <> '') ) then
+           TKamScriptValue(Args[0]).Writeable ) then
     raise EKamScriptFunctionArgumentsError.Create('Left side of assignment expression is not a writeable operand');
 end;
 
@@ -1982,7 +1984,7 @@ begin
     EndVal := TKamScriptInteger(EndValue).Value else
     raise EKamScriptError.Create('"for" function "end_value" must return an integer value');
 
-  Counter := TKamScriptInteger.Create;
+  Counter := TKamScriptInteger.Create(true);
   try
     for I := BeginVal to EndVal do
     begin
@@ -2019,7 +2021,7 @@ begin
     That's Ok, in HandleFor this will be automatically checked by AssignValue. }
 
   if not ( (Args[0] is TKamScriptValue) and
-           (TKamScriptValue(Args[0]).Name <> '') ) then
+           TKamScriptValue(Args[0]).Writeable ) then
     raise EKamScriptFunctionArgumentsError.Create('First argument of "for" function is not a writeable operand');
 end;
 
@@ -2264,7 +2266,7 @@ procedure CreateValueIfNeeded(var Value: TKamScriptValue;
 begin
   if Value = nil then
   begin
-    Value := NeededClass.Create;
+    Value := NeededClass.Create(false);
     ParentOfValue := true;
   end else
   if Value.ClassType <> NeededClass then
@@ -2273,7 +2275,7 @@ begin
       Value.FreeByParentExpression else
       Value := nil;
 
-    Value := NeededClass.Create;
+    Value := NeededClass.Create(false);
     ParentOfValue := true;
   end;
 end;
