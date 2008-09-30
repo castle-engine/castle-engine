@@ -114,32 +114,47 @@ procedure VRMLKamScriptBeforeExecute(Value: TKamScriptValue;
       TKamScriptInteger(Value).Value := TSFEnum(Field).Value else
     if Field is TSFLong then
       TKamScriptInteger(Value).Value := TSFLong(Field).Value else
-    if (Field is TMFLong) and
-       (TMFLong(Field).Items.Count = 1) then
-      TKamScriptInteger(Value).Value := TMFLong(Field).Items.Items[0] else
+    if Field is TMFLong then
+    begin
+      if TMFLong(Field).Items.Count >= 1 then
+        TKamScriptInteger(Value).Value := TMFLong(Field).Items.Items[0] else
+        TKamScriptInteger(Value).Value := 0; { anything predictable }
+    end else
 
     if Field is TSFFloat then
       TKamScriptFloat(Value).Value := TSFFloat(Field).Value else
     if Field is TSFDouble then
       TKamScriptFloat(Value).Value := TSFDouble(Field).Value else
-    if (Field is TMFFloat) and
-       (TMFFloat(Field).Items.Count = 1) then
-      TKamScriptFloat(Value).Value := TMFFloat(Field).Items.Items[0] else
-    if (Field is TMFDouble) and
-       (TMFDouble(Field).Items.Count = 1) then
-      TKamScriptFloat(Value).Value := TMFDouble(Field).Items.Items[0] else
+    if Field is TMFFloat then
+    begin
+      if TMFFloat(Field).Items.Count >= 1 then
+        TKamScriptFloat(Value).Value := TMFFloat(Field).Items.Items[0] else
+        TKamScriptFloat(Value).Value := 0.0; { anything predictable }
+    end else
+    if Field is TMFDouble then
+    begin
+      if TMFDouble(Field).Items.Count >= 1 then
+        TKamScriptFloat(Value).Value := TMFDouble(Field).Items.Items[0] else
+        TKamScriptFloat(Value).Value := 0.0; { anything predictable }
+    end else
 
     if Field is TSFBool then
       TKamScriptBoolean(Value).Value := TSFBool(Field).Value else
-    if (Field is TMFBool) and
-       (TMFBool(Field).Items.Count = 1) then
-      TKamScriptBoolean(Value).Value := TMFBool(Field).Items.Items[0] else
+    if Field is TMFBool then
+    begin
+      if TMFBool(Field).Items.Count >= 1 then
+        TKamScriptBoolean(Value).Value := TMFBool(Field).Items.Items[0] else
+        TKamScriptBoolean(Value).Value := false; { anything predictable }
+    end else
 
     if Field is TSFString then
       TKamScriptString(Value).Value := TSFString(Field).Value else
-    if (Field is TMFString) and
-       (TMFString(Field).Items.Count = 1) then
-      TKamScriptString(Value).Value := TMFString(Field).Items.Items[0] else
+    if Field is TMFString then
+    begin
+      if TMFString(Field).Items.Count >= 1 then
+        TKamScriptString(Value).Value := TMFString(Field).Items.Items[0] else
+        TKamScriptString(Value).Value := ''; { anything predictable }
+    end else
 
       { No sensible way to convert, just fall back to predictable 0.0. }
       TKamScriptFloat(Value).Value := 0.0;
@@ -176,6 +191,19 @@ procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
     end;
   end;
 
+  function CreateTempField(Event: TVRMLEvent): TVRMLField;
+  begin
+    { We have to create temporary field to send.
+      This is Ok, TVRMLEvent.Send shortcuts would do the same thing
+      after all.
+
+      We use Event.ParentNode, Event.Name for this temporary field
+      for the same reasons TVRMLEvent.Send shortcuts do this:
+      to get nice information in Logger node reports. }
+
+    Result := Event.FieldClass.CreateUndefined(Event.ParentNode, Event.Name);
+  end;
+
 var
   AbortSending: boolean;
   Field: TVRMLField;
@@ -185,19 +213,13 @@ begin
   begin
     { calculate Field, will be set based on our current Value }
 
-    if (FieldOrEvent is TVRMLEvent) or
-       (FieldOrEvent as TVRMLField).Exposed then
+    if FieldOrEvent is TVRMLEvent then
     begin
-      { We have to create temporary field to send.
-        This is Ok, TVRMLEvent.Send shortcuts would do the same thing
-        after all.
-
-        We use Event.ParentNode, Event.Name for this temporary field
-        for the same reasons TVRMLEvent.Send shortcuts do this:
-        to get nice information in Logger node reports. }
-
-      Field := TVRMLEvent(FieldOrEvent).FieldClass.CreateUndefined(
-        FieldOrEvent.ParentNode, FieldOrEvent.Name);
+      Field := CreateTempField(TVRMLEvent(FieldOrEvent));
+    end else
+    if (FieldOrEvent as TVRMLField).Exposed then
+    begin
+      Field := CreateTempField(TVRMLField(FieldOrEvent).EventIn);
     end else
     begin
       Assert(FieldOrEvent is TVRMLField);
