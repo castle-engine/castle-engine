@@ -161,10 +161,10 @@ procedure VRMLKamScriptBeforeExecute(Value: TKamScriptValue;
   end;
 
 begin
-  Value.ValueAssigned := false;
-
   if FieldOrEvent is TVRMLField then
     AssignVRMLFieldValue(TVRMLField(FieldOrEvent));
+
+  Value.ValueAssigned := false;
 end;
 
 procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
