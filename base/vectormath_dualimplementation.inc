@@ -148,6 +148,16 @@ begin
  VectorScaleTo1st(v, VecLen/VectorLen(v));
 end;
 
+function VectorLen(const v: TYPE_VECTOR2): TYPE_SCALAR;
+begin
+  Result := Sqrt(VectorLenSqr(v));
+end;
+
+function VectorLenSqr(const v: TYPE_VECTOR2): TYPE_SCALAR;
+begin
+  Result := Sqr(v[0]) + Sqr(v[1]);
+end;
+
 function VectorLen(const v: TYPE_VECTOR3): TYPE_SCALAR;
 begin
   Result := Sqrt(VectorLenSqr(v));
@@ -158,14 +168,14 @@ begin
   Result := Sqr(v[0]) + Sqr(v[1]) + Sqr(v[2]);
 end;
 
-function VectorLen(const v: TYPE_VECTOR2): TYPE_SCALAR;
+function VectorLen(const v: TYPE_VECTOR4): TYPE_SCALAR;
 begin
   Result := Sqrt(VectorLenSqr(v));
 end;
 
-function VectorLenSqr(const v: TYPE_VECTOR2): TYPE_SCALAR;
+function VectorLenSqr(const v: TYPE_VECTOR4): TYPE_SCALAR;
 begin
-  Result := Sqr(v[0]) + Sqr(v[1]);
+  Result := Sqr(v[0]) + Sqr(v[1]) + Sqr(v[2]) + Sqr(v[3]);
 end;
 
 function VectorExpComponents(const v: TYPE_VECTOR3; const Exp: TYPE_SCALAR): TYPE_VECTOR3;
@@ -579,6 +589,14 @@ end;
 function PointsDistanceXYSqr(const v1, v2: TYPE_VECTOR3): TYPE_SCALAR;
 begin
   Result := Sqr(v2[0]-v1[0]) + Sqr(v2[1]-v1[1]);
+end;
+
+function VectorsEqual(const v1, v2: TYPE_VECTOR2): boolean;
+begin
+  if SCALAR_EQUALITY_EPSILON = 0 then
+    Result := CompareMem(@V1, @V2, SizeOf(V1)) else
+    Result := (Abs(v1[0]-v2[0]) < SCALAR_EQUALITY_EPSILON) and
+              (Abs(v1[1]-v2[1]) < SCALAR_EQUALITY_EPSILON);
 end;
 
 function VectorsEqual(const v1, v2: TYPE_VECTOR2;

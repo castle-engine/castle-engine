@@ -153,6 +153,11 @@ begin
  result[2] := v1[0]*v2[1] - v1[1]*v2[0];
 end;
 
+function VectorDotProduct(const v1, v2: TYPE_VECTOR2): TYPE_SCALAR;
+begin
+ result := v1[0]*v2[0]+ v1[1]*v2[1];
+end;
+
 function VectorDotProduct(const v1, v2: TYPE_VECTOR3): TYPE_SCALAR;
 begin
  result := v1[0]*v2[0]+ v1[1]*v2[1]+ v1[2]*v2[2];

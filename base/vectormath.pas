@@ -877,11 +877,13 @@ procedure VectorAdjustToLengthTo1st(var v: TVector3Double; VecLen: Double); over
 
 { Note that this costs you one Sqrt calculation
   (contrary to VectorLenSqr). }
-function VectorLen(const v: TVector3Single): Single; overload;
-function VectorLen(const v: TVector3Double): Double; overload;
 function VectorLen(const v: TVector2Single): Single; overload;
 function VectorLen(const v: TVector2Double): Double; overload;
+function VectorLen(const v: TVector3Single): Single; overload;
+function VectorLen(const v: TVector3Double): Double; overload;
 function VectorLen(const v: TVector3Byte): Single; overload;
+function VectorLen(const v: TVector4Single): Single; overload;
+function VectorLen(const v: TVector4Double): Double; overload;
 
 { This returns Sqr(VectorLen(v)). As everyone knows,
   VectorLen is implemented as Sqrt(VectorLenSqr(v)).
@@ -901,11 +903,13 @@ function VectorLen(const v: TVector3Byte): Single; overload;
   Also note that when you have a vector with discrete values
   (like TVector3Byte), VectorLenSqr is able to simply return integer
   value, while VectorLen must return floating-point value. }
-function VectorLenSqr(const v: TVector3Single): Single; overload;
-function VectorLenSqr(const v: TVector3Double): Double; overload;
 function VectorLenSqr(const v: TVector2Single): Single; overload;
 function VectorLenSqr(const v: TVector2Double): Double; overload;
+function VectorLenSqr(const v: TVector3Single): Single; overload;
+function VectorLenSqr(const v: TVector3Double): Double; overload;
 function VectorLenSqr(const v: TVector3Byte): Integer; overload;
+function VectorLenSqr(const v: TVector4Single): Single; overload;
+function VectorLenSqr(const v: TVector4Double): Double; overload;
 
 { iloczyn wektorowy dwoch wektorow, czyli wektor prostopadly do nich obu.
   Zgodnie z def., vector product dla wektorow rownoleglych (czyli
@@ -938,6 +942,9 @@ function VectorProduct(const v1, v2: TVector3Single): TVector3Single; overload;
   V1 is a 3D point and V2 is something like plane equation.
 
   @groupBegin }
+function VectorDotProduct(const v1, v2: TVector2Single): Single; overload;
+function VectorDotProduct(const v1, v2: TVector2Double): Double; overload;
+
 function VectorDotProduct(const v1, v2: TVector3Single): Single; overload;
 function VectorDotProduct(const v1, v2: TVector3Double): Double; overload;
 
@@ -1124,11 +1131,18 @@ function PointsDistanceXYSqr(const v1, v2: TVector3Single): Single; overload;
 function PointsDistanceXYSqr(const v1, v2: TVector3Double): Double; overload;
 { @groupEnd }
 
-{ czy dwa wektory sa rowne ? Uzywa FloatsEqual.
+{ Compare two vectors, with epsilon to tolerate slightly different floats.
+  Uses singleEqualityEpsilon, DoubleEqualityEpsilon just like FloatsEqual.
 
   Note that the case when EqualityEpsilon (or SingleEqualityEpsilon
   or DoubleEqualityEpsilon) is exactly 0 is optimized here
-  (i.e. we compare using direct CompareMem routines). }
+  (i.e. we compare using direct CompareMem routines).
+
+  @seealso VectorsPerfectlyEqual
+
+  @groupBegin }
+function VectorsEqual(const v1, v2: TVector2Single): boolean; overload;
+function VectorsEqual(const v1, v2: TVector2Double): boolean; overload;
 function VectorsEqual(const v1, v2: TVector2Single; const EqualityEpsilon: Single): boolean; overload;
 function VectorsEqual(const v1, v2: TVector2Double; const EqualityEpsilon: Double): boolean; overload;
 function VectorsEqual(const v1, v2: TVector3Single): boolean; overload;
@@ -1139,16 +1153,19 @@ function VectorsEqual(const v1, v2: TVector4Single): boolean; overload;
 function VectorsEqual(const v1, v2: TVector4Double): boolean; overload;
 function VectorsEqual(const v1, v2: TVector4Single; const EqualityEpsilon: Single): boolean; overload;
 function VectorsEqual(const v1, v2: TVector4Double; const EqualityEpsilon: Double): boolean; overload;
+{ @groupEnd }
 
-{ czy dwa wektory sa rowne ? Uzywa operatora "=" wiec wymaga dokladnej
-  rownosci. Zazwyczaj nie tego chcesz uzyc - zazwyczaj powinienes uzywac
-  VectorsEqual. }
+{ Compare two vectors using perfect comparison, that is using the "=" operator
+  to compare floats.
+  @seealso VectorsEqual
+  @groupBegin }
 function VectorsPerfectlyEqual(const v1, v2: TVector2Single): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function VectorsPerfectlyEqual(const v1, v2: TVector2Double): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function VectorsPerfectlyEqual(const v1, v2: TVector3Single): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function VectorsPerfectlyEqual(const v1, v2: TVector3Double): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function VectorsPerfectlyEqual(const v1, v2: TVector4Single): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function VectorsPerfectlyEqual(const v1, v2: TVector4Double): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+{ @groupEnd }
 
 function MatricesEqual(const M1, M2: TMatrix3Single; const EqualityEpsilon: Single): boolean; overload;
 function MatricesEqual(const M1, M2: TMatrix3Double; const EqualityEpsilon: Double): boolean; overload;

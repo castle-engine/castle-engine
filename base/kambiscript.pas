@@ -1719,7 +1719,11 @@ function TKamScriptFunction.Execute: TKamScriptValue;
     for I := 0 to Length(A) - 1 do
     begin
       if I > 0 then Result += ', ';
-      Result += A[I].ClassName;
+      { A[I] = nil may happen in case of GreedyArgumentsCalculation >= 0,
+        and it means then that any type of arg will be accepted. }
+      if A[I] = nil then
+        Result += 'anything' else
+        Result += A[I].ClassName;
     end;
     Result := '(' + Result + ')';
   end;
@@ -1964,9 +1968,7 @@ end;
 class procedure TKamScriptFor.HandleFor(
   AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 var
-  BeginValue, EndValue: TKamScriptValue;
   BeginVal, EndVal: Int64;
-  Counter: TKamScriptInteger;
   I: Integer;
 begin
   if ParentOfResult then
@@ -1974,29 +1976,20 @@ begin
   AResult := nil;
   ParentOfResult := false;
 
-  BeginValue := AFunction.Args[1].Execute;
-  if BeginValue is TKamScriptInteger then
-    BeginVal := TKamScriptInteger(BeginValue).Value else
-    raise EKamScriptError.Create('"for" function "begin_value" must return an integer value');
+  BeginVal := TKamScriptInteger(Arguments[1]).Value;
+  EndVal := TKamScriptInteger(Arguments[2]).Value;
 
-  EndValue := AFunction.Args[2].Execute;
-  if EndValue is TKamScriptInteger then
-    EndVal := TKamScriptInteger(EndValue).Value else
-    raise EKamScriptError.Create('"for" function "end_value" must return an integer value');
+  for I := BeginVal to EndVal do
+  begin
+    { We use Arguments[0] here, not AFunction.Args[0], this way
+      we know we really have TKamScriptInteger here. While CheckArguments
+      makes sure Args[0] is TKamScriptValue, it may be TKamScriptParameterValue.
+      We know that TKamScriptParameterValue.Execute returns actual value,
+      so Arguments[0] is Ok here. }
+    (Arguments[0] as TKamScriptInteger).Value := I;
 
-  Counter := TKamScriptInteger.Create(true);
-  try
-    for I := BeginVal to EndVal do
-    begin
-      { We use helper variable Counter here only to be able to call
-        AssignValue(Counter), without casting AFunction.Args[0]
-        to TKamScriptInteger (which wouldn't work for TKamScriptParameterValue) }
-      Counter.Value := I;
-      (AFunction.Args[0] as TKamScriptValue).AssignValue(Counter);
-
-      AResult := AFunction.Args[3].Execute;
-    end;
-  finally FreeAndNil(Counter) end;
+    AResult := AFunction.Args[3].Execute;
+  end;
 
   if AResult = nil then
   begin
@@ -2008,7 +2001,7 @@ end;
 
 class function TKamScriptFor.GreedyArgumentsCalculation: Integer;
 begin
-  Result := 0;
+  Result := 3;
 end;
 
 procedure TKamScriptFor.CheckArguments;
@@ -2081,36 +2074,43 @@ begin
   for I := 0 to HandlersByArgument.Count - 1 do
   begin
     Handler := HandlersByArgument[I] as TKamScriptRegisteredHandler;
-    Result := true;
-    for J := 0 to Length(ArgumentClasses) - 1 do
-    begin
-      Assert(Result);
 
-      { Always accept ArgumentClasses[J] = nil, this means that they
-        are "lazy" arguments (not calculated before handler actually executed),
-        so they are simply always assumed Ok. }
-
-      if ArgumentClasses[J] <> nil then
-      begin
-        if J < Length(Handler.ArgumentClasses) then
-          Result := ArgumentClasses[J].InheritsFrom(Handler.ArgumentClasses[J]) else
-          { This is more than required number of arguments.
-            Still it's Ok if it matches last argument and function allows variable
-            number of arguments. }
-          Result := Handler.VariableArgumentsCount and
-            (Length(Handler.ArgumentClasses) > 0) and
-            ArgumentClasses[J].InheritsFrom(
-              Handler.ArgumentClasses[High(Handler.ArgumentClasses)]);
-      end;
-
-      if not Result then Break;
-    end;
+    { First, check do we have enough arguments: at least
+      Length(Handler.ArgumentClasses) are always required. }
+    Result := Length(ArgumentClasses) >= Length(Handler.ArgumentClasses);
 
     if Result then
     begin
-      ArgumentIndex := I;
-      Exit;
-    end
+      for J := 0 to Length(ArgumentClasses) - 1 do
+      begin
+        Assert(Result);
+
+        { Always accept ArgumentClasses[J] = nil, this means that they
+          are "lazy" arguments (not calculated before handler actually executed),
+          so they are simply always assumed Ok. }
+
+        if ArgumentClasses[J] <> nil then
+        begin
+          if J < Length(Handler.ArgumentClasses) then
+            Result := ArgumentClasses[J].InheritsFrom(Handler.ArgumentClasses[J]) else
+            { This is more than required number of arguments.
+              Still it's Ok if it matches last argument and function allows variable
+              number of arguments. }
+            Result := Handler.VariableArgumentsCount and
+              (Length(Handler.ArgumentClasses) > 0) and
+              ArgumentClasses[J].InheritsFrom(
+                Handler.ArgumentClasses[High(Handler.ArgumentClasses)]);
+        end;
+
+        if not Result then Break;
+      end;
+
+      if Result then
+      begin
+        ArgumentIndex := I;
+        Exit;
+      end;
+    end;
   end;
   Result := false;
 end;

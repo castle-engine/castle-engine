@@ -29,13 +29,14 @@ uses
   kambi_units,
   {$endif}
   TestKambiStringUtils,
-  TestKambiScript;
+  TestKambiScript,
+  TestKambiScriptVectors;
 
 var
-  T: TTestKambiScript;
+  T: TTestKambiScriptVectors;
 begin
-  T := TTestKambiScript.Create;
-  T.TestVariousTypesPrograms;
+  T := TTestKambiScriptVectors.Create;
+  T.Test1;
   
   Application.Initialize;
   {$ifndef TEXT_RUNNER}

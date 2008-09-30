@@ -1,0 +1,13 @@
+function main()
+  my_int := 0;
+  my_vec2f := vector(44, 10);
+  if( my_vec2f = vector(44, 10),
+
+    my_float := vector_dot(my_vec2f, vector(666, 777));
+    vector_set(my_vec2f, 0, vector_get(my_vec2f, my_int) + 456);
+    { now my_vec2f should be (456 + 44, 10) }
+    my_vec2f := my_vec2f + vector(0, 13);
+    { now my_vec2f should be (456 + 44, 10 + 13) }
+    vector_set(my_vec2f, vector_get_count(my_vec2f) - 1, vector_length(my_vec2f)),
+
+    { else - should not happen } my_float := 666)
