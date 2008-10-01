@@ -30,7 +30,7 @@ uses
 type
   TTestKambiScriptVectors = class(TTestCase)
   published
-    procedure Test1;
+    procedure TestVecs;
   end;
 
 implementation
@@ -38,7 +38,7 @@ implementation
 uses VectorMath, KambiScript, KambiScriptLexer, KambiScriptParser,
   KambiStringUtils, KambiScriptVectors, KambiClassUtils, Math;
 
-procedure TTestKambiScriptVectors.Test1;
+procedure TTestKambiScriptVectors.TestVecs;
 var
   Prog: TKamScriptProgram;
 
@@ -60,15 +60,19 @@ begin
     Vars.Add(TKamScriptInteger.Create(true));
     Vars.Add(TKamScriptFloat.Create(true));
     Vars.Add(TKamScriptVec2f.Create(true));
+    Vars.Add(TKamScriptVec3f.Create(true));
+    Vars.Add(TKamScriptVec4f.Create(true));
 
     Vars[0].Name := 'my_int';
     Vars[1].Name := 'my_float';
     Vars[2].Name := 'my_vec2f';
+    Vars[3].Name := 'my_vec3f';
+    Vars[4].Name := 'my_vec4f';
+
+    { test 2f }
 
     Prog := ParseProgram(FileToString('test_script_vectors.kscript'), Vars);
-    { return any dummy value }
     Prog.ExecuteFunction('main', []);
-    FreeAndNil(Prog);
 
     Assert((Vars[0] as TKamScriptInteger).Value = 0);
     Assert((Vars[1] as TKamScriptFloat).Value =
@@ -77,6 +81,23 @@ begin
     Assert(VectorsEqual(
       (Vars[2] as TKamScriptVec2f).Value,
       Vector2Single(456 + 44, VectorLen(Vector2Single(456 + 44, 10 + 13)))));
+
+    { test 3f }
+
+    Prog.ExecuteFunction('main_3f', []);
+    Assert((Vars[0] as TKamScriptInteger).Value = 0);
+    Assert((Vars[1] as TKamScriptFloat).Value =
+      Single(44.0) * Single(666.0) +
+      Single(10.0) * Single(777.0) +
+      Single(33.0) * Single(91.0));
+    Assert(VectorsEqual(
+      (Vars[3] as TKamScriptVec3f).Value,
+      Vector3Single(456 + 44, 10 + 13,
+        VectorLen(Vector3Single(456 + 44, 10 + 13, 33)))));
+
+    FreeAndNil(Prog);
+
+    { test invalid index for vector_get/set is catched }
 
     Prog := ParseProgram('function main() vector_get(my_vec2f, -1)', Vars);
     ExecuteExpectError;

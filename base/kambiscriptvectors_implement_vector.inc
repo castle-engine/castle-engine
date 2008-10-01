@@ -4,6 +4,7 @@
   VectorGetCount
   TKamScriptVectXx
   TVectorXxx
+  RegisterVecXxFunctions
 }
 
 { TKamScriptVecXx ---------------------------------------------------------- }
@@ -136,8 +137,34 @@ begin
     raise EKamAssignValueError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
 end;
 
-procedure TKamScriptVecXx.SetValue(const AValue: TVector2Single);
+procedure TKamScriptVecXx.SetValue(const AValue: TVectorXxx);
 begin
   FValue := AValue;
   ValueAssigned := true;
+end;
+
+procedure RegisterVecXxFunctions;
+var
+  VectorArgClasses: array of TKamScriptValueClass;
+  I: Integer;
+begin
+  { TKamScriptVecXx, functions from KambiScriptCoreFunctions }
+  FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleAdd, TKamScriptAdd, [TKamScriptVecXx], true);
+  FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleSubtract, TKamScriptSubtract, [TKamScriptVecXx], true);
+  FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleNegate, TKamScriptNegate, [TKamScriptVecXx], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleEqual, TKamScriptEqual, [TKamScriptVecXx, TKamScriptVecXx], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleNotEqual, TKamScriptNotEqual, [TKamScriptVecXx, TKamScriptVecXx], false);
+
+  { TKamScriptVecXx, functions from KambiScriptVectors }
+  SetLength(VectorArgClasses, VectorGetCount);
+  for I := 0 to VectorGetCount - 1 do
+    VectorArgClasses[I] := TKamScriptFloat;
+  FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleVector, TKamScriptVector, VectorArgClasses, false);
+
+  FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleVectorGet, TKamScriptVectorGet, [TKamScriptVecXx, TKamScriptInteger], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleVectorSet, TKamScriptVectorSet, [TKamScriptVecXx, TKamScriptInteger, TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleVectorGetCount, TKamScriptVectorGetCount, [TKamScriptVecXx], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleVectorLength, TKamScriptVectorLength, [TKamScriptVecXx], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleVectorSqrLength, TKamScriptVectorSqrLength, [TKamScriptVecXx], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleVectorDot, TKamScriptVectorDot, [TKamScriptVecXx, TKamScriptVecXx], false);
 end;

@@ -38,6 +38,14 @@ begin
  result[2] := v1[2] VectorOp v2[2];
 end;
 
+function VectorOpFuncName(const v1, v2: TYPE_VECTOR4): TYPE_VECTOR4;
+begin
+ result[0] := v1[0] VectorOp v2[0];
+ result[1] := v1[1] VectorOp v2[1];
+ result[2] := v1[2] VectorOp v2[2];
+ result[3] := v1[3] VectorOp v2[3];
+end;
+
 procedure VectorOpTo1stFuncName(var v1: TYPE_VECTOR2; const v2: TYPE_VECTOR2);
 begin
  v1[0] VectorOpTo1st v2[0];
@@ -49,6 +57,14 @@ begin
  v1[0] VectorOpTo1st v2[0];
  v1[1] VectorOpTo1st v2[1];
  v1[2] VectorOpTo1st v2[2];
+end;
+
+procedure VectorOpTo1stFuncName(var v1: TYPE_VECTOR4; const v2: TYPE_VECTOR4);
+begin
+ v1[0] VectorOpTo1st v2[0];
+ v1[1] VectorOpTo1st v2[1];
+ v1[2] VectorOpTo1st v2[2];
+ v1[3] VectorOpTo1st v2[3];
 end;
 }
 
@@ -123,6 +139,14 @@ begin
  result[0] := -v[0];
  result[1] := -v[1];
  result[2] := -v[2];
+end;
+
+function VectorNegate(const v: TYPE_VECTOR4): TYPE_VECTOR4;
+begin
+ result[0] := -v[0];
+ result[1] := -v[1];
+ result[2] := -v[2];
+ result[3] := -v[3];
 end;
 
 procedure VectorNegateTo1st(var v: TYPE_VECTOR2);

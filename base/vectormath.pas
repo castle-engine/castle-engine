@@ -821,27 +821,52 @@ function IsZeroVector(const v: TVector4Double): boolean; overload;
 
 function IsZeroVector(const v: TVector4Cardinal): boolean; overload;
 
-{ podstawowe operatory na wektorach 2/3Single/Double, w wersjach
-  funkcyjnych i To1st. Mamy tutaj dodawanie, odejmowanie, mnozenie
-  przez skalar i negacje. }
+{ Subtract two vectors.
+
+  Versions *To1st place result back into the 1st vector,
+  like "-=" operator. Are @italic(very very slightly) faster.
+
+  @groupBegin }
 function VectorSubtract(const v1, v2: TVector2Single): TVector2Single; overload;
 function VectorSubtract(const v1, v2: TVector2Double): TVector2Double; overload;
 function VectorSubtract(const v1, v2: TVector3Single): TVector3Single; overload;
 function VectorSubtract(const v1, v2: TVector3Double): TVector3Double; overload;
+function VectorSubtract(const v1, v2: TVector4Single): TVector4Single; overload;
+function VectorSubtract(const v1, v2: TVector4Double): TVector4Double; overload;
 procedure VectorSubtractTo1st(var v1: TVector2Single; const v2: TVector2Single); overload;
 procedure VectorSubtractTo1st(var v1: TVector2Double; const v2: TVector2Double); overload;
 procedure VectorSubtractTo1st(var v1: TVector3Single; const v2: TVector3Single); overload;
 procedure VectorSubtractTo1st(var v1: TVector3Double; const v2: TVector3Double); overload;
+procedure VectorSubtractTo1st(var v1: TVector4Single; const v2: TVector4Single); overload;
+procedure VectorSubtractTo1st(var v1: TVector4Double; const v2: TVector4Double); overload;
+{ @groupEnd }
 
+{ Add two vectors.
+
+  Versions *To1st place result back into the 1st vector,
+  like "+=" operator. Are @italic(very very slightly) faster.
+
+  @groupBegin }
 function VectorAdd(const v1, v2: TVector2Single): TVector2Single; overload;
 function VectorAdd(const v1, v2: TVector2Double): TVector2Double; overload;
 function VectorAdd(const v1, v2: TVector3Single): TVector3Single; overload;
 function VectorAdd(const v1, v2: TVector3Double): TVector3Double; overload;
+function VectorAdd(const v1, v2: TVector4Single): TVector4Single; overload;
+function VectorAdd(const v1, v2: TVector4Double): TVector4Double; overload;
 procedure VectorAddTo1st(var v1: TVector2Single; const v2: TVector2Single); overload;
 procedure VectorAddTo1st(var v1: TVector2Double; const v2: TVector2Double); overload;
 procedure VectorAddTo1st(var v1: TVector3Single; const v2: TVector3Single); overload;
 procedure VectorAddTo1st(var v1: TVector3Double; const v2: TVector3Double); overload;
+procedure VectorAddTo1st(var v1: TVector4Single; const v2: TVector4Single); overload;
+procedure VectorAddTo1st(var v1: TVector4Double; const v2: TVector4Double); overload;
+{ @groupEnd }
 
+{ Scale vector (aka multiply by scalar).
+
+  Versions *To1st scale place result back into the 1st vector,
+  like "*=" operator. Are @italic(very very slightly) faster.
+
+  @groupBegin }
 function VectorScale(const v1: TVector2Single; const Scalar: Single): TVector2Single; overload;
 function VectorScale(const v1: TVector2Double; const Scalar: Double): TVector2Double; overload;
 function VectorScale(const v1: TVector3Single; const Scalar: Single): TVector3Single; overload;
@@ -854,17 +879,27 @@ procedure VectorScaleTo1st(var v1: TVector3Single; const Scalar: Single); overlo
 procedure VectorScaleTo1st(var v1: TVector3Double; const Scalar: Double); overload;
 procedure VectorScaleTo1st(var v1: TVector4Single; const Scalar: Single); overload;
 procedure VectorScaleTo1st(var v1: TVector4Double; const Scalar: Double); overload;
+{ @groupEnd }
 
+{ Negate vector (return -V).
+
+  Versions *To1st scale place result back into the 1st vector.
+  Are @italic(very very slightly) faster.
+
+  @groupBegin }
 function VectorNegate(const v: TVector2Single): TVector2Single; overload;
 function VectorNegate(const v: TVector2Double): TVector2Double; overload;
 function VectorNegate(const v: TVector3Single): TVector3Single; overload;
 function VectorNegate(const v: TVector3Double): TVector3Double; overload;
+function VectorNegate(const v: TVector4Single): TVector4Single; overload;
+function VectorNegate(const v: TVector4Double): TVector4Double; overload;
 procedure VectorNegateTo1st(var v: TVector2Single); overload;
 procedure VectorNegateTo1st(var v: TVector2Double); overload;
 procedure VectorNegateTo1st(var v: TVector3Single); overload;
 procedure VectorNegateTo1st(var v: TVector3Double); overload;
 procedure VectorNegateTo1st(var v: TVector4Single); overload;
 procedure VectorNegateTo1st(var v: TVector4Double); overload;
+{ @groupEnd }
 
 { przeskaluj wektor tak zeby mial zadana dlugosc.
   (tak, Normalized moznaby wyrazic jako VectorAdjustToLength(,1)).
