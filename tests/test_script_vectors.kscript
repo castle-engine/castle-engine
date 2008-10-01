@@ -25,3 +25,17 @@ function main_3f()
     vector_set(my_vec3f, vector_get_count(my_vec3f) - 1, vector_length(my_vec3f)),
 
     { else - should not happen } my_float := 666)
+
+function main_4f()
+  my_int := 0;
+  my_vec4f := vector(44, 10, 33, 123);
+  if( my_vec4f = vector(44, 10, 33, 123),
+
+    my_float := vector_dot(my_vec4f, vector(666, 777, 91, 890));
+    vector_set(my_vec4f, 0, vector_get(my_vec4f, my_int) + 456);
+    { now my_vec4f should be (456 + 44, 10, 33, 123) }
+    my_vec4f := my_vec4f + vector(0, 13, 0, 0);
+    { now my_vec4f should be (456 + 44, 10 + 13, 33, 123) }
+    vector_set(my_vec4f, vector_get_count(my_vec4f) - 1, vector_length(my_vec4f)),
+
+    { else - should not happen } my_float := 666)

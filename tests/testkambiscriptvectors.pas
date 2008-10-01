@@ -95,6 +95,20 @@ begin
       Vector3Single(456 + 44, 10 + 13,
         VectorLen(Vector3Single(456 + 44, 10 + 13, 33)))));
 
+    { test 4f }
+
+    Prog.ExecuteFunction('main_4f', []);
+    Assert((Vars[0] as TKamScriptInteger).Value = 0);
+    Assert((Vars[1] as TKamScriptFloat).Value =
+      Single(44.0) * Single(666.0) +
+      Single(10.0) * Single(777.0) +
+      Single(33.0) * Single(91.0) +
+      Single(123.0) * Single(890.0));
+    Assert(VectorsEqual(
+      (Vars[4] as TKamScriptVec4f).Value,
+      Vector4Single(456 + 44, 10 + 13, 33,
+        VectorLen(Vector4Single(456 + 44, 10 + 13, 33, 123)))));
+
     FreeAndNil(Prog);
 
     { test invalid index for vector_get/set is catched }
