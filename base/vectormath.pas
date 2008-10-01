@@ -660,6 +660,7 @@ function IsZero(const f1, EqEpsilon: Extended): boolean; overload;
 function Vector2Cardinal(const x, y: Cardinal): TVector2Cardinal;
 function Vector2Integer(const x, y: Integer): TVector2Integer;
 function Vector2Single(const x, y: Single): TVector2Single;
+function Vector2Double(const x, y: Double): TVector2Double;
 
 function Vector3Single(const x, y: Single; const z: Single = 0.0): TVector3Single; overload;
 function Vector3Single(const v3: TVector3Double): TVector3Single; overload;
@@ -678,6 +679,7 @@ function Vector4Single(const v3: TVector3Single;
 function Vector4Single(const ub: TVector4Byte): TVector4Single; overload;
 function Vector4Single(const v: TVector4Double): TVector4Single; overload;
 
+function Vector4Double(const x, y, z ,w: Double): TVector4Double; overload;
 function Vector4Double(const v: TVector4Single): TVector4Double; overload;
 
 { konwersja skladowa Single->Byte w ponizszych funkcjach jest zawsze
@@ -2329,6 +2331,9 @@ begin result[0] := x; result[1] := y end;
 function Vector2Single(const x, y: Single): TVector2Single;
 begin result[0] := x; result[1] := y end;
 
+function Vector2Double(const x, y: Double): TVector2Double;
+begin result[0] := x; result[1] := y end;
+
 function Vector4Single(const x, y: Single; const z: Single{=0}; const w: Single{=1}): TVector4Single;
 begin
  result[0] := x; result[1] := y; result[2] := z; result[3] := w;
@@ -2353,6 +2358,14 @@ begin
  result[1] := v[1];
  result[2] := v[2];
  result[3] := v[3];
+end;
+
+function Vector4Double(const x, y, z, w: Double): TVector4Double;
+begin
+ result[0] := x;
+ result[1] := y;
+ result[2] := z;
+ result[3] := w;
 end;
 
 function Vector4Double(const v: TVector4Single): TVector4Double;

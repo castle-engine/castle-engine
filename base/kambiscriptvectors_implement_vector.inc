@@ -5,6 +5,7 @@
   TKamScriptVectXx
   TVectorXxx
   RegisterVecXxFunctions
+  TKamScriptVectorFunXxx
 }
 
 { TKamScriptVecXx ---------------------------------------------------------- }
@@ -159,7 +160,7 @@ begin
   SetLength(VectorArgClasses, VectorGetCount);
   for I := 0 to VectorGetCount - 1 do
     VectorArgClasses[I] := TKamScriptFloat;
-  FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleVector, TKamScriptVector, VectorArgClasses, false);
+  FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleVector, TKamScriptVectorFunXxx, VectorArgClasses, false);
 
   FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleVectorGet, TKamScriptVectorGet, [TKamScriptVecXx, TKamScriptInteger], false);
   FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleVectorSet, TKamScriptVectorSet, [TKamScriptVecXx, TKamScriptInteger, TKamScriptFloat], false);

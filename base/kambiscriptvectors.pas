@@ -100,7 +100,87 @@ type
     procedure AssignValue(Source: TKamScriptValue); override;
   end;
 
+  TKamScriptVec2d = class(TKamScriptValue)
+  private
+    class procedure HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleSubtract(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleNegate(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleEqual(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleNotEqual(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    class procedure HandleVector(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleVectorGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleVectorSet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleVectorGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleVectorLength(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleVectorSqrLength(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleVectorDot(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    FValue: TVector2Double;
+    procedure SetValue(const AValue: TVector2Double);
+  public
+    property Value: TVector2Double read FValue write SetValue;
+
+    procedure AssignValue(Source: TKamScriptValue); override;
+  end;
+
+  TKamScriptVec3d = class(TKamScriptValue)
+  private
+    class procedure HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleSubtract(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleNegate(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleEqual(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleNotEqual(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    class procedure HandleVector(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleVectorGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleVectorSet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleVectorGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleVectorLength(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleVectorSqrLength(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleVectorDot(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    class procedure HandleVectorCross(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    FValue: TVector3Double;
+    procedure SetValue(const AValue: TVector3Double);
+  public
+    property Value: TVector3Double read FValue write SetValue;
+
+    procedure AssignValue(Source: TKamScriptValue); override;
+  end;
+
+  TKamScriptVec4d = class(TKamScriptValue)
+  private
+    class procedure HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleSubtract(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleNegate(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleEqual(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleNotEqual(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    class procedure HandleVector(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleVectorGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleVectorSet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleVectorGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleVectorLength(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleVectorSqrLength(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleVectorDot(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    FValue: TVector4Double;
+    procedure SetValue(const AValue: TVector4Double);
+  public
+    property Value: TVector4Double read FValue write SetValue;
+
+    procedure AssignValue(Source: TKamScriptValue); override;
+  end;
+
   TKamScriptVector = class(TKamScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
+  TKamScriptVectorD = class(TKamScriptFunction)
   public
     class function Name: string; override;
     class function ShortName: string; override;
@@ -154,6 +234,10 @@ implementation
 
 uses KambiScriptCoreFunctions, KambiUtils;
 
+{ Single-precision vectors --------------------------------------------------- }
+
+{$define TKamScriptVectorFunXxx := TKamScriptVector}
+
 {$define VectorGetCount := 2}
 {$define TKamScriptVecXx := TKamScriptVec2f}
 {$define TVectorXxx := TVector2Single}
@@ -180,6 +264,36 @@ begin
                    TKamScriptVec3f(Arguments[1]).Value );
 end;
 
+{ Double-precision vectors --------------------------------------------------- }
+
+{$define TKamScriptVectorFunXxx := TKamScriptVectorD}
+
+{$define VectorGetCount := 2}
+{$define TKamScriptVecXx := TKamScriptVec2d}
+{$define TVectorXxx := TVector2Double}
+{$define RegisterVecXxFunctions := RegisterVec2dFunctions}
+{$I kambiscriptvectors_implement_vector.inc}
+
+{$define VectorGetCount := 3}
+{$define TKamScriptVecXx := TKamScriptVec3d}
+{$define TVectorXxx := TVector3Double}
+{$define RegisterVecXxFunctions := RegisterVec3dFunctions}
+{$I kambiscriptvectors_implement_vector.inc}
+
+{$define VectorGetCount := 4}
+{$define TKamScriptVecXx := TKamScriptVec4d}
+{$define TVectorXxx := TVector4Double}
+{$define RegisterVecXxFunctions := RegisterVec4dFunctions}
+{$I kambiscriptvectors_implement_vector.inc}
+
+class procedure TKamScriptVec3d.HandleVectorCross(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptVec3d);
+  TKamScriptVec3d(AResult).Value :=
+    VectorProduct( TKamScriptVec3d(Arguments[0]).Value,
+                   TKamScriptVec3d(Arguments[1]).Value );
+end;
+
 { TKamScriptFunction descendants --------------------------------------------- }
 
 class function TKamScriptVector.Name: string;
@@ -190,6 +304,16 @@ end;
 class function TKamScriptVector.ShortName: string;
 begin
   Result := 'vector';
+end;
+
+class function TKamScriptVectorD.Name: string;
+begin
+  Result := 'vector_d';
+end;
+
+class function TKamScriptVectorD.ShortName: string;
+begin
+  Result := 'vector_d';
 end;
 
 class function TKamScriptVectorGet.Name: string;
@@ -278,4 +402,10 @@ initialization
   RegisterVec4fFunctions;
 
   FunctionHandlers.RegisterHandler(@TKamScriptVec3f(nil).HandleVectorCross, TKamScriptVectorCross, [TKamScriptVec3f, TKamScriptVec3f], false);
+
+  RegisterVec2dFunctions;
+  RegisterVec3dFunctions;
+  RegisterVec4dFunctions;
+
+  FunctionHandlers.RegisterHandler(@TKamScriptVec3d(nil).HandleVectorCross, TKamScriptVectorCross, [TKamScriptVec3d, TKamScriptVec3d], false);
 end.

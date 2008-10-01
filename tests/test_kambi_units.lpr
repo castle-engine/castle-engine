@@ -32,16 +32,15 @@ uses
   TestKambiScript,
   TestKambiScriptVectors;
 
-{
-var
+
+{var
   T: TTestKambiScriptVectors;}
 begin
 { Sometimes it's comfortable to just run the rest directly, to get
   full backtrace from FPC.
 
   T := TTestKambiScriptVectors.Create;
-  T.Test1;
-  FreeAndNil(T);
+  T.TestVecDouble;
 }
 
   Application.Initialize;
