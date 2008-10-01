@@ -70,7 +70,7 @@ begin
     Vars[3].Name := 'my_vec3';
     Vars[4].Name := 'my_vec4';
 
-    { test 2f }
+    { test 2 }
 
     Prog := ParseProgram(FileToString('test_script_vectors.kscript'), Vars);
     Prog.ExecuteFunction('test_2', []);
@@ -83,7 +83,7 @@ begin
       (Vars[2] as TKamScriptVec2f).Value,
       Vector2Single(456 + 44, VectorLen(Vector2Single(456 + 44, 10 + 13)))));
 
-    { test 3f }
+    { test 3 }
 
     Prog.ExecuteFunction('test_3', []);
     Assert((Vars[0] as TKamScriptInteger).Value = 0);
@@ -96,13 +96,13 @@ begin
       Vector3Single(456 + 44, 10 + 13,
         VectorLen(Vector3Single(456 + 44, 10 + 13, 33)))));
 
-    { test 3f cross }
+    { test 3 cross }
 
     Prog.ExecuteFunction('test_cross', []);
     Assert(VectorsEqual(
       (Vars[3] as TKamScriptVec3f).Value, Vector3Single(0, 0, 1)));
 
-    { test 4f }
+    { test 4 }
 
     Prog.ExecuteFunction('test_4', []);
     Assert((Vars[0] as TKamScriptInteger).Value = 0);
@@ -171,7 +171,7 @@ begin
     Vars[3].Name := 'my_vec3';
     Vars[4].Name := 'my_vec4';
 
-    { test 2f }
+    { test 2 }
 
     Prog := ParseProgram(FileToString('test_script_vectors_double.kscript'), Vars);
     Prog.ExecuteFunction('test_2', []);
@@ -184,7 +184,7 @@ begin
       (Vars[2] as TKamScriptVec2d).Value,
       Vector2Double(456 + 44, VectorLen(Vector2Double(456 + 44, 10 + 13)))));
 
-    { test 3f }
+    { test 3 }
 
     Prog.ExecuteFunction('test_3', []);
     Assert((Vars[0] as TKamScriptInteger).Value = 0);
@@ -197,13 +197,13 @@ begin
       Vector3Double(456 + 44, 10 + 13,
         VectorLen(Vector3Double(456 + 44, 10 + 13, 33)))));
 
-    { test 3f cross }
+    { test 3 cross }
 
     Prog.ExecuteFunction('test_cross', []);
     Assert(VectorsEqual(
       (Vars[3] as TKamScriptVec3d).Value, Vector3Double(0, 0, 1)));
 
-    { test 4f }
+    { test 4 }
 
     Prog.ExecuteFunction('test_4', []);
     Assert((Vars[0] as TKamScriptInteger).Value = 0);
