@@ -39,3 +39,6 @@ function main_4f()
     vector_set(my_vec4f, vector_get_count(my_vec4f) - 1, vector_length(my_vec4f)),
 
     { else - should not happen } my_float := 666)
+
+function main_test_cross()
+  my_vec3f := vector_cross(vector(1, 0, 0), vector(0, 1, 0))

@@ -95,6 +95,12 @@ begin
       Vector3Single(456 + 44, 10 + 13,
         VectorLen(Vector3Single(456 + 44, 10 + 13, 33)))));
 
+    { test 3f cross }
+
+    Prog.ExecuteFunction('main_test_cross', []);
+    Assert(VectorsEqual(
+      (Vars[3] as TKamScriptVec3f).Value, Vector3Single(0, 0, 1)));
+
     { test 4f }
 
     Prog.ExecuteFunction('main_4f', []);
