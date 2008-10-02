@@ -24,7 +24,7 @@ unit MatrixNavigation;
 
 interface
 
-uses SysUtils, VectorMath, KambiUtils, Keys, Boxes3d;
+uses SysUtils, VectorMath, KambiUtils, Keys, Boxes3d, Quaternions;
 
 type
   TMouseButton = (mbLeft, mbMiddle, mbRight);
@@ -379,15 +379,28 @@ type
   { Navigate the 3D model in examine mode, like you would hold
     a box with the model inside.
     The model is displayed around MoveAmount 3D point,
-    it's rotated by RotationAngle and scaled by ScaleFactor
+    it's rotated by @link(Rotations) and scaled by ScaleFactor
     (scaled around MoveAmount point). }
   TMatrixExaminer = class(TMatrixNavigatorWithIdle)
   private
-    FRotationsSpeed, FRotationsAngle, FMoveAMount, FModelBoxMiddle: TVector3Single;
+    FMoveAMount, FModelBoxMiddle: TVector3Single;
+    FRotations: TQuaternion;
+    { Speed of rotations.
+
+      This could be implemented as a quaternion,
+      it even was implemented like this (and working!) for a couple
+      of minutes. But this caused one problem: in Idle, I want to
+      apply FRotationsAnim to Rotations *scaled by CompSpeed*.
+      There's no efficient way with quaternions to say "take only CompSpeed
+      fraction of angle encoded in FRotationsAnim", AFAIK.
+      The only way would be to convert FRotationsAnim back to AxisAngle,
+      then scale angle, then convert back to quaternion... which makes
+      the whole exercise useless. }
+    FRotationsAnim: TVector3Single;
     FScaleFactor: Single;
     FModelBox: TBox3d;
-    procedure SetRotationsSpeed(const Value: TVector3Single);
-    procedure SetRotationsAngle(const Value: TVector3Single);
+    procedure SetRotationsAnim(const Value: TVector3Single);
+    procedure SetRotations(const Value: TQuaternion);
     procedure SetScaleFactor(const Value: Single);
     procedure SetMoveAmount(const Value: TVector3Single);
     procedure SetModelBox(const Value: TBox3d);
@@ -426,15 +439,13 @@ type
 
     { Current camera properties ---------------------------------------------- }
 
-    { RotationsAngle is the current rotation of the model, around each base
-      axis, in degress. RotationsSpeed is the speed how fast RotationsAngle change.
-      Rotation is done around ModelBox middle (with MoveAmount added).
-      Default values of these are zero vectors.
-      @groupBegin }
-    property RotationsSpeed: TVector3Single
-      read FRotationsSpeed write SetRotationsSpeed;
-    property RotationsAngle: TVector3Single
-      read FRotationsAngle write SetRotationsAngle;
+    { Current rotation of the model.
+      Rotation is done around ModelBox middle (with MoveAmount added). }
+    property Rotations: TQuaternion read FRotations write SetRotations;
+
+    { Continous rotation animation, applied each Idle to Rotations. }
+    property RotationsAnim: TVector3Single read FRotationsAnim write SetRotationsAnim;
+
     { @groupEnd }
 
     { MoveAmount says how to translate the model.
@@ -460,9 +471,9 @@ type
       to make the navigation work best.
 
       The idea is that usually this is the only property that you have to set.
-      ScaleFactor, MoveAmount, RotationsSpeed will be almost directly
+      ScaleFactor, MoveAmount, RotationsAnim will be almost directly
       controlled by user (through KeyDown and other events).
-      RotationsAngle will be automatically modified by @link(Idle).
+      @link(Rotations) will be automatically modified by @link(Idle).
 
       So often you only need to set ModelBox, once,
       and everything else will work smoothly. }
@@ -482,11 +493,10 @@ type
     { Methods performing navigation.
       Usually you want to just leave this for user to control. --------------- }
 
-    { StopRotating sets RotationsSpeed to zero, stopping the rotation of
-      the model. }
+    { Sets RotationsAnim to zero, stopping the rotation of the model. }
     procedure StopRotating;
 
-    { Rotate adds SpeedChange (in degrees) to RotationSpeed[Coord],
+    { Adds small rotation around base axis Coord to the RotationsAnim,
       thus making rotation faster. }
     procedure Rotate(coord: integer; const SpeedChange: Single);
 
@@ -1634,18 +1644,14 @@ end;
 function TMatrixExaminer.Matrix: TMatrix4Single;
 begin
  result := TranslationMatrix(VectorAdd(MoveAmount, FModelBoxMiddle));
- result := MultMatrices(result, RotationMatrixDeg(RotationsAngle[0], Vector3Single(1, 0, 0)));
- result := MultMatrices(result, RotationMatrixDeg(RotationsAngle[1], Vector3Single(0, 1, 0)));
- result := MultMatrices(result, RotationMatrixDeg(RotationsAngle[2], Vector3Single(0, 0, 1)));
+ result := MultMatrices(result, QuatToRotationMatrix(Rotations));
  result := MultMatrices(result, ScalingMatrix(Vector3Single(ScaleFactor, ScaleFactor, ScaleFactor)));
  result := MultMatrices(result, TranslationMatrix(VectorNegate(FModelBoxMiddle)));
 end;
 
 function TMatrixExaminer.RotationOnlyMatrix: TMatrix4Single;
 begin
- result := RotationMatrixDeg(RotationsAngle[0], Vector3Single(1, 0, 0));
- result := MultMatrices(result, RotationMatrixDeg(RotationsAngle[1], Vector3Single(0, 1, 0)));
- result := MultMatrices(result, RotationMatrixDeg(RotationsAngle[2], Vector3Single(0, 0, 1)));
+ Result := QuatToRotationMatrix(Rotations);
 end;
 
 procedure TMatrixExaminer.Idle(const CompSpeed: Single;
@@ -1655,16 +1661,38 @@ procedure TMatrixExaminer.Idle(const CompSpeed: Single;
 var i: integer;
     move_change, rot_speed_change, scale_change: Single;
     ModsDown: TModifierKeys;
+    RotChange: Single;
 begin
   ModsDown := ModifiersDown(KeysDown);
 
-  { porownujemy RotationsAngle z (0, 0, 0). W ten sposob jezeli wywolales ostatnio
-    StopRotating to teraz nie bedziemy w Idle ciagle generowac MatrixChanged. }
-  if (RotationsSpeed[0] <> 0) or
-     (RotationsSpeed[1] <> 0) or
-     (RotationsSpeed[2] <> 0) then
+  { If given RotationsAnim component is zero, no need to change current Rotations.
+    What's more important, this avoids the need to call MatrixChanged,
+    so things like PostRedisplay will not be continously called when
+    model doesn't rotate.
+
+    We check using exact equality <> 0, this is Ok since the main point is to
+    avoid work when StopRotating was called and user didn't touch arrow
+    keys (that increase RotationsAnim). Exact equality is Ok check
+    to detect this. }
+
+  if not IsPerfectlyZeroVector(FRotationsAnim) then
   begin
-    for i := 0 to 2 do RotationsAngle[i] += RotationsSpeed[i]* CompSpeed * 50;
+    RotChange := CompSpeed;
+
+    if FRotationsAnim[0] <> 0 then
+      FRotations := QuatMultiply(QuatFromAxisAngle(UnitVector3Single[0],
+        FRotationsAnim[0] * RotChange), FRotations);
+
+    if FRotationsAnim[1] <> 0 then
+      FRotations := QuatMultiply(QuatFromAxisAngle(UnitVector3Single[1],
+        FRotationsAnim[1] * RotChange), FRotations);
+
+    if FRotationsAnim[2] <> 0 then
+      FRotations := QuatMultiply(QuatFromAxisAngle(UnitVector3Single[2],
+        FRotationsAnim[2] * RotChange), FRotations);
+
+    QuatLazyNormalizeTo1st(FRotations);
+
     MatrixChanged;
   end;
 
@@ -1704,10 +1732,16 @@ begin
 end;
 
 procedure TMatrixExaminer.StopRotating;
-begin FRotationsSpeed := ZeroVector3Single; MatrixChanged; end;
+begin
+  FRotationsAnim := ZeroVector3Single;
+  MatrixChanged;
+end;
 
 procedure TMatrixExaminer.Rotate(coord: integer; const SpeedChange: Single);
-begin FRotationsSpeed[coord] += SpeedChange; MatrixChanged; end;
+begin
+  FRotationsAnim[coord] += SpeedChange;
+  MatrixChanged;
+end;
 
 procedure TMatrixExaminer.Scale(const ScaleBy: Single);
 begin FScaleFactor *= ScaleBy; MatrixChanged; end;
@@ -1723,11 +1757,11 @@ end;
 
 { TMatrixExaminer.Set* properties }
 
-procedure TMatrixExaminer.SetRotationsSpeed(const Value: TVector3Single);
-begin FRotationsSpeed := Value; MatrixChanged; end;
+procedure TMatrixExaminer.SetRotationsAnim(const Value: TVector3Single);
+begin FRotationsAnim := Value; MatrixChanged; end;
 
-procedure TMatrixExaminer.SetRotationsAngle(const Value: TVector3Single);
-begin FRotationsAngle := Value; MatrixChanged; end;
+procedure TMatrixExaminer.SetRotations(const Value: TQuaternion);
+begin FRotations := Value; MatrixChanged; end;
 
 procedure TMatrixExaminer.SetScaleFactor(const Value: Single);
 begin FScaleFactor := Value; MatrixChanged; end;
@@ -1742,8 +1776,8 @@ begin
   FMoveAmount := VectorAdd(
     VectorNegate(FModelBoxMiddle),
     Vector3Single(0, 0, -Box3dAvgSize(FModelBox)*2));
- FRotationsAngle := ZeroVector3Single;
- FRotationsSpeed := ZeroVector3Single;
+ FRotations := QuatIdentityRot;
+ FRotationsAnim := ZeroVector3Single;
  FScaleFactor := 1.0;
 
  MatrixChanged;
@@ -1858,8 +1892,12 @@ begin
   { Rotating }
   if (mbLeft in MousePressed) and (ModsDown = []) then
   begin
-    FRotationsAngle[1] += (NewX - OldX) / 2;
-    FRotationsAngle[0] += (NewY - OldY) / 2;
+    FRotations := QuatMultiply(
+      QuatFromAxisAngle(Vector3Single(0, 1, 0), (NewX - OldX) / 100),
+      FRotations);
+    FRotations := QuatMultiply(
+      QuatFromAxisAngle(Vector3Single(1, 0, 0), (NewY - OldY) / 100),
+      FRotations);
     MatrixChanged;
     Result := true;
   end else

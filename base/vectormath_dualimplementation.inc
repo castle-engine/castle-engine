@@ -138,6 +138,16 @@ begin
            (Abs(V[3]) < SCALAR_EQUALITY_EPSILON);
 end;
 
+function IsPerfectlyZeroVector(const V: TYPE_VECTOR3): boolean;
+begin
+  Result := IsMemCharFilled(v, SizeOf(v), #0);
+end;
+
+function IsPerfectlyZeroVector(const V: TYPE_VECTOR4): boolean;
+begin
+  Result := IsMemCharFilled(v, SizeOf(v), #0);
+end;
+
 function VectorAdjustToLength(const v: TYPE_VECTOR3; VecLen: TYPE_SCALAR): TYPE_VECTOR3;
 begin
  result := VectorScale(v, VecLen/VectorLen(v));

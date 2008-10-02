@@ -85,18 +85,6 @@ procedure CamDirUp2Orient(CamDir, CamUp: TVector3Single;
   i nawet teraz nie wiem jaki bo ostatecznie zrozumialem sama idee tamtego kodu
   i zapisalem tutaj rzeczy po swojemu, i ku mojej radosci nie mam tego bledu.
 
-  Tutejsze funkcje lokalne operujace na kwaternionach zamierzam
-  odseparowac kiedys, jak tylko bede chcial gdzies jeszcze uzyc kwaternionow.
-
-  Niniejszym ustalam sobie ze jesli gdzies potraktuje kwaternion jako wektor
-  4 x skalar to bede mial na mysli ze pierwsze trzy skladowe okreslaja wektor
-  a ostatnia skladowa - kat, albo (ogolniej) ze pierwsze trzy skladowe
-  to wspolczynniki przy i, j, k a ostatnia skladowa to czesc rzeczywista.
-  Widzialem rozne konwencje tego, ale bede sie trzymal powyzszego bo
-  - tak jest podawane SFRotation VRMLa (ktore nie jest kwaternionem ale
-    jest podobne)
-  - tak bylo podawane na PGK gdzie pierwszy raz zobaczylem kwaternion
-
   Pomysl na ta funkcje: mamy CamDir i CamUp. Zeby je zamienic na
   orientation VRMLa, czyli axis i angle obrotu standardowego dir
   (0, 0, -1) i standardowego up (0, 1, 0), wyobrazamy sobie jaka transformacje

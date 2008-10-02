@@ -823,6 +823,11 @@ function IsZeroVector(const v: TVector4Double): boolean; overload;
 
 function IsZeroVector(const v: TVector4Cardinal): boolean; overload;
 
+function IsPerfectlyZeroVector(const v: TVector3Single): boolean; overload;
+function IsPerfectlyZeroVector(const v: TVector3Double): boolean; overload;
+function IsPerfectlyZeroVector(const v: TVector4Single): boolean; overload;
+function IsPerfectlyZeroVector(const v: TVector4Double): boolean; overload;
+
 { Subtract two vectors.
 
   Versions *To1st place result back into the 1st vector,
