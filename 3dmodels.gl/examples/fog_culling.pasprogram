@@ -160,7 +160,7 @@ class function TDummy.MoveAllowed(Navigator: TWalkNavigator;
 begin
  Result := Scene.DefaultTriangleOctree.MoveAllowed(
    Navigator.CameraPos, ProposedNewPos, NewPos, CameraRadius,
-   NoItemIndex, nil);
+   BecauseOfGravity, NoItemIndex, nil);
 end;
 
 var
