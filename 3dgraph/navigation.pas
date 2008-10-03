@@ -244,8 +244,7 @@ type
       @item(Call navigator events when you receive them from the user.
         For example, in your OnKeyDown callback, you want to call
         @code(Navigator.KeyDown) passing the parameters of pressed key.
-        If your OnIdle callback you want to call @code(Navigator.Idle)
-        (assuming that you work with TNavigatorWithIdle descendant).
+        If your OnIdle callback you want to call @code(Navigator.Idle).
 
         If you plan to use this with TGLWindow, then consider using
         TGLWindowNavigated class, this will take care of passing events
@@ -262,6 +261,7 @@ type
   private
     MatrixChangedSchedule: Cardinal;
     IsMatrixChangedScheduled: boolean;
+    FIgnoreAllInputs: boolean;
   protected
     { This is called always when @link(Matrix) changed.
       Actually, when any
@@ -346,13 +346,7 @@ type
   { ... do the job here ... }
 #) *)
     function MouseDown(Button: TMouseButton): boolean; virtual;
-  end;
 
-  TNavigatorClass = class of TNavigator;
-
-  { A descendant of @inherited that has an Idle method. }
-  TNavigatorWithIdle = class(TNavigator)
-  public
     { Call this often, to respond to user actions and to perform
       other tasks (falling down due to gravity in Walker mode,
       rotating model in Examine mode, and many more).
@@ -373,7 +367,15 @@ type
       KeysDown: PKeysBooleans;
       CharactersDown: PCharactersBooleans;
       const MousePressed: TMouseButtons); virtual; abstract;
+
+    { If true, we will ignore all inputs passed to this class.
+      So this navigator will not handle any key/mouse events.
+      This is useful to implement e.g. VRML "NONE" navigation type. }
+    property IgnoreAllInputs: boolean
+      read FIgnoreAllInputs write FIgnoreAllInputs default false;
   end;
+
+  TNavigatorClass = class of TNavigator;
 
   T3BoolInputs = array [0..2, boolean] of TInputShortcut;
 
@@ -382,7 +384,7 @@ type
     The model is displayed around MoveAmount 3D point,
     it's rotated by @link(Rotations) and scaled by ScaleFactor
     (scaled around MoveAmount point). }
-  TExamineNavigator = class(TNavigatorWithIdle)
+  TExamineNavigator = class(TNavigator)
   private
     FMoveAMount, FModelBoxMiddle: TVector3Single;
     FRotations: TQuaternion;
@@ -544,7 +546,7 @@ type
   { Navigation by walking (first-person-shooter-like moving) in 3D scene.
     Camera is defined by it's position, looking direction
     and up vector, user can rotate and move camera using various keys. }
-  TWalkNavigator = class(TNavigatorWithIdle)
+  TWalkNavigator = class(TNavigator)
   private
     FCameraPos, FCameraDir, FCameraUp,
     FInitialCameraPos, FInitialCameraDir, FInitialCameraUp: TVector3Single;
@@ -1705,31 +1707,34 @@ begin
   { we will apply CompSpeed to scale_change later }
   scale_change := 1.5;
 
-  if ModsDown = [mkCtrl] then
+  if not IgnoreAllInputs then
   begin
-    for i := 0 to 2 do
+    if ModsDown = [mkCtrl] then
     begin
-      if Inputs_Move[i, true ].IsPressed(KeysDown, CharactersDown, MousePressed) then
-        Move(i, +move_change);
-      if Inputs_Move[i, false].IsPressed(KeysDown, CharactersDown, MousePressed) then
-        Move(i, -move_change);
-    end;
-  end else
-  if ModsDown = [] then
-  begin
-    for i := 0 to 2 do
+      for i := 0 to 2 do
+      begin
+        if Inputs_Move[i, true ].IsPressed(KeysDown, CharactersDown, MousePressed) then
+          Move(i, +move_change);
+        if Inputs_Move[i, false].IsPressed(KeysDown, CharactersDown, MousePressed) then
+          Move(i, -move_change);
+      end;
+    end else
+    if ModsDown = [] then
     begin
-      if Inputs_Rotate[i, true ].IsPressed(KeysDown, CharactersDown, MousePressed) then
-        Rotate(i, +rot_speed_change);
-      if Inputs_Rotate[i, false].IsPressed(KeysDown, CharactersDown, MousePressed) then
-        Rotate(i, -rot_speed_change);
+      for i := 0 to 2 do
+      begin
+        if Inputs_Rotate[i, true ].IsPressed(KeysDown, CharactersDown, MousePressed) then
+          Rotate(i, +rot_speed_change);
+        if Inputs_Rotate[i, false].IsPressed(KeysDown, CharactersDown, MousePressed) then
+          Rotate(i, -rot_speed_change);
+      end;
     end;
-  end;
 
-  if Input_ScaleLarger.IsPressed(KeysDown, CharactersDown, MousePressed) then
-    Scale(Power(scale_change, CompSpeed));
-  if Input_ScaleSmaller.IsPressed(KeysDown, CharactersDown, MousePressed) then
-    Scale(Power(1 / scale_change, CompSpeed));
+    if Input_ScaleLarger.IsPressed(KeysDown, CharactersDown, MousePressed) then
+      Scale(Power(scale_change, CompSpeed));
+    if Input_ScaleSmaller.IsPressed(KeysDown, CharactersDown, MousePressed) then
+      Scale(Power(1 / scale_change, CompSpeed));
+  end;
 end;
 
 procedure TExamineNavigator.StopRotating;
@@ -1797,6 +1802,8 @@ function TExamineNavigator.EventDown(MouseEvent: boolean; Key: TKey;
   ACharacter: Char;
   AMouseButton: TMouseButton): boolean;
 begin
+  if IgnoreAllInputs then Exit(false);
+
   if Input_StopRotating.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
   begin
     StopRotating;
@@ -1885,8 +1892,11 @@ begin
   }
 
   { Optimization, since MouseMove occurs very often: when nothing pressed,
-    do nothing. }
-  if (MousePressed = []) or (not MouseNavigation) then Exit;
+    or should be ignored, do nothing. }
+  if (MousePressed = []) or
+     (not MouseNavigation) or
+     IgnoreAllInputs then
+    Exit;
 
   ModsDown := ModifiersDown(KeysDown) * [mkShift, mkCtrl];
 
@@ -2909,76 +2919,78 @@ begin
 
   BeginMatrixChangedSchedule;
   try
-
-    FIsCrouching := Input_Crouch.IsPressed(KeysDown, CharactersDown, MousePressed);
-
-    if (not CheckModsDown) or
-       (ModsDown - [mkShift] = []) then
+    if not IgnoreAllInputs then
     begin
-      CheckRotates(1.0);
+      FIsCrouching := Input_Crouch.IsPressed(KeysDown, CharactersDown, MousePressed);
 
-      if Input_Forward.IsPressed(KeysDown, CharactersDown, MousePressed) then
-        MoveHorizontal;
-      if Input_Backward.IsPressed(KeysDown, CharactersDown, MousePressed) then
-        MoveHorizontal(-1);
-
-      if Input_RightStrafe.IsPressed(KeysDown, CharactersDown, MousePressed) then
+      if (not CheckModsDown) or
+         (ModsDown - [mkShift] = []) then
       begin
-        RotateHorizontalForStrafeMove(-90);
-        MoveHorizontal;
-        RotateHorizontalForStrafeMove(90);
-      end;
+        CheckRotates(1.0);
 
-      if Input_LeftStrafe.IsPressed(KeysDown, CharactersDown, MousePressed) then
+        if Input_Forward.IsPressed(KeysDown, CharactersDown, MousePressed) then
+          MoveHorizontal;
+        if Input_Backward.IsPressed(KeysDown, CharactersDown, MousePressed) then
+          MoveHorizontal(-1);
+
+        if Input_RightStrafe.IsPressed(KeysDown, CharactersDown, MousePressed) then
+        begin
+          RotateHorizontalForStrafeMove(-90);
+          MoveHorizontal;
+          RotateHorizontalForStrafeMove(90);
+        end;
+
+        if Input_LeftStrafe.IsPressed(KeysDown, CharactersDown, MousePressed) then
+        begin
+          RotateHorizontalForStrafeMove(90);
+          MoveHorizontal;
+          RotateHorizontalForStrafeMove(-90);
+        end;
+
+        { A simple implementation of Input_UpMove was
+            RotateVertical(90); Move(MoveVerticalSpeed * CompSpeed * 50); RotateVertical(-90)
+          Similarly, simple implementation of Input_DownMove was
+            RotateVertical(-90); Move(MoveVerticalSpeed * CompSpeed * 50); RotateVertical(90)
+          But this is not good, because when PreferGravityUp, we want to move
+          along the GravityUp. (Also later note: RotateVertical is now bounded by
+          MinAngleRadFromGravityUp). }
+        if Input_UpMove.IsPressed(KeysDown, CharactersDown, MousePressed) then
+          MoveVertical( 1);
+        if Input_DownMove.IsPressed(KeysDown, CharactersDown, MousePressed) then
+          MoveVertical(-1);
+
+        { zmiana szybkosci nie wplywa na Matrix (nie od razu). Ale wywolujemy
+          ScheduleMatrixChanged - zmienilismy swoje wlasciwosci, moze sa one np. gdzies
+          wypisywane w oknie na statusie i okno potrzebuje miec PostRedisplay po zmianie
+          Move*Speed ?.
+
+          How to apply CompSpeed * 50 here ?
+          I can't just ignore CompSpeed * 50, but I can't also write
+            FMoveHorizontalSpeed *= 1.1 * CompSpeed * 50;
+          What I want is such (pl: ci±g³a) function that e.g.
+            F(FMoveHorizontalSpeed, 2) = F(F(FMoveHorizontalSpeed, 1), 1)
+          I.e. CompSpeed * 50 = 2 should work just like doing the same change twice.
+          So F is FMoveHorizontalSpeed * Power(1.1, CompSpeed * 50)
+          Easy!
+        }
+        if Input_MoveSpeedInc.IsPressed(KeysDown, CharactersDown, MousePressed) then
+        begin
+          FMoveHorizontalSpeed *= Power(1.1, CompSpeed * 50);
+          FMoveVerticalSpeed *= Power(1.1, CompSpeed * 50);
+          ScheduleMatrixChanged;
+        end;
+
+        if Input_MoveSpeedDec.IsPressed(KeysDown, CharactersDown, MousePressed) then
+        begin
+          FMoveHorizontalSpeed /= Power(1.1, CompSpeed * 50);
+          FMoveVerticalSpeed /= Power(1.1, CompSpeed * 50);
+          ScheduleMatrixChanged;
+        end;
+      end else
+      if AllowSlowerRotations and (ModsDown = [mkCtrl]) then
       begin
-        RotateHorizontalForStrafeMove(90);
-        MoveHorizontal;
-        RotateHorizontalForStrafeMove(-90);
+        CheckRotates(0.1);
       end;
-
-      { A simple implementation of Input_UpMove was
-          RotateVertical(90); Move(MoveVerticalSpeed * CompSpeed * 50); RotateVertical(-90)
-        Similarly, simple implementation of Input_DownMove was
-          RotateVertical(-90); Move(MoveVerticalSpeed * CompSpeed * 50); RotateVertical(90)
-        But this is not good, because when PreferGravityUp, we want to move
-        along the GravityUp. (Also later note: RotateVertical is now bounded by
-        MinAngleRadFromGravityUp). }
-      if Input_UpMove.IsPressed(KeysDown, CharactersDown, MousePressed) then
-        MoveVertical( 1);
-      if Input_DownMove.IsPressed(KeysDown, CharactersDown, MousePressed) then
-        MoveVertical(-1);
-
-      { zmiana szybkosci nie wplywa na Matrix (nie od razu). Ale wywolujemy
-        ScheduleMatrixChanged - zmienilismy swoje wlasciwosci, moze sa one np. gdzies
-        wypisywane w oknie na statusie i okno potrzebuje miec PostRedisplay po zmianie
-        Move*Speed ?.
-
-        How to apply CompSpeed * 50 here ?
-        I can't just ignore CompSpeed * 50, but I can't also write
-          FMoveHorizontalSpeed *= 1.1 * CompSpeed * 50;
-        What I want is such (pl: ci±g³a) function that e.g.
-          F(FMoveHorizontalSpeed, 2) = F(F(FMoveHorizontalSpeed, 1), 1)
-        I.e. CompSpeed * 50 = 2 should work just like doing the same change twice.
-        So F is FMoveHorizontalSpeed * Power(1.1, CompSpeed * 50)
-        Easy!
-      }
-      if Input_MoveSpeedInc.IsPressed(KeysDown, CharactersDown, MousePressed) then
-      begin
-        FMoveHorizontalSpeed *= Power(1.1, CompSpeed * 50);
-        FMoveVerticalSpeed *= Power(1.1, CompSpeed * 50);
-        ScheduleMatrixChanged;
-      end;
-
-      if Input_MoveSpeedDec.IsPressed(KeysDown, CharactersDown, MousePressed) then
-      begin
-        FMoveHorizontalSpeed /= Power(1.1, CompSpeed * 50);
-        FMoveVerticalSpeed /= Power(1.1, CompSpeed * 50);
-        ScheduleMatrixChanged;
-      end;
-    end else
-    if AllowSlowerRotations and (ModsDown = [mkCtrl]) then
-    begin
-      CheckRotates(0.1);
     end;
 
     PreferGravityUpForRotationsIdle;
@@ -3048,6 +3060,8 @@ function TWalkNavigator.EventDown(MouseEvent: boolean; Key: TKey;
   ACharacter: Char;
   AMouseButton: TMouseButton): boolean;
 begin
+  if IgnoreAllInputs then Exit(false);
+
   if Input_GravityUp.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
   begin
     CameraUp := GravityUp;
@@ -3226,7 +3240,7 @@ end;
 
 procedure TWalkNavigator.MouseMove(MouseXChange, MouseYChange: Integer);
 begin
-  if MouseLook then
+  if MouseLook and (not IgnoreAllInputs) then
   begin
     if MouseXChange <> 0 then
       RotateHorizontal(-MouseXChange * MouseLookHorizontalSensitivity);

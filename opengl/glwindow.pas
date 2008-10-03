@@ -4431,9 +4431,8 @@ end;
 
 procedure TGLWindowNavigated.EventIdle;
 begin
-  if ReallyUseNavigator and (Navigator is TNavigatorWithIdle) then
-    TNavigatorWithIdle(Navigator).Idle(
-      IdleSpeed, @KeysDown, @CharactersDown, MousePressed);
+  if ReallyUseNavigator then
+    Navigator.Idle(IdleSpeed, @KeysDown, @CharactersDown, MousePressed);
   inherited;
 end;
 
