@@ -40,7 +40,7 @@ unit GLWindowVRMLBrowser;
   - you can undefine REBUILD_OCTREE to always use the first octree.
     This makes collision detection work with the original geometry,
     and sometimes may make it unstable. OTOH, all works fast. }
-{ $define REBUILD_OCTREE}
+{$define REBUILD_OCTREE}
 
 interface
 
@@ -48,7 +48,7 @@ uses VectorMath, GLWindow, VRMLNodes, VRMLGLScene, VRMLScene, Navigation;
 
 type
   { A simple VRML browser in a window. This manages TVRMLGLScene,
-    navigator (only Walk navigation) and octrees.
+    navigator (automatically adjusted to NavigationInfo.type) and octrees.
     You simply call @link(Load) method and all is done.
 
     This class tries to be a thin (not really "opaque")
@@ -106,7 +106,6 @@ type
   private
     FScene: TVRMLGLScene;
 
-    { CameraRadius is needed for collision detection }
     CameraRadius: Single;
 
     function AngleOfViewX: Single;
@@ -114,6 +113,9 @@ type
     function MoveAllowed(ANavigator: TWalkNavigator;
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean;
+    procedure GetCameraHeight(ANavigator: TWalkNavigator;
+      out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
+
     procedure ScenePostRedisplay(Scene: TVRMLScene);
     procedure MatrixChanged(ANavigator: TNavigator);
     procedure BoundViewpointVectorsChanged(Scene: TVRMLScene);
@@ -152,8 +154,8 @@ constructor TGLWindowVRMLBrowser.Create;
 begin
   inherited;
 
-  Navigator := TWalkNavigator.Create(@MatrixChanged);
-  OwnsNavigator := true;
+  { we manage Navigator ourselves, this makes code more consequent to follow }
+  OwnsNavigator := false;
 
   Load(nil, true);
 end;
@@ -161,6 +163,8 @@ end;
 destructor TGLWindowVRMLBrowser.Destroy;
 begin
   FreeAndNil(Scene);
+  Navigator.Free;
+  Navigator := nil;
   inherited;
 end;
 
@@ -174,6 +178,8 @@ var
   CamPos, CamDir, CamUp, GravityUp: TVector3Single;
 begin
   FreeAndNil(Scene);
+  Navigator.Free;
+  Navigator := nil;
 
   FScene := TVRMLGLScene.Create(ARootNode, OwnsRootNode, roSeparateShapeStates);
 
@@ -183,17 +189,27 @@ begin
   Scene.DefaultShapeStateOctree :=
     Scene.CreateShapeStateOctree('Building ShapeState octree');
 
-  Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
+  Navigator := Scene.CreateNavigator(CameraRadius);
+  Navigator.OnMatrixChanged := @MatrixChanged;
 
-  { init Navigator }
-  WalkNav.Init(CamPos,
-    VectorAdjustToLength(CamDir, Box3dAvgSize(Scene.BoundingBox, 1.0) * 0.01 * 0.4),
-    CamUp, GravityUp,
-    0.0, 0.0 { unused, we don't use Gravity here });
+  if Navigator is TWalkNavigator then
+  begin
+    Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
 
-  { init collision detection }
-  CameraRadius := Box3dAvgSize(Scene.BoundingBox, 1.0) * 0.01;
-  WalkNav.OnMoveAllowed := @MoveAllowed;
+    { init Navigator }
+    WalkNav.Init(CamPos,
+      VectorAdjustToLength(CamDir, Box3dAvgSize(Scene.BoundingBox, 1.0) * 0.01 * 0.4),
+      CamUp, GravityUp,
+      { We already have correct CameraPreferredHeight set by CreateNavigator }
+      WalkNav.CameraPreferredHeight, CameraRadius);
+
+    WalkNav.OnMoveAllowed := @MoveAllowed;
+    WalkNav.OnGetCameraHeight := @GetCameraHeight;
+  end else
+  if Navigator is TExamineNavigator then
+  begin
+    ExamineNav.Init(Scene.BoundingBox);
+  end;
 
   { prepare for events procesing (although we let the decision whether
     to turn ProcessEvent := true to the caller). }
@@ -226,7 +242,9 @@ begin
     glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
 
   glLoadMatrix(Navigator.Matrix);
-  Scene.RenderFrustumOctree(WalkNav.Frustum, tgAll);
+  if Navigator is TWalkNavigator then
+    Scene.RenderFrustumOctree(WalkNav.Frustum, tgAll) else
+    Scene.Render(nil, tgAll);
 end;
 
 procedure TGLWindowVRMLBrowser.EventInit;
@@ -238,7 +256,10 @@ end;
 
 procedure TGLWindowVRMLBrowser.EventClose;
 begin
-  Scene.CloseGL;
+  { This may be called in case of some exceptions, so we better we prepared
+    for Scene = nil case. }
+  if Scene <> nil then
+    Scene.CloseGL;
   inherited;
 end;
 
@@ -264,7 +285,8 @@ procedure TGLWindowVRMLBrowser.EventResize;
     ProjectionMatrix: TMatrix4f;
   begin
     glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
-    WalkNav.ProjectionMatrix := ProjectionMatrix;
+    if Navigator is TWalkNavigator then
+      WalkNav.ProjectionMatrix := ProjectionMatrix;
   end;
 
 var
@@ -319,7 +341,8 @@ var
 begin
   inherited;
 
-  if Scene.DefaultTriangleOctree <> nil then
+  if (Scene.DefaultTriangleOctree <> nil) and
+     (Navigator is TWalkNavigator) then
   begin
     Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, Ray0, RayVector);
 
@@ -359,6 +382,25 @@ begin
   Result := Scene.DefaultTriangleOctree.MoveAllowed(
     ANavigator.CameraPos, ProposedNewPos, NewPos, CameraRadius,
     NoItemIndex, nil);
+
+  { Don't let user to fall outside of the box because of gravity. }
+  if Result and BecauseOfGravity then
+    { TODO: instead of setting Result to false, this should
+      actually move NewPos so that it's *exactly* on the border
+      of bounding box. }
+    Result := Box3dPointInside(NewPos, Scene.BoundingBox);
+end;
+
+procedure TGLWindowVRMLBrowser.GetCameraHeight(ANavigator: TWalkNavigator;
+  out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
+var
+  GroundItemIndex: Integer;
+begin
+  Scene.DefaultTriangleOctree.GetCameraHeight(
+    ANavigator.CameraPos,
+    ANavigator.GravityUp,
+    IsAboveTheGround, SqrHeightAboveTheGround, GroundItemIndex,
+    NoItemIndex, nil);
 end;
 
 procedure TGLWindowVRMLBrowser.ScenePostRedisplay(Scene: TVRMLScene);
@@ -372,7 +414,8 @@ begin
     before Scene is initialized. So to be on the safest side, we check
     here Scene <> nil. }
 
-  if Scene <> nil then
+  if (Scene <> nil) and
+     (Navigator is TWalkNavigator) then
     Scene.ViewerPositionChanged(WalkNav.CameraPos);
   PostRedisplay;
 end;
@@ -386,7 +429,8 @@ var
 begin
   TVRMLViewpointNode(Scene.ViewpointStack.Top).GetCameraVectors(
     CameraPos, CameraDir, CameraUp, GravityUp);
-  WalkNav.SetInitialCameraLookDir(CameraPos, CameraDir, CameraUp, true);
+  if Navigator is TWalkNavigator then
+    WalkNav.SetInitialCameraLookDir(CameraPos, CameraDir, CameraUp, true);
 end;
 
 procedure TGLWindowVRMLBrowser.GeometryChanged(Scene: TVRMLScene);

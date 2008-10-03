@@ -28,7 +28,7 @@ uses
   SysUtils, Classes, VectorMath, Boxes3d,
   VRMLFields, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLShapeState, VRMLTriangleOctree, ProgressUnit, VRMLShapeStateOctree,
-  Keys, KambiTimeUtils;
+  Keys, KambiTimeUtils, Navigation;
 
 {$define read_interface}
 
@@ -1215,6 +1215,25 @@ type
       See [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_script_compiled]. }
     procedure RegisterCompiledScript(const HandlerName: string;
       Handler: TCompiledScriptHandler);
+
+    { Create and initialize TNavigator instance based on currently
+      bound NavigationInfo node. Calculates also CameraRadius for you.
+
+      Bound NavigationInfo node is just
+      NavigationInfoStack.Top. If no NavigationInfo is bound, this is @nil,
+      and we will create navigator corresponding to default NavigationInfo
+      values (this is following VRML spec), so it will have type = EXAMINE.
+
+      This initializes many TWalkNavigator properties, if this is determined
+      to be proper result class:
+      @unorderedList(
+        @item(TWalkNavigator.Gravity,)
+        @item(TWalkNavigator.PreferGravityUpForRotations,)
+        @item(TWalkNavigator.PreferGravityUpForMoving,)
+        @item(TWalkNavigator.TWalkNavigator.IgnoreAllInputs,)
+        @item(TWalkNavigator.CameraPreferredHeight.)
+      ) }
+    function CreateNavigator(out CameraRadius: Single): TNavigator;
   end;
 
 {$undef read_interface}
@@ -2900,12 +2919,28 @@ begin
           OldSensors := PointingDeviceOverItem^.State.PointingDeviceSensors;
           NewSensors := OverItem^.State.PointingDeviceSensors;
 
-          { TODO: X3D spec says about isOver events that
+          { X3D spec says about isOver events that
             "Events are not generated if the geometry itself is
             animating and moving underneath the pointing device."
-            but doing this is complicated, and would force me to do
-            raycollision twice for each MouseMove (to get
-            OverPointBeforeMove and OverPoint). }
+
+            I understand that they mean that you don't have to call
+            PointingDeviceMove continously, you can only check this on
+            actual mouse move. That is, isOver state changes are not
+            intended to be catched immediately if they happened because
+            the geometry is animating. But, still, all isOver changes *are*
+            reported. I hope they don't mean that isOver changes because
+            of underlying geometry animating should not be reported at all.
+
+            The latter interpretation:
+            - Would be unhandy for implementation, as I would have to call
+              raycollision twice for each MouseMove (to get
+              OverPointBeforeMove and OverPoint).
+            - Would be unhandy for users. You want
+              to catch isOver changes eventually, right? Otherwise,
+              user may be forced to move mouse out and then back in to generate
+              isOver event = TRUE. Worse, user has to move mouse inside and
+              then back outside to generate isOver = FALSE event.
+          }
 
           for I := 0 to OldSensors.Count - 1 do
             if NewSensors.IndexOf(OldSensors[I]) = -1 then
@@ -3005,6 +3040,7 @@ procedure TVRMLScene.SetPointingDeviceActive(const Value: boolean);
     begin
       if NewRootNode <> nil then
       begin
+        PointingDeviceClear;
         if OwnsRootNode then FreeAndNil(FRootNode);
         RootNode := NewRootNode;
         OwnsRootNode := true;
@@ -3291,6 +3327,84 @@ begin
   HandlerInfo := CompiledScriptHandlers.Pointers[CompiledScriptHandlers.High];
   HandlerInfo^.Handler := Handler;
   HandlerInfo^.Name := HandlerName;
+end;
+
+{ navigator ------------------------------------------------------------------ }
+
+function TVRMLScene.CreateNavigator(out CameraRadius: Single): TNavigator;
+var
+  NavigationNode: TNodeNavigationInfo;
+  I: Integer;
+  CameraPreferredHeight: Single;
+begin
+  NavigationNode := NavigationInfoStack.Top as TNodeNavigationInfo;
+
+  Result := nil;
+
+  if NavigationNode <> nil then
+    for I := 0 to NavigationNode.FdType.Count - 1 do
+      if NavigationNode.FdType.Items[I] = 'WALK' then
+      begin
+        Result := TWalkNavigator.Create(nil);
+        TWalkNavigator(Result).PreferGravityUpForRotations := true;
+        TWalkNavigator(Result).PreferGravityUpForMoving := true;
+        TWalkNavigator(Result).Gravity := true;
+        TWalkNavigator(Result).IgnoreAllInputs := false;
+        Break;
+      end else
+      if NavigationNode.FdType.Items[I] = 'FLY' then
+      begin
+        Result := TWalkNavigator.Create(nil);
+        TWalkNavigator(Result).PreferGravityUpForRotations := true;
+        TWalkNavigator(Result).PreferGravityUpForMoving := false;
+        TWalkNavigator(Result).Gravity := false;
+        TWalkNavigator(Result).IgnoreAllInputs := false;
+        Break;
+      end else
+      if NavigationNode.FdType.Items[I] = 'NONE' then
+      begin
+        Result := TWalkNavigator.Create(nil);
+        TWalkNavigator(Result).PreferGravityUpForRotations := true;
+        TWalkNavigator(Result).PreferGravityUpForMoving := true; { doesn't matter }
+        TWalkNavigator(Result).Gravity := false;
+        TWalkNavigator(Result).IgnoreAllInputs := true;
+        Break;
+      end else
+      if NavigationNode.FdType.Items[I] = 'EXAMINE' then
+      begin
+        Result := TExamineNavigator.Create(nil);
+        Break;
+      end else
+        VRMLNonFatalError(Format('Unknown NavigationInfo.type "%s"',
+          [NavigationNode.FdType.Items[I]]));
+
+  if Result = nil then
+    { No recognized "type" found, so use default type EXAMINE. }
+    Result := TExamineNavigator.Create(nil);
+
+  { calculate CameraRadius }
+  CameraRadius := 0;
+  if (NavigationNode <> nil) and
+     (NavigationNode.FdAvatarSize.Count >= 1) then
+    CameraRadius := NavigationNode.FdAvatarSize.Items[0];
+  { if avatarSize doesn't specify CameraRadius, or specifies invalid <= 0,
+    calculate something suitable based on Scene.BoundingBox. }
+  if CameraRadius <= 0 then
+    CameraRadius := Box3dAvgSize(BoundingBox, 1.0) * 0.01;
+
+  if Result is TWalkNavigator then
+  begin
+    { For NavigationNode = nil, always Examine is created. }
+    Assert(NavigationNode <> nil);
+
+    { calculate CameraPreferredHeight }
+    if NavigationNode.FdAvatarSize.Count >= 2 then
+      CameraPreferredHeight := NavigationNode.FdAvatarSize.Items[1] else
+      CameraPreferredHeight := CameraRadius * 2;
+
+    TWalkNavigator(Result).CameraPreferredHeight := CameraPreferredHeight;
+    TWalkNavigator(Result).CorrectCameraPreferredHeight(CameraRadius);
+  end;
 end;
 
 end.

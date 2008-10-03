@@ -39,7 +39,7 @@ unit KambiVRMLBrowser;
   - you can undefine REBUILD_OCTREE to always use the first octree.
     This makes collision detection work with the original geometry,
     and sometimes may make it unstable. OTOH, all works fast. }
-{ $define REBUILD_OCTREE}
+{$define REBUILD_OCTREE}
 
 interface
 
