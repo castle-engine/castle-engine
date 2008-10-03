@@ -6,7 +6,7 @@
       <Version Value="8"/>
       <SearchPaths>
         <IncludeFiles Value="../../opengl/unix/;../../opengl/gtk/"/>
-        <OtherUnitFiles Value="../../opengl/"/>
+        <OtherUnitFiles Value="../../opengl/;../../3dmodels.gl/"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
@@ -39,13 +39,14 @@
           <ShowHints Value="False"/>
         </Verbosity>
         <CustomOptions Value="-Sh
--dKAMBI_FROM_LAZARUS_PACKAGE"/>
+-dKAMBI_FROM_LAZARUS_PACKAGE
+"/>
         <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
     <Description Value="Kambi VRML game engine - GLWindow and units using it.
 This unit cannot be installed under Lazarus, it's only for being used in other programs. GLWindow unit initializes some things inside XWindows / WinAPI that may conflict with Lazarus reserving the same resources."/>
-    <Files Count="9">
+    <Files Count="10">
       <Item1>
         <Filename Value="../../opengl/glwindow.pas"/>
         <UnitName Value="GLWindow"/>
@@ -82,6 +83,10 @@ This unit cannot be installed under Lazarus, it's only for being used in other p
         <Filename Value="../../opengl/glsoundmenu.pas"/>
         <UnitName Value="GLSoundMenu"/>
       </Item9>
+      <Item10>
+        <Filename Value="../../3dmodels.gl/glwindowvrmlbrowser.pas"/>
+        <UnitName Value="GLWindowVRMLBrowser"/>
+      </Item10>
     </Files>
     <RequiredPkgs Count="2">
       <Item1>
