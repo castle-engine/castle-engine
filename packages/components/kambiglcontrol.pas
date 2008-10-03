@@ -502,9 +502,8 @@ begin
 
   LastIdleStartTime := NewLastIdleStartTime;
 
-  if ReallyUseNavigator and (Navigator is TNavigatorWithIdle) then
-    TNavigatorWithIdle(Navigator).Idle(FIdleSpeed, @KeysDown, nil,
-      MousePressed);
+  if ReallyUseNavigator then
+    Navigator.Idle(FIdleSpeed, @KeysDown, nil, MousePressed);
 end;
 
 procedure TKamOpenGLControl.IgnoreNextIdleSpeed;

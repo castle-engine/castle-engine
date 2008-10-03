@@ -7,7 +7,7 @@
       <MainUnit Value="0"/>
       <IconPath Value="./"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="0"/>
+      <ActiveEditorIndexAtStart Value="1"/>
     </General>
     <PublishOptions>
       <Version Value="2"/>
@@ -62,12 +62,14 @@
       <Unit2>
         <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
         <UnitName Value="KambiGLControl"/>
-        <CursorPos X="1" Y="1"/>
-        <TopLine Value="1"/>
+        <CursorPos X="47" Y="506"/>
+        <TopLine Value="481"/>
+        <EditorIndex Value="1"/>
         <UsageCount Value="13"/>
         <Bookmarks Count="1">
           <Item0 X="5" Y="155" ID="1"/>
         </Bookmarks>
+        <Loaded Value="True"/>
       </Unit2>
       <Unit3>
         <Filename Value="../../../opengl/kambiglutils.pas"/>
@@ -238,7 +240,7 @@
         <UsageCount Value="10"/>
       </Unit26>
     </Units>
-    <JumpHistory Count="15" HistoryIndex="14">
+    <JumpHistory Count="16" HistoryIndex="15">
       <Position1>
         <Filename Value="mainf.pas"/>
         <Caret Line="48" Column="24" TopLine="25"/>
@@ -299,6 +301,10 @@
         <Filename Value="mainf.pas"/>
         <Caret Line="129" Column="43" TopLine="129"/>
       </Position15>
+      <Position16>
+        <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position16>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
