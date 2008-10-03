@@ -381,14 +381,8 @@ function TGLWindowVRMLBrowser.MoveAllowed(ANavigator: TWalkNavigator;
 begin
   Result := Scene.DefaultTriangleOctree.MoveAllowed(
     ANavigator.CameraPos, ProposedNewPos, NewPos, CameraRadius,
-    NoItemIndex, nil);
-
-  { Don't let user to fall outside of the box because of gravity. }
-  if Result and BecauseOfGravity then
-    { TODO: instead of setting Result to false, this should
-      actually move NewPos so that it's *exactly* on the border
-      of bounding box. }
-    Result := Box3dPointInside(NewPos, Scene.BoundingBox);
+    { Don't let user to fall outside of the box because of gravity. }
+    BecauseOfGravity);
 end;
 
 procedure TGLWindowVRMLBrowser.GetCameraHeight(ANavigator: TWalkNavigator;

@@ -467,6 +467,10 @@ type
       See @link(MoveAllowed) for some more sophisticated way of
       collision detection.
 
+      If KeepWithinRootBox then it will additionally make sure that
+      user stays within the whole octree box. That is, moving outside
+      of the RootNode.Box will be disallowed.
+
       OctreeItemIndexToIgnore and ItemsToIgnoreFunc meaning
       is just like for RayCollision. This can be used to allow
       camera to walk thorugh some surfaces (e.g. through water
@@ -479,6 +483,7 @@ type
     function MoveAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
       const CameraRadius: Single;
+      const KeepWithinRootBox: boolean;
       const OctreeItemIndexToIgnore: integer = NoItemIndex;
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): boolean;
 
@@ -487,6 +492,7 @@ type
     function MoveBoxAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
       const ProposedNewBox: TBox3d;
+      const KeepWithinRootBox: boolean;
       const OctreeItemIndexToIgnore: integer = NoItemIndex;
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): boolean;
 
@@ -510,6 +516,10 @@ type
       NewPos is undefined (especiall since NewPos is "out" parameter
       and it may be implicitly modified anyway).
 
+      If KeepWithinRootBox then it will additionally make sure that
+      user stays within the whole octree box. That is, moving outside
+      of the RootNode.Box will be disallowed.
+
       OctreeItemIndexToIgnore and ItemsToIgnoreFunc meaning
       is just like for RayCollision.
 
@@ -520,8 +530,9 @@ type
       const OldPos, ProposedNewPos: TVector3Single;
       out NewPos: TVector3Single;
       const CameraRadius: Single;
-      const OctreeItemIndexToIgnore: integer;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): boolean;
+      const KeepWithinRootBox: boolean;
+      const OctreeItemIndexToIgnore: integer = NoItemIndex;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): boolean;
 
     { For given camera position and up vector, calculate camera height
       above the ground. This is comfortable for cooperation with
@@ -1076,6 +1087,7 @@ end;}
 function TVRMLTriangleOctree.MoveAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const CameraRadius: Single;
+  const KeepWithinRootBox: boolean;
   const OctreeItemIndexToIgnore: integer;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): boolean;
 begin
@@ -1084,11 +1096,19 @@ begin
       OctreeItemIndexToIgnore, false, ItemsToIgnoreFunc) = NoItemIndex) and
     (SphereCollision(ProposedNewPos, CameraRadius,
       OctreeItemIndexToIgnore, ItemsToIgnoreFunc) = NoItemIndex);
+
+  if Result and
+     KeepWithinRootBox then
+    { TODO: instead of setting Result to false, this should
+      actually move NewPos so that it's *exactly* on the border
+      of bounding box. }
+    Result := Box3dPointInside(ProposedNewPos, InternalTreeRoot.Box);
 end;
 
 function TVRMLTriangleOctree.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const ProposedNewBox: TBox3d;
+  const KeepWithinRootBox: boolean;
   const OctreeItemIndexToIgnore: integer;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): boolean;
 begin
@@ -1097,12 +1117,20 @@ begin
       OctreeItemIndexToIgnore, false, ItemsToIgnoreFunc) = NoItemIndex) and
     (BoxCollision(ProposedNewBox,
       OctreeItemIndexToIgnore, ItemsToIgnoreFunc) = NoItemIndex);
+
+  if Result and
+     KeepWithinRootBox then
+    { TODO: instead of setting Result to false, this should
+      actually move NewPos so that it's *exactly* on the border
+      of bounding box. }
+    Result := Box3dPointInside(ProposedNewPos, InternalTreeRoot.Box);
 end;
 
 function TVRMLTriangleOctree.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single;
   out NewPos: TVector3Single;
   const CameraRadius: Single;
+  const KeepWithinRootBox: boolean;
   const OctreeItemIndexToIgnore: integer;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): boolean;
 
@@ -1138,7 +1166,7 @@ function TVRMLTriangleOctree.MoveAllowed(
      (e.g. if player is trying to walk into the corner (two walls)).
      I can do it by using my simple MoveAllowedSimple. }
 
-   Result := MoveAllowedSimple(OldPos, NewPos, CameraRadius,
+   Result := MoveAllowedSimple(OldPos, NewPos, CameraRadius, false,
      OctreeItemIndexToIgnore, ItemsToIgnoreFunc);
   end;
 
@@ -1165,6 +1193,13 @@ begin
    Result := MoveAlongTheBlocker(BlockerIndex);
  end else
   Result := MoveAlongTheBlocker(BlockerIndex);
+
+ if Result and
+    KeepWithinRootBox then
+   { TODO: instead of setting Result to false, this should
+     actually move NewPos so that it's *exactly* on the border
+     of bounding box. }
+   Result := Box3dPointInside(NewPos, InternalTreeRoot.Box);
 end;
 
 procedure TVRMLTriangleOctree.GetCameraHeight(
