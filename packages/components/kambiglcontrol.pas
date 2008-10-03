@@ -5,18 +5,18 @@ unit KambiGLControl;
 interface
 
 uses
-  Classes, SysUtils, OpenGLContext, MatrixNavigation, Controls, Forms,
+  Classes, SysUtils, OpenGLContext, Navigation, Controls, Forms,
   VectorMath, Keys, KambiUtils, KambiTimeUtils, StdCtrls;
 
 type
   { This adds some comfortable things to TOpenGLControl.
 
     First of all, it can report it's events to given
-    TMatrixNavigator instance. This makes easy to integrate TOpenGLControl
-    with MatrixNavigation features.
+    TNavigator instance. This makes easy to integrate TOpenGLControl
+    with Navigation features.
     This is a little analogous to TGLWindowNavigated class ---
     TGLWindowNavigated was a descendant of TGLWindow that eased
-    raporting to TMatrixNavigator instance.
+    raporting to TNavigator instance.
 
     Also, this provides OnGLContextInit and OnGLContextClose events.
 
@@ -25,8 +25,8 @@ type
     and set GLVersion variables, descripting OpenGL version
     and available extensions.
 
-    TODO: integrate also MouseLook features of TMatrixNavigator,
-    call MouseMove from TMatrixWalker and TMatrixExaminer. }
+    TODO: integrate also MouseLook features of TNavigator,
+    call MouseMove from TWalkNavigator and TExamineNavigator. }
 
   { TKamOpenGLControl }
 
@@ -36,7 +36,7 @@ type
     FMouseY: Integer;
     FOwnsNavigator: boolean;
     FUseNavigator: boolean;
-    FNavigator: TMatrixNavigator;
+    FNavigator: TNavigator;
     FContextInitialized: boolean;
 
     function ReallyUseNavigator: boolean;
@@ -81,7 +81,7 @@ type
     destructor Destroy; override;
 
     { Navigator instance used. Initially it's nil. }
-    property Navigator: TMatrixNavigator
+    property Navigator: TNavigator
       read FNavigator write FNavigator;
 
     { If @true then Navigator will be freed in our destructor.
@@ -96,20 +96,20 @@ type
       read FUseNavigator write FUseNavigator default true;
 
     { These are shortcuts for writing
-      TMatrixExaminer(Navigator) and TMatrixWalker(Navigator).
+      TExamineNavigator(Navigator) and TWalkNavigator(Navigator).
       In DEBUG version they use operator "as" but in RELEASE
       version they use direct type-casts for speed.
 
       @groupBegin }
-    function NavExaminer: TMatrixExaminer;
-    function NavWalker: TMatrixWalker;
+    function ExamineNav: TExamineNavigator;
+    function WalkNav: TWalkNavigator;
     { @groupEnd }
 
     procedure PostRedisplayOnMatrixChanged(
-      ChangedNavigator: TMatrixNavigator);
+      ChangedNavigator: TNavigator);
 
     { Calculate a ray picked by WindowX, WindowY position on the window.
-      Use this only when Navigator <> nil and Navigator is TMatrixWalker.
+      Use this only when Navigator <> nil and Navigator is TWalkNavigator.
 
       ViewAngleDegX, ViewAngleDegY are your camera view angles.
 
@@ -127,7 +127,7 @@ type
     procedure Idle; virtual;
 
     KeysDown: TKeysBooleans;
-    MousePressed: MatrixNavigation.TMouseButtons;
+    MousePressed: Navigation.TMouseButtons;
     procedure ReleaseAllKeysAndMouse;
 
     property MouseX: Integer read FMouseX;
@@ -296,7 +296,7 @@ begin
 end;
 
 procedure TKamOpenGLControl.PostRedisplayOnMatrixChanged(
-  ChangedNavigator: TMatrixNavigator);
+  ChangedNavigator: TNavigator);
 begin
   Invalidate;
 end;
@@ -417,12 +417,12 @@ end;
   is in the middle in my type)). }
 function LMouseButtonToMyMouseButton(
   const MouseButton: Controls.TMouseButton;
-  out MyMouseButton: MatrixNavigation.TMouseButton): boolean;
+  out MyMouseButton: Navigation.TMouseButton): boolean;
 const
-  T: array [Controls.TMouseButton] of MatrixNavigation.TMouseButton =
-    (MatrixNavigation.mbLeft,
-     MatrixNavigation.mbRight,
-     MatrixNavigation.mbMiddle);
+  T: array [Controls.TMouseButton] of Navigation.TMouseButton =
+    (Navigation.mbLeft,
+     Navigation.mbRight,
+     Navigation.mbMiddle);
 begin
   MyMouseButton := T[MouseButton];
   Result := true; { for now, this always succeeds }
@@ -431,7 +431,7 @@ end;
 procedure TKamOpenGLControl.MouseDown(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: MatrixNavigation.TMouseButton;
+  MyButton: Navigation.TMouseButton;
 begin
   inherited MouseDown(Button, Shift, X, Y);
 
@@ -449,7 +449,7 @@ end;
 procedure TKamOpenGLControl.MouseUp(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: MatrixNavigation.TMouseButton;
+  MyButton: Navigation.TMouseButton;
 begin
   inherited MouseUp(Button, Shift, X, Y);
 
@@ -468,8 +468,8 @@ begin
   inherited;
 
   if ReallyUseNavigator and
-     (Navigator is TMatrixExaminer) then
-    TMatrixExaminer(Navigator).MouseMove(
+     (Navigator is TExamineNavigator) then
+    TExamineNavigator(Navigator).MouseMove(
       MouseX, MouseY, NewX, NewY, MousePressed, @KeysDown);
 
   FMouseX := NewX;
@@ -502,8 +502,8 @@ begin
 
   LastIdleStartTime := NewLastIdleStartTime;
 
-  if ReallyUseNavigator and (Navigator is TMatrixNavigatorWithIdle) then
-    TMatrixNavigatorWithIdle(Navigator).Idle(FIdleSpeed, @KeysDown, nil,
+  if ReallyUseNavigator and (Navigator is TNavigatorWithIdle) then
+    TNavigatorWithIdle(Navigator).Idle(FIdleSpeed, @KeysDown, nil,
       MousePressed);
 end;
 
@@ -512,19 +512,19 @@ begin
   DoIgnoreNextIdleSpeed := true;
 end;
 
-function TKamOpenGLControl.NavExaminer: TMatrixExaminer;
+function TKamOpenGLControl.ExamineNav: TExamineNavigator;
 begin
   Result :=
-    {$ifdef DEBUG} Navigator as TMatrixExaminer
-    {$else} TMatrixExaminer(Navigator)
+    {$ifdef DEBUG} Navigator as TExamineNavigator
+    {$else} TExamineNavigator(Navigator)
     {$endif};
 end;
 
-function TKamOpenGLControl.NavWalker: TMatrixWalker;
+function TKamOpenGLControl.WalkNav: TWalkNavigator;
 begin
   Result :=
-    {$ifdef DEBUG} Navigator as TMatrixWalker
-    {$else} TMatrixWalker(Navigator)
+    {$ifdef DEBUG} Navigator as TWalkNavigator
+    {$else} TWalkNavigator(Navigator)
     {$endif};
 end;
 
@@ -532,9 +532,9 @@ procedure TKamOpenGLControl.Ray(const WindowX, WindowY: Integer;
   const ViewAngleDegX, ViewAngleDegY: Single;
   out Ray0, RayVector: TVector3Single);
 var
-  Nav: TMatrixWalker;
+  Nav: TWalkNavigator;
 begin
-  Nav := Navigator as TMatrixWalker;
+  Nav := Navigator as TWalkNavigator;
   Ray0 := Nav.CameraPos;
   RayVector := PrimaryRay(WindowX, Height - WindowY,
     Width, Height,

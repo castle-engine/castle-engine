@@ -29,7 +29,7 @@
 program interpolated_curves;
 
 uses GL, GLU, GLWindow, GLW_Navigated, KambiGLUtils, SysUtils, VectorMath,
-  Curve, MatrixNavigation, Boxes3d, KambiScript, GLWinMessages,
+  Curve, Navigation, Boxes3d, KambiScript, GLWinMessages,
   KambiUtils, KambiScriptParser, KambiScriptCoreFunctions,
   BFNT_BitstreamVeraSansMono_m14_Unit,
   OpenGLBmpFonts, Classes, KambiStringUtils;
@@ -88,7 +88,7 @@ procedure SetApproxCurve; forward;
   Creates new PreciseCurve,
   does SetApproxCurve,
   then (because PreciseCurve.BoundingBox changed)
-    updates Glw.NavExaminer.Init and does Glw.EventResize.
+    updates Glw.ExamineNav.Init and does Glw.EventResize.
 
   Glw.PostRedisplay;
 
@@ -104,7 +104,7 @@ begin
     NewXFunction, NewYFunction, NewZFunction, TVariable);
   SetApproxCurve;
 
-  Glw.NavExaminer.Init(PreciseCurve.BoundingBox);
+  Glw.ExamineNav.Init(PreciseCurve.BoundingBox);
   Glw.EventResize;
 
   Glw.PostRedisplay;
@@ -414,7 +414,7 @@ begin
   try
     ApproxCurveClass := TLagrangeInterpolatedCurve;
 
-    TVariable := TKamScriptFloat.Create;
+    TVariable := TKamScriptFloat.Create(false);
     TVariable.Name := 't';
     TVariable.OwnedByParentExpression := false;
 
@@ -423,8 +423,8 @@ begin
     Glw.MainMenu := CreateMainMenu;
 
     { init Glw.Navigator }
-    Glw.Navigator := TMatrixExaminer.Create(@Glw.PostRedisplayOnMatrixChanged);
-    { Glw.NavExaminer.Init will be called in SetPreciseCurve }
+    Glw.Navigator := TExamineNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+    { Glw.ExamineNav.Init will be called in SetPreciseCurve }
 
     { init PreciseCurve }
     SetPreciseCurve(

@@ -28,8 +28,8 @@ program change_vrml_by_code_2;
 
 uses VectorMath, Boxes3d, VRMLNodes, GL, GLU, GLExt, GLWindow,
   GLW_Navigated, KambiUtils, SysUtils, Object3dAsVRML,
-  KambiGLUtils, VRMLGLScene, MatrixNavigation,
-  KambiFilesUtils, VRMLErrors;
+  KambiGLUtils, VRMLGLScene, Navigation,
+  KambiFilesUtils, VRMLErrors, Quaternions;
 
 var
   Scene: TVRMLGLScene;
@@ -130,10 +130,11 @@ begin
   Scene := TVRMLGLScene.Create(CreateVrmlGraph, true, roSeparateShapeStates);
   try
     { init Glw.Navigator }
-    Glw.Navigator := TMatrixExaminer.Create(@Glw.PostRedisplayOnMatrixChanged);
-    Glw.NavExaminer.Init(Scene.BoundingBox);
+    Glw.Navigator := TExamineNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+    Glw.ExamineNav.Init(Scene.BoundingBox);
     { set more interesting view by default }
-    Glw.NavExaminer.RotationsAngle := Vector3Single(-45, 45, 0);
+    Glw.ExamineNav.Rotations := QuatFromAxisAngle(
+      Normalized(Vector3Single(1, 1, 0)), Pi/4);
 
     Glw.AutoRedisplay := true;
 

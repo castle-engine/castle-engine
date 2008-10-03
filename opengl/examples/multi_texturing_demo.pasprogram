@@ -36,7 +36,7 @@
 program multi_texturing_demo;
 
 uses GLWindow, GLW_Navigated, GL, GLU, GLExt, KambiGLUtils,
-  MatrixNavigation, Boxes3d, SysUtils, KambiUtils, VectorMath,
+  Navigation, Boxes3d, SysUtils, KambiUtils, VectorMath,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils,
   GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts,
   GLImages;
@@ -175,8 +175,8 @@ procedure Resize(glwin: TGLWindow);
     ProjectionMatrix: TMatrix4f;
   begin
     glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
-    if Glw.Navigator is TMatrixWalker then
-      Glw.NavWalker.ProjectionMatrix := ProjectionMatrix;
+    if Glw.Navigator is TWalkNavigator then
+      Glw.WalkNav.ProjectionMatrix := ProjectionMatrix;
   end;
 
 begin
@@ -220,8 +220,8 @@ begin
   Parameters.CheckHigh(0);
 
   { init Glw.Navigator }
-  Glw.Navigator := TMatrixExaminer.Create(@Glw.PostRedisplayOnMatrixChanged);
-  Glw.NavExaminer.Init(SceneBoundingBox);
+  Glw.Navigator := TExamineNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+  Glw.ExamineNav.Init(SceneBoundingBox);
 
   Glw.OnInit := @InitGL;
   Glw.OnClose := @CloseGL;

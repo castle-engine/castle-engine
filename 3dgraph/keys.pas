@@ -49,8 +49,8 @@ unit Keys;
 
   Advantage: we can keep this unit in @code(3dgraph) group,
   i.e. units that don't depend on OpenGL. This means that also
-  unit MatrixNavigation (that must use unit Keys) can stay in this group.
-  This is good, because it makes important unit MatrixNavigation more
+  unit Navigation (that must use unit Keys) can stay in this group.
+  This is good, because it makes important unit Navigation more
   generally-usable.
 
   Disadvantage: because this unit doesn't depend on GLWindow unit,

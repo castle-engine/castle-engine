@@ -27,7 +27,7 @@ program design_surface;
 
 {$apptype GUI}
 
-uses MatrixNavigation, GLW_Navigated, Surfaces, GLWindow, GL, GLU, VectorMath,
+uses Navigation, GLW_Navigated, Surfaces, GLWindow, GL, GLU, VectorMath,
   KambiGLUtils, Curve, BezierCurve, Boxes3d, SysUtils, KambiUtils, Keys,
   KambiStringUtils, Math, GLWinMessages, KambiFilesUtils,
   BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts;
@@ -446,13 +446,13 @@ end;
 
 type
   TDummy = class
-    procedure MatrixChanged(ChangedNavigator: TMatrixNavigator);
+    procedure MatrixChanged(ChangedNavigator: TNavigator);
   end;
 
 var
   Dummy: TDummy;
 
-procedure TDummy.MatrixChanged(ChangedNavigator: TMatrixNavigator);
+procedure TDummy.MatrixChanged(ChangedNavigator: TNavigator);
 begin
   Glw.PostRedisplay;
 
@@ -625,12 +625,12 @@ begin
   Glw.OnMenuCommand := @MenuCommand;
   Glw.MainMenu := CreateMainMenu;
 
-  Glw.Navigator := TMatrixExaminer.Create(@Dummy.MatrixChanged);
-  Glw.NavExaminer.Init(Box3d(Vector3Single(0, 0, -1),
+  Glw.Navigator := TExamineNavigator.Create(@Dummy.MatrixChanged);
+  Glw.ExamineNav.Init(Box3d(Vector3Single(0, 0, -1),
                              Vector3Single(1, 1,  1)));
   { conflicts with our MouseDown / MouseMove }
-  Glw.NavExaminer.MouseNavigation := false;
-  Glw.NavExaminer.Input_StopRotating.MouseButtonUse := false;
+  Glw.ExamineNav.MouseNavigation := false;
+  Glw.ExamineNav.Input_StopRotating.MouseButtonUse := false;
 
   Glw.OnInit := @Init;
   Glw.OnClose := @Close;

@@ -603,7 +603,7 @@ uses
   {$ifdef GLWINDOW_GTK_1} Glib, Gdk, Gtk, GtkGLArea, {$endif}
   {$ifdef GLWINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, KambiDynLib, {$endif}
   {$ifdef GLWINDOW_LOGFILE} LogFile, {$endif}
-  KambiUtils, KambiClassUtils, KambiGLUtils, Images, Keys, MatrixNavigation,
+  KambiUtils, KambiClassUtils, KambiGLUtils, Images, Keys, Navigation,
   RaysWindow, KambiStringUtils, KambiFilesUtils, KambiTimeUtils,
   FileFilters;
 
@@ -674,17 +674,17 @@ const
 { --------------------------------------------------------------------- }
 
 { @section(Export types and consts related to TMouseButton from
-  MatrixNavigation unit) }
+  Navigation unit) }
 
 type
   { }
-  TMouseButton = MatrixNavigation.TMouseButton;
-  TMouseButtons = MatrixNavigation.TMouseButtons;
+  TMouseButton = Navigation.TMouseButton;
+  TMouseButtons = Navigation.TMouseButtons;
 
 const
-  mbLeft = MatrixNavigation.mbLeft;
-  mbMiddle = MatrixNavigation.mbMiddle;
-  mbRight = MatrixNavigation.mbRight;
+  mbLeft = Navigation.mbLeft;
+  mbMiddle = Navigation.mbMiddle;
+  mbRight = Navigation.mbRight;
 
 const
   GLWindowPositionCenter = -1000000;
@@ -2505,8 +2505,8 @@ type
     constructor Create;
   end;
 
-  { This class has a @link(Navigator) property (TMatrixNavigator instance)
-    and handles some usual things related to using @link(TMatrixNavigator)
+  { This class has a @link(Navigator) property (TNavigator instance)
+    and handles some usual things related to using @link(TNavigator)
     instance with TGLWindow window.
 
     @orderedList(
@@ -2528,7 +2528,7 @@ type
         na MatrixChanged to naturalnie nie musisz uzywac
         PostRedisplayOnMatrixChanged.))
       @item(
-        This will also helps you use MouseLook feature of TMatrixWalker:
+        This will also helps you use MouseLook feature of TWalkNavigator:
         This will call MouseMove of Navigator with a suitable parameters,
         and this gives you UpdateMouseLook method that you should use.
         All that remains to you is to call UpdateMouseLook at appropriate times,
@@ -2549,7 +2549,7 @@ type
   private
     FOwnsNavigator: boolean;
     FUseNavigator: boolean;
-    FNavigator: TMatrixNavigator;
+    FNavigator: TNavigator;
     FCursorNonMouseLook: TGLWindowCursor;
     procedure SetCursorNonMouseLook(const Value: TGLWindowCursor);
     function ReallyUseNavigator: boolean;
@@ -2559,7 +2559,7 @@ type
     destructor Destroy; override;
 
     { Navigator instance used. Initially it's nil. }
-    property Navigator: TMatrixNavigator
+    property Navigator: TNavigator
       read FNavigator write FNavigator;
 
     property OwnsNavigator: boolean
@@ -2572,16 +2572,16 @@ type
       read FUseNavigator write FUseNavigator default true;
 
     { These are shortcuts for writing
-      TMatrixExaminer(Navigator) and TMatrixWalker(Navigator).
+      TExamineNavigator(Navigator) and TWalkNavigator(Navigator).
       In DEBUG version they use operator "as" but in RELEASE
       version they use direct type-casts for speed.
 
       @groupBegin }
-    function NavExaminer: TMatrixExaminer;
-    function NavWalker: TMatrixWalker;
+    function ExamineNav: TExamineNavigator;
+    function WalkNav: TWalkNavigator;
     { @groupEnd }
 
-    procedure PostRedisplayOnMatrixChanged(ChangedNavigator: TMatrixNavigator);
+    procedure PostRedisplayOnMatrixChanged(ChangedNavigator: TNavigator);
 
     procedure EventInit; override;
     procedure EventKeyDown(Key: TKey; C: char); override;
@@ -2591,7 +2591,7 @@ type
     function AllowsProcessMessageSuspend: boolean; override;
 
     { Calculate a ray picked by WindowX, WindowY position on the window.
-      Use this only when Navigator <> nil and Navigator is TMatrixWalker.
+      Use this only when Navigator <> nil and Navigator is TWalkNavigator.
 
       ViewAngleDegX, ViewAngleDegY are your camera view angles.
 
@@ -2604,7 +2604,7 @@ type
       out Ray0, RayVector: TVector3Single);
 
     { Calculate a ray corresponding to current Navigator
-      (must be TMatrixWalker instance) settings and MouseX, MouseY
+      (must be TWalkNavigator instance) settings and MouseX, MouseY
       position on the screen.
 
       This is actually just a shortcut for @link(Ray),
@@ -2623,7 +2623,7 @@ type
 
       This uses @link(PrimaryRay) call. }
     procedure RayFromCustomNavigator(
-      Nav: TMatrixWalker;
+      Nav: TWalkNavigator;
       const WindowX, WindowY: Integer;
       const ViewAngleDegX, ViewAngleDegY: Single;
       out Ray0, RayVector: TVector3Single);
@@ -2635,11 +2635,11 @@ type
 
       This uses @link(PrimaryRay) call. }
     procedure MousePickedRayFromCustomNavigator(
-      Nav: TMatrixWalker;
+      Nav: TWalkNavigator;
       const ViewAngleDegX, ViewAngleDegY: Single;
       out Ray0, RayVector: TVector3Single);
 
-    { If you use Navigator of class TMatrixWalker with this window
+    { If you use Navigator of class TWalkNavigator with this window
       and you want to use it's MouseLook feature then
       you should call this after you changed Navigator.MouseLook value.
 
@@ -4424,15 +4424,15 @@ begin
  result := UseNavigator and (Navigator <> nil);
 end;
 
-procedure TGLWindowNavigated.PostRedisplayOnMatrixChanged(ChangedNavigator: TMatrixNavigator);
+procedure TGLWindowNavigated.PostRedisplayOnMatrixChanged(ChangedNavigator: TNavigator);
 begin
  PostRedisplay;
 end;
 
 procedure TGLWindowNavigated.EventIdle;
 begin
-  if ReallyUseNavigator and (Navigator is TMatrixNavigatorWithIdle) then
-    TMatrixNavigatorWithIdle(Navigator).Idle(
+  if ReallyUseNavigator and (Navigator is TNavigatorWithIdle) then
+    TNavigatorWithIdle(Navigator).Idle(
       IdleSpeed, @KeysDown, @CharactersDown, MousePressed);
   inherited;
 end;
@@ -4459,24 +4459,24 @@ begin
  if ReallyUseNavigator then result := false else result := inherited;
 end;
 
-function TGLWindowNavigated.NavExaminer: TMatrixExaminer;
+function TGLWindowNavigated.ExamineNav: TExamineNavigator;
 begin
   Result :=
-    {$ifdef DEBUG} Navigator as TMatrixExaminer
-    {$else} TMatrixExaminer(Navigator)
+    {$ifdef DEBUG} Navigator as TExamineNavigator
+    {$else} TExamineNavigator(Navigator)
     {$endif};
 end;
 
-function TGLWindowNavigated.NavWalker: TMatrixWalker;
+function TGLWindowNavigated.WalkNav: TWalkNavigator;
 begin
   Result :=
-    {$ifdef DEBUG} Navigator as TMatrixWalker
-    {$else} TMatrixWalker(Navigator)
+    {$ifdef DEBUG} Navigator as TWalkNavigator
+    {$else} TWalkNavigator(Navigator)
     {$endif};
 end;
 
 procedure TGLWindowNavigated.RayFromCustomNavigator(
-  Nav: TMatrixWalker;
+  Nav: TWalkNavigator;
   const WindowX, WindowY: Integer;
   const ViewAngleDegX, ViewAngleDegY: Single;
   out Ray0, RayVector: TVector3Single);
@@ -4489,7 +4489,7 @@ begin
 end;
 
 procedure TGLWindowNavigated.MousePickedRayFromCustomNavigator(
-  Nav: TMatrixWalker;
+  Nav: TWalkNavigator;
   const ViewAngleDegX, ViewAngleDegY: Single;
   out Ray0, RayVector: TVector3Single);
 begin
@@ -4502,7 +4502,7 @@ procedure TGLWindowNavigated.Ray(const WindowX, WindowY: Integer;
   out Ray0, RayVector: TVector3Single);
 begin
   RayFromCustomNavigator(
-    Navigator as TMatrixWalker,
+    Navigator as TWalkNavigator,
     WindowX, WindowY, ViewAngleDegX, ViewAngleDegY, Ray0, RayVector);
 end;
 
@@ -4511,15 +4511,15 @@ procedure TGLWindowNavigated.MousePickedRay(
   out Ray0, RayVector: TVector3Single);
 begin
   MousePickedRayFromCustomNavigator(
-    Navigator as TMatrixWalker,
+    Navigator as TWalkNavigator,
     ViewAngleDegX, ViewAngleDegY, Ray0, RayVector);
 end;
 
 function TGLWindowNavigated.ReallyUseMouseLook: boolean;
 begin
   Result := ReallyUseNavigator and
-    (Navigator is TMatrixWalker) and
-    TMatrixWalker(Navigator).MouseLook;
+    (Navigator is TWalkNavigator) and
+    TWalkNavigator(Navigator).MouseLook;
 end;
 
 procedure TGLWindowNavigated.SetCursorNonMouseLook(
@@ -4552,8 +4552,8 @@ var
 begin
   if not (
     ReallyUseNavigator and
-    (Navigator is TMatrixExaminer) and
-    TMatrixExaminer(Navigator).MouseMove(
+    (Navigator is TExamineNavigator) and
+    TExamineNavigator(Navigator).MouseMove(
       MouseX, MouseY, NewX, NewY, MousePressed, @KeysDown)) then
     inherited;
 
@@ -4592,7 +4592,7 @@ begin
       this is good move, that qualifies to perform mouse move. }
     if (MouseX = MiddleScreenWidth) and
        (MouseY = MiddleScreenHeight) then
-      TMatrixWalker(Navigator).MouseMove(
+      TWalkNavigator(Navigator).MouseMove(
         NewX - MiddleScreenWidth, NewY - MiddleScreenHeight);
 
     { I check the condition below to avoid calling SetMousePosition,

@@ -24,7 +24,7 @@
   Test on sample_data/*.animation files. }
 program animate_surface;
 
-uses MatrixNavigation, GLW_Navigated, Surfaces, GLWindow, GL, GLU, VectorMath,
+uses Navigation, GLW_Navigated, Surfaces, GLWindow, GL, GLU, VectorMath,
   KambiGLUtils, Curve, BezierCurve, Boxes3d, SysUtils, KambiUtils, Keys,
   KambiStringUtils, Math, GLWinMessages, KambiFilesUtils;
 
@@ -36,13 +36,13 @@ var
 
 procedure CameraHome;
 begin
-  Glw.NavWalker.Init(Box3d(Vector3Single(0, 0, -1),
+  Glw.WalkNav.Init(Box3d(Vector3Single(0, 0, -1),
                            Vector3Single(1, 1,  1)), 0.0);
 end;
 
 procedure CameraScene;
 begin
-  Glw.NavWalker.Init(SurfacePos, SurfaceDir, SurfaceUp, SurfaceUp, 0.0, 0.0);
+  Glw.WalkNav.Init(SurfacePos, SurfaceDir, SurfaceUp, SurfaceUp, 0.0, 0.0);
 end;
 
 procedure SurfacesLoad(const FileName: string);
@@ -167,15 +167,15 @@ begin
   case C of
     'c': begin
            Writeln(Format('%f %f %f   %f %f %f   %f %f %f',
-             [ Glw.NavWalker.CameraPos[0],
-               Glw.NavWalker.CameraPos[1],
-               Glw.NavWalker.CameraPos[2],
-               Glw.NavWalker.CameraDir[0],
-               Glw.NavWalker.CameraDir[1],
-               Glw.NavWalker.CameraDir[2],
-               Glw.NavWalker.CameraUp[0],
-               Glw.NavWalker.CameraUp[1],
-               Glw.NavWalker.CameraUp[2] ]));
+             [ Glw.WalkNav.CameraPos[0],
+               Glw.WalkNav.CameraPos[1],
+               Glw.WalkNav.CameraPos[2],
+               Glw.WalkNav.CameraDir[0],
+               Glw.WalkNav.CameraDir[1],
+               Glw.WalkNav.CameraDir[2],
+               Glw.WalkNav.CameraUp[0],
+               Glw.WalkNav.CameraUp[1],
+               Glw.WalkNav.CameraUp[2] ]));
          end;
     'h': CameraHome;
     's': CameraScene;
@@ -183,9 +183,9 @@ begin
 end;
 
 begin
-  Glw.Navigator := TMatrixWalker.Create(@Glw.PostRedisplayOnMatrixChanged);
-  Glw.NavWalker.PreferGravityUpForRotations := false;
-  Glw.NavWalker.PreferGravityUpForMoving := false;
+  Glw.Navigator := TWalkNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+  Glw.WalkNav.PreferGravityUpForRotations := false;
+  Glw.WalkNav.PreferGravityUpForMoving := false;
 
   Parameters.CheckHigh(1);
   SurfacesLoad(Parameters[1]);

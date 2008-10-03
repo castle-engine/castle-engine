@@ -224,7 +224,7 @@ function MessageKey(Glwin: TGLWindow; TextList: TStringList;
 
 { Ask user to press any key or mouse button, return that key (as Keys.TKey)
   or mouse button. The natural use for this is to allow user to configure
-  keybindings of your program, like for MatrixNavigator.TInputShortcut.
+  keybindings of your program, like for Navigation.TInputShortcut.
 
   If user pressed a key, returns MouseEvent = @false and appropriate Key
   (it's for sure <> K_None).

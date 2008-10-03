@@ -18,9 +18,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(@link(TMatrixNavigator) class and descendants.) }
+{ @abstract(@link(TNavigator) class and descendants, to navigate in 3D space.) }
 
-unit MatrixNavigation;
+unit Navigation;
 
 interface
 
@@ -48,8 +48,8 @@ const
 
 type
   { }
-  TMatrixNavigator = class;
-  TMatrixNavigatorNotifyFunc = procedure (Navigator: TMatrixNavigator) of object;
+  TNavigator = class;
+  TNavigatorNotifyFunc = procedure (Navigator: TNavigator) of object;
 
   TInputShortcut = class;
   TInputShortcutChangedFunc = procedure (Shortcut: TInputShortcut) of object;
@@ -66,7 +66,7 @@ type
     by Shift + "x" or by pressing "x" while "caps lock" is on;
     but this is not dealt with in this unit (it's usually provided
     by operating system / GUI toolkit to GLWindow unit),
-    we just get characters passed to TMatrixNavigator.KeyDown
+    we just get characters passed to TNavigator.KeyDown
     and such methods.) }
   TInputShortcut = class
   private
@@ -188,7 +188,7 @@ type
 
       This is often comfortable method if you want to squeeze calling
       IsKey and IsMouseButton into one procedure
-      in the implementation --- see e.g. TMatrixWalker.EventDown. }
+      in the implementation --- see e.g. TWalkNavigator.EventDown. }
     function IsEvent(MouseEvent: boolean; Key: TKey;
       ACharacter: Char;
       AMouseButton: TMouseButton): boolean;
@@ -205,11 +205,12 @@ type
       read FOnChanged write FOnChanged;
   end;
 
-  { TMatrixNavigator implements user navigation in 3D scene.
+  { TNavigator implements user navigation in 3D scene.
     You control navigation parameters and provide user input
     to this class by various methods and properties.
-    And on the "output", this class generates a simple 4x4 matrix by
-    @link(Matrix) method.
+    You can investigate the current camera setting by many methods,
+    the most important is the @link(Matrix) method that
+    generates a simple 4x4 matrix.
 
     In the most common case, when using this
     with OpenGL program, you can simply load this matrix like
@@ -220,23 +221,23 @@ type
 
     This class is not tied to any OpenGL specifics, any VRML specifics,
     and GLWindow etc. --- this class is fully flexible and may be used
-    in any 3D program, whether using GLWindow, OpenGL or not.
+    in any 3D program, whether using GLWindow, OpenGL etc. or not.
 
-    Various TMatrixNavigator descendants implement various navigation
-    methods, for example TMatrixExaminer allows the user to rotate
+    Various TNavigator descendants implement various navigation
+    methods, for example TExamineNavigator allows the user to rotate
     and scale the model (imagine that you're holding a 3D model in your
-    hands and you look at it from various sides) and TMatrixWalker
+    hands and you look at it from various sides) and TWalkNavigator
     implements typical navigation in the style of first-person shooter
     games.
 
     Short guide how to use any descendant of this class in typical scenario:
 
     @orderedList(
-      @item(Create an instance of some class descendant from TMatrixNavigator,
+      @item(Create an instance of some class descendant from TNavigator,
         supplying OnMatrixChanged callback (typicall a procedure that simply
         does Glwin.PostRedisplay).)
 
-      @item(Define start properties of this class. Each TMatrixNavigator
+      @item(Define start properties of this class. Each TNavigator
         should have an @code(Init) method, these are designed to take
         a couple of the most critical configuration parameters.)
 
@@ -244,7 +245,7 @@ type
         For example, in your OnKeyDown callback, you want to call
         @code(Navigator.KeyDown) passing the parameters of pressed key.
         If your OnIdle callback you want to call @code(Navigator.Idle)
-        (assuming that you work with TMatrixNavigatorWithIdle descendant).
+        (assuming that you work with TNavigatorWithIdle descendant).
 
         If you plan to use this with TGLWindow, then consider using
         TGLWindowNavigated class, this will take care of passing events
@@ -257,7 +258,7 @@ type
 
     See @code(kambi_vrml_game_engine/opengl/examples/demo_matrix_navigation.pasprogram)
     example program in engine sources for simple demo how to use this class. }
-  TMatrixNavigator = class
+  TNavigator = class
   private
     MatrixChangedSchedule: Cardinal;
     IsMatrixChangedScheduled: boolean;
@@ -265,13 +266,13 @@ type
     { This is called always when @link(Matrix) changed.
       Actually, when any
       property (of this class or descendant) changed, for example even
-      changes to TMatrixWalker.MoveHorizontalSpeed result in matrix
+      changes to TWalkNavigator.MoveHorizontalSpeed result in matrix
       changed event.
 
       In this class this simply calls OnMatrixChanged (if assigned).
 
       (It may also do some other internal things (e.g. recalculating
-      the frustum in TMatrixWalker), so always call inherited when
+      the frustum in TWalkNavigator), so always call inherited when
       overriding this.) }
     procedure MatrixChanged; virtual;
 
@@ -293,15 +294,15 @@ type
   public
     { Event called always when @link(Matrix) changed. Actually, when any
       property (of this class or descendant) changed, for example even
-      changes to TMatrixWalker.MoveHorizontalSpeed result in matrix changed
+      changes to TWalkNavigator.MoveHorizontalSpeed result in matrix changed
       event.
 
       It may be @nil but usually you really want to react to matrix changes.
       Be careful when writing this callback, any change of navigator
       property may cause this, so be prepared to handle OnMatrixChanged
       at every time. }
-    OnMatrixChanged: TMatrixNavigatorNotifyFunc;
-    constructor Create(const AOnMatrixChanged: TMatrixNavigatorNotifyFunc);
+    OnMatrixChanged: TNavigatorNotifyFunc;
+    constructor Create(const AOnMatrixChanged: TNavigatorNotifyFunc);
       virtual;
 
     { Current camera matrix. You should multiply every 3D point of your
@@ -347,10 +348,10 @@ type
     function MouseDown(Button: TMouseButton): boolean; virtual;
   end;
 
-  TMatrixNavigatorClass = class of TMatrixNavigator;
+  TNavigatorClass = class of TNavigator;
 
   { A descendant of @inherited that has an Idle method. }
-  TMatrixNavigatorWithIdle = class(TMatrixNavigator)
+  TNavigatorWithIdle = class(TNavigator)
   public
     { Call this often, to respond to user actions and to perform
       other tasks (falling down due to gravity in Walker mode,
@@ -381,7 +382,7 @@ type
     The model is displayed around MoveAmount 3D point,
     it's rotated by @link(Rotations) and scaled by ScaleFactor
     (scaled around MoveAmount point). }
-  TMatrixExaminer = class(TMatrixNavigatorWithIdle)
+  TExamineNavigator = class(TNavigatorWithIdle)
   private
     FMoveAMount, FModelBoxMiddle: TVector3Single;
     FRotations: TQuaternion;
@@ -418,7 +419,7 @@ type
 
     FMouseNavigation: boolean;
   public
-    constructor Create(const AOnMatrixChanged: TMatrixNavigatorNotifyFunc);
+    constructor Create(const AOnMatrixChanged: TNavigatorNotifyFunc);
       override;
     destructor Destroy; override;
 
@@ -505,7 +506,7 @@ type
 
     { User inputs ------------------------------------------------------------ }
 
-    { TODO: tak samo jak TMatrixWalker, przydaloby sie moc podawac
+    { TODO: tak samo jak TWalkNavigator, przydaloby sie moc podawac
       tutaj za jednym zamachem char+TKey+modifiers zamiast tylko char
       lub tylko TKey.
       W tym momencie klawisze Inputs_Move dzialaja gdy ModifiersDown = [mkCtrl],
@@ -523,27 +524,27 @@ type
       read FMouseNavigation write FMouseNavigation default true;
   end;
 
-  TMatrixWalker = class;
+  TWalkNavigator = class;
 
-  { See @link(TMatrixWalker.DoMoveAllowed) and
-    @link(TMatrixWalker.OnMoveAllowed) }
-  TMoveAllowedFunc = function(Navigator: TMatrixWalker;
+  { See @link(TWalkNavigator.DoMoveAllowed) and
+    @link(TWalkNavigator.OnMoveAllowed) }
+  TMoveAllowedFunc = function(Navigator: TWalkNavigator;
     const ProposedNewPos: TVector3Single;
     out NewPos: TVector3Single;
     const BecauseOfGravity: boolean): boolean of object;
 
-  { See @link(TMatrixWalker.OnFalledDown). }
-  TFalledDownNotifyFunc = procedure (Navigator: TMatrixWalker;
+  { See @link(TWalkNavigator.OnFalledDown). }
+  TFalledDownNotifyFunc = procedure (Navigator: TWalkNavigator;
     const FallenHeight: Single) of object;
 
-  TGetCameraHeight = procedure (Navigator: TMatrixWalker;
+  TGetCameraHeight = procedure (Navigator: TWalkNavigator;
     out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single)
     of object;
 
   { Navigation by walking (first-person-shooter-like moving) in 3D scene.
     Camera is defined by it's position, looking direction
     and up vector, user can rotate and move camera using various keys. }
-  TMatrixWalker = class(TMatrixNavigatorWithIdle)
+  TWalkNavigator = class(TNavigatorWithIdle)
   private
     FCameraPos, FCameraDir, FCameraUp,
     FInitialCameraPos, FInitialCameraDir, FInitialCameraUp: TVector3Single;
@@ -649,7 +650,7 @@ type
     { }
     procedure MatrixChanged; override;
   public
-    constructor Create(const AOnMatrixChanged: TMatrixNavigatorNotifyFunc);
+    constructor Create(const AOnMatrixChanged: TNavigatorNotifyFunc);
       override;
     destructor Destroy; override;
 
@@ -1354,7 +1355,7 @@ type
     property IsWalkingOnTheGround: boolean read FIsWalkingOnTheGround;
   end;
 
-{ See TMatrixWalker.CorrectCameraPreferredHeight.
+{ See TWalkNavigator.CorrectCameraPreferredHeight.
   This is a global version, sometimes may be useful. }
 procedure CorrectCameraPreferredHeight(var CameraPreferredHeight: Single;
   const CameraRadius: Single; const CrouchHeight, HeadBobbing: Single);
@@ -1533,32 +1534,32 @@ begin
   Changed;
 end;
 
-{ TMatrixNavigator ------------------------------------------------------------ }
+{ TNavigator ------------------------------------------------------------ }
 
-procedure TMatrixNavigator.MatrixChanged;
+procedure TNavigator.MatrixChanged;
 begin
  if Assigned(OnMatrixChanged) then OnMatrixChanged(Self);
 end;
 
-constructor TMatrixNavigator.Create(
-  const AOnMatrixChanged: TMatrixNavigatorNotifyFunc);
+constructor TNavigator.Create(
+  const AOnMatrixChanged: TNavigatorNotifyFunc);
 begin
  inherited Create;
  OnMatrixChanged := AOnMatrixChanged;
 end;
 
-function TMatrixNavigator.KeyDown(Key: TKey; C: char;
+function TNavigator.KeyDown(Key: TKey; C: char;
   KeysDown: PKeysBooleans): boolean;
 begin
   Result := false;
 end;
 
-function TMatrixNavigator.MouseDown(Button: TMouseButton): boolean;
+function TNavigator.MouseDown(Button: TMouseButton): boolean;
 begin
   Result := false;
 end;
 
-procedure TMatrixNavigator.BeginMatrixChangedSchedule;
+procedure TNavigator.BeginMatrixChangedSchedule;
 begin
   { IsMatrixChangedScheduled = false always when MatrixChangedSchedule = 0. }
   Assert((MatrixChangedSchedule <> 0) or (not IsMatrixChangedScheduled));
@@ -1566,14 +1567,14 @@ begin
   Inc(MatrixChangedSchedule);
 end;
 
-procedure TMatrixNavigator.ScheduleMatrixChanged;
+procedure TNavigator.ScheduleMatrixChanged;
 begin
   if MatrixChangedSchedule = 0 then
     MatrixChanged else
     IsMatrixChangedScheduled := true;
 end;
 
-procedure TMatrixNavigator.EndMatrixChangedSchedule;
+procedure TNavigator.EndMatrixChangedSchedule;
 begin
   Dec(MatrixChangedSchedule);
   if (MatrixChangedSchedule = 0) and IsMatrixChangedScheduled then
@@ -1583,10 +1584,10 @@ begin
   end;
 end;
 
-{ TMatrixExaminer ------------------------------------------------------------ }
+{ TExamineNavigator ------------------------------------------------------------ }
 
-constructor TMatrixExaminer.Create(
-  const AOnMatrixChanged: TMatrixNavigatorNotifyFunc);
+constructor TExamineNavigator.Create(
+  const AOnMatrixChanged: TNavigatorNotifyFunc);
 type
   T3BoolKeys = array [0..2, boolean] of TKey;
 const
@@ -1623,7 +1624,7 @@ begin
   FInput_StopRotating := TInputShortcut.Create(K_Space       , K_None, #0 , true , mbLeft);
 end;
 
-destructor TMatrixExaminer.Destroy;
+destructor TExamineNavigator.Destroy;
 var
   I: Integer;
   B: boolean;
@@ -1641,7 +1642,7 @@ begin
   inherited;
 end;
 
-function TMatrixExaminer.Matrix: TMatrix4Single;
+function TExamineNavigator.Matrix: TMatrix4Single;
 begin
  result := TranslationMatrix(VectorAdd(MoveAmount, FModelBoxMiddle));
  result := MultMatrices(result, QuatToRotationMatrix(Rotations));
@@ -1649,12 +1650,12 @@ begin
  result := MultMatrices(result, TranslationMatrix(VectorNegate(FModelBoxMiddle)));
 end;
 
-function TMatrixExaminer.RotationOnlyMatrix: TMatrix4Single;
+function TExamineNavigator.RotationOnlyMatrix: TMatrix4Single;
 begin
  Result := QuatToRotationMatrix(Rotations);
 end;
 
-procedure TMatrixExaminer.Idle(const CompSpeed: Single;
+procedure TExamineNavigator.Idle(const CompSpeed: Single;
   KeysDown: PKeysBooleans;
   CharactersDown: PCharactersBooleans;
   const MousePressed: TMouseButtons);
@@ -1731,45 +1732,45 @@ begin
     Scale(Power(1 / scale_change, CompSpeed));
 end;
 
-procedure TMatrixExaminer.StopRotating;
+procedure TExamineNavigator.StopRotating;
 begin
   FRotationsAnim := ZeroVector3Single;
   MatrixChanged;
 end;
 
-procedure TMatrixExaminer.Rotate(coord: integer; const SpeedChange: Single);
+procedure TExamineNavigator.Rotate(coord: integer; const SpeedChange: Single);
 begin
   FRotationsAnim[coord] += SpeedChange;
   MatrixChanged;
 end;
 
-procedure TMatrixExaminer.Scale(const ScaleBy: Single);
+procedure TExamineNavigator.Scale(const ScaleBy: Single);
 begin FScaleFactor *= ScaleBy; MatrixChanged; end;
 
-procedure TMatrixExaminer.Move(coord: integer; const MoveDistance: Single);
+procedure TExamineNavigator.Move(coord: integer; const MoveDistance: Single);
 begin FMoveAmount[coord] += MoveDistance; MatrixChanged; end;
 
-procedure TMatrixExaminer.Init(const AModelBox: TBox3d);
+procedure TExamineNavigator.Init(const AModelBox: TBox3d);
 begin
  ModelBox := AModelBox;
  Home;
 end;
 
-{ TMatrixExaminer.Set* properties }
+{ TExamineNavigator.Set* properties }
 
-procedure TMatrixExaminer.SetRotationsAnim(const Value: TVector3Single);
+procedure TExamineNavigator.SetRotationsAnim(const Value: TVector3Single);
 begin FRotationsAnim := Value; MatrixChanged; end;
 
-procedure TMatrixExaminer.SetRotations(const Value: TQuaternion);
+procedure TExamineNavigator.SetRotations(const Value: TQuaternion);
 begin FRotations := Value; MatrixChanged; end;
 
-procedure TMatrixExaminer.SetScaleFactor(const Value: Single);
+procedure TExamineNavigator.SetScaleFactor(const Value: Single);
 begin FScaleFactor := Value; MatrixChanged; end;
 
-procedure TMatrixExaminer.SetMoveAmount(const Value: TVector3Single);
+procedure TExamineNavigator.SetMoveAmount(const Value: TVector3Single);
 begin FMoveAmount := Value; MatrixChanged; end;
 
-procedure TMatrixExaminer.Home;
+procedure TExamineNavigator.Home;
 begin
  if IsEmptyBox3d(FModelBox) then
   FMoveAmount := Vector3Single(0, 0, 0) { any dummy value } else
@@ -1783,7 +1784,7 @@ begin
  MatrixChanged;
 end;
 
-procedure TMatrixExaminer.SetModelBox(const Value: TBox3d);
+procedure TExamineNavigator.SetModelBox(const Value: TBox3d);
 begin
   FModelBox := Value;
   if IsEmptyBox3d(FModelBox) then
@@ -1792,7 +1793,7 @@ begin
   MatrixChanged;
 end;
 
-function TMatrixExaminer.EventDown(MouseEvent: boolean; Key: TKey;
+function TExamineNavigator.EventDown(MouseEvent: boolean; Key: TKey;
   ACharacter: Char;
   AMouseButton: TMouseButton): boolean;
 begin
@@ -1809,7 +1810,7 @@ begin
     Result := false;
 end;
 
-function TMatrixExaminer.KeyDown(Key: TKey; C: char;
+function TExamineNavigator.KeyDown(Key: TKey; C: char;
   KeysDown: PKeysBooleans): boolean;
 begin
   Result := inherited;
@@ -1820,7 +1821,7 @@ begin
   Result := EventDown(false, Key, C, mbLeft);
 end;
 
-function TMatrixExaminer.MouseDown(Button: TMouseButton): boolean;
+function TExamineNavigator.MouseDown(Button: TMouseButton): boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -1828,7 +1829,7 @@ begin
   Result := EventDown(true, K_None, #0, Button);
 end;
 
-function TMatrixExaminer.MouseMove(OldX, OldY, NewX, NewY: Integer;
+function TExamineNavigator.MouseMove(OldX, OldY, NewX, NewY: Integer;
   const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean;
 var
   Size: Single;
@@ -1934,10 +1935,10 @@ begin
   end;
 end;
 
-{ TMatrixWalker ---------------------------------------------------------------- }
+{ TWalkNavigator ---------------------------------------------------------------- }
 
-constructor TMatrixWalker.Create(
-  const AOnMatrixChanged: TMatrixNavigatorNotifyFunc);
+constructor TWalkNavigator.Create(
+  const AOnMatrixChanged: TNavigatorNotifyFunc);
 begin
   inherited;
   FInitialCameraPos := Vector3Single(0, 0, 0);  FCameraPos := InitialCameraPos;
@@ -1992,7 +1993,7 @@ begin
   FProjectionMatrix := IdentityMatrix4Single;
 end;
 
-destructor TMatrixWalker.Destroy;
+destructor TWalkNavigator.Destroy;
 begin
   FreeAndNil(FInput_Forward);
   FreeAndNil(FInput_Backward);
@@ -2012,7 +2013,7 @@ begin
   inherited;
 end;
 
-function TMatrixWalker.Matrix: TMatrix4Single;
+function TWalkNavigator.Matrix: TMatrix4Single;
 begin
   { Yes, below we compare Fde_CameraUpRotate with 0.0 using normal
     (precise) <> operator. Don't worry --- Fde_Stabilize in Idle
@@ -2024,12 +2025,12 @@ begin
     Result := LookDirMatrix(CameraPos, CameraDir, CameraUp);
 end;
 
-function TMatrixWalker.RotationOnlyMatrix: TMatrix4Single;
+function TWalkNavigator.RotationOnlyMatrix: TMatrix4Single;
 begin
  result := LookDirMatrix(ZeroVector3Single, CameraDir, CameraUp);
 end;
 
-function TMatrixWalker.DoMoveAllowed(const ProposedNewPos: TVector3Single;
+function TWalkNavigator.DoMoveAllowed(const ProposedNewPos: TVector3Single;
   out NewPos: TVector3Single; const BecauseOfGravity: boolean): boolean;
 begin
  if Assigned(OnMoveAllowed) then
@@ -2040,7 +2041,7 @@ begin
  end;
 end;
 
-procedure TMatrixWalker.DoGetCameraHeight(
+procedure TWalkNavigator.DoGetCameraHeight(
   out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
 begin
   IsAboveTheGround := false;
@@ -2048,12 +2049,12 @@ begin
     OnGetCameraHeight(Self, IsAboveTheGround, SqrHeightAboveTheGround);
 end;
 
-function TMatrixWalker.UseHeadBobbing: boolean;
+function TWalkNavigator.UseHeadBobbing: boolean;
 begin
   Result := Gravity and (HeadBobbing <> 0.0);
 end;
 
-function TMatrixWalker.RealCameraPreferredHeightNoHeadBobbing: Single;
+function TWalkNavigator.RealCameraPreferredHeightNoHeadBobbing: Single;
 begin
   Result := CameraPreferredHeight;
 
@@ -2061,7 +2062,7 @@ begin
     Result *= CrouchHeight;
 end;
 
-function TMatrixWalker.RealCameraPreferredHeight: Single;
+function TWalkNavigator.RealCameraPreferredHeight: Single;
 var
   BobbingModifier: Single;
 begin
@@ -2101,14 +2102,14 @@ begin
   end;
 end;
 
-function TMatrixWalker.RealCameraPreferredHeightMargin: Single;
+function TWalkNavigator.RealCameraPreferredHeightMargin: Single;
 begin
   { I tried using here something smaller like
     SingleEqualityEpsilon, but this was not good. }
   Result := RealCameraPreferredHeight * 0.01;
 end;
 
-procedure TMatrixWalker.RotateAroundGravityUp(const AngleDeg: Single);
+procedure TWalkNavigator.RotateAroundGravityUp(const AngleDeg: Single);
 var Axis: TVector3Single;
 begin
  { nie obracamy cameraDir wokol cameraUp, takie obroty w polaczeniu z
@@ -2134,20 +2135,20 @@ begin
  ScheduleMatrixChanged;
 end;
 
-procedure TMatrixWalker.RotateAroundUp(const AngleDeg: Single);
+procedure TWalkNavigator.RotateAroundUp(const AngleDeg: Single);
 begin
  { W TYM MIEJSCU POTRZEBUJEMY aby cameraDir i cameraUp byly prostopadle ! }
  CameraDir := RotatePointAroundAxisDeg(AngleDeg, CameraDir, CameraUp);
 end;
 
-procedure TMatrixWalker.RotateHorizontal(const AngleDeg: Single);
+procedure TWalkNavigator.RotateHorizontal(const AngleDeg: Single);
 begin
   if PreferGravityUpForRotations then
     RotateAroundGravityUp(AngleDeg) else
     RotateAroundUp(AngleDeg);
 end;
 
-procedure TMatrixWalker.RotateVertical(const AngleDeg: Single);
+procedure TWalkNavigator.RotateVertical(const AngleDeg: Single);
 var
   Side: TVector3Single;
   AngleRad: Single;
@@ -2221,7 +2222,7 @@ begin
   ScheduleMatrixChanged;
 end;
 
-procedure TMatrixWalker.Idle(const CompSpeed: Single;
+procedure TWalkNavigator.Idle(const CompSpeed: Single;
   KeysDown: PKeysBooleans;
   CharactersDown: PCharactersBooleans;
   const MousePressed: TMouseButtons);
@@ -2992,7 +2993,7 @@ begin
   end;
 end;
 
-procedure TMatrixWalker.Home;
+procedure TWalkNavigator.Home;
 begin
   { I don't set here CameraXxx properties, instead I actually directly set
     FCameraXxx fields. Reason:
@@ -3014,7 +3015,7 @@ begin
   ScheduleMatrixChanged;
 end;
 
-procedure TMatrixWalker.Jump;
+procedure TWalkNavigator.Jump;
 var
   IsAboveTheGround: boolean;
   SqrHeightAboveTheGround: Single;
@@ -3043,7 +3044,7 @@ begin
   FJumpHeight := 0.0;
 end;
 
-function TMatrixWalker.EventDown(MouseEvent: boolean; Key: TKey;
+function TWalkNavigator.EventDown(MouseEvent: boolean; Key: TKey;
   ACharacter: Char;
   AMouseButton: TMouseButton): boolean;
 begin
@@ -3060,7 +3061,7 @@ begin
     Result := false;
 end;
 
-function TMatrixWalker.KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean;
+function TWalkNavigator.KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -3072,7 +3073,7 @@ begin
   end;
 end;
 
-function TMatrixWalker.MouseDown(Button: TMouseButton): boolean;
+function TWalkNavigator.MouseDown(Button: TMouseButton): boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -3080,7 +3081,7 @@ begin
   Result := EventDown(true, K_None, #0, Button);
 end;
 
-procedure TMatrixWalker.Init(
+procedure TWalkNavigator.Init(
   const AInitialCameraPos, AInitialCameraDir, AInitialCameraUp: TVector3Single;
   const AGravityUp: TVector3Single;
   const ACameraPreferredHeight: Single;
@@ -3094,7 +3095,7 @@ begin
   Home;
 end;
 
-procedure TMatrixWalker.Init(const Box: TBox3d; const ACameraRadius: Single);
+procedure TWalkNavigator.Init(const Box: TBox3d; const ACameraRadius: Single);
 var Pos: TVector3Single;
     AvgSize: Single;
 begin
@@ -3116,7 +3117,7 @@ begin
  end;
 end;
 
-procedure TMatrixWalker.SetInitialCameraLookDir(const AInitialCameraPos,
+procedure TWalkNavigator.SetInitialCameraLookDir(const AInitialCameraPos,
   AInitialCameraDir, AInitialCameraUp: TVector3Single;
   const TransformCurrentCamera: boolean);
 begin
@@ -3135,7 +3136,7 @@ begin
   ScheduleMatrixChanged;
 end;
 
-procedure TMatrixWalker.SetInitialCameraLookAt(const AInitialCameraPos,
+procedure TWalkNavigator.SetInitialCameraLookAt(const AInitialCameraPos,
   AInitialCameraCenter, AInitialCameraUp: TVector3Single;
   const TransformCurrentCamera: boolean);
 begin
@@ -3144,55 +3145,55 @@ begin
     AInitialCameraUp, TransformCurrentCamera);
 end;
 
-procedure TMatrixWalker.SetCameraPos(const Value: TVector3Single);
+procedure TWalkNavigator.SetCameraPos(const Value: TVector3Single);
 begin
   FCameraPos := Value;
   ScheduleMatrixChanged;
 end;
 
-procedure TMatrixWalker.SetCameraDir(const Value: TVector3Single);
+procedure TWalkNavigator.SetCameraDir(const Value: TVector3Single);
 begin
   FCameraDir := Value;
   MakeVectorsOrthoOnTheirPlane(FCameraUp, FCameraDir);
   ScheduleMatrixChanged;
 end;
 
-procedure TMatrixWalker.SetCameraUp(const Value: TVector3Single);
+procedure TWalkNavigator.SetCameraUp(const Value: TVector3Single);
 begin
   FCameraUp := Value;
   MakeVectorsOrthoOnTheirPlane(FCameraDir, FCameraUp);
   ScheduleMatrixChanged;
 end;
 
-procedure TMatrixWalker.RecalculateFrustum;
+procedure TWalkNavigator.RecalculateFrustum;
 begin
   CalculateFrustum(FFrustum, ProjectionMatrix, Matrix);
 end;
 
-procedure TMatrixWalker.MatrixChanged;
+procedure TWalkNavigator.MatrixChanged;
 begin
   RecalculateFrustum;
   inherited;
 end;
 
-procedure TMatrixWalker.SetProjectionMatrix(const Value: TMatrix4Single);
+procedure TWalkNavigator.SetProjectionMatrix(const Value: TMatrix4Single);
 begin
   FProjectionMatrix := Value;
   RecalculateFrustum;
 end;
 
-procedure TMatrixWalker.CorrectCameraPreferredHeight(const CameraRadius: Single);
+procedure TWalkNavigator.CorrectCameraPreferredHeight(const CameraRadius: Single);
 begin
-  MatrixNavigation.CorrectCameraPreferredHeight(
+  Navigation.CorrectCameraPreferredHeight(
     FCameraPreferredHeight, CameraRadius, CrouchHeight, HeadBobbing);
 end;
 
-function TMatrixWalker.MaxJumpDistance: Single;
+function TWalkNavigator.MaxJumpDistance: Single;
 begin
   Result := MaxJumpHeight * CameraPreferredHeight;
 end;
 
-function TMatrixWalker.CameraDirInGravityPlane: TVector3Single;
+function TWalkNavigator.CameraDirInGravityPlane: TVector3Single;
 begin
   Result := CameraDir;
 
@@ -3200,7 +3201,7 @@ begin
     MakeVectorsOrthoOnTheirPlane(Result, GravityUp);
 end;
 
-procedure TMatrixWalker.FallOnTheGround;
+procedure TWalkNavigator.FallOnTheGround;
 begin
   FFallingOnTheGround := true;
 
@@ -3217,13 +3218,13 @@ begin
   FFallingOnTheGroundAngleIncrease := Random(2) = 0;
 end;
 
-procedure TMatrixWalker.CancelFallingDown;
+procedure TWalkNavigator.CancelFallingDown;
 begin
   { Fortunately implementation of this is brutally simple right now. }
   FIsFallingDown := false;
 end;
 
-procedure TMatrixWalker.MouseMove(MouseXChange, MouseYChange: Integer);
+procedure TWalkNavigator.MouseMove(MouseXChange, MouseYChange: Integer);
 begin
   if MouseLook then
   begin

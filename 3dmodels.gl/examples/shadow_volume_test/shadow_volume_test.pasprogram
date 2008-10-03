@@ -72,7 +72,7 @@ program shadow_volume_test;
 {$apptype CONSOLE}
 
 uses GLWindow, GLW_Navigated, GL, GLU, GLExt, KambiGLUtils, VRMLGLScene,
-  VRMLNodes, MatrixNavigation, VRMLScene, Boxes3d, SysUtils,
+  VRMLNodes, Navigation, VRMLScene, Boxes3d, SysUtils,
   KambiUtils, VectorMath, VRMLLightSetGL, VRMLFields,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils, VRMLCameraUtils,
   ShadowTests, GLWinMessages, VRMLErrors, ShadowVolumesHelper,
@@ -127,7 +127,7 @@ type
 
 var
   Scene, ShadowCaster: TVRMLGLScene;
-  ShadowCasterNav: TMatrixExaminer;
+  ShadowCasterNav: TExamineNavigator;
   LightSet: TVRMLLightSetGL;
 
   { MainLightPosition[3] = 0 means it's directional. }
@@ -172,7 +172,7 @@ procedure Draw(glwin: TGLWindow);
   procedure RenderFrontShadowQuads;
   begin
     ShadowTests.RenderFrontShadowQuads(ShadowCaster,
-      MainLightPosition, Glw.NavWalker.CameraPos, ShadowCasterNav.Matrix);
+      MainLightPosition, Glw.WalkNav.CameraPos, ShadowCasterNav.Matrix);
   end;
 
   procedure RenderBackShadowQuads;
@@ -345,7 +345,7 @@ begin
   glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT);
   glLoadMatrix(Glw.Navigator.Matrix);
 
-  SVHelper.InitFrustumAndLight(Glw.NavWalker.Frustum, MainLightPosition);
+  SVHelper.InitFrustumAndLight(Glw.WalkNav.Frustum, MainLightPosition);
 
   SVHelper.InitSceneDontSetupStencil(
     BoundingBoxTransform(ShadowCaster.BoundingBox, ShadowCasterNav.Matrix));
@@ -406,7 +406,7 @@ procedure ResizeGL(glwin: TGLWindow);
     ProjectionMatrix: TMatrix4f;
   begin
     glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
-    Glw.NavWalker.ProjectionMatrix := ProjectionMatrix;
+    Glw.WalkNav.ProjectionMatrix := ProjectionMatrix;
   end;
 
 begin
@@ -517,7 +517,7 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
   begin
     CameraViewpointForWholeScene(SceneBoundingBox,
       CameraPos, CameraDir, CameraUp, GravityUp);
-    Glw.NavWalker.Init(CameraPos, CameraDir, CameraUp, GravityUp, 0.0, 0.0);
+    Glw.WalkNav.Init(CameraPos, CameraDir, CameraUp, GravityUp, 0.0, 0.0);
   end;
 
 var
@@ -537,10 +537,10 @@ begin
     10, 11:
       begin
         Writeln(MakeVRMLCameraStr(MenuItem.IntData - 9,
-          Glw.NavWalker.CameraPos,
-          Glw.NavWalker.CameraDir,
-          Glw.NavWalker.CameraUp,
-          Glw.NavWalker.GravityUp));
+          Glw.WalkNav.CameraPos,
+          Glw.WalkNav.CameraDir,
+          Glw.WalkNav.CameraUp,
+          Glw.WalkNav.GravityUp));
       end;
     20:
       begin
@@ -671,7 +671,7 @@ begin
         'and no direction', [L^.LightNode.NodeTypeName]);
 
     { init ShadowCasterNav }
-    ShadowCasterNav := TMatrixExaminer.Create(@Glw.PostRedisplayOnMatrixChanged);
+    ShadowCasterNav := TExamineNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
     ShadowCasterNav.ModelBox := ShadowCaster.BoundingBox;
 
     ShadowCasterNav.Inputs_Move[0, false].Key1 := K_A;
@@ -694,10 +694,10 @@ begin
     ShadowCasterNav.Input_ScaleSmaller.Key1 := K_4;
 
     { init Glw.Navigator }
-    Glw.Navigator := TMatrixWalker.Create(@Glw.PostRedisplayOnMatrixChanged);
+    Glw.Navigator := TWalkNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
     Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
     VectorAdjustToLengthTo1st(CamDir, Box3dAvgSize(SceneBoundingBox)*0.02);
-    Glw.NavWalker.Init(CamPos, CamDir, CamUp, GravityUp, 0.0, 0.0);
+    Glw.WalkNav.Init(CamPos, CamDir, CamUp, GravityUp, 0.0, 0.0);
 
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;

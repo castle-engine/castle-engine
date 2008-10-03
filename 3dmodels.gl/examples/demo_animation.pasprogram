@@ -66,7 +66,7 @@ program demo_animation;
 
 uses Math, VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
-  KambiGLUtils, VRMLScene, VRMLGLScene, MatrixNavigation, VRMLGLAnimation,
+  KambiGLUtils, VRMLScene, VRMLGLScene, Navigation, VRMLGLAnimation,
   KambiFilesUtils, ParseParametersUnit, ProgressGL, ProgressUnit, VRMLErrors;
 
 var
@@ -217,8 +217,8 @@ begin
       GravityUp);
 
     { init Glw.Navigator }
-    Glw.Navigator := TMatrixWalker.Create(@Glw.PostRedisplayOnMatrixChanged);
-    Glw.NavWalker.Init(CamPos, VectorAdjustToLength(CamDir,
+    Glw.Navigator := TWalkNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+    Glw.WalkNav.Init(CamPos, VectorAdjustToLength(CamDir,
       Box3dAvgSize(Animation.Scenes[0].BoundingBox) * 0.01*0.4), CamUp,
       GravityUp, 0.0, 0.0);
 

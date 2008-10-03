@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs,
-  OpenGLContext, Menus, VRMLGLScene, MatrixNavigation, KambiVRMLBrowser,
+  OpenGLContext, Menus, VRMLGLScene, Navigation, KambiVRMLBrowser,
   Buttons, ExtCtrls, StdCtrls;
 
 type
@@ -40,7 +40,7 @@ type
     MenuOpen: TMenuItem;
     OpenDialog1: TOpenDialog;
     PanelBottom: TPanel;
-    procedure BrowserNavigatorChanged(Navigator: TMatrixNavigator);
+    procedure BrowserNavigatorChanged(Navigator: TNavigator);
     procedure ButtonChangeCameraClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
@@ -149,41 +149,41 @@ begin
     For simplicity, we don't allow user to change this here
     (although keys +/- do this in Walk mode), we keep previous CameraDir
     length. }
-  VectorAdjustToLengthTo1st(Dir, VectorLen(Browser.NavWalker.CameraDir));
+  VectorAdjustToLengthTo1st(Dir, VectorLen(Browser.WalkNav.CameraDir));
 
   { First convert all to float. Then set Navigator properties.
     This way in case of exception in StrToFloat, previous
     Navigator properties remain OK. }
 
-  Browser.NavWalker.CameraPos := Pos;
-  Browser.NavWalker.CameraDir := Dir;
-  Browser.NavWalker.CameraUp := Up;
+  Browser.WalkNav.CameraPos := Pos;
+  Browser.WalkNav.CameraDir := Dir;
+  Browser.WalkNav.CameraUp := Up;
 end;
 
-procedure TMain.BrowserNavigatorChanged(Navigator: TMatrixNavigator);
+procedure TMain.BrowserNavigatorChanged(Navigator: TNavigator);
 var
   Dir: TVector3Single;
 begin
-  if Navigator is TMatrixWalker then
+  if Navigator is TWalkNavigator then
   begin
-    { Browser.NavWalker is now the same thing as (Navigator as TMatrixWalker) }
-    EditPositionX.Text := FloatToNiceStr(Browser.NavWalker.CameraPos[0]);
-    EditPositionY.Text := FloatToNiceStr(Browser.NavWalker.CameraPos[1]);
-    EditPositionZ.Text := FloatToNiceStr(Browser.NavWalker.CameraPos[2]);
+    { Browser.WalkNav is now the same thing as (Navigator as TWalkNavigator) }
+    EditPositionX.Text := FloatToNiceStr(Browser.WalkNav.CameraPos[0]);
+    EditPositionY.Text := FloatToNiceStr(Browser.WalkNav.CameraPos[1]);
+    EditPositionZ.Text := FloatToNiceStr(Browser.WalkNav.CameraPos[2]);
 
     { Length of direction vector affects speed.
       For simplicity, we don't show it to user here (it could have small
       values, and would look like all "0.00" while in fact being non-zero).
       Instead. we show the normalized dir. }
-    Dir := Normalized(Browser.NavWalker.CameraDir);
+    Dir := Normalized(Browser.WalkNav.CameraDir);
 
     EditDirectionX.Text := FloatToNiceStr(Dir[0]);
     EditDirectionY.Text := FloatToNiceStr(Dir[1]);
     EditDirectionZ.Text := FloatToNiceStr(Dir[2]);
 
-    EditUpX.Text := FloatToNiceStr(Browser.NavWalker.CameraUp[0]);
-    EditUpY.Text := FloatToNiceStr(Browser.NavWalker.CameraUp[1]);
-    EditUpZ.Text := FloatToNiceStr(Browser.NavWalker.CameraUp[2]);
+    EditUpX.Text := FloatToNiceStr(Browser.WalkNav.CameraUp[0]);
+    EditUpY.Text := FloatToNiceStr(Browser.WalkNav.CameraUp[1]);
+    EditUpZ.Text := FloatToNiceStr(Browser.WalkNav.CameraUp[2]);
   end;
 end;
 

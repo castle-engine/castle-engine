@@ -67,8 +67,8 @@
         <UnitName Value="Keys"/>
       </Item4>
       <Item5>
-        <Filename Value="../../3dgraph/matrixnavigation.pas"/>
-        <UnitName Value="MatrixNavigation"/>
+        <Filename Value="../../3dgraph/navigation.pas"/>
+        <UnitName Value="Navigation"/>
       </Item5>
       <Item6>
         <Filename Value="../../3dgraph/polynomials.pas"/>

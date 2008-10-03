@@ -38,7 +38,7 @@ program demo_matrix_navigation;
 
 uses VectorMath, Boxes3d, GL, GLU, GLExt, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes,
-  KambiGLUtils, MatrixNavigation, KambiFilesUtils;
+  KambiGLUtils, Navigation, KambiFilesUtils;
 
 procedure Draw(glwin: TGLWindow);
 var
@@ -68,8 +68,8 @@ end;
 
 begin
   { init Glw.Navigator }
-  Glw.Navigator := TMatrixExaminer.Create(@Glw.PostRedisplayOnMatrixChanged);
-  Glw.NavExaminer.Init(Box3d(
+  Glw.Navigator := TExamineNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+  Glw.ExamineNav.Init(Box3d(
     Vector3Single(-1, -1, -1),
     Vector3Single( 1,  1,  1)));
 

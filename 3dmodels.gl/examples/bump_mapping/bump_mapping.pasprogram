@@ -57,7 +57,7 @@
 program bump_mapping;
 
 uses GLWindow, GLW_Navigated, GL, GLU, GLExt, KambiGLUtils,
-  MatrixNavigation, Boxes3d, SysUtils, KambiUtils, VectorMath,
+  Navigation, Boxes3d, SysUtils, KambiUtils, VectorMath,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils,
   GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, Images, Keys,
   NormalizationCubeMap, GLImages, GLVersionUnit,
@@ -88,8 +88,8 @@ var
 
   RotatingColumn: Single;
 
-  Examiner: TMatrixExaminer;
-  Walker: TMatrixWalker;
+  Examiner: TExamineNavigator;
+  Walker: TWalkNavigator;
 
   Scene: TVRMLGLScene;
 
@@ -879,7 +879,7 @@ begin
     glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.2, 0.2, 0.2, 1.0));
 
     if Glw.Navigator = Walker then
-      Scene.RenderFrustumOctree(Glw.NavWalker.Frustum, tgAll) else
+      Scene.RenderFrustumOctree(Glw.WalkNav.Frustum, tgAll) else
       Scene.Render(nil, tgAll);
   end else
   begin
@@ -1240,10 +1240,10 @@ begin
     VrmlFileName := Parameters[1];
 
   { init Glw.Navigator }
-  Examiner := TMatrixExaminer.Create(@Glw.PostRedisplayOnMatrixChanged);
+  Examiner := TExamineNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
   Examiner.Init(SceneBoundingBox);
 
-  Walker := TMatrixWalker.Create(@Glw.PostRedisplayOnMatrixChanged);
+  Walker := TWalkNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
   Walker.Init(Vector3Single(0, 0, 10), Vector3Single(0, 0, -1),
     Vector3Single(0, 1, 0), Vector3Single(0, 1, 0),
     0.0, 0.0 { unused, we don't use Gravity here });

@@ -29,7 +29,7 @@
   It allows user to walk in the scene using keys Up/Down (forward/back),
   Right/Left (rotate), PageUp/PageDown (raise/bow your head) etc.
   -- for a complete list of keys available see documentation
-  of @link(TMatrixWalker) class or view3dscene documentation
+  of @link(TWalkNavigator) class or view3dscene documentation
   (look for "keys available in Walk navigation method").
 
   Thanks to using GLW_Navigated unit (that exposes Glw of class
@@ -56,7 +56,7 @@ program simple_view_model;
 
 uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
-  KambiGLUtils, VRMLScene, VRMLGLScene, MatrixNavigation,
+  KambiGLUtils, VRMLScene, VRMLGLScene, Navigation,
   KambiFilesUtils, VRMLErrors;
 
 var
@@ -107,8 +107,8 @@ begin
       end;}
 
     { init Glw.Navigator }
-    Glw.Navigator := TMatrixWalker.Create(@Glw.PostRedisplayOnMatrixChanged);
-    Glw.NavWalker.Init(Box3dMiddle(scene.BoundingBox),
+    Glw.Navigator := TWalkNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+    Glw.WalkNav.Init(Box3dMiddle(scene.BoundingBox),
         VectorAdjustToLength(Vector3Single(1, 0, 0),
           Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
         Vector3Single(0, 1, 0),

@@ -14,7 +14,7 @@ uses
   boxes3d,
   convexhullunit,
   keys,
-  matrixnavigation,
+  navigation,
   polynomials,
   rayswindow,
   spacefillingcurves,

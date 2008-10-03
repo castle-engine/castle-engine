@@ -59,7 +59,7 @@ program plane_mirror_and_shadow;
 
 uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
-  KambiGLUtils, VRMLScene, VRMLGLScene, MatrixNavigation,
+  KambiGLUtils, VRMLScene, VRMLGLScene, Navigation,
   KambiFilesUtils, VRMLErrors, KambiStringUtils, Keys;
 
 var
@@ -503,7 +503,7 @@ begin
           { refresh projection matrix, since Scene.BoundingBox changed }
           Glwin.EventResize;
           { reinit navigator, since Scene.BoundingBox changed }
-          Glw.NavExaminer.Init(Scene.BoundingBox);
+          Glw.ExamineNav.Init(Scene.BoundingBox);
         end;
       end;
     12: Glwin.Close;
@@ -585,8 +585,8 @@ begin
     SceneForShadow.Attributes.PureGeometry := true;
 
     { init Glw.Navigator }
-    Glw.Navigator := TMatrixExaminer.Create(@Glw.PostRedisplayOnMatrixChanged);
-    Glw.NavExaminer.Init(Scene.BoundingBox);
+    Glw.Navigator := TExamineNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+    Glw.ExamineNav.Init(Scene.BoundingBox);
 
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;

@@ -44,7 +44,7 @@ unit KambiVRMLBrowser;
 interface
 
 uses Classes, KambiGLControl, VectorMath, Controls,
-  VRMLNodes, VRMLGLScene, VRMLScene, MatrixNavigation;
+  VRMLNodes, VRMLGLScene, VRMLScene, Navigation;
 
 type
   { A simple VRML browser as a Lazarus component. This manages TVRMLGLScene,
@@ -104,7 +104,7 @@ type
     (file @code(../../3dmodels.gl/glwindowvrmlbrowser.pas)). }
   TKamVRMLBrowser = class(TKamOpenGLControl)
   private
-    FOnNavigatorChanged: TMatrixNavigatorNotifyFunc;
+    FOnNavigatorChanged: TNavigatorNotifyFunc;
     FScene: TVRMLGLScene;
 
     { CameraRadius is needed for collision detection }
@@ -112,11 +112,11 @@ type
 
     function AngleOfViewX: Single;
 
-    function MoveAllowed(ANavigator: TMatrixWalker;
+    function MoveAllowed(ANavigator: TWalkNavigator;
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean;
     procedure ScenePostRedisplay(Scene: TVRMLScene);
-    procedure MatrixChanged(ANavigator: TMatrixNavigator);
+    procedure MatrixChanged(ANavigator: TNavigator);
     procedure BoundViewpointVectorsChanged(Scene: TVRMLScene);
     procedure GeometryChanged(Scene: TVRMLScene);
   protected
@@ -143,7 +143,7 @@ type
     procedure Resize; override;
     procedure Idle; override;
   published
-    property OnNavigatorChanged: TMatrixNavigatorNotifyFunc
+    property OnNavigatorChanged: TNavigatorNotifyFunc
       read FOnNavigatorChanged write FOnNavigatorChanged;
   end;
 
@@ -167,7 +167,7 @@ constructor TKamVRMLBrowser.Create(AOwner :TComponent);
 begin
   inherited;
 
-  Navigator := TMatrixWalker.Create(@MatrixChanged);
+  Navigator := TWalkNavigator.Create(@MatrixChanged);
   OwnsNavigator := true;
 
   Load(nil, true);
@@ -201,14 +201,14 @@ begin
   Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
 
   { init Navigator }
-  NavWalker.Init(CamPos,
+  WalkNav.Init(CamPos,
     VectorAdjustToLength(CamDir, Box3dAvgSize(Scene.BoundingBox, 1.0) * 0.01 * 0.4),
     CamUp, GravityUp,
     0.0, 0.0 { unused, we don't use Gravity here });
 
   { init collision detection }
   CameraRadius := Box3dAvgSize(Scene.BoundingBox, 1.0) * 0.01;
-  NavWalker.OnMoveAllowed := @MoveAllowed;
+  WalkNav.OnMoveAllowed := @MoveAllowed;
 
   { prepare for events procesing (although we let the decision whether
     to turn ProcessEvent := true to the caller). }
@@ -249,7 +249,7 @@ begin
     glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
 
   glLoadMatrix(Navigator.Matrix);
-  Scene.RenderFrustumOctree(NavWalker.Frustum, tgAll);
+  Scene.RenderFrustumOctree(WalkNav.Frustum, tgAll);
 
   SwapBuffers;
 end;
@@ -295,7 +295,7 @@ procedure TKamVRMLBrowser.Resize;
     ProjectionMatrix: TMatrix4f;
   begin
     glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
-    NavWalker.ProjectionMatrix := ProjectionMatrix;
+    WalkNav.ProjectionMatrix := ProjectionMatrix;
   end;
 
 var
@@ -409,7 +409,7 @@ begin
 end;
 
 
-function TKamVRMLBrowser.MoveAllowed(ANavigator: TMatrixWalker;
+function TKamVRMLBrowser.MoveAllowed(ANavigator: TWalkNavigator;
   const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const BecauseOfGravity: boolean): boolean;
 begin
@@ -423,14 +423,14 @@ begin
   Invalidate;
 end;
 
-procedure TKamVRMLBrowser.MatrixChanged(ANavigator: TMatrixNavigator);
+procedure TKamVRMLBrowser.MatrixChanged(ANavigator: TNavigator);
 begin
   { Navigator.OnMatrixChanged callback is initialized in constructor
     before Scene is initialized. So to be on the safest side, we check
     here Scene <> nil. }
 
   if Scene <> nil then
-    Scene.ViewerPositionChanged(NavWalker.CameraPos);
+    Scene.ViewerPositionChanged(WalkNav.CameraPos);
   Invalidate;
 
   if Assigned(OnNavigatorChanged) then
@@ -446,7 +446,7 @@ var
 begin
   TVRMLViewpointNode(Scene.ViewpointStack.Top).GetCameraVectors(
     CameraPos, CameraDir, CameraUp, GravityUp);
-  NavWalker.SetInitialCameraLookDir(CameraPos, CameraDir, CameraUp, true);
+  WalkNav.SetInitialCameraLookDir(CameraPos, CameraDir, CameraUp, true);
 end;
 
 procedure TKamVRMLBrowser.GeometryChanged(Scene: TVRMLScene);
