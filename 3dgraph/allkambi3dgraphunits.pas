@@ -16,6 +16,7 @@ uses
   keys,
   navigation,
   polynomials,
+  quaternions,
   rayswindow,
   spacefillingcurves,
   spheresampling
