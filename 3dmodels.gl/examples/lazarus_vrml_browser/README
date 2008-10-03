@@ -23,8 +23,11 @@ Usage:
   You can open using "File -> Open" menu item
   or just pass filename on command-line.
 
-- To move in the scene, all the view3dscene keys in Walk mode work
-  (Arrows, PageUp/Down, Insert/Delete, Comma/Period etc.).
+- Navigation in the scene follows NavigationInfo.type encoded in VRML.
+  (if none, Examine will be used).
+  See view3dscene docs for keys to control Walk/Examine navigation
+  [http://vrmlengine.sourceforge.net/view3dscene.php], or just try
+  moving with arrows, mouse etc.
   Remember that you must have focus on 3D area to use them ---
   press Escape (menu item "View -> Switch focus to 3D area") when needed.
 

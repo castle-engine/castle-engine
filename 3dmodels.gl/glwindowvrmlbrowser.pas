@@ -189,6 +189,7 @@ begin
   Scene.DefaultShapeStateOctree :=
     Scene.CreateShapeStateOctree('Building ShapeState octree');
 
+  { init Navigator }
   Navigator := Scene.CreateNavigator(CameraRadius);
   Navigator.OnMatrixChanged := @MatrixChanged;
 
@@ -196,7 +197,6 @@ begin
   begin
     Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
 
-    { init Navigator }
     WalkNav.Init(CamPos,
       VectorAdjustToLength(CamDir, Box3dAvgSize(Scene.BoundingBox, 1.0) * 0.01 * 0.4),
       CamUp, GravityUp,

@@ -7,7 +7,7 @@
       <MainUnit Value="0"/>
       <IconPath Value="./"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="1"/>
+      <ActiveEditorIndexAtStart Value="3"/>
     </General>
     <PublishOptions>
       <Version Value="2"/>
@@ -54,7 +54,7 @@
         <ResourceFilename Value="mainf.lrs"/>
         <UnitName Value="mainf"/>
         <CursorPos X="5" Y="57"/>
-        <TopLine Value="144"/>
+        <TopLine Value="1"/>
         <EditorIndex Value="0"/>
         <UsageCount Value="40"/>
         <Loaded Value="True"/>
@@ -63,13 +63,11 @@
         <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
         <UnitName Value="KambiGLControl"/>
         <CursorPos X="47" Y="506"/>
-        <TopLine Value="481"/>
-        <EditorIndex Value="1"/>
+        <TopLine Value="1"/>
         <UsageCount Value="13"/>
         <Bookmarks Count="1">
           <Item0 X="5" Y="155" ID="1"/>
         </Bookmarks>
-        <Loaded Value="True"/>
       </Unit2>
       <Unit3>
         <Filename Value="../../../opengl/kambiglutils.pas"/>
@@ -154,16 +152,20 @@
       <Unit14>
         <Filename Value="../../../base/kambidynlib.pas"/>
         <UnitName Value="KambiDynLib"/>
-        <CursorPos X="1" Y="221"/>
-        <TopLine Value="179"/>
+        <CursorPos X="67" Y="187"/>
+        <TopLine Value="183"/>
+        <EditorIndex Value="2"/>
         <UsageCount Value="10"/>
+        <Loaded Value="True"/>
       </Unit14>
       <Unit15>
         <Filename Value="../../../3dmodels/vrmlscene.pas"/>
         <UnitName Value="VRMLScene"/>
-        <CursorPos X="56" Y="2841"/>
-        <TopLine Value="2806"/>
+        <CursorPos X="52" Y="2278"/>
+        <TopLine Value="2256"/>
+        <EditorIndex Value="3"/>
         <UsageCount Value="10"/>
+        <Loaded Value="True"/>
       </Unit15>
       <Unit16>
         <Filename Value="../../../base/kambiutils_miscella.inc"/>
@@ -174,9 +176,11 @@
       <Unit17>
         <Filename Value="../../../packages/components/kambivrmlbrowser.pas"/>
         <UnitName Value="KambiVRMLBrowser"/>
-        <CursorPos X="26" Y="168"/>
-        <TopLine Value="150"/>
+        <CursorPos X="42" Y="447"/>
+        <TopLine Value="423"/>
+        <EditorIndex Value="1"/>
         <UsageCount Value="12"/>
+        <Loaded Value="True"/>
       </Unit17>
       <Unit18>
         <Filename Value="../../../3dmodels/vrml97nodes.inc"/>
@@ -240,7 +244,7 @@
         <UsageCount Value="10"/>
       </Unit26>
     </Units>
-    <JumpHistory Count="16" HistoryIndex="15">
+    <JumpHistory Count="19" HistoryIndex="18">
       <Position1>
         <Filename Value="mainf.pas"/>
         <Caret Line="48" Column="24" TopLine="25"/>
@@ -302,9 +306,21 @@
         <Caret Line="129" Column="43" TopLine="129"/>
       </Position15>
       <Position16>
-        <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="../../../packages/components/kambivrmlbrowser.pas"/>
+        <Caret Line="168" Column="26" TopLine="150"/>
       </Position16>
+      <Position17>
+        <Filename Value="../../../packages/components/kambivrmlbrowser.pas"/>
+        <Caret Line="446" Column="27" TopLine="423"/>
+      </Position17>
+      <Position18>
+        <Filename Value="../../../packages/components/kambivrmlbrowser.pas"/>
+        <Caret Line="447" Column="42" TopLine="423"/>
+      </Position18>
+      <Position19>
+        <Filename Value="../../../base/kambidynlib.pas"/>
+        <Caret Line="187" Column="67" TopLine="183"/>
+      </Position19>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

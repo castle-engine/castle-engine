@@ -21,7 +21,8 @@
 }
 
 { This opens VRML/X3D file, renders it, allows to move in the scene
-  (with Walk navigation, see view3dscene docs:
+  (with navigation adjusted to NavigationInfo.type, see view3dscene docs
+  for keys/mouse to control Walk/Examine navigation
   [http://vrmlengine.sourceforge.net/view3dscene.php]) and makes
   events working.
 

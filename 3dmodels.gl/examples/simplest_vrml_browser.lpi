@@ -40,7 +40,7 @@
         <PackageName Value="kambi_units"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="2">
+    <Units Count="3">
       <Unit0>
         <Filename Value="simplest_vrml_browser.pasprogram"/>
         <IsPartOfProject Value="True"/>
@@ -57,8 +57,20 @@
         <TopLine Value="181"/>
         <UsageCount Value="10"/>
       </Unit1>
+      <Unit2>
+        <Filename Value="../../3dmodels/vrmlnodes.pas"/>
+        <UnitName Value="VRMLNodes"/>
+        <CursorPos X="28" Y="4613"/>
+        <TopLine Value="4602"/>
+        <UsageCount Value="10"/>
+      </Unit2>
     </Units>
-    <JumpHistory Count="0" HistoryIndex="-1"/>
+    <JumpHistory Count="1" HistoryIndex="0">
+      <Position1>
+        <Filename Value="simplest_vrml_browser.pasprogram"/>
+        <Caret Line="24" Column="41" TopLine="1"/>
+      </Position1>
+    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="8"/>
@@ -67,7 +79,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="3">
+    <Exceptions Count="4">
       <Item1>
         <Name Value="ECodetoolError"/>
       </Item1>
@@ -77,6 +89,9 @@
       <Item3>
         <Name Value="BreakFirstViewpointFound"/>
       </Item3>
+      <Item4>
+        <Name Value="BreakIsNodePresent"/>
+      </Item4>
     </Exceptions>
   </Debugging>
 </CONFIG>
