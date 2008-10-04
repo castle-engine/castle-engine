@@ -24,7 +24,7 @@ unit VRMLGLAnimation;
 interface
 
 uses SysUtils, VRMLNodes, VRMLOpenGLRenderer, VRMLScene, VRMLGLScene,
-  KambiUtils, Boxes3d, KambiClassUtils, VRMLAnimation;
+  KambiUtils, Boxes3d, KambiClassUtils, VRMLAnimation, Navigation;
 
 {$define read_interface}
 
@@ -513,6 +513,19 @@ type
     property Optimization: TGLRendererOptimization
       read FOptimization write SetOptimization
       default roSeparateShapeStatesNoTransform;
+
+    { Set OpenGL projection, based on currently
+      bound Viewpoint, NavigationInfo (using FirstScene) and used navigator.
+
+      Sets BackgroundSkySphereRadius for this whole precalculated animation
+      (that's why it's better to use this when you deal with TVRMLGLAnimation,
+      as opposed to directly calling TVRMLGLScene.GLProjection).
+
+      @seealso TVRMLGLScene.GLProjection }
+    procedure GLProjection(Nav: TNavigator;
+      const Box: TBox3d; const CameraRadius: Single;
+      const WindowWidth, WindowHeight: Cardinal;
+      out AngleOfViewX, AngleOfViewY: Single);
   end;
 
   TObjectsListItem_1 = TVRMLGLAnimation;
@@ -1570,6 +1583,18 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TVRMLGLAnimation.GLProjection(Nav: TNavigator;
+  const Box: TBox3d; const CameraRadius: Single;
+  const WindowWidth, WindowHeight: Cardinal;
+  out AngleOfViewX, AngleOfViewY: Single);
+var
+  NewBackgroundSkySphereRadius: Single;
+begin
+  FirstScene.GLProjectionCore(Nav, Box, CameraRadius, WindowWidth, WindowHeight,
+    AngleOfViewX, AngleOfViewY, NewBackgroundSkySphereRadius);
+  BackgroundSkySphereRadius := NewBackgroundSkySphereRadius;
 end;
 
 end.

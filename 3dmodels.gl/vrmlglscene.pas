@@ -1112,6 +1112,12 @@ type
       const Box: TBox3d; const CameraRadius: Single;
       const WindowWidth, WindowHeight: Cardinal;
       out AngleOfViewX, AngleOfViewY: Single);
+
+    procedure GLProjectionCore(Nav: TNavigator;
+      const Box: TBox3d; const CameraRadius: Single;
+      const WindowWidth, WindowHeight: Cardinal;
+      out AngleOfViewX, AngleOfViewY: Single;
+      out NewBackgroundSkySphereRadius: Single);
   end;
 
   TObjectsListItem_1 = TVRMLGLScene;
@@ -3336,6 +3342,19 @@ procedure TVRMLGLScene.GLProjection(Nav: TNavigator;
   const Box: TBox3d; const CameraRadius: Single;
   const WindowWidth, WindowHeight: Cardinal;
   out AngleOfViewX, AngleOfViewY: Single);
+var
+  NewBackgroundSkySphereRadius: Single;
+begin
+  GLProjectionCore(Nav, Box, CameraRadius, WindowWidth, WindowHeight,
+    AngleOfViewX, AngleOfViewY, NewBackgroundSkySphereRadius);
+  BackgroundSkySphereRadius := NewBackgroundSkySphereRadius;
+end;
+
+procedure TVRMLGLScene.GLProjectionCore(Nav: TNavigator;
+  const Box: TBox3d; const CameraRadius: Single;
+  const WindowWidth, WindowHeight: Cardinal;
+  out AngleOfViewX, AngleOfViewY: Single;
+  out NewBackgroundSkySphereRadius: Single);
 
   procedure UpdateNavigatorProjectionMatrix;
   var
@@ -3428,10 +3447,7 @@ begin
 
   UpdateNavigatorProjectionMatrix;
 
-  { TODO: view3dscene wants to set
-      SceneAnimation.BackgroundSkySphereRadius
-    here. }
-  BackgroundSkySphereRadius :=
+  NewBackgroundSkySphereRadius :=
     TBackgroundGL.NearFarToSkySphereRadius(
       WalkProjectionNear, WalkProjectionFar);
 end;
