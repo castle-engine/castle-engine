@@ -1940,6 +1940,8 @@ begin
   end else
   begin
     Assert(SSSX_DisplayLists.Items[ShapeStateNum] = 0);
+    { Make sure that it's prepared. }
+    SSS_PrepareShapeState(ShapeStateNum);
     RenderShapeStateSimple(ShapeStateNum);
   end;
 end;
@@ -2016,6 +2018,8 @@ begin
   end else
   begin
     Assert(SSSX_DisplayLists.Items[ShapeStateNum] = 0);
+    { Make sure that it's prepared. }
+    SSSNT_PrepareShapeState(ShapeStateNum);
     RenderShapeStateSimple(ShapeStateNum);
   end;
 end;
