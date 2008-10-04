@@ -108,7 +108,7 @@ type
 
     CameraRadius: Single;
 
-    function AngleOfViewX: Single;
+    AngleOfViewX, AngleOfViewY: Single;
 
     function MoveAllowed(ANavigator: TWalkNavigator;
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
@@ -263,43 +263,11 @@ begin
   Scene.IncreaseWorldTime(IdleSpeed);
 end;
 
-const
-  AngleOfViewY = 45.0;
-
-function TGLWindowVRMLBrowser.AngleOfViewX: Single;
-begin
-  Result := AdjustViewAngleDegToAspectRatio(
-    AngleOfViewY, Width / Height);
-end;
-
 procedure TGLWindowVRMLBrowser.EventResize;
-
-  procedure UpdateNavigatorProjectionMatrix;
-  var
-    ProjectionMatrix: TMatrix4f;
-  begin
-    glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
-    if Navigator is TWalkNavigator then
-      WalkNav.ProjectionMatrix := ProjectionMatrix;
-  end;
-
-var
-  WalkProjectionNear, WalkProjectionFar: Single;
 begin
   inherited;
-  glViewport(0, 0, Width, Height);
-
-  WalkProjectionNear := CameraRadius * 0.6;
-  WalkProjectionFar := Box3dMaxSize(Scene.BoundingBox, 1.0) * 3.0;
-
-  Scene.BackgroundSkySphereRadius :=
-    TBackgroundGL.NearFarToSkySphereRadius(
-      WalkProjectionNear, WalkProjectionFar);
-
-  ProjectionGLPerspective(AngleOfViewY, Width / Height,
-    WalkProjectionNear, WalkProjectionFar);
-
-  UpdateNavigatorProjectionMatrix;
+  Scene.GLProjection(Navigator, Scene.BoundingBox, CameraRadius,
+    Width, Height, AngleOfViewX, AngleOfViewY);
 end;
 
 procedure TGLWindowVRMLBrowser.EventMouseDown(Btn: TMouseButton);

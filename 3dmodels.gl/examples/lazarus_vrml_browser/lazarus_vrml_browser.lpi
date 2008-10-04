@@ -7,6 +7,7 @@
       <MainUnit Value="0"/>
       <IconPath Value="./"/>
       <TargetFileExt Value=""/>
+      <ActiveEditorIndexAtStart Value="0"/>
     </General>
     <PublishOptions>
       <Version Value="2"/>
@@ -149,9 +150,11 @@
       <Unit14>
         <Filename Value="../../../base/kambidynlib.pas"/>
         <UnitName Value="KambiDynLib"/>
-        <CursorPos X="67" Y="187"/>
-        <TopLine Value="179"/>
+        <CursorPos X="1" Y="221"/>
+        <TopLine Value="183"/>
+        <EditorIndex Value="0"/>
         <UsageCount Value="10"/>
+        <Loaded Value="True"/>
       </Unit14>
       <Unit15>
         <Filename Value="../../../3dmodels/vrmlscene.pas"/>
