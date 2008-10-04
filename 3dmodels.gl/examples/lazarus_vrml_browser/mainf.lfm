@@ -1,5 +1,5 @@
 object Main: TMain
-  Left = 415
+  Left = 340
   Height = 430
   Top = 181
   Width = 676
@@ -165,6 +165,15 @@ object Main: TMain
       object MenuFocusGLControl: TMenuItem
         Caption = 'Switch focus to 3D area'
         OnClick = MenuFocusGLControlClick
+      end
+      object MenuItem1: TMenuItem
+        Caption = '-'
+      end
+      object MenuShowVrmlConsole: TMenuItem
+        AutoCheck = True
+        Caption = 'Show VRML console'
+        ShowAlwaysCheckable = True
+        OnClick = MenuShowVrmlConsoleClick
       end
     end
     object MenuHelp: TMenuItem

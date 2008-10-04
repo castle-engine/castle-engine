@@ -34,6 +34,8 @@ type
     MenuFocusGLControl: TMenuItem;
     MenuHelp: TMenuItem;
     MenuAboutOpenGL: TMenuItem;
+    MenuItem1: TMenuItem;
+    MenuShowVrmlConsole: TMenuItem;
     MenuItemView: TMenuItem;
     MenuQuit: TMenuItem;
     MenuSep1: TMenuItem;
@@ -48,6 +50,7 @@ type
     procedure MenuFocusGLControlClick(Sender: TObject);
     procedure MenuOpenClick(Sender: TObject);
     procedure MenuQuitClick(Sender: TObject);
+    procedure MenuShowVrmlConsoleClick(Sender: TObject);
   private
     SceneFileName: string;
     procedure OpenScene(const FileName: string);
@@ -64,15 +67,24 @@ implementation
 uses LCLType, VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer,
   GL, GLU, GLExt, KambiClassUtils, KambiUtils, Object3dAsVRML,
   KambiGLUtils, VRMLScene, KambiFilesUtils,
-  OpenGLInformation, KambiLCLUtils;
+  OpenGLInformation, KambiLCLUtils, VrmlConsoleF, VRMLErrors;
 
 procedure TMain.OpenScene(const FileName: string);
 begin
+  VrmlConsole.WasWarnings := false;
+  VrmlConsole.Memo1.Lines.Append('--- Loading ' + FileName);
+
   Browser.Load(FileName);
   Browser.Scene.ProcessEvents := true;
 
   SceneFileName := FileName;
   UpdateCaption;
+
+  if VrmlConsole.WasWarnings then
+  begin
+    MenuShowVrmlConsole.Checked := true;
+    VrmlConsole.Visible := MenuShowVrmlConsole.Checked;
+  end;
 end;
 
 procedure TMain.MenuOpenClick(Sender: TObject);
@@ -99,6 +111,11 @@ begin
   Close;
 end;
 
+procedure TMain.MenuShowVrmlConsoleClick(Sender: TObject);
+begin
+  VrmlConsole.Visible := MenuShowVrmlConsole.Checked;
+end;
+
 procedure TMain.MenuAboutOpenGLClick(Sender: TObject);
 begin
   TOpenGLInformation.Execute;
@@ -116,6 +133,9 @@ begin
   UpdateCaption;
 
   MenuFocusGLControl.ShortCut := ShortCut(VK_Escape, []);
+
+  VrmlConsole := TVrmlConsole.Create(Application);
+  VRMLNonFatalError := @VRMLNonFatalError_VrmlConsole;
 
   if Parameters.High >= 1 then
     OpenScene(Parameters[1]);

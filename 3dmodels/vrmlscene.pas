@@ -1217,7 +1217,8 @@ type
       Handler: TCompiledScriptHandler);
 
     { Create and initialize TNavigator instance based on currently
-      bound NavigationInfo node. Calculates also CameraRadius for you.
+      bound NavigationInfo and Viewpoint node.
+      Calculates also CameraRadius for you.
 
       Bound NavigationInfo node is just
       NavigationInfoStack.Top. If no NavigationInfo is bound, this is @nil,
@@ -1232,8 +1233,24 @@ type
         @item(TWalkNavigator.PreferGravityUpForMoving,)
         @item(TWalkNavigator.TWalkNavigator.IgnoreAllInputs,)
         @item(TWalkNavigator.CameraPreferredHeight.)
-      ) }
+      )
+
+      This also calls NavigatorBindToViewpoint at the end,
+      so navigator is bound to current vewpoint. }
     function CreateNavigator(out CameraRadius: Single): TNavigator;
+
+    { Update navigator when currently bound viewpoint changes.
+      When no viewpoint is currently bound, we will go to standard (initial)
+      VRML viewpoint position.
+
+      This moves the navigator to starting point of the viewpoint,
+      updating navigator's initial and current vectors
+      ([Initial]CameraPos, [Initial]CameraDir, [Initial]CameraUp, GravityUp).
+
+      Currently bound NavigationInfo.speed is also taken into account here.
+      Navigator's MoveHorizontalSpeed and MoveVerticalSpeed are updated. }
+    procedure NavigatorBindToViewpoint(Nav: TNavigator;
+      const CameraRadius: Single; const OnlyViewpointVectorsChanged: boolean);
   end;
 
 {$undef read_interface}
@@ -3375,6 +3392,10 @@ begin
         Result := TExamineNavigator.Create(nil);
         Break;
       end else
+      if NavigationNode.FdType.Items[I] = 'ANY' then
+      begin
+        { Do nothing, also do not report this NavigationInfo.type as unknown. }
+      end else
         VRMLNonFatalError(Format('Unknown NavigationInfo.type "%s"',
           [NavigationNode.FdType.Items[I]]));
 
@@ -3404,7 +3425,92 @@ begin
 
     TWalkNavigator(Result).CameraPreferredHeight := CameraPreferredHeight;
     TWalkNavigator(Result).CorrectCameraPreferredHeight(CameraRadius);
+  end else
+  if Result is TExamineNavigator then
+  begin
+    TExamineNavigator(Result).Init(BoundingBox);
   end;
+
+  NavigatorBindToViewpoint(Result, CameraRadius, false);
+end;
+
+procedure TVRMLScene.NavigatorBindToViewpoint(Nav: TNavigator;
+  const CameraRadius: Single; const OnlyViewpointVectorsChanged: boolean);
+var
+  CameraPos: TVector3Single;
+  CameraDir: TVector3Single;
+  CameraUp: TVector3Single;
+  GravityUp: TVector3Single;
+  NavigationNode: TNodeNavigationInfo;
+  WalkNav: TWalkNavigator;
+begin
+  { Currently we can set viewpoint only to TWalkNavigator.
+    This is supposed to be fixed one day (as currently VRML author
+    has no control over ExamineNavigator). }
+  if not (Nav is TWalkNavigator) then Exit;
+  WalkNav := TWalkNavigator(Nav);
+
+  if ViewpointStack.Top <> nil then
+  begin
+    (ViewpointStack.Top as TVRMLViewpointNode).GetCameraVectors(
+      CameraPos, CameraDir, CameraUp, GravityUp);
+  end else
+  begin
+    CameraPos := StdVRMLCamPos[1];
+    CameraDir := StdVRMLCamDir;
+    CameraUp := StdVRMLCamUp;
+    GravityUp := StdVRMLGravityUp;
+  end;
+
+  NavigationNode := NavigationInfoStack.Top as TNodeNavigationInfo;
+
+  { Change CameraDir length, to adjust speed.
+    Also set MoveHorizontal/VerticalSpeed. }
+
+  if NavigationNode = nil then
+  begin
+    { Since we don't have NavigationNode.speed, we just calculate some
+      speed that should "feel sensible". We base it on CameraRadius.
+      CameraRadius in turn was calculated based on
+      Box3dAvgSize(SceneAnimation.BoundingBoxSum). }
+    VectorAdjustToLengthTo1st(CameraDir, CameraRadius * 0.4);
+    WalkNav.MoveHorizontalSpeed := 1;
+    WalkNav.MoveVerticalSpeed := 1;
+  end else
+  if NavigationNode.FdSpeed.Value = 0 then
+  begin
+    { Then user is not allowed to move at all.
+
+      CameraDir must be non-zero (we normalize it just to satisfy
+      requirement that "length of CameraDir doesn't matter" here,
+      in case user will later increase move speed by menu anyway.
+
+      So we do this is by setting MoveHorizontal/VerticalSpeed to zero.
+      This is also the reason why other SetViewpointCore must change
+      MoveHorizontal/VerticalSpeed to something different than zero
+      (otherwise, user would be stuck with speed = 0). }
+    NormalizeTo1st(CameraDir);
+    WalkNav.MoveHorizontalSpeed := 0;
+    WalkNav.MoveVerticalSpeed := 0;
+  end else
+  begin
+    VectorAdjustToLengthTo1st(CameraDir, NavigationNode.FdSpeed.Value / 50.0);
+    WalkNav.MoveHorizontalSpeed := 1;
+    WalkNav.MoveVerticalSpeed := 1;
+  end;
+
+  { If OnlyViewpointVectorsChanged, then we will move relative to
+    initial camera changes. Else, we will jump to new initial camera vectors.
+
+    Below, we do some work normally done by TWalkNavigator.Init.
+    But we know we already have CameraPreferredHeight set (by CreateNavigator),
+    and we take into account OnlyViewpointVectorsChanged case. }
+
+  WalkNav.SetInitialCameraLookDir(CameraPos, CameraDir, CameraUp,
+    OnlyViewpointVectorsChanged);
+  WalkNav.GravityUp := GravityUp;
+  if not OnlyViewpointVectorsChanged then
+    WalkNav.Home;
 end;
 
 end.

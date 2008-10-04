@@ -118,6 +118,7 @@ type
 
     procedure ScenePostRedisplay(Scene: TVRMLScene);
     procedure MatrixChanged(ANavigator: TNavigator);
+    procedure BoundViewpointChanged(Scene: TVRMLScene);
     procedure BoundViewpointVectorsChanged(Scene: TVRMLScene);
     procedure GeometryChanged(Scene: TVRMLScene);
   public
@@ -174,8 +175,6 @@ begin
 end;
 
 procedure TGLWindowVRMLBrowser.Load(ARootNode: TVRMLNode; const OwnsRootNode: boolean);
-var
-  CamPos, CamDir, CamUp, GravityUp: TVector3Single;
 begin
   FreeAndNil(Scene);
   Navigator.Free;
@@ -195,20 +194,8 @@ begin
 
   if Navigator is TWalkNavigator then
   begin
-    Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
-
-    WalkNav.Init(CamPos,
-      VectorAdjustToLength(CamDir, Box3dAvgSize(Scene.BoundingBox, 1.0) * 0.01 * 0.4),
-      CamUp, GravityUp,
-      { We already have correct CameraPreferredHeight set by CreateNavigator }
-      WalkNav.CameraPreferredHeight, CameraRadius);
-
     WalkNav.OnMoveAllowed := @MoveAllowed;
     WalkNav.OnGetCameraHeight := @GetCameraHeight;
-  end else
-  if Navigator is TExamineNavigator then
-  begin
-    ExamineNav.Init(Scene.BoundingBox);
   end;
 
   { prepare for events procesing (although we let the decision whether
@@ -216,11 +203,18 @@ begin
   Scene.ResetWorldTimeAtLoad;
   Scene.OnPostRedisplay := @ScenePostRedisplay;
   Scene.OnBoundViewpointVectorsChanged := @BoundViewpointVectorsChanged;
+  Scene.ViewpointStack.OnBoundChanged := @BoundViewpointChanged;
   Scene.OnGeometryChanged := @GeometryChanged;
 
   { allow the scene to use it's own lights }
   Scene.Attributes.UseLights := true;
   Scene.Attributes.FirstGLFreeLight := 1;
+
+  if not Closed then
+  begin
+    EventResize;
+    PostRedisplay;
+  end;
 end;
 
 procedure TGLWindowVRMLBrowser.EventBeforeDraw;
@@ -414,17 +408,14 @@ begin
   PostRedisplay;
 end;
 
-procedure TGLWindowVRMLBrowser.BoundViewpointVectorsChanged(Scene: TVRMLScene);
-var
-  CameraPos: TVector3Single;
-  CameraDir: TVector3Single;
-  CameraUp: TVector3Single;
-  GravityUp: TVector3Single;
+procedure TGLWindowVRMLBrowser.BoundViewpointChanged(Scene: TVRMLScene);
 begin
-  TVRMLViewpointNode(Scene.ViewpointStack.Top).GetCameraVectors(
-    CameraPos, CameraDir, CameraUp, GravityUp);
-  if Navigator is TWalkNavigator then
-    WalkNav.SetInitialCameraLookDir(CameraPos, CameraDir, CameraUp, true);
+  Scene.NavigatorBindToViewpoint(Navigator, CameraRadius, false);
+end;
+
+procedure TGLWindowVRMLBrowser.BoundViewpointVectorsChanged(Scene: TVRMLScene);
+begin
+  Scene.NavigatorBindToViewpoint(Navigator, CameraRadius, true);
 end;
 
 procedure TGLWindowVRMLBrowser.GeometryChanged(Scene: TVRMLScene);

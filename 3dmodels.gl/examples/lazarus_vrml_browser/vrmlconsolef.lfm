@@ -1,0 +1,33 @@
+object VrmlConsole: TVrmlConsole
+  Left = 290
+  Height = 321
+  Top = 208
+  Width = 454
+  Caption = 'VrmlConsole'
+  ClientHeight = 321
+  ClientWidth = 454
+  OnClose = FormClose
+  LCLVersion = '0.9.25'
+  object Button1: TButton
+    Left = 400
+    Height = 30
+    Top = 279
+    Width = 47
+    Anchors = [akRight, akBottom]
+    AutoSize = True
+    Caption = 'Close'
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+  object Memo1: TMemo
+    Left = 8
+    Height = 264
+    Top = 8
+    Width = 439
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Lines.Strings = (
+      ''
+    )
+    TabOrder = 1
+  end
+end
