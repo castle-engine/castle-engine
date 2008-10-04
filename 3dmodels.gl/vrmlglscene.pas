@@ -71,7 +71,7 @@ uses
   SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLScene, VRMLOpenGLRenderer, GL, GLU, GLExt, BackgroundGL, KambiGLUtils,
   VRMLShapeStateOctree, VRMLGLHeadLight, VRMLRendererOptimization,
-  ShadowVolumesHelper;
+  ShadowVolumesHelper, Navigation;
 
 {$define read_interface}
 
@@ -980,7 +980,8 @@ type
     procedure SetBumpMappingLightDiffuseColor(const Value: TVector4Single);
   public
     property BackgroundSkySphereRadius: Single
-      read FBackgroundSkySphereRadius write SetBackgroundSkySphereRadius; { = 1 }
+      read FBackgroundSkySphereRadius write SetBackgroundSkySphereRadius
+      default 1;
 
     procedure PrepareBackground;
 
@@ -1092,6 +1093,25 @@ type
       Renderer instance, see TVRMLOpenGLRenderer.BumpMappingLightDiffuseColor. }
     property BumpMappingLightDiffuseColor: TVector4Single
       read GetBumpMappingLightDiffuseColor write SetBumpMappingLightDiffuseColor;
+
+    { Set OpenGL projection, based on currently
+      bound Viewpoint, NavigationInfo and used navigator.
+      Takes into account Viewpoint type (perspective/orthogonal),
+      NavigationInfo.visibilityLimit, Viewpoint.fieldOfView.
+
+      Also takes care of setting Nav.ProjectionMatrix and
+      BackgroundSkySphereRadius.
+
+      Box is the expected bounding box of the whole scene. Usually,
+      it should be just Scene.BoundingBox, but it may be something larger,
+      e.g. TVRMLGLAnimation.BoundingBoxSum if this scene is part of
+      a precalculated animation.
+
+      By the way, calculates AngleOfViewX, AngleOfViewY (in degrees). }
+    procedure GLProjection(Nav: TNavigator;
+      const Box: TBox3d; const CameraRadius: Single;
+      const WindowWidth, WindowHeight: Cardinal;
+      out AngleOfViewX, AngleOfViewY: Single);
   end;
 
   TObjectsListItem_1 = TVRMLGLScene;
@@ -1134,7 +1154,7 @@ type
 implementation
 
 uses VRMLErrors, GLVersionUnit, GLImages, VRMLShapeState, Images, KambiLog,
-  Object3dAsVRML;
+  Object3dAsVRML, Math, RaysWindow;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -3148,8 +3168,11 @@ end;
 
 procedure TVRMLGLScene.SetBackgroundSkySphereRadius(const Value: Single);
 begin
- FBackgroundInvalidate;
- FBackgroundSkySphereRadius := Value;
+  if Value <> FBackgroundSkySphereRadius then
+  begin
+    FBackgroundInvalidate;
+    FBackgroundSkySphereRadius := Value;
+  end;
 end;
 
 procedure TVRMLGLScene.PrepareBackground;
@@ -3307,6 +3330,110 @@ end;
 procedure TVRMLGLScene.SetBumpMappingLightDiffuseColor(const Value: TVector4Single);
 begin
   Renderer.BumpMappingLightDiffuseColor := Value;
+end;
+
+procedure TVRMLGLScene.GLProjection(Nav: TNavigator;
+  const Box: TBox3d; const CameraRadius: Single;
+  const WindowWidth, WindowHeight: Cardinal;
+  out AngleOfViewX, AngleOfViewY: Single);
+
+  procedure UpdateNavigatorProjectionMatrix;
+  var
+    ProjectionMatrix: TMatrix4f;
+  begin
+    glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
+    Nav.ProjectionMatrix := ProjectionMatrix;
+  end;
+
+var
+  ViewpointNode: TVRMLViewpointNode;
+  FieldOfView: Single;
+  VisibilityLimit: Single;
+  WalkProjectionNear: Single;
+  WalkProjectionFar: Single;
+  MaxSize, ZNear, ZFar: TGLdouble;
+  CameraKind: TVRMLCameraKind;
+begin
+  glViewport(0, 0, WindowWidth, WindowHeight);
+
+  ViewpointNode := ViewpointStack.Top as TVRMLViewpointNode;
+
+  if (ViewpointNode <> nil) and
+     (ViewpointNode is TNodeViewpoint) then
+    { TODO: something similar should be done for OrthoViewpoint to take
+      into accound it's fieldOfView. }
+    FieldOfView := TNodeViewpoint(ViewpointNode).FdFieldOfView.Value else
+    FieldOfView := DefaultViewpointFieldOfView;
+
+  AngleOfViewX := RadToDeg(TNodeViewpoint.ViewpointAngleOfView(
+    FieldOfView, WindowWidth / WindowHeight));
+
+  AngleOfViewY := AdjustViewAngleDegToAspectRatio(
+    AngleOfViewX, WindowHeight / WindowWidth);
+
+  { Tests:
+    Writeln(Format('Angle of view: x %f, y %f', [AngleOfViewX, AngleOfViewY])); }
+
+  if NavigationInfoStack.Top <> nil then
+    VisibilityLimit := (NavigationInfoStack.Top as TNodeNavigationInfo).
+      FdVisibilityLimit.Value else
+    VisibilityLimit := 0;
+
+  WalkProjectionNear := CameraRadius * 0.6;
+
+  if VisibilityLimit <> 0.0 then
+    WalkProjectionFar := VisibilityLimit else
+  begin
+    if IsEmptyBox3d(Box) then
+      { When IsEmptyBox3d, Result is not simply "any dummy value".
+        It must be appropriately larger than WalkProjectionNear
+        to provide sufficient space for rendering Background node. }
+      WalkProjectionFar := WalkProjectionNear * 10 else
+      WalkProjectionFar := Box3dAvgSize(Box) * 20.0;
+  end;
+
+  { To minimize depth buffer errors we want to make ZNear/ZFar dependent
+    on BoundingBox.
+
+    In Examiner mode we can use larger ZNear, since we do not have to make
+    it < CameraRadius. Larger ZNear allows depth buffer to have better
+    precision. ZNear is then "Box3dAvgSize(Box) * 0.1", while
+    in far mode it's "CameraRadius * 0.6" which means
+    "Box3dAvgSize(BoundingBox) * 0.01 * 0.6 = Box3dAvgSize(BoundingBox) * 0.006"
+    if CameraRadius is auto-calculated, about 20 times smaller.
+    With such small near in Examine mode we would often see z-buffer errors,
+    e.g. see kings_head.wrl. }
+
+  if (Nav is TExamineNavigator) and
+     (not IsEmptyBox3d(Box)) then
+    ZNear := Box3dAvgSize(Box) * 0.1 else
+    ZNear := WalkProjectionNear;
+  ZFar := WalkProjectionFar;
+
+  if ViewpointNode <> nil then
+    CameraKind := ViewpointNode.CameraKind else
+    CameraKind := ckPerspective;
+
+  if CameraKind = ckPerspective then
+    ProjectionGLPerspective(AngleOfViewY, WindowWidth / WindowHeight,
+      ZNear, ZFar) else
+  begin
+    if IsEmptyBox3d(Box) then
+      MaxSize := 1.0 { any dummy value } else
+      MaxSize := Box3dMaxSize(Box);
+    ProjectionGLOrtho(-MaxSize / 2, MaxSize / 2,
+                      -MaxSize / 2, MaxSize / 2,
+                      ZNear, ZFar);
+  end;
+
+  UpdateNavigatorProjectionMatrix;
+
+  { TODO: view3dscene wants to set
+      SceneAnimation.BackgroundSkySphereRadius
+    here. }
+  BackgroundSkySphereRadius :=
+    TBackgroundGL.NearFarToSkySphereRadius(
+      WalkProjectionNear, WalkProjectionFar);
 end;
 
 { TVRMLSceneRenderingAttributes ---------------------------------------------- }

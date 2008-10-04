@@ -262,6 +262,14 @@ type
     MatrixChangedSchedule: Cardinal;
     IsMatrixChangedScheduled: boolean;
     FIgnoreAllInputs: boolean;
+
+    { Private things related to frustum ---------------------------- }
+
+    FFrustum: TFrustum;
+    procedure RecalculateFrustum;
+
+    FProjectionMatrix: TMatrix4Single;
+    procedure SetProjectionMatrix(const Value: TMatrix4Single);
   protected
     { This is called always when @link(Matrix) changed.
       Actually, when any
@@ -271,9 +279,8 @@ type
 
       In this class this simply calls OnMatrixChanged (if assigned).
 
-      (It may also do some other internal things (e.g. recalculating
-      the frustum in TWalkNavigator), so always call inherited when
-      overriding this.) }
+      It may also do some other internal things (e.g. recalculating
+      the frustum), so always call inherited when overriding this. }
     procedure MatrixChanged; virtual;
 
     { Mechanism to schedule MatrixChanged calls.
@@ -373,6 +380,25 @@ type
       This is useful to implement e.g. VRML "NONE" navigation type. }
     property IgnoreAllInputs: boolean
       read FIgnoreAllInputs write FIgnoreAllInputs default false;
+
+    { Things related to frustum ---------------------------------------- }
+
+    { The current camera (viewing frustum, based on
+      @link(ProjectionMatrix) (set by you) and @link(Matrix) (calculated here).
+      This is recalculated whenever one of these two properties change.
+      Be sure to set @link(ProjectionMatrix) before using this. }
+    property Frustum: TFrustum read FFrustum;
+
+    { Projection matrix that you should pass here to have Frustum
+      calculated for you.
+
+      This is initially IdentityMatrix4Single.
+      This is not modified anywhere from this class.
+      *You* should modify it, you should set it to projection matrix
+      that you use, if you want to use Frustum value.
+      This is used whenever Frustum is recalculated. }
+    property ProjectionMatrix: TMatrix4Single
+      read FProjectionMatrix write SetProjectionMatrix;
   end;
 
   TNavigatorClass = class of TNavigator;
@@ -597,13 +623,6 @@ type
       ACharacter: Char;
       AMouseButton: TMouseButton): boolean;
 
-    { Private things related to frustum ---------------------------- }
-
-    FProjectionMatrix: TMatrix4Single;
-    FFrustum: TFrustum;
-    procedure RecalculateFrustum;
-    procedure SetProjectionMatrix(const Value: TMatrix4Single);
-
     { Private things related to gravity ---------------------------- }
 
     FCameraPreferredHeight: Single;
@@ -648,9 +667,6 @@ type
     function RealCameraPreferredHeightMargin: Single;
 
     FInvertVerticalMouseLook: boolean;
-  protected
-    { }
-    procedure MatrixChanged; override;
   public
     constructor Create(const AOnMatrixChanged: TNavigatorNotifyFunc);
       override;
@@ -1060,25 +1076,6 @@ type
     procedure MouseMove(MouseXChange, MouseYChange: Integer);
 
     function MouseDown(Button: TMouseButton): boolean; override;
-
-    { Things related to frustum ---------------------------------------- }
-
-    { Projection matrix that you should pass here to have Frustum
-      calculated for you.
-
-      This is initially IdentityMatrix4Single.
-      This is not modified anywhere from this class.
-      *You* should modify it, you should set it to projection matrix
-      that you use, if you want to use Frustum value.
-      This is used whenever Frustum is recalculated. }
-    property ProjectionMatrix: TMatrix4Single
-      read FProjectionMatrix write SetProjectionMatrix;
-
-    { The current camera (viewing frustum, based on
-      @link(ProjectionMatrix) (set by you) and @link(Matrix) (calculated here).
-      This is recalculated whenever one of these two properties change.
-      Be sure to set @link(ProjectionMatrix) before using this. }
-    property Frustum: TFrustum read FFrustum;
 
     { Things related to gravity ---------------------------------------- }
 
@@ -1540,14 +1537,16 @@ end;
 
 procedure TNavigator.MatrixChanged;
 begin
- if Assigned(OnMatrixChanged) then OnMatrixChanged(Self);
+  RecalculateFrustum;
+  if Assigned(OnMatrixChanged) then OnMatrixChanged(Self);
 end;
 
 constructor TNavigator.Create(
   const AOnMatrixChanged: TNavigatorNotifyFunc);
 begin
- inherited Create;
- OnMatrixChanged := AOnMatrixChanged;
+  inherited Create;
+  OnMatrixChanged := AOnMatrixChanged;
+  FProjectionMatrix := IdentityMatrix4Single;
 end;
 
 function TNavigator.KeyDown(Key: TKey; C: char;
@@ -1584,6 +1583,17 @@ begin
     MatrixChanged;
     IsMatrixChangedScheduled := false;
   end;
+end;
+
+procedure TNavigator.RecalculateFrustum;
+begin
+  CalculateFrustum(FFrustum, ProjectionMatrix, Matrix);
+end;
+
+procedure TNavigator.SetProjectionMatrix(const Value: TMatrix4Single);
+begin
+  FProjectionMatrix := Value;
+  RecalculateFrustum;
 end;
 
 { TExamineNavigator ------------------------------------------------------------ }
@@ -1999,8 +2009,6 @@ begin
 
   FInput_Jump         := TInputShortcut.Create(K_A           , K_None, #0, false, mbRight);
   FInput_Crouch       := TInputShortcut.Create(K_Z           , K_None, #0, false, mbLeft);
-
-  FProjectionMatrix := IdentityMatrix4Single;
 end;
 
 destructor TWalkNavigator.Destroy;
@@ -3177,23 +3185,6 @@ begin
   FCameraUp := Value;
   MakeVectorsOrthoOnTheirPlane(FCameraDir, FCameraUp);
   ScheduleMatrixChanged;
-end;
-
-procedure TWalkNavigator.RecalculateFrustum;
-begin
-  CalculateFrustum(FFrustum, ProjectionMatrix, Matrix);
-end;
-
-procedure TWalkNavigator.MatrixChanged;
-begin
-  RecalculateFrustum;
-  inherited;
-end;
-
-procedure TWalkNavigator.SetProjectionMatrix(const Value: TMatrix4Single);
-begin
-  FProjectionMatrix := Value;
-  RecalculateFrustum;
 end;
 
 procedure TWalkNavigator.CorrectCameraPreferredHeight(const CameraRadius: Single);
