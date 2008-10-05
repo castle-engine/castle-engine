@@ -32,6 +32,7 @@ type
   private
     FFieldOrEvents: TVRMLFieldOrEventsList;
     FLastEventTimes: TDynDoubleArray;
+    InsideAfterExecute: boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -99,7 +100,8 @@ procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
 
 implementation
 
-uses SysUtils, VRMLNodes, VRMLScene, VRMLErrors, KambiLog;
+uses SysUtils, VRMLNodes, VRMLScene, VRMLErrors, KambiLog, KambiScriptVectors,
+  VectorMath;
 
 {$define read_implementation}
 
@@ -127,7 +129,25 @@ begin
     Result := TKamScriptBoolean.Create(true) else
   if FieldClass.InheritsFrom(TSFString) or
      FieldClass.InheritsFrom(TMFString) then
-    Result := TKamScriptBoolean.Create(true) else
+    Result := TKamScriptString.Create(true) else
+  if FieldClass.InheritsFrom(TSFVec2f) or
+     FieldClass.InheritsFrom(TMFVec2f) then
+    Result := TKamScriptVec2f.Create(true) else
+  if FieldClass.InheritsFrom(TSFVec3f) or
+     FieldClass.InheritsFrom(TMFVec3f) then
+    Result := TKamScriptVec3f.Create(true) else
+  if FieldClass.InheritsFrom(TSFVec4f) or
+     FieldClass.InheritsFrom(TMFVec4f) then
+    Result := TKamScriptVec4f.Create(true) else
+  if FieldClass.InheritsFrom(TSFVec2d) or
+     FieldClass.InheritsFrom(TMFVec2d) then
+    Result := TKamScriptVec2d.Create(true) else
+  if FieldClass.InheritsFrom(TSFVec3d) or
+     FieldClass.InheritsFrom(TMFVec3d) then
+    Result := TKamScriptVec3d.Create(true) else
+  if FieldClass.InheritsFrom(TSFVec4d) or
+     FieldClass.InheritsFrom(TMFVec4d) then
+    Result := TKamScriptVec4d.Create(true) else
   begin
     VRMLNonFatalError('Note that KambiScript is not yet suitable to process values of type ' + FieldClass.VrmlTypeName);
     Result := TKamScriptFloat.Create(true);
@@ -185,6 +205,60 @@ procedure VRMLKamScriptBeforeExecute(Value: TKamScriptValue;
       if TMFString(Field).Items.Count >= 1 then
         TKamScriptString(Value).Value := TMFString(Field).Items.Items[0] else
         TKamScriptString(Value).Value := ''; { anything predictable }
+    end else
+
+    if Field is TSFVec2f then
+      TKamScriptVec2f(Value).Value := TSFVec2f(Field).Value else
+    if Field is TMFVec2f then
+    begin
+      if TMFVec2f(Field).Items.Count >= 1 then
+        TKamScriptVec2f(Value).Value := TMFVec2f(Field).Items.Items[0] else
+        TKamScriptVec2f(Value).Value := ZeroVector2Single; { anything predictable }
+    end else
+
+    if Field is TSFVec3f then
+      TKamScriptVec3f(Value).Value := TSFVec3f(Field).Value else
+    if Field is TMFVec3f then
+    begin
+      if TMFVec3f(Field).Items.Count >= 1 then
+        TKamScriptVec3f(Value).Value := TMFVec3f(Field).Items.Items[0] else
+        TKamScriptVec3f(Value).Value := ZeroVector3Single; { anything predictable }
+    end else
+
+    if Field is TSFVec4f then
+      TKamScriptVec4f(Value).Value := TSFVec4f(Field).Value else
+    if Field is TMFVec4f then
+    begin
+      if TMFVec4f(Field).Items.Count >= 1 then
+        TKamScriptVec4f(Value).Value := TMFVec4f(Field).Items.Items[0] else
+        TKamScriptVec4f(Value).Value := ZeroVector4Single; { anything predictable }
+    end else
+
+    if Field is TSFVec2d then
+      TKamScriptVec2d(Value).Value := TSFVec2d(Field).Value else
+    if Field is TMFVec2d then
+    begin
+      if TMFVec2d(Field).Items.Count >= 1 then
+        TKamScriptVec2d(Value).Value := TMFVec2d(Field).Items.Items[0] else
+        TKamScriptVec2d(Value).Value := ZeroVector2Double; { anything predictable }
+    end else
+
+    if Field is TSFVec3d then
+      TKamScriptVec3d(Value).Value := TSFVec3d(Field).Value else
+    if Field is TMFVec3d then
+    begin
+      if TMFVec3d(Field).Items.Count >= 1 then
+        TKamScriptVec3d(Value).Value := TMFVec3d(Field).Items.Items[0] else
+        TKamScriptVec3d(Value).Value := ZeroVector3Double; { anything predictable }
+    end else
+
+    if Field is TSFVec4d then
+      TKamScriptVec4d(Value).Value := TSFVec4d(Field).Value else
+    if Field is TMFVec4d then
+    begin
+      if TMFVec4d(Field).Items.Count >= 1 then
+        TKamScriptVec4d(Value).Value := TMFVec4d(Field).Items.Items[0] else
+        TKamScriptVec4d(Value).Value := ZeroVector4Double; { anything predictable }
     end else
 
       { No sensible way to convert, just fall back to predictable 0.0. }
@@ -309,6 +383,54 @@ begin
       TMFString(Field).Items.Items[0] := TKamScriptString(Value).Value;
     end else
 
+    if Field is TSFVec2f then
+      TSFVec2f(Field).Value := TKamScriptVec2f(Value).Value else
+    if Field is TMFVec2f then
+    begin
+      TMFVec2f(Field).Items.Count := 1;
+      TMFVec2f(Field).Items.Items[0] := TKamScriptVec2f(Value).Value;
+    end else
+
+    if Field is TSFVec3f then
+      TSFVec3f(Field).Value := TKamScriptVec3f(Value).Value else
+    if Field is TMFVec3f then
+    begin
+      TMFVec3f(Field).Items.Count := 1;
+      TMFVec3f(Field).Items.Items[0] := TKamScriptVec3f(Value).Value;
+    end else
+
+    if Field is TSFVec4f then
+      TSFVec4f(Field).Value := TKamScriptVec4f(Value).Value else
+    if Field is TMFVec4f then
+    begin
+      TMFVec4f(Field).Items.Count := 1;
+      TMFVec4f(Field).Items.Items[0] := TKamScriptVec4f(Value).Value;
+    end else
+
+    if Field is TSFVec2d then
+      TSFVec2d(Field).Value := TKamScriptVec2d(Value).Value else
+    if Field is TMFVec2d then
+    begin
+      TMFVec2d(Field).Items.Count := 1;
+      TMFVec2d(Field).Items.Items[0] := TKamScriptVec2d(Value).Value;
+    end else
+
+    if Field is TSFVec3d then
+      TSFVec3d(Field).Value := TKamScriptVec3d(Value).Value else
+    if Field is TMFVec3d then
+    begin
+      TMFVec3d(Field).Items.Count := 1;
+      TMFVec3d(Field).Items.Items[0] := TKamScriptVec3d(Value).Value;
+    end else
+
+    if Field is TSFVec4d then
+      TSFVec4d(Field).Value := TKamScriptVec4d(Value).Value else
+    if Field is TMFVec4d then
+    begin
+      TMFVec4d(Field).Items.Count := 1;
+      TMFVec4d(Field).Items.Items[0] := TKamScriptVec4d(Value).Value;
+    end else
+
     begin
       { No sensible way to convert, just do nothing, don't set/send anything. }
       AbortSending := true;
@@ -368,16 +490,51 @@ procedure TKamScriptVRMLValuesList.BeforeExecute;
 var
   I: Integer;
 begin
-  for I := 0 to Count - 1 do
-    VRMLKamScriptBeforeExecute(Items[I], FieldOrEvents[I]);
+  if not InsideAfterExecute then
+  begin
+    for I := 0 to Count - 1 do
+      VRMLKamScriptBeforeExecute(Items[I], FieldOrEvents[I]);
+  end;
 end;
 
 procedure TKamScriptVRMLValuesList.AfterExecute;
 var
   I: Integer;
 begin
-  for I := 0 to Count - 1 do
-    VRMLKamScriptAfterExecute(Items[I], FieldOrEvents[I], FLastEventTimes.Items[I]);
+  if not InsideAfterExecute then
+  begin
+    { Note that VRMLKamScriptAfterExecute may send events when given
+      fields changed. These events may cause yet another execution
+      of the same script. For example,
+      - setting inputOutput field of the script causes another execution
+        of the same script
+      - setting anything may cause route to another input event.
+        It may be another field/event of the same script,
+        or it may be field/event of different node (possibly, different
+        script node) that will cause execution back to our script
+        by another route...
+
+      So we have to secure against this. We don't want to allow
+      resetting of ValueAssigned at the beginning of recursive script calls.
+      Actually, we also don't want to reinitialize the KambiScript field
+      from VRML field value, to not lose new value.
+      What to do about changed values? If recursive script execution
+      will change again the same field, we lose the old value, but that's
+      somewhat Ok.
+
+      My approach: using InsideAfterExecute.
+      If InsideAfterExecute is already true, then Before/AfterExecute
+      do nothing. Actual script execution will possibly change ValueAssigned
+      to true for some fields, and change their value, that's Ok.
+      Only Before/AfterExecute with InsideAfterExecute = false will cause actual
+      sending of fields/events. }
+
+    InsideAfterExecute := true;
+    try
+      for I := 0 to Count - 1 do
+        VRMLKamScriptAfterExecute(Items[I], FieldOrEvents[I], FLastEventTimes.Items[I]);
+    finally InsideAfterExecute := false end;
+  end;
 end;
 
 procedure TKamScriptVRMLValuesList.ResetLastEventTimes;

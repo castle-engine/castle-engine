@@ -203,7 +203,9 @@ begin
               we don't want
               to propagate changes to parameter in script to ReceivedValue.
               ReceivedValue should not be even changed by event handler.
-              Actually, ParameterValue should be constant in script. }
+              Actually, ParameterValue could be constant in script
+              (not Writeable), but we allow it to be writeable now, for local
+              changes by user (may be comfortable sometimes). }
 
             KambiScriptVariables.AfterExecute;
           finally
