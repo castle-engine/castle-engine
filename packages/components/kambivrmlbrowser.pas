@@ -44,7 +44,7 @@ unit KambiVRMLBrowser;
 interface
 
 uses Classes, KambiGLControl, VectorMath, Controls,
-  VRMLNodes, VRMLGLScene, VRMLScene, Navigation;
+  VRMLNodes, VRMLGLScene, VRMLScene, Navigation, VRMLGLHeadlight;
 
 type
   { A simple VRML browser as a Lazarus component. This manages TVRMLGLScene,
@@ -257,6 +257,8 @@ begin
   end else
     glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
 
+  TVRMLGLHeadlight.RenderOrDisable(Scene.Headlight, 0);
+
   glLoadMatrix(Navigator.Matrix);
   if Navigator is TWalkNavigator then
     Scene.RenderFrustumOctree(WalkNav.Frustum, tgAll) else
@@ -269,7 +271,6 @@ procedure TKamVRMLBrowser.DoGLContextInit;
 begin
   inherited;
   glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
   { Manually call Resize now, to set projection. }
   Resize;
 end;
@@ -281,6 +282,7 @@ begin
     in Lazarus, then close Lazarus). So we secure against it. }
   if Scene <> nil then
     Scene.CloseGL;
+
   inherited;
 end;
 

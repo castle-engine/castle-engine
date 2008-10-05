@@ -978,6 +978,13 @@ type
 
     function GetBumpMappingLightDiffuseColor: TVector4Single;
     procedure SetBumpMappingLightDiffuseColor(const Value: TVector4Single);
+
+    FHeadlight: TVRMLGLHeadlight;
+    FHeadlightInitialized: boolean;
+    procedure SetHeadlightInitialized(const Value: boolean);
+    property HeadlightInitialized: boolean
+      read FHeadlightInitialized
+      write SetHeadlightInitialized default false;
   public
     property BackgroundSkySphereRadius: Single
       read FBackgroundSkySphereRadius write SetBackgroundSkySphereRadius
@@ -1037,8 +1044,28 @@ type
 
       Note that this is @italic(not) concerned whether you
       actually should use this headlight (this information usually comes from
-      NavigationInfo.headlight value). }
+      NavigationInfo.headlight value).
+
+      If you're looking for more comfortable alternative to this,
+      that uses all VRML information, see @link(Headlight) property.
+
+      @seealso Headlight }
     function CreateHeadLight: TVRMLGLHeadLight;
+
+    { Headlight that should be used for this scene,
+      or @nil if no headlight should be used.
+
+      This uses (if present) NavigationInfo.headlight and KambiHeadLight
+      node defined in this VRML file.
+
+      This object is automatically managed inside this class.
+      Calling this method automatically initializes it, CloseGL automatically
+      releases it. So you just don't have to worry about anything ---
+      just use this Headlight method when rendering, typically by
+@longCode(#
+  TVRMLGLHeadlight.RenderOrDisable(Headlight, 0);
+#) }
+    function Headlight: TVRMLGLHeadlight;
 
     { @abstract(Which bump mapping method will be used ?)
 
@@ -1333,6 +1360,8 @@ begin
 
   FreeAndNil(RenderFrustumOctree_Visible);
   FreeAndNil(ShapeStatesUseBlending);
+
+  HeadlightInitialized := false;
 
   inherited;
 end;
@@ -3450,6 +3479,35 @@ begin
   NewBackgroundSkySphereRadius :=
     TBackgroundGL.NearFarToSkySphereRadius(
       WalkProjectionNear, WalkProjectionFar);
+end;
+
+procedure TVRMLGLScene.SetHeadlightInitialized(const Value: boolean);
+var
+  UseHeadlight: boolean;
+begin
+  if FHeadlightInitialized <> Value then
+  begin
+    FHeadlightInitialized := Value;
+    if Value then
+    begin
+      if NavigationInfoStack.Top <> nil then
+        UseHeadlight := (NavigationInfoStack.Top as TNodeNavigationInfo).FdHeadlight.Value else
+        UseHeadlight := DefaultNavigationInfoHeadlight;
+
+      if UseHeadlight then
+        FHeadlight := CreateHeadlight else
+        FHeadlight := nil;
+    end else
+    begin
+      FreeAndNil(FHeadlight);
+    end;
+  end;
+end;
+
+function TVRMLGLScene.Headlight: TVRMLGLHeadlight;
+begin
+  HeadlightInitialized := true;
+  Result := FHeadlight;
 end;
 
 { TVRMLSceneRenderingAttributes ---------------------------------------------- }

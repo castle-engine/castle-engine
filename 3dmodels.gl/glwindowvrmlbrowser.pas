@@ -44,7 +44,8 @@ unit GLWindowVRMLBrowser;
 
 interface
 
-uses VectorMath, GLWindow, VRMLNodes, VRMLGLScene, VRMLScene, Navigation;
+uses VectorMath, GLWindow, VRMLNodes, VRMLGLScene, VRMLScene, Navigation,
+  VRMLGLHeadLight;
 
 type
   { A simple VRML browser in a window. This manages TVRMLGLScene,
@@ -235,6 +236,8 @@ begin
   end else
     glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
 
+  TVRMLGLHeadlight.RenderOrDisable(Scene.Headlight, 0);
+
   glLoadMatrix(Navigator.Matrix);
   if Navigator is TWalkNavigator then
     Scene.RenderFrustumOctree(WalkNav.Frustum, tgAll) else
@@ -245,7 +248,6 @@ procedure TGLWindowVRMLBrowser.EventInit;
 begin
   inherited;
   glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
 end;
 
 procedure TGLWindowVRMLBrowser.EventClose;
@@ -254,6 +256,7 @@ begin
     for Scene = nil case. }
   if Scene <> nil then
     Scene.CloseGL;
+
   inherited;
 end;
 

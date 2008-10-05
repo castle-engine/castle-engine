@@ -30,7 +30,7 @@ type
 
     The most common use is to render a headlight conforming to VRML
     specification, and configurable by KambiHeadLight VRML node
-    (see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_headlight]).
+    (see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_headlight]).
 
     @unorderedList(
       @item(

@@ -7,7 +7,7 @@
       <MainUnit Value="0"/>
       <IconPath Value="./"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="0"/>
+      <ActiveEditorIndexAtStart Value="1"/>
     </General>
     <PublishOptions>
       <Version Value="2"/>
@@ -44,7 +44,7 @@
         <UnitName Value="lazarus_vrml_browser"/>
         <CursorPos X="53" Y="17"/>
         <TopLine Value="1"/>
-        <UsageCount Value="41"/>
+        <UsageCount Value="42"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
@@ -55,7 +55,7 @@
         <UnitName Value="mainf"/>
         <CursorPos X="56" Y="86"/>
         <TopLine Value="60"/>
-        <UsageCount Value="41"/>
+        <UsageCount Value="42"/>
       </Unit1>
       <Unit2>
         <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
@@ -124,7 +124,7 @@
         <UnitName Value="OpenGLInformation"/>
         <CursorPos X="30" Y="36"/>
         <TopLine Value="18"/>
-        <UsageCount Value="29"/>
+        <UsageCount Value="30"/>
       </Unit10>
       <Unit11>
         <Filename Value="mainf.lfm"/>
@@ -153,7 +153,7 @@
         <CursorPos X="1" Y="221"/>
         <TopLine Value="183"/>
         <EditorIndex Value="0"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="11"/>
         <Loaded Value="True"/>
       </Unit14>
       <Unit15>
@@ -172,9 +172,11 @@
       <Unit17>
         <Filename Value="../../../packages/components/kambivrmlbrowser.pas"/>
         <UnitName Value="KambiVRMLBrowser"/>
-        <CursorPos X="4" Y="166"/>
-        <TopLine Value="146"/>
+        <CursorPos X="42" Y="260"/>
+        <TopLine Value="236"/>
+        <EditorIndex Value="1"/>
         <UsageCount Value="12"/>
+        <Loaded Value="True"/>
       </Unit17>
       <Unit18>
         <Filename Value="../../../3dmodels/vrml97nodes.inc"/>
@@ -246,7 +248,7 @@
         <UnitName Value="VrmlConsoleF"/>
         <CursorPos X="3" Y="50"/>
         <TopLine Value="11"/>
-        <UsageCount Value="21"/>
+        <UsageCount Value="22"/>
       </Unit27>
       <Unit28>
         <Filename Value="../../../3dmodels/vrmlerrors.pas"/>
@@ -256,7 +258,12 @@
         <UsageCount Value="10"/>
       </Unit28>
     </Units>
-    <JumpHistory Count="0" HistoryIndex="-1"/>
+    <JumpHistory Count="1" HistoryIndex="0">
+      <Position1>
+        <Filename Value="../../../packages/components/kambivrmlbrowser.pas"/>
+        <Caret Line="166" Column="4" TopLine="146"/>
+      </Position1>
+    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="8"/>
