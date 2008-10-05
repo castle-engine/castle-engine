@@ -1064,7 +1064,12 @@ type
       just use this Headlight method when rendering, typically by
 @longCode(#
   TVRMLGLHeadlight.RenderOrDisable(Headlight, 0);
-#) }
+#)
+
+      If you want, it's a little dirty but allowed to directly change
+      this light's properties after it's initialized. Just be aware
+      that at CloseGL, this Headlight is released and all changes you did
+      to it are lost. }
     function Headlight: TVRMLGLHeadlight;
 
     { @abstract(Which bump mapping method will be used ?)
