@@ -458,6 +458,9 @@ type
     procedure CollectNodeForEvents(Node: TVRMLNode);
     procedure UnCollectForEvents(Node: TVRMLNode);
 
+    procedure ScriptsInitialize(Node: TVRMLNode);
+    procedure ScriptsDeInitialize(Node: TVRMLNode);
+
     FWorldTime: TKamTime;
 
     { Internal procedure that handles WorldTime changes. }
@@ -1018,8 +1021,7 @@ type
       through routes, time dependent nodes (X3DTimeDependentNode,
       like TimeSensor) will be activated and updated from WorldTime time
       property, KeyDown, KeyUp and other methods will activate
-      key/mouse sensor nodes, in the future scripts
-      will also work (TODO), etc.
+      key/mouse sensor nodes, scripts will be initialized and work, etc.
 
       Appropriate ChangedXxx, like ChangedAll, will be automatically called
       when necessary.
@@ -2736,9 +2738,12 @@ begin
   if Node is TNodeTimeSensor then
     TimeSensorNodes.AddIfNotExists(Node) else
   if Node is TNodeMovieTexture then
-    MovieTextureNodes.AddIfNotExists(Node) else
-  if Node is TNodeScript then
-    TNodeScript(Node).Initialized := true;
+    MovieTextureNodes.AddIfNotExists(Node);
+end;
+
+procedure TVRMLScene.ScriptsInitialize(Node: TVRMLNode);
+begin
+  TNodeScript(Node).Initialized := true;
 end;
 
 procedure TVRMLScene.TraverseForEvents(Node: TVRMLNode;
@@ -2768,18 +2773,31 @@ begin
     Also, this means that ProximitySensor are detected only in active
     VRML graph part. }
   RootNode.Traverse(TNodeProximitySensor, @TraverseForEvents);
+
+  { We have to initialize scripts only after all other initialization
+    is done, in particular after CollectNodeForEvents was called
+    for all and set their ParentEventsProcessor. Reason: scripts
+    initialize() methods may already cause some events, that should
+    notify us appropriately. }
+  RootNode.EnumerateNodes(TNodeScript, @ScriptsInitialize, false);
 end;
 
 procedure TVRMLScene.UnCollectForEvents(Node: TVRMLNode);
 begin
-  if Node is TNodeScript then
-    TNodeScript(Node).Initialized := false;
-
   Node.ParentEventsProcessor := nil;
+end;
+
+procedure TVRMLScene.ScriptsDeInitialize(Node: TVRMLNode);
+begin
+  TNodeScript(Node).Initialized := false;
 end;
 
 procedure TVRMLScene.UnregisterProcessEvents(Node: TVRMLNode);
 begin
+  { We have to deinitialize scripts before any other deinitialization
+    is done. Just like for ScriptsInitialize. }
+  Node.EnumerateNodes(TNodeScript, @ScriptsDeInitialize, false);
+
   Node.EnumerateNodes(TVRMLNode, @UnCollectForEvents, false);
 end;
 
@@ -2797,11 +2815,11 @@ begin
       CollectNodesForEvents;
     end else
     begin
+      UnregisterProcessEvents(RootNode);
       FreeAndNil(KeySensorNodes);
       FreeAndNil(TimeSensorNodes);
       FreeAndNil(MovieTextureNodes);
       FreeAndNil(ProximitySensorInstances);
-      UnregisterProcessEvents(RootNode);
       PointingDeviceClear;
     end;
     FProcessEvents := Value;
