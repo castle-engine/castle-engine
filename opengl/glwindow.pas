@@ -724,7 +724,6 @@ type
   TIdleFunc = procedure;
   TGLWindowFunc = procedure(Glwin: TGLWindow);
   TDrawFunc = TGLWindowFunc;
-  TKeyFunc = procedure(Glwin: TGLWindow; Key: TKey);
   TKeyCharFunc = procedure(Glwin: TGLWindow; Key: TKey; C: char);
   TMouseMoveFunc = procedure(Glwin: TGLWindow; NewX, NewY: Integer);
   TMouseUpDownFunc = procedure(Glwin: TGLWindow; Button: TMouseButton);
@@ -750,8 +749,7 @@ type
   TGLWindowCallbacks = record
     MouseMove: TMouseMoveFunc;
     MouseDown, MouseUp: TMouseUpDownFunc;
-    KeyDown: TKeyCharFunc;
-    KeyUp: TKeyFunc;
+    KeyDown, KeyUp: TKeyCharFunc;
     BeforeDraw, Draw, CloseQuery, Idle, Timer: TGLWindowFunc;
     Resize: TGLWindowFunc;
     MenuCommand: TMenuCommandFunc;
@@ -820,7 +818,7 @@ type
     FOnResize: TGLWindowFunc;
     FOnClose: TGLWindowFunc;
     FOnCloseQuery: TGLWindowFunc;
-    FOnKeyUp: TKeyFunc;
+    FOnKeyDown, FOnKeyUp: TKeyCharFunc;
     FMouseMove: TMouseMoveFunc;
     FMouseDown, FMouseUp: TMouseUpDownFunc;
     FOnIdle, FOnTimer: TGLWindowFunc;
@@ -1245,8 +1243,8 @@ type
     function EventCloseQuery: boolean; virtual;
     procedure EventDraw; virtual;
     procedure EventBeforeDraw; virtual;
-    procedure EventKeyDown(Key: TKey; c: char); virtual;
-    procedure EventKeyUp(key: TKey); virtual;
+    procedure EventKeyDown(Key: TKey; C: char); virtual;
+    procedure EventKeyUp(key: TKey; C: char); virtual;
     procedure EventMouseMove(newX, newY: integer); virtual;
     procedure EventMouseDown(btn: TMouseButton); virtual;
     procedure EventMouseUp(btn: TMouseButton); virtual;
@@ -1746,32 +1744,32 @@ type
       gdy KeysDown[k] zmienia sie z false na true". To tak nie dziala.
       Patrz raczej na to jako na zdarzenie po ktorym KeysDown[k] na pewno
       jest true. }
-    OnKeyDown: TKeyCharFunc; { = nil }
+    property OnKeyDown: TKeyCharFunc read FOnKeyDown write FOnKeyDown;
 
-    { OnKeyUp(Self, Key):
-      Called when user releases a pressed key. I.e. it's called right after
+    { Called when user releases a pressed key. I.e. it's called right after
       KeysDown[Key] changed from true to false.
 
       Key is never K_None.
 
-      Note: I had at some time an idea to add "c: char" parameter to OnKeyUp,
-      analogous to OnKeyDown. But I decided that it would be rather
-      counterintuitive: what will be the relation between Key and c ?
-      In OnKeyDown, c is said to be determined by Key + modifiers
-      (ctrl, shift etc.) state + some OS-specific conversions.
-      In OnKeyUp, what modifiers state (and OS configuration) should we use ?
-      Same one as in last OnKeyDown with such Key ?
-        But this means using not current information about modifiers state
-        and OS configuration. So it's rather useless, and troublesome to
-        implement.
-      Current ?
-        But this means that OnKeyDown and OnKeyUp does not make "correspoing
-        pairs of events". E.g. you press K_Shift, then K_C.
-        We do OnKeyDown(Self, K_C, 'C'). Then you release Shift
-        (we get OnKeyUp(Self, K_Shift, 'C')) and then release K_C
-        (we get OnKeyUp(Self, K_C, 'c')).
-        This doesn't look usable too. }
-    property OnKeyUp: TKeyFunc read FOnKeyUp write FOnKeyUp; { = nil }
+      C may be #0 is no representable character is released.
+      When C is <> #0, we detected that some character is released.
+      This is connected with setting CharactersDown[C] from @true to @false.
+
+      Note that reporting characters for "key release" messages is not
+      perfect, as various key combinations (sometimes more than one?) may lead
+      to generating given character. We have some intelligent algorithm
+      for this, used to make CharactersDown table and to detect
+      this C for OnKeyUp callback. The idea is that a character is released
+      when the key that initially caused the press of this character is
+      also released.
+
+      This solves in a determined way problems like
+      "what happens if I press Shift, then X,
+      then release Shift, then release X". (will "X" be correctly
+      released as pressed and then released? yes.
+      will small "x" be reported as released at the end? no, as it was never
+      pressed.) }
+    property OnKeyUp: TKeyCharFunc read FOnKeyUp write FOnKeyUp;
 
     { Jesli uzytkownik klilknie na znaczku "X" (zamknij
       aplikacje) lub wybierze polecenie "Zamknij" z SysMenu okna lub przycisnie
@@ -3484,24 +3482,27 @@ begin
 end;
 
 procedure TGLWindow.DoKeyUp(key: TKey);
+var
+  C: char;
 begin
   if KeysDown[Key] then
   begin
     { K_None key is never pressed, DoKeyDown guarentees this }
     Assert(Key <> K_None);
 
-    if PressedKeyToCharacter[Key] <> #0 then
+    C := PressedKeyToCharacter[Key];
+    if C <> #0 then
     begin
       { update CharactersDown and PressedXxx mapping arrays }
-      Assert(CharactersDown[PressedKeyToCharacter[Key]]);
-      CharactersDown[PressedKeyToCharacter[Key]] := false;
-      PressedCharacterToKey[PressedKeyToCharacter[Key]] := K_None;
+      Assert(CharactersDown[C]);
+      CharactersDown[C] := false;
+      PressedCharacterToKey[C] := K_None;
       PressedKeyToCharacter[Key] := #0;
     end;
 
     KeysDown[key] := false;
     MakeCurrent;
-    EventKeyUp(key);
+    EventKeyUp(key, C);
   end;
 end;
 
@@ -3592,10 +3593,10 @@ procedure TGLWindow.EventDraw;                          const EventName = 'Draw'
 procedure TGLWindow.EventResize;                        const EventName = 'Resize';    begin {$I glwindow_eventbegin.inc} if Assigned(OnResize)    then begin {$I glwindow_eventoncallbegin.inc} OnResize(Self);                {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
 {$define BONUS_LOG_STRING := Format('Key %s, character %s (ord: %d)', [KeyToStr(Key), CharToNiceStr(c), Ord(c)])}
-procedure TGLWindow.EventKeyDown(Key: TKey; c: char); const EventName = 'KeyDown';  begin {$I glwindow_eventbegin.inc} if Assigned(OnKeyDown)   then begin {$I glwindow_eventoncallbegin.inc} OnKeyDown(Self, Key, c);          {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
+procedure TGLWindow.EventKeyDown(Key: TKey; C: char);    const EventName = 'KeyDown';  begin {$I glwindow_eventbegin.inc} if Assigned(OnKeyDown)   then begin {$I glwindow_eventoncallbegin.inc} OnKeyDown(Self, Key, C);          {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
-{$define BONUS_LOG_STRING := Format('Key %s', [KeyToStr(key)])}
-procedure TGLWindow.EventKeyUp(key: TKey);               const EventName = 'KeyUp';     begin {$I glwindow_eventbegin.inc} if Assigned(OnKeyUp)     then begin {$I glwindow_eventoncallbegin.inc} OnKeyUp(Self, key);            {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
+{$define BONUS_LOG_STRING := Format('Key %s, character %s (ord: %d)', [KeyToStr(Key), CharToNiceStr(c), Ord(c)])}
+procedure TGLWindow.EventKeyUp(key: TKey; C: char);      const EventName = 'KeyUp';     begin {$I glwindow_eventbegin.inc} if Assigned(OnKeyUp)     then begin {$I glwindow_eventoncallbegin.inc} OnKeyUp(Self, key, C);          {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
 {$define BONUS_LOG_STRING := Format('New position: %d %d', [newX, newY])}
 procedure TGLWindow.EventMouseMove(newX, newY: integer); const EventName = 'MouseMove'; begin { $I glwindow_eventbegin.inc} if Assigned(OnMouseMove) then begin {$I glwindow_eventoncallbegin.inc} OnMouseMove(Self, newX, newY); {$I glwindow_eventoncallend.inc} end;   { $I glwindow_eventend.inc} end;

@@ -43,7 +43,7 @@ begin
   glClear(GL_COLOR_BUFFER_BIT);
 end;
 
-procedure KeyUp(Glwin: TGLWindow; Key: TKey);
+procedure KeyUp(Glwin: TGLWindow; Key: TKey; C: char);
 var
   I: Integer;
 begin

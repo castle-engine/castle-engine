@@ -131,9 +131,10 @@ begin
     [KeyToStr(key), CharToNiceStr(c), Ord(c)]));
 end;
 
-procedure KeyUp(glwin: TGLWindow; key: TKey);
+procedure KeyUp(glwin: TGLWindow; key: TKey; c: char);
 begin
-  TimeMsg.Show(Format('KeyUp message : key %s', [KeyToStr(key)]));
+  TimeMsg.Show(Format('KeyUp message : key %s, char %s (ord %d)',
+    [KeyToStr(key), CharToNiceStr(c), Ord(c)]));
 end;
 
 function MouseButtonToStr(btn: TMouseButton): string;

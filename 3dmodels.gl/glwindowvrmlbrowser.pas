@@ -142,7 +142,7 @@ type
     procedure EventMouseUp(Btn: TMouseButton); override;
     procedure EventMouseMove(NewX, NewY: Integer); override;
     procedure EventKeyDown(Key: TKey; C: char); override;
-    procedure EventKeyUp(Key: TKey); override;
+    procedure EventKeyUp(Key: TKey; C: char); override;
   end;
 
 implementation
@@ -334,10 +334,10 @@ begin
   Scene.KeyDown(Key, C, @KeysDown);
 end;
 
-procedure TGLWindowVRMLBrowser.EventKeyUp(Key: TKey);
+procedure TGLWindowVRMLBrowser.EventKeyUp(Key: TKey; C: char);
 begin
   inherited;
-  Scene.KeyUp(Key, #0 { TODO });
+  Scene.KeyUp(Key, C);
 end;
 
 function TGLWindowVRMLBrowser.MoveAllowed(ANavigator: TWalkNavigator;
