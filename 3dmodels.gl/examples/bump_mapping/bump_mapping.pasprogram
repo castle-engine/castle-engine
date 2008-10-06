@@ -1188,7 +1188,7 @@ begin
   Result := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');
     M.Append(TMenuItem.Create('Next _Bump Mapping Method', 50, 'm'));
-    M.Append(TMenuItem.Create('Next _Navigation Method', 60, CharEnter));
+    M.Append(TMenuItem.Create('Next _Navigation Method', 60, K_Enter));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Save Screen ...', 100, K_F5));
     M.Append(TMenuSeparator.Create);

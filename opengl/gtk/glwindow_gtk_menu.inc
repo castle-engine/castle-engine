@@ -159,15 +159,18 @@ procedure TGLWindow.init_window_menu_bar;
    case CharKey of
 
     CtrlA .. CtrlZ:
-      case CharKey of
-       CharBackspace: gdk_keyval := GDK_KEY_BackSpace;
-       CharTab: gdk_keyval := GDK_KEY_Tab;
-       CharEnter: gdk_keyval := GDK_KEY_Return;
-       else
-         begin
-          gdk_keyval := GDK_KEY_A + Ord(CharKey) - Ord(CtrlA);
-          modifier_type := GDK_CONTROL_MASK;
-         end;
+      { I could handle here specially three keys:
+          CharBackspace: gdk_keyval := GDK_KEY_BackSpace;
+          CharTab: gdk_keyval := GDK_KEY_Tab;
+          CharEnter: gdk_keyval := GDK_KEY_Return;
+        but it would be bad idea --- I would have no way to specify
+        then actual Ctrl+H, Ctrl+I, Ctrl+M shortcuts.
+        (While Backspace, Tab, Enter can always be specified by TKey
+        constants K_BackSpace, K_Tab, K_Enter).
+      }
+      begin
+        gdk_keyval := GDK_KEY_A + Ord(CharKey) - Ord(CtrlA);
+        modifier_type := GDK_CONTROL_MASK;
       end;
 
     CharEscape: gdk_keyval := GDK_KEY_Escape;

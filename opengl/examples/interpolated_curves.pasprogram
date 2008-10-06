@@ -359,7 +359,7 @@ var
 begin
   Result := TMenu.Create('Main menu');
     M := TMenu.Create('File');
-    M.Append(TMenuItemChecked.Create('FullScreen on/off', 1, CharTab,
+    M.Append(TMenuItemChecked.Create('FullScreen on/off', 1, K_F11,
       Glw.FullScreen, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Exit',                     2, CharEscape));

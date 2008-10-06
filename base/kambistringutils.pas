@@ -767,8 +767,13 @@ const
 
   The returned string doesn't contain any quotes around, doesn't
   contain any word merely stating "character" (for example argument 'c' just
-  generates 'c', not 'character "c"'). }
-function CharToNiceStr(c: char): string;
+  generates 'c', not 'character "c"').
+
+  BackSpaceTabEnterString determines behavior on three special values:
+  #8, #9, #13. These may be either described as Backspace/Tab/Enter
+  (if BackSpaceTabEnterString = true)
+  or as Ctrl+H, Ctrl+I, Ctrl+M (if BackSpaceTabEnterString = false). }
+function CharToNiceStr(c: char; BackSpaceTabEnterString: boolean = true): string;
 
 { Replace any number of consecutive whitespace (including newlines)
   with a single whitespace. This is nice when you have a string
@@ -2071,26 +2076,29 @@ end;
 function PCharOrNil(const s: string): PChar;
 begin if s = '' then result := nil else result := PChar(s); end;
 
-function CharToNiceStr(c: char): string;
+function CharToNiceStr(c: char; BackSpaceTabEnterString: boolean): string;
 
   function DescribeCtrlKey(c: char): string;
   begin result := 'Ctrl+'+Chr(Ord(c)-1+Ord('a')) end;
 
 begin
- case c of
-  #0: Result := '#0';
-  CharBackSpace: Result := 'BackSpace';
-  CharTab: Result := 'Tab'; { ('+DescribeCtrlKey(c)+')'; }
-  CharEnter: Result := 'Enter'; { ('+DescribeCtrlKey(c)+')'; }
-  CharEscape: Result := 'Esc';
-  ' ' : Result := 'Space';
-  else
-   { writing it in such way ensures that CharTab will NOT be shown
-     as Ctrl+I, Enter as Ctrl+M etc. }
-   if c in [CtrlA..CtrlZ] then
-    Result := DescribeCtrlKey(c) else
-    Result := c;
- end;
+  if BackSpaceTabEnterString then
+  begin
+    case C of
+      CharBackSpace: begin Result := 'BackSpace'; Exit; end;
+      CharTab      : begin Result := 'Tab'      ; Exit; end;
+      CharEnter    : begin Result := 'Enter'    ; Exit; end;
+    end;
+  end;
+
+  case c of
+    #0: Result := '#0';
+    CharEscape: Result := 'Esc';
+    ' ' : Result := 'Space';
+    CtrlA..CtrlZ: Result := DescribeCtrlKey(c);
+    else
+      Result := c;
+  end;
 end;
 
 function SCompressWhiteSpace(const S: string): string;

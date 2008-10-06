@@ -169,7 +169,9 @@
       Default implementation of this method in this class always returns false. }
     function DoCommand: boolean; virtual;
 
-    { If Key <> K_None and user will press this Key
+    { Key shortcuts for this menu item.
+
+      If Key <> K_None and user will press this Key
       then this object's DoCommand will be called
       (and TGLWindow.EventMenuCommnd, and TGLWindow.OnMenuCommand,
       if DoCommand returns false).
@@ -203,6 +205,13 @@
       generates K_C, but does not translate as CharKey = 'c' (it is translated
       as CharKey = 'C' ('C' uppercase !)).
 
+      Notes about CharKey values #8 (CharBackSpace = CtrlH),
+      #9 (CharTab = CtrlI), #13 (CharEnter = CtrlM): these are problematic,
+      since they may mean backspace/tab/enter or combinations with Ctrl key.
+      Decision: for menu shortcuts, these mean combinations with Ctrl key.
+      You can get backspace/tab/enter shortcuts by using
+      Key property instead (with K_BackSpace, K_Tab, K_Enter).
+
       Design notes: I am no longer using TMenuItemKey class.
       Instead I put this functionality into base TMenuItem class.
       Before, I had in this class TMenuItemChecked functionality,
@@ -216,9 +225,12 @@
       then I would be forced to create additional TMenuItemKeyChecked
       class.
 
-      TODO:  change these to writeable }
-    property CharKey: char read FCharKey; { = #0 }
-    property Key: TKey read FKey; { = K_None }
+      TODO:  change these to writeable
+
+      @groupBegin }
+    property CharKey: char read FCharKey default #0;
+    property Key: TKey read FKey default K_None;
+    { @groupEnd }
 
     { This returns as S the string that describes CharKey (if CharKey <> #0)
       or Key (if Key <> K_None) and then returns true.
@@ -526,7 +538,7 @@ function TMenuItem.KeyString(out S: string): boolean;
 begin
  if CharKey <> #0 then
  begin
-  S := CharToNiceStr(CharKey);
+  S := CharToNiceStr(CharKey, false);
   Result := true;
  end else
  if Key <> K_None then
