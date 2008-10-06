@@ -207,7 +207,7 @@ const
             FParams := TKamScriptExpressionsList.Create;
             try
               try
-                if Lexer.Token = tokLParen then
+                Lexer.CheckTokenIs(tokLParen);
                 repeat
                   Lexer.NextToken; { pomin ostatni "," lub "(" }
                   FParams.Add(ExpressionInsideFactor);
