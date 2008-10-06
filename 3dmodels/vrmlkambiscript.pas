@@ -460,6 +460,10 @@ begin
       if FieldOrEvent was initializeOnly field (and not AbortSending).
       But in this case, we know FieldOrEvent comes from a Script node,
       and in this situation ChangedFields doesn't do anything anyway. }
+
+    { This is needed for TKamScriptVRMLValuesList.AfterExecute trick.
+      We handled this change, so we mark it by ValueAssigned = false. }
+    Value.ValueAssigned := false;
   end;
 end;
 
@@ -500,6 +504,7 @@ end;
 procedure TKamScriptVRMLValuesList.AfterExecute;
 var
   I: Integer;
+  WasSomeValueAssigned: boolean;
 begin
   if not InsideAfterExecute then
   begin
@@ -527,12 +532,26 @@ begin
       do nothing. Actual script execution will possibly change ValueAssigned
       to true for some fields, and change their value, that's Ok.
       Only Before/AfterExecute with InsideAfterExecute = false will cause actual
-      sending of fields/events. }
+      sending of fields/events.
+
+      Note that execution of recursive script may cause setting ValueAssigned
+      := true on earlier value. So we have to reiterate over Items,
+      until no ValueAssigned needs to be handled. Don't worry, this will
+      not cause loops, FLastEventTimes prevents the loops. So eventually
+      all fields will send their out values, and then WasSomeValueAssigned
+      will have to be false and we will finish. }
 
     InsideAfterExecute := true;
     try
-      for I := 0 to Count - 1 do
-        VRMLKamScriptAfterExecute(Items[I], FieldOrEvents[I], FLastEventTimes.Items[I]);
+      repeat
+        WasSomeValueAssigned := false;
+        for I := 0 to Count - 1 do
+        begin
+          if Items[I].ValueAssigned then
+            WasSomeValueAssigned := true;
+          VRMLKamScriptAfterExecute(Items[I], FieldOrEvents[I], FLastEventTimes.Items[I]);
+        end;
+      until not WasSomeValueAssigned;
     finally InsideAfterExecute := false end;
   end;
 end;
