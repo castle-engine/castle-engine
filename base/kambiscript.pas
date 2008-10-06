@@ -291,6 +291,8 @@ type
     class procedure HandlePower(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleSqr(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleSqrt(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleMax(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleMin(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleSgn(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleAbs(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleCeil(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -1283,6 +1285,28 @@ class procedure TKamScriptFloat.HandleSqrt(AFunction: TKamScriptFunction; const 
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
   TKamScriptFloat(AResult).Value := Sqrt( TKamScriptFloat(Arguments[0]).Value );
+end;
+
+class procedure TKamScriptFloat.HandleMax(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
+  TKamScriptFloat(AResult).Value := TKamScriptFloat(Arguments[0]).Value;
+  for I := 1 to Length(Arguments) - 1 do
+    TKamScriptFloat(AResult).Value := Max(
+      TKamScriptFloat(AResult).Value, TKamScriptFloat(Arguments[I]).Value);
+end;
+
+class procedure TKamScriptFloat.HandleMin(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
+  TKamScriptFloat(AResult).Value := TKamScriptFloat(Arguments[0]).Value;
+  for I := 1 to Length(Arguments) - 1 do
+    TKamScriptFloat(AResult).Value := Min(
+      TKamScriptFloat(AResult).Value, TKamScriptFloat(Arguments[I]).Value);
 end;
 
 class procedure TKamScriptFloat.HandleSgn(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -2351,6 +2375,8 @@ initialization
   FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandlePower, TKamScriptPower, [TKamScriptFloat, TKamScriptFloat], false);
   FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleSqr, TKamScriptSqr, [TKamScriptFloat], false);
   FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleSqrt, TKamScriptSqrt, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleMax, TKamScriptMax, [TKamScriptFloat], true);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleMin, TKamScriptMin, [TKamScriptFloat], true);
   FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleSgn, TKamScriptSgn, [TKamScriptFloat], false);
   FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleAbs, TKamScriptAbs, [TKamScriptFloat], false);
   FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleCeil, TKamScriptCeil, [TKamScriptFloat], false);

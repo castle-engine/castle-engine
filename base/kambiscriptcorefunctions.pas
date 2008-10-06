@@ -188,6 +188,18 @@ type
     class function ShortName: string; override;
   end;
 
+  TKamScriptMax = class(TKamScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
+  TKamScriptMin = class(TKamScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
   TKamScriptSgn = class(TKamScriptFunction)
   public
     class function Name: string; override;
@@ -586,6 +598,26 @@ end;
 class function TKamScriptSqrt.ShortName: string;
 begin
   Result := 'Sqrt';
+end;
+
+class function TKamScriptMax.Name: string;
+begin
+  Result := 'max';
+end;
+
+class function TKamScriptMax.ShortName: string;
+begin
+  Result := 'max';
+end;
+
+class function TKamScriptMin.Name: string;
+begin
+  Result := 'min';
+end;
+
+class function TKamScriptMin.ShortName: string;
+begin
+  Result := 'min';
 end;
 
 class function TKamScriptSgn.Name: string;
