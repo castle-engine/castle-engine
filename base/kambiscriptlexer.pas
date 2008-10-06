@@ -289,6 +289,31 @@ const
   FloatConstsValues: array [0..High(FloatConsts)] of float = (pi, enatural);
   BooleanConsts: array [0..1] of string = ('false', 'true');
   BooleanConstsValues: array [0..High(BooleanConsts)] of boolean = (false, true);
+  IntConsts: array [0..19] of string = (
+    'ACTION_KEY_F1',
+    'ACTION_KEY_F2',
+    'ACTION_KEY_F3',
+    'ACTION_KEY_F4',
+    'ACTION_KEY_F5',
+    'ACTION_KEY_F6',
+    'ACTION_KEY_F7',
+    'ACTION_KEY_F8',
+    'ACTION_KEY_F9',
+    'ACTION_KEY_F10',
+    'ACTION_KEY_F11',
+    'ACTION_KEY_F12',
+    'ACTION_KEY_HOME',
+    'ACTION_KEY_END',
+    'ACTION_KEY_PGUP',
+    'ACTION_KEY_PGDN',
+    'ACTION_KEY_UP',
+    'ACTION_KEY_DOWN',
+    'ACTION_KEY_LEFT',
+    'ACTION_KEY_RIGHT'
+  );
+  IntConstsValues: array [0..High(IntConsts)] of Integer = (
+    1, 2, 3, 4, 5, 6, 7, 8, 9,10,
+   11,12,13,14,15,16,17,18,19,20 );
 var
   p: integer;
   fc: TKamScriptFunctionClass;
@@ -349,6 +374,16 @@ begin
     end;
    end;
 
+   { Maybe it's a named constant integer }
+   if ftoken = tokIdentifier then
+   begin
+    p := ArrayPosText(fTokenString, IntConsts);
+    if p >= 0 then
+    begin
+     ftoken := tokInteger;
+     fTokenInteger := IntConstsValues[p];
+    end;
+   end;
   end;
  end;
  result := token;
