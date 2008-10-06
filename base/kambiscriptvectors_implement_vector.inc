@@ -59,6 +59,22 @@ begin
       TKamScriptVecXx(Arguments[1]).Value);
 end;
 
+class procedure TKamScriptVecXx.HandleMultiply(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptVecXx);
+  if Arguments[0] is TKamScriptFloat then
+  begin
+    TKamScriptVecXx(AResult).Value := VectorScale(
+      TKamScriptVecXx(Arguments[1]).Value,
+      TKamScriptFloat(Arguments[0]).Value);
+  end else
+  begin
+    TKamScriptVecXx(AResult).Value := VectorScale(
+      TKamScriptVecXx(Arguments[0]).Value,
+      TKamScriptFloat(Arguments[1]).Value);
+  end;
+end;
+
 class procedure TKamScriptVecXx.HandleVector(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 var
   I: Integer;
@@ -155,6 +171,9 @@ begin
   FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleNegate, TKamScriptNegate, [TKamScriptVecXx], false);
   FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleEqual, TKamScriptEqual, [TKamScriptVecXx, TKamScriptVecXx], false);
   FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleNotEqual, TKamScriptNotEqual, [TKamScriptVecXx, TKamScriptVecXx], false);
+
+  FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleMultiply, TKamScriptMultiply, [TKamScriptVecXx, TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleMultiply, TKamScriptMultiply, [TKamScriptFloat, TKamScriptVecXx], false);
 
   { TKamScriptVecXx, functions from KambiScriptVectors }
   SetLength(VectorArgClasses, VectorGetCount);
