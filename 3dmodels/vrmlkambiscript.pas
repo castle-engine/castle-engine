@@ -105,6 +105,9 @@ uses SysUtils, VRMLNodes, VRMLScene, VRMLErrors, KambiLog, KambiScriptVectors,
 
 {$define read_implementation}
 
+{ TODO: unhandled VRML types for KambiScript: rotations, nodes, arrays of
+  existing types. }
+
 { general utils -------------------------------------------------------- }
 
 function VRMLKamScriptCreateValue(FieldOrEvent: TVRMLFieldOrEvent): TKamScriptValue;
@@ -148,6 +151,18 @@ begin
   if FieldClass.InheritsFrom(TSFVec4d) or
      FieldClass.InheritsFrom(TMFVec4d) then
     Result := TKamScriptVec4d.Create(true) else
+  if FieldClass.InheritsFrom(TSFMatrix3f) or
+     FieldClass.InheritsFrom(TMFMatrix3f) then
+    Result := TKamScriptMatrix3f.Create(true) else
+  if FieldClass.InheritsFrom(TSFMatrix4f) or
+     FieldClass.InheritsFrom(TMFMatrix4f) then
+    Result := TKamScriptMatrix4f.Create(true) else
+  if FieldClass.InheritsFrom(TSFMatrix3d) or
+     FieldClass.InheritsFrom(TMFMatrix3d) then
+    Result := TKamScriptMatrix3d.Create(true) else
+  if FieldClass.InheritsFrom(TSFMatrix4d) or
+     FieldClass.InheritsFrom(TMFMatrix4d) then
+    Result := TKamScriptMatrix4d.Create(true) else
   begin
     VRMLNonFatalError('Note that KambiScript is not yet suitable to process values of type ' + FieldClass.VrmlTypeName);
     Result := TKamScriptFloat.Create(true);
@@ -259,6 +274,42 @@ procedure VRMLKamScriptBeforeExecute(Value: TKamScriptValue;
       if TMFVec4d(Field).Items.Count >= 1 then
         TKamScriptVec4d(Value).Value := TMFVec4d(Field).Items.Items[0] else
         TKamScriptVec4d(Value).Value := ZeroVector4Double; { anything predictable }
+    end else
+
+    if Field is TSFMatrix3f then
+      TKamScriptMatrix3f(Value).Value := TSFMatrix3f(Field).Value else
+    if Field is TMFMatrix3f then
+    begin
+      if TMFMatrix3f(Field).Items.Count >= 1 then
+        TKamScriptMatrix3f(Value).Value := TMFMatrix3f(Field).Items.Items[0] else
+        TKamScriptMatrix3f(Value).Value := IdentityMatrix3Single; { anything predictable }
+    end else
+
+    if Field is TSFMatrix4f then
+      TKamScriptMatrix4f(Value).Value := TSFMatrix4f(Field).Value else
+    if Field is TMFMatrix4f then
+    begin
+      if TMFMatrix4f(Field).Items.Count >= 1 then
+        TKamScriptMatrix4f(Value).Value := TMFMatrix4f(Field).Items.Items[0] else
+        TKamScriptMatrix4f(Value).Value := IdentityMatrix4Single; { anything predictable }
+    end else
+
+    if Field is TSFMatrix3d then
+      TKamScriptMatrix3d(Value).Value := TSFMatrix3d(Field).Value else
+    if Field is TMFMatrix3d then
+    begin
+      if TMFMatrix3d(Field).Items.Count >= 1 then
+        TKamScriptMatrix3d(Value).Value := TMFMatrix3d(Field).Items.Items[0] else
+        TKamScriptMatrix3d(Value).Value := IdentityMatrix3Double; { anything predictable }
+    end else
+
+    if Field is TSFMatrix4d then
+      TKamScriptMatrix4d(Value).Value := TSFMatrix4d(Field).Value else
+    if Field is TMFMatrix4d then
+    begin
+      if TMFMatrix4d(Field).Items.Count >= 1 then
+        TKamScriptMatrix4d(Value).Value := TMFMatrix4d(Field).Items.Items[0] else
+        TKamScriptMatrix4d(Value).Value := IdentityMatrix4Double; { anything predictable }
     end else
 
       { No sensible way to convert, just fall back to predictable 0.0. }
@@ -429,6 +480,38 @@ begin
     begin
       TMFVec4d(Field).Items.Count := 1;
       TMFVec4d(Field).Items.Items[0] := TKamScriptVec4d(Value).Value;
+    end else
+
+    if Field is TSFMatrix3f then
+      TSFMatrix3f(Field).Value := TKamScriptMatrix3f(Value).Value else
+    if Field is TMFMatrix3f then
+    begin
+      TMFMatrix3f(Field).Items.Count := 1;
+      TMFMatrix3f(Field).Items.Items[0] := TKamScriptMatrix3f(Value).Value;
+    end else
+
+    if Field is TSFMatrix4f then
+      TSFMatrix4f(Field).Value := TKamScriptMatrix4f(Value).Value else
+    if Field is TMFMatrix4f then
+    begin
+      TMFMatrix4f(Field).Items.Count := 1;
+      TMFMatrix4f(Field).Items.Items[0] := TKamScriptMatrix4f(Value).Value;
+    end else
+
+    if Field is TSFMatrix3d then
+      TSFMatrix3d(Field).Value := TKamScriptMatrix3d(Value).Value else
+    if Field is TMFMatrix3d then
+    begin
+      TMFMatrix3d(Field).Items.Count := 1;
+      TMFMatrix3d(Field).Items.Items[0] := TKamScriptMatrix3d(Value).Value;
+    end else
+
+    if Field is TSFMatrix4d then
+      TSFMatrix4d(Field).Value := TKamScriptMatrix4d(Value).Value else
+    if Field is TMFMatrix4d then
+    begin
+      TMFMatrix4d(Field).Items.Count := 1;
+      TMFMatrix4d(Field).Items.Items[0] := TKamScriptMatrix4d(Value).Value;
     end else
 
     begin
