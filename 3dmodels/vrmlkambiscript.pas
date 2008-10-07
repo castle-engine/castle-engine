@@ -105,8 +105,13 @@ uses SysUtils, VRMLNodes, VRMLScene, VRMLErrors, KambiLog, KambiScriptVectors,
 
 {$define read_implementation}
 
-{ TODO: unhandled VRML types for KambiScript: rotations, nodes, arrays of
+{ TODO: unhandled VRML types for KambiScript: nodes, images, arrays of
   existing types. }
+
+type
+  { We use TKamScriptVec4f to represent VRML rotations.
+    TKamScriptRotation is just for notation convenience. }
+  TKamScriptRotation = TKamScriptVec4f;
 
 { general utils -------------------------------------------------------- }
 
@@ -151,6 +156,9 @@ begin
   if FieldClass.InheritsFrom(TSFVec4d) or
      FieldClass.InheritsFrom(TMFVec4d) then
     Result := TKamScriptVec4d.Create(true) else
+  if FieldClass.InheritsFrom(TSFRotation) or
+     FieldClass.InheritsFrom(TMFRotation) then
+    Result := TKamScriptRotation.Create(true) else
   if FieldClass.InheritsFrom(TSFMatrix3f) or
      FieldClass.InheritsFrom(TMFMatrix3f) then
     Result := TKamScriptMatrix3f.Create(true) else
@@ -274,6 +282,15 @@ procedure VRMLKamScriptBeforeExecute(Value: TKamScriptValue;
       if TMFVec4d(Field).Items.Count >= 1 then
         TKamScriptVec4d(Value).Value := TMFVec4d(Field).Items.Items[0] else
         TKamScriptVec4d(Value).Value := ZeroVector4Double; { anything predictable }
+    end else
+
+    if Field is TSFRotation then
+      TKamScriptRotation(Value).Value := TSFRotation(Field).Value else
+    if Field is TMFRotation then
+    begin
+      if TMFRotation(Field).Items.Count >= 1 then
+        TKamScriptRotation(Value).Value := TMFRotation(Field).Items.Items[0] else
+        TKamScriptRotation(Value).Value := ZeroVector4Single; { anything predictable }
     end else
 
     if Field is TSFMatrix3f then
@@ -480,6 +497,14 @@ begin
     begin
       TMFVec4d(Field).Items.Count := 1;
       TMFVec4d(Field).Items.Items[0] := TKamScriptVec4d(Value).Value;
+    end else
+
+    if Field is TSFRotation then
+      TSFRotation(Field).Value := TKamScriptRotation(Value).Value else
+    if Field is TMFRotation then
+    begin
+      TMFRotation(Field).Items.Count := 1;
+      TMFRotation(Field).Items.Items[0] := TKamScriptRotation(Value).Value;
     end else
 
     if Field is TSFMatrix3f then
