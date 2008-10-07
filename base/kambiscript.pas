@@ -550,6 +550,15 @@ type
     class function GreedyArgumentsCalculation: Integer; override;
   end;
 
+  TKamScriptWhen = class(TKamScriptFunction)
+  private
+    class procedure HandleWhen(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+    class function GreedyArgumentsCalculation: Integer; override;
+  end;
+
   TKamScriptWhile = class(TKamScriptFunction)
   private
     class procedure HandleWhile(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -1930,6 +1939,40 @@ begin
   Result := 1;
 end;
 
+{ TKamScriptWhen --------------------------------------------------------- }
+
+class function TKamScriptWhen.Name: string;
+begin
+  Result := 'when';
+end;
+
+class function TKamScriptWhen.ShortName: string;
+begin
+  Result := 'when';
+end;
+
+class procedure TKamScriptWhen.HandleWhen(
+  AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  if ParentOfResult then
+    AResult.FreeByParentExpression;
+  AResult := nil;
+  ParentOfResult := false;
+
+  if TKamScriptBoolean(Arguments[0]).Value then
+    AResult := AFunction.Args[1].Execute else
+  begin
+    { "when" returns simple const false on "else" condition }
+    AResult := TKamScriptBoolean.Create(false);
+    ParentOfResult := true;
+  end;
+end;
+
+class function TKamScriptWhen.GreedyArgumentsCalculation: Integer;
+begin
+  Result := 1;
+end;
+
 { TKamScriptWhile --------------------------------------------------------- }
 
 class function TKamScriptWhile.Name: string;
@@ -2317,6 +2360,7 @@ initialization
   FunctionHandlers.RegisterHandler(@TKamScriptAssignment(nil).HandleAssignment, TKamScriptAssignment, [TKamScriptValue, TKamScriptValue], false);
 
   FunctionHandlers.RegisterHandler(@TKamScriptIf(nil).HandleIf, TKamScriptIf, [TKamScriptBoolean, TKamScriptValue, TKamScriptValue], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptWhen(nil).HandleWhen, TKamScriptWhen, [TKamScriptBoolean, TKamScriptValue], false);
   FunctionHandlers.RegisterHandler(@TKamScriptWhile(nil).HandleWhile, TKamScriptWhile, [TKamScriptBoolean, TKamScriptValue], false);
   FunctionHandlers.RegisterHandler(@TKamScriptFor(nil).HandleFor, TKamScriptFor, [TKamScriptInteger, TKamScriptInteger, TKamScriptInteger, TKamScriptValue], false);
 
