@@ -276,10 +276,7 @@ begin
     { Otherwise Circle2D would be always white.
       X3D spec doesn't say anything about this, so I use diffuse color. }
     if CurrentGeometry is TNodeCircle2D then
-    begin
-      writeln('yes circle 2d ', VectorToNiceStr(Material.FdDiffuseColor.Value));
       UnLitColor := Material.FdDiffuseColor.Value;
-    end;
 
     Render_Material(
       IsNodeLit,
