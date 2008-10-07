@@ -380,11 +380,11 @@ end;
 function TNodeTextureTransform3D.TransformMatrix: TMatrix4Single;
 begin
   Result := TranslationMatrix(VectorAdd(FdTranslation.Value, FdCenter.Value));
-  Result := MultMatrices(Result,
+  Result := MatrixMult(Result,
     RotationMatrixRad(FdRotation.RotationRad, FdRotation.Axis));
-  Result := MultMatrices(Result,
+  Result := MatrixMult(Result,
     ScalingMatrix(FdScale.Value));
-  Result := MultMatrices(Result,
+  Result := MatrixMult(Result,
     TranslationMatrix(VectorNegate(FdCenter.Value)));
 end;
 

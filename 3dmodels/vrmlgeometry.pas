@@ -377,9 +377,9 @@ begin
   SpineScaleTo1st(Spine, Scale);
   SpineOrientationTo1st(Spine, Orientation);
 
-  Transform := MultMatrices(
+  Transform := MatrixMult(
     TransformToCoordsMatrix(SpinePoints.Items[Spine], X, Y, Z),
-    MultMatrices(RotationMatrixRad(Orientation[3],
+    MatrixMult(RotationMatrixRad(Orientation[3],
       Orientation[0], Orientation[1], Orientation[2]),
       ScalingMatrix(Vector3Single(Scale[0], 1, Scale[1]))));
 end;

@@ -1685,17 +1685,48 @@ function TriangleToRawStr(const t: TTriangle3Double): string; overload;
 { troche matematyki na macierzach ----------------------------------------------- }
 
 function MatrixAdd(const m1, m2: TMatrix3Single): TMatrix3Single;
+function MatrixAdd(const m1, m2: TMatrix4Single): TMatrix4Single;
+function MatrixAdd(const m1, m2: TMatrix3Double): TMatrix3Double;
+function MatrixAdd(const m1, m2: TMatrix4Double): TMatrix4Double;
+
 procedure MatrixAddTo1st(var m1: TMatrix3Single; const m2: TMatrix3Single);
+procedure MatrixAddTo1st(var m1: TMatrix4Single; const m2: TMatrix4Single);
+procedure MatrixAddTo1st(var m1: TMatrix3Double; const m2: TMatrix3Double);
+procedure MatrixAddTo1st(var m1: TMatrix4Double; const m2: TMatrix4Double);
+
 function MatrixSubtract(const m1, m2: TMatrix3Single): TMatrix3Single;
+function MatrixSubtract(const m1, m2: TMatrix4Single): TMatrix4Single;
+function MatrixSubtract(const m1, m2: TMatrix3Double): TMatrix3Double;
+function MatrixSubtract(const m1, m2: TMatrix4Double): TMatrix4Double;
+
 procedure MatrixSubtractTo1st(var m1: TMatrix3Single; const m2: TMatrix3Single);
+procedure MatrixSubtractTo1st(var m1: TMatrix4Single; const m2: TMatrix4Single);
+procedure MatrixSubtractTo1st(var m1: TMatrix3Double; const m2: TMatrix3Double);
+procedure MatrixSubtractTo1st(var m1: TMatrix4Double; const m2: TMatrix4Double);
+
+function MatrixNegate(const m1: TMatrix3Single): TMatrix3Single;
+function MatrixNegate(const m1: TMatrix4Single): TMatrix4Single;
+function MatrixNegate(const m1: TMatrix3Double): TMatrix3Double;
+function MatrixNegate(const m1: TMatrix4Double): TMatrix4Double;
+
 function MatrixMultScalar(const m: TMatrix3Single; const s: Single): TMatrix3Single;
+function MatrixMultScalar(const m: TMatrix4Single; const s: Single): TMatrix4Single;
+function MatrixMultScalar(const m: TMatrix3Double; const s: Double): TMatrix3Double;
+function MatrixMultScalar(const m: TMatrix4Double; const s: Double): TMatrix4Double;
 
 function MultMatrixPoint(const m: TMatrix4Single; const pt: TVector3Single): TVector3Single;
-function MultMatrixVector(const m: TMatrix4Single; const v: TVector4Single): TVector4Single; overload;
-function MultMatrixVector(const m: TMatrix3Single; const v: TVector3Single): TVector3Single; overload;
-function MultMatrixPointNoTranslation(const m: TMatrix4Single; const v: TVector3Single): TVector3Single;
 
-function MultMatrices(const m1, m2: TMatrix4Single): TMatrix4Single;
+function MatrixMultVector(const m: TMatrix3Single; const v: TVector3Single): TVector3Single; overload;
+function MatrixMultVector(const m: TMatrix4Single; const v: TVector4Single): TVector4Single; overload;
+function MatrixMultVector(const m: TMatrix3Double; const v: TVector3Double): TVector3Double; overload;
+function MatrixMultVector(const m: TMatrix4Double; const v: TVector4Double): TVector4Double; overload;
+
+function MatrixMultPointNoTranslation(const m: TMatrix4Single; const v: TVector3Single): TVector3Single;
+
+function MatrixMult(const m1, m2: TMatrix3Single): TMatrix3Single;
+function MatrixMult(const m1, m2: TMatrix4Single): TMatrix4Single;
+function MatrixMult(const m1, m2: TMatrix3Double): TMatrix3Double;
+function MatrixMult(const m1, m2: TMatrix4Double): TMatrix4Double;
 
 { pomnoz wektor przez transpozycje tego samego wektora,
   czyli np. dla wektorow 3-elementowych otrzymamy macierz 3x3. }
@@ -2934,42 +2965,12 @@ end;
 
 { math with matrices ---------------------------------------------------------- }
 
-function MatrixAdd(const m1, m2: TMatrix3Single): TMatrix3Single;
-var i, j: integer;
-begin
- for i := 0 to 2 do for j := 0 to 2 do result[i, j] := m1[i, j]+m2[i, j];
-end;
-
-procedure MatrixAddTo1st(var m1: TMatrix3Single; const m2: TMatrix3Single);
-var i, j: integer;
-begin
- for i := 0 to 2 do for j := 0 to 2 do m1[i, j] := m1[i, j]+m2[i, j];
-end;
-
-function MatrixSubtract(const m1, m2: TMatrix3Single): TMatrix3Single;
-var i, j: integer;
-begin
- for i := 0 to 2 do for j := 0 to 2 do result[i, j] := m1[i, j]-m2[i, j];
-end;
-
-procedure MatrixSubtractTo1st(var m1: TMatrix3Single; const m2: TMatrix3Single);
-var i, j: integer;
-begin
- for i := 0 to 2 do for j := 0 to 2 do m1[i, j] := m1[i, j]-m2[i, j];
-end;
-
-function MatrixMultScalar(const m: TMatrix3Single; const s: Single): TMatrix3Single;
-var i, j: integer;
-begin
- for i := 0 to 2 do for j := 0 to 2 do result[i, j] := m[i, j]*s;
-end;
-
 function MultMatrixPoint(const m: TMatrix4Single; const pt: TVector3Single): TVector3Single;
 var
   Divisor: Single;
 begin
   { Simple implementation:
-  Result := Vector3SinglePoint(MultMatrixVector(m, Vector4Single(pt))); }
+  Result := Vector3SinglePoint(MatrixMultVector(m, Vector4Single(pt))); }
 
   Result[0] := M[0, 0] * Pt[0] + M[1, 0] * Pt[1] + M[2, 0] * Pt[2] + M[3, 0];
   Result[1] := M[0, 1] * Pt[0] + M[1, 1] * Pt[1] + M[2, 1] * Pt[2] + M[3, 1];
@@ -3002,66 +3003,11 @@ begin
   end;
 end;
 
-function MultMatrixVector(const m: TMatrix4Single; const v: TVector4Single): TVector4Single;
-{var i, j: integer;}
-begin
-  {
-  for i := 0 to 3 do
-  begin
-   result[i] := 0;
-   for j := 0 to 3 do result[i] := result[i] + m[j, i]*v[j];
-  end;
-
-  Code expanded for the sake of speed:}
-
-  Result[0] := M[0, 0] * V[0] + M[1, 0] * V[1] + M[2, 0] * V[2] + M[3, 0] * V[3];
-  Result[1] := M[0, 1] * V[0] + M[1, 1] * V[1] + M[2, 1] * V[2] + M[3, 1] * V[3];
-  Result[2] := M[0, 2] * V[0] + M[1, 2] * V[1] + M[2, 2] * V[2] + M[3, 2] * V[3];
-  Result[3] := M[0, 3] * V[0] + M[1, 3] * V[1] + M[2, 3] * V[2] + M[3, 3] * V[3];
-end;
-
-function MultMatrixVector(const m: TMatrix3Single; const v: TVector3Single): TVector3Single;
-begin
-  Result[0] := M[0, 0] * V[0] + M[1, 0] * V[1] + M[2, 0] * V[2];
-  Result[1] := M[0, 1] * V[0] + M[1, 1] * V[1] + M[2, 1] * V[2];
-  Result[2] := M[0, 2] * V[0] + M[1, 2] * V[1] + M[2, 2] * V[2];
-end;
-
-function MultMatrixPointNoTranslation(const m: TMatrix4Single; const v: TVector3Single): TVector3Single;
+function MatrixMultPointNoTranslation(const m: TMatrix4Single; const v: TVector3Single): TVector3Single;
 begin
   result := VectorSubtract(
-    Vector3SinglePoint( MultMatrixVector(m, Vector4Single(v)) ),
+    Vector3SinglePoint( MatrixMultVector(m, Vector4Single(v)) ),
     Vector3SinglePoint( m[3] ) );
-end;
-
-function MultMatrices(const m1, m2: TMatrix4Single): TMatrix4Single;
-{var i, j, k: integer;}
-begin
-(* FillChar(result, SizeOf(result), 0);
- for i := 0 to 3 do { i = wiersze, j = kolumny }
-  for j := 0 to 3 do
-   for k := 0 to 3 do
-    result[j, i] += m1[k, i]*m2[j, k];
-*)
-
- { This is code above expanded for speed sake
-   (code generated by console.testy/genMultMatrix) }
- result[0, 0] := m1[0, 0] * m2[0, 0] + m1[1, 0] * m2[0, 1] + m1[2, 0] * m2[0, 2] + m1[3, 0] * m2[0, 3];
- result[1, 0] := m1[0, 0] * m2[1, 0] + m1[1, 0] * m2[1, 1] + m1[2, 0] * m2[1, 2] + m1[3, 0] * m2[1, 3];
- result[2, 0] := m1[0, 0] * m2[2, 0] + m1[1, 0] * m2[2, 1] + m1[2, 0] * m2[2, 2] + m1[3, 0] * m2[2, 3];
- result[3, 0] := m1[0, 0] * m2[3, 0] + m1[1, 0] * m2[3, 1] + m1[2, 0] * m2[3, 2] + m1[3, 0] * m2[3, 3];
- result[0, 1] := m1[0, 1] * m2[0, 0] + m1[1, 1] * m2[0, 1] + m1[2, 1] * m2[0, 2] + m1[3, 1] * m2[0, 3];
- result[1, 1] := m1[0, 1] * m2[1, 0] + m1[1, 1] * m2[1, 1] + m1[2, 1] * m2[1, 2] + m1[3, 1] * m2[1, 3];
- result[2, 1] := m1[0, 1] * m2[2, 0] + m1[1, 1] * m2[2, 1] + m1[2, 1] * m2[2, 2] + m1[3, 1] * m2[2, 3];
- result[3, 1] := m1[0, 1] * m2[3, 0] + m1[1, 1] * m2[3, 1] + m1[2, 1] * m2[3, 2] + m1[3, 1] * m2[3, 3];
- result[0, 2] := m1[0, 2] * m2[0, 0] + m1[1, 2] * m2[0, 1] + m1[2, 2] * m2[0, 2] + m1[3, 2] * m2[0, 3];
- result[1, 2] := m1[0, 2] * m2[1, 0] + m1[1, 2] * m2[1, 1] + m1[2, 2] * m2[1, 2] + m1[3, 2] * m2[1, 3];
- result[2, 2] := m1[0, 2] * m2[2, 0] + m1[1, 2] * m2[2, 1] + m1[2, 2] * m2[2, 2] + m1[3, 2] * m2[2, 3];
- result[3, 2] := m1[0, 2] * m2[3, 0] + m1[1, 2] * m2[3, 1] + m1[2, 2] * m2[3, 2] + m1[3, 2] * m2[3, 3];
- result[0, 3] := m1[0, 3] * m2[0, 0] + m1[1, 3] * m2[0, 1] + m1[2, 3] * m2[0, 2] + m1[3, 3] * m2[0, 3];
- result[1, 3] := m1[0, 3] * m2[1, 0] + m1[1, 3] * m2[1, 1] + m1[2, 3] * m2[1, 2] + m1[3, 3] * m2[1, 3];
- result[2, 3] := m1[0, 3] * m2[2, 0] + m1[1, 3] * m2[2, 1] + m1[2, 3] * m2[2, 2] + m1[3, 3] * m2[2, 3];
- result[3, 3] := m1[0, 3] * m2[3, 0] + m1[1, 3] * m2[3, 1] + m1[2, 3] * m2[3, 2] + m1[3, 3] * m2[3, 3];
 end;
 
 function VectorMultTransposedSameVector(const v: TVector3Single): TMatrix3Single;
@@ -3535,7 +3481,7 @@ procedure CalculateFrustum(var Frustum: TFrustum;
   const ProjectionMatrix, ModelviewMatrix: TMatrix4Single);
 begin
  CalculateFrustum(Frustum,
-   MultMatrices(ProjectionMatrix, ModelviewMatrix));
+   MatrixMult(ProjectionMatrix, ModelviewMatrix));
 end;
 
 procedure CalculateFrustumPoints(out FrustumPoints: TFrustumPointsSingle;

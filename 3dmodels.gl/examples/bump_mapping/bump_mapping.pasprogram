@@ -345,7 +345,7 @@ var
     { On ModelInvertedTrasformation, we add new matrix on the left side,
       to revert also the order of operations. This way we really get
       proper inverse. }
-    ModelInvertedTrasformation := MultMatrices(
+    ModelInvertedTrasformation := MatrixMult(
       TranslationMatrix(-X, -Y, -Z),
       ModelInvertedTrasformation);
   end;
@@ -354,7 +354,7 @@ var
   procedure Rotate(const Angle, X, Y, Z: Single);
   begin
     glRotatef(Angle, X, Y, Z);
-    ModelInvertedTrasformation := MultMatrices(
+    ModelInvertedTrasformation := MatrixMult(
       RotationMatrixDeg(-Angle, X, Y, Z),
       ModelInvertedTrasformation);
   end;

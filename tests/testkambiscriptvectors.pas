@@ -32,6 +32,7 @@ type
   published
     procedure TestVecSingle;
     procedure TestVecDouble;
+    procedure TestMatrixSingle;
   end;
 
 implementation
@@ -236,6 +237,38 @@ begin
     Prog := ParseProgram('function main() vector_set(my_vec2, 100, 123)', Vars);
     ExecuteExpectError;
     FreeAndNil(Prog);
+  finally
+    FreeWithContentsAndNil(Vars);
+  end;
+end;
+
+procedure TTestKambiScriptVectors.TestMatrixSingle;
+var
+  Vars: TKamScriptValuesList;
+  Prog: TKamScriptProgram;
+begin
+  Vars := TKamScriptValuesList.Create;
+  try
+    Vars.Add(TKamScriptFloat.Create(true));
+    Vars.Add(TKamScriptVec3f.Create(true));
+    Vars.Add(TKamScriptVec4f.Create(true));
+    Vars.Add(TKamScriptMatrix3f.Create(true));
+    Vars.Add(TKamScriptMatrix4f.Create(true));
+
+    Vars[0].Name := 'my_float';
+    Vars[1].Name := 'my_vec3';
+    Vars[2].Name := 'my_vec4';
+    Vars[3].Name := 'my_mat3';
+    Vars[4].Name := 'my_mat4';
+
+    Prog := ParseProgram(FileToString('test_script_matrix.kscript'), Vars);
+    Prog.ExecuteFunction('main', []);
+    FreeAndNil(Prog);
+
+    Assert(VectorsEqual((Vars[1] as TKamScriptVec3f).Value,
+      Vector3Single(11 * 5 * 2, 22 * 3 * 2, 33 * 1 * 2)));
+    Assert(VectorsEqual((Vars[2] as TKamScriptVec4f).Value,
+      Vector4Single(11 * 5 * 2, 22 * 3 * 2, 33 * 1 * 2, 44 * 666)));
   finally
     FreeWithContentsAndNil(Vars);
   end;

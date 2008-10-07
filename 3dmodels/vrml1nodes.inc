@@ -1660,17 +1660,17 @@ function TNodeTexture2Transform.TextureMatrixTransformation: TMatrix4Single;
 begin
   result := TranslationMatrix( Vector3Single(
     VectorAdd(FdTranslation.Value, FdCenter.Value) ));
-  result := MultMatrices(result, RotationMatrixRad(FdRotation.Value, Vector3Single(0, 0, 1)));
-  result := MultMatrices(result, ScalingMatrix(
+  result := MatrixMult(result, RotationMatrixRad(FdRotation.Value, Vector3Single(0, 0, 1)));
+  result := MatrixMult(result, ScalingMatrix(
     Vector3Single( FdScaleFactor.Value[0], FdScaleFactor.Value[1], 1 )));
-  result := MultMatrices(result, TranslationMatrix(
+  result := MatrixMult(result, TranslationMatrix(
     Vector3Single( -FdCenter.Value[0], -FdCenter.Value[1], 0 )));
 end;
 
 procedure TNodeTexture2Transform.MiddleTraverse(State: TVRMLGraphTraverseState);
 begin
   inherited;
-  State.TextureTransform := MultMatrices(State.TextureTransform,
+  State.TextureTransform := MatrixMult(State.TextureTransform,
     TextureMatrixTransformation);
 end;
 
@@ -1775,8 +1775,8 @@ begin
   inherited;
 
   Transformation(M, IM);
-  State.Transform := MultMatrices(State.Transform, M);
-  State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
+  State.Transform := MatrixMult(State.Transform, M);
+  State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
 
   State.AverageScaleTransform *= AverageScaleTransform;
 end;
@@ -1906,8 +1906,8 @@ begin
   { Note that even Axis = zero is OK, both M and IM will be identity in
     this case. }
   RotationMatricesRad(FdRotation.RotationRad, FdRotation.Axis, M, IM);
-  Matrix := MultMatrices(Matrix, M);
-  InvertedMatrix := MultMatrices(IM, InvertedMatrix);
+  Matrix := MatrixMult(Matrix, M);
+  InvertedMatrix := MatrixMult(IM, InvertedMatrix);
 
   if (FdScaleFactor.Value[0] <> 1) or
      (FdScaleFactor.Value[1] <> 1) or
@@ -1916,8 +1916,8 @@ begin
     RotationMatricesRad(FdScaleOrientation.RotationRad, FdScaleOrientation.Axis,
       MRotateScaleOrient, IMRotateScaleOrient);
 
-    Matrix := MultMatrices(Matrix, MRotateScaleOrient);
-    InvertedMatrix := MultMatrices(IMRotateScaleOrient, InvertedMatrix);
+    Matrix := MatrixMult(Matrix, MRotateScaleOrient);
+    InvertedMatrix := MatrixMult(IMRotateScaleOrient, InvertedMatrix);
 
     { For scaling, we explicitly request that if ScalingFactor contains
       zero, IM will be forced to be identity. That's because VRML allows
@@ -1925,16 +1925,16 @@ begin
       for special tricks). }
 
     ScalingMatrices(FdScaleFactor.Value, true, M, IM);
-    Matrix := MultMatrices(Matrix, M);
-    InvertedMatrix := MultMatrices(IM, InvertedMatrix);
+    Matrix := MatrixMult(Matrix, M);
+    InvertedMatrix := MatrixMult(IM, InvertedMatrix);
 
-    Matrix := MultMatrices(Matrix, IMRotateScaleOrient);
-    InvertedMatrix := MultMatrices(MRotateScaleOrient, InvertedMatrix);
+    Matrix := MatrixMult(Matrix, IMRotateScaleOrient);
+    InvertedMatrix := MatrixMult(MRotateScaleOrient, InvertedMatrix);
   end;
 
   TranslationMatrices(VectorNegate(FdCenter.Value), M, IM);
-  Matrix := MultMatrices(Matrix, M);
-  InvertedMatrix := MultMatrices(IM, InvertedMatrix);
+  Matrix := MatrixMult(Matrix, M);
+  InvertedMatrix := MatrixMult(IM, InvertedMatrix);
 end;
 
 function TNodeTransform_1.AverageScaleTransform: Single;
@@ -2125,7 +2125,7 @@ function TNodeSpotLight_1.CreateActiveLight(
 begin
   Result := inherited;
   Result.TransfNormDirection :=
-    Normalized( MultMatrixPointNoTranslation(Result.Transform,
+    Normalized( MatrixMultPointNoTranslation(Result.Transform,
       FdDirection.Value) );
 end;
 

@@ -1,0 +1,33 @@
+function main()
+  my_float := 5;
+
+  my_mat3 := matrix(
+    vector(my_float, 0, 0),
+    vector(0, 3, 0),
+    vector(0, 0, 1));
+  my_mat3 := my_mat3 * 2;
+  my_vec3 := my_mat3 * vector(11, 22, 33);
+
+  my_mat4 := matrix(
+    vector(my_float, 0, 0, 0),
+    vector(0, 13, 0, 0),
+    vector(0, 0, 1, 0),
+    vector(0, 0, 0, 1));
+
+  my_mat4 := my_mat4 +
+    matrix(
+      vector(0, 0, 0, 0),
+      vector(0, 20, 0, 0),
+      vector(0, 0, 0, 0),
+      vector(0, 0, 0, 0));
+
+  my_mat4 := my_mat4 -
+    matrix(
+      vector(0, 0, 0, 0),
+      vector(0, 30, 0, 0),
+      vector(0, 0, 0, 0),
+      vector(0, 0, 0, 0));
+
+  my_mat4 := my_mat4 * 2;
+  matrix_set(my_mat4, matrix_get_count(my_mat4) - 1, vector(0, 0, 0, 666));
+  my_vec4 := my_mat4 * vector(11, 22, 33, 44)

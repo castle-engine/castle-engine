@@ -429,7 +429,7 @@ procedure TIndexedFaceSetRenderer.RenderVertex(IndexNum: Integer);
           ToTangent[I, 2] := Normal[I];
         end;
 
-        Result := MultMatrixVector(ToTangent,
+        Result := MatrixMultVector(ToTangent,
           VectorSubtract(LightPositionObjectSpace, Vertex));
       end;
 

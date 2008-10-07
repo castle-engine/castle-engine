@@ -1263,12 +1263,12 @@ begin
     TranslationMatrix( Vector3Single(
       FdTranslation.Value[0] + FdCenter.Value[0],
       FdTranslation.Value[1] + FdCenter.Value[1], 0));
-  Result := MultMatrices(Result,
+  Result := MatrixMult(Result,
     RotationMatrixRad(FdRotation.Value, Vector3Single(0, 0, 1)));
-  Result := MultMatrices(Result,
+  Result := MatrixMult(Result,
     ScalingMatrix(
       Vector3Single( FdScale.Value[0], FdScale.Value[1], 1 )));
-  Result := MultMatrices(Result,
+  Result := MatrixMult(Result,
     TranslationMatrix(
       Vector3Single( -FdCenter.Value[0], -FdCenter.Value[1], 0 )));
 end;

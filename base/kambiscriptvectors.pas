@@ -186,6 +186,94 @@ type
     procedure AssignValue(Source: TKamScriptValue); override;
   end;
 
+  TKamScriptMatrix3f = class(TKamScriptValue)
+  private
+    class procedure HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleSubtract(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleNegate(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleMultiply(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleEqual(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleNotEqual(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    class procedure HandleMatrix(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleMatrixGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleMatrixSet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleMatrixGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    FValue: TMatrix3Single;
+    procedure SetValue(const AValue: TMatrix3Single);
+  public
+    property Value: TMatrix3Single read FValue write SetValue;
+
+    procedure AssignValue(Source: TKamScriptValue); override;
+  end;
+
+  TKamScriptMatrix4f = class(TKamScriptValue)
+  private
+    class procedure HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleSubtract(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleNegate(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleMultiply(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleEqual(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleNotEqual(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    class procedure HandleMatrix(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleMatrixGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleMatrixSet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleMatrixGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    FValue: TMatrix4Single;
+    procedure SetValue(const AValue: TMatrix4Single);
+  public
+    property Value: TMatrix4Single read FValue write SetValue;
+
+    procedure AssignValue(Source: TKamScriptValue); override;
+  end;
+
+  TKamScriptMatrix3d = class(TKamScriptValue)
+  private
+    class procedure HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleSubtract(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleNegate(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleMultiply(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleEqual(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleNotEqual(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    class procedure HandleMatrix(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleMatrixGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleMatrixSet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleMatrixGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    FValue: TMatrix3Double;
+    procedure SetValue(const AValue: TMatrix3Double);
+  public
+    property Value: TMatrix3Double read FValue write SetValue;
+
+    procedure AssignValue(Source: TKamScriptValue); override;
+  end;
+
+  TKamScriptMatrix4d = class(TKamScriptValue)
+  private
+    class procedure HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleSubtract(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleNegate(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleMultiply(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleEqual(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleNotEqual(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    class procedure HandleMatrix(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleMatrixGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleMatrixSet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleMatrixGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    FValue: TMatrix4Double;
+    procedure SetValue(const AValue: TMatrix4Double);
+  public
+    property Value: TMatrix4Double read FValue write SetValue;
+
+    procedure AssignValue(Source: TKamScriptValue); override;
+  end;
+
   TKamScriptVector = class(TKamScriptFunction)
   public
     class function Name: string; override;
@@ -237,6 +325,32 @@ type
   end;
 
   TKamScriptVectorCross = class(TKamScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
+  TKamScriptMatrixFun = class(TKamScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
+  TKamScriptMatrixGet = class(TKamScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
+  TKamScriptMatrixSet = class(TKamScriptFunction)
+  protected
+    procedure CheckArguments; override;
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
+  TKamScriptMatrixGetCount = class(TKamScriptFunction)
   public
     class function Name: string; override;
     class function ShortName: string; override;
@@ -305,6 +419,37 @@ begin
     VectorProduct( TKamScriptVec3d(Arguments[0]).Value,
                    TKamScriptVec3d(Arguments[1]).Value );
 end;
+
+
+{ Matrices ------------------------------------------------------------------- }
+
+{$define MatrixGetCount := 3}
+{$define TKamScriptVecXx := TKamScriptVec3f}
+{$define TKamScriptMatrixXx := TKamScriptMatrix3f}
+{$define TMatrixXxx := TMatrix3Single}
+{$define RegisterMatrixXxFunctions := RegisterMatrix3fFunctions}
+{$I kambiscriptvectors_implement_matrix.inc}
+
+{$define MatrixGetCount := 4}
+{$define TKamScriptVecXx := TKamScriptVec4f}
+{$define TKamScriptMatrixXx := TKamScriptMatrix4f}
+{$define TMatrixXxx := TMatrix4Single}
+{$define RegisterMatrixXxFunctions := RegisterMatrix4fFunctions}
+{$I kambiscriptvectors_implement_matrix.inc}
+
+{$define MatrixGetCount := 3}
+{$define TKamScriptVecXx := TKamScriptVec3d}
+{$define TKamScriptMatrixXx := TKamScriptMatrix3d}
+{$define TMatrixXxx := TMatrix3Double}
+{$define RegisterMatrixXxFunctions := RegisterMatrix3dFunctions}
+{$I kambiscriptvectors_implement_matrix.inc}
+
+{$define MatrixGetCount := 4}
+{$define TKamScriptVecXx := TKamScriptVec4d}
+{$define TKamScriptMatrixXx := TKamScriptMatrix4d}
+{$define TMatrixXxx := TMatrix4Double}
+{$define RegisterMatrixXxFunctions := RegisterMatrix4dFunctions}
+{$I kambiscriptvectors_implement_matrix.inc}
 
 { TKamScriptFunction descendants --------------------------------------------- }
 
@@ -406,6 +551,56 @@ begin
   Result := 'vector_cross';
 end;
 
+{ matrix functions ----------------------------------------------------------- }
+
+class function TKamScriptMatrixFun.Name: string;
+begin
+  Result := 'matrix';
+end;
+
+class function TKamScriptMatrixFun.ShortName: string;
+begin
+  Result := 'matrix';
+end;
+
+class function TKamScriptMatrixGet.Name: string;
+begin
+  Result := 'matrix_get';
+end;
+
+class function TKamScriptMatrixGet.ShortName: string;
+begin
+  Result := 'matrix_get';
+end;
+
+class function TKamScriptMatrixSet.Name: string;
+begin
+  Result := 'matrix_set';
+end;
+
+class function TKamScriptMatrixSet.ShortName: string;
+begin
+  Result := 'matrix_set';
+end;
+
+procedure TKamScriptMatrixSet.CheckArguments;
+begin
+  inherited;
+  if not ( (Args[0] is TKamScriptValue) and
+           TKamScriptValue(Args[0]).Writeable ) then
+    raise EKamScriptFunctionArgumentsError.Create('First argument of "matrix_set" function is not a writeable operand');
+end;
+
+class function TKamScriptMatrixGetCount.Name: string;
+begin
+  Result := 'matrix_get_count';
+end;
+
+class function TKamScriptMatrixGetCount.ShortName: string;
+begin
+  Result := 'matrix_get_count';
+end;
+
 { unit init/fini ------------------------------------------------------------- }
 
 initialization
@@ -420,4 +615,9 @@ initialization
   RegisterVec4dFunctions;
 
   FunctionHandlers.RegisterHandler(@TKamScriptVec3d(nil).HandleVectorCross, TKamScriptVectorCross, [TKamScriptVec3d, TKamScriptVec3d], false);
+
+  RegisterMatrix3fFunctions;
+  RegisterMatrix4fFunctions;
+  RegisterMatrix3dFunctions;
+  RegisterMatrix4dFunctions;
 end.

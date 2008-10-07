@@ -235,7 +235,7 @@ function TVRMLDirectionalLightNode.CreateActiveLight(
 begin
   Result := inherited;
   Result.TransfNormDirection :=
-    Normalized( MultMatrixPointNoTranslation(Result.Transform,
+    Normalized( MatrixMultPointNoTranslation(Result.Transform,
       FdDirection.Value) );
 end;
 
@@ -451,7 +451,7 @@ begin
   Result := inherited;
 
   Result.TransfNormDirection :=
-    Normalized( MultMatrixPointNoTranslation(Result.Transform,
+    Normalized( MatrixMultPointNoTranslation(Result.Transform,
       FdDirection.Value) );
 
   { TODO: For non-uniform scale, this is too easy,

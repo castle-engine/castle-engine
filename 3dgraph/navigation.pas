@@ -1657,9 +1657,9 @@ end;
 function TExamineNavigator.Matrix: TMatrix4Single;
 begin
  result := TranslationMatrix(VectorAdd(MoveAmount, FModelBoxMiddle));
- result := MultMatrices(result, QuatToRotationMatrix(Rotations));
- result := MultMatrices(result, ScalingMatrix(Vector3Single(ScaleFactor, ScaleFactor, ScaleFactor)));
- result := MultMatrices(result, TranslationMatrix(VectorNegate(FModelBoxMiddle)));
+ result := MatrixMult(result, QuatToRotationMatrix(Rotations));
+ result := MatrixMult(result, ScalingMatrix(Vector3Single(ScaleFactor, ScaleFactor, ScaleFactor)));
+ result := MatrixMult(result, TranslationMatrix(VectorNegate(FModelBoxMiddle)));
 end;
 
 function TExamineNavigator.RotationOnlyMatrix: TMatrix4Single;

@@ -749,14 +749,14 @@ begin
     below. }
 
   TranslationMatrices(VectorAdd(Translation.Value, Center.Value), M, IM);
-  State.Transform := MultMatrices(State.Transform, M);
-  State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
+  State.Transform := MatrixMult(State.Transform, M);
+  State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
 
   { Note that even Axis = zero is OK, both M and IM will be identity in
     this case. }
   RotationMatricesRad(Rotation.RotationRad, Rotation.Axis, M, IM);
-  State.Transform := MultMatrices(State.Transform, M);
-  State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
+  State.Transform := MatrixMult(State.Transform, M);
+  State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
 
   if (Scale.Value[0] <> 1) or
      (Scale.Value[1] <> 1) or
@@ -765,8 +765,8 @@ begin
     RotationMatricesRad(ScaleOrientation.RotationRad, ScaleOrientation.Axis,
       MRotateScaleOrient, IMRotateScaleOrient);
 
-    State.Transform := MultMatrices(State.Transform, MRotateScaleOrient);
-    State.InvertedTransform := MultMatrices(IMRotateScaleOrient, State.InvertedTransform);
+    State.Transform := MatrixMult(State.Transform, MRotateScaleOrient);
+    State.InvertedTransform := MatrixMult(IMRotateScaleOrient, State.InvertedTransform);
 
     { For scaling, we explicitly request that if ScalingFactor contains
       zero, IM will be forced to be identity. That's because VRML allows
@@ -774,19 +774,19 @@ begin
       for special tricks). }
 
     ScalingMatrices(Scale.Value, true, M, IM);
-    State.Transform := MultMatrices(State.Transform, M);
-    State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
+    State.Transform := MatrixMult(State.Transform, M);
+    State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
 
     { That's right, we reuse MRotateScaleOrient and IMRotateScaleOrient
       matrices below. Since we want to reverse them now, so normal
       Transform is multiplied by IM and InvertedTransform is multiplied by M. }
-    State.Transform := MultMatrices(State.Transform, IMRotateScaleOrient);
-    State.InvertedTransform := MultMatrices(MRotateScaleOrient, State.InvertedTransform);
+    State.Transform := MatrixMult(State.Transform, IMRotateScaleOrient);
+    State.InvertedTransform := MatrixMult(MRotateScaleOrient, State.InvertedTransform);
   end;
 
   TranslationMatrices(VectorNegate(Center.Value), M, IM);
-  State.Transform := MultMatrices(State.Transform, M);
-  State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
+  State.Transform := MatrixMult(State.Transform, M);
+  State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
 
   State.AverageScaleTransform *=
     (Scale.Value[0] + Scale.Value[1] + Scale.Value[2]) / 3;
@@ -806,14 +806,14 @@ begin
     below. }
 
   TranslationMatrices(Translation.Value, M, IM);
-  State.Transform := MultMatrices(State.Transform, M);
-  State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
+  State.Transform := MatrixMult(State.Transform, M);
+  State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
 
   { Note that even Axis = zero is OK, both M and IM will be identity in
     this case. }
   RotationMatricesRad(Rotation.RotationRad, Rotation.Axis, M, IM);
-  State.Transform := MultMatrices(State.Transform, M);
-  State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
+  State.Transform := MatrixMult(State.Transform, M);
+  State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
 
   if (Scale.Value[0] <> 1) or
      (Scale.Value[1] <> 1) or
@@ -825,8 +825,8 @@ begin
       for special tricks). }
 
     ScalingMatrices(Scale.Value, true, M, IM);
-    State.Transform := MultMatrices(State.Transform, M);
-    State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
+    State.Transform := MatrixMult(State.Transform, M);
+    State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
   end;
 
   State.AverageScaleTransform *=

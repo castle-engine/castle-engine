@@ -381,10 +381,10 @@ begin
     uzylismy FdOrientation.RotatedPoint( StdVRMLCamDir/Up ) i wiemy ze CamDir/Up
     jest znormalizowane - to i tak musimy je tutaj znormalizowac.
     TODO: byloby dobrze uzyc tutaj czegos jak MultMatrixPointNoTranslationNoScale }
-  CamPos := MultMatrixPoint(Transform, CamPos);
-  CamDir := Normalized( MultMatrixPointNoTranslation(Transform, CamDir) );
-  CamUp := Normalized( MultMatrixPointNoTranslation(Transform, CamUp) );
-  GravityUp := Normalized( MultMatrixPointNoTranslation(Transform, GravityUp) );
+  CamPos    := MultMatrixPoint(Transform, CamPos);
+  CamDir    := Normalized( MatrixMultPointNoTranslation(Transform, CamDir) );
+  CamUp     := Normalized( MatrixMultPointNoTranslation(Transform, CamUp) );
+  GravityUp := Normalized( MatrixMultPointNoTranslation(Transform, GravityUp) );
 
   Assert(FloatsEqual(VectorLenSqr(CamDir), 1.0, 0.0001));
   Assert(FloatsEqual(VectorLenSqr(CamUp), 1.0, 0.0001));

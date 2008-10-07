@@ -155,12 +155,12 @@ begin
 
   { Inherited TVRMLGroupingNode already saved State.Transform and such. }
 
-  State.Transform := MultMatrices(State.Transform, FdMatrix.Value);
+  State.Transform := MatrixMult(State.Transform, FdMatrix.Value);
 
   { We simply are not able to invert matrices for now,
     so InvertedMatrix = just IdentityMatrix4Single.
   State.InvertedTransform :=
-    MultMatrices(IdentityMatrix4Single, State.InvertedTransform);
+    MatrixMult(IdentityMatrix4Single, State.InvertedTransform);
   }
 
   State.AverageScaleTransform *= FdMatrix.AverageScaleTransform;
