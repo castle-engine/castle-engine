@@ -182,7 +182,7 @@ procedure Register;
 
 implementation
 
-uses LCLType, RaysWindow, GL, GLU, GLExt, KambiGLUtils;
+uses LCLType, RaysWindow, GL, GLU, GLExt, KambiGLUtils, KambiStringUtils;
 
 procedure Register;
 begin
@@ -367,6 +367,8 @@ begin
       begin
         MyKey := K_A  + Key - Ord('A');
         MyCharKey := Chr(Key);
+        if not (ssShift in Shift) then
+          MyCharKey := LoCase(MyCharKey);
       end;
 
     VK_F1 .. VK_F12  : MyKey := K_F1 + Key - VK_F1;

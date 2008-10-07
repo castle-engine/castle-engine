@@ -7,7 +7,6 @@
       <MainUnit Value="0"/>
       <IconPath Value="./"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="1"/>
     </General>
     <PublishOptions>
       <Version Value="2"/>
@@ -37,7 +36,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="29">
+    <Units Count="30">
       <Unit0>
         <Filename Value="lazarus_vrml_browser.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -60,8 +59,8 @@
       <Unit2>
         <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
         <UnitName Value="KambiGLControl"/>
-        <CursorPos X="47" Y="506"/>
-        <TopLine Value="1"/>
+        <CursorPos X="67" Y="185"/>
+        <TopLine Value="164"/>
         <UsageCount Value="13"/>
         <Bookmarks Count="1">
           <Item0 X="5" Y="155" ID="1"/>
@@ -151,10 +150,8 @@
         <Filename Value="../../../base/kambidynlib.pas"/>
         <UnitName Value="KambiDynLib"/>
         <CursorPos X="1" Y="221"/>
-        <TopLine Value="183"/>
-        <EditorIndex Value="0"/>
+        <TopLine Value="179"/>
         <UsageCount Value="11"/>
-        <Loaded Value="True"/>
       </Unit14>
       <Unit15>
         <Filename Value="../../../3dmodels/vrmlscene.pas"/>
@@ -172,11 +169,9 @@
       <Unit17>
         <Filename Value="../../../packages/components/kambivrmlbrowser.pas"/>
         <UnitName Value="KambiVRMLBrowser"/>
-        <CursorPos X="42" Y="260"/>
-        <TopLine Value="236"/>
-        <EditorIndex Value="1"/>
+        <CursorPos X="26" Y="46"/>
+        <TopLine Value="24"/>
         <UsageCount Value="12"/>
-        <Loaded Value="True"/>
       </Unit17>
       <Unit18>
         <Filename Value="../../../3dmodels/vrml97nodes.inc"/>
@@ -257,13 +252,15 @@
         <TopLine Value="17"/>
         <UsageCount Value="10"/>
       </Unit28>
+      <Unit29>
+        <Filename Value="../../../base/kambistringutils.pas"/>
+        <UnitName Value="KambiStringUtils"/>
+        <CursorPos X="15" Y="144"/>
+        <TopLine Value="99"/>
+        <UsageCount Value="10"/>
+      </Unit29>
     </Units>
-    <JumpHistory Count="1" HistoryIndex="0">
-      <Position1>
-        <Filename Value="../../../packages/components/kambivrmlbrowser.pas"/>
-        <Caret Line="166" Column="4" TopLine="146"/>
-      </Position1>
-    </JumpHistory>
+    <JumpHistory Count="0" HistoryIndex="-1"/>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="8"/>
