@@ -85,7 +85,6 @@
     private FFdradius: TSFFloat;
     public property Fdradius: TSFFloat read FFdradius;
 
-    { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
@@ -326,9 +325,6 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
-
-{$define TGeometryNotImplemented := TNodeCircle2D}
-GeometryNotImplemented
 
 constructor TNodeDisk2D.Create(const ANodeName: string;
   const AWWWBasePath: string);

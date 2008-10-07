@@ -31,6 +31,11 @@ type
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
+  TCircle2DRenderer = class(TVRMLMeshRenderer)
+  protected
+    procedure DoRender; override;
+  end;
+
 { TRectangle2DRenderer -------------------------------------------------------- }
 
 constructor TRectangle2DRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
@@ -67,5 +72,35 @@ begin
     V[0] := -V[0];
     glTexCoord2f(0, 1);
     DoGLVertex(V);
+  glEnd;
+end;
+
+{ TCircle2DRenderer ---------------------------------------------------------- }
+
+procedure TCircle2DRenderer.DoRender;
+var
+  Slices: Integer;
+  Circle2D: TNodeCircle2D;
+  I: Integer;
+  AngleSin, AngleCos: Float;
+  V: TVector3Single;
+begin
+  Circle2D := Geometry as TNodeCircle2D;
+  Slices := State.LastNodes.KambiTriangulation.QuadricSlices;
+
+  glBegin(GL_LINE_LOOP);
+    for I := 0 to Slices - 1 do
+    begin
+      SinCos((I / Slices) * 2 * Pi, AngleSin, AngleCos);
+      V[0] := AngleSin * Circle2D.FdRadius.Value;
+      V[1] := AngleCos * Circle2D.FdRadius.Value;
+      V[2] := 0;
+
+      { I have no idea is this default texture mapping (it maps
+        texture on the circle, just like radius would be 1)
+        is good. X3D spec doesn't say how to generate tex coords for this. }
+      glTexCoord2f(AngleSin, AngleCos);
+      DoGLVertex(V);
+    end;
   glEnd;
 end;

@@ -492,3 +492,15 @@ function TNodeRectangle2D.VerticesCount(
 begin
   Result := 4;
 end;
+
+function TNodeCircle2D.TrianglesCount(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  Result := 0; { no triangles }
+end;
+
+function TNodeCircle2D.VerticesCount(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  Result := State.LastNodes.KambiTriangulation.QuadricSlices;
+end;

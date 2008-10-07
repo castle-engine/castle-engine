@@ -3672,6 +3672,8 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
       ExposedMeshRenderer := TSphere_2Renderer.Create(Self) else
     if CurrentGeometry is TNodeRectangle2D then
       ExposedMeshRenderer := TRectangle2DRenderer.Create(Self) else
+    if CurrentGeometry is TNodeCircle2D then
+      ExposedMeshRenderer := TCircle2DRenderer.Create(Self) else
       ExposedMeshRenderer := nil;
   end;
 

@@ -1052,3 +1052,9 @@ begin
   Triangle[2] := V;
   NewTriangleProc(Triangle, State, Self, 0, -1, -1);
 end;
+
+procedure TNodeCircle2D.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+  { No triangles }
+end;

@@ -58,7 +58,8 @@ begin
       { VRML 2.0 specification says that IndexedLineSet should always be unlit,
         X3D spec adds that LineSet is also always unlit. }
       (Node is TNodeIndexedLineSet_2) or
-      (Node is TNodeLineSet)
+      (Node is TNodeLineSet) or
+      (Node is TNodeCircle2D)
     );
   end;
 end;
@@ -253,6 +254,7 @@ procedure TVRMLOpenGLRenderer.Render_BindMaterial_2;
 var
   Material: TNodeMaterial_2;
   IsNodeLit: boolean;
+  UnLitColor: TVector3Single;
 begin
   Assert(not (CurrentGeometry is TVRMLGeometryNode_1));
 
@@ -269,6 +271,16 @@ begin
 
   if Material <> nil then
   begin
+    UnLitColor := White3Single;
+
+    { Otherwise Circle2D would be always white.
+      X3D spec doesn't say anything about this, so I use diffuse color. }
+    if CurrentGeometry is TNodeCircle2D then
+    begin
+      writeln('yes circle 2d ', VectorToNiceStr(Material.FdDiffuseColor.Value));
+      UnLitColor := Material.FdDiffuseColor.Value;
+    end;
+
     Render_Material(
       IsNodeLit,
       VectorScale(Material.FdDiffuseColor.Value,
@@ -276,9 +288,7 @@ begin
       Material.FdDiffuseColor.Value,
       Material.FdSpecularColor.Value,
       Material.FdEmissiveColor.Value,
-      { UnLit color doesn't matter here, it will not be used
-        by Render_Material. }
-      White3Single,
+      UnLitColor,
       Material.ShininessExp,
       Material.Opacity,
       Material.FdFogImmune.Value);
