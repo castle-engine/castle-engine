@@ -19,9 +19,15 @@
 }
 
 { Convert MD3 model to a sequence of VRML models.
-  This way we convert MD3 animation to a simple animation that consists
-  of many VRML files and may be played by our demo_animation program
-  (see kambi_vrml_game_engine/3dmodels.gl/examples/).
+
+  This way we convert MD3 animation to a precalculated animation
+  in Kanim format, see
+  [http://vrmlengine.sourceforge.net/kanim_format.php].
+  This may be played by
+  [http://vrmlengine.sourceforge.net/view3dscene.php] (although
+  view3dscene can also play MD3 directly) or
+  kambi_vrml_game_engine/3dmodels.gl/examples/demo_animation example.
+
   For MD3 file named xxx.md3, this will generate VRML files like
   xxx_0000.wrl, xxx_0001.wrl, xxx_0002.wrl etc. and the main file
   to play whole animation xxx.kanim. }

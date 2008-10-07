@@ -6,8 +6,8 @@
     <CompilerOptions>
       <Version Value="8"/>
       <SearchPaths>
-        <IncludeFiles Value="../../base/templates/;../../base/unix/;../../base/;../../opengl/;../../audio/"/>
-        <OtherUnitFiles Value="../../base/;../../3dgraph/;../../3dmodels/;../../3dmodels.gl/;../../images/;../../fonts/;../../opengl/;../../opengl/unix/;../../audio/;../../net/"/>
+        <IncludeFiles Value="../../base/templates/;../../base/unix/;../../base/;../../opengl/;../../audio/;../../kambiscript/"/>
+        <OtherUnitFiles Value="../../base/;../../3dgraph/;../../3dmodels/;../../3dmodels.gl/;../../images/;../../fonts/;../../opengl/;../../opengl/unix/;../../audio/;../../net/;../../kambiscript/"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
@@ -315,19 +315,19 @@
         <UnitName Value="KambiLog"/>
       </Item66>
       <Item67>
-        <Filename Value="../../base/kambiscript.pas"/>
+        <Filename Value="../../kambiscript/kambiscript.pas"/>
         <UnitName Value="KambiScript"/>
       </Item67>
       <Item68>
-        <Filename Value="../../base/kambiscriptcorefunctions.pas"/>
+        <Filename Value="../../kambiscript/kambiscriptcorefunctions.pas"/>
         <UnitName Value="KambiScriptCoreFunctions"/>
       </Item68>
       <Item69>
-        <Filename Value="../../base/kambiscriptlexer.pas"/>
+        <Filename Value="../../kambiscript/kambiscriptlexer.pas"/>
         <UnitName Value="KambiScriptLexer"/>
       </Item69>
       <Item70>
-        <Filename Value="../../base/kambiscriptparser.pas"/>
+        <Filename Value="../../kambiscript/kambiscriptparser.pas"/>
         <UnitName Value="KambiScriptParser"/>
       </Item70>
       <Item71>

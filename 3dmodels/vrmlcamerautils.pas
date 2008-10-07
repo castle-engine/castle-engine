@@ -20,7 +20,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Some utilities related to camera definition in VRML. }
+{ Utilities related to camera definition in VRML. }
 unit VRMLCameraUtils;
 
 interface
@@ -28,7 +28,7 @@ interface
 uses Math, KambiUtils, VectorMath, Boxes3d, VRMLNodes;
 
 type
-  { This is VRML major version for VRMLCameraUtils: either VRML 1.0 or 2.0.
+  { VRML major version for VRMLCameraUtils: either VRML 1.0 or 2.0.
     For Inventor you should treat it like VRML 1.0. }
   TVRMLCameraVersion = 1..2;
 
@@ -41,22 +41,25 @@ const
     and default values for Viewpoint determines these values.
 
     Note that StdVRMLCamPos is indexed by TVRMLCameraVersion, since
-    it's different for VRML 1.0 and 2.0, }
+    it's different for VRML 1.0 and 2.0.
+
+    @groupBegin }
   StdVRMLCamPos: array [TVRMLCameraVersion] of TVector3Single =
     ( (0, 0, 1), (0, 0, 10) );
   StdVRMLCamDir: TVector3Single = (0, 0, -1);
   StdVRMLCamUp: TVector3Single = (0, 1, 0);
   StdVRMLGravityUp: TVector3Single = (0, 1, 0);
+  { @groupEnd }
 
 procedure CameraViewpointForWholeScene(const Box: TBox3d;
   out CameraPos, CameraDir, CameraUp, GravityUp: TVector3Single);
 
-{ This constructs string with VRML node defining camera with given
+{ Constructs string with VRML node defining camera with given
   properties. }
 function MakeVRMLCameraStr(Version: TVRMLCameraVersion;
   const CameraPos, CameraDir, CameraUp, GravityUp: TVector3Single): string;
 
-{ This constructs TVRMLNode defining camera with given properties. }
+{ Constructs TVRMLNode defining camera with given properties. }
 function MakeVRMLCameraNode(Version: TVRMLCameraVersion;
   const WWWBasePath: string;
   const CameraPos, CameraDir, CameraUp, GravityUp: TVector3Single): TVRMLNode;

@@ -477,8 +477,8 @@ type
       surface, or to allow player to walk through some "fake wall"
       and discover secret room in game etc.).
 
-      @seealso(TMatrixWalker.DoMoveAllowed
-        TMatrixWalker.DoMoveAllowed is some place
+      @seealso(TWalkNavigator.DoMoveAllowed
+        TWalkNavigator.DoMoveAllowed is some place
         where you can use this function) }
     function MoveAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
@@ -523,8 +523,8 @@ type
       OctreeItemIndexToIgnore and ItemsToIgnoreFunc meaning
       is just like for RayCollision.
 
-      @seealso(TMatrixWalker.DoMoveAllowed
-        TMatrixWalker.DoMoveAllowed is some place
+      @seealso(TWalkNavigator.DoMoveAllowed
+        TWalkNavigator.DoMoveAllowed is some place
         where you can use this function) }
     function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single;
@@ -536,7 +536,7 @@ type
 
     { For given camera position and up vector, calculate camera height
       above the ground. This is comfortable for cooperation with
-      TMatrixWalker.OnGetCameraHeight.
+      TWalkNavigator.OnGetCameraHeight.
 
       This simply checks collision of a ray from
       CameraPos in direction -GravityUp, and sets IsAboveTheGround

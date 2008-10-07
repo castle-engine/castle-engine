@@ -77,7 +77,8 @@
 # 2. Units subdirectories rules (see below) have to be listed explicitly anyway,
 # so it's not a big deal to also list them explicitly for UNITS_SUBDIRECTORIES.
 #
-UNITS_SUBDIRECTORIES := 3dgraph 3dmodels 3dmodels.gl audio base fonts images net opengl
+UNITS_SUBDIRECTORIES := 3dgraph 3dmodels 3dmodels.gl audio base \
+  fonts images net opengl kambiscript
 
 .PHONY: all
 all: $(UNITS_SUBDIRECTORIES)
@@ -112,6 +113,9 @@ images: images/allkambiimagesunits.pas
 opengl: opengl/allkambiopenglunits.pas
 	$(COMPILE_ALL_DIR_UNITS)
 
+kambiscript: kambiscript/allkambiscriptunits.pas
+	$(COMPILE_ALL_DIR_UNITS)
+
 # creating All*Units.pas files ----------------------------------------
 
 .PHONY: container_units clean_container_units
@@ -125,7 +129,8 @@ ALL_CONTAINER_UNITS := 3dgraph/allkambi3dgraphunits.pas \
   base/allkambibaseunits.pas \
   fonts/allkambifontsunits.pas \
   images/allkambiimagesunits.pas \
-  opengl/allkambiopenglunits.pas
+  opengl/allkambiopenglunits.pas \
+  kambiscript/allkambiscriptunits.pas
 
 # This is a nice target to call before doing a distribution of my sources,
 # because I always want to distribute these All*Units.pas units.
@@ -178,6 +183,11 @@ opengl/allkambiopenglunits.pas:
   (write-unit-all-units-in-dir \"opengl/\" \"AllKambiOpenGLUnits\") \
   (save-buffer))"
 
+kambiscript/allkambiscriptunits.pas:
+	$(EMACS_BATCH) --eval="(progn \
+  (write-unit-all-units-in-dir \"kambiscript/\" \"AllKambiScriptUnits\") \
+  (save-buffer))"
+
 # examples and tools -----------------------------------------------------------
 
 EXAMPLES_BASE_NAMES := \
@@ -186,7 +196,7 @@ EXAMPLES_BASE_NAMES := \
   base/examples/demo_parseparameters \
   base/examples/demo_textreader \
   base/examples/test_platform_specific_utils \
-  base/examples/kambi_calc \
+  kambiscript/examples/kambi_calc \
   base/tools/svg_grayscale \
   images/examples/image_convert \
   images/tools/image_to_pas \

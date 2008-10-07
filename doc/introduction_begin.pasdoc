@@ -174,11 +174,6 @@ units are allowed to be used by units in specific group.
     (see dynarray.inc, dim2array.inc, dim3array.inc, objectslist.inc,
     and their automatically duplicated versions in templates/ subdirectory).
 
-    There are also units for parsing and executing expressions and
-    programs in KambiScript language
-    [http://vrmlengine.sourceforge.net/kambi_script.php],
-    these are KambiScriptLexer, KambiScriptParser, KambiScript unit.
-
     There's unit @link(ParseParametersUnit)
     for command-line parsing, VectorMath unit with a lot of primitive
     geometry types and functions. And some more.
@@ -218,6 +213,13 @@ units are allowed to be used by units in specific group.
     to Pascal sources (like those TTF_* and BFNT_* units).
 
     @italic(Uses:) @code(base).)
+
+  @itemLabel @code(kambiscript)
+  @item(
+    Parsing and executing expressions and programs in KambiScript language
+    [http://vrmlengine.sourceforge.net/kambi_script.php].
+
+    @italic(Uses:) @code(base), VRML parts may also use @code(3models).)
 
   @itemLabel @code(3dgraph)
   @item(

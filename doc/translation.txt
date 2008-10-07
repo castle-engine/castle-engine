@@ -49,7 +49,7 @@ D   vrmlshapestateoctree.pas
 D   vrmlscenewaypoints.pas
 |   vrmlshapestate.pas
 -   vrmltriangleoctree.pas
-|   vrmlcamerautils.pas
+D   vrmlcamerautils.pas
 D   vrmlrendereroptimization.pas
 D   x3dxmltovrml.pas
 D   vrmlgeometry.pas
@@ -79,10 +79,6 @@ D   intrects.pas
 D   kambidynlib.pas
 |   kambifilesutils.pas
 D   kambilog.pas
-D   kambiscript
-D   kambiscriptlexer
-D   kambiscriptmathfunctions
-D   kambiscriptparser
 |   kambistringutils.pas
 |   kambitimeutils.pas
 |   kambiutils.pas
@@ -141,6 +137,14 @@ D   shadowvolumesutils.pas
 D   glimages.pas
 D   glshaders.pas
 D   glwindowfilefilters.pas
+
+  kambiscript/
+D   kambiscript.pas
+D   kambiscriptlexer.pas
+D   kambiscriptcorefunctions.pas
+D   kambiscriptparser.pas
+D   kambiscriptvectors.pas
+D   vrmlkambiscript.pas
 
 ------------------------------------------------------------
 Units that are not intended to be processed by pasdoc:

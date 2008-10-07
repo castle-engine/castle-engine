@@ -125,6 +125,7 @@ PASDOC_INCLUDE_DIRS="\
   --include opengl/$TARGET_OS/\
   --include opengl/gtk/\
   --include opengl/gtk/gtkglext/\
+  --include kambiscript/\
 "
 
 # make full_introduction.pasdoc

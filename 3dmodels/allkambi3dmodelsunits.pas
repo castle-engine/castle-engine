@@ -27,7 +27,6 @@ uses
   vrmlerrors,
   vrmlfields,
   vrmlgeometry,
-  vrmlkambiscript,
   vrmllexer,
   vrmllightmap,
   vrmllightset,
