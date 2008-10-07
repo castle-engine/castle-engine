@@ -32,7 +32,7 @@
   end;
 
   TNodeAppearance = class;
-  TNodeTextureTransform = class;
+  TNodeX3DTextureTransformNode = class;
   TNodeMaterial_2 = class;
   TNodeComposedShader = class;
 
@@ -81,7 +81,7 @@
 
     { This is like @link(Texture), but it returns TextureTransform
       of Apperance. }
-    function TextureTransform: TNodeTextureTransform;
+    function TextureTransform: TNodeX3DTextureTransformNode;
 
     { This is like @link(Texture), but it returns Material
       of Apperance. }
@@ -404,7 +404,7 @@ begin
     Result := DefaultHeightMapScale;
 end;
 
-function TNodeX3DShapeNode.TextureTransform: TNodeTextureTransform;
+function TNodeX3DShapeNode.TextureTransform: TNodeX3DTextureTransformNode;
 var
   A: TNodeAppearance;
 begin
@@ -414,8 +414,8 @@ begin
   begin
     A := TNodeAppearance(FdAppearance.Value);
     if (A.FdTextureTransform.Value <> nil) and
-       (A.FdTextureTransform.Value is TNodeTextureTransform) then
-      Result := TNodeTextureTransform(A.FdTextureTransform.Value);
+       (A.FdTextureTransform.Value is TNodeX3DTextureTransformNode) then
+      Result := TNodeX3DTextureTransformNode(A.FdTextureTransform.Value);
   end;
 end;
 

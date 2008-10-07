@@ -220,6 +220,8 @@
   TNodeX3DTextureTransformNode = class(TNodeX3DAppearanceChildNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
+    function TransformMatrix: TMatrix4Single; virtual; abstract;
   end;
 
   TNodeImageTexture = class(TNodeX3DTexture2DNode, INodeX3DUrlObject)
@@ -365,6 +367,8 @@
 
     private FFdtextureTransform: TMFNode;
     public property FdtextureTransform: TMFNode read FFdtextureTransform;
+
+    function TransformMatrix: TMatrix4Single; override;
   end;
 
   TNodePixelTexture = class(TNodeX3DTexture2DNode)
@@ -472,7 +476,7 @@
     private FFdtranslation: TSFVec2f;
     public property Fdtranslation: TSFVec2f read FFdtranslation;
 
-    function Matrix: TMatrix4Single;
+    function TransformMatrix: TMatrix4Single; override;
   end;
 
 {$endif read_interface}
@@ -972,6 +976,23 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+function TNodeMultiTextureTransform.TransformMatrix: TMatrix4Single;
+var
+  I: Integer;
+begin
+  { Since we don't support multitexturing yet, this simply returns
+    the first valid texture transform item. }
+  for I := 0 to FdtextureTransform.Count - 1 do
+    if (FdtextureTransform.Items[I] <> nil) and
+       (FdtextureTransform.Items[I] is TNodeX3DTextureTransformNode) then
+    begin
+      Result := TNodeX3DTextureTransformNode(FdtextureTransform.Items[I]).TransformMatrix;
+      Exit;
+    end;
+  VRMLNonFatalError('No valid nodes on MultiTextureTransform.textureTransform, assuming no transform');
+  Result := IdentityMatrix4Single;
+end;
+
 constructor TNodePixelTexture.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -1200,7 +1221,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeTextureTransform.Matrix: TMatrix4Single;
+function TNodeTextureTransform.TransformMatrix: TMatrix4Single;
 begin
   { Note: don't be fooled by a little confusing VRML 2.0 spec
     wording for TextureTransform, that suggests that VRML 2.0

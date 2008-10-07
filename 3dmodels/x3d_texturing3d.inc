@@ -107,6 +107,8 @@
 
     private FFdmatrix: TSFMatrix4f;
     public property Fdmatrix: TSFMatrix4f read FFdmatrix;
+
+    function TransformMatrix: TMatrix4Single; override;
   end;
 
   TNodeTextureTransform3D = class(TNodeX3DTextureTransformNode)
@@ -128,6 +130,8 @@
 
     private FFdtranslation: TSFVec3f;
     public property Fdtranslation: TSFVec3f read FFdtranslation;
+
+    function TransformMatrix: TMatrix4Single; override;
   end;
 
 {$endif read_interface}
@@ -327,6 +331,11 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+function TNodeTextureTransformMatrix3D.TransformMatrix: TMatrix4Single;
+begin
+  Result := Fdmatrix.Value;
+end;
+
 constructor TNodeTextureTransform3D.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -366,6 +375,17 @@ class function TNodeTextureTransform3D.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TNodeTextureTransform3D.TransformMatrix: TMatrix4Single;
+begin
+  Result := TranslationMatrix(VectorAdd(FdTranslation.Value, FdCenter.Value));
+  Result := MultMatrices(Result,
+    RotationMatrixRad(FdRotation.RotationRad, FdRotation.Axis));
+  Result := MultMatrices(Result,
+    ScalingMatrix(FdScale.Value));
+  Result := MultMatrices(Result,
+    TranslationMatrix(VectorNegate(FdCenter.Value)));
 end;
 
 procedure RegisterTexturing3DNodes;

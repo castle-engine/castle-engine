@@ -3546,7 +3546,7 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateBegin(
   Geometry: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState);
 var
-  TextureTransform: TNodeTextureTransform;
+  TextureTransform: TNodeX3DTextureTransformNode;
 begin
   if (State.ParentShape = nil { VRML 1.0, always some texture transform }) or
      (State.ParentShape.TextureTransform <> nil { VRML 2.0 with tex transform }) then
@@ -3563,20 +3563,25 @@ begin
       TextureTransform := State.ParentShape.TextureTransform;
       if TextureTransform <> nil then
       begin
-        { Alternative version of the code below:
-            glMultMatrix(TextureTransform.Matrix);
-          See TNodeTextureTransform.Matrix comments.
-          Below we do the same thing, but we just implement this
-          directly by calling OpenGL commands. }
-        with TextureTransform do
+        if TextureTransform is TNodeTextureTransform then
         begin
-          glTranslatef(
-            FdTranslation.Value[0] + FdCenter.Value[0],
-            FdTranslation.Value[1] + FdCenter.Value[1], 0);
-          glRotatef(RadToDeg(FdRotation.Value), 0, 0, 1);
-          glScalef(FdScale.Value[0], FdScale.Value[1], 1);
-          glTranslatef(-FdCenter.Value[0], -FdCenter.Value[1], 0);
-        end;
+          { Optimized version of
+              glMultMatrix(TextureTransform.TransformMatrix);
+            specially for TNodeTextureTransform. Possibly using OpenGL
+            translate etc. commands instead of loading directly 4x4 matrix will
+            result in some performance/precision gain (but, not confirmed in
+            practice). }
+          with TNodeTextureTransform(TextureTransform) do
+          begin
+            glTranslatef(
+              FdTranslation.Value[0] + FdCenter.Value[0],
+              FdTranslation.Value[1] + FdCenter.Value[1], 0);
+            glRotatef(RadToDeg(FdRotation.Value), 0, 0, 1);
+            glScalef(FdScale.Value[0], FdScale.Value[1], 1);
+            glTranslatef(-FdCenter.Value[0], -FdCenter.Value[1], 0);
+          end;
+        end else
+          glMultMatrix(TextureTransform.TransformMatrix);
       end;
     end;
   end;
