@@ -681,9 +681,9 @@ initialization
   FunctionHandlers.RegisterHandler(@TKamScriptImage(nil).HandleImageHeight, TKamScriptImageHeight, [TKamScriptImage], false);
   FunctionHandlers.RegisterHandler(@TKamScriptImage(nil).HandleImageComponents, TKamScriptImageComponents, [TKamScriptImage], false);
 
-  FunctionHandlers.RegisterHandler(@TKamScriptImage(nil).HandleImageGet     , TKamScriptImageSet     , [TKamScriptImage, TKamScriptInteger, TKamScriptInteger], false);
-  FunctionHandlers.RegisterHandler(@TKamScriptImage(nil).HandleImageGetColor, TKamScriptImageSetColor, [TKamScriptImage, TKamScriptInteger, TKamScriptInteger], false);
-  FunctionHandlers.RegisterHandler(@TKamScriptImage(nil).HandleImageGetAlpha, TKamScriptImageSetAlpha, [TKamScriptImage, TKamScriptInteger, TKamScriptInteger], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptImage(nil).HandleImageGet     , TKamScriptImageGet     , [TKamScriptImage, TKamScriptInteger, TKamScriptInteger], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptImage(nil).HandleImageGetColor, TKamScriptImageGetColor, [TKamScriptImage, TKamScriptInteger, TKamScriptInteger], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptImage(nil).HandleImageGetAlpha, TKamScriptImageGetAlpha, [TKamScriptImage, TKamScriptInteger, TKamScriptInteger], false);
 
   FunctionHandlers.RegisterHandler(@TKamScriptImage(nil).HandleImageSet     , TKamScriptImageSet     , [TKamScriptImage, TKamScriptInteger, TKamScriptInteger, TKamScriptValue], false);
   FunctionHandlers.RegisterHandler(@TKamScriptImage(nil).HandleImageSetColor, TKamScriptImageSetColor, [TKamScriptImage, TKamScriptInteger, TKamScriptInteger, TKamScriptValue], false);
