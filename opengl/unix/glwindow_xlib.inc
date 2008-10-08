@@ -340,7 +340,7 @@ begin
   end;
 end;
 
-procedure TGLWindow.SetCustomCursor(const Value: TAlphaImage);
+procedure TGLWindow.SetCustomCursor(const Value: TRGBAlphaImage);
 begin
   FCustomCursor := Value;
   { TODO }

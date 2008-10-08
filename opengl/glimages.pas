@@ -133,7 +133,7 @@ const
     only TImage instances of correct class (e.g. using
     InImageClasses(MyImage, GLImageClasses)). }
   GLImageClasses: array [0..2] of TImageClass = (
-    TRGBImage, TAlphaImage, TGrayscaleImage);
+    TRGBImage, TRGBAlphaImage, TGrayscaleImage);
 
 { These functions return appropriate GL_xxx format and type
   for given TImage descendant. If you will pass here Img
@@ -399,7 +399,7 @@ function ImageGLFormat(const Img: TImage): TGLenum;
 begin
   if Img is TRGBImage then
     Result := GL_RGB else
-  if Img is TAlphaImage then
+  if Img is TRGBAlphaImage then
     Result := GL_RGBA else
   if Img is TGrayscaleImage then
     Result := GL_LUMINANCE else
@@ -409,7 +409,7 @@ end;
 function ImageGLType(const Img: TImage): TGLenum;
 begin
   if (Img is TRGBImage) or
-     (Img is TAlphaImage) or
+     (Img is TRGBAlphaImage) or
      (Img is TGrayscaleImage) then
     Result := GL_UNSIGNED_BYTE else
     Result := GL_INVALID_ENUM;

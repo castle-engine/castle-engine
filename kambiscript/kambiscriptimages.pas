@@ -55,13 +55,13 @@ type
       this will be used as Value...
 
       But image() function currently uses for 1 and 3 - TRGBImage and
-      for 2 and 4 - TAlphaImage.
+      for 2 and 4 - TRGBAlphaImage.
 
       Yes, this means that grayscale (with eventual alpha)
       is stored as RGB (with eventual alpha) anyway.
       This is bad, but it follows current TSFImage implementation.
       And this is the result of the fact that TGrayscaleImage is not
-      handled everywhere yet (in OpenGL units), and TGrayscaleAlphaImage
+      handled everywhere yet (in OpenGL units), and TGrayscaleRGBAlphaImage
       is not implemented at all... This is supposed to be fixed one day.
       For now, grayscale images are really seldom used, so there's no
       pressure.
@@ -233,9 +233,9 @@ begin
   FreeAndNil(TKamScriptImage(AResult).FValue);
   case Components of
     1: TKamScriptImage(AResult).FValue := {}{TODO}{TGrayscaleImage}TRGBImage.Create(Width, Height);
-    2: TKamScriptImage(AResult).FValue := {}{TODO}{TGrayscaleAlphaImage}TAlphaImage.Create(Width, Height);
+    2: TKamScriptImage(AResult).FValue := {}{TODO}{TGrayscaleRGBAlphaImage}TRGBAlphaImage.Create(Width, Height);
     3: TKamScriptImage(AResult).FValue := TRGBImage.Create(Width, Height);
-    4: TKamScriptImage(AResult).FValue := TAlphaImage.Create(Width, Height);
+    4: TKamScriptImage(AResult).FValue := TRGBAlphaImage.Create(Width, Height);
     else raise EInternalError.CreateFmt('TKamScriptImage.AssignNewValue: Not allowed number of components: %d',
       [Components]);
   end;
@@ -254,7 +254,7 @@ begin
     FullUrl := CombinePaths(AFunction.Environment.WWWBasePath, FullUrl);
 
   try
-    NewImage := LoadImage(FullUrl, [TRGBImage, TAlphaImage], []);
+    NewImage := LoadImage(FullUrl, [TRGBImage, TRGBAlphaImage], []);
   except
     on E: Exception do
       raise EKamScriptError.Create('Exception ' + E.ClassName +

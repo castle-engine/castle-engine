@@ -831,8 +831,8 @@ type
     FCursor: TGLWindowCursor;
     procedure SetCursor(const Value: TGLWindowCursor);
 
-    FCustomCursor: TAlphaImage;
-    procedure SetCustomCursor(const Value: TAlphaImage);
+    FCustomCursor: TRGBAlphaImage;
+    procedure SetCustomCursor(const Value: TRGBAlphaImage);
 
     FAutoRedisplay: boolean;
     procedure SetAutoRedisplay(value: boolean);
@@ -1348,7 +1348,7 @@ type
       cursor size may be limited (16 x 16 seems standard for GTK) and cursor
       may be forced to monochrome.
 
-      Note that you still own the TAlphaImage instance passed here --- you're
+      Note that you still own the TRGBAlphaImage instance passed here --- you're
       responsible for freeing it etc. If this is @nil, and @link(Cursor) = gcCustom,
       then it will be treated like @link(Cursor) = gcDefault. (I don't raise error
       in such case, as that would make changing both Cursor and CustomCursor values
@@ -1356,7 +1356,7 @@ type
 
       TODO: for now, this is not implemented. @link(Cursor) ignores gcCustom value,
       under every GLWindow implementation... sorry, CustomCursor is only a plan. }
-    property CustomCursor: TAlphaImage read FCustomCursor
+    property CustomCursor: TRGBAlphaImage read FCustomCursor
       write SetCustomCursor;
 
     { This instructs window manager to place mouse at NewMouseX and NewMouseY

@@ -66,7 +66,7 @@ type
         LoadImage does.)
 
       @item(For now, LoadImage is always called with
-        AllowedImageClasses = [TRGBImage, TAlphaImage] and ForbiddenConvs = [].
+        AllowedImageClasses = [TRGBImage, TRGBAlphaImage] and ForbiddenConvs = [].
         Why ? Because this is the use case that I need right now... (I'm going
         to use this for VRML texture nodes.) This will be fixed
         (LoadImage_IncReference will get AllowedImageClasses and
@@ -149,7 +149,7 @@ begin
     we don't want to add image to cache (because caller would have
     no way to call LoadImage_DecReference later). }
 
-  Result := LoadImage(FileName, [TRGBImage, TAlphaImage], []);
+  Result := LoadImage(FileName, [TRGBImage, TRGBAlphaImage], []);
 
   CachedImages.IncLength;
   C := @CachedImages.Items[CachedImages.High];

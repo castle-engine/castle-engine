@@ -2983,7 +2983,7 @@ begin
         end;
        end;
     2: begin
-        ReplaceValue(TAlphaImage.Create(w, h));
+        ReplaceValue(TRGBAlphaImage.Create(w, h));
         AlphaPixels := PArray_Vector4Byte(Value.RawPixels);
         for i := 0 to w*h-1 do
         begin
@@ -3006,7 +3006,7 @@ begin
         end;
        end;
     4: begin
-        ReplaceValue(TAlphaImage.Create(w, h));
+        ReplaceValue(TRGBAlphaImage.Create(w, h));
         AlphaPixels := PArray_Vector4Byte(Value.RawPixels);
         for i := 0 to w*h-1 do
         begin
@@ -3046,11 +3046,11 @@ begin
     SaveProperties.Write(Format('0x%.6x ', [pixel]));
    end;
   end else
-  if Value is TAlphaImage then
+  if Value is TRGBAlphaImage then
   begin
    for i := 0 to Value.Width*Value.Height-1 do
    begin
-    rgba := PArray_Vector4Byte(TAlphaImage(Value).AlphaPixels)^[i];
+    rgba := PArray_Vector4Byte(TRGBAlphaImage(Value).AlphaPixels)^[i];
     pixel := (rgba[0] shl 24) or (rgba[1] shl 16) or (rgba[2] shl 8) or rgba[3];
     SaveProperties.Write(Format('0x%.8x ', [pixel]));
    end;

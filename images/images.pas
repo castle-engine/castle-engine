@@ -16,21 +16,22 @@
   You should have received a copy of the GNU General Public License
   along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
 }
 
-{ @abstract(This unit allows operating on 2D images.
-  Keeping image in memory, loading and saving from/to a files in various
-  formats, processing
-  (e.g. resizing, converting to grayscale, and various other operations)
-  --- it's all here.)
+{ Loading, saving, processing 2D images.
+  Storing image in memory, loading and saving from/to files in various
+  formats, resizing, converting to grayscale, copying and merging,
+  various other image operations --- it's all here.
 
   The most important class here is @link(TImage),
-  with 3 descendants @link(TRGBImage), @link(TAlphaImage),
-  @link(TRGBEImage). These three descendants describe three possible
-  ways to encode color format in memory. But you are free to create
+  with two most often used descendants @link(TRGBImage) and @link(TRGBAlphaImage).
+  Other useful descendants are @link(TGrayscaleImage), @link(TGrayscaleAlphaImage)
+  and @link(TRGBEImage). These descendants correspond to possible
+  ways to encode color in memory. But you are free to create
   more descendants of TImage in your own units if you want to encode
-  in pixel something different. That's one of advantages of using classes
-  -- you can freely derive new classes.
+  in pixel something different.
 
   We also handle various types of image files.
   @unorderedList(
@@ -90,9 +91,9 @@
     na RGK na uniwerku) i w chwili gdy to pisze dodaje format RGBE
     (aby moc zapisywac precyzyjne rysunki ktore dostaje od raytracera).
 
-    Formaty w pamieci tez sie rozszerzyly : do TRGBImage doszedl TAlphaImage
+    Formaty w pamieci tez sie rozszerzyly : do TRGBImage doszedl TRGBAlphaImage
     (abym mogl miec kanal alpha dla obrazkow) i TImage (jako pojemnik
-    ktory moze zawierac w srodku TRGBImage lub TAlphaImage,
+    ktory moze zawierac w srodku TRGBImage lub TRGBAlphaImage,
     w tym momencie dodaje tez format RGBE (ktory prawdopodobnie nie bedzie mial
     odpowiednika w postaci TRGBEImage, bedzie zawsze opakowany w TImage)).
 
@@ -230,7 +231,7 @@ type
     representations for a color. What exactly is TPixel is specified
     by TImage descendant class. E.g.TRGBImage class encodes colors
     as RGB encoded in 3 bytes using TVector3Byte type.
-    TAlphaImage encodes colors as 4 bytes, RGB+Alpha.
+    TRGBAlphaImage encodes colors as 4 bytes, RGB+Alpha.
     RGBE encodes colors as 4 bytes, RGB+Exponent.
 
     Pixels in RawPixels are ordered in rows, in each row pixels are specified
@@ -346,7 +347,7 @@ type
 
     { This inverts RGB colors (i.e. changes each RGB component's value
       to High(Byte)-value). Doesn't touch other components,
-      e.g. alpha value in case of TAlphaImage descendant.
+      e.g. alpha value in case of TRGBAlphaImage descendant.
 
       Note that this may be not overriden in every TImage descendant,
       then default implementation of this method in this class
@@ -358,7 +359,7 @@ type
       value (as 3 single values).
 
       In case of descendants that have more then RGB components,
-      other color components are not touched (e.g. in case of TAlphaImage
+      other color components are not touched (e.g. in case of TRGBAlphaImage
       alpha value of given pixel is not changed).
 
       In case of descendants that don't have anything like RGB encoded
@@ -428,7 +429,7 @@ type
 
     { Sets all image pixels to the same value Pixel.
       This is implemented only in descendants that represent a pixel
-      as a TVector4Byte (e.g. TAlphaImage, TRGBEImage) or TVector3Byte
+      as a TVector4Byte (e.g. TRGBAlphaImage, TRGBEImage) or TVector3Byte
       (e.g. TRGBImage, 4th component is ignored in this case).
 
       In this class this simply raises EInternalError to say 'not implemented'.
@@ -471,8 +472,8 @@ type
       as TColorModulatorFunc and use ModulateRGB.
 
       This function is only implemented for images that represent Pixel
-      as RGB values, for now this means TRGBImage and TAlphaImage.
-      In case of TAlphaImage (or any other class that represents
+      as RGB values, for now this means TRGBImage and TRGBAlphaImage.
+      In case of TRGBAlphaImage (or any other class that represents
       colors as RGB + something more) alpha channel (i.e. "something more")
       is ignored (i.e. left without any modification).
 
@@ -487,8 +488,8 @@ type
 
       Like TransformRGB:
       This function is only implemented for images that represent Pixel
-      as RGB values, for now this means TRGBImage and TAlphaImage.
-      In case of TAlphaImage (or any other class that represents
+      as RGB values, for now this means TRGBImage and TRGBAlphaImage.
+      In case of TRGBAlphaImage (or any other class that represents
       colors as RGB + something more) alpha channel (i.e. "something more")
       is ignored (i.e. left without any modification).
 
@@ -626,7 +627,7 @@ type
       Not all TImage combinations are allowed. Every subclass is required
       to override this to at least handle Lerp between itself.
       That is, TRGBImage.Lerp has to handle Lerp with other TRGBImage,
-      TAlphaImage.Lerp has to handle Lerp with other TAlphaImage etc.
+      TRGBAlphaImage.Lerp has to handle Lerp with other TRGBAlphaImage etc.
       Other combinations may be permitted, if useful and implemented.
       EImageLerpInvalidClasses is raised if given class combinations are
       not allowed.
@@ -687,7 +688,7 @@ procedure ImageClassesAssign(var Variable: TDynArrayImageClasses;
 { TImage basic descendants ------------------------------------------------- }
 
 type
-  TAlphaImage = class;
+  TRGBAlphaImage = class;
   TRGBEImage = class;
   TGrayscaleImage = class;
 
@@ -715,23 +716,23 @@ type
     procedure TransformRGB(const Matrix: TMatrix3Single); override;
     procedure ModulateRGB(const ColorModulator: TColorModulatorByteFunc); override;
 
-    { This functions creates new TAlphaImage object with RGB colors
+    { This functions creates new TRGBAlphaImage object with RGB colors
       copied from this object, but alpha of each pixel is set
       to some random value (whatever was at that particular memory
       place at that time). }
-    function ToAlphaImage_AlphaDontCare: TAlphaImage;
+    function ToRGBAlphaImage_AlphaDontCare: TRGBAlphaImage;
 
-    { Like @link(ToAlphaImage_AlphaDontCare), but alpha of every
+    { Like @link(ToRGBAlphaImage_AlphaDontCare), but alpha of every
       pixel is set to given Alpha. }
-    function ToAlphaImage_AlphaConst(Alpha: byte): TAlphaImage;
+    function ToRGBAlphaImage_AlphaConst(Alpha: byte): TRGBAlphaImage;
 
-    { Like @link(ToAlphaImage_AlphaDontCare), but alpha of every
+    { Like @link(ToRGBAlphaImage_AlphaDontCare), but alpha of every
       pixel is set to either AlphaOnColor (when color of pixel
       is equal to AlphaColor with Tolerance, see @link(EqualRGB))
       or AlphaOnNoColor. }
-    function ToAlphaImage_AlphaDecide(
+    function ToRGBAlphaImage_AlphaDecide(
       const AlphaColor: TVector3Byte; Tolerance: Byte;
-      AlphaOnColor: Byte; AlphaOnNoColor: Byte): TAlphaImage;
+      AlphaOnColor: Byte; AlphaOnNoColor: Byte): TRGBAlphaImage;
 
     { Converts image to TRGBEImage format.
 
@@ -781,7 +782,7 @@ type
     procedure LerpWith(const Value: Single; SecondImage: TImage); override;
   end;
 
-  TAlphaImage = class(TImage)
+  TRGBAlphaImage = class(TImage)
   private
     function GetAlphaPixels: PVector4Byte;
   public
@@ -1271,7 +1272,7 @@ function LoadRGBImage(const fname: string; resizeToX: Cardinal; resizeToY: Cardi
     Image := LoadImage('filename.png', [], []);
   (when you don't care what TImage descendant you get) or
     ImageRGB := LoadImage('filename.png', [TRGBImage], []) as TRGBImage;
-  (when you insist to get TRGBImage, not e.g. TAlphaImage in case png
+  (when you insist to get TRGBImage, not e.g. TRGBAlphaImage in case png
   image in file has some alpha channel).
 
   AllowedImageClasses says what image classes are allowed.
@@ -1283,7 +1284,7 @@ function LoadRGBImage(const fname: string; resizeToX: Cardinal; resizeToY: Cardi
 
   Example: consider you're loading a PNG file. Let's suppose you're
   loading it with AllowedImageClasses = []. Then if PNG file will have
-  alpha channel, LoadImage will return TAlphaImage descendant.
+  alpha channel, LoadImage will return TRGBAlphaImage descendant.
   Else LoadImage will return TRGBImage descendant.
   Now let's suppose you specified AllowedImageClasses = [TRGBImage].
   If PNG file will not have alpha channel,
@@ -1303,7 +1304,7 @@ function LoadRGBImage(const fname: string; resizeToX: Cardinal; resizeToY: Cardi
   by adding to ForbiddenConvs ilcAlphaDelete and/or ilcFloatPrecDelete values.
 
   There can also happen reverse situation: you e.g. insist that
-  AllowedImageClasses = [TAlphaImage] but given PNG image does not
+  AllowedImageClasses = [TRGBAlphaImage] but given PNG image does not
   have alpha channel. In this case LoadImage may add "dummy" alpha channel
   (everywhere equal to 1.0 or High(Byte)).
   Similar thing when you e.g. gave AllowedImageClasses = [TRGBEImage]
@@ -1319,9 +1320,9 @@ function LoadRGBImage(const fname: string; resizeToX: Cardinal; resizeToY: Cardi
   AllowedImageClasses without doing any forbidden convertions
   in ForbiddenConvs, it will raise @link(EUnableToLoadImage).
 
-  Again some example: specify AllowedImageClasses = [TAlphaImage]
+  Again some example: specify AllowedImageClasses = [TRGBAlphaImage]
   and ForbiddenConvs = [ilcAlphaAdd] to be sure that
-  LoadImage will return TAlphaImage with alpha channel loaded from file.
+  LoadImage will return TRGBAlphaImage with alpha channel loaded from file.
   If file wlil not have alpha channel, @link(EUnableToLoadImage) will
   be raised.
 
@@ -1385,7 +1386,7 @@ type
   moze kiedys zrobie jeszcze jakis format pliku (if) / lub obrazka
   w pamieci (ik) ktore uznawalbym za precyzyjne na poziomie float.
 
-  TAlphaImage: Format must support saving alpha images then
+  TRGBAlphaImage: Format must support saving alpha images then
   (for now this means only ifPNG),
   zapisze wtedy obrazek z alpha. Wpp. rzuci wyjatek Exception.
   TODO: do it nicer, z podobnymi parametrami jak przy LoadImage.  }
@@ -2010,12 +2011,12 @@ procedure TRGBImage.ModulateRGB(const ColorModulator: TColorModulatorByteFunc);
 type PPixel = PVector3Byte;
 {$I images_modulatergb_implement.inc}
 
-function TRGBImage.ToAlphaImage_AlphaDontCare: TAlphaImage;
+function TRGBImage.ToRGBAlphaImage_AlphaDontCare: TRGBAlphaImage;
 var pi: PVector3Byte;
     pa: PVector4Byte;
     i: Cardinal;
 begin
- Result := TAlphaImage.Create(Width, Height);
+ Result := TRGBAlphaImage.Create(Width, Height);
  pi := RGBPixels;
  pa := Result.AlphaPixels;
  for i := 1 to Width * Height do
@@ -2027,16 +2028,16 @@ begin
  end;
 end;
 
-function TRGBImage.ToAlphaImage_AlphaConst(Alpha: byte): TAlphaImage;
+function TRGBImage.ToRGBAlphaImage_AlphaConst(Alpha: byte): TRGBAlphaImage;
 
-{ Note: implementation of this *could* use ToAlphaImage_AlphaDontCare,
+{ Note: implementation of this *could* use ToRGBAlphaImage_AlphaDontCare,
   but doesn't, to be faster. }
 
 var pi: PVector3Byte;
     pa: PVector4Byte;
     i: Cardinal;
 begin
- Result := TAlphaImage.Create(Width, Height);
+ Result := TRGBAlphaImage.Create(Width, Height);
  pi := RGBPixels;
  pa := Result.AlphaPixels;
  for i := 1 to Width * Height do
@@ -2048,11 +2049,11 @@ begin
  end;
 end;
 
-function TRGBImage.ToAlphaImage_AlphaDecide(
+function TRGBImage.ToRGBAlphaImage_AlphaDecide(
   const AlphaColor: TVector3Byte;
-  Tolerance: byte; AlphaOnColor: byte; AlphaOnNoColor: byte): TAlphaImage;
+  Tolerance: byte; AlphaOnColor: byte; AlphaOnNoColor: byte): TRGBAlphaImage;
 begin
- Result := ToAlphaImage_AlphaDontCare;
+ Result := ToRGBAlphaImage_AlphaDontCare;
  Result.AlphaDecide(AlphaColor, Tolerance, AlphaOnColor, AlphaOnNoColor);
 end;
 
@@ -2133,34 +2134,34 @@ begin
   end;
 end;
 
-{ TAlphaImage ------------------------------------------------------------ }
+{ TRGBAlphaImage ------------------------------------------------------------ }
 
-function TAlphaImage.GetAlphaPixels: PVector4Byte;
+function TRGBAlphaImage.GetAlphaPixels: PVector4Byte;
 begin
  Result := PVector4Byte(RawPixels);
 end;
 
-class function TAlphaImage.PixelSize: Cardinal;
+class function TRGBAlphaImage.PixelSize: Cardinal;
 begin
  Result := 4;
 end;
 
-class function TAlphaImage.ColorComponentsCount: Cardinal;
+class function TRGBAlphaImage.ColorComponentsCount: Cardinal;
 begin
  Result := 4;
 end;
 
-function TAlphaImage.PixelPtr(X, Y: Cardinal): PVector4Byte;
+function TRGBAlphaImage.PixelPtr(X, Y: Cardinal): PVector4Byte;
 begin
  Result := PVector4Byte(inherited PixelPtr(X, Y));
 end;
 
-function TAlphaImage.RowPtr(Y: Cardinal): PArray_Vector4Byte;
+function TRGBAlphaImage.RowPtr(Y: Cardinal): PArray_Vector4Byte;
 begin
  Result := PArray_Vector4Byte(inherited RowPtr(Y));
 end;
 
-procedure TAlphaImage.InvertRGBColors;
+procedure TRGBAlphaImage.InvertRGBColors;
 var i: Cardinal;
     palpha: PVector4byte;
 begin
@@ -2174,30 +2175,30 @@ begin
  end;
 end;
 
-procedure TAlphaImage.SetColorRGB(const x, y: Integer; const v: TVector3Single);
+procedure TRGBAlphaImage.SetColorRGB(const x, y: Integer; const v: TVector3Single);
 begin
  PVector3Byte(PixelPtr(x, y))^ := Vector3Byte(v);
 end;
 
-procedure TAlphaImage.Clear(const Pixel: TVector4Byte);
+procedure TRGBAlphaImage.Clear(const Pixel: TVector4Byte);
 begin
  FillDWord(RawPixels^, Width*Height, LongWord(Pixel));
 end;
 
-function TAlphaImage.IsClear(const Pixel: TVector4Byte): boolean;
+function TRGBAlphaImage.IsClear(const Pixel: TVector4Byte): boolean;
 begin
  Result := IsMemDWordFilled(RawPixels^, Width*Height, LongWord(Pixel));
 end;
 
-procedure TAlphaImage.TransformRGB(const Matrix: TMatrix3Single);
+procedure TRGBAlphaImage.TransformRGB(const Matrix: TMatrix3Single);
 type PPixel = PVector4Byte;
 {$I images_transformrgb_implement.inc}
 
-procedure TAlphaImage.ModulateRGB(const ColorModulator: TColorModulatorByteFunc);
+procedure TRGBAlphaImage.ModulateRGB(const ColorModulator: TColorModulatorByteFunc);
 type PPixel = PVector4Byte;
 {$I images_modulatergb_implement.inc}
 
-procedure TAlphaImage.AlphaDecide(const AlphaColor: TVector3Byte;
+procedure TRGBAlphaImage.AlphaDecide(const AlphaColor: TVector3Byte;
   Tolerance: Byte; AlphaOnColor: Byte; AlphaOnNoColor: Byte);
 var pa: PVector4Byte;
     i: Cardinal;
@@ -2212,7 +2213,7 @@ begin
  end;
 end;
 
-procedure TAlphaImage.Compose(RGB: TRGBImage; AGrayscale: TGrayscaleImage);
+procedure TRGBAlphaImage.Compose(RGB: TRGBImage; AGrayscale: TGrayscaleImage);
 var
   PtrAlpha: PVector4Byte;
   PtrRGB: PVector3Byte;
@@ -2221,7 +2222,7 @@ var
 begin
   Check( (RGB.Width = AGrayscale.Width) and
          (RGB.Height = AGrayscale.Height),
-    'For TAlphaImage.Compose, RGB and alpha images must have the same sizes');
+    'For TRGBAlphaImage.Compose, RGB and alpha images must have the same sizes');
 
   SetSize(RGB.Width, RGB.Height);
 
@@ -2240,7 +2241,7 @@ begin
   end;
 end;
 
-function TAlphaImage.AlphaChannelType(
+function TRGBAlphaImage.AlphaChannelType(
   const AlphaTolerance: Byte;
   const WrongPixelsTolerance: Single): TAlphaChannelType;
 var
@@ -2291,7 +2292,7 @@ begin
   Result := atSimpleYesNo;
 end;
 
-procedure TAlphaImage.LerpWith(const Value: Single; SecondImage: TImage);
+procedure TRGBAlphaImage.LerpWith(const Value: Single; SecondImage: TImage);
 var
   SelfPtr: PVector4Byte;
   SecondPtr: PVector4Byte;
@@ -2300,7 +2301,7 @@ begin
   LerpSimpleCheckConditions(SecondImage);
 
   SelfPtr := AlphaPixels;
-  SecondPtr := TAlphaImage(SecondImage).AlphaPixels;
+  SecondPtr := TRGBAlphaImage(SecondImage).AlphaPixels;
   for I := 1 to Width * Height do
   begin
     SelfPtr^ := Lerp(Value, SelfPtr^, SecondPtr^);
@@ -2309,7 +2310,7 @@ begin
   end;
 end;
 
-function TAlphaImage.ToRGBImage: TRGBImage;
+function TRGBAlphaImage.ToRGBImage: TRGBImage;
 var
   SelfPtr: PVector4Byte;
   ResultPtr: PVector3Byte;
@@ -2797,13 +2798,13 @@ function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
 
   procedure LoadAny(Load: TImageLoadFunc);
   begin
-    if ClassAllowed(TAlphaImage) then
+    if ClassAllowed(TRGBAlphaImage) then
     begin
       if ClassAllowed(TRGBImage) then
         Result := Load(Stream, frAny, false) else
       if ClassAllowed(TRGBEImage) then
       begin
-        { AllowedImageClasses have TRGBEImage and TAlphaImage but not TRGBImage.
+        { AllowedImageClasses have TRGBEImage and TRGBAlphaImage but not TRGBImage.
           Jezeli dodawanie alpha channela jest dozwolone to nie ma problemu :
           zaladuj obrazek wymagajc alpha, ew. dodajac alpha.
           Wpp. zaladuj obrazek nie konwertujac nic i jesli wyjdzie nam
@@ -2824,7 +2825,7 @@ function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
     end else
     begin
       { bez wzgledu na wszystko,
-        jesli nie ma ClassAllowed(TAlphaImage)
+        jesli nie ma ClassAllowed(TRGBAlphaImage)
         to chcemy stracic alpha obrazka (jesli go ma), tzn. chcemy zaladowac
         teraz obrazek do RGB. }
       Result := Load(Stream, frWithoutAlpha, not (ilcAlphaDelete in ForbiddenConvs));
@@ -2862,7 +2863,7 @@ const
 
     if not (ClassAllowed(TRGBImage)) then
     begin
-      if (ClassAllowed(TAlphaImage)) and not(ilcAlphaAdd in ForbiddenConvs) then
+      if (ClassAllowed(TRGBAlphaImage)) and not(ilcAlphaAdd in ForbiddenConvs) then
       begin
         ImageAlphaConstTo1st(result, DummyDefaultAlpha);
       end else
@@ -2878,7 +2879,7 @@ const
       end else
         { The only situation when this can happen (assuming no internal error,
           and at least one image class was allowed) was if
-          ClassAllowed(TAlphaImage) and (ilcAlphaAdd in ForbiddenConvs). }
+          ClassAllowed(TRGBAlphaImage) and (ilcAlphaAdd in ForbiddenConvs). }
         raise EUnableToLoadImage.Create('LoadImage: unable to load image: '+
           'alpha channel requested but dummy alpha channel creation forbidden '+
           'but image has no alpha channel');
@@ -2898,7 +2899,7 @@ begin
 
         if not ClassAllowed(TRGBImage) then
         begin
-          if ClassAllowed(TAlphaImage) then
+          if ClassAllowed(TRGBAlphaImage) then
           begin
             DoingConversion(ilcAlphaAdd);
             ImageAlphaConstTo1st(result, DummyDefaultAlpha);
@@ -3000,7 +3001,7 @@ begin
   end;
  end else
 
- if Img is TAlphaImage then
+ if Img is TRGBAlphaImage then
  begin
   if Format = ifPNG then
    SaveAnyPNG(Img, Stream, false) else
@@ -3028,21 +3029,21 @@ end;
 { inne przetwarzanie obrazkow TRGBImage ------------------------------------------- }
 
 procedure ImageAlphaConstTo1st(var img: TImage; alphaConst: byte);
-var newimg: TAlphaImage;
+var newimg: TRGBAlphaImage;
     pa: PVector4Byte;
     i: Cardinal;
 begin
  if Img is TRGBImage then
  begin
-  NewImg := TRGBImage(Img).ToAlphaImage_AlphaDontCare;
+  NewImg := TRGBImage(Img).ToRGBAlphaImage_AlphaDontCare;
   FreeAndNil(Img);
   Img := NewImg;
  end else
- if not (Img is TAlphaImage) then
+ if not (Img is TRGBAlphaImage) then
   raise EInternalError.Create(
     'ImageAlphaConstTo1st -- not implemented for this TImage descendant');
 
- pa := TAlphaImage(Img).AlphaPixels;
+ pa := TRGBAlphaImage(Img).AlphaPixels;
  for i := 1 to Img.Width * Img.Height do
  begin
   pa^[3] := AlphaConst;

@@ -66,12 +66,12 @@ type
 
       We will write on image using TImage.SetColorRGB
       method, so this method must be implemented in Image class you use
-      (it's implemented in all 3 classes TRGBImage, TAlphaImage, TRGBEImage
+      (it's implemented in all 3 classes TRGBImage, TRGBAlphaImage, TRGBEImage
       in Images unit, so usually you just don't worry about that).
 
       Dla kazdego pixela w ktorym promien trafia na obiekt
       ze sceny zapisujemy w obrazku wyliczony kolor RGB sceny w tym miejscu.
-      Nie dotykamy kanalu Alpha obrazka TAlphaImage.
+      Nie dotykamy kanalu Alpha obrazka TRGBAlphaImage.
       (kiedys mialem tu mechanizm obslugi
       tego kanalu ale zbytnio mi zawadzal a i tak nie byl uzywany, dlatego
       go wylaczylem). Akceptujemy naturalnie obrazki TRGBEImage i bedziemy w nich

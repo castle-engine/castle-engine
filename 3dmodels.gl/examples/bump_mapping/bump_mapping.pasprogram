@@ -961,7 +961,7 @@ const
   var
     BaseImage: TRGBImage;
     BumpImage: TGrayscaleImage;
-    Image: TAlphaImage;
+    Image: TRGBAlphaImage;
   begin
     BaseImage := nil;
     BumpImage := nil;
@@ -976,7 +976,7 @@ const
       BumpImageWidth := BumpImage.Width;
       BumpImageHeight := BumpImage.Height;
 
-      Image := TAlphaImage.Create;
+      Image := TRGBAlphaImage.Create;
       Image.Compose(BaseImage, BumpImage);
 
       Tex := LoadGLTexture(Image, MinFilter, MagFilter,

@@ -139,14 +139,14 @@ begin
       begin
        if (not has_alpha_info) and (not ConvertToRequired) then
 	raise EUnableToLoadImage.Create('Not allowed PNG format : alpha information in PNG is required here');
-       Result := TAlphaImage.Create(AllocateWidth, AllocateHeight);
+       Result := TRGBAlphaImage.Create(AllocateWidth, AllocateHeight);
        png_transform_to_rgba4byte(png_ptr, info_ptr);
       end;
     else {frAny:}
       begin
        if has_alpha_info then
        begin
-	result := TAlphaImage.Create(AllocateWidth, AllocateHeight);
+	result := TRGBAlphaImage.Create(AllocateWidth, AllocateHeight);
 	png_transform_to_rgba4byte(png_ptr, info_ptr);
        end else
        begin
@@ -229,7 +229,7 @@ begin
 
   if Img is TRGBImage then
    ColorType := PNG_COLOR_TYPE_RGB else
-  if Img is TAlphaImage then
+  if Img is TRGBAlphaImage then
    ColorType := PNG_COLOR_TYPE_RGBA else
    raise Exception.Create('Can''t save to PNG images with this kind');
 

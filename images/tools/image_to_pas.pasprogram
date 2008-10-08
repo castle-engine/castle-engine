@@ -25,8 +25,8 @@
 
   This outputs on stdout Pascal unit that defines single object
   instance (created / freed in unit's initialization / finalization)
-  of some descendant of TImage (i.e. TRGBImage or TAlphaImage or TRGBEImage,
-  whatever will be loaded by LoadImage from given filename)
+  of some descendant of TImage (whatever will be loaded by
+  LoadImage from given filename)
   that contains size and contents of given image.
 
   Unless you specified --no-show-progress, it will display

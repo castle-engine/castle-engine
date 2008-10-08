@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2005 Michalis Kamburelis.
+  Copyright 2001-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -16,6 +16,8 @@
   You should have received a copy of the GNU General Public License
   along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
 }
 
 type
@@ -128,8 +130,8 @@ var fhead: TBitmapFileHeader;
        end;
     32:for rgbi := 0 to ihead.biWidth-1 do
        begin
-         { We know that for 32, we have TAlphaImage, so we use rgbarow }
-         Assert(Result is TAlphaImage);
+         { We know that for 32, we have TRGBAlphaImage, so we use rgbarow }
+         Assert(Result is TRGBAlphaImage);
 
          rgbarow^[rgbi, 0] := PArray_RGBQuad(bmprow)^[rgbi].red;
          rgbarow^[rgbi, 1] := PArray_RGBQuad(bmprow)^[rgbi].green;
@@ -221,7 +223,7 @@ begin
      { Behave like FormatRequired = frAny, since this is Ok most the time
        and allows easy programming later. }
      if biBitCount = 32 then
-       Result := TAlphaImage.Create(biWidth, biHeight) else
+       Result := TRGBAlphaImage.Create(biWidth, biHeight) else
        Result := TRGBImage.Create(biWidth, biHeight);
 
      if not ConvertToRequired then
@@ -229,7 +231,7 @@ begin
        { If FormatRequired doesn't match, raise error now
          (no sense in reading the image data). }
        if (FormatRequired = frWithoutAlpha) and
-          (Result is TAlphaImage) then
+          (Result is TRGBAlphaImage) then
          raise EUnableToLoadImage.Create('Not allowed BMP format: alpha information in BMP is not allowed here');
 
        if (FormatRequired = frWithAlpha) and
@@ -249,9 +251,9 @@ begin
      { If FormatRequired doesn't match, convert now
        (we already checked ConvertToRequired, we know we can convert Ok). }
      if (FormatRequired = frWithoutAlpha) and
-        (Result is TAlphaImage) then
+        (Result is TRGBAlphaImage) then
      begin
-       NewResult := TAlphaImage(Result).ToRGBImage;
+       NewResult := TRGBAlphaImage(Result).ToRGBImage;
        FreeAndNil(Result);
        Result := NewResult;
      end;
@@ -259,7 +261,7 @@ begin
      if (FormatRequired = frWithAlpha) and
         (Result is TRGBImage) then
      begin
-       NewResult := TRGBImage(Result).ToAlphaImage_AlphaConst(255);
+       NewResult := TRGBImage(Result).ToRGBAlphaImage_AlphaConst(255);
        FreeAndNil(Result);
        Result := NewResult;
      end;

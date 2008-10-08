@@ -21,12 +21,12 @@
 }
 
 { Tests does image have simple yes/no alpha channel or not.
-  This is basically a test of TAlphaImage.IsAlphaSimpleYesNo
+  This is basically a test of TRGBAlphaImage.IsAlphaSimpleYesNo
   implementation.
 
   $1 param = image filename
-  $2 = AlphaTolerance      , see TAlphaImage.IsAlphaSimpleYesNo reference
-  $3 = WrongPixelsTolerance, see TAlphaImage.IsAlphaSimpleYesNo reference
+  $2 = AlphaTolerance      , see TRGBAlphaImage.IsAlphaSimpleYesNo reference
+  $3 = WrongPixelsTolerance, see TRGBAlphaImage.IsAlphaSimpleYesNo reference
 }
 
 uses SysUtils, KambiUtils, Images;

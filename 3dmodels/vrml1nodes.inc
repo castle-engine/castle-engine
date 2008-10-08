@@ -1602,7 +1602,7 @@ function TNodeTexture2.TextureDescription: string;
   begin
     result := Format('inlined (width = %d; height = %d; with alpha = %s)',
       [ FdImage.Value.Width, FdImage.Value.Height,
-        BoolToStr[FdImage.Value is TAlphaImage] ]);
+        BoolToStr[FdImage.Value is TRGBAlphaImage] ]);
   end;
 
 begin

@@ -275,7 +275,7 @@ begin
   end;
 end;
 
-procedure TGLWindow.SetCustomCursor(const Value: TAlphaImage);
+procedure TGLWindow.SetCustomCursor(const Value: TRGBAlphaImage);
 begin
   { CustomCursor cannot be handled in glut. So we save FCustomCursor property and...
     do nothing with it. }

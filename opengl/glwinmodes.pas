@@ -84,7 +84,7 @@ type
       and SetGLWindowState will restore this. }
     oldMainMenuEnabled: boolean;
     OldCursor: TGLWindowCursor;
-    OldCustomCursor: TAlphaImage;
+    OldCustomCursor: TRGBAlphaImage;
     { TGLWindowDemo attributes }
     oldSwapFullScreen_Key: TKey;
     oldClose_charkey: char;
