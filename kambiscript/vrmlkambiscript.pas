@@ -33,9 +33,8 @@ type
     FFieldOrEvents: TVRMLFieldOrEventsList;
     FLastEventTimes: TDynDoubleArray;
     InsideAfterExecute: boolean;
-    FWWWBasePath: string;
   public
-    constructor Create(const AWWWBasePath: string);
+    constructor Create;
     destructor Destroy; override;
 
     { List of field/events associated with this list's KamScript variables.
@@ -81,10 +80,6 @@ type
       with ROUTEs: we just remember the last timestamp, and ignore sending
       events again. }
     procedure ResetLastEventTimes;
-
-    { TODO: this is unused for now }
-    { This may be passed to KambiScript, to use for image_load() function. }
-    property WWWBasePath: string read FWWWBasePath;
   end;
 
 function VRMLKamScriptCreateValue(FieldOrEvent: TVRMLFieldOrEvent): TKamScriptValue;
@@ -605,10 +600,9 @@ end;
 
 { TKamScriptVRMLValuesList -------------------------------------------------- }
 
-constructor TKamScriptVRMLValuesList.Create(const AWWWBasePath: string);
+constructor TKamScriptVRMLValuesList.Create;
 begin
   inherited Create;
-  FWWWBasePath := AWWWBasePath;
   FFieldOrEvents := TVRMLFieldOrEventsList.Create;
   FLastEventTimes := TDynDoubleArray.Create;
 end;

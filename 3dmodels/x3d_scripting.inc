@@ -229,7 +229,7 @@ procedure TNodeX3DScriptNode.SetInitialized(const Value: boolean);
     FreeAndNil(KambiScriptProgram);
     FreeWithContentsAndNil(KambiScriptVariables);
 
-    KambiScriptVariables := TKamScriptVRMLValuesList.Create(WWWBasePath);
+    KambiScriptVariables := TKamScriptVRMLValuesList.Create;
 
     { Add fields and output events (coming from interface decl,
       not normal Script fields/events) to KambiScriptVariables. }
@@ -244,6 +244,7 @@ procedure TNodeX3DScriptNode.SetInitialized(const Value: boolean);
         KambiScriptVariables.Add(Events[I]);
 
     KambiScriptProgram := ParseProgram(ProgramContent, KambiScriptVariables);
+    KambiScriptProgram.Environment.WWWBasePath := WWWBasePath;
   end;
 
   function LoadUrl(Url: string): boolean;

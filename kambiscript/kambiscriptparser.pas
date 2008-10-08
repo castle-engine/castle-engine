@@ -97,10 +97,12 @@ uses SysUtils, KambiScriptCoreFunctions;
 
 function Expression(
   const Lexer: TKamScriptLexer;
+  Environment: TKamScriptEnvironment;
   const Variables: array of TKamScriptValue): TKamScriptExpression; forward;
 
 function NonAssignmentExpression(
   const Lexer: TKamScriptLexer;
+  Environment: TKamScriptEnvironment;
   const AllowFullExpressionInFactor: boolean;
   const Variables: array of TKamScriptValue): TKamScriptExpression;
 
@@ -161,8 +163,8 @@ const
   function ExpressionInsideFactor: TKamScriptExpression;
   begin
     if AllowFullExpressionInFactor then
-      Result := Expression(Lexer, Variables) else
-      Result := NonAssignmentExpression(Lexer,
+      Result := Expression(Lexer, Environment, Variables) else
+      Result := NonAssignmentExpression(Lexer, Environment,
         AllowFullExpressionInFactor, Variables);
   end;
 
@@ -177,23 +179,28 @@ const
         tokIdentifier: Result := Operand;
         tokInteger: begin
             Result := TKamScriptInteger.Create(false, Lexer.TokenInteger);
+            Result.Environment := Environment;
             Lexer.NextToken;
           end;
         tokFloat: begin
             Result := TKamScriptFloat.Create(false, Lexer.TokenFloat);
+            Result.Environment := Environment;
             Lexer.NextToken;
           end;
         tokBoolean: begin
             Result := TKamScriptBoolean.Create(false, Lexer.TokenBoolean);
+            Result.Environment := Environment;
             Lexer.NextToken;
           end;
         tokString: begin
             Result := TKamScriptString.Create(false, Lexer.TokenString);
+            Result.Environment := Environment;
             Lexer.NextToken;
           end;
         tokMinus: begin
             Lexer.NextToken;
-            Result := TKamScriptNegate.Create([Factor()])
+            Result := TKamScriptNegate.Create([Factor()]);
+            Result.Environment := Environment;
           end;
         tokLParen: begin
             Lexer.NextToken;
@@ -216,6 +223,7 @@ const
                 Lexer.NextToken;
               except FParams.FreeContentsByParentExpression; raise; end;
               Result := FC.Create(FParams);
+              Result.Environment := Environment;
             finally FParams.Free end;
           end;
         else raise EKamScriptParserError.Create(Lexer, SErrWrongFactor +
@@ -236,6 +244,7 @@ const
         FC := BinaryOper(Lexer.Token);
         Lexer.NextToken;
         Result := FC.Create([Result, Factor]);
+        Result.Environment := Environment;
       end;
     except Result.FreeByParentExpression; raise end;
   end;
@@ -252,6 +261,7 @@ const
         FC := BinaryOper(Lexer.Token);
         Lexer.NextToken;
         Result := FC.Create([Result, Term]);
+        Result.Environment := Environment;
       end;
     except Result.FreeByParentExpression; raise end;
   end;
@@ -267,6 +277,7 @@ begin
       FC := BinaryOper(Lexer.Token);
       Lexer.NextToken;
       Result := FC.Create([Result, ComparisonArgument]);
+      Result.Environment := Environment;
     end;
   except Result.FreeByParentExpression; raise end;
 end;
@@ -286,13 +297,15 @@ end;
 
 function Expression(
   const Lexer: TKamScriptLexer;
+  Environment: TKamScriptEnvironment;
   const Variables: TKamScriptValuesList): TKamScriptExpression;
 begin
-  Result := Expression(Lexer, VariablesListToArray(Variables));
+  Result := Expression(Lexer, Environment, VariablesListToArray(Variables));
 end;
 
 function Expression(
   const Lexer: TKamScriptLexer;
+  Environment: TKamScriptEnvironment;
   const Variables: array of TKamScriptValue): TKamScriptExpression;
 
   function PossiblyAssignmentExpression: TKamScriptExpression;
@@ -316,7 +329,7 @@ function Expression(
   var
     Operand, AssignedValue: TKamScriptExpression;
   begin
-    Result := NonAssignmentExpression(Lexer, true, Variables);
+    Result := NonAssignmentExpression(Lexer, Environment, true, Variables);
     try
       if Lexer.Token = tokAssignment then
       begin
@@ -332,6 +345,7 @@ function Expression(
         { TKamScriptAssignment in constructor checks that
           Operand is actually a simple writeable operand. }
         Result := TKamScriptAssignment.Create([Operand, AssignedValue]);
+        Result.Environment := Environment;
       end;
     except Result.FreeByParentExpression; raise end;
   end;
@@ -359,6 +373,7 @@ begin
         except SequenceArgs.FreeContentsByParentExpression; raise end;
 
         Result := TKamScriptSequence.Create(SequenceArgs);
+        Result.Environment := Environment;
       finally FreeAndNil(SequenceArgs) end;
     end;
   except Result.FreeByParentExpression; raise end;
@@ -367,6 +382,8 @@ end;
 function AProgram(
   const Lexer: TKamScriptLexer;
   const GlobalVariables: array of TKamScriptValue): TKamScriptProgram;
+var
+  Environment: TKamScriptEnvironment;
 
   function AFunction: TKamScriptFunctionDefinition;
   var
@@ -389,6 +406,7 @@ function AProgram(
           repeat
             Lexer.CheckTokenIs(tokIdentifier);
             Parameter := TKamScriptParameterValue.Create(true);
+            Parameter.Environment := Environment;
             Parameter.Name := Lexer.TokenString;
             Parameter.OwnedByParentExpression := false;
             Result.Parameters.Add(Parameter);
@@ -411,7 +429,7 @@ function AProgram(
           variable names, just like they should in normal language. }
         BodyVariables.AddArray(GlobalVariables);
 
-        Result.Body := Expression(Lexer, BodyVariables);
+        Result.Body := Expression(Lexer, Environment, BodyVariables);
       finally FreeAndNil(BodyVariables); end;
     except FreeAndNil(Result); raise end;
   end;
@@ -419,6 +437,7 @@ function AProgram(
 begin
   Result := TKamScriptProgram.Create;
   try
+    Environment := Result.Environment;
     while Lexer.Token = tokFunctionKeyword do
     begin
       Lexer.NextToken;
@@ -443,7 +462,7 @@ begin
     Result := nil;
     try
       try
-        Result := NonAssignmentExpression(Lexer, false, Variables);
+        Result := NonAssignmentExpression(Lexer, nil { no Environment }, false, Variables);
         Lexer.CheckTokenIs(tokEnd);
       except
         { Change EKamScriptFunctionArgumentsError (raised when

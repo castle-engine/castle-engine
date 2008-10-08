@@ -165,7 +165,7 @@ type
 
 implementation
 
-uses SysUtils, KambiUtils, DataErrors, KambiScriptVectors;
+uses SysUtils, KambiUtils, DataErrors, KambiScriptVectors, KambiFilesUtils;
 
 { TKamScriptImage ------------------------------------------------------------ }
 
@@ -249,8 +249,10 @@ var
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptImage);
 
-  { TODO: FullUrl relative from WWWBasePath }
   FullUrl := TKamScriptString(Arguments[0]).Value;
+  if AFunction.Environment <> nil then
+    FullUrl := CombinePaths(AFunction.Environment.WWWBasePath, FullUrl);
+
   try
     NewImage := LoadImage(FullUrl, [TRGBImage, TAlphaImage], []);
   except

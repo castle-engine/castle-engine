@@ -82,7 +82,21 @@ type
   EKamScriptError = class(Exception);
   EKamAssignValueError = class(EKamScriptError);
 
+  { Various information that may be useful for implementing some
+    function handlers, but that should be supplied from outside of
+    KambiScript. }
+  TKamScriptEnvironment = class
+  private
+    FWWWBasePath: string;
+  public
+    { Base URL to use for relative filenames.
+      Similar to TVRMLNode.WWWBasePath. }
+    property WWWBasePath: string read FWWWBasePath write FWWWBasePath;
+  end;
+
   TKamScriptExpression = class
+  private
+    FEnvironment: TKamScriptEnvironment;
   public
     (*Execute and calculate this expression.
 
@@ -124,6 +138,11 @@ type
       cleanly, as virtual procedure, since it must work when Self is @nil,
       and then virtual method table is not available of course.) }
     procedure FreeByParentExpression;
+
+    { Environment (outside information) for this expression.
+      May be @nil. This object is not owned by TKamScriptExpression,
+      will not be freed by TKamScriptExpression and such. }
+    property Environment: TKamScriptEnvironment read FEnvironment write FEnvironment;
   end;
 
   TObjectsListItem_1 = TKamScriptExpression;
@@ -735,6 +754,7 @@ type
   TKamScriptProgram = class
   private
     FFunctions: TKamScriptFunctionDefinitionsList;
+    FEnvironment: TKamScriptEnvironment;
   public
     constructor Create;
     destructor Destroy; override;
@@ -763,6 +783,14 @@ type
     procedure ExecuteFunction(const FunctionName: string;
       const Parameters: array of TKamScriptValue;
       const IgnoreMissingFunction: boolean = false);
+
+    { Environment (outside information) for this program.
+
+      This will be created and is owned by this TKamScriptProgram instance.
+      You should take care to copy this reference to all expressions
+      within this program (for example ParseProgram does this),
+      this way all expressions share the same Environment instance. }
+    property Environment: TKamScriptEnvironment read FEnvironment write FEnvironment;
   end;
 
 var
@@ -2299,11 +2327,13 @@ constructor TKamScriptProgram.Create;
 begin
   inherited;
   FFunctions := TKamScriptFunctionDefinitionsList.Create;
+  FEnvironment := TKamScriptEnvironment.Create;
 end;
 
 destructor TKamScriptProgram.Destroy;
 begin
   FreeWithContentsAndNil(FFunctions);
+  FreeAndNil(FEnvironment);
   inherited;
 end;
 
