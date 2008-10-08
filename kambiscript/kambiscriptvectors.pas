@@ -16,6 +16,8 @@
   You should have received a copy of the GNU General Public License
   along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
 }
 
 { KambiScript vector and matrix types and built-in functions. }
@@ -276,19 +278,16 @@ type
 
   TKamScriptVector = class(TKamScriptFunction)
   public
-    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
   TKamScriptVectorD = class(TKamScriptFunction)
   public
-    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
   TKamScriptVectorGet = class(TKamScriptFunction)
   public
-    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
@@ -296,49 +295,41 @@ type
   protected
     procedure CheckArguments; override;
   public
-    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
   TKamScriptVectorGetCount = class(TKamScriptFunction)
   public
-    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
   TKamScriptVectorLength = class(TKamScriptFunction)
   public
-    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
   TKamScriptVectorSqrLength = class(TKamScriptFunction)
   public
-    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
   TKamScriptVectorDot = class(TKamScriptFunction)
   public
-    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
   TKamScriptVectorCross = class(TKamScriptFunction)
   public
-    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
   TKamScriptMatrixFun = class(TKamScriptFunction)
   public
-    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
   TKamScriptMatrixGet = class(TKamScriptFunction)
   public
-    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
@@ -346,13 +337,11 @@ type
   protected
     procedure CheckArguments; override;
   public
-    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
   TKamScriptMatrixGetCount = class(TKamScriptFunction)
   public
-    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
@@ -453,19 +442,9 @@ end;
 
 { TKamScriptFunction descendants --------------------------------------------- }
 
-class function TKamScriptVector.Name: string;
-begin
-  Result := 'vector';
-end;
-
 class function TKamScriptVector.ShortName: string;
 begin
   Result := 'vector';
-end;
-
-class function TKamScriptVectorD.Name: string;
-begin
-  Result := 'vector_d';
 end;
 
 class function TKamScriptVectorD.ShortName: string;
@@ -473,19 +452,9 @@ begin
   Result := 'vector_d';
 end;
 
-class function TKamScriptVectorGet.Name: string;
-begin
-  Result := 'vector_get';
-end;
-
 class function TKamScriptVectorGet.ShortName: string;
 begin
   Result := 'vector_get';
-end;
-
-class function TKamScriptVectorSet.Name: string;
-begin
-  Result := 'vector_set';
 end;
 
 class function TKamScriptVectorSet.ShortName: string;
@@ -501,19 +470,9 @@ begin
     raise EKamScriptFunctionArgumentsError.Create('First argument of "vector_set" function is not a writeable operand');
 end;
 
-class function TKamScriptVectorGetCount.Name: string;
-begin
-  Result := 'vector_get_count';
-end;
-
 class function TKamScriptVectorGetCount.ShortName: string;
 begin
   Result := 'vector_get_count';
-end;
-
-class function TKamScriptVectorLength.Name: string;
-begin
-  Result := 'vector_length';
 end;
 
 class function TKamScriptVectorLength.ShortName: string;
@@ -521,29 +480,14 @@ begin
   Result := 'vector_length';
 end;
 
-class function TKamScriptVectorSqrLength.Name: string;
-begin
-  Result := 'vector_sqr_length';
-end;
-
 class function TKamScriptVectorSqrLength.ShortName: string;
 begin
   Result := 'vector_sqr_length';
 end;
 
-class function TKamScriptVectorDot.Name: string;
-begin
-  Result := 'vector_dot';
-end;
-
 class function TKamScriptVectorDot.ShortName: string;
 begin
   Result := 'vector_dot';
-end;
-
-class function TKamScriptVectorCross.Name: string;
-begin
-  Result := 'vector_cross';
 end;
 
 class function TKamScriptVectorCross.ShortName: string;
@@ -553,29 +497,14 @@ end;
 
 { matrix functions ----------------------------------------------------------- }
 
-class function TKamScriptMatrixFun.Name: string;
-begin
-  Result := 'matrix';
-end;
-
 class function TKamScriptMatrixFun.ShortName: string;
 begin
   Result := 'matrix';
 end;
 
-class function TKamScriptMatrixGet.Name: string;
-begin
-  Result := 'matrix_get';
-end;
-
 class function TKamScriptMatrixGet.ShortName: string;
 begin
   Result := 'matrix_get';
-end;
-
-class function TKamScriptMatrixSet.Name: string;
-begin
-  Result := 'matrix_set';
 end;
 
 class function TKamScriptMatrixSet.ShortName: string;
@@ -589,11 +518,6 @@ begin
   if not ( (Args[0] is TKamScriptValue) and
            TKamScriptValue(Args[0]).Writeable ) then
     raise EKamScriptFunctionArgumentsError.Create('First argument of "matrix_set" function is not a writeable operand');
-end;
-
-class function TKamScriptMatrixGetCount.Name: string;
-begin
-  Result := 'matrix_get_count';
 end;
 
 class function TKamScriptMatrixGetCount.ShortName: string;

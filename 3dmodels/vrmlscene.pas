@@ -2018,6 +2018,31 @@ begin
         - or a field of bound viewpoint that doesn't affect it's vectors. }
       Exit;
   end else
+  if ( (Node is TNodePixelTexture) and
+       ( (Field = nil) or
+         (TNodePixelTexture(Node).FdImage = Field) ) ) or
+     ( (Node is TNodeImageTexture) and
+       ( (Field = nil) or
+         (TNodeImageTexture(Node).FdUrl = Field) ) ) or
+     ( (Node is TNodeMovieTexture) and
+       ( (Field = nil) or
+         (TNodeMovieTexture(Node).FdUrl = Field) ) ) or
+     ( (Node is TNodeTexture2) and
+       ( (Field = nil) or
+         (TNodeTexture2(Node).FdFilename = Field) or
+         (TNodeTexture2(Node).FdImage = Field) ) ) then
+  begin
+    { On change of TVRMLTextureNode field that changes the result of
+      TVRMLTextureNode.LoadTextureData, we have to explicitly release
+      old texture (otherwise, LoadTextureData will not be called
+      to reload the texture). }
+    TVRMLTextureNode(Node).IsTextureLoaded := false;
+    { For now, this has to be followed by ChangedAll, to reload OpenGL
+      resources for this texture. Maybe this will be implemented more
+      intelligently in the future, for now this is not efficient but correct. }
+    ChangedAll;
+    Exit;
+  end else
   begin
     { node jest czyms innym; wiec musimy zalozyc ze zmiana jego pol wplynela
       jakos na State nastepujacych po nim node'ow (a moze nawet wplynela na to

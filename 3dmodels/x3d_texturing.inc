@@ -727,7 +727,7 @@ begin
             (chociaz nie musi) }
           VRMLNonFatalError('Exception ' + E.ClassName +
             ' occured when trying to load ' +
-            'texture from filename "' + FullUrl + '" : ' + E.Message);
+            'texture from url "' + FullUrl + '" : ' + E.Message);
       end;
     end;
 end;
@@ -1001,7 +1001,7 @@ begin
   FFdimage := TSFImage.Create(Self, 'image', nil);
   Fields.Add(FFdimage);
   { X3D specification comment: 0 0 }
-end;
+  end;
 
 class function TNodePixelTexture.ClassNodeTypeName: string;
 begin

@@ -190,13 +190,11 @@ type
 
   TKamScriptMax = class(TKamScriptFunction)
   public
-    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
   TKamScriptMin = class(TKamScriptFunction)
   public
-    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
@@ -214,13 +212,11 @@ type
 
   TKamScriptCeil = class(TKamScriptFunction)
   public
-    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
   TKamScriptFloor = class(TKamScriptFunction)
   public
-    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
@@ -286,25 +282,21 @@ type
 
   TKamScriptInt = class(TKamScriptFunction)
   public
-    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
   TKamScriptFloatFun = class(TKamScriptFunction)
   public
-    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
   TKamScriptBool = class(TKamScriptFunction)
   public
-    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
   TKamScriptStringFun = class(TKamScriptFunction)
   public
-    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
@@ -600,19 +592,9 @@ begin
   Result := 'Sqrt';
 end;
 
-class function TKamScriptMax.Name: string;
-begin
-  Result := 'max';
-end;
-
 class function TKamScriptMax.ShortName: string;
 begin
   Result := 'max';
-end;
-
-class function TKamScriptMin.Name: string;
-begin
-  Result := 'min';
 end;
 
 class function TKamScriptMin.ShortName: string;
@@ -640,19 +622,9 @@ begin
   Result := 'Abs';
 end;
 
-class function TKamScriptCeil.Name: string;
-begin
-  Result := 'ceil';
-end;
-
 class function TKamScriptCeil.ShortName: string;
 begin
   Result := 'Ceil';
-end;
-
-class function TKamScriptFloor.Name: string;
-begin
-  Result := 'floor';
 end;
 
 class function TKamScriptFloor.ShortName: string;
@@ -780,19 +752,9 @@ begin
   Result := 'Not';
 end;
 
-class function TKamScriptInt.Name: string;
-begin
-  Result := 'int';
-end;
-
 class function TKamScriptInt.ShortName: string;
 begin
   Result := 'int';
-end;
-
-class function TKamScriptFloatFun.Name: string;
-begin
-  Result := 'float';
 end;
 
 class function TKamScriptFloatFun.ShortName: string;
@@ -800,19 +762,10 @@ begin
   Result := 'float';
 end;
 
-class function TKamScriptBool.Name: string;
-begin
-  Result := 'bool';
-end;
 
 class function TKamScriptBool.ShortName: string;
 begin
   Result := 'bool';
-end;
-
-class function TKamScriptStringFun.Name: string;
-begin
-  Result := 'string';
 end;
 
 class function TKamScriptStringFun.ShortName: string;

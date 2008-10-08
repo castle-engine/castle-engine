@@ -219,7 +219,8 @@ units are allowed to be used by units in specific group.
     Parsing and executing expressions and programs in KambiScript language
     [http://vrmlengine.sourceforge.net/kambi_script.php].
 
-    @italic(Uses:) @code(base), VRML parts may also use @code(3models).)
+    @italic(Uses:) @code(base), @code(images),
+      VRML parts also use @code(3models).)
 
   @itemLabel @code(3dgraph)
   @item(

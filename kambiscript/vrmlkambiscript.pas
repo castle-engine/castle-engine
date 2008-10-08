@@ -33,8 +33,9 @@ type
     FFieldOrEvents: TVRMLFieldOrEventsList;
     FLastEventTimes: TDynDoubleArray;
     InsideAfterExecute: boolean;
+    FWWWBasePath: string;
   public
-    constructor Create;
+    constructor Create(const AWWWBasePath: string);
     destructor Destroy; override;
 
     { List of field/events associated with this list's KamScript variables.
@@ -80,6 +81,10 @@ type
       with ROUTEs: we just remember the last timestamp, and ignore sending
       events again. }
     procedure ResetLastEventTimes;
+
+    { TODO: this is unused for now }
+    { This may be passed to KambiScript, to use for image_load() function. }
+    property WWWBasePath: string read FWWWBasePath;
   end;
 
 function VRMLKamScriptCreateValue(FieldOrEvent: TVRMLFieldOrEvent): TKamScriptValue;
@@ -101,11 +106,11 @@ procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
 implementation
 
 uses SysUtils, VRMLNodes, VRMLScene, VRMLErrors, KambiLog, KambiScriptVectors,
-  VectorMath;
+  VectorMath, KambiScriptImages;
 
 {$define read_implementation}
 
-{ TODO: unhandled VRML types for KambiScript: nodes, images, arrays of
+{ TODO: unhandled VRML types for KambiScript: nodes, arrays of
   existing types. }
 
 type
@@ -171,6 +176,9 @@ begin
   if FieldClass.InheritsFrom(TSFMatrix4d) or
      FieldClass.InheritsFrom(TMFMatrix4d) then
     Result := TKamScriptMatrix4d.Create(true) else
+  if FieldClass.InheritsFrom(TSFImage) {or
+     FieldClass.InheritsFrom(TMFImage) }then
+    Result := TKamScriptImage.Create(true) else
   begin
     VRMLNonFatalError('Note that KambiScript is not yet suitable to process values of type ' + FieldClass.VrmlTypeName);
     Result := TKamScriptFloat.Create(true);
@@ -328,6 +336,15 @@ procedure VRMLKamScriptBeforeExecute(Value: TKamScriptValue;
         TKamScriptMatrix4d(Value).Value := TMFMatrix4d(Field).Items.Items[0] else
         TKamScriptMatrix4d(Value).Value := IdentityMatrix4Double; { anything predictable }
     end else
+
+    if Field is TSFImage then
+      TKamScriptImage(Value).Value := TSFImage(Field).Value else
+    {if Field is TMFImage then
+    begin
+      if TMFImage(Field).Items.Count >= 1 then
+        TKamScriptImage(Value).Value := TMFImage(Field).Items.Items[0] else
+        TKamScriptImage(Value).Value := ?; // anything predictable
+    end else}
 
       { No sensible way to convert, just fall back to predictable 0.0. }
       TKamScriptFloat(Value).Value := 0.0;
@@ -539,6 +556,17 @@ begin
       TMFMatrix4d(Field).Items.Items[0] := TKamScriptMatrix4d(Value).Value;
     end else
 
+    if Field is TSFImage then
+    begin
+      FreeAndNil(TSFImage(Field).Value);
+      TSFImage(Field).Value := TKamScriptImage(Value).Value.MakeCopy;
+    end else
+    {if Field is TMFImage then
+    begin
+      TMFImage(Field).Items.Count := 1;
+      TMFImage(Field).Items.Items[0] := TKamScriptImage(Value).Value;
+    end else}
+
     begin
       { No sensible way to convert, just do nothing, don't set/send anything. }
       AbortSending := true;
@@ -577,9 +605,10 @@ end;
 
 { TKamScriptVRMLValuesList -------------------------------------------------- }
 
-constructor TKamScriptVRMLValuesList.Create;
+constructor TKamScriptVRMLValuesList.Create(const AWWWBasePath: string);
 begin
   inherited Create;
+  FWWWBasePath := AWWWBasePath;
   FFieldOrEvents := TVRMLFieldOrEventsList.Create;
   FLastEventTimes := TDynDoubleArray.Create;
 end;

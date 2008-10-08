@@ -221,6 +221,8 @@ type
     class procedure HandleModulo(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandlePower(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+    class procedure HandleMax(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleMin(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleSqr(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleSgn(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleAbs(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -411,8 +413,11 @@ type
 
     { Long function name for user. This is possibly with spaces,
       parenthesis and other funny characters. It will be used in
-      error messages and such to describe this function. }
-    class function Name: string; virtual; abstract;
+      error messages and such to describe this function.
+
+      Default implementation in this class simply returns ShortName.
+      This should be suitable for most "norma" functions. }
+    class function Name: string; virtual;
 
     { Short function name, for the parser.
       This is the name of the function for use in expressions
@@ -545,7 +550,6 @@ type
   private
     class procedure HandleIf(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
   public
-    class function Name: string; override;
     class function ShortName: string; override;
     class function GreedyArgumentsCalculation: Integer; override;
   end;
@@ -554,7 +558,6 @@ type
   private
     class procedure HandleWhen(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
   public
-    class function Name: string; override;
     class function ShortName: string; override;
     class function GreedyArgumentsCalculation: Integer; override;
   end;
@@ -563,7 +566,6 @@ type
   private
     class procedure HandleWhile(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
   public
-    class function Name: string; override;
     class function ShortName: string; override;
     class function GreedyArgumentsCalculation: Integer; override;
   end;
@@ -574,7 +576,6 @@ type
   protected
     procedure CheckArguments; override;
   public
-    class function Name: string; override;
     class function ShortName: string; override;
     class function GreedyArgumentsCalculation: Integer; override;
   end;
@@ -977,6 +978,28 @@ class procedure TKamScriptInteger.HandleSqr(AFunction: TKamScriptFunction; const
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
   TKamScriptInteger(AResult).Value := Sqr( TKamScriptInteger(Arguments[0]).Value );
+end;
+
+class procedure TKamScriptInteger.HandleMax(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
+  TKamScriptInteger(AResult).Value := TKamScriptInteger(Arguments[0]).Value;
+  for I := 1 to Length(Arguments) - 1 do
+    TKamScriptInteger(AResult).Value := Max(
+      TKamScriptInteger(AResult).Value, TKamScriptInteger(Arguments[I]).Value);
+end;
+
+class procedure TKamScriptInteger.HandleMin(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
+  TKamScriptInteger(AResult).Value := TKamScriptInteger(Arguments[0]).Value;
+  for I := 1 to Length(Arguments) - 1 do
+    TKamScriptInteger(AResult).Value := Min(
+      TKamScriptInteger(AResult).Value, TKamScriptInteger(Arguments[I]).Value);
 end;
 
 class procedure TKamScriptInteger.HandleSgn(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -1466,18 +1489,25 @@ begin
 end;
 
 class procedure TKamScriptBoolean.HandleAnd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
-  TKamScriptBoolean(AResult).Value :=
-    TKamScriptBoolean(Arguments[0]).Value and
-    TKamScriptBoolean(Arguments[1]).Value;
+  TKamScriptBoolean(AResult).Value := TKamScriptBoolean(Arguments[0]).Value;
+  for I := 1 to Length(Arguments) - 1 do
+    TKamScriptBoolean(AResult).Value :=
+      TKamScriptBoolean(AResult).Value and TKamScriptBoolean(Arguments[I]).Value;
 end;
 
 class procedure TKamScriptBoolean.HandleNot(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
-  TKamScriptBoolean(AResult).Value :=
-    not TKamScriptBoolean(Arguments[0]).Value;
+  TKamScriptBoolean(AResult).Value := TKamScriptBoolean(Arguments[0]).Value;
+  for I := 1 to Length(Arguments) - 1 do
+    TKamScriptBoolean(AResult).Value :=
+      TKamScriptBoolean(AResult).Value or TKamScriptBoolean(Arguments[I]).Value;
 end;
 
 class procedure TKamScriptBoolean.HandleGreater(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -1732,6 +1762,11 @@ begin
   inherited;
 end;
 
+class function TKamScriptFunction.Name: string;
+begin
+  Result := ShortName;
+end;
+
 class function TKamScriptFunction.InfixOperatorName: string;
 begin
   Result := '';
@@ -1911,11 +1946,6 @@ end;
 
 { TKamScriptIf --------------------------------------------------------- }
 
-class function TKamScriptIf.Name: string;
-begin
-  Result := 'if';
-end;
-
 class function TKamScriptIf.ShortName: string;
 begin
   Result := 'if';
@@ -1940,11 +1970,6 @@ begin
 end;
 
 { TKamScriptWhen --------------------------------------------------------- }
-
-class function TKamScriptWhen.Name: string;
-begin
-  Result := 'when';
-end;
 
 class function TKamScriptWhen.ShortName: string;
 begin
@@ -1974,11 +1999,6 @@ begin
 end;
 
 { TKamScriptWhile --------------------------------------------------------- }
-
-class function TKamScriptWhile.Name: string;
-begin
-  Result := 'while';
-end;
 
 class function TKamScriptWhile.ShortName: string;
 begin
@@ -2021,11 +2041,6 @@ begin
 end;
 
 { TKamScriptFor --------------------------------------------------------- }
-
-class function TKamScriptFor.Name: string;
-begin
-  Result := 'for';
-end;
 
 class function TKamScriptFor.ShortName: string;
 begin
@@ -2375,6 +2390,8 @@ initialization
   FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleModulo, TKamScriptModulo, [TKamScriptInteger, TKamScriptInteger], false);
   FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandlePower, TKamScriptPower, [TKamScriptInteger, TKamScriptInteger], false);
 
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleMax, TKamScriptMax, [TKamScriptInteger], true);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleMin, TKamScriptMin, [TKamScriptInteger], true);
   FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleSqr, TKamScriptSqr, [TKamScriptInteger], false);
   FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleSgn, TKamScriptSgn, [TKamScriptInteger], false);
   FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleAbs, TKamScriptAbs, [TKamScriptInteger], false);
@@ -2439,8 +2456,8 @@ initialization
 
   { Register handlers for TKamScriptBoolean for functions in
     KambiScriptCoreFunctions. }
-  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleOr, TKamScriptOr, [TKamScriptBoolean, TKamScriptBoolean], false);
-  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleAnd, TKamScriptAnd, [TKamScriptBoolean, TKamScriptBoolean], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleOr, TKamScriptOr, [TKamScriptBoolean], true);
+  FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleAnd, TKamScriptAnd, [TKamScriptBoolean], true);
   FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleNot, TKamScriptNot, [TKamScriptBoolean], false);
 
   FunctionHandlers.RegisterHandler(@TKamScriptBoolean(nil).HandleGreater, TKamScriptGreater, [TKamScriptBoolean, TKamScriptBoolean], false);
