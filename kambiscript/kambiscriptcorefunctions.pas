@@ -220,6 +220,11 @@ type
     class function ShortName: string; override;
   end;
 
+  TKamScriptRound = class(TKamScriptFunction)
+  public
+    class function ShortName: string; override;
+  end;
+
   TKamScriptGreater = class(TKamScriptFunction)
   public
     class function Name: string; override;
@@ -630,6 +635,11 @@ end;
 class function TKamScriptFloor.ShortName: string;
 begin
   Result := 'Floor';
+end;
+
+class function TKamScriptRound.ShortName: string;
+begin
+  Result := 'round';
 end;
 
 class function TKamScriptGreater.Name: string;
