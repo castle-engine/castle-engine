@@ -75,6 +75,14 @@ begin
   end;
 end;
 
+class procedure TKamScriptVecXx.HandleDivide(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptVecXx);
+  TKamScriptVecXx(AResult).Value := VectorScale(
+    TKamScriptVecXx(Arguments[0]).Value,
+    1/TKamScriptFloat(Arguments[1]).Value);
+end;
+
 class procedure TKamScriptVecXx.HandleVector(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 var
   I: Integer;
@@ -174,6 +182,7 @@ begin
 
   FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleMultiply, TKamScriptMultiply, [TKamScriptVecXx, TKamScriptFloat], false);
   FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleMultiply, TKamScriptMultiply, [TKamScriptFloat, TKamScriptVecXx], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleDivide, TKamScriptDivide, [TKamScriptVecXx, TKamScriptFloat], false);
 
   { TKamScriptVecXx, functions from KambiScriptVectors }
   SetLength(VectorArgClasses, VectorGetCount);

@@ -82,6 +82,14 @@ begin
   end;
 end;
 
+class procedure TKamScriptMatrixXx.HandleDivide(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptMatrixXx);
+  TKamScriptMatrixXx(AResult).Value := MatrixMultScalar(
+    TKamScriptMatrixXx(Arguments[0]).Value,
+    1/TKamScriptFloat(Arguments[1]).Value);
+end;
+
 class procedure TKamScriptMatrixXx.HandleEqual(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
@@ -177,6 +185,7 @@ begin
   FunctionHandlers.RegisterHandler(@TKamScriptMatrixXx(nil).HandleMultiply, TKamScriptMultiply, [TKamScriptFloat, TKamScriptMatrixXx], false);
   FunctionHandlers.RegisterHandler(@TKamScriptMatrixXx(nil).HandleMultiply, TKamScriptMultiply, [TKamScriptMatrixXx, TKamScriptVecXx], false);
   FunctionHandlers.RegisterHandler(@TKamScriptMatrixXx(nil).HandleMultiply, TKamScriptMultiply, [TKamScriptMatrixXx], true);
+  FunctionHandlers.RegisterHandler(@TKamScriptMatrixXx(nil).HandleDivide, TKamScriptDivide, [TKamScriptMatrixXx, TKamScriptFloat], false);
 
   FunctionHandlers.RegisterHandler(@TKamScriptMatrixXx(nil).HandleEqual, TKamScriptEqual, [TKamScriptMatrixXx, TKamScriptMatrixXx], false);
   FunctionHandlers.RegisterHandler(@TKamScriptMatrixXx(nil).HandleNotEqual, TKamScriptNotEqual, [TKamScriptMatrixXx, TKamScriptMatrixXx], false);
