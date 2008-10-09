@@ -377,7 +377,7 @@ procedure TNodeBackground.SetBgImagesLoaded(const Value: boolean);
         begin
           { TODO: this doesn't honour AllowedBgImagesClasses for now,
             ImagesCache.LoadImage_IncReference always loads with
-            AllowedImageClasses = [TRGBImage, TRGBAlphaImage] }
+            AllowedImageClasses = [TRGBImage, TRGBAlphaImage, TGrayscaleImage, TGrayscaleAlphaImage] }
           FBgImages[bs] := ImagesCache.LoadImage_IncReference(URL);
         end else
           FBgImages[bs] := LoadImage(URL, AllowedBgImagesClasses, [], 0, 0);

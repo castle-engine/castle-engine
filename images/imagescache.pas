@@ -1,5 +1,5 @@
 {
-  Copyright 2007 Michalis Kamburelis.
+  Copyright 2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -16,6 +16,8 @@
   You should have received a copy of the GNU General Public License
   along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
 }
 
 { TImagesCache class --- a cache for loading images. }
@@ -66,7 +68,8 @@ type
         LoadImage does.)
 
       @item(For now, LoadImage is always called with
-        AllowedImageClasses = [TRGBImage, TRGBAlphaImage] and ForbiddenConvs = [].
+        AllowedImageClasses = [TRGBImage, TRGBAlphaImage,
+        TGrayscaleImage, TGrayscaleAlphaImage] and ForbiddenConvs = [].
         Why ? Because this is the use case that I need right now... (I'm going
         to use this for VRML texture nodes.) This will be fixed
         (LoadImage_IncReference will get AllowedImageClasses and
@@ -149,7 +152,8 @@ begin
     we don't want to add image to cache (because caller would have
     no way to call LoadImage_DecReference later). }
 
-  Result := LoadImage(FileName, [TRGBImage, TRGBAlphaImage], []);
+  Result := LoadImage(FileName, [TRGBImage, TRGBAlphaImage,
+    TGrayscaleImage, TGrayscaleAlphaImage], []);
 
   CachedImages.IncLength;
   C := @CachedImages.Items[CachedImages.High];

@@ -254,7 +254,7 @@ var CubeSize, CubeSize2: Single;
    { If nieboTex[bs] <> 0 to for sure Imgs[bs] <> nil,
      so I can safely do here checks "Imgs[bs] is ..." }
 
-   if Imgs[bs] is TRGBAlphaImage then
+   if Imgs[bs].HasAlpha then
    begin
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
@@ -271,7 +271,7 @@ var CubeSize, CubeSize2: Single;
      end;
    glEnd;
 
-   if Imgs[bs] is TRGBAlphaImage then
+   if Imgs[bs].HasAlpha then
     glDisable(GL_BLEND);
   end;
 
@@ -404,7 +404,7 @@ begin
    nieboTex[bs] := LoadGLTextureModulated(Imgs[bs], GL_LINEAR, GL_LINEAR,
      GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, FColorModulatorByte);
    Include(TexturedSides, bs);
-   if Imgs[bs] is TRGBAlphaImage then SomeTexturesWithAlpha := true;
+   if Imgs[bs].HasAlpha then SomeTexturesWithAlpha := true;
   end else
    nieboTex[bs] := 0;
  end;

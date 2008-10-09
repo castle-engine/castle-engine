@@ -573,6 +573,21 @@ type
     procedure CopyTo(Image: TImage; const X0, Y0: Cardinal);
     { @groupEnd }
 
+    { Does an image have alpha channel.
+
+      You may also be interested in AlphaChannelType.
+      AlphaChannelType answers always atNone if HasAlpha = false,
+      and always atSimpleYesNo or atFullRange if HasAlpha = true.
+      But AlphaChannelType may perform longer analysis of pixels
+      (to differ between atSimpleYesNo and atFullRange), while this
+      function always executes ultra-fast (as it's constant for each
+      TImage descendant).
+
+      @italic(Descendants implementors notes:) in this class, TImage,
+      this returns @false. Override to return @true for images with
+      alpha channel. }
+    function HasAlpha: boolean; virtual;
+
     { @abstract(Check does image have an alpha channel,
       and if yes analyze alpha channel: is it a single yes-no (only full
       or none values), or does it have alpha values in between?)
@@ -691,6 +706,7 @@ type
   TRGBAlphaImage = class;
   TRGBEImage = class;
   TGrayscaleImage = class;
+  TGrayscaleAlphaImage = class;
 
   { Here pixel is represented as TVector3Byte (red, green, blue) }
   TRGBImage = class(TImage)
@@ -817,6 +833,8 @@ type
       size of this image after Compose call. }
     procedure Compose(RGB: TRGBImage; AGrayscale: TGrayscaleImage);
 
+    function HasAlpha: boolean; override;
+
     function AlphaChannelType(
       const AlphaTolerance: Byte = 0;
       const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType; override;
@@ -877,7 +895,7 @@ type
     procedure LerpWith(const Value: Single; SecondImage: TImage); override;
   end;
 
-  { Color is a simple Byte value.
+  { Grayscale image. Color is a simple Byte value.
 
     TODO: this is just a start, not supported by many routines as it should
     for now. Many loading routines should be able to directly load image
@@ -888,7 +906,7 @@ type
   private
     function GetGrayscalePixels: PByte;
   public
-    { This is the same pointer as RawPixels, only typecasted to PByteArray }
+    { This is the same pointer as RawPixels, only typecasted to PByte }
     property GrayscalePixels: PByte read GetGrayscalePixels;
 
     class function PixelSize: Cardinal; override;
@@ -904,6 +922,37 @@ type
       This is done by simple bitshift, so you can be sure that all
       components are < 2^7 after this. }
     procedure HalfColors;
+
+    { Create new TGrayscaleAlphaImage with grayscale channel copied
+      from this object, and alpha channel filled with constant Alpha value. }
+    function ToGrayscaleAlphaImage_AlphaConst(Alpha: byte): TGrayscaleAlphaImage;
+
+    procedure LerpWith(const Value: Single; SecondImage: TImage); override;
+  end;
+
+  { Grayscale image with alpha channel.
+    Each pixel is two bytes: grayscale + alpha. }
+  TGrayscaleAlphaImage = class(TImage)
+  private
+    function GetGrayscaleAlphaPixels: PVector2Byte;
+  public
+    { This is the same pointer as RawPixels, only typecasted to PVector2Byte }
+    property GrayscaleAlphaPixels: PVector2Byte read GetGrayscaleAlphaPixels;
+
+    class function PixelSize: Cardinal; override;
+    class function ColorComponentsCount: Cardinal; override;
+
+    function PixelPtr(X, Y: Cardinal): PVector2Byte;
+    function RowPtr(Y: Cardinal): PArray_Vector2Byte;
+
+    procedure Clear(const Pixel: TVector2Byte); reintroduce;
+    function IsClear(const Pixel: TVector2Byte): boolean; reintroduce;
+
+    function HasAlpha: boolean; override;
+
+    function AlphaChannelType(
+      const AlphaTolerance: Byte = 0;
+      const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType; override;
 
     procedure LerpWith(const Value: Single; SecondImage: TImage); override;
   end;
@@ -1396,11 +1445,11 @@ procedure SaveImage(const Img: TImage; const fname: string); overload;
 
 { inne przetwarzanie obrazkow TImage ------------------------------------- }
 
-{ dodawanie alpha do ImageRec }
-{ ImageAlphaConst :
-  - najpierw, jezeli obrazek jest pozbawiony alpha to je dodaj.
-  - potem ustaw wszedzie alpha = alphaConst }
-procedure ImageAlphaConstTo1st(var img: TImage; AlphaConst: byte);
+{ Add and set constant alpha channel of given image.
+  If image doesn't have alpha channel, we will create new Img instance
+  (old instance will be freed) with colors copy.
+  Alpha channel is then filled with AlphaConst }
+procedure ImageAlphaConstTo1st(var Img: TImage; const AlphaConst: byte);
 
 { Na podstawie filename zgaduje format pliku ktory mozemy zapisac do
   takiego filename (czyli robi FileExtToImageFormatDef(
@@ -1826,6 +1875,11 @@ begin
   Image.CopyFrom(Self, X0, Y0);
 end;
 
+function TImage.HasAlpha: boolean;
+begin
+  Result := false;
+end;
+
 function TImage.AlphaChannelType(
   const AlphaTolerance: Byte;
   const WrongPixelsTolerance: Single): TAlphaChannelType;
@@ -1975,32 +2029,34 @@ begin
 end;
 
 procedure TRGBImage.Clear(const Pixel: TVector4Byte);
-var P: PVector3Byte;
-    i: Cardinal;
+var
+  P: PVector3Byte;
+  I: Cardinal;
 begin
- P := RGBPixels;
- for i := 1 to Width * Height do
- begin
-  Move(Pixel, P^, SizeOf(TVector3Byte));
-  Inc(P);
- end;
+  P := RGBPixels;
+  for I := 1 to Width * Height do
+  begin
+    Move(Pixel, P^, SizeOf(TVector3Byte));
+    Inc(P);
+  end;
 end;
 
 function TRGBImage.IsClear(const Pixel: TVector4Byte): boolean;
-var P: PVector3Byte;
-    i: Cardinal;
+var
+  P: PVector3Byte;
+  I: Cardinal;
 begin
- P := RGBPixels;
- for i := 1 to Width * Height do
- begin
-  if not CompareMem(@Pixel, P, SizeOf(TVector3Byte)) then
+  P := RGBPixels;
+  for I := 1 to Width * Height do
   begin
-   Result := false;
-   Exit;
+    if not CompareMem(@Pixel, P, SizeOf(TVector3Byte)) then
+    begin
+      Result := false;
+      Exit;
+    end;
+    Inc(P);
   end;
-  Inc(P);
- end;
- Result := true;
+  Result := true;
 end;
 
 procedure TRGBImage.TransformRGB(const Matrix: TMatrix3Single);
@@ -2239,6 +2295,11 @@ begin
     Inc(PtrRGB);
     Inc(PtrGrayscale);
   end;
+end;
+
+function TRGBAlphaImage.HasAlpha: boolean;
+begin
+  Result := true;
 end;
 
 function TRGBAlphaImage.AlphaChannelType(
@@ -2496,6 +2557,156 @@ begin
   for I := 1 to Width * Height do
   begin
     SelfPtr^ := Clamped(Round(Lerp(Value, SelfPtr^, SecondPtr^)), 0, High(Byte));
+    Inc(SelfPtr);
+    Inc(SecondPtr);
+  end;
+end;
+
+function TGrayscaleImage.ToGrayscaleAlphaImage_AlphaConst(Alpha: byte): TGrayscaleAlphaImage;
+var
+  pg: PByte;
+  pa: PVector2Byte;
+  I: Cardinal;
+begin
+  Result := TGrayscaleAlphaImage.Create(Width, Height);
+  pg := GrayscalePixels;
+  pa := Result.GrayscaleAlphaPixels;
+  for i := 1 to Width * Height do
+  begin
+    pa^[0] := pg^;
+    pa^[1] := Alpha;
+    Inc(pg);
+    Inc(pa);
+  end;
+end;
+
+{ TGrayscaleAlphaImage ------------------------------------------------------------ }
+
+function TGrayscaleAlphaImage.GetGrayscaleAlphaPixels: PVector2Byte;
+begin
+  Result := PVector2Byte(RawPixels);
+end;
+
+class function TGrayscaleAlphaImage.PixelSize: Cardinal;
+begin
+  Result := 2;
+end;
+
+class function TGrayscaleAlphaImage.ColorComponentsCount: Cardinal;
+begin
+  Result := 2;
+end;
+
+function TGrayscaleAlphaImage.PixelPtr(X, Y: Cardinal): PVector2Byte;
+begin
+  Result := PVector2Byte(inherited PixelPtr(X, Y));
+end;
+
+function TGrayscaleAlphaImage.RowPtr(Y: Cardinal): PArray_Vector2Byte;
+begin
+  Result := PArray_Vector2Byte(inherited RowPtr(Y));
+end;
+
+procedure TGrayscaleAlphaImage.Clear(const Pixel: TVector2Byte);
+var
+  P: PVector2Byte;
+  I: Cardinal;
+begin
+  P := GrayscaleAlphaPixels;
+  for I := 1 to Width * Height do
+  begin
+    Move(Pixel, P^, SizeOf(Pixel));
+    Inc(P);
+  end;
+end;
+
+function TGrayscaleAlphaImage.IsClear(const Pixel: TVector2Byte): boolean;
+var
+  P: PVector2Byte;
+  I: Cardinal;
+begin
+  P := GrayscaleAlphaPixels;
+  for I := 1 to Width * Height do
+  begin
+    if not CompareMem(@Pixel, P, SizeOf(Pixel)) then
+    begin
+      Result := false;
+      Exit;
+    end;
+    Inc(P);
+  end;
+  Result := true;
+end;
+
+function TGrayscaleAlphaImage.HasAlpha: boolean;
+begin
+  Result := true;
+end;
+
+function TGrayscaleAlphaImage.AlphaChannelType(
+  const AlphaTolerance: Byte;
+  const WrongPixelsTolerance: Single): TAlphaChannelType;
+var
+  PtrAlpha: PVector2Byte;
+  I, WrongPixels, AllPixels: Cardinal;
+begin
+  WrongPixels := 0;
+  AllPixels := Width * Height;
+
+  PtrAlpha := GrayscaleAlphaPixels;
+
+  if WrongPixelsTolerance = 0 then
+  begin
+    for I := 1 to AllPixels do
+    begin
+      if (PtrAlpha^[1] > AlphaTolerance) and
+         (PtrAlpha^[1] < 255 - AlphaTolerance) then
+        { Special case for WrongPixelsTolerance = exactly 0.
+          Avoids the cases when float "WrongPixels / AllPixels"
+          may be so small that it's equal to 0, which would
+          cause some wrong pixels to "slip" even with
+          WrongPixelsTolerance = 0. }
+        Exit(atFullRange);
+      Inc(PtrAlpha);
+    end;
+  end else
+  begin
+    for I := 1 to AllPixels do
+    begin
+      if (PtrAlpha^[1] > AlphaTolerance) and
+         (PtrAlpha^[1] < 255 - AlphaTolerance) then
+      begin
+        Inc(WrongPixels);
+        { From the speed point of view, is it sensible to test
+          WrongPixelsTolerance at each WrongPixels increment?
+          On one hand, we can Exit with false faster.
+          On the other hand, we lose time for checking it many times,
+          if WrongPixelsTolerance is larger.
+          Well, sensible WrongPixelsTolerance are very small --- so I
+          think this is Ok to check this every time. }
+        if WrongPixels / AllPixels > WrongPixelsTolerance then
+          Exit(atFullRange);
+      end;
+      Inc(PtrAlpha);
+    end;
+  end;
+
+  Result := atSimpleYesNo;
+end;
+
+procedure TGrayscaleAlphaImage.LerpWith(const Value: Single; SecondImage: TImage);
+var
+  SelfPtr: PVector2Byte;
+  SecondPtr: PVector2Byte;
+  I: Cardinal;
+begin
+  LerpSimpleCheckConditions(SecondImage);
+
+  SelfPtr := GrayscaleAlphaPixels;
+  SecondPtr := TGrayscaleAlphaImage(SecondImage).GrayscaleAlphaPixels;
+  for I := 1 to Width * Height do
+  begin
+    SelfPtr^ := Lerp(Value, SelfPtr^, SecondPtr^);
     Inc(SelfPtr);
     Inc(SecondPtr);
   end;
@@ -2823,6 +3034,8 @@ function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
         { w AllowedImageKinds jest tylko ikAlpha. Wiec musimy dac frWithAlpha }
         result := Load(Stream, frWithAlpha, not (ilcAlphaAdd in ForbiddenConvs));
     end else
+    { TODO: here we should take into account that TGrayscaleAlphaImage
+      may be allowed }
     begin
       { bez wzgledu na wszystko,
         jesli nie ma ClassAllowed(TRGBAlphaImage)
@@ -2877,6 +3090,8 @@ const
         DoingConversion(ilcFloatPrecAdd);
         ImageRGBToRGBETo1st(result);
       end else
+        { TODO: here we should take into account that TGrayscaleAlphaImage
+          may be allowed }
         { The only situation when this can happen (assuming no internal error,
           and at least one image class was allowed) was if
           ClassAllowed(TRGBAlphaImage) and (ilcAlphaAdd in ForbiddenConvs). }
@@ -2908,6 +3123,14 @@ begin
           begin
             DoingConversion(ilcRGBFlattenToGrayscale);
             ImageGrayscaleTo1st(Result);
+          end else
+          if ClassAllowed(TGrayscaleAlphaImage) then
+          begin
+            DoingConversion(ilcRGBFlattenToGrayscale);
+            ImageGrayscaleTo1st(Result);
+
+            DoingConversion(ilcAlphaAdd);
+            ImageAlphaConstTo1st(result, DummyDefaultAlpha);
           end else
             raise EInternalError.Create('LoadImage: RGBE format and unknown target required');
         end;
@@ -3026,29 +3249,29 @@ begin
  finally f.Free end;
 end;
 
-{ inne przetwarzanie obrazkow TRGBImage ------------------------------------------- }
+{ other image processing ------------------------------------------- }
 
-procedure ImageAlphaConstTo1st(var img: TImage; alphaConst: byte);
-var newimg: TRGBAlphaImage;
-    pa: PVector4Byte;
-    i: Cardinal;
+procedure ImageAlphaConstTo1st(var Img: TImage; const AlphaConst: byte);
+var
+  NewImg: TImage;
 begin
- if Img is TRGBImage then
- begin
-  NewImg := TRGBImage(Img).ToRGBAlphaImage_AlphaDontCare;
-  FreeAndNil(Img);
-  Img := NewImg;
- end else
- if not (Img is TRGBAlphaImage) then
-  raise EInternalError.Create(
-    'ImageAlphaConstTo1st -- not implemented for this TImage descendant');
+  if Img is TRGBImage then
+  begin
+    NewImg := TRGBImage(Img).ToRGBAlphaImage_AlphaConst(AlphaConst);
+    FreeAndNil(Img);
+    Img := NewImg;
+  end else
+  if Img is TGrayscaleImage then
+  begin
+    NewImg := TGrayscaleImage(Img).ToGrayscaleAlphaImage_AlphaConst(AlphaConst);
+    FreeAndNil(Img);
+    Img := NewImg;
+  end;
 
- pa := TRGBAlphaImage(Img).AlphaPixels;
- for i := 1 to Img.Width * Img.Height do
- begin
-  pa^[3] := AlphaConst;
-  Inc(pa);
- end;
+  if not ((Img is TRGBAlphaImage) or
+          (Img is TGrayscaleAlphaImage)) then
+    raise EInternalError.Create(
+      'ImageAlphaConstTo1st not possible for this TImage descendant: ' + Img.ClassName);
 end;
 
 function ImageClassBestForSavingToFormat(const FileName: string): TImageClass;

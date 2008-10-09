@@ -132,8 +132,11 @@ const
     compile with -dRELEASE) so just be sure that you're always passing
     only TImage instances of correct class (e.g. using
     InImageClasses(MyImage, GLImageClasses)). }
-  GLImageClasses: array [0..2] of TImageClass = (
-    TRGBImage, TRGBAlphaImage, TGrayscaleImage);
+  GLImageClasses: array [0..3] of TImageClass = (
+    TRGBImage,
+    TRGBAlphaImage,
+    TGrayscaleImage,
+    TGrayscaleAlphaImage);
 
 { These functions return appropriate GL_xxx format and type
   for given TImage descendant. If you will pass here Img
@@ -403,6 +406,8 @@ begin
     Result := GL_RGBA else
   if Img is TGrayscaleImage then
     Result := GL_LUMINANCE else
+  if Img is TGrayscaleAlphaImage then
+    Result := GL_LUMINANCE_ALPHA else
     Result := GL_INVALID_ENUM;
 end;
 
@@ -410,7 +415,8 @@ function ImageGLType(const Img: TImage): TGLenum;
 begin
   if (Img is TRGBImage) or
      (Img is TRGBAlphaImage) or
-     (Img is TGrayscaleImage) then
+     (Img is TGrayscaleImage) or
+     (Img is TGrayscaleAlphaImage) then
     Result := GL_UNSIGNED_BYTE else
     Result := GL_INVALID_ENUM;
 end;

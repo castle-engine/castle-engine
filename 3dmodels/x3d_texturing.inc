@@ -81,8 +81,8 @@
       so we're prepared that this may even exit with exception
       (since VRML/DataNonFatalError can raise exception).
 
-      If you set FTextureImage, you have to set it to TRGBImage or TRGBAlphaImage,
-      see TextureImage docs.
+      If you set FTextureImage, you have to set it to TRGBImage, TRGBAlphaImage,
+      TGrayscaleImage or TGrayscaleAlphaImage. See TextureImage docs.
 
       Set CacheUsed here. @true means you loaded the data using ImagesVideosCache.
       For FTextureVideo, it's Cache property should also be set to
@@ -122,7 +122,8 @@
       loaded) and additionally that texture size is not zero.
       Similar for IsTextureVideo.
 
-      TextureImage class is always in (TRGBImage, TRGBAlphaImage)
+      TextureImage class is always in (TRGBImage, TRGBAlphaImage,
+      TGrayscaleImage, TGrayscaleAlphaImage)
       simply because only these formats are accepted by GLImages.
       TODO: this is not nice, we do not want any OpenGL dependency in this unit,
       even such "ideological" one.
@@ -1037,7 +1038,7 @@ begin
   if not FdImage.Value.IsNull then
     result := Format('inlined image (width = %d; height = %d; with alpha = %s)',
       [ FdImage.Value.Width, FdImage.Value.Height,
-        BoolToStr[FdImage.Value is TRGBAlphaImage] ]) else
+        BoolToStr[FdImage.Value.HasAlpha] ]) else
     result := 'none';
 end;
 

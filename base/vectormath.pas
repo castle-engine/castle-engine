@@ -364,6 +364,8 @@ type
   { The "infinite" arrays, useful for some type-casting hacks }
 
   { }
+  TArray_Vector2Byte = packed array[0..MaxInt div SizeOf(TVector2Byte)-1]of TVector2Byte;
+  PArray_Vector2Byte = ^TArray_Vector2Byte;
   TArray_Vector3Byte = packed array[0..MaxInt div SizeOf(TVector3Byte)-1]of TVector3Byte;
   PArray_Vector3Byte = ^TArray_Vector3Byte;
   TArray_Vector4Byte = packed array[0..MaxInt div SizeOf(TVector4Byte)-1]of TVector4Byte;
@@ -744,7 +746,10 @@ function VectorAverage(const V: TVector3Double): Double; overload;
 { Linear interpolation between two vector values.
   Returns (1-A) * V1 + A * V2 (well, calculated a little differently for speed).
   So A = 0 gives V1, A = 1 gives V2, and values between and around are
-  interpolated. }
+  interpolated.
+
+  @groupBegin }
+function Lerp(const a: Single; const V1, V2: TVector2Byte): TVector2Byte; overload;
 function Lerp(const a: Single; const V1, V2: TVector3Byte): TVector3Byte; overload;
 function Lerp(const a: Single; const V1, V2: TVector4Byte): TVector4Byte; overload;
 function Lerp(const a: Single; const V1, V2: TVector2Integer): TVector2Single; overload;
@@ -761,6 +766,7 @@ function Lerp(const a: Single; const M1, M2: TMatrix4Single): TMatrix4Single; ov
 function Lerp(const a: Double; const M1, M2: TMatrix3Double): TMatrix3Double; overload;
 function Lerp(const a: Double; const M1, M2: TMatrix4Double): TMatrix4Double; overload;
 {$endif FPC}
+{ @groupEnd }
 
 {$ifdef HAS_MATRIX_UNIT}
 function Vector_Init_Lerp(const A: Single; const V1, V2: TVector3_Single): TVector3_Single; overload;
@@ -2566,6 +2572,12 @@ end;
 {$endif not DELPHI}
 
 { some math on vectors ------------------------------------------------------- }
+
+function Lerp(const a: Single; const V1, V2: TVector2Byte): TVector2Byte;
+begin
+  Result[0] := Clamped(Round(V1[0] + A * (V2[0] - V1[0])), 0, High(Byte));
+  Result[1] := Clamped(Round(V1[1] + A * (V2[1] - V1[1])), 0, High(Byte));
+end;
 
 function Lerp(const a: Single; const V1, V2: TVector3Byte): TVector3Byte;
 begin

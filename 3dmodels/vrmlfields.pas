@@ -2941,7 +2941,9 @@ var
   w, h, comp, pixel: LongWord;
   i: Cardinal;
   RGBPixels: PArray_Vector3Byte;
-  AlphaPixels: PArray_Vector4Byte;
+  RGBAlphaPixels: PArray_Vector4Byte;
+  GrayscalePixels: PByteArray;
+  GrayscaleAlphaPixels: PArray_Vector2Byte;
 begin
   { Note that we should never let Value to be nil too long,
     because even if this method exits with exception, Value should
@@ -2972,26 +2974,22 @@ begin
   begin
    case comp of
     1: begin
-        ReplaceValue(TRGBImage.Create(w, h));
-        RGBPixels := PArray_Vector3Byte(Value.RawPixels);
+        ReplaceValue(TGrayscaleImage.Create(w, h));
+        GrayscalePixels := PByteArray(Value.RawPixels);
         for i := 0 to w*h-1 do
         begin
          pixel := ParseLongWord(Lexer);
-         RGBPixels^[i, 0] := pixel and $FF;
-         RGBPixels^[i, 1] := pixel and $FF;
-         RGBPixels^[i, 2] := pixel and $FF;
+         GrayscalePixels^[I] := pixel and $FF;
         end;
        end;
     2: begin
-        ReplaceValue(TRGBAlphaImage.Create(w, h));
-        AlphaPixels := PArray_Vector4Byte(Value.RawPixels);
+        ReplaceValue(TGrayscaleAlphaImage.Create(w, h));
+        GrayscaleAlphaPixels := PArray_Vector2Byte(Value.RawPixels);
         for i := 0 to w*h-1 do
         begin
          pixel := ParseLongWord(Lexer);
-         AlphaPixels^[i, 0] := (pixel shr 8) and $FF;
-         AlphaPixels^[i, 1] := (pixel shr 8) and $FF;
-         AlphaPixels^[i, 2] := (pixel shr 8) and $FF;
-         AlphaPixels^[i, 3] := pixel and $FF;
+         GrayscaleAlphaPixels^[i, 0] := (pixel shr 8) and $FF;
+         GrayscaleAlphaPixels^[i, 1] := pixel and $FF;
         end;
        end;
     3: begin
@@ -3007,14 +3005,14 @@ begin
        end;
     4: begin
         ReplaceValue(TRGBAlphaImage.Create(w, h));
-        AlphaPixels := PArray_Vector4Byte(Value.RawPixels);
+        RGBAlphaPixels := PArray_Vector4Byte(Value.RawPixels);
         for i := 0 to w*h-1 do
         begin
          pixel := ParseLongWord(Lexer);
-         AlphaPixels^[i, 0] := (pixel shr 24) and $FF;
-         AlphaPixels^[i, 1] := (pixel shr 16) and $FF;
-         AlphaPixels^[i, 2] := (pixel shr 8) and $FF;
-         AlphaPixels^[i, 3] := pixel and $FF;
+         RGBAlphaPixels^[i, 0] := (pixel shr 24) and $FF;
+         RGBAlphaPixels^[i, 1] := (pixel shr 16) and $FF;
+         RGBAlphaPixels^[i, 2] := (pixel shr 8) and $FF;
+         RGBAlphaPixels^[i, 3] := pixel and $FF;
         end;
        end;
     else raise EVRMLParserError.Create(Lexer, Format('Invalid components count'+
@@ -3024,10 +3022,12 @@ begin
 end;
 
 procedure TSFImage.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
-var rgb: TVector3Byte;
-    rgba: TVector4Byte;
-    i: Cardinal;
-    pixel: LongWord;
+var
+  ga: TVector2Byte;
+  rgb: TVector3Byte;
+  rgba: TVector4Byte;
+  i: Cardinal;
+  pixel: LongWord;
 begin
  if Value.IsNull then
   SaveProperties.Write('0 0 1') else
@@ -3037,11 +3037,28 @@ begin
   SaveProperties.IncIndent;
   SaveProperties.WriteIndent('');
   {$I NoRQCheckBegin.inc}
+  if Value is TGrayscaleImage then
+  begin
+   for i := 0 to Value.Width*Value.Height-1 do
+   begin
+    pixel := TGrayscaleImage(Value).GrayscalePixels[i];
+    SaveProperties.Write(Format('0x%.2x ', [pixel]));
+   end;
+  end else
+  if Value is TGrayscaleAlphaImage then
+  begin
+   for i := 0 to Value.Width*Value.Height-1 do
+   begin
+    ga := TGrayscaleAlphaImage(Value).GrayscaleAlphaPixels[i];
+    pixel := (ga[0] shl 8) or ga[1];
+    SaveProperties.Write(Format('0x%.4x ', [pixel]));
+   end;
+  end else
   if Value is TRGBImage then
   begin
    for i := 0 to Value.Width*Value.Height-1 do
    begin
-    rgb := PArray_Vector3Byte(TRGBImage(Value).RGBPixels)^[i];
+    rgb := TRGBImage(Value).RGBPixels[i];
     pixel := (rgb[0] shl 16) or (rgb[1] shl 8) or rgb[2];
     SaveProperties.Write(Format('0x%.6x ', [pixel]));
    end;
@@ -3050,7 +3067,7 @@ begin
   begin
    for i := 0 to Value.Width*Value.Height-1 do
    begin
-    rgba := PArray_Vector4Byte(TRGBAlphaImage(Value).AlphaPixels)^[i];
+    rgba := TRGBAlphaImage(Value).AlphaPixels[i];
     pixel := (rgba[0] shl 24) or (rgba[1] shl 16) or (rgba[2] shl 8) or rgba[3];
     SaveProperties.Write(Format('0x%.8x ', [pixel]));
    end;
