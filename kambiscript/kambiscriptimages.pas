@@ -45,10 +45,6 @@ type
     class procedure HandleImageSetColor(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleImageSetAlpha(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
-    class procedure HandleImageFill(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleImageFillColor(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleImageFillAlpha(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-
     { Notes about number of components:
 
       Although you can assign any image descendant to Value, and then
@@ -136,27 +132,6 @@ type
   end;
 
   TKamScriptImageSetAlpha = class(TKamScriptFunction)
-  protected
-    procedure CheckArguments; override;
-  public
-    class function ShortName: string; override;
-  end;
-
-  TKamScriptImageFill = class(TKamScriptFunction)
-  protected
-    procedure CheckArguments; override;
-  public
-    class function ShortName: string; override;
-  end;
-
-  TKamScriptImageFillColor = class(TKamScriptFunction)
-  protected
-    procedure CheckArguments; override;
-  public
-    class function ShortName: string; override;
-  end;
-
-  TKamScriptImageFillAlpha = class(TKamScriptFunction)
   protected
     procedure CheckArguments; override;
   public
@@ -583,21 +558,6 @@ begin
   TKamScriptImage(Arguments[0]).ValueAssigned := true;
 end;
 
-class procedure TKamScriptImage.HandleImageFill(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-begin
-  { TODO }
-end;
-
-class procedure TKamScriptImage.HandleImageFillColor(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-begin
-  { TODO }
-end;
-
-class procedure TKamScriptImage.HandleImageFillAlpha(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-begin
-  { TODO }
-end;
-
 { Functions ------------------------------------------------------------------ }
 
 class function TKamScriptImageFun.ShortName: string;
@@ -679,45 +639,6 @@ begin
     raise EKamScriptFunctionArgumentsError.Create('First argument of "image_set_alpha" function is not a writeable operand');
 end;
 
-class function TKamScriptImageFill.ShortName: string;
-begin
-  Result := 'image_fill';
-end;
-
-procedure TKamScriptImageFill.CheckArguments;
-begin
-  inherited;
-  if not ( (Args[0] is TKamScriptValue) and
-           TKamScriptValue(Args[0]).Writeable ) then
-    raise EKamScriptFunctionArgumentsError.Create('First argument of "image_fill" function is not a writeable operand');
-end;
-
-class function TKamScriptImageFillColor.ShortName: string;
-begin
-  Result := 'image_fill_color';
-end;
-
-procedure TKamScriptImageFillColor.CheckArguments;
-begin
-  inherited;
-  if not ( (Args[0] is TKamScriptValue) and
-           TKamScriptValue(Args[0]).Writeable ) then
-    raise EKamScriptFunctionArgumentsError.Create('First argument of "image_fill_color" function is not a writeable operand');
-end;
-
-class function TKamScriptImageFillAlpha.ShortName: string;
-begin
-  Result := 'image_fill_alpha';
-end;
-
-procedure TKamScriptImageFillAlpha.CheckArguments;
-begin
-  inherited;
-  if not ( (Args[0] is TKamScriptValue) and
-           TKamScriptValue(Args[0]).Writeable ) then
-    raise EKamScriptFunctionArgumentsError.Create('First argument of "image_fill_alpha" function is not a writeable operand');
-end;
-
 { unit init/fini ------------------------------------------------------------- }
 
 initialization
@@ -735,8 +656,4 @@ initialization
   FunctionHandlers.RegisterHandler(@TKamScriptImage(nil).HandleImageSet     , TKamScriptImageSet     , [TKamScriptImage, TKamScriptInteger, TKamScriptInteger, TKamScriptValue], false);
   FunctionHandlers.RegisterHandler(@TKamScriptImage(nil).HandleImageSetColor, TKamScriptImageSetColor, [TKamScriptImage, TKamScriptInteger, TKamScriptInteger, TKamScriptValue], false);
   FunctionHandlers.RegisterHandler(@TKamScriptImage(nil).HandleImageSetAlpha, TKamScriptImageSetAlpha, [TKamScriptImage, TKamScriptInteger, TKamScriptInteger, TKamScriptValue], false);
-
-  FunctionHandlers.RegisterHandler(@TKamScriptImage(nil).HandleImageFill     , TKamScriptImageFill     , [TKamScriptImage, TKamScriptInteger, TKamScriptInteger, TKamScriptValue], false);
-  FunctionHandlers.RegisterHandler(@TKamScriptImage(nil).HandleImageFillColor, TKamScriptImageFillColor, [TKamScriptImage, TKamScriptInteger, TKamScriptInteger, TKamScriptValue], false);
-  FunctionHandlers.RegisterHandler(@TKamScriptImage(nil).HandleImageFillAlpha, TKamScriptImageFillAlpha, [TKamScriptImage, TKamScriptInteger, TKamScriptInteger, TKamScriptValue], false);
 end.
