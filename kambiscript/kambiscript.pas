@@ -935,7 +935,8 @@ end;
 function TKamScriptInteger.PromoteToFloat: TKamScriptFloat;
 begin
   if FPromoteToFloat = nil then
-    FPromoteToFloat := TKamScriptFloat.Create(false, Value);
+    FPromoteToFloat := TKamScriptFloat.Create(false, Value) else
+    FPromoteToFloat.Value := Value;
   Result := FPromoteToFloat;
 end;
 
