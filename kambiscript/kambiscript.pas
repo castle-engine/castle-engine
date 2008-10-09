@@ -82,16 +82,23 @@ type
   EKamScriptError = class(Exception);
   EKamAssignValueError = class(EKamScriptError);
 
+  TKamScriptOutputProc = procedure (const S: string) of object;
+
   { Various information that may be useful for implementing some
     function handlers, but that should be supplied from outside of
     KambiScript. }
   TKamScriptEnvironment = class
   private
     FWWWBasePath: string;
+    FOutputProc: TKamScriptOutputProc;
   public
     { Base URL to use for relative filenames.
       Similar to TVRMLNode.WWWBasePath. }
     property WWWBasePath: string read FWWWBasePath write FWWWBasePath;
+    { If assigned, it will be used to realize writeln()
+      function. If not assigned, we will use DataNonFatalError. }
+    property OutputProc: TKamScriptOutputProc read FOutputProc
+      write FOutputProc;
   end;
 
   TKamScriptExpression = class
@@ -392,6 +399,8 @@ type
     class procedure ConvertFromFloat(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure ConvertFromBool(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure ConvertFromString(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    class procedure HandleWriteln(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
     FValue: string;
     procedure SetValue(const AValue: string);
@@ -807,7 +816,7 @@ procedure CreateValueIfNeeded(var Value: TKamScriptValue;
 
 implementation
 
-uses KambiScriptCoreFunctions;
+uses KambiScriptCoreFunctions, DataErrors;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -1749,6 +1758,25 @@ begin
   ParentOfResult := false;
 end;
 
+class procedure TKamScriptString.HandleWriteln(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  S: string;
+begin
+  if ParentOfResult then
+    AResult.FreeByParentExpression else
+    AResult := nil;
+
+  AResult := Arguments[0];
+  ParentOfResult := false;
+
+  S := TKamScriptString(Arguments[0]).Value;
+
+  if (AFunction.Environment <> nil) and
+     Assigned(AFunction.Environment.OutputProc) then
+    AFunction.Environment.OutputProc(S) else
+    DataNonFatalError('KambiScript message: ' + S);
+end;
+
 procedure TKamScriptString.AssignValue(Source: TKamScriptValue);
 begin
   if Source is TKamScriptString then
@@ -2525,6 +2553,8 @@ initialization
   FunctionHandlers.RegisterHandler(@TKamScriptString(nil).ConvertFromFloat , TKamScriptStringFun, [TKamScriptFloat], false);
   FunctionHandlers.RegisterHandler(@TKamScriptString(nil).ConvertFromBool  , TKamScriptStringFun, [TKamScriptBoolean], false);
   FunctionHandlers.RegisterHandler(@TKamScriptString(nil).ConvertFromString, TKamScriptStringFun, [TKamScriptString], false);
+
+  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleWriteln, TKamScriptWriteln, [TKamScriptString], false);
 finalization
   FreeAndNil(FunctionHandlers);
 end.

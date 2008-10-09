@@ -305,6 +305,11 @@ type
     class function ShortName: string; override;
   end;
 
+  TKamScriptWriteln = class(TKamScriptFunction)
+  public
+    class function ShortName: string; override;
+  end;
+
 implementation
 
 class function TKamScriptAdd.Name: string;
@@ -772,7 +777,6 @@ begin
   Result := 'float';
 end;
 
-
 class function TKamScriptBool.ShortName: string;
 begin
   Result := 'bool';
@@ -781,6 +785,11 @@ end;
 class function TKamScriptStringFun.ShortName: string;
 begin
   Result := 'string';
+end;
+
+class function TKamScriptWriteln.ShortName: string;
+begin
+  Result := 'writeln';
 end;
 
 end.
