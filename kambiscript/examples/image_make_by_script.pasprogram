@@ -8,8 +8,8 @@
   For example
     image_make_by_script mkimage_gradient.kscript new_image.png
 
-  Within the script, you have variable "result" (type image),
-  and helper variables:
+  Within the script, you have variables:
+  - result, helper_img (type image),
   - i, j, k, l are ints,
   - x, y, z, are floats,
   - v2, v3, v3 are single-precision vectors of 2,3,4 elements.
@@ -36,6 +36,8 @@ begin
   try
     Vars.Add(TKamScriptImage.Create(true));
     Vars.Last.Name := 'result';
+    Vars.Add(TKamScriptImage.Create(true));
+    Vars.Last.Name := 'helper_img';
 
     Vars.Add(TKamScriptInteger.Create(true));
     Vars.Last.Name := 'i';

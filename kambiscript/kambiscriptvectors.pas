@@ -75,6 +75,7 @@ type
     class procedure HandleVectorDot(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
     class procedure HandleVectorCross(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleGrayscale(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
     FValue: TVector3Single;
     procedure SetValue(const AValue: TVector3Single);
@@ -333,6 +334,11 @@ type
     class function ShortName: string; override;
   end;
 
+  TKamScriptGrayscale = class(TKamScriptFunction)
+  public
+    class function ShortName: string; override;
+  end;
+
   TKamScriptMatrixFun = class(TKamScriptFunction)
   public
     class function ShortName: string; override;
@@ -387,6 +393,13 @@ begin
   TKamScriptVec3f(AResult).Value :=
     VectorProduct( TKamScriptVec3f(Arguments[0]).Value,
                    TKamScriptVec3f(Arguments[1]).Value );
+end;
+
+class procedure TKamScriptVec3f.HandleGrayscale(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
+  TKamScriptFloat(AResult).Value :=
+    GrayscaleValue( TKamScriptVec3f(Arguments[0]).Value );
 end;
 
 { Double-precision vectors --------------------------------------------------- }
@@ -505,6 +518,11 @@ begin
   Result := 'vector_cross';
 end;
 
+class function TKamScriptGrayscale.ShortName: string;
+begin
+  Result := 'grayscale';
+end;
+
 { matrix functions ----------------------------------------------------------- }
 
 class function TKamScriptMatrixFun.ShortName: string;
@@ -543,6 +561,7 @@ initialization
   RegisterVec4fFunctions;
 
   FunctionHandlers.RegisterHandler(@TKamScriptVec3f(nil).HandleVectorCross, TKamScriptVectorCross, [TKamScriptVec3f, TKamScriptVec3f], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptVec3f(nil).HandleGrayscale, TKamScriptGrayscale, [TKamScriptVec3f], false);
 
   RegisterVec2dFunctions;
   RegisterVec3dFunctions;

@@ -1,0 +1,53 @@
+{ A simple edge-detection by calculating gradient (actually,
+  the length of the gradient vector) with Sobel operator, in KambiScript.
+  See [http://en.wikipedia.org/wiki/Sobel_operator].
+  Source image filename is constant below, you can change it to
+  any RGB(+possibly with alpha) existing image filename.
+
+  Note that this may take a while for larger images.
+  KambiScript was never meant to be a fast language, and it's image functions
+  are comfortable but not fast (3-byte convertion between 3-single/float mix,
+  for starters). If you want optimal language, any scripting lang is bad choice,
+  rather use ObjectPascal with Kambi game engine :).
+
+  Example times:
+  - for 160x200 image this takes 10 seconds.
+  - for 640x480 this takes 1 min 33 seconds.
+    This is 93 seconds, around 10 times longer.
+    This is as expected, as '(640*480) / (160*200)' = 9, and the time
+    of algorithm is linear on the number of pixels.
+  - for larger images - do the math, a couple of minutes is easily possible.
+}
+
+function main()
+  helper_img := image_load('/usr/share/images/desktop-base/debian-blueish-wallpaper-640x480.png');
+
+  { copy helper_img, to copy it's size and alpha channel }
+  result := helper_img;
+
+  for (i, 0, image_width(result) - 1,
+    for (j, 0, image_height(result) - 1,
+      x :=
+        if(i > 0,
+          if (j > 0, grayscale(image_get_color(helper_img, i-1, j-1)), 0) +
+          2 * grayscale(image_get_color(helper_img, i-1, j)) +
+          if (j < image_height(result) - 1, grayscale(image_get_color(helper_img, i-1, j+1)), 0),
+          0) -
+        if(i < image_width(result) - 1,
+          if (j > 0, grayscale(image_get_color(helper_img, i+1, j-1)), 0) +
+          2 * grayscale(image_get_color(helper_img, i+1, j)) +
+          if (j < image_height(result) - 1, grayscale(image_get_color(helper_img, i+1, j+1)), 0),
+          0);
+      y :=
+        if(j > 0,
+          if (i > 0, grayscale(image_get_color(helper_img, i-1, j-1)), 0) +
+          2 * grayscale(image_get_color(helper_img, i, j-1)) +
+          if (i < image_width(result) - 1, grayscale(image_get_color(helper_img, i+1, j-1)), 0),
+          0) -
+        if(j < image_height(result) - 1,
+          if (i > 0, grayscale(image_get_color(helper_img, i-1, j+1)), 0) +
+          2 * grayscale(image_get_color(helper_img, i, j+1)) +
+          if (i < image_width(result) - 1, grayscale(image_get_color(helper_img, i+1, j+1)), 0),
+          0);
+      z := sqrt(sqr(x) + sqr(y));
+      image_set_color(result, i, j, vector(z, z, z))))
