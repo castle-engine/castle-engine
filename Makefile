@@ -197,6 +197,7 @@ EXAMPLES_BASE_NAMES := \
   base/examples/demo_textreader \
   base/examples/test_platform_specific_utils \
   kambiscript/examples/kambi_calc \
+  kambiscript/examples/image_make_by_script \
   base/tools/svg_grayscale \
   images/examples/image_convert \
   images/tools/image_to_pas \
