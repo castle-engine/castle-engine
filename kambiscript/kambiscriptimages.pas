@@ -232,8 +232,8 @@ begin
 
   FreeAndNil(TKamScriptImage(AResult).FValue);
   case Components of
-    1: TKamScriptImage(AResult).FValue := {}{TODO}{TGrayscaleImage}TRGBImage.Create(Width, Height);
-    2: TKamScriptImage(AResult).FValue := {}{TODO}{TGrayscaleRGBAlphaImage}TRGBAlphaImage.Create(Width, Height);
+    1: TKamScriptImage(AResult).FValue := TGrayscaleImage.Create(Width, Height);
+    2: TKamScriptImage(AResult).FValue := TGrayscaleAlphaImage.Create(Width, Height);
     3: TKamScriptImage(AResult).FValue := TRGBImage.Create(Width, Height);
     4: TKamScriptImage(AResult).FValue := TRGBAlphaImage.Create(Width, Height);
     else raise EInternalError.CreateFmt('TKamScriptImage.AssignNewValue: Not allowed number of components: %d',
@@ -340,6 +340,8 @@ end;
 class procedure TKamScriptImage.HandleImageGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 var
   X, Y: Integer;
+  G: PByte;
+  GA: PVector2Byte;
   RGB: PVector3Byte;
   RGBAlpha: PVector4Byte;
 begin
@@ -348,8 +350,18 @@ begin
   CheckImageCoords(TKamScriptImage(Arguments[0]), X, Y);
 
   case TKamScriptImage(Arguments[0]).Value.ColorComponentsCount of
-//   1: TODO
-//   2: TODO
+    1: begin
+         CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
+         G := TKamScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
+         TKamScriptFloat(AResult).Value := G^/255;
+       end;
+    2: begin
+         CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptVec2f);
+         GA := TKamScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
+         TKamScriptVec2f(AResult).Value := Vector2Single(
+           GA^[0]/255,
+           GA^[1]/255);
+       end;
     3: begin
          CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptVec3f);
          RGB := TKamScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
@@ -374,6 +386,8 @@ end;
 class procedure TKamScriptImage.HandleImageGetColor(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 var
   X, Y: Integer;
+  G: PByte;
+  GA: PVector2Byte;
   RGB: PVector3Byte;
   RGBAlpha: PVector4Byte;
 begin
@@ -382,8 +396,16 @@ begin
   CheckImageCoords(TKamScriptImage(Arguments[0]), X, Y);
 
   case TKamScriptImage(Arguments[0]).Value.ColorComponentsCount of
-//   1: TODO
-//   2: TODO
+    1: begin
+         CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
+         G := TKamScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
+         TKamScriptFloat(AResult).Value := G^/255;
+       end;
+    2: begin
+         CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
+         GA := TKamScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
+         TKamScriptFloat(AResult).Value := GA^[0]/255;
+       end;
     3: begin
          CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptVec3f);
          RGB := TKamScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
@@ -407,6 +429,7 @@ end;
 class procedure TKamScriptImage.HandleImageGetAlpha(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 var
   X, Y: Integer;
+  GA: PVector2Byte;
   RGBAlpha: PVector4Byte;
 begin
   X := TKamScriptInteger(Arguments[1]).Value;
@@ -416,10 +439,12 @@ begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
 
   case TKamScriptImage(Arguments[0]).Value.ColorComponentsCount of
-//   1: TODO
-//   2: TODO
-    3: begin
+    1, 3: begin
          DataNonFatalError('"image_get_alpha" not allowed on image without alpha channel');
+       end;
+    2: begin
+         GA := TKamScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
+         TKamScriptFloat(AResult).Value := GA^[1]/255;
        end;
     4: begin
          RGBAlpha := TKamScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
@@ -432,6 +457,8 @@ end;
 class procedure TKamScriptImage.HandleImageSet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 var
   X, Y: Integer;
+  G: PByte;
+  GA: PVector2Byte;
   RGB: PVector3Byte;
   RGBAlpha: PVector4Byte;
 begin
@@ -447,8 +474,15 @@ begin
   ParentOfResult := false;
 
   case TKamScriptImage(Arguments[0]).Value.ColorComponentsCount of
-//    1: TODO
-//    2: TODO
+    1: begin
+         G := TKamScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
+         G^ := Clamped(Round(TKamScriptFloat(Arguments[3]).Value*255), 0, 255);
+       end;
+    2: begin
+         GA := TKamScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
+         GA^[0] := Clamped(Round(TKamScriptVec2f(Arguments[3]).Value[0]*255), 0, 255);
+         GA^[1] := Clamped(Round(TKamScriptVec2f(Arguments[3]).Value[1]*255), 0, 255);
+       end;
     3: begin
          RGB := TKamScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
          RGB^[0] := Clamped(Round(TKamScriptVec3f(Arguments[3]).Value[0]*255), 0, 255);
@@ -471,6 +505,8 @@ end;
 class procedure TKamScriptImage.HandleImageSetColor(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 var
   X, Y: Integer;
+  G: PByte;
+  GA: PVector2Byte;
   RGB: PVector3Byte;
   RGBAlpha: PVector4Byte;
 begin
@@ -486,8 +522,14 @@ begin
   ParentOfResult := false;
 
   case TKamScriptImage(Arguments[0]).Value.ColorComponentsCount of
-//    1: TODO
-//    2: TODO
+    1: begin
+         G := TKamScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
+         G^ := Clamped(Round(TKamScriptFloat(Arguments[3]).Value*255), 0, 255);
+       end;
+    2: begin
+         GA := TKamScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
+         GA^[0] := Clamped(Round(TKamScriptFloat(Arguments[3]).Value*255), 0, 255);
+       end;
     3: begin
          RGB := TKamScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
          RGB^[0] := Clamped(Round(TKamScriptVec3f(Arguments[3]).Value[0]*255), 0, 255);
@@ -509,6 +551,7 @@ end;
 class procedure TKamScriptImage.HandleImageSetAlpha(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 var
   X, Y: Integer;
+  GA: PVector2Byte;
   RGBAlpha: PVector4Byte;
 begin
   X := TKamScriptInteger(Arguments[1]).Value;
@@ -523,10 +566,12 @@ begin
   ParentOfResult := false;
 
   case TKamScriptImage(Arguments[0]).Value.ColorComponentsCount of
-//    1: TODO
-//    2: TODO
-    3: begin
+    1, 3: begin
          DataNonFatalError('"image_set_alpha" not allowed on image without alpha channel');
+       end;
+    2: begin
+         GA := TKamScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
+         GA^[1] := Clamped(Round(TKamScriptFloat(Arguments[3]).Value*255), 0, 255);
        end;
     4: begin
          RGBAlpha := TKamScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
