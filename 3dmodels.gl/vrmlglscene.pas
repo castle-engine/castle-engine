@@ -848,7 +848,7 @@ type
 
     procedure ChangedAll; override;
     procedure ChangedShapeStateFields(ShapeStateNum: integer;
-      const TransformOnly: boolean); override;
+      const TransformOnly, TextureImageChanged: boolean); override;
 
     { Render shadow volume (sides and caps) of this scene, for shadow volume
       algorithm.
@@ -2400,11 +2400,16 @@ begin
 end;
 
 procedure TVRMLGLScene.ChangedShapeStateFields(ShapeStateNum: integer;
-  const TransformOnly: boolean);
+  const TransformOnly, TextureImageChanged: boolean);
 var
   TG: TTransparentGroup;
 begin
   inherited;
+
+  { ChangedShapeStateFields cannot be called with both
+    TransformOnly = TextureImageChanged = true, since texture change means
+    that not only transform changed... }
+  Assert(not (TransformOnly and TextureImageChanged));
 
   { nie musimy tu robic nigdy Renderer.Unprepare*, bo przeciez obiekty node'ow
     sie nie zmienily, tylko ich pola. Zwracam uwage ze w ten sposob gdy
@@ -2437,6 +2442,9 @@ begin
         SSSX_DisplayLists.Items[ShapeStateNum] := 0;
       end;
   end;
+
+  if TextureImageChanged then
+    Renderer.Unprepare(ShapeStates[ShapeStateNum].State.Texture);
 end;
 
 { shadow quads --------------------------------------------------------------- }

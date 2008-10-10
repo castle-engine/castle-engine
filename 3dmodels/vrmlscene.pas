@@ -556,7 +556,8 @@ type
       This causes recalculation of all things dependent on RootNode.
       It's more optimal to use one of the other Changed* methods, when possible.
 
-      Call ChangedShapeStateFields(ShapeStateNum, TransformOnly) if you only changed
+      Call ChangedShapeStateFields(ShapeStateNum, TransformOnly, TextureImageChanged)
+      if you only changed
       values of fields within ShapeList[ShapeStateNum].GeometryNode,
       ShapeList[ShapeStateNum].State.Last* and
       ShapeList[ShapeStateNum].State.Active*. (And you're sure that
@@ -602,7 +603,7 @@ type
       @groupBegin }
     procedure ChangedAll; virtual;
     procedure ChangedShapeStateFields(ShapeStateNum: Integer;
-      const TransformOnly: boolean); virtual;
+      const TransformOnly, TextureImageChanged: boolean); virtual;
     procedure ChangedFields(Node: TVRMLNode; FieldOrEvent: TVRMLFieldOrEvent);
     procedure ChangedField(Field: TVRMLField);
     { @groupEnd }
@@ -1643,7 +1644,7 @@ begin
 end;
 
 procedure TVRMLScene.ChangedShapeStateFields(ShapeStateNum: integer;
-  const TransformOnly: boolean);
+  const TransformOnly, TextureImageChanged: boolean);
 begin
   Validities := [];
   ShapeStates[ShapeStateNum].Changed;
@@ -1688,7 +1689,7 @@ begin
       ParentScene.ShapeStates[ShapeStateNum].State.AssignTransform(State);
       { TransformOnly = @true, suitable for roSeparateShapeStatesNoTransform,
         they don't have Transform compiled in display list. }
-      ParentScene.ChangedShapeStateFields(ShapeStateNum, true);
+      ParentScene.ChangedShapeStateFields(ShapeStateNum, true, false);
       Inc(ShapeStateNum);
       AnythingChanged := true;
     end else
@@ -1861,7 +1862,7 @@ begin
     for I := 0 to ShapeStates.Count - 1 do
       if ShapeStates[I].GeometryNode.Coord(ShapeStates[I].State, Coord) and
          (Coord.ParentNode = Node) then
-        ChangedShapeStateFields(I, false);
+        ChangedShapeStateFields(I, false, false);
 
     { Another special thing about Coordinate node is that it changes
       actual geometry. }
@@ -1873,7 +1874,7 @@ begin
       it's present on State.LastNodes list. }
     for i := 0 to ShapeStates.Count - 1 do
       if ShapeStates[i].State.LastNodes.Nodes[NodeLastNodesIndex] = Node then
-        ChangedShapeStateFields(i, false);
+        ChangedShapeStateFields(i, false, false);
   end else
   if Node is TNodeMaterial_2 then
   begin
@@ -1881,7 +1882,7 @@ begin
       placed inside Appearance.material field. }
     for I := 0 to ShapeStates.Count - 1 do
       if ShapeStates[I].State.ParentShape.Material = Node then
-        ChangedShapeStateFields(I, false);
+        ChangedShapeStateFields(I, false, false);
   end else
   if Node is TNodeX3DTextureCoordinateNode then
   begin
@@ -1891,7 +1892,7 @@ begin
       if (ShapeStates[I].GeometryNode is TNodeX3DComposedGeometryNode) and
          (TNodeX3DComposedGeometryNode(ShapeStates[I].GeometryNode).
            FdTexCoord.Value = Node) then
-        ChangedShapeStateFields(I, false);
+        ChangedShapeStateFields(I, false, false);
   end else
   if Node is TVRMLLightNode then
   begin
@@ -1906,7 +1907,7 @@ begin
            IndexOfLightNode(TVRMLLightNode(Node)) >= 0 then
         { TransformOnly = @true, suitable for roSeparateShapeStatesNoTransform,
           they don't have lights compiled in display list. }
-        ChangedShapeStateFields(i, true);
+        ChangedShapeStateFields(i, true, false);
   end else
   if Node is TVRMLGeometryNode then
   begin
@@ -1914,7 +1915,7 @@ begin
       GeometryNode. }
     for i := 0 to ShapeStates.Count-1 do
       if ShapeStates[i].GeometryNode = Node then
-        ChangedShapeStateFields(i, false);
+        ChangedShapeStateFields(i, false, false);
     ScheduleGeometryChanged;
   end else
   if (Field <> nil) and Field.Transform then
@@ -2037,11 +2038,10 @@ begin
       old texture (otherwise, LoadTextureData will not be called
       to reload the texture). }
     TVRMLTextureNode(Node).IsTextureLoaded := false;
-    { For now, this has to be followed by ChangedAll, to reload OpenGL
-      resources for this texture. Maybe this will be implemented more
-      intelligently in the future, for now this is not efficient but correct. }
-    ChangedAll;
-    Exit;
+
+    for I := 0 to ShapeStates.Count - 1 do
+      if ShapeStates[i].State.Texture = Node then
+        ChangedShapeStateFields(I, false, true);
   end else
   begin
     { node jest czyms innym; wiec musimy zalozyc ze zmiana jego pol wplynela
