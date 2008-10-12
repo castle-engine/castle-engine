@@ -31,7 +31,7 @@ type
   TKamScriptArray = class(TKamScriptValue)
   end;
 
-  TKamScriptIntegerArray = class(TKamScriptArray)
+  TKamScriptLongIntArray = class(TKamScriptArray)
   private
     class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -39,15 +39,15 @@ type
     class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
-    FValue: TDynIntegerArray;
-    procedure SetValue(const AValue: TDynIntegerArray);
+    FValue: TDynLongIntArray;
+    procedure SetValue(const AValue: TDynLongIntArray);
   public
-    constructor Create(const AWriteable: boolean; const AValue: TDynIntegerArray);
+    constructor Create(const AWriteable: boolean; const AValue: TDynLongIntArray);
     constructor Create(const AWriteable: boolean); override;
     destructor Destroy; override;
 
     { Array value. Assigning here makes a @italic(copy) of the array. }
-    property Value: TDynIntegerArray read FValue write SetValue;
+    property Value: TDynLongIntArray read FValue write SetValue;
 
     procedure AssignValue(Source: TKamScriptValue); override;
   end;
@@ -136,6 +136,216 @@ type
     procedure AssignValue(Source: TKamScriptValue); override;
   end;
 
+  TKamScriptVec2fArray = class(TKamScriptArray)
+  private
+    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    FValue: TDynVector2SingleArray;
+    procedure SetValue(const AValue: TDynVector2SingleArray);
+  public
+    constructor Create(const AWriteable: boolean; const AValue: TDynVector2SingleArray);
+    constructor Create(const AWriteable: boolean); override;
+    destructor Destroy; override;
+
+    { Array value. Assigning here makes a @italic(copy) of the array. }
+    property Value: TDynVector2SingleArray read FValue write SetValue;
+
+    procedure AssignValue(Source: TKamScriptValue); override;
+  end;
+
+  TKamScriptVec3fArray = class(TKamScriptArray)
+  private
+    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    FValue: TDynVector3SingleArray;
+    procedure SetValue(const AValue: TDynVector3SingleArray);
+  public
+    constructor Create(const AWriteable: boolean; const AValue: TDynVector3SingleArray);
+    constructor Create(const AWriteable: boolean); override;
+    destructor Destroy; override;
+
+    { Array value. Assigning here makes a @italic(copy) of the array. }
+    property Value: TDynVector3SingleArray read FValue write SetValue;
+
+    procedure AssignValue(Source: TKamScriptValue); override;
+  end;
+
+  TKamScriptVec4fArray = class(TKamScriptArray)
+  private
+    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    FValue: TDynVector4SingleArray;
+    procedure SetValue(const AValue: TDynVector4SingleArray);
+  public
+    constructor Create(const AWriteable: boolean; const AValue: TDynVector4SingleArray);
+    constructor Create(const AWriteable: boolean); override;
+    destructor Destroy; override;
+
+    { Array value. Assigning here makes a @italic(copy) of the array. }
+    property Value: TDynVector4SingleArray read FValue write SetValue;
+
+    procedure AssignValue(Source: TKamScriptValue); override;
+  end;
+
+  TKamScriptVec2dArray = class(TKamScriptArray)
+  private
+    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    FValue: TDynVector2DoubleArray;
+    procedure SetValue(const AValue: TDynVector2DoubleArray);
+  public
+    constructor Create(const AWriteable: boolean; const AValue: TDynVector2DoubleArray);
+    constructor Create(const AWriteable: boolean); override;
+    destructor Destroy; override;
+
+    { Array value. Assigning here makes a @italic(copy) of the array. }
+    property Value: TDynVector2DoubleArray read FValue write SetValue;
+
+    procedure AssignValue(Source: TKamScriptValue); override;
+  end;
+
+  TKamScriptVec3dArray = class(TKamScriptArray)
+  private
+    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    FValue: TDynVector3DoubleArray;
+    procedure SetValue(const AValue: TDynVector3DoubleArray);
+  public
+    constructor Create(const AWriteable: boolean; const AValue: TDynVector3DoubleArray);
+    constructor Create(const AWriteable: boolean); override;
+    destructor Destroy; override;
+
+    { Array value. Assigning here makes a @italic(copy) of the array. }
+    property Value: TDynVector3DoubleArray read FValue write SetValue;
+
+    procedure AssignValue(Source: TKamScriptValue); override;
+  end;
+
+  TKamScriptVec4dArray = class(TKamScriptArray)
+  private
+    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    FValue: TDynVector4DoubleArray;
+    procedure SetValue(const AValue: TDynVector4DoubleArray);
+  public
+    constructor Create(const AWriteable: boolean; const AValue: TDynVector4DoubleArray);
+    constructor Create(const AWriteable: boolean); override;
+    destructor Destroy; override;
+
+    { Array value. Assigning here makes a @italic(copy) of the array. }
+    property Value: TDynVector4DoubleArray read FValue write SetValue;
+
+    procedure AssignValue(Source: TKamScriptValue); override;
+  end;
+
+  TKamScriptMatrix3fArray = class(TKamScriptArray)
+  private
+    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    FValue: TDynMatrix3SingleArray;
+    procedure SetValue(const AValue: TDynMatrix3SingleArray);
+  public
+    constructor Create(const AWriteable: boolean; const AValue: TDynMatrix3SingleArray);
+    constructor Create(const AWriteable: boolean); override;
+    destructor Destroy; override;
+
+    { Array value. Assigning here makes a @italic(copy) of the array. }
+    property Value: TDynMatrix3SingleArray read FValue write SetValue;
+
+    procedure AssignValue(Source: TKamScriptValue); override;
+  end;
+
+  TKamScriptMatrix4fArray = class(TKamScriptArray)
+  private
+    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    FValue: TDynMatrix4SingleArray;
+    procedure SetValue(const AValue: TDynMatrix4SingleArray);
+  public
+    constructor Create(const AWriteable: boolean; const AValue: TDynMatrix4SingleArray);
+    constructor Create(const AWriteable: boolean); override;
+    destructor Destroy; override;
+
+    { Array value. Assigning here makes a @italic(copy) of the array. }
+    property Value: TDynMatrix4SingleArray read FValue write SetValue;
+
+    procedure AssignValue(Source: TKamScriptValue); override;
+  end;
+
+  TKamScriptMatrix3dArray = class(TKamScriptArray)
+  private
+    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    FValue: TDynMatrix3DoubleArray;
+    procedure SetValue(const AValue: TDynMatrix3DoubleArray);
+  public
+    constructor Create(const AWriteable: boolean; const AValue: TDynMatrix3DoubleArray);
+    constructor Create(const AWriteable: boolean); override;
+    destructor Destroy; override;
+
+    { Array value. Assigning here makes a @italic(copy) of the array. }
+    property Value: TDynMatrix3DoubleArray read FValue write SetValue;
+
+    procedure AssignValue(Source: TKamScriptValue); override;
+  end;
+
+  TKamScriptMatrix4dArray = class(TKamScriptArray)
+  private
+    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
+    FValue: TDynMatrix4DoubleArray;
+    procedure SetValue(const AValue: TDynMatrix4DoubleArray);
+  public
+    constructor Create(const AWriteable: boolean; const AValue: TDynMatrix4DoubleArray);
+    constructor Create(const AWriteable: boolean); override;
+    destructor Destroy; override;
+
+    { Array value. Assigning here makes a @italic(copy) of the array. }
+    property Value: TDynMatrix4DoubleArray read FValue write SetValue;
+
+    procedure AssignValue(Source: TKamScriptValue); override;
+  end;
+
   TKamScriptArrayFun = class(TKamScriptFunction)
   public
     class function ShortName: string; override;
@@ -172,10 +382,10 @@ uses SysUtils;
 
 { KambiScript values --------------------------------------------------------- }
 
-{$define TKamScriptXxxArray := TKamScriptIntegerArray}
-{$define TDynXxxArray := TDynIntegerArray}
+{$define TKamScriptXxxArray := TKamScriptLongIntArray}
+{$define TDynXxxArray := TDynLongIntArray}
 {$define TKamScriptXxxElement := TKamScriptInteger}
-{$define RegisterXxxFunctions := RegisterIntegerFunctions}
+{$define RegisterXxxFunctions := RegisterLongIntFunctions}
 {$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
 {$I kambiscriptarrays_implement.inc}
 
@@ -204,6 +414,76 @@ uses SysUtils;
 {$define TDynXxxArray := TDynStringArray}
 {$define TKamScriptXxxElement := TKamScriptString}
 {$define RegisterXxxFunctions := RegisterStringFunctions}
+{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$I kambiscriptarrays_implement.inc}
+
+{$define TKamScriptXxxArray := TKamScriptVec2fArray}
+{$define TDynXxxArray := TDynVector2SingleArray}
+{$define TKamScriptXxxElement := TKamScriptVec2f}
+{$define RegisterXxxFunctions := RegisterVec2fFunctions}
+{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$I kambiscriptarrays_implement.inc}
+
+{$define TKamScriptXxxArray := TKamScriptVec3fArray}
+{$define TDynXxxArray := TDynVector3SingleArray}
+{$define TKamScriptXxxElement := TKamScriptVec3f}
+{$define RegisterXxxFunctions := RegisterVec3fFunctions}
+{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$I kambiscriptarrays_implement.inc}
+
+{$define TKamScriptXxxArray := TKamScriptVec4fArray}
+{$define TDynXxxArray := TDynVector4SingleArray}
+{$define TKamScriptXxxElement := TKamScriptVec4f}
+{$define RegisterXxxFunctions := RegisterVec4fFunctions}
+{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$I kambiscriptarrays_implement.inc}
+
+{$define TKamScriptXxxArray := TKamScriptVec2dArray}
+{$define TDynXxxArray := TDynVector2DoubleArray}
+{$define TKamScriptXxxElement := TKamScriptVec2d}
+{$define RegisterXxxFunctions := RegisterVec2dFunctions}
+{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$I kambiscriptarrays_implement.inc}
+
+{$define TKamScriptXxxArray := TKamScriptVec3dArray}
+{$define TDynXxxArray := TDynVector3DoubleArray}
+{$define TKamScriptXxxElement := TKamScriptVec3d}
+{$define RegisterXxxFunctions := RegisterVec3dFunctions}
+{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$I kambiscriptarrays_implement.inc}
+
+{$define TKamScriptXxxArray := TKamScriptVec4dArray}
+{$define TDynXxxArray := TDynVector4DoubleArray}
+{$define TKamScriptXxxElement := TKamScriptVec4d}
+{$define RegisterXxxFunctions := RegisterVec4dFunctions}
+{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$I kambiscriptarrays_implement.inc}
+
+{$define TKamScriptXxxArray := TKamScriptMatrix3fArray}
+{$define TDynXxxArray := TDynMatrix3SingleArray}
+{$define TKamScriptXxxElement := TKamScriptMatrix3f}
+{$define RegisterXxxFunctions := RegisterMatrix3fFunctions}
+{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$I kambiscriptarrays_implement.inc}
+
+{$define TKamScriptXxxArray := TKamScriptMatrix4fArray}
+{$define TDynXxxArray := TDynMatrix4SingleArray}
+{$define TKamScriptXxxElement := TKamScriptMatrix4f}
+{$define RegisterXxxFunctions := RegisterMatrix4fFunctions}
+{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$I kambiscriptarrays_implement.inc}
+
+{$define TKamScriptXxxArray := TKamScriptMatrix3dArray}
+{$define TDynXxxArray := TDynMatrix3DoubleArray}
+{$define TKamScriptXxxElement := TKamScriptMatrix3d}
+{$define RegisterXxxFunctions := RegisterMatrix3dFunctions}
+{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$I kambiscriptarrays_implement.inc}
+
+{$define TKamScriptXxxArray := TKamScriptMatrix4dArray}
+{$define TDynXxxArray := TDynMatrix4DoubleArray}
+{$define TKamScriptXxxElement := TKamScriptMatrix4d}
+{$define RegisterXxxFunctions := RegisterMatrix4dFunctions}
 {$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
 {$I kambiscriptarrays_implement.inc}
 
@@ -240,9 +520,21 @@ begin
 end;
 
 initialization
-  RegisterIntegerFunctions;
+  RegisterLongIntFunctions;
   RegisterSingleFunctions;
   RegisterDoubleFunctions;
   RegisterBooleanFunctions;
   RegisterStringFunctions;
+
+  RegisterVec2fFunctions;
+  RegisterVec3fFunctions;
+  RegisterVec4fFunctions;
+  RegisterVec2dFunctions;
+  RegisterVec3dFunctions;
+  RegisterVec4dFunctions;
+
+  RegisterMatrix3fFunctions;
+  RegisterMatrix4fFunctions;
+  RegisterMatrix3dFunctions;
+  RegisterMatrix4dFunctions;
 end.
