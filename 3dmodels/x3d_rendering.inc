@@ -289,6 +289,9 @@
   end;
 
   TNodeLineSet = class(TNodeX3DGeometryNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -345,6 +348,9 @@
   end;
 
   TNodePointSet_2 = class(TNodeX3DGeometryNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -996,6 +1002,15 @@ begin
   Result := true;
 end;
 
+procedure TNodeLineSet.DirectEnumerateActive(
+  Func: TEnumerateChildrenFunction);
+begin
+  Fdattrib.EnumerateValid(Func);
+  Fdcolor.EnumerateValid(Func);
+  Fdcoord.EnumerateValid(Func);
+  FdfogCoord.EnumerateValid(Func);
+end;
+
 constructor TNodeNormal.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -1080,6 +1095,15 @@ begin
      (FdColor.Value is TNodeColor) then
     Result := TNodeColor(FdColor.Value).FdColor else
     Result := nil;
+end;
+
+procedure TNodePointSet_2.DirectEnumerateActive(
+  Func: TEnumerateChildrenFunction);
+begin
+  Fdattrib.EnumerateValid(Func);
+  Fdcolor.EnumerateValid(Func);
+  Fdcoord.EnumerateValid(Func);
+  FdfogCoord.EnumerateValid(Func);
 end;
 
 constructor TNodeTriangleFanSet.Create(const ANodeName: string;
