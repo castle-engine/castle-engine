@@ -522,6 +522,17 @@ type
       ("then" code or "else" code) will be left to the handler. }
     class function GreedyArgumentsCalculation: Integer; virtual;
 
+    { Which arguments should be assignable by this function.
+
+      Default implementation in TKamScriptFunction just returns @false
+      always. If you're making a function that changes it's argument
+      (like assignment operator, or vector_set, array_set and such)
+      you want to override this.
+
+      This is actually checked by CheckArguments, called from
+      constructors. }
+    class function ArgumentMustBeAssignable(const Index: Integer): boolean; virtual;
+
     { Function arguments. Don't modify this list after function is created
       (although you can modify values inside arguments). }
     property Args: TKamScriptExpressionsList read FArgs;
@@ -567,12 +578,11 @@ type
   TKamScriptAssignment = class(TKamScriptFunction)
   private
     class procedure HandleAssignment(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-  protected
-    procedure CheckArguments; override;
   public
     class function Name: string; override;
     class function ShortName: string; override;
     class function InfixOperatorName: string; override;
+    class function ArgumentMustBeAssignable(const Index: Integer): boolean; override;
   end;
 
   TKamScriptIf = class(TKamScriptFunction)
@@ -602,11 +612,10 @@ type
   TKamScriptFor = class(TKamScriptFunction)
   private
     class procedure HandleFor(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-  protected
-    procedure CheckArguments; override;
   public
     class function ShortName: string; override;
     class function GreedyArgumentsCalculation: Integer; override;
+    class function ArgumentMustBeAssignable(const Index: Integer): boolean; override;
   end;
 
   TKamScriptValueClassArray = array of TKamScriptValueClass;
@@ -1808,7 +1817,15 @@ begin
 end;
 
 procedure TKamScriptFunction.CheckArguments;
+var
+  I: Integer;
 begin
+  for I := 0 to Args.High do
+    if ArgumentMustBeAssignable(I) and
+       not ( (Args[I] is TKamScriptValue) and
+             TKamScriptValue(Args[I]).Writeable ) then
+      raise EKamScriptFunctionArgumentsError.CreateFmt('Argument %d of function %s must be a writeable operand (but is not)',
+        [I, Name]);
 end;
 
 destructor TKamScriptFunction.Destroy;
@@ -1839,6 +1856,11 @@ end;
 class function TKamScriptFunction.GreedyArgumentsCalculation: Integer;
 begin
   Result := -1;
+end;
+
+class function TKamScriptFunction.ArgumentMustBeAssignable(const Index: Integer): boolean;
+begin
+  Result := false;
 end;
 
 function TKamScriptFunction.Execute: TKamScriptValue;
@@ -2000,12 +2022,9 @@ begin
   ParentOfResult := false;
 end;
 
-procedure TKamScriptAssignment.CheckArguments;
+class function TKamScriptAssignment.ArgumentMustBeAssignable(const Index: Integer): boolean;
 begin
-  inherited;
-  if not ( (Args[0] is TKamScriptValue) and
-           TKamScriptValue(Args[0]).Writeable ) then
-    raise EKamScriptFunctionArgumentsError.Create('Left side of assignment expression is not a writeable operand');
+  Result := Index = 0;
 end;
 
 { TKamScriptIf --------------------------------------------------------- }
@@ -2150,18 +2169,17 @@ begin
   Result := 3;
 end;
 
-procedure TKamScriptFor.CheckArguments;
+class function TKamScriptFor.ArgumentMustBeAssignable(const Index: Integer): boolean;
 begin
-  inherited;
+  { This will cause checking whether Args[0] is assignable TKamScriptValue.
 
-  { Note that I cannot check here is Args[0] TKamScriptInteger,
+    Note that I cannot check in CheckArguments whether is
+    Args[0] is TKamScriptInteger,
     as it may be TKamScriptParameterValue, and so the actual runtime type
     (TKamScriptParameterValue.SourceValue) may be not set yet.
     That's Ok, in HandleFor this will be automatically checked by AssignValue. }
 
-  if not ( (Args[0] is TKamScriptValue) and
-           TKamScriptValue(Args[0]).Writeable ) then
-    raise EKamScriptFunctionArgumentsError.Create('First argument of "for" function is not a writeable operand');
+  Result := Index = 0;
 end;
 
 { TKamScriptFunctionHandlers ------------------------------------------------- }

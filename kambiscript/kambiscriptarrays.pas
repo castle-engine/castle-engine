@@ -364,6 +364,7 @@ type
   TKamScriptArraySetCount = class(TKamScriptFunction)
   public
     class function ShortName: string; override;
+    class function ArgumentMustBeAssignable(const Index: Integer): boolean; override;
   end;
 
   TKamScriptArrayGet = class(TKamScriptFunction)
@@ -374,6 +375,7 @@ type
   TKamScriptArraySet = class(TKamScriptFunction)
   public
     class function ShortName: string; override;
+    class function ArgumentMustBeAssignable(const Index: Integer): boolean; override;
   end;
 
 implementation
@@ -509,6 +511,11 @@ begin
   Result := 'array_set_count';
 end;
 
+class function TKamScriptArraySetCount.ArgumentMustBeAssignable(const Index: Integer): boolean;
+begin
+  Result := Index = 0;
+end;
+
 class function TKamScriptArrayGet.ShortName: string;
 begin
   Result := 'array_get';
@@ -517,6 +524,11 @@ end;
 class function TKamScriptArraySet.ShortName: string;
 begin
   Result := 'array_set';
+end;
+
+class function TKamScriptArraySet.ArgumentMustBeAssignable(const Index: Integer): boolean;
+begin
+  Result := Index = 0;
 end;
 
 initialization

@@ -303,10 +303,9 @@ type
   end;
 
   TKamScriptVectorSet = class(TKamScriptFunction)
-  protected
-    procedure CheckArguments; override;
   public
     class function ShortName: string; override;
+    class function ArgumentMustBeAssignable(const Index: Integer): boolean; override;
   end;
 
   TKamScriptVectorGetCount = class(TKamScriptFunction)
@@ -350,10 +349,9 @@ type
   end;
 
   TKamScriptMatrixSet = class(TKamScriptFunction)
-  protected
-    procedure CheckArguments; override;
   public
     class function ShortName: string; override;
+    class function ArgumentMustBeAssignable(const Index: Integer): boolean; override;
   end;
 
   TKamScriptMatrixGetCount = class(TKamScriptFunction)
@@ -485,12 +483,9 @@ begin
   Result := 'vector_set';
 end;
 
-procedure TKamScriptVectorSet.CheckArguments;
+class function TKamScriptVectorSet.ArgumentMustBeAssignable(const Index: Integer): boolean;
 begin
-  inherited;
-  if not ( (Args[0] is TKamScriptValue) and
-           TKamScriptValue(Args[0]).Writeable ) then
-    raise EKamScriptFunctionArgumentsError.Create('First argument of "vector_set" function is not a writeable operand');
+  Result := Index = 0;
 end;
 
 class function TKamScriptVectorGetCount.ShortName: string;
@@ -540,12 +535,9 @@ begin
   Result := 'matrix_set';
 end;
 
-procedure TKamScriptMatrixSet.CheckArguments;
+class function TKamScriptMatrixSet.ArgumentMustBeAssignable(const Index: Integer): boolean;
 begin
-  inherited;
-  if not ( (Args[0] is TKamScriptValue) and
-           TKamScriptValue(Args[0]).Writeable ) then
-    raise EKamScriptFunctionArgumentsError.Create('First argument of "matrix_set" function is not a writeable operand');
+  Result := Index = 0;
 end;
 
 class function TKamScriptMatrixGetCount.ShortName: string;
