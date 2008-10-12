@@ -1399,10 +1399,12 @@ type
   private
     DefaultValuesCount: Integer;
     DefaultValue: boolean;
+    function GetItems: TDynBooleanArray;
+    procedure SetItems(const Value: TDynBooleanArray);
   protected
     function RawItemToString(ItemNum: Integer): string; override;
   public
-    function Items: TDynBooleanArray;
+    property Items: TDynBooleanArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string;
@@ -1428,6 +1430,8 @@ type
     FSaveToStreamLineUptoNegative: boolean;
     function GetItemsSafe(Index: Integer): LongInt;
     procedure SetItemsSafe(Index: Integer; const Value: LongInt);
+    function GetItems: TDynLongIntArray;
+    procedure SetItems(const Value: TDynLongIntArray);
   protected
     function RawItemToString(ItemNum: integer): string; override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
@@ -1439,7 +1443,7 @@ type
       read FSaveToStreamLineUptoNegative write FSaveToStreamLineUptoNegative
       default false;
 
-    function Items: TDynLongintArray;
+    property Items: TDynLongintArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of Longint);
@@ -1472,10 +1476,12 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: TMatrix3Single;
+    function GetItems: TDynMatrix3SingleArray;
+    procedure SetItems(const Value: TDynMatrix3SingleArray);
   protected
     function RawItemToString(ItemNum: integer): string; override;
   public
-    function Items: TDynMatrix3SingleArray;
+    property Items: TDynMatrix3SingleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TMatrix3Single);
@@ -1499,10 +1505,12 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: TMatrix3Double;
+    function GetItems: TDynMatrix3DoubleArray;
+    procedure SetItems(const Value: TDynMatrix3DoubleArray);
   protected
     function RawItemToString(ItemNum: integer): string; override;
   public
-    function Items: TDynMatrix3DoubleArray;
+    property Items: TDynMatrix3DoubleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TMatrix3Double);
@@ -1526,10 +1534,12 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: TMatrix4Single;
+    function GetItems: TDynMatrix4SingleArray;
+    procedure SetItems(const Value: TDynMatrix4SingleArray);
   protected
     function RawItemToString(ItemNum: integer): string; override;
   public
-    function Items: TDynMatrix4SingleArray;
+    property Items: TDynMatrix4SingleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TMatrix4Single);
@@ -1553,10 +1563,12 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: TMatrix4Double;
+    function GetItems: TDynMatrix4DoubleArray;
+    procedure SetItems(const Value: TDynMatrix4DoubleArray);
   protected
     function RawItemToString(ItemNum: integer): string; override;
   public
-    function Items: TDynMatrix4DoubleArray;
+    property Items: TDynMatrix4DoubleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TMatrix4Double);
@@ -1582,10 +1594,12 @@ type
     DefaultValue: TVector2Single;
     function GetItemsSafe(Index: Integer): TVector2Single;
     procedure SetItemsSafe(Index: Integer; const Value: TVector2Single);
+    function GetItems: TDynVector2SingleArray;
+    procedure SetItems(const Value: TDynVector2SingleArray);
   protected
     function RawItemToString(ItemNum: integer): string; override;
   public
-    function Items: TDynVector2SingleArray;
+    property Items: TDynVector2SingleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TVector2Single);
@@ -1617,10 +1631,12 @@ type
     DefaultValue: TVector3Single;
     function GetItemsSafe(Index: Integer): TVector3Single;
     procedure SetItemsSafe(Index: Integer; const Value: TVector3Single);
+    function GetItems: TDynVector3SingleArray;
+    procedure SetItems(const Value: TDynVector3SingleArray);
   protected
     function RawItemToString(ItemNum: integer): string; override;
   public
-    function Items: TDynVector3SingleArray;
+    property Items: TDynVector3SingleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TVector3Single);
@@ -1655,10 +1671,12 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: TVector4Single;
+    function GetItems: TDynVector4SingleArray;
+    procedure SetItems(const Value: TDynVector4SingleArray);
   protected
     function RawItemToString(ItemNum: integer): string; override;
   public
-    function Items: TDynVector4SingleArray;
+    property Items: TDynVector4SingleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TVector4Single);
@@ -1686,10 +1704,12 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: TVector2Double;
+    function GetItems: TDynVector2DoubleArray;
+    procedure SetItems(const Value: TDynVector2DoubleArray);
   protected
     function RawItemToString(ItemNum: integer): string; override;
   public
-    function Items: TDynVector2DoubleArray;
+    property Items: TDynVector2DoubleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TVector2Double);
@@ -1713,10 +1733,12 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: TVector3Double;
+    function GetItems: TDynVector3DoubleArray;
+    procedure SetItems(const Value: TDynVector3DoubleArray);
   protected
     function RawItemToString(ItemNum: integer): string; override;
   public
-    function Items: TDynVector3DoubleArray;
+    property Items: TDynVector3DoubleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TVector3Double);
@@ -1740,10 +1762,12 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: TVector4Double;
+    function GetItems: TDynVector4DoubleArray;
+    procedure SetItems(const Value: TDynVector4DoubleArray);
   protected
     function RawItemToString(ItemNum: integer): string; override;
   public
-    function Items: TDynVector4DoubleArray;
+    property Items: TDynVector4DoubleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TVector4Double);
@@ -1767,10 +1791,12 @@ type
   private
     DefaultValuesCount: Integer;
     DefaultValue: TVector4Single;
+    function GetItems: TDynVector4SingleArray;
+    procedure SetItems(const Value: TDynVector4SingleArray);
   protected
     function RawItemToString(ItemNum: Integer): string; override;
   public
-    function Items: TDynVector4SingleArray;
+    property Items: TDynVector4SingleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string;
@@ -1795,10 +1821,12 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: Single;
+    function GetItems: TDynSingleArray;
+    procedure SetItems(const Value: TDynSingleArray);
   protected
     function RawItemToString(ItemNum: integer): string; override;
   public
-    function Items: TDynSingleArray;
+    property Items: TDynSingleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string;
@@ -1823,10 +1851,12 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: Double;
+    function GetItems: TDynDoubleArray;
+    procedure SetItems(const Value: TDynDoubleArray);
   protected
     function RawItemToString(ItemNum: integer): string; override;
   public
-    function Items: TDynDoubleArray;
+    property Items: TDynDoubleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string;
@@ -1856,10 +1886,12 @@ type
   private
     DefaultValuesCount: Integer;
     DefaultValue: string;
+    function GetItems: TDynStringArray;
+    procedure SetItems(const Value: TDynStringArray);
   protected
     function RawItemToString(ItemNum: Integer): string; override;
   public
-    function Items: TDynStringArray;
+    property Items: TDynStringArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of string);
@@ -4031,8 +4063,15 @@ begin
   DefaultValuesCount := -1;
 end;
 
-function TMF_CLASS.Items: TMF_DYN_STATIC_ITEM_ARRAY;
-begin result := TMF_DYN_STATIC_ITEM_ARRAY(RawItems) end;
+function TMF_CLASS.GetItems: TMF_DYN_STATIC_ITEM_ARRAY;
+begin
+  Result := TMF_DYN_STATIC_ITEM_ARRAY(RawItems)
+end;
+
+procedure TMF_CLASS.SetItems(const Value: TMF_DYN_STATIC_ITEM_ARRAY);
+begin
+  TMF_DYN_STATIC_ITEM_ARRAY(RawItems).Assign(Value);
+end;
 
 procedure TMF_CLASS.RawItemsAdd(Item: TVRMLSingleField);
 begin

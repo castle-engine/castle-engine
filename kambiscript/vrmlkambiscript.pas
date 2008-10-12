@@ -101,17 +101,15 @@ procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
 implementation
 
 uses SysUtils, VRMLNodes, VRMLScene, VRMLErrors, KambiLog, KambiScriptVectors,
-  VectorMath, KambiScriptImages;
+  VectorMath, KambiScriptImages, KambiScriptArrays;
 
 {$define read_implementation}
-
-{ TODO: unhandled VRML types for KambiScript: nodes, arrays of
-  existing types. }
 
 type
   { We use TKamScriptVec4f to represent VRML rotations.
     TKamScriptRotation is just for notation convenience. }
   TKamScriptRotation = TKamScriptVec4f;
+  TKamScriptRotationArray = TKamScriptVec4fArray;
 
 { general utils -------------------------------------------------------- }
 
@@ -124,53 +122,69 @@ begin
     FieldClass := TVRMLFieldClass(FieldOrEvent.ClassType);
 
   if FieldClass.InheritsFrom(TSFEnum) or
-     FieldClass.InheritsFrom(TSFLong) or
-     FieldClass.InheritsFrom(TMFLong) then
+     FieldClass.InheritsFrom(TSFLong) then
     Result := TKamScriptInteger.Create(true) else
+  if FieldClass.InheritsFrom(TMFLong) then
+    Result := TKamScriptLongIntArray.Create(true) else
   if FieldClass.InheritsFrom(TSFFloat) or
-     FieldClass.InheritsFrom(TSFDouble) or
-     FieldClass.InheritsFrom(TMFFloat) or
-     FieldClass.InheritsFrom(TMFDouble) then
+     FieldClass.InheritsFrom(TSFDouble) then
     Result := TKamScriptFloat.Create(true) else
-  if FieldClass.InheritsFrom(TSFBool) or
-     FieldClass.InheritsFrom(TMFBool) then
+  if FieldClass.InheritsFrom(TMFFloat) then
+    Result := TKamScriptSingleArray.Create(true) else
+  if FieldClass.InheritsFrom(TMFDouble) then
+    Result := TKamScriptDoubleArray.Create(true) else
+  if FieldClass.InheritsFrom(TSFBool) then
     Result := TKamScriptBoolean.Create(true) else
-  if FieldClass.InheritsFrom(TSFString) or
-     FieldClass.InheritsFrom(TMFString) then
+  if FieldClass.InheritsFrom(TMFBool) then
+    Result := TKamScriptBooleanArray.Create(true) else
+  if FieldClass.InheritsFrom(TSFString) then
     Result := TKamScriptString.Create(true) else
-  if FieldClass.InheritsFrom(TSFVec2f) or
-     FieldClass.InheritsFrom(TMFVec2f) then
+  if FieldClass.InheritsFrom(TMFString) then
+    Result := TKamScriptStringArray.Create(true) else
+  if FieldClass.InheritsFrom(TSFVec2f) then
     Result := TKamScriptVec2f.Create(true) else
-  if FieldClass.InheritsFrom(TSFVec3f) or
-     FieldClass.InheritsFrom(TMFVec3f) then
+  if FieldClass.InheritsFrom(TMFVec2f) then
+    Result := TKamScriptVec2fArray.Create(true) else
+  if FieldClass.InheritsFrom(TSFVec3f) then
     Result := TKamScriptVec3f.Create(true) else
-  if FieldClass.InheritsFrom(TSFVec4f) or
-     FieldClass.InheritsFrom(TMFVec4f) then
+  if FieldClass.InheritsFrom(TMFVec3f) then
+    Result := TKamScriptVec3fArray.Create(true) else
+  if FieldClass.InheritsFrom(TSFVec4f) then
     Result := TKamScriptVec4f.Create(true) else
-  if FieldClass.InheritsFrom(TSFVec2d) or
-     FieldClass.InheritsFrom(TMFVec2d) then
+  if FieldClass.InheritsFrom(TMFVec4f) then
+    Result := TKamScriptVec4fArray.Create(true) else
+  if FieldClass.InheritsFrom(TSFVec2d) then
     Result := TKamScriptVec2d.Create(true) else
-  if FieldClass.InheritsFrom(TSFVec3d) or
-     FieldClass.InheritsFrom(TMFVec3d) then
+  if FieldClass.InheritsFrom(TMFVec2d) then
+    Result := TKamScriptVec2dArray.Create(true) else
+  if FieldClass.InheritsFrom(TSFVec3d) then
     Result := TKamScriptVec3d.Create(true) else
-  if FieldClass.InheritsFrom(TSFVec4d) or
-     FieldClass.InheritsFrom(TMFVec4d) then
+  if FieldClass.InheritsFrom(TMFVec3d) then
+    Result := TKamScriptVec3dArray.Create(true) else
+  if FieldClass.InheritsFrom(TSFVec4d) then
     Result := TKamScriptVec4d.Create(true) else
-  if FieldClass.InheritsFrom(TSFRotation) or
-     FieldClass.InheritsFrom(TMFRotation) then
+  if FieldClass.InheritsFrom(TMFVec4d) then
+    Result := TKamScriptVec4dArray.Create(true) else
+  if FieldClass.InheritsFrom(TSFRotation) then
     Result := TKamScriptRotation.Create(true) else
-  if FieldClass.InheritsFrom(TSFMatrix3f) or
-     FieldClass.InheritsFrom(TMFMatrix3f) then
+  if FieldClass.InheritsFrom(TMFRotation) then
+    Result := TKamScriptRotationArray.Create(true) else
+  if FieldClass.InheritsFrom(TSFMatrix3f) then
     Result := TKamScriptMatrix3f.Create(true) else
-  if FieldClass.InheritsFrom(TSFMatrix4f) or
-     FieldClass.InheritsFrom(TMFMatrix4f) then
+  if FieldClass.InheritsFrom(TMFMatrix3f) then
+    Result := TKamScriptMatrix3fArray.Create(true) else
+  if FieldClass.InheritsFrom(TSFMatrix4f) then
     Result := TKamScriptMatrix4f.Create(true) else
-  if FieldClass.InheritsFrom(TSFMatrix3d) or
-     FieldClass.InheritsFrom(TMFMatrix3d) then
+  if FieldClass.InheritsFrom(TMFMatrix4f) then
+    Result := TKamScriptMatrix4fArray.Create(true) else
+  if FieldClass.InheritsFrom(TSFMatrix3d) then
     Result := TKamScriptMatrix3d.Create(true) else
-  if FieldClass.InheritsFrom(TSFMatrix4d) or
-     FieldClass.InheritsFrom(TMFMatrix4d) then
+  if FieldClass.InheritsFrom(TMFMatrix3d) then
+    Result := TKamScriptMatrix3dArray.Create(true) else
+  if FieldClass.InheritsFrom(TSFMatrix4d) then
     Result := TKamScriptMatrix4d.Create(true) else
+  if FieldClass.InheritsFrom(TMFMatrix4d) then
+    Result := TKamScriptMatrix4dArray.Create(true) else
   if FieldClass.InheritsFrom(TSFImage) {or
      FieldClass.InheritsFrom(TMFImage) }then
     Result := TKamScriptImage.Create(true) else
@@ -192,154 +206,86 @@ procedure VRMLKamScriptBeforeExecute(Value: TKamScriptValue;
     if Field is TSFLong then
       TKamScriptInteger(Value).Value := TSFLong(Field).Value else
     if Field is TMFLong then
-    begin
-      if TMFLong(Field).Items.Count >= 1 then
-        TKamScriptInteger(Value).Value := TMFLong(Field).Items.Items[0] else
-        TKamScriptInteger(Value).Value := 0; { anything predictable }
-    end else
+      TKamScriptLongIntArray(Value).Value := TMFLong(Field).Items else
 
     if Field is TSFFloat then
       TKamScriptFloat(Value).Value := TSFFloat(Field).Value else
     if Field is TSFDouble then
       TKamScriptFloat(Value).Value := TSFDouble(Field).Value else
     if Field is TMFFloat then
-    begin
-      if TMFFloat(Field).Items.Count >= 1 then
-        TKamScriptFloat(Value).Value := TMFFloat(Field).Items.Items[0] else
-        TKamScriptFloat(Value).Value := 0.0; { anything predictable }
-    end else
+      TKamScriptSingleArray(Value).Value := TMFFloat(Field).Items else
     if Field is TMFDouble then
-    begin
-      if TMFDouble(Field).Items.Count >= 1 then
-        TKamScriptFloat(Value).Value := TMFDouble(Field).Items.Items[0] else
-        TKamScriptFloat(Value).Value := 0.0; { anything predictable }
-    end else
+      TKamScriptDoubleArray(Value).Value := TMFDouble(Field).Items else
 
     if Field is TSFBool then
       TKamScriptBoolean(Value).Value := TSFBool(Field).Value else
     if Field is TMFBool then
-    begin
-      if TMFBool(Field).Items.Count >= 1 then
-        TKamScriptBoolean(Value).Value := TMFBool(Field).Items.Items[0] else
-        TKamScriptBoolean(Value).Value := false; { anything predictable }
-    end else
+      TKamScriptBooleanArray(Value).Value := TMFBool(Field).Items else
 
     if Field is TSFString then
       TKamScriptString(Value).Value := TSFString(Field).Value else
     if Field is TMFString then
-    begin
-      if TMFString(Field).Items.Count >= 1 then
-        TKamScriptString(Value).Value := TMFString(Field).Items.Items[0] else
-        TKamScriptString(Value).Value := ''; { anything predictable }
-    end else
+      TKamScriptStringArray(Value).Value := TMFString(Field).Items else
 
     if Field is TSFVec2f then
       TKamScriptVec2f(Value).Value := TSFVec2f(Field).Value else
     if Field is TMFVec2f then
-    begin
-      if TMFVec2f(Field).Items.Count >= 1 then
-        TKamScriptVec2f(Value).Value := TMFVec2f(Field).Items.Items[0] else
-        TKamScriptVec2f(Value).Value := ZeroVector2Single; { anything predictable }
-    end else
+      TKamScriptVec2fArray(Value).Value := TMFVec2f(Field).Items else
 
     if Field is TSFVec3f then
       TKamScriptVec3f(Value).Value := TSFVec3f(Field).Value else
     if Field is TMFVec3f then
-    begin
-      if TMFVec3f(Field).Items.Count >= 1 then
-        TKamScriptVec3f(Value).Value := TMFVec3f(Field).Items.Items[0] else
-        TKamScriptVec3f(Value).Value := ZeroVector3Single; { anything predictable }
-    end else
+      TKamScriptVec3fArray(Value).Value := TMFVec3f(Field).Items else
 
     if Field is TSFVec4f then
       TKamScriptVec4f(Value).Value := TSFVec4f(Field).Value else
     if Field is TMFVec4f then
-    begin
-      if TMFVec4f(Field).Items.Count >= 1 then
-        TKamScriptVec4f(Value).Value := TMFVec4f(Field).Items.Items[0] else
-        TKamScriptVec4f(Value).Value := ZeroVector4Single; { anything predictable }
-    end else
+      TKamScriptVec4fArray(Value).Value := TMFVec4f(Field).Items else
 
     if Field is TSFVec2d then
       TKamScriptVec2d(Value).Value := TSFVec2d(Field).Value else
     if Field is TMFVec2d then
-    begin
-      if TMFVec2d(Field).Items.Count >= 1 then
-        TKamScriptVec2d(Value).Value := TMFVec2d(Field).Items.Items[0] else
-        TKamScriptVec2d(Value).Value := ZeroVector2Double; { anything predictable }
-    end else
+      TKamScriptVec2dArray(Value).Value := TMFVec2d(Field).Items else
 
     if Field is TSFVec3d then
       TKamScriptVec3d(Value).Value := TSFVec3d(Field).Value else
     if Field is TMFVec3d then
-    begin
-      if TMFVec3d(Field).Items.Count >= 1 then
-        TKamScriptVec3d(Value).Value := TMFVec3d(Field).Items.Items[0] else
-        TKamScriptVec3d(Value).Value := ZeroVector3Double; { anything predictable }
-    end else
+      TKamScriptVec3dArray(Value).Value := TMFVec3d(Field).Items else
 
     if Field is TSFVec4d then
       TKamScriptVec4d(Value).Value := TSFVec4d(Field).Value else
     if Field is TMFVec4d then
-    begin
-      if TMFVec4d(Field).Items.Count >= 1 then
-        TKamScriptVec4d(Value).Value := TMFVec4d(Field).Items.Items[0] else
-        TKamScriptVec4d(Value).Value := ZeroVector4Double; { anything predictable }
-    end else
+      TKamScriptVec4dArray(Value).Value := TMFVec4d(Field).Items else
 
     if Field is TSFRotation then
       TKamScriptRotation(Value).Value := TSFRotation(Field).Value else
     if Field is TMFRotation then
-    begin
-      if TMFRotation(Field).Items.Count >= 1 then
-        TKamScriptRotation(Value).Value := TMFRotation(Field).Items.Items[0] else
-        TKamScriptRotation(Value).Value := ZeroVector4Single; { anything predictable }
-    end else
+      TKamScriptRotationArray(Value).Value := TMFRotation(Field).Items else
 
     if Field is TSFMatrix3f then
       TKamScriptMatrix3f(Value).Value := TSFMatrix3f(Field).Value else
     if Field is TMFMatrix3f then
-    begin
-      if TMFMatrix3f(Field).Items.Count >= 1 then
-        TKamScriptMatrix3f(Value).Value := TMFMatrix3f(Field).Items.Items[0] else
-        TKamScriptMatrix3f(Value).Value := IdentityMatrix3Single; { anything predictable }
-    end else
+      TKamScriptMatrix3fArray(Value).Value := TMFMatrix3f(Field).Items else
 
     if Field is TSFMatrix4f then
       TKamScriptMatrix4f(Value).Value := TSFMatrix4f(Field).Value else
     if Field is TMFMatrix4f then
-    begin
-      if TMFMatrix4f(Field).Items.Count >= 1 then
-        TKamScriptMatrix4f(Value).Value := TMFMatrix4f(Field).Items.Items[0] else
-        TKamScriptMatrix4f(Value).Value := IdentityMatrix4Single; { anything predictable }
-    end else
+      TKamScriptMatrix4fArray(Value).Value := TMFMatrix4f(Field).Items else
 
     if Field is TSFMatrix3d then
       TKamScriptMatrix3d(Value).Value := TSFMatrix3d(Field).Value else
     if Field is TMFMatrix3d then
-    begin
-      if TMFMatrix3d(Field).Items.Count >= 1 then
-        TKamScriptMatrix3d(Value).Value := TMFMatrix3d(Field).Items.Items[0] else
-        TKamScriptMatrix3d(Value).Value := IdentityMatrix3Double; { anything predictable }
-    end else
+      TKamScriptMatrix3dArray(Value).Value := TMFMatrix3d(Field).Items else
 
     if Field is TSFMatrix4d then
       TKamScriptMatrix4d(Value).Value := TSFMatrix4d(Field).Value else
     if Field is TMFMatrix4d then
-    begin
-      if TMFMatrix4d(Field).Items.Count >= 1 then
-        TKamScriptMatrix4d(Value).Value := TMFMatrix4d(Field).Items.Items[0] else
-        TKamScriptMatrix4d(Value).Value := IdentityMatrix4Double; { anything predictable }
-    end else
+      TKamScriptMatrix4dArray(Value).Value := TMFMatrix4d(Field).Items else
 
     if Field is TSFImage then
       TKamScriptImage(Value).Value := TSFImage(Field).Value else
     {if Field is TMFImage then
-    begin
-      if TMFImage(Field).Items.Count >= 1 then
-        TKamScriptImage(Value).Value := TMFImage(Field).Items.Items[0] else
-        TKamScriptImage(Value).Value := ?; // anything predictable
-    end else}
+      TKamScriptImageArray(Value).Value := TMFImage(Field).Items else}
 
       { No sensible way to convert, just fall back to predictable 0.0. }
       TKamScriptFloat(Value).Value := 0.0;
@@ -427,129 +373,81 @@ begin
     if Field is TSFLong then
       TSFLong(Field).Value := TKamScriptInteger(Value).Value else
     if Field is TMFLong then
-    begin
-      TMFLong(Field).Items.Count := 1;
-      TMFLong(Field).Items.Items[0] := TKamScriptInteger(Value).Value;
-    end else
+      TMFLong(Field).Items := TKamScriptLongIntArray(Value).Value else
 
     if Field is TSFFloat then
       TSFFloat(Field).Value := TKamScriptFloat(Value).Value else
     if Field is TSFDouble then
       TSFDouble(Field).Value := TKamScriptFloat(Value).Value else
     if Field is TMFFloat then
-    begin
-      TMFFloat(Field).Items.Count := 1;
-      TMFFloat(Field).Items.Items[0] := TKamScriptFloat(Value).Value;
-    end else
+      TMFFloat(Field).Items := TKamScriptSingleArray(Value).Value else
     if Field is TMFDouble then
-    begin
-      TMFDouble(Field).Items.Count := 1;
-      TMFDouble(Field).Items.Items[0] := TKamScriptFloat(Value).Value;
-    end else
+      TMFDouble(Field).Items := TKamScriptDoubleArray(Value).Value else
 
     if Field is TSFBool then
       TSFBool(Field).Value := TKamScriptBoolean(Value).Value else
     if Field is TMFBool then
-    begin
-      TMFBool(Field).Items.Count := 1;
-      TMFBool(Field).Items.Items[0] := TKamScriptBoolean(Value).Value;
-    end else
+      TMFBool(Field).Items := TKamScriptBooleanArray(Value).Value else
 
     if Field is TSFString then
       TSFString(Field).Value := TKamScriptString(Value).Value else
     if Field is TMFString then
-    begin
-      TMFString(Field).Items.Count := 1;
-      TMFString(Field).Items.Items[0] := TKamScriptString(Value).Value;
-    end else
+      TMFString(Field).Items := TKamScriptStringArray(Value).Value else
 
     if Field is TSFVec2f then
       TSFVec2f(Field).Value := TKamScriptVec2f(Value).Value else
     if Field is TMFVec2f then
-    begin
-      TMFVec2f(Field).Items.Count := 1;
-      TMFVec2f(Field).Items.Items[0] := TKamScriptVec2f(Value).Value;
-    end else
+      TMFVec2f(Field).Items := TKamScriptVec2fArray(Value).Value else
 
     if Field is TSFVec3f then
       TSFVec3f(Field).Value := TKamScriptVec3f(Value).Value else
     if Field is TMFVec3f then
-    begin
-      TMFVec3f(Field).Items.Count := 1;
-      TMFVec3f(Field).Items.Items[0] := TKamScriptVec3f(Value).Value;
-    end else
+      TMFVec3f(Field).Items := TKamScriptVec3fArray(Value).Value else
 
     if Field is TSFVec4f then
       TSFVec4f(Field).Value := TKamScriptVec4f(Value).Value else
     if Field is TMFVec4f then
-    begin
-      TMFVec4f(Field).Items.Count := 1;
-      TMFVec4f(Field).Items.Items[0] := TKamScriptVec4f(Value).Value;
-    end else
+      TMFVec4f(Field).Items := TKamScriptVec4fArray(Value).Value else
 
     if Field is TSFVec2d then
       TSFVec2d(Field).Value := TKamScriptVec2d(Value).Value else
     if Field is TMFVec2d then
-    begin
-      TMFVec2d(Field).Items.Count := 1;
-      TMFVec2d(Field).Items.Items[0] := TKamScriptVec2d(Value).Value;
-    end else
+      TMFVec2d(Field).Items := TKamScriptVec2dArray(Value).Value else
 
     if Field is TSFVec3d then
       TSFVec3d(Field).Value := TKamScriptVec3d(Value).Value else
     if Field is TMFVec3d then
-    begin
-      TMFVec3d(Field).Items.Count := 1;
-      TMFVec3d(Field).Items.Items[0] := TKamScriptVec3d(Value).Value;
-    end else
+      TMFVec3d(Field).Items := TKamScriptVec3dArray(Value).Value else
 
     if Field is TSFVec4d then
       TSFVec4d(Field).Value := TKamScriptVec4d(Value).Value else
     if Field is TMFVec4d then
-    begin
-      TMFVec4d(Field).Items.Count := 1;
-      TMFVec4d(Field).Items.Items[0] := TKamScriptVec4d(Value).Value;
-    end else
+      TMFVec4d(Field).Items := TKamScriptVec4dArray(Value).Value else
 
     if Field is TSFRotation then
       TSFRotation(Field).Value := TKamScriptRotation(Value).Value else
     if Field is TMFRotation then
-    begin
-      TMFRotation(Field).Items.Count := 1;
-      TMFRotation(Field).Items.Items[0] := TKamScriptRotation(Value).Value;
-    end else
+      TMFRotation(Field).Items := TKamScriptRotationArray(Value).Value else
 
     if Field is TSFMatrix3f then
       TSFMatrix3f(Field).Value := TKamScriptMatrix3f(Value).Value else
     if Field is TMFMatrix3f then
-    begin
-      TMFMatrix3f(Field).Items.Count := 1;
-      TMFMatrix3f(Field).Items.Items[0] := TKamScriptMatrix3f(Value).Value;
-    end else
+      TMFMatrix3f(Field).Items := TKamScriptMatrix3fArray(Value).Value else
 
     if Field is TSFMatrix4f then
       TSFMatrix4f(Field).Value := TKamScriptMatrix4f(Value).Value else
     if Field is TMFMatrix4f then
-    begin
-      TMFMatrix4f(Field).Items.Count := 1;
-      TMFMatrix4f(Field).Items.Items[0] := TKamScriptMatrix4f(Value).Value;
-    end else
+      TMFMatrix4f(Field).Items := TKamScriptMatrix4fArray(Value).Value else
 
     if Field is TSFMatrix3d then
       TSFMatrix3d(Field).Value := TKamScriptMatrix3d(Value).Value else
     if Field is TMFMatrix3d then
-    begin
-      TMFMatrix3d(Field).Items.Count := 1;
-      TMFMatrix3d(Field).Items.Items[0] := TKamScriptMatrix3d(Value).Value;
-    end else
+      TMFMatrix3d(Field).Items := TKamScriptMatrix3dArray(Value).Value else
 
     if Field is TSFMatrix4d then
       TSFMatrix4d(Field).Value := TKamScriptMatrix4d(Value).Value else
     if Field is TMFMatrix4d then
-    begin
-      TMFMatrix4d(Field).Items.Count := 1;
-      TMFMatrix4d(Field).Items.Items[0] := TKamScriptMatrix4d(Value).Value;
-    end else
+      TMFMatrix4d(Field).Items := TKamScriptMatrix4dArray(Value).Value else
 
     if Field is TSFImage then
     begin
@@ -558,8 +456,7 @@ begin
     end else
     {if Field is TMFImage then
     begin
-      TMFImage(Field).Items.Count := 1;
-      TMFImage(Field).Items.Items[0] := TKamScriptImage(Value).Value;
+      TMFImage(Field).Items := TKamScriptImageArray(Value).Value
     end else}
 
     begin
