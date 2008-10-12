@@ -34,14 +34,14 @@ uses
 
 
 {var
-  T: TTestKambiScriptVectors;}
+  T: TTestKambiScript;}
 begin
 { Sometimes it's comfortable to just run the rest directly, to get
   full backtrace from FPC.
 
-  T := TTestKambiScriptVectors.Create;
-  T.TestVecDouble;
-}
+  T := TTestKambiScript.Create;
+  T.TestArrays;
+  T.Free;}
 
   Application.Initialize;
   {$ifndef TEXT_RUNNER}

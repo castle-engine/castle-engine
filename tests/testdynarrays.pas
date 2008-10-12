@@ -27,6 +27,7 @@ uses
 
 type
   TTestDynArrays = class(TTestCase)
+    procedure TestSetCountItems;
     procedure TestDynArrays;
     procedure TestVectorMathDynArrays;
     procedure TestDynArraysAssign;
@@ -41,6 +42,26 @@ uses KambiUtils, VectorMath;
 
 function IsSmallerString(const a, b: string): boolean;
 begin result := a < b end;
+
+procedure TTestDynArrays.TestSetCountItems;
+var
+  iarr: TDynIntegerArray;
+begin
+  iarr := TDynIntegerArray.Create;
+  try
+    Assert(iarr.Count = 0);
+
+    { growing count works, and sets Items to non-nil }
+    iarr.Count := 3;
+    Assert(iarr.Count = 3);
+    Assert(iarr.Items <> nil);
+
+    { growing count doesn't change previous values }
+    iarr[2] := 123;
+    iarr.Count := 1000000;
+    Assert(iarr[2] = 123);
+  finally FreeAndNil(iarr) end;
+end;
 
 procedure TTestDynArrays.TestDynArrays;
 var sarr, sarr2: TDynStringArray;
@@ -120,7 +141,7 @@ begin
   iarr.Assign(iarr2);
   Assert(iarr.Equal(iarr2));
   Assert(iarr.Equal([99, 1, 3, 6, 8]));
-  
+
   { simple DeleteDuplicates tests }
   IArr.DeleteDuplicates;
   Assert(iarr.Equal([99, 1, 3, 6, 8]));

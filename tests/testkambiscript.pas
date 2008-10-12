@@ -35,12 +35,14 @@ type
     procedure TestInheritsFrom;
     procedure TestFloatPrograms;
     procedure TestVariousTypesPrograms;
+    procedure TestArrays;
   end;
 
 implementation
 
 uses VectorMath, KambiScript, KambiScriptLexer, KambiScriptParser,
-  KambiStringUtils, KambiScriptCoreFunctions, KambiClassUtils;
+  KambiStringUtils, KambiScriptCoreFunctions, KambiClassUtils,
+  KambiScriptArrays;
 
 procedure TTestKambiScript.Test1;
 
@@ -393,6 +395,55 @@ begin
     { test "if" with missing else is catched correctly }
     Prog := ParseProgram('function main() if(true, 123)', []);
     ExecuteExpectError;
+    FreeAndNil(Prog);
+  finally
+    FreeWithContentsAndNil(Vars);
+  end;
+end;
+
+procedure TTestKambiScript.TestArrays;
+var
+  Prog: TKamScriptProgram;
+
+  procedure ExecuteExpectError(const FuncName: string);
+  begin
+    try
+      Prog.ExecuteFunction(FuncName, []);
+      Assert(false, 'should not get here');
+    except
+      on EKamScriptError do ;
+    end;
+  end;
+
+var
+  Vars: TKamScriptValuesList;
+begin
+  Vars := TKamScriptValuesList.Create;
+  try
+    Vars.Add(TKamScriptInteger.Create(true, 23));
+    Vars.Add(TKamScriptFloat.Create(true, 3.14));
+    Vars.Add(TKamScriptBoolean.Create(true, false));
+    Vars.Add(TKamScriptString.Create(true, 'foo'));
+    Vars.Add(TKamScriptIntegerArray.Create(true));
+
+    Vars[0].Name := 'my_int';
+    Vars[1].Name := 'my_float';
+    Vars[2].Name := 'my_bool';
+    Vars[3].Name := 'my_string';
+    Vars[4].Name := 'a_int';
+
+    Prog := ParseProgram(FileToString('test_script_array.kscript'), Vars);
+
+    Prog.ExecuteFunction('main', []);
+    Assert(TKamScriptInteger(Vars[0]).Value = 1 + 4 + 9 + 1 + 1 + 1);
+
+    Prog.ExecuteFunction('main_array_d_test', []);
+    Assert(TKamScriptFloat(Vars[1]).Value = 3.0);
+
+    ExecuteExpectError('main_test_invalid_index_get');
+    ExecuteExpectError('main_test_invalid_index_get_2');
+    ExecuteExpectError('main_test_invalid_index_set');
+
     FreeAndNil(Prog);
   finally
     FreeWithContentsAndNil(Vars);

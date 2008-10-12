@@ -45,25 +45,6 @@ type
     class procedure HandleImageSetColor(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleImageSetAlpha(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
-    { Notes about number of components:
-
-      Although you can assign any image descendant to Value, and then
-      this will be used as Value...
-
-      But image() function currently uses for 1 and 3 - TRGBImage and
-      for 2 and 4 - TRGBAlphaImage.
-
-      Yes, this means that grayscale (with eventual alpha)
-      is stored as RGB (with eventual alpha) anyway.
-      This is bad, but it follows current TSFImage implementation.
-      And this is the result of the fact that TGrayscaleImage is not
-      handled everywhere yet (in OpenGL units), and TGrayscaleRGBAlphaImage
-      is not implemented at all... This is supposed to be fixed one day.
-      For now, grayscale images are really seldom used, so there's no
-      pressure.
-      Besides memory (and performance) penalty, this is not noticeable
-      to user. }
-
     FValue: TImage;
     procedure SetValue(const AValue: TImage);
   public
@@ -71,7 +52,7 @@ type
     constructor Create(const AWriteable: boolean); override;
     destructor Destroy; override;
 
-    { Image value. Assignning here makes a @italic(copy) of the image. }
+    { Image value. Assigning here makes a @italic(copy) of the image. }
     property Value: TImage read FValue write SetValue;
 
     procedure AssignValue(Source: TKamScriptValue); override;
