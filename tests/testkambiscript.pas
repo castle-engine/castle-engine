@@ -424,7 +424,7 @@ begin
     Vars.Add(TKamScriptFloat.Create(true, 3.14));
     Vars.Add(TKamScriptBoolean.Create(true, false));
     Vars.Add(TKamScriptString.Create(true, 'foo'));
-    Vars.Add(TKamScriptIntegerArray.Create(true));
+    Vars.Add(TKamScriptLongIntArray.Create(true));
 
     Vars[0].Name := 'my_int';
     Vars[1].Name := 'my_float';
