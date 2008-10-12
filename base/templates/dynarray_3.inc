@@ -137,9 +137,21 @@
     function Propagate_IsSmallerFunc(const Val1, Val2: pointer): boolean;
     function Propagate_IsSmallerFuncByObject(const Val1, Val2: pointer): boolean;
   public
+    { Note that we do not want to use below "overload" keyword,
+      as we do *not* want here to allow cross-class (Delphi-style) overloading.
+      This would allow caller to call Create(ElementSize, InitialLength),
+      with disastrous consequences if ElementSize is wrong.
 
-    constructor Create; overload;
-    constructor Create(InitialLength: Integer); overload;
+      The constructor Create(ElementSize, InitialLength) should only
+      be available to TDynArray_3 implementation, and hidden from the
+      outside world.
+
+      Unfortunately for Delphi, we cannot do this AFAIK (overloading is always
+      cross-class). Under FPC thankfully we can. }
+    { }
+
+    constructor Create; {$ifdef DELPHI} overload; {$endif}
+    constructor Create(InitialLength: Integer); {$ifdef DELPHI} overload; {$endif}
     constructor CreateCopy(Source: TDynArray_3);
 
     { This is a comfortable Items property, that allows you to both read and
