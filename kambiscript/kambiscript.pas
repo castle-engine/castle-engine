@@ -252,6 +252,7 @@ type
     class procedure HandleSqr(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleSgn(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleAbs(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleRandom(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
     class procedure HandleGreater(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleLesser(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -323,6 +324,7 @@ type
     class procedure HandleMin(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleSgn(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleAbs(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleRandom(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleCeil(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleFloor(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleRound(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -1062,6 +1064,12 @@ begin
   TKamScriptInteger(AResult).Value := Abs( TKamScriptInteger(Arguments[0]).Value );
 end;
 
+class procedure TKamScriptInteger.HandleRandom(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
+  TKamScriptInteger(AResult).Value := Random( TKamScriptInteger(Arguments[0]).Value );
+end;
+
 class procedure TKamScriptInteger.HandleGreater(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
@@ -1399,6 +1407,12 @@ class procedure TKamScriptFloat.HandleAbs(AFunction: TKamScriptFunction; const A
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
   TKamScriptFloat(AResult).Value := Abs( TKamScriptFloat(Arguments[0]).Value );
+end;
+
+class procedure TKamScriptFloat.HandleRandom(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
+  TKamScriptFloat(AResult).Value := Random();
 end;
 
 class procedure TKamScriptFloat.HandleCeil(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -2479,6 +2493,7 @@ initialization
   FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleSqr, TKamScriptSqr, [TKamScriptInteger], false);
   FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleSgn, TKamScriptSgn, [TKamScriptInteger], false);
   FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleAbs, TKamScriptAbs, [TKamScriptInteger], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleRandom, TKamScriptRandom, [TKamScriptInteger], false);
 
   FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleGreater, TKamScriptGreater, [TKamScriptInteger, TKamScriptInteger], false);
   FunctionHandlers.RegisterHandler(@TKamScriptInteger(nil).HandleLesser, TKamScriptLesser, [TKamScriptInteger, TKamScriptInteger], false);
@@ -2524,6 +2539,7 @@ initialization
   FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleMin, TKamScriptMin, [TKamScriptFloat], true);
   FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleSgn, TKamScriptSgn, [TKamScriptFloat], false);
   FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleAbs, TKamScriptAbs, [TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleRandom, TKamScriptRandom, [], false);
   FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleCeil, TKamScriptCeil, [TKamScriptFloat], false);
   FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleFloor, TKamScriptFloor, [TKamScriptFloat], false);
   FunctionHandlers.RegisterHandler(@TKamScriptFloat(nil).HandleRound, TKamScriptRound, [TKamScriptFloat], false);

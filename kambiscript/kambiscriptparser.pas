@@ -215,10 +215,19 @@ const
             try
               try
                 Lexer.CheckTokenIs(tokLParen);
-                repeat
-                  Lexer.NextToken; { pomin ostatni "," lub "(" }
-                  FParams.Add(ExpressionInsideFactor);
-                until Lexer.Token <> tokComma;
+                Lexer.NextToken;
+
+                if Lexer.Token <> tokRParen then
+                begin
+                  repeat
+                    FParams.Add(ExpressionInsideFactor);
+                    if Lexer.Token = tokRParen then
+                      Break;
+                    Lexer.CheckTokenIs(tokComma);
+                    Lexer.NextToken;
+                  until false;
+                end;
+
                 Lexer.CheckTokenIs(tokRParen);
                 Lexer.NextToken;
               except FParams.FreeContentsByParentExpression; raise; end;
