@@ -203,6 +203,7 @@ type
   end;
 
   TKamScriptValueClass = class of TKamScriptValue;
+  TKamScriptValueClassArray = array of TKamScriptValueClass;
 
   TObjectsListItem_2 = TKamScriptValue;
   {$I objectslist_2.inc}
@@ -425,6 +426,11 @@ type
     ParentOfLastExecuteResult: boolean;
     { This is as returned by SearchFunctionClass }
     HandlersByArgument: TObjectList;
+    { Helper variables for Execute implementation.
+      Initialized in CheckArguments, to optimize: profiling shows that when
+      they are intialized in Execute, this takes quite a lot of Execute time. }
+    ExecuteArguments: array of TKamScriptValue;
+    ExecuteArgumentClasses: TKamScriptValueClassArray;
   protected
     { Used by constructor to check are args valid.
       Also, right now this gets FunctionHandlersByArgument (this way we don't
@@ -624,8 +630,6 @@ type
     class function GreedyArgumentsCalculation: Integer; override;
     class function ArgumentMustBeAssignable(const Index: Integer): boolean; override;
   end;
-
-  TKamScriptValueClassArray = array of TKamScriptValueClass;
 
   TKamScriptRegisteredHandler = class
   private
@@ -1849,6 +1853,9 @@ begin
   if not FunctionHandlers.SearchFunctionClass(
     TKamScriptFunctionClass(Self.ClassType), HandlersByArgument) then
     raise EKamScriptFunctionNoHandler.CreateFmt('No handler defined for function "%s"', [Name]);
+
+  SetLength(ExecuteArguments, Args.Count);
+  SetLength(ExecuteArgumentClasses, Args.Count);
 end;
 
 destructor TKamScriptFunction.Destroy;
@@ -1907,8 +1914,6 @@ function TKamScriptFunction.Execute: TKamScriptValue;
 
 var
   Handler: TKamScriptRegisteredHandler;
-  Arguments: array of TKamScriptValue;
-  ArgumentClasses: TKamScriptValueClassArray;
   I, GreedyArguments: Integer;
 begin
   GreedyArguments := Args.Count;
@@ -1918,31 +1923,29 @@ begin
   { We have to calculate arguments first, to know their type,
     to decide which handler is suitable.
     Actually, we calculate only first GreedyArguments, rest is left as nil. }
-  SetLength(Arguments, Args.Count);
-  SetLength(ArgumentClasses, Args.Count);
   for I := 0 to GreedyArguments - 1 do
   begin
-    Arguments[I] := Args[I].Execute;
-    ArgumentClasses[I] := TKamScriptValueClass(Arguments[I].ClassType);
+    ExecuteArguments[I] := Args[I].Execute;
+    ExecuteArgumentClasses[I] := TKamScriptValueClass(ExecuteArguments[I].ClassType);
   end;
   for I := GreedyArguments to Args.Count - 1 do
   begin
-    Arguments[I] := nil;
-    ArgumentClasses[I] := nil;
+    ExecuteArguments[I] := nil;
+    ExecuteArgumentClasses[I] := nil;
   end;
 
   { calculate Handler }
   if not FunctionHandlers.SearchArgumentClasses(
-    HandlersByArgument, ArgumentClasses, Handler) then
+    HandlersByArgument, ExecuteArgumentClasses, Handler) then
   begin
     { try promoting integer arguments to float, see if it will work then }
-    for I := 0 to Length(ArgumentClasses) - 1 do
-      if (ArgumentClasses[I] <> nil) and
-         (ArgumentClasses[I].InheritsFrom(TKamScriptInteger)) then
-        ArgumentClasses[I] := TKamScriptFloat;
+    for I := 0 to Length(ExecuteArgumentClasses) - 1 do
+      if (ExecuteArgumentClasses[I] <> nil) and
+         (ExecuteArgumentClasses[I].InheritsFrom(TKamScriptInteger)) then
+        ExecuteArgumentClasses[I] := TKamScriptFloat;
 
     if FunctionHandlers.SearchArgumentClasses(
-      HandlersByArgument, ArgumentClasses, Handler) then
+      HandlersByArgument, ExecuteArgumentClasses, Handler) then
     begin
       { So I found a handler, that will be valid if all integer args will
         get promoted to float. Cool, let's do it.
@@ -1950,16 +1953,16 @@ begin
         I use PromoteToFloat method, that will keep it's result valid
         for some time, since (depending on function handler) we may
         return PromoteToFloat result to the user. }
-      for I := 0 to Length(Arguments) - 1 do
-        if (Arguments[I] <> nil) and
-           (Arguments[I] is TKamScriptInteger) then
-          Arguments[I] := TKamScriptInteger(Arguments[I]).PromoteToFloat;
+      for I := 0 to Length(ExecuteArguments) - 1 do
+        if (ExecuteArguments[I] <> nil) and
+           (ExecuteArguments[I] is TKamScriptInteger) then
+          ExecuteArguments[I] := TKamScriptInteger(ExecuteArguments[I]).PromoteToFloat;
     end else
       raise EKamScriptFunctionNoHandler.CreateFmt('Function "%s" is not defined for this combination of arguments: %s',
-        [Name, ArgumentClassesToStr(ArgumentClasses)]);
+        [Name, ArgumentClassesToStr(ExecuteArgumentClasses)]);
   end;
 
-  Handler.Handler(Self, Arguments, LastExecuteResult, ParentOfLastExecuteResult);
+  Handler.Handler(Self, ExecuteArguments, LastExecuteResult, ParentOfLastExecuteResult);
 
   { Force raising pending exceptions by FP calculations in Handler.Handler. }
   ClearExceptions(true);
