@@ -5,18 +5,16 @@
   any RGB(+possibly with alpha) existing image filename.
 
   Note that this may take a while for larger images.
-  KambiScript was never meant to be a fast language, and it's image functions
-  are comfortable but not fast (3-byte convertion between 3-single/float mix,
-  for starters). If you want optimal language, any scripting lang is bad choice,
-  rather use ObjectPascal with Kambi game engine :).
+  With current optimizations, it takes 6.5 seconds for 640 x 480 image.
+  Hm, quite fast actually (before profiling, it was 93 seconds...).
+  For other image sizes --- do the math, time is proportional to pixels count.
 
-  Example times:
-  - for 160x200 image this takes 10 seconds.
-  - for 640x480 this takes 1 min 33 seconds.
-    This is 93 seconds, around 10 times longer.
-    This is as expected, as '(640*480) / (160*200)' = 9, and the time
-    of algorithm is linear on the number of pixels.
-  - for larger images - do the math, a couple of minutes is easily possible.
+  Take into account that KambiScript is not speed-optimal,
+  it's image functions are comfortable but not fast (3-byte convertion
+  between 3-single/float mix, for starters), we try to catch
+  FP exceptions immediately (which means we don't use FP unit efficiently)
+  and such. If you want optimal language, any scripting lang is bad choice,
+  rather use ObjectPascal with Kambi game engine :).
 }
 
 function main()
