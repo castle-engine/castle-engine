@@ -423,8 +423,13 @@ type
     FArgs: TKamScriptExpressionsList;
     LastExecuteResult: TKamScriptValue;
     ParentOfLastExecuteResult: boolean;
+    { This is as returned by SearchFunctionClass }
+    HandlersByArgument: TObjectList;
   protected
     { Used by constructor to check are args valid.
+      Also, right now this gets FunctionHandlersByArgument (this way we don't
+      have to search it at each TKamScriptFunction.Execute call,
+      so TKamScriptFunction.Execute may work much faster).
       @raises(EKamScriptFunctionArgumentsError on invalid Args passed to
       function.) }
     procedure CheckArguments; virtual;
@@ -1840,6 +1845,10 @@ begin
              TKamScriptValue(Args[I]).Writeable ) then
       raise EKamScriptFunctionArgumentsError.CreateFmt('Argument %d of function %s must be a writeable operand (but is not)',
         [I, Name]);
+
+  if not FunctionHandlers.SearchFunctionClass(
+    TKamScriptFunctionClass(Self.ClassType), HandlersByArgument) then
+    raise EKamScriptFunctionNoHandler.CreateFmt('No handler defined for function "%s"', [Name]);
 end;
 
 destructor TKamScriptFunction.Destroy;
@@ -1897,71 +1906,65 @@ function TKamScriptFunction.Execute: TKamScriptValue;
   end;
 
 var
-  HandlersByArgument: TObjectList;
   Handler: TKamScriptRegisteredHandler;
   Arguments: array of TKamScriptValue;
   ArgumentClasses: TKamScriptValueClassArray;
   I, GreedyArguments: Integer;
 begin
-  if FunctionHandlers.SearchFunctionClass(
-    TKamScriptFunctionClass(Self.ClassType), HandlersByArgument) then
+  GreedyArguments := Args.Count;
+  if GreedyArgumentsCalculation <> -1 then
+    MinTo1st(GreedyArguments, GreedyArgumentsCalculation);
+
+  { We have to calculate arguments first, to know their type,
+    to decide which handler is suitable.
+    Actually, we calculate only first GreedyArguments, rest is left as nil. }
+  SetLength(Arguments, Args.Count);
+  SetLength(ArgumentClasses, Args.Count);
+  for I := 0 to GreedyArguments - 1 do
   begin
-    GreedyArguments := Args.Count;
-    if GreedyArgumentsCalculation <> -1 then
-      MinTo1st(GreedyArguments, GreedyArgumentsCalculation);
+    Arguments[I] := Args[I].Execute;
+    ArgumentClasses[I] := TKamScriptValueClass(Arguments[I].ClassType);
+  end;
+  for I := GreedyArguments to Args.Count - 1 do
+  begin
+    Arguments[I] := nil;
+    ArgumentClasses[I] := nil;
+  end;
 
-    { We have to calculate arguments first, to know their type,
-      to decide which handler is suitable.
-      Actually, we calculate only first GreedyArguments, rest is left as nil. }
-    SetLength(Arguments, Args.Count);
-    SetLength(ArgumentClasses, Args.Count);
-    for I := 0 to GreedyArguments - 1 do
-    begin
-      Arguments[I] := Args[I].Execute;
-      ArgumentClasses[I] := TKamScriptValueClass(Arguments[I].ClassType);
-    end;
-    for I := GreedyArguments to Args.Count - 1 do
-    begin
-      Arguments[I] := nil;
-      ArgumentClasses[I] := nil;
-    end;
+  { calculate Handler }
+  if not FunctionHandlers.SearchArgumentClasses(
+    HandlersByArgument, ArgumentClasses, Handler) then
+  begin
+    { try promoting integer arguments to float, see if it will work then }
+    for I := 0 to Length(ArgumentClasses) - 1 do
+      if (ArgumentClasses[I] <> nil) and
+         (ArgumentClasses[I].InheritsFrom(TKamScriptInteger)) then
+        ArgumentClasses[I] := TKamScriptFloat;
 
-    { calculate Handler }
-    if not FunctionHandlers.SearchArgumentClasses(
+    if FunctionHandlers.SearchArgumentClasses(
       HandlersByArgument, ArgumentClasses, Handler) then
     begin
-      { try promoting integer arguments to float, see if it will work then }
-      for I := 0 to Length(ArgumentClasses) - 1 do
-        if (ArgumentClasses[I] <> nil) and
-           (ArgumentClasses[I].InheritsFrom(TKamScriptInteger)) then
-          ArgumentClasses[I] := TKamScriptFloat;
+      { So I found a handler, that will be valid if all integer args will
+        get promoted to float. Cool, let's do it.
 
-      if FunctionHandlers.SearchArgumentClasses(
-        HandlersByArgument, ArgumentClasses, Handler) then
-      begin
-        { So I found a handler, that will be valid if all integer args will
-          get promoted to float. Cool, let's do it.
+        I use PromoteToFloat method, that will keep it's result valid
+        for some time, since (depending on function handler) we may
+        return PromoteToFloat result to the user. }
+      for I := 0 to Length(Arguments) - 1 do
+        if (Arguments[I] <> nil) and
+           (Arguments[I] is TKamScriptInteger) then
+          Arguments[I] := TKamScriptInteger(Arguments[I]).PromoteToFloat;
+    end else
+      raise EKamScriptFunctionNoHandler.CreateFmt('Function "%s" is not defined for this combination of arguments: %s',
+        [Name, ArgumentClassesToStr(ArgumentClasses)]);
+  end;
 
-          I use PromoteToFloat method, that will keep it's result valid
-          for some time, since (depending on function handler) we may
-          return PromoteToFloat result to the user. }
-        for I := 0 to Length(Arguments) - 1 do
-          if (Arguments[I] <> nil) and
-             (Arguments[I] is TKamScriptInteger) then
-            Arguments[I] := TKamScriptInteger(Arguments[I]).PromoteToFloat;
-      end else
-        raise EKamScriptFunctionNoHandler.CreateFmt('Function "%s" is not defined for this combination of arguments: %s',
-          [Name, ArgumentClassesToStr(ArgumentClasses)]);
-    end;
+  Handler.Handler(Self, Arguments, LastExecuteResult, ParentOfLastExecuteResult);
 
-    Handler.Handler(Self, Arguments, LastExecuteResult, ParentOfLastExecuteResult);
+  { Force raising pending exceptions by FP calculations in Handler.Handler. }
+  ClearExceptions(true);
 
-    { Force raising pending exceptions by FP calculations in Handler.Handler. }
-    ClearExceptions(true);
-
-    Result := LastExecuteResult;
-  end else
-    raise EKamScriptFunctionNoHandler.CreateFmt('No handler defined for function "%s"', [Name]);
+  Result := LastExecuteResult;
 end;
 
 { TKamScriptRegisteredHandler ------------------------------------------------ }
