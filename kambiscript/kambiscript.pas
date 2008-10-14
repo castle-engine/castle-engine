@@ -104,6 +104,16 @@ type
   TKamScriptExpression = class
   private
     FEnvironment: TKamScriptEnvironment;
+  protected
+    { More internal version of Execute, this doesn't necessary check
+      floating-point exceptions. Execute actually calls CoreExecute
+      and then ClearExceptions.
+
+      When one KambiScript CoreExecute calls another function,
+      it can use CoreExecute instead of Execute. This way only one
+      ClearExceptions will be needed for whole expression execution,
+      instead of doing ClearExceptions after each function handler. }
+    function CoreExecute: TKamScriptValue; virtual; abstract;
   public
     (*Execute and calculate this expression.
 
@@ -133,7 +143,7 @@ type
 
       This ensures that we can safely execute even invalid expressions
       (like 'ln(-3)') and get reliable exceptions.*)
-    function Execute: TKamScriptValue; virtual; abstract;
+    function Execute: TKamScriptValue;
 
     { Try to execute expression, or return @nil if an error within
       expression. "Error within expression" means that
@@ -164,9 +174,10 @@ type
     FName: string;
     FValueAssigned: boolean;
     FWriteable: boolean;
+  protected
+    function CoreExecute: TKamScriptValue; override;
   public
     constructor Create(const AWriteable: boolean); virtual;
-    function Execute: TKamScriptValue; override;
 
     { Is this value writeable.
       If not, this will not be allowed to change by KambiScript assignment
@@ -228,9 +239,10 @@ type
   TKamScriptParameterValue = class(TKamScriptValue)
   private
     FSourceValue: TKamScriptValue;
+  protected
+    function CoreExecute: TKamScriptValue; override;
   public
     property SourceValue: TKamScriptValue read FSourceValue write FSourceValue;
-    function Execute: TKamScriptValue; override;
     procedure AssignValue(Source: TKamScriptValue); override;
   end;
 
@@ -456,6 +468,8 @@ type
       @raises(EKamScriptFunctionArgumentsError on invalid Args passed to
       function.) }
     procedure CheckArguments; virtual;
+
+    function CoreExecute: TKamScriptValue; override;
   public
     { Constructor initializing Args from given TKamScriptExpressionsList.
       AArgs list contents is copied, i.e. AArgs refence is not
@@ -566,8 +580,6 @@ type
     { Function arguments. Don't modify this list after function is created
       (although you can modify values inside arguments). }
     property Args: TKamScriptExpressionsList read FArgs;
-
-    function Execute: TKamScriptValue; override;
   end;
 
   TKamScriptFunctionClass = class of TKamScriptFunction;
@@ -906,6 +918,14 @@ begin
     Free;
 end;
 
+function TKamScriptExpression.Execute: TKamScriptValue;
+begin
+  Result := CoreExecute;
+
+  { Force raising pending exceptions by FP calculations }
+  ClearExceptions(true);
+end;
+
 function TKamScriptExpression.TryExecute: TKamScriptValue;
 begin
   try
@@ -944,7 +964,7 @@ begin
   FWriteable := AWriteable;
 end;
 
-function TKamScriptValue.Execute: TKamScriptValue;
+function TKamScriptValue.CoreExecute: TKamScriptValue;
 begin
   { Since we own Execute result, we can simply return self here. }
   Result := Self;
@@ -952,9 +972,9 @@ end;
 
 { TKamScriptParameterValue --------------------------------------------------- }
 
-function TKamScriptParameterValue.Execute: TKamScriptValue;
+function TKamScriptParameterValue.CoreExecute: TKamScriptValue;
 begin
-  Result := SourceValue.Execute;
+  Result := SourceValue.CoreExecute;
 end;
 
 procedure TKamScriptParameterValue.AssignValue(Source: TKamScriptValue);
@@ -1922,7 +1942,7 @@ begin
   Result := false;
 end;
 
-function TKamScriptFunction.Execute: TKamScriptValue;
+function TKamScriptFunction.CoreExecute: TKamScriptValue;
 
   function ArgumentClassesToStr(const A: TKamScriptValueClassArray): string;
   var
@@ -1954,7 +1974,7 @@ begin
     Actually, we calculate only first GreedyArguments, rest is left as nil. }
   for I := 0 to GreedyArguments - 1 do
   begin
-    ExecuteArguments[I] := Args[I].Execute;
+    ExecuteArguments[I] := Args[I].CoreExecute;
     ExecuteArgumentClasses[I] := TKamScriptValueClass(ExecuteArguments[I].ClassType);
   end;
   for I := GreedyArguments to Args.Count - 1 do
@@ -1992,9 +2012,6 @@ begin
   end;
 
   Handler.Handler(Self, ExecuteArguments, LastExecuteResult, ParentOfLastExecuteResult);
-
-  { Force raising pending exceptions by FP calculations in Handler.Handler. }
-  ClearExceptions(true);
 
   Result := LastExecuteResult;
 end;
@@ -2092,8 +2109,8 @@ begin
   ParentOfResult := false;
 
   if TKamScriptBoolean(Arguments[0]).Value then
-    AResult := AFunction.Args[1].Execute else
-    AResult := AFunction.Args[2].Execute;
+    AResult := AFunction.Args[1].CoreExecute else
+    AResult := AFunction.Args[2].CoreExecute;
 end;
 
 class function TKamScriptIf.GreedyArgumentsCalculation: Integer;
@@ -2117,7 +2134,7 @@ begin
   ParentOfResult := false;
 
   if TKamScriptBoolean(Arguments[0]).Value then
-    AResult := AFunction.Args[1].Execute else
+    AResult := AFunction.Args[1].CoreExecute else
   begin
     { "when" returns simple const false on "else" condition }
     AResult := TKamScriptBoolean.Create(false);
@@ -2144,7 +2161,7 @@ class procedure TKamScriptWhile.HandleWhile(
   var
     Condition: TKamScriptValue;
   begin
-    Condition := AFunction.Args[0].Execute;
+    Condition := AFunction.Args[0].CoreExecute;
     if Condition is TKamScriptBoolean then
       Result := TKamScriptBoolean(Condition).Value else
       raise EKamScriptError.Create('"if" function "condition" must return a boolean value');
@@ -2157,7 +2174,7 @@ begin
   ParentOfResult := false;
 
   while ExecuteCondition do
-    AResult := AFunction.Args[1].Execute;
+    AResult := AFunction.Args[1].CoreExecute;
 
   if AResult = nil then
   begin
@@ -2202,7 +2219,7 @@ begin
       so Arguments[0] is Ok here. }
     (Arguments[0] as TKamScriptInteger).Value := I;
 
-    AResult := AFunction.Args[3].Execute;
+    AResult := AFunction.Args[3].CoreExecute;
   end;
 
   if AResult = nil then
