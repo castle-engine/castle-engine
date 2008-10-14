@@ -419,18 +419,35 @@ type
     procedure AssignValue(Source: TKamScriptValue); override;
   end;
 
+  TKamScriptRegisteredHandler = class;
+
+  TKamScriptSearchArgumentClassesCache = record
+    IsCache: boolean;
+    QueryHandlersByArgument: TObjectList;
+    QueryArgumentClasses: TKamScriptValueClassArray;
+    Answer: boolean;
+    AnswerArgumentIndex: Integer;
+    AnswerHandler: TKamScriptRegisteredHandler;
+  end;
+
   TKamScriptFunction = class(TKamScriptExpression)
   private
     FArgs: TKamScriptExpressionsList;
     LastExecuteResult: TKamScriptValue;
     ParentOfLastExecuteResult: boolean;
+
     { This is as returned by SearchFunctionClass }
     HandlersByArgument: TObjectList;
+
     { Helper variables for Execute implementation.
       Initialized in CheckArguments, to optimize: profiling shows that when
       they are intialized in Execute, this takes quite a lot of Execute time. }
     ExecuteArguments: array of TKamScriptValue;
     ExecuteArgumentClasses: TKamScriptValueClassArray;
+
+    { Caches for SearchArgumentClasses, used to speed up Execute }
+    Cache1: TKamScriptSearchArgumentClassesCache;
+    Cache2: TKamScriptSearchArgumentClassesCache;
   protected
     { Used by constructor to check are args valid.
       Also, right now this gets FunctionHandlersByArgument (this way we don't
@@ -721,6 +738,18 @@ type
       HandlersByArgument: TObjectList;
       const ArgumentClasses: TKamScriptValueClassArray;
       out Handler: TKamScriptRegisteredHandler): boolean; overload;
+
+    { This uses Cache to speed up SearchArgumentClasses.
+      The cache remembers last HandlersByArgument, ArgumentClasses,
+      and answer for them (if @true). Use this if you suspect that
+      SearchArgumentClasses will be called many times with the same
+      HandlersByArgument, ArgumentClasses --- then this will use cache
+      to give answer much faster. }
+    function SearchArgumentClasses(
+      HandlersByArgument: TObjectList;
+      const ArgumentClasses: TKamScriptValueClassArray;
+      out Handler: TKamScriptRegisteredHandler;
+      var Cache: TKamScriptSearchArgumentClassesCache): boolean; overload;
   public
     constructor Create;
     destructor Destroy; override;
@@ -1936,7 +1965,7 @@ begin
 
   { calculate Handler }
   if not FunctionHandlers.SearchArgumentClasses(
-    HandlersByArgument, ExecuteArgumentClasses, Handler) then
+    HandlersByArgument, ExecuteArgumentClasses, Handler, Cache1) then
   begin
     { try promoting integer arguments to float, see if it will work then }
     for I := 0 to Length(ExecuteArgumentClasses) - 1 do
@@ -1945,7 +1974,7 @@ begin
         ExecuteArgumentClasses[I] := TKamScriptFloat;
 
     if FunctionHandlers.SearchArgumentClasses(
-      HandlersByArgument, ExecuteArgumentClasses, Handler) then
+      HandlersByArgument, ExecuteArgumentClasses, Handler, Cache2) then
     begin
       { So I found a handler, that will be valid if all integer args will
         get promoted to float. Cool, let's do it.
@@ -2308,6 +2337,45 @@ var
 begin
   Result := SearchArgumentClasses(
     HandlersByArgument, ArgumentClasses, ArgumentIndex, Handler);
+end;
+
+function TKamScriptFunctionHandlers.SearchArgumentClasses(
+  HandlersByArgument: TObjectList;
+  const ArgumentClasses: TKamScriptValueClassArray;
+  out Handler: TKamScriptRegisteredHandler;
+  var Cache: TKamScriptSearchArgumentClassesCache): boolean;
+
+  function ArgumentClassesEqual(const A1, A2: TKamScriptValueClassArray): boolean;
+  begin
+    Result := (Length(A1) = Length(A2)) and
+      CompareMem(Pointer(A1), Pointer(A1),
+        SizeOf(TKamScriptValueClass) * Length(A1));
+  end;
+
+begin
+  if Cache.IsCache and
+     (Cache.QueryHandlersByArgument = HandlersByArgument) and
+     ArgumentClassesEqual(Cache.QueryArgumentClasses, ArgumentClasses) then
+  begin
+    { Use the cached result }
+    Handler := Cache.AnswerHandler;
+    { ArgumentIndex := Cache.ArgumentIndex; not returned here }
+    Result := Cache.Answer;
+  end else
+  begin
+    { Result not in the cache. So calculate it, and record in the cache. }
+    Cache.IsCache := true;
+    Cache.QueryHandlersByArgument := HandlersByArgument;
+    Cache.QueryArgumentClasses := ArgumentClasses;
+    Cache.Answer := SearchArgumentClasses(
+      HandlersByArgument, ArgumentClasses,
+      Cache.AnswerArgumentIndex, Cache.AnswerHandler);
+
+    { Use the cached result }
+    Handler := Cache.AnswerHandler;
+    { ArgumentIndex := Cache.ArgumentIndex; not returned here }
+    Result := Cache.Answer;
+  end;
 end;
 
 procedure TKamScriptFunctionHandlers.RegisterHandler(
