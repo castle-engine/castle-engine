@@ -36,6 +36,7 @@ type
     procedure TestFloatPrograms;
     procedure TestVariousTypesPrograms;
     procedure TestArrays;
+    procedure TestBools;
   end;
 
 implementation
@@ -448,6 +449,30 @@ begin
   finally
     FreeWithContentsAndNil(Vars);
   end;
+end;
+
+procedure TTestKambiScript.TestBools;
+begin
+  Assert(ParseConstantFloatExpression('or(false, false, false)') = 0);
+  Assert(ParseConstantFloatExpression('or(false, false, true)') = 1);
+  Assert(ParseConstantFloatExpression('or(false, true, false)') = 1);
+  Assert(ParseConstantFloatExpression('or(true, false, false)') = 1);
+  Assert(ParseConstantFloatExpression('or(true, true, false)') = 1);
+  Assert(ParseConstantFloatExpression('or(false)') = 0);
+  Assert(ParseConstantFloatExpression('or(false, false)') = 0);
+
+  Assert(ParseConstantFloatExpression('and(false, false, false)') = 0);
+  Assert(ParseConstantFloatExpression('and(false, false, true)') = 0);
+  Assert(ParseConstantFloatExpression('and(false, true, false)') = 0);
+  Assert(ParseConstantFloatExpression('and(true, false, false)') = 0);
+  Assert(ParseConstantFloatExpression('and(true, true, false)') = 0);
+  Assert(ParseConstantFloatExpression('and(false)') = 0);
+  Assert(ParseConstantFloatExpression('and(false, false)') = 0);
+  Assert(ParseConstantFloatExpression('and(true)') = 1);
+  Assert(ParseConstantFloatExpression('and(true, true)') = 1);
+
+  Assert(ParseConstantFloatExpression('not(false)') = 1);
+  Assert(ParseConstantFloatExpression('not(true)') = 0);
 end;
 
 initialization
