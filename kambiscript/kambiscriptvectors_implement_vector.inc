@@ -83,6 +83,30 @@ begin
     1/TKamScriptFloat(Arguments[1]).Value);
 end;
 
+class procedure TKamScriptVecXx.HandleMax(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptVecXx);
+  for I := 0 to VectorGetCount - 1 do
+    TKamScriptVecXx(AResult).FValue[I] :=
+      Max( TKamScriptVecXx(Arguments[0]).FValue[I],
+           TKamScriptVecXx(Arguments[1]).FValue[I] );
+  TKamScriptVecXx(AResult).ValueAssigned := true;
+end;
+
+class procedure TKamScriptVecXx.HandleMin(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptVecXx);
+  for I := 0 to VectorGetCount - 1 do
+    TKamScriptVecXx(AResult).FValue[I] :=
+      Min( TKamScriptVecXx(Arguments[0]).FValue[I],
+           TKamScriptVecXx(Arguments[1]).FValue[I] );
+  TKamScriptVecXx(AResult).ValueAssigned := true;
+end;
+
 class procedure TKamScriptVecXx.HandleVector(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 var
   I: Integer;
@@ -183,6 +207,9 @@ begin
   FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleMultiply, TKamScriptMultiply, [TKamScriptVecXx, TKamScriptFloat], false);
   FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleMultiply, TKamScriptMultiply, [TKamScriptFloat, TKamScriptVecXx], false);
   FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleDivide, TKamScriptDivide, [TKamScriptVecXx, TKamScriptFloat], false);
+
+  FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleMax, TKamScriptMax, [TKamScriptVecXx, TKamScriptVecXx], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptVecXx(nil).HandleMin, TKamScriptMin, [TKamScriptVecXx, TKamScriptVecXx], false);
 
   { TKamScriptVecXx, functions from KambiScriptVectors }
   SetLength(VectorArgClasses, VectorGetCount);
