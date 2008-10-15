@@ -1607,11 +1607,14 @@ begin
 end;
 
 class procedure TKamScriptBoolean.HandleOr(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
-  TKamScriptBoolean(AResult).Value :=
-    TKamScriptBoolean(Arguments[0]).Value or
-    TKamScriptBoolean(Arguments[1]).Value;
+  TKamScriptBoolean(AResult).Value := TKamScriptBoolean(Arguments[0]).Value;
+  for I := 1 to Length(Arguments) - 1 do
+    TKamScriptBoolean(AResult).Value :=
+      TKamScriptBoolean(AResult).Value or TKamScriptBoolean(Arguments[I]).Value;
 end;
 
 class procedure TKamScriptBoolean.HandleAnd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -1626,14 +1629,9 @@ begin
 end;
 
 class procedure TKamScriptBoolean.HandleNot(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-var
-  I: Integer;
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
-  TKamScriptBoolean(AResult).Value := TKamScriptBoolean(Arguments[0]).Value;
-  for I := 1 to Length(Arguments) - 1 do
-    TKamScriptBoolean(AResult).Value :=
-      TKamScriptBoolean(AResult).Value or TKamScriptBoolean(Arguments[I]).Value;
+  TKamScriptBoolean(AResult).Value := not TKamScriptBoolean(Arguments[0]).Value;
 end;
 
 class procedure TKamScriptBoolean.HandleGreater(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
