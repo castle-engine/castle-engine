@@ -140,8 +140,10 @@ D   glwindowfilefilters.pas
 
   kambiscript/
 D   kambiscript.pas
+D   kambiscriptarrays.pas
 D   kambiscriptlexer.pas
 D   kambiscriptcorefunctions.pas
+D   kambiscriptimages.pas
 D   kambiscriptparser.pas
 D   kambiscriptvectors.pas
 D   vrmlkambiscript.pas

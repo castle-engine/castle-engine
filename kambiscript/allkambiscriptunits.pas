@@ -11,7 +11,9 @@ interface
 
 uses
   kambiscript,
+  kambiscriptarrays,
   kambiscriptcorefunctions,
+  kambiscriptimages,
   kambiscriptlexer,
   kambiscriptparser,
   kambiscriptvectors,
