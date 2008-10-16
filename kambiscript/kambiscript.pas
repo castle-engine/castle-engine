@@ -167,10 +167,14 @@ type
     *)
     function Execute: TKamScriptValue;
 
-    { Try to execute expression, or return @nil if an error within
-      expression. "Error within expression" means that
-      a EKamScriptError exception occured while calculating expression. }
-    function TryExecute: TKamScriptValue;
+    { Try to execute expression, or return @nil if a mathematical error occured
+      within expression. "Math error within expression" means that
+      a EKamScriptAnyMathError exception occured while calculating expression.
+
+      This is useful to secure you against math arguments errors ('ln(-3)',
+      'sqrt(-3)') but still raises normal exception on other EKamScriptError
+      errors (like invalid argument type for function). }
+    function TryExecuteMath: TKamScriptValue;
 
     { Call Free, but only if this is not TKamScriptValue with
       OwnedByParentExpression = false. (This cannot be implemented
@@ -920,12 +924,12 @@ uses KambiScriptCoreFunctions, DataErrors;
       $080488B5  main,  line 127 of gen_function.pasprogram
 
   I tried to make more elegant workarounds by doing dummy fp
-  operations at the end of function calculation or TryExecute, to cause
+  operations at the end of function calculation or Execute, to cause
   the exception, but it just looks like EInvalidOp is never cleared by
   try..except block.
 
   The only workaround seems to be to use Set8087CW to mask exceptions,
-  and then compare with NaN to make proper TryExecute implementation. }
+  and then compare with NaN to make proper Execute implementation. }
 {$ifdef VER2_2_2}
   {$define WORKAROUND_EXCEPTIONS_FOR_SCRIPT_EXPRESSIONS}
 {$endif}
@@ -966,12 +970,12 @@ begin
   {$endif}
 end;
 
-function TKamScriptExpression.TryExecute: TKamScriptValue;
+function TKamScriptExpression.TryExecuteMath: TKamScriptValue;
 begin
   try
     Result := Execute;
   except
-    on EKamScriptError do
+    on EKamScriptAnyMathError do
       Result := nil;
   end;
 end;

@@ -38,6 +38,7 @@ type
     procedure TestArrays;
     procedure TestBools;
     procedure TestInvalidOps;
+    procedure TestTryExecuteMath;
   end;
 
 implementation
@@ -479,7 +480,7 @@ end;
 procedure TTestKambiScript.TestInvalidOps;
 
   { Executing (but not parsing) of Expr should raise EKamScriptError }
-  procedure ExpectErrors(const Expr: string);
+  procedure ExpectMathErrors(const Expr: string);
   var
     Ex: TKamScriptExpression;
   begin
@@ -487,19 +488,90 @@ procedure TTestKambiScript.TestInvalidOps;
     try
       try
         Ex.Execute;
-        Assert(false, Expr + ' should raise EKamScriptError, but didn''t');
+        Assert(false, Expr + ' should raise EKamScriptAnyMathError, but didn''t raise anything');
       except
-        on EKamScriptError do ;
+        on EKamScriptAnyMathError do ;
+      end;
+    finally FreeAndNil(Ex) end;
+  end;
+
+  { Executing (but not parsing) of Expr should raise EKamScriptError,
+    but not EKamScriptAnyMathError. }
+  procedure ExpectNonMathErrors(const Expr: string);
+  var
+    Ex: TKamScriptExpression;
+  begin
+    Ex := ParseFloatExpression(Expr, []);
+    try
+      try
+        Ex.Execute;
+        Assert(false, Expr + ' should raise EKamScriptError, but didn''t raise anything');
+      except
+        on E: EKamScriptError do
+        begin
+          Assert(not (E is EKamScriptAnyMathError));
+        end;
       end;
     finally FreeAndNil(Ex) end;
   end;
 
 begin
-//  ExpectErrors('0.1 / 0.0');
-  ExpectErrors('float(1 / 0)');
-  ExpectErrors('ln(-3)');
-  ExpectErrors('sqrt(-3)');
-  ExpectErrors('image_load(''blah blah'')');
+//  ExpectMathErrors('0.1 / 0.0');
+  ExpectMathErrors('float(1 / 0)');
+  ExpectMathErrors('ln(-3)');
+  ExpectMathErrors('sqrt(-3)');
+
+  ExpectNonMathErrors('false / true');
+  ExpectNonMathErrors('or(123)');
+  ExpectNonMathErrors('1 + true');
+  ExpectNonMathErrors('image_load(''blah blah'')');
+end;
+
+procedure TTestKambiScript.TestTryExecuteMath;
+
+  { Executing (but not parsing) of Expr should raise EKamScriptError.
+    TryExecute will return @nil then. }
+  procedure ExpectMathErrors(const Expr: string);
+  var
+    Ex: TKamScriptExpression;
+  begin
+    Ex := ParseFloatExpression(Expr, []);
+    try
+      Assert(Ex.TryExecuteMath = nil);
+    finally FreeAndNil(Ex) end;
+  end;
+
+  { Executing (but not parsing) of Expr should raise EKamScriptError,
+    but not EKamScriptAnyMathError. TryExecute let's this error through then. }
+  procedure ExpectNonMathErrors(const Expr: string);
+  var
+    Ex: TKamScriptExpression;
+  begin
+    Ex := ParseFloatExpression(Expr, []);
+    try
+      try
+        Ex.TryExecuteMath;
+        Assert(false, Expr + ' should raise EKamScriptError, but didn''t raise anything');
+      except
+        on E: EKamScriptError do
+        begin
+          Assert(not (E is EKamScriptAnyMathError));
+        end;
+      end;
+    finally FreeAndNil(Ex) end;
+  end;
+
+begin
+//  ExpectMathErrors('0.1 / 0.0');
+  ExpectMathErrors('float(1 / 0)');
+  ExpectMathErrors('ln(-3)');
+  ExpectMathErrors('sqrt(-3)');
+
+  ExpectNonMathErrors('false / true');
+  ExpectNonMathErrors('or(123)');
+  ExpectNonMathErrors('or(sin(123))');
+  ExpectNonMathErrors('1 + true');
+  ExpectNonMathErrors('image_load(''blah blah'')');
 end;
 
 initialization
