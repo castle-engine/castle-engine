@@ -2799,12 +2799,17 @@ begin
     VRML graph part. }
   RootNode.Traverse(TNodeProximitySensor, @TraverseForEvents);
 
-  { We have to initialize scripts only after all other initialization
-    is done, in particular after CollectNodeForEvents was called
-    for all and set their ParentEventsProcessor. Reason: scripts
-    initialize() methods may already cause some events, that should
-    notify us appropriately. }
-  RootNode.EnumerateNodes(TNodeScript, @ScriptsInitialize, false);
+  BeginGeometryChangedSchedule;
+  try
+    { We have to initialize scripts only after all other initialization
+      is done, in particular after CollectNodeForEvents was called
+      for all and set their ParentEventsProcessor. Reason: scripts
+      initialize() methods may already cause some events, that should
+      notify us appropriately.
+
+      This is also why Begin/EndGeometryChangedSchedule around is useful. }
+    RootNode.EnumerateNodes(TNodeScript, @ScriptsInitialize, false);
+  finally EndGeometryChangedSchedule end;
 end;
 
 procedure TVRMLScene.UnCollectForEvents(Node: TVRMLNode);
@@ -2819,9 +2824,12 @@ end;
 
 procedure TVRMLScene.UnregisterProcessEvents(Node: TVRMLNode);
 begin
-  { We have to deinitialize scripts before any other deinitialization
-    is done. Just like for ScriptsInitialize. }
-  Node.EnumerateNodes(TNodeScript, @ScriptsDeInitialize, false);
+  BeginGeometryChangedSchedule;
+  try
+    { We have to deinitialize scripts before any other deinitialization
+      is done. Just like for ScriptsInitialize. }
+    Node.EnumerateNodes(TNodeScript, @ScriptsDeInitialize, false);
+  finally EndGeometryChangedSchedule end;
 
   Node.EnumerateNodes(TVRMLNode, @UnCollectForEvents, false);
 end;
