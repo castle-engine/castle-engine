@@ -395,8 +395,15 @@ begin
   Scene.PointingDeviceClear;
   CursorNonMouseLook := gcDefault;
 
+  { Although we will recreate octrees very soon,
+    it's still elegant to nil them right after freeing.
+    Otherwise, when exception will raise from CreateTriangleOctree,
+    Scene.DefaultTriangleOctree will be left as invalid pointer. }
+
   Scene.DefaultTriangleOctree.Free;
+  Scene.DefaultTriangleOctree := nil;
   Scene.DefaultShapeStateOctree.Free;
+  Scene.DefaultShapeStateOctree := nil;
 
   Scene.DefaultTriangleOctree :=
     Scene.CreateTriangleOctree('Building triangle octree');
