@@ -81,6 +81,7 @@ type
 
   EKamScriptError = class(Exception);
   EKamAssignValueError = class(EKamScriptError);
+  EKamScriptAnyMathError = class(EKamScriptError);
 
   TKamScriptOutputProc = procedure (const S: string) of object;
 
@@ -105,9 +106,13 @@ type
   private
     FEnvironment: TKamScriptEnvironment;
   protected
-    { More internal version of Execute, this doesn't necessary check
-      floating-point exceptions. Execute actually calls CoreExecute
-      and then ClearExceptions.
+    { More internal version of Execute.
+
+      This doesn't necessarily check floating-point exceptions.
+      Execute actually calls CoreExecute and then ClearExceptions.
+
+      Also this doesn't try to convert EIntError and EMathError
+      to EKamScriptAnyMathError. This is done by Execute.
 
       When one KambiScript CoreExecute calls another function,
       it can use CoreExecute instead of Execute. This way only one
@@ -136,18 +141,35 @@ type
   Copy.AssignValue(ReturnedValue);
 #)
 
-      Execute is guaranteed to raise an exception if some
-      calculation fails, e.g. if expression will be 'ln(-3)'.
-      Stating it directly, Execute may even call Math.ClearExceptions(true)
-      if it is needed to force generating proper exceptions.
+      @raises(EKamScriptError
 
-      This ensures that we can safely execute even invalid expressions
-      (like 'ln(-3)') and get reliable exceptions.*)
+        Execute is guaranteed to raise an EKamScriptError exception if some
+        calculation fails because of invalid arguments.
+
+        This means that when you run KambiScript expression provided
+        by the user, you only have to catch EKamScriptError
+        to be safe from errors produced by user.
+        No need to catch something more general like Exception class.
+
+        Also it's guaranteed that no hanging floating-point errors
+        are left. Normally, there is no guarantee that
+        floating-point errors are raised immediately, they may
+        be raised at the next fp operation (this is needed for fp operations
+        to proceed in parallel, and be much faster).
+        For executing KambiScript, Execute calls Math.ClearExceptions(true)
+        to make sure that all floating point errors are catched.
+        This ensures that we can safely execute even invalid expressions
+        (like 'ln(-3)') and get reliable exceptions.
+
+        Floating-point errors of course also result in EKamScriptError descendants.
+        More specifically, EIntError and EMathError result
+        in EKamScriptAnyMathError.)
+    *)
     function Execute: TKamScriptValue;
 
     { Try to execute expression, or return @nil if an error within
       expression. "Error within expression" means that
-      any exception occured while calculating expression. }
+      a EKamScriptError exception occured while calculating expression. }
     function TryExecute: TKamScriptValue;
 
     { Call Free, but only if this is not TKamScriptValue with
@@ -920,25 +942,37 @@ end;
 
 function TKamScriptExpression.Execute: TKamScriptValue;
 begin
-  Result := CoreExecute;
+  try
+    Result := CoreExecute;
 
-  { Force raising pending exceptions by FP calculations }
-  ClearExceptions(true);
+    { Force raising pending exceptions by FP calculations }
+    ClearExceptions(true);
+  except
+    { Convert EIntError and EMathError to EKamScriptAnyMathError }
+    on E: EIntError do
+      raise EKamScriptAnyMathError.CreateFmt('Integer error %s: %s',
+        [E.ClassName, E.Message]);
+    on E: EMathError do
+      raise EKamScriptAnyMathError.CreateFmt('Math error %s: %s',
+        [E.ClassName, E.Message]);
+  end;
+
+  {$ifdef WORKAROUND_EXCEPTIONS_FOR_SCRIPT_EXPRESSIONS}
+  {$I norqcheckbegin.inc}
+  if (Result is TKamScriptFloat) and
+     IsNan(TKamScriptFloat(Result).Value) then
+    raise EKamScriptAnyMathError.Create('Floating point error');
+  {$I norqcheckend.inc}
+  {$endif}
 end;
 
 function TKamScriptExpression.TryExecute: TKamScriptValue;
 begin
   try
     Result := Execute;
-    {$ifdef WORKAROUND_EXCEPTIONS_FOR_SCRIPT_EXPRESSIONS}
-    {$I norqcheckbegin.inc}
-    if (Result is TKamScriptFloat) and
-       IsNan(TKamScriptFloat(Result).Value) then
-      Result := nil;
-    {$I norqcheckend.inc}
-    {$endif}
   except
-    Result := nil;
+    on EKamScriptError do
+      Result := nil;
   end;
 end;
 

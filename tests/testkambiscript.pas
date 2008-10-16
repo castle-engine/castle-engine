@@ -37,6 +37,7 @@ type
     procedure TestVariousTypesPrograms;
     procedure TestArrays;
     procedure TestBools;
+    procedure TestInvalidOps;
   end;
 
 implementation
@@ -473,6 +474,32 @@ begin
 
   Assert(ParseConstantFloatExpression('not(false)') = 1);
   Assert(ParseConstantFloatExpression('not(true)') = 0);
+end;
+
+procedure TTestKambiScript.TestInvalidOps;
+
+  { Executing (but not parsing) of Expr should raise EKamScriptError }
+  procedure ExpectErrors(const Expr: string);
+  var
+    Ex: TKamScriptExpression;
+  begin
+    Ex := ParseFloatExpression(Expr, []);
+    try
+      try
+        Ex.Execute;
+        Assert(false, Expr + ' should raise EKamScriptError, but didn''t');
+      except
+        on EKamScriptError do ;
+      end;
+    finally FreeAndNil(Ex) end;
+  end;
+
+begin
+//  ExpectErrors('0.1 / 0.0');
+  ExpectErrors('float(1 / 0)');
+  ExpectErrors('ln(-3)');
+  ExpectErrors('sqrt(-3)');
+  ExpectErrors('image_load(''blah blah'')');
 end;
 
 initialization
