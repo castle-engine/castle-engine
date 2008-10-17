@@ -964,7 +964,8 @@ begin
   {$ifdef WORKAROUND_EXCEPTIONS_FOR_SCRIPT_EXPRESSIONS}
   {$I norqcheckbegin.inc}
   if (Result is TKamScriptFloat) and
-     IsNan(TKamScriptFloat(Result).Value) then
+     ( IsNan(TKamScriptFloat(Result).Value) or
+       IsInfinite(TKamScriptFloat(Result).Value) ) then
     raise EKamScriptAnyMathError.Create('Floating point error');
   {$I norqcheckend.inc}
   {$endif}

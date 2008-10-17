@@ -516,7 +516,7 @@ procedure TTestKambiScript.TestInvalidOps;
   end;
 
 begin
-//  ExpectMathErrors('0.1 / 0.0');
+  ExpectMathErrors('0.1 / 0.0');
   ExpectMathErrors('float(1 / 0)');
   ExpectMathErrors('ln(-3)');
   ExpectMathErrors('sqrt(-3)');
@@ -562,7 +562,7 @@ procedure TTestKambiScript.TestTryExecuteMath;
   end;
 
 begin
-//  ExpectMathErrors('0.1 / 0.0');
+  ExpectMathErrors('0.1 / 0.0');
   ExpectMathErrors('float(1 / 0)');
   ExpectMathErrors('ln(-3)');
   ExpectMathErrors('sqrt(-3)');
