@@ -84,7 +84,7 @@ begin
   { evaluate SceneOctree }
   Progress.UserInterface := ProgressConsoleInterface;
   Scene.TriangleOctreeProgressTitle := 'Building octree';
-  Scene.OctreeStrategy := osFull;
+  Scene.OctreeStrategy := osTriangle;
 
   { render to Image }
   ProcessTimerBegin;

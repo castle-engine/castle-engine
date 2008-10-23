@@ -387,6 +387,17 @@ type
       TVRMLScene.TriangleOctree will always be @nil. }
     osShapeState,
 
+    { Create and keep current only the TriangleOctree.
+      Use this when you need only TriangleOctree, like when you just want
+      to use ray-tracer (that uses TriangleOctree, but has not use for
+      ShapeStateOctree).
+
+      TVRMLScene.TriangleOctree will always be initialized (non-nil),
+      and will describe current geometry.
+
+      TVRMLScene.ShapeStateOctree will always be @nil. }
+    osTriangle,
+
     { Create and keep current both octrees.
       TVRMLScene.TriangleOctree and TVRMLScene.ShapeStateOctree will
       always be initialized (non-nil), and will describe current geometry.
@@ -2344,8 +2355,8 @@ var
 begin
   if Value <> OctreeStrategy then
   begin
-    OldTriangleNeeded := OctreeStrategy = osFull;
-    NewTriangleNeeded := Value          = osFull;
+    OldTriangleNeeded := OctreeStrategy in [osTriangle, osFull];
+    NewTriangleNeeded := Value          in [osTriangle, osFull];
     OldSSNeeded := OctreeStrategy in [osShapeState, osFull];
     NewSSNeeded := Value          in [osShapeState, osFull];
 
