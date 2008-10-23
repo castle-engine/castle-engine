@@ -23,24 +23,6 @@
 { TKamVRMLBrowser component, simple VRML browser in a Lazarus component. }
 unit KambiVRMLBrowser;
 
-{ This is the weak point of our engine right now: updating octree on changes
-  of geometry. It takes some time, as we currently just rebuild the octree.
-  On the other hand, it's needed to perform collision detection
-  (this also includes picking touch sensors and such) on the up-to-date
-  model (in case e.g. touch sensor geometry moves). In some rare
-  cases (more precisely: when TVRMLScene.ChangedFields is not optimized
-  for this particular field and falls back to TVRMLScene.ChangedAll)
-  not updating octree may even cause the octree pointers to be invalid.
-
-  Both problems are being worked on. In the meantime
-  - you can define REBUILD_OCTREE to have always accurate and stable
-    collision detection, at the expense of a slowdowns in case of intensive
-    animations.
-  - you can undefine REBUILD_OCTREE to always use the first octree.
-    This makes collision detection work with the original geometry,
-    and sometimes may make it unstable. OTOH, all works fast. }
-{$define REBUILD_OCTREE}
-
 interface
 
 uses Classes, KambiGLControl, VectorMath, Controls,
@@ -48,7 +30,9 @@ uses Classes, KambiGLControl, VectorMath, Controls,
 
 type
   { A simple VRML browser as a Lazarus component. This manages TVRMLGLScene,
-    navigator (automatically adjusted to NavigationInfo.type) and octrees.
+    navigator (automatically adjusted to NavigationInfo.type).
+    Octress are also automatically managed by TVRMLGLScene if you
+    set Scene.OctreeStrategy to anything <> osNone, like osFull.
     You simply call @link(Load) method and all is done.
 
     This class tries to be a thin (not really "opaque")
@@ -59,6 +43,8 @@ type
 
     @unorderedList(
       @item(@link(TVRMLScene.ProcessEvents Scene.ProcessEvents))
+      @item(@link(TVRMLScene.OctreeStrategy Scene.OctreeStrategy),
+        and other octree properties)
       @item(@link(TVRMLScene.RegisterCompiledScript Scene.RegisterCompiledScript))
       @item(@link(TVRMLScene.LogChanges Scene.LogChanges))
       @item(Changing VRML graph:
@@ -85,8 +71,6 @@ type
     Some important things that you @italic(cannot) mess with:
 
     @unorderedList(
-      @item(Don't create/free octrees in Scene.DefaultTriangleOctree,
-        Scene.DefaultShapeStateOctree. This class manages them completely.)
       @item(Don't create/free Scene, Navigator and such objects yourself.
         This class manages them, they are always non-nil.)
     )
@@ -94,7 +78,7 @@ type
     This is very simple to use, but note that for more advanced uses
     you're not really expected to extend this class. Instead, you can
     implement something more suitable for you using your own
-    TVRMLGLScene, navigator and octrees management.
+    TVRMLGLScene and navigator management.
     In other words, remember that this class just provides
     a simple "glue" between the key components of our engine.
     For specialized cases, more complex scenarios may be needed.
@@ -122,6 +106,8 @@ type
     procedure BoundViewpointChanged(Scene: TVRMLScene);
     procedure BoundViewpointVectorsChanged(Scene: TVRMLScene);
     procedure GeometryChanged(Scene: TVRMLScene);
+
+    procedure UpdateCursor;
   protected
     procedure Paint; override;
     procedure DoGLContextInit; override;
@@ -202,11 +188,9 @@ begin
 
   FScene := TVRMLGLScene.Create(ARootNode, OwnsRootNode, roSeparateShapeStates);
 
-  { build octrees }
-  Scene.DefaultTriangleOctree :=
-    Scene.CreateTriangleOctree('Building triangle octree');
-  Scene.DefaultShapeStateOctree :=
-    Scene.CreateShapeStateOctree('Building ShapeState octree');
+  { initialize octrees titles }
+  Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
+  Scene.ShapeStateOctreeProgressTitle := 'Building ShapeState octree';
 
   { init Navigator }
   Navigator := Scene.CreateNavigator(CameraRadius);
@@ -261,7 +245,7 @@ begin
 
   glLoadMatrix(Navigator.Matrix);
   if Navigator is TWalkNavigator then
-    Scene.RenderFrustumOctree(WalkNav.Frustum, tgAll) else
+    Scene.RenderFrustum(WalkNav.Frustum, tgAll) else
     Scene.Render(nil, tgAll);
 
   SwapBuffers;
@@ -321,12 +305,7 @@ begin
     Scene.PointingDeviceActive := false;
 end;
 
-procedure TKamVRMLBrowser.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
-var
-  Ray0, RayVector: TVector3Single;
-  OverPoint: TVector3Single;
-  Item: POctreeItem;
-  ItemIndex: Integer;
+procedure TKamVRMLBrowser.UpdateCursor;
 
   function SensorsCount: Cardinal;
   begin
@@ -338,29 +317,39 @@ var
   end;
 
 begin
+  { I want to keep assertion that CursorNonMouseLook = gcHand when
+    we're over or keeping active some pointing-device sensors.
+    (Since we don't use MouseLook with TKamGLControl for now, I just
+    directly change Cursor. }
+  if SensorsCount <> 0 then
+    Cursor := crHandPoint else
+    Cursor := crDefault;
+end;
+
+procedure TKamVRMLBrowser.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
+var
+  Ray0, RayVector: TVector3Single;
+  OverPoint: TVector3Single;
+  Item: POctreeItem;
+  ItemIndex: Integer;
+begin
   inherited;
 
-  if (Scene.DefaultTriangleOctree <> nil) and
+  if (Scene.TriangleOctree <> nil) and
      (Navigator is TWalkNavigator) then
   begin
     Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, Ray0, RayVector);
 
-    ItemIndex := Scene.DefaultTriangleOctree.RayCollision(
+    ItemIndex := Scene.TriangleOctree.RayCollision(
       OverPoint, Ray0, RayVector, true, NoItemIndex, false, nil);
 
     if ItemIndex = NoItemIndex then
       Item := nil else
-      Item := Scene.DefaultTriangleOctree.OctreeItems.Pointers[ItemIndex];
+      Item := Scene.TriangleOctree.OctreeItems.Pointers[ItemIndex];
 
     Scene.PointingDeviceMove(OverPoint, Item);
 
-    { I want to keep assertion that CursorNonMouseLook = gcHand when
-      we're over or keeping active some pointing-device sensors.
-      (Since we don't use MouseLook with TKamGLControl for now, I just
-      directly change Cursor. }
-    if SensorsCount <> 0 then
-      Cursor := crHandPoint else
-      Cursor := crDefault;
+    UpdateCursor;
   end;
 end;
 
@@ -394,10 +383,17 @@ function TKamVRMLBrowser.MoveAllowed(ANavigator: TWalkNavigator;
   const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const BecauseOfGravity: boolean): boolean;
 begin
-  Result := Scene.DefaultTriangleOctree.MoveAllowed(
-    ANavigator.CameraPos, ProposedNewPos, NewPos, CameraRadius,
-    { Don't let user to fall outside of the box because of gravity. }
-    BecauseOfGravity);
+  if Scene.TriangleOctree <> nil then
+  begin
+    Result := Scene.TriangleOctree.MoveAllowed(
+      ANavigator.CameraPos, ProposedNewPos, NewPos, CameraRadius,
+      { Don't let user to fall outside of the box because of gravity. }
+      BecauseOfGravity);
+  end else
+  begin
+    Result := true;
+    NewPos := ProposedNewPos;
+  end;
 end;
 
 procedure TKamVRMLBrowser.GetCameraHeight(ANavigator: TWalkNavigator;
@@ -405,11 +401,21 @@ procedure TKamVRMLBrowser.GetCameraHeight(ANavigator: TWalkNavigator;
 var
   GroundItemIndex: Integer;
 begin
-  Scene.DefaultTriangleOctree.GetCameraHeight(
-    ANavigator.CameraPos,
-    ANavigator.GravityUp,
-    IsAboveTheGround, SqrHeightAboveTheGround, GroundItemIndex,
-    NoItemIndex, nil);
+  if Scene.TriangleOctree <> nil then
+  begin
+    Scene.TriangleOctree.GetCameraHeight(
+      ANavigator.CameraPos,
+      ANavigator.GravityUp,
+      IsAboveTheGround, SqrHeightAboveTheGround, GroundItemIndex,
+      NoItemIndex, nil);
+  end else
+  begin
+    { When octree is not available, we actually don't want gravity to
+      cause falling down. So return values pretending we're standing
+      still on the ground. }
+    IsAboveTheGround := true;
+    SqrHeightAboveTheGround := Sqr(ANavigator.CameraPreferredHeight);
+  end;
 end;
 
 procedure TKamVRMLBrowser.ScenePostRedisplay(Scene: TVRMLScene);
@@ -444,25 +450,9 @@ end;
 
 procedure TKamVRMLBrowser.GeometryChanged(Scene: TVRMLScene);
 begin
-{$ifdef REBUILD_OCTREE}
-  Scene.PointingDeviceClear;
-  Cursor := crDefault;
-
-  { Although we will recreate octrees very soon,
-    it's still elegant to nil them right after freeing.
-    Otherwise, when exception will raise from CreateTriangleOctree,
-    Scene.DefaultTriangleOctree will be left as invalid pointer. }
-
-  Scene.DefaultTriangleOctree.Free;
-  Scene.DefaultTriangleOctree := nil;
-  Scene.DefaultShapeStateOctree.Free;
-  Scene.DefaultShapeStateOctree := nil;
-
-  Scene.DefaultTriangleOctree :=
-    Scene.CreateTriangleOctree('Building triangle octree');
-  Scene.DefaultShapeStateOctree :=
-    Scene.CreateShapeStateOctree('Building ShapeState octree');
-{$endif REBUILD_OCTREE}
+  { Scene.GeometryChanged possibly cleared pointing device info by
+    PointingDeviceClear. This means that cursor must be updated. }
+  UpdateCursor;
 end;
 
 end.

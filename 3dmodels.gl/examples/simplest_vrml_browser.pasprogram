@@ -44,7 +44,8 @@ program simplest_vrml_browser;
 
 {$apptype CONSOLE}
 
-uses KambiUtils, GLWindowVRMLBrowser, ProgressUnit, ProgressConsole, VRMLErrors;
+uses KambiUtils, GLWindowVRMLBrowser, ProgressUnit, ProgressConsole,
+  VRMLScene, VRMLErrors;
 
 var
   BrowserWindow: TGLWindowVRMLBrowser;
@@ -61,6 +62,7 @@ begin
 
     Writeln(BrowserWindow.Scene.Info(true, true, false));
 
+    BrowserWindow.Scene.OctreeStrategy := osFull;
     BrowserWindow.Scene.ProcessEvents := true;
 
     BrowserWindow.InitLoop;

@@ -22,6 +22,24 @@
 
 unit VRMLScene;
 
+{ This is the weak point of our engine right now: updating octree on changes
+  of geometry. It takes some time, as we currently just rebuild the octree.
+  On the other hand, it's needed to perform collision detection
+  (this also includes picking touch sensors and such) on the up-to-date
+  model (in case e.g. touch sensor geometry moves). In some rare
+  cases (more precisely: when TVRMLScene.ChangedFields is not optimized
+  for this particular field and falls back to TVRMLScene.ChangedAll)
+  not updating octree may even cause the octree pointers to be invalid.
+
+  Both problems are being worked on. In the meantime
+  - you can define REBUILD_OCTREE to have always accurate and stable
+    collision detection, at the expense of a slowdowns in case of intensive
+    animations.
+  - you can undefine REBUILD_OCTREE to always use the first octree.
+    This makes collision detection work with the original geometry,
+    and sometimes may make it unstable. OTOH, all works fast. }
+{$define REBUILD_OCTREE}
+
 interface
 
 uses
@@ -33,6 +51,7 @@ uses
 {$define read_interface}
 
 type
+  { }
   TDynArrayItem_1 = TTriangle3Single;
   PDynArrayItem_1 = PTriangle3Single;
   {$define DYNARRAY_1_IS_STRUCT}
@@ -346,6 +365,36 @@ type
   { @exclude }
   TDynCompiledScriptHandlerInfoArray = TDynArray_5;
 
+  { Possible values for TVRMLScene.OctreeStrategy. }
+  TVRMLSceneOctreeStrategy = (
+    { Do not create any octrees.
+      This obviously redudes the time normally needed
+      to construct/update the octree, but makes any collision detection
+      query impossible.
+
+      TVRMLScene.TriangleOctree and TVRMLScene.ShapeStateOctree will be
+      @nil always. }
+    osNone,
+
+    { Create and keep current only the ShapeStateOctree.
+      Use this when you need only ShapeStateOctree, like when you just want
+      to have fastest TVRMLGLScene.RenderFrustum, but don't need any detailed
+      (triangle-based) collision detection.
+
+      TVRMLScene.ShapeStateOctree will always be initialized (non-nil),
+      and will describe current geometry.
+
+      TVRMLScene.TriangleOctree will always be @nil. }
+    osShapeState,
+
+    { Create and keep current both octrees.
+      TVRMLScene.TriangleOctree and TVRMLScene.ShapeStateOctree will
+      always be initialized (non-nil), and will describe current geometry.
+      They will be updated accordingly when geometry changes (object moves,
+      rotates, or object mesh changes, etc.). }
+    osFull);
+
+
   { VRML scene, a final class to handle VRML models
     (with the exception of rendering, which is delegated to descendants,
     like TVRMLGLScene for OpenGL).
@@ -404,16 +453,6 @@ type
     function CalculateBoundingBox: TBox3d;
     function CalculateVerticesCount(OverTriangulate: boolean): Cardinal;
     function CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
-
-    TriangleOctreeToAdd: TVRMLTriangleOctree;
-    procedure AddTriangleToOctreeProgress(const Triangle: TTriangle3Single;
-      State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
-      const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
-
-    FDefaultShapeStateOctree: TVRMLShapeStateOctree;
-    FDefaultTriangleOctree: TVRMLTriangleOctree;
-    FOwnsDefaultTriangleOctree: boolean;
-    FOwnsDefaultShapeStateOctree: boolean;
 
     { If appropriate fvXxx is not in Validities, then
       - free if needed appropriate FTrianglesList[] item
@@ -520,6 +559,97 @@ type
     IsLastViewerPosition: boolean;
 
     FCompiledScriptHandlers: TDynCompiledScriptHandlerInfoArray;
+
+    { Create octree containing all triangles from our scene.
+      Creates triangle-based octree, inits it with our BoundingBox
+      and adds all triangles from our ShapeStates.
+      Triangles are generated using calls like
+      @code(GeometryNode.Triangulate(State, false, ...)).
+      Note that OverTriangulate parameter for Triangulate call above is @false:
+      it shouldn't be needed to have octree with over-triangulate
+      (over-triangulate is for rendering with Gouraud shading).
+
+      @italic(Only the collidable, or at least "pickable",
+      triangles are generated. Which means that children of
+      Collision nodes with collide = FALSE are not placed here.
+      This is different than CreateShapeStateOctree, and probably
+      will be configurable in the future by some parameter.)
+
+      If ProgressTitle <> '' (and progress is not active already,
+      so we avoid starting "progress bar within progress bar",
+      and progress user interface is initialized)
+      then it uses @link(Progress) while building octree.
+
+      Remember that such octree has a reference to Shape nodes
+      inside RootNode vrml tree and to State objects inside
+      our ShapeStates list.
+      So you must not use this octree after freeing this object.
+      Also you must rebuild such octree when this object changes.
+
+      Note: remember that this is a function and it returns
+      created octree object. It does *not* set value of property
+      TriangleOctree property, and the returned octree is not managed
+      by this scene. You usually don't want to use this, you should rather
+      use TriangleOctree property and set OctreeStrategy.
+
+      Everything in my units is done in the spirit
+      that you can create as many octrees as you want for a given scene
+      (both octrees based on triangles and based on shapestates).
+      Also, in some special cases an octree may be constructed in
+      some special way (not only using @link(CreateShapeStateOctree)
+      or @link(CreateTriangleOctree)) so that it doesn't contain
+      the whole scene from some TVRMLScene object, or it contains
+      the scene from many TVRMLScene objects, or something else.
+
+      What I want to say is that it's generally wrong to think of
+      an octree as something that maps 1-1 to some TVRMLScene object.
+      Octrees, as implemented here, are a lot more flexible.
+
+      @groupBegin }
+    function CreateTriangleOctree(AMaxDepth, AMaxLeafItemsCount: integer;
+      const ProgressTitle: string): TVRMLTriangleOctree; overload;
+    { @groupEnd }
+
+    { Create octree containing all shape+states from our scene.
+      Creates shape+state octree and inits it with our BoundingBox
+      and adds all our ShapeStates.
+
+      If ProgressTitle <> '' (and progress is not active already,
+      so we avoid starting "progress bar within progress bar")
+      then it uses @link(Progress) while building octree.
+
+      Remember that such octree has a reference to our ShapeStates list.
+      So you must not use this octree after freeing this object.
+      Also you must rebuild such octree when this object changes.
+
+      Note: remember that this is a function and it returns
+      created octree object. It does *not* set value of property
+      ShapeStateOctree property, and the returned octree is not managed
+      by this scene. You usually don't want to use this, you should rather
+      use ShapeStateOctree property and set OctreeStrategy.
+
+      @groupBegin }
+    function CreateShapeStateOctree(AMaxDepth, AMaxLeafItemsCount: integer;
+      const ProgressTitle: string): TVRMLShapeStateOctree; overload;
+    { @groupEnd }
+
+    TriangleOctreeToAdd: TVRMLTriangleOctree;
+    procedure AddTriangleToOctreeProgress(const Triangle: TTriangle3Single;
+      State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
+      const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+
+    FTriangleOctree: TVRMLTriangleOctree;
+    FTriangleOctreeMaxDepth: Integer;
+    FTriangleOctreeMaxLeafItemsCount: Integer;
+    FTriangleOctreeProgressTitle: string;
+
+    FShapeStateOctree: TVRMLShapeStateOctree;
+    FShapeStateOctreeMaxDepth: Integer;
+    FShapeStateOctreeMaxLeafItemsCount: Integer;
+    FShapeStateOctreeProgressTitle: string;
+
+    FOctreeStrategy: TVRMLSceneOctreeStrategy;
+    procedure SetOctreeStrategy(const Value: TVRMLSceneOctreeStrategy);
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
     destructor Destroy; override;
@@ -744,127 +874,95 @@ type
     { If @true, RootNode will be freed by destructor of this class. }
     property OwnsRootNode: boolean read FOwnsRootNode write FOwnsRootNode;
 
-    { Create octree containing all triangles from our scene.
-      Creates triangle-based octree, inits it with our BoundingBox
-      and adds all triangles from our ShapeStates.
-      Triangles are generated using calls like
-      @code(GeometryNode.Triangulate(State, false, ...)).
-      Note that OverTriangulate parameter for Triangulate call above is @false:
-      it shouldn't be needed to have octree with over-triangulate
-      (over-triangulate is for rendering with Gouraud shading).
+    { Automatically constructed and managed octrees
+      describing geometry in this VRML scene.
 
-      @italic(Only the collidable, or at least "pickable",
-      triangles are generated. Which means that children of
-      Collision nodes with collide = FALSE are not placed here.
-      This is different than CreateShapeStateOctree, and probably
-      will be configurable in the future by some parameter.)
-
-      If ProgressTitle <> '' (and progress is not active already,
-      so we avoid starting "progress bar within progress bar",
-      and progress user interface is initialized)
-      then it uses @link(Progress) while building octree.
-
-      Remember that such octree has a reference to Shape nodes
-      inside RootNode vrml tree and to State objects inside
-      our ShapeStates list.
-      So you must not use this octree after freeing this object.
-      Also you must rebuild such octree when this object changes.
-
-      Note: remember that this is a function and it returns
-      created octree object. It does *not* set value of property
-      @link(DefaultTriangleOctree). But of course you can use it
-      (and you often will) in code like
-
-      @longCode(#  Scene.DefaultTriangleOctree := Scene.CreateTriangleOctree(...) #)
+      Depending on OctreeStrategy setting, these octrees will be automatically
+      created and updated. They will also be automatically used
+      by some methods in this class and descendants, for example
+      TVRMLGLScene.RenderFrustum.
 
       @groupBegin }
-    function CreateTriangleOctree(const ProgressTitle: string):
-      TVRMLTriangleOctree; overload;
-    function CreateTriangleOctree(AMaxDepth, AMaxLeafItemsCount: integer;
-      const ProgressTitle: string): TVRMLTriangleOctree; overload;
+    property TriangleOctree: TVRMLTriangleOctree read FTriangleOctree;
+    property ShapeStateOctree: TVRMLShapeStateOctree read FShapeStateOctree;
     { @groupEnd }
 
-    { Create octree containing all shape+states from our scene.
-      Creates shape+state octree and inits it with our BoundingBox
-      and adds all our ShapeStates.
+    { @abstract(How should TriangleOctree and ShapeStateOctree
+      be created and updated?)
 
-      If ProgressTitle <> '' (and progress is not active already,
-      so we avoid starting "progress bar within progress bar")
-      then it uses @link(Progress) while building octree.
+      You should set this, based on your expected usage of octrees.
+      Usually, you want octree to be fully automatically managed,
+      and you set this to osFull. See TVRMLSceneOctreeStrategy
+      for possible values.
 
-      Remember that such octree has a reference to our ShapeStates list.
-      So you must not use this octree after freeing this object.
-      Also you must rebuild such octree when this object changes.
+      Before setting any value <> soNone you may want to adjust
+      TriangleOctreeMaxDepth, TriangleOctreeMaxLeafItemsCount,
+      ShapeStateOctreeMaxDepth, ShapeStateOctreeMaxLeafItemsCount.
+      These properties fine-tune how the octree will be generated
+      (although default values should be Ok for typical cases).
 
-      Note: remember that this is a function and it returns
-      created octree object. It does *not* set value of property
-      @link(DefaultShapeStateOctree). But of course you can use it
-      (and you often will) in code like
+      Default value of this property is osNone, which means that
+      no octrees will be created. This has to be the default value,
+      to 1. get you chance to change TriangleOctreeMaxDepth and such
+      before creating octree 2. otherwise, scenes that not require
+      collision detection would unnecessarily create octree at construction. }
+    property OctreeStrategy: TVRMLSceneOctreeStrategy
+      read FOctreeStrategy write SetOctreeStrategy default osNone;
 
-      @longCode(#  Scene.DefaultShapeStateOctree := Scene.CreateShapeStateOctree(...) #)
+    { Properties of created TriangleOctree.
+      See VRMLTriangleOctree unit comments for description.
+
+      If TriangleOctreeProgressTitle <> '', it will be shown during
+      octree creation (through TProgress.Title). Will be shown only
+      if progress is not active already
+      ( so we avoid starting "progress bar within progress bar").
+
+      They are used only when the octree is created, so usually you
+      want to set them right before changing OctreeStrategy from osNone
+      to something else.
 
       @groupBegin }
-    function CreateShapeStateOctree(const ProgressTitle: string):
-      TVRMLShapeStateOctree; overload;
-    function CreateShapeStateOctree(AMaxDepth, AMaxLeafItemsCount: integer;
-      const ProgressTitle: string): TVRMLShapeStateOctree; overload;
+    property     TriangleOctreeMaxDepth: Integer
+      read      FTriangleOctreeMaxDepth
+      write     FTriangleOctreeMaxDepth
+      default DefTriangleOctreeMaxDepth;
+
+    property     TriangleOctreeMaxLeafItemsCount: Integer
+       read     FTriangleOctreeMaxLeafItemsCount
+      write     FTriangleOctreeMaxLeafItemsCount
+      default DefTriangleOctreeMaxLeafItemsCount;
+
+    property TriangleOctreeProgressTitle: string
+      read  FTriangleOctreeProgressTitle
+      write FTriangleOctreeProgressTitle;
     { @groupEnd }
 
-    { Notes for both DefaultTriangleOctree and
-      DefaultShapeStateOctree:
+    { Properties of ShapeStateOctree.
+      See VRMLShapeStateOctree unit comments for description.
 
-      Everything in my units is done in the spirit
-      that you can create as many octrees as you want for a given scene
-      (both octrees based on triangles and based on shapestates).
-      Also, in some special cases an octree may be constructed in
-      some special way (not only using @link(CreateShapeStateOctree)
-      or @link(CreateTriangleOctree)) so that it doesn't contain
-      the whole scene from some TVRMLScene object, or it contains
-      the scene from many TVRMLScene objects, or something else.
+      If ShapeStateOctreeProgressTitle <> '', it will be shown during
+      octree creation (through TProgress.Title). Will be shown only
+      if progress is not active already
+      ( so we avoid starting "progress bar within progress bar").
 
-      What I want to say is that it's generally wrong to think of
-      an octree as something that maps 1-1 to some TVRMLScene object.
-      Octrees, as implemented here, are a lot more flexible.
-
-      That said, it's very often the case that you actually want to
-      create exactly one octree of each kind (one TVRMLTriangleOctree
-      and one TVRMLShapeStateOctree) for each scene.
-      Properties below make it easier for you.
-      Basically you can use them however you like.
-      They can simply serve for you as some variables inside
-      TVRMLGLScene that you can use however you like,
-      so that you don't have to declare two additional variables
-      like SceneTriangleOctree and SceneShapeStateOctree
-      each time you define variable Scene: TVRMLScene.
-
-      Also, some methods in this class that take an octree from you
-      as a parameter may have some overloaded versions that
-      implicitly use octree objects stored in properties below,
-      e.g. see @link(TVRMLGLScene.RenderFrustumOctree).
-
-      This class modifies these properties in *only* one case:
-      if OwnsDefaultTriangleOctree is true (default value)
-      then at destruction this class calls FreeAndNil(DefaultTriangleOctree).
-      Similar for DefaultShapeStateOctree.
-
-      In any case, these properties are not managed by this object.
-      E.g. these octrees are not automaticaly rebuild when you
-      call ChangedAll.
+      They are used only when the octree is created, so usually you
+      want to set them right before changing OctreeStrategy from osNone
+      to something else.
 
       @groupBegin }
-    property DefaultTriangleOctree: TVRMLTriangleOctree
-      read FDefaultTriangleOctree write FDefaultTriangleOctree;
+    property     ShapeStateOctreeMaxDepth: Integer
+      read      FShapeStateOctreeMaxDepth
+      write     FShapeStateOctreeMaxDepth
+      default DefShapeStateOctreeMaxDepth;
 
-    property DefaultShapeStateOctree: TVRMLShapeStateOctree
-      read FDefaultShapeStateOctree write FDefaultShapeStateOctree;
+    property     ShapeStateOctreeMaxLeafItemsCount: Integer
+       read     FShapeStateOctreeMaxLeafItemsCount
+      write     FShapeStateOctreeMaxLeafItemsCount
+      default DefShapeStateOctreeMaxLeafItemsCount;
 
-    property OwnsDefaultTriangleOctree: boolean
-      read FOwnsDefaultTriangleOctree write FOwnsDefaultTriangleOctree
-      default true;
-
-    property OwnsDefaultShapeStateOctree: boolean
-      read FOwnsDefaultShapeStateOctree write FOwnsDefaultShapeStateOctree
-      default true;
+    property ShapeStateOctreeProgressTitle: string
+      read  FShapeStateOctreeProgressTitle
+      write FShapeStateOctreeProgressTitle;
     { @groupEnd }
 
     { GetViewpoint and GetPerspectiveViewpoint return the properties
@@ -1419,8 +1517,10 @@ begin
  FRootNode := ARootNode;
  FOwnsRootNode := AOwnsRootNode;
 
- FOwnsDefaultTriangleOctree := true;
- FOwnsDefaultShapeStateOctree := true;
+ FTriangleOctreeMaxDepth := DefTriangleOctreeMaxDepth;
+ FTriangleOctreeMaxLeafItemsCount := DefTriangleOctreeMaxLeafItemsCount;
+ FShapeStateOctreeMaxDepth := DefShapeStateOctreeMaxDepth;
+ FShapeStateOctreeMaxLeafItemsCount := DefShapeStateOctreeMaxLeafItemsCount;
 
  FShapeStates := TVRMLShapeStatesList.Create;
 
@@ -1458,8 +1558,9 @@ begin
 
  ShapeStates.FreeWithContents;
 
- if OwnsDefaultTriangleOctree then FreeAndNil(FDefaultTriangleOctree);
- if OwnsDefaultShapeStateOctree then FreeAndNil(FDefaultShapeStateOctree);
+ FreeAndNil(FTriangleOctree);
+ FreeAndNil(FShapeStateOctree);
+
  if OwnsRootNode then FreeAndNil(FRootNode);
  inherited;
 end;
@@ -2085,6 +2186,36 @@ begin
     fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
     fvManifoldAndBorderEdges];
 
+{$ifdef REBUILD_OCTREE}
+  if OctreeStrategy <> osNone then
+  begin
+    PointingDeviceClear;
+
+    { Although we will recreate octrees very soon,
+      it's still elegant to nil them right after freeing.
+      Otherwise, when exception will raise from CreateTriangleOctree,
+      Scene.DefaultTriangleOctree will be left as invalid pointer. }
+
+    if FTriangleOctree <> nil then
+    begin
+      FreeAndNil(FTriangleOctree);
+      FTriangleOctree := CreateTriangleOctree(
+        TriangleOctreeMaxDepth,
+        TriangleOctreeMaxLeafItemsCount,
+        TriangleOctreeProgressTitle);
+    end;
+
+    if FShapeStateOctree <> nil then
+    begin
+      FreeAndNil(FShapeStateOctree);
+      FShapeStateOctree := CreateShapeStateOctree(
+        ShapeStateOctreeMaxDepth,
+        ShapeStateOctreeMaxLeafItemsCount,
+        ShapeStateOctreeProgressTitle);
+    end;
+  end;
+{$endif REBUILD_OCTREE}
+
   if Assigned(OnGeometryChanged) then
     OnGeometryChanged(Self);
 end;
@@ -2195,7 +2326,7 @@ begin
  finally W.Free end;
 end;
 
-{ using triangle octree -------------------------------------------------- }
+{ octrees -------------------------------------------------------------------- }
 
 procedure TVRMLScene.AddTriangleToOctreeProgress(
   const Triangle: TTriangle3Single;
@@ -2207,13 +2338,45 @@ begin
     FaceCoordIndexBegin, FaceCoordIndexEnd);
 end;
 
-function TVRMLScene.CreateTriangleOctree(const ProgressTitle: string):
-  TVRMLTriangleOctree;
+procedure TVRMLScene.SetOctreeStrategy(const Value: TVRMLSceneOctreeStrategy);
+var
+  OldTriangleNeeded, NewTriangleNeeded, OldSSNeeded, NewSSNeeded: boolean;
 begin
- result := CreateTriangleOctree(
-   DefTriangleOctreeMaxDepth,
-   DefTriangleOctreeMaxLeafItemsCount,
-   ProgressTitle);
+  if Value <> OctreeStrategy then
+  begin
+    OldTriangleNeeded := OctreeStrategy = osFull;
+    NewTriangleNeeded := Value          = osFull;
+    OldSSNeeded := OctreeStrategy in [osShapeState, osFull];
+    NewSSNeeded := Value          in [osShapeState, osFull];
+
+    FOctreeStrategy := Value;
+
+    if OldTriangleNeeded and not NewTriangleNeeded then
+    begin
+      FreeAndNil(FTriangleOctree);
+    end;
+
+    if (not OldTriangleNeeded) and NewTriangleNeeded then
+    begin
+      FTriangleOctree := CreateTriangleOctree(
+        TriangleOctreeMaxDepth,
+        TriangleOctreeMaxLeafItemsCount,
+        TriangleOctreeProgressTitle);
+    end;
+
+    if OldSSNeeded and not NewSSNeeded then
+    begin
+      FreeAndNil(FShapeStateOctree);
+    end;
+
+    if (not OldSSNeeded) and NewSSNeeded then
+    begin
+      FShapeStateOctree := CreateShapeStateOctree(
+        ShapeStateOctreeMaxDepth,
+        ShapeStateOctreeMaxLeafItemsCount,
+        ShapeStateOctreeProgressTitle);
+    end;
+  end;
 end;
 
 function TVRMLScene.CreateTriangleOctree(
@@ -2249,17 +2412,6 @@ begin
    result.OctreeItems.AllowedCapacityOverflow := 4;
   end;
  except result.Free; raise end;
-end;
-
-{ using shapestate octree ---------------------------------------- }
-
-function TVRMLScene.CreateShapeStateOctree(const ProgressTitle: string):
-  TVRMLShapeStateOctree;
-begin
- Result := CreateShapeStateOctree(
-   DefShapeStateOctreeMaxDepth,
-   DefShapeStateOctreeMaxLeafItemsCount,
-   ProgressTitle);
 end;
 
 function TVRMLScene.CreateShapeStateOctree(

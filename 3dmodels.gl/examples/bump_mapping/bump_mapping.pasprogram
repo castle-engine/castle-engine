@@ -63,7 +63,7 @@ uses GLWindow, GLW_Navigated, GL, GLU, GLExt, KambiGLUtils,
   NormalizationCubeMap, GLImages, GLVersionUnit,
   ParseParametersUnit, KambiLog,
   { VRML-related units: }
-  VRMLGLScene, Object3dAsVRML, ProgressUnit, BackgroundGL,
+  VRMLScene, VRMLGLScene, Object3dAsVRML, ProgressUnit, BackgroundGL,
   VRMLOpenGLRenderer, VRMLRendererOptimization;
 
 const
@@ -197,20 +197,20 @@ begin
 
   { It would be better to match Scene.Optimization with
     *current* BumpMappingMaximum, not with
-    High(TBumpMappingMethod). Will be done when Scene.Optimization
-    will be settable during lifetime of TVRMLOpenGLRenderer. }
+    High(TBumpMappingMethod). Can be done now, since Scene.Optimization
+    is settable during lifetime of Scene. }
 
   if TVRMLOpenGLRenderer.GLContextBumpMappingMethod(
     0, -1, High(TBumpMappingMethod), true, true, false) in
     [bmNone] + bmGLSLAll then
-    SceneOptimization := roSceneAsAWhole else
+    SceneOptimization := roSeparateShapeStates else
     SceneOptimization := roNone;
   Scene := TVRMLGLScene.Create(FileName, SceneOptimization);
 
-  { make octree for RenderFrustumOctree }
+  { make octree for fast RenderFrustum }
   Progress.UserInterface := ProgressNullInterface;
-  Scene.DefaultShapeStateOctree :=
-    Scene.CreateShapeStateOctree('Building ShapeState octree');
+  Scene.ShapeStateOctreeProgressTitle := 'Building ShapeState octree';
+  Scene.OctreeStrategy := osShapeState;
 
   Scene.Attributes.BumpMappingMaximum := BumpMappingMaximum;
 end;
@@ -879,7 +879,7 @@ begin
     glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.2, 0.2, 0.2, 1.0));
 
     if Glw.Navigator = Walker then
-      Scene.RenderFrustumOctree(Glw.WalkNav.Frustum, tgAll) else
+      Scene.RenderFrustum(Glw.WalkNav.Frustum, tgAll) else
       Scene.Render(nil, tgAll);
   end else
   begin

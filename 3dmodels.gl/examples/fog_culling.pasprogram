@@ -92,7 +92,7 @@ begin
 
   if Scene.Attributes.UseFog then
     Scene.Render(@FogVisibilityTester.Test, tgAll) else
-    Scene.RenderFrustumOctree(Glw.WalkNav.Frustum, tgAll);
+    Scene.RenderFrustum(Glw.WalkNav.Frustum, tgAll);
 
   Writeln(Format('Rendered ShapeStates: %d / %d',
     [ Scene.LastRender_RenderedShapeStatesCount,
@@ -158,7 +158,7 @@ class function TDummy.MoveAllowed(Navigator: TWalkNavigator;
   const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const BecauseOfGravity: boolean): boolean;
 begin
- Result := Scene.DefaultTriangleOctree.MoveAllowed(
+ Result := Scene.TriangleOctree.MoveAllowed(
    Navigator.CameraPos, ProposedNewPos, NewPos, CameraRadius,
    BecauseOfGravity, NoItemIndex, nil);
 end;
@@ -179,10 +179,9 @@ begin
 
   { build octrees }
   Progress.UserInterface := ProgressConsoleInterface;
-  Scene.DefaultTriangleOctree :=
-    Scene.CreateTriangleOctree('Building triangle octree');
-  Scene.DefaultShapeStateOctree :=
-    Scene.CreateShapeStateOctree('Building ShapeState octree');
+  Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
+  Scene.ShapeStateOctreeProgressTitle := 'Building ShapeState octree';
+  Scene.OctreeStrategy := osFull;
 
   Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
 

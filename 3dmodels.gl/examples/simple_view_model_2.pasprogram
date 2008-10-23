@@ -27,16 +27,15 @@
   This version adds:
 
   1. Collision detection
-  - constructing triangle octree, see line "Scene.DefaultTriangleOctree := ..."
-  - doing collision detection using this octree, see MoveAllowed procedure
+  - constructing octrees, by "Scene.OctreeStrategy := osFull"
+  - doing collision detection using triangle octree, see MoveAllowed procedure
 
-  2. Rendering with frustum culling (with the help of octree)
+  2. Rendering with frustum culling
   - scene is loaded with Optimization roSeparateShapeStates instead of roSceneAsAWhole
-  - constructing ShapeState octree, see line "Scene.DefaultShapeStateOctree := ..."
   - initializing Glw.WalkNav.ProjectionMatrix (this is needed to get
     Glw.WalkNav.Frustum)
-  - using Glw.WalkNav.Frustum and ShapeState octree to render the scene,
-    see line "Scene.RenderFrustumOctree"
+  - using Glw.WalkNav.Frustum and ShapeStateOctree to render the scene,
+    see line "Scene.RenderFrustum"
 
   3. Tries to get default camera settings from VRML file
   - see Scene.GetPerspectiveViewpoint call
@@ -70,7 +69,7 @@ procedure Draw(Glwin: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(glw.Navigator.Matrix);
-  Scene.RenderFrustumOctree(Glw.WalkNav.Frustum, tgAll);
+  Scene.RenderFrustum(Glw.WalkNav.Frustum, tgAll);
 end;
 
 procedure Init(Glwin: TGLWindow);
@@ -114,7 +113,7 @@ class function THelperObj.MoveAllowed(Navigator: TWalkNavigator;
   const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const BecauseOfGravity: boolean): boolean;
 begin
-  Result := Scene.DefaultTriangleOctree.MoveAllowed(
+  Result := Scene.TriangleOctree.MoveAllowed(
     Navigator.CameraPos, ProposedNewPos, NewPos, CameraRadius,
     BecauseOfGravity);
 end;
@@ -143,10 +142,9 @@ begin
 
     { build octrees }
     Progress.UserInterface := ProgressConsoleInterface;
-    Scene.DefaultTriangleOctree :=
-      Scene.CreateTriangleOctree('Building triangle octree');
-    Scene.DefaultShapeStateOctree :=
-      Scene.CreateShapeStateOctree('Building ShapeState octree');
+    Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
+    Scene.ShapeStateOctreeProgressTitle := 'Building ShapeState octree';
+    Scene.OctreeStrategy := osFull;
 
     Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
 

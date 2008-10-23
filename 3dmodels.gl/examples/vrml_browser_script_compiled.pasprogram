@@ -22,6 +22,11 @@
 
 { A simple extension of simplest_vrml_browser.pasprogram,
   registers handles for compiled: Script protocol.
+
+  Run with $1 = 3D model to load.
+
+  For sample of "compiled:" Script working, run as
+    vrml_browser_script_compiled ../../../kambi_vrml_test_suite/x3d/simple_script_tests.x3dv
 }
 
 program vrml_browser_script_compiled;
@@ -29,7 +34,7 @@ program vrml_browser_script_compiled;
 {$apptype CONSOLE}
 
 uses KambiUtils, GLWindowVRMLBrowser, ProgressUnit, ProgressConsole,
-  VRMLErrors, VRMLFields, KambiTimeUtils, SysUtils;
+  VRMLScene, VRMLErrors, VRMLFields, KambiTimeUtils, SysUtils;
 
 var
   BrowserWindow: TGLWindowVRMLBrowser;
@@ -71,6 +76,7 @@ begin
     BrowserWindow.Scene.RegisterCompiledScript('touch',
       @THelperObj(nil).ScriptTouch);
 
+    BrowserWindow.Scene.OctreeStrategy := osFull;
     BrowserWindow.Scene.ProcessEvents := true;
 
     BrowserWindow.InitLoop;

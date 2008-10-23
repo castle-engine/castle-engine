@@ -29,7 +29,10 @@ unit VRMLGLScene;
   at runtime and you're calling ChangedShapeState because change is very local.
 }
 
-{ RenderFrustum tests each ShapeState for collision with given Frustum
+{ With this you can fine-tune performance of RenderFrustum when
+  ShapeStateOctree is *not* available.
+
+  RenderFrustum tests each ShapeState for collision with given Frustum
   before rendering this ShapeState. It can use ShapeState.BoundingBox
   (if RENDER_FRUSTUM_USES_BOUNDING_BOX is defined)
   or ShapeState.BoundingSphere (if RENDER_FRUSTUM_USES_BOUNDING_SPHERE
@@ -54,7 +57,8 @@ unit VRMLGLScene;
 { $define RENDER_FRUSTUM_USES_BOUNDING_BOX}
 { $define RENDER_FRUSTUM_USES_BOTH}
 
-{ With this you can fine-tune performance of RenderFrustumOctree.
+{ With this you can fine-tune performance of RenderFrustum when
+  ShapeStateOctree is available.
   Exactly one of symbols RENDER_FRUSTUM_OCTREE_xxx below must be defined.
   See implementation of @link(TVRMLGLScene.RenderFrustumOctree)
   to see what each symbol means.
@@ -505,6 +509,9 @@ type
     procedure RenderFrustumOctree_EnumerateOctreeItem(
       ShapeStateNum: Integer; CollidesForSure: boolean);
     function RenderFrustumOctree_TestShapeState(ShapeStateNum: Integer): boolean;
+    procedure RenderFrustumOctree(const Frustum: TFrustum;
+      TransparentGroup: TTransparentGroup;
+      Octree: TVRMLShapeStateOctree);
 
     { ------------------------------------------------------------
       Private things used only when Optimization = roSceneAsAWhole.
@@ -773,18 +780,16 @@ type
     procedure Render(TestShapeStateVisibility: TTestShapeStateVisibility;
       TransparentGroup: TTransparentGroup);
 
-    { This calls Render passing TestShapeStateVisibility
-      that tries to quickly eliminate ShapeStates that are entirely
-      not within Frustum.
-      In other words, this does so-called "frustum culling". }
-    procedure RenderFrustum(const Frustum: TFrustum;
-      TransparentGroup: TTransparentGroup);
+    { This renders the scene eliminating ShapeStates that are entirely
+      not within Frustum. It calls @link(Render), passing appropriate
+      TestShapeStateVisibility.
 
-    { This is like @link(RenderFrustum) but it tries to enumerate
-      visible ShapeStates using given Octree (instead of just testing
-      each ShapeState separately).
+      In other words, this does so-called "frustum culling".
 
-      This way it may work much faster when you have many ShapeStates.
+      If ShapeStateOctree is initialized (so be sure to set OctreeStrategy
+      to something <> osNone), this octree will be used to quickly
+      find visible ShapeState. Otherwise, we will just enumerate all
+      ShapeStates (which may be slower if you really have a lot of ShapeStates).
 
       Note that if Optimization = roSceneAsAWhole this
       doesn't use Octree, but simply calls Render(nil).
@@ -793,15 +798,8 @@ type
       ignores TestShapeStateVisibility function,
       so it's useless (and would waste some time)
       to analyze the scene with Octree. }
-    procedure RenderFrustumOctree(const Frustum: TFrustum;
-      Octree: TVRMLShapeStateOctree;
-      TransparentGroup: TTransparentGroup); overload;
-
-    { This simply calls RenderFrustumOctree(Frustum, DefaultShapeStareOctree).
-      Be sure that you assigned DefaultShapeStareOctree property before
-      calling this. }
-    procedure RenderFrustumOctree(const Frustum: TFrustum;
-      TransparentGroup: TTransparentGroup); overload;
+    procedure RenderFrustum(const Frustum: TFrustum;
+      TransparentGroup: TTransparentGroup);
 
     { LastRender_ properties provide you read-only statistics
       about what happened during last render. For now you
@@ -810,7 +808,7 @@ type
       (this is simply copied from ShapeStates.Count).
 
       This way you can see how effective was frustum culling
-      (for @link(RenderFrustum) or @link(RenderFrustumOctree))
+      in @link(RenderFrustum)
       or how effective was your function TestShapeStateVisibility
       (if you used directly @link(Render)). "Effective" in the meaning
       "effective at eliminating invisible ShapeStates from rendering
@@ -818,8 +816,7 @@ type
 
       These are initially equal to zeros.
       Then they are updated each time you called
-      @link(RenderFrustumOctree) or @link(RenderFrustum) or
-      @link(Render). }
+      @link(RenderFrustum) or @link(Render). }
     property LastRender_RenderedShapeStatesCount: Cardinal
       read FLastRender_RenderedShapeStatesCount;
 
@@ -3126,9 +3123,17 @@ end;
 procedure TVRMLGLScene.RenderFrustum(const Frustum: TFrustum;
   TransparentGroup: TTransparentGroup);
 begin
-  RenderFrustum_Frustum := @Frustum;
-  Render({$ifdef FPC_OBJFPC} @ {$endif} RenderFrustum_TestShapeState,
-    TransparentGroup);
+  if ShapeStateOctree <> nil then
+    RenderFrustumOctree(Frustum, TransparentGroup, ShapeStateOctree) else
+  begin
+    { Just test each shapestate with frustum.
+      Note that RenderFrustum_TestShapeState will be ignored
+      by Render for roSceneAsAWhole. }
+
+    RenderFrustum_Frustum := @Frustum;
+    Render({$ifdef FPC_OBJFPC} @ {$endif} RenderFrustum_TestShapeState,
+      TransparentGroup);
+  end;
 end;
 
 { RenderFrustumOctree ---------------------------------------- }
@@ -3181,8 +3186,8 @@ begin
 end;
 
 procedure TVRMLGLScene.RenderFrustumOctree(const Frustum: TFrustum;
-  Octree: TVRMLShapeStateOctree;
-  TransparentGroup: TTransparentGroup);
+  TransparentGroup: TTransparentGroup;
+  Octree: TVRMLShapeStateOctree);
 begin
   if Optimization <> roSceneAsAWhole then
   begin
@@ -3195,14 +3200,6 @@ begin
       TransparentGroup);
   end else
     Render(nil, TransparentGroup);
-end;
-
-procedure TVRMLGLScene.RenderFrustumOctree(const Frustum: TFrustum;
-  TransparentGroup: TTransparentGroup);
-begin
-  Assert(DefaultShapeStateOctree <> nil);
-  RenderFrustumOctree(Frustum, DefaultShapeStateOctree,
-    TransparentGroup);
 end;
 
 { Background-related things ---------------------------------------- }

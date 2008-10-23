@@ -43,7 +43,6 @@ end;
 var
   LightSet: TVRMLLightSet;
   Scene: TVRMLScene;
-  SceneOctree: TVRMLTriangleOctree;
   Image: TImage;
 
   SceneFileName, OutImageFileName: string;
@@ -84,17 +83,17 @@ begin
 
   { evaluate SceneOctree }
   Progress.UserInterface := ProgressConsoleInterface;
-  SceneOctree := Scene.CreateTriangleOctree('Building octree');
+  Scene.TriangleOctreeProgressTitle := 'Building octree';
+  Scene.OctreeStrategy := osFull;
 
   { render to Image }
   ProcessTimerBegin;
-  QuadLightMapTo1st(Image, LightSet.Lights, SceneOctree, Quad,
+  QuadLightMapTo1st(Image, LightSet.Lights, Scene.TriangleOctree, Quad,
     RenderDir, 'Rendering');
   Writeln(Format('Rendering done in %f seconds.', [ProcessTimerEnd]));
 
   SaveImage(Image, OutImageFilename);
  finally
-  SceneOctree.Free;
   LightSet.Free;
   Scene.Free;
   Image.Free;

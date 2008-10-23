@@ -75,6 +75,7 @@ begin
   VrmlConsole.Memo1.Lines.Append('--- Loading ' + FileName);
 
   Browser.Load(FileName);
+  Browser.Scene.OctreeStrategy := osFull;
   Browser.Scene.ProcessEvents := true;
 
   SceneFileName := FileName;
