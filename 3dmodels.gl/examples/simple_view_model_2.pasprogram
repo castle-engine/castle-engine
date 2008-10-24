@@ -27,14 +27,14 @@
   This version adds:
 
   1. Collision detection
-  - constructing octrees, by "Scene.OctreeStrategy := osFull"
-  - doing collision detection using triangle octree, see MoveAllowed procedure
+  - constructing octrees, by "Scene.Octrees := ..."
+  - doing collision detection using OctreeCollisions, see MoveAllowed procedure
 
   2. Rendering with frustum culling
   - scene is loaded with Optimization roSeparateShapeStates instead of roSceneAsAWhole
   - initializing Glw.WalkNav.ProjectionMatrix (this is needed to get
     Glw.WalkNav.Frustum)
-  - using Glw.WalkNav.Frustum and ShapeStateOctree to render the scene,
+  - using Glw.WalkNav.Frustum and OctreeRendering to render the scene,
     see line "Scene.RenderFrustum"
 
   3. Tries to get default camera settings from VRML file
@@ -113,7 +113,7 @@ class function THelperObj.MoveAllowed(Navigator: TWalkNavigator;
   const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const BecauseOfGravity: boolean): boolean;
 begin
-  Result := Scene.TriangleOctree.MoveAllowed(
+  Result := Scene.OctreeCollisions.MoveAllowed(
     Navigator.CameraPos, ProposedNewPos, NewPos, CameraRadius,
     BecauseOfGravity);
 end;
@@ -144,7 +144,7 @@ begin
     Progress.UserInterface := ProgressConsoleInterface;
     Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
     Scene.ShapeStateOctreeProgressTitle := 'Building ShapeState octree';
-    Scene.OctreeStrategy := osFull;
+    Scene.Octrees := [okRendering, okDynamicCollisions];
 
     Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
 

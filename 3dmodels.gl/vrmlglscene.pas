@@ -786,8 +786,8 @@ type
 
       In other words, this does so-called "frustum culling".
 
-      If ShapeStateOctree is initialized (so be sure to set OctreeStrategy
-      to something <> osNone), this octree will be used to quickly
+      If OctreeRendering is initialized (so be sure to include
+      okRendering in @link(Octrees)), this octree will be used to quickly
       find visible ShapeState. Otherwise, we will just enumerate all
       ShapeStates (which may be slower if you really have a lot of ShapeStates).
 
@@ -3123,8 +3123,8 @@ end;
 procedure TVRMLGLScene.RenderFrustum(const Frustum: TFrustum;
   TransparentGroup: TTransparentGroup);
 begin
-  if ShapeStateOctree <> nil then
-    RenderFrustumOctree(Frustum, TransparentGroup, ShapeStateOctree) else
+  if OctreeRendering <> nil then
+    RenderFrustumOctree(Frustum, TransparentGroup, OctreeRendering) else
   begin
     { Just test each shapestate with frustum.
       Note that RenderFrustum_TestShapeState will be ignored

@@ -32,8 +32,8 @@ uses VectorMath, GLWindow, VRMLNodes, VRMLGLScene, VRMLScene, Navigation,
 type
   { A simple VRML browser in a window. This manages TVRMLGLScene and
     navigator (automatically adjusted to NavigationInfo.type).
-    Octress are also automatically managed by TVRMLGLScene if you
-    set Scene.OctreeStrategy to anything <> osNone, like osFull.
+    Octress are also automatically used (you only have to set Scene.Octrees
+    to anything <> [], like typical [okRendering, okDynamicCollisions]).
     You simply call @link(Load) method and all is done.
 
     This class tries to be a thin (not really "opaque")
@@ -44,7 +44,7 @@ type
 
     @unorderedList(
       @item(@link(TVRMLScene.ProcessEvents Scene.ProcessEvents))
-      @item(@link(TVRMLScene.OctreeStrategy Scene.OctreeStrategy),
+      @item(@link(TVRMLScene.Octrees Scene.Octrees),
         and other octree properties)
       @item(@link(TVRMLScene.RegisterCompiledScript Scene.RegisterCompiledScript))
       @item(@link(TVRMLScene.LogChanges Scene.LogChanges))
@@ -137,6 +137,9 @@ uses Boxes3d, VRMLOpenGLRenderer, GL, GLU,
   KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, KambiFilesUtils, VRMLTriangleOctree,
   RaysWindow, BackgroundGL;
+
+{ TODO: this could use either OctreeCollisions or OctreeCollidableTriangles,
+  whichever is available. }
 
 constructor TGLWindowVRMLBrowser.Create;
 begin
@@ -299,17 +302,17 @@ var
 begin
   inherited;
 
-  if (Scene.TriangleOctree <> nil) and
+  if (Scene.OctreeCollisions <> nil) and
      (Navigator is TWalkNavigator) then
   begin
     Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, Ray0, RayVector);
 
-    ItemIndex := Scene.TriangleOctree.RayCollision(
+    ItemIndex := Scene.OctreeCollisions.RayCollision(
       OverPoint, Ray0, RayVector, true, NoItemIndex, false, nil);
 
     if ItemIndex = NoItemIndex then
       Item := nil else
-      Item := Scene.TriangleOctree.OctreeItems.Pointers[ItemIndex];
+      Item := Scene.OctreeCollisions.OctreeItems.Pointers[ItemIndex];
 
     Scene.PointingDeviceMove(OverPoint, Item);
 
@@ -333,9 +336,9 @@ function TGLWindowVRMLBrowser.MoveAllowed(ANavigator: TWalkNavigator;
   const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const BecauseOfGravity: boolean): boolean;
 begin
-  if Scene.TriangleOctree <> nil then
+  if Scene.OctreeCollisions <> nil then
   begin
-    Result := Scene.TriangleOctree.MoveAllowed(
+    Result := Scene.OctreeCollisions.MoveAllowed(
       ANavigator.CameraPos, ProposedNewPos, NewPos, CameraRadius,
       { Don't let user to fall outside of the box because of gravity. }
       BecauseOfGravity);
@@ -351,9 +354,9 @@ procedure TGLWindowVRMLBrowser.GetCameraHeight(ANavigator: TWalkNavigator;
 var
   GroundItemIndex: Integer;
 begin
-  if Scene.TriangleOctree <> nil then
+  if Scene.OctreeCollisions <> nil then
   begin
-    Scene.TriangleOctree.GetCameraHeight(
+    Scene.OctreeCollisions.GetCameraHeight(
       ANavigator.CameraPos,
       ANavigator.GravityUp,
       IsAboveTheGround, SqrHeightAboveTheGround, GroundItemIndex,

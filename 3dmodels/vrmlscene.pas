@@ -365,46 +365,27 @@ type
   { @exclude }
   TDynCompiledScriptHandlerInfoArray = TDynArray_5;
 
-  { Possible values for TVRMLScene.OctreeStrategy. }
-  TVRMLSceneOctreeStrategy = (
-    { Do not create any octrees.
-      This obviously redudes the time normally needed
-      to construct/update the octree, but makes any collision detection
-      query impossible.
+  { Possible octree types that may be managed by TVRMLScene,
+    see TVRMLScene.Octrees. }
+  TVRMLSceneOctreeKind = (
+    { Create and keep current the TVRMLScene.OctreeRendering.
+      This is a dynamic octree containing all visible shapes. }
+    okRendering,
 
-      TVRMLScene.TriangleOctree and TVRMLScene.ShapeStateOctree will be
-      @nil always. }
-    osNone,
+    { Create and keep current the TVRMLScene.OctreeCollisions.
+      This is a dynamic octree containing all collidable items. }
+    okDynamicCollisions,
 
-    { Create and keep current only the ShapeStateOctree.
-      Use this when you need only ShapeStateOctree, like when you just want
-      to have fastest TVRMLGLScene.RenderFrustum, but don't need any detailed
-      (triangle-based) collision detection.
+    { Create the TVRMLScene.OctreeVisibleTriangles.
+      This is an octree containing all visible triangles, suitable only
+      for scenes that stay static. }
+    okVisibleTriangles,
 
-      TVRMLScene.ShapeStateOctree will always be initialized (non-nil),
-      and will describe current geometry.
-
-      TVRMLScene.TriangleOctree will always be @nil. }
-    osShapeState,
-
-    { Create and keep current only the TriangleOctree.
-      Use this when you need only TriangleOctree, like when you just want
-      to use ray-tracer (that uses TriangleOctree, but has not use for
-      ShapeStateOctree).
-
-      TVRMLScene.TriangleOctree will always be initialized (non-nil),
-      and will describe current geometry.
-
-      TVRMLScene.ShapeStateOctree will always be @nil. }
-    osTriangle,
-
-    { Create and keep current both octrees.
-      TVRMLScene.TriangleOctree and TVRMLScene.ShapeStateOctree will
-      always be initialized (non-nil), and will describe current geometry.
-      They will be updated accordingly when geometry changes (object moves,
-      rotates, or object mesh changes, etc.). }
-    osFull);
-
+    { Create the TVRMLScene.OctreeCollidableTriangles.
+      This is an octree containing all collidable triangles, suitable only
+      for scenes that stay static. }
+    okCollidableTriangles);
+  TVRMLSceneOctreeKinds = set of TVRMLSceneOctreeKind;
 
   { VRML scene, a final class to handle VRML models
     (with the exception of rendering, which is delegated to descendants,
@@ -571,37 +552,38 @@ type
 
     FCompiledScriptHandlers: TDynCompiledScriptHandlerInfoArray;
 
-    { Create octree containing all triangles from our scene.
-      Creates triangle-based octree, inits it with our BoundingBox
-      and adds all triangles from our ShapeStates.
+    { Create octree containing all triangles or shape+states from our scene.
+      Create octree, inits it with our BoundingBox
+      and adds shapestates (or all triangles from our ShapeStates).
+
       Triangles are generated using calls like
       @code(GeometryNode.Triangulate(State, false, ...)).
       Note that OverTriangulate parameter for Triangulate call above is @false:
-      it shouldn't be needed to have octree with over-triangulate
-      (over-triangulate is for rendering with Gouraud shading).
+      it shouldn't be needed to have triangle octree with over-triangulate
+      (over-triangulate is only for rendering with Gouraud shading).
 
-      @italic(Only the collidable, or at least "pickable",
+      If Collidable, then only the collidable, or at least "pickable",
       triangles are generated. Which means that children of
       Collision nodes with collide = FALSE are not placed here.
-      This is different than CreateShapeStateOctree, and probably
-      will be configurable in the future by some parameter.)
+      TODO: update this comment for Collision.proxy handling.
+      Otherwise, only the visible (not necessarily collidable)
+      items are placed in the octree.
 
       If ProgressTitle <> '' (and progress is not active already,
       so we avoid starting "progress bar within progress bar",
       and progress user interface is initialized)
       then it uses @link(Progress) while building octree.
 
-      Remember that such octree has a reference to Shape nodes
+      Remember that triangle octree has references to Shape nodes
       inside RootNode vrml tree and to State objects inside
       our ShapeStates list.
-      So you must not use this octree after freeing this object.
-      Also you must rebuild such octree when this object changes.
+      And shapestate octree has references to our ShapeStates list.
+      So you must rebuild such octree when this object changes.
 
       Note: remember that this is a function and it returns
-      created octree object. It does *not* set value of property
-      TriangleOctree property, and the returned octree is not managed
-      by this scene. You usually don't want to use this, you should rather
-      use TriangleOctree property and set OctreeStrategy.
+      created octree object. It does *not* set value of any
+      OctreeXxx property, and the returned octree is not managed
+      by this scene.
 
       Everything in my units is done in the spirit
       that you can create as many octrees as you want for a given scene
@@ -618,30 +600,11 @@ type
 
       @groupBegin }
     function CreateTriangleOctree(AMaxDepth, AMaxLeafItemsCount: integer;
-      const ProgressTitle: string): TVRMLTriangleOctree; overload;
-    { @groupEnd }
-
-    { Create octree containing all shape+states from our scene.
-      Creates shape+state octree and inits it with our BoundingBox
-      and adds all our ShapeStates.
-
-      If ProgressTitle <> '' (and progress is not active already,
-      so we avoid starting "progress bar within progress bar")
-      then it uses @link(Progress) while building octree.
-
-      Remember that such octree has a reference to our ShapeStates list.
-      So you must not use this octree after freeing this object.
-      Also you must rebuild such octree when this object changes.
-
-      Note: remember that this is a function and it returns
-      created octree object. It does *not* set value of property
-      ShapeStateOctree property, and the returned octree is not managed
-      by this scene. You usually don't want to use this, you should rather
-      use ShapeStateOctree property and set OctreeStrategy.
-
-      @groupBegin }
+      const ProgressTitle: string;
+      const Collidable: boolean): TVRMLTriangleOctree; overload;
     function CreateShapeStateOctree(AMaxDepth, AMaxLeafItemsCount: integer;
-      const ProgressTitle: string): TVRMLShapeStateOctree; overload;
+      const ProgressTitle: string;
+      const Collidable: boolean): TVRMLShapeStateOctree; overload;
     { @groupEnd }
 
     TriangleOctreeToAdd: TVRMLTriangleOctree;
@@ -649,18 +612,22 @@ type
       State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 
-    FTriangleOctree: TVRMLTriangleOctree;
     FTriangleOctreeMaxDepth: Integer;
     FTriangleOctreeMaxLeafItemsCount: Integer;
     FTriangleOctreeProgressTitle: string;
 
-    FShapeStateOctree: TVRMLShapeStateOctree;
+
     FShapeStateOctreeMaxDepth: Integer;
     FShapeStateOctreeMaxLeafItemsCount: Integer;
     FShapeStateOctreeProgressTitle: string;
 
-    FOctreeStrategy: TVRMLSceneOctreeStrategy;
-    procedure SetOctreeStrategy(const Value: TVRMLSceneOctreeStrategy);
+    FOctreeRendering: TVRMLShapeStateOctree;
+    FOctreeCollisions: TVRMLTriangleOctree;
+    FOctreeVisibleTriangles: TVRMLTriangleOctree;
+    FOctreeCollidableTriangles: TVRMLTriangleOctree;
+
+    FOctrees: TVRMLSceneOctreeKinds;
+    procedure SetOctrees(const Value: TVRMLSceneOctreeKinds);
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
     destructor Destroy; override;
@@ -885,42 +852,103 @@ type
     { If @true, RootNode will be freed by destructor of this class. }
     property OwnsRootNode: boolean read FOwnsRootNode write FOwnsRootNode;
 
-    { Automatically constructed and managed octrees
-      describing geometry in this VRML scene.
+    { The dynamic octree containing all visible shapes.
+      It's useful for "frustum culling", it will be automatically
+      used by TVRMLGLScene.RenderFrustum to speed up the rendering.
 
-      Depending on OctreeStrategy setting, these octrees will be automatically
-      created and updated. They will also be automatically used
-      by some methods in this class and descendants, for example
-      TVRMLGLScene.RenderFrustum.
+      This octree will be automatically updated on dynamic scenes
+      (when e.g. animation moves some shapestate by changing it's transformation).
 
-      @groupBegin }
-    property TriangleOctree: TVRMLTriangleOctree read FTriangleOctree;
-    property ShapeStateOctree: TVRMLShapeStateOctree read FShapeStateOctree;
-    { @groupEnd }
+      Add okRendering to @link(Octrees) property to have this available,
+      otherwise it's @nil.
 
-    { @abstract(How should TriangleOctree and ShapeStateOctree
-      be created and updated?)
+      Note that when VRML scene contains Collision nodes, this octree
+      contains the @italic(visible (not necessarily collidable)) objects.  }
+    property OctreeRendering: TVRMLShapeStateOctree read FOctreeRendering;
+
+    { The dynamic octree containing all collidable items.
+
+      This is actually a hierarchy of octrees: scene is partitioned
+      first into ShapeStates (each instance of VRML geometry node),
+      and then each ShapeState has an octree of triangles inside.
+
+      This octree is useful for all kinds of collision detection.
+      Compared to OctreeCollidableTriangles, it is (very slightly on typical scenes)
+      less efficient, but it can also be updated very fast.
+      For example, merely transforming some ShapeState means that only
+      one item needs to be moved in the top-level shapestate tree.
+      So this is the most important structure for collision detection on
+      dynamic scenes.
+
+      Add okDynamicCollisions to @link(Octrees) property to have this available,
+      otherwise it's @nil.
+
+      Note that when VRML scene contains Collision nodes, this octree
+      contains the @italic(collidable (not necessarily rendered)) objects.
+
+      TODO: TEMPORARILY, IN SVN, THIS IS A TRIANGLE-BASED OCTREE, AND IT'S
+      UPDATED SIMPLY BY REBUILDING. THIS IS A WORK IN PROGRESS, AND WILL
+      BE CHANGED TO DESCRIBED ABOVE HIERARCHY VERY VERY SOON.
+      In other words, for now this is the same thing as OctreeCollidableTriangles,
+      except that it's updated (by very slow rebuilding). }
+    property OctreeCollisions: TVRMLTriangleOctree read FOctreeCollisions;
+
+    { The octree containing all visible triangles.
+      It's mainly useful for ray-tracers. When rendering using OpenGL,
+      this has no use currently.
+
+      This octree is not updated on scene changes. In fact, the scene
+      contents cannot change when this octree is created --- as this octree
+      keeps pointers to some states that may become invalid in dynamic scenes.
+
+      Add okVisibleTriangles to @link(Octrees) property to have this available,
+      otherwise it's @nil.
+
+      Note that when VRML scene contains Collision nodes, this octree
+      contains the @italic(visible (not necessarily collidable)) objects.  }
+    property OctreeVisibleTriangles: TVRMLTriangleOctree read FOctreeVisibleTriangles;
+
+    { The octree containing all collidable triangles.
+      This is pretty much unused for now.
+
+      It may be useful if you're absolutely sure that you have a static scene
+      (nothing changes, e.g. because ProcessEvents = @false) and
+      you want to have collision detection with the scene.
+
+      For dynamic scenes, using this is a bad idea as
+      this octree is not updated on scene changes. In fact, the scene
+      contents cannot change when this octree is created --- as this octree
+      keeps pointers to some states that may become invalid in dynamic scenes.
+      Use OctreeCollisions for dynamic scenes.
+
+      Add okCollidableTriangles to @link(Octrees) property to have this available,
+      otherwise it's @nil.
+
+      Note that when VRML scene contains Collision nodes, this octree
+      contains the @italic(collidable (not necessarily rendered)) objects.  }
+    property OctreeCollidableTriangles: TVRMLTriangleOctree read FOctreeCollidableTriangles;
+
+    { Which octrees should be created and managed.
 
       You should set this, based on your expected usage of octrees.
-      Usually, you want octree to be fully automatically managed,
-      and you set this to osFull. See TVRMLSceneOctreeStrategy
-      for possible values.
+      See TVRMLSceneOctreeStrategy for possible values.
+      For usual dynamic scenes rendered with OpenGL,
+      you want this to be [okRendering, okDynamicCollisions].
 
-      Before setting any value <> soNone you may want to adjust
+      Before setting any value <> [] you may want to adjust
       TriangleOctreeMaxDepth, TriangleOctreeMaxLeafItemsCount,
       ShapeStateOctreeMaxDepth, ShapeStateOctreeMaxLeafItemsCount.
-      These properties fine-tune how the octree will be generated
+      These properties fine-tune how the octrees will be generated
       (although default values should be Ok for typical cases).
 
-      Default value of this property is osNone, which means that
+      Default value of this property is [], which means that
       no octrees will be created. This has to be the default value,
       to 1. get you chance to change TriangleOctreeMaxDepth and such
       before creating octree 2. otherwise, scenes that not require
-      collision detection would unnecessarily create octree at construction. }
-    property OctreeStrategy: TVRMLSceneOctreeStrategy
-      read FOctreeStrategy write SetOctreeStrategy default osNone;
+      collision detection would unnecessarily create octrees at construction. }
+    property Octrees: TVRMLSceneOctreeKinds read FOctrees write SetOctrees;
 
-    { Properties of created TriangleOctree.
+    { Properties of created triangle octrees.
       See VRMLTriangleOctree unit comments for description.
 
       If TriangleOctreeProgressTitle <> '', it will be shown during
@@ -929,7 +957,7 @@ type
       ( so we avoid starting "progress bar within progress bar").
 
       They are used only when the octree is created, so usually you
-      want to set them right before changing OctreeStrategy from osNone
+      want to set them right before changing @link(Octrees) from []
       to something else.
 
       @groupBegin }
@@ -948,7 +976,7 @@ type
       write FTriangleOctreeProgressTitle;
     { @groupEnd }
 
-    { Properties of ShapeStateOctree.
+    { Properties of created shapestate octrees.
       See VRMLShapeStateOctree unit comments for description.
 
       If ShapeStateOctreeProgressTitle <> '', it will be shown during
@@ -957,7 +985,7 @@ type
       ( so we avoid starting "progress bar within progress bar").
 
       They are used only when the octree is created, so usually you
-      want to set them right before changing OctreeStrategy from osNone
+      want to set them right before changing @link(Octrees) from []
       to something else.
 
       @groupBegin }
@@ -1569,8 +1597,10 @@ begin
 
  ShapeStates.FreeWithContents;
 
- FreeAndNil(FTriangleOctree);
- FreeAndNil(FShapeStateOctree);
+ FreeAndNil(FOctreeRendering);
+ FreeAndNil(FOctreeCollisions);
+ FreeAndNil(FOctreeVisibleTriangles);
+ FreeAndNil(FOctreeCollidableTriangles);
 
  if OwnsRootNode then FreeAndNil(FRootNode);
  inherited;
@@ -2198,32 +2228,32 @@ begin
     fvManifoldAndBorderEdges];
 
 {$ifdef REBUILD_OCTREE}
-  if OctreeStrategy <> osNone then
+  { Remember to do FreeAndNil on octrees below.
+    Although we will recreate octrees right after rebuilding,
+    it's still good to nil them right after freeing.
+    Otherwise, when exception will raise from CreateXxxOctree,
+    Scene.OctreeXxx will be left as invalid pointer. }
+
+  if OctreeRendering <> nil then
+  begin
+    FreeAndNil(FOctreeRendering);
+    FOctreeRendering := CreateShapeStateOctree(
+      ShapeStateOctreeMaxDepth,
+      ShapeStateOctreeMaxLeafItemsCount,
+      ShapeStateOctreeProgressTitle,
+      false);
+  end;
+
+  if OctreeCollisions <> nil then
   begin
     PointingDeviceClear;
 
-    { Although we will recreate octrees very soon,
-      it's still elegant to nil them right after freeing.
-      Otherwise, when exception will raise from CreateTriangleOctree,
-      Scene.DefaultTriangleOctree will be left as invalid pointer. }
-
-    if FTriangleOctree <> nil then
-    begin
-      FreeAndNil(FTriangleOctree);
-      FTriangleOctree := CreateTriangleOctree(
-        TriangleOctreeMaxDepth,
-        TriangleOctreeMaxLeafItemsCount,
-        TriangleOctreeProgressTitle);
-    end;
-
-    if FShapeStateOctree <> nil then
-    begin
-      FreeAndNil(FShapeStateOctree);
-      FShapeStateOctree := CreateShapeStateOctree(
-        ShapeStateOctreeMaxDepth,
-        ShapeStateOctreeMaxLeafItemsCount,
-        ShapeStateOctreeProgressTitle);
-    end;
+    FreeAndNil(FOctreeCollisions);
+    FOctreeCollisions := CreateTriangleOctree(
+      TriangleOctreeMaxDepth,
+      TriangleOctreeMaxLeafItemsCount,
+      TriangleOctreeProgressTitle,
+      true);
   end;
 {$endif REBUILD_OCTREE}
 
@@ -2349,110 +2379,168 @@ begin
     FaceCoordIndexBegin, FaceCoordIndexEnd);
 end;
 
-procedure TVRMLScene.SetOctreeStrategy(const Value: TVRMLSceneOctreeStrategy);
+procedure TVRMLScene.SetOctrees(const Value: TVRMLSceneOctreeKinds);
 var
-  OldTriangleNeeded, NewTriangleNeeded, OldSSNeeded, NewSSNeeded: boolean;
+  Old, New: boolean;
 begin
-  if Value <> OctreeStrategy then
+  if Value <> Octrees then
   begin
-    OldTriangleNeeded := OctreeStrategy in [osTriangle, osFull];
-    NewTriangleNeeded := Value          in [osTriangle, osFull];
-    OldSSNeeded := OctreeStrategy in [osShapeState, osFull];
-    NewSSNeeded := Value          in [osShapeState, osFull];
+    { Handle OctreeRendering }
 
-    FOctreeStrategy := Value;
+    Old := okRendering in Octrees;
+    New := okRendering in Value;
 
-    if OldTriangleNeeded and not NewTriangleNeeded then
+    if Old and not New then
     begin
-      FreeAndNil(FTriangleOctree);
-    end;
-
-    if (not OldTriangleNeeded) and NewTriangleNeeded then
+      FreeAndNil(FOctreeRendering);
+    end else
+    if New and not Old then
     begin
-      FTriangleOctree := CreateTriangleOctree(
-        TriangleOctreeMaxDepth,
-        TriangleOctreeMaxLeafItemsCount,
-        TriangleOctreeProgressTitle);
-    end;
-
-    if OldSSNeeded and not NewSSNeeded then
-    begin
-      FreeAndNil(FShapeStateOctree);
-    end;
-
-    if (not OldSSNeeded) and NewSSNeeded then
-    begin
-      FShapeStateOctree := CreateShapeStateOctree(
+      FOctreeRendering := CreateShapeStateOctree(
         ShapeStateOctreeMaxDepth,
         ShapeStateOctreeMaxLeafItemsCount,
-        ShapeStateOctreeProgressTitle);
+        ShapeStateOctreeProgressTitle,
+        false);
     end;
+
+    { Handle OctreeCollisions }
+
+    Old := okDynamicCollisions in Octrees;
+    New := okDynamicCollisions in Value;
+
+    if Old and not New then
+    begin
+      FreeAndNil(FOctreeCollisions);
+    end else
+    if New and not Old then
+    begin
+      FOctreeCollisions := CreateTriangleOctree(
+        TriangleOctreeMaxDepth,
+        TriangleOctreeMaxLeafItemsCount,
+        TriangleOctreeProgressTitle,
+        true);
+    end;
+
+    { Handle OctreeVisibleTriangles }
+
+    Old := okVisibleTriangles in Octrees;
+    New := okVisibleTriangles in Value;
+
+    if Old and not New then
+    begin
+      FreeAndNil(FOctreeVisibleTriangles);
+    end else
+    if New and not Old then
+    begin
+      FOctreeVisibleTriangles := CreateTriangleOctree(
+        TriangleOctreeMaxDepth,
+        TriangleOctreeMaxLeafItemsCount,
+        TriangleOctreeProgressTitle,
+        false);
+    end;
+
+    { Handle OctreeCollidableTriangles }
+
+    Old := okCollidableTriangles in Octrees;
+    New := okCollidableTriangles in Value;
+
+    if Old and not New then
+    begin
+      FreeAndNil(FOctreeCollidableTriangles);
+    end else
+    if New and not Old then
+    begin
+      FOctreeCollidableTriangles := CreateTriangleOctree(
+        TriangleOctreeMaxDepth,
+        TriangleOctreeMaxLeafItemsCount,
+        TriangleOctreeProgressTitle,
+        true);
+    end;
+
+    FOctrees := Value;
   end;
 end;
 
 function TVRMLScene.CreateTriangleOctree(
   AMaxDepth, AMaxLeafItemsCount: integer;
-  const ProgressTitle: string): TVRMLTriangleOctree;
+  const ProgressTitle: string;
+  const Collidable: boolean): TVRMLTriangleOctree;
 
   procedure FillOctree(AddTriProc: TNewTriangleProc);
-  var i: integer;
+  var
+    I: Integer;
   begin
-    for i := 0 to ShapeStates.Count - 1 do
-      if ShapeStates[i].State.InsideIgnoreCollision = 0 then
-        ShapeStates[i].GeometryNode.Triangulate(
-          ShapeStates[i].State, false, AddTriProc);
+    for I := 0 to ShapeStates.Count - 1 do
+      { TODO: this has to be improved to handle collidable but not visible
+        geometry (Collision.proxy). }
+      if (not Collidable) or
+         (ShapeStates[I].State.InsideIgnoreCollision = 0) then
+        ShapeStates[I].GeometryNode.Triangulate(
+          ShapeStates[I].State, false, AddTriProc);
   end;
 
 begin
- result := TVRMLTriangleOctree.Create(AMaxDepth, AMaxLeafItemsCount, BoundingBox);
- try
-  result.OctreeItems.AllowedCapacityOverflow := TrianglesCount(false);
+  Result := TVRMLTriangleOctree.Create(AMaxDepth, AMaxLeafItemsCount, BoundingBox);
   try
-   if (ProgressTitle <> '') and
-      (Progress.UserInterface <> nil) and
-      (not Progress.Active) then
-   begin
-    Progress.Init(TrianglesCount(false), ProgressTitle, true);
+    Result.OctreeItems.AllowedCapacityOverflow := TrianglesCount(false);
     try
-     TriangleOctreeToAdd := result;
-     FillOctree({$ifdef FPC_OBJFPC} @ {$endif} AddTriangleToOctreeProgress);
-    finally Progress.Fini end;
-   end else
-    FillOctree({$ifdef FPC_OBJFPC} @ {$endif} Result.AddItemTriangle);
-  finally
-   result.OctreeItems.AllowedCapacityOverflow := 4;
-  end;
- except result.Free; raise end;
+      if (ProgressTitle <> '') and
+         (Progress.UserInterface <> nil) and
+         (not Progress.Active) then
+      begin
+        Progress.Init(TrianglesCount(false), ProgressTitle, true);
+        try
+          TriangleOctreeToAdd := Result;
+          FillOctree({$ifdef FPC_OBJFPC} @ {$endif} AddTriangleToOctreeProgress);
+        finally Progress.Fini end;
+      end else
+        FillOctree({$ifdef FPC_OBJFPC} @ {$endif} Result.AddItemTriangle);
+    finally
+      Result.OctreeItems.AllowedCapacityOverflow := 4;
+    end;
+  except Result.Free; raise end;
 end;
 
 function TVRMLScene.CreateShapeStateOctree(
   AMaxDepth, AMaxLeafItemsCount: integer;
-  const ProgressTitle: string): TVRMLShapeStateOctree;
-var i: Integer;
-begin
- Result := TVRMLShapeStateOctree.Create(AMaxDepth, AMaxLeafItemsCount,
-   BoundingBox, ShapeStates);
- try
+  const ProgressTitle: string;
+  const Collidable: boolean): TVRMLShapeStateOctree;
 
-  if (ProgressTitle <> '') and
-     (Progress.UserInterface <> nil) and
-     (not Progress.Active) then
+  function AddShapeState(const I: Integer): boolean;
   begin
-   Progress.Init(ShapeStates.Count, ProgressTitle, true);
-   try
-    for i := 0 to ShapeStates.Count - 1 do
-    begin
-     Result.TreeRoot.AddItem(i);
-     Progress.Step;
-    end;
-   finally Progress.Fini end;
-  end else
-  begin
-   for i := 0 to ShapeStates.Count - 1 do
-    Result.TreeRoot.AddItem(i);
+    { TODO: this has to be improved to handle collidable but not visible
+      geometry (Collision.proxy). }
+    Result :=
+      (not Collidable) or
+      (ShapeStates[I].State.InsideIgnoreCollision = 0);
   end;
 
- except Result.Free; raise end;
+var
+  I: Integer;
+begin
+  Result := TVRMLShapeStateOctree.Create(AMaxDepth, AMaxLeafItemsCount,
+    BoundingBox, ShapeStates);
+  try
+    if (ProgressTitle <> '') and
+       (Progress.UserInterface <> nil) and
+       (not Progress.Active) then
+    begin
+      Progress.Init(ShapeStates.Count, ProgressTitle, true);
+      try
+        for I := 0 to ShapeStates.Count - 1 do
+        begin
+          if AddShapeState(I) then
+            Result.TreeRoot.AddItem(I);
+          Progress.Step;
+        end;
+      finally Progress.Fini end;
+    end else
+    begin
+      for I := 0 to ShapeStates.Count - 1 do
+        if AddShapeState(I) then
+          Result.TreeRoot.AddItem(I);
+    end;
+  except Result.Free; raise end;
 end;
 
 { viewpoints ----------------------------------------------------------------- }

@@ -158,7 +158,7 @@ class function TDummy.MoveAllowed(Navigator: TWalkNavigator;
   const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const BecauseOfGravity: boolean): boolean;
 begin
- Result := Scene.TriangleOctree.MoveAllowed(
+ Result := Scene.OctreeCollisions.MoveAllowed(
    Navigator.CameraPos, ProposedNewPos, NewPos, CameraRadius,
    BecauseOfGravity, NoItemIndex, nil);
 end;
@@ -181,7 +181,7 @@ begin
   Progress.UserInterface := ProgressConsoleInterface;
   Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
   Scene.ShapeStateOctreeProgressTitle := 'Building ShapeState octree';
-  Scene.OctreeStrategy := osFull;
+  Scene.Octrees := [okRendering, okDynamicCollisions];
 
   Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
 

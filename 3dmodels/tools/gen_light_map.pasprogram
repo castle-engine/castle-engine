@@ -84,11 +84,11 @@ begin
   { evaluate SceneOctree }
   Progress.UserInterface := ProgressConsoleInterface;
   Scene.TriangleOctreeProgressTitle := 'Building octree';
-  Scene.OctreeStrategy := osTriangle;
+  Scene.Octrees := [okVisibleTriangles];
 
   { render to Image }
   ProcessTimerBegin;
-  QuadLightMapTo1st(Image, LightSet.Lights, Scene.TriangleOctree, Quad,
+  QuadLightMapTo1st(Image, LightSet.Lights, Scene.OctreeVisibleTriangles, Quad,
     RenderDir, 'Rendering');
   Writeln(Format('Rendering done in %f seconds.', [ProcessTimerEnd]));
 
