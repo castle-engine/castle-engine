@@ -1371,7 +1371,7 @@ type
         @item(TWalkNavigator.Gravity,)
         @item(TWalkNavigator.PreferGravityUpForRotations,)
         @item(TWalkNavigator.PreferGravityUpForMoving,)
-        @item(TWalkNavigator.TWalkNavigator.IgnoreAllInputs,)
+        @item(TWalkNavigator.IgnoreAllInputs,)
         @item(TWalkNavigator.CameraPreferredHeight.)
       )
 
