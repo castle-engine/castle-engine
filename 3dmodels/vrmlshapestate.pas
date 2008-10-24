@@ -70,6 +70,9 @@ type
 
     procedure ValidateBoundingSphere;
   public
+    constructor Create(AGeometryNode: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
+    destructor Destroy; override;
+
     { GeometryNode to wskaznik na obiekt w RootNode }
     property GeometryNode: TVRMLGeometryNode read FGeometryNode;
 
@@ -128,8 +131,6 @@ type
       const Frustum: TFrustum): boolean;
 
     procedure Changed;
-    constructor Create(AGeometryNode: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
-    destructor Destroy; override;
   end;
 
   TObjectsListItem_1 = TVRMLShapeState;
@@ -169,6 +170,19 @@ implementation
 {$I macprecalcvaluereturn.inc}
 
 { TVRMLShapeState -------------------------------------------------------------- }
+
+constructor TVRMLShapeState.Create(AGeometryNode: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
+begin
+ inherited Create;
+ FGeometryNode := AGeometryNode;
+ FState := AState;
+end;
+
+destructor TVRMLShapeState.Destroy;
+begin
+ State.Free;
+ inherited;
+end;
 
 function TVRMLShapeState.LocalBoundingBox: TBox3d;
 {$define PRECALC_VALUE_ENUM := svLocalBBox}
@@ -262,19 +276,6 @@ begin
  ValidateBoundingSphere;
  Result := FrustumSphereCollisionPossibleSimple(Frustum,
    FBoundingSphereCenter, FBoundingSphereRadiusSqr);
-end;
-
-constructor TVRMLShapeState.Create(AGeometryNode: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
-begin
- inherited Create;
- FGeometryNode := AGeometryNode;
- FState := AState;
-end;
-
-destructor TVRMLShapeState.Destroy;
-begin
- State.Free;
- inherited;
 end;
 
 { TVRMLShapeStatesList ------------------------------------------------------- }
