@@ -172,10 +172,17 @@ begin
 
     if Color = nil then
     begin
-      Material := State.ParentShape.Material;
-      if Material <> nil then
-        Renderer.SetColor_2(Material.FdEmissiveColor.Value) else
+      if State.ParentShape = nil then
+      begin
+        VRMLNonFatalError('PointSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
         Renderer.SetColor_2(White3Single);
+      end else
+      begin
+        Material := State.ParentShape.Material;
+        if Material <> nil then
+          Renderer.SetColor_2(Material.FdEmissiveColor.Value) else
+          Renderer.SetColor_2(White3Single);
+      end;
     end;
 
     glBegin(GL_POINTS);
@@ -716,10 +723,17 @@ begin
        Material = NULL makes unlit white color) }
   if Color = nil then
   begin
-    Material := State.ParentShape.Material;
-    if Material <> nil then
-      Renderer.SetColor_2(Material.FdEmissiveColor.Value) else
+    if State.ParentShape = nil then
+    begin
+      VRMLNonFatalError('LineSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
       Renderer.SetColor_2(White3Single);
+    end else
+    begin
+      Material := State.ParentShape.Material;
+      if Material <> nil then
+        Renderer.SetColor_2(Material.FdEmissiveColor.Value) else
+        Renderer.SetColor_2(White3Single);
+    end;
   end;
 end;
 
