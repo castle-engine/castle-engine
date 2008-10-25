@@ -24,9 +24,8 @@ unit VRMLShapeState;
 
 interface
 
-uses
-  SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils,
-  KambiUtils;
+uses SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils,
+  KambiUtils, VRMLTriangleOctree;
 
 {$define read_interface}
 
@@ -36,6 +35,14 @@ type
     svVerticesCountNotOver,  svVerticesCountOver,
     svTrianglesCountNotOver, svTrianglesCountOver,
     svBoundingSphere, svEnableDisplayList);
+
+  { Possible octree types that may be managed by TVRMLShapeState,
+    see TVRMLShapeState.Octrees. }
+  TVRMLShapeOctreeKind = (
+    { Create the TVRMLShapeState.OctreeTriangles.
+      This is an octree containing all triangles. }
+    okTriangles);
+  TVRMLShapeOctreeKinds = set of TVRMLShapeOctreeKind;
 
   { This class represents a pair of objects: @link(GeometryNode) and
     @link(State). It allows to perform some operations that need
@@ -69,6 +76,22 @@ type
     FEnableDisplayList: boolean;
 
     procedure ValidateBoundingSphere;
+
+    TriangleOctreeToAdd: TVRMLTriangleOctree;
+    procedure AddTriangleToOctreeProgress(const Triangle: TTriangle3Single;
+      State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
+      const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+    function CreateTriangleOctree(const AMaxDepth, AMaxLeafItemsCount: Integer;
+      const ProgressTitle: string): TVRMLTriangleOctree;
+
+    FTriangleOctreeMaxDepth: Integer;
+    FTriangleOctreeMaxLeafItemsCount: Integer;
+    FTriangleOctreeProgressTitle: string;
+
+    FOctreeTriangles: TVRMLTriangleOctree;
+
+    FOctrees: TVRMLShapeOctreeKinds;
+    procedure SetOctrees(const Value: TVRMLShapeOctreeKinds);
   public
     constructor Create(AGeometryNode: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
     destructor Destroy; override;
@@ -131,6 +154,70 @@ type
       const Frustum: TFrustum): boolean;
 
     procedure Changed;
+
+    { The dynamic octree containing all triangles.
+      It contains only triangles within this shape.
+
+      There is no distinction here between collidable / visible
+      (as for TVRMLScene octrees), since the whole shape may be
+      visible and/or collidable.
+
+      The triangles are specified in local coordinate system of this shape
+      (that is, they are independent from transformation within State.Transform).
+      This allows the tree to remain unmodified when transformation of this
+      shape changes.
+
+      This is automatically managed (initialized, updated, and used)
+      by parent TVRMLScene. You usually don't need to know about this
+      octree from outside.
+
+      To initialize this, add okTriangles to @link(Octrees) property,
+      otherwise it's @nil. Parent TVRMLScene will take care of this
+      (when parent TVRMLScene.Octrees contains okDynamicCollisions, then
+      all shapes contain okTriangles within their Octrees).
+
+      Parent TVRMLScene will take care to keep this octree always updated.
+
+      Parent TVRMLScene will also take care of actually using
+      this octree: TVRMLScene.OctreeCollisions methods actually use the
+      octrees of specific shapes at the bottom. }
+    property OctreeTriangles: TVRMLTriangleOctree read FOctreeTriangles;
+
+    { Which octrees should be created and managed.
+      This works analogous to TVRMLScene.Octrees, but this manages
+      octrees within this TVRMLShapeState. }
+    property Octrees: TVRMLShapeOctreeKinds read FOctrees write SetOctrees;
+
+    { Properties of created triangle octrees.
+      See VRMLTriangleOctree unit comments for description.
+
+      If TriangleOctreeProgressTitle <> '', it will be shown during
+      octree creation (through TProgress.Title). Will be shown only
+      if progress is not active already
+      ( so we avoid starting "progress bar within progress bar").
+
+      They are used only when the octree is created, so usually you
+      want to set them right before changing @link(Octrees) from []
+      to something else.
+
+      @groupBegin }
+    property     TriangleOctreeMaxDepth: Integer
+      read      FTriangleOctreeMaxDepth
+      write     FTriangleOctreeMaxDepth
+      default DefTriangleOctreeMaxDepth;
+
+    property     TriangleOctreeMaxLeafItemsCount: Integer
+       read     FTriangleOctreeMaxLeafItemsCount
+      write     FTriangleOctreeMaxLeafItemsCount
+      default DefTriangleOctreeMaxLeafItemsCount;
+
+    property TriangleOctreeProgressTitle: string
+      read  FTriangleOctreeProgressTitle
+      write FTriangleOctreeProgressTitle;
+    { @groupEnd }
+
+    { Update octree, if initialized. }
+    procedure GeometryChanged;
   end;
 
   TObjectsListItem_1 = TVRMLShapeState;
@@ -165,6 +252,8 @@ type
 
 implementation
 
+uses ProgressUnit;
+
 {$define read_implementation}
 {$I objectslist_1.inc}
 {$I macprecalcvaluereturn.inc}
@@ -173,15 +262,20 @@ implementation
 
 constructor TVRMLShapeState.Create(AGeometryNode: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
 begin
- inherited Create;
- FGeometryNode := AGeometryNode;
- FState := AState;
+  inherited Create;
+
+  FTriangleOctreeMaxDepth := DefTriangleOctreeMaxDepth;
+  FTriangleOctreeMaxLeafItemsCount := DefTriangleOctreeMaxLeafItemsCount;
+
+  FGeometryNode := AGeometryNode;
+  FState := AState;
 end;
 
 destructor TVRMLShapeState.Destroy;
 begin
- State.Free;
- inherited;
+  FreeAndNil(State);
+  FreeAndNil(FOctreeTriangles);
+  inherited;
 end;
 
 function TVRMLShapeState.LocalBoundingBox: TBox3d;
@@ -276,6 +370,91 @@ begin
  ValidateBoundingSphere;
  Result := FrustumSphereCollisionPossibleSimple(Frustum,
    FBoundingSphereCenter, FBoundingSphereRadiusSqr);
+end;
+
+procedure TVRMLShapeState.AddTriangleToOctreeProgress(
+  const Triangle: TTriangle3Single;
+  State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
+  const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+begin
+  Progress.Step;
+  TriangleOctreeToAdd.AddItemTriangle(Triangle, State, GeometryNode, MatNum,
+    FaceCoordIndexBegin, FaceCoordIndexEnd);
+end;
+
+function TVRMLShapeState.CreateTriangleOctree(
+  const AMaxDepth, AMaxLeafItemsCount: integer;
+  const ProgressTitle: string): TVRMLTriangleOctree;
+begin
+  Result := TVRMLTriangleOctree.Create(AMaxDepth, AMaxLeafItemsCount, BoundingBox);
+  try
+    Result.OctreeItems.AllowedCapacityOverflow := TrianglesCount(false);
+    try
+      if (ProgressTitle <> '') and
+         (Progress.UserInterface <> nil) and
+         (not Progress.Active) then
+      begin
+        Progress.Init(TrianglesCount(false), ProgressTitle, true);
+        try
+          TriangleOctreeToAdd := Result;
+          GeometryNode.Triangulate(State, false,  @AddTriangleToOctreeProgress);
+        finally Progress.Fini end;
+      end else
+        GeometryNode.Triangulate(State, false,  @Result.AddItemTriangle);
+    finally
+      Result.OctreeItems.AllowedCapacityOverflow := 4;
+    end;
+  except Result.Free; raise end;
+end;
+
+procedure TVRMLShapeState.SetOctrees(const Value: TVRMLShapeOctreeKinds);
+var
+  Old, New: boolean;
+begin
+  if Value <> Octrees then
+  begin
+    { Handle OctreeTriangles }
+
+    Old := okTriangles in Octrees;
+    New := okTriangles in Value;
+
+    if Old and not New then
+    begin
+      FreeAndNil(FOctreeTriangles);
+    end else
+    if New and not Old then
+    begin
+      FOctreeTriangles := CreateTriangleOctree(
+        TriangleOctreeMaxDepth,
+        TriangleOctreeMaxLeafItemsCount,
+        TriangleOctreeProgressTitle);
+    end;
+
+    FOctrees := Value;
+  end;
+end;
+
+procedure TVRMLShapeState.GeometryChanged;
+begin
+{$define REBUILD_OCTREE}
+{$ifdef REBUILD_OCTREE}
+  { Remember to do FreeAndNil on octrees below.
+    Although we will recreate octrees right after rebuilding,
+    it's still good to nil them right after freeing.
+    Otherwise, when exception will raise from CreateXxxOctree,
+    Scene.OctreeXxx will be left as invalid pointer. }
+
+  if OctreeTriangles <> nil then
+  begin
+    { TODO: make sure PointingDeviceClear; is called by parent TVRMLScene }
+
+    FreeAndNil(FOctreeTriangles);
+    FOctreeTriangles := CreateTriangleOctree(
+      TriangleOctreeMaxDepth,
+      TriangleOctreeMaxLeafItemsCount,
+      TriangleOctreeProgressTitle);
+  end;
+{$endif REBUILD_OCTREE}
 end;
 
 { TVRMLShapeStatesList ------------------------------------------------------- }
