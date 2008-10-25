@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2006 Michalis Kamburelis.
+  Copyright 2003-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -67,22 +67,22 @@ var
   RayVector: TYPE_VECTOR3;
 {$endif}
 
-  function DoLeaf: integer;
+  function DoLeaf: POctreeItem;
 
     function TryTriangleCollision(
       out Intersection: TYPE_VECTOR3;
       out IntersectionDistance: TYPE_SCALAR;
-      ItemIndiceNumber: Integer): boolean;
+      var Item: TOctreeItem): boolean;
     begin
       Result:=
         {$ifdef SEGMENT_COLLISION}
         TryOctreeItemSegmentDirCollision(Intersection, IntersectionDistance,
-          Items[ItemIndiceNumber]^, Pos1, RayVector,
+          Item, Pos1, RayVector,
           {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
           ParentTree.DirectCollisionTestsCounter)
         {$else}
         TryOctreeItemRayCollision(Intersection, IntersectionDistance,
-          Items[ItemIndiceNumber]^, Ray0, RayVector,
+          Item, Ray0, RayVector,
           {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
           ParentTree.DirectCollisionTestsCounter)
         {$endif}
@@ -98,49 +98,55 @@ var
     {$define ITERATE_INTERSECTIONS:=
     for Iterate_ItemNumber := 0 to ItemsCount-1 do
     begin
+      Iterate_Item := Items[Iterate_ItemNumber];
       if TryTriangleCollision(Iterate_Intersection, Iterate_IntersectionDistance,
-           Iterate_ItemNumber) and
-         ( OctreeItemIndexToIgnore <> ItemsIndices[Iterate_ItemNumber] ) and
+           Iterate_Item^) and
+         ( OctreeItemToIgnore <> Iterate_Item ) and
          ( (not IgnoreMarginAtStart) or
            (not VectorsEqual(Iterate_Intersection, Ray0)) ) and
          ( (not Assigned(ItemsToIgnoreFunc)) or
-           (not ItemsToIgnoreFunc(ParentTree, ItemsIndices[Iterate_ItemNumber])) ) then
+           (not ItemsToIgnoreFunc(ParentTree, Iterate_Item)) ) then
        ON_INTERSECTION_FOUND
     end;}
 
-  var Iterate_ItemNumber: integer;
-      Iterate_Intersection: TYPE_VECTOR3;
-      Iterate_IntersectionDistance: TYPE_SCALAR;
+  var
+    Iterate_ItemNumber: integer;
+    Iterate_Item: POctreeItem;
+    Iterate_Intersection: TYPE_VECTOR3;
+    Iterate_IntersectionDistance: TYPE_SCALAR;
   begin
    if ReturnClosestIntersection then
    begin
-    Result := NoItemIndex;
+    Result := nil;
 
-    {$define ON_INTERSECTION_FOUND := begin
-     if (Result = NoItemIndex) or
-        (Iterate_IntersectionDistance < IntersectionDistance) then
-     begin
-      Result := ItemsIndices[Iterate_ItemNumber];
-      Intersection         := Iterate_Intersection;
-      IntersectionDistance := Iterate_IntersectionDistance;
-     end;
+    {$define ON_INTERSECTION_FOUND :=
+    begin
+      if (Result = nil) or
+         (Iterate_IntersectionDistance < IntersectionDistance) then
+      begin
+        Result               := Iterate_Item;
+        Intersection         := Iterate_Intersection;
+        IntersectionDistance := Iterate_IntersectionDistance;
+      end;
     end;}
     ITERATE_INTERSECTIONS
    end else
    begin
-    {$define ON_INTERSECTION_FOUND := begin
+    {$define ON_INTERSECTION_FOUND :=
+    begin
+      Result               := Iterate_Item;
       Intersection         := Iterate_Intersection;
       IntersectionDistance := Iterate_IntersectionDistance;
-      Exit(ItemsIndices[Iterate_ItemNumber]);
+      Exit;
     end;}
     ITERATE_INTERSECTIONS
-    Exit(NoItemIndex);
+    Exit(nil);
    end;
   end;
   {$undef ITERATE_INTERSECTIONS}
   {$undef ON_INTERSECTION_FOUND}
 
-  function DoNotLeaf: integer;
+  function DoNotLeaf: POctreeItem;
   var
     { FirstBoxIntr = first ray with box intersection if Ray0 is outside
       if the Box or simply Ray0 if Ray0 is inside our Box  }
@@ -309,7 +315,7 @@ var
   var i: integer;
   begin
    if not TryBoxRayEntrance(FirstBoxIntr, Box, Ray0, RayVector) then
-     Exit(NoItemIndex);
+     Exit(nil);
    StartSubnode := SubnodeWithPoint(FirstBoxIntr);
 
    CalculatePlaneIntersects;
@@ -318,8 +324,8 @@ var
 
    { szukamy najblizszego Intersection wchodzac w SubNodes. Zauwazmy ze
      w calym DoNotLeaf zawsze dzialamy jakby ReturnClosestIntersection = true
-     za wyjatkiem malego szczegoliku ponizej przy "if result <> NoItemIndex ...". }
-   result := NoItemIndex;
+     za wyjatkiem malego szczegoliku ponizej przy "if result <> nil ...". }
+   result := nil;
    for i := 0 to SubnodesToCheckCount - 1 do
    begin
     result := TTriangleOctreeNode(TreeSubNodes[
@@ -333,12 +339,12 @@ var
       {$ifdef SEGMENT_COLLISION}
       SegmentCollision(Intersection, IntersectionDistance, Pos1, Pos2,
         {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
-        ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart,
+        ReturnClosestIntersection, OctreeItemToIgnore, IgnoreMarginAtStart,
         ItemsToIgnoreFunc);
       {$else}
       RayCollision(Intersection, IntersectionDistance, Ray0, RayVector,
         {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
-        ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart,
+        ReturnClosestIntersection, OctreeItemToIgnore, IgnoreMarginAtStart,
         ItemsToIgnoreFunc);
       {$endif}
 
@@ -347,7 +353,7 @@ var
       nalezy do innego subnodea'a i to on je zwroci (a my nie powinnismy
       teraz wychodzic jesli ReturnClosestIntersection bo byc moze to przeciecie
       nie jest najblizszym z mozliwych) }
-    if (result <> NoItemIndex) and
+    if (result <> nil) and
        ((not ReturnClosestIntersection) or
         OctreeSubnodeIndexesEqual(SubnodeWithPoint(Intersection), SubnodesToCheck[i])) then
      Exit;

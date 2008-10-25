@@ -334,7 +334,6 @@ var
   Ray0, RayVector: TVector3Single;
   OverPoint: TVector3Single;
   Item: POctreeItem;
-  ItemIndex: Integer;
 begin
   inherited;
 
@@ -343,12 +342,8 @@ begin
   begin
     Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, Ray0, RayVector);
 
-    ItemIndex := Scene.OctreeCollisions.RayCollision(
-      OverPoint, Ray0, RayVector, true, NoItemIndex, false, nil);
-
-    if ItemIndex = NoItemIndex then
-      Item := nil else
-      Item := Scene.OctreeCollisions.OctreeItems.Pointers[ItemIndex];
+    Item := Scene.OctreeCollisions.RayCollision(
+      OverPoint, Ray0, RayVector, true, nil, false, nil);
 
     Scene.PointingDeviceMove(OverPoint, Item);
 
@@ -402,15 +397,15 @@ end;
 procedure TKamVRMLBrowser.GetCameraHeight(ANavigator: TWalkNavigator;
   out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
 var
-  GroundItemIndex: Integer;
+  GroundItem: POctreeItem;
 begin
   if Scene.OctreeCollisions <> nil then
   begin
     Scene.OctreeCollisions.GetCameraHeight(
       ANavigator.CameraPos,
       ANavigator.GravityUp,
-      IsAboveTheGround, SqrHeightAboveTheGround, GroundItemIndex,
-      NoItemIndex, nil);
+      IsAboveTheGround, SqrHeightAboveTheGround, GroundItem,
+      nil, nil);
   end else
   begin
     { When octree is not available, we actually don't want gravity to

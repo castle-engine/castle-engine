@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2007 Michalis Kamburelis.
+  Copyright 2003-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -115,7 +115,7 @@ type
       on coordIndex fields).
 
       If this triangle doesn't come from any coordIndex (e.g. because GeometryNode
-      is a TNodeSphere) than both FaceCoordIndex* are -1. }
+      is a TNodeSphere) then both FaceCoordIndex* are -1. }
     FaceCoordIndexBegin, FaceCoordIndexEnd: Integer;
 
     {$ifdef OCTREE_ITEM_USE_MAILBOX}
@@ -183,15 +183,13 @@ function TryOctreeItemRayCollision(
 
 { TOctreeNode ------------------------------------------------------------------}
 
-const NoItemIndex = -1;
-
 type
   TVRMLTriangleOctree = class;
 
-  { zwraca dla zadanego indeksu w Octree.OctreeItems czy chcemy zignorowac
-    kolizje z nim }
-  TOctreeItemIgnoreFunc = function(Octree: TVRMLTriangleOctree;
-    OctreeItemIndex: Integer): boolean of object;
+  { Return for given OctreeItem do we want to ignore collisions with it. }
+  TOctreeItemIgnoreFunc = function (
+    const Octree: TVRMLTriangleOctree;
+    const OctreeItem: POctreeItem): boolean of object;
 
   TTriangleOctreeNode = class(TOctreeNode)
   protected
@@ -231,12 +229,12 @@ type
       przypadkiem kolizji ktora de facto zdarzyla sie w innym subnodzie. }
     function SphereCollision(const pos: TVector3Single;
       const Radius: Single;
-      const OctreeItemIndexToIgnore: integer;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer;
+      const OctreeItemToIgnore: POctreeItem;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
 
     function BoxCollision(const ABox: TBox3d;
-      const OctreeItemIndexToIgnore: integer;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): Integer;
+      const OctreeItemToIgnore: POctreeItem;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
 
     function SegmentCollision(
       out Intersection: TVector3Single;
@@ -244,9 +242,9 @@ type
       const pos1, pos2: TVector3Single;
       {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
       const ReturnClosestIntersection: boolean;
-      const OctreeItemIndexToIgnore: integer;
+      const OctreeItemToIgnore: POctreeItem;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; overload;
 
     function RayCollision(
       out Intersection: TVector3Single;
@@ -254,9 +252,9 @@ type
       const Ray0, RayVector: TVector3Single;
       {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
       const ReturnClosestIntersection: boolean;
-      const OctreeItemIndexToIgnore: integer;
+      const OctreeItemToIgnore: POctreeItem;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; overload;
   end;
 
   { TVRMLTriangleOctree ------------------------------------------------------------ }
@@ -301,7 +299,7 @@ type
         pamieci
       - umozliwilem sobie zrobienie OCTREE_ITEM_USE_MAILBOX
       - umozliwiam realizowanie OctreeItemToIgnore w RayCollision przez szybkie
-        porownywanie indeksow (zamiast np. zawartosci TOctreeItem) }
+        porownywanie of a simple pointer (zamiast np. zawartosci TOctreeItem) }
     OctreeItems: TDynOctreeItemsArray;
 
     function TreeRoot: TTriangleOctreeNode;
@@ -331,9 +329,8 @@ type
 
       RayCollision bada przeciecie promienia z drzewem.
 
-      Procedury zwracaja -1 (co preferujemy wyrazac jako NoItemIndex)
-      jesli nie ma kolizji lub indeks do tablicy OctreeItems
-      na element z ktorym jest kolizja. Pytanie brzmi "ktore przeciecie
+      Procedury zwracaja nil jesli nie ma kolizji or pointer to
+      element z ktorym jest kolizja. Pytanie brzmi "ktore przeciecie
       zwrocic jesli jest ich wiele ?". SphereCollision zwraca ktorykolwiek,
       podobnie jak Ray/SegmentCollision gdy (not ReturnClosestIntersection).
       Gdy ReturnClosestIntersection = true to RayCollision zwraca przeciecie
@@ -342,14 +339,12 @@ type
       za przekazanie ReturnClosestIntersection = true, wiec unikaj tego).
 
       Segment/RayCollision uwzgledniaja ze na pewno NIE MA przeciecia z elementem
-      OctreeItemIndexToIgnore, podaj OctreeItemIndexToIgnore = NoItemIndex
+      OctreeItemToIgnore, podaj OctreeItemToIgnore = nil
       aby uwzglednial wszystkie elementy (przydatne przy rekurencyjnym
       ray-tracingu gdy nie chcesz zeby promien odbity/zalamany/cienia omylkowo trafil na
       powierzchnie z ktorej wlasnie "wychodzisz" - mozna by bylo temu
       zaradzic tez przez nieznacznie przesuwanie Ray0, ale niniejsza metoda
-      jest duzo bardziej elegancka). OctreeItemIndexToIgnore to
-      naturalnie indeks do tablicy OctreeItems, podobnie jak wynik wszystkich
-      tych funkcji *Collision i podobnie jak elementy TTriangleOctreeNode.ItemsIndices[]
+      jest duzo bardziej elegancka).
 
       Uwzgledniaja tez ze na pewno nie ma przeciecia z elementami dla
       ktorych ItemsToIgnoreFunc zwroci true (mozesz przekazac nil
@@ -361,12 +356,12 @@ type
       zdefiniowane (czesciowo zachodzace na siebie) polygony. Takie polygony
       normalnie generowalyby zbedne cienie (zaslanialyby sie nawzajem).
       Pozornie podajac IgnoreMarginAtStart = true raytracer moglby czesto
-      nie podawac juz OctreeItemIndexToIgnore (tzn. podac je = NoItemIndex),
-      bo przeciez po to sie zazwyczaj podaje OctreeItemIndexToIgnore.
+      nie podawac juz OctreeItemToIgnore (tzn. podac je = nil),
+      bo przeciez po to sie zazwyczaj podaje OctreeItemToIgnore.
       Ale prawda jest taka ze IgnoreMarginAtStart nie daje 100% pewnosci
       ze unikniemy kolizji z elementem od ktorego zaczelismy (bo on przeciez
       tylko unika pewnego *malego* marginesu wokol Ray0). W rezultacie
-      i tak nalezy uzywac OctreeItemIndexToIgnore. To raczej podawanie
+      i tak nalezy uzywac OctreeItemToIgnore. To raczej podawanie
       IgnoreMarginAtStart = true jest zbedne, ale niestety jest to pozadane
       i daje dobre efekty gdy przychodzi do nieprawidlowo zbudowanych scen.
       A nawet sibenik.3ds i office.mgf.wrl a wiec sceny zrobione niby porzadnie
@@ -391,72 +386,72 @@ type
       out IntersectionDistance: Single;
       const pos1, pos2: TVector3Single;
       const ReturnClosestIntersection: boolean;
-      const OctreeItemIndexToIgnore: integer;
+      const OctreeItemToIgnore: POctreeItem;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; overload;
 
     function SegmentCollision(
       out Intersection: TVector3Single;
       const pos1, pos2: TVector3Single;
       const ReturnClosestIntersection: boolean;
-      const OctreeItemIndexToIgnore: integer;
+      const OctreeItemToIgnore: POctreeItem;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; overload;
 
     function SegmentCollision(
       out IntersectionDistance: Single;
       const pos1, pos2: TVector3Single;
       const ReturnClosestIntersection: boolean;
-      const OctreeItemIndexToIgnore: integer;
+      const OctreeItemToIgnore: POctreeItem;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; overload;
 
     function SegmentCollision(
       const pos1, pos2: TVector3Single;
       const ReturnClosestIntersection: boolean;
-      const OctreeItemIndexToIgnore: integer;
+      const OctreeItemToIgnore: POctreeItem;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; overload;
 
     function SphereCollision(const pos: TVector3Single;
       const Radius: Single;
-      const OctreeItemIndexToIgnore: integer;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer;
+      const OctreeItemToIgnore: POctreeItem;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
 
     function BoxCollision(const ABox: TBox3d;
-      const OctreeItemIndexToIgnore: integer;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): Integer;
+      const OctreeItemToIgnore: POctreeItem;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
 
     function RayCollision(
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
       const ReturnClosestIntersection: boolean;
-      const OctreeItemIndexToIgnore: integer;
+      const OctreeItemToIgnore: POctreeItem;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; overload;
 
     function RayCollision(
       out Intersection: TVector3Single;
       const Ray0, RayVector: TVector3Single;
       const ReturnClosestIntersection: boolean;
-      const OctreeItemIndexToIgnore: integer;
+      const OctreeItemToIgnore: POctreeItem;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; overload;
 
     function RayCollision(
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
       const ReturnClosestIntersection: boolean;
-      const OctreeItemIndexToIgnore: integer;
+      const OctreeItemToIgnore: POctreeItem;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; overload;
 
     function RayCollision(const Ray0, RayVector: TVector3Single;
       const ReturnClosestIntersection: boolean;
-      const OctreeItemIndexToIgnore: integer;
+      const OctreeItemToIgnore: POctreeItem;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; overload;
 
     { This checks if move between OldPos and ProposedNewPos is possible,
       by checking is segment between OldPos and ProposedNewPos free
@@ -471,7 +466,7 @@ type
       user stays within the whole octree box. That is, moving outside
       of the RootNode.Box will be disallowed.
 
-      OctreeItemIndexToIgnore and ItemsToIgnoreFunc meaning
+      OctreeItemToIgnore and ItemsToIgnoreFunc meaning
       is just like for RayCollision. This can be used to allow
       camera to walk thorugh some surfaces (e.g. through water
       surface, or to allow player to walk through some "fake wall"
@@ -484,7 +479,7 @@ type
       const OldPos, ProposedNewPos: TVector3Single;
       const CameraRadius: Single;
       const KeepWithinRootBox: boolean;
-      const OctreeItemIndexToIgnore: integer = NoItemIndex;
+      const OctreeItemToIgnore: POctreeItem = nil;
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): boolean;
 
     { This is like @link(MoveAllowedSimple), but it checks for collision
@@ -493,7 +488,7 @@ type
       const OldPos, ProposedNewPos: TVector3Single;
       const ProposedNewBox: TBox3d;
       const KeepWithinRootBox: boolean;
-      const OctreeItemIndexToIgnore: integer = NoItemIndex;
+      const OctreeItemToIgnore: POctreeItem = nil;
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): boolean;
 
     { This is like @link(MoveAllowedSimple), but in some cases
@@ -520,7 +515,7 @@ type
       user stays within the whole octree box. That is, moving outside
       of the RootNode.Box will be disallowed.
 
-      OctreeItemIndexToIgnore and ItemsToIgnoreFunc meaning
+      OctreeItemToIgnore and ItemsToIgnoreFunc meaning
       is just like for RayCollision.
 
       @seealso(TWalkNavigator.DoMoveAllowed
@@ -531,7 +526,7 @@ type
       out NewPos: TVector3Single;
       const CameraRadius: Single;
       const KeepWithinRootBox: boolean;
-      const OctreeItemIndexToIgnore: integer = NoItemIndex;
+      const OctreeItemToIgnore: POctreeItem = nil;
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): boolean;
 
     { For given camera position and up vector, calculate camera height
@@ -546,16 +541,16 @@ type
       below the camera (if IsAboveTheGround). This can be handy to detect
       e.g. that player walks on hot lava and he should be wounded,
       or that he walks on concrete/grass ground (to set his footsteps
-      sound accordingly). If IsAboveTheGround then for sure GroundItemIndex
-      <> NoItemIndex.
+      sound accordingly). If IsAboveTheGround then for sure GroundItem
+      <> nil.
 
-      OctreeItemIndexToIgnore and ItemsToIgnoreFunc meaning
+      OctreeItemToIgnore and ItemsToIgnoreFunc meaning
       is just like for RayCollision. }
     procedure GetCameraHeight(
       const CameraPos, GravityUp: TVector3Single;
       out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
-      out GroundItemIndex: Integer;
-      const OctreeItemIndexToIgnore: integer;
+      out GroundItem: POctreeItem;
+      const OctreeItemToIgnore: POctreeItem;
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc);
 
     { This is just like GetCameraHeight, but it assumes that
@@ -566,8 +561,8 @@ type
     procedure GetCameraHeightZ(
       const CameraPos: TVector3Single;
       out IsAboveTheGround: boolean; out HeightAboveTheGround: Single;
-      out GroundItemIndex: Integer;
-      const OctreeItemIndexToIgnore: Integer;
+      out GroundItem: POctreeItem;
+      const OctreeItemToIgnore: POctreeItem;
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc);
 
     { This makes transparent triangles (with material
@@ -575,8 +570,8 @@ type
       This is a prepared function compatible with TOctreeItemIgnoreFunc
       function type. }
     class function IgnoreTransparentItem(
-      Octree: TVRMLTriangleOctree;
-      OctreeItemIndex: Integer): boolean;
+      const Octree: TVRMLTriangleOctree;
+      const OctreeItem: POctreeItem): boolean;
 
     constructor Create(const ARootBox: TBox3d); overload;
     constructor Create(AMaxDepth, ALeafCapacity: integer;
@@ -587,11 +582,13 @@ type
   { przygotowane funkcje i klasy dla ItemsToIgnoreFunc: TOctreeItemIgnoreFunc. }
 
   TOctreeIgnore_Transparent_And_OneItem = class
-    OneItemIndex: Integer;
-    { IgnoreItem zwraca true dla obiektow ktorych Transparency > 0. }
-    function IgnoreItem(Octree: TVRMLTriangleOctree;
-      OctreeItemIndex: Integer): boolean;
-    constructor Create(AOneItemIndex: Integer);
+    OneItem: POctreeItem;
+    { IgnoreItem zwraca true dla obiektow ktorych Transparency > 0,
+      and for OneItem. }
+    function IgnoreItem(
+      const Octree: TVRMLTriangleOctree;
+      const OctreeItem: POctreeItem): boolean;
+    constructor Create(AOneItem: POctreeItem);
   end;
 
 { Checks whether VRML Light (point or directional) lights at scene point
@@ -606,8 +603,8 @@ type
      w ogole nie blokuja swiatla)
   3) oraz ze swiatlo jest po tej samej stronie LightedPointPlane co RenderDir.
 
-  Szukanie kolizji w octree uzywa przekazanych OctreeItemIndexToIgnore i
-  IgnoreMarginAtStart - zazwyczaj powinienes je przekazac na indeks elementu
+  Szukanie kolizji w octree uzywa przekazanych OctreeItemToIgnore i
+  IgnoreMarginAtStart - zazwyczaj powinienes je przekazac na element
   w drzewie z ktorego wziales LightedPoint i na true, odpowiednio.
 
   Jezeli ta funkcja zwroci true to zazwyczaj pozostaje ci obliczenie
@@ -619,7 +616,8 @@ type
 }
 function ActiveLightNotBlocked(Octree: TVRMLTriangleOctree; const Light: TActiveLight;
   const LightedPoint, LightedPointPlane, RenderDir: TVector3Single;
-  OctreeItemIndexToIgnore: Integer; IgnoreMarginAtStart: boolean): boolean;
+  const OctreeItemToIgnore: POctreeItem;
+  const IgnoreMarginAtStart: boolean): boolean;
 
 {$undef read_interface}
 
@@ -833,14 +831,14 @@ end;
 
 function TTriangleOctreeNode.SphereCollision(const pos: TVector3Single;
   const Radius: Single;
-  const OctreeItemIndexToIgnore: integer;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer;
+  const OctreeItemToIgnore: POctreeItem;
+  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
 
   procedure OCTREE_STEP_INTO_SUBNODES_PROC(subnode: TOctreeNode; var Stop: boolean);
   begin
     result := TTriangleOctreeNode(subnode).SphereCollision(
-      pos, Radius, OctreeItemIndexToIgnore, ItemsToIgnoreFunc);
-    Stop := result <> NoItemIndex;
+      pos, Radius, OctreeItemToIgnore, ItemsToIgnoreFunc);
+    Stop := result <> nil;
   end;
 
 OCTREE_STEP_INTO_SUBNODES_DECLARE
@@ -852,19 +850,20 @@ begin
     for i := 0 to ItemsIndices.High do
     begin
       Inc(ParentTree.DirectCollisionTestsCounter);
-      if IsTriangleSphereCollision(Items[i]^.Triangle,
-        Items[i]^.TriangleNormalPlane, pos, Radius) and
-        (OctreeItemIndexToIgnore <> ItemsIndices[I]) and
+      Result := Items[i];
+      if IsTriangleSphereCollision(Result^.Triangle,
+        Result^.TriangleNormalPlane, pos, Radius) and
+        (OctreeItemToIgnore <> Result) and
         ( (not Assigned(ItemsToIgnoreFunc)) or
-          (not ItemsToIgnoreFunc(ParentTree, ItemsIndices[I])) ) then
-        Exit(ItemsIndices[i]);
+          (not ItemsToIgnoreFunc(ParentTree, Result)) ) then
+        Exit;
     end;
-    Exit(NoItemIndex);
+    Exit(nil);
   end else
   begin
     { TODO: traktujemy tu sfere jako szescian a wiec byc moze wejdziemy w wiecej
       SubNode'ow niz rzeczywiscie musimy. }
-    result := NoItemIndex;
+    result := nil;
     OSIS_Box[0] := VectorSubtract(pos, Vector3Single(Radius, Radius, Radius) );
     OSIS_Box[1] := VectorAdd(     pos, Vector3Single(Radius, Radius, Radius) );
     OCTREE_STEP_INTO_SUBNODES
@@ -872,14 +871,14 @@ begin
 end;
 
 function TTriangleOctreeNode.BoxCollision(const ABox: TBox3d;
-  const OctreeItemIndexToIgnore: integer;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): Integer;
+  const OctreeItemToIgnore: POctreeItem;
+  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
 
   procedure OCTREE_STEP_INTO_SUBNODES_PROC(subnode: TOctreeNode; var Stop: boolean);
   begin
     Result := TTriangleOctreeNode(subnode).BoxCollision(ABox,
-      OctreeItemIndexToIgnore, ItemsToIgnoreFunc);
-    Stop := result <> NoItemIndex;
+      OctreeItemToIgnore, ItemsToIgnoreFunc);
+    Stop := result <> nil;
   end;
 
 OCTREE_STEP_INTO_SUBNODES_DECLARE
@@ -891,16 +890,17 @@ begin
     for i := 0 to ItemsIndices.High do
     begin
       Inc(ParentTree.DirectCollisionTestsCounter);
-      if IsBox3dTriangleCollision(ABox, Items[i]^.Triangle) and
-        (OctreeItemIndexToIgnore <> ItemsIndices[I]) and
+      Result := Items[i];
+      if IsBox3dTriangleCollision(ABox, Result^.Triangle) and
+        (OctreeItemToIgnore <> Result) and
         ( (not Assigned(ItemsToIgnoreFunc)) or
-          (not ItemsToIgnoreFunc(ParentTree, ItemsIndices[I])) ) then
-        Exit(ItemsIndices[i]);
+          (not ItemsToIgnoreFunc(ParentTree, Result)) ) then
+        Exit;
     end;
-    Exit(NoItemIndex);
+    Exit(nil);
   end else
   begin
-    Result := NoItemIndex;
+    Result := nil;
     OSIS_Box := ABox;
     OCTREE_STEP_INTO_SUBNODES
   end;
@@ -912,9 +912,9 @@ function TTriangleOctreeNode.SegmentCollision(
   const Pos1, Pos2: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
   const ReturnClosestIntersection: boolean;
-  const OctreeItemIndexToIgnore: integer;
+  const OctreeItemToIgnore: POctreeItem;
   const IgnoreMarginAtStart: boolean;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer;
+  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
 {$define SEGMENT_COLLISION}
 {$I vrmltriangleoctree_raysegmentcollisions.inc}
 {$undef SEGMENT_COLLISION}
@@ -925,9 +925,9 @@ function TTriangleOctreeNode.RayCollision(
   const Ray0, RayVector: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
   const ReturnClosestIntersection: boolean;
-  const OctreeItemIndexToIgnore: integer;
+  const OctreeItemToIgnore: POctreeItem;
   const IgnoreMarginAtStart: boolean;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer;
+  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
 {$I vrmltriangleoctree_raysegmentcollisions.inc}
 
 { TVRMLTriangleOctree -------------------------------------------------------------- }
@@ -974,7 +974,7 @@ end;
 {$define SegmentCollision_CommonParams :=
   const pos1, pos2: TVector3Single;
   const ReturnClosestIntersection: boolean;
-  const OctreeItemIndexToIgnore: integer;
+  const OctreeItemToIgnore: POctreeItem;
   const IgnoreMarginAtStart: boolean;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc
 }
@@ -984,32 +984,32 @@ begin
   Result := TreeRoot.SegmentCollision(Intersection, IntersectionDistance,
     Pos1, Pos2,
     {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
-    ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart,
+    ReturnClosestIntersection, OctreeItemToIgnore, IgnoreMarginAtStart,
     ItemsToIgnoreFunc);
 end;}
 
   function TVRMLTriangleOctree.SegmentCollision(
     out Intersection: TVector3Single;
     out IntersectionDistance: Single;
-    SegmentCollision_CommonParams): integer;
+    SegmentCollision_CommonParams): POctreeItem;
   SegmentCollision_Implementation
 
   function TVRMLTriangleOctree.SegmentCollision(
     out Intersection: TVector3Single;
-    SegmentCollision_CommonParams): integer;
+    SegmentCollision_CommonParams): POctreeItem;
   var
     IntersectionDistance: Single;
   SegmentCollision_Implementation
 
   function TVRMLTriangleOctree.SegmentCollision(
     out IntersectionDistance: Single;
-    SegmentCollision_CommonParams): integer;
+    SegmentCollision_CommonParams): POctreeItem;
   var
     Intersection: TVector3Single;
   SegmentCollision_Implementation
 
   function TVRMLTriangleOctree.SegmentCollision(
-    SegmentCollision_CommonParams): integer;
+    SegmentCollision_CommonParams): POctreeItem;
   var
     Intersection: TVector3Single;
     IntersectionDistance: Single;
@@ -1020,25 +1020,25 @@ end;}
 
 function TVRMLTriangleOctree.SphereCollision(const pos: TVector3Single;
   const Radius: Single;
-  const OctreeItemIndexToIgnore: integer;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer;
+  const OctreeItemToIgnore: POctreeItem;
+  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
 begin
   Result := TreeRoot.SphereCollision(pos, Radius,
-    OctreeItemIndexToIgnore, ItemsToIgnoreFunc);
+    OctreeItemToIgnore, ItemsToIgnoreFunc);
 end;
 
 function TVRMLTriangleOctree.BoxCollision(const ABox: TBox3d;
-  const OctreeItemIndexToIgnore: integer;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer;
+  const OctreeItemToIgnore: POctreeItem;
+  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
 begin
   Result := TreeRoot.BoxCollision(ABox,
-    OctreeItemIndexToIgnore, ItemsToIgnoreFunc);
+    OctreeItemToIgnore, ItemsToIgnoreFunc);
 end;
 
 {$define RayCollision_CommonParams :=
   const Ray0, RayVector: TVector3Single;
   const ReturnClosestIntersection: boolean;
-  const OctreeItemIndexToIgnore: integer;
+  const OctreeItemToIgnore: POctreeItem;
   const IgnoreMarginAtStart: boolean;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc
 }
@@ -1048,32 +1048,32 @@ begin
   Result := TreeRoot.RayCollision(Intersection, IntersectionDistance,
     Ray0, RayVector,
     {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
-    ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart,
+    ReturnClosestIntersection, OctreeItemToIgnore, IgnoreMarginAtStart,
     ItemsToIgnoreFunc);
 end;}
 
   function TVRMLTriangleOctree.RayCollision(
     out Intersection: TVector3Single;
     out IntersectionDistance: Single;
-    RayCollision_CommonParams): integer;
+    RayCollision_CommonParams): POctreeItem;
   RayCollision_Implementation
 
   function TVRMLTriangleOctree.RayCollision(
     out Intersection: TVector3Single;
-    RayCollision_CommonParams): integer;
+    RayCollision_CommonParams): POctreeItem;
   var
     IntersectionDistance: Single;
   RayCollision_Implementation
 
   function TVRMLTriangleOctree.RayCollision(
     out IntersectionDistance: Single;
-    RayCollision_CommonParams): integer;
+    RayCollision_CommonParams): POctreeItem;
   var
     Intersection: TVector3Single;
   RayCollision_Implementation
 
   function TVRMLTriangleOctree.RayCollision(
-    RayCollision_CommonParams): integer;
+    RayCollision_CommonParams): POctreeItem;
   var
     Intersection: TVector3Single;
     IntersectionDistance: Single;
@@ -1088,14 +1088,14 @@ function TVRMLTriangleOctree.MoveAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const CameraRadius: Single;
   const KeepWithinRootBox: boolean;
-  const OctreeItemIndexToIgnore: integer;
+  const OctreeItemToIgnore: POctreeItem;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): boolean;
 begin
   Result :=
     (SegmentCollision(OldPos, ProposedNewPos, false,
-      OctreeItemIndexToIgnore, false, ItemsToIgnoreFunc) = NoItemIndex) and
+      OctreeItemToIgnore, false, ItemsToIgnoreFunc) = nil) and
     (SphereCollision(ProposedNewPos, CameraRadius,
-      OctreeItemIndexToIgnore, ItemsToIgnoreFunc) = NoItemIndex);
+      OctreeItemToIgnore, ItemsToIgnoreFunc) = nil);
 
   if Result and
      KeepWithinRootBox then
@@ -1109,14 +1109,14 @@ function TVRMLTriangleOctree.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const ProposedNewBox: TBox3d;
   const KeepWithinRootBox: boolean;
-  const OctreeItemIndexToIgnore: integer;
+  const OctreeItemToIgnore: POctreeItem;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): boolean;
 begin
   Result :=
     (SegmentCollision(OldPos, ProposedNewPos, false,
-      OctreeItemIndexToIgnore, false, ItemsToIgnoreFunc) = NoItemIndex) and
+      OctreeItemToIgnore, false, ItemsToIgnoreFunc) = nil) and
     (BoxCollision(ProposedNewBox,
-      OctreeItemIndexToIgnore, ItemsToIgnoreFunc) = NoItemIndex);
+      OctreeItemToIgnore, ItemsToIgnoreFunc) = nil);
 
   if Result and
      KeepWithinRootBox then
@@ -1131,10 +1131,10 @@ function TVRMLTriangleOctree.MoveAllowed(
   out NewPos: TVector3Single;
   const CameraRadius: Single;
   const KeepWithinRootBox: boolean;
-  const OctreeItemIndexToIgnore: integer;
+  const OctreeItemToIgnore: POctreeItem;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): boolean;
 
-  function MoveAlongTheBlocker(BlockerIndex: Integer): boolean;
+  function MoveAlongTheBlocker(Blocker: POctreeItem): boolean;
   const
     { This must be something slightly larger than 1.
       Must be larger than 1 (otherwise MoveAlongTheBlocker will
@@ -1147,74 +1147,74 @@ function TVRMLTriangleOctree.MoveAllowed(
     PlaneNormalPtr: PVector3Single;
     NewPosShift: TVector3Single;
   begin
-   PlanePtr := @OctreeItems.Items[BlockerIndex].TriangleNormalPlane;
-   PlaneNormalPtr := PVector3Single(PlanePtr);
+    PlanePtr := @(Blocker^.TriangleNormalPlane);
+    PlaneNormalPtr := PVector3Single(PlanePtr);
 
-   { project ProposedNewPos on a plane of blocking object }
-   NewPos := PointOnPlaneClosestToPoint(PlanePtr^, ProposedNewPos);
+    { project ProposedNewPos on a plane of blocking object }
+    NewPos := PointOnPlaneClosestToPoint(PlanePtr^, ProposedNewPos);
 
-   { now NewPos must be on the same plane side as OldPos is,
-     and it must be at the distance slightly larger than CameraRadius from the plane }
-   if VectorsSamePlaneDirections(PlaneNormalPtr^,
-     VectorSubtract(ProposedNewPos, NewPos), PlanePtr^) then
-    NewPosShift := VectorScale(PlaneNormalPtr^,  CameraRadius * CameraRadiusEnlarge) else
-    NewPosShift := VectorScale(PlaneNormalPtr^, -CameraRadius * CameraRadiusEnlarge);
-   VectorAddTo1st(NewPos, NewPosShift);
+    { now NewPos must be on the same plane side as OldPos is,
+      and it must be at the distance slightly larger than CameraRadius from the plane }
+    if VectorsSamePlaneDirections(PlaneNormalPtr^,
+         VectorSubtract(ProposedNewPos, NewPos), PlanePtr^) then
+      NewPosShift := VectorScale(PlaneNormalPtr^,  CameraRadius * CameraRadiusEnlarge) else
+      NewPosShift := VectorScale(PlaneNormalPtr^, -CameraRadius * CameraRadiusEnlarge);
+    VectorAddTo1st(NewPos, NewPosShift);
 
-   { Even though I calculated NewPos so that it's not blocked by object
-     BlockerIndex, I must check whether it's not blocked by something else
-     (e.g. if player is trying to walk into the corner (two walls)).
-     I can do it by using my simple MoveAllowedSimple. }
+    { Even though I calculated NewPos so that it's not blocked by object
+      Blocker, I must check whether it's not blocked by something else
+      (e.g. if player is trying to walk into the corner (two walls)).
+      I can do it by using my simple MoveAllowedSimple. }
 
-   Result := MoveAllowedSimple(OldPos, NewPos, CameraRadius, false,
-     OctreeItemIndexToIgnore, ItemsToIgnoreFunc);
+    Result := MoveAllowedSimple(OldPos, NewPos, CameraRadius, false,
+      OctreeItemToIgnore, ItemsToIgnoreFunc);
   end;
 
 var
-  BlockerIndex: Integer;
+  Blocker: POctreeItem;
 begin
- { Tests: make MoveAllowed equivalent to MoveAllowedSimple:
- Result := MoveAllowedSimple(OldPos, ProposedNewPos, CameraRadius);
- if Result then NewPos := ProposedNewPos;
- Exit; }
+  { Tests: make MoveAllowed equivalent to MoveAllowedSimple:
+  Result := MoveAllowedSimple(OldPos, ProposedNewPos, CameraRadius);
+  if Result then NewPos := ProposedNewPos;
+  Exit; }
 
- BlockerIndex := SegmentCollision(OldPos, ProposedNewPos,
-   true { return closest blocker },
-   OctreeItemIndexToIgnore, false, ItemsToIgnoreFunc);
- if BlockerIndex = NoItemIndex then
- begin
-  BlockerIndex := SphereCollision(ProposedNewPos, CameraRadius,
-    OctreeItemIndexToIgnore, ItemsToIgnoreFunc);
-  if BlockerIndex = NoItemIndex then
+  Blocker := SegmentCollision(OldPos, ProposedNewPos,
+    true { return closest blocker },
+    OctreeItemToIgnore, false, ItemsToIgnoreFunc);
+  if Blocker = nil then
   begin
-   Result := true;
-   NewPos := ProposedNewPos;
+    Blocker := SphereCollision(ProposedNewPos, CameraRadius,
+      OctreeItemToIgnore, ItemsToIgnoreFunc);
+    if Blocker = nil then
+    begin
+      Result := true;
+      NewPos := ProposedNewPos;
+    end else
+      Result := MoveAlongTheBlocker(Blocker);
   end else
-   Result := MoveAlongTheBlocker(BlockerIndex);
- end else
-  Result := MoveAlongTheBlocker(BlockerIndex);
+    Result := MoveAlongTheBlocker(Blocker);
 
- if Result and
-    KeepWithinRootBox then
-   { TODO: instead of setting Result to false, this should
-     actually move NewPos so that it's *exactly* on the border
-     of bounding box. }
-   Result := Box3dPointInside(NewPos, InternalTreeRoot.Box);
+  if Result and
+     KeepWithinRootBox then
+    { TODO: instead of setting Result to false, this should
+      actually move NewPos so that it's *exactly* on the border
+      of bounding box. }
+    Result := Box3dPointInside(NewPos, InternalTreeRoot.Box);
 end;
 
 procedure TVRMLTriangleOctree.GetCameraHeight(
   const CameraPos, GravityUp: TVector3Single;
   out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
-  out GroundItemIndex: Integer;
-  const OctreeItemIndexToIgnore: integer;
+  out GroundItem: POctreeItem;
+  const OctreeItemToIgnore: POctreeItem;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc);
 var
   GroundIntersection: TVector3Single;
 begin
-  GroundItemIndex := RayCollision(GroundIntersection,
+  GroundItem := RayCollision(GroundIntersection,
     CameraPos, VectorNegate(GravityUp), true,
-    OctreeItemIndexToIgnore, false, ItemsToIgnoreFunc);
-  IsAboveTheGround := GroundItemIndex <> NoItemIndex;
+    OctreeItemToIgnore, false, ItemsToIgnoreFunc);
+  IsAboveTheGround := GroundItem <> nil;
   if IsAboveTheGround then
     SqrHeightAboveTheGround := PointsDistanceSqr(CameraPos, GroundIntersection);
 end;
@@ -1222,18 +1222,18 @@ end;
 procedure TVRMLTriangleOctree.GetCameraHeightZ(
   const CameraPos: TVector3Single;
   out IsAboveTheGround: boolean; out HeightAboveTheGround: Single;
-  out GroundItemIndex: Integer;
-  const OctreeItemIndexToIgnore: Integer;
+  out GroundItem: POctreeItem;
+  const OctreeItemToIgnore: POctreeItem;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc);
 const
   RayDir: TVector3Single = (0, 0, -1);
 var
   GroundIntersection: TVector3Single;
 begin
-  GroundItemIndex := RayCollision(GroundIntersection,
+  GroundItem := RayCollision(GroundIntersection,
     CameraPos, RayDir, true,
-    OctreeItemIndexToIgnore, false, ItemsToIgnoreFunc);
-  IsAboveTheGround := GroundItemIndex <> NoItemIndex;
+    OctreeItemToIgnore, false, ItemsToIgnoreFunc);
+  IsAboveTheGround := GroundItem <> nil;
   if IsAboveTheGround then
     { Calculation of HeightAboveTheGround uses the fact that RayDir is so simple. }
     HeightAboveTheGround := CameraPos[2] - GroundIntersection[2];
@@ -1263,38 +1263,38 @@ end;
 { TVRMLTriangleOctree.IgnoreTransparentItem ---------------------------------- }
 
 class function TVRMLTriangleOctree.IgnoreTransparentItem(
-  Octree: TVRMLTriangleOctree;
-  OctreeItemIndex: Integer): boolean;
-var ItemPtr: POctreeItem;
+  const Octree: TVRMLTriangleOctree;
+  const OctreeItem: POctreeItem): boolean;
 begin
- ItemPtr := @(Octree.OctreeItems.Items[OctreeItemIndex]);
- result := ItemPtr^.State.LastNodes.Material.Transparency(ItemPtr^.MatNum)
-   > SingleEqualityEpsilon;
+  Result :=
+    OctreeItem^.State.LastNodes.Material.Transparency(OctreeItem^.MatNum)
+      > SingleEqualityEpsilon;
 end;
 
 { --------------------------------------------------------------------------------
   przygotowane funkcje i klasy dla ItemsToIgnoreFunc: TOctreeItemIgnoreFunc.  }
 
-function TOctreeIgnore_Transparent_And_OneItem.IgnoreItem(Octree: TVRMLTriangleOctree; OctreeItemIndex: Integer): boolean;
-var ItemPtr: POctreeItem;
+function TOctreeIgnore_Transparent_And_OneItem.IgnoreItem(
+  const Octree: TVRMLTriangleOctree;
+  const OctreeItem: POctreeItem): boolean;
 begin
- if OctreeItemIndex = OneItemIndex then Exit(true);
- ItemPtr := @(Octree.OctreeItems.Items[OctreeItemIndex]);
- result := ItemPtr^.State.LastNodes.Material.Transparency(ItemPtr^.MatNum)
-   > SingleEqualityEpsilon;
+  Result := (OctreeItem = OneItem) or
+    (OctreeItem^.State.LastNodes.Material.Transparency(OctreeItem^.MatNum)
+      > SingleEqualityEpsilon);
 end;
 
-constructor TOctreeIgnore_Transparent_And_OneItem.Create(AOneItemIndex: Integer);
+constructor TOctreeIgnore_Transparent_And_OneItem.Create(AOneItem: POctreeItem);
 begin
- inherited Create;
- OneItemIndex := AOneItemIndex;
+  inherited Create;
+  OneItem := AOneItem;
 end;
 
 { some global procs ---------------------------------------------------------- }
 
 function ActiveLightNotBlocked(Octree: TVRMLTriangleOctree; const Light: TActiveLight;
   const LightedPoint, LightedPointPlane, RenderDir: TVector3Single;
-  OctreeItemIndexToIgnore: Integer; IgnoreMarginAtStart: boolean): boolean;
+  const OctreeItemToIgnore: POctreeItem;
+  const IgnoreMarginAtStart: boolean): boolean;
 var LightPos: TVector3Single;
 begin
  if not Light.LightNode.FdOn.Value then result := false;
@@ -1323,9 +1323,9 @@ begin
        RenderDir,
        LightedPointPlane)) and
    (Octree.SegmentCollision(LightedPoint, LightPos,
-     false, OctreeItemIndexToIgnore, IgnoreMarginAtStart,
+     false, OctreeItemToIgnore, IgnoreMarginAtStart,
      {$ifdef FPC_OBJFPC} @ {$endif} Octree.IgnoreTransparentItem)
-     = NoItemIndex);
+     = nil);
 end;
 
 end.

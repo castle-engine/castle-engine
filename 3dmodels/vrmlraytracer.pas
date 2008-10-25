@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2006 Michalis Kamburelis.
+  Copyright 2003-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -388,11 +388,10 @@ var
     Returns @false if the ray didn't hit anything, otherwise
     returns @true and sets Color. }
   function Trace(const Ray0, RayVector: TVector3_Single; const Depth: Cardinal;
-    const OctreeItemToIgnore: integer; IgnoreMarginAtStart: boolean):
+    const OctreeItemToIgnore: POctreeItem; IgnoreMarginAtStart: boolean):
     TVector3_Single;
   var
     Intersection: TVector3_Single;
-    IntersectNodeIndex: integer;
     IntersectNode: POctreeItem;
     MaterialMirror, MaterialTransparency: Single;
 
@@ -422,7 +421,7 @@ var
           IntersectNode^.TriangleNormalPlane, EtaFrom, EtaTo) then
         begin
           TransmittedColor := Trace(Intersection, TransmittedRayVec,
-            Depth - 1, IntersectNodeIndex, true);
+            Depth - 1, IntersectNode, true);
           Result :=  Result * (1 - MaterialTransparency) +
             TransmittedColor * MaterialTransparency;
         end;
@@ -438,7 +437,7 @@ var
         ReflRayVector := ReflectedRayVector(Vector_Get_Normalized(RayVector),
           IntersectNode^.TriangleNormalPlane);
         ReflColor := Trace(Intersection, ReflRayVector, Depth - 1,
-          IntersectNodeIndex, true);
+          IntersectNode, true);
         Result := Result * (1 - MaterialMirror) + ReflColor * MaterialMirror;
       end;
     end;
@@ -462,7 +461,7 @@ var
         side, so we will not add it here. }
       Result := ActiveLightNotBlocked(Octree, Light,
         Intersection, IntersectNode^.TriangleNormal,
-        -RayVector, IntersectNodeIndex, true);
+        -RayVector, IntersectNode, true);
     end;
 
   var
@@ -471,12 +470,10 @@ var
     M2: TNodeMaterial_2;
     ActiveLights: TDynActiveLightArray;
   begin
-    IntersectNodeIndex := Octree.RayCollision(Intersection.Data,
+    IntersectNode := Octree.RayCollision(Intersection.Data,
       Ray0, RayVector, true,
       OctreeItemToIgnore, IgnoreMarginAtStart, nil);
-    if IntersectNodeIndex = NoItemIndex then Exit(SceneBGColor);
-
-    IntersectNode := Octree.OctreeItems.Pointers[IntersectNodeIndex];
+    if IntersectNode = nil then Exit(SceneBGColor);
 
     { calculate material properties, taking into account VRML 1.0 and 2.0
       material. }
@@ -544,7 +541,7 @@ var
   begin
     Image.SetColorRGB(x, y,
       Trace(CamPosition, RaysWindow.PrimaryRay(x, y, Image.Width, Image.Height),
-        InitialDepth, NoItemIndex, false));
+        InitialDepth, nil, false));
   end;
 
 var
@@ -632,7 +629,7 @@ end;
 
     Tests confirm that this is right. Without this (if we would remove
     the check
-    "if TraceOnlyIndirect and IsLightSourceIndex(IntersectNodeIndex) then ...")
+    "if TraceOnlyIndirect and IsLightSource(IntersectNode) then ...")
     we get a lot more noise on our image.
 
     Trace call with TraceOnlyIndirect = true that hits into a light source
@@ -646,19 +643,19 @@ end;
 
 procedure TPathTracer.Execute;
 var
-  { In LightIndices we have indexes to Octree.OctreeItems[] pointing
+  { In LightItems we have pointers to Octree.OctreeItems[] pointing
     to the items with emission color > 0. In other words, light sources. }
-  LightsIndices: TDynIntegerArray;
+  LightItems: TDynPointerArray;
 
   {$ifdef PATHTR_USES_SHADOW_CACHE}
-  { For each light in LightsIndices[I], ShadowCache[I] gives the index
-    (into Octree.OctreeItems[]) of the last object that blocked this
-    light source (or NoItemIndex if no such object was yet found during
+  { For each light in LightItems[I], ShadowCache[I] gives the pointer
+    (somewhere into Octree.OctreeItems[]) of the last object that blocked this
+    light source (or nil if no such object was yet found during
     this path tracer execution).
 
     This index is updated and used in IsLightShadowed.
     The idea of "shadow cache" comes from RGK, crystalized in "Graphic Gems II". }
-  ShadowCache: TDynIntegerArray;
+  ShadowCache: TDynPointerArray;
   {$endif}
 
   { TODO: comments below are in Polish. }
@@ -687,42 +684,37 @@ const
     box.jpg. }
   LightEmissionArea = 1/30;
 
-  function IsLightSourceIndex(ItemIndex: Integer): boolean;
-  var
-    Item: POctreeItem;
+  function IsLightSource(const Item: POctreeItem): boolean;
   begin
-    Item := Octree.OctreeItems.Pointers[ItemIndex];
     Result := VectorLenSqr(Item^.State.LastNodes.Material.
       EmissiveColor3Single(Item^.MatNum))
       > Sqr(SingleEqualityEpsilon);
   end;
 
-  function IsLightShadowed(const ItemIndex: Integer;
+  function IsLightShadowed(const Item: POctreeItem;
     const ItemPoint: TVector3_Single;
     const LightSourceIndiceIndex: Integer;
     LightSourcePoint: TVector3_Single): boolean;
   { ta funkcja liczy shadow ray (a w zasadzie segment). Zwraca true jezeli
     pomiedzy punktem ItemPoint a LightSourcePoint jest jakis element
     o transparency = 1. Wpp. zwraca false.
-    LightSourceIndiceIndex to indeks to tablicy LightsIndices[].
-    ItemIndex to indeks do, jak zwykle, Octree.OctreeItems[]. }
+    LightSourceIndiceIndex to indeks to tablicy LightItems[].
+    Item to pointer to given item (somewhere in Octree.OctreeItems[]). }
   { TODO: transparent objects should scale light color instead of just
     letting it pass }
   var
     OctreeIgnorer: TOctreeIgnore_Transparent_And_OneItem;
-    ShadowerIndex: Integer;
+    Shadower: POctreeItem;
   {$ifdef PATHTR_USES_SHADOW_CACHE}
-    CachedShadowerIndex: Integer;
     CachedShadower: POctreeItem;
   {$endif}
   begin
     {$ifdef PATHTR_USES_SHADOW_CACHE}
     { sprobuj wziac wynik z ShadowCache }
-    CachedShadowerIndex := ShadowCache.Items[LightSourceIndiceIndex];
-    if (CachedShadowerIndex <> NoItemIndex) and
-       (CachedShadowerIndex <> ItemIndex) then
+    CachedShadower := ShadowCache.Items[LightSourceIndiceIndex];
+    if (CachedShadower <> nil) and
+       (CachedShadower <> Item) then
     begin
-      CachedShadower := Octree.OctreeItems.Pointers[CachedShadowerIndex];
       Inc(Octree.DirectCollisionTestsCounter);
       if IsTriangleSegmentCollision(CachedShadower^.Triangle,
         CachedShadower^.TriangleNormalPlane, ItemPoint, LightSourcePoint) then
@@ -740,26 +732,25 @@ const
 
     { oblicz przeciecie uzywajac Octree }
     OctreeIgnorer := TOctreeIgnore_Transparent_And_OneItem.Create(
-      LightsIndices.Items[LightSourceIndiceIndex]);
+      LightItems.Items[LightSourceIndiceIndex]);
     try
-      ShadowerIndex := Octree.SegmentCollision(ItemPoint, LightSourcePoint, false,
-        ItemIndex, true, @OctreeIgnorer.IgnoreItem);
-      Result := ShadowerIndex <> NoItemIndex;
+      Shadower := Octree.SegmentCollision(ItemPoint, LightSourcePoint, false,
+        Item, true, @OctreeIgnorer.IgnoreItem);
+      Result := Shadower <> nil;
       {$ifdef PATHTR_USES_SHADOW_CACHE}
-      ShadowCache.Items[LightSourceIndiceIndex] := ShadowerIndex;
+      ShadowCache.Items[LightSourceIndiceIndex] := Shadower;
       {$endif}
     finally OctreeIgnorer.Free end;
   end;
 
   function Trace(const Ray0, RayVector: TVector3_Single;
-    const Depth: Integer; const OctreeItemToIgnore: integer;
+    const Depth: Integer; const OctreeItemToIgnore: POctreeItem;
     const IgnoreMarginAtStart: boolean; const TraceOnlyIndirect: boolean)
     : TVector3_Single;
   { sledzi promien z zadana glebokoscia. Zwraca Black (0, 0, 0) jesli
     promien w nic nie trafia, wpp. zwraca wyliczony kolor. }
   var
     Intersection: TVector3_Single;
-    IntersectNodeIndex: integer;
     IntersectNode: POctreeItem;
     MaterialNode: TNodeMaterial_1; { = IntersectNode.State.LastNodes.Material }
     IntersectNormalInRay0Dir: TVector3_Single;
@@ -825,26 +816,24 @@ const
       var
         LightSource: POctreeItem;
         LightSourceIndiceIndex: Integer; { indeks do LightIndices[] }
-        LightSourceIndex: Integer; { indeks do Octree.OctreeItems[] }
         SampleLightPoint: TVector3_Single;
         DirectColor, LightDirNorm, NegatedLightDirNorm: TVector3_Single;
         i: integer;
       begin
         Result.Init_Zero;
 
-        { trzeba ustrzec sie tu przed LightsIndices.Count = 0 (zeby moc pozniej
-          spokojnie robic Random(LightsIndices.Count) i przed
+        { trzeba ustrzec sie tu przed LightsItems.Count = 0 (zeby moc pozniej
+          spokojnie robic Random(LightsItems.Count) i przed
           DirectIllumSamplesCount = 0 (zeby moc pozniej spokojnie podzielic przez
           DirectIllumSamplesCount). }
-        if (LightsIndices.Count = 0) or (DirectIllumSamplesCount = 0) then Exit;
+        if (LightItems.Count = 0) or (DirectIllumSamplesCount = 0) then Exit;
 
         for i := 0 to DirectIllumSamplesCount - 1 do
         begin
           { calculate LightSourceIndiceIndex, LightSourceIndex, LightSource }
-          LightSourceIndiceIndex := Random(LightsIndices.Count);
-          LightSourceIndex := LightsIndices.Items[LightSourceIndiceIndex];
-          if LightSourceIndex = IntersectNodeIndex then Continue;
-          LightSource := Octree.OctreeItems.Pointers[LightSourceIndex];
+          LightSourceIndiceIndex := Random(LightItems.Count);
+          LightSource := LightItems.Items[LightSourceIndiceIndex];
+          if LightSource = IntersectNode then Continue;
 
           { calculate SampleLightPoint.
             Lepiej pozniej sprawdz ze SampleLightPoint jest
@@ -863,7 +852,7 @@ const
             IntersectNode^.TriangleNormalPlane) then Continue;
 
           { sprawdz IsLightShadowed, czyli zrob shadow ray }
-          if IsLightShadowed(IntersectNodeIndex, Intersection,
+          if IsLightShadowed(IntersectNode, Intersection,
             LightSourceIndiceIndex, SampleLightPoint) then Continue;
 
           { calculate DirectColor = kolor emission swiatla }
@@ -921,7 +910,7 @@ const
           Podziel tez przez ilosc probek i pomnoz przez ilosc swiatel -
           - w rezultacie spraw zeby wynik przyblizal sume wkladu direct illumination
           wszystkich swiatel. }
-        Result *= LightsIndices.Count /
+        Result *= LightItems.Count /
           (LightEmissionArea * DirectIllumSamplesCount);
       end;
 
@@ -1025,7 +1014,7 @@ const
 
           { wywolaj rekurencyjnie Trace(), a wiec idz sciezka dalej }
           TracedCol := Trace(Intersection, TracedDir, Depth - 1,
-            IntersectNodeIndex, true, DirectIllumSamplesCount <> 0);
+            IntersectNode, true, DirectIllumSamplesCount <> 0);
 
           { przetworz TracedCol : wymnoz przez Colors[ck], podziel przez szanse
             jego wyboru sposrod czterech Colors[], czyli przez
@@ -1051,17 +1040,16 @@ const
     i: Integer;
     NonEmissiveColor: TVector3_Single;
   begin
-    IntersectNodeIndex := Octree.RayCollision(Intersection.Data, Ray0, RayVector, true,
+    IntersectNode := Octree.RayCollision(Intersection.Data, Ray0, RayVector, true,
       OctreeItemToIgnore, IgnoreMarginAtStart, nil);
-    if IntersectNodeIndex = NoItemIndex then Exit(SceneBGColor);
+    if IntersectNode = nil then Exit(SceneBGColor);
 
-    if TraceOnlyIndirect and IsLightSourceIndex(IntersectNodeIndex) then
+    if TraceOnlyIndirect and IsLightSource(IntersectNode) then
     begin
       Result.Init_Zero;
       Exit;
     end;
 
-    IntersectNode := Octree.OctreeItems.Pointers[IntersectNodeIndex];
     MaterialNode := IntersectNode^.State.LastNodes.Material;
     { de facto jezeli TraceOnlyIndirect to ponizsza linijka na pewno dodaje
       do result (0, 0, 0). Ale nie widze w tej chwili jak z tego wyciagnac
@@ -1101,7 +1089,7 @@ var
         x, y ale przechodzi dokladnie przez srodek pixela x, y. }
       PrimaryRayVector := RaysWindow.PrimaryRay(x, y, Image.Width, Image.Height);
       PixColor := Trace(CamPosition, PrimaryRayVector, MinDepth,
-        NoItemIndex, false, false);
+        nil, false, false);
     end else
     begin
       PixColor.Init_Zero;
@@ -1111,7 +1099,7 @@ var
           x + Random - 0.5, y + Random - 0.5,
           Image.Width, Image.Height);
         PixColor += Trace(CamPosition, PrimaryRayVector, MinDepth,
-          NoItemIndex, false, false);
+          nil, false, false);
       end;
       PixColor *= 1 / PrimarySamplesCount;
     end;
@@ -1133,23 +1121,24 @@ begin
   Clamp(RRoulContinue, Single(0.0), Single(1.0));
 
   { zainicjuj na nil'e, zeby moc napisac proste try..finally }
-  LightsIndices := nil;
+  LightItems := nil;
   {$ifdef PATHTR_USES_SHADOW_CACHE} ShadowCache := nil; {$endif}
   RaysWindow := nil;
   SFCurve := nil;
   try
     { calculate LightIndices }
-    LightsIndices := TDynIntegerArray.Create;
-    LightsIndices.AllowedCapacityOverflow := Octree.OctreeItems.Count div 4;
-    for i := 0 to Octree.OctreeItems.Count-1 do
-      if IsLightSourceIndex(i) then LightsIndices.AppendItem(i);
-    LightsIndices.AllowedCapacityOverflow := 4;
+    LightItems := TDynPointerArray.Create;
+    LightItems.AllowedCapacityOverflow := Octree.OctreeItems.Count div 4;
+    for I := 0 to Octree.OctreeItems.Count - 1 do
+      if IsLightSource(Octree.OctreeItems.Pointers[I]) then 
+        LightItems.AppendItem(Octree.OctreeItems.Pointers[I]);
+    LightItems.AllowedCapacityOverflow := 4;
 
     {$ifdef PATHTR_USES_SHADOW_CACHE}
     { calculate ShadowCache }
-    ShadowCache := TDynIntegerArray.Create;
-    ShadowCache.SetLength(LightsIndices.Length);
-    ShadowCache.SetAll(NoItemIndex);
+    ShadowCache := TDynPointerArray.Create;
+    ShadowCache.SetLength(LightItems.Length);
+    ShadowCache.SetAll(nil);
     {$endif}
 
     { calculate RaysWindow }
@@ -1182,7 +1171,7 @@ begin
     SFCurve.Free;
     RaysWindow.Free;
     {$ifdef PATHTR_USES_SHADOW_CACHE} ShadowCache.Free; {$endif}
-    LightsIndices.Free;
+    LightItems.Free;
   end;
 end;
 

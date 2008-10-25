@@ -96,7 +96,7 @@ begin
  result := ZeroVector3Single;
  for i := 0 to Lights.Count-1 do
   if ActiveLightNotBlocked(Octree, Lights.Items[i], Point, PointPlaneNormal,
-    RenderDir, NoItemIndex, true) then
+    RenderDir, nil, true) then
    VectorAddTo1st(result, VRML97LightContribution_CameraIndependent(
      Lights.Items[i], Point, PointPlaneNormal, White3Single));
 end;
