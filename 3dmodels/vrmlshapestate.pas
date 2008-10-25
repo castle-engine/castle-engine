@@ -81,11 +81,11 @@ type
     procedure AddTriangleToOctreeProgress(const Triangle: TTriangle3Single;
       State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
-    function CreateTriangleOctree(const AMaxDepth, AMaxLeafItemsCount: Integer;
+    function CreateTriangleOctree(const AMaxDepth, ALeafCapacity: Integer;
       const ProgressTitle: string): TVRMLTriangleOctree;
 
     FTriangleOctreeMaxDepth: Integer;
-    FTriangleOctreeMaxLeafItemsCount: Integer;
+    FTriangleOctreeLeafCapacity: Integer;
     FTriangleOctreeProgressTitle: string;
 
     FOctreeTriangles: TVRMLTriangleOctree;
@@ -206,10 +206,10 @@ type
       write     FTriangleOctreeMaxDepth
       default DefTriangleOctreeMaxDepth;
 
-    property     TriangleOctreeMaxLeafItemsCount: Integer
-       read     FTriangleOctreeMaxLeafItemsCount
-      write     FTriangleOctreeMaxLeafItemsCount
-      default DefTriangleOctreeMaxLeafItemsCount;
+    property     TriangleOctreeLeafCapacity: Integer
+       read     FTriangleOctreeLeafCapacity
+      write     FTriangleOctreeLeafCapacity
+      default DefTriangleOctreeLeafCapacity;
 
     property TriangleOctreeProgressTitle: string
       read  FTriangleOctreeProgressTitle
@@ -265,7 +265,7 @@ begin
   inherited Create;
 
   FTriangleOctreeMaxDepth := DefTriangleOctreeMaxDepth;
-  FTriangleOctreeMaxLeafItemsCount := DefTriangleOctreeMaxLeafItemsCount;
+  FTriangleOctreeLeafCapacity := DefTriangleOctreeLeafCapacity;
 
   FGeometryNode := AGeometryNode;
   FState := AState;
@@ -383,10 +383,10 @@ begin
 end;
 
 function TVRMLShapeState.CreateTriangleOctree(
-  const AMaxDepth, AMaxLeafItemsCount: integer;
+  const AMaxDepth, ALeafCapacity: integer;
   const ProgressTitle: string): TVRMLTriangleOctree;
 begin
-  Result := TVRMLTriangleOctree.Create(AMaxDepth, AMaxLeafItemsCount, BoundingBox);
+  Result := TVRMLTriangleOctree.Create(AMaxDepth, ALeafCapacity, BoundingBox);
   try
     Result.OctreeItems.AllowedCapacityOverflow := TrianglesCount(false);
     try
@@ -426,7 +426,7 @@ begin
     begin
       FOctreeTriangles := CreateTriangleOctree(
         TriangleOctreeMaxDepth,
-        TriangleOctreeMaxLeafItemsCount,
+        TriangleOctreeLeafCapacity,
         TriangleOctreeProgressTitle);
     end;
 
@@ -451,7 +451,7 @@ begin
     FreeAndNil(FOctreeTriangles);
     FOctreeTriangles := CreateTriangleOctree(
       TriangleOctreeMaxDepth,
-      TriangleOctreeMaxLeafItemsCount,
+      TriangleOctreeLeafCapacity,
       TriangleOctreeProgressTitle);
   end;
 {$endif REBUILD_OCTREE}

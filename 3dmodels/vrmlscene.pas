@@ -599,11 +599,11 @@ type
       Octrees, as implemented here, are a lot more flexible.
 
       @groupBegin }
-    function CreateTriangleOctree(AMaxDepth, AMaxLeafItemsCount: integer;
+    function CreateTriangleOctree(AMaxDepth, ALeafCapacity: integer;
       const ProgressTitle: string;
       const Collidable: boolean;
       const SetShapeOctrees: boolean = false): TVRMLTriangleOctree;
-    function CreateShapeStateOctree(AMaxDepth, AMaxLeafItemsCount: integer;
+    function CreateShapeStateOctree(AMaxDepth, ALeafCapacity: integer;
       const ProgressTitle: string;
       const Collidable: boolean): TVRMLShapeStateOctree;
     { @groupEnd }
@@ -614,11 +614,11 @@ type
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 
     FTriangleOctreeMaxDepth: Integer;
-    FTriangleOctreeMaxLeafItemsCount: Integer;
+    FTriangleOctreeLeafCapacity: Integer;
     FTriangleOctreeProgressTitle: string;
 
     FShapeStateOctreeMaxDepth: Integer;
-    FShapeStateOctreeMaxLeafItemsCount: Integer;
+    FShapeStateOctreeLeafCapacity: Integer;
     FShapeStateOctreeProgressTitle: string;
 
     FOctreeRendering: TVRMLShapeStateOctree;
@@ -936,8 +936,8 @@ type
       you want this to be [okRendering, okDynamicCollisions].
 
       Before setting any value <> [] you may want to adjust
-      TriangleOctreeMaxDepth, TriangleOctreeMaxLeafItemsCount,
-      ShapeStateOctreeMaxDepth, ShapeStateOctreeMaxLeafItemsCount.
+      TriangleOctreeMaxDepth, TriangleOctreeLeafCapacity,
+      ShapeStateOctreeMaxDepth, ShapeStateOctreeLeafCapacity.
       These properties fine-tune how the octrees will be generated
       (although default values should be Ok for typical cases).
 
@@ -966,10 +966,10 @@ type
       write     FTriangleOctreeMaxDepth
       default DefTriangleOctreeMaxDepth;
 
-    property     TriangleOctreeMaxLeafItemsCount: Integer
-       read     FTriangleOctreeMaxLeafItemsCount
-      write     FTriangleOctreeMaxLeafItemsCount
-      default DefTriangleOctreeMaxLeafItemsCount;
+    property     TriangleOctreeLeafCapacity: Integer
+       read     FTriangleOctreeLeafCapacity
+      write     FTriangleOctreeLeafCapacity
+      default DefTriangleOctreeLeafCapacity;
 
     property TriangleOctreeProgressTitle: string
       read  FTriangleOctreeProgressTitle
@@ -994,10 +994,10 @@ type
       write     FShapeStateOctreeMaxDepth
       default DefShapeStateOctreeMaxDepth;
 
-    property     ShapeStateOctreeMaxLeafItemsCount: Integer
-       read     FShapeStateOctreeMaxLeafItemsCount
-      write     FShapeStateOctreeMaxLeafItemsCount
-      default DefShapeStateOctreeMaxLeafItemsCount;
+    property     ShapeStateOctreeLeafCapacity: Integer
+       read     FShapeStateOctreeLeafCapacity
+      write     FShapeStateOctreeLeafCapacity
+      default DefShapeStateOctreeLeafCapacity;
 
     property ShapeStateOctreeProgressTitle: string
       read  FShapeStateOctreeProgressTitle
@@ -1557,9 +1557,9 @@ begin
  FOwnsRootNode := AOwnsRootNode;
 
  FTriangleOctreeMaxDepth := DefTriangleOctreeMaxDepth;
- FTriangleOctreeMaxLeafItemsCount := DefTriangleOctreeMaxLeafItemsCount;
+ FTriangleOctreeLeafCapacity := DefTriangleOctreeLeafCapacity;
  FShapeStateOctreeMaxDepth := DefShapeStateOctreeMaxDepth;
- FShapeStateOctreeMaxLeafItemsCount := DefShapeStateOctreeMaxLeafItemsCount;
+ FShapeStateOctreeLeafCapacity := DefShapeStateOctreeLeafCapacity;
 
  FShapeStates := TVRMLShapeStatesList.Create;
 
@@ -2241,7 +2241,7 @@ begin
     FreeAndNil(FOctreeRendering);
     FOctreeRendering := CreateShapeStateOctree(
       ShapeStateOctreeMaxDepth,
-      ShapeStateOctreeMaxLeafItemsCount,
+      ShapeStateOctreeLeafCapacity,
       ShapeStateOctreeProgressTitle,
       false);
   end;
@@ -2253,7 +2253,7 @@ begin
     FreeAndNil(FOctreeCollisions);
     FOctreeCollisions := CreateTriangleOctree(
       TriangleOctreeMaxDepth,
-      TriangleOctreeMaxLeafItemsCount,
+      TriangleOctreeLeafCapacity,
       TriangleOctreeProgressTitle,
       true);
 
@@ -2415,7 +2415,7 @@ begin
     begin
       FOctreeRendering := CreateShapeStateOctree(
         ShapeStateOctreeMaxDepth,
-        ShapeStateOctreeMaxLeafItemsCount,
+        ShapeStateOctreeLeafCapacity,
         ShapeStateOctreeProgressTitle,
         false);
     end;
@@ -2434,7 +2434,7 @@ begin
     begin
       FOctreeCollisions := CreateTriangleOctree(
         TriangleOctreeMaxDepth,
-        TriangleOctreeMaxLeafItemsCount,
+        TriangleOctreeLeafCapacity,
         TriangleOctreeProgressTitle,
         true,
         { During this, set also ShapeStates[I].Octrees := [okTriangles].
@@ -2456,7 +2456,7 @@ begin
     begin
       FOctreeVisibleTriangles := CreateTriangleOctree(
         TriangleOctreeMaxDepth,
-        TriangleOctreeMaxLeafItemsCount,
+        TriangleOctreeLeafCapacity,
         TriangleOctreeProgressTitle,
         false);
     end;
@@ -2474,7 +2474,7 @@ begin
     begin
       FOctreeCollidableTriangles := CreateTriangleOctree(
         TriangleOctreeMaxDepth,
-        TriangleOctreeMaxLeafItemsCount,
+        TriangleOctreeLeafCapacity,
         TriangleOctreeProgressTitle,
         true);
     end;
@@ -2484,7 +2484,7 @@ begin
 end;
 
 function TVRMLScene.CreateTriangleOctree(
-  AMaxDepth, AMaxLeafItemsCount: integer;
+  AMaxDepth, ALeafCapacity: integer;
   const ProgressTitle: string;
   const Collidable: boolean;
   const SetShapeOctrees: boolean): TVRMLTriangleOctree;
@@ -2507,7 +2507,7 @@ function TVRMLScene.CreateTriangleOctree(
   end;
 
 begin
-  Result := TVRMLTriangleOctree.Create(AMaxDepth, AMaxLeafItemsCount, BoundingBox);
+  Result := TVRMLTriangleOctree.Create(AMaxDepth, ALeafCapacity, BoundingBox);
   try
     Result.OctreeItems.AllowedCapacityOverflow := TrianglesCount(false);
     try
@@ -2529,7 +2529,7 @@ begin
 end;
 
 function TVRMLScene.CreateShapeStateOctree(
-  AMaxDepth, AMaxLeafItemsCount: integer;
+  AMaxDepth, ALeafCapacity: integer;
   const ProgressTitle: string;
   const Collidable: boolean): TVRMLShapeStateOctree;
 
@@ -2545,7 +2545,7 @@ function TVRMLScene.CreateShapeStateOctree(
 var
   I: Integer;
 begin
-  Result := TVRMLShapeStateOctree.Create(AMaxDepth, AMaxLeafItemsCount,
+  Result := TVRMLShapeStateOctree.Create(AMaxDepth, ALeafCapacity,
     BoundingBox, ShapeStates);
   try
     if (ProgressTitle <> '') and

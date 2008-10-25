@@ -57,7 +57,7 @@ type
 
   TMyOctree = class(TOctree)
   public
-    constructor Create(AMaxDepth, AMaxLeafItemsCount: Integer;
+    constructor Create(AMaxDepth, ALeafCapacity: Integer;
       const ARootBox: TBox3d);
     function TreeRoot: TMyOctreeNode;
   end;
@@ -75,10 +75,10 @@ begin
  Result := TMyOctree(InternalParentTree);
 end;
 
-constructor TMyOctree.Create(AMaxDepth, AMaxLeafItemsCount: Integer;
+constructor TMyOctree.Create(AMaxDepth, ALeafCapacity: Integer;
   const ARootBox: TBox3d);
 begin
- inherited Create(AMaxDepth, AMaxLeafItemsCount, ARootBox,
+ inherited Create(AMaxDepth, ALeafCapacity, ARootBox,
    TMyOctreeNode);
 end;
 
@@ -286,7 +286,7 @@ type
     FOctreeNodeFinalClass: TOctreeNodeClass;
     FItemsInNonLeafNodes: boolean;
     FMaxDepth: integer;
-    FMaxLeafItemsCount: Integer;
+    FLeafCapacity: Integer;
   protected
     property InternalTreeRoot: TOctreeNode read FTreeRoot;
 
@@ -303,11 +303,11 @@ type
   public
 
     { MaxDepth = maksymalna glebokosc drzewa. MaxDepth = 0 oznacza ze RootNode
-      musi byc lisciem. MaxLeafItemsCount to maksymalna pojemnosc lisci,
-      tzn. w kazdym lisciu nie moze byc wiecej MaxLeafItemsCount elementow
+      musi byc lisciem. LeafCapacity to maksymalna pojemnosc lisci,
+      tzn. w kazdym lisciu nie moze byc wiecej LeafCapacity elementow
       CHYBA ze ten lisc jest na maksymalnej glebokosci ! Jezeli lisc nie jest
-      na maksymalnej glebokosci to przekroczenie w nim MaxLeafItemsCount
-      powoduje rozbicie liscia na wezel wewnetrzny. Naturalnie MaxLeafItemsCount
+      na maksymalnej glebokosci to przekroczenie w nim LeafCapacity
+      powoduje rozbicie liscia na wezel wewnetrzny. Naturalnie LeafCapacity
       zawsze musi byc >= 1, inaczej wszystko nie ma sensu.
 
       TODO -- comments below are rather specific for TVRMLTriangleOctree,
@@ -319,22 +319,22 @@ type
       nie bedziemy miec drzewa osemkowego tylko zwykle liniowe przeszukiwanie
       wsrod wszystkich obiektow. MaxDepth = 0 moze byc przydatne do sprawdzenie
       czy w ogole jest sens robic drzewo osemkowe na danej scenie.
-      Ogolnie, MaxLeafItemsCount i MaxDepth najlepiej jest dostroic do
+      Ogolnie, LeafCapacity i MaxDepth najlepiej jest dostroic do
       sceny - uzyteczna informacja bedzie tu
       TVRMLScene.CountNodes(TVRMLGeometryNode).
 
-      Note: changing MaxDepth and MaxLeafItemsCount after creating
+      Note: changing MaxDepth and LeafCapacity after creating
       octree is allowed, you shouldn't change them if you already put
       some items in your octree. Otherwise your octree will be correct
-      but may not satisfy current MaxDepth and MaxLeafItemsCount
-      constraints. In other words, changing MaxDepth and MaxLeafItemsCount
+      but may not satisfy current MaxDepth and LeafCapacity
+      constraints. In other words, changing MaxDepth and LeafCapacity
       does *not* rebuild your octree to satisfy new values
-      of MaxDepth and MaxLeafItemsCount.
+      of MaxDepth and LeafCapacity.
       Although I may implement it some day -- it's easy to implement,
       but it would be just useless for me now. }
     property MaxDepth: integer read FMaxDepth write FMaxDepth;
-    property MaxLeafItemsCount: Integer
-      read FMaxLeafItemsCount write FMaxLeafItemsCount;
+    property LeafCapacity: Integer
+      read FLeafCapacity write FLeafCapacity;
 
     { TOctreeNode with IsLeaf = true *always* have ItemIndices,
       since leaves always store items inside.
@@ -374,7 +374,7 @@ type
     property OctreeNodeFinalClass: TOctreeNodeClass
       read FOctreeNodeFinalClass;
 
-    constructor Create(AMaxDepth, AMaxLeafItemsCount: integer;
+    constructor Create(AMaxDepth, ALeafCapacity: integer;
       const ARootBox: TBox3d; AOctreeNodeFinalClass: TOctreeNodeClass;
       AItemsInNonLeafNodes: boolean);
     destructor Destroy; override;
@@ -483,7 +483,7 @@ end;
 procedure TOctreeNode.CreateLeafItems;
 begin
  FItemsIndices := TDynIntegerArray.Create;
- ItemsIndices.AllowedCapacityOverflow := Max(FParentTree.MaxLeafItemsCount div 4, 4);
+ ItemsIndices.AllowedCapacityOverflow := Max(FParentTree.LeafCapacity div 4, 4);
 end;
 
 procedure TOctreeNode.FreeAndNilTreeSubNodes;
@@ -528,7 +528,7 @@ end;
 
 procedure TOctreeNode.AddItem(ItemIndex: integer);
 begin
- if IsLeaf and (ItemsCount = FParentTree.MaxLeafItemsCount) and
+ if IsLeaf and (ItemsCount = FParentTree.LeafCapacity) and
    (Depth < FParentTree.MaxDepth) then
   IsLeaf := false;
 
@@ -717,13 +717,13 @@ end;
 
 { TOctree ------------------------------------------------------------ }
 
-constructor TOctree.Create(AMaxDepth, AMaxLeafItemsCount: integer;
+constructor TOctree.Create(AMaxDepth, ALeafCapacity: integer;
   const ARootBox: TBox3d; AOctreeNodeFinalClass: TOctreeNodeClass;
   AItemsInNonLeafNodes: boolean);
 begin
  inherited Create;
  FMaxDepth := AMaxDepth;
- FMaxLeafItemsCount := AMaxLeafItemsCount;
+ FLeafCapacity := ALeafCapacity;
  FOctreeNodeFinalClass := AOctreeNodeFinalClass;
  FItemsInNonLeafNodes := AItemsInNonLeafNodes;
  FTreeRoot := OctreeNodeFinalClass.Create(ARootBox, Self, 0, true);

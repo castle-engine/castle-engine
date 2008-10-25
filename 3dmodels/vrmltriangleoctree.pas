@@ -66,7 +66,7 @@ unit VRMLTriangleOctree;
 
   Patrz 3dmodels/rayhunter-demos/new-mailbox/new-mailbox-raport.txt :
   przeciêtny zysk czasowy ze zdefiniowania tego symbolu dla drzew
-  o¶emkowych w rodzaju max-depth = 10 i max-leaf-items-count = 20 wynosi
+  o¶emkowych w rodzaju max-depth = 10 i leaf-capacity = 20 wynosi
   1.09 (tzn.  stary czas dzia³ania / nowy czas dzia³ania = 1.09) }
 {$define OCTREE_ITEM_USE_MAILBOX}
 
@@ -79,7 +79,7 @@ uses VectorMath, SysUtils, KambiUtils, VRMLNodes, Boxes3d, Math,
 
 const
   DefTriangleOctreeMaxDepth = 10;
-  DefTriangleOctreeMaxLeafItemsCount = 20;
+  DefTriangleOctreeLeafCapacity = 20;
 
 { TOctreeItem  ------------------------------------------------------------ }
 
@@ -292,7 +292,7 @@ type
     { tu beda zgromadzone wszystkie OctreeItems jakie mamy w drzewie.
       W lisciach beda tylko ItemsIndices ktore beda indeksami do tej tablicy.
       Zrobilem to 27.04.2003 gdy zobaczylem w drzewie
-      z ciasno dobranymi MaxDepth i MaxLeafItemsCount jeden trojkat sceny moze
+      z ciasno dobranymi MaxDepth i LeafCapacity jeden trojkat sceny moze
       byc powielony az 50 000 razy ! To powodowalo zzeranie niesamowitych ilosci
       pamieci, bo rekord TOctreeItem jest dosc duzy i z czasem pewnie bede go
       jeszcze rozszerzal. Trzymanie wszystkich elementow w tablicy pozwala
@@ -579,7 +579,7 @@ type
       OctreeItemIndex: Integer): boolean;
 
     constructor Create(const ARootBox: TBox3d); overload;
-    constructor Create(AMaxDepth, AMaxLeafItemsCount: integer;
+    constructor Create(AMaxDepth, ALeafCapacity: integer;
       const ARootBox: TBox3d); overload;
     destructor Destroy; override;
   end;
@@ -1243,13 +1243,13 @@ end;
 
 constructor TVRMLTriangleOctree.Create(const ARootBox: TBox3d);
 begin
- Create(DefTriangleOctreeMaxDepth, DefTriangleOctreeMaxLeafItemsCount, ARootBox);
+ Create(DefTriangleOctreeMaxDepth, DefTriangleOctreeLeafCapacity, ARootBox);
 end;
 
-constructor TVRMLTriangleOctree.Create(AMaxDepth, AMaxLeafItemsCount: integer;
+constructor TVRMLTriangleOctree.Create(AMaxDepth, ALeafCapacity: integer;
   const ARootBox: TBox3d);
 begin
- inherited Create (AMaxDepth, AMaxLeafItemsCount, ARootBox,
+ inherited Create (AMaxDepth, ALeafCapacity, ARootBox,
    TTriangleOctreeNode, false);
  OctreeItems := TDynOctreeItemsArray.Create;
 end;

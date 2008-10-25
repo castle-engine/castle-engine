@@ -49,7 +49,7 @@ const
     /win/3dmodels/3ds/ParkKambi.wrl and /win/3dmodels/lars/scene.wrl }
   { }
   DefShapeStateOctreeMaxDepth = 5;
-  DefShapeStateOctreeMaxLeafItemsCount = 10;
+  DefShapeStateOctreeLeafCapacity = 10;
 
 type
   TVRMLShapeStateOctree = class;
@@ -68,7 +68,7 @@ type
     function StatisticsBonus(
       const LeavesCount, ItemsCount, NonLeafNodesCount: Int64): string; override;
   public
-    constructor Create(AMaxDepth, AMaxLeafItemsCount: Integer;
+    constructor Create(AMaxDepth, ALeafCapacity: Integer;
       const ARootBox: TBox3d; AShapeStatesList: TVRMLShapeStatesList);
     function TreeRoot: TVRMLShapeStateOctreeNode;
     property ShapeStatesList: TVRMLShapeStatesList read FShapeStatesList;
@@ -109,10 +109,10 @@ end;
 
 { TVRMLShapeStateOctree ------------------------------------------ }
 
-constructor TVRMLShapeStateOctree.Create(AMaxDepth, AMaxLeafItemsCount: Integer;
+constructor TVRMLShapeStateOctree.Create(AMaxDepth, ALeafCapacity: Integer;
   const ARootBox: TBox3d; AShapeStatesList: TVRMLShapeStatesList);
 begin
- inherited Create(AMaxDepth, AMaxLeafItemsCount, ARootBox,
+ inherited Create(AMaxDepth, ALeafCapacity, ARootBox,
    TVRMLShapeStateOctreeNode, true);
  FShapeStatesList := AShapeStatesList;
 end;
