@@ -157,7 +157,7 @@
     @item(TGLWindow.KeysDown to easily and reliably check which keys
       are pressed. Also TGLWindow.CharactersDown.)
 
-    @item(Frames per second counter, see
+    @item(Frames per second measuring, see
       @link(TGLWindow.FpsActive FpsActive),
       @link(TGLWindow.FpsFrameTime FpsFrameTime),
       @link(TGLWindow.FpsRealTime FpsRealTime) and
@@ -1137,13 +1137,15 @@ type
     { Things named "Fps_" are internal things.
       Things named "Fps" (without "_") are public. }
 
-    Fps_FramesRendered: Int64; { FramesRendered = 0 oznacza "jeszcze nie wywolal Fps_FrameRendered" }
-    Fps_FirstTimeTick: LongWord; { jesli FrameRendered > 0 to FirstTimeTick oznacza czas
-         pierwszego wywolania Fps_FrameRendered (tego ktore zmienilo FramesRendered z 0 na 1 }
-    Fps_RenderStartTime: TKamTimerResult; { pobierane w Fps_RenderStartTime }
+    { Fps_FramesRendered = 0 means "no frame was rendered yet" }
+    Fps_FramesRendered: Int64;
+    { if Fps_FramesRendered > 0 then Fps_FirstTimeTick is the time of first
+      Fps_RenderEnd call. }
+    Fps_FirstTimeTick: LongWord;
+    { set in Fps_RenderStart }
+    Fps_RenderStartTime: TKamTimerResult;
+    { how much time passed inside frame rendering }
     Fps_FrameTimePassed: TKamTimerResult;
-       { jaki czas uplynal dotychczas na renderowaniu
-         ramek, czyli ile czasu uplynelo w/g definicji FpsFrameTime }
 
     FFpsActive: boolean;
     procedure SetFPSActive(value: boolean);
@@ -1155,12 +1157,10 @@ type
 
     LastIdleStartTime: TKamTimerResult;
 
-    {rzeczy do implementacji pomiaru Frames Per Sec}
-    FFpsSecondsToAutoReset : Cardinal;
-    FFpsHoldsAfterReset : DWORD;
+    FFpsSecondsToAutoReset: Cardinal;
+    FFpsHoldsAfterReset: TMilisecTime;
     procedure Fps_RenderStart;
     procedure Fps_RenderEnd;
-
   private
     { zwraca opis aktualnych zadanych wlasciwosci od buforow OpenGLa
       (czy single/double (na podstawie DoubleBuffer), czy indexed,
@@ -2139,52 +2139,69 @@ type
     { The same thing as Keys.ModifiersDown(KeysDown). }
     function ModifiersDown: TModifierKeys;
 
-    { ------------------------------------------------------------------------
-      pomiar Frames Per Second  }
+    { FPS -------------------------------------------------------------------- }
 
-    { wlacz/wylacz pomiar FramesPerSec. Zanim uzyjesz FpsFrame/RealTime
-      musisz ustawic ten atrybut na (true). Z kolei nie ma sensu tego robic jesli
-      nie zamierzasz uzywac tych funkcji. Jesli juz wiesz ze nie bedziesz ich
-      uzywal to mozesz je wylaczyc ustawiajac Active na false. }
+    { Turn on/off frames per second measuring.
+      Before using FpsFrameTime or FpsRealTime you must set FpsActive to @true. }
     property FpsActive: boolean read FFpsActive write SetFpsActive;
-    { Fps _ Frame/RealTime: ile razy na sekunde aplikacja generuje ramke.
-      Mierza one czas troche inaczej : RealTime zwraca prawde, tzn. liczy
-      ile ramek na sekunde wyswietla twoja aplikacja. FrameTime robi w pewnym
-      sensie oszustwo : za czas jaki uplynal uznaje czas spedzony tylko na renderowaniu
-      ramek. Tzn. ze jesli FrameTime mowi np. "100 ramek na sek" to znaczy ze
-      gdyby aplikacja spedzala caly czas na generowaniu ramek (tzn. na DrawGL +
-      glFlush / swap buffers robione w ProcessGLWinMessage) to robilaby ich
-      100 na sekunde. FrameTime nie uwzglednia faktu ze aplikacja moze
-      spedzac duzo czasu takze na innych zajeciach, w OnIdle na przyklad.
-      Przy okazji : widac stad ze na wartosc FramesPerSec duzy wplyw ma to co
-      rzeczywiscie robisz w DrawGL. Wszystko co robisz w DrawGL FrameTime uznaje
-      za "renderowanie ramki". }
+
+    { Rendering speed in frames per second. This tells FPS,
+      if we would only call Draw (EventDraw, OnDraw) all the time.
+      That is, this doesn't take into account time spent on other activities,
+      like OnIdle, and it doesn't take into account that frames are possibly
+      not rendered continously (when AutoRedisplay = @false, we may render
+      frames seldom, because there's no need to do it more often).
+
+      @seealso FpsRealTime }
     function FpsFrameTime: Double;
+
+    { How many frames per second were rendered. This is a real number
+      of EventDraw (OnDraw) calls per second. This means that it's actual
+      speed of your program. Anything can slow this down, not only long
+      EventDraw (OnDraw), but also slow processing of other events (like OnIdle).
+      Also, when AutoRedisplay = @false, this may be very low, since you
+      just don't need to render frames continously.
+
+      @seealso FpsFrameTime }
     function FpsRealTime: Double;
-    { wypisz ladnie FramesPerSec Frame/Real Time na GLWindow.Caption }
+
+    { Set Caption to WindowTitle with description of FpsFrameTime and FpsRealTime. }
     procedure FpsToCaption(const WindowTitle: string);
-    { Aby zresetowac timer mozna wywolac FpsActive(false) i potem (true).
-      Mozna tez uzyc ponizszej procedury FpsReset ktora robi to troche szybciej.
-      Ale zazwyczaj nie ma w ogole potrzeby resetowac "recznie" timera bo co
-      FpsSecondsToAutoReset timer sam sie zresetuje.
-      Dla bezpieczenstwa - zmieniaj wartosc zmiennej FpsSecondsToAutoReset
-      tylko gdy timer nie jest active. }
+
+    { Reset the FPS measuring.
+      Alternative to doing @code(FpsActive := false; FpsActive := true). }
     procedure FpsReset;
+
+    { FPS measurements reset after this number of seconds.
+      This way FpsRealTime / FpsFrameTime always show the average FPS numbers
+      during the last FpsSecondsToAutoReset seconds (well, actually it's
+      more complicated, see FpsHoldsAfterReset).
+
+      This way FpsRealTime / FpsFrameTime don't change too rapidly
+      (so they are good indicator of current FPS speed, as opposed to
+      e.g. DrawSpeed which changes every frame so it very unstable).
+      They also change rapidly enough --- you don't want to see measuments
+      from too long time ago.
+
+      Change FpsSecondsToAutoReset when not FpsActive = @false.  }
     property FpsSecondsToAutoReset: Cardinal
         read FFpsSecondsToAutoReset
        write FFpsSecondsToAutoReset default 6;
 
-    { Reset timera nie jest takim zupelnym resetem. Zeby wykres pomiaru FramesPerSec
-      byl wykresem ciaglym, bez naglych dzikich skokow / spadkow powodowanych
-      kompletnymi resetami co 5 sekund, reset tak naprawde dziala tak ze zachowuje
-      dotychczas wymiarzona wartosc FrameTime i RealTime pomiaru tak jakby zostala
-      uzyskana w ciagu ostatnich FpsHoldsAfterReset milisekund.
-      Potem w ciagu pozostalego czasu z FFpsSecondsToAutoReset
-      (tzn. w ciagu FFpsSecondsToAutoReset*1000 - FpsHoldsAfterReset
-      milisekund) pomiar oczywiscie bedzie sie zmienial i moze znacznie sie
-      oddalic od tego co zostalo ustalone. Ale w rezultacie nie bedzie
-      takiej chwili ze pomiar bedzie jakis zupelnie "dziki". }
-    property FpsHoldsAfterReset: DWORD
+    { How to keep previous FPS measurements, when they reset by
+      FpsSecondsToAutoReset?
+
+      When measurements are reset by FpsSecondsToAutoReset, you actually don't
+      want to totally forget previous measurements (as this would make
+      your FpsRealTime / FpsFrameTime unstable for a short time).
+      Instead, you want to assume that current FpsRealTime / FpsFrameTime
+      was measured during last FpsHoldsAfterReset miliseconds.
+
+      This way FpsRealTime / FpsFrameTime stay more stable.
+
+      So actually the measurements are reset at each
+      FpsSecondsToAutoReset * 1000 - FpsHoldsAfterReset miliseconds. }
+    property FpsHoldsAfterReset: TMilisecTime
         read FFpsHoldsAfterReset
        write FFpsHoldsAfterReset default 1000;
 
@@ -2251,11 +2268,15 @@ type
       IdleSpeed as usual (unless you call IgnoreNextIdleSpeed again, of course). }
     procedure IgnoreNextIdleSpeed;
 
-    { ------------------------------------------------------------------------
-      gotowe funkcje ktore realizuja "uproszczony scenariusz",
-      same inicjuja typowe wartosci, wywoluja Init a potem Glwm.Loop; }
+    { InitLoop stuff --------------------------------------------------------- }
 
+    { Shortcut for Init (create and show the window with GL contex)
+      and Glwm.Loop (run the event loop). }
     procedure InitLoop; overload;
+
+    { Shortcut for setting Caption, OnDraw,
+      then calling Init (create and show the window with GL contex)
+      and Glwm.Loop (run the event loop). }
     procedure InitLoop(const ACaption: string; AOnDraw: TDrawFunc); overload;
 
     { Parsing parameters ------------------------------------------------------- }
@@ -4058,98 +4079,87 @@ begin
   end;
 end;
 
-{ ------------------------------------------------------------------------------
-  implementacja Frame Per Seconds pomiaru }
+{ FPS ------------------------------------------------------------------------ }
 
 procedure TGLWindow.FpsReset;
-var NowTick: DWORD;
-    FrameTime, RealTime: Double;
+var
+  NowTick: TMilisecTime;
+  FrameTime, RealTime: Double;
 begin
- { moglibysmy tu ustawic FramesRendered na 0 i FrameTimePassed tez na 0.
-   Tym samym odtworzylibsmy stan zmiennych w momencie uruchamiania licznika
-   a wiec licznik zostalby zresetowany.
+  { We could just set Fps_FramesRendered = 0 and Fps_FrameTimePassed = 0.
+    This would basically reset the FPS measurements.
 
-   Ale to byloby barbarzynstwo :
-   jezeli FpsSecondsToAutoReset = 5 to co 5 sekund licznik przez
-   drobna chwile pokazywalby wysoce przeklamana wartosc. Nie chcemy tego.
-   Wiec robimy tak : zamiast resetowac sie kompletnie, uznajemy ze dotychczas
-   zmierzony czas jest pomiarem nie z ostatnich 5 sekund ale z ostatniej
-   sekundy. W ten sposob nastepne cztery sekundy maja szanse zmienic ten wynik
-   drastycznie - a jednoczesnie caly czas pomiar fps bedzie przedstawial funkcje
-   dosc ciagla, bez zadnych naglych skokow w wyniku resetowania licznika. }
+    But it would be very crude solution. Right after FpsReset, our FpsFrameTime/
+    FpsRealTime measurements would be completely wrong.
+    So we use FpsHoldsAfterReset to counteract this. }
 
- if FpsHoldsAfterReset = 0 then
- begin
-  {resetuj w barbarzynski sposob}
-  Fps_FramesRendered := 0;
-  Fps_FrameTimePassed := 0;
- end else
- begin
-  if Fps_FramesRendered <> 0 then
+  if FpsHoldsAfterReset = 0 then
   begin
-   {save measures}
-   frameTime := FpsFrameTime;
-   realTime := FpsRealTime;
+    { reset brutally }
+    Fps_FramesRendered := 0;
+    Fps_FrameTimePassed := 0;
   end else
   begin
-   {init ourselves to some special, default measures.
-    Po co tak ? Zeby licznik na poczatku uruchomienia programu nie zaczynal
-    szalec bo ma Fps_FramesRendered = 0.
-    Nie mozemy dac sobie tu za malych wartosci bo wtedy programy beda na
-    poczatku dzialaly zbyt szybko (gdy damy wieksze wartosci programy moga
-    na poczatku dzialac za wolno; ale to nic - to jest troche psychologiczne:
-    kiedy program dziala za szybko zazwyczaj cos sie dzieje i user przestaje
-    sie orientowac; natomiast kiedy program na poczatku dziala za wolno
-    user akceptuje to jako "program sie jeszcze inicjuje" (i slusznie,
-    tyle ze my inicjujemy FPS-y). }
-   frameTime := 80;
-   realTime := 80;
+    if Fps_FramesRendered <> 0 then
+    begin
+      { save measures }
+      FrameTime := FpsFrameTime;
+      RealTime := FpsRealTime;
+    end else
+    begin
+      { Init some default measures. Otherwise FPS would be wild at the start
+        of the program, when Fps_FramesRendered = 0. }
+      FrameTime := 80;
+      RealTime := 80;
+    end;
+
+    { fake that already FpsHoldsAfterReset time passed }
+    NowTick := GetTickCount;
+    if NowTick > FpsHoldsAfterReset then
+      Fps_FirstTimeTick := NowTick - FpsHoldsAfterReset else
+      { Once in 49 days Fps_FirstTimeTick has to be wrong... }
+      Fps_FirstTimeTick := 0;
+
+    { Adjust Fps_FramesRendered to make new FpsRealTime = old FpsRealTime
+      (saved in RealTime).
+      RealTime = Fps_FramesRendered * 1000 / FpsHoldsAfterReset sos }
+    Fps_FramesRendered := Round(RealTime * FpsHoldsAfterReset / 1000.0);
+
+    { Adjust Fps_FrameTimePassed to make new FpsFrameTime = old FpsFrameTime.
+
+      Remember that Fps_FrameTimePassed is in KamTimerFrequency units.
+      So we want to
+      Fps_FramesRendered  / (Fps_FrameTimePassed / KamTimerFrequency) = FrameTime so
+      Fps_FramesRendered * KamTimerFrequency  / Fps_FrameTimePassed = FrameTime so
+      Fps_FramesRendered * KamTimerFrequency / FrameTime = Fps_FrameTimePassed. }
+    if FrameTime = 0 then
+      Fps_FrameTimePassed := 0 else
+      Fps_FrameTimePassed := Round(Fps_FramesRendered * KamTimerFrequency / FrameTime);
   end;
-
-  {spraw zeby realTime passed = FpsHoldsAfterReset}
-  NowTick := GetTickCount;
-  if NowTick > FpsHoldsAfterReset then
-   Fps_FirstTimeTick := NowTick - FpsHoldsAfterReset else
-   Fps_FirstTimeTick := 0; { raz na 49 dni fps przez chwilunke bedzie wskazywal troche zle }
-
-  {teraz musisz dopasowac ilosc fpsFramesRendered zeby realTime wyszedl taki sam.
-   realTime = Fps_FramesRendered*1000 / FpsHoldsAfterReset czyli }
-  Fps_FramesRendered := Round(RealTime * FpsHoldsAfterReset / 1000.0);
-
-  {teraz musisz dopasowac Fps_FrameTimePassed zeby frameTime wyszedl taki sam.
-   Pamietaj ze Fps_FrameTimePassed jest w jednostkach KamTimerFrequency.
-   Czyli chcemy zeby
-   Fps_FramesRendered  / (Fps_FrameTimePassed / KamTimerFrequency) = frameTime czyli
-   Fps_FramesRendered * KamTimerFrequency  / Fps_FrameTimePassed = frameTime czyli
-   Fps_FramesRendered * KamTimerFrequency / frameTime = Fps_FrameTimePassed. }
-  if frameTime = 0 then
-   Fps_FrameTimePassed := 0 else
-   Fps_FrameTimePassed := Round(Fps_FramesRendered * KamTimerFrequency / frameTime);
- end;
 end;
 
 procedure TGLWindow.SetFpsActive(value: boolean);
 begin
- if value = FpsActive then exit;
+  if Value = FpsActive then Exit;
 
- FFpsActive := value;
- if value then
- begin
-  FpsReset;
+  FFpsActive := Value;
+  if Value then
+  begin
+    FpsReset;
 
-  { Just init DrawSpeed, IdleSpeed to some sensible defaults.
-    Rendering time 30 frames per second seems sensible default for 3D game
-    right?
+    { Just init DrawSpeed, IdleSpeed to some sensible defaults.
+      Rendering time 30 frames per second seems sensible default for 3D game
+      right?
 
-    For IdleSpeed this is actually not essential, since we call
-    IgnoreNextCompSpeed anyway. But in case programmer will (incorrectly!)
-    try to use IdleSpeed before EventIdle (OnIdle) call, it's useful to have
-    here some predictable value. }
-  FDrawSpeed := 1 / 30;
-  FIdleSpeed := 1 / 30;
+      For IdleSpeed this is actually not essential, since we call
+      IgnoreNextCompSpeed anyway. But in case programmer will (incorrectly!)
+      try to use IdleSpeed before EventIdle (OnIdle) call, it's useful to have
+      here some predictable value. }
+    FDrawSpeed := 1 / 30;
+    FIdleSpeed := 1 / 30;
 
-  IgnoreNextIdleSpeed;
- end;
+    IgnoreNextIdleSpeed;
+  end;
 end;
 
 procedure TGLWindow.IgnoreNextIdleSpeed;
@@ -4159,59 +4169,53 @@ end;
 
 procedure TGLWindow.Fps_RenderStart;
 begin
- if not FpsActive then exit;
+  if not FpsActive then Exit;
 
- Fps_RenderStartTime := KamTimer;
+  Fps_RenderStartTime := KamTimer;
 end;
 
 procedure TGLWindow.Fps_RenderEnd;
-var NowTick: LongWord;
+var
+  NowTick: TMilisecTime;
 begin
- if not FpsActive then exit;
+  if not FpsActive then Exit;
 
- { ((KamTimer-Fps_RenderStartTime)/KamTimerFrequency) = jaka czesc sekundy
-   renderowala sie ostatnia klatka. }
- FDrawSpeed := (KamTimer - Fps_RenderStartTime) / KamTimerFrequency;
+  { ((KamTimer-Fps_RenderStartTime) / KamTimerFrequency) = time of last frame
+    rendering time. }
+  FDrawSpeed := (KamTimer - Fps_RenderStartTime) / KamTimerFrequency;
 
- NowTick := GetTickCount;
- if ((NowTick-Fps_FirstTimeTick) div 1000) >= FpsSecondsToAutoReset then
- begin
-  { Useful for TESTS ---------------------------------------- }
-  { This is useful if you're running in FullScreen mode (then you can't
-    use window's title to show FPS... }
-  {Writeln(Format('FPS : %f (real : %f)', [FpsFrameTime, FpsRealTime]));}
-  { End of useful for TESTS ---------------------------------------- }
+  NowTick := GetTickCount;
+  if ((NowTick - Fps_FirstTimeTick) div 1000) >= FpsSecondsToAutoReset then
+    FpsReset;
 
-  FpsReset;
- end;
-
- if Fps_FramesRendered = 0 then Fps_FirstTimeTick := NowTick;
- Inc(Fps_FramesRendered);
- Fps_FrameTimePassed := Fps_FrameTimePassed + KamTimer - Fps_RenderStartTime;
+  if Fps_FramesRendered = 0 then Fps_FirstTimeTick := NowTick;
+  Inc(Fps_FramesRendered);
+  Fps_FrameTimePassed := Fps_FrameTimePassed + KamTimer - Fps_RenderStartTime;
 end;
 
 procedure TGLWindow.FpsToCaption(const WindowTitle: string);
 begin
- Caption := WindowTitle +
-   Format(' - FPS : %f (real : %f)', [FpsFrameTime, FpsRealTime]);
+  Caption := WindowTitle +
+    Format(' - FPS : %f (real : %f)', [FpsFrameTime, FpsRealTime]);
 end;
 
 function TGLWindow.FpsRealTime: Double;
-var timepass: LongWord;
+var
+  TimePass: TMilisecTime;
 begin
- Assert(FpsActive, 'FpsRealTime called by Fps counting not Activated');
- timepass := GetTickCount-Fps_FirstTimeTick;
- if timepass > 0 then
-  result := Fps_FramesRendered*1000 / timepass else
-  result := 0;
+  Assert(FpsActive, 'FpsRealTime called by Fps counting not Activated');
+  TimePass := GetTickCount - Fps_FirstTimeTick;
+  if TimePass > 0 then
+    Result := Fps_FramesRendered * 1000 / TimePass else
+    Result := 0;
 end;
 
 function TGLWindow.FpsFrameTime: Double;
 begin
- Assert(FpsActive, 'FpsFrameTime called by Fps counting not Activated');
- if Fps_FrameTimePassed > 0 then
-  result := Fps_FramesRendered * KamTimerFrequency / Fps_FrameTimePassed else
-  result := 0;
+  Assert(FpsActive, 'FpsFrameTime called by Fps counting not Activated');
+  if Fps_FrameTimePassed > 0 then
+    Result := Fps_FramesRendered * KamTimerFrequency / Fps_FrameTimePassed else
+    Result := 0;
 end;
 
 { TGLWindow miscella ---------------------------------------- }
