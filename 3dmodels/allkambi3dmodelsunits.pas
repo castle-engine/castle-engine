@@ -32,6 +32,7 @@ uses
   vrmllightset,
   vrmlnodes,
   vrmlnodesdetailoptions,
+  vrmloctreeitems,
   vrmlraytracer,
   vrmlrendereroptimization,
   vrmlscene,
