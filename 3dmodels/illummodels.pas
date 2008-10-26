@@ -27,7 +27,7 @@ unit IllumModels;
 
 interface
 
-uses VectorMath, VRMLNodes, VRMLTriangleOctree, Math, KambiUtils, Matrix;
+uses VectorMath, VRMLNodes, VRMLOctreeUtils, Math, KambiUtils, Matrix;
 
 { This returns VRML 2.0 material emissiveColor for lighting equation.
   I.e. the @code(O_Ergb) part of lighting equation in

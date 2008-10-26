@@ -51,135 +51,18 @@ unit VRMLTriangleOctree;
     zmiana sceny oznacza w zasadzie koniecznosc przebudowania octree).
 }
 
-{ zdefiniuj OCTREE_ITEM_USE_MAILBOX aby w TryOctreeItem*Collision uzywac
-  wlasciwosci Mailbox* rekordow TOctreeItem. W ten sposob mozemy uniknac
-  wielokrotnego sprawdzania przeciecia tego samego trojkata z tym samym
-  promieniem na skutek tego ze jeden trojkat moze trafic do wielu lisci.
-
-  Kiedys zamiast MailboxSavedTag mialem MailboxState (empty, ray lub segment)
-  i MailboxVector1, MailboxVector2 (:TVector3Single) ktore razem okreslaly
-  co jest zapamietane w Mailboxie za pomoca 6*SizeOf(Single) + SizeOf(enum) =
-  = 7*4 = 28 bajtow. Teraz to wszystko zamienilem na MailboxSaveTag: Int64
-  a wiec 8 bajtow a wiec istotna oszczednosc pamieci i przede wszystkim
-  czasu zarzadzania mailboxem (czyli czasu porownywania "czy mozemy
-  uzyc maiboxa" i czasu uaktualniania mailboxa).
-
-  Patrz 3dmodels/rayhunter-demos/new-mailbox/new-mailbox-raport.txt :
-  przeciêtny zysk czasowy ze zdefiniowania tego symbolu dla drzew
-  o¶emkowych w rodzaju max-depth = 10 i leaf-capacity = 20 wynosi
-  1.09 (tzn.  stary czas dzia³ania / nowy czas dzia³ania = 1.09) }
-{$define OCTREE_ITEM_USE_MAILBOX}
+{$I vrmloctreeconf.inc}
 
 interface
 
 uses VectorMath, SysUtils, KambiUtils, VRMLNodes, Boxes3d, Math,
-  KambiOctree;
+  KambiOctree, VRMLOctreeUtils;
 
 {$define read_interface}
 
 const
   DefTriangleOctreeMaxDepth = 10;
   DefTriangleOctreeLeafCapacity = 20;
-
-{ TOctreeItem  ------------------------------------------------------------ }
-
-type
-  TOctreeItemMailboxState = (msEmpty, msRay, msSegmentDir);
-  TCollisionCount = Int64;
-
-  { This is a single item of a triangle octree.
-    In other words, this is really just a triangle with a lot
-    of associated information.
-
-    @bold(Never modify fields of this record directly) ---
-    this record should be created only by CreateOctreeItem and
-    modified by other routines in this unit. }
-  TOctreeItem = record
-    Triangle: TTriangle3Single;
-
-    { Calculated TriangleArea(Triangle) }
-    TriangleArea: Single;
-
-    State: TVRMLGraphTraverseState;
-    GeometryNode: TVRMLGeometryNode;
-    MatNum: integer;
-
-    { If this triangle is part of a face created by coordIndex field
-      (like all faces in IndexedFaceSet) then these fields indicate where
-      in this coordIndex this face is located.
-
-      You should look into GeometryNode, get it's coordIndex field,
-      and the relevant indexes are between FaceCoordIndexBegin
-      and FaceCoordIndexEnd - 1. Index FaceCoordIndexEnd is either
-      non-existing (coordIndex list ended) or is the "-1" (faces separator
-      on coordIndex fields).
-
-      If this triangle doesn't come from any coordIndex (e.g. because GeometryNode
-      is a TNodeSphere) then both FaceCoordIndex* are -1. }
-    FaceCoordIndexBegin, FaceCoordIndexEnd: Integer;
-
-    {$ifdef OCTREE_ITEM_USE_MAILBOX}
-    { MailboxSavedTag okresla tag elementu z ktorym mamy zapamietane przeciecie
-      w MailboxIsIntersection i MailboxIntersection i MailboxIntersectionDistance.
-      Aby wszystko dzialalo 100%
-      poprawnie zakladamy ze kazdy segment i kazdy promien z jakim bedziemy
-      testowali kolizje z octree beda mialy inne tagi i zaden z nich nie bedzie
-      mial taga = -1. W praktyce oznacza to ze nastepujace zachowanie jest
-      poprawne : inicjujemy kazdemu nowemu elementowi OctreeItem MailboxSavedTag
-      na -1 a kolejnym odcinkom i promieniom przydzielami kolejne Tagi
-      zaczynajac od 0. }
-    MailboxSavedTag: Int64;
-    MailboxIsIntersection: boolean;
-    MailboxIntersection: TVector3Single;
-    MailboxIntersectionDistance: Single;
-    {$endif}
-
-    case Integer of
-      0: ({ This is calculated TriangleNormPlane(Triangle) czyli pierwsze
-            trzy wspolrzedne TriNormPlane daja wektor normalny o dlug. 1 z trojkata.
-            W ten sposob mamy tu przeliczony juz i plane trojkata
-            i jego wektor normalny. }
-          TriangleNormalPlane: TVector4Single;);
-      1: (TriangleNormal: TVector3Single;);
-  end;
-  POctreeItem = ^TOctreeItem;
-
-  TDynArrayItem_1 = TOctreeItem;
-  PDynArrayItem_1 = POctreeItem;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$I dynarray_1.inc}
-  TDynOctreeItemsArray = TDynArray_1;
-
-{ podany Triangle musi byc IsValidTriangle }
-function CreateOctreeItem(const Triangle: TTriangle3Single;
-  State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
-  const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer): TOctreeItem;
-
-{ Sprawdzaj przeciecia z elementem octree item tylko przez
-  TryOctreeItemRay/Segment Collision zeby umozliwic uzywanie metody
-  skrzynek pocztowych do zapamietywania ostatnio badanego przeciecia
-  (co moze sprawic ze Ray/SegmentCollision beda dzialac duzo szybciej dla
-  scen gdzie jeden octree item bedzie czesto trafial do wielu lisci).
-
-  Zwieksza o jeden DirectCollisionTestsCounter jezeli wykonalismy rzeczywisty
-  test na przeciecie, czyli jesli nie moglismy skorzystac z wyniku
-  w skrzynce.
-
-  Jezeli nie jest zdefiniowane OCTREE_ITEM_USE_MAILBOX to nigdy nie uzywa
-  skrzynki i zawsze inkrementuje DirectCollisionTestsCounter. }
-function TryOctreeItemSegmentDirCollision(
-  out Intersection: TVector3Single;
-  out IntersectionDistance: Single;
-  var OctreeItem: TOctreeItem; const Odc0, OdcVector: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const OdcTag: Int64; {$endif}
-  var DirectCollisionTestsCounter: TCollisionCount): boolean;
-
-function TryOctreeItemRayCollision(
-  out Intersection: TVector3Single;
-  out IntersectionDistance: Single;
-  var OctreeItem: TOctreeItem; const Ray0, RayVector: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayTag: Int64; {$endif}
-  var DirectCollisionTestsCounter: TCollisionCount): boolean;
 
 { TOctreeNode ------------------------------------------------------------------}
 
@@ -312,61 +195,82 @@ type
       GeometryNode: TVRMLGeometryNode;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 
-    { you can use variable below for testing purposes. It is increemented each
-      time SphereCollision or SegmentCollision or RayCollision makes a direct
+    { Direct collisions counter, to test octree efficiency.
+
+      It is incremented each time XxxCollision make a direct
       collision test, that is when some single triangle is tested for collision
-      with a sphere, line segment or ray. When we use octree we expect that this
-      number will be small. }
-    DirectCollisionTestsCounter: TCollisionCount; { = 0 }
+      with a sphere, line segment and such. The very idea of octree is to
+      minimize this number.
 
-    { Ponizej mamy najwazniejsze procedury ktore wykorzystuja cala
-      strukture jaka zbudowalismy zeby efektywnie badac kolizje.
+      0 by default. }
+    DirectCollisionTestsCounter: TCollisionCount;
 
-      SegmentCollision bada czy segment nie przecina zadnego elementu drzewa
+    { Collision checking using the octree.
 
-      SphereCollision bada czy sfera nie zawiera w sobie choc czesci jakiegos
-      elementu drzewa.
+      SegmentCollision checks for collision between a line segment and tree items.
 
-      RayCollision bada przeciecie promienia z drzewem.
+      SphereCollision checks for collision with a sphere.
 
-      Procedury zwracaja nil jesli nie ma kolizji or pointer to
-      element z ktorym jest kolizja. Pytanie brzmi "ktore przeciecie
-      zwrocic jesli jest ich wiele ?". SphereCollision zwraca ktorykolwiek,
-      podobnie jak Ray/SegmentCollision gdy (not ReturnClosestIntersection).
-      Gdy ReturnClosestIntersection = true to RayCollision zwraca przeciecie
-      najblizsze Ray0, SegmentCollision najblizsze pos1.
-      (pamietaj ze placisz czasem wykonania
-      za przekazanie ReturnClosestIntersection = true, wiec unikaj tego).
+      BoxCollision checks for collision with a box (axis-aligned, TBox3d type).
 
-      Segment/RayCollision uwzgledniaja ze na pewno NIE MA przeciecia z elementem
-      OctreeItemToIgnore, podaj OctreeItemToIgnore = nil
-      aby uwzglednial wszystkie elementy (przydatne przy rekurencyjnym
-      ray-tracingu gdy nie chcesz zeby promien odbity/zalamany/cienia omylkowo trafil na
-      powierzchnie z ktorej wlasnie "wychodzisz" - mozna by bylo temu
-      zaradzic tez przez nieznacznie przesuwanie Ray0, ale niniejsza metoda
-      jest duzo bardziej elegancka).
+      RayCollision checks for collision with a ray.
 
-      Uwzgledniaja tez ze na pewno nie ma przeciecia z elementami dla
-      ktorych ItemsToIgnoreFunc zwroci true (mozesz przekazac nil
-      aby nie ignorowac nic na podstawie ItemsToIgnoreFunc).
+      All there methods return nil if there is no collision, or a pointer
+      to colliding item.
 
-      Ponadto jesli podasz IgnoreMarginAtStart to beda ignorowac przeciecia ktore
-      zdarzyly sie *bardzo* blisko Ray0 (lub Pos1). W ten sposob raytracer
-      bedzie w stanie poradzic sobie nawet ze scenami ktore maja nieprawidlowo
-      zdefiniowane (czesciowo zachodzace na siebie) polygony. Takie polygony
-      normalnie generowalyby zbedne cienie (zaslanialyby sie nawzajem).
-      Pozornie podajac IgnoreMarginAtStart = true raytracer moglby czesto
-      nie podawac juz OctreeItemToIgnore (tzn. podac je = nil),
-      bo przeciez po to sie zazwyczaj podaje OctreeItemToIgnore.
-      Ale prawda jest taka ze IgnoreMarginAtStart nie daje 100% pewnosci
-      ze unikniemy kolizji z elementem od ktorego zaczelismy (bo on przeciez
-      tylko unika pewnego *malego* marginesu wokol Ray0). W rezultacie
-      i tak nalezy uzywac OctreeItemToIgnore. To raczej podawanie
-      IgnoreMarginAtStart = true jest zbedne, ale niestety jest to pozadane
-      i daje dobre efekty gdy przychodzi do nieprawidlowo zbudowanych scen.
-      A nawet sibenik.3ds i office.mgf.wrl a wiec sceny zrobione niby porzadnie
-      ktorych uzywalem do zasadniczych testow na rayhunterze
-      maja gdzeniegdzie tak nieprawidlowo zbudowane sciany.
+      @param(ReturnClosestIntersection
+
+        If @false, then any collision detected is returned.
+        For routines that don't have ReturnClosestIntersection parameter
+        (SphereCollision, BoxCollision) always any collision is returned.
+
+        If this is @true, then the collision closest to Ray0 (for RayCollision)
+        or Pos1 (for SegmentCollision) is returned. This makes the collision
+        somewhat slower (as we have to check all collisions, while
+        for ReturnClosestIntersection = @false we can terminate at first
+        collision found.))
+
+      @param(OctreeItemToIgnore
+
+        If this is non-nil, then Segment/RayCollision assume that there
+        is @italic(never) a collision with this octree item.
+        It's never returned as collidable item.
+
+        This is useful for recursive ray-tracer, when you start tracing
+        from some existing face (octree item). In this case, you don't
+        want to "hit" the starting face. So you can pass this face
+        as OctreeItemToIgnore.
+
+        Note that IgnoreMarginAtStart helps with the same problem,
+        although a little differently.)
+
+      @param(ItemsToIgnoreFunc
+
+        If assigned, then items for which ItemsToIgnoreFunc returns @true
+        will be ignored. This is a more general mechanism than
+        OctreeItemToIgnore, as you can ignore many items, you can also
+        make some condition to ignore --- for example, you can ignore
+        partially transparent items.)
+
+      @param(IgnoreMarginAtStart
+
+        If @true, then collisions that happen very very close to Ray0 (or Pos1
+        for SegmentCollision) will be ignored.
+
+        This is another thing helpful for recursive ray-tracers:
+        you don't want to hit the starting face, or any coplanar faces,
+        when tracing reflected/refracted/shadow ray.
+
+        Note that if you know actual pointer of your face, it's better to use
+        OctreeItemToIgnore --- OctreeItemToIgnore is a 100% guaranteed
+        stable solution, while IgnoreMarginAtStart necessarily has some
+        "epsilon" constant that determines which items are ignored.
+        This epsilon may be too large, or too small, in some cases.
+
+        In practice, recursive ray-tracers should use both
+        OctreeItemToIgnore (to avoid collisions with starting face)
+        and IgnoreMarginAtStart = @true (to avoid collisions with faces
+        coplanar with starting face).)
 
       @param(IntersectionDistance
         For RayCollision:
@@ -380,6 +284,8 @@ type
         IntersectionDistance is always in 0...1.
         Intersectio is always equal to Pos1 + (Pos2 - Pos1) * IntersectionDistance.
       )
+
+      @groupBegin
     }
     function SegmentCollision(
       out Intersection: TVector3Single;
@@ -452,6 +358,7 @@ type
       const OctreeItemToIgnore: POctreeItem;
       const IgnoreMarginAtStart: boolean;
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; overload;
+    { @groupEnd }
 
     { This checks if move between OldPos and ProposedNewPos is possible,
       by checking is segment between OldPos and ProposedNewPos free
@@ -624,118 +531,8 @@ function ActiveLightNotBlocked(Octree: TVRMLTriangleOctree; const Light: TActive
 implementation
 
 {$define read_implementation}
-{$I dynarray_1.inc}
 
 {$I kambioctreemacros.inc}
-
-{ TOctreeItem  ------------------------------------------------------------ }
-
-function CreateOctreeItem(const Triangle: TTriangle3Single;
-  State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
-  const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer): TOctreeItem;
-begin
- result.Triangle := Triangle;
- result.TriangleNormalPlane := TriangleNormPlane(Triangle);
- result.TriangleArea := TriangleArea(Triangle);
-
- result.State := State;
- result.GeometryNode := GeometryNode;
- result.MatNum := MatNum;
- result.FaceCoordIndexBegin := FaceCoordIndexBegin;
- result.FaceCoordIndexEnd := FaceCoordIndexEnd;
-
- {$ifdef OCTREE_ITEM_USE_MAILBOX}
- result.MailboxSavedTag := -1;
- {$endif}
-end;
-
-function TryOctreeItemSegmentDirCollision(
-  out Intersection: TVector3Single;
-  out IntersectionDistance: Single;
-  var OctreeItem: TOctreeItem; const Odc0, OdcVector: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const OdcTag: Int64; {$endif}
-  var DirectCollisionTestsCounter: TCollisionCount): boolean;
-begin
- {$ifdef OCTREE_ITEM_USE_MAILBOX}
- if OctreeItem.MailboxSavedTag = OdcTag then
- begin
-  result := OctreeItem.MailboxIsIntersection;
-  if result then
-  begin
-   Intersection         := OctreeItem.MailboxIntersection;
-   IntersectionDistance := OctreeItem.MailboxIntersectionDistance;
-  end;
- end else
- begin
- {$endif}
-
-  Result := TryTriangleSegmentDirCollision(
-    Intersection, IntersectionDistance,
-    OctreeItem.Triangle, OctreeItem.TriangleNormalPlane,
-    Odc0, OdcVector);
-  Inc(DirectCollisionTestsCounter);
-
- {$ifdef OCTREE_ITEM_USE_MAILBOX}
-  { zapisz wyniki do mailboxa }
-  with OctreeItem do
-  begin
-   MailboxSavedTag := OdcTag;
-   MailboxIsIntersection := result;
-   if result then
-   begin
-    MailboxIntersection         := Intersection;
-    MailboxIntersectionDistance := IntersectionDistance;
-   end;
-  end;
- end;
- {$endif}
-end;
-
-function TryOctreeItemRayCollision(
-  out Intersection: TVector3Single;
-  out IntersectionDistance: Single;
-  var OctreeItem: TOctreeItem; const Ray0, RayVector: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayTag: Int64; {$endif}
-  var DirectCollisionTestsCounter: TCollisionCount): boolean;
-begin
- { uwzgledniam tu fakt ze czesto bedzie wypuszczanych wiele promieni
-   z jednego Ray0 ale z roznym RayVector (np. w raytracerze). Wiec lepiej
-   najpierw porownywac przechowywane w skrzynce RayVector (niz Ray0)
-   zeby moc szybciej stwierdzic niezgodnosc. }
- {$ifdef OCTREE_ITEM_USE_MAILBOX}
- if OctreeItem.MailboxSavedTag = RayTag then
- begin
-  result := OctreeItem.MailboxIsIntersection;
-  if result then
-  begin
-   Intersection         := OctreeItem.MailboxIntersection;
-   IntersectionDistance := OctreeItem.MailboxIntersectionDistance;
-  end;
- end else
- begin
- {$endif}
-
-  result := TryTriangleRayCollision(
-    Intersection, IntersectionDistance,
-    OctreeItem.Triangle, OctreeItem.TriangleNormalPlane,
-    Ray0, RayVector);
-  Inc(DirectCollisionTestsCounter);
-
- {$ifdef OCTREE_ITEM_USE_MAILBOX}
-  { zapisz wyniki do mailboxa }
-  with OctreeItem do
-  begin
-   MailboxSavedTag := RayTag;
-   MailboxIsIntersection := result;
-   if result then
-   begin
-    MailboxIntersection         := Intersection;
-    MailboxIntersectionDistance := IntersectionDistance;
-   end;
-  end;
- end;
- {$endif}
-end;
 
 { TTriangleOctreeNode -------------------------------------------------------------- }
 

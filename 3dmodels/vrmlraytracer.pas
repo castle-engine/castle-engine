@@ -305,7 +305,8 @@ type
 
 implementation
 
-uses SysUtils, Math, KambiUtils, Boxes3d, IllumModels, SphereSampling;
+uses SysUtils, Math, KambiUtils, Boxes3d, IllumModels, SphereSampling,
+  VRMLOctreeUtils;
 
 {$I vectormathinlines.inc}
 
