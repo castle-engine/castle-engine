@@ -151,7 +151,7 @@ implementation
 
 uses Boxes3d, VRMLOpenGLRenderer, GL, GLU,
   KambiClassUtils, KambiUtils, SysUtils, Object3dAsVRML,
-  KambiGLUtils, KambiFilesUtils, VRMLTriangleOctree,
+  KambiGLUtils, KambiFilesUtils, VRMLOctreeUtils,
   RaysWindow, BackgroundGL, Keys;
 
 procedure Register;

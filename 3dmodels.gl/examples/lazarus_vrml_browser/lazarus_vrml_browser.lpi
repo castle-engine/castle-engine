@@ -172,8 +172,8 @@
       <Unit17>
         <Filename Value="../../../packages/components/kambivrmlbrowser.pas"/>
         <UnitName Value="KambiVRMLBrowser"/>
-        <CursorPos X="13" Y="251"/>
-        <TopLine Value="211"/>
+        <CursorPos X="49" Y="154"/>
+        <TopLine Value="149"/>
         <EditorIndex Value="1"/>
         <UsageCount Value="12"/>
         <Loaded Value="True"/>
@@ -265,7 +265,7 @@
         <UsageCount Value="10"/>
       </Unit29>
     </Units>
-    <JumpHistory Count="17" HistoryIndex="16">
+    <JumpHistory Count="18" HistoryIndex="17">
       <Position1>
         <Filename Value="../../../packages/components/kambivrmlbrowser.pas"/>
         <Caret Line="46" Column="26" TopLine="24"/>
@@ -334,6 +334,10 @@
         <Filename Value="mainf.pas"/>
         <Caret Line="9" Column="57" TopLine="1"/>
       </Position17>
+      <Position18>
+        <Filename Value="../../../packages/components/kambivrmlbrowser.pas"/>
+        <Caret Line="251" Column="13" TopLine="211"/>
+      </Position18>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
