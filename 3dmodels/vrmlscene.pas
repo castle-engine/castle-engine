@@ -46,7 +46,7 @@ uses
   SysUtils, Classes, VectorMath, Boxes3d,
   VRMLFields, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLShapeState, VRMLTriangleOctree, ProgressUnit, VRMLShapeStateOctree,
-  Keys, KambiTimeUtils, Navigation, VRMLOctreeUtils;
+  Keys, KambiTimeUtils, Navigation, VRMLOctreeItems;
 
 {$define read_interface}
 

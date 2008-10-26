@@ -1,5 +1,5 @@
 {
-  Copyright 2005 Michalis Kamburelis.
+  Copyright 2005,2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -42,7 +42,8 @@ unit VRMLShapeStateOctree;
 
 interface
 
-uses SysUtils, Boxes3d, KambiOctree, VRMLShapeState, VectorMath, KambiUtils;
+uses SysUtils, Boxes3d, KambiOctree, VRMLShapeState, VectorMath, KambiUtils,
+  VRMLOctreeItems;
 
 const
   { Kambi private notes: values below found experimetally, many tests on

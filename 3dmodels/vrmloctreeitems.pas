@@ -20,8 +20,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Helper types and classes for octrees related to VRML models. }
-unit VRMLOctreeUtils;
+{ Base types for octrees dealing with VRML items (triangles with additional 
+  information). }
+unit VRMLOctreeItems;
 
 {$I vrmloctreeconf.inc}
 

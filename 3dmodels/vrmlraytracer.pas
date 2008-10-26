@@ -306,7 +306,7 @@ type
 implementation
 
 uses SysUtils, Math, KambiUtils, Boxes3d, IllumModels, SphereSampling,
-  VRMLOctreeUtils;
+  VRMLOctreeItems;
 
 {$I vectormathinlines.inc}
 
