@@ -2110,6 +2110,7 @@ type
 
     { Fps -------------------------------------------------------------------- }
 
+    { }
     property Fps: TFramesPerSecond read FFps;
 
     { Set Caption to WindowTitle with description of

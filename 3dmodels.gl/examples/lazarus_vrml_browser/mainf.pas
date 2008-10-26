@@ -42,6 +42,7 @@ type
     MenuOpen: TMenuItem;
     OpenDialog1: TOpenDialog;
     PanelBottom: TPanel;
+    Timer1: TTimer;
     procedure BrowserNavigatorChanged(Navigator: TNavigator);
     procedure ButtonChangeCameraClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -51,6 +52,7 @@ type
     procedure MenuOpenClick(Sender: TObject);
     procedure MenuQuitClick(Sender: TObject);
     procedure MenuShowVrmlConsoleClick(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
   private
     SceneFileName: string;
     procedure OpenScene(const FileName: string);
@@ -75,7 +77,7 @@ begin
   VrmlConsole.Memo1.Lines.Append('--- Loading ' + FileName);
 
   Browser.Load(FileName);
-  Browser.Scene.OctreeStrategy := osFull;
+  Browser.Scene.Octrees := [okRendering, okDynamicCollisions];
   Browser.Scene.ProcessEvents := true;
 
   SceneFileName := FileName;
@@ -103,7 +105,8 @@ begin
   if SceneFileName <> '' then
     S := ExtractFileName(SceneFileName) else
     S := 'No Scene';
-  S += ' - lazarus_vrml_browser';
+  S += ' - lazarus_vrml_browser' +
+    Format(' - FPS : %f (real : %f)', [Browser.Fps.FrameTime, Browser.Fps.RealTime]);
   Caption := S;
 end;
 
@@ -115,6 +118,11 @@ end;
 procedure TMain.MenuShowVrmlConsoleClick(Sender: TObject);
 begin
   VrmlConsole.Visible := MenuShowVrmlConsole.Checked;
+end;
+
+procedure TMain.Timer1Timer(Sender: TObject);
+begin
+  UpdateCaption; { to update FPS }
 end;
 
 procedure TMain.MenuAboutOpenGLClick(Sender: TObject);
@@ -130,6 +138,7 @@ end;
 procedure TMain.FormCreate(Sender: TObject);
 begin
   FileFiltersToOpenDialog(LoadAsVRML_FileFilters, OpenDialog1);
+  Browser.Fps.Active := true;
 
   UpdateCaption;
 

@@ -34,6 +34,8 @@ type
   private
     FMouseX: Integer;
     FMouseY: Integer;
+    FOnBeforeDraw: TNotifyEvent;
+    FOnDraw: TNotifyEvent;
     FOwnsNavigator: boolean;
     FUseNavigator: boolean;
     FNavigator: TNavigator;
@@ -44,9 +46,7 @@ type
     FOnGLContextInit: TNotifyEvent;
     FOnGLContextClose: TNotifyEvent;
 
-    FIdleSpeed: Single;
-    DoIgnoreNextIdleSpeed: boolean;
-    LastIdleStartTime: TKamTimerResult;
+    FFps: TFramesPerSecond;
 
     ApplicationProperties: TApplicationProperties;
     procedure ApplicationPropertiesIdle(Sender: TObject; var Done: Boolean);
@@ -55,6 +55,7 @@ type
     procedure FocusableControlExit(Sender: TObject);
     procedure FocusableControlKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FocusableControlKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+
   protected
     procedure DestroyHandle; override;
 
@@ -73,6 +74,10 @@ type
     procedure MouseUp(Button: Controls.TMouseButton;
       Shift:TShiftState; X,Y:Integer); override;
     procedure MouseMove(Shift: TShiftState; NewX, NewY: Integer); override;
+    procedure Paint; override;
+
+    procedure DoBeforeDraw; virtual;
+    procedure DoDraw; virtual;
 
     procedure SetParent(NewParent: TWinControl); override;
   public
@@ -122,9 +127,6 @@ type
 
     function MakeCurrent(SaveOldToStack: boolean = false): boolean; override;
 
-    property IdleSpeed: Single read FIdleSpeed;
-    procedure IgnoreNextIdleSpeed;
-
     procedure Idle; virtual;
 
     KeysDown: TKeysBooleans;
@@ -154,6 +156,8 @@ type
       Then the only purpose of FFocusableControl is to call
       appropriate GLControl events. }
     function FocusableControl: TWinControl;
+
+    property Fps: TFramesPerSecond read FFps;
   published
 
     { This will be called right after GL context
@@ -165,6 +169,9 @@ type
       will be destroyed. }
     property OnGLContextClose: TNotifyEvent
       read FOnGLContextClose write FOnGLContextClose;
+
+     property OnBeforeDraw: TNotifyEvent read FOnBeforeDraw write FOnBeforeDraw;
+     property OnDraw: TNotifyEvent read FOnDraw write FOnDraw;
   end;
 
 { This converts Key (Lazarus key codes) to my TKey value.
@@ -196,8 +203,7 @@ begin
   UseNavigator := true;
   OwnsNavigator := false;
 
-  FIdleSpeed := 1 / 30;
-  IgnoreNextIdleSpeed;
+  FFps := TFramesPerSecond.Create;
 
   ApplicationProperties := TApplicationProperties.Create(Self);
   ApplicationProperties.OnIdle := @ApplicationPropertiesIdle;
@@ -215,6 +221,7 @@ end;
 destructor TKamOpenGLControl.Destroy;
 begin
   if OwnsNavigator then Navigator.Free;
+  FreeAndNil(FFps);
   inherited;
 end;
 
@@ -490,28 +497,11 @@ begin
 end;
 
 procedure TKamOpenGLControl.Idle;
-var
-  NewLastIdleStartTime: TKamTimerResult;
 begin
-  { update FIdleSpeed, DoIgnoreNextIdleSpeed, LastIdleStartTime }
-  NewLastIdleStartTime := KamTimer;
-
-  if DoIgnoreNextIdleSpeed then
-  begin
-    FIdleSpeed := 0.0;
-    DoIgnoreNextIdleSpeed := false;
-  end else
-    FIdleSpeed := ((NewLastIdleStartTime - LastIdleStartTime) / KamTimerFrequency);
-
-  LastIdleStartTime := NewLastIdleStartTime;
+  Fps._IdleBegin;
 
   if ReallyUseNavigator then
-    Navigator.Idle(FIdleSpeed, @KeysDown, nil, MousePressed);
-end;
-
-procedure TKamOpenGLControl.IgnoreNextIdleSpeed;
-begin
-  DoIgnoreNextIdleSpeed := true;
+    Navigator.Idle(Fps.IdleSpeed, @KeysDown, nil, MousePressed);
 end;
 
 function TKamOpenGLControl.ExamineNav: TExamineNavigator;
@@ -566,6 +556,28 @@ begin
     KeyUp(Key, Shift);
     Key := 0;
   end;
+end;
+
+procedure TKamOpenGLControl.DoBeforeDraw;
+begin
+  if Assigned(OnBeforeDraw) then
+    OnBeforeDraw(Self);
+end;
+
+procedure TKamOpenGLControl.DoDraw;
+begin
+  if Assigned(OnDraw) then
+    OnDraw(Self);
+end;
+
+procedure TKamOpenGLControl.Paint;
+begin
+  DoBeforeDraw;
+  Fps._RenderBegin;
+  try
+    DoDraw;
+    SwapBuffers;
+  finally Fps._RenderEnd end;
 end;
 
 initialization

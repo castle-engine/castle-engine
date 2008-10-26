@@ -109,7 +109,8 @@ type
 
     procedure UpdateCursor;
   protected
-    procedure Paint; override;
+    procedure DoBeforeDraw; override;
+    procedure DoDraw; override;
     procedure DoGLContextInit; override;
     procedure DoGLContextClose; override;
     procedure MouseDown(Button: Controls.TMouseButton;
@@ -224,15 +225,13 @@ begin
   end;
 end;
 
-{ TODO: nowhere to put this for TKamVRMLBrowser. Needed?
-procedure TKamVRMLBrowser.EventBeforeDraw;
+procedure TKamVRMLBrowser.DoBeforeDraw;
 begin
   inherited;
   Scene.PrepareRender([tgAll], [prBackground, prBoundingBox]);
 end;
-}
 
-procedure TKamVRMLBrowser.Paint;
+procedure TKamVRMLBrowser.DoDraw;
 begin
   inherited;
 
@@ -250,8 +249,6 @@ begin
   if Navigator is TWalkNavigator then
     Scene.RenderFrustum(WalkNav.Frustum, tgAll) else
     Scene.Render(nil, tgAll);
-
-  SwapBuffers;
 end;
 
 procedure TKamVRMLBrowser.DoGLContextInit;
@@ -276,7 +273,7 @@ end;
 procedure TKamVRMLBrowser.Idle;
 begin
   inherited;
-  Scene.IncreaseWorldTime(IdleSpeed);
+  Scene.IncreaseWorldTime(Fps.IdleSpeed);
 end;
 
 procedure TKamVRMLBrowser.Resize;
