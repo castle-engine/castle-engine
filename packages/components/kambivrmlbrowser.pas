@@ -227,14 +227,12 @@ end;
 
 procedure TKamVRMLBrowser.DoBeforeDraw;
 begin
-  inherited;
   Scene.PrepareRender([tgAll], [prBackground, prBoundingBox]);
+  inherited;
 end;
 
 procedure TKamVRMLBrowser.DoDraw;
 begin
-  inherited;
-
   if Scene.Background <> nil then
   begin
     glLoadMatrix(Navigator.RotationOnlyMatrix);
@@ -249,6 +247,8 @@ begin
   if Navigator is TWalkNavigator then
     Scene.RenderFrustum(WalkNav.Frustum, tgAll) else
     Scene.Render(nil, tgAll);
+
+  inherited;
 end;
 
 procedure TKamVRMLBrowser.DoGLContextInit;
