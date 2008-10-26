@@ -145,7 +145,7 @@ procedure Idle(Glwin: TGLWindow);
 begin
   if FUp then
   begin
-    F += 0.01 * Glwin.IdleSpeed * 50;
+    F += 0.01 * Glwin.Fps.IdleSpeed * 50;
     if F >= 1.0 then
     begin
       F := 1.0;
@@ -153,7 +153,7 @@ begin
     end;
   end else
   begin
-    F -= 0.01 * Glwin.IdleSpeed * 50;
+    F -= 0.01 * Glwin.Fps.IdleSpeed * 50;
     if F <= 0.0 then
     begin
       F := 0.0;

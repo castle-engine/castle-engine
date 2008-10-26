@@ -250,7 +250,7 @@ end;
 procedure TGLWindowVRMLBrowser.EventIdle;
 begin
   inherited;
-  Scene.IncreaseWorldTime(IdleSpeed);
+  Scene.IncreaseWorldTime(Fps.IdleSpeed);
 end;
 
 procedure TGLWindowVRMLBrowser.EventResize;

@@ -390,7 +390,7 @@ begin
         'Z-fail required: %s' + nl+
         'Z-fail and light cap required: %s' + nl+
         'INCR/DECR_WRAP available: %s',
-        [ Glw.FpsFrameTime, Glw.FpsRealTime,
+        [ Glw.Fps.FrameTime, Glw.Fps.RealTime,
           BoolToStr[SVHelper.SceneShadowPossiblyVisible],
           BoolToStr[SVHelper.ZFail],
           BoolToStr[SVHelper.ZFailAndLightCap],
@@ -492,7 +492,7 @@ begin
     FirstIdle := false;
   end;
 
-  ShadowCasterNav.Idle(glwin.IdleSpeed, @Glwin.KeysDown,
+  ShadowCasterNav.Idle(glwin.Fps.IdleSpeed, @Glwin.KeysDown,
     @Glwin.CharactersDown, Glwin.MousePressed);
 end;
 

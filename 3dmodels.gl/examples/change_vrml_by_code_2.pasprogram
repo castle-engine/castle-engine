@@ -75,7 +75,7 @@ begin
     we don't have to "feed" time changes to Scene.IncreaseWorldTime.
     But we want to keep track of current time anyway (for calculating rotations
     below), so it's natural to just use Scene.WorldTime property for this. }
-  Scene.IncreaseWorldTime(Glwin.IdleSpeed);
+  Scene.IncreaseWorldTime(Glwin.Fps.IdleSpeed);
 
   for I := 0 to XCount - 1 do
     for J := 0 to YCount - 1 do

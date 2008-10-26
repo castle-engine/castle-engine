@@ -1060,7 +1060,7 @@ var
 
   procedure ChangeLightPosition(Coord, Change: Integer);
   begin
-    LightPosition[Coord] += Change * Glwin.IdleSpeed * 50 / 10;
+    LightPosition[Coord] += Change * Glwin.Fps.IdleSpeed * 50 / 10;
     LightPositionChanged := true;
   end;
 
@@ -1082,19 +1082,19 @@ begin
   if LightPositionChanged and (Method = bmVRML) then
     Scene.BumpMappingLightPosition := LightPosition;
 
-  if Glwin.KeysDown[K_J] then XShift -= Glwin.IdleSpeed * 50 / 1000;
-  if Glwin.KeysDown[K_L] then XShift += Glwin.IdleSpeed * 50 / 1000;
-  if Glwin.KeysDown[K_K] then YShift -= Glwin.IdleSpeed * 50 / 1000;
-  if Glwin.KeysDown[K_I] then YShift += Glwin.IdleSpeed * 50 / 1000;
+  if Glwin.KeysDown[K_J] then XShift -= Glwin.Fps.IdleSpeed * 50 / 1000;
+  if Glwin.KeysDown[K_L] then XShift += Glwin.Fps.IdleSpeed * 50 / 1000;
+  if Glwin.KeysDown[K_K] then YShift -= Glwin.Fps.IdleSpeed * 50 / 1000;
+  if Glwin.KeysDown[K_I] then YShift += Glwin.Fps.IdleSpeed * 50 / 1000;
 
   if Glwin.KeysDown[K_E] then
   begin
     if mkShift in Glwin.ModifiersDown then
-      EmbossScale -= Glwin.IdleSpeed * 50 / 10 else
-      EmbossScale += Glwin.IdleSpeed * 50 / 10;
+      EmbossScale -= Glwin.Fps.IdleSpeed * 50 / 10 else
+      EmbossScale += Glwin.Fps.IdleSpeed * 50 / 10;
   end;
 
-  RotatingColumn += Glwin.IdleSpeed * 50 / 5;
+  RotatingColumn += Glwin.Fps.IdleSpeed * 50 / 5;
 end;
 
 { menu ----------------------------------------------------------------------- }

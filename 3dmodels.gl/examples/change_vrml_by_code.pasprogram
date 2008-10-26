@@ -92,7 +92,7 @@ begin
     we don't have to "feed" time changes to Scene.IncreaseWorldTime.
     But we want to keep track of current time anyway (for calculating rotations
     below), so it's natural to just use Scene.WorldTime property for this. }
-  Scene.IncreaseWorldTime(Glwin.IdleSpeed);
+  Scene.IncreaseWorldTime(Glwin.Fps.IdleSpeed);
 
   { Note that in this simple example you could avoid calling ChangedXxx by using
       TransformBox2.FdRotation.EventIn.Send(Vector4Single(1, 0, 0, Scene.WorldTime));

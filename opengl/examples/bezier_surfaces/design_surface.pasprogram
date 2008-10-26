@@ -78,12 +78,12 @@ begin
     S := 'Unsaved surface';
   S := S + ' - design Bezier surface';
 
-  { This may be called from SurfaceNew when FpsActive is not yet set.
+  { This may be called from SurfaceNew when Fps.Active is not yet set.
     In this case it's best to set Glw.Caption instead of Glw.FpsBaseCaption.
     We shouldn't set here Glw.FpsBaseCaption, because Glw.FpsBaseCaption
-    will be initialized later (when FpsActive is set true) from Glw.Caption... }
+    will be initialized later (when Fps.Active is set true) from Glw.Caption... }
 
-  if Glw.FpsActive then
+  if Glw.Fps.Active then
     Glw.FpsBaseCaption := S else
     Glw.Caption := S;
 end;
@@ -296,7 +296,7 @@ procedure Idle(glwin: TGLWindow);
   procedure Move(Coord, MoveDir: Integer);
   begin
     ControlPoints(CurrentCurve).Items[CurrentPoint][Coord] +=
-      MoveDir * Glwin.IdleSpeed * 50 * 0.01;
+      MoveDir * Glwin.Fps.IdleSpeed * 50 * 0.01;
     (Surface.Curves[CurrentCurve] as TControlPointsCurve).UpdateControlPoints;
     Glwin.PostRedisplay;
   end;

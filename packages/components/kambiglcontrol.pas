@@ -44,10 +44,9 @@ type
     FOnGLContextInit: TNotifyEvent;
     FOnGLContextClose: TNotifyEvent;
 
-    LastIdleStartTime: TKamTimerResult;
-
     FIdleSpeed: Single;
     DoIgnoreNextIdleSpeed: boolean;
+    LastIdleStartTime: TKamTimerResult;
 
     ApplicationProperties: TApplicationProperties;
     procedure ApplicationPropertiesIdle(Sender: TObject; var Done: Boolean);
@@ -124,6 +123,8 @@ type
     function MakeCurrent(SaveOldToStack: boolean = false): boolean; override;
 
     property IdleSpeed: Single read FIdleSpeed;
+    procedure IgnoreNextIdleSpeed;
+
     procedure Idle; virtual;
 
     KeysDown: TKeysBooleans;
@@ -164,8 +165,6 @@ type
       will be destroyed. }
     property OnGLContextClose: TNotifyEvent
       read FOnGLContextClose write FOnGLContextClose;
-
-    procedure IgnoreNextIdleSpeed;
   end;
 
 { This converts Key (Lazarus key codes) to my TKey value.
@@ -196,6 +195,8 @@ begin
   inherited;
   UseNavigator := true;
   OwnsNavigator := false;
+
+  FIdleSpeed := 1 / 30;
   IgnoreNextIdleSpeed;
 
   ApplicationProperties := TApplicationProperties.Create(Self);

@@ -107,7 +107,7 @@ end;
 procedure Idle(Glwin: TGLWindow);
 begin
   if TimePlaying then
-    WorldTime += Glwin.IdleSpeed;
+    WorldTime += Glwin.Fps.IdleSpeed;
 end;
 
 procedure LoadVideo(const NewVideoFileName: string);

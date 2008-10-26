@@ -339,7 +339,7 @@ begin
  result.oldCaption := glwin.Caption;
  result.oldUserdata := glwin.Userdata;
  result.oldAutoRedisplay := glwin.AutoRedisplay;
- result.oldFPSActive := glwin.FpsActive;
+ result.oldFPSActive := glwin.Fps.Active;
  result.oldMainMenu := glwin.MainMenu;
  if glwin.MainMenu <> nil then
    result.oldMainMenuEnabled := glwin.MainMenu.Enabled;
@@ -363,7 +363,7 @@ begin
  glwin.Caption := State.oldCaption;
  glwin.Userdata := State.oldUserdata;
  glwin.AutoRedisplay := State.oldAutoRedisplay;
- glwin.FpsActive := State.oldFPSActive;
+ glwin.Fps.Active := State.oldFPSActive;
  glwin.MainMenu := State.oldMainMenu;
  if glwin.MainMenu <> nil then
    glwin.MainMenu.Enabled := State.OldMainMenuEnabled;
@@ -395,7 +395,7 @@ begin
  {glwin.Caption := leave current value}
  glwin.Userdata := NewUserdata;
  glwin.AutoRedisplay := NewAutoRedisplay;
- glwin.FpsActive := NewFPSActive;
+ glwin.Fps.Active := NewFPSActive;
  if glwin.MainMenu <> nil then
    glwin.MainMenu.Enabled := NewMainMenuEnabled;
  {glwin.MainMenu := leave current value}
@@ -533,7 +533,7 @@ begin
 
    glwin.PostRedisplay;
 
-   Glwin.IgnoreNextIdleSpeed;
+   Glwin.Fps.IgnoreNextIdleSpeed;
  end;
 
  inherited;
@@ -596,7 +596,7 @@ begin
  SetStdNoCloseGLWindowState(AGLWindow,
    {$ifdef FPC_OBJFPC} @ {$endif} FrozenImageDraw,
    {$ifdef FPC_OBJFPC} @ {$endif} Resize2D,
-   Self, false, AGLWindow.FPSActive, false, K_None, false, false);
+   Self, false, AGLWindow.Fps.Active, false, K_None, false, false);
 
  { setup our 2d projection. We must do it before SaveScreen }
  glwin.EventResize;

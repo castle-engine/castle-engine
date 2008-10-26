@@ -713,7 +713,7 @@ procedure IdleMessg(glwin: TGLWindow);
 
   function Faktor: Single;
   begin
-   result := 200.0 * glwin.IdleSpeed;
+   result := 200.0 * glwin.Fps.IdleSpeed;
    if mkCtrl in Glwin.ModifiersDown then result *= 6;
   end;
 

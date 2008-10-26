@@ -452,7 +452,7 @@ procedure Idle(glwin: TGLWindow);
 
   procedure ChangeLightPosition(Coord, Change: Integer);
   begin
-    LightPosition[Coord] += Change * Glwin.IdleSpeed * 5;
+    LightPosition[Coord] += Change * Glwin.Fps.IdleSpeed * 5;
   end;
 
 begin
@@ -471,11 +471,11 @@ begin
   if Glwin.KeysDown[K_P] then
   begin
     if mkShift in Glwin.ModifiersDown then
-      PlaneDistance -= Glwin.IdleSpeed * 5 else
-      PlaneDistance += Glwin.IdleSpeed * 5;
+      PlaneDistance -= Glwin.Fps.IdleSpeed * 5 else
+      PlaneDistance += Glwin.Fps.IdleSpeed * 5;
   end;
 
-  RotationAngle += Glwin.IdleSpeed * 5;
+  RotationAngle += Glwin.Fps.IdleSpeed * 5;
 end;
 
 { menu ----------------------------------------------------------------------- }

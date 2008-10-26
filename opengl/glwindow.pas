@@ -157,11 +157,7 @@
     @item(TGLWindow.KeysDown to easily and reliably check which keys
       are pressed. Also TGLWindow.CharactersDown.)
 
-    @item(Frames per second measuring, see
-      @link(TGLWindow.FpsActive FpsActive),
-      @link(TGLWindow.FpsFrameTime FpsFrameTime),
-      @link(TGLWindow.FpsRealTime FpsRealTime) and
-      other FpsXxx properties and methods in TGLWindow class.)
+    @item(Frames per second measuring, see @link(TGLWindow.Fps),)
 
     @item(A menu bar under WinAPI and GTK backends.
 
@@ -1006,7 +1002,7 @@ type
 
     { Do MakeCurrent,
          EventBeforeDraw,
-         EventDraw (inside Fps_RenderStart/End)
+         EventDraw (inside Fps._RenderBegin/End)
          flush gl command pipeline (and swap gl buffers if DoubleBuffer)
 
          take care of AutoRedisplay -
@@ -1133,34 +1129,7 @@ type
         optional EventMenuCommand or EventKeyDown }
     procedure DoMenuCommand(Item: TMenuItem);
 
-  private
-    { Things named "Fps_" are internal things.
-      Things named "Fps" (without "_") are public. }
-
-    { Fps_FramesRendered = 0 means "no frame was rendered yet" }
-    Fps_FramesRendered: Int64;
-    { if Fps_FramesRendered > 0 then Fps_FirstTimeTick is the time of first
-      Fps_RenderEnd call. }
-    Fps_FirstTimeTick: LongWord;
-    { set in Fps_RenderStart }
-    Fps_RenderStartTime: TKamTimerResult;
-    { how much time passed inside frame rendering }
-    Fps_FrameTimePassed: TKamTimerResult;
-
-    FFpsActive: boolean;
-    procedure SetFPSActive(value: boolean);
-
-    FDrawSpeed: Single;
-    FIdleSpeed: Single;
-
-    DoIgnoreNextIdleSpeed: boolean;
-
-    LastIdleStartTime: TKamTimerResult;
-
-    FFpsSecondsToAutoReset: Cardinal;
-    FFpsHoldsAfterReset: TMilisecTime;
-    procedure Fps_RenderStart;
-    procedure Fps_RenderEnd;
+    FFps: TFramesPerSecond;
   private
     { zwraca opis aktualnych zadanych wlasciwosci od buforow OpenGLa
       (czy single/double (na podstawie DoubleBuffer), czy indexed,
@@ -1629,11 +1598,11 @@ type
 
       Only one thing differs OnDraw and OnBeforeDraw: time spent in OnBeforeDraw
       (more specifically, in EventBeforeDraw) is NOT counted as "frame time"
-      by FpsFrameTime. This is useful when you have something that needs
+      by Fps.FrameTime. This is useful when you have something that needs
       to be done from time to time right before OnDraw and that is very
       time-consuming. It such cases it is not desirable to put such time-consuming
       task inside OnDraw because this would cause a sudden big change in
-      FpsFrameTime value (and DrawSpeed). So you can avoid this by putting
+      Fps.FrameTime value (and DrawSpeed). So you can avoid this by putting
       this in OnBeforeDraw. Of course, using OnBeforeDraw also means that the
       program will not always be time-based. By using OnBeforeDraw instead
       of OnDraw you're breaking the rules that are designed to make time-based
@@ -2139,134 +2108,13 @@ type
     { The same thing as Keys.ModifiersDown(KeysDown). }
     function ModifiersDown: TModifierKeys;
 
-    { FPS -------------------------------------------------------------------- }
+    { Fps -------------------------------------------------------------------- }
 
-    { Turn on/off frames per second measuring.
-      Before using FpsFrameTime or FpsRealTime you must set FpsActive to @true. }
-    property FpsActive: boolean read FFpsActive write SetFpsActive;
+    property Fps: TFramesPerSecond read FFps;
 
-    { Rendering speed in frames per second. This tells FPS,
-      if we would only call Draw (EventDraw, OnDraw) all the time.
-      That is, this doesn't take into account time spent on other activities,
-      like OnIdle, and it doesn't take into account that frames are possibly
-      not rendered continously (when AutoRedisplay = @false, we may render
-      frames seldom, because there's no need to do it more often).
-
-      @seealso FpsRealTime }
-    function FpsFrameTime: Double;
-
-    { How many frames per second were rendered. This is a real number
-      of EventDraw (OnDraw) calls per second. This means that it's actual
-      speed of your program. Anything can slow this down, not only long
-      EventDraw (OnDraw), but also slow processing of other events (like OnIdle).
-      Also, when AutoRedisplay = @false, this may be very low, since you
-      just don't need to render frames continously.
-
-      @seealso FpsFrameTime }
-    function FpsRealTime: Double;
-
-    { Set Caption to WindowTitle with description of FpsFrameTime and FpsRealTime. }
+    { Set Caption to WindowTitle with description of
+      Fps.FrameTime and Fps.RealTime. }
     procedure FpsToCaption(const WindowTitle: string);
-
-    { Reset the FPS measuring.
-      Alternative to doing @code(FpsActive := false; FpsActive := true). }
-    procedure FpsReset;
-
-    { FPS measurements reset after this number of seconds.
-      This way FpsRealTime / FpsFrameTime always show the average FPS numbers
-      during the last FpsSecondsToAutoReset seconds (well, actually it's
-      more complicated, see FpsHoldsAfterReset).
-
-      This way FpsRealTime / FpsFrameTime don't change too rapidly
-      (so they are good indicator of current FPS speed, as opposed to
-      e.g. DrawSpeed which changes every frame so it very unstable).
-      They also change rapidly enough --- you don't want to see measuments
-      from too long time ago.
-
-      Change FpsSecondsToAutoReset when not FpsActive = @false.  }
-    property FpsSecondsToAutoReset: Cardinal
-        read FFpsSecondsToAutoReset
-       write FFpsSecondsToAutoReset default 6;
-
-    { How to keep previous FPS measurements, when they reset by
-      FpsSecondsToAutoReset?
-
-      When measurements are reset by FpsSecondsToAutoReset, you actually don't
-      want to totally forget previous measurements (as this would make
-      your FpsRealTime / FpsFrameTime unstable for a short time).
-      Instead, you want to assume that current FpsRealTime / FpsFrameTime
-      was measured during last FpsHoldsAfterReset miliseconds.
-
-      This way FpsRealTime / FpsFrameTime stay more stable.
-
-      So actually the measurements are reset at each
-      FpsSecondsToAutoReset * 1000 - FpsHoldsAfterReset miliseconds. }
-    property FpsHoldsAfterReset: TMilisecTime
-        read FFpsHoldsAfterReset
-       write FFpsHoldsAfterReset default 1000;
-
-    { @abstract(How much time it took to render last frame?)
-
-      This returns the time of last EventDraw (that by default just calls
-      OnDraw callback).
-      The time is in seconds, 1.0 = 1 second. In other words, if FpsFrameTime
-      would be measured only based on the last frame time and
-      FpsFrameTime = 1.0 then DrawSpeed is 1.0. (In reality,
-      FpsFrameTime is measured a little better, to average the time
-      of a couple of last frames).
-
-      So for two times faster computer DrawSpeed is = 0.5,
-      for two times slower DrawSpeed = 2.0. This is useful for doing
-      time-based rendering, when you want to scale some changes
-      by computer speed, to get perceived animation speed the same on every
-      computer, regardless of computer's speed. Although remember this measures
-      only EventDraw (OnDraw) speed, so if you do anything else
-      taking some time (e.g. you perform some calculations during OnIdle)
-      you're probably much safer to use IdleSpeed.
-
-      Note that this if you have "unstable" rendering times (for example,
-      some OnDraw calls will do something costly like implicitly
-      preparing VRML models on first Render) then DrawSpeed value will
-      also raise suddenly on such frames. That's why you should do
-      any potentially lengthy operations, like preparing VRML scene,
-      in OnBeforeDraw, that is not taken into account when calculating
-      DrawSpeed. }
-    property DrawSpeed: Single read FDrawSpeed;
-
-    { @abstract(How much time passed since last EventIdle (OnIdle) call?)
-
-      The time is in seconds, 1.0 = 1 second.
-      For two times faster computer IdleSpeed = 0.5,
-      for two times slower IdleSpeed = 2.0. This is useful for doing
-      time-based rendering, when you want to scale some changes
-      by computer speed, to get perceived animation speed the same on every
-      computer, regardless of computer's speed.
-
-      This is like DrawSpeed, but calculated as a time between
-      start of previous Idle event and start of current Idle event.
-      So this really measures your whole loop time (unlike DrawSpeed
-      that measures only EventDraw (OnDraw) speed).
-
-      You can sanely use this only within EventIdle (OnIdle). }
-    property IdleSpeed: Single read FIdleSpeed;
-
-    { Forces IdleSpeed within the next EventIdle (onIdle) call to be
-      equal to 0.0.
-
-      This is useful if you just came back from some lenghty
-      state, like a GUI dialog box (like TGLWindow.FileDialog or modal boxes
-      in GLWinMessages --- but actually all our stuff already calls this
-      as needed, TGLMode takes care of this). IdleSpeed would be ridicoulously
-      long in such case (if our loop is totally stopped) or not relevant
-      (if we do our loop, but with totally different callbacks, like
-      GLWinMessages). Instead, it's most sensible in such case to fake
-      that IdleSpeed is 0.0, so things such as AnimationTime and WorldTime
-      should not advance wildly just because we did GUI box.
-
-      This forces the IdleSpeed to zero only once, that is only on the
-      next EventIdle (OnIdle). Following EventIdle (OnIdle) will have
-      IdleSpeed as usual (unless you call IgnoreNextIdleSpeed again, of course). }
-    procedure IgnoreNextIdleSpeed;
 
     { InitLoop stuff --------------------------------------------------------- }
 
@@ -2451,7 +2299,7 @@ type
         (o ile close_key <> #0))
 
       @item(
-        Automatycznie wlacza tez FpsActive i co jakies kilkaset milisekund
+        Automatycznie wlacza tez Fps.Active i co jakies kilkaset milisekund
         uaktualnia tytul okienka poprzez FpsToCaption. (Juz poprawione -
         to jest robione w EventIdle, dziala niezaleznie od OnTimer okienka, od
         Glwm.OnTimer i Glwm.TimerMilisec.)
@@ -2475,14 +2323,14 @@ type
   private
     wLeft, wTop, wWidth, wHeight: integer;
     fSwappingFullscr: boolean;
-    lastFPSOutputTick: DWORD;
-    FFPSBaseCaption: string;
+    lastFpsOutputTick: DWORD;
+    FFpsBaseCaption: string;
     FFpsShowOnCaption: boolean;
     FSwapFullScreen_Key: TKey;
     FClose_CharKey: char;
-    procedure SetFPSBaseCaption(const Value: string);
+    procedure SetFpsBaseCaption(const Value: string);
   public
-    { Whether to show current FPS (frames per second) on window's Caption.
+    { Whether to show current Fps (frames per second) on window's Caption.
       You can modify this property only @italic(before calling @link(Init).) }
     property FpsShowOnCaption: boolean
       read FFpsShowOnCaption write FFpsShowOnCaption default true;
@@ -2500,10 +2348,10 @@ type
       read FClose_CharKey write FClose_CharKey default CharEscape;
 
     { When FpsShowOnCaption, you should not use Caption.
-      Instead use FPSBaseCaption.
+      Instead use FpsBaseCaption.
       It will be inited from Caption at EventInit.
       I know, it's a problem. Well, if in doubt, just turn off FpsShowOnCaption. }
-    property FPSBaseCaption: string read FFPSBaseCaption write SetFPSBaseCaption;
+    property FpsBaseCaption: string read FFpsBaseCaption write SetFpsBaseCaption;
 
     { w czasie OnInit / OnClose mozesz sprawdzic wartosc tej wlasciwosci.
       Jesli true to znaczy ze ten OnInit / OnClose sa wykonywane w czasie
@@ -2539,7 +2387,7 @@ type
         W metodach Event Idle/KeyPress, w AllowsProcessMessageSuspend
         zajmujemy sie wywolywaniem odpowiednich metod z Navigator, o ile
         tylko Navigator <> nil i UseNavigator = true.
-        Oh, and we use IdleSpeed for navigator.)
+        Oh, and we use Fps.IdleSpeed for navigator.)
       @item(
         Metoda PostRedisplayOnMatrixChanged nie jest tu nigdzie uzywana ale mozesz
         ja podac jako TMatrixChangedFunc przy tworzeniu Navigatora. Wywoluje
@@ -3111,8 +2959,6 @@ begin
  FTop   := GLWindowPositionCenter;
  FDoubleBuffer := true;
  FCaption := ProgramName;
- FFpsSecondsToAutoReset := 6;
- FpsHoldsAfterReset := 1000;
  FResizeAllowed := raAllowed;
  minWidth := 100;  maxWidth := 4000;
  minHeight := 100; maxHeight := 4000;
@@ -3123,6 +2969,8 @@ begin
 
  OwnsMainMenu := true;
 
+ FFps := TFramesPerSecond.Create;
+
  CreateImplDepend;
 end;
 
@@ -3131,6 +2979,8 @@ begin
  Close; { <- This will be ignored if already Closed }
 
  if OwnsMainMenu then FreeAndNil(FMainMenu);
+
+ FreeAndNil(FFps);
 
  FreeAndNil(OnInitList);
  FreeAndNil(OnCloseList);
@@ -3413,7 +3263,7 @@ begin
  EventBeforeDraw;
  if Closed then exit;
 
- Fps_RenderStart;
+ Fps._RenderBegin;
  try
   EventDraw;
   if Closed then exit;
@@ -3428,7 +3278,7 @@ begin
    end else
     PostRedisplay;
   end;
- finally Fps_RenderEnd end;
+ finally Fps._RenderEnd end;
 
  {$ifdef GLWINDOW_CHECK_GL_ERRORS_AFTER_DRAW} CheckGLErrors; {$endif}
 end;
@@ -3554,21 +3404,8 @@ begin
 end;
 
 procedure TGLWindow.DoIdle;
-var
-  NewLastIdleStartTime: TKamTimerResult;
 begin
-  { update FIdleSpeed, DoIgnoreNextIdleSpeed, LastIdleStartTime }
-  NewLastIdleStartTime := KamTimer;
-
-  if DoIgnoreNextIdleSpeed then
-  begin
-    FIdleSpeed := 0.0;
-    DoIgnoreNextIdleSpeed := false;
-  end else
-    FIdleSpeed := ((NewLastIdleStartTime - LastIdleStartTime) / KamTimerFrequency);
-
-  LastIdleStartTime := NewLastIdleStartTime;
-
+  Fps._IdleBegin;
   MakeCurrent;
   EventIdle;
 end;
@@ -4079,143 +3916,12 @@ begin
   end;
 end;
 
-{ FPS ------------------------------------------------------------------------ }
-
-procedure TGLWindow.FpsReset;
-var
-  NowTick: TMilisecTime;
-  FrameTime, RealTime: Double;
-begin
-  { We could just set Fps_FramesRendered = 0 and Fps_FrameTimePassed = 0.
-    This would basically reset the FPS measurements.
-
-    But it would be very crude solution. Right after FpsReset, our FpsFrameTime/
-    FpsRealTime measurements would be completely wrong.
-    So we use FpsHoldsAfterReset to counteract this. }
-
-  if FpsHoldsAfterReset = 0 then
-  begin
-    { reset brutally }
-    Fps_FramesRendered := 0;
-    Fps_FrameTimePassed := 0;
-  end else
-  begin
-    if Fps_FramesRendered <> 0 then
-    begin
-      { save measures }
-      FrameTime := FpsFrameTime;
-      RealTime := FpsRealTime;
-    end else
-    begin
-      { Init some default measures. Otherwise FPS would be wild at the start
-        of the program, when Fps_FramesRendered = 0. }
-      FrameTime := 80;
-      RealTime := 80;
-    end;
-
-    { fake that already FpsHoldsAfterReset time passed }
-    NowTick := GetTickCount;
-    if NowTick > FpsHoldsAfterReset then
-      Fps_FirstTimeTick := NowTick - FpsHoldsAfterReset else
-      { Once in 49 days Fps_FirstTimeTick has to be wrong... }
-      Fps_FirstTimeTick := 0;
-
-    { Adjust Fps_FramesRendered to make new FpsRealTime = old FpsRealTime
-      (saved in RealTime).
-      RealTime = Fps_FramesRendered * 1000 / FpsHoldsAfterReset sos }
-    Fps_FramesRendered := Round(RealTime * FpsHoldsAfterReset / 1000.0);
-
-    { Adjust Fps_FrameTimePassed to make new FpsFrameTime = old FpsFrameTime.
-
-      Remember that Fps_FrameTimePassed is in KamTimerFrequency units.
-      So we want to
-      Fps_FramesRendered  / (Fps_FrameTimePassed / KamTimerFrequency) = FrameTime so
-      Fps_FramesRendered * KamTimerFrequency  / Fps_FrameTimePassed = FrameTime so
-      Fps_FramesRendered * KamTimerFrequency / FrameTime = Fps_FrameTimePassed. }
-    if FrameTime = 0 then
-      Fps_FrameTimePassed := 0 else
-      Fps_FrameTimePassed := Round(Fps_FramesRendered * KamTimerFrequency / FrameTime);
-  end;
-end;
-
-procedure TGLWindow.SetFpsActive(value: boolean);
-begin
-  if Value = FpsActive then Exit;
-
-  FFpsActive := Value;
-  if Value then
-  begin
-    FpsReset;
-
-    { Just init DrawSpeed, IdleSpeed to some sensible defaults.
-      Rendering time 30 frames per second seems sensible default for 3D game
-      right?
-
-      For IdleSpeed this is actually not essential, since we call
-      IgnoreNextCompSpeed anyway. But in case programmer will (incorrectly!)
-      try to use IdleSpeed before EventIdle (OnIdle) call, it's useful to have
-      here some predictable value. }
-    FDrawSpeed := 1 / 30;
-    FIdleSpeed := 1 / 30;
-
-    IgnoreNextIdleSpeed;
-  end;
-end;
-
-procedure TGLWindow.IgnoreNextIdleSpeed;
-begin
-  DoIgnoreNextIdleSpeed := true;
-end;
-
-procedure TGLWindow.Fps_RenderStart;
-begin
-  if not FpsActive then Exit;
-
-  Fps_RenderStartTime := KamTimer;
-end;
-
-procedure TGLWindow.Fps_RenderEnd;
-var
-  NowTick: TMilisecTime;
-begin
-  if not FpsActive then Exit;
-
-  { ((KamTimer-Fps_RenderStartTime) / KamTimerFrequency) = time of last frame
-    rendering time. }
-  FDrawSpeed := (KamTimer - Fps_RenderStartTime) / KamTimerFrequency;
-
-  NowTick := GetTickCount;
-  if ((NowTick - Fps_FirstTimeTick) div 1000) >= FpsSecondsToAutoReset then
-    FpsReset;
-
-  if Fps_FramesRendered = 0 then Fps_FirstTimeTick := NowTick;
-  Inc(Fps_FramesRendered);
-  Fps_FrameTimePassed := Fps_FrameTimePassed + KamTimer - Fps_RenderStartTime;
-end;
+{ Fps ------------------------------------------------------------------------ }
 
 procedure TGLWindow.FpsToCaption(const WindowTitle: string);
 begin
   Caption := WindowTitle +
-    Format(' - FPS : %f (real : %f)', [FpsFrameTime, FpsRealTime]);
-end;
-
-function TGLWindow.FpsRealTime: Double;
-var
-  TimePass: TMilisecTime;
-begin
-  Assert(FpsActive, 'FpsRealTime called by Fps counting not Activated');
-  TimePass := GetTickCount - Fps_FirstTimeTick;
-  if TimePass > 0 then
-    Result := Fps_FramesRendered * 1000 / TimePass else
-    Result := 0;
-end;
-
-function TGLWindow.FpsFrameTime: Double;
-begin
-  Assert(FpsActive, 'FpsFrameTime called by Fps counting not Activated');
-  if Fps_FrameTimePassed > 0 then
-    Result := Fps_FramesRendered * KamTimerFrequency / Fps_FrameTimePassed else
-    Result := 0;
+    Format(' - FPS : %f (real : %f)', [Fps.FrameTime, Fps.RealTime]);
 end;
 
 { TGLWindow miscella ---------------------------------------- }
@@ -4332,11 +4038,11 @@ begin
   ktore moze swobodnie modyfikowac swoje OnTimer, Glwm.OnTimer,
   Glwm.TimerMilisec. }
  if FpsShowOnCaption and
-    ((lastFPSOutputTick = 0) or
-     (TimeTickDiff(lastFPSOutputTick, GetTickCount) >= FpsOutputMilisec)) then
+    ((lastFpsOutputTick = 0) or
+     (TimeTickDiff(lastFpsOutputTick, GetTickCount) >= FpsOutputMilisec)) then
  begin
-  lastFPSOutputTick := GetTickCount;
-  FpsToCaption(FFPSBaseCaption);
+  lastFpsOutputTick := GetTickCount;
+  FpsToCaption(FFpsBaseCaption);
  end;
 end;
 
@@ -4352,8 +4058,8 @@ begin
   if FpsShowOnCaption then
   begin
    { init frames per second write in timer }
-   FpsActive := true;
-   FFPSBaseCaption := Caption;
+   Fps.Active := true;
+   FFpsBaseCaption := Caption;
   end;
 
   { set initial window rect (wLeft/top/width/height) if fullscreen = true }
@@ -4390,14 +4096,14 @@ begin
   FpsShowOnCaption := AFpsShowOnCaption;
 end;
 
-procedure TGLWindowDemo.SetFPSBaseCaption(const Value: string);
+procedure TGLWindowDemo.SetFpsBaseCaption(const Value: string);
 begin
-  if FFPSBaseCaption <> Value then
+  if FFpsBaseCaption <> Value then
   begin
-    FFPSBaseCaption := Value;
+    FFpsBaseCaption := Value;
     { Update Caption now, otherwise Caption would get updated with
       some latency (because only when FpsOutputMilisec is reached). }
-    FpsToCaption(FFPSBaseCaption);
+    FpsToCaption(FFpsBaseCaption);
   end;
 end;
 
@@ -4437,7 +4143,7 @@ end;
 procedure TGLWindowNavigated.EventIdle;
 begin
   if ReallyUseNavigator then
-    Navigator.Idle(IdleSpeed, @KeysDown, @CharactersDown, MousePressed);
+    Navigator.Idle(Fps.IdleSpeed, @KeysDown, @CharactersDown, MousePressed);
   inherited;
 end;
 
