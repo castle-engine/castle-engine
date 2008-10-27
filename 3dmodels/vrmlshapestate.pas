@@ -397,10 +397,10 @@ begin
         Progress.Init(TrianglesCount(false), ProgressTitle, true);
         try
           TriangleOctreeToAdd := Result;
-          GeometryNode.Triangulate(State, false,  @AddTriangleToOctreeProgress);
+          GeometryNode.LocalTriangulate(State, false,  @AddTriangleToOctreeProgress);
         finally Progress.Fini end;
       end else
-        GeometryNode.Triangulate(State, false,  @Result.AddItemTriangle);
+        GeometryNode.LocalTriangulate(State, false,  @Result.AddItemTriangle);
     finally
       Result.OctreeItems.AllowedCapacityOverflow := 4;
     end;

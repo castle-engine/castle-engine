@@ -40,6 +40,8 @@
 
 unit VRMLShapeStateOctree;
 
+{$I vrmloctreeconf.inc}
+
 interface
 
 uses SysUtils, Boxes3d, KambiOctree, VRMLShapeState, VectorMath, KambiUtils,
@@ -55,14 +57,43 @@ const
 type
   TVRMLShapeStateOctree = class;
 
-  TVRMLShapeStateOctreeNode = class(TOctreeNode)
+  TVRMLShapeStateOctreeNode = class(TVRMLItemsOctreeNode)
   protected
     procedure PutItemIntoSubNodes(ItemIndex: integer); override;
   public
     function ParentTree: TVRMLShapeStateOctree;
+
+    function SphereCollision(const pos: TVector3Single;
+      const Radius: Single;
+      const OctreeItemToIgnore: POctreeItem;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; override;
+
+    function BoxCollision(const ABox: TBox3d;
+      const OctreeItemToIgnore: POctreeItem;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; override;
+
+    function SegmentCollision(
+      out Intersection: TVector3Single;
+      out IntersectionDistance: Single;
+      const pos1, pos2: TVector3Single;
+      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const ReturnClosestIntersection: boolean;
+      const OctreeItemToIgnore: POctreeItem;
+      const IgnoreMarginAtStart: boolean;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; override;
+
+    function RayCollision(
+      out Intersection: TVector3Single;
+      out IntersectionDistance: Single;
+      const Ray0, RayVector: TVector3Single;
+      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const ReturnClosestIntersection: boolean;
+      const OctreeItemToIgnore: POctreeItem;
+      const IgnoreMarginAtStart: boolean;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; override;
  end;
 
-  TVRMLShapeStateOctree = class(TOctree)
+  TVRMLShapeStateOctree = class(TVRMLItemsOctree)
   private
     FShapeStatesList: TVRMLShapeStatesList;
   protected
@@ -106,6 +137,53 @@ end;
 function TVRMLShapeStateOctreeNode.ParentTree: TVRMLShapeStateOctree;
 begin
  Result := TVRMLShapeStateOctree(InternalParentTree);
+end;
+
+{ TODO: temporarily, to make basic implementation, we don't do actual
+  octree traversing during XxxCollision. Instead, we use
+  ItemsInNonLeafNodes, and just check every item (so this will
+  be done only on TreeRoot).
+}
+
+function TVRMLShapeStateOctreeNode.SphereCollision(const pos: TVector3Single;
+  const Radius: Single;
+  const OctreeItemToIgnore: POctreeItem;
+  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
+begin
+  Result := nil; { TODO }
+end;
+
+function TVRMLShapeStateOctreeNode.BoxCollision(const ABox: TBox3d;
+  const OctreeItemToIgnore: POctreeItem;
+  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
+begin
+  Result := nil; { TODO }
+end;
+
+function TVRMLShapeStateOctreeNode.SegmentCollision(
+  out Intersection: TVector3Single;
+  out IntersectionDistance: Single;
+  const pos1, pos2: TVector3Single;
+  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const ReturnClosestIntersection: boolean;
+  const OctreeItemToIgnore: POctreeItem;
+  const IgnoreMarginAtStart: boolean;
+  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
+begin
+  Result := nil; { TODO }
+end;
+
+function TVRMLShapeStateOctreeNode.RayCollision(
+  out Intersection: TVector3Single;
+  out IntersectionDistance: Single;
+  const Ray0, RayVector: TVector3Single;
+  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const ReturnClosestIntersection: boolean;
+  const OctreeItemToIgnore: POctreeItem;
+  const IgnoreMarginAtStart: boolean;
+  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
+begin
+  Result := nil; { TODO }
 end;
 
 { TVRMLShapeStateOctree ------------------------------------------ }
