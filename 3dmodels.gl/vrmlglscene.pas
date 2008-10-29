@@ -459,21 +459,28 @@ type
       whether we have Mesa. }
     function RenderBeginEndToDisplayList: boolean;
 
-    { This is used by RenderShapeStatesNoDisplayList to decide
+    { UseBlending is used by RenderShapeStatesNoDisplayList to decide
       is Blending used for given shapestate. In every optimization
       method, you must make sure that you called
-      CalculateShapeStatesUseBlending() on every shapestate index before
+      CalculateUseBlending() on every shapestate index before
       using RenderShapeStatesNoDisplayList.
 
-      Note that CalculateShapeStatesUseBlending checks
+      Note that CalculateUseBlending checks
       Renderer.Cache.PreparedTextureAlphaChannelType,
       so assumes that given shape state is already prepared for Renderer.
       It also looks at texture node, material node data,
       so should be done right after preparing given state,
-      before user calls any FreeResources. }
+      before user calls any FreeResources.
 
-    ShapeStatesUseBlending: TDynBooleanArray;
-    procedure CalculateShapeStatesUseBlending(Index: Integer);
+      In practice, right now it's most comfortable to call CalculateUseBlending
+      for all shapes, right before calling Renderer.Prepare on all of them,
+      regardless of Optimization. This is done by
+      PrepareAndCalculateUseBlendingForAll. To speed this up a little,
+      we also have PreparedAndUseBlendingCalculated array. }
+
+    UseBlending: TDynBooleanArray;
+    PreparedAndUseBlendingCalculated: TDynBooleanArray;
+    procedure PrepareAndCalculateUseBlendingForAll;
 
     procedure SetOptimization(const Value: TGLRendererOptimization);
 
@@ -568,7 +575,9 @@ type
     { Call this only when Optimization = roSeparateShapeStates and
       SSSX_DisplayLists.Items[ShapeStateNum] = 0.
 
-      Prepares shapestate (by Renderer.Prepare(ShapeStates[ShapeStateNum].State).
+      ShapeState must be prepated earlier (by
+      Renderer.Prepare(ShapeStates[ShapeStateNum].State, this is done
+      right now by PrepareAndCalculateUseBlendingForAll).
 
       Then creates display list SSSX_DisplayLists.Items[ShapeStateNum]
       and initializes it with contents of RenderShapeStateSimple(ShapeStateNum).
@@ -1268,14 +1277,15 @@ procedure TVRMLGLScene.CommonCreate(
 begin
   { inherited Create calls ChangedAll that is overriden in this class
     and uses SSSX_DisplayLists,
-    RenderFrustumOctree_Visible, ShapeStatesUseBlending, Optimization.
+    RenderFrustumOctree_Visible, UseBlending, Optimization.
     That's why I have to init them *before* "inherited Create" }
 
   FOptimization := AOptimization;
   OptimizationCreate;
 
   RenderFrustumOctree_Visible := TDynBooleanArray.Create;
-  ShapeStatesUseBlending := TDynBooleanArray.Create;
+  UseBlending := TDynBooleanArray.Create;
+  PreparedAndUseBlendingCalculated := TDynBooleanArray.Create;
 
   inherited Create(ARootNode, AOwnsRootNode);
 
@@ -1361,7 +1371,8 @@ begin
   OptimizationDestroy;
 
   FreeAndNil(RenderFrustumOctree_Visible);
-  FreeAndNil(ShapeStatesUseBlending);
+  FreeAndNil(UseBlending);
+  FreeAndNil(PreparedAndUseBlendingCalculated);
 
   HeadlightInitialized := false;
 
@@ -1737,12 +1748,15 @@ begin
 
           { draw fully opaque objects }
           for ShapeStateNum := 0 to ShapeStates.Count - 1 do
-            if not ShapeStatesUseBlending.Items[ShapeStateNum] then
+          begin
+            Assert(PreparedAndUseBlendingCalculated[ShapeStateNum]);
+            if not UseBlending.Items[ShapeStateNum] then
             begin
               if TransparentGroup in AllOrOpaque then
                 TestRenderShapeStateProc(ShapeStateNum);
             end else
               TransparentObjectsExist := true;
+          end;
 
           { draw partially transparent objects }
           if TransparentObjectsExist and
@@ -1757,7 +1771,7 @@ begin
             glBlendFunc(BlendingSourceFactorSet, BlendingDestinationFactorSet);
 
             for ShapeStateNum := 0 to ShapeStates.Count - 1 do
-              if ShapeStatesUseBlending.Items[ShapeStateNum] then
+              if UseBlending.Items[ShapeStateNum] then
               begin
                 AdjustBlendFunc(ShapeStates[ShapeStateNum],
                   BlendingSourceFactorSet, BlendingDestinationFactorSet);
@@ -1774,62 +1788,76 @@ begin
   end;
 end;
 
-procedure TVRMLGLScene.CalculateShapeStatesUseBlending(Index: Integer);
-var
-  M: TNodeMaterial_2;
-  Result: boolean;
-  State: TVRMLGraphTraverseState;
-  Tex: TVRMLTextureNode;
-  AlphaChannelType: TAlphaChannelType;
-begin
-  State := ShapeStates[Index].State;
+procedure TVRMLGLScene.PrepareAndCalculateUseBlendingForAll;
 
-  { Note that we either render the whole geometry node with or without
-    blending.
-
-    For VRML 1.0, there may be multiple materials on a node.
-    Some of them may be transparent, some not --- we arbitrarily
-    decide for now that AllMaterialsTransparent decides whether
-    blending should be used or not. We may change this in th
-    future to AnyMaterialsTransparent, since this will be more
-    consistent with X3D ColorRGBA treatment?
-
-    We do not try to split node into multiple instances.
-    This is difficult and memory-consuming task, so we just
-    depend on VRML author to split his geometry nodes if he
-    wants it.
-
-    Obviously, we also drop the idea of splitting the geometry
-    into separate triangles and deciding whether to use blending
-    for each separate triangle. Or to sort every separate triangle.
-    This would obviously get very very slow for models with lots
-    of triangles.
-
-    Note that this looks at nodes, calling
-    State.LastNodes.Material.AllMaterialsTransparent, looking
-    at TextureNode.TextureImage / TextureVidep etc.
-    So it's important to initialize ShapeStatesUseBlending before
-    user has any chance to do FreeResources or to free RootNode
-    (see TVRMLScene.RootNode docs).
-  }
-
-  if State.ParentShape <> nil then
+  procedure CalculateUseBlending(Index: Integer);
+  var
+    M: TNodeMaterial_2;
+    Result: boolean;
+    State: TVRMLGraphTraverseState;
+    Tex: TVRMLTextureNode;
+    AlphaChannelType: TAlphaChannelType;
   begin
-    M := State.ParentShape.Material;
-    Result := (M <> nil) and (M.FdTransparency.Value > SingleEqualityEpsilon);
-  end else
-    Result := State.LastNodes.Material.AllMaterialsTransparent;
+    State := ShapeStates[Index].State;
 
-  if not Result then
-  begin
-    { check texture for full range alpha channel }
-    Tex := State.Texture;
-    if (Tex <> nil) and
-      Renderer.PreparedTextureAlphaChannelType(Tex, AlphaChannelType) then
-      Result := AlphaChannelType = atFullRange;
+    { Note that we either render the whole geometry node with or without
+      blending.
+
+      For VRML 1.0, there may be multiple materials on a node.
+      Some of them may be transparent, some not --- we arbitrarily
+      decide for now that AllMaterialsTransparent decides whether
+      blending should be used or not. We may change this in th
+      future to AnyMaterialsTransparent, since this will be more
+      consistent with X3D ColorRGBA treatment?
+
+      We do not try to split node into multiple instances.
+      This is difficult and memory-consuming task, so we just
+      depend on VRML author to split his geometry nodes if he
+      wants it.
+
+      Obviously, we also drop the idea of splitting the geometry
+      into separate triangles and deciding whether to use blending
+      for each separate triangle. Or to sort every separate triangle.
+      This would obviously get very very slow for models with lots
+      of triangles.
+
+      Note that this looks at nodes, calling
+      State.LastNodes.Material.AllMaterialsTransparent, looking
+      at TextureNode.TextureImage / TextureVidep etc.
+      So it's important to initialize UseBlending before
+      user has any chance to do FreeResources or to free RootNode
+      (see TVRMLScene.RootNode docs).
+    }
+
+    if State.ParentShape <> nil then
+    begin
+      M := State.ParentShape.Material;
+      Result := (M <> nil) and (M.FdTransparency.Value > SingleEqualityEpsilon);
+    end else
+      Result := State.LastNodes.Material.AllMaterialsTransparent;
+
+    if not Result then
+    begin
+      { check texture for full range alpha channel }
+      Tex := State.Texture;
+      if (Tex <> nil) and
+        Renderer.PreparedTextureAlphaChannelType(Tex, AlphaChannelType) then
+        Result := AlphaChannelType = atFullRange;
+    end;
+
+    UseBlending.Items[Index] := Result;
   end;
 
-  ShapeStatesUseBlending.Items[Index] := Result;
+var
+  I: Integer;
+begin
+  for I := 0 to ShapeStates.Count - 1 do
+    if not PreparedAndUseBlendingCalculated.Items[I] then
+    begin
+      Renderer.Prepare(ShapeStates[I].State);
+      CalculateUseBlending(I);
+      PreparedAndUseBlendingCalculated.Items[I] := true;
+    end;
 end;
 
 procedure TVRMLGLScene.SSSX_PrepareBegin;
@@ -1938,8 +1966,6 @@ var
   AttributesCopy: TVRMLSceneRenderingAttributes;
   StateCopy: TVRMLGraphTraverseState;
 begin
-  Renderer.Prepare(ShapeStates[ShapeStateNum].State);
-
   { We check EnableDisplayList, not only to avoid creating display list
     when not needed, but also to cache EnableDisplayList result
     inside TVRMLShapeState --- otherwise after FreeResources([frRootNode])
@@ -1982,8 +2008,6 @@ begin
       FogNode, FogDistanceScaling,
       SSSX_DisplayLists.Items[ShapeStateNum]);
   end;
-
-  CalculateShapeStatesUseBlending(ShapeStateNum);
 end;
 
 procedure TVRMLGLScene.SSS_RenderShapeState(
@@ -2009,8 +2033,6 @@ var
   AttributesCopy: TVRMLSceneRenderingAttributes;
   StateCopy: TVRMLGraphTraverseState;
 begin
-  Renderer.Prepare(ShapeStates[ShapeStateNum].State);
-
   if ShapeStates[ShapeStateNum].EnableDisplayList and
      (not Renderer.Cache.ShapeStateNoTransform_IncReference_Existing(
        Attributes,
@@ -2050,8 +2072,6 @@ begin
       FogNode, FogDistanceScaling,
       SSSX_DisplayLists.Items[ShapeStateNum]);
   end;
-
-  CalculateShapeStatesUseBlending(ShapeStateNum);
 end;
 
 procedure TVRMLGLScene.SSSNT_RenderShapeState(
@@ -2082,18 +2102,7 @@ begin
 end;
 
 procedure TVRMLGLScene.SAAW_Prepare(TransparentGroup: TTransparentGroup);
-var i: Integer;
 begin
-  { First prepare all (because I can't later call Renderer.Prepare
-    while being inside display-list).
-    Also init ShapeStatesUseBlending --- this is a good place,
-    right after preparing and before RenderShapeStatesNoDisplayList call. }
-  for i := 0 to ShapeStates.Count - 1 do
-  begin
-    Renderer.Prepare(ShapeStates[i].State);
-    CalculateShapeStatesUseBlending(I);
-  end;
-
   SAAW_DisplayList[TransparentGroup] := glGenListsCheck(1,
     'TVRMLGLScene.SAAW_Prepare');
   if RenderBeginEndToDisplayList then
@@ -2202,15 +2211,23 @@ begin
   CheckFogChanged;
 
   case Optimization of
+    { For roNone, PrepareAndCalculateUseBlendingForAll doesn't have
+      to be called here (it will be done anyway in Render). }
+
     roSceneAsAWhole:
-      for TG := Low(TG) to High(TG) do
-        if (TG in TransparentGroups) and (SAAW_DisplayList[TG] = 0) then
-          SAAW_Prepare(TG);
+      begin
+        PrepareAndCalculateUseBlendingForAll;
+
+        for TG := Low(TG) to High(TG) do
+          if (TG in TransparentGroups) and (SAAW_DisplayList[TG] = 0) then
+            SAAW_Prepare(TG);
+      end;
 
     roSeparateShapeStates, roSeparateShapeStatesNoTransform:
       begin
-        { Build display lists (if needed) for begin/end and all shape states.
-          Also initializes ShapeStatesUseBlending. }
+        PrepareAndCalculateUseBlendingForAll;
+
+        { Build display lists (if needed) for begin/end and all shape states. }
         if SSSX_RenderBeginDisplayList = 0 then
           SSSX_PrepareBegin;
         try
@@ -2254,29 +2271,12 @@ procedure TVRMLGLScene.Render(
   TransparentGroup: TTransparentGroup);
 
   procedure RenderNormal;
-  var
-    I: Integer;
   begin
     CheckFogChanged;
 
     case Optimization of
       roNone:
         begin
-          { First prepare all and calculate ShapeStatesUseBlending.
-
-            We cannot do this within something like
-            PrepareAndRenderShapeStateSimple, we have to do this all
-            before RenderShapeStatesNoDisplayList, because
-            RenderShapeStatesNoDisplayList must already know
-            ShapeStatesUseBlending values (and for CalculateShapeStatesUseBlending,
-            states must be already prepared to detect full range alpha
-            textures). }
-          for i := 0 to ShapeStates.Count - 1 do
-          begin
-            Renderer.Prepare(ShapeStates[i].State);
-            CalculateShapeStatesUseBlending(I);
-          end;
-
           RenderShapeStatesNoDisplayList(TestShapeStateVisibility,
             {$ifdef FPC_OBJFPC} @ {$endif} RenderShapeStateSimple,
             {$ifdef FPC_OBJFPC} @ {$endif} RenderBeginSimple,
@@ -2325,6 +2325,14 @@ procedure TVRMLGLScene.Render(
   end;
 
 begin
+  { First prepare all and calculate their UseBlending.
+    This is suitable for all Optimization values right now.
+    I can't call Renderer.Prepare later while being inside display-list.
+    I also have to prepare all UseBlending before even calling
+    RenderShapeStatesNoDisplayList
+    (I cannot initialize UseBlending later, e.g. in SSS_PrepareShapeState). }
+  PrepareAndCalculateUseBlendingForAll;
+
   case Attributes.WireframeEffect of
     weNormal: RenderNormal;
     weWireframeOnly: RenderWireframe(Attributes.PureGeometry);
@@ -2393,7 +2401,10 @@ begin
 
   RenderFrustumOctree_Visible.Count := ShapeStates.Count;
 
-  ShapeStatesUseBlending.Count := ShapeStates.Count;
+  UseBlending.Count := ShapeStates.Count;
+
+  PreparedAndUseBlendingCalculated.Count := ShapeStates.Count;
+  PreparedAndUseBlendingCalculated.SetAll(false);
 end;
 
 procedure TVRMLGLScene.ChangedShapeStateFields(ShapeStateNum: integer;
@@ -2408,10 +2419,11 @@ begin
     that not only transform changed... }
   Assert(not (TransformOnly and TextureImageChanged));
 
-  { nie musimy tu robic nigdy Renderer.Unprepare*, bo przeciez obiekty node'ow
-    sie nie zmienily, tylko ich pola. Zwracam uwage ze w ten sposob gdy
-    Optimization = roNone to w tej procedurze nie musimy NIC robic - a wiec
-    jest to jakis zysk gdy uzywamy roNone. }
+  { We don't need to call here Renderer.Unprepare* (or set
+    PreparedAndUseBlendingCalculated) in most circumstances,
+    since State of our shapestate didn't change (only field's of
+    the geometry node, and these have no effect over Renderer.Prepare
+    or UseBlending calculation). }
 
   if (Optimization = roSeparateShapeStatesNoTransform) and TransformOnly then
   begin
@@ -2441,7 +2453,10 @@ begin
   end;
 
   if TextureImageChanged then
+  begin
     Renderer.Unprepare(ShapeStates[ShapeStateNum].State.Texture);
+    PreparedAndUseBlendingCalculated.Items[ShapeStateNum] := false;
+  end;
 end;
 
 { shadow quads --------------------------------------------------------------- }
