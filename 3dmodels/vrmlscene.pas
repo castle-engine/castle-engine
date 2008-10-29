@@ -2501,8 +2501,9 @@ function TVRMLScene.CreateTriangleOctree(
       begin
         ShapeStates[I].GeometryNode.Triangulate(
           ShapeStates[I].State, false, AddTriProc);
+        {TODO}{Temporarily commented out, as not used.
         if SetShapeOctrees then
-          ShapeStates[I].Octrees := [okTriangles];
+          ShapeStates[I].Octrees := [okTriangles];}
       end;
   end;
 
