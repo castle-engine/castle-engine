@@ -2501,9 +2501,18 @@ function TVRMLScene.CreateTriangleOctree(
       begin
         ShapeStates[I].GeometryNode.Triangulate(
           ShapeStates[I].State, false, AddTriProc);
-        {TODO}{Temporarily commented out, as not used.
         if SetShapeOctrees then
-          ShapeStates[I].Octrees := [okTriangles];}
+        begin
+          {
+            ShapeStates[I].TriangleOctreeMaxDepth :=
+            ShapeStates[I].TriangleOctreeLeafCapacity :=
+
+            Leave them at defaults? We shouldn't just use
+            our TriangleOctreeMaxDepth properties, they may be unsuitable.
+          }
+          ShapeStates[I].TriangleOctreeProgressTitle := TriangleOctreeProgressTitle;
+          ShapeStates[I].Octrees := [okTriangles];
+        end;
       end;
   end;
 

@@ -29,6 +29,10 @@ uses SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils,
 
 {$define read_interface}
 
+const
+  DefLocalTriangleOctreeMaxDepth = 10;
+  DefLocalTriangleOctreeLeafCapacity = 64;
+
 type
   { Internal type for TVRMLShapeState }
   TVRMLShapeStateValidities = set of (svLocalBBox, svBBox,
@@ -204,12 +208,12 @@ type
     property     TriangleOctreeMaxDepth: Integer
       read      FTriangleOctreeMaxDepth
       write     FTriangleOctreeMaxDepth
-      default DefTriangleOctreeMaxDepth;
+      default DefLocalTriangleOctreeMaxDepth;
 
     property     TriangleOctreeLeafCapacity: Integer
        read     FTriangleOctreeLeafCapacity
       write     FTriangleOctreeLeafCapacity
-      default DefTriangleOctreeLeafCapacity;
+      default DefLocalTriangleOctreeLeafCapacity;
 
     property TriangleOctreeProgressTitle: string
       read  FTriangleOctreeProgressTitle
@@ -264,8 +268,8 @@ constructor TVRMLShapeState.Create(AGeometryNode: TVRMLGeometryNode; AState: TVR
 begin
   inherited Create;
 
-  FTriangleOctreeMaxDepth := DefTriangleOctreeMaxDepth;
-  FTriangleOctreeLeafCapacity := DefTriangleOctreeLeafCapacity;
+  FTriangleOctreeMaxDepth := DefLocalTriangleOctreeMaxDepth;
+  FTriangleOctreeLeafCapacity := DefLocalTriangleOctreeLeafCapacity;
 
   FGeometryNode := AGeometryNode;
   FState := AState;
