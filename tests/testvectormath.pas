@@ -45,6 +45,7 @@ type
     procedure TestOther;
     procedure TestVectorStr;
     procedure TestInfiniteFrustum;
+    procedure TestMatrixInverse;
   end;
 
 implementation
@@ -448,6 +449,28 @@ begin
    wykonac dzielenia przez Time1-Time0 bo Time1-Time0 = 0. }
  Writeln(Format('VectorFromStr is faster by %f', [(Time2-Time0)/(Time1-Time0)]));
  {$endif}
+end;
+
+procedure TTestVectorMath.TestMatrixInverse;
+var
+  M: TMatrix4Single;
+begin
+  M := ScalingMatrix(Vector3Single(2, 2, 2));
+
+{ Tests:
+  Writeln(MatrixToNiceStr(M, '  '));
+  Writeln(MatrixToNiceStr(ScalingMatrix(Vector3Single(0.5, 0.5, 0.5)), '  '));
+  Writeln(MatrixToNiceStr(MatrixInverse(M, MatrixDeterminant(M)), '  '));
+}
+
+  Assert(MatricesEqual(
+    MatrixInverse(M, MatrixDeterminant(M)),
+    ScalingMatrix(Vector3Single(0.5, 0.5, 0.5)), 0.01));
+
+  M := TranslationMatrix(Vector3Single(2, 2, 2));
+  Assert(MatricesEqual(
+    MatrixInverse(M, MatrixDeterminant(M)),
+    TranslationMatrix(Vector3Single(-2, -2, -2)), 0.01));
 end;
 
 initialization

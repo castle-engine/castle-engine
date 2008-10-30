@@ -1831,8 +1831,7 @@ begin
              = transpose(transpose(inverse(m))) = just inverse(m)) }
 
   MM.Data := M;
-  MM.Inverse(Determinant);
-  Result := MM.Data;
+  Result := MM.Inverse(Determinant).Data;
 end;
 
 function MatrixInverse(const M: TYPE_MATRIX3; const Determinant: TYPE_SCALAR): TYPE_MATRIX3;
@@ -1840,8 +1839,7 @@ var
   MM: TYPE_MATRIX3_OBJECT;
 begin
   MM.Data := M;
-  MM.Inverse(Determinant);
-  Result := MM.Data;
+  Result := MM.Inverse(Determinant).Data;
 end;
 
 function MatrixInverse(const M: TYPE_MATRIX4; const Determinant: TYPE_SCALAR): TYPE_MATRIX4;
@@ -1849,7 +1847,6 @@ var
   MM: TYPE_MATRIX4_OBJECT;
 begin
   MM.Data := M;
-  MM.Inverse(Determinant);
-  Result := MM.Data;
+  Result := MM.Inverse(Determinant).Data;
 end;
 {$endif}
