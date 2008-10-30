@@ -42,7 +42,7 @@ type
   var i: integer;
       NewT: TTriangle3Single;
   begin
-   for i := 0 to 2 do NewT[i] := MultMatrixPoint(Transform^, Tri[i]);
+   for i := 0 to 2 do NewT[i] := MatrixMultPoint(Transform^, Tri[i]);
    NewTriangle(NewT, State, GeometryNode, MatNum,
      FaceCoordIndexBegin, FaceCoordIndexEnd);
   end;
@@ -726,9 +726,9 @@ procedure TExtrusionTriangleTriangulator.ExtrusionCapTriangle(
   const Tri: TVector3Longint);
 begin
   NewTriangleProc(Triangle3Single(
-    MultMatrixPoint(TransformCap, Node.CrossSection3D(Tri[0])),
-    MultMatrixPoint(TransformCap, Node.CrossSection3D(Tri[1])),
-    MultMatrixPoint(TransformCap, Node.CrossSection3D(Tri[2]))),
+    MatrixMultPoint(TransformCap, Node.CrossSection3D(Tri[0])),
+    MatrixMultPoint(TransformCap, Node.CrossSection3D(Tri[1])),
+    MatrixMultPoint(TransformCap, Node.CrossSection3D(Tri[2]))),
     State, Node, 0, -1, -1);
 end;
 
@@ -773,7 +773,7 @@ var
     Point2d: PVector2Single;
   begin
     Point2d := @FdCrossSection.Items.Items[CrossIndex];
-    Point := MultMatrixPoint(Transform[WhichTransform]^,
+    Point := MatrixMultPoint(Transform[WhichTransform]^,
       Vector3Single(Point2d^[0], 0, Point2d^[1]));
   end;
 

@@ -3358,7 +3358,7 @@ begin
               TouchSensor.EventHitPoint_Changed.Send(
                 { hitPoint_changed event wants a point in local coords,
                   we can get this by InverseTransform. }
-                MultMatrixPoint(OverItem^.State.InvertedTransform, OverPoint), WorldTime);
+                MatrixMultPoint(OverItem^.State.InvertedTransform, OverPoint), WorldTime);
 
               { The best normal I can generate for now is flat normal
                 for the hit triangle. }
@@ -3619,7 +3619,7 @@ begin
           it's InvertedTransform and call ProximitySensorUpdate.
       }
 
-      Position := MultMatrixPoint(PSI.InvertedTransform, LastViewerPosition);
+      Position := MatrixMultPoint(PSI.InvertedTransform, LastViewerPosition);
 
       NewIsActive :=
         (Position[0] >= Node.FdCenter.Value[0] - Node.FdSize.Value[0] / 2) and

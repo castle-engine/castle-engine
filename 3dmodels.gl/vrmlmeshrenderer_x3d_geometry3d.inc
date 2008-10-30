@@ -637,7 +637,7 @@ procedure TIndexedFaceSetRenderer.RenderCoordinateBegin;
 
     glTexEnvAlphaFromMaterialAndTexture;
 
-    LightPositionObjectSpace := MultMatrixPoint(
+    LightPositionObjectSpace := MatrixMultPoint(
       State.InvertedTransform,
       Renderer.BumpMappingLightPosition);
   end;
@@ -689,7 +689,7 @@ procedure TIndexedFaceSetRenderer.RenderCoordinateBegin;
 
     glTexEnvAlphaFromMaterialAndTexture;
 
-    LightPositionObjectSpace := MultMatrixPoint(
+    LightPositionObjectSpace := MatrixMultPoint(
       State.InvertedTransform,
       Renderer.BumpMappingLightPosition);
   end;

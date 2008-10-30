@@ -575,7 +575,7 @@ procedure TTestBoxes3d.TestBox3dTransform;
       Exit(EmptyBox3d);
 
     Box3dGetAllPoints(@boxpoints, Box);
-    for i := 0 to 7 do boxpoints[i] := MultMatrixPoint(Matrix, boxpoints[i]);
+    for i := 0 to 7 do boxpoints[i] := MatrixMultPoint(Matrix, boxpoints[i]);
 
     { Non-optimized version:
         Result := CalculateBoundingBox(@boxpoints, 8, 0);

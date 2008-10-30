@@ -867,7 +867,7 @@ begin
         for J := 0 to FdCrossSection.Count - 1 do
         begin
           CoordNode.FdPoint.Items.Items[I * FdCrossSection.Count + J] :=
-            MultMatrixPoint(Transform, CrossSection3D(J));
+            MatrixMultPoint(Transform, CrossSection3D(J));
         end;
       end;
 

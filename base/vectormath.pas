@@ -240,7 +240,7 @@
 unit VectorMath;
 
 {
-  TODO: MultMatrixPointNoTranslation should be implemented less clumsy
+  TODO: MatrixMultPointNoTranslation should be implemented less clumsy
 }
 
 {$I kambiconf.inc}
@@ -1047,9 +1047,9 @@ function AngleRadBetweenNormals(const v1, v2: TVector3Double): Double; overload;
 { obroc punkt pt o angleDeg stopni wokol osi wyznaczonej przez wektor axisVec
   zaczepiony w punkcie (0, 0, 0). Zwroc wynik.
   Moglbys ten sam wynik uzyskac robiac
-    result := Vector3SinglePoint( MultMatrixPoint(
+    result := Vector3SinglePoint( MatrixMultPoint(
       RotationMatrixDeg(angleDeg, axisVec), Vector4Single(pt) ) )
-  ,MultMatrixPoint i RotationMatrix sa zdefiniowane nizej w tym module.
+  ,MatrixMultPoint i RotationMatrix sa zdefiniowane nizej w tym module.
   Ta procedura zrobi to po prostu nieco szybciej.
   Ale na pewno wynik bedzie ten sam - w szczegolnosci, obroty beda
   w ta sama strone, a wiec tez zgodnie z kierunkiem obrotow OpenGLa. }
@@ -1720,7 +1720,7 @@ function MatrixMultScalar(const m: TMatrix4Single; const s: Single): TMatrix4Sin
 function MatrixMultScalar(const m: TMatrix3Double; const s: Double): TMatrix3Double;
 function MatrixMultScalar(const m: TMatrix4Double; const s: Double): TMatrix4Double;
 
-function MultMatrixPoint(const m: TMatrix4Single; const pt: TVector3Single): TVector3Single;
+function MatrixMultPoint(const m: TMatrix4Single; const pt: TVector3Single): TVector3Single;
 
 function MatrixMultVector(const m: TMatrix3Single; const v: TVector3Single): TVector3Single; overload;
 function MatrixMultVector(const m: TMatrix4Single; const v: TVector4Single): TVector4Single; overload;
@@ -1733,6 +1733,29 @@ function MatrixMult(const m1, m2: TMatrix3Single): TMatrix3Single;
 function MatrixMult(const m1, m2: TMatrix4Single): TMatrix4Single;
 function MatrixMult(const m1, m2: TMatrix3Double): TMatrix3Double;
 function MatrixMult(const m1, m2: TMatrix4Double): TMatrix4Double;
+
+{$ifdef FPC}
+function MatrixDeterminant(const M: TMatrix2Single): Single;
+function MatrixDeterminant(const M: TMatrix2Double): Double;
+function MatrixDeterminant(const M: TMatrix3Single): Single;
+function MatrixDeterminant(const M: TMatrix3Double): Double;
+function MatrixDeterminant(const M: TMatrix4Single): Single;
+function MatrixDeterminant(const M: TMatrix4Double): Double;
+
+{ Inverse the matrix.
+
+  They do division by Determinant internally, so will raise exception
+  from this float division if the matrix is not reversible.
+
+  @groupBegin }
+function MatrixInverse(const M: TMatrix2Single; const Determinant: Single): TMatrix2Single;
+function MatrixInverse(const M: TMatrix2Double; const Determinant: Double): TMatrix2Double;
+function MatrixInverse(const M: TMatrix3Single; const Determinant: Single): TMatrix3Single;
+function MatrixInverse(const M: TMatrix3Double; const Determinant: Double): TMatrix3Double;
+function MatrixInverse(const M: TMatrix4Single; const Determinant: Single): TMatrix4Single;
+function MatrixInverse(const M: TMatrix4Double; const Determinant: Double): TMatrix4Double;
+{ @groupEnd }
+{$endif FPC}
 
 { pomnoz wektor przez transpozycje tego samego wektora,
   czyli np. dla wektorow 3-elementowych otrzymamy macierz 3x3. }
@@ -2757,11 +2780,15 @@ end;
 {$define TYPE_VECTOR4 := TVector4Single}
 {$define TYPE_TRIANGLE2 := TTriangle2Single}
 {$define TYPE_TRIANGLE3 := TTriangle3Single}
+{$define TYPE_MATRIX2 := TMatrix2Single}
 {$define TYPE_MATRIX3 := TMatrix3Single}
 {$define TYPE_MATRIX4 := TMatrix4Single}
 {$define SCALAR_EQUALITY_EPSILON := SingleEqualityEpsilon}
 {$define UNIT_VECTOR3 := UnitVector3Single}
 {$define IDENTITY_MATRIX := IdentityMatrix4Single}
+{$define TYPE_MATRIX2_OBJECT := TMatrix2_Single}
+{$define TYPE_MATRIX3_OBJECT := TMatrix3_Single}
+{$define TYPE_MATRIX4_OBJECT := TMatrix4_Single}
 {$define TYPE_VECTOR2_OBJECT := TVector2_Single}
 {$define TYPE_VECTOR3_OBJECT := TVector3_Single}
 {$define TYPE_VECTOR4_OBJECT := TVector4_Single}
@@ -2773,11 +2800,15 @@ end;
 {$define TYPE_VECTOR4 := TVector4Double}
 {$define TYPE_TRIANGLE2 := TTriangle2Double}
 {$define TYPE_TRIANGLE3 := TTriangle3Double}
+{$define TYPE_MATRIX2 := TMatrix2Double}
 {$define TYPE_MATRIX3 := TMatrix3Double}
 {$define TYPE_MATRIX4 := TMatrix4Double}
 {$define SCALAR_EQUALITY_EPSILON := DoubleEqualityEpsilon}
 {$define UNIT_VECTOR3 := UnitVector3Double}
 {$define IDENTITY_MATRIX := IdentityMatrix4Double}
+{$define TYPE_MATRIX2_OBJECT := TMatrix2_Double}
+{$define TYPE_MATRIX3_OBJECT := TMatrix3_Double}
+{$define TYPE_MATRIX4_OBJECT := TMatrix4_Double}
 {$define TYPE_VECTOR2_OBJECT := TVector2_Double}
 {$define TYPE_VECTOR3_OBJECT := TVector3_Double}
 {$define TYPE_VECTOR4_OBJECT := TVector4_Double}
@@ -2794,11 +2825,15 @@ end;
 {$define PTR_TYPE_VECTOR4 := PVector4Single}
 {$define TYPE_TRIANGLE2 := TTriangle2Single}
 {$define TYPE_TRIANGLE3 := TTriangle3Single}
+{$define TYPE_MATRIX2 := TMatrix2Single}
 {$define TYPE_MATRIX3 := TMatrix3Single}
 {$define TYPE_MATRIX4 := TMatrix4Single}
 {$define SCALAR_EQUALITY_EPSILON := SingleEqualityEpsilon}
 {$define UNIT_VECTOR3 := UnitVector3Single}
 {$define IDENTITY_MATRIX := IdentityMatrix4Single}
+{$define TYPE_MATRIX2_OBJECT := TMatrix2_Single}
+{$define TYPE_MATRIX3_OBJECT := TMatrix3_Single}
+{$define TYPE_MATRIX4_OBJECT := TMatrix4_Single}
 {$define TYPE_VECTOR2_OBJECT := TVector2_Single}
 {$define TYPE_VECTOR3_OBJECT := TVector3_Single}
 {$define TYPE_VECTOR4_OBJECT := TVector4_Single}
@@ -2813,11 +2848,15 @@ end;
 {$define PTR_TYPE_VECTOR4 := PVector4Double}
 {$define TYPE_TRIANGLE2 := TTriangle2Double}
 {$define TYPE_TRIANGLE3 := TTriangle3Double}
+{$define TYPE_MATRIX2 := TMatrix2Double}
 {$define TYPE_MATRIX3 := TMatrix3Double}
 {$define TYPE_MATRIX4 := TMatrix4Double}
 {$define SCALAR_EQUALITY_EPSILON := DoubleEqualityEpsilon}
 {$define UNIT_VECTOR3 := UnitVector3Double}
 {$define IDENTITY_MATRIX := IdentityMatrix4Double}
+{$define TYPE_MATRIX2_OBJECT := TMatrix2_Double}
+{$define TYPE_MATRIX3_OBJECT := TMatrix3_Double}
+{$define TYPE_MATRIX4_OBJECT := TMatrix4_Double}
 {$define TYPE_VECTOR2_OBJECT := TVector2_Double}
 {$define TYPE_VECTOR3_OBJECT := TVector3_Double}
 {$define TYPE_VECTOR4_OBJECT := TVector4_Double}
@@ -2977,7 +3016,7 @@ end;
 
 { math with matrices ---------------------------------------------------------- }
 
-function MultMatrixPoint(const m: TMatrix4Single; const pt: TVector3Single): TVector3Single;
+function MatrixMultPoint(const m: TMatrix4Single; const pt: TVector3Single): TVector3Single;
 var
   Divisor: Single;
 begin

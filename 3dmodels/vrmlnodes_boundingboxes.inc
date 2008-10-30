@@ -442,7 +442,7 @@ begin
       for J := 0 to FdCrossSection.Count - 1 do
       begin
         Point2d := @FdCrossSection.Items.Items[J];
-        Box3dSumTo1st(Result, MultMatrixPoint(Transform,
+        Box3dSumTo1st(Result, MatrixMultPoint(Transform,
           Vector3Single(Point2d^[0], 0, Point2d^[1])));
       end;
     end;
@@ -470,8 +470,8 @@ begin
       begin
         Point2d := @FdCrossSection.Items.Items[J];
         Box3dSumTo1st(Result,
-          MultMatrixPoint(State.Transform,
-            MultMatrixPoint(Transform,
+          MatrixMultPoint(State.Transform,
+            MatrixMultPoint(Transform,
               Vector3Single(Point2d^[0], 0, Point2d^[1]))));
       end;
     end;

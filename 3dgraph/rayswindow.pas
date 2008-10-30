@@ -188,7 +188,7 @@ begin
    (wtedy traktowalibysmy RayVector jako punkt na polprostej promienia,
    a nie jako kierunek. Wiec musielibysmy wtedy od RayVector z powrotem
    odjac CamPosition, zupelnie bez sensu skoro mozemy je juz teraz pominac). }
- Result := MultMatrixPoint(
+ Result := MatrixMultPoint(
    TransformToCoordsNoScaleMatrix(ZeroVector3Single,
      CamDirection >< CamUp,
      CamUp,

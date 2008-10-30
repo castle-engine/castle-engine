@@ -2694,9 +2694,9 @@ begin
       for I := 0 to Triangles.Count - 1 do
       begin
         { calculate TransformedTri := Triangles[I] transformed by Transform }
-        TransformedTri[0] := MultMatrixPoint(Transform, TPtr^[0]);
-        TransformedTri[1] := MultMatrixPoint(Transform, TPtr^[1]);
-        TransformedTri[2] := MultMatrixPoint(Transform, TPtr^[2]);
+        TransformedTri[0] := MatrixMultPoint(Transform, TPtr^[0]);
+        TransformedTri[1] := MatrixMultPoint(Transform, TPtr^[1]);
+        TransformedTri[2] := MatrixMultPoint(Transform, TPtr^[2]);
 
         HandleTriangle(TransformedTri);
         Inc(TPtr);
@@ -2815,8 +2815,8 @@ var
       V1 := EdgeV1^;
     end else
     begin
-      V0 := MultMatrixPoint(Transform, EdgeV0^);
-      V1 := MultMatrixPoint(Transform, EdgeV1^);
+      V0 := MatrixMultPoint(Transform, EdgeV0^);
+      V1 := MatrixMultPoint(Transform, EdgeV1^);
     end;
 
     glVertexv(V0);
@@ -2847,8 +2847,8 @@ var
       V1 := EdgeV1^;
     end else
     begin
-      V0 := MultMatrixPoint(Transform, EdgeV0^);
-      V1 := MultMatrixPoint(Transform, EdgeV1^);
+      V0 := MatrixMultPoint(Transform, EdgeV0^);
+      V1 := MatrixMultPoint(Transform, EdgeV1^);
     end;
 
     glVertexv(V0);
@@ -2903,9 +2903,9 @@ var
       Plane: TVector4Single;
       TriangleTransformed: TTriangle3Single;
     begin
-      TriangleTransformed[0] := MultMatrixPoint(Transform, T[0]);
-      TriangleTransformed[1] := MultMatrixPoint(Transform, T[1]);
-      TriangleTransformed[2] := MultMatrixPoint(Transform, T[2]);
+      TriangleTransformed[0] := MatrixMultPoint(Transform, T[0]);
+      TriangleTransformed[1] := MatrixMultPoint(Transform, T[1]);
+      TriangleTransformed[2] := MatrixMultPoint(Transform, T[2]);
       Plane := TrianglePlane(TriangleTransformed);
       Result := (Plane[0] * LightPos[0] +
                  Plane[1] * LightPos[1] +

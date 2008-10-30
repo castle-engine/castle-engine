@@ -1786,3 +1786,70 @@ begin
            GrayscaleValuesFloat[2]*v[2];
 end;
 }
+
+{$ifdef FPC}
+{ We're happily using FPC's Matrix unit to trivially implement
+  matrix determinant and inverse. }
+
+function MatrixDeterminant(const M: TYPE_MATRIX2): TYPE_SCALAR;
+var
+  MM: TYPE_MATRIX2_OBJECT;
+begin
+  { Note that generally data should be transposed between
+    TYPE_MATRIX2_OBJECT and TYPE_MATRIX2. But in this case, it's not needed,
+    as the determinant of the transposition is exactly the same. }
+
+  MM.Data := M;
+  Result := MM.Determinant;
+end;
+
+function MatrixDeterminant(const M: TYPE_MATRIX3): TYPE_SCALAR;
+var
+  MM: TYPE_MATRIX3_OBJECT;
+begin
+  MM.Data := M;
+  Result := MM.Determinant;
+end;
+
+function MatrixDeterminant(const M: TYPE_MATRIX4): TYPE_SCALAR;
+var
+  MM: TYPE_MATRIX4_OBJECT;
+begin
+  MM.Data := M;
+  Result := MM.Determinant;
+end;
+
+function MatrixInverse(const M: TYPE_MATRIX2; const Determinant: TYPE_SCALAR): TYPE_MATRIX2;
+var
+  MM: TYPE_MATRIX2_OBJECT;
+begin
+  { Note that generally data should be transposed between
+    TYPE_MATRIX2_OBJECT and TYPE_MATRIX2. But in this case, it's not needed,
+    as the transpose of the inverse is the inverse of the transpose.
+    Which means that
+      Result = transpose(inverse(transpose(m))
+             = transpose(transpose(inverse(m))) = just inverse(m)) }
+
+  MM.Data := M;
+  MM.Inverse(Determinant);
+  Result := MM.Data;
+end;
+
+function MatrixInverse(const M: TYPE_MATRIX3; const Determinant: TYPE_SCALAR): TYPE_MATRIX3;
+var
+  MM: TYPE_MATRIX3_OBJECT;
+begin
+  MM.Data := M;
+  MM.Inverse(Determinant);
+  Result := MM.Data;
+end;
+
+function MatrixInverse(const M: TYPE_MATRIX4; const Determinant: TYPE_SCALAR): TYPE_MATRIX4;
+var
+  MM: TYPE_MATRIX4_OBJECT;
+begin
+  MM.Data := M;
+  MM.Inverse(Determinant);
+  Result := MM.Data;
+end;
+{$endif}

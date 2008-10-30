@@ -171,8 +171,8 @@ begin
  VectorScaleTo1st(NewX, SphereRadius/NewXLen);
  VectorScaleTo1st(NewY, SphereRadius/NewYLen);
 
- { TODO: zrob MultMatrixPointTo1st, bedzie szybciej }
- result := MultMatrixPoint(TransformToCoordsMatrix(ZeroVector3Single,
+ { TODO: zrob MatrixMultPointTo1st, bedzie szybciej }
+ result := MatrixMultPoint(TransformToCoordsMatrix(ZeroVector3Single,
    NewX,
    NewY,
    SphereTheta0), result);

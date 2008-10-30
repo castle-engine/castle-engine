@@ -592,7 +592,7 @@ type
 
   function TBBox_Calculator.GetVertexTransform(index: integer): TVector3Single;
   begin
-   result := MultMatrixPoint(
+   result := MatrixMultPoint(
      PMatrix^, PVector3Single(PointerAdd(Verts, VertsStride*Cardinal(index)))^ );
   end;
 
@@ -653,7 +653,7 @@ begin
 
    This is important, because GetVertex may be quite expensive
    operation (in case of e.g. TVertTransform_Calculator.GetTransformed,
-   this is MultMatrixPoint for every vertex). At the beginning
+   this is MatrixMultPoint for every vertex). At the beginning
    I implemented this by caling 6 time find_extremum function,
    and each call to find_extremum was iterating over every vertex.
    This was obviously wrong, because this caused calling GetVertex
@@ -688,7 +688,7 @@ type
   end;
   function TVertTransform_Calculator.GetTransformed(index: integer): TVector3Single;
   begin
-   result := MultMatrixPoint(PTransform^, GetNotTransformed(index));
+   result := MatrixMultPoint(PTransform^, GetNotTransformed(index));
   end;
 
 function CalculateBoundingBoxFromIndices(
@@ -787,7 +787,7 @@ function Box3dTransform(const Box: TBox3d; const Matrix: TMatrix4Single): TBox3d
     i: integer;
   begin
     Box3dGetAllPoints(@boxpoints, Box);
-    for i := 0 to 7 do boxpoints[i] := MultMatrixPoint(Matrix, boxpoints[i]);
+    for i := 0 to 7 do boxpoints[i] := MatrixMultPoint(Matrix, boxpoints[i]);
 
     { Non-optimized version:
         Result := CalculateBoundingBox(@boxpoints, 8, 0);

@@ -228,9 +228,9 @@ begin
     for I := 0 to Triangles.Count - 1 do
     begin
       { calculate T := Triangles[I] transformed by TrianglesTransform }
-      T0 := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][0]);
-      T1 := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][1]);
-      T2 := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][2]);
+      T0 := MatrixMultPoint(TrianglesTransform, Triangles.Items[I][0]);
+      T1 := MatrixMultPoint(TrianglesTransform, Triangles.Items[I][1]);
+      T2 := MatrixMultPoint(TrianglesTransform, Triangles.Items[I][2]);
 
       { First calculate all three SQPlanes and all three
         SQFronts. This is because we *have* to catch the situation
@@ -336,8 +336,8 @@ var
     EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + P0Index) mod 3];
     EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
-    V0 := MultMatrixPoint(Transform, EdgeV0^);
-    V1 := MultMatrixPoint(Transform, EdgeV1^);
+    V0 := MatrixMultPoint(Transform, EdgeV0^);
+    V1 := MatrixMultPoint(Transform, EdgeV1^);
 
     glVertexv(V0);
     glVertexv(V1);
@@ -348,9 +348,9 @@ var
     Plane: TVector4Single;
   begin
     Plane := TrianglePlane(
-      MultMatrixPoint(Transform, T[0]),
-      MultMatrixPoint(Transform, T[1]),
-      MultMatrixPoint(Transform, T[2]));
+      MatrixMultPoint(Transform, T[0]),
+      MatrixMultPoint(Transform, T[1]),
+      MatrixMultPoint(Transform, T[2]));
     Result := (Plane[0] * LightPos[0] +
                Plane[1] * LightPos[1] +
                Plane[2] * LightPos[2] +
@@ -414,8 +414,8 @@ var
     EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + 0) mod 3];
     EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + 1) mod 3];
 
-    V0 := MultMatrixPoint(Transform, EdgeV0^);
-    V1 := MultMatrixPoint(Transform, EdgeV1^);
+    V0 := MatrixMultPoint(Transform, EdgeV0^);
+    V1 := MatrixMultPoint(Transform, EdgeV1^);
 
     glVertexv(V0);
     glVertexv(V1);

@@ -262,7 +262,7 @@ function TVRMLPositionalLightNode.CreateActiveLight(
 begin
   Result := inherited;
 
-  Result.TransfLocation := MultMatrixPoint(Result.Transform,
+  Result.TransfLocation := MatrixMultPoint(Result.Transform,
     FdLocation.Value);
 end;
 

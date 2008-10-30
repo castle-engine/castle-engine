@@ -599,7 +599,7 @@ begin
   if Assigned(Attributes.OnBeforeGLVertex) or
      Renderer.FogVolumetric then
   begin
-    VertGlobal := MultMatrixPoint(State.Transform, Vert);
+    VertGlobal := MatrixMultPoint(State.Transform, Vert);
 
     if Renderer.FogVolumetric then
     begin

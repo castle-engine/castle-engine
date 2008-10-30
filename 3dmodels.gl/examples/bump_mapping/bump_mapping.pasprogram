@@ -172,7 +172,7 @@ begin
     TTangent, Normal vectors. "Tangent space" is for current face, such that
     XY run along surface's S,T texture coords. }
 
-  LightPositionObjectSpace := MultMatrixPoint(ModelInvertedTrasformation,
+  LightPositionObjectSpace := MatrixMultPoint(ModelInvertedTrasformation,
     LightPosition);
 
   { first init 4th row and column }
@@ -185,7 +185,7 @@ begin
     ToTangent[I, 2] := Normal[I];
   end;
 
-  Result := MultMatrixPoint(ToTangent,
+  Result := MatrixMultPoint(ToTangent,
     VectorSubtract(LightPositionObjectSpace, Vertex));
 end;
 
