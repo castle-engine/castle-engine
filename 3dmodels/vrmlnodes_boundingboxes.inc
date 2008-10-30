@@ -140,7 +140,7 @@ begin
         Result := P.BoundingBox(State);
       finally FreeAndNil(P) end;
     end else
-      Result := BoundingBoxTransform(LocalBoundingBox(State), State.Transform);
+      Result := Box3dTransform(LocalBoundingBox(State), State.Transform);
   end;
 end;
 

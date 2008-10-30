@@ -3099,7 +3099,7 @@ begin
   { calculate Box }
   Box := BoundingBox;
   if not TransformIsIdentity then
-    Box := BoundingBoxTransform(Box, Transform);
+    Box := Box3dTransform(Box, Transform);
 
   ShadowVolumesHelper.InitScene(Box);
 

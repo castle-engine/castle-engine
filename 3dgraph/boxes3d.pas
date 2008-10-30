@@ -190,13 +190,15 @@ function Box3dSizes(const box: TBox3d): TVector3Single;
 { Calculates eight corners of the box, placing them in AllPoints^[0..7]. }
 procedure Box3dGetAllPoints(allpoints: PVector3Single; const box: TBox3d);
 
-{ Transforms the box by given matrix. More precisely, transforms all
-  8 box corners, and makes new box enclosing these 8 points.
+{ Transform the Box by given matrix.
+  Since this is still an axis-aligned box, rotating etc. of the box
+  usually makes larger box.
 
-  Since this is axis-aligned box, rotating etc. of the box usually makes
-  larger box (this is the primary disadvantage of axis-aligned boxes,
-  as opposed to oriented boxes). }
-function BoundingBoxTransform(const bbox: TBox3d;
+  Note that this is very optimized for Matrix with no projection
+  (where last row of the last matrix = [0, 0, 0, 1]). It still works
+  for all matrices (eventually fallbacks to simple "transform 8 corners and get
+  box enclosing them" method). }
+function Box3dTransform(const Box: TBox3d;
   const Matrix: TMatrix4Single): TBox3d;
 
 { Move Box. Does nothing if Box is empty. }
@@ -777,38 +779,106 @@ begin
    PArray_Vector3Single(allpoints)^[i][j] := box[kombinacje[i, j], j];
 end;
 
-function BoundingBoxTransform(const bbox: TBox3d; const Matrix: TMatrix4Single): TBox3d;
-var
-  BoxPoints: array [0..7] of TVector3Single;
-  i: integer;
+function Box3dTransform(const Box: TBox3d; const Matrix: TMatrix4Single): TBox3d;
+
+  function Slower(const Box: TBox3d; const Matrix: TMatrix4Single): TBox3d;
+  var
+    BoxPoints: array [0..7] of TVector3Single;
+    i: integer;
+  begin
+    Box3dGetAllPoints(@boxpoints, Box);
+    for i := 0 to 7 do boxpoints[i] := MultMatrixPoint(Matrix, boxpoints[i]);
+
+    { Non-optimized version:
+        Result := CalculateBoundingBox(@boxpoints, 8, 0);
+
+      But it turns out that the code below, that does essentially the same
+      thing as CalculateBoundingBox implementation, works noticeably faster.
+      This is noticeable on "The Castle" with many creatures: then a considerable
+      time is spend inside TCreature.BoundingBox, that must calculate
+      transformed bounding boxes.
+    }
+
+    Result[0] := BoxPoints[0];
+    Result[1] := BoxPoints[0];
+    for I := 1 to High(BoxPoints) do
+    begin
+      if BoxPoints[I, 0] < Result[0, 0] then Result[0, 0] := BoxPoints[I, 0];
+      if BoxPoints[I, 1] < Result[0, 1] then Result[0, 1] := BoxPoints[I, 1];
+      if BoxPoints[I, 2] < Result[0, 2] then Result[0, 2] := BoxPoints[I, 2];
+      if BoxPoints[I, 0] > Result[1, 0] then Result[1, 0] := BoxPoints[I, 0];
+      if BoxPoints[I, 1] > Result[1, 1] then Result[1, 1] := BoxPoints[I, 1];
+      if BoxPoints[I, 2] > Result[1, 2] then Result[1, 2] := BoxPoints[I, 2];
+    end;
+  end;
+
+  function Faster(const Box: TBox3d; const Matrix: TMatrix4Single): TBox3d;
+  { Reasoning why this works Ok: look at Slower approach, and imagine
+    how each of the 8 points is multiplied by the same matrix.
+    Each of the 8 points is
+
+    ( Box[0][0] or Box[1][0],
+      Box[0][1] or Box[1][1],
+      Box[0][2] or Box[1][2],
+      1 )
+
+    To calculate X components of 8 resulting points, you multiply 8 original
+    points by the same Matrix row. Since we're only interested in the minimum
+    and maximum X component, we can actually just take
+
+      Result[0][0] := ( min( Matrix[0, 0] * Box[0][0], Matrix[0, 0] * Box[1][0] ),
+                        min( Matrix[1, 0] * Box[0][1], Matrix[1, 0] * Box[1][1] ),
+                        min( Matrix[2, 0] * Box[0][2], Matrix[2, 0] * Box[1][2] ),
+                        Matrix[3, 0] )
+
+    Result[0][1] is the same, but with max instead of min.
+    This way we fully calculated X components.
+
+    Idea from http://www.soe.ucsc.edu/~pang/160/f98/Gems/Gems/TransBox.c,
+    see also http://www.gamedev.net/community/forums/topic.asp?topic_id=349370.
+
+    This is 2-3 times faster than Slower (compiled with -dRELEASE, like
+    0.44 to 0.13 =~ 3.3 times faster). See
+    ../tests/testboxes3d.pas for speed (and correctness) test. }
+  var
+    I, J: Integer;
+    A, B: Single;
+  begin
+    { Initially, both Result corners are copies of Matrix[3][0..2]
+      (the "translate" numbers of Matrix) }
+    Move(Matrix[3], Result[0], SizeOf(Result[0]));
+    Move(Matrix[3], Result[1], SizeOf(Result[1]));
+
+    for I := 0 to 2 do
+    begin
+      { Calculate Result[0][I], Result[1][I] }
+      for J := 0 to 2 do
+      begin
+        A := Matrix[J][I] * Box[0][J];
+        B := Matrix[J][I] * Box[1][J];
+        if A < B then
+        begin
+          Result[0][I] += A;
+          Result[1][I] += B;
+        end else
+        begin
+          Result[0][I] += B;
+          Result[1][I] += A;
+        end;
+      end;
+    end;
+  end;
+
 begin
-  if IsEmptyBox3d(BBox) then
+  if IsEmptyBox3d(Box) then
     Exit(EmptyBox3d);
 
-  Box3dGetAllPoints(@boxpoints, bbox);
-  for i := 0 to 7 do boxpoints[i] := MultMatrixPoint(Matrix, boxpoints[i]);
-
-  { Non-optimized version:
-      Result := CalculateBoundingBox(@boxpoints, 8, 0);
-
-    But it turns out that the code below, that does essentially the same
-    thing as CalculateBoundingBox implementation, works noticeably faster.
-    This is noticeable on "The Castle" with many creatures: then a considerable
-    time is spend inside TCreature.BoundingBox, that must calculate
-    transformed bounding boxes.
-  }
-
-  Result[0] := BoxPoints[0];
-  Result[1] := BoxPoints[0];
-  for I := 1 to High(BoxPoints) do
-  begin
-    if BoxPoints[I, 0] < Result[0, 0] then Result[0, 0] := BoxPoints[I, 0];
-    if BoxPoints[I, 1] < Result[0, 1] then Result[0, 1] := BoxPoints[I, 1];
-    if BoxPoints[I, 2] < Result[0, 2] then Result[0, 2] := BoxPoints[I, 2];
-    if BoxPoints[I, 0] > Result[1, 0] then Result[1, 0] := BoxPoints[I, 0];
-    if BoxPoints[I, 1] > Result[1, 1] then Result[1, 1] := BoxPoints[I, 1];
-    if BoxPoints[I, 2] > Result[1, 2] then Result[1, 2] := BoxPoints[I, 2];
-  end;
+  if (Matrix[0][3] = 0) and
+     (Matrix[1][3] = 0) and
+     (Matrix[2][3] = 0) and
+     (Matrix[3][3] = 1) then
+    Result := Faster(Box, Matrix) else
+    Result := Slower(Box, Matrix);
 end;
 
 function Box3dTranslate(const Box: TBox3d;

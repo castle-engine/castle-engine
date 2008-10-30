@@ -32,16 +32,14 @@ type
     procedure TestIsBox3dPlaneCollision;
     procedure TestIsBox3dTriangleCollision;
     procedure TestIsBox3dTriangleCollisionEpsilons;
+    procedure TestBox3dTransform;
   end;
 
 implementation
 
-uses VectorMath, KambiUtils, Boxes3d, KambiStringUtils;
+uses VectorMath, KambiUtils, Boxes3d, KambiStringUtils, KambiTimeUtils;
 
 procedure TTestBoxes3d.TestIsCenteredBox3dPlaneCollision;
-var
-  BoxHalfSize: TVector3Single;
-  Plane: TVector4Single;
 begin
   { box 10, 1, 1 with a plane that crosses 0,0,0 point always collides }
   Assert(IsCenteredBox3dPlaneCollision(
@@ -561,6 +559,140 @@ begin
     { Not sure what the result should be... ? But it sure depends on the epsilon used in
       IsBox3dTriangleCollision. Test on Double values shows that this should be false.
       }); *)
+end;
+
+procedure TTestBoxes3d.TestBox3dTransform;
+{ Test Box3dTransform for correctness and speed.
+  Compare with Slower implementation, that should be slower
+  (on non-projection matrices) but give the same results. }
+
+  function Slower(const Box: TBox3d; const Matrix: TMatrix4Single): TBox3d;
+  var
+    BoxPoints: array [0..7] of TVector3Single;
+    i: integer;
+  begin
+    if IsEmptyBox3d(Box) then
+      Exit(EmptyBox3d);
+
+    Box3dGetAllPoints(@boxpoints, Box);
+    for i := 0 to 7 do boxpoints[i] := MultMatrixPoint(Matrix, boxpoints[i]);
+
+    { Non-optimized version:
+        Result := CalculateBoundingBox(@boxpoints, 8, 0);
+
+      But it turns out that the code below, that does essentially the same
+      thing as CalculateBoundingBox implementation, works noticeably faster.
+      This is noticeable on "The Castle" with many creatures: then a considerable
+      time is spend inside TCreature.BoundingBox, that must calculate
+      transformed bounding boxes.
+    }
+
+    Result[0] := BoxPoints[0];
+    Result[1] := BoxPoints[0];
+    for I := 1 to High(BoxPoints) do
+    begin
+      if BoxPoints[I, 0] < Result[0, 0] then Result[0, 0] := BoxPoints[I, 0];
+      if BoxPoints[I, 1] < Result[0, 1] then Result[0, 1] := BoxPoints[I, 1];
+      if BoxPoints[I, 2] < Result[0, 2] then Result[0, 2] := BoxPoints[I, 2];
+      if BoxPoints[I, 0] > Result[1, 0] then Result[1, 0] := BoxPoints[I, 0];
+      if BoxPoints[I, 1] > Result[1, 1] then Result[1, 1] := BoxPoints[I, 1];
+      if BoxPoints[I, 2] > Result[1, 2] then Result[1, 2] := BoxPoints[I, 2];
+    end;
+  end;
+
+  function RandomBox: TBox3d;
+  var
+    I: Integer;
+  begin
+    for I := 0 to 2 do
+    begin
+      Result[0][I] := 50 - Random * 100;
+      Result[1][I] := 50 - Random * 100;
+      OrderUp(Result[0][I], Result[1][I]);
+    end;
+  end;
+
+  function RandomMatrix: TMatrix4Single;
+  var
+    I, J: Integer;
+  begin
+    for I := 0 to 3 do
+      for J := 0 to 3 do
+        Result[I][J] := 50 - Random * 100;
+  end;
+
+  function RandomNonProjectionMatrix: TMatrix4Single;
+  var
+    I, J: Integer;
+  begin
+    for I := 0 to 3 do
+      for J := 0 to 2 do
+        Result[I][J] := 50 - Random * 100;
+
+    Result[0][3] := 0;
+    Result[1][3] := 0;
+    Result[2][3] := 0;
+    Result[3][3] := 1;
+  end;
+
+  procedure AssertBoxesEqual(const Box1, Box2: TBox3d);
+  var
+    I: Integer;
+  begin
+    for I := 0 to 2 do
+    begin
+      Assert(Box1[0][I] = Box2[0][I]);
+      Assert(Box1[1][I] = Box2[1][I]);
+    end;
+  end;
+
+var
+  Box: TBox3d;
+  I: Integer;
+  Matrix: TMatrix4Single;
+begin
+{  for I := 0 to 1000 do
+  begin
+    Box := RandomBox;
+    Matrix := RandomMatrix;
+    AssertBoxesEqual(Slower(Box, Matrix), Box3dTransform(Box, Matrix));
+  end;
+
+  for I := 0 to 1000 do
+  begin
+    Box := RandomBox;
+    Matrix := RandomNonProjectionMatrix;
+    AssertBoxesEqual(Slower(Box, Matrix), Box3dTransform(Box, Matrix));
+  end;}
+
+  {$define BOX3D_TRANSFORM_SPEED_TEST}
+  {$ifdef BOX3D_TRANSFORM_SPEED_TEST}
+  Writeln('On possibly projection matrix:');
+
+  Box := RandomBox;
+  Matrix := RandomMatrix;
+
+  ProcessTimerBegin;
+  for I := 0 to 1000000 do Slower(Box, Matrix);
+  Writeln(Format('Slower: %f', [ProcessTimerEnd]));
+
+  ProcessTimerBegin;
+  for I := 0 to 1000000 do Box3dTransform(Box, Matrix);
+  Writeln(Format('Box3dTransform: %f', [ProcessTimerEnd]));
+
+  Writeln('On non-projection matrix:');
+
+  Box := RandomBox;
+  Matrix := RandomNonProjectionMatrix;
+
+  ProcessTimerBegin;
+  for I := 0 to 1000000 do Slower(Box, Matrix);
+  Writeln(Format('Slower: %f', [ProcessTimerEnd]));
+
+  ProcessTimerBegin;
+  for I := 0 to 1000000 do Box3dTransform(Box, Matrix);
+  Writeln(Format('Box3dTransform: %f', [ProcessTimerEnd]));
+  {$endif BOX3D_TRANSFORM_SPEED_TEST}
 end;
 
 initialization

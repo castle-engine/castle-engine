@@ -348,7 +348,7 @@ begin
   SVHelper.InitFrustumAndLight(Glw.WalkNav.Frustum, MainLightPosition);
 
   SVHelper.InitSceneDontSetupStencil(
-    BoundingBoxTransform(ShadowCaster.BoundingBox, ShadowCasterNav.Matrix));
+    Box3dTransform(ShadowCaster.BoundingBox, ShadowCasterNav.Matrix));
 
   if (ShadowsImplementation = siNone) or (not SVHelper.SceneShadowPossiblyVisible) then
   begin
