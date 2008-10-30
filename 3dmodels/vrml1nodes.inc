@@ -562,9 +562,8 @@
     private FFdMatrix: TSFMatrix;
     public property FdMatrix: TSFMatrix read FFdMatrix;
 
-    { Returns simply FdMatrix as transformation. Returns identity as
-      InvertedMatrix --- calculating actual inverted matrix from any matrix
-      is too difficult. }
+    { Returns simply FdMatrix as transformation. Inverse is also calculated
+      (if matrix is invertible at all, otherwise identity is returned). }
     procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); override;
 
     { Return average scale for this FdMatrix.
@@ -1804,9 +1803,15 @@ end;
 
 procedure TNodeMatrixTransform_1.Transformation(
   out Matrix, InvertedMatrix: TMatrix4Single);
+var
+  D: Single;
 begin
   Matrix := FdMatrix.Value;
-  InvertedMatrix := IdentityMatrix4Single;
+
+  D := MatrixDeterminant(Matrix);
+  if not IsZero(D) then
+    InvertedMatrix := MatrixInverse(Matrix, D) else
+    InvertedMatrix := IdentityMatrix4Single;
 end;
 
 function TNodeMatrixTransform_1.AverageScaleTransform: Single;

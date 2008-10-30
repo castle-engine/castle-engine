@@ -150,6 +150,8 @@ begin
 end;
 
 procedure TNodeMatrixTransform_2.BeforeTraverse(var State: TVRMLGraphTraverseState);
+var
+  D: Single;
 begin
   inherited;
 
@@ -157,11 +159,13 @@ begin
 
   State.Transform := MatrixMult(State.Transform, FdMatrix.Value);
 
-  { We simply are not able to invert matrices for now,
-    so InvertedMatrix = just IdentityMatrix4Single.
-  State.InvertedTransform :=
-    MatrixMult(IdentityMatrix4Single, State.InvertedTransform);
-  }
+  D := MatrixDeterminant(FdMatrix.Value);
+  if not IsZero(D) then
+    State.InvertedTransform :=
+      MatrixMult(MatrixInverse(FdMatrix.Value, D), State.InvertedTransform);
+  { When determinant is zero, we treat inverted matrix
+    like identity (like in TNodeMatrixTransform_1.Transformation).
+    So no need to multiply State.InvertedTransform by anything. }
 
   State.AverageScaleTransform *= FdMatrix.AverageScaleTransform;
 end;
