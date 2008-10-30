@@ -639,10 +639,16 @@ procedure TTestBoxes3d.TestBox3dTransform;
   var
     I: Integer;
   begin
-    for I := 0 to 2 do
-    begin
-      Assert(Box1[0][I] = Box2[0][I]);
-      Assert(Box1[1][I] = Box2[1][I]);
+    try
+      for I := 0 to 2 do
+      begin
+        Assert(FloatsEqual(Box1[0][I], Box2[0][I], 0.01));
+        Assert(FloatsEqual(Box1[1][I], Box2[1][I], 0.01));
+      end;
+    except
+      writeln('AssertBoxesEqual failed: ',
+        Box3dToNiceStr(Box1), ' ', Box3dToNiceStr(Box2));
+      raise;
     end;
   end;
 
@@ -651,7 +657,7 @@ var
   I: Integer;
   Matrix: TMatrix4Single;
 begin
-{  for I := 0 to 1000 do
+  for I := 0 to 1000 do
   begin
     Box := RandomBox;
     Matrix := RandomMatrix;
@@ -663,9 +669,9 @@ begin
     Box := RandomBox;
     Matrix := RandomNonProjectionMatrix;
     AssertBoxesEqual(Slower(Box, Matrix), Box3dTransform(Box, Matrix));
-  end;}
+  end;
 
-  {$define BOX3D_TRANSFORM_SPEED_TEST}
+  { $define BOX3D_TRANSFORM_SPEED_TEST}
   {$ifdef BOX3D_TRANSFORM_SPEED_TEST}
   Writeln('On possibly projection matrix:');
 
