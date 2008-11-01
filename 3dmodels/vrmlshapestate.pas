@@ -256,7 +256,7 @@ type
 
 implementation
 
-uses ProgressUnit;
+uses ProgressUnit, VRMLOctreeItems;
 
 {$define read_implementation}
 {$I objectslist_1.inc}

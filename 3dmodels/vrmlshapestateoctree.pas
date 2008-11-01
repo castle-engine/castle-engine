@@ -172,7 +172,10 @@ begin
       on ETransformedResultInvalid do Result := nil;
     end;
     if Result <> nil then
+    begin
+      Result^.UpdateWorld;
       Exit;
+    end;
   end;
 end;
 
@@ -199,7 +202,10 @@ begin
       on ETransformedResultInvalid do Result := nil;
     end;
     if Result <> nil then
+    begin
+      Result^.UpdateWorld;
       Exit;
+    end;
   end;
 end;
 
@@ -238,7 +244,10 @@ begin
         on ETransformedResultInvalid do Result := nil;
       end;
       if Result <> nil then
+      begin
+        Result^.UpdateWorld;
         Exit;
+      end;
     end;
   end else
   begin
@@ -268,6 +277,9 @@ begin
         Result               := ThisResult;
       end;
     end;
+
+    if Result <> nil then
+      Result^.UpdateWorld;
   end;
 end;
 
@@ -306,7 +318,10 @@ begin
         on ETransformedResultInvalid do Result := nil;
       end;
       if Result <> nil then
+      begin
+        Result^.UpdateWorld;
         Exit;
+      end;
     end;
   end else
   begin
@@ -336,6 +351,9 @@ begin
         Result               := ThisResult;
       end;
     end;
+
+    if Result <> nil then
+      Result^.UpdateWorld;
   end;
 end;
 

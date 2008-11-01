@@ -418,7 +418,7 @@ var
 
         if TryTransmittedRayVector(
           TransmittedRayVec, Vector_Get_Normalized(RayVector),
-          IntersectNode^.TrianglePlane.Plane, EtaFrom, EtaTo) then
+          IntersectNode^.World.Plane, EtaFrom, EtaTo) then
         begin
           TransmittedColor := Trace(Intersection, TransmittedRayVec,
             Depth - 1, IntersectNode, true);
@@ -435,7 +435,7 @@ var
       if MaterialMirror > 0 then
       begin
         ReflRayVector := ReflectedRayVector(Vector_Get_Normalized(RayVector),
-          IntersectNode^.TrianglePlane.Plane);
+          IntersectNode^.World.Plane);
         ReflColor := Trace(Intersection, ReflRayVector, Depth - 1,
           IntersectNode, true);
         Result := Result * (1 - MaterialMirror) + ReflColor * MaterialMirror;
@@ -460,7 +460,7 @@ var
         In such case the light shines on IntersectNode, but from the opposite
         side, so we will not add it here. }
       Result := Octree.ActiveLightNotBlocked(Light,
-        Intersection, IntersectNode^.TrianglePlane.Normal,
+        Intersection, IntersectNode^.World.Normal,
         -RayVector, IntersectNode, true);
     end;
 
@@ -716,8 +716,8 @@ const
        (CachedShadower <> Item) then
     begin
       {TODO:Inc(Octree.DirectCollisionTestsCounter);}
-      if IsTriangleSegmentCollision(CachedShadower^.Triangle,
-        CachedShadower^.TrianglePlane.Plane, ItemPoint, LightSourcePoint) then
+      if IsTriangleSegmentCollision(CachedShadower^.World.Triangle,
+        CachedShadower^.World.Plane, ItemPoint, LightSourcePoint) then
         Exit(true);
 
       { powyzej zapominamy o marginesie epsilonowym wokol ItemPoint i
@@ -772,7 +772,7 @@ const
 
         Result := TryTransmittedRayVector(TransmittedRayVector,
           Vector_Get_Normalized(RayVector),
-          IntersectNode^.TrianglePlane.Plane, EtaFrom, EtaTo);
+          IntersectNode^.World.Plane, EtaFrom, EtaTo);
         if Result then
           TracedDir := PhiThetaToXYZ(
             RandomUnitHemispherePointDensityCosThetaExp(
@@ -839,7 +839,7 @@ const
             Lepiej pozniej sprawdz ze SampleLightPoint jest
             rozny od Intersection (poniewaz SampleLightPoint jest losowy to na
             nieprawidlowo skonstruowanym modelu wszystko moze sie zdarzyc...)  }
-          SampleLightPoint := SampleTrianglePoint(LightSource^.Triangle);
+          SampleLightPoint := SampleTrianglePoint(LightSource^.World.Triangle);
           if VectorsEqual(SampleLightPoint, Intersection) then Continue;
 
           { calculate LigtDirNorm (nieznormalizowane).
@@ -849,7 +849,7 @@ const
             swiatlo nie oswietla naszego pixela. }
           LightDirNorm := SampleLightPoint - Intersection;
           if not VectorsSamePlaneDirections(LightDirNorm, IntersectNormalInRay0Dir,
-            IntersectNode^.TrianglePlane.Plane) then Continue;
+            IntersectNode^.World.Plane) then Continue;
 
           { sprawdz IsLightShadowed, czyli zrob shadow ray }
           if IsLightShadowed(IntersectNode, Intersection,
@@ -870,20 +870,20 @@ const
           { Wymnoz DirectColor
             1) przez GeometryFunction czyli
                  cos(LightDirNorm, IntersectNormalInRay0Dir)
-                   * cos(-LightDirNorm, LightSource.TrianglePlane.Normal) /
+                   * cos(-LightDirNorm, LightSource.World.Normal) /
                    PointsDistanceSqr(SampleLightPoint, Intersection).
                Cosinusy naturalnie licz uzywajac dot product.
             2) przez TriangleArea
 
             Mozna zauwazyc ze czlon
               TriangleArea *
-              cos(-LightDirNorm, LightSource.TrianglePlane.Normal) /
+              cos(-LightDirNorm, LightSource.World.Normal) /
                 PointsDistanceSqr(SampleLightPoint, Intersection)
             liczy po prostu solid angle swiatla with respect to Intersection
             (no, mowiac scisle pewne bardzo dobre przyblizenie tego solid angle).
 
             Moze byc tutaj pouczajace zobaczyc jak to dziala gdy usuniemy mnozenie
-              przez cos(-LightDirNorm, LightSource.TrianglePlane.Normal)
+              przez cos(-LightDirNorm, LightSource.World.Normal)
               (swiatlo bedzie wtedy jasniej swiecilo jakby "w bok"),
             pouczajace moze tez byc usuniecie dzielenia przez
               PointsDistanceSqr(SampleLightPoint, Intersection) i jednoczesnie
@@ -898,9 +898,9 @@ const
           DirectColor *=
             (LightDirNorm ** IntersectNormalInRay0Dir) *
             (NegatedLightDirNorm **
-              PlaneDirInDirection(LightSource^.TrianglePlane.Plane,
+              PlaneDirInDirection(LightSource^.World.Plane,
                 NegatedLightDirNorm)) *
-            LightSource^.TriangleArea /
+            LightSource^.World.Area /
             PointsDistanceSqr(SampleLightPoint, Intersection);
 
           Result += DirectColor;
@@ -990,7 +990,7 @@ const
         begin
           { calculate IntersectNormalInRay0Dir - Normal at intersection in direction Ray0 }
           IntersectNormalInRay0Dir := PlaneDirNotInDirection(
-            IntersectNode^.TrianglePlane.Plane, RayVector);
+            IntersectNode^.World.Plane, RayVector);
 
           { calculate TracedDir i PdfValue samplujac odpowiednio polsfere
            (na podstawie ck). W przypadku TS moze wystapic calk. odbicie wewn.
@@ -1009,7 +1009,7 @@ const
                       Round(MaterialNode.ReflSpecularExp(IntersectNode^.MatNum)),
                       PdfValue),
                     ReflectedRayVector(Vector_Get_Normalized(RayVector),
-                      IntersectNode^.TrianglePlane.Plane));
+                      IntersectNode^.World.Plane));
           end;
 
           { wywolaj rekurencyjnie Trace(), a wiec idz sciezka dalej }

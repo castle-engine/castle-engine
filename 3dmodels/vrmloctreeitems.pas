@@ -40,6 +40,21 @@ type
   TOctreeItemMailboxState = (msEmpty, msRay, msSegmentDir);
   TCollisionCount = Int64;
 
+  TOctreeItemGeometry = record
+    Triangle: TTriangle3Single;
+
+    { Area of the triangle. In other words, just a precalculated for you
+      TriangleArea(Triangle). }
+    Area: Single;
+
+    case Integer of
+      0: ({ This is a calculated TriangleNormPlane(Triangle),
+            that is a 3D plane containing our Triangle, with normalized
+            direction vector. }
+          Plane: TVector4Single;);
+      1: (Normal: TVector3Single;);
+  end;
+
   { This is a single item of a triangle octree.
     In other words, this is really just a triangle with a lot
     of associated information.
@@ -62,10 +77,34 @@ type
       AState: TVRMLGraphTraverseState; AGeometryNode: TVRMLGeometryNode;
       const AMatNum, AFaceCoordIndexBegin, AFaceCoordIndexEnd: integer);
 
-    Triangle: TTriangle3Single;
+    { Geometry of this item.
+      We need two geometry descriptions:
 
-    { Calculated TriangleArea(Triangle) }
-    TriangleArea: Single;
+      @unorderedList(
+
+        @item(Local is based on initial Triangle, given when constructing
+          this TOctreeItem. It's constant for this TOctreeItem. It's used
+          by octree collision routines, that is things like
+          TVRMLItemsOctree.SphereCollision, TVRMLItemsOctree.RayCollision
+          and such expect parameters in the same coord space.
+
+          This may be local coord space of this shape (this is used
+          by TVRMLShapeState.OctreeTriangles) or world coord space
+          (this is used by TVRMLScene.OctreeTriangles).)
+
+        @item(World is the geometry of Local transformed to be in world
+          coordinates. Initially, World is just a copy of Local.
+
+          If Local already contains world-space geometry, then World
+          can just remain constant, and so is always Local copy.
+
+          If Local ontains local shape-space geometry, then World
+          will have to be updated by UpdateWorld whenever some octree item's
+          geometry will be needed in world coords. This will have to be
+          done e.g. by TVRMLItemsOctree.XxxCollision for each returned item.)
+      ) }
+    Loc, World: TOctreeItemGeometry;
+    procedure UpdateWorld;
 
     State: TVRMLGraphTraverseState;
     GeometryNode: TVRMLGeometryNode;
@@ -103,15 +142,6 @@ type
     MailboxIntersectionDistance: Single;
     { @groupEnd }
     {$endif}
-
-    TrianglePlane: record
-      case Integer of
-        0: ({ This is a calculated TriangleNormPlane(Triangle),
-              that is a 3D plane containing our Triangle, with normalized
-              direction vector. }
-            Plane: TVector4Single;);
-        1: (Normal: TVector3Single;);
-    end;
 
     { Check collisions between TOctreeItem and ray/segment.
 
@@ -581,9 +611,11 @@ constructor TOctreeItem.Init(const ATriangle: TTriangle3Single;
   AState: TVRMLGraphTraverseState; AGeometryNode: TVRMLGeometryNode;
   const AMatNum, AFaceCoordIndexBegin, AFaceCoordIndexEnd: Integer);
 begin
-  Triangle := ATriangle;
-  TrianglePlane.Plane := TriangleNormPlane(ATriangle);
-  TriangleArea := VectorMath.TriangleArea(ATriangle);
+  Loc.Triangle := ATriangle;
+  Loc.Plane := TriangleNormPlane(ATriangle);
+  Loc.Area := TriangleArea(ATriangle);
+
+  World := Loc;
 
   State := AState;
   GeometryNode := AGeometryNode;
@@ -594,6 +626,13 @@ begin
   {$ifdef OCTREE_ITEM_USE_MAILBOX}
   MailboxSavedTag := -1;
   {$endif}
+end;
+
+procedure TOctreeItem.UpdateWorld;
+begin
+  World.Triangle := TriangleTransform(Loc.Triangle, State.Transform);
+  World.Plane := TriangleNormPlane(World.Triangle);
+  World.Area := VectorMath.TriangleArea(World.Triangle);
 end;
 
 function TOctreeItem.SegmentDirCollision(
@@ -618,7 +657,7 @@ begin
 
     Result := TryTriangleSegmentDirCollision(
       Intersection, IntersectionDistance,
-      Triangle, TrianglePlane.Plane,
+      Loc.Triangle, Loc.Plane,
       Odc0, OdcVector);
     Inc(DirectCollisionTestsCounter);
 
@@ -661,7 +700,7 @@ begin
 
     result := TryTriangleRayCollision(
       Intersection, IntersectionDistance,
-      Triangle, TrianglePlane.Plane,
+      Loc.Triangle, Loc.Plane,
       Ray0, RayVector);
     Inc(DirectCollisionTestsCounter);
 
@@ -858,7 +897,7 @@ function TVRMLItemsOctree.MoveAllowed(
     PlaneNormalPtr: PVector3Single;
     NewPosShift: TVector3Single;
   begin
-    PlanePtr := @(Blocker^.TrianglePlane.Plane);
+    PlanePtr := @(Blocker^.World.Plane);
     PlaneNormalPtr := PVector3Single(PlanePtr);
 
     { project ProposedNewPos on a plane of blocking object }

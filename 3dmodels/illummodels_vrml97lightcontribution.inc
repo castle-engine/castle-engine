@@ -30,7 +30,7 @@ var Spot: Single;
     MaterialShininessExp: Single;
 
     {$define Point := Intersection}
-    {$define PointPlaneNormal := IntersectNode.TrianglePlane.Plane}
+    {$define PointPlaneNormal := IntersectNode.World.Plane}
     {$endif}
 
   function CalculateSpot_1(SpotLight: TNodeSpotLight_1): Single;
