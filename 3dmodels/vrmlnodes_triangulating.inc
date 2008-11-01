@@ -40,7 +40,7 @@ type
     State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
     const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
   begin
-    NewTriangle(TriangleTransform(Tri), State, GeometryNode, MatNum,
+    NewTriangle(TriangleTransform(Tri, Transform^), State, GeometryNode, MatNum,
       FaceCoordIndexBegin, FaceCoordIndexEnd);
   end;
 
