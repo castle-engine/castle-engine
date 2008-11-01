@@ -246,6 +246,7 @@ begin
       if Result <> nil then
       begin
         Result^.UpdateWorld;
+        Intersection := MatrixMultPoint(Result^.State.Transform, Intersection);
         Exit;
       end;
     end;
@@ -279,7 +280,10 @@ begin
     end;
 
     if Result <> nil then
+    begin
       Result^.UpdateWorld;
+      Intersection := MatrixMultPoint(Result^.State.Transform, Intersection);
+    end;
   end;
 end;
 
@@ -320,6 +324,7 @@ begin
       if Result <> nil then
       begin
         Result^.UpdateWorld;
+        Intersection := MatrixMultPoint(Result^.State.Transform, Intersection);
         Exit;
       end;
     end;
@@ -353,7 +358,10 @@ begin
     end;
 
     if Result <> nil then
+    begin
       Result^.UpdateWorld;
+      Intersection := MatrixMultPoint(Result^.State.Transform, Intersection);
+    end;
   end;
 end;
 
