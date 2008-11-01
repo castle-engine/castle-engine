@@ -77,7 +77,7 @@ type
     function SegmentCollision(
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
-      const pos1, pos2: TVector3Single;
+      const Pos1, Pos2: TVector3Single;
       {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
       const ReturnClosestIntersection: boolean;
       const OctreeItemToIgnore: POctreeItem;
@@ -93,7 +93,7 @@ type
       const OctreeItemToIgnore: POctreeItem;
       const IgnoreMarginAtStart: boolean;
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; override;
- end;
+  end;
 
   TVRMLShapeStateOctree = class(TVRMLItemsOctree)
   private
@@ -212,7 +212,7 @@ end;
 function TVRMLShapeStateOctreeNode.SegmentCollision(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
-  const pos1, pos2: TVector3Single;
+  const Pos1, Pos2: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
   const ReturnClosestIntersection: boolean;
   const OctreeItemToIgnore: POctreeItem;
