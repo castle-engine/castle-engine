@@ -285,7 +285,7 @@ begin
       Inc(ParentTree.DirectCollisionTestsCounter);
       Result := Items[i];
       if IsTriangleSphereCollision(Result^.Triangle,
-        Result^.TriangleNormalPlane, pos, Radius) and
+        Result^.TrianglePlane.Plane, pos, Radius) and
         (OctreeItemToIgnore <> Result) and
         ( (not Assigned(ItemsToIgnoreFunc)) or
           (not ItemsToIgnoreFunc(ParentTree, Result)) ) then
@@ -386,12 +386,14 @@ procedure TVRMLTriangleOctree.AddItemTriangle(const Triangle: TTriangle3Single;
   State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
   const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 begin
- if IsValidTriangle(Triangle) then
- begin
-  OctreeItems.AppendItem(CreateOctreeItem(Triangle, State, GeometryNode, MatNum,
-    FaceCoordIndexBegin, FaceCoordIndexEnd));
-  TreeRoot.AddItem(OctreeItems.High);
- end;
+  if IsValidTriangle(Triangle) then
+  begin
+    OctreeItems.IncLength;
+    OctreeItems.Items[OctreeItems.High].Init(
+      Triangle, State, GeometryNode, MatNum,
+      FaceCoordIndexBegin, FaceCoordIndexEnd);
+    TreeRoot.AddItem(OctreeItems.High);
+  end;
 end;
 
 { Create/Destroy ------------------------------------------------------------ }

@@ -3359,7 +3359,7 @@ begin
               { The best normal I can generate for now is flat normal
                 for the hit triangle. }
               TouchSensor.EventHitNormal_Changed.Send(
-                OverItem^.TriangleNormal, WorldTime);
+                OverItem^.TrianglePlane.Normal, WorldTime);
 
               { TODO: hitTexCoord_changed generation should also be done
                 here, but honestly I just cannot do this with current

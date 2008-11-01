@@ -44,10 +44,24 @@ type
     In other words, this is really just a triangle with a lot
     of associated information.
 
-    @bold(Never modify fields of this record directly) ---
-    this record should be created only by CreateOctreeItem and
-    modified by other routines in this unit. }
-  TOctreeItem = record
+    This object should always be initialized by @link(Init),
+    and updated only by it's methods (never modify fields of
+    this object directly).
+
+    I use old-style "object" to define this,
+    since this makes it a little more efficient. This doesn't need
+    any virtual methods or such, so (at least for now) it's easier
+    and more memory-efficient to keep this as an old-style object.
+    And memory efficiency is somewhat important here, since large
+    scenes may easily have milions of triangles, and each triangle
+    results in one TOctreeItem instance. }
+  TOctreeItem = object
+  public
+    { Initialize new TOctreeItem. Given Triangle must satisfy IsValidTriangle. }
+    constructor Init(const ATriangle: TTriangle3Single;
+      AState: TVRMLGraphTraverseState; AGeometryNode: TVRMLGeometryNode;
+      const AMatNum, AFaceCoordIndexBegin, AFaceCoordIndexEnd: integer);
+
     Triangle: TTriangle3Single;
 
     { Calculated TriangleArea(Triangle) }
@@ -90,12 +104,39 @@ type
     { @groupEnd }
     {$endif}
 
-    case Integer of
-      0: ({ This is a calculated TriangleNormPlane(Triangle),
-            that is a 3D plane containing our Triangle, with normalized
-            direction vector. }
-          TriangleNormalPlane: TVector4Single;);
-      1: (TriangleNormal: TVector3Single;);
+    TrianglePlane: record
+      case Integer of
+        0: ({ This is a calculated TriangleNormPlane(Triangle),
+              that is a 3D plane containing our Triangle, with normalized
+              direction vector. }
+            Plane: TVector4Single;);
+        1: (Normal: TVector3Single;);
+    end;
+
+    { Check collisions between TOctreeItem and ray/segment.
+
+      Always use these routines to check for collisions,
+      to use mailboxes if possible. Mailboxes are used only if this was
+      compiled with OCTREE_ITEM_USE_MAILBOX defined.
+
+      Increments DirectCollisionTestsCounter if actual test was done
+      (that is, if we couldn't use mailbox to get the result quickier).
+
+      @groupBegin }
+    function SegmentDirCollision(
+      out Intersection: TVector3Single;
+      out IntersectionDistance: Single;
+      const Odc0, OdcVector: TVector3Single;
+      {$ifdef OCTREE_ITEM_USE_MAILBOX} const OdcTag: Int64; {$endif}
+      var DirectCollisionTestsCounter: TCollisionCount): boolean;
+
+    function RayCollision(
+      out Intersection: TVector3Single;
+      out IntersectionDistance: Single;
+      const Ray0, RayVector: TVector3Single;
+      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayTag: Int64; {$endif}
+      var DirectCollisionTestsCounter: TCollisionCount): boolean;
+    { @groupEnd }
   end;
   POctreeItem = ^TOctreeItem;
 
@@ -104,36 +145,6 @@ type
   {$define DYNARRAY_1_IS_STRUCT}
   {$I dynarray_1.inc}
   TDynOctreeItemsArray = TDynArray_1;
-
-{ Create new TOctreeItem. Given Triangle must satisfy IsValidTriangle. }
-function CreateOctreeItem(const Triangle: TTriangle3Single;
-  State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
-  const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer): TOctreeItem;
-
-{ Check collisions between TOctreeItem and ray/segment.
-
-  Always use these routines to check for collisions,
-  to use mailboxes if possible. Mailboxes are used only if this was
-  compiled with OCTREE_ITEM_USE_MAILBOX defined.
-
-  Increments DirectCollisionTestsCounter if actual test was done
-  (that is, if we couldn't use mailbox to get the result quickier).
-
-  @groupBegin }
-function TryOctreeItemSegmentDirCollision(
-  out Intersection: TVector3Single;
-  out IntersectionDistance: Single;
-  var OctreeItem: TOctreeItem; const Odc0, OdcVector: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const OdcTag: Int64; {$endif}
-  var DirectCollisionTestsCounter: TCollisionCount): boolean;
-
-function TryOctreeItemRayCollision(
-  out Intersection: TVector3Single;
-  out IntersectionDistance: Single;
-  var OctreeItem: TOctreeItem; const Ray0, RayVector: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayTag: Int64; {$endif}
-  var DirectCollisionTestsCounter: TCollisionCount): boolean;
-{ @groupEnd }
 
 { TVRMLItemsOctree ----------------------------------------------------------- }
 
@@ -566,40 +577,40 @@ implementation
 
 { TOctreeItem  ------------------------------------------------------------ }
 
-function CreateOctreeItem(const Triangle: TTriangle3Single;
-  State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
-  const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer): TOctreeItem;
+constructor TOctreeItem.Init(const ATriangle: TTriangle3Single;
+  AState: TVRMLGraphTraverseState; AGeometryNode: TVRMLGeometryNode;
+  const AMatNum, AFaceCoordIndexBegin, AFaceCoordIndexEnd: Integer);
 begin
-  result.Triangle := Triangle;
-  result.TriangleNormalPlane := TriangleNormPlane(Triangle);
-  result.TriangleArea := TriangleArea(Triangle);
+  Triangle := ATriangle;
+  TrianglePlane.Plane := TriangleNormPlane(ATriangle);
+  TriangleArea := VectorMath.TriangleArea(ATriangle);
 
-  result.State := State;
-  result.GeometryNode := GeometryNode;
-  result.MatNum := MatNum;
-  result.FaceCoordIndexBegin := FaceCoordIndexBegin;
-  result.FaceCoordIndexEnd := FaceCoordIndexEnd;
+  State := AState;
+  GeometryNode := AGeometryNode;
+  MatNum := AMatNum;
+  FaceCoordIndexBegin := AFaceCoordIndexBegin;
+  FaceCoordIndexEnd := AFaceCoordIndexEnd;
 
   {$ifdef OCTREE_ITEM_USE_MAILBOX}
-  result.MailboxSavedTag := -1;
+  MailboxSavedTag := -1;
   {$endif}
 end;
 
-function TryOctreeItemSegmentDirCollision(
+function TOctreeItem.SegmentDirCollision(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
-  var OctreeItem: TOctreeItem; const Odc0, OdcVector: TVector3Single;
+  const Odc0, OdcVector: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const OdcTag: Int64; {$endif}
   var DirectCollisionTestsCounter: TCollisionCount): boolean;
 begin
   {$ifdef OCTREE_ITEM_USE_MAILBOX}
-  if OctreeItem.MailboxSavedTag = OdcTag then
+  if MailboxSavedTag = OdcTag then
   begin
-    result := OctreeItem.MailboxIsIntersection;
+    result := MailboxIsIntersection;
     if result then
     begin
-      Intersection         := OctreeItem.MailboxIntersection;
-      IntersectionDistance := OctreeItem.MailboxIntersectionDistance;
+      Intersection         := MailboxIntersection;
+      IntersectionDistance := MailboxIntersectionDistance;
     end;
   end else
   begin
@@ -607,30 +618,27 @@ begin
 
     Result := TryTriangleSegmentDirCollision(
       Intersection, IntersectionDistance,
-      OctreeItem.Triangle, OctreeItem.TriangleNormalPlane,
+      Triangle, TrianglePlane.Plane,
       Odc0, OdcVector);
     Inc(DirectCollisionTestsCounter);
 
   {$ifdef OCTREE_ITEM_USE_MAILBOX}
     { save result to mailbox }
-    with OctreeItem do
+    MailboxSavedTag := OdcTag;
+    MailboxIsIntersection := result;
+    if result then
     begin
-      MailboxSavedTag := OdcTag;
-      MailboxIsIntersection := result;
-      if result then
-      begin
-        MailboxIntersection         := Intersection;
-        MailboxIntersectionDistance := IntersectionDistance;
-      end;
+      MailboxIntersection         := Intersection;
+      MailboxIntersectionDistance := IntersectionDistance;
     end;
   end;
   {$endif}
 end;
 
-function TryOctreeItemRayCollision(
+function TOctreeItem.RayCollision(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
-  var OctreeItem: TOctreeItem; const Ray0, RayVector: TVector3Single;
+  const Ray0, RayVector: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayTag: Int64; {$endif}
   var DirectCollisionTestsCounter: TCollisionCount): boolean;
 begin
@@ -639,13 +647,13 @@ begin
     najpierw porownywac przechowywane w skrzynce RayVector (niz Ray0)
     zeby moc szybciej stwierdzic niezgodnosc. }
   {$ifdef OCTREE_ITEM_USE_MAILBOX}
-  if OctreeItem.MailboxSavedTag = RayTag then
+  if MailboxSavedTag = RayTag then
   begin
-    result := OctreeItem.MailboxIsIntersection;
+    result := MailboxIsIntersection;
     if result then
     begin
-      Intersection         := OctreeItem.MailboxIntersection;
-      IntersectionDistance := OctreeItem.MailboxIntersectionDistance;
+      Intersection         := MailboxIntersection;
+      IntersectionDistance := MailboxIntersectionDistance;
     end;
   end else
   begin
@@ -653,21 +661,18 @@ begin
 
     result := TryTriangleRayCollision(
       Intersection, IntersectionDistance,
-      OctreeItem.Triangle, OctreeItem.TriangleNormalPlane,
+      Triangle, TrianglePlane.Plane,
       Ray0, RayVector);
     Inc(DirectCollisionTestsCounter);
 
   {$ifdef OCTREE_ITEM_USE_MAILBOX}
     { zapisz wyniki do mailboxa }
-    with OctreeItem do
+    MailboxSavedTag := RayTag;
+    MailboxIsIntersection := result;
+    if result then
     begin
-      MailboxSavedTag := RayTag;
-      MailboxIsIntersection := result;
-      if result then
-      begin
-        MailboxIntersection         := Intersection;
-        MailboxIntersectionDistance := IntersectionDistance;
-      end;
+      MailboxIntersection         := Intersection;
+      MailboxIntersectionDistance := IntersectionDistance;
     end;
   end;
   {$endif}
@@ -853,7 +858,7 @@ function TVRMLItemsOctree.MoveAllowed(
     PlaneNormalPtr: PVector3Single;
     NewPosShift: TVector3Single;
   begin
-    PlanePtr := @(Blocker^.TriangleNormalPlane);
+    PlanePtr := @(Blocker^.TrianglePlane.Plane);
     PlaneNormalPtr := PVector3Single(PlanePtr);
 
     { project ProposedNewPos on a plane of blocking object }

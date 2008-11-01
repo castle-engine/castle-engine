@@ -76,13 +76,13 @@ var
     begin
       Result:=
         {$ifdef SEGMENT_COLLISION}
-        TryOctreeItemSegmentDirCollision(Intersection, IntersectionDistance,
-          Item, Pos1, RayVector,
+        Item.SegmentDirCollision(Intersection, IntersectionDistance,
+          Pos1, RayVector,
           {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
           ParentTree.DirectCollisionTestsCounter)
         {$else}
-        TryOctreeItemRayCollision(Intersection, IntersectionDistance,
-          Item, Ray0, RayVector,
+        Item.RayCollision(Intersection, IntersectionDistance,
+          Ray0, RayVector,
           {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
           ParentTree.DirectCollisionTestsCounter)
         {$endif}
