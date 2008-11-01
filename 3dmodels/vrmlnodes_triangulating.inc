@@ -39,12 +39,9 @@ type
   procedure TTriangulateRedirect.LocalNewTriangle(const Tri: TTriangle3Single;
     State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
     const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
-  var i: integer;
-      NewT: TTriangle3Single;
   begin
-   for i := 0 to 2 do NewT[i] := MatrixMultPoint(Transform^, Tri[i]);
-   NewTriangle(NewT, State, GeometryNode, MatNum,
-     FaceCoordIndexBegin, FaceCoordIndexEnd);
+    NewTriangle(TriangleTransform(Tri), State, GeometryNode, MatNum,
+      FaceCoordIndexBegin, FaceCoordIndexEnd);
   end;
 
 procedure TVRMLGeometryNode.Triangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);

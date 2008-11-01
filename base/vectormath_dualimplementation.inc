@@ -1196,6 +1196,13 @@ begin
    -resultNormal[2]*Tri[0, 2];
 end;
 
+function TriangleTransform(const Tri: TYPE_TRIANGLE3; const M: TYPE_MATRIX4): TYPE_TRIANGLE3;
+begin
+  Result[0] := MatrixMultPoint(M, Tri[0]);
+  Result[1] := MatrixMultPoint(M, Tri[1]);
+  Result[2] := MatrixMultPoint(M, Tri[2]);
+end;
+
 function TriangleArea(const Tri: TYPE_TRIANGLE3): TYPE_SCALAR;
 begin
  result := VectorLen(
@@ -1576,6 +1583,67 @@ begin
   for i := 0 to 3 do
     for j := 0 to 3 do
       result[i, j] := m[i, j]*s;
+end;
+
+function MatrixMultPoint(const m: TYPE_MATRIX4;
+  const pt: TYPE_VECTOR3): TYPE_VECTOR3;
+var
+  Divisor: TYPE_SCALAR;
+begin
+  { Simple implementation:
+  Result := Vector3SinglePoint(MatrixMultVector(m, Vector4Single(pt))); }
+
+  Result[0] := M[0, 0] * Pt[0] + M[1, 0] * Pt[1] + M[2, 0] * Pt[2] + M[3, 0];
+  Result[1] := M[0, 1] * Pt[0] + M[1, 1] * Pt[1] + M[2, 1] * Pt[2] + M[3, 1];
+  Result[2] := M[0, 2] * Pt[0] + M[1, 2] * Pt[1] + M[2, 2] * Pt[2] + M[3, 2];
+
+  { It looks strange, but the check below usually pays off.
+
+    Tests: 17563680 calls of this proc within Creatures.PrepareRender
+    inside "The Castle", gprof says that time without this check
+    is 12.01 secs and with this checks it's 8.25.
+
+    Why ? Because in 99% of situations, the conditions "(M[0, 3] = 0) and ..."
+    is true. Because that's how all usual matrices in 3D graphics
+    (translation, rotation, scaling) look like.
+    So usually I pay 4 comparisons (exact comparisons, not things like
+    FloatsEqual) and I avoid 3 multiplications, 4 additions and
+    3 divisions. }
+
+  if not (
+    (M[0, 3] = 0) and
+    (M[1, 3] = 0) and
+    (M[2, 3] = 0) and
+    (M[3, 3] = 1)) then
+  begin
+    Divisor := M[0, 3] * Pt[0] + M[1, 3] * Pt[1] + M[2, 3] * Pt[2] + M[3, 3];
+    if IsZero(Divisor) then
+      raise ETransformedResultInvalid.Create('3D point transformed by 4x4 matrix to a direction');
+
+    Result[0] /= Divisor;
+    Result[1] /= Divisor;
+    Result[2] /= Divisor;
+  end;
+end;
+
+function MatrixMultDirection(const m: TYPE_MATRIX4;
+  const Dir: TYPE_VECTOR3): TYPE_VECTOR3;
+var
+  Divisor: TYPE_SCALAR;
+begin
+  Result[0] := M[0, 0] * Dir[0] + M[1, 0] * Dir[1] + M[2, 0] * Dir[2];
+  Result[1] := M[0, 1] * Dir[0] + M[1, 1] * Dir[1] + M[2, 1] * Dir[2];
+  Result[2] := M[0, 2] * Dir[0] + M[1, 2] * Dir[1] + M[2, 2] * Dir[2];
+
+  if not (
+    (M[0, 3] = 0) and
+    (M[1, 3] = 0) and
+    (M[2, 3] = 0) ) then
+  begin
+    Divisor := M[0, 3] * Dir[0] + M[1, 3] * Dir[1] + M[2, 3] * Dir[2];
+    if not IsZero(Divisor) then
+      raise ETransformedResultInvalid.Create('3D direction transformed by 4x4 matrix to a point');
+  end;
 end;
 
 function MatrixMultVector(const m: TYPE_MATRIX4; const v: TYPE_VECTOR4): TYPE_VECTOR4;
