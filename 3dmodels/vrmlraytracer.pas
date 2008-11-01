@@ -41,7 +41,7 @@ unit VRMLRayTracer;
 interface
 
 uses VectorMath, Images, RaysWindow,
-  VRMLTriangleOctree, VRMLNodes, SpaceFillingCurves, Matrix;
+  VRMLOctreeItems, VRMLNodes, SpaceFillingCurves, Matrix;
 
 type
   TPixelsMadeNotifierFunc = procedure(PixelsMadeCount: Cardinal; Data: Pointer);
@@ -55,7 +55,7 @@ type
   public
     { This describes the actual scene that will be used.
       Must be set before calling @link(Execute). }
-    Octree: TVRMLTriangleOctree;
+    Octree: TVRMLItemsOctree;
 
     { Image where the ray-tracer result will be stored.
       Must be set before calling @link(Execute).
@@ -305,8 +305,7 @@ type
 
 implementation
 
-uses SysUtils, Math, KambiUtils, Boxes3d, IllumModels, SphereSampling,
-  VRMLOctreeItems;
+uses SysUtils, Math, KambiUtils, Boxes3d, IllumModels, SphereSampling;
 
 {$I vectormathinlines.inc}
 
@@ -460,7 +459,7 @@ var
         side of the plane than from where RayVector came.
         In such case the light shines on IntersectNode, but from the opposite
         side, so we will not add it here. }
-      Result := ActiveLightNotBlocked(Octree, Light,
+      Result := Octree.ActiveLightNotBlocked(Light,
         Intersection, IntersectNode^.TriangleNormal,
         -RayVector, IntersectNode, true);
     end;
@@ -704,7 +703,7 @@ const
   { TODO: transparent objects should scale light color instead of just
     letting it pass }
   var
-    OctreeIgnorer: TOctreeIgnore_Transparent_And_OneItem;
+    OctreeIgnorer: TVRMLOctreeIgnoreTransparentAndOneItem;
     Shadower: POctreeItem;
   {$ifdef PATHTR_USES_SHADOW_CACHE}
     CachedShadower: POctreeItem;
@@ -716,7 +715,7 @@ const
     if (CachedShadower <> nil) and
        (CachedShadower <> Item) then
     begin
-      Inc(Octree.DirectCollisionTestsCounter);
+      {TODO:Inc(Octree.DirectCollisionTestsCounter);}
       if IsTriangleSegmentCollision(CachedShadower^.Triangle,
         CachedShadower^.TriangleNormalPlane, ItemPoint, LightSourcePoint) then
         Exit(true);
@@ -732,7 +731,7 @@ const
     {$endif}
 
     { oblicz przeciecie uzywajac Octree }
-    OctreeIgnorer := TOctreeIgnore_Transparent_And_OneItem.Create(
+    OctreeIgnorer := TVRMLOctreeIgnoreTransparentAndOneItem.Create(
       LightItems.Items[LightSourceIndiceIndex]);
     try
       Shadower := Octree.SegmentCollision(ItemPoint, LightSourcePoint, false,
@@ -1111,7 +1110,7 @@ var
 
 var
   PixCoord: TVector2Cardinal;
-  i: integer;
+//  i: integer;
   SFCurve: TSpaceFillingCurve;
 begin
   { check parameters (path tracing i tak trwa bardzo dlugo wiec mozemy sobie
@@ -1129,11 +1128,12 @@ begin
   try
     { calculate LightIndices }
     LightItems := TDynPointerArray.Create;
+    {TODO:
     LightItems.AllowedCapacityOverflow := Octree.OctreeItems.Count div 4;
     for I := 0 to Octree.OctreeItems.Count - 1 do
       if IsLightSource(Octree.OctreeItems.Pointers[I]) then 
         LightItems.AppendItem(Octree.OctreeItems.Pointers[I]);
-    LightItems.AllowedCapacityOverflow := 4;
+    LightItems.AllowedCapacityOverflow := 4;}
 
     {$ifdef PATHTR_USES_SHADOW_CACHE}
     { calculate ShadowCache }

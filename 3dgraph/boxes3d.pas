@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2007 Michalis Kamburelis.
+  Copyright 2003-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -16,6 +16,8 @@
   You should have received a copy of the GNU General Public License
   along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
 }
 
 { Type TBox3d and many operations on it. }
@@ -197,7 +199,12 @@ procedure Box3dGetAllPoints(allpoints: PVector3Single; const box: TBox3d);
   Note that this is very optimized for Matrix with no projection
   (where last row of the last matrix = [0, 0, 0, 1]). It still works
   for all matrices (eventually fallbacks to simple "transform 8 corners and get
-  box enclosing them" method). }
+  box enclosing them" method).
+
+  @raises(ETransformedResultInvalid When the Matrix will
+  transform some point to a direction (vector with 4th component
+  equal zero). In this case we just cannot interpret the result as a 3D point,
+  so we also cannot interpret the final result as a box.) }
 function Box3dTransform(const Box: TBox3d;
   const Matrix: TMatrix4Single): TBox3d;
 
@@ -295,11 +302,14 @@ function FrustumBox3dCollisionPossible(const Frustum: TFrustum;
 function FrustumBox3dCollisionPossibleSimple(const Frustum: TFrustum;
   const Box: TBox3d): boolean;
 
-{ This calculates smallest possible sphere completely
-  enclosing given Box.
-  SphereRadiusSqr = 0 and SphereCenter is undefined if Box is empty. }
-procedure Box3dBoundingSphere(const Box3d: TBox3d;
+{ Smallest possible sphere completely enclosing given Box.
+  When Box is empty we return SphereRadiusSqr = 0 and undefined SphereCenter. }
+procedure BoundingSphereFromBox3d(const Box3d: TBox3d;
   var SphereCenter: TVector3Single; var SphereRadiusSqr: Single);
+
+{ Smallest possible box enclosing a sphere with Center, Radius. }
+function BoundingBox3dFromSphere(const Center: TVector3Single;
+  const Radius: Single): TBox3d;
 
 function Boxes3dCollision(const Box1, Box2: TBox3d): boolean;
 
@@ -779,7 +789,8 @@ begin
    PArray_Vector3Single(allpoints)^[i][j] := box[kombinacje[i, j], j];
 end;
 
-function Box3dTransform(const Box: TBox3d; const Matrix: TMatrix4Single): TBox3d;
+function Box3dTransform(const Box: TBox3d;
+  const Matrix: TMatrix4Single): TBox3d;
 
   function Slower(const Box: TBox3d; const Matrix: TMatrix4Single): TBox3d;
   var
@@ -1451,7 +1462,7 @@ begin
   Result := true;
 end;
 
-procedure Box3dBoundingSphere(const Box3d: TBox3d;
+procedure BoundingSphereFromBox3d(const Box3d: TBox3d;
   var SphereCenter: TVector3Single; var SphereRadiusSqr: Single);
 begin
  if IsEmptyBox3d(Box3d) then
@@ -1462,6 +1473,20 @@ begin
   SphereCenter := Box3dMiddle(Box3d);
   SphereRadiusSqr := PointsDistanceSqr(SphereCenter, Box3d[0]);
  end;
+end;
+
+function BoundingBox3dFromSphere(const Center: TVector3Single;
+  const Radius: Single): TBox3d;
+begin
+  Result[0] := Center;
+  Result[0][0] -= Radius;
+  Result[0][1] -= Radius;
+  Result[0][1] -= Radius;
+
+  Result[1] := Center;
+  Result[1][0] += Radius;
+  Result[1][1] += Radius;
+  Result[1][1] += Radius;
 end;
 
 function Boxes3dCollision(const Box1, Box2: TBox3d): boolean;

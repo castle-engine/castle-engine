@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2005,2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -16,6 +16,8 @@
   You should have received a copy of the GNU General Public License
   along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
 }
 
 (*@abstract(This unit provides common utilities and classes for making
@@ -562,7 +564,7 @@ begin
  inherited Create;
 
  FBox := ABox;
- Box3dBoundingSphere(Box, FBoundingSphereCenter, FBoundingSphereRadiusSqr);
+ BoundingSphereFromBox3d(Box, FBoundingSphereCenter, FBoundingSphereRadiusSqr);
  FMiddlePoint := AMiddlePoint;
 
  FParentTree := AParentTree;

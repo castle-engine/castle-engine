@@ -601,11 +601,11 @@ type
       @groupBegin }
     function CreateTriangleOctree(AMaxDepth, ALeafCapacity: integer;
       const ProgressTitle: string;
-      const Collidable: boolean;
-      const SetShapeOctrees: boolean = false): TVRMLTriangleOctree;
+      const Collidable: boolean): TVRMLTriangleOctree;
     function CreateShapeStateOctree(AMaxDepth, ALeafCapacity: integer;
       const ProgressTitle: string;
-      const Collidable: boolean): TVRMLShapeStateOctree;
+      const Collidable: boolean;
+      const SetShapeOctrees: boolean = false): TVRMLShapeStateOctree;
     { @groupEnd }
 
     TriangleOctreeToAdd: TVRMLTriangleOctree;
@@ -622,7 +622,7 @@ type
     FShapeStateOctreeProgressTitle: string;
 
     FOctreeRendering: TVRMLShapeStateOctree;
-    FOctreeCollisions: TVRMLTriangleOctree;
+    FOctreeCollisions: TVRMLShapeStateOctree;
     FOctreeVisibleTriangles: TVRMLTriangleOctree;
     FOctreeCollidableTriangles: TVRMLTriangleOctree;
 
@@ -886,12 +886,9 @@ type
       Note that when VRML scene contains Collision nodes, this octree
       contains the @italic(collidable (not necessarily rendered)) objects.
 
-      TODO: TEMPORARILY, IN SVN, THIS IS A TRIANGLE-BASED OCTREE, AND IT'S
-      UPDATED SIMPLY BY REBUILDING. THIS IS A WORK IN PROGRESS, AND WILL
-      BE CHANGED TO DESCRIBED ABOVE HIERARCHY VERY VERY SOON.
-      In other words, for now this is the same thing as OctreeCollidableTriangles,
-      except that it's updated (by very slow rebuilding). }
-    property OctreeCollisions: TVRMLTriangleOctree read FOctreeCollisions;
+      TODO: TEMPORARILY, THIS IS UPDATED SIMPLY BY REBUILDING.
+      THIS IS A WORK IN PROGRESS. }
+    property OctreeCollisions: TVRMLShapeStateOctree read FOctreeCollisions;
 
     { The octree containing all visible triangles.
       It's mainly useful for ray-tracers. When rendering using OpenGL,
@@ -2251,7 +2248,7 @@ begin
     PointingDeviceClear;
 
     FreeAndNil(FOctreeCollisions);
-    FOctreeCollisions := CreateTriangleOctree(
+    FOctreeCollisions := CreateShapeStateOctree(
       TriangleOctreeMaxDepth,
       TriangleOctreeLeafCapacity,
       TriangleOctreeProgressTitle,
@@ -2260,8 +2257,8 @@ begin
     { GeometryChanged for shapestates is needed to call only in this case.
       When OctreeCollisions = nil, then shapestates don't have any octree
       initialized. }
-    for I := 0 to ShapeStates.Count - 1 do
-      ShapeStates[I].GeometryChanged;
+{TODO: DpGeometryChanged should get param, saying which octrees are updated?}{    for I := 0 to ShapeStates.Count - 1 do
+      ShapeStates[I].GeometryChanged;}
   end;
 {$endif REBUILD_OCTREE}
 
@@ -2432,7 +2429,7 @@ begin
     end else
     if New and not Old then
     begin
-      FOctreeCollisions := CreateTriangleOctree(
+      FOctreeCollisions := CreateShapeStateOctree(
         TriangleOctreeMaxDepth,
         TriangleOctreeLeafCapacity,
         TriangleOctreeProgressTitle,
@@ -2486,8 +2483,7 @@ end;
 function TVRMLScene.CreateTriangleOctree(
   AMaxDepth, ALeafCapacity: integer;
   const ProgressTitle: string;
-  const Collidable: boolean;
-  const SetShapeOctrees: boolean): TVRMLTriangleOctree;
+  const Collidable: boolean): TVRMLTriangleOctree;
 
   procedure FillOctree(AddTriProc: TNewTriangleProc);
   var
@@ -2498,22 +2494,8 @@ function TVRMLScene.CreateTriangleOctree(
         geometry (Collision.proxy). }
       if (not Collidable) or
          (ShapeStates[I].State.InsideIgnoreCollision = 0) then
-      begin
         ShapeStates[I].GeometryNode.Triangulate(
           ShapeStates[I].State, false, AddTriProc);
-        if SetShapeOctrees then
-        begin
-          {
-            ShapeStates[I].TriangleOctreeMaxDepth :=
-            ShapeStates[I].TriangleOctreeLeafCapacity :=
-
-            Leave them at defaults? We shouldn't just use
-            our TriangleOctreeMaxDepth properties, they may be unsuitable.
-          }
-          ShapeStates[I].TriangleOctreeProgressTitle := TriangleOctreeProgressTitle;
-          ShapeStates[I].Octrees := [okTriangles];
-        end;
-      end;
   end;
 
 begin
@@ -2541,15 +2523,31 @@ end;
 function TVRMLScene.CreateShapeStateOctree(
   AMaxDepth, ALeafCapacity: integer;
   const ProgressTitle: string;
-  const Collidable: boolean): TVRMLShapeStateOctree;
+  const Collidable: boolean;
+  const SetShapeOctrees: boolean): TVRMLShapeStateOctree;
 
-  function AddShapeState(const I: Integer): boolean;
+  procedure AddShapeState(const I: Integer);
   begin
     { TODO: this has to be improved to handle collidable but not visible
       geometry (Collision.proxy). }
-    Result :=
-      (not Collidable) or
-      (ShapeStates[I].State.InsideIgnoreCollision = 0);
+    if (not Collidable) or
+       (ShapeStates[I].State.InsideIgnoreCollision = 0) then
+    begin
+      Result.TreeRoot.AddItem(I);
+
+      if SetShapeOctrees then
+      begin
+        {
+          ShapeStates[I].TriangleOctreeMaxDepth :=
+          ShapeStates[I].TriangleOctreeLeafCapacity :=
+
+          Leave them at defaults? We shouldn't just use
+          our TriangleOctreeMaxDepth properties, they may be unsuitable.
+        }
+        ShapeStates[I].TriangleOctreeProgressTitle := TriangleOctreeProgressTitle;
+        ShapeStates[I].Octrees := [okTriangles];
+      end;
+    end;
   end;
 
 var
@@ -2566,16 +2564,14 @@ begin
       try
         for I := 0 to ShapeStates.Count - 1 do
         begin
-          if AddShapeState(I) then
-            Result.TreeRoot.AddItem(I);
+          AddShapeState(I);
           Progress.Step;
         end;
       finally Progress.Fini end;
     end else
     begin
       for I := 0 to ShapeStates.Count - 1 do
-        if AddShapeState(I) then
-          Result.TreeRoot.AddItem(I);
+        AddShapeState(I);
     end;
   except Result.Free; raise end;
 end;

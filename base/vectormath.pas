@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2007 Michalis Kamburelis.
+  Copyright 2003-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -1720,14 +1720,42 @@ function MatrixMultScalar(const m: TMatrix4Single; const s: Single): TMatrix4Sin
 function MatrixMultScalar(const m: TMatrix3Double; const s: Double): TMatrix3Double;
 function MatrixMultScalar(const m: TMatrix4Double; const s: Double): TMatrix4Double;
 
-function MatrixMultPoint(const m: TMatrix4Single; const pt: TVector3Single): TVector3Single;
+type
+  ETransformedResultInvalid = class(EVectorMathInvalidOp);
+
+{ Transform a 3D point with 4x4 matrix.
+
+  This works by temporarily converting point to 4-component vector
+  (4th component is 1). After multiplying matrix * vector we divide
+  by 4th component. So this works Ok for all matrices,
+  even with last row different than identity (0, 0, 0, 1).
+  E.g. this works for projection matrices too.
+
+  @raises(ETransformedResultInvalid This is raised when matrix
+  will transform point to a direction (vector with 4th component
+  equal zero). In this case we just cannot interpret the result as a 3D point.) }
+function MatrixMultPoint(const m: TMatrix4Single;
+  const pt: TVector3Single): TVector3Single;
+
+{ Transform a 3D direction with 4x4 matrix.
+
+  This works by temporarily converting direction to 4-component vector
+  (4th component is 0). After multiplying matrix * vector we check
+  is the 4th component still 0 (eventually raising ETransformedResultInvalid).
+
+  @raises(ETransformedResultInvalid This is raised when matrix
+  will transform direction to a point (vector with 4th component
+  nonzero). In this case we just cannot interpret the result as a 3D direction.) }
+function MatrixMultDirection(const m: TMatrix4Single;
+  const Dir: TVector3Single): TVector3Single;
 
 function MatrixMultVector(const m: TMatrix3Single; const v: TVector3Single): TVector3Single; overload;
 function MatrixMultVector(const m: TMatrix4Single; const v: TVector4Single): TVector4Single; overload;
 function MatrixMultVector(const m: TMatrix3Double; const v: TVector3Double): TVector3Double; overload;
 function MatrixMultVector(const m: TMatrix4Double; const v: TVector4Double): TVector4Double; overload;
 
-function MatrixMultPointNoTranslation(const m: TMatrix4Single; const v: TVector3Single): TVector3Single;
+function MatrixMultPointNoTranslation(const m: TMatrix4Single;
+  const v: TVector3Single): TVector3Single;
 
 function MatrixMult(const m1, m2: TMatrix3Single): TMatrix3Single;
 function MatrixMult(const m1, m2: TMatrix4Single): TMatrix4Single;
@@ -3016,7 +3044,8 @@ end;
 
 { math with matrices ---------------------------------------------------------- }
 
-function MatrixMultPoint(const m: TMatrix4Single; const pt: TVector3Single): TVector3Single;
+function MatrixMultPoint(const m: TMatrix4Single;
+  const pt: TVector3Single): TVector3Single;
 var
   Divisor: Single;
 begin
@@ -3047,6 +3076,8 @@ begin
     (M[3, 3] = 1)) then
   begin
     Divisor := M[0, 3] * Pt[0] + M[1, 3] * Pt[1] + M[2, 3] * Pt[2] + M[3, 3];
+    if IsZero(Divisor) then
+      raise ETransformedResultInvalid.Create('3D point transformed by 4x4 matrix to a direction');
 
     Result[0] /= Divisor;
     Result[1] /= Divisor;
@@ -3054,7 +3085,28 @@ begin
   end;
 end;
 
-function MatrixMultPointNoTranslation(const m: TMatrix4Single; const v: TVector3Single): TVector3Single;
+function MatrixMultDirection(const m: TMatrix4Single;
+  const Dir: TVector3Single): TVector3Single;
+var
+  Divisor: Single;
+begin
+  Result[0] := M[0, 0] * Dir[0] + M[1, 0] * Dir[1] + M[2, 0] * Dir[2];
+  Result[1] := M[0, 1] * Dir[0] + M[1, 1] * Dir[1] + M[2, 1] * Dir[2];
+  Result[2] := M[0, 2] * Dir[0] + M[1, 2] * Dir[1] + M[2, 2] * Dir[2];
+
+  if not (
+    (M[0, 3] = 0) and
+    (M[1, 3] = 0) and
+    (M[2, 3] = 0) ) then
+  begin
+    Divisor := M[0, 3] * Dir[0] + M[1, 3] * Dir[1] + M[2, 3] * Dir[2];
+    if not IsZero(Divisor) then
+      raise ETransformedResultInvalid.Create('3D direction transformed by 4x4 matrix to a point');
+  end;
+end;
+
+function MatrixMultPointNoTranslation(const m: TMatrix4Single;
+  const v: TVector3Single): TVector3Single;
 begin
   result := VectorSubtract(
     Vector3SinglePoint( MatrixMultVector(m, Vector4Single(v)) ),

@@ -16,6 +16,8 @@
   You should have received a copy of the GNU General Public License
   along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
 }
 
 { @abstract(@link(TVRMLShapeStateOctree) --- octree that provides
@@ -145,19 +147,60 @@ end;
   be done only on TreeRoot).
 }
 
-function TVRMLShapeStateOctreeNode.SphereCollision(const pos: TVector3Single;
+function TVRMLShapeStateOctreeNode.SphereCollision(const Pos: TVector3Single;
   const Radius: Single;
   const OctreeItemToIgnore: POctreeItem;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
+var
+  I: Integer;
+  ShapeState: TVRMLShapeState;
+  LocalBox: TBox3d;
 begin
-  Result := nil; { TODO }
+  { TODO: this is bad, as 1. we take box around the sphere,
+    and 2. we transform this box, making larger box.
+    This means that collision is done vs something larger than it should be. }
+  Result := nil;
+  for I := 0 to ItemsIndices.Count - 1 do
+  begin
+    ShapeState := ParentTree.ShapeStatesList.Items[ItemsIndices.Items[I]];
+    try
+      LocalBox := Box3dTransform(BoundingBox3dFromSphere(Pos, Radius),
+        ShapeState.State.InvertedTransform);
+      Result := ShapeState.OctreeTriangles.BoxCollision(
+        LocalBox, OctreeItemToIgnore, ItemsToIgnoreFunc);
+    except
+      on ETransformedResultInvalid do Result := nil;
+    end;
+    if Result <> nil then
+      Exit;
+  end;
 end;
 
 function TVRMLShapeStateOctreeNode.BoxCollision(const ABox: TBox3d;
   const OctreeItemToIgnore: POctreeItem;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
+var
+  I: Integer;
+  ShapeState: TVRMLShapeState;
+  LocalBox: TBox3d;
 begin
-  Result := nil; { TODO }
+  { TODO: this is bad, as we transform this box, making larger box.
+    This means that collision is done vs something larger than it should be. }
+  Result := nil;
+  for I := 0 to ItemsIndices.Count - 1 do
+  begin
+    ShapeState := ParentTree.ShapeStatesList.Items[ItemsIndices.Items[I]];
+    try
+      LocalBox := Box3dTransform(ABox,
+        ShapeState.State.InvertedTransform);
+      Result := ShapeState.OctreeTriangles.BoxCollision(
+        LocalBox, OctreeItemToIgnore, ItemsToIgnoreFunc);
+    except
+      on ETransformedResultInvalid do Result := nil;
+    end;
+    if Result <> nil then
+      Exit;
+  end;
 end;
 
 function TVRMLShapeStateOctreeNode.SegmentCollision(
@@ -169,8 +212,63 @@ function TVRMLShapeStateOctreeNode.SegmentCollision(
   const OctreeItemToIgnore: POctreeItem;
   const IgnoreMarginAtStart: boolean;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
+var
+  I: Integer;
+  ShapeState: TVRMLShapeState;
+  LocalPos1, LocalPos2: TVector3Single;
+  ThisIntersection: TVector3Single;
+  ThisIntersectionDistance: Single;
+  ThisResult: POctreeItem;
 begin
-  Result := nil; { TODO }
+  Result := nil;
+
+  if not ReturnClosestIntersection then
+  begin
+    for I := 0 to ItemsIndices.Count - 1 do
+    begin
+      ShapeState := ParentTree.ShapeStatesList.Items[ItemsIndices.Items[I]];
+      try
+        LocalPos1 := MatrixMultPoint(ShapeState.State.InvertedTransform, Pos1);
+        LocalPos2 := MatrixMultPoint(ShapeState.State.InvertedTransform, Pos2);
+        Result := ShapeState.OctreeTriangles.SegmentCollision(
+          Intersection, IntersectionDistance, LocalPos1, LocalPos2,
+          ReturnClosestIntersection,
+          OctreeItemToIgnore, IgnoreMarginAtStart, ItemsToIgnoreFunc);
+      except
+        on ETransformedResultInvalid do Result := nil;
+      end;
+      if Result <> nil then
+        Exit;
+    end;
+  end else
+  begin
+    { To implement ReturnClosestIntersection = true, we use This* variables.
+      We only use This* variables if they
+      indicate closer intersection than currently known. }
+
+    for I := 0 to ItemsIndices.Count - 1 do
+    begin
+      ShapeState := ParentTree.ShapeStatesList.Items[ItemsIndices.Items[I]];
+      try
+        LocalPos1 := MatrixMultPoint(ShapeState.State.InvertedTransform, Pos1);
+        LocalPos2 := MatrixMultPoint(ShapeState.State.InvertedTransform, Pos2);
+        ThisResult := ShapeState.OctreeTriangles.SegmentCollision(
+          ThisIntersection, ThisIntersectionDistance, LocalPos1, LocalPos2,
+          ReturnClosestIntersection,
+          OctreeItemToIgnore, IgnoreMarginAtStart, ItemsToIgnoreFunc);
+      except
+        on ETransformedResultInvalid do Result := nil;
+      end;
+      if (ThisResult <> nil) and
+         ( (Result = nil) or
+           (ThisIntersectionDistance < IntersectionDistance) ) then
+      begin
+        Intersection         := ThisIntersection;
+        IntersectionDistance := ThisIntersectionDistance;
+        Result               := ThisResult;
+      end;
+    end;
+  end;
 end;
 
 function TVRMLShapeStateOctreeNode.RayCollision(
@@ -182,8 +280,63 @@ function TVRMLShapeStateOctreeNode.RayCollision(
   const OctreeItemToIgnore: POctreeItem;
   const IgnoreMarginAtStart: boolean;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
+var
+  I: Integer;
+  ShapeState: TVRMLShapeState;
+  LocalRay0, LocalRayVector: TVector3Single;
+  ThisIntersection: TVector3Single;
+  ThisIntersectionDistance: Single;
+  ThisResult: POctreeItem;
 begin
-  Result := nil; { TODO }
+  Result := nil;
+
+  if not ReturnClosestIntersection then
+  begin
+    for I := 0 to ItemsIndices.Count - 1 do
+    begin
+      ShapeState := ParentTree.ShapeStatesList.Items[ItemsIndices.Items[I]];
+      try
+        LocalRay0 := MatrixMultPoint(ShapeState.State.InvertedTransform, Ray0);
+        LocalRayVector := MatrixMultDirection(ShapeState.State.InvertedTransform, RayVector);
+        Result := ShapeState.OctreeTriangles.RayCollision(
+          Intersection, IntersectionDistance, LocalRay0, LocalRayVector,
+          ReturnClosestIntersection,
+          OctreeItemToIgnore, IgnoreMarginAtStart, ItemsToIgnoreFunc);
+      except
+        on ETransformedResultInvalid do Result := nil;
+      end;
+      if Result <> nil then
+        Exit;
+    end;
+  end else
+  begin
+    { To implement ReturnClosestIntersection = true, we use This* variables.
+      We only use This* variables if they
+      indicate closer intersection than currently known. }
+
+    for I := 0 to ItemsIndices.Count - 1 do
+    begin
+      ShapeState := ParentTree.ShapeStatesList.Items[ItemsIndices.Items[I]];
+      try
+        LocalRay0 := MatrixMultPoint(ShapeState.State.InvertedTransform, Ray0);
+        LocalRayVector := MatrixMultDirection(ShapeState.State.InvertedTransform, RayVector);
+        ThisResult := ShapeState.OctreeTriangles.RayCollision(
+          ThisIntersection, ThisIntersectionDistance, LocalRay0, LocalRayVector,
+          ReturnClosestIntersection,
+          OctreeItemToIgnore, IgnoreMarginAtStart, ItemsToIgnoreFunc);
+      except
+        on ETransformedResultInvalid do Result := nil;
+      end;
+      if (ThisResult <> nil) and
+         ( (Result = nil) or
+           (ThisIntersectionDistance < IntersectionDistance) ) then
+      begin
+        Intersection         := ThisIntersection;
+        IntersectionDistance := ThisIntersectionDistance;
+        Result               := ThisResult;
+      end;
+    end;
+  end;
 end;
 
 { TVRMLShapeStateOctree ------------------------------------------ }

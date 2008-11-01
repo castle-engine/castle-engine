@@ -162,46 +162,6 @@ type
     destructor Destroy; override;
   end;
 
-  { przygotowane funkcje i klasy dla ItemsToIgnoreFunc: TOctreeItemIgnoreFunc. }
-
-  TOctreeIgnore_Transparent_And_OneItem = class
-    OneItem: POctreeItem;
-    { IgnoreItem zwraca true dla obiektow ktorych Transparency > 0,
-      and for OneItem. }
-    function IgnoreItem(
-      const Octree: TVRMLItemsOctree;
-      const OctreeItem: POctreeItem): boolean;
-    constructor Create(AOneItem: POctreeItem);
-  end;
-
-{ Checks whether VRML Light (point or directional) lights at scene point
-  LightedPoint.
-
-  "Dociera do punktu" to znaczy
-  1) Light.LightNode jest ON (FdOn.Value = true) (ten check jest zrobiony
-     na samym poczatku bo moze przeciez zaoszczedzic sporo czasu)
-  2) ze droga pomiedzy Light a LightedPoint jest wolna w Octree
-     (za wyjatkiem obiektow pol-przezroczystych ktore sa po prostu ignorowane
-     - TODO: to jest uproszczenie, ale w tym momencie te elementy po prostu
-     w ogole nie blokuja swiatla)
-  3) oraz ze swiatlo jest po tej samej stronie LightedPointPlane co RenderDir.
-
-  Szukanie kolizji w octree uzywa przekazanych OctreeItemToIgnore i
-  IgnoreMarginAtStart - zazwyczaj powinienes je przekazac na element
-  w drzewie z ktorego wziales LightedPoint i na true, odpowiednio.
-
-  Jezeli ta funkcja zwroci true to zazwyczaj pozostaje ci obliczenie
-  wplywu swiatla na dany punkt z lokalnych rownan oswietlenia (przy czym
-  mozesz juz pominac sprawdzanie LightNode.FdOn - chociaz zazwyczaj
-  lepiej bedzie nie pomijac, powtorzenie takiego prostego checku nie
-  powoduje przeciez zbytniego marnotrawstwa czasu a kod moze wydawac
-  sie bardziej spojny w ten sposob).
-}
-function ActiveLightNotBlocked(Octree: TVRMLTriangleOctree; const Light: TActiveLight;
-  const LightedPoint, LightedPointPlane, RenderDir: TVector3Single;
-  const OctreeItemToIgnore: POctreeItem;
-  const IgnoreMarginAtStart: boolean): boolean;
-
 {$undef read_interface}
 
 implementation
@@ -453,63 +413,6 @@ destructor TVRMLTriangleOctree.Destroy;
 begin
  FreeAndNil(OctreeItems);
  inherited;
-end;
-
-{ --------------------------------------------------------------------------------
-  przygotowane funkcje i klasy dla ItemsToIgnoreFunc: TOctreeItemIgnoreFunc.  }
-
-function TOctreeIgnore_Transparent_And_OneItem.IgnoreItem(
-  const Octree: TVRMLItemsOctree;
-  const OctreeItem: POctreeItem): boolean;
-begin
-  Result := (OctreeItem = OneItem) or
-    (OctreeItem^.State.LastNodes.Material.Transparency(OctreeItem^.MatNum)
-      > SingleEqualityEpsilon);
-end;
-
-constructor TOctreeIgnore_Transparent_And_OneItem.Create(AOneItem: POctreeItem);
-begin
-  inherited Create;
-  OneItem := AOneItem;
-end;
-
-{ some global procs ---------------------------------------------------------- }
-
-function ActiveLightNotBlocked(Octree: TVRMLTriangleOctree; const Light: TActiveLight;
-  const LightedPoint, LightedPointPlane, RenderDir: TVector3Single;
-  const OctreeItemToIgnore: POctreeItem;
-  const IgnoreMarginAtStart: boolean): boolean;
-var LightPos: TVector3Single;
-begin
- if not Light.LightNode.FdOn.Value then result := false;
-
- if Light.LightNode is TVRMLDirectionalLightNode then
-  { Swiatlo directional oznacza ze swiatlo polozone jest tak bardzo
-    daleko ze wszystkie promienie od swiatla sa rownolegle.
-
-    Od pozycji LightedPoint odejmujemy wydluzone Direction swiatla.
-
-    3 * Box3dMaxSize(Octree.TreeRoot.Box) na pewno jest odlegloscia
-    ktora sprawi ze LightPos bedzie poza Octree.TreeRoot.Box
-    (bo gdyby nawet Octree.TreeRoot.Box byl szescianem to jego przekatna
-    ma dlugosc tylko Sqrt(2) * Sqrt(2) * Box3dMaxSize(Octree.TreeRoot.Box)
-    (= 2 * Box3dMaxSize(Octree.TreeRoot.Box))
-    W ten sposob otrzymujemy punkt ktory na pewno lezy POZA TreeRoot.Box
-    i jezeli nic nie zaslania drogi od Point do tego punktu to
-    znaczy ze swiatlo oswietla Intersection. }
-  LightPos := VectorSubtract(LightedPoint,
-    VectorAdjustToLength(Light.TransfNormDirection,
-      3 * Box3dMaxSize(Octree.TreeRoot.Box) ) ) else
-  LightPos := Light.TransfLocation;
-
- Result := (VectorsSamePlaneDirections(
-       VectorSubtract(LightPos, LightedPoint),
-       RenderDir,
-       LightedPointPlane)) and
-   (Octree.SegmentCollision(LightedPoint, LightPos,
-     false, OctreeItemToIgnore, IgnoreMarginAtStart,
-     {$ifdef FPC_OBJFPC} @ {$endif} Octree.IgnoreTransparentItem)
-     = nil);
 end;
 
 end.

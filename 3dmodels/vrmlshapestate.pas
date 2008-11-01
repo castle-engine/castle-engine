@@ -342,7 +342,7 @@ procedure TVRMLShapeState.ValidateBoundingSphere;
 begin
  if not (svBoundingSphere in Validities) then
  begin
-  Box3dBoundingSphere(BoundingBox, FBoundingSphereCenter,
+  BoundingSphereFromBox3d(BoundingBox, FBoundingSphereCenter,
     FBoundingSphereRadiusSqr);
   Include(Validities, svBoundingSphere);
  end;
