@@ -24,7 +24,7 @@ unit VRMLLightMap;
 
 interface
 
-uses VectorMath, VRMLNodes, Images, VRMLTriangleOctree;
+uses VectorMath, VRMLNodes, Images, VRMLOctreeItems;
 
 type
   TQuad3Single = packed array[0..3]of TVector3Single;
@@ -67,7 +67,7 @@ type
 }
 procedure TriangleLightMapTo1st(const Image: TImage;
   LeftDownImagePart: boolean;
-  Lights: TDynActiveLightArray; Octree: TVRMLTriangleOctree;
+  Lights: TDynActiveLightArray; Octree: TVRMLItemsOctree;
   const TrianglePos: TTriangle3Single;
   const RenderDir: TVector3Single);
 
@@ -79,7 +79,7 @@ procedure TriangleLightMapTo1st(const Image: TImage;
   Jesli ProgresTitle <> '' to uzywa Progress (with given Title)
   aby zaznaczac postep operacji. }
 procedure QuadLightMapTo1st(const Image: TImage;
-  Lights: TDynActiveLightArray; Octree: TVRMLTriangleOctree;
+  Lights: TDynActiveLightArray; Octree: TVRMLItemsOctree;
   const Quad: TQuad3Single;
   const RenderDir: TVector3Single;
   const ProgresTitle: string);
@@ -89,13 +89,13 @@ implementation
 uses Math, KambiUtils, IllumModels, ProgressUnit;
 
 function PointLightMap(const Point, PointPlaneNormal: TVector3Single;
-  Lights: TDynActiveLightArray; Octree: TVRMLTriangleOctree;
+  Lights: TDynActiveLightArray; Octree: TVRMLItemsOctree;
   const RenderDir: TVector3Single): TVector3Single;
 var i: Integer;
 begin
  result := ZeroVector3Single;
  for i := 0 to Lights.Count-1 do
-  if ActiveLightNotBlocked(Octree, Lights.Items[i], Point, PointPlaneNormal,
+  if Octree.ActiveLightNotBlocked(Lights.Items[i], Point, PointPlaneNormal,
     RenderDir, nil, true) then
    VectorAddTo1st(result, VRML97LightContribution_CameraIndependent(
      Lights.Items[i], Point, PointPlaneNormal, White3Single));
@@ -103,7 +103,7 @@ end;
 
 procedure TriangleLightMapTo1st(const Image: TImage;
   LeftDownImagePart: boolean;
-  Lights: TDynActiveLightArray; Octree: TVRMLTriangleOctree;
+  Lights: TDynActiveLightArray; Octree: TVRMLItemsOctree;
   const TrianglePos: TTriangle3Single;
   const RenderDir: TVector3Single);
 
@@ -168,7 +168,7 @@ begin
 end;
 
 procedure QuadLightMapTo1st(const Image: TImage;
-  Lights: TDynActiveLightArray; Octree: TVRMLTriangleOctree;
+  Lights: TDynActiveLightArray; Octree: TVRMLItemsOctree;
   const Quad: TQuad3Single;
   const RenderDir: TVector3Single;
   const ProgresTitle: string);
