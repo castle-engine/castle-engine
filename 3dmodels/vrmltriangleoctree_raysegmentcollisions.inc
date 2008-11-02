@@ -147,6 +147,19 @@ var
   {$undef ON_INTERSECTION_FOUND}
 
   function DoNotLeaf: POctreeItem;
+
+    { For kambi_vrml_test_suite/vrml_1/flat_triangles_octree_test.wrl,
+      this really needs some tolerance. And SingleEqualityEpsilon
+      was too small. }
+    function Box3dPointInsideTolerant(
+      const pt: TVector3Single; const box: TBox3d): boolean;
+    begin
+      if IsEmptyBox3d(box) then exit(false);
+      result := Between(pt[0], box[0, 0] - 0.001, box[1, 0] + 0.001) and
+                Between(pt[1], box[0, 1] - 0.001, box[1, 1] + 0.001) and
+                Between(pt[2], box[0, 2] - 0.001, box[1, 2] + 0.001);
+    end;
+
   var
     { FirstBoxIntr = first ray with box intersection if Ray0 is outside
       if the Box or simply Ray0 if Ray0 is inside our Box  }
@@ -198,56 +211,91 @@ var
      for i := 0 to 2 do
       with PlaneIntersects[i] do
       begin
+       if (Box[1][I] - Box[0][I]) < SCALAR_EQUALITY_EPSILON then
+       begin
+         { This means that the Box is practically flat, so all 3 planes
+           (Box[0][I], MiddlePoint[I], Box[1][I]) are practically
+           coplanar.
+
+           We want in this case to make sure that we actually
+           enter both sides of MiddlePoint[I] plane (since it's pretty random
+           where did we put some flat triangles). So we want to make
+           sure Exists is set to @true.
+
+           Starting StartSubnode[i] should be the one closer the Ray0.
+
+           See
+           kambi_vrml_test_suite/vrml_1/flat_triangles_octree_test.wrl
+           for example when this is needed (with new okDynamicCollisions,
+           this plane is flat within it's octree, even when it's transformed
+           by rotation). }
+
+         Exists:=
+           {$ifdef SEGMENT_COLLISION}
+           TrySimplePlaneSegmentIntersection(PlaneIntersect, PlaneIntersectionDistance,
+             i, MiddlePoint[i], FirstBoxIntr, Pos2)
+           {$else}
+           TrySimplePlaneRayIntersection(PlaneIntersect, PlaneIntersectionDistance,
+             i, MiddlePoint[i], FirstBoxIntr, RayVector)
+           {$endif};
+
+         if not Exists then
+         begin
+           { Just force Exists to true.
+             We know that FirstBoxIntr is practically lying on MiddlePoint[I] plane,
+             so it's a good candidate. }
+
+           Exists := true;
+           PlaneIntersect := FirstBoxIntr;
+           PlaneIntersectionDistance := 0;
+         end;
+
+         StartSubnode[i] := RayVector[i] <= 0;
+       end else
        if (PointToSimplePlaneDistance(FirstBoxIntr, i, MiddlePoint[i])
            < SCALAR_EQUALITY_EPSILON) and not IsZero(RayVector[i]) then
        begin
-        { skoro odleglosc FirstBoxIntr od dzielacego Plane jest tak male to znaczy ze
-          FirstBoxIntr praktycznie lezy na naszym plane dzielacym w/g MiddlePoint.
-          Nie chcemy wiec w tym momencie zdawac sie na ustalenie StartSubnode[i]
-          na podstawie wspolrzednej FirstBoxIntr[i] - bo byc moze w ten sposob
-          1) StartSubnode[i] zostaloby postawione po stronie gdzie wskazuje
-             RayVector ale algorytm i tak wykrylby przeciecie na skutek bledow
-             obliczen - i w rezultacie promien przeskoczylby nie tam gdzie trzeba.
-          2) StartSubnode[i] zostaloby postawione po stronie gdzie NIE wskazuje
-             RayVector; a wiec oczekiwalibysmy ze zostanie znalezione przeciecie
-             ale byc moze tak sie zdarzy ze nie zostanie, znowu na skutek jakichs
-             malutkich bledow. Teraz tez nasz promien zostanie po zlej stronie.
-          Rozwiazaniem obydwu problemow jest przejsc na ta strone StartSubnode[i]
-          gdzie wskazuje RayVector.
+         { This means that FirstBoxIntr lies on MiddlePoint[I] plane.
+           Although the box is not flat (this case was eliminated above).
+           Which means that the ray
+           somehow enters the box exactly in the middle, or maybe the
+           Ray0 was exactly in the middle (e.g. consider Ray0 = exactly
+           middle point of octree box).
 
-          Tego typu przypadki naprawde sie zdarzaja i niniejszy kod jest
-          potrzebny. Nie trzeba tu zreszta bledu obliczen faktycznego : zwroc
-          uwage na to ze gry FirstBoxIntr jest dokladnie na srodku Plane to nawet
-          bezbledne obliczenia doprowadzaja nas do zlego zachowania :
-          jest wtedy przeciecie z Plane, a SubnodeWithPoint klasyfikuje
-          wspolrzedna zawsze na true.
+           We handle it specially, because normal code would be numerically
+           unstable: on one hand, StartSubnode may be detected on any side
+           --- it's practically random. On the other hand, whether
+           Exists is set is also random. So various strange things
+           could happen (e.g. StartSubNode is on the farther (RayVector) side,
+           but intersection is detected too, so we incorrectly go back;
+           or StartSubNode is on the closer (-RayVector) side,
+           but intersection is not detected, so we incorrectly do not change
+           sides).
 
-          Najprosciej mozna takie przypadki sprawdzic wchodzac
-          z walkerem na scene : on domyslnie ustawia CamPosition na dokladnym
-          srodku Boxa sceny co jest rowne TreeRoot.MiddlePoint. A wiec wejdz
-          w walkera i nie wykonujac zadnego ruchu przycisnij "r" - jesli
-          zakomentarzujesz ponizszy kod to zobaczysz ze wszystko bedzie zle.  }
-        StartSubnode[i] := RayVector[i] > 0;
-        Exists := false;
-        Continue;
+           The correct solution in this case is to have StartSubNode
+           on the farther side, and do not see intersection with middle plane. }
+         StartSubnode[i] := RayVector[i] > 0;
+         Exists := false;
+       end else
+       begin
+         { jezeli przeciecie nie znajduje sie w naszym Box to na pewno nie
+           chcemy go dolaczyc do PlaneIntersect wiec ustawiamy Exists := false;
+           Dzieki temu ze badamy przeciecia od FirstBoxIntr a nie od Ray0
+           (a nie od Pos1, w przypadku odcinka) to
+           wiemy ze przeciecie jest juz POTEM jak promien wyjdzie z naszego
+           Boxa (a nie ZANIM promien wszedl do naszego Boxa, co byloby tu troche
+           klopotliwe;) }
+         Exists:=
+           {$ifdef SEGMENT_COLLISION}
+           TrySimplePlaneSegmentIntersection(PlaneIntersect, PlaneIntersectionDistance,
+             i, MiddlePoint[i], FirstBoxIntr, Pos2)
+           {$else}
+           TrySimplePlaneRayIntersection(PlaneIntersect, PlaneIntersectionDistance,
+             i, MiddlePoint[i], FirstBoxIntr, RayVector)
+           {$endif}
+             and Box3dPointInside(PlaneIntersect, Box);
        end;
 
-       { jezeli przeciecie nie znajduje sie w naszym Box to na pewno nie
-         chcemy go dolaczyc do PlaneIntersect wiec ustawiamy Exists := false;
-         Dzieki temu ze badamy przeciecia od FirstBoxIntr a nie od Ray0
-         (a nie od Pos1, w przypadku odcinka) to
-         wiemy ze przeciecie jest juz POTEM jak promien wyjdzie z naszego
-         Boxa (a nie ZANIM promien wszedl do naszego Boxa, co byloby tu troche
-         klopotliwe;) }
-       Exists:=
-         {$ifdef SEGMENT_COLLISION}
-         TrySimplePlaneSegmentIntersection(PlaneIntersect, PlaneIntersectionDistance,
-           i, MiddlePoint[i], FirstBoxIntr, Pos2)
-         {$else}
-         TrySimplePlaneRayIntersection(PlaneIntersect, PlaneIntersectionDistance,
-           i, MiddlePoint[i], FirstBoxIntr, RayVector)
-         {$endif}
-           and Box3dPointInside(PlaneIntersect, Box);
        if Exists then Inc(ExistingPlaneIntersectsCount);
       end;
     end;
@@ -312,7 +360,9 @@ var
      end;
     end;
 
-  var i: integer;
+  var
+    i: integer;
+    SubNode: TTriangleOctreeNode;
   begin
    if not TryBoxRayEntrance(FirstBoxIntr, Box, Ray0, RayVector) then
      Exit(nil);
@@ -328,10 +378,11 @@ var
    result := nil;
    for i := 0 to SubnodesToCheckCount - 1 do
    begin
-    result := TTriangleOctreeNode(TreeSubNodes[
+    SubNode := TTriangleOctreeNode(TreeSubNodes[
       SubnodesToCheck[i, 0],
       SubnodesToCheck[i, 1],
-      SubnodesToCheck[i, 2]]).
+      SubnodesToCheck[i, 2]]);
+    result := SubNode.
       { jest ponizej bardzo wazne zebysmy nie zmienili Pos1 ani Ray0 wywolujac
         sie rekurencyjnie (np. zeby nie przekazac FirstBoxIntr) bo to
         spowodowaloby ze zmienna IgnoreMarginAtStart powinna byc (byc moze)
@@ -355,7 +406,7 @@ var
       nie jest najblizszym z mozliwych) }
     if (result <> nil) and
        ((not ReturnClosestIntersection) or
-        OctreeSubnodeIndexesEqual(SubnodeWithPoint(Intersection), SubnodesToCheck[i])) then
+        Box3dPointInsideTolerant(Intersection, SubNode.Box)) then
      Exit;
    end;
   end;
