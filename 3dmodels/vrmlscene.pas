@@ -1203,7 +1203,10 @@ type
     { Call this to when pointing-device moves.
       This may generate the continously-generated events like
       hitPoint_changed, also it updates PointingDeviceOverItem,
-      thus producing isOver and such events. }
+      thus producing isOver and such events.
+
+      OverItem may be @nil to indicate we're not over any item.
+      In this case, OverPoint is ignored. }
     procedure PointingDeviceMove(const OverPoint: TVector3Single;
       const OverItem: POctreeItem);
 

@@ -26,7 +26,7 @@ unit KambiVRMLBrowser;
 interface
 
 uses Classes, KambiGLControl, VectorMath, Controls,
-  VRMLNodes, VRMLGLScene, VRMLScene, Navigation, VRMLGLHeadlight;
+  VRMLNodes, VRMLGLScene, VRMLScene, Navigation, VRMLGLHeadlight, Areas;
 
 type
   { A simple VRML browser as a Lazarus component. This manages TVRMLGLScene,
@@ -95,6 +95,8 @@ type
 
     AngleOfViewX, AngleOfViewY: Single;
 
+    FIgnoreAreas: TDynAreaArray;
+
     function MoveAllowed(ANavigator: TWalkNavigator;
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean;
@@ -132,6 +134,21 @@ type
 
     procedure Resize; override;
     procedure Idle; override;
+
+    { Mouse movement and clicks within areas here will be ignored by VRML browser.
+      That is, they will be treated like mouse was outside of VRML browser.
+
+      This is useful if you drawn some 2D controls in your OnDraw,
+      and you want to handle clicks on them yourself (with OnClick or such).
+      Thanks to IgnoreAreas, VRML browser will not intercept those clicks
+      (not send them to some VRML TouchSensors etc.), mouse cursor will
+      also remain normal within these areas (regardless of whether mouse
+      is over some sensor).
+
+      Note that their coords are in screen coordinates, just like MouseX,
+      MouseY. This means that 0,0 is the upper-left corner (unlike typical
+      OpenGL 2D projection, which has 0,0 in lower-left corner). }
+    property IgnoreAreas: TDynAreaArray read FIgnoreAreas;
   published
     property OnNavigatorChanged: TNavigatorNotifyFunc
       read FOnNavigatorChanged write FOnNavigatorChanged;
@@ -165,6 +182,8 @@ constructor TKamVRMLBrowser.Create(AOwner :TComponent);
 begin
   inherited;
 
+  FIgnoreAreas := TDynAreaArray.Create;
+
   { we manage Navigator ourselves, this makes code more consequent to follow }
   OwnsNavigator := false;
 
@@ -176,6 +195,7 @@ begin
   FreeAndNil(Scene);
   Navigator.Free;
   Navigator := nil;
+  FreeAndNil(FIgnoreAreas);
   inherited;
 end;
 
@@ -337,13 +357,18 @@ begin
   if (Scene.OctreeCollisions <> nil) and
      (Navigator is TWalkNavigator) then
   begin
-    Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, Ray0, RayVector);
+    if IgnoreAreas.FindArea(NewX, NewY) = -1 then
+    begin
+      Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, Ray0, RayVector);
 
-    Item := Scene.OctreeCollisions.RayCollision(
-      OverPoint, Ray0, RayVector, true, nil, false, nil);
+      Item := Scene.OctreeCollisions.RayCollision(
+        OverPoint, Ray0, RayVector, true, nil, false, nil);
 
-    Scene.PointingDeviceMove(OverPoint, Item);
-
+      Scene.PointingDeviceMove(OverPoint, Item);
+    end else
+    begin
+      Scene.PointingDeviceMove(ZeroVector3Single, nil);
+    end;
     UpdateCursor;
   end;
 end;
