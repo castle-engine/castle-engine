@@ -22,24 +22,6 @@
 
 unit VRMLScene;
 
-{ This is the weak point of our engine right now: updating octree on changes
-  of geometry. It takes some time, as we currently just rebuild the octree.
-  On the other hand, it's needed to perform collision detection
-  (this also includes picking touch sensors and such) on the up-to-date
-  model (in case e.g. touch sensor geometry moves). In some rare
-  cases (more precisely: when TVRMLScene.ChangedFields is not optimized
-  for this particular field and falls back to TVRMLScene.ChangedAll)
-  not updating octree may even cause the octree pointers to be invalid.
-
-  Both problems are being worked on. In the meantime
-  - you can define REBUILD_OCTREE to have always accurate and stable
-    collision detection, at the expense of a slowdowns in case of intensive
-    animations.
-  - you can undefine REBUILD_OCTREE to always use the first octree.
-    This makes collision detection work with the original geometry,
-    and sometimes may make it unstable. OTOH, all works fast. }
-{$define REBUILD_OCTREE}
-
 interface
 
 uses
