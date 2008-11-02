@@ -181,7 +181,7 @@ begin
   Progress.UserInterface := ProgressConsoleInterface;
   Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
   Scene.ShapeStateOctreeProgressTitle := 'Building ShapeState octree';
-  Scene.Octrees := [okRendering, okDynamicCollisions];
+  Scene.Spatial := [ssRendering, ssDynamicCollisions];
 
   Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
 

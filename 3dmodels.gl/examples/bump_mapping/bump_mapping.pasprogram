@@ -210,7 +210,7 @@ begin
   { make octree for fast RenderFrustum }
   Progress.UserInterface := ProgressNullInterface;
   Scene.ShapeStateOctreeProgressTitle := 'Building ShapeState octree';
-  Scene.Octrees := [okRendering];
+  Scene.Spatial := [ssRendering];
 
   Scene.Attributes.BumpMappingMaximum := BumpMappingMaximum;
 end;

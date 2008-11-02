@@ -76,7 +76,7 @@ begin
     BrowserWindow.Scene.RegisterCompiledScript('touch',
       @THelperObj(nil).ScriptTouch);
 
-    BrowserWindow.Scene.Octrees := [okRendering, okDynamicCollisions];
+    BrowserWindow.Scene.Spatial := [ssRendering, ssDynamicCollisions];
     BrowserWindow.Scene.ProcessEvents := true;
 
     BrowserWindow.InitLoop;

@@ -31,8 +31,8 @@ uses Classes, KambiGLControl, VectorMath, Controls,
 type
   { A simple VRML browser as a Lazarus component. This manages TVRMLGLScene,
     navigator (automatically adjusted to NavigationInfo.type).
-    Octress are also automatically used (you only have to set Scene.Octrees
-    to anything <> [], like typical [okRendering, okDynamicCollisions]).
+    Octress are also automatically used (you only have to set Scene.Spatial
+    to anything <> [], like typical [ssRendering, ssDynamicCollisions]).
     You simply call @link(Load) method and all is done.
 
     This class tries to be a thin (not really "opaque")
@@ -43,7 +43,7 @@ type
 
     @unorderedList(
       @item(@link(TVRMLScene.ProcessEvents Scene.ProcessEvents))
-      @item(@link(TVRMLScene.Octrees Scene.Octrees),
+      @item(@link(TVRMLScene.Spatial Scene.Spatial),
         and other octree properties)
       @item(@link(TVRMLScene.RegisterCompiledScript Scene.RegisterCompiledScript))
       @item(@link(TVRMLScene.LogChanges Scene.LogChanges))

@@ -347,27 +347,27 @@ type
   { @exclude }
   TDynCompiledScriptHandlerInfoArray = TDynArray_5;
 
-  { Possible octree types that may be managed by TVRMLScene,
-    see TVRMLScene.Octrees. }
-  TVRMLSceneOctreeKind = (
+  { Possible spatial structure types that may be managed by TVRMLScene,
+    see TVRMLScene.Spatial. }
+  TVRMLSceneSpatialStructure = (
     { Create and keep current the TVRMLScene.OctreeRendering.
       This is a dynamic octree containing all visible shapes. }
-    okRendering,
+    ssRendering,
 
     { Create and keep current the TVRMLScene.OctreeCollisions.
       This is a dynamic octree containing all collidable items. }
-    okDynamicCollisions,
+    ssDynamicCollisions,
 
     { Create the TVRMLScene.OctreeVisibleTriangles.
       This is an octree containing all visible triangles, suitable only
       for scenes that stay static. }
-    okVisibleTriangles,
+    ssVisibleTriangles,
 
     { Create the TVRMLScene.OctreeCollidableTriangles.
       This is an octree containing all collidable triangles, suitable only
       for scenes that stay static. }
-    okCollidableTriangles);
-  TVRMLSceneOctreeKinds = set of TVRMLSceneOctreeKind;
+    ssCollidableTriangles);
+  TVRMLSceneSpatialStructures = set of TVRMLSceneSpatialStructure;
 
   { VRML scene, a final class to handle VRML models
     (with the exception of rendering, which is delegated to descendants,
@@ -601,7 +601,7 @@ type
     function CreateShapeStateOctree(AMaxDepth, ALeafCapacity: integer;
       const ProgressTitle: string;
       const Collidable: boolean;
-      const SetShapeOctrees: boolean = false): TVRMLShapeStateOctree;
+      const SetShapeSpatial: boolean = false): TVRMLShapeStateOctree;
     { @groupEnd }
 
     TriangleOctreeToAdd: TVRMLTriangleOctree;
@@ -622,8 +622,8 @@ type
     FOctreeVisibleTriangles: TVRMLTriangleOctree;
     FOctreeCollidableTriangles: TVRMLTriangleOctree;
 
-    FOctrees: TVRMLSceneOctreeKinds;
-    procedure SetOctrees(const Value: TVRMLSceneOctreeKinds);
+    FSpatial: TVRMLSceneSpatialStructures;
+    procedure SetSpatial(const Value: TVRMLSceneSpatialStructures);
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
     destructor Destroy; override;
@@ -857,7 +857,7 @@ type
       This octree will be automatically updated on dynamic scenes
       (when e.g. animation moves some shapestate by changing it's transformation).
 
-      Add okRendering to @link(Octrees) property to have this available,
+      Add ssRendering to @link(Spatial) property to have this available,
       otherwise it's @nil.
 
       Note that when VRML scene contains Collision nodes, this octree
@@ -878,14 +878,14 @@ type
       So this is the most important structure for collision detection on
       dynamic scenes.
 
-      Add okDynamicCollisions to @link(Octrees) property to have this available,
+      Add ssDynamicCollisions to @link(Spatial) property to have this available,
       otherwise it's @nil.
 
       Note that when VRML scene contains Collision nodes, this octree
       contains the @italic(collidable (not necessarily rendered)) objects.
 
-      TODO: TEMPORARILY, THIS IS UPDATED SIMPLY BY REBUILDING.
-      THIS IS A WORK IN PROGRESS. }
+      TODO: Temporarily, this is updated simply by rebuilding.
+      This is a work in progress. }
     property OctreeCollisions: TVRMLShapeStateOctree read FOctreeCollisions;
 
     { The octree containing all visible triangles.
@@ -896,7 +896,7 @@ type
       contents cannot change when this octree is created --- as this octree
       keeps pointers to some states that may become invalid in dynamic scenes.
 
-      Add okVisibleTriangles to @link(Octrees) property to have this available,
+      Add ssVisibleTriangles to @link(Spatial) property to have this available,
       otherwise it's @nil.
 
       Note that when VRML scene contains Collision nodes, this octree
@@ -916,19 +916,19 @@ type
       keeps pointers to some states that may become invalid in dynamic scenes.
       Use OctreeCollisions for dynamic scenes.
 
-      Add okCollidableTriangles to @link(Octrees) property to have this available,
+      Add ssCollidableTriangles to @link(Spatial) property to have this available,
       otherwise it's @nil.
 
       Note that when VRML scene contains Collision nodes, this octree
       contains the @italic(collidable (not necessarily rendered)) objects.  }
     property OctreeCollidableTriangles: TVRMLTriangleOctree read FOctreeCollidableTriangles;
 
-    { Which octrees should be created and managed.
+    { Which spatial structures (octrees, for now) should be created and managed.
 
       You should set this, based on your expected usage of octrees.
-      See TVRMLSceneOctreeStrategy for possible values.
+      See TVRMLSceneSpatialStructure for possible values.
       For usual dynamic scenes rendered with OpenGL,
-      you want this to be [okRendering, okDynamicCollisions].
+      you want this to be [ssRendering, ssDynamicCollisions].
 
       Before setting any value <> [] you may want to adjust
       TriangleOctreeMaxDepth, TriangleOctreeLeafCapacity,
@@ -941,7 +941,7 @@ type
       to 1. get you chance to change TriangleOctreeMaxDepth and such
       before creating octree 2. otherwise, scenes that not require
       collision detection would unnecessarily create octrees at construction. }
-    property Octrees: TVRMLSceneOctreeKinds read FOctrees write SetOctrees;
+    property Spatial: TVRMLSceneSpatialStructures read FSpatial write SetSpatial;
 
     { Properties of created triangle octrees.
       See VRMLTriangleOctree unit comments for description.
@@ -952,7 +952,7 @@ type
       ( so we avoid starting "progress bar within progress bar").
 
       They are used only when the octree is created, so usually you
-      want to set them right before changing @link(Octrees) from []
+      want to set them right before changing @link(Spatial) from []
       to something else.
 
       @groupBegin }
@@ -980,7 +980,7 @@ type
       ( so we avoid starting "progress bar within progress bar").
 
       They are used only when the octree is created, so usually you
-      want to set them right before changing @link(Octrees) from []
+      want to set them right before changing @link(Spatial) from []
       to something else.
 
       @groupBegin }
@@ -1678,15 +1678,15 @@ begin
     { TODO: this has to be improved to handle collidable but not visible
       geometry (Collision.proxy). }
 
-    { When Octrees contain okDynamicCollisions, then each collidable
+    { When Spatial contain ssDynamicCollisions, then each collidable
       shape must hav octree created. Normally, this is watched over by
-      SetOctrees. In this case, we just created new Shape, so we have
-      to set it's Octrees property correctly. }
-    if (okDynamicCollisions in Octrees) and
+      SetSpatial. In this case, we just created new Shape, so we have
+      to set it's Spatial property correctly. }
+    if (ssDynamicCollisions in Spatial) and
        (State.InsideIgnoreCollision = 0) then
     begin
       Shape.TriangleOctreeProgressTitle := TriangleOctreeProgressTitle;
-      Shape.Octrees := [okTriangles];
+      Shape.Spatial := [ssTriangles];
     end;
 
   end else
@@ -2453,25 +2453,25 @@ begin
     FaceCoordIndexBegin, FaceCoordIndexEnd);
 end;
 
-procedure TVRMLScene.SetOctrees(const Value: TVRMLSceneOctreeKinds);
+procedure TVRMLScene.SetSpatial(const Value: TVRMLSceneSpatialStructures);
 
-  procedure SetShapeStateOctrees(const Value: TVRMLShapeOctreeKinds);
+  procedure SetShapeStateSpatial(const Value: TVRMLShapeSpatialStructures);
   var
     I: Integer;
   begin
     for I := 0 to ShapeStates.Count - 1 do
-      ShapeStates[I].Octrees := Value;
+      ShapeStates[I].Spatial := Value;
   end;
 
 var
   Old, New: boolean;
 begin
-  if Value <> Octrees then
+  if Value <> Spatial then
   begin
     { Handle OctreeRendering }
 
-    Old := okRendering in Octrees;
-    New := okRendering in Value;
+    Old := ssRendering in Spatial;
+    New := ssRendering in Value;
 
     if Old and not New then
     begin
@@ -2486,15 +2486,15 @@ begin
         false);
     end;
 
-    { Handle OctreeCollisions and ShapeStates[I].Octrees }
+    { Handle OctreeCollisions and ShapeStates[I].Spatial }
 
-    Old := okDynamicCollisions in Octrees;
-    New := okDynamicCollisions in Value;
+    Old := ssDynamicCollisions in Spatial;
+    New := ssDynamicCollisions in Value;
 
     if Old and not New then
     begin
       FreeAndNil(FOctreeCollisions);
-      SetShapeStateOctrees([]);
+      SetShapeStateSpatial([]);
     end else
     if New and not Old then
     begin
@@ -2503,7 +2503,7 @@ begin
         TriangleOctreeLeafCapacity,
         TriangleOctreeProgressTitle,
         true,
-        { During this, set also ShapeStates[I].Octrees := [okTriangles].
+        { During this, set also ShapeStates[I].Spatial := [ssTriangles].
           This way one progress bar displays progress of creating
           both FOctreeCollisions and specific octrees for items. }
         true);
@@ -2511,8 +2511,8 @@ begin
 
     { Handle OctreeVisibleTriangles }
 
-    Old := okVisibleTriangles in Octrees;
-    New := okVisibleTriangles in Value;
+    Old := ssVisibleTriangles in Spatial;
+    New := ssVisibleTriangles in Value;
 
     if Old and not New then
     begin
@@ -2529,8 +2529,8 @@ begin
 
     { Handle OctreeCollidableTriangles }
 
-    Old := okCollidableTriangles in Octrees;
-    New := okCollidableTriangles in Value;
+    Old := ssCollidableTriangles in Spatial;
+    New := ssCollidableTriangles in Value;
 
     if Old and not New then
     begin
@@ -2545,7 +2545,7 @@ begin
         true);
     end;
 
-    FOctrees := Value;
+    FSpatial := Value;
   end;
 end;
 
@@ -2593,7 +2593,7 @@ function TVRMLScene.CreateShapeStateOctree(
   AMaxDepth, ALeafCapacity: integer;
   const ProgressTitle: string;
   const Collidable: boolean;
-  const SetShapeOctrees: boolean): TVRMLShapeStateOctree;
+  const SetShapeSpatial: boolean): TVRMLShapeStateOctree;
 
   procedure AddShapeState(const I: Integer);
   begin
@@ -2604,7 +2604,7 @@ function TVRMLScene.CreateShapeStateOctree(
     begin
       Result.TreeRoot.AddItem(I);
 
-      if SetShapeOctrees then
+      if SetShapeSpatial then
       begin
         {
           ShapeStates[I].TriangleOctreeMaxDepth :=
@@ -2614,7 +2614,7 @@ function TVRMLScene.CreateShapeStateOctree(
           our TriangleOctreeMaxDepth properties, they may be unsuitable.
         }
         ShapeStates[I].TriangleOctreeProgressTitle := TriangleOctreeProgressTitle;
-        ShapeStates[I].Octrees := [okTriangles];
+        ShapeStates[I].Spatial := [ssTriangles];
       end;
     end;
   end;

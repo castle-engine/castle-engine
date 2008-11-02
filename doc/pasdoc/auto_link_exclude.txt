@@ -59,3 +59,4 @@ cdata
 proxy
 rotations
 octrees
+spatial

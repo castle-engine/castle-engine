@@ -27,7 +27,7 @@
   This version adds:
 
   1. Collision detection
-  - constructing octrees, by "Scene.Octrees := ..."
+  - constructing octrees, by "Scene.Spatial := ..."
   - doing collision detection using OctreeCollisions, see MoveAllowed procedure
 
   2. Rendering with frustum culling
@@ -153,7 +153,7 @@ begin
     Progress.UserInterface := ProgressConsoleInterface;
     Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
     Scene.ShapeStateOctreeProgressTitle := 'Building ShapeState octree';
-    Scene.Octrees := [okRendering, okDynamicCollisions];
+    Scene.Spatial := [ssRendering, ssDynamicCollisions];
 
     Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
 

@@ -42,13 +42,13 @@ type
     svTrianglesCountNotOver, svTrianglesCountOver,
     svBoundingSphere, svEnableDisplayList);
 
-  { Possible octree types that may be managed by TVRMLShapeState,
-    see TVRMLShapeState.Octrees. }
-  TVRMLShapeOctreeKind = (
+  { Possible spatial structure types that may be managed by TVRMLShapeState,
+    see TVRMLShapeState.Spatial. }
+  TVRMLShapeSpatialStructure = (
     { Create the TVRMLShapeState.OctreeTriangles.
       This is an octree containing all triangles. }
-    okTriangles);
-  TVRMLShapeOctreeKinds = set of TVRMLShapeOctreeKind;
+    ssTriangles);
+  TVRMLShapeSpatialStructures = set of TVRMLShapeSpatialStructure;
 
   { This class represents a pair of objects: @link(GeometryNode) and
     @link(State). It allows to perform some operations that need
@@ -96,8 +96,8 @@ type
 
     FOctreeTriangles: TVRMLTriangleOctree;
 
-    FOctrees: TVRMLShapeOctreeKinds;
-    procedure SetOctrees(const Value: TVRMLShapeOctreeKinds);
+    FSpatial: TVRMLShapeSpatialStructures;
+    procedure SetSpatial(const Value: TVRMLShapeSpatialStructures);
   public
     constructor Create(AGeometryNode: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
     destructor Destroy; override;
@@ -177,10 +177,10 @@ type
       by parent TVRMLScene. You usually don't need to know about this
       octree from outside.
 
-      To initialize this, add okTriangles to @link(Octrees) property,
+      To initialize this, add ssTriangles to @link(Spatial) property,
       otherwise it's @nil. Parent TVRMLScene will take care of this
-      (when parent TVRMLScene.Octrees contains okDynamicCollisions, then
-      all shapes contain okTriangles within their Octrees).
+      (when parent TVRMLScene.Spatial contains ssDynamicCollisions, then
+      all shapes contain ssTriangles within their Spatial).
 
       Parent TVRMLScene will take care to keep this octree always updated.
 
@@ -189,10 +189,10 @@ type
       octrees of specific shapes at the bottom. }
     property OctreeTriangles: TVRMLTriangleOctree read FOctreeTriangles;
 
-    { Which octrees should be created and managed.
-      This works analogous to TVRMLScene.Octrees, but this manages
+    { Which spatial structrues (octrees, for now) should be created and managed.
+      This works analogous to TVRMLScene.Spatial, but this manages
       octrees within this TVRMLShapeState. }
-    property Octrees: TVRMLShapeOctreeKinds read FOctrees write SetOctrees;
+    property Spatial: TVRMLShapeSpatialStructures read FSpatial write SetSpatial;
 
     { Properties of created triangle octrees.
       See VRMLTriangleOctree unit comments for description.
@@ -203,7 +203,7 @@ type
       ( so we avoid starting "progress bar within progress bar").
 
       They are used only when the octree is created, so usually you
-      want to set them right before changing @link(Octrees) from []
+      want to set them right before changing @link(Spatial) from []
       to something else.
 
       @groupBegin }
@@ -417,16 +417,16 @@ begin
   except Result.Free; raise end;
 end;
 
-procedure TVRMLShapeState.SetOctrees(const Value: TVRMLShapeOctreeKinds);
+procedure TVRMLShapeState.SetSpatial(const Value: TVRMLShapeSpatialStructures);
 var
   Old, New: boolean;
 begin
-  if Value <> Octrees then
+  if Value <> Spatial then
   begin
     { Handle OctreeTriangles }
 
-    Old := okTriangles in Octrees;
-    New := okTriangles in Value;
+    Old := ssTriangles in Spatial;
+    New := ssTriangles in Value;
 
     if Old and not New then
     begin
@@ -440,7 +440,7 @@ begin
         TriangleOctreeProgressTitle);
     end;
 
-    FOctrees := Value;
+    FSpatial := Value;
   end;
 end;
 

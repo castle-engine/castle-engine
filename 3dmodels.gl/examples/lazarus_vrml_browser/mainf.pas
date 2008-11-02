@@ -77,7 +77,7 @@ begin
   VrmlConsole.Memo1.Lines.Append('--- Loading ' + FileName);
 
   Browser.Load(FileName);
-  Browser.Scene.Octrees := [okRendering, okDynamicCollisions];
+  Browser.Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Browser.Scene.ProcessEvents := true;
 
   SceneFileName := FileName;
