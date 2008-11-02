@@ -390,7 +390,7 @@ function TVRMLShapeState.CreateTriangleOctree(
   const AMaxDepth, ALeafCapacity: integer;
   const ProgressTitle: string): TVRMLTriangleOctree;
 begin
-  Result := TVRMLTriangleOctree.Create(AMaxDepth, ALeafCapacity, BoundingBox);
+  Result := TVRMLTriangleOctree.Create(AMaxDepth, ALeafCapacity, LocalBoundingBox);
   try
     Result.OctreeItems.AllowedCapacityOverflow := TrianglesCount(false);
     try
