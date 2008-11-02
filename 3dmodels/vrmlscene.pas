@@ -508,7 +508,7 @@ type
 
     { Mechanism to schedule geometry changed calls.
 
-      Since DoGeometryChanged call may be costly (rebuilding the octree),
+      Since DoGeometryChanged call may be costly (updating some octrees),
       and it's not immediately needed by TVRMLScene or TVRMLNode hierarchy,
       it's sometimes not desirable to call DoGeometryChanged immediately
       when geometry changed.
@@ -528,6 +528,20 @@ type
     procedure BeginGeometryChangedSchedule;
     procedure ScheduleGeometryChanged;
     procedure EndGeometryChangedSchedule;
+
+    { Everything changed. All octrees must be rebuild, old State pointers
+      may be invalid.
+
+      Every ChangedAll call does this.
+      ChangedAll must take into account that everything could change.
+      Note that ChangedAll traverses the VRML graph again,
+      recalculating State values... so the old States are not
+      correct anymore. You have to rebuild the octree or your pointers
+      will be bad. }
+    ScheduledGeometryChangedAll: boolean;
+
+    { Transformation of some shapestates changed. }
+    ScheduledGeometrySomeTransformChanged: boolean;
 
     FPointingDeviceOverItem: POctreeItem;
     FPointingDeviceActive: boolean;
@@ -716,26 +730,28 @@ type
     procedure ChangedField(Field: TVRMLField);
     { @groupEnd }
 
-    { Notification when geometry changed, so you may need to rebuild
-      things like an octree. "Geometry changed" means that the positions
+    { Notification when geometry changed.
+      "Geometry changed" means that the positions
       of triangles changed. This is not send when merely things like
       material changed.
+
+      What exactly changed can be checked by looking at
+      ScheduledGeometryChangedAll,
+      ScheduledGeometrySomeTransformChanged,
+      TVRMLShapeState.ScheduledLocalGeometryChanged (in all ShapeStates).
+      Something from there must be @true. The sum of these
+      ScheduledGeometryXxx flags describe the change.
+
+      When OnGeometryChanged, we're right after DoGeometryChanged did
+      octree updating (so octrees are already updated), and right before
+      we cleared the ScheduledGeometryXxx flags. So you can
+      check ScheduledGeometryXxx flags, and do whatever you need.
 
       This is particularly useful when using ProcessEvents = @true,
       since then you don't have control over when ChangedXxx are called.
       (When ProcessEvents = @false, you always call ChangedXxx explicitly
       and in most cases you already know when the geometry did and when
-      it did not change.)
-
-      In particular, note that every ChangedAll call is guaranteed to send this.
-      ChangedAll must take into account that everything could change.
-      Note that ChangedAll traverses the VRML graph again,
-      recalculating State values... so the old States are not
-      correct anymore. You have to rebuild the octree or your pointers
-      will be bad. (So if you want to ignore OnGeometryChanged calls
-      and keep a temporarily-invalid octree, note that in these cases
-      octree will be really invalid: not only it will not correspond
-      to current geometry, but also the pointers will be invalid.) }
+      it did not change.) }
     property OnGeometryChanged: TVRMLSceneNotification
       read FOnGeometryChanged write FOnGeometryChanged;
 
@@ -1667,13 +1683,30 @@ end;
 
 procedure TVRMLScene.ChangedAll_Traverse(
   Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+var
+  Shape: TVRMLShapeState;
 begin
   if Node is TVRMLGeometryNode then
   begin
     { Add shape to ShapeStates }
-    ShapeStates.Add(
-      TVRMLShapeState.Create(Node as TVRMLGeometryNode,
-      TVRMLGraphTraverseState.CreateCopy(State)));
+    Shape := TVRMLShapeState.Create(Node as TVRMLGeometryNode,
+      TVRMLGraphTraverseState.CreateCopy(State));
+    ShapeStates.Add(Shape);
+
+    { TODO: this has to be improved to handle collidable but not visible
+      geometry (Collision.proxy). }
+
+    { When Octrees contain okDynamicCollisions, then each collidable
+      shape must hav octree created. Normally, this is watched over by
+      SetOctrees. In this case, we just created new Shape, so we have
+      to set it's Octrees property correctly. }
+    if (okDynamicCollisions in Octrees) and
+       (State.InsideIgnoreCollision = 0) then
+    begin
+      Shape.TriangleOctreeProgressTitle := TriangleOctreeProgressTitle;
+      Shape.Octrees := [okTriangles];
+    end;
+
   end else
   if Node is TVRMLLightNode then
   begin
@@ -1777,7 +1810,9 @@ begin
     end;
   finally FreeAndNil(ChangedAll_TraversedLights) end;
 
+  ScheduledGeometryChangedAll := true;
   ScheduleGeometryChanged;
+
   DoPostRedisplay;
   DoViewpointsChanged;
 end;
@@ -2001,11 +2036,15 @@ begin
     for I := 0 to ShapeStates.Count - 1 do
       if ShapeStates[I].GeometryNode.Coord(ShapeStates[I].State, Coord) and
          (Coord.ParentNode = Node) then
+      begin
         ChangedShapeStateFields(I, false, false);
 
-    { Another special thing about Coordinate node is that it changes
-      actual geometry. }
-    ScheduleGeometryChanged;
+        { Another special thing about Coordinate node: it changes
+          actual geometry. }
+
+        ShapeStates[I].ScheduledLocalGeometryChanged := true;
+        ScheduleGeometryChanged;
+      end;
   end else
   if NodeLastNodesIndex <> -1 then
   begin
@@ -2054,8 +2093,12 @@ begin
       GeometryNode. }
     for i := 0 to ShapeStates.Count-1 do
       if ShapeStates[i].GeometryNode = Node then
+      begin
         ChangedShapeStateFields(i, false, false);
-    ScheduleGeometryChanged;
+
+        ShapeStates[I].ScheduledLocalGeometryChanged := true;
+        ScheduleGeometryChanged;
+      end;
   end else
   if (Field <> nil) and Field.Transform then
   begin
@@ -2107,6 +2150,7 @@ begin
 
       finally FreeAndNil(TransformChangeHelper) end;
 
+      ScheduledGeometrySomeTransformChanged := true;
       ScheduleGeometryChanged;
     except
       on BreakTransformChangeFailed do
@@ -2219,6 +2263,7 @@ end;
 procedure TVRMLScene.DoGeometryChanged;
 var
   I: Integer;
+  SomeLocalGeometryChanged: boolean;
 begin
   Validities := Validities - [fvBBox,
     fvVerticesCountNotOver, fvVerticesCountOver,
@@ -2226,27 +2271,63 @@ begin
     fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
     fvManifoldAndBorderEdges];
 
-{$ifdef REBUILD_OCTREE}
-  { Remember to do FreeAndNil on octrees below.
-    Although we will recreate octrees right after rebuilding,
-    it's still good to nil them right after freeing.
-    Otherwise, when exception will raise from CreateXxxOctree,
-    Scene.OctreeXxx will be left as invalid pointer. }
+  { First, call LocalGeometryChanged on shapes when needed.
+    By the way, also calculate SomeLocalGeometryChanged (= if any
+    LocalGeometryChanged was called, which means that octree and
+    bounding box/sphere of some shape changed).
 
-  if OctreeRendering <> nil then
+    Note that this also creates implication ScheduledGeometryChangedAll
+    => SomeLocalGeometryChanged. In later code, I sometimes check
+    for SomeLocalGeometryChanged, knowing that this also checks for
+    ScheduledGeometryChangedAll. }
+
+  if ScheduledGeometryChangedAll then
   begin
+    SomeLocalGeometryChanged := true;
+    for I := 0 to ShapeStates.Count - 1 do
+      ShapeStates[I].LocalGeometryChanged;
+    if Log and LogChanges then
+      WritelnLog('VRML changes (octree)', 'All TVRMLShapeState.OctreeTriangles updated');
+  end else
+  begin
+    SomeLocalGeometryChanged := false;
+    for I := 0 to ShapeStates.Count - 1 do
+    begin
+      if ShapeStates[I].ScheduledLocalGeometryChanged then
+      begin
+        SomeLocalGeometryChanged := true;
+        ShapeStates[I].LocalGeometryChanged;
+        if Log and LogChanges then
+          WritelnLog('VRML changes (octree)', Format('ShapeState[%d].OctreeTriangles updated', [I]));
+      end;
+    end;
+  end;
+
+  if (OctreeRendering <> nil) and
+     (ScheduledGeometrySomeTransformChanged or
+      SomeLocalGeometryChanged) then
+  begin
+    { Remember to do FreeAndNil on octrees below.
+      Although we will recreate octrees right after rebuilding,
+      it's still good to nil them right after freeing.
+      Otherwise, when exception will raise from CreateXxxOctree,
+      Scene.OctreeXxx will be left as invalid pointer. }
+
     FreeAndNil(FOctreeRendering);
     FOctreeRendering := CreateShapeStateOctree(
       ShapeStateOctreeMaxDepth,
       ShapeStateOctreeLeafCapacity,
       ShapeStateOctreeProgressTitle,
       false);
+
+    if Log and LogChanges then
+      WritelnLog('VRML changes (octree)', 'OctreeRendering updated');
   end;
 
-  if OctreeCollisions <> nil then
+  if (OctreeCollisions <> nil) and
+     (ScheduledGeometrySomeTransformChanged or
+      SomeLocalGeometryChanged) then
   begin
-    PointingDeviceClear;
-
     FreeAndNil(FOctreeCollisions);
     FOctreeCollisions := CreateShapeStateOctree(
       TriangleOctreeMaxDepth,
@@ -2254,16 +2335,22 @@ begin
       TriangleOctreeProgressTitle,
       true);
 
-    { GeometryChanged for shapestates is needed to call only in this case.
-      When OctreeCollisions = nil, then shapestates don't have any octree
-      initialized. }
-{TODO: DpGeometryChanged should get param, saying which octrees are updated?}{    for I := 0 to ShapeStates.Count - 1 do
-      ShapeStates[I].GeometryChanged;}
+    if Log and LogChanges then
+      WritelnLog('VRML changes (octree)', 'OctreeCollisions updated');
   end;
-{$endif REBUILD_OCTREE}
+
+  if SomeLocalGeometryChanged then
+    { Some POctreeItems became invalid. }
+    PointingDeviceClear;
 
   if Assigned(OnGeometryChanged) then
     OnGeometryChanged(Self);
+
+  { clear ScheduledGeometryXxx flags now }
+  ScheduledGeometryChangedAll := false;
+  ScheduledGeometrySomeTransformChanged := false;
+  for I := 0 to ShapeStates.Count - 1 do
+    ShapeStates[I].ScheduledLocalGeometryChanged := false;
 end;
 
 procedure TVRMLScene.DoViewpointsChanged;

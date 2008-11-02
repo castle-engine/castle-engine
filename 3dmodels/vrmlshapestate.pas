@@ -16,6 +16,8 @@
   You should have received a copy of the GNU General Public License
   along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
 }
 
 { @abstract(@link(TVRMLShapeState) class.) }
@@ -221,7 +223,11 @@ type
     { @groupEnd }
 
     { Update octree, if initialized. }
-    procedure GeometryChanged;
+    procedure LocalGeometryChanged;
+
+    { Internally used by TVRMLScene. Says if local geometry change is scheduled
+      (actual change will be done by TVRMLScene.DoGeometryChanged). }
+    ScheduledLocalGeometryChanged: boolean;
   end;
 
   TObjectsListItem_1 = TVRMLShapeState;
@@ -438,10 +444,8 @@ begin
   end;
 end;
 
-procedure TVRMLShapeState.GeometryChanged;
+procedure TVRMLShapeState.LocalGeometryChanged;
 begin
-{$define REBUILD_OCTREE}
-{$ifdef REBUILD_OCTREE}
   { Remember to do FreeAndNil on octrees below.
     Although we will recreate octrees right after rebuilding,
     it's still good to nil them right after freeing.
@@ -458,7 +462,6 @@ begin
       TriangleOctreeLeafCapacity,
       TriangleOctreeProgressTitle);
   end;
-{$endif REBUILD_OCTREE}
 end;
 
 { TVRMLShapeStatesList ------------------------------------------------------- }

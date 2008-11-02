@@ -337,6 +337,7 @@ begin
     for I := 0 to ItemsIndices.Count - 1 do
     begin
       ShapeState := ParentTree.ShapeStatesList.Items[ItemsIndices.Items[I]];
+      Assert(ShapeState.OctreeTriangles <> nil);
       try
         LocalRay0 := MatrixMultPoint(ShapeState.State.InvertedTransform, Ray0);
         LocalRayVector := MatrixMultDirection(ShapeState.State.InvertedTransform, RayVector);
