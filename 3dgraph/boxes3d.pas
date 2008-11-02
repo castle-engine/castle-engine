@@ -255,9 +255,16 @@ function TryBoxRayClosestIntersection(
 
   This means that if Ray0 is inside the box, TryBoxRayEntrance simply returns
   Ray0. If Ray0 is outside of the box, the answer is the same
-  as with TryBoxRayClosestIntersection. }
-function TryBoxRayEntrance(out Entrance: TVector3Single;
-  const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean;
+  as with TryBoxRayClosestIntersection.
+  
+  @groupBegin }
+function TryBoxRayEntrance(
+  out Entrance: TVector3Single; out EntranceDistance: Single;
+  const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean; overload;
+function TryBoxRayEntrance(
+  out Entrance: TVector3Single;
+  const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean; overload;
+{ @groupEnd }
 
 function IsBox3dSegmentCollision(
   const Box: TBox3d;
@@ -1024,15 +1031,31 @@ begin
     Intersection, IntersectionDistance, Box, Ray0, RayVector);
 end;
 
-function TryBoxRayEntrance(out Entrance: TVector3Single;
+function TryBoxRayEntrance(
+  out Entrance: TVector3Single; out EntranceDistance: Single;
   const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean;
 begin
- if Box3dPointInside(Ray0, Box) then
- begin
-  Entrance := Ray0;
-  result := true;
- end else
-  result := TryBoxRayClosestIntersection(Entrance, Box, Ray0, RayVector);
+  if Box3dPointInside(Ray0, Box) then
+  begin
+    Entrance := Ray0;
+    EntranceDistance := 0;
+    result := true;
+  end else
+    result := TryBoxRayClosestIntersection(
+      Entrance, EntranceDistance, Box, Ray0, RayVector);
+end;
+
+function TryBoxRayEntrance(
+  out Entrance: TVector3Single;
+  const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean;
+begin
+  if Box3dPointInside(Ray0, Box) then
+  begin
+    Entrance := Ray0;
+    result := true;
+  end else
+    result := TryBoxRayClosestIntersection(
+      Entrance, Box, Ray0, RayVector);
 end;
 
 function IsBox3dSegmentCollision(
