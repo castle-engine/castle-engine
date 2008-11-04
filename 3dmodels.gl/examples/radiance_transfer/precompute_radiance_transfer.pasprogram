@@ -20,10 +20,79 @@
   ----------------------------------------------------------------------------
 }
 
-{ Process arbitrary model for PRT.
+{ Process arbitrary model for PRT. Computes and adds "radianceTransfer"
+  field to all geometry nodes (descending from X3DComposedGeometryNode,
+  this includes most often used nodes).
+
+  $1 is the source model, $2 is the output model (output is always VRML/X3D,
+  so use .wrl/.x3dv extension).
+
+  TODO: for now, radianceTransfer is calculated for whole model.
+  This means that self-shadowing takes whole model into account,
+  but also that whole model must remain static (or radianceTransfer must
+  be animated along with coords).
+
+  Alternative approach is possible: calculate radianceTransfer only
+  for this specific shape. Then shape must stay static (or it's
+  radianceTransfer must be animated along with it's coords), but it can
+  move with respect to other shapes. But note that then self-shadowing
+  takes only this shape into account... TODO: make this possible,
+  and document on kambi_vrml_extensions.
+
+  We compute radianceTransfer in scene space (not in local shape
+  space). This is important, otherwise incoming light SH (calculated
+  when rendering at every frame) would have to be transformed (rotated)
+  for each shape. Right now, it only has to be rotated once, for each scene.
+
+  Note that your geometry nodes shouldn't use DEF/USE mechanism.
+  If the same shape is instantiated many times, it will have the same
+  radianceTransfer. Which is bad, since self-shadowing may be different
+  on different instances...
+  TODO: move to kambi_vrml_extensions docs.
 }
 
 program precompute_radiance_transfer;
 
+uses SysUtils, KambiUtils, VectorMath, VRMLScene, VRMLNodes, Object3dAsVRML;
+
+procedure ComputeTransfer(RadianceTransfer: TDynSingleArray;
+  Coord: TDynVector3SingleArray; const Transform: TMatrix4Single);
+var
+  I: Integer;
+  V: TVector3Single;
 begin
+  RadianceTransfer.Count := Coord.Count * 3 { anything };
+  for I := 0 to Coord.Count - 1 do
+  begin
+    V := MatrixMultPoint(Transform, Coord.Items[I]);
+    RadianceTransfer.Items[I * 3    ] := V[0];
+    RadianceTransfer.Items[I * 3 + 1] := V[1];
+    RadianceTransfer.Items[I * 3 + 2] := V[2];
+  end;
+end;
+
+var
+  Scene: TVRMLScene;
+  I: Integer;
+  ComposedGeom: TNodeX3DComposedGeometryNode;
+begin
+  Parameters.CheckHigh(2);
+
+  Scene := TVRMLScene.Create(LoadAsVRML(Parameters[1]), true);
+  try
+    for I := 0 to Scene.ShapeStates.Count - 1 do
+      if Scene.ShapeStates[I].GeometryNode is TNodeX3DComposedGeometryNode then
+      begin
+        ComposedGeom := TNodeX3DComposedGeometryNode(
+          Scene.ShapeStates[I].GeometryNode);
+
+        ComputeTransfer(
+          ComposedGeom.FdRadianceTransfer.Items,
+          ComposedGeom.Coordinates(Scene.ShapeStates[I].State).Items,
+          Scene.ShapeStates[I].State.Transform);
+      end;
+
+    SaveToVRMLFile(Scene.RootNode, Parameters[2],
+      'radianceTransfer computed by precompute_radiance_transfer');
+  finally FreeAndNil(Scene) end;
 end.

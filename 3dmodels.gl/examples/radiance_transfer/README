@@ -26,7 +26,10 @@ Idea:
 
 Advantages/disadvantages:
 - Your object cannot morph (this would break our precalculation,
-  that stores self-occlusion).
+  that stores self-occlusion). Alternatively: you can precalculate
+  transfer for all frames (or only key-frames) of your object,
+  and then you can animate this transfer data just like you animate coords.
+  But note that transfer data may take a lot of space.
 + Your object can be translated, rotated with respect to the light source.
   (Scaled too? I see no problems, TODO check in practice.)
 
@@ -63,7 +66,7 @@ Advantages/disadvantages:
   so shadow/caustics receiver doesn't have full flexibility of moving).
 
 How to represent "function defined over a sphere"? Spherical harmonics
-(Polish: "Harmoniki sferyczne". Pure poetry.)
+(Polish: "Harmoniki sferyczne". Poetry.)
 http://en.wikipedia.org/wiki/Spherical_harmonics.
 What's important for us: it's an infinite set of functions
 mapping a 3D sphere position (think "direction") to a real number.

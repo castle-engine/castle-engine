@@ -68,6 +68,9 @@
     private FFdsolid: TSFBool;
     public property Fdsolid: TSFBool read FFdsolid;
 
+    private FFdRadianceTransfer: TMFFloat;
+    public property FdRadianceTransfer: TMFFloat read FFdRadianceTransfer;
+
     function Coord(State: TVRMLGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
 
@@ -494,6 +497,9 @@ begin
   FFdsolid := TSFBool.Create(Self, 'solid', true);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
+
+  FFdRadianceTransfer := TMFFloat.Create(Self, 'radianceTransfer', []);
+  Fields.Add(FFdRadianceTransfer);
 end;
 
 function TNodeX3DComposedGeometryNode.Coord(State: TVRMLGraphTraverseState;
