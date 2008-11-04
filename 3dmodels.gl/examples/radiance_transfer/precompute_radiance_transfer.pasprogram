@@ -55,6 +55,9 @@ program precompute_radiance_transfer;
 
 uses SysUtils, KambiUtils, VectorMath, VRMLScene, VRMLNodes, Object3dAsVRML;
 
+var
+  Scene: TVRMLScene;
+
 procedure ComputeTransfer(RadianceTransfer: TDynSingleArray;
   Coord: TDynVector3SingleArray; const Transform: TMatrix4Single);
 var
@@ -65,15 +68,14 @@ begin
   for I := 0 to Coord.Count - 1 do
   begin
     V := MatrixMultPoint(Transform, Coord.Items[I]);
-    RadianceTransfer.Items[I * 3    ] := V[0];
-    RadianceTransfer.Items[I * 3 + 1] := V[1];
-    RadianceTransfer.Items[I * 3 + 2] := V[2];
+    RadianceTransfer.Items[I * 3    ] := MapRange(V[0], Scene.BoundingBox[0][0], Scene.BoundingBox[1][0], 0, 1);
+    RadianceTransfer.Items[I * 3 + 1] := MapRange(V[1], Scene.BoundingBox[0][1], Scene.BoundingBox[1][1], 0, 1);
+    RadianceTransfer.Items[I * 3 + 2] := MapRange(V[2], Scene.BoundingBox[0][2], Scene.BoundingBox[1][2], 0, 1);
     { TODO: dummy calc now }
   end;
 end;
 
 var
-  Scene: TVRMLScene;
   I: Integer;
   ComposedGeom: TNodeX3DComposedGeometryNode;
 begin

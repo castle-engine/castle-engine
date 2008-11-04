@@ -422,7 +422,7 @@ type
   { Enhances TAbstractMatTexCoordinateRenderer with the ability to handle
     per-face or per-vertex VRML >= 2.0 colors.
 
-    - Usage: set Color, ColorPerVertex and ColorIndex.
+    - Usage: set Color, ColorPerVertex, ColorIndex.
 
       If Color = @nil, this class will not do anything.
       Otherwise, colors will be used.
@@ -439,16 +439,36 @@ type
       accesses colors)
       and for face we'll use just face number.
 
+    - You can also set RadianceTransfer
+      (although we actually handle it here for all X3DComposedGeometryNode
+      descendants, which is pretty enough). If set, and non-empty,
+      and Attributes.OnRadianceTransfer are defined, we will use it.
+
+      Note that assigning RadianceTransfer some non-nil value may actually
+      result is setting it to nil (when we detect that RadianceTransfer should
+      not be used actually).
+
+      We will then ignore Color, ColorPerVertex, ColorIndex
+      settings --- only the colors returned by OnRadianceTransfer
+      will be used.
+
     Everything related to setting VRML 2.0
     material should be set in Render_MaterialsBegin, and everything
     related to VRML 2.0 colors is handled in this class.
     So in summary, this class takes care of everything related to
     materials / colors. }
   TAbstractColMatTexCoordinateRenderer = class(TAbstractMatTexCoordinateRenderer)
+  private
+    RadianceTransferVertexSize: Cardinal;
+    FRadianceTransfer: TDynSingleArray;
+    procedure SetRadianceTransfer(const Value: TDynSingleArray);
   protected
     Color: TMFVec3f;
     ColorPerVertex: boolean;
     ColorIndex: TMFLong;
+
+    property RadianceTransfer: TDynSingleArray
+      read FRadianceTransfer write SetRadianceTransfer;
 
     procedure RenderVertex(IndexNum: integer); override;
     procedure RenderCoordsRange(
@@ -456,6 +476,8 @@ type
       BeginIndex, EndIndex: Integer); override;
 
     function NeedsSetColor_2: boolean; override;
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
   TNormalsImplementation = (
@@ -1202,9 +1224,54 @@ end;
 
 { TAbstractColMatTexCoordinateRenderer --------------------------------------- }
 
+constructor TAbstractColMatTexCoordinateRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+begin
+  inherited;
+
+  if Geometry is TNodeX3DComposedGeometryNode then
+    RadianceTransfer := (Geometry as TNodeX3DComposedGeometryNode).FdRadianceTransfer.Items;
+end;
+
+procedure TAbstractColMatTexCoordinateRenderer.SetRadianceTransfer(const Value: TDynSingleArray);
+begin
+  FRadianceTransfer := Value;
+
+  if (RadianceTransfer.Count <> 0) and
+     Assigned(Renderer.Attributes.OnRadianceTransfer) then
+  begin
+    if RadianceTransfer.Count mod Coord.Count <> 0 then
+    begin
+      VRMLNonFatalError('radianceTransfer field must be emppty, or have a number of items being multiple of coods');
+      FRadianceTransfer := nil;
+    end else
+    if RadianceTransfer.Count < Coord.Count then
+    begin
+      VRMLNonFatalError('radianceTransfer field must be emppty, or have a number of items >= number of coods');
+      FRadianceTransfer := nil;
+    end else
+      RadianceTransferVertexSize := RadianceTransfer.Count div Coord.Count;
+  end else
+    FRadianceTransfer := nil;
+end;
+
 procedure TAbstractColMatTexCoordinateRenderer.RenderVertex(IndexNum: integer);
+var
+  VertexColor: TVector3Single;
+  VertexIndex: Cardinal;
 begin
   { Implement different color per vertex here. }
+  if RadianceTransfer <> nil then
+  begin
+    if CoordIndex <> nil then
+      VertexIndex := CoordIndex.ItemsSafe[IndexNum] else
+      VertexIndex := IndexNum;
+
+    VertexColor := Renderer.Attributes.OnRadianceTransfer(Geometry,
+      @(RadianceTransfer.Items[VertexIndex * RadianceTransferVertexSize]),
+      RadianceTransferVertexSize);
+
+    Renderer.SetColor_2(VertexColor);
+  end else
   if (Color <> nil) and ColorPerVertex then
   begin
     if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
@@ -1224,17 +1291,20 @@ begin
   inherited;
 
   { Implement different color per face here. }
-  if (Color <> nil) and (not ColorPerVertex) then
+  if RadianceTransfer = nil then
   begin
-    if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
-      Renderer.SetColor_2(Color.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]]) else
-      Renderer.SetColor_2(Color.ItemsSafe[RangeNumber]);
+    if (Color <> nil) and (not ColorPerVertex) then
+    begin
+      if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
+        Renderer.SetColor_2(Color.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]]) else
+        Renderer.SetColor_2(Color.ItemsSafe[RangeNumber]);
+    end;
   end;
 end;
 
 function TAbstractColMatTexCoordinateRenderer.NeedsSetColor_2: boolean;
 begin
-  Result := Color <> nil;
+  Result := (RadianceTransfer <> nil) or (Color <> nil);
 end;
 
 { TAbstractNorColMatTexCoordinateRenderer ----------------------------------------------------- }

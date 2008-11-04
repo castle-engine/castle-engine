@@ -347,6 +347,9 @@ const
 type
   TBeforeGLVertexProc = procedure (Node: TVRMLGeometryNode;
     const Vert: TVector3Single) of object;
+  TRadianceTransferFunction = function (Node: TVRMLGeometryNode;
+    RadianceTransfer: PSingle;
+    const RadianceTransferCount: Cardinal): TVector3Single of object;
 
   { Various bump mapping methods. Generally sorted from worst one
     (bmNone, which does no bump mapping) to the best.
@@ -457,6 +460,7 @@ type
   TVRMLRenderingAttributes = class(TPersistent)
   private
     FOnBeforeGLVertex: TBeforeGLVertexProc;
+    FOnRadianceTransfer: TRadianceTransferFunction;
     FSmoothShading: boolean;
     FColorModulatorSingle: TColorModulatorSingleFunc;
     FColorModulatorByte: TColorModulatorByteFunc;
@@ -484,6 +488,7 @@ type
       and must prepare it again, otherwise rendering will fail).
       @groupBegin }
     procedure SetOnBeforeGLVertex(const Value: TBeforeGLVertexProc); virtual;
+    procedure SetOnRadianceTransfer(const Value: TRadianceTransferFunction); virtual;
     procedure SetSmoothShading(const Value: boolean); virtual;
     procedure SetColorModulatorSingle(const Value: TColorModulatorSingleFunc); virtual;
     procedure SetColorModulatorByte(const Value: TColorModulatorByteFunc); virtual;
@@ -527,6 +532,18 @@ type
       nil by default. }
     property OnBeforeGLVertex: TBeforeGLVertexProc
       read FOnBeforeGLVertex write SetOnBeforeGLVertex;
+
+    { Calculate vertex color from radiance transfer.
+      If this is assigned, and geometry object has radianceTransfer
+      field (see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_radiance_transfer])
+      then this is used to calculate the color of each vertex.
+
+      Note that this is evaluated when object is rendered.
+      If your object has dynamic lighting, you want to use roNone optimization,
+      otherwise colors returned by this are saved on display list and
+      never change. }
+    property OnRadianceTransfer: TRadianceTransferFunction
+      read FOnRadianceTransfer write SetOnRadianceTransfer;
 
     { Ponizsze ustawienie kontroluje czy na poczatku renderowania sceny wywolac
       glShadeModel(GL_SMOOTH) czy GL_FLAT. Ponadto w czasie renderowania
@@ -1603,8 +1620,7 @@ begin
        (TextureCached^.MagFilter = TextureMagFilter) and
        (TextureCached^.WrapS = TextureWrapS) and
        (TextureCached^.WrapT = TextureWrapT) and
-       ({$ifndef FPC_OBJFPC} @ {$endif} TextureCached^.ColorModulator =
-        {$ifndef FPC_OBJFPC} @ {$endif} TextureColorModulator) then
+       (TextureCached^.ColorModulator = TextureColorModulator) then
     begin
       Inc(TextureCached^.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
@@ -1699,8 +1715,7 @@ begin
        (TextureCached^.MagFilter = TextureMagFilter) and
        (TextureCached^.WrapS = TextureWrapS) and
        (TextureCached^.WrapT = TextureWrapT) and
-       ({$ifndef FPC_OBJFPC} @ {$endif} TextureCached^.ColorModulator =
-        {$ifndef FPC_OBJFPC} @ {$endif} TextureColorModulator) then
+       (TextureCached^.ColorModulator = TextureColorModulator) then
     begin
       Inc(TextureCached^.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
@@ -2414,6 +2429,7 @@ begin
   if Source is TVRMLRenderingAttributes then
   begin
     OnBeforeGLVertex := TVRMLRenderingAttributes(Source).OnBeforeGLVertex;
+    OnRadianceTransfer := TVRMLRenderingAttributes(Source).OnRadianceTransfer;
     SmoothShading := TVRMLRenderingAttributes(Source).SmoothShading;
     ColorModulatorSingle := TVRMLRenderingAttributes(Source).ColorModulatorSingle;
     ColorModulatorByte := TVRMLRenderingAttributes(Source).ColorModulatorByte;
@@ -2436,13 +2452,11 @@ end;
 function TVRMLRenderingAttributes.Equals(SecondValue: TPersistent): boolean;
 begin
   Result := (SecondValue is TVRMLRenderingAttributes) and
-    ({$ifndef FPC_OBJFPC} @ {$endif} TVRMLRenderingAttributes(SecondValue).OnBeforeGLVertex =
-     {$ifndef FPC_OBJFPC} @ {$endif} OnBeforeGLVertex) and
+    (TVRMLRenderingAttributes(SecondValue).OnBeforeGLVertex = OnBeforeGLVertex) and
+    (TVRMLRenderingAttributes(SecondValue).OnRadianceTransfer = OnRadianceTransfer) and
     (TVRMLRenderingAttributes(SecondValue).SmoothShading = SmoothShading) and
-    ({$ifndef FPC_OBJFPC} @ {$endif} TVRMLRenderingAttributes(SecondValue).ColorModulatorSingle =
-     {$ifndef FPC_OBJFPC} @ {$endif} ColorModulatorSingle) and
-    ({$ifndef FPC_OBJFPC} @ {$endif} TVRMLRenderingAttributes(SecondValue).ColorModulatorByte =
-     {$ifndef FPC_OBJFPC} @ {$endif} ColorModulatorByte) and
+    (TVRMLRenderingAttributes(SecondValue).ColorModulatorSingle = ColorModulatorSingle) and
+    (TVRMLRenderingAttributes(SecondValue).ColorModulatorByte = ColorModulatorByte) and
     (TVRMLRenderingAttributes(SecondValue).UseLights = UseLights) and
     (TVRMLRenderingAttributes(SecondValue).FirstGLFreeLight = FirstGLFreeLight) and
     (TVRMLRenderingAttributes(SecondValue).LastGLFreeLight = LastGLFreeLight) and
@@ -2482,6 +2496,12 @@ procedure TVRMLRenderingAttributes.SetOnBeforeGLVertex(
   const Value: TBeforeGLVertexProc);
 begin
   FOnBeforeGLVertex := Value;
+end;
+
+procedure TVRMLRenderingAttributes.SetOnRadianceTransfer(
+  const Value: TRadianceTransferFunction);
+begin
+  FOnRadianceTransfer := Value;
 end;
 
 procedure TVRMLRenderingAttributes.SetSmoothShading(const Value: boolean);

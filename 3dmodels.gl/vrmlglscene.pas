@@ -222,6 +222,7 @@ type
     FWireframeEffect: TVRMLWireframeEffect;
   protected
     procedure SetOnBeforeGLVertex(const Value: TBeforeGLVertexProc); override;
+    procedure SetOnRadianceTransfer(const Value: TRadianceTransferFunction); override;
     procedure SetSmoothShading(const Value: boolean); override;
     procedure SetColorModulatorSingle(const Value: TColorModulatorSingleFunc); override;
     procedure SetColorModulatorByte(const Value: TColorModulatorByteFunc); override;
@@ -3625,8 +3626,17 @@ end;
 procedure TVRMLSceneRenderingAttributes.SetOnBeforeGLVertex(
   const Value: TBeforeGLVertexProc);
 begin
-  if {$ifndef FPC_OBJFPC} @ {$endif} OnBeforeGLVertex <>
-     {$ifndef FPC_OBJFPC} @ {$endif} Value then
+  if OnBeforeGLVertex <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
+
+procedure TVRMLSceneRenderingAttributes.SetOnRadianceTransfer(
+  const Value: TRadianceTransferFunction);
+begin
+  if OnRadianceTransfer <> Value then
   begin
     FScenes.CloseGLRenderer;
     inherited;
@@ -3645,8 +3655,7 @@ end;
 procedure TVRMLSceneRenderingAttributes.SetColorModulatorSingle(
   const Value: TColorModulatorSingleFunc);
 begin
-  if {$ifndef FPC_OBJFPC} @ {$endif} ColorModulatorSingle <>
-     {$ifndef FPC_OBJFPC} @ {$endif} Value then
+  if ColorModulatorSingle <> Value then
   begin
     FScenes.FBackgroundInvalidate;
     FScenes.CloseGLRenderer;
@@ -3657,8 +3666,7 @@ end;
 procedure TVRMLSceneRenderingAttributes.SetColorModulatorByte(
   const Value: TColorModulatorByteFunc);
 begin
-  if {$ifndef FPC_OBJFPC} @ {$endif} ColorModulatorByte <>
-     {$ifndef FPC_OBJFPC} @ {$endif} Value then
+  if ColorModulatorByte <> Value then
   begin
     FScenes.FBackgroundInvalidate;
     FScenes.CloseGLRenderer;

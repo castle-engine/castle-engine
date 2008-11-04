@@ -61,12 +61,30 @@ begin
     Glwin.Width, Glwin.Height, AngleOfViewX, AngleOfViewY);
 end;
 
+type
+  THelper = class
+    function DoRadianceTransfer(Node: TVRMLGeometryNode;
+      RadianceTransfer: PSingle;
+      const RadianceTransferCount: Cardinal): TVector3Single;
+  end;
+
+function THelper.DoRadianceTransfer(Node: TVRMLGeometryNode;
+  RadianceTransfer: PSingle;
+  const RadianceTransferCount: Cardinal): TVector3Single;
+begin
+  { TODO: this is a dummy impl, just to test OnRadianceTransfer
+    and radianceTransfer fields work. }
+  Assert(RadianceTransferCount = 3);
+  Result := Vector3Single(RadianceTransfer[0], RadianceTransfer[1], RadianceTransfer[2]);
+end;
+
 begin
   Parameters.CheckHigh(1);
   try
     VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
 
-    Scene := TVRMLGLScene.Create(Parameters[1], roSceneAsAWhole);
+    Scene := TVRMLGLScene.Create(Parameters[1], roNone);
+    Scene.Attributes.OnRadianceTransfer := @THelper(nil).DoRadianceTransfer;
 
     Glw.Navigator := Scene.CreateNavigator(CameraRadius);
     Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
