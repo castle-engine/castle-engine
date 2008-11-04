@@ -1,0 +1,77 @@
+1. Precomputed Radiance Transfer.
+
+http://www.mpi-inf.mpg.de/~jnkautz/projects/prt/prtSIG02.pdf (orig paper, 2002)
+http://www.tml.tkk.fi/~tmakipat/prtf_fixed.pdf (more tutorial-like into)
+http://en.wikipedia.org/wiki/Precomputed_Radiance_Transfer
+
+Many papers related to this, including full dynamic soft-shadows approaches.
+- "Precomputed Shadow Fields for Dynamic Scenes" (uses SH for combining shadow fields)
+  (I'm going to talk about this too)
+
+  "Real-time Soft Shadows in Dynamic Scenes using Spherical Harmonic Exponentiation"
+  Both from http://www.kunzhou.net/
+
+- "Large-Scale Data Management for PRT-Based Real-Time Rendering of Dynamically Skinned Model"
+  http://graphics.cs.uiuc.edu/~wfeng2/
+
+Idea:
+- For each vertex of the 3D model, precalculate a function defined over
+  a sphere around this vertex. This function contains precalculated
+  self-occlusion data and material (BRDF) data.
+  (But it's *not* dependent on lighting position and intensity!)
+- When rendering, use this precalculated function together with
+  current light(s) positions and intensity to quickly calculate lighting
+  on this vertex. This will light the 3D model, with effects like
+  self-shadowing.
+
+Advantages/disadvantages:
+- Your object cannot morph (this would break our precalculation,
+  that stores self-occlusion).
++ Your object can be translated, rotated with respect to the light source.
+  (Scaled too? I see no problems, TODO check in practice.)
+- Light shouldn't be too close to your object. (Position of light source
+  with respect to the vertex matters, theoretically we should reproject
+  light at each vertex --- but this has horrible time, and is not needed
+  for typical cases. So we project light, say, once per object --- but this
+  means that light pos should be more-or-less the same wrt all vertexes.)
+- Base PRT is not a shadowing method, that is we do not think here about
+  one object casting shadows on other objects. So e.g. a human on a ground,
+  with human casting shadow on this ground, is fine (treat human + ground
+  as one object), but you cannot move human with respect to the ground
+  (within one object nothing can change)...
+
+  But the ideas of PRT *can* be used for fast soft-shadow algorithms,
+  see references at the beginning, one example: shadow fields, later.
+
+How to represent "function defined over a sphere"? Spherical harmonics
+(Polish: "Harmoniki sferyczne". WTFLMAO.)
+http://en.wikipedia.org/wiki/Spherical_harmonics.
+What's important for us: it's an infinite set of functions
+mapping a 3D sphere position (think "direction") to a real number.
+Such that, given any (square-integrable) function f
+(also mapping direction -> real), we can express it as
+
+  f(s) = l_1 * SH_1 + l_2 * SH_2 + ...
+
+When we truncate this, we get a good approx of f, which removes some
+details from f but catches general shape. So a vector (l_1, l_2, ...)
+is a nice, compact and efficient way to describe function f.
+(Actually SH has two indexes, see paper.)
+
+http://en.wikipedia.org/wiki/Table_of_spherical_harmonics, so we don't really
+have to get our hands dirty. Sensible numbers to truncate are 9, 16, 25
+according to paper it's not worth trying more (TODO check),
+so we only need up to L = 4).
+
+Page 8 from Teemu (3.1.1) --- this is the core idea of the algorithm,
+shows what and how the precalculation does.
+
+------------------------------------------------------------------------------
+
+2. Precomputed Shadow Fields for Dynamic Scenes
+   Video and paper from http://www.kunzhou.net/
+
+Video notes: note that morphing objects is problematic, since shadow fields
+are precalculated for given geometry. They admit this (when talking
+about "each leg has it's own SF", and when video texture light has very
+few FPS (400 MB according to paper)).
