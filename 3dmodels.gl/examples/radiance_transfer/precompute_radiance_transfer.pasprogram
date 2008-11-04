@@ -53,31 +53,43 @@
 
 program precompute_radiance_transfer;
 
-uses SysUtils, KambiUtils, VectorMath, VRMLScene, VRMLNodes, Object3dAsVRML;
+uses SysUtils, KambiUtils, VectorMath, VRMLScene, VRMLNodes, Object3dAsVRML,
+  NormalsCalculator;
 
 var
   Scene: TVRMLScene;
+  Normals: TDynVector3SingleArray;
 
 procedure ComputeTransfer(RadianceTransfer: TDynSingleArray;
   Coord: TDynVector3SingleArray; const Transform: TMatrix4Single);
 var
   I: Integer;
-  V: TVector3Single;
+  V, N: TVector3Single;
 begin
   RadianceTransfer.Count := Coord.Count * 3 { anything };
   for I := 0 to Coord.Count - 1 do
   begin
+    { V = scene-space vertex coord }
     V := MatrixMultPoint(Transform, Coord.Items[I]);
-    RadianceTransfer.Items[I * 3    ] := MapRange(V[0], Scene.BoundingBox[0][0], Scene.BoundingBox[1][0], 0, 1);
+    {RadianceTransfer.Items[I * 3    ] := MapRange(V[0], Scene.BoundingBox[0][0], Scene.BoundingBox[1][0], 0, 1);
     RadianceTransfer.Items[I * 3 + 1] := MapRange(V[1], Scene.BoundingBox[0][1], Scene.BoundingBox[1][1], 0, 1);
-    RadianceTransfer.Items[I * 3 + 2] := MapRange(V[2], Scene.BoundingBox[0][2], Scene.BoundingBox[1][2], 0, 1);
+    RadianceTransfer.Items[I * 3 + 2] := MapRange(V[2], Scene.BoundingBox[0][2], Scene.BoundingBox[1][2], 0, 1);}
+    { N = scene-space normal coord
+      TODO: MatrixMultDirection will not work under non-uniform scaling
+      matrix correctly. }
+    N := Normalized(MatrixMultDirection(Transform, Normals.Items[I]));
+
+    RadianceTransfer.Items[I * 3    ] := N[0];
+    RadianceTransfer.Items[I * 3 + 1] := N[1];
+    RadianceTransfer.Items[I * 3 + 2] := N[2];
     { TODO: dummy calc now }
   end;
 end;
 
 var
   I: Integer;
-  ComposedGeom: TNodeX3DComposedGeometryNode;
+  Geometry: TNodeX3DComposedGeometryNode;
+  State: TVRMLGraphTraverseState;
 begin
   Parameters.CheckHigh(2);
 
@@ -86,13 +98,20 @@ begin
     for I := 0 to Scene.ShapeStates.Count - 1 do
       if Scene.ShapeStates[I].GeometryNode is TNodeX3DComposedGeometryNode then
       begin
-        ComposedGeom := TNodeX3DComposedGeometryNode(
+        Geometry := TNodeX3DComposedGeometryNode(
           Scene.ShapeStates[I].GeometryNode);
+        State := Scene.ShapeStates[I].State;
 
-        ComputeTransfer(
-          ComposedGeom.FdRadianceTransfer.Items,
-          ComposedGeom.Coordinates(Scene.ShapeStates[I].State).Items,
-          Scene.ShapeStates[I].State.Transform);
+        { For PRT, we need a normal per-vertex, so always calculate
+          smooth normals. Simple, and thanks to NormalsCalculator
+          this works for all VRML coord-based nodes. }
+        Normals := CreateSmoothNormalsCoordinateNode(Geometry, State, true);
+        try
+          ComputeTransfer(
+            Geometry.FdRadianceTransfer.Items,
+            Geometry.Coordinates(State).Items,
+            State.Transform);
+        finally FreeAndNil(Normals) end;
       end;
 
     SaveToVRMLFile(Scene.RootNode, Parameters[2],
