@@ -68,6 +68,7 @@ begin
     RadianceTransfer.Items[I * 3    ] := V[0];
     RadianceTransfer.Items[I * 3 + 1] := V[1];
     RadianceTransfer.Items[I * 3 + 2] := V[2];
+    { TODO: dummy calc now }
   end;
 end;
 
