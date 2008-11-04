@@ -29,22 +29,41 @@ Advantages/disadvantages:
   that stores self-occlusion).
 + Your object can be translated, rotated with respect to the light source.
   (Scaled too? I see no problems, TODO check in practice.)
+
 - Light shouldn't be too close to your object. (Position of light source
   with respect to the vertex matters, theoretically we should reproject
   light at each vertex --- but this has horrible time, and is not needed
-  for typical cases. So we project light, say, once per object --- but this
+  for typical cases. So we project light, say, few times per object --- but this
   means that light pos should be more-or-less the same wrt all vertexes.)
++ We can have many large lights. They don't hurt us. (Light geometry is only
+  rendered at eath frame, but this is trivial for OpenGL.)
+  In fact, algorithm wants to have large lights (otherwise SH approximation
+  will loose the details of light source geometry anyway).
+
++ Actually, the precalculated stage may compute much more.
+  Anything that depends purely on local geometry (not depends on other
+  objects or lighting conditions). For example, interreflections
+  and, yes, caustics.
+
 - Base PRT is not a shadowing method, that is we do not think here about
   one object casting shadows on other objects. So e.g. a human on a ground,
   with human casting shadow on this ground, is fine (treat human + ground
   as one object), but you cannot move human with respect to the ground
   (within one object nothing can change)...
-
   But the ideas of PRT *can* be used for fast soft-shadow algorithms,
   see references at the beginning, one example: shadow fields, later.
++~ Well, actually PRT has straighforward extenstion to cast shadows
+  (and caustics and everything else) from one object to the other:
+  radiance neighborhood transfer. This is quite brutal solution
+  (we simply add non-existing points to compute around our object),
+  and will work only under a couple of assumptions (lighting conditions
+  on one area may be affected by only one other object, so more
+  than one shadow (at least one made PRT) = problems;
+  neighborhood vertices must be placed and precalculated,
+  so shadow/caustics receiver doesn't have full flexibility of moving).
 
 How to represent "function defined over a sphere"? Spherical harmonics
-(Polish: "Harmoniki sferyczne". WTFLMAO.)
+(Polish: "Harmoniki sferyczne". Pure poetry.)
 http://en.wikipedia.org/wiki/Spherical_harmonics.
 What's important for us: it's an infinite set of functions
 mapping a 3D sphere position (think "direction") to a real number.
