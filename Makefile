@@ -227,6 +227,8 @@ EXAMPLES_BASE_NAMES := \
   3dmodels.gl/examples/fog_culling \
   3dmodels.gl/examples/shadow_volume_test/shadow_volume_test \
   3dmodels.gl/examples/bump_mapping/bump_mapping \
+  3dmodels.gl/examples/radiance_transfer/radiance_transfer \
+  3dmodels.gl/examples/radiance_transfer/precompute_radiance_transfer \
   3dmodels.gl/examples/plane_mirror_and_shadow \
   3dmodels.gl/examples/change_vrml_by_code \
   3dmodels.gl/examples/change_vrml_by_code_2 \
