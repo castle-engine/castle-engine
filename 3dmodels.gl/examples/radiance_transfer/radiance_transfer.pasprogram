@@ -22,25 +22,41 @@
 
 { Simple Precomputed Radiance Transfer implementation.
   Self-shadowing with diffuse lighting.
+
+  Navigate with mouse of keyboard (like view3dscene in Examine mode).
+  AWSD, Q, Shift+Q move the light.
+  R, Shift+R change light radius.
 }
 
 program radiance_transfer;
 
 uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
-  KambiGLUtils, VRMLScene, VRMLGLScene, Navigation,
-  KambiFilesUtils, VRMLErrors, SphericalHarmonics;
+  KambiGLUtils, VRMLScene, VRMLGLScene, Navigation, Keys,
+  KambiFilesUtils, VRMLErrors, SphericalHarmonics, Math;
 
 var
   Scene: TVRMLGLScene;
   CameraRadius: Single;
   ShowSimpleOcclusion: boolean;
+  LightRadius: Single;
+  LightPos: TVector3Single;
 
 procedure Draw(Glwin: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(Glw.Navigator.Matrix);
   Scene.Render(nil, tgAll);
+
+  glPushMatrix;
+    glTranslatev(LightPos);
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+      glColor4f(1, 1, 0, 0.1);
+      KamGluSphere(LightRadius, 10, 10);
+    glDisable(GL_BLEND);
+  glPopMatrix;
 end;
 
 procedure Init(Glwin: TGLWindow);
@@ -95,6 +111,43 @@ begin
   Glw.PostRedisplay;
 end;
 
+procedure Idle(Glwin: TGLWindow);
+
+  procedure ChangeLightPosition(Coord, Change: Integer);
+  begin
+    LightPos[Coord] += Change * Glwin.Fps.IdleSpeed * 50 /
+      { scale by Box3dAvgSize, to get similar move on all models }
+      Box3dAvgSize(Scene.BoundingBox) / 100;
+    Glwin.PostRedisplay;
+  end;
+
+  procedure ChangeLightRadius(Change: Float);
+  begin
+    LightRadius *= Power(Change, Glwin.Fps.IdleSpeed);
+    Glwin.PostRedisplay;
+  end;
+
+begin
+  if Glwin.KeysDown[K_A] then ChangeLightPosition(0, -1);
+  if Glwin.KeysDown[K_D] then ChangeLightPosition(0,  1);
+  if Glwin.KeysDown[K_S] then ChangeLightPosition(1, -1);
+  if Glwin.KeysDown[K_W] then ChangeLightPosition(1,  1);
+
+  if Glwin.KeysDown[K_Q] then
+  begin
+    if mkShift in Glwin.ModifiersDown then
+      ChangeLightPosition(2,  1) else
+      ChangeLightPosition(2, -1);
+  end;
+
+  if Glwin.KeysDown[K_R] then
+  begin
+    if mkShift in Glwin.ModifiersDown then
+      ChangeLightRadius(1/1.8) else
+      ChangeLightRadius(1.8);
+  end;
+end;
+
 var
   M: TMenu;
 begin
@@ -104,6 +157,17 @@ begin
 
     Scene := TVRMLGLScene.Create(Parameters[1], roNone);
     Scene.Attributes.OnRadianceTransfer := @THelper(nil).DoRadianceTransfer;
+
+    if IsEmptyBox3d(Scene.BoundingBox) then
+    begin
+      LightRadius := 1;
+      LightPos := Vector3Single(2, 0, 0);
+    end else
+    begin
+      LightRadius := Box3dAvgSize(Scene.BoundingBox) / 3;
+      LightPos := Box3dMiddle(Scene.BoundingBox);
+      LightPos[0] += Scene.BoundingBox[1][0] - Scene.BoundingBox[0][0] * 2;
+    end;
 
     Glw.MainMenu := TMenu.Create('Main menu');
     M := TMenu.Create('_Program');
@@ -117,6 +181,7 @@ begin
     Glw.OnInit := @Init;
     Glw.OnClose := @Close;
     Glw.OnResize := @Resize;
+    Glw.OnIdle := @Idle;
     Glw.InitLoop(ProgramName, @Draw);
   finally Scene.Free end;
 end.
