@@ -1,0 +1,224 @@
+{
+  Copyright 2008 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
+}
+
+{ Show Spherical harmonics function basis. }
+
+program show_sh;
+
+uses VectorMath, Boxes3d, GL, GLWindow,
+  GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, KambiFilesUtils,
+  KambiGLUtils, Navigation, Math, SphereSampling, SphericalHarmonics,
+  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts;
+
+var
+  LM: Cardinal = 0;
+  Font: TGLBitmapFont;
+
+procedure Draw2d(Data: Pointer);
+var
+  L: Cardinal;
+  M: Integer;
+begin
+  LMDecode(LM, L, M);
+  glLoadIdentity;
+  glColor3f(1, 1, 0);
+  glRasterPos2i(10, 10);
+  Font.Print(Format('Spherical harmonic number %d. (L, M) = (%d, %d)',
+    [LM, L, M]));
+end;
+
+procedure Draw(Glwin: TGLWindow);
+
+  { This was brutally copied from vrmlnodes_triangulating.inc
+    (Sphere_LocalTriangulate), then adjusted. See there for comments. }
+
+  procedure RenderSphere;
+  const
+    RadiusValue = 1;
+
+    QUADRIC_SLICES = 60;
+    QUADRIC_STACKS = 60;
+
+    procedure Vertex(const V: TVector3Single);
+    var
+      SH: Float;
+    begin
+      SH := SHBasis(LM, XYZToPhiTheta(V));
+      glColor3f(SH, SH, SH);
+      glVertexv(V);
+    end;
+
+{$define LOOP_OVER_CIRCLE_DECLARE:=
+var LOC_AngleRad: Single;
+    LOC_LastPt, LOC_Pt: TVector3Single;
+    LOC_i: integer;}
+
+{$define LOOP_OVER_CIRCLE:=
+begin
+ LOC_LastPt := Vector3Single(0, LOOP_OVER_CIRCLE_HEIGHT, LOOP_OVER_CIRCLE_RADIUS);
+ for LOC_i := 1 to QUADRIC_SLICES-1 do
+ begin
+  LOC_AngleRad:=(LOC_i/QUADRIC_SLICES)*2*Pi;
+  LOC_Pt := Vector3Single(Sin(LOC_AngleRad)*LOOP_OVER_CIRCLE_RADIUS,
+                        LOOP_OVER_CIRCLE_HEIGHT,
+                        Cos(LOC_AngleRad)*LOOP_OVER_CIRCLE_RADIUS);
+  LOOP_OVER_CIRCLE_PROC(LOC_LastPt, LOC_Pt);
+  LOC_LastPt := LOC_Pt;
+ end;
+
+ LOC_Pt := Vector3Single(0, LOOP_OVER_CIRCLE_HEIGHT, LOOP_OVER_CIRCLE_RADIUS);
+ LOOP_OVER_CIRCLE_PROC(LOC_LastPt, LOC_Pt);
+end;}
+
+    procedure StackHigherLine(StackNum: integer; out Radius, Height: Single);
+    var
+      alfa, s, c: Float;
+    begin
+      alfa := Pi * StackNum / QUADRIC_STACKS;
+      SinCos(alfa, s, c);
+      Radius := s * RadiusValue;
+      Height := -c * RadiusValue;
+    end;
+
+  var
+    BottomPt, TopPt: TVector3Single;
+    BottomAndTopStackRadius, BottomHeight, TopHeight :Single;
+
+    procedure LOOP_OVER_CIRCLE_PROC(LastPt, Pt: TVector3Single);
+    begin
+      Vertex(LastPt);
+      Vertex(Pt);
+      Vertex(BottomPt);
+
+      Pt[1] := TopHeight;
+      LastPt[1] := TopHeight;
+
+      Vertex(LastPt);
+      Vertex(Pt);
+      Vertex(TopPt);
+    end;
+
+  var
+    AngleRad, LowRadius, HighRadius, LowHeight, HighHeight: Single;
+    HighLastPt, HighPt, LowLastPt, LowPt: TVector3Single;
+    i, StackNum: integer;
+    SinAngleRad, CosAngleRad: Float;
+  LOOP_OVER_CIRCLE_DECLARE
+  begin
+    BottomPt := Vector3Single(0, -RadiusValue, 0);
+    TopPt := Vector3Single(0, RadiusValue, 0);
+    StackHigherLine(1, BottomAndTopStackRadius, BottomHeight);
+    TopHeight := -BottomHeight;
+
+    glBegin(GL_TRIANGLES);
+      {$define LOOP_OVER_CIRCLE_RADIUS := BottomAndTopStackRadius}
+      {$define LOOP_OVER_CIRCLE_HEIGHT := BottomHeight}
+      LOOP_OVER_CIRCLE
+    glEnd;
+
+    glBegin(GL_QUADS);
+
+      for StackNum := 2 to QUADRIC_STACKS-1 do
+      begin
+        StackHigherLine(StackNum-1, LowRadius, LowHeight);
+        StackHigherLine(StackNum, HighRadius, HighHeight);
+
+        LowLastPt := Vector3Single(0, LowHeight, LowRadius);
+        HighLastPt := Vector3Single(0, HighHeight, HighRadius);
+
+        for i := 1 to QUADRIC_SLICES do
+        begin
+          AngleRad := (i/QUADRIC_SLICES)*2*Pi;
+          SinCos(AngleRad, SinAngleRad, CosAngleRad);
+
+          LowPt  := Vector3Single(SinAngleRad*LowRadius , LowHeight , CosAngleRad*LowRadius );
+          HighPt := Vector3Single(SinAngleRad*HighRadius, HighHeight, CosAngleRad*HighRadius);
+
+          Vertex(LowLastPt);
+          Vertex(LowPt);
+          Vertex(HighPt);
+          Vertex(HighLastPt);
+
+          LowLastPt := LowPt;
+          HighLastPt := HighPt;
+        end;
+      end;
+
+    glEnd;
+  end;
+
+begin
+  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+  glLoadMatrix(Glw.Navigator.Matrix);
+  RenderSphere;
+
+  glPushAttrib(GL_ENABLE_BIT);
+    glDisable(GL_DEPTH_TEST);
+    glProjectionPushPopOrtho2D(@Draw2d, nil, 0, Glwin.Width, 0, Glwin.Height);
+  glPopAttrib;
+end;
+
+procedure Init(Glwin: TGLWindow);
+begin
+  glEnable(GL_DEPTH_TEST);
+  Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
+end;
+
+procedure Close(Glwin: TGLWindow);
+begin
+  FreeAndNil(Font);
+end;
+
+procedure Resize(Glwin: TGLWindow);
+begin
+  glViewport(0, 0, glwin.Width, glwin.Height);
+  ProjectionGLPerspective(45.0, glwin.Width/glwin.Height, 0.01, 10);
+end;
+
+procedure MenuCommand(glwin: TGLWindow; Item: TMenuItem);
+begin
+  case Item.IntData of
+    10: LM := ChangeIntCycle(LM, -1, SHBasesCount - 1);
+    20: LM := ChangeIntCycle(LM, +1, SHBasesCount - 1);
+    else Exit;
+  end;
+  Glw.PostRedisplay;
+end;
+
+var
+  M: TMenu;
+begin
+  Glw.MainMenu := TMenu.Create('Main menu');
+  M := TMenu.Create('_Program');
+    M.Append(TMenuItem.Create('_Previous basis', 10, 'p'));
+    M.Append(TMenuItem.Create('_Next basis', 20, 'n'));
+    Glw.MainMenu.Append(M);
+
+  Glw.Navigator := TExamineNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+  Glw.ExamineNav.Init(Box3d(Vector3Single(-1, -1, -1), Vector3Single(1, 1, 1)));
+
+  Glw.OnInit := @Init;
+  Glw.OnClose := @Close;
+  Glw.OnResize := @Resize;
+  Glw.OnMenuCommand := @MenuCommand;
+  Glw.InitLoop(ProgramName, @Draw);
+end.

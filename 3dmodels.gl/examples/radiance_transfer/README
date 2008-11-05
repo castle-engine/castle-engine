@@ -80,10 +80,15 @@ details from f but catches general shape. So a vector (l_1, l_2, ...)
 is a nice, compact and efficient way to describe function f.
 (Actually SH has two indexes, see paper.)
 
-http://en.wikipedia.org/wiki/Table_of_spherical_harmonics, so we don't really
-have to get our hands dirty. Sensible numbers to truncate are 9, 16, 25
+Computation of SH --- a lot of papers on WWW, for a few simple numbers
+we can just find ready results:
+http://www.sjbrown.co.uk/2004/10/16/spherical-harmonic-basis/
+So we don't really have to get our hands dirty.
+Sensible numbers to truncate are 9, 16, 25
 according to paper it's not worth trying more (TODO check),
 so we only need up to L = 4).
+
+See show_sh program.
 
 Page 8 from Teemu (3.1.1) --- this is the core idea of the algorithm,
 shows what and how the precalculation does.

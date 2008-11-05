@@ -95,6 +95,9 @@ function PhiThetaToXYZ(const PhiTheta: TVector2Single; const SphereRadius: Singl
 function PhiThetaToXYZ(const PhiTheta: TVector2Single;
   const SphereTheta0: TVector3Single): TVector3Single; overload;
 
+{ Convert from XYZ representation of (hemi)sphere direction to PhiTheta. }
+function XYZToPhiTheta(const XYZ: TVector3Single): TVector2Single;
+
 { Random point (direction) on hemisphere, sampled with
   constant density (p(Theta) = 1/2*Pi).
   @groupBegin }
@@ -136,6 +139,12 @@ begin
  result[0] := SphereRadius * CosPhi * SinTheta;
  result[1] := SphereRadius * SinPhi * SinTheta;
  result[2] := SphereRadius * CosTheta;
+end;
+
+function XYZToPhiTheta(const XYZ: TVector3Single): TVector2Single;
+begin
+  Result[0] := ArcTan2(XYZ[1], XYZ[0]);
+  Result[1] := ArcTan2(Sqrt(Sqr(XYZ[0]) + Sqr(XYZ[1])), XYZ[2]);
 end;
 
 function PhiThetaToXYZ(const PhiTheta: TVector2Single; const SphereTheta0: TVector3Single): TVector3Single;
