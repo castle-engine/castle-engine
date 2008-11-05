@@ -36,10 +36,13 @@ uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindo
   KambiFilesUtils, VRMLErrors, SphericalHarmonics, Math, Images, GLImages,
   SphereSampling;
 
+type
+  TViewMode = (vmNormal, vmSimpleOcclusion, vmFull);
+
 var
   Scene: TVRMLGLScene;
   CameraRadius: Single;
-  ShowSimpleOcclusion: boolean = true { TODO - temporarily, since the LighSHBasis cals is not done now };
+  ViewMode: TViewMode = vmSimpleOcclusion;
   LightRadius: Single;
   LightPos: TVector3Single;
 
@@ -215,10 +218,12 @@ begin
   DrawLight(false);
 end;
 
+procedure UpdateViewMode; forward;
+
 procedure Init(Glwin: TGLWindow);
 begin
-//  glEnable(GL_LIGHTING);
-//  glEnable(GL_LIGHT0);
+  glEnable(GL_LIGHT0);
+  UpdateViewMode;
 end;
 
 procedure Close(Glwin: TGLWindow);
@@ -250,7 +255,7 @@ var
 begin
   Assert(RadianceTransferCount > 0);
 
-  if ShowSimpleOcclusion then
+  if ViewMode = vmSimpleOcclusion then
   begin
     F := RadianceTransfer[0] / (SHBasis0 * 2 * Pi);
     Result := Vector3Single(F, F, F);
@@ -264,12 +269,28 @@ begin
   end;
 end;
 
+procedure UpdateViewMode;
+begin
+  if ViewMode = vmNormal then
+  begin
+    Scene.Attributes.OnRadianceTransfer := nil;
+    glEnable(GL_LIGHTING);
+  end else
+  begin
+    Scene.Attributes.OnRadianceTransfer := @THelper(nil).DoRadianceTransfer;
+    glDisable(GL_LIGHTING);
+  end;
+end;
+
 procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
 begin
   case Item.IntData of
-    10: ShowSimpleOcclusion := not ShowSimpleOcclusion;
+    10: ViewMode := vmNormal;
+    11: ViewMode := vmSimpleOcclusion;
+    12: ViewMode := vmFull;
     else Exit;
   end;
+  UpdateViewMode;
   Glw.PostRedisplay;
 end;
 
@@ -334,15 +355,36 @@ begin
       end;
 end;
 
+function CreateMainMenu: TMenu;
 var
   M: TMenu;
+  Radio: TMenuItemRadio;
+  RadioGroup: TMenuItemRadioGroup;
+begin
+  Result := TMenu.Create('Main menu');
+  M := TMenu.Create('_Program');
+
+    Radio := TMenuItemRadio.Create('_Normal (no PRT)', 10, ViewMode = vmNormal, true);
+    RadioGroup := Radio.Group;
+    M.Append(Radio);
+
+    Radio := TMenuItemRadio.Create('_Simple Occlusion', 11, ViewMode = vmSimpleOcclusion, true);
+    Radio.Group := RadioGroup;
+    M.Append(Radio);
+
+    Radio := TMenuItemRadio.Create('_Full Radiance Transfer', 12, ViewMode = vmFull, true);
+    Radio.Group := RadioGroup;
+    M.Append(Radio);
+
+    Result.Append(M);
+end;
+
 begin
   Parameters.CheckHigh(1);
   try
     VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
 
     Scene := TVRMLGLScene.Create(Parameters[1], roNone);
-    Scene.Attributes.OnRadianceTransfer := @THelper(nil).DoRadianceTransfer;
 
     if IsEmptyBox3d(Scene.BoundingBox) then
     begin
@@ -355,22 +397,19 @@ begin
       LightPos[0] += Scene.BoundingBox[1][0] - Scene.BoundingBox[0][0] * 2;
     end;
 
-    Glw.MainMenu := TMenu.Create('Main menu');
-    M := TMenu.Create('_Program');
-      M.Append(TMenuItemChecked.Create('_Show simple occlusion', 10,
-        ShowSimpleOcclusion, true));
-      Glw.MainMenu.Append(M);
+    Glw.MainMenu := CreateMainMenu;
+    Glw.OnMenuCommand := @MenuCommand;
 
     Glw.Navigator := Scene.CreateNavigator(CameraRadius);
     Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
-
-    CalculateSHBasisValues;
 
     Glw.OnInit := @Init;
     Glw.OnClose := @Close;
     Glw.OnResize := @Resize;
     Glw.OnIdle := @Idle;
-    Glw.OnMenuCommand := @MenuCommand;
+
+    CalculateSHBasisValues;
+
     Glw.InitLoop(ProgramName, @Draw);
   finally Scene.Free end;
 end.
