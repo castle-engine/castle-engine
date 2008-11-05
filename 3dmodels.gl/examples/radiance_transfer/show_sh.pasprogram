@@ -213,8 +213,8 @@ end;
 procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
 begin
   case Item.IntData of
-    10: LM := ChangeIntCycle(LM, -1, SHBasesCount - 1);
-    20: LM := ChangeIntCycle(LM, +1, SHBasesCount - 1);
+    10: LM := ChangeIntCycle(LM, -1, MaxSHBasis - 1);
+    20: LM := ChangeIntCycle(LM, +1, MaxSHBasis - 1);
     else Exit;
   end;
   Glw.PostRedisplay;
