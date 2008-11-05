@@ -424,6 +424,9 @@ procedure glRotatev(const Angle: TGLdouble; const V: TVector3d); overload;
 
 procedure glClipPlane(plane: GLenum; const V: TVector4d); overload;
 
+procedure gluLookAtv(const Eye, Center, Up: TVector3Single);
+procedure gluLookDirv(const Eye, Dir, Up: TVector3Single);
+
 {$ifdef IMPLEMENT_OPENGL_STUBS}
 
 procedure glNormalv(const v: TVector3d); overload;
@@ -1351,6 +1354,20 @@ procedure glVertexv(const v: TVector4_Single);  begin glVertex4fv(@v.Data); end;
 procedure glClipPlane(plane: GLenum; const V: TVector4d);
 begin
   GL.glClipPlane(plane, @V);
+end;
+
+procedure gluLookAtv(const Eye, Center, Up: TVector3Single);
+begin
+  gluLookAt(Eye   [0], Eye   [1], Eye   [2],
+            Center[0], Center[1], Center[2],
+            Up    [0], Up    [1], Up    [2]);
+end;
+
+procedure gluLookDirv(const Eye, Dir, Up: TVector3Single);
+begin
+  gluLookAt(Eye[0]         , Eye[1]         , Eye[2],
+            Eye[0] + Dir[0], Eye[1] + Dir[1], Eye[2] +Dir[2],
+            Up [0]         , Up [1]         , Up [2]);
 end;
 
 {$ifdef IMPLEMENT_OPENGL_STUBS}

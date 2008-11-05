@@ -43,20 +43,79 @@ var
   LightPos: TVector3Single;
 
 procedure Draw(Glwin: TGLWindow);
+
+  procedure DrawLight(ForMap: boolean);
+  begin
+    glPushMatrix;
+      glTranslatev(LightPos);
+
+      if not ForMap then
+      begin
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_BLEND);
+        glColor4f(1, 1, 0, 0.1);
+      end else
+        glColor3f(1, 1, 1);
+
+      KamGluSphere(LightRadius, 10, 10);
+
+      if not ForMap then
+        glDisable(GL_BLEND);
+    glPopMatrix;
+  end;
+
+const
+  LightMapSize = 16;
+
+  procedure DrawLightMap(const MapX, MapY, DirX, DirY, DirZ,
+    UpX, UpY, UpZ: Integer);
+  var
+    P: TVector3Single;
+  begin
+    { We have to clear the buffer first. Clearing with glClear is fast,
+      but it must be clipped with scissor (glViewport does not clip glClear). }
+    glScissor(MapX, MapY, LightMapSize, LightMapSize);
+    glEnable(GL_SCISSOR_TEST);
+      glClear(GL_COLOR_BUFFER_BIT);
+    glDisable(GL_SCISSOR_TEST);
+
+    glViewport(MapX, MapY, LightMapSize, LightMapSize);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix;
+      glLoadIdentity;
+      gluPerspective(90, 1, 0.01, 100);
+      glMatrixMode(GL_MODELVIEW);
+
+      glLoadIdentity;
+      P := Box3dMiddle(Scene.BoundingBox);
+      gluLookDirv(P, Vector3Single(DirX, DirY, DirZ), Vector3Single(UpX, UpY, UpZ));
+      DrawLight(true);
+
+      glMatrixMode(GL_PROJECTION);
+    glPopMatrix;
+    glMatrixMode(GL_MODELVIEW);
+  end;
+
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(Glw.Navigator.Matrix);
   Scene.Render(nil, tgAll);
 
-  glPushMatrix;
-    glTranslatev(LightPos);
+  DrawLight(false);
 
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_BLEND);
-      glColor4f(1, 1, 0, 0.1);
-      KamGluSphere(LightRadius, 10, 10);
-    glDisable(GL_BLEND);
-  glPopMatrix;
+  if not IsEmptyBox3d(Scene.BoundingBox) then
+  begin
+    DrawLightMap(10                   , 100,  1,  0, 0, 0, 0, 1);
+    DrawLightMap(10 +     LightMapSize, 100,  0, -1, 0, 0, 0, 1);
+    DrawLightMap(10 + 2 * LightMapSize, 100, -1,  0, 0, 0, 0, 1);
+    DrawLightMap(10 + 3 * LightMapSize, 100,  0,  1, 0, 0, 0, 1);
+
+    DrawLightMap(10, 100 + LightMapSize, 0, 0,  1,  -1, 0, 0);
+    DrawLightMap(10, 100 - LightMapSize, 0, 0, -1,   1, 0, 0);
+
+    glViewport(0, 0, Glwin.Width, Glwin.Height);
+  end;
 end;
 
 procedure Init(Glwin: TGLWindow);
@@ -102,7 +161,7 @@ begin
   end;
 end;
 
-procedure MenuCommand(glwin: TGLWindow; Item: TMenuItem);
+procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
 begin
   case Item.IntData of
     10: ShowSimpleOcclusion := not ShowSimpleOcclusion;
