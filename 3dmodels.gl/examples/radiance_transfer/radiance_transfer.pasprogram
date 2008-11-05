@@ -38,9 +38,22 @@ uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindo
 var
   Scene: TVRMLGLScene;
   CameraRadius: Single;
-  ShowSimpleOcclusion: boolean;
+  ShowSimpleOcclusion: boolean = true { TODO - temporarily, since the LighSHBasis cals is not done now };
   LightRadius: Single;
   LightPos: TVector3Single;
+
+const
+  { This is currently not synched with actual SHBasisCount used to generate
+    the Scene. We just always prepare LightSHBasisCount components,
+    eventually some of them will not be used in DoRadianceTransfer.
+
+    While this is not optimal, this also may allow to use different SHBasis
+    for different shapes within the Scene in the future. }
+
+  LightSHBasisCount = 25;
+
+var
+  LightSHBasis: array [0..LightSHBasisCount - 1] of Single;
 
 procedure Draw(Glwin: TGLWindow);
 
@@ -73,11 +86,15 @@ const
     P: TVector3Single;
   begin
     { We have to clear the buffer first. Clearing with glClear is fast,
-      but it must be clipped with scissor (glViewport does not clip glClear). }
+      but it must be clipped with scissor (glViewport does not clip glClear).
+      Later: actually, clearing is not needed now, since we call DrawLightMap
+      at the beginning, right after clearing the whole screen.
+
     glScissor(MapX, MapY, LightMapSize, LightMapSize);
     glEnable(GL_SCISSOR_TEST);
       glClear(GL_COLOR_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
+    }
 
     glViewport(MapX, MapY, LightMapSize, LightMapSize);
 
@@ -87,25 +104,45 @@ const
       gluPerspective(90, 1, 0.01, 100);
       glMatrixMode(GL_MODELVIEW);
 
-      glLoadIdentity;
-      P := Box3dMiddle(Scene.BoundingBox);
-      gluLookDirv(P, Vector3Single(DirX, DirY, DirZ), Vector3Single(UpX, UpY, UpZ));
-      DrawLight(true);
+      glPushMatrix;
+
+        glLoadIdentity;
+        P := Box3dMiddle(Scene.BoundingBox);
+        gluLookDirv(P, Vector3Single(DirX, DirY, DirZ), Vector3Single(UpX, UpY, UpZ));
+        DrawLight(true);
+
+      glPopMatrix;
 
       glMatrixMode(GL_PROJECTION);
     glPopMatrix;
     glMatrixMode(GL_MODELVIEW);
+
+    { TODO: get drawn map from gl.
+      Use prepared maps for SHBasis functions, make dots with them
+      to calculate LightSHBasis.
+
+      for every pixel of LightMap:
+        for SHBasis := 0 to LightSHBasisCount - 1 do
+          LightSHBasis[SHBasis] += LightMap[pixel] * SHBasisMap[SHBasis]
+            [choose one of 6 maps for this DrawLightMap call][pixel];
+    }
   end;
 
+var
+  SHBasis: Integer;
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(Glw.Navigator.Matrix);
-  Scene.Render(nil, tgAll);
-
-  DrawLight(false);
 
   if not IsEmptyBox3d(Scene.BoundingBox) then
   begin
+    { First call all DrawLightMap. This wil draw light maps, get them,
+      and calculate LightSHBasis describing the light contribution
+      (this will be used then by Scene.Render, during DoRadianceTransfer). }
+
+    for SHBasis := 0 to LightSHBasisCount - 1 do
+      LightSHBasis[SHBasis] := 0;
+
     DrawLightMap(10                   , 100,  1,  0, 0, 0, 0, 1);
     DrawLightMap(10 +     LightMapSize, 100,  0, -1, 0, 0, 0, 1);
     DrawLightMap(10 + 2 * LightMapSize, 100, -1,  0, 0, 0, 0, 1);
@@ -115,7 +152,25 @@ begin
     DrawLightMap(10, 100 - LightMapSize, 0, 0, -1,   1, 0, 0);
 
     glViewport(0, 0, Glwin.Width, Glwin.Height);
+
+    for SHBasis := 0 to LightSHBasisCount - 1 do
+    begin
+      { Each LightSHBasis[SHBasis] is now calculated for all sphere points.
+        We want this to be integral over a sphere, so normalize now.
+
+        We could multiply each LightSHBasis[SHBasis] in DrawLightMap
+        by solid angle of given pixel
+        (on cube map, pixels have different solid angles).
+        Then below we would divide by 4*Pi (sphere area).
+
+        TODO: for now, ignore solid angle, assume all pixels have the same influence.
+        So just divide by number of points... }
+      LightSHBasis[SHBasis] /= 6 * Sqr(LightMapSize);
+    end;
   end;
+
+  Scene.Render(nil, tgAll);
+  DrawLight(false);
 end;
 
 procedure Init(Glwin: TGLWindow);
@@ -149,15 +204,21 @@ function THelper.DoRadianceTransfer(Node: TVRMLGeometryNode;
   const RadianceTransferCount: Cardinal): TVector3Single;
 var
   F: Float;
+  I: Integer;
 begin
-  if {TODO}{ShowSimpleOcclusion}true then
+  Assert(RadianceTransferCount > 0);
+
+  if ShowSimpleOcclusion then
   begin
-    Assert(RadianceTransferCount > 0);
     F := RadianceTransfer[0] / (SHBasis0 * 2 * Pi);
     Result := Vector3Single(F, F, F);
   end else
   begin
-    { TODO }
+    Assert(RadianceTransferCount <= LightSHBasisCount);
+    F := 0;
+    for I := 0 to RadianceTransferCount - 1 do
+      F += RadianceTransfer[I] * LightSHBasis[I];
+    Result := Vector3Single(F, F, F);
   end;
 end;
 
@@ -241,6 +302,7 @@ begin
     Glw.OnClose := @Close;
     Glw.OnResize := @Resize;
     Glw.OnIdle := @Idle;
+    Glw.OnMenuCommand := @MenuCommand;
     Glw.InitLoop(ProgramName, @Draw);
   finally Scene.Free end;
 end.
