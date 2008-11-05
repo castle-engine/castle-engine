@@ -562,89 +562,95 @@ procedure Sphere_LocalTriangulate(
     StakNum = 0 bo wprawdzie warstwa o numerze 0 nie istnieje to jednak
     istnieje jej gorna linia, to jest przeciez dolny wierzcholek sfery.)
     oblicza promien i wysokosc (y) gornej obreczy warstwy StackNum. }
-  var alfa, s, c: Float;
+  var
+    alfa, s, c: Float;
   begin
-   { Policz Radius dla sfery o promieniu 1 i pomnoz przez FdRadiusValue.
-     Podobnie radzimy sobie z Height. }
-   { Dzielimy tutaj obrecz (poludniki) na QUADRIC_STACKS rownych
-     kawalkow. To jest duzo lepszy pomysl niz dzielic os sfery na
-     rowne kawalki; mozna to sprawdzic aktywujac na chwile ten stary
-     kod :
-       Radius := Sqrt( 1 - Sqr(1 - 2*StackNum/QUADRIC_STACKS) ) * FdRadiusValue;
-       Height:=(-1 + StackNum * 2/QUADRIC_STACKS) * FdRadiusValue;
-     On liczy Radius i Height dzielac os na rowne kawalki.
-     Mozna zobaczyc ze wyniki sa duzo gorsze, przy czubku sfera jest bardzo
-     nieproporcjonalnie gorzej triangulowana. Nawiasem mowiac
-     quadrici OpenGLa tez dziela obrecz, a nie os (no i bardzo dobrze),
-     sprawdzilem. }
-   alfa := Pi * StackNum / QUADRIC_STACKS;
-   SinCos(alfa, s, c);
-   Radius := s * FdRadiusValue;
-   Height := -c * FdRadiusValue;
+    { Policz Radius dla sfery o promieniu 1 i pomnoz przez FdRadiusValue.
+      Podobnie radzimy sobie z Height. }
+    { Dzielimy tutaj obrecz (poludniki) na QUADRIC_STACKS rownych
+      kawalkow. To jest duzo lepszy pomysl niz dzielic os sfery na
+      rowne kawalki; mozna to sprawdzic aktywujac na chwile ten stary
+      kod :
+        Radius := Sqrt( 1 - Sqr(1 - 2*StackNum/QUADRIC_STACKS) ) * FdRadiusValue;
+        Height:=(-1 + StackNum * 2/QUADRIC_STACKS) * FdRadiusValue;
+      On liczy Radius i Height dzielac os na rowne kawalki.
+      Mozna zobaczyc ze wyniki sa duzo gorsze, przy czubku sfera jest bardzo
+      nieproporcjonalnie gorzej triangulowana. Nawiasem mowiac
+      quadrici OpenGLa tez dziela obrecz, a nie os (no i bardzo dobrze),
+      sprawdzilem. }
+    alfa := Pi * StackNum / QUADRIC_STACKS;
+    SinCos(alfa, s, c);
+    Radius := s * FdRadiusValue;
+    Height := -c * FdRadiusValue;
   end;
 
-var BottomPt, TopPt: TVector3Single;
-    BottomAndTopStackRadius, BottomHeight, TopHeight :Single;
+var
+  BottomPt, TopPt: TVector3Single;
+  BottomAndTopStackRadius, BottomHeight, TopHeight :Single;
 
   procedure LOOP_OVER_CIRCLE_PROC(LastPt, Pt: TVector3Single);
   begin
-   NewTriangleProc(Triangle3Single(LastPt, Pt, BottomPt), State, Self, 0, -1, -1);
-   Pt[1] := TopHeight;
-   LastPt[1] := TopHeight;
-   NewTriangleProc(Triangle3Single(LastPt, Pt, TopPt), State, Self, 0, -1, -1);
+    NewTriangleProc(Triangle3Single(LastPt, Pt, BottomPt), State, Self, 0, -1, -1);
+    Pt[1] := TopHeight;
+    LastPt[1] := TopHeight;
+    NewTriangleProc(Triangle3Single(LastPt, Pt, TopPt), State, Self, 0, -1, -1);
   end;
 
-var AngleRad, LowRadius, HighRadius, LowHeight, HighHeight: Single;
-    HighLastPt, HighPt, LowLastPt, LowPt: TVector3Single;
-    i, StackNum: integer;
+var
+  AngleRad, LowRadius, HighRadius, LowHeight, HighHeight: Single;
+  HighLastPt, HighPt, LowLastPt, LowPt: TVector3Single;
+  i, StackNum: integer;
+  SinAngleRad, CosAngleRad: Float;
 LOOP_OVER_CIRCLE_DECLARE
 begin
- { sfera jest zawsze triangulowana tak samo, bez wzgledu na OverTriangulate.
-   Robimy sfere UV (poludniki + rownolezniki), nie IcoSphere
-   (bo jakoscia sfery UV mozna latwiej (z wieksza dokladnoscia) sterowac).
-   Chociaz moze kiedys zmienie zdanie ?  }
+  { sfera jest zawsze triangulowana tak samo, bez wzgledu na OverTriangulate.
+    Robimy sfere UV (poludniki + rownolezniki), nie IcoSphere
+    (bo jakoscia sfery UV mozna latwiej (z wieksza dokladnoscia) sterowac).
+    Chociaz moze kiedys zmienie zdanie ?  }
 
- { StackNum to numer robionego stack (w/g definicji stacks and slices z
-   OpenGLowych quadricow). StackNum zmienia sie od 1 do QUADRIC_STACKS,
-   w kazdej warstwie robimy QUADRIC_SLICES czworokatow (z wyjatkiem
-   warstw pierwszej i ostatniej, gdzie robimy trojkaty).
-   Zwracam uwage ze linii jest tak naprawde QUADRIC_STACKS+1,
-   ale prawdziwych linii (takich ktore nie skladaja sie tylko z jednego
-   zawsze tego samego pixla) jest QUADRIC_STACKS-1 }
+  { StackNum to numer robionego stack (w/g definicji stacks and slices z
+    OpenGLowych quadricow). StackNum zmienia sie od 1 do QUADRIC_STACKS,
+    w kazdej warstwie robimy QUADRIC_SLICES czworokatow (z wyjatkiem
+    warstw pierwszej i ostatniej, gdzie robimy trojkaty).
+    Zwracam uwage ze linii jest tak naprawde QUADRIC_STACKS+1,
+    ale prawdziwych linii (takich ktore nie skladaja sie tylko z jednego
+    zawsze tego samego pixla) jest QUADRIC_STACKS-1 }
 
- { najpierw narysuj warstwe pierwsza i ostatnia, czyli dla StackNum = 1 i
-   QUADRIC_STACKS }
- BottomPt := Vector3Single(0, -FdRadiusValue, 0);
- TopPt := Vector3Single(0, FdRadiusValue, 0);
- StackHigherLine(1, BottomAndTopStackRadius, BottomHeight);
- TopHeight := -BottomHeight;
+  { najpierw narysuj warstwe pierwsza i ostatnia, czyli dla StackNum = 1 i
+    QUADRIC_STACKS }
+  BottomPt := Vector3Single(0, -FdRadiusValue, 0);
+  TopPt := Vector3Single(0, FdRadiusValue, 0);
+  StackHigherLine(1, BottomAndTopStackRadius, BottomHeight);
+  TopHeight := -BottomHeight;
 
- {$define LOOP_OVER_CIRCLE_RADIUS := BottomAndTopStackRadius}
- {$define LOOP_OVER_CIRCLE_HEIGHT := BottomHeight}
- LOOP_OVER_CIRCLE
+  {$define LOOP_OVER_CIRCLE_RADIUS := BottomAndTopStackRadius}
+  {$define LOOP_OVER_CIRCLE_HEIGHT := BottomHeight}
+  LOOP_OVER_CIRCLE
 
- for StackNum := 2 to QUADRIC_STACKS-1 do
- begin
-  StackHigherLine(StackNum-1, LowRadius, LowHeight);
-  StackHigherLine(StackNum, HighRadius, HighHeight);
-
-  LowLastPt := Vector3Single(0, LowHeight, LowRadius);
-  HighLastPt := Vector3Single(0, HighHeight, HighRadius);
-
-  for i := 1 to QUADRIC_SLICES do
+  for StackNum := 2 to QUADRIC_STACKS-1 do
   begin
-   AngleRad:=(i/QUADRIC_SLICES)*2*Pi;
-   LowPt := Vector3Single(Sin(AngleRad)*LowRadius , LowHeight , Cos(AngleRad)*LowRadius );
-   HighPt := Vector3Single(Sin(AngleRad)*HighRadius, HighHeight, Cos(AngleRad)*HighRadius);
+    StackHigherLine(StackNum-1, LowRadius, LowHeight);
+    StackHigherLine(StackNum, HighRadius, HighHeight);
 
-   {rysuj czworokat}
-   NewTriangleProc(Triangle3Single(LowLastPt, LowPt, HighPt), State, Self, 0, -1, -1);
-   NewTriangleProc(Triangle3Single(LowLastPt, HighLastPt, HighPt), State, Self, 0, -1, -1);
+    LowLastPt := Vector3Single(0, LowHeight, LowRadius);
+    HighLastPt := Vector3Single(0, HighHeight, HighRadius);
 
-   LowLastPt := LowPt;
-   HighLastPt := HighPt;
+    for i := 1 to QUADRIC_SLICES do
+    begin
+      AngleRad := (i/QUADRIC_SLICES)*2*Pi;
+      SinCos(AngleRad, SinAngleRad, CosAngleRad);
+
+      LowPt  := Vector3Single(SinAngleRad*LowRadius , LowHeight , CosAngleRad*LowRadius );
+      HighPt := Vector3Single(SinAngleRad*HighRadius, HighHeight, CosAngleRad*HighRadius);
+
+      {rysuj czworokat}
+      NewTriangleProc(Triangle3Single(LowLastPt, LowPt, HighPt), State, Self, 0, -1, -1);
+      NewTriangleProc(Triangle3Single(LowLastPt, HighLastPt, HighPt), State, Self, 0, -1, -1);
+
+      LowLastPt := LowPt;
+      HighLastPt := HighPt;
+    end;
   end;
- end;
 end;
 
 procedure TNodeSphere_1.LocalTriangulate(State: TVRMLGraphTraverseState;
