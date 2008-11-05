@@ -43,6 +43,7 @@ var
   Scene: TVRMLGLScene;
   CameraRadius: Single;
   ViewMode: TViewMode = vmSimpleOcclusion;
+  UseLighting: boolean = true;
   LightRadius: Single;
   LightPos: TVector3Single;
 
@@ -214,9 +215,9 @@ begin
     glViewport(0, 0, Glwin.Width, Glwin.Height);
   end;
 
-  if ViewMode = vmNormal then glEnable(GL_LIGHTING);
+  if UseLighting then glEnable(GL_LIGHTING);
   Scene.Render(nil, tgAll);
-  if ViewMode = vmNormal then glDisable(GL_LIGHTING);
+  if UseLighting then glDisable(GL_LIGHTING);
 
   DrawLight(false);
 end;
@@ -285,6 +286,7 @@ begin
     10: ViewMode := vmNormal;
     11: ViewMode := vmSimpleOcclusion;
     12: ViewMode := vmFull;
+    20: UseLighting := not UseLighting;
     else Exit;
   end;
   UpdateViewMode;
@@ -373,6 +375,8 @@ begin
     Radio.Group := RadioGroup;
     M.Append(Radio);
 
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItemChecked.Create('_Lighting', 20, UseLighting, true));
     Result.Append(M);
 end;
 
