@@ -24,8 +24,10 @@
   Self-shadowing with diffuse lighting.
 
   Navigate with mouse of keyboard (like view3dscene in Examine mode).
+
   AWSD, Q, Shift+Q move the light.
   R, Shift+R change light radius.
+  L, Shift+L change light intensity scale.
 }
 
 program radiance_transfer;
@@ -59,18 +61,20 @@ const
 
   LightMapSize = 16;
 
-  { Intensity specific for this light.
-    Only in 0..1 (as it's used as color component). }
-  LightIntensity = 1.0;
-
-  { All lights intensity (obtained by getting light maps) are scaled
-    by this. }
-  AllLightIntensityScale = 100.0;
-
 var
   { This is calculated at the beginning of each Draw.
     Can be used then by DoRadianceTransfer. }
   LightSHBasis: array [0..LightSHBasisCount - 1] of Single;
+
+  { Intensity specific for this light.
+    Right now, we have only one light here, but the point is that we could
+    have any number of lights.
+    Only in 0..1 (as it's used as color component). }
+  LightIntensity: Single = 1.0;
+
+  { All lights intensity (obtained by getting light maps) are scaled
+    by this. Can be in any range. }
+  LightIntensityScale: Single = 100.0;
 
 type
   TEnvMapSide = 0..5;
@@ -173,7 +177,7 @@ procedure Draw(Glwin: TGLWindow);
       for I := 0 to Sqr(LightMapSize) - 1 do
         for SHBasis := 0 to LightSHBasisCount - 1 do
           LightSHBasis[SHBasis] += (Map.GrayscalePixels[I]/255) *
-            AllLightIntensityScale *
+            LightIntensityScale *
             SHBasisValues[SHBasis, EnvMapSide, I];
     finally FreeAndNil(Map) end;
   end;
@@ -309,6 +313,12 @@ procedure Idle(Glwin: TGLWindow);
     Glwin.PostRedisplay;
   end;
 
+  procedure ChangeLightIntensityScale(Change: Float);
+  begin
+    LightIntensityScale *= Power(Change, Glwin.Fps.IdleSpeed);
+    Glwin.PostRedisplay;
+  end;
+
 begin
   if Glwin.KeysDown[K_A] then ChangeLightPosition(0, -1);
   if Glwin.KeysDown[K_D] then ChangeLightPosition(0,  1);
@@ -327,6 +337,13 @@ begin
     if mkShift in Glwin.ModifiersDown then
       ChangeLightRadius(1/1.8) else
       ChangeLightRadius(1.8);
+  end;
+
+  if Glwin.KeysDown[K_L] then
+  begin
+    if mkShift in Glwin.ModifiersDown then
+      ChangeLightIntensityScale(1/1.5) else
+      ChangeLightIntensityScale(1.5);
   end;
 end;
 
@@ -393,9 +410,9 @@ begin
       LightPos := Vector3Single(2, 0, 0);
     end else
     begin
-      LightRadius := Box3dAvgSize(Scene.BoundingBox) / 3;
+      LightRadius := Box3dAvgSize(Scene.BoundingBox);
       LightPos := Box3dMiddle(Scene.BoundingBox);
-      LightPos[0] += Scene.BoundingBox[1][0] - Scene.BoundingBox[0][0] * 2;
+      LightPos[0] += Scene.BoundingBox[1][0] - Scene.BoundingBox[0][0] + LightRadius;
     end;
 
     Glw.MainMenu := CreateMainMenu;
