@@ -41,7 +41,8 @@
     This is useful for testing, since you can easily visualize and check
     the results of such calculation. radiance_transfer has special trick
     to visualize this: use "Show Simple Occlusion" menu item.
-    Then vertex color is simply taken radianceTransfer value, scaled by 1/SHBasis0.
+    Then vertex color is simply taken from radianceTransfer value,
+    only scaled appropriately.
 
   --rays-per-vertex / -r COUNT
 
