@@ -43,6 +43,12 @@
     to visualize this: use "Show Simple Occlusion" menu item.
     Then vertex color is simply taken radianceTransfer value, scaled by 1/SHBasis0.
 
+  --rays-per-vertex / -r COUNT
+
+    How many rays per vertex to generate. This linearly affects the speed
+    of the program. Default if 1000, PRT paper advices 10 * 1000 to 30 * 1000
+    for best effect.
+
   TODO: for now, radianceTransfer is calculated for whole model.
   This means that self-shadowing takes whole model into account,
   but also that whole model must remain static (or radianceTransfer must
@@ -77,9 +83,7 @@ var
   Scene: TVRMLScene;
   Normals: TDynVector3SingleArray;
   SHBasisCount: Integer = 25;
-
-const
-  RaysPerVertex = 1000;
+  RaysPerVertex: Cardinal = 1000;
 
 procedure ComputeTransfer(RadianceTransfer: TDynSingleArray;
   Coord: TDynVector3SingleArray; const Transform: TMatrix4Single;
@@ -173,14 +177,17 @@ begin
 end;
 
 const
-  Options: array[0..0] of TOption =
-  ( (Short: 'c'; Long: 'sh-basis-count'; Argument: oaRequired) );
+  Options: array[0..1] of TOption =
+  ( (Short: 'c'; Long: 'sh-basis-count'; Argument: oaRequired),
+    (Short: 'r'; Long: 'rays-per-vertex'; Argument: oaRequired)
+  );
 
   procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
     const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
   begin
     case OptionNum of
       0: SHBasisCount := StrToInt(Argument);
+      1: RaysPerVertex := StrToInt(Argument);
     end;
   end;
 
@@ -227,8 +234,8 @@ begin
       end;
     end;
 
-    Writeln(Format('Precomputing with SH basis %d finished: %f secs',
-      [SHBasisCount, ProcessTimerEnd]));
+    Writeln(Format('Precomputing (SH bases %d, rays per vertex %d) finished: %f secs',
+      [SHBasisCount, RaysPerVertex, ProcessTimerEnd]));
 
     SaveToVRMLFile(Scene.RootNode, Parameters[2],
       'radianceTransfer computed by precompute_radiance_transfer');
