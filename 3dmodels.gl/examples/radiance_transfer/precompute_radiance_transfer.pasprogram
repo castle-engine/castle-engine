@@ -27,6 +27,22 @@
   $1 is the source model, $2 is the output model (output is always VRML/X3D,
   so use .wrl/.x3dv extension).
 
+  --sh-basis-count / -c COUNT
+
+    Says how much basis SH functions to use. PRT paper advices between
+    9 and 25.
+
+    Note that COUNT = 1 has special use: it means that only
+    a single float is calculated. Since the first SH basis function is just
+    constant (SHBasis0 ~= 0.28), so radianceTransfer can be scaled by
+    1/SHBasis0 and then you have simple integral of visibility *  brdf * cos.
+    In other words, you have simple ambient occlusion per vertex.
+
+    This is useful for testing, since you can easily visualize and check
+    the results of such calculation. radiance_transfer has special trick
+    to visualize this: use "Show Simple Occlusion" menu item.
+    Then vertex color is simply taken radianceTransfer value, scaled by 1/SHBasis0.
+
   TODO: for now, radianceTransfer is calculated for whole model.
   This means that self-shadowing takes whole model into account,
   but also that whole model must remain static (or radianceTransfer must
@@ -54,15 +70,16 @@
 program precompute_radiance_transfer;
 
 uses SysUtils, KambiUtils, VectorMath, VRMLScene, VRMLNodes, Object3dAsVRML,
-  NormalsCalculator, SphereSampling, ProgressUnit, ProgressConsole;
+  NormalsCalculator, SphereSampling, ProgressUnit, ProgressConsole,
+  SphericalHarmonics, ParseParametersUnit, KambiTimeUtils;
 
 var
   Scene: TVRMLScene;
   Normals: TDynVector3SingleArray;
+  SHBasisCount: Integer = 25;
 
 const
   RaysPerVertex = 1000;
-  SHBasesCount = 9;
 
 procedure ComputeTransfer(RadianceTransfer: TDynSingleArray;
   Coord: TDynVector3SingleArray; const Transform: TMatrix4Single;
@@ -75,7 +92,7 @@ var
   VertexTransfer: PSingle;
   BRDF: Single;
 begin
-  RadianceTransfer.Count := Coord.Count * SHBasesCount;
+  RadianceTransfer.Count := Coord.Count * SHBasisCount;
 
   { For diffuse surface, BRDF is just a constant }
   BRDF := GrayscaleValue(DiffuseColor) { * Pi };
@@ -84,7 +101,7 @@ begin
   try
     for I := 0 to Coord.Count - 1 do
     begin
-      VertexTransfer := RadianceTransfer.Pointers[I * SHBasesCount];
+      VertexTransfer := RadianceTransfer.Pointers[I * SHBasisCount];
 
       { V = scene-space vertex coord }
       V := MatrixMultPoint(Transform, Coord.Items[I]);
@@ -94,7 +111,7 @@ begin
         matrix correctly. }
       N := Normalized(MatrixMultDirection(Transform, Normals.Items[I]));
 
-      for SHBase := 0 to SHBasesCount - 1 do
+      for SHBase := 0 to SHBasisCount - 1 do
         VertexTransfer[SHBase] := 0;
 
       { In some nasty cases, smoothed normal may be zero, see e.g. spider_queen
@@ -115,15 +132,16 @@ begin
             false, nil, true { yes, ignore margin at start, to not hit V },
             nil) = nil then
           begin
-            for SHBase := 0 to SHBasesCount - 1 do
+            for SHBase := 0 to SHBasisCount - 1 do
               { VectorDotProduct below must be >= 0, since RayVector was
                 chosen at random within hemisphere around N.
                 So no need to do Max(0, VectorDotProduct(...)) below. }
-              VertexTransfer[SHBase] += VectorDotProduct(N, RayVector);
+              VertexTransfer[SHBase] += SHBasis(SHBase, RayVectorPT) *
+                VectorDotProduct(N, RayVector);
           end;
         end;
 
-        for SHBase := 0 to SHBasesCount - 1 do
+        for SHBase := 0 to SHBasisCount - 1 do
           { VertexTransfer[SHBase] is an integral over hemisphere,
             so normalize. Also, at this point multiply by BRDF (since
             BRDF is simply constant, so we can simply multiply here). }
@@ -154,12 +172,25 @@ begin
   end;
 end;
 
+const
+  Options: array[0..0] of TOption =
+  ( (Short: 'c'; Long: 'sh-basis-count'; Argument: oaRequired) );
+
+  procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+    const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+  begin
+    case OptionNum of
+      0: SHBasisCount := StrToInt(Argument);
+    end;
+  end;
+
 var
   I: Integer;
   Geometry: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState;
   RadianceTransfer: TDynSingleArray;
 begin
+  ParseParameters(Options, @OptionProc, nil);
   Parameters.CheckHigh(2);
 
   Progress.UserInterface := ProgressConsoleInterface;
@@ -168,6 +199,8 @@ begin
   try
     Scene.TriangleOctreeProgressTitle := 'Building octree';
     Scene.Spatial := [ssVisibleTriangles];
+
+    ProcessTimerBegin;
 
     for I := 0 to Scene.ShapeStates.Count - 1 do
     begin
@@ -193,6 +226,9 @@ begin
         finally FreeAndNil(Normals) end;
       end;
     end;
+
+    Writeln(Format('Precomputing with SH basis %d finished: %f secs',
+      [SHBasisCount, ProcessTimerEnd]));
 
     SaveToVRMLFile(Scene.RootNode, Parameters[2],
       'radianceTransfer computed by precompute_radiance_transfer');

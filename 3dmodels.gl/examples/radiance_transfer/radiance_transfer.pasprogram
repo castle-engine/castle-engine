@@ -29,11 +29,12 @@ program radiance_transfer;
 uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLScene, VRMLGLScene, Navigation,
-  KambiFilesUtils, VRMLErrors;
+  KambiFilesUtils, VRMLErrors, SphericalHarmonics;
 
 var
   Scene: TVRMLGLScene;
   CameraRadius: Single;
+  ShowSimpleOcclusion: boolean;
 
 procedure Draw(Glwin: TGLWindow);
 begin
@@ -71,16 +72,31 @@ type
 function THelper.DoRadianceTransfer(Node: TVRMLGeometryNode;
   RadianceTransfer: PSingle;
   const RadianceTransferCount: Cardinal): TVector3Single;
+var
+  F: Float;
 begin
-  { TODO: this is a dummy impl, just to test OnRadianceTransfer
-    and radianceTransfer fields work. }
-  Assert(RadianceTransferCount > 0);
-  Result := Vector3Single(
-    RadianceTransfer[0] / (2*Pi),
-    RadianceTransfer[0] / (2*Pi),
-    RadianceTransfer[0] / (2*Pi));
+  if {TODO}{ShowSimpleOcclusion}true then
+  begin
+    Assert(RadianceTransferCount > 0);
+    F := RadianceTransfer[0] / (SHBasis0 * 2 * Pi);
+    Result := Vector3Single(F, F, F);
+  end else
+  begin
+    { TODO }
+  end;
 end;
 
+procedure MenuCommand(glwin: TGLWindow; Item: TMenuItem);
+begin
+  case Item.IntData of
+    10: ShowSimpleOcclusion := not ShowSimpleOcclusion;
+    else Exit;
+  end;
+  Glw.PostRedisplay;
+end;
+
+var
+  M: TMenu;
 begin
   Parameters.CheckHigh(1);
   try
@@ -88,6 +104,12 @@ begin
 
     Scene := TVRMLGLScene.Create(Parameters[1], roNone);
     Scene.Attributes.OnRadianceTransfer := @THelper(nil).DoRadianceTransfer;
+
+    Glw.MainMenu := TMenu.Create('Main menu');
+    M := TMenu.Create('_Program');
+      M.Append(TMenuItemChecked.Create('_Show simple occlusion (useful when --sh-basis-count=1)', 10,
+        ShowSimpleOcclusion, true));
+      Glw.MainMenu.Append(M);
 
     Glw.Navigator := Scene.CreateNavigator(CameraRadius);
     Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;

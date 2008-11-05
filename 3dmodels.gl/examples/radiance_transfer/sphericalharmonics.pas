@@ -30,7 +30,11 @@ uses VectorMath, KambiUtils, Math;
 const
   { How many basis can SHBasis calculate. LM for SHBasis must be within
     0 .. SHBasesCount - 1. }
-  SHBasesCount = 25;
+  MaxSHBasis = 25;
+
+  { The first SH basis function is actually constant.
+    This is sometimes useful. }
+  SHBasis0 = 1 / (2 * Sqrt(Pi));
 
 { Calculate spherical harmonic basis function for given arguments.
 
@@ -124,7 +128,7 @@ begin
   { Fear not, this case should be converted to lookup table by FPC. }
 
   case LM of
-    0: Result := 1 / (2 * Sqrt(Pi));
+    0: Result := SHBasis0;
 
     1: Result := Sqrt(3) / (2 * Sqrt(Pi)) * CosPhi * SinTheta;
     2: Result := Sqrt(3) / (2 * Sqrt(Pi)) * CosTheta;

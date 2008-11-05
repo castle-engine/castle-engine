@@ -93,8 +93,9 @@ See show_sh program.
 Page 8 from Teemu (3.1.1) --- this is the core idea of the algorithm,
 shows what and how the precalculation does.
 
-Show simplified precomputed_ results first, to show that basic self-shadowing
-(visibility * diffuse mat * cos) it simply calculated in pre-processing.
+Show precomputed_ results for 1 basis (with "show simple occlusion") first,
+to show that basic self-shadowing (visibility * diffuse mat * cos)
+it simply calculated in pre-processing.
 
 ------------------------------------------------------------------------------
 
