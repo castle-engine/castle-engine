@@ -277,9 +277,9 @@ procedure Idle(Glwin: TGLWindow);
 
   procedure ChangeLightPosition(Coord, Change: Integer);
   begin
-    LightPos[Coord] += Change * Glwin.Fps.IdleSpeed * 50 /
+    LightPos[Coord] += Change * Glwin.Fps.IdleSpeed *
       { scale by Box3dAvgSize, to get similar move on all models }
-      Box3dAvgSize(Scene.BoundingBox) / 100;
+      Box3dAvgSize(Scene.BoundingBox);
     Glwin.PostRedisplay;
   end;
 

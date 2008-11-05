@@ -65,6 +65,10 @@ Advantages/disadvantages:
   neighborhood vertices must be placed and precalculated,
   so shadow/caustics receiver doesn't have full flexibility of moving).
 
+- Model must have quite a lot of vertexes to look really nice.
+  Low-poly models look ugly from close distance with dynamic lighting
+  changes.
+
 How to represent "function defined over a sphere"? Spherical harmonics
 (Polish: "Harmoniki sferyczne". Poetry.)
 http://en.wikipedia.org/wiki/Spherical_harmonics.
