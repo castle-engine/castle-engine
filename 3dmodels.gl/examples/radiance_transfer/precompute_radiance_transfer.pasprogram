@@ -32,18 +32,6 @@
     Says how much basis SH functions to use. PRT paper advices between
     9 and 25.
 
-    Note that COUNT = 1 has special use: it means that only
-    a single float is calculated. Since the first SH basis function is just
-    constant (SHBasis0 ~= 0.28), so radianceTransfer can be scaled by
-    1/SHBasis0 and then you have simple integral of visibility *  brdf * cos.
-    In other words, you have simple ambient occlusion per vertex.
-
-    This is useful for testing, since you can easily visualize and check
-    the results of such calculation. radiance_transfer has special trick
-    to visualize this: use "Show Simple Occlusion" menu item.
-    Then vertex color is simply taken from radianceTransfer value,
-    only scaled appropriately.
-
   --rays-per-vertex / -r COUNT
 
     How many rays per vertex to generate. This linearly affects the speed

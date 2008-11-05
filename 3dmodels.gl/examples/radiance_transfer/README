@@ -93,9 +93,20 @@ See show_sh program.
 Page 8 from Teemu (3.1.1) --- this is the core idea of the algorithm,
 shows what and how the precalculation does.
 
-Show precomputed_ results for 1 basis (with "show simple occlusion") first,
+Show results for 1 basis (with "show simple occlusion") first,
 to show that basic self-shadowing (visibility * diffuse mat * cos)
-it simply calculated in pre-processing.
+is simply calculated in pre-processing. Explanation why this works:
+
+  The first SH basis function is just
+  constant (SHBasis0 ~= 0.28), so radianceTransfer can be scaled by
+  1/SHBasis0 and then you have simple integral of visibility *  brdf * cos.
+  In other words, you have simple ambient occlusion per vertex.
+
+  This is useful for testing, since you can easily visualize and check
+  the results of such calculation. radiance_transfer has special trick
+  to visualize this: use "Show Simple Occlusion" menu item.
+  Then vertex color is simply taken from radianceTransfer value,
+  only scaled appropriately.
 
 ------------------------------------------------------------------------------
 
