@@ -206,11 +206,11 @@ end;
 
 procedure Resize(Glwin: TGLWindow);
 begin
-  glViewport(0, 0, glwin.Width, glwin.Height);
-  ProjectionGLPerspective(45.0, glwin.Width/glwin.Height, 0.01, 10);
+  glViewport(0, 0, Glwin.Width, Glwin.Height);
+  ProjectionGLPerspective(45.0, Glwin.Width/Glwin.Height, 0.01, 10);
 end;
 
-procedure MenuCommand(glwin: TGLWindow; Item: TMenuItem);
+procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
 begin
   case Item.IntData of
     10: LM := ChangeIntCycle(LM, -1, SHBasesCount - 1);
