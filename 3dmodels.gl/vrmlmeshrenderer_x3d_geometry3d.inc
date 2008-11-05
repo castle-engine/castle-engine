@@ -28,7 +28,7 @@ type
     procedure DoRender; override;
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
-    function NeedsSetColor_2: boolean; override;
+    function NeedsSetColor: boolean; override;
   end;
 
   { Handling IndexedFaceSet for VRML <= 1.0 and >= 2.0.
@@ -290,7 +290,7 @@ var
       glNormalv(Normal.Items[I + J * XDimension]);
 
     if (Color <> nil) and ColorPerVertex then
-      Renderer.SetColor_2(Color.ItemsSafe[I + J * XDimension]);
+      Renderer.SetColor(Color.ItemsSafe[I + J * XDimension]);
 
     DoGLVertex(V);
   end;
@@ -372,7 +372,7 @@ begin
                 I - 1 + (J - 1) * (XDimension - 1)]);
 
             if (Color <> nil) and not ColorPerVertex then
-              Renderer.SetColor_2(Color.ItemsSafe[
+              Renderer.SetColor(Color.ItemsSafe[
                 I - 1 + (J - 1) * (XDimension - 1)]);
 
             Vertex(I    , J, Next2);
@@ -390,7 +390,7 @@ begin
   end;
 end;
 
-function TElevationGridRenderer.NeedsSetColor_2: boolean;
+function TElevationGridRenderer.NeedsSetColor: boolean;
 begin
   Result := (Geometry as TNodeElevationGrid).Color <> nil;
 end;
@@ -1099,6 +1099,8 @@ begin
     State.LastNodes.NormalBinding.FdValue.Value);
   if NorImplementation = niNone then
     AutoGenerateNormals(SH.FdCreaseAngle.Value);
+
+  RadianceTransfer := ANode.FdRadianceTransfer.Items;
 end;
 
 { TIndexedFaceSet_2Renderer -------------------------------------------------- }

@@ -70,6 +70,8 @@ begin
   Render_Material_BoundMatNum := -1; { no material is bound now }
   Render_Material_LastFogImmune := false;
 
+  Assert(not MaterialFromColorEnabled);
+
   if not (CurrentGeometry is TVRMLGeometryNode_1) then
     Render_BindMaterial_2;
 end;
@@ -193,6 +195,29 @@ begin
   end else
     glDisable(GL_POLYGON_STIPPLE)
   {$endif}
+
+  { MaterialFromColorEnabled should be enabled only below and disabled
+    back by MaterialsEnd. For many Render_BindMaterial_1 calls, it's
+    Ok if it's already enabled. }
+  if (MeshRenderer <> nil) and
+     MeshRenderer.NeedsSetColor and
+     NodeLit(CurrentGeometry) and
+     (not MaterialFromColorEnabled) then
+  begin
+    { For lit nodes, we want to set both unlit glColor and lit glMaterial
+      in SetColor.
+
+      Using GL_COLOR_MATERIAL is the best way to do this, this also works
+      much faster and more memory-efficient (AFAIK, OpenGL is prepared
+      to handle different glColor-per-vertex efficiently, but changing
+      whole glMaterial-per-vertex is not efficient (as glColor is pushed
+      with vertex data into the pipeline, while changing material settings
+      requires flushing part of current pipeline)). }
+
+    glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+    glEnable(GL_COLOR_MATERIAL);
+    MaterialFromColorEnabled := true;
+  end;
 end;
 
 { Sets current OpenGL material and color properties for material
@@ -302,32 +327,14 @@ begin
       1,
       false);
   end;
-
-  { MaterialFromColorEnabled should be enabled only below and disabled
-    back by MaterialsEnd, so it should be always @false here. }
-  Assert(not MaterialFromColorEnabled);
-  if (MeshRenderer <> nil) and
-     MeshRenderer.NeedsSetColor_2 and
-     IsNodeLit then
-  begin
-    { For lit nodes, we want to set both unlit glColor and lit glMaterial
-      in SetColor_2.
-
-      Using GL_COLOR_MATERIAL is the best way to do this, this also works
-      much faster and more memory-efficient (AFAIK, OpenGL is prepared
-      to handle different glColor-per-vertex efficiently, but changing
-      whole glMaterial-per-vertex is not efficient (as glColor is pushed
-      with vertex data into the pipeline, while changing material settings
-      requires flushing part of current pipeline)). }
-
-    glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-    glEnable(GL_COLOR_MATERIAL);
-    MaterialFromColorEnabled := true;
-  end;
 end;
 
-{ Sets current VRML 2.0 color. Should only be called for VRML 2.0
-  nodes, for which you called Render_BindMaterial_2.
+{ Sets current color. Initially, this is designed for setting VRML 2.0
+  color, so it can be called after you called Render_BindMaterial_2.
+
+  But it's also functional for VRML 1.0 --- although this is only for
+  OnRadianceTransfer now. Normally, in VRML 1.0 Render_BindMaterial_1
+  is the only way to change color.
 
   This sets the RGB part of the unlit color,
   and the RGB part of diffuseColor of lit material.
@@ -337,8 +344,11 @@ end;
   term O_Drgb).
 
   Actually, setting the lit material color is not done if not NodeLit
-  (no point in wasting 1 OpenGL call if material will never be used). }
-procedure TVRMLOpenGLRenderer.SetColor_2(const Color: TVector3Single);
+  (no point in wasting 1 OpenGL call if material will never be used).
+  This optimization is implementd in Render_Material (although it affects
+  this procedure). There we check for NodeLit before turning on
+  GL_COLOR_MATERIAL, since when not NodeLit, material has never any use. }
+procedure TVRMLOpenGLRenderer.SetColor(const Color: TVector3Single);
 begin
   { We use Material_BoundOpacity since we do not want to change
     material opacity here, only it's RGB part. }

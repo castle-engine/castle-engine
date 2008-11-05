@@ -164,12 +164,18 @@
   end;
 
   TNodeIndexedFaceSet_1 = class(TNodeIndexed_Faces_Or_Triangles_1)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
     class function ClassNodeTypeName: string; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
 
     procedure CoordPolygons(
       State: TVRMLGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
+
+    private FFdRadianceTransfer: TMFFloat;
+    public property FdRadianceTransfer: TMFFloat read FFdRadianceTransfer;
   end;
 
   TNodeIndexedLineSet_1 = class(TVRMLIndexedNode_1)
@@ -1030,6 +1036,14 @@ end;
 function TVRMLIndexedNode_1.CoordIndex: TMFLong;
 begin
   Result := FdCoordIndex;
+end;
+
+constructor TNodeIndexedFaceSet_1.Create(const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdRadianceTransfer := TMFFloat.Create(Self, 'radianceTransfer', []);
+  Fields.Add(FFdRadianceTransfer);
 end;
 
 class function TNodeIndexedFaceSet_1.ClassNodeTypeName: string;

@@ -31,7 +31,7 @@ type
   protected
     procedure DoRender; override;
   public
-    function NeedsSetColor_2: boolean; override;
+    function NeedsSetColor: boolean; override;
   end;
 
   { Renderer for X3D IndexedTriangleSet and TriangleSet nodes. }
@@ -95,7 +95,7 @@ type
   TLineSet_2Renderer = class(TLineSetRenderer)
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
-    function NeedsSetColor_2: boolean; override;
+    function NeedsSetColor: boolean; override;
   protected
     procedure RenderCoordinateBegin; override;
   end;
@@ -175,13 +175,13 @@ begin
       if State.ParentShape = nil then
       begin
         VRMLNonFatalError('PointSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
-        Renderer.SetColor_2(White3Single);
+        Renderer.SetColor(White3Single);
       end else
       begin
         Material := State.ParentShape.Material;
         if Material <> nil then
-          Renderer.SetColor_2(Material.FdEmissiveColor.Value) else
-          Renderer.SetColor_2(White3Single);
+          Renderer.SetColor(Material.FdEmissiveColor.Value) else
+          Renderer.SetColor(White3Single);
       end;
     end;
 
@@ -190,14 +190,14 @@ begin
       for I := 0 to Coord.Count - 1 do
       begin
         if Color <> nil then
-          Renderer.SetColor_2(Color.Items.Items[I]);
+          Renderer.SetColor(Color.Items.Items[I]);
         DoGLVertex(Coord.Items.Items[i]);
       end;
     finally glEnd end;
   end;
 end;
 
-function TPointSet_2Renderer.NeedsSetColor_2: boolean;
+function TPointSet_2Renderer.NeedsSetColor: boolean;
 begin
   Result := true;
 end;
@@ -726,20 +726,20 @@ begin
     if State.ParentShape = nil then
     begin
       VRMLNonFatalError('LineSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
-      Renderer.SetColor_2(White3Single);
+      Renderer.SetColor(White3Single);
     end else
     begin
       Material := State.ParentShape.Material;
       if Material <> nil then
-        Renderer.SetColor_2(Material.FdEmissiveColor.Value) else
-        Renderer.SetColor_2(White3Single);
+        Renderer.SetColor(Material.FdEmissiveColor.Value) else
+        Renderer.SetColor(White3Single);
     end;
   end;
 end;
 
-function TLineSet_2Renderer.NeedsSetColor_2: boolean;
+function TLineSet_2Renderer.NeedsSetColor: boolean;
 begin
   if Color = nil then
     Result := true else
-    Result := inherited NeedsSetColor_2;
+    Result := inherited NeedsSetColor;
 end;

@@ -165,12 +165,12 @@ type
       only if bump mapping should be used and BumpMappingAllowed. }
     BumpMappingMethod: TBumpMappingMethod;
 
-    { @abstract(Will rendering of this node possibly call Renderer.SetColor_2?)
+    { @abstract(Will rendering of this node possibly call Renderer.SetColor?)
 
       In this class, returns @false, set to @true in descendants to allow
       Renderer.MaterialsBegin do some preparations of you later plan to call
-      SetColor_2. }
-    function NeedsSetColor_2: boolean; virtual;
+      SetColor. }
+    function NeedsSetColor: boolean; virtual;
   end;
 
   { Base abstract class for rendering nodes with explicit "coord" field.
@@ -475,7 +475,7 @@ type
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
 
-    function NeedsSetColor_2: boolean; override;
+    function NeedsSetColor: boolean; override;
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
@@ -759,7 +759,7 @@ begin
       Geometry.NodeTypeName]));
 end;
 
-function TVRMLMeshRenderer.NeedsSetColor_2: boolean;
+function TVRMLMeshRenderer.NeedsSetColor: boolean;
 begin
   Result := false;
 end;
@@ -1270,15 +1270,15 @@ begin
       @(RadianceTransfer.Items[VertexIndex * RadianceTransferVertexSize]),
       RadianceTransferVertexSize);
 
-    Renderer.SetColor_2(VertexColor);
+    Renderer.SetColor(VertexColor);
   end else
   if (Color <> nil) and ColorPerVertex then
   begin
     if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
-      Renderer.SetColor_2(Color.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]]) else
+      Renderer.SetColor(Color.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]]) else
     if CoordIndex <> nil then
-      Renderer.SetColor_2(Color.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]]) else
-      Renderer.SetColor_2(Color.ItemsSafe[IndexNum]);
+      Renderer.SetColor(Color.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]]) else
+      Renderer.SetColor(Color.ItemsSafe[IndexNum]);
   end;
 
   inherited;
@@ -1296,13 +1296,13 @@ begin
     if (Color <> nil) and (not ColorPerVertex) then
     begin
       if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
-        Renderer.SetColor_2(Color.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]]) else
-        Renderer.SetColor_2(Color.ItemsSafe[RangeNumber]);
+        Renderer.SetColor(Color.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]]) else
+        Renderer.SetColor(Color.ItemsSafe[RangeNumber]);
     end;
   end;
 end;
 
-function TAbstractColMatTexCoordinateRenderer.NeedsSetColor_2: boolean;
+function TAbstractColMatTexCoordinateRenderer.NeedsSetColor: boolean;
 begin
   Result := (RadianceTransfer <> nil) or (Color <> nil);
 end;

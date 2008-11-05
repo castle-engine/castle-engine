@@ -88,31 +88,38 @@ end;
 
 var
   I: Integer;
-  Geometry: TNodeX3DComposedGeometryNode;
+  Geometry: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState;
+  RadianceTransfer: TDynSingleArray;
 begin
   Parameters.CheckHigh(2);
 
   Scene := TVRMLScene.Create(LoadAsVRML(Parameters[1]), true);
   try
     for I := 0 to Scene.ShapeStates.Count - 1 do
-      if Scene.ShapeStates[I].GeometryNode is TNodeX3DComposedGeometryNode then
-      begin
-        Geometry := TNodeX3DComposedGeometryNode(
-          Scene.ShapeStates[I].GeometryNode);
-        State := Scene.ShapeStates[I].State;
+    begin
+      Geometry := Scene.ShapeStates[I].GeometryNode;
+      State := Scene.ShapeStates[I].State;
 
+      if Geometry is TNodeX3DComposedGeometryNode then
+        RadianceTransfer := TNodeX3DComposedGeometryNode(Geometry).FdRadianceTransfer.Items else
+      if Geometry is TNodeIndexedFaceSet_1 then
+        RadianceTransfer := TNodeIndexedFaceSet_1(Geometry).FdRadianceTransfer.Items else
+        RadianceTransfer := nil;
+
+      if RadianceTransfer <> nil then
+      begin
         { For PRT, we need a normal per-vertex, so always calculate
           smooth normals. Simple, and thanks to NormalsCalculator
-          this works for all VRML coord-based nodes. }
+          this works for all VRML coord-based nodes (and only for
+          those RadianceTransfer is defined). }
         Normals := CreateSmoothNormalsCoordinateNode(Geometry, State, true);
         try
-          ComputeTransfer(
-            Geometry.FdRadianceTransfer.Items,
-            Geometry.Coordinates(State).Items,
+          ComputeTransfer(RadianceTransfer, Geometry.Coordinates(State).Items,
             State.Transform);
         finally FreeAndNil(Normals) end;
       end;
+    end;
 
     SaveToVRMLFile(Scene.RootNode, Parameters[2],
       'radianceTransfer computed by precompute_radiance_transfer');
