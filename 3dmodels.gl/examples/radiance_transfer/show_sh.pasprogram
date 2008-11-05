@@ -20,7 +20,12 @@
   ----------------------------------------------------------------------------
 }
 
-{ Show Spherical harmonics function basis. }
+{ Show Spherical harmonics function basis.
+
+  Single SH function is shown on a sphere, yellow indicates positive values,
+  blue negative values. Navigate with mouse of keyboard (like view3dscene
+  in Examine mode).
+}
 
 program show_sh;
 
@@ -33,6 +38,8 @@ var
   LM: Cardinal = 0;
   Font: TGLBitmapFont;
 
+  MinSHValue, MaxSHValue: Float;
+
 procedure Draw2d(Data: Pointer);
 var
   L: Cardinal;
@@ -42,8 +49,8 @@ begin
   glLoadIdentity;
   glColor3f(1, 1, 0);
   glRasterPos2i(10, 10);
-  Font.Print(Format('Spherical harmonic number %d. (L, M) = (%d, %d)',
-    [LM, L, M]));
+  Font.Print(Format('Spherical harmonic number %d. (L, M) = (%d, %d). Resuls in range (%f, %f)',
+    [LM, L, M, MinSHValue, MaxSHValue]));
 end;
 
 procedure Draw(Glwin: TGLWindow);
@@ -63,7 +70,13 @@ procedure Draw(Glwin: TGLWindow);
       SH: Float;
     begin
       SH := SHBasis(LM, XYZToPhiTheta(V));
-      glColor3f(SH, SH, SH);
+      if SH > MaxSHValue then MaxSHValue := SH;
+      if SH < MinSHValue then MinSHValue := SH;
+
+      if SH >= 0 then
+        glColor3f(SH, SH, 0) else
+        glColor3f(0, 0, -SH);
+
       glVertexv(V);
     end;
 
@@ -167,6 +180,9 @@ end;}
   end;
 
 begin
+  MinSHValue :=  MaxFloat;
+  MaxSHValue := -MaxFloat;
+
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(Glw.Navigator.Matrix);
   RenderSphere;
