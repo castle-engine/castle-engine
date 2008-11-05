@@ -52,8 +52,37 @@ const
 
   LightSHBasisCount = 25;
 
+  LightMapSize = 16;
+
 var
   LightSHBasis: array [0..LightSHBasisCount - 1] of Single;
+
+type
+  TEnvMapSide = 0..5;
+  TEnvMapInfo = record
+    Dir, Up, Side: TVector3Single;
+    ScreenX, ScreenY: Integer;
+  end;
+
+const
+  EnvMapInfo: array [TEnvMapSide] of TEnvMapInfo =
+  ( (Dir: ( 1,  0, 0); Up: (0, 0, 1); Side: ( 0, -1, 0); ScreenX: 10                   ; ScreenY: 100),
+    (Dir: ( 0, -1, 0); Up: (0, 0, 1); Side: (-1,  0, 0); ScreenX: 10 +     LightMapSize; ScreenY: 100),
+    (Dir: (-1,  0, 0); Up: (0, 0, 1); Side: ( 0,  1, 0); ScreenX: 10 + 2 * LightMapSize; ScreenY: 100),
+    (Dir: ( 0,  1, 0); Up: (0, 0, 1); Side: ( 1,  0, 0); ScreenX: 10 + 3 * LightMapSize; ScreenY: 100),
+    (Dir: (0, 0,  1); Up: (-1, 0, 0); Side: (0, -1, 0); ScreenX: 10; ScreenY: 100 + LightMapSize),
+    (Dir: (0, 0, -1); Up: ( 1, 0, 0); Side: (0, -1, 0); ScreenX: 10; ScreenY: 100 - LightMapSize)
+  );
+
+var
+  { For each SHBasis function (first index of the array is LM of this function),
+    a precalculated results. For each side of the cube (second index),
+    and for each pixel on this side (third vertex; pixels are arranged
+    same as in TGrayscaleImage, that is row-by-row from lower to higher,
+    from left to right). }
+  SHBasisValues: array [0..LightSHBasisCount - 1,
+    TEnvMapSide,
+    0 .. LightMapSize*LightMapSize - 1] of Float;
 
 procedure Draw(Glwin: TGLWindow);
 
@@ -77,28 +106,27 @@ procedure Draw(Glwin: TGLWindow);
     glPopMatrix;
   end;
 
-const
-  LightMapSize = 16;
-
-  procedure DrawLightMap(const MapX, MapY, DirX, DirY, DirZ,
-    UpX, UpY, UpZ: Integer);
+  procedure DrawLightMap(EnvMapSide: TEnvMapSide);
   var
     P: TVector3Single;
     Map: TGrayscaleImage;
-    I, SHBasis: Integer;
+    I, SHBasis, ScreenX, ScreenY: Integer;
   begin
     { We have to clear the buffer first. Clearing with glClear is fast,
       but it must be clipped with scissor (glViewport does not clip glClear).
       Later: actually, clearing is not needed now, since we call DrawLightMap
       at the beginning, right after clearing the whole screen.
 
-    glScissor(MapX, MapY, LightMapSize, LightMapSize);
+    glScissor(ScreenX, ScreenY, LightMapSize, LightMapSize);
     glEnable(GL_SCISSOR_TEST);
       glClear(GL_COLOR_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
     }
 
-    glViewport(MapX, MapY, LightMapSize, LightMapSize);
+    ScreenX := EnvMapInfo[EnvMapSide].ScreenX;
+    ScreenY := EnvMapInfo[EnvMapSide].ScreenY;
+
+    glViewport(ScreenX, ScreenY, LightMapSize, LightMapSize);
 
     glMatrixMode(GL_PROJECTION);
     glPushMatrix;
@@ -110,7 +138,7 @@ const
 
         glLoadIdentity;
         P := Box3dMiddle(Scene.BoundingBox);
-        gluLookDirv(P, Vector3Single(DirX, DirY, DirZ), Vector3Single(UpX, UpY, UpZ));
+        gluLookDirv(P, EnvMapInfo[EnvMapSide].Dir, EnvMapInfo[EnvMapSide].Up);
         DrawLight(true);
 
       glPopMatrix;
@@ -120,26 +148,23 @@ const
     glMatrixMode(GL_MODELVIEW);
 
     Map := TGrayscaleImage(SaveScreen_noflush(TGrayscaleImage,
-      MapX, MapY, LightMapSize, LightMapSize, GL_BACK));
+      ScreenX, ScreenY, LightMapSize, LightMapSize, GL_BACK));
     try
+      { Use the Map to calculate LightSHBasis[SHBasis] (this is the actual
+        purpose of drawing light). LightSHBasis[SHBasis] is just a dot product
+        for all directions (for all pixels, in this case) of
+        light intensity values * SH basis values. }
+
       for I := 0 to Sqr(LightMapSize) - 1 do
         for SHBasis := 0 to LightSHBasisCount - 1 do
-          LightSHBasis[SHBasis] += (Map.GrayscalePixels[I]/255);
+          LightSHBasis[SHBasis] += (Map.GrayscalePixels[I]/255) *
+            SHBasisValues[SHBasis, EnvMapSide, I];
     finally FreeAndNil(Map) end;
-
-    { TODO:
-      Use prepared maps for SHBasis functions, make dots with them
-      to calculate LightSHBasis.
-
-      for every pixel of LightMap:
-        for SHBasis := 0 to LightSHBasisCount - 1 do
-          LightSHBasis[SHBasis] += LightMap[pixel] * SHBasisMap[SHBasis]
-            [choose one of 6 maps for this DrawLightMap call][pixel];
-    }
   end;
 
 var
   SHBasis: Integer;
+  EnvMapSide: TEnvMapSide;
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(Glw.Navigator.Matrix);
@@ -153,17 +178,8 @@ begin
     for SHBasis := 0 to LightSHBasisCount - 1 do
       LightSHBasis[SHBasis] := 0;
 
-    DrawLightMap(10                   , 100,  1,  0, 0, 0, 0, 1);
-    DrawLightMap(10 +     LightMapSize, 100,  0, -1, 0, 0, 0, 1);
-    DrawLightMap(10 + 2 * LightMapSize, 100, -1,  0, 0, 0, 0, 1);
-    DrawLightMap(10 + 3 * LightMapSize, 100,  0,  1, 0, 0, 0, 1);
-
-    DrawLightMap(10, 100 + LightMapSize, 0, 0,  1,  -1, 0, 0);
-    DrawLightMap(10, 100 - LightMapSize, 0, 0, -1,   1, 0, 0);
-
-    glViewport(0, 0, Glwin.Width, Glwin.Height);
-
-    Writeln('LightSHBasis[0] ', FloatToNiceStr(LightSHBasis[0]));
+    for EnvMapSide := 0 to 5 do
+      DrawLightMap(EnvMapSide);
 
     for SHBasis := 0 to LightSHBasisCount - 1 do
     begin
@@ -179,6 +195,8 @@ begin
         So just divide by number of points... }
       LightSHBasis[SHBasis] /= 6 * Sqr(LightMapSize);
     end;
+
+    glViewport(0, 0, Glwin.Width, Glwin.Height);
   end;
 
   Scene.Render(nil, tgAll);
