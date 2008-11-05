@@ -214,7 +214,10 @@ begin
     glViewport(0, 0, Glwin.Width, Glwin.Height);
   end;
 
+  if ViewMode = vmNormal then glEnable(GL_LIGHTING);
   Scene.Render(nil, tgAll);
+  if ViewMode = vmNormal then glDisable(GL_LIGHTING);
+
   DrawLight(false);
 end;
 
@@ -272,14 +275,8 @@ end;
 procedure UpdateViewMode;
 begin
   if ViewMode = vmNormal then
-  begin
-    Scene.Attributes.OnRadianceTransfer := nil;
-    glEnable(GL_LIGHTING);
-  end else
-  begin
+    Scene.Attributes.OnRadianceTransfer := nil else
     Scene.Attributes.OnRadianceTransfer := @THelper(nil).DoRadianceTransfer;
-    glDisable(GL_LIGHTING);
-  end;
 end;
 
 procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
