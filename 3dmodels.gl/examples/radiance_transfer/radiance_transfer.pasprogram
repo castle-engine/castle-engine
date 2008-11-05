@@ -44,8 +44,8 @@ end;
 
 procedure Init(Glwin: TGLWindow);
 begin
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
+//  glEnable(GL_LIGHTING);
+//  glEnable(GL_LIGHT0);
 end;
 
 procedure Close(Glwin: TGLWindow);
@@ -74,8 +74,11 @@ function THelper.DoRadianceTransfer(Node: TVRMLGeometryNode;
 begin
   { TODO: this is a dummy impl, just to test OnRadianceTransfer
     and radianceTransfer fields work. }
-  Assert(RadianceTransferCount = 3);
-  Result := Vector3Single(RadianceTransfer[0], RadianceTransfer[1], RadianceTransfer[2]);
+  Assert(RadianceTransferCount > 0);
+  Result := Vector3Single(
+    RadianceTransfer[0] / (2*Pi),
+    RadianceTransfer[0] / (2*Pi),
+    RadianceTransfer[0] / (2*Pi));
 end;
 
 begin

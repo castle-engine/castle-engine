@@ -88,6 +88,9 @@ so we only need up to L = 4).
 Page 8 from Teemu (3.1.1) --- this is the core idea of the algorithm,
 shows what and how the precalculation does.
 
+Show simplified precomputed_ results first, to show that basic self-shadowing
+(visibility * diffuse mat * cos) it simply calculated in pre-processing.
+
 ------------------------------------------------------------------------------
 
 2. Precomputed Shadow Fields for Dynamic Scenes

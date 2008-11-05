@@ -54,35 +54,103 @@
 program precompute_radiance_transfer;
 
 uses SysUtils, KambiUtils, VectorMath, VRMLScene, VRMLNodes, Object3dAsVRML,
-  NormalsCalculator;
+  NormalsCalculator, SphereSampling, ProgressUnit, ProgressConsole;
 
 var
   Scene: TVRMLScene;
   Normals: TDynVector3SingleArray;
 
-procedure ComputeTransfer(RadianceTransfer: TDynSingleArray;
-  Coord: TDynVector3SingleArray; const Transform: TMatrix4Single);
-var
-  I: Integer;
-  V, N: TVector3Single;
-begin
-  RadianceTransfer.Count := Coord.Count * 3 { anything };
-  for I := 0 to Coord.Count - 1 do
-  begin
-    { V = scene-space vertex coord }
-    V := MatrixMultPoint(Transform, Coord.Items[I]);
-    {RadianceTransfer.Items[I * 3    ] := MapRange(V[0], Scene.BoundingBox[0][0], Scene.BoundingBox[1][0], 0, 1);
-    RadianceTransfer.Items[I * 3 + 1] := MapRange(V[1], Scene.BoundingBox[0][1], Scene.BoundingBox[1][1], 0, 1);
-    RadianceTransfer.Items[I * 3 + 2] := MapRange(V[2], Scene.BoundingBox[0][2], Scene.BoundingBox[1][2], 0, 1);}
-    { N = scene-space normal coord
-      TODO: MatrixMultDirection will not work under non-uniform scaling
-      matrix correctly. }
-    N := Normalized(MatrixMultDirection(Transform, Normals.Items[I]));
+const
+  RaysPerVertex = 1000;
+  SHBasesCount = 9;
 
-    RadianceTransfer.Items[I * 3    ] := N[0];
-    RadianceTransfer.Items[I * 3 + 1] := N[1];
-    RadianceTransfer.Items[I * 3 + 2] := N[2];
-    { TODO: dummy calc now }
+procedure ComputeTransfer(RadianceTransfer: TDynSingleArray;
+  Coord: TDynVector3SingleArray; const Transform: TMatrix4Single;
+  const DiffuseColor: TVector3Single);
+var
+  I, J, SHBase: Integer;
+  V, N: TVector3Single;
+  RayVectorPT: TVector2Single;
+  RayVector: TVector3Single;
+  VertexTransfer: PSingle;
+  BRDF: Single;
+begin
+  RadianceTransfer.Count := Coord.Count * SHBasesCount;
+
+  { For diffuse surface, BRDF is just a constant }
+  BRDF := GrayscaleValue(DiffuseColor) { * Pi };
+
+  Progress.Init(Coord.Count, 'Computing transfer for one shape');
+  try
+    for I := 0 to Coord.Count - 1 do
+    begin
+      VertexTransfer := RadianceTransfer.Pointers[I * SHBasesCount];
+
+      { V = scene-space vertex coord }
+      V := MatrixMultPoint(Transform, Coord.Items[I]);
+
+      { N = scene-space normal coord
+        TODO: MatrixMultDirection will not work under non-uniform scaling
+        matrix correctly. }
+      N := Normalized(MatrixMultDirection(Transform, Normals.Items[I]));
+
+      for SHBase := 0 to SHBasesCount - 1 do
+        VertexTransfer[SHBase] := 0;
+
+      { In some nasty cases, smoothed normal may be zero, see e.g. spider_queen
+        legs. Leave VertexTransfer[SHBase] as zeros in this case. }
+
+      if not IsZeroVector(N) then
+      begin
+        { Integrate over hemisphere (around N). Actually, we could integrate
+          over the sphere, but this is (on most models) a waste of time
+          (= a waste of half rays), since most rays outside of N hemisphere
+          would go inside the model (where usually you do not hit anything). }
+
+        for J := 0 to RaysPerVertex - 1 do
+        begin
+          RayVectorPT := RandomUnitHemispherePointDensityConst;
+          RayVector := PhiThetaToXYZ(RayVectorPT, N);
+          if Scene.OctreeVisibleTriangles.RayCollision(V, RayVector,
+            false, nil, true { yes, ignore margin at start, to not hit V },
+            nil) = nil then
+          begin
+            for SHBase := 0 to SHBasesCount - 1 do
+              { VectorDotProduct below must be >= 0, since RayVector was
+                chosen at random within hemisphere around N.
+                So no need to do Max(0, VectorDotProduct(...)) below. }
+              VertexTransfer[SHBase] += VectorDotProduct(N, RayVector);
+          end;
+        end;
+
+        for SHBase := 0 to SHBasesCount - 1 do
+          { VertexTransfer[SHBase] is an integral over hemisphere,
+            so normalize. Also, at this point multiply by BRDF (since
+            BRDF is simply constant, so we can simply multiply here). }
+          VertexTransfer[SHBase] *= BRDF * 2 * Pi / RaysPerVertex;
+      end;
+
+      Progress.Step;
+    end;
+  finally Progress.Fini end;
+end;
+
+function DiffuseColor(State: TVRMLGraphTraverseState): TVector3Single;
+var
+  M1: TNodeMaterial_1;
+  M2: TNodeMaterial_2;
+begin
+  if State.ParentShape <> nil then
+  begin
+    M2 := State.ParentShape.Material;
+    if M2 <> nil then
+      Result := M2.FdDiffuseColor.Value else
+      { Default VRML 2.0 lighting properties. }
+      Result := DefaultMaterialDiffuseColor;
+  end else
+  begin
+    M1 := State.LastNodes.Material;
+    Result := M1.DiffuseColor3Single(0);
   end;
 end;
 
@@ -94,8 +162,13 @@ var
 begin
   Parameters.CheckHigh(2);
 
+  Progress.UserInterface := ProgressConsoleInterface;
+
   Scene := TVRMLScene.Create(LoadAsVRML(Parameters[1]), true);
   try
+    Scene.TriangleOctreeProgressTitle := 'Building octree';
+    Scene.Spatial := [ssVisibleTriangles];
+
     for I := 0 to Scene.ShapeStates.Count - 1 do
     begin
       Geometry := Scene.ShapeStates[I].GeometryNode;
@@ -116,7 +189,7 @@ begin
         Normals := CreateSmoothNormalsCoordinateNode(Geometry, State, true);
         try
           ComputeTransfer(RadianceTransfer, Geometry.Coordinates(State).Items,
-            State.Transform);
+            State.Transform, DiffuseColor(State));
         finally FreeAndNil(Normals) end;
       end;
     end;
