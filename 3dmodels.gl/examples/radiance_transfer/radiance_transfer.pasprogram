@@ -33,7 +33,7 @@ program radiance_transfer;
 uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLScene, VRMLGLScene, Navigation, Keys,
-  KambiFilesUtils, VRMLErrors, SphericalHarmonics, Math;
+  KambiFilesUtils, VRMLErrors, SphericalHarmonics, Math, Images, GLImages;
 
 var
   Scene: TVRMLGLScene;
@@ -84,6 +84,8 @@ const
     UpX, UpY, UpZ: Integer);
   var
     P: TVector3Single;
+    Map: TGrayscaleImage;
+    I, SHBasis: Integer;
   begin
     { We have to clear the buffer first. Clearing with glClear is fast,
       but it must be clipped with scissor (glViewport does not clip glClear).
@@ -117,7 +119,15 @@ const
     glPopMatrix;
     glMatrixMode(GL_MODELVIEW);
 
-    { TODO: get drawn map from gl.
+    Map := TGrayscaleImage(SaveScreen_noflush(TGrayscaleImage,
+      MapX, MapY, LightMapSize, LightMapSize, GL_BACK));
+    try
+      for I := 0 to Sqr(LightMapSize) - 1 do
+        for SHBasis := 0 to LightSHBasisCount - 1 do
+          LightSHBasis[SHBasis] += (Map.GrayscalePixels[I]/255);
+    finally FreeAndNil(Map) end;
+
+    { TODO:
       Use prepared maps for SHBasis functions, make dots with them
       to calculate LightSHBasis.
 
@@ -152,6 +162,8 @@ begin
     DrawLightMap(10, 100 - LightMapSize, 0, 0, -1,   1, 0, 0);
 
     glViewport(0, 0, Glwin.Width, Glwin.Height);
+
+    Writeln('LightSHBasis[0] ', FloatToNiceStr(LightSHBasis[0]));
 
     for SHBasis := 0 to LightSHBasisCount - 1 do
     begin

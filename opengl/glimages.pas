@@ -256,11 +256,18 @@ function ImageDrawToDisplayList(const img: TImage): TGLuint;
   Note that you can pass here any ReadBuffer value allowed by
   glReadBuffer OpenGL function).
 
+  Version with ImageClass can save to any image format from GLImageClasses.
+
   @groupBegin }
 procedure SaveScreen_noflush(const FileName: string; ReadBuffer: TGLenum); overload;
 function SaveScreen_noflush(ReadBuffer: TGLenum): TRGBImage; overload;
 function SaveScreen_noflush(xpos, ypos, width, height: integer;
   ReadBuffer: TGLenum): TRGBImage; overload;
+
+function SaveScreen_noflush(
+  ImageClass: TImageClass;
+  xpos, ypos, width, height: integer;
+  ReadBuffer: TGLenum): TImage; overload;
 { @groupEnd }
 
 { Saves the current color buffer (captured like
@@ -492,19 +499,29 @@ end;
 { Saving screen to TRGBImage ------------------------------------------------ }
 
 { This is the basis for all other SaveScreen* functions below. }
-function SaveScreen_noflush(xpos, ypos, width, height: integer;
-  ReadBuffer: TGLenum): TRGBImage;
-var packData: TPackNotAlignedData;
+function SaveScreen_noflush(
+  ImageClass: TImageClass;
+  xpos, ypos, width, height: integer;
+  ReadBuffer: TGLenum): TImage;
+var
+  PackData: TPackNotAlignedData;
 begin
- result := TRGBImage.Create(width, height);
- try
-  BeforePackNotAlignedRGBImage(packData, width);
+  Result := ImageClass.Create(width, height);
   try
-   glReadBuffer(ReadBuffer);
-   glReadPixels(xpos, ypos, width, height, ImageGLFormat(Result),
-     ImageGLType(Result), Result.RawPixels);
-  finally AfterPackNotAlignedRGBImage(packData, width) end;
- except Result.Free; raise end;
+    BeforePackNotAlignedRGBImage(packData, width);
+    try
+      glReadBuffer(ReadBuffer);
+      glReadPixels(xpos, ypos, width, height, ImageGLFormat(Result),
+        ImageGLType(Result), Result.RawPixels);
+    finally AfterPackNotAlignedRGBImage(packData, width) end;
+  except Result.Free; raise end;
+end;
+
+function SaveScreen_noflush(
+  xpos, ypos, width, height: integer;
+  ReadBuffer: TGLenum): TRGBImage;
+begin
+  Result := TRGBImage(SaveScreen_noflush(TRGBImage, xpos, ypos, width, height, ReadBuffer));
 end;
 
 procedure SaveScreen_noflush(const FileName: string; ReadBuffer: TGLenum);
