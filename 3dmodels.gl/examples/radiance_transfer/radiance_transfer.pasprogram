@@ -44,7 +44,7 @@ type
 var
   Scene: TVRMLGLScene;
   CameraRadius: Single;
-  ViewMode: TViewMode = vmSimpleOcclusion;
+  ViewMode: TViewMode = vmFull;
   UseLighting: boolean = true;
   LightRadius: Single;
   LightPos: TVector3Single;
