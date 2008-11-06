@@ -121,6 +121,15 @@ begin
             false, nil, true { yes, ignore margin at start, to not hit V },
             nil) = nil then
           begin
+            { Previous RayVectorPT assumed that (0, 0, 1) is N.
+              That is, RayVectorPT was in local vertex coords, not
+              in actual world coords (like N). So now transform back
+              RayVector to RayVectorPT, to get RayVectorPT in world coords.
+              This is an extremely important operation, without this SHBasis
+              is calculated with wrong arguments, and the models are
+              not lighted as they should with PRT. }
+
+            RayVectorPT := XYZToPhiTheta(RayVector);
             for SHBase := 0 to SHBasisCount - 1 do
               { VectorDotProduct below must be >= 0, since RayVector was
                 chosen at random within hemisphere around N.
