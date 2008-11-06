@@ -348,7 +348,7 @@ type
   TBeforeGLVertexProc = procedure (Node: TVRMLGeometryNode;
     const Vert: TVector3Single) of object;
   TRadianceTransferFunction = function (Node: TVRMLGeometryNode;
-    RadianceTransfer: PSingle;
+    RadianceTransfer: PVector3Single;
     const RadianceTransferCount: Cardinal): TVector3Single of object;
 
   { Various bump mapping methods. Generally sorted from worst one

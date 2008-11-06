@@ -174,8 +174,8 @@
       State: TVRMLGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    private FFdRadianceTransfer: TMFFloat;
-    public property FdRadianceTransfer: TMFFloat read FFdRadianceTransfer;
+    private FFdRadianceTransfer: TMFVec3f;
+    public property FdRadianceTransfer: TMFVec3f read FFdRadianceTransfer;
   end;
 
   TNodeIndexedLineSet_1 = class(TVRMLIndexedNode_1)
@@ -1042,7 +1042,7 @@ constructor TNodeIndexedFaceSet_1.Create(const ANodeName: string; const AWWWBase
 begin
   inherited;
 
-  FFdRadianceTransfer := TMFFloat.Create(Self, 'radianceTransfer', []);
+  FFdRadianceTransfer := TMFVec3f.Create(Self, 'radianceTransfer', []);
   Fields.Add(FFdRadianceTransfer);
 end;
 

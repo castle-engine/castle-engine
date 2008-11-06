@@ -68,8 +68,8 @@
     private FFdsolid: TSFBool;
     public property Fdsolid: TSFBool read FFdsolid;
 
-    private FFdRadianceTransfer: TMFFloat;
-    public property FdRadianceTransfer: TMFFloat read FFdRadianceTransfer;
+    private FFdRadianceTransfer: TMFVec3f;
+    public property FdRadianceTransfer: TMFVec3f read FFdRadianceTransfer;
 
     function Coord(State: TVRMLGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
@@ -498,7 +498,7 @@ begin
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
 
-  FFdRadianceTransfer := TMFFloat.Create(Self, 'radianceTransfer', []);
+  FFdRadianceTransfer := TMFVec3f.Create(Self, 'radianceTransfer', []);
   Fields.Add(FFdRadianceTransfer);
 end;
 

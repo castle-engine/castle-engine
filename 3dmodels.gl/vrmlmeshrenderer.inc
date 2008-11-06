@@ -460,14 +460,14 @@ type
   TAbstractColMatTexCoordinateRenderer = class(TAbstractMatTexCoordinateRenderer)
   private
     RadianceTransferVertexSize: Cardinal;
-    FRadianceTransfer: TDynSingleArray;
-    procedure SetRadianceTransfer(const Value: TDynSingleArray);
+    FRadianceTransfer: TDynVector3SingleArray;
+    procedure SetRadianceTransfer(const Value: TDynVector3SingleArray);
   protected
     Color: TMFVec3f;
     ColorPerVertex: boolean;
     ColorIndex: TMFLong;
 
-    property RadianceTransfer: TDynSingleArray
+    property RadianceTransfer: TDynVector3SingleArray
       read FRadianceTransfer write SetRadianceTransfer;
 
     procedure RenderVertex(IndexNum: integer); override;
@@ -1232,7 +1232,8 @@ begin
     RadianceTransfer := (Geometry as TNodeX3DComposedGeometryNode).FdRadianceTransfer.Items;
 end;
 
-procedure TAbstractColMatTexCoordinateRenderer.SetRadianceTransfer(const Value: TDynSingleArray);
+procedure TAbstractColMatTexCoordinateRenderer.SetRadianceTransfer(
+  const Value: TDynVector3SingleArray);
 begin
   FRadianceTransfer := Value;
 
