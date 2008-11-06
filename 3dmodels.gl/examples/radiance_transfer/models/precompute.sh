@@ -29,3 +29,8 @@ precompute_radiance_transfer \
   --rays-per-vertex=1000
 
 gzip -f chinchilla_with_prt_rays1000.wrl
+
+precompute_radiance_transfer \
+  horns.wrl horns_with_prt.wrl \
+  --sh-basis-count="$SH_BASIS" \
+  --rays-per-vertex="$RAYS_PER_VERTEX"
