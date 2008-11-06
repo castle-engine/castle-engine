@@ -292,6 +292,8 @@ begin
     11: ViewMode := vmSimpleOcclusion;
     12: ViewMode := vmFull;
     20: UseLighting := not UseLighting;
+    100: Glwin.SaveScreenDialog(FNameAutoInc(ProgramName + '_screen_%d.png'));
+    200: Glwin.Close;
     else Exit;
   end;
   UpdateViewMode;
@@ -395,6 +397,10 @@ begin
 
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('_Lighting', 20, UseLighting, true));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('_Save Screen ...', 100, K_F5));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('_Exit', 200));
     Result.Append(M);
 end;
 
