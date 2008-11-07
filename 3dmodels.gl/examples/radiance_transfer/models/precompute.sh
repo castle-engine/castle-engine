@@ -34,3 +34,10 @@ precompute_radiance_transfer \
   horns.wrl horns_with_prt.wrl \
   --sh-basis-count="$SH_BASIS" \
   --rays-per-vertex="$RAYS_PER_VERTEX"
+
+precompute_radiance_transfer \
+  towers.wrl towers_with_prt.wrl \
+  --sh-basis-count="$SH_BASIS" \
+  --rays-per-vertex="$RAYS_PER_VERTEX"
+
+gzip -f towers_with_prt.wrl
