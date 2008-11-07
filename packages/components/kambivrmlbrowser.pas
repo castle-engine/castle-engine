@@ -163,8 +163,8 @@ implementation
   logic to TVRMLScene (which could be used then by both this unit and
   GLWindowVRMLBrowser, without any code duplication) is ongoing. }
 
-{ TODO: this could use either OctreeCollisions or OctreeCollidableTriangles,
-  whichever is available. }
+{ This uses OctreeCollisions, so either OctreeDynamicCollisions
+  or OctreeCollidableTriangles, whichever is available. }
 
 uses Boxes3d, VRMLOpenGLRenderer, GL, GLU,
   KambiClassUtils, KambiUtils, SysUtils, Object3dAsVRML,

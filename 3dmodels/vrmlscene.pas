@@ -354,7 +354,7 @@ type
       This is a dynamic octree containing all visible shapes. }
     ssRendering,
 
-    { Create and keep current the TVRMLScene.OctreeCollisions.
+    { Create and keep current the TVRMLScene.OctreeDynamicCollisions.
       This is a dynamic octree containing all collidable items. }
     ssDynamicCollisions,
 
@@ -618,7 +618,7 @@ type
     FShapeStateOctreeProgressTitle: string;
 
     FOctreeRendering: TVRMLShapeStateOctree;
-    FOctreeCollisions: TVRMLShapeStateOctree;
+    FOctreeDynamicCollisions: TVRMLShapeStateOctree;
     FOctreeVisibleTriangles: TVRMLTriangleOctree;
     FOctreeCollidableTriangles: TVRMLTriangleOctree;
 
@@ -878,6 +878,9 @@ type
       So this is the most important structure for collision detection on
       dynamic scenes.
 
+      You can use OctreeCollisions to get either OctreeDynamicCollisions
+      or OctreeCollidableTriangles, whichever is available.
+
       Add ssDynamicCollisions to @link(Spatial) property to have this available,
       otherwise it's @nil.
 
@@ -886,7 +889,7 @@ type
 
       TODO: Temporarily, this is updated simply by rebuilding.
       This is a work in progress. }
-    property OctreeCollisions: TVRMLShapeStateOctree read FOctreeCollisions;
+    property OctreeDynamicCollisions: TVRMLShapeStateOctree read FOctreeDynamicCollisions;
 
     { The octree containing all visible triangles.
       It's mainly useful for ray-tracers. When rendering using OpenGL,
@@ -914,7 +917,10 @@ type
       this octree is not updated on scene changes. In fact, the scene
       contents cannot change when this octree is created --- as this octree
       keeps pointers to some states that may become invalid in dynamic scenes.
-      Use OctreeCollisions for dynamic scenes.
+      Use OctreeDynamicCollisions for dynamic scenes.
+
+      You can use OctreeCollisions to get either OctreeDynamicCollisions
+      or OctreeCollidableTriangles, whichever is available.
 
       Add ssCollidableTriangles to @link(Spatial) property to have this available,
       otherwise it's @nil.
@@ -922,6 +928,12 @@ type
       Note that when VRML scene contains Collision nodes, this octree
       contains the @italic(collidable (not necessarily rendered)) objects.  }
     property OctreeCollidableTriangles: TVRMLTriangleOctree read FOctreeCollidableTriangles;
+
+    { Octree for collisions. This returns either OctreeCollidableTriangles
+      or OctreeDynamicCollisions, whichever is available (or @nil if none).
+      Be sure to add ssDynamicCollisions or ssCollidableTriangles to have
+      this available. }
+    function OctreeCollisions: TVRMLItemsOctree;
 
     { Which spatial structures (octrees, for now) should be created and managed.
 
@@ -1596,7 +1608,7 @@ begin
  ShapeStates.FreeWithContents;
 
  FreeAndNil(FOctreeRendering);
- FreeAndNil(FOctreeCollisions);
+ FreeAndNil(FOctreeDynamicCollisions);
  FreeAndNil(FOctreeVisibleTriangles);
  FreeAndNil(FOctreeCollidableTriangles);
 
@@ -2309,19 +2321,19 @@ begin
       WritelnLog('VRML changes (octree)', 'OctreeRendering updated');
   end;
 
-  if (OctreeCollisions <> nil) and
+  if (OctreeDynamicCollisions <> nil) and
      (ScheduledGeometrySomeTransformChanged or
       SomeLocalGeometryChanged) then
   begin
-    FreeAndNil(FOctreeCollisions);
-    FOctreeCollisions := CreateShapeStateOctree(
+    FreeAndNil(FOctreeDynamicCollisions);
+    FOctreeDynamicCollisions := CreateShapeStateOctree(
       TriangleOctreeMaxDepth,
       TriangleOctreeLeafCapacity,
       TriangleOctreeProgressTitle,
       true);
 
     if Log and LogChanges then
-      WritelnLog('VRML changes (octree)', 'OctreeCollisions updated');
+      WritelnLog('VRML changes (octree)', 'OctreeDynamicCollisions updated');
   end;
 
   if SomeLocalGeometryChanged then
@@ -2489,26 +2501,26 @@ begin
         false);
     end;
 
-    { Handle OctreeCollisions and ShapeStates[I].Spatial }
+    { Handle OctreeDynamicCollisions and ShapeStates[I].Spatial }
 
     Old := ssDynamicCollisions in Spatial;
     New := ssDynamicCollisions in Value;
 
     if Old and not New then
     begin
-      FreeAndNil(FOctreeCollisions);
+      FreeAndNil(FOctreeDynamicCollisions);
       SetShapeStateSpatial([]);
     end else
     if New and not Old then
     begin
-      FOctreeCollisions := CreateShapeStateOctree(
+      FOctreeDynamicCollisions := CreateShapeStateOctree(
         TriangleOctreeMaxDepth,
         TriangleOctreeLeafCapacity,
         TriangleOctreeProgressTitle,
         true,
         { During this, set also ShapeStates[I].Spatial := [ssTriangles].
           This way one progress bar displays progress of creating
-          both FOctreeCollisions and specific octrees for items. }
+          both FOctreeDynamicCollisions and specific octrees for items. }
         true);
     end;
 
@@ -2550,6 +2562,15 @@ begin
 
     FSpatial := Value;
   end;
+end;
+
+function TVRMLScene.OctreeCollisions: TVRMLItemsOctree;
+begin
+  if OctreeCollidableTriangles <> nil then
+    Result := OctreeCollidableTriangles else
+  if OctreeDynamicCollisions <> nil then
+    Result := OctreeDynamicCollisions else
+    Result := nil;
 end;
 
 function TVRMLScene.CreateTriangleOctree(

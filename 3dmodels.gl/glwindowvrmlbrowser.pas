@@ -138,8 +138,8 @@ uses Boxes3d, VRMLOpenGLRenderer, GL, GLU,
   KambiGLUtils, KambiFilesUtils, VRMLOctreeItems,
   RaysWindow, BackgroundGL;
 
-{ TODO: this could use either OctreeCollisions or OctreeCollidableTriangles,
-  whichever is available. }
+{ This uses OctreeCollisions, so either OctreeDynamicCollisions
+  or OctreeCollidableTriangles, whichever is available. }
 
 constructor TGLWindowVRMLBrowser.Create;
 begin
