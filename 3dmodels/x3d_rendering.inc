@@ -153,9 +153,9 @@
   TNodeIndexedLineSet_2 = class(TNodeX3DGeometryNode)
   private
     procedure EventSet_ColorIndexReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
     procedure EventSet_CoordIndexReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -210,7 +210,7 @@
   TNodeIndexedTriangleFanSet = class(TNodeX3DComposedGeometryNode)
   private
     procedure EventSet_IndexReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -238,7 +238,7 @@
   TNodeIndexedTriangleSet = class(TNodeX3DComposedGeometryNode)
   private
     procedure EventSet_IndexReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -266,7 +266,7 @@
   TNodeIndexedTriangleStripSet = class(TNodeX3DComposedGeometryNode)
   private
     procedure EventSet_IndexReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -781,7 +781,7 @@ begin
 end;
 
 procedure TNodeIndexedLineSet_2.EventSet_ColorIndexReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdColorIndex.Assign(Value);
   if ParentEventsProcessor <> nil then
@@ -789,7 +789,7 @@ begin
 end;
 
 procedure TNodeIndexedLineSet_2.EventSet_CoordIndexReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdCoordIndex.Assign(Value);
   if ParentEventsProcessor <> nil then
@@ -836,7 +836,7 @@ begin
 end;
 
 procedure TNodeIndexedTriangleFanSet.EventSet_IndexReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdIndex.Assign(Value);
   if ParentEventsProcessor <> nil then
@@ -883,7 +883,7 @@ begin
 end;
 
 procedure TNodeIndexedTriangleSet.EventSet_IndexReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdIndex.Assign(Value);
   if ParentEventsProcessor <> nil then
@@ -930,7 +930,7 @@ begin
 end;
 
 procedure TNodeIndexedTriangleStripSet.EventSet_IndexReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdIndex.Assign(Value);
   if ParentEventsProcessor <> nil then

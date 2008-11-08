@@ -280,7 +280,7 @@ interface
 
 uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
   VRMLFields, Boxes3d, Images, TTFontsTypes, BackgroundBase, VRMLErrors,
-  ImagesCache, VideosCache, KambiInterfaces, Videos, KambiTimeUtils,
+  ImagesCache, VideosCache, KambiInterfaces, Videos, VRMLTime,
   KambiScript, VRMLKambiScript;
 
 {$define read_interface}
@@ -2911,10 +2911,10 @@ type
       var Node: TVRMLNode; var Event: TVRMLEvent;
       const DestEnding: boolean);
 
-    LastEventTime: TKamTime;
+    LastEventTime: TVRMLTime;
 
     procedure EventReceive(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TKamTime);
+      const Time: TVRMLTime);
 
     FInternal: boolean;
   public
@@ -7327,7 +7327,7 @@ begin
 end;
 
 procedure TVRMLRoute.EventReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   Assert(Event = SourceEvent);
 
@@ -7342,12 +7342,13 @@ begin
   if Log then
     WritelnLog('VRMLRoute', Format(
       'Route from %s.%s ignored another event at <= timestamp (%f, while last event was on %f). Potential routes loop avoided',
-      [ SourceNode.NodeName, SourceEvent.Name, Time, LastEventTime ]));
+      [ SourceNode.NodeName, SourceEvent.Name,
+        Time.Seconds, LastEventTime.Seconds ]));
 end;
 
 procedure TVRMLRoute.ResetLastEventTime;
 begin
-  LastEventTime := OldestTime;
+  LastEventTime := OldestVRMLTime;
 end;
 
 type

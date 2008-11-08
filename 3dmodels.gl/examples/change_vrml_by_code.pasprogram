@@ -108,13 +108,13 @@ begin
        just call ChangedFields(Node, nil) once after changing many fields
        of given node. }
 
-  TransformBox2.FdRotation.RotationRad := Scene.WorldTime;
+  TransformBox2.FdRotation.RotationRad := Scene.WorldTime.Seconds;
   Scene.ChangedField(TransformBox2.FdRotation);
 
-  TransformBox3.FdRotation.RotationRad := Scene.WorldTime * 2;
+  TransformBox3.FdRotation.RotationRad := Scene.WorldTime.Seconds * 2;
   Scene.ChangedField(TransformBox3.FdRotation);
 
-  TransformBox4.FdRotation.RotationRad := Scene.WorldTime * 4;
+  TransformBox4.FdRotation.RotationRad := Scene.WorldTime.Seconds * 4;
   Scene.ChangedField(TransformBox4.FdRotation);
 end;
 

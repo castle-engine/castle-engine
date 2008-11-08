@@ -48,7 +48,7 @@
   TNodeBooleanFilter = class(TNodeX3DChildNode)
   private
     procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TKamTime);
+      const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -92,7 +92,7 @@
   TNodeBooleanToggle = class(TNodeX3DChildNode)
   private
     procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TKamTime);
+      const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -111,7 +111,7 @@
   TNodeBooleanTrigger = class(TNodeX3DTriggerNode)
   private
     procedure EventSet_triggerTimeReceive(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TKamTime);
+      const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -147,7 +147,7 @@
   TNodeIntegerTrigger = class(TNodeX3DTriggerNode)
   private
     procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TKamTime);
+      const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -170,7 +170,7 @@
   TNodeTimeTrigger = class(TNodeX3DTriggerNode)
   private
     procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TKamTime);
+      const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -241,7 +241,7 @@ begin
 end;
 
 procedure TNodeBooleanFilter.EventSet_BooleanReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   B: boolean;
 begin
@@ -320,7 +320,7 @@ begin
 end;
 
 procedure TNodeBooleanToggle.EventSet_BooleanReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   B: boolean;
 begin
@@ -364,7 +364,7 @@ begin
 end;
 
 procedure TNodeBooleanTrigger.EventSet_triggerTimeReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   EventTriggerTrue.Send(true, Time);
 end;
@@ -444,7 +444,7 @@ begin
 end;
 
 procedure TNodeIntegerTrigger.EventSet_BooleanReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   EventtriggerValue.Send(FdintegerKey.Value, Time);
 end;
@@ -503,9 +503,9 @@ begin
 end;
 
 procedure TNodeTimeTrigger.EventSet_BooleanReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
-  EventTriggerTime.Send(Time, Time);
+  EventTriggerTime.Send(Time.Seconds, Time);
 end;
 
 procedure RegisterEventUtilitiesNodes;

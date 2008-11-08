@@ -67,7 +67,7 @@
     OwnsWriteStream: boolean;
     WriteStreamInitialized: boolean;
     procedure EventWriteReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     destructor Destroy; override;
@@ -93,7 +93,7 @@
   TNodeConverter = class(TNodeX3DChildNode)
   private
     procedure EventInReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -277,7 +277,7 @@ begin
 end;
 
 procedure TNodeLogger.EventWriteReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 
   procedure StdOutNotAvail;
   begin
@@ -294,7 +294,7 @@ procedure TNodeLogger.EventWriteReceive(
     SaveProperties: TVRMLSaveToStreamProperties;
   begin
     S := Format('Logger "%s": received field "%s" (%s). Time: %f.',
-      [NodeName, Value.Name, Value.VRMLTypeName, Time]);
+      [NodeName, Value.Name, Value.VRMLTypeName, Time.Seconds]);
 
     if FdLevel.Value = 1 then
     begin
@@ -419,7 +419,7 @@ begin
 end;
 
 procedure TNodeConverter.EventInReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   if FdEnabled.Value then
     { TODO: uhhhmmmm, I cannot convert here (as I don't know to what I should

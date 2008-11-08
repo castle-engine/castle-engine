@@ -23,7 +23,7 @@
 
   { VRML event. }
   TVRMLEventReceive = procedure (Event: TVRMLEvent; Value: TVRMLField;
-    const Time: TKamTime) of object;
+    const Time: TVRMLTime) of object;
 
   TDynArrayItem_1 = TVRMLEventReceive;
   PDynArrayItem_1 = ^TVRMLEventReceive;
@@ -36,7 +36,7 @@
     { This calls all functions (all Items) passing them
       (Event, Value) parameters. }
     procedure ExecuteAll(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TKamTime);
+      const Time: TVRMLTime);
   end;
 
   TVRMLEvent = class(TVRMLFieldOrEvent)
@@ -86,7 +86,7 @@
       The Field instance doesn't become owned in any way by the TVRMLEvent.
       That is, it's the caller responsibility to free the Field instance
       at any comfortable time, possibly right after calling Send. }
-    procedure Send(Field: TVRMLField; const Time: TKamTime);
+    procedure Send(Field: TVRMLField; const Time: TVRMLTime);
 
     { Send a value to event.
 
@@ -99,18 +99,18 @@
       event name then).
 
       @groupBegin }
-    procedure Send(const Value: LongInt; const Time: TKamTime);
-    procedure Send(const Value: boolean; const Time: TKamTime);
-    procedure Send(const Value: string; const Time: TKamTime);
-    procedure Send(const Value: TVector2Single; const Time: TKamTime);
-    procedure Send(const Value: TVector3Single; const Time: TKamTime);
-    procedure Send(const Value: TVector4Single; const Time: TKamTime);
-    procedure Send(const Value: Single; const Time: TKamTime);
-    procedure Send(const Value: Double; const Time: TKamTime);
+    procedure Send(const Value: LongInt; const Time: TVRMLTime);
+    procedure Send(const Value: boolean; const Time: TVRMLTime);
+    procedure Send(const Value: string; const Time: TVRMLTime);
+    procedure Send(const Value: TVector2Single; const Time: TVRMLTime);
+    procedure Send(const Value: TVector3Single; const Time: TVRMLTime);
+    procedure Send(const Value: TVector4Single; const Time: TVRMLTime);
+    procedure Send(const Value: Single; const Time: TVRMLTime);
+    procedure Send(const Value: Double; const Time: TVRMLTime);
 
-    procedure Send(const Value: array of TVector2Single; const Time: TKamTime);
-    procedure Send(const Value: array of TVector3Single; const Time: TKamTime);
-    procedure Send(const Value: array of TVector4Single; const Time: TKamTime);
+    procedure Send(const Value: array of TVector2Single; const Time: TVRMLTime);
+    procedure Send(const Value: array of TVector3Single; const Time: TVRMLTime);
+    procedure Send(const Value: array of TVector4Single; const Time: TVRMLTime);
     { @groupEnd }
 
     { Notifications about receiving an item. For input fields,
@@ -162,7 +162,7 @@
 { TDynVRMLEventReceiveArray -------------------------------------------------- }
 
 procedure TDynVRMLEventReceiveArray.ExecuteAll(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   I: Integer;
 begin
@@ -236,14 +236,14 @@ begin
   EventSaveToStream(SaveProperties, false);
 end;
 
-procedure TVRMLEvent.Send(Field: TVRMLField; const Time: TKamTime);
+procedure TVRMLEvent.Send(Field: TVRMLField; const Time: TVRMLTime);
 begin
   Assert(Field <> nil);
   Assert(Field is FieldClass);
   FOnReceive.ExecuteAll(Self, Field, Time);
 end;
 
-procedure TVRMLEvent.Send(const Value: LongInt; const Time: TKamTime);
+procedure TVRMLEvent.Send(const Value: LongInt; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
@@ -255,7 +255,7 @@ begin
   finally FreeAndNil(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: boolean; const Time: TKamTime);
+procedure TVRMLEvent.Send(const Value: boolean; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
@@ -265,7 +265,7 @@ begin
   finally FreeAndNil(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: string; const Time: TKamTime);
+procedure TVRMLEvent.Send(const Value: string; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
@@ -275,7 +275,7 @@ begin
   finally FreeAndNil(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: TVector2Single; const Time: TKamTime);
+procedure TVRMLEvent.Send(const Value: TVector2Single; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
@@ -285,7 +285,7 @@ begin
   finally FreeAndNil(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: TVector3Single; const Time: TKamTime);
+procedure TVRMLEvent.Send(const Value: TVector3Single; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
@@ -297,7 +297,7 @@ begin
   finally FreeAndNil(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: TVector4Single; const Time: TKamTime);
+procedure TVRMLEvent.Send(const Value: TVector4Single; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
@@ -311,7 +311,7 @@ begin
   finally FreeAndNil(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: Single; const Time: TKamTime);
+procedure TVRMLEvent.Send(const Value: Single; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
@@ -321,7 +321,7 @@ begin
   finally FreeAndNil(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: Double; const Time: TKamTime);
+procedure TVRMLEvent.Send(const Value: Double; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
@@ -333,7 +333,7 @@ begin
   finally FreeAndNil(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: array of TVector2Single; const Time: TKamTime);
+procedure TVRMLEvent.Send(const Value: array of TVector2Single; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
@@ -343,7 +343,7 @@ begin
   finally FreeAndNil(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: array of TVector3Single; const Time: TKamTime);
+procedure TVRMLEvent.Send(const Value: array of TVector3Single; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
@@ -355,7 +355,7 @@ begin
   finally FreeAndNil(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: array of TVector4Single; const Time: TKamTime);
+procedure TVRMLEvent.Send(const Value: array of TVector4Single; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin

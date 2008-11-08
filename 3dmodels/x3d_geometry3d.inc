@@ -110,7 +110,7 @@
   TNodeElevationGrid = class(TNodeX3DGeometryNode)
   private
     procedure EventSet_HeightReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -187,13 +187,13 @@
   TNodeExtrusion = class(TNodeX3DGeometryNode)
   private
     procedure Eventset_crossSectionReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
     procedure Eventset_orientationReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
     procedure Eventset_scaleReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
     procedure Eventset_spineReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -272,13 +272,13 @@
   TNodeIndexedFaceSet_2 = class(TNodeX3DComposedGeometryNode)
   private
     procedure Eventset_colorIndexReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
     procedure Eventset_coordIndexReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
     procedure Eventset_normalIndexReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
     procedure Eventset_texCoordIndexReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -621,7 +621,7 @@ begin
 end;
 
 procedure TNodeElevationGrid.EventSet_HeightReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdHeight.Assign(Value);
   if ParentEventsProcessor <> nil then
@@ -989,7 +989,7 @@ begin
 end;
 
 procedure TNodeExtrusion.EventSet_crossSectionReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdcrossSection.Assign(Value);
   if ParentEventsProcessor <> nil then
@@ -997,7 +997,7 @@ begin
 end;
 
 procedure TNodeExtrusion.EventSet_orientationReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   Fdorientation.Assign(Value);
   if ParentEventsProcessor <> nil then
@@ -1005,7 +1005,7 @@ begin
 end;
 
 procedure TNodeExtrusion.EventSet_scaleReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   Fdscale.Assign(Value);
   if ParentEventsProcessor <> nil then
@@ -1013,7 +1013,7 @@ begin
 end;
 
 procedure TNodeExtrusion.EventSet_spineReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   Fdspine.Assign(Value);
   if ParentEventsProcessor <> nil then
@@ -1105,7 +1105,7 @@ begin
 end;
 
 procedure TNodeIndexedFaceSet_2.EventSet_colorIndexReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdcolorIndex.Assign(Value);
   if ParentEventsProcessor <> nil then
@@ -1113,7 +1113,7 @@ begin
 end;
 
 procedure TNodeIndexedFaceSet_2.EventSet_coordIndexReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdcoordIndex.Assign(Value);
   if ParentEventsProcessor <> nil then
@@ -1121,7 +1121,7 @@ begin
 end;
 
 procedure TNodeIndexedFaceSet_2.EventSet_normalIndexReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdnormalIndex.Assign(Value);
   if ParentEventsProcessor <> nil then
@@ -1129,7 +1129,7 @@ begin
 end;
 
 procedure TNodeIndexedFaceSet_2.EventSet_texCoordIndexReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdtexCoordIndex.Assign(Value);
   if ParentEventsProcessor <> nil then

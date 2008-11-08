@@ -86,7 +86,7 @@
   public
     Node: TVRMLNode;
 
-    CurrentTime: TKamTime;
+    CurrentTime: TVRMLTime;
 
     { These describe current state of this TimeDependentNode,
       see X3D specification about "Time" component.
@@ -133,7 +133,8 @@
       @param(SomethingChanged May only be set to @true (this method never
         sets this to @false), when some state of time-dependent node
         changed.) }
-    procedure SetWorldTime(const OldValue, NewValue, TimeIncrease: TKamTime;
+    procedure SetWorldTime(const OldValue, NewValue: TVRMLTime;
+      const TimeIncrease: TKamTime;
       var SomethingChanged: boolean);
   end;
 
@@ -142,7 +143,7 @@
     FTimeDependentNodeHandler: TTimeDependentNodeHandler;
     function CycleInterval: TKamTime;
     procedure EventElapsedTimeReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     destructor Destroy; override;
@@ -247,7 +248,8 @@ begin
 end;
 
 procedure TTimeDependentNodeHandler.SetWorldTime(
-  const OldValue, NewValue, TimeIncrease: TKamTime;
+  const OldValue, NewValue: TVRMLTime;
+  const TimeIncrease: TKamTime;
   var SomethingChanged: boolean);
 
 var
@@ -294,7 +296,7 @@ begin
   if Log then
     WritelnLog('TimeDependentNodes', Format('%s: time changes from %f (by +%f) to %f. Before state: active %s, paused %s, loop %s',
       [ Node.NodeTypeName,
-        OldValue, TimeIncrease, NewValue,
+        OldValue.Time, TimeIncrease, NewValue.Time,
         BoolToStr[IsActive], BoolToStr[IsPaused], BoolToStr[FdLoop.Value]
         ]));
   {$endif}
@@ -328,13 +330,13 @@ begin
 
   if not NewIsActive then
   begin
-    if (NewValue >= FdStartTime.Value) and
-       ( (NewValue < FdStopTime.Value) or
+    if (NewValue.Seconds >= FdStartTime.Value) and
+       ( (NewValue.Seconds < FdStopTime.Value) or
          { stopTime is ignored if it's <= startTime }
          (FdStopTime.Value <= FdStartTime.Value) ) and
        { avoid starting the movie if it should be stopped according
          to loop and cycleInterval }
-       not ( (NewValue - FdStartTime.Value >
+       not ( (NewValue.Seconds - FdStartTime.Value >
              CycleInterval) and
              (not FdLoop.Value) ) then
     begin
@@ -343,25 +345,25 @@ begin
       NewElapsedTime := 0;
       { Do not advance by TimeIncrease (time from last WorldTime),
         advance only by the time passed since startTime. }
-      IncreaseElapsedTime(NewValue - FdStartTime.Value, true);
+      IncreaseElapsedTime(NewValue.Seconds - FdStartTime.Value, true);
       SomethingChanged := true;
     end;
   end else
   if NewIsPaused then
   begin
-    if (NewValue >= FdResumeTime.Value) and
+    if (NewValue.Seconds >= FdResumeTime.Value) and
        (FdResumeTime.Value > FdPauseTime.Value) then
     begin
       NewIsPaused := false;
       { Advance only by the time passed since resumeTime. }
-      IncreaseElapsedTime(NewValue - FdResumeTime.Value, true);
+      IncreaseElapsedTime(NewValue.Seconds - FdResumeTime.Value, true);
       SomethingChanged := true;
     end;
   end else
   begin
     SomethingChanged := true;
 
-    if (NewValue >= FdStopTime.Value) and
+    if (NewValue.Seconds >= FdStopTime.Value) and
        { stopTime is ignored if it's <= startTime }
        (FdStopTime.Value > FdStartTime.Value) then
     begin
@@ -369,16 +371,16 @@ begin
       { advance only to the stopTime }
       if TimeIncrease <> 0 then
         IncreaseElapsedTime(TimeIncrease -
-          (NewValue - FdStopTime.Value), false);
+          (NewValue.Seconds - FdStopTime.Value), false);
     end else
-    if (NewValue >= FdPauseTime.Value) and
+    if (NewValue.Seconds >= FdPauseTime.Value) and
        (FdPauseTime.Value > FdResumeTime.Value) then
     begin
       NewIsPaused := true;
       { advance only to the pauseTime }
       if TimeIncrease <> 0 then
         IncreaseElapsedTime(TimeIncrease -
-          (NewValue - FdPauseTime.Value), false);
+          (NewValue.Seconds - FdPauseTime.Value), false);
     end else
     begin
       { active and not paused movie }
@@ -505,15 +507,15 @@ begin
 end;
 
 procedure TNodeTimeSensor.EventElapsedTimeReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   if FdEnabled.Value then
   begin
-    { TODO: for now, elapsedTime/CycleInterval 
+    { TODO: for now, elapsedTime/CycleInterval
       is simply passed to set_fraction event. }
     Eventfraction_changed.Send(
       Single((Value as TSFTime).Value / CycleInterval), Time);
-    EventTime.Send(Time, Time);
+    EventTime.Send(Time.Seconds, Time);
   end;
 end;
 

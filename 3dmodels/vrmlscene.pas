@@ -28,7 +28,7 @@ uses
   SysUtils, Classes, VectorMath, Boxes3d,
   VRMLFields, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLShapeState, VRMLTriangleOctree, ProgressUnit, VRMLShapeStateOctree,
-  Keys, KambiTimeUtils, Navigation, VRMLOctreeItems;
+  Keys, VRMLTime, Navigation, VRMLOctreeItems;
 
 {$define read_interface}
 
@@ -327,7 +327,7 @@ type
   TDynProximitySensorInstanceArray = TDynArray_4;
 
   TCompiledScriptHandler = procedure (
-    Value: TVRMLField; const Time: TKamTime) of object;
+    Value: TVRMLField; const Time: TVRMLTime) of object;
 
   { @exclude }
   TCompiledScriptHandlerInfo = record
@@ -474,11 +474,11 @@ type
     procedure ScriptsInitialize(Node: TVRMLNode);
     procedure ScriptsDeInitialize(Node: TVRMLNode);
 
-    FWorldTime: TKamTime;
+    FWorldTime: TVRMLTime;
 
     { Internal procedure that handles WorldTime changes. }
     procedure InternalSetWorldTime(
-      const NewValue, TimeIncrease: TKamTime);
+      const NewValue: TVRMLTime; const TimeIncrease: TKamTime);
 
     procedure ResetLastEventTime(Node: TVRMLNode);
 
@@ -1336,7 +1336,7 @@ type
       and AudioClip. See SetWorldTime for changing this.
 
       Default value is 0.0 (zero). }
-    property WorldTime: TKamTime read FWorldTime write SetWorldTime;
+    property WorldTime: TVRMLTime read FWorldTime;
 
     { Set WorldTime to arbitrary value.
 
@@ -1462,7 +1462,7 @@ begin
   if Node <> nil then
   begin
     Node.EventIsBound.Send(Value, ParentScene.WorldTime);
-    Node.EventBindTime.Send(ParentScene.WorldTime, ParentScene.WorldTime);
+    Node.EventBindTime.Send(ParentScene.WorldTime.Seconds, ParentScene.WorldTime);
   end;
 end;
 
@@ -3582,7 +3582,7 @@ begin
              (PointingDeviceActiveSensor is TNodeTouchSensor) then
           begin
             TNodeTouchSensor(PointingDeviceActiveSensor).
-              EventTouchTime.Send(WorldTime, WorldTime);
+              EventTouchTime.Send(WorldTime.Seconds, WorldTime);
           end;
           FPointingDeviceActiveSensor := nil;
         end;
@@ -3603,7 +3603,7 @@ end;
 { WorldTime stuff ------------------------------------------------------------ }
 
 procedure TVRMLScene.InternalSetWorldTime(
-  const NewValue, TimeIncrease: TKamTime);
+  const NewValue: TVRMLTime; const TimeIncrease: TKamTime);
 var
   SomethingChanged: boolean;
   I: Integer;
@@ -3642,16 +3642,23 @@ end;
 procedure TVRMLScene.SetWorldTime(const NewValue: TKamTime);
 var
   TimeIncrease: TKamTime;
+  NewCompleteValue: TVRMLTime;
 begin
-  TimeIncrease := NewValue - FWorldTime;
+  NewCompleteValue.Seconds := NewValue;
+  NewCompleteValue.PlusTicks := 0;
+  TimeIncrease := NewValue - FWorldTime.Seconds;
   if TimeIncrease > 0 then
-    InternalSetWorldTime(NewValue, TimeIncrease);
+    InternalSetWorldTime(NewCompleteValue, TimeIncrease);
 end;
 
 procedure TVRMLScene.IncreaseWorldTime(const TimeIncrease: TKamTime);
+var
+  NewCompleteValue: TVRMLTime;
 begin
+  NewCompleteValue.Seconds := FWorldTime.Seconds + TimeIncrease;
+  NewCompleteValue.PlusTicks := 0;
   if TimeIncrease > 0 then
-    InternalSetWorldTime(FWorldTime + TimeIncrease, TimeIncrease);
+    InternalSetWorldTime(NewCompleteValue, TimeIncrease);
 end;
 
 procedure TVRMLScene.ResetLastEventTime(Node: TVRMLNode);
@@ -3665,10 +3672,15 @@ begin
 end;
 
 procedure TVRMLScene.ResetWorldTime(const NewValue: TKamTime);
+var
+  NewCompleteValue: TVRMLTime;
 begin
   if RootNode <> nil then
     RootNode.EnumerateNodes(@ResetLastEventTime, false);
-  InternalSetWorldTime(NewValue, 0);
+
+  NewCompleteValue.Seconds := NewValue;
+  NewCompleteValue.PlusTicks := 0;
+  InternalSetWorldTime(NewCompleteValue, 0);
 end;
 
 procedure TVRMLScene.ResetWorldTimeAtLoad;
@@ -3811,8 +3823,8 @@ begin
         PSI.IsActive := NewIsActive;
         Node.EventIsActive.Send(NewIsActive, WorldTime);
         if NewIsActive then
-          Node.EventEnterTime.Send(WorldTime, WorldTime) else
-          Node.EventExitTime.Send(WorldTime, WorldTime);
+          Node.EventEnterTime.Send(WorldTime.Seconds, WorldTime) else
+          Node.EventExitTime.Send(WorldTime.Seconds, WorldTime);
       end else
       if NewIsActive then
       begin

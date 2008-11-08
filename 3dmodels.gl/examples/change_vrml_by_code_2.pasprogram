@@ -81,8 +81,8 @@ begin
     for J := 0 to YCount - 1 do
     begin
       Transform[I, J].FdTranslation.Value[2] := 2 *
-        Sin(I / 2  + Scene.WorldTime) *
-        Cos(J / 2 + Scene.WorldTime);
+        Sin(I / 2  + Scene.WorldTime.Seconds) *
+        Cos(J / 2 + Scene.WorldTime.Seconds);
       //Scene.ChangedField(Transform[I, J].FdTranslation);
     end;
 

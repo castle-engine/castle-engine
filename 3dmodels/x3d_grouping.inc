@@ -44,9 +44,9 @@
   TNodeX3DGroupingNode = class(TVRMLGroupingNode, INodeX3DBoundedObject)
   private
     procedure EventAddChildrenReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
     procedure EventRemoveChildrenReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -412,7 +412,7 @@ begin
 end;
 
 procedure TNodeX3DGroupingNode.EventAddChildrenReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   MF: TMFNode;
   I: Integer;
@@ -434,7 +434,7 @@ begin
 end;
 
 procedure TNodeX3DGroupingNode.EventRemoveChildrenReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   MF: TMFNode;
   I: Integer;

@@ -96,9 +96,9 @@
   TNodeInlineLoadControl = class(TVRMLGroupingNode, IVRMLInlineNode)
   private
     procedure EventLoadReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
     procedure EventUrlReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   protected
     procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
     procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
@@ -560,7 +560,7 @@ begin
 end;
 
 procedure TNodeInlineLoadControl.EventLoadReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   if FdLoad.Value then
     LoadInlined(false) else
@@ -568,7 +568,7 @@ begin
 end;
 
 procedure TNodeInlineLoadControl.EventUrlReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   if FdLoad.Value then
   begin

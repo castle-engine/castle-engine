@@ -34,28 +34,28 @@ program vrml_browser_script_compiled;
 {$apptype CONSOLE}
 
 uses KambiUtils, GLWindowVRMLBrowser, ProgressUnit, ProgressConsole,
-  VRMLScene, VRMLErrors, VRMLFields, KambiTimeUtils, SysUtils;
+  VRMLScene, VRMLErrors, VRMLFields, VRMLTime, SysUtils;
 
 var
   BrowserWindow: TGLWindowVRMLBrowser;
 
 type
   THelperObj = class
-    class procedure ScriptTouchInitialize(Value: TVRMLField; const Time: TKamTime);
-    class procedure ScriptTouch(Value: TVRMLField; const Time: TKamTime);
+    class procedure ScriptTouchInitialize(Value: TVRMLField; const Time: TVRMLTime);
+    class procedure ScriptTouch(Value: TVRMLField; const Time: TVRMLTime);
   end;
 
 { THelperObj.Script* methods below are only to demonstrate using
   "compiled:" Script protocol, see
   [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_script_compiled]. }
-class procedure THelperObj.ScriptTouchInitialize(Value: TVRMLField; const Time: TKamTime);
+class procedure THelperObj.ScriptTouchInitialize(Value: TVRMLField; const Time: TVRMLTime);
 begin
-  Writeln(Format('Script is initialized (timestamp: %f)', [Time]));
+  Writeln(Format('Script is initialized (timestamp: %f)', [Time.Seconds]));
 end;
 
-class procedure THelperObj.ScriptTouch(Value: TVRMLField; const Time: TKamTime);
+class procedure THelperObj.ScriptTouch(Value: TVRMLField; const Time: TVRMLTime);
 begin
-  Writeln(Format('Touch! (timestamp: %f)', [Time]));
+  Writeln(Format('Touch! (timestamp: %f)', [Time.Seconds]));
 end;
 
 begin

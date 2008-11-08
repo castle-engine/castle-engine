@@ -27,7 +27,7 @@
   TVRMLViewpointNode = class(TNodeX3DBindableNode)
   private
     procedure EventSet_BindReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -204,7 +204,7 @@
   TNodeNavigationInfo = class(TNodeX3DBindableNode)
   private
     procedure EventSet_BindReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -391,7 +391,7 @@ begin
 end;
 
 procedure TVRMLViewpointNode.EventSet_BindReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   if ParentEventsProcessor <> nil then
     (ParentEventsProcessor as TVRMLScene).
@@ -656,7 +656,7 @@ begin
 end;
 
 procedure TNodeNavigationInfo.EventSet_BindReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   if ParentEventsProcessor <> nil then
     (ParentEventsProcessor as TVRMLScene).

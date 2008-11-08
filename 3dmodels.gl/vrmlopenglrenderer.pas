@@ -335,8 +335,7 @@ uses
   Classes, SysUtils, KambiUtils, VectorMath, GL, GLU, GLExt,
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3d, OpenGLTTFonts, Images,
   OpenGLFonts, KambiGLUtils, VRMLLightSetGL, TTFontsTypes,
-  VRMLErrors, VideosCache, GLShaders, GLImages, Videos,
-  KambiTimeUtils;
+  VRMLErrors, VideosCache, GLShaders, GLImages, Videos, VRMLTime;
 
 {$define read_interface}
 
@@ -974,7 +973,7 @@ type
       UniformValue: TVRMLField);
 
     procedure EventReceiveGLSLUniform(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TKamTime);
+      const Time: TVRMLTime);
 
     function GLSLProgram_IncReference(
       ProgramNode: TNodeComposedShader): TGLSLProgram;
@@ -1845,7 +1844,7 @@ begin
 end;
 
 procedure TVRMLOpenGLRendererContextCache.EventReceiveGLSLUniform(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   I: Integer;
   UniformName: string;

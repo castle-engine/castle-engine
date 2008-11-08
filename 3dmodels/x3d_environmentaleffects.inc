@@ -23,7 +23,7 @@
   TNodeX3DBackgroundNode = class(TNodeX3DBindableNode)
   private
     procedure EventSet_BindReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -149,7 +149,7 @@
   TNodeFog = class(TNodeX3DBindableNode, INodeX3DFogObject)
   private
     procedure EventSet_BindReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -283,7 +283,7 @@ begin
 end;
 
 procedure TNodeX3DBackgroundNode.EventSet_BindReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   Scene: TVRMLScene;
 begin
@@ -509,7 +509,7 @@ begin
 end;
 
 procedure TNodeFog.EventSet_BindReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   Scene: TVRMLScene;
 begin

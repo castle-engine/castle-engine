@@ -16,6 +16,8 @@
   You should have received a copy of the GNU General Public License
   along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  
+  ----------------------------------------------------------------------------
 }
 
 { @abstract(VRML fields --- @link(TVRMLField) class and descendants.) }
@@ -25,7 +27,7 @@ unit VRMLFields;
 interface
 
 uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
-  Images, KambiStringUtils, KambiInterfaces, KambiTimeUtils;
+  Images, KambiStringUtils, KambiInterfaces, VRMLTime;
 
 {$define read_interface}
 
@@ -287,7 +289,7 @@ type
     function GetExposedEvents(InEvent: boolean): TVRMLEvent;
 
     procedure ExposedEventReceive(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TKamTime);
+      const Time: TVRMLTime);
 
     FTransform: boolean;
 
@@ -2197,7 +2199,7 @@ begin
 end;
 
 procedure TVRMLField.ExposedEventReceive(Event: TVRMLEvent; Value: TVRMLField;
-  const Time: TKamTime);
+  const Time: TVRMLTime);
 var
   ParNode: TVRMLNode;
   ValuePossiblyChanged: boolean;

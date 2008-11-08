@@ -23,7 +23,7 @@ unit VRMLKambiScript;
 
 interface
 
-uses VRMLFields, KambiScript, KambiUtils, KambiClassUtils, KambiTimeUtils;
+uses VRMLFields, KambiScript, KambiUtils, KambiClassUtils, VRMLTime;
 
 {$define read_interface}
 
@@ -31,7 +31,7 @@ type
   TKamScriptVRMLValuesList = class(TKamScriptValuesList)
   private
     FFieldOrEvents: TVRMLFieldOrEventsList;
-    FLastEventTimes: TDynDoubleArray;
+    FLastEventTimes: TDynVRMLTimeArray;
     InsideAfterExecute: boolean;
   public
     constructor Create;
@@ -94,7 +94,7 @@ procedure VRMLKamScriptBeforeExecute(Value: TKamScriptValue;
   This checks ValueAssigned, and propagates value change to appropriate
   field/event, sending event/setting field. }
 procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
-  FieldOrEvent: TVRMLFieldOrEvent; var LastEventTime: TKamTime);
+  FieldOrEvent: TVRMLFieldOrEvent; var LastEventTime: TVRMLTime);
 
 {$undef read_interface}
 
@@ -299,9 +299,9 @@ begin
 end;
 
 procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
-  FieldOrEvent: TVRMLFieldOrEvent; var LastEventTime: TKamTime);
+  FieldOrEvent: TVRMLFieldOrEvent; var LastEventTime: TVRMLTime);
 
-  function GetTimestamp(out Time: TKamTime): boolean;
+  function GetTimestamp(out Time: TVRMLTime): boolean;
   begin
     { In practice, this should always return true, as script is
       run only when ProcessEvents := true, script node always has
@@ -338,7 +338,7 @@ procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
 var
   AbortSending: boolean;
   Field: TVRMLField;
-  Time: TKamTime;
+  Time: TVRMLTime;
   SendToEvent: TVRMLEvent;
 begin
   if Value.ValueAssigned then
@@ -479,7 +479,7 @@ begin
         if Log then
           WritelnLog('VRML Script', Format(
             'Sending event %s from Script ignored at <= timestamp (%f, while last event was on %f). Potential loop avoided',
-            [ SendToEvent.Name, Time, LastEventTime ]));
+            [ SendToEvent.Name, Time.Seconds, LastEventTime.Seconds ]));
       end;
       FreeAndNil(Field);
     end;
@@ -501,7 +501,7 @@ constructor TKamScriptVRMLValuesList.Create;
 begin
   inherited Create;
   FFieldOrEvents := TVRMLFieldOrEventsList.Create;
-  FLastEventTimes := TDynDoubleArray.Create;
+  FLastEventTimes := TDynVRMLTimeArray.Create;
 end;
 
 destructor TKamScriptVRMLValuesList.Destroy;
@@ -515,7 +515,7 @@ procedure TKamScriptVRMLValuesList.Add(FieldOrEvent: TVRMLFieldOrEvent);
 begin
   inherited Add(VRMLKamScriptCreateValue(FieldOrEvent));
   FieldOrEvents.Add(FieldOrEvent);
-  FLastEventTimes.AppendItem(OldestTime);
+  FLastEventTimes.AppendItem(OldestVRMLTime);
 end;
 
 procedure TKamScriptVRMLValuesList.BeforeExecute;
@@ -589,7 +589,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    FLastEventTimes.Items[I] := OldestTime;
+    FLastEventTimes.Items[I] := OldestVRMLTime;
 end;
 
 end.

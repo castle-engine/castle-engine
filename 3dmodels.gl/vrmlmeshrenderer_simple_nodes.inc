@@ -180,7 +180,7 @@ var
   procedure SendEvents;
   var
     LineBounds: TMFVec2f;
-    Time: TKamTime;
+    Time: TVRMLTime;
     FinalRowHeight: Single;
     I: Integer;
   begin

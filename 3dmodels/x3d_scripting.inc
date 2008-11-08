@@ -35,7 +35,7 @@
     KambiScriptVariables: TKamScriptVRMLValuesList;
 
     procedure EventUrlReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   protected
     procedure ExecuteScript(const FunctionName: string;
       ReceivedValue: TVRMLField);
@@ -73,7 +73,7 @@
   TNodeScript = class(TNodeX3DScriptNode)
   private
     procedure IDeclEventReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -125,7 +125,7 @@ begin
 end;
 
 procedure TNodeX3DScriptNode.EventUrlReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   { Simply shutdown + initialize from new URL }
   Initialized := false;
@@ -182,7 +182,7 @@ begin
           end else
             ParameterValue := nil;
           ParameterTime := TKamScriptFloat.Create(true,
-            TVRMLScene(ParentEventsProcessor).WorldTime);
+            TVRMLScene(ParentEventsProcessor).WorldTime.Seconds);
           try
             KambiScriptVariables.BeforeExecute;
             try
@@ -432,7 +432,7 @@ begin
 end;
 
 procedure TNodeScript.IDeclEventReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   FunctionName: string;
 begin
