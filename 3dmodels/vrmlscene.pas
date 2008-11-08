@@ -3296,23 +3296,27 @@ var
 begin
   if ProcessEvents then
   begin
-    for I := 0 to KeySensorNodes.Count - 1 do
-    begin
-      KeySensor := KeySensorNodes.Items[I] as TNodeKeySensor;
-      if KeySensor.FdEnabled.Value then
+    Inc(FWorldTime.PlusTicks);
+    BeginChangesSchedule;
+    try
+      for I := 0 to KeySensorNodes.Count - 1 do
       begin
-        KeySensor.EventIsActive.Send(true, WorldTime);
-        if KeyToActionKey(Key, ActionKey) then
-          KeySensor.EventActionKeyPress.Send(ActionKey, WorldTime);
-        if C <> #0 then
-          KeySensor.EventKeyPress.Send(C, WorldTime);
-        case Key of
-          K_Alt: KeySensor.EventAltKey.Send(true, WorldTime);
-          K_Ctrl: KeySensor.EventControlKey.Send(true, WorldTime);
-          K_Shift: KeySensor.EventShiftKey.Send(true, WorldTime);
+        KeySensor := KeySensorNodes.Items[I] as TNodeKeySensor;
+        if KeySensor.FdEnabled.Value then
+        begin
+          KeySensor.EventIsActive.Send(true, WorldTime);
+          if KeyToActionKey(Key, ActionKey) then
+            KeySensor.EventActionKeyPress.Send(ActionKey, WorldTime);
+          if C <> #0 then
+            KeySensor.EventKeyPress.Send(C, WorldTime);
+          case Key of
+            K_Alt: KeySensor.EventAltKey.Send(true, WorldTime);
+            K_Ctrl: KeySensor.EventControlKey.Send(true, WorldTime);
+            K_Shift: KeySensor.EventShiftKey.Send(true, WorldTime);
+          end;
         end;
       end;
-    end;
+    finally EndChangesSchedule; end;
   end;
 end;
 
@@ -3324,23 +3328,27 @@ var
 begin
   if ProcessEvents then
   begin
-    for I := 0 to KeySensorNodes.Count - 1 do
-    begin
-      KeySensor := KeySensorNodes.Items[I] as TNodeKeySensor;
-      if KeySensor.FdEnabled.Value then
+    Inc(FWorldTime.PlusTicks);
+    BeginChangesSchedule;
+    try
+      for I := 0 to KeySensorNodes.Count - 1 do
       begin
-        KeySensor.EventIsActive.Send(false, WorldTime);
-        if KeyToActionKey(Key, ActionKey) then
-          KeySensor.EventActionKeyRelease.Send(ActionKey, WorldTime);
-        if C <> #0 then
-          KeySensor.EventKeyRelease.Send(C, WorldTime);
-        case Key of
-          K_Alt: KeySensor.EventAltKey.Send(false, WorldTime);
-          K_Ctrl: KeySensor.EventControlKey.Send(false, WorldTime);
-          K_Shift: KeySensor.EventShiftKey.Send(false, WorldTime);
+        KeySensor := KeySensorNodes.Items[I] as TNodeKeySensor;
+        if KeySensor.FdEnabled.Value then
+        begin
+          KeySensor.EventIsActive.Send(false, WorldTime);
+          if KeyToActionKey(Key, ActionKey) then
+            KeySensor.EventActionKeyRelease.Send(ActionKey, WorldTime);
+          if C <> #0 then
+            KeySensor.EventKeyRelease.Send(C, WorldTime);
+          case Key of
+            K_Alt: KeySensor.EventAltKey.Send(false, WorldTime);
+            K_Ctrl: KeySensor.EventControlKey.Send(false, WorldTime);
+            K_Shift: KeySensor.EventShiftKey.Send(false, WorldTime);
+          end;
         end;
       end;
-    end;
+    finally EndChangesSchedule; end;
   end;
 end;
 
@@ -3357,6 +3365,7 @@ var
 begin
   if ProcessEvents then
   begin
+    Inc(FWorldTime.PlusTicks);
     { Note that using Begin/EndChangesSchedule is not only for efficiency
       here. It's also sometimes needed to keep the code correct: note
       that ChangedAll changes everything, including State pointers.
@@ -3540,6 +3549,7 @@ var
 begin
   if ProcessEvents and (FPointingDeviceActive <> Value) then
   begin
+    Inc(FWorldTime.PlusTicks);
     BeginChangesSchedule;
     try
       FPointingDeviceActive := Value;
@@ -3843,6 +3853,7 @@ var
 begin
   if ProcessEvents then
   begin
+    Inc(FWorldTime.PlusTicks);
     BeginChangesSchedule;
     try
       LastViewerPosition := ViewerPosition;
