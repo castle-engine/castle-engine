@@ -525,6 +525,10 @@ type
     { Transformation of some shapestates changed. }
     ScheduledGeometrySomeTransformChanged: boolean;
 
+    { Mechanism to schedule ChangedAll and GeometryChanged calls. }
+    ChangedAllSchedule: Cardinal;
+    ChangedAllScheduled: boolean;
+
     FPointingDeviceOverItem: POctreeItem;
     FPointingDeviceActive: boolean;
     FPointingDeviceActiveSensor: TNodeX3DPointingDeviceSensorNode;
@@ -778,6 +782,33 @@ type
 
     { Call OnBoundViewpointVectorsChanged, if assigned. }
     procedure DoBoundViewpointVectorsChanged;
+
+    { Mechanism to schedule ChangedAll and GeometryChanged calls.
+
+      Since these calls may be costly (updating some octrees,
+      traversing the hierarchy), and their results are often
+      not immediately needed by TVRMLScene or TVRMLNode hierarchy,
+      it's sometimes not desirable to call them immediately
+      when geometry changed / all changed.
+
+      So you can use ScheduleChangedAll instead of ChangedAll.
+      All event handlers within TVRMLScene already do this.
+
+      When you're within Begin/EndChangesSchedule, then
+      ScheduleChangedAll just sets an internal flag and actual ChangedAll
+      will be done only once at EndChangesSchedule. Otherwise
+      (when not within Begin/EndChangesSchedule), ScheduleChangedAll will
+      immediately call ChangedAll.
+
+      Begin/EndChangesSchedule set up ChangedAll schedule,
+      and also do Begin/EndGeometryChangedSchedule. So the analogous mechanism
+      will be used to avoid calling GeometryChanged too often.
+
+      @groupBegin }
+    procedure ScheduleChangedAll;
+    procedure BeginChangesSchedule;
+    procedure EndChangesSchedule;
+    { @groupEnd }
 
     { Returns short information about the scene.
       This consists of a few lines, separated by KambiUtils.NL.
@@ -1580,7 +1611,7 @@ begin
 
  FCompiledScriptHandlers := TDynCompiledScriptHandlerInfoArray.Create;
 
- ChangedAll;
+ ScheduleChangedAll;
 end;
 
 destructor TVRMLScene.Destroy;
@@ -2152,7 +2183,7 @@ begin
     except
       on BreakTransformChangeFailed do
       begin
-        ChangedAll;
+        ScheduleChangedAll;
         Exit;
       end;
     end;
@@ -2228,7 +2259,7 @@ begin
       jakos na State nastepujacych po nim node'ow (a moze nawet wplynela na to
       co znajduje sie w aktywnej czesci grafu VRMLa pod niniejszym node'm -
       tak sie moglo stac gdy zmienilismy pole Switch.whichChild. ) }
-    ChangedAll;
+    ScheduleChangedAll;
     Exit;
   end;
 
@@ -2247,7 +2278,7 @@ begin
       WritelnLog('VRML changes', Format('WARNING: Field %s (%s) changed, but has no ParentNode assigned, falling back on (slow) ChangedAll', [ Field.Name, Field.VRMLTypeName ]));
     end;
 
-    ChangedAll;
+    ScheduleChangedAll;
   end;
 end;
 
@@ -3176,7 +3207,7 @@ begin
     VRML graph part. }
   RootNode.Traverse(TNodeProximitySensor, @TraverseForEvents);
 
-  BeginGeometryChangedSchedule;
+  BeginChangesSchedule;
   try
     { We have to initialize scripts only after all other initialization
       is done, in particular after CollectNodeForEvents was called
@@ -3184,9 +3215,9 @@ begin
       initialize() methods may already cause some events, that should
       notify us appropriately.
 
-      This is also why Begin/EndGeometryChangedSchedule around is useful. }
+      This is also why Begin/EndChangesSchedule around is useful. }
     RootNode.EnumerateNodes(TNodeScript, @ScriptsInitialize, false);
-  finally EndGeometryChangedSchedule end;
+  finally EndChangesSchedule end;
 end;
 
 procedure TVRMLScene.UnCollectForEvents(Node: TVRMLNode);
@@ -3201,12 +3232,12 @@ end;
 
 procedure TVRMLScene.UnregisterProcessEvents(Node: TVRMLNode);
 begin
-  BeginGeometryChangedSchedule;
+  BeginChangesSchedule;
   try
     { We have to deinitialize scripts before any other deinitialization
       is done. Just like for ScriptsInitialize. }
     Node.EnumerateNodes(TNodeScript, @ScriptsDeInitialize, false);
-  finally EndGeometryChangedSchedule end;
+  finally EndChangesSchedule end;
 
   Node.EnumerateNodes(TVRMLNode, @UnCollectForEvents, false);
 end;
@@ -3326,7 +3357,13 @@ var
 begin
   if ProcessEvents then
   begin
-    BeginGeometryChangedSchedule;
+    { Note that using Begin/EndChangesSchedule is not only for efficiency
+      here. It's also sometimes needed to keep the code correct: note
+      that ChangedAll changes everything, including State pointers.
+      So OverPoint.State becomes invalid. (Once octree will be rebuild, also
+      OverPoint will be invalid.) Obviously, we can't let this happen
+      in the middle of PointingDeviceMove. }
+    BeginChangesSchedule;
     try
       { Handle isOver events }
 
@@ -3462,7 +3499,7 @@ begin
           end;
       end;
     finally
-      EndGeometryChangedSchedule;
+      EndChangesSchedule;
     end;
   end;
 end;
@@ -3489,7 +3526,7 @@ procedure TVRMLScene.SetPointingDeviceActive(const Value: boolean);
         if OwnsRootNode then FreeAndNil(FRootNode);
         RootNode := NewRootNode;
         OwnsRootNode := true;
-        ChangedAll;
+        ScheduleChangedAll;
       end;
       if NewViewpoint <> nil then
         NewViewpoint.EventSet_Bind.Send(true, WorldTime);
@@ -3503,7 +3540,7 @@ var
 begin
   if ProcessEvents and (FPointingDeviceActive <> Value) then
   begin
-    BeginGeometryChangedSchedule;
+    BeginChangesSchedule;
     try
       FPointingDeviceActive := Value;
       if Value then
@@ -3551,7 +3588,7 @@ begin
         end;
       end;
     finally
-      EndGeometryChangedSchedule;
+      EndChangesSchedule;
     end;
   end;
 end;
@@ -3573,7 +3610,7 @@ var
 begin
   if ProcessEvents then
   begin
-    BeginGeometryChangedSchedule;
+    BeginChangesSchedule;
     try
       SomethingChanged := false;
 
@@ -3595,7 +3632,7 @@ begin
           TimeDependentNodeHandler.SetWorldTime(
             WorldTime, NewValue, TimeIncrease, SomethingChanged);
     finally
-      EndGeometryChangedSchedule;
+      EndChangesSchedule;
     end;
   end;
 
@@ -3674,6 +3711,52 @@ begin
   end;
 end;
 
+{ changes schedule ----------------------------------------------------------- }
+
+procedure TVRMLScene.BeginChangesSchedule;
+begin
+  BeginGeometryChangedSchedule;
+
+  { ChangedAllScheduled = false always when ChangedAllSchedule = 0. }
+  Assert((ChangedAllSchedule <> 0) or (not ChangedAllScheduled));
+
+  Inc(ChangedAllSchedule);
+end;
+
+procedure TVRMLScene.ScheduleChangedAll;
+begin
+  if ChangedAllSchedule = 0 then
+    ChangedAll else
+    ChangedAllScheduled := true;
+end;
+
+procedure TVRMLScene.EndChangesSchedule;
+begin
+  Dec(ChangedAllSchedule);
+  if (ChangedAllSchedule = 0) and ChangedAllScheduled then
+  begin
+    ChangedAllScheduled := false;
+
+    { ChangedAll calls CollectNodesForEvents, which in turn calls
+      Begin/EndChangesSchedule. Which means that
+      ChangedAllSchedule/ChangedAllScheduled must be Ok for this.
+      That's why ChangedAllScheduled := false must be done previously. }
+
+    ChangedAll;
+  end;
+
+  { Call EndGeometryChangedSchedule after finalizing ChangeAll schedule.
+    Reason: ChangedAll may (in fact, it always does, currently) call
+    geometry changed (so it will always be scheduled and performed only below).
+    But GeometryChanged cannot call ChangedAll. So all is Ok.
+
+    Doing it the other way around (first EndGeometryChangedSchedule,
+    then finalize ChangedAll) would mean that GeometryChanged is possibly
+    done twice (once at EndGeometryChangedSchedule, then from ChangedAll). }
+
+  EndGeometryChangedSchedule;
+end;
+
 { proximity sensor ----------------------------------------------------------- }
 
 procedure TVRMLScene.ProximitySensorUpdate(var PSI: TProximitySensorInstance);
@@ -3685,7 +3768,7 @@ begin
   Assert(IsLastViewerPosition);
   if ProcessEvents then
   begin
-    BeginGeometryChangedSchedule;
+    BeginChangesSchedule;
     try
       Node := PSI.Node;
       if not Node.FdEnabled.Value then Exit;
@@ -3737,7 +3820,7 @@ begin
         { TODO: centerOfRotation_changed, orientation_changed }
       end;
     finally
-      EndGeometryChangedSchedule;
+      EndChangesSchedule;
     end;
   end;
 end;
@@ -3748,7 +3831,7 @@ var
 begin
   if ProcessEvents then
   begin
-    BeginGeometryChangedSchedule;
+    BeginChangesSchedule;
     try
       LastViewerPosition := ViewerPosition;
       IsLastViewerPosition := true;
@@ -3756,7 +3839,7 @@ begin
       for I := 0 to ProximitySensorInstances.Count - 1 do
         ProximitySensorUpdate(ProximitySensorInstances.Items[I]);
     finally
-      EndGeometryChangedSchedule;
+      EndChangesSchedule;
     end;
   end;
 end;
