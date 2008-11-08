@@ -448,6 +448,22 @@ type
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; virtual;
 
+    { Compare value of this field, with other field, fast.
+
+      This compares only the values of the fields, not other properties
+      (it doesn't care about names of the fields or such, or default values;
+      only current values). In other words, it compares only the things
+      copied by AssignValue.
+
+      This tries to compare very fast, which means that for large
+      (multi-valued) fields it may give up and answer @false even
+      when they are in fact equal. So this is usable only for optimization
+      purposes: when it answers @true, it is @true. When it answers @false,
+      it actually doesn't know.
+
+      Default implementation in this class (@classname) just returns @false. }
+    function FastEqualsValue(SecondValue: TVRMLField): boolean; virtual;
+
     { Does this field generate/accept events, that is
       an "exposedField" (in VRML 2.0) or "inputOutput" (in X3D). }
     property Exposed: boolean read FExposed write SetExposed default true;
@@ -802,6 +818,7 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
@@ -878,6 +895,7 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
     function CanAssignLerp: boolean; override;
@@ -909,6 +927,7 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
     function CanAssignLerp: boolean; override;
@@ -988,6 +1007,7 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
@@ -1019,6 +1039,7 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
     function CanAssignLerp: boolean; override;
@@ -1047,6 +1068,7 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
     function CanAssignLerp: boolean; override;
@@ -1075,6 +1097,7 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
     function CanAssignLerp: boolean; override;
@@ -1117,6 +1140,7 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
     function CanAssignLerp: boolean; override;
@@ -1169,6 +1193,7 @@ type
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
     function EqualsDefaultValue: boolean; override;
+    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
     function CanAssignLerp: boolean; override;
@@ -1196,6 +1221,7 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
@@ -1221,6 +1247,7 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
     function CanAssignLerp: boolean; override;
@@ -1248,6 +1275,7 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
     function CanAssignLerp: boolean; override;
@@ -1280,6 +1308,7 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
     function CanAssignLerp: boolean; override;
@@ -1312,6 +1341,7 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
     function CanAssignLerp: boolean; override;
@@ -1339,6 +1369,7 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
     function CanAssignLerp: boolean; override;
@@ -1365,6 +1396,7 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
     function CanAssignLerp: boolean; override;
@@ -2168,10 +2200,19 @@ procedure TVRMLField.ExposedEventReceive(Event: TVRMLEvent; Value: TVRMLField;
   const Time: TKamTime);
 var
   ParNode: TVRMLNode;
+  ValuePossiblyChanged: boolean;
 begin
   Assert(Exposed);
   Assert(Event = FExposedEvents[true]);
   Assert(Value is ClassType);
+
+  { When not ValuePossiblyChanged, we don't have to call ChangedFields.
+    (Although we still have to call FExposedEvents[false].Send,
+    to push the change through the routes.)
+    This may be an important optimization when simple field's change
+    causes large time-consuming work in ChangedFields, e.g. consider
+    Switch.whichChoice which means currently rebuilding a lot of things. }
+  ValuePossiblyChanged := not FastEqualsValue(Value);
 
   { This is trivial handling of exposed events: just set our value,
     and call out event. }
@@ -2184,7 +2225,11 @@ begin
   if ParentNode <> nil then
   begin
     ParNode := ParentNode as TVRMLNode;
-    if ParNode.ParentEventsProcessor <> nil then
+    { Tests:
+    if not ValuePossiblyChanged then
+      writeln('ignored field ', Name, ' change, since values the same'); }
+    if (ParNode.ParentEventsProcessor <> nil) and
+       ValuePossiblyChanged then
       (ParNode.ParentEventsProcessor as TVRMLScene).
         ChangedFields(ParNode, Event);
   end;
@@ -2293,6 +2338,11 @@ function TVRMLField.Equals(SecondValue: TVRMLField;
   const EqualityEpsilon: Double): boolean;
 begin
   Result := SecondValue.Name = Name;
+end;
+
+function TVRMLField.FastEqualsValue(SecondValue: TVRMLField): boolean;
+begin
+  Result := false;
 end;
 
 procedure TVRMLField.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
@@ -2714,6 +2764,12 @@ begin
    (TSFBool(SecondValue).Value = Value);
 end;
 
+function TSFBool.FastEqualsValue(SecondValue: TVRMLField): boolean;
+begin
+  Result := (SecondValue is TSFBool) and
+    (TSFBool(SecondValue).Value = Value);
+end;
+
 procedure TSFBool.Assign(Source: TPersistent);
 begin
  if Source is TSFBool then
@@ -2795,6 +2851,12 @@ begin
    (SecondValue is TSFFloat) and
    (TSFFloat(SecondValue).MustBeNonnegative = MustBeNonnegative) and
    FloatsEqual(TSFFloat(SecondValue).Value, Value, EqualityEpsilon);
+end;
+
+function TSFFloat.FastEqualsValue(SecondValue: TVRMLField): boolean;
+begin
+  Result := (SecondValue is TSFFloat) and
+    (TSFFloat(SecondValue).Value = Value);
 end;
 
 procedure TSFFloat.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
@@ -2879,6 +2941,12 @@ begin
  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
    (SecondValue is TSFDouble) and
    FloatsEqual(TSFDouble(SecondValue).Value, Value, EqualityEpsilon);
+end;
+
+function TSFDouble.FastEqualsValue(SecondValue: TVRMLField): boolean;
+begin
+  Result := (SecondValue is TSFDouble) and
+    (TSFDouble(SecondValue).Value = Value);
 end;
 
 procedure TSFDouble.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
@@ -3211,6 +3279,12 @@ begin
    (TSFLong(SecondValue).Value = Value);
 end;
 
+function TSFLong.FastEqualsValue(SecondValue: TVRMLField): boolean;
+begin
+  Result := (SecondValue is TSFLong) and
+    (TSFLong(SecondValue).Value = Value);
+end;
+
 procedure TSFLong.Assign(Source: TPersistent);
 begin
  if Source is TSFLong then
@@ -3291,6 +3365,12 @@ begin
  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
    (SecondValue is TSF_CLASS) and
    MatricesEqual(TSF_CLASS(SecondValue).FValue, FValue, EqualityEpsilon);
+end;
+
+function TSF_CLASS.FastEqualsValue(SecondValue: TVRMLField): boolean;
+begin
+  Result := (SecondValue is TSF_CLASS) and
+    MatricesPerfectlyEqual(TSF_CLASS(SecondValue).Value, Value);
 end;
 
 procedure TSF_CLASS.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
@@ -3506,6 +3586,13 @@ begin
    FloatsEqual(TSFRotation(SecondValue).RotationRad, RotationRad, EqualityEpsilon);
 end;
 
+function TSFRotation.FastEqualsValue(SecondValue: TVRMLField): boolean;
+begin
+  Result := (SecondValue is TSFRotation) and
+    VectorsPerfectlyEqual(TSFRotation(SecondValue).Axis, Axis) and
+    (TSFRotation(SecondValue).RotationRad = RotationRad);
+end;
+
 function TSFRotation.EqualsDefaultValue: boolean;
 begin
   Result := DefaultValueExists and
@@ -3595,6 +3682,12 @@ begin
    (TSFString(SecondValue).Value = Value);
 end;
 
+function TSFString.FastEqualsValue(SecondValue: TVRMLField): boolean;
+begin
+  Result := (SecondValue is TSFString) and
+    (TSFString(SecondValue).Value = Value);
+end;
+
 procedure TSFString.Assign(Source: TPersistent);
 begin
  if Source is TSFString then
@@ -3663,6 +3756,12 @@ begin
   Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
     (SecondValue is TSF_CLASS) and
     VectorsEqual(TSF_CLASS(SecondValue).Value, Value, EqualityEpsilon);
+end;
+
+function TSF_CLASS.FastEqualsValue(SecondValue: TVRMLField): boolean;
+begin
+  Result := (SecondValue is TSF_CLASS) and
+    VectorsPerfectlyEqual(TSF_CLASS(SecondValue).Value, Value);
 end;
 
 procedure TSF_CLASS.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
