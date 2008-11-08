@@ -267,9 +267,8 @@ begin
     Result := RadianceTransfer[0];
   end else
   begin
-    Assert(RadianceTransferCount <= LightSHBasisCount);
     Result := ZeroVector3Single;
-    for I := 0 to RadianceTransferCount - 1 do
+    for I := 0 to Min(RadianceTransferCount, LightSHBasisCount) - 1 do
     begin
       Result[0] += RadianceTransfer[I][0] * LightSHBasis[I];
       Result[1] += RadianceTransfer[I][1] * LightSHBasis[I];
