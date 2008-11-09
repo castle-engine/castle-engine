@@ -1479,6 +1479,8 @@ begin
     then just Renderer.UnprepareAll. It's not needed for TVRMLGLAnimation
     right now, so it's not implemented. }
   if Renderer <> nil then Renderer.UnprepareAll;
+
+  PreparedAndUseBlendingCalculated.SetAll(false);
 end;
 
 procedure TVRMLGLScene.CloseGL;
