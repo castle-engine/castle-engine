@@ -55,6 +55,7 @@ type
     procedure FocusableControlExit(Sender: TObject);
     procedure FocusableControlKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FocusableControlKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure FocusableControlKeyPress(Sender: TObject; var Key: char);
 
   protected
     procedure DestroyHandle; override;
@@ -214,6 +215,7 @@ begin
   FFocusableControl.OnExit := @FocusableControlExit;
   FFocusableControl.OnKeyDown := @FocusableControlKeyDown;
   FFocusableControl.OnKeyUp := @FocusableControlKeyUp;
+  FFocusableControl.OnKeyPress := @FocusableControlKeyPress;
   FFocusableControl.Parent := Parent;
   FFocusableControl.TabOrder := TabOrder;
 end;
@@ -545,7 +547,9 @@ begin
   if Key <> VK_TAB then
   begin
     KeyDown(Key, Shift);
-    Key := 0;
+    { Do not mark Key as processed, as this prevents passing this key e.g. to
+      Form.OnKeyPress for Form.KeyPreview = true.
+    Key := 0; }
   end;
 end;
 
@@ -554,8 +558,17 @@ begin
   if Key <> VK_TAB then
   begin
     KeyUp(Key, Shift);
-    Key := 0;
+    { Do not mark Key as processed, as this prevents passing this key e.g. to
+      Form.OnKeyPress for Form.KeyPreview = true.
+    Key := 0; }
   end;
+end;
+
+procedure TKamOpenGLControl.FocusableControlKeyPress(Sender: TObject; var Key: char);
+begin
+  { I don't do anything here right now, but maybe I should, 
+    to make our OnKeyPress working? }
+{  KeyPress(Key); }
 end;
 
 procedure TKamOpenGLControl.DoBeforeDraw;
