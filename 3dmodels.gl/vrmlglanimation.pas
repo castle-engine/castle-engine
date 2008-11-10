@@ -525,7 +525,8 @@ type
     procedure GLProjection(Nav: TNavigator;
       const Box: TBox3d; const CameraRadius: Single;
       const WindowWidth, WindowHeight: Cardinal;
-      out AngleOfViewX, AngleOfViewY: Single);
+      out AngleOfViewX, AngleOfViewY: Single;
+      const ForceZFarInfinity: boolean = false);
   end;
 
   TObjectsListItem_1 = TVRMLGLAnimation;
@@ -1588,12 +1589,14 @@ end;
 procedure TVRMLGLAnimation.GLProjection(Nav: TNavigator;
   const Box: TBox3d; const CameraRadius: Single;
   const WindowWidth, WindowHeight: Cardinal;
-  out AngleOfViewX, AngleOfViewY: Single);
+  out AngleOfViewX, AngleOfViewY: Single;
+  const ForceZFarInfinity: boolean);
 var
   NewBackgroundSkySphereRadius: Single;
 begin
   FirstScene.GLProjectionCore(Nav, Box, CameraRadius, WindowWidth, WindowHeight,
-    AngleOfViewX, AngleOfViewY, NewBackgroundSkySphereRadius);
+    AngleOfViewX, AngleOfViewY, ForceZFarInfinity,
+    NewBackgroundSkySphereRadius);
   BackgroundSkySphereRadius := NewBackgroundSkySphereRadius;
 end;
 

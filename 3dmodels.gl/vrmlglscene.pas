@@ -1150,12 +1150,14 @@ type
     procedure GLProjection(Nav: TNavigator;
       const Box: TBox3d; const CameraRadius: Single;
       const WindowWidth, WindowHeight: Cardinal;
-      out AngleOfViewX, AngleOfViewY: Single);
+      out AngleOfViewX, AngleOfViewY: Single;
+      const ForceZFarInfinity: boolean = false);
 
     procedure GLProjectionCore(Nav: TNavigator;
       const Box: TBox3d; const CameraRadius: Single;
       const WindowWidth, WindowHeight: Cardinal;
       out AngleOfViewX, AngleOfViewY: Single;
+      const ForceZFarInfinity: boolean;
       out NewBackgroundSkySphereRadius: Single);
   end;
 
@@ -3398,12 +3400,14 @@ end;
 procedure TVRMLGLScene.GLProjection(Nav: TNavigator;
   const Box: TBox3d; const CameraRadius: Single;
   const WindowWidth, WindowHeight: Cardinal;
-  out AngleOfViewX, AngleOfViewY: Single);
+  out AngleOfViewX, AngleOfViewY: Single;
+  const ForceZFarInfinity: boolean);
 var
   NewBackgroundSkySphereRadius: Single;
 begin
   GLProjectionCore(Nav, Box, CameraRadius, WindowWidth, WindowHeight,
-    AngleOfViewX, AngleOfViewY, NewBackgroundSkySphereRadius);
+    AngleOfViewX, AngleOfViewY, ForceZFarInfinity,
+    NewBackgroundSkySphereRadius);
   BackgroundSkySphereRadius := NewBackgroundSkySphereRadius;
 end;
 
@@ -3411,6 +3415,7 @@ procedure TVRMLGLScene.GLProjectionCore(Nav: TNavigator;
   const Box: TBox3d; const CameraRadius: Single;
   const WindowWidth, WindowHeight: Cardinal;
   out AngleOfViewX, AngleOfViewY: Single;
+  const ForceZFarInfinity: boolean;
   out NewBackgroundSkySphereRadius: Single);
 
   procedure UpdateNavigatorProjectionMatrix;
@@ -3484,7 +3489,9 @@ begin
      (not IsEmptyBox3d(Box)) then
     ZNear := Box3dAvgSize(Box) * 0.1 else
     ZNear := WalkProjectionNear;
-  ZFar := WalkProjectionFar;
+  if ForceZFarInfinity then
+    ZFar := ZFarInfinity else
+    ZFar := WalkProjectionFar;
 
   if ViewpointNode <> nil then
     CameraKind := ViewpointNode.CameraKind else
