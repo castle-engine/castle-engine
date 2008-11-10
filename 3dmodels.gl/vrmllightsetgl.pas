@@ -187,31 +187,35 @@ type
       I.e. it calls glDisable(GL_LIGHTx) for them. }
     procedure TurnLightsOff;
 
-    { Turn off lights not supposed to light in the shadow, and
-      detect position (if any) of the main light that produces shadows.
+    { Detect position/direction of the main light that produces shadows.
       This is useful when you want to make shadows on the scene
       from only a single light, but your scene has many lights.
 
-      This uses @code(kambiShadows) and @code(kambiShadowsMain) fields
-      to determine which lights to turn off and which one is the main light.
+      The main light is simply one with both @code(kambiShadows) and
+      @code(kambiShadowsMain) fields set to @true. See
+      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows]
+      for more info.
+      If no light with kambiShadows = kambiShadowsMain = TRUE
+      is present then this function returns @false,
+      since AMainLightPosition cannot be calculated.
+
+      AMainLightPosition[3] is always set to 1
+      (positional light) or 0 (indicates that this is a directional light). }
+    function MainLightPosition(
+      out AMainLightPosition: TVector4Single): boolean;
+
+    { Turn off lights not supposed to light in the shadow.
+
+      This simply disables lights with @code(kambiShadows) field
+      set to @true.
       See [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_shadows]
       for more info.
 
       Lights with kambiShadows = FALSE are ignored:
       they are left untouched by this method (they are
       neither disabled, nor enabled --- usually you should enable them
-      as needed by RenderLights).
-
-      If no light with kambiShadows = kambiShadowsMain = TRUE
-      is present then this
-      function returns @false, since MainLightPosition cannot
-      be calculated. In this case, it's guaranteed that no lights
-      were turned off (even the ones with kambiShadows = TRUE).
-
-      MainLightPosition[3] is always set to 1
-      (positional light) or 0 (indicates that this is a directional light). }
-    function TurnLightsOffForShadows(out MainLightPosition: TVector4Single):
-      boolean;
+      as needed by RenderLights). }
+    procedure TurnLightsOffForShadows;
 
     { close any connection between this object and current gl context.
       After calling this, you can e.g. switch to another context and use
@@ -517,17 +521,14 @@ begin
     glDisable(GL_LIGHT0 + I);
 end;
 
-function TVRMLLightSetGL.TurnLightsOffForShadows(
-  out MainLightPosition: TVector4Single): boolean;
+function TVRMLLightSetGL.MainLightPosition(
+  out AMainLightPosition: TVector4Single): boolean;
 var
-  MyLightNum, GLLightNum: Integer;
+  MyLightNum: Integer;
   L: PActiveLight;
 begin
+  { Find main light, set Result and AMainLightPosition. }
   Result := false;
-
-  { first pass: find main light, set Result and MainLightPosition.
-    Do this first, without disabling any light (because we don't
-    want to disable any light if Result is @false) }
   L := Lights.Pointers[0];
   for MyLightNum := 0 to Lights.Count - 1 do
   begin
@@ -536,35 +537,37 @@ begin
     begin
       Result := true;
       if L^.LightNode is TVRMLPositionalLightNode then
-        MainLightPosition := Vector4Single(L^.TransfLocation, 1) else
+        AMainLightPosition := Vector4Single(L^.TransfLocation, 1) else
       if L^.LightNode is TVRMLDirectionalLightNode then
-        MainLightPosition := Vector4Single(L^.TransfNormDirection, 0) else
-        raise Exception.CreateFmt('TVRMLLightSetGL.TurnLightsOffForShadows: ' +
+        AMainLightPosition := Vector4Single(L^.TransfNormDirection, 0) else
+        raise Exception.CreateFmt('TVRMLLightSetGL.MainLightPosition: ' +
           'light node "%s" cannot be used to cast shadows, it has no position ' +
           'and no direction', [L^.LightNode.NodeTypeName]);
       Break;
     end;
     Inc(L);
   end;
+end;
 
-  if Result then
+procedure TVRMLLightSetGL.TurnLightsOffForShadows;
+var
+  MyLightNum, GLLightNum: Integer;
+  L: PActiveLight;
+begin
+  CalculateRealGLLightNum2;
+
+  L := Lights.Pointers[0];
+  for MyLightNum := 0 to Lights.Count - 1 do
   begin
-    CalculateRealGLLightNum2;
+    GLLightNum := MyLightNum + GLLightNum1;
 
-    { second pass: turn off lights }
-    L := Lights.Pointers[0];
-    for MyLightNum := 0 to Lights.Count - 1 do
+    if L^.LightNode.FdKambiShadows.Value then
     begin
-      GLLightNum := MyLightNum + GLLightNum1;
-
-      if L^.LightNode.FdKambiShadows.Value then
-      begin
-        if GLLightNum <= RealGLLightNum2 then
-          glDisable(GL_LIGHT0 + GLLightNum);
-      end;
-
-      Inc(L);
+      if GLLightNum <= RealGLLightNum2 then
+        glDisable(GL_LIGHT0 + GLLightNum);
     end;
+
+    Inc(L);
   end;
 end;
 
