@@ -376,9 +376,14 @@ type
     FOptimization: TGLRendererOptimization;
     Renderer: TVRMLOpenGLRenderer;
 
-    { This simply calls Renderer.Render(ShapeStates[ShapeStateNum].GeometryNode,
-      ShapeStates[ShapeStateNum].State); }
-    procedure RenderShapeStateSimple(ShapeStateNum: Integer);
+    { This simply renders ShapeStates[ShapeStateNum], by calling
+      Renderer.RenderShapeState. Remember to always use
+      Renderer.RenderShapeStateLight before actually using this to render! }
+    procedure RenderShapeState_NoLight(ShapeStateNum: Integer);
+
+    { This renders ShapeStates[ShapeStateNum], by calling
+      Renderer.RenderShapeStateLight and Renderer.RenderShapeState. }
+    procedure RenderShapeState_WithLight(ShapeStateNum: Integer);
 
     procedure RenderBeginSimple;
     procedure RenderEndSimple;
@@ -581,7 +586,7 @@ type
       right now by PrepareAndCalculateUseBlendingForAll).
 
       Then creates display list SSSX_DisplayLists.Items[ShapeStateNum]
-      and initializes it with contents of RenderShapeStateSimple(ShapeStateNum).
+      and initializes it with contents of RenderShapeState_NoLight(ShapeStateNum).
       Mode GL_COMPILE is passed to glNewList, so it only creates
       given display list.
 
@@ -1491,9 +1496,18 @@ begin
   FBackgroundInvalidate;
 end;
 
-procedure TVRMLGLScene.RenderShapeStateSimple(ShapeStateNum: Integer);
+procedure TVRMLGLScene.RenderShapeState_NoLight(ShapeStateNum: Integer);
 begin
-  Renderer.RenderShapeState(ShapeStates[ShapeStateNum].GeometryNode,
+  Renderer.RenderShapeState(
+    ShapeStates[ShapeStateNum].GeometryNode,
+    ShapeStates[ShapeStateNum].State);
+end;
+
+procedure TVRMLGLScene.RenderShapeState_WithLight(ShapeStateNum: Integer);
+begin
+  Renderer.RenderShapeStateLights(ShapeStates[ShapeStateNum].State);
+  Renderer.RenderShapeState(
+    ShapeStates[ShapeStateNum].GeometryNode,
     ShapeStates[ShapeStateNum].State);
 end;
 
@@ -1988,7 +2002,10 @@ begin
       'TVRMLGLScene.SSS_PrepareShapeState');
     glNewList(SSSX_DisplayLists.Items[ShapeStateNum], GL_COMPILE);
     try
-      RenderShapeStateSimple(ShapeStateNum);
+      {if not DynamicLights then
+        Renderer.RenderShapeStateLights(ShapeStates[ShapeStateNum].State);}
+
+      RenderShapeState_NoLight(ShapeStateNum);
       glEndList;
     except
       glEndList;
@@ -2022,13 +2039,21 @@ begin
   begin
     if SSSX_DisplayLists.Items[ShapeStateNum] = 0 then
       SSS_PrepareShapeState(ShapeStateNum);
+
+    {if DynamicLights then}
+    Renderer.RenderShapeStateLights(ShapeStates[ShapeStateNum].State);
+
     glCallList(SSSX_DisplayLists.Items[ShapeStateNum]);
   end else
   begin
     Assert(SSSX_DisplayLists.Items[ShapeStateNum] = 0);
     { Make sure that it's prepared. }
     SSS_PrepareShapeState(ShapeStateNum);
-    RenderShapeStateSimple(ShapeStateNum);
+
+    {if DynamicLights then}
+    Renderer.RenderShapeStateLights(ShapeStates[ShapeStateNum].State);
+
+    RenderShapeState_NoLight(ShapeStateNum);
   end;
 end;
 
@@ -2087,6 +2112,8 @@ begin
     if SSSX_DisplayLists.Items[ShapeStateNum] = 0 then
       SSSNT_PrepareShapeState(ShapeStateNum);
 
+    Renderer.RenderShapeStateLights(ShapeStates[ShapeStateNum].State);
+
     Renderer.RenderShapeStateBegin(
       ShapeStates[ShapeStateNum].GeometryNode,
       ShapeStates[ShapeStateNum].State);
@@ -2102,7 +2129,10 @@ begin
     Assert(SSSX_DisplayLists.Items[ShapeStateNum] = 0);
     { Make sure that it's prepared. }
     SSSNT_PrepareShapeState(ShapeStateNum);
-    RenderShapeStateSimple(ShapeStateNum);
+
+    Renderer.RenderShapeStateLights(ShapeStates[ShapeStateNum].State);
+
+    RenderShapeState_NoLight(ShapeStateNum);
   end;
 end;
 
@@ -2115,7 +2145,7 @@ begin
     glNewList(SAAW_DisplayList[TransparentGroup], GL_COMPILE);
     try
       RenderShapeStatesNoDisplayList(nil,
-        {$ifdef FPC_OBJFPC} @ {$endif} RenderShapeStateSimple,
+        {$ifdef FPC_OBJFPC} @ {$endif} RenderShapeState_WithLight,
         {$ifdef FPC_OBJFPC} @ {$endif} RenderBeginSimple,
         {$ifdef FPC_OBJFPC} @ {$endif} RenderEndSimple,
         TransparentGroup);
@@ -2140,7 +2170,7 @@ begin
       glNewList(SAAW_DisplayList[TransparentGroup], GL_COMPILE);
       try
         RenderShapeStatesNoDisplayList(nil,
-          {$ifdef FPC_OBJFPC} @ {$endif} RenderShapeStateSimple, nil, nil,
+          {$ifdef FPC_OBJFPC} @ {$endif} RenderShapeState_WithLight, nil, nil,
           TransparentGroup);
       finally glEndList end;
     finally RenderEndSimple end;
@@ -2283,7 +2313,7 @@ procedure TVRMLGLScene.Render(
       roNone:
         begin
           RenderShapeStatesNoDisplayList(TestShapeStateVisibility,
-            {$ifdef FPC_OBJFPC} @ {$endif} RenderShapeStateSimple,
+            {$ifdef FPC_OBJFPC} @ {$endif} RenderShapeState_WithLight,
             {$ifdef FPC_OBJFPC} @ {$endif} RenderBeginSimple,
             {$ifdef FPC_OBJFPC} @ {$endif} RenderEndSimple,
             TransparentGroup);

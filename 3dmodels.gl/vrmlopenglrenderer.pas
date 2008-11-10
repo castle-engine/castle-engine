@@ -91,13 +91,17 @@
     )
 
     @item(
-      potem wywoluj RenderShapeState(Geometry, State)
+      potem wywoluj
+        RenderShapeStateLights(State)
+        RenderShapeState(Geometry, State)
       aby renderowac pary Geometry+State.
       Jak juz powiedzialem, kazda podawana teraz para musiala wystapic
       wczesniej w wywolaniu Prepare.
 
-      Alternatively you can call RenderShapeStateBegin,
-      RenderShapeStateNoTransform, RenderShapeStateEnd (always in this sequence,
+      Alternatively instead of RenderShapeState you can call
+        RenderShapeStateBegin,
+        RenderShapeStateNoTransform,
+        RenderShapeStateEnd (always in this sequence,
       always RenderShapeStateEnd in the "finally" clause, so that
       after RenderShapeStateBegin there is always RenderShapeStateEnd
       called). This is equivalent to RenderShapeState
@@ -1309,6 +1313,7 @@ type
       const FogDistanceScaling: Single);
     procedure RenderEnd;
 
+    procedure RenderShapeStateLights(State: TVRMLGraphTraverseState);
     procedure RenderShapeStateBegin(Geometry: TVRMLGeometryNode;
       State: TVRMLGraphTraverseState);
     procedure RenderShapeStateNoTransform(Geometry: TVRMLGeometryNode;
@@ -3561,6 +3566,23 @@ begin
 end;
 {$endif USE_VRML_NODES_TRIANGULATION}
 
+procedure TVRMLOpenGLRenderer.RenderShapeStateLights(
+  State: TVRMLGraphTraverseState);
+begin
+  glMatrixMode(GL_MODELVIEW);
+
+  { Render lights in given State, if Attributes.UseLights.
+
+    This is done in RenderShapeStateLights, before RenderShapeStateBegin,
+    in particular before loading State.Transform --- this is good,
+    as the lights positions/directions are in world coordinates. }
+
+  if Attributes.UseLights then
+    glLightsFromVRML(State.CurrentActiveLights,
+      Attributes.FirstGLFreeLight, LastGLFreeLight,
+      Attributes.ColorModulatorSingle);
+end;
+
 procedure TVRMLOpenGLRenderer.RenderShapeStateBegin(
   Geometry: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState);
@@ -3606,15 +3628,6 @@ begin
   end;
 
   glMatrixMode(GL_MODELVIEW);
-
-  { uwzglednij atrybut Attributes.UseLights : jezeli jest = true to zdefiniuj
-    OpenGLowi wszystkie State.ActiveLights. Robimy to PRZED zaladowaniem
-    transformacji State.Transform (bo swiatla maja wlasne Transform i
-    nie podlegaja transformacji aktualnego State'a w ktorym sa) }
-  if Attributes.UseLights then
-    glLightsFromVRML(State.CurrentActiveLights,
-      Attributes.FirstGLFreeLight, LastGLFreeLight,
-      Attributes.ColorModulatorSingle);
 
   glPushMatrix;
     glMultMatrix(State.Transform);
