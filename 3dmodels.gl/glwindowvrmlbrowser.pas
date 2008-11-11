@@ -27,7 +27,7 @@ unit GLWindowVRMLBrowser;
 interface
 
 uses VectorMath, GLWindow, VRMLNodes, VRMLGLScene, VRMLScene, Navigation,
-  VRMLGLHeadLight;
+  VRMLGLHeadLight, ShadowVolumesHelper;
 
 type
   { A simple VRML browser in a window. This manages TVRMLGLScene and
@@ -108,6 +108,15 @@ type
     procedure GeometryChanged(Scene: TVRMLScene);
 
     procedure UpdateCursor;
+
+    FShadowVolumesPossible: boolean;
+    procedure SetShadowVolumesPossible(const Value: boolean);
+    FShadowVolumes: boolean;
+    FShadowVolumesDraw: boolean;
+    SVHelper: TShadowVolumesHelper;
+
+    procedure RenderScene(InShadow: boolean);
+    procedure RenderShadowVolumes;
   public
     constructor Create;
     destructor Destroy; override;
@@ -129,6 +138,45 @@ type
     procedure EventMouseMove(NewX, NewY: Integer); override;
     procedure EventKeyDown(Key: TKey; C: char); override;
     procedure EventKeyUp(Key: TKey; C: char); override;
+
+    { Should we make shadow volumes possible?
+
+      This can be changed only when the context is not initialized,
+      that is only when the window is currently closed.
+      Reason: to make shadows possible, we have to initialize gl context
+      specially (with stencil buffer).
+      Also, set this up before loading your model (as we have to
+      initialize some stuff in the loaded model for shadows).
+
+      Note that the shadows will not be actually rendered until you also
+      set ShadowVolumes := true. }
+    property ShadowVolumesPossible: boolean
+      read FShadowVolumesPossible write SetShadowVolumesPossible default false;
+
+    { Should we render with shadow volumes?
+      You can change this at any time, to switch rendering shadows on/off.
+
+      This works only if ShadowVolumesPossible is @true.
+
+      Note that the shadow volumes algorithm makes some requirements
+      about the 3D model: it must be 2-manifold, that is have a correctly
+      closed volume. Otherwise, rendering results may be bad. You can check
+      Scene.BorderEdges.Count before using this: BorderEdges.Count = 0 means
+      that model is Ok, correct manifold.
+
+      For shadows to be actually used you still need a light source
+      marked as the main shadows light (kambiShadows = kambiShadowsMain = TRUE),
+      see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows]. }
+    property ShadowVolumes: boolean
+      read FShadowVolumes write FShadowVolumes default false;
+
+    { Actually draw the shadow volumes to the color buffer, for debugging.
+      If shadows are rendered (see ShadowVolumesPossible and ShadowVolumes),
+      you can use this to actually see shadow volumes, for debug / demo
+      purposes. Shadow volumes will be rendered on top of the scene,
+      as yellow blended polygons. }
+    property ShadowVolumesDraw: boolean
+      read FShadowVolumesDraw write FShadowVolumesDraw default false;
   end;
 
 implementation
@@ -206,35 +254,82 @@ begin
 end;
 
 procedure TGLWindowVRMLBrowser.EventBeforeDraw;
+var
+  Options: TPrepareRenderOptions;
 begin
   inherited;
-  Scene.PrepareRender([tgAll], [prBackground, prBoundingBox]);
+  Options := [prBackground, prBoundingBox];
+  if ShadowVolumesPossible then
+    Options := Options + prShadowVolume;
+
+  Scene.PrepareRender([tgAll], Options);
+end;
+
+procedure TGLWindowVRMLBrowser.RenderScene(InShadow: boolean);
+begin
+  if InShadow then
+    Scene.RenderFrustum(Navigator.Frustum, tgAll, @Scene.LightRenderInShadow) else
+    Scene.RenderFrustum(Navigator.Frustum, tgAll, nil);
+end;
+
+procedure TGLWindowVRMLBrowser.RenderShadowVolumes;
+begin
+  Scene.InitAndRenderShadowVolume(SVHelper, true, IdentityMatrix4Single);
 end;
 
 procedure TGLWindowVRMLBrowser.EventDraw;
+
+  procedure RenderNoShadows;
+  begin
+    RenderScene(false);
+  end;
+
+  procedure RenderWithShadows(const MainLightPosition: TVector4Single);
+  begin
+    SVHelper.InitFrustumAndLight(Navigator.Frustum, MainLightPosition);
+    SVHelper.Render(nil, @RenderScene, @RenderShadowVolumes, ShadowVolumesDraw);
+  end;
+
+var
+  ClearBuffers: TGLbitfield;
+  MainLightPosition: TVector4Single;
 begin
   inherited;
+
+  ClearBuffers := GL_DEPTH_BUFFER_BIT;
 
   if Scene.Background <> nil then
   begin
     glLoadMatrix(Navigator.RotationOnlyMatrix);
     Scene.Background.Render;
-    glClear(GL_DEPTH_BUFFER_BIT);
   end else
-    glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+    ClearBuffers := ClearBuffers or GL_COLOR_BUFFER_BIT;
+
+  if ShadowVolumesPossible and ShadowVolumes then
+    ClearBuffers := ClearBuffers or GL_STENCIL_BUFFER_BIT;
+
+  glClear(ClearBuffers);
 
   TVRMLGLHeadlight.RenderOrDisable(Scene.Headlight, 0);
 
   glLoadMatrix(Navigator.Matrix);
-  if Navigator is TWalkNavigator then
-    Scene.RenderFrustum(WalkNav.Frustum, tgAll) else
-    Scene.Render(nil, tgAll);
+  if ShadowVolumesPossible and
+     ShadowVolumes and
+     Scene.MainLightForShadows(MainLightPosition) then
+    RenderWithShadows(MainLightPosition) else
+    RenderNoShadows;
 end;
 
 procedure TGLWindowVRMLBrowser.EventInit;
 begin
   inherited;
   glEnable(GL_LIGHTING);
+
+  if ShadowVolumesPossible then
+  begin
+    SVHelper := TShadowVolumesHelper.Create;
+    SVHelper.InitGLContext;
+  end;
 end;
 
 procedure TGLWindowVRMLBrowser.EventClose;
@@ -243,6 +338,8 @@ begin
     for Scene = nil case. }
   if Scene <> nil then
     Scene.CloseGL;
+
+  FreeAndNil(SVHelper);
 
   inherited;
 end;
@@ -257,7 +354,7 @@ procedure TGLWindowVRMLBrowser.EventResize;
 begin
   inherited;
   Scene.GLProjection(Navigator, Scene.BoundingBox, CameraRadius,
-    Width, Height, AngleOfViewX, AngleOfViewY);
+    Width, Height, AngleOfViewX, AngleOfViewY, ShadowVolumesPossible);
 end;
 
 procedure TGLWindowVRMLBrowser.EventMouseDown(Btn: TMouseButton);
@@ -398,6 +495,17 @@ begin
   { Scene.GeometryChanged possibly cleared pointing device info by
     PointingDeviceClear. This means that cursor must be updated. }
   UpdateCursor;
+end;
+
+procedure TGLWindowVRMLBrowser.SetShadowVolumesPossible(const Value: boolean);
+begin
+  if not Closed then
+    raise Exception.Create('You can''t change ShadowVolumesPossible ' +
+      'while the context is already initialized');
+  FShadowVolumesPossible := Value;
+  if ShadowVolumesPossible then
+    StencilBufferBits := 8 else
+    StencilBufferBits := 0;
 end;
 
 end.
