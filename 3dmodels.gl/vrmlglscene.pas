@@ -812,7 +812,7 @@ type
     }
     procedure Render(TestShapeStateVisibility: TTestShapeStateVisibility;
       TransparentGroup: TTransparentGroup;
-      LightRenderEvent: TVRMLLightRenderEvent);
+      LightRenderEvent: TVRMLLightRenderEvent = nil);
 
     { This renders the scene eliminating ShapeStates that are entirely
       not within Frustum. It calls @link(Render), passing appropriate
@@ -834,7 +834,7 @@ type
       to analyze the scene with Octree. }
     procedure RenderFrustum(const Frustum: TFrustum;
       TransparentGroup: TTransparentGroup;
-      LightRenderEvent: TVRMLLightRenderEvent);
+      LightRenderEvent: TVRMLLightRenderEvent = nil);
 
     { LastRender_ properties provide you read-only statistics
       about what happened during last render. For now you
