@@ -28,15 +28,23 @@ uses VectorMath, Boxes3d, GL, GLU, GLExt, KambiGLUtils;
 type
   TStencilSetupKind = (ssFrontAndBack, ssFront, ssBack);
 
-  { This class performs various initialization and calculations related
-    to shadow volume rendering. It does everything, except the actual
-    shadow volume rendering (this is handled elsewhere, for example
-    in TVRMLGLScene.RenderShadowVolume).
+  TTransparentGroup = (tgTransparent, tgOpaque, tgAll);
+  TTransparentGroups = set of TTransparentGroup;
 
-    To use this class: call InitGLContext, InitFrustumAndLight,
-    InitScene at appropriate moments. Setup your stencil buffer by
-    setting StencilSetupKind before InitScene.
-    Pass the instance of this to TVRMLGLScene.RenderShadowVolume. }
+  TSVRenderTransparentGroupProc =
+    procedure (TransparentGroup: TTransparentGroup) of object;
+  TSVRenderShadowReceiversProc =
+    procedure (InShadow: boolean) of object;
+  TSVRenderProc = procedure of object;
+
+  { This class performs various initialization and calculations related
+    to shadow volume rendering. It provides everything, except it doesn't
+    actually render the 3D models of their shadow volumes (actual rendering
+    is provided by things like TVRMLGLScene.Render and
+    TVRMLGLScene.RenderShadowVolume).
+
+    For general usage tutorial of this class,
+    see [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.shadows.html] }
   TShadowVolumesHelper = class
   private
     FrustumAndLightPlanes: array [0..5] of TVector4Single;
@@ -198,6 +206,36 @@ type
     property CountZPass: Cardinal read FCountZPass;
     property CountZFailNoLightCap: Cardinal read FCountZFailNoLightCap;
     property CountZFailAndLightCap: Cardinal read FCountZFailAndLightCap;
+
+    { This performs actual rendering with shadow volumes.
+
+      You have to provide the appropriate callbacks that render given
+      scene parts.
+
+      RenderNeverShadowed should render scene parts
+      that are never in the shadow (in other words, are not shadow receivers).
+      You probably want to turn all normal scene
+      lights for them. This will be called with TransparentGroup = tgOpaque
+      or tgTransparent (for correct implementation, partially transparent
+      and opaque parts must be rendered separately).
+
+      RenderShadowReceivers renders the parts
+      of the scene that may be in the shadow. It will be called with
+      InShadow parameter, you should use this to either display the version
+      of the scene in the shadows (so probably darker, probably with some
+      OpenGL lights off) or the version that is currently lighted
+      (so probably is ligher, with normal scene lights on).
+
+      RenderShadowVolumes renders shadow volumes from shadow casters.
+
+      If DrawShadowVolumes then shadow volumes will be also actually drawn
+      to color buffer (as yellow blended polygons), this is useful for debugging
+      shadow volumes. }
+    procedure Render(
+      const RenderNeverShadowed: TSVRenderTransparentGroupProc;
+      const RenderShadowReceivers: TSVRenderShadowReceiversProc;
+      const RenderShadowVolumes: TSVRenderProc;
+      const DrawShadowVolumes: boolean);
   end;
 
 implementation
@@ -595,6 +633,166 @@ begin
   FZFailAndLightCap := true;
   UpdateCount;
   InitSceneOnlySetupStencil;
+end;
+
+procedure TShadowVolumesHelper.Render(
+  const RenderNeverShadowed: TSVRenderTransparentGroupProc;
+  const RenderShadowReceivers: TSVRenderShadowReceiversProc;
+  const RenderShadowVolumes: TSVRenderProc;
+  const DrawShadowVolumes: boolean);
+const
+  { Which stencil bits should be tested when determining which things
+    are in the scene ?
+
+    Not only *while rendering* shadow quads but also *after this rendering*
+    value in stencil buffer may be > 1 (so you need more than 1 bit
+    to hold it in stencil buffer).
+
+    Why ? It's obvious that *while rendering* (e.g. right after rendering
+    all front quads) this value may be > 1. But when the point
+    is in the shadow because it's inside more than one shadow
+    (cast by 2 different shadow quads) then even *after rendering*
+    this point will have value > 1.
+
+    So it's important that this constant spans a couple of bits.
+    More precisely, it should be the maximum number of possibly overlapping
+    front shadow quads from any possible camera view. Practically speaking,
+    it will always be too little (for complicated shadow casters),
+    but stencil_wrap will hopefully in this case minimize artifacts. }
+  StencilShadowBits = $FF;
+var
+  OldCount: boolean;
+begin
+  if Assigned(RenderNeverShadowed) then
+    RenderNeverShadowed(tgOpaque);
+
+  RenderShadowReceivers(true);
+
+  glEnable(GL_STENCIL_TEST);
+    { Note that stencil buffer is set to all 0 now. }
+
+    glPushAttrib(GL_ENABLE_BIT
+      { saves Enable(GL_DEPTH_TEST), Enable(GL_CULL_FACE) });
+      glEnable(GL_DEPTH_TEST);
+
+      { Calculate shadows to the stencil buffer.
+        Don't write anything to depth or color buffers. }
+      glSetDepthAndColorWriteable(GL_FALSE);
+        glStencilFunc(GL_ALWAYS, 0, 0);
+
+        if StencilTwoSided then
+        begin
+          StencilSetupKind := ssFrontAndBack;
+          RenderShadowVolumes;
+        end else
+        begin
+          glEnable(GL_CULL_FACE);
+
+          { Render front facing shadow shadow volume faces. }
+          StencilSetupKind := ssFront;
+          glCullFace(GL_BACK);
+          RenderShadowVolumes;
+
+          { Render back facing shadow shadow volume faces. }
+          StencilSetupKind := ssBack;
+          OldCount := Count;
+          Count := false;
+          glCullFace(GL_FRONT);
+          RenderShadowVolumes;
+          Count := OldCount;
+        end;
+
+      glSetDepthAndColorWriteable(GL_TRUE);
+    glPopAttrib;
+  glDisable(GL_STENCIL_TEST);
+
+  { Now render everything once again, with lights turned on.
+    But render only things not in shadow.
+
+    ----------------------------------------
+    Long (but maybe educational) explanation why glDepthFunc(GL_LEQUAL)
+    below is crucial:
+
+    What should I do with depth buffer ? Now it contains opaque
+    never-shadowed things, and all shadowed things.
+    At some time (see revision 2048 in Kambi SVN repository on kocury) I called
+    glClear(GL_DEPTH_BUFFER_BIT) before rendering shadowed things for the
+    second time. While this seems to work, the 2nd pass leaves the depth-buffer
+    untouched on shadowed places. So it creates a whole
+    lot of problems for rendering never-shadowed things:
+    1. I have to render them before glClear(GL_DEPTH_BUFFER_BIT),
+       since they can be occluded by any level parts (shadowed on not).
+    2. I have to render them once again (but only into depth buffer,
+       i.e. with temporary
+       glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE))
+       after glClear(GL_DEPTH_BUFFER_BIT), since they can occlude
+       non-shadowed level parts.
+
+    This is easy doable for opaque parts. But what about transparent
+    parts of never-shadowed things ? In other words, where should the
+    call Render_NonShadowed_Transparent be done ?
+    They should be rendered but they don't affect depth buffer.
+    Well, clearly, they have to be rendered
+    before glClear(GL_DEPTH_BUFFER_BIT) (for the same reason that
+    opaque parts must: because they can be occluded by any level
+    part, shadowed or not). But rendering non-shadowed parts may then
+    cover them (since they cannot be rendered to depth buffer).
+    So I should render them once again, but *only at the places
+    where Render_Shadowed_Lights below passed the stencil test (=0) and the depth test*.
+    But the second condition is not so easy (I would have to change stencil
+    buffer once again, based on Level.Render hits).
+
+    The simpler version, to just render them second time everywhere where
+    were not in shadow, i.e. stencil test (=0) passes would be no good:
+    we would render transparent things twice in the places on the level
+    when they are not in shadow.
+
+    So basically, it's all doable, but not trivial, and (more important)
+    I'm losing rendering time on handling this. And without taking proper care
+    about transparent parts of never-shadowed things,
+    transparent creatures/items will be visible through the walls,
+    in the places where shadow falls on the wall.
+
+    This was all talking assuming that we do glClear(GL_DEPTH_BUFFER_BIT)
+    before the 2nd pass. But do we really have to ? No!
+    It's enough to just set depth test GL_LEQUAL (instead of default
+    GL_LESS) and then the 2nd pass will naturally cover the level
+    rendered in the 1st pass. That's all, it's easy to implement,
+    works perfectly, and is fast.
+
+    End of long explanation about glDepthFunc(GL_LEQUAL).
+    ----------------------------------------
+  }
+
+  glPushAttrib(GL_DEPTH_BUFFER_BIT { for glDepthFunc });
+    glDepthFunc(GL_LEQUAL);
+
+    { setup stencil : don't modify stencil, stencil test passes only for =0 }
+    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+    glStencilFunc(GL_EQUAL, 0, StencilShadowBits);
+    glEnable(GL_STENCIL_TEST);
+      RenderShadowReceivers(false);
+    glDisable(GL_STENCIL_TEST);
+  glPopAttrib();
+
+  if DrawShadowVolumes then
+  begin
+    OldCount := Count;
+    Count := false;
+    glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_ENABLE_BIT);
+      glEnable(GL_DEPTH_TEST);
+      glDisable(GL_LIGHTING);
+      glColor4f(1, 1, 0, 0.3);
+      glDepthMask(GL_FALSE);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glEnable(GL_BLEND);
+      RenderShadowVolumes;
+    glPopAttrib;
+    Count := OldCount;
+  end;
+
+  if Assigned(RenderNeverShadowed) then
+    RenderNeverShadowed(tgTransparent);
 end;
 
 end.

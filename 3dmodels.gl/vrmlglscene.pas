@@ -333,9 +333,16 @@ type
     { @groupEnd }
   end;
 
-  TTransparentGroup = (tgTransparent, tgOpaque, tgAll);
-  TTransparentGroups = set of TTransparentGroup;
+type
+  TTransparentGroup = ShadowVolumesHelper.TTransparentGroup;
+  TTransparentGroups = ShadowVolumesHelper.TTransparentGroups;
 
+const
+  tgTransparent = ShadowVolumesHelper.tgTransparent;
+  tgOpaque = ShadowVolumesHelper.tgOpaque;
+  tgAll = ShadowVolumesHelper.tgAll;
+
+type
   { Various things that TVRMLGLScene.PrepareRender may prepare. }
   TPrepareRenderOption = (prBackground, prBoundingBox,
     prTrianglesListNotOverTriangulate,
