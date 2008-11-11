@@ -255,12 +255,13 @@ procedure TGLWindowVRMLBrowser.EventBeforeDraw;
 var
   Options: TPrepareRenderOptions;
 begin
-  inherited;
   Options := [prBackground, prBoundingBox];
   if ShadowVolumesPossible then
     Options := Options + prShadowVolume;
 
   Scene.PrepareRender([tgAll], Options);
+
+  inherited;
 end;
 
 procedure TGLWindowVRMLBrowser.RenderScene(InShadow: boolean);
@@ -292,8 +293,6 @@ var
   ClearBuffers: TGLbitfield;
   MainLightPosition: TVector4Single;
 begin
-  inherited;
-
   ClearBuffers := GL_DEPTH_BUFFER_BIT;
 
   if Scene.Background <> nil then
@@ -316,6 +315,8 @@ begin
      Scene.MainLightForShadows(MainLightPosition) then
     RenderWithShadows(MainLightPosition) else
     RenderNoShadows;
+
+  inherited;
 end;
 
 procedure TGLWindowVRMLBrowser.EventInit;
