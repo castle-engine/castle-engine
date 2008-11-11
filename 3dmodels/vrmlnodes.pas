@@ -367,7 +367,8 @@ type
     when they are found by traversing VRML file.
 
     @bold(This record may be initialized only by
-    TVRMLLightNode.CreateActiveLight). }
+    TVRMLLightNode.CreateActiveLight.
+    Update (when transform changes) by TVRMLLightNode.UpdateActiveLight.) }
   TActiveLight = record
     LightNode: TVRMLLightNode;
 

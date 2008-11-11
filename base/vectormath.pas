@@ -239,10 +239,6 @@
 
 unit VectorMath;
 
-{
-  TODO: MatrixMultPointNoTranslation should be implemented less clumsy
-}
-
 {$I kambiconf.inc}
 
 {$ifdef FPC}
@@ -1773,9 +1769,6 @@ function MatrixMultVector(const m: TMatrix4Single; const v: TVector4Single): TVe
 function MatrixMultVector(const m: TMatrix3Double; const v: TVector3Double): TVector3Double; overload;
 function MatrixMultVector(const m: TMatrix4Double; const v: TVector4Double): TVector4Double; overload;
 
-function MatrixMultPointNoTranslation(const m: TMatrix4Single;
-  const v: TVector3Single): TVector3Single;
-
 function MatrixMult(const m1, m2: TMatrix3Single): TMatrix3Single;
 function MatrixMult(const m1, m2: TMatrix4Single): TMatrix4Single;
 function MatrixMult(const m1, m2: TMatrix3Double): TMatrix3Double;
@@ -3062,14 +3055,6 @@ begin
 end;
 
 { math with matrices ---------------------------------------------------------- }
-
-function MatrixMultPointNoTranslation(const m: TMatrix4Single;
-  const v: TVector3Single): TVector3Single;
-begin
-  result := VectorSubtract(
-    Vector3SinglePoint( MatrixMultVector(m, Vector4Single(v)) ),
-    Vector3SinglePoint( m[3] ) );
-end;
 
 function VectorMultTransposedSameVector(const v: TVector3Single): TMatrix3Single;
 begin

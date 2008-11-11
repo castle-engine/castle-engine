@@ -16,7 +16,7 @@
   You should have received a copy of the GNU General Public License
   along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  
+
   ----------------------------------------------------------------------------
 }
 
@@ -292,6 +292,7 @@ type
       const Time: TVRMLTime);
 
     FTransform: boolean;
+    FProcessedInActiveLight: boolean;
 
     FValueFromIsClause: boolean;
 
@@ -592,6 +593,12 @@ type
       children of ParentNode? This is useful for optimizing changes
       to VRML >= 2.0 Transform, Joint, Humanoid etc. nodes. }
     property Transform: boolean read FTransform write FTransform
+      default false;
+
+    { For fields within light nodes, does this field affect some TActiveLight
+      field? This is useful for optimizing changed to VRML light nodes. }
+    property ProcessedInActiveLight: boolean
+      read FProcessedInActiveLight write FProcessedInActiveLight
       default false;
   end;
 

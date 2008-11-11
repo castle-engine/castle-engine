@@ -65,7 +65,24 @@
   protected
     procedure MiddleTraverse(State: TVRMLGraphTraverseState); override;
   public
-    function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; virtual;
+    { Create TActiveLight record describing this light node under given
+      State. }
+    function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight;
+
+    { Update TActiveLight record when lighting State changes.
+      Assumes that ActiveLight.LightNode = Self.
+
+      This will set ActiveLight.Transform properties, and recalculate
+      all ActiveLight.TransfXxx properties. }
+    procedure UpdateActiveLightState(
+      var ActiveLight: TActiveLight;
+      State: TVRMLGraphTraverseState);
+
+    { Update TActiveLight record when lighting location/direction (and other
+      properties precalculated on TActiveLight) change.
+      Assumes that ActiveLight.LightNode = Self. }
+    procedure UpdateActiveLight(
+      var ActiveLight: TActiveLight); virtual;
   end;
 
   TObjectsListItem_1 = TVRMLLightNode;
@@ -80,7 +97,7 @@
     private FFdDirection: TSFVec3f;
     public property FdDirection: TSFVec3f read FFdDirection;
 
-    function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; override;
+    procedure UpdateActiveLight(var ActiveLight: TActiveLight); override;
   end;
 
   TVRMLPositionalLightNode = class(TVRMLLightNode)
@@ -107,7 +124,7 @@
     function Attenuation(const DistanceToLight: Single): Single; overload;
     function Attenuation(const DistanceToLight: Double): Double; overload;
 
-    function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; override;
+    procedure UpdateActiveLight(var ActiveLight: TActiveLight); override;
   end;
 
   TVRMLPointLightNode = class(TVRMLPositionalLightNode)
@@ -139,7 +156,7 @@
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
 
-    function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; override;
+    procedure UpdateActiveLight(var ActiveLight: TActiveLight); override;
   end;
 
   TNodeSpotLight_2 = class(TVRMLPositionalLightNode)
@@ -165,7 +182,7 @@
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
 
-    function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; override;
+    procedure UpdateActiveLight(var ActiveLight: TActiveLight); override;
   end;
 
 {$endif read_interface}
@@ -207,8 +224,23 @@ function TVRMLLightNode.CreateActiveLight(
   State: TVRMLGraphTraverseState): TActiveLight;
 begin
   Result.LightNode := Self;
-  Result.Transform := State.Transform;
-  Result.AverageScaleTransform := State.AverageScaleTransform;
+  UpdateActiveLightState(Result, State);
+end;
+
+procedure TVRMLLightNode.UpdateActiveLightState(
+  var ActiveLight: TActiveLight;
+  State: TVRMLGraphTraverseState);
+begin
+  ActiveLight.Transform := State.Transform;
+  ActiveLight.AverageScaleTransform := State.AverageScaleTransform;
+  UpdateActiveLight(ActiveLight);
+end;
+
+procedure TVRMLLightNode.UpdateActiveLight(
+  var ActiveLight: TActiveLight);
+begin
+  { Nothing to do in this class. }
+  Assert(ActiveLight.LightNode = Self);
 end;
 
 procedure TVRMLLightNode.MiddleTraverse(State: TVRMLGraphTraverseState);
@@ -223,6 +255,7 @@ begin
 
   FFddirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, -1));
   Fields.Add(FFddirection);
+  FFddirection.ProcessedInActiveLight := true;
 end;
 
 class function TVRMLDirectionalLightNode.ClassNodeTypeName: string;
@@ -230,13 +263,12 @@ begin
   Result := 'DirectionalLight';
 end;
 
-function TVRMLDirectionalLightNode.CreateActiveLight(
-  State: TVRMLGraphTraverseState): TActiveLight;
+procedure TVRMLDirectionalLightNode.UpdateActiveLight(
+  var ActiveLight: TActiveLight);
 begin
-  Result := inherited;
-  Result.TransfNormDirection :=
-    Normalized( MatrixMultPointNoTranslation(Result.Transform,
-      FdDirection.Value) );
+  inherited;
+  ActiveLight.TransfNormDirection :=
+    Normalized( MatrixMultDirection(ActiveLight.Transform, FdDirection.Value) );
 end;
 
 constructor TVRMLPositionalLightNode.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -246,6 +278,7 @@ begin
   FFdlocation := TSFVec3f.Create(Self, 'location', Vector3Single(0, 0, 0));
   Fields.Add(FFdlocation);
   { X3D specification comment: (-Inf,Inf) }
+  FFdlocation.ProcessedInActiveLight := true;
 
   FFdattenuation := TSFVec3f.Create(Self, 'attenuation', Vector3Single(1, 0, 0));
   Fields.Add(FFdattenuation);
@@ -257,12 +290,12 @@ begin
   Result := (FdAttenuation.Value[1] > 0) or (FdAttenuation.Value[2] > 0);
 end;
 
-function TVRMLPositionalLightNode.CreateActiveLight(
-  State: TVRMLGraphTraverseState): TActiveLight;
+procedure TVRMLPositionalLightNode.UpdateActiveLight(
+  var ActiveLight: TActiveLight);
 begin
-  Result := inherited;
+  inherited;
 
-  Result.TransfLocation := MatrixMultPoint(Result.Transform,
+  ActiveLight.TransfLocation := MatrixMultPoint(ActiveLight.Transform,
     FdLocation.Value);
 end;
 
@@ -347,6 +380,7 @@ begin
   FFdradius := TSFFloat.Create(Self, 'radius', 100);
   Fields.Add(FFdradius);
   { X3D specification comment: [0,Inf) }
+  FFdradius.ProcessedInActiveLight := true;
 
   FdGlobal.Value := true;
 
@@ -374,10 +408,10 @@ begin
   Result := VerMajor >= 2;
 end;
 
-function TNodePointLight_2.CreateActiveLight(
-  State: TVRMLGraphTraverseState): TActiveLight;
+procedure TNodePointLight_2.UpdateActiveLight(
+  var ActiveLight: TActiveLight);
 begin
-  Result := inherited;
+  inherited;
 
   { TODO: For non-uniform scale, this will simply use average scale.
     This is not fully correct, VRML spec doesn't clarify this
@@ -390,7 +424,7 @@ begin
     and
       bounding box
     which I don't know how to do *easily*... }
-  Result.TransfRadius := FdRadius.Value * Result.AverageScaleTransform;
+  ActiveLight.TransfRadius := FdRadius.Value * ActiveLight.AverageScaleTransform;
 end;
 
 constructor TNodeSpotLight_2.Create(const ANodeName: string;
@@ -409,10 +443,12 @@ begin
   FFddirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, -1));
   Fields.Add(FFddirection);
   { X3D specification comment: (-Inf,Inf) }
+  FFddirection.ProcessedInActiveLight := true;
 
   FFdradius := TSFFloat.Create(Self, 'radius', 100);
   Fields.Add(FFdradius);
   { X3D specification comment: [0,Inf) }
+  FFdradius.ProcessedInActiveLight := true;
 
   FdGlobal.Value := true;
 
@@ -445,18 +481,17 @@ begin
   Result := VerMajor >= 2;
 end;
 
-function TNodeSpotLight_2.CreateActiveLight(
-  State: TVRMLGraphTraverseState): TActiveLight;
+procedure TNodeSpotLight_2.UpdateActiveLight(
+  var ActiveLight: TActiveLight);
 begin
-  Result := inherited;
+  inherited;
 
-  Result.TransfNormDirection :=
-    Normalized( MatrixMultPointNoTranslation(Result.Transform,
-      FdDirection.Value) );
+  ActiveLight.TransfNormDirection :=
+    Normalized( MatrixMultDirection(ActiveLight.Transform, FdDirection.Value) );
 
   { TODO: For non-uniform scale, this is too easy,
     see TNodePointLight_2.CreateActiveLight for more comments. }
-  Result.TransfRadius := FdRadius.Value * Result.AverageScaleTransform;
+  ActiveLight.TransfRadius := FdRadius.Value * ActiveLight.AverageScaleTransform;
 end;
 
 procedure RegisterLightingNodes;

@@ -734,7 +734,7 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
 
-    function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; override;
+    procedure UpdateActiveLight(var ActiveLight: TActiveLight); override;
   end;
 
   TNodeGroup_1 = class(TNodeX3DChildNode)
@@ -2116,6 +2116,7 @@ begin
 
   FFddirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, -1));
   Fields.Add(FFddirection);
+  FFddirection.ProcessedInActiveLight := true;
 
   FFddropOffRate := TSFFloat.Create(Self, 'dropOffRate', 0);
   Fields.Add(FFddropOffRate);
@@ -2139,13 +2140,12 @@ begin
   Result := VerMajor <= 1;
 end;
 
-function TNodeSpotLight_1.CreateActiveLight(
-  State: TVRMLGraphTraverseState): TActiveLight;
+procedure TNodeSpotLight_1.UpdateActiveLight(
+  var ActiveLight: TActiveLight);
 begin
-  Result := inherited;
-  Result.TransfNormDirection :=
-    Normalized( MatrixMultPointNoTranslation(Result.Transform,
-      FdDirection.Value) );
+  inherited;
+  ActiveLight.TransfNormDirection :=
+    Normalized( MatrixMultDirection(ActiveLight.Transform, FdDirection.Value) );
 end;
 
 function TNodeSpotLight_1.SuggestedVRMLVersion(

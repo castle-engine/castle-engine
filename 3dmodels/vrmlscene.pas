@@ -628,6 +628,11 @@ type
 
     FSpatial: TVRMLSceneSpatialStructures;
     procedure SetSpatial(const Value: TVRMLSceneSpatialStructures);
+  protected
+    { Called when LightNode fields changed, while LightNode is in
+      active part of VRML graph. }
+    procedure ChangedActiveLightNode(LightNode: TVRMLLightNode;
+      Field: TVRMLField); virtual;
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
     destructor Destroy; override;
@@ -667,8 +672,7 @@ type
       Call ChangedShapeStateFields(ShapeStateNum, TransformOnly, TextureImageChanged)
       if you only changed
       values of fields within ShapeList[ShapeStateNum].GeometryNode,
-      ShapeList[ShapeStateNum].State.Last* and
-      ShapeList[ShapeStateNum].State.Active*. (And you're sure that
+      ShapeList[ShapeStateNum].State.Last*. (And you're sure that
       these nodes are not shared by other shape+states using VRML DEF/USE
       mechanism.)
 
@@ -1928,6 +1932,11 @@ begin
     end else
     if Node is TVRMLLightNode then
     begin
+      { TODO: when light's transform changed, this could be more optimized:
+        - update all TActiveLight records when this light node was present
+          (by UpdateActiveLightState)
+        - hmm, eventually ChangedAll may be needed to update
+          CurrentActiveLights? }
       raise BreakTransformChangeFailed.Create;
     end else
     if Node is TNodeProximitySensor then
@@ -1965,8 +1974,6 @@ end;
 procedure TVRMLScene.ChangedFields(Node: TVRMLNode;
   FieldOrEvent: TVRMLFieldOrEvent);
 var
-  NodeLastNodesIndex, i: integer;
-  Coord: TMFVec3f;
   Field: TVRMLField;
 
   procedure DoLogChanges;
@@ -1981,6 +1988,8 @@ var
   end;
 
 var
+  NodeLastNodesIndex, I: integer;
+  Coord: TMFVec3f;
   TransformChangeHelper: TTransformChangeHelper;
 begin
   NodeLastNodesIndex := Node.TraverseStateLastNodesIndex;
@@ -2102,18 +2111,7 @@ begin
   end else
   if Node is TVRMLLightNode then
   begin
-    { node jest jednym z node'ow Active*. Wiec wplynal tylko na ShapeStates
-      gdzie wystepuje jako Active.
-
-      We use CurrentActiveLights, so possibly VRML2ActiveLights here ---
-      that's OK, they are valid because UpdateVRML2ActiveLights was called
-      when construcing ShapeStates list. }
-    for i := 0 to ShapeStates.Count-1 do
-      if ShapeStates[i].State.CurrentActiveLights.
-           IndexOfLightNode(TVRMLLightNode(Node)) >= 0 then
-        { TransformOnly = @true, suitable for roSeparateShapeStatesNoTransform,
-          they don't have lights compiled in display list. }
-        ChangedShapeStateFields(i, true, false);
+    ChangedActiveLightNode(TVRMLLightNode(Node), Field);
   end else
   if Node is TVRMLGeometryNode then
   begin
@@ -2279,6 +2277,40 @@ begin
     end;
 
     ScheduleChangedAll;
+  end;
+end;
+
+procedure TVRMLScene.ChangedActiveLightNode(LightNode: TVRMLLightNode;
+  Field: TVRMLField);
+var
+  I, J: integer;
+  ActiveLight: PActiveLight;
+begin
+  { For light properties not reflected in TActiveLight,
+    there's just no need to do anything right now. }
+
+  if (Field = nil) or Field.ProcessedInActiveLight then
+  begin
+    { Update all TActiveLight records with LightNode = this Node.
+
+      TODO: what if some CurrentActiveLights need to be updated?
+      Code below fails for this.
+
+      To be fixed (at the same time taking into account that in X3D
+      "global" is exposed field and so may change during execution) by
+      constructing CurrentActiveLights always with global = TRUE assumption.
+      RenderShapeStateLights will have to take care of eventual "radius"
+      constraints. }
+
+    for I := 0 to ShapeStates.Count - 1 do
+    begin
+      for J := 0 to ShapeStates[I].State.CurrentActiveLights.Count - 1 do
+      begin
+        ActiveLight := @(ShapeStates[I].State.CurrentActiveLights.Items[J]);
+        if ActiveLight^.LightNode = LightNode then
+          LightNode.UpdateActiveLight(ActiveLight^);
+      end;
+    end;
   end;
 end;
 

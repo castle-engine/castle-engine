@@ -75,7 +75,7 @@ uses
   SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLScene, VRMLOpenGLRenderer, GL, GLU, GLExt, BackgroundGL, KambiGLUtils,
   VRMLShapeStateOctree, VRMLGLHeadLight, VRMLRendererOptimization,
-  ShadowVolumesHelper, Navigation;
+  ShadowVolumesHelper, Navigation, VRMLFields;
 
 {$define read_interface}
 
@@ -618,6 +618,9 @@ type
       const TransformIsIdentity: boolean;
       const Transform: TMatrix4Single;
       LightCap, DarkCap: boolean);
+  protected
+    procedure ChangedActiveLightNode(LightNode: TVRMLLightNode;
+      Field: TVRMLField); override;
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
       AOptimization: TGLRendererOptimization;
@@ -2491,6 +2494,22 @@ begin
   begin
     Renderer.Unprepare(ShapeStates[ShapeStateNum].State.Texture);
     PreparedAndUseBlendingCalculated.Items[ShapeStateNum] := false;
+  end;
+end;
+
+procedure TVRMLGLScene.ChangedActiveLightNode(LightNode: TVRMLLightNode;
+  Field: TVRMLField);
+var
+  TG: TTransparentGroup;
+begin
+  inherited;
+
+  { Lights are rendered each time by TVRMLGLScene
+    in non-roSceneAsAWhole optimizations, so no need to do anything for them. }
+  if Optimization = roSceneAsAWhole then
+  begin
+    for TG := Low(TG) to High(TG) do
+      glFreeDisplayList(SAAW_DisplayList[TG]);
   end;
 end;
 
