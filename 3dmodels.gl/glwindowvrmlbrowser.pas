@@ -145,8 +145,6 @@ type
       that is only when the window is currently closed.
       Reason: to make shadows possible, we have to initialize gl context
       specially (with stencil buffer).
-      Also, set this up before loading your model (as we have to
-      initialize some stuff in the loaded model for shadows).
 
       Note that the shadows will not be actually rendered until you also
       set ShadowVolumes := true. }
