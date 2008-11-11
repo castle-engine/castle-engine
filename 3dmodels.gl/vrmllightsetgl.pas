@@ -114,6 +114,42 @@ procedure glLightsFromVRML(Lights: PArray_ActiveLight; LightsCount: Integer;
 procedure glLightsFromVRML(Lights: TDynActiveLightArray;
   glLightNum1, glLightNum2: Integer; ColorModulatorSingle: TColorModulatorSingleFunc); overload;
 
+type
+  { Use this to render many light sets (TDynActiveLightArray) and avoid
+    to configure the same light many times.
+
+    The idea is that calling Render() is just like doing glLightsFromVRML,
+    that is it sets up given OpenGL lights. But this class remembers what
+    VRML light was set on what OpenGL light, and assumes that VRML lights
+    don't change during TVRMLGLLightsCachingRenderer execution. So OpenGL
+    light will not be configured again, if it's already configured
+    correctly. }
+  TVRMLGLLightsCachingRenderer = class
+  private
+    FGLLightNum1, FGLLightNum2: Integer;
+    FColorModulatorSingle: TColorModulatorSingleFunc;
+    LightsKnown: boolean;
+    LightsDone: array of PActiveLight;
+  public
+    constructor Create(const AGLLightNum1, AGLLightNum2: Integer;
+      const AColorModulatorSingle: TColorModulatorSingleFunc);
+
+    procedure Render(Lights: TDynActiveLightArray);
+    procedure Render(Lights: PArray_ActiveLight; LightsCount: Integer);
+
+    property GLLightNum1: Integer read FGLLightNum1;
+    property GLLightNum2: Integer read FGLLightNum2;
+    property ColorModulatorSingle: TColorModulatorSingleFunc
+      read FColorModulatorSingle;
+
+    { Statistics of how many OpenGL lights setups were done
+      (Statistics[true]) vs how many were avoided (Statistics[false]).
+      This allows you to decide is using TVRMLGLLightsCachingRenderer
+      class sensible (as opposed to directly rendering with glLightsFromVRML
+      calls). }
+    Statistics: array [boolean] of Cardinal;
+  end;
+
 (* To jest obiekt ktory umozliwia latwe zrobienie czegos takiego jak
    lightset.wrl w lets_take_a_walk, o ktorym napisalem na poczatku tego
    modulu. This object creates Lights: TDynActiveLightArray object and loads
@@ -415,32 +451,104 @@ begin
   glLightFromVRMLLightAssumeOn;
 end;
 
-procedure glLightsFromVRML(Lights: PArray_ActiveLight; LightsCount: Integer;
-  glLightNum1, glLightNum2: Integer; ColorModulatorSingle: TColorModulatorSingleFunc); overload;
-var i: Integer;
+procedure glLightsFromVRML(
+  Lights: PArray_ActiveLight; LightsCount: Integer;
+  glLightNum1, glLightNum2: Integer;
+  ColorModulatorSingle: TColorModulatorSingleFunc);
+var
+  I: Integer;
 begin
- if LightsCount >= glLightNum2-glLightNum1+1  then
+  if LightsCount >= glLightNum2-glLightNum1 + 1  then
   begin
-   { wykorzystujemy wszystkie dostepne swiatla OpenGLa }
-   for i := 0 to glLightNum2-glLightNum1 do
-    glLightFromVRMLLight(glLightNum1 + i, Lights^[i], true, ColorModulatorSingle);
+    { use all available OpenGL lights }
+    for i := 0 to GLLightNum2 - GLLightNum1 do
+      glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true, ColorModulatorSingle);
   end else
   begin
-   { jezeli nie zamierzamy wykorzystac wszystkich swiatel OpenGL to
-     niewykorzystanym swiatlom robimy Disabled (a wykorzystywanym robimy
-     to co wyzej) }
-   for i := 0 to LightsCount-1 do
-    glLightFromVRMLLight(glLightNum1 + i, Lights^[i], true, ColorModulatorSingle);
-   for i := LightsCount to glLightNum2-glLightNum1 do
-    glDisable(GL_LIGHT0 + glLightNum1 + i);
+    { use some OpenGL lights for VRML lights, disable rest of the lights }
+    for i := 0 to LightsCount - 1 do
+      glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true, ColorModulatorSingle);
+    for i := LightsCount to GLLightNum2-GLLightNum1 do
+      glDisable(GL_LIGHT0 + GLLightNum1 + i);
   end;
 end;
 
 procedure glLightsFromVRML(Lights: TDynActiveLightArray;
-  glLightNum1, glLightNum2: Integer; ColorModulatorSingle: TColorModulatorSingleFunc); overload;
+  GLLightNum1, GLLightNum2: Integer;
+  ColorModulatorSingle: TColorModulatorSingleFunc);
 begin
- glLightsFromVRML(Lights.ItemsArray, Lights.Count, glLightNum1, glLightNum2,
-   ColorModulatorSingle);
+  glLightsFromVRML(Lights.ItemsArray, Lights.Count, GLLightNum1, GLLightNum2,
+    ColorModulatorSingle);
+end;
+
+{ TVRMLGLLightsCachingRenderer ----------------------------------------------- }
+
+constructor TVRMLGLLightsCachingRenderer.Create(
+  const AGLLightNum1, AGLLightNum2: Integer;
+  const AColorModulatorSingle: TColorModulatorSingleFunc);
+begin
+  inherited Create;
+  FGLLightNum1 := AGLLightNum1;
+  FGLLightNum2 := AGLLightNum2;
+  FColorModulatorSingle := AColorModulatorSingle;
+
+  LightsKnown := false;
+  SetLength(LightsDone, GLLightNum2 - GLLightNum1 + 1);
+end;
+
+procedure TVRMLGLLightsCachingRenderer.Render(Lights: TDynActiveLightArray);
+begin
+  Render(Lights.ItemsArray, Lights.Count);
+end;
+
+procedure TVRMLGLLightsCachingRenderer.Render(Lights: PArray_ActiveLight;
+  LightsCount: Integer);
+
+  function NeedRenderLight(Index: Integer; Light: PActiveLight): boolean;
+  begin
+    Result := not (
+      LightsKnown and
+      ( { Light Index is currently disabled, and we want it disabled: Ok. }
+        ( (LightsDone[Index] = nil) and
+          (Light = nil) )
+        or
+        { Light Index is currently enabled, and we want it enabled,
+          with the same LightNode and Transform: Ok.
+          (Other TActiveLight record properties are calculated from
+          LightNode and Transform, so no need to compare them). }
+        ( (LightsDone[Index] <> nil) and
+          (Light <> nil) and
+          (LightsDone[Index]^.LightNode = Light^.LightNode) and
+          (MatricesPerfectlyEqual(
+            LightsDone[Index]^.Transform, Light^.Transform)) )
+      ));
+    if Result then
+      { Update LightsDone[Index], if change required. }
+      LightsDone[Index] := Light;
+    Inc(Statistics[Result]);
+  end;
+
+var
+  I: Integer;
+begin
+  if LightsCount >= GLLightNum2 - GLLightNum1 + 1  then
+  begin
+    { use all available OpenGL lights }
+    for i := 0 to GLLightNum2 - GLLightNum1 do
+      if NeedRenderLight(I, @(Lights^[i])) then
+        glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true, ColorModulatorSingle);
+  end else
+  begin
+    { use some OpenGL lights for VRML lights, disable rest of the lights }
+    for i := 0 to LightsCount - 1 do
+      if NeedRenderLight(I, @(Lights^[i])) then
+        glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true, ColorModulatorSingle);
+    for i := LightsCount to GLLightNum2-GLLightNum1 do
+      if NeedRenderLight(I, nil) then
+        glDisable(GL_LIGHT0 + GLLightNum1 + i);
+  end;
+
+  LightsKnown := true;
 end;
 
 { TVRMLLightSetGL ------------------------------------------------------------ }

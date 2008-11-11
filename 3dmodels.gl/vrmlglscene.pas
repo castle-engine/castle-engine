@@ -75,7 +75,7 @@ uses
   SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLScene, VRMLOpenGLRenderer, GL, GLU, GLExt, BackgroundGL, KambiGLUtils,
   VRMLShapeStateOctree, VRMLGLHeadLight, VRMLRendererOptimization,
-  ShadowVolumesHelper, Navigation, VRMLFields;
+  ShadowVolumesHelper, Navigation, VRMLFields, VRMLLightSetGL;
 
 {$define read_interface}
 
@@ -123,7 +123,9 @@ const
 type
   { Internal for TVRMLGLScene
     @exclude }
-  TRenderShapeState = procedure(ShapeStateNum: Integer) of object;
+  TRenderShapeState = procedure (
+    LightsRenderer: TVRMLGLLightsCachingRenderer;
+    ShapeStateNum: Integer) of object;
   { @exclude }
   TObjectProcedure = procedure of object;
 
@@ -383,7 +385,9 @@ type
 
     { This renders ShapeStates[ShapeStateNum], by calling
       Renderer.RenderShapeStateLight and Renderer.RenderShapeState. }
-    procedure RenderShapeState_WithLight(ShapeStateNum: Integer);
+    procedure RenderShapeState_WithLight(
+      LightsRenderer: TVRMLGLLightsCachingRenderer;
+      ShapeStateNum: Integer);
 
     procedure RenderBeginSimple;
     procedure RenderEndSimple;
@@ -576,7 +580,9 @@ type
 
       This renders SSSX_DisplayLists.Items[ShapeStateNum]
       display list (creating it if necessary). }
-    procedure SSS_RenderShapeState(ShapeStateNum: Integer);
+    procedure SSS_RenderShapeState(
+      LightsRenderer: TVRMLGLLightsCachingRenderer;
+      ShapeStateNum: Integer);
 
     { Call this only when Optimization = roSeparateShapeStates and
       SSSX_DisplayLists.Items[ShapeStateNum] = 0.
@@ -602,7 +608,9 @@ type
       Private things used only when Optimization is
       roSeparateShapeStatesNoTransform. Prefixed with SSSNT, for clarity. }
 
-    procedure SSSNT_RenderShapeState(ShapeStateNum: Integer);
+    procedure SSSNT_RenderShapeState(
+      LightsRenderer: TVRMLGLLightsCachingRenderer;
+      ShapeStateNum: Integer);
     procedure SSSNT_PrepareShapeState(ShapeStateNum: Integer);
 
     { shadow things ---------------------------------------------------------- }
@@ -1506,9 +1514,12 @@ begin
     ShapeStates[ShapeStateNum].State);
 end;
 
-procedure TVRMLGLScene.RenderShapeState_WithLight(ShapeStateNum: Integer);
+procedure TVRMLGLScene.RenderShapeState_WithLight(
+  LightsRenderer: TVRMLGLLightsCachingRenderer;
+  ShapeStateNum: Integer);
 begin
-  Renderer.RenderShapeStateLights(ShapeStates[ShapeStateNum].State);
+  Renderer.RenderShapeStateLights(LightsRenderer,
+    ShapeStates[ShapeStateNum].State);
   Renderer.RenderShapeState(
     ShapeStates[ShapeStateNum].GeometryNode,
     ShapeStates[ShapeStateNum].State);
@@ -1657,13 +1668,16 @@ const
   AllOrOpaque = [tgAll, tgOpaque];
   AllOrTransparent = [tgAll, tgTransparent];
 
+var
+  LightsRenderer: TVRMLGLLightsCachingRenderer;
+
   procedure TestRenderShapeStateProc(ShapeStateNum: Integer);
   begin
     if (not Assigned(TestShapeStateVisibility)) or
        TestShapeStateVisibility(ShapeStateNum) then
     begin
       Inc(FLastRender_RenderedShapeStatesCount);
-      RenderShapeStateProc(ShapeStateNum);
+      RenderShapeStateProc(LightsRenderer, ShapeStateNum);
     end;
   end;
 
@@ -1743,70 +1757,83 @@ begin
   FLastRender_RenderedShapeStatesCount := 0;
   FLastRender_AllShapeStatesCount := ShapeStates.Count;
 
-  if Assigned(RenderBeginProc) then
-    RenderBeginProc;
+  LightsRenderer := TVRMLGLLightsCachingRenderer.Create(
+    Attributes.FirstGLFreeLight, Renderer.LastGLFreeLight,
+    Attributes.ColorModulatorSingle);
   try
-    if Attributes.PureGeometry then
-    begin
-      { When PureGeometry, we don't want to do anything with glDepthMask
-        or GL_BLEND enable state. Just render everything. }
-      RenderAllAsOpaque;
-    end else
-    begin
-      glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-      try
-        { TODO: sorting of shapestates is doable and should be done
-          at some point, though. }
 
-        glDepthMask(GL_TRUE);
-        glDisable(GL_BLEND);
-        if Attributes.Blending then
-        begin
-          { uzywamy zmiennej TransparentObjectsExist aby ew. (jesli na scenie
-            nie ma zadnych obiektow ktore chcemy renderowac z blending)
-            zaoszczedzic czas i nie robic zmian stanu OpenGLa glDepthMask(GL_FALSE);
-            itd. i nie iterowac ponownie po liscie ShapeStates }
-          TransparentObjectsExist := false;
+    if Assigned(RenderBeginProc) then
+      RenderBeginProc;
+    try
+      if Attributes.PureGeometry then
+      begin
+        { When PureGeometry, we don't want to do anything with glDepthMask
+          or GL_BLEND enable state. Just render everything. }
+        RenderAllAsOpaque;
+      end else
+      begin
+        glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+        try
+          { TODO: sorting of shapestates is doable and should be done
+            at some point, though. }
 
-          { draw fully opaque objects }
-          for ShapeStateNum := 0 to ShapeStates.Count - 1 do
+          glDepthMask(GL_TRUE);
+          glDisable(GL_BLEND);
+          if Attributes.Blending then
           begin
-            Assert(PreparedAndUseBlendingCalculated[ShapeStateNum]);
-            if not UseBlending.Items[ShapeStateNum] then
-            begin
-              if TransparentGroup in AllOrOpaque then
-                TestRenderShapeStateProc(ShapeStateNum);
-            end else
-              TransparentObjectsExist := true;
-          end;
+            { uzywamy zmiennej TransparentObjectsExist aby ew. (jesli na scenie
+              nie ma zadnych obiektow ktore chcemy renderowac z blending)
+              zaoszczedzic czas i nie robic zmian stanu OpenGLa glDepthMask(GL_FALSE);
+              itd. i nie iterowac ponownie po liscie ShapeStates }
+            TransparentObjectsExist := false;
 
-          { draw partially transparent objects }
-          if TransparentObjectsExist and
-             (TransparentGroup in AllOrTransparent) then
-          begin
-            glDepthMask(GL_FALSE);
-            glEnable(GL_BLEND);
-
-            { Set glBlendFunc using Attributes.BlendingXxxFactor }
-            BlendingSourceFactorSet := Attributes.BlendingSourceFactor;
-            BlendingDestinationFactorSet := Attributes.BlendingDestinationFactor;
-            glBlendFunc(BlendingSourceFactorSet, BlendingDestinationFactorSet);
-
+            { draw fully opaque objects }
             for ShapeStateNum := 0 to ShapeStates.Count - 1 do
-              if UseBlending.Items[ShapeStateNum] then
+            begin
+              Assert(PreparedAndUseBlendingCalculated[ShapeStateNum]);
+              if not UseBlending.Items[ShapeStateNum] then
               begin
-                AdjustBlendFunc(ShapeStates[ShapeStateNum],
-                  BlendingSourceFactorSet, BlendingDestinationFactorSet);
-                TestRenderShapeStateProc(ShapeStateNum);
-              end;
-          end;
-        end else
-          RenderAllAsOpaque;
-      finally glPopAttrib end;
+                if TransparentGroup in AllOrOpaque then
+                  TestRenderShapeStateProc(ShapeStateNum);
+              end else
+                TransparentObjectsExist := true;
+            end;
+
+            { draw partially transparent objects }
+            if TransparentObjectsExist and
+               (TransparentGroup in AllOrTransparent) then
+            begin
+              glDepthMask(GL_FALSE);
+              glEnable(GL_BLEND);
+
+              { Set glBlendFunc using Attributes.BlendingXxxFactor }
+              BlendingSourceFactorSet := Attributes.BlendingSourceFactor;
+              BlendingDestinationFactorSet := Attributes.BlendingDestinationFactor;
+              glBlendFunc(BlendingSourceFactorSet, BlendingDestinationFactorSet);
+
+              for ShapeStateNum := 0 to ShapeStates.Count - 1 do
+                if UseBlending.Items[ShapeStateNum] then
+                begin
+                  AdjustBlendFunc(ShapeStates[ShapeStateNum],
+                    BlendingSourceFactorSet, BlendingDestinationFactorSet);
+                  TestRenderShapeStateProc(ShapeStateNum);
+                end;
+            end;
+          end else
+            RenderAllAsOpaque;
+        finally glPopAttrib end;
+      end;
+    finally
+      if Assigned(RenderEndProc) then
+        RenderEndProc;
     end;
+
   finally
-    if Assigned(RenderEndProc) then
-      RenderEndProc;
+    { Tests:
+    Writeln('LightsRenderer stats: light setups done ',
+      LightsRenderer.Statistics[true], ' vs avoided ',
+      LightsRenderer.Statistics[false]); }
+    FreeAndNil(LightsRenderer);
   end;
 end;
 
@@ -1968,8 +1995,10 @@ begin
     SSSX_PrepareBegin;
 
   if RenderBeginEndToDisplayList then
-    glCallList(SSSX_RenderBeginDisplayList) else
-    RenderBeginSimple;
+    glCallList(SSSX_RenderBeginDisplayList);
+
+  { if not RenderBeginEndToDisplayList, then SSSX_PrepareBegin just did
+    RenderBeginSimple }
 end;
 
 procedure TVRMLGLScene.SSSX_RenderEnd;
@@ -1978,8 +2007,10 @@ begin
     SSSX_PrepareEnd;
 
   if RenderBeginEndToDisplayList then
-    glCallList(SSSX_RenderEndDisplayList) else
-    RenderEndSimple;
+    glCallList(SSSX_RenderEndDisplayList);
+
+  { if not RenderBeginEndToDisplayList, then SSSX_PrepareEnd just did
+    RenderEndSimple }
 end;
 
 procedure TVRMLGLScene.SSS_PrepareShapeState(
@@ -2005,9 +2036,6 @@ begin
       'TVRMLGLScene.SSS_PrepareShapeState');
     glNewList(SSSX_DisplayLists.Items[ShapeStateNum], GL_COMPILE);
     try
-      {if not DynamicLights then
-        Renderer.RenderShapeStateLights(ShapeStates[ShapeStateNum].State);}
-
       RenderShapeState_NoLight(ShapeStateNum);
       glEndList;
     except
@@ -2036,6 +2064,7 @@ begin
 end;
 
 procedure TVRMLGLScene.SSS_RenderShapeState(
+  LightsRenderer: TVRMLGLLightsCachingRenderer;
   ShapeStateNum: Integer);
 begin
   if ShapeStates[ShapeStateNum].EnableDisplayList then
@@ -2043,8 +2072,8 @@ begin
     if SSSX_DisplayLists.Items[ShapeStateNum] = 0 then
       SSS_PrepareShapeState(ShapeStateNum);
 
-    {if DynamicLights then}
-    Renderer.RenderShapeStateLights(ShapeStates[ShapeStateNum].State);
+    Renderer.RenderShapeStateLights(LightsRenderer,
+      ShapeStates[ShapeStateNum].State);
 
     glCallList(SSSX_DisplayLists.Items[ShapeStateNum]);
   end else
@@ -2053,8 +2082,8 @@ begin
     { Make sure that it's prepared. }
     SSS_PrepareShapeState(ShapeStateNum);
 
-    {if DynamicLights then}
-    Renderer.RenderShapeStateLights(ShapeStates[ShapeStateNum].State);
+    Renderer.RenderShapeStateLights(LightsRenderer,
+      ShapeStates[ShapeStateNum].State);
 
     RenderShapeState_NoLight(ShapeStateNum);
   end;
@@ -2108,6 +2137,7 @@ begin
 end;
 
 procedure TVRMLGLScene.SSSNT_RenderShapeState(
+  LightsRenderer: TVRMLGLLightsCachingRenderer;
   ShapeStateNum: Integer);
 begin
   if ShapeStates[ShapeStateNum].EnableDisplayList then
@@ -2115,7 +2145,8 @@ begin
     if SSSX_DisplayLists.Items[ShapeStateNum] = 0 then
       SSSNT_PrepareShapeState(ShapeStateNum);
 
-    Renderer.RenderShapeStateLights(ShapeStates[ShapeStateNum].State);
+    Renderer.RenderShapeStateLights(LightsRenderer,
+      ShapeStates[ShapeStateNum].State);
 
     Renderer.RenderShapeStateBegin(
       ShapeStates[ShapeStateNum].GeometryNode,
@@ -2133,7 +2164,8 @@ begin
     { Make sure that it's prepared. }
     SSSNT_PrepareShapeState(ShapeStateNum);
 
-    Renderer.RenderShapeStateLights(ShapeStates[ShapeStateNum].State);
+    Renderer.RenderShapeStateLights(LightsRenderer,
+      ShapeStates[ShapeStateNum].State);
 
     RenderShapeState_NoLight(ShapeStateNum);
   end;

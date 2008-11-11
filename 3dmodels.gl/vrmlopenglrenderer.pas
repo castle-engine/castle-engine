@@ -92,7 +92,7 @@
 
     @item(
       potem wywoluj
-        RenderShapeStateLights(State)
+        RenderShapeStateLights(LightsRenderer, State)
         RenderShapeState(Geometry, State)
       aby renderowac pary Geometry+State.
       Jak juz powiedzialem, kazda podawana teraz para musiala wystapic
@@ -1149,7 +1149,6 @@ type
       to get LastGLFreeLight. LastGLFreeLight function will not ever return -1
       and will minimize amount of calls to glGetInteger() }
     FLastGLFreeLight: integer;
-    function LastGLFreeLight: integer;
 
     { Use always LastGLFreeTexture, this will never return -1.
       Will return Attributes.LastGLFreeTexture, or
@@ -1313,7 +1312,9 @@ type
       const FogDistanceScaling: Single);
     procedure RenderEnd;
 
-    procedure RenderShapeStateLights(State: TVRMLGraphTraverseState);
+    procedure RenderShapeStateLights(
+      LightsRenderer: TVRMLGLLightsCachingRenderer;
+      State: TVRMLGraphTraverseState);
     procedure RenderShapeStateBegin(Geometry: TVRMLGeometryNode;
       State: TVRMLGraphTraverseState);
     procedure RenderShapeStateNoTransform(Geometry: TVRMLGeometryNode;
@@ -1424,6 +1425,14 @@ type
     function PreparedTextureAlphaChannelType(
       TextureNode: TVRMLTextureNode;
       out AlphaChannelType: TAlphaChannelType): boolean;
+
+    { Last available OpenGL light number.
+
+      This is never -1, in contrast to Attributes.LastGLFreeLight.
+      In other words, if Attributes.LastGLFreeLight, then this method
+      will actually make appropriate glGetInteger call to get number of
+      available lights in this OpenGL context. }
+    function LastGLFreeLight: integer;
   end;
 
   EVRMLOpenGLRenderError = class(EVRMLError);
@@ -3567,6 +3576,7 @@ end;
 {$endif USE_VRML_NODES_TRIANGULATION}
 
 procedure TVRMLOpenGLRenderer.RenderShapeStateLights(
+  LightsRenderer: TVRMLGLLightsCachingRenderer;
   State: TVRMLGraphTraverseState);
 begin
   glMatrixMode(GL_MODELVIEW);
@@ -3578,9 +3588,12 @@ begin
     as the lights positions/directions are in world coordinates. }
 
   if Attributes.UseLights then
+    LightsRenderer.Render(State.CurrentActiveLights);
+
+    { Without LightsRenderer, we would do it like this:
     glLightsFromVRML(State.CurrentActiveLights,
       Attributes.FirstGLFreeLight, LastGLFreeLight,
-      Attributes.ColorModulatorSingle);
+      Attributes.ColorModulatorSingle);}
 end;
 
 procedure TVRMLOpenGLRenderer.RenderShapeStateBegin(
