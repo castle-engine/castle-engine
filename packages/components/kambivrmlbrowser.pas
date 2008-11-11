@@ -26,7 +26,8 @@ unit KambiVRMLBrowser;
 interface
 
 uses Classes, KambiGLControl, VectorMath, Controls,
-  VRMLNodes, VRMLGLScene, VRMLScene, Navigation, VRMLGLHeadlight, Areas;
+  VRMLNodes, VRMLGLScene, VRMLScene, Navigation, VRMLGLHeadlight, Areas,
+  ShadowVolumesHelper;
 
 type
   { A simple VRML browser as a Lazarus component. This manages TVRMLGLScene,
@@ -110,6 +111,15 @@ type
     procedure GeometryChanged(Scene: TVRMLScene);
 
     procedure UpdateCursor;
+
+    FShadowVolumesPossible: boolean;
+    procedure SetShadowVolumesPossible(const Value: boolean);
+    FShadowVolumes: boolean;
+    FShadowVolumesDraw: boolean;
+    SVHelper: TShadowVolumesHelper;
+
+    procedure RenderScene(InShadow: boolean);
+    procedure RenderShadowVolumes;
   protected
     procedure DoBeforeDraw; override;
     procedure DoDraw; override;
@@ -152,6 +162,43 @@ type
   published
     property OnNavigatorChanged: TNavigatorNotifyFunc
       read FOnNavigatorChanged write FOnNavigatorChanged;
+
+    { Should we make shadow volumes possible?
+
+      This can be changed only when the context is not initialized,
+      that is only when the window is currently closed.
+      Reason: to make shadows possible, we have to initialize gl context
+      specially (with stencil buffer).
+
+      Note that the shadows will not be actually rendered until you also
+      set ShadowVolumes := true. }
+    property ShadowVolumesPossible: boolean
+      read FShadowVolumesPossible write SetShadowVolumesPossible default false;
+
+    { Should we render with shadow volumes?
+      You can change this at any time, to switch rendering shadows on/off.
+
+      This works only if ShadowVolumesPossible is @true.
+
+      Note that the shadow volumes algorithm makes some requirements
+      about the 3D model: it must be 2-manifold, that is have a correctly
+      closed volume. Otherwise, rendering results may be bad. You can check
+      Scene.BorderEdges.Count before using this: BorderEdges.Count = 0 means
+      that model is Ok, correct manifold.
+
+      For shadows to be actually used you still need a light source
+      marked as the main shadows light (kambiShadows = kambiShadowsMain = TRUE),
+      see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows]. }
+    property ShadowVolumes: boolean
+      read FShadowVolumes write FShadowVolumes default false;
+
+    { Actually draw the shadow volumes to the color buffer, for debugging.
+      If shadows are rendered (see ShadowVolumesPossible and ShadowVolumes),
+      you can use this to actually see shadow volumes, for debug / demo
+      purposes. Shadow volumes will be rendered on top of the scene,
+      as yellow blended polygons. }
+    property ShadowVolumesDraw: boolean
+      read FShadowVolumesDraw write FShadowVolumesDraw default false;
   end;
 
 procedure Register;
@@ -246,27 +293,69 @@ begin
 end;
 
 procedure TKamVRMLBrowser.DoBeforeDraw;
+var
+  Options: TPrepareRenderOptions;
 begin
-  Scene.PrepareRender([tgAll], [prBackground, prBoundingBox]);
+  Options := [prBackground, prBoundingBox];
+  if ShadowVolumesPossible then
+    Options := Options + prShadowVolume;
+
+  Scene.PrepareRender([tgAll], Options);
+
   inherited;
 end;
 
-procedure TKamVRMLBrowser.DoDraw;
+procedure TKamVRMLBrowser.RenderScene(InShadow: boolean);
 begin
+  if InShadow then
+    Scene.RenderFrustum(Navigator.Frustum, tgAll, @Scene.LightRenderInShadow) else
+    Scene.RenderFrustum(Navigator.Frustum, tgAll, nil);
+end;
+
+procedure TKamVRMLBrowser.RenderShadowVolumes;
+begin
+  Scene.InitAndRenderShadowVolume(SVHelper, true, IdentityMatrix4Single);
+end;
+
+procedure TKamVRMLBrowser.DoDraw;
+
+  procedure RenderNoShadows;
+  begin
+    RenderScene(false);
+  end;
+
+  procedure RenderWithShadows(const MainLightPosition: TVector4Single);
+  begin
+    SVHelper.InitFrustumAndLight(Navigator.Frustum, MainLightPosition);
+    SVHelper.Render(nil, @RenderScene, @RenderShadowVolumes, ShadowVolumesDraw);
+  end;
+
+var
+  ClearBuffers: TGLbitfield;
+  MainLightPosition: TVector4Single;
+begin
+  ClearBuffers := GL_DEPTH_BUFFER_BIT;
+
   if Scene.Background <> nil then
   begin
     glLoadMatrix(Navigator.RotationOnlyMatrix);
     Scene.Background.Render;
-    glClear(GL_DEPTH_BUFFER_BIT);
   end else
-    glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+    ClearBuffers := ClearBuffers or GL_COLOR_BUFFER_BIT;
+
+  if ShadowVolumesPossible and ShadowVolumes then
+    ClearBuffers := ClearBuffers or GL_STENCIL_BUFFER_BIT;
+
+  glClear(ClearBuffers);
 
   TVRMLGLHeadlight.RenderOrDisable(Scene.Headlight, 0);
 
   glLoadMatrix(Navigator.Matrix);
-  if Navigator is TWalkNavigator then
-    Scene.RenderFrustum(WalkNav.Frustum, tgAll) else
-    Scene.Render(nil, tgAll);
+  if ShadowVolumesPossible and
+     ShadowVolumes and
+     Scene.MainLightForShadows(MainLightPosition) then
+    RenderWithShadows(MainLightPosition) else
+    RenderNoShadows;
 
   inherited;
 end;
@@ -275,6 +364,13 @@ procedure TKamVRMLBrowser.DoGLContextInit;
 begin
   inherited;
   glEnable(GL_LIGHTING);
+
+  if ShadowVolumesPossible then
+  begin
+    SVHelper := TShadowVolumesHelper.Create;
+    SVHelper.InitGLContext;
+  end;
+
   { Manually call Resize now, to set projection. }
   Resize;
 end;
@@ -286,6 +382,8 @@ begin
     in Lazarus, then close Lazarus). So we secure against it. }
   if Scene <> nil then
     Scene.CloseGL;
+
+  FreeAndNil(SVHelper);
 
   inherited;
 end;
@@ -301,7 +399,7 @@ begin
   inherited;
   if not MakeCurrent then Exit;
   Scene.GLProjection(Navigator, Scene.BoundingBox, CameraRadius,
-    Width, Height, AngleOfViewX, AngleOfViewY);
+    Width, Height, AngleOfViewX, AngleOfViewY, ShadowVolumesPossible);
 end;
 
 const
@@ -473,6 +571,24 @@ begin
   { Scene.GeometryChanged possibly cleared pointing device info by
     PointingDeviceClear. This means that cursor must be updated. }
   UpdateCursor;
+end;
+
+procedure TKamVRMLBrowser.SetShadowVolumesPossible(const Value: boolean);
+begin
+  if ContextInitialized then
+    raise Exception.Create('You can''t change ShadowVolumesPossible ' +
+      'while the context is already initialized');
+  FShadowVolumesPossible := Value;
+
+  { TODO: hmm, there's no way to request stencil buffer from TOpenGLControl?
+    Looking in the sources, for GTK always at least 1-bit stencil buffer is
+    requested (pretty stupid and worthless?), for Windows nothing is requested.
+    There's no way to workaround it, this must be fixed in OpenGLContext
+    for TKamVRMLBrowser to work reliably. }
+
+{  if ShadowVolumesPossible then
+    StencilBufferBits := 8 else
+    StencilBufferBits := 0;}
 end;
 
 end.
