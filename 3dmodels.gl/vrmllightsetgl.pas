@@ -40,6 +40,16 @@ interface
 
 uses VectorMath, GL, GLU, GLExt, KambiGLUtils, VRMLNodes, VRMLLightSet;
 
+type
+  { Allows you to modify light's properties (currently, only the "on" state)
+    of the light right before it's rendered.
+    Used by glLightFromVRMLLight and many other routines in this unit.
+
+    By default, LightOn is the value of Light.LightNode.FdOn field.
+    You can change it if you want. }
+  TVRMLLightRenderEvent = procedure (const Light: TActiveLight;
+    var LightOn: boolean) of object;
+
 { Sets up OpenGL light (number glLightNum) properties based on VRMLLight
   properties. It means that it calls
     glLight*(GL_LIGHT0 + glLightNum, ..., ...)
@@ -88,7 +98,9 @@ uses VectorMath, GL, GLU, GLExt, KambiGLUtils, VRMLNodes, VRMLLightSet;
   Light Color.
 }
 procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
-  UseLightOnProperty: boolean; ColorModulatorSingle: TColorModulatorSingleFunc);
+  UseLightOnProperty: boolean;
+  ColorModulatorSingle: TColorModulatorSingleFunc;
+  LightRenderEvent: TVRMLLightRenderEvent);
 
 { glLightsFromVRML dla kazdego swiatla Lights[i] zrobi
     glLightFromVRMLLight(glLightNum1 + i, Lights[i], true, ColorModulatorSingle)
@@ -110,9 +122,14 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
   dostepnych Lights.
 }
 procedure glLightsFromVRML(Lights: PArray_ActiveLight; LightsCount: Integer;
-  glLightNum1, glLightNum2: Integer; ColorModulatorSingle: TColorModulatorSingleFunc); overload;
+  glLightNum1, glLightNum2: Integer;
+  ColorModulatorSingle: TColorModulatorSingleFunc;
+  LightRenderEvent: TVRMLLightRenderEvent); overload;
+
 procedure glLightsFromVRML(Lights: TDynActiveLightArray;
-  glLightNum1, glLightNum2: Integer; ColorModulatorSingle: TColorModulatorSingleFunc); overload;
+  glLightNum1, glLightNum2: Integer;
+  ColorModulatorSingle: TColorModulatorSingleFunc;
+  LightRenderEvent: TVRMLLightRenderEvent); overload;
 
 type
   { Use this to render many light sets (TDynActiveLightArray) and avoid
@@ -123,16 +140,25 @@ type
     VRML light was set on what OpenGL light, and assumes that VRML lights
     don't change during TVRMLGLLightsCachingRenderer execution. So OpenGL
     light will not be configured again, if it's already configured
-    correctly. }
+    correctly.
+
+    Note that LightRenderEvent event for this must be deterministic,
+    based purely on light properties. For example, it's Ok to
+    make LightRenderEvent that turns off lights that have kambiShadows = TRUE.
+    It is @italic(not Ok) to make LightRenderEvent that sets LightOn to
+    random boolean value. IOW, caching here assumes that for the same Light
+    values, LightRenderEvent will set LightOn the same. }
   TVRMLGLLightsCachingRenderer = class
   private
     FGLLightNum1, FGLLightNum2: Integer;
     FColorModulatorSingle: TColorModulatorSingleFunc;
+    FLightRenderEvent: TVRMLLightRenderEvent;
     LightsKnown: boolean;
     LightsDone: array of PActiveLight;
   public
     constructor Create(const AGLLightNum1, AGLLightNum2: Integer;
-      const AColorModulatorSingle: TColorModulatorSingleFunc);
+      const AColorModulatorSingle: TColorModulatorSingleFunc;
+      const ALightRenderEvent: TVRMLLightRenderEvent);
 
     procedure Render(Lights: TDynActiveLightArray);
     procedure Render(Lights: PArray_ActiveLight; LightsCount: Integer);
@@ -141,6 +167,7 @@ type
     property GLLightNum2: Integer read FGLLightNum2;
     property ColorModulatorSingle: TColorModulatorSingleFunc
       read FColorModulatorSingle;
+    property LightRenderEvent: TVRMLLightRenderEvent read FLightRenderEvent;
 
     { Statistics of how many OpenGL lights setups were done
       (Statistics[true]) vs how many were avoided (Statistics[false]).
@@ -236,8 +263,10 @@ type
       since AMainLightPosition cannot be calculated.
 
       AMainLightPosition[3] is always set to 1
-      (positional light) or 0 (indicates that this is a directional light). }
-    function MainLightPosition(
+      (positional light) or 0 (indicates that this is a directional light).
+
+      @seealso TVRMLScene.MainLightForShadows }
+    function MainLightForShadows(
       out AMainLightPosition: TVector4Single): boolean;
 
     { Turn off lights not supposed to light in the shadow.
@@ -277,7 +306,9 @@ implementation
 uses SysUtils, KambiUtils, Math;
 
 procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
-  UseLightOnProperty: boolean; ColorModulatorSingle: TColorModulatorSingleFunc);
+  UseLightOnProperty: boolean;
+  ColorModulatorSingle: TColorModulatorSingleFunc;
+  LightRenderEvent: TVRMLLightRenderEvent);
 
   procedure glLightFromVRMLLightAssumeOn;
 
@@ -436,25 +467,32 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
    glLightv(glLightNum, GL_SPECULAR, Color4);
   end;
 
+var
+  LightOn: boolean;
 begin
- glLightNum += GL_LIGHT0;
+  glLightNum += GL_LIGHT0;
 
- if UseLightOnProperty then
- begin
-  if Light.LightNode.FdOn.Value then
+  if UseLightOnProperty then
   begin
-   glLightFromVRMLLightAssumeOn;
-   glEnable(glLightNum);
+    LightOn := Light.LightNode.FdOn.Value;
+    { Call LightRenderEvent, allowing it to change LightOn value. }
+    if Assigned(LightRenderEvent) then
+      LightRenderEvent(Light, LightOn);
+    if LightOn then
+    begin
+      glLightFromVRMLLightAssumeOn;
+      glEnable(glLightNum);
+    end else
+      glDisable(glLightNum);
   end else
-   glDisable(glLightNum);
- end else
-  glLightFromVRMLLightAssumeOn;
+    glLightFromVRMLLightAssumeOn;
 end;
 
 procedure glLightsFromVRML(
   Lights: PArray_ActiveLight; LightsCount: Integer;
   glLightNum1, glLightNum2: Integer;
-  ColorModulatorSingle: TColorModulatorSingleFunc);
+  ColorModulatorSingle: TColorModulatorSingleFunc;
+  LightRenderEvent: TVRMLLightRenderEvent);
 var
   I: Integer;
 begin
@@ -462,12 +500,14 @@ begin
   begin
     { use all available OpenGL lights }
     for i := 0 to GLLightNum2 - GLLightNum1 do
-      glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true, ColorModulatorSingle);
+      glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true,
+        ColorModulatorSingle, LightRenderEvent);
   end else
   begin
     { use some OpenGL lights for VRML lights, disable rest of the lights }
     for i := 0 to LightsCount - 1 do
-      glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true, ColorModulatorSingle);
+      glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true,
+        ColorModulatorSingle, LightRenderEvent);
     for i := LightsCount to GLLightNum2-GLLightNum1 do
       glDisable(GL_LIGHT0 + GLLightNum1 + i);
   end;
@@ -475,22 +515,25 @@ end;
 
 procedure glLightsFromVRML(Lights: TDynActiveLightArray;
   GLLightNum1, GLLightNum2: Integer;
-  ColorModulatorSingle: TColorModulatorSingleFunc);
+  ColorModulatorSingle: TColorModulatorSingleFunc;
+  LightRenderEvent: TVRMLLightRenderEvent);
 begin
   glLightsFromVRML(Lights.ItemsArray, Lights.Count, GLLightNum1, GLLightNum2,
-    ColorModulatorSingle);
+    ColorModulatorSingle, LightRenderEvent);
 end;
 
 { TVRMLGLLightsCachingRenderer ----------------------------------------------- }
 
 constructor TVRMLGLLightsCachingRenderer.Create(
   const AGLLightNum1, AGLLightNum2: Integer;
-  const AColorModulatorSingle: TColorModulatorSingleFunc);
+  const AColorModulatorSingle: TColorModulatorSingleFunc;
+  const ALightRenderEvent: TVRMLLightRenderEvent);
 begin
   inherited Create;
   FGLLightNum1 := AGLLightNum1;
   FGLLightNum2 := AGLLightNum2;
   FColorModulatorSingle := AColorModulatorSingle;
+  FLightRenderEvent := ALightRenderEvent;
 
   LightsKnown := false;
   SetLength(LightsDone, GLLightNum2 - GLLightNum1 + 1);
@@ -536,13 +579,15 @@ begin
     { use all available OpenGL lights }
     for i := 0 to GLLightNum2 - GLLightNum1 do
       if NeedRenderLight(I, @(Lights^[i])) then
-        glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true, ColorModulatorSingle);
+        glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true,
+          ColorModulatorSingle, LightRenderEvent);
   end else
   begin
     { use some OpenGL lights for VRML lights, disable rest of the lights }
     for i := 0 to LightsCount - 1 do
       if NeedRenderLight(I, @(Lights^[i])) then
-        glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true, ColorModulatorSingle);
+        glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true,
+          ColorModulatorSingle, LightRenderEvent);
     for i := LightsCount to GLLightNum2-GLLightNum1 do
       if NeedRenderLight(I, nil) then
         glDisable(GL_LIGHT0 + GLLightNum1 + i);
@@ -613,7 +658,11 @@ begin
     glNewList(dlRenderLights, GL_COMPILE);
     try
       glLightsFromVRML(Lights, glLightNum1, RealGLLightNum2,
-        ColorModulatorSingle);
+        ColorModulatorSingle,
+        { For now, LightRenderEvent is always nil here, as I didn't need
+          it with TVRMLLightSetGL. There are no problems to add
+          LightRenderEvent to TVRMLLightSetGL in the future. }
+        nil);
     finally glEndList end;
   end;
 
@@ -629,7 +678,7 @@ begin
     glDisable(GL_LIGHT0 + I);
 end;
 
-function TVRMLLightSetGL.MainLightPosition(
+function TVRMLLightSetGL.MainLightForShadows(
   out AMainLightPosition: TVector4Single): boolean;
 var
   MyLightNum: Integer;
@@ -648,7 +697,7 @@ begin
         AMainLightPosition := Vector4Single(L^.TransfLocation, 1) else
       if L^.LightNode is TVRMLDirectionalLightNode then
         AMainLightPosition := Vector4Single(L^.TransfNormDirection, 0) else
-        raise Exception.CreateFmt('TVRMLLightSetGL.MainLightPosition: ' +
+        raise Exception.CreateFmt('TVRMLLightSetGL.MainLightForShadows: ' +
           'light node "%s" cannot be used to cast shadows, it has no position ' +
           'and no direction', [L^.LightNode.NodeTypeName]);
       Break;

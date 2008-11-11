@@ -51,7 +51,8 @@ type
       (doesn't have to be, as it's simple shortcut for FogStack.Top). }
     fvFog,
     fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
-    fvManifoldAndBorderEdges);
+    fvManifoldAndBorderEdges,
+    fvMainLightForShadows);
 
   { @exclude }
   TVRMLSceneValidities = set of TVRMLSceneValidity;
@@ -628,6 +629,12 @@ type
 
     FSpatial: TVRMLSceneSpatialStructures;
     procedure SetSpatial(const Value: TVRMLSceneSpatialStructures);
+
+    FMainLightForShadowsExists: boolean;
+    FMainLightForShadows: TVector4Single;
+    procedure SearchMainLightForShadows(Node: TVRMLNode;
+      State: TVRMLGraphTraverseState;
+      ParentInfo: PTraversingInfo);
   protected
     { Called when LightNode fields changed, while LightNode is in
       active part of VRML graph. }
@@ -1436,6 +1443,25 @@ type
       Navigator's MoveHorizontalSpeed and MoveVerticalSpeed are updated. }
     procedure NavigatorBindToViewpoint(Nav: TNavigator;
       const CameraRadius: Single; const OnlyViewpointVectorsChanged: boolean);
+
+    { Detect position/direction of the main light that produces shadows.
+      This is useful when you want to make shadows on the scene
+      from only a single light, but your scene has many lights.
+
+      The main light is simply one with both @code(kambiShadows) and
+      @code(kambiShadowsMain) fields set to @true. See
+      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows]
+      for more info.
+      If no light with kambiShadows = kambiShadowsMain = TRUE
+      is present then this function returns @false,
+      since AMainLightPosition cannot be calculated.
+
+      AMainLightPosition[3] is always set to 1
+      (positional light) or 0 (indicates that this is a directional light).
+
+      @seealso TVRMLLightSet.MainLightForShadows }
+    function MainLightForShadows(
+      out AMainLightPosition: TVector4Single): boolean;
   end;
 
 {$undef read_interface}
@@ -2312,6 +2338,14 @@ begin
       end;
     end;
   end;
+
+  { When some kambiShadows or kambiShadowsMain field changes,
+    then MainLightForShadows must be recalculated. }
+
+  if (Field = nil) or
+     (Field = LightNode.FdKambiShadows) or
+     (Field = LightNode.FdKambiShadowsMain) then
+    Exclude(Validities, fvMainLightForShadows);
 end;
 
 procedure TVRMLScene.DoPostRedisplay;
@@ -4077,6 +4111,60 @@ begin
   WalkNav.GravityUp := GravityUp;
   if not OnlyViewpointVectorsChanged then
     WalkNav.Home;
+end;
+
+{ misc ----------------------------------------------------------------------- }
+
+type
+  BreakMainLightForShadows = class(TCodeBreaker);
+
+procedure TVRMLScene.SearchMainLightForShadows(Node: TVRMLNode;
+  State: TVRMLGraphTraverseState;
+  ParentInfo: PTraversingInfo);
+var
+  L: TVRMLLightNode absolute Node;
+begin
+  if L.FdKambiShadows.Value and
+     L.FdKambiShadowsMain.Value then
+  begin
+    if L is TVRMLPositionalLightNode then
+      FMainLightForShadows := Vector4Single(
+        MatrixMultPoint(State.Transform,
+          TVRMLPositionalLightNode(L).FdLocation.Value), 1) else
+    if L is TVRMLDirectionalLightNode then
+      FMainLightForShadows := Vector4Single( Normalized(
+        MatrixMultDirection(State.Transform,
+          TVRMLDirectionalLightNode(L).FdDirection.Value) ), 0) else
+      raise Exception.CreateFmt('TVRMLScene.MainLightForShadows: ' +
+        'light node "%s" cannot be used to cast shadows, it has no position ' +
+        'and no direction', [L.NodeTypeName]);
+    FMainLightForShadowsExists := true;
+    raise BreakMainLightForShadows.Create;
+  end;
+end;
+
+function TVRMLScene.MainLightForShadows(
+  out AMainLightPosition: TVector4Single): boolean;
+
+  procedure CalculateMainLightForShadows;
+  begin
+    FMainLightForShadowsExists := false;
+    if RootNode <> nil then
+    try
+      RootNode.Traverse(TVRMLLightNode, @SearchMainLightForShadows);
+    except on BreakMainLightForShadows do ; end;
+  end;
+
+begin
+  if not (fvMainLightForShadows in Validities) then
+  begin
+    CalculateMainLightForShadows;
+    Include(Validities, fvMainLightForShadows);
+  end;
+
+  Result := FMainLightForShadowsExists;
+  if Result then
+    AMainLightPosition := FMainLightForShadows;
 end;
 
 end.

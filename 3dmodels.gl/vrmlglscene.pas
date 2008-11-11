@@ -429,7 +429,8 @@ type
       TestShapeStateVisibility: TTestShapeStateVisibility;
       RenderShapeStateProc: TRenderShapeState;
       RenderBeginProc, RenderEndProc: TObjectProcedure;
-      TransparentGroup: TTransparentGroup);
+      TransparentGroup: TTransparentGroup;
+      LightRenderEvent: TVRMLLightRenderEvent);
 
     { Destroy any associations of Renderer with OpenGL context.
 
@@ -528,7 +529,8 @@ type
     function RenderFrustumOctree_TestShapeState(ShapeStateNum: Integer): boolean;
     procedure RenderFrustumOctree(const Frustum: TFrustum;
       TransparentGroup: TTransparentGroup;
-      Octree: TVRMLShapeStateOctree);
+      Octree: TVRMLShapeStateOctree;
+      LightRenderEvent: TVRMLLightRenderEvent);
 
     { ------------------------------------------------------------
       Private things used only when Optimization = roSceneAsAWhole.
@@ -755,6 +757,11 @@ type
       complexity of using VRMLOpenGLRenderer (and care only about
       complexity of using this class, TVRMLGLScene :) ).
 
+      LightRenderEvent, if assigned, may be used to modify light's properties
+      just for this render. Note that LightRenderEvent doesn't work
+      with roSceneAsAWhole (since for roSceneAsAWhole, rendering lights is
+      recorded in display list).
+
       Some additional notes (specific to TVRMLGLScene.Render,
       not to the VRMLOpenGLRenderer):
       @unorderedList(
@@ -804,7 +811,8 @@ type
         ))
     }
     procedure Render(TestShapeStateVisibility: TTestShapeStateVisibility;
-      TransparentGroup: TTransparentGroup);
+      TransparentGroup: TTransparentGroup;
+      LightRenderEvent: TVRMLLightRenderEvent);
 
     { This renders the scene eliminating ShapeStates that are entirely
       not within Frustum. It calls @link(Render), passing appropriate
@@ -825,7 +833,8 @@ type
       so it's useless (and would waste some time)
       to analyze the scene with Octree. }
     procedure RenderFrustum(const Frustum: TFrustum;
-      TransparentGroup: TTransparentGroup);
+      TransparentGroup: TTransparentGroup;
+      LightRenderEvent: TVRMLLightRenderEvent);
 
     { LastRender_ properties provide you read-only statistics
       about what happened during last render. For now you
@@ -848,6 +857,17 @@ type
 
     property LastRender_AllShapeStatesCount: Cardinal
       read FLastRender_AllShapeStatesCount;
+
+    { Turn off lights that are not supposed to light in the shadow.
+      This simply turns LightOn to @false if the light has
+      kambiShadows = TRUE (see
+      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows]).
+
+      It's useful to pass this as LightRenderEvent to @link(Render)
+      or @link(RenderFrustum) when you use shadow algorithm that requires
+      you to make a first pass rendering the scene all shadowed. }
+    class procedure LightRenderInShadow(const Light: TActiveLight;
+      var LightOn: boolean);
 
     { Optimization method used to render this model.
 
@@ -1662,7 +1682,8 @@ procedure TVRMLGLScene.RenderShapeStatesNoDisplayList(
   TestShapeStateVisibility: TTestShapeStateVisibility;
   RenderShapeStateProc: TRenderShapeState;
   RenderBeginProc, RenderEndProc: TObjectProcedure;
-  TransparentGroup: TTransparentGroup);
+  TransparentGroup: TTransparentGroup;
+  LightRenderEvent: TVRMLLightRenderEvent);
 
 const
   AllOrOpaque = [tgAll, tgOpaque];
@@ -1759,7 +1780,7 @@ begin
 
   LightsRenderer := TVRMLGLLightsCachingRenderer.Create(
     Attributes.FirstGLFreeLight, Renderer.LastGLFreeLight,
-    Attributes.ColorModulatorSingle);
+    Attributes.ColorModulatorSingle, LightRenderEvent);
   try
 
     if Assigned(RenderBeginProc) then
@@ -2183,7 +2204,7 @@ begin
         {$ifdef FPC_OBJFPC} @ {$endif} RenderShapeState_WithLight,
         {$ifdef FPC_OBJFPC} @ {$endif} RenderBeginSimple,
         {$ifdef FPC_OBJFPC} @ {$endif} RenderEndSimple,
-        TransparentGroup);
+        TransparentGroup, nil);
     finally glEndList end;
   end else
   begin
@@ -2206,7 +2227,7 @@ begin
       try
         RenderShapeStatesNoDisplayList(nil,
           {$ifdef FPC_OBJFPC} @ {$endif} RenderShapeState_WithLight, nil, nil,
-          TransparentGroup);
+          TransparentGroup, nil);
       finally glEndList end;
     finally RenderEndSimple end;
   end;
@@ -2338,7 +2359,8 @@ end;
 
 procedure TVRMLGLScene.Render(
   TestShapeStateVisibility: TTestShapeStateVisibility;
-  TransparentGroup: TTransparentGroup);
+  TransparentGroup: TTransparentGroup;
+  LightRenderEvent: TVRMLLightRenderEvent);
 
   procedure RenderNormal;
   begin
@@ -2351,7 +2373,7 @@ procedure TVRMLGLScene.Render(
             {$ifdef FPC_OBJFPC} @ {$endif} RenderShapeState_WithLight,
             {$ifdef FPC_OBJFPC} @ {$endif} RenderBeginSimple,
             {$ifdef FPC_OBJFPC} @ {$endif} RenderEndSimple,
-            TransparentGroup);
+            TransparentGroup, LightRenderEvent);
         end;
       roSceneAsAWhole:
         SAAW_Render(TransparentGroup);
@@ -2362,7 +2384,7 @@ procedure TVRMLGLScene.Render(
             {$ifdef FPC_OBJFPC} @ {$endif} SSS_RenderShapeState,
             {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderBegin,
             {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderEnd,
-            TransparentGroup);
+            TransparentGroup, LightRenderEvent);
         end;
       roSeparateShapeStatesNoTransform:
         begin
@@ -2371,7 +2393,7 @@ procedure TVRMLGLScene.Render(
             {$ifdef FPC_OBJFPC} @ {$endif} SSSNT_RenderShapeState,
             {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderBegin,
             {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderEnd,
-            TransparentGroup);
+            TransparentGroup, LightRenderEvent);
         end;
     end;
 
@@ -2434,12 +2456,19 @@ begin
             rendered at all (no need to even hide them by glPolygonOffset,
             which is somewhat sloppy). }
           if Attributes.PureGeometry then
-            glFrontFace(GL_CW); { saved  by GL_POLYGON_BIT }
+            glFrontFace(GL_CW); { saved by GL_POLYGON_BIT }
           RenderWireframe(true);
         glPopAttrib;
       end;
     else raise EInternalError.Create('Render: Attributes.WireframeEffect ?');
   end;
+end;
+
+class procedure TVRMLGLScene.LightRenderInShadow(const Light: TActiveLight;
+  var LightOn: boolean);
+begin
+  if Light.LightNode.FdKambiShadows.Value then
+    LightOn := false;
 end;
 
 procedure TVRMLGLScene.ChangedAll;
@@ -3222,10 +3251,11 @@ begin
 end;
 
 procedure TVRMLGLScene.RenderFrustum(const Frustum: TFrustum;
-  TransparentGroup: TTransparentGroup);
+  TransparentGroup: TTransparentGroup;
+  LightRenderEvent: TVRMLLightRenderEvent);
 begin
   if OctreeRendering <> nil then
-    RenderFrustumOctree(Frustum, TransparentGroup, OctreeRendering) else
+    RenderFrustumOctree(Frustum, TransparentGroup, OctreeRendering, LightRenderEvent) else
   begin
     { Just test each shapestate with frustum.
       Note that RenderFrustum_TestShapeState will be ignored
@@ -3233,7 +3263,7 @@ begin
 
     RenderFrustum_Frustum := @Frustum;
     Render({$ifdef FPC_OBJFPC} @ {$endif} RenderFrustum_TestShapeState,
-      TransparentGroup);
+      TransparentGroup, LightRenderEvent);
   end;
 end;
 
@@ -3288,7 +3318,8 @@ end;
 
 procedure TVRMLGLScene.RenderFrustumOctree(const Frustum: TFrustum;
   TransparentGroup: TTransparentGroup;
-  Octree: TVRMLShapeStateOctree);
+  Octree: TVRMLShapeStateOctree;
+  LightRenderEvent: TVRMLLightRenderEvent);
 begin
   if Optimization <> roSceneAsAWhole then
   begin
@@ -3298,9 +3329,9 @@ begin
     Octree.EnumerateCollidingOctreeItems(Frustum,
       {$ifdef FPC_OBJFPC} @ {$endif} RenderFrustumOctree_EnumerateOctreeItem);
     Render({$ifdef FPC_OBJFPC} @ {$endif} RenderFrustumOctree_TestShapeState,
-      TransparentGroup);
+      TransparentGroup, LightRenderEvent);
   end else
-    Render(nil, TransparentGroup);
+    Render(nil, TransparentGroup, LightRenderEvent);
 end;
 
 { Background-related things ---------------------------------------- }
