@@ -75,7 +75,7 @@ uses
   SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLScene, VRMLOpenGLRenderer, GL, GLU, GLExt, BackgroundGL, KambiGLUtils,
   VRMLShapeStateOctree, VRMLGLHeadLight, VRMLRendererOptimization,
-  ShadowVolumesHelper, Navigation, VRMLFields, VRMLLightSetGL;
+  ShadowVolumes, Navigation, VRMLFields, VRMLLightSetGL;
 
 {$define read_interface}
 
@@ -334,13 +334,13 @@ type
   end;
 
 type
-  TTransparentGroup = ShadowVolumesHelper.TTransparentGroup;
-  TTransparentGroups = ShadowVolumesHelper.TTransparentGroups;
+  TTransparentGroup = ShadowVolumes.TTransparentGroup;
+  TTransparentGroups = ShadowVolumes.TTransparentGroups;
 
 const
-  tgTransparent = ShadowVolumesHelper.tgTransparent;
-  tgOpaque = ShadowVolumesHelper.tgOpaque;
-  tgAll = ShadowVolumesHelper.tgAll;
+  tgTransparent = ShadowVolumes.tgTransparent;
+  tgOpaque = ShadowVolumes.tgOpaque;
+  tgAll = ShadowVolumes.tgAll;
 
 type
   { Various things that TVRMLGLScene.PrepareRender may prepare. }
@@ -971,9 +971,9 @@ type
       the caster is inside camera frustum). For directional lights, DarkCap is
       ignored, since the volume is always closed by a single point in infinity.
 
-      For ShadowVolumesHelper version, LightPos, LightCap and DarkCap
-      are already available in ShadowVolumesHelper properties (set by
-      ShadowVolumesHelper.InitFrustumAndLight and ShadowVolumesHelper.InitScene
+      For ShadowVolumes version, LightPos, LightCap and DarkCap
+      are already available in ShadowVolumes properties (set by
+      ShadowVolumes.InitFrustumAndLight and ShadowVolumes.InitScene
       calls).
 
       Faces (both shadow quads and caps) are rendered such that
@@ -991,16 +991,16 @@ type
       const AllowSilhouetteOptimization: boolean = true);
 
     procedure RenderShadowVolume(
-      ShadowVolumesHelper: TShadowVolumesHelper;
+      ShadowVolumes: TShadowVolumes;
       const TransformIsIdentity: boolean;
       const Transform: TMatrix4Single;
       const AllowSilhouetteOptimization: boolean = true);
 
-    { A shortcut for ShadowVolumesHelper.InitScene and then RenderShadowVolume.
+    { A shortcut for ShadowVolumes.InitScene and then RenderShadowVolume.
       It will calculate current bounding box using Transform, TransformIsIdentity
       and BoundingBox method. }
     procedure InitAndRenderShadowVolume(
-      ShadowVolumesHelper: TShadowVolumesHelper;
+      ShadowVolumes: TShadowVolumes;
       const TransformIsIdentity: boolean;
       const Transform: TMatrix4Single;
       const AllowSilhouetteOptimization: boolean = true);
@@ -3195,23 +3195,23 @@ begin
 end;
 
 procedure TVRMLGLScene.RenderShadowVolume(
-  ShadowVolumesHelper: TShadowVolumesHelper;
+  ShadowVolumes: TShadowVolumes;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
   const AllowSilhouetteOptimization: boolean);
 begin
-  if ShadowVolumesHelper.SceneShadowPossiblyVisible then
+  if ShadowVolumes.SceneShadowPossiblyVisible then
   begin
-    RenderShadowVolume(ShadowVolumesHelper.LightPosition,
+    RenderShadowVolume(ShadowVolumes.LightPosition,
       TransformIsIdentity, Transform,
-      ShadowVolumesHelper.ZFailAndLightCap,
-      ShadowVolumesHelper.ZFail,
+      ShadowVolumes.ZFailAndLightCap,
+      ShadowVolumes.ZFail,
       AllowSilhouetteOptimization);
   end;
 end;
 
 procedure TVRMLGLScene.InitAndRenderShadowVolume(
-  ShadowVolumesHelper: TShadowVolumesHelper;
+  ShadowVolumes: TShadowVolumes;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
   const AllowSilhouetteOptimization: boolean);
@@ -3223,9 +3223,9 @@ begin
   if not TransformIsIdentity then
     Box := Box3dTransform(Box, Transform);
 
-  ShadowVolumesHelper.InitScene(Box);
+  ShadowVolumes.InitScene(Box);
 
-  RenderShadowVolume(ShadowVolumesHelper, TransformIsIdentity, Transform,
+  RenderShadowVolume(ShadowVolumes, TransformIsIdentity, Transform,
     AllowSilhouetteOptimization);
 end;
 

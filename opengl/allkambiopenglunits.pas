@@ -33,7 +33,7 @@ uses
   openglfonts,
   openglttfonts,
   progressgl,
-  shadowvolumeshelper,
+  shadowvolumes,
   timemessages,
   {$ifdef UNIX}
   kambiglx,

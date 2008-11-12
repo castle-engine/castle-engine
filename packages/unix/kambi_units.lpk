@@ -535,8 +535,8 @@
         <UnitName Value="OpenGLTTFonts"/>
       </Item121>
       <Item122>
-        <Filename Value="../../opengl/shadowvolumeshelper.pas"/>
-        <UnitName Value="ShadowVolumesHelper"/>
+        <Filename Value="../../opengl/shadowvolumes.pas"/>
+        <UnitName Value="ShadowVolumes"/>
       </Item122>
       <Item123>
         <Filename Value="../../opengl/unix/kambixf86vmode.pas"/>

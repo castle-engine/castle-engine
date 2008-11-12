@@ -27,7 +27,7 @@ interface
 
 uses Classes, KambiGLControl, VectorMath, Controls,
   VRMLNodes, VRMLGLScene, VRMLScene, Navigation, VRMLGLHeadlight, Areas,
-  ShadowVolumesHelper;
+  ShadowVolumes;
 
 type
   { A simple VRML browser as a Lazarus component. This manages TVRMLGLScene,
@@ -116,7 +116,7 @@ type
     procedure SetShadowVolumesPossible(const Value: boolean);
     FShadowVolumes: boolean;
     FShadowVolumesDraw: boolean;
-    SVHelper: TShadowVolumesHelper;
+    SV: TShadowVolumes;
 
     procedure RenderScene(InShadow: boolean);
     procedure RenderShadowVolumes;
@@ -314,7 +314,7 @@ end;
 
 procedure TKamVRMLBrowser.RenderShadowVolumes;
 begin
-  Scene.InitAndRenderShadowVolume(SVHelper, true, IdentityMatrix4Single);
+  Scene.InitAndRenderShadowVolume(SV, true, IdentityMatrix4Single);
 end;
 
 procedure TKamVRMLBrowser.DoDraw;
@@ -326,8 +326,8 @@ procedure TKamVRMLBrowser.DoDraw;
 
   procedure RenderWithShadows(const MainLightPosition: TVector4Single);
   begin
-    SVHelper.InitFrustumAndLight(Navigator.Frustum, MainLightPosition);
-    SVHelper.Render(nil, @RenderScene, @RenderShadowVolumes, ShadowVolumesDraw);
+    SV.InitFrustumAndLight(Navigator.Frustum, MainLightPosition);
+    SV.Render(nil, @RenderScene, @RenderShadowVolumes, ShadowVolumesDraw);
   end;
 
 var
@@ -367,8 +367,8 @@ begin
 
   if ShadowVolumesPossible then
   begin
-    SVHelper := TShadowVolumesHelper.Create;
-    SVHelper.InitGLContext;
+    SV := TShadowVolumes.Create;
+    SV.InitGLContext;
   end;
 
   { Manually call Resize now, to set projection. }
@@ -383,7 +383,7 @@ begin
   if Scene <> nil then
     Scene.CloseGL;
 
-  FreeAndNil(SVHelper);
+  FreeAndNil(SV);
 
   inherited;
 end;

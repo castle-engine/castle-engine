@@ -1,5 +1,5 @@
 {
-  Copyright 2007 Michalis Kamburelis.
+  Copyright 2007-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -18,8 +18,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ TShadowVolumesHelper class. }
-unit ShadowVolumesHelper;
+{ TShadowVolumes class. }
+unit ShadowVolumes;
 
 interface
 
@@ -45,7 +45,7 @@ type
 
     For general usage tutorial of this class,
     see [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.shadows.html] }
-  TShadowVolumesHelper = class
+  TShadowVolumes = class
   private
     FrustumAndLightPlanes: array [0..5] of TVector4Single;
     FrustumAndLightPlanesCount: Cardinal;
@@ -242,7 +242,7 @@ implementation
 
 uses SysUtils, KambiUtils, KambiStringUtils, KambiLog, GLVersionUnit;
 
-procedure TShadowVolumesHelper.InitGLContext;
+procedure TShadowVolumes.InitGLContext;
 begin
   { calcualte WrapAvailable, StencilOpIncrWrap, StencilOpDecrWrap }
   FWrapAvailable := (GLVersion.Major >= 2) or GL_EXT_stencil_wrap;
@@ -289,7 +289,7 @@ begin
               BoolToStr[StencilTwoSided] ]));
 end;
 
-procedure TShadowVolumesHelper.InitFrustumAndLight(
+procedure TShadowVolumes.InitFrustumAndLight(
   const Frustum: TFrustum;
   const ALightPosition: TVector4Single);
 
@@ -355,13 +355,13 @@ begin
   FCountZFailAndLightCap := 0;
 end;
 
-procedure TShadowVolumesHelper.InitScene(const SceneBox: TBox3d);
+procedure TShadowVolumes.InitScene(const SceneBox: TBox3d);
 begin
   InitSceneDontSetupStencil(SceneBox);
   InitSceneOnlySetupStencil;
 end;
 
-procedure TShadowVolumesHelper.InitSceneDontSetupStencil(const SceneBox: TBox3d);
+procedure TShadowVolumes.InitSceneDontSetupStencil(const SceneBox: TBox3d);
 
   function CalculateShadowPossiblyVisible(const SceneBox: TBox3d): boolean;
   var
@@ -537,7 +537,7 @@ begin
   UpdateCount;
 end;
 
-procedure TShadowVolumesHelper.UpdateCount;
+procedure TShadowVolumes.UpdateCount;
 begin
   { update counters }
   if Count then
@@ -558,7 +558,7 @@ begin
   end;
 end;
 
-procedure TShadowVolumesHelper.InitSceneOnlySetupStencil;
+procedure TShadowVolumes.InitSceneOnlySetupStencil;
 
   procedure ActuallySetStencilConfiguration;
 
@@ -604,7 +604,7 @@ procedure TShadowVolumesHelper.InitSceneOnlySetupStencil;
       ssFrontAndBack: SetStencilOpSeparate;
       ssFront: SetStencilOpForFront;
       ssBack: SetStencilOpForBack;
-      else raise EInternalError.Create('shadowvolumeshelper.pas 456');
+      else raise EInternalError.Create('shadowvolumes.pas 456');
     end;
   end;
 
@@ -626,7 +626,7 @@ begin
   end;
 end;
 
-procedure TShadowVolumesHelper.InitSceneAlwaysVisible;
+procedure TShadowVolumes.InitSceneAlwaysVisible;
 begin
   FSceneShadowPossiblyVisible := true;
   FZFail := true;
@@ -635,7 +635,7 @@ begin
   InitSceneOnlySetupStencil;
 end;
 
-procedure TShadowVolumesHelper.Render(
+procedure TShadowVolumes.Render(
   const RenderNeverShadowed: TSVRenderTransparentGroupProc;
   const RenderShadowReceivers: TSVRenderShadowReceiversProc;
   const RenderShadowVolumes: TSVRenderProc;

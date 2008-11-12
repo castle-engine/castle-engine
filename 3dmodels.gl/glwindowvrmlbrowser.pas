@@ -27,7 +27,7 @@ unit GLWindowVRMLBrowser;
 interface
 
 uses VectorMath, GLWindow, VRMLNodes, VRMLGLScene, VRMLScene, Navigation,
-  VRMLGLHeadLight, ShadowVolumesHelper;
+  VRMLGLHeadLight, ShadowVolumes;
 
 type
   { A simple VRML browser in a window. This manages TVRMLGLScene and
@@ -113,7 +113,7 @@ type
     procedure SetShadowVolumesPossible(const Value: boolean);
     FShadowVolumes: boolean;
     FShadowVolumesDraw: boolean;
-    SVHelper: TShadowVolumesHelper;
+    SV: TShadowVolumes;
 
     procedure RenderScene(InShadow: boolean);
     procedure RenderShadowVolumes;
@@ -273,7 +273,7 @@ end;
 
 procedure TGLWindowVRMLBrowser.RenderShadowVolumes;
 begin
-  Scene.InitAndRenderShadowVolume(SVHelper, true, IdentityMatrix4Single);
+  Scene.InitAndRenderShadowVolume(SV, true, IdentityMatrix4Single);
 end;
 
 procedure TGLWindowVRMLBrowser.EventDraw;
@@ -285,8 +285,8 @@ procedure TGLWindowVRMLBrowser.EventDraw;
 
   procedure RenderWithShadows(const MainLightPosition: TVector4Single);
   begin
-    SVHelper.InitFrustumAndLight(Navigator.Frustum, MainLightPosition);
-    SVHelper.Render(nil, @RenderScene, @RenderShadowVolumes, ShadowVolumesDraw);
+    SV.InitFrustumAndLight(Navigator.Frustum, MainLightPosition);
+    SV.Render(nil, @RenderScene, @RenderShadowVolumes, ShadowVolumesDraw);
   end;
 
 var
@@ -326,8 +326,8 @@ begin
 
   if ShadowVolumesPossible then
   begin
-    SVHelper := TShadowVolumesHelper.Create;
-    SVHelper.InitGLContext;
+    SV := TShadowVolumes.Create;
+    SV.InitGLContext;
   end;
 end;
 
@@ -338,7 +338,7 @@ begin
   if Scene <> nil then
     Scene.CloseGL;
 
-  FreeAndNil(SVHelper);
+  FreeAndNil(SV);
 
   inherited;
 end;
