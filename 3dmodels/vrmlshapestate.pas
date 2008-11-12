@@ -226,8 +226,18 @@ type
     procedure LocalGeometryChanged;
 
     { Internally used by TVRMLScene. Says if local geometry change is scheduled
-      (actual change will be done by TVRMLScene.DoGeometryChanged). }
+      (actual change will be done by TVRMLScene.DoGeometryChanged).
+
+      ScheduledLocalGeometryChangedCoord means that coordinates changed.
+      If this is all that changed (ScheduledLocalGeometryChanged = @false),
+      then this means that model edges structure remains the same
+      (this is helpful e.g. to avoid recalculating Manifold/BorderEdges
+      in parent scene).
+
+      @groupBegin }
     ScheduledLocalGeometryChanged: boolean;
+    ScheduledLocalGeometryChangedCoord: boolean;
+    { @groupEnd }
   end;
 
   TObjectsListItem_1 = TVRMLShapeState;

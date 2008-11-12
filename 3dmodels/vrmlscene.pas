@@ -735,6 +735,7 @@ type
       What exactly changed can be checked by looking at
       ScheduledGeometryChangedAll,
       ScheduledGeometrySomeTransformChanged,
+      TVRMLShapeState.ScheduledLocalGeometryChangedCoord (in all ShapeStates),
       TVRMLShapeState.ScheduledLocalGeometryChanged (in all ShapeStates).
       Something from there must be @true. The sum of these
       ScheduledGeometryXxx flags describe the change.
@@ -1844,19 +1845,32 @@ begin
   if Log and LogChanges then
     WritelnLog('VRML changes', 'ChangedAll');
 
-  { TODO: FManifoldEdges and FBorderEdges and triangles lists should be freed
-    (and removed from Validities) on any ChangedXxx call. }
-
   BackgroundStack.CheckForDeletedNodes(RootNode, true);
   FogStack.CheckForDeletedNodes(RootNode, true);
   NavigationInfoStack.CheckForDeletedNodes(RootNode, true);
   ViewpointStack.CheckForDeletedNodes(RootNode, true);
 
+  ShapeStates.FreeContents;
+
+  Validities := [];
+
+  { Clear variables after removing fvTrianglesList* from Validities }
+  FreeAndNil(FTrianglesList[false]);
+  FreeAndNil(FTrianglesList[true]);
+
+  { Clear variables after removing fvManifoldAndBorderEdges from Validities }
+  if FOwnsManifoldAndBorderEdges then
+  begin
+    FreeAndNil(FManifoldEdges);
+    FreeAndNil(FBorderEdges);
+  end else
+  begin
+    FManifoldEdges := nil;
+    FBorderEdges := nil;
+  end;
+
   ChangedAll_TraversedLights := TDynActiveLightArray.Create;
   try
-    ShapeStates.FreeContents;
-    Validities := [];
-
     if RootNode <> nil then
     begin
       RootNode.Traverse(TVRMLNode, @ChangedAll_Traverse);
@@ -1878,7 +1892,16 @@ end;
 procedure TVRMLScene.ChangedShapeStateFields(ShapeStateNum: integer;
   const TransformOnly, TextureImageChanged: boolean);
 begin
-  Validities := [];
+  { Eventual clearing of Validities items because shapestate changed
+    can be done by DoGeometryChanged, where more specific info
+    about what changed is passed. No reason to do it here.
+    Reason: Validities items
+      fvBBox, fvVerticesCountNotOver, fvVerticesCountOver,
+      fvTrianglesCountNotOver, fvTrianglesCountOver,
+      fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
+      fvManifoldAndBorderEdges
+    are all related to geometry changes. }
+
   ShapeStates[ShapeStateNum].Changed;
   DoPostRedisplay;
 end;
@@ -2105,7 +2128,7 @@ begin
         { Another special thing about Coordinate node: it changes
           actual geometry. }
 
-        ShapeStates[I].ScheduledLocalGeometryChanged := true;
+        ShapeStates[I].ScheduledLocalGeometryChangedCoord := true;
         ScheduleGeometryChanged;
       end;
   end else
@@ -2358,29 +2381,19 @@ procedure TVRMLScene.DoGeometryChanged;
 var
   I: Integer;
   SomeLocalGeometryChanged: boolean;
+  EdgesStructureChanged: boolean;
 begin
   Validities := Validities - [fvBBox,
     fvVerticesCountNotOver, fvVerticesCountOver,
     fvTrianglesCountNotOver, fvTrianglesCountOver,
-    fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
-    fvManifoldAndBorderEdges];
+    fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate];
 
   { Clear variables after removing fvTrianglesList* }
   FreeAndNil(FTrianglesList[false]);
   FreeAndNil(FTrianglesList[true]);
 
-  { Clear variables after removing fvManifoldAndBorderEdges }
-  if FOwnsManifoldAndBorderEdges then
-  begin
-    FreeAndNil(FManifoldEdges);
-    FreeAndNil(FBorderEdges);
-  end else
-  begin
-    FManifoldEdges := nil;
-    FBorderEdges := nil;
-  end;
-
   { First, call LocalGeometryChanged on shapes when needed.
+
     By the way, also calculate SomeLocalGeometryChanged (= if any
     LocalGeometryChanged was called, which means that octree and
     bounding box/sphere of some shape changed).
@@ -2388,11 +2401,14 @@ begin
     Note that this also creates implication ScheduledGeometryChangedAll
     => SomeLocalGeometryChanged. In later code, I sometimes check
     for SomeLocalGeometryChanged, knowing that this also checks for
-    ScheduledGeometryChangedAll. }
+    ScheduledGeometryChangedAll.
+
+    By the way, also calculate EdgesStructureChanged. }
 
   if ScheduledGeometryChangedAll then
   begin
     SomeLocalGeometryChanged := true;
+    EdgesStructureChanged := true;
     for I := 0 to ShapeStates.Count - 1 do
       ShapeStates[I].LocalGeometryChanged;
     if Log and LogChanges then
@@ -2400,9 +2416,11 @@ begin
   end else
   begin
     SomeLocalGeometryChanged := false;
+    EdgesStructureChanged := false;
     for I := 0 to ShapeStates.Count - 1 do
     begin
-      if ShapeStates[I].ScheduledLocalGeometryChanged then
+      if ShapeStates[I].ScheduledLocalGeometryChanged or
+         ShapeStates[I].ScheduledLocalGeometryChangedCoord then
       begin
         SomeLocalGeometryChanged := true;
         ShapeStates[I].LocalGeometryChanged;
@@ -2410,6 +2428,34 @@ begin
            (ShapeStates[I].OctreeTriangles <> nil) then
           WritelnLog('VRML changes (octree)', Format('ShapeState[%d].OctreeTriangles updated', [I]));
       end;
+
+      { Note that if
+        ScheduledLocalGeometryChangedCoord = true, but
+        ScheduledLocalGeometryChanged = false, then
+        EdgesStructureChanged may remain false. This is the very reason
+        for     ScheduledLocalGeometryChangedCoord separation from
+        regular ScheduledLocalGeometryChanged. }
+
+      if ShapeStates[I].ScheduledLocalGeometryChanged then
+        EdgesStructureChanged := true;
+    end;
+  end;
+
+  { Use EdgesStructureChanged to decide should be invalidate
+    ManifoldAndBorderEdges. }
+  if EdgesStructureChanged then
+  begin
+    Exclude(Validities, fvManifoldAndBorderEdges);
+
+    { Clear variables after removing fvManifoldAndBorderEdges }
+    if FOwnsManifoldAndBorderEdges then
+    begin
+      FreeAndNil(FManifoldEdges);
+      FreeAndNil(FBorderEdges);
+    end else
+    begin
+      FManifoldEdges := nil;
+      FBorderEdges := nil;
     end;
   end;
 
@@ -2460,7 +2506,10 @@ begin
   ScheduledGeometryChangedAll := false;
   ScheduledGeometrySomeTransformChanged := false;
   for I := 0 to ShapeStates.Count - 1 do
+  begin
     ShapeStates[I].ScheduledLocalGeometryChanged := false;
+    ShapeStates[I].ScheduledLocalGeometryChangedCoord := false;
+  end;
 end;
 
 procedure TVRMLScene.DoViewpointsChanged;
