@@ -632,9 +632,14 @@ type
 
     FMainLightForShadowsExists: boolean;
     FMainLightForShadows: TVector4Single;
+    FMainLightForShadowsNode: TVRMLLightNode;
+    FMainLightForShadowsTransform: TMatrix4Single;
     procedure SearchMainLightForShadows(Node: TVRMLNode;
       State: TVRMLGraphTraverseState;
       ParentInfo: PTraversingInfo);
+    { Based on FMainLightForShadowsNode and FMainLightForShadowsTransform,
+      calculate FMainLightForShadows (position). }
+    procedure CalculateMainLightForShadowsPosition;
   protected
     { Called when LightNode fields changed, while LightNode is in
       active part of VRML graph. }
@@ -2369,6 +2374,17 @@ begin
      (Field = LightNode.FdKambiShadows) or
      (Field = LightNode.FdKambiShadowsMain) then
     Exclude(Validities, fvMainLightForShadows);
+
+  { If we had calculated MainLightForShadows, and this LightNode is the
+    main light for shadows, then update FMainLightForShadows.
+    Thanks to varius FMainLightForShadows* properties, we can check
+    and recalculate it very fast --- this is good for scenes where main
+    shadow light location is moving. }
+
+  if (fvMainLightForShadows in Validities) and
+     FMainLightForShadowsExists and
+     (FMainLightForShadowsNode = LightNode) then
+    CalculateMainLightForShadowsPosition;
 end;
 
 procedure TVRMLScene.DoPostRedisplay;
@@ -4183,6 +4199,23 @@ end;
 type
   BreakMainLightForShadows = class(TCodeBreaker);
 
+procedure TVRMLScene.CalculateMainLightForShadowsPosition;
+begin
+  if FMainLightForShadowsNode is TVRMLPositionalLightNode then
+    FMainLightForShadows := Vector4Single(
+      MatrixMultPoint(
+        FMainLightForShadowsTransform,
+        TVRMLPositionalLightNode(FMainLightForShadowsNode).FdLocation.Value), 1) else
+  if FMainLightForShadowsNode is TVRMLDirectionalLightNode then
+    FMainLightForShadows := Vector4Single( Normalized(
+      MatrixMultDirection(
+        FMainLightForShadowsTransform,
+        TVRMLDirectionalLightNode(FMainLightForShadowsNode).FdDirection.Value) ), 0) else
+    raise Exception.CreateFmt('TVRMLScene.MainLightForShadows: ' +
+      'light node "%s" cannot be used to cast shadows, it has no position ' +
+      'and no direction', [FMainLightForShadowsNode.NodeTypeName]);
+end;
+
 procedure TVRMLScene.SearchMainLightForShadows(Node: TVRMLNode;
   State: TVRMLGraphTraverseState;
   ParentInfo: PTraversingInfo);
@@ -4192,18 +4225,10 @@ begin
   if L.FdKambiShadows.Value and
      L.FdKambiShadowsMain.Value then
   begin
-    if L is TVRMLPositionalLightNode then
-      FMainLightForShadows := Vector4Single(
-        MatrixMultPoint(State.Transform,
-          TVRMLPositionalLightNode(L).FdLocation.Value), 1) else
-    if L is TVRMLDirectionalLightNode then
-      FMainLightForShadows := Vector4Single( Normalized(
-        MatrixMultDirection(State.Transform,
-          TVRMLDirectionalLightNode(L).FdDirection.Value) ), 0) else
-      raise Exception.CreateFmt('TVRMLScene.MainLightForShadows: ' +
-        'light node "%s" cannot be used to cast shadows, it has no position ' +
-        'and no direction', [L.NodeTypeName]);
+    FMainLightForShadowsNode := L;
+    FMainLightForShadowsTransform := State.Transform;
     FMainLightForShadowsExists := true;
+    CalculateMainLightForShadowsPosition;
     raise BreakMainLightForShadows.Create;
   end;
 end;
