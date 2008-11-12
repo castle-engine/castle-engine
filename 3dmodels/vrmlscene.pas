@@ -2365,6 +2365,21 @@ begin
     fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
     fvManifoldAndBorderEdges];
 
+  { Clear variables after removing fvTrianglesList* }
+  FreeAndNil(FTrianglesList[false]);
+  FreeAndNil(FTrianglesList[true]);
+
+  { Clear variables after removing fvManifoldAndBorderEdges }
+  if FOwnsManifoldAndBorderEdges then
+  begin
+    FreeAndNil(FManifoldEdges);
+    FreeAndNil(FBorderEdges);
+  end else
+  begin
+    FManifoldEdges := nil;
+    FBorderEdges := nil;
+  end;
+
   { First, call LocalGeometryChanged on shapes when needed.
     By the way, also calculate SomeLocalGeometryChanged (= if any
     LocalGeometryChanged was called, which means that octree and
@@ -2391,7 +2406,8 @@ begin
       begin
         SomeLocalGeometryChanged := true;
         ShapeStates[I].LocalGeometryChanged;
-        if Log and LogChanges then
+        if Log and LogChanges and
+           (ShapeStates[I].OctreeTriangles <> nil) then
           WritelnLog('VRML changes (octree)', Format('ShapeState[%d].OctreeTriangles updated', [I]));
       end;
     end;
