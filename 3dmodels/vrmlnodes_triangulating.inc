@@ -208,25 +208,30 @@ end;
 { metody LocalTriangulate konkretnych node'ow ---------------------------------}
 
 {$define LOOP_OVER_CIRCLE_DECLARE:=
-var LOC_AngleRad: Single;
-    LOC_LastPt, LOC_Pt: TVector3Single;
-    LOC_i: integer;}
+var
+  LOC_AngleRad: Single;
+  LOC_AngleSin, LOC_AngleCos: Float;
+  LOC_LastPt, LOC_Pt: TVector3Single;
+  LOC_i: integer;}
 
 {$define LOOP_OVER_CIRCLE:=
 begin
- LOC_LastPt := Vector3Single(0, LOOP_OVER_CIRCLE_HEIGHT, LOOP_OVER_CIRCLE_RADIUS);
- for LOC_i := 1 to QUADRIC_SLICES-1 do
- begin
-  LOC_AngleRad:=(LOC_i/QUADRIC_SLICES)*2*Pi;
-  LOC_Pt := Vector3Single(Sin(LOC_AngleRad)*LOOP_OVER_CIRCLE_RADIUS,
-                        LOOP_OVER_CIRCLE_HEIGHT,
-                        Cos(LOC_AngleRad)*LOOP_OVER_CIRCLE_RADIUS);
-  LOOP_OVER_CIRCLE_PROC(LOC_LastPt, LOC_Pt);
-  LOC_LastPt := LOC_Pt;
- end;
+  LOC_LastPt := Vector3Single(0, LOOP_OVER_CIRCLE_HEIGHT, LOOP_OVER_CIRCLE_RADIUS);
 
- LOC_Pt := Vector3Single(0, LOOP_OVER_CIRCLE_HEIGHT, LOOP_OVER_CIRCLE_RADIUS);
- LOOP_OVER_CIRCLE_PROC(LOC_LastPt, LOC_Pt);
+  for LOC_i := 1 to QUADRIC_SLICES-1 do
+  begin
+    LOC_AngleRad:=(LOC_i/QUADRIC_SLICES)*2*Pi;
+    SinCos(LOC_AngleRad, LOC_AngleSin, LOC_AngleCos);
+    LOC_Pt := Vector3Single(
+      LOC_AngleSin * LOOP_OVER_CIRCLE_RADIUS,
+      LOOP_OVER_CIRCLE_HEIGHT,
+      LOC_AngleCos * LOOP_OVER_CIRCLE_RADIUS);
+    LOOP_OVER_CIRCLE_PROC(LOC_LastPt, LOC_Pt);
+    LOC_LastPt := LOC_Pt;
+  end;
+
+  LOC_Pt := Vector3Single(0, LOOP_OVER_CIRCLE_HEIGHT, LOOP_OVER_CIRCLE_RADIUS);
+  LOOP_OVER_CIRCLE_PROC(LOC_LastPt, LOC_Pt);
 end;}
 
 procedure Cone_LocalTriangulate(
@@ -666,7 +671,7 @@ begin
     LowLastPt := Vector3Single(0, LowHeight, LowRadius);
     HighLastPt := Vector3Single(0, HighHeight, HighRadius);
 
-    for i := 1 to QUADRIC_SLICES do
+    for i := 1 to QUADRIC_SLICES - 1 do
     begin
       AngleRad := (i/QUADRIC_SLICES)*2*Pi;
       SinCos(AngleRad, SinAngleRad, CosAngleRad);
@@ -674,13 +679,25 @@ begin
       LowPt  := Vector3Single(SinAngleRad*LowRadius , LowHeight , CosAngleRad*LowRadius );
       HighPt := Vector3Single(SinAngleRad*HighRadius, HighHeight, CosAngleRad*HighRadius);
 
-      {rysuj czworokat}
+      { make quad }
       NewTriangleProc(Triangle3Single(LowLastPt, LowPt, HighPt), State, Self, 0, -1, -1);
       NewTriangleProc(Triangle3Single(LowLastPt, HighPt, HighLastPt), State, Self, 0, -1, -1);
 
       LowLastPt := LowPt;
       HighLastPt := HighPt;
     end;
+
+    { By explicitly setting last 2 points (as opposed to using
+      AngleRad = 1 * 2 * Pi in the last "for" loop run above) I make
+      sure that vertexes positions match exactly. This is crucial to make
+      triangulated sphere's edges match exactly, for correct rendering
+      and for correct detection of Manifold/BorderEdges for shadows. }
+
+    LowPt := Vector3Single(0, LowHeight, LowRadius);
+    HighPt := Vector3Single(0, HighHeight, HighRadius);
+    { make quad }
+    NewTriangleProc(Triangle3Single(LowLastPt, LowPt, HighPt), State, Self, 0, -1, -1);
+    NewTriangleProc(Triangle3Single(LowLastPt, HighPt, HighLastPt), State, Self, 0, -1, -1);
   end;
 end;
 
