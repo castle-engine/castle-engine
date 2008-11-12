@@ -621,7 +621,7 @@ var
 
   procedure LOOP_OVER_CIRCLE_PROC(LastPt, Pt: TVector3Single);
   begin
-    NewTriangleProc(Triangle3Single(LastPt, Pt, BottomPt), State, Self, 0, -1, -1);
+    NewTriangleProc(Triangle3Single(Pt, LastPt, BottomPt), State, Self, 0, -1, -1);
     Pt[1] := TopHeight;
     LastPt[1] := TopHeight;
     NewTriangleProc(Triangle3Single(LastPt, Pt, TopPt), State, Self, 0, -1, -1);
@@ -676,7 +676,7 @@ begin
 
       {rysuj czworokat}
       NewTriangleProc(Triangle3Single(LowLastPt, LowPt, HighPt), State, Self, 0, -1, -1);
-      NewTriangleProc(Triangle3Single(LowLastPt, HighLastPt, HighPt), State, Self, 0, -1, -1);
+      NewTriangleProc(Triangle3Single(LowLastPt, HighPt, HighLastPt), State, Self, 0, -1, -1);
 
       LowLastPt := LowPt;
       HighLastPt := HighPt;
