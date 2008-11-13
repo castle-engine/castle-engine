@@ -446,6 +446,8 @@ type
       AMouseButton: TMouseButton): boolean;
 
     FMouseNavigation: boolean;
+
+    procedure HomeNotNotify;
   public
     constructor Create(const AOnMatrixChanged: TNavigatorNotifyFunc);
       override;
@@ -1615,8 +1617,13 @@ begin
 
   FMouseNavigation := true;
 
-  FScaleFactor := 1;
   FModelBox := EmptyBox3d;
+
+  { Set ScaleFactor, Rotations and other things to default values.
+    Don't notify here OnMatrixChanged, since we're just created
+    (so not calling OnMatrixChanged is safer solution, caller may
+    call OnMatrixChanged itself after creating our object). }
+  HomeNotNotify;
 
   for I := 0 to 2 do
     for B := false to true do
@@ -1785,18 +1792,22 @@ begin FScaleFactor := Value; MatrixChanged; end;
 procedure TExamineNavigator.SetMoveAmount(const Value: TVector3Single);
 begin FMoveAmount := Value; MatrixChanged; end;
 
+procedure TExamineNavigator.HomeNotNotify;
+begin
+  if IsEmptyBox3d(FModelBox) then
+    FMoveAmount := Vector3Single(0, 0, 0) { any dummy value } else
+    FMoveAmount := VectorAdd(
+      VectorNegate(FModelBoxMiddle),
+      Vector3Single(0, 0, -Box3dAvgSize(FModelBox)*2));
+  FRotations := QuatIdentityRot;
+  FRotationsAnim := ZeroVector3Single;
+  FScaleFactor := 1.0;
+end;
+
 procedure TExamineNavigator.Home;
 begin
- if IsEmptyBox3d(FModelBox) then
-  FMoveAmount := Vector3Single(0, 0, 0) { any dummy value } else
-  FMoveAmount := VectorAdd(
-    VectorNegate(FModelBoxMiddle),
-    Vector3Single(0, 0, -Box3dAvgSize(FModelBox)*2));
- FRotations := QuatIdentityRot;
- FRotationsAnim := ZeroVector3Single;
- FScaleFactor := 1.0;
-
- MatrixChanged;
+  HomeNotNotify;
+  MatrixChanged;
 end;
 
 procedure TExamineNavigator.SetModelBox(const Value: TBox3d);
