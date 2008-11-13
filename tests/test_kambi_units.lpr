@@ -22,6 +22,7 @@ uses
   TestVRMLFields,
   TestVRMLNodes,
   TestVRMLGLScene,
+  TestVRMLScene,
   TestIntRects,
   TestSpaceFillingCurves,
   TestObjectsList,
