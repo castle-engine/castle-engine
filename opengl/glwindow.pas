@@ -1976,6 +1976,38 @@ type
     *)
     procedure Init;
 
+    { Version of Init that will eventually turn off multisampling and
+      stencil buffer, if display doesn't support them.
+
+      On entry, IsMultiSampling must correspond to MultiSampling > 1
+      and IsStencil must correspond to StencilBufferBits > 0.
+
+      This will try to initialize requested OpenGL context.
+      When this fails, it will set MultiSampling to 0 and retry.
+      When this also fails, it will set also StencilBufferBits to 0 and retry.
+      (When this also fails, you will get EGLContextNotPossible exception,
+      just like from regular @link(Init) call when initialization failed.)
+
+      When some features will be turned off, this will set
+      IsMultiSampling and/or IsStencil to @false. ErrorMessages will
+      be non-empty in this case, and will contain multi-line (separated,
+      but not terminated, by newlines) error messages
+      about failures to obtain GL contex.
+
+      If all goes well (that is, requested GL context will be obtained,
+      without the need to lower any requirements), then this will do
+      exactly the same thing as regular @link(Init) call.
+      IsXxx variables will not be changed then, and ErrorMessages will
+      be empty.
+
+      @raises(EGLContextNotPossible If it's not possible to obtain
+        requested OpenGL context, even without multisampling and
+        stencil buffer.) }
+    procedure InitOptionalMultiSamplingAndStencil(
+      var IsMultiSampling: boolean;
+      var IsStencil: boolean;
+      out ErrorMessages: string);
+
     { Close window.
 
       @unorderedList(
@@ -3085,6 +3117,75 @@ begin
  except
   Close; raise;
  end;
+end;
+
+procedure TGLWindow.InitOptionalMultiSamplingAndStencil(
+  var IsMultiSampling: boolean;
+  var IsStencil: boolean;
+  out ErrorMessages: string);
+
+const
+  STurnedOffMultiSampling = 'Multi-sampling (anti-aliasing)';
+  STurnedOffStencil = 'Stencil buffer (shadow volumes)';
+
+  procedure ErrMessage(E: Exception; const WhatTurnedOff: string);
+  begin
+    if ErrorMessages <> '' then ErrorMessages += NL;
+    ErrorMessages +=
+      Format('GL context init failed with message "%s".' +
+        ' %s turned off, trying to init once again', [E.Message, WhatTurnedOff]);
+  end;
+
+  procedure TryInitContext;
+  begin
+    Init;
+  end;
+
+  procedure TryInitContext_Shadows;
+  begin
+    try
+      Init;
+    except
+      on E: EGLContextNotPossible do
+      begin
+        if IsStencil then
+        begin
+          IsStencil := false;
+          StencilBufferBits := 0;
+          ErrMessage(E, STurnedOffStencil);
+          TryInitContext;
+        end else
+          raise;
+      end;
+    end;
+  end;
+
+begin
+  Assert(IsMultiSampling = (MultiSampling > 1), 'For InitOptionalMultiSamplingAndStencil, IsMultiSampling must be = (MultiSampling > 1)');
+  Assert(IsStencil = (StencilBufferBits > 0), 'For InitOptionalMultiSamplingAndStencil, IsStencil must be = (StencilBufferBits > 0)');
+  ErrorMessages := '';
+  try
+    Init;
+  except
+    on E: EGLContextNotPossible do
+    begin
+      if IsMultiSampling then
+      begin
+        IsMultiSampling := false;
+        MultiSampling := 0;
+        ErrMessage(E, STurnedOffMultiSampling);
+        TryInitContext_Shadows;
+      end else
+      if IsStencil then
+      begin
+        IsStencil := false;
+        StencilBufferBits := 0;
+        ErrMessage(E, STurnedOffStencil);
+        TryInitContext;
+      end else
+        raise;
+    end;
+  end;
 end;
 
 procedure TGLWindow.CloseError(const error: string);
