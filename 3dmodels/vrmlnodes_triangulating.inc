@@ -246,7 +246,7 @@ var BottomPt, TopPt: TVector3Single;
   procedure LOOP_OVER_CIRCLE_PROC(const LastPt, Pt: TVector3Single);
   begin
    if Bottom then
-     NewTriangleProc(Triangle3Single(LastPt, Pt, BottomPt),
+     NewTriangleProc(Triangle3Single(BottomPt, Pt, LastPt),
        State, Self, MatBottom, -1, -1);
    if Sides then
      NewTriangleProc(Triangle3Single(LastPt, Pt, TopPt),
@@ -387,7 +387,7 @@ var BottomPt, TopPt: TVector3Single;
    HighPt     := Vector3Single(LowPt    [0], Height/2, LowPt    [2]);
 
    if Bottom then
-     NewTriangleProc(Triangle3Single(LowLastPt, LowPt, BottomPt),
+     NewTriangleProc(Triangle3Single(BottomPt, LowPt, LowLastPt),
        State, Self, MatBottom, -1, -1);
 
    if Top then
@@ -396,10 +396,8 @@ var BottomPt, TopPt: TVector3Single;
 
    if Side then
    begin
-     NewTriangleProc(Triangle3Single(LowLastPt, LowPt, HighPt),
-       State, Self, MatSides, -1, -1);
-     NewTriangleProc(Triangle3Single(HighLastPt, HighPt, LowLastPt),
-       State, Self, MatSides, -1, -1);
+     NewTriangleProc(Triangle3Single(LowLastPt, LowPt , HighPt    ), State, Self, MatSides, -1, -1);
+     NewTriangleProc(Triangle3Single(LowLastPt, HighPt, HighLastPt), State, Self, MatSides, -1, -1);
    end;
   end;
 

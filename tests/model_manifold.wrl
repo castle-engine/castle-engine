@@ -30,3 +30,11 @@ Shape {
    ]
   }
 }
+
+Shape {
+  geometry Cone { }
+}
+
+Shape {
+  geometry Cylinder { }
+}
