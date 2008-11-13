@@ -1004,6 +1004,28 @@ type
       const TransformIsIdentity: boolean;
       const Transform: TMatrix4Single;
       const AllowSilhouetteOptimization: boolean = true);
+
+    { Render silhouette edges.
+      Silhouette is determined from the ObserverPos.
+
+      Whole scene is transformed by Transform (before checking which
+      edges are silhouette and before rendering). In other words,
+      Transform must transform the scene to the same coord space where
+      given ObserverPos is. When they are is the same space, just use
+      IdentityMatrix4Single.
+
+      This implicitly creates and uses ManifoldEdges. In fact, one of the uses
+      of this is to visually see that ManifoldEdges are coorect. }
+    procedure RenderSilhouetteEdges(
+      const ObserverPos: TVector4Single;
+      const Transform: TMatrix4Single);
+
+    { Render all border edges (the edges without neighbor).
+
+      This implicitly creates and uses BorderEdges. In fact, one of the uses
+      of this is to visually see that BorderEdges are coorect. }
+    procedure RenderBorderEdges(
+      const Transform: TMatrix4Single);
   private
     FBackgroundSkySphereRadius: Single;
     { Node for which FBackground is currently prepared. }
@@ -3227,6 +3249,131 @@ begin
 
   RenderShadowVolume(ShadowVolumes, TransformIsIdentity, Transform,
     AllowSilhouetteOptimization);
+end;
+
+procedure TVRMLGLScene.RenderSilhouetteEdges(
+  const ObserverPos: TVector4Single;
+  const Transform: TMatrix4Single);
+
+{ This is actually a modified implementation of
+  TVRMLGLScene.RenderSilhouetteShadowQuads: instead of rendering
+  shadow quad for each silhouette edge, the edge is simply rendered
+  as OpenGL line. }
+
+var
+  Triangles: TDynTriangle3SingleArray;
+  EdgePtr: PManifoldEdge;
+
+  procedure RenderEdge(
+    const P0Index, P1Index: Cardinal);
+  var
+    V0, V1: TVector3Single;
+    EdgeV0, EdgeV1: PVector3Single;
+    TrianglePtr: PTriangle3Single;
+  begin
+    TrianglePtr := Triangles.Pointers[EdgePtr^.Triangles[0]];
+    EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + P0Index) mod 3];
+    EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + P1Index) mod 3];
+
+    V0 := MatrixMultPoint(Transform, EdgeV0^);
+    V1 := MatrixMultPoint(Transform, EdgeV1^);
+
+    glVertexv(V0);
+    glVertexv(V1);
+  end;
+
+  function PlaneSide(const T: TTriangle3Single): boolean;
+  var
+    Plane: TVector4Single;
+  begin
+    Plane := TrianglePlane(
+      MatrixMultPoint(Transform, T[0]),
+      MatrixMultPoint(Transform, T[1]),
+      MatrixMultPoint(Transform, T[2]));
+    Result := (Plane[0] * ObserverPos[0] +
+               Plane[1] * ObserverPos[1] +
+               Plane[2] * ObserverPos[2] +
+               Plane[3] * ObserverPos[3]) > 0;
+  end;
+
+var
+  I: Integer;
+  TrianglePtr: PTriangle3Single;
+  PlaneSide0, PlaneSide1: boolean;
+  TrianglesPlaneSide: TDynBooleanArray;
+  Edges: TDynManifoldEdgeArray;
+begin
+  glBegin(GL_LINES);
+    Triangles := TrianglesList(false);
+    Edges := ManifoldEdges;
+
+    TrianglesPlaneSide := TDynBooleanArray.Create;
+    try
+      { calculate TrianglesPlaneSide array }
+      TrianglesPlaneSide.Count := Triangles.Count;
+      TrianglePtr := Triangles.Pointers[0];
+      for I := 0 to Triangles.Count - 1 do
+      begin
+        TrianglesPlaneSide.Items[I] := PlaneSide(TrianglePtr^);
+        Inc(TrianglePtr);
+      end;
+
+      { for each edge, possibly render it's shadow quad }
+      EdgePtr := Edges.Pointers[0];
+      for I := 0 to Edges.Count - 1 do
+      begin
+        PlaneSide0 := TrianglesPlaneSide.Items[EdgePtr^.Triangles[0]];
+        PlaneSide1 := TrianglesPlaneSide.Items[EdgePtr^.Triangles[1]];
+
+        if PlaneSide0 <> PlaneSide1 then
+          RenderEdge(0, 1);
+
+        Inc(EdgePtr);
+      end;
+
+    finally FreeAndNil(TrianglesPlaneSide) end;
+  glEnd;
+end;
+
+procedure TVRMLGLScene.RenderBorderEdges(
+  const Transform: TMatrix4Single);
+var
+  Triangles: TDynTriangle3SingleArray;
+  EdgePtr: PBorderEdge;
+
+  procedure RenderEdge;
+  var
+    V0, V1: TVector3Single;
+    EdgeV0, EdgeV1: PVector3Single;
+    TrianglePtr: PTriangle3Single;
+  begin
+    TrianglePtr := Triangles.Pointers[EdgePtr^.TriangleIndex];
+    EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + 0) mod 3];
+    EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + 1) mod 3];
+
+    V0 := MatrixMultPoint(Transform, EdgeV0^);
+    V1 := MatrixMultPoint(Transform, EdgeV1^);
+
+    glVertexv(V0);
+    glVertexv(V1);
+  end;
+
+var
+  I: Integer;
+  Edges: TDynBorderEdgeArray;
+begin
+  glBegin(GL_LINES);
+    Triangles := TrianglesList(false);
+    Edges := BorderEdges;
+
+    { for each edge, render it }
+    EdgePtr := Edges.Pointers[0];
+    for I := 0 to Edges.Count - 1 do
+    begin
+      RenderEdge;
+      Inc(EdgePtr);
+    end;
+  glEnd;
 end;
 
 { RenderFrustum and helpers ---------------------------------------- }

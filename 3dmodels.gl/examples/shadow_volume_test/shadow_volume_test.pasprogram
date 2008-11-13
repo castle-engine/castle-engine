@@ -208,14 +208,20 @@ procedure Draw(glwin: TGLWindow);
 
       if Glwin.KeysDown[K_F12] then
       begin
-        RenderBorderEdges(ShadowCaster, ShadowCasterNav.Matrix);
-        RenderSilhouetteEdges(ShadowCaster, MainLightPosition,
+        glColor4f(0, 0, 1, 0.3);
+        ShadowCaster.RenderBorderEdges(ShadowCasterNav.Matrix);
+
+        glColor4f(1, 1, 0, 0.3);
+        ShadowCaster.RenderSilhouetteEdges(MainLightPosition,
           ShadowCasterNav.Matrix);
       end else
       begin
-        RenderSilhouetteEdges(ShadowCaster, MainLightPosition,
+        glColor4f(1, 1, 0, 0.3);
+        ShadowCaster.RenderSilhouetteEdges(MainLightPosition,
           ShadowCasterNav.Matrix);
-        RenderBorderEdges(ShadowCaster, ShadowCasterNav.Matrix);
+
+        glColor4f(0, 0, 1, 0.3);
+        ShadowCaster.RenderBorderEdges(ShadowCasterNav.Matrix);
       end;
     glPopAttrib;
   end;
