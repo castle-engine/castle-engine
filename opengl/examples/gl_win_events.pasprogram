@@ -79,7 +79,7 @@ const
   Margin = 20;
 begin
   TimeMsg.Draw2d(glwin.Width, glwin.Height, glwin.Width, glwin.Height);
-  
+
   glColor3f(0.5, 0.5, 0.5);
 
   S := '';
@@ -115,7 +115,7 @@ end;
 
 procedure KeyDown(glwin: TGLWindow; key: TKey; c: char);
 begin
-  { Tests: }
+  { Tes
   case C of
     'n': Glwin.Cursor := gcNone;
     'd': Glwin.Cursor := gcDefault;
@@ -125,7 +125,7 @@ begin
     '3': Glwin.SetMousePosition(Glwin.Width, Glwin.Height);
     '4': Glwin.SetMousePosition(0          , Glwin.Height);
     '5': Glwin.SetMousePosition(Glwin.Width div 2, Glwin.Height div 2);
-  end; {}
+  end; }
 
   TimeMsg.Show(Format('KeyDown message : key %s, char %s (ord %d)',
     [KeyToStr(key), CharToNiceStr(c), Ord(c)]));
