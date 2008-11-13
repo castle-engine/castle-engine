@@ -769,6 +769,7 @@ type
     State: TVRMLGraphTraverseState;
     NewTriangleProc: TNewTriangleProc;
     TransformCap: TMatrix4Single;
+    RevertOrder: boolean;
 
     procedure ExtrusionCapTriangle(const Tri: TVector3Longint);
   end;
@@ -776,17 +777,28 @@ type
 procedure TExtrusionTriangleTriangulator.ExtrusionCapTriangle(
   const Tri: TVector3Longint);
 begin
-  NewTriangleProc(Triangle3Single(
-    MatrixMultPoint(TransformCap, Node.CrossSection3D(Tri[0])),
-    MatrixMultPoint(TransformCap, Node.CrossSection3D(Tri[1])),
-    MatrixMultPoint(TransformCap, Node.CrossSection3D(Tri[2]))),
-    State, Node, 0, -1, -1);
+  if RevertOrder then
+  begin
+    NewTriangleProc(Triangle3Single(
+      MatrixMultPoint(TransformCap, Node.CrossSection3D(Tri[0])),
+      MatrixMultPoint(TransformCap, Node.CrossSection3D(Tri[2])),
+      MatrixMultPoint(TransformCap, Node.CrossSection3D(Tri[1]))),
+      State, Node, 0, -1, -1);
+  end else
+  begin
+    NewTriangleProc(Triangle3Single(
+      MatrixMultPoint(TransformCap, Node.CrossSection3D(Tri[0])),
+      MatrixMultPoint(TransformCap, Node.CrossSection3D(Tri[1])),
+      MatrixMultPoint(TransformCap, Node.CrossSection3D(Tri[2]))),
+      State, Node, 0, -1, -1);
+  end;
 end;
 
 procedure TNodeExtrusion.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 
-  procedure DrawCap(const TransformCap: TMatrix4Single);
+  procedure DrawCap(const TransformCap: TMatrix4Single;
+    const RevertOrder: boolean);
   var
     Triangulator: TExtrusionTriangleTriangulator;
   begin
@@ -796,6 +808,7 @@ procedure TNodeExtrusion.LocalTriangulate(State: TVRMLGraphTraverseState;
       Triangulator.State := State;
       Triangulator.NewTriangleProc := NewTriangleProc;
       Triangulator.TransformCap := TransformCap;
+      Triangulator.RevertOrder := RevertOrder;
 
       if FdConvex.Value then
       begin
@@ -886,7 +899,7 @@ begin
           for Spine = 0).  }
         E.SpineTransformTo1st(0, LastY, LastZ, TransformCap);
 
-        DrawCap(TransformCap);
+        DrawCap(TransformCap, false);
       end;
 
       if FdEndCap.Value then
@@ -904,7 +917,11 @@ begin
           E.SpineTransformTo1st(0, LastY, LastZ, TransformCap);
           { else calculations for FdBeginCap.Value already set TransformCap }
 
-        DrawCap(TransformCap);
+        DrawCap(TransformCap,
+          { we revert order, to make extrusion with consistent ordering,
+            needed to have this as perfect 2-manifold
+            for shadow volumes }
+          true);
       end;
     end;
 
