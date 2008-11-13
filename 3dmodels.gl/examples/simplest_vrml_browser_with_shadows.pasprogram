@@ -1,0 +1,67 @@
+{
+  Copyright 2008 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
+}
+
+{ simplest_vrml_browser extended to render shadows.
+
+  Besides setting ShadowVolumesPossible and ShadowVolumes to @true,
+  we also initialize window by Glw.InitOptionalMultiSamplingAndStencil.
+  The latter allows us to smoothly fallback to rendering without shadows
+  on GPUs that don't support stencil buffer (really really old graphic cards). }
+
+program simplest_vrml_browser_with_shadows;
+
+{$apptype CONSOLE}
+
+uses KambiUtils, GLWindow, GLWindowVRMLBrowser, ProgressUnit, ProgressConsole,
+  VRMLScene, VRMLErrors;
+
+var
+  BrowserWindow: TGLWindowVRMLBrowser;
+
+procedure StencilOff(Glwin: TGLWindow; const FailureMessage: string);
+begin
+  BrowserWindow.ShadowVolumesPossible := false;
+  Writeln('Stencil buffer not available, shadows could not be initialized');
+end;
+
+begin
+  Parameters.CheckHigh(1);
+
+  VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
+  Progress.UserInterface := ProgressConsoleInterface;
+
+  BrowserWindow := TGLWindowVRMLBrowser.Create;
+  try
+    BrowserWindow.ShadowVolumesPossible := true;
+    BrowserWindow.ShadowVolumes := true;
+
+    BrowserWindow.Load(Parameters[1]);
+
+    Writeln(BrowserWindow.Scene.Info(true, true, false));
+
+    BrowserWindow.Scene.Spatial := [ssRendering, ssDynamicCollisions];
+    BrowserWindow.Scene.ProcessEvents := true;
+
+    BrowserWindow.InitOptionalMultiSamplingAndStencil(nil, @StencilOff);
+    Glwm.Loop;
+  finally BrowserWindow.Free end;
+end.
