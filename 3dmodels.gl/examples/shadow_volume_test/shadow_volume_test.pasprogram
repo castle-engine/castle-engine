@@ -697,7 +697,9 @@ begin
     ShadowCasterNav.Input_Home.Key1 := K_None;
     ShadowCasterNav.Input_StopRotating.Key1 := K_2;
     ShadowCasterNav.Input_ScaleLarger.Key1 := K_3;
+    ShadowCasterNav.Input_ScaleLarger.Character := #0;
     ShadowCasterNav.Input_ScaleSmaller.Key1 := K_4;
+    ShadowCasterNav.Input_ScaleSmaller.Character := #0;
 
     { init Glw.Navigator }
     Glw.Navigator := TWalkNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
