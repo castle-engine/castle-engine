@@ -142,6 +142,12 @@ begin
 
   UpdateCaption;
 
+  { Uncomment these to use shadows:
+
+  Browser.ShadowVolumesPossible := true;
+  Browser.ShadowVolumes := true;
+  }
+
   MenuFocusGLControl.ShortCut := ShortCut(VK_Escape, []);
 
   VrmlConsole := TVrmlConsole.Create(Application);
