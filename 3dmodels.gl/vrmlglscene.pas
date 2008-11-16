@@ -3075,6 +3075,12 @@ var
         collide in z buffer with the object itself.
 
         Setting glDepthFunc(GL_NEVER) for DarkCap also is harmless and OK.
+        Proof: if there's anything on this pixel, then indeed the depth test
+        would fail. If the pixel is empty (nothing was rasterized there),
+        then the depth test wouldn't fail... but also, in this case value in
+        stencil buffer will not matter, it doesn't matter if this pixel
+        is in shadow or not because there's simply nothing there.
+
         And it allows us to render both LightCap and DarkCap in one
         GL_TRIANGLES pass, in one iteration over Triangles list, which is
         good for speed.
@@ -3087,6 +3093,36 @@ var
         would go outside of depth range (even for infinite projection,
         as glPolygonOffset works already after the vertex is transformed
         by projection), as this would break DarkCap rendering).
+
+        Note that all this reasoning about depth buffer assumes that you
+        render your normal geometry with depth buffer testing *and writing*
+        enabled. For partially-transparent objects, that have to be
+        rendered with depth writing disabled, this scheme completely
+        breaks down. But there's no way for shadow volumes to handle blended
+        objects (that are not recorded in depth buffer) anyway. Partially
+        transparent objects cannot be shadow receivers at all (although
+        they may be shadow casters, after all they have correct shadow
+        volumes, no problem here).
+
+        TODO: following above note, shadowvolumes.render must be modified
+        to render only tgOpaque parts for shadow receivers. tgTransparent
+        parts will have to be handled at the end, just like transparent
+        non-receivers. Document this fact at shadowvolumes.render.
+
+        - also, this may actually make creatures/items shadows in "the castle"
+          look good! Test, and eventually enable.
+
+        TODO: This has the additional benefit that now we can easily
+        implement shadow volumes from multiple lights. This requires
+        adding light contributions, so using blending --- this was problematic
+        when shadow receivers could use blending themselves. Now it'll
+        not be a problem.
+
+        This also follows [http://developer.nvidia.com/object/fast_shadow_volumes.html]
+        notes: they just do separate rendering pass to render the
+        partially-transparent parts, IOW they also note that transparent parts
+        simply don't work at all with shadow volumes.
+
       }
 
       glPushAttrib(GL_DEPTH_BUFFER_BIT); { to save glDepthFunc call below }
