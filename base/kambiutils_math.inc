@@ -393,7 +393,7 @@ function CeilDiv(const A, B: Cardinal): Cardinal;
   It's always guaranteed that Remainder >= 0 and <= B (and usually should be
   < B, but this cannot be guaranteed). }
 procedure FloatDivMod(const A, B: Double;
-  out DivResult: Integer; out Remainder: Double);
+  out DivResult: Int64; out Remainder: Double);
 
 { Calculate float modulo of division on two float arguments.
   See FloatDivMod for more comments. }
@@ -739,7 +739,7 @@ begin
 end;
 
 procedure FloatDivMod(const A, B: Double;
-  out DivResult: Integer; out Remainder: Double);
+  out DivResult: Int64; out Remainder: Double);
 begin
   DivResult := Trunc(A / B);
   Remainder := A - B * DivResult;
@@ -765,7 +765,7 @@ end;
 
 function FloatModulo(const A, B: Double): Double;
 var
-  DivResult: Integer;
+  DivResult: Int64;
 begin
   FloatDivMod(A, B, DivResult, Result);
 end;
