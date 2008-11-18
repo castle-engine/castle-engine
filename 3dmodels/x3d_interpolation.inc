@@ -442,13 +442,12 @@ begin
   DefaultContainerField := 'children';
 end;
 
-function TNodeX3DInterpolatorNode.KeyRange(
+{ See TNodeX3DInterpolatorNode.KeyRange documentation. }
+function KeyRange(Key: TDynSingleArray;
   const Fraction: Single; out T: Single): Integer;
 var
-  Key: TDynSingleArray;
   A, B: Integer;
 begin
-  Key := FdKey.Items;
   Assert(Key.Count > 0);
 
   if Fraction <= Key.Items[0] then
@@ -496,6 +495,12 @@ begin
       T := (Fraction - Key[A]) / (Key[B] - Key[A]) else
       T := 0;
   end;
+end;
+
+function TNodeX3DInterpolatorNode.KeyRange(
+  const Fraction: Single; out T: Single): Integer;
+begin
+  Result := VRMLNodes.KeyRange(FdKey.Items, Fraction, T);
 end;
 
 constructor TNodeColorInterpolator.Create(const ANodeName: string;

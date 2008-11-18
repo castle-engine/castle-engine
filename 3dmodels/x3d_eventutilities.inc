@@ -21,6 +21,42 @@
 {$ifdef read_interface}
   { }
   TNodeX3DSequencerNode = class(TNodeX3DChildNode)
+  private
+    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TVRMLTime);
+    procedure EventNextReceive(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TVRMLTime);
+    procedure EventPreviousReceive(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TVRMLTime);
+
+    FCurrentKeyRange: Integer;
+  protected
+    { Analogous to TNodeX3DInterpolatorNode.KeyRange. }
+    function KeyRange(const Fraction: Single): Integer;
+
+    { In what key range we currently are. In other words, which
+      keyValue was last send (passed to SendValueChanged).
+
+      We have to keep track of this information, per each node,
+      as specification clearly says that value_changed should not be
+      generated continously on each set_fraction, but only when value
+      actually changes.
+
+      Valid values here are between -1 and FdKey.Count - 1.
+      Values between 0 and FdKey.Count - 1 indicate which keyValue was
+      last send. Value -1 means that SendValueChanged was not yet called,
+      this is the default value (after construction). }
+    property CurrentKeyRange: Integer read FCurrentKeyRange;
+    procedure SetCurrentKeyRange(const Value: Integer; const Time: TVRMLTime);
+
+    { Override this is descendants to actually send value_changed event
+      witk keyValue[ValueIndex]. You are guaranteed that ValueIndex
+      is between 0 and FdKey.Count - 1, but you have to check yourself
+      whether it's also between 0 and FdKeyValue.Count - 1
+      (although spec requires that key and keyValue fields have the same size,
+      we have to protect against invalid files). }
+    procedure SendValueChanged(const ValueIndex: Integer;
+      const Time: TVRMLTime); virtual; abstract;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -74,6 +110,9 @@
   end;
 
   TNodeBooleanSequencer = class(TNodeX3DSequencerNode)
+  protected
+    procedure SendValueChanged(const ValueIndex: Integer;
+      const Time: TVRMLTime); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -129,6 +168,9 @@
   end;
 
   TNodeIntegerSequencer = class(TNodeX3DSequencerNode)
+  protected
+    procedure SendValueChanged(const ValueIndex: Integer;
+      const Time: TVRMLTime); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -195,20 +237,118 @@ constructor TNodeX3DSequencerNode.Create(const ANodeName: string;
 begin
   inherited;
 
+  FCurrentKeyRange := -1;
+
   FEventnext := TVRMLEvent.Create(Self, 'next', TSFBool, true);
   Events.Add(FEventnext);
+  EventNext.OnReceive.AppendItem(@EventNextReceive);
 
   FEventprevious := TVRMLEvent.Create(Self, 'previous', TSFBool, true);
   Events.Add(FEventprevious);
+  EventPrevious.OnReceive.AppendItem(@EventPreviousReceive);
 
   FEventset_fraction := TVRMLEvent.Create(Self, 'set_fraction', TSFFloat, true);
   Events.Add(FEventset_fraction);
+  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
 
   FFdkey := TMFFloat.Create(Self, 'key', []);
   Fields.Add(FFdkey);
   { X3D specification comment: (-Inf,Inf) }
 
   DefaultContainerField := 'children';
+end;
+
+function TNodeX3DSequencerNode.KeyRange(
+  const Fraction: Single): Integer;
+var
+  T: Single;
+begin
+  { T is simply ignored, as it's useless for sequences (since they generate
+    discrete events from float fraction, then they are not interested
+    in T value). }
+
+  Result := VRMLNodes.KeyRange(FdKey.Items, Fraction, T);
+end;
+
+procedure TNodeX3DSequencerNode.SetCurrentKeyRange(const Value: Integer;
+  const Time: TVRMLTime);
+begin
+  if FCurrentKeyRange <> Value then
+  begin
+    Assert(Value >= -1);
+    Assert(Value < FdKey.Count);
+    FCurrentKeyRange := Value;
+    SendValueChanged(Value, Time);
+  end;
+end;
+
+procedure TNodeX3DSequencerNode.EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+  const Time: TVRMLTime);
+var
+  KeyCount: Integer;
+  NewKeyRange: Integer;
+begin
+  KeyCount := FdKey.Items.Count;
+  if KeyCount <> 0 then { for KeyCount = 0, do nothing }
+  begin
+    NewKeyRange := KeyRange((Value as TSFFloat).Value);
+
+    { For NewKeyRange = 0 (before 1st key), leave it as 0.
+      For NewKeyRange = KeyCount, this is after last key, so we want
+      NewKeyRange = KeyCount - 1.
+      For other values, we're within some range, and NewKeyRange is index
+      of the right value --- we want to decrease it, so become index of the left
+      value. }
+    if NewKeyRange <> 0 then
+      Dec(NewKeyRange);
+
+    { Set CurrentKeyRange and eventually send value_changed }
+    SetCurrentKeyRange(NewKeyRange, Time);
+  end;
+end;
+
+procedure TNodeX3DSequencerNode.EventNextReceive(Event: TVRMLEvent; Value: TVRMLField;
+  const Time: TVRMLTime);
+var
+  KeyCount, NewKeyRange: Integer;
+begin
+  KeyCount := FdKey.Items.Count;
+  if (Value as TSFBool).Value and (KeyCount <> 0) then
+  begin
+    { Note that CurrentKeyRange may be -1. Code below will still work then
+      (as CurrentKeyRange + 1 is always >= 0).
+      This also means that even when KeyCount = 1, calling "next" event
+      may be meaningfull: it will cause generation of the first keyvalue. }
+
+    NewKeyRange := CurrentKeyRange + 1;
+    if NewKeyRange = KeyCount then
+      NewKeyRange := 0;
+
+    { Set CurrentKeyRange and eventually send value_changed }
+    SetCurrentKeyRange(NewKeyRange, Time);
+  end;
+end;
+
+procedure TNodeX3DSequencerNode.EventPreviousReceive(Event: TVRMLEvent; Value: TVRMLField;
+  const Time: TVRMLTime);
+var
+  KeyCount, NewKeyRange: Integer;
+begin
+  KeyCount := FdKey.Items.Count;
+  if (Value as TSFBool).Value and (KeyCount <> 0) then
+  begin
+    { Note that CurrentKeyRange may be -1. Code below will still work then
+      (as CurrentKeyRange - 1 is then -2, so we will jump to last item).
+      This also means that even when KeyCount = 1, calling "previous" event
+      may be meaningfull: it will cause generation of the last keyvalue. }
+
+    NewKeyRange := CurrentKeyRange - 1;
+    if NewKeyRange < 0 then
+      NewKeyRange := KeyCount - 1;
+
+    { Set CurrentKeyRange and eventually send value_changed }
+    SetCurrentKeyRange(NewKeyRange, Time);
+  end;
 end;
 
 constructor TNodeX3DTriggerNode.Create(const ANodeName: string;
@@ -302,6 +442,15 @@ class function TNodeBooleanSequencer.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure TNodeBooleanSequencer.SendValueChanged(const ValueIndex: Integer;
+  const Time: TVRMLTime);
+begin
+  if FdKeyValue.Count <> FdKey.Count then
+    VRMLNonFatalError('BooleanSequencer node: key and keyValue fields should have the same size');
+  if ValueIndex < FdKeyValue.Count then
+    EventValue_Changed.Send(FdKeyValue.Items.Items[ValueIndex], Time);
 end;
 
 constructor TNodeBooleanToggle.Create(const ANodeName: string;
@@ -420,6 +569,15 @@ class function TNodeIntegerSequencer.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure TNodeIntegerSequencer.SendValueChanged(const ValueIndex: Integer;
+  const Time: TVRMLTime);
+begin
+  if FdKeyValue.Count <> FdKey.Count then
+    VRMLNonFatalError('IntegerSequencer node: key and keyValue fields should have the same size');
+  if ValueIndex < FdKeyValue.Count then
+    EventValue_Changed.Send(FdKeyValue.Items.Items[ValueIndex], Time);
 end;
 
 constructor TNodeIntegerTrigger.Create(const ANodeName: string;
