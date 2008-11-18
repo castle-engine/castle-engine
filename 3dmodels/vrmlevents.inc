@@ -390,7 +390,7 @@ end;
 function TVRMLEventsList.IndexOf(const Name: string): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if Items[Result].Name = Name then Exit;
+    if Items[Result].IsName(Name) then Exit;
   Result := -1;
 end;
 

@@ -446,6 +446,9 @@ begin
 
   FEventcycleTime := TVRMLEvent.Create(Self, 'cycleTime', TSFTime, false);
   Events.Add(FEventcycleTime);
+  { cycleTime_changed name is used e.g. by
+    www.web3d.org/x3d/content/examples/Basic/StudentProjects/WallClock.x3d }
+  FEventcycleTime.AddAlternativeName('cycleTime_changed', 0);
 
   FEventfraction_changed := TVRMLEvent.Create(Self, 'fraction_changed', TSFFloat, false);
   Events.Add(FEventfraction_changed);
