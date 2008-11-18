@@ -24,11 +24,6 @@ unit VRMLGLScene;
 
 {$I openglmac.inc}
 
-{ TODO --- demo that roSeparateShapeStates is great (better than roNone
-  and roSceneAsAWhole) when you change only small part of an object
-  at runtime and you're calling ChangedShapeState because change is very local.
-}
-
 { With this you can fine-tune performance of RenderFrustum when
   ShapeStateOctree is *not* available.
 
