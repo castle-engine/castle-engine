@@ -281,6 +281,13 @@ begin
   Scene.ViewpointStack.OnBoundChanged := @BoundViewpointChanged;
   Scene.OnGeometryChanged := @GeometryChanged;
 
+  { Call initial ViewerChanged (this allows ProximitySensors to work
+    as soon as ProcessEvent becomes true). }
+  if Navigator is TWalkNavigator then
+  begin
+    Scene.ViewerChanged(WalkNav.CameraPos, WalkNav.CameraDir, WalkNav.CameraUp);
+  end;
+
   { allow the scene to use it's own lights }
   Scene.Attributes.UseLights := true;
   Scene.Attributes.FirstGLFreeLight := 1;

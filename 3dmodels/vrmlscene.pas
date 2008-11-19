@@ -3392,17 +3392,41 @@ begin
 end;
 
 procedure TVRMLScene.SetProcessEvents(const Value: boolean);
+
+  { When ProcessEvents is set to @true, you want to call initial
+    position/orientation_changed events.
+
+    Implementation below essentially is like ViewerChanged,
+    except it checks IsLastViewer (instead of setting it always to @true). }
+  procedure InitialProximitySensorsEvents;
+  var
+    I: Integer;
+  begin
+    Inc(FWorldTime.PlusTicks);
+    BeginChangesSchedule;
+    try
+      if IsLastViewer then
+      begin
+        for I := 0 to ProximitySensorInstances.Count - 1 do
+          ProximitySensorUpdate(ProximitySensorInstances.Items[I]);
+      end;
+    finally EndChangesSchedule end;
+  end;
+
 begin
   if FProcessEvents <> Value then
   begin
     if Value then
     begin
-      IsLastViewer := false;
       KeySensorNodes := TVRMLNodesList.Create;
       TimeSensorNodes := TVRMLNodesList.Create;
       MovieTextureNodes := TVRMLNodesList.Create;
       ProximitySensorInstances := TDynProximitySensorInstanceArray.Create;
+
+      FProcessEvents := Value;
+
       CollectNodesForEvents;
+      InitialProximitySensorsEvents;
     end else
     begin
       UnregisterProcessEvents(RootNode);
@@ -3411,8 +3435,9 @@ begin
       FreeAndNil(MovieTextureNodes);
       FreeAndNil(ProximitySensorInstances);
       PointingDeviceClear;
+
+      FProcessEvents := Value;
     end;
-    FProcessEvents := Value;
   end;
 end;
 
@@ -4016,16 +4041,16 @@ procedure TVRMLScene.ViewerChanged(
 var
   I: Integer;
 begin
+  LastViewerPosition  := ViewerPosition;
+  LastViewerDirection := ViewerDirection;
+  LastViewerUp        := ViewerUp;
+  IsLastViewer := true;
+
   if ProcessEvents then
   begin
     Inc(FWorldTime.PlusTicks);
     BeginChangesSchedule;
     try
-      LastViewerPosition  := ViewerPosition;
-      LastViewerDirection := ViewerDirection;
-      LastViewerUp        := ViewerUp;
-      IsLastViewer := true;
-
       for I := 0 to ProximitySensorInstances.Count - 1 do
         ProximitySensorUpdate(ProximitySensorInstances.Items[I]);
     finally
