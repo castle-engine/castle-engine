@@ -118,7 +118,7 @@ type
     FShadowVolumesDraw: boolean;
     SV: TShadowVolumes;
 
-    procedure RenderScene(InShadow: boolean);
+    procedure RenderScene(InShadow: boolean; TransparentGroup: TTransparentGroup);
     procedure RenderShadowVolumes;
   protected
     procedure DoBeforeDraw; override;
@@ -295,21 +295,26 @@ end;
 procedure TKamVRMLBrowser.DoBeforeDraw;
 var
   Options: TPrepareRenderOptions;
+  TG: TTransparentGroups;
 begin
   Options := [prBackground, prBoundingBox];
   if ShadowVolumesPossible then
     Options := Options + prShadowVolume;
 
-  Scene.PrepareRender([tgAll], Options);
+  TG := [tgAll];
+  if ShadowVolumesPossible then
+    TG := TG + [tgOpaque, tgTransparent];
+
+  Scene.PrepareRender(TG, Options);
 
   inherited;
 end;
 
-procedure TKamVRMLBrowser.RenderScene(InShadow: boolean);
+procedure TKamVRMLBrowser.RenderScene(InShadow: boolean; TransparentGroup: TTransparentGroup);
 begin
   if InShadow then
-    Scene.RenderFrustum(Navigator.Frustum, tgAll, @Scene.LightRenderInShadow) else
-    Scene.RenderFrustum(Navigator.Frustum, tgAll, nil);
+    Scene.RenderFrustum(Navigator.Frustum, TransparentGroup, @Scene.LightRenderInShadow) else
+    Scene.RenderFrustum(Navigator.Frustum, TransparentGroup, nil);
 end;
 
 procedure TKamVRMLBrowser.RenderShadowVolumes;
@@ -321,7 +326,7 @@ procedure TKamVRMLBrowser.DoDraw;
 
   procedure RenderNoShadows;
   begin
-    RenderScene(false);
+    RenderScene(false, tgAll);
   end;
 
   procedure RenderWithShadows(const MainLightPosition: TVector4Single);

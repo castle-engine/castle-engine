@@ -706,10 +706,20 @@ type
       (at most, it allocates some texture and display list names).
 
       @param(TransparentGroups specifies for what TransparentGroup value
-        it should prepare rendering resources (usually you only use
-        [tgAll] or only one of [tgTransparent, tgOpaque] ---
-        so it would be a waste of resources and time to prepare for every
-        possible TransparentGroup value).)
+        it should prepare rendering resources. The idea is that
+        you're often interested in rendering only with tgAll, or
+        only with [tgTransparent, tgOpaque] --- so it would be a waste of
+        resources and time to prepare for every possible TransparentGroup value.
+
+        However, note that for Optimizations <> roSceneAsAWhole
+        preparing for every possible TransparentGroup value
+        is actually not harmful. There's no additional use of resources,
+        as the sum of [tgTransparent, tgOpaque] uses
+        the same resources as [tgAll]. In other words,
+        there's no difference in resource (and time) used between
+        preparing for [tgTransparent, tgOpaque], [tgAll] or
+        [tgTransparent, tgOpaque, tgAll] --- they'll all prepare the same
+        things.)
 
       @param(Options says what additional features (besides rendering)
         should be prepared to execute fast. See TPrepareRenderOption,
