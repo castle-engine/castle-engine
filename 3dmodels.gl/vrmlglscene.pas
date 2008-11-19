@@ -3097,17 +3097,73 @@ var
         to DarkCap (otherwise DarkCap in infinity (as done by ExtrudeVertex)
         would go outside of depth range (even for infinite projection,
         as glPolygonOffset works already after the vertex is transformed
-        by projection), as this would break DarkCap rendering).
+        by projection), and this would make DarkCap not rendered
+        (outside of depth range)).
 
-        Note that all this reasoning about depth buffer assumes that you
-        render your normal geometry with depth buffer testing *and writing*
-        enabled. For partially-transparent objects, that have to be
-        rendered with depth writing disabled, this scheme completely
-        breaks down. But there's no way for shadow volumes to handle blended
-        objects (that are not recorded in depth buffer) anyway. Partially
-        transparent objects cannot be shadow receivers at all (although
-        they may be shadow casters, after all they have correct shadow
-        volumes, no problem here).
+        If you consider that some shadow casters and receivers may
+        be partially transparent (that is, rendered without writing
+        to depth buffer) then the above reasoning is not so simple:
+
+        - There's no way to handle transparent
+          objects (that are not recorded in depth buffer) as shadow receivers.
+          Rendering them twice with blending would result in wrong blending
+          modes applied anyway. So TShadowVolumes.Render renders them
+          at the end, as last pass.
+
+          This means that "glDepthFunc(GL_NEVER) for DarkCap" is still
+          Ok: if on some pixel there was only transparent object visible,
+          then stencil value of this pixel is wrong, but transparent object
+          will never be rendered in shadowed state --- so it will not
+          look at stencil value.
+
+          For LightCap, situation is worse. Even if the transparent
+          object is only shadow caster (not receiver), still problems
+          may arise due to glDepthFunc(GL_NEVER): imagine you have
+          a transparent object casting shadow on non-transparent object
+          (see e.g.
+          kambi_vrml_test_suite/vrml_2/kambi_extensions/castle_with_shadows_tests/ghost_shadow.wrl).
+          This means that you can look through the shadow casting
+          (transp) object and see shadow receiving (opaque) object,
+          that may or may not be in shadow on speciic pixel.
+          Which means that glDepthFunc(GL_NEVER) is wrong for LightCap:
+          the transparent object doesn't hide the shadow on the screen,
+          and the depth test shouldn't fail. Which means that for transparent
+          objects, we cannot do glDepthFunc(GL_NEVER).
+
+        - What to do?
+
+          The trick
+            glEnable(GL_POLYGON_OFFSET_FILL);
+            glPolygonOffset(1, 1);
+          makes light cap rendering working for both transparent and opaque
+          objects, but it's not applicable to dark cap. Moreover,
+          using glPolygonOffset always feels dirty.
+
+          Solution: we decide to handle transparent objects separately.
+          We note that for transparent shadow casters
+          actually no tweaks to caps rendering should be done.
+          No glPolygonOffset, no glDepthFunc(GL_NEVER) needed: light cap
+          should be tested as usual. (Since transparent object is not written
+          to depth buffer, it will not collide in depth buffer with it's
+          light cap).
+
+          This means that is we'll just split triangles list into
+          transparent and opaque ones, then the only complication needed
+          is to switch glDepthFunc(GL_NEVER) trick *off* for transparent
+          triangles. And all works fast.
+
+        - There's actually one more note: for transparent objects,
+          caps are always needed (even with zpass).
+          Note that this means that whole 2-manifold part must have
+          caps.
+
+          This also means that joining one 2-manifold path from some transparent
+          and some opaque triangles will not work. (as then some parts
+          may have caps (like transparent ones) and some note
+          (like opaque ones with zpass)).
+
+          TODO: implement above. We'll need triangles sorted by transparency,
+          with some marker TrianglesOpaqueCount.
       }
 
       glPushAttrib(GL_DEPTH_BUFFER_BIT); { to save glDepthFunc call below }
