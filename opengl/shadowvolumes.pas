@@ -34,7 +34,7 @@ type
   TSVRenderTransparentGroupProc =
     procedure (TransparentGroup: TTransparentGroup) of object;
   TSVRenderShadowReceiversProc =
-    procedure (InShadow: boolean) of object;
+    procedure (InShadow: boolean; TransparentGroup: TTransparentGroup) of object;
   TSVRenderProc = procedure of object;
 
   { This class performs various initialization and calculations related
@@ -225,6 +225,17 @@ type
       of the scene in the shadows (so probably darker, probably with some
       OpenGL lights off) or the version that is currently lighted
       (so probably is ligher, with normal scene lights on).
+
+      RenderShadowReceivers will also be called with
+      TransparentGroup = tgOpaque or tgTransparent.
+      For tgTransparent, always InShadow = @false. In fact, transparent
+      parts are always rendered at the end such that they aren't really shadow
+      receivers. Shadow volumes simply don't allow transparent object
+      to function properly as shadow receivers.
+      Reading [http://developer.nvidia.com/object/fast_shadow_volumes.html]
+      notes: they also just do separate rendering pass to render the
+      partially-transparent parts, IOW they also note that transparent parts
+      simply don't work at all with shadow volumes.
 
       RenderShadowVolumes renders shadow volumes from shadow casters.
 
@@ -666,7 +677,7 @@ begin
   if Assigned(RenderNeverShadowed) then
     RenderNeverShadowed(tgOpaque);
 
-  RenderShadowReceivers(true);
+  RenderShadowReceivers(true, tgOpaque);
 
   glEnable(GL_STENCIL_TEST);
     { Note that stencil buffer is set to all 0 now. }
@@ -719,7 +730,7 @@ begin
     glClear(GL_DEPTH_BUFFER_BIT) before rendering shadowed things for the
     second time. While this seems to work, the 2nd pass leaves the depth-buffer
     untouched on shadowed places. So it creates a whole
-    lot of problems for rendering never-shadowed things:
+    lot of problems for rendering transparent things at the end:
     1. I have to render them before glClear(GL_DEPTH_BUFFER_BIT),
        since they can be occluded by any level parts (shadowed on not).
     2. I have to render them once again (but only into depth buffer,
@@ -729,8 +740,9 @@ begin
        non-shadowed level parts.
 
     This is easy doable for opaque parts. But what about transparent
-    parts of never-shadowed things ? In other words, where should the
-    call Render_NonShadowed_Transparent be done ?
+    things? In other words, where should the
+    calls RenderNeverShadowed(tgTransparent)
+    and RenderShadowReceivers(false, tgTransparent) be done?
     They should be rendered but they don't affect depth buffer.
     Well, clearly, they have to be rendered
     before glClear(GL_DEPTH_BUFFER_BIT) (for the same reason that
@@ -749,8 +761,8 @@ begin
 
     So basically, it's all doable, but not trivial, and (more important)
     I'm losing rendering time on handling this. And without taking proper care
-    about transparent parts of never-shadowed things,
-    transparent creatures/items will be visible through the walls,
+    about transparent parts, transparent things
+    may be e.g. visible through the walls,
     in the places where shadow falls on the wall.
 
     This was all talking assuming that we do glClear(GL_DEPTH_BUFFER_BIT)
@@ -771,7 +783,7 @@ begin
     glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
     glStencilFunc(GL_EQUAL, 0, StencilShadowBits);
     glEnable(GL_STENCIL_TEST);
-      RenderShadowReceivers(false);
+      RenderShadowReceivers(false, tgOpaque);
     glDisable(GL_STENCIL_TEST);
   glPopAttrib();
 
@@ -790,6 +802,8 @@ begin
     glPopAttrib;
     Count := OldCount;
   end;
+
+  RenderShadowReceivers(false, tgTransparent);
 
   if Assigned(RenderNeverShadowed) then
     RenderNeverShadowed(tgTransparent);

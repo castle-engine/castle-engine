@@ -3098,26 +3098,6 @@ var
         transparent objects cannot be shadow receivers at all (although
         they may be shadow casters, after all they have correct shadow
         volumes, no problem here).
-
-        TODO: following above note, shadowvolumes.render must be modified
-        to render only tgOpaque parts for shadow receivers. tgTransparent
-        parts will have to be handled at the end, just like transparent
-        non-receivers. Document this fact at shadowvolumes.render.
-
-        - also, this may actually make creatures/items shadows in "the castle"
-          look good! Test, and eventually enable.
-
-        TODO: This has the additional benefit that now we can easily
-        implement shadow volumes from multiple lights. This requires
-        adding light contributions, so using blending --- this was problematic
-        when shadow receivers could use blending themselves. Now it'll
-        not be a problem.
-
-        This also follows [http://developer.nvidia.com/object/fast_shadow_volumes.html]
-        notes: they just do separate rendering pass to render the
-        partially-transparent parts, IOW they also note that transparent parts
-        simply don't work at all with shadow volumes.
-
       }
 
       glPushAttrib(GL_DEPTH_BUFFER_BIT); { to save glDepthFunc call below }
