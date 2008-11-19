@@ -554,7 +554,7 @@ begin
 
   if (Scene <> nil) and
      (Navigator is TWalkNavigator) then
-    Scene.ViewerPositionChanged(WalkNav.CameraPos);
+    Scene.ViewerChanged(WalkNav.CameraPos, WalkNav.CameraDir, WalkNav.CameraUp);
   Invalidate;
 
   if Assigned(OnNavigatorChanged) then

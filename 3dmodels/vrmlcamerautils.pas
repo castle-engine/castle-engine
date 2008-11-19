@@ -64,22 +64,27 @@ function MakeVRMLCameraNode(Version: TVRMLCameraVersion;
   const WWWBasePath: string;
   const CameraPos, CameraDir, CameraUp, GravityUp: TVector3Single): TVRMLNode;
 
+{ Convert camera direction and up vectors into VRML "orientation" vector.
+
+  Orientation expresses CamDir and CamUp as 4-item vector
+  (SFRotation). First three items are the Axis (normalized) and the
+  4th is the Angle (in radians). Meaning: if you rotate the standard
+  direction and up (see StdVRMLCamDir, StdVRMLCamUp) around Axis
+  by the Angle, then you get CamDir and CamUp.
+
+  Given here CamDir and CamUp must be orthogonal and non-zero.
+  Their lengths are not relevant (that is, you don't need to normalize them
+  before passing here).
+
+  @groupBegin }
+function CamDirUp2Orient(const CamDir, CamUp: TVector3Single): TVector4Single;
+procedure CamDirUp2Orient(CamDir, CamUp: TVector3Single;
+  out OrientAxis: TVector3Single; out OrientRadAngle: Single);
+{ @groupEnd }
+
 implementation
 
 uses SysUtils, Quaternions;
-
-{ Zamien CamDir i CamUp na orientation VRMLa 1.0.
-  Orientation VRMLa wyraza CamDir i CamUp podajac wektor 4 elementowy
-  (SFRotation) ktorego pierwsze 3 pola to Axis a czwarte pole to Angle.
-  Obroc standardowe Dir i Up VRMLa w/g Axis o kat Angle a otrzymasz
-  CamDir i CamUp. Zadaniem jest wyliczyc wlasnie takie Orientation dla
-  zadanych juz CamDir i CamUp. Podane CamDir / Up musza byc prostopadle
-  i niezerowe, ich dlugosci sa bez znaczenia. }
-function CamDirUp2Orient(const CamDir, CamUp: TVector3Single): TVector4Single;
-  forward; overload;
-procedure CamDirUp2Orient(CamDir, CamUp: TVector3Single;
-  out OrientAxis: TVector3Single; out OrientRadAngle: Single);
-  forward; overload;
 
 procedure CamDirUp2Orient(CamDir, CamUp: TVector3Single;
   out OrientAxis: TVector3Single; out OrientRadAngle: Single);

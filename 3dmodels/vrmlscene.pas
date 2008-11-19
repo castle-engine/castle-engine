@@ -542,14 +542,15 @@ type
       (in the future, this will include also implicit changes to viewer position
       by changing transformation of viewer's Viewpoint --- not interesting
       for now, since transforming Viewpoint does nothing for now).
-      Viewer position must be at this point be stored within
-      LastViewerPosition. }
+
+      Viewer position/dir/up must be at this point be stored within
+      LastViewerXxx. }
     procedure ProximitySensorUpdate(var PSI: TProximitySensorInstance);
 
-    { LastViewerPosition is remembered for reacting to changes to
+    { LastViewerPosition/Direction/Up are remembered for reacting to changes to
       ProximitySensor box (center, size) (or it's transform) }
-    LastViewerPosition: TVector3Single;
-    IsLastViewerPosition: boolean;
+    LastViewerPosition, LastViewerDirection, LastViewerUp: TVector3Single;
+    IsLastViewer: boolean;
 
     FCompiledScriptHandlers: TDynCompiledScriptHandlerInfoArray;
 
@@ -1400,8 +1401,9 @@ type
     property LogChanges: boolean
       read FLogChanges write FLogChanges default false;
 
-    { Call when viewer position changed, to update sensors. }
-    procedure ViewerPositionChanged(const ViewerPosition: TVector3Single);
+    { Call when viewer position/dir/up changed, to update sensors. }
+    procedure ViewerChanged(
+      const ViewerPosition, ViewerDirection, ViewerUp: TVector3Single);
 
     { List of handlers for VRML Script node with "compiled:" protocol.
       This is read-only, change this only by RegisterCompiledScript. }
@@ -1997,10 +1999,10 @@ begin
     begin
       ParentScene.ProximitySensorInstances.Items[ProximitySensorNum].
         InvertedTransform := State.InvertedTransform;
-      { Call ProximitySensorUpdate, since the sensor's box moved,
-        so possibly it should be activated/deactivated, position_changed
-        called etc. }
-      if ParentScene.IsLastViewerPosition then
+      { Call ProximitySensorUpdate, since the sensor's box is transformed,
+        so possibly it should be activated/deactivated,
+        position/orientation_changed called etc. }
+      if ParentScene.IsLastViewer then
         ParentScene.ProximitySensorUpdate(
           ParentScene.ProximitySensorInstances.Items[ProximitySensorNum]);
       Inc(ProximitySensorNum);
@@ -2246,7 +2248,7 @@ begin
        (Field = TNodeProximitySensor(Node).FdSize) then
     begin
       { Update state for this ProximitySensor node. }
-      if IsLastViewerPosition then
+      if IsLastViewer then
         for I := 0 to ProximitySensorInstances.Count - 1 do
         begin
           if ProximitySensorInstances.Items[I].Node = Node then
@@ -3395,7 +3397,7 @@ begin
   begin
     if Value then
     begin
-      IsLastViewerPosition := false;
+      IsLastViewer := false;
       KeySensorNodes := TVRMLNodesList.Create;
       TimeSensorNodes := TVRMLNodesList.Create;
       MovieTextureNodes := TVRMLNodesList.Create;
@@ -3930,11 +3932,11 @@ end;
 
 procedure TVRMLScene.ProximitySensorUpdate(var PSI: TProximitySensorInstance);
 var
-  Position: TVector3Single;
+  Position, Direction, Up: TVector3Single;
   Node: TNodeProximitySensor;
   NewIsActive: boolean;
 begin
-  Assert(IsLastViewerPosition);
+  Assert(IsLastViewer);
   if ProcessEvents then
   begin
     BeginChangesSchedule;
@@ -3986,7 +3988,14 @@ begin
       if NewIsActive then
       begin
         Node.EventPosition_Changed.Send(Position, WorldTime);
-        { TODO: centerOfRotation_changed, orientation_changed }
+        if Node.EventOrientation_Changed.SendNeeded then
+        begin
+          Direction := MatrixMultDirection(PSI.InvertedTransform, LastViewerDirection);
+          Up        := MatrixMultDirection(PSI.InvertedTransform, LastViewerUp);
+          Node.EventOrientation_Changed.Send(
+            CamDirUp2Orient(Direction, Up), WorldTime);
+        end;
+        { TODO: centerOfRotation_changed }
       end;
     finally
       EndChangesSchedule;
@@ -3994,7 +4003,8 @@ begin
   end;
 end;
 
-procedure TVRMLScene.ViewerPositionChanged(const ViewerPosition: TVector3Single);
+procedure TVRMLScene.ViewerChanged(
+  const ViewerPosition, ViewerDirection, ViewerUp: TVector3Single);
 var
   I: Integer;
 begin
@@ -4003,8 +4013,10 @@ begin
     Inc(FWorldTime.PlusTicks);
     BeginChangesSchedule;
     try
-      LastViewerPosition := ViewerPosition;
-      IsLastViewerPosition := true;
+      LastViewerPosition  := ViewerPosition;
+      LastViewerDirection := ViewerDirection;
+      LastViewerUp        := ViewerUp;
+      IsLastViewer := true;
 
       for I := 0 to ProximitySensorInstances.Count - 1 do
         ProximitySensorUpdate(ProximitySensorInstances.Items[I]);
