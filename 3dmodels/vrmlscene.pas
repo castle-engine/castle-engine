@@ -3977,6 +3977,7 @@ begin
         (Node.FdSize.Value[0] > 0) and
         (Node.FdSize.Value[1] > 0) and
         (Node.FdSize.Value[2] > 0);
+
       if NewIsActive <> PSI.IsActive then
       begin
         PSI.IsActive := NewIsActive;
@@ -3984,7 +3985,14 @@ begin
         if NewIsActive then
           Node.EventEnterTime.Send(WorldTime.Seconds, WorldTime) else
           Node.EventExitTime.Send(WorldTime.Seconds, WorldTime);
-      end else
+      end;
+
+      { Call position_changed, orientation_changed, even if this is just
+        the first time NewIsActive = true (that is, even when it was
+        NewIsActive <> PSI.IsActive). Reasoning: this allows to activate
+        ProximitySensor when world starts (before player moves),
+        which is a wanted feature. }
+
       if NewIsActive then
       begin
         Node.EventPosition_Changed.Send(Position, WorldTime);
