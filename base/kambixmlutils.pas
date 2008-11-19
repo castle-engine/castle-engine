@@ -93,6 +93,17 @@ function DOMGetChildElement(const Element: TDOMElement;
   So this procedure should still work OK in this case. }
 function DOMGetTextData(const Element: TDOMElement): string;
 
+{ Gets a child of Element named ChildName, and gets text data within
+  this child.
+
+  This is just a shortcut for @code(DOMGetTextData(DOMGetChildElement(Element,
+  ChildName, true))).
+
+  @raises(EDOMChildElementError
+    If child not found or found more than once and RaiseOnError) }
+function DOMGetTextChild(const Element: TDOMElement;
+  const ChildName: string): string;
+
 type
   { Handy class to iterate over all children elements of given XML element.
 
@@ -322,6 +333,12 @@ begin
       end;
     end;
   finally Children.Release end;
+end;
+
+function DOMGetTextChild(const Element: TDOMElement;
+  const ChildName: string): string;
+begin
+  Result := DOMGetTextData(DOMGetChildElement(Element, ChildName, true));
 end;
 
 { TXMLElementIterator -------------------------------------------------------- }

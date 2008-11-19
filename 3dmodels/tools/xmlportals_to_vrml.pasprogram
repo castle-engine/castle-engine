@@ -1,0 +1,140 @@
+{
+  Copyright 2008 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
+}
+
+{ Convert $1 (XML file with 3D scene + portals and sectors
+  from Remigiusz Zukowski) into $2 (VRML/X3D file). }
+
+uses SysUtils, KambiUtils, KambiXMLRead, DOM, KambiXMLUtils, VectorMath,
+  VRMLNodes;
+
+function DOMGetCardinalChild(Elem: TDOMElement; const ChildName: string): Cardinal;
+begin
+  Result := StrToInt(DOMGetTextChild(Elem, ChildName));
+end;
+
+function DOMGetVector3Child(Elem: TDOMElement; const ChildName: string): TVector3Single;
+var
+  VElem: TDOMElement;
+begin
+  VElem := DOMGetChildElement(Elem, ChildName, true);
+  Result[0] := StrToFloat(DOMGetTextChild(VElem, 'x'));
+  Result[1] := StrToFloat(DOMGetTextChild(VElem, 'y'));
+  Result[2] := StrToFloat(DOMGetTextChild(VElem, 'z'));
+end;
+
+function DOMGetVector2Child(Elem: TDOMElement; const ChildName: string): TVector2Single;
+var
+  VElem: TDOMElement;
+begin
+  VElem := DOMGetChildElement(Elem, ChildName, true);
+  Result[0] := StrToFloat(DOMGetTextChild(VElem, 'x'));
+  Result[1] := StrToFloat(DOMGetTextChild(VElem, 'y'));
+end;
+
+var
+  Doc: TXMLDocument;
+  MeshPx, MVertices, MTriangles: TDOMElement;
+
+  Root: TNodeGroup_2;
+  Shape: TNodeShape;
+  IFS: TNodeIndexedFaceSet_2;
+  CoordIndex: TDynLongIntArray;
+  Coord: TDynVector3SingleArray;
+  Normal:TDynVector3SingleArray;
+  TexCoord: TDynVector2SingleArray;
+  I: TXMLElementIterator;
+
+  VerticesCount, TrianglesCount: Cardinal;
+begin
+  Parameters.CheckHigh(2);
+
+  ReadXMLFile(Doc, Parameters[1]);
+  try
+    Check(Doc.DocumentElement.TagName = 'boost_serialization',
+      'Root node must be <boost_serialization>');
+
+    MeshPx := DOMGetChildElement(DOMGetChildElement(
+      Doc.DocumentElement, 'm_pMesh', true), 'px', true);
+
+    MVertices := DOMGetChildElement(DOMGetChildElement(
+      MeshPx, 'm_vertexContainer', true), 'm_vertices', true);
+    VerticesCount := DOMGetCardinalChild(MVertices, 'count');
+
+    MTriangles := DOMGetChildElement(MeshPx, 'm_triangles', true);
+    TrianglesCount := DOMGetCardinalChild(MVertices, 'count');
+
+    Root := TNodeGroup_2.Create('', '');
+    try
+      Shape := TNodeShape.Create('', '');
+      Shape.FdAppearance.Value := TNodeAppearance.Create('', '');
+      TNodeAppearance(Shape.FdAppearance.Value).FdMaterial.Value :=
+        TNodeMaterial_2.Create('', '');
+      Root.SmartAddChild(Shape);
+
+      IFS := TNodeIndexedFaceSet_2.Create('', '');
+      Shape.FdGeometry.Value := IFS;
+
+      IFS.FdCoord.Value := TNodeCoordinate.Create('', '');
+      Coord := TNodeCoordinate(IFS.FdCoord.Value).FdPoint.Items;
+      Coord.AllowedCapacityOverflow := VerticesCount;
+
+      IFS.FdNormal.Value := TNodeNormal.Create('', '');
+      Normal := TNodeNormal(IFS.FdNormal.Value).FdVector.Items;
+      Normal.AllowedCapacityOverflow := VerticesCount;
+
+      IFS.FdNormalPerVertex.Value := true;
+
+      IFS.FdTexCoord.Value := TNodeTextureCoordinate.Create('', '');
+      TexCoord := TNodeTextureCoordinate(IFS.FdTexCoord.Value).FdPoint.Items;
+      TexCoord.AllowedCapacityOverflow := VerticesCount;
+
+      I := TXMLElementIterator.Create(MVertices);
+      try
+        while I.GetNext do
+          if I.Current.TagName = 'item' then
+          begin
+            Coord.AppendItem(DOMGetVector3Child(I.Current, 'position'));
+            Normal.AppendItem(DOMGetVector3Child(I.Current, 'normal'));
+            TexCoord.AppendItem(DOMGetVector2Child(I.Current, 'texCoord'));
+          end;
+      finally FreeAndNil(I) end;
+
+      CoordIndex := IFS.FdCoordIndex.Items;
+      CoordIndex.AllowedCapacityOverflow := TrianglesCount * 4;
+
+      I := TXMLElementIterator.Create(MTriangles);
+      try
+        while I.GetNext do
+          if I.Current.TagName = 'item' then
+          begin
+            CoordIndex.AppendItem(DOMGetCardinalChild(I.Current, 'm_v0'));
+            CoordIndex.AppendItem(DOMGetCardinalChild(I.Current, 'm_v1'));
+            CoordIndex.AppendItem(DOMGetCardinalChild(I.Current, 'm_v2'));
+            CoordIndex.AppendItem(-1);
+          end;
+      finally FreeAndNil(I) end;
+
+      SaveToVRMLFile(Root, Parameters[2],
+        'By xmlportals_to_x3d, from ' + ExtractFileName(Parameters[1]));
+    finally FreeAndNil(Root) end;
+  finally FreeAndNil(Doc) end;
+end.
