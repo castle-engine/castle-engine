@@ -83,6 +83,24 @@ begin
   finally FreeAndNil(I) end;
 end;
 
+{ Assuming Px is <px> element, resolve it. That is, if this is only
+  a reference (object_id_reference attribute), then replace it with
+  the actual content (node with matching object_id attribute). }
+procedure ResolvePx(var PxElem: TDOMElement);
+var
+  Id: Integer;
+begin
+  Assert(PxElem.TagName = 'px');
+  if PxElem.AttribStrings['object_id'] = '' then
+  begin
+    { So this is a reference - resolve using object_id_reference
+      and our Px table. }
+
+    Id := StrToInt(SEnding(PxElem.AttribStrings['object_id_reference'], 2));
+    PxElem := TDOMElement(Px.Items[Id]);
+  end;
+end;
+
 var
   MeshPx: TDOMElement;
   OutputRoot: TNodeGroup_2;
@@ -164,45 +182,44 @@ begin
   finally FreeAndNil(I) end;
 end;
 
-procedure ReadPortals;
-var
+procedure AddPortalPoly(PortalPx: TDOMElement;
   CoordIndex: TDynLongIntArray;
-  Coord: TDynVector3SingleArray;
+  Coord: TDynVector3SingleArray);
+var
+  MVertices: TDOMElement;
+  {VerticesCount: Cardinal; not needed}
+  I: TXMLElementIterator;
+begin
+  MVertices := DOMGetChildElement(DOMGetChildElement(
+    PortalPx, 'm_poly', true), 'm_vertities', true);
+  {VerticesCount := DOMGetCardinalChild(MVertices, 'count'); not needed}
 
-  procedure OutputPortal(PortalPx: TDOMElement);
-  var
-    MVertices: TDOMElement;
-    {VerticesCount: Cardinal; not needed}
-    I: TXMLElementIterator;
-  begin
-    MVertices := DOMGetChildElement(DOMGetChildElement(
-      PortalPx, 'm_poly', true), 'm_vertities', true);
-    {VerticesCount := DOMGetCardinalChild(MVertices, 'count'); not needed}
+  I := TXMLElementIterator.Create(MVertices);
+  try
+    while I.GetNext do
+      if I.Current.TagName = 'item' then
+      begin
+        Coord.AppendItem(DOMGetVector3(I.Current));
+        CoordIndex.AppendItem(Coord.High);
+      end;
+  finally FreeAndNil(I) end;
 
-    I := TXMLElementIterator.Create(MVertices);
-    try
-      while I.GetNext do
-        if I.Current.TagName = 'item' then
-        begin
-          Coord.AppendItem(DOMGetVector3(I.Current));
-          CoordIndex.AppendItem(Coord.High);
-        end;
-    finally FreeAndNil(I) end;
+  CoordIndex.AppendItem(-1);
+end;
 
-    CoordIndex.AppendItem(-1);
-  end;
-
+procedure ReadPortals;
 var
   PortalPx: TDOMElement;
   MPortals: TDOMElement;
   PortalsCount: Cardinal;
   I: TXMLElementIterator;
-  PortalPxId: Integer;
 
   Shape: TNodeShape;
   IFS: TNodeIndexedFaceSet_2;
   PortalsAppearance: TNodeAppearance;
   PortalsMaterial: TNodeMaterial_2;
+  CoordIndex: TDynLongIntArray;
+  Coord: TDynVector3SingleArray;
 begin
   { Prepare XML input }
   MPortals := DOMGetChildElement(MeshPx, 'm_portals', true);
@@ -239,17 +256,88 @@ begin
       if I.Current.TagName = 'item' then
       begin
         PortalPx := DOMGetChildElement(I.Current, 'px', true);
+        ResolvePx(PortalPx);
+        AddPortalPoly(PortalPx, CoordIndex, Coord);
+      end;
+  finally FreeAndNil(I) end;
+end;
 
-        { So this is a reference - resolve using object_id_reference
-          and our Px table. }
-        if PortalPx.AttribStrings['object_id'] = '' then
+procedure ReadPortalsInSuperSectors;
+var
+  CoordIndex: TDynLongIntArray;
+  Coord: TDynVector3SingleArray;
+
+  procedure OutputOneSuperSector(SuperSectorPx: TDOMElement);
+  var
+    MExternalPortals: TDOMElement;
+    ExternalPortalsCount: Cardinal;
+    PortalPx: TDOMElement;
+    I: TXMLElementIterator;
+  begin
+    MExternalPortals := DOMGetChildElement(SuperSectorPx, 'm_externalPortals', true);
+    ExternalPortalsCount := DOMGetCardinalChild(MExternalPortals, 'count');
+    Writeln('External portals (within one super sector): ', ExternalPortalsCount);
+
+    I := TXMLElementIterator.Create(MExternalPortals);
+    try
+      while I.GetNext do
+        if I.Current.TagName = 'item' then
         begin
-          PortalPxId := StrToInt(
-            SEnding(PortalPx.AttribStrings['object_id_reference'], 2));
-          PortalPx := TDOMElement(Px.Items[PortalPxId]);
+          PortalPx := DOMGetChildElement(I.Current, 'px', true);
+          ResolvePx(PortalPx);
+          AddPortalPoly(PortalPx, CoordIndex, Coord);
         end;
+    finally FreeAndNil(I) end;
+  end;
 
-        OutputPortal(PortalPx);
+var
+  SuperSectorPx: TDOMElement;
+  MSuperSectors: TDOMElement;
+  SuperSectorsCount: Cardinal;
+  I: TXMLElementIterator;
+
+  Shape: TNodeShape;
+  IFS: TNodeIndexedFaceSet_2;
+  PortalsAppearance: TNodeAppearance;
+  PortalsMaterial: TNodeMaterial_2;
+begin
+  { Prepare XML input }
+  MSuperSectors := DOMGetChildElement(MeshPx, 'm_superSectors', true);
+  SuperSectorsCount := DOMGetCardinalChild(MSuperSectors, 'count');
+  Writeln('Super sectors: ', SuperSectorsCount);
+
+  { Prepare VRML output }
+  Shape := TNodeShape.Create('', '');
+  OutputRoot.SmartAddChild(Shape);
+
+  PortalsAppearance := TNodeAppearance.Create('SuperSectorsPortalsAppearance', '');
+
+  PortalsMaterial := TNodeMaterial_2.Create('SuperSectorsPortalsMaterial', '');
+  PortalsAppearance.FdMaterial.Value := PortalsMaterial;
+  PortalsMaterial.FdDiffuseColor.Value := Vector3Single(0, 0, 1);
+  PortalsMaterial.FdTransparency.Value := 0.9;
+
+  Shape.FdAppearance.Value := PortalsAppearance;
+
+  IFS := TNodeIndexedFaceSet_2.Create('SuperSectorsPortals', '');
+  Shape.FdGeometry.Value := IFS;
+  IFS.FdSolid.Value := false;
+
+  IFS.FdCoord.Value := TNodeCoordinate.Create('', '');
+  Coord := TNodeCoordinate(IFS.FdCoord.Value).FdPoint.Items;
+  Coord.AllowedCapacityOverflow := 1000;
+
+  CoordIndex := IFS.FdCoordIndex.Items;
+  CoordIndex.AllowedCapacityOverflow := 1000;
+
+  I := TXMLElementIterator.Create(MSuperSectors);
+  try
+    while I.GetNext do
+      if I.Current.TagName = 'item' then
+      begin
+        SuperSectorPx := DOMGetChildElement(I.Current, 'px', true);
+        ResolvePx(SuperSectorPx);
+        OutputOneSuperSector(SuperSectorPx);
       end;
   finally FreeAndNil(I) end;
 end;
@@ -273,7 +361,8 @@ begin
     OutputRoot := TNodeGroup_2.Create('', '');
     try
       ReadGeometry;
-      ReadPortals;
+      //ReadPortals;
+      ReadPortalsInSuperSectors;
 
       SaveToVRMLFile(OutputRoot, Parameters[2],
         'By xmlportals_to_x3d, from ' + ExtractFileName(Parameters[1]));
