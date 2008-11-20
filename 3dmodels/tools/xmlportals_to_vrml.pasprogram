@@ -118,6 +118,7 @@ begin
 
   IFS := TNodeIndexedFaceSet_2.Create('', '');
   Shape.FdGeometry.Value := IFS;
+  IFS.FdSolid.Value := false;
 
   IFS.FdCoord.Value := TNodeCoordinate.Create('', '');
   Coord := TNodeCoordinate(IFS.FdCoord.Value).FdPoint.Items;
@@ -198,7 +199,8 @@ var
 
   Shape: TNodeShape;
   IFS: TNodeIndexedFaceSet_2;
-  Material: TNodeMaterial_2;
+  PortalsAppearance: TNodeAppearance;
+  PortalsMaterial: TNodeMaterial_2;
 begin
   { Prepare XML input }
   MPortals := DOMGetChildElement(MeshPx, 'm_portals', true);
@@ -208,15 +210,18 @@ begin
   Shape := TNodeShape.Create('', '');
   OutputRoot.SmartAddChild(Shape);
 
-  Shape.FdAppearance.Value := TNodeAppearance.Create('', '');
+  PortalsAppearance := TNodeAppearance.Create('PortalsAppearance', '');
 
-  Material := TNodeMaterial_2.Create('', '');
-  TNodeAppearance(Shape.FdAppearance.Value).FdMaterial.Value := Material;
-  Material.FdDiffuseColor.Value := Vector3Single(1, 1, 0);
-  Material.FdTransparency.Value := 0.5;
+  PortalsMaterial := TNodeMaterial_2.Create('PortalsMaterial', '');
+  PortalsAppearance.FdMaterial.Value := PortalsMaterial;
+  PortalsMaterial.FdDiffuseColor.Value := Vector3Single(1, 1, 0);
+  PortalsMaterial.FdTransparency.Value := 0.8;
+
+  Shape.FdAppearance.Value := PortalsAppearance;
 
   IFS := TNodeIndexedFaceSet_2.Create('Portals', '');
   Shape.FdGeometry.Value := IFS;
+  IFS.FdSolid.Value := false;
 
   IFS.FdCoord.Value := TNodeCoordinate.Create('', '');
   Coord := TNodeCoordinate(IFS.FdCoord.Value).FdPoint.Items;
