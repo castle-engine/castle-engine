@@ -108,7 +108,7 @@ begin
   Writeln('Vertices: ', VerticesCount);
 
   MTriangles := DOMGetChildElement(MeshPx, 'm_triangles', true);
-  TrianglesCount := DOMGetCardinalChild(MVertices, 'count');
+  TrianglesCount := DOMGetCardinalChild(MTriangles, 'count');
   Writeln('Triangles: ', TrianglesCount);
 
   { Prepare VRML output }
@@ -218,7 +218,7 @@ begin
   PortalsMaterial := TNodeMaterial_2.Create('PortalsMaterial', '');
   PortalsAppearance.FdMaterial.Value := PortalsMaterial;
   PortalsMaterial.FdDiffuseColor.Value := Vector3Single(1, 1, 0);
-  PortalsMaterial.FdTransparency.Value := 0.8;
+  PortalsMaterial.FdTransparency.Value := 0.9;
 
   Shape.FdAppearance.Value := PortalsAppearance;
 
