@@ -24,7 +24,7 @@
   from Remigiusz Zukowski) into $2 (VRML/X3D file). }
 
 uses SysUtils, KambiUtils, KambiXMLRead, DOM, KambiXMLUtils, VectorMath,
-  VRMLNodes;
+  VRMLNodes, Contnrs, KambiStringUtils;
 
 function DOMGetCardinalChild(Elem: TDOMElement; const ChildName: string): Cardinal;
 begin
@@ -51,19 +51,160 @@ begin
 end;
 
 var
-  Doc: TXMLDocument;
-  MeshPx, MVertices, MTriangles: TDOMElement;
+  { List of <px> elements with object_id="...." (put when first serializing
+    an element). This is crucial for later resolving of objects with
+    object_id_reference="...." (put when serializing the same object
+    instance another time). }
+  Px: TObjectList;
 
-  Root: TNodeGroup_2;
+procedure CalculatePx(E: TDOMElement);
+var
+  I: TXMLElementIterator;
+  NextId: Integer;
+begin
+  if (E.TagName = 'px') and
+     (E.AttribStrings['object_id'] <> '') then
+  begin
+    { We actively use here the fact that object_id read this way
+      will be successive. This makes CalculatePx implementation
+      (and using Px) much simpler, since you know that all indexes
+      from 0 to Px.Count - 1 are successively filled. }
+    NextId := StrToInt(SEnding(E.AttribStrings['object_id'], 2));
+    Check(NextId = Px.Count, 'object_id not successive');
+    Px.Count := Px.Count + 1;
+    Px.Items[Px.Count - 1] := E;
+  end;
+
+  I := TXMLElementIterator.Create(E);
+  try
+    while I.GetNext do CalculatePx(I.Current);
+  finally FreeAndNil(I) end;
+end;
+
+var
+  MeshPx: TDOMElement;
+  OutputRoot: TNodeGroup_2;
+
+procedure OutputPortal(PortalPx: TDOMElement);
+var
+  MVertices: TDOMElement;
+  VerticesCount: Cardinal;
+begin
+{  MVertices := DOMGetChildElement(DOMGetChildElement(
+    MeshPx, 'm_poly', true), 'm_vertities', true);
+  VerticesCount := DOMGetCardinalChild(MVertices, 'count');}
+
+  { TODO }
+end;
+
+procedure ReadGeometry;
+var
+  MVertices, MTriangles: TDOMElement;
+  I: TXMLElementIterator;
+
   Shape: TNodeShape;
   IFS: TNodeIndexedFaceSet_2;
   CoordIndex: TDynLongIntArray;
   Coord: TDynVector3SingleArray;
   Normal:TDynVector3SingleArray;
   TexCoord: TDynVector2SingleArray;
-  I: TXMLElementIterator;
 
   VerticesCount, TrianglesCount: Cardinal;
+begin
+  { Prepare XML input }
+  MVertices := DOMGetChildElement(DOMGetChildElement(
+    MeshPx, 'm_vertexContainer', true), 'm_vertices', true);
+  VerticesCount := DOMGetCardinalChild(MVertices, 'count');
+
+  MTriangles := DOMGetChildElement(MeshPx, 'm_triangles', true);
+  TrianglesCount := DOMGetCardinalChild(MVertices, 'count');
+
+  { Prepare VRML output }
+  Shape := TNodeShape.Create('', '');
+  Shape.FdAppearance.Value := TNodeAppearance.Create('', '');
+  TNodeAppearance(Shape.FdAppearance.Value).FdMaterial.Value :=
+    TNodeMaterial_2.Create('', '');
+  OutputRoot.SmartAddChild(Shape);
+
+  IFS := TNodeIndexedFaceSet_2.Create('', '');
+  Shape.FdGeometry.Value := IFS;
+
+  IFS.FdCoord.Value := TNodeCoordinate.Create('', '');
+  Coord := TNodeCoordinate(IFS.FdCoord.Value).FdPoint.Items;
+  Coord.AllowedCapacityOverflow := VerticesCount;
+
+  IFS.FdNormal.Value := TNodeNormal.Create('', '');
+  Normal := TNodeNormal(IFS.FdNormal.Value).FdVector.Items;
+  Normal.AllowedCapacityOverflow := VerticesCount;
+
+  IFS.FdNormalPerVertex.Value := true;
+
+  IFS.FdTexCoord.Value := TNodeTextureCoordinate.Create('', '');
+  TexCoord := TNodeTextureCoordinate(IFS.FdTexCoord.Value).FdPoint.Items;
+  TexCoord.AllowedCapacityOverflow := VerticesCount;
+
+  { Actually read XML data to VRML }
+  I := TXMLElementIterator.Create(MVertices);
+  try
+    while I.GetNext do
+      if I.Current.TagName = 'item' then
+      begin
+        Coord.AppendItem(DOMGetVector3Child(I.Current, 'position'));
+        Normal.AppendItem(DOMGetVector3Child(I.Current, 'normal'));
+        TexCoord.AppendItem(DOMGetVector2Child(I.Current, 'texCoord'));
+      end;
+  finally FreeAndNil(I) end;
+
+  CoordIndex := IFS.FdCoordIndex.Items;
+  CoordIndex.AllowedCapacityOverflow := TrianglesCount * 4;
+
+  I := TXMLElementIterator.Create(MTriangles);
+  try
+    while I.GetNext do
+      if I.Current.TagName = 'item' then
+      begin
+        CoordIndex.AppendItem(DOMGetCardinalChild(I.Current, 'm_v0'));
+        CoordIndex.AppendItem(DOMGetCardinalChild(I.Current, 'm_v1'));
+        CoordIndex.AppendItem(DOMGetCardinalChild(I.Current, 'm_v2'));
+        CoordIndex.AppendItem(-1);
+      end;
+  finally FreeAndNil(I) end;
+end;
+
+procedure ReadPortals;
+var
+  PortalPx: TDOMElement;
+  MPortals: TDOMElement;
+  PortalsCount: Cardinal;
+  I: TXMLElementIterator;
+  PortalPxId: Integer;
+begin
+  MPortals := DOMGetChildElement(MeshPx, 'm_portals', true);
+  PortalsCount := DOMGetCardinalChild(MPortals, 'count');
+
+  I := TXMLElementIterator.Create(MPortals);
+  try
+    while I.GetNext do
+      if I.Current.TagName = 'item' then
+      begin
+        PortalPx := DOMGetChildElement(I.Current, 'px', true);
+
+        { So this is a reference - resolve using object_id_reference
+          and our Px table. }
+        if PortalPx.AttribStrings['object_id'] = '' then
+        begin
+          PortalPxId := StrToInt(
+            SEnding(PortalPx.AttribStrings['object_id_reference'], 2));
+          PortalPx := TDOMElement(Px.Items[PortalPxId]);
+        end;
+
+        OutputPortal(PortalPx);
+      end;
+  finally FreeAndNil(I) end;
+end;
+
+var
+  Doc: TXMLDocument;
 begin
   Parameters.CheckHigh(2);
 
@@ -72,69 +213,22 @@ begin
     Check(Doc.DocumentElement.TagName = 'boost_serialization',
       'Root node must be <boost_serialization>');
 
+    Px := TObjectList.Create(false);
+    CalculatePx(Doc.DocumentElement);
+
     MeshPx := DOMGetChildElement(DOMGetChildElement(
       Doc.DocumentElement, 'm_pMesh', true), 'px', true);
 
-    MVertices := DOMGetChildElement(DOMGetChildElement(
-      MeshPx, 'm_vertexContainer', true), 'm_vertices', true);
-    VerticesCount := DOMGetCardinalChild(MVertices, 'count');
-
-    MTriangles := DOMGetChildElement(MeshPx, 'm_triangles', true);
-    TrianglesCount := DOMGetCardinalChild(MVertices, 'count');
-
-    Root := TNodeGroup_2.Create('', '');
+    OutputRoot := TNodeGroup_2.Create('', '');
     try
-      Shape := TNodeShape.Create('', '');
-      Shape.FdAppearance.Value := TNodeAppearance.Create('', '');
-      TNodeAppearance(Shape.FdAppearance.Value).FdMaterial.Value :=
-        TNodeMaterial_2.Create('', '');
-      Root.SmartAddChild(Shape);
+      ReadGeometry;
+      ReadPortals;
 
-      IFS := TNodeIndexedFaceSet_2.Create('', '');
-      Shape.FdGeometry.Value := IFS;
-
-      IFS.FdCoord.Value := TNodeCoordinate.Create('', '');
-      Coord := TNodeCoordinate(IFS.FdCoord.Value).FdPoint.Items;
-      Coord.AllowedCapacityOverflow := VerticesCount;
-
-      IFS.FdNormal.Value := TNodeNormal.Create('', '');
-      Normal := TNodeNormal(IFS.FdNormal.Value).FdVector.Items;
-      Normal.AllowedCapacityOverflow := VerticesCount;
-
-      IFS.FdNormalPerVertex.Value := true;
-
-      IFS.FdTexCoord.Value := TNodeTextureCoordinate.Create('', '');
-      TexCoord := TNodeTextureCoordinate(IFS.FdTexCoord.Value).FdPoint.Items;
-      TexCoord.AllowedCapacityOverflow := VerticesCount;
-
-      I := TXMLElementIterator.Create(MVertices);
-      try
-        while I.GetNext do
-          if I.Current.TagName = 'item' then
-          begin
-            Coord.AppendItem(DOMGetVector3Child(I.Current, 'position'));
-            Normal.AppendItem(DOMGetVector3Child(I.Current, 'normal'));
-            TexCoord.AppendItem(DOMGetVector2Child(I.Current, 'texCoord'));
-          end;
-      finally FreeAndNil(I) end;
-
-      CoordIndex := IFS.FdCoordIndex.Items;
-      CoordIndex.AllowedCapacityOverflow := TrianglesCount * 4;
-
-      I := TXMLElementIterator.Create(MTriangles);
-      try
-        while I.GetNext do
-          if I.Current.TagName = 'item' then
-          begin
-            CoordIndex.AppendItem(DOMGetCardinalChild(I.Current, 'm_v0'));
-            CoordIndex.AppendItem(DOMGetCardinalChild(I.Current, 'm_v1'));
-            CoordIndex.AppendItem(DOMGetCardinalChild(I.Current, 'm_v2'));
-            CoordIndex.AppendItem(-1);
-          end;
-      finally FreeAndNil(I) end;
-
-      SaveToVRMLFile(Root, Parameters[2],
+      SaveToVRMLFile(OutputRoot, Parameters[2],
         'By xmlportals_to_x3d, from ' + ExtractFileName(Parameters[1]));
-    finally FreeAndNil(Root) end;
-  finally FreeAndNil(Doc) end;
+    finally FreeAndNil(OutputRoot) end;
+  finally
+    FreeAndNil(Doc);
+    FreeAndNil(Px)
+  end;
 end.
