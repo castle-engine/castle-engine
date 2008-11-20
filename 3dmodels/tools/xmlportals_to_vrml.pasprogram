@@ -105,9 +105,11 @@ begin
   MVertices := DOMGetChildElement(DOMGetChildElement(
     MeshPx, 'm_vertexContainer', true), 'm_vertices', true);
   VerticesCount := DOMGetCardinalChild(MVertices, 'count');
+  Writeln('Vertices: ', VerticesCount);
 
   MTriangles := DOMGetChildElement(MeshPx, 'm_triangles', true);
   TrianglesCount := DOMGetCardinalChild(MVertices, 'count');
+  Writeln('Triangles: ', TrianglesCount);
 
   { Prepare VRML output }
   Shape := TNodeShape.Create('', '');
@@ -193,7 +195,7 @@ var
 var
   PortalPx: TDOMElement;
   MPortals: TDOMElement;
-  {PortalsCount: Cardinal; not needed}
+  PortalsCount: Cardinal;
   I: TXMLElementIterator;
   PortalPxId: Integer;
 
@@ -204,7 +206,8 @@ var
 begin
   { Prepare XML input }
   MPortals := DOMGetChildElement(MeshPx, 'm_portals', true);
-  {PortalsCount := DOMGetCardinalChild(MPortals, 'count'); not needed}
+  PortalsCount := DOMGetCardinalChild(MPortals, 'count');
+  Writeln('Portals: ', PortalsCount);
 
   { Prepare VRML output }
   Shape := TNodeShape.Create('', '');
