@@ -31,14 +31,16 @@ begin
   Result := StrToInt(DOMGetTextChild(Elem, ChildName));
 end;
 
-function DOMGetVector3Child(Elem: TDOMElement; const ChildName: string): TVector3Single;
-var
-  VElem: TDOMElement;
+function DOMGetVector3(VElem: TDOMElement): TVector3Single;
 begin
-  VElem := DOMGetChildElement(Elem, ChildName, true);
   Result[0] := StrToFloat(DOMGetTextChild(VElem, 'x'));
   Result[1] := StrToFloat(DOMGetTextChild(VElem, 'y'));
   Result[2] := StrToFloat(DOMGetTextChild(VElem, 'z'));
+end;
+
+function DOMGetVector3Child(Elem: TDOMElement; const ChildName: string): TVector3Single;
+begin
+  Result := DOMGetVector3(DOMGetChildElement(Elem, ChildName, true));
 end;
 
 function DOMGetVector2Child(Elem: TDOMElement; const ChildName: string): TVector2Single;
@@ -84,18 +86,6 @@ end;
 var
   MeshPx: TDOMElement;
   OutputRoot: TNodeGroup_2;
-
-procedure OutputPortal(PortalPx: TDOMElement);
-var
-  MVertices: TDOMElement;
-  VerticesCount: Cardinal;
-begin
-{  MVertices := DOMGetChildElement(DOMGetChildElement(
-    MeshPx, 'm_poly', true), 'm_vertities', true);
-  VerticesCount := DOMGetCardinalChild(MVertices, 'count');}
-
-  { TODO }
-end;
 
 procedure ReadGeometry;
 var
@@ -173,14 +163,67 @@ end;
 
 procedure ReadPortals;
 var
+  CoordIndex: TDynLongIntArray;
+  Coord: TDynVector3SingleArray;
+
+  procedure OutputPortal(PortalPx: TDOMElement);
+  var
+    MVertices: TDOMElement;
+    {VerticesCount: Cardinal; not needed}
+    I: TXMLElementIterator;
+  begin
+    MVertices := DOMGetChildElement(DOMGetChildElement(
+      PortalPx, 'm_poly', true), 'm_vertities', true);
+    {VerticesCount := DOMGetCardinalChild(MVertices, 'count'); not needed}
+
+    I := TXMLElementIterator.Create(MVertices);
+    try
+      while I.GetNext do
+        if I.Current.TagName = 'item' then
+        begin
+          Coord.AppendItem(DOMGetVector3(I.Current));
+          CoordIndex.AppendItem(Coord.High);
+        end;
+    finally FreeAndNil(I) end;
+
+    CoordIndex.AppendItem(-1);
+  end;
+
+var
   PortalPx: TDOMElement;
   MPortals: TDOMElement;
-  PortalsCount: Cardinal;
+  {PortalsCount: Cardinal; not needed}
   I: TXMLElementIterator;
   PortalPxId: Integer;
+
+  Shape: TNodeShape;
+  IFS: TNodeIndexedFaceSet_2;
+  Material: TNodeMaterial_2;
 begin
+  { Prepare XML input }
   MPortals := DOMGetChildElement(MeshPx, 'm_portals', true);
-  PortalsCount := DOMGetCardinalChild(MPortals, 'count');
+  {PortalsCount := DOMGetCardinalChild(MPortals, 'count'); not needed}
+
+  { Prepare VRML output }
+  Shape := TNodeShape.Create('', '');
+  OutputRoot.SmartAddChild(Shape);
+
+  Shape.FdAppearance.Value := TNodeAppearance.Create('', '');
+
+  Material := TNodeMaterial_2.Create('', '');
+  TNodeAppearance(Shape.FdAppearance.Value).FdMaterial.Value := Material;
+  Material.FdDiffuseColor.Value := Vector3Single(1, 1, 0);
+  Material.FdTransparency.Value := 0.5;
+
+  IFS := TNodeIndexedFaceSet_2.Create('Portals', '');
+  Shape.FdGeometry.Value := IFS;
+
+  IFS.FdCoord.Value := TNodeCoordinate.Create('', '');
+  Coord := TNodeCoordinate(IFS.FdCoord.Value).FdPoint.Items;
+  Coord.AllowedCapacityOverflow := 1000;
+
+  CoordIndex := IFS.FdCoordIndex.Items;
+  CoordIndex.AllowedCapacityOverflow := 1000;
 
   I := TXMLElementIterator.Create(MPortals);
   try
