@@ -2105,6 +2105,13 @@ const
     (0, 1, 5, 4),
     (0, 1, 2, 3),
     (4, 5, 6, 7) );
+  { Useful if you want to draw frustum obtained from
+    CalculateFrustumPoints.
+
+    It's guaranteed that the first 4 items
+    touch only the first 4 (near plane) points of the frustum --- useful
+    if you used projection with infinite zfar
+    (and CalculateFrustumPoints with OnlyNearPlane = @true). }
   FrustumPointsLinesIndexes: array[0..11, 0..1]of LongWord =
   ( (0, 1), (1, 2), (2, 3), (3, 0),
     (4, 5), (5, 6), (6, 7), (7, 4),
