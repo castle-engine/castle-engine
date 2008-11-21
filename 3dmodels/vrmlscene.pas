@@ -391,7 +391,9 @@ type
   private
     FOpaqueCount: Cardinal;
   public
-    { TODO: this is not really impl yet }
+    { Numer of opaque triangles on this list. Opaque triangles
+      are guarenteed to be placed before all transparent triangles
+      on this list. }
     property OpaqueCount: Cardinal read FOpaqueCount;
   end;
 
@@ -3124,6 +3126,7 @@ function TVRMLScene.TrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
   var
     I: Integer;
     TriangleAdder: TTriangleAdder;
+    WasSomeTransparentShadowCaster: boolean;
   begin
     Result := TDynTrianglesShadowCastersArray.Create;
     try
@@ -3132,11 +3135,39 @@ function TVRMLScene.TrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
         TriangleAdder := TTriangleAdder.Create;
         try
           TriangleAdder.TriangleList := Result;
+
+          { This variable allows a small optimization: if there are
+            no transparent triangles for shadow casters,
+            then there's no need to iterate over ShapeStates
+            second time. }
+          WasSomeTransparentShadowCaster := false;
+
+          { Add all opaque triangles }
           for I := 0 to ShapeStates.Count - 1 do
             if ShadowCaster(I) then
-              ShapeStates[I].GeometryNode.Triangulate(
-                ShapeStates[I].State, false,
-                @TriangleAdder.AddTriangle);
+            begin
+              if not ShapeStates[I].Transparent then
+                ShapeStates[I].GeometryNode.Triangulate(
+                  ShapeStates[I].State, false, @TriangleAdder.AddTriangle) else
+                WasSomeTransparentShadowCaster := true;
+            end;
+
+          { Mark OpaqueCount border }
+          Result.FOpaqueCount := Result.Count;
+
+          { Add all transparent triangles }
+          if WasSomeTransparentShadowCaster then
+          begin
+            for I := 0 to ShapeStates.Count - 1 do
+              if ShadowCaster(I) and ShapeStates[I].Transparent then
+                ShapeStates[I].GeometryNode.Triangulate(
+                  ShapeStates[I].State, false, @TriangleAdder.AddTriangle);
+          end;
+
+          if Log then
+            WritelnLog('Shadows', Format('Shadows casters triangles: %d opaque, %d total',
+              [Result.OpaqueCount, Result.Count]));
+
         finally FreeAndNil(TriangleAdder) end;
       finally Result.AllowedCapacityOverflow := 4 end;
     except Result.Free; raise end;
