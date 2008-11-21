@@ -342,6 +342,7 @@ type
   TPrepareRenderOption = (prBackground, prBoundingBox,
     prTrianglesListNotOverTriangulate,
     prTrianglesListOverTriangulate,
+    prTrianglesListShadowCasters,
     prManifoldAndBorderEdges);
   TPrepareRenderOptions = set of TPrepareRenderOption;
 
@@ -962,7 +963,7 @@ type
       everything works like Transform = identity matrix (and is a little
       faster in this special case).
 
-      This uses TrianglesList(false) and ManifoldEdges and BorderEdges
+      This uses TrianglesListShadowCasters and ManifoldEdges and BorderEdges
       (so you may prefer to prepare it before, e.g. by calling PrepareRender with
       prShadowVolume included).
 
@@ -1252,10 +1253,10 @@ const
     is as fast as possible.
 
     For now this actually could be equal to prManifoldEdges
-    (prTrianglesListNotOverTriangulate has to be prepared while preparing
+    (prTrianglesListShadowCasters has to be prepared while preparing
     ManifoldEdges edges anyway). But for the future shadow volumes
     optimizations, it's best to use this constant. }
-  prShadowVolume = [prTrianglesListNotOverTriangulate, prManifoldAndBorderEdges];
+  prShadowVolume = [prTrianglesListShadowCasters, prManifoldAndBorderEdges];
 
 type
   TDynArrayItem_1 = TTriangle4Single;
@@ -1896,7 +1897,6 @@ procedure TVRMLGLScene.PrepareAndCalculateUseBlendingForAll;
 
   procedure CalculateUseBlending(Index: Integer);
   var
-    M: TNodeMaterial_2;
     Result: boolean;
     State: TVRMLGraphTraverseState;
     Tex: TVRMLTextureNode;
@@ -1907,38 +1907,21 @@ procedure TVRMLGLScene.PrepareAndCalculateUseBlendingForAll;
     { Note that we either render the whole geometry node with or without
       blending.
 
-      For VRML 1.0, there may be multiple materials on a node.
-      Some of them may be transparent, some not --- we arbitrarily
-      decide for now that AllMaterialsTransparent decides whether
-      blending should be used or not. We may change this in th
-      future to AnyMaterialsTransparent, since this will be more
-      consistent with X3D ColorRGBA treatment?
-
-      We do not try to split node into multiple instances.
-      This is difficult and memory-consuming task, so we just
-      depend on VRML author to split his geometry nodes if he
-      wants it.
-
-      Obviously, we also drop the idea of splitting the geometry
-      into separate triangles and deciding whether to use blending
-      for each separate triangle. Or to sort every separate triangle.
-      This would obviously get very very slow for models with lots
-      of triangles.
-
       Note that this looks at nodes, calling
       State.LastNodes.Material.AllMaterialsTransparent, looking
       at TextureNode.TextureImage / TextureVidep etc.
       So it's important to initialize UseBlending before
       user has any chance to do FreeResources or to free RootNode
       (see TVRMLScene.RootNode docs).
+
+      TODO: ideally, we would like to just push all our logic into
+      TVRMLShapeState.Transparent, and write just
+        UseBlending.Items[Index] := ShapeStates[Index].Transparent;
+      But we cannot, for now: we need Renderer to check image's
+      AlphaChannelType efficiently.
     }
 
-    if State.ParentShape <> nil then
-    begin
-      M := State.ParentShape.Material;
-      Result := (M <> nil) and (M.FdTransparency.Value > SingleEqualityEpsilon);
-    end else
-      Result := State.LastNodes.Material.AllMaterialsTransparent;
+    Result := ShapeStates[Index].Transparent;
 
     if not Result then
     begin
@@ -2387,6 +2370,9 @@ begin
   if prTrianglesListOverTriangulate in Options then
     TrianglesList(true);
 
+  if prTrianglesListShadowCasters in Options then
+    TrianglesListShadowCasters;
+
   if prManifoldAndBorderEdges in Options then
     ManifoldEdges;
 end;
@@ -2647,7 +2633,7 @@ procedure TVRMLGLScene.RenderAllShadowVolume(
 
 { Zaklada ze wsrod podanych trojkatow wszystkie sa valid (tzn. nie ma
   zdegenerowanych trojkatow). To jest wazne zeby zagwarantowac to
-  (TrianglesList gwarantuje to)
+  (TrianglesList* gwarantuje to)
   bo inaczej zdegenerowane trojkaty moga sprawic ze wynik renderowania
   bedzie nieprawidlowy (pojawia sie na ekranie osobliwe "paski cienia"
   powstale w wyniku zdegenerowanych trojkatow dla ktorych wszystkie 3 sciany
@@ -2800,7 +2786,7 @@ begin
   TrianglesForLightCap := nil;
   TrianglesForDarkCap := nil;
 
-  Triangles := TrianglesList(false);
+  Triangles := TrianglesListShadowCasters;
 
   { If light is directional, no need to render dark cap }
   DarkCap := DarkCap and (LightPos[3] <> 0);
@@ -3203,7 +3189,7 @@ var
   BorderEdgesNow: TDynBorderEdgeArray;
   BorderEdgePtr: PBorderEdge;
 begin
-  Triangles := TrianglesList(false);
+  Triangles := TrianglesListShadowCasters;
 
   TrianglesPlaneSide := TDynBooleanArray.Create;
   try
@@ -3381,7 +3367,7 @@ var
   Edges: TDynManifoldEdgeArray;
 begin
   glBegin(GL_LINES);
-    Triangles := TrianglesList(false);
+    Triangles := TrianglesListShadowCasters;
     Edges := ManifoldEdges;
 
     TrianglesPlaneSide := TDynBooleanArray.Create;
@@ -3440,7 +3426,7 @@ var
   Edges: TDynBorderEdgeArray;
 begin
   glBegin(GL_LINES);
-    Triangles := TrianglesList(false);
+    Triangles := TrianglesListShadowCasters;
     Edges := BorderEdges;
 
     { for each edge, render it }

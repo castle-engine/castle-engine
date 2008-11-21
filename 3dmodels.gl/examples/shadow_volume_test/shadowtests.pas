@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2007 Michalis Kamburelis.
+  Copyright 2003-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -53,9 +53,9 @@ type
   renders only quads front facing CameraPos,
   RenderBackShadowQuads renders the rest of the quads.
 
-  Uses TrianglesList(false) (so you may prefer to prepare it
+  Uses TrianglesListShadowCasters (so you may prefer to prepare it
   before, e.g. by calling PrepareRender with
-  prTrianglesListNonOverTriangulate).
+  prTrianglesListShadowCasters).
 
   All the commands passed to OpenGL by this methods are:
   glBegin, sequence of glVertex, then glEnd.
@@ -136,7 +136,7 @@ procedure RenderFrontShadowQuads(Scene: TVRMLGLScene;
   const TrianglesTransform: TMatrix4Single;
   SavedShadowQuads: TDynQuad4SingleArray);
 
-{ It's important here that TrianglesList guarentees that only valid
+{ It's important here that TrianglesList* guarentees that only valid
   triangles are included. Otherwise degenerate triangles could make
   shadow volumes rendering result bad. }
 
@@ -201,7 +201,7 @@ var
   SQFronts: array [0..2] of boolean;
   LightPos3: TVector3Single absolute LightPos;
 begin
-  Triangles := Scene.TrianglesList(false);
+  Triangles := Scene.TrianglesListShadowCasters;
 
   SavedShadowQuads.Count := 0;
   SavedShadowQuads.AllowedCapacityOverflow := Triangles.Count * 3;

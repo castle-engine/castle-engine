@@ -51,6 +51,7 @@ type
       (doesn't have to be, as it's simple shortcut for FogStack.Top). }
     fvFog,
     fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
+    fvTrianglesListShadowCasters,
     fvManifoldAndBorderEdges,
     fvMainLightForShadows);
 
@@ -205,9 +206,12 @@ type
       The same comments as for frTextureDataInNodes apply. }
     frBackgroundImageInNodes,
 
+    { Free triangle list created by TrianglesListShadowCasters call.
+      This list is also implicitly created by ManifoldEdges or BorderEdges. }
+    frTrianglesListShadowCasters,
+
     { Free triangle list created by TrianglesList(false) call.
-      This list is also implicitly created by constructing triangle octree
-      or ManifoldEdges or BorderEdges.
+      This list is also implicitly created by constructing triangle octree.
 
       Note that if you made an accident and you will use TrianglesList(false)
       after FreeResources, then you will get no crash,
@@ -370,6 +374,27 @@ type
     ssCollidableTriangles);
   TVRMLSceneSpatialStructures = set of TVRMLSceneSpatialStructure;
 
+  { Triangles array for shadow casting object.
+
+    This guarantees that the whole array has first OpaqueCount opaque triangles,
+    then the rest is transparent.
+    The precise definition between "opaque"
+    and "transparent" is done by TVRMLShapeState.Transparent.
+    This is also used by OpenGL rendering to determine which shapes
+    need blending.
+
+    This separation into opaque and transparent parts
+    (with OpaqueCount marking the border) is useful for shadow volumes
+    algorithm, that must treat transparent shadow casters a little
+    differently. }
+  TDynTrianglesShadowCastersArray = class(TDynTriangle3SingleArray)
+  private
+    FOpaqueCount: Cardinal;
+  public
+    { TODO: this is not really impl yet }
+    property OpaqueCount: Cardinal read FOpaqueCount;
+  end;
+
   { VRML scene, a final class to handle VRML models
     (with the exception of rendering, which is delegated to descendants,
     like TVRMLGLScene for OpenGL).
@@ -436,6 +461,8 @@ type
     procedure ValidateTrianglesList(OverTriangulate: boolean);
     FTrianglesList:
       array[boolean { OverTriangulate ?}] of TDynTriangle3SingleArray;
+
+    FTrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
 
     function GetViewpointCore(
       const OnlyPerspective: boolean;
@@ -1138,6 +1165,17 @@ type
     function TrianglesList(OverTriangulate: boolean):
       TDynTriangle3SingleArray;
 
+    { Returns an array of triangles that should be shadow casters
+      for this scene.
+
+      Additionally, TDynTrianglesShadowCastersArray contains some
+      additional information needed for rendering with shadows:
+      currently, this means TDynTrianglesShadowCastersArray.OpaqueCount.
+
+      Results of these functions are cached, and are also owned by this object.
+      So don't modify it, don't free it. }
+    function TrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
+
     { ManifoldEdges is a list of edges that have exactly @bold(two) neighbor
       triangles, and BorderEdges is a list of edges that have exactly @bold(one)
       neighbor triangle. These are crucial for rendering shadows using shadow
@@ -1172,7 +1210,7 @@ type
       Results of these functions are cached, and are also owned by this object.
       So don't modify it, don't free it.
 
-      This uses TrianglesList(false).
+      This uses TrianglesListShadowCasters.
 
       @groupBegin }
     function ManifoldEdges: TDynManifoldEdgeArray;
@@ -1660,6 +1698,7 @@ begin
 
  FreeAndNil(FTrianglesList[false]);
  FreeAndNil(FTrianglesList[true]);
+ FreeAndNil(FTrianglesListShadowCasters);
 
  if FOwnsManifoldAndBorderEdges then
  begin
@@ -1864,6 +1903,7 @@ begin
   { Clear variables after removing fvTrianglesList* from Validities }
   FreeAndNil(FTrianglesList[false]);
   FreeAndNil(FTrianglesList[true]);
+  FreeAndNil(FTrianglesListShadowCasters);
 
   { Clear variables after removing fvManifoldAndBorderEdges from Validities }
   if FOwnsManifoldAndBorderEdges then
@@ -1906,6 +1946,7 @@ begin
       fvBBox, fvVerticesCountNotOver, fvVerticesCountOver,
       fvTrianglesCountNotOver, fvTrianglesCountOver,
       fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
+      fvTrianglesListShadowCasters,
       fvManifoldAndBorderEdges
     are all related to geometry changes. }
 
@@ -2404,11 +2445,13 @@ begin
   Validities := Validities - [fvBBox,
     fvVerticesCountNotOver, fvVerticesCountOver,
     fvTrianglesCountNotOver, fvTrianglesCountOver,
-    fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate];
+    fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
+    fvTrianglesListShadowCasters];
 
   { Clear variables after removing fvTrianglesList* }
   FreeAndNil(FTrianglesList[false]);
   FreeAndNil(FTrianglesList[true]);
+  FreeAndNil(FTrianglesListShadowCasters);
 
   { First, call LocalGeometryChanged on shapes when needed.
 
@@ -3048,6 +3091,41 @@ begin
   Result := FTrianglesList[OverTriangulate];
 end;
 
+function TVRMLScene.TrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
+
+  function CreateTrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
+  var
+    I: Integer;
+    TriangleAdder: TTriangleAdder;
+  begin
+    Result := TDynTrianglesShadowCastersArray.Create;
+    try
+      Result.AllowedCapacityOverflow := TrianglesCount(false);
+      try
+        TriangleAdder := TTriangleAdder.Create;
+        try
+          TriangleAdder.TriangleList := Result;
+          for I := 0 to ShapeStates.Count - 1 do
+            { TODOif ShapeStates[I]. shadow caster }
+            ShapeStates[I].GeometryNode.Triangulate(
+              ShapeStates[I].State, false,
+              {$ifdef FPC_OBJFPC} @ {$endif} TriangleAdder.AddTriangle);
+        finally FreeAndNil(TriangleAdder) end;
+      finally Result.AllowedCapacityOverflow := 4 end;
+    except Result.Free; raise end;
+  end;
+
+begin
+  if not (fvTrianglesListShadowCasters in Validities) then
+  begin
+    FreeAndNil(FTrianglesListShadowCasters);
+    FTrianglesListShadowCasters := CreateTrianglesListShadowCasters;
+    Include(Validities, fvTrianglesListShadowCasters);
+  end;
+
+  Result := FTrianglesListShadowCasters;
+end;
+
 { edges lists ------------------------------------------------------------- }
 
 procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
@@ -3134,10 +3212,10 @@ procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
     Assert(FManifoldEdges = nil);
     Assert(FBorderEdges = nil);
 
-    { It's important here that TrianglesList guarentees that only valid
+    { It's important here that TrianglesListShadowCasters guarentees that only valid
       triangles are included. Otherwise degenerate triangles could make
       shadow volumes rendering result bad. }
-    Triangles := TrianglesList(false);
+    Triangles := TrianglesListShadowCasters;
 
     FManifoldEdges := TDynManifoldEdgeArray.Create;
     { There is a precise relation between number of edges and number of faces
@@ -3282,6 +3360,12 @@ begin
   begin
     Exclude(Validities, fvTrianglesListOverTriangulate);
     FreeAndNil(FTrianglesList[true]);
+  end;
+
+  if frTrianglesListShadowCasters in Resources then
+  begin
+    Exclude(Validities, fvTrianglesListShadowCasters);
+    FreeAndNil(FTrianglesListShadowCasters);
   end;
 
   if frManifoldAndBorderEdges in Resources then

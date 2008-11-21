@@ -238,6 +238,17 @@ type
     ScheduledLocalGeometryChanged: boolean;
     ScheduledLocalGeometryChangedCoord: boolean;
     { @groupEnd }
+
+    { Looking at material, decide if it's opaque or (partially)
+      transparent.
+
+      For VRML >= 2.0, shape is transparent if material exists and
+      has transparency > 0 (epsilon).
+
+      For VRML <= 1.0, for now shape is transparent if all it's
+      transparent values (in VRML 1.0, material node has actually many
+      material values) have transparency > 0 (epsilon). }
+    function Transparent: boolean;
   end;
 
   TObjectsListItem_1 = TVRMLShapeState;
@@ -472,6 +483,37 @@ begin
       TriangleOctreeLeafCapacity,
       TriangleOctreeProgressTitle);
   end;
+end;
+
+function TVRMLShapeState.Transparent: boolean;
+var
+  M: TNodeMaterial_2;
+begin
+  { For VRML 1.0, there may be multiple materials on a node.
+    Some of them may be transparent, some not --- we arbitrarily
+    decide for now that AllMaterialsTransparent decides whether
+    blending should be used or not. We may change this in th
+    future to AnyMaterialsTransparent, since this will be more
+    consistent with X3D ColorRGBA treatment?
+
+    We do not try to split node into multiple instances.
+    This is difficult and memory-consuming task, so we just
+    depend on VRML author to split his geometry nodes if he
+    wants it.
+
+    Obviously, we also drop the idea of splitting the geometry
+    into separate triangles and deciding whether to use blending
+    for each separate triangle. Or to sort every separate triangle.
+    This would obviously get very very slow for models with lots
+    of triangles.
+  }
+
+  if State.ParentShape <> nil then
+  begin
+    M := State.ParentShape.Material;
+    Result := (M <> nil) and (M.FdTransparency.Value > SingleEqualityEpsilon);
+  end else
+    Result := State.LastNodes.Material.AllMaterialsTransparent;
 end;
 
 { TVRMLShapeStatesList ------------------------------------------------------- }
