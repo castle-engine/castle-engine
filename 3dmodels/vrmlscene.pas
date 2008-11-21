@@ -464,6 +464,14 @@ type
 
     FTrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
 
+    { Removes fvTrianglesListShadowCasters from Validities,
+      and clears FTrianglesListShadowCasters variable. }
+    procedure InvalidateTrianglesListShadowCasters;
+
+    { Removes fvTrianglesList[Not]OverTriangulate from Validities,
+      and clears FTrianglesList[] variable. }
+    procedure InvalidateTrianglesList(const OverTriangulate: boolean);
+
     function GetViewpointCore(
       const OnlyPerspective: boolean;
       out CamKind: TVRMLCameraKind;
@@ -474,6 +482,10 @@ type
     FManifoldEdges: TDynManifoldEdgeArray;
     FBorderEdges: TDynBorderEdgeArray;
     FOwnsManifoldAndBorderEdges: boolean;
+
+    { Removes fvManifoldAndBorderEdges from Validities,
+      and clears FManifold/BordEdges variables. }
+    procedure InvalidateManifoldAndBorderEdges;
 
     procedure CalculateIfNeededManifoldAndBorderEdges;
 
@@ -1696,15 +1708,13 @@ begin
     and does UnregisterProcessEvents(RootNode). }
   ProcessEvents := false;
 
- FreeAndNil(FTrianglesList[false]);
- FreeAndNil(FTrianglesList[true]);
- FreeAndNil(FTrianglesListShadowCasters);
+ { free FTrianglesList* variables }
+ InvalidateTrianglesList(false);
+ InvalidateTrianglesList(true);
+ InvalidateTrianglesListShadowCasters;
 
- if FOwnsManifoldAndBorderEdges then
- begin
-   FreeAndNil(FManifoldEdges);
-   FreeAndNil(FBorderEdges);
- end;
+ { frees FManifoldEdges, FBorderEdges if needed }
+ InvalidateManifoldAndBorderEdges;
 
  FreeAndNil(FCompiledScriptHandlers);
 
@@ -1901,20 +1911,12 @@ begin
   Validities := [];
 
   { Clear variables after removing fvTrianglesList* from Validities }
-  FreeAndNil(FTrianglesList[false]);
-  FreeAndNil(FTrianglesList[true]);
-  FreeAndNil(FTrianglesListShadowCasters);
+  InvalidateTrianglesList(false);
+  InvalidateTrianglesList(true);
+  InvalidateTrianglesListShadowCasters;
 
   { Clear variables after removing fvManifoldAndBorderEdges from Validities }
-  if FOwnsManifoldAndBorderEdges then
-  begin
-    FreeAndNil(FManifoldEdges);
-    FreeAndNil(FBorderEdges);
-  end else
-  begin
-    FManifoldEdges := nil;
-    FBorderEdges := nil;
-  end;
+  InvalidateManifoldAndBorderEdges;
 
   ChangedAll_TraversedLights := TDynActiveLightArray.Create;
   try
@@ -2127,11 +2129,7 @@ begin
     something that doesn't *directly* affect actual content:
     - metadata field
     - metadata or WorldInfo nodes
-    - sensors (they don't affect actual content directly --- only when
-      they are routed somewhere, and this will be eventually
-      detected in another ChangedFields call)
-    - script (like for sensors; script nodes take care themselves
-      to react to events send to them)
+    - and others, see comments...
   }
 
   if (Node is TNodeX3DNode) and
@@ -2144,9 +2142,19 @@ begin
      (Node is TNodeMetadataSet) or
      (Node is TNodeMetadataString) or
      (Node is TNodeWorldInfo) or
+     { sensors (they don't affect actual content directly --- only when
+       they are routed somewhere, and this will be eventually
+       detected in another ChangedFields call) }
      (Node is TNodeX3DPointingDeviceSensorNode) or
      (Node is TNodeTimeSensor) or
-     (Node is TNodeScript) then
+     { script (like for sensors; script nodes take care themselves
+        to react to events send to them) }
+     (Node is TNodeScript) or
+     { X3D event utilities nodes }
+     (Node is TNodeX3DSequencerNode) or
+     (Node is TNodeX3DTriggerNode) or
+     (Node is TNodeBooleanFilter) or
+     (Node is TNodeBooleanToggle) then
     Exit;
 
   { Test other changes: }
@@ -2349,6 +2357,14 @@ begin
       if ShapeStates[i].State.Texture = Node then
         ChangedShapeStateFields(I, false, true);
   end else
+  if (Node is TNodeKambiAppearance) and
+     (TNodeKambiAppearance(Node).FdShadowCaster = Field) then
+  begin
+    { When KambiAppearance.shadowCaster field changed, then
+      TrianglesListShadowCasters and Manifold/BorderEdges change. }
+    InvalidateTrianglesListShadowCasters;
+    InvalidateManifoldAndBorderEdges;
+  end else
   begin
     { node jest czyms innym; wiec musimy zalozyc ze zmiana jego pol wplynela
       jakos na State nastepujacych po nim node'ow (a moze nawet wplynela na to
@@ -2449,9 +2465,9 @@ begin
     fvTrianglesListShadowCasters];
 
   { Clear variables after removing fvTrianglesList* }
-  FreeAndNil(FTrianglesList[false]);
-  FreeAndNil(FTrianglesList[true]);
-  FreeAndNil(FTrianglesListShadowCasters);
+  InvalidateTrianglesList(false);
+  InvalidateTrianglesList(true);
+  InvalidateTrianglesListShadowCasters;
 
   { First, call LocalGeometryChanged on shapes when needed.
 
@@ -2505,20 +2521,7 @@ begin
   { Use EdgesStructureChanged to decide should be invalidate
     ManifoldAndBorderEdges. }
   if EdgesStructureChanged then
-  begin
-    Exclude(Validities, fvManifoldAndBorderEdges);
-
-    { Clear variables after removing fvManifoldAndBorderEdges }
-    if FOwnsManifoldAndBorderEdges then
-    begin
-      FreeAndNil(FManifoldEdges);
-      FreeAndNil(FBorderEdges);
-    end else
-    begin
-      FManifoldEdges := nil;
-      FBorderEdges := nil;
-    end;
-  end;
+    InvalidateManifoldAndBorderEdges;
 
   if (OctreeRendering <> nil) and
      (ScheduledGeometrySomeTransformChanged or
@@ -3091,9 +3094,33 @@ begin
   Result := FTrianglesList[OverTriangulate];
 end;
 
+procedure TVRMLScene.InvalidateTrianglesList(const OverTriangulate: boolean);
+var
+  ValidityValue: TVRMLSceneValidity;
+begin
+  if OverTriangulate then
+    ValidityValue := fvTrianglesListOverTriangulate else
+    ValidityValue := fvTrianglesListNotOverTriangulate;
+  Exclude(Validities, ValidityValue);
+  FreeAndNil(FTrianglesList[OverTriangulate]);
+end;
+
 function TVRMLScene.TrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
 
   function CreateTrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
+
+    function ShadowCaster(I: Integer): boolean;
+    var
+      Shape: TNodeX3DShapeNode;
+    begin
+      Shape := ShapeStates[I].State.ParentShape;
+      Result := not (
+        (Shape <> nil) and
+        (Shape.FdAppearance.Value <> nil) and
+        (Shape.FdAppearance.Value is TNodeKambiAppearance) and
+        (not TNodeKambiAppearance(Shape.FdAppearance.Value).FdShadowCaster.Value));
+    end;
+
   var
     I: Integer;
     TriangleAdder: TTriangleAdder;
@@ -3106,10 +3133,10 @@ function TVRMLScene.TrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
         try
           TriangleAdder.TriangleList := Result;
           for I := 0 to ShapeStates.Count - 1 do
-            { TODOif ShapeStates[I]. shadow caster }
-            ShapeStates[I].GeometryNode.Triangulate(
-              ShapeStates[I].State, false,
-              {$ifdef FPC_OBJFPC} @ {$endif} TriangleAdder.AddTriangle);
+            if ShadowCaster(I) then
+              ShapeStates[I].GeometryNode.Triangulate(
+                ShapeStates[I].State, false,
+                @TriangleAdder.AddTriangle);
         finally FreeAndNil(TriangleAdder) end;
       finally Result.AllowedCapacityOverflow := 4 end;
     except Result.Free; raise end;
@@ -3124,6 +3151,12 @@ begin
   end;
 
   Result := FTrianglesListShadowCasters;
+end;
+
+procedure TVRMLScene.InvalidateTrianglesListShadowCasters;
+begin
+  Exclude(Validities, fvTrianglesListShadowCasters);
+  FreeAndNil(FTrianglesListShadowCasters);
 end;
 
 { edges lists ------------------------------------------------------------- }
@@ -3322,6 +3355,22 @@ begin
   Include(Validities, fvManifoldAndBorderEdges);
 end;
 
+procedure TVRMLScene.InvalidateManifoldAndBorderEdges;
+begin
+  Exclude(Validities, fvManifoldAndBorderEdges);
+
+  { Clear variables after removing fvManifoldAndBorderEdges }
+  if FOwnsManifoldAndBorderEdges then
+  begin
+    FreeAndNil(FManifoldEdges);
+    FreeAndNil(FBorderEdges);
+  end else
+  begin
+    FManifoldEdges := nil;
+    FBorderEdges := nil;
+  end;
+end;
+
 { freeing resources ---------------------------------------------------------- }
 
 procedure TVRMLScene.FreeResources_UnloadTextureData(Node: TVRMLNode);
@@ -3351,36 +3400,16 @@ begin
       @FreeResources_UnloadBackgroundImage, false);
 
   if frTrianglesListNotOverTriangulate in Resources then
-  begin
-    Exclude(Validities, fvTrianglesListNotOverTriangulate);
-    FreeAndNil(FTrianglesList[false]);
-  end;
+    InvalidateTrianglesList(false);
 
   if frTrianglesListOverTriangulate in Resources then
-  begin
-    Exclude(Validities, fvTrianglesListOverTriangulate);
-    FreeAndNil(FTrianglesList[true]);
-  end;
+    InvalidateTrianglesList(true);
 
   if frTrianglesListShadowCasters in Resources then
-  begin
-    Exclude(Validities, fvTrianglesListShadowCasters);
-    FreeAndNil(FTrianglesListShadowCasters);
-  end;
+    InvalidateTrianglesListShadowCasters;
 
   if frManifoldAndBorderEdges in Resources then
-  begin
-    Exclude(Validities, fvManifoldAndBorderEdges);
-    if FOwnsManifoldAndBorderEdges then
-    begin
-      FreeAndNil(FManifoldEdges);
-      FreeAndNil(FBorderEdges);
-    end else
-    begin
-      FManifoldEdges := nil;
-      FBorderEdges := nil;
-    end;
-  end;
+    InvalidateManifoldAndBorderEdges;
 end;
 
 { events --------------------------------------------------------------------- }
