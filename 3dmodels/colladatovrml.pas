@@ -260,7 +260,7 @@ var
            { make sure to not mistakenly use blending on model that should
              be opaque, but has Effect.FdTransparency.Value = some small
              epsilon, due to numeric errors in above multiply. }
-           if IsZero(Effect.FdTransparency.Value) then
+           if Zero(Effect.FdTransparency.Value) then
              Effect.FdTransparency.Value := 0.0;
          end;
        end;

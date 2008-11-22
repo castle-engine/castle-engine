@@ -354,7 +354,7 @@ begin
   if FdDirection.Items.Length > 0 then
   begin
     CamDir := FdDirection.Items.Items[0];
-    if IsZeroVector(CamDir) then
+    if ZeroVector(CamDir) then
     begin
       VRMLNonFatalError('Viewpoint "direction" must not be zero, assuming defaults');
       CamDir := FdOrientation.RotatedPoint( StdVRMLCamDir );
@@ -365,7 +365,7 @@ begin
   if FdUp.Items.Length > 0 then
   begin
     CamUp := FdUp.Items.Items[0];
-    if IsZeroVector(CamUp) then
+    if ZeroVector(CamUp) then
     begin
       VRMLNonFatalError('Viewpoint "up" must not be zero, assuming defaults');
       CamUp := FdOrientation.RotatedPoint( StdVRMLCamUp );
@@ -374,7 +374,7 @@ begin
     CamUp := FdOrientation.RotatedPoint( StdVRMLCamUp );
 
   GravityUp := FdGravityUp.Value;
-  if IsZeroVector(GravityUp) then
+  if ZeroVector(GravityUp) then
     GravityUp := StdVRMLGravityUp;
 
   { Niestety, macierz ponizej moze cos skalowac wiec nawet jesli powyzej

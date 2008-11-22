@@ -4034,7 +4034,7 @@ begin
   result += Format(', with %d-bits sized stencil buffer', [StencilBufferBits]);
  if AlphaBits > 0 then
   result += Format(', with %d-bits sized alpha channel', [AlphaBits]);
- if not IsZeroVector(AccumBufferBits) then
+ if not ZeroVector(AccumBufferBits) then
   result += Format(', with (%d,%d,%d,%d)-bits sized accumulation buffer',
     [AccumBufferBits[0], AccumBufferBits[1],
      AccumBufferBits[2], AccumBufferBits[3]]);

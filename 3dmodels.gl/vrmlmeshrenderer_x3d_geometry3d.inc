@@ -895,7 +895,7 @@ procedure TIndexedFaceSetRenderer.RenderCoordsRange(
         FarthestDistance := NewDistance;
       end;
 
-      if IsZero(FarthestDistance) then
+      if Zero(FarthestDistance) then
         Exit(false);
 
       if MiddleIndex <> 0 then

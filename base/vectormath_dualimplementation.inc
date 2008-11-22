@@ -123,14 +123,14 @@ begin
  V[3] /= len;
 end;
 
-function IsZeroVector(const V: TYPE_VECTOR3): boolean;
+function ZeroVector(const V: TYPE_VECTOR3): boolean;
 begin
  result := (Abs(V[0]) < SCALAR_EQUALITY_EPSILON) and
            (Abs(V[1]) < SCALAR_EQUALITY_EPSILON) and
            (Abs(V[2]) < SCALAR_EQUALITY_EPSILON);
 end;
 
-function IsZeroVector(const V: TYPE_VECTOR4): boolean;
+function ZeroVector(const V: TYPE_VECTOR4): boolean;
 begin
  result := (Abs(V[0]) < SCALAR_EQUALITY_EPSILON) and
            (Abs(V[1]) < SCALAR_EQUALITY_EPSILON) and
@@ -138,12 +138,12 @@ begin
            (Abs(V[3]) < SCALAR_EQUALITY_EPSILON);
 end;
 
-function IsPerfectlyZeroVector(const V: TYPE_VECTOR3): boolean;
+function PerfectlyZeroVector(const V: TYPE_VECTOR3): boolean;
 begin
   Result := IsMemCharFilled(v, SizeOf(v), #0);
 end;
 
-function IsPerfectlyZeroVector(const V: TYPE_VECTOR4): boolean;
+function PerfectlyZeroVector(const V: TYPE_VECTOR4): boolean;
 begin
   Result := IsMemCharFilled(v, SizeOf(v), #0);
 end;
@@ -384,7 +384,7 @@ begin
  LineVector := VectorProduct(Plane0Dir, Plane1Dir);
 
  NonZeroIndex := MaxAbsVectorCoord(LineVector);
- if IsZero(LineVector[NonZeroIndex]) then
+ if Zero(LineVector[NonZeroIndex]) then
   raise EPlanesParallel.Create(
     'Unable to calculate intersection line of two planes ' +
     VectorToRawStr(Plane0) + ' and ' + VectorToRawStr(Plane1) + ' because ' +
@@ -401,14 +401,14 @@ begin
    We want to sum these two equations to eliminate Line0[Index1]:
      0                                 + Sum_Index2        * Line0[Index2] + Sum_3        = 0
  }
- if not IsZero(Plane0[Index1]) then
+ if not Zero(Plane0[Index1]) then
  begin
   PlaneWithNonZeroIndex1 := @Plane0;
   PlaneMultiply := - Plane1[Index1] / Plane0[Index1];
   Sum_Index2 := Plane0[Index2] * PlaneMultiply + Plane1[Index2];
   Sum_3      := Plane0[3]      * PlaneMultiply + Plane1[3];
  end else
- if not IsZero(Plane1[Index1]) then
+ if not Zero(Plane1[Index1]) then
  begin
   PlaneWithNonZeroIndex1 := @Plane1;
   PlaneMultiply := - Plane0[Index1] / Plane1[Index1];
@@ -546,7 +546,7 @@ var v1dot, v2dot: TYPE_SCALAR;
 begin
  v1dot := VectorDotProduct(v1, PlaneDir);
  v2dot := VectorDotProduct(v2, PlaneDir);
- result := IsZero(v1dot) or IsZero(v2dot) or ((v1dot > 0) = (v2dot > 0));
+ result := Zero(v1dot) or Zero(v2dot) or ((v1dot > 0) = (v2dot > 0));
 end;}
 
   function VectorsSamePlaneDirections(const v1, v2: TYPE_VECTOR3;
@@ -565,7 +565,7 @@ var p1Side, p2Side: TYPE_SCALAR;
 begin
  p1Side := p1[0]*Plane[0] + p1[1]*Plane[1] + p1[2]*Plane[2] + Plane[3];
  p2Side := p2[0]*Plane[0] + p2[1]*Plane[1] + p2[2]*Plane[2] + Plane[3];
- result := IsZero(p1Side) or IsZero(p2Side) or ((p1Side > 0) = (p2Side > 0));
+ result := Zero(p1Side) or Zero(p2Side) or ((p1Side > 0) = (p2Side > 0));
 end;
 
 function PlaneDirNotInDirection(const PlaneDir, Direction: TYPE_VECTOR3): TYPE_VECTOR3;
@@ -772,7 +772,7 @@ begin
  (* prosto : result := CosAngleBetweenVectors(v1, v2) = 0.
     Ale mozna zobaczyc jak liczymy CosAngleBetweenVectors - to jest
     VectorDorProduct / cos-tam. Wynik jest = 0 <=> VectorDotProduct = 0. *)
- result := IsZero(VectorDotProduct(v1, v2), SCALAR_EQUALITY_EPSILON*2);
+ result := Zero(VectorDotProduct(v1, v2), SCALAR_EQUALITY_EPSILON*2);
 end;
 
 function VectorsParallel(const v1, v2: TYPE_VECTOR3): boolean;
@@ -780,7 +780,7 @@ var mc, c1, c2: Integer;
     Scale: TYPE_SCALAR;
 begin
  mc := MaxAbsVectorCoord(v1);
- if IsZero(v1[mc]) then Exit(true);
+ if Zero(v1[mc]) then Exit(true);
 
  Scale := v2[mc] / v1[mc];
  RestOf3dCoords(mc, c1, c2);
@@ -827,7 +827,7 @@ end;
 
 function AnyPerpVector(const v: TYPE_VECTOR3): TYPE_VECTOR3;
 begin
- if IsZero(v[0]) and IsZero(v[1]) then
+ if Zero(v[0]) and Zero(v[1]) then
  begin
   result[0] := 0;
   result[1] := v[2];
@@ -849,7 +849,7 @@ end;
 function IsLineParallelToSimplePlane(const lineVector: TYPE_VECTOR3;
   const PlaneConstCoord: integer): boolean;
 begin
- result := IsZero(lineVector[PlaneConstCoord]);
+ result := Zero(lineVector[PlaneConstCoord]);
 end;
 
 function AreParallelVectorsSameDirection(
@@ -969,7 +969,7 @@ var PlaneDir: TYPE_VECTOR3 absolute plane;
     Dot: TYPE_SCALAR;
 begin
  Dot := VectorDotProduct(LineVector, PlaneDir);
- if not IsZero(Dot) then
+ if not Zero(Dot) then
  begin
   result := true;
   t := -(plane[0]*line0[0] + plane[1]*line0[1] + plane[2]*line0[2] + plane[3])/Dot;
@@ -1629,7 +1629,7 @@ begin
     (M[3, 3] = 1)) then
   begin
     Divisor := M[0, 3] * Pt[0] + M[1, 3] * Pt[1] + M[2, 3] * Pt[2] + M[3, 3];
-    if IsZero(Divisor) then
+    if Zero(Divisor) then
       raise ETransformedResultInvalid.Create('3D point transformed by 4x4 matrix to a direction');
 
     Result[0] /= Divisor;
@@ -1653,7 +1653,7 @@ begin
     (M[2, 3] = 0) ) then
   begin
     Divisor := M[0, 3] * Dir[0] + M[1, 3] * Dir[1] + M[2, 3] * Dir[2];
-    if not IsZero(Divisor) then
+    if not Zero(Divisor) then
       raise ETransformedResultInvalid.Create('3D direction transformed by 4x4 matrix to a point');
   end;
 end;

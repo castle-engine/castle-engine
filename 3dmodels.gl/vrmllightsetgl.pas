@@ -422,7 +422,7 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
     if (Light.LightNode is TVRMLPositionalLightNode) then
     begin
      Attenuat := TVRMLPositionalLightNode(Light.LightNode).FdAttenuation.Value;
-     if not IsZeroVector(Attenuat) then
+     if not ZeroVector(Attenuat) then
      begin
       SetNoAttenuation := false;
       glLightf(glLightNum, GL_CONSTANT_ATTENUATION, Attenuat[0]);

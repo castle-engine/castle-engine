@@ -896,7 +896,7 @@ begin
           if TexCapsMax[0] - TexCapsMin[0] >=
              TexCapsMax[1] - TexCapsMin[1] then
           begin
-            if not IsZero(TexCapsMax[0] - TexCapsMin[0]) then
+            if not Zero(TexCapsMax[0] - TexCapsMin[0]) then
             begin
               { scale such that U is along the X of cap.
                 Coord calculation will go like
@@ -906,7 +906,7 @@ begin
             end;
           end else
           begin
-            if not IsZero(TexCapsMax[1] - TexCapsMin[1]) then
+            if not Zero(TexCapsMax[1] - TexCapsMin[1]) then
             begin
               TexCapsTranslation := -TexCapsMin[1];
               TexCapsScale := 1 /  (TexCapsMax[1] - TexCapsMin[1]);

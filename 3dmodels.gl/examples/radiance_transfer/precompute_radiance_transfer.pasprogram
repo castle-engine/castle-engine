@@ -106,7 +106,7 @@ begin
       { In some nasty cases, smoothed normal may be zero, see e.g. spider_queen
         legs. Leave VertexTransfer[SHBase] as zeros in this case. }
 
-      if not IsZeroVector(N) then
+      if not ZeroVector(N) then
       begin
         { Integrate over hemisphere (around N). Actually, we could integrate
           over the sphere, but this is (on most models) a waste of time

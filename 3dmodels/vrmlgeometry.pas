@@ -204,7 +204,7 @@ var
       Z := VectorProduct(
         VectorSubtract(SpinePoints.Items[I + 1], SpinePoints.Items[I]),
         VectorSubtract(SpinePoints.Items[I - 1], SpinePoints.Items[I]));
-      if not IsZeroVector(Z) then
+      if not ZeroVector(Z) then
       begin
         Result := true;
         break;
@@ -223,7 +223,7 @@ var
     for I := 1 to High do
     begin
       Y := VectorSubtract(SpinePoints.Items[I], SpinePoints.Items[I - 1]);
-      if not IsZeroVector(Y) then
+      if not ZeroVector(Y) then
       begin
         NormalizeTo1st(Y);
         Exit;
@@ -249,7 +249,7 @@ var
     AngleRad := AngleRadBetweenNormals(UnitVector3Single[1], Y);
     Rotation := VectorProduct(UnitVector3Single[1], Y);
 
-    if IsZeroVector(Rotation) then
+    if ZeroVector(Rotation) then
     begin
       { This means that Y is actually just equal (0, 1, 0).
         So Z is just (0, 0, 1). }
@@ -287,7 +287,7 @@ var
     { Same for Spine = 0 and High, as this is the same point actually. }
     Y := VectorSubtract(SpinePoints.Items[1], SpinePoints.Items[High - 1]);
 
-    if not IsZeroVector(Y) then
+    if not ZeroVector(Y) then
       NormalizeTo1st(Y) else
       FindFirstNonCoincident(Y);
 
@@ -295,7 +295,7 @@ var
       VectorSubtract(SpinePoints.Items[1], SpinePoints.Items[0]),
       VectorSubtract(SpinePoints.Items[High - 1], SpinePoints.Items[0]));
 
-    if not IsZeroVector(Z) then
+    if not ZeroVector(Z) then
       NormalizeTo1st(Z) else
     if FindFirstNonColinear(Z) then
       NormalizeTo1st(Z) else
@@ -322,7 +322,7 @@ begin
       CalculateYZForClosed(Y, Z) else
     begin
       Y := VectorSubtract(SpinePoints.Items[1], SpinePoints.Items[0]);
-      if not IsZeroVector(Y) then
+      if not ZeroVector(Y) then
         NormalizeTo1st(Y) else
         FindFirstNonCoincident(Y);
 
@@ -337,7 +337,7 @@ begin
       CalculateYZForClosed(Y, Z) else
     begin
       Y := VectorSubtract(SpinePoints.Items[High], SpinePoints.Items[High - 1]);
-      if not IsZeroVector(Y) then
+      if not ZeroVector(Y) then
         NormalizeTo1st(Y) else
         Y := LastY;
 
@@ -351,7 +351,7 @@ begin
 
     Y := VectorSubtract(SpinePoints.Items[Spine + 1], SpinePoints.Items[Spine - 1]);
 
-    if not IsZeroVector(Y) then
+    if not ZeroVector(Y) then
       NormalizeTo1st(Y) else
       Y := LastY;
 
@@ -359,7 +359,7 @@ begin
       VectorSubtract(SpinePoints.Items[Spine + 1], SpinePoints.Items[Spine]),
       VectorSubtract(SpinePoints.Items[Spine - 1], SpinePoints.Items[Spine]));
 
-    if not IsZeroVector(Z) then
+    if not ZeroVector(Z) then
       NormalizeTo1st(Z) else
       Z := LastZ;
   end;

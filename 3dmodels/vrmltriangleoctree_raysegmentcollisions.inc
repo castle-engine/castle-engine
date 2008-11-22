@@ -253,7 +253,7 @@ var
          StartSubnode[i] := RayVector[i] <= 0;
        end else
        if (PointToSimplePlaneDistance(FirstBoxIntr, i, MiddlePoint[i])
-           < SCALAR_EQUALITY_EPSILON) and not IsZero(RayVector[i]) then
+           < SCALAR_EQUALITY_EPSILON) and not Zero(RayVector[i]) then
        begin
          { This means that FirstBoxIntr lies on MiddlePoint[I] plane.
            Although the box is not flat (this case was eliminated above).

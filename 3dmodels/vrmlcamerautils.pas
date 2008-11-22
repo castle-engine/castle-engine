@@ -233,7 +233,7 @@ begin
       VectorToRawStr(GravityUp) ]);
 
   RotationVectorForGravity := VectorProduct(StdVRMLGravityUp, GravityUp);
-  if IsZeroVector(RotationVectorForGravity) then
+  if ZeroVector(RotationVectorForGravity) then
   begin
     { Then GravityUp is parallel to StdVRMLGravityUp, which means that it's
       just the same. So we can use untranslated Viewpoint node. }
@@ -283,7 +283,7 @@ var
   Rotation, Orientation: TVector4Single;
 begin
   RotationVectorForGravity := VectorProduct(StdVRMLGravityUp, GravityUp);
-  if IsZeroVector(RotationVectorForGravity) then
+  if ZeroVector(RotationVectorForGravity) then
   begin
     { Then GravityUp is parallel to StdVRMLGravityUp, which means that it's
       just the same. So we can use untranslated Viewpoint node. }

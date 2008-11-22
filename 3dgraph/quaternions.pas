@@ -144,7 +144,7 @@ begin
   HalfAngle := ArcCos(Q.Real);
   SinHalfAngle := Sin(HalfAngle);
   AngleRad := HalfAngle * 2;
-  if IsZero(SinHalfAngle) then
+  if Zero(SinHalfAngle) then
   begin
     { Then Q.Vector must be zero also... How could this happen?
       SinHalfAngle = 0 means that HalfAngle = Pi * K (e.g. 0).

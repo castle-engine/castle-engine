@@ -127,9 +127,9 @@ procedure TTestVRMLFields.TestVRMLFields;
      half_angle := ArcCos(q.real_part);
      sin_half_angle := Sin(half_angle);
      angle := half_angle * 2;
-     if IsZero(sin_half_angle) then
+     if Zero(sin_half_angle) then
      begin
-      { Jezeli IsZero(sin_half_angle) to znaczy ze q.vect_part = ZeroVector.
+      { Jezeli Zero(sin_half_angle) to znaczy ze q.vect_part = ZeroVector.
         Wiec skoro q jest znormalizowany to Sqr(q.real_part) = 1 a wiec
         q.real_part = -1 lub 1. A wiec Cos(Angle/2) = -1 lub 1 a wiec
         Angle/2 = Pi * k dla k calkowitych. A wiec Angle = 2k * Pi a wiec
@@ -142,10 +142,10 @@ procedure TTestVRMLFields.TestVRMLFields;
         (jak to bylo w oryginalnym kodzie orient.c), ustawianie wektora zerowego
         jest bez sensu, nigdy nie mozna jako Axis dawac wektora zerowego.).
 
-        Wpp. (jezeli IsZero(sin_half_angle) ale nie IsZero(Angle)) to wykrylismy
+        Wpp. (jezeli Zero(sin_half_angle) ale nie Zero(Angle)) to wykrylismy
         blad, to znaczy ze quaternion wcale nie byl ladnym znorm. quaternionem
         obrotu. }
-      if IsZero(Angle) then
+      if Zero(Angle) then
        Axis := Vector3Single(0, 0, 1) else
        raise EVectorMathInvalidOp.Create('Invalid quaternion in Quaternion_To_AxisAngle');
      end else
@@ -248,7 +248,7 @@ begin
  begin
   CamOrientToDirUp(TestOrients[i], Dir, Up);
   NewOrient := CamDirUp2Orient(Dir, Up);
-  if not ( (IsZero(NewOrient[3]) and IsZero(TestOrients[i, 3])) or
+  if not ( (Zero(NewOrient[3]) and Zero(TestOrients[i, 3])) or
 	   VectorsEqual(NewOrient, TestOrients[i], EqEpsilon) ) then
   begin
    Writeln(Format(

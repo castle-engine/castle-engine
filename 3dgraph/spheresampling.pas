@@ -155,7 +155,7 @@ begin
 
  { chce zeby NewX bylo dowolnym wektorem prostopadlym do SphereTheta0.
    (i zeby nie bylo wektorem zerowym). }
- if IsZero(SphereTheta0[0]) and IsZero(SphereTheta0[1]) then
+ if Zero(SphereTheta0[0]) and Zero(SphereTheta0[1]) then
  begin
   { to na pewno SphereTheta0[2] <> 0 wiec ponizszy NewX na pewno bedzie niezerowy : }
   NewX[0] := 0;

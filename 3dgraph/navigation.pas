@@ -1695,7 +1695,7 @@ begin
     keys (that increase RotationsAnim). Exact equality is Ok check
     to detect this. }
 
-  if not IsPerfectlyZeroVector(FRotationsAnim) then
+  if not PerfectlyZeroVector(FRotationsAnim) then
   begin
     RotChange := CompSpeed;
 
@@ -2198,7 +2198,7 @@ begin
   if PreferGravityUpForRotations and (MinAngleRadFromGravityUp <> 0.0) then
   begin
     Side := VectorProduct(CameraDir, GravityUp);
-    if IsZeroVector(Side) then
+    if ZeroVector(Side) then
     begin
       { Brutally adjust CameraDir and CameraUp to be correct.
         This should happen only if your code was changing values of
@@ -2226,7 +2226,7 @@ begin
         So the above will mean that gravity vector is parallel to your
         looking direction. }
       Side := VectorProduct(CameraDir, GravityUp);
-      if IsZeroVector(Side) then
+      if ZeroVector(Side) then
       begin
         FCameraDir := AnyPerpVector(GravityUp);
         FCameraUp := GravityUp;
@@ -2893,7 +2893,7 @@ var
           smaller. }
 
       TargetPlaneDir := VectorProduct(GravityUp, CameraDir);
-      if not IsZero(
+      if not Zero(
          (TargetPlaneDir[0] * FCameraUp[0]) +
          (TargetPlaneDir[1] * FCameraUp[1]) +
          (TargetPlaneDir[2] * FCameraUp[2])) then

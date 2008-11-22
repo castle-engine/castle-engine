@@ -3575,7 +3575,7 @@ end;
 
 function TSFRotation.RotatedPoint(const pt: TVector3Single): TVector3Single;
 begin
-  if not IsZeroVector(Axis) then
+  if not ZeroVector(Axis) then
     Result := RotatePointAroundAxisRad(RotationRad, pt, Axis) else
   begin
     { Safeguard against rotation around zero vector, which produces unpredictable

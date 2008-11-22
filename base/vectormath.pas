@@ -630,7 +630,11 @@ var
   ExtendedEqualityEpsilon: Extended = 1e-16;
   { @groupEnd }
 
-{ }
+{ Compare two float values, with some epsilon.
+  When two float values differ by less than given epsilon, they are
+  considered equal.
+
+  @groupBegin }
 function FloatsEqual(const f1, f2: Single): boolean; overload;
 function FloatsEqual(const f1, f2: Double): boolean; overload;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
@@ -641,16 +645,25 @@ function FloatsEqual(const f1, f2, EqEpsilon: Double): boolean; overload;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
 function FloatsEqual(const f1, f2, EqEpsilon: Extended): boolean; overload;
 {$endif}
+{ @groupEnd }
 
-function IsZero(const f1: Single): boolean; overload;
-function IsZero(const f1: Double): boolean; overload;
+{ Compare float value with zero, with some epsilon.
+  This is somewhat optimized version of doing FloatsEqual(F1, 0).
+
+  This is named Zero, not IsZero --- to not collide with IsZero function
+  in Math unit (that has the same purpose, but uses different epsilons
+  by default).
+
+  @groupBegin }
+function Zero(const f1: Single): boolean; overload;
+function Zero(const f1: Double): boolean; overload;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-function IsZero(const f1: Extended): boolean; overload;
+function Zero(const f1: Extended): boolean; overload;
 {$endif}
-function IsZero(const f1, EqEpsilon: Single  ): boolean; overload;
-function IsZero(const f1, EqEpsilon: Double  ): boolean; overload;
+function Zero(const f1, EqEpsilon: Single  ): boolean; overload;
+function Zero(const f1, EqEpsilon: Double  ): boolean; overload;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-function IsZero(const f1, EqEpsilon: Extended): boolean; overload;
+function Zero(const f1, EqEpsilon: Extended): boolean; overload;
 {$endif}
 
 { konstruktory i konwertery typow ------------------------------------------------ }
@@ -826,17 +839,17 @@ procedure Vector_Normalize(var V: TVector3_Double); overload;
 procedure NormalizePlaneTo1st(var v: TVector4Single); overload;
 procedure NormalizePlaneTo1st(var v: TVector4Double); overload;
 
-function IsZeroVector(const v: TVector3Single): boolean; overload;
-function IsZeroVector(const v: TVector3Double): boolean; overload;
-function IsZeroVector(const v: TVector4Single): boolean; overload;
-function IsZeroVector(const v: TVector4Double): boolean; overload;
+function ZeroVector(const v: TVector3Single): boolean; overload;
+function ZeroVector(const v: TVector3Double): boolean; overload;
+function ZeroVector(const v: TVector4Single): boolean; overload;
+function ZeroVector(const v: TVector4Double): boolean; overload;
 
-function IsZeroVector(const v: TVector4Cardinal): boolean; overload;
+function ZeroVector(const v: TVector4Cardinal): boolean; overload;
 
-function IsPerfectlyZeroVector(const v: TVector3Single): boolean; overload;
-function IsPerfectlyZeroVector(const v: TVector3Double): boolean; overload;
-function IsPerfectlyZeroVector(const v: TVector4Single): boolean; overload;
-function IsPerfectlyZeroVector(const v: TVector4Double): boolean; overload;
+function PerfectlyZeroVector(const v: TVector3Single): boolean; overload;
+function PerfectlyZeroVector(const v: TVector3Double): boolean; overload;
+function PerfectlyZeroVector(const v: TVector4Single): boolean; overload;
+function PerfectlyZeroVector(const v: TVector4Double): boolean; overload;
 
 { Subtract two vectors.
 
@@ -1819,7 +1832,7 @@ function MatrixInverse(const M: TMatrix4Double; const Determinant: Double): TMat
   This is quite important for many matrices. For example, a 4x4 matrix
   with scaling = 1/200 (which can be easily found in practice,
   see e.g. castle/data/levels/gate/gate_processed.wrl) already
-  has determinant = 1/8 000 000, which will not pass IsZero test
+  has determinant = 1/8 000 000, which will not pass Zero test
   (with SingleEqualityEpsilon). But it's possible to calculate it
   (even on Single precision, although safer in Double precision).
 
@@ -2422,14 +2435,14 @@ begin
 end;
 {$endif}
 
-function IsZero(const f1: Single  ): boolean;
+function Zero(const f1: Single  ): boolean;
 begin
   if SingleEqualityEpsilon = 0 then
     Result := f1 = 0 else
     Result := Abs(f1)<  SingleEqualityEpsilon
 end;
 
-function IsZero(const f1: Double  ): boolean;
+function Zero(const f1: Double  ): boolean;
 begin
   if DoubleEqualityEpsilon = 0 then
     Result := f1 = 0 else
@@ -2437,7 +2450,7 @@ begin
 end;
 
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-function IsZero(const f1: Extended): boolean;
+function Zero(const f1: Extended): boolean;
 begin
   if ExtendedEqualityEpsilon = 0 then
     Result := f1 = 0 else
@@ -2445,14 +2458,14 @@ begin
 end;
 {$endif}
 
-function IsZero(const f1, EqEpsilon: Single  ): boolean;
+function Zero(const f1, EqEpsilon: Single  ): boolean;
 begin
   if EqEpsilon = 0 then
     Result := f1 = 0 else
     result := Abs(f1) < EqEpsilon
 end;
 
-function IsZero(const f1, EqEpsilon: Double  ): boolean;
+function Zero(const f1, EqEpsilon: Double  ): boolean;
 begin
   if EqEpsilon = 0 then
     Result := f1 = 0 else
@@ -2460,7 +2473,7 @@ begin
 end;
 
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-function IsZero(const f1, EqEpsilon: Extended): boolean;
+function Zero(const f1, EqEpsilon: Extended): boolean;
 begin
   if EqEpsilon = 0 then
     Result := f1 = 0 else
@@ -2928,7 +2941,7 @@ begin
  vv^[2] := vv^[2] div dlug;
 end;
 
-function IsZeroVector(const v: TVector4Cardinal): boolean;
+function ZeroVector(const v: TVector4Cardinal): boolean;
 begin
  result := IsMemCharFilled(v, SizeOf(v), #0);
 end;
@@ -3099,7 +3112,7 @@ begin
     Jezeli Normal = (0, 0, 0) to znaczy ze wszystkie trojkaty polygonu byly
       zdegenerowane, wiec nie jestesmy w stanie wyliczyc zadnego sensownego
       wektora normalnego. }
-  if IsZeroVector(Result) then
+  if ZeroVector(Result) then
     Result := ResultForIncorrectPoly else
     NormalizeTo1st(Result);
 end;
@@ -3222,9 +3235,9 @@ begin
   InvertedMatrix := IdentityMatrix4Single;
   if not
     (InvertedMatrixIdentityIfNotExists and
-      ( IsZero(ScaleFactor[0]) or
-        IsZero(ScaleFactor[1]) or
-        IsZero(ScaleFactor[2]) )) then
+      ( Zero(ScaleFactor[0]) or
+        Zero(ScaleFactor[1]) or
+        Zero(ScaleFactor[2]) )) then
   begin
     InvertedMatrix[0, 0] := 1 / ScaleFactor[0];
     InvertedMatrix[1, 1] := 1 / ScaleFactor[1];
@@ -3454,7 +3467,7 @@ var
 begin
   MD := Matrix2Double(M);
   D := MatrixDeterminant(MD);
-  Result := not IsZero(D);
+  Result := not Zero(D);
   if Result then
   begin
     MDInverse := MatrixInverse(MD, D);
@@ -3467,7 +3480,7 @@ var
   D: Double;
 begin
   D := MatrixDeterminant(M);
-  Result := not IsZero(D);
+  Result := not Zero(D);
   if Result then
     MInverse := MatrixInverse(M, D);
 end;
@@ -3479,7 +3492,7 @@ var
 begin
   MD := Matrix3Double(M);
   D := MatrixDeterminant(MD);
-  Result := not IsZero(D);
+  Result := not Zero(D);
   if Result then
   begin
     MDInverse := MatrixInverse(MD, D);
@@ -3492,7 +3505,7 @@ var
   D: Double;
 begin
   D := MatrixDeterminant(M);
-  Result := not IsZero(D);
+  Result := not Zero(D);
   if Result then
     MInverse := MatrixInverse(M, D);
 end;
@@ -3504,7 +3517,7 @@ var
 begin
   MD := Matrix4Double(M);
   D := MatrixDeterminant(MD);
-  Result := not IsZero(D);
+  Result := not Zero(D);
   if Result then
   begin
     MDInverse := MatrixInverse(MD, D);
@@ -3517,7 +3530,7 @@ var
   D: Double;
 begin
   D := MatrixDeterminant(M);
-  Result := not IsZero(D);
+  Result := not Zero(D);
   if Result then
     MInverse := MatrixInverse(M, D);
 end;
