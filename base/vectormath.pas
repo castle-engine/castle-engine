@@ -625,9 +625,9 @@ var
     Exact 0 always means that exact comparison will be used.
 
     @groupBegin }
-    SingleEqualityEpsilon: Single   = 0.0000001 {TODO 1e-6};
-    DoubleEqualityEpsilon: Double   = 0.0000001 {TODO 1e-10};
-  ExtendedEqualityEpsilon: Extended = 0.0000001 {TODO 1e-14};
+    SingleEqualityEpsilon: Single   = 1e-7;
+    DoubleEqualityEpsilon: Double   = 1e-12;
+  ExtendedEqualityEpsilon: Extended = 1e-16;
   { @groupEnd }
 
 { }
@@ -3454,7 +3454,7 @@ var
 begin
   MD := Matrix2Double(M);
   D := MatrixDeterminant(MD);
-  Result := {TODO not IsZero(D)} Abs(D) > 1e-10;
+  Result := not IsZero(D);
   if Result then
   begin
     MDInverse := MatrixInverse(MD, D);
@@ -3467,7 +3467,7 @@ var
   D: Double;
 begin
   D := MatrixDeterminant(M);
-  Result := {TODO not IsZero(D)} Abs(D) > 1e-10;
+  Result := not IsZero(D);
   if Result then
     MInverse := MatrixInverse(M, D);
 end;
@@ -3479,7 +3479,7 @@ var
 begin
   MD := Matrix3Double(M);
   D := MatrixDeterminant(MD);
-  Result := {TODO not IsZero(D)} Abs(D) > 1e-10;
+  Result := not IsZero(D);
   if Result then
   begin
     MDInverse := MatrixInverse(MD, D);
@@ -3492,7 +3492,7 @@ var
   D: Double;
 begin
   D := MatrixDeterminant(M);
-  Result := {TODO not IsZero(D)} Abs(D) > 1e-10;
+  Result := not IsZero(D);
   if Result then
     MInverse := MatrixInverse(M, D);
 end;
@@ -3504,7 +3504,7 @@ var
 begin
   MD := Matrix4Double(M);
   D := MatrixDeterminant(MD);
-  Result := {TODO not IsZero(D)} Abs(D) > 1e-10;
+  Result := not IsZero(D);
   if Result then
   begin
     MDInverse := MatrixInverse(MD, D);
@@ -3517,7 +3517,7 @@ var
   D: Double;
 begin
   D := MatrixDeterminant(M);
-  Result := {TODO not IsZero(D)} Abs(D) > 1e-10;
+  Result := not IsZero(D);
   if Result then
     MInverse := MatrixInverse(M, D);
 end;
