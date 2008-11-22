@@ -1817,15 +1817,16 @@ end;
 
 procedure TNodeMatrixTransform_1.Transformation(
   out Matrix, InvertedMatrix: TMatrix4Single);
-var
-  D: Single;
 begin
   Matrix := FdMatrix.Value;
 
-  D := MatrixDeterminant(Matrix);
-  if not IsZero(D) then
-    InvertedMatrix := MatrixInverse(Matrix, D) else
+  if not TryMatrixInverse(Matrix, InvertedMatrix) then
+  begin
+    if Log then
+      WritelnLogMultiline('Matrix',
+        'Cannot invert matrix:' + NL + MatrixToRawStr(Matrix, '  '));
     InvertedMatrix := IdentityMatrix4Single;
+  end;
 end;
 
 function TNodeMatrixTransform_1.AverageScaleTransform: Single;

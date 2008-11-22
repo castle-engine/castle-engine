@@ -1441,6 +1441,18 @@ begin
    LineIndent, FloatToNiceStr(v[0, 3]), FloatToNiceStr(v[1, 3]), FloatToNiceStr(v[2, 3]), FloatToNiceStr(v[3, 3]) ]);
 end;
 
+function MatrixToRawStr(const v: TYPE_MATRIX4; const LineIndent: string): string;
+begin
+ result := Format('%s[ %4s %4s %4s %4s ]'+nl+
+                  '%s| %4s %4s %4s %4s |'+nl+
+                  '%s| %4s %4s %4s %4s |'+nl+
+                  '%s[ %4s %4s %4s %4s ]',
+  [LineIndent, FloatToRawStr(v[0, 0]), FloatToRawStr(v[1, 0]), FloatToRawStr(v[2, 0]), FloatToRawStr(v[3, 0]),
+   LineIndent, FloatToRawStr(v[0, 1]), FloatToRawStr(v[1, 1]), FloatToRawStr(v[2, 1]), FloatToRawStr(v[3, 1]),
+   LineIndent, FloatToRawStr(v[0, 2]), FloatToRawStr(v[1, 2]), FloatToRawStr(v[2, 2]), FloatToRawStr(v[3, 2]),
+   LineIndent, FloatToRawStr(v[0, 3]), FloatToRawStr(v[1, 3]), FloatToRawStr(v[2, 3]), FloatToRawStr(v[3, 3]) ]);
+end;
+
 function TriangleToNiceStr(const t: TYPE_TRIANGLE2): string;
 begin
  result := '['+VectorToNiceStr(t[0])+', '

@@ -155,7 +155,7 @@
   @unorderedList(
     @item(Well, floating-point inaccuracy is, as always, a problem.
       This unit always uses FloatsEqual
-      and variables SingleEpsilonEquality, DoubleEpsilonEquality
+      and variables SingleEqualityEpsilon, DoubleEqualityEpsilon
       and ExtendedEpsilonEquality when comparison of floating-point
       values is needed. In some cases you may be able to adjust these
       variables to somewhat fine-tune the comparisons.)
@@ -625,9 +625,9 @@ var
     Exact 0 always means that exact comparison will be used.
 
     @groupBegin }
-    SingleEqualityEpsilon: Single   = 0.0000001;
-    DoubleEqualityEpsilon: Double   = 0.0000001;
-  ExtendedEqualityEpsilon: Extended = 0.0000001;
+    SingleEqualityEpsilon: Single   = 0.0000001 {TODO 1e-6};
+    DoubleEqualityEpsilon: Double   = 0.0000001 {TODO 1e-10};
+  ExtendedEqualityEpsilon: Extended = 0.0000001 {TODO 1e-14};
   { @groupEnd }
 
 { }
@@ -713,7 +713,15 @@ function Vector3ExtendedFromStr(const s: string): TVector3Extended;
 function Vector4SingleFromStr(const s: string): TVector4Single;
 
 {$ifndef DELPHI}
+{ Convert between single and double precision matrices.
+  @groupBegin }
+function Matrix2Double(const M: TMatrix2Single): TMatrix2Double;
+function Matrix2Single(const M: TMatrix2Double): TMatrix2Single;
+function Matrix3Double(const M: TMatrix3Single): TMatrix3Double;
+function Matrix3Single(const M: TMatrix3Double): TMatrix3Single;
 function Matrix4Double(const M: TMatrix4Single): TMatrix4Double;
+function Matrix4Single(const M: TMatrix4Double): TMatrix4Single;
+{ @groupEnd }
 {$endif not DELPHI}
 
 {$ifdef FPC}
@@ -1692,6 +1700,8 @@ function FloatToRawStr(f: Single): string; overload;
 function FloatToRawStr(f: Double): string; overload;
 function VectorToRawStr(const v: array of Single): string; overload;
 function VectorToRawStr(const v: array of Double): string; overload;
+function MatrixToRawStr(const v: TMatrix4Single; const LineIndent: string): string; overload;
+function MatrixToRawStr(const v: TMatrix4Double; const LineIndent: string): string; overload;
 function TriangleToRawStr(const t: TTriangle3Single): string; overload;
 function TriangleToRawStr(const t: TTriangle3Double): string; overload;
 
@@ -1794,6 +1804,32 @@ function MatrixInverse(const M: TMatrix3Single; const Determinant: Single): TMat
 function MatrixInverse(const M: TMatrix3Double; const Determinant: Double): TMatrix3Double;
 function MatrixInverse(const M: TMatrix4Single; const Determinant: Single): TMatrix4Single;
 function MatrixInverse(const M: TMatrix4Double; const Determinant: Double): TMatrix4Double;
+{ @groupEnd }
+
+{ Inverse the matrix, trying harder (but possibly slower).
+
+  Basically, they internally calculate determinant and then calculate
+  inverse using this determinant. Return @false if the determinant is zero.
+
+  The main feature is that Single precision versions actually internally
+  calculate everything (determinant and inverse) in Double precision.
+  This gives better accuracy, and safety from matrices with very very small
+  (but not zero) determinants.
+
+  This is quite important for many matrices. For example, a 4x4 matrix
+  with scaling = 1/200 (which can be easily found in practice,
+  see e.g. castle/data/levels/gate/gate_processed.wrl) already
+  has determinant = 1/8 000 000, which will not pass IsZero test
+  (with SingleEqualityEpsilon). But it's possible to calculate it
+  (even on Single precision, although safer in Double precision).
+
+  @groupBegin }
+function TryMatrixInverse(const M: TMatrix2Single; out MInverse: TMatrix2Single): boolean;
+function TryMatrixInverse(const M: TMatrix2Double; out MInverse: TMatrix2Double): boolean;
+function TryMatrixInverse(const M: TMatrix3Single; out MInverse: TMatrix3Single): boolean;
+function TryMatrixInverse(const M: TMatrix3Double; out MInverse: TMatrix3Double): boolean;
+function TryMatrixInverse(const M: TMatrix4Single; out MInverse: TMatrix4Single): boolean;
+function TryMatrixInverse(const M: TMatrix4Double; out MInverse: TMatrix4Double): boolean;
 { @groupEnd }
 {$endif FPC}
 
@@ -2632,12 +2668,98 @@ begin
 end;
 
 {$ifndef DELPHI}
+function Matrix2Double(const M: TMatrix2Single): TMatrix2Double;
+begin
+  Result[0][0] := M[0][0];
+  Result[0][1] := M[0][1];
+
+  Result[1][0] := M[1][0];
+  Result[1][1] := M[1][1];
+end;
+
+function Matrix2Single(const M: TMatrix2Double): TMatrix2Single;
+begin
+  Result[0][0] := M[0][0];
+  Result[0][1] := M[0][1];
+
+  Result[1][0] := M[1][0];
+  Result[1][1] := M[1][1];
+end;
+
+function Matrix3Double(const M: TMatrix3Single): TMatrix3Double;
+begin
+  Result[0][0] := M[0][0];
+  Result[0][1] := M[0][1];
+  Result[0][2] := M[0][2];
+
+  Result[1][0] := M[1][0];
+  Result[1][1] := M[1][1];
+  Result[1][2] := M[1][2];
+
+  Result[2][0] := M[2][0];
+  Result[2][1] := M[2][1];
+  Result[2][2] := M[2][2];
+end;
+
+function Matrix3Single(const M: TMatrix3Double): TMatrix3Single;
+begin
+  Result[0][0] := M[0][0];
+  Result[0][1] := M[0][1];
+  Result[0][2] := M[0][2];
+
+  Result[1][0] := M[1][0];
+  Result[1][1] := M[1][1];
+  Result[1][2] := M[1][2];
+
+  Result[2][0] := M[2][0];
+  Result[2][1] := M[2][1];
+  Result[2][2] := M[2][2];
+end;
+
 function Matrix4Double(const M: TMatrix4Single): TMatrix4Double;
 begin
-  Result[0] := Vector4Double(M[0]);
-  Result[1] := Vector4Double(M[1]);
-  Result[2] := Vector4Double(M[2]);
-  Result[3] := Vector4Double(M[3]);
+  Result[0][0] := M[0][0];
+  Result[0][1] := M[0][1];
+  Result[0][2] := M[0][2];
+  Result[0][3] := M[0][3];
+
+  Result[1][0] := M[1][0];
+  Result[1][1] := M[1][1];
+  Result[1][2] := M[1][2];
+  Result[1][3] := M[1][3];
+
+  Result[2][0] := M[2][0];
+  Result[2][1] := M[2][1];
+  Result[2][2] := M[2][2];
+  Result[2][3] := M[2][3];
+
+  Result[3][0] := M[3][0];
+  Result[3][1] := M[3][1];
+  Result[3][2] := M[3][2];
+  Result[3][3] := M[3][3];
+end;
+
+function Matrix4Single(const M: TMatrix4Double): TMatrix4Single;
+begin
+  Result[0][0] := M[0][0];
+  Result[0][1] := M[0][1];
+  Result[0][2] := M[0][2];
+  Result[0][3] := M[0][3];
+
+  Result[1][0] := M[1][0];
+  Result[1][1] := M[1][1];
+  Result[1][2] := M[1][2];
+  Result[1][3] := M[1][3];
+
+  Result[2][0] := M[2][0];
+  Result[2][1] := M[2][1];
+  Result[2][2] := M[2][2];
+  Result[2][3] := M[2][3];
+
+  Result[3][0] := M[3][0];
+  Result[3][1] := M[3][1];
+  Result[3][2] := M[3][2];
+  Result[3][3] := M[3][3];
 end;
 {$endif not DELPHI}
 
@@ -3325,6 +3447,80 @@ begin
  result := a * d - b * c;
 end;
 
+function TryMatrixInverse(const M: TMatrix2Single; out MInverse: TMatrix2Single): boolean;
+var
+  D: Double;
+  MD, MDInverse: TMatrix2Double;
+begin
+  MD := Matrix2Double(M);
+  D := MatrixDeterminant(MD);
+  Result := {TODO not IsZero(D)} Abs(D) > 1e-10;
+  if Result then
+  begin
+    MDInverse := MatrixInverse(MD, D);
+    MInverse := Matrix2Single(MDInverse);
+  end;
+end;
+
+function TryMatrixInverse(const M: TMatrix2Double; out MInverse: TMatrix2Double): boolean;
+var
+  D: Double;
+begin
+  D := MatrixDeterminant(M);
+  Result := {TODO not IsZero(D)} Abs(D) > 1e-10;
+  if Result then
+    MInverse := MatrixInverse(M, D);
+end;
+
+function TryMatrixInverse(const M: TMatrix3Single; out MInverse: TMatrix3Single): boolean;
+var
+  D: Double;
+  MD, MDInverse: TMatrix3Double;
+begin
+  MD := Matrix3Double(M);
+  D := MatrixDeterminant(MD);
+  Result := {TODO not IsZero(D)} Abs(D) > 1e-10;
+  if Result then
+  begin
+    MDInverse := MatrixInverse(MD, D);
+    MInverse := Matrix3Single(MDInverse);
+  end;
+end;
+
+function TryMatrixInverse(const M: TMatrix3Double; out MInverse: TMatrix3Double): boolean;
+var
+  D: Double;
+begin
+  D := MatrixDeterminant(M);
+  Result := {TODO not IsZero(D)} Abs(D) > 1e-10;
+  if Result then
+    MInverse := MatrixInverse(M, D);
+end;
+
+function TryMatrixInverse(const M: TMatrix4Single; out MInverse: TMatrix4Single): boolean;
+var
+  D: Double;
+  MD, MDInverse: TMatrix4Double;
+begin
+  MD := Matrix4Double(M);
+  D := MatrixDeterminant(MD);
+  Result := {TODO not IsZero(D)} Abs(D) > 1e-10;
+  if Result then
+  begin
+    MDInverse := MatrixInverse(MD, D);
+    MInverse := Matrix4Single(MDInverse);
+  end;
+end;
+
+function TryMatrixInverse(const M: TMatrix4Double; out MInverse: TMatrix4Double): boolean;
+var
+  D: Double;
+begin
+  D := MatrixDeterminant(M);
+  Result := {TODO not IsZero(D)} Abs(D) > 1e-10;
+  if Result then
+    MInverse := MatrixInverse(M, D);
+end;
 {$endif not DELPHI}
 
 { Grayscale ------------------------------------------------------------------ }
