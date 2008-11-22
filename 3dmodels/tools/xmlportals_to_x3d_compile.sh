@@ -2,10 +2,10 @@
 set -eu
 
 # Hack to allow calling this script from it's dir.
-if [ -f xmlportals_to_vrml.pasprogram ]; then
+if [ -f xmlportals_to_x3d.pasprogram ]; then
   cd ../../
 fi
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg 3dmodels/tools/xmlportals_to_vrml.pasprogram
+fpc -dRELEASE @kambi.cfg 3dmodels/tools/xmlportals_to_x3d.pasprogram
