@@ -127,7 +127,7 @@ begin
   { We use a lot of boxes, so make their rendering fastest. }
   Detail_RectDivisions := 0;
 
-  Scene := TVRMLGLScene.Create(CreateVrmlGraph, true, roSeparateShapeStates);
+  Scene := TVRMLGLScene.Create(CreateVrmlGraph, true, roSeparateShapes);
   try
     { init Glw.Navigator }
     Glw.Navigator := TExamineNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);

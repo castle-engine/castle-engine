@@ -37,20 +37,22 @@ type
       That's because the scene will always be rendered fully to OpenGL.
 
       Also, this is not good if some parts of the scene cannot be put
-      on display list. This concerns things with TVRMLShapeState.EnableDisplayList
+      on display list. This concerns things with TVRMLShape.EnableDisplayList
       = @false, which currently means only MovieTexture nodes.
-      TODO: we should fallback to roSeparateShapeStates automatically in such
+      TODO: we should fallback to roSeparateShapes automatically in such
       cases. For now, this will result in MovieTexture nodes being static
       (i.e. movie will not play).
 
       If the scene is static but user usually only looks at some small
-      part of it, then building octree for the scene and using
-      roSeparateShapeStates and @link(TVRMLGLScene.RenderFrustumOctree)
+      part of it, then building OctreeRendering for the scene
+      (by adding ssOctreeRendering to TVRMLScene.Spatial)
+      and using roSeparateShapes and @link(TVRMLGLScene.RenderFrustum)
+      (will automatically use TVRMLScene.OctreeRendering then)
       may be better. }
     roSceneAsAWhole,
 
-    { Build separate OpenGL display list for each @link(TVRMLShapeState)
-      on list @link(TVRMLScene.ShapeStates). Use this if
+    { Build separate OpenGL display list for each @link(TVRMLShape)
+      on list @link(TVRMLScene.Shapes). Use this if
 
       @orderedList(
         @item(you will change from time to time only some small parts of
@@ -61,15 +63,15 @@ type
 
         @item(and/or you know that usually user will not see the whole scene,
           only a small part of it.
-          See TestShapeStateVisibility parameter of @link(TVRMLGLScene.Render)
+          See TestShapeVisibility parameter of @link(TVRMLGLScene.Render)
           and @link(TVRMLGLScene.RenderFrustum) and
           @link(TVRMLGLScene.RenderFrustumOctree).)
 
         @item(
-          Another advantage of roSeparateShapeStates is when you use
+          Another advantage of roSeparateShapes is when you use
           TVRMLGLAnimation. If part of your animation is actually still
-          (i.e. the same ShapeState is used, the same nodes inside),
-          and only the part changes --- then the still ShapeStates will
+          (i.e. the same Shape is used, the same nodes inside),
+          and only the part changes --- then the still Shapes will
           use and share only one display list (only one ---
           throughout all the time when they are still!).
           This can be a huge memory saving, which is important because
@@ -77,34 +79,34 @@ type
           very memory-hungry operation.
 
           You can achieve even much better memory saving by using
-          roSeparateShapeStatesNoTransformation.
+          roSeparateShapesNoTransformation.
 
           This is achieved by TVRMLOpenGLRendererContextCache
-          methods ShapeState_Xxx.)
+          methods Shape_Xxx.)
       )
     }
-    roSeparateShapeStates,
+    roSeparateShapes,
 
-    { This is like roSeparateShapeStates but it allows for much more
+    { This is like roSeparateShapes but it allows for much more
       display lists sharing because it stores untransformed
-      ShapeState in a display list.
+      Shape in a display list.
 
-      Where this is better over roSeparateShapeStates:
-      If you use TVRMLGLAnimation when the same ShapeState occurs
+      Where this is better over roSeparateShapes:
+      If you use TVRMLGLAnimation when the same Shape occurs
       in each frame but is transformed differently.
-      Or when you have a scene that uses the same ShapeState many times
+      Or when you have a scene that uses the same Shape many times
       but with different transformation.
       Or when you do animation by VRML / X3D events that change
       properties of "Transform" node.
       Actually, "transformation" means here everything rendered by
-      TVRMLOpenGLRenderer.RenderShapeStateBegin, which includes
+      TVRMLOpenGLRenderer.RenderShapeBegin, which includes
       modelview transformation, texture transformation and all lights
       settings.
-      In such cases, roSeparateShapeStatesNoTranform will use
-      one display list, where roSeparateShapeStates would use a lot
+      In such cases, roSeparateShapesNoTranform will use
+      one display list, where roSeparateShapes would use a lot
       (or require needless recalculation for VRML events).
       What exactly "a lot" means depends on how much frames your
-      animation has, how much ShapeState is duplicated etc.
+      animation has, how much Shape is duplicated etc.
       This can be a @italic(huge memory saving). Also preparing
       scene/animations (in PrepareRender) should be much faster.
 
@@ -112,13 +114,13 @@ type
       I hoped, honestly, but still something...). This greatly boosts
       performance of VRML animations of Transform nodes.
 
-      Where this is worse over roSeparateShapeStates:
+      Where this is worse over roSeparateShapes:
       @unorderedList(
         @item(
-          roSeparateShapeStatesNoTransform can be used only if you don't use
+          roSeparateShapesNoTransform can be used only if you don't use
           Attributes.OnBeforeVertex feature and your model doesn't
           use volumetric fog. If you do use these features,
-          you have no choice: you must use roSeparateShapeStates,
+          you have no choice: you must use roSeparateShapes,
           otherwise rendering results may be wrong.
 
           See [http://vrmlengine.sourceforge.net/kambi_vrml_test_suite.php]
@@ -128,26 +130,26 @@ type
           Reasons: because TVRMLOpenGLRenderer.DoBeforeGLVertex
           uses Render_State.CurrMatrix.)
 
-        @item(In some cases roSeparateShapeStatesNoTransform
-          may be a little slower at rendering than roSeparateShapeStates,
+        @item(In some cases roSeparateShapesNoTransform
+          may be a little slower at rendering than roSeparateShapes,
           as this doesn't wrap in display list things done
-          by TVRMLOpenGLRenderer.RenderShapeStateBegin.
+          by TVRMLOpenGLRenderer.RenderShapeBegin.
           So modelview matrix and texture matrix and whole
           lights state will be done each time by OpenGL commands,
           without display lists.
 
           Will this affect rendering speed much ?
           If your scene doesn't use lights
-          then the speed difference between roSeparateShapeStates
-          and roSeparateShapeStatesNoTransform should not be noticeable.
+          then the speed difference between roSeparateShapes
+          and roSeparateShapesNoTransform should not be noticeable.
           Otherwise... well, you have to check what matters more
-          in this case: memory saving by roSeparateShapeStatesNoTransform
-          or additional speed saving by roSeparateShapeStates.)
+          in this case: memory saving by roSeparateShapesNoTransform
+          or additional speed saving by roSeparateShapes.)
       )
 
       This is achieved by TVRMLOpenGLRendererContextCache
-      methods ShapeStateNoTransform_Xxx. }
-    roSeparateShapeStatesNoTransform
+      methods ShapeNoTransform_Xxx. }
+    roSeparateShapesNoTransform
   );
   PGLRendererOptimization = ^TGLRendererOptimization;
 

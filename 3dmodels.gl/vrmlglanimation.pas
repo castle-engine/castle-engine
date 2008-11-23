@@ -507,12 +507,12 @@ type
       e.g. every frame. And when loading, it's best to set Optimization
       as desired @italic(before) calling @link(Load) for fasters loading.
 
-      Note that this class should generally use roSeparateShapeStatesNoTransform
-      or roSeparateShapeStates for Optimization, to conserve memory
+      Note that this class should generally use roSeparateShapesNoTransform
+      or roSeparateShapes for Optimization, to conserve memory
       in some common cases. See docs at TGLRendererOptimization type. }
     property Optimization: TGLRendererOptimization
       read FOptimization write SetOptimization
-      default roSeparateShapeStatesNoTransform;
+      default roSeparateShapesNoTransform;
 
     { Set OpenGL projection, based on currently
       bound Viewpoint, NavigationInfo (using FirstScene) and used navigator.
@@ -600,7 +600,7 @@ constructor TVRMLGLAnimation.Create(ACache: TVRMLOpenGLRendererContextCache);
 begin
   inherited Create;
   Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, ACache);
-  FOptimization := roSeparateShapeStatesNoTransform;
+  FOptimization := roSeparateShapesNoTransform;
 end;
 
 destructor TVRMLGLAnimation.Destroy;
@@ -817,7 +817,7 @@ procedure TVRMLGLAnimation.LoadCore(
        internal copy of texture for each duplicated node, once again
        wasting a lot of memory).
 
-    4. And later the ShapeState cache of TVRMLOpenGLRenderer can speed
+    4. And later the Shape cache of TVRMLOpenGLRenderer can speed
        up loading time and conserve memory use, if it sees the same
        reference to given GeometryNode twice. }
   function VRMLModelsMerge(Model1, Model2: TVRMLNode): boolean;

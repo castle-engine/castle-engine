@@ -57,25 +57,25 @@ end;
 
 type
   TFogVisibilityTester = class
-    class function Test(ShapeStateNum: Integer): boolean;
+    class function Test(ShapeNum: Integer): boolean;
   end;
 
 var
   FogVisibilityTester: TFogVisibilityTester = nil;
 
-class function TFogVisibilityTester.Test(ShapeStateNum: Integer): boolean;
+class function TFogVisibilityTester.Test(ShapeNum: Integer): boolean;
 begin
   { Test for collision between two spheres.
-    1st is the bounding sphere of Scene.ShapeStates[ShapeStateNum].
+    1st is the bounding sphere of Scene.Shapes[ShapeNum].
     2nd is the sphere around current camera position,
       with the radius taken from fog visibilityRadius (we should
       always multiply this by FogDistanceScaling).
-    If there is no collision than we don't have to render given ShapeState. }
+    If there is no collision than we don't have to render given Shape. }
   Result := PointsDistanceSqr(
-    Scene.ShapeStates[ShapeStateNum].BoundingSphereCenter,
+    Scene.Shapes[ShapeNum].BoundingSphereCenter,
     Glw.WalkNav.CameraPos) <=
       Sqr(Scene.FogNode.FdVisibilityRange.Value * Scene.FogDistanceScaling +
-        Sqrt(Scene.ShapeStates[ShapeStateNum].BoundingSphereRadiusSqr));
+        Sqrt(Scene.Shapes[ShapeNum].BoundingSphereRadiusSqr));
 end;
 
 procedure Draw(glwin: TGLWindow);
@@ -94,9 +94,9 @@ begin
     Scene.Render(@FogVisibilityTester.Test, tgAll) else
     Scene.RenderFrustum(Glw.WalkNav.Frustum, tgAll);
 
-  Writeln(Format('Rendered ShapeStates: %d / %d',
-    [ Scene.LastRender_RenderedShapeStatesCount,
-      Scene.LastRender_AllShapeStatesCount ]));
+  Writeln(Format('Rendered Shapes: %d / %d',
+    [ Scene.LastRender_RenderedShapesCount,
+      Scene.LastRender_AllShapesCount ]));
 end;
 
 procedure Init(glwin: TGLWindow);
@@ -173,14 +173,14 @@ begin
   VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
 
   Scene := TVRMLGLScene.Create(
-    'models' + PathDelim + 'fog_culling_final.wrl', roSeparateShapeStates);
+    'models' + PathDelim + 'fog_culling_final.wrl', roSeparateShapes);
 
   Writeln(Scene.Info(true, true, false));
 
   { build octrees }
   Progress.UserInterface := ProgressConsoleInterface;
   Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
-  Scene.ShapeStateOctreeProgressTitle := 'Building ShapeState octree';
+  Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
 
   Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);

@@ -20,9 +20,10 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(@link(TVRMLShapeState) class.) }
+{ VRML shape (TVRMLShape class) and a simple tree of shapes
+  (TVRMLShapeTree class). }
 
-unit VRMLShapeState;
+unit VRMLShape;
 
 interface
 
@@ -36,26 +37,29 @@ const
   DefLocalTriangleOctreeLeafCapacity = 64;
 
 type
-  { Internal type for TVRMLShapeState }
-  TVRMLShapeStateValidities = set of (svLocalBBox, svBBox,
+  { Internal type for TVRMLShape
+    @exclude }
+  TVRMLShapeValidities = set of (svLocalBBox, svBBox,
     svVerticesCountNotOver,  svVerticesCountOver,
     svTrianglesCountNotOver, svTrianglesCountOver,
     svBoundingSphere, svEnableDisplayList);
 
-  { Possible spatial structure types that may be managed by TVRMLShapeState,
-    see TVRMLShapeState.Spatial. }
+  { Possible spatial structure types that may be managed by TVRMLShape,
+    see TVRMLShape.Spatial. }
   TVRMLShapeSpatialStructure = (
-    { Create the TVRMLShapeState.OctreeTriangles.
+    { Create the TVRMLShape.OctreeTriangles.
       This is an octree containing all triangles. }
     ssTriangles);
   TVRMLShapeSpatialStructures = set of TVRMLShapeSpatialStructure;
 
-  { This class represents a pair of objects: @link(GeometryNode) and
-    @link(State). It allows to perform some operations that need
-    to know both things.
+  { Shape is a geometry node @link(GeometryNode) instance and it's
+    @link(State). For VRML >= 2.0, this usually corresponds to
+    a single instance of actual VRML @code(Shape) node.
+    It allows to perform many operations that need to know both geometry
+    and it's current state (parent Shape node, current transformation and such).
 
     This class caches results of methods LocalBoundingBox, BoundingBox,
-    and most others (see TVRMLShapeStateValidities for hints).
+    and most others (see TVRMLShapeValidities for hints).
     This means that things work fast, but this also means that
     you must manually call @link(Changed)
     when you changed some properties of GeometryNode or contents of State.
@@ -65,16 +69,16 @@ type
 
     Also note that if you're using @link(TVRMLScene) class
     then you don't have to worry about calling @link(Changed)
-    of items in @link(TVRMLScene.ShapeStates).
+    of items in @link(TVRMLScene.Shapes).
     All you have to do is to call appropriate @code(Changed*)
     methods of @link(TVRMLScene). }
-  TVRMLShapeState = class
+  TVRMLShape = class
   private
     FLocalBoundingBox: TBox3d;
     FBoundingBox: TBox3d;
     FVerticesCountNotOver, FVerticesCountOver,
     FTrianglesCountNotOver, FTrianglesCountOver: Cardinal;
-    Validities: TVRMLShapeStateValidities;
+    Validities: TVRMLShapeValidities;
     FGeometryNode: TVRMLGeometryNode;
     FState: TVRMLGraphTraverseState;
     FBoundingSphereCenter: TVector3Single;
@@ -133,7 +137,7 @@ type
     { This is an information for the TVRMLGLScene renderer
       whether this can be stored in a display list.
 
-      If @false then rendering of this shapestate cannot be stored
+      If @false then rendering of this shape cannot be stored
       inside a display list, it must be passed to TVRMLOpenGLRenderer
       in each frame. This is basically a hack to render some nodes that
       change too dynamically to store them in display list.
@@ -191,7 +195,7 @@ type
 
     { Which spatial structrues (octrees, for now) should be created and managed.
       This works analogous to TVRMLScene.Spatial, but this manages
-      octrees within this TVRMLShapeState. }
+      octrees within this TVRMLShape. }
     property Spatial: TVRMLShapeSpatialStructures read FSpatial write SetSpatial;
 
     { Properties of created triangle octrees.
@@ -251,9 +255,10 @@ type
     function Transparent: boolean;
   end;
 
-  TObjectsListItem_1 = TVRMLShapeState;
-  {$I ObjectsList_1.inc}
-  TVRMLShapeStatesList = class(TObjectsList_1)
+  TObjectsListItem_1 = TVRMLShape;
+  {$I objectslist_1.inc}
+  TVRMLShapesList = class(TObjectsList_1)
+  public
     { szuka elementu ktorego GeometryNode.NodeName = GeometryNodeName.
       Zwraca jego indeks lub -1 jesli nie znalazl. }
     function IndexOfGeometryNodeName(const GeometryNodeName: string): integer;
@@ -263,21 +268,24 @@ type
     function IndexOfShapeWithParentNamed(const ParentNodeName: string): integer;
 
     { Assuming that the model was created by Blender VRML 1 or 2 exporter,
-      this searches for a first shapestate that was created from Blender
+      this searches for a first shape that was created from Blender
       mesh named BlenderMeshName.
 
       It follows the logic of two Blender exporters.
 
       If it doesn't find matching node, returns -1. Otherwise, an index
-      of matching shapestate.
+      of matching shape.
 
       Note that IndexOfBlenderObject would be usually more sensible
-      (since there can be only one shapestate from given Blender object),
+      (since there can be only one shape from given Blender object),
       but Blender VRML 1.0 exporter doesn't export anywhere Blender object
       name. So when working with VRML 1.0, you're stuck with looking
       for mesh names. }
     function IndexOfBlenderMesh(const BlenderMeshName: string): Integer;
   end;
+
+  { TODO: this will be a tree very soon, for now it's a flat list. }
+  TVRMLShapeTree = TVRMLShapesList;
 
 {$undef read_interface}
 
@@ -289,9 +297,9 @@ uses ProgressUnit, VRMLOctreeItems;
 {$I objectslist_1.inc}
 {$I macprecalcvaluereturn.inc}
 
-{ TVRMLShapeState -------------------------------------------------------------- }
+{ TVRMLShape -------------------------------------------------------------- }
 
-constructor TVRMLShapeState.Create(AGeometryNode: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
+constructor TVRMLShape.Create(AGeometryNode: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
 begin
   inherited Create;
 
@@ -302,26 +310,26 @@ begin
   FState := AState;
 end;
 
-destructor TVRMLShapeState.Destroy;
+destructor TVRMLShape.Destroy;
 begin
   FreeAndNil(State);
   FreeAndNil(FOctreeTriangles);
   inherited;
 end;
 
-function TVRMLShapeState.LocalBoundingBox: TBox3d;
+function TVRMLShape.LocalBoundingBox: TBox3d;
 {$define PRECALC_VALUE_ENUM := svLocalBBox}
 {$define PRECALC_VALUE := FLocalBoundingBox}
 {$define PRECALC_VALUE_CALCULATE := GeometryNode.LocalBoundingBox(State)}
 PRECALC_VALUE_RETURN
 
-function TVRMLShapeState.BoundingBox: TBox3d;
+function TVRMLShape.BoundingBox: TBox3d;
 {$define PRECALC_VALUE_ENUM := svBBox}
 {$define PRECALC_VALUE := FBoundingBox}
 {$define PRECALC_VALUE_CALCULATE := GeometryNode.BoundingBox(State)}
 PRECALC_VALUE_RETURN
 
-function TVRMLShapeState.VerticesCount(OverTriangulate: boolean): Cardinal;
+function TVRMLShape.VerticesCount(OverTriangulate: boolean): Cardinal;
 begin
  {$define PRECALC_VALUE_CALCULATE := GeometryNode.VerticesCount(State,OverTriangulate)}
  if OverTriangulate then
@@ -337,7 +345,7 @@ begin
  end;
 end;
 
-function TVRMLShapeState.TrianglesCount(OverTriangulate: boolean): Cardinal;
+function TVRMLShape.TrianglesCount(OverTriangulate: boolean): Cardinal;
 begin
  {$define PRECALC_VALUE_CALCULATE := GeometryNode.TrianglesCount(State,OverTriangulate)}
  if OverTriangulate then
@@ -353,19 +361,19 @@ begin
  end;
 end;
 
-function TVRMLShapeState.EnableDisplayList: boolean;
+function TVRMLShape.EnableDisplayList: boolean;
 {$define PRECALC_VALUE_ENUM := svEnableDisplayList}
 {$define PRECALC_VALUE := FEnableDisplayList}
 {$define PRECALC_VALUE_CALCULATE :=
   (not (State.Texture is TNodeMovieTexture))}
 PRECALC_VALUE_RETURN
 
-procedure TVRMLShapeState.Changed;
+procedure TVRMLShape.Changed;
 begin
  Validities := [];
 end;
 
-procedure TVRMLShapeState.ValidateBoundingSphere;
+procedure TVRMLShape.ValidateBoundingSphere;
 begin
  if not (svBoundingSphere in Validities) then
  begin
@@ -375,19 +383,19 @@ begin
  end;
 end;
 
-function TVRMLShapeState.BoundingSphereCenter: TVector3Single;
+function TVRMLShape.BoundingSphereCenter: TVector3Single;
 begin
  ValidateBoundingSphere;
  Result := FBoundingSphereCenter;
 end;
 
-function TVRMLShapeState.BoundingSphereRadiusSqr: Single;
+function TVRMLShape.BoundingSphereRadiusSqr: Single;
 begin
  ValidateBoundingSphere;
  Result := FBoundingSphereRadiusSqr;
 end;
 
-function TVRMLShapeState.FrustumBoundingSphereCollisionPossible(
+function TVRMLShape.FrustumBoundingSphereCollisionPossible(
   const Frustum: TFrustum): TFrustumCollisionPossible;
 begin
  ValidateBoundingSphere;
@@ -395,7 +403,7 @@ begin
    FBoundingSphereCenter, FBoundingSphereRadiusSqr);
 end;
 
-function TVRMLShapeState.FrustumBoundingSphereCollisionPossibleSimple(
+function TVRMLShape.FrustumBoundingSphereCollisionPossibleSimple(
   const Frustum: TFrustum): boolean;
 begin
  ValidateBoundingSphere;
@@ -403,7 +411,7 @@ begin
    FBoundingSphereCenter, FBoundingSphereRadiusSqr);
 end;
 
-procedure TVRMLShapeState.AddTriangleToOctreeProgress(
+procedure TVRMLShape.AddTriangleToOctreeProgress(
   const Triangle: TTriangle3Single;
   State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
   const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
@@ -413,7 +421,7 @@ begin
     FaceCoordIndexBegin, FaceCoordIndexEnd);
 end;
 
-function TVRMLShapeState.CreateTriangleOctree(
+function TVRMLShape.CreateTriangleOctree(
   const AMaxDepth, ALeafCapacity: integer;
   const ProgressTitle: string): TVRMLTriangleOctree;
 begin
@@ -438,7 +446,7 @@ begin
   except Result.Free; raise end;
 end;
 
-procedure TVRMLShapeState.SetSpatial(const Value: TVRMLShapeSpatialStructures);
+procedure TVRMLShape.SetSpatial(const Value: TVRMLShapeSpatialStructures);
 var
   Old, New: boolean;
 begin
@@ -465,7 +473,7 @@ begin
   end;
 end;
 
-procedure TVRMLShapeState.LocalGeometryChanged;
+procedure TVRMLShape.LocalGeometryChanged;
 begin
   { Remember to do FreeAndNil on octrees below.
     Although we will recreate octrees right after rebuilding,
@@ -485,7 +493,7 @@ begin
   end;
 end;
 
-function TVRMLShapeState.Transparent: boolean;
+function TVRMLShape.Transparent: boolean;
 var
   M: TNodeMaterial_2;
 begin
@@ -516,23 +524,23 @@ begin
     Result := State.LastNodes.Material.AllMaterialsTransparent;
 end;
 
-{ TVRMLShapeStatesList ------------------------------------------------------- }
+{ TVRMLShapeTree ------------------------------------------------------- }
 
-function TVRMLShapeStatesList.IndexOfGeometryNodeName(const GeometryNodeName: string): integer;
+function TVRMLShapeTree.IndexOfGeometryNodeName(const GeometryNodeName: string): integer;
 begin
  for result := 0 to Count-1 do
   if Items[result].GeometryNode.NodeName = GeometryNodeName then exit;
  result := -1;
 end;
 
-function TVRMLShapeStatesList.IndexOfShapeWithParentNamed(const ParentNodeName: string): integer;
+function TVRMLShapeTree.IndexOfShapeWithParentNamed(const ParentNodeName: string): integer;
 begin
  for result := 0 to Count-1 do
   if Items[result].GeometryNode.TryFindParentByName(ParentNodeName)<>nil then exit;
  result := -1;
 end;
 
-function TVRMLShapeStatesList.IndexOfBlenderMesh(
+function TVRMLShapeTree.IndexOfBlenderMesh(
   const BlenderMeshName: string): Integer;
 begin
   for Result := 0 to Count - 1 do

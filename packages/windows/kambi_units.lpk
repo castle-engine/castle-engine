@@ -161,12 +161,12 @@
         <UnitName Value="VRMLSceneWaypoints"/>
       </Item30>
       <Item31>
-        <Filename Value="..\..\3dmodels\vrmlshapestate.pas"/>
-        <UnitName Value="VRMLShapeState"/>
+        <Filename Value="..\..\3dmodels\vrmlshape.pas"/>
+        <UnitName Value="VRMLShape"/>
       </Item31>
       <Item32>
-        <Filename Value="..\..\3dmodels\vrmlshapestateoctree.pas"/>
-        <UnitName Value="VRMLShapeStateOctree"/>
+        <Filename Value="..\..\3dmodels\vrmlshapeoctree.pas"/>
+        <UnitName Value="VRMLShapeOctree"/>
       </Item32>
       <Item33>
         <Filename Value="..\..\3dmodels\vrmltriangleoctree.pas"/>

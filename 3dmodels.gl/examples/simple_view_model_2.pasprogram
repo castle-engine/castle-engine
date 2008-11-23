@@ -31,7 +31,7 @@
   - doing collision detection using OctreeCollisions, see MoveAllowed procedure
 
   2. Rendering with frustum culling
-  - scene is loaded with Optimization roSeparateShapeStates instead of roSceneAsAWhole
+  - scene is loaded with Optimization roSeparateShapes instead of roSceneAsAWhole
   - initializing Glw.Navigator.ProjectionMatrix (this is needed to get
     Glw.Navigator.Frustum)
   - using Glw.Navigator.Frustum and OctreeRendering to render the scene,
@@ -136,13 +136,13 @@ begin
     VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
 
     Scene := TVRMLGLScene.Create(Parameters[1],
-      {roSceneAsAWhole} roSeparateShapeStates);
+      {roSceneAsAWhole} roSeparateShapes);
 
     Writeln(Scene.Info(true, true, false));
 
     { Uncomment this to get some info about scene nodes:
-    for i := 0 to Scene.ShapeStates.Count-1 do
-      with Scene.ShapeStates[i] do
+    for i := 0 to Scene.Shapes.Count-1 do
+      with Scene.Shapes[i] do
       begin
        Writeln(Format('Shape name ''%10s'' (''%20s'') : LocalBBox = %50s, BBox = %50s',
          [GeometryNode.NodeName, GeometryNode.NodeTypeName,
@@ -152,7 +152,7 @@ begin
     { build octrees }
     Progress.UserInterface := ProgressConsoleInterface;
     Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
-    Scene.ShapeStateOctreeProgressTitle := 'Building ShapeState octree';
+    Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
     Scene.Spatial := [ssRendering, ssDynamicCollisions];
 
     Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);

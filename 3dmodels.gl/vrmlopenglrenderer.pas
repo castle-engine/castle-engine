@@ -92,21 +92,21 @@
 
     @item(
       potem wywoluj
-        RenderShapeStateLights(LightsRenderer, State)
-        RenderShapeState(Geometry, State)
+        RenderShapeLights(LightsRenderer, State)
+        RenderShape(Geometry, State)
       aby renderowac pary Geometry+State.
       Jak juz powiedzialem, kazda podawana teraz para musiala wystapic
       wczesniej w wywolaniu Prepare.
 
-      Alternatively instead of RenderShapeState you can call
-        RenderShapeStateBegin,
-        RenderShapeStateNoTransform,
-        RenderShapeStateEnd (always in this sequence,
-      always RenderShapeStateEnd in the "finally" clause, so that
-      after RenderShapeStateBegin there is always RenderShapeStateEnd
-      called). This is equivalent to RenderShapeState
+      Alternatively instead of RenderShape you can call
+        RenderShapeBegin,
+        RenderShapeNoTransform,
+        RenderShapeEnd (always in this sequence,
+      always RenderShapeEnd in the "finally" clause, so that
+      after RenderShapeBegin there is always RenderShapeEnd
+      called). This is equivalent to RenderShape
       (but sometimes it's better as it allows you to place
-      RenderShapeStateNoTransform on a separate display list, that can be more
+      RenderShapeNoTransform on a separate display list, that can be more
       shared (because it doesn't take some transformations into account)).
 
       Make sure that VRML2ActiveLights are properly initialized if you
@@ -866,7 +866,7 @@ type
     them), but GeometryNode and FogNode are a references somewhere to the scene
     (they will be supplied to TVRMLOpenGLRendererContextCache instance)
     and we don't own them. }
-  TShapeStateCache = record
+  TShapeCache = record
     Attributes: TVRMLRenderingAttributes;
     GeometryNode: TVRMLGeometryNode;
     State: TVRMLGraphTraverseState;
@@ -876,13 +876,13 @@ type
     GLList: TGLuint;
     References: Cardinal;
   end;
-  PShapeStateCache = ^TShapeStateCache;
+  PShapeCache = ^TShapeCache;
 
-  TDynArrayItem_3 = TShapeStateCache;
-  PDynArrayItem_3 = PShapeStateCache;
+  TDynArrayItem_3 = TShapeCache;
+  PDynArrayItem_3 = PShapeCache;
   {$define DYNARRAY_3_IS_STRUCT}
   {$I dynarray_3.inc}
-  TDynShapeStateCacheArray = class(TDynArray_3)
+  TDynShapeCacheArray = class(TDynArray_3)
   end;
 
   TRenderBeginEndCache = record
@@ -935,8 +935,8 @@ type
     Fonts: array[TVRMLFontFamily, boolean, boolean] of TGLOutlineFontCache;
     TextureImageCaches: TDynTextureImageCacheArray;
     TextureVideoCaches: TDynTextureVideoCacheArray;
-    ShapeStateCaches: TDynShapeStateCacheArray;
-    ShapeStateNoTransformCaches: TDynShapeStateCacheArray;
+    ShapeCaches: TDynShapeCacheArray;
+    ShapeNoTransformCaches: TDynShapeCacheArray;
     RenderBeginCaches: TDynRenderBeginEndCacheArray;
     RenderEndCaches: TDynRenderBeginEndCacheArray;
     GLSLProgramCaches: TDynGLSLProgramCacheArray;
@@ -995,14 +995,14 @@ type
 
     { These will be used by TVRMLGLScene.
 
-      Note that we have two versions of ShapeState_IncReference,
+      Note that we have two versions of Shape_IncReference,
       because if the list will already exist in the cache then we don't want to
       waste time on creating and immediately freeing unnecessary list.
-      you should call ShapeState_IncReference_Existing, and if @false
+      you should call Shape_IncReference_Existing, and if @false
       then you should build display list and call
-      ShapeState_IncReference_New. }
+      Shape_IncReference_New. }
 
-    function ShapeState_IncReference_Existing(
+    function Shape_IncReference_Existing(
       AAttributes: TVRMLRenderingAttributes;
       AGeometryNode: TVRMLGeometryNode;
       AState: TVRMLGraphTraverseState;
@@ -1010,7 +1010,7 @@ type
       const AFogDistanceScaling: Single;
       out AGLList: TGLuint): boolean;
 
-    procedure ShapeState_IncReference_New(
+    procedure Shape_IncReference_New(
       AAttributes: TVRMLRenderingAttributes;
       AGeometryNode: TVRMLGeometryNode;
       AState: TVRMLGraphTraverseState;
@@ -1018,10 +1018,10 @@ type
       const AFogDistanceScaling: Single;
       AGLList: TGLuint);
 
-    procedure ShapeState_DecReference(
+    procedure Shape_DecReference(
       const GLList: TGLuint);
 
-    function ShapeStateNoTransform_IncReference_Existing(
+    function ShapeNoTransform_IncReference_Existing(
       AAttributes: TVRMLRenderingAttributes;
       AGeometryNode: TVRMLGeometryNode;
       AState: TVRMLGraphTraverseState;
@@ -1029,7 +1029,7 @@ type
       const AFogDistanceScaling: Single;
       out AGLList: TGLuint): boolean;
 
-    procedure ShapeStateNoTransform_IncReference_New(
+    procedure ShapeNoTransform_IncReference_New(
       AAttributes: TVRMLRenderingAttributes;
       AGeometryNode: TVRMLGeometryNode;
       AState: TVRMLGraphTraverseState;
@@ -1037,7 +1037,7 @@ type
       const AFogDistanceScaling: Single;
       AGLList: TGLuint);
 
-    procedure ShapeStateNoTransform_DecReference(
+    procedure ShapeNoTransform_DecReference(
       const GLList: TGLuint);
 
     function RenderBegin_IncReference_Existing(
@@ -1312,17 +1312,17 @@ type
       const FogDistanceScaling: Single);
     procedure RenderEnd;
 
-    procedure RenderShapeStateLights(
+    procedure RenderShapeLights(
       LightsRenderer: TVRMLGLLightsCachingRenderer;
       State: TVRMLGraphTraverseState);
-    procedure RenderShapeStateBegin(Geometry: TVRMLGeometryNode;
+    procedure RenderShapeBegin(Geometry: TVRMLGeometryNode;
       State: TVRMLGraphTraverseState);
-    procedure RenderShapeStateNoTransform(Geometry: TVRMLGeometryNode;
+    procedure RenderShapeNoTransform(Geometry: TVRMLGeometryNode;
       State: TVRMLGraphTraverseState);
-    procedure RenderShapeStateEnd(Geometry: TVRMLGeometryNode;
+    procedure RenderShapeEnd(Geometry: TVRMLGeometryNode;
       State: TVRMLGraphTraverseState);
 
-    procedure RenderShapeState(Geometry: TVRMLGeometryNode;
+    procedure RenderShape(Geometry: TVRMLGeometryNode;
       State: TVRMLGraphTraverseState);
 
     { This checks Attributes (mainly Attributes.BumpMappingMaximum) and OpenGL
@@ -1365,7 +1365,7 @@ type
 
       If BumpMappingMethod is in bmMultiTexAll, then this simply sets internal variable.
       You have to actually render model (that is, call RenderBegin +
-      RenderShapeState...) to use new BumpMappingLightPosition.
+      RenderShape...) to use new BumpMappingLightPosition.
       If you stored rendering results in display lists, you have bad luck
       --- you have to rebuild them. Reason: to recalculate
       light direction in tangent space.  Which practically means that if you
@@ -1483,8 +1483,8 @@ begin
   inherited;
   TextureImageCaches := TDynTextureImageCacheArray.Create;
   TextureVideoCaches := TDynTextureVideoCacheArray.Create;
-  ShapeStateCaches := TDynShapeStateCacheArray.Create;
-  ShapeStateNoTransformCaches := TDynShapeStateCacheArray.Create;
+  ShapeCaches := TDynShapeCacheArray.Create;
+  ShapeNoTransformCaches := TDynShapeCacheArray.Create;
   RenderBeginCaches := TDynRenderBeginEndCacheArray.Create;
   RenderEndCaches := TDynRenderBeginEndCacheArray.Create;
   GLSLProgramCaches := TDynGLSLProgramCacheArray.Create;
@@ -1521,19 +1521,19 @@ begin
     FreeAndNil(TextureVideoCaches);
   end;
 
-  if ShapeStateCaches <> nil then
+  if ShapeCaches <> nil then
   begin
-    Assert(ShapeStateCaches.Count = 0, 'Some references to ShapeStates still exist' +
+    Assert(ShapeCaches.Count = 0, 'Some references to Shapes still exist' +
       ' when freeing TVRMLOpenGLRendererContextCache');
-    FreeAndNil(ShapeStateCaches);
+    FreeAndNil(ShapeCaches);
   end;
 
-  if ShapeStateNoTransformCaches <> nil then
+  if ShapeNoTransformCaches <> nil then
   begin
-    Assert(ShapeStateNoTransformCaches.Count = 0,
-      'Some references to ShapeStatesNoTransform still exist' +
+    Assert(ShapeNoTransformCaches.Count = 0,
+      'Some references to ShapesNoTransform still exist' +
       ' when freeing TVRMLOpenGLRendererContextCache');
-    FreeAndNil(ShapeStateNoTransformCaches);
+    FreeAndNil(ShapeNoTransformCaches);
   end;
 
   if RenderBeginCaches <> nil then
@@ -2093,7 +2093,7 @@ begin
     Result := FogDistanceScaling1 = FogDistanceScaling2;
 end;
 
-function TVRMLOpenGLRendererContextCache.ShapeState_IncReference_Existing(
+function TVRMLOpenGLRendererContextCache.Shape_IncReference_Existing(
   AAttributes: TVRMLRenderingAttributes;
   AGeometryNode: TVRMLGeometryNode;
   AState: TVRMLGraphTraverseState;
@@ -2102,11 +2102,11 @@ function TVRMLOpenGLRendererContextCache.ShapeState_IncReference_Existing(
   out AGLList: TGLuint): boolean;
 var
   I: Integer;
-  SSCache: PShapeStateCache;
+  SSCache: PShapeCache;
 begin
-  for I := 0 to ShapeStateCaches.High do
+  for I := 0 to ShapeCaches.High do
   begin
-    SSCache := ShapeStateCaches.Pointers[I];
+    SSCache := ShapeCaches.Pointers[I];
     if (SSCache^.Attributes.Equals(AAttributes)) and
        (SSCache^.GeometryNode = AGeometryNode) and
        (SSCache^.State.Equals(AState)) and
@@ -2116,7 +2116,7 @@ begin
     begin
       Inc(SSCache^.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('++ : ShapeState ', SSCache^.GLList, ' : ', SSCache^.References);
+      Writeln('++ : Shape ', SSCache^.GLList, ' : ', SSCache^.References);
       {$endif}
       AGLList := SSCache^.GLList;
       Exit(true);
@@ -2126,7 +2126,7 @@ begin
   Exit(false);
 end;
 
-procedure TVRMLOpenGLRendererContextCache.ShapeState_IncReference_New(
+procedure TVRMLOpenGLRendererContextCache.Shape_IncReference_New(
   AAttributes: TVRMLRenderingAttributes;
   AGeometryNode: TVRMLGeometryNode;
   AState: TVRMLGraphTraverseState;
@@ -2134,10 +2134,10 @@ procedure TVRMLOpenGLRendererContextCache.ShapeState_IncReference_New(
   const AFogDistanceScaling: Single;
   AGLList: TGLuint);
 var
-  SSCache: PShapeStateCache;
+  SSCache: PShapeCache;
 begin
-  ShapeStateCaches.IncLength;
-  SSCache := ShapeStateCaches.Pointers[ShapeStateCaches.High];
+  ShapeCaches.IncLength;
+  SSCache := ShapeCaches.Pointers[ShapeCaches.High];
   SSCache^.Attributes := AAttributes;
   SSCache^.GeometryNode := AGeometryNode;
   SSCache^.State := AState;
@@ -2147,42 +2147,42 @@ begin
   SSCache^.References := 1;
 
   {$ifdef DEBUG_VRML_RENDERER_CACHE}
-  Writeln('++ : ShapeState ', SSCache^.GLList, ' : ', 1);
+  Writeln('++ : Shape ', SSCache^.GLList, ' : ', 1);
   {$endif}
 end;
 
-procedure TVRMLOpenGLRendererContextCache.ShapeState_DecReference(
+procedure TVRMLOpenGLRendererContextCache.Shape_DecReference(
   const GLList: TGLuint);
 var
   I: Integer;
-  SSCache: PShapeStateCache;
+  SSCache: PShapeCache;
 begin
-  for I := 0 to ShapeStateCaches.High do
+  for I := 0 to ShapeCaches.High do
   begin
-    SSCache := ShapeStateCaches.Pointers[I];
+    SSCache := ShapeCaches.Pointers[I];
     if SSCache^.GLList = GLList then
     begin
       Dec(SSCache^.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('-- : ShapeState ', SSCache^.GLList, ' : ', SSCache^.References);
+      Writeln('-- : Shape ', SSCache^.GLList, ' : ', SSCache^.References);
       {$endif}
       if SSCache^.References = 0 then
       begin
         FreeAndNil(SSCache^.Attributes);
         FreeAndNil(SSCache^.State);
         glFreeDisplayList(SSCache^.GLList);
-        ShapeStateCaches.Delete(I, 1);
+        ShapeCaches.Delete(I, 1);
       end;
       Exit;
     end;
   end;
 
   raise EInternalError.CreateFmt(
-    'TVRMLOpenGLRendererContextCache.ShapeState_DecReference: no reference ' +
+    'TVRMLOpenGLRendererContextCache.Shape_DecReference: no reference ' +
     'found for display list %d', [GLList]);
 end;
 
-function TVRMLOpenGLRendererContextCache.ShapeStateNoTransform_IncReference_Existing(
+function TVRMLOpenGLRendererContextCache.ShapeNoTransform_IncReference_Existing(
   AAttributes: TVRMLRenderingAttributes;
   AGeometryNode: TVRMLGeometryNode;
   AState: TVRMLGraphTraverseState;
@@ -2191,11 +2191,11 @@ function TVRMLOpenGLRendererContextCache.ShapeStateNoTransform_IncReference_Exis
   out AGLList: TGLuint): boolean;
 var
   I: Integer;
-  SSCache: PShapeStateCache;
+  SSCache: PShapeCache;
 begin
-  for I := 0 to ShapeStateNoTransformCaches.High do
+  for I := 0 to ShapeNoTransformCaches.High do
   begin
-    SSCache := ShapeStateNoTransformCaches.Pointers[I];
+    SSCache := ShapeNoTransformCaches.Pointers[I];
     if (SSCache^.Attributes.Equals(AAttributes)) and
        (SSCache^.GeometryNode = AGeometryNode) and
        (SSCache^.State.EqualsNoTransform(AState)) and
@@ -2205,7 +2205,7 @@ begin
     begin
       Inc(SSCache^.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('++ : ShapeState NoTransform ', SSCache^.GLList, ' : ',
+      Writeln('++ : Shape NoTransform ', SSCache^.GLList, ' : ',
         SSCache^.References);
       {$endif}
       AGLList := SSCache^.GLList;
@@ -2216,7 +2216,7 @@ begin
   Exit(false);
 end;
 
-procedure TVRMLOpenGLRendererContextCache.ShapeStateNoTransform_IncReference_New(
+procedure TVRMLOpenGLRendererContextCache.ShapeNoTransform_IncReference_New(
   AAttributes: TVRMLRenderingAttributes;
   AGeometryNode: TVRMLGeometryNode;
   AState: TVRMLGraphTraverseState;
@@ -2224,11 +2224,11 @@ procedure TVRMLOpenGLRendererContextCache.ShapeStateNoTransform_IncReference_New
   const AFogDistanceScaling: Single;
   AGLList: TGLuint);
 var
-  SSCache: PShapeStateCache;
+  SSCache: PShapeCache;
 begin
-  ShapeStateNoTransformCaches.IncLength;
-  SSCache := ShapeStateNoTransformCaches.Pointers[
-    ShapeStateNoTransformCaches.High];
+  ShapeNoTransformCaches.IncLength;
+  SSCache := ShapeNoTransformCaches.Pointers[
+    ShapeNoTransformCaches.High];
   SSCache^.Attributes := AAttributes;
   SSCache^.GeometryNode := AGeometryNode;
   SSCache^.State := AState;
@@ -2238,24 +2238,24 @@ begin
   SSCache^.References := 1;
 
   {$ifdef DEBUG_VRML_RENDERER_CACHE}
-  Writeln('++ : ShapeState NoTransform ', SSCache^.GLList, ' : ', 1);
+  Writeln('++ : Shape NoTransform ', SSCache^.GLList, ' : ', 1);
   {$endif}
 end;
 
-procedure TVRMLOpenGLRendererContextCache.ShapeStateNoTransform_DecReference(
+procedure TVRMLOpenGLRendererContextCache.ShapeNoTransform_DecReference(
   const GLList: TGLuint);
 var
   I: Integer;
-  SSCache: PShapeStateCache;
+  SSCache: PShapeCache;
 begin
-  for I := 0 to ShapeStateNoTransformCaches.High do
+  for I := 0 to ShapeNoTransformCaches.High do
   begin
-    SSCache := ShapeStateNoTransformCaches.Pointers[I];
+    SSCache := ShapeNoTransformCaches.Pointers[I];
     if SSCache^.GLList = GLList then
     begin
       Dec(SSCache^.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('-- : ShapeState NoTransform ', SSCache^.GLList, ' : ',
+      Writeln('-- : Shape NoTransform ', SSCache^.GLList, ' : ',
         SSCache^.References);
       {$endif}
       if SSCache^.References = 0 then
@@ -2263,14 +2263,14 @@ begin
         FreeAndNil(SSCache^.Attributes);
         FreeAndNil(SSCache^.State);
         glFreeDisplayList(SSCache^.GLList);
-        ShapeStateNoTransformCaches.Delete(I, 1);
+        ShapeNoTransformCaches.Delete(I, 1);
       end;
       Exit;
     end;
   end;
 
   raise EInternalError.CreateFmt(
-    'TVRMLOpenGLRendererContextCache.ShapeStateNoTransform_DecReference: ' +
+    'TVRMLOpenGLRendererContextCache.ShapeNoTransform_DecReference: ' +
     'no reference ' +
     'found for display list %d', [GLList]);
 end;
@@ -3575,7 +3575,7 @@ begin
 end;
 {$endif USE_VRML_NODES_TRIANGULATION}
 
-procedure TVRMLOpenGLRenderer.RenderShapeStateLights(
+procedure TVRMLOpenGLRenderer.RenderShapeLights(
   LightsRenderer: TVRMLGLLightsCachingRenderer;
   State: TVRMLGraphTraverseState);
 begin
@@ -3583,7 +3583,7 @@ begin
 
   { Render lights in given State, if Attributes.UseLights.
 
-    This is done in RenderShapeStateLights, before RenderShapeStateBegin,
+    This is done in RenderShapeLights, before RenderShapeBegin,
     in particular before loading State.Transform --- this is good,
     as the lights positions/directions are in world coordinates. }
 
@@ -3596,7 +3596,7 @@ begin
       Attributes.ColorModulatorSingle);}
 end;
 
-procedure TVRMLOpenGLRenderer.RenderShapeStateBegin(
+procedure TVRMLOpenGLRenderer.RenderShapeBegin(
   Geometry: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState);
 var
@@ -3646,7 +3646,7 @@ begin
     glMultMatrix(State.Transform);
 end;
 
-procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
+procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(
   Geometry: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState);
 
@@ -3970,7 +3970,7 @@ begin
   end;
 end;
 
-procedure TVRMLOpenGLRenderer.RenderShapeStateEnd(
+procedure TVRMLOpenGLRenderer.RenderShapeEnd(
   Geometry: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState);
 begin
@@ -3988,15 +3988,15 @@ begin
   { at the end, we're in modelview mode }
 end;
 
-procedure TVRMLOpenGLRenderer.RenderShapeState(
+procedure TVRMLOpenGLRenderer.RenderShape(
   Geometry: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState);
 begin
-  RenderShapeStateBegin(Geometry, State);
+  RenderShapeBegin(Geometry, State);
   try
-    RenderShapeStateNoTransform(Geometry, State);
+    RenderShapeNoTransform(Geometry, State);
   finally
-    RenderShapeStateEnd(Geometry, State);
+    RenderShapeEnd(Geometry, State);
   end;
 end;
 

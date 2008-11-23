@@ -523,7 +523,7 @@ type
       Also this improves caching in some cases, because sometimes
       we assume that nodes are equal only when their references are equal
       (e.g. TVRMLGraphTraverseState.Equals does this, and this is used
-      by ShapeState caching in TVRMLOpenGLRendererContextCache). }
+      by Shape caching in TVRMLOpenGLRendererContextCache). }
     constructor Create; overload;
 
     destructor Destroy; override;
@@ -540,7 +540,7 @@ type
 
     { This is like @link(Equals) but it ignores some fields that are
       ignored when rendering using
-      TVRMLOpenGLRenderer.RenderShapeStateNoTransform.
+      TVRMLOpenGLRenderer.RenderShapeNoTransform.
       For example, it ignores Transform, AverageScaleTransform, InvertedTransform. }
     function EqualsNoTransform(SecondValue: TVRMLGraphTraverseState): boolean;
 
@@ -3656,7 +3656,7 @@ begin
     PointingDeviceSensors,
     ActiveLights, Transform, AverageScaleTransform, InvertedTransform,
     TextureTransform are ignored by
-    TVRMLOpenGLRenderer.RenderShapeStateNoTransform }
+    TVRMLOpenGLRenderer.RenderShapeNoTransform }
 
   Result := (ParentShape = SecondValue.ParentShape);
 

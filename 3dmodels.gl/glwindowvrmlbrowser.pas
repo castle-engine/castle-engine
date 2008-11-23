@@ -216,11 +216,11 @@ begin
   Navigator.Free;
   Navigator := nil;
 
-  FScene := TVRMLGLScene.Create(ARootNode, OwnsRootNode, roSeparateShapeStates);
+  FScene := TVRMLGLScene.Create(ARootNode, OwnsRootNode, roSeparateShapes);
 
   { initialize octrees titles }
   Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
-  Scene.ShapeStateOctreeProgressTitle := 'Building ShapeState octree';
+  Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
 
   { init Navigator }
   Navigator := Scene.CreateNavigator(CameraRadius);

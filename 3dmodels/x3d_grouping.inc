@@ -304,7 +304,7 @@ begin
     UpdateVRML2ActiveLights take this ParentGroup and add light everywhere.
     But that was 1. even slower, since it must traverse ParentGroup once again
     for each directional light, and for each shape within this ParentGroup,
-    it must find all it's occurences inside ShapeStates, and add light there
+    it must find all it's occurences inside Shapes, and add light there
     2. it fails ugly in case of DEF / USE of shapes.
 
     See kambi_vrml_test_suite/vrml_2/directional_light_scope.wrl test. Imagine

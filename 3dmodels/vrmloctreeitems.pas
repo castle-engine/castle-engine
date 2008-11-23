@@ -89,7 +89,7 @@ type
           and such expect parameters in the same coord space.
 
           This may be local coord space of this shape (this is used
-          by TVRMLShapeState.OctreeTriangles) or world coord space
+          by TVRMLShape.OctreeTriangles) or world coord space
           (this is used by TVRMLScene.OctreeTriangles).)
 
         @item(World is the geometry of Local transformed to be in world
@@ -252,8 +252,8 @@ type
 
     In a simple case, this is an ancestor of TVRMLTriangleOctree,
     that is just an octree storing TOctreeItem. But it's also an
-    ancestor of TVRMLShapeState, since each shapestate has also a
-    triangle octree. This way, TVRMLShapeState can calculate collisions
+    ancestor of TVRMLShape, since each shape has also a
+    triangle octree. This way, TVRMLShape can calculate collisions
     with TOctreeItem, even though it doesn't directly store TOctreeItem items. }
   TVRMLItemsOctree = class(TOctree)
   private

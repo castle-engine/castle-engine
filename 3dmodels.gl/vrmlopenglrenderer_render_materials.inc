@@ -84,7 +84,7 @@ begin
     Render_Material_ForcedLightDisable := false;
   end;
 
-  { Other RenderShapeState calls start with
+  { Other RenderShape calls start with
     Render_Material_LastFogImmune = false, so they expect that the fog
     is already enabled (if FogEnabled). Therefore, we have to reenable
     here the fog if the last material had fogImmune. }

@@ -25,23 +25,23 @@ unit VRMLGLScene;
 {$I openglmac.inc}
 
 { With this you can fine-tune performance of RenderFrustum when
-  ShapeStateOctree is *not* available.
+  TVRMLGLScene.OctreeRendering is *not* available.
 
-  RenderFrustum tests each ShapeState for collision with given Frustum
-  before rendering this ShapeState. It can use ShapeState.BoundingBox
+  RenderFrustum tests each Shape for collision with given Frustum
+  before rendering this Shape. It can use Shape.BoundingBox
   (if RENDER_FRUSTUM_USES_BOUNDING_BOX is defined)
-  or ShapeState.BoundingSphere (if RENDER_FRUSTUM_USES_BOUNDING_SPHERE
-  is defined) or both, i.e. first test versus ShapeState.BoundingSphere
-  and then, if it succeeds, test also versus ShapeState.BoundingBox
+  or Shape.BoundingSphere (if RENDER_FRUSTUM_USES_BOUNDING_SPHERE
+  is defined) or both, i.e. first test versus Shape.BoundingSphere
+  and then, if it succeeds, test also versus Shape.BoundingBox
   (if RENDER_FRUSTUM_USES_BOTH).
 
-  ShapeState.BoundingBox is (in a current implementation) always
-  a better approximation of shape geometry than ShapeState.BoundingSphere.
-  So advantage of using ShapeState.BoundingBox is that more ShapeStates
-  may be eliminated. Advantage of using ShapeState.BoundingSphere
+  Shape.BoundingBox is (in a current implementation) always
+  a better approximation of shape geometry than Shape.BoundingSphere.
+  So advantage of using Shape.BoundingBox is that more Shapes
+  may be eliminated. Advantage of using Shape.BoundingSphere
   is that checking for collision Frustum<->Sphere is much faster,
   so you don't waste so much time on testing for collisions between
-  frustum and ShapeState.
+  frustum and Shape.
 
   My tests show that in practice performance is the best (but differences
   in speed are not large) when RENDER_FRUSTUM_USES_BOUNDING_SPHERE is used.
@@ -53,7 +53,7 @@ unit VRMLGLScene;
 { $define RENDER_FRUSTUM_USES_BOTH}
 
 { With this you can fine-tune performance of RenderFrustum when
-  ShapeStateOctree is available.
+  ShapeOctree is available.
   Exactly one of symbols RENDER_FRUSTUM_OCTREE_xxx below must be defined.
   See implementation of @link(TVRMLGLScene.RenderFrustumOctree)
   to see what each symbol means.
@@ -69,7 +69,7 @@ interface
 uses
   SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLScene, VRMLOpenGLRenderer, GL, GLU, GLExt, BackgroundGL, KambiGLUtils,
-  VRMLShapeStateOctree, VRMLGLHeadLight, VRMLRendererOptimization,
+  VRMLShapeOctree, VRMLGLHeadLight, VRMLRendererOptimization,
   ShadowVolumes, Navigation, VRMLFields, VRMLLightSetGL;
 
 {$define read_interface}
@@ -109,8 +109,8 @@ type
 const
   roNone = VRMLRendererOptimization.roNone;
   roSceneAsAWhole = VRMLRendererOptimization.roSceneAsAWhole;
-  roSeparateShapeStates = VRMLRendererOptimization.roSeparateShapeStates;
-  roSeparateShapeStatesNoTransform = VRMLRendererOptimization.roSeparateShapeStatesNoTransform;
+  roSeparateShapes = VRMLRendererOptimization.roSeparateShapes;
+  roSeparateShapesNoTransform = VRMLRendererOptimization.roSeparateShapesNoTransform;
 
   DefaultWireframeWidth = 3.0;
   DefaultWireframeColor: TVector3Single = (0, 0, 0);
@@ -118,13 +118,13 @@ const
 type
   { Internal for TVRMLGLScene
     @exclude }
-  TRenderShapeState = procedure (
+  TRenderShape = procedure (
     LightsRenderer: TVRMLGLLightsCachingRenderer;
-    ShapeStateNum: Integer) of object;
+    ShapeNum: Integer) of object;
   { @exclude }
   TObjectProcedure = procedure of object;
 
-  TTestShapeStateVisibility = function(ShapeStateNum: Integer): boolean
+  TTestShapeVisibility = function(ShapeNum: Integer): boolean
     of object;
 
   TVRMLGLScenesList = class;
@@ -251,7 +251,7 @@ type
 
     { Correctly render partially transparent objects.
 
-      More precisely: if this is @true, all shapestates with
+      More precisely: if this is @true, all shapes with
       transparent materials or textures with non-trivial (not only yes/no)
       alpha channel will be rendered using OpenGL blending
       (with depth test off, like they should for OpenGL).
@@ -381,16 +381,16 @@ type
     FOptimization: TGLRendererOptimization;
     Renderer: TVRMLOpenGLRenderer;
 
-    { This simply renders ShapeStates[ShapeStateNum], by calling
-      Renderer.RenderShapeState. Remember to always use
-      Renderer.RenderShapeStateLight before actually using this to render! }
-    procedure RenderShapeState_NoLight(ShapeStateNum: Integer);
+    { This simply renders Shapes[ShapeNum], by calling
+      Renderer.RenderShape. Remember to always use
+      Renderer.RenderShapeLight before actually using this to render! }
+    procedure RenderShape_NoLight(ShapeNum: Integer);
 
-    { This renders ShapeStates[ShapeStateNum], by calling
-      Renderer.RenderShapeStateLight and Renderer.RenderShapeState. }
-    procedure RenderShapeState_WithLight(
+    { This renders Shapes[ShapeNum], by calling
+      Renderer.RenderShapeLight and Renderer.RenderShape. }
+    procedure RenderShape_WithLight(
       LightsRenderer: TVRMLGLLightsCachingRenderer;
-      ShapeStateNum: Integer);
+      ShapeNum: Integer);
 
     procedure RenderBeginSimple;
     procedure RenderEndSimple;
@@ -398,16 +398,16 @@ type
     { Render everything, without using display lists.
 
       Calls Renderer.RenderBegin.
-      Then on all potentially visible ShapeStates[] calls RenderShapeStateProc.
-      "Potentially visible" is decided by TestShapeStateVisibility
-      (shapestate is visible if TestShapeStateVisibility is @nil or returns
-      @true for this shapestate) and TransparentGroup must include
-      given shapestate.
+      Then on all potentially visible Shapes[] calls RenderShapeProc.
+      "Potentially visible" is decided by TestShapeVisibility
+      (shape is visible if TestShapeVisibility is @nil or returns
+      @true for this shape) and TransparentGroup must include
+      given shape.
       At the end calls Renderer.RenderEnd.
 
       Additionally this implements blending, looking at Attributes.Blending*,
       setting appropriate OpenGL state and rendering partially transparent
-      shapestates before all opaque objects.
+      shape before all opaque objects.
 
       De facto this doesn't directly call Renderer.RenderBegin and Renderer.RenderEnd,
       it only calls RenderBeginProc and RenderEndProc. These @bold(have) to
@@ -417,20 +417,20 @@ type
 
       You may pass RenderBeginProc, RenderEndProc = @nil, then
       you have to make sure yourself that you call them around
-      RenderShapeStatesNoDisplayList
+      RenderShapesNoDisplayList
       (this is needed because roSceneAsAWhole needs to honour
       RenderBeginEndToDisplayList).
 
       This procedure never creates or uses any display list.
       You can freely put it's contents inside display list
-      (assuming that RenderShapeStateProc, RenderBeginProc and RenderEndProc
+      (assuming that RenderShapeProc, RenderBeginProc and RenderEndProc
       are something that can be part of display list).
 
-      This sets FLastRender_RenderedShapeStatesCount and
-      FLastRender_AllShapeStatesCount. }
-    procedure RenderShapeStatesNoDisplayList(
-      TestShapeStateVisibility: TTestShapeStateVisibility;
-      RenderShapeStateProc: TRenderShapeState;
+      This sets FLastRender_RenderedShapesCount and
+      FLastRender_AllShapesCount. }
+    procedure RenderShapesNoDisplayList(
+      TestShapeVisibility: TTestShapeVisibility;
+      RenderShapeProc: TRenderShape;
       RenderBeginProc, RenderEndProc: TObjectProcedure;
       TransparentGroup: TTransparentGroup;
       LightRenderEvent: TVRMLLightRenderEvent);
@@ -448,8 +448,8 @@ type
       Other things, like Background, don't have to be destroyed in this case. }
     procedure CloseGLRenderer;
 
-    FLastRender_RenderedShapeStatesCount: Cardinal;
-    FLastRender_AllShapeStatesCount: Cardinal;
+    FLastRender_RenderedShapesCount: Cardinal;
+    FLastRender_AllShapesCount: Cardinal;
 
     FUsingProvidedRenderer: boolean;
 
@@ -473,11 +473,11 @@ type
       whether we have Mesa. }
     function RenderBeginEndToDisplayList: boolean;
 
-    { UseBlending is used by RenderShapeStatesNoDisplayList to decide
-      is Blending used for given shapestate. In every optimization
+    { UseBlending is used by RenderShapesNoDisplayList to decide
+      is Blending used for given shape. In every optimization
       method, you must make sure that you called
-      CalculateUseBlending() on every shapestate index before
-      using RenderShapeStatesNoDisplayList.
+      CalculateUseBlending() on every shape index before
+      using RenderShapesNoDisplayList.
 
       Note that CalculateUseBlending checks
       Renderer.Cache.PreparedTextureAlphaChannelType,
@@ -516,7 +516,7 @@ type
     { Private things only for RenderFrustum ---------------------- }
 
     RenderFrustum_Frustum: PFrustum;
-    function RenderFrustum_TestShapeState(ShapeStateNum: Integer): boolean;
+    function RenderFrustum_TestShape(ShapeNum: Integer): boolean;
 
     { Private things only for RenderFrustumOctree ---------------------- }
 
@@ -528,11 +528,11 @@ type
     RenderFrustumOctree_Visible: TDynBooleanArray;
     RenderFrustumOctree_Frustum: PFrustum;
     procedure RenderFrustumOctree_EnumerateOctreeItem(
-      ShapeStateNum: Integer; CollidesForSure: boolean);
-    function RenderFrustumOctree_TestShapeState(ShapeStateNum: Integer): boolean;
+      ShapeNum: Integer; CollidesForSure: boolean);
+    function RenderFrustumOctree_TestShape(ShapeNum: Integer): boolean;
     procedure RenderFrustumOctree(const Frustum: TFrustum;
       TransparentGroup: TTransparentGroup;
-      Octree: TVRMLShapeStateOctree;
+      Octree: TVRMLShapeOctree;
       LightRenderEvent: TVRMLLightRenderEvent);
 
     { ------------------------------------------------------------
@@ -547,20 +547,20 @@ type
       Optimization = roSceneAsAWhole and
       SAAW_DisplayList[TransparentGroup] = 0.
 
-      This calls RenderShapeStatesNoDisplayList so this sets
-      FLastRender_RenderedShapeStatesCount and
-      FLastRender_AllShapeStatesCount. }
+      This calls RenderShapesNoDisplayList so this sets
+      FLastRender_RenderedShapesCount and
+      FLastRender_AllShapesCount. }
     procedure SAAW_Prepare(TransparentGroup: TTransparentGroup);
 
     procedure SAAW_Render(TransparentGroup: TTransparentGroup);
 
     { ------------------------------------------------------------
       Private things used only when Optimization is
-      roSeparateShapeStates or roSeparateShapeStatesNoTransform.
+      roSeparateShapes or roSeparateShapesNoTransform.
       Prefixed with SSSX, for clarity. }
 
     { <> nil if and only if Optimization is not
-      roSeparateShapeStates or roSeparateShapeStatesNoTransform.
+      roSeparateShapes or roSeparateShapesNoTransform.
       Every item is 0 if it is not initialized. }
     SSSX_DisplayLists: TDynGLuintArray;
 
@@ -578,45 +578,45 @@ type
 
     { ------------------------------------------------------------
       Private things used only when Optimization is
-      roSeparateShapeStates. Prefixed with SSS, for clarity. }
+      roSeparateShapes. Prefixed with SSS, for clarity. }
 
-    { Use this only when Optimization = roSeparateShapeStates.
-      It can be passed as RenderShapeStateProc.
+    { Use this only when Optimization = roSeparateShapes.
+      It can be passed as RenderShapeProc.
 
-      This renders SSSX_DisplayLists.Items[ShapeStateNum]
+      This renders SSSX_DisplayLists.Items[ShapeNum]
       display list (creating it if necessary). }
-    procedure SSS_RenderShapeState(
+    procedure SSS_RenderShape(
       LightsRenderer: TVRMLGLLightsCachingRenderer;
-      ShapeStateNum: Integer);
+      ShapeNum: Integer);
 
-    { Call this only when Optimization = roSeparateShapeStates and
-      SSSX_DisplayLists.Items[ShapeStateNum] = 0.
+    { Call this only when Optimization = roSeparateShapes and
+      SSSX_DisplayLists.Items[ShapeNum] = 0.
 
-      ShapeState must be prepated earlier (by
-      Renderer.Prepare(ShapeStates[ShapeStateNum].State, this is done
+      Shape must be prepated earlier (by
+      Renderer.Prepare(Shapes[ShapeNum].State, this is done
       right now by PrepareAndCalculateUseBlendingForAll).
 
-      Then creates display list SSSX_DisplayLists.Items[ShapeStateNum]
-      and initializes it with contents of RenderShapeState_NoLight(ShapeStateNum).
+      Then creates display list SSSX_DisplayLists.Items[ShapeNum]
+      and initializes it with contents of RenderShape_NoLight(ShapeNum).
       Mode GL_COMPILE is passed to glNewList, so it only creates
       given display list.
 
       This is somehow equivalent to SAAW_Prepare,
-      but it operates only on a single ShapeState.
+      but it operates only on a single Shape.
 
-      Note that SSS_RenderShapeState simply calls
-      SSS_PrepareShapeState if display list has to be created.
+      Note that SSS_RenderShape simply calls
+      SSS_PrepareShape if display list has to be created.
       Then it renders the list. }
-    procedure SSS_PrepareShapeState(ShapeStateNum: Integer);
+    procedure SSS_PrepareShape(ShapeNum: Integer);
 
     { ------------------------------------------------------------
       Private things used only when Optimization is
-      roSeparateShapeStatesNoTransform. Prefixed with SSSNT, for clarity. }
+      roSeparateShapesNoTransform. Prefixed with SSSNT, for clarity. }
 
-    procedure SSSNT_RenderShapeState(
+    procedure SSSNT_RenderShape(
       LightsRenderer: TVRMLGLLightsCachingRenderer;
-      ShapeStateNum: Integer);
-    procedure SSSNT_PrepareShapeState(ShapeStateNum: Integer);
+      ShapeNum: Integer);
+    procedure SSSNT_PrepareShape(ShapeNum: Integer);
 
     { shadow things ---------------------------------------------------------- }
 
@@ -747,19 +747,19 @@ type
         @item RenderBegin
         @item(
 @longcode(#
-  for S := each item of ShapeStates list,
-    if (TestShapeStateVisibility is not assigned) or
-      (TestShapeStateVisibility returns true for given ShapeState) then
+  for S := each item of Shapes list,
+    if (TestShapeVisibility is not assigned) or
+      (TestShapeVisibility returns true for given Shape) then
     call Render(S.GeometryNode, S.State)
 #))
         @item RenderEnd
       )
 
-      If Optimization = roSceneAsAWhole, TestShapeStateVisibility
+      If Optimization = roSceneAsAWhole, TestShapeVisibility
       is ignored (because then rendering call almost always does not
-      have such detailed control over which shapestates are actually
-      rendered). So generally you should think of TestShapeStateVisibility
-      as a way to optimize rendering, by quickly eliminating whole shapestates
+      have such detailed control over which shape are actually
+      rendered). So generally you should think of TestShapeVisibility
+      as a way to optimize rendering, by quickly eliminating whole shapes
       that you know are not visible (e.g. you know that their BoundingBox
       is outside current camera frustum).
 
@@ -823,26 +823,26 @@ type
           renders nothing.
         ))
     }
-    procedure Render(TestShapeStateVisibility: TTestShapeStateVisibility;
+    procedure Render(TestShapeVisibility: TTestShapeVisibility;
       TransparentGroup: TTransparentGroup;
       LightRenderEvent: TVRMLLightRenderEvent = nil);
 
-    { This renders the scene eliminating ShapeStates that are entirely
+    { This renders the scene eliminating Shapes that are entirely
       not within Frustum. It calls @link(Render), passing appropriate
-      TestShapeStateVisibility.
+      TestShapeVisibility.
 
       In other words, this does so-called "frustum culling".
 
       If OctreeRendering is initialized (so be sure to include
       okRendering in @link(Octrees)), this octree will be used to quickly
-      find visible ShapeState. Otherwise, we will just enumerate all
-      ShapeStates (which may be slower if you really have a lot of ShapeStates).
+      find visible Shape. Otherwise, we will just enumerate all
+      Shapes (which may be slower if you really have a lot of Shapes).
 
       Note that if Optimization = roSceneAsAWhole this
       doesn't use Octree, but simply calls Render(nil).
       That's because when Optimization = roSceneAsAWhole
       Render always renders the whole scene,
-      ignores TestShapeStateVisibility function,
+      ignores TestShapeVisibility function,
       so it's useless (and would waste some time)
       to analyze the scene with Octree. }
     procedure RenderFrustum(const Frustum: TFrustum;
@@ -851,25 +851,25 @@ type
 
     { LastRender_ properties provide you read-only statistics
       about what happened during last render. For now you
-      can see how many ShapeStates were rendered (i.e. send to OpenGL
-      pipeline) versus all ShapeStates that were available
-      (this is simply copied from ShapeStates.Count).
+      can see how many Shapes were rendered (i.e. send to OpenGL
+      pipeline) versus all Shapes that were available
+      (this is simply copied from Shapes.Count).
 
       This way you can see how effective was frustum culling
       in @link(RenderFrustum)
-      or how effective was your function TestShapeStateVisibility
+      or how effective was your function TestShapeVisibility
       (if you used directly @link(Render)). "Effective" in the meaning
-      "effective at eliminating invisible ShapeStates from rendering
+      "effective at eliminating invisible Shapes from rendering
       pipeline".
 
       These are initially equal to zeros.
       Then they are updated each time you called
       @link(RenderFrustum) or @link(Render). }
-    property LastRender_RenderedShapeStatesCount: Cardinal
-      read FLastRender_RenderedShapeStatesCount;
+    property LastRender_RenderedShapesCount: Cardinal
+      read FLastRender_RenderedShapesCount;
 
-    property LastRender_AllShapeStatesCount: Cardinal
-      read FLastRender_AllShapeStatesCount;
+    property LastRender_AllShapesCount: Cardinal
+      read FLastRender_AllShapesCount;
 
     { Turn off lights that are not supposed to light in the shadow.
       This simply turns LightOn to @false if the light has
@@ -903,7 +903,7 @@ type
       read FOptimization write SetOptimization;
 
     procedure ChangedAll; override;
-    procedure ChangedShapeStateFields(ShapeStateNum: integer;
+    procedure ChangedShapeFields(ShapeNum: integer;
       const TransformOnly, TextureImageChanged: boolean); override;
 
     { Render shadow volume (sides and caps) of this scene, for shadow volume
@@ -1271,7 +1271,7 @@ type
 
 implementation
 
-uses VRMLErrors, GLVersionUnit, GLImages, VRMLShapeState, Images, KambiLog,
+uses VRMLErrors, GLVersionUnit, GLImages, VRMLShape, Images, KambiLog,
   Object3dAsVRML, Math, RaysWindow;
 
 {$define read_implementation}
@@ -1470,16 +1470,16 @@ end;
 procedure TVRMLGLScene.OptimizationCreate;
 begin
   case Optimization of
-    roSeparateShapeStates, roSeparateShapeStatesNoTransform:
+    roSeparateShapes, roSeparateShapesNoTransform:
       begin
         SSSX_DisplayLists := TDynGLuintArray.Create;
         { When this is called from constructor, it's before
-          inherited constructor and ChangedAll, so ShapeStates
+          inherited constructor and ChangedAll, so Shapes
           are not initialized yet. So don't set Count yet
           (will be set later in ChangedAll). }
-        if ShapeStates <> nil then
+        if Shapes <> nil then
         begin
-          SSSX_DisplayLists.Count := ShapeStates.Count;
+          SSSX_DisplayLists.Count := Shapes.Count;
           SSSX_DisplayLists.SetAll(0);
         end;
       end;
@@ -1500,37 +1500,37 @@ procedure TVRMLGLScene.CloseGLRenderer;
   W tym momencie sprowadza sie to do tego ze trzeba sprawdzac czy
   Renderer <> nil. }
 var
-  ShapeStateNum: Integer;
+  ShapeNum: Integer;
   TG: TTransparentGroup;
 begin
   case Optimization of
     roSceneAsAWhole:
       for TG := Low(TG) to High(TG) do
         glFreeDisplayList(SAAW_DisplayList[TG]);
-    roSeparateShapeStates, roSeparateShapeStatesNoTransform:
+    roSeparateShapes, roSeparateShapesNoTransform:
       begin
         { Because CloseGLRenderer may be called after scene has changed
-          and after "inherited ChangedAll" changed ShapeStates.Count to
+          and after "inherited ChangedAll" changed Shapes.Count to
           reflect this change but before our ChangedAll changed
           SSSX_DisplayLists.Length (after all, CloseGLRenderer must be
           called before changing SSSX_DisplayLists.Length, since CloseGLRenderer
           must finalize what was left) ... so, I can't assume here that
-          ShapeStates.Count = SSSX_DisplayLists.Count (like I do in many
+          Shapes.Count = SSSX_DisplayLists.Count (like I do in many
           other places in this unit). So below I must iterate to
-          "SSSX_DisplayLists.Count - 1", *not* to "ShapeStates.Count - 1". }
+          "SSSX_DisplayLists.Count - 1", *not* to "Shapes.Count - 1". }
         if Renderer <> nil then
         begin
-          for ShapeStateNum := 0 to SSSX_DisplayLists.Count - 1 do
-            if SSSX_DisplayLists.Items[ShapeStateNum] <> 0 then
+          for ShapeNum := 0 to SSSX_DisplayLists.Count - 1 do
+            if SSSX_DisplayLists.Items[ShapeNum] <> 0 then
             begin
 
-              if Optimization = roSeparateShapeStates then
-                Renderer.Cache.ShapeState_DecReference(
-                  SSSX_DisplayLists.Items[ShapeStateNum]) else
-                Renderer.Cache.ShapeStateNoTransform_DecReference(
-                  SSSX_DisplayLists.Items[ShapeStateNum]);
+              if Optimization = roSeparateShapes then
+                Renderer.Cache.Shape_DecReference(
+                  SSSX_DisplayLists.Items[ShapeNum]) else
+                Renderer.Cache.ShapeNoTransform_DecReference(
+                  SSSX_DisplayLists.Items[ShapeNum]);
 
-              SSSX_DisplayLists.Items[ShapeStateNum] := 0;
+              SSSX_DisplayLists.Items[ShapeNum] := 0;
             end;
 
           if SSSX_RenderBeginDisplayList <> 0 then
@@ -1562,22 +1562,22 @@ begin
   FBackgroundInvalidate;
 end;
 
-procedure TVRMLGLScene.RenderShapeState_NoLight(ShapeStateNum: Integer);
+procedure TVRMLGLScene.RenderShape_NoLight(ShapeNum: Integer);
 begin
-  Renderer.RenderShapeState(
-    ShapeStates[ShapeStateNum].GeometryNode,
-    ShapeStates[ShapeStateNum].State);
+  Renderer.RenderShape(
+    Shapes[ShapeNum].GeometryNode,
+    Shapes[ShapeNum].State);
 end;
 
-procedure TVRMLGLScene.RenderShapeState_WithLight(
+procedure TVRMLGLScene.RenderShape_WithLight(
   LightsRenderer: TVRMLGLLightsCachingRenderer;
-  ShapeStateNum: Integer);
+  ShapeNum: Integer);
 begin
-  Renderer.RenderShapeStateLights(LightsRenderer,
-    ShapeStates[ShapeStateNum].State);
-  Renderer.RenderShapeState(
-    ShapeStates[ShapeStateNum].GeometryNode,
-    ShapeStates[ShapeStateNum].State);
+  Renderer.RenderShapeLights(LightsRenderer,
+    Shapes[ShapeNum].State);
+  Renderer.RenderShape(
+    Shapes[ShapeNum].GeometryNode,
+    Shapes[ShapeNum].State);
 end;
 
 procedure TVRMLGLScene.RenderBeginSimple;
@@ -1713,9 +1713,9 @@ begin
   }
 end;
 
-procedure TVRMLGLScene.RenderShapeStatesNoDisplayList(
-  TestShapeStateVisibility: TTestShapeStateVisibility;
-  RenderShapeStateProc: TRenderShapeState;
+procedure TVRMLGLScene.RenderShapesNoDisplayList(
+  TestShapeVisibility: TTestShapeVisibility;
+  RenderShapeProc: TRenderShape;
   RenderBeginProc, RenderEndProc: TObjectProcedure;
   TransparentGroup: TTransparentGroup;
   LightRenderEvent: TVRMLLightRenderEvent);
@@ -1727,24 +1727,24 @@ const
 var
   LightsRenderer: TVRMLGLLightsCachingRenderer;
 
-  procedure TestRenderShapeStateProc(ShapeStateNum: Integer);
+  procedure TestRenderShapeProc(ShapeNum: Integer);
   begin
-    if (not Assigned(TestShapeStateVisibility)) or
-       TestShapeStateVisibility(ShapeStateNum) then
+    if (not Assigned(TestShapeVisibility)) or
+       TestShapeVisibility(ShapeNum) then
     begin
-      Inc(FLastRender_RenderedShapeStatesCount);
-      RenderShapeStateProc(LightsRenderer, ShapeStateNum);
+      Inc(FLastRender_RenderedShapesCount);
+      RenderShapeProc(LightsRenderer, ShapeNum);
     end;
   end;
 
   procedure RenderAllAsOpaque;
   var
-    ShapeStateNum: Integer;
+    ShapeNum: Integer;
   begin
     if TransparentGroup in AllOrOpaque then
     begin
-      for ShapeStateNum := 0 to ShapeStates.Count - 1 do
-        TestRenderShapeStateProc(ShapeStateNum);
+      for ShapeNum := 0 to Shapes.Count - 1 do
+        TestRenderShapeProc(ShapeNum);
     end;
   end;
 
@@ -1753,7 +1753,7 @@ var
     If different than currently set, then change BlendingXxxFactorSet and update
     by glBlendFunc. This way, we avoid calling glBlendFunc (which is potentially costly,
     since it changes GL state) too often. }
-  procedure AdjustBlendFunc(ShapeState: TVRMLShapeState;
+  procedure AdjustBlendFunc(Shape: TVRMLShape;
     var BlendingSourceFactorSet, BlendingDestinationFactorSet: TGLEnum);
   var
     B: TNodeBlendMode;
@@ -1763,7 +1763,7 @@ var
     NeedsConstColor := false;
     NeedsConstAlpha := false;
 
-    B := ShapeState.State.BlendMode;
+    B := Shape.State.BlendMode;
     if B <> nil then
     begin
       if not BlendingFactorNameToStr(B.FdSrcFactor.Value, NewSrc, NeedsConstColor, NeedsConstAlpha, true) then
@@ -1806,12 +1806,12 @@ var
   end;
 
 var
-  ShapeStateNum: integer;
+  ShapeNum: integer;
   TransparentObjectsExist: boolean;
   BlendingSourceFactorSet, BlendingDestinationFactorSet: TGLEnum;
 begin
-  FLastRender_RenderedShapeStatesCount := 0;
-  FLastRender_AllShapeStatesCount := ShapeStates.Count;
+  FLastRender_RenderedShapesCount := 0;
+  FLastRender_AllShapesCount := Shapes.Count;
 
   LightsRenderer := TVRMLGLLightsCachingRenderer.Create(
     Attributes.FirstGLFreeLight, Renderer.LastGLFreeLight,
@@ -1830,8 +1830,9 @@ begin
       begin
         glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
         try
-          { TODO: sorting of shapestates is doable and should be done
-            at some point, though. }
+          { TODO: sorting of shapes is doable and should be done
+            at some point (if Attributes.BlendingSort is @true,
+            @false by default). }
 
           glDepthMask(GL_TRUE);
           glDisable(GL_BLEND);
@@ -1840,17 +1841,17 @@ begin
             { uzywamy zmiennej TransparentObjectsExist aby ew. (jesli na scenie
               nie ma zadnych obiektow ktore chcemy renderowac z blending)
               zaoszczedzic czas i nie robic zmian stanu OpenGLa glDepthMask(GL_FALSE);
-              itd. i nie iterowac ponownie po liscie ShapeStates }
+              itd. i nie iterowac ponownie po liscie Shapes }
             TransparentObjectsExist := false;
 
             { draw fully opaque objects }
-            for ShapeStateNum := 0 to ShapeStates.Count - 1 do
+            for ShapeNum := 0 to Shapes.Count - 1 do
             begin
-              Assert(PreparedAndUseBlendingCalculated[ShapeStateNum]);
-              if not UseBlending.Items[ShapeStateNum] then
+              Assert(PreparedAndUseBlendingCalculated[ShapeNum]);
+              if not UseBlending.Items[ShapeNum] then
               begin
                 if TransparentGroup in AllOrOpaque then
-                  TestRenderShapeStateProc(ShapeStateNum);
+                  TestRenderShapeProc(ShapeNum);
               end else
                 TransparentObjectsExist := true;
             end;
@@ -1867,12 +1868,12 @@ begin
               BlendingDestinationFactorSet := Attributes.BlendingDestinationFactor;
               glBlendFunc(BlendingSourceFactorSet, BlendingDestinationFactorSet);
 
-              for ShapeStateNum := 0 to ShapeStates.Count - 1 do
-                if UseBlending.Items[ShapeStateNum] then
+              for ShapeNum := 0 to Shapes.Count - 1 do
+                if UseBlending.Items[ShapeNum] then
                 begin
-                  AdjustBlendFunc(ShapeStates[ShapeStateNum],
+                  AdjustBlendFunc(Shapes[ShapeNum],
                     BlendingSourceFactorSet, BlendingDestinationFactorSet);
-                  TestRenderShapeStateProc(ShapeStateNum);
+                  TestRenderShapeProc(ShapeNum);
                 end;
             end;
           end else
@@ -1902,7 +1903,7 @@ procedure TVRMLGLScene.PrepareAndCalculateUseBlendingForAll;
     Tex: TVRMLTextureNode;
     AlphaChannelType: TAlphaChannelType;
   begin
-    State := ShapeStates[Index].State;
+    State := Shapes[Index].State;
 
     { Note that we either render the whole geometry node with or without
       blending.
@@ -1915,13 +1916,13 @@ procedure TVRMLGLScene.PrepareAndCalculateUseBlendingForAll;
       (see TVRMLScene.RootNode docs).
 
       TODO: ideally, we would like to just push all our logic into
-      TVRMLShapeState.Transparent, and write just
-        UseBlending.Items[Index] := ShapeStates[Index].Transparent;
+      TVRMLShape.Transparent, and write just
+        UseBlending.Items[Index] := Shapes[Index].Transparent;
       But we cannot, for now: we need Renderer to check image's
       AlphaChannelType efficiently.
     }
 
-    Result := ShapeStates[Index].Transparent;
+    Result := Shapes[Index].Transparent;
 
     if not Result then
     begin
@@ -1938,10 +1939,10 @@ procedure TVRMLGLScene.PrepareAndCalculateUseBlendingForAll;
 var
   I: Integer;
 begin
-  for I := 0 to ShapeStates.Count - 1 do
+  for I := 0 to Shapes.Count - 1 do
     if not PreparedAndUseBlendingCalculated.Items[I] then
     begin
-      Renderer.Prepare(ShapeStates[I].State);
+      Renderer.Prepare(Shapes[I].State);
       CalculateUseBlending(I);
       PreparedAndUseBlendingCalculated.Items[I] := true;
     end;
@@ -2051,161 +2052,161 @@ begin
     RenderEndSimple }
 end;
 
-procedure TVRMLGLScene.SSS_PrepareShapeState(
-  ShapeStateNum: Integer);
+procedure TVRMLGLScene.SSS_PrepareShape(
+  ShapeNum: Integer);
 var
   AttributesCopy: TVRMLSceneRenderingAttributes;
   StateCopy: TVRMLGraphTraverseState;
 begin
   { We check EnableDisplayList, not only to avoid creating display list
     when not needed, but also to cache EnableDisplayList result
-    inside TVRMLShapeState --- otherwise after FreeResources([frRootNode])
+    inside TVRMLShape --- otherwise after FreeResources([frRootNode])
     calling EnableDisplayList would be dangerous. }
 
-  if ShapeStates[ShapeStateNum].EnableDisplayList and
-     (not Renderer.Cache.ShapeState_IncReference_Existing(
+  if Shapes[ShapeNum].EnableDisplayList and
+     (not Renderer.Cache.Shape_IncReference_Existing(
        Attributes,
-       ShapeStates[ShapeStateNum].GeometryNode,
-       ShapeStates[ShapeStateNum].State,
+       Shapes[ShapeNum].GeometryNode,
+       Shapes[ShapeNum].State,
        FogNode, FogDistanceScaling,
-       SSSX_DisplayLists.Items[ShapeStateNum])) then
+       SSSX_DisplayLists.Items[ShapeNum])) then
   begin
-    SSSX_DisplayLists.Items[ShapeStateNum] := glGenListsCheck(1,
-      'TVRMLGLScene.SSS_PrepareShapeState');
-    glNewList(SSSX_DisplayLists.Items[ShapeStateNum], GL_COMPILE);
+    SSSX_DisplayLists.Items[ShapeNum] := glGenListsCheck(1,
+      'TVRMLGLScene.SSS_PrepareShape');
+    glNewList(SSSX_DisplayLists.Items[ShapeNum], GL_COMPILE);
     try
-      RenderShapeState_NoLight(ShapeStateNum);
+      RenderShape_NoLight(ShapeNum);
       glEndList;
     except
       glEndList;
       { In case of trouble, make sure that
-        SSSX_DisplayLists.Items[ShapeStateNum]
+        SSSX_DisplayLists.Items[ShapeNum]
         resources are released and it's set to 0.
-        Otherwise we would try to do ShapeState_DecReference later,
-        but ShapeState_IncReference_New was not called yet
-        and ShapeState_DecReference would fail. }
-      glFreeDisplayList(SSSX_DisplayLists.Items[ShapeStateNum]);
+        Otherwise we would try to do Shape_DecReference later,
+        but Shape_IncReference_New was not called yet
+        and Shape_DecReference would fail. }
+      glFreeDisplayList(SSSX_DisplayLists.Items[ShapeNum]);
       raise;
     end;
 
     AttributesCopy := TVRMLSceneRenderingAttributes.Create;
     AttributesCopy.Assign(Attributes);
     StateCopy := TVRMLGraphTraverseState.CreateCopy(
-      ShapeStates[ShapeStateNum].State);
-    Renderer.Cache.ShapeState_IncReference_New(
+      Shapes[ShapeNum].State);
+    Renderer.Cache.Shape_IncReference_New(
       AttributesCopy,
-      ShapeStates[ShapeStateNum].GeometryNode,
+      Shapes[ShapeNum].GeometryNode,
       StateCopy,
       FogNode, FogDistanceScaling,
-      SSSX_DisplayLists.Items[ShapeStateNum]);
+      SSSX_DisplayLists.Items[ShapeNum]);
   end;
 end;
 
-procedure TVRMLGLScene.SSS_RenderShapeState(
+procedure TVRMLGLScene.SSS_RenderShape(
   LightsRenderer: TVRMLGLLightsCachingRenderer;
-  ShapeStateNum: Integer);
+  ShapeNum: Integer);
 begin
-  if ShapeStates[ShapeStateNum].EnableDisplayList then
+  if Shapes[ShapeNum].EnableDisplayList then
   begin
-    if SSSX_DisplayLists.Items[ShapeStateNum] = 0 then
-      SSS_PrepareShapeState(ShapeStateNum);
+    if SSSX_DisplayLists.Items[ShapeNum] = 0 then
+      SSS_PrepareShape(ShapeNum);
 
-    Renderer.RenderShapeStateLights(LightsRenderer,
-      ShapeStates[ShapeStateNum].State);
+    Renderer.RenderShapeLights(LightsRenderer,
+      Shapes[ShapeNum].State);
 
-    glCallList(SSSX_DisplayLists.Items[ShapeStateNum]);
+    glCallList(SSSX_DisplayLists.Items[ShapeNum]);
   end else
   begin
-    Assert(SSSX_DisplayLists.Items[ShapeStateNum] = 0);
+    Assert(SSSX_DisplayLists.Items[ShapeNum] = 0);
     { Make sure that it's prepared. }
-    SSS_PrepareShapeState(ShapeStateNum);
+    SSS_PrepareShape(ShapeNum);
 
-    Renderer.RenderShapeStateLights(LightsRenderer,
-      ShapeStates[ShapeStateNum].State);
+    Renderer.RenderShapeLights(LightsRenderer,
+      Shapes[ShapeNum].State);
 
-    RenderShapeState_NoLight(ShapeStateNum);
+    RenderShape_NoLight(ShapeNum);
   end;
 end;
 
-procedure TVRMLGLScene.SSSNT_PrepareShapeState(
-  ShapeStateNum: Integer);
+procedure TVRMLGLScene.SSSNT_PrepareShape(
+  ShapeNum: Integer);
 var
   AttributesCopy: TVRMLSceneRenderingAttributes;
   StateCopy: TVRMLGraphTraverseState;
 begin
-  if ShapeStates[ShapeStateNum].EnableDisplayList and
-     (not Renderer.Cache.ShapeStateNoTransform_IncReference_Existing(
+  if Shapes[ShapeNum].EnableDisplayList and
+     (not Renderer.Cache.ShapeNoTransform_IncReference_Existing(
        Attributes,
-       ShapeStates[ShapeStateNum].GeometryNode,
-       ShapeStates[ShapeStateNum].State,
+       Shapes[ShapeNum].GeometryNode,
+       Shapes[ShapeNum].State,
        FogNode, FogDistanceScaling,
-       SSSX_DisplayLists.Items[ShapeStateNum])) then
+       SSSX_DisplayLists.Items[ShapeNum])) then
   begin
-    SSSX_DisplayLists.Items[ShapeStateNum] := glGenListsCheck(1,
-      'TVRMLGLScene.SSSNT_PrepareShapeState');
-    glNewList(SSSX_DisplayLists.Items[ShapeStateNum], GL_COMPILE);
+    SSSX_DisplayLists.Items[ShapeNum] := glGenListsCheck(1,
+      'TVRMLGLScene.SSSNT_PrepareShape');
+    glNewList(SSSX_DisplayLists.Items[ShapeNum], GL_COMPILE);
     try
-      Renderer.RenderShapeStateNoTransform(
-        ShapeStates[ShapeStateNum].GeometryNode,
-        ShapeStates[ShapeStateNum].State);
+      Renderer.RenderShapeNoTransform(
+        Shapes[ShapeNum].GeometryNode,
+        Shapes[ShapeNum].State);
       glEndList;
     except
       glEndList;
       { In case of trouble, make sure that
-        SSSX_DisplayLists.Items[ShapeStateNum]
+        SSSX_DisplayLists.Items[ShapeNum]
         resources are released and it's set to 0.
-        Otherwise we would try to do ShapeState_DecReference later,
-        but ShapeState_IncReference_New was not called yet
-        and ShapeState_DecReference would fail. }
-      glFreeDisplayList(SSSX_DisplayLists.Items[ShapeStateNum]);
+        Otherwise we would try to do Shape_DecReference later,
+        but Shape_IncReference_New was not called yet
+        and Shape_DecReference would fail. }
+      glFreeDisplayList(SSSX_DisplayLists.Items[ShapeNum]);
       raise;
     end;
 
     AttributesCopy := TVRMLSceneRenderingAttributes.Create;
     AttributesCopy.Assign(Attributes);
     StateCopy := TVRMLGraphTraverseState.CreateCopy(
-      ShapeStates[ShapeStateNum].State);
-    Renderer.Cache.ShapeStateNoTransform_IncReference_New(
+      Shapes[ShapeNum].State);
+    Renderer.Cache.ShapeNoTransform_IncReference_New(
       AttributesCopy,
-      ShapeStates[ShapeStateNum].GeometryNode,
+      Shapes[ShapeNum].GeometryNode,
       StateCopy,
       FogNode, FogDistanceScaling,
-      SSSX_DisplayLists.Items[ShapeStateNum]);
+      SSSX_DisplayLists.Items[ShapeNum]);
   end;
 end;
 
-procedure TVRMLGLScene.SSSNT_RenderShapeState(
+procedure TVRMLGLScene.SSSNT_RenderShape(
   LightsRenderer: TVRMLGLLightsCachingRenderer;
-  ShapeStateNum: Integer);
+  ShapeNum: Integer);
 begin
-  if ShapeStates[ShapeStateNum].EnableDisplayList then
+  if Shapes[ShapeNum].EnableDisplayList then
   begin
-    if SSSX_DisplayLists.Items[ShapeStateNum] = 0 then
-      SSSNT_PrepareShapeState(ShapeStateNum);
+    if SSSX_DisplayLists.Items[ShapeNum] = 0 then
+      SSSNT_PrepareShape(ShapeNum);
 
-    Renderer.RenderShapeStateLights(LightsRenderer,
-      ShapeStates[ShapeStateNum].State);
+    Renderer.RenderShapeLights(LightsRenderer,
+      Shapes[ShapeNum].State);
 
-    Renderer.RenderShapeStateBegin(
-      ShapeStates[ShapeStateNum].GeometryNode,
-      ShapeStates[ShapeStateNum].State);
+    Renderer.RenderShapeBegin(
+      Shapes[ShapeNum].GeometryNode,
+      Shapes[ShapeNum].State);
     try
-      glCallList(SSSX_DisplayLists.Items[ShapeStateNum]);
+      glCallList(SSSX_DisplayLists.Items[ShapeNum]);
     finally
-      Renderer.RenderShapeStateEnd(
-        ShapeStates[ShapeStateNum].GeometryNode,
-        ShapeStates[ShapeStateNum].State);
+      Renderer.RenderShapeEnd(
+        Shapes[ShapeNum].GeometryNode,
+        Shapes[ShapeNum].State);
     end;
   end else
   begin
-    Assert(SSSX_DisplayLists.Items[ShapeStateNum] = 0);
+    Assert(SSSX_DisplayLists.Items[ShapeNum] = 0);
     { Make sure that it's prepared. }
-    SSSNT_PrepareShapeState(ShapeStateNum);
+    SSSNT_PrepareShape(ShapeNum);
 
-    Renderer.RenderShapeStateLights(LightsRenderer,
-      ShapeStates[ShapeStateNum].State);
+    Renderer.RenderShapeLights(LightsRenderer,
+      Shapes[ShapeNum].State);
 
-    RenderShapeState_NoLight(ShapeStateNum);
+    RenderShape_NoLight(ShapeNum);
   end;
 end;
 
@@ -2217,8 +2218,8 @@ begin
   begin
     glNewList(SAAW_DisplayList[TransparentGroup], GL_COMPILE);
     try
-      RenderShapeStatesNoDisplayList(nil,
-        {$ifdef FPC_OBJFPC} @ {$endif} RenderShapeState_WithLight,
+      RenderShapesNoDisplayList(nil,
+        {$ifdef FPC_OBJFPC} @ {$endif} RenderShape_WithLight,
         {$ifdef FPC_OBJFPC} @ {$endif} RenderBeginSimple,
         {$ifdef FPC_OBJFPC} @ {$endif} RenderEndSimple,
         TransparentGroup, nil);
@@ -2242,8 +2243,8 @@ begin
     try
       glNewList(SAAW_DisplayList[TransparentGroup], GL_COMPILE);
       try
-        RenderShapeStatesNoDisplayList(nil,
-          {$ifdef FPC_OBJFPC} @ {$endif} RenderShapeState_WithLight, nil, nil,
+        RenderShapesNoDisplayList(nil,
+          {$ifdef FPC_OBJFPC} @ {$endif} RenderShape_WithLight, nil, nil,
           TransparentGroup, nil);
       finally glEndList end;
     finally RenderEndSimple end;
@@ -2257,9 +2258,9 @@ begin
   begin
     { In this case I must directly set here LastRender_Xxx variables.
       TODO: this is wrong when TransparentGroup <> tgAll, then something
-      < ShapeStates.Count should be used. }
-    FLastRender_AllShapeStatesCount := ShapeStates.Count;
-    FLastRender_RenderedShapeStatesCount := FLastRender_AllShapeStatesCount;
+      < Shapes.Count should be used. }
+    FLastRender_AllShapesCount := Shapes.Count;
+    FLastRender_RenderedShapesCount := FLastRender_AllShapesCount;
   end;
 
   if RenderBeginEndToDisplayList then
@@ -2283,7 +2284,7 @@ begin
       roSceneAsAWhole:
         for TG := Low(TG) to High(TG) do
           glFreeDisplayList(SAAW_DisplayList[TG]);
-      roSeparateShapeStates, roSeparateShapeStatesNoTransform:
+      roSeparateShapes, roSeparateShapesNoTransform:
         begin
           { Although it seems that only RenderBegin needs to be invalidated,
             turns out that also RenderEnd. Otherwise, enter fog_set_bind_text.x3dv
@@ -2313,7 +2314,7 @@ procedure TVRMLGLScene.PrepareRender(
   TransparentGroups: TTransparentGroups;
   Options: TPrepareRenderOptions);
 var
-  ShapeStateNum: Integer;
+  ShapeNum: Integer;
   TG: TTransparentGroup;
 begin
   CheckFogChanged;
@@ -2331,7 +2332,7 @@ begin
             SAAW_Prepare(TG);
       end;
 
-    roSeparateShapeStates, roSeparateShapeStatesNoTransform:
+    roSeparateShapes, roSeparateShapesNoTransform:
       begin
         PrepareAndCalculateUseBlendingForAll;
 
@@ -2339,13 +2340,13 @@ begin
         if SSSX_RenderBeginDisplayList = 0 then
           SSSX_PrepareBegin;
         try
-          for ShapeStateNum := 0 to ShapeStates.Count - 1 do
+          for ShapeNum := 0 to Shapes.Count - 1 do
           begin
-            if SSSX_DisplayLists.Items[ShapeStateNum] = 0 then
+            if SSSX_DisplayLists.Items[ShapeNum] = 0 then
             begin
-              if Optimization = roSeparateShapeStates then
-                SSS_PrepareShapeState(ShapeStateNum) else
-                SSSNT_PrepareShapeState(ShapeStateNum);
+              if Optimization = roSeparateShapes then
+                SSS_PrepareShape(ShapeNum) else
+                SSSNT_PrepareShape(ShapeNum);
             end;
           end;
         finally
@@ -2378,7 +2379,7 @@ begin
 end;
 
 procedure TVRMLGLScene.Render(
-  TestShapeStateVisibility: TTestShapeStateVisibility;
+  TestShapeVisibility: TTestShapeVisibility;
   TransparentGroup: TTransparentGroup;
   LightRenderEvent: TVRMLLightRenderEvent);
 
@@ -2389,28 +2390,28 @@ procedure TVRMLGLScene.Render(
     case Optimization of
       roNone:
         begin
-          RenderShapeStatesNoDisplayList(TestShapeStateVisibility,
-            {$ifdef FPC_OBJFPC} @ {$endif} RenderShapeState_WithLight,
+          RenderShapesNoDisplayList(TestShapeVisibility,
+            {$ifdef FPC_OBJFPC} @ {$endif} RenderShape_WithLight,
             {$ifdef FPC_OBJFPC} @ {$endif} RenderBeginSimple,
             {$ifdef FPC_OBJFPC} @ {$endif} RenderEndSimple,
             TransparentGroup, LightRenderEvent);
         end;
       roSceneAsAWhole:
         SAAW_Render(TransparentGroup);
-      roSeparateShapeStates:
+      roSeparateShapes:
         begin
           { build display lists (if needed) and render all shape states }
-          RenderShapeStatesNoDisplayList(TestShapeStateVisibility,
-            {$ifdef FPC_OBJFPC} @ {$endif} SSS_RenderShapeState,
+          RenderShapesNoDisplayList(TestShapeVisibility,
+            {$ifdef FPC_OBJFPC} @ {$endif} SSS_RenderShape,
             {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderBegin,
             {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderEnd,
             TransparentGroup, LightRenderEvent);
         end;
-      roSeparateShapeStatesNoTransform:
+      roSeparateShapesNoTransform:
         begin
           { build display lists (if needed) and render all shape states }
-          RenderShapeStatesNoDisplayList(TestShapeStateVisibility,
-            {$ifdef FPC_OBJFPC} @ {$endif} SSSNT_RenderShapeState,
+          RenderShapesNoDisplayList(TestShapeVisibility,
+            {$ifdef FPC_OBJFPC} @ {$endif} SSSNT_RenderShape,
             {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderBegin,
             {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderEnd,
             TransparentGroup, LightRenderEvent);
@@ -2441,8 +2442,8 @@ begin
     This is suitable for all Optimization values right now.
     I can't call Renderer.Prepare later while being inside display-list.
     I also have to prepare all UseBlending before even calling
-    RenderShapeStatesNoDisplayList
-    (I cannot initialize UseBlending later, e.g. in SSS_PrepareShapeState). }
+    RenderShapesNoDisplayList
+    (I cannot initialize UseBlending later, e.g. in SSS_PrepareShape). }
   PrepareAndCalculateUseBlendingForAll;
 
   case Attributes.WireframeEffect of
@@ -2503,9 +2504,9 @@ begin
   CloseGL;
 
   case Optimization of
-    roSeparateShapeStates, roSeparateShapeStatesNoTransform:
+    roSeparateShapes, roSeparateShapesNoTransform:
       begin
-        SSSX_DisplayLists.Count := ShapeStates.Count;
+        SSSX_DisplayLists.Count := Shapes.Count;
 
         { Yeah, in previous CloseGL call we also resetted all
           SSSX_DisplayLists items to 0
@@ -2518,40 +2519,40 @@ begin
       end;
   end;
 
-  RenderFrustumOctree_Visible.Count := ShapeStates.Count;
+  RenderFrustumOctree_Visible.Count := Shapes.Count;
 
-  UseBlending.Count := ShapeStates.Count;
+  UseBlending.Count := Shapes.Count;
 
-  PreparedAndUseBlendingCalculated.Count := ShapeStates.Count;
+  PreparedAndUseBlendingCalculated.Count := Shapes.Count;
   PreparedAndUseBlendingCalculated.SetAll(false);
 end;
 
-procedure TVRMLGLScene.ChangedShapeStateFields(ShapeStateNum: integer;
+procedure TVRMLGLScene.ChangedShapeFields(ShapeNum: integer;
   const TransformOnly, TextureImageChanged: boolean);
 var
   TG: TTransparentGroup;
 begin
   inherited;
 
-  { ChangedShapeStateFields cannot be called with both
+  { ChangedShapeFields cannot be called with both
     TransformOnly = TextureImageChanged = true, since texture change means
     that not only transform changed... }
   Assert(not (TransformOnly and TextureImageChanged));
 
   { We don't need to call here Renderer.Unprepare* (or set
     PreparedAndUseBlendingCalculated) in most circumstances,
-    since State of our shapestate didn't change (only field's of
+    since State of our shape didn't change (only field's of
     the geometry node, and these have no effect over Renderer.Prepare
     or UseBlending calculation). }
 
-  if (Optimization = roSeparateShapeStatesNoTransform) and TransformOnly then
+  if (Optimization = roSeparateShapesNoTransform) and TransformOnly then
   begin
     { This can be quite crucial optimization for
-      roSeparateShapeStatesNoTransform in some cases, e.g. for VRML files
+      roSeparateShapesNoTransform in some cases, e.g. for VRML files
       with animations animating Transform.translation/rotation/scale etc.
-      In such cases, roSeparateShapeStatesNoTransform is perfect,
+      In such cases, roSeparateShapesNoTransform is perfect,
       as display lists will be used and never need to be rebuild. }
-    { Tests: Writeln('roSeparateShapeStatesNoTransform optimization kicked in!'); }
+    { Tests: Writeln('roSeparateShapesNoTransform optimization kicked in!'); }
     Exit;
   end;
 
@@ -2559,22 +2560,22 @@ begin
     roSceneAsAWhole:
       for TG := Low(TG) to High(TG) do
         glFreeDisplayList(SAAW_DisplayList[TG]);
-    roSeparateShapeStates, roSeparateShapeStatesNoTransform:
-      if SSSX_DisplayLists.Items[ShapeStateNum] <> 0 then
+    roSeparateShapes, roSeparateShapesNoTransform:
+      if SSSX_DisplayLists.Items[ShapeNum] <> 0 then
       begin
-        if Optimization = roSeparateShapeStates then
-          Renderer.Cache.ShapeState_DecReference(
-            SSSX_DisplayLists.Items[ShapeStateNum]) else
-          Renderer.Cache.ShapeStateNoTransform_DecReference(
-            SSSX_DisplayLists.Items[ShapeStateNum]);
-        SSSX_DisplayLists.Items[ShapeStateNum] := 0;
+        if Optimization = roSeparateShapes then
+          Renderer.Cache.Shape_DecReference(
+            SSSX_DisplayLists.Items[ShapeNum]) else
+          Renderer.Cache.ShapeNoTransform_DecReference(
+            SSSX_DisplayLists.Items[ShapeNum]);
+        SSSX_DisplayLists.Items[ShapeNum] := 0;
       end;
   end;
 
   if TextureImageChanged then
   begin
-    Renderer.Unprepare(ShapeStates[ShapeStateNum].State.Texture);
-    PreparedAndUseBlendingCalculated.Items[ShapeStateNum] := false;
+    Renderer.Unprepare(Shapes[ShapeNum].State.Texture);
+    PreparedAndUseBlendingCalculated.Items[ShapeNum] := false;
   end;
 end;
 
@@ -3484,28 +3485,28 @@ end;
 
 { RenderFrustum and helpers ---------------------------------------- }
 
-function TVRMLGLScene.RenderFrustum_TestShapeState(
-  ShapeStateNum: Integer): boolean;
+function TVRMLGLScene.RenderFrustum_TestShape(
+  ShapeNum: Integer): boolean;
 
 {$ifdef RENDER_FRUSTUM_USES_BOUNDING_SPHERE}
 begin
- Result := ShapeStates[ShapeStateNum].
+ Result := Shapes[ShapeNum].
    FrustumBoundingSphereCollisionPossibleSimple(RenderFrustum_Frustum^);
 {$endif}
 
 {$ifdef RENDER_FRUSTUM_USES_BOUNDING_BOX}
 begin
  Result := FrustumBox3dCollisionPossibleSimple(RenderFrustum_Frustum^,
-   ShapeStates[ShapeStateNum].BoundingBox);
+   Shapes[ShapeNum].BoundingBox);
 {$endif}
 
 {$ifdef RENDER_FRUSTUM_USES_BOTH}
 begin
  Result :=
-   ShapeStates[ShapeStateNum].FrustumBoundingSphereCollisionPossibleSimple(
+   Shapes[ShapeNum].FrustumBoundingSphereCollisionPossibleSimple(
      RenderFrustum_Frustum^) and
    FrustumBox3dCollisionPossibleSimple(RenderFrustum_Frustum^,
-     ShapeStates[ShapeStateNum].BoundingBox);
+     Shapes[ShapeNum].BoundingBox);
 {$endif}
 
 end;
@@ -3517,34 +3518,34 @@ begin
   if OctreeRendering <> nil then
     RenderFrustumOctree(Frustum, TransparentGroup, OctreeRendering, LightRenderEvent) else
   begin
-    { Just test each shapestate with frustum.
-      Note that RenderFrustum_TestShapeState will be ignored
+    { Just test each shape with frustum.
+      Note that RenderFrustum_TestShape will be ignored
       by Render for roSceneAsAWhole. }
 
     RenderFrustum_Frustum := @Frustum;
-    Render({$ifdef FPC_OBJFPC} @ {$endif} RenderFrustum_TestShapeState,
+    Render({$ifdef FPC_OBJFPC} @ {$endif} RenderFrustum_TestShape,
       TransparentGroup, LightRenderEvent);
   end;
 end;
 
 { RenderFrustumOctree ---------------------------------------- }
 
-function TVRMLGLScene.RenderFrustumOctree_TestShapeState(
-  ShapeStateNum: Integer): boolean;
+function TVRMLGLScene.RenderFrustumOctree_TestShape(
+  ShapeNum: Integer): boolean;
 begin
-  Result := RenderFrustumOctree_Visible.Items[ShapeStateNum];
+  Result := RenderFrustumOctree_Visible.Items[ShapeNum];
 end;
 
 procedure TVRMLGLScene.RenderFrustumOctree_EnumerateOctreeItem(
-  ShapeStateNum: Integer; CollidesForSure: boolean);
+  ShapeNum: Integer; CollidesForSure: boolean);
 
 {$ifdef RENDER_FRUSTUM_OCTREE_NO_BONUS_CHECKS}
 begin
   { This implementation is fast, but may not eliminate as many
-    ShapeStates from rendering pipeline as it's possible
+    Shapes from rendering pipeline as it's possible
     (so overall speed may be worse) : }
 
-  RenderFrustumOctree_Visible.Items[ShapeStateNum] := true;
+  RenderFrustumOctree_Visible.Items[ShapeNum] := true;
 {$endif}
 
 {$ifdef RENDER_FRUSTUM_OCTREE_BONUS_SPHERE_CHECK}
@@ -3552,17 +3553,17 @@ begin
   { Another implementation: if CollidesForSure = false
     then checks shapeshate's bounding sphere versus frustum before
     setting
-      RenderFrustumOctree_Visible.Items[ShapeStateNum] := true
+      RenderFrustumOctree_Visible.Items[ShapeNum] := true
     This means that it wastes some time on doing
     FrustumSphereCollisionPossibleSimple but it may be able
-    to eliminate more shapestate's from rendering pipeline,
+    to eliminate more shapes from rendering pipeline,
     so overall speed may be better. }
 
-  if (not RenderFrustumOctree_Visible.Items[ShapeStateNum]) and
+  if (not RenderFrustumOctree_Visible.Items[ShapeNum]) and
      ( CollidesForSure or
-       ShapeStates[ShapeStateNum].FrustumBoundingSphereCollisionPossibleSimple
+       Shapes[ShapeNum].FrustumBoundingSphereCollisionPossibleSimple
          (RenderFrustumOctree_Frustum^) ) then
-    RenderFrustumOctree_Visible.Items[ShapeStateNum] := true;
+    RenderFrustumOctree_Visible.Items[ShapeNum] := true;
 {$endif}
 
 { Other implementations are also possible :
@@ -3578,7 +3579,7 @@ end;
 
 procedure TVRMLGLScene.RenderFrustumOctree(const Frustum: TFrustum;
   TransparentGroup: TTransparentGroup;
-  Octree: TVRMLShapeStateOctree;
+  Octree: TVRMLShapeOctree;
   LightRenderEvent: TVRMLLightRenderEvent);
 begin
   if Optimization <> roSceneAsAWhole then
@@ -3588,7 +3589,7 @@ begin
     RenderFrustumOctree_Visible.SetAll(false);
     Octree.EnumerateCollidingOctreeItems(Frustum,
       {$ifdef FPC_OBJFPC} @ {$endif} RenderFrustumOctree_EnumerateOctreeItem);
-    Render({$ifdef FPC_OBJFPC} @ {$endif} RenderFrustumOctree_TestShapeState,
+    Render({$ifdef FPC_OBJFPC} @ {$endif} RenderFrustumOctree_TestShape,
       TransparentGroup, LightRenderEvent);
   end else
     Render(nil, TransparentGroup, LightRenderEvent);

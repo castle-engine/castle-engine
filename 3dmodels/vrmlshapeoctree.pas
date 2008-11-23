@@ -20,50 +20,50 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(@link(TVRMLShapeStateOctree) --- octree that provides
-  hierarchical view of all ShapeState structures of a given
+{ @abstract(@link(TVRMLShapeOctree) --- octree that provides
+  spatial structure of all TVRMLShape structures of a given
   @link(TVRMLScene) object.)
 
   Don't confuse it with @link(TVRMLTriangleOctree) from unit
   @link(VRMLTriangleOctree):
   @link(TVRMLTriangleOctree) is an octree based on scene triangles,
-  while @link(TVRMLShapeStateOctree) is an octree based on scene
-  ShapeStates. A scene usually has much more (e.g. 100 000, but this
-  is really only an example) triangles than ShapeStates (e.g. 100-1000,
+  while @link(TVRMLShapeOctree) is an octree based on scene
+  Shapes. A scene usually has much more (e.g. 100 000, but this
+  is really only an example) triangles than Shapes (e.g. 100-1000,
   but this is really only an example).
 
   If you want to work of triangle-by-triangle basis,
   use @link(TVRMLTriangleOctree). But if you want to work with higher-level
-  objects, ShapeStates, use this class, @link(TVRMLShapeStateOctree).
+  objects, Shapes, use this class, @link(TVRMLShapeOctree).
 
   This octree is the key structure to do scene culling
-  (e.g. to camera frustum) on a ShapeState-basis, as used
+  (e.g. to camera frustum) on a Shape-basis, as used
   by @link(TVRMLGLScene). }
 
-unit VRMLShapeStateOctree;
+unit VRMLShapeOctree;
 
 {$I vrmloctreeconf.inc}
 
 interface
 
-uses SysUtils, Boxes3d, KambiOctree, VRMLShapeState, VectorMath, KambiUtils,
+uses SysUtils, Boxes3d, KambiOctree, VRMLShape, VectorMath, KambiUtils,
   VRMLOctreeItems;
 
 const
   { Kambi private notes: values below found experimetally, many tests on
     /win/3dmodels/3ds/ParkKambi.wrl and /win/3dmodels/lars/scene.wrl }
   { }
-  DefShapeStateOctreeMaxDepth = 5;
-  DefShapeStateOctreeLeafCapacity = 10;
+  DefShapeOctreeMaxDepth = 5;
+  DefShapeOctreeLeafCapacity = 10;
 
 type
-  TVRMLShapeStateOctree = class;
+  TVRMLShapeOctree = class;
 
-  TVRMLShapeStateOctreeNode = class(TVRMLItemsOctreeNode)
+  TVRMLShapeOctreeNode = class(TVRMLItemsOctreeNode)
   protected
     procedure PutItemIntoSubNodes(ItemIndex: integer); override;
   public
-    function ParentTree: TVRMLShapeStateOctree;
+    function ParentTree: TVRMLShapeOctree;
 
     function SphereCollision(const pos: TVector3Single;
       const Radius: Single;
@@ -95,26 +95,26 @@ type
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; override;
   end;
 
-  TVRMLShapeStateOctree = class(TVRMLItemsOctree)
+  TVRMLShapeOctree = class(TVRMLItemsOctree)
   private
-    FShapeStatesList: TVRMLShapeStatesList;
+    FShapesList: TVRMLShapesList;
   protected
     function StatisticsBonus(
       const LeavesCount, ItemsCount, NonLeafNodesCount: Int64): string; override;
   public
     constructor Create(AMaxDepth, ALeafCapacity: Integer;
-      const ARootBox: TBox3d; AShapeStatesList: TVRMLShapeStatesList);
-    function TreeRoot: TVRMLShapeStateOctreeNode;
-    property ShapeStatesList: TVRMLShapeStatesList read FShapeStatesList;
+      const ARootBox: TBox3d; AShapesList: TVRMLShapesList);
+    function TreeRoot: TVRMLShapeOctreeNode;
+    property ShapesList: TVRMLShapesList read FShapesList;
   end;
 
 implementation
 
 {$I kambioctreemacros.inc}
 
-{ TVRMLShapeStateOctreeNode ---------------------------------------- }
+{ TVRMLShapeOctreeNode ---------------------------------------- }
 
-procedure TVRMLShapeStateOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
+procedure TVRMLShapeOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
 
   procedure OCTREE_STEP_INTO_SUBNODES_PROC(
     Subnode: TOctreeNode; var Stop: boolean);
@@ -124,7 +124,7 @@ procedure TVRMLShapeStateOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
 
 OCTREE_STEP_INTO_SUBNODES_DECLARE
 begin
- OSIS_Box := ParentTree.ShapeStatesList[ItemIndex].BoundingBox;
+ OSIS_Box := ParentTree.ShapesList[ItemIndex].BoundingBox;
 
  { For safety, I'm enlarging box a little, to be sure.
    This way if BoundingBox will lie exactly on one of
@@ -136,9 +136,9 @@ begin
  OCTREE_STEP_INTO_SUBNODES
 end;
 
-function TVRMLShapeStateOctreeNode.ParentTree: TVRMLShapeStateOctree;
+function TVRMLShapeOctreeNode.ParentTree: TVRMLShapeOctree;
 begin
- Result := TVRMLShapeStateOctree(InternalParentTree);
+ Result := TVRMLShapeOctree(InternalParentTree);
 end;
 
 { TODO: temporarily, to make basic implementation, we don't do actual
@@ -147,13 +147,13 @@ end;
   be done only on TreeRoot).
 }
 
-function TVRMLShapeStateOctreeNode.SphereCollision(const Pos: TVector3Single;
+function TVRMLShapeOctreeNode.SphereCollision(const Pos: TVector3Single;
   const Radius: Single;
   const OctreeItemToIgnore: POctreeItem;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
 var
   I: Integer;
-  ShapeState: TVRMLShapeState;
+  Shape: TVRMLShape;
   LocalBox: TBox3d;
 begin
   { TODO: this is bad, as 1. we take box around the sphere,
@@ -162,11 +162,11 @@ begin
   Result := nil;
   for I := 0 to ItemsIndices.Count - 1 do
   begin
-    ShapeState := ParentTree.ShapeStatesList.Items[ItemsIndices.Items[I]];
+    Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
     try
       LocalBox := Box3dTransform(BoundingBox3dFromSphere(Pos, Radius),
-        ShapeState.State.InvertedTransform);
-      Result := ShapeState.OctreeTriangles.BoxCollision(
+        Shape.State.InvertedTransform);
+      Result := Shape.OctreeTriangles.BoxCollision(
         LocalBox, OctreeItemToIgnore, ItemsToIgnoreFunc);
     except
       on ETransformedResultInvalid do Result := nil;
@@ -179,12 +179,12 @@ begin
   end;
 end;
 
-function TVRMLShapeStateOctreeNode.BoxCollision(const ABox: TBox3d;
+function TVRMLShapeOctreeNode.BoxCollision(const ABox: TBox3d;
   const OctreeItemToIgnore: POctreeItem;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
 var
   I: Integer;
-  ShapeState: TVRMLShapeState;
+  Shape: TVRMLShape;
   LocalBox: TBox3d;
 begin
   { TODO: this is bad, as we transform this box, making larger box.
@@ -192,11 +192,11 @@ begin
   Result := nil;
   for I := 0 to ItemsIndices.Count - 1 do
   begin
-    ShapeState := ParentTree.ShapeStatesList.Items[ItemsIndices.Items[I]];
+    Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
     try
       LocalBox := Box3dTransform(ABox,
-        ShapeState.State.InvertedTransform);
-      Result := ShapeState.OctreeTriangles.BoxCollision(
+        Shape.State.InvertedTransform);
+      Result := Shape.OctreeTriangles.BoxCollision(
         LocalBox, OctreeItemToIgnore, ItemsToIgnoreFunc);
     except
       on ETransformedResultInvalid do Result := nil;
@@ -209,7 +209,7 @@ begin
   end;
 end;
 
-function TVRMLShapeStateOctreeNode.SegmentCollision(
+function TVRMLShapeOctreeNode.SegmentCollision(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Pos1, Pos2: TVector3Single;
@@ -220,7 +220,7 @@ function TVRMLShapeStateOctreeNode.SegmentCollision(
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
 var
   I: Integer;
-  ShapeState: TVRMLShapeState;
+  Shape: TVRMLShape;
   LocalPos1, LocalPos2: TVector3Single;
   ThisIntersection: TVector3Single;
   ThisIntersectionDistance: Single;
@@ -232,11 +232,11 @@ begin
   begin
     for I := 0 to ItemsIndices.Count - 1 do
     begin
-      ShapeState := ParentTree.ShapeStatesList.Items[ItemsIndices.Items[I]];
+      Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
       try
-        LocalPos1 := MatrixMultPoint(ShapeState.State.InvertedTransform, Pos1);
-        LocalPos2 := MatrixMultPoint(ShapeState.State.InvertedTransform, Pos2);
-        Result := ShapeState.OctreeTriangles.SegmentCollision(
+        LocalPos1 := MatrixMultPoint(Shape.State.InvertedTransform, Pos1);
+        LocalPos2 := MatrixMultPoint(Shape.State.InvertedTransform, Pos2);
+        Result := Shape.OctreeTriangles.SegmentCollision(
           Intersection, IntersectionDistance, LocalPos1, LocalPos2,
           ReturnClosestIntersection,
           OctreeItemToIgnore, IgnoreMarginAtStart, ItemsToIgnoreFunc);
@@ -258,11 +258,11 @@ begin
 
     for I := 0 to ItemsIndices.Count - 1 do
     begin
-      ShapeState := ParentTree.ShapeStatesList.Items[ItemsIndices.Items[I]];
+      Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
       try
-        LocalPos1 := MatrixMultPoint(ShapeState.State.InvertedTransform, Pos1);
-        LocalPos2 := MatrixMultPoint(ShapeState.State.InvertedTransform, Pos2);
-        ThisResult := ShapeState.OctreeTriangles.SegmentCollision(
+        LocalPos1 := MatrixMultPoint(Shape.State.InvertedTransform, Pos1);
+        LocalPos2 := MatrixMultPoint(Shape.State.InvertedTransform, Pos2);
+        ThisResult := Shape.OctreeTriangles.SegmentCollision(
           ThisIntersection, ThisIntersectionDistance, LocalPos1, LocalPos2,
           ReturnClosestIntersection,
           OctreeItemToIgnore, IgnoreMarginAtStart, ItemsToIgnoreFunc);
@@ -287,7 +287,7 @@ begin
   end;
 end;
 
-function TVRMLShapeStateOctreeNode.RayCollision(
+function TVRMLShapeOctreeNode.RayCollision(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
@@ -298,7 +298,7 @@ function TVRMLShapeStateOctreeNode.RayCollision(
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
 var
   I: Integer;
-  ShapeState: TVRMLShapeState;
+  Shape: TVRMLShape;
   LocalRay0, LocalRayVector: TVector3Single;
   ThisIntersection: TVector3Single;
   ThisIntersectionDistance: Single;
@@ -310,11 +310,11 @@ begin
   begin
     for I := 0 to ItemsIndices.Count - 1 do
     begin
-      ShapeState := ParentTree.ShapeStatesList.Items[ItemsIndices.Items[I]];
+      Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
       try
-        LocalRay0 := MatrixMultPoint(ShapeState.State.InvertedTransform, Ray0);
-        LocalRayVector := MatrixMultDirection(ShapeState.State.InvertedTransform, RayVector);
-        Result := ShapeState.OctreeTriangles.RayCollision(
+        LocalRay0 := MatrixMultPoint(Shape.State.InvertedTransform, Ray0);
+        LocalRayVector := MatrixMultDirection(Shape.State.InvertedTransform, RayVector);
+        Result := Shape.OctreeTriangles.RayCollision(
           Intersection, IntersectionDistance, LocalRay0, LocalRayVector,
           ReturnClosestIntersection,
           OctreeItemToIgnore, IgnoreMarginAtStart, ItemsToIgnoreFunc);
@@ -336,12 +336,12 @@ begin
 
     for I := 0 to ItemsIndices.Count - 1 do
     begin
-      ShapeState := ParentTree.ShapeStatesList.Items[ItemsIndices.Items[I]];
-      Assert(ShapeState.OctreeTriangles <> nil);
+      Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
+      Assert(Shape.OctreeTriangles <> nil);
       try
-        LocalRay0 := MatrixMultPoint(ShapeState.State.InvertedTransform, Ray0);
-        LocalRayVector := MatrixMultDirection(ShapeState.State.InvertedTransform, RayVector);
-        ThisResult := ShapeState.OctreeTriangles.RayCollision(
+        LocalRay0 := MatrixMultPoint(Shape.State.InvertedTransform, Ray0);
+        LocalRayVector := MatrixMultDirection(Shape.State.InvertedTransform, RayVector);
+        ThisResult := Shape.OctreeTriangles.RayCollision(
           ThisIntersection, ThisIntersectionDistance, LocalRay0, LocalRayVector,
           ReturnClosestIntersection,
           OctreeItemToIgnore, IgnoreMarginAtStart, ItemsToIgnoreFunc);
@@ -366,31 +366,31 @@ begin
   end;
 end;
 
-{ TVRMLShapeStateOctree ------------------------------------------ }
+{ TVRMLShapeOctree ------------------------------------------ }
 
-constructor TVRMLShapeStateOctree.Create(AMaxDepth, ALeafCapacity: Integer;
-  const ARootBox: TBox3d; AShapeStatesList: TVRMLShapeStatesList);
+constructor TVRMLShapeOctree.Create(AMaxDepth, ALeafCapacity: Integer;
+  const ARootBox: TBox3d; AShapesList: TVRMLShapesList);
 begin
  inherited Create(AMaxDepth, ALeafCapacity, ARootBox,
-   TVRMLShapeStateOctreeNode, true);
- FShapeStatesList := AShapeStatesList;
+   TVRMLShapeOctreeNode, true);
+ FShapesList := AShapesList;
 end;
 
-function TVRMLShapeStateOctree.TreeRoot: TVRMLShapeStateOctreeNode;
+function TVRMLShapeOctree.TreeRoot: TVRMLShapeOctreeNode;
 begin
- Result := TVRMLShapeStateOctreeNode(InternalTreeRoot);
+ Result := TVRMLShapeOctreeNode(InternalTreeRoot);
 end;
 
-function TVRMLShapeStateOctree.StatisticsBonus(
+function TVRMLShapeOctree.StatisticsBonus(
   const LeavesCount, ItemsCount, NonLeafNodesCount: Int64): string;
 begin
- if ShapeStatesList.Count = 0 then
+ if ShapesList.Count = 0 then
   Result :=
-    '  Empty octree - scene has no ShapeStates, i.e. no visible nodes.' +nl else
+    '  Empty octree - scene has no Shapes, i.e. no visible nodes.' +nl else
   Result := Format(
-    '  %d items (=ShapeStates) defined for octree, %d items in octree''s nodes' +nl+
-    '  - so each ShapeStates is present in tree about %f times.' +nl,
-    [ ShapeStatesList.Count, ItemsCount, ItemsCount / ShapeStatesList.Count] );
+    '  %d items (=Shapes) defined for octree, %d items in octree''s nodes' +nl+
+    '  - so each Shapes is present in tree about %f times.' +nl,
+    [ ShapesList.Count, ItemsCount, ItemsCount / ShapesList.Count] );
 end;
 
 end.

@@ -21,7 +21,7 @@
 }
 
 (*@abstract(This unit provides common utilities and classes for making
-  octrees, used in @link(VRMLTriangleOctree) and @link(VRMLShapeStateOctree).)
+  octrees, used in @link(VRMLTriangleOctree) and @link(VRMLShapeOctree).)
 
   It provides class @link(TOctree) that holds some settings "global"
   for whole octree (like MaxDepth etc.) and it holds reference to
@@ -314,7 +314,7 @@ type
 
       TODO -- comments below are rather specific for TVRMLTriangleOctree,
       adjust them to general octree (so that they also talk about
-      TVRMLShapeStateOctree)
+      TVRMLShapeOctree)
 
       Gdy MaxDepth = 0
       wszystkie elementy sa na jednym poziomie wiec de facto badajac kolizje
@@ -638,7 +638,7 @@ begin
    Disadvantage: bounding sphere is worse description of
    octree node's geometry (i.e. it's simply always larger then
    node's bounding Box), so such testing is not so effective
-   in eliminating ShapeStates from visibility.
+   in eliminating Shapes from visibility.
 
    So there are a couple things to do below.
    1. You can check each octree node versus it's BoundingSphere

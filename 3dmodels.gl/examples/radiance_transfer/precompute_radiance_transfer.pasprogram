@@ -221,10 +221,10 @@ begin
 
     ProcessTimerBegin;
 
-    for I := 0 to Scene.ShapeStates.Count - 1 do
+    for I := 0 to Scene.Shapes.Count - 1 do
     begin
-      Geometry := Scene.ShapeStates[I].GeometryNode;
-      State := Scene.ShapeStates[I].State;
+      Geometry := Scene.Shapes[I].GeometryNode;
+      State := Scene.Shapes[I].State;
 
       if Geometry is TNodeX3DComposedGeometryNode then
         RadianceTransfer := TNodeX3DComposedGeometryNode(Geometry).FdRadianceTransfer.Items else

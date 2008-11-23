@@ -203,13 +203,13 @@ begin
   if TVRMLOpenGLRenderer.GLContextBumpMappingMethod(
     0, -1, High(TBumpMappingMethod), true, true, false) in
     [bmNone] + bmGLSLAll then
-    SceneOptimization := roSeparateShapeStates else
+    SceneOptimization := roSeparateShapes else
     SceneOptimization := roNone;
   Scene := TVRMLGLScene.Create(FileName, SceneOptimization);
 
   { make octree for fast RenderFrustum }
   Progress.UserInterface := ProgressNullInterface;
-  Scene.ShapeStateOctreeProgressTitle := 'Building ShapeState octree';
+  Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
   Scene.Spatial := [ssRendering];
 
   Scene.Attributes.BumpMappingMaximum := BumpMappingMaximum;

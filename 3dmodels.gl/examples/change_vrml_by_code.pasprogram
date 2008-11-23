@@ -123,7 +123,7 @@ begin
   VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
 
   Scene := TVRMLGLScene.Create('models' + PathDelim + 'boxes.x3dv',
-    roSeparateShapeStates);
+    roSeparateShapes);
   try
     TransformBox2 := Scene.RootNode.FindNodeByName(TNodeTransform_2,
       'Box2Transform', true) as TNodeTransform_2;

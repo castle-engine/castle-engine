@@ -2501,7 +2501,7 @@ initialization
       Reported by Daniel Mantione with Radeon Mobility M7,
       steps to reproduce: just run "The Castle" and enter "New Game",
       EDivByZero is raised from inside of glCallList inside
-      TVRMLFLATSCENEGL__SSS_RENDERSHAPESTATE, line 1213 of vrmlflatscenegl.pas.
+      TVRMLFLATSCENEGL__SSS_RENDERSHAPE, line 1213 of vrmlglscene.pas.
       Disabling fp exceptions fixed the problem.
 
       NVidia proprietary drivers exit with EDivByZero on the first

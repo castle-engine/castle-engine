@@ -98,8 +98,8 @@ begin
     Writeln(Scene.Info(true, true, false));
 
     { Uncomment this to get some info about scene nodes:
-    for i := 0 to Scene.ShapeStates.Count-1 do
-      with Scene.ShapeStates[i] do
+    for i := 0 to Scene.Shapes.Count-1 do
+      with Scene.Shapes[i] do
       begin
        Writeln(Format('Shape name ''%10s'' (''%20s'') : LocalBBox = %50s, BBox = %50s',
          [GeometryNode.NodeName, GeometryNode.NodeTypeName,

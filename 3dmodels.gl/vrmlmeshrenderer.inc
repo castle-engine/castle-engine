@@ -26,7 +26,7 @@
   - VRMLOpenGLRenderer unit, and TVRMLOpenGLRenderer class are already
     large and complicated. The idea of this file is to take some tasks
     from their hands. TVRMLMeshRenderer and descendants are created
-    only for the time of one RenderShapeState call, and are used
+    only for the time of one RenderShape call, and are used
     to render specific non-trivial VRML mesh nodes.
 
   - This tries to reuse and reimplement some ideas that I got
@@ -125,7 +125,7 @@ type
     { Render the whole geometry.
 
       For some details what is, and what is not yet set in OpenGL
-      before this, you have to see TVRMLOpenGLRender.RenderShapeState
+      before this, you have to see TVRMLOpenGLRender.RenderShape
       implementation.
 
       Material for VRML 1.0: currently bound material is undefined

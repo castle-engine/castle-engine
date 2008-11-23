@@ -37,8 +37,8 @@ uses
   vrmlrendereroptimization,
   vrmlscene,
   vrmlscenewaypoints,
-  vrmlshapestate,
-  vrmlshapestateoctree,
+  vrmlshape,
+  vrmlshapeoctree,
   vrmltriangleoctree,
   x3dxmltovrml
   ;
