@@ -57,13 +57,10 @@ end;
 
 type
   TFogVisibilityTester = class
-    class function Test(ShapeNum: Integer): boolean;
+    class function Test(Shape: TVRMLGLShape): boolean;
   end;
 
-var
-  FogVisibilityTester: TFogVisibilityTester = nil;
-
-class function TFogVisibilityTester.Test(ShapeNum: Integer): boolean;
+class function TFogVisibilityTester.Test(Shape: TVRMLGLShape): boolean;
 begin
   { Test for collision between two spheres.
     1st is the bounding sphere of Scene.Shapes[ShapeNum].
@@ -72,10 +69,10 @@ begin
       always multiply this by FogDistanceScaling).
     If there is no collision than we don't have to render given Shape. }
   Result := PointsDistanceSqr(
-    Scene.Shapes[ShapeNum].BoundingSphereCenter,
+    Shape.BoundingSphereCenter,
     Glw.WalkNav.CameraPos) <=
       Sqr(Scene.FogNode.FdVisibilityRange.Value * Scene.FogDistanceScaling +
-        Sqrt(Scene.Shapes[ShapeNum].BoundingSphereRadiusSqr));
+        Sqrt(Shape.BoundingSphereRadiusSqr));
 end;
 
 procedure Draw(glwin: TGLWindow);
@@ -91,7 +88,7 @@ begin
   glLoadMatrix(glw.Navigator.Matrix);
 
   if Scene.Attributes.UseFog then
-    Scene.Render(@FogVisibilityTester.Test, tgAll) else
+    Scene.Render(@TFogVisibilityTester(nil).Test, tgAll) else
     Scene.RenderFrustum(Glw.WalkNav.Frustum, tgAll);
 
   Writeln(Format('Rendered Shapes: %d / %d',
@@ -166,7 +163,6 @@ end;
 var
   //i: Integer;
   CamPos, CamDir, CamUp, GravityUp: TVector3Single;
-  Dummy: TDummy = nil;
 begin
  Parameters.CheckHigh(0);
  try
@@ -196,7 +192,7 @@ begin
   if IsEmptyBox3d(Scene.BoundingBox) then
    CameraRadius := 1.0 { any non-zero dummy value } else
    CameraRadius := Box3dAvgSize(Scene.BoundingBox) * 0.01;
-  Glw.WalkNav.OnMoveAllowed := @Dummy.MoveAllowed;
+  Glw.WalkNav.OnMoveAllowed := @TDummy(nil).MoveAllowed;
 
   { allow the scene to use it's own lights }
   Scene.Attributes.UseLights := true;
