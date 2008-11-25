@@ -70,7 +70,7 @@ uses
   SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLScene, VRMLOpenGLRenderer, GL, GLU, GLExt, BackgroundGL, KambiGLUtils,
   VRMLShapeOctree, VRMLGLHeadLight, VRMLRendererOptimization,
-  ShadowVolumes, Navigation, VRMLFields, VRMLLightSetGL;
+  ShadowVolumes, Navigation, VRMLFields, VRMLLightSetGL, VRMLShape;
 
 {$define read_interface}
 
@@ -116,15 +116,17 @@ const
   DefaultWireframeColor: TVector3Single = (0, 0, 0);
 
 type
+  TVRMLGLShape = class;
+
   { Internal for TVRMLGLScene
     @exclude }
   TRenderShape = procedure (
     LightsRenderer: TVRMLGLLightsCachingRenderer;
-    ShapeNum: Integer) of object;
+    Shape: TVRMLGLShape) of object;
   { @exclude }
   TObjectProcedure = procedure of object;
 
-  TTestShapeVisibility = function(ShapeNum: Integer): boolean
+  TTestShapeVisibility = function(Shape: TVRMLGLShape): boolean
     of object;
 
   TVRMLGLScenesList = class;
@@ -328,6 +330,26 @@ type
     { @groupEnd }
   end;
 
+  { TVRMLShape descendant for usage within TVRMLGLScene.
+    Basically, this is just the same thing as TVRMLShape, with some
+    internal information needed by TVRMLGLScene. }
+  TVRMLGLShape = class(TVRMLShape)
+  private
+    UseBlending: boolean;
+    PreparedAndUseBlendingCalculated: boolean;
+
+    { ------------------------------------------------------------
+      Private things used only when Optimization is
+      roSeparateShapes or roSeparateShapesNoTransform.
+      Prefixed with SSSX, for clarity. }
+
+    { Item is 0 if it is not initialized. }
+    SSSX_DisplayList: TGLuint;
+
+    { Private things only for RenderFrustumOctree ---------------------- }
+    RenderFrustumOctree_Visible: boolean;
+  end;
+
 type
   TTransparentGroup = ShadowVolumes.TTransparentGroup;
   TTransparentGroups = ShadowVolumes.TTransparentGroups;
@@ -381,16 +403,16 @@ type
     FOptimization: TGLRendererOptimization;
     Renderer: TVRMLOpenGLRenderer;
 
-    { This simply renders Shapes[ShapeNum], by calling
+    { This simply renders Shape, by calling
       Renderer.RenderShape. Remember to always use
       Renderer.RenderShapeLight before actually using this to render! }
-    procedure RenderShape_NoLight(ShapeNum: Integer);
+    procedure RenderShape_NoLight(Shape: TVRMLGLShape);
 
-    { This renders Shapes[ShapeNum], by calling
+    { This renders Shape, by calling
       Renderer.RenderShapeLight and Renderer.RenderShape. }
     procedure RenderShape_WithLight(
       LightsRenderer: TVRMLGLLightsCachingRenderer;
-      ShapeNum: Integer);
+      Shape: TVRMLGLShape);
 
     procedure RenderBeginSimple;
     procedure RenderEndSimple;
@@ -492,8 +514,6 @@ type
       PrepareAndCalculateUseBlendingForAll. To speed this up a little,
       we also have PreparedAndUseBlendingCalculated array. }
 
-    UseBlending: TDynBooleanArray;
-    PreparedAndUseBlendingCalculated: TDynBooleanArray;
     procedure PrepareAndCalculateUseBlendingForAll;
 
     procedure SetOptimization(const Value: TGLRendererOptimization);
@@ -516,20 +536,14 @@ type
     { Private things only for RenderFrustum ---------------------- }
 
     RenderFrustum_Frustum: PFrustum;
-    function RenderFrustum_TestShape(ShapeNum: Integer): boolean;
+    function RenderFrustum_TestShape(Shape: TVRMLGLShape): boolean;
 
     { Private things only for RenderFrustumOctree ---------------------- }
 
-    { This is private for RenderFrustumOctree, but it is created in
-      constructor of this class, destroyed in destructor and
-      resized in ChangedAll, for the sake of speed
-      (since it would be costly to create such array each time
-      you call RenderFrustumOctree). }
-    RenderFrustumOctree_Visible: TDynBooleanArray;
     RenderFrustumOctree_Frustum: PFrustum;
     procedure RenderFrustumOctree_EnumerateOctreeItem(
-      ShapeNum: Integer; CollidesForSure: boolean);
-    function RenderFrustumOctree_TestShape(ShapeNum: Integer): boolean;
+      ShapeIndex: Integer; CollidesForSure: boolean);
+    function RenderFrustumOctree_TestShape(Shape: TVRMLGLShape): boolean;
     procedure RenderFrustumOctree(const Frustum: TFrustum;
       TransparentGroup: TTransparentGroup;
       Octree: TVRMLShapeOctree;
@@ -559,11 +573,6 @@ type
       roSeparateShapes or roSeparateShapesNoTransform.
       Prefixed with SSSX, for clarity. }
 
-    { <> nil if and only if Optimization is not
-      roSeparateShapes or roSeparateShapesNoTransform.
-      Every item is 0 if it is not initialized. }
-    SSSX_DisplayLists: TDynGLuintArray;
-
     SSSX_RenderBeginDisplayList: TGLuint;
     SSSX_RenderEndDisplayList: TGLuint;
 
@@ -583,21 +592,21 @@ type
     { Use this only when Optimization = roSeparateShapes.
       It can be passed as RenderShapeProc.
 
-      This renders SSSX_DisplayLists.Items[ShapeNum]
+      This renders Shape.SSSX_DisplayList
       display list (creating it if necessary). }
     procedure SSS_RenderShape(
       LightsRenderer: TVRMLGLLightsCachingRenderer;
-      ShapeNum: Integer);
+      Shape: TVRMLGLShape);
 
     { Call this only when Optimization = roSeparateShapes and
-      SSSX_DisplayLists.Items[ShapeNum] = 0.
+      Shape.SSSX_DisplayList = 0.
 
-      Shape must be prepated earlier (by
-      Renderer.Prepare(Shapes[ShapeNum].State, this is done
+      Shape must be prepared earlier (by
+      Renderer.Prepare(Shape.State), this is done
       right now by PrepareAndCalculateUseBlendingForAll).
 
-      Then creates display list SSSX_DisplayLists.Items[ShapeNum]
-      and initializes it with contents of RenderShape_NoLight(ShapeNum).
+      Then creates display list Shape.SSSX_DisplayList
+      and initializes it with contents of RenderShape_NoLight(Shape).
       Mode GL_COMPILE is passed to glNewList, so it only creates
       given display list.
 
@@ -607,7 +616,7 @@ type
       Note that SSS_RenderShape simply calls
       SSS_PrepareShape if display list has to be created.
       Then it renders the list. }
-    procedure SSS_PrepareShape(ShapeNum: Integer);
+    procedure SSS_PrepareShape(Shape: TVRMLGLShape);
 
     { ------------------------------------------------------------
       Private things used only when Optimization is
@@ -615,8 +624,8 @@ type
 
     procedure SSSNT_RenderShape(
       LightsRenderer: TVRMLGLLightsCachingRenderer;
-      ShapeNum: Integer);
-    procedure SSSNT_PrepareShape(ShapeNum: Integer);
+      Shape: TVRMLGLShape);
+    procedure SSSNT_PrepareShape(Shape: TVRMLGLShape);
 
     { shadow things ---------------------------------------------------------- }
 
@@ -634,6 +643,8 @@ type
   protected
     procedure ChangedActiveLightNode(LightNode: TVRMLLightNode;
       Field: TVRMLField); override;
+    function CreateShape(AGeometryNode: TVRMLGeometryNode;
+      AState: TVRMLGraphTraverseState): TVRMLShape; override;
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
       AOptimization: TGLRendererOptimization;
@@ -903,7 +914,7 @@ type
       read FOptimization write SetOptimization;
 
     procedure ChangedAll; override;
-    procedure ChangedShapeFields(ShapeNum: integer;
+    procedure ChangedShapeFields(Shape: TVRMLShape;
       const TransformOnly, TextureImageChanged: boolean); override;
 
     { Render shadow volume (sides and caps) of this scene, for shadow volume
@@ -1271,7 +1282,7 @@ type
 
 implementation
 
-uses VRMLErrors, GLVersionUnit, GLImages, VRMLShape, Images, KambiLog,
+uses VRMLErrors, GLVersionUnit, GLImages, Images, KambiLog,
   Object3dAsVRML, Math, RaysWindow;
 
 {$define read_implementation}
@@ -1357,10 +1368,6 @@ begin
   FOptimization := AOptimization;
   OptimizationCreate;
 
-  RenderFrustumOctree_Visible := TDynBooleanArray.Create;
-  UseBlending := TDynBooleanArray.Create;
-  PreparedAndUseBlendingCalculated := TDynBooleanArray.Create;
-
   inherited Create(ARootNode, AOwnsRootNode);
 
   FBackgroundSkySphereRadius := 1.0;
@@ -1444,13 +1451,15 @@ begin
 
   OptimizationDestroy;
 
-  FreeAndNil(RenderFrustumOctree_Visible);
-  FreeAndNil(UseBlending);
-  FreeAndNil(PreparedAndUseBlendingCalculated);
-
   HeadlightInitialized := false;
 
   inherited;
+end;
+
+function TVRMLGLScene.CreateShape(AGeometryNode: TVRMLGeometryNode;
+  AState: TVRMLGraphTraverseState): TVRMLShape;
+begin
+  Result := TVRMLGLShape.Create(AGeometryNode, AState);
 end;
 
 procedure TVRMLGLScene.SetOptimization(const Value: TGLRendererOptimization);
@@ -1468,19 +1477,23 @@ begin
 end;
 
 procedure TVRMLGLScene.OptimizationCreate;
+var
+  SI: TVRMLShapeTreeIterator;
 begin
   case Optimization of
     roSeparateShapes, roSeparateShapesNoTransform:
       begin
-        SSSX_DisplayLists := TDynGLuintArray.Create;
         { When this is called from constructor, it's before
           inherited constructor and ChangedAll, so Shapes
-          are not initialized yet. So don't set Count yet
-          (will be set later in ChangedAll). }
+          are not initialized yet. So don't iterate over them yet
+          (will be done later in ChangedAll). }
         if Shapes <> nil then
         begin
-          SSSX_DisplayLists.Count := Shapes.Count;
-          SSSX_DisplayLists.SetAll(0);
+          SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+          try
+            while SI.GetNext do
+              TVRMLGLShape(SI.Current).SSSX_DisplayList := 0;
+          finally FreeAndNil(SI) end;
         end;
       end;
   end;
@@ -1488,7 +1501,6 @@ end;
 
 procedure TVRMLGLScene.OptimizationDestroy;
 begin
-  FreeAndNil(SSSX_DisplayLists);
 end;
 
 procedure TVRMLGLScene.CloseGLRenderer;
@@ -1500,7 +1512,7 @@ procedure TVRMLGLScene.CloseGLRenderer;
   W tym momencie sprowadza sie to do tego ze trzeba sprawdzac czy
   Renderer <> nil. }
 var
-  ShapeNum: Integer;
+  SI: TVRMLShapeTreeIterator;
   TG: TTransparentGroup;
 begin
   case Optimization of
@@ -1509,29 +1521,22 @@ begin
         glFreeDisplayList(SAAW_DisplayList[TG]);
     roSeparateShapes, roSeparateShapesNoTransform:
       begin
-        { Because CloseGLRenderer may be called after scene has changed
-          and after "inherited ChangedAll" changed Shapes.Count to
-          reflect this change but before our ChangedAll changed
-          SSSX_DisplayLists.Length (after all, CloseGLRenderer must be
-          called before changing SSSX_DisplayLists.Length, since CloseGLRenderer
-          must finalize what was left) ... so, I can't assume here that
-          Shapes.Count = SSSX_DisplayLists.Count (like I do in many
-          other places in this unit). So below I must iterate to
-          "SSSX_DisplayLists.Count - 1", *not* to "Shapes.Count - 1". }
         if Renderer <> nil then
         begin
-          for ShapeNum := 0 to SSSX_DisplayLists.Count - 1 do
-            if SSSX_DisplayLists.Items[ShapeNum] <> 0 then
-            begin
+          SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+          try
+            while SI.GetNext do
+              if TVRMLGLShape(SI.Current).SSSX_DisplayList <> 0 then
+              begin
+                if Optimization = roSeparateShapes then
+                  Renderer.Cache.Shape_DecReference(
+                    TVRMLGLShape(SI.Current).SSSX_DisplayList) else
+                  Renderer.Cache.ShapeNoTransform_DecReference(
+                    TVRMLGLShape(SI.Current).SSSX_DisplayList);
 
-              if Optimization = roSeparateShapes then
-                Renderer.Cache.Shape_DecReference(
-                  SSSX_DisplayLists.Items[ShapeNum]) else
-                Renderer.Cache.ShapeNoTransform_DecReference(
-                  SSSX_DisplayLists.Items[ShapeNum]);
-
-              SSSX_DisplayLists.Items[ShapeNum] := 0;
-            end;
+                TVRMLGLShape(SI.Current).SSSX_DisplayList := 0;
+              end;
+          finally FreeAndNil(SI) end;
 
           if SSSX_RenderBeginDisplayList <> 0 then
           begin
@@ -1553,7 +1558,11 @@ begin
     right now, so it's not implemented. }
   if Renderer <> nil then Renderer.UnprepareAll;
 
-  PreparedAndUseBlendingCalculated.SetAll(false);
+  SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+  try
+    while SI.GetNext do
+      TVRMLGLShape(SI.Current).PreparedAndUseBlendingCalculated := false;
+  finally FreeAndNil(SI) end;
 end;
 
 procedure TVRMLGLScene.CloseGL;
@@ -1562,22 +1571,17 @@ begin
   FBackgroundInvalidate;
 end;
 
-procedure TVRMLGLScene.RenderShape_NoLight(ShapeNum: Integer);
+procedure TVRMLGLScene.RenderShape_NoLight(Shape: TVRMLGLShape);
 begin
-  Renderer.RenderShape(
-    Shapes[ShapeNum].GeometryNode,
-    Shapes[ShapeNum].State);
+  Renderer.RenderShape(Shape.GeometryNode, Shape.State);
 end;
 
 procedure TVRMLGLScene.RenderShape_WithLight(
   LightsRenderer: TVRMLGLLightsCachingRenderer;
-  ShapeNum: Integer);
+  Shape: TVRMLGLShape);
 begin
-  Renderer.RenderShapeLights(LightsRenderer,
-    Shapes[ShapeNum].State);
-  Renderer.RenderShape(
-    Shapes[ShapeNum].GeometryNode,
-    Shapes[ShapeNum].State);
+  Renderer.RenderShapeLights(LightsRenderer, Shape.State);
+  Renderer.RenderShape(Shape.GeometryNode, Shape.State);
 end;
 
 procedure TVRMLGLScene.RenderBeginSimple;
@@ -1727,24 +1731,27 @@ const
 var
   LightsRenderer: TVRMLGLLightsCachingRenderer;
 
-  procedure TestRenderShapeProc(ShapeNum: Integer);
+  procedure TestRenderShapeProc(Shape: TVRMLGLShape);
   begin
     if (not Assigned(TestShapeVisibility)) or
-       TestShapeVisibility(ShapeNum) then
+       TestShapeVisibility(Shape) then
     begin
       Inc(FLastRender_RenderedShapesCount);
-      RenderShapeProc(LightsRenderer, ShapeNum);
+      RenderShapeProc(LightsRenderer, Shape);
     end;
   end;
 
   procedure RenderAllAsOpaque;
   var
-    ShapeNum: Integer;
+    SI: TVRMLShapeTreeIterator;
   begin
     if TransparentGroup in AllOrOpaque then
     begin
-      for ShapeNum := 0 to Shapes.Count - 1 do
-        TestRenderShapeProc(ShapeNum);
+      SI := TVRMLShapeTreeIterator.Create(Shapes, true);
+      try
+        while SI.GetNext do
+          TestRenderShapeProc(TVRMLGLShape(SI.Current));
+      finally FreeAndNil(SI) end;
     end;
   end;
 
@@ -1806,12 +1813,12 @@ var
   end;
 
 var
-  ShapeNum: integer;
+  SI: TVRMLShapeTreeIterator;
   TransparentObjectsExist: boolean;
   BlendingSourceFactorSet, BlendingDestinationFactorSet: TGLEnum;
 begin
   FLastRender_RenderedShapesCount := 0;
-  FLastRender_AllShapesCount := Shapes.Count;
+  FLastRender_AllShapesCount := Shapes.ShapesCount(true);{TODO-shapes: this takes a while time?}
 
   LightsRenderer := TVRMLGLLightsCachingRenderer.Create(
     Attributes.FirstGLFreeLight, Renderer.LastGLFreeLight,
@@ -1845,16 +1852,19 @@ begin
             TransparentObjectsExist := false;
 
             { draw fully opaque objects }
-            for ShapeNum := 0 to Shapes.Count - 1 do
-            begin
-              Assert(PreparedAndUseBlendingCalculated[ShapeNum]);
-              if not UseBlending.Items[ShapeNum] then
-              begin
-                if TransparentGroup in AllOrOpaque then
-                  TestRenderShapeProc(ShapeNum);
-              end else
-                TransparentObjectsExist := true;
-            end;
+            SI := TVRMLShapeTreeIterator.Create(Shapes, true);
+            try
+              while SI.GetNext do
+                begin
+                  Assert(TVRMLGLShape(SI.Current).PreparedAndUseBlendingCalculated);
+                  if not TVRMLGLShape(SI.Current).UseBlending then
+                  begin
+                    if TransparentGroup in AllOrOpaque then
+                      TestRenderShapeProc(TVRMLGLShape(SI.Current));
+                  end else
+                    TransparentObjectsExist := true;
+                end;
+            finally FreeAndNil(SI) end;
 
             { draw partially transparent objects }
             if TransparentObjectsExist and
@@ -1868,13 +1878,16 @@ begin
               BlendingDestinationFactorSet := Attributes.BlendingDestinationFactor;
               glBlendFunc(BlendingSourceFactorSet, BlendingDestinationFactorSet);
 
-              for ShapeNum := 0 to Shapes.Count - 1 do
-                if UseBlending.Items[ShapeNum] then
-                begin
-                  AdjustBlendFunc(Shapes[ShapeNum],
-                    BlendingSourceFactorSet, BlendingDestinationFactorSet);
-                  TestRenderShapeProc(ShapeNum);
-                end;
+              SI := TVRMLShapeTreeIterator.Create(Shapes, true);
+              try
+                while SI.GetNext do
+                  if TVRMLGLShape(SI.Current).UseBlending then
+                  begin
+                    AdjustBlendFunc(TVRMLGLShape(SI.Current),
+                      BlendingSourceFactorSet, BlendingDestinationFactorSet);
+                    TestRenderShapeProc(TVRMLGLShape(SI.Current));
+                  end;
+              finally FreeAndNil(SI) end;
             end;
           end else
             RenderAllAsOpaque;
@@ -1896,14 +1909,14 @@ end;
 
 procedure TVRMLGLScene.PrepareAndCalculateUseBlendingForAll;
 
-  procedure CalculateUseBlending(Index: Integer);
+  procedure CalculateUseBlending(Shape: TVRMLGLShape);
   var
     Result: boolean;
     State: TVRMLGraphTraverseState;
     Tex: TVRMLTextureNode;
     AlphaChannelType: TAlphaChannelType;
   begin
-    State := Shapes[Index].State;
+    State := Shape.State;
 
     { Note that we either render the whole geometry node with or without
       blending.
@@ -1922,7 +1935,7 @@ procedure TVRMLGLScene.PrepareAndCalculateUseBlendingForAll;
       AlphaChannelType efficiently.
     }
 
-    Result := Shapes[Index].Transparent;
+    Result := Shape.Transparent;
 
     if not Result then
     begin
@@ -1933,19 +1946,22 @@ procedure TVRMLGLScene.PrepareAndCalculateUseBlendingForAll;
         Result := AlphaChannelType = atFullRange;
     end;
 
-    UseBlending.Items[Index] := Result;
+    Shape.UseBlending := Result;
   end;
 
 var
-  I: Integer;
+  SI: TVRMLShapeTreeIterator;
 begin
-  for I := 0 to Shapes.Count - 1 do
-    if not PreparedAndUseBlendingCalculated.Items[I] then
-    begin
-      Renderer.Prepare(Shapes[I].State);
-      CalculateUseBlending(I);
-      PreparedAndUseBlendingCalculated.Items[I] := true;
-    end;
+  SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+  try
+    while SI.GetNext do
+      if not TVRMLGLShape(SI.Current).PreparedAndUseBlendingCalculated then
+      begin
+        Renderer.Prepare(TVRMLGLShape(SI.Current).State);
+        CalculateUseBlending(TVRMLGLShape(SI.Current));
+        TVRMLGLShape(SI.Current).PreparedAndUseBlendingCalculated := true;
+      end;
+  finally FreeAndNil(SI) end;
 end;
 
 procedure TVRMLGLScene.SSSX_PrepareBegin;
@@ -2052,8 +2068,7 @@ begin
     RenderEndSimple }
 end;
 
-procedure TVRMLGLScene.SSS_PrepareShape(
-  ShapeNum: Integer);
+procedure TVRMLGLScene.SSS_PrepareShape(Shape: TVRMLGLShape);
 var
   AttributesCopy: TVRMLSceneRenderingAttributes;
   StateCopy: TVRMLGraphTraverseState;
@@ -2063,150 +2078,150 @@ begin
     inside TVRMLShape --- otherwise after FreeResources([frRootNode])
     calling EnableDisplayList would be dangerous. }
 
-  if Shapes[ShapeNum].EnableDisplayList and
+  if Shape.EnableDisplayList and
      (not Renderer.Cache.Shape_IncReference_Existing(
        Attributes,
-       Shapes[ShapeNum].GeometryNode,
-       Shapes[ShapeNum].State,
+       Shape.GeometryNode,
+       Shape.State,
        FogNode, FogDistanceScaling,
-       SSSX_DisplayLists.Items[ShapeNum])) then
+       Shape.SSSX_DisplayList)) then
   begin
-    SSSX_DisplayLists.Items[ShapeNum] := glGenListsCheck(1,
+    Shape.SSSX_DisplayList := glGenListsCheck(1,
       'TVRMLGLScene.SSS_PrepareShape');
-    glNewList(SSSX_DisplayLists.Items[ShapeNum], GL_COMPILE);
+    glNewList(Shape.SSSX_DisplayList, GL_COMPILE);
     try
-      RenderShape_NoLight(ShapeNum);
+      RenderShape_NoLight(Shape);
       glEndList;
     except
       glEndList;
       { In case of trouble, make sure that
-        SSSX_DisplayLists.Items[ShapeNum]
+        Shape.SSSX_DisplayList
         resources are released and it's set to 0.
         Otherwise we would try to do Shape_DecReference later,
         but Shape_IncReference_New was not called yet
         and Shape_DecReference would fail. }
-      glFreeDisplayList(SSSX_DisplayLists.Items[ShapeNum]);
+      glFreeDisplayList(Shape.SSSX_DisplayList);
       raise;
     end;
 
     AttributesCopy := TVRMLSceneRenderingAttributes.Create;
     AttributesCopy.Assign(Attributes);
     StateCopy := TVRMLGraphTraverseState.CreateCopy(
-      Shapes[ShapeNum].State);
+      Shape.State);
     Renderer.Cache.Shape_IncReference_New(
       AttributesCopy,
-      Shapes[ShapeNum].GeometryNode,
+      Shape.GeometryNode,
       StateCopy,
       FogNode, FogDistanceScaling,
-      SSSX_DisplayLists.Items[ShapeNum]);
+      Shape.SSSX_DisplayList);
   end;
 end;
 
 procedure TVRMLGLScene.SSS_RenderShape(
   LightsRenderer: TVRMLGLLightsCachingRenderer;
-  ShapeNum: Integer);
+  Shape: TVRMLGLShape);
 begin
-  if Shapes[ShapeNum].EnableDisplayList then
+  if Shape.EnableDisplayList then
   begin
-    if SSSX_DisplayLists.Items[ShapeNum] = 0 then
-      SSS_PrepareShape(ShapeNum);
+    if Shape.SSSX_DisplayList = 0 then
+      SSS_PrepareShape(Shape);
 
     Renderer.RenderShapeLights(LightsRenderer,
-      Shapes[ShapeNum].State);
+      Shape.State);
 
-    glCallList(SSSX_DisplayLists.Items[ShapeNum]);
+    glCallList(Shape.SSSX_DisplayList);
   end else
   begin
-    Assert(SSSX_DisplayLists.Items[ShapeNum] = 0);
+    Assert(Shape.SSSX_DisplayList = 0);
     { Make sure that it's prepared. }
-    SSS_PrepareShape(ShapeNum);
+    SSS_PrepareShape(Shape);
 
     Renderer.RenderShapeLights(LightsRenderer,
-      Shapes[ShapeNum].State);
+      Shape.State);
 
-    RenderShape_NoLight(ShapeNum);
+    RenderShape_NoLight(Shape);
   end;
 end;
 
 procedure TVRMLGLScene.SSSNT_PrepareShape(
-  ShapeNum: Integer);
+  Shape: TVRMLGLShape);
 var
   AttributesCopy: TVRMLSceneRenderingAttributes;
   StateCopy: TVRMLGraphTraverseState;
 begin
-  if Shapes[ShapeNum].EnableDisplayList and
+  if Shape.EnableDisplayList and
      (not Renderer.Cache.ShapeNoTransform_IncReference_Existing(
        Attributes,
-       Shapes[ShapeNum].GeometryNode,
-       Shapes[ShapeNum].State,
+       Shape.GeometryNode,
+       Shape.State,
        FogNode, FogDistanceScaling,
-       SSSX_DisplayLists.Items[ShapeNum])) then
+       Shape.SSSX_DisplayList)) then
   begin
-    SSSX_DisplayLists.Items[ShapeNum] := glGenListsCheck(1,
+    Shape.SSSX_DisplayList := glGenListsCheck(1,
       'TVRMLGLScene.SSSNT_PrepareShape');
-    glNewList(SSSX_DisplayLists.Items[ShapeNum], GL_COMPILE);
+    glNewList(Shape.SSSX_DisplayList, GL_COMPILE);
     try
       Renderer.RenderShapeNoTransform(
-        Shapes[ShapeNum].GeometryNode,
-        Shapes[ShapeNum].State);
+        Shape.GeometryNode,
+        Shape.State);
       glEndList;
     except
       glEndList;
       { In case of trouble, make sure that
-        SSSX_DisplayLists.Items[ShapeNum]
+        Shape.SSSX_DisplayList
         resources are released and it's set to 0.
         Otherwise we would try to do Shape_DecReference later,
         but Shape_IncReference_New was not called yet
         and Shape_DecReference would fail. }
-      glFreeDisplayList(SSSX_DisplayLists.Items[ShapeNum]);
+      glFreeDisplayList(Shape.SSSX_DisplayList);
       raise;
     end;
 
     AttributesCopy := TVRMLSceneRenderingAttributes.Create;
     AttributesCopy.Assign(Attributes);
     StateCopy := TVRMLGraphTraverseState.CreateCopy(
-      Shapes[ShapeNum].State);
+      Shape.State);
     Renderer.Cache.ShapeNoTransform_IncReference_New(
       AttributesCopy,
-      Shapes[ShapeNum].GeometryNode,
+      Shape.GeometryNode,
       StateCopy,
       FogNode, FogDistanceScaling,
-      SSSX_DisplayLists.Items[ShapeNum]);
+      Shape.SSSX_DisplayList);
   end;
 end;
 
 procedure TVRMLGLScene.SSSNT_RenderShape(
   LightsRenderer: TVRMLGLLightsCachingRenderer;
-  ShapeNum: Integer);
+  Shape: TVRMLGLShape);
 begin
-  if Shapes[ShapeNum].EnableDisplayList then
+  if Shape.EnableDisplayList then
   begin
-    if SSSX_DisplayLists.Items[ShapeNum] = 0 then
-      SSSNT_PrepareShape(ShapeNum);
+    if Shape.SSSX_DisplayList = 0 then
+      SSSNT_PrepareShape(Shape);
 
     Renderer.RenderShapeLights(LightsRenderer,
-      Shapes[ShapeNum].State);
+      Shape.State);
 
     Renderer.RenderShapeBegin(
-      Shapes[ShapeNum].GeometryNode,
-      Shapes[ShapeNum].State);
+      Shape.GeometryNode,
+      Shape.State);
     try
-      glCallList(SSSX_DisplayLists.Items[ShapeNum]);
+      glCallList(Shape.SSSX_DisplayList);
     finally
       Renderer.RenderShapeEnd(
-        Shapes[ShapeNum].GeometryNode,
-        Shapes[ShapeNum].State);
+        Shape.GeometryNode,
+        Shape.State);
     end;
   end else
   begin
-    Assert(SSSX_DisplayLists.Items[ShapeNum] = 0);
+    Assert(Shape.SSSX_DisplayList = 0);
     { Make sure that it's prepared. }
-    SSSNT_PrepareShape(ShapeNum);
+    SSSNT_PrepareShape(Shape);
 
     Renderer.RenderShapeLights(LightsRenderer,
-      Shapes[ShapeNum].State);
+      Shape.State);
 
-    RenderShape_NoLight(ShapeNum);
+    RenderShape_NoLight(Shape);
   end;
 end;
 
@@ -2259,7 +2274,7 @@ begin
     { In this case I must directly set here LastRender_Xxx variables.
       TODO: this is wrong when TransparentGroup <> tgAll, then something
       < Shapes.Count should be used. }
-    FLastRender_AllShapesCount := Shapes.Count;
+    FLastRender_AllShapesCount := Shapes.ShapesCount(true);{TODO-shapes: todo calc this takes a while now}
     FLastRender_RenderedShapesCount := FLastRender_AllShapesCount;
   end;
 
@@ -2314,7 +2329,7 @@ procedure TVRMLGLScene.PrepareRender(
   TransparentGroups: TTransparentGroups;
   Options: TPrepareRenderOptions);
 var
-  ShapeNum: Integer;
+  SI: TVRMLShapeTreeIterator;
   TG: TTransparentGroup;
 begin
   CheckFogChanged;
@@ -2336,19 +2351,20 @@ begin
       begin
         PrepareAndCalculateUseBlendingForAll;
 
-        { Build display lists (if needed) for begin/end and all shape states. }
+        { Build display lists (if needed) for begin/end and all shapes. }
         if SSSX_RenderBeginDisplayList = 0 then
           SSSX_PrepareBegin;
         try
-          for ShapeNum := 0 to Shapes.Count - 1 do
-          begin
-            if SSSX_DisplayLists.Items[ShapeNum] = 0 then
-            begin
-              if Optimization = roSeparateShapes then
-                SSS_PrepareShape(ShapeNum) else
-                SSSNT_PrepareShape(ShapeNum);
-            end;
-          end;
+          SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+          try
+            while SI.GetNext do
+              if TVRMLGLShape(SI.Current).SSSX_DisplayList = 0 then
+              begin
+                if Optimization = roSeparateShapes then
+                  SSS_PrepareShape(TVRMLGLShape(SI.Current)) else
+                  SSSNT_PrepareShape(TVRMLGLShape(SI.Current));
+              end;
+          finally FreeAndNil(SI) end;
         finally
           if SSSX_RenderEndDisplayList = 0 then
             SSSX_PrepareEnd;
@@ -2494,40 +2510,28 @@ end;
 
 procedure TVRMLGLScene.ChangedAll;
 begin
-  inherited;
+  { Although we don't really want to lose our connection with OpenGL
+    context, in fact that's the only sensible thing to do now: since
+    everything possibly changed, we have to unprepare all now,
+    and invalidate all display lists.
 
-  { zmienily sie wskazniki na jakies obiekty,
-    wiec musimy zrobic pelne UnprepareAll,
-    mimo ze nie zalezy nam na utracie polaczenia z danym kontekstem OpenGL'a.
-    Podobnie SAAW_DisplayList lub SSSX_DisplayLists sa juz nieaktualne
-    wiec ich tez musimy sie pozbyc. Wiec trzeba wywolac po prostu CloseGL. }
+    Note that we do this before calling inherited "ChangedAll",
+    as inherited will actually destroy and rebuild Shapes tree
+    (clearing per-shape information about referenced display lists etc.). }
   CloseGL;
 
-  case Optimization of
-    roSeparateShapes, roSeparateShapesNoTransform:
-      begin
-        SSSX_DisplayLists.Count := Shapes.Count;
+  inherited;
 
-        { Yeah, in previous CloseGL call we also resetted all
-          SSSX_DisplayLists items to 0
-          (as a side-effect of calling glFreeDisplayList),
-          but previous statement "SSSX_DisplayLists.Count := ..."
-          possibly enlarged SSSX_DisplayLists.Count,
-          so we must now make sure that all new items are inited to 0. }
+  { inherited created new shapes anyway, so they are already
+    initialized as required:
 
-        SSSX_DisplayLists.SetAll(0);
-      end;
-  end;
+    for roSeparateShapes, roSeparateShapesNoTransform:
+    they have SSSX_DisplayList = 0.
 
-  RenderFrustumOctree_Visible.Count := Shapes.Count;
-
-  UseBlending.Count := Shapes.Count;
-
-  PreparedAndUseBlendingCalculated.Count := Shapes.Count;
-  PreparedAndUseBlendingCalculated.SetAll(false);
+    they have PreparedAndUseBlendingCalculated = false. }
 end;
 
-procedure TVRMLGLScene.ChangedShapeFields(ShapeNum: integer;
+procedure TVRMLGLScene.ChangedShapeFields(Shape: TVRMLShape;
   const TransformOnly, TextureImageChanged: boolean);
 var
   TG: TTransparentGroup;
@@ -2561,21 +2565,21 @@ begin
       for TG := Low(TG) to High(TG) do
         glFreeDisplayList(SAAW_DisplayList[TG]);
     roSeparateShapes, roSeparateShapesNoTransform:
-      if SSSX_DisplayLists.Items[ShapeNum] <> 0 then
+      if TVRMLGLShape(Shape).SSSX_DisplayList <> 0 then
       begin
         if Optimization = roSeparateShapes then
           Renderer.Cache.Shape_DecReference(
-            SSSX_DisplayLists.Items[ShapeNum]) else
+            TVRMLGLShape(Shape).SSSX_DisplayList) else
           Renderer.Cache.ShapeNoTransform_DecReference(
-            SSSX_DisplayLists.Items[ShapeNum]);
-        SSSX_DisplayLists.Items[ShapeNum] := 0;
+            TVRMLGLShape(Shape).SSSX_DisplayList);
+        TVRMLGLShape(Shape).SSSX_DisplayList := 0;
       end;
   end;
 
   if TextureImageChanged then
   begin
-    Renderer.Unprepare(Shapes[ShapeNum].State.Texture);
-    PreparedAndUseBlendingCalculated.Items[ShapeNum] := false;
+    Renderer.Unprepare(Shape.State.Texture);
+    TVRMLGLShape(Shape).PreparedAndUseBlendingCalculated := false;
   end;
 end;
 
@@ -3486,27 +3490,26 @@ end;
 { RenderFrustum and helpers ---------------------------------------- }
 
 function TVRMLGLScene.RenderFrustum_TestShape(
-  ShapeNum: Integer): boolean;
+  Shape: TVRMLGLShape): boolean;
 
 {$ifdef RENDER_FRUSTUM_USES_BOUNDING_SPHERE}
 begin
- Result := Shapes[ShapeNum].
-   FrustumBoundingSphereCollisionPossibleSimple(RenderFrustum_Frustum^);
+ Result := Shape.FrustumBoundingSphereCollisionPossibleSimple(RenderFrustum_Frustum^);
 {$endif}
 
 {$ifdef RENDER_FRUSTUM_USES_BOUNDING_BOX}
 begin
  Result := FrustumBox3dCollisionPossibleSimple(RenderFrustum_Frustum^,
-   Shapes[ShapeNum].BoundingBox);
+   Shape.BoundingBox);
 {$endif}
 
 {$ifdef RENDER_FRUSTUM_USES_BOTH}
 begin
  Result :=
-   Shapes[ShapeNum].FrustumBoundingSphereCollisionPossibleSimple(
+   Shape.FrustumBoundingSphereCollisionPossibleSimple(
      RenderFrustum_Frustum^) and
    FrustumBox3dCollisionPossibleSimple(RenderFrustum_Frustum^,
-     Shapes[ShapeNum].BoundingBox);
+     Shape.BoundingBox);
 {$endif}
 
 end;
@@ -3531,39 +3534,44 @@ end;
 { RenderFrustumOctree ---------------------------------------- }
 
 function TVRMLGLScene.RenderFrustumOctree_TestShape(
-  ShapeNum: Integer): boolean;
+  Shape: TVRMLGLShape): boolean;
 begin
-  Result := RenderFrustumOctree_Visible.Items[ShapeNum];
+  Result := Shape.RenderFrustumOctree_Visible;
 end;
 
 procedure TVRMLGLScene.RenderFrustumOctree_EnumerateOctreeItem(
-  ShapeNum: Integer; CollidesForSure: boolean);
+  ShapeIndex: Integer; CollidesForSure: boolean);
+var
+  Shape: TVRMLGLShape;
 
 {$ifdef RENDER_FRUSTUM_OCTREE_NO_BONUS_CHECKS}
 begin
+  Shape := TVRMLGLShape(OctreeRendering.ShapesList[ShapeIndex]);
+
   { This implementation is fast, but may not eliminate as many
     Shapes from rendering pipeline as it's possible
     (so overall speed may be worse) : }
-
-  RenderFrustumOctree_Visible.Items[ShapeNum] := true;
+  Shape.RenderFrustumOctree_Visible := true;
 {$endif}
 
 {$ifdef RENDER_FRUSTUM_OCTREE_BONUS_SPHERE_CHECK}
 begin
+  Shape := TVRMLGLShape(OctreeRendering.ShapesList[ShapeIndex]);
+
   { Another implementation: if CollidesForSure = false
     then checks shapeshate's bounding sphere versus frustum before
     setting
-      RenderFrustumOctree_Visible.Items[ShapeNum] := true
+      Shape.RenderFrustumOctree_Visible := true
     This means that it wastes some time on doing
     FrustumSphereCollisionPossibleSimple but it may be able
     to eliminate more shapes from rendering pipeline,
     so overall speed may be better. }
 
-  if (not RenderFrustumOctree_Visible.Items[ShapeNum]) and
+  if (not Shape.RenderFrustumOctree_Visible) and
      ( CollidesForSure or
-       Shapes[ShapeNum].FrustumBoundingSphereCollisionPossibleSimple
+       Shape.FrustumBoundingSphereCollisionPossibleSimple
          (RenderFrustumOctree_Frustum^) ) then
-    RenderFrustumOctree_Visible.Items[ShapeNum] := true;
+    Shape.RenderFrustumOctree_Visible := true;
 {$endif}
 
 { Other implementations are also possible :
@@ -3581,12 +3589,19 @@ procedure TVRMLGLScene.RenderFrustumOctree(const Frustum: TFrustum;
   TransparentGroup: TTransparentGroup;
   Octree: TVRMLShapeOctree;
   LightRenderEvent: TVRMLLightRenderEvent);
+var
+  SI: TVRMLShapeTreeIterator;
 begin
   if Optimization <> roSceneAsAWhole then
   begin
     RenderFrustumOctree_Frustum := @Frustum;
 
-    RenderFrustumOctree_Visible.SetAll(false);
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+        TVRMLGLShape(SI.Current).RenderFrustumOctree_Visible := false;
+    finally FreeAndNil(SI) end;
+
     Octree.EnumerateCollidingOctreeItems(Frustum,
       {$ifdef FPC_OBJFPC} @ {$endif} RenderFrustumOctree_EnumerateOctreeItem);
     Render({$ifdef FPC_OBJFPC} @ {$endif} RenderFrustumOctree_TestShape,

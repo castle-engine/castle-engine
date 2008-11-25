@@ -52,6 +52,57 @@ type
     ssTriangles);
   TVRMLShapeSpatialStructures = set of TVRMLShapeSpatialStructure;
 
+  TVRMLShape = class;
+
+  TShapeTraverseFunc = procedure (Shape: TVRMLShape) of object;
+
+  { Tree of VRML shapes.
+
+    Although VRML model already provides the tree (graph of VRML nodes),
+    it's a little too complicated to be used at each render call.
+    It's especially true for VRML <= 1.0 (where properties may "leak out"
+    from one node to the next), VRML >= 2.0 cleaned a lot here but still
+    some work must be done when traversing (like accumulating transformations).
+
+    So we process VRML tree to this tree, which is much simpler tree with
+    all the geometry nodes (TVRMLGeometryNode) along with their state
+    (TVRMLGraphTraverseState) as leafs (TVRMLShape). }
+  TVRMLShapeTree = class
+  public
+    procedure Traverse(Func: TShapeTraverseFunc;
+      OnlyActive: boolean); virtual; abstract;
+
+    function ShapesCount(OnlyActive: boolean): Cardinal; virtual; abstract;
+
+    { Look for shape with GeometryNode.NodeName = GeometryNodeName.
+      Returns @nil if not found. }
+    function FindGeometryNodeName(const GeometryNodeName: string;
+      OnlyActive: boolean = false): TVRMLShape;
+
+    { Look for shae with GeometryNode that has a parent named ParentNodeName.
+      Parent is searched by GeometryNode.TryFindParentNodeByName.
+      Returns @nil if not found. }
+    function FindShapeWithParentNamed(const ParentNodeName: string;
+      OnlyActive: boolean = false): TVRMLShape;
+
+    { Assuming that the model was created by Blender VRML 1 or 2 exporter,
+      this searches for a first shape that was created from Blender
+      mesh named BlenderMeshName.
+
+      It follows the logic of two Blender exporters.
+
+      If it doesn't find matching node, returns nil. Otherwise, returns
+      the matching shape.
+
+      Note that FindBlenderObject would be usually more sensible
+      (since there can be only one shape from given Blender object),
+      but Blender VRML 1.0 exporter doesn't export anywhere Blender object
+      name. So when working with VRML 1.0, you're stuck with looking
+      for mesh names. }
+    function FindBlenderMesh(const BlenderMeshName: string;
+      OnlyActive: boolean = false): TVRMLShape;
+  end;
+
   { Shape is a geometry node @link(GeometryNode) instance and it's
     @link(State). For VRML >= 2.0, this usually corresponds to
     a single instance of actual VRML @code(Shape) node.
@@ -72,7 +123,7 @@ type
     of items in @link(TVRMLScene.Shapes).
     All you have to do is to call appropriate @code(Changed*)
     methods of @link(TVRMLScene). }
-  TVRMLShape = class
+  TVRMLShape = class(TVRMLShapeTree)
   private
     FLocalBoundingBox: TBox3d;
     FBoundingBox: TBox3d;
@@ -253,39 +304,70 @@ type
       transparent values (in VRML 1.0, material node has actually many
       material values) have transparency > 0 (epsilon). }
     function Transparent: boolean;
+
+    procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
+    function ShapesCount(OnlyActive: boolean): Cardinal; override;
+  end;
+
+  TObjectsListItem_2 = TVRMLShapeTree;
+  {$I objectslist_2.inc}
+  TVRMLShapeTreesList = TObjectsList_2;
+
+  { Internal (non-leaf) node of the TVRMLShapeTree.
+    This is practically just a list of other children
+    (other TVRMLShapeTree items).
+
+    All children are considered "active" by this class.
+
+    This class owns it's children TVRMLShapeTree.
+    Since TVRMLShapeTree is a simple tree structure, there are no duplicates
+    possible, that is given TVRMLShapeTree instance may be within only
+    one parent TVRMLShapeTree. (VRML node's parenting mechanism is more
+    complicated than this, because of DEF/USE mechanism.) }
+  TVRMLShapeTreeGroup = class(TVRMLShapeTree)
+  private
+    FChildren: TVRMLShapeTreesList;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
+    function ShapesCount(OnlyActive: boolean): Cardinal; override;
+
+    property Children: TVRMLShapeTreesList read FChildren;
+  end;
+
+  TVRMLShapesList = class;
+
+  { Iterates over all TVRMLShape items that would be enumerated by
+    Tree.Traverse. Sometimes it's easier to write code using this iterator
+    than to create callbacks and use TVRMLShapeTree.Traverse. }
+  TVRMLShapeTreeIterator = class
+  private
+    { TODO-shapes: later more efficient implementation will be made,
+      for now we just traverse all and place result into the list
+      in constructor. }
+    List: TVRMLShapesList;
+    CurrentIndex: Integer;
+    FCurrent: TVRMLShape;
+  public
+    constructor Create(Tree: TVRMLShapeTree; OnlyActive: boolean);
+    destructor Destroy; override;
+    function GetNext: boolean;
+    property Current: TVRMLShape read FCurrent;
   end;
 
   TObjectsListItem_1 = TVRMLShape;
   {$I objectslist_1.inc}
   TVRMLShapesList = class(TObjectsList_1)
+  private
+    procedure AddToList(Shape: TVRMLShape);
   public
-    { szuka elementu ktorego GeometryNode.NodeName = GeometryNodeName.
-      Zwraca jego indeks lub -1 jesli nie znalazl. }
-    function IndexOfGeometryNodeName(const GeometryNodeName: string): integer;
+    constructor Create;
 
-    { szuka elementu ktorego GeometryNode ma rodzica o nazwie ParentNodeName,
-      rodzic taki jest szukany metoda GeometryNode.TryFindParentNodeByName. }
-    function IndexOfShapeWithParentNamed(const ParentNodeName: string): integer;
-
-    { Assuming that the model was created by Blender VRML 1 or 2 exporter,
-      this searches for a first shape that was created from Blender
-      mesh named BlenderMeshName.
-
-      It follows the logic of two Blender exporters.
-
-      If it doesn't find matching node, returns -1. Otherwise, an index
-      of matching shape.
-
-      Note that IndexOfBlenderObject would be usually more sensible
-      (since there can be only one shape from given Blender object),
-      but Blender VRML 1.0 exporter doesn't export anywhere Blender object
-      name. So when working with VRML 1.0, you're stuck with looking
-      for mesh names. }
-    function IndexOfBlenderMesh(const BlenderMeshName: string): Integer;
+    { Constructor that initializes list contents by traversing given tree. }
+    constructor Create(Tree: TVRMLShapeTree; OnlyActive: boolean);
   end;
-
-  { TODO: this will be a tree very soon, for now it's a flat list. }
-  TVRMLShapeTree = TVRMLShapesList;
 
 {$undef read_interface}
 
@@ -295,7 +377,66 @@ uses ProgressUnit, VRMLOctreeItems;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
+{$I objectslist_2.inc}
 {$I macprecalcvaluereturn.inc}
+
+{ TVRMLShapeTree ------------------------------------------------------------ }
+
+function TVRMLShapeTree.FindGeometryNodeName(
+  const GeometryNodeName: string; OnlyActive: boolean): TVRMLShape;
+var
+  SI: TVRMLShapeTreeIterator;
+begin
+  SI := TVRMLShapeTreeIterator.Create(Self, OnlyActive);
+  try
+    while SI.GetNext do
+    begin
+      Result := SI.Current;
+      if Result.GeometryNode.NodeName = GeometryNodeName then Exit;
+    end;
+  finally FreeAndNil(SI) end;
+  Result := nil;
+end;
+
+function TVRMLShapeTree.FindShapeWithParentNamed(
+  const ParentNodeName: string; OnlyActive: boolean): TVRMLShape;
+var
+  SI: TVRMLShapeTreeIterator;
+begin
+  SI := TVRMLShapeTreeIterator.Create(Self, OnlyActive);
+  try
+    while SI.GetNext do
+    begin
+      Result := SI.Current;
+      if Result.GeometryNode.TryFindParentByName(ParentNodeName) <> nil then Exit;
+    end;
+  finally FreeAndNil(SI) end;
+  Result := nil;
+end;
+
+function TVRMLShapeTree.FindBlenderMesh(
+  const BlenderMeshName: string; OnlyActive: boolean): TVRMLShape;
+var
+  SI: TVRMLShapeTreeIterator;
+begin
+  SI := TVRMLShapeTreeIterator.Create(Self, OnlyActive);
+  try
+    while SI.GetNext do
+    begin
+      Result := SI.Current;
+
+      if { detect Blender meshes generated by VRML 1 exporter }
+         ( (Result.GeometryNode is TVRMLGeometryNode_1) and
+           (Result.GeometryNode.TryFindDirectParentByName(BlenderMeshName) <> nil) ) or
+         { detect Blender meshes generated by VRML 2 (aka 97) exporter }
+         ( (Result.State.ParentShape <> nil) and
+           (Result.State.ParentShape.TryFindDirectParentByName(
+             'ME_' + BlenderMeshName) <> nil) ) then
+        Exit;
+    end;
+  finally FreeAndNil(SI) end;
+  Result := nil;
+end;
 
 { TVRMLShape -------------------------------------------------------------- }
 
@@ -524,36 +665,86 @@ begin
     Result := State.LastNodes.Material.AllMaterialsTransparent;
 end;
 
-{ TVRMLShapeTree ------------------------------------------------------- }
-
-function TVRMLShapeTree.IndexOfGeometryNodeName(const GeometryNodeName: string): integer;
+procedure TVRMLShape.Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean);
 begin
- for result := 0 to Count-1 do
-  if Items[result].GeometryNode.NodeName = GeometryNodeName then exit;
- result := -1;
+  Func(Self);
 end;
 
-function TVRMLShapeTree.IndexOfShapeWithParentNamed(const ParentNodeName: string): integer;
+function TVRMLShape.ShapesCount(OnlyActive: boolean): Cardinal;
 begin
- for result := 0 to Count-1 do
-  if Items[result].GeometryNode.TryFindParentByName(ParentNodeName)<>nil then exit;
- result := -1;
+  Result := 1;
 end;
 
-function TVRMLShapeTree.IndexOfBlenderMesh(
-  const BlenderMeshName: string): Integer;
-begin
-  for Result := 0 to Count - 1 do
-    if { detect Blender meshes generated by VRML 1 exporter }
-       ( (Items[Result].GeometryNode is TVRMLGeometryNode_1) and
-         (Items[Result].GeometryNode.TryFindDirectParentByName(BlenderMeshName) <> nil) ) or
-       { detect Blender meshes generated by VRML 2 (aka 97) exporter }
-       ( (Items[Result].State.ParentShape <> nil) and
-         (Items[Result].State.ParentShape.TryFindDirectParentByName(
-           'ME_' + BlenderMeshName) <> nil) ) then
-      Exit;
+{ TVRMLShapeTreeGroup -------------------------------------------------------- }
 
-  Result := -1;
+constructor TVRMLShapeTreeGroup.Create;
+begin
+  inherited;
+  FChildren := TVRMLShapeTreesList.Create;
+end;
+
+destructor TVRMLShapeTreeGroup.Destroy;
+begin
+  FreeWithContentsAndNil(FChildren);
+  inherited;
+end;
+
+procedure TVRMLShapeTreeGroup.Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean);
+var
+  I: Integer;
+begin
+  for I := 0 to FChildren.Count - 1 do
+    FChildren.Items[I].Traverse(Func, OnlyActive);
+end;
+
+function TVRMLShapeTreeGroup.ShapesCount(OnlyActive: boolean): Cardinal;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to FChildren.Count - 1 do
+    Result += FChildren.Items[I].ShapesCount(OnlyActive);
+end;
+
+{ TVRMLShapeTreeIterator ----------------------------------------------------- }
+
+constructor TVRMLShapeTreeIterator.Create(Tree: TVRMLShapeTree; OnlyActive: boolean);
+begin
+  inherited Create;
+  List := TVRMLShapesList.Create(Tree, OnlyActive);
+  CurrentIndex := -1;
+end;
+
+destructor TVRMLShapeTreeIterator.Destroy;
+begin
+  FreeAndNil(List);
+  inherited;
+end;
+
+function TVRMLShapeTreeIterator.GetNext: boolean;
+begin
+  Inc(CurrentIndex);
+  Result := CurrentIndex < List.Count;
+  if Result then
+    FCurrent := List.Items[CurrentIndex];
+end;
+
+{ TVRMLShapesList ------------------------------------------------------- }
+
+constructor TVRMLShapesList.Create;
+begin
+  inherited;
+end;
+
+constructor TVRMLShapesList.Create(Tree: TVRMLShapeTree; OnlyActive: boolean);
+begin
+  Create;
+  Tree.Traverse(@AddToList, OnlyActive);
+end;
+
+procedure TVRMLShapesList.AddToList(Shape: TVRMLShape);
+begin
+  Add(Shape);
 end;
 
 end.

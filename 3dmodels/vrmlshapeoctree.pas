@@ -98,14 +98,20 @@ type
   TVRMLShapeOctree = class(TVRMLItemsOctree)
   private
     FShapesList: TVRMLShapesList;
+    FOwnsShapesList: boolean;
   protected
     function StatisticsBonus(
       const LeavesCount, ItemsCount, NonLeafNodesCount: Int64): string; override;
   public
     constructor Create(AMaxDepth, ALeafCapacity: Integer;
-      const ARootBox: TBox3d; AShapesList: TVRMLShapesList);
+      const ARootBox: TBox3d; AShapesList: TVRMLShapesList;
+      AOwnsShapesList: boolean);
+
+    destructor Destroy; override;
+
     function TreeRoot: TVRMLShapeOctreeNode;
     property ShapesList: TVRMLShapesList read FShapesList;
+    property OwnsShapesList: boolean read FOwnsShapesList;
   end;
 
 implementation
@@ -369,11 +375,19 @@ end;
 { TVRMLShapeOctree ------------------------------------------ }
 
 constructor TVRMLShapeOctree.Create(AMaxDepth, ALeafCapacity: Integer;
-  const ARootBox: TBox3d; AShapesList: TVRMLShapesList);
+  const ARootBox: TBox3d; AShapesList: TVRMLShapesList;
+  AOwnsShapesList: boolean);
 begin
- inherited Create(AMaxDepth, ALeafCapacity, ARootBox,
-   TVRMLShapeOctreeNode, true);
- FShapesList := AShapesList;
+  inherited Create(AMaxDepth, ALeafCapacity, ARootBox,
+    TVRMLShapeOctreeNode, true);
+  FShapesList := AShapesList;
+  FOwnsShapesList := AOwnsShapesList;
+end;
+
+destructor TVRMLShapeOctree.Destroy;
+begin
+  if OwnsShapesList then FreeAndNil(FShapesList);
+  inherited;
 end;
 
 function TVRMLShapeOctree.TreeRoot: TVRMLShapeOctreeNode;

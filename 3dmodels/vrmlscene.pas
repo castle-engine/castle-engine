@@ -647,8 +647,7 @@ type
       const Collidable: boolean): TVRMLTriangleOctree;
     function CreateShapeOctree(AMaxDepth, ALeafCapacity: integer;
       const ProgressTitle: string;
-      const Collidable: boolean;
-      const SetShapeSpatial: boolean = false): TVRMLShapeOctree;
+      const Collidable: boolean): TVRMLShapeOctree;
     { @groupEnd }
 
     TriangleOctreeToAdd: TVRMLTriangleOctree;
@@ -687,6 +686,19 @@ type
       active part of VRML graph. }
     procedure ChangedActiveLightNode(LightNode: TVRMLLightNode;
       Field: TVRMLField); virtual;
+
+    { Create TVRMLShape (or descendant) instance suitable for this
+      TVRMLScene descendant. In this class, this simply creates new
+      TVRMLShape instance. If you make a descendant of TVRMLScene,
+      you may need to store some per-shape information, and then it may
+      be useful to have your own TVRMLShape descendant to carry this information.
+      So you can override this to create your own descendant, and then
+      you're sure that all leafs within Shapes tree are created using
+      this.
+
+      Example: TVRMLGLScene uses this to create TVRMLGLShape. }
+    function CreateShape(AGeometryNode: TVRMLGeometryNode;
+      AState: TVRMLGraphTraverseState): TVRMLShape; virtual;
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
     destructor Destroy; override;
@@ -723,11 +735,11 @@ type
       This causes recalculation of all things dependent on RootNode.
       It's more optimal to use one of the other Changed* methods, when possible.
 
-      Call ChangedShapeFields(ShapeNum, TransformOnly, TextureImageChanged)
-      if you only changed
-      values of fields within ShapeList[ShapeNum].GeometryNode,
-      ShapeList[ShapeNum].State.Last*. (And you're sure that
-      these nodes are not shared by other shape+states using VRML DEF/USE
+      Call ChangedShapeFields(Shape, TransformOnly, TextureImageChanged)
+      if Shape is in our @link(Shapes) tree
+      and you only changed values of fields within Shape.GeometryNode,
+      Shape.State.Last*. (And you're sure that
+      these nodes are not shared by other shapes using VRML DEF/USE
       mechanism.)
 
       Set TransformOnly = @true if you know that you changed
@@ -768,7 +780,7 @@ type
 
       @groupBegin }
     procedure ChangedAll; virtual;
-    procedure ChangedShapeFields(ShapeNum: Integer;
+    procedure ChangedShapeFields(Shape: TVRMLShape;
       const TransformOnly, TextureImageChanged: boolean); virtual;
     procedure ChangedFields(Node: TVRMLNode; FieldOrEvent: TVRMLFieldOrEvent);
     procedure ChangedField(Field: TVRMLField);
@@ -1692,7 +1704,7 @@ begin
  FShapeOctreeMaxDepth := DefShapeOctreeMaxDepth;
  FShapeOctreeLeafCapacity := DefShapeOctreeLeafCapacity;
 
- FShapes := TVRMLShapeTree.Create;
+ FShapes := TVRMLShapeTreeGroup.Create;
 
  FBackgroundStack := TVRMLBindableStack.Create(Self);
  FFogStack := TVRMLBindableStack.Create(Self);
@@ -1725,7 +1737,7 @@ begin
  FreeAndNil(FNavigationInfoStack);
  FreeAndNil(FViewpointStack);
 
- Shapes.FreeWithContents;
+ FreeAndNil(Shapes);
 
  FreeAndNil(FOctreeRendering);
  FreeAndNil(FOctreeDynamicCollisions);
@@ -1737,27 +1749,39 @@ begin
 end;
 
 function TVRMLScene.CalculateBoundingBox: TBox3d;
-var i: integer;
+var
+  SI: TVRMLShapeTreeIterator;
 begin
- Result := EmptyBox3d;
- for i := 0 to Shapes.Count-1 do
-  Box3dSumTo1st(Result, Shapes[i].BoundingBox);
+  Result := EmptyBox3d;
+  SI := TVRMLShapeTreeIterator.Create(Shapes, true);
+  try
+    while SI.GetNext do
+      Box3dSumTo1st(Result, SI.Current.BoundingBox);
+  finally FreeAndNil(SI) end;
 end;
 
 function TVRMLScene.CalculateVerticesCount(OverTriangulate: boolean): Cardinal;
-var i: integer;
+var
+  SI: TVRMLShapeTreeIterator;
 begin
- Result := 0;
- for i := 0 to Shapes.Count-1 do
-  Result += Shapes[i].VerticesCount(OverTriangulate);
+  Result := 0;
+  SI := TVRMLShapeTreeIterator.Create(Shapes, true);
+  try
+    while SI.GetNext do
+      Result += SI.Current.VerticesCount(OverTriangulate);
+  finally FreeAndNil(SI) end;
 end;
 
 function TVRMLScene.CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
-var i: integer;
+var
+  SI: TVRMLShapeTreeIterator;
 begin
- Result := 0;
- for i := 0 to Shapes.Count-1 do
-  Result += Shapes[i].TrianglesCount(OverTriangulate);
+  Result := 0;
+  SI := TVRMLShapeTreeIterator.Create(Shapes, true);
+  try
+    while SI.GetNext do
+      Result += SI.Current.TrianglesCount(OverTriangulate);
+  finally FreeAndNil(SI) end;
 end;
 
 function TVRMLScene.BoundingBox: TBox3d;
@@ -1798,6 +1822,12 @@ begin
  end;
 end;
 
+function TVRMLScene.CreateShape(AGeometryNode: TVRMLGeometryNode;
+  AState: TVRMLGraphTraverseState): TVRMLShape;
+begin
+  Result := TVRMLShape.Create(AGeometryNode, AState);
+end;
+
 procedure TVRMLScene.ChangedAll_Traverse(
   Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
 var
@@ -1806,9 +1836,11 @@ begin
   if Node is TVRMLGeometryNode then
   begin
     { Add shape to Shapes }
-    Shape := TVRMLShape.Create(Node as TVRMLGeometryNode,
+    Shape := CreateShape(Node as TVRMLGeometryNode,
       TVRMLGraphTraverseState.CreateCopy(State));
-    Shapes.Add(Shape);
+    { TODO-shapes: for now, this just assumes that Shapes is TVRMLShapeTreeGroup
+      with TVRMLShape items. I.e., Shapes is just a list for now. }
+    (Shapes as TVRMLShapeTreeGroup).Children.Add(Shape);
 
     { TODO: this has to be improved to handle collidable but not visible
       geometry (Collision.proxy). }
@@ -1855,10 +1887,13 @@ procedure TVRMLScene.ChangedAll;
 
     procedure AddLightEverywhere(const L: TActiveLight);
     var
-      J: Integer;
+      SI: TVRMLShapeTreeIterator;
     begin
-      for J := 0 to Shapes.Count - 1 do
-        Shapes[J].State.VRML2ActiveLights.AppendItem(L);
+      SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+      try
+        while SI.GetNext do
+          SI.Current.State.VRML2ActiveLights.AppendItem(L);
+      finally FreeAndNil(SI) end;
     end;
 
     { Add L everywhere within given Radius from Location.
@@ -1868,12 +1903,14 @@ procedure TVRMLScene.ChangedAll;
     procedure AddLightRadius(const L: TActiveLight;
       const Location: TVector3Single; const Radius: Single);
     var
-      J: Integer;
+      SI: TVRMLShapeTreeIterator;
     begin
-      for J := 0 to Shapes.Count - 1 do
-        if Box3dSphereCollision(Shapes[J].BoundingBox,
-             Location, Radius) then
-          Shapes[J].State.VRML2ActiveLights.AppendItem(L);
+      SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+      try
+        while SI.GetNext do
+          if Box3dSphereCollision(SI.Current.BoundingBox, Location, Radius) then
+            SI.Current.State.VRML2ActiveLights.AppendItem(L);
+      finally FreeAndNil(SI) end;
     end;
 
   var
@@ -1908,7 +1945,9 @@ begin
   NavigationInfoStack.CheckForDeletedNodes(RootNode, true);
   ViewpointStack.CheckForDeletedNodes(RootNode, true);
 
-  Shapes.FreeContents;
+  {TODO-shapes: for now Shapes is always TVRMLShapeTreeGroup}
+  FreeAndNil(FShapes);
+  FShapes := TVRMLShapeTreeGroup.Create;
 
   Validities := [];
 
@@ -1940,7 +1979,7 @@ begin
   DoViewpointsChanged;
 end;
 
-procedure TVRMLScene.ChangedShapeFields(ShapeNum: integer;
+procedure TVRMLScene.ChangedShapeFields(Shape: TVRMLShape;
   const TransformOnly, TextureImageChanged: boolean);
 begin
   { Eventual clearing of Validities items because shape changed
@@ -1954,7 +1993,7 @@ begin
       fvManifoldAndBorderEdges
     are all related to geometry changes. }
 
-  Shapes[ShapeNum].Changed;
+  Shape.Changed;
   DoPostRedisplay;
 end;
 
@@ -1988,15 +2027,20 @@ type
 
 procedure TTransformChangeHelper.TransformChangeTraverse(
   Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+var
+  Shape: TVRMLShape;
 begin
   if Inside then
   begin
     if Node is TVRMLGeometryNode then
     begin
-      ParentScene.Shapes[ShapeNum].State.AssignTransform(State);
+      { TODO-shapes: temporary this depends on the fact that Shapes is, in fact,
+        a list. }
+      Shape := (ParentScene.Shapes as TVRMLShapeTreeGroup).Children[ShapeNum] as TVRMLShape;
+      Shape.State.AssignTransform(State);
       { TransformOnly = @true, suitable for roSeparateShapesNoTransform,
         they don't have Transform compiled in display list. }
-      ParentScene.ChangedShapeFields(ShapeNum, true, false);
+      ParentScene.ChangedShapeFields(Shape, true, false);
       Inc(ShapeNum);
       AnythingChanged := true;
     end else
@@ -2092,6 +2136,7 @@ var
   NodeLastNodesIndex, I: integer;
   Coord: TMFVec3f;
   TransformChangeHelper: TTransformChangeHelper;
+  SI: TVRMLShapeTreeIterator;
 begin
   NodeLastNodesIndex := Node.TraverseStateLastNodesIndex;
 
@@ -2118,7 +2163,10 @@ begin
 
     Zakladamy tutaj ze IsNodePresent(,true) zwraca stan Node'a zarowno
     przed modyfkacja pola jak i po - innymi slowy, zakladamy tu ze zmiana
-    pola node'a nie mogla zmienic jego wlasnego stanu active/inactive. }
+    pola node'a nie mogla zmienic jego wlasnego stanu active/inactive.
+
+    TODO-shapes: hm, now that we'll have all possible choices from Switch nodes,
+    I think that IsNodePresent test must be removed? }
 
   if (RootNode = nil) or
      ( (not RootNode.IsNodePresent(Node, true)) and
@@ -2177,44 +2225,56 @@ begin
 
       In fact, code below takes into account both VRML 1.0 and 2.0 situation,
       that's why it's before "if NodeLastNodesIndex <> -1 then" branch. }
-    for I := 0 to Shapes.Count - 1 do
-      if Shapes[I].GeometryNode.Coord(Shapes[I].State, Coord) and
-         (Coord.ParentNode = Node) then
-      begin
-        ChangedShapeFields(I, false, false);
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+        if SI.Current.GeometryNode.Coord(SI.Current.State, Coord) and
+           (Coord.ParentNode = Node) then
+        begin
+          ChangedShapeFields(SI.Current, false, false);
 
-        { Another special thing about Coordinate node: it changes
-          actual geometry. }
+          { Another special thing about Coordinate node: it changes
+            actual geometry. }
 
-        Shapes[I].ScheduledLocalGeometryChangedCoord := true;
-        ScheduleGeometryChanged;
-      end;
+          SI.Current.ScheduledLocalGeometryChangedCoord := true;
+          ScheduleGeometryChanged;
+        end;
+    finally FreeAndNil(SI) end;
   end else
   if NodeLastNodesIndex <> -1 then
   begin
     { Node is part of VRML 1.0 state, so it affects Shapes where
       it's present on State.LastNodes list. }
-    for i := 0 to Shapes.Count - 1 do
-      if Shapes[i].State.LastNodes.Nodes[NodeLastNodesIndex] = Node then
-        ChangedShapeFields(i, false, false);
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+        if SI.Current.State.LastNodes.Nodes[NodeLastNodesIndex] = Node then
+          ChangedShapeFields(SI.Current, false, false);
+    finally FreeAndNil(SI) end;
   end else
   if Node is TNodeMaterial_2 then
   begin
     { VRML 2.0 Material affects only shapes where it's
       placed inside Appearance.material field. }
-    for I := 0 to Shapes.Count - 1 do
-      if Shapes[I].State.ParentShape.Material = Node then
-        ChangedShapeFields(I, false, false);
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+        if SI.Current.State.ParentShape.Material = Node then
+          ChangedShapeFields(SI.Current, false, false);
+    finally FreeAndNil(SI) end;
   end else
   if Node is TNodeX3DTextureCoordinateNode then
   begin
     { VRML 2.0 TextureCoordinate affects only shapes where it's
       placed inside texCoord field. }
-    for I := 0 to Shapes.Count - 1 do
-      if (Shapes[I].GeometryNode is TNodeX3DComposedGeometryNode) and
-         (TNodeX3DComposedGeometryNode(Shapes[I].GeometryNode).
-           FdTexCoord.Value = Node) then
-        ChangedShapeFields(I, false, false);
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+        if (SI.Current.GeometryNode is TNodeX3DComposedGeometryNode) and
+           (TNodeX3DComposedGeometryNode(SI.Current.GeometryNode).
+             FdTexCoord.Value = Node) then
+          ChangedShapeFields(SI.Current, false, false);
+    finally FreeAndNil(SI) end;
   end else
   if Node is TVRMLLightNode then
   begin
@@ -2224,14 +2284,17 @@ begin
   begin
     { node jest Shape'm. Wiec wplynal tylko na Shapes gdzie wystepuje jako
       GeometryNode. }
-    for i := 0 to Shapes.Count-1 do
-      if Shapes[i].GeometryNode = Node then
-      begin
-        ChangedShapeFields(i, false, false);
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+        if SI.Current.GeometryNode = Node then
+        begin
+          ChangedShapeFields(SI.Current, false, false);
 
-        Shapes[I].ScheduledLocalGeometryChanged := true;
-        ScheduleGeometryChanged;
-      end;
+          SI.Current.ScheduledLocalGeometryChanged := true;
+          ScheduleGeometryChanged;
+        end;
+    finally FreeAndNil(SI) end;
   end else
   if (Field <> nil) and Field.Transform then
   begin
@@ -2355,9 +2418,12 @@ begin
       to reload the texture). }
     TVRMLTextureNode(Node).IsTextureLoaded := false;
 
-    for I := 0 to Shapes.Count - 1 do
-      if Shapes[i].State.Texture = Node then
-        ChangedShapeFields(I, false, true);
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+        if SI.Current.State.Texture = Node then
+          ChangedShapeFields(SI.Current, false, true);
+    finally FreeAndNil(SI) end;
   end else
   if (Node is TNodeKambiAppearance) and
      (TNodeKambiAppearance(Node).FdShadowCaster = Field) then
@@ -2398,7 +2464,8 @@ end;
 procedure TVRMLScene.ChangedActiveLightNode(LightNode: TVRMLLightNode;
   Field: TVRMLField);
 var
-  I, J: integer;
+  J: integer;
+  SI: TVRMLShapeTreeIterator;
   ActiveLight: PActiveLight;
 begin
   { For light properties not reflected in TActiveLight,
@@ -2417,15 +2484,16 @@ begin
       RenderShapeLights will have to take care of eventual "radius"
       constraints. }
 
-    for I := 0 to Shapes.Count - 1 do
-    begin
-      for J := 0 to Shapes[I].State.CurrentActiveLights.Count - 1 do
-      begin
-        ActiveLight := @(Shapes[I].State.CurrentActiveLights.Items[J]);
-        if ActiveLight^.LightNode = LightNode then
-          LightNode.UpdateActiveLight(ActiveLight^);
-      end;
-    end;
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+        for J := 0 to SI.Current.State.CurrentActiveLights.Count - 1 do
+        begin
+          ActiveLight := @(SI.Current.State.CurrentActiveLights.Items[J]);
+          if ActiveLight^.LightNode = LightNode then
+            LightNode.UpdateActiveLight(ActiveLight^);
+        end;
+    finally FreeAndNil(SI) end;
   end;
 
   { When some kambiShadows or kambiShadowsMain field changes,
@@ -2456,9 +2524,9 @@ end;
 
 procedure TVRMLScene.DoGeometryChanged;
 var
-  I: Integer;
   SomeLocalGeometryChanged: boolean;
   EdgesStructureChanged: boolean;
+  SI: TVRMLShapeTreeIterator;
 begin
   Validities := Validities - [fvBBox,
     fvVerticesCountNotOver, fvVerticesCountOver,
@@ -2488,36 +2556,46 @@ begin
   begin
     SomeLocalGeometryChanged := true;
     EdgesStructureChanged := true;
-    for I := 0 to Shapes.Count - 1 do
-      Shapes[I].LocalGeometryChanged;
+
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+        SI.Current.LocalGeometryChanged;
+    finally FreeAndNil(SI) end;
+
     if Log and LogChanges then
       WritelnLog('VRML changes (octree)', 'All TVRMLShape.OctreeTriangles updated');
   end else
   begin
     SomeLocalGeometryChanged := false;
     EdgesStructureChanged := false;
-    for I := 0 to Shapes.Count - 1 do
-    begin
-      if Shapes[I].ScheduledLocalGeometryChanged or
-         Shapes[I].ScheduledLocalGeometryChangedCoord then
+
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
       begin
-        SomeLocalGeometryChanged := true;
-        Shapes[I].LocalGeometryChanged;
-        if Log and LogChanges and
-           (Shapes[I].OctreeTriangles <> nil) then
-          WritelnLog('VRML changes (octree)', Format('Shape[%d].OctreeTriangles updated', [I]));
+        if SI.Current.ScheduledLocalGeometryChanged or
+           SI.Current.ScheduledLocalGeometryChangedCoord then
+        begin
+          SomeLocalGeometryChanged := true;
+          SI.Current.LocalGeometryChanged;
+          if Log and LogChanges and
+             (SI.Current.OctreeTriangles <> nil) then
+            WritelnLog('VRML changes (octree)', Format(
+              'Shape(%s).OctreeTriangles updated', [PointerToStr(SI.Current)]));
+        end;
+
+        { Note that if
+          ScheduledLocalGeometryChangedCoord = true, but
+          ScheduledLocalGeometryChanged = false, then
+          EdgesStructureChanged may remain false. This is the very reason
+          for     ScheduledLocalGeometryChangedCoord separation from
+          regular ScheduledLocalGeometryChanged. }
+
+        if SI.Current.ScheduledLocalGeometryChanged then
+          EdgesStructureChanged := true;
       end;
-
-      { Note that if
-        ScheduledLocalGeometryChangedCoord = true, but
-        ScheduledLocalGeometryChanged = false, then
-        EdgesStructureChanged may remain false. This is the very reason
-        for     ScheduledLocalGeometryChangedCoord separation from
-        regular ScheduledLocalGeometryChanged. }
-
-      if Shapes[I].ScheduledLocalGeometryChanged then
-        EdgesStructureChanged := true;
-    end;
+    finally FreeAndNil(SI) end;
   end;
 
   { Use EdgesStructureChanged to decide should be invalidate
@@ -2571,11 +2649,15 @@ begin
   { clear ScheduledGeometryXxx flags now }
   ScheduledGeometryChangedAll := false;
   ScheduledGeometrySomeTransformChanged := false;
-  for I := 0 to Shapes.Count - 1 do
-  begin
-    Shapes[I].ScheduledLocalGeometryChanged := false;
-    Shapes[I].ScheduledLocalGeometryChangedCoord := false;
-  end;
+
+  SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+  try
+    while SI.GetNext do
+    begin
+      SI.Current.ScheduledLocalGeometryChanged := false;
+      SI.Current.ScheduledLocalGeometryChangedCoord := false;
+    end;
+  finally FreeAndNil(SI) end;
 end;
 
 procedure TVRMLScene.DoViewpointsChanged;
@@ -2698,12 +2780,34 @@ end;
 
 procedure TVRMLScene.SetSpatial(const Value: TVRMLSceneSpatialStructures);
 
-  procedure SetShapeSpatial(const Value: TVRMLShapeSpatialStructures);
+  procedure SetShapeSpatial(const Value: TVRMLShapeSpatialStructures;
+    Collidable: boolean);
   var
-    I: Integer;
+    SI: TVRMLShapeTreeIterator;
   begin
-    for I := 0 to Shapes.Count - 1 do
-      Shapes[I].Spatial := Value;
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+
+        { TODO: this has to be improved to handle collidable but not visible
+          geometry (Collision.proxy). }
+        { When Value <> [], we require that shape must be collidable. }
+        if (Value = []) or
+           (not Collidable) or
+           (SI.Current.State.InsideIgnoreCollision = 0) then
+        begin
+          {
+            SI.Current.TriangleOctreeMaxDepth :=
+            SI.Current.TriangleOctreeLeafCapacity :=
+
+            Leave them at defaults? We shouldn't just use
+            our TriangleOctreeMaxDepth properties, they may be unsuitable.
+          }
+          SI.Current.TriangleOctreeProgressTitle := TriangleOctreeProgressTitle;
+          SI.Current.Spatial := Value;
+        end;
+
+    finally FreeAndNil(SI) end;
   end;
 
 var
@@ -2737,7 +2841,7 @@ begin
     if Old and not New then
     begin
       FreeAndNil(FOctreeDynamicCollisions);
-      SetShapeSpatial([]);
+      SetShapeSpatial([], true);
     end else
     if New and not Old then
     begin
@@ -2745,11 +2849,12 @@ begin
         TriangleOctreeMaxDepth,
         TriangleOctreeLeafCapacity,
         TriangleOctreeProgressTitle,
-        true,
-        { During this, set also Shapes[I].Spatial := [ssTriangles].
-          This way one progress bar displays progress of creating
-          both FOctreeDynamicCollisions and specific octrees for items. }
         true);
+
+      { SetShapeSpatial cannot be done by the way of doing CreateShapeOctree,
+        since in CreateShapeOctree we iterate over OnlyActive shapes,
+        but SetShapeSpatial must iterate over all shapes. }
+      SetShapeSpatial([ssTriangles], true);
     end;
 
     { Handle OctreeVisibleTriangles }
@@ -2808,15 +2913,18 @@ function TVRMLScene.CreateTriangleOctree(
 
   procedure FillOctree(AddTriProc: TNewTriangleProc);
   var
-    I: Integer;
+    SI: TVRMLShapeTreeIterator;
   begin
-    for I := 0 to Shapes.Count - 1 do
-      { TODO: this has to be improved to handle collidable but not visible
-        geometry (Collision.proxy). }
-      if (not Collidable) or
-         (Shapes[I].State.InsideIgnoreCollision = 0) then
-        Shapes[I].GeometryNode.Triangulate(
-          Shapes[I].State, false, AddTriProc);
+    SI := TVRMLShapeTreeIterator.Create(Shapes, true);
+    try
+      while SI.GetNext do
+        { TODO: this has to be improved to handle collidable but not visible
+          geometry (Collision.proxy). }
+        if (not Collidable) or
+           (SI.Current.State.InsideIgnoreCollision = 0) then
+          SI.Current.GeometryNode.Triangulate(
+            SI.Current.State, false, AddTriProc);
+    finally FreeAndNil(SI) end;
   end;
 
 begin
@@ -2844,30 +2952,16 @@ end;
 function TVRMLScene.CreateShapeOctree(
   AMaxDepth, ALeafCapacity: integer;
   const ProgressTitle: string;
-  const Collidable: boolean;
-  const SetShapeSpatial: boolean): TVRMLShapeOctree;
+  const Collidable: boolean): TVRMLShapeOctree;
 
-  procedure AddShape(const I: Integer);
+  procedure AddShape(ShapeNum: Integer);
   begin
     { TODO: this has to be improved to handle collidable but not visible
       geometry (Collision.proxy). }
     if (not Collidable) or
-       (Shapes[I].State.InsideIgnoreCollision = 0) then
+       (Result.ShapesList[ShapeNum].State.InsideIgnoreCollision = 0) then
     begin
-      Result.TreeRoot.AddItem(I);
-
-      if SetShapeSpatial then
-      begin
-        {
-          Shapes[I].TriangleOctreeMaxDepth :=
-          Shapes[I].TriangleOctreeLeafCapacity :=
-
-          Leave them at defaults? We shouldn't just use
-          our TriangleOctreeMaxDepth properties, they may be unsuitable.
-        }
-        Shapes[I].TriangleOctreeProgressTitle := TriangleOctreeProgressTitle;
-        Shapes[I].Spatial := [ssTriangles];
-      end;
+      Result.TreeRoot.AddItem(ShapeNum);
     end;
   end;
 
@@ -2875,15 +2969,15 @@ var
   I: Integer;
 begin
   Result := TVRMLShapeOctree.Create(AMaxDepth, ALeafCapacity,
-    BoundingBox, Shapes);
+    BoundingBox, TVRMLShapesList.Create(Shapes, true), true);
   try
     if (ProgressTitle <> '') and
        (Progress.UserInterface <> nil) and
        (not Progress.Active) then
     begin
-      Progress.Init(Shapes.Count, ProgressTitle, true);
+      Progress.Init(Result.ShapesList.Count, ProgressTitle, true);
       try
-        for I := 0 to Shapes.Count - 1 do
+        for I := 0 to Result.ShapesList.Count - 1 do
         begin
           AddShape(I);
           Progress.Step;
@@ -2891,7 +2985,7 @@ begin
       finally Progress.Fini end;
     end else
     begin
-      for I := 0 to Shapes.Count - 1 do
+      for I := 0 to Result.ShapesList.Count - 1 do
         AddShape(I);
     end;
   except Result.Free; raise end;
@@ -3070,7 +3164,7 @@ type
 function TVRMLScene.CreateTrianglesList(OverTriangulate: boolean):
   TDynTriangle3SingleArray;
 var
-  I: Integer;
+  SI: TVRMLShapeTreeIterator;
   TriangleAdder: TTriangleAdder;
 begin
   Result := TDynTriangle3SingleArray.Create;
@@ -3080,10 +3174,15 @@ begin
       TriangleAdder := TTriangleAdder.Create;
       try
         TriangleAdder.TriangleList := Result;
-        for I := 0 to Shapes.Count - 1 do
-          Shapes[I].GeometryNode.Triangulate(
-            Shapes[I].State, OverTriangulate,
-            {$ifdef FPC_OBJFPC} @ {$endif} TriangleAdder.AddTriangle);
+
+        SI := TVRMLShapeTreeIterator.Create(Shapes, true);
+        try
+          while SI.GetNext do
+            SI.Current.GeometryNode.Triangulate(
+              SI.Current.State, OverTriangulate,
+              @TriangleAdder.AddTriangle);
+        finally FreeAndNil(SI) end;
+
       finally FreeAndNil(TriangleAdder) end;
     finally Result.AllowedCapacityOverflow := 4 end;
   except Result.Free; raise end;
@@ -3111,11 +3210,11 @@ function TVRMLScene.TrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
 
   function CreateTrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
 
-    function ShadowCaster(I: Integer): boolean;
+    function ShadowCaster(AShape: TVRMLShape): boolean;
     var
       Shape: TNodeX3DShapeNode;
     begin
-      Shape := Shapes[I].State.ParentShape;
+      Shape := AShape.State.ParentShape;
       Result := not (
         (Shape <> nil) and
         (Shape.FdAppearance.Value <> nil) and
@@ -3124,7 +3223,7 @@ function TVRMLScene.TrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
     end;
 
   var
-    I: Integer;
+    SI: TVRMLShapeTreeIterator;
     TriangleAdder: TTriangleAdder;
     WasSomeTransparentShadowCaster: boolean;
   begin
@@ -3143,14 +3242,17 @@ function TVRMLScene.TrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
           WasSomeTransparentShadowCaster := false;
 
           { Add all opaque triangles }
-          for I := 0 to Shapes.Count - 1 do
-            if ShadowCaster(I) then
-            begin
-              if not Shapes[I].Transparent then
-                Shapes[I].GeometryNode.Triangulate(
-                  Shapes[I].State, false, @TriangleAdder.AddTriangle) else
-                WasSomeTransparentShadowCaster := true;
-            end;
+          SI := TVRMLShapeTreeIterator.Create(Shapes, true);
+          try
+            while SI.GetNext do
+              if ShadowCaster(SI.Current) then
+              begin
+                if not SI.Current.Transparent then
+                  SI.Current.GeometryNode.Triangulate(
+                    SI.Current.State, false, @TriangleAdder.AddTriangle) else
+                  WasSomeTransparentShadowCaster := true;
+              end;
+          finally FreeAndNil(SI) end;
 
           { Mark OpaqueCount border }
           Result.FOpaqueCount := Result.Count;
@@ -3158,10 +3260,14 @@ function TVRMLScene.TrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
           { Add all transparent triangles }
           if WasSomeTransparentShadowCaster then
           begin
-            for I := 0 to Shapes.Count - 1 do
-              if ShadowCaster(I) and Shapes[I].Transparent then
-                Shapes[I].GeometryNode.Triangulate(
-                  Shapes[I].State, false, @TriangleAdder.AddTriangle);
+            SI := TVRMLShapeTreeIterator.Create(Shapes, true);
+            try
+              while SI.GetNext do
+                if ShadowCaster(SI.Current) and
+                   SI.Current.Transparent then
+                  SI.Current.GeometryNode.Triangulate(
+                    SI.Current.State, false, @TriangleAdder.AddTriangle);
+            finally FreeAndNil(SI) end;
           end;
 
           if Log then
