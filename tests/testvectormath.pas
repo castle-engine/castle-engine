@@ -83,7 +83,7 @@ begin
    Vector4Single(0, 0, 1, 1),
    Vector3Single(2, 2, -3),
    Vector3Single(0, 0, 6) ));
- if not FloatsEqual(T, 1/3) then
+ if not FloatsEqual(T, 1/3, 0.0000001) then
   raise Exception.CreateFmt('failed 2 : T = %g',[T]);
 
  Assert(TryPlaneSegmentDirIntersection(Intersection, T,
@@ -91,7 +91,7 @@ begin
    Vector3Single(2, 2, -3),
    Vector3Single(0, 0, 6) ));
  Assert(VectorsEqual(Intersection, Vector3Single(2, 2, -1)));
- Assert(FloatsEqual(T, 1/3));
+ Assert(FloatsEqual(T, 1/3, 0.0000001));
 end;
 
 procedure WritelnSpeedTest(const s: string);
