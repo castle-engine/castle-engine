@@ -3583,6 +3583,11 @@ procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
         end;
       end;
     finally FreeAndNil(EdgesSingle); end;
+
+    if Log then
+      WritelnLog('Shadows', Format(
+        'Edges: %d manifold, %d border',
+        [FManifoldEdges.Count, FBorderEdges.Count] ));
   end;
 
 begin
