@@ -63,7 +63,7 @@ type
 class function TFogVisibilityTester.Test(Shape: TVRMLGLShape): boolean;
 begin
   { Test for collision between two spheres.
-    1st is the bounding sphere of Scene.Shapes[ShapeNum].
+    1st is the bounding sphere of Shape.
     2nd is the sphere around current camera position,
       with the radius taken from fog visibilityRadius (we should
       always multiply this by FogDistanceScaling).
