@@ -2606,27 +2606,24 @@ begin
       active (in VRML graph, and in Shapes tree).
       This means that things calculated based
       on traverse/iterator over Shapes with "OnlyActive = true"
-      are invalid now. }
+      are invalid now.
 
-    Validities := Validities - [fvBoundingBox,
+      DoGeometryChanged (scheduled by ScheduleGeometryChanged)
+      actually does most of this work, it invalidates already most
+      of the needed things when ScheduledGeometryActiveShapesChanged:
+
+      fvBoundingBox,
       fvVerticesCountNotOver, fvVerticesCountOver,
       fvTrianglesCountNotOver, fvTrianglesCountOver,
       fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
       fvTrianglesListShadowCasters,
-      fvManifoldAndBorderEdges,
-      fvShapesActiveCount];
+      fvManifoldAndBorderEdges
+    }
 
-    { Clear variables after removing fvTrianglesList* }
-    InvalidateTrianglesList(false);
-    InvalidateTrianglesList(true);
-    InvalidateTrianglesListShadowCasters;
-    InvalidateManifoldAndBorderEdges;
+    Validities := Validities - [fvShapesActiveCount];
 
     ScheduledGeometryActiveShapesChanged := true;
     ScheduleGeometryChanged;
-
-    { TODO-shapes: DoGeometryChanged actually already does part of the
-      work here. }
 
     { TODO-shapes: invalidate main light for shadows (uses traverse) }
   end else
@@ -2764,7 +2761,7 @@ begin
   end else
   begin
     SomeLocalGeometryChanged := false;
-    EdgesStructureChanged := false;
+    EdgesStructureChanged := ScheduledGeometryActiveShapesChanged;
 
     SI := TVRMLShapeTreeIterator.Create(Shapes, false);
     try
