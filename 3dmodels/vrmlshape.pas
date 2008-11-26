@@ -327,6 +327,17 @@ type
   TVRMLShapeTreeGroup = class(TVRMLShapeTree)
   private
     FChildren: TVRMLShapeTreesList;
+  protected
+    { Start index for TVRMLShapeTreeIterator.
+      Must be >= -1 (-1 means to start from 0).
+
+      May be >= Children.Count, even IterateBeginIndex + 1 may
+      be >= Children.Count, i.e. it's Ok if this is already out of range. }
+    function IterateBeginIndex(OnlyActive: boolean): Integer; virtual;
+
+    { End index for TVRMLShapeTreeIterator. Valid indexes are < this.
+      This must be <= Children.Count. }
+    function IterateEndIndex(OnlyActive: boolean): Cardinal; virtual;
   public
     constructor Create;
     destructor Destroy; override;
@@ -347,6 +358,8 @@ type
   TVRMLShapeTreeSwitch = class(TVRMLShapeTreeGroup)
   private
     FSwitchNode: TNodeSwitch_2;
+    function IterateBeginIndex(OnlyActive: boolean): Integer; override;
+    function IterateEndIndex(OnlyActive: boolean): Cardinal; override;
   public
     property SwitchNode: TNodeSwitch_2 read FSwitchNode write FSwitchNode;
 
@@ -361,11 +374,9 @@ type
     than to create callbacks and use TVRMLShapeTree.Traverse. }
   TVRMLShapeTreeIterator = class
   private
-    { TODO-shapes: later more efficient implementation will be made,
-      for now we just traverse all and place result into the list
-      in constructor. }
-    List: TVRMLShapesList;
-    CurrentIndex: Integer;
+    Info: Pointer;
+    SingleShapeRemaining: boolean;
+    FOnlyActive: boolean;
     FCurrent: TVRMLShape;
   public
     constructor Create(Tree: TVRMLShapeTree; OnlyActive: boolean);
@@ -723,6 +734,16 @@ begin
     Result += FChildren.Items[I].ShapesCount(OnlyActive);
 end;
 
+function TVRMLShapeTreeGroup.IterateBeginIndex(OnlyActive: boolean): Integer;
+begin
+  Result := -1;
+end;
+
+function TVRMLShapeTreeGroup.IterateEndIndex(OnlyActive: boolean): Cardinal;
+begin
+  Result := FChildren.Count;
+end;
+
 { TVRMLShapeTreeSwitch ------------------------------------------------------- }
 
 procedure TVRMLShapeTreeSwitch.Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean);
@@ -754,28 +775,148 @@ begin
     Result := inherited;
 end;
 
+function TVRMLShapeTreeSwitch.IterateBeginIndex(OnlyActive: boolean): Integer;
+var
+  WhichChoice: Integer;
+begin
+  if OnlyActive then
+  begin
+    WhichChoice := SwitchNode.FdWhichChoice.Value;
+    if WhichChoice >= 0 then
+      { It's ok if whichChoice is >= children count,
+        iterator will check this. }
+      Result := WhichChoice - 1 else
+      Result := -1 { whatever; IterateCount will be 0 anyway };
+  end else
+    Result := inherited;
+end;
+
+function TVRMLShapeTreeSwitch.IterateEndIndex(OnlyActive: boolean): Cardinal;
+var
+  WhichChoice: Integer;
+begin
+  if OnlyActive then
+  begin
+    WhichChoice := SwitchNode.FdWhichChoice.Value;
+    if (WhichChoice >= 0) and
+       (WhichChoice < Children.Count) then
+      Result := WhichChoice + 1 else
+      Result := 0;
+  end else
+    Result := inherited;
+end;
+
 { TVRMLShapeTreeIterator ----------------------------------------------------- }
+
+type
+  { To efficiently implement TVRMLShapeTreeIterator, we have to
+    use an efficient stack push/pop when entering TVRMLShapeTreeGroup
+    (this includes TVRMLShapeTreeSwitch), and remember current Index
+    within current group.
+
+    Note that this follows the logic of implemented Traverse methods.
+    There's no way to efficiently (without e.g. first collecting to a list)
+    realize iterator with actually calling Traverse methods. }
+  PIteratorInfo = ^TIteratorInfo;
+  TIteratorInfo = record
+    Group: TVRMLShapeTreeGroup;
+    Index: Integer;
+    GroupCount: Cardinal;
+    Parent: PIteratorInfo;
+  end;
+
+{$define IteratorInfo := PIteratorInfo(Info)}
 
 constructor TVRMLShapeTreeIterator.Create(Tree: TVRMLShapeTree; OnlyActive: boolean);
 begin
   inherited Create;
-  List := TVRMLShapesList.Create(Tree, OnlyActive);
-  CurrentIndex := -1;
+
+  FOnlyActive := OnlyActive;
+
+  if Tree is TVRMLShapeTreeGroup then
+  begin
+    New(IteratorInfo);
+    IteratorInfo^.Group := TVRMLShapeTreeGroup(Tree);
+    IteratorInfo^.Index := IteratorInfo^.Group.IterateBeginIndex(OnlyActive);
+    IteratorInfo^.GroupCount := IteratorInfo^.Group.IterateEndIndex(OnlyActive);
+    IteratorInfo^.Parent := nil;
+  end else
+  begin
+    { When the whole tree is one single TVRMLShape, this is a special case
+      marked by IteratorInfo = nil and using SingleShapeRemaining.
+      FCurrent is just constant in this case. }
+    Assert(Tree is TVRMLShape);
+    FCurrent := TVRMLShape(Tree);
+    IteratorInfo := nil;
+    SingleShapeRemaining := true;
+  end;
 end;
 
 destructor TVRMLShapeTreeIterator.Destroy;
+
+  procedure Done(I: PIteratorInfo);
+  begin
+    if I <> nil then
+    begin
+      Done(I^.Parent);
+      Dispose(I);
+    end;
+  end;
+
 begin
-  FreeAndNil(List);
+  Done(IteratorInfo);
   inherited;
 end;
 
 function TVRMLShapeTreeIterator.GetNext: boolean;
+var
+  ParentInfo: PIteratorInfo;
+  Child: TVRMLShapeTree;
 begin
-  Inc(CurrentIndex);
-  Result := CurrentIndex < List.Count;
-  if Result then
-    FCurrent := List.Items[CurrentIndex];
+  if IteratorInfo <> nil then
+  begin
+    repeat
+      Inc(IteratorInfo^.Index);
+      Assert(IteratorInfo^.Index >= 0);
+      Assert(IteratorInfo^.Index > IteratorInfo^.Group.IterateBeginIndex(FOnlyActive));
+
+      if Cardinal(IteratorInfo^.Index) < IteratorInfo^.GroupCount then
+      begin
+        Child := IteratorInfo^.Group.Children.Items[IteratorInfo^.Index];
+        if Child is TVRMLShape then
+        begin
+          FCurrent := TVRMLShape(Child);
+          Exit(true);
+        end else
+        begin
+          Assert(Child is TVRMLShapeTreeGroup);
+          ParentInfo := IteratorInfo;
+          New(IteratorInfo);
+          IteratorInfo^.Group := TVRMLShapeTreeGroup(Child);
+          IteratorInfo^.Index := IteratorInfo^.Group.IterateBeginIndex(FOnlyActive);
+          IteratorInfo^.GroupCount := IteratorInfo^.Group.IterateEndIndex(FOnlyActive);
+          IteratorInfo^.Parent := ParentInfo;
+        end;
+      end else
+      begin
+        ParentInfo := IteratorInfo^.Parent;
+        if ParentInfo <> nil then
+        begin
+          Dispose(IteratorInfo);
+          IteratorInfo := ParentInfo;
+        end else
+          Exit(false);
+      end;
+    until false;
+  end else
+  begin
+    Result := SingleShapeRemaining;
+    SingleShapeRemaining := false;
+    { FCurrent already set in constructor }
+  end;
 end;
+
+{$undef IteratorInfo}
 
 { TVRMLShapesList ------------------------------------------------------- }
 
