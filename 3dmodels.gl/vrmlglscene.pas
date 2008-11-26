@@ -503,7 +503,7 @@ type
 
       Note that CalculateUseBlending checks
       Renderer.Cache.PreparedTextureAlphaChannelType,
-      so assumes that given shape state is already prepared for Renderer.
+      so assumes that given shape is already prepared for Renderer.
       It also looks at texture node, material node data,
       so should be done right after preparing given state,
       before user calls any FreeResources.
@@ -2416,7 +2416,7 @@ procedure TVRMLGLScene.Render(
         SAAW_Render(TransparentGroup);
       roSeparateShapes:
         begin
-          { build display lists (if needed) and render all shape states }
+          { build display lists (if needed) and render all shapes }
           RenderShapesNoDisplayList(TestShapeVisibility,
             {$ifdef FPC_OBJFPC} @ {$endif} SSS_RenderShape,
             {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderBegin,
@@ -2425,7 +2425,7 @@ procedure TVRMLGLScene.Render(
         end;
       roSeparateShapesNoTransform:
         begin
-          { build display lists (if needed) and render all shape states }
+          { build display lists (if needed) and render all shapes }
           RenderShapesNoDisplayList(TestShapeVisibility,
             {$ifdef FPC_OBJFPC} @ {$endif} SSSNT_RenderShape,
             {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderBegin,

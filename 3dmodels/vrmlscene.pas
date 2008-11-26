@@ -70,7 +70,7 @@ type
       (i.e. Triangles[0]). }
     VertexIndex: Cardinal;
 
-    { Indexes to TVRMLScene.Triangles(false) array }
+    { Indexes to TVRMLScene.TrianglesListShadowCasters array }
     Triangles: array [0..1] of Cardinal;
 
     { These are vertexes at VertexIndex and (VertexIndex+1)mod 3 positions,
@@ -118,7 +118,7 @@ type
       and (VertexIndex+1) mod 3 vertexes of the triangle TriangleIndex. }
     VertexIndex: Cardinal;
 
-    { Index to TVRMLScene.Triangles(false) array. }
+    { Index to TVRMLScene.TrianglesListShadowCasters array. }
     TriangleIndex: Cardinal;
   end;
   PBorderEdge = ^TBorderEdge;

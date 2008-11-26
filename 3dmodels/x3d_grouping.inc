@@ -321,7 +321,7 @@ begin
       }
 
     What would happen here ? ParentGroup.Enumerate would find S *two* times.
-    For each of these occurences, it would find *four* shape states with
+    For each of these occurences, it would find *four* shapes with
     matching node value. So 1. all four spheres would be lighted (incorrect,
     only two spheres in the middle should be lighted) 2. all of them would
     be lighted two times by the same light... Fix for 1st problem would

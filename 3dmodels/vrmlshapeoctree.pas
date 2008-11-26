@@ -32,7 +32,7 @@
   is really only an example) triangles than Shapes (e.g. 100-1000,
   but this is really only an example).
 
-  If you want to work of triangle-by-triangle basis,
+  If you want to work on triangle-by-triangle basis,
   use @link(TVRMLTriangleOctree). But if you want to work with higher-level
   objects, Shapes, use this class, @link(TVRMLShapeOctree).
 
