@@ -2620,12 +2620,14 @@ begin
       fvManifoldAndBorderEdges
     }
 
-    Validities := Validities - [fvShapesActiveCount];
+    Validities := Validities - [
+      { Calculation traverses over active shapes. }
+      fvShapesActiveCount,
+      { Calculation traverses over active nodes (uses RootNode.Traverse). }
+      fvMainLightForShadows];
 
     ScheduledGeometryActiveShapesChanged := true;
     ScheduleGeometryChanged;
-
-    { TODO-shapes: invalidate main light for shadows (uses traverse) }
   end else
   begin
     { Node is something else. So we must assume that an arbitrary change
