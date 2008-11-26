@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2004,2007 Michalis Kamburelis.
+  Copyright 2003-2004,2007-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -46,8 +46,9 @@ type
     FOwnsRootNode: boolean;
     FRootNode: TVRMLNode;
     FLights: TDynActiveLightArray;
-    procedure AddToLights(Node: TVRMLNode; State: TVRMLGraphTraverseState;
-      ParentInfo: PTraversingInfo);
+    procedure AddToLights(
+      Node: TVRMLNode; State: TVRMLGraphTraverseState;
+      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
   public
     { if OwnsRootNode then in destructor we will call RootNode.Free }
     property OwnsRootNode: boolean read FOwnsRootNode write FOwnsRootNode;
@@ -70,8 +71,9 @@ uses SysUtils;
 
 { TVRMLLightSet ------------------------------------------------------------ }
 
-procedure TVRMLLightSet.AddToLights(Node: TVRMLNode;
-  State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+procedure TVRMLLightSet.AddToLights(
+  Node: TVRMLNode; State: TVRMLGraphTraverseState;
+  ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 begin
   Lights.AppendItem((Node as TVRMLLightNode).CreateActiveLight(State));
 end;

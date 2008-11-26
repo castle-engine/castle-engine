@@ -445,8 +445,9 @@ type
     FRootNode: TVRMLNode;
 
     ChangedAll_TraversedLights: TDynActiveLightArray;
-    procedure ChangedAll_Traverse(Node: TVRMLNode; State: TVRMLGraphTraverseState;
-      ParentInfo: PTraversingInfo);
+    procedure ChangedAll_Traverse(
+      Node: TVRMLNode; State: TVRMLGraphTraverseState;
+      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 
     FBoundingBox: TBox3d;
     FVerticesCountNotOver, FVerticesCountOver,
@@ -507,9 +508,9 @@ type
     ProximitySensorInstances: TDynProximitySensorInstanceArray;
 
     procedure CollectNodesForEvents;
-    procedure TraverseForEvents(Node: TVRMLNode;
-      State: TVRMLGraphTraverseState;
-      ParentInfo: PTraversingInfo);
+    procedure TraverseForEvents(
+      Node: TVRMLNode; State: TVRMLGraphTraverseState;
+      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
     procedure CollectNodeForEvents(Node: TVRMLNode);
     procedure UnCollectForEvents(Node: TVRMLNode);
 
@@ -675,9 +676,9 @@ type
     FMainLightForShadows: TVector4Single;
     FMainLightForShadowsNode: TVRMLLightNode;
     FMainLightForShadowsTransform: TMatrix4Single;
-    procedure SearchMainLightForShadows(Node: TVRMLNode;
-      State: TVRMLGraphTraverseState;
-      ParentInfo: PTraversingInfo);
+    procedure SearchMainLightForShadows(
+      Node: TVRMLNode; State: TVRMLGraphTraverseState;
+      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
     { Based on FMainLightForShadowsNode and FMainLightForShadowsTransform,
       calculate FMainLightForShadows (position). }
     procedure CalculateMainLightForShadowsPosition;
@@ -1829,7 +1830,8 @@ begin
 end;
 
 procedure TVRMLScene.ChangedAll_Traverse(
-  Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+  Node: TVRMLNode; State: TVRMLGraphTraverseState;
+  ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 var
   Shape: TVRMLShape;
 begin
@@ -2020,13 +2022,16 @@ type
     Inside: boolean;
     ParentScene: TVRMLScene;
     procedure TransformChangeTraverse(
-      Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+      Node: TVRMLNode; State: TVRMLGraphTraverseState;
+      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
     procedure TransformChangeTraverseAfter(
-      Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+      Node: TVRMLNode; State: TVRMLGraphTraverseState;
+      ParentInfo: PTraversingInfo);
   end;
 
 procedure TTransformChangeHelper.TransformChangeTraverse(
-  Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+  Node: TVRMLNode; State: TVRMLGraphTraverseState;
+  ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 var
   Shape: TVRMLShape;
 begin
@@ -2108,7 +2113,8 @@ begin
 end;
 
 procedure TTransformChangeHelper.TransformChangeTraverseAfter(
-  Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+  Node: TVRMLNode; State: TVRMLGraphTraverseState;
+  ParentInfo: PTraversingInfo);
 begin
   if Node = ChangingNode then
   begin
@@ -3000,15 +3006,14 @@ type
     OnlyPerspective: boolean;
     ViewpointDescription: string;
     FoundNode: TVRMLViewpointNode;
-    procedure Seek(Node: TVRMLNode;
-      State: TVRMLGraphTraverseState;
-      ParentInfo: PTraversingInfo);
+    procedure Seek(
+      Node: TVRMLNode; State: TVRMLGraphTraverseState;
+      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
   end;
 
   procedure TFirstViewpointSeeker.Seek(
-    Node: TVRMLNode;
-    State: TVRMLGraphTraverseState;
-    ParentInfo: PTraversingInfo);
+    Node: TVRMLNode; State: TVRMLGraphTraverseState;
+    ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
   var
     V: TVRMLViewpointNode;
   begin
@@ -3578,9 +3583,9 @@ begin
   TNodeScript(Node).Initialized := true;
 end;
 
-procedure TVRMLScene.TraverseForEvents(Node: TVRMLNode;
-  State: TVRMLGraphTraverseState;
-  ParentInfo: PTraversingInfo);
+procedure TVRMLScene.TraverseForEvents(
+  Node: TVRMLNode; State: TVRMLGraphTraverseState;
+  ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 var
   PSI: PProximitySensorInstance;
 begin
@@ -4511,9 +4516,9 @@ begin
       'and no direction', [FMainLightForShadowsNode.NodeTypeName]);
 end;
 
-procedure TVRMLScene.SearchMainLightForShadows(Node: TVRMLNode;
-  State: TVRMLGraphTraverseState;
-  ParentInfo: PTraversingInfo);
+procedure TVRMLScene.SearchMainLightForShadows(
+  Node: TVRMLNode; State: TVRMLGraphTraverseState;
+  ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 var
   L: TVRMLLightNode absolute Node;
 begin

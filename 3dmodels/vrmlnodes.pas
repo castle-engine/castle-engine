@@ -620,6 +620,11 @@ type
   { Used as a callback by TVRMLNode.Traverse. }
   TTraversingFunc = procedure (Node: TVRMLNode;
     State: TVRMLGraphTraverseState;
+    ParentInfo: PTraversingInfo;
+    var TraverseIntoChildren: boolean) of object;
+
+  TTraversingAfterFunc = procedure (Node: TVRMLNode;
+    State: TVRMLGraphTraverseState;
     ParentInfo: PTraversingInfo) of object;
 
   { Used as a callback by TVRMLNode.TraverseBlenderObjects. }
@@ -740,7 +745,8 @@ type
       purposes. }
     procedure TraverseInternal(State: TVRMLGraphTraverseState;
       NodeClass: TVRMLNodeClass;
-      TraversingFunc, TraversingFuncAfter: TTraversingFunc;
+      TraversingFunc: TTraversingFunc;
+      TraversingAfterFunc: TTraversingAfterFunc;
       ParentInfo: PTraversingInfo);
 
   protected
@@ -1197,19 +1203,37 @@ type
 
 @preformatted(
   BeforeTraverse;
-  if Self is NodeClass then TraversingFunc (Self, State)
-  MiddleTraverse
-  for all children returned by DirectEnumerateActive
-    call their Traverse(State)
-  AfterTraverse,
-  if Self is NodeClass then TraversingFuncAfter (Self, State)
+
+  TraverseIntoChildren := true;
+  if Self is NodeClass then TraversingFunc (Self, State, TraverseIntoChildren);
+
+  MiddleTraverse;
+
+  if TraverseIntoChildren is still true then
+    for all children returned by DirectEnumerateActive
+      call their Traverse(State);
+
+  AfterTraverse;
+
+  if Self is NodeClass then TraversingAfterFunc (Self, State);
+
   dodaj Self do stanu State do LastNode (o ile Self wsrod
-    TraverseStateLastNodesClasses)
+    TraverseStateLastNodesClasses);
 )
 
-      Note: I didn't decide yet whether TraversingFuncAfter
+      Note: I didn't decide yet whether TraversingAfterFunc
       should be before or after AfterTraverse call. Report if you have
       any good reason for any setting.
+
+      Note: setting TraverseIntoChildren to false means that some
+      part of the tree is explicitly omitted from traversing.
+      Use this only if you know what you're doing, as for some
+      nodes they actually affect their parents too (for example,
+      chilren within VRML 1.0 Group affect other nodes too;
+      global lights within VRML >= 2.0 affect all nodes; and so on...).
+      Usually, you will use this only for separator-like nodes
+      (for VRML >= 2.0, all Group, Transform, Switch etc. act like separators),
+      and only when you will somehow traverse into these nodes anyway.
 
       Jezeli zostalo wykonane BeforeTraverse, na pewno zostanie wykonane tez
       AfterTraverse (wywolanie AfterTraverse jest w finally..end).
@@ -1220,7 +1244,7 @@ type
     procedure Traverse(
       NodeClass: TVRMLNodeClass;
       TraversingFunc: TTraversingFunc;
-      TraversingFuncAfter: TTraversingFunc = nil);
+      TraversingAfterFunc: TTraversingAfterFunc = nil);
 
     { Enumerate all our children of some class. Recursively.
       Zwroci do proc() takze sam obiekt na ktorym EnumerateNodes zostalo
@@ -4001,7 +4025,7 @@ type
     State: TVRMLGraphTraverseState;
     NodeClass: TVRMLNodeClass;
     TraversingFunc: TTraversingFunc;
-    TraversingFuncAfter: TTraversingFunc;
+    TraversingAfterFunc: TTraversingAfterFunc;
     ParentInfo: PTraversingInfo;
     procedure EnumerateChildrenFunction(Node, Child: TVRMLNode);
   end;
@@ -4010,42 +4034,50 @@ type
     Node, Child: TVRMLNode);
   begin
     Child.TraverseInternal(State, NodeClass, TraversingFunc,
-      TraversingFuncAfter, ParentInfo);
+      TraversingAfterFunc, ParentInfo);
   end;
 
 procedure TVRMLNode.TraverseInternal(State: TVRMLGraphTraverseState;
   NodeClass: TVRMLNodeClass;
-  TraversingFunc, TraversingFuncAfter: TTraversingFunc;
+  TraversingFunc: TTraversingFunc;
+  TraversingAfterFunc: TTraversingAfterFunc;
   ParentInfo: PTraversingInfo);
 var
   LastNodesIndex: Integer;
   Enumerator: TTraverseEnumerator;
   CurrentInfo: TTraversingInfo;
+  TraverseIntoChildren: boolean;
 begin
   BeforeTraverse(State);
   try
-    if Self is NodeClass then TraversingFunc(Self, State, ParentInfo);
+    TraverseIntoChildren := true;
+    if Self is NodeClass then
+      TraversingFunc(Self, State, ParentInfo, TraverseIntoChildren);
+
     MiddleTraverse(State);
 
-    { CurrentInfo will be passed to children as their ParentInfo. }
-    CurrentInfo.Node := Self;
-    CurrentInfo.ParentInfo := ParentInfo;
+    if TraverseIntoChildren then
+    begin
+      { CurrentInfo will be passed to children as their ParentInfo. }
+      CurrentInfo.Node := Self;
+      CurrentInfo.ParentInfo := ParentInfo;
 
-    Enumerator := TTraverseEnumerator.Create;
-    try
-      Enumerator.State := State;
-      Enumerator.NodeClass := NodeClass;
-      Enumerator.TraversingFunc := TraversingFunc;
-      Enumerator.TraversingFuncAfter := TraversingFuncAfter;
-      Enumerator.ParentInfo := @CurrentInfo;
-      DirectEnumerateActive(
-        {$ifdef FPC_OBJFPC} @ {$endif} Enumerator.EnumerateChildrenFunction);
-    finally FreeAndNil(Enumerator) end;
+      Enumerator := TTraverseEnumerator.Create;
+      try
+        Enumerator.State := State;
+        Enumerator.NodeClass := NodeClass;
+        Enumerator.TraversingFunc := TraversingFunc;
+        Enumerator.TraversingAfterFunc := TraversingAfterFunc;
+        Enumerator.ParentInfo := @CurrentInfo;
+        DirectEnumerateActive(
+          {$ifdef FPC_OBJFPC} @ {$endif} Enumerator.EnumerateChildrenFunction);
+      finally FreeAndNil(Enumerator) end;
+    end;
   finally AfterTraverse(State) end;
 
-  if Assigned(TraversingFuncAfter) and
+  if Assigned(TraversingAfterFunc) and
      (Self is NodeClass) then
-    TraversingFuncAfter(Self, State, ParentInfo);
+    TraversingAfterFunc(Self, State, ParentInfo);
 
   LastNodesIndex := TraverseStateLastNodesIndex;
   if LastNodesIndex <> -1 then State.FLastNodes.Nodes[LastNodesIndex] := Self;
@@ -4053,13 +4085,14 @@ end;
 
 procedure TVRMLNode.Traverse(
   NodeClass: TVRMLNodeClass;
-  TraversingFunc, TraversingFuncAfter: TTraversingFunc);
+  TraversingFunc: TTraversingFunc;
+  TraversingAfterFunc: TTraversingAfterFunc);
 var
   InitialState: TVRMLGraphTraverseState;
 begin
   InitialState := TVRMLGraphTraverseState.Create;
   try
-    TraverseInternal(InitialState, NodeClass, TraversingFunc, TraversingFuncAfter, nil);
+    TraverseInternal(InitialState, NodeClass, TraversingFunc, TraversingAfterFunc, nil);
   finally InitialState.Free end;
 end;
 
@@ -4474,12 +4507,14 @@ end;
     TTryFindNodeStateObj = class
       PNode: PVRMLNode;
       PState: PVRMLGraphTraverseState;
-      procedure TraverseFunc(ANode: TVRMLNode; AState: TVRMLGraphTraverseState;
-        ParentInfo: PTraversingInfo);
+      procedure TraverseFunc(
+        ANode: TVRMLNode; AState: TVRMLGraphTraverseState;
+        ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
     end;
 
-  procedure TTryFindNodeStateObj.TraverseFunc(ANode: TVRMLNode;
-    AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+  procedure TTryFindNodeStateObj.TraverseFunc(
+    ANode: TVRMLNode; AState: TVRMLGraphTraverseState;
+    ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
   begin
     PNode^ := ANode;
     PState^ := TVRMLGraphTraverseState.CreateCopy(AState);
@@ -4510,12 +4545,14 @@ end;
       PNode: PVRMLNode;
       PTransform: PMatrix4Single;
       PAverageScaleTransform: PSingle;
-      procedure TraverseFunc(ANode: TVRMLNode; AState: TVRMLGraphTraverseState;
-        ParentInfo: PTraversingInfo);
+      procedure TraverseFunc(
+        ANode: TVRMLNode; AState: TVRMLGraphTraverseState;
+        ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
     end;
 
-  procedure TTryFindNodeTransformObj.TraverseFunc(ANode: TVRMLNode;
-    AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+  procedure TTryFindNodeTransformObj.TraverseFunc(
+    ANode: TVRMLNode; AState: TVRMLGraphTraverseState;
+    ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
   begin
     PNode^ := ANode;
     { to dlatego TryFindNodeTransform jest szybsze od TryFindNodeState :
@@ -5033,12 +5070,14 @@ end;
 type
   TBlenderObjectsTraverser = class
     TraversingFunc: TBlenderTraversingFunc;
-    procedure Traverse(Node: TVRMLNode; State: TVRMLGraphTraverseState;
-      ParentInfo: PTraversingInfo);
+    procedure Traverse(
+      Node: TVRMLNode; State: TVRMLGraphTraverseState;
+      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
   end;
 
-procedure TBlenderObjectsTraverser.Traverse(Node: TVRMLNode;
-  State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+procedure TBlenderObjectsTraverser.Traverse(
+  Node: TVRMLNode; State: TVRMLGraphTraverseState;
+  ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 var
   GeometryNode: TVRMLGeometryNode absolute Node;
   BlenderObjectNode: TVRMLNode;
