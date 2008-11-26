@@ -44,7 +44,7 @@ type
 
   { Internal helper type for TVRMLScene.
     @exclude }
-  TVRMLSceneValidity = (fvBBox,
+  TVRMLSceneValidity = (fvBoundingBox,
     fvVerticesCountNotOver, fvVerticesCountOver,
     fvTrianglesCountNotOver, fvTrianglesCountOver,
     { fvFog is not used for now, since FogNode is not cached now
@@ -53,7 +53,8 @@ type
     fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
     fvTrianglesListShadowCasters,
     fvManifoldAndBorderEdges,
-    fvMainLightForShadows);
+    fvMainLightForShadows,
+    fvShapesActiveCount);
 
   { @exclude }
   TVRMLSceneValidities = set of TVRMLSceneValidity;
@@ -454,6 +455,8 @@ type
     function CalculateVerticesCount(OverTriangulate: boolean): Cardinal;
     function CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
 
+    FShapesActiveCount: Cardinal;
+
     { If appropriate fvXxx is not in Validities, then
       - free if needed appropriate FTrianglesList[] item
       - calculate appropriate FTrianglesList[] item
@@ -716,6 +719,12 @@ type
       @link(Shapes) tree, you can simply override ChangedAll
       and do your work after calling "inherited". }
     property Shapes: TVRMLShapeTree read FShapes;
+
+    { Number of active shapes in the @link(Shapes) tree.
+      This is equivalent to Shapes.ShapesCount(true), except that this
+      is faster (it's cached and reused in this instance, and automatically
+      invalidated only when needed). }
+    function ShapesActiveCount: Cardinal;
 
     { Calculate bounding box, number of triangls and vertexes of all
       shapa states. For detailed specification of what these functions
@@ -1756,6 +1765,16 @@ begin
  inherited;
 end;
 
+function TVRMLScene.ShapesActiveCount: Cardinal;
+begin
+  if not (fvShapesActiveCount in Validities) then
+  begin
+    FShapesActiveCount := Shapes.ShapesCount(true);
+    Include(Validities, fvShapesActiveCount);
+  end;
+  Result := FShapesActiveCount;
+end;
+
 function TVRMLScene.CalculateBoundingBox: TBox3d;
 var
   SI: TVRMLShapeTreeIterator;
@@ -1793,7 +1812,7 @@ begin
 end;
 
 function TVRMLScene.BoundingBox: TBox3d;
-{$define PRECALC_VALUE_ENUM := fvBBox}
+{$define PRECALC_VALUE_ENUM := fvBoundingBox}
 {$define PRECALC_VALUE := FBoundingBox}
 {$define PRECALC_VALUE_CALCULATE := CalculateBoundingBox}
 PRECALC_VALUE_RETURN
@@ -2070,7 +2089,7 @@ begin
     can be done by DoGeometryChanged, where more specific info
     about what changed is passed. No reason to do it here.
     Reason: Validities items
-      fvBBox, fvVerticesCountNotOver, fvVerticesCountOver,
+      fvBoundingBox, fvVerticesCountNotOver, fvVerticesCountOver,
       fvTrianglesCountNotOver, fvTrianglesCountOver,
       fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
       fvTrianglesListShadowCasters,
@@ -2575,12 +2594,13 @@ begin
       on traverse/iterator over Shapes with "OnlyActive = true"
       are invalid now. }
 
-    Validities := Validities - [fvBBox,
+    Validities := Validities - [fvBoundingBox,
       fvVerticesCountNotOver, fvVerticesCountOver,
       fvTrianglesCountNotOver, fvTrianglesCountOver,
       fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
       fvTrianglesListShadowCasters,
-      fvManifoldAndBorderEdges];
+      fvManifoldAndBorderEdges,
+      fvShapesActiveCount];
 
     { Clear variables after removing fvTrianglesList* }
     InvalidateTrianglesList(false);
@@ -2690,7 +2710,7 @@ var
   EdgesStructureChanged: boolean;
   SI: TVRMLShapeTreeIterator;
 begin
-  Validities := Validities - [fvBBox,
+  Validities := Validities - [fvBoundingBox,
     fvVerticesCountNotOver, fvVerticesCountOver,
     fvTrianglesCountNotOver, fvTrianglesCountOver,
     fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,

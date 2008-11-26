@@ -1818,7 +1818,7 @@ var
   BlendingSourceFactorSet, BlendingDestinationFactorSet: TGLEnum;
 begin
   FLastRender_RenderedShapesCount := 0;
-  FLastRender_AllShapesCount := Shapes.ShapesCount(true);{TODO-shapes: this takes a while time?}
+  FLastRender_AllShapesCount := ShapesActiveCount;
 
   LightsRenderer := TVRMLGLLightsCachingRenderer.Create(
     Attributes.FirstGLFreeLight, Renderer.LastGLFreeLight,
@@ -2274,7 +2274,7 @@ begin
     { In this case I must directly set here LastRender_Xxx variables.
       TODO: this is wrong when TransparentGroup <> tgAll, then something
       < Shapes.Count should be used. }
-    FLastRender_AllShapesCount := Shapes.ShapesCount(true);{TODO-shapes: todo calc this takes a while now}
+    FLastRender_AllShapesCount := ShapesActiveCount;
     FLastRender_RenderedShapesCount := FLastRender_AllShapesCount;
   end;
 
