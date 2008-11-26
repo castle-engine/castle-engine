@@ -739,16 +739,6 @@ type
     FCData: string;
     FDestructionNotifications: TDynNodeDestructionNotificationArray;
     FParentEventsProcessor: TObject;
-
-    { This is like @link(Traverse), but it takes explicit starting state
-      and starting ParentInfo. Not generally useful, use only for special
-      purposes. }
-    procedure TraverseInternal(State: TVRMLGraphTraverseState;
-      NodeClass: TVRMLNodeClass;
-      TraversingFunc: TTraversingFunc;
-      TraversingAfterFunc: TTraversingAfterFunc;
-      ParentInfo: PTraversingInfo);
-
   protected
     { Does actual DeepCopy work. You can override this to copy some
       more properties for descendants. }
@@ -1245,6 +1235,15 @@ type
       NodeClass: TVRMLNodeClass;
       TraversingFunc: TTraversingFunc;
       TraversingAfterFunc: TTraversingAfterFunc = nil);
+
+    { This is like @link(Traverse), but it takes explicit starting state
+      and starting ParentInfo. Not generally useful, use only for special
+      purposes. }
+    procedure TraverseInternal(State: TVRMLGraphTraverseState;
+      NodeClass: TVRMLNodeClass;
+      TraversingFunc: TTraversingFunc;
+      TraversingAfterFunc: TTraversingAfterFunc;
+      ParentInfo: PTraversingInfo);
 
     { Enumerate all our children of some class. Recursively.
       Zwroci do proc() takze sam obiekt na ktorym EnumerateNodes zostalo

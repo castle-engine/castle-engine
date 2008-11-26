@@ -337,6 +337,23 @@ type
     property Children: TVRMLShapeTreesList read FChildren;
   end;
 
+  { Node of the TVRMLShapeTree representing an alternative,
+    choosing one (or none) child from it's children list as active.
+
+    It's ideal for representing the VRML >= 2.0 Switch node
+    (not possible for VRML 1.0 Switch node, as it may affect also other
+    nodes after Switch). Actually, it even has a SwitchNode link that is
+    used to decide which child to choose (using SwitchNode.FdWhichChoice).  }
+  TVRMLShapeTreeSwitch = class(TVRMLShapeTreeGroup)
+  private
+    FSwitchNode: TNodeSwitch_2;
+  public
+    property SwitchNode: TNodeSwitch_2 read FSwitchNode write FSwitchNode;
+
+    procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
+    function ShapesCount(OnlyActive: boolean): Cardinal; override;
+  end;
+
   TVRMLShapesList = class;
 
   { Iterates over all TVRMLShape items that would be enumerated by
@@ -704,6 +721,37 @@ begin
   Result := 0;
   for I := 0 to FChildren.Count - 1 do
     Result += FChildren.Items[I].ShapesCount(OnlyActive);
+end;
+
+{ TVRMLShapeTreeSwitch ------------------------------------------------------- }
+
+procedure TVRMLShapeTreeSwitch.Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean);
+var
+  WhichChoice: Integer;
+begin
+  if OnlyActive then
+  begin
+    WhichChoice := SwitchNode.FdWhichChoice.Value;
+    if (WhichChoice >= 0) and
+       (WhichChoice < Children.Count) then
+      Children.Items[WhichChoice].Traverse(Func, OnlyActive);
+  end else
+    inherited;
+end;
+
+function TVRMLShapeTreeSwitch.ShapesCount(OnlyActive: boolean): Cardinal;
+var
+  WhichChoice: Integer;
+begin
+  if OnlyActive then
+  begin
+    WhichChoice := SwitchNode.FdWhichChoice.Value;
+    if (WhichChoice >= 0) and
+       (WhichChoice < Children.Count) then
+      Result := Children.Items[WhichChoice].ShapesCount(OnlyActive) else
+      Result := 0;
+  end else
+    Result := inherited;
 end;
 
 { TVRMLShapeTreeIterator ----------------------------------------------------- }

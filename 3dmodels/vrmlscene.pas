@@ -565,6 +565,10 @@ type
     { Transformation of some shape changed. }
     ScheduledGeometrySomeTransformChanged: boolean;
 
+    { What is considered "active" shapes changed. Like after Switch.whichChoice
+      change. }
+    ScheduledGeometryActiveShapesChanged: boolean;
+
     { Mechanism to schedule ChangedAll and GeometryChanged calls. }
     ChangedAllSchedule: Cardinal;
     ChangedAllScheduled: boolean;
@@ -792,6 +796,7 @@ type
       What exactly changed can be checked by looking at
       ScheduledGeometryChangedAll,
       ScheduledGeometrySomeTransformChanged,
+      ScheduledGeometryActiveShapesChanged,
       TVRMLShape.ScheduledLocalGeometryChangedCoord (in all Shapes),
       TVRMLShape.ScheduledLocalGeometryChanged (in all Shapes).
       Something from there must be @true. The sum of these
@@ -1834,6 +1839,7 @@ type
   TChangedAllTraverser = class
     ParentScene: TVRMLScene;
     ShapesGroup: TVRMLShapeTreeGroup;
+    Active: boolean;
     procedure Traverse(
       Node: TVRMLNode; State: TVRMLGraphTraverseState;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
@@ -1842,6 +1848,38 @@ type
 procedure TChangedAllTraverser.Traverse(
   Node: TVRMLNode; State: TVRMLGraphTraverseState;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
+
+  procedure HandleSwitch(SwitchNode: TNodeSwitch_2);
+  var
+    SwitchTree: TVRMLShapeTreeSwitch;
+    Traverser: TChangedAllTraverser;
+    ChildNode: TVRMLNode;
+    ChildGroup: TVRMLShapeTreeGroup;
+    I: Integer;
+  begin
+    SwitchTree := TVRMLShapeTreeSwitch.Create;
+    SwitchTree.SwitchNode := SwitchNode;
+    ShapesGroup.Children.Add(SwitchTree);
+
+    for I := 0 to SwitchNode.FdChildren.Items.Count - 1 do
+    begin
+      ChildNode := SwitchNode.FdChildren.Items[I];
+      ChildGroup := TVRMLShapeTreeGroup.Create;
+      SwitchTree.Children.Add(ChildGroup);
+
+      Traverser := TChangedAllTraverser.Create;
+      try
+        Traverser.ParentScene := ParentScene;
+        Traverser.ShapesGroup := ChildGroup;
+        Traverser.Active := I = SwitchNode.FdWhichChoice.Value;
+        ChildNode.TraverseInternal(State, TVRMLNode, @Traverser.Traverse,
+          nil, ParentInfo);
+      finally FreeAndNil(Traverser) end;
+    end;
+
+    TraverseIntoChildren := false;
+  end;
+
 var
   Shape: TVRMLShape;
 begin
@@ -1865,17 +1903,39 @@ begin
       Shape.TriangleOctreeProgressTitle := ParentScene.TriangleOctreeProgressTitle;
       Shape.Spatial := [ssTriangles];
     end;
-
   end else
+
   if Node is TVRMLLightNode then
   begin
+    { TODO: currently this means that lights within inactive Switch child
+      work as active, just like other lights.
+      Changing this (adding "if Active" test here) would mean that changing
+      Switch.FdWhichChoice needs to update this too...
+
+      Hm, actually, where VRML spec says precisely that lights
+      are affected by active/inactive state? Anyway, if lights from
+      inactive state *should* be taken into account, then gathering
+      of lights should not be done by Traverse at all (but by some
+      EnumarateNodes call). }
+
     { Add lights to ChangedAll_TraversedLights }
     ParentScene.ChangedAll_TraversedLights.AppendItem(
       (Node as TVRMLLightNode).CreateActiveLight(State));
   end else
-  { Do not look for first bindable node within inlined content,
-    this is following VRML spec. }
-  if State.InsideInline = 0 then
+
+  if Node is TNodeSwitch_2 then
+  begin
+    HandleSwitch(TNodeSwitch_2(Node));
+  end else
+
+  if (Node is TNodeX3DBindableNode) and
+     { Do not look for first bindable node within inlined content,
+       this is following VRML spec. }
+     (State.InsideInline = 0) and
+     { Do not look for first bindable node within inactive content.
+       TODO: Actually, where does spec precisely say that first bindable node
+       must be in active part? Although it seems most sensible... }
+     Active then
   begin
     { If some bindable stack is empty, push the node to it.
       This way, upon reading VRML file, we will bind the first found
@@ -1980,6 +2040,7 @@ begin
         { We just created FShapes as TVRMLShapeTreeGroup, so this cast
           is safe }
         Traverser.ShapesGroup := TVRMLShapeTreeGroup(FShapes);
+        Traverser.Active := true;
         RootNode.Traverse(TVRMLNode, @Traverser.Traverse);
       finally FreeAndNil(Traverser) end;
 
@@ -2031,12 +2092,18 @@ type
     So many TransformChange traversals may run at once, so they must
     have different state variables. }
   TTransformChangeHelper = class
-    ShapeNum: Cardinal;
+    ShapeIterator: TVRMLShapeTreeIterator;
     ProximitySensorNum: Cardinal;
     ChangingNode: TVRMLNode;
     AnythingChanged: boolean;
     Inside: boolean;
     ParentScene: TVRMLScene;
+    { If = 0, we're in active graph part.
+      If > 0, we're in inactive graph part (TransformChangeTraverse
+      may enter there, since we need to enter all (even inactive)
+      Switch children, to move correctly ShapeIterator
+      (since our Shapes contains also even inactive Switch nodes)). }
+    Inactive: Cardinal;
     procedure TransformChangeTraverse(
       Node: TVRMLNode; State: TVRMLGraphTraverseState;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
@@ -2048,21 +2115,52 @@ type
 procedure TTransformChangeHelper.TransformChangeTraverse(
   Node: TVRMLNode; State: TVRMLGraphTraverseState;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
+
+  procedure HandleSwitch(SwitchNode: TNodeSwitch_2);
+  var
+    I: Integer;
+    ChildInactive: boolean;
+  begin
+    { We have to enter *every* Switch child (while normal
+      Traverse would enter only active child), because we have to increase
+      ShapeIterator even in inactive Switch parts (because that's how
+      we constructed Shapes tree). }
+
+    for I := 0 to SwitchNode.FdChildren.Items.Count - 1 do
+    begin
+      ChildInactive := I <> SwitchNode.FdWhichChoice.Value;
+      if ChildInactive then Inc(Inactive);
+
+      SwitchNode.FdChildren.Items[I].TraverseInternal(
+        State, TVRMLNode,
+        @TransformChangeTraverse,
+        @TransformChangeTraverseAfter,
+        ParentInfo);
+
+      if ChildInactive then Dec(Inactive);
+    end;
+
+    TraverseIntoChildren := false;
+  end;
+
 var
   Shape: TVRMLShape;
 begin
+  if Node is TNodeSwitch_2 then
+  begin
+    HandleSwitch(TNodeSwitch_2(Node));
+  end else
+
   if Inside then
   begin
     if Node is TVRMLGeometryNode then
     begin
-      { TODO-shapes: temporary this depends on the fact that Shapes is, in fact,
-        a list. }
-      Shape := (ParentScene.Shapes as TVRMLShapeTreeGroup).Children[ShapeNum] as TVRMLShape;
+      Check(ShapeIterator.GetNext, 'Missing shape in Shapes tree');
+      Shape := ShapeIterator.Current;
       Shape.State.AssignTransform(State);
       { TransformOnly = @true, suitable for roSeparateShapesNoTransform,
         they don't have Transform compiled in display list. }
       ParentScene.ChangedShapeFields(Shape, true, false);
-      Inc(ShapeNum);
       AnythingChanged := true;
     end else
     if Node is TNodeX3DBackgroundNode then
@@ -2105,7 +2203,9 @@ begin
           CurrentActiveLights? }
       raise BreakTransformChangeFailed.Create;
     end else
-    if Node is TNodeProximitySensor then
+    if (Node is TNodeProximitySensor) and
+       { We only care about ProximitySensor in active graph parts. }
+       (Inactive = 0) then
     begin
       ParentScene.ProximitySensorInstances.Items[ProximitySensorNum].
         InvertedTransform := State.InvertedTransform;
@@ -2120,8 +2220,10 @@ begin
   end else
   begin
     if Node is TVRMLGeometryNode then
-      Inc(ShapeNum) else
-    if Node is TNodeProximitySensor then
+      Check(ShapeIterator.GetNext, 'Missing shape in Shapes tree') else
+    if (Node is TNodeProximitySensor) and
+       { We only care about ProximitySensor in active graph parts. }
+       (Inactive = 0) then
       Inc(ProximitySensorNum) else
     if Node = ChangingNode then
       Inside := true;
@@ -2351,11 +2453,12 @@ begin
       TransformChangeHelper := TTransformChangeHelper.Create;
       try
         TransformChangeHelper.ParentScene := Self;
-        TransformChangeHelper.ShapeNum := 0;
+        TransformChangeHelper.ShapeIterator := TVRMLShapeTreeIterator.Create(Shapes, false);
         TransformChangeHelper.ProximitySensorNum := 0;
         TransformChangeHelper.ChangingNode := Node;
         TransformChangeHelper.AnythingChanged := false;
         TransformChangeHelper.Inside := false;
+        TransformChangeHelper.Inactive := 0;
 
         RootNode.Traverse(TVRMLNode,
           @TransformChangeHelper.TransformChangeTraverse,
@@ -2366,7 +2469,10 @@ begin
             at the end. }
           Exit;
 
-      finally FreeAndNil(TransformChangeHelper) end;
+      finally
+        FreeAndNil(TransformChangeHelper.ShapeIterator);
+        FreeAndNil(TransformChangeHelper);
+      end;
 
       ScheduledGeometrySomeTransformChanged := true;
       ScheduleGeometryChanged;
@@ -2455,11 +2561,40 @@ begin
     InvalidateTrianglesListShadowCasters;
     InvalidateManifoldAndBorderEdges;
   end else
+  if (Node is TNodeSwitch_2) and
+     (TNodeSwitch_2(Node).FdWhichChoice = Field) then
   begin
-    { node jest czyms innym; wiec musimy zalozyc ze zmiana jego pol wplynela
-      jakos na State nastepujacych po nim node'ow (a moze nawet wplynela na to
-      co znajduje sie w aktywnej czesci grafu VRMLa pod niniejszym node'm -
-      tak sie moglo stac gdy zmienilismy pole Switch.whichChild. ) }
+    { Changing Switch.whichChoice changes the shapes that are considered
+      active (in VRML graph, and in Shapes tree).
+      This means that things calculated based
+      on traverse/iterator over Shapes with "OnlyActive = true"
+      are invalid now. }
+
+    Validities := Validities - [fvBBox,
+      fvVerticesCountNotOver, fvVerticesCountOver,
+      fvTrianglesCountNotOver, fvTrianglesCountOver,
+      fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
+      fvTrianglesListShadowCasters,
+      fvManifoldAndBorderEdges];
+
+    { Clear variables after removing fvTrianglesList* }
+    InvalidateTrianglesList(false);
+    InvalidateTrianglesList(true);
+    InvalidateTrianglesListShadowCasters;
+    InvalidateManifoldAndBorderEdges;
+
+    ScheduledGeometryActiveShapesChanged := true;
+    ScheduleGeometryChanged;
+
+    { TODO-shapes: DoGeometryChanged actually already does part of the
+      work here. }
+
+    { TODO-shapes: invalidate main light for shadows (uses traverse) }
+  end else
+  begin
+    { Node is something else. So we must assume that an arbitrary change
+      occured, possibly changing State of following and/or children
+      nodes of this Node. }
     ScheduleChangedAll;
     Exit;
   end;
@@ -2627,6 +2762,7 @@ begin
 
   if (OctreeRendering <> nil) and
      (ScheduledGeometrySomeTransformChanged or
+      ScheduledGeometryActiveShapesChanged or
       SomeLocalGeometryChanged) then
   begin
     { Remember to do FreeAndNil on octrees below.
@@ -2648,6 +2784,7 @@ begin
 
   if (OctreeDynamicCollisions <> nil) and
      (ScheduledGeometrySomeTransformChanged or
+     ScheduledGeometryActiveShapesChanged or
       SomeLocalGeometryChanged) then
   begin
     FreeAndNil(FOctreeDynamicCollisions);
@@ -2671,6 +2808,7 @@ begin
   { clear ScheduledGeometryXxx flags now }
   ScheduledGeometryChangedAll := false;
   ScheduledGeometrySomeTransformChanged := false;
+  ScheduledGeometryActiveShapesChanged := false;
 
   SI := TVRMLShapeTreeIterator.Create(Shapes, false);
   try
