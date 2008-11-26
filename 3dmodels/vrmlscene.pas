@@ -683,6 +683,7 @@ type
     { Based on FMainLightForShadowsNode and FMainLightForShadowsTransform,
       calculate FMainLightForShadows (position). }
     procedure CalculateMainLightForShadowsPosition;
+    procedure ValidateMainLightForShadows;
   protected
     { Called when LightNode fields changed, while LightNode is in
       active part of VRML graph. }
@@ -1528,15 +1529,19 @@ type
       [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows]
       for more info.
       If no light with kambiShadows = kambiShadowsMain = TRUE
-      is present then this function returns @false,
-      since AMainLightPosition cannot be calculated.
+      is present then MainLightForShadowsExists returns @false,
+      and you cannot call MainLightForShadows (since it
+      cannot be calculated).
 
-      AMainLightPosition[3] is always set to 1
+      MainLightPosition[3] is always set to 1
       (positional light) or 0 (indicates that this is a directional light).
 
-      @seealso TVRMLLightSet.MainLightForShadows }
-    function MainLightForShadows(
-      out AMainLightPosition: TVector4Single): boolean;
+      @seealso TVRMLLightSet.MainLightForShadows
+
+      @groupBegin }
+    function MainLightForShadowsExists: boolean;
+    function MainLightForShadows: TVector4Single;
+    { @groupEnd }
   end;
 
 {$undef read_interface}
@@ -4692,8 +4697,7 @@ begin
   end;
 end;
 
-function TVRMLScene.MainLightForShadows(
-  out AMainLightPosition: TVector4Single): boolean;
+procedure TVRMLScene.ValidateMainLightForShadows;
 
   procedure CalculateMainLightForShadows;
   begin
@@ -4710,10 +4714,19 @@ begin
     CalculateMainLightForShadows;
     Include(Validities, fvMainLightForShadows);
   end;
+end;
 
+function TVRMLScene.MainLightForShadows: TVector4Single;
+begin
+  ValidateMainLightForShadows;
+  Assert(MainLightForShadowsExists, 'MainLightForShadows position is available only when MainLightForShadowsExists');
+  Result := FMainLightForShadows;
+end;
+
+function TVRMLScene.MainLightForShadowsExists: boolean;
+begin
+  ValidateMainLightForShadows;
   Result := FMainLightForShadowsExists;
-  if Result then
-    AMainLightPosition := FMainLightForShadows;
 end;
 
 end.
