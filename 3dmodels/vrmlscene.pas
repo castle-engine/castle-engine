@@ -693,6 +693,24 @@ type
     procedure ChangedActiveLightNode(LightNode: TVRMLLightNode;
       Field: TVRMLField); virtual;
 
+    { Notify scene that you changed only given Shape.
+      This means that you changed only fields within Shape.GeometryNode,
+      Shape.State.Last*. And you're sure that
+      these nodes are not shared by other shapes using VRML DEF/USE
+      mechanism.
+
+      You can call this only if given Shape is in our @link(Shapes) tree.
+
+      Set TransformOnly = @true if you know that you changed
+      only the State parts of the associatated TVRMLShape, and only
+      on Transform-related fields (see EqualsNoTransform).
+      Setting TransformOnly = @true is very beneficial if you
+      use TVRMLGLScene with roSeparateShapesNoTransform.
+
+      Pass TransformOnly = @false if unsure, this is safer. }
+    procedure ChangedShapeFields(Shape: TVRMLShape;
+      const TransformOnly, TextureImageChanged: boolean); virtual;
+
     { Create TVRMLShape (or descendant) instance suitable for this
       TVRMLScene descendant. In this class, this simply creates new
       TVRMLShape instance. If you make a descendant of TVRMLScene,
@@ -739,64 +757,60 @@ type
 
     { Methods to notify this class about changes to the underlying RootNode
       graph. Since this class caches some things, it has to be notified
-      when you manually change something within RootNode graph.
+      when you manually change something within RootNode graph. }
 
-      Call ChangedAll to notify that "potentially everything changed",
-      including adding/removal of some nodes within RootNode and changing their
-      fields' values.
-      This causes recalculation of all things dependent on RootNode.
-      It's more optimal to use one of the other Changed* methods, when possible.
+    { Notify scene that potentially everything changed
+      in the VRML graph. This includes adding/removal of some nodes within
+      RootNode graph and changing their fields' values.
 
-      Call ChangedShapeFields(Shape, TransformOnly, TextureImageChanged)
-      if Shape is in our @link(Shapes) tree
-      and you only changed values of fields within Shape.GeometryNode,
-      Shape.State.Last*. (And you're sure that
-      these nodes are not shared by other shapes using VRML DEF/USE
-      mechanism.)
-
-      Set TransformOnly = @true if you know that you changed
-      only the State parts of the associatated TVRMLShape, and only
-      on Transform-related fields (see EqualsNoTransform).
-      Setting TransformOnly = @true is very beneficial if you
-      use TVRMLGLScene with roSeparateShapesNoTransform.
-
-      Pass TransformOnly = @false if unsure, this is safer.
-
-      Call ChangedFields when you only changed field values of given Node.
-      This does relatively intelligent discovery of what could be possibly
-      affected by changing this node, and updates/invalidates
-      cache only where needed. It's acceptable to pass here a Node that
-      isn't in the active VRML graph part (that is not reached by Traverse
-      method), or even that isn't in the RootNode
-      graph at all. Node can also be one of StateDefaultNodes that you took
-      from one of State.LastNodes[]. So we really handle all cases here,
-      and passing any node is fine here, and we'll try to intelligently
-      detect what this change implicates for this VRML scene.
-
-      You can also pass to ChangedFields a field's instance,
-      or field's eventIn or eventOut
-      that you used to change --- this way we know only this field changed.
-      This must belong then to the given Node.
-      Pass FieldOrEvent = @nil if you don't know this, or if many fields changed.
-
-      Call ChangedField(Field) if you only changed exactly this one field.
-      This is actually just a shortcut for ChangedFields(Field.ParentNode, Field),
-      so don't expect to get more optimizations than ChangedFields.
-      It's just shorter to type in many circumstances.
+      ChangedAll causes recalculation of all things dependent on RootNode,
+      so it's very costly to call this. While you have to call some ChangedXxx
+      method after you changed RootNode graph directly, usually you
+      can call something more efficient, like ChangedFields.
 
       @italic(Descendant implementors notes:) ChangedAll and
       ChangedShapeFields are virtual, so of course you can override them
       (remember to always call @code(inherited)). ChangedAll is also
       called by constructor of this class, so you can put a lot of your
-      initialization there (instead of in the constructor).
-
-      @groupBegin }
+      initialization there (instead of in the constructor). }
     procedure ChangedAll; virtual;
-    procedure ChangedShapeFields(Shape: TVRMLShape;
-      const TransformOnly, TextureImageChanged: boolean); virtual;
+
+    { Notify scene that you changed field values of given Node.
+      This does relatively intelligent discovery of what could be possibly
+      affected by this node's fields, and updates/invalidates
+      internal cache only where needed.
+
+      If you changed exactly one field, you should pass
+      the field's instance to ChangedFields. This often allows
+      for even more optimizations (as then we know exactly what changed).
+      Or you can pass field's eventIn or eventOut that you used to change.
+      For ChangedFields(Node, FieldOrEvent) call,
+      FieldOrEvent must belong to the given Node.
+      It's usually more comfortable to use ChangedField(Field) if
+      only one field was changed.
+
+      Pass FieldOrEvent = @nil if you don't know this, or if many fields changed.
+
+      It's acceptable to pass here a Node that
+      isn't in our VRML graph part (isn't reachable from RootNode).
+      Note that changes to inactive nodes (within RootNode graph,
+      but inactive, i.e. not reachable by RootNode.Traverse --- for example,
+      not chosen children of Switch node) even @italic(must) be reported
+      here, just like changes to active parts. That's because our Shapes
+      tree may contain some precalculated values even for inactive parts,
+      see TVRMLShapeTreeSwitch for examples.
+      Node passed here can also be one of StateDefaultNodes that you took
+      from one of State.LastNodes[]. So we really handle all cases here,
+      and passing any node is fine here, and we'll try to intelligently
+      detect what this change implicates for this VRML scene. }
     procedure ChangedFields(Node: TVRMLNode; FieldOrEvent: TVRMLFieldOrEvent);
+
+    { Notify scene that you changed only the value of given field.
+
+      This is actually just a shortcut for ChangedFields(Field.ParentNode, Field),
+      so don't expect to get more optimizations than ChangedFields.
+      It's just shorter to type in many circumstances. }
     procedure ChangedField(Field: TVRMLField);
-    { @groupEnd }
 
     { Notification when geometry changed.
       "Geometry changed" means that the positions
