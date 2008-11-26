@@ -305,7 +305,9 @@ var
   TG: TTransparentGroups;
 begin
   Options := [prBackground, prBoundingBox];
-  if ShadowVolumesPossible then
+  if ShadowVolumesPossible and
+     ShadowVolumes and
+     Scene.MainLightForShadowsExists then
     Options := Options + prShadowVolume;
 
   TG := [tgAll];
@@ -344,7 +346,6 @@ procedure TKamVRMLBrowser.DoDraw;
 
 var
   ClearBuffers: TGLbitfield;
-  MainLightPosition: TVector4Single;
 begin
   ClearBuffers := GL_DEPTH_BUFFER_BIT;
 
@@ -355,7 +356,9 @@ begin
   end else
     ClearBuffers := ClearBuffers or GL_COLOR_BUFFER_BIT;
 
-  if ShadowVolumesPossible and ShadowVolumes then
+  if ShadowVolumesPossible and
+     ShadowVolumes and
+     Scene.MainLightForShadowsExists then
     ClearBuffers := ClearBuffers or GL_STENCIL_BUFFER_BIT;
 
   glClear(ClearBuffers);
@@ -365,8 +368,8 @@ begin
   glLoadMatrix(Navigator.Matrix);
   if ShadowVolumesPossible and
      ShadowVolumes and
-     Scene.MainLightForShadows(MainLightPosition) then
-    RenderWithShadows(MainLightPosition) else
+     Scene.MainLightForShadowsExists then
+    RenderWithShadows(Scene.MainLightForShadows) else
     RenderNoShadows;
 
   inherited;
