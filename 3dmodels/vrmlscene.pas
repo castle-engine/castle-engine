@@ -2316,22 +2316,22 @@ begin
     DoLogChanges;
 
   { Ignore this ChangedFields call if node is not in our VRML graph.
-    Or is the inactive part. The definition of "active" part
-    (see e.g. TVRMLNode.Traverse) is exactly such that we can ignore
-    non-active parts here.
-
     Exception is for StateDefaultNodes nodes (they are not present in RootNode
     graph, but influence us).
 
-    Zakladamy tutaj ze IsNodePresent(,true) zwraca stan Node'a zarowno
-    przed modyfkacja pola jak i po - innymi slowy, zakladamy tu ze zmiana
-    pola node'a nie mogla zmienic jego wlasnego stanu active/inactive.
+    At some point, we ignored here changes to the inactive part of VRML graph,
+    by passing OnlyActive = true to IsNodePresent. (And assuming
+    that changing the node's field cannot change it's active state,
+    otherwise we would have to call IsNodePresent before and after
+    field's change.)
 
-    TODO-shapes: hm, now that we'll have all possible choices from Switch nodes,
-    I think that IsNodePresent test must be removed? }
+    But now we have to allow processing nodes even in inactive part.
+    Reason? Our Shapes tree contains things from inactive part
+    (inactive Switch children), and they must be kept current just
+    like active parts. }
 
   if (RootNode = nil) or
-     ( (not RootNode.IsNodePresent(Node, true)) and
+     ( (not RootNode.IsNodePresent(Node, false)) and
        ((NodeLastNodesIndex = -1) or
          (StateDefaultNodes.Nodes[NodeLastNodesIndex] <> Node))
      ) then
