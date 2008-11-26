@@ -445,9 +445,6 @@ type
     FRootNode: TVRMLNode;
 
     ChangedAll_TraversedLights: TDynActiveLightArray;
-    procedure ChangedAll_Traverse(
-      Node: TVRMLNode; State: TVRMLGraphTraverseState;
-      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 
     FBoundingBox: TBox3d;
     FVerticesCountNotOver, FVerticesCountOver,
@@ -1829,7 +1826,20 @@ begin
   Result := TVRMLShape.Create(AGeometryNode, AState);
 end;
 
-procedure TVRMLScene.ChangedAll_Traverse(
+type
+  { Traverses on ChangedAll event, single TChangedAllTraverser
+    instance traverses into a single ShapesGroup (but may
+    recursively create other TChangedAllTraverser instances
+    to create recursive groups). }
+  TChangedAllTraverser = class
+    ParentScene: TVRMLScene;
+    ShapesGroup: TVRMLShapeTreeGroup;
+    procedure Traverse(
+      Node: TVRMLNode; State: TVRMLGraphTraverseState;
+      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
+  end;
+
+procedure TChangedAllTraverser.Traverse(
   Node: TVRMLNode; State: TVRMLGraphTraverseState;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 var
@@ -1838,11 +1848,9 @@ begin
   if Node is TVRMLGeometryNode then
   begin
     { Add shape to Shapes }
-    Shape := CreateShape(Node as TVRMLGeometryNode,
+    Shape := ParentScene.CreateShape(Node as TVRMLGeometryNode,
       TVRMLGraphTraverseState.CreateCopy(State));
-    { TODO-shapes: for now, this just assumes that Shapes is TVRMLShapeTreeGroup
-      with TVRMLShape items. I.e., Shapes is just a list for now. }
-    (Shapes as TVRMLShapeTreeGroup).Children.Add(Shape);
+    ShapesGroup.Children.Add(Shape);
 
     { TODO: this has to be improved to handle collidable but not visible
       geometry (Collision.proxy). }
@@ -1851,10 +1859,10 @@ begin
       shape must hav octree created. Normally, this is watched over by
       SetSpatial. In this case, we just created new Shape, so we have
       to set it's Spatial property correctly. }
-    if (ssDynamicCollisions in Spatial) and
+    if (ssDynamicCollisions in ParentScene.Spatial) and
        (State.InsideIgnoreCollision = 0) then
     begin
-      Shape.TriangleOctreeProgressTitle := TriangleOctreeProgressTitle;
+      Shape.TriangleOctreeProgressTitle := ParentScene.TriangleOctreeProgressTitle;
       Shape.Spatial := [ssTriangles];
     end;
 
@@ -1862,7 +1870,7 @@ begin
   if Node is TVRMLLightNode then
   begin
     { Add lights to ChangedAll_TraversedLights }
-    ChangedAll_TraversedLights.AppendItem(
+    ParentScene.ChangedAll_TraversedLights.AppendItem(
       (Node as TVRMLLightNode).CreateActiveLight(State));
   end else
   { Do not look for first bindable node within inlined content,
@@ -1873,13 +1881,13 @@ begin
       This way, upon reading VRML file, we will bind the first found
       node for each stack. }
     if Node is TNodeX3DBackgroundNode then
-      BackgroundStack.PushIfEmpty( TNodeX3DBackgroundNode(Node), true) else
+      ParentScene.BackgroundStack.PushIfEmpty( TNodeX3DBackgroundNode(Node), true) else
     if Node is TNodeFog then
-      FogStack.PushIfEmpty( TNodeFog(Node), true) else
+      ParentScene.FogStack.PushIfEmpty( TNodeFog(Node), true) else
     if Node is TNodeNavigationInfo then
-      NavigationInfoStack.PushIfEmpty( TNodeNavigationInfo(Node), true) else
+      ParentScene.NavigationInfoStack.PushIfEmpty( TNodeNavigationInfo(Node), true) else
     if Node is TVRMLViewpointNode then
-      ViewpointStack.PushIfEmpty( TVRMLViewpointNode(Node), true);
+      ParentScene.ViewpointStack.PushIfEmpty( TVRMLViewpointNode(Node), true);
   end;
 end;
 
@@ -1938,6 +1946,8 @@ procedure TVRMLScene.ChangedAll;
     end;
   end;
 
+var
+  Traverser: TChangedAllTraverser;
 begin
   if Log and LogChanges then
     WritelnLog('VRML changes', 'ChangedAll');
@@ -1946,10 +1956,6 @@ begin
   FogStack.CheckForDeletedNodes(RootNode, true);
   NavigationInfoStack.CheckForDeletedNodes(RootNode, true);
   ViewpointStack.CheckForDeletedNodes(RootNode, true);
-
-  {TODO-shapes: for now Shapes is always TVRMLShapeTreeGroup}
-  FreeAndNil(FShapes);
-  FShapes := TVRMLShapeTreeGroup.Create;
 
   Validities := [];
 
@@ -1963,9 +1969,19 @@ begin
 
   ChangedAll_TraversedLights := TDynActiveLightArray.Create;
   try
+    FreeAndNil(FShapes);
+    FShapes := TVRMLShapeTreeGroup.Create;
+
     if RootNode <> nil then
     begin
-      RootNode.Traverse(TVRMLNode, @ChangedAll_Traverse);
+      Traverser := TChangedAllTraverser.Create;
+      try
+        Traverser.ParentScene := Self;
+        { We just created FShapes as TVRMLShapeTreeGroup, so this cast
+          is safe }
+        Traverser.ShapesGroup := TVRMLShapeTreeGroup(FShapes);
+        RootNode.Traverse(TVRMLNode, @Traverser.Traverse);
+      finally FreeAndNil(Traverser) end;
 
       UpdateVRML2ActiveLights;
 
