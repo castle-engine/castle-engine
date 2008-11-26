@@ -49,7 +49,7 @@ procedure TTestVRMLGLScene.TestVRMLGLScene;
 
    Assert(IsEmptyBox3d(EmptyScene.BoundingBox));
 
-   Assert(EmptyScene.Shapes.Count = 0);
+   Assert(EmptyScene.ShapesActiveCount = 0);
 
    Assert(EmptyScene.GetViewpoint(CamKind, CamPos, CamDir, CamUp, GravityUp) = nil);
 
