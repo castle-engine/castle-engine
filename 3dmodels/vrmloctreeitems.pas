@@ -924,9 +924,11 @@ var
   Blocker: POctreeItem;
 begin
   { Tests: make MoveAllowed equivalent to MoveAllowedSimple:
-  Result := MoveAllowedSimple(OldPos, ProposedNewPos, CameraRadius);
+  Result := MoveAllowedSimple(OldPos, ProposedNewPos, CameraRadius,
+    KeepWithinRootBox, OctreeItemToIgnore, ItemsToIgnoreFunc);
   if Result then NewPos := ProposedNewPos;
-  Exit; }
+  Exit;
+  }
 
   Blocker := SegmentCollision(OldPos, ProposedNewPos,
     true { return closest blocker },
