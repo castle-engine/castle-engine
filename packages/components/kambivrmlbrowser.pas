@@ -215,7 +215,7 @@ implementation
 
 uses Boxes3d, VRMLOpenGLRenderer, GL, GLU,
   KambiClassUtils, KambiUtils, SysUtils, Object3dAsVRML,
-  KambiGLUtils, KambiFilesUtils, VRMLOctreeItems,
+  KambiGLUtils, KambiFilesUtils, VRMLTriangle,
   RaysWindow, BackgroundGL, Keys;
 
 procedure Register;
@@ -463,7 +463,7 @@ procedure TKamVRMLBrowser.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
 var
   Ray0, RayVector: TVector3Single;
   OverPoint: TVector3Single;
-  Item: POctreeItem;
+  Item: PVRMLTriangle;
 begin
   inherited;
 
@@ -532,7 +532,7 @@ end;
 procedure TKamVRMLBrowser.GetCameraHeight(ANavigator: TWalkNavigator;
   out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
 var
-  GroundItem: POctreeItem;
+  GroundItem: PVRMLTriangle;
 begin
   if Scene.OctreeCollisions <> nil then
   begin

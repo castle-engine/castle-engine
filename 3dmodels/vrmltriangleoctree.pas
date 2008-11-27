@@ -26,17 +26,17 @@
   Dokladniej, mozemy
   nawet zbudowac drzewo osemkowe laczac mniejsze kawalki wielu roznych
   scen VRML'a. Elementami ktore bedziemy trzymac w lisciach drzewa sa
-  rekordy TOctreeItem - jeden taki rekord reprezentuje jeden trojkat
+  rekordy TVRMLTriangle - jeden taki rekord reprezentuje jeden trojkat
   w przestrzeni. Razem z kazdym trojkatem zapamietywana jest informacja
   z jakiego State'a i Shape'a on pochodzi. Wiec pamietaj ze po zbudowaniu
   ze sceny octree scena jest praktycznie "zamrozona" - nic nie wolno
   w niej zmieniac.
 
   Zasadnicza klasa rekurencyjna ktora reprezentuje wezel drzewa
-  (lisc = liste indeksow do TOctreeItem lub
+  (lisc = liste indeksow do TVRMLTriangle lub
    wezel wewnetrzny = 8 podwezlow TOctreeNode) jest TOctreeNode.
   Klasa TVRMLTriangleOctree to proste opakowanie na TreeRoot: TOctreeNode,
-  przechowuje miedzy innymi liste OctreeItems (w TOctreeNode mamy tylko
+  przechowuje miedzy innymi liste Triangles (w TOctreeNode mamy tylko
   indeksy do nich) co pozwala nam zaoszczedzic MASE pamieci i umozliwia
   nam zaimplementowanie skrzynek pocztowych podczas sprawdzania przeciec.
 }
@@ -58,7 +58,7 @@ unit VRMLTriangleOctree;
 interface
 
 uses VectorMath, SysUtils, KambiUtils, VRMLNodes, Boxes3d, Math,
-  KambiOctree, VRMLOctreeItems;
+  KambiOctree, VRMLTriangle;
 
 {$define read_interface}
 
@@ -71,27 +71,27 @@ const
 type
   TVRMLTriangleOctree = class;
 
-  TTriangleOctreeNode = class(TVRMLItemsOctreeNode)
+  TTriangleOctreeNode = class(TVRMLBaseTrianglesOctreeNode)
   protected
     procedure PutItemIntoSubNodes(ItemIndex: integer); override;
   private
-    function GetItems(ItemIndex: integer): POctreeItem;
+    function GetItems(ItemIndex: integer): PVRMLTriangle;
   public
     function ParentTree: TVRMLTriangleOctree;
 
     { Items zapewniaja wygodniejszy (czasami) dostep do tablicy ItemsIndices.
       Podane ItemIndex jest indeksem do tablicy ItemsIndices - wyciagamy z tego
-      ParentTree.OctreeItems[ItemsIndices[ItemIndex]] }
-    property Items[ItemIndex: integer]: POctreeItem read GetItems;
+      ParentTree.Triangles[ItemsIndices[ItemIndex]] }
+    property Items[ItemIndex: integer]: PVRMLTriangle read GetItems;
 
     function SphereCollision(const pos: TVector3Single;
       const Radius: Single;
-      const OctreeItemToIgnore: POctreeItem;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; override;
+      const TriangleToIgnore: PVRMLTriangle;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
 
     function BoxCollision(const ABox: TBox3d;
-      const OctreeItemToIgnore: POctreeItem;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; override;
+      const TriangleToIgnore: PVRMLTriangle;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
 
     function SegmentCollision(
       out Intersection: TVector3Single;
@@ -99,9 +99,9 @@ type
       const pos1, pos2: TVector3Single;
       {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
       const ReturnClosestIntersection: boolean;
-      const OctreeItemToIgnore: POctreeItem;
+      const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; override;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
 
     function RayCollision(
       out Intersection: TVector3Single;
@@ -109,38 +109,38 @@ type
       const Ray0, RayVector: TVector3Single;
       {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
       const ReturnClosestIntersection: boolean;
-      const OctreeItemToIgnore: POctreeItem;
+      const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; override;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
   end;
 
 { TVRMLTriangleOctree ------------------------------------------------------------ }
 
-  TVRMLTriangleOctree = class(TVRMLItemsOctree)
+  TVRMLTriangleOctree = class(TVRMLBaseTrianglesOctree)
   protected
     function StatisticsBonus(
       const LeavesCount, ItemsCount, NonLeafNodesCount: Int64): string; override;
   public
-    { tu beda zgromadzone wszystkie OctreeItems jakie mamy w drzewie.
+    { tu beda zgromadzone wszystkie Triangles jakie mamy w drzewie.
       W lisciach beda tylko ItemsIndices ktore beda indeksami do tej tablicy.
       Zrobilem to 27.04.2003 gdy zobaczylem w drzewie
       z ciasno dobranymi MaxDepth i LeafCapacity jeden trojkat sceny moze
       byc powielony az 50 000 razy ! To powodowalo zzeranie niesamowitych ilosci
-      pamieci, bo rekord TOctreeItem jest dosc duzy i z czasem pewnie bede go
+      pamieci, bo rekord TVRMLTriangle jest dosc duzy i z czasem pewnie bede go
       jeszcze rozszerzal. Trzymanie wszystkich elementow w tablicy pozwala
       mi miec w lapie kazdy element tylko raz.
-      - ponadto unikajac robienia TOctreeItem jako obiektow unikam fragmentacji
+      - ponadto unikajac robienia TVRMLTriangle jako obiektow unikam fragmentacji
         pamieci
       - umozliwilem sobie zrobienie OCTREE_ITEM_USE_MAILBOX
-      - umozliwiam realizowanie OctreeItemToIgnore w RayCollision przez szybkie
-        porownywanie of a simple pointer (zamiast np. zawartosci TOctreeItem) }
-    OctreeItems: TDynOctreeItemsArray;
+      - umozliwiam realizowanie TriangleToIgnore w RayCollision przez szybkie
+        porownywanie of a simple pointer (zamiast np. zawartosci TVRMLTriangle) }
+    Triangles: TDynVRMLTriangleArray;
 
     function TreeRoot: TTriangleOctreeNode;
 
-    { Add single OctreeItem. Automatically checks whether IsValidTriangle.
+    { Add single Triangle. Automatically checks whether IsValidTriangle.
       Przed dodaniem duzej ilosci trojkatow sugerowane jest aby ustalic
-      OctreeItems.AllowedCapacityCount na odpowiednio duza wartosc.  }
+      Triangles.AllowedCapacityCount na odpowiednio duza wartosc.  }
     procedure AddItemTriangle(const Triangle: TTriangle3Single;
       State: TVRMLGraphTraverseState;
       GeometryNode: TVRMLGeometryNode;
@@ -198,7 +198,7 @@ var
 begin
   AddedSomewhere := false;
 
-  Triangle := @(ParentTree.OctreeItems.Items[ItemIndex].Loc.Triangle);
+  Triangle := @(ParentTree.Triangles.Items[ItemIndex].Loc.Triangle);
 
   { First prototype of this just run SecondTestAndAdd 8 times, without
     initial SubnodesWithBox checking. It turns out that it's faster
@@ -255,22 +255,22 @@ begin
  Result := TVRMLTriangleOctree(InternalParentTree);
 end;
 
-function TTriangleOctreeNode.GetItems(ItemIndex: integer): POctreeItem;
+function TTriangleOctreeNode.GetItems(ItemIndex: integer): PVRMLTriangle;
 begin
- result := @(ParentTree.OctreeItems.Items[ItemsIndices.Items[ItemIndex]]);
+ result := @(ParentTree.Triangles.Items[ItemsIndices.Items[ItemIndex]]);
 end;
 
 { TTriangleOctreeNode Collisions ------------------------------------------------------ }
 
 function TTriangleOctreeNode.SphereCollision(const pos: TVector3Single;
   const Radius: Single;
-  const OctreeItemToIgnore: POctreeItem;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
+  const TriangleToIgnore: PVRMLTriangle;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
 
   procedure OCTREE_STEP_INTO_SUBNODES_PROC(subnode: TOctreeNode; var Stop: boolean);
   begin
     result := TTriangleOctreeNode(subnode).SphereCollision(
-      pos, Radius, OctreeItemToIgnore, ItemsToIgnoreFunc);
+      pos, Radius, TriangleToIgnore, TrianglesToIgnoreFunc);
     Stop := result <> nil;
   end;
 
@@ -286,9 +286,9 @@ begin
       Result := Items[i];
       if IsTriangleSphereCollision(Result^.Loc.Triangle,
         Result^.Loc.Plane, pos, Radius) and
-        (OctreeItemToIgnore <> Result) and
-        ( (not Assigned(ItemsToIgnoreFunc)) or
-          (not ItemsToIgnoreFunc(ParentTree, Result)) ) then
+        (TriangleToIgnore <> Result) and
+        ( (not Assigned(TrianglesToIgnoreFunc)) or
+          (not TrianglesToIgnoreFunc(ParentTree, Result)) ) then
         Exit;
     end;
     Exit(nil);
@@ -304,13 +304,13 @@ begin
 end;
 
 function TTriangleOctreeNode.BoxCollision(const ABox: TBox3d;
-  const OctreeItemToIgnore: POctreeItem;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
+  const TriangleToIgnore: PVRMLTriangle;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
 
   procedure OCTREE_STEP_INTO_SUBNODES_PROC(subnode: TOctreeNode; var Stop: boolean);
   begin
     Result := TTriangleOctreeNode(subnode).BoxCollision(ABox,
-      OctreeItemToIgnore, ItemsToIgnoreFunc);
+      TriangleToIgnore, TrianglesToIgnoreFunc);
     Stop := result <> nil;
   end;
 
@@ -325,9 +325,9 @@ begin
       Inc(ParentTree.DirectCollisionTestsCounter);
       Result := Items[i];
       if IsBox3dTriangleCollision(ABox, Result^.Loc.Triangle) and
-        (OctreeItemToIgnore <> Result) and
-        ( (not Assigned(ItemsToIgnoreFunc)) or
-          (not ItemsToIgnoreFunc(ParentTree, Result)) ) then
+        (TriangleToIgnore <> Result) and
+        ( (not Assigned(TrianglesToIgnoreFunc)) or
+          (not TrianglesToIgnoreFunc(ParentTree, Result)) ) then
         Exit;
     end;
     Exit(nil);
@@ -345,9 +345,9 @@ function TTriangleOctreeNode.SegmentCollision(
   const Pos1, Pos2: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
   const ReturnClosestIntersection: boolean;
-  const OctreeItemToIgnore: POctreeItem;
+  const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
 {$define SEGMENT_COLLISION}
 {$I vrmltriangleoctree_raysegmentcollisions.inc}
 {$undef SEGMENT_COLLISION}
@@ -358,9 +358,9 @@ function TTriangleOctreeNode.RayCollision(
   const Ray0, RayVector: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
   const ReturnClosestIntersection: boolean;
-  const OctreeItemToIgnore: POctreeItem;
+  const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
 {$I vrmltriangleoctree_raysegmentcollisions.inc}
 
 { TVRMLTriangleOctree -------------------------------------------------------------- }
@@ -373,13 +373,13 @@ end;
 function TVRMLTriangleOctree.StatisticsBonus(
   const LeavesCount, ItemsCount, NonLeafNodesCount: Int64): string;
 begin
- if OctreeItems.Count = 0 then
+ if Triangles.Count = 0 then
   Result :=
     '  Empty octree - no triangles defined.' +nl else
   Result := Format(
     '  %d items (=triangles) defined for octree, %d items in octree''s nodes' +nl+
     '  - so each triangle is present in tree about %f times.' +nl,
-    [ OctreeItems.Count, ItemsCount, ItemsCount / OctreeItems.Count] );
+    [ Triangles.Count, ItemsCount, ItemsCount / Triangles.Count] );
 end;
 
 procedure TVRMLTriangleOctree.AddItemTriangle(const Triangle: TTriangle3Single;
@@ -388,11 +388,11 @@ procedure TVRMLTriangleOctree.AddItemTriangle(const Triangle: TTriangle3Single;
 begin
   if IsValidTriangle(Triangle) then
   begin
-    OctreeItems.IncLength;
-    OctreeItems.Items[OctreeItems.High].Init(
+    Triangles.IncLength;
+    Triangles.Items[Triangles.High].Init(
       Triangle, State, GeometryNode, MatNum,
       FaceCoordIndexBegin, FaceCoordIndexEnd);
-    TreeRoot.AddItem(OctreeItems.High);
+    TreeRoot.AddItem(Triangles.High);
   end;
 end;
 
@@ -408,12 +408,12 @@ constructor TVRMLTriangleOctree.Create(AMaxDepth, ALeafCapacity: integer;
 begin
  inherited Create (AMaxDepth, ALeafCapacity, ARootBox,
    TTriangleOctreeNode, false);
- OctreeItems := TDynOctreeItemsArray.Create;
+ Triangles := TDynVRMLTriangleArray.Create;
 end;
 
 destructor TVRMLTriangleOctree.Destroy;
 begin
- FreeAndNil(OctreeItems);
+ FreeAndNil(Triangles);
  inherited;
 end;
 

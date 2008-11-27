@@ -387,7 +387,7 @@ type
 
 implementation
 
-uses ProgressUnit, VRMLOctreeItems;
+uses ProgressUnit, VRMLTriangle;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -582,7 +582,7 @@ function TVRMLShape.CreateTriangleOctree(
 begin
   Result := TVRMLTriangleOctree.Create(AMaxDepth, ALeafCapacity, LocalBoundingBox);
   try
-    Result.OctreeItems.AllowedCapacityOverflow := TrianglesCount(false);
+    Result.Triangles.AllowedCapacityOverflow := TrianglesCount(false);
     try
       if (ProgressTitle <> '') and
          (Progress.UserInterface <> nil) and
@@ -596,7 +596,7 @@ begin
       end else
         GeometryNode.LocalTriangulate(State, false,  @Result.AddItemTriangle);
     finally
-      Result.OctreeItems.AllowedCapacityOverflow := 4;
+      Result.Triangles.AllowedCapacityOverflow := 4;
     end;
   except Result.Free; raise end;
 end;

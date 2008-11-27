@@ -41,7 +41,7 @@ unit VRMLRayTracer;
 interface
 
 uses VectorMath, Images, RaysWindow,
-  VRMLOctreeItems, VRMLNodes, SpaceFillingCurves, Matrix;
+  VRMLTriangle, VRMLNodes, SpaceFillingCurves, Matrix;
 
 type
   TPixelsMadeNotifierFunc = procedure(PixelsMadeCount: Cardinal; Data: Pointer);
@@ -55,7 +55,7 @@ type
   public
     { This describes the actual scene that will be used.
       Must be set before calling @link(Execute). }
-    Octree: TVRMLItemsOctree;
+    Octree: TVRMLBaseTrianglesOctree;
 
     { Image where the ray-tracer result will be stored.
       Must be set before calling @link(Execute).
@@ -388,11 +388,11 @@ var
     Returns @false if the ray didn't hit anything, otherwise
     returns @true and sets Color. }
   function Trace(const Ray0, RayVector: TVector3_Single; const Depth: Cardinal;
-    const OctreeItemToIgnore: POctreeItem; IgnoreMarginAtStart: boolean):
+    const TriangleToIgnore: PVRMLTriangle; IgnoreMarginAtStart: boolean):
     TVector3_Single;
   var
     Intersection: TVector3_Single;
-    IntersectNode: POctreeItem;
+    IntersectNode: PVRMLTriangle;
     MaterialMirror, MaterialTransparency: Single;
 
     procedure ModifyColorByTransmittedRay;
@@ -472,7 +472,7 @@ var
   begin
     IntersectNode := Octree.RayCollision(Intersection.Data,
       Ray0, RayVector, true,
-      OctreeItemToIgnore, IgnoreMarginAtStart, nil);
+      TriangleToIgnore, IgnoreMarginAtStart, nil);
     if IntersectNode = nil then Exit(SceneBGColor);
 
     { calculate material properties, taking into account VRML 1.0 and 2.0
@@ -643,13 +643,13 @@ end;
 
 procedure TPathTracer.Execute;
 var
-  { In LightItems we have pointers to Octree.OctreeItems[] pointing
+  { In LightItems we have pointers to Octree.Triangles[] pointing
     to the items with emission color > 0. In other words, light sources. }
   LightItems: TDynPointerArray;
 
   {$ifdef PATHTR_USES_SHADOW_CACHE}
   { For each light in LightItems[I], ShadowCache[I] gives the pointer
-    (somewhere into Octree.OctreeItems[]) of the last object that blocked this
+    (somewhere into Octree.Triangles[]) of the last object that blocked this
     light source (or nil if no such object was yet found during
     this path tracer execution).
 
@@ -684,14 +684,14 @@ const
     box.jpg. }
   LightEmissionArea = 1/30;
 
-  function IsLightSource(const Item: POctreeItem): boolean;
+  function IsLightSource(const Item: PVRMLTriangle): boolean;
   begin
     Result := VectorLenSqr(Item^.State.LastNodes.Material.
       EmissiveColor3Single(Item^.MatNum))
       > Sqr(SingleEqualityEpsilon);
   end;
 
-  function IsLightShadowed(const Item: POctreeItem;
+  function IsLightShadowed(const Item: PVRMLTriangle;
     const ItemPoint: TVector3_Single;
     const LightSourceIndiceIndex: Integer;
     LightSourcePoint: TVector3_Single): boolean;
@@ -699,14 +699,14 @@ const
     pomiedzy punktem ItemPoint a LightSourcePoint jest jakis element
     o transparency = 1. Wpp. zwraca false.
     LightSourceIndiceIndex to indeks to tablicy LightItems[].
-    Item to pointer to given item (somewhere in Octree.OctreeItems[]). }
+    Item to pointer to given item (somewhere in Octree.Triangles[]). }
   { TODO: transparent objects should scale light color instead of just
     letting it pass }
   var
     OctreeIgnorer: TVRMLOctreeIgnoreTransparentAndOneItem;
-    Shadower: POctreeItem;
+    Shadower: PVRMLTriangle;
   {$ifdef PATHTR_USES_SHADOW_CACHE}
-    CachedShadower: POctreeItem;
+    CachedShadower: PVRMLTriangle;
   {$endif}
   begin
     {$ifdef PATHTR_USES_SHADOW_CACHE}
@@ -744,14 +744,14 @@ const
   end;
 
   function Trace(const Ray0, RayVector: TVector3_Single;
-    const Depth: Integer; const OctreeItemToIgnore: POctreeItem;
+    const Depth: Integer; const TriangleToIgnore: PVRMLTriangle;
     const IgnoreMarginAtStart: boolean; const TraceOnlyIndirect: boolean)
     : TVector3_Single;
   { sledzi promien z zadana glebokoscia. Zwraca Black (0, 0, 0) jesli
     promien w nic nie trafia, wpp. zwraca wyliczony kolor. }
   var
     Intersection: TVector3_Single;
-    IntersectNode: POctreeItem;
+    IntersectNode: PVRMLTriangle;
     MaterialNode: TNodeMaterial_1; { = IntersectNode.State.LastNodes.Material }
     IntersectNormalInRay0Dir: TVector3_Single;
 
@@ -814,7 +814,7 @@ const
               swiatla o wiekszej powierzchni (a wlasciwie, o wiekszym kacie
               brylowym) i/lub o wiekszej intensywnosci beda wybierane czesciej. }
       var
-        LightSource: POctreeItem;
+        LightSource: PVRMLTriangle;
         LightSourceIndiceIndex: Integer; { indeks do LightIndices[] }
         SampleLightPoint: TVector3_Single;
         DirectColor, LightDirNorm, NegatedLightDirNorm: TVector3_Single;
@@ -1041,7 +1041,7 @@ const
     NonEmissiveColor: TVector3_Single;
   begin
     IntersectNode := Octree.RayCollision(Intersection.Data, Ray0, RayVector, true,
-      OctreeItemToIgnore, IgnoreMarginAtStart, nil);
+      TriangleToIgnore, IgnoreMarginAtStart, nil);
     if IntersectNode = nil then Exit(SceneBGColor);
 
     if TraceOnlyIndirect and IsLightSource(IntersectNode) then
@@ -1129,10 +1129,10 @@ begin
     { calculate LightIndices }
     LightItems := TDynPointerArray.Create;
     {TODO:
-    LightItems.AllowedCapacityOverflow := Octree.OctreeItems.Count div 4;
-    for I := 0 to Octree.OctreeItems.Count - 1 do
-      if IsLightSource(Octree.OctreeItems.Pointers[I]) then 
-        LightItems.AppendItem(Octree.OctreeItems.Pointers[I]);
+    LightItems.AllowedCapacityOverflow := Octree.Triangles.Count div 4;
+    for I := 0 to Octree.Triangles.Count - 1 do
+      if IsLightSource(Octree.Triangles.Pointers[I]) then
+        LightItems.AppendItem(Octree.Triangles.Pointers[I]);
     LightItems.AllowedCapacityOverflow := 4;}
 
     {$ifdef PATHTR_USES_SHADOW_CACHE}

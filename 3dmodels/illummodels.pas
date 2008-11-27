@@ -18,16 +18,13 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(Ten modul ma zawierac implementacje roznorakich rownan lokalnych modeli
-  oswietlenia i BRDFow po to zeby (chociaz czasami, kiedy bedzie to mozliwe)
-  oddzielic implementacje tych rzeczy od implementacji roznych ray tracerow
-  (i ew. innych rendererow).)  }
-
+{ @abstract(Illumination models, BRDF equations.)
+  For now, this just contains VRML 97 lighting equations. }
 unit IllumModels;
 
 interface
 
-uses VectorMath, VRMLNodes, VRMLOctreeItems, Math, KambiUtils, Matrix;
+uses VectorMath, VRMLNodes, VRMLTriangle, Math, KambiUtils, Matrix;
 
 { This returns VRML 2.0 material emissiveColor for lighting equation.
   I.e. the @code(O_Ergb) part of lighting equation in
@@ -42,7 +39,7 @@ uses VectorMath, VRMLNodes, VRMLOctreeItems, Math, KambiUtils, Matrix;
   recursion 0 (i.e., actually it's a ray-caster in this case).
   Using emissiveColor in such case would almost always
   give a completely black, useles image. }
-function VRML97Emission(const IntersectNode: TOctreeItem;
+function VRML97Emission(const IntersectNode: TVRMLTriangle;
   LightingCalculationOn: boolean): TVector3_Single;
 
 { This returns VRML 2.0 light contribution to the specified
@@ -84,7 +81,7 @@ function VRML97Emission(const IntersectNode: TOctreeItem;
   kolory i ten nadrzedny kod musi robic clamp - o ile chce, np. raytracer
   zapisujacy kolory do rgbe nie musi nigdzie robic clamp). }
 function VRML97LightContribution(const Light: TActiveLight;
-  const Intersection: TVector3_Single; const IntersectNode: TOctreeItem;
+  const Intersection: TVector3_Single; const IntersectNode: TVRMLTriangle;
   const CamPosition: TVector3_Single): TVector3_Single;
 
 { Bardzo specjalna wersja VRML97LightContribution, stworzona na potrzeby
@@ -138,7 +135,7 @@ uses VRMLErrors;
 
 {$I VectorMathInlines.inc}
 
-function VRML97Emission(const IntersectNode: TOctreeItem;
+function VRML97Emission(const IntersectNode: TVRMLTriangle;
   LightingCalculationOn: boolean): TVector3_Single;
 var
   M1: TNodeMaterial_1;
@@ -170,7 +167,7 @@ begin
 end;
 
 function VRML97LightContribution(const Light: TActiveLight;
-  const Intersection: TVector3_Single; const IntersectNode: TOctreeItem;
+  const Intersection: TVector3_Single; const IntersectNode: TVRMLTriangle;
   const CamPosition: TVector3_Single): TVector3_Single;
 {$I illummodels_vrml97lightcontribution.inc}
 

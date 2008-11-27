@@ -28,7 +28,7 @@ uses
   SysUtils, Classes, VectorMath, Boxes3d,
   VRMLFields, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLShape, VRMLTriangleOctree, ProgressUnit, VRMLShapeOctree,
-  Keys, VRMLTime, Navigation, VRMLOctreeItems;
+  Keys, VRMLTime, Navigation, VRMLTriangle;
 
 {$define read_interface}
 
@@ -576,7 +576,7 @@ type
     ChangedAllSchedule: Cardinal;
     ChangedAllScheduled: boolean;
 
-    FPointingDeviceOverItem: POctreeItem;
+    FPointingDeviceOverItem: PVRMLTriangle;
     FPointingDeviceActive: boolean;
     FPointingDeviceActiveSensor: TNodeX3DPointingDeviceSensorNode;
     procedure SetPointingDeviceActive(const Value: boolean);
@@ -1062,7 +1062,7 @@ type
       or OctreeDynamicCollisions, whichever is available (or @nil if none).
       Be sure to add ssDynamicCollisions or ssCollidableTriangles to have
       this available. }
-    function OctreeCollisions: TVRMLItemsOctree;
+    function OctreeCollisions: TVRMLBaseTrianglesOctree;
 
     { Which spatial structures (octrees, for now) should be created and managed.
 
@@ -1360,14 +1360,14 @@ type
       OverItem may be @nil to indicate we're not over any item.
       In this case, OverPoint is ignored. }
     procedure PointingDeviceMove(const OverPoint: TVector3Single;
-      const OverItem: POctreeItem);
+      const OverItem: PVRMLTriangle);
 
     { Current item over which the pointing device is. @nil if over none.
       For example, you can investigate it's pointing device sensors
       (in PointingDeviceOverItem^.State.PointingDeviceSensors),
       although there's a shortcut for just this in @link(PointingDeviceSensors).
       You can change this by PointingDeviceMove and PointingDeviceClear. }
-    property PointingDeviceOverItem: POctreeItem
+    property PointingDeviceOverItem: PVRMLTriangle
       read FPointingDeviceOverItem write FPointingDeviceOverItem;
 
     { Pointing-device sensors over which the pointing device is.
@@ -2837,7 +2837,7 @@ begin
   end;
 
   if SomeLocalGeometryChanged then
-    { Some POctreeItems became invalid. }
+    { Some PVRMLTriangles became invalid. }
     PointingDeviceClear;
 
   if Assigned(OnGeometryChanged) then
@@ -3095,7 +3095,7 @@ begin
   end;
 end;
 
-function TVRMLScene.OctreeCollisions: TVRMLItemsOctree;
+function TVRMLScene.OctreeCollisions: TVRMLBaseTrianglesOctree;
 begin
   if OctreeCollidableTriangles <> nil then
     Result := OctreeCollidableTriangles else
@@ -3128,7 +3128,7 @@ function TVRMLScene.CreateTriangleOctree(
 begin
   Result := TVRMLTriangleOctree.Create(AMaxDepth, ALeafCapacity, BoundingBox);
   try
-    Result.OctreeItems.AllowedCapacityOverflow := TrianglesCount(false);
+    Result.Triangles.AllowedCapacityOverflow := TrianglesCount(false);
     try
       if (ProgressTitle <> '') and
          (Progress.UserInterface <> nil) and
@@ -3142,7 +3142,7 @@ begin
       end else
         FillOctree({$ifdef FPC_OBJFPC} @ {$endif} Result.AddItemTriangle);
     finally
-      Result.OctreeItems.AllowedCapacityOverflow := 4;
+      Result.Triangles.AllowedCapacityOverflow := 4;
     end;
   except Result.Free; raise end;
 end;
@@ -3981,7 +3981,7 @@ end;
 { pointing device handling --------------------------------------------------- }
 
 procedure TVRMLScene.PointingDeviceMove(const OverPoint: TVector3Single;
-  const OverItem: POctreeItem);
+  const OverItem: PVRMLTriangle);
 var
   TouchSensor: TNodeTouchSensor;
   OldIsOver, NewIsOver: boolean;

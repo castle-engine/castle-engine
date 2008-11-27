@@ -67,12 +67,12 @@ var
   RayVector: TYPE_VECTOR3;
 {$endif}
 
-  function DoLeaf: POctreeItem;
+  function DoLeaf: PVRMLTriangle;
 
     function TryTriangleCollision(
       out Intersection: TYPE_VECTOR3;
       out IntersectionDistance: TYPE_SCALAR;
-      var Item: TOctreeItem): boolean;
+      var Item: TVRMLTriangle): boolean;
     begin
       Result:=
         {$ifdef SEGMENT_COLLISION}
@@ -101,17 +101,17 @@ var
       Iterate_Item := Items[Iterate_ItemNumber];
       if TryTriangleCollision(Iterate_Intersection, Iterate_IntersectionDistance,
            Iterate_Item^) and
-         ( OctreeItemToIgnore <> Iterate_Item ) and
+         ( TriangleToIgnore <> Iterate_Item ) and
          ( (not IgnoreMarginAtStart) or
            (not VectorsEqual(Iterate_Intersection, Ray0)) ) and
-         ( (not Assigned(ItemsToIgnoreFunc)) or
-           (not ItemsToIgnoreFunc(ParentTree, Iterate_Item)) ) then
+         ( (not Assigned(TrianglesToIgnoreFunc)) or
+           (not TrianglesToIgnoreFunc(ParentTree, Iterate_Item)) ) then
        ON_INTERSECTION_FOUND
     end;}
 
   var
     Iterate_ItemNumber: integer;
-    Iterate_Item: POctreeItem;
+    Iterate_Item: PVRMLTriangle;
     Iterate_Intersection: TYPE_VECTOR3;
     Iterate_IntersectionDistance: TYPE_SCALAR;
   begin
@@ -146,7 +146,7 @@ var
   {$undef ITERATE_INTERSECTIONS}
   {$undef ON_INTERSECTION_FOUND}
 
-  function DoNotLeaf: POctreeItem;
+  function DoNotLeaf: PVRMLTriangle;
 
     { For kambi_vrml_test_suite/vrml_1/flat_triangles_octree_test.wrl,
       this really needs some tolerance. And SingleEqualityEpsilon
@@ -390,13 +390,13 @@ var
       {$ifdef SEGMENT_COLLISION}
       SegmentCollision(Intersection, IntersectionDistance, Pos1, Pos2,
         {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
-        ReturnClosestIntersection, OctreeItemToIgnore, IgnoreMarginAtStart,
-        ItemsToIgnoreFunc);
+        ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
+        TrianglesToIgnoreFunc);
       {$else}
       RayCollision(Intersection, IntersectionDistance, Ray0, RayVector,
         {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
-        ReturnClosestIntersection, OctreeItemToIgnore, IgnoreMarginAtStart,
-        ItemsToIgnoreFunc);
+        ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
+        TrianglesToIgnoreFunc);
       {$endif}
 
     { musimy sie tu upewnic ze zwrocone Intersection jest rzeczywiscie

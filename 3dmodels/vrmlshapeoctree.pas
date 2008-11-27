@@ -47,7 +47,7 @@ unit VRMLShapeOctree;
 interface
 
 uses SysUtils, Boxes3d, KambiOctree, VRMLShape, VectorMath, KambiUtils,
-  VRMLOctreeItems;
+  VRMLTriangle;
 
 const
   { Kambi private notes: values below found experimetally, many tests on
@@ -59,7 +59,7 @@ const
 type
   TVRMLShapeOctree = class;
 
-  TVRMLShapeOctreeNode = class(TVRMLItemsOctreeNode)
+  TVRMLShapeOctreeNode = class(TVRMLBaseTrianglesOctreeNode)
   protected
     procedure PutItemIntoSubNodes(ItemIndex: integer); override;
   public
@@ -67,12 +67,12 @@ type
 
     function SphereCollision(const pos: TVector3Single;
       const Radius: Single;
-      const OctreeItemToIgnore: POctreeItem;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; override;
+      const TriangleToIgnore: PVRMLTriangle;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
 
     function BoxCollision(const ABox: TBox3d;
-      const OctreeItemToIgnore: POctreeItem;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; override;
+      const TriangleToIgnore: PVRMLTriangle;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
 
     function SegmentCollision(
       out Intersection: TVector3Single;
@@ -80,9 +80,9 @@ type
       const Pos1, Pos2: TVector3Single;
       {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
       const ReturnClosestIntersection: boolean;
-      const OctreeItemToIgnore: POctreeItem;
+      const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; override;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
 
     function RayCollision(
       out Intersection: TVector3Single;
@@ -90,12 +90,12 @@ type
       const Ray0, RayVector: TVector3Single;
       {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
       const ReturnClosestIntersection: boolean;
-      const OctreeItemToIgnore: POctreeItem;
+      const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; override;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
   end;
 
-  TVRMLShapeOctree = class(TVRMLItemsOctree)
+  TVRMLShapeOctree = class(TVRMLBaseTrianglesOctree)
   private
     FShapesList: TVRMLShapesList;
     FOwnsShapesList: boolean;
@@ -155,8 +155,8 @@ end;
 
 function TVRMLShapeOctreeNode.SphereCollision(const Pos: TVector3Single;
   const Radius: Single;
-  const OctreeItemToIgnore: POctreeItem;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
+  const TriangleToIgnore: PVRMLTriangle;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
 var
   I: Integer;
   Shape: TVRMLShape;
@@ -173,7 +173,7 @@ begin
       LocalBox := Box3dTransform(BoundingBox3dFromSphere(Pos, Radius),
         Shape.State.InvertedTransform);
       Result := Shape.OctreeTriangles.BoxCollision(
-        LocalBox, OctreeItemToIgnore, ItemsToIgnoreFunc);
+        LocalBox, TriangleToIgnore, TrianglesToIgnoreFunc);
     except
       on ETransformedResultInvalid do Result := nil;
     end;
@@ -186,8 +186,8 @@ begin
 end;
 
 function TVRMLShapeOctreeNode.BoxCollision(const ABox: TBox3d;
-  const OctreeItemToIgnore: POctreeItem;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
+  const TriangleToIgnore: PVRMLTriangle;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
 var
   I: Integer;
   Shape: TVRMLShape;
@@ -203,7 +203,7 @@ begin
       LocalBox := Box3dTransform(ABox,
         Shape.State.InvertedTransform);
       Result := Shape.OctreeTriangles.BoxCollision(
-        LocalBox, OctreeItemToIgnore, ItemsToIgnoreFunc);
+        LocalBox, TriangleToIgnore, TrianglesToIgnoreFunc);
     except
       on ETransformedResultInvalid do Result := nil;
     end;
@@ -221,16 +221,16 @@ function TVRMLShapeOctreeNode.SegmentCollision(
   const Pos1, Pos2: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
   const ReturnClosestIntersection: boolean;
-  const OctreeItemToIgnore: POctreeItem;
+  const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
 var
   I: Integer;
   Shape: TVRMLShape;
   LocalPos1, LocalPos2: TVector3Single;
   ThisIntersection: TVector3Single;
   ThisIntersectionDistance: Single;
-  ThisResult: POctreeItem;
+  ThisResult: PVRMLTriangle;
 begin
   Result := nil;
 
@@ -245,7 +245,7 @@ begin
         Result := Shape.OctreeTriangles.SegmentCollision(
           Intersection, IntersectionDistance, LocalPos1, LocalPos2,
           ReturnClosestIntersection,
-          OctreeItemToIgnore, IgnoreMarginAtStart, ItemsToIgnoreFunc);
+          TriangleToIgnore, IgnoreMarginAtStart, TrianglesToIgnoreFunc);
       except
         on ETransformedResultInvalid do Result := nil;
       end;
@@ -271,7 +271,7 @@ begin
         ThisResult := Shape.OctreeTriangles.SegmentCollision(
           ThisIntersection, ThisIntersectionDistance, LocalPos1, LocalPos2,
           ReturnClosestIntersection,
-          OctreeItemToIgnore, IgnoreMarginAtStart, ItemsToIgnoreFunc);
+          TriangleToIgnore, IgnoreMarginAtStart, TrianglesToIgnoreFunc);
       except
         on ETransformedResultInvalid do Result := nil;
       end;
@@ -299,16 +299,16 @@ function TVRMLShapeOctreeNode.RayCollision(
   const Ray0, RayVector: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
   const ReturnClosestIntersection: boolean;
-  const OctreeItemToIgnore: POctreeItem;
+  const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
 var
   I: Integer;
   Shape: TVRMLShape;
   LocalRay0, LocalRayVector: TVector3Single;
   ThisIntersection: TVector3Single;
   ThisIntersectionDistance: Single;
-  ThisResult: POctreeItem;
+  ThisResult: PVRMLTriangle;
 begin
   Result := nil;
 
@@ -323,7 +323,7 @@ begin
         Result := Shape.OctreeTriangles.RayCollision(
           Intersection, IntersectionDistance, LocalRay0, LocalRayVector,
           ReturnClosestIntersection,
-          OctreeItemToIgnore, IgnoreMarginAtStart, ItemsToIgnoreFunc);
+          TriangleToIgnore, IgnoreMarginAtStart, TrianglesToIgnoreFunc);
       except
         on ETransformedResultInvalid do Result := nil;
       end;
@@ -350,7 +350,7 @@ begin
         ThisResult := Shape.OctreeTriangles.RayCollision(
           ThisIntersection, ThisIntersectionDistance, LocalRay0, LocalRayVector,
           ReturnClosestIntersection,
-          OctreeItemToIgnore, IgnoreMarginAtStart, ItemsToIgnoreFunc);
+          TriangleToIgnore, IgnoreMarginAtStart, TrianglesToIgnoreFunc);
       except
         on ETransformedResultInvalid do Result := nil;
       end;

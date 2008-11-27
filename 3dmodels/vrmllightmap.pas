@@ -24,7 +24,7 @@ unit VRMLLightMap;
 
 interface
 
-uses VectorMath, VRMLNodes, Images, VRMLOctreeItems;
+uses VectorMath, VRMLNodes, Images, VRMLTriangle;
 
 type
   TQuad3Single = packed array[0..3]of TVector3Single;
@@ -67,7 +67,7 @@ type
 }
 procedure TriangleLightMapTo1st(const Image: TImage;
   LeftDownImagePart: boolean;
-  Lights: TDynActiveLightArray; Octree: TVRMLItemsOctree;
+  Lights: TDynActiveLightArray; Octree: TVRMLBaseTrianglesOctree;
   const TrianglePos: TTriangle3Single;
   const RenderDir: TVector3Single);
 
@@ -79,7 +79,7 @@ procedure TriangleLightMapTo1st(const Image: TImage;
   Jesli ProgresTitle <> '' to uzywa Progress (with given Title)
   aby zaznaczac postep operacji. }
 procedure QuadLightMapTo1st(const Image: TImage;
-  Lights: TDynActiveLightArray; Octree: TVRMLItemsOctree;
+  Lights: TDynActiveLightArray; Octree: TVRMLBaseTrianglesOctree;
   const Quad: TQuad3Single;
   const RenderDir: TVector3Single;
   const ProgresTitle: string);
@@ -89,7 +89,7 @@ implementation
 uses Math, KambiUtils, IllumModels, ProgressUnit;
 
 function PointLightMap(const Point, PointPlaneNormal: TVector3Single;
-  Lights: TDynActiveLightArray; Octree: TVRMLItemsOctree;
+  Lights: TDynActiveLightArray; Octree: TVRMLBaseTrianglesOctree;
   const RenderDir: TVector3Single): TVector3Single;
 var i: Integer;
 begin
@@ -103,7 +103,7 @@ end;
 
 procedure TriangleLightMapTo1st(const Image: TImage;
   LeftDownImagePart: boolean;
-  Lights: TDynActiveLightArray; Octree: TVRMLItemsOctree;
+  Lights: TDynActiveLightArray; Octree: TVRMLBaseTrianglesOctree;
   const TrianglePos: TTriangle3Single;
   const RenderDir: TVector3Single);
 
@@ -168,7 +168,7 @@ begin
 end;
 
 procedure QuadLightMapTo1st(const Image: TImage;
-  Lights: TDynActiveLightArray; Octree: TVRMLItemsOctree;
+  Lights: TDynActiveLightArray; Octree: TVRMLBaseTrianglesOctree;
   const Quad: TQuad3Single;
   const RenderDir: TVector3Single;
   const ProgresTitle: string);

@@ -1,5 +1,5 @@
-{ zdefiniuj OCTREE_ITEM_USE_MAILBOX aby w TryOctreeItem*Collision uzywac
-  wlasciwosci Mailbox* rekordow TOctreeItem. W ten sposob mozemy uniknac
+{ zdefiniuj OCTREE_ITEM_USE_MAILBOX aby w TVRMLTriangle.*Collision uzywac
+  wlasciwosci Mailbox* obiektow TVRMLTriangle. W ten sposob mozemy uniknac
   wielokrotnego sprawdzania przeciecia tego samego trojkata z tym samym
   promieniem na skutek tego ze jeden trojkat moze trafic do wielu lisci.
 

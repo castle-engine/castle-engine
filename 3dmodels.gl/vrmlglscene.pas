@@ -541,7 +541,7 @@ type
     { Private things only for RenderFrustumOctree ---------------------- }
 
     RenderFrustumOctree_Frustum: PFrustum;
-    procedure RenderFrustumOctree_EnumerateOctreeItem(
+    procedure RenderFrustumOctree_EnumerateShapes(
       ShapeIndex: Integer; CollidesForSure: boolean);
     function RenderFrustumOctree_TestShape(Shape: TVRMLGLShape): boolean;
     procedure RenderFrustumOctree(const Frustum: TFrustum;
@@ -3539,7 +3539,7 @@ begin
   Result := Shape.RenderFrustumOctree_Visible;
 end;
 
-procedure TVRMLGLScene.RenderFrustumOctree_EnumerateOctreeItem(
+procedure TVRMLGLScene.RenderFrustumOctree_EnumerateShapes(
   ShapeIndex: Integer; CollidesForSure: boolean);
 var
   Shape: TVRMLGLShape;
@@ -3603,7 +3603,7 @@ begin
     finally FreeAndNil(SI) end;
 
     Octree.EnumerateCollidingOctreeItems(Frustum,
-      {$ifdef FPC_OBJFPC} @ {$endif} RenderFrustumOctree_EnumerateOctreeItem);
+      {$ifdef FPC_OBJFPC} @ {$endif} RenderFrustumOctree_EnumerateShapes);
     Render({$ifdef FPC_OBJFPC} @ {$endif} RenderFrustumOctree_TestShape,
       TransparentGroup, LightRenderEvent);
   end else

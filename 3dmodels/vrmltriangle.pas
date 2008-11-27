@@ -20,9 +20,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Base types for octrees dealing with VRML items (triangles with additional
-  information). }
-unit VRMLOctreeItems;
+{ VRML triangles (TVRMLTriangle) and abstract class for octrees
+  that resolve collision to triangles (TVRMLBaseTrianglesOctree). }
+unit VRMLTriangle;
 
 {$I vrmloctreeconf.inc}
 
@@ -33,14 +33,14 @@ uses VectorMath, SysUtils, KambiUtils, VRMLNodes, Boxes3d, Math,
 
 {$define read_interface}
 
-{ TOctreeItem  ------------------------------------------------------------ }
+{ TVRMLTriangle  ------------------------------------------------------------ }
 
 type
   { }
-  TOctreeItemMailboxState = (msEmpty, msRay, msSegmentDir);
+  TVRMLTriangleMailboxState = (msEmpty, msRay, msSegmentDir);
   TCollisionCount = Int64;
 
-  TOctreeItemGeometry = record
+  TVRMLTriangleGeometry = record
     Triangle: TTriangle3Single;
 
     { Area of the triangle. In other words, just a precalculated for you
@@ -55,24 +55,24 @@ type
       1: (Normal: TVector3Single;);
   end;
 
-  { This is a single item of a triangle octree.
-    In other words, this is really just a triangle with a lot
-    of associated information.
+  { Triangle of VRML model. This is the most basic item for our
+    collision detection routines, returned by octrees descending from
+    TVRMLBaseTrianglesOctree.
 
     This object should always be initialized by @link(Init),
     and updated only by it's methods (never modify fields of
     this object directly).
 
-    I use old-style "object" to define this,
+    I use old-style Pascal "object" to define this,
     since this makes it a little more efficient. This doesn't need
     any virtual methods or such, so (at least for now) it's easier
     and more memory-efficient to keep this as an old-style object.
     And memory efficiency is somewhat important here, since large
     scenes may easily have milions of triangles, and each triangle
-    results in one TOctreeItem instance. }
-  TOctreeItem = object
+    results in one TVRMLTriangle instance. }
+  TVRMLTriangle = object
   public
-    { Initialize new TOctreeItem. Given Triangle must satisfy IsValidTriangle. }
+    { Initialize new TVRMLTriangle. Given Triangle must satisfy IsValidTriangle. }
     constructor Init(const ATriangle: TTriangle3Single;
       AState: TVRMLGraphTraverseState; AGeometryNode: TVRMLGeometryNode;
       const AMatNum, AFaceCoordIndexBegin, AFaceCoordIndexEnd: integer);
@@ -83,9 +83,9 @@ type
       @unorderedList(
 
         @item(Local is based on initial Triangle, given when constructing
-          this TOctreeItem. It's constant for this TOctreeItem. It's used
+          this TVRMLTriangle. It's constant for this TVRMLTriangle. It's used
           by octree collision routines, that is things like
-          TVRMLItemsOctree.SphereCollision, TVRMLItemsOctree.RayCollision
+          TVRMLBaseTrianglesOctree.SphereCollision, TVRMLBaseTrianglesOctree.RayCollision
           and such expect parameters in the same coord space.
 
           This may be local coord space of this shape (this is used
@@ -101,9 +101,9 @@ type
           If Local ontains local shape-space geometry, then World
           will have to be updated by UpdateWorld whenever some octree item's
           geometry will be needed in world coords. This will have to be
-          done e.g. by TVRMLItemsOctree.XxxCollision for each returned item.)
+          done e.g. by TVRMLBaseTrianglesOctree.XxxCollision for each returned item.)
       ) }
-    Loc, World: TOctreeItemGeometry;
+    Loc, World: TVRMLTriangleGeometry;
     procedure UpdateWorld;
 
     State: TVRMLGraphTraverseState;
@@ -132,7 +132,7 @@ type
       To make things correct, we obviously assume that every segment
       and ray have different tags. Also, tag -1 is reserved.
       In practice, we simply initialize MailboxSavedTag to -1
-      (in CreateOctreeItem), and each new segment/ray get consecutive tags
+      in constructor, and each new segment/ray get consecutive tags
       starting from 0.
 
       @groupBegin }
@@ -143,7 +143,7 @@ type
     { @groupEnd }
     {$endif}
 
-    { Check collisions between TOctreeItem and ray/segment.
+    { Check collisions between TVRMLTriangle and ray/segment.
 
       Always use these routines to check for collisions,
       to use mailboxes if possible. Mailboxes are used only if this was
@@ -168,31 +168,31 @@ type
       var DirectCollisionTestsCounter: TCollisionCount): boolean;
     { @groupEnd }
   end;
-  POctreeItem = ^TOctreeItem;
+  PVRMLTriangle = ^TVRMLTriangle;
 
-  TDynArrayItem_1 = TOctreeItem;
-  PDynArrayItem_1 = POctreeItem;
+  TDynArrayItem_1 = TVRMLTriangle;
+  PDynArrayItem_1 = PVRMLTriangle;
   {$define DYNARRAY_1_IS_STRUCT}
   {$I dynarray_1.inc}
-  TDynOctreeItemsArray = TDynArray_1;
+  TDynVRMLTriangleArray = TDynArray_1;
 
-{ TVRMLItemsOctree ----------------------------------------------------------- }
+{ TVRMLBaseTrianglesOctree ----------------------------------------------------------- }
 
 type
   { }
-  TVRMLItemsOctree = class;
+  TVRMLBaseTrianglesOctree = class;
 
-  { Return for given OctreeItem do we want to ignore collisions with it. }
-  TOctreeItemIgnoreFunc = function (
+  { Return for given Triangle do we want to ignore collisions with it. }
+  TVRMLTriangleIgnoreFunc = function (
     { Actually, this Octree is always TVRMLTriangleOctree, but this cannot
       be declared at this point. }
-    const Octree: TVRMLItemsOctree;
-    const OctreeItem: POctreeItem): boolean of object;
+    const Octree: TVRMLBaseTrianglesOctree;
+    const Triangle: PVRMLTriangle): boolean of object;
 
   { }
-  TVRMLItemsOctreeNode = class(TOctreeNode)
+  TVRMLBaseTrianglesOctreeNode = class(TOctreeNode)
   public
-    { See TVRMLItemsOctree for documentation of these routines.
+    { See TVRMLBaseTrianglesOctree for documentation of these routines.
 
       Dodatkowo nalezy tu dodac ze na skutek tego ze duze trojkaty moge znalezc
       sie w wielu subnode'ach naraz powinienes wiedziec ze ponizsze procedury
@@ -216,12 +216,12 @@ type
       przypadkiem kolizji ktora de facto zdarzyla sie w innym subnodzie. }
     function SphereCollision(const pos: TVector3Single;
       const Radius: Single;
-      const OctreeItemToIgnore: POctreeItem;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; virtual; abstract;
+      const TriangleToIgnore: PVRMLTriangle;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; virtual; abstract;
 
     function BoxCollision(const ABox: TBox3d;
-      const OctreeItemToIgnore: POctreeItem;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; virtual; abstract;
+      const TriangleToIgnore: PVRMLTriangle;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; virtual; abstract;
 
     function SegmentCollision(
       out Intersection: TVector3Single;
@@ -229,9 +229,9 @@ type
       const pos1, pos2: TVector3Single;
       {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
       const ReturnClosestIntersection: boolean;
-      const OctreeItemToIgnore: POctreeItem;
+      const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; virtual; abstract;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; virtual; abstract;
 
     function RayCollision(
       out Intersection: TVector3Single;
@@ -239,23 +239,22 @@ type
       const Ray0, RayVector: TVector3Single;
       {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
       const ReturnClosestIntersection: boolean;
-      const OctreeItemToIgnore: POctreeItem;
+      const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; virtual; abstract;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; virtual; abstract;
   end;
 
   { Abstract class for octrees that can check and return collisions
-    with TOctreeItem. In other words, they check and return collisions
-    with triangles from VRML scene.
+    with TVRMLTriangle.
 
-    Octree node class used by this must be a TVRMLItemsOctreeNode descendant.
+    Octree node class used by this must be a TVRMLBaseTrianglesOctreeNode descendant.
 
     In a simple case, this is an ancestor of TVRMLTriangleOctree,
-    that is just an octree storing TOctreeItem. But it's also an
-    ancestor of TVRMLShape, since each shape has also a
-    triangle octree. This way, TVRMLShape can calculate collisions
-    with TOctreeItem, even though it doesn't directly store TOctreeItem items. }
-  TVRMLItemsOctree = class(TOctree)
+    that is just an octree storing TVRMLTriangle. But it's also an
+    ancestor of TVRMLShapeOctree, since each shape has also a
+    triangle octree. This way, TVRMLShapeOctree can calculate collisions
+    with TVRMLTriangle, even though it doesn't directly store TVRMLTriangle items. }
+  TVRMLBaseTrianglesOctree = class(TOctree)
   private
     {$ifdef OCTREE_ITEM_USE_MAILBOX}
     { nastepny wolny tag ktory przydzielimy nastepnemu promieniowi lub
@@ -271,7 +270,7 @@ type
       Powyzszy kod bedzie ZAZWYCZAJ dzialal - ale spowoduje on ze nie bedzie
       mozna uzywac Segment/RayCollision na tym samym TVRMLTriangleOctree gdy juz
       jestesmy w trakcie badania kolizji. Np. callbacki w rodzaju
-      TOctreeItemIgnoreFunc nie beda mogly wywolywac kolizji. Innymi slowy,
+      TVRMLTriangleIgnoreFunc nie beda mogly wywolywac kolizji. Innymi slowy,
       taki zapis uczynilby Segment/RayCollision non-reentrant. A to na dluzsza
       mete zawsze jest klopotliwe. Natomiast robienie Inc(NextFreeRayOdcTag);
       przed faktycznym wejsciem do funkcji TreeRoot.SegmentColision
@@ -305,7 +304,7 @@ type
         for ReturnClosestIntersection = @false we can terminate at first
         collision found.))
 
-      @param(OctreeItemToIgnore
+      @param(TriangleToIgnore
 
         If this is non-nil, then Segment/RayCollision assume that there
         is @italic(never) a collision with this octree item.
@@ -314,16 +313,16 @@ type
         This is useful for recursive ray-tracer, when you start tracing
         from some existing face (octree item). In this case, you don't
         want to "hit" the starting face. So you can pass this face
-        as OctreeItemToIgnore.
+        as TriangleToIgnore.
 
         Note that IgnoreMarginAtStart helps with the same problem,
         although a little differently.)
 
-      @param(ItemsToIgnoreFunc
+      @param(TrianglesToIgnoreFunc
 
-        If assigned, then items for which ItemsToIgnoreFunc returns @true
+        If assigned, then items for which TrianglesToIgnoreFunc returns @true
         will be ignored. This is a more general mechanism than
-        OctreeItemToIgnore, as you can ignore many items, you can also
+        TriangleToIgnore, as you can ignore many items, you can also
         make some condition to ignore --- for example, you can ignore
         partially transparent items.)
 
@@ -337,13 +336,13 @@ type
         when tracing reflected/refracted/shadow ray.
 
         Note that if you know actual pointer of your face, it's better to use
-        OctreeItemToIgnore --- OctreeItemToIgnore is a 100% guaranteed
+        TriangleToIgnore --- TriangleToIgnore is a 100% guaranteed
         stable solution, while IgnoreMarginAtStart necessarily has some
         "epsilon" constant that determines which items are ignored.
         This epsilon may be too large, or too small, in some cases.
 
         In practice, recursive ray-tracers should use both
-        OctreeItemToIgnore (to avoid collisions with starting face)
+        TriangleToIgnore (to avoid collisions with starting face)
         and IgnoreMarginAtStart = @true (to avoid collisions with faces
         coplanar with starting face).)
 
@@ -367,72 +366,72 @@ type
       out IntersectionDistance: Single;
       const pos1, pos2: TVector3Single;
       const ReturnClosestIntersection: boolean;
-      const OctreeItemToIgnore: POctreeItem;
+      const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; overload;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; overload;
 
     function SegmentCollision(
       out Intersection: TVector3Single;
       const pos1, pos2: TVector3Single;
       const ReturnClosestIntersection: boolean;
-      const OctreeItemToIgnore: POctreeItem;
+      const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; overload;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; overload;
 
     function SegmentCollision(
       out IntersectionDistance: Single;
       const pos1, pos2: TVector3Single;
       const ReturnClosestIntersection: boolean;
-      const OctreeItemToIgnore: POctreeItem;
+      const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; overload;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; overload;
 
     function SegmentCollision(
       const pos1, pos2: TVector3Single;
       const ReturnClosestIntersection: boolean;
-      const OctreeItemToIgnore: POctreeItem;
+      const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; overload;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; overload;
 
     function SphereCollision(const pos: TVector3Single;
       const Radius: Single;
-      const OctreeItemToIgnore: POctreeItem;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
+      const TriangleToIgnore: PVRMLTriangle;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
 
     function BoxCollision(const ABox: TBox3d;
-      const OctreeItemToIgnore: POctreeItem;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
+      const TriangleToIgnore: PVRMLTriangle;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
 
     function RayCollision(
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
       const ReturnClosestIntersection: boolean;
-      const OctreeItemToIgnore: POctreeItem;
+      const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; overload;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; overload;
 
     function RayCollision(
       out Intersection: TVector3Single;
       const Ray0, RayVector: TVector3Single;
       const ReturnClosestIntersection: boolean;
-      const OctreeItemToIgnore: POctreeItem;
+      const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; overload;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; overload;
 
     function RayCollision(
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
       const ReturnClosestIntersection: boolean;
-      const OctreeItemToIgnore: POctreeItem;
+      const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; overload;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; overload;
 
     function RayCollision(const Ray0, RayVector: TVector3Single;
       const ReturnClosestIntersection: boolean;
-      const OctreeItemToIgnore: POctreeItem;
+      const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem; overload;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; overload;
     { @groupEnd }
 
     { This checks if move between OldPos and ProposedNewPos is possible,
@@ -448,7 +447,7 @@ type
       user stays within the whole octree box. That is, moving outside
       of the RootNode.Box will be disallowed.
 
-      OctreeItemToIgnore and ItemsToIgnoreFunc meaning
+      TriangleToIgnore and TrianglesToIgnoreFunc meaning
       is just like for RayCollision. This can be used to allow
       camera to walk thorugh some surfaces (e.g. through water
       surface, or to allow player to walk through some "fake wall"
@@ -461,8 +460,8 @@ type
       const OldPos, ProposedNewPos: TVector3Single;
       const CameraRadius: Single;
       const KeepWithinRootBox: boolean;
-      const OctreeItemToIgnore: POctreeItem = nil;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): boolean;
+      const TriangleToIgnore: PVRMLTriangle = nil;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc = nil): boolean;
 
     { This is like @link(MoveAllowedSimple), but it checks for collision
       around ProposedNewPos using TBox3d instead of a sphere. }
@@ -470,8 +469,8 @@ type
       const OldPos, ProposedNewPos: TVector3Single;
       const ProposedNewBox: TBox3d;
       const KeepWithinRootBox: boolean;
-      const OctreeItemToIgnore: POctreeItem = nil;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): boolean;
+      const TriangleToIgnore: PVRMLTriangle = nil;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc = nil): boolean;
 
     { This is like @link(MoveAllowedSimple), but in some cases
       where MoveAllowedSimple would answer "false", this will
@@ -497,7 +496,7 @@ type
       user stays within the whole octree box. That is, moving outside
       of the RootNode.Box will be disallowed.
 
-      OctreeItemToIgnore and ItemsToIgnoreFunc meaning
+      TriangleToIgnore and TrianglesToIgnoreFunc meaning
       is just like for RayCollision.
 
       @seealso(TWalkNavigator.DoMoveAllowed
@@ -508,8 +507,8 @@ type
       out NewPos: TVector3Single;
       const CameraRadius: Single;
       const KeepWithinRootBox: boolean;
-      const OctreeItemToIgnore: POctreeItem = nil;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): boolean;
+      const TriangleToIgnore: PVRMLTriangle = nil;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc = nil): boolean;
 
     { For given camera position and up vector, calculate camera height
       above the ground. This is comfortable for cooperation with
@@ -526,14 +525,14 @@ type
       sound accordingly). If IsAboveTheGround then for sure GroundItem
       <> nil.
 
-      OctreeItemToIgnore and ItemsToIgnoreFunc meaning
+      TriangleToIgnore and TrianglesToIgnoreFunc meaning
       is just like for RayCollision. }
     procedure GetCameraHeight(
       const CameraPos, GravityUp: TVector3Single;
       out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
-      out GroundItem: POctreeItem;
-      const OctreeItemToIgnore: POctreeItem;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc);
+      out GroundItem: PVRMLTriangle;
+      const TriangleToIgnore: PVRMLTriangle;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc);
 
     { This is just like GetCameraHeight, but it assumes that
       GravityUp = (0, 0, 1) and it returns the actual
@@ -543,17 +542,17 @@ type
     procedure GetCameraHeightZ(
       const CameraPos: TVector3Single;
       out IsAboveTheGround: boolean; out HeightAboveTheGround: Single;
-      out GroundItem: POctreeItem;
-      const OctreeItemToIgnore: POctreeItem;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc);
+      out GroundItem: PVRMLTriangle;
+      const TriangleToIgnore: PVRMLTriangle;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc);
 
     { This makes transparent triangles (with material
       with Transparency > 0) ignored (i.e. returns @true for them).
-      This is a prepared function compatible with TOctreeItemIgnoreFunc
+      This is a prepared function compatible with TVRMLTriangleIgnoreFunc
       function type. }
     class function IgnoreTransparentItem(
-      const Octree: TVRMLItemsOctree;
-      const OctreeItem: POctreeItem): boolean;
+      const Octree: TVRMLBaseTrianglesOctree;
+      const Triangle: PVRMLTriangle): boolean;
 
     { Checks whether VRML Light (point or directional) lights at scene point
       LightedPoint.
@@ -567,7 +566,7 @@ type
          w ogole nie blokuja swiatla)
       3) oraz ze swiatlo jest po tej samej stronie LightedPointPlane co RenderDir.
 
-      Szukanie kolizji w octree uzywa przekazanych OctreeItemToIgnore i
+      Szukanie kolizji w octree uzywa przekazanych TriangleToIgnore i
       IgnoreMarginAtStart - zazwyczaj powinienes je przekazac na element
       w drzewie z ktorego wziales LightedPoint i na true, odpowiednio.
 
@@ -580,22 +579,22 @@ type
     }
     function ActiveLightNotBlocked(const Light: TActiveLight;
       const LightedPoint, LightedPointPlane, RenderDir: TVector3Single;
-      const OctreeItemToIgnore: POctreeItem;
+      const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean): boolean;
   end;
 
   { Simple utility class to easily ignore all transparent items and,
     additionally, one chosen item.
-    Useful for ItemsToIgnoreFunc parameters of various TVRMLItemsOctree
+    Useful for TrianglesToIgnoreFunc parameters of various TVRMLBaseTrianglesOctree
     methods. }
   TVRMLOctreeIgnoreTransparentAndOneItem = class
-    OneItem: POctreeItem;
+    OneItem: PVRMLTriangle;
     { Returns @true for partially transparent items (Transparency > 0),
       and for OneItem. }
     function IgnoreItem(
-      const Octree: TVRMLItemsOctree;
-      const OctreeItem: POctreeItem): boolean;
-    constructor Create(AOneItem: POctreeItem);
+      const Octree: TVRMLBaseTrianglesOctree;
+      const Triangle: PVRMLTriangle): boolean;
+    constructor Create(AOneItem: PVRMLTriangle);
   end;
 
 {$undef read_interface}
@@ -605,9 +604,9 @@ implementation
 {$define read_implementation}
 {$I dynarray_1.inc}
 
-{ TOctreeItem  ------------------------------------------------------------ }
+{ TVRMLTriangle  ------------------------------------------------------------ }
 
-constructor TOctreeItem.Init(const ATriangle: TTriangle3Single;
+constructor TVRMLTriangle.Init(const ATriangle: TTriangle3Single;
   AState: TVRMLGraphTraverseState; AGeometryNode: TVRMLGeometryNode;
   const AMatNum, AFaceCoordIndexBegin, AFaceCoordIndexEnd: Integer);
 begin
@@ -628,14 +627,14 @@ begin
   {$endif}
 end;
 
-procedure TOctreeItem.UpdateWorld;
+procedure TVRMLTriangle.UpdateWorld;
 begin
   World.Triangle := TriangleTransform(Loc.Triangle, State.Transform);
   World.Plane := TriangleNormPlane(World.Triangle);
   World.Area := VectorMath.TriangleArea(World.Triangle);
 end;
 
-function TOctreeItem.SegmentDirCollision(
+function TVRMLTriangle.SegmentDirCollision(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Odc0, OdcVector: TVector3Single;
@@ -674,7 +673,7 @@ begin
   {$endif}
 end;
 
-function TOctreeItem.RayCollision(
+function TVRMLTriangle.RayCollision(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
@@ -717,48 +716,48 @@ begin
   {$endif}
 end;
 
-{ TVRMLItemsOctree ----------------------------------------------------------- }
+{ TVRMLBaseTrianglesOctree ----------------------------------------------------------- }
 
 {$define SegmentCollision_CommonParams :=
   const pos1, pos2: TVector3Single;
   const ReturnClosestIntersection: boolean;
-  const OctreeItemToIgnore: POctreeItem;
+  const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc
 }
 
 {$define SegmentCollision_Implementation :=
 begin
-  Result := TVRMLItemsOctreeNode(InternalTreeRoot).SegmentCollision(
+  Result := TVRMLBaseTrianglesOctreeNode(InternalTreeRoot).SegmentCollision(
     Intersection, IntersectionDistance,
     Pos1, Pos2,
     {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
-    ReturnClosestIntersection, OctreeItemToIgnore, IgnoreMarginAtStart,
-    ItemsToIgnoreFunc);
+    ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
+    TrianglesToIgnoreFunc);
 end;}
 
-  function TVRMLItemsOctree.SegmentCollision(
+  function TVRMLBaseTrianglesOctree.SegmentCollision(
     out Intersection: TVector3Single;
     out IntersectionDistance: Single;
-    SegmentCollision_CommonParams): POctreeItem;
+    SegmentCollision_CommonParams): PVRMLTriangle;
   SegmentCollision_Implementation
 
-  function TVRMLItemsOctree.SegmentCollision(
+  function TVRMLBaseTrianglesOctree.SegmentCollision(
     out Intersection: TVector3Single;
-    SegmentCollision_CommonParams): POctreeItem;
+    SegmentCollision_CommonParams): PVRMLTriangle;
   var
     IntersectionDistance: Single;
   SegmentCollision_Implementation
 
-  function TVRMLItemsOctree.SegmentCollision(
+  function TVRMLBaseTrianglesOctree.SegmentCollision(
     out IntersectionDistance: Single;
-    SegmentCollision_CommonParams): POctreeItem;
+    SegmentCollision_CommonParams): PVRMLTriangle;
   var
     Intersection: TVector3Single;
   SegmentCollision_Implementation
 
-  function TVRMLItemsOctree.SegmentCollision(
-    SegmentCollision_CommonParams): POctreeItem;
+  function TVRMLBaseTrianglesOctree.SegmentCollision(
+    SegmentCollision_CommonParams): PVRMLTriangle;
   var
     Intersection: TVector3Single;
     IntersectionDistance: Single;
@@ -767,63 +766,63 @@ end;}
 {$undef SegmentCollision_CommonParams}
 {$undef SegmentCollision_Implementation}
 
-function TVRMLItemsOctree.SphereCollision(const pos: TVector3Single;
+function TVRMLBaseTrianglesOctree.SphereCollision(const pos: TVector3Single;
   const Radius: Single;
-  const OctreeItemToIgnore: POctreeItem;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
+  const TriangleToIgnore: PVRMLTriangle;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
 begin
-  Result := TVRMLItemsOctreeNode(InternalTreeRoot).SphereCollision(
-    Pos, Radius, OctreeItemToIgnore, ItemsToIgnoreFunc);
+  Result := TVRMLBaseTrianglesOctreeNode(InternalTreeRoot).SphereCollision(
+    Pos, Radius, TriangleToIgnore, TrianglesToIgnoreFunc);
 end;
 
-function TVRMLItemsOctree.BoxCollision(const ABox: TBox3d;
-  const OctreeItemToIgnore: POctreeItem;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): POctreeItem;
+function TVRMLBaseTrianglesOctree.BoxCollision(const ABox: TBox3d;
+  const TriangleToIgnore: PVRMLTriangle;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
 begin
-  Result := TVRMLItemsOctreeNode(InternalTreeRoot).BoxCollision(
-    ABox, OctreeItemToIgnore, ItemsToIgnoreFunc);
+  Result := TVRMLBaseTrianglesOctreeNode(InternalTreeRoot).BoxCollision(
+    ABox, TriangleToIgnore, TrianglesToIgnoreFunc);
 end;
 
 {$define RayCollision_CommonParams :=
   const Ray0, RayVector: TVector3Single;
   const ReturnClosestIntersection: boolean;
-  const OctreeItemToIgnore: POctreeItem;
+  const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc
 }
 
 {$define RayCollision_Implementation :=
 begin
-  Result := TVRMLItemsOctreeNode(InternalTreeRoot).RayCollision(
+  Result := TVRMLBaseTrianglesOctreeNode(InternalTreeRoot).RayCollision(
     Intersection, IntersectionDistance,
     Ray0, RayVector,
     {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
-    ReturnClosestIntersection, OctreeItemToIgnore, IgnoreMarginAtStart,
-    ItemsToIgnoreFunc);
+    ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
+    TrianglesToIgnoreFunc);
 end;}
 
-  function TVRMLItemsOctree.RayCollision(
+  function TVRMLBaseTrianglesOctree.RayCollision(
     out Intersection: TVector3Single;
     out IntersectionDistance: Single;
-    RayCollision_CommonParams): POctreeItem;
+    RayCollision_CommonParams): PVRMLTriangle;
   RayCollision_Implementation
 
-  function TVRMLItemsOctree.RayCollision(
+  function TVRMLBaseTrianglesOctree.RayCollision(
     out Intersection: TVector3Single;
-    RayCollision_CommonParams): POctreeItem;
+    RayCollision_CommonParams): PVRMLTriangle;
   var
     IntersectionDistance: Single;
   RayCollision_Implementation
 
-  function TVRMLItemsOctree.RayCollision(
+  function TVRMLBaseTrianglesOctree.RayCollision(
     out IntersectionDistance: Single;
-    RayCollision_CommonParams): POctreeItem;
+    RayCollision_CommonParams): PVRMLTriangle;
   var
     Intersection: TVector3Single;
   RayCollision_Implementation
 
-  function TVRMLItemsOctree.RayCollision(
-    RayCollision_CommonParams): POctreeItem;
+  function TVRMLBaseTrianglesOctree.RayCollision(
+    RayCollision_CommonParams): PVRMLTriangle;
   var
     Intersection: TVector3Single;
     IntersectionDistance: Single;
@@ -834,18 +833,18 @@ end;}
 
 { MoveAllowed / GetCameraHeight methods -------------------------------------- }
 
-function TVRMLItemsOctree.MoveAllowedSimple(
+function TVRMLBaseTrianglesOctree.MoveAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const CameraRadius: Single;
   const KeepWithinRootBox: boolean;
-  const OctreeItemToIgnore: POctreeItem;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): boolean;
+  const TriangleToIgnore: PVRMLTriangle;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
 begin
   Result :=
     (SegmentCollision(OldPos, ProposedNewPos, false,
-      OctreeItemToIgnore, false, ItemsToIgnoreFunc) = nil) and
+      TriangleToIgnore, false, TrianglesToIgnoreFunc) = nil) and
     (SphereCollision(ProposedNewPos, CameraRadius,
-      OctreeItemToIgnore, ItemsToIgnoreFunc) = nil);
+      TriangleToIgnore, TrianglesToIgnoreFunc) = nil);
 
   if Result and
      KeepWithinRootBox then
@@ -855,18 +854,18 @@ begin
     Result := Box3dPointInside(ProposedNewPos, InternalTreeRoot.Box);
 end;
 
-function TVRMLItemsOctree.MoveBoxAllowedSimple(
+function TVRMLBaseTrianglesOctree.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const ProposedNewBox: TBox3d;
   const KeepWithinRootBox: boolean;
-  const OctreeItemToIgnore: POctreeItem;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): boolean;
+  const TriangleToIgnore: PVRMLTriangle;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
 begin
   Result :=
     (SegmentCollision(OldPos, ProposedNewPos, false,
-      OctreeItemToIgnore, false, ItemsToIgnoreFunc) = nil) and
+      TriangleToIgnore, false, TrianglesToIgnoreFunc) = nil) and
     (BoxCollision(ProposedNewBox,
-      OctreeItemToIgnore, ItemsToIgnoreFunc) = nil);
+      TriangleToIgnore, TrianglesToIgnoreFunc) = nil);
 
   if Result and
      KeepWithinRootBox then
@@ -876,15 +875,15 @@ begin
     Result := Box3dPointInside(ProposedNewPos, InternalTreeRoot.Box);
 end;
 
-function TVRMLItemsOctree.MoveAllowed(
+function TVRMLBaseTrianglesOctree.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single;
   out NewPos: TVector3Single;
   const CameraRadius: Single;
   const KeepWithinRootBox: boolean;
-  const OctreeItemToIgnore: POctreeItem;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): boolean;
+  const TriangleToIgnore: PVRMLTriangle;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
 
-  function MoveAlongTheBlocker(Blocker: POctreeItem): boolean;
+  function MoveAlongTheBlocker(Blocker: PVRMLTriangle): boolean;
   const
     { This must be something slightly larger than 1.
       Must be larger than 1 (otherwise MoveAlongTheBlocker will
@@ -917,26 +916,26 @@ function TVRMLItemsOctree.MoveAllowed(
       I can do it by using my simple MoveAllowedSimple. }
 
     Result := MoveAllowedSimple(OldPos, NewPos, CameraRadius, false,
-      OctreeItemToIgnore, ItemsToIgnoreFunc);
+      TriangleToIgnore, TrianglesToIgnoreFunc);
   end;
 
 var
-  Blocker: POctreeItem;
+  Blocker: PVRMLTriangle;
 begin
   { Tests: make MoveAllowed equivalent to MoveAllowedSimple:
   Result := MoveAllowedSimple(OldPos, ProposedNewPos, CameraRadius,
-    KeepWithinRootBox, OctreeItemToIgnore, ItemsToIgnoreFunc);
+    KeepWithinRootBox, TriangleToIgnore, TrianglesToIgnoreFunc);
   if Result then NewPos := ProposedNewPos;
   Exit;
   }
 
   Blocker := SegmentCollision(OldPos, ProposedNewPos,
     true { return closest blocker },
-    OctreeItemToIgnore, false, ItemsToIgnoreFunc);
+    TriangleToIgnore, false, TrianglesToIgnoreFunc);
   if Blocker = nil then
   begin
     Blocker := SphereCollision(ProposedNewPos, CameraRadius,
-      OctreeItemToIgnore, ItemsToIgnoreFunc);
+      TriangleToIgnore, TrianglesToIgnoreFunc);
     if Blocker = nil then
     begin
       Result := true;
@@ -954,29 +953,29 @@ begin
     Result := Box3dPointInside(NewPos, InternalTreeRoot.Box);
 end;
 
-procedure TVRMLItemsOctree.GetCameraHeight(
+procedure TVRMLBaseTrianglesOctree.GetCameraHeight(
   const CameraPos, GravityUp: TVector3Single;
   out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
-  out GroundItem: POctreeItem;
-  const OctreeItemToIgnore: POctreeItem;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc);
+  out GroundItem: PVRMLTriangle;
+  const TriangleToIgnore: PVRMLTriangle;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc);
 var
   GroundIntersection: TVector3Single;
 begin
   GroundItem := RayCollision(GroundIntersection,
     CameraPos, VectorNegate(GravityUp), true,
-    OctreeItemToIgnore, false, ItemsToIgnoreFunc);
+    TriangleToIgnore, false, TrianglesToIgnoreFunc);
   IsAboveTheGround := GroundItem <> nil;
   if IsAboveTheGround then
     SqrHeightAboveTheGround := PointsDistanceSqr(CameraPos, GroundIntersection);
 end;
 
-procedure TVRMLItemsOctree.GetCameraHeightZ(
+procedure TVRMLBaseTrianglesOctree.GetCameraHeightZ(
   const CameraPos: TVector3Single;
   out IsAboveTheGround: boolean; out HeightAboveTheGround: Single;
-  out GroundItem: POctreeItem;
-  const OctreeItemToIgnore: POctreeItem;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc);
+  out GroundItem: PVRMLTriangle;
+  const TriangleToIgnore: PVRMLTriangle;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc);
 const
   RayDir: TVector3Single = (0, 0, -1);
 var
@@ -984,35 +983,35 @@ var
 begin
   GroundItem := RayCollision(GroundIntersection,
     CameraPos, RayDir, true,
-    OctreeItemToIgnore, false, ItemsToIgnoreFunc);
+    TriangleToIgnore, false, TrianglesToIgnoreFunc);
   IsAboveTheGround := GroundItem <> nil;
   if IsAboveTheGround then
     { Calculation of HeightAboveTheGround uses the fact that RayDir is so simple. }
     HeightAboveTheGround := CameraPos[2] - GroundIntersection[2];
 end;
 
-{ Other TVRMLItemsOctree utils ----------------------------------------------- }
+{ Other TVRMLBaseTrianglesOctree utils ----------------------------------------------- }
 
 {$ifdef OCTREE_ITEM_USE_MAILBOX}
-function TVRMLItemsOctree.AssignNewRayOdcTag: Int64;
+function TVRMLBaseTrianglesOctree.AssignNewRayOdcTag: Int64;
 begin
  result := NextFreeRayOdcTag;
  Inc(NextFreeRayOdcTag);
 end;
 {$endif}
 
-class function TVRMLItemsOctree.IgnoreTransparentItem(
-  const Octree: TVRMLItemsOctree;
-  const OctreeItem: POctreeItem): boolean;
+class function TVRMLBaseTrianglesOctree.IgnoreTransparentItem(
+  const Octree: TVRMLBaseTrianglesOctree;
+  const Triangle: PVRMLTriangle): boolean;
 begin
   Result :=
-    OctreeItem^.State.LastNodes.Material.Transparency(OctreeItem^.MatNum)
+    Triangle^.State.LastNodes.Material.Transparency(Triangle^.MatNum)
       > SingleEqualityEpsilon;
 end;
 
-function TVRMLItemsOctree.ActiveLightNotBlocked(const Light: TActiveLight;
+function TVRMLBaseTrianglesOctree.ActiveLightNotBlocked(const Light: TActiveLight;
   const LightedPoint, LightedPointPlane, RenderDir: TVector3Single;
-  const OctreeItemToIgnore: POctreeItem;
+  const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean): boolean;
 var LightPos: TVector3Single;
 begin
@@ -1042,7 +1041,7 @@ begin
        RenderDir,
        LightedPointPlane)) and
    (SegmentCollision(LightedPoint, LightPos,
-     false, OctreeItemToIgnore, IgnoreMarginAtStart,
+     false, TriangleToIgnore, IgnoreMarginAtStart,
      {$ifdef FPC_OBJFPC} @ {$endif} IgnoreTransparentItem)
      = nil);
 end;
@@ -1050,15 +1049,15 @@ end;
 { TVRMLOctreeIgnoreTransparentAndOneItem -------------------------------------- }
 
 function TVRMLOctreeIgnoreTransparentAndOneItem.IgnoreItem(
-  const Octree: TVRMLItemsOctree;
-  const OctreeItem: POctreeItem): boolean;
+  const Octree: TVRMLBaseTrianglesOctree;
+  const Triangle: PVRMLTriangle): boolean;
 begin
-  Result := (OctreeItem = OneItem) or
-    (OctreeItem^.State.LastNodes.Material.Transparency(OctreeItem^.MatNum)
+  Result := (Triangle = OneItem) or
+    (Triangle^.State.LastNodes.Material.Transparency(Triangle^.MatNum)
       > SingleEqualityEpsilon);
 end;
 
-constructor TVRMLOctreeIgnoreTransparentAndOneItem.Create(AOneItem: POctreeItem);
+constructor TVRMLOctreeIgnoreTransparentAndOneItem.Create(AOneItem: PVRMLTriangle);
 begin
   inherited Create;
   OneItem := AOneItem;
