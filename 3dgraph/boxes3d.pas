@@ -1504,12 +1504,12 @@ begin
   Result[0] := Center;
   Result[0][0] -= Radius;
   Result[0][1] -= Radius;
-  Result[0][1] -= Radius;
+  Result[0][2] -= Radius;
 
   Result[1] := Center;
   Result[1][0] += Radius;
   Result[1][1] += Radius;
-  Result[1][1] += Radius;
+  Result[1][2] += Radius;
 end;
 
 function Boxes3dCollision(const Box1, Box2: TBox3d): boolean;
