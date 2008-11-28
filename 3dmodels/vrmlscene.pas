@@ -2116,6 +2116,7 @@ end;
 
 type
   BreakTransformChangeFailed = class(TCodeBreaker);
+  BreakTransformChangeSuccess = class(TCodeBreaker);
 
   { We need a separate class to keep various helpful state
     during traversal when Transform changed.
@@ -2133,6 +2134,7 @@ type
     ShapeIterator: TVRMLShapeTreeIterator;
     ProximitySensorNum: Cardinal;
     ChangingNode: TVRMLNode;
+    ChangingNodeFoundCount: Cardinal;
     AnythingChanged: boolean;
     Inside: boolean;
     ParentScene: TVRMLScene;
@@ -2275,6 +2277,18 @@ begin
   if Node = ChangingNode then
   begin
     Inside := false;
+
+    { ChangingNodeFoundCount and BreakTransformChangeSuccess are
+      useful to optimize TTransformChangeHelper: if we already
+      encountered all possible instances of ChangingNode in VRML graph,
+      we can terminate. This means that we don't have to waste time
+      to traverse remaining nodes and shapes. }
+
+    Inc(ChangingNodeFoundCount);
+    if ChangingNodeFoundCount >=
+      Cardinal(ChangingNode.ParentNodesCount +
+               ChangingNode.ParentFieldsCount) then
+      raise BreakTransformChangeSuccess.Create;
   end;
 end;
 
@@ -2366,7 +2380,9 @@ begin
      (Node is TNodeX3DSequencerNode) or
      (Node is TNodeX3DTriggerNode) or
      (Node is TNodeBooleanFilter) or
-     (Node is TNodeBooleanToggle) then
+     (Node is TNodeBooleanToggle) or
+     { interpolators }
+     (Node is TNodeX3DInterpolatorNode) then
     Exit;
 
   { Test other changes: }
@@ -2497,10 +2513,17 @@ begin
         TransformChangeHelper.AnythingChanged := false;
         TransformChangeHelper.Inside := false;
         TransformChangeHelper.Inactive := 0;
+        TransformChangeHelper.ChangingNodeFoundCount := 0;
 
-        RootNode.Traverse(TVRMLNode,
-          @TransformChangeHelper.TransformChangeTraverse,
-          @TransformChangeHelper.TransformChangeTraverseAfter);
+        try
+          RootNode.Traverse(TVRMLNode,
+            @TransformChangeHelper.TransformChangeTraverse,
+            @TransformChangeHelper.TransformChangeTraverseAfter);
+        except
+          on BreakTransformChangeSuccess do
+            { BreakTransformChangeSuccess is equivalent with normal finish
+              of Traverse. So do nothing, just silence exception. }
+        end;
 
         if not TransformChangeHelper.AnythingChanged then
           { No need to do ScheduleGeometryChanged, not even DoPostRedisplay
