@@ -60,8 +60,74 @@ type
   TVRMLShapeOctree = class;
 
   TVRMLShapeOctreeNode = class(TVRMLBaseTrianglesOctreeNode)
+  private
+    { These do the job of their counterparts (without Local prefix),
+      except they do not transform resulting triangle and Intersection
+      position back to the world coordinates.
+
+      The idea is that non-local versions with IsXxx do not need to do
+      this transformation, thus saving a tiny amount of time.
+      And the non-local versions without "Is" can just transform
+      the result at the end, if non-nil. }
+    function LocalSphereCollision(const pos: TVector3Single;
+      const Radius: Single;
+      const TriangleToIgnore: PVRMLTriangle;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+
+    function LocalBoxCollision(const ABox: TBox3d;
+      const TriangleToIgnore: PVRMLTriangle;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+
+    function LocalSegmentCollision(
+      out Intersection: TVector3Single;
+      out IntersectionDistance: Single;
+      const Pos1, Pos2: TVector3Single;
+      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const ReturnClosestIntersection: boolean;
+      const TriangleToIgnore: PVRMLTriangle;
+      const IgnoreMarginAtStart: boolean;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+
+    function LocalRayCollision(
+      out Intersection: TVector3Single;
+      out IntersectionDistance: Single;
+      const Ray0, RayVector: TVector3Single;
+      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const ReturnClosestIntersection: boolean;
+      const TriangleToIgnore: PVRMLTriangle;
+      const IgnoreMarginAtStart: boolean;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
   protected
     procedure PutItemIntoSubNodes(ItemIndex: integer); override;
+
+    function CommonSphereLeaf(const pos: TVector3Single;
+      const Radius: Single;
+      const TriangleToIgnore: PVRMLTriangle;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
+
+    function CommonBoxLeaf(const ABox: TBox3d;
+      const TriangleToIgnore: PVRMLTriangle;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
+
+    function CommonSegmentLeaf(
+      out Intersection: TVector3Single;
+      out IntersectionDistance: Single;
+      const pos1, pos2: TVector3Single;
+      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const ReturnClosestIntersection: boolean;
+      const TriangleToIgnore: PVRMLTriangle;
+      const IgnoreMarginAtStart: boolean;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
+
+    function CommonRayLeaf(
+      out Intersection: TVector3Single;
+      out IntersectionDistance: Single;
+      const Ray0, RayVector: TVector3Single;
+      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const ReturnClosestIntersection: boolean;
+      const TriangleToIgnore: PVRMLTriangle;
+      const IgnoreMarginAtStart: boolean;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
   public
     function ParentTree: TVRMLShapeOctree;
 
@@ -70,9 +136,18 @@ type
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
 
+    function IsSphereCollision(const pos: TVector3Single;
+      const Radius: Single;
+      const TriangleToIgnore: PVRMLTriangle;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+
     function BoxCollision(const ABox: TBox3d;
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
+
+    function IsBoxCollision(const ABox: TBox3d;
+      const TriangleToIgnore: PVRMLTriangle;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
 
     function SegmentCollision(
       out Intersection: TVector3Single;
@@ -84,6 +159,13 @@ type
       const IgnoreMarginAtStart: boolean;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
 
+    function IsSegmentCollision(
+      const Pos1, Pos2: TVector3Single;
+      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const TriangleToIgnore: PVRMLTriangle;
+      const IgnoreMarginAtStart: boolean;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+
     function RayCollision(
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
@@ -93,6 +175,13 @@ type
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
+
+    function IsRayCollision(
+      const Ray0, RayVector: TVector3Single;
+      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const TriangleToIgnore: PVRMLTriangle;
+      const IgnoreMarginAtStart: boolean;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
   end;
 
   TVRMLShapeOctree = class(TVRMLBaseTrianglesOctree)
@@ -147,13 +236,7 @@ begin
  Result := TVRMLShapeOctree(InternalParentTree);
 end;
 
-{ TODO: temporarily, to make basic implementation, we don't do actual
-  octree traversing during XxxCollision. Instead, we use
-  ItemsInNonLeafNodes, and just check every item (so this will
-  be done only on TreeRoot).
-}
-
-function TVRMLShapeOctreeNode.SphereCollision(const Pos: TVector3Single;
+function TVRMLShapeOctreeNode.CommonSphereLeaf(const Pos: TVector3Single;
   const Radius: Single;
   const TriangleToIgnore: PVRMLTriangle;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
@@ -177,15 +260,39 @@ begin
     except
       on ETransformedResultInvalid do Result := nil;
     end;
-    if Result <> nil then
-    begin
-      Result^.UpdateWorld;
-      Exit;
-    end;
+    if Result <> nil then Exit;
   end;
 end;
 
-function TVRMLShapeOctreeNode.BoxCollision(const ABox: TBox3d;
+function TVRMLShapeOctreeNode.LocalSphereCollision(const Pos: TVector3Single;
+  const Radius: Single;
+  const TriangleToIgnore: PVRMLTriangle;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+begin
+  Result := CommonSphere(pos, Radius, TriangleToIgnore, TrianglesToIgnoreFunc);
+end;
+
+function TVRMLShapeOctreeNode.SphereCollision(const Pos: TVector3Single;
+  const Radius: Single;
+  const TriangleToIgnore: PVRMLTriangle;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+begin
+  Result := LocalSphereCollision(Pos, Radius, TriangleToIgnore,
+    TrianglesToIgnoreFunc);
+  if Result <> nil then
+    Result^.UpdateWorld;
+end;
+
+function TVRMLShapeOctreeNode.IsSphereCollision(const Pos: TVector3Single;
+  const Radius: Single;
+  const TriangleToIgnore: PVRMLTriangle;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+begin
+  Result := LocalSphereCollision(Pos, Radius, TriangleToIgnore,
+    TrianglesToIgnoreFunc) <> nil;
+end;
+
+function TVRMLShapeOctreeNode.CommonBoxLeaf(const ABox: TBox3d;
   const TriangleToIgnore: PVRMLTriangle;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
 var
@@ -207,15 +314,36 @@ begin
     except
       on ETransformedResultInvalid do Result := nil;
     end;
-    if Result <> nil then
-    begin
-      Result^.UpdateWorld;
-      Exit;
-    end;
+    if Result <> nil then Exit;
   end;
 end;
 
-function TVRMLShapeOctreeNode.SegmentCollision(
+function TVRMLShapeOctreeNode.LocalBoxCollision(const ABox: TBox3d;
+  const TriangleToIgnore: PVRMLTriangle;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+begin
+  Result := CommonBox(ABox, TriangleToIgnore, TrianglesToIgnoreFunc);
+end;
+
+function TVRMLShapeOctreeNode.BoxCollision(const ABox: TBox3d;
+  const TriangleToIgnore: PVRMLTriangle;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+begin
+  Result := LocalBoxCollision(ABox, TriangleToIgnore,
+    TrianglesToIgnoreFunc);
+  if Result <> nil then
+    Result^.UpdateWorld;
+end;
+
+function TVRMLShapeOctreeNode.IsBoxCollision(const ABox: TBox3d;
+  const TriangleToIgnore: PVRMLTriangle;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+begin
+  Result := LocalBoxCollision(ABox, TriangleToIgnore,
+    TrianglesToIgnoreFunc) <> nil;
+end;
+
+function TVRMLShapeOctreeNode.CommonSegmentLeaf(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Pos1, Pos2: TVector3Single;
@@ -249,9 +377,9 @@ begin
       except
         on ETransformedResultInvalid do Result := nil;
       end;
+
       if Result <> nil then
       begin
-        Result^.UpdateWorld;
         Intersection := MatrixMultPoint(Result^.State.Transform, Intersection);
         Exit;
       end;
@@ -286,14 +414,73 @@ begin
     end;
 
     if Result <> nil then
-    begin
-      Result^.UpdateWorld;
       Intersection := MatrixMultPoint(Result^.State.Transform, Intersection);
-    end;
   end;
 end;
 
-function TVRMLShapeOctreeNode.RayCollision(
+function TVRMLShapeOctreeNode.LocalSegmentCollision(
+  out Intersection: TVector3Single;
+  out IntersectionDistance: Single;
+  const Pos1, Pos2: TVector3Single;
+  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const ReturnClosestIntersection: boolean;
+  const TriangleToIgnore: PVRMLTriangle;
+  const IgnoreMarginAtStart: boolean;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+begin
+  Result := CommonSegment(
+    Intersection, IntersectionDistance, Pos1, Pos2,
+    {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+    ReturnClosestIntersection, TriangleToIgnore,
+    IgnoreMarginAtStart, TrianglesToIgnoreFunc);
+end;
+
+function TVRMLShapeOctreeNode.SegmentCollision(
+  out Intersection: TVector3Single;
+  out IntersectionDistance: Single;
+  const Pos1, Pos2: TVector3Single;
+  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const ReturnClosestIntersection: boolean;
+  const TriangleToIgnore: PVRMLTriangle;
+  const IgnoreMarginAtStart: boolean;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+begin
+  Result := LocalSegmentCollision(
+    Intersection, IntersectionDistance, Pos1, Pos2,
+    {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+    ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
+    TrianglesToIgnoreFunc);
+
+  { At one point, I also did here
+      Intersection := MatrixMultPoint(Result^.State.Transform, Intersection);
+    But it turns out that CommonRay/Segment (for non-leaf  nodes) code
+    requires the returned intersection to be in correct (global, for this
+    octree) coordinates --- see it's
+    Box3dPointInsideTolerant(Intersection, SubNode.Box) test.
+    So Intersection must be transformed back already in CommonSegmentLeaf. }
+  if Result <> nil then
+    Result^.UpdateWorld;
+end;
+
+function TVRMLShapeOctreeNode.IsSegmentCollision(
+  const Pos1, Pos2: TVector3Single;
+  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const TriangleToIgnore: PVRMLTriangle;
+  const IgnoreMarginAtStart: boolean;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+var
+  { We just ignore returned Intersection, IntersectionDistance }
+  Intersection: TVector3Single;
+  IntersectionDistance: Single;
+begin
+  Result := LocalSegmentCollision(
+    Intersection, IntersectionDistance, Pos1, Pos2,
+    {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+    {ReturnClosestIntersection}false, TriangleToIgnore, IgnoreMarginAtStart,
+    TrianglesToIgnoreFunc) <> nil;
+end;
+
+function TVRMLShapeOctreeNode.CommonRayLeaf(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
@@ -327,9 +514,9 @@ begin
       except
         on ETransformedResultInvalid do Result := nil;
       end;
+
       if Result <> nil then
       begin
-        Result^.UpdateWorld;
         Intersection := MatrixMultPoint(Result^.State.Transform, Intersection);
         Exit;
       end;
@@ -365,11 +552,70 @@ begin
     end;
 
     if Result <> nil then
-    begin
-      Result^.UpdateWorld;
       Intersection := MatrixMultPoint(Result^.State.Transform, Intersection);
-    end;
   end;
+end;
+
+function TVRMLShapeOctreeNode.LocalRayCollision(
+  out Intersection: TVector3Single;
+  out IntersectionDistance: Single;
+  const Ray0, RayVector: TVector3Single;
+  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const ReturnClosestIntersection: boolean;
+  const TriangleToIgnore: PVRMLTriangle;
+  const IgnoreMarginAtStart: boolean;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+begin
+  Result := CommonRay(
+    Intersection, IntersectionDistance, Ray0, RayVector,
+    {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+    ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
+    TrianglesToIgnoreFunc);
+end;
+
+function TVRMLShapeOctreeNode.RayCollision(
+  out Intersection: TVector3Single;
+  out IntersectionDistance: Single;
+  const Ray0, RayVector: TVector3Single;
+  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const ReturnClosestIntersection: boolean;
+  const TriangleToIgnore: PVRMLTriangle;
+  const IgnoreMarginAtStart: boolean;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+begin
+  Result := LocalRayCollision(Intersection, IntersectionDistance,
+    Ray0, RayVector,
+    {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+    ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
+    TrianglesToIgnoreFunc);
+
+  { At one point, I also did here
+      Intersection := MatrixMultPoint(Result^.State.Transform, Intersection);
+    But it turns out that CommonRay/Segment (for non-leaf  nodes) code
+    requires the returned intersection to be in correct (global, for this
+    octree) coordinates --- see it's
+    Box3dPointInsideTolerant(Intersection, SubNode.Box) test.
+    So Intersection must be transformed back already in CommonSegmentLeaf. }
+  if Result <> nil then
+    Result^.UpdateWorld;
+end;
+
+function TVRMLShapeOctreeNode.IsRayCollision(
+  const Ray0, RayVector: TVector3Single;
+  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const TriangleToIgnore: PVRMLTriangle;
+  const IgnoreMarginAtStart: boolean;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+var
+  { We just ignore returned Intersection, IntersectionDistance }
+  Intersection: TVector3Single;
+  IntersectionDistance: Single;
+begin
+  Result := LocalRayCollision(Intersection, IntersectionDistance,
+    Ray0, RayVector,
+    {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+    {ReturnClosestIntersection}false, TriangleToIgnore, IgnoreMarginAtStart,
+    TrianglesToIgnoreFunc) <> nil;
 end;
 
 { TVRMLShapeOctree ------------------------------------------ }

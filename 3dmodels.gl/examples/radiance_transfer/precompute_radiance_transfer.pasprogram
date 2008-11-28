@@ -117,9 +117,9 @@ begin
         begin
           RayVectorPT := RandomUnitHemispherePointDensityConst;
           RayVector := PhiThetaToXYZ(RayVectorPT, N);
-          if Scene.OctreeVisibleTriangles.RayCollision(V, RayVector,
-            false, nil, true { yes, ignore margin at start, to not hit V },
-            nil) = nil then
+          if not Scene.OctreeVisibleTriangles.IsRayCollision(V, RayVector,
+            nil, true { yes, ignore margin at start, to not hit V },
+            nil) then
           begin
             { Previous RayVectorPT assumed that (0, 0, 1) is N.
               That is, RayVectorPT was in local vertex coords, not
