@@ -38,8 +38,6 @@ Usage:
 TODO:
 
 - Ctrl+O key shortcut doesn't work when standing on TEdit boxes
-  (FocusableControl hack means that this also occurs
-  when focus is on 3D area).
 
 - Only on Windows: I had to write
   GLControlResize(GLControl) instead of GLControl.Resize
@@ -49,14 +47,32 @@ TODO:
 - GLControl.ReleaseAllKeysAndMouse should be called when
   user expands the menu with mouse. How to catch this?
 
-- FocusableControl is an ugly hack --- this should be corrected
-  in Lazarus TOpenGLControl. Especially hardcoding VK_TAB there
-  is just awful.
-
 - When Position was poDefault the form kept getting small size
   each time when I open it under Windows. It seems that under Windows
   when Position = poDefault, it is used like that even in design-time
   (in Linux/GTK it was working correctly).
   Investigate, submit Lazazarus bug.
+
+------------------------------------------------------------------------------
+Old notes:
+
+- At some point, I had a FocusableControl hack implemented in
+  TKamOpenGLControl to allow VRML browser control to receive key events.
+  Reason: TOpenGLControl couldn't catch focus, so when I placed some
+  focusable controls (edit boxes, buttons)
+  on the form, it was not possible to pass key presses to GLControl.
+
+  So I created FFocusableControl that could have focus, but was not visible
+  --- so I set it's size to minimum (1, 1 in Lazarus)
+  (I can't set Visible to false, then it would not be focusable).
+  Then the only purpose of FFocusableControl is to call
+  appropriate GLControl events.
+
+  Fortunately, with Lazarus 0.9.26, it seems that all these problems
+  are gone. TOpenGLControl can receive normal focus
+  (reacts to SetFocus, has working DoExit, receives key events).
+  So the whole hack with FocusableControl is removed.
+  See revision 3847 for last revision with FocusableControl present.
+  Tested with: GTK1, WinAPI.
 
 Michalis

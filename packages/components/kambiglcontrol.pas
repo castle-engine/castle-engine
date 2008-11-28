@@ -50,13 +50,6 @@ type
 
     ApplicationProperties: TApplicationProperties;
     procedure ApplicationPropertiesIdle(Sender: TObject; var Done: Boolean);
-
-    FFocusableControl: TEdit;
-    procedure FocusableControlExit(Sender: TObject);
-    procedure FocusableControlKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure FocusableControlKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure FocusableControlKeyPress(Sender: TObject; var Key: char);
-
   protected
     procedure DestroyHandle; override;
 
@@ -70,6 +63,7 @@ type
 
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyUp(var Key: Word; Shift: TShiftState); override;
+    procedure DoExit; override;
     procedure MouseDown(Button: Controls.TMouseButton;
       Shift:TShiftState; X,Y:Integer); override;
     procedure MouseUp(Button: Controls.TMouseButton;
@@ -79,8 +73,6 @@ type
 
     procedure DoBeforeDraw; virtual;
     procedure DoDraw; virtual;
-
-    procedure SetParent(NewParent: TWinControl); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -137,27 +129,6 @@ type
     property MouseX: Integer read FMouseX;
     property MouseY: Integer read FMouseY;
 
-    { This is the internal control that provides focus (and ability to receive
-      key events) for this TKamOpenGLControl.
-
-      Reason: TOpenGLControl cannot catch focus, so when I placed some
-      focusable controls (edit boxes, buttons)
-      on the form, it was not possible to pass key presses to GLControl.
-
-      Poor workaround:
-      Make form KeyPreview and pass OnKeyDown/Up from our Form
-      to GLControl. This is poor workaround, because it makes funny
-      effects when user tries to operate on edit boxes with arrows:
-      both 3d view changes and the cursor inside edit box moves.
-
-      Better workaround:
-      Create FFocusableControl that can have focus, but is not visible
-      --- so I set it's size to minimum (1, 1 in Lazarus)
-      (I can't set Visible to false, then it would not be focusable).
-      Then the only purpose of FFocusableControl is to call
-      appropriate GLControl events. }
-    function FocusableControl: TWinControl;
-
     property Fps: TFramesPerSecond read FFps;
   published
 
@@ -208,16 +179,6 @@ begin
 
   ApplicationProperties := TApplicationProperties.Create(Self);
   ApplicationProperties.OnIdle := @ApplicationPropertiesIdle;
-
-  FFocusableControl := TEdit.Create(Self);
-  FFocusableControl.Width := 1;
-  FFocusableControl.Height := 1;
-  FFocusableControl.OnExit := @FocusableControlExit;
-  FFocusableControl.OnKeyDown := @FocusableControlKeyDown;
-  FFocusableControl.OnKeyUp := @FocusableControlKeyUp;
-  FFocusableControl.OnKeyPress := @FocusableControlKeyPress;
-  FFocusableControl.Parent := Parent;
-  FFocusableControl.TabOrder := TabOrder;
 end;
 
 destructor TKamOpenGLControl.Destroy;
@@ -225,11 +186,6 @@ begin
   if OwnsNavigator then Navigator.Free;
   FreeAndNil(FFps);
   inherited;
-end;
-
-function TKamOpenGLControl.FocusableControl: TWinControl;
-begin
-  Result := FFocusableControl;
 end;
 
 procedure TKamOpenGLControl.ApplicationPropertiesIdle(Sender: TObject; var Done: Boolean);
@@ -488,16 +444,6 @@ begin
   FMouseY := NewY;
 end;
 
-procedure TKamOpenGLControl.SetParent(NewParent: TWinControl);
-begin
-  inherited SetParent(NewParent);
-
-  if FFocusableControl <> nil then
-    { Keep FFocusableControl.Parent synchronized with our Parent
-      (needed, so FFocusableControl can receive normal focus) }
-    FFocusableControl.Parent := Parent;
-end;
-
 procedure TKamOpenGLControl.Idle;
 begin
   Fps._IdleBegin;
@@ -536,39 +482,10 @@ begin
     ViewAngleDegX, ViewAngleDegY);
 end;
 
-procedure TKamOpenGLControl.FocusableControlExit(Sender: TObject);
+procedure TKamOpenGLControl.DoExit;
 begin
+  inherited;
   ReleaseAllKeysAndMouse;
-end;
-
-procedure TKamOpenGLControl.FocusableControlKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-begin
-  { I must avoid catching tab, to allow user to switch between controls. }
-  if Key <> VK_TAB then
-  begin
-    KeyDown(Key, Shift);
-    { Do not mark Key as processed, as this prevents passing this key e.g. to
-      Form.OnKeyPress for Form.KeyPreview = true.
-    Key := 0; }
-  end;
-end;
-
-procedure TKamOpenGLControl.FocusableControlKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
-begin
-  if Key <> VK_TAB then
-  begin
-    KeyUp(Key, Shift);
-    { Do not mark Key as processed, as this prevents passing this key e.g. to
-      Form.OnKeyPress for Form.KeyPreview = true.
-    Key := 0; }
-  end;
-end;
-
-procedure TKamOpenGLControl.FocusableControlKeyPress(Sender: TObject; var Key: char);
-begin
-  { I don't do anything here right now, but maybe I should, 
-    to make our OnKeyPress working? }
-{  KeyPress(Key); }
 end;
 
 procedure TKamOpenGLControl.DoBeforeDraw;

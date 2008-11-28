@@ -132,7 +132,7 @@ end;
 
 procedure TMain.MenuFocusGLControlClick(Sender: TObject);
 begin
-  Browser.FocusableControl.SetFocus;
+  Browser.SetFocus;
 end;
 
 procedure TMain.FormCreate(Sender: TObject);

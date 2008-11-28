@@ -44,7 +44,7 @@
         <UnitName Value="lazarus_vrml_browser"/>
         <CursorPos X="53" Y="17"/>
         <TopLine Value="1"/>
-        <UsageCount Value="43"/>
+        <UsageCount Value="44"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
@@ -53,20 +53,20 @@
         <ResourceBaseClass Value="Form"/>
         <ResourceFilename Value="mainf.lrs"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="57" Y="9"/>
-        <TopLine Value="1"/>
+        <CursorPos X="11" Y="135"/>
+        <TopLine Value="112"/>
         <EditorIndex Value="0"/>
-        <UsageCount Value="43"/>
+        <UsageCount Value="44"/>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
         <UnitName Value="KambiGLControl"/>
-        <CursorPos X="78" Y="477"/>
-        <TopLine Value="460"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="1"/>
         <UsageCount Value="13"/>
         <Bookmarks Count="1">
-          <Item0 X="5" Y="157" ID="1"/>
+          <Item0 X="5" Y="131" ID="1"/>
         </Bookmarks>
       </Unit2>
       <Unit3>
@@ -126,7 +126,7 @@
         <UnitName Value="OpenGLInformation"/>
         <CursorPos X="30" Y="36"/>
         <TopLine Value="18"/>
-        <UsageCount Value="31"/>
+        <UsageCount Value="32"/>
       </Unit10>
       <Unit11>
         <Filename Value="mainf.lfm"/>
@@ -172,8 +172,8 @@
       <Unit17>
         <Filename Value="../../../packages/components/kambivrmlbrowser.pas"/>
         <UnitName Value="KambiVRMLBrowser"/>
-        <CursorPos X="49" Y="154"/>
-        <TopLine Value="149"/>
+        <CursorPos X="25" Y="28"/>
+        <TopLine Value="84"/>
         <UsageCount Value="12"/>
       </Unit17>
       <Unit18>
@@ -213,8 +213,8 @@
       <Unit23>
         <Filename Value="../../../../../../../installed/lazarus/current/lcl/controls.pp"/>
         <UnitName Value="Controls"/>
-        <CursorPos X="15" Y="1557"/>
-        <TopLine Value="1542"/>
+        <CursorPos X="25" Y="1499"/>
+        <TopLine Value="1624"/>
         <UsageCount Value="11"/>
       </Unit23>
       <Unit24>
@@ -227,8 +227,8 @@
       <Unit25>
         <Filename Value="../../../../../../../installed/lazarus/current/lcl/stdctrls.pp"/>
         <UnitName Value="StdCtrls"/>
-        <CursorPos X="3" Y="654"/>
-        <TopLine Value="631"/>
+        <CursorPos X="32" Y="470"/>
+        <TopLine Value="462"/>
         <UsageCount Value="10"/>
       </Unit25>
       <Unit26>
@@ -246,7 +246,7 @@
         <UnitName Value="VrmlConsoleF"/>
         <CursorPos X="3" Y="50"/>
         <TopLine Value="11"/>
-        <UsageCount Value="23"/>
+        <UsageCount Value="24"/>
       </Unit27>
       <Unit28>
         <Filename Value="../../../3dmodels/vrmlerrors.pas"/>
@@ -263,59 +263,11 @@
         <UsageCount Value="10"/>
       </Unit29>
     </Units>
-    <JumpHistory Count="13" HistoryIndex="12">
+    <JumpHistory Count="1" HistoryIndex="0">
       <Position1>
         <Filename Value="mainf.pas"/>
-        <Caret Line="76" Column="24" TopLine="72"/>
+        <Caret Line="9" Column="55" TopLine="1"/>
       </Position1>
-      <Position2>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="99" Column="31" TopLine="73"/>
-      </Position2>
-      <Position3>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="55" Column="44" TopLine="54"/>
-      </Position3>
-      <Position4>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="125" Column="35" TopLine="123"/>
-      </Position4>
-      <Position5>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="1" Column="12" TopLine="1"/>
-      </Position5>
-      <Position6>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="59" Column="24" TopLine="36"/>
-      </Position6>
-      <Position7>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="84" Column="12" TopLine="61"/>
-      </Position7>
-      <Position8>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="77" Column="26" TopLine="55"/>
-      </Position8>
-      <Position9>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="84" Column="12" TopLine="61"/>
-      </Position9>
-      <Position10>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="101" Column="26" TopLine="78"/>
-      </Position10>
-      <Position11>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="125" Column="12" TopLine="102"/>
-      </Position11>
-      <Position12>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="141" Column="30" TopLine="119"/>
-      </Position12>
-      <Position13>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="9" Column="57" TopLine="1"/>
-      </Position13>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
