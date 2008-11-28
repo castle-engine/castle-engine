@@ -183,14 +183,14 @@ const
   RendererOptimizationNames: array[TGLRendererOptimization] of string =
   ( 'none',
     'scene-as-a-whole',
-    'separate-shape-states',
-    'separate-shape-states-no-transform' );
+    'separate-shapes',
+    'separate-shapes-no-transform' );
 
   RendererOptimizationNiceNames: array[TGLRendererOptimization] of string =
   ( 'None',
     'Scene As a Whole',
-    'Separate Shape-states',
-    'Separate Shape-states, No Transform' );
+    'Separate Shapes',
+    'Separate Shapes, No Transform' );
 
 implementation
 
