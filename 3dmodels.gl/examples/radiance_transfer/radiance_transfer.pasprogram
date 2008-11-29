@@ -23,7 +23,7 @@
 { Simple Precomputed Radiance Transfer implementation.
   Self-shadowing with diffuse lighting.
 
-  Navigate with mouse of keyboard (like view3dscene in Examine mode).
+  Navigate with mouse or keyboard (like view3dscene in Examine mode).
 
   AWSD, Q, Shift+Q move the light.
   R, Shift+R change light radius.
