@@ -36,7 +36,7 @@ uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindo
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLScene, VRMLGLScene, Navigation, Keys,
   KambiFilesUtils, VRMLErrors, SphericalHarmonics, Math, Images, GLImages,
-  SphereSampling;
+  SphereSampling, CubeEnvMap;
 
 type
   TViewMode = (vmNormal, vmSimpleOcclusion, vmFull);
@@ -59,8 +59,6 @@ const
 
   LightSHBasisCount = 25;
 
-  LightMapSize = 16;
-
 var
   { This is calculated at the beginning of each Draw.
     Can be used then by DoRadianceTransfer. }
@@ -76,23 +74,6 @@ var
     by this. Can be in any range. }
   LightIntensityScale: Single = 100.0;
 
-type
-  TEnvMapSide = 0..5;
-  TEnvMapInfo = record
-    Dir, Up, Side: TVector3Single;
-    ScreenX, ScreenY: Integer;
-  end;
-
-const
-  EnvMapInfo: array [TEnvMapSide] of TEnvMapInfo =
-  ( (Dir: ( 1,  0, 0); Up: (0, 0, 1); Side: ( 0, -1, 0); ScreenX: 10                   ; ScreenY: 100),
-    (Dir: ( 0, -1, 0); Up: (0, 0, 1); Side: (-1,  0, 0); ScreenX: 10 +     LightMapSize; ScreenY: 100),
-    (Dir: (-1,  0, 0); Up: (0, 0, 1); Side: ( 0,  1, 0); ScreenX: 10 + 2 * LightMapSize; ScreenY: 100),
-    (Dir: ( 0,  1, 0); Up: (0, 0, 1); Side: ( 1,  0, 0); ScreenX: 10 + 3 * LightMapSize; ScreenY: 100),
-    (Dir: (0, 0,  1); Up: (-1, 0, 0); Side: (0, -1, 0); ScreenX: 10; ScreenY: 100 + LightMapSize),
-    (Dir: (0, 0, -1); Up: ( 1, 0, 0); Side: (0, -1, 0); ScreenX: 10; ScreenY: 100 - LightMapSize)
-  );
-
 var
   { For each SHBasis function (first index of the array is LM of this function),
     a precalculated results. For each side of the cube (second index),
@@ -101,7 +82,7 @@ var
     from left to right). }
   SHBasisValues: array [0..LightSHBasisCount - 1,
     TEnvMapSide,
-    0 .. Sqr(LightMapSize) - 1] of Float;
+    0 .. Sqr(EnvMapSize) - 1] of Float;
 
 procedure Draw(Glwin: TGLWindow);
 
@@ -136,7 +117,7 @@ procedure Draw(Glwin: TGLWindow);
       Later: actually, clearing is not needed now, since we call DrawLightMap
       at the beginning, right after clearing the whole screen.
 
-    glScissor(ScreenX, ScreenY, LightMapSize, LightMapSize);
+    glScissor(ScreenX, ScreenY, EnvMapSize, EnvMapSize);
     glEnable(GL_SCISSOR_TEST);
       glClear(GL_COLOR_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
@@ -145,7 +126,7 @@ procedure Draw(Glwin: TGLWindow);
     ScreenX := EnvMapInfo[EnvMapSide].ScreenX;
     ScreenY := EnvMapInfo[EnvMapSide].ScreenY;
 
-    glViewport(ScreenX, ScreenY, LightMapSize, LightMapSize);
+    glViewport(ScreenX, ScreenY, EnvMapSize, EnvMapSize);
 
     glMatrixMode(GL_PROJECTION);
     glPushMatrix;
@@ -167,14 +148,14 @@ procedure Draw(Glwin: TGLWindow);
     glMatrixMode(GL_MODELVIEW);
 
     Map := TGrayscaleImage(SaveScreen_noflush(TGrayscaleImage,
-      ScreenX, ScreenY, LightMapSize, LightMapSize, GL_BACK));
+      ScreenX, ScreenY, EnvMapSize, EnvMapSize, GL_BACK));
     try
       { Use the Map to calculate LightSHBasis[SHBasis] (this is the actual
         purpose of drawing light). LightSHBasis[SHBasis] is just a dot product
         for all directions (for all pixels, in this case) of
         light intensity values * SH basis values. }
 
-      for I := 0 to Sqr(LightMapSize) - 1 do
+      for I := 0 to Sqr(EnvMapSize) - 1 do
         for SHBasis := 0 to LightSHBasisCount - 1 do
           LightSHBasis[SHBasis] += (Map.GrayscalePixels[I]/255) *
             LightIntensityScale *
@@ -213,7 +194,7 @@ begin
 
         TODO: for now, ignore solid angle, assume all pixels have the same influence.
         So just divide by number of points... }
-      LightSHBasis[SHBasis] /= 6 * Sqr(LightMapSize);
+      LightSHBasis[SHBasis] /= 6 * Sqr(EnvMapSize);
     end;
 
     glViewport(0, 0, Glwin.Width, Glwin.Height);
@@ -353,23 +334,14 @@ procedure CalculateSHBasisValues;
 var
   LM: Cardinal;
   EnvMapSide: TEnvMapSide;
-  Pixel, PixelX, PixelY: Cardinal;
-  PixelDir: TVector3Single;
+  Pixel: Cardinal;
 begin
   for LM := 0 to LightSHBasisCount - 1 do
     for EnvMapSide := 0 to 5 do
-      for Pixel := 0 to Sqr(LightMapSize) - 1 do
+      for Pixel := 0 to Sqr(EnvMapSize) - 1 do
       begin
-        PixelX := Pixel mod LightMapSize;
-        PixelY := Pixel div LightMapSize;
-        { PixelDir = exactly EnvMapInfo[EnvMapSide].Dir when
-          PixelX/Y = LightMapSize/2 (pixel is on the middle of the image). }
-        PixelDir :=  EnvMapInfo[EnvMapSide].Dir;
-        VectorAddTo1st(PixelDir,
-          VectorScale(EnvMapInfo[EnvMapSide].Side, -1 + 2 * PixelX/LightMapSize));
-        VectorAddTo1st(PixelDir,
-          VectorScale(EnvMapInfo[EnvMapSide].Up  , -1 + 2 * PixelY/LightMapSize));
-        SHBasisValues[LM][EnvMapSide][Pixel] := SHBasis(LM, XYZToPhiTheta(PixelDir));
+        SHBasisValues[LM][EnvMapSide][Pixel] :=
+          SHBasis(LM, XYZToPhiTheta(EnvMapDirection(EnvMapSide, Pixel)));
       end;
 end;
 
