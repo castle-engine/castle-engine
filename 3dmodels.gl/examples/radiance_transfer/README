@@ -1,4 +1,4 @@
-1. Precomputed Radiance Transfer.
+Precomputed Radiance Transfer.
 
 http://www.mpi-inf.mpg.de/~jnkautz/projects/prt/prtSIG02.pdf (orig paper, 2002)
 http://www.tml.tkk.fi/~tmakipat/prtf_fixed.pdf (more tutorial-like into)
@@ -6,7 +6,7 @@ http://en.wikipedia.org/wiki/Precomputed_Radiance_Transfer
 
 Many papers related to this, including full dynamic soft-shadows approaches.
 - "Precomputed Shadow Fields for Dynamic Scenes" (uses SH for combining shadow fields)
-  (I'm going to talk about this too)
+  (see other demo ../shadow_fields/)
 
   "Real-time Soft Shadows in Dynamic Scenes using Spherical Harmonic Exponentiation"
   Both from http://www.kunzhou.net/
@@ -111,13 +111,3 @@ is simply calculated in pre-processing. Explanation why this works:
   to visualize this: use "Show Simple Occlusion" menu item.
   Then vertex color is simply taken from radianceTransfer value,
   only scaled appropriately.
-
-------------------------------------------------------------------------------
-
-2. Precomputed Shadow Fields for Dynamic Scenes
-   Video and paper from http://www.kunzhou.net/
-
-Video notes: note that morphing objects is problematic, since shadow fields
-are precalculated for given geometry. They admit this (when talking
-about "each leg has it's own SF", and when video texture light has very
-few FPS (400 MB according to paper)).

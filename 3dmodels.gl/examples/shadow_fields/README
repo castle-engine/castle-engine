@@ -1,0 +1,16 @@
+Precomputed Shadow Fields for Dynamic Scenes
+Video and paper from http://www.kunzhou.net/
+
+Video notes: note that morphing objects is problematic, since shadow fields
+are precalculated for given geometry. They admit this (when talking
+about "each leg has it's own SF", and when video texture light has very
+few FPS (400 MB according to paper)).
+
+TODO: My current demo implementation in shadow_fields.pasprogram:
+- there is only one shadow caster (although may be instanced many times)
+- there is only one shadow receiver (this also means that shadow casters
+  and receivers are different things, no shadowing between shadow casters)
+- there is only one local light
+- there is only one environment light
+- also, there is an additional point in 3D space that you can move
+  (to inspect environment maps at arbitrary points in 3D space)
