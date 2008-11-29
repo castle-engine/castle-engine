@@ -1504,13 +1504,12 @@ begin
 end;
 
 procedure TVRMLGLScene.CloseGLRenderer;
-{ uwazaj - ta funkcja jest wywolywana z ChangedAll, w rezultacie moze
-  byc wywolana zanim jeszcze nasz konstruktor w tej klasie zakonczy dzialanie.
-  Ponadto jest tez wywolywana w destruktorze a wiec jezeli wyjdziemy z
-  konstruktora wyjatkiem - to tez trafimy tutaj z obiektem ktory nie jest
-  w pelni skonstruowany.
-  W tym momencie sprowadza sie to do tego ze trzeba sprawdzac czy
-  Renderer <> nil. }
+{ This must be coded carefully, because
+  - it's called by ChangedAll, and so may be called when our constructor
+    didn't do it's work yet.
+  - moreover it's called from destructor, so may be called if our
+    constructor terminated with exception.
+  This explains that we have to check Renderer <> nil, Shapes <> nil. }
 var
   SI: TVRMLShapeTreeIterator;
   TG: TTransparentGroup;
@@ -1523,20 +1522,23 @@ begin
       begin
         if Renderer <> nil then
         begin
-          SI := TVRMLShapeTreeIterator.Create(Shapes, false);
-          try
-            while SI.GetNext do
-              if TVRMLGLShape(SI.Current).SSSX_DisplayList <> 0 then
-              begin
-                if Optimization = roSeparateShapes then
-                  Renderer.Cache.Shape_DecReference(
-                    TVRMLGLShape(SI.Current).SSSX_DisplayList) else
-                  Renderer.Cache.ShapeNoTransform_DecReference(
-                    TVRMLGLShape(SI.Current).SSSX_DisplayList);
+          if Shapes <> nil then
+          begin
+            SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+            try
+              while SI.GetNext do
+                if TVRMLGLShape(SI.Current).SSSX_DisplayList <> 0 then
+                begin
+                  if Optimization = roSeparateShapes then
+                    Renderer.Cache.Shape_DecReference(
+                      TVRMLGLShape(SI.Current).SSSX_DisplayList) else
+                    Renderer.Cache.ShapeNoTransform_DecReference(
+                      TVRMLGLShape(SI.Current).SSSX_DisplayList);
 
-                TVRMLGLShape(SI.Current).SSSX_DisplayList := 0;
-              end;
-          finally FreeAndNil(SI) end;
+                  TVRMLGLShape(SI.Current).SSSX_DisplayList := 0;
+                end;
+            finally FreeAndNil(SI) end;
+          end;
 
           if SSSX_RenderBeginDisplayList <> 0 then
           begin
@@ -1558,11 +1560,14 @@ begin
     right now, so it's not implemented. }
   if Renderer <> nil then Renderer.UnprepareAll;
 
-  SI := TVRMLShapeTreeIterator.Create(Shapes, false);
-  try
-    while SI.GetNext do
-      TVRMLGLShape(SI.Current).PreparedAndUseBlendingCalculated := false;
-  finally FreeAndNil(SI) end;
+  if Shapes <> nil then
+  begin
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+        TVRMLGLShape(SI.Current).PreparedAndUseBlendingCalculated := false;
+    finally FreeAndNil(SI) end;
+  end;
 end;
 
 procedure TVRMLGLScene.CloseGL;
