@@ -1,0 +1,106 @@
+{
+  Copyright 2008 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
+}
+{ Calculate shadow field of arbitrary 3D model.
+  $1 is the source model, $2 is the output file with shadow field.
+}
+program precompute_shadow_field;
+
+uses SysUtils, ProgressUnit, ProgressConsole, KambiUtils,
+  VRMLScene, Object3dAsVRML, ShadowFields, KambiTimeUtils, VectorMath,
+  CubeEnvMap, Boxes3d;
+
+var
+  Scene: TVRMLScene;
+
+procedure ComputeEnvMap(var EnvMap: TEnvMap; const Point: TVector3Single);
+var
+  Side: TEnvMapSide;
+  Pixel: Cardinal;
+  Color: Byte;
+begin
+  for Side := Low(Side) to High(Side) do
+    for Pixel := 0 to Sqr(EnvMapSize) - 1 do
+    begin
+      if Scene.OctreeVisibleTriangles.IsRayCollision(Point,
+        EnvMapDirection(Side, Pixel), nil, false, nil) then
+        Color := 0 else
+        Color := High(Byte);
+      EnvMap[Side, Pixel] := Color;
+    end;
+end;
+
+var
+  SF: TShadowField;
+  Sphere, Pixel: Cardinal;
+  Side: TEnvMapSide;
+  BoundingSphereCenter: TVector3Single;
+  BoundingSphereRadius: Single;
+begin
+  Parameters.CheckHigh(2);
+
+  Progress.UserInterface := ProgressConsoleInterface;
+
+  Scene := TVRMLScene.Create(LoadAsVRML(Parameters[1]), true);
+  try
+    Scene.TriangleOctreeProgressTitle := 'Building octree';
+    Scene.Spatial := [ssVisibleTriangles];
+
+    SF := TShadowField.Create;
+    try
+      { calculate Scene bounding sphere, and set sphere properties of SF }
+      BoundingSphereFromBox3d(Scene.BoundingBox,
+        BoundingSphereCenter, BoundingSphereRadius);
+      BoundingSphereRadius := Sqr(BoundingSphereRadius);
+      SF.SpheresMiddle := BoundingSphereCenter;
+      { 0.2, 8 are adviced in paper about shadow fields }
+      SF.FirstSphereRadius := 0.2 * BoundingSphereRadius;
+      SF.LastSphereRadius := 8 * BoundingSphereRadius;
+
+      Writeln(Format('Shadow fields spheres: middle %s, radius (%f - %f)',
+        [ VectorToNiceStr(SF.SpheresMiddle),
+          SF.FirstSphereRadius, SF.LastSphereRadius ]));
+
+      ProcessTimerBegin;
+
+      Progress.Init(SFSpheresCount * 6 * Sqr(EnvMapSize), 'Shadow field calculation');
+      try
+
+        for Sphere := 0 to SFSpheresCount - 1 do
+          for Side := Low(Side) to High(Side) do
+            for Pixel := 0 to Sqr(EnvMapSize) - 1 do
+            begin
+              ComputeEnvMap(SF.EnvMaps[Sphere, Side, Pixel],
+                SF.PointFromEnvMap(Sphere, Side, Pixel));
+              Progress.Step;
+            end;
+
+      finally Progress.Fini end;
+
+      Writeln(Format('Shadow field computed: %d rays, %f secs',
+        [ SFSpheresCount * 6 * Sqr(EnvMapSize) *
+                           6 * Sqr(EnvMapSize),
+          ProcessTimerEnd]));
+
+      SF.SaveToFile(Parameters[2]);
+    finally FreeAndNil(SF) end;
+  finally FreeAndNil(Scene) end;
+end.
