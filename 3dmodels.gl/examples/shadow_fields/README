@@ -55,8 +55,8 @@ So in my implementation the algorithm (from figure 5) degenerates to:
     Bp += DoubleProduct(s, Tp)
 
 Shadow fields are trivially saved to a binary file,
-basically dumping env map contents from memory,
+basically dumping all env map contents from memory,
 and piping through gzip (de)compressing stream.
-Gzip reduces data size extremely: around 1000 times
-(env maps uncompressed 36 MB, compressed 36 KB). No surprise, this type
-of data is highly compressible.
+Gzip reduces data size extremely: for real env maps compression is > 100 times
+(from 36 MB to 250 KB). (For empty testing env maps it's around 1000 times,
+to 36 KB). No surprise, this type of data is highly compressible.

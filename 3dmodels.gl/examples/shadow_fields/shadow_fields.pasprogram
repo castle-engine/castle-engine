@@ -33,11 +33,13 @@
 program shadow_fields;
 
 uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3d,
-  GLWindow, Glw_Navigated, VRMLGLScene, VRMLErrors, Navigation;
+  GLWindow, Glw_Navigated, VRMLGLScene, VRMLErrors, Navigation,
+  ShadowFields;
 
 var
   CameraRadius: Single;
   SceneCaster, SceneReceiver: TVRMLGLScene;
+  CasterOOF: TShadowField;
 
   NavigatorAll: TNavigator;
   NavigatorCaster: TExamineNavigator;
@@ -133,6 +135,8 @@ var
   { TODO: allow to change this by command-line }
   ShadowCasterFileName: string = 'models/humanoid_stand.wrl';
   ShadowReceiverFileName: string = 'models/plane.wrl';
+  CasterOOFFileName: string = 'models/humanoid_stand.shadow_field';
+
   Box: TBox3d;
   LocalLightPos: TVector3Single;
 begin
@@ -142,8 +146,8 @@ begin
     SceneCaster := TVRMLGLScene.Create(ShadowCasterFileName, roSceneAsAWhole);
     SceneReceiver := TVRMLGLScene.Create(ShadowReceiverFileName, roNone);
 
-    Glw.MainMenu := CreateMainMenu;
-    Glw.OnMenuCommand := @MenuCommand;
+    CasterOOF := TShadowField.Create;
+    CasterOOF.LoadFromFile(CasterOOFFileName);
 
     { initialize navigators }
 
@@ -176,6 +180,9 @@ begin
     Glw.Navigator := NavigatorAll;
     Glw.OwnsNavigator := false;
 
+    Glw.MainMenu := CreateMainMenu;
+    Glw.OnMenuCommand := @MenuCommand;
+
     Glw.OnInit := @Init;
     Glw.OnClose := @Close;
     Glw.OnResize := @Resize;
@@ -187,5 +194,6 @@ begin
     FreeAndNil(NavigatorAll);
     FreeAndNil(NavigatorCaster);
     FreeAndNil(NavigatorLocalLight);
+    FreeAndNil(CasterOOF);
   end;
 end.
