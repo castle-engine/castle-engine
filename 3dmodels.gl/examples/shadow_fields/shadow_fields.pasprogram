@@ -40,17 +40,37 @@ uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3d,
   GLWindow, Glw_Navigated, VRMLGLScene, VRMLErrors, Navigation,
   ShadowFields, KambiUtils, CubeEnvMap, VRMLNodes;
 
+
 var
   CameraRadius: Single;
   SceneCaster, SceneReceiver: TVRMLGLScene;
   CasterOOF: TShadowField;
 
+  UseShadowFields: boolean = true;
+
+type
+  TNavigatorType = (ntAll, ntCaster, ntLocalLight, ntSFExplorer);
+
+var
+  Navigator: TNavigatorType = ntAll;
+  NavigatorRadio: array [TNavigatorType] of TMenuItemRadio;
   NavigatorAll: TNavigator;
   NavigatorCaster: TExamineNavigator;
   NavigatorLocalLight: TExamineNavigator;
   NavigatorSFExplorer: TExamineNavigator;
 
-  UseShadowFields: boolean = true;
+procedure NavigatorChanged;
+begin
+  case Navigator of
+    ntAll       : Glw.Navigator := NavigatorAll;
+    ntCaster    : Glw.Navigator := NavigatorCaster;
+    ntLocalLight: Glw.Navigator := NavigatorLocalLight;
+    ntSFExplorer: Glw.Navigator := NavigatorSFExplorer;
+    else raise EInternalError.Create('Navigator?');
+  end;
+  if NavigatorRadio[Navigator] <> nil then
+    NavigatorRadio[Navigator].Checked := true;
+end;
 
 procedure Draw(Glwin: TGLWindow);
 
@@ -145,12 +165,28 @@ type
 function THelper.VertexColor(Node: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState;
   const VertexPosition: TVector3Single): TVector3Single;
+var
+  Map: PEnvMap;
+  B: Float;
+  Side: TEnvMapSide;
+  Pixel: Cardinal;
 begin
-  Result[0] := PointsDistance(VertexPosition,
-    Box3dMiddle(SceneReceiver.BoundingBox)) /
-    Box3dAvgSize(SceneReceiver.BoundingBox);
-  Result[1] := Result[0];
-  Result[2] := Result[0];
+  Map := CasterOOF.EnvMapFromPoint(VectorSubtract(
+    MatrixMultPoint(State.Transform, VertexPosition),
+    NavigatorCaster.MoveAmount));
+  if Map = nil then
+    Result := Vector3Single(1, 1, 1) else
+  begin
+    B := 0;
+    for Side := Low(Side) to High(Side) do
+      for Pixel := 0 to Sqr(EnvMapSize) - 1 do
+        B += (Map^[Side, Pixel] / 255) { TODO: * light intensity };
+    { normalize B }
+    B /= 6 * Sqr(EnvMapSize);
+    Result[0] := B;
+    Result[1] := Result[0];
+    Result[2] := Result[0];
+  end;
 end;
 
 procedure UseShadowFieldsChanged;
@@ -163,8 +199,18 @@ end;
 function CreateMainMenu: TMenu;
 var
   M: TMenu;
-  Radio: TMenuItemRadio;
-  RadioGroup: TMenuItemRadioGroup;
+  NavRadioGroup: TMenuItemRadioGroup;
+
+  procedure AddNavigatorMenu(const Caption: string; const Nav: TNavigatorType);
+  begin
+    NavigatorRadio[Nav] := TMenuItemRadio.Create(Caption,
+      10 + Ord(Nav), Navigator = Nav, true);
+    if NavRadioGroup = nil then
+      NavRadioGroup := NavigatorRadio[Nav].Group else
+      NavigatorRadio[Nav].Group := NavRadioGroup;
+    M.Append(NavigatorRadio[Nav]);
+  end;
+
 begin
   Result := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');
@@ -174,22 +220,11 @@ begin
     Result.Append(M);
 
   M := TMenu.Create('_Navigate');
-
-    Radio := TMenuItemRadio.Create('_All', 10, Glw.Navigator = NavigatorAll, true);
-    RadioGroup := Radio.Group;
-    M.Append(Radio);
-
-    Radio := TMenuItemRadio.Create('Shadow _caster', 11, Glw.Navigator = NavigatorCaster, true);
-    Radio.Group := RadioGroup;
-    M.Append(Radio);
-
-    Radio := TMenuItemRadio.Create('Local _light source', 12, Glw.Navigator = NavigatorLocalLight, true);
-    Radio.Group := RadioGroup;
-    M.Append(Radio);
-
-    Radio := TMenuItemRadio.Create('_Shadow fields explorer', 13, Glw.Navigator = NavigatorSFExplorer, true);
-    Radio.Group := RadioGroup;
-    M.Append(Radio);
+    NavRadioGroup := nil;
+    AddNavigatorMenu('_All', ntAll);
+    AddNavigatorMenu('Shadow _caster', ntCaster);
+    AddNavigatorMenu('Local _light source', ntLocalLight);
+    AddNavigatorMenu('_Shadow fields explorer', ntSFExplorer);
 
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Next', 20, K_Space));
@@ -199,10 +234,11 @@ end;
 procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
 begin
   case Item.IntData of
-    10: Glw.Navigator := NavigatorAll;
-    11: Glw.Navigator := NavigatorCaster;
-    12: Glw.Navigator := NavigatorLocalLight;
-    13: Glw.Navigator := NavigatorSFExplorer;
+    10..19:
+      begin
+        Navigator := TNavigatorType(Item.IntData - 10);
+        NavigatorChanged;
+      end;
 
     100:
       begin
@@ -210,11 +246,13 @@ begin
         UseShadowFieldsChanged;
       end;
 
-    20: if Glw.Navigator = NavigatorAll then Glw.Navigator := NavigatorCaster else
-        if Glw.Navigator = NavigatorCaster then Glw.Navigator := NavigatorLocalLight else
-        if Glw.Navigator = NavigatorLocalLight then Glw.Navigator := NavigatorSFExplorer else
-        if Glw.Navigator = NavigatorSFExplorer then Glw.Navigator := NavigatorAll else
-          raise EInternalError.Create('Unknown Glw.Navigator next');
+    20:
+      begin
+        if Navigator = High(Navigator) then
+          Navigator := Low(Navigator) else
+          Navigator := Succ(Navigator);
+        NavigatorChanged;
+      end;
 
     200: Glwin.Close;
     else Exit;
@@ -287,8 +325,8 @@ begin
     end;
     NavigatorSFExplorer.MoveAmount := V;
 
-    Glw.Navigator := NavigatorAll;
     Glw.OwnsNavigator := false;
+    NavigatorChanged;
 
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;
