@@ -38,12 +38,12 @@ const
   EnvMapSize = 16;
 
   EnvMapInfo: array [TEnvMapSide] of TEnvMapInfo =
-  ( (Dir: ( 1,  0, 0); Up: (0, 0, 1); Side: ( 0, -1, 0); ScreenX: 10                 ; ScreenY: 100),
-    (Dir: ( 0, -1, 0); Up: (0, 0, 1); Side: (-1,  0, 0); ScreenX: 10 +     EnvMapSize; ScreenY: 100),
-    (Dir: (-1,  0, 0); Up: (0, 0, 1); Side: ( 0,  1, 0); ScreenX: 10 + 2 * EnvMapSize; ScreenY: 100),
-    (Dir: ( 0,  1, 0); Up: (0, 0, 1); Side: ( 1,  0, 0); ScreenX: 10 + 3 * EnvMapSize; ScreenY: 100),
-    (Dir: (0, 0,  1); Up: (-1, 0, 0); Side: (0, -1, 0); ScreenX: 10; ScreenY: 100 + EnvMapSize),
-    (Dir: (0, 0, -1); Up: ( 1, 0, 0); Side: (0, -1, 0); ScreenX: 10; ScreenY: 100 - EnvMapSize)
+  ( (Dir: ( 1,  0, 0); Up: (0, 0, 1); Side: ( 0, -1, 0); ScreenX: 0             ; ScreenY: 0),
+    (Dir: ( 0, -1, 0); Up: (0, 0, 1); Side: (-1,  0, 0); ScreenX:     EnvMapSize; ScreenY: 0),
+    (Dir: (-1,  0, 0); Up: (0, 0, 1); Side: ( 0,  1, 0); ScreenX: 2 * EnvMapSize; ScreenY: 0),
+    (Dir: ( 0,  1, 0); Up: (0, 0, 1); Side: ( 1,  0, 0); ScreenX: 3 * EnvMapSize; ScreenY: 0),
+    (Dir: (0, 0,  1); Up: (-1, 0, 0); Side: (0, -1, 0); ScreenX: 0; ScreenY: + EnvMapSize),
+    (Dir: (0, 0, -1); Up: ( 1, 0, 0); Side: (0, -1, 0); ScreenX: 0; ScreenY: - EnvMapSize)
   );
 
 { Direction corresponding to given environment map side and pixel number.

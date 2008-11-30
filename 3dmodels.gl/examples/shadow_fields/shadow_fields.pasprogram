@@ -38,7 +38,7 @@ program shadow_fields;
 
 uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3d,
   GLWindow, Glw_Navigated, VRMLGLScene, VRMLErrors, Navigation,
-  ShadowFields, KambiUtils;
+  ShadowFields, KambiUtils, CubeEnvMap;
 
 var
   CameraRadius: Single;
@@ -51,6 +51,34 @@ var
   NavigatorSFExplorer: TExamineNavigator;
 
 procedure Draw(Glwin: TGLWindow);
+
+  procedure DrawSFExplorerMaps;
+  const
+    Scale = 3;
+  var
+    Map: PEnvMap;
+    Side: TEnvMapSide;
+  begin
+    glPixelZoom(Scale, Scale);
+    Map := CasterOOF.EnvMapFromPoint(VectorSubtract(
+      NavigatorSFExplorer.MoveAmount,
+      NavigatorCaster.MoveAmount));
+    if Map <> nil then
+    begin
+      for Side := Low(Side) to High(Side) do
+      begin
+        SetWindowPos(EnvMapInfo[Side].ScreenX * Scale + 100,
+                     EnvMapInfo[Side].ScreenY * Scale + 100);
+        { Since ordering of bytes in our env maps is matching OpenGL
+          pixel ordering, I can just draw these like TGrayscaleImage
+          by glDrawPixels. }
+        glDrawPixels(EnvMapSize, EnvMapSize, GL_LUMINANCE,
+          GL_UNSIGNED_BYTE, @(Map^[Side]));
+      end;
+    end;
+    glPixelZoom(1, 1);
+  end;
+
 const
   UseLighting = true;
 begin
@@ -80,6 +108,8 @@ begin
       glVertexv(NavigatorSFExplorer.MoveAmount);
     glEnd;
   glDisable(GL_DEPTH_TEST);
+
+  DrawSFExplorerMaps;
 end;
 
 procedure Init(Glwin: TGLWindow);
