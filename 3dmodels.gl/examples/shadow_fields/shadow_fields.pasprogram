@@ -49,6 +49,8 @@ var
 
   UseShadowFields: boolean = true;
 
+  UseLighting: boolean = true;
+
 type
   TNavigatorType = (ntAll, ntCaster, ntLocalLight, ntSFExplorer);
 
@@ -112,8 +114,6 @@ procedure Draw(Glwin: TGLWindow);
     glPixelZoom(1, 1);
   end;
 
-const
-  UseLighting = true;
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(NavigatorAll.Matrix);
@@ -176,6 +176,8 @@ type
 function THelper.VertexColor(Node: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState;
   const VertexPosition: TVector3Single): TVector3Single;
+const
+  LocalLightIntensity = 100;
 var
   CasterMap, LocalLightMap: PEnvMap;
   B: Float;
@@ -200,25 +202,26 @@ begin
         - no env light intensity.
         - environ light may have non-const intensity over the sphere.
           calc it's env map, like for PRT. }
+
+    B := 0;
     if CasterMap = nil then
     begin
       { Too far from shadow caster, so just integrate over the light }
-      B := 0;
+
       for Side := Low(Side) to High(Side) do
         for Pixel := 0 to Sqr(EnvMapSize) - 1 do
-          B += (LocalLightMap^[Side, Pixel] / 255);
-      { normalize B }
-      B /= 6 * Sqr(EnvMapSize);
+          B += (1 - LocalLightMap^[Side, Pixel] / 255);
     end else
     begin
-      B := 0;
       for Side := Low(Side) to High(Side) do
         for Pixel := 0 to Sqr(EnvMapSize) - 1 do
-          B += (LocalLightMap^[Side, Pixel] / 255) *
+          B += (1 - LocalLightMap^[Side, Pixel] / 255) *
                (CasterMap^[Side, Pixel] / 255);
-      { normalize B }
-      B /= 6 * Sqr(EnvMapSize);
     end;
+
+    { normalize B, apply LocalLightIntensity }
+    B *= LocalLightIntensity / (6 * Sqr(EnvMapSize));
+
     Result[0] := B;
     Result[1] := Result[0];
     Result[2] := Result[0];
@@ -250,6 +253,8 @@ var
 begin
   Result := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');
+    M.Append(TMenuItemChecked.Create('Apply OpenGL _Lighting', 110, UseLighting, true));
+    M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('_Shadow fields', 100, UseShadowFields, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 200));
@@ -281,6 +286,8 @@ begin
         UseShadowFields := not UseShadowFields;
         UseShadowFieldsChanged;
       end;
+
+    110: UseLighting := not UseLighting;
 
     20:
       begin
