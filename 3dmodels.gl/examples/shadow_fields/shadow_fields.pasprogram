@@ -25,16 +25,20 @@
   Navigate with mouse or keyboard (like view3dscene in Examine mode).
 
   Change by menu which object you're actually navigating --- by default
-  you just navigate the whole scene. When you navigate the shadow caster
-  or light source, you can only move the object (drag with middle or
-  right mouse button), rotations/scaling are not used (since not implemented
-  yet, they would require rotating/scaling before looking into shadow field,
+  you just navigate the whole scene.
+
+  When you navigate the shadow caster
+  or light source, you can only move the object
+  (drag with middle or right mouse button), rotations/scaling are not used,
+  since not implemented yet.
+  They would require rotating/scaling before looking into shadow field,
   and rotating of SH --- this is just not implemented now). }
+
 program shadow_fields;
 
 uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3d,
   GLWindow, Glw_Navigated, VRMLGLScene, VRMLErrors, Navigation,
-  ShadowFields;
+  ShadowFields, KambiUtils;
 
 var
   CameraRadius: Single;
@@ -44,6 +48,7 @@ var
   NavigatorAll: TNavigator;
   NavigatorCaster: TExamineNavigator;
   NavigatorLocalLight: TExamineNavigator;
+  NavigatorSFExplorer: TExamineNavigator;
 
 procedure Draw(Glwin: TGLWindow);
 const
@@ -66,6 +71,13 @@ begin
     glColorv(Yellow3Single);
     glBegin(GL_POINTS);
       glVertexv(NavigatorLocalLight.MoveAmount);
+    glEnd;
+  glDisable(GL_DEPTH_TEST);
+
+  glEnable(GL_DEPTH_TEST);
+    glColorv(Blue3Single);
+    glBegin(GL_POINTS);
+      glVertexv(NavigatorSFExplorer.MoveAmount);
     glEnd;
   glDisable(GL_DEPTH_TEST);
 end;
@@ -99,22 +111,29 @@ var
 begin
   Result := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');
+    M.Append(TMenuItem.Create('_Exit', 200));
+    Result.Append(M);
 
-    Radio := TMenuItemRadio.Create('Navigate _all', 10, Glw.Navigator = NavigatorAll, true);
+  M := TMenu.Create('_Navigate');
+
+    Radio := TMenuItemRadio.Create('_All', 10, Glw.Navigator = NavigatorAll, true);
     RadioGroup := Radio.Group;
     M.Append(Radio);
 
-    Radio := TMenuItemRadio.Create('Navigate shadow _caster', 11, Glw.Navigator = NavigatorCaster, true);
+    Radio := TMenuItemRadio.Create('Shadow _caster', 11, Glw.Navigator = NavigatorCaster, true);
     Radio.Group := RadioGroup;
     M.Append(Radio);
 
-    Radio := TMenuItemRadio.Create('Navigate _light source', 12, Glw.Navigator = NavigatorLocalLight, true);
+    Radio := TMenuItemRadio.Create('Local _light source', 12, Glw.Navigator = NavigatorLocalLight, true);
+    Radio.Group := RadioGroup;
+    M.Append(Radio);
+
+    Radio := TMenuItemRadio.Create('_Shadow fields explorer', 13, Glw.Navigator = NavigatorSFExplorer, true);
     Radio.Group := RadioGroup;
     M.Append(Radio);
 
     M.Append(TMenuSeparator.Create);
-
-    M.Append(TMenuItem.Create('_Exit', 200));
+    M.Append(TMenuItem.Create('_Next', 20, K_Space));
     Result.Append(M);
 end;
 
@@ -124,6 +143,13 @@ begin
     10: Glw.Navigator := NavigatorAll;
     11: Glw.Navigator := NavigatorCaster;
     12: Glw.Navigator := NavigatorLocalLight;
+    13: Glw.Navigator := NavigatorSFExplorer;
+
+    20: if Glw.Navigator = NavigatorAll then Glw.Navigator := NavigatorCaster else
+        if Glw.Navigator = NavigatorCaster then Glw.Navigator := NavigatorLocalLight else
+        if Glw.Navigator = NavigatorLocalLight then Glw.Navigator := NavigatorSFExplorer else
+        if Glw.Navigator = NavigatorSFExplorer then Glw.Navigator := NavigatorAll else
+          raise EInternalError.Create('Unknown Glw.Navigator next');
 
     200: Glwin.Close;
     else Exit;
@@ -138,7 +164,7 @@ var
   CasterOOFFileName: string = 'models/humanoid_stand.shadow_field';
 
   Box: TBox3d;
-  LocalLightPos: TVector3Single;
+  V: TVector3Single;
 begin
   try
     VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
@@ -164,18 +190,37 @@ begin
       of moving light source with mouse. }
     NavigatorLocalLight.ModelBox := SceneCaster.BoundingBox;
 
-    { calculate starting LocalLightPos,
+    { calculate starting local light position,
       and set this as NavigatorLocalLight.MoveAmount }
     Box := Box3dSum(SceneCaster.BoundingBox, SceneReceiver.BoundingBox);
     if IsEmptyBox3d(Box) then
     begin
-      LocalLightPos := Vector3Single(0, 0, 1);
+      V := Vector3Single(0, 0, 1);
     end else
     begin
-      LocalLightPos := Box3dMiddle(Box);
-      LocalLightPos[0] := Box[0][0];
+      V := Box3dMiddle(Box);
+      V[0] := Box[0][0];
     end;
-    NavigatorLocalLight.MoveAmount := LocalLightPos;
+    NavigatorLocalLight.MoveAmount := V;
+
+    NavigatorSFExplorer := TExamineNavigator.Create(
+      @Glw.PostRedisplayOnMatrixChanged);
+    { use SceneCaster.BoundingBox for light's box, this determines the speed
+      of moving light source with mouse. }
+    NavigatorSFExplorer.ModelBox := SceneCaster.BoundingBox;
+
+    { calculate starting sf explorer position,
+      and set this as NavigatorSFExplorer.MoveAmount }
+    Box := Box3dSum(SceneCaster.BoundingBox, SceneReceiver.BoundingBox);
+    if IsEmptyBox3d(Box) then
+    begin
+      V := Vector3Single(0, 0, 1);
+    end else
+    begin
+      V := Box3dMiddle(Box);
+      V[0] := Box[1][0];
+    end;
+    NavigatorSFExplorer.MoveAmount := V;
 
     Glw.Navigator := NavigatorAll;
     Glw.OwnsNavigator := false;
@@ -194,6 +239,7 @@ begin
     FreeAndNil(NavigatorAll);
     FreeAndNil(NavigatorCaster);
     FreeAndNil(NavigatorLocalLight);
+    FreeAndNil(NavigatorSFExplorer);
     FreeAndNil(CasterOOF);
   end;
 end.
