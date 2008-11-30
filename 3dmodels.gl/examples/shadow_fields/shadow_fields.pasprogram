@@ -43,7 +43,7 @@ uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3d,
 
 var
   CameraRadius: Single;
-  SceneCaster, SceneReceiver: TVRMLGLScene;
+  SceneCaster, SceneReceiver, SceneLocalLight: TVRMLGLScene;
   CasterOOF: TShadowField;
 
   UseShadowFields: boolean = true;
@@ -116,13 +116,12 @@ begin
     SceneCaster.Render(nil, tgAll);
   glPopMatrix;
 
+  glPushMatrix;
+    glTranslatev(NavigatorLocalLight.MoveAmount);
+    SceneLocalLight.Render(nil, tgAll);
+  glPopMatrix;
+
   glDisable(GL_LIGHTING);
-  glEnable(GL_DEPTH_TEST);
-    glColorv(Yellow3Single);
-    glBegin(GL_POINTS);
-      glVertexv(NavigatorLocalLight.MoveAmount);
-    glEnd;
-  glDisable(GL_DEPTH_TEST);
 
   glEnable(GL_DEPTH_TEST);
     glColorv(Blue3Single);
@@ -144,6 +143,7 @@ procedure Close(Glwin: TGLWindow);
 begin
   SceneCaster.CloseGL;
   SceneReceiver.CloseGL;
+  SceneLocalLight.CloseGL;
 end;
 
 procedure Resize(Glwin: TGLWindow);
@@ -265,6 +265,8 @@ var
   ShadowCasterFileName: string = 'models/humanoid_stand.wrl';
   ShadowReceiverFileName: string = 'models/plane.wrl';
   CasterOOFFileName: string = 'models/humanoid_stand.shadow_field';
+  LocalLightFileName: string = 'models/sphere.wrl';
+    //'models/stretched_cube.wrl';
 
   Box: TBox3d;
   V: TVector3Single;
@@ -274,6 +276,7 @@ begin
 
     SceneCaster := TVRMLGLScene.Create(ShadowCasterFileName, roSceneAsAWhole);
     SceneReceiver := TVRMLGLScene.Create(ShadowReceiverFileName, roNone);
+    SceneLocalLight := TVRMLGLScene.Create(LocalLightFileName, roSceneAsAWhole);
 
     CasterOOF := TShadowField.Create;
     CasterOOF.LoadFromFile(CasterOOFFileName);
@@ -289,9 +292,7 @@ begin
 
     NavigatorLocalLight := TExamineNavigator.Create(
       @Glw.PostRedisplayOnMatrixChanged);
-    { use SceneCaster.BoundingBox for light's box, this determines the speed
-      of moving light source with mouse. }
-    NavigatorLocalLight.ModelBox := SceneCaster.BoundingBox;
+    NavigatorLocalLight.ModelBox := SceneLocalLight.BoundingBox;
 
     { calculate starting local light position,
       and set this as NavigatorLocalLight.MoveAmount }
@@ -342,6 +343,7 @@ begin
   finally
     FreeAndNil(SceneCaster);
     FreeAndNil(SceneReceiver);
+    FreeAndNil(SceneLocalLight);
     FreeAndNil(NavigatorAll);
     FreeAndNil(NavigatorCaster);
     FreeAndNil(NavigatorLocalLight);

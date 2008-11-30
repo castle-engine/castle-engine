@@ -1,0 +1,97 @@
+#VRML V2.0 utf8
+
+# This file was authored with Blender (http://www.blender.org/)
+# Blender version 248
+# Blender file stretched_cube.blend
+# Exported using VRML97 exporter v1.55-kambi4
+
+
+NavigationInfo {
+	headlight FALSE
+	visibilityLimit 100.0
+	type ["EXAMINE", "ANY"]
+	avatarSize [0.25, 1.75, 0.75]
+} 
+ 
+Background {
+	groundColor 0.0565629 0.2208154 0.4
+	skyColor 0.0565629 0.2208154 0.4
+}
+
+DEF OB_Cube Transform {
+	translation 0.000000 0.000000 0.000000
+	rotation 1.000000 0.000000 0.000000 0.000000
+	scale 0.400000 4.860000 0.400000
+	children [
+		DEF ME_Cube Group {
+			children [
+				Shape {
+					appearance Appearance {
+						material DEF MA_Material Material {
+							diffuseColor 0.8 0.8 0.8
+							ambientIntensity 0.1666667
+							specularColor 0.4012008 0.4012008 0.4012008
+							emissiveColor  0.0 0.0 0.0
+							shininess 0.0976563
+							transparency 0.0
+						}
+					}
+					geometry IndexedFaceSet {
+						solid FALSE
+						creaseAngle 0.000000
+						coord DEF coord_Cube Coordinate {
+							point [
+1.0 0.999999940395 -1.0
+ 1.0 -1.0 -1.0
+ -1.00000011921 -0.999999821186 -1.0
+ -0.999999642372 1.00000035763 -1.0
+ 1.00000047684 0.999999463558 1.0
+ 0.999999344349 -1.00000059605 1.0
+ -1.00000035763 -0.999999642372 1.0
+ -0.999999940395 1.0 1.0
+ 							]
+						}
+						
+						coordIndex [
+0 1 2 3 -1, 
+4 7 6 5 -1, 
+0 4 5 1 -1, 
+1 5 6 2 -1, 
+2 6 7 3 -1, 
+4 0 3 7 -1, 
+						]
+					}
+				}
+			]
+		}
+	]
+}
+DEF OB_Lamp Transform {
+	translation 4.076245 1.005454 5.903862
+	rotation 0.205942 0.331517 0.920698 1.926274
+	scale 1.000000 1.000000 1.000000
+	children [
+		DEF Lamp PointLight {
+			ambientIntensity 0.0
+			color 1.0 1.0 1.0
+			intensity 0.5714286
+			location 0.0 0.0 0.0
+			radius 29.9999828339
+		}
+		
+	]
+}
+DEF OB_Camera Transform {
+	translation 7.481132 -6.507640 5.343665
+	rotation 0.772239 0.341341 0.535848 1.347139
+	scale 1.000000 1.000000 1.000000
+	children [
+		DEF Camera Viewpoint {
+			description "Camera" 
+			position 0.0 0.0 0.0
+			fieldOfView 0.661
+		}
+		
+	]
+}
+

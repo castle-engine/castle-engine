@@ -21,6 +21,13 @@
 }
 { Calculate shadow field of arbitrary 3D model.
   $1 is the source model, $2 is the output file with shadow field.
+
+  Note that this uses white color when the light is not blocked.
+  In other words, this calculates OOF, object occlusion field.
+  If you want to use this as SRF, simply invert all values
+  (take 255-color instead of color). I may introduce a command-line
+  option here to do this inversion at precompute step... for now,
+  it's done at rendering.
 }
 program precompute_shadow_field;
 
