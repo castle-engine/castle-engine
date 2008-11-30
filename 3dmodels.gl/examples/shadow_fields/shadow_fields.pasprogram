@@ -45,6 +45,7 @@ var
   CameraRadius: Single;
   SceneCaster, SceneReceiver, SceneLocalLight: TVRMLGLScene;
   CasterOOF: TShadowField;
+  LocalLightSRF: TShadowField;
 
   UseShadowFields: boolean = true;
 
@@ -77,27 +78,37 @@ procedure Draw(Glwin: TGLWindow);
   procedure DrawSFExplorerMaps;
   const
     Scale = 3;
-  var
-    Map: PEnvMap;
-    Side: TEnvMapSide;
-  begin
-    glPixelZoom(Scale, Scale);
-    Map := CasterOOF.EnvMapFromPoint(VectorSubtract(
-      NavigatorSFExplorer.MoveAmount,
-      NavigatorCaster.MoveAmount));
-    if Map <> nil then
+
+    procedure DrawOneMap(Field: TShadowField;
+      const FieldMoveAmount: TVector3Single;
+      const ShiftX, ShiftY: Integer);
+    var
+      Map: PEnvMap;
+      Side: TEnvMapSide;
     begin
-      for Side := Low(Side) to High(Side) do
+      Map := Field.EnvMapFromPoint(VectorSubtract(
+        NavigatorSFExplorer.MoveAmount, FieldMoveAmount));
+      if Map <> nil then
       begin
-        SetWindowPos(EnvMapInfo[Side].ScreenX * Scale + 100,
-                     EnvMapInfo[Side].ScreenY * Scale + 100);
-        { Since ordering of bytes in our env maps is matching OpenGL
-          pixel ordering, I can just draw these like TGrayscaleImage
-          by glDrawPixels. }
-        glDrawPixels(EnvMapSize, EnvMapSize, GL_LUMINANCE,
-          GL_UNSIGNED_BYTE, @(Map^[Side]));
+        for Side := Low(Side) to High(Side) do
+        begin
+          SetWindowPos(EnvMapInfo[Side].ScreenX * Scale + ShiftX,
+                       EnvMapInfo[Side].ScreenY * Scale + ShiftY);
+          { Since ordering of bytes in our env maps is matching OpenGL
+            pixel ordering, I can just draw these like TGrayscaleImage
+            by glDrawPixels. }
+          glDrawPixels(EnvMapSize, EnvMapSize, GL_LUMINANCE,
+            GL_UNSIGNED_BYTE, @(Map^[Side]));
+        end;
       end;
     end;
+
+  begin
+    glPixelZoom(Scale, Scale);
+
+    DrawOneMap(CasterOOF, NavigatorCaster.MoveAmount, 100, 100);
+    DrawOneMap(LocalLightSRF, NavigatorLocalLight.MoveAmount, 100, 300);
+
     glPixelZoom(1, 1);
   end;
 
@@ -264,7 +275,6 @@ var
   { TODO: allow to change this by command-line }
   ShadowCasterFileName: string = 'models/humanoid_stand.wrl';
   ShadowReceiverFileName: string = 'models/plane.wrl';
-  CasterOOFFileName: string = 'models/humanoid_stand.shadow_field';
   LocalLightFileName: string = 'models/sphere.wrl';
     //'models/stretched_cube.wrl';
 
@@ -279,7 +289,10 @@ begin
     SceneLocalLight := TVRMLGLScene.Create(LocalLightFileName, roSceneAsAWhole);
 
     CasterOOF := TShadowField.Create;
-    CasterOOF.LoadFromFile(CasterOOFFileName);
+    CasterOOF.LoadFromFile(ChangeFileExt(ShadowCasterFileName, ShadowFieldExt));
+
+    LocalLightSRF := TShadowField.Create;
+    LocalLightSRF.LoadFromFile(ChangeFileExt(LocalLightFileName, ShadowFieldExt));
 
     { initialize navigators }
 
@@ -349,5 +362,6 @@ begin
     FreeAndNil(NavigatorLocalLight);
     FreeAndNil(NavigatorSFExplorer);
     FreeAndNil(CasterOOF);
+    FreeAndNil(LocalLightSRF);
   end;
 end.

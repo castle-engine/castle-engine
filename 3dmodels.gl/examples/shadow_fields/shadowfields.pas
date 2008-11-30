@@ -30,6 +30,8 @@ uses CubeEnvMap, VectorMath, Math;
 const
   SFSpheresCount = 16;
 
+  ShadowFieldExt = '.shadow_field';
+
 type
   TEnvMap = array [TEnvMapSide, 0..Sqr(EnvMapSize) - 1] of Byte;
   PEnvMap = ^TEnvMap;

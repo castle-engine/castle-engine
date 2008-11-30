@@ -71,7 +71,7 @@ begin
 
   InputFileName := Parameters[1];
   if Parameters.High = 1 then
-    OutputFileName := ChangeFileExt(InputFileName, '.shadow_field') else
+    OutputFileName := ChangeFileExt(InputFileName, ShadowFieldExt) else
     OutputFileName := Parameters[2];
   Writeln('Output file name: ', OutputFileName);
 
