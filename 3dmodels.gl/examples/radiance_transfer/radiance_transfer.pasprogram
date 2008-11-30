@@ -367,7 +367,7 @@ begin
     M.Append(Radio);
 
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItemChecked.Create('_Lighting', 20, UseLighting, true));
+    M.Append(TMenuItemChecked.Create('Apply OpenGL _Lighting', 20, UseLighting, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Save Screen ...', 100, K_F5));
     M.Append(TMenuSeparator.Create);
