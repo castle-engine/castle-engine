@@ -32,7 +32,8 @@ uses
   TestKambiStringUtils,
   TestKambiScript,
   TestKambiScriptVectors,
-  TestCubeEnvMap;
+  TestCubeEnvMap,
+  TestShadowFields;
 
 {var
   T: TTestKambiScript;}
