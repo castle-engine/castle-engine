@@ -87,7 +87,8 @@ begin
       { calculate Scene bounding sphere, and set sphere properties of SF }
       BoundingSphereFromBox3d(Scene.BoundingBox,
         BoundingSphereCenter, BoundingSphereRadius);
-      BoundingSphereRadius := Sqr(BoundingSphereRadius);
+      { BoundingSphereFromBox3d gives me sqr of radius }
+      BoundingSphereRadius := Sqrt(BoundingSphereRadius); 
       SF.SpheresMiddle := BoundingSphereCenter;
       { 0.2, 8 are adviced in paper about shadow fields }
       SF.FirstSphereRadius := 0.2 * BoundingSphereRadius;
