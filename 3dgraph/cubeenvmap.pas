@@ -28,7 +28,7 @@ interface
 uses VectorMath;
 
 type
-  TEnvMapSide = 0..5;
+  TEnvMapSide = (emsRight, emsBack, emsLeft, emsFront, emsTop, emsBottom);
   TEnvMapInfo = record
     Dir, Up, Side: TVector3Single;
     ScreenX, ScreenY: Integer;
@@ -79,7 +79,7 @@ begin
   PixelY := Pixel div EnvMapSize;
   { Result = exactly EnvMapInfo[Side].Dir when
     PixelX/Y = EnvMapSize/2 (pixel is on the middle of the image). }
-  Result :=  EnvMapInfo[Side].Dir;
+  Result := EnvMapInfo[Side].Dir;
   VectorAddTo1st(Result,
     VectorScale(EnvMapInfo[Side].Side, -1 + 2 * PixelX/EnvMapSize
 
@@ -118,9 +118,9 @@ var
 begin
   SideCoord := MaxAbsVectorCoord(Dir);
   case SideCoord of
-    0: if Dir[0] >= 0 then Side := 0 else Side := 2;
-    1: if Dir[1] >= 0 then Side := 3 else Side := 1;
-    2: if Dir[2] >= 0 then Side := 4 else Side := 5;
+    0: if Dir[0] >= 0 then Side := emsRight else Side := emsLeft;
+    1: if Dir[1] >= 0 then Side := emsFront else Side := emsBack;
+    2: if Dir[2] >= 0 then Side := emsTop   else Side := emsBottom;
   end;
 
   SidePlaneDir := EnvMapInfo[Side].Dir;

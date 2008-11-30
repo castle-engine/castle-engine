@@ -41,7 +41,7 @@ type
 
 implementation
 
-uses VectorMath, ShadowFields, KambiUtils;
+uses VectorMath, ShadowFields, KambiUtils, CubeEnvMap;
 
 procedure TTestShadowFields.Test1;
 var
@@ -71,16 +71,16 @@ begin
     Assert(Map <> nil);
 
     Map := SF.EnvMapFromPoint(Vector3Single(1, 0, 0));
-    Map^[0, 10] := 55;
-    Map^[2, 20] := 66;
+    Map^[emsRight, 10] := 55;
+    Map^[emsLeft , 20] := 66;
 
     Map := SF.EnvMapFromPoint(Vector3Single(5, 0, 0));
-    Map^[0, 10] := 11;
-    Map^[2, 20] := 22;
+    Map^[emsRight, 10] := 11;
+    Map^[emsLeft , 20] := 22;
 
     Map := SF.EnvMapFromPoint(Vector3Single(10, 0, 0));
-    Map^[0, 10] := 99;
-    Map^[2, 20] := 88;
+    Map^[emsRight, 10] := 99;
+    Map^[emsLeft , 20] := 88;
 
     SF.SaveToFile(FileName);
   finally FreeAndNil(SF) end;
@@ -101,29 +101,29 @@ begin
     Assert(Map <> nil);
 
     Map := SF.EnvMapFromPoint(Vector3Single(1, 0, 0));
-    Assert(Map^[0, 10] = 55);
-    Assert(Map^[2, 20] = 66);
+    Assert(Map^[emsRight, 10] = 55);
+    Assert(Map^[emsLeft , 20] = 66);
 
     Map := SF.EnvMapFromPoint(Vector3Single(5, 0, 0));
-    Assert(Map^[0, 10] = 11);
-    Assert(Map^[2, 20] = 22);
+    Assert(Map^[emsRight, 10] = 11);
+    Assert(Map^[emsLeft , 20] = 22);
 
     Map := SF.EnvMapFromPoint(Vector3Single(10, 0, 0));
-    Assert(Map^[0, 10] = 99);
-    Assert(Map^[2, 20] = 88);
+    Assert(Map^[emsRight, 10] = 99);
+    Assert(Map^[emsLeft , 20] = 88);
 
     { Also, test PointFromEnvMap }
     Assert(
-      VectorLen(SF.PointFromEnvMap(0, 0, 0)) <
-      VectorLen(SF.PointFromEnvMap(1, 0, 0)));
+      VectorLen(SF.PointFromEnvMap(0, emsRight, 0)) <
+      VectorLen(SF.PointFromEnvMap(1, emsRight, 0)));
 
     Assert(
-      VectorLen(SF.PointFromEnvMap(1, 0, 0)) <
-      VectorLen(SF.PointFromEnvMap(2, 0, 0)));
+      VectorLen(SF.PointFromEnvMap(1, emsRight, 0)) <
+      VectorLen(SF.PointFromEnvMap(2, emsRight, 0)));
 
     Assert(
-      VectorLen(SF.PointFromEnvMap(10, 0, 0)) <
-      VectorLen(SF.PointFromEnvMap(11, 0, 0)));
+      VectorLen(SF.PointFromEnvMap(10, emsRight, 0)) <
+      VectorLen(SF.PointFromEnvMap(11, emsRight, 0)));
   finally FreeAndNil(SF) end;
 end;
 

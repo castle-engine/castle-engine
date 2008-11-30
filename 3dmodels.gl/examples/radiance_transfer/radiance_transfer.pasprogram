@@ -179,7 +179,7 @@ begin
     for SHBasis := 0 to LightSHBasisCount - 1 do
       LightSHBasis[SHBasis] := 0;
 
-    for EnvMapSide := 0 to 5 do
+    for EnvMapSide := Low(TEnvMapSide) to High(TEnvMapSide) do
       DrawLightMap(EnvMapSide);
 
     for SHBasis := 0 to LightSHBasisCount - 1 do
@@ -337,7 +337,7 @@ var
   Pixel: Cardinal;
 begin
   for LM := 0 to LightSHBasisCount - 1 do
-    for EnvMapSide := 0 to 5 do
+    for EnvMapSide := Low(TEnvMapSide) to High(TEnvMapSide) do
       for Pixel := 0 to Sqr(EnvMapSize) - 1 do
       begin
         SHBasisValues[LM][EnvMapSide][Pixel] :=
