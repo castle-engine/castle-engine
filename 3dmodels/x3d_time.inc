@@ -296,7 +296,7 @@ begin
   if Log then
     WritelnLog('TimeDependentNodes', Format('%s: time changes from %f (by +%f) to %f. Before state: active %s, paused %s, loop %s',
       [ Node.NodeTypeName,
-        OldValue.Time, TimeIncrease, NewValue.Time,
+        OldValue.Seconds, TimeIncrease, NewValue.Seconds,
         BoolToStr[IsActive], BoolToStr[IsPaused], BoolToStr[FdLoop.Value]
         ]));
   {$endif}
