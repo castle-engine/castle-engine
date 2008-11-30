@@ -177,23 +177,48 @@ function THelper.VertexColor(Node: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState;
   const VertexPosition: TVector3Single): TVector3Single;
 var
-  Map: PEnvMap;
+  CasterMap, LocalLightMap: PEnvMap;
   B: Float;
   Side: TEnvMapSide;
   Pixel: Cardinal;
+  Position: TVector3Single;
 begin
-  Map := CasterOOF.EnvMapFromPoint(VectorSubtract(
-    MatrixMultPoint(State.Transform, VertexPosition),
-    NavigatorCaster.MoveAmount));
-  if Map = nil then
-    Result := Vector3Single(1, 1, 1) else
+  Position := MatrixMultPoint(State.Transform, VertexPosition);
+
+  CasterMap := CasterOOF.EnvMapFromPoint(VectorSubtract(
+    Position, NavigatorCaster.MoveAmount));
+
+  LocalLightMap := LocalLightSRF.EnvMapFromPoint(VectorSubtract(
+    Position, NavigatorLocalLight.MoveAmount));
+
+  if LocalLightMap = nil then
+    { Too far from light }
+    Result := Vector3Single(0, 0, 0) else
   begin
-    B := 0;
-    for Side := Low(Side) to High(Side) do
-      for Pixel := 0 to Sqr(EnvMapSize) - 1 do
-        B += (Map^[Side, Pixel] / 255) { TODO: * light intensity };
-    { normalize B }
-    B /= 6 * Sqr(EnvMapSize);
+    { TODO: we completely ignore here BRDF and cos() for light equations!
+      TODO: we don't really have env light now:
+        - no env light intensity.
+        - environ light may have non-const intensity over the sphere.
+          calc it's env map, like for PRT. }
+    if CasterMap = nil then
+    begin
+      { Too far from shadow caster, so just integrate over the light }
+      B := 0;
+      for Side := Low(Side) to High(Side) do
+        for Pixel := 0 to Sqr(EnvMapSize) - 1 do
+          B += (LocalLightMap^[Side, Pixel] / 255);
+      { normalize B }
+      B /= 6 * Sqr(EnvMapSize);
+    end else
+    begin
+      B := 0;
+      for Side := Low(Side) to High(Side) do
+        for Pixel := 0 to Sqr(EnvMapSize) - 1 do
+          B += (LocalLightMap^[Side, Pixel] / 255) *
+               (CasterMap^[Side, Pixel] / 255);
+      { normalize B }
+      B /= 6 * Sqr(EnvMapSize);
+    end;
     Result[0] := B;
     Result[1] := Result[0];
     Result[2] := Result[0];
