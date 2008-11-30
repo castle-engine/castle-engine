@@ -70,30 +70,30 @@ type
 
 implementation
 
-uses KambiFilesUtils, KambiUtils;
+uses SysUtils, KambiFilesUtils, KambiUtils, KambiZStream, Classes;
 
 procedure TShadowField.LoadFromFile(const FileName: string);
 var
-  F: file;
+  F: TStream;
 begin
-  SafeReset(F, FileName, true);
+  F := TGZFileStream.Create(FileName, gzOpenRead);
   try
-    BlockRead(F, EnvMaps, SizeOf(EnvMaps));
-    BlockRead(F, FirstSphereRadius, SizeOf(FirstSphereRadius));
-    BlockRead(F, LastSphereRadius, SizeOf(LastSphereRadius));
-  finally CloseFile(F) end;
+    F.ReadBuffer(EnvMaps, SizeOf(EnvMaps));
+    F.ReadBuffer(FirstSphereRadius, SizeOf(FirstSphereRadius));
+    F.ReadBuffer(LastSphereRadius, SizeOf(LastSphereRadius));
+  finally FreeAndNil(F) end;
 end;
 
 procedure TShadowField.SaveToFile(const FileName: string);
 var
-  F: file;
+  F: TStream;
 begin
-  SafeRewrite(F, FileName);
+  F := TGZFileStream.Create(FileName, gzOpenWrite);
   try
-    BlockWrite(F, EnvMaps, SizeOf(EnvMaps));
-    BlockWrite(F, FirstSphereRadius, SizeOf(FirstSphereRadius));
-    BlockWrite(F, LastSphereRadius, SizeOf(LastSphereRadius));
-  finally CloseFile(F) end;
+    F.WriteBuffer(EnvMaps, SizeOf(EnvMaps));
+    F.WriteBuffer(FirstSphereRadius, SizeOf(FirstSphereRadius));
+    F.WriteBuffer(LastSphereRadius, SizeOf(LastSphereRadius));
+  finally FreeAndNil(F) end;
 end;
 
 function TShadowField.EnvMapFromPoint(const V: TVector3Single): PEnvMap;

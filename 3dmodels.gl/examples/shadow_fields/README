@@ -53,3 +53,10 @@ So in my implementation the algorithm (from figure 5) degenerates to:
 
     s := constant env map of environment light
     Bp += DoubleProduct(s, Tp)
+
+Shadow fields are trivially saved to a binary file,
+basically dumping env map contents from memory,
+and piping through gzip (de)compressing stream.
+Gzip reduces data size extremely: around 1000 times
+(env maps uncompressed 36 MB, compressed 36 KB). No surprise, this type
+of data is highly compressible.
