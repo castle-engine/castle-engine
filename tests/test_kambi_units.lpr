@@ -31,8 +31,8 @@ uses
   {$endif}
   TestKambiStringUtils,
   TestKambiScript,
-  TestKambiScriptVectors;
-
+  TestKambiScriptVectors,
+  TestCubeEnvMap;
 
 {var
   T: TTestKambiScript;}
