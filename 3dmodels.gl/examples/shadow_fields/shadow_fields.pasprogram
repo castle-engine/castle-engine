@@ -22,33 +22,56 @@
 
 { Shadow fields demo. See README.
 
-  Navigate with mouse or keyboard (like view3dscene in Examine mode). }
+  Navigate with mouse or keyboard (like view3dscene in Examine mode).
+
+  Change by menu which object you're actually navigating --- by default
+  you just navigate the whole scene. When you navigate the shadow caster
+  or light source, you can only move the object (drag with middle or
+  right mouse button), rotations/scaling are not used (since not implemented
+  yet, they would require rotating/scaling before looking into shadow field,
+  and rotating of SH --- this is just not implemented now). }
 program shadow_fields;
 
 uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3d,
-  GLWindow, Glw_Navigated, VRMLGLScene, VRMLErrors;
+  GLWindow, Glw_Navigated, VRMLGLScene, VRMLErrors, Navigation;
 
 var
   CameraRadius: Single;
   SceneCaster, SceneReceiver: TVRMLGLScene;
-  LocalLightPos: TVector3Single;
+
+  NavigatorAll: TNavigator;
+  NavigatorCaster: TExamineNavigator;
+  NavigatorLocalLight: TExamineNavigator;
 
 procedure Draw(Glwin: TGLWindow);
 const
   UseLighting = true;
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(Glw.Navigator.Matrix);
+  glLoadMatrix(NavigatorAll.Matrix);
 
   if UseLighting then glEnable(GL_LIGHTING);
   SceneReceiver.Render(nil, tgAll);
-  SceneCaster.Render(nil, tgAll);
-  if UseLighting then glDisable(GL_LIGHTING);
+
+  glEnable(GL_LIGHTING); { shadow caster is always lit }
+  glPushMatrix;
+    glTranslatev(NavigatorCaster.MoveAmount);
+    SceneCaster.Render(nil, tgAll);
+  glPopMatrix;
+
+  glDisable(GL_LIGHTING);
+  glEnable(GL_DEPTH_TEST);
+    glColorv(Yellow3Single);
+    glBegin(GL_POINTS);
+      glVertexv(NavigatorLocalLight.MoveAmount);
+    glEnd;
+  glDisable(GL_DEPTH_TEST);
 end;
 
 procedure Init(Glwin: TGLWindow);
 begin
   glEnable(GL_LIGHT0);
+  glPointSize(10);
 end;
 
 procedure Close(Glwin: TGLWindow);
@@ -69,9 +92,26 @@ end;
 function CreateMainMenu: TMenu;
 var
   M: TMenu;
+  Radio: TMenuItemRadio;
+  RadioGroup: TMenuItemRadioGroup;
 begin
   Result := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');
+
+    Radio := TMenuItemRadio.Create('Navigate _all', 10, Glw.Navigator = NavigatorAll, true);
+    RadioGroup := Radio.Group;
+    M.Append(Radio);
+
+    Radio := TMenuItemRadio.Create('Navigate shadow _caster', 11, Glw.Navigator = NavigatorCaster, true);
+    Radio.Group := RadioGroup;
+    M.Append(Radio);
+
+    Radio := TMenuItemRadio.Create('Navigate _light source', 12, Glw.Navigator = NavigatorLocalLight, true);
+    Radio.Group := RadioGroup;
+    M.Append(Radio);
+
+    M.Append(TMenuSeparator.Create);
+
     M.Append(TMenuItem.Create('_Exit', 200));
     Result.Append(M);
 end;
@@ -79,6 +119,10 @@ end;
 procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
 begin
   case Item.IntData of
+    10: Glw.Navigator := NavigatorAll;
+    11: Glw.Navigator := NavigatorCaster;
+    12: Glw.Navigator := NavigatorLocalLight;
+
     200: Glwin.Close;
     else Exit;
   end;
@@ -90,6 +134,7 @@ var
   ShadowCasterFileName: string = 'models/humanoid_stand.wrl';
   ShadowReceiverFileName: string = 'models/plane.wrl';
   Box: TBox3d;
+  LocalLightPos: TVector3Single;
 begin
   try
     VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
@@ -97,6 +142,26 @@ begin
     SceneCaster := TVRMLGLScene.Create(ShadowCasterFileName, roSceneAsAWhole);
     SceneReceiver := TVRMLGLScene.Create(ShadowReceiverFileName, roNone);
 
+    Glw.MainMenu := CreateMainMenu;
+    Glw.OnMenuCommand := @MenuCommand;
+
+    { initialize navigators }
+
+    NavigatorAll := SceneReceiver.CreateNavigator(CameraRadius);
+    NavigatorAll.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
+
+    NavigatorCaster := TExamineNavigator.Create(
+      @Glw.PostRedisplayOnMatrixChanged);
+    NavigatorCaster.ModelBox := SceneCaster.BoundingBox;
+
+    NavigatorLocalLight := TExamineNavigator.Create(
+      @Glw.PostRedisplayOnMatrixChanged);
+    { use SceneCaster.BoundingBox for light's box, this determines the speed
+      of moving light source with mouse. }
+    NavigatorLocalLight.ModelBox := SceneCaster.BoundingBox;
+
+    { calculate starting LocalLightPos,
+      and set this as NavigatorLocalLight.MoveAmount }
     Box := Box3dSum(SceneCaster.BoundingBox, SceneReceiver.BoundingBox);
     if IsEmptyBox3d(Box) then
     begin
@@ -106,12 +171,10 @@ begin
       LocalLightPos := Box3dMiddle(Box);
       LocalLightPos[0] := Box[0][0];
     end;
+    NavigatorLocalLight.MoveAmount := LocalLightPos;
 
-    Glw.MainMenu := CreateMainMenu;
-    Glw.OnMenuCommand := @MenuCommand;
-
-    Glw.Navigator := SceneReceiver.CreateNavigator(CameraRadius);
-    Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
+    Glw.Navigator := NavigatorAll;
+    Glw.OwnsNavigator := false;
 
     Glw.OnInit := @Init;
     Glw.OnClose := @Close;
@@ -121,5 +184,8 @@ begin
   finally
     FreeAndNil(SceneCaster);
     FreeAndNil(SceneReceiver);
+    FreeAndNil(NavigatorAll);
+    FreeAndNil(NavigatorCaster);
+    FreeAndNil(NavigatorLocalLight);
   end;
 end.

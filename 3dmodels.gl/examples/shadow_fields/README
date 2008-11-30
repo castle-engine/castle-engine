@@ -6,11 +6,50 @@ are precalculated for given geometry. They admit this (when talking
 about "each leg has it's own SF", and when video texture light has very
 few FPS (400 MB according to paper)).
 
-TODO: My current demo implementation in shadow_fields.pasprogram:
-- there is only one shadow caster (although may be instanced many times)
+Explain (basically 3.1 and 3.2 describe algorithm's idea).
+- First note just one light.
+- Then one light combined with one shadow caster.
+- Then many lights combinaed with many shadow casters: adding and multiplying.
+- Then add sugar:
+  - environment light (like local light but with only one env map
+    (no need for whole shadow field), at infinite distance)
+  - self-shadowing (just a simple env map precalculated at each vertex)
+
+For exercise, look what happens for only pure white environment light
+(no local) and only one shadow caster: then each vertex actually calculates
+integral over sphere where visibility = shadow caster non-blocking.
+Everything is Ok.
+
+My current demo implementation in shadow_fields.pasprogram:
+- there is only one shadow caster (TODO: although may be instanced many times)
 - there is only one shadow receiver (this also means that shadow casters
   and receivers are different things, no shadowing between shadow casters)
 - there is only one local light
-- there is only one environment light
-- also, there is an additional point in 3D space that you can move
+- TODO: there is only one environment light
+- TODO: also, there is an additional point in 3D space that you can move
   (to inspect environment maps at arbitrary points in 3D space)
+Also, there's no rotating/scaling of caster/light source.
+Also, we assume shadow caster is a plane (roughly, small bumps allowed)
+along the z=const.
+Also, no self-shadowing.
+
+So in my implementation the algorithm (from figure 5) degenerates to:
+- first, sort (once!) casters and local light along the z axis.
+  So we have
+    Sd (environ light) ... ObjectsFarther ... LocalLight ... ObjectsCloser ...
+- for v := each vertex:
+    Tp := BRDF TODO: multiplied by cosinus
+
+    for Ob := all ObjectsCloser:
+      o := get env map from from OOF field of Ob, using (v - Ob.position)
+      Tp := TripleProduct(o, Tp)
+
+    s := get env map from SRF field of local light, using (v - local light.position)
+    Bp += DoubleProduct(s, Tp)
+
+    for Ob := all ObjectsFarther:
+      o := get env map from from OOF field of Ob, using (v - Ob.position)
+      Tp := TripleProduct(o, Tp)
+
+    s := constant env map of environment light
+    Bp += DoubleProduct(s, Tp)
