@@ -38,7 +38,7 @@ program shadow_fields;
 
 uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3d,
   GLWindow, Glw_Navigated, VRMLGLScene, VRMLErrors, Navigation,
-  ShadowFields, KambiUtils, CubeEnvMap;
+  ShadowFields, KambiUtils, CubeEnvMap, VRMLNodes;
 
 var
   CameraRadius: Single;
@@ -49,6 +49,8 @@ var
   NavigatorCaster: TExamineNavigator;
   NavigatorLocalLight: TExamineNavigator;
   NavigatorSFExplorer: TExamineNavigator;
+
+  UseShadowFields: boolean = true;
 
 procedure Draw(Glwin: TGLWindow);
 
@@ -133,6 +135,31 @@ begin
     Glwin.Width, Glwin.Height, AngleOfViewX, AngleOfViewY);
 end;
 
+type
+  THelper = class
+    function VertexColor(Node: TVRMLGeometryNode;
+      State: TVRMLGraphTraverseState;
+      const VertexPosition: TVector3Single): TVector3Single;
+  end;
+
+function THelper.VertexColor(Node: TVRMLGeometryNode;
+  State: TVRMLGraphTraverseState;
+  const VertexPosition: TVector3Single): TVector3Single;
+begin
+  Result[0] := PointsDistance(VertexPosition,
+    Box3dMiddle(SceneReceiver.BoundingBox)) /
+    Box3dAvgSize(SceneReceiver.BoundingBox);
+  Result[1] := Result[0];
+  Result[2] := Result[0];
+end;
+
+procedure UseShadowFieldsChanged;
+begin
+  if UseShadowFields then
+    SceneReceiver.Attributes.OnVertexColor := @THelper(nil).VertexColor else
+    SceneReceiver.Attributes.OnVertexColor := nil;
+end;
+
 function CreateMainMenu: TMenu;
 var
   M: TMenu;
@@ -141,6 +168,8 @@ var
 begin
   Result := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');
+    M.Append(TMenuItemChecked.Create('_Shadow fields', 100, UseShadowFields, true));
+    M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 200));
     Result.Append(M);
 
@@ -174,6 +203,12 @@ begin
     11: Glw.Navigator := NavigatorCaster;
     12: Glw.Navigator := NavigatorLocalLight;
     13: Glw.Navigator := NavigatorSFExplorer;
+
+    100:
+      begin
+        UseShadowFields := not UseShadowFields;
+        UseShadowFieldsChanged;
+      end;
 
     20: if Glw.Navigator = NavigatorAll then Glw.Navigator := NavigatorCaster else
         if Glw.Navigator = NavigatorCaster then Glw.Navigator := NavigatorLocalLight else
@@ -261,6 +296,9 @@ begin
     Glw.OnInit := @Init;
     Glw.OnClose := @Close;
     Glw.OnResize := @Resize;
+
+    { initialize UseShadowFieldsChanged }
+    UseShadowFieldsChanged;
 
     Glw.InitLoop('shadow_fields', @Draw);
   finally

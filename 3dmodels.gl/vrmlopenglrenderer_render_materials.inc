@@ -333,7 +333,8 @@ end;
   color, so it can be called after you called Render_BindMaterial_2.
 
   But it's also functional for VRML 1.0 --- although this is only for
-  OnRadianceTransfer now. Normally, in VRML 1.0 Render_BindMaterial_1
+  OnRadianceTransfer or OnVertexColor now.
+  Normally, in VRML 1.0 Render_BindMaterial_1
   is the only way to change color.
 
   This sets the RGB part of the unlit color,

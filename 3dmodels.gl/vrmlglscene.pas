@@ -222,6 +222,7 @@ type
   protected
     procedure SetOnBeforeGLVertex(const Value: TBeforeGLVertexProc); override;
     procedure SetOnRadianceTransfer(const Value: TRadianceTransferFunction); override;
+    procedure SetOnVertexColor(const Value: TVertexColorFunction); override;
     procedure SetSmoothShading(const Value: boolean); override;
     procedure SetColorModulatorSingle(const Value: TColorModulatorSingleFunc); override;
     procedure SetColorModulatorByte(const Value: TColorModulatorByteFunc); override;
@@ -4039,6 +4040,16 @@ procedure TVRMLSceneRenderingAttributes.SetOnRadianceTransfer(
   const Value: TRadianceTransferFunction);
 begin
   if OnRadianceTransfer <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
+
+procedure TVRMLSceneRenderingAttributes.SetOnVertexColor(
+  const Value: TVertexColorFunction);
+begin
+  if OnVertexColor <> Value then
   begin
     FScenes.CloseGLRenderer;
     inherited;

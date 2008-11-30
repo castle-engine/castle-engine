@@ -350,9 +350,17 @@ const
 type
   TBeforeGLVertexProc = procedure (Node: TVRMLGeometryNode;
     const Vert: TVector3Single) of object;
+
   TRadianceTransferFunction = function (Node: TVRMLGeometryNode;
     RadianceTransfer: PVector3Single;
     const RadianceTransferCount: Cardinal): TVector3Single of object;
+
+  { Callback used by TVRMLRendererAttributes.OnVertexColorFunction.
+    Passed here VertexPosition is in local coordinates (that is,
+    local of this object, multiply by State.Transform to get scene coords). }
+  TVertexColorFunction = function (Node: TVRMLGeometryNode;
+    State: TVRMLGraphTraverseState;
+    const VertexPosition: TVector3Single): TVector3Single of object;
 
   { Various bump mapping methods. Generally sorted from worst one
     (bmNone, which does no bump mapping) to the best.
@@ -464,6 +472,7 @@ type
   private
     FOnBeforeGLVertex: TBeforeGLVertexProc;
     FOnRadianceTransfer: TRadianceTransferFunction;
+    FOnVertexColor: TVertexColorFunction;
     FSmoothShading: boolean;
     FColorModulatorSingle: TColorModulatorSingleFunc;
     FColorModulatorByte: TColorModulatorByteFunc;
@@ -492,6 +501,7 @@ type
       @groupBegin }
     procedure SetOnBeforeGLVertex(const Value: TBeforeGLVertexProc); virtual;
     procedure SetOnRadianceTransfer(const Value: TRadianceTransferFunction); virtual;
+    procedure SetOnVertexColor(const Value: TVertexColorFunction); virtual;
     procedure SetSmoothShading(const Value: boolean); virtual;
     procedure SetColorModulatorSingle(const Value: TColorModulatorSingleFunc); virtual;
     procedure SetColorModulatorByte(const Value: TColorModulatorByteFunc); virtual;
@@ -547,6 +557,19 @@ type
       never change. }
     property OnRadianceTransfer: TRadianceTransferFunction
       read FOnRadianceTransfer write SetOnRadianceTransfer;
+
+    { Calculate vertex color for given vertex by a callback.
+      If this is assigned, then this is used to calculate
+      the color of each vertex.
+
+      Note that this is evaluated when object is rendered.
+      If this changes dynamically (for example, it calculates some dynamic
+      lighting), you want to use roNone optimization,
+      otherwise colors returned by this are saved on display list and
+      never change. }
+    property OnVertexColor: TVertexColorFunction
+      read FOnVertexColor write SetOnVertexColor;
+
 
     { Ponizsze ustawienie kontroluje czy na poczatku renderowania sceny wywolac
       glShadeModel(GL_SMOOTH) czy GL_FLAT. Ponadto w czasie renderowania
@@ -2443,6 +2466,7 @@ begin
   begin
     OnBeforeGLVertex := TVRMLRenderingAttributes(Source).OnBeforeGLVertex;
     OnRadianceTransfer := TVRMLRenderingAttributes(Source).OnRadianceTransfer;
+    OnVertexColor := TVRMLRenderingAttributes(Source).OnVertexColor;
     SmoothShading := TVRMLRenderingAttributes(Source).SmoothShading;
     ColorModulatorSingle := TVRMLRenderingAttributes(Source).ColorModulatorSingle;
     ColorModulatorByte := TVRMLRenderingAttributes(Source).ColorModulatorByte;
@@ -2467,6 +2491,7 @@ begin
   Result := (SecondValue is TVRMLRenderingAttributes) and
     (TVRMLRenderingAttributes(SecondValue).OnBeforeGLVertex = OnBeforeGLVertex) and
     (TVRMLRenderingAttributes(SecondValue).OnRadianceTransfer = OnRadianceTransfer) and
+    (TVRMLRenderingAttributes(SecondValue).OnVertexColor = OnVertexColor) and
     (TVRMLRenderingAttributes(SecondValue).SmoothShading = SmoothShading) and
     (TVRMLRenderingAttributes(SecondValue).ColorModulatorSingle = ColorModulatorSingle) and
     (TVRMLRenderingAttributes(SecondValue).ColorModulatorByte = ColorModulatorByte) and
@@ -2515,6 +2540,12 @@ procedure TVRMLRenderingAttributes.SetOnRadianceTransfer(
   const Value: TRadianceTransferFunction);
 begin
   FOnRadianceTransfer := Value;
+end;
+
+procedure TVRMLRenderingAttributes.SetOnVertexColor(
+  const Value: TVertexColorFunction);
+begin
+  FOnVertexColor := Value;
 end;
 
 procedure TVRMLRenderingAttributes.SetSmoothShading(const Value: boolean);

@@ -452,6 +452,13 @@ type
       settings --- only the colors returned by OnRadianceTransfer
       will be used.
 
+    - Renderer.Attributes.OnVertexColor, if assigned,
+      will be automatically used here to calculate color for each vertex.
+      If this will be assigned, then the above things
+      (Color, ColorPerVertex, ColorIndex, RadianceTransfer)
+      will be ignored -- only the colors returned by OnVertexColor will
+      be used.
+
     Everything related to setting VRML 2.0
     material should be set in Render_MaterialsBegin, and everything
     related to VRML 2.0 colors is handled in this class.
@@ -1261,6 +1268,12 @@ var
   VertexIndex: Cardinal;
 begin
   { Implement different color per vertex here. }
+  if Assigned(Renderer.Attributes.OnVertexColor) then
+  begin
+    VertexColor := Renderer.Attributes.OnVertexColor(Geometry, State,
+      GetVertex(IndexNum));
+    Renderer.SetColor(VertexColor);
+  end else
   if RadianceTransfer <> nil then
   begin
     if CoordIndex <> nil then
@@ -1292,7 +1305,8 @@ begin
   inherited;
 
   { Implement different color per face here. }
-  if RadianceTransfer = nil then
+  if (not Assigned(Renderer.Attributes.OnVertexColor)) and
+     (RadianceTransfer = nil) then
   begin
     if (Color <> nil) and (not ColorPerVertex) then
     begin
@@ -1305,7 +1319,10 @@ end;
 
 function TAbstractColMatTexCoordinateRenderer.NeedsSetColor: boolean;
 begin
-  Result := (RadianceTransfer <> nil) or (Color <> nil);
+  Result :=
+    Assigned(Renderer.Attributes.OnVertexColor) or
+    (RadianceTransfer <> nil) or
+    (Color <> nil);
 end;
 
 { TAbstractNorColMatTexCoordinateRenderer ----------------------------------------------------- }
