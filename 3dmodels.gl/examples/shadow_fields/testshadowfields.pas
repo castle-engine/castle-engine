@@ -60,25 +60,26 @@ begin
     FillChar(SF.EnvMaps, SizeOf(SF.EnvMaps), 0);
     SF.FirstSphereRadius := 2;
     SF.LastSphereRadius := 10;
+    SF.SpheresMiddle := Vector3Single(50, 0, 0);
 
     Map := SF.EnvMapFromPoint(Vector3Single(100, 100, 100));
     Assert(Map = nil);
-
+    Map := SF.EnvMapFromPoint(Vector3Single(50, 0, 0));
+    Assert(Map = nil);
     Map := SF.EnvMapFromPoint(Vector3Single(0, 0, 0));
     Assert(Map = nil);
 
-    Map := SF.EnvMapFromPoint(Vector3Single(5, 0, 0));
+    Map := SF.EnvMapFromPoint(Vector3Single(55, 0, 0));
     Assert(Map <> nil);
-
-    Map := SF.EnvMapFromPoint(Vector3Single(1, 0, 0));
+    Map := SF.EnvMapFromPoint(Vector3Single(51, 0, 0));
     Map^[emsRight, 10] := 55;
     Map^[emsLeft , 20] := 66;
 
-    Map := SF.EnvMapFromPoint(Vector3Single(5, 0, 0));
+    Map := SF.EnvMapFromPoint(Vector3Single(55, 0, 0));
     Map^[emsRight, 10] := 11;
     Map^[emsLeft , 20] := 22;
 
-    Map := SF.EnvMapFromPoint(Vector3Single(10, 0, 0));
+    Map := SF.EnvMapFromPoint(Vector3Single(60, 0, 0));
     Map^[emsRight, 10] := 99;
     Map^[emsLeft , 20] := 88;
 
@@ -93,22 +94,23 @@ begin
 
     Map := SF.EnvMapFromPoint(Vector3Single(100, 100, 100));
     Assert(Map = nil);
-
+    Map := SF.EnvMapFromPoint(Vector3Single(50, 0, 0));
+    Assert(Map = nil);
     Map := SF.EnvMapFromPoint(Vector3Single(0, 0, 0));
     Assert(Map = nil);
 
-    Map := SF.EnvMapFromPoint(Vector3Single(5, 0, 0));
+    Map := SF.EnvMapFromPoint(Vector3Single(55, 0, 0));
     Assert(Map <> nil);
 
-    Map := SF.EnvMapFromPoint(Vector3Single(1, 0, 0));
+    Map := SF.EnvMapFromPoint(Vector3Single(51, 0, 0));
     Assert(Map^[emsRight, 10] = 55);
     Assert(Map^[emsLeft , 20] = 66);
 
-    Map := SF.EnvMapFromPoint(Vector3Single(5, 0, 0));
+    Map := SF.EnvMapFromPoint(Vector3Single(55, 0, 0));
     Assert(Map^[emsRight, 10] = 11);
     Assert(Map^[emsLeft , 20] = 22);
 
-    Map := SF.EnvMapFromPoint(Vector3Single(10, 0, 0));
+    Map := SF.EnvMapFromPoint(Vector3Single(60, 0, 0));
     Assert(Map^[emsRight, 10] = 99);
     Assert(Map^[emsLeft , 20] = 88);
 
@@ -124,6 +126,20 @@ begin
     Assert(
       VectorLen(SF.PointFromEnvMap(10, emsRight, 0)) <
       VectorLen(SF.PointFromEnvMap(11, emsRight, 0)));
+
+    { Test PointFromEnvMap further: since SpheresMiddle is in +x,
+      so looking at emsLeft sides with larger radius gets us closer to 0. }
+    Assert(
+      VectorLen(SF.PointFromEnvMap(0, emsLeft, 0)) >
+      VectorLen(SF.PointFromEnvMap(1, emsLeft, 0)));
+
+    Assert(
+      VectorLen(SF.PointFromEnvMap(1, emsLeft, 0)) >
+      VectorLen(SF.PointFromEnvMap(2, emsLeft, 0)));
+
+    Assert(
+      VectorLen(SF.PointFromEnvMap(10, emsLeft, 0)) >
+      VectorLen(SF.PointFromEnvMap(11, emsLeft, 0)));
   finally FreeAndNil(SF) end;
 end;
 

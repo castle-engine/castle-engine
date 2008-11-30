@@ -39,6 +39,8 @@ type
     EnvMaps: array [0..SFSpheresCount - 1,
       TEnvMapSide, 0..Sqr(EnvMapSize) - 1] of TEnvMap;
 
+    SpheresMiddle: TVector3Single;
+
     { Radius of the smallest sphere of the shadow field.
       Must be >= 0 (yes, should work Ok with = 0 too). }
     FirstSphereRadius: Float;
@@ -53,14 +55,16 @@ type
     { Environment map, from EnvMaps, corresponding to point V in 3D space.
       V is given in coordinates of this shadow field.
 
-      @nil if there's no environment map this far (you should then
+      @nil if there's no environment map this far from
+      SpheresMiddle (you should then
       assume that this object doesn't occlude anything,
       or light source doesn't make any light this far).
 
-      @nil is also returned when V is zero --- this means that V
+      @nil is also returned when V is exactly at SpheresMiddle ---
+      this means that V
       is too close to shadow caster to choose a suitable env map.
       It doesn't matter what you assume in this case, as this shouldn't happen... }
-    function EnvMapFromPoint(const V: TVector3Single): PEnvMap;
+    function EnvMapFromPoint(V: TVector3Single): PEnvMap;
 
     { Given indexes to EnvMaps array, to which point in 3D space
       they correspond? This is somewhat reverse to EnvMapFromPoint. }
@@ -79,6 +83,7 @@ begin
   F := TGZFileStream.Create(FileName, gzOpenRead);
   try
     F.ReadBuffer(EnvMaps, SizeOf(EnvMaps));
+    F.ReadBuffer(SpheresMiddle, SizeOf(SpheresMiddle));
     F.ReadBuffer(FirstSphereRadius, SizeOf(FirstSphereRadius));
     F.ReadBuffer(LastSphereRadius, SizeOf(LastSphereRadius));
   finally FreeAndNil(F) end;
@@ -91,17 +96,19 @@ begin
   F := TGZFileStream.Create(FileName, gzOpenWrite);
   try
     F.WriteBuffer(EnvMaps, SizeOf(EnvMaps));
+    F.WriteBuffer(SpheresMiddle, SizeOf(SpheresMiddle));
     F.WriteBuffer(FirstSphereRadius, SizeOf(FirstSphereRadius));
     F.WriteBuffer(LastSphereRadius, SizeOf(LastSphereRadius));
   finally FreeAndNil(F) end;
 end;
 
-function TShadowField.EnvMapFromPoint(const V: TVector3Single): PEnvMap;
+function TShadowField.EnvMapFromPoint(V: TVector3Single): PEnvMap;
 var
   Distance: Float;
   Sphere, Pixel: Cardinal;
   Side: TEnvMapSide;
 begin
+  VectorSubtractTo1st(V, SpheresMiddle);
   if ZeroVector(V) then
     Exit(nil);
 
@@ -138,6 +145,7 @@ begin
   Distance := MapRange(Sphere, 0, SFSpheresCount - 1,
     FirstSphereRadius, LastSphereRadius);
   Result := VectorAdjustToLength(EnvMapDirection(EnvMapSide, Pixel), Distance);
+  VectorAddTo1st(Result, SpheresMiddle);
 end;
 
 end.
