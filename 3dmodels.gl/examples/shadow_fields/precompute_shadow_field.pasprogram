@@ -20,7 +20,10 @@
   ----------------------------------------------------------------------------
 }
 { Calculate shadow field of arbitrary 3D model.
+
   $1 is the source model, $2 is the output file with shadow field.
+  If $2 is omitted, we output to $1 with extension changed to .shadow_field
+  (this is usually most comfortable).
 
   Note that this uses white color when the light is not blocked.
   In other words, this calculates OOF, object occlusion field.
@@ -61,12 +64,20 @@ var
   Side: TEnvMapSide;
   BoundingSphereCenter: TVector3Single;
   BoundingSphereRadius: Single;
+  InputFileName, OutputFileName: string;
 begin
-  Parameters.CheckHigh(2);
+  Parameters.CheckHighAtLeast(1);
+  Parameters.CheckHighAtMost(2);
+
+  InputFileName := Parameters[1];
+  if Parameters.High = 1 then
+    OutputFileName := ChangeFileExt(InputFileName, '.shadow_field') else
+    OutputFileName := Parameters[2];
+  Writeln('Output file name: ', OutputFileName);
 
   Progress.UserInterface := ProgressConsoleInterface;
 
-  Scene := TVRMLScene.Create(LoadAsVRML(Parameters[1]), true);
+  Scene := TVRMLScene.Create(LoadAsVRML(InputFileName), true);
   try
     Scene.TriangleOctreeProgressTitle := 'Building octree';
     Scene.Spatial := [ssVisibleTriangles];
@@ -107,7 +118,7 @@ begin
                            6 * Sqr(EnvMapSize),
           ProcessTimerEnd]));
 
-      SF.SaveToFile(Parameters[2]);
+      SF.SaveToFile(OutputFileName);
     finally FreeAndNil(SF) end;
   finally FreeAndNil(Scene) end;
 end.
