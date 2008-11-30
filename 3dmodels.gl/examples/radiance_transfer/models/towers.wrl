@@ -1,8 +1,8 @@
 #VRML V2.0 utf8
 
 # This file was authored with Blender (http://www.blender.org/)
-# Blender version 248
-# Blender file tow.blend
+# Blender version 246
+# Blender file towers.blend
 # Exported using VRML97 exporter v1.55-kambi4
 
 
@@ -38,7 +38,7 @@ DEF OB_Plane Transform {
 					}
 					geometry IndexedFaceSet {
 						solid FALSE
-						creaseAngle 0.000000
+						creaseAngle 4.000000
 						coord DEF coord_Plane Coordinate {
 							point [
 4.89999961853 4.89999961853 0.0
