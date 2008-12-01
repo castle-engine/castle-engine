@@ -27,6 +27,8 @@ Describe compression of env maps.
   object in demo program. Largest sphere radius is easy to check
   visually: ideally, outside of largest sphere radius,
   OOF should be safely considered pure white, SRF pure black.
+- note ugly aliasing and the need for interpolation. Only linear-radius
+  interpolation is not enough. See demo program, change interpolation.
 
 My current demo implementation in shadow_fields.pasprogram:
 - there is only one shadow caster (TODO: although may be instanced many times)
