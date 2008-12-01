@@ -566,7 +566,8 @@ type
     ScheduledGeometryChangedAll: boolean;
 
     { Transformation of some shape changed. }
-    ScheduledGeometrySomeTransformChanged: boolean;
+    ScheduledGeometrySomeCollidableTransformChanged: boolean;
+    ScheduledGeometrySomeVisibleTransformChanged: boolean;
 
     { What is considered "active" shapes changed. Like after Switch.whichChoice
       change. }
@@ -819,7 +820,8 @@ type
 
       What exactly changed can be checked by looking at
       ScheduledGeometryChangedAll,
-      ScheduledGeometrySomeTransformChanged,
+      ScheduledGeometrySomeCollidableTransformChanged,
+      ScheduledGeometrySomeVisbibleTransformChanged
       ScheduledGeometryActiveShapesChanged,
       TVRMLShape.ScheduledLocalGeometryChangedCoord (in all Shapes),
       TVRMLShape.ScheduledLocalGeometryChanged (in all Shapes).
@@ -2201,7 +2203,20 @@ begin
       { TransformOnly = @true, suitable for roSeparateShapesNoTransform,
         they don't have Transform compiled in display list. }
       ParentScene.ChangedShapeFields(Shape, true, false);
-      AnythingChanged := true;
+
+      if Inactive = 0 then
+      begin
+        { TODO: for now, all active shapes are visible --- this may
+          change to handle Collision.proxy in the future. }
+        ParentScene.ScheduledGeometrySomeVisibleTransformChanged := true;
+
+        if Shape.State.InsideIgnoreCollision = 0 then
+          ParentScene.ScheduledGeometrySomeCollidableTransformChanged := true;
+
+        ParentScene.ScheduleGeometryChanged;
+
+        AnythingChanged := true;
+      end;
     end else
     if Node is TNodeX3DBackgroundNode then
     begin
@@ -2387,280 +2402,279 @@ begin
 
   { Test other changes: }
 
-  if Node is TNodeComposedShader then
-  begin
-    { Do nothing here, as TVRMLOpenGLRenderer registers and takes care
-      to update shaders' uniform variables. We don't have to do
-      anything here, no need to rebuild/recalculate anything.
-      The only thing that needs to be called is redisplay, by DoPostRedisplay
-      at the end of ChangedFields. }
-  end else
-  if Node is TNodeCoordinate then
-  begin
-    { TNodeCoordinate is special, although it's part of VRML 1.0 state,
-      it can also occur within coordinate-based nodes of VRML >= 2.0.
-      So it affects coordinate-based nodes with this node.
+  BeginChangesSchedule;
+  try
+    if Node is TNodeComposedShader then
+    begin
+      { Do nothing here, as TVRMLOpenGLRenderer registers and takes care
+        to update shaders' uniform variables. We don't have to do
+        anything here, no need to rebuild/recalculate anything.
+        The only thing that needs to be called is redisplay, by DoPostRedisplay
+        at the end of ChangedFields. }
+    end else
+    if Node is TNodeCoordinate then
+    begin
+      { TNodeCoordinate is special, although it's part of VRML 1.0 state,
+        it can also occur within coordinate-based nodes of VRML >= 2.0.
+        So it affects coordinate-based nodes with this node.
 
-      In fact, code below takes into account both VRML 1.0 and 2.0 situation,
-      that's why it's before "if NodeLastNodesIndex <> -1 then" branch. }
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        if SI.Current.GeometryNode.Coord(SI.Current.State, Coord) and
-           (Coord.ParentNode = Node) then
-        begin
-          ChangedShapeFields(SI.Current, false, false);
-
-          { Another special thing about Coordinate node: it changes
-            actual geometry. }
-
-          SI.Current.ScheduledLocalGeometryChangedCoord := true;
-          ScheduleGeometryChanged;
-        end;
-    finally FreeAndNil(SI) end;
-  end else
-  if NodeLastNodesIndex <> -1 then
-  begin
-    { Node is part of VRML 1.0 state, so it affects Shapes where
-      it's present on State.LastNodes list. }
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        if SI.Current.State.LastNodes.Nodes[NodeLastNodesIndex] = Node then
-          ChangedShapeFields(SI.Current, false, false);
-    finally FreeAndNil(SI) end;
-  end else
-  if Node is TNodeMaterial_2 then
-  begin
-    { VRML 2.0 Material affects only shapes where it's
-      placed inside Appearance.material field. }
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        if SI.Current.State.ParentShape.Material = Node then
-          ChangedShapeFields(SI.Current, false, false);
-    finally FreeAndNil(SI) end;
-  end else
-  if Node is TNodeX3DTextureCoordinateNode then
-  begin
-    { VRML 2.0 TextureCoordinate affects only shapes where it's
-      placed inside texCoord field. }
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        if (SI.Current.GeometryNode is TNodeX3DComposedGeometryNode) and
-           (TNodeX3DComposedGeometryNode(SI.Current.GeometryNode).
-             FdTexCoord.Value = Node) then
-          ChangedShapeFields(SI.Current, false, false);
-    finally FreeAndNil(SI) end;
-  end else
-  if Node is TVRMLLightNode then
-  begin
-    ChangedActiveLightNode(TVRMLLightNode(Node), Field);
-  end else
-  if Node is TVRMLGeometryNode then
-  begin
-    { node jest Shape'm. Wiec wplynal tylko na Shapes gdzie wystepuje jako
-      GeometryNode. }
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        if SI.Current.GeometryNode = Node then
-        begin
-          ChangedShapeFields(SI.Current, false, false);
-
-          SI.Current.ScheduledLocalGeometryChanged := true;
-          ScheduleGeometryChanged;
-        end;
-    finally FreeAndNil(SI) end;
-  end else
-  if (Field <> nil) and Field.Transform then
-  begin
-    { This is the optimization for changing VRML >= 2.0 transformation
-      (most fields of Transform node like translation, scale, center etc.,
-      also some HAnim nodes like Joint and Humanoid have this behavior.).
-
-      In the simple cases, Transform node simply changes
-      TVRMLGraphTraverseState.Transform for children nodes.
-
-      So we have to re-traverse from this Transform node, and change
-      states of affected children. Also, first we have to traverse
-      *to* this Transform node, as we don't know it's initial State...
-      Moreover, Node may be instantiated many times in VRML graph,
-      so we have to Traverse to all it's occurences.
-
-      Besides, while traversing to current transform node, we have to count
-      Shapes, to know which Shapes will be affected by what
-      state change (as we cannot deduce it from the mere GeometryNode
-      reference, since node may be instantiated many times under
-      different transformation, many times within our changing Transform
-      node, and many times outside of the changing Transform group).
-
-      In more difficult cases, children of this Transform node may
-      be affected in other ways by transformation. For example,
-      Fog and Background nodes are affected by their parents transform.
-      Currently, we cannot account for this, and just raise
-      BreakTransformChangeFailed in this case --- we have to do ChangedAll
-      in such cases.
-    }
-    try
-      TransformChangeHelper := TTransformChangeHelper.Create;
+        In fact, code below takes into account both VRML 1.0 and 2.0 situation,
+        that's why it's before "if NodeLastNodesIndex <> -1 then" branch. }
+      SI := TVRMLShapeTreeIterator.Create(Shapes, false);
       try
-        TransformChangeHelper.ParentScene := Self;
-        TransformChangeHelper.ShapeIterator := TVRMLShapeTreeIterator.Create(Shapes, false);
-        TransformChangeHelper.ProximitySensorNum := 0;
-        TransformChangeHelper.ChangingNode := Node;
-        TransformChangeHelper.AnythingChanged := false;
-        TransformChangeHelper.Inside := false;
-        TransformChangeHelper.Inactive := 0;
-        TransformChangeHelper.ChangingNodeFoundCount := 0;
+        while SI.GetNext do
+          if SI.Current.GeometryNode.Coord(SI.Current.State, Coord) and
+             (Coord.ParentNode = Node) then
+          begin
+            ChangedShapeFields(SI.Current, false, false);
 
+            { Another special thing about Coordinate node: it changes
+              actual geometry. }
+
+            SI.Current.ScheduledLocalGeometryChangedCoord := true;
+            ScheduleGeometryChanged;
+          end;
+      finally FreeAndNil(SI) end;
+    end else
+    if NodeLastNodesIndex <> -1 then
+    begin
+      { Node is part of VRML 1.0 state, so it affects Shapes where
+        it's present on State.LastNodes list. }
+      SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+      try
+        while SI.GetNext do
+          if SI.Current.State.LastNodes.Nodes[NodeLastNodesIndex] = Node then
+            ChangedShapeFields(SI.Current, false, false);
+      finally FreeAndNil(SI) end;
+    end else
+    if Node is TNodeMaterial_2 then
+    begin
+      { VRML 2.0 Material affects only shapes where it's
+        placed inside Appearance.material field. }
+      SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+      try
+        while SI.GetNext do
+          if SI.Current.State.ParentShape.Material = Node then
+            ChangedShapeFields(SI.Current, false, false);
+      finally FreeAndNil(SI) end;
+    end else
+    if Node is TNodeX3DTextureCoordinateNode then
+    begin
+      { VRML 2.0 TextureCoordinate affects only shapes where it's
+        placed inside texCoord field. }
+      SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+      try
+        while SI.GetNext do
+          if (SI.Current.GeometryNode is TNodeX3DComposedGeometryNode) and
+             (TNodeX3DComposedGeometryNode(SI.Current.GeometryNode).
+               FdTexCoord.Value = Node) then
+            ChangedShapeFields(SI.Current, false, false);
+      finally FreeAndNil(SI) end;
+    end else
+    if Node is TVRMLLightNode then
+    begin
+      ChangedActiveLightNode(TVRMLLightNode(Node), Field);
+    end else
+    if Node is TVRMLGeometryNode then
+    begin
+      { node jest Shape'm. Wiec wplynal tylko na Shapes gdzie wystepuje jako
+        GeometryNode. }
+      SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+      try
+        while SI.GetNext do
+          if SI.Current.GeometryNode = Node then
+          begin
+            ChangedShapeFields(SI.Current, false, false);
+
+            SI.Current.ScheduledLocalGeometryChanged := true;
+            ScheduleGeometryChanged;
+          end;
+      finally FreeAndNil(SI) end;
+    end else
+    if (Field <> nil) and Field.Transform then
+    begin
+      { This is the optimization for changing VRML >= 2.0 transformation
+        (most fields of Transform node like translation, scale, center etc.,
+        also some HAnim nodes like Joint and Humanoid have this behavior.).
+
+        In the simple cases, Transform node simply changes
+        TVRMLGraphTraverseState.Transform for children nodes.
+
+        So we have to re-traverse from this Transform node, and change
+        states of affected children. Also, first we have to traverse
+        *to* this Transform node, as we don't know it's initial State...
+        Moreover, Node may be instantiated many times in VRML graph,
+        so we have to Traverse to all it's occurences.
+
+        Besides, while traversing to current transform node, we have to count
+        Shapes, to know which Shapes will be affected by what
+        state change (as we cannot deduce it from the mere GeometryNode
+        reference, since node may be instantiated many times under
+        different transformation, many times within our changing Transform
+        node, and many times outside of the changing Transform group).
+
+        In more difficult cases, children of this Transform node may
+        be affected in other ways by transformation. For example,
+        Fog and Background nodes are affected by their parents transform.
+        Currently, we cannot account for this, and just raise
+        BreakTransformChangeFailed in this case --- we have to do ChangedAll
+        in such cases.
+      }
+      try
+        TransformChangeHelper := TTransformChangeHelper.Create;
         try
-          RootNode.Traverse(TVRMLNode,
-            @TransformChangeHelper.TransformChangeTraverse,
-            @TransformChangeHelper.TransformChangeTraverseAfter);
-        except
-          on BreakTransformChangeSuccess do
-            { BreakTransformChangeSuccess is equivalent with normal finish
-              of Traverse. So do nothing, just silence exception. }
+          TransformChangeHelper.ParentScene := Self;
+          TransformChangeHelper.ShapeIterator := TVRMLShapeTreeIterator.Create(Shapes, false);
+          TransformChangeHelper.ProximitySensorNum := 0;
+          TransformChangeHelper.ChangingNode := Node;
+          TransformChangeHelper.AnythingChanged := false;
+          TransformChangeHelper.Inside := false;
+          TransformChangeHelper.Inactive := 0;
+          TransformChangeHelper.ChangingNodeFoundCount := 0;
+
+          try
+            RootNode.Traverse(TVRMLNode,
+              @TransformChangeHelper.TransformChangeTraverse,
+              @TransformChangeHelper.TransformChangeTraverseAfter);
+          except
+            on BreakTransformChangeSuccess do
+              { BreakTransformChangeSuccess is equivalent with normal finish
+                of Traverse. So do nothing, just silence exception. }
+          end;
+
+          if not TransformChangeHelper.AnythingChanged then
+            { No need to even DoPostRedisplay at the end. }
+            Exit;
+
+        finally
+          FreeAndNil(TransformChangeHelper.ShapeIterator);
+          FreeAndNil(TransformChangeHelper);
         end;
-
-        if not TransformChangeHelper.AnythingChanged then
-          { No need to do ScheduleGeometryChanged, not even DoPostRedisplay
-            at the end. }
+      except
+        on BreakTransformChangeFailed do
+        begin
+          ScheduleChangedAll;
           Exit;
-
-      finally
-        FreeAndNil(TransformChangeHelper.ShapeIterator);
-        FreeAndNil(TransformChangeHelper);
+        end;
       end;
-
-      ScheduledGeometrySomeTransformChanged := true;
-      ScheduleGeometryChanged;
-    except
-      on BreakTransformChangeFailed do
+    end else
+    if Node is TNodeProximitySensor then
+    begin
+      if (Field = TNodeProximitySensor(Node).FdCenter) or
+         (Field = TNodeProximitySensor(Node).FdSize) then
       begin
-        ScheduleChangedAll;
+        { Update state for this ProximitySensor node. }
+        if IsLastViewer then
+          for I := 0 to ProximitySensorInstances.Count - 1 do
+          begin
+            if ProximitySensorInstances.Items[I].Node = Node then
+              ProximitySensorUpdate(ProximitySensorInstances.Items[I]);
+          end;
+      end else
+      begin
+        { Other changes to TNodeProximitySensor (enabled, metadata)
+          can safely be ignored, not require any action. }
         Exit;
       end;
-    end;
-  end else
-  if Node is TNodeProximitySensor then
-  begin
-    if (Field = TNodeProximitySensor(Node).FdCenter) or
-       (Field = TNodeProximitySensor(Node).FdSize) then
+    end else
+    if (Node is TNodeMovieTexture) or
+       (Node is TNodeTimeSensor) then
     begin
-      { Update state for this ProximitySensor node. }
-      if IsLastViewer then
-        for I := 0 to ProximitySensorInstances.Count - 1 do
-        begin
-          if ProximitySensorInstances.Items[I].Node = Node then
-            ProximitySensorUpdate(ProximitySensorInstances.Items[I]);
-        end;
+      { No need to do anything.
+        Everything updated in time-dependent nodes will be catched by next
+        IncreaseWorldTime run. }
+      Exit;
+    end else
+    if Node is TVRMLViewpointNode then
+    begin
+      if (Node = ViewpointStack.Top) and
+         ( (Field = nil) or
+           (TVRMLViewpointNode(Node).FdOrientation = Field) or
+           (TVRMLViewpointNode(Node).FdDirection   = Field) or
+           (TVRMLViewpointNode(Node).FdUp          = Field) or
+           (TVRMLViewpointNode(Node).FdGravityUp   = Field) or
+           (TVRMLViewpointNode(Node).Position      = Field) ) then
+        DoBoundViewpointVectorsChanged else
+        { Nothing needs to be done if
+          - non-bound viewpoint changed,
+          - or a field of bound viewpoint that doesn't affect it's vectors. }
+        Exit;
+    end else
+    if ( (Node is TNodePixelTexture) and
+         ( (Field = nil) or
+           (TNodePixelTexture(Node).FdImage = Field) ) ) or
+       ( (Node is TNodeImageTexture) and
+         ( (Field = nil) or
+           (TNodeImageTexture(Node).FdUrl = Field) ) ) or
+       ( (Node is TNodeMovieTexture) and
+         ( (Field = nil) or
+           (TNodeMovieTexture(Node).FdUrl = Field) ) ) or
+       ( (Node is TNodeTexture2) and
+         ( (Field = nil) or
+           (TNodeTexture2(Node).FdFilename = Field) or
+           (TNodeTexture2(Node).FdImage = Field) ) ) then
+    begin
+      { On change of TVRMLTextureNode field that changes the result of
+        TVRMLTextureNode.LoadTextureData, we have to explicitly release
+        old texture (otherwise, LoadTextureData will not be called
+        to reload the texture). }
+      TVRMLTextureNode(Node).IsTextureLoaded := false;
+
+      SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+      try
+        while SI.GetNext do
+          if SI.Current.State.Texture = Node then
+            ChangedShapeFields(SI.Current, false, true);
+      finally FreeAndNil(SI) end;
+    end else
+    if (Node is TNodeKambiAppearance) and
+       (TNodeKambiAppearance(Node).FdShadowCaster = Field) then
+    begin
+      { When KambiAppearance.shadowCaster field changed, then
+        TrianglesListShadowCasters and Manifold/BorderEdges change. }
+      InvalidateTrianglesListShadowCasters;
+      InvalidateManifoldAndBorderEdges;
+    end else
+    if (Node is TNodeSwitch_2) and
+       (TNodeSwitch_2(Node).FdWhichChoice = Field) then
+    begin
+      { Changing Switch.whichChoice changes the shapes that are considered
+        active (in VRML graph, and in Shapes tree).
+        This means that things calculated based
+        on traverse/iterator over Shapes with "OnlyActive = true"
+        are invalid now.
+
+        DoGeometryChanged (scheduled by ScheduleGeometryChanged)
+        actually does most of this work, it invalidates already most
+        of the needed things when ScheduledGeometryActiveShapesChanged:
+
+        fvBoundingBox,
+        fvVerticesCountNotOver, fvVerticesCountOver,
+        fvTrianglesCountNotOver, fvTrianglesCountOver,
+        fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
+        fvTrianglesListShadowCasters,
+        fvManifoldAndBorderEdges
+      }
+
+      Validities := Validities - [
+        { Calculation traverses over active shapes. }
+        fvShapesActiveCount,
+        { Calculation traverses over active nodes (uses RootNode.Traverse). }
+        fvMainLightForShadows];
+
+      ScheduledGeometryActiveShapesChanged := true;
+      ScheduleGeometryChanged;
     end else
     begin
-      { Other changes to TNodeProximitySensor (enabled, metadata)
-        can safely be ignored, not require any action. }
+      { Node is something else. So we must assume that an arbitrary change
+        occured, possibly changing State of following and/or children
+        nodes of this Node. }
+      ScheduleChangedAll;
       Exit;
     end;
-  end else
-  if (Node is TNodeMovieTexture) or
-     (Node is TNodeTimeSensor) then
-  begin
-    { No need to do anything.
-      Everything updated in time-dependent nodes will be catched by next
-      IncreaseWorldTime run. }
-    Exit;
-  end else
-  if Node is TVRMLViewpointNode then
-  begin
-    if (Node = ViewpointStack.Top) and
-       ( (Field = nil) or
-         (TVRMLViewpointNode(Node).FdOrientation = Field) or
-         (TVRMLViewpointNode(Node).FdDirection   = Field) or
-         (TVRMLViewpointNode(Node).FdUp          = Field) or
-         (TVRMLViewpointNode(Node).FdGravityUp   = Field) or
-         (TVRMLViewpointNode(Node).Position      = Field) ) then
-      DoBoundViewpointVectorsChanged else
-      { Nothing needs to be done if
-        - non-bound viewpoint changed,
-        - or a field of bound viewpoint that doesn't affect it's vectors. }
-      Exit;
-  end else
-  if ( (Node is TNodePixelTexture) and
-       ( (Field = nil) or
-         (TNodePixelTexture(Node).FdImage = Field) ) ) or
-     ( (Node is TNodeImageTexture) and
-       ( (Field = nil) or
-         (TNodeImageTexture(Node).FdUrl = Field) ) ) or
-     ( (Node is TNodeMovieTexture) and
-       ( (Field = nil) or
-         (TNodeMovieTexture(Node).FdUrl = Field) ) ) or
-     ( (Node is TNodeTexture2) and
-       ( (Field = nil) or
-         (TNodeTexture2(Node).FdFilename = Field) or
-         (TNodeTexture2(Node).FdImage = Field) ) ) then
-  begin
-    { On change of TVRMLTextureNode field that changes the result of
-      TVRMLTextureNode.LoadTextureData, we have to explicitly release
-      old texture (otherwise, LoadTextureData will not be called
-      to reload the texture). }
-    TVRMLTextureNode(Node).IsTextureLoaded := false;
 
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        if SI.Current.State.Texture = Node then
-          ChangedShapeFields(SI.Current, false, true);
-    finally FreeAndNil(SI) end;
-  end else
-  if (Node is TNodeKambiAppearance) and
-     (TNodeKambiAppearance(Node).FdShadowCaster = Field) then
-  begin
-    { When KambiAppearance.shadowCaster field changed, then
-      TrianglesListShadowCasters and Manifold/BorderEdges change. }
-    InvalidateTrianglesListShadowCasters;
-    InvalidateManifoldAndBorderEdges;
-  end else
-  if (Node is TNodeSwitch_2) and
-     (TNodeSwitch_2(Node).FdWhichChoice = Field) then
-  begin
-    { Changing Switch.whichChoice changes the shapes that are considered
-      active (in VRML graph, and in Shapes tree).
-      This means that things calculated based
-      on traverse/iterator over Shapes with "OnlyActive = true"
-      are invalid now.
-
-      DoGeometryChanged (scheduled by ScheduleGeometryChanged)
-      actually does most of this work, it invalidates already most
-      of the needed things when ScheduledGeometryActiveShapesChanged:
-
-      fvBoundingBox,
-      fvVerticesCountNotOver, fvVerticesCountOver,
-      fvTrianglesCountNotOver, fvTrianglesCountOver,
-      fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
-      fvTrianglesListShadowCasters,
-      fvManifoldAndBorderEdges
-    }
-
-    Validities := Validities - [
-      { Calculation traverses over active shapes. }
-      fvShapesActiveCount,
-      { Calculation traverses over active nodes (uses RootNode.Traverse). }
-      fvMainLightForShadows];
-
-    ScheduledGeometryActiveShapesChanged := true;
-    ScheduleGeometryChanged;
-  end else
-  begin
-    { Node is something else. So we must assume that an arbitrary change
-      occured, possibly changing State of following and/or children
-      nodes of this Node. }
-    ScheduleChangedAll;
-    Exit;
-  end;
-
-  DoPostRedisplay;
+    DoPostRedisplay;
+  finally EndChangesSchedule end;
 end;
 
 procedure TVRMLScene.ChangedField(Field: TVRMLField);
@@ -2822,7 +2836,7 @@ begin
     InvalidateManifoldAndBorderEdges;
 
   if (OctreeRendering <> nil) and
-     (ScheduledGeometrySomeTransformChanged or
+     (ScheduledGeometrySomeVisibleTransformChanged or
       ScheduledGeometryActiveShapesChanged or
       SomeLocalGeometryChanged) then
   begin
@@ -2844,7 +2858,7 @@ begin
   end;
 
   if (OctreeDynamicCollisions <> nil) and
-     (ScheduledGeometrySomeTransformChanged or
+     (ScheduledGeometrySomeCollidableTransformChanged or
      ScheduledGeometryActiveShapesChanged or
       SomeLocalGeometryChanged) then
   begin
@@ -2868,7 +2882,8 @@ begin
 
   { clear ScheduledGeometryXxx flags now }
   ScheduledGeometryChangedAll := false;
-  ScheduledGeometrySomeTransformChanged := false;
+  ScheduledGeometrySomeVisibleTransformChanged := false;
+  ScheduledGeometrySomeCollidableTransformChanged := false;
   ScheduledGeometryActiveShapesChanged := false;
 
   SI := TVRMLShapeTreeIterator.Create(Shapes, false);
