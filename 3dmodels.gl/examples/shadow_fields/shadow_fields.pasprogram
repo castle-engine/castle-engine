@@ -54,10 +54,12 @@ var
     But you can use less here, to speed up. }
   SHCount: Cardinal = MaxSHBasis;
 
+  LightIntensity: Single = 50;
+
   UseShadowFields: boolean = true;
   UseLighting: boolean = true;
   UseSH: boolean = true;
-  UseInterpolation: TSFInterpolation = siLinearRadius;
+  UseInterpolation: TSFInterpolation = siTrilinear;
   UseEnvLight: boolean = false;
 
 type
@@ -243,7 +245,6 @@ function THelper.VertexColor(Node: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState;
   const VertexPosition: TVector3Single): TVector3Single;
 const
-  LightIntensity = 50;
   { TODO: this is needed to make results with CalculateByEnvMaps
     and CalculateBySH. Why? I thought I normalized all integrals
     correctly. }
@@ -425,7 +426,8 @@ begin
     M.Append(TMenuItemChecked.Create('Use spherical _harmonics', 120, UseSH, true));
     M.Append(TMenuItemChecked.Create('Use environmetal _light', 130, UseEnvLight, true));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('Set number of spherical harmonics basis to use...', 140));
+    M.Append(TMenuItem.Create('Set number of spherical harmonics factors to use...', 140));
+    M.Append(TMenuItem.Create('Set light intensity...', 150));
     M.Append(TMenuSeparator.Create);
     RadioGroup := nil;
     AddInterpolationMenu('_Interpolation none', siNone);
@@ -490,10 +492,12 @@ begin
             [MaxSHBasis]), NewSHCount, taLeft) then
         begin
           if not Between(NewSHCount, 1, MaxSHBasis) then
-            MessageOk(Glwin, Format('Must be between 1 and %d', [MaxSHBasis]), taLeft) else
+            MessageOk(Glwin, Format('Must be between 1 and %d.', [MaxSHBasis]), taLeft) else
             SHCount := NewSHCount;
         end;
       end;
+
+    150: MessageInputQuery(Glwin, 'Light intensity:', LightIntensity, taLeft);
 
     200: Glwin.Close;
     else Exit;
@@ -503,10 +507,11 @@ end;
 
 var
   { TODO: allow to change this by command-line }
-  ShadowCasterFileName: string = 'models/humanoid_stand.wrl';
+  ShadowCasterFileName: string = //'models/humanoid_stand.wrl';
+    'models/teapot.x3dv';
   ShadowReceiverFileName: string = 'models/plane.wrl';
   LocalLightFileName: string = 'models/sphere.wrl';
-    //'models/stretched_cube.wrl';
+//    'models/stretched_cube.wrl';
 
   BoxSum: TBox3d;
   V: TVector3Single;
