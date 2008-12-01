@@ -212,12 +212,17 @@ begin
   until false;
 end;
 
+var
+  SHBasisMapInitialized: boolean = false;
+
 procedure InitializeSHBasisMap;
 var
   LM: Cardinal;
   Side: TEnvMapSide;
   Pixel: Cardinal;
 begin
+  if SHBasisMapInitialized then Exit;
+
   for LM := 0 to MaxSHBasis - 1 do
     for Side := Low(Side) to High(Side) do
       for Pixel := 0 to Sqr(EnvMapSize) - 1 do
@@ -225,6 +230,8 @@ begin
         SHBasisMap[LM][Side][Pixel] :=
           SHBasis(LM, XYZToPhiTheta(EnvMapDirection(Side, Pixel)));
       end;
+
+  SHBasisMapInitialized := true;
 end;
 
 procedure SHVectorFromEnvMap(var SHVector: array of Single;
@@ -234,6 +241,8 @@ var
   Side: TEnvMapSide;
   Pixel: Cardinal;
 begin
+  Assert(SHBasisMapInitialized);
+
   for LM := 0 to High(SHVector) do
   begin
     SHVector[LM] := 0;
