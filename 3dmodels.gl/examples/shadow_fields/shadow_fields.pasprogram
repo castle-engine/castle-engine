@@ -38,8 +38,8 @@ program shadow_fields;
 
 uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3d,
   GLWindow, Glw_Navigated, VRMLGLScene, VRMLErrors, Navigation,
-  ShadowFields, KambiUtils, CubeEnvMap, VRMLNodes;
-
+  ShadowFields, KambiUtils, CubeEnvMap, VRMLNodes,
+  SphericalHarmonics;
 
 var
   CameraRadius: Single;
@@ -48,8 +48,8 @@ var
   LocalLightSRF: TShadowField;
 
   UseShadowFields: boolean = true;
-
   UseLighting: boolean = true;
+  UseSH: boolean = true;
 
 type
   TNavigatorType = (ntAll, ntCaster, ntLocalLight, ntSFExplorer);
@@ -177,69 +177,127 @@ function THelper.VertexColor(Node: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState;
   const VertexPosition: TVector3Single): TVector3Single;
 const
-  LocalLightIntensity = 100;
+  LocalLightIntensity = 50;
+  { TODO: this is needed to make results with CalculateByEnvMaps
+    and CalculateBySH. Why? I thought I normalized all integrals
+    correctly. }
+  SHLocalLightIntensity = 4*Pi;
 var
-  CasterMap, LocalLightMap: PEnvMapByte;
-  B: LongWord;
-  Side: TEnvMapSide;
-  Pixel: Cardinal;
   Position: TVector3Single;
+
+  procedure CalculateByEnvMaps;
+  var
+    CasterMap, LocalLightMap: PEnvMapByte;
+    B: LongWord;
+    Side: TEnvMapSide;
+    Pixel: Cardinal;
+  begin
+    CasterMap := CasterOOF.EnvMapFromPoint(VectorSubtract(
+      Position, NavigatorCaster.MoveAmount));
+
+    LocalLightMap := LocalLightSRF.EnvMapFromPoint(VectorSubtract(
+      Position, NavigatorLocalLight.MoveAmount));
+
+    if LocalLightMap = nil then
+      { Too far from light }
+      Result := Vector3Single(0, 0, 0) else
+    begin
+      { TODO: we completely ignore here BRDF and cos() for light equations!
+        TODO: we don't really have env light now:
+          - no env light intensity.
+          - environ light may have non-const intensity over the sphere.
+            calc it's env map, like for PRT. }
+
+      B := 0;
+      if CasterMap = nil then
+      begin
+        { Too far from shadow caster, so just integrate over the light }
+
+        for Side := Low(Side) to High(Side) do
+          for Pixel := 0 to Sqr(EnvMapSize) - 1 do
+            B += LocalLightMap^[Side, Pixel];
+      end else
+      begin
+        { This loop is the time bottleneck of the whole algorithm.
+          This must work extra-fast.
+          To do this, we calculate everything in int values.
+
+          To multiply two bytes (that represent 0..1 floats) we can just
+          multiply them normally, then divide by 256. Actually, this division
+          can be done only once, after the loop.
+
+          It's important to make sure that B can hold all these values:
+          it's 6 * 16^2 of maximum High(Word) = 2^16 values.
+          Since B is LongWord (max 2^32), we're Ok.
+          }
+
+        for Side := Low(Side) to High(Side) do
+          for Pixel := 0 to Sqr(EnvMapSize) - 1 do
+            B += Word(LocalLightMap^[Side, Pixel]) *
+                          CasterMap^[Side, Pixel];
+
+        B := B div 256;
+      end;
+
+      { normalize B, apply LocalLightIntensity }
+      Result[0] := (B / 255) *
+        LocalLightIntensity / (6 * Sqr(EnvMapSize));
+      Result[1] := Result[0];
+      Result[2] := Result[0];
+    end;
+  end;
+
+  procedure CalculateBySH;
+  const
+    { shadow fields always have MaxSHBasis recorded.
+      But you can use less here, to speed up. }
+    SHCount = MaxSHBasis;
+  var
+    CasterVector, LocalLightVector: PSHVectorSingle;
+    B: Single;
+    LM: Cardinal;
+  begin
+    CasterVector := CasterOOF.SHVectorFromPoint(VectorSubtract(
+      Position, NavigatorCaster.MoveAmount));
+
+    LocalLightVector := LocalLightSRF.SHVectorFromPoint(VectorSubtract(
+      Position, NavigatorLocalLight.MoveAmount));
+
+    if LocalLightVector = nil then
+      { Too far from light }
+      Result := Vector3Single(0, 0, 0) else
+    begin
+      B := 0;
+
+      if CasterVector = nil then
+      begin
+        { Too far from shadow caster, so just assume like caster oof
+          is pure white. So make a double product with SH vector representing
+          pure white environment map. See README notes at the end --- such
+          vector is just zero, except for first factor which is equal to
+          SHBasis0. }
+
+        B += LocalLightVector^[0] * SHBasis0;
+      end else
+      begin
+        for LM := 0 to SHCount - 1 do
+          B += LocalLightVector^[LM] *
+                   CasterVector^[LM];
+      end;
+
+      { apply LocalLightIntensity }
+      Result[0] := B * LocalLightIntensity * SHLocalLightIntensity;
+      Result[1] := Result[0];
+      Result[2] := Result[0];
+    end;
+  end;
+
 begin
   Position := MatrixMultPoint(State.Transform, VertexPosition);
 
-  CasterMap := CasterOOF.EnvMapFromPoint(VectorSubtract(
-    Position, NavigatorCaster.MoveAmount));
-
-  LocalLightMap := LocalLightSRF.EnvMapFromPoint(VectorSubtract(
-    Position, NavigatorLocalLight.MoveAmount));
-
-  if LocalLightMap = nil then
-    { Too far from light }
-    Result := Vector3Single(0, 0, 0) else
-  begin
-    { TODO: we completely ignore here BRDF and cos() for light equations!
-      TODO: we don't really have env light now:
-        - no env light intensity.
-        - environ light may have non-const intensity over the sphere.
-          calc it's env map, like for PRT. }
-
-    B := 0;
-    if CasterMap = nil then
-    begin
-      { Too far from shadow caster, so just integrate over the light }
-
-      for Side := Low(Side) to High(Side) do
-        for Pixel := 0 to Sqr(EnvMapSize) - 1 do
-          B += Byte(255 - LocalLightMap^[Side, Pixel]);
-    end else
-    begin
-      { This loop is the time bottleneck of the whole algorithm.
-        This must work extra-fast.
-        To do this, we calculate everything in int values.
-
-        To multiply two bytes (that represent 0..1 floats) we can just
-        multiply them normally, then divide by 256. Actually, this division
-        can be done only once, after the loop.
-
-        It's important to make sure that B can hold all these values:
-        it's 6 * 16^2 of maximum High(Word) = 2^16 values.
-        Since B is LongWord (max 2^32), we're Ok.
-        }
-
-      for Side := Low(Side) to High(Side) do
-        for Pixel := 0 to Sqr(EnvMapSize) - 1 do
-          B += Word(255 - LocalLightMap^[Side, Pixel]) *
-                   (CasterMap^[Side, Pixel]);
-
-      B := B div 256;
-    end;
-
-    { normalize B, apply LocalLightIntensity }
-    Result[0] := (B / 255) *
-      LocalLightIntensity / (6 * Sqr(EnvMapSize));
-    Result[1] := Result[0];
-    Result[2] := Result[0];
-  end;
+  if UseSH then
+    CalculateBySH else
+    CalculateByEnvMaps;
 end;
 
 procedure UseShadowFieldsChanged;
@@ -270,6 +328,7 @@ begin
     M.Append(TMenuItemChecked.Create('Apply OpenGL _Lighting', 110, UseLighting, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('_Shadow fields', 100, UseShadowFields, true));
+    M.Append(TMenuItemChecked.Create('Use spherical _harmonics', 120, UseSH, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 200));
     Result.Append(M);
@@ -295,14 +354,6 @@ begin
         NavigatorChanged;
       end;
 
-    100:
-      begin
-        UseShadowFields := not UseShadowFields;
-        UseShadowFieldsChanged;
-      end;
-
-    110: UseLighting := not UseLighting;
-
     20:
       begin
         if Navigator = High(Navigator) then
@@ -310,6 +361,15 @@ begin
           Navigator := Succ(Navigator);
         NavigatorChanged;
       end;
+
+    100:
+      begin
+        UseShadowFields := not UseShadowFields;
+        UseShadowFieldsChanged;
+      end;
+
+    110: UseLighting := not UseLighting;
+    120: UseSH := not UseSH;
 
     200: Glwin.Close;
     else Exit;
@@ -397,6 +457,8 @@ begin
 
     { initialize UseShadowFieldsChanged }
     UseShadowFieldsChanged;
+
+    InitializeSHBasisMap;
 
     Glw.InitLoop('shadow_fields', @Draw);
   finally

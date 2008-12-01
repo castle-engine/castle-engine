@@ -20,6 +20,14 @@ For exercise, look what happens for only pure white environment light
 integral over sphere where visibility = shadow caster non-blocking.
 Everything is Ok.
 
+Describe compression of env maps.
+- see demo results when it's calculated directly using env maps
+  ("Program -> Use spherical harmonics" can be turned off)
+- for min/max radius and size of env maps, you can use "SF explorer"
+  object in demo program. Largest sphere radius is easy to check
+  visually: ideally, outside of largest sphere radius,
+  OOF should be safely considered pure white, SRF pure black.
+
 My current demo implementation in shadow_fields.pasprogram:
 - there is only one shadow caster (TODO: although may be instanced many times)
 - there is only one shadow receiver (this also means that shadow casters
@@ -61,3 +69,27 @@ and piping through gzip (de)compressing stream.
 Gzip reduces data size extremely: for real env maps compression is > 100 times
 (from 36 MB to 250 KB). (For empty testing env maps it's around 1000 times,
 to 36 KB). No surprise, this type of data is highly compressible.
+
+------------------------------------------------------------------------------
+Note:
+- how to calculate SH vector basis for constant function f(s) = c ?
+  (useful in one place, see shadow_fields VectorColor when CasterVector = nil).
+  Well, SH basis function 0 is constant, so only first SH factor should
+  be used, rest is zero.
+
+  f = integral over a sphere for SHBasis0 * c = just SHBasis0 * c
+
+  This can be confirmed empirically with my code:
+
+  var
+    PureWhiteMap: TEnvMapByte;
+    PureWhiteVector: TSHVectorSingle;
+
+    InitializeSHBasisMap;
+
+    FillChar(PureWhiteMap, SizeOf(PureWhiteMap), High(Byte));
+    SHVectorFromEnvMap(PureWhiteVector, PureWhiteMap);
+    Writeln(VectorToRawStr(PureWhiteVector));
+
+  and note that resulting PureWhiteVector has only the first factor non-zero
+  and equal SHBasis0 (~ 0.28).
