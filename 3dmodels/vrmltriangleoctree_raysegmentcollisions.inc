@@ -59,6 +59,12 @@
 
 { CommonRay/SegmentLeaf begins --------------------------------------------- }
 
+{ To silence warning
+  "Warning: Variable "IntersectionDistance" does not seem to be initialized"
+  (FPC cannot figure out that we use IntersectionDistance only when
+  Result <> nil, when IntersectionDistance is initialized). }
+{$warnings off}
+
 {$ifdef SEGMENT_COLLISION}
 var
   Ray0: TYPE_VECTOR3 absolute Pos1;
@@ -145,3 +151,5 @@ begin
 end;
 {$undef ITERATE_INTERSECTIONS}
 {$undef ON_INTERSECTION_FOUND}
+
+{$warnings on}
