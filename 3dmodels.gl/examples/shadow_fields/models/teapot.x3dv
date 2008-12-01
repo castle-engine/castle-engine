@@ -1,0 +1,15 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+Transform {
+  translation 0 0 1.5
+  rotation 1 0 0 1.57
+  children Shape {
+    appearance Appearance {
+      material Material {
+        diffuseColor 1 1 0
+      }
+    }
+    geometry Teapot { solid FALSE }
+  }
+}
