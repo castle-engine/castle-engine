@@ -30,6 +30,13 @@ Describe compression of env maps.
 - note ugly aliasing and the need for interpolation. Only linear-radius
   interpolation is not enough. See demo program, change interpolation.
 
+  Note that aliasing is the result of shadow fields using too few
+  env maps. Env map at a single point of shadow field doesn't produce
+  aliasing, as we integrate over it anyway (and it's encoded by SH,
+  that smooth it by the wat). This means that environment light
+  or self-shadowing (that are single env map, not shadow field)
+  are not problematic.
+
 My current demo implementation in shadow_fields.pasprogram:
 - there is only one shadow caster (TODO: although may be instanced many times)
 - there is only one shadow receiver (this also means that shadow casters
