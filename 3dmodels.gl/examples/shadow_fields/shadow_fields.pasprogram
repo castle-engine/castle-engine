@@ -39,7 +39,7 @@ program shadow_fields;
 uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3d,
   GLWindow, Glw_Navigated, VRMLGLScene, VRMLErrors, Navigation,
   ShadowFields, KambiUtils, CubeEnvMap, VRMLNodes,
-  SphericalHarmonics, GLCubeEnvMap;
+  SphericalHarmonics, GLCubeEnvMap, GLWinMessages;
 
 var
   SceneCaster, SceneReceiver, SceneLocalLight: TVRMLGLScene;
@@ -49,6 +49,10 @@ var
   GLList_EnvLight: TGLuint;
   { Recalculated at the beginning of each Draw. }
   EnvLightSHVector: TSHVectorSingle;
+
+  { Shadow fields always have MaxSHBasis recorded.
+    But you can use less here, to speed up. }
+  SHCount: Cardinal = MaxSHBasis;
 
   UseShadowFields: boolean = true;
   UseLighting: boolean = true;
@@ -319,11 +323,6 @@ var
   end;
 
   procedure CalculateBySH;
-  const
-    { shadow fields always have MaxSHBasis recorded.
-      But you can use less here, to speed up.
-      TODO: use this, compare various values. }
-    SHCount = MaxSHBasis;
   var
     CasterVector, LightVector: PSHVectorSingle;
     B: Single;
@@ -426,6 +425,8 @@ begin
     M.Append(TMenuItemChecked.Create('Use spherical _harmonics', 120, UseSH, true));
     M.Append(TMenuItemChecked.Create('Use environmetal _light', 130, UseEnvLight, true));
     M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('Set number of spherical harmonics basis to use...', 140));
+    M.Append(TMenuSeparator.Create);
     RadioGroup := nil;
     AddInterpolationMenu('_Interpolation none', siNone);
     AddInterpolationMenu('Interpolation linear (radius)', siLinearRadius);
@@ -451,6 +452,8 @@ begin
 end;
 
 procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
+var
+  NewSHCount: Cardinal;
 begin
   case Item.IntData of
     10..19:
@@ -478,6 +481,19 @@ begin
     110: UseLighting := not UseLighting;
     120: UseSH := not UseSH;
     130: UseEnvLight := not UseEnvLight;
+
+    140:
+      begin
+        NewSHCount := SHCount;
+        if MessageInputQueryCardinal(Glwin,
+          Format('Number of spherical harmonic factors to use: (must be between 1 and %d)',
+            [MaxSHBasis]), NewSHCount, taLeft) then
+        begin
+          if not Between(NewSHCount, 1, MaxSHBasis) then
+            MessageOk(Glwin, Format('Must be between 1 and %d', [MaxSHBasis]), taLeft) else
+            SHCount := NewSHCount;
+        end;
+      end;
 
     200: Glwin.Close;
     else Exit;

@@ -36,6 +36,7 @@ Describe compression of env maps.
   that smooth it by the wat). This means that environment light
   or self-shadowing (that are single env map, not shadow field)
   are not problematic.
+- compare various SHCount values (speed/accuracy balance)
 
 My current demo implementation in shadow_fields.pasprogram:
 - there is only one shadow caster (TODO: although may be instanced many times)
