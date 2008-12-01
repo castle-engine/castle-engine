@@ -25,7 +25,7 @@ unit ShadowFields;
 
 interface
 
-uses CubeEnvMap, VectorMath, Math;
+uses CubeEnvMap, VectorMath, Math, SphericalHarmonics;
 
 const
   SFSpheresCount = 16;
@@ -33,13 +33,13 @@ const
   ShadowFieldExt = '.shadow_field';
 
 type
-  TEnvMap = array [TEnvMapSide, 0..Sqr(EnvMapSize) - 1] of Byte;
-  PEnvMap = ^TEnvMap;
-
   TShadowField = class
   public
     EnvMaps: array [0..SFSpheresCount - 1,
-      TEnvMapSide, 0..Sqr(EnvMapSize) - 1] of TEnvMap;
+      TEnvMapSide, 0..Sqr(EnvMapSize) - 1] of TEnvMapByte;
+
+    SHVectors: array [0..SFSpheresCount - 1,
+      TEnvMapSide, 0..Sqr(EnvMapSize) - 1] of TSHVectorSingle;
 
     SpheresMiddle: TVector3Single;
 
@@ -55,22 +55,39 @@ type
     procedure SaveToFile(const FileName: string);
 
     { Environment map, from EnvMaps, corresponding to point V in 3D space.
+      This just uses IndexFromPoint, and returns appropriate environment map.
+
+      Returns @nil if there's no environment map this far or this close
+      to V (that is, when IndexFromPoint returns @false). }
+    function EnvMapFromPoint(const V: TVector3Single): PEnvMapByte;
+
+    { SH vector, from SHVectors, corresponding to point V in 3D space.
+      This just uses IndexFromPoint, and returns appropriate vector.
+
+      Returns @nil if there's no environment map this far or this close
+      to V (that is, when IndexFromPoint returns @false). }
+    function SHVectorFromPoint(const V: TVector3Single): PSHVectorSingle;
+
+    { Which environment map (from EnvMaps) and sh vector (from SHVectors)
+      correspond to point V in 3D space.
       V is given in coordinates of this shadow field.
 
-      @nil if there's no environment map this far from
+      @false if there's no environment map this far from
       SpheresMiddle (you should then
       assume that this object doesn't occlude anything,
       or light source doesn't make any light this far).
 
-      @nil is also returned when V is exactly at SpheresMiddle ---
+      @false is also returned when V is exactly at SpheresMiddle ---
       this means that V
       is too close to shadow caster to choose a suitable env map.
       It doesn't matter what you assume in this case, as this shouldn't happen... }
-    function EnvMapFromPoint(V: TVector3Single): PEnvMap;
+    function IndexFromPoint(V: TVector3Single;
+      out Sphere: Cardinal; out Side: TEnvMapSide; out Pixel: Cardinal):
+      boolean;
 
     { Given indexes to EnvMaps array, to which point in 3D space
-      they correspond? This is somewhat reverse to EnvMapFromPoint. }
-    function PointFromEnvMap(const Sphere: Cardinal;
+      they correspond? This is reverse to IndexFromPoint. }
+    function PointFromIndex(const Sphere: Cardinal;
       const EnvMapSide: TEnvMapSide; const Pixel: Cardinal): TVector3Single;
   end;
 
@@ -104,22 +121,42 @@ begin
   finally FreeAndNil(F) end;
 end;
 
-function TShadowField.EnvMapFromPoint(V: TVector3Single): PEnvMap;
+function TShadowField.EnvMapFromPoint(const V: TVector3Single): PEnvMapByte;
 var
-  Distance: Float;
   Sphere, Pixel: Cardinal;
   Side: TEnvMapSide;
 begin
+  if IndexFromPoint(V, Sphere, Side, Pixel) then
+    Result := @EnvMaps[Sphere, Side, Pixel] else
+    Result := nil;
+end;
+
+function TShadowField.SHVectorFromPoint(const V: TVector3Single): PSHVectorSingle;
+var
+  Sphere, Pixel: Cardinal;
+  Side: TEnvMapSide;
+begin
+  if IndexFromPoint(V, Sphere, Side, Pixel) then
+    Result := @SHVectors[Sphere, Side, Pixel] else
+    Result := nil;
+end;
+
+function TShadowField.IndexFromPoint(V: TVector3Single;
+  out Sphere: Cardinal; out Side: TEnvMapSide; out Pixel: Cardinal):
+  boolean;
+var
+  Distance: Float;
+begin
   VectorSubtractTo1st(V, SpheresMiddle);
   if ZeroVector(V) then
-    Exit(nil);
+    Exit(false);
 
   { calculate Sphere number using VectorLen(V) }
   Distance := VectorLen(V);
   if Distance < FirstSphereRadius then
     Sphere := 0 else
   if Distance > LastSphereRadius then
-    Exit(nil) else
+    Exit(false) else
   begin
     Distance := MapRange(Distance, FirstSphereRadius, LastSphereRadius,
       0, SFSpheresCount - 1);
@@ -136,10 +173,10 @@ begin
   end;
 
   DirectionToEnvMap(V, Side, Pixel);
-  Result := @EnvMaps[Sphere, Side, Pixel];
+  Result := true;
 end;
 
-function TShadowField.PointFromEnvMap(const Sphere: Cardinal;
+function TShadowField.PointFromIndex(const Sphere: Cardinal;
   const EnvMapSide: TEnvMapSide; const Pixel: Cardinal): TVector3Single;
 var
   Distance: Float;

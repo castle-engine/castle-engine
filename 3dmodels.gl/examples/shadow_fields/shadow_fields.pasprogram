@@ -85,7 +85,7 @@ procedure Draw(Glwin: TGLWindow);
       const FieldMoveAmount: TVector3Single;
       const ShiftX, ShiftY: Integer);
     var
-      Map: PEnvMap;
+      Map: PEnvMapByte;
       Side: TEnvMapSide;
     begin
       Map := Field.EnvMapFromPoint(VectorSubtract(
@@ -179,7 +179,7 @@ function THelper.VertexColor(Node: TVRMLGeometryNode;
 const
   LocalLightIntensity = 100;
 var
-  CasterMap, LocalLightMap: PEnvMap;
+  CasterMap, LocalLightMap: PEnvMapByte;
   B: LongWord;
   Side: TEnvMapSide;
   Pixel: Cardinal;
@@ -210,7 +210,7 @@ begin
 
       for Side := Low(Side) to High(Side) do
         for Pixel := 0 to Sqr(EnvMapSize) - 1 do
-          B += (255 - LocalLightMap^[Side, Pixel]);
+          B += Byte(255 - LocalLightMap^[Side, Pixel]);
     end else
     begin
       { This loop is the time bottleneck of the whole algorithm.

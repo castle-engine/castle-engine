@@ -53,11 +53,6 @@ function SHBasis(const LM: Cardinal; const PhiTheta: TVector2Single): Float;
 
 procedure LMDecode(const LM: Cardinal; out L: Cardinal; out M: Integer);
 
-type
-  { Cube environment map, with each item being a Float. }
-  TEnvMapFloat = array [TEnvMapSide, 0..Sqr(EnvMapSize) - 1] of Float;
-  PEnvMapFloat = ^TEnvMapFloat;
-
 var
   (*For each SHBasis function (first index of the array is LM of this function),
     a precalculated results of basis spherical harmonic functions.
@@ -72,34 +67,21 @@ var
 
     This is useful for calculating sh basis vector from given cube env map:
     since you can just project any function on any basis, so if you have
-    a particular cube map you can project it like:
-
-@longCode(#
-for LM := 0 to MyVectorCount - 1 do
-begin
-  MyVector[LM] := 0;
-  for Side := all sides
-    for Pixel := all pixels
-      MyVector[LM] += MyMap[Side, Pixel] * SHBasisMap[LM, Side, Pixel];
-
-  { MyVector[LM] is now calculated for all sphere points.
-    We want this to be integral over a sphere, so normalize now.
-
-    We could multiply each LightSHBasis[SHBasis] in DrawLightMap
-    by solid angle of given pixel
-    (on cube map, pixels have different solid angles).
-    Then below we would divide by 4*Pi (sphere area).
-
-    TODO: for now, ignore solid angle, assume all pixels have the same influence.
-    So just divide by number of points... }
-
-  MyVector[LM] /= 6 * Sqr(EnvMapSize);
-end;
-#)
-  *)
+    a particular cube map you can project it on each SH basis function.
+    See SHVectorFromEnvMap implementation for code how to use SHBasisMap
+    for this, and in simple cases you can just call SHVectorFromEnvMap. *)
   SHBasisMap: array [0..MaxSHBasis - 1] of TEnvMapFloat;
 
 procedure InitializeSHBasisMap;
+
+type
+  TSHVectorSingle = array [0..MaxSHBasis - 1] of Single;
+  PSHVectorSingle = ^TSHVectorSingle;
+
+{ Calculate SH basis coefficients that approximate function in Map.
+  This uses SHBasisMap, so be sure to initialize it first. }
+procedure SHVectorFromEnvMap(var SHVector: array of Single;
+  const Map: TEnvMapByte);
 
 implementation
 
@@ -243,6 +225,35 @@ begin
         SHBasisMap[LM][Side][Pixel] :=
           SHBasis(LM, XYZToPhiTheta(EnvMapDirection(Side, Pixel)));
       end;
+end;
+
+procedure SHVectorFromEnvMap(var SHVector: array of Single;
+  const Map: TEnvMapByte);
+var
+  LM: Cardinal;
+  Side: TEnvMapSide;
+  Pixel: Cardinal;
+begin
+  for LM := 0 to High(SHVector) do
+  begin
+    SHVector[LM] := 0;
+    for Side := Low(Side) to High(Side) do
+      for Pixel := 0 to Sqr(EnvMapSize) - 1 do
+        SHVector[LM] += (Map[Side, Pixel]/255) * SHBasisMap[LM, Side, Pixel];
+
+    { SHVector[LM] is now calculated for all sphere points.
+      We want this to be integral over a sphere, so normalize now.
+
+      We could multiply each LightSHBasis[SHBasis] in DrawLightMap
+      by solid angle of given pixel
+      (on cube map, pixels have different solid angles).
+      Then below we would divide by 4*Pi (sphere area).
+
+      TODO: for now, ignore solid angle, assume all pixels have the same influence.
+      So just divide by number of points... }
+
+    SHVector[LM] /= 6 * Sqr(EnvMapSize);
+  end;
 end;
 
 end.

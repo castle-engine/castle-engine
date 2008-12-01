@@ -25,7 +25,7 @@ unit CubeEnvMap;
 
 interface
 
-uses VectorMath;
+uses VectorMath, Math;
 
 type
   TEnvMapSide = (emsRight, emsBack, emsLeft, emsFront, emsTop, emsBottom);
@@ -65,6 +65,17 @@ function EnvMapDirection(const Side: TEnvMapSide;
   Given here Dir need not be normalized, although must not be zero. }
 procedure DirectionToEnvMap(const Dir: TVector3Single;
   out Side: TEnvMapSide; out Pixel: Cardinal);
+
+type
+  { Cube environment map, with each item being a Float. }
+  TEnvMapFloat = array [TEnvMapSide, 0..Sqr(EnvMapSize) - 1] of Float;
+  PEnvMapFloat = ^TEnvMapFloat;
+
+  { Cube environment map, with each item being in 0..1 range, encoded as a Byte.
+    This assumes that every item is actually a float in 0..1 range,
+    encoded as Byte. }
+  TEnvMapByte = array [TEnvMapSide, 0..Sqr(EnvMapSize) - 1] of Byte;
+  PEnvMapByte = ^TEnvMapByte;
 
 implementation
 
