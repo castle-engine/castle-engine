@@ -67,6 +67,21 @@ procedure DirectionToEnvMap(const Dir: TVector3Single;
   out Side: TEnvMapSide; out Pixel: Cardinal);
 
 type
+  TEnvMapSide4 = array [0..3] of TEnvMapSide;
+  TCardinal4 = array [0..3] of Cardinal;
+
+{ Return 4 environment map indexes (side and pixel, along with ratio)
+  that are closest to given direction Dir.
+  All ratios will sum to 1.
+
+  This is like DirectionToEnvMap, except this returns 4 values.
+  It allows you to do bilinear interpolation between cube map items. }
+procedure Direction4ToEnvMap(const Dir: TVector3Single;
+  out Side: TEnvMapSide4;
+  out Pixel: TVector4Cardinal;
+  out Ratio: TVector4Single);
+
+type
   { Cube environment map, with each item being a Float. }
   TEnvMapFloat = array [TEnvMapSide, 0..Sqr(EnvMapSize) - 1] of Float;
   PEnvMapFloat = ^TEnvMapFloat;
@@ -167,6 +182,94 @@ begin
   Clamp(PixelY, 0, EnvMapSize - 1);
 
   Pixel := PixelY * EnvMapSize + PixelX;
+end;
+
+procedure Direction4ToEnvMap(const Dir: TVector3Single;
+  out Side: TEnvMapSide4;
+  out Pixel: TVector4Cardinal;
+  out Ratio: TVector4Single);
+var
+  SidePlane: TVector4Single;
+  SidePlaneDir: TVector3Single absolute SidePlane;
+  SideCoord: Integer;
+  SideIntersect: TVector3Single;
+  PixelFX, PixelFY, PixelXFrac, PixelYFrac: Single;
+  PixelX, PixelY: array [0..3] of Cardinal;
+  I: Cardinal;
+  PixelXTrunc, PixelYTrunc: Integer;
+begin
+  SideCoord := MaxAbsVectorCoord(Dir);
+  case SideCoord of
+    0: if Dir[0] >= 0 then Side[0] := emsRight else Side[0] := emsLeft;
+    1: if Dir[1] >= 0 then Side[0] := emsFront else Side[0] := emsBack;
+    2: if Dir[2] >= 0 then Side[0] := emsTop   else Side[0] := emsBottom;
+  end;
+
+  { TODO: for now, all four sides are always equal.
+    This means that bilinear interpolation using this will look
+    wrong (have aliasing) on the edges of cube map. }
+  Side[1] := Side[0];
+  Side[2] := Side[0];
+  Side[3] := Side[0];
+
+  SidePlaneDir := EnvMapInfo[Side[0]].Dir;
+  SidePlane[3] := -1;
+
+  if not TryPlaneRayIntersection(SideIntersect,
+    SidePlane, ZeroVector3Single, Dir) then
+    raise Exception.CreateFmt('DirectionToEnvMap: direction (%s) doesn''t hit it''s env map side (%d)',
+      [VectorToRawStr(Dir), Side[0]]);
+
+  { We're not interested in this coord, this is either 1 or -1.
+    Having this non-zero would break VectorDotProduct (projecting to Side/Up)
+    in following code. }
+  SideIntersect[SideCoord] := 0;
+
+  PixelFX := MapRange(
+    VectorDotProduct(SideIntersect, EnvMapInfo[Side[0]].Side),
+    { 1/EnvMapSize here, to take into account that the perfect ray
+      goes exactly through the middle pixel of env map pixel.
+      See EnvMapDirection reasoning. }
+    -1 + 1/EnvMapSize,
+     1 - 1/EnvMapSize,
+    0, EnvMapSize - 1);
+
+  PixelFY := MapRange(
+    VectorDotProduct(SideIntersect, EnvMapInfo[Side[0]].Up),
+    -1 + 1/EnvMapSize,
+     1 - 1/EnvMapSize,
+    0, EnvMapSize - 1);
+
+  PixelXTrunc := Trunc(PixelFX);
+  PixelYTrunc := Trunc(PixelFY);
+  PixelXFrac := Frac(PixelFX);
+  PixelYFrac := Frac(PixelFY);
+
+  PixelX[0] := PixelXTrunc;
+  PixelY[0] := PixelYTrunc;
+  Ratio[0] := (1-PixelXFrac) * (1-PixelYFrac);
+
+  PixelX[1] := PixelXTrunc+1;
+  PixelY[1] := PixelYTrunc;
+  Ratio[1] := PixelXFrac * (1-PixelYFrac);
+
+  PixelX[2] := PixelXTrunc;
+  PixelY[2] := PixelYTrunc+1;
+  Ratio[2] := (1-PixelXFrac) * PixelYFrac;
+
+  PixelX[3] := PixelXTrunc+1;
+  PixelY[3] := PixelYTrunc+1;
+  Ratio[3] := PixelXFrac * PixelYFrac;
+
+  { test: Writeln((Ratio[0] + Ratio[1] + Ratio[2] + Ratio[3]):1:10); }
+
+  { clamp, just to be safe }
+  for I := 0 to 3 do
+  begin
+    Clamp(PixelX[I], 0, EnvMapSize - 1);
+    Clamp(PixelY[I], 0, EnvMapSize - 1);
+    Pixel[I] := PixelY[I] * EnvMapSize + PixelX[I];
+  end;
 end;
 
 end.

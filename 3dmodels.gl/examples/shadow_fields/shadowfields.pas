@@ -33,11 +33,14 @@ const
   ShadowFieldExt = '.shadow_field';
 
 type
-  TSFInterpolation = (siNone, siLinearRadius);
+  TSFInterpolation = (siNone, siLinearRadius, siBilinear);
 
   TShadowField = class
   private
     InterpolatedVector: TSHVectorSingle;
+
+    function SphereIndexFromPoint(const V: TVector3Single;
+      out Sphere: Cardinal): boolean;
   public
     EnvMaps: array [0..SFSpheresCount - 1,
       TEnvMapSide, 0..Sqr(EnvMapSize) - 1] of TEnvMapByte;
@@ -119,6 +122,16 @@ type
       out Sphere2: Cardinal; out Side2: TEnvMapSide; out Pixel2: Cardinal;
       out Ratio2: Single): boolean;
 
+    { Like IndexFromPoint, but returns four SF items, you should interpolate
+      between them with Ratio. This does bilinear interpolation (using closest
+      sphere radius). }
+    function Index4FromPoint(
+      V: TVector3Single; const Scale: Single;
+      out Sphere: Cardinal;
+      out Side: TEnvMapSide4;
+      out Pixel: TVector4Cardinal;
+      out Ratio: TVector4Single): boolean;
+
     { Given indexes to EnvMaps array, to which point in 3D space
       they correspond? This is reverse to IndexFromPoint. }
     function PointFromIndex(const Sphere: Cardinal;
@@ -172,56 +185,82 @@ function TShadowField.SHVectorFromPoint(const V: TVector3Single;
   const Scale: Single;
   const Interpolation: TSFInterpolation;
   const SHVectorCount: Cardinal): PSHVectorSingle;
-var
-  Sphere1, Pixel1, Sphere2, Pixel2, LM: Cardinal;
-  Side1, Side2: TEnvMapSide;
-  Ratio1, Ratio2: Single;
-  Vector1, Vector2: PSHVectorSingle;
+
+  procedure DoNone;
+  var
+    Sphere, Pixel: Cardinal;
+    Side: TEnvMapSide;
+  begin
+    if IndexFromPoint(V, Scale, Sphere, Side, Pixel) then
+      Result := @SHVectors[Sphere, Side, Pixel] else
+      Result := nil;
+  end;
+
+  procedure DoLinearRadius;
+  var
+    Sphere1, Pixel1, Sphere2, Pixel2, LM: Cardinal;
+    Side1, Side2: TEnvMapSide;
+    Ratio1, Ratio2: Single;
+    Vector1, Vector2: PSHVectorSingle;
+  begin
+    if Index2FromPoint(V, Scale,
+      Sphere1, Side1, Pixel1, Ratio1,
+      Sphere2, Side2, Pixel2, Ratio2) then
+    begin
+      if Ratio1 = 0 then
+        Result := @SHVectors[Sphere2, Side2, Pixel2] else
+      if Ratio2 = 0 then
+        Result := @SHVectors[Sphere1, Side1, Pixel1] else
+      begin
+        Vector1 := @SHVectors[Sphere1, Side1, Pixel1];
+        Vector2 := @SHVectors[Sphere2, Side2, Pixel2];
+        for LM := 0 to SHVectorCount - 1 do
+          InterpolatedVector[LM] :=
+            Vector1^[LM] * Ratio1 + Vector2^[LM] * Ratio2;
+        Result := @InterpolatedVector;
+      end;
+    end else
+      Result := nil;
+  end;
+
+  procedure DoBilinear;
+  var
+    Sphere, LM: Cardinal;
+    Pixel: TVector4Cardinal;
+    Side: TEnvMapSide4;
+    Ratio: TVector4Single;
+    Vector: array [0..3] of PSHVectorSingle;
+    I: Cardinal;
+  begin
+    if Index4FromPoint(V, Scale, Sphere, Side, Pixel, Ratio) then
+    begin
+      for I := 0 to 3 do
+        Vector[I] := @SHVectors[Sphere, Side[I], Pixel[I]];
+      for LM := 0 to SHVectorCount - 1 do
+        InterpolatedVector[LM] :=
+          Vector[0]^[LM] * Ratio[0] +
+          Vector[1]^[LM] * Ratio[1] +
+          Vector[2]^[LM] * Ratio[2] +
+          Vector[3]^[LM] * Ratio[3];
+      Result := @InterpolatedVector;
+    end else
+      Result := nil;
+  end;
+
 begin
   case Interpolation of
-    siNone:
-      begin
-        if IndexFromPoint(V, Scale, Sphere1, Side1, Pixel1) then
-          Result := @SHVectors[Sphere1, Side1, Pixel1] else
-          Result := nil;
-      end;
-    siLinearRadius:
-      begin
-        if Index2FromPoint(V, Scale,
-          Sphere1, Side1, Pixel1, Ratio1,
-          Sphere2, Side2, Pixel2, Ratio2) then
-        begin
-          if Ratio1 = 0 then
-            Result := @SHVectors[Sphere2, Side2, Pixel2] else
-          if Ratio2 = 0 then
-            Result := @SHVectors[Sphere1, Side1, Pixel1] else
-          begin
-            Vector1 := @SHVectors[Sphere1, Side1, Pixel1];
-            Vector2 := @SHVectors[Sphere2, Side2, Pixel2];
-            for LM := 0 to SHVectorCount - 1 do
-              InterpolatedVector[LM] :=
-                Vector1^[LM] * Ratio1 + Vector2^[LM] * Ratio2;
-            Result := @InterpolatedVector;
-          end;
-        end else
-          Result := nil;
-      end;
+    siNone: DoNone;
+    siLinearRadius: DoLinearRadius;
+    siBilinear: DoBilinear;
+    else raise EInternalError.Create('TShadowField.SHVectorFromPoint interp?');
   end;
 end;
 
-function TShadowField.IndexFromPoint(V: TVector3Single;
-  const Scale: Single;
-  out Sphere: Cardinal; out Side: TEnvMapSide; out Pixel: Cardinal):
-  boolean;
+function TShadowField.SphereIndexFromPoint(const V: TVector3Single;
+  out Sphere: Cardinal): boolean;
 var
   Distance: Float;
 begin
-  VectorSubtractTo1st(V, SpheresMiddle);
-  if ZeroVector(V) then
-    Exit(false);
-
-  VectorScaleTo1st(V, 1/Scale);
-
   { calculate Sphere number using VectorLen(V) }
   Distance := VectorLen(V);
   if Distance < FirstSphereRadius then
@@ -243,7 +282,42 @@ begin
     end;
   end;
 
+  Result := true;
+end;
+
+function TShadowField.IndexFromPoint(V: TVector3Single;
+  const Scale: Single;
+  out Sphere: Cardinal; out Side: TEnvMapSide; out Pixel: Cardinal):
+  boolean;
+begin
+  VectorSubtractTo1st(V, SpheresMiddle);
+  if ZeroVector(V) then
+    Exit(false);
+
+  VectorScaleTo1st(V, 1/Scale);
+
+  if not SphereIndexFromPoint(V, Sphere) then Exit(false);
+
   DirectionToEnvMap(V, Side, Pixel);
+  Result := true;
+end;
+
+function TShadowField.Index4FromPoint(
+  V: TVector3Single; const Scale: Single;
+  out Sphere: Cardinal;
+  out Side: TEnvMapSide4;
+  out Pixel: TVector4Cardinal;
+  out Ratio: TVector4Single): boolean;
+begin
+  VectorSubtractTo1st(V, SpheresMiddle);
+  if ZeroVector(V) then
+    Exit(false);
+
+  VectorScaleTo1st(V, 1/Scale);
+
+  if not SphereIndexFromPoint(V, Sphere) then Exit(false);
+
+  Direction4ToEnvMap(V, Side, Pixel, Ratio);
   Result := true;
 end;
 
