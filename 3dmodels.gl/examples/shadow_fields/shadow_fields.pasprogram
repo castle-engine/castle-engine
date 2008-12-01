@@ -180,7 +180,7 @@ const
   LocalLightIntensity = 100;
 var
   CasterMap, LocalLightMap: PEnvMap;
-  B: Float;
+  B: LongWord;
   Side: TEnvMapSide;
   Pixel: Cardinal;
   Position: TVector3Single;
@@ -210,19 +210,33 @@ begin
 
       for Side := Low(Side) to High(Side) do
         for Pixel := 0 to Sqr(EnvMapSize) - 1 do
-          B += (1 - LocalLightMap^[Side, Pixel] / 255);
+          B += (255 - LocalLightMap^[Side, Pixel]);
     end else
     begin
+      { This loop is the time bottleneck of the whole algorithm.
+        This must work extra-fast.
+        To do this, we calculate everything in int values.
+
+        To multiply two bytes (that represent 0..1 floats) we can just
+        multiply them normally, then divide by 256. Actually, this division
+        can be done only once, after the loop.
+
+        It's important to make sure that B can hold all these values:
+        it's 6 * 16^2 of maximum High(Word) = 2^16 values.
+        Since B is LongWord (max 2^32), we're Ok.
+        }
+
       for Side := Low(Side) to High(Side) do
         for Pixel := 0 to Sqr(EnvMapSize) - 1 do
-          B += (1 - LocalLightMap^[Side, Pixel] / 255) *
-               (CasterMap^[Side, Pixel] / 255);
+          B += Word(255 - LocalLightMap^[Side, Pixel]) *
+                   (CasterMap^[Side, Pixel]);
+
+      B := B div 256;
     end;
 
     { normalize B, apply LocalLightIntensity }
-    B *= LocalLightIntensity / (6 * Sqr(EnvMapSize));
-
-    Result[0] := B;
+    Result[0] := (B / 255) *
+      LocalLightIntensity / (6 * Sqr(EnvMapSize));
     Result[1] := Result[0];
     Result[2] := Result[0];
   end;
