@@ -39,7 +39,7 @@ My current demo implementation in shadow_fields.pasprogram:
 - also, there is an additional point in 3D space that you can move
   to inspect environment maps at arbitrary points in 3D space.
   I call this "shadow fields explorer" in code.
-Also, there's no rotating/scaling of caster/light source.
+Also, there's no rotating of caster/light source. Only move/scale.
 Also, we assume shadow caster is a plane (roughly, small bumps allowed)
 along the z=const.
 Also, no self-shadowing.

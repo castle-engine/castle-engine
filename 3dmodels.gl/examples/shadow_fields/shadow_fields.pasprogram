@@ -28,11 +28,11 @@
   you just navigate the whole scene.
 
   When you navigate the shadow caster
-  or light source, you can only move the object
-  (drag with middle or right mouse button), rotations/scaling are not used,
-  since not implemented yet.
-  They would require rotating/scaling before looking into shadow field,
-  and rotating of SH --- this is just not implemented now). }
+  or light source, you can move the object
+  (drag with middle or right mouse button), or scale (-/+ keys).
+  Rotations don't work now, they would require rotating
+  before looking into shadow field and (more difficult) rotating of SH
+  -- this is just not implemented now. }
 
 program shadow_fields;
 
@@ -84,13 +84,14 @@ procedure Draw(Glwin: TGLWindow);
 
     procedure DrawOneMap(Field: TShadowField;
       const FieldMoveAmount: TVector3Single;
+      const FieldScale: Single;
       const ShiftX, ShiftY: Integer);
     var
       Map: PEnvMapByte;
       Side: TEnvMapSide;
     begin
       Map := Field.EnvMapFromPoint(VectorSubtract(
-        NavigatorSFExplorer.MoveAmount, FieldMoveAmount));
+        NavigatorSFExplorer.MoveAmount, FieldMoveAmount), FieldScale);
       if Map <> nil then
       begin
         for Side := Low(Side) to High(Side) do
@@ -109,8 +110,12 @@ procedure Draw(Glwin: TGLWindow);
   begin
     glPixelZoom(Scale, Scale);
 
-    DrawOneMap(CasterOOF, NavigatorCaster.MoveAmount, 100, 100);
-    DrawOneMap(LocalLightSRF, NavigatorLocalLight.MoveAmount, 100, 300);
+    DrawOneMap(CasterOOF,
+      NavigatorCaster.MoveAmount,
+      NavigatorCaster.ScaleFactor, 100, 100);
+    DrawOneMap(LocalLightSRF,
+      NavigatorLocalLight.MoveAmount,
+      NavigatorLocalLight.ScaleFactor, 100, 300);
 
     glPixelZoom(1, 1);
   end;
@@ -125,11 +130,17 @@ begin
   glEnable(GL_LIGHTING); { shadow caster is always lit }
   glPushMatrix;
     glTranslatev(NavigatorCaster.MoveAmount);
+    glScalef(NavigatorCaster.ScaleFactor,
+             NavigatorCaster.ScaleFactor,
+             NavigatorCaster.ScaleFactor);
     SceneCaster.Render(nil, tgAll);
   glPopMatrix;
 
   glPushMatrix;
     glTranslatev(NavigatorLocalLight.MoveAmount);
+    glScalef(NavigatorLocalLight.ScaleFactor,
+             NavigatorLocalLight.ScaleFactor,
+             NavigatorLocalLight.ScaleFactor);
     SceneLocalLight.Render(nil, tgAll);
   glPopMatrix;
 
@@ -194,10 +205,12 @@ var
     Pixel: Cardinal;
   begin
     CasterMap := CasterOOF.EnvMapFromPoint(VectorSubtract(
-      Position, NavigatorCaster.MoveAmount));
+      Position, NavigatorCaster.MoveAmount),
+      NavigatorCaster.ScaleFactor);
 
     LocalLightMap := LocalLightSRF.EnvMapFromPoint(VectorSubtract(
-      Position, NavigatorLocalLight.MoveAmount));
+      Position, NavigatorLocalLight.MoveAmount),
+      NavigatorLocalLight.ScaleFactor);
 
     if LocalLightMap = nil then
       { Too far from light }
@@ -260,10 +273,12 @@ var
     LM: Cardinal;
   begin
     CasterVector := CasterOOF.SHVectorFromPoint(VectorSubtract(
-      Position, NavigatorCaster.MoveAmount), UseInterpolation, SHCount);
+      Position, NavigatorCaster.MoveAmount),
+      NavigatorCaster.ScaleFactor, UseInterpolation, SHCount);
 
     LocalLightVector := LocalLightSRF.SHVectorFromPoint(VectorSubtract(
-      Position, NavigatorLocalLight.MoveAmount), UseInterpolation, SHCount);
+      Position, NavigatorLocalLight.MoveAmount),
+      NavigatorLocalLight.ScaleFactor, UseInterpolation, SHCount);
 
     if LocalLightVector = nil then
       { Too far from light }

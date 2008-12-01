@@ -63,7 +63,8 @@ type
 
       Returns @nil if there's no environment map this far or this close
       to V (that is, when IndexFromPoint returns @false). }
-    function EnvMapFromPoint(const V: TVector3Single): PEnvMapByte;
+    function EnvMapFromPoint(const V: TVector3Single;
+      const Scale: Single): PEnvMapByte;
 
     { SH vector, corresponding to point V in 3D space.
       This just uses Index*FromPoint, and returns appropriate vector.
@@ -83,7 +84,8 @@ type
 
       Returns @nil if there's no environment map this far or this close
       to V (that is, when Index*FromPoint returns @false). }
-    function SHVectorFromPoint(const V: TVector3Single;
+    function SHVectorFromPoint(
+      const V: TVector3Single; const Scale: Single;
       const Interpolation: TSFInterpolation;
       const SHVectorCount: Cardinal): PSHVectorSingle;
 
@@ -100,7 +102,8 @@ type
       this means that V
       is too close to shadow caster to choose a suitable env map.
       It doesn't matter what you assume in this case, as this shouldn't happen... }
-    function IndexFromPoint(V: TVector3Single;
+    function IndexFromPoint(
+      V: TVector3Single; const Scale: Single;
       out Sphere: Cardinal; out Side: TEnvMapSide; out Pixel: Cardinal):
       boolean;
 
@@ -109,7 +112,8 @@ type
 
       Ratio1 + Ratio2 always sum to 1. One of the ratios may be exactly 0,
       in this case you should ignore indexes (they may be invalid). }
-    function Index2FromPoint(V: TVector3Single;
+    function Index2FromPoint(
+      V: TVector3Single; const Scale: Single;
       out Sphere1: Cardinal; out Side1: TEnvMapSide; out Pixel1: Cardinal;
       out Ratio1: Single;
       out Sphere2: Cardinal; out Side2: TEnvMapSide; out Pixel2: Cardinal;
@@ -153,17 +157,19 @@ begin
   finally FreeAndNil(F) end;
 end;
 
-function TShadowField.EnvMapFromPoint(const V: TVector3Single): PEnvMapByte;
+function TShadowField.EnvMapFromPoint(const V: TVector3Single;
+  const Scale: Single): PEnvMapByte;
 var
   Sphere, Pixel: Cardinal;
   Side: TEnvMapSide;
 begin
-  if IndexFromPoint(V, Sphere, Side, Pixel) then
+  if IndexFromPoint(V, Scale, Sphere, Side, Pixel) then
     Result := @EnvMaps[Sphere, Side, Pixel] else
     Result := nil;
 end;
 
 function TShadowField.SHVectorFromPoint(const V: TVector3Single;
+  const Scale: Single;
   const Interpolation: TSFInterpolation;
   const SHVectorCount: Cardinal): PSHVectorSingle;
 var
@@ -175,13 +181,13 @@ begin
   case Interpolation of
     siNone:
       begin
-        if IndexFromPoint(V, Sphere1, Side1, Pixel1) then
+        if IndexFromPoint(V, Scale, Sphere1, Side1, Pixel1) then
           Result := @SHVectors[Sphere1, Side1, Pixel1] else
           Result := nil;
       end;
     siLinearRadius:
       begin
-        if Index2FromPoint(V,
+        if Index2FromPoint(V, Scale,
           Sphere1, Side1, Pixel1, Ratio1,
           Sphere2, Side2, Pixel2, Ratio2) then
         begin
@@ -204,6 +210,7 @@ begin
 end;
 
 function TShadowField.IndexFromPoint(V: TVector3Single;
+  const Scale: Single;
   out Sphere: Cardinal; out Side: TEnvMapSide; out Pixel: Cardinal):
   boolean;
 var
@@ -212,6 +219,8 @@ begin
   VectorSubtractTo1st(V, SpheresMiddle);
   if ZeroVector(V) then
     Exit(false);
+
+  VectorScaleTo1st(V, 1/Scale);
 
   { calculate Sphere number using VectorLen(V) }
   Distance := VectorLen(V);
@@ -239,6 +248,7 @@ begin
 end;
 
 function TShadowField.Index2FromPoint(V: TVector3Single;
+  const Scale: Single;
   out Sphere1: Cardinal; out Side1: TEnvMapSide; out Pixel1: Cardinal;
   out Ratio1: Single;
   out Sphere2: Cardinal; out Side2: TEnvMapSide; out Pixel2: Cardinal;
@@ -249,6 +259,8 @@ begin
   VectorSubtractTo1st(V, SpheresMiddle);
   if ZeroVector(V) then
     Exit(false);
+
+  VectorScaleTo1st(V, 1/Scale);
 
   { calculate Sphere number using VectorLen(V) }
   Distance := VectorLen(V);
