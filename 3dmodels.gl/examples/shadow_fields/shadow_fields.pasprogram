@@ -246,6 +246,7 @@ const
   SHLightIntensity = 4*Pi;
 var
   Position: TVector3Single;
+  CasterBeforeLocalLight: boolean;
 
   procedure CalculateByEnvMaps;
   var
@@ -257,6 +258,9 @@ var
     CasterMap := CasterOOF.EnvMapFromPoint(VectorSubtract(
       Position, NavigatorCaster.MoveAmount),
       NavigatorCaster.ScaleFactor);
+
+    if not (CasterBeforeLocalLight or UseEnvLight) then
+      CasterMap := nil;
 
     { TODO: we don't handle here environmental light.
       Change SHVectorGLCapture to return also the raw map. }
@@ -329,6 +333,9 @@ var
       Position, NavigatorCaster.MoveAmount),
       NavigatorCaster.ScaleFactor, UseInterpolation, SHCount);
 
+    if not (CasterBeforeLocalLight or UseEnvLight) then
+      CasterVector := nil;
+
     { TODO: currently, I can do only double product on SH.
       So I either use env light, or local light --- never both. }
 
@@ -368,6 +375,10 @@ var
 
 begin
   Position := MatrixMultPoint(State.Transform, VertexPosition);
+
+  CasterBeforeLocalLight :=
+    PointsDistanceSqr(Position, NavigatorCaster.MoveAmount) <
+    PointsDistanceSqr(Position, NavigatorLocalLight.MoveAmount);
 
   if UseSH then
     CalculateBySH else
