@@ -39,7 +39,7 @@ program shadow_fields;
 uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3d,
   GLWindow, Glw_Navigated, VRMLGLScene, VRMLErrors, Navigation,
   ShadowFields, KambiUtils, CubeEnvMap, VRMLNodes,
-  SphericalHarmonics;
+  SphericalHarmonics, GLCubeEnvMap;
 
 var
   SceneCaster, SceneReceiver, SceneLocalLight: TVRMLGLScene;
@@ -47,11 +47,14 @@ var
   CasterOOF: TShadowField;
   LocalLightSRF: TShadowField;
   GLList_EnvLight: TGLuint;
+  { Recalculated at the beginning of each Draw. }
+  EnvLightSHVector: TSHVectorSingle;
 
   UseShadowFields: boolean = true;
   UseLighting: boolean = true;
   UseSH: boolean = true;
   UseInterpolation: TSFInterpolation = siLinearRadius;
+  UseEnvLight: boolean = false;
 
 type
   TNavigatorType = (ntAll, ntCaster, ntLocalLight, ntSFExplorer, ntEnvLight);
@@ -150,6 +153,18 @@ begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(NavigatorAll.Matrix);
 
+  if UseEnvLight and (not IsEmptyBox3d(SceneReceiver.BoundingBox)) then
+  begin
+    { SHVectorGLCapture wil draw maps, get them,
+      and calculate EnvLightSHVector describing the light contribution
+      (this will be used then by SceneReceiver.Render, during VertexColor). }
+
+    SHVectorGLCapture(EnvLightSHVector, Box3dMiddle(SceneReceiver.BoundingBox),
+      @DrawEnvLight, 50, 50, 1 { no ScaleColor ---
+        we will apply light intensity at VertexColor });
+    glViewport(0, 0, Glwin.Width, Glwin.Height);
+  end;
+
   if UseLighting then glEnable(GL_LIGHTING);
   SceneReceiver.Render(nil, tgAll);
 
@@ -224,11 +239,11 @@ function THelper.VertexColor(Node: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState;
   const VertexPosition: TVector3Single): TVector3Single;
 const
-  LocalLightIntensity = 50;
+  LightIntensity = 50;
   { TODO: this is needed to make results with CalculateByEnvMaps
     and CalculateBySH. Why? I thought I normalized all integrals
     correctly. }
-  SHLocalLightIntensity = 4*Pi;
+  SHLightIntensity = 4*Pi;
 var
   Position: TVector3Single;
 
@@ -242,6 +257,9 @@ var
     CasterMap := CasterOOF.EnvMapFromPoint(VectorSubtract(
       Position, NavigatorCaster.MoveAmount),
       NavigatorCaster.ScaleFactor);
+
+    { TODO: we don't handle here environmental light.
+      Change SHVectorGLCapture to return also the raw map. }
 
     LocalLightMap := LocalLightSRF.EnvMapFromPoint(VectorSubtract(
       Position, NavigatorLocalLight.MoveAmount),
@@ -288,9 +306,9 @@ var
         B := B div 256;
       end;
 
-      { normalize B, apply LocalLightIntensity }
+      { normalize B, apply LightIntensity }
       Result[0] := (B / 255) *
-        LocalLightIntensity / (6 * Sqr(EnvMapSize));
+        LightIntensity / (6 * Sqr(EnvMapSize));
       Result[1] := Result[0];
       Result[2] := Result[0];
     end;
@@ -303,7 +321,7 @@ var
       TODO: use this, compare various values. }
     SHCount = MaxSHBasis;
   var
-    CasterVector, LocalLightVector: PSHVectorSingle;
+    CasterVector, LightVector: PSHVectorSingle;
     B: Single;
     LM: Cardinal;
   begin
@@ -311,11 +329,16 @@ var
       Position, NavigatorCaster.MoveAmount),
       NavigatorCaster.ScaleFactor, UseInterpolation, SHCount);
 
-    LocalLightVector := LocalLightSRF.SHVectorFromPoint(VectorSubtract(
-      Position, NavigatorLocalLight.MoveAmount),
-      NavigatorLocalLight.ScaleFactor, UseInterpolation, SHCount);
+    { TODO: currently, I can do only double product on SH.
+      So I either use env light, or local light --- never both. }
 
-    if LocalLightVector = nil then
+    if UseEnvLight then
+      LightVector := @EnvLightSHVector else
+      LightVector := LocalLightSRF.SHVectorFromPoint(VectorSubtract(
+        Position, NavigatorLocalLight.MoveAmount),
+        NavigatorLocalLight.ScaleFactor, UseInterpolation, SHCount);
+
+    if LightVector = nil then
       { Too far from light }
       Result := Vector3Single(0, 0, 0) else
     begin
@@ -329,16 +352,15 @@ var
           vector is just zero, except for first factor which is equal to
           SHBasis0. }
 
-        B += LocalLightVector^[0] * SHBasis0;
+        B += LightVector^[0] * SHBasis0;
       end else
       begin
         for LM := 0 to SHCount - 1 do
-          B += LocalLightVector^[LM] *
-                   CasterVector^[LM];
+          B += LightVector^[LM] * CasterVector^[LM];
       end;
 
-      { apply LocalLightIntensity }
-      Result[0] := B * LocalLightIntensity * SHLocalLightIntensity;
+      { apply LightIntensity }
+      Result[0] := B * LightIntensity * SHLightIntensity;
       Result[1] := Result[0];
       Result[2] := Result[0];
     end;
@@ -391,6 +413,7 @@ begin
   M := TMenu.Create('_Program');
     M.Append(TMenuItemChecked.Create('_Shadow fields', 100, UseShadowFields, true));
     M.Append(TMenuItemChecked.Create('Use spherical _harmonics', 120, UseSH, true));
+    M.Append(TMenuItemChecked.Create('Use environmetal _light', 130, UseEnvLight, true));
     M.Append(TMenuSeparator.Create);
     RadioGroup := nil;
     AddInterpolationMenu('_Interpolation none', siNone);
@@ -441,6 +464,7 @@ begin
 
     110: UseLighting := not UseLighting;
     120: UseSH := not UseSH;
+    130: UseEnvLight := not UseEnvLight;
 
     200: Glwin.Close;
     else Exit;

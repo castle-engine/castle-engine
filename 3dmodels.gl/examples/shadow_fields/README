@@ -42,7 +42,7 @@ My current demo implementation in shadow_fields.pasprogram:
 - there is only one shadow receiver (this also means that shadow casters
   and receivers are different things, no shadowing between shadow casters)
 - there is only one local light
-- TODO: there is only one environment light
+- there is only one environment light
 - also, there is an additional point in 3D space that you can move
   to inspect environment maps at arbitrary points in 3D space.
   I call this "shadow fields explorer" in code.
