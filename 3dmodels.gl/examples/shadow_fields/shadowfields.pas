@@ -102,6 +102,7 @@ begin
   F := TGZFileStream.Create(FileName, gzOpenRead);
   try
     F.ReadBuffer(EnvMaps, SizeOf(EnvMaps));
+    F.ReadBuffer(SHVectors, SizeOf(SHVectors));
     F.ReadBuffer(SpheresMiddle, SizeOf(SpheresMiddle));
     F.ReadBuffer(FirstSphereRadius, SizeOf(FirstSphereRadius));
     F.ReadBuffer(LastSphereRadius, SizeOf(LastSphereRadius));
@@ -115,6 +116,7 @@ begin
   F := TGZFileStream.Create(FileName, gzOpenWrite);
   try
     F.WriteBuffer(EnvMaps, SizeOf(EnvMaps));
+    F.WriteBuffer(SHVectors, SizeOf(SHVectors));
     F.WriteBuffer(SpheresMiddle, SizeOf(SpheresMiddle));
     F.WriteBuffer(FirstSphereRadius, SizeOf(FirstSphereRadius));
     F.WriteBuffer(LastSphereRadius, SizeOf(LastSphereRadius));
