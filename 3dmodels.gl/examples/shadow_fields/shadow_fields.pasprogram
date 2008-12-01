@@ -42,10 +42,11 @@ uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3d,
   SphericalHarmonics;
 
 var
-  CameraRadius: Single;
   SceneCaster, SceneReceiver, SceneLocalLight: TVRMLGLScene;
+  CameraRadius: Single;
   CasterOOF: TShadowField;
   LocalLightSRF: TShadowField;
+  GLList_EnvLight: TGLuint;
 
   UseShadowFields: boolean = true;
   UseLighting: boolean = true;
@@ -53,7 +54,7 @@ var
   UseInterpolation: TSFInterpolation = siLinearRadius;
 
 type
-  TNavigatorType = (ntAll, ntCaster, ntLocalLight, ntSFExplorer);
+  TNavigatorType = (ntAll, ntCaster, ntLocalLight, ntSFExplorer, ntEnvLight);
 
 var
   Navigator: TNavigatorType = ntAll;
@@ -62,6 +63,7 @@ var
   NavigatorCaster: TExamineNavigator;
   NavigatorLocalLight: TExamineNavigator;
   NavigatorSFExplorer: TExamineNavigator;
+  NavigatorEnvLight: TExamineNavigator;
 
 procedure NavigatorChanged;
 begin
@@ -70,10 +72,34 @@ begin
     ntCaster    : Glw.Navigator := NavigatorCaster;
     ntLocalLight: Glw.Navigator := NavigatorLocalLight;
     ntSFExplorer: Glw.Navigator := NavigatorSFExplorer;
+    ntEnvLight  : Glw.Navigator := NavigatorEnvLight;
     else raise EInternalError.Create('Navigator?');
   end;
   if NavigatorRadio[Navigator] <> nil then
     NavigatorRadio[Navigator].Checked := true;
+end;
+
+procedure DrawEnvLight(ForMap: boolean);
+begin
+  glPushMatrix;
+    glTranslatev(NavigatorEnvLight.MoveAmount);
+    glScalef(NavigatorEnvLight.ScaleFactor,
+             NavigatorEnvLight.ScaleFactor,
+             NavigatorEnvLight.ScaleFactor);
+
+    if not ForMap then
+    begin
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glEnable(GL_BLEND);
+      glColor4f(1, 1, 0, 0.1);
+    end else
+      glColor3f(1, 1, 1);
+
+    glCallList(GLList_EnvLight);
+
+    if not ForMap then
+      glDisable(GL_BLEND);
+  glPopMatrix;
 end;
 
 procedure Draw(Glwin: TGLWindow);
@@ -146,6 +172,10 @@ begin
 
   glDisable(GL_LIGHTING);
 
+  glPushMatrix;
+    DrawEnvLight(false);
+  glPopMatrix;
+
   glEnable(GL_DEPTH_TEST);
     glColorv(Blue3Single);
     glBegin(GL_POINTS);
@@ -160,6 +190,11 @@ procedure Init(Glwin: TGLWindow);
 begin
   glEnable(GL_LIGHT0);
   glPointSize(10);
+
+  GLList_EnvLight := glGenListsCheck(1, 'GLList_EnvLight');
+  glNewList(GLList_EnvLight, GL_COMPILE);
+    KamGluSphere(1, 10, 10);
+  glEndList;
 end;
 
 procedure Close(Glwin: TGLWindow);
@@ -372,6 +407,7 @@ begin
     AddNavigatorMenu('Shadow _caster', ntCaster);
     AddNavigatorMenu('Local _light source', ntLocalLight);
     AddNavigatorMenu('_Shadow fields explorer', ntSFExplorer);
+    AddNavigatorMenu('_Environmental light source', ntEnvLight);
 
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Next', 20, K_Space));
@@ -419,7 +455,7 @@ var
   LocalLightFileName: string = 'models/sphere.wrl';
     //'models/stretched_cube.wrl';
 
-  Box: TBox3d;
+  BoxSum: TBox3d;
   V: TVector3Single;
 begin
   try
@@ -448,16 +484,17 @@ begin
       @Glw.PostRedisplayOnMatrixChanged);
     NavigatorLocalLight.ModelBox := SceneLocalLight.BoundingBox;
 
+    BoxSum := Box3dSum(SceneCaster.BoundingBox, SceneReceiver.BoundingBox);
+
     { calculate starting local light position,
       and set this as NavigatorLocalLight.MoveAmount }
-    Box := Box3dSum(SceneCaster.BoundingBox, SceneReceiver.BoundingBox);
-    if IsEmptyBox3d(Box) then
+    if IsEmptyBox3d(BoxSum) then
     begin
       V := Vector3Single(0, 0, 1);
     end else
     begin
-      V := Box3dMiddle(Box);
-      V[0] := Box[0][0];
+      V := Box3dMiddle(BoxSum);
+      V[0] := BoxSum[0][0];
     end;
     NavigatorLocalLight.MoveAmount := V;
 
@@ -469,16 +506,33 @@ begin
 
     { calculate starting sf explorer position,
       and set this as NavigatorSFExplorer.MoveAmount }
-    Box := Box3dSum(SceneCaster.BoundingBox, SceneReceiver.BoundingBox);
-    if IsEmptyBox3d(Box) then
+    if IsEmptyBox3d(BoxSum) then
     begin
       V := Vector3Single(0, 0, 1);
     end else
     begin
-      V := Box3dMiddle(Box);
-      V[0] := Box[1][0];
+      V := Box3dMiddle(BoxSum);
+      V[0] := BoxSum[1][0];
     end;
     NavigatorSFExplorer.MoveAmount := V;
+
+    NavigatorEnvLight := TExamineNavigator.Create(
+      @Glw.PostRedisplayOnMatrixChanged);
+    { use SceneCaster.BoundingBox for light's box, this determines the speed
+      of moving light source with mouse. }
+    NavigatorEnvLight.ModelBox := SceneCaster.BoundingBox;
+
+    { calculate starting env light position,
+      and set this as NavigatorEnvLight.MoveAmount }
+    if IsEmptyBox3d(BoxSum) then
+    begin
+      V := Vector3Single(0, 0, 1);
+    end else
+    begin
+      V := Box3dMiddle(BoxSum);
+      V[1] := BoxSum[0][1];
+    end;
+    NavigatorEnvLight.MoveAmount := V;
 
     Glw.OwnsNavigator := false;
     NavigatorChanged;
@@ -504,6 +558,7 @@ begin
     FreeAndNil(NavigatorCaster);
     FreeAndNil(NavigatorLocalLight);
     FreeAndNil(NavigatorSFExplorer);
+    FreeAndNil(NavigatorEnvLight);
     FreeAndNil(CasterOOF);
     FreeAndNil(LocalLightSRF);
   end;
