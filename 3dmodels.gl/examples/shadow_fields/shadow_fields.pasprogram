@@ -50,6 +50,7 @@ var
   UseShadowFields: boolean = true;
   UseLighting: boolean = true;
   UseSH: boolean = true;
+  UseInterpolation: TSFInterpolation = siLinearRadius;
 
 type
   TNavigatorType = (ntAll, ntCaster, ntLocalLight, ntSFExplorer);
@@ -250,7 +251,8 @@ var
   procedure CalculateBySH;
   const
     { shadow fields always have MaxSHBasis recorded.
-      But you can use less here, to speed up. }
+      But you can use less here, to speed up.
+      TODO: use this, compare various values. }
     SHCount = MaxSHBasis;
   var
     CasterVector, LocalLightVector: PSHVectorSingle;
@@ -258,10 +260,10 @@ var
     LM: Cardinal;
   begin
     CasterVector := CasterOOF.SHVectorFromPoint(VectorSubtract(
-      Position, NavigatorCaster.MoveAmount));
+      Position, NavigatorCaster.MoveAmount), UseInterpolation, SHCount);
 
     LocalLightVector := LocalLightSRF.SHVectorFromPoint(VectorSubtract(
-      Position, NavigatorLocalLight.MoveAmount));
+      Position, NavigatorLocalLight.MoveAmount), UseInterpolation, SHCount);
 
     if LocalLightVector = nil then
       { Too far from light }
@@ -310,31 +312,47 @@ end;
 function CreateMainMenu: TMenu;
 var
   M: TMenu;
-  NavRadioGroup: TMenuItemRadioGroup;
+  RadioGroup: TMenuItemRadioGroup;
 
   procedure AddNavigatorMenu(const Caption: string; const Nav: TNavigatorType);
   begin
     NavigatorRadio[Nav] := TMenuItemRadio.Create(Caption,
       10 + Ord(Nav), Navigator = Nav, true);
-    if NavRadioGroup = nil then
-      NavRadioGroup := NavigatorRadio[Nav].Group else
-      NavigatorRadio[Nav].Group := NavRadioGroup;
+    if RadioGroup = nil then
+      RadioGroup := NavigatorRadio[Nav].Group else
+      NavigatorRadio[Nav].Group := RadioGroup;
     M.Append(NavigatorRadio[Nav]);
+  end;
+
+  procedure AddInterpolationMenu(const Caption: string; const I: TSFInterpolation);
+  var
+    Radio: TMenuItemRadio;
+  begin
+    Radio := TMenuItemRadio.Create(Caption,
+      30 + Ord(I), UseInterpolation = I, true);
+    if RadioGroup = nil then
+      RadioGroup := Radio.Group else
+      Radio.Group := RadioGroup;
+    M.Append(Radio);
   end;
 
 begin
   Result := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');
-    M.Append(TMenuItemChecked.Create('Apply OpenGL _Lighting', 110, UseLighting, true));
-    M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('_Shadow fields', 100, UseShadowFields, true));
     M.Append(TMenuItemChecked.Create('Use spherical _harmonics', 120, UseSH, true));
+    M.Append(TMenuSeparator.Create);
+    RadioGroup := nil;
+    AddInterpolationMenu('_Interpolation none', siNone);
+    AddInterpolationMenu('Interpolation linear (radius)', siLinearRadius);
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItemChecked.Create('Apply OpenGL _Lighting', 110, UseLighting, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 200));
     Result.Append(M);
 
   M := TMenu.Create('_Navigate');
-    NavRadioGroup := nil;
+    RadioGroup := nil;
     AddNavigatorMenu('_All', ntAll);
     AddNavigatorMenu('Shadow _caster', ntCaster);
     AddNavigatorMenu('Local _light source', ntLocalLight);
@@ -361,6 +379,8 @@ begin
           Navigator := Succ(Navigator);
         NavigatorChanged;
       end;
+
+    30..39: UseInterpolation := TSFInterpolation(Item.IntData - 30);
 
     100:
       begin
