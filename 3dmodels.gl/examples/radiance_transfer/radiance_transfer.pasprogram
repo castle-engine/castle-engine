@@ -74,16 +74,6 @@ var
     by this. Can be in any range. }
   LightIntensityScale: Single = 100.0;
 
-var
-  { For each SHBasis function (first index of the array is LM of this function),
-    a precalculated results. For each side of the cube (second index),
-    and for each pixel on this side (third vertex; pixels are arranged
-    same as in TGrayscaleImage, that is row-by-row from lower to higher,
-    from left to right). }
-  SHBasisValues: array [0..LightSHBasisCount - 1,
-    TEnvMapSide,
-    0 .. Sqr(EnvMapSize) - 1] of Float;
-
 procedure Draw(Glwin: TGLWindow);
 
   procedure DrawLight(ForMap: boolean);
@@ -159,7 +149,7 @@ procedure Draw(Glwin: TGLWindow);
         for SHBasis := 0 to LightSHBasisCount - 1 do
           LightSHBasis[SHBasis] += (Map.GrayscalePixels[I]/255) *
             LightIntensityScale *
-            SHBasisValues[SHBasis, EnvMapSide, I];
+            SHBasisMap[SHBasis, EnvMapSide, I];
     finally FreeAndNil(Map) end;
   end;
 
@@ -330,21 +320,6 @@ begin
   end;
 end;
 
-procedure CalculateSHBasisValues;
-var
-  LM: Cardinal;
-  EnvMapSide: TEnvMapSide;
-  Pixel: Cardinal;
-begin
-  for LM := 0 to LightSHBasisCount - 1 do
-    for EnvMapSide := Low(TEnvMapSide) to High(TEnvMapSide) do
-      for Pixel := 0 to Sqr(EnvMapSize) - 1 do
-      begin
-        SHBasisValues[LM][EnvMapSide][Pixel] :=
-          SHBasis(LM, XYZToPhiTheta(EnvMapDirection(EnvMapSide, Pixel)));
-      end;
-end;
-
 function CreateMainMenu: TMenu;
 var
   M: TMenu;
@@ -404,7 +379,7 @@ begin
     Glw.OnResize := @Resize;
     Glw.OnIdle := @Idle;
 
-    CalculateSHBasisValues;
+    InitializeSHBasisMap;
 
     Glw.InitLoop(ProgramName, @Draw);
   finally Scene.Free end;

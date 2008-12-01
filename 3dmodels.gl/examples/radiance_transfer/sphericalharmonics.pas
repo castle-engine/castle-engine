@@ -25,7 +25,7 @@ unit SphericalHarmonics;
 
 interface
 
-uses VectorMath, KambiUtils, Math;
+uses VectorMath, KambiUtils, Math, CubeEnvMap;
 
 const
   { How many basis can SHBasis calculate. LM for SHBasis must be within
@@ -53,11 +53,62 @@ function SHBasis(const LM: Cardinal; const PhiTheta: TVector2Single): Float;
 
 procedure LMDecode(const LM: Cardinal; out L: Cardinal; out M: Integer);
 
+type
+  { Cube environment map, with each item being a Float. }
+  TEnvMapFloat = array [TEnvMapSide, 0..Sqr(EnvMapSize) - 1] of Float;
+  PEnvMapFloat = ^TEnvMapFloat;
+
+var
+  (*For each SHBasis function (first index of the array is LM of this function),
+    a precalculated results of basis spherical harmonic functions.
+
+    For each side of the cube, and for each pixel on this side (pixels are
+    arranged same as in TGrayscaleImage, that is row-by-row from
+    lower to higher, from left to right) this gives the result of SHBasis
+    for this direction.
+
+    You have to initialize this (once, like at the beginning of your
+    program) by InitializeSHBasisMap.
+
+    This is useful for calculating sh basis vector from given cube env map:
+    since you can just project any function on any basis, so if you have
+    a particular cube map you can project it like:
+
+@longCode(#
+for LM := 0 to MyVectorCount - 1 do
+begin
+  MyVector[LM] := 0;
+  for Side := all sides
+    for Pixel := all pixels
+      MyVector[LM] += MyMap[Side, Pixel] * SHBasisMap[LM, Side, Pixel];
+
+  { MyVector[LM] is now calculated for all sphere points.
+    We want this to be integral over a sphere, so normalize now.
+
+    We could multiply each LightSHBasis[SHBasis] in DrawLightMap
+    by solid angle of given pixel
+    (on cube map, pixels have different solid angles).
+    Then below we would divide by 4*Pi (sphere area).
+
+    TODO: for now, ignore solid angle, assume all pixels have the same influence.
+    So just divide by number of points... }
+
+  MyVector[LM] /= 6 * Sqr(EnvMapSize);
+end;
+#)
+  *)
+  SHBasisMap: array [0..MaxSHBasis - 1] of TEnvMapFloat;
+
+procedure InitializeSHBasisMap;
+
 implementation
+
+uses SphereSampling;
+
+function SHBasis(const LM: Cardinal; const PhiTheta: TVector2Single): Float;
 
 { Taken from http://www.sjbrown.co.uk/2004/10/16/spherical-harmonic-basis/ }
 
-function SHBasis(const LM: Cardinal; const PhiTheta: TVector2Single): Float;
 var
   SinPhi, CosPhi, SinTheta, CosTheta: Float;
 
@@ -177,6 +228,21 @@ begin
     ReachedLM += Integer(2*L+1);
     Inc(L);
   until false;
+end;
+
+procedure InitializeSHBasisMap;
+var
+  LM: Cardinal;
+  Side: TEnvMapSide;
+  Pixel: Cardinal;
+begin
+  for LM := 0 to MaxSHBasis - 1 do
+    for Side := Low(Side) to High(Side) do
+      for Pixel := 0 to Sqr(EnvMapSize) - 1 do
+      begin
+        SHBasisMap[LM][Side][Pixel] :=
+          SHBasis(LM, XYZToPhiTheta(EnvMapDirection(Side, Pixel)));
+      end;
 end;
 
 end.
