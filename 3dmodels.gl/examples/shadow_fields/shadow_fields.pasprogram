@@ -430,6 +430,7 @@ begin
     AddInterpolationMenu('_Interpolation none', siNone);
     AddInterpolationMenu('Interpolation linear (radius)', siLinearRadius);
     AddInterpolationMenu('Interpolation bilinear (4 map points)', siBilinear);
+    AddInterpolationMenu('Interpolation trlinear', siTrilinear);
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('Apply OpenGL _Lighting', 110, UseLighting, true));
     M.Append(TMenuSeparator.Create);
