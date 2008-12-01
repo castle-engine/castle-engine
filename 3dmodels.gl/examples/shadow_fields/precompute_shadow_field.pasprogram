@@ -25,21 +25,31 @@
   If $2 is omitted, we output to $1 with extension changed to .shadow_field
   (this is usually most comfortable).
 
-  Note that this uses white color when the light is not blocked.
-  In other words, this calculates OOF, object occlusion field.
-  If you want to use this as SRF, simply invert all values
-  (take 255-color instead of color). I may introduce a command-line
-  option here to do this inversion at precompute step... for now,
-  it's done at rendering.
+  By default we generate OOF (object occlusion field).
+  This simply means that color is white where the ray @bold(does not hit),
+  that is white color = light passes through.
+  If you want to generate SRF (source radiance field), for light source, use
+    --light
+  option. This simply reverts the colors, i.e. white is where the ray hits,
+  that is white color = light shines here.
+
+  Note that for environment maps, it's actually trivial to switch
+  between OOF and SRF (just negate the colors). This could even be
+  done painlessly during rendering.
+  However, for spherical harmonics, there's no such easy way to
+  invert the SH function. (And for double- and triple- products
+  within shadow_fields program we would need this; simply reverting
+  the result of function would not be good.)
 }
 program precompute_shadow_field;
 
 uses SysUtils, ProgressUnit, ProgressConsole, KambiUtils,
   VRMLScene, Object3dAsVRML, ShadowFields, KambiTimeUtils, VectorMath,
-  CubeEnvMap, Boxes3d, SphericalHarmonics;
+  CubeEnvMap, Boxes3d, SphericalHarmonics, ParseParametersUnit;
 
 var
   Scene: TVRMLScene;
+  LightSource: boolean;
 
 procedure ComputeEnvMap(const Point: TVector3Single;
   var EnvMap: TEnvMapByte; var SHVector: TSHVectorSingle);
@@ -55,11 +65,24 @@ begin
         EnvMapDirection(Side, Pixel), nil, false, nil) then
         Color := 0 else
         Color := High(Byte);
+      if LightSource then Color := High(Byte)- Color;
       EnvMap[Side, Pixel] := Color;
     end;
 
   SHVectorFromEnvMap(SHVector, EnvMap);
 end;
+
+const
+  Options: array[0..0] of TOption =
+  ( (Short: 'l'; Long: 'light'; Argument: oaNone) );
+
+  procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+    const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+  begin
+    case OptionNum of
+      0: LightSource := true;
+    end;
+  end;
 
 var
   SF: TShadowField;
@@ -69,6 +92,7 @@ var
   BoundingSphereRadius: Single;
   InputFileName, OutputFileName: string;
 begin
+  ParseParameters(Options, @OptionProc, nil);
   Parameters.CheckHighAtLeast(1);
   Parameters.CheckHighAtMost(2);
 
@@ -94,6 +118,11 @@ begin
         BoundingSphereCenter, BoundingSphereRadius);
       { BoundingSphereFromBox3d gives me sqr of radius }
       BoundingSphereRadius := Sqrt(BoundingSphereRadius);
+      { Since our BoundingSphereRadius is too large (it's bounding sphere
+        over bounding box), make it smaller here.
+        This should result in more spheres closer to the object,
+        which should be slightly  better. }
+      BoundingSphereRadius := 0.6 * BoundingSphereRadius;
       SF.SpheresMiddle := BoundingSphereCenter;
       { 0.2, 8 are adviced in paper about shadow fields }
       SF.FirstSphereRadius := 0.2 * BoundingSphereRadius;
