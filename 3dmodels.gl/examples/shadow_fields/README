@@ -79,6 +79,14 @@ Gzip reduces data size extremely: for real env maps compression is > 100 times
 (from 36 MB to 250 KB). (For empty testing env maps it's around 1000 times,
 to 36 KB). No surprise, this type of data is highly compressible.
 
+Source code: besides sources in this directory, take a look at
+the spherical harmonics and cube env map utilities in units
+  3dgraph/sphericalharmonics.pas,
+  3dgraph/cubeenvmap.pas,
+  opengl/glcubeenvmap.pas
+Some of them were created directly for shadow_fields demo,
+some of them are shared by radiance_transfer demo.
+
 ------------------------------------------------------------------------------
 Note:
 - how to calculate SH vector basis for constant function f(s) = c ?
