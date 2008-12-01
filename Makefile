@@ -236,7 +236,9 @@ EXAMPLES_BASE_NAMES := \
   3dmodels.gl/examples/change_vrml_by_code_2 \
   3dmodels.gl/examples/vrml_browser_script_compiled \
   3dmodels.gl/examples/simplest_vrml_browser \
-  3dmodels.gl/examples/simplest_vrml_browser_with_shadows
+  3dmodels.gl/examples/simplest_vrml_browser_with_shadows \
+  3dmodels.gl/examples/shadow_fields/precompute_shadow_field \
+  3dmodels.gl/examples/shadow_fields/shadow_fields
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   audio/examples/test_al_source_allocator \
