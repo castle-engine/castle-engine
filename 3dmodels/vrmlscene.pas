@@ -1374,7 +1374,7 @@ type
       This is just a shortcut for
       PointingDeviceOverItem^.State.PointingDeviceSensors,
       returning @nil if PointingDeviceOverItem = @nil. }
-    function PointingDeviceSensors: TVRMLNodesList;
+    function PointingDeviceSensors: TPointingDeviceSensorsList;
 
     { Currently active sensor. @nil if none.
       Always @nil when PointingDeviceActive = @false.
@@ -4252,7 +4252,7 @@ begin
   end;
 end;
 
-function TVRMLScene.PointingDeviceSensors: TVRMLNodesList;
+function TVRMLScene.PointingDeviceSensors: TPointingDeviceSensorsList;
 begin
   if PointingDeviceOverItem <> nil then
     Result := PointingDeviceOverItem^.State.PointingDeviceSensors else

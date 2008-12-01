@@ -443,7 +443,7 @@ procedure TKamVRMLBrowser.UpdateCursor;
   function SensorsCount: Cardinal;
   begin
     if Scene.PointingDeviceSensors <> nil then
-      Result := Scene.PointingDeviceSensors.Count else
+      Result := Scene.PointingDeviceSensors.EnabledCount else
       Result := 0;
     if Scene.PointingDeviceActiveSensor <> nil then
       Inc(Result);

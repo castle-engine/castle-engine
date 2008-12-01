@@ -404,6 +404,8 @@ type
   TArray_ActiveLight = TInfiniteArray_1;
   PArray_ActiveLight = PInfiniteArray_1;
 
+  TPointingDeviceSensorsList = class;
+
   { This describes current "state" (current transformation and such)
     when traversing VRML graph.
 
@@ -608,7 +610,7 @@ type
       group node affects all children in this group node.
       (And when multiple pointing device sensors are within the same
       grouping node, they all work.) }
-    PointingDeviceSensors: TVRMLNodesList;
+    PointingDeviceSensors: TPointingDeviceSensorsList;
   end;
 
   PTraversingInfo = ^TTraversingInfo;
@@ -1763,6 +1765,14 @@ type
   {$I objectslist_3.inc}
   TVRMLNodesList = class(TObjectsList_3)
     function FindNodeName(const Name: string): Integer;
+  end;
+
+  { List that can contain only nodes descending from
+    X3DPointingDeviceSensorNode, and additionally an Anchor node. }
+  TPointingDeviceSensorsList = class(TVRMLNodesList)
+  public
+    function EnabledCount: Integer;
+    function Enabled(Index: Integer): boolean;
   end;
 
   TVRMLNodeClassesList = class(TList)
@@ -3574,6 +3584,24 @@ begin
         Exit(false);
 end;
 
+{ TPointingDeviceSensorsList ------------------------------------------------- }
+
+function TPointingDeviceSensorsList.EnabledCount: Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to Count - 1 do
+    if Enabled(I) then
+      Inc(Result);
+end;
+
+function TPointingDeviceSensorsList.Enabled(Index: Integer): boolean;
+begin
+  Result := (not (Items[Index] is TNodeX3DPointingDeviceSensorNode)) or
+    TNodeX3DPointingDeviceSensorNode(Items[Index]).FdEnabled.Value;
+end;
+
 { TVRMLGraphTraverseState ---------------------------------------------------- }
 
 procedure TVRMLGraphTraverseState.CommonCreate;
@@ -3581,7 +3609,7 @@ begin
   inherited Create;
   VRML1ActiveLights := TDynActiveLightArray.Create;
   VRML2ActiveLights := TDynActiveLightArray.Create;
-  PointingDeviceSensors := TVRMLNodesList.Create;
+  PointingDeviceSensors := TPointingDeviceSensorsList.Create;
 end;
 
 constructor TVRMLGraphTraverseState.CreateCopy(Source: TVRMLGraphTraverseState);
