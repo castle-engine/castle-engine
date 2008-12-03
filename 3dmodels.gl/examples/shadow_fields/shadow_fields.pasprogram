@@ -22,7 +22,19 @@
 
 { Shadow fields demo. See README.
 
-  Navigate with mouse or keyboard (like view3dscene in Examine mode).
+  Run with 0 to 3 parameters: filenames of shadow caster, shadow receiver,
+  light source. All three things must be 3D models understood by my engine
+  (X3D, VRML, Collada, etc.), for shadow caster and light source there
+  must also exist a xxx.shadow_field file in the same directory
+  (use precompute_shadow_field to make this, with --light for light source).
+
+  You can omit any of the filenames, even run with no parameters, then
+  the default models from models/ subdir will be picked up.
+
+  Navigate with mouse or keyboard (like view3dscene in Examine mode,
+  see http://vrmlengine.sourceforge.net/view3dscene.php docs).
+  (For shadow receiver you can define Navigation node in VRML and navigate
+  there in Walk mode.)
 
   Change by menu which object you're actually navigating --- by default
   you just navigate the whole scene.
@@ -506,16 +518,22 @@ begin
 end;
 
 var
-  { TODO: allow to change this by command-line }
-  ShadowCasterFileName: string = //'models/humanoid_stand.wrl';
-    'models/teapot.x3dv';
+  ShadowCasterFileName: string = 'models/humanoid_stand.wrl';
   ShadowReceiverFileName: string = 'models/plane.wrl';
   LocalLightFileName: string = 'models/sphere.wrl';
-//    'models/stretched_cube.wrl';
 
   BoxSum: TBox3d;
   V: TVector3Single;
 begin
+  Parameters.CheckHighAtMost(3);
+
+  if Parameters.High >= 1 then
+    ShadowCasterFileName := Parameters[1];
+  if Parameters.High >= 2 then
+    ShadowReceiverFileName := Parameters[2];
+  if Parameters.High >= 3 then
+    LocalLightFileName := Parameters[3];
+
   try
     VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
 
