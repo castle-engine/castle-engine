@@ -21,13 +21,17 @@ integral over sphere where visibility = shadow caster non-blocking.
 Everything is Ok.
 
 Describe compression of env maps.
-- see demo results when it's calculated directly using env maps
-  ("Program -> Use spherical harmonics" can be turned off)
-- for min/max radius and size of env maps, you can use "SF explorer"
+- See demo results when it's calculated directly using env maps
+  ("Program -> Use spherical harmonics" can be turned off).
+  Note that currently interpolation is never done when using directly
+  env maps (interpolating env maps would be very slow).
+
+- For min/max radius and size of env maps, you can use "SF explorer"
   object in demo program. Largest sphere radius is easy to check
   visually: ideally, outside of largest sphere radius,
   OOF should be safely considered pure white, SRF pure black.
-- note ugly aliasing and the need for interpolation. Only linear-radius
+
+- Note ugly aliasing and the need for interpolation. Only linear-radius
   interpolation is not enough. See demo program, change interpolation.
 
   Note that aliasing is the result of shadow fields using too few
@@ -36,6 +40,7 @@ Describe compression of env maps.
   that smooth it by the wat). This means that environment light
   or self-shadowing (that are single env map, not shadow field)
   are not problematic.
+
 - compare various SHCount values (speed/accuracy balance)
 
 My current demo implementation in shadow_fields.pasprogram:
@@ -48,30 +53,25 @@ My current demo implementation in shadow_fields.pasprogram:
   to inspect environment maps at arbitrary points in 3D space.
   I call this "shadow fields explorer" in code.
 Also, there's no rotating of caster/light source. Only move/scale.
-Also, we assume shadow caster is a plane (roughly, small bumps allowed)
-along the z=const.
 Also, no self-shadowing.
+Also, only local light or environ light works (not both).
+Also, BRDF and cos are not applied.
 
 So in my implementation the algorithm (from figure 5) degenerates to:
-- first, sort (once!) casters and local light along the z axis.
-  So we have
-    Sd (environ light) ... ObjectsFarther ... LocalLight ... ObjectsCloser ...
-- for v := each vertex:
-    Tp := BRDF TODO: multiplied by cosinus
 
-    for Ob := all ObjectsCloser:
-      o := get env map from from OOF field of Ob, using (v - Ob.position)
-      Tp := TripleProduct(o, Tp)
+  First, compare whether shadow caster works
+  (for env light: always true, for local light:
+  when caster closer than local light).
 
-    s := get env map from SRF field of local light, using (v - local light.position)
-    Bp += DoubleProduct(s, Tp)
-
-    for Ob := all ObjectsFarther:
-      o := get env map from from OOF field of Ob, using (v - Ob.position)
-      Tp := TripleProduct(o, Tp)
-
-    s := constant env map of environment light
-    Bp += DoubleProduct(s, Tp)
+  If shadow caster doesn't work, then
+    Bp := simple integral over light (trivial to calculate, see code)
+  else
+    o := get env map from from OOF field of Ob, using (v - Ob.position)
+    if env light then
+      s := constant env map of environment light
+    else
+      s := get env map from SRF field of local light, using (v - local light.position)
+    Bp := DoubleProduct(o, s)
 
 Shadow fields are trivially saved to a binary file,
 basically dumping all env map contents from memory,
@@ -79,6 +79,8 @@ and piping through gzip (de)compressing stream.
 Gzip reduces data size extremely: for real env maps compression is > 100 times
 (from 36 MB to 250 KB). (For empty testing env maps it's around 1000 times,
 to 36 KB). No surprise, this type of data is highly compressible.
+The SH vector factors are a little harder to compress, but still
+compressed file is very small.
 
 Source code: besides sources in this directory, take a look at
 the spherical harmonics and cube env map utilities in units
