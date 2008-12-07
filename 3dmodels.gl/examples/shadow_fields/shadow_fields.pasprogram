@@ -266,6 +266,17 @@ var
   CasterBeforeLocalLight: boolean;
 
   procedure CalculateByEnvMaps;
+  { Implementation using directly environment maps has some shortcomings
+    that are not planned to be corrected (simply because they would be
+    too slow, and/or I know how to do them much faster by spherical harmonics,
+    so there's no point in implementing them for env maps version ---
+    env maps version was/is only for testing anyway):
+    - there's no interpolation (would be very slow)
+    - we don't handle here environmental light
+      (to fix, you have to change SHVectorGLCapture to return also the raw map)
+    - we don't take into account that different pixels on the env map have
+      different solid angle
+  }
   var
     CasterMap, LocalLightMap: PEnvMapByte;
     B: LongWord;
@@ -279,9 +290,6 @@ var
     if not (CasterBeforeLocalLight or UseEnvLight) then
       CasterMap := nil;
 
-    { TODO: we don't handle here environmental light.
-      Change SHVectorGLCapture to return also the raw map. }
-
     LocalLightMap := LocalLightSRF.EnvMapFromPoint(VectorSubtract(
       Position, NavigatorLocalLight.MoveAmount),
       NavigatorLocalLight.ScaleFactor);
@@ -290,11 +298,7 @@ var
       { Too far from light }
       Result := Vector3Single(0, 0, 0) else
     begin
-      { TODO: we completely ignore here BRDF and cos() for light equations!
-        TODO: we don't really have env light now:
-          - no env light intensity.
-          - environ light may have non-const intensity over the sphere.
-            calc it's env map, like for PRT. }
+      { TODO: we completely ignore here BRDF and cos() for light equations! }
 
       B := 0;
       if CasterMap = nil then

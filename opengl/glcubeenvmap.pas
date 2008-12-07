@@ -138,14 +138,11 @@ begin
     { Each SHVector[SHBasis] is now calculated for all sphere points.
       We want this to be integral over a sphere, so normalize now.
 
-      We could multiply each SHVector[SHBasis] in DrawMap
-      by solid angle of given pixel
-      (on cube map, pixels have different solid angles).
-      Then below we would divide by 4*Pi (sphere area).
-
-      TODO: for now, ignore solid angle, assume all pixels have the same influence.
-      So just divide by number of points... }
-    SHVector[SHBasis] /= 6 * Sqr(EnvMapSize);
+      Since SHBasisMap contains result of SH function * solid angle of pixel
+      (on cube map, pixels have different solid angles),
+      so below we divide by 4*Pi (sphere area, sum of solid angles for every
+      pixel). }
+    SHVector[SHBasis] /= 4 * Pi;
   end;
 end;
 

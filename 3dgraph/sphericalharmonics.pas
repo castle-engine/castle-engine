@@ -55,12 +55,14 @@ procedure LMDecode(const LM: Cardinal; out L: Cardinal; out M: Integer);
 
 var
   (*For each SHBasis function (first index of the array is LM of this function),
-    a precalculated results of basis spherical harmonic functions.
+    a precalculated results of basic spherical harmonic functions.
+    Multiplied by solid angle of this cube map pixel, since this is what
+    you usually need.
 
     For each side of the cube, and for each pixel on this side (pixels are
     arranged same as in TGrayscaleImage, that is row-by-row from
     lower to higher, from left to right) this gives the result of SHBasis
-    for this direction.
+    for this direction. Multiplied by solid angle.
 
     You have to initialize this (once, like at the beginning of your
     program) by InitializeSHBasisMap.
@@ -228,7 +230,8 @@ begin
       for Pixel := 0 to Sqr(EnvMapSize) - 1 do
       begin
         SHBasisMap[LM][Side][Pixel] :=
-          SHBasis(LM, XYZToPhiTheta(EnvMapDirection(Side, Pixel)));
+          SHBasis(LM, XYZToPhiTheta(EnvMapDirection(Side, Pixel))) *
+          EnvMapSolidAngle(Side, Pixel);
       end;
 
   SHBasisMapInitialized := true;
@@ -253,15 +256,12 @@ begin
     { SHVector[LM] is now calculated for all sphere points.
       We want this to be integral over a sphere, so normalize now.
 
-      We could multiply each LightSHBasis[SHBasis] in DrawLightMap
-      by solid angle of given pixel
-      (on cube map, pixels have different solid angles).
-      Then below we would divide by 4*Pi (sphere area).
+      Since SHBasisMap contains result of SH function * solid angle of pixel
+      (on cube map, pixels have different solid angles),
+      so below we divide by 4*Pi (sphere area, sum of solid angles for every
+      pixel). }
 
-      TODO: for now, ignore solid angle, assume all pixels have the same influence.
-      So just divide by number of points... }
-
-    SHVector[LM] /= 6 * Sqr(EnvMapSize);
+    SHVector[LM] /= 4 * Pi;
   end;
 end;
 
