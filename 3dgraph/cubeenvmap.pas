@@ -92,10 +92,17 @@ type
   TEnvMapByte = array [TEnvMapSide, 0..Sqr(EnvMapSize) - 1] of Byte;
   PEnvMapByte = ^TEnvMapByte;
 
+{ Calculate solid angle of given pixel on the cube map. }
+function EnvMapSolidAngle(const Side: TEnvMapSide;
+  const Pixel: Cardinal): Float;
+
 implementation
 
 uses SysUtils, KambiUtils;
 
+{ Note: EnvMapSolidAngle assumes that implementation of this actually
+  returns the position of the middle of the pixel. That is, it assumes
+  you don't normalize the returned direction. }
 function EnvMapDirection(const Side: TEnvMapSide;
   const Pixel: Cardinal): TVector3Single;
 var
@@ -270,6 +277,41 @@ begin
     Clamp(PixelY[I], 0, EnvMapSize - 1);
     Pixel[I] := PixelY[I] * EnvMapSize + PixelX[I];
   end;
+end;
+
+function EnvMapSolidAngle(const Side: TEnvMapSide;
+  const Pixel: Cardinal): Float;
+
+  { An approximation of solid angle valid for small angles is:
+
+    cos(angle between vector from zero through middle of the polygon
+              and normal vector of polygon)
+    * polygon area
+    / Sqr(distance from zero to middle of the polygon)
+
+    "middle of the polygon" = just Dir (we depend here on EnvMapDirection
+    implementation --- this is Ok, we're in the same unit).
+
+    The cos(...) = vector dot product between normalized(dir) and normal of
+    this side.
+
+    The area is always Sqr(2/EnvMapSize) (since cube map = cube of size 2,
+    each side has EnvMapSize * EnvMapSize pixels. }
+
+var
+  Dir: TVector3Single;
+  DirLength: Single;
+begin
+  Dir := EnvMapDirection(Side, Pixel);
+  DirLength := VectorLen(Dir);
+
+  { normalize Dir. Since we already have DirLength,
+    we can just call VectorScale. }
+  VectorScaleTo1st(Dir, 1/DirLength);
+
+  Result := VectorDotProduct(Dir, EnvMapInfo[Side].Dir) *
+    ( 4 / Sqr(EnvMapSize) ) /
+    Sqr(DirLength);
 end;
 
 end.

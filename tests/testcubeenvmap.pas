@@ -31,11 +31,12 @@ type
   TTestCubeEnvMap = class(TTestCase)
   published
     procedure TestReverse;
+    procedure TestEnvMapSolidAngle;
   end;
 
 implementation
 
-uses VectorMath, CubeEnvMap;
+uses VectorMath, CubeEnvMap, Math;
 
 procedure TTestCubeEnvMap.TestReverse;
 var
@@ -51,6 +52,43 @@ begin
       Assert(NewSide = Side);
       Assert(NewPixel = Pixel);
     end;
+end;
+
+procedure TTestCubeEnvMap.TestEnvMapSolidAngle;
+var
+  Side: TEnvMapSide;
+  Pixel: Cardinal;
+  SphereArea, SphereArea2: Float;
+begin
+  SphereArea := 0;
+  SphereArea2 := 0;
+
+  for Side := Low(Side) to High(Side) do
+    for Pixel := 0 to Sqr(EnvMapSize) - 1 do
+    begin
+      SphereArea += EnvMapSolidAngle(Side, Pixel);
+      SphereArea2 += (4 * Pi)/(6*Sqr(EnvMapSize));
+    end;
+
+  { I use SphereArea2 only to test the accuracy of addition:
+    remember that even if EnvMapSolidAngle would be perfect,
+    adding "6*Sqr(EnvMapSize)" values together always has some precision
+    error accumulated.
+
+    Although in practice, it turned out that SphereArea2 is identical
+    (at least on first 30 decimal places) to 4*Pi. So Float accuracy
+    is nice. }
+
+  {
+  Writeln(SphereArea:1:30);
+  Writeln(SphereArea2:1:30);
+  Writeln((4 * Pi):1:30);
+  }
+
+  { EnvMapSolidAngle is a gross approximation now, so we allow quite large
+    error. }
+
+  Assert(FloatsEqual(SphereArea, 4 * Pi, 0.02));
 end;
 
 initialization
