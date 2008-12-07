@@ -54,11 +54,19 @@ begin
     end;
 end;
 
-procedure TTestCubeEnvMap.TestEnvMapSolidAngle;
+type
+  generic TTester<T> = class
+    procedure DoTest;
+  end;
+  TTesterSingle = specialize TTester<Single>;
+  TTesterDouble = specialize TTester<Double>;
+  TTesterExtended = specialize TTester<Extended>;
+
+procedure TTester.DoTest;
 var
   Side: TEnvMapSide;
   Pixel: Cardinal;
-  SphereArea, SphereArea2: Float;
+  SphereArea, SphereArea2: T;
 begin
   SphereArea := 0;
   SphereArea2 := 0;
@@ -75,20 +83,55 @@ begin
     adding "6*Sqr(EnvMapSize)" values together always has some precision
     error accumulated.
 
-    Although in practice, it turned out that SphereArea2 is identical
-    (at least on first 30 decimal places) to 4*Pi. So Float accuracy
-    is nice. }
+    Results comparing SphereArea2 with (4 * Pi) (accuracy of addition):
 
-  {
-  Writeln(SphereArea:1:30);
-  Writeln(SphereArea2:1:30);
-  Writeln((4 * Pi):1:30);
+    Single:
+      12.566516876220703
+      12.566370614359173
+            | - difference here
+
+    Double:
+      12.566370614359418
+      12.566370614359173
+                     | - difference here
+
+    Extended:
+      12.566370614359173
+      12.566370614359173
+
+                         | no visible difference of these digits.
+                           Looked at 30 first decimal digits,
+                           still no difference.
   }
+
+{
+  Writeln(Format('%g', [SphereArea]));
+//  Writeln(Format('%g', [SphereArea2]));
+  Writeln(Format('%g', [4 * Pi]));
+}
 
   { EnvMapSolidAngle is a gross approximation now, so we allow quite large
     error. }
-
   Assert(FloatsEqual(SphereArea, 4 * Pi, 0.02));
+end;
+
+procedure TTestCubeEnvMap.TestEnvMapSolidAngle;
+var
+  TS: TTesterSingle;
+  TD: TTesterDouble;
+  TE: TTesterExtended;
+begin
+  TS := TTesterSingle.Create;
+  TS.DoTest;
+  TS.Free;
+
+  TD := TTesterDouble.Create;
+  TD.DoTest;
+  TD.Free;
+
+  TE := TTesterExtended.Create;
+  TE.DoTest;
+  TE.Free;
 end;
 
 initialization

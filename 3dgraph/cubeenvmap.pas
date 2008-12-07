@@ -94,7 +94,7 @@ type
 
 { Calculate solid angle of given pixel on the cube map. }
 function EnvMapSolidAngle(const Side: TEnvMapSide;
-  const Pixel: Cardinal): Float;
+  const Pixel: Cardinal): Single;
 
 implementation
 
@@ -280,23 +280,29 @@ begin
 end;
 
 function EnvMapSolidAngle(const Side: TEnvMapSide;
-  const Pixel: Cardinal): Float;
+  const Pixel: Cardinal): Single;
 
-  { An approximation of solid angle valid for small angles is:
+{ An approximation of solid angle valid for small angles is:
 
-    cos(angle between vector from zero through middle of the polygon
-              and normal vector of polygon)
-    * polygon area
-    / Sqr(distance from zero to middle of the polygon)
+  cos(angle between vector from zero through middle of the polygon
+            and normal vector of polygon)
+  * polygon area
+  / Sqr(distance from zero to middle of the polygon)
 
-    "middle of the polygon" = just Dir (we depend here on EnvMapDirection
-    implementation --- this is Ok, we're in the same unit).
+  "middle of the polygon" = just Dir (we depend here on EnvMapDirection
+  implementation --- this is Ok, we're in the same unit).
 
-    The cos(...) = vector dot product between normalized(dir) and normal of
-    this side.
+  The cos(...) = vector dot product between normalized(dir) and normal of
+  this side.
 
-    The area is always Sqr(2/EnvMapSize) (since cube map = cube of size 2,
-    each side has EnvMapSize * EnvMapSize pixels. }
+  The area is always Sqr(2/EnvMapSize) (since cube map = cube of size 2,
+  each side has EnvMapSize * EnvMapSize pixels. }
+
+{ A note on accuracy: I tried to return here Float, and use Float values
+  in the middle, but testing with
+  kambi_vrml_game_engine/tests/testcubeenvmap.pas
+  shows that it doesn't matter. Single is enough, Double or Extended
+  doesn't improve it. }
 
 var
   Dir: TVector3Single;
