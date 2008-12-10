@@ -23,13 +23,11 @@ case when you know that user will usually not see the whole scene.
     Active part of it consists of only one cone, since sphere is not
     visible.)
 
-  @itemLabel What is ShapeState ?
+  @itemLabel What is a shape?
   @item(
-    So-called ShapeState is a VRML node that represents some
-    visible geometry (for VRML 1.0 this means one of the nodes
-    AsciiText, Cone, Cube, Cylinder, IndexedFaceSet, IndexedLineSet,
-    PointSet, Sphere) accompanied with the "state" of various things when
-    this node is used in VRML file. E.g. this VRML file
+    It's a VRML geometry node with a state.
+    For VRML 2.0, this corresponds to an instance of a @code(Shape) node.
+    It's TVRMLShape class. E.g. this VRML file
 
 @preformatted(
   #VRML V1.0 ascii
@@ -41,7 +39,7 @@ case when you know that user will usually not see the whole scene.
 )
 
     consists of @bold(two) geometry nodes (named MySphere and MyCone) and has
-    @bold(three) ShapeStates:
+    @bold(three) shapes:
 
     @orderedList(
       @itemSpacing compact
@@ -50,26 +48,12 @@ case when you know that user will usually not see the whole scene.
       @item MySphere textured by bbb.png
     )
 
-    Many (although not all) VRML nodes are either geometry nodes
+    Many VRML nodes are either geometry nodes
     (that represent something visible) or nodes that affect subsequent state.
 
-    For more details, see source code:
-
-    @unorderedList(
-      @itemSpacing compact
-      @item(The "state" is an instance of class @link(TVRMLGraphTraverseState).)
-      @item(The "geometry node" is an instance of class @link(TVRMLGeometryNode).)
-      @item(The Shape is an instance of class @link(TVRMLShape),
-        containing both geometry and it's state.)
-    )
-
-    Understanding the term "ShapeState" is important, since this is the basis
+    @italic(Shape) is the basis
     of optimizations outlined below. After loading the VRML model,
-    class @link(TVRMLScene) creates a flat view of this model as a list
-    of all ShapeStates that are in the active part of the model.
-    I call this a "flat view" of the model because original vrml model
-    is an acyclic directed graph (no, it's not a tree since you have
-    the "USE" keyword).)
+    class @link(TVRMLScene) creates a simple tree of the shapes in the model.)
 )
 
 @section(3 OpenGLOptimizationDone
@@ -78,26 +62,26 @@ case when you know that user will usually not see the whole scene.
 @orderedList(
   @item(
     You can use @link(TVRMLGLScene) with @link(TVRMLGLScene.Optimization
-    Optimization) = roSeparateShapeStates
+    Optimization) = roSeparateShapes
     and use it's Render* methods that take into account your visibility
     frustum (e.g. @link(TVRMLGLScene.RenderFrustum RenderFrustum))
     or visibility sphere or something like that
     (generally speaking: methods that generate some function
-    TestShapeStateVisibility that can quickly decide that some ShapeStates
+    TestShapeVisibility that can quickly decide that some Shapes
     are not visible by the user).
 
-    Simple approach to this, i.e. testing each ShapeState
+    Simple approach to this, i.e. testing each shape
     for visibility separately,
-    works great when you have relatively few ShapeStates in your
+    works great when you have relatively few shapes in your
     scene (let's say <= 100, but this estimation may be too big or too
-    small in some practical cases). And such ShapeStates have small
+    small in some practical cases). And such shapes have small
     BoundingBoxes. Then this scheme will be often able to quickly
-    eliminate whole ShapeStates from rendering pipeline, thus
+    eliminate whole shapes from rendering pipeline, thus
     decreasing amount of triangles that we pass to OpenGL, thus speeding
     up the rendering.
 
     Drawbacks: this means that "internal" design of your model
-    (how it's divided into ShapeStates) matters a lot.
+    (how it's divided into shapes) matters a lot.
     E.g. don't define your entire model as one IndexedFaceSet node.
     Don't define your model as many many many IndexedFaceSet nodes
     that have very few (let's say <= 10) triangles.
@@ -111,39 +95,39 @@ case when you know that user will usually not see the whole scene.
 
     It is actually approach (1) but done in a little more sophisticated
     way: I'm traversing down octree (entering only into nodes that
-    collide with my viewing frustum), and this way I mark ShapeStates
+    collide with my viewing frustum), and this way I mark shapes
     that are possibly visible.
 
     To use this: just build your octree by adding ssRendering to
     @link(TVRMLScene.Spatial) and then render using
     @link(TVRMLGLScene.RenderFrustum).
     @link(TVRMLGLScene) still (like in approach (1))
-    should be constructed with Optimization = roSeparateShapeStates.
+    should be constructed with Optimization = roSeparateShapes.
 
-    This way I keep using roSeparateShapeStates, so most
+    This way I keep using roSeparateShapes, so most
     of drawbacks of (1) remain, but one drawback is removed:
-    the case when you have many many ShapeStates in your scene is more
+    the case when you have many many shapes in your scene is more
     tolerable now. You can even get @italic(better) performance by dividing
-    some of your ShapeStates to more ShapeStates. Of course,
+    some of your shapes to more shapes. Of course,
     this will work only to a certain point, i.e. at some point
-    making more ShapeStates will again degrade performance.
-    But now you can squeeze more ShapeStates than with approach (1).)
+    making more shapes will again degrade performance.
+    But now you can squeeze more shapes than with approach (1).)
 
   @item(
     There's also a modified version of approach (2).
-    With Optimization = roSeparateShapeStates, I create a separate
-    display list for each ShapeState, that includes ShapeState's
+    With Optimization = roSeparateShapes, I create a separate
+    display list for each shape, that includes shape's
     tranformation and lighting settings.
 
     However, this prevents
-    display lists sharing between various ShapeStates:
-    If the scene uses the same ShapeState many times, but transformed
+    display lists sharing between various shapes:
+    If the scene uses the same shape many times, but transformed
     differently, I would like to create only one display list for
-    such ShapeState. Moreover, when using TVRMLGLAnimation, if the
-    same ShapeState is used within each animation frame (and it's
+    such shape. Moreover, when using TVRMLGLAnimation, if the
+    same shape is used within each animation frame (and it's
     only transformed differently), I would also like to use one
     display list. This is achieved by
-    Optimization = roSeparateShapeStatesNoTransform.
+    Optimization = roSeparateShapesNoTransform.
 
     This is important that we save display list usage, as display lists
     can eat a huge amount of memory (as they have to store many things,
@@ -157,11 +141,11 @@ case when you know that user will usually not see the whole scene.
   @itemSetNumber 4
   @item(
     Then comes the obvious idea to don't use scene division given
-    by ShapeStates, but instead use triangles. This means that you
+    by shapes, but instead use triangles. This means that you
     will not any longer depend on how model designer divided your scene
-    into ShapeStates. All the drawbacks of (1) disappear : you can
-    have large ShapeStates with large BoundingBoxes, you can have
-    many many ShapeStates, etc.
+    into shapes. All the drawbacks of (1) disappear : you can
+    have large shapes with large BoundingBoxes, you can have
+    many many shapes, etc.
 
     To make this work you have to traverse octree to decide
     which triangles are in your visibility frustum/sphere/etc.
@@ -172,7 +156,7 @@ case when you know that user will usually not see the whole scene.
     Such traversing of the octree should be the first pass,
     when you're somehow marking visible triangles.
     Then, in the second pass, you should render your triangles
-    ShapeState-by-ShapeState. Otherwise (if you would try
+    shape-by-shape. Otherwise (if you would try
     to render triangles immediately when traversing your octree)
     you could produce too much overhead to OpenGL by too often
     changing your material/texture/etc. properties,
