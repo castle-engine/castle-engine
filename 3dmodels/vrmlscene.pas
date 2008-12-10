@@ -590,7 +590,7 @@ type
       by changing transformation of viewer's Viewpoint --- not interesting
       for now, since transforming Viewpoint does nothing for now).
 
-      Viewer position/dir/up must be at this point be stored within
+      Viewer position/dir/up must at this point be stored within
       LastViewerXxx. }
     procedure ProximitySensorUpdate(var PSI: TProximitySensorInstance);
 

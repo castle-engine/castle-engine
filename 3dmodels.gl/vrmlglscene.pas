@@ -2132,8 +2132,7 @@ begin
     if Shape.SSSX_DisplayList = 0 then
       SSS_PrepareShape(Shape);
 
-    Renderer.RenderShapeLights(LightsRenderer,
-      Shape.State);
+    Renderer.RenderShapeLights(LightsRenderer, Shape.State);
 
     glCallList(Shape.SSSX_DisplayList);
   end else
@@ -2142,8 +2141,7 @@ begin
     { Make sure that it's prepared. }
     SSS_PrepareShape(Shape);
 
-    Renderer.RenderShapeLights(LightsRenderer,
-      Shape.State);
+    Renderer.RenderShapeLights(LightsRenderer, Shape.State);
 
     RenderShape_NoLight(Shape);
   end;
@@ -2205,18 +2203,13 @@ begin
     if Shape.SSSX_DisplayList = 0 then
       SSSNT_PrepareShape(Shape);
 
-    Renderer.RenderShapeLights(LightsRenderer,
-      Shape.State);
+    Renderer.RenderShapeLights(LightsRenderer, Shape.State);
 
-    Renderer.RenderShapeBegin(
-      Shape.GeometryNode,
-      Shape.State);
+    Renderer.RenderShapeBegin(Shape.GeometryNode, Shape.State);
     try
       glCallList(Shape.SSSX_DisplayList);
     finally
-      Renderer.RenderShapeEnd(
-        Shape.GeometryNode,
-        Shape.State);
+      Renderer.RenderShapeEnd(Shape.GeometryNode, Shape.State);
     end;
   end else
   begin
@@ -2224,8 +2217,7 @@ begin
     { Make sure that it's prepared. }
     SSSNT_PrepareShape(Shape);
 
-    Renderer.RenderShapeLights(LightsRenderer,
-      Shape.State);
+    Renderer.RenderShapeLights(LightsRenderer, Shape.State);
 
     RenderShape_NoLight(Shape);
   end;
