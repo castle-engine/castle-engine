@@ -422,9 +422,18 @@ begin
     IsActive := NewIsActive;
   end;
 
+  { This will be true in most usual situations, but in some complicated
+    setups sending isActive/isPaused/elapsedTime (and sending elapsedTime
+    causes sending other events for TimeSensor) may cause sending another
+    event to the same node, thus calling SetWorldTime recursively,
+    and changing values at the end. Example: rrtankticks when often
+    clicking on firing the cannon. So these assertions do not have to be
+    true in complicated scenes.
+
   Assert(IsActive = NewIsActive);
   Assert(IsPaused = NewIsPaused);
   Assert(ElapsedTime = NewElapsedTime);
+  }
 
   {$ifdef LOG_TIME_DEPENDENT_NODES}
   if Log then
