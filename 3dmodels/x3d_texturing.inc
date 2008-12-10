@@ -197,6 +197,17 @@
     { Returns TextureProperties node, if this node has some "textureProperties"
       field and it specifies TextureProperties node. Otherwise returns @nil. }
     function TextureProperties: TNodeTextureProperties; virtual;
+
+    private FFdAlphaChannel: TSFString;
+    public property FdAlphaChannel: TSFString read FFdAlphaChannel;
+
+    { Allows VRML authors to override automatic alpha channel detection
+      of the texture, see TImage.AlphaChannelType.
+
+      Result of this is based on the value of field "alphaChannel",
+      see
+      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_alpha_channel_detection]. }
+    function DetectAlphaChannel: TDetectAlphaChannel;
   end;
 
   TNodeX3DTexture2DNode = class(TVRMLTextureNode)
@@ -512,6 +523,11 @@ constructor TVRMLTextureNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
+
+  FFdAlphaChannel := TSFString.Create(Self, 'alphaChannel', 'AUTO');
+  FFdAlphaChannel.Exposed := false;
+  Fields.Add(FFdAlphaChannel);
+
   TextureDataUsedCache := nil;
   FIsTextureLoaded := false;
 end;
@@ -621,6 +637,27 @@ end;
 function TVRMLTextureNode.TextureProperties: TNodeTextureProperties;
 begin
   Result := nil;
+end;
+
+function TVRMLTextureNode.DetectAlphaChannel: TDetectAlphaChannel;
+
+  function DetectAlphaChannelFromString(S: string): TDetectAlphaChannel;
+  begin
+    S := UpperCase(S);
+    if S = 'AUTO' then
+      Result := daAuto else
+    if S = 'SIMPLE_YES_NO' then
+      Result := daSimpleYesNo else
+    if S = 'FULL_RANGE' then
+      Result := daFullRange else
+    begin
+      VRMLNonFatalError(Format('Invalid "alphaChannel" field value "%s"', [S]));
+      Result := daAuto;
+    end;
+  end;
+
+begin
+  Result := DetectAlphaChannelFromString(FdAlphaChannel.Value);
 end;
 
 { TNodeX3DTexture2DNode ------------------------------------------------------ }

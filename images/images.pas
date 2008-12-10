@@ -221,6 +221,10 @@ type
   EImageLerpInvalidClasses = class(EImageLerpError);
   EImageLerpDifferentSizes = class(EImageLerpError);
 
+  { Used to potentially override AlphaChannelType detection,
+    see AlphaChannelTypeOverride. }
+  TDetectAlphaChannel = (daAuto, daSimpleYesNo, daFullRange);
+
   { TImage is an abstract class representing image as a simple array of pixels.
     RawPixels is a pointer to Width * Height of values of some
     type, let's call it TPixel. TPixel specifies the color of the pixel
@@ -628,6 +632,24 @@ type
     function AlphaChannelType(
       const AlphaTolerance: Byte = 0;
       const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType; virtual;
+
+    { Usually calls @link(AlphaChannelType), but allows you to override
+      detection by TDetectAlphaChannel.
+
+      When DetectAlphaChannel is daAuto, this is simply equivalent to
+      normal AlphaChannelType.
+
+      For other values of DetectAlphaChannel,
+      when the image has any alpha channel,
+      then DetectAlphaChannel decides whether this is full range or simple
+      yes/no alpha channel. This means that nice algorithm of AlphaChannelType
+      will not be used. This allows you to give user control over alpha
+      channel detection,
+      like for [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_alpha_channel_detection]. }
+    function AlphaChannelTypeOverride(
+      const DetectAlphaChannel: TDetectAlphaChannel;
+      const AlphaTolerance: Byte = 0;
+      const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType;
 
     { Makes linear interpolation of colors from this image and the SecondImage.
       Intuitively, every pixel in new image is set to
@@ -1885,6 +1907,24 @@ function TImage.AlphaChannelType(
   const WrongPixelsTolerance: Single): TAlphaChannelType;
 begin
   Result := atNone;
+end;
+
+function TImage.AlphaChannelTypeOverride(
+  const DetectAlphaChannel: TDetectAlphaChannel;
+  const AlphaTolerance: Byte = 0;
+  const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType;
+begin
+  if DetectAlphaChannel = daAuto then
+    Result := AlphaChannelType(AlphaTolerance, WrongPixelsTolerance) else
+  begin
+    if HasAlpha then
+    begin
+      if DetectAlphaChannel = daFullRange then
+        Result := atFullRange else
+        Result := atSimpleYesNo;
+    end else
+      Result := atNone;
+  end;
 end;
 
 procedure TImage.LerpSimpleCheckConditions(SecondImage: TImage);

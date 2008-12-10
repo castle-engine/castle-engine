@@ -1688,7 +1688,8 @@ begin
   TextureCached^.GLName := Result;
 
   { calculate and save AlphaChannelType in the cache }
-  TextureCached^.AlphaChannelType := TextureImage.AlphaChannelType(
+  TextureCached^.AlphaChannelType := TextureImage.AlphaChannelTypeOverride(
+    TextureNode.DetectAlphaChannel,
     AlphaTolerance, AlphaWrongPixelsTolerance);
   if Log and (TextureCached^.AlphaChannelType <> atNone)  then
     WritelnLog('Alpha Detection', 'Alpha texture ' + TextureFullUrl +
@@ -1783,7 +1784,8 @@ begin
   TextureCached^.GLVideo := Result;
 
   { calculate and save AlphaChannelType in the cache }
-  TextureCached^.AlphaChannelType := TextureVideo.AlphaChannelType(
+  TextureCached^.AlphaChannelType := TextureVideo.AlphaChannelTypeOverride(
+    TextureNode.DetectAlphaChannel,
     AlphaTolerance, AlphaWrongPixelsTolerance);
   if Log and (TextureCached^.AlphaChannelType <> atNone)  then
     WritelnLog('Alpha Detection', 'Alpha texture ' + TextureFullUrl +

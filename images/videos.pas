@@ -272,6 +272,16 @@ type
     function AlphaChannelType(
       const AlphaTolerance: Byte;
       const WrongPixelsTolerance: Single): TAlphaChannelType;
+
+    { Alpha channel type of loaded video, possibly overridden by
+      DetectAlphaChannel.
+
+      See AlphaChannelType, TImage.AlphaChannelType,
+      TImage.AlphaChannelTypeOverride. }
+    function AlphaChannelTypeOverride(
+      const DetectAlphaChannel: TDetectAlphaChannel;
+      const AlphaTolerance: Byte;
+      const WrongPixelsTolerance: Single): TAlphaChannelType;
   end;
 
 { Does filename extension Ext looks like a video file extension
@@ -704,6 +714,16 @@ function TVideo.AlphaChannelType(
 begin
   Assert(Loaded);
   Result := Items[0].AlphaChannelType(AlphaTolerance, WrongPixelsTolerance);
+end;
+
+function TVideo.AlphaChannelTypeOverride(
+  const DetectAlphaChannel: TDetectAlphaChannel;
+  const AlphaTolerance: Byte;
+  const WrongPixelsTolerance: Single): TAlphaChannelType;
+begin
+  Assert(Loaded);
+  Result := Items[0].AlphaChannelTypeOverride(DetectAlphaChannel,
+    AlphaTolerance, WrongPixelsTolerance);
 end;
 
 { non-object routines -------------------------------------------------------- }
