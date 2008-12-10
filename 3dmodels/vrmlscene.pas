@@ -2312,6 +2312,36 @@ procedure TVRMLScene.ChangedFields(Node: TVRMLNode;
 var
   Field: TVRMLField;
 
+  procedure ChangedTimeDependentNode(Handler: TTimeDependentNodeHandler);
+  var
+    DummySomethingChanged: boolean;
+  begin
+    { Although (de)activation of time-dependent nodes will be also catched
+      by the nearest IncreaseWorldTime run, it's good to explicitly
+      call SetWorldTime to catch it here.
+
+      Reason: if cycleInterval is very small, and not looping, then
+      we could "miss" the fact that node should be activated (if it
+      was inactive, and next IncreaseWorldTime will happen after
+      cycleInterval time already passed).
+
+      Code below will make sure that no matter how small cycleInterval,
+      no matter how seldom IncreaseWorldTime occur, the node will get
+      activated when doing something like startTime := WorldTime. }
+
+    if (Field = nil) or
+       (Field = Handler.FdPauseTime) or
+       (Field = Handler.FdresumeTime) or
+       (Field = Handler.FdstartTime) or
+       (Field = Handler.FdstopTime) then
+    begin
+      Handler.SetWorldTime(WorldTime, WorldTime, 0, DummySomethingChanged);
+
+      { DummySomethingChanged is simply ignored here (we do not have to report
+        changes anywhere). }
+    end;
+  end;
+
   procedure DoLogChanges;
   var
     S: string;
@@ -2387,7 +2417,6 @@ begin
        they are routed somewhere, and this will be eventually
        detected in another ChangedFields call) }
      (Node is TNodeX3DPointingDeviceSensorNode) or
-     (Node is TNodeTimeSensor) or
      { script (like for sensors; script nodes take care themselves
         to react to events send to them) }
      (Node is TNodeScript) or
@@ -2577,12 +2606,18 @@ begin
         Exit;
       end;
     end else
-    if (Node is TNodeMovieTexture) or
-       (Node is TNodeTimeSensor) then
+    if Node is TNodeMovieTexture then
     begin
-      { No need to do anything.
-        Everything updated in time-dependent nodes will be catched by next
-        IncreaseWorldTime run. }
+      ChangedTimeDependentNode(TNodeMovieTexture(Node).TimeDependentNodeHandler);
+      { No need to do DoPostRedisplay.
+        Redisplay will be done by next IncreaseWorldTime run, if active now. }
+      Exit;
+    end else
+    if Node is TNodeTimeSensor then
+    begin
+      ChangedTimeDependentNode(TNodeTimeSensor(Node).TimeDependentNodeHandler);
+      { DoPostRedisplay not needed --- this is only a sensor, it's state
+        is not directly visible. }
       Exit;
     end else
     if Node is TVRMLViewpointNode then
@@ -2608,6 +2643,8 @@ begin
            (TNodeImageTexture(Node).FdUrl = Field) ) ) or
        ( (Node is TNodeMovieTexture) and
          ( (Field = nil) or
+           { TODO: we will not get here, as previous
+             "if Node is TNodeMovieTexture" hides this }
            (TNodeMovieTexture(Node).FdUrl = Field) ) ) or
        ( (Node is TNodeTexture2) and
          ( (Field = nil) or

@@ -123,7 +123,8 @@
       by TVRMLScene.SetWorldTime and friends.
 
       TimeIncrease = 0.0 here means "TimeIncrease is unknown",
-      this can happen only when were called by ResetWorldTime.
+      this can happen only when were called by ResetWorldTime
+      or when updating state from TVRMLScene.ChangedFields.
       In other circumstances, TimeIncrease must be > 0.
 
       References: see X3D specification "Time" component,
