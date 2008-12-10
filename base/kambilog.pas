@@ -75,7 +75,7 @@ procedure InitializeLog(const ProgramVersion: string);
       'You used --debug-log option but it seems that stdout (standard output) ' +
       'is not available. Under Windows you should explicitly ' +
       'redirect program''s stdout to make it available, e.g. ' +
-      'run "' + ProgramName + ' --debug-log > ' + ProgramName + '.log".');
+      'run "' + ProgramBaseName + ' --debug-log > ' + ProgramBaseName + '.log".');
   end;
 
 begin

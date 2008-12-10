@@ -86,9 +86,13 @@ Var
   Anyway, this is something that can be shown to user to
   identify our program. E.g. useful when you're writing
   error message on console, when UNIX standard is to always prefix
-  error message with ProgramName + ': ', like
+  error message with ProgramBaseName + ': ', like
   'cp: invalid file name'.
 
+  Note that for nicer program name see ProgramName. }
+function ProgramBaseName: string;
+
+{ A name of our program, something like a nicer version of ProgramBaseName.
   Right now this is simply equivalent to FPC's ApplicationName. }
 function ProgramName: string;
 
@@ -103,7 +107,7 @@ function NormalFileExists(const fileName: string): boolean;
 { Returns directory suitable for creating temporary files/directories.
   Note that this directory is shared by other programs, so be careful
   when creating here anything -- to minimize name conflicts
-  usually all filenames created here should start with ProgramName
+  usually all filenames created here should start with ProgramBaseName
   and then should follow things like process id (or sometimes
   user name, when you can guarantee that one user runs always only one
   instance of this program) or some random number.
@@ -119,7 +123,7 @@ function NormalFileExists(const fileName: string): boolean;
 function GetTempPath: string;
 
 { ----------------------------------------------------------------------
-  Filenames derived from ProgramName (and possibly ExeName under Windows).
+  Filenames derived from ProgramBaseName (and possibly ExeName under Windows).
 
   General comments for all functions below:
 
@@ -128,21 +132,21 @@ function GetTempPath: string;
   - filenames             to use to store user configuration files
   - path that program should use to obtain installed data files
 
-  Results of this functions are based on ProgramName
+  Results of this functions are based on ProgramBaseName
   (and possibly ExeName under Windows).
 
   They may also be based on existence on some files/directories.
   E.g. ProgramDataPath under UNIXes checks
-  "HomePath + '.' + ProgramName + '.data/'" for existence,
+  "HomePath + '.' + ProgramBaseName + '.data/'" for existence,
   and if it does not exist it assumes that program was installed
-  system-wide and returns "/usr/local/share/ + ProgramName".
+  system-wide and returns "/usr/local/share/ + ProgramBaseName".
 
   Because from time to time there arises a need to ask from one
   program about "what would be a result of Xxx function if it would
   be called by some other program", all functions come in 2 versions:
-  Xxx and Xxx_Other. Xxx_Other does *not* use ProgramName (and ExeName for
+  Xxx and Xxx_Other. Xxx_Other does *not* use ProgramBaseName (and ExeName for
   Windows) of current program -- instead caller must pass to Xxx_Other
-  value that would be returned by ProgramName/ExeName if it would
+  value that would be returned by ProgramBaseName/ExeName if it would
   be called from "some other program". If it seems confusing,
   just don't look at Xxx_Other functions, you probably don't need them.
 }
@@ -185,14 +189,14 @@ function UserConfigPath_Other(const WindowsExeNamePath: string): string;
   - has extention FExtension (FExtension should, as always, contain
     beginning dot. E.g. FExtension = '.ini'. This way you can pass
     FExtension = '' to have a filename without extension)
-  - filename depends on ProgramName
+  - filename depends on ProgramBaseName
 
   This is equivalent to
-  UserConfigFile_FromProposed(ProgramName + FExtension) }
+  UserConfigFile_FromProposed(ProgramBaseName + FExtension) }
 function UserConfigFile(const FExtension: string): string;
 
 function UserConfigFile_Other(
-  const FExtension, UnixProgramName, WindowsExeName: string): string;
+  const FExtension, UnixProgramBaseName, WindowsExeName: string): string;
 
 { Returns abslute file name:
   - inside UserConfigPath
@@ -219,11 +223,11 @@ function UserConfigFile_FromProposed_Other(
 
   Under Windows : returns ExtractFilePath(ExeName).
 
-  Under UNIXes: returns HomePath +'.' +ProgramName+'.data/'
+  Under UNIXes: returns HomePath +'.' +ProgramBaseName+'.data/'
   if such directory exists, else returns
-  '/usr/local/share/' +ProgramName+ '/'.
+  '/usr/local/share/' +ProgramBaseName+ '/'.
 
-  Note that HomePath +'.' +ProgramName +'.data/'
+  Note that HomePath +'.' +ProgramBaseName +'.data/'
   is checked first, this allows user to override system-wide
   installation of my program with his own installation.
   E.g. consider the situation when an old version of my program
@@ -239,18 +243,18 @@ function ProgramDataPath: string;
   ExtractFilePath(ExeName) where ExeName is what ExeName would return
   for this "other" program.
 
-  Under UNIX UnixProgramName must be what ProgramName would return
+  Under UNIX UnixProgramBaseName must be what ProgramBaseName would return
   for this "other" program.
 
   This way under UNIX parameter WindowsExeNamePath is ignored
-  and under Windows parameter UnixProgramName is ignored.
+  and under Windows parameter UnixProgramBaseName is ignored.
   I know that this looks strange, but this is the only safe way
   to write interface of this procedure.
 
   Use version without "_Other" suffix to get ProgramDataPath
   of *this* program, that uses this function. }
 function ProgramDataPath_Other(
-  const UnixProgramName, WindowsExeNamePath: string): string;
+  const UnixProgramBaseName, WindowsExeNamePath: string): string;
 
 { other file utilities ---------------------------------------------------- }
 
@@ -530,17 +534,21 @@ begin
 end;
 {$endif}
 
-function ProgramName_Other(const ParamStr0: string): string;
+function ProgramBaseName_Other(const ParamStr0: string): string;
 begin
  Result :=
    {$ifdef MSWINDOWS} ExtractOnlyFilename(ParamStr0) {$endif}
    {$ifdef UNIX}  ExtractFilename(ParamStr0) {$endif} ;
 end;
 
+function ProgramBaseName: string;
+begin
+  Result := ProgramBaseName_Other(ParamStr(0));
+end;
+
 function ProgramName: string;
 begin
   Result := ApplicationName;
-  { Result := ProgramName_Other(ParamStr(0)); }
 end;
 
 function NormalFileExists(const FileName: string): boolean;
@@ -607,7 +615,7 @@ begin
 end;
 
 { ----------------------------------------------------------------------
-  filenames derived from ProgramName (and possibly ExeName under Windows) }
+  filenames derived from ProgramBaseName (and possibly ExeName under Windows) }
 
 function UserConfigPath: string;
 begin
@@ -658,16 +666,16 @@ end;
 function UserConfigFile(const FExtension: string): string;
 begin
  Result := UserConfigFile_Other(FExtension,
-   {$ifdef UNIX} ProgramName {$else} '' {$endif},
+   {$ifdef UNIX} ProgramBaseName {$else} '' {$endif},
    {$ifdef MSWINDOWS} ExeName {$else} '' {$endif});
 end;
 
 function UserConfigFile_Other(
-  const FExtension, UnixProgramName, WindowsExeName: string): string;
+  const FExtension, UnixProgramBaseName, WindowsExeName: string): string;
 begin
  Result := UserConfigFile_FromProposed_Other(
-   {$ifdef MSWINDOWS} ProgramName_Other(WindowsExeName) {$endif}
-   {$ifdef UNIX}  UnixProgramName {$endif}
+   {$ifdef MSWINDOWS} ProgramBaseName_Other(WindowsExeName) {$endif}
+   {$ifdef UNIX}  UnixProgramBaseName {$endif}
     + FExtension,
    {$ifdef MSWINDOWS} ExtractFilePath(WindowsExeName) {$else} '' {$endif}
    );
@@ -690,7 +698,7 @@ end;
 function ProgramDataPath: string;
 begin
  Result := ProgramDataPath_Other(
-   {$ifdef UNIX}  ProgramName {$endif}
+   {$ifdef UNIX}  ProgramBaseName {$endif}
    {$ifdef MSWINDOWS} '' {$endif},
    {$ifdef MSWINDOWS} ExtractFilePath(ExeName) {$endif}
    { Avoid using ExeName under UNIXes }
@@ -699,16 +707,16 @@ begin
 end;
 
 function ProgramDataPath_Other(
-  const UnixProgramName, WindowsExeNamePath: string): string;
+  const UnixProgramBaseName, WindowsExeNamePath: string): string;
 {$ifdef MSWINDOWS}
 begin
  Result := WindowsExeNamePath;
 {$endif}
 {$ifdef UNIX}
 begin
- Result := HomePath +'.' +UnixProgramName +'.data/';
+ Result := HomePath +'.' +UnixProgramBaseName +'.data/';
  if not DirectoryExists(Result) then
-  Result := '/usr/local/share/' +UnixProgramName +'/';
+  Result := '/usr/local/share/' +UnixProgramBaseName +'/';
 {$endif}
 end;
 
