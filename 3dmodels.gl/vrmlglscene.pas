@@ -55,7 +55,7 @@ unit VRMLGLScene;
 { With this you can fine-tune performance of RenderFrustum when
   ShapeOctree is available.
   Exactly one of symbols RENDER_FRUSTUM_OCTREE_xxx below must be defined.
-  See implementation of @link(TVRMLGLScene.RenderFrustumOctree)
+  See implementation of @link(TVRMLGLScene.RenderFrustum)
   to see what each symbol means.
 
   My tests show that RENDER_FRUSTUM_OCTREE_NO_BONUS_CHECKS
@@ -846,7 +846,7 @@ type
       In other words, this does so-called "frustum culling".
 
       If OctreeRendering is initialized (so be sure to include
-      okRendering in @link(Octrees)), this octree will be used to quickly
+      ssRendering in @link(Spatial)), this octree will be used to quickly
       find visible Shape. Otherwise, we will just enumerate all
       Shapes (which may be slower if you really have a lot of Shapes).
 

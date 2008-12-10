@@ -59,7 +59,7 @@ case when you know that user will usually not see the whole scene.
       @itemSpacing compact
       @item(The "state" is an instance of class @link(TVRMLGraphTraverseState).)
       @item(The "geometry node" is an instance of class @link(TVRMLGeometryNode).)
-      @item(The ShapeState is an instance of class @link(TVRMLShapeState),
+      @item(The Shape is an instance of class @link(TVRMLShape),
         containing both geometry and it's state.)
     )
 
@@ -114,9 +114,9 @@ case when you know that user will usually not see the whole scene.
     collide with my viewing frustum), and this way I mark ShapeStates
     that are possibly visible.
 
-    To use this: just build your octree with
-    @link(TVRMLScene.CreateShapeStateOctree) and then render using
-    @link(TVRMLGLScene.RenderFrustumOctree).
+    To use this: just build your octree by adding ssRendering to
+    @link(TVRMLScene.Spatial) and then render using
+    @link(TVRMLGLScene.RenderFrustum).
     @link(TVRMLGLScene) still (like in approach (1))
     should be constructed with Optimization = roSeparateShapeStates.
 

@@ -42,7 +42,7 @@ const
   LM determines a pair (L, M) in the natural order: for each L,
   take for each M from -L to L.
   That is, LM = (0, 1, 2, 3, ...) indicate
-@precalculated(
+@preformatted(
     (L, M) =
   ( (0, 0),
     (1, -1), (1, 0), (1, 1),

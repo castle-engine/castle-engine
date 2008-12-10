@@ -31,8 +31,8 @@ type
       (or just a large part of it).
 
       Note that this nullifies the purpose of
-      @link(TVRMLGLScene.RenderFrustum) and
-      @link(TVRMLGLScene.RenderFrustumOctree) methods. And the purpose
+      @link(TVRMLGLScene.RenderFrustum) (with and without octree) methods.
+      And the purpose
       of the @link(TVRMLGLScene.Render) method with a parameter <> @nil.
       That's because the scene will always be rendered fully to OpenGL.
 
@@ -64,8 +64,7 @@ type
         @item(and/or you know that usually user will not see the whole scene,
           only a small part of it.
           See TestShapeVisibility parameter of @link(TVRMLGLScene.Render)
-          and @link(TVRMLGLScene.RenderFrustum) and
-          @link(TVRMLGLScene.RenderFrustumOctree).)
+          and @link(TVRMLGLScene.RenderFrustum).)
 
         @item(
           Another advantage of roSeparateShapes is when you use
