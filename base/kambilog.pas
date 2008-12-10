@@ -79,8 +79,6 @@ procedure InitializeLog(const ProgramVersion: string);
   end;
 
 begin
-  FLog := true;
-
   { Ideally, check for "StdOutStream = nil" should be all that is needed,
     and wrapping WritelnStr inside try...except should not be needed.
     But... see StdOutStream comments: you cannot
@@ -97,6 +95,16 @@ begin
   except
     on E: EWriteError do RaiseStdOutNotAvail;
   end;
+
+  { Set Log to true only once we succeded.
+
+    Otherwise (when FLog := true would be done at the beginning of
+    InitializeLog), if something is done in finally..end clauses surrounding
+    InitializeLog, and it does "if Log then WritelnLog..." then it would
+    try to write something to log --- even though we just jumped using
+    RaiseStdOutNotAvail. }
+
+  FLog := true;
 end;
 
 procedure WriteLog(const Title: string; const LogMessage: string);
