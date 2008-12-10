@@ -2374,33 +2374,15 @@ begin
   if Log and LogChanges then
     DoLogChanges;
 
-  { Ignore this ChangedFields call if node is not in our VRML graph.
-    Exception is for StateDefaultNodes nodes (they are not present in RootNode
-    graph, but influence us).
-
-    At some point, we ignored here changes to the inactive part of VRML graph,
-    by passing OnlyActive = true to IsNodePresent. (And assuming
-    that changing the node's field cannot change it's active state,
-    otherwise we would have to call IsNodePresent before and after
-    field's change.)
-
-    But now we have to allow processing nodes even in inactive part.
-    Reason? Our Shapes tree contains things from inactive part
-    (inactive Switch children), and they must be kept current just
-    like active parts. }
-
-  if (RootNode = nil) or
-     ( (not RootNode.IsNodePresent(Node, false)) and
-       ((NodeLastNodesIndex = -1) or
-         (StateDefaultNodes.Nodes[NodeLastNodesIndex] <> Node))
-     ) then
-    Exit;
-
   { Ignore this ChangedFields call if you're changing
     something that doesn't *directly* affect actual content:
     - metadata field
     - metadata or WorldInfo nodes
     - and others, see comments...
+
+    Do this first (before RootNode.IsNodePresent checks for ignoring),
+    as this is much faster. This way e.g. changing TouchSensor.enabled
+    or some other things works instantly fast.
   }
 
   if (Node is TNodeX3DNode) and
@@ -2427,6 +2409,28 @@ begin
      (Node is TNodeBooleanToggle) or
      { interpolators }
      (Node is TNodeX3DInterpolatorNode) then
+    Exit;
+
+  { Ignore this ChangedFields call if node is not in our VRML graph.
+    Exception is for StateDefaultNodes nodes (they are not present in RootNode
+    graph, but influence us).
+
+    At some point, we ignored here changes to the inactive part of VRML graph,
+    by passing OnlyActive = true to IsNodePresent. (And assuming
+    that changing the node's field cannot change it's active state,
+    otherwise we would have to call IsNodePresent before and after
+    field's change.)
+
+    But now we have to allow processing nodes even in inactive part.
+    Reason? Our Shapes tree contains things from inactive part
+    (inactive Switch children), and they must be kept current just
+    like active parts. }
+
+  if (RootNode = nil) or
+     ( (not RootNode.IsNodePresent(Node, false)) and
+       ((NodeLastNodesIndex = -1) or
+         (StateDefaultNodes.Nodes[NodeLastNodesIndex] <> Node))
+     ) then
     Exit;
 
   { Test other changes: }
