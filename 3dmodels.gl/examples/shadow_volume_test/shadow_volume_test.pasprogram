@@ -521,7 +521,7 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
   var
     CameraPos, CameraDir, CameraUp, GravityUp: TVector3Single;
   begin
-    CameraViewpointForWholeScene(SceneBoundingBox,
+    CameraViewpointForWholeScene(SceneBoundingBox, 2,
       CameraPos, CameraDir, CameraUp, GravityUp);
     Glw.WalkNav.Init(CameraPos, CameraDir, CameraUp, GravityUp, 0.0, 0.0);
   end;

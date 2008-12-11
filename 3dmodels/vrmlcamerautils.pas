@@ -51,7 +51,10 @@ const
   StdVRMLGravityUp: TVector3Single = (0, 1, 0);
   { @groupEnd }
 
+{ Calculate sensible camera configuration to see whole scene
+  in the Box. WantedCameraUp may be only 1 (+Y) or 2 (+Z) now. }
 procedure CameraViewpointForWholeScene(const Box: TBox3d;
+  const WantedCameraUp: Integer;
   out CameraPos, CameraDir, CameraUp, GravityUp: TVector3Single);
 
 { Constructs string with VRML node defining camera with given
@@ -162,6 +165,7 @@ begin
 end;
 
 procedure CameraViewpointForWholeScene(const Box: TBox3d;
+  const WantedCameraUp: Integer;
   out CameraPos, CameraDir, CameraUp, GravityUp: TVector3Single);
 var
   AvgSize: Single;
@@ -178,7 +182,7 @@ begin
     CameraPos[1] := (Box[0, 1] + Box[1, 1]) / 2;
     CameraPos[2] := (Box[0, 2] + Box[1, 2]) / 2;
     CameraDir := UnitVector3Single[0];
-    CameraUp := UnitVector3Single[2];
+    CameraUp := UnitVector3Single[WantedCameraUp];
   end;
 
   { Nothing more intelligent to do with GravityUp is possible... }
