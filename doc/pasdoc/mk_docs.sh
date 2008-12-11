@@ -134,9 +134,10 @@ if [ -n "$KAMBI_IS_CYGWIN" ]; then
   TMP_INTRODUCTION_FILENAME="`cygpath --windows \"$TMP_INTRODUCTION_FILENAME\"`"
 fi
 
-cat doc/introduction_begin.pasdoc \
-    3dmodels.gl/optimization_notes.pasdoc > \
-    "$TMP_INTRODUCTION_FILENAME"
+# We used to make introduction by glueing two files, that's the reason
+# for whole "$TMP_INTRODUCTION_FILENAME" mess. Right now, introduction.pasdoc
+# is simply the whole introduction used.
+cp -f doc/introduction.pasdoc "$TMP_INTRODUCTION_FILENAME"
 
 pasdoc \
    --format "$PASDOC_FORMAT" \
