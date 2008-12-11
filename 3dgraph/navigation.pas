@@ -2725,7 +2725,7 @@ var
 
       Angle := AngleRadBetweenVectors(CameraUp, GravityUp);
 
-      if FloatsEqual(Angle, HalfPi) then
+      if FloatsEqual(Angle, HalfPi, 0.01) then
       begin
         { FallingOnTheGround effect stops here. }
         FFallingOnTheGround := false;
