@@ -734,104 +734,13 @@ end;
   Useful for various classes that mimic Transform node behavior,
   but for any reason do not want to descend from TNodeTransform_2. }
 
-procedure TransformState(State: TVRMLGraphTraverseState;
-  center: TSFVec3f;
-  rotation: TSFRotation;
-  scale: TSFVec3f;
-  scaleOrientation: TSFRotation;
-  translation: TSFVec3f);
-var
-  M, IM, MRotateScaleOrient, IMRotateScaleOrient: TMatrix4Single;
-begin
-  { Inherited TVRMLGroupingNode already saved State.Transform and such.
+procedure TransformState
+{$I x3d_grouping_transformstate.inc}
 
-    To make InvertedTransform, we multiply inverted matrices in inverted order
-    below. }
-
-  TranslationMatrices(VectorAdd(Translation.Value, Center.Value), M, IM);
-  State.Transform := MatrixMult(State.Transform, M);
-  State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
-
-  { Note that even Axis = zero is OK, both M and IM will be identity in
-    this case. }
-  RotationMatricesRad(Rotation.RotationRad, Rotation.Axis, M, IM);
-  State.Transform := MatrixMult(State.Transform, M);
-  State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
-
-  if (Scale.Value[0] <> 1) or
-     (Scale.Value[1] <> 1) or
-     (Scale.Value[2] <> 1) then
-  begin
-    RotationMatricesRad(ScaleOrientation.RotationRad, ScaleOrientation.Axis,
-      MRotateScaleOrient, IMRotateScaleOrient);
-
-    State.Transform := MatrixMult(State.Transform, MRotateScaleOrient);
-    State.InvertedTransform := MatrixMult(IMRotateScaleOrient, State.InvertedTransform);
-
-    { For scaling, we explicitly request that if ScalingFactor contains
-      zero, IM will be forced to be identity. That's because VRML allows
-      scaling factor to have 0 components (we need InvertedTransform only
-      for special tricks). }
-
-    ScalingMatrices(Scale.Value, true, M, IM);
-    State.Transform := MatrixMult(State.Transform, M);
-    State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
-
-    { That's right, we reuse MRotateScaleOrient and IMRotateScaleOrient
-      matrices below. Since we want to reverse them now, so normal
-      Transform is multiplied by IM and InvertedTransform is multiplied by M. }
-    State.Transform := MatrixMult(State.Transform, IMRotateScaleOrient);
-    State.InvertedTransform := MatrixMult(MRotateScaleOrient, State.InvertedTransform);
-  end;
-
-  TranslationMatrices(VectorNegate(Center.Value), M, IM);
-  State.Transform := MatrixMult(State.Transform, M);
-  State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
-
-  State.AverageScaleTransform *=
-    (Scale.Value[0] + Scale.Value[1] + Scale.Value[2]) / 3;
-end;
-
-procedure TransformSimpleState(
-  State: TVRMLGraphTraverseState;
-  rotation: TSFRotation;
-  scale: TSFVec3f;
-  translation: TSFVec3f);
-var
-  M, IM: TMatrix4Single;
-begin
-  { Inherited TVRMLGroupingNode already saved State.Transform and such.
-
-    To make InvertedTransform, we multiply inverted matrices in inverted order
-    below. }
-
-  TranslationMatrices(Translation.Value, M, IM);
-  State.Transform := MatrixMult(State.Transform, M);
-  State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
-
-  { Note that even Axis = zero is OK, both M and IM will be identity in
-    this case. }
-  RotationMatricesRad(Rotation.RotationRad, Rotation.Axis, M, IM);
-  State.Transform := MatrixMult(State.Transform, M);
-  State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
-
-  if (Scale.Value[0] <> 1) or
-     (Scale.Value[1] <> 1) or
-     (Scale.Value[2] <> 1) then
-  begin
-    { For scaling, we explicitly request that if ScalingFactor contains
-      zero, IM will be forced to be identity. That's because VRML allows
-      scaling factor to have 0 components (we need InvertedTransform only
-      for special tricks). }
-
-    ScalingMatrices(Scale.Value, true, M, IM);
-    State.Transform := MatrixMult(State.Transform, M);
-    State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
-  end;
-
-  State.AverageScaleTransform *=
-    (Scale.Value[0] + Scale.Value[1] + Scale.Value[2]) / 3;
-end;
+procedure TransformSimpleState
+{$define TRANSFORM_SIMPLE}
+{$I x3d_grouping_transformstate.inc}
+{$undef TRANSFORM_SIMPLE}
 
 procedure TNodeTransform_2.BeforeTraverse(var State: TVRMLGraphTraverseState);
 begin
