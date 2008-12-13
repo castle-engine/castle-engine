@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2006 Michalis Kamburelis.
+  Copyright 2003-2006,2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -16,9 +16,11 @@
   You should have received a copy of the GNU General Public License
   along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
 }
 
-{ @abstract(This unit renders VRML lights list (TDynActiveLightArray)
+{ @abstract(Renders VRML light set (TDynActiveLightArray)
   into OpenGL.)
 
   It is mainly used by VRMLOpenGLRenderer
@@ -249,25 +251,6 @@ type
       (when glLightNum2 = -1 then it's interpreted as glGet(GL_MAX_LIGHT)-1).
       I.e. it calls glDisable(GL_LIGHTx) for them. }
     procedure TurnLightsOff;
-
-    { Detect position/direction of the main light that produces shadows.
-      This is useful when you want to make shadows on the scene
-      from only a single light, but your scene has many lights.
-
-      The main light is simply one with both @code(kambiShadows) and
-      @code(kambiShadowsMain) fields set to @true. See
-      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows]
-      for more info.
-      If no light with kambiShadows = kambiShadowsMain = TRUE
-      is present then this function returns @false,
-      since AMainLightPosition cannot be calculated.
-
-      AMainLightPosition[3] is always set to 1
-      (positional light) or 0 (indicates that this is a directional light).
-
-      @seealso TVRMLScene.MainLightForShadows }
-    function MainLightForShadows(
-      out AMainLightPosition: TVector4Single): boolean;
 
     { Turn off lights not supposed to light in the shadow.
 
@@ -676,34 +659,6 @@ begin
   CalculateRealGLLightNum2;
   for I := GLLightNum1 to RealGLLightNum2 do
     glDisable(GL_LIGHT0 + I);
-end;
-
-function TVRMLLightSetGL.MainLightForShadows(
-  out AMainLightPosition: TVector4Single): boolean;
-var
-  MyLightNum: Integer;
-  L: PActiveLight;
-begin
-  { Find main light, set Result and AMainLightPosition. }
-  Result := false;
-  L := Lights.Pointers[0];
-  for MyLightNum := 0 to Lights.Count - 1 do
-  begin
-    if L^.LightNode.FdKambiShadows.Value and
-       L^.LightNode.FdKambiShadowsMain.Value then
-    begin
-      Result := true;
-      if L^.LightNode is TVRMLPositionalLightNode then
-        AMainLightPosition := Vector4Single(L^.TransfLocation, 1) else
-      if L^.LightNode is TVRMLDirectionalLightNode then
-        AMainLightPosition := Vector4Single(L^.TransfNormDirection, 0) else
-        raise Exception.CreateFmt('TVRMLLightSetGL.MainLightForShadows: ' +
-          'light node "%s" cannot be used to cast shadows, it has no position ' +
-          'and no direction', [L^.LightNode.NodeTypeName]);
-      Break;
-    end;
-    Inc(L);
-  end;
 end;
 
 procedure TVRMLLightSetGL.TurnLightsOffForShadows;
