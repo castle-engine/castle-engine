@@ -18,7 +18,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(Wyswietlanie Background - "nieba" wokolo gracza.)
+{ @abstract(Rendering Background --- sky/ground around the camera.)
 
   Niebo to
   @unorderedList(
