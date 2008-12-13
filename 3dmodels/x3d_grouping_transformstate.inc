@@ -5,7 +5,10 @@
   {$ifndef TRANSFORM_SIMPLE} scaleOrientation: TSFRotation; {$endif}
   translation: TSFVec3f);
 var
-  M, IM, MRotateScaleOrient, IMRotateScaleOrient: TMatrix4Single;
+  M, IM: TMatrix4Single;
+  {$ifndef TRANSFORM_SIMPLE}
+  MRotateScaleOrient, IMRotateScaleOrient: TMatrix4Single;
+  {$endif}
 begin
   { Inherited TVRMLGroupingNode already saved State.Transform and such.
 
