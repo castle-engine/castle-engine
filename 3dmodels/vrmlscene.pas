@@ -2411,6 +2411,19 @@ begin
      (Node is TNodeX3DInterpolatorNode) then
     Exit;
 
+  { We used to check here RootNode.IsNodePresent, to eliminate
+    changes to nodes not in our graph. This is not done now,
+    as in fact this check is not needed, and usually it wastes quite
+    some time (for example, profile
+    ../3dmodels.gl/examples/change_vrml_by_code_2.pasprogram
+    when doing ChangedFields (not ChangedAll)).
+
+    In most cases, when modifying graph by code, and always when
+    modifying graph by VRML events, the Node is known to be inside
+    our VRML graph... }
+  { $define CHECK_NODE_PRESENCE}
+  {$ifdef CHECK_NODE_PRESENCE}
+
   { Ignore this ChangedFields call if node is not in our VRML graph.
     Exception is for StateDefaultNodes nodes (they are not present in RootNode
     graph, but influence us).
@@ -2432,6 +2445,7 @@ begin
          (StateDefaultNodes.Nodes[NodeLastNodesIndex] <> Node))
      ) then
     Exit;
+  {$endif CHECK_NODE_PRESENCE}
 
   { Test other changes: }
 
