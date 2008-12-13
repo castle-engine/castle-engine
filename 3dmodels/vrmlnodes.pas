@@ -4059,9 +4059,40 @@ type
 
   procedure TTraverseEnumerator.EnumerateChildrenFunction(
     Node, Child: TVRMLNode);
+  var
+    LastNodesIndex: Integer;
+    TraverseIntoChildren: boolean;
+    ParentInfoForChildren: TTraversingInfo;
   begin
-    Child.TraverseInternal(State, NodeClass, TraversingFunc,
-      TraversingAfterFunc, ParentInfo);
+    Child.BeforeTraverse(State);
+    try
+      TraverseIntoChildren := true;
+      if Child is NodeClass then
+        TraversingFunc(Child, State, ParentInfo, TraverseIntoChildren);
+
+      Child.MiddleTraverse(State);
+
+      if TraverseIntoChildren then
+      begin
+        ParentInfoForChildren.Node := Child;
+        ParentInfoForChildren.ParentInfo := ParentInfo;
+        ParentInfo := @ParentInfoForChildren;
+        try
+          Child.DirectEnumerateActive(@EnumerateChildrenFunction);
+        finally
+          ParentInfo := ParentInfoForChildren.ParentInfo;
+        end;
+      end;
+
+    finally Child.AfterTraverse(State) end;
+
+    if Assigned(TraversingAfterFunc) and
+       (Child is NodeClass) then
+      TraversingAfterFunc(Child, State, ParentInfo);
+
+    LastNodesIndex := Child.TraverseStateLastNodesIndex;
+    if LastNodesIndex <> -1 then
+      State.FLastNodes.Nodes[LastNodesIndex] := Child;
   end;
 
 procedure TVRMLNode.TraverseInternal(State: TVRMLGraphTraverseState;
@@ -4070,44 +4101,21 @@ procedure TVRMLNode.TraverseInternal(State: TVRMLGraphTraverseState;
   TraversingAfterFunc: TTraversingAfterFunc;
   ParentInfo: PTraversingInfo);
 var
-  LastNodesIndex: Integer;
   Enumerator: TTraverseEnumerator;
-  CurrentInfo: TTraversingInfo;
-  TraverseIntoChildren: boolean;
 begin
-  BeforeTraverse(State);
+  Enumerator := TTraverseEnumerator.Create;
   try
-    TraverseIntoChildren := true;
-    if Self is NodeClass then
-      TraversingFunc(Self, State, ParentInfo, TraverseIntoChildren);
+    Enumerator.State := State;
+    Enumerator.NodeClass := NodeClass;
+    Enumerator.TraversingFunc := TraversingFunc;
+    Enumerator.TraversingAfterFunc := TraversingAfterFunc;
+    Enumerator.ParentInfo := ParentInfo;
+    Enumerator.EnumerateChildrenFunction(nil, Self);
 
-    MiddleTraverse(State);
-
-    if TraverseIntoChildren then
-    begin
-      { CurrentInfo will be passed to children as their ParentInfo. }
-      CurrentInfo.Node := Self;
-      CurrentInfo.ParentInfo := ParentInfo;
-
-      Enumerator := TTraverseEnumerator.Create;
-      try
-        Enumerator.State := State;
-        Enumerator.NodeClass := NodeClass;
-        Enumerator.TraversingFunc := TraversingFunc;
-        Enumerator.TraversingAfterFunc := TraversingAfterFunc;
-        Enumerator.ParentInfo := @CurrentInfo;
-        DirectEnumerateActive(
-          {$ifdef FPC_OBJFPC} @ {$endif} Enumerator.EnumerateChildrenFunction);
-      finally FreeAndNil(Enumerator) end;
-    end;
-  finally AfterTraverse(State) end;
-
-  if Assigned(TraversingAfterFunc) and
-     (Self is NodeClass) then
-    TraversingAfterFunc(Self, State, ParentInfo);
-
-  LastNodesIndex := TraverseStateLastNodesIndex;
-  if LastNodesIndex <> -1 then State.FLastNodes.Nodes[LastNodesIndex] := Self;
+    { Check that, if all went without exception, Enumerator.ParentInfo
+      returned to original state. }
+    Assert(Enumerator.ParentInfo = ParentInfo);
+  finally FreeAndNil(Enumerator) end;
 end;
 
 procedure TVRMLNode.Traverse(
@@ -4382,7 +4390,9 @@ type
   procedure TEnumerateNodes0Enumerator.EnumerateChildrenFunction(
     Node, Child: TVRMLNode);
   begin
-    Child.EnumerateNodes(Proc, OnlyActive);
+    Proc(Child);
+
+    Child.DirectEnumerate(@EnumerateChildrenFunction, OnlyActive);
   end;
 
 procedure TVRMLNode.EnumerateNodes(
@@ -4390,14 +4400,11 @@ procedure TVRMLNode.EnumerateNodes(
 var
   Enumerator: TEnumerateNodes0Enumerator;
 begin
-  Proc(Self);
-
   Enumerator := TEnumerateNodes0Enumerator.Create;
   try
     Enumerator.Proc := Proc;
     Enumerator.OnlyActive := OnlyActive;
-    DirectEnumerate({$ifdef FPC_OBJFPC} @ {$endif}
-      Enumerator.EnumerateChildrenFunction, OnlyActive);
+    Enumerator.EnumerateChildrenFunction(nil, Self);
   finally FreeAndNil(Enumerator) end;
 end;
 
@@ -4412,7 +4419,9 @@ type
   procedure TEnumerateNodes1Enumerator.EnumerateChildrenFunction(
     Node, Child: TVRMLNode);
   begin
-    Child.EnumerateNodes(NodeClass, Proc, OnlyActive);
+    if Child is NodeClass then Proc(Child);
+
+    Child.DirectEnumerate(@EnumerateChildrenFunction, OnlyActive);
   end;
 
 procedure TVRMLNode.EnumerateNodes(nodeClass: TVRMLNodeClass;
@@ -4420,15 +4429,12 @@ procedure TVRMLNode.EnumerateNodes(nodeClass: TVRMLNodeClass;
 var
   Enumerator: TEnumerateNodes1Enumerator;
 begin
-  if Self is NodeClass then Proc(Self);
-
   Enumerator := TEnumerateNodes1Enumerator.Create;
   try
     Enumerator.NodeClass := NodeClass;
     Enumerator.Proc := Proc;
     Enumerator.OnlyActive := OnlyActive;
-    DirectEnumerate({$ifdef FPC_OBJFPC} @ {$endif}
-      Enumerator.EnumerateChildrenFunction, OnlyActive);
+    Enumerator.EnumerateChildrenFunction(nil, Self);
   finally FreeAndNil(Enumerator) end;
 end;
 
@@ -4444,7 +4450,11 @@ type
   procedure TEnumerateNodes2Enumerator.EnumerateChildrenFunction(
     Node, Child: TVRMLNode);
   begin
-    Child.EnumerateNodes(NodeClass, SeekNodeName, Proc, OnlyActive);
+    if (Child is NodeClass) and
+       (Child.NodeName = SeekNodeName) then
+      Proc(Child);
+
+    Child.DirectEnumerate(@EnumerateChildrenFunction, OnlyActive);
   end;
 
 procedure TVRMLNode.EnumerateNodes(NodeClass: TVRMLNodeClass;
@@ -4453,16 +4463,13 @@ procedure TVRMLNode.EnumerateNodes(NodeClass: TVRMLNodeClass;
 var
   Enumerator: TEnumerateNodes2Enumerator;
 begin
-  if (Self is nodeClass) and (NodeName = SeekNodeName) then proc(Self);
-
   Enumerator := TEnumerateNodes2Enumerator.Create;
   try
     Enumerator.NodeClass := NodeClass;
     Enumerator.SeekNodeName := SeekNodeName;
     Enumerator.Proc := Proc;
     Enumerator.OnlyActive := OnlyActive;
-    DirectEnumerate({$ifdef FPC_OBJFPC} @ {$endif}
-      Enumerator.EnumerateChildrenFunction, OnlyActive);
+    Enumerator.EnumerateChildrenFunction(nil, Self);
   finally FreeAndNil(Enumerator) end;
 end;
 
