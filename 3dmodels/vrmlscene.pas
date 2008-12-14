@@ -332,6 +332,38 @@ type
     more than once --- it will produce more than one entry in this array). }
   TDynProximitySensorInstanceArray = TDynArray_4;
 
+type
+  { Internal helper for TVRMLScene, gathers information for transform nodes.
+
+    Transform nodes are all nodes that have any field with Transform = true,
+    currently:
+      TNodeTransform_2
+      TNodeMatrixTransform_2
+      TNodeHAnimHumanoid
+      TNodeHAnimJoint
+      TNodeHAnimSite
+
+    @exclude }
+  TTransformNodeInfo = record
+    Node: TVRMLNode;
+    Occurences: Cardinal;
+  end;
+
+  { @exclude }
+  PTransformNodeInfo = ^TTransformNodeInfo;
+  { @exclude }
+  TDynArrayItem_6 = TTransformNodeInfo;
+  { @exclude }
+  PDynArrayItem_6 = PTransformNodeInfo;
+  {$define DYNARRAY_6_IS_STRUCT}
+  { @exclude }
+  {$I dynarray_6.inc}
+  { @exclude }
+  TDynTransformNodeInfoArray = class(TDynArray_6)
+  public
+    function NodeInfo(Node: TVRMLNode): PTransformNodeInfo;
+  end;
+
   TCompiledScriptHandler = procedure (
     Value: TVRMLField; const Time: TVRMLTime) of object;
 
@@ -444,6 +476,8 @@ type
     FOwnsRootNode: boolean;
     FShapes: TVRMLShapeTree;
     FRootNode: TVRMLNode;
+
+    TransformNodesInfo: TDynTransformNodeInfoArray;
 
     ChangedAll_TraversedLights: TDynActiveLightArray;
 
@@ -1582,6 +1616,7 @@ uses VRMLCameraUtils, KambiStringUtils, KambiLog, VRMLErrors, DateUtils;
 {$I dynarray_3.inc}
 {$I dynarray_4.inc}
 {$I dynarray_5.inc}
+{$I dynarray_6.inc}
 
 { TVRMLBindableStack ----------------------------------------------------- }
 
@@ -1724,6 +1759,21 @@ begin
     OnBoundChanged(ParentScene);
 end;
 
+{ TDynTransformNodeInfoArray ------------------------------------------------- }
+
+function TDynTransformNodeInfoArray.NodeInfo(Node: TVRMLNode): PTransformNodeInfo;
+var
+  I: Integer;
+begin
+  for I := 0 to High do
+    if Node = Items[I].Node then
+    begin
+      Result := Pointers[I];
+      Exit;
+    end;
+  Result := nil;
+end;
+
 { TVRMLScene ----------------------------------------------------------- }
 
 constructor TVRMLScene.Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
@@ -1746,6 +1796,8 @@ begin
 
  FCompiledScriptHandlers := TDynCompiledScriptHandlerInfoArray.Create;
 
+ TransformNodesInfo := TDynTransformNodeInfoArray.Create;
+
  ScheduleChangedAll;
 end;
 
@@ -1762,6 +1814,8 @@ begin
 
  { frees FManifoldEdges, FBorderEdges if needed }
  InvalidateManifoldAndBorderEdges;
+
+ FreeAndNil(TransformNodesInfo);
 
  FreeAndNil(FCompiledScriptHandlers);
 
@@ -1922,6 +1976,7 @@ procedure TChangedAllTraverser.Traverse(
 
 var
   Shape: TVRMLShape;
+  Info: PTransformNodeInfo;
 begin
   if Node is TVRMLGeometryNode then
   begin
@@ -1988,6 +2043,22 @@ begin
       ParentScene.NavigationInfoStack.PushIfEmpty( TNodeNavigationInfo(Node), true) else
     if Node is TVRMLViewpointNode then
       ParentScene.ViewpointStack.PushIfEmpty( TVRMLViewpointNode(Node), true);
+  end else
+
+  if (Node is TNodeTransform_2) or
+     (Node is TNodeMatrixTransform_2) or
+     (Node is TNodeHAnimHumanoid) or
+     (Node is TNodeHAnimJoint) or
+     (Node is TNodeHAnimSite) then
+  begin
+    Info := ParentScene.TransformNodesInfo.NodeInfo(Node);
+    if Info = nil then
+    begin
+      Info := ParentScene.TransformNodesInfo.AppendItem;
+      Info^.Node := Node;
+      Info^.Occurences := 1;
+    end else
+      Inc(Info^.Occurences);
   end;
 end;
 
@@ -2051,6 +2122,9 @@ var
 begin
   if Log and LogChanges then
     WritelnLog('VRML changes', 'ChangedAll');
+
+  { TransformNodesInfo will be recalculated by ChangedAll }
+  TransformNodesInfo.Count := 0;
 
   BackgroundStack.CheckForDeletedNodes(RootNode, true);
   FogStack.CheckForDeletedNodes(RootNode, true);
@@ -2136,6 +2210,7 @@ type
     ShapeIterator: TVRMLShapeTreeIterator;
     ProximitySensorNum: Cardinal;
     ChangingNode: TVRMLNode;
+    ChangingNodeOccurences: Integer; //< -1 if not known
     ChangingNodeFoundCount: Cardinal;
     AnythingChanged: boolean;
     Inside: boolean;
@@ -2300,9 +2375,8 @@ begin
       to traverse remaining nodes and shapes. }
 
     Inc(ChangingNodeFoundCount);
-    if ChangingNodeFoundCount >=
-      Cardinal(ChangingNode.ParentNodesCount +
-               ChangingNode.ParentFieldsCount) then
+    if (ChangingNodeOccurences <> -1) and
+       (ChangingNodeFoundCount >= Cardinal(ChangingNodeOccurences)) then
       raise BreakTransformChangeSuccess.Create;
   end;
 end;
@@ -2358,6 +2432,7 @@ var
   Coord: TMFVec3f;
   TransformChangeHelper: TTransformChangeHelper;
   SI: TVRMLShapeTreeIterator;
+  NodeInfo: PTransformNodeInfo;
 begin
   NodeLastNodesIndex := Node.TraverseStateLastNodesIndex;
 
@@ -2578,6 +2653,18 @@ begin
           TransformChangeHelper.Inside := false;
           TransformChangeHelper.Inactive := 0;
           TransformChangeHelper.ChangingNodeFoundCount := 0;
+
+          NodeInfo := TransformNodesInfo.NodeInfo(Node);
+          if NodeInfo <> nil then
+          begin
+            TransformChangeHelper.ChangingNodeOccurences := NodeInfo^.Occurences;
+          end else
+          begin
+            if Log and LogChanges then
+              WritelnLog('VRML changes', Format('Occurences number for node "%s" not recorded, changing transformation of this node will not be optimized',
+                [Node.NodeTypeName]));
+            TransformChangeHelper.ChangingNodeOccurences := -1;
+          end;
 
           try
             RootNode.Traverse(TVRMLNode,
@@ -3655,8 +3742,7 @@ procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
       end;
 
       { New edge: add new item to EdgesSingle }
-      EdgesSingle.IncLength;
-      EdgePtr := EdgesSingle.Pointers[EdgesSingle.High];
+      EdgePtr := EdgesSingle.AppendItem;
       EdgePtr^.VertexIndex := VertexIndex;
       EdgePtr^.Triangles[0] := TriangleIndex;
       EdgePtr^.V0 := V0;
@@ -3879,8 +3965,7 @@ procedure TVRMLScene.TraverseForEvents(
 var
   PSI: PProximitySensorInstance;
 begin
-  ProximitySensorInstances.IncLength;
-  PSI := ProximitySensorInstances.Pointers[ProximitySensorInstances.High];
+  PSI := ProximitySensorInstances.AppendItem;
   PSI^.Node := Node as TNodeProximitySensor;
   PSI^.InvertedTransform := State.InvertedTransform;
   PSI^.IsActive := false; { IsActive = false initially }
@@ -4611,8 +4696,7 @@ procedure TVRMLScene.RegisterCompiledScript(const HandlerName: string;
 var
   HandlerInfo: PCompiledScriptHandlerInfo;
 begin
-  CompiledScriptHandlers.IncLength;
-  HandlerInfo := CompiledScriptHandlers.Pointers[CompiledScriptHandlers.High];
+  HandlerInfo := CompiledScriptHandlers.AppendItem;
   HandlerInfo^.Handler := Handler;
   HandlerInfo^.Name := HandlerName;
 end;
