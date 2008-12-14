@@ -375,6 +375,7 @@ type
   {$I objectslist_1.inc}
   TVRMLShapesList = class(TObjectsList_1)
   private
+    AddedCount: Integer;
     procedure AddToList(Shape: TVRMLShape);
   public
     constructor Create;
@@ -815,12 +816,22 @@ end;
 constructor TVRMLShapesList.Create(Tree: TVRMLShapeTree; OnlyActive: boolean);
 begin
   Create;
+
+  { We know exactly how many shapes are present. So set Count once,
+    calculating by ShapesCount. This will be faster than resizing
+    in each AddToList. (Confirmed e.g. by profiling change_vrml_by_code_2). }
+  AddedCount := 0;
+  Count := Tree.ShapesCount(OnlyActive);
+
   Tree.Traverse(@AddToList, OnlyActive);
+
+  Assert(AddedCount = Count);
 end;
 
 procedure TVRMLShapesList.AddToList(Shape: TVRMLShape);
 begin
-  Add(Shape);
+  Items[AddedCount] := Shape;
+  Inc(AddedCount);
 end;
 
 end.
