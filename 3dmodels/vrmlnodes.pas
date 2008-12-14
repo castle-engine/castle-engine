@@ -426,7 +426,6 @@ type
   TVRMLGraphTraverseState = class
   private
     FLastNodes: TTraverseStateLastNodes;
-    OwnsLastNodes: boolean;
     procedure CommonCreate;
   public
     { nie, ParentsCount elementow Last* NIE odzwierciedla faktu ze sa one
@@ -530,14 +529,16 @@ type
 
     destructor Destroy; override;
 
+    procedure Assign(Source: TVRMLGraphTraverseState);
+
+    { Clear all state, just like this TVRMLGraphTraverseState instance
+      would be just constructed. }
+    procedure Clear;
+
     { Compare with other TVRMLGraphTraverseState instance.
       The idea is that two states are equal if, when applied to the same
       VRML node, they "mean" the same thing, i.e. produce the same shape,
-      behavior etc.
-
-      So note that @name doesn't compare OwnsLastNodes values,
-      as they don't really define the "content" of the state,
-      they don't change the behavior of VRML node affected by this state. }
+      behavior etc. }
     function Equals(SecondValue: TVRMLGraphTraverseState): boolean;
 
     { This is like @link(Equals) but it ignores some fields that are
@@ -3615,28 +3616,7 @@ end;
 constructor TVRMLGraphTraverseState.CreateCopy(Source: TVRMLGraphTraverseState);
 begin
   CommonCreate;
-
-  AssignTransform(Source);
-
-  TextureTransform := Source.TextureTransform;
-  FLastNodes := Source.FLastNodes;
-  OwnsLastNodes := false;
-  ParentShape := Source.ParentShape;
-  InsideInline := Source.InsideInline;
-  InsidePrototype := Source.InsidePrototype;
-  InsideIgnoreCollision := Source.InsideIgnoreCollision;
-
-  PointingDeviceSensors.Assign(Source.PointingDeviceSensors);
-  VRML1ActiveLights.AppendDynArray(Source.VRML1ActiveLights);
-  VRML2ActiveLights.AppendDynArray(Source.VRML2ActiveLights);
-end;
-
-procedure TVRMLGraphTraverseState.AssignTransform(
-  Source: TVRMLGraphTraverseState);
-begin
-  Transform := Source.Transform;
-  AverageScaleTransform := Source.AverageScaleTransform;
-  InvertedTransform := Source.InvertedTransform;
+  Assign(Source);
 end;
 
 constructor TVRMLGraphTraverseState.Create(const ADefaultLastNodes: TTraverseStateLastNodes);
@@ -3649,7 +3629,6 @@ begin
 
   TextureTransform := IdentityMatrix4Single;
   FLastNodes := ADefaultLastNodes;
-  OwnsLastNodes := false;
 end;
 
 constructor TVRMLGraphTraverseState.Create;
@@ -3659,14 +3638,54 @@ end;
 
 destructor TVRMLGraphTraverseState.Destroy;
 begin
-  if OwnsLastNodes then
-    TraverseState_FreeAndNilNodes(FLastNodes);
-
   FreeAndNil(VRML1ActiveLights);
   FreeAndNil(VRML2ActiveLights);
   FreeAndNil(PointingDeviceSensors);
 
   inherited;
+end;
+
+procedure TVRMLGraphTraverseState.Clear;
+begin
+  Transform := IdentityMatrix4Single;
+  AverageScaleTransform := 1.0;
+  InvertedTransform := IdentityMatrix4Single;
+
+  TextureTransform := IdentityMatrix4Single;
+  FLastNodes := StateDefaultNodes;
+  ParentShape := nil;
+  InsideInline := 0;
+  InsidePrototype := 0;
+  InsideIgnoreCollision := 0;
+
+  PointingDeviceSensors.Count := 0;
+  VRML1ActiveLights.Count := 0;
+  VRML2ActiveLights.Count := 0;
+end;
+
+procedure TVRMLGraphTraverseState.Assign(
+  Source: TVRMLGraphTraverseState);
+begin
+  AssignTransform(Source);
+
+  TextureTransform := Source.TextureTransform;
+  FLastNodes := Source.FLastNodes;
+  ParentShape := Source.ParentShape;
+  InsideInline := Source.InsideInline;
+  InsidePrototype := Source.InsidePrototype;
+  InsideIgnoreCollision := Source.InsideIgnoreCollision;
+
+  PointingDeviceSensors.Assign(Source.PointingDeviceSensors);
+  VRML1ActiveLights.Assign(Source.VRML1ActiveLights);
+  VRML2ActiveLights.Assign(Source.VRML2ActiveLights);
+end;
+
+procedure TVRMLGraphTraverseState.AssignTransform(
+  Source: TVRMLGraphTraverseState);
+begin
+  Transform := Source.Transform;
+  AverageScaleTransform := Source.AverageScaleTransform;
+  InvertedTransform := Source.InvertedTransform;
 end;
 
 function TVRMLGraphTraverseState.Equals(SecondValue: TVRMLGraphTraverseState):
