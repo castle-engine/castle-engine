@@ -41,7 +41,7 @@ D   vrmlfields.pas
 D   vrmlscene.pas
 D   vrmllexer.pas
 |   vrmllightmap.pas
--   vrmllightset.pas
+D   vrmllightset.pas
 D   vrmlnodesdetailoptions.pas
 -   vrmlnodes.pas
 |   vrmlraytracer.pas
