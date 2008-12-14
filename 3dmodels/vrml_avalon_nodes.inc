@@ -121,6 +121,7 @@ begin
 
   FFdmatrix := TSFMatrix4f.Create(Self, 'matrix', IdentityMatrix4Single);
   Fields.Add(FFdmatrix);
+  Fdmatrix.Transform := true;
 
   DefaultContainerField := 'children';
 end;
