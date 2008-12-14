@@ -1927,6 +1927,34 @@ function PerspectiveProjMatrixDeg(const fovyDeg, aspect, zNear, zFar: Single): T
 function PerspectiveProjMatrixRad(const fovyRad, aspect, zNear, zFar: Single): TMatrix4Single;
 { @groupEnd }
 
+{ Multiply matrix M by translation matrix.
+
+  This is equivalent to M := MultMatrix(M, TranslationMatrix(Transl)),
+  but it works much faster since TranslationMatrix is a very simple matrix
+  and multiplication by it may be much optimized.
+
+  An additional speedup comes from the fact that the result is placed
+  back in M (so on places where M doesn't change (and there's a lot
+  of them for multiplication with translation matrix) there's no useless
+  copying).
+
+  MultMatricesTranslation is analogous to calculating both
+  TranslationMatrix(Transl) and it's inverse, and then
+@longCode(#
+  M := MultMatrix(M, translation);
+  MInvert := MultMatrix(inverted translation, MInvert);
+#)
+
+  The idea is that if M represented some translation, and MInvert it's
+  inverse, then after MultMatricesTranslation this will still hold.
+
+  @groupBegin }
+procedure MultMatrixTranslation(var M: TMatrix4Single; const Transl: TVector3Single);
+procedure MultMatrixTranslation(var M: TMatrix4Double; const Transl: TVector3Double);
+procedure MultMatricesTranslation(var M, MInvert: TMatrix4Single; const Transl: TVector3Single);
+procedure MultMatricesTranslation(var M, MInvert: TMatrix4Double; const Transl: TVector3Double);
+{ @groupEnd }
+
 function MatrixDet4x4(const mat: TMatrix4Single): Single;
 function MatrixDet3x3(const a1, a2, a3, b1, b2, b3, c1, c2, c3: Single): Single;
 function MatrixDet2x2(const a, b, c, d: Single): Single;

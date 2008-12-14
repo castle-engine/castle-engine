@@ -1772,6 +1772,52 @@ begin
   InvertedMatrix[3, 2] := -Transl[2];
 end;
 
+procedure MultMatrixTranslation(var M: TYPE_MATRIX4;
+  const Transl: TYPE_VECTOR3);
+var
+  NewColumn: TYPE_VECTOR4;
+begin
+  NewColumn := M[3];
+  NewColumn[0] += M[0, 0] * Transl[0] + M[1, 0] * Transl[1] + M[2, 0] * Transl[2];
+  NewColumn[1] += M[0, 1] * Transl[0] + M[1, 1] * Transl[1] + M[2, 1] * Transl[2];
+  NewColumn[2] += M[0, 2] * Transl[0] + M[1, 2] * Transl[1] + M[2, 2] * Transl[2];
+  NewColumn[3] += M[0, 3] * Transl[0] + M[1, 3] * Transl[1] + M[2, 3] * Transl[2];
+  M[3] := NewColumn;
+end;
+
+procedure MultMatricesTranslation(var M, MInvert: TYPE_MATRIX4;
+  const Transl: TYPE_VECTOR3);
+var
+  NewColumn: TYPE_VECTOR4;
+  { OldLastRow may use the same space as NewColumn }
+  OldLastRow: TYPE_VECTOR4 absolute NewColumn;
+begin
+  NewColumn := M[3];
+  NewColumn[0] += M[0, 0] * Transl[0] + M[1, 0] * Transl[1] + M[2, 0] * Transl[2];
+  NewColumn[1] += M[0, 1] * Transl[0] + M[1, 1] * Transl[1] + M[2, 1] * Transl[2];
+  NewColumn[2] += M[0, 2] * Transl[0] + M[1, 2] * Transl[1] + M[2, 2] * Transl[2];
+  NewColumn[3] += M[0, 3] * Transl[0] + M[1, 3] * Transl[1] + M[2, 3] * Transl[2];
+  M[3] := NewColumn;
+
+  OldLastRow[0] := MInvert[0, 3];
+  OldLastRow[1] := MInvert[1, 3];
+  OldLastRow[2] := MInvert[2, 3];
+  OldLastRow[3] := MInvert[3, 3];
+
+  MInvert[0, 0] -= Transl[0] * OldLastRow[0];
+  MInvert[1, 0] -= Transl[0] * OldLastRow[1];
+  MInvert[2, 0] -= Transl[0] * OldLastRow[2];
+  MInvert[3, 0] -= Transl[0] * OldLastRow[3];
+  MInvert[0, 1] -= Transl[1] * OldLastRow[0];
+  MInvert[1, 1] -= Transl[1] * OldLastRow[1];
+  MInvert[2, 1] -= Transl[1] * OldLastRow[2];
+  MInvert[3, 1] -= Transl[1] * OldLastRow[3];
+  MInvert[0, 2] -= Transl[2] * OldLastRow[0];
+  MInvert[1, 2] -= Transl[2] * OldLastRow[1];
+  MInvert[2, 2] -= Transl[2] * OldLastRow[2];
+  MInvert[3, 2] -= Transl[2] * OldLastRow[3];
+end;
+
 function TransformToCoordsMatrix(const NewOrigin,
   NewX, NewY, NewZ: TYPE_VECTOR3): TMatrix4Single;
 var i: integer;

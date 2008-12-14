@@ -37,7 +37,8 @@ type
 
 implementation
 
-uses VectorMath, KambiUtils, Boxes3d, KambiStringUtils, KambiTimeUtils;
+uses VectorMath, KambiUtils, Boxes3d, KambiStringUtils, KambiTimeUtils,
+  TestVectorMath;
 
 procedure TTestBoxes3d.TestIsCenteredBox3dPlaneCollision;
 begin
@@ -610,29 +611,6 @@ procedure TTestBoxes3d.TestBox3dTransform;
       Result[1][I] := 50 - Random * 100;
       OrderUp(Result[0][I], Result[1][I]);
     end;
-  end;
-
-  function RandomMatrix: TMatrix4Single;
-  var
-    I, J: Integer;
-  begin
-    for I := 0 to 3 do
-      for J := 0 to 3 do
-        Result[I][J] := 50 - Random * 100;
-  end;
-
-  function RandomNonProjectionMatrix: TMatrix4Single;
-  var
-    I, J: Integer;
-  begin
-    for I := 0 to 3 do
-      for J := 0 to 2 do
-        Result[I][J] := 50 - Random * 100;
-
-    Result[0][3] := 0;
-    Result[1][3] := 0;
-    Result[2][3] := 0;
-    Result[3][3] := 1;
   end;
 
   procedure AssertBoxesEqual(const Box1, Box2: TBox3d);

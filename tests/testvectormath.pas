@@ -46,7 +46,13 @@ type
     procedure TestVectorStr;
     procedure TestInfiniteFrustum;
     procedure TestMatrixInverse;
+    procedure TestMultMatrixTranslation;
+    procedure TestMultMatricesTranslation;
   end;
+
+function RandomVector: TVector3Single;
+function RandomMatrix: TMatrix4Single;
+function RandomNonProjectionMatrix: TMatrix4Single;
 
 implementation
 
@@ -133,14 +139,6 @@ begin
 end;
 
 procedure TTestVectorMath.TestPerpParallel;
-
-  function RandomVector: TVector3Single;
-  begin
-   result[0] := Random;
-   result[1] := Random;
-   result[2] := Random;
-  end;
-
 var v: TVector3Single;
     i: integer;
 begin
@@ -399,13 +397,6 @@ end;
 
 procedure TTestVectorMath.TestVectorStr;
 
-  function RandomVector: TVector3Single;
-  begin
-   result[0] := Random*1000;
-   result[1] := Random*1000;
-   result[2] := Random*1000;
-  end;
-
   procedure OneTestVectorFromStr;
   var v, v2: TVector3Single;
       s: string;
@@ -471,6 +462,75 @@ begin
   Assert(MatricesEqual(
     MatrixInverse(M, MatrixDeterminant(M)),
     TranslationMatrix(Vector3Single(-2, -2, -2)), 0.01));
+end;
+
+procedure TTestVectorMath.TestMultMatrixTranslation;
+var
+  M, NewM: TMatrix4Single;
+  I: Integer;
+  V: TVector3Single;
+begin
+  for I := 1 to 100 do
+  begin
+    M := RandomMatrix;
+    V := RandomVector;
+    NewM := MatrixMult(M, TranslationMatrix(V));
+    MultMatrixTranslation(M, V);
+    Assert(MatricesEqual(M, NewM, 0.001));
+  end;
+end;
+
+procedure TTestVectorMath.TestMultMatricesTranslation;
+var
+  M, NewM, MInverse, NewMInverse: TMatrix4Single;
+  I: Integer;
+  V: TVector3Single;
+begin
+  for I := 1 to 100 do
+  begin
+    M := RandomMatrix;
+    if not TryMatrixInverse(M, MInverse) then
+      MInverse := IdentityMatrix4Single;
+
+    V := RandomVector;
+    NewM := MatrixMult(M, TranslationMatrix(V));
+    NewMInverse := MatrixMult(TranslationMatrix(VectorNegate(V)), MInverse);
+    MultMatricesTranslation(M, MInverse, V);
+    Assert(MatricesEqual(M, NewM, 0.001));
+    Assert(MatricesEqual(MInverse, NewMInverse, 0.001));
+  end;
+end;
+
+{ global utils --------------------------------------------------------------- }
+
+function RandomVector: TVector3Single;
+begin
+  result[0] := Random*1000;
+  result[1] := Random*1000;
+  result[2] := Random*1000;
+end;
+
+function RandomMatrix: TMatrix4Single;
+var
+  I, J: Integer;
+begin
+  for I := 0 to 3 do
+    for J := 0 to 3 do
+      Result[I][J] := 50 - Random * 100;
+end;
+
+function RandomNonProjectionMatrix: TMatrix4Single;
+var
+  I, J: Integer;
+begin
+  for I := 0 to 3 do
+    for J := 0 to 2 do
+      Result[I][J] := 50 - Random * 100;
+
+  Result[0][3] := 0;
+  Result[1][3] := 0;
+  Result[2][3] := 0;
+  Result[3][3] := 1;
 end;
 
 initialization

@@ -15,12 +15,10 @@ begin
     To make InvertedTransform, we multiply inverted matrices in inverted order
     below. }
 
-  TranslationMatrices(
+  MultMatricesTranslation(State.Transform, State.InvertedTransform,
     {$ifndef TRANSFORM_SIMPLE} VectorAdd(Translation.Value, Center.Value)
     {$else} Translation.Value
-    {$endif}, M, IM);
-  State.Transform := MatrixMult(State.Transform, M);
-  State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
+    {$endif});
 
   { We avoid using RotationMatricesRad when angle = 0, since this
     is often the case, and it makes TransformState much faster
@@ -50,7 +48,8 @@ begin
     {$endif}
 
     { For scaling, we explicitly request that if ScalingFactor contains
-      zero, IM will be forced to be identity. That's because VRML allows
+      zero, IM will be forced to be identity (the 2nd param to ScalingMatrices
+      is "true"). That's because VRML allows
       scaling factor to have 0 components (we need InvertedTransform only
       for special tricks). }
 
@@ -74,8 +73,7 @@ begin
   end;
 
   {$ifndef TRANSFORM_SIMPLE}
-  TranslationMatrices(VectorNegate(Center.Value), M, IM);
-  State.Transform := MatrixMult(State.Transform, M);
-  State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
+  MultMatricesTranslation(State.Transform, State.InvertedTransform,
+    VectorNegate(Center.Value));
   {$endif}
 end;
