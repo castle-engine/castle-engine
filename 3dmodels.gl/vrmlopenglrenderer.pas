@@ -1667,7 +1667,7 @@ begin
     end;
   end;
 
-  { Initialize Result first, before calling TextureImageCaches.IncLength.
+  { Initialize Result first, before calling TextureImageCaches.AppendItem.
     That's because in case LoadGLTextureModulated raises exception,
     we don't want to add texture to cache (because caller would have
     no way to call TextureImage_DecReference later). }
@@ -1675,8 +1675,7 @@ begin
     TextureImage, TextureMinFilter, TextureMagFilter,
     TextureWrapS, TextureWrapT, TextureColorModulator);
 
-  TextureImageCaches.IncLength;
-  TextureCached := TextureImageCaches.Pointers[TextureImageCaches.High];
+  TextureCached := TextureImageCaches.AppendItem;
   TextureCached^.FullUrl := TextureFullUrl;
   TextureCached^.InitialNode := TextureNode;
   TextureCached^.MinFilter := TextureMinFilter;
@@ -1763,7 +1762,7 @@ begin
     end;
   end;
 
-  { Initialize Result first, before calling TextureVideoCaches.IncLength.
+  { Initialize Result first, before calling TextureVideoCaches.AppendItem.
     That's because in case TGLVideo.Create raises exception,
     we don't want to add texture to cache (because caller would have
     no way to call TextureVideo_DecReference later). }
@@ -1771,8 +1770,7 @@ begin
     TextureVideo, TextureMinFilter, TextureMagFilter,
     TextureWrapS, TextureWrapT, TextureColorModulator);
 
-  TextureVideoCaches.IncLength;
-  TextureCached := TextureVideoCaches.Pointers[TextureVideoCaches.High];
+  TextureCached := TextureVideoCaches.AppendItem;
   TextureCached^.FullUrl := TextureFullUrl;
   TextureCached^.InitialNode := TextureNode;
   TextureCached^.MinFilter := TextureMinFilter;
@@ -2029,7 +2027,7 @@ begin
     end;
   end;
 
-  { Initialize Result first, before calling GLSLProgramCaches.IncLength.
+  { Initialize Result first, before calling GLSLProgramCaches.AppendItem.
     That's because in case of loading problems,
     we don't want to add program to cache (because caller would have
     no way to call GLSLProgram_DecReference later). }
@@ -2049,8 +2047,7 @@ begin
     raise;
   end;
 
-  GLSLProgramCaches.IncLength;
-  GLSLProgramCache := GLSLProgramCaches.Pointers[GLSLProgramCaches.High];
+  GLSLProgramCache := GLSLProgramCaches.AppendItem;
   GLSLProgramCache^.ProgramNode := ProgramNode;
   GLSLProgramCache^.References := 1;
   GLSLProgramCache^.GLSLProgram := Result;
@@ -2161,8 +2158,7 @@ procedure TVRMLOpenGLRendererContextCache.Shape_IncReference_New(
 var
   SSCache: PShapeCache;
 begin
-  ShapeCaches.IncLength;
-  SSCache := ShapeCaches.Pointers[ShapeCaches.High];
+  SSCache := ShapeCaches.AppendItem;
   SSCache^.Attributes := AAttributes;
   SSCache^.GeometryNode := AGeometryNode;
   SSCache^.State := AState;
@@ -2251,9 +2247,7 @@ procedure TVRMLOpenGLRendererContextCache.ShapeNoTransform_IncReference_New(
 var
   SSCache: PShapeCache;
 begin
-  ShapeNoTransformCaches.IncLength;
-  SSCache := ShapeNoTransformCaches.Pointers[
-    ShapeNoTransformCaches.High];
+  SSCache := ShapeNoTransformCaches.AppendItem;
   SSCache^.Attributes := AAttributes;
   SSCache^.GeometryNode := AGeometryNode;
   SSCache^.State := AState;
@@ -2337,8 +2331,7 @@ procedure TVRMLOpenGLRendererContextCache.RenderBegin_IncReference_New(
 var
   RenderCache: PRenderBeginEndCache;
 begin
-  RenderBeginCaches.IncLength;
-  RenderCache := RenderBeginCaches.Pointers[RenderBeginCaches.High];
+  RenderCache := RenderBeginCaches.AppendItem;
   RenderCache^.Attributes := AAttributes;
   RenderCache^.FogNode := AFogNode;
   RenderCache^.FogDistanceScaling := AFogDistanceScaling;
@@ -2417,8 +2410,7 @@ procedure TVRMLOpenGLRendererContextCache.RenderEnd_IncReference_New(
 var
   RenderCache: PRenderBeginEndCache;
 begin
-  RenderEndCaches.IncLength;
-  RenderCache := RenderEndCaches.Pointers[RenderEndCaches.High];
+  RenderCache := RenderEndCaches.AppendItem;
   RenderCache^.Attributes := AAttributes;
   RenderCache^.FogNode := AFogNode;
   RenderCache^.FogDistanceScaling := AFogDistanceScaling;
@@ -2803,8 +2795,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
 
             { Whether GLSLProgram is nil or not (GLSLProgram_IncReference
               succeded or not), we add record to GLSLProgramReferences }
-            GLSLProgramReferences.IncLength;
-            GLSLProgramReference := GLSLProgramReferences.Pointers[GLSLProgramReferences.High];
+            GLSLProgramReference := GLSLProgramReferences.AppendItem;
             GLSLProgramReference^.ProgramNode := ProgramNode;
             GLSLProgramReference^.GLSLProgram := GLSLProgram;
           end;

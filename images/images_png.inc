@@ -53,8 +53,7 @@ var warnings: TDynStringArray;
 begin
  { we're collecting warnings from libpng. }
  warnings := TDynStringArray(png_get_error_ptr(png_ptr));
- warnings.IncLength;
- warnings[warnings.High] := s;
+ warnings.AppendItem(s);
  (* {$ifdef DEBUG} WarningWrite('DEBUG ONLY message : libpng warning : '+s); {$endif} *)
 end;
 

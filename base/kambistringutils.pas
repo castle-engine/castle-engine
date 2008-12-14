@@ -1471,8 +1471,7 @@ begin
   if p > 0 then
    Delete(filemask, 1, p-1) else { delete name from filemask }
    filemask := '.'+filemask; { it means there was no name and dot in filemask. So prepend dot. }
-  Extensions.IncLength;
-  Extensions[Extensions.High] := filemask;
+  Extensions.AppendItem(filemask);
  until false;
 end;
 

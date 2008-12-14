@@ -146,8 +146,7 @@ var
    while i < CoordIndex.Count do
    begin
     thisFaceNum := faces.Length;
-    faces.IncLength;
-    thisFace := faces.Pointers[thisFaceNum];
+    thisFace := faces.AppendItem;
 
     thisFace^.StartIndex := i;
     while (i < CoordIndex.Count) and (CoordIndex[i] >= 0) do

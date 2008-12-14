@@ -160,8 +160,7 @@ procedure RenderFrontShadowQuads(Scene: TVRMLGLScene;
       glVertexv(PExtruded0);
     end else
     begin
-      SavedShadowQuads.IncLength;
-      QuadPtr := SavedShadowQuads.Pointers[SavedShadowQuads.High];
+      QuadPtr := SavedShadowQuads.AppendItem;
       QuadPtr^[0] := Vector4Single(P0, 1);
       QuadPtr^[1] := Vector4Single(P1, 1);
       QuadPtr^[2] := PExtruded1;
@@ -181,8 +180,7 @@ procedure RenderFrontShadowQuads(Scene: TVRMLGLScene;
       glVertexv(PExtruded);
     end else
     begin
-      SavedShadowQuads.IncLength;
-      QuadPtr := SavedShadowQuads.Pointers[SavedShadowQuads.High];
+      QuadPtr := SavedShadowQuads.AppendItem;
       QuadPtr^[0] := Vector4Single(P0, 1);
       QuadPtr^[1] := Vector4Single(P1, 1);
       QuadPtr^[2] := PExtruded;

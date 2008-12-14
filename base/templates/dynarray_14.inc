@@ -185,8 +185,11 @@
     procedure SetLength(NewLength: Integer); override;
     {$endif}
 
-    { AppendItem = IncLength and set last element to Item }
-    procedure AppendItem(const Item: TDynArrayItem_14);
+    { Increase length, adding new Item at the end. }
+    procedure AppendItem(const Item: TDynArrayItem_14); overload;
+
+    { Increase length and return the pointer to new item at the end. }
+    function AppendItem: PDynArrayItem_14; overload;
 
     procedure AppendArray(const NewItems: array of TDynArrayItem_14); overload;
     procedure AppendArray(const NewItems: array of TDynArrayItem_14; NewItemsAddCount: integer); overload;
@@ -355,8 +358,14 @@ end;
 
 procedure TDynArray_14.AppendItem(const Item: TDynArrayItem_14);
 begin
- IncLength;
- Items[Length-1] := Item;
+  IncLength;
+  Items[Length-1] := Item;
+end;
+
+function TDynArray_14.AppendItem: PDynArrayItem_14;
+begin
+  IncLength;
+  Result := @(Items[Length-1]);
 end;
 
 procedure TDynArray_14.AppendArray(const NewItems: array of TDynArrayItem_14;

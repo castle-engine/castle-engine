@@ -783,8 +783,7 @@ procedure ParseNextParam(OptionNum: Integer; HasArgument: boolean;
 var ParsedArray: TDynParsedOptionArray absolute Data;
     LastItem: PParsedOption;
 begin
- ParsedArray.IncLength;
- LastItem := ParsedArray.Pointers[ParsedArray.High];
+ LastItem := ParsedArray.AppendItem;
  LastItem^.OptionNum := OptionNum;
  LastItem^.HasArgument := HasArgument;
  LastItem^.Argument := Argument;

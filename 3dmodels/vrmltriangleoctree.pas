@@ -503,8 +503,7 @@ procedure TVRMLTriangleOctree.AddItemTriangle(const Triangle: TTriangle3Single;
 begin
   if IsValidTriangle(Triangle) then
   begin
-    Triangles.IncLength;
-    Triangles.Items[Triangles.High].Init(
+    Triangles.AppendItem^.Init(
       Triangle, State, GeometryNode, MatNum,
       FaceCoordIndexBegin, FaceCoordIndexEnd);
     TreeRoot.AddItem(Triangles.High);
