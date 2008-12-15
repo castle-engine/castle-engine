@@ -24,12 +24,14 @@
   this constructs VRML graph by code and then animates it by code
   (showing a little more interesting animation, sin*cos displayed in 3D). }
 
+{ $define LOG}
+
 program change_vrml_by_code_2;
 
 uses VectorMath, Boxes3d, VRMLNodes, GL, GLU, GLExt, GLWindow,
   GLW_Navigated, KambiUtils, SysUtils, Object3dAsVRML,
   KambiGLUtils, VRMLGLScene, Navigation,
-  KambiFilesUtils, VRMLErrors, Quaternions;
+  KambiFilesUtils, VRMLErrors, Quaternions {$ifdef LOG} ,KambiLog {$endif};
 
 var
   Scene: TVRMLGLScene;
@@ -127,8 +129,13 @@ begin
   { We use a lot of boxes, so make their rendering fastest. }
   Detail_RectDivisions := 0;
 
-  Scene := TVRMLGLScene.Create(CreateVrmlGraph, true, roSeparateShapes);
+  Scene := TVRMLGLScene.Create(CreateVrmlGraph, true, roSeparateShapesNoTransform);
   try
+    {$ifdef LOG}
+    InitializeLog('1.0');
+    Scene.LogChanges := true;
+    {$endif}
+
     { init Glw.Navigator }
     Glw.Navigator := TExamineNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
     Glw.ExamineNav.Init(Scene.BoundingBox);
