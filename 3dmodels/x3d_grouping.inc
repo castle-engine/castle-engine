@@ -28,11 +28,9 @@
     This way TNodeX3DGroupingNode and TNodeStaticGroup inherit
     also from X3DChildNode. }
   TVRMLGroupingNode = class(TNodeX3DChildNode)
-  private
-    OriginalState: TVRMLGraphTraverseState;
   protected
-    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
-    procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
+    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   end;
 
   INodeX3DBoundedObject = interface(IVRMLNode)
@@ -217,7 +215,7 @@
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
-    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
+    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -281,13 +279,12 @@ type
   end;
 
 procedure TVRMLGroupingNode.BeforeTraverse(
-  var State: TVRMLGraphTraverseState);
+  StateStack: TVRMLGraphTraverseStateStack);
 var
   Enumerator: TGeneralGroupingEnumerator;
 begin
   inherited;
-  OriginalState := State;
-  State := TVRMLGraphTraverseState.CreateCopy(OriginalState);
+  StateStack.Push;
 
   (*We append all directional lights to the current State.
     This is how we implement DirectionalLight scope according to VRML 2.0
@@ -353,13 +350,13 @@ begin
     so the solution will be trivial). }
   if Self is TNodeAnchor then
   begin
-    State.PointingDeviceSensors.Clear;
-    State.PointingDeviceSensors.Add(Self);
+    StateStack.Top.PointingDeviceSensors.Clear;
+    StateStack.Top.PointingDeviceSensors.Add(Self);
   end;
 
   Enumerator := TGeneralGroupingEnumerator.Create;
   try
-    Enumerator.State := State;
+    Enumerator.State := StateStack.Top;
     Enumerator.WasPointingDeviceSensor := false;
     DirectEnumerateActive(
       {$ifdef FPC_OBJFPC} @ {$endif} Enumerator.EnumerateChildrenFunction);
@@ -367,10 +364,9 @@ begin
 end;
 
 procedure TVRMLGroupingNode.AfterTraverse(
-  var State: TVRMLGraphTraverseState);
+  StateStack: TVRMLGraphTraverseStateStack);
 begin
-  FreeAndNil(State);
-  State := OriginalState;
+  StateStack.Pop;
   inherited;
 end;
 
@@ -742,10 +738,10 @@ procedure TransformSimpleState
 {$I x3d_grouping_transformstate.inc}
 {$undef TRANSFORM_SIMPLE}
 
-procedure TNodeTransform_2.BeforeTraverse(var State: TVRMLGraphTraverseState);
+procedure TNodeTransform_2.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
-  TransformState(State, Fdcenter, Fdrotation, Fdscale, FdscaleOrientation,
+  TransformState(StateStack.Top, Fdcenter, Fdrotation, Fdscale, FdscaleOrientation,
     Fdtranslation);
 end;
 

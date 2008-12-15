@@ -63,7 +63,7 @@
     and "global" is ignored --- VRML 1.0 has own scoping rules by traversing). }
   TVRMLLightNode = class(TNodeX3DLightNode)
   protected
-    procedure MiddleTraverse(State: TVRMLGraphTraverseState); override;
+    procedure MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
     { Create TActiveLight record describing this light node under given
       State. }
@@ -243,10 +243,10 @@ begin
   Assert(ActiveLight.LightNode = Self);
 end;
 
-procedure TVRMLLightNode.MiddleTraverse(State: TVRMLGraphTraverseState);
+procedure TVRMLLightNode.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
-  State.VRML1ActiveLights.AppendItem(CreateActiveLight(State));
+  StateStack.Top.VRML1ActiveLights.AppendItem(CreateActiveLight(StateStack.Top));
 end;
 
 constructor TVRMLDirectionalLightNode.Create(const ANodeName: string; const AWWWBasePath: string);

@@ -543,7 +543,7 @@ type
 
     procedure CollectNodesForEvents;
     procedure TraverseForEvents(
-      Node: TVRMLNode; State: TVRMLGraphTraverseState;
+      Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
     procedure CollectNodeForEvents(Node: TVRMLNode);
     procedure UnCollectForEvents(Node: TVRMLNode);
@@ -716,7 +716,7 @@ type
     FMainLightForShadowsNode: TVRMLLightNode;
     FMainLightForShadowsTransform: TMatrix4Single;
     procedure SearchMainLightForShadows(
-      Node: TVRMLNode; State: TVRMLGraphTraverseState;
+      Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
     { Based on FMainLightForShadowsNode and FMainLightForShadowsTransform,
       calculate FMainLightForShadows (position). }
@@ -1935,12 +1935,12 @@ type
     ShapesGroup: TVRMLShapeTreeGroup;
     Active: boolean;
     procedure Traverse(
-      Node: TVRMLNode; State: TVRMLGraphTraverseState;
+      Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
   end;
 
 procedure TChangedAllTraverser.Traverse(
-  Node: TVRMLNode; State: TVRMLGraphTraverseState;
+  Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 
   procedure HandleSwitch(SwitchNode: TNodeSwitch_2);
@@ -1966,7 +1966,7 @@ procedure TChangedAllTraverser.Traverse(
         Traverser.ParentScene := ParentScene;
         Traverser.ShapesGroup := ChildGroup;
         Traverser.Active := I = SwitchNode.FdWhichChoice.Value;
-        ChildNode.TraverseInternal(State, TVRMLNode, @Traverser.Traverse,
+        ChildNode.TraverseInternal(StateStack, TVRMLNode, @Traverser.Traverse,
           nil, ParentInfo);
       finally FreeAndNil(Traverser) end;
     end;
@@ -1982,7 +1982,7 @@ begin
   begin
     { Add shape to Shapes }
     Shape := ParentScene.CreateShape(Node as TVRMLGeometryNode,
-      TVRMLGraphTraverseState.CreateCopy(State));
+      TVRMLGraphTraverseState.CreateCopy(StateStack.Top));
     ShapesGroup.Children.Add(Shape);
 
     { TODO: this has to be improved to handle collidable but not visible
@@ -1993,7 +1993,7 @@ begin
       SetSpatial. In this case, we just created new Shape, so we have
       to set it's Spatial property correctly. }
     if (ssDynamicCollisions in ParentScene.Spatial) and
-       (State.InsideIgnoreCollision = 0) then
+       (StateStack.Top.InsideIgnoreCollision = 0) then
     begin
       Shape.TriangleOctreeProgressTitle := ParentScene.TriangleOctreeProgressTitle;
       Shape.Spatial := [ssTriangles];
@@ -2015,7 +2015,7 @@ begin
 
     { Add lights to ChangedAll_TraversedLights }
     ParentScene.ChangedAll_TraversedLights.AppendItem(
-      (Node as TVRMLLightNode).CreateActiveLight(State));
+      (Node as TVRMLLightNode).CreateActiveLight(StateStack.Top));
   end else
 
   if Node is TNodeSwitch_2 then
@@ -2026,7 +2026,7 @@ begin
   if (Node is TNodeX3DBindableNode) and
      { Do not look for first bindable node within inlined content,
        this is following VRML spec. }
-     (State.InsideInline = 0) and
+     (StateStack.Top.InsideInline = 0) and
      { Do not look for first bindable node within inactive content.
        TODO: Actually, where does spec precisely say that first bindable node
        must be in active part? Although it seems most sensible... }
@@ -2222,15 +2222,15 @@ type
       (since our Shapes contains also even inactive Switch nodes)). }
     Inactive: Cardinal;
     procedure TransformChangeTraverse(
-      Node: TVRMLNode; State: TVRMLGraphTraverseState;
+      Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
     procedure TransformChangeTraverseAfter(
-      Node: TVRMLNode; State: TVRMLGraphTraverseState;
+      Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
       ParentInfo: PTraversingInfo);
   end;
 
 procedure TTransformChangeHelper.TransformChangeTraverse(
-  Node: TVRMLNode; State: TVRMLGraphTraverseState;
+  Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 
   procedure HandleSwitch(SwitchNode: TNodeSwitch_2);
@@ -2249,7 +2249,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
       if ChildInactive then Inc(Inactive);
 
       SwitchNode.FdChildren.Items[I].TraverseInternal(
-        State, TVRMLNode,
+        StateStack, TVRMLNode,
         @TransformChangeTraverse,
         @TransformChangeTraverseAfter,
         ParentInfo);
@@ -2274,7 +2274,7 @@ begin
     begin
       Check(ShapeIterator.GetNext, 'Missing shape in Shapes tree');
       Shape := ShapeIterator.Current;
-      Shape.State.AssignTransform(State);
+      Shape.State.AssignTransform(StateStack.Top);
       { TransformOnly = @true, suitable for roSeparateShapesNoTransform,
         they don't have Transform compiled in display list. }
       ParentScene.ChangedShapeFields(Shape, true, false);
@@ -2338,7 +2338,7 @@ begin
        (Inactive = 0) then
     begin
       ParentScene.ProximitySensorInstances.Items[ProximitySensorNum].
-        InvertedTransform := State.InvertedTransform;
+        InvertedTransform := StateStack.Top.InvertedTransform;
       { Call ProximitySensorUpdate, since the sensor's box is transformed,
         so possibly it should be activated/deactivated,
         position/orientation_changed called etc. }
@@ -2361,7 +2361,7 @@ begin
 end;
 
 procedure TTransformChangeHelper.TransformChangeTraverseAfter(
-  Node: TVRMLNode; State: TVRMLGraphTraverseState;
+  Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
   ParentInfo: PTraversingInfo);
 begin
   if Node = ChangingNode then
@@ -3379,12 +3379,12 @@ type
     ViewpointDescription: string;
     FoundNode: TVRMLViewpointNode;
     procedure Seek(
-      Node: TVRMLNode; State: TVRMLGraphTraverseState;
+      Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
   end;
 
   procedure TFirstViewpointSeeker.Seek(
-    Node: TVRMLNode; State: TVRMLGraphTraverseState;
+    Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
     ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
   var
     V: TVRMLViewpointNode;
@@ -3960,14 +3960,14 @@ begin
 end;
 
 procedure TVRMLScene.TraverseForEvents(
-  Node: TVRMLNode; State: TVRMLGraphTraverseState;
+  Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 var
   PSI: PProximitySensorInstance;
 begin
   PSI := ProximitySensorInstances.AppendItem;
   PSI^.Node := Node as TNodeProximitySensor;
-  PSI^.InvertedTransform := State.InvertedTransform;
+  PSI^.InvertedTransform := StateStack.Top.InvertedTransform;
   PSI^.IsActive := false; { IsActive = false initially }
 end;
 
@@ -4891,7 +4891,7 @@ begin
 end;
 
 procedure TVRMLScene.SearchMainLightForShadows(
-  Node: TVRMLNode; State: TVRMLGraphTraverseState;
+  Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 var
   L: TVRMLLightNode absolute Node;
@@ -4900,7 +4900,7 @@ begin
      L.FdKambiShadowsMain.Value then
   begin
     FMainLightForShadowsNode := L;
-    FMainLightForShadowsTransform := State.Transform;
+    FMainLightForShadowsTransform := StateStack.Top.Transform;
     FMainLightForShadowsExists := true;
     CalculateMainLightForShadowsPosition;
     raise BreakMainLightForShadows.Create;

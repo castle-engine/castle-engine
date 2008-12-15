@@ -487,7 +487,7 @@
 
   TNodeTexture2Transform = class(TNodeX3DChildNode)
   protected
-    procedure MiddleTraverse(State: TVRMLGraphTraverseState); override;
+    procedure MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -551,7 +551,7 @@
     no i oczywiscie zainicjujesz pola danego node'a. }
   TVRMLTransformationNode = class(TNodeX3DChildNode)
   protected
-    procedure MiddleTraverse(State: TVRMLGraphTraverseState); override;
+    procedure MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
     procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); virtual; abstract;
     function AverageScaleTransform: Single; virtual; abstract;
@@ -794,11 +794,9 @@
     It is used in implementation of Separator and WWWAnchor.
     Also WWWInline does the same work, when it's "separate" field is true. }
   TVRMLSeparatorNode = class(TNodeX3DChildNode)
-  private
-    OriginalState: TVRMLGraphTraverseState;
   protected
-    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
-    procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
+    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -838,8 +836,8 @@
     OriginalTransform, OriginalInvertedTransform: TMatrix4Single;
     OriginalAverageScaleTransform: Single;
   protected
-    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
-    procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
+    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -878,11 +876,10 @@
     zaimplementowac - szkielet (dla http) juz zrobilem w iswb. }
   TNodeWWWInline = class(TNodeX3DChildNode, IVRMLInlineNode)
   private
-    OriginalState: TVRMLGraphTraverseState;
     BeforeTraversePushedState: boolean;
   protected
-    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
-    procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
+    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
     procedure LoadInlined(CanReload: boolean);
 
@@ -1680,10 +1677,10 @@ begin
     Vector3Single( -FdCenter.Value[0], -FdCenter.Value[1], 0 )));
 end;
 
-procedure TNodeTexture2Transform.MiddleTraverse(State: TVRMLGraphTraverseState);
+procedure TNodeTexture2Transform.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
-  State.TextureTransform := MatrixMult(State.TextureTransform,
+  StateStack.Top.TextureTransform := MatrixMult(StateStack.Top.TextureTransform,
     TextureMatrixTransformation);
 end;
 
@@ -1781,17 +1778,17 @@ begin
     true, 1, 0, 1000);
 end;
 
-procedure TVRMLTransformationNode.MiddleTraverse(State: TVRMLGraphTraverseState);
+procedure TVRMLTransformationNode.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
 var
   M, IM: TMatrix4Single;
 begin
   inherited;
 
   Transformation(M, IM);
-  State.Transform := MatrixMult(State.Transform, M);
-  State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
+  StateStack.Top.Transform := MatrixMult(StateStack.Top.Transform, M);
+  StateStack.Top.InvertedTransform := MatrixMult(IM, StateStack.Top.InvertedTransform);
 
-  State.AverageScaleTransform *= AverageScaleTransform;
+  StateStack.Top.AverageScaleTransform *= AverageScaleTransform;
 end;
 
 function TVRMLTransformationNode.SuggestedVRMLVersion(
@@ -2235,17 +2232,15 @@ begin
   fAllowedChildren := true;
 end;
 
-procedure TVRMLSeparatorNode.BeforeTraverse(var State: TVRMLGraphTraverseState);
+procedure TVRMLSeparatorNode.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
-  OriginalState := State;
-  State := TVRMLGraphTraverseState.CreateCopy(OriginalState);
+  StateStack.Push;
 end;
 
-procedure TVRMLSeparatorNode.AfterTraverse(var State: TVRMLGraphTraverseState);
+procedure TVRMLSeparatorNode.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
-  State.Free;
-  State := OriginalState;
+  StateStack.Pop;
   inherited;
 end;
 
@@ -2330,22 +2325,22 @@ begin
   result := 'TransformSeparator';
 end;
 
-procedure TNodeTransformSeparator.BeforeTraverse(var State: TVRMLGraphTraverseState);
+procedure TNodeTransformSeparator.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
 
   { We don't copy whole State here, as changes to other properties of
     TVRMLRenderState should "leak out" from TransformSeparator node. }
-  OriginalTransform := State.Transform;
-  OriginalInvertedTransform := State.InvertedTransform;
-  OriginalAverageScaleTransform := State.AverageScaleTransform;
+  OriginalTransform := StateStack.Top.Transform;
+  OriginalInvertedTransform := StateStack.Top.InvertedTransform;
+  OriginalAverageScaleTransform := StateStack.Top.AverageScaleTransform;
 end;
 
-procedure TNodeTransformSeparator.AfterTraverse(var State: TVRMLGraphTraverseState);
+procedure TNodeTransformSeparator.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
-  State.Transform := OriginalTransform;
-  State.InvertedTransform := OriginalInvertedTransform;
-  State.AverageScaleTransform := OriginalAverageScaleTransform;
+  StateStack.Top.Transform := OriginalTransform;
+  StateStack.Top.InvertedTransform := OriginalInvertedTransform;
+  StateStack.Top.AverageScaleTransform := OriginalAverageScaleTransform;
   inherited;
 end;
 
@@ -2410,7 +2405,7 @@ begin
   AddChild(LoadAsVRML(PathFromWWWBasePath(FdName.Value), false));
 end;
 
-procedure TNodeWWWInline.BeforeTraverse(var State: TVRMLGraphTraverseState);
+procedure TNodeWWWInline.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
 
@@ -2419,34 +2414,25 @@ begin
     and AfterTraverse. }
   BeforeTraversePushedState := FdSeparate.Value;
   if BeforeTraversePushedState then
-  begin
-    OriginalState := State;
-    State := TVRMLGraphTraverseState.CreateCopy(OriginalState);
-  end;
+    StateStack.Push;
 
   try
     LoadInlined(false);
   except
     if BeforeTraversePushedState then
-    begin
-      FreeAndNil(State);
-      State := OriginalState;
-    end;
+      StateStack.Pop;
     raise;
   end;
 
-  Inc(State.InsideInline);
+  Inc(StateStack.Top.InsideInline);
 end;
 
-procedure TNodeWWWInline.AfterTraverse(var State: TVRMLGraphTraverseState);
+procedure TNodeWWWInline.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
-  Dec(State.InsideInline);
+  Dec(StateStack.Top.InsideInline);
 
   if BeforeTraversePushedState then
-  begin
-    FreeAndNil(State);
-    State := OriginalState;
-  end;
+    StateStack.Pop;
 
   inherited;
 end;

@@ -45,7 +45,7 @@
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
-    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
+    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -112,7 +112,7 @@
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
-    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
+    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -164,7 +164,7 @@
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
-    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
+    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -210,7 +210,7 @@
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
-    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
+    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -418,10 +418,10 @@ begin
     only one using this approach. }
 end;
 
-procedure TNodeHAnimHumanoid.BeforeTraverse(var State: TVRMLGraphTraverseState);
+procedure TNodeHAnimHumanoid.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
-  TransformState(State, Fdcenter, Fdrotation, Fdscale, FdscaleOrientation,
+  TransformState(StateStack.Top, Fdcenter, Fdrotation, Fdscale, FdscaleOrientation,
     Fdtranslation);
 end;
 
@@ -510,10 +510,10 @@ begin
   FdChildren.EnumerateValid(Func);
 end;
 
-procedure TNodeHAnimJoint.BeforeTraverse(var State: TVRMLGraphTraverseState);
+procedure TNodeHAnimJoint.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
-  TransformState(State, Fdcenter, Fdrotation, Fdscale, FdscaleOrientation,
+  TransformState(StateStack.Top, Fdcenter, Fdrotation, Fdscale, FdscaleOrientation,
     Fdtranslation);
 end;
 
@@ -585,10 +585,10 @@ begin
   FdChildren.EnumerateValid(Func);
 end;
 
-procedure TNodeHAnimSegment.BeforeTraverse(var State: TVRMLGraphTraverseState);
+procedure TNodeHAnimSegment.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
-  TransformSimpleState(State, Fdrotation, Fdscale, Fdtranslation);
+  TransformSimpleState(StateStack.Top, Fdrotation, Fdscale, Fdtranslation);
 end;
 
 constructor TNodeHAnimSite.Create(const ANodeName: string;
@@ -651,10 +651,10 @@ begin
   FdChildren.EnumerateValid(Func);
 end;
 
-procedure TNodeHAnimSite.BeforeTraverse(var State: TVRMLGraphTraverseState);
+procedure TNodeHAnimSite.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
-  TransformState(State, Fdcenter, Fdrotation, Fdscale, FdscaleOrientation,
+  TransformState(StateStack.Top, Fdcenter, Fdrotation, Fdscale, FdscaleOrientation,
     Fdtranslation);
 end;
 

@@ -112,8 +112,8 @@
     procedure EventUrlReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   protected
-    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
-    procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
+    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     { You can override this to do anything after the Inline children were
       loaded. It's called only after actual loading occured, e.g. it's not
       called when LoadInlined was called on the already-loaded node with
@@ -433,16 +433,16 @@ begin
   { Nothing to do in this class. }
 end;
 
-procedure TNodeInline.BeforeTraverse(var State: TVRMLGraphTraverseState);
+procedure TNodeInline.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
   LoadInlined(false);
-  Inc(State.InsideInline);
+  Inc(StateStack.Top.InsideInline);
 end;
 
-procedure TNodeInline.AfterTraverse(var State: TVRMLGraphTraverseState);
+procedure TNodeInline.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
-  Dec(State.InsideInline);
+  Dec(StateStack.Top.InsideInline);
   inherited;
 end;
 

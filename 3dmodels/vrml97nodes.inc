@@ -100,8 +100,8 @@
     procedure EventUrlReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   protected
-    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
-    procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
+    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -546,16 +546,16 @@ begin
   end;
 end;
 
-procedure TNodeInlineLoadControl.BeforeTraverse(var State: TVRMLGraphTraverseState);
+procedure TNodeInlineLoadControl.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
   LoadInlined(false);
-  Inc(State.InsideInline);
+  Inc(StateStack.Top.InsideInline);
 end;
 
-procedure TNodeInlineLoadControl.AfterTraverse(var State: TVRMLGraphTraverseState);
+procedure TNodeInlineLoadControl.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
-  Dec(State.InsideInline);
+  Dec(StateStack.Top.InsideInline);
   inherited;
 end;
 

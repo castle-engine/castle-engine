@@ -614,6 +614,55 @@ type
     PointingDeviceSensors: TPointingDeviceSensorsList;
   end;
 
+  { Stack of TVRMLGraphTraverseState.
+
+    Allows you for much faster
+    creation/destruction of TVRMLGraphTraverseState instances.
+    Although you can always construct / destruct TVRMLGraphTraverseState
+    as normal objects, in some cases this is too slow: when traversing VRML graph
+    (e.g. profile change_vrml_by_code_2 with ChangeField), merely
+    creating/destroying TVRMLGraphTraverseState instances takes a noticeable
+    amount of time.
+
+    This stack allows you to do this faster, first of all by
+    internally using a prepared pool of instances.
+
+    Each PushClear call creates a clear state instance, and places
+    it on the stack.
+    Each Push call creates a copy of current top and places it on the stack.
+    Each Pop removes and destroys the last instance added by Push.
+
+    Naturally, you can call Push and Top only when the stack is not empty.
+    In practice, using the stack always starts in TVRMLNode.Traverse,
+    where we push initial clear state. So the stack passed to various
+    callbacks, TVRMLNode.BeforeTraverse and such is always guaranteed non-empty.
+
+    Note that for speed purposes all Traverse calls actually
+    share a single stack. That is,
+    to avoid creating TVRMLGraphTraverseStateStack instance each time
+    (because even creating TVRMLGraphTraverseStateStack
+    takes some time (as it prepares a pool of TVRMLGraphTraverseState
+    instances, to allow fast push/pop)), TVRMLNode simply reuses a single
+    global TVRMLGraphTraverseStateStack instance. This means that,
+    if you execute Traverse while being inside other Traverse, you
+    must first finish innermost Traverse before continuing with the outer. }
+  TVRMLGraphTraverseStateStack = class
+  private
+    Items: array of TVRMLGraphTraverseState;
+    ItemsAllocated: Cardinal;
+    procedure GrowItems;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure PushClear;
+    procedure Push;
+    procedure Pop;
+
+    { Peek at the top of the stack. }
+    function Top: TVRMLGraphTraverseState;
+  end;
+
   PTraversingInfo = ^TTraversingInfo;
   TTraversingInfo = record
     Node: TVRMLNode;
@@ -622,12 +671,12 @@ type
 
   { Used as a callback by TVRMLNode.Traverse. }
   TTraversingFunc = procedure (Node: TVRMLNode;
-    State: TVRMLGraphTraverseState;
+    StateStack: TVRMLGraphTraverseStateStack;
     ParentInfo: PTraversingInfo;
     var TraverseIntoChildren: boolean) of object;
 
   TTraversingAfterFunc = procedure (Node: TVRMLNode;
-    State: TVRMLGraphTraverseState;
+    StateStack: TVRMLGraphTraverseStateStack;
     ParentInfo: PTraversingInfo) of object;
 
   { Used as a callback by TVRMLNode.TraverseBlenderObjects. }
@@ -635,7 +684,7 @@ type
     BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
     BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
     GeometryNode: TVRMLGeometryNode;
-    State: TVRMLGraphTraverseState) of object;
+    StateStack: TVRMLGraphTraverseStateStack) of object;
 
   TEnumerateChildrenFunction =
     procedure (Node, Child: TVRMLNode) of object;
@@ -799,20 +848,20 @@ type
 
     { You can override these methods to determine what happens when
       given node is traversed during Traverse call.
-      The main use of this is to modify TVRMLGraphTraverseState.
+      The main use of this is to operate on TVRMLGraphTraverseStateStack.
 
       Remember to always call inherited when overriding.
       In BeforeTraverse and MiddleTraverse you should call inherited
       at the beginning, in AfterTraverse inherited should be called at the end.
 
-      Besides changing State fields, you can even replace the curent State
-      instance in BeforeTraverse. But in this case, you @italic(must
-      change it back to original value in AfterTraverse).
+      Besides changing StateStack.Top fields, you can do push/pop
+      on the stack. Remember that if you do StateStack.Push in BeforeTraverse,
+      and then you @italic(must call StateStack.Pop in AfterTraverse).
 
       @groupBegin }
-    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); virtual;
-    procedure MiddleTraverse(State: TVRMLGraphTraverseState); virtual;
-    procedure AfterTraverse(var State: TVRMLGraphTraverseState); virtual;
+    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); virtual;
+    procedure MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack); virtual;
+    procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); virtual;
     { @groupEnd }
 
     { Parse VRML node body element. Usually, this is a field.
@@ -1239,10 +1288,10 @@ type
       TraversingFunc: TTraversingFunc;
       TraversingAfterFunc: TTraversingAfterFunc = nil);
 
-    { This is like @link(Traverse), but it takes explicit starting state
+    { This is like @link(Traverse), but it takes explicit starting state stack
       and starting ParentInfo. Not generally useful, use only for special
       purposes. }
-    procedure TraverseInternal(State: TVRMLGraphTraverseState;
+    procedure TraverseInternal(StateStack: TVRMLGraphTraverseStateStack;
       NodeClass: TVRMLNodeClass;
       TraversingFunc: TTraversingFunc;
       TraversingAfterFunc: TTraversingAfterFunc;
@@ -3769,7 +3818,69 @@ begin
     Result := VRML2ActiveLights;
 end;
 
-{ TVRMLNode ------------------------------------------------------------------- }
+{ TVRMLGraphTraverseStateStack --------------------------------------------- }
+
+constructor TVRMLGraphTraverseStateStack.Create;
+begin
+  inherited;
+end;
+
+destructor TVRMLGraphTraverseStateStack.Destroy;
+var
+  I: Integer;
+begin
+  for I := 0 to Length(Items) - 1 do
+    FreeAndNil(Items[I]);
+  inherited;
+end;
+
+procedure TVRMLGraphTraverseStateStack.GrowItems;
+var
+  I, OldLen: Integer;
+begin
+  OldLen := Length(Items);
+  SetLength(Items, OldLen + 100);
+  for I := OldLen to Length(Items) - 1 do
+    Items[I] := TVRMLGraphTraverseState.Create;
+end;
+
+procedure TVRMLGraphTraverseStateStack.PushClear;
+begin
+  if ItemsAllocated = Length(Items) then GrowItems;
+
+  { We could instead do Clear in Pop, and then we would know that all
+    non allocated instances are always clear.
+
+    But this would be slower: Push is called very often,
+    much more often than PushClear (which is called only once
+    for every traverse, while Push possibly many times).
+    And Pop is called for every Push and PushClear.
+    So it's better to optimize the most often called (Pop) than the
+    least often called (PushClear). }
+
+  Items[ItemsAllocated].Clear;
+  Inc(ItemsAllocated);
+end;
+
+procedure TVRMLGraphTraverseStateStack.Push;
+begin
+  if ItemsAllocated = Length(Items) then GrowItems;
+
+  Items[ItemsAllocated].Assign(Items[ItemsAllocated - 1]);
+  Inc(ItemsAllocated);
+end;
+
+procedure TVRMLGraphTraverseStateStack.Pop;
+begin
+  Dec(ItemsAllocated);
+end;
+
+function TVRMLGraphTraverseStateStack.Top: TVRMLGraphTraverseState;
+begin
+  Result := Items[ItemsAllocated - 1];
+end;
+
+{ TVRMLNode ------------------------------------------------------------------ }
 
 constructor TVRMLNode.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
@@ -4050,25 +4161,25 @@ begin
     DirectEnumerateAll(Func);
 end;
 
-procedure TVRMLNode.BeforeTraverse(var State: TVRMLGraphTraverseState);
+procedure TVRMLNode.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   if PrototypeInstance then
-    Inc(State.InsidePrototype);
+    Inc(StateStack.Top.InsidePrototype);
 end;
 
-procedure TVRMLNode.MiddleTraverse(State: TVRMLGraphTraverseState);
+procedure TVRMLNode.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
 end;
 
-procedure TVRMLNode.AfterTraverse(var State: TVRMLGraphTraverseState);
+procedure TVRMLNode.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   if PrototypeInstance then
-    Dec(State.InsidePrototype);
+    Dec(StateStack.Top.InsidePrototype);
 end;
 
 type
   TTraverseEnumerator = class
-    State: TVRMLGraphTraverseState;
+    StateStack: TVRMLGraphTraverseStateStack;
     NodeClass: TVRMLNodeClass;
     TraversingFunc: TTraversingFunc;
     TraversingAfterFunc: TTraversingAfterFunc;
@@ -4083,13 +4194,13 @@ type
     TraverseIntoChildren: boolean;
     ParentInfoForChildren: TTraversingInfo;
   begin
-    Child.BeforeTraverse(State);
+    Child.BeforeTraverse(StateStack);
     try
       TraverseIntoChildren := true;
       if Child is NodeClass then
-        TraversingFunc(Child, State, ParentInfo, TraverseIntoChildren);
+        TraversingFunc(Child, StateStack, ParentInfo, TraverseIntoChildren);
 
-      Child.MiddleTraverse(State);
+      Child.MiddleTraverse(StateStack);
 
       if TraverseIntoChildren then
       begin
@@ -4103,18 +4214,18 @@ type
         end;
       end;
 
-    finally Child.AfterTraverse(State) end;
+    finally Child.AfterTraverse(StateStack) end;
 
     if Assigned(TraversingAfterFunc) and
        (Child is NodeClass) then
-      TraversingAfterFunc(Child, State, ParentInfo);
+      TraversingAfterFunc(Child, StateStack, ParentInfo);
 
     LastNodesIndex := Child.TraverseStateLastNodesIndex;
     if LastNodesIndex <> -1 then
-      State.FLastNodes.Nodes[LastNodesIndex] := Child;
+      StateStack.Top.FLastNodes.Nodes[LastNodesIndex] := Child;
   end;
 
-procedure TVRMLNode.TraverseInternal(State: TVRMLGraphTraverseState;
+procedure TVRMLNode.TraverseInternal(StateStack: TVRMLGraphTraverseStateStack;
   NodeClass: TVRMLNodeClass;
   TraversingFunc: TTraversingFunc;
   TraversingAfterFunc: TTraversingAfterFunc;
@@ -4124,7 +4235,7 @@ var
 begin
   Enumerator := TTraverseEnumerator.Create;
   try
-    Enumerator.State := State;
+    Enumerator.StateStack := StateStack;
     Enumerator.NodeClass := NodeClass;
     Enumerator.TraversingFunc := TraversingFunc;
     Enumerator.TraversingAfterFunc := TraversingAfterFunc;
@@ -4137,17 +4248,19 @@ begin
   finally FreeAndNil(Enumerator) end;
 end;
 
+var
+  TraverseSingleStack: TVRMLGraphTraverseStateStack;
+
 procedure TVRMLNode.Traverse(
   NodeClass: TVRMLNodeClass;
   TraversingFunc: TTraversingFunc;
   TraversingAfterFunc: TTraversingAfterFunc);
-var
-  InitialState: TVRMLGraphTraverseState;
 begin
-  InitialState := TVRMLGraphTraverseState.Create;
+  TraverseSingleStack.PushClear;
   try
-    TraverseInternal(InitialState, NodeClass, TraversingFunc, TraversingAfterFunc, nil);
-  finally InitialState.Free end;
+    TraverseInternal(TraverseSingleStack, NodeClass,
+      TraversingFunc, TraversingAfterFunc, nil);
+  finally TraverseSingleStack.Pop end;
 end;
 
 function TVRMLNode.NodeTypeName: string;
@@ -4561,16 +4674,16 @@ end;
       PNode: PVRMLNode;
       PState: PVRMLGraphTraverseState;
       procedure TraverseFunc(
-        ANode: TVRMLNode; AState: TVRMLGraphTraverseState;
+        ANode: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
         ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
     end;
 
   procedure TTryFindNodeStateObj.TraverseFunc(
-    ANode: TVRMLNode; AState: TVRMLGraphTraverseState;
+    ANode: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
     ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
   begin
     PNode^ := ANode;
-    PState^ := TVRMLGraphTraverseState.CreateCopy(AState);
+    PState^ := TVRMLGraphTraverseState.CreateCopy(StateStack.Top);
     raise BreakTryFindNodeState.Create;
   end;
 
@@ -4599,20 +4712,20 @@ end;
       PTransform: PMatrix4Single;
       PAverageScaleTransform: PSingle;
       procedure TraverseFunc(
-        ANode: TVRMLNode; AState: TVRMLGraphTraverseState;
+        ANode: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
         ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
     end;
 
   procedure TTryFindNodeTransformObj.TraverseFunc(
-    ANode: TVRMLNode; AState: TVRMLGraphTraverseState;
+    ANode: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
     ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
   begin
     PNode^ := ANode;
     { to dlatego TryFindNodeTransform jest szybsze od TryFindNodeState :
       w TryFindNodeState trzeba tutaj kopiowac cale state,
       w TryFindNodeTransform wystarczy skopiowac transformacje. }
-    PTransform^ := AState.Transform;
-    PAverageScaleTransform^ := AState.AverageScaleTransform;
+    PTransform^ := StateStack.Top.Transform;
+    PAverageScaleTransform^ := StateStack.Top.AverageScaleTransform;
     raise BreakTryFindNodeState.Create;
   end;
 
@@ -5124,12 +5237,12 @@ type
   TBlenderObjectsTraverser = class
     TraversingFunc: TBlenderTraversingFunc;
     procedure Traverse(
-      Node: TVRMLNode; State: TVRMLGraphTraverseState;
+      Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
   end;
 
 procedure TBlenderObjectsTraverser.Traverse(
-  Node: TVRMLNode; State: TVRMLGraphTraverseState;
+  Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 var
   GeometryNode: TVRMLGeometryNode absolute Node;
@@ -5157,11 +5270,11 @@ begin
           doesn't write this. }
         BlenderObjectName := BlenderObjectNode.NodeName;
         TraversingFunc(BlenderObjectNode, BlenderObjectName,
-          BlenderMeshNode, BlenderMeshName, GeometryNode, State);
+          BlenderMeshNode, BlenderMeshName, GeometryNode, StateStack);
       end;
     end;
   end else
-  if (State.ParentShape <> nil) and (ParentInfo <> nil) then
+  if (StateStack.Top.ParentShape <> nil) and (ParentInfo <> nil) then
   begin
     { For VRML 2.0 exporter, the situation is actually quite similar, but
       we have to remove ME_ and OB_ prefixes from node names.
@@ -5185,7 +5298,7 @@ begin
         BlenderObjectNode := ParentInfo^.Node;
         BlenderObjectName := PrefixRemove('OB_', BlenderObjectNode.NodeName, false);
         TraversingFunc(BlenderObjectNode, BlenderObjectName,
-          BlenderMeshNode, BlenderMeshName, GeometryNode, State);
+          BlenderMeshNode, BlenderMeshName, GeometryNode, StateStack);
       end;
     end;
   end;
@@ -8444,8 +8557,10 @@ initialization
   RegisterParticleSystemsNodes;
 
   TraverseState_CreateNodes(StateDefaultNodes);
+  TraverseSingleStack := TVRMLGraphTraverseStateStack.Create;
 finalization
   TraverseState_FreeAndNilNodes(StateDefaultNodes);
+  FreeAndNil(TraverseSingleStack);
 
   FreeAndNil(NodesManager);
   FreeAndNil(AnyNodeDestructionNotifications);

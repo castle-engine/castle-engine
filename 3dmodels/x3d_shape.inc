@@ -55,8 +55,8 @@
     private FFdbboxSize: TSFVec3f;
     public property FdbboxSize: TSFVec3f read FFdbboxSize;
 
-    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
-    procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
+    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
 
     { This is a shortcut for FdAppearance.Value.
       If anything makes this impossible (Apperance field is NULL, or wrong class)
@@ -326,15 +326,15 @@ begin
   end;
 end;
 
-procedure TNodeX3DShapeNode.BeforeTraverse(var State: TVRMLGraphTraverseState);
+procedure TNodeX3DShapeNode.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
-  State.ParentShape := Self;
+  StateStack.Top.ParentShape := Self;
 end;
 
-procedure TNodeX3DShapeNode.AfterTraverse(var State: TVRMLGraphTraverseState);
+procedure TNodeX3DShapeNode.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
-  State.ParentShape := nil;
+  StateStack.Top.ParentShape := nil;
   inherited;
 end;
 

@@ -53,7 +53,7 @@ type
     FTransform: TMatrix4Single;
     FAverageScaleTransform: Single;
   protected
-    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
+    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -270,12 +270,12 @@ begin
 end;
 
 procedure TNodeX3DBindableNode.BeforeTraverse(
-  var State: TVRMLGraphTraverseState);
+  StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
 
-  FTransform := State.Transform;
-  FAverageScaleTransform := State.AverageScaleTransform;
+  FTransform := StateStack.Top.Transform;
+  FAverageScaleTransform := StateStack.Top.AverageScaleTransform;
 end;
 
 constructor TNodeX3DSensorNode.Create(const ANodeName: string;

@@ -45,7 +45,7 @@ type
     FRootNode: TVRMLNode;
     FLights: TDynActiveLightArray;
     procedure AddToLights(
-      Node: TVRMLNode; State: TVRMLGraphTraverseState;
+      Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
@@ -109,10 +109,10 @@ begin
 end;
 
 procedure TVRMLLightSet.AddToLights(
-  Node: TVRMLNode; State: TVRMLGraphTraverseState;
+  Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 begin
-  Lights.AppendItem((Node as TVRMLLightNode).CreateActiveLight(State));
+  Lights.AppendItem((Node as TVRMLLightNode).CreateActiveLight(StateStack.Top));
 end;
 
 procedure TVRMLLightSet.CalculateLights;
