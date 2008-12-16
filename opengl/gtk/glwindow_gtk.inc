@@ -1391,16 +1391,27 @@ begin
   { prepare Data }
   Data.Answered := false;
 
-  { enter glwin mode }
-  { Once I used here @HalfToneStipple to show user that glwin window is
-    temporary disabled. But then I added lines with "gtk_window_set_modal"
-    and "gtk_window_set_transient_for" above and it's no longer necessary.
-    So I don't use it. }
-  Mode := TGLModeFrozenScreen.Create(Self, 0, false, nil);
+  { Temporarily set GlobalIdleInstalled to false.
+
+    This disables our OnIdle, OnTimer callbacks for dialog time, consistent
+    with what we do when using GtkFileChooser (that is implemented
+    in a different place, and there GlobalIdleInstalled := false
+    is actually needed for correct behavior). }
+  Glwm.GlobalIdleInstalled := false;
   try
-    gtk_widget_show(GTK_WIDGET(ADialog));
-    while not Data.Answered do glwm.ProcessMessage(true);
-  finally Mode.Free end;
+
+    { enter glwin mode }
+    { Once I used here @HalfToneStipple to show user that glwin window is
+      temporary disabled. But then I added lines with "gtk_window_set_modal"
+      and "gtk_window_set_transient_for" above and it's no longer necessary.
+      So I don't use it. }
+    Mode := TGLModeFrozenScreen.Create(Self, 0, false, nil);
+    try
+      gtk_widget_show(GTK_WIDGET(ADialog));
+      while not Data.Answered do glwm.ProcessMessage(true);
+    finally Mode.Free end;
+
+  finally Glwm.GlobalIdleInstalled := true end;
 
   Result := Data.Answer;
 end;
@@ -1532,25 +1543,41 @@ begin
     end;
   end;
 
-  Mode := TGLModeFrozenScreen.Create(Self, 0, false, nil);
-  try
-    { gtk_dialog_run does everything (that in GtkFileSelection version
-      we had to do manually): the dialog is set to modal, it's shown,
-      buttons cause gtk_dialog_run to exit with indicated response,
-      delete_event also causes normal exit with GTK_RESPONSE_DELETE_EVENT.
+  { Temporarily set GlobalIdleInstalled to false.
+    Reason? Just like for ProcessAllMessages: when
+    GlobalIdleInstalled = true then gtk_events_pending()
+    always returns true (because it thinks that it should call GlobalIdle
+    in a loop).
 
-      Inside it will do the same thing as a loop of our Glwm.ProcessMessages
-      (because we set up everything properly, such that our Glwm.ProcessMessages
-      just calls gtk_main_iteration, so GTK loop fully performs Glwm loop). }
-    Result := gtk_dialog_run(GTK_DIALOG(Dialog)) = GTK_RESPONSE_ACCEPT;
-    if Result then
-    begin
-      CFileName := gtk_file_chooser_get_filename(Dialog);
-      { This copies string contents, so we can later free CFileName pointer. }
-      FileName := CFileName;
-      g_free(CFileName);
-    end;
-  finally Mode.Free end;
+    In this case, gtk_events_pending may be called inside gtk_dialog_run.
+    This seems to be the case for GTK starting from 2.14: on Ubuntu 8.10
+    open dialog hangs strangely (you cannot see the entries in open dialog,
+    and clicking on "file system" hangs etc.) without this
+    GlobalIdleInstalled := false fix. }
+  Glwm.GlobalIdleInstalled := false;
+  try
+
+    Mode := TGLModeFrozenScreen.Create(Self, 0, false, nil);
+    try
+      { gtk_dialog_run does everything (that in GtkFileSelection version
+        we had to do manually): the dialog is set to modal, it's shown,
+        buttons cause gtk_dialog_run to exit with indicated response,
+        delete_event also causes normal exit with GTK_RESPONSE_DELETE_EVENT.
+
+        Inside it will do the same thing as a loop of our Glwm.ProcessMessages
+        (because we set up everything properly, such that our Glwm.ProcessMessages
+        just calls gtk_main_iteration, so GTK loop fully performs Glwm loop). }
+      Result := gtk_dialog_run(GTK_DIALOG(Dialog)) = GTK_RESPONSE_ACCEPT;
+      if Result then
+      begin
+        CFileName := gtk_file_chooser_get_filename(Dialog);
+        { This copies string contents, so we can later free CFileName pointer. }
+        FileName := CFileName;
+        g_free(CFileName);
+      end;
+    finally Mode.Free end;
+
+  finally Glwm.GlobalIdleInstalled := true end;
 
   gtk_widget_destroy(GTK_WIDGET(Dialog));
 end;
