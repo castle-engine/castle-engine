@@ -41,7 +41,7 @@ unit VRMLRayTracer;
 interface
 
 uses VectorMath, Images, RaysWindow,
-  VRMLTriangle, VRMLNodes, SpaceFillingCurves, Matrix;
+  VRMLTriangle, VRMLTriangleOctree, VRMLNodes, SpaceFillingCurves, Matrix;
 
 type
   TPixelsMadeNotifierFunc = procedure(PixelsMadeCount: Cardinal; Data: Pointer);
@@ -54,8 +54,13 @@ type
   TRayTracer = class
   public
     { This describes the actual scene that will be used.
-      Must be set before calling @link(Execute). }
-    Octree: TVRMLBaseTrianglesOctree;
+      Must be set before calling @link(Execute).
+
+      TODO: this is actually able to work with any
+      TVRMLBaseTrianglesOctree, if not for a simple detail in the
+      implementation... will be improved soon to actually officially allow
+      any TVRMLBaseTrianglesOctree. }
+    Octree: TVRMLTriangleOctree;
 
     { Image where the ray-tracer result will be stored.
       Must be set before calling @link(Execute).
@@ -687,11 +692,27 @@ const
     box.jpg. }
   LightEmissionArea = 1/30;
 
-  function IsLightSource(const Item: PVRMLTriangle): boolean;
+  function EmissiveColor(const Item: TVRMLTriangle): TVector3Single;
+  var
+    M: TNodeMaterial_2;
   begin
-    Result := VectorLenSqr(Item^.State.LastNodes.Material.
-      EmissiveColor3Single(Item^.MatNum))
-      > Sqr(SingleEqualityEpsilon);
+    if Item.State.ParentShape <> nil then
+    begin
+      { VRML >= 2.0 }
+      M := Item.State.ParentShape.Material;
+      if M <> nil then
+        Result := M.FdEmissiveColor.Value else
+        Result := ZeroVector3Single;
+    end else
+    begin
+      { VRML 1.0 }
+      Result := Item.State.LastNodes.Material.EmissiveColor3Single(Item.MatNum);
+    end;
+  end;
+
+  function IsLightSource(const Item: TVRMLTriangle): boolean;
+  begin
+    Result := VectorLenSqr(EmissiveColor(Item)) > Sqr(SingleEqualityEpsilon);
   end;
 
   function IsLightShadowed(const Item: PVRMLTriangle;
@@ -718,7 +739,7 @@ const
     if (CachedShadower <> nil) and
        (CachedShadower <> Item) then
     begin
-      {TODO:Inc(Octree.DirectCollisionTestsCounter);}
+      Inc(Octree.DirectCollisionTestsCounter);
       if IsTriangleSegmentCollision(CachedShadower^.World.Triangle,
         CachedShadower^.World.Plane, ItemPoint, LightSourcePoint) then
         Exit(true);
@@ -859,8 +880,7 @@ const
             LightSourceIndiceIndex, SampleLightPoint) then Continue;
 
           { calculate DirectColor = kolor emission swiatla }
-          DirectColor := LightSource^.State.LastNodes.Material.
-            EmissiveColor3Single(LightSource^.MatNum);
+          DirectColor := EmissiveColor(LightSource^);
 
           { wymnoz przez naszego "niby-BRDFa" czyli po prostu przez kolor Diffuse
             materialu }
@@ -1047,7 +1067,7 @@ const
       TriangleToIgnore, IgnoreMarginAtStart, nil);
     if IntersectNode = nil then Exit(SceneBGColor);
 
-    if TraceOnlyIndirect and IsLightSource(IntersectNode) then
+    if TraceOnlyIndirect and IsLightSource(IntersectNode^) then
     begin
       Result.Init_Zero;
       Exit;
@@ -1057,7 +1077,7 @@ const
     { de facto jezeli TraceOnlyIndirect to ponizsza linijka na pewno dodaje
       do result (0, 0, 0). Ale nie widze w tej chwili jak z tego wyciagnac
       jakas specjalna optymalizacje. }
-    Result := MaterialNode.EmissiveColor3Single(IntersectNode^.MatNum);
+    Result := EmissiveColor(IntersectNode^);
 
     { jezeli MinDepth = Depth to znaczy ze nasz Trace zwraca kolor dla primary ray.
       Wiec rozgaleziamy sie tutaj na NonPrimarySamplesCount, czyli dzialamy
@@ -1113,7 +1133,7 @@ var
 
 var
   PixCoord: TVector2Cardinal;
-//  i: integer;
+  i: integer;
   SFCurve: TSpaceFillingCurve;
 begin
   { check parameters (path tracing i tak trwa bardzo dlugo wiec mozemy sobie
@@ -1131,12 +1151,11 @@ begin
   try
     { calculate LightIndices }
     LightItems := TDynPointerArray.Create;
-    {TODO:
     LightItems.AllowedCapacityOverflow := Octree.Triangles.Count div 4;
     for I := 0 to Octree.Triangles.Count - 1 do
-      if IsLightSource(Octree.Triangles.Pointers[I]) then
+      if IsLightSource(Octree.Triangles.Items[I]) then
         LightItems.AppendItem(Octree.Triangles.Pointers[I]);
-    LightItems.AllowedCapacityOverflow := 4;}
+    LightItems.AllowedCapacityOverflow := 4;
 
     {$ifdef PATHTR_USES_SHADOW_CACHE}
     { calculate ShadowCache }
