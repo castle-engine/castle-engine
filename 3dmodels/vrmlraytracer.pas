@@ -455,6 +455,9 @@ var
         like a glass that doesn't intersect any other objects)
         the ray so it can get to the light.
 
+        We also take into account here that things with
+        KambiAppearance.shadowCaster = FALSE do not block light.
+
         We also take into account that the light may be on the opposide
         side of the plane than from where RayVector came.
         In such case the light shines on IntersectNode, but from the opposite
@@ -703,7 +706,7 @@ const
   { TODO: transparent objects should scale light color instead of just
     letting it pass }
   var
-    OctreeIgnorer: TVRMLOctreeIgnoreTransparentAndOneItem;
+    OctreeIgnorer: TVRMLOctreeIgnoreForShadowRaysAndOneItem;
     Shadower: PVRMLTriangle;
   {$ifdef PATHTR_USES_SHADOW_CACHE}
     CachedShadower: PVRMLTriangle;
@@ -731,7 +734,7 @@ const
     {$endif}
 
     { oblicz przeciecie uzywajac Octree }
-    OctreeIgnorer := TVRMLOctreeIgnoreTransparentAndOneItem.Create(
+    OctreeIgnorer := TVRMLOctreeIgnoreForShadowRaysAndOneItem.Create(
       LightItems.Items[LightSourceIndiceIndex]);
     try
       Shadower := Octree.SegmentCollision(ItemPoint, LightSourcePoint, false,

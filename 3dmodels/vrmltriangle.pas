@@ -660,11 +660,22 @@ type
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc);
 
-    { This makes transparent triangles (with material
-      with Transparency > 0) ignored (i.e. returns @true for them).
-      This is a prepared function compatible with TVRMLTriangleIgnoreFunc
-      function type. }
+    { This ignores (that is, returns @true) transparent triangles
+      (with Material.Transparency > 0).
+
+      This is suitable for TVRMLTriangleIgnoreFunc function, you can pass
+      this to RayCollision and such. }
     class function IgnoreTransparentItem(
+      const Octree: TVRMLBaseTrianglesOctree;
+      const Triangle: PVRMLTriangle): boolean;
+
+    { This ignores (that is, returns @true) transparent triangles
+      (with Material.Transparency > 0) and non-shadow-casting triangles
+      (with KambiAppearance.shadowCaster = FALSE).
+
+      This is suitable for TVRMLTriangleIgnoreFunc function, you can pass
+      this to RayCollision and such. }
+    class function IgnoreForShadowRays(
       const Octree: TVRMLBaseTrianglesOctree;
       const Triangle: PVRMLTriangle): boolean;
 
@@ -675,9 +686,10 @@ type
       1) Light.LightNode jest ON (FdOn.Value = true) (ten check jest zrobiony
          na samym poczatku bo moze przeciez zaoszczedzic sporo czasu)
       2) ze droga pomiedzy Light a LightedPoint jest wolna w Octree
-         (za wyjatkiem obiektow pol-przezroczystych ktore sa po prostu ignorowane
-         - TODO: to jest uproszczenie, ale w tym momencie te elementy po prostu
-         w ogole nie blokuja swiatla)
+         (with IgnoreForShadowRays, that is we ignore transparent
+         and non-shadow-casting triangles;
+         TODO: to jest uproszczenie, for transparent triangles they should
+         not block but still should scale the light)
       3) oraz ze swiatlo jest po tej samej stronie LightedPointPlane co RenderDir.
 
       Szukanie kolizji w octree uzywa przekazanych TriangleToIgnore i
@@ -697,11 +709,11 @@ type
       const IgnoreMarginAtStart: boolean): boolean;
   end;
 
-  { Simple utility class to easily ignore all transparent items and,
-    additionally, one chosen item.
-    Useful for TrianglesToIgnoreFunc parameters of various TVRMLBaseTrianglesOctree
-    methods. }
-  TVRMLOctreeIgnoreTransparentAndOneItem = class
+  { Simple utility class to easily ignore all transparent, non-shadow-casting
+    triangles, and, additionally, one chosen triangle.
+    Useful for TrianglesToIgnoreFunc parameters of various
+    TVRMLBaseTrianglesOctree methods. }
+  TVRMLOctreeIgnoreForShadowRaysAndOneItem = class
     OneItem: PVRMLTriangle;
     { Returns @true for partially transparent items (Transparency > 0),
       and for OneItem. }
@@ -1244,9 +1256,33 @@ class function TVRMLBaseTrianglesOctree.IgnoreTransparentItem(
   const Octree: TVRMLBaseTrianglesOctree;
   const Triangle: PVRMLTriangle): boolean;
 begin
+  { TODO: this is only for VRML 1.0 material nodes for now }
   Result :=
     Triangle^.State.LastNodes.Material.Transparency(Triangle^.MatNum)
       > SingleEqualityEpsilon;
+end;
+
+function NonShadowCaster(State: TVRMLGraphTraverseState): boolean;
+var
+  Shape: TNodeX3DShapeNode;
+begin
+  Shape := State.ParentShape;
+  Result :=
+    (Shape <> nil) and
+    (Shape.FdAppearance.Value <> nil) and
+    (Shape.FdAppearance.Value is TNodeKambiAppearance) and
+    (not TNodeKambiAppearance(Shape.FdAppearance.Value).FdShadowCaster.Value);
+end;
+
+class function TVRMLBaseTrianglesOctree.IgnoreForShadowRays(
+  const Octree: TVRMLBaseTrianglesOctree;
+  const Triangle: PVRMLTriangle): boolean;
+begin
+  Result :=
+    { TODO: this is only for VRML 1.0 material nodes for now }
+    (Triangle^.State.LastNodes.Material.Transparency(Triangle^.MatNum)
+      > SingleEqualityEpsilon) or
+    NonShadowCaster(Triangle^.State);
 end;
 
 function TVRMLBaseTrianglesOctree.ActiveLightNotBlocked(const Light: TActiveLight;
@@ -1281,23 +1317,25 @@ begin
        RenderDir,
        LightedPointPlane)) and
    (SegmentCollision(LightedPoint, LightPos,
-     false, TriangleToIgnore, IgnoreMarginAtStart,
-     {$ifdef FPC_OBJFPC} @ {$endif} IgnoreTransparentItem)
+     false, TriangleToIgnore, IgnoreMarginAtStart, @IgnoreForShadowRays)
      = nil);
 end;
 
-{ TVRMLOctreeIgnoreTransparentAndOneItem -------------------------------------- }
+{ TVRMLOctreeIgnoreForShadowRaysAndOneItem -------------------------------------- }
 
-function TVRMLOctreeIgnoreTransparentAndOneItem.IgnoreItem(
+function TVRMLOctreeIgnoreForShadowRaysAndOneItem.IgnoreItem(
   const Octree: TVRMLBaseTrianglesOctree;
   const Triangle: PVRMLTriangle): boolean;
 begin
-  Result := (Triangle = OneItem) or
+  Result :=
+    (Triangle = OneItem) or
     (Triangle^.State.LastNodes.Material.Transparency(Triangle^.MatNum)
-      > SingleEqualityEpsilon);
+      > SingleEqualityEpsilon) or
+    NonShadowCaster(Triangle^.State);
 end;
 
-constructor TVRMLOctreeIgnoreTransparentAndOneItem.Create(AOneItem: PVRMLTriangle);
+constructor TVRMLOctreeIgnoreForShadowRaysAndOneItem.Create(
+  AOneItem: PVRMLTriangle);
 begin
   inherited Create;
   OneItem := AOneItem;
