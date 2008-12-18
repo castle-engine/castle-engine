@@ -14,14 +14,14 @@ type
       BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
       BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
       GeometryNode: TVRMLGeometryNode;
-      State: TVRMLGraphTraverseState);
+      StateStack: TVRMLGraphTraverseStateStack);
   end;
 
 procedure TDummy.Traverse(
   BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
   BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
   GeometryNode: TVRMLGeometryNode;
-  State: TVRMLGraphTraverseState);
+  StateStack: TVRMLGraphTraverseStateStack);
 begin
   Writeln(
     'Blender object "', BlenderObjectName, '" (VRML ', BlenderObjectNode.NodeTypeName, ') -> ' +
