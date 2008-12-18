@@ -13,13 +13,15 @@ uses
   backgroundbase,
   boxes3d,
   convexhullunit,
+  cubeenvmap,
   keys,
   navigation,
   polynomials,
   quaternions,
   rayswindow,
   spacefillingcurves,
-  spheresampling
+  spheresampling,
+  sphericalharmonics
   ;
 
 implementation

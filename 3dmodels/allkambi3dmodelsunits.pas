@@ -32,13 +32,14 @@ uses
   vrmllightset,
   vrmlnodes,
   vrmlnodesdetailoptions,
-  vrmltriangle,
   vrmlraytracer,
   vrmlrendereroptimization,
   vrmlscene,
   vrmlscenewaypoints,
   vrmlshape,
   vrmlshapeoctree,
+  vrmltime,
+  vrmltriangle,
   vrmltriangleoctree,
   x3dxmltovrml
   ;

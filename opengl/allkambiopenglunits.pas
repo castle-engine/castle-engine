@@ -13,6 +13,7 @@ uses
   beziercurve,
   curve,
   glantialiasing,
+  glcubeenvmap,
   glimages,
   glmenu,
   glshaders,
