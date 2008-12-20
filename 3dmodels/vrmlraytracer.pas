@@ -40,7 +40,7 @@ unit VRMLRayTracer;
 
 interface
 
-uses VectorMath, Images, RaysWindow,
+uses VectorMath, Images, RaysWindow, KambiUtils,
   VRMLTriangle, VRMLTriangleOctree, VRMLNodes, SpaceFillingCurves, Matrix;
 
 type
@@ -220,6 +220,9 @@ type
     [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/ch04s03.html]
     for documentation. }
   TPathTracer = class(TRayTracer)
+  private
+    CollectedLightItems: TDynPointerArray;
+    procedure CollectLightItems(const Triangle: PVRMLTriangle);
   public
     constructor Create;
     procedure Execute; override;
@@ -310,7 +313,7 @@ type
 
 implementation
 
-uses SysUtils, Math, KambiUtils, Boxes3d, IllumModels, SphereSampling;
+uses SysUtils, Math, Boxes3d, IllumModels, SphereSampling;
 
 {$I vectormathinlines.inc}
 
@@ -606,6 +609,35 @@ begin
   SFCurveClass := TSwapScanCurve;
 end;
 
+  function EmissiveColor(const Item: TVRMLTriangle): TVector3Single;
+  var
+    M: TNodeMaterial_2;
+  begin
+    if Item.State.ParentShape <> nil then
+    begin
+      { VRML >= 2.0 }
+      M := Item.State.ParentShape.Material;
+      if M <> nil then
+        Result := M.FdEmissiveColor.Value else
+        Result := ZeroVector3Single;
+    end else
+    begin
+      { VRML 1.0 }
+      Result := Item.State.LastNodes.Material.EmissiveColor3Single(Item.MatNum);
+    end;
+  end;
+
+  function IsLightSource(const Item: TVRMLTriangle): boolean;
+  begin
+    Result := VectorLenSqr(EmissiveColor(Item)) > Sqr(SingleEqualityEpsilon);
+  end;
+
+procedure TPathTracer.CollectLightItems(const Triangle: PVRMLTriangle);
+begin
+  if IsLightSource(Triangle^) then
+    CollectedLightItems.AppendItem(Triangle);
+end;
+
 { Some notes about path tracer implementation :
 
   - Meaning of TraceOnlyIndirect parameter for Trace():
@@ -692,29 +724,6 @@ const
     box.jpg. }
   LightEmissionArea = 1/30;
 
-  function EmissiveColor(const Item: TVRMLTriangle): TVector3Single;
-  var
-    M: TNodeMaterial_2;
-  begin
-    if Item.State.ParentShape <> nil then
-    begin
-      { VRML >= 2.0 }
-      M := Item.State.ParentShape.Material;
-      if M <> nil then
-        Result := M.FdEmissiveColor.Value else
-        Result := ZeroVector3Single;
-    end else
-    begin
-      { VRML 1.0 }
-      Result := Item.State.LastNodes.Material.EmissiveColor3Single(Item.MatNum);
-    end;
-  end;
-
-  function IsLightSource(const Item: TVRMLTriangle): boolean;
-  begin
-    Result := VectorLenSqr(EmissiveColor(Item)) > Sqr(SingleEqualityEpsilon);
-  end;
-
   function IsLightShadowed(const Item: PVRMLTriangle;
     const ItemPoint: TVector3_Single;
     const LightSourceIndiceIndex: Integer;
@@ -739,7 +748,8 @@ const
     if (CachedShadower <> nil) and
        (CachedShadower <> Item) then
     begin
-      Inc(Octree.DirectCollisionTestsCounter);
+      if Octree is TVRMLTriangleOctree then
+        Inc(TVRMLTriangleOctree(Octree).DirectCollisionTestsCounter);
       if IsTriangleSegmentCollision(CachedShadower^.World.Triangle,
         CachedShadower^.World.Plane, ItemPoint, LightSourcePoint) then
         Exit(true);
@@ -1143,7 +1153,6 @@ var
 
 var
   PixCoord: TVector2Cardinal;
-  i: integer;
   SFCurve: TSpaceFillingCurve;
 begin
   { check parameters (path tracing i tak trwa bardzo dlugo wiec mozemy sobie
@@ -1159,12 +1168,11 @@ begin
   RaysWindow := nil;
   SFCurve := nil;
   try
-    { calculate LightIndices }
+    { calculate LightItems }
     LightItems := TDynPointerArray.Create;
     LightItems.AllowedCapacityOverflow := Octree.Triangles.Count div 4;
-    for I := 0 to Octree.Triangles.Count - 1 do
-      if IsLightSource(Octree.Triangles.Items[I]) then
-        LightItems.AppendItem(Octree.Triangles.Pointers[I]);
+    CollectedLightItems := LightItems;
+    Octree.EnumerateTriangles(@CollectLightItems);
     LightItems.AllowedCapacityOverflow := 4;
 
     {$ifdef PATHTR_USES_SHADOW_CACHE}

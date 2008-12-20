@@ -173,6 +173,11 @@ type
     function StatisticsBonus(
       const LeavesCount, ItemsCount, NonLeafNodesCount: Int64): string; override;
   public
+    constructor Create(const ARootBox: TBox3d); overload;
+    constructor Create(AMaxDepth, ALeafCapacity: integer;
+      const ARootBox: TBox3d); overload;
+    destructor Destroy; override;
+
     { tu beda zgromadzone wszystkie Triangles jakie mamy w drzewie.
       W lisciach beda tylko ItemsIndices ktore beda indeksami do tej tablicy.
       Zrobilem to 27.04.2003 gdy zobaczylem w drzewie
@@ -208,10 +213,13 @@ type
       0 by default. }
     DirectCollisionTestsCounter: TCollisionCount;
 
-    constructor Create(const ARootBox: TBox3d); overload;
-    constructor Create(AMaxDepth, ALeafCapacity: integer;
-      const ARootBox: TBox3d); overload;
-    destructor Destroy; override;
+    { Internal for cooperation with TVRMLShapeOctree.
+      @exclude }
+    procedure EnumerateTrianglesUpdateWorld(
+      EnumerateTriangleFunc: TEnumerateTriangleFunc);
+
+    procedure EnumerateTriangles(EnumerateTriangleFunc: TEnumerateTriangleFunc);
+      override;
   end;
 
 {$undef read_interface}
@@ -478,7 +486,26 @@ begin
     TriangleToIgnore, IgnoreMarginAtStart, TrianglesToIgnoreFunc) <> nil;
 end;
 
-{ TVRMLTriangleOctree -------------------------------------------------------------- }
+{ TVRMLTriangleOctree -------------------------------------------------------- }
+
+constructor TVRMLTriangleOctree.Create(const ARootBox: TBox3d);
+begin
+ Create(DefTriangleOctreeMaxDepth, DefTriangleOctreeLeafCapacity, ARootBox);
+end;
+
+constructor TVRMLTriangleOctree.Create(AMaxDepth, ALeafCapacity: integer;
+  const ARootBox: TBox3d);
+begin
+ inherited Create (AMaxDepth, ALeafCapacity, ARootBox,
+   TTriangleOctreeNode, false);
+ Triangles := TDynVRMLTriangleArray.Create;
+end;
+
+destructor TVRMLTriangleOctree.Destroy;
+begin
+ FreeAndNil(Triangles);
+ inherited;
+end;
 
 function TVRMLTriangleOctree.TreeRoot: TTriangleOctreeNode;
 begin
@@ -510,25 +537,27 @@ begin
   end;
 end;
 
-{ Create/Destroy ------------------------------------------------------------ }
-
-constructor TVRMLTriangleOctree.Create(const ARootBox: TBox3d);
+procedure TVRMLTriangleOctree.EnumerateTrianglesUpdateWorld(
+  EnumerateTriangleFunc: TEnumerateTriangleFunc);
+var
+  I: Integer;
+  T: PVRMLTriangle;
 begin
- Create(DefTriangleOctreeMaxDepth, DefTriangleOctreeLeafCapacity, ARootBox);
+  T := PVRMLTriangle(Triangles.ItemsArray);
+  for I := 0 to Triangles.Count - 1 do
+  begin
+    T^.UpdateWorld;
+    EnumerateTriangleFunc(T);
+  end;
 end;
 
-constructor TVRMLTriangleOctree.Create(AMaxDepth, ALeafCapacity: integer;
-  const ARootBox: TBox3d);
+procedure TVRMLTriangleOctree.EnumerateTriangles(
+  EnumerateTriangleFunc: TEnumerateTriangleFunc);
+var
+  I: Integer;
 begin
- inherited Create (AMaxDepth, ALeafCapacity, ARootBox,
-   TTriangleOctreeNode, false);
- Triangles := TDynVRMLTriangleArray.Create;
-end;
-
-destructor TVRMLTriangleOctree.Destroy;
-begin
- FreeAndNil(Triangles);
- inherited;
+  for I := 0 to Triangles.Count - 1 do
+    EnumerateTriangleFunc(Triangles.Pointers[I]);
 end;
 
 end.

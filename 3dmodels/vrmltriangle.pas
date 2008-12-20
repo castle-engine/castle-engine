@@ -343,6 +343,9 @@ type
     { @groupEnd }
   end;
 
+  { Callback for @link(TVRMLBaseTrianglesOctree.EnumerateTriangles). }
+  TEnumerateTriangleFunc = procedure (const Triangle: PVRMLTriangle) of object;
+
   { Abstract class for octrees that can check and return collisions
     with TVRMLTriangle.
 
@@ -717,6 +720,19 @@ type
       const LightedPoint, LightedPointPlane, RenderDir: TVector3Single;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean): boolean;
+
+    { Enumerate every triangle of this octree.
+
+      It passes to EnumerateTriangleFunc callback a Triangle.
+      Triangle is passed as a pointer (never @nil) --- these are guaranteed
+      to be "stable" pointers stored inside octrees' lists (so they will be valid
+      as long as octree (and eventual children octrees for TVRMLShapeOctree)).
+
+      Every triangle is guaranteed to have it's World coordinates updated
+      (to put it simply, when this is used on TVRMLShapeOctree, then we
+      call UpdateWorld on each triangle). }
+    procedure EnumerateTriangles(EnumerateTriangleFunc: TEnumerateTriangleFunc);
+      virtual; abstract;
   end;
 
   { Simple utility class to easily ignore all transparent, non-shadow-casting
@@ -724,6 +740,7 @@ type
     Useful for TrianglesToIgnoreFunc parameters of various
     TVRMLBaseTrianglesOctree methods. }
   TVRMLOctreeIgnoreForShadowRaysAndOneItem = class
+  public
     OneItem: PVRMLTriangle;
     { Returns @true for partially transparent items (Transparency > 0),
       and for OneItem. }

@@ -201,6 +201,9 @@ type
     function TreeRoot: TVRMLShapeOctreeNode;
     property ShapesList: TVRMLShapesList read FShapesList;
     property OwnsShapesList: boolean read FOwnsShapesList;
+
+    procedure EnumerateTriangles(EnumerateTriangleFunc: TEnumerateTriangleFunc);
+      override;
   end;
 
 implementation
@@ -651,6 +654,16 @@ begin
     '  %d items (=Shapes) defined for octree, %d items in octree''s nodes' +nl+
     '  - so each Shapes is present in tree about %f times.' +nl,
     [ ShapesList.Count, ItemsCount, ItemsCount / ShapesList.Count] );
+end;
+
+procedure TVRMLShapeOctree.EnumerateTriangles(
+  EnumerateTriangleFunc: TEnumerateTriangleFunc);
+var
+  I: Integer;
+begin
+  for I := 0 to ShapesList.Count - 1 do
+    ShapesList.Items[I].OctreeTriangles.EnumerateTrianglesUpdateWorld(
+      EnumerateTriangleFunc);
 end;
 
 end.
