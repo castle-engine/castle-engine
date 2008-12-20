@@ -204,6 +204,7 @@ type
 
     procedure EnumerateTriangles(EnumerateTriangleFunc: TEnumerateTriangleFunc);
       override;
+    function TrianglesCount: Cardinal; override;
   end;
 
 implementation
@@ -665,5 +666,15 @@ begin
     ShapesList.Items[I].OctreeTriangles.EnumerateTrianglesUpdateWorld(
       EnumerateTriangleFunc);
 end;
+
+function TVRMLShapeOctree.TrianglesCount: Cardinal;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to ShapesList.Count - 1 do
+    Result += ShapesList.Items[I].OctreeTriangles.TrianglesCount;
+end;
+
 
 end.

@@ -220,6 +220,8 @@ type
 
     procedure EnumerateTriangles(EnumerateTriangleFunc: TEnumerateTriangleFunc);
       override;
+
+    function TrianglesCount: Cardinal; override;
   end;
 
 {$undef read_interface}
@@ -558,6 +560,11 @@ var
 begin
   for I := 0 to Triangles.Count - 1 do
     EnumerateTriangleFunc(Triangles.Pointers[I]);
+end;
+
+function TVRMLTriangleOctree.TrianglesCount: Cardinal;
+begin
+  Result := Triangles.Count;
 end;
 
 end.

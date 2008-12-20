@@ -54,13 +54,8 @@ type
   TRayTracer = class
   public
     { This describes the actual scene that will be used.
-      Must be set before calling @link(Execute).
-
-      TODO: this is actually able to work with any
-      TVRMLBaseTrianglesOctree, if not for a simple detail in the
-      implementation... will be improved soon to actually officially allow
-      any TVRMLBaseTrianglesOctree. }
-    Octree: TVRMLTriangleOctree;
+      Must be set before calling @link(Execute). }
+    Octree: TVRMLBaseTrianglesOctree;
 
     { Image where the ray-tracer result will be stored.
       Must be set before calling @link(Execute).
@@ -1170,7 +1165,7 @@ begin
   try
     { calculate LightItems }
     LightItems := TDynPointerArray.Create;
-    LightItems.AllowedCapacityOverflow := Octree.Triangles.Count div 4;
+    LightItems.AllowedCapacityOverflow := Octree.TrianglesCount div 4;
     CollectedLightItems := LightItems;
     Octree.EnumerateTriangles(@CollectLightItems);
     LightItems.AllowedCapacityOverflow := 4;

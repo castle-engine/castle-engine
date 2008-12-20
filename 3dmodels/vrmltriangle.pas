@@ -733,6 +733,10 @@ type
       call UpdateWorld on each triangle). }
     procedure EnumerateTriangles(EnumerateTriangleFunc: TEnumerateTriangleFunc);
       virtual; abstract;
+
+    { Number of triangles within the octree. This counts all triangles
+      returned by EnumerateTriangles. }
+    function TrianglesCount: Cardinal; virtual; abstract;
   end;
 
   { Simple utility class to easily ignore all transparent, non-shadow-casting
