@@ -243,6 +243,8 @@ type
   TVRMLScene = class;
 
   TVRMLSceneNotification = procedure (Scene: TVRMLScene) of object;
+  TVRMLSceneGeometryChanged = procedure (Scene: TVRMLScene;
+    const SomeLocalGeometryChanged: boolean) of object;
 
   { VRML bindable nodes stack.
     This keeps a stack of TNodeX3DBindableNode, with comfortable routines
@@ -529,7 +531,7 @@ type
     procedure FreeResources_UnloadTextureData(Node: TVRMLNode);
     procedure FreeResources_UnloadBackgroundImage(Node: TVRMLNode);
 
-    FOnGeometryChanged: TVRMLSceneNotification;
+    FOnGeometryChanged: TVRMLSceneGeometryChanged;
     FOnPostRedisplay: TVRMLSceneNotification;
     FOnViewpointsChanged: TVRMLSceneNotification;
     FOnBoundViewpointVectorsChanged: TVRMLSceneNotification;
@@ -872,7 +874,7 @@ type
       (When ProcessEvents = @false, you always call ChangedXxx explicitly
       and in most cases you already know when the geometry did and when
       it did not change.) }
-    property OnGeometryChanged: TVRMLSceneNotification
+    property OnGeometryChanged: TVRMLSceneGeometryChanged
       read FOnGeometryChanged write FOnGeometryChanged;
 
     { Notification when anything changed needing redisplay. }
@@ -3020,7 +3022,7 @@ begin
     PointingDeviceClear;
 
   if Assigned(OnGeometryChanged) then
-    OnGeometryChanged(Self);
+    OnGeometryChanged(Self, SomeLocalGeometryChanged);
 
   { clear ScheduledGeometryXxx flags now }
   ScheduledGeometryChangedAll := false;
