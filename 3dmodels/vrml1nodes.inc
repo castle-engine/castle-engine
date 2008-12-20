@@ -293,6 +293,8 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
+  TVRMLMaterialInfo_1 = class;
+
   TNodeMaterial_1 = class(TNodeX3DChildNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -350,11 +352,6 @@
       albo ze moze nie byc wystarczajacej ilosci kolorow (wtedy bierzemy
       ostatni kolor).
 
-      W przypadku czterech wartosci Trans/ReflSpecular/Diffuse
-      te funkcje realizuja "wyliczanie" na podstawie innych pol materialu,
-      tak jak opisalem w
-      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php].
-
       Funkcje zwracajace TVector4Single zwracaja [TVector3Single, Opacity].
 
       Transparency i Opacity sa zwracane w zakresie 0..1, przy czym
@@ -386,10 +383,6 @@
     function ShininessExp(MatNum: integer): Single;
 
     function Mirror(MatNum: integer): Single;
-    function ReflSpecular (MatNum: integer): TVector3Single;
-    function ReflDiffuse  (MatNum: integer): TVector3Single;
-    function TransSpecular(MatNum: integer): TVector3Single;
-    function TransDiffuse (MatNum: integer): TVector3Single;
     function ReflSpecularExp (MatNum: integer): Single;
     function TransSpecularExp(MatNum: integer): Single;
 
@@ -415,6 +408,28 @@
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+
+    function MaterialInfo(const Index: Integer): TVRMLMaterialInfo_1;
+  end;
+
+  TVRMLMaterialInfo_1 = class(TVRMLMaterialInfo)
+  private
+    FNode: TNodeMaterial_1;
+    FIndex: Integer;
+  public
+    constructor Create(Node: TNodeMaterial_1; const Index: Integer);
+
+    function DiffuseColor: TVector3Single; override;
+    function Mirror: Single; override;
+    function Transparency: Single; override;
+
+    function ReflSpecular: TVector3Single; override;
+    function ReflDiffuse: TVector3Single; override;
+    function TransSpecular: TVector3Single; override;
+    function TransDiffuse: TVector3Single; override;
+
+    function ReflSpecularExp: Single; override;
+    function TransSpecularExp: Single; override;
   end;
 
   TNodeMaterialBinding = class(TNodeX3DChildNode)
@@ -1441,46 +1456,6 @@ begin
           (FdSpecularColor.Count = 0);
 end;
 
-{ cztery funkcje ktore w razie braku wartosci zapisanych w polu (FdXxx.Count = 0)
-  wyliczaja sobie kolor z innych wlasciwosci materialu. }
-{$define MATERIAL_FUNCTION_CALC:=
-function TNodeMaterial_1.MATERIAL_FUNCTION_NAME(MatNum: integer): TVector3Single;
-begin
- if MATERIAL_FUNCTION_FIELD.Count = 0 then
-  result := MATERIAL_FUNCTION_CALCULATE else
-  result := MATERIAL_FUNCTION_FIELD.Items.Items[min(MatNum,
-    MATERIAL_FUNCTION_FIELD.Count-1)]
-end;}
-
-  {$define MATERIAL_FUNCTION_NAME := ReflSpecular}
-  {$define MATERIAL_FUNCTION_FIELD := FdReflSpecular}
-  {$define MATERIAL_FUNCTION_CALCULATE:=
-    Vector3Single(Mirror(MatNum), Mirror(MatNum), Mirror(MatNum))}
-  MATERIAL_FUNCTION_CALC
-
-  {$define MATERIAL_FUNCTION_NAME := ReflDiffuse}
-  {$define MATERIAL_FUNCTION_FIELD := FdReflDiffuse}
-  {$define MATERIAL_FUNCTION_CALCULATE:=
-    DiffuseColor3Single(MatNum)}
-  MATERIAL_FUNCTION_CALC
-
-  {$define MATERIAL_FUNCTION_NAME := TransSpecular}
-  {$define MATERIAL_FUNCTION_FIELD := FdTransSpecular}
-  {$define MATERIAL_FUNCTION_CALCULATE:=
-    Vector3Single(Transparency(MatNum), Transparency(MatNum), Transparency(MatNum))}
-  MATERIAL_FUNCTION_CALC
-
-  {$define MATERIAL_FUNCTION_NAME := TransDiffuse}
-  {$define MATERIAL_FUNCTION_FIELD := FdTransDiffuse}
-  {$define MATERIAL_FUNCTION_CALCULATE:=
-    VectorScale(DiffuseColor3Single(MatNum), Transparency(MatNum) )}
-  MATERIAL_FUNCTION_CALC
-
-{$undef MATERIAL_FUNCTION_CALC}
-{$undef MATERIAL_FUNCTION_NAME}
-{$undef MATERIAL_FUNCTION_FIELD}
-{$undef MATERIAL_FUNCTION_CALCULATE}
-
 function TNodeMaterial_1.AllMaterialsTransparent: boolean;
 var i: Integer;
 begin
@@ -1504,6 +1479,83 @@ begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 1, 0, 1000);
+end;
+
+function TNodeMaterial_1.MaterialInfo(const Index: Integer): TVRMLMaterialInfo_1;
+begin
+  Result := TVRMLMaterialInfo_1.Create(Self, Index);
+end;
+
+constructor TVRMLMaterialInfo_1.Create(Node: TNodeMaterial_1; const Index: Integer);
+begin
+  inherited Create;
+  FNode := Node;
+  FIndex := Index;
+end;
+
+function TVRMLMaterialInfo_1.DiffuseColor: TVector3Single;
+begin
+  Result := FNode.DiffuseColor3Single(FIndex);
+end;
+
+function TVRMLMaterialInfo_1.Mirror: Single;
+begin
+  Result := FNode.Mirror(FIndex);
+end;
+
+function TVRMLMaterialInfo_1.Transparency: Single;
+begin
+  Result := FNode.Transparency(FIndex);
+end;
+
+function TVRMLMaterialInfo_1.ReflSpecular: TVector3Single;
+var
+  A: TDynVector3SingleArray;
+begin
+  A := FNode.FdReflSpecular.Items;
+  if A.Count = 0 then
+    CalculateReflSpecular(Result) else
+    Result := A.Items[Min(FIndex, A.Count - 1)];
+end;
+
+function TVRMLMaterialInfo_1.ReflDiffuse: TVector3Single;
+var
+  A: TDynVector3SingleArray;
+begin
+  A := FNode.FdReflDiffuse.Items;
+  if A.Count = 0 then
+    CalculateReflDiffuse(Result) else
+    Result := A.Items[Min(FIndex, A.Count - 1)];
+end;
+
+function TVRMLMaterialInfo_1.TransSpecular: TVector3Single;
+var
+  A: TDynVector3SingleArray;
+begin
+  A := FNode.FdTransSpecular.Items;
+  if A.Count = 0 then
+    CalculateTransSpecular(Result) else
+    Result := A.Items[Min(FIndex, A.Count - 1)];
+end;
+
+function TVRMLMaterialInfo_1.TransDiffuse: TVector3Single;
+var
+  A: TDynVector3SingleArray;
+begin
+  A := FNode.FdTransDiffuse.Items;
+  if A.Count = 0 then
+    CalculateTransDiffuse(Result) else
+    Result := A.Items[Min(FIndex, A.Count - 1)];
+end;
+
+function TVRMLMaterialInfo_1.ReflSpecularExp: Single;
+begin
+  Result := FNode.ReflSpecularExp(FIndex);
+end;
+
+function TVRMLMaterialInfo_1.TransSpecularExp: Single;
+begin
+  Result := FNode.TransSpecularExp(FIndex);
 end;
 
 constructor TNodeMaterialBinding.Create(const ANodeName: string; const AWWWBasePath: string);

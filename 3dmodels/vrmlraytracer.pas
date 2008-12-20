@@ -776,7 +776,7 @@ const
   var
     Intersection: TVector3_Single;
     IntersectNode: PVRMLTriangle;
-    MaterialNode: TNodeMaterial_1; { = IntersectNode.State.LastNodes.Material }
+    MaterialInfo: TVRMLMaterialInfo; { = IntersectNode.MaterialInfo }
     IntersectNormalInRay0Dir: TVector3_Single;
 
     function TraceNonEmissivePart: TVector3_Single;
@@ -800,7 +800,7 @@ const
         if Result then
           TracedDir := PhiThetaToXYZ(
             RandomUnitHemispherePointDensityCosThetaExp(
-              Round(MaterialNode.TransSpecularExp(IntersectNode^.MatNum)),
+              Round(MaterialInfo.TransSpecularExp),
               PdfValue),
             TransmittedRayVector);
       end;
@@ -884,7 +884,7 @@ const
 
           { wymnoz przez naszego "niby-BRDFa" czyli po prostu przez kolor Diffuse
             materialu }
-          DirectColor *= MaterialNode.DiffuseColor3Single(IntersectNode^.MatNum);
+          DirectColor *= MaterialInfo.DiffuseColor;
 
           { calculate LightDirNorm (znormalizowane), NegatedLightDirNorm }
           Vector_Normalize(LightDirNorm);
@@ -976,10 +976,10 @@ const
           odpowiada DOKLADNIE temu jak wpada swiatlo. }
 
         { calculate Colors[] }
-        Colors[ckRS] := MaterialNode.ReflSpecular (IntersectNode^.MatNum);
-        Colors[ckRD] := MaterialNode.ReflDiffuse  (IntersectNode^.MatNum);
-        Colors[ckTS] := MaterialNode.TransSpecular(IntersectNode^.MatNum);
-        Colors[ckTD] := MaterialNode.TransDiffuse (IntersectNode^.MatNum);
+        Colors[ckRS] := MaterialInfo.ReflSpecular;
+        Colors[ckRD] := MaterialInfo.ReflDiffuse;
+        Colors[ckTS] := MaterialInfo.TransSpecular;
+        Colors[ckTD] := MaterialInfo.TransDiffuse;
 
         { calculate Weights[] and WeightSum }
         WeightsSum := 0;
@@ -1029,7 +1029,7 @@ const
                     IntersectNormalInRay0Dir);
             ckRS: TracedDir := PhiThetaToXYZ(
                     RandomUnitHemispherePointDensityCosThetaExp(
-                      Round(MaterialNode.ReflSpecularExp(IntersectNode^.MatNum)),
+                      Round(MaterialInfo.ReflSpecularExp),
                       PdfValue),
                     ReflectedRayVector(Vector_Get_Normalized(RayVector),
                       IntersectNode^.World.Plane));
@@ -1073,27 +1073,37 @@ const
       Exit;
     end;
 
-    MaterialNode := IntersectNode^.State.LastNodes.Material;
-    { de facto jezeli TraceOnlyIndirect to ponizsza linijka na pewno dodaje
-      do result (0, 0, 0). Ale nie widze w tej chwili jak z tego wyciagnac
-      jakas specjalna optymalizacje. }
-    Result := EmissiveColor(IntersectNode^);
+    MaterialInfo := IntersectNode^.MaterialInfo;
+    try
 
-    { jezeli MinDepth = Depth to znaczy ze nasz Trace zwraca kolor dla primary ray.
-      Wiec rozgaleziamy sie tutaj na NonPrimarySamplesCount, czyli dzialamy
-        jakbysmy byly stochastycznym ray tracerem ktory rozgalezia sie
-        na wiele promieni w punkcie rekursji.
-      Wpp. idziemy sciezka czyli dzialamy jakbysmy byly path tracerem czyli
-        nie rozgaleziamy sie na wiele promieni. }
-    if MinDepth = Depth then
-    begin
-      NonEmissiveColor.Init_Zero;
-      for i := 0 to NonPrimarySamplesCount-1 do
-        NonEmissiveColor += TraceNonEmissivePart;
-      NonEmissiveColor *= 1 / NonPrimarySamplesCount;
-      Result += NonEmissiveColor;
-    end else
-      Result += TraceNonEmissivePart;
+      { de facto jezeli TraceOnlyIndirect to ponizsza linijka na pewno dodaje
+        do result (0, 0, 0). Ale nie widze w tej chwili jak z tego wyciagnac
+        jakas specjalna optymalizacje.
+
+        We use below EmissiveColor(), not MaterialInfo.EmissiveColor,
+        because this is done even when MaterialInfo is nil. }
+      Result := EmissiveColor(IntersectNode^);
+
+      if MaterialInfo <> nil then
+      begin
+        { jezeli MinDepth = Depth to znaczy ze nasz Trace zwraca kolor dla primary ray.
+          Wiec rozgaleziamy sie tutaj na NonPrimarySamplesCount, czyli dzialamy
+            jakbysmy byly stochastycznym ray tracerem ktory rozgalezia sie
+            na wiele promieni w punkcie rekursji.
+          Wpp. idziemy sciezka czyli dzialamy jakbysmy byly path tracerem czyli
+            nie rozgaleziamy sie na wiele promieni. }
+        if MinDepth = Depth then
+        begin
+          NonEmissiveColor.Init_Zero;
+          for i := 0 to NonPrimarySamplesCount-1 do
+            NonEmissiveColor += TraceNonEmissivePart;
+          NonEmissiveColor *= 1 / NonPrimarySamplesCount;
+          Result += NonEmissiveColor;
+        end else
+          Result += TraceNonEmissivePart;
+      end;
+
+    finally FreeAndNil(MaterialInfo) end;
   end;
 
 var

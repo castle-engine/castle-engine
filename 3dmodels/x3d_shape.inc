@@ -162,6 +162,8 @@
     public property FdlinewidthScaleFactor: TSFFloat read FFdlinewidthScaleFactor;
   end;
 
+  TVRMLMaterialInfo_2 = class;
+
   TNodeMaterial_2 = class(TNodeX3DMaterialNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -211,6 +213,89 @@
       want to pass the "real" exponent given by this function, not just
       value of shininess field. }
     function ShininessExp: Single;
+
+    { Create material information based on this node.
+      Returned TVRMLMaterialInfo is valid only as long as this node instance. }
+    function MaterialInfo: TVRMLMaterialInfo_2;
+
+    private FFdReflSpecular: TMFColor;
+    public property FdReflSpecular: TMFColor read FFdReflSpecular;
+
+    private FFdReflDiffuse: TMFColor;
+    public property FdReflDiffuse: TMFColor read FFdReflDiffuse;
+
+    private FFdTransSpecular: TMFColor;
+    public property FdTransSpecular: TMFColor read FFdTransSpecular;
+
+    private FFdTransDiffuse: TMFColor;
+    public property FdTransDiffuse: TMFColor read FFdTransDiffuse;
+
+    private FFdReflSpecularExp: TSFFloat;
+    public property FdReflSpecularExp: TSFFloat read FFdReflSpecularExp;
+
+    private FFdTransSpecularExp: TSFFloat;
+    public property FdTransSpecularExp: TSFFloat read FFdTransSpecularExp;
+  end;
+
+  { VRML material information, usable for all VRML versions.
+
+    VRML 1.0 and VRML >= 2.0 materials work a little differently:
+    VRML 1.0 has arrays of values, e.g. an array of diffuse color,
+    while VRML >= 2.0 is really a single material, e.g. one diffuse color.
+    This class is designed to hide these differences as much as possible:
+    it provides a simple common interface for getting material properties.
+
+    Note that it doesn't try to abstract all material properties ---
+    there are some features that are simply fundamentally different
+    in how VRML 1.0 and >= 2.0 materials should be treated, and they
+    cannot be abstracted under a common interface here. }
+  TVRMLMaterialInfo = class
+  protected
+    { Calculate physical material properties using standard VRML material
+      fields. See [http://127.0.0.1/~michalis/vrmlengine/kambi_vrml_extensions.php#section_ext_material_phong_brdf_fields].
+
+      These should be used by descendants implementation,
+      for example CalculateReflSpecular should be used by descendant
+      ReflSpecular when material node doesn't specify any value
+      in FdReflSpecular field.
+
+      @groupBegin }
+    procedure CalculateReflSpecular(var V: TVector3Single);
+    procedure CalculateReflDiffuse(var V: TVector3Single);
+    procedure CalculateTransSpecular(var V: TVector3Single);
+    procedure CalculateTransDiffuse(var V: TVector3Single);
+    { @groupEnd }
+  public
+    function DiffuseColor: TVector3Single; virtual; abstract;
+    function Mirror: Single; virtual; abstract;
+    function Transparency: Single; virtual; abstract;
+
+    function ReflSpecular: TVector3Single; virtual; abstract;
+    function ReflDiffuse: TVector3Single; virtual; abstract;
+    function TransSpecular: TVector3Single; virtual; abstract;
+    function TransDiffuse: TVector3Single; virtual; abstract;
+
+    function ReflSpecularExp: Single; virtual; abstract;
+    function TransSpecularExp: Single; virtual; abstract;
+  end;
+
+  TVRMLMaterialInfo_2 = class(TVRMLMaterialInfo)
+  private
+    FNode: TNodeMaterial_2;
+  public
+    constructor Create(Node: TNodeMaterial_2);
+
+    function DiffuseColor: TVector3Single; override;
+    function Mirror: Single; override;
+    function Transparency: Single; override;
+
+    function ReflSpecular: TVector3Single; override;
+    function ReflDiffuse: TVector3Single; override;
+    function TransSpecular: TVector3Single; override;
+    function TransDiffuse: TVector3Single; override;
+
+    function ReflSpecularExp: Single; override;
+    function TransSpecularExp: Single; override;
   end;
 
   TNodeShape = class(TNodeX3DShapeNode)
@@ -621,6 +706,24 @@ begin
 
   FFdmirror := TSFFloat.Create(Self, 'mirror', DefaultMaterialMirror);
   Fields.Add(FFdmirror);
+
+  FFdreflSpecular := TMFColor.Create(Self, 'reflSpecular', []);
+  Fields.Add(FFdreflSpecular);
+
+  FFdreflDiffuse := TMFColor.Create(Self, 'reflDiffuse', []);
+  Fields.Add(FFdreflDiffuse);
+
+  FFdtransSpecular := TMFColor.Create(Self, 'transSpecular', []);
+  Fields.Add(FFdtransSpecular);
+
+  FFdtransDiffuse := TMFColor.Create(Self, 'transDiffuse', []);
+  Fields.Add(FFdtransDiffuse);
+
+  FFdreflSpecularExp := TSFFloat.Create(Self, 'reflSpecularExp', DefaultMaterialReflSpecularExp);
+  Fields.Add(FFdreflSpecularExp);
+
+  FFdtransSpecularExp := TSFFloat.Create(Self, 'transSpecularExp', DefaultMaterialTransSpecularExp);
+  Fields.Add(FFdtransSpecularExp);
 end;
 
 class function TNodeMaterial_2.ClassNodeTypeName: string;
@@ -658,6 +761,112 @@ function TNodeMaterial_2.ShininessExp: Single;
 begin
   Result := Clamped(FdShininess.Value * 128.0, 0.0, 128.0);
 end;
+
+function TNodeMaterial_2.MaterialInfo: TVRMLMaterialInfo_2;
+begin
+  Result := TVRMLMaterialInfo_2.Create(Self);
+end;
+
+{ TVRMLMaterialInfo ---------------------------------------------------------- }
+
+procedure TVRMLMaterialInfo.CalculateReflSpecular(var V: TVector3Single);
+begin
+  V[0] := Mirror;
+  V[1] := V[0];
+  V[2] := V[0];
+end;
+
+procedure TVRMLMaterialInfo.CalculateReflDiffuse(var V: TVector3Single);
+begin
+  V := DiffuseColor;
+end;
+
+procedure TVRMLMaterialInfo.CalculateTransSpecular(var V: TVector3Single);
+begin
+  V[0] := Transparency;
+  V[1] := V[0];
+  V[2] := V[0];
+end;
+
+procedure TVRMLMaterialInfo.CalculateTransDiffuse(var V: TVector3Single);
+begin
+  V := VectorScale(DiffuseColor, Transparency);
+end;
+
+{ TVRMLMaterialInfo_2 -------------------------------------------------------- }
+
+constructor TVRMLMaterialInfo_2.Create(Node: TNodeMaterial_2);
+begin
+  inherited Create;
+  FNode := Node;
+end;
+
+function TVRMLMaterialInfo_2.DiffuseColor: TVector3Single;
+begin
+  Result := FNode.FdDiffuseColor.Value;
+end;
+
+function TVRMLMaterialInfo_2.Mirror: Single;
+begin
+  Result := FNode.FdMirror.Value;
+end;
+
+function TVRMLMaterialInfo_2.Transparency: Single;
+begin
+  Result := FNode.FdTransparency.Value;
+end;
+
+function TVRMLMaterialInfo_2.ReflSpecular: TVector3Single;
+var
+  A: TDynVector3SingleArray;
+begin
+  A := FNode.FdReflSpecular.Items;
+  if A.Count = 0 then
+    CalculateReflSpecular(Result) else
+    Result := A.Items[0];
+end;
+
+function TVRMLMaterialInfo_2.ReflDiffuse: TVector3Single;
+var
+  A: TDynVector3SingleArray;
+begin
+  A := FNode.FdReflDiffuse.Items;
+  if A.Count = 0 then
+    CalculateReflDiffuse(Result) else
+    Result := A.Items[0];
+end;
+
+function TVRMLMaterialInfo_2.TransSpecular: TVector3Single;
+var
+  A: TDynVector3SingleArray;
+begin
+  A := FNode.FdTransSpecular.Items;
+  if A.Count = 0 then
+    CalculateTransSpecular(Result) else
+    Result := A.Items[0];
+end;
+
+function TVRMLMaterialInfo_2.TransDiffuse: TVector3Single;
+var
+  A: TDynVector3SingleArray;
+begin
+  A := FNode.FdTransDiffuse.Items;
+  if A.Count = 0 then
+    CalculateTransDiffuse(Result) else
+    Result := A.Items[0];
+end;
+
+function TVRMLMaterialInfo_2.ReflSpecularExp: Single;
+begin
+  Result := FNode.FdReflSpecularExp.Value;
+end;
+
+function TVRMLMaterialInfo_2.TransSpecularExp: Single;
+begin
+  Result := FNode.FdTransSpecularExp.Value;
+end;
+
+{ TNodeShape ----------------------------------------------------------------- }
 
 constructor TNodeShape.Create(const ANodeName: string;
   const AWWWBasePath: string);

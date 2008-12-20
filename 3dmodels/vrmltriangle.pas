@@ -167,6 +167,16 @@ type
       {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayTag: Int64; {$endif}
       var DirectCollisionTestsCounter: TCollisionCount): boolean;
     { @groupEnd }
+
+    { Create material information instance for material of this triangle.
+      See TVRMLMaterialInfo for usage description.
+
+      Returns @nil when no Material node is defined, this can happen
+      only for VRML 1.0.
+
+      Returned TVRMLMaterialInfo is valid only as long as the Material
+      node (for VRML 1.0 or 2.0) on which it was based. }
+    function MaterialInfo: TVRMLMaterialInfo;
   end;
   PVRMLTriangle = ^TVRMLTriangle;
 
@@ -842,6 +852,20 @@ begin
     end;
   end;
   {$endif}
+end;
+
+function TVRMLTriangle.MaterialInfo: TVRMLMaterialInfo;
+var
+  M2: TNodeMaterial_2;
+begin
+  if State.ParentShape <> nil then
+  begin
+    M2 := State.ParentShape.Material;
+    if M2 <> nil then
+      Result := M2.MaterialInfo else
+      Result := nil;
+  end else
+    Result := State.LastNodes.Material.MaterialInfo(MatNum);
 end;
 
 { TVRMLBaseTrianglesOctreeNode -----------------------------------------------
