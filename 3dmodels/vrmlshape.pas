@@ -375,7 +375,8 @@ type
     CurrentIndex: Integer;
     FCurrent: TVRMLShape;
   public
-    constructor Create(Tree: TVRMLShapeTree; OnlyActive: boolean);
+    constructor Create(Tree: TVRMLShapeTree; OnlyActive: boolean;
+      OnlyVisible: boolean = false);
     destructor Destroy; override;
     function GetNext: boolean;
     property Current: TVRMLShape read FCurrent;
@@ -387,11 +388,13 @@ type
   private
     AddedCount: Integer;
     procedure AddToList(Shape: TVRMLShape);
+    procedure AddToListIfVisible(Shape: TVRMLShape);
   public
     constructor Create;
 
     { Constructor that initializes list contents by traversing given tree. }
-    constructor Create(Tree: TVRMLShapeTree; OnlyActive: boolean);
+    constructor Create(Tree: TVRMLShapeTree; OnlyActive: boolean;
+      OnlyVisible: boolean = false);
   end;
 
 {$undef read_interface}
@@ -805,10 +808,11 @@ end;
   So right now we're back to simple version. Maybe the "sophisticated"
   implementation will be restored some day... }
 
-constructor TVRMLShapeTreeIterator.Create(Tree: TVRMLShapeTree; OnlyActive: boolean);
+constructor TVRMLShapeTreeIterator.Create(Tree: TVRMLShapeTree;
+  OnlyActive, OnlyVisible: boolean);
 begin
   inherited Create;
-  List := TVRMLShapesList.Create(Tree, OnlyActive);
+  List := TVRMLShapesList.Create(Tree, OnlyActive, OnlyVisible);
   CurrentIndex := -1;
 end;
 
@@ -833,25 +837,49 @@ begin
   inherited;
 end;
 
-constructor TVRMLShapesList.Create(Tree: TVRMLShapeTree; OnlyActive: boolean);
+constructor TVRMLShapesList.Create(Tree: TVRMLShapeTree;
+  OnlyActive, OnlyVisible: boolean);
 begin
   Create;
 
-  { We know exactly how many shapes are present. So set Count once,
-    calculating by ShapesCount. This will be faster than resizing
-    in each AddToList. (Confirmed e.g. by profiling change_vrml_by_code_2). }
-  AddedCount := 0;
-  Count := Tree.ShapesCount(OnlyActive);
+  if OnlyVisible then
+  begin
+    { At most Tree.ShapesCount items will be present. So set Count once,
+      and later correct it. }
+    AddedCount := 0;
+    Count := Tree.ShapesCount(OnlyActive);
 
-  Tree.Traverse(@AddToList, OnlyActive);
+    Tree.Traverse(@AddToListIfVisible, OnlyActive);
 
-  Assert(AddedCount = Count);
+    Assert(AddedCount <= Count);
+    Count := AddedCount;
+  end else
+  begin
+    { We know exactly how many shapes are present. So set Count once,
+      calculating by ShapesCount. This will be faster than resizing
+      in each AddToList. (Confirmed e.g. by profiling change_vrml_by_code_2). }
+    AddedCount := 0;
+    Count := Tree.ShapesCount(OnlyActive);
+
+    Tree.Traverse(@AddToList, OnlyActive);
+
+    Assert(AddedCount = Count);
+  end;
 end;
 
 procedure TVRMLShapesList.AddToList(Shape: TVRMLShape);
 begin
   Items[AddedCount] := Shape;
   Inc(AddedCount);
+end;
+
+procedure TVRMLShapesList.AddToListIfVisible(Shape: TVRMLShape);
+begin
+  if Shape.Visible then
+  begin
+    Items[AddedCount] := Shape;
+    Inc(AddedCount);
+  end;
 end;
 
 end.

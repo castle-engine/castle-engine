@@ -1490,7 +1490,7 @@ begin
           (will be done later in ChangedAll). }
         if Shapes <> nil then
         begin
-          SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+          SI := TVRMLShapeTreeIterator.Create(Shapes, false, true);
           try
             while SI.GetNext do
               TVRMLGLShape(SI.Current).SSSX_DisplayList := 0;
@@ -1525,7 +1525,12 @@ begin
         begin
           if Shapes <> nil then
           begin
-            SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+            SI := TVRMLShapeTreeIterator.Create(Shapes, false,
+              { Iterate even over non-visible shapes, for safety:
+                since this CloseGLRenderer may happen after some
+                "visibility" changed, that is you changed proxy
+                or such by event. }
+              false);
             try
               while SI.GetNext do
                 if TVRMLGLShape(SI.Current).SSSX_DisplayList <> 0 then
@@ -1563,7 +1568,7 @@ begin
 
   if Shapes <> nil then
   begin
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false, true);
     try
       while SI.GetNext do
         TVRMLGLShape(SI.Current).PreparedAndUseBlendingCalculated := false;
@@ -1753,7 +1758,7 @@ var
   begin
     if TransparentGroup in AllOrOpaque then
     begin
-      SI := TVRMLShapeTreeIterator.Create(Shapes, true);
+      SI := TVRMLShapeTreeIterator.Create(Shapes, true, true);
       try
         while SI.GetNext do
           TestRenderShapeProc(TVRMLGLShape(SI.Current));
@@ -1858,10 +1863,9 @@ begin
             TransparentObjectsExist := false;
 
             { draw fully opaque objects }
-            SI := TVRMLShapeTreeIterator.Create(Shapes, true);
+            SI := TVRMLShapeTreeIterator.Create(Shapes, true, true);
             try
               while SI.GetNext do
-                if SI.Current.Visible then
                 begin
                   Assert(TVRMLGLShape(SI.Current).PreparedAndUseBlendingCalculated);
                   if not TVRMLGLShape(SI.Current).UseBlending then
@@ -1885,11 +1889,10 @@ begin
               BlendingDestinationFactorSet := Attributes.BlendingDestinationFactor;
               glBlendFunc(BlendingSourceFactorSet, BlendingDestinationFactorSet);
 
-              SI := TVRMLShapeTreeIterator.Create(Shapes, true);
+              SI := TVRMLShapeTreeIterator.Create(Shapes, true, true);
               try
                 while SI.GetNext do
-                  if SI.Current.Visible and
-                     TVRMLGLShape(SI.Current).UseBlending then
+                  if TVRMLGLShape(SI.Current).UseBlending then
                   begin
                     AdjustBlendFunc(TVRMLGLShape(SI.Current),
                       BlendingSourceFactorSet, BlendingDestinationFactorSet);
@@ -1960,7 +1963,7 @@ procedure TVRMLGLScene.PrepareAndCalculateUseBlendingForAll;
 var
   SI: TVRMLShapeTreeIterator;
 begin
-  SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+  SI := TVRMLShapeTreeIterator.Create(Shapes, false, true);
   try
     while SI.GetNext do
       if not TVRMLGLShape(SI.Current).PreparedAndUseBlendingCalculated then
@@ -2355,7 +2358,7 @@ begin
         if SSSX_RenderBeginDisplayList = 0 then
           SSSX_PrepareBegin;
         try
-          SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+          SI := TVRMLShapeTreeIterator.Create(Shapes, false, true);
           try
             while SI.GetNext do
               if TVRMLGLShape(SI.Current).SSSX_DisplayList = 0 then
@@ -3596,7 +3599,7 @@ begin
   begin
     RenderFrustumOctree_Frustum := @Frustum;
 
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false, true);
     try
       while SI.GetNext do
         TVRMLGLShape(SI.Current).RenderFrustumOctree_Visible := false;
