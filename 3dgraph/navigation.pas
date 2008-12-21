@@ -3083,7 +3083,21 @@ begin
 
   if Input_GravityUp.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
   begin
-    CameraUp := GravityUp;
+    if VectorsParallel(CameraDir, GravityUp) then
+    begin
+      { We can't carelessly set CameraUp to something parallel to GravityUp
+        in this case.
+
+        Yes, this situation can happen: for example open a model with
+        no viewpoint in VRML in view3dscene (so default viewpoint,
+        both gravity and cameraUp = +Y is used). Then change GravityUp
+        by menu and press Home (Input_GravityUp). }
+
+      FCameraUp := GravityUp;
+      FCameraDir := AnyPerpVector(FCameraUp);
+      ScheduleMatrixChanged;
+    end else
+      CameraUp := GravityUp;
     Result := true;
   end else
   if Input_Jump.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
