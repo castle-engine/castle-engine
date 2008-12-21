@@ -598,9 +598,23 @@ type
     InsidePrototype: Cardinal;
     { @groupEnd }
 
-    { How many times are we inside Collision node with enabled/collide = FALSE?
-      If this is > 0, you should not do collision detection for these nodes. }
+    { This is > 0 when traversing nodes that do not participate in
+      collision detection.
+
+      This counts how many times are we inside Collision node that
+      prevents us from colliding.
+      More precise, this is increased when we traverse inside
+      Collision.children with Collision.enabled = FALSE or
+      Collision.proxy <> NULL (since then Collision.children are
+      not collidable). }
     InsideIgnoreCollision: Cardinal;
+
+    { This is > 0 when traversing nodes that are not visible.
+
+      This counts how many times are we inside Collision.proxy
+      (with Collision.enabled = TRUE). Collision.proxy is never
+      visible. }
+    InsideInvisible: Cardinal;
 
     { Active pointing device sensors in this state.
       This can contain only nodes descending from
@@ -830,6 +844,18 @@ type
       inherited when overriding this. }
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); virtual;
+
+    { This enumerates all active child nodes of given node,
+      and may additionally modify StateStack. It's used by Traverse.
+
+      Default implementation in this class simply calls
+      DirectEnumerateActive, ignoring StateStack, and this is suitable
+      for 99% of nodes. However, for some special nodes (only Collision
+      node for now), they have to modify state during traversing into
+      various children, and then they can override this. }
+    procedure DirectEnumerateActiveForTraverse(
+      Func: TEnumerateChildrenFunction;
+      StateStack: TVRMLGraphTraverseStateStack); virtual;
 
     { This simply enumerates all direct descendant nodes of
       this node. I.e. all children in VRML 1.0 style and
@@ -1214,7 +1240,7 @@ type
       stalej wartosci NodeTypeName). }
     class function ClassNodeTypeName: string; virtual;
 
-    { Traverse enumerates all nodes of VRML graph that are active,
+    { Traverse enumerates all nodes of VRML graph that are active.
 
       An "active" part of the VRML graph are the nodes that actually
       change what the VRML file represents, in terms of geometry,
@@ -3706,6 +3732,7 @@ begin
   InsideInline := 0;
   InsidePrototype := 0;
   InsideIgnoreCollision := 0;
+  InsideInvisible := 0;
 
   PointingDeviceSensors.Count := 0;
   VRML1ActiveLights.Count := 0;
@@ -3723,6 +3750,7 @@ begin
   InsideInline := Source.InsideInline;
   InsidePrototype := Source.InsidePrototype;
   InsideIgnoreCollision := Source.InsideIgnoreCollision;
+  InsideInvisible := Source.InsideInvisible;
 
   PointingDeviceSensors.Assign(Source.PointingDeviceSensors);
   VRML1ActiveLights.Assign(Source.VRML1ActiveLights);
@@ -3742,7 +3770,8 @@ function TVRMLGraphTraverseState.Equals(SecondValue: TVRMLGraphTraverseState):
 var
   I: Integer;
 begin
-  { InsideInline, InsidePrototype, InsideIgnoreCollision, PointingDeviceSensors
+  { InsideInline, InsidePrototype, InsideIgnoreCollision, InsideInvisible,
+    PointingDeviceSensors
     are currently ignored by Equals,
     since Equals is used for TVRMLOpenGLRenderer where difference
     in these is not important. This may be clarified in the interface
@@ -3771,7 +3800,7 @@ function TVRMLGraphTraverseState.EqualsNoTransform(
 var
   I: Integer;
 begin
-  { InsideInline, InsidePrototype, InsideIgnoreCollision,
+  { InsideInline, InsidePrototype, InsideIgnoreCollision, InsideInvisible,
     PointingDeviceSensors,
     ActiveLights, Transform, AverageScaleTransform, InvertedTransform,
     TextureTransform are ignored by
@@ -4116,6 +4145,13 @@ begin
     Func(Self, Children[I]);
 end;
 
+procedure TVRMLNode.DirectEnumerateActiveForTraverse(
+  Func: TEnumerateChildrenFunction;
+  StateStack: TVRMLGraphTraverseStateStack);
+begin
+  DirectEnumerateActive(Func);
+end;
+
 procedure TVRMLNode.DirectEnumerateAll(
   Func: TEnumerateChildrenFunction);
 var
@@ -4208,7 +4244,7 @@ type
         ParentInfoForChildren.ParentInfo := ParentInfo;
         ParentInfo := @ParentInfoForChildren;
         try
-          Child.DirectEnumerateActive(@EnumerateChildrenFunction);
+          Child.DirectEnumerateActiveForTraverse(@EnumerateChildrenFunction, StateStack);
         finally
           ParentInfo := ParentInfoForChildren.ParentInfo;
         end;

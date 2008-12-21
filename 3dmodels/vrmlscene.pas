@@ -649,8 +649,7 @@ type
 
       If Collidable, then only the collidable, or at least "pickable",
       triangles are generated. Which means that children of
-      Collision nodes with collide = FALSE are not placed here.
-      TODO: update this comment for Collision.proxy handling.
+      Collision nodes with collide = FALSE (or proxy <> nil) are not placed here.
       Otherwise, only the visible (not necessarily collidable)
       items are placed in the octree.
 
@@ -1987,15 +1986,12 @@ begin
       TVRMLGraphTraverseState.CreateCopy(StateStack.Top));
     ShapesGroup.Children.Add(Shape);
 
-    { TODO: this has to be improved to handle collidable but not visible
-      geometry (Collision.proxy). }
-
     { When Spatial contain ssDynamicCollisions, then each collidable
       shape must hav octree created. Normally, this is watched over by
       SetSpatial. In this case, we just created new Shape, so we have
       to set it's Spatial property correctly. }
     if (ssDynamicCollisions in ParentScene.Spatial) and
-       (StateStack.Top.InsideIgnoreCollision = 0) then
+       Shape.Collidable then
     begin
       Shape.TriangleOctreeProgressTitle := ParentScene.TriangleOctreeProgressTitle;
       Shape.Spatial := [ssTriangles];
@@ -2283,11 +2279,10 @@ begin
 
       if Inactive = 0 then
       begin
-        { TODO: for now, all active shapes are visible --- this may
-          change to handle Collision.proxy in the future. }
-        ParentScene.ScheduledGeometrySomeVisibleTransformChanged := true;
+        if Shape.Visible then
+          ParentScene.ScheduledGeometrySomeVisibleTransformChanged := true;
 
-        if Shape.State.InsideIgnoreCollision = 0 then
+        if Shape.Collidable then
           ParentScene.ScheduledGeometrySomeCollidableTransformChanged := true;
 
         ParentScene.ScheduleGeometryChanged;
@@ -3161,7 +3156,7 @@ end;
 procedure TVRMLScene.SetSpatial(const Value: TVRMLSceneSpatialStructures);
 
   procedure SetShapeSpatial(const Value: TVRMLShapeSpatialStructures;
-    Collidable: boolean);
+    OnlyCollidable: boolean);
   var
     SI: TVRMLShapeTreeIterator;
   begin
@@ -3169,12 +3164,10 @@ procedure TVRMLScene.SetSpatial(const Value: TVRMLSceneSpatialStructures);
     try
       while SI.GetNext do
 
-        { TODO: this has to be improved to handle collidable but not visible
-          geometry (Collision.proxy). }
-        { When Value <> [], we require that shape must be collidable. }
+        { When Value <> [], we honor OnlyCollidable. }
         if (Value = []) or
-           (not Collidable) or
-           (SI.Current.State.InsideIgnoreCollision = 0) then
+           (not OnlyCollidable) or
+           (SI.Current.Collidable) then
         begin
           {
             SI.Current.TriangleOctreeMaxDepth :=
@@ -3298,10 +3291,8 @@ function TVRMLScene.CreateTriangleOctree(
     SI := TVRMLShapeTreeIterator.Create(Shapes, true);
     try
       while SI.GetNext do
-        { TODO: this has to be improved to handle collidable but not visible
-          geometry (Collision.proxy). }
-        if (not Collidable) or
-           (SI.Current.State.InsideIgnoreCollision = 0) then
+        if (Collidable and SI.Current.Collidable) or
+           ((not Collidable) and SI.Current.Visible) then
           SI.Current.GeometryNode.Triangulate(
             SI.Current.State, false, AddTriProc);
     finally FreeAndNil(SI) end;
@@ -3336,10 +3327,8 @@ function TVRMLScene.CreateShapeOctree(
 
   procedure AddShape(ShapeNum: Integer);
   begin
-    { TODO: this has to be improved to handle collidable but not visible
-      geometry (Collision.proxy). }
-    if (not Collidable) or
-       (Result.ShapesList[ShapeNum].State.InsideIgnoreCollision = 0) then
+    if (Collidable and Result.ShapesList[ShapeNum].Collidable) or
+       ((not Collidable) and Result.ShapesList[ShapeNum].Visible) then
     begin
       Result.TreeRoot.AddItem(ShapeNum);
     end;

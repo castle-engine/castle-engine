@@ -307,6 +307,16 @@ type
 
     procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
     function ShapesCount(OnlyActive: boolean): Cardinal; override;
+
+    { Is shape visible, according to VRML Collision node rules.
+      Ths is simply a shortcut (with more obvious name) for
+      @code(State.InsideInvisible = 0). }
+    function Visible: boolean;
+
+    { Is shape collidable, according to VRML Collision node rules.
+      Ths is simply a shortcut (with more obvious name) for
+      @code(State.InsideIgnoreCollision = 0). }
+    function Collidable: boolean;
   end;
 
   TObjectsListItem_2 = TVRMLShapeTree;
@@ -688,6 +698,16 @@ end;
 function TVRMLShape.ShapesCount(OnlyActive: boolean): Cardinal;
 begin
   Result := 1;
+end;
+
+function TVRMLShape.Visible: boolean;
+begin
+  Result := State.InsideInvisible = 0;
+end;
+
+function TVRMLShape.Collidable: boolean;
+begin
+  Result := State.InsideIgnoreCollision = 0;
 end;
 
 { TVRMLShapeTreeGroup -------------------------------------------------------- }

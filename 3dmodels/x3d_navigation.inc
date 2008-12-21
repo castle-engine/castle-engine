@@ -137,8 +137,9 @@
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
-    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
-    procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    procedure DirectEnumerateActiveForTraverse(
+      Func: TEnumerateChildrenFunction;
+      StateStack: TVRMLGraphTraverseStateStack); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -510,22 +511,55 @@ procedure TNodeCollision.DirectEnumerateActive(Func: TEnumerateChildrenFunction)
 var
   I: Integer;
 begin
+  FdProxy.EnumerateValid(Func);
   for I := 0 to FdChildren.Count - 1 do
     Func(Self, FdChildren.Items[I]);
 end;
 
-procedure TNodeCollision.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
-begin
-  inherited;
-  if not FdEnabled.Value then
-    Inc(StateStack.Top.InsideIgnoreCollision);
-end;
+procedure TNodeCollision.DirectEnumerateActiveForTraverse(
+  Func: TEnumerateChildrenFunction;
+  StateStack: TVRMLGraphTraverseStateStack);
 
-procedure TNodeCollision.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
+  procedure EnumChildren;
+  var
+    I: Integer;
+  begin
+    for I := 0 to FdChildren.Count - 1 do
+      Func(Self, FdChildren.Items[I]);
+  end;
+
 begin
-  if not FdEnabled.Value then
-    Dec(StateStack.Top.InsideIgnoreCollision);
-  inherited;
+  if FdEnabled.Value then
+  begin
+    if FdProxy.Value = nil then
+    begin
+      { Collision node doesn't do anything in this trivial case,
+        children are treated just like by Group. }
+      EnumChildren;
+    end else
+    begin
+      { This is the interesting case:
+        proxy is not visible,
+        children are not collidable. }
+
+      Inc(StateStack.Top.InsideInvisible);
+      try
+        FdProxy.EnumerateValid(Func);
+      finally Dec(StateStack.Top.InsideInvisible) end;
+
+      Inc(StateStack.Top.InsideIgnoreCollision);
+      try
+        EnumChildren;
+      finally Dec(StateStack.Top.InsideIgnoreCollision) end;
+    end;
+  end else
+  begin
+    { Nothing is collidable in this case. So proxy is just ignored. }
+    Inc(StateStack.Top.InsideIgnoreCollision);
+    try
+      EnumChildren;
+    finally Dec(StateStack.Top.InsideIgnoreCollision) end;
+  end;
 end;
 
 constructor TNodeLOD_2.Create(const ANodeName: string; const AWWWBasePath: string);

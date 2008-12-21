@@ -1861,6 +1861,7 @@ begin
             SI := TVRMLShapeTreeIterator.Create(Shapes, true);
             try
               while SI.GetNext do
+                if SI.Current.Visible then
                 begin
                   Assert(TVRMLGLShape(SI.Current).PreparedAndUseBlendingCalculated);
                   if not TVRMLGLShape(SI.Current).UseBlending then
@@ -1887,7 +1888,8 @@ begin
               SI := TVRMLShapeTreeIterator.Create(Shapes, true);
               try
                 while SI.GetNext do
-                  if TVRMLGLShape(SI.Current).UseBlending then
+                  if SI.Current.Visible and
+                     TVRMLGLShape(SI.Current).UseBlending then
                   begin
                     AdjustBlendFunc(TVRMLGLShape(SI.Current),
                       BlendingSourceFactorSet, BlendingDestinationFactorSet);
