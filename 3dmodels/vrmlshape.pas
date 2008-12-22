@@ -72,7 +72,8 @@ type
     procedure Traverse(Func: TShapeTraverseFunc;
       OnlyActive: boolean); virtual; abstract;
 
-    function ShapesCount(OnlyActive: boolean): Cardinal; virtual; abstract;
+    function ShapesCount(OnlyActive: boolean;
+      OnlyVisible: boolean = false): Cardinal; virtual; abstract;
 
     { Look for shape with GeometryNode.NodeName = GeometryNodeName.
       Returns @nil if not found. }
@@ -306,7 +307,8 @@ type
     function Transparent: boolean;
 
     procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
-    function ShapesCount(OnlyActive: boolean): Cardinal; override;
+    function ShapesCount(OnlyActive: boolean;
+      OnlyVisible: boolean = false): Cardinal; override;
 
     { Is shape visible, according to VRML Collision node rules.
       Ths is simply a shortcut (with more obvious name) for
@@ -342,7 +344,8 @@ type
     destructor Destroy; override;
 
     procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
-    function ShapesCount(OnlyActive: boolean): Cardinal; override;
+    function ShapesCount(OnlyActive: boolean;
+      OnlyVisible: boolean = false): Cardinal; override;
 
     property Children: TVRMLShapeTreesList read FChildren;
   end;
@@ -361,7 +364,8 @@ type
     property SwitchNode: TNodeSwitch_2 read FSwitchNode write FSwitchNode;
 
     procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
-    function ShapesCount(OnlyActive: boolean): Cardinal; override;
+    function ShapesCount(OnlyActive: boolean;
+      OnlyVisible: boolean = false): Cardinal; override;
   end;
 
   TVRMLShapesList = class;
@@ -698,9 +702,11 @@ begin
   Func(Self);
 end;
 
-function TVRMLShape.ShapesCount(OnlyActive: boolean): Cardinal;
+function TVRMLShape.ShapesCount(OnlyActive, OnlyVisible: boolean): Cardinal;
 begin
-  Result := 1;
+  if (not OnlyVisible) or Visible then
+    Result := 1 else
+    Result := 0;
 end;
 
 function TVRMLShape.Visible: boolean;
@@ -735,13 +741,13 @@ begin
     FChildren.Items[I].Traverse(Func, OnlyActive);
 end;
 
-function TVRMLShapeTreeGroup.ShapesCount(OnlyActive: boolean): Cardinal;
+function TVRMLShapeTreeGroup.ShapesCount(OnlyActive, OnlyVisible: boolean): Cardinal;
 var
   I: Integer;
 begin
   Result := 0;
   for I := 0 to FChildren.Count - 1 do
-    Result += FChildren.Items[I].ShapesCount(OnlyActive);
+    Result += FChildren.Items[I].ShapesCount(OnlyActive, OnlyVisible);
 end;
 
 { TVRMLShapeTreeSwitch ------------------------------------------------------- }
@@ -760,7 +766,7 @@ begin
     inherited;
 end;
 
-function TVRMLShapeTreeSwitch.ShapesCount(OnlyActive: boolean): Cardinal;
+function TVRMLShapeTreeSwitch.ShapesCount(OnlyActive, OnlyVisible: boolean): Cardinal;
 var
   WhichChoice: Integer;
 begin
@@ -769,7 +775,7 @@ begin
     WhichChoice := SwitchNode.FdWhichChoice.Value;
     if (WhichChoice >= 0) and
        (WhichChoice < Children.Count) then
-      Result := Children.Items[WhichChoice].ShapesCount(OnlyActive) else
+      Result := Children.Items[WhichChoice].ShapesCount(OnlyActive, OnlyVisible) else
       Result := 0;
   end else
     Result := inherited;
@@ -842,29 +848,17 @@ constructor TVRMLShapesList.Create(Tree: TVRMLShapeTree;
 begin
   Create;
 
+  { We know exactly how many shapes are present. So set Count once,
+    calculating by ShapesCount. This will be faster than resizing
+    in each AddToList. (Confirmed e.g. by profiling change_vrml_by_code_2). }
+  AddedCount := 0;
+  Count := Tree.ShapesCount(OnlyActive, OnlyVisible);
+
   if OnlyVisible then
-  begin
-    { At most Tree.ShapesCount items will be present. So set Count once,
-      and later correct it. }
-    AddedCount := 0;
-    Count := Tree.ShapesCount(OnlyActive);
-
-    Tree.Traverse(@AddToListIfVisible, OnlyActive);
-
-    Assert(AddedCount <= Count);
-    Count := AddedCount;
-  end else
-  begin
-    { We know exactly how many shapes are present. So set Count once,
-      calculating by ShapesCount. This will be faster than resizing
-      in each AddToList. (Confirmed e.g. by profiling change_vrml_by_code_2). }
-    AddedCount := 0;
-    Count := Tree.ShapesCount(OnlyActive);
-
+    Tree.Traverse(@AddToListIfVisible, OnlyActive) else
     Tree.Traverse(@AddToList, OnlyActive);
 
-    Assert(AddedCount = Count);
-  end;
+  Assert(AddedCount = Count);
 end;
 
 procedure TVRMLShapesList.AddToList(Shape: TVRMLShape);

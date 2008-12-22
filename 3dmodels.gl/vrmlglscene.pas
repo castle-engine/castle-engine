@@ -450,7 +450,7 @@ type
       are something that can be part of display list).
 
       This sets FLastRender_RenderedShapesCount and
-      FLastRender_AllShapesCount. }
+      FLastRender_VisibleShapesCount, handling also handles LastRender_SumNext. }
     procedure RenderShapesNoDisplayList(
       TestShapeVisibility: TTestShapeVisibility;
       RenderShapeProc: TRenderShape;
@@ -472,7 +472,8 @@ type
     procedure CloseGLRenderer;
 
     FLastRender_RenderedShapesCount: Cardinal;
-    FLastRender_AllShapesCount: Cardinal;
+    FLastRender_VisibleShapesCount: Cardinal;
+    FLastRender_SumNext: boolean;
 
     FUsingProvidedRenderer: boolean;
 
@@ -564,7 +565,7 @@ type
 
       This calls RenderShapesNoDisplayList so this sets
       FLastRender_RenderedShapesCount and
-      FLastRender_AllShapesCount. }
+      FLastRender_VisibleShapesCount. }
     procedure SAAW_Prepare(TransparentGroup: TTransparentGroup);
 
     procedure SAAW_Render(TransparentGroup: TTransparentGroup);
@@ -865,7 +866,8 @@ type
       about what happened during last render. For now you
       can see how many Shapes were rendered (i.e. send to OpenGL
       pipeline) versus all Shapes that were available
-      (this is simply copied from Shapes.Count).
+      (this is the number of shapes in @link(Shapes) tree that are
+      @link(TShape.Visible)).
 
       This way you can see how effective was frustum culling
       in @link(RenderFrustum)
@@ -876,12 +878,24 @@ type
 
       These are initially equal to zeros.
       Then they are updated each time you called
-      @link(RenderFrustum) or @link(Render). }
+      @link(RenderFrustum) or @link(Render).
+
+      @groupBegin }
     property LastRender_RenderedShapesCount: Cardinal
       read FLastRender_RenderedShapesCount;
 
-    property LastRender_AllShapesCount: Cardinal
-      read FLastRender_AllShapesCount;
+    property LastRender_VisibleShapesCount: Cardinal
+      read FLastRender_VisibleShapesCount;
+    { @groupEnd }
+
+    { Let next Render call to only increase (sum to)
+      the LastRender_RenderedShapesCount statistics, instead of
+      resetting and updating all LastRender_ properties.
+      This is useful if you use multi-pass rendering (e.g. render
+      a scene few times for shadow volumes, calling Render a few times)
+      and you want LastRender_ statistics to represent the total
+      work e.g. done for this frame. }
+    procedure LastRender_SumNext;
 
     { Turn off lights that are not supposed to light in the shadow.
       This simply turns LightOn to @false if the light has
@@ -1828,8 +1842,10 @@ var
   TransparentObjectsExist: boolean;
   BlendingSourceFactorSet, BlendingDestinationFactorSet: TGLEnum;
 begin
-  FLastRender_RenderedShapesCount := 0;
-  FLastRender_AllShapesCount := ShapesActiveCount;
+  if FLastRender_SumNext then
+    FLastRender_SumNext := false else
+    FLastRender_RenderedShapesCount := 0;
+  FLastRender_VisibleShapesCount := ShapesActiveVisibleCount;
 
   LightsRenderer := TVRMLGLLightsCachingRenderer.Create(
     Attributes.FirstGLFreeLight, Renderer.LastGLFreeLight,
@@ -2276,9 +2292,11 @@ begin
   begin
     { In this case I must directly set here LastRender_Xxx variables.
       TODO: this is wrong when TransparentGroup <> tgAll, then something
-      < Shapes.Count should be used. }
-    FLastRender_AllShapesCount := ShapesActiveCount;
-    FLastRender_RenderedShapesCount := FLastRender_AllShapesCount;
+      < ShapesActiveVisibleCount should be used. This is also why this
+      doesn't honor the LastRender_SumNext now, only resets it. }
+    FLastRender_SumNext := false;
+    FLastRender_VisibleShapesCount := ShapesActiveVisibleCount;
+    FLastRender_RenderedShapesCount := FLastRender_VisibleShapesCount;
   end;
 
   if RenderBeginEndToDisplayList then
@@ -3934,6 +3952,11 @@ function TVRMLGLScene.Headlight: TVRMLGLHeadlight;
 begin
   HeadlightInitialized := true;
   Result := FHeadlight;
+end;
+
+procedure TVRMLGLScene.LastRender_SumNext;
+begin
+  FLastRender_SumNext := true;
 end;
 
 { TVRMLSceneRenderingAttributes ---------------------------------------------- }

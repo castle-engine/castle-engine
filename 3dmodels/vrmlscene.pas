@@ -54,7 +54,8 @@ type
     fvTrianglesListShadowCasters,
     fvManifoldAndBorderEdges,
     fvMainLightForShadows,
-    fvShapesActiveCount);
+    fvShapesActiveCount,
+    fvShapesActiveVisibleCount);
 
   { @exclude }
   TVRMLSceneValidities = set of TVRMLSceneValidity;
@@ -492,6 +493,7 @@ type
     function CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
 
     FShapesActiveCount: Cardinal;
+    FShapesActiveVisibleCount: Cardinal;
 
     { If appropriate fvXxx is not in Validities, then
       - free if needed appropriate FTrianglesList[] item
@@ -779,6 +781,12 @@ type
       is faster (it's cached and reused in this instance, and automatically
       invalidated only when needed). }
     function ShapesActiveCount: Cardinal;
+
+    { Number of active and visible (TVRMLShape.Visible) shapes in the
+      @link(Shapes) tree.
+
+      @seealso ShapeActiveCount }
+    function ShapesActiveVisibleCount: Cardinal;
 
     { Calculate bounding box, number of triangls and vertexes of all
       shapa states. For detailed specification of what these functions
@@ -1846,6 +1854,16 @@ begin
   Result := FShapesActiveCount;
 end;
 
+function TVRMLScene.ShapesActiveVisibleCount: Cardinal;
+begin
+  if not (fvShapesActiveVisibleCount in Validities) then
+  begin
+    FShapesActiveVisibleCount := Shapes.ShapesCount(true, true);
+    Include(Validities, fvShapesActiveVisibleCount);
+  end;
+  Result := FShapesActiveVisibleCount;
+end;
+
 function TVRMLScene.CalculateBoundingBox: TBox3d;
 var
   SI: TVRMLShapeTreeIterator;
@@ -2798,6 +2816,7 @@ begin
       Validities := Validities - [
         { Calculation traverses over active shapes. }
         fvShapesActiveCount,
+        fvShapesActiveVisibleCount,
         { Calculation traverses over active nodes (uses RootNode.Traverse). }
         fvMainLightForShadows];
 

@@ -93,7 +93,7 @@ begin
 
   Writeln(Format('Rendered Shapes: %d / %d',
     [ Scene.LastRender_RenderedShapesCount,
-      Scene.LastRender_AllShapesCount ]));
+      Scene.LastRender_VisibleShapesCount ]));
 end;
 
 procedure Init(glwin: TGLWindow);
