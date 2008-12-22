@@ -108,7 +108,8 @@ type
     procedure MatrixChanged(ANavigator: TNavigator);
     procedure BoundViewpointChanged(Scene: TVRMLScene);
     procedure BoundViewpointVectorsChanged(Scene: TVRMLScene);
-    procedure GeometryChanged(Scene: TVRMLScene);
+    procedure GeometryChanged(Scene: TVRMLScene;
+      const SomeLocalGeometryChanged: boolean);
 
     procedure UpdateCursor;
 
@@ -321,6 +322,9 @@ end;
 
 procedure TKamVRMLBrowser.RenderScene(InShadow: boolean; TransparentGroup: TTransparentGroup);
 begin
+  if TransparentGroup = tgTransparent then
+    Scene.LastRender_SumNext;
+
   if InShadow then
     Scene.RenderFrustum(Navigator.Frustum, TransparentGroup, @Scene.LightRenderInShadow) else
     Scene.RenderFrustum(Navigator.Frustum, TransparentGroup, nil);
@@ -581,7 +585,8 @@ begin
   Scene.NavigatorBindToViewpoint(Navigator, CameraRadius, true);
 end;
 
-procedure TKamVRMLBrowser.GeometryChanged(Scene: TVRMLScene);
+procedure TKamVRMLBrowser.GeometryChanged(Scene: TVRMLScene;
+  const SomeLocalGeometryChanged: boolean);
 begin
   { Scene.GeometryChanged possibly cleared pointing device info by
     PointingDeviceClear. This means that cursor must be updated. }

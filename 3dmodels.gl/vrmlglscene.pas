@@ -1844,8 +1844,10 @@ var
 begin
   if FLastRender_SumNext then
     FLastRender_SumNext := false else
+  begin
     FLastRender_RenderedShapesCount := 0;
-  FLastRender_VisibleShapesCount := ShapesActiveVisibleCount;
+    FLastRender_VisibleShapesCount := ShapesActiveVisibleCount;
+  end;
 
   LightsRenderer := TVRMLGLLightsCachingRenderer.Create(
     Attributes.FirstGLFreeLight, Renderer.LastGLFreeLight,
