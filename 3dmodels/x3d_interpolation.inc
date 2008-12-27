@@ -22,20 +22,6 @@
   { }
   TNodeX3DInterpolatorNode = class(TNodeX3DChildNode)
   protected
-    { Find a range within "key" field corresponding to given Fraction.
-      Returns the index of @bold(right) range delimiter.
-      So for normal ranges (between two values of "key" field) it's
-      always between 1 and FdKey.Count - 1. Result 0 indicates we're
-      before the left limit, and result equal FdKey.Count indicates
-      we're after right limit.
-
-      Result is always between 0 and FdKey.Count.
-
-      Output T is the value between 0..1 indicating where within
-      the range we are. It's undefined when Result is 0 or Key.Count
-      (indicating we're outside limits).
-
-      Call this only when FdKey.Count > 0. }
     function KeyRange(const Fraction: Single; out T: Single): Integer;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -440,61 +426,6 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 
   DefaultContainerField := 'children';
-end;
-
-{ See TNodeX3DInterpolatorNode.KeyRange documentation. }
-function KeyRange(Key: TDynSingleArray;
-  const Fraction: Single; out T: Single): Integer;
-var
-  A, B: Integer;
-begin
-  Assert(Key.Count > 0);
-
-  if Fraction <= Key.Items[0] then
-    Result := 0 else
-  if Fraction >= Key.Items[Key.High] then
-    Result := Key.Count else
-  begin
-    { Then for sure we're between two Key values.
-      Note that we know that Key.Count > 1 (otherwise, Key.First = Key.Last
-      so one of <= or >= comparisons above would occur). }
-    Assert(Key.Count > 1);
-
-    { Always A < B.
-      We're considering range from Key[A] to Key[B].
-
-      Remember that we cannot actually depend on the fact that
-      Key values are non-decreasing. They should be non-decreasing,
-      and we have to output correct result only when they are non-decreasing,
-      but we also have to terminate (with any result) in any situation.
-      Reason: Key values are supplied in X3D file, so they may be broken
-      in every possible way. }
-
-    A := 0;
-    B := Key.High;
-    while B - A > 1 do
-    begin
-      Result := (A + B) div 2;
-      { A < B => (A + B) < 2B => (A + B) div 2 < B => Result < B.
-        Also, Result > A (the only way how Result could be = A
-        would be when B = A + 1, but we eliminated this case by "while"
-        condition".
-
-        This is good, it means A < Result < B, so Result is good candidate
-        for next A or B, it will for sure shorten the distance
-        between A and B. }
-      Assert(A < Result);
-      Assert(Result < B);
-      if Fraction <= Key[Result] then
-        B := Result else
-        A := Result;
-    end;
-    Result := B;
-
-    if Key[B] > Key[A] then
-      T := (Fraction - Key[A]) / (Key[B] - Key[A]) else
-      T := 0;
-  end;
 end;
 
 function TNodeX3DInterpolatorNode.KeyRange(

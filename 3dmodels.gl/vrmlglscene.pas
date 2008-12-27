@@ -1474,7 +1474,7 @@ end;
 function TVRMLGLScene.CreateShape(AGeometryNode: TVRMLGeometryNode;
   AState: TVRMLGraphTraverseState): TVRMLShape;
 begin
-  Result := TVRMLGLShape.Create(AGeometryNode, AState);
+  Result := TVRMLGLShape.Create(Self, AGeometryNode, AState);
 end;
 
 procedure TVRMLGLScene.SetOptimization(const Value: TGLRendererOptimization);

@@ -632,10 +632,8 @@ type
       LastViewerXxx. }
     procedure ProximitySensorUpdate(var PSI: TProximitySensorInstance);
 
-    { LastViewerPosition/Direction/Up are remembered for reacting to changes to
-      ProximitySensor box (center, size) (or it's transform) }
-    LastViewerPosition, LastViewerDirection, LastViewerUp: TVector3Single;
-    IsLastViewer: boolean;
+    FLastViewerPosition, FLastViewerDirection, FLastViewerUp: TVector3Single;
+    FIsLastViewer: boolean;
 
     FCompiledScriptHandlers: TDynCompiledScriptHandlerInfoArray;
 
@@ -1537,7 +1535,25 @@ type
     property LogChanges: boolean
       read FLogChanges write FLogChanges default false;
 
-    { Call when viewer position/dir/up changed, to update sensors. }
+    { Last known viewer (camera) position/direction/up.
+
+      Set by ViewerChanged. IsLastViewer = @false means that
+      ViewerChanged was never called, and so viewer settings are not known,
+      and so other LastViewer* properties have undefined values.
+
+      These are remembered for various reasons, like
+      reacting to changes to ProximitySensor box (center, size)
+      (or it's transform), or changing LOD node children.
+
+      @groupBegin }
+    property LastViewerPosition: TVector3Single read FLastViewerPosition;
+    property LastViewerDirection: TVector3Single read FLastViewerDirection;
+    property LastViewerUp: TVector3Single read FLastViewerUp;
+    property IsLastViewer: boolean read FIsLastViewer;
+    { @groupEnd }
+
+    { Call when viewer position/dir/up changed, to update things depending
+      on viewer settings: some sensors, LOD nodes etc. }
     procedure ViewerChanged(
       const ViewerPosition, ViewerDirection, ViewerUp: TVector3Single);
 
@@ -1796,7 +1812,7 @@ begin
  FShapeOctreeMaxDepth := DefShapeOctreeMaxDepth;
  FShapeOctreeLeafCapacity := DefShapeOctreeLeafCapacity;
 
- FShapes := TVRMLShapeTreeGroup.Create;
+ FShapes := TVRMLShapeTreeGroup.Create(Self);
 
  FBackgroundStack := TVRMLBindableStack.Create(Self);
  FFogStack := TVRMLBindableStack.Create(Self);
@@ -1941,7 +1957,7 @@ end;
 function TVRMLScene.CreateShape(AGeometryNode: TVRMLGeometryNode;
   AState: TVRMLGraphTraverseState): TVRMLShape;
 begin
-  Result := TVRMLShape.Create(AGeometryNode, AState);
+  Result := TVRMLShape.Create(Self, AGeometryNode, AState);
 end;
 
 type
@@ -1970,14 +1986,14 @@ procedure TChangedAllTraverser.Traverse(
     ChildGroup: TVRMLShapeTreeGroup;
     I: Integer;
   begin
-    SwitchTree := TVRMLShapeTreeSwitch.Create;
+    SwitchTree := TVRMLShapeTreeSwitch.Create(ParentScene);
     SwitchTree.SwitchNode := SwitchNode;
     ShapesGroup.Children.Add(SwitchTree);
 
     for I := 0 to SwitchNode.FdChildren.Items.Count - 1 do
     begin
       ChildNode := SwitchNode.FdChildren.Items[I];
-      ChildGroup := TVRMLShapeTreeGroup.Create;
+      ChildGroup := TVRMLShapeTreeGroup.Create(ParentScene);
       SwitchTree.Children.Add(ChildGroup);
 
       Traverser := TChangedAllTraverser.Create;
@@ -1985,6 +2001,47 @@ procedure TChangedAllTraverser.Traverse(
         Traverser.ParentScene := ParentScene;
         Traverser.ShapesGroup := ChildGroup;
         Traverser.Active := I = SwitchNode.FdWhichChoice.Value;
+        ChildNode.TraverseInternal(StateStack, TVRMLNode, @Traverser.Traverse,
+          nil, ParentInfo);
+      finally FreeAndNil(Traverser) end;
+    end;
+
+    TraverseIntoChildren := false;
+  end;
+
+  procedure HandleLOD(LODNode: TNodeLOD_2);
+  var
+    LODTree: TVRMLShapeTreeLOD;
+    Traverser: TChangedAllTraverser;
+    ChildNode: TVRMLNode;
+    ChildGroup: TVRMLShapeTreeGroup;
+    I: Integer;
+    Level: Cardinal;
+  begin
+    LODTree := TVRMLShapeTreeLOD.Create(ParentScene);
+    LODTree.LODNode := LODNode;
+    LODTree.LODInvertedTransform^ := StateStack.Top.InvertedTransform;
+    ShapesGroup.Children.Add(LODTree);
+
+    { First add TVRMLShapeTreeGroup.Create as children, as many times
+      as there are LODNode.FdChildren. Reason: LODTree.Level uses this
+      Count. }
+
+    for I := 0 to LODNode.FdChildren.Items.Count - 1 do
+      LODTree.Children.Add(TVRMLShapeTreeGroup.Create(ParentScene));
+
+    Level := LODTree.Level;
+
+    for I := 0 to LODNode.FdChildren.Items.Count - 1 do
+    begin
+      ChildNode := LODNode.FdChildren.Items[I];
+      ChildGroup := TVRMLShapeTreeGroup(LODTree.Children.Items[I]);
+
+      Traverser := TChangedAllTraverser.Create;
+      try
+        Traverser.ParentScene := ParentScene;
+        Traverser.ShapesGroup := ChildGroup;
+        Traverser.Active := Cardinal(I) = Level;
         ChildNode.TraverseInternal(StateStack, TVRMLNode, @Traverser.Traverse,
           nil, ParentInfo);
       finally FreeAndNil(Traverser) end;
@@ -2037,6 +2094,10 @@ begin
   if Node is TNodeSwitch_2 then
   begin
     HandleSwitch(TNodeSwitch_2(Node));
+  end else
+  if Node is TNodeLOD_2 then
+  begin
+    HandleLOD(TNodeLOD_2(Node));
   end else
 
   if (Node is TNodeX3DBindableNode) and
@@ -2160,7 +2221,7 @@ begin
   ChangedAll_TraversedLights := TDynActiveLightArray.Create;
   try
     FreeAndNil(FShapes);
-    FShapes := TVRMLShapeTreeGroup.Create;
+    FShapes := TVRMLShapeTreeGroup.Create(Self);
 
     if RootNode <> nil then
     begin
@@ -2276,12 +2337,46 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
     TraverseIntoChildren := false;
   end;
 
+  procedure HandleLOD(LODNode: TNodeLOD_2);
+  var
+    I: Integer;
+    Level: Cardinal;
+  begin
+    { Just like in HandleSwitch: we have to enter *every* LOD child
+      (while normal Traverse would enter only active child),
+      because we have to increase ShapeIterator even in inactive LOD parts
+      (because that's how we constructed Shapes tree). }
+    Level := {TODO-LOD}{we should just traverse here Shapes tree,
+      not using iterator, and thus know the current shape tree node. }0;
+
+    for I := 0 to LODNode.FdChildren.Items.Count - 1 do
+    begin
+      if Cardinal(I) <> Level then Inc(Inactive);
+
+      LODNode.FdChildren.Items[I].TraverseInternal(
+        StateStack, TVRMLNode,
+        @TransformChangeTraverse,
+        @TransformChangeTraverseAfter,
+        ParentInfo);
+
+      if Cardinal(I) <> Level then Dec(Inactive);
+    end;
+
+    TraverseIntoChildren := false;
+  end;
+
 var
   Shape: TVRMLShape;
 begin
   if Node is TNodeSwitch_2 then
   begin
     HandleSwitch(TNodeSwitch_2(Node));
+  end else
+  if Node is TNodeLOD_2 then
+  begin
+    {TODO-LOD:if Inside then
+      ShapeTreeNode.State.AssignTransform(StateStack.Top);}
+    HandleLOD(TNodeLOD_2(Node));
   end else
 
   if Inside then
@@ -2792,6 +2887,9 @@ begin
       InvalidateTrianglesListShadowCasters;
       InvalidateManifoldAndBorderEdges;
     end else
+    { TODO-LOD: when current LOD child index changes, something similar
+      should be done... Watch over level_changed?
+      And generate level_changed, by the way!!! }
     if (Node is TNodeSwitch_2) and
        (TNodeSwitch_2(Node).FdWhichChoice = Field) then
     begin
@@ -4681,10 +4779,10 @@ procedure TVRMLScene.ViewerChanged(
 var
   I: Integer;
 begin
-  LastViewerPosition  := ViewerPosition;
-  LastViewerDirection := ViewerDirection;
-  LastViewerUp        := ViewerUp;
-  IsLastViewer := true;
+  FLastViewerPosition  := ViewerPosition;
+  FLastViewerDirection := ViewerDirection;
+  FLastViewerUp        := ViewerUp;
+  FIsLastViewer := true;
 
   if ProcessEvents then
   begin

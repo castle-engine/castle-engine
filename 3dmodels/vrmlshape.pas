@@ -68,7 +68,16 @@ type
     all the geometry nodes (TVRMLGeometryNode) along with their state
     (TVRMLGraphTraverseState) as leafs (TVRMLShape). }
   TVRMLShapeTree = class
+  private
+    FParentScene: TObject;
   public
+    constructor Create(AParentScene: TObject);
+
+    { Parent TVRMLScene instance. This cannot be declared here as
+      TVRMLScene (this would create circular unit dependency),
+      but it always is TVRMLScene. }
+    property ParentScene: TObject read FParentScene write FParentScene;
+
     procedure Traverse(Func: TShapeTraverseFunc;
       OnlyActive: boolean); virtual; abstract;
 
@@ -155,7 +164,8 @@ type
     FSpatial: TVRMLShapeSpatialStructures;
     procedure SetSpatial(const Value: TVRMLShapeSpatialStructures);
   public
-    constructor Create(AGeometryNode: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
+    constructor Create(AParentScene: TObject;
+      AGeometryNode: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
     destructor Destroy; override;
 
     { GeometryNode to wskaznik na obiekt w RootNode }
@@ -340,7 +350,7 @@ type
   private
     FChildren: TVRMLShapeTreesList;
   public
-    constructor Create;
+    constructor Create(AParentScene: TObject);
     destructor Destroy; override;
 
     procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
@@ -362,6 +372,39 @@ type
     FSwitchNode: TNodeSwitch_2;
   public
     property SwitchNode: TNodeSwitch_2 read FSwitchNode write FSwitchNode;
+
+    procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
+    function ShapesCount(OnlyActive: boolean;
+      OnlyVisible: boolean = false): Cardinal; override;
+  end;
+
+  { Node of the TVRMLShapeTree representing the LOD (level of detail) VRML
+    concept. It chooses one child from it's children list as active.
+    Represents the VRML >= 2.0 LOD node
+    (not possible for VRML 1.0 LOD node, as it may affect also other
+    nodes after LOD).
+
+    To choose which child is active we need to know the LOD node,
+    with it's transformation in VRML graph.
+    This information is in LODNode and LODInvertedTransform properties.
+
+    Also, we need to know the current viewer position.
+    We take this from ParentScene.LastViewerPosition.
+    If ParentScene.IsLastViewer = @false (indicating that viewer position
+    is not known), we simply use the first (highest-detail) LOD as active. }
+  TVRMLShapeTreeLOD = class(TVRMLShapeTreeGroup)
+  private
+    FLODNode: TNodeLOD_2;
+    FLODInvertedTransform: TMatrix4Single;
+  public
+    property LODNode: TNodeLOD_2 read FLODNode write FLODNode;
+    function LODInvertedTransform: PMatrix4Single;
+
+    { Returns the number of active child of this LOD node.
+
+      This is always < Children.Count, unless there are no children.
+      In this case it's 0. }
+    function Level: Cardinal;
 
     procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
     function ShapesCount(OnlyActive: boolean;
@@ -405,7 +448,7 @@ type
 
 implementation
 
-uses ProgressUnit, VRMLTriangle;
+uses ProgressUnit, VRMLTriangle, VRMLScene, VRMLErrors;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -413,6 +456,12 @@ uses ProgressUnit, VRMLTriangle;
 {$I macprecalcvaluereturn.inc}
 
 { TVRMLShapeTree ------------------------------------------------------------ }
+
+constructor TVRMLShapeTree.Create(AParentScene: TObject);
+begin
+  inherited Create;
+  FParentScene := AParentScene;
+end;
 
 function TVRMLShapeTree.FindGeometryNodeName(
   const GeometryNodeName: string; OnlyActive: boolean): TVRMLShape;
@@ -472,9 +521,10 @@ end;
 
 { TVRMLShape -------------------------------------------------------------- }
 
-constructor TVRMLShape.Create(AGeometryNode: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
+constructor TVRMLShape.Create(AParentScene: TObject;
+  AGeometryNode: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
 begin
-  inherited Create;
+  inherited Create(AParentScene);
 
   FTriangleOctreeMaxDepth := DefLocalTriangleOctreeMaxDepth;
   FTriangleOctreeLeafCapacity := DefLocalTriangleOctreeLeafCapacity;
@@ -721,9 +771,9 @@ end;
 
 { TVRMLShapeTreeGroup -------------------------------------------------------- }
 
-constructor TVRMLShapeTreeGroup.Create;
+constructor TVRMLShapeTreeGroup.Create(AParentScene: TObject);
 begin
-  inherited;
+  inherited Create(AParentScene);
   FChildren := TVRMLShapeTreesList.Create;
 end;
 
@@ -779,6 +829,75 @@ begin
       Result := 0;
   end else
     Result := inherited;
+end;
+
+{ TVRMLShapeTreeLOD ------------------------------------------------------- }
+
+function TVRMLShapeTreeLOD.LODInvertedTransform: PMatrix4Single;
+begin
+  Result := @FLODInvertedTransform;
+end;
+
+{ TODO-LOD: level should be recorded, to not recalculate it constantly.
+  Also, level should be changed in each ViewerChanged?
+  At this point, level_changed would be generated? }
+function TVRMLShapeTreeLOD.Level: Cardinal;
+var
+  Viewer: TVector3Single;
+  Dummy: Single;
+begin
+  if (Children.Count = 0) or
+     (LODNode.FdRange.Count = 0) or
+     (not TVRMLScene(ParentScene).IsLastViewer) then
+    Result := 0 else
+  begin
+    try
+      Viewer := MatrixMultPoint(LODInvertedTransform^,
+        TVRMLScene(ParentScene).LastViewerPosition);
+      Result := KeyRange(LODNode.FdRange.Items,
+        PointsDistance(Viewer, LODNode.FdCenter.Value), Dummy);
+      { Now we know Result is between 0..LODNode.FdRange.Count.
+        Following X3D spec "Specifying too few levels will result in
+        the last level being used repeatedly for the lowest levels of detail",
+        so just clamp to last children. }
+      MinTo1st(Result, Children.Count - 1);
+    except
+      on E: ETransformedResultInvalid do
+      begin
+        VRMLNonFatalError(Format('Cannot transform viewer position %s to LOD node local coordinate space, transformation results in direction (not point): %s',
+          [ VectorToRawStr(TVRMLScene(ParentScene).LastViewerPosition),
+            E.Message ]));
+        Result := 0;
+      end;
+    end;
+  end;
+
+  Assert(
+    ( (Children.Count = 0) and (Result = 0) ) or
+    ( (Children.Count > 0) and (Result < Cardinal(Children.Count)) ) );
+end;
+
+procedure TVRMLShapeTreeLOD.Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean);
+begin
+  if Children.Count > 0 then
+  begin
+    if OnlyActive then
+      { Now we know that Level < Children.Count, no need to check it. }
+      Children.Items[Level].Traverse(Func, OnlyActive) else
+      inherited;
+  end;
+end;
+
+function TVRMLShapeTreeLOD.ShapesCount(OnlyActive, OnlyVisible: boolean): Cardinal;
+begin
+  if Children.Count > 0 then
+  begin
+    if OnlyActive then
+      { Now we know that Level < Children.Count, no need to check it. }
+      Result := Children.Items[Level].ShapesCount(OnlyActive, OnlyVisible) else
+      Result := inherited;
+  end else
+    Result := 0;
 end;
 
 { TVRMLShapeTreeIterator ----------------------------------------------------- }
