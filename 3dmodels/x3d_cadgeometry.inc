@@ -196,7 +196,7 @@ constructor TNodeCADFace.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdshape := TSFNode.Create(Self, 'shape', [TNodeX3DShapeNode, TNodeLOD_2]);
+  FFdshape := TSFNode.Create(Self, 'shape', [TNodeX3DShapeNode, TVRMLLODNode]);
   Fields.Add(FFdshape);
 
   FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));

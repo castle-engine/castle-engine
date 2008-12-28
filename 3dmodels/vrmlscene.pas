@@ -2018,7 +2018,7 @@ procedure TChangedAllTraverser.Traverse(
     TraverseIntoChildren := false;
   end;
 
-  procedure HandleLOD(LODNode: TNodeLOD_2);
+  procedure HandleLOD(LODNode: TVRMLLODNode);
   var
     LODTree: TVRMLShapeTreeLOD;
     Traverser: TChangedAllTraverser;
@@ -2104,9 +2104,9 @@ begin
   begin
     HandleSwitch(TNodeSwitch_2(Node));
   end else
-  if Node is TNodeLOD_2 then
+  if Node is TVRMLLODNode then
   begin
-    HandleLOD(TNodeLOD_2(Node));
+    HandleLOD(TVRMLLODNode(Node));
   end else
 
   if (Node is TNodeX3DBindableNode) and
@@ -2371,7 +2371,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
     TraverseIntoChildren := false;
   end;
 
-  procedure HandleLOD(LODNode: TNodeLOD_2);
+  procedure HandleLOD(LODNode: TVRMLLODNode);
   var
     I: Integer;
     Level: Cardinal;
@@ -2406,11 +2406,11 @@ begin
   begin
     HandleSwitch(TNodeSwitch_2(Node));
   end else
-  if Node is TNodeLOD_2 then
+  if Node is TVRMLLODNode then
   begin
     {TODO-LOD:if Inside then
       ShapeTreeNode.State.AssignTransform(StateStack.Top);}
-    HandleLOD(TNodeLOD_2(Node));
+    HandleLOD(TVRMLLODNode(Node));
   end else
 
   if Inside then
@@ -2922,8 +2922,7 @@ begin
       InvalidateManifoldAndBorderEdges;
     end else
     { TODO-LOD: when current LOD child index changes, something similar
-      should be done... Watch over level_changed?
-      And generate level_changed, by the way!!! }
+      should be done... In UpdateLODLevel, when level_changed? }
     if (Node is TNodeSwitch_2) and
        (TNodeSwitch_2(Node).FdWhichChoice = Field) then
     begin

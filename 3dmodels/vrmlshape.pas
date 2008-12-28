@@ -397,12 +397,12 @@ type
     knows whether to initiate level_changes event sending.) }
   TVRMLShapeTreeLOD = class(TVRMLShapeTreeGroup)
   private
-    FLODNode: TNodeLOD_2;
+    FLODNode: TVRMLLODNode;
     FLODInvertedTransform: TMatrix4Single;
     FLevel: Cardinal;
     FWasLevel_ChangedSend: boolean;
   public
-    property LODNode: TNodeLOD_2 read FLODNode write FLODNode;
+    property LODNode: TVRMLLODNode read FLODNode write FLODNode;
     function LODInvertedTransform: PMatrix4Single;
 
     { Calculate @link(Level). This only calculates level, doesn't

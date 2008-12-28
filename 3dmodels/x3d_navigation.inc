@@ -162,16 +162,30 @@
     public property Fdproxy: TSFNode read FFdproxy;
   end;
 
-  { LOD node.
+  { LOD node for VRML >= 2.0. This is not for VRML <= 1.0 LOD node.
 
-    Compatibility node: this class is used for both VRML 97 and X3D.
-    Although field name changed for X3D (in VRML 97, "children"
-    was called "level"), this is handled seamlessly using our
-    TVRMLFieldOrEvent.AddAlternativeField mechanism. In other words,
-    programmer simply works with FdChildren field, and when reading/writing
-    VRML file we take care to actually use either "children" or "level" name,
-    depending on used VRML version. }
-  TNodeLOD_2 = class(TNodeX3DGroupingNode)
+    It's a common ancestor for VRML 2.0 LOD (TNodeLOD_2) and X3D LOD (TNodeLOD_3).
+    Unfortunately, we cannot have a simple common class for both VRML 97
+    and X3D because there would be a name clash for "level_changed" event:
+
+    @unorderedList(
+      @item(
+        For VRML 2.0, main MFNode field was named "level" and so "level_changed"
+        is an event reporting when MFNode changed.)
+
+      @item(For X3D, main MFNode field is named "children", and so "children_changed"
+        reports MFNode changes. "level_changed" is a new field, SFInt32,
+        indicating which child is chosen.)
+    )
+
+    So level_changed has completely different meanings for VRML 97 and X3D.
+    As an extension we'll add "levelIndex_changed", SFInt32, to be analogous
+    to X3D "level_changed". This way both VRML 2.0 and X3D LOD nodes have
+    the same capabilities, and common interface for programmer
+    (programmer should use X3D event/fields names for Pascal property names),
+    but for parser they will use different names.
+  }
+  TVRMLLODNode = class(TNodeX3DGroupingNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -192,11 +206,24 @@
     private FEventlevel_changed: TVRMLEvent;
     public property Eventlevel_changed: TVRMLEvent read FEventlevel_changed;
 
+    function ChildrenField: TMFNode; override;
+  end;
+
+  TNodeLOD_2 = class(TVRMLLODNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+  end;
 
-    function ChildrenField: TMFNode; override;
-
+  TNodeLOD_3 = class(TVRMLLODNode)
+  public
+    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+      override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
@@ -562,11 +589,9 @@ begin
   end;
 end;
 
-constructor TNodeLOD_2.Create(const ANodeName: string; const AWWWBasePath: string);
+constructor TVRMLLODNode.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-
-  FdChildren.AddAlternativeName('level', 2);
 
   FFdcenter := TSFVec3f.Create(Self, 'center', ZeroVector3Single);
   FFdcenter.Exposed := false;
@@ -587,29 +612,17 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeLOD_2.ClassNodeTypeName: string;
+class function TVRMLLODNode.ClassNodeTypeName: string;
 begin
   Result := 'LOD';
 end;
 
-class function TNodeLOD_2.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
-end;
-
-class function TNodeLOD_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-begin
-  Result := VerMajor >= 2;
-end;
-
-function TNodeLOD_2.ChildrenField: TMFNode;
+function TVRMLLODNode.ChildrenField: TMFNode;
 begin
   Result := FdChildren;
 end;
 
-procedure TNodeLOD_2.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure TVRMLLODNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 begin
   { For now we simply always use the best LOD version,
     avoiding whole issue of choosing proper LOD child. }
@@ -617,13 +630,49 @@ begin
     Func(Self, FdChildren.Items[0]);
 end;
 
+constructor TNodeLOD_2.Create(const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+  FdChildren.AddAlternativeName('level', 2);
+  Eventlevel_changed.AddAlternativeName('levelIndex_changed', 2);
+end;
+
+class function TNodeLOD_2.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
+class function TNodeLOD_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+begin
+  Result := VerMajor = 2;
+end;
+
 function TNodeLOD_2.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
+end;
+
+class function TNodeLOD_3.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+class function TNodeLOD_3.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+begin
+  Result := VerMajor >= 3;
+end;
+
+function TNodeLOD_3.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 0, 1000);
 end;
 
 constructor TNodeNavigationInfo.Create(const ANodeName: string;
@@ -869,6 +918,7 @@ begin
     TNodeBillboard,
     TNodeCollision,
     TNodeLOD_2,
+    TNodeLOD_3,
     TNodeNavigationInfo,
     TNodeOrthoViewpoint,
     TNodeViewpoint,
