@@ -2168,6 +2168,22 @@ begin
       LODTree.WasLevel_ChangedSend := true;
       LODTree.LODNode.EventLevel_Changed.Send(NewLevel, WorldTime);
     end;
+
+    if OldLevel <> NewLevel then
+    begin
+      { This means that active shapes changed, so we have to change things
+        depending on them. Just like after Switch.whichChoice change. }
+
+      Validities := Validities - [
+        { Calculation traverses over active shapes. }
+        fvShapesActiveCount,
+        fvShapesActiveVisibleCount,
+        { Calculation traverses over active nodes (uses RootNode.Traverse). }
+        fvMainLightForShadows];
+
+      ScheduledGeometryActiveShapesChanged := true;
+      ScheduleGeometryChanged;
+    end;
   end;
 end;
 
@@ -2921,8 +2937,6 @@ begin
       InvalidateTrianglesListShadowCasters;
       InvalidateManifoldAndBorderEdges;
     end else
-    { TODO-LOD: when current LOD child index changes, something similar
-      should be done... In UpdateLODLevel, when level_changed? }
     if (Node is TNodeSwitch_2) and
        (TNodeSwitch_2(Node).FdWhichChoice = Field) then
     begin
@@ -4817,20 +4831,18 @@ begin
   FLastViewerUp        := ViewerUp;
   FIsLastViewer := true;
 
-  for I := 0 to ShapeLODs.Count - 1 do
-    UpdateLODLevel(TVRMLShapeTreeLOD(ShapeLODs.Items[I]));
+  BeginChangesSchedule;
+  try
+    for I := 0 to ShapeLODs.Count - 1 do
+      UpdateLODLevel(TVRMLShapeTreeLOD(ShapeLODs.Items[I]));
 
-  if ProcessEvents then
-  begin
-    Inc(FWorldTime.PlusTicks);
-    BeginChangesSchedule;
-    try
+    if ProcessEvents then
+    begin
+      Inc(FWorldTime.PlusTicks);
       for I := 0 to ProximitySensorInstances.Count - 1 do
         ProximitySensorUpdate(ProximitySensorInstances.Items[I]);
-    finally
-      EndChangesSchedule;
     end;
-  end;
+  finally EndChangesSchedule end;
 end;
 
 { compiled scripts ----------------------------------------------------------- }
