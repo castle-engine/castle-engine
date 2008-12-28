@@ -15,6 +15,7 @@ will be implemented).
 |   backgroundbase.pas
 D   boxes3d.pas
 D   convexhullunit.pas
+D   frustum.pas
 D   keys.pas
 D   matrixnavigation.pas
 D   polynomials.pas
