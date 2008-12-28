@@ -2321,6 +2321,21 @@ type
   BreakTransformChangeFailed = class(TCodeBreaker);
   BreakTransformChangeSuccess = class(TCodeBreaker);
 
+  { When Transform changes, we have to traverse Shapes tree simultaneously
+    with traversing VRML graph. So we have to know at each point
+    the TVRMLShapeTree we're on. To record this, we'll manage a linked list
+    of PShapesParentInfo records.
+
+    We will traverse Shapes tree knowing
+    it's structure, since it must have been created by ChangedAll code. }
+
+  PShapesParentInfo = ^TShapesParentInfo;
+  TShapesParentInfo = record
+    Group: TVRMLShapeTreeGroup;
+    Index: Integer;
+  end;
+
+type
   { We need a separate class to keep various helpful state
     during traversal when Transform changed.
     Changing VRML >= 2.0 Transform fields must be highly optimized.
@@ -2334,7 +2349,7 @@ type
     So many TransformChange traversals may run at once, so they must
     have different state variables. }
   TTransformChangeHelper = class
-    ShapeIterator: TVRMLShapeTreeIterator;
+    Shapes: PShapesParentInfo;
     ProximitySensorNum: Cardinal;
     ChangingNode: TVRMLNode;
     ChangingNodeOccurences: Integer; //< -1 if not known
@@ -2344,9 +2359,9 @@ type
     ParentScene: TVRMLScene;
     { If = 0, we're in active graph part.
       If > 0, we're in inactive graph part (TransformChangeTraverse
-      may enter there, since we need to enter all (even inactive)
-      Switch children, to move correctly ShapeIterator
-      (since our Shapes contains also even inactive Switch nodes)). }
+      may enter there, since our changing Transform node (or some of it's
+      children) may be inactive; but we have to update all shapes,
+      active or not). }
     Inactive: Cardinal;
     procedure TransformChangeTraverse(
       Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
@@ -2364,25 +2379,39 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
   var
     I: Integer;
     ChildInactive: boolean;
+    ShapeSwitch: TVRMLShapeTreeSwitch;
+    OldShapes: PShapesParentInfo;
+    NewShapes: TShapesParentInfo;
   begin
-    { We have to enter *every* Switch child (while normal
-      Traverse would enter only active child), because we have to increase
-      ShapeIterator even in inactive Switch parts (because that's how
-      we constructed Shapes tree). }
+    { get Shape and increase Shapes^.Index }
+    ShapeSwitch := Shapes^.Group.Children[Shapes^.Index] as TVRMLShapeTreeSwitch;
+    Inc(Shapes^.Index);
 
-    for I := 0 to SwitchNode.FdChildren.Items.Count - 1 do
-    begin
-      ChildInactive := I <> SwitchNode.FdWhichChoice.Value;
-      if ChildInactive then Inc(Inactive);
+    OldShapes := Shapes;
+    try
+      { We have to enter *every* Switch child (while normal
+        Traverse would enter only active child), because changing Transform
+        node may be in inactive graph parts. }
 
-      SwitchNode.FdChildren.Items[I].TraverseInternal(
-        StateStack, TVRMLNode,
-        @TransformChangeTraverse,
-        @TransformChangeTraverseAfter,
-        ParentInfo);
+      for I := 0 to SwitchNode.FdChildren.Items.Count - 1 do
+      begin
+        NewShapes.Group := ShapeSwitch.Children[I] as TVRMLShapeTreeGroup;
+        NewShapes.Index := 0;
+        Shapes := @NewShapes;
 
-      if ChildInactive then Dec(Inactive);
-    end;
+        ChildInactive := I <> SwitchNode.FdWhichChoice.Value;
+        if ChildInactive then Inc(Inactive);
+
+        SwitchNode.FdChildren.Items[I].TraverseInternal(
+          StateStack, TVRMLNode,
+          @TransformChangeTraverse,
+          @TransformChangeTraverseAfter,
+          ParentInfo);
+
+        if ChildInactive then Dec(Inactive);
+      end;
+
+    finally Shapes := OldShapes end;
 
     TraverseIntoChildren := false;
   end;
@@ -2390,27 +2419,45 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
   procedure HandleLOD(LODNode: TVRMLLODNode);
   var
     I: Integer;
-    Level: Cardinal;
+    ShapeLOD: TVRMLShapeTreeLOD;
+    OldShapes: PShapesParentInfo;
+    NewShapes: TShapesParentInfo;
   begin
-    { Just like in HandleSwitch: we have to enter *every* LOD child
-      (while normal Traverse would enter only active child),
-      because we have to increase ShapeIterator even in inactive LOD parts
-      (because that's how we constructed Shapes tree). }
-    Level := {TODO-LOD}{we should just traverse here Shapes tree,
-      not using iterator, and thus know the current shape tree node. }0;
+    { get Shape and increase Shapes^.Index }
+    ShapeLOD := Shapes^.Group.Children[Shapes^.Index] as TVRMLShapeTreeLOD;
+    Inc(Shapes^.Index);
 
-    for I := 0 to LODNode.FdChildren.Items.Count - 1 do
+    { by the way, update LODInvertedTransform, since it changed }
+    if Inside then
     begin
-      if Cardinal(I) <> Level then Inc(Inactive);
-
-      LODNode.FdChildren.Items[I].TraverseInternal(
-        StateStack, TVRMLNode,
-        @TransformChangeTraverse,
-        @TransformChangeTraverseAfter,
-        ParentInfo);
-
-      if Cardinal(I) <> Level then Dec(Inactive);
+      ShapeLOD.LODInvertedTransform^ := StateStack.Top.InvertedTransform;
+      ParentScene.UpdateLODLevel(ShapeLOD);
     end;
+
+    OldShapes := Shapes;
+    try
+      { Just like in HandleSwitch: we have to enter *every* LOD child
+        (while normal Traverse would enter only active child),
+        because changing Transform  node may be in inactive graph parts. }
+
+      for I := 0 to LODNode.FdChildren.Items.Count - 1 do
+      begin
+        NewShapes.Group := ShapeLOD.Children[I] as TVRMLShapeTreeGroup;
+        NewShapes.Index := 0;
+        Shapes := @NewShapes;
+
+        if Cardinal(I) <> ShapeLOD.Level then Inc(Inactive);
+
+        LODNode.FdChildren.Items[I].TraverseInternal(
+          StateStack, TVRMLNode,
+          @TransformChangeTraverse,
+          @TransformChangeTraverseAfter,
+          ParentInfo);
+
+        if Cardinal(I) <> ShapeLOD.Level then Dec(Inactive);
+      end;
+
+    finally Shapes := OldShapes end;
 
     TraverseIntoChildren := false;
   end;
@@ -2424,8 +2471,6 @@ begin
   end else
   if Node is TVRMLLODNode then
   begin
-    {TODO-LOD:if Inside then
-      ShapeTreeNode.State.AssignTransform(StateStack.Top);}
     HandleLOD(TVRMLLODNode(Node));
   end else
 
@@ -2433,8 +2478,12 @@ begin
   begin
     if Node is TVRMLGeometryNode then
     begin
-      Check(ShapeIterator.GetNext, 'Missing shape in Shapes tree');
-      Shape := ShapeIterator.Current;
+      { get Shape and increase Shapes^.Index }
+      Check(Shapes^.Index < Shapes^.Group.Children.Count,
+        'Missing shape in Shapes tree');
+      Shape := Shapes^.Group.Children[Shapes^.Index] as TVRMLShape;
+      Inc(Shapes^.Index);
+
       Shape.State.AssignTransform(StateStack.Top);
       { TransformOnly = @true, suitable for roSeparateShapesNoTransform,
         they don't have Transform compiled in display list. }
@@ -2510,7 +2559,12 @@ begin
   end else
   begin
     if Node is TVRMLGeometryNode then
-      Check(ShapeIterator.GetNext, 'Missing shape in Shapes tree') else
+    begin
+      { increase Shapes^.Index }
+      Check(Shapes^.Index < Shapes^.Group.Children.Count,
+        'Missing shape in Shapes tree');
+      Inc(Shapes^.Index);
+    end else
     if (Node is TNodeProximitySensor) and
        { We only care about ProximitySensor in active graph parts. }
        (Inactive = 0) then
@@ -2593,6 +2647,7 @@ var
   TransformChangeHelper: TTransformChangeHelper;
   SI: TVRMLShapeTreeIterator;
   NodeInfo: PTransformNodeInfo;
+  TransformShapesParentInfo: TShapesParentInfo;
 begin
   NodeLastNodesIndex := Node.TraverseStateLastNodesIndex;
 
@@ -2803,10 +2858,13 @@ begin
         in such cases.
       }
       try
+        TransformShapesParentInfo.Group := Shapes as TVRMLShapeTreeGroup;
+        TransformShapesParentInfo.Index := 0;
+
         TransformChangeHelper := TTransformChangeHelper.Create;
         try
           TransformChangeHelper.ParentScene := Self;
-          TransformChangeHelper.ShapeIterator := TVRMLShapeTreeIterator.Create(Shapes, false);
+          TransformChangeHelper.Shapes := @TransformShapesParentInfo;
           TransformChangeHelper.ProximitySensorNum := 0;
           TransformChangeHelper.ChangingNode := Node;
           TransformChangeHelper.AnythingChanged := false;
@@ -2839,9 +2897,7 @@ begin
           if not TransformChangeHelper.AnythingChanged then
             { No need to even DoPostRedisplay at the end. }
             Exit;
-
         finally
-          FreeAndNil(TransformChangeHelper.ShapeIterator);
           FreeAndNil(TransformChangeHelper);
         end;
       except
