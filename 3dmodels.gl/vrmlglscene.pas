@@ -1298,7 +1298,7 @@ type
 implementation
 
 uses VRMLErrors, GLVersionUnit, GLImages, Images, KambiLog,
-  Object3dAsVRML, Math, RaysWindow;
+  Object3dAsVRML, Math, RaysWindow, KambiStringUtils;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -1634,7 +1634,7 @@ end;
     NeedsConstXxx := NeedsConstXxx or <this factor needs them>;
   so can only change from false to true.
 }
-function BlendingFactorNameToStr(const S: string;
+function BlendingFactorNameToStr(S: string;
   out Factor: TGLEnum;
   var NeedsConstColor, NeedsConstAlpha: boolean;
   Source: boolean): boolean;
@@ -1671,10 +1671,13 @@ const
     (Name: 'constant_alpha'          ; GL: GL_CONSTANT_ALPHA          ; Source: true ; Dest: true ; NeedsConstColor: false; NeedsConstAlpha: true ),
     (Name: 'one_minus_constant_alpha'; GL: GL_ONE_MINUS_CONSTANT_ALPHA; Source: true ; Dest: true ; NeedsConstColor: false; NeedsConstAlpha: true )
   );
+  SourceToStr: array [boolean] of string = ('destination', 'source');
 var
   I: Integer;
 begin
   Result := false;
+
+  S := LowerCase(S);
 
   for I := Low(BlendingFactors) to High(BlendingFactors) do
     if BlendingFactors[I].Name = S then
@@ -1726,6 +1729,10 @@ begin
 
       Break;
     end;
+
+  if not Result then
+    VRMLNonFatalError(Format('Unknown blending %s factor name "%s"',
+      [ SourceToStr[Source], S ]));
 end;
 
 function TVRMLGLScene.RenderBeginEndToDisplayList: boolean;
