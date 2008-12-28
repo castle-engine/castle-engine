@@ -185,10 +185,10 @@ procedure TTestVectorMath.AssertFrustumSphereCollisionPossible(const Frustum: TF
   const SphereCenter: TVector3Single; const SphereRadiusSqt: Single;
   const GoodResult: TFrustumCollisionPossible);
 begin
- Assert( FrustumSphereCollisionPossible(Frustum, SphereCenter,
+ Assert( Frustum.SphereCollisionPossible(SphereCenter,
    SphereRadiusSqt) = GoodResult);
 
- Assert( FrustumSphereCollisionPossibleSimple(Frustum, SphereCenter,
+ Assert( Frustum.SphereCollisionPossibleSimple(SphereCenter,
      SphereRadiusSqt) = (GoodResult <> fcNoCollision) );
 end;
 
@@ -206,12 +206,13 @@ var
   Frustum: TFrustum;
 begin
  { Calculate testing frustum }
- CalculateFrustum(Frustum,
+ Frustum.Init(
    PerspectiveProjMatrixDeg(60, 1, 10, 100),
    LookDirMatrix(
      Vector3Single(10, 10, 10) { eye position },
      Vector3Single(1, 0, 0) { look direction },
      vector3Single(0, 0, 1) { up vector } ));
+ Assert(not Frustum.ZFarInfinity);
 
  AssertFrustumSphereCollisionPossible(Frustum, Vector3Single(0, 0, 0), 81,
    fcNoCollision);
@@ -242,12 +243,17 @@ procedure TTestVectorMath.TestInfiniteFrustum;
 var
   Frustum: TFrustum;
 begin
-  CalculateFrustum(Frustum,
+  Frustum.Init(
     PerspectiveProjMatrixDeg(60, 1, 10, ZFarInfinity),
     LookDirMatrix(
       Vector3Single(10, 10, 10) { eye position },
       Vector3Single(1, 0, 0) { look direction },
       vector3Single(0, 0, 1) { up vector } ));
+
+  Assert(Frustum.Planes[fpFar][0] = 0);
+  Assert(Frustum.Planes[fpFar][1] = 0);
+  Assert(Frustum.Planes[fpFar][2] = 0);
+  Assert(Frustum.ZFarInfinity);
 
   AssertFrustumSphereCollisionPossible(Frustum, Vector3Single(0, 0, 0), 81,
     fcNoCollision);

@@ -294,7 +294,7 @@ function IsBox3dTriangleCollision(
   const Box: TBox3d;
   const Triangle: TTriangle3Single): boolean;
 
-{ This is equivalent to @link(FrustumSphereCollisionPossible),
+{ This is equivalent to @link(TFrustum.SphereCollisionPossible),
   but here it takes a box instead of a sphere. }
 function FrustumBox3dCollisionPossible(const Frustum: TFrustum;
   const Box: TBox3d): TFrustumCollisionPossible;
@@ -1346,7 +1346,7 @@ var
      FrustumMultiplyBox[XIndex][0] +
      FrustumMultiplyBox[YIndex][1] +
      FrustumMultiplyBox[ZIndex][2] +
-     Frustum[fp][3] < 0;
+     Frustum.Planes[fp][3] < 0;
   end;
 
 var
@@ -1360,9 +1360,7 @@ begin
 
   { If the frustum has far plane in infinity, then ignore this plane.
     Inc InsidePlanesCount, since the box is inside this infinite plane. }
-  if (Frustum[fpFar][0] = 0) and
-     (Frustum[fpFar][1] = 0) and
-     (Frustum[fpFar][2] = 0) then
+  if Frustum.ZFarInfinity then
   begin
     LastPlane := Pred(LastPlane);
     Inc(InsidePlanesCount);
@@ -1377,12 +1375,12 @@ begin
   begin
    { This way I need 6 multiplications instead of 8*3=24
      (in case I would have to execute CheckOutsideCorner 8 times) }
-   FrustumMultiplyBox[0][0] := Frustum[fp][0] * Box[0][0];
-   FrustumMultiplyBox[0][1] := Frustum[fp][1] * Box[0][1];
-   FrustumMultiplyBox[0][2] := Frustum[fp][2] * Box[0][2];
-   FrustumMultiplyBox[1][0] := Frustum[fp][0] * Box[1][0];
-   FrustumMultiplyBox[1][1] := Frustum[fp][1] * Box[1][1];
-   FrustumMultiplyBox[1][2] := Frustum[fp][2] * Box[1][2];
+   FrustumMultiplyBox[0][0] := Frustum.Planes[fp][0] * Box[0][0];
+   FrustumMultiplyBox[0][1] := Frustum.Planes[fp][1] * Box[0][1];
+   FrustumMultiplyBox[0][2] := Frustum.Planes[fp][2] * Box[0][2];
+   FrustumMultiplyBox[1][0] := Frustum.Planes[fp][0] * Box[1][0];
+   FrustumMultiplyBox[1][1] := Frustum.Planes[fp][1] * Box[1][1];
+   FrustumMultiplyBox[1][2] := Frustum.Planes[fp][2] * Box[1][2];
 
    { I'm splitting code below to two possilibilities.
      This way I can calculate 7 remaining CheckOutsideCorner
@@ -1439,14 +1437,14 @@ var
   function CheckOutsideCorner(const XIndex, YIndex, ZIndex: Cardinal): boolean;
   begin
    Result :=
-     { Frustum[fp][0] * Box[XIndex][0] +
-       Frustum[fp][1] * Box[YIndex][1] +
-       Frustum[fp][2] * Box[ZIndex][2] +
+     { Frustum.Planes[fp][0] * Box[XIndex][0] +
+       Frustum.Planes[fp][1] * Box[YIndex][1] +
+       Frustum.Planes[fp][2] * Box[ZIndex][2] +
        optimized version : }
      FrustumMultiplyBox[XIndex][0] +
      FrustumMultiplyBox[YIndex][1] +
      FrustumMultiplyBox[ZIndex][2] +
-     Frustum[fp][3] < 0;
+     Frustum.Planes[fp][3] < 0;
   end;
 
 var
@@ -1456,20 +1454,18 @@ begin
   Assert(LastPlane = fpFar);
 
   { If the frustum has far plane in infinity, then ignore this plane. }
-  if (Frustum[fpFar][0] = 0) and
-     (Frustum[fpFar][1] = 0) and
-     (Frustum[fpFar][2] = 0) then
+  if Frustum.ZFarInfinity then
     LastPlane := Pred(LastPlane);
 
   for fp := Low(fp) to LastPlane do
   begin
     { This way I need 6 multiplications instead of 8*3=24 }
-    FrustumMultiplyBox[0][0] := Frustum[fp][0] * Box[0][0];
-    FrustumMultiplyBox[0][1] := Frustum[fp][1] * Box[0][1];
-    FrustumMultiplyBox[0][2] := Frustum[fp][2] * Box[0][2];
-    FrustumMultiplyBox[1][0] := Frustum[fp][0] * Box[1][0];
-    FrustumMultiplyBox[1][1] := Frustum[fp][1] * Box[1][1];
-    FrustumMultiplyBox[1][2] := Frustum[fp][2] * Box[1][2];
+    FrustumMultiplyBox[0][0] := Frustum.Planes[fp][0] * Box[0][0];
+    FrustumMultiplyBox[0][1] := Frustum.Planes[fp][1] * Box[0][1];
+    FrustumMultiplyBox[0][2] := Frustum.Planes[fp][2] * Box[0][2];
+    FrustumMultiplyBox[1][0] := Frustum.Planes[fp][0] * Box[1][0];
+    FrustumMultiplyBox[1][1] := Frustum.Planes[fp][1] * Box[1][1];
+    FrustumMultiplyBox[1][2] := Frustum.Planes[fp][2] * Box[1][2];
 
     if CheckOutsideCorner(0, 0, 0) and
        CheckOutsideCorner(0, 0, 1) and

@@ -1589,7 +1589,7 @@ end;
 
 procedure TNavigator.RecalculateFrustum;
 begin
-  CalculateFrustum(FFrustum, ProjectionMatrix, Matrix);
+  FFrustum.Init(ProjectionMatrix, Matrix);
 end;
 
 procedure TNavigator.SetProjectionMatrix(const Value: TMatrix4Single);

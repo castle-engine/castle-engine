@@ -314,14 +314,12 @@ procedure TShadowVolumes.InitFrustumAndLight(
     Assert(LastPlane = fpFar);
 
     { if infinite far plane, then ignore it }
-    if (Frustum[fpFar][0] = 0) and
-       (Frustum[fpFar][1] = 0) and
-       (Frustum[fpFar][2] = 0) then
+    if Frustum.ZFarInfinity then
       LastPlane := Pred(LastPlane);
 
     for FP := Low(FP) to LastPlane do
     begin
-      { This checks that LightPosition is inside Frustum[FP] plane.
+      { This checks that LightPosition is inside Frustum.Planes[FP] plane.
 
         When LightPosition[3] = 1, this is normal test on which side
         of plane lies a point, so then it's OK (frustum planes point inside
@@ -331,12 +329,12 @@ procedure TShadowVolumes.InitFrustumAndLight(
         between light direction and plane direction. So >= 0 means that they
         point in the same dir (angle < 90 degs), so the light position
         in infinity can also be considered inside this plane. }
-      if Frustum[FP][0] * LightPosition[0] +
-         Frustum[FP][1] * LightPosition[1] +
-         Frustum[FP][2] * LightPosition[2] +
-         Frustum[FP][3] * LightPosition[3] >= 0 then
+      if Frustum.Planes[FP][0] * LightPosition[0] +
+         Frustum.Planes[FP][1] * LightPosition[1] +
+         Frustum.Planes[FP][2] * LightPosition[2] +
+         Frustum.Planes[FP][3] * LightPosition[3] >= 0 then
       begin
-        FrustumAndLightPlanes[FrustumAndLightPlanesCount] := Frustum[FP];
+        FrustumAndLightPlanes[FrustumAndLightPlanesCount] := Frustum.Planes[FP];
         Inc(FrustumAndLightPlanesCount);
       end;
     end;
@@ -353,7 +351,7 @@ begin
   FLightPosition := ALightPosition;
   FLightPositionDouble := Vector4Double(ALightPosition);
 
-  CalculateFrustumPoints(FrustumNearPoints, Frustum, true);
+  Frustum.CalculatePoints(FrustumNearPoints, true);
 
   CalculateFrustumAndLightPlanes;
 

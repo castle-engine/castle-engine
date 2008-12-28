@@ -208,7 +208,7 @@ type
 
     { This is exactly equivalent to getting
       @link(BoundingSphereCenter) and @link(BoundingSphereRadiusSqr)
-      and then using @link(VectorMath.FrustumSphereCollisionPossible).
+      and then using @link(TFrustum.SphereCollisionPossible).
 
       But it may be a little faster since it avoids some small speed problems
       (like copying memory contents when you get values of
@@ -219,7 +219,7 @@ type
 
     { This is exactly equivalent to getting
       @link(BoundingSphereCenter) and @link(BoundingSphereRadiusSqr)
-      and then using @link(VectorMath.FrustumSphereCollisionPossibleSimple).
+      and then using @link(TFrustum.SphereCollisionPossibleSimple).
 
       But it may be a little faster since it avoids some small speed problems. }
     function FrustumBoundingSphereCollisionPossibleSimple(
@@ -639,7 +639,7 @@ function TVRMLShape.FrustumBoundingSphereCollisionPossible(
   const Frustum: TFrustum): TFrustumCollisionPossible;
 begin
  ValidateBoundingSphere;
- Result := FrustumSphereCollisionPossible(Frustum,
+ Result := Frustum.SphereCollisionPossible(
    FBoundingSphereCenter, FBoundingSphereRadiusSqr);
 end;
 
@@ -647,7 +647,7 @@ function TVRMLShape.FrustumBoundingSphereCollisionPossibleSimple(
   const Frustum: TFrustum): boolean;
 begin
  ValidateBoundingSphere;
- Result := FrustumSphereCollisionPossibleSimple(Frustum,
+ Result := Frustum.SphereCollisionPossibleSimple(
    FBoundingSphereCenter, FBoundingSphereRadiusSqr);
 end;
 

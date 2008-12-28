@@ -3593,7 +3593,7 @@ begin
     setting
       Shape.RenderFrustumOctree_Visible := true
     This means that it wastes some time on doing
-    FrustumSphereCollisionPossibleSimple but it may be able
+    Frustum.SphereCollisionPossibleSimple but it may be able
     to eliminate more shapes from rendering pipeline,
     so overall speed may be better. }
 
@@ -3606,7 +3606,7 @@ begin
 
 { Other implementations are also possible :
 
-  3rd one: check FrustumSphereCollisionPossibleSimple
+  3rd one: check Frustum.SphereCollisionPossibleSimple
   and (if it succeeds) then additionally check
   FrustumBox3dCollisionPossibleSimple.
 

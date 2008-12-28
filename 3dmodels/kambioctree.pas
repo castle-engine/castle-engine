@@ -632,7 +632,7 @@ begin
    Advantage of testing for collision with sphere:
    it's much faster than checking for collision versus box,
    which can be clearly seen comparing implementations of
-   FrustumSphereCollisionPossible and
+   Frustum.SphereCollisionPossible and
    FrustumBox3dCollisionPossible.
 
    Disadvantage: bounding sphere is worse description of
@@ -647,7 +647,7 @@ begin
       check for collision versus sphere first, and then,
       it test versus sphere succeeds, check versus box. }
 
- if FrustumSphereCollisionPossibleSimple(Frustum,
+ if Frustum.SphereCollisionPossibleSimple(
       BoundingSphereCenter, BoundingSphereRadiusSqr) then
  begin
   case FrustumBox3dCollisionPossible(Frustum, Box) of
@@ -684,7 +684,7 @@ begin
 
            a) answer first : this is actually not necessarily faster,
               since now in some children first call to
-              FrustumSphereCollisionPossibleSimple may eliminate
+              Frustum.SphereCollisionPossibleSimple may eliminate
               any need to compare this child's Box versus Frustum.
               But above scheme makes an assumption that every child
               will need to compare it's Box against Frustum.
