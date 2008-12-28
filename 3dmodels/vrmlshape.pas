@@ -389,22 +389,39 @@ type
     This information is in LODNode and LODInvertedTransform properties.
 
     Also, we need to know the current viewer position.
-    We take this from ParentScene.LastViewerPosition.
-    If ParentScene.IsLastViewer = @false (indicating that viewer position
-    is not known), we simply use the first (highest-detail) LOD as active. }
+    This is passed as ViewerPosition to CalculateLevel.
+    Note that this class doesn't call CalculateLevel by itself, never.
+    You have to call CalculateLevel, and use it to set Level property,
+    from parent scene to make this LOD work. (Reasoning behind this decision:
+    parent scene has LastViewerPosition and such, and parent scene
+    knows whether to initiate level_changes event sending.) }
   TVRMLShapeTreeLOD = class(TVRMLShapeTreeGroup)
   private
     FLODNode: TNodeLOD_2;
     FLODInvertedTransform: TMatrix4Single;
+    FLevel: Cardinal;
+    FWasLevel_ChangedSend: boolean;
   public
     property LODNode: TNodeLOD_2 read FLODNode write FLODNode;
     function LODInvertedTransform: PMatrix4Single;
 
-    { Returns the number of active child of this LOD node.
+    { Calculate @link(Level). This only calculates level, doesn't
+      assign @link(Level) property or send level_changed event. }
+    function CalculateLevel(const ViewerPosition: TVector3Single): Cardinal;
 
+    { Current level, that is index of the active child of this LOD node.
       This is always < Children.Count, unless there are no children.
-      In this case it's 0. }
-    function Level: Cardinal;
+      In this case it's 0.
+
+      Should be calculated by CalculateLevel. By default
+      we simply use the first (highest-detail) LOD as active.
+      So if you never assign this (e.g. because TVRMLScene.IsLastViewer
+      = @false, that is user position is never known) we'll always
+      use the highest-detail children. }
+    property Level: Cardinal read FLevel write FLevel default 0;
+
+    property WasLevel_ChangedSend: boolean
+      read FWasLevel_ChangedSend write FWasLevel_ChangedSend default false;
 
     procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
     function ShapesCount(OnlyActive: boolean;
@@ -838,22 +855,17 @@ begin
   Result := @FLODInvertedTransform;
 end;
 
-{ TODO-LOD: level should be recorded, to not recalculate it constantly.
-  Also, level should be changed in each ViewerChanged?
-  At this point, level_changed would be generated? }
-function TVRMLShapeTreeLOD.Level: Cardinal;
+function TVRMLShapeTreeLOD.CalculateLevel(const ViewerPosition: TVector3Single): Cardinal;
 var
   Viewer: TVector3Single;
   Dummy: Single;
 begin
   if (Children.Count = 0) or
-     (LODNode.FdRange.Count = 0) or
-     (not TVRMLScene(ParentScene).IsLastViewer) then
+     (LODNode.FdRange.Count = 0) then
     Result := 0 else
   begin
     try
-      Viewer := MatrixMultPoint(LODInvertedTransform^,
-        TVRMLScene(ParentScene).LastViewerPosition);
+      Viewer := MatrixMultPoint(LODInvertedTransform^, ViewerPosition);
       Result := KeyRange(LODNode.FdRange.Items,
         PointsDistance(Viewer, LODNode.FdCenter.Value), Dummy);
       { Now we know Result is between 0..LODNode.FdRange.Count.
@@ -865,8 +877,7 @@ begin
       on E: ETransformedResultInvalid do
       begin
         VRMLNonFatalError(Format('Cannot transform viewer position %s to LOD node local coordinate space, transformation results in direction (not point): %s',
-          [ VectorToRawStr(TVRMLScene(ParentScene).LastViewerPosition),
-            E.Message ]));
+          [ VectorToRawStr(ViewerPosition), E.Message ]));
         Result := 0;
       end;
     end;
