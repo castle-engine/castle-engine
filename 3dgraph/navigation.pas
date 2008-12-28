@@ -24,7 +24,7 @@ unit Navigation;
 
 interface
 
-uses SysUtils, VectorMath, KambiUtils, Keys, Boxes3d, Quaternions;
+uses SysUtils, VectorMath, KambiUtils, Keys, Boxes3d, Quaternions, Frustum;
 
 type
   TMouseButton = (mbLeft, mbMiddle, mbRight);

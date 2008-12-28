@@ -95,7 +95,7 @@ unit KambiOctree;
 
 interface
 
-uses SysUtils, VectorMath, Boxes3d, KambiUtils;
+uses SysUtils, VectorMath, Boxes3d, KambiUtils, Frustum;
 
 type
   { }
@@ -650,7 +650,7 @@ begin
  if Frustum.SphereCollisionPossibleSimple(
       BoundingSphereCenter, BoundingSphereRadiusSqr) then
  begin
-  case FrustumBox3dCollisionPossible(Frustum, Box) of
+  case Frustum.Box3dCollisionPossible(Box) of
    fcNoCollision: ;
    fcSomeCollisionPossible:
      if IsLeaf then

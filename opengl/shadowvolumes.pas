@@ -23,7 +23,7 @@ unit ShadowVolumes;
 
 interface
 
-uses VectorMath, Boxes3d, GL, GLU, GLExt, KambiGLUtils;
+uses VectorMath, Boxes3d, GL, GLU, GLExt, KambiGLUtils, Frustum;
 
 type
   TStencilSetupKind = (ssFrontAndBack, ssFront, ssBack);
@@ -541,7 +541,7 @@ begin
   FZFail := FSceneShadowPossiblyVisible and CalculateZFail;
 
   FZFailAndLightCap := ZFail and
-    FrustumBox3dCollisionPossibleSimple(FFrustum, SceneBox);
+    FFrustum.Box3dCollisionPossibleSimple(SceneBox);
 
   UpdateCount;
 end;

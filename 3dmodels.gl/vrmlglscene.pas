@@ -70,7 +70,7 @@ uses
   SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLScene, VRMLOpenGLRenderer, GL, GLU, GLExt, BackgroundGL, KambiGLUtils,
   VRMLShapeOctree, VRMLGLHeadLight, VRMLRendererOptimization,
-  ShadowVolumes, Navigation, VRMLFields, VRMLLightSetGL, VRMLShape;
+  ShadowVolumes, Navigation, VRMLFields, VRMLLightSetGL, VRMLShape, Frustum;
 
 {$define read_interface}
 

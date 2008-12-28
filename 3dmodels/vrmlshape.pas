@@ -28,7 +28,7 @@ unit VRMLShape;
 interface
 
 uses SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils,
-  KambiUtils, VRMLTriangleOctree;
+  KambiUtils, VRMLTriangleOctree, Frustum;
 
 {$define read_interface}
 
