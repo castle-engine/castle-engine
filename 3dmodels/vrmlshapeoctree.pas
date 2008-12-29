@@ -653,7 +653,7 @@ begin
     '  Empty octree - scene has no Shapes, i.e. no visible nodes.' +nl else
   Result := Format(
     '  %d items (=Shapes) defined for octree, %d items in octree''s nodes' +nl+
-    '  - so each Shapes is present in tree about %f times.' +nl,
+    '  - so each shape is present in tree about %f times.' +nl,
     [ ShapesList.Count, ItemsCount, ItemsCount / ShapesList.Count] );
 end;
 
