@@ -63,6 +63,8 @@ unit VRMLGLScene;
 }
 {$define RENDER_FRUSTUM_OCTREE_NO_BONUS_CHECKS}
 { $define RENDER_FRUSTUM_OCTREE_BONUS_SPHERE_CHECK}
+{ $define RENDER_FRUSTUM_OCTREE_BONUS_BOX_CHECK}
+{ $define RENDER_FRUSTUM_OCTREE_BONUS_BOTH_CHECK}
 
 interface
 
@@ -3604,14 +3606,29 @@ begin
     Shape.RenderFrustumOctree_Visible := true;
 {$endif}
 
-{ Other implementations are also possible :
+{$ifdef RENDER_FRUSTUM_OCTREE_BONUS_BOX_CHECK}
+begin
+  Shape := TVRMLGLShape(OctreeRendering.ShapesList[ShapeIndex]);
 
-  3rd one: check Frustum.SphereCollisionPossibleSimple
-  and (if it succeeds) then additionally check
-  FrustumBox3dCollisionPossibleSimple.
+  if (not Shape.RenderFrustumOctree_Visible) and
+     ( CollidesForSure or
+       RenderFrustumOctree_Frustum^.Box3dCollisionPossibleSimple(
+         Shape.BoundingBox) ) then
+    Shape.RenderFrustumOctree_Visible := true;
+{$endif}
 
-  4th one: check only Frustumbox3dCollisionPossibleSimple.
-  (but this will probably be worse then 3rd one). }
+{$ifdef RENDER_FRUSTUM_OCTREE_BONUS_BOTH_CHECK}
+begin
+  Shape := TVRMLGLShape(OctreeRendering.ShapesList[ShapeIndex]);
+
+  if (not Shape.RenderFrustumOctree_Visible) and
+     ( CollidesForSure or
+       ( Shape.FrustumBoundingSphereCollisionPossibleSimple
+           (RenderFrustumOctree_Frustum^) and
+         RenderFrustumOctree_Frustum^.Box3dCollisionPossibleSimple(
+           Shape.BoundingBox) ) ) then
+    Shape.RenderFrustumOctree_Visible := true;
+{$endif}
 
 end;
 
