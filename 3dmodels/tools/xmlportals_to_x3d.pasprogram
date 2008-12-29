@@ -24,6 +24,8 @@
   from Remigiusz Zukowski) into $2 (X3D file). }
 program xmlportals_to_x3d;
 
+{$I kambiconf.inc}
+
 uses SysUtils, KambiUtils, KambiXMLRead, DOM, KambiXMLUtils, VectorMath,
   VRMLNodes, Contnrs, KambiStringUtils, Classes, KambiClassUtils;
 

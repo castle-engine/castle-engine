@@ -21,6 +21,8 @@
 { TGameSoundEngine class. }
 unit GameSoundEngine;
 
+{$I kambiconf.inc}
+
 interface
 
 uses Classes, VectorMath, KambiOpenAL, ALSourceAllocator, SysUtils,

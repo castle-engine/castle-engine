@@ -1857,7 +1857,7 @@ begin
  FreeAndNil(FNavigationInfoStack);
  FreeAndNil(FViewpointStack);
 
- FreeAndNil(Shapes);
+ FreeAndNil(FShapes);
  FreeAndNil(ShapeLODs);
 
  FreeAndNil(FOctreeRendering);

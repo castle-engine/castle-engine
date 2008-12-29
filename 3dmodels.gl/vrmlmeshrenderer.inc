@@ -481,10 +481,10 @@ type
     procedure RenderCoordsRange(
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
-
-    function NeedsSetColor: boolean; override;
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
+
+    function NeedsSetColor: boolean; override;
   end;
 
   TNormalsImplementation = (

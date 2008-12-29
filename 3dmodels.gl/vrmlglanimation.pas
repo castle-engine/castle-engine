@@ -549,8 +549,6 @@ type
   TVRMLGLAnimationScene = class(TVRMLGLScene)
   private
     FParentAnimation: TVRMLGLAnimation;
-  protected
-    procedure DoGeometryChanged; override;
   public
     constructor CreateForAnimation(
       ARootNode: TVRMLNode; AOwnsRootNode: boolean;
@@ -558,6 +556,7 @@ type
       AProvidedRenderer: TVRMLOpenGLRenderer;
       AParentAnimation: TVRMLGLAnimation);
     property ParentAnimation: TVRMLGLAnimation read FParentAnimation;
+    procedure DoGeometryChanged; override;
   end;
 
 constructor TVRMLGLAnimationScene.CreateForAnimation(

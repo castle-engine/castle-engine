@@ -23,6 +23,8 @@
 { Convert Collada to VRML. }
 unit ColladaToVRML;
 
+{$I kambiconf.inc}
+
 interface
 
 uses VRMLNodes;

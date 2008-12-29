@@ -1,6 +1,8 @@
 { TVRMLAnimation class. }
 unit VRMLAnimation;
 
+{$I kambiconf.inc}
+
 interface
 
 uses KambiUtils, DOM, VRMLRendererOptimization;

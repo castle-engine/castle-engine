@@ -561,7 +561,7 @@ end;
 
 destructor TVRMLShape.Destroy;
 begin
-  FreeAndNil(State);
+  FreeAndNil(FState);
   FreeAndNil(FOctreeTriangles);
   inherited;
 end;

@@ -23,6 +23,8 @@
 { Read X3D encoded in XML, and convert it to VRML/X3D nodes graph. }
 unit X3DXmlToVRML;
 
+{$I kambiconf.inc}
+
 interface
 
 uses VRMLNodes;

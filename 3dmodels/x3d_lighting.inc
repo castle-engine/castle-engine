@@ -101,6 +101,7 @@
   end;
 
   TVRMLPositionalLightNode = class(TVRMLLightNode)
+  public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
     private FFdLocation: TSFVec3f;
@@ -128,6 +129,7 @@
   end;
 
   TVRMLPointLightNode = class(TVRMLPositionalLightNode)
+  public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
   end;

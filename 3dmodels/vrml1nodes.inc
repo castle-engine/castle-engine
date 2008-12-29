@@ -537,7 +537,7 @@
   end;
 
   TNodeShapeHints = class(TNodeX3DChildNode)
-  private
+  protected
     function ParseNodeBodyElement(Lexer: TVRMLLexer;
       const APositionInParent: Integer): boolean; override;
   public
@@ -753,6 +753,7 @@
   end;
 
   TNodeGroup_1 = class(TNodeX3DChildNode)
+  public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 

@@ -126,6 +126,18 @@
   {$ifndef KAMBI_FROM_LAZARUS_PACKAGE}
     {$define SUPPORTS_INLINE}
   {$endif}
+
+  {$ifdef VER_2_0}   {$define USE_KAMBI_XMLREAD} {$endif}
+  {$ifdef VER_2_2_0} {$define USE_KAMBI_XMLREAD} {$endif}
+  {$ifdef VER_2_2_2} {$define USE_KAMBI_XMLREAD} {$endif}
+
+  { Do not use KambiXMLRead for FPC > 2.2.2, no need
+    (http://bugs.freepascal.org/view.php?id=11957 already fixed there)
+    and no way (not compatible, internal things in DOM unit changed). }
+
+  {$ifndef USE_KAMBI_XMLREAD}
+    {$define KambiXMLRead := XMLRead}
+  {$endif}
 {$endif}
 
 {$endif not KambiConf_ALREADY_INCLUDED}

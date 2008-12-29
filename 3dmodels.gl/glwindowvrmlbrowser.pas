@@ -200,7 +200,7 @@ end;
 
 destructor TGLWindowVRMLBrowser.Destroy;
 begin
-  FreeAndNil(Scene);
+  FreeAndNil(FScene);
   Navigator.Free;
   Navigator := nil;
   inherited;
@@ -213,7 +213,7 @@ end;
 
 procedure TGLWindowVRMLBrowser.Load(ARootNode: TVRMLNode; const OwnsRootNode: boolean);
 begin
-  FreeAndNil(Scene);
+  FreeAndNil(FScene);
   Navigator.Free;
   Navigator := nil;
 

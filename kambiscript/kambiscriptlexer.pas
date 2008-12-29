@@ -159,7 +159,7 @@ const
         if TextPos > Length(Text) then
           raise EKamScriptLexerError.Create(Self, 'Unfinished comment');
       end;
-      Inc(TextPos);
+      Inc(FTextPos);
       OmitWhiteSpace; { recusively omit the rest of whitespace }
     end;
   end;

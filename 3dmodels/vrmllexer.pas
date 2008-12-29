@@ -645,7 +645,7 @@ begin
   FreeAndNil(NodeNameBinding);
   FreeAndNil(ProtoNameBinding);
   if FOwnsStream then
-    FreeAndNil(Stream);
+    FreeAndNil(FStream);
   inherited;
 end;
 
