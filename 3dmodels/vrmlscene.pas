@@ -3223,9 +3223,9 @@ begin
   begin
     FreeAndNil(FOctreeDynamicCollisions);
     FOctreeDynamicCollisions := CreateShapeOctree(
-      TriangleOctreeMaxDepth,
-      TriangleOctreeLeafCapacity,
-      TriangleOctreeProgressTitle,
+      ShapeOctreeMaxDepth,
+      ShapeOctreeLeafCapacity,
+      ShapeOctreeProgressTitle,
       true);
 
     if Log and LogChanges then
@@ -3439,9 +3439,9 @@ begin
     if New and not Old then
     begin
       FOctreeDynamicCollisions := CreateShapeOctree(
-        TriangleOctreeMaxDepth,
-        TriangleOctreeLeafCapacity,
-        TriangleOctreeProgressTitle,
+        ShapeOctreeMaxDepth,
+        ShapeOctreeLeafCapacity,
+        ShapeOctreeProgressTitle,
         true);
 
       { SetShapeSpatial cannot be done by the way of doing CreateShapeOctree,
