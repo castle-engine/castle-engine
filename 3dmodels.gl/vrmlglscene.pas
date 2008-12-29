@@ -24,48 +24,6 @@ unit VRMLGLScene;
 
 {$I openglmac.inc}
 
-{ With this you can fine-tune performance of RenderFrustum when
-  TVRMLGLScene.OctreeRendering is *not* available.
-
-  RenderFrustum tests each Shape for collision with given Frustum
-  before rendering this Shape. It can use Shape.BoundingBox
-  (if RENDER_FRUSTUM_USES_BOUNDING_BOX is defined)
-  or Shape.BoundingSphere (if RENDER_FRUSTUM_USES_BOUNDING_SPHERE
-  is defined) or both, i.e. first test versus Shape.BoundingSphere
-  and then, if it succeeds, test also versus Shape.BoundingBox
-  (if RENDER_FRUSTUM_USES_BOTH).
-
-  Shape.BoundingBox is (in a current implementation) always
-  a better approximation of shape geometry than Shape.BoundingSphere.
-  So advantage of using Shape.BoundingBox is that more Shapes
-  may be eliminated. Advantage of using Shape.BoundingSphere
-  is that checking for collision Frustum<->Sphere is much faster,
-  so you don't waste so much time on testing for collisions between
-  frustum and Shape.
-
-  My tests show that in practice performance is the best (but differences
-  in speed are not large) when RENDER_FRUSTUM_USES_BOUNDING_SPHERE is used.
-  You can experiment with this if you like.
-
-  Exactly one of defines RENDER_FRUSTUM_USES_xxx must be defined. }
-{$define RENDER_FRUSTUM_USES_BOUNDING_SPHERE}
-{ $define RENDER_FRUSTUM_USES_BOUNDING_BOX}
-{ $define RENDER_FRUSTUM_USES_BOTH}
-
-{ With this you can fine-tune performance of RenderFrustum when
-  ShapeOctree is available.
-  Exactly one of symbols RENDER_FRUSTUM_OCTREE_xxx below must be defined.
-  See implementation of @link(TVRMLGLScene.RenderFrustum)
-  to see what each symbol means.
-
-  My tests show that RENDER_FRUSTUM_OCTREE_NO_BONUS_CHECKS
-  yield better performance.
-}
-{$define RENDER_FRUSTUM_OCTREE_NO_BONUS_CHECKS}
-{ $define RENDER_FRUSTUM_OCTREE_BONUS_SPHERE_CHECK}
-{ $define RENDER_FRUSTUM_OCTREE_BONUS_BOX_CHECK}
-{ $define RENDER_FRUSTUM_OCTREE_BONUS_BOTH_CHECK}
-
 interface
 
 uses
@@ -371,6 +329,49 @@ type
     prManifoldAndBorderEdges);
   TPrepareRenderOptions = set of TPrepareRenderOption;
 
+type
+  { Possible checks done while frustum culling.
+
+    This is used for TVRMLGLScene.FrustumCulling (what checks
+    should be done when shapes octree is not available) and
+    TVRMLGLScene.OctreeFrustumCulling (what checks
+    should be done when shapes octree is available).
+
+    In the second case, checks done by TFrustumCulling are applied
+    after octree traverse. That is, octree already eliminated some shapes,
+    and fully included some other shapes while traversing.
+    TFrustumCulling are used in this
+    case only as a "last resort", to check only the shapes in octree leaves
+    that are in "possibly-colliding" state with frustum.
+
+    Generally, more checks mean that more shapes may be eliminated but
+    also that we waste more time on checks themselves. What is optimal
+    depends on given 3D model, and how you expect the player to view it
+    (e.g. if player usually sees the whole model, then TFrustumCulling
+    checks may be useless waste of time; OTOH, if player stands inside
+    the model composed from many shapes then TFrustumCulling may help). }
+  TFrustumCulling = (
+    { No checks.
+
+      Setting this as TVRMLGLScene.FrustumCulling
+      turns off frustum culling entirely, which is usually not a wise thing
+      to do... Setting this as TVRMLGLScene.OctreeFrustumCulling
+      let's octree do all the work, which is quite sensible actually. }
+    fcNone,
+
+    { Check shape's bounding sphere for collision with frustum. }
+    fcSphere,
+
+    { Check shape's bounding box for collision with frustum. }
+    fcBox,
+
+    { Check shape's bounding sphere, and then box, for collision with frustum.
+      This is the most rigoristic check, but usually this is a waste of time:
+      in most cases, when bounding sphere collides, then bounding box
+      collides too. }
+    fcBoth
+  );
+
   { VRML OpenGL scene, a final class to handle VRML models (including
     their rendering in OpenGL).
     This is a descendant of TVRMLScene that makes it easy to render
@@ -537,23 +538,27 @@ type
     PreparedFogDistanceScaling: Single;
     procedure CheckFogChanged;
 
-    { Private things only for RenderFrustum ---------------------- }
+    { Private things for RenderFrustum --------------------------------------- }
+
+    function FrustumCulling_None(Shape: TVRMLGLShape): boolean;
+    function FrustumCulling_Sphere(Shape: TVRMLGLShape): boolean;
+    function FrustumCulling_Box(Shape: TVRMLGLShape): boolean;
+    function FrustumCulling_Both(Shape: TVRMLGLShape): boolean;
+
+          FFrustumCulling: TFrustumCulling;
+    FOctreeFrustumCulling: TFrustumCulling;
+    procedure       SetFrustumCulling(const Value: TFrustumCulling);
+    procedure SetOctreeFrustumCulling(const Value: TFrustumCulling);
+          FrustumCullingFunc: TTestShapeVisibility;
+    OctreeFrustumCullingFunc: TTestShapeVisibility;
 
     RenderFrustum_Frustum: PFrustum;
-    function RenderFrustum_TestShape(Shape: TVRMLGLShape): boolean;
 
-    { Private things only for RenderFrustumOctree ---------------------- }
-
-    RenderFrustumOctree_Frustum: PFrustum;
+    function RenderFrustumOctree_TestShape(Shape: TVRMLGLShape): boolean;
     procedure RenderFrustumOctree_EnumerateShapes(
       ShapeIndex: Integer; CollidesForSure: boolean);
-    function RenderFrustumOctree_TestShape(Shape: TVRMLGLShape): boolean;
-    procedure RenderFrustumOctree(const Frustum: TFrustum;
-      TransparentGroup: TTransparentGroup;
-      Octree: TVRMLShapeOctree;
-      LightRenderEvent: TVRMLLightRenderEvent);
 
-    { ------------------------------------------------------------
+    { ------------------------------------------------------------------------
       Private things used only when Optimization = roSceneAsAWhole.
       Prefixed with SAAW, for clarity. }
 
@@ -863,6 +868,31 @@ type
     procedure RenderFrustum(const Frustum: TFrustum;
       TransparentGroup: TTransparentGroup;
       LightRenderEvent: TVRMLLightRenderEvent = nil);
+
+    { Fine-tune performance of RenderFrustum when
+      OctreeRendering is @italic(not) available.
+
+      RenderFrustum tests each Shape for collision with given Frustum
+      before rendering this Shape. It can use Shape.BoundingBox
+      or Shape.BoundingSphere or both.
+      See TFrustumCulling.
+
+      Shape.BoundingBox is (in a current implementation) always
+      a better approximation of shape geometry than Shape.BoundingSphere.
+      So advantage of using Shape.BoundingBox is that more Shapes
+      may be eliminated. Advantage of using Shape.BoundingSphere
+      is that checking for collision Frustum<->Sphere is faster,
+      so you don't waste so much time on testing for collisions between
+      frustum and Shape. }
+    property FrustumCulling: TFrustumCulling
+      read FFrustumCulling write SetFrustumCulling default fcBox;
+
+    { Fine-tune performance of RenderFrustum when
+      OctreeRendering @italic(is available).
+
+      See TFrustumCulling. }
+    property OctreeFrustumCulling: TFrustumCulling
+      read FOctreeFrustumCulling write SetOctreeFrustumCulling default fcBox;
 
     { LastRender_ properties provide you read-only statistics
       about what happened during last render. For now you
@@ -1400,6 +1430,12 @@ begin
   { Note that this calls Renderer.Attributes, so use this after
     initializing Renderer. }
   Attributes.FScenes.Add(Self);
+
+  FFrustumCulling := fcBoth;
+   FrustumCulling := fcBox; { set through property setter }
+
+  FOctreeFrustumCulling := fcBoth;
+   OctreeFrustumCulling := fcBox; { set through property setter }
 end;
 
 constructor TVRMLGLScene.Create(
@@ -3519,51 +3555,103 @@ begin
   glEnd;
 end;
 
-{ RenderFrustum and helpers ---------------------------------------- }
+{ Frustum culling ------------------------------------------------------------ }
 
-function TVRMLGLScene.RenderFrustum_TestShape(
-  Shape: TVRMLGLShape): boolean;
-
-{$ifdef RENDER_FRUSTUM_USES_BOUNDING_SPHERE}
+function TVRMLGLScene.FrustumCulling_None(Shape: TVRMLGLShape): boolean;
 begin
- Result := Shape.FrustumBoundingSphereCollisionPossibleSimple(RenderFrustum_Frustum^);
-{$endif}
-
-{$ifdef RENDER_FRUSTUM_USES_BOUNDING_BOX}
-begin
- Result := FrustumBox3dCollisionPossibleSimple(RenderFrustum_Frustum^,
-   Shape.BoundingBox);
-{$endif}
-
-{$ifdef RENDER_FRUSTUM_USES_BOTH}
-begin
- Result :=
-   Shape.FrustumBoundingSphereCollisionPossibleSimple(
-     RenderFrustum_Frustum^) and
-   FrustumBox3dCollisionPossibleSimple(RenderFrustum_Frustum^,
-     Shape.BoundingBox);
-{$endif}
-
+  Result := true;
 end;
+
+function TVRMLGLScene.FrustumCulling_Sphere(Shape: TVRMLGLShape): boolean;
+begin
+  Result := Shape.FrustumBoundingSphereCollisionPossibleSimple(
+    RenderFrustum_Frustum^);
+end;
+
+function TVRMLGLScene.FrustumCulling_Box(Shape: TVRMLGLShape): boolean;
+begin
+  Result := RenderFrustum_Frustum^.Box3dCollisionPossibleSimple(
+    Shape.BoundingBox);
+end;
+
+function TVRMLGLScene.FrustumCulling_Both(Shape: TVRMLGLShape): boolean;
+begin
+  Result :=
+    Shape.FrustumBoundingSphereCollisionPossibleSimple(
+      RenderFrustum_Frustum^) and
+    RenderFrustum_Frustum^.Box3dCollisionPossibleSimple(
+      Shape.BoundingBox);
+end;
+
+procedure TVRMLGLScene.SetFrustumCulling(const Value: TFrustumCulling);
+begin
+  if Value <> FFrustumCulling then
+  begin
+    FFrustumCulling := Value;
+    case Value of
+      { FrustumCullingFunc may be @nil (unlike OctreeFrustumCullingFunc). }
+      fcNone  : FrustumCullingFunc := nil;
+      fcSphere: FrustumCullingFunc := @FrustumCulling_Sphere;
+      fcBox   : FrustumCullingFunc := @FrustumCulling_Box;
+      fcBoth  : FrustumCullingFunc := @FrustumCulling_Both;
+      else raise EInternalError.Create('SetFrustumCulling?');
+    end;
+  end;
+end;
+
+procedure TVRMLGLScene.SetOctreeFrustumCulling(const Value: TFrustumCulling);
+begin
+  if Value <> FOctreeFrustumCulling then
+  begin
+    FOctreeFrustumCulling := Value;
+    case Value of
+      fcNone  : OctreeFrustumCullingFunc := @FrustumCulling_None;
+      fcSphere: OctreeFrustumCullingFunc := @FrustumCulling_Sphere;
+      fcBox   : OctreeFrustumCullingFunc := @FrustumCulling_Box;
+      fcBoth  : OctreeFrustumCullingFunc := @FrustumCulling_Both;
+      else raise EInternalError.Create('SetOctreeFrustumCulling?');
+    end;
+  end;
+end;
+
+{ RenderFrustum and helpers -------------------------------------------------- }
 
 procedure TVRMLGLScene.RenderFrustum(const Frustum: TFrustum;
   TransparentGroup: TTransparentGroup;
   LightRenderEvent: TVRMLLightRenderEvent);
+
+  procedure RenderFrustumOctree(Octree: TVRMLShapeOctree);
+  var
+    SI: TVRMLShapeTreeIterator;
+  begin
+    if Optimization <> roSceneAsAWhole then
+    begin
+      SI := TVRMLShapeTreeIterator.Create(Shapes, false, true);
+      try
+        while SI.GetNext do
+          TVRMLGLShape(SI.Current).RenderFrustumOctree_Visible := false;
+      finally FreeAndNil(SI) end;
+
+      Octree.EnumerateCollidingOctreeItems(Frustum,
+        @RenderFrustumOctree_EnumerateShapes);
+      Render(@RenderFrustumOctree_TestShape, TransparentGroup, LightRenderEvent);
+    end else
+      Render(nil, TransparentGroup, LightRenderEvent);
+  end;
+
 begin
+  RenderFrustum_Frustum := @Frustum;
+
   if OctreeRendering <> nil then
-    RenderFrustumOctree(Frustum, TransparentGroup, OctreeRendering, LightRenderEvent) else
+    RenderFrustumOctree(OctreeRendering) else
   begin
     { Just test each shape with frustum.
-      Note that RenderFrustum_TestShape will be ignored
+      Note that FrustumCullingFunc will be ignored
       by Render for roSceneAsAWhole. }
 
-    RenderFrustum_Frustum := @Frustum;
-    Render({$ifdef FPC_OBJFPC} @ {$endif} RenderFrustum_TestShape,
-      TransparentGroup, LightRenderEvent);
+    Render(FrustumCullingFunc, TransparentGroup, LightRenderEvent);
   end;
 end;
-
-{ RenderFrustumOctree ---------------------------------------- }
 
 function TVRMLGLScene.RenderFrustumOctree_TestShape(
   Shape: TVRMLGLShape): boolean;
@@ -3575,86 +3663,13 @@ procedure TVRMLGLScene.RenderFrustumOctree_EnumerateShapes(
   ShapeIndex: Integer; CollidesForSure: boolean);
 var
   Shape: TVRMLGLShape;
-
-{$ifdef RENDER_FRUSTUM_OCTREE_NO_BONUS_CHECKS}
-begin
-  Shape := TVRMLGLShape(OctreeRendering.ShapesList[ShapeIndex]);
-
-  { This implementation is fast, but may not eliminate as many
-    Shapes from rendering pipeline as it's possible
-    (so overall speed may be worse) : }
-  Shape.RenderFrustumOctree_Visible := true;
-{$endif}
-
-{$ifdef RENDER_FRUSTUM_OCTREE_BONUS_SPHERE_CHECK}
-begin
-  Shape := TVRMLGLShape(OctreeRendering.ShapesList[ShapeIndex]);
-
-  { Another implementation: if CollidesForSure = false
-    then checks shapeshate's bounding sphere versus frustum before
-    setting
-      Shape.RenderFrustumOctree_Visible := true
-    This means that it wastes some time on doing
-    Frustum.SphereCollisionPossibleSimple but it may be able
-    to eliminate more shapes from rendering pipeline,
-    so overall speed may be better. }
-
-  if (not Shape.RenderFrustumOctree_Visible) and
-     ( CollidesForSure or
-       Shape.FrustumBoundingSphereCollisionPossibleSimple
-         (RenderFrustumOctree_Frustum^) ) then
-    Shape.RenderFrustumOctree_Visible := true;
-{$endif}
-
-{$ifdef RENDER_FRUSTUM_OCTREE_BONUS_BOX_CHECK}
 begin
   Shape := TVRMLGLShape(OctreeRendering.ShapesList[ShapeIndex]);
 
   if (not Shape.RenderFrustumOctree_Visible) and
      ( CollidesForSure or
-       RenderFrustumOctree_Frustum^.Box3dCollisionPossibleSimple(
-         Shape.BoundingBox) ) then
+       OctreeFrustumCullingFunc(Shape) ) then
     Shape.RenderFrustumOctree_Visible := true;
-{$endif}
-
-{$ifdef RENDER_FRUSTUM_OCTREE_BONUS_BOTH_CHECK}
-begin
-  Shape := TVRMLGLShape(OctreeRendering.ShapesList[ShapeIndex]);
-
-  if (not Shape.RenderFrustumOctree_Visible) and
-     ( CollidesForSure or
-       ( Shape.FrustumBoundingSphereCollisionPossibleSimple
-           (RenderFrustumOctree_Frustum^) and
-         RenderFrustumOctree_Frustum^.Box3dCollisionPossibleSimple(
-           Shape.BoundingBox) ) ) then
-    Shape.RenderFrustumOctree_Visible := true;
-{$endif}
-
-end;
-
-procedure TVRMLGLScene.RenderFrustumOctree(const Frustum: TFrustum;
-  TransparentGroup: TTransparentGroup;
-  Octree: TVRMLShapeOctree;
-  LightRenderEvent: TVRMLLightRenderEvent);
-var
-  SI: TVRMLShapeTreeIterator;
-begin
-  if Optimization <> roSceneAsAWhole then
-  begin
-    RenderFrustumOctree_Frustum := @Frustum;
-
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false, true);
-    try
-      while SI.GetNext do
-        TVRMLGLShape(SI.Current).RenderFrustumOctree_Visible := false;
-    finally FreeAndNil(SI) end;
-
-    Octree.EnumerateCollidingOctreeItems(Frustum,
-      {$ifdef FPC_OBJFPC} @ {$endif} RenderFrustumOctree_EnumerateShapes);
-    Render({$ifdef FPC_OBJFPC} @ {$endif} RenderFrustumOctree_TestShape,
-      TransparentGroup, LightRenderEvent);
-  end else
-    Render(nil, TransparentGroup, LightRenderEvent);
 end;
 
 { Background-related things ---------------------------------------- }
