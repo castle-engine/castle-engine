@@ -2166,7 +2166,7 @@ begin
        (LODTree.Children.Count <> 0) then
     begin
       LODTree.WasLevel_ChangedSend := true;
-      LODTree.LODNode.EventLevel_Changed.Send(NewLevel, WorldTime);
+      LODTree.LODNode.EventLevel_Changed.Send(LongInt(NewLevel), WorldTime);
     end;
 
     if OldLevel <> NewLevel then
