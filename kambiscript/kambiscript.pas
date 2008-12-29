@@ -934,6 +934,18 @@ uses KambiScriptCoreFunctions, DataErrors;
   {$define WORKAROUND_EXCEPTIONS_FOR_SCRIPT_EXPRESSIONS}
 {$endif}
 
+{ Tests show that FPC 2.2.3 (fixes_2_2) also has this bug, and so 2.2.4
+  will probably have this too... }
+
+{$ifdef VER2_2_3}
+  {$define WORKAROUND_EXCEPTIONS_FOR_SCRIPT_EXPRESSIONS}
+{$endif}
+
+{$ifdef VER2_2_4}
+  {$define WORKAROUND_EXCEPTIONS_FOR_SCRIPT_EXPRESSIONS}
+{$endif}
+
+
 { TKamScriptExpression ------------------------------------------------------- }
 
 procedure TKamScriptExpression.FreeByParentExpression;
