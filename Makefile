@@ -163,6 +163,7 @@ audio/allkambiaudiounits.pas:
 base/allkambibaseunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
   (write-unit-all-units-in-dir \"base/\" \"AllKambiBaseUnits\") \
+  (kam-simple-replace-buffer \"kambixmlread,\" \"{ kambixmlread, --- kambixmlread will be compiled only if required by other units (as it's only for some FPC versions) }\") \
   (save-buffer))"
 
 # FIXME: kam-simple-replace-buffer here is dirty hack to correct problems

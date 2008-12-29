@@ -14,6 +14,7 @@ uses
   boxes3d,
   convexhullunit,
   cubeenvmap,
+  frustum,
   keys,
   navigation,
   polynomials,
