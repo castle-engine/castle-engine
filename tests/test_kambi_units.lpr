@@ -17,6 +17,7 @@ uses
   TestKambiClassUtils,
   TestVectorMath,
   TestBoxes3d,
+  TestFrustum,
   TestParsingParameters,
   TestFNMatch,
   TestVRMLFields,
