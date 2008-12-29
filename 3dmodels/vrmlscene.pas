@@ -3218,7 +3218,7 @@ begin
 
   if (OctreeDynamicCollisions <> nil) and
      (ScheduledGeometrySomeCollidableTransformChanged or
-     ScheduledGeometryActiveShapesChanged or
+      ScheduledGeometryActiveShapesChanged or
       SomeLocalGeometryChanged) then
   begin
     FreeAndNil(FOctreeDynamicCollisions);
@@ -3544,21 +3544,18 @@ function TVRMLScene.CreateShapeOctree(
   AMaxDepth, ALeafCapacity: integer;
   const ProgressTitle: string;
   const Collidable: boolean): TVRMLShapeOctree;
-
-  procedure AddShape(ShapeNum: Integer);
-  begin
-    if (Collidable and Result.ShapesList[ShapeNum].Collidable) or
-       ((not Collidable) and Result.ShapesList[ShapeNum].Visible) then
-    begin
-      Result.TreeRoot.AddItem(ShapeNum);
-    end;
-  end;
-
 var
   I: Integer;
+  ShapesList: TVRMLShapesList;
 begin
+  if Collidable then
+    { Add only active and collidable shapes }
+    ShapesList := TVRMLShapesList.Create(Shapes, true, false, true) else
+    { Add only active and visible shapes }
+    ShapesList := TVRMLShapesList.Create(Shapes, true, true, false);
+
   Result := TVRMLShapeOctree.Create(AMaxDepth, ALeafCapacity,
-    BoundingBox, TVRMLShapesList.Create(Shapes, true), true);
+    BoundingBox, ShapesList, true);
   try
     if (ProgressTitle <> '') and
        (Progress.UserInterface <> nil) and
@@ -3568,14 +3565,14 @@ begin
       try
         for I := 0 to Result.ShapesList.Count - 1 do
         begin
-          AddShape(I);
+          Result.TreeRoot.AddItem(I);
           Progress.Step;
         end;
       finally Progress.Fini end;
     end else
     begin
       for I := 0 to Result.ShapesList.Count - 1 do
-        AddShape(I);
+        Result.TreeRoot.AddItem(I);
     end;
   except Result.Free; raise end;
 end;

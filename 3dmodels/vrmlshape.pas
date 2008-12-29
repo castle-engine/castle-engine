@@ -81,8 +81,9 @@ type
     procedure Traverse(Func: TShapeTraverseFunc;
       OnlyActive: boolean); virtual; abstract;
 
-    function ShapesCount(OnlyActive: boolean;
-      OnlyVisible: boolean = false): Cardinal; virtual; abstract;
+    function ShapesCount(const OnlyActive: boolean;
+      const OnlyVisible: boolean = false;
+      const OnlyCollidable: boolean = false): Cardinal; virtual; abstract;
 
     { Look for shape with GeometryNode.NodeName = GeometryNodeName.
       Returns @nil if not found. }
@@ -317,8 +318,9 @@ type
     function Transparent: boolean;
 
     procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
-    function ShapesCount(OnlyActive: boolean;
-      OnlyVisible: boolean = false): Cardinal; override;
+    function ShapesCount(const OnlyActive: boolean;
+      const OnlyVisible: boolean = false;
+      const OnlyCollidable: boolean = false): Cardinal; override;
 
     { Is shape visible, according to VRML Collision node rules.
       Ths is simply a shortcut (with more obvious name) for
@@ -354,8 +356,9 @@ type
     destructor Destroy; override;
 
     procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
-    function ShapesCount(OnlyActive: boolean;
-      OnlyVisible: boolean = false): Cardinal; override;
+    function ShapesCount(const OnlyActive: boolean;
+      const OnlyVisible: boolean = false;
+      const OnlyCollidable: boolean = false): Cardinal; override;
 
     property Children: TVRMLShapeTreesList read FChildren;
   end;
@@ -374,8 +377,9 @@ type
     property SwitchNode: TNodeSwitch_2 read FSwitchNode write FSwitchNode;
 
     procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
-    function ShapesCount(OnlyActive: boolean;
-      OnlyVisible: boolean = false): Cardinal; override;
+    function ShapesCount(const OnlyActive: boolean;
+      const OnlyVisible: boolean = false;
+      const OnlyCollidable: boolean = false): Cardinal; override;
   end;
 
   { Node of the TVRMLShapeTree representing the LOD (level of detail) VRML
@@ -424,8 +428,9 @@ type
       read FWasLevel_ChangedSend write FWasLevel_ChangedSend default false;
 
     procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
-    function ShapesCount(OnlyActive: boolean;
-      OnlyVisible: boolean = false): Cardinal; override;
+    function ShapesCount(const OnlyActive: boolean;
+      const OnlyVisible: boolean = false;
+      const OnlyCollidable: boolean = false): Cardinal; override;
   end;
 
   TVRMLShapesList = class;
@@ -439,8 +444,9 @@ type
     CurrentIndex: Integer;
     FCurrent: TVRMLShape;
   public
-    constructor Create(Tree: TVRMLShapeTree; OnlyActive: boolean;
-      OnlyVisible: boolean = false);
+    constructor Create(Tree: TVRMLShapeTree; const OnlyActive: boolean;
+      const OnlyVisible: boolean = false;
+      const OnlyCollidable: boolean = false);
     destructor Destroy; override;
     function GetNext: boolean;
     property Current: TVRMLShape read FCurrent;
@@ -453,12 +459,15 @@ type
     AddedCount: Integer;
     procedure AddToList(Shape: TVRMLShape);
     procedure AddToListIfVisible(Shape: TVRMLShape);
+    procedure AddToListIfCollidable(Shape: TVRMLShape);
+    procedure AddToListIfVisibleAndCollidable(Shape: TVRMLShape);
   public
     constructor Create;
 
     { Constructor that initializes list contents by traversing given tree. }
-    constructor Create(Tree: TVRMLShapeTree; OnlyActive: boolean;
-      OnlyVisible: boolean = false);
+    constructor Create(Tree: TVRMLShapeTree; const OnlyActive: boolean;
+      const OnlyVisible: boolean = false;
+      const OnlyCollidable: boolean = false);
   end;
 
 {$undef read_interface}
@@ -769,9 +778,11 @@ begin
   Func(Self);
 end;
 
-function TVRMLShape.ShapesCount(OnlyActive, OnlyVisible: boolean): Cardinal;
+function TVRMLShape.ShapesCount(
+  const OnlyActive, OnlyVisible, OnlyCollidable: boolean): Cardinal;
 begin
-  if (not OnlyVisible) or Visible then
+  if ((not OnlyVisible) or Visible) and
+     ((not OnlyCollidable) or Collidable) then
     Result := 1 else
     Result := 0;
 end;
@@ -808,13 +819,14 @@ begin
     FChildren.Items[I].Traverse(Func, OnlyActive);
 end;
 
-function TVRMLShapeTreeGroup.ShapesCount(OnlyActive, OnlyVisible: boolean): Cardinal;
+function TVRMLShapeTreeGroup.ShapesCount(
+  const OnlyActive, OnlyVisible, OnlyCollidable: boolean): Cardinal;
 var
   I: Integer;
 begin
   Result := 0;
   for I := 0 to FChildren.Count - 1 do
-    Result += FChildren.Items[I].ShapesCount(OnlyActive, OnlyVisible);
+    Result += FChildren.Items[I].ShapesCount(OnlyActive, OnlyVisible, OnlyCollidable);
 end;
 
 { TVRMLShapeTreeSwitch ------------------------------------------------------- }
@@ -833,7 +845,8 @@ begin
     inherited;
 end;
 
-function TVRMLShapeTreeSwitch.ShapesCount(OnlyActive, OnlyVisible: boolean): Cardinal;
+function TVRMLShapeTreeSwitch.ShapesCount(
+  const OnlyActive, OnlyVisible, OnlyCollidable: boolean): Cardinal;
 var
   WhichChoice: Integer;
 begin
@@ -842,7 +855,7 @@ begin
     WhichChoice := SwitchNode.FdWhichChoice.Value;
     if (WhichChoice >= 0) and
        (WhichChoice < Children.Count) then
-      Result := Children.Items[WhichChoice].ShapesCount(OnlyActive, OnlyVisible) else
+      Result := Children.Items[WhichChoice].ShapesCount(OnlyActive, OnlyVisible, OnlyCollidable) else
       Result := 0;
   end else
     Result := inherited;
@@ -899,13 +912,14 @@ begin
   end;
 end;
 
-function TVRMLShapeTreeLOD.ShapesCount(OnlyActive, OnlyVisible: boolean): Cardinal;
+function TVRMLShapeTreeLOD.ShapesCount(
+  const OnlyActive, OnlyVisible, OnlyCollidable: boolean): Cardinal;
 begin
   if Children.Count > 0 then
   begin
     if OnlyActive then
       { Now we know that Level < Children.Count, no need to check it. }
-      Result := Children.Items[Level].ShapesCount(OnlyActive, OnlyVisible) else
+      Result := Children.Items[Level].ShapesCount(OnlyActive, OnlyVisible, OnlyCollidable) else
       Result := inherited;
   end else
     Result := 0;
@@ -945,10 +959,10 @@ end;
   implementation will be restored some day... }
 
 constructor TVRMLShapeTreeIterator.Create(Tree: TVRMLShapeTree;
-  OnlyActive, OnlyVisible: boolean);
+  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 begin
   inherited Create;
-  List := TVRMLShapesList.Create(Tree, OnlyActive, OnlyVisible);
+  List := TVRMLShapesList.Create(Tree, OnlyActive, OnlyVisible, OnlyCollidable);
   CurrentIndex := -1;
 end;
 
@@ -974,7 +988,7 @@ begin
 end;
 
 constructor TVRMLShapesList.Create(Tree: TVRMLShapeTree;
-  OnlyActive, OnlyVisible: boolean);
+  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 begin
   Create;
 
@@ -982,10 +996,14 @@ begin
     calculating by ShapesCount. This will be faster than resizing
     in each AddToList. (Confirmed e.g. by profiling change_vrml_by_code_2). }
   AddedCount := 0;
-  Count := Tree.ShapesCount(OnlyActive, OnlyVisible);
+  Count := Tree.ShapesCount(OnlyActive, OnlyVisible, OnlyCollidable);
 
+  if OnlyVisible and OnlyCollidable then
+    Tree.Traverse(@AddToListIfVisibleAndCollidable, OnlyActive) else
   if OnlyVisible then
     Tree.Traverse(@AddToListIfVisible, OnlyActive) else
+  if OnlyCollidable then
+    Tree.Traverse(@AddToListIfCollidable, OnlyActive) else
     Tree.Traverse(@AddToList, OnlyActive);
 
   Assert(AddedCount = Count);
@@ -1000,6 +1018,24 @@ end;
 procedure TVRMLShapesList.AddToListIfVisible(Shape: TVRMLShape);
 begin
   if Shape.Visible then
+  begin
+    Items[AddedCount] := Shape;
+    Inc(AddedCount);
+  end;
+end;
+
+procedure TVRMLShapesList.AddToListIfCollidable(Shape: TVRMLShape);
+begin
+  if Shape.Collidable then
+  begin
+    Items[AddedCount] := Shape;
+    Inc(AddedCount);
+  end;
+end;
+
+procedure TVRMLShapesList.AddToListIfVisibleAndCollidable(Shape: TVRMLShape);
+begin
+  if Shape.Visible and Shape.Collidable then
   begin
     Items[AddedCount] := Shape;
     Inc(AddedCount);
