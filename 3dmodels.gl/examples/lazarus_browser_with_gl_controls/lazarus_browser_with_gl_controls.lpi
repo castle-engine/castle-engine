@@ -2,10 +2,12 @@
 <CONFIG>
   <ProjectOptions>
     <PathDelim Value="/"/>
-    <Version Value="6"/>
+    <Version Value="7"/>
     <General>
+      <Flags>
+        <LRSInOutputDirectory Value="False"/>
+      </Flags>
       <MainUnit Value="0"/>
-      <IconPath Value="./"/>
       <TargetFileExt Value=""/>
       <ActiveEditorIndexAtStart Value="1"/>
     </General>
@@ -49,7 +51,6 @@
         <ComponentName Value="Form1"/>
         <IsPartOfProject Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <ResourceFilename Value="mainf.lrs"/>
         <UnitName Value="MainF"/>
         <CursorPos X="13" Y="9"/>
         <TopLine Value="1"/>

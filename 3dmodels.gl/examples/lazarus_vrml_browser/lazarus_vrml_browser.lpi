@@ -2,10 +2,12 @@
 <CONFIG>
   <ProjectOptions>
     <PathDelim Value="/"/>
-    <Version Value="6"/>
+    <Version Value="7"/>
     <General>
+      <Flags>
+        <LRSInOutputDirectory Value="False"/>
+      </Flags>
       <MainUnit Value="0"/>
-      <IconPath Value="./"/>
       <TargetFileExt Value=""/>
       <ActiveEditorIndexAtStart Value="0"/>
     </General>
@@ -51,7 +53,6 @@
         <ComponentName Value="Main"/>
         <IsPartOfProject Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <ResourceFilename Value="mainf.lrs"/>
         <UnitName Value="mainf"/>
         <CursorPos X="11" Y="135"/>
         <TopLine Value="112"/>
@@ -122,7 +123,6 @@
         <Filename Value="openglinformation.pas"/>
         <ComponentName Value="OpenGLInformation"/>
         <IsPartOfProject Value="True"/>
-        <ResourceFilename Value="openglinformation.lrs"/>
         <UnitName Value="OpenGLInformation"/>
         <CursorPos X="30" Y="36"/>
         <TopLine Value="18"/>
@@ -242,7 +242,6 @@
         <ComponentName Value="VrmlConsole"/>
         <IsPartOfProject Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <ResourceFilename Value="vrmlconsolef.lrs"/>
         <UnitName Value="VrmlConsoleF"/>
         <CursorPos X="3" Y="50"/>
         <TopLine Value="11"/>
