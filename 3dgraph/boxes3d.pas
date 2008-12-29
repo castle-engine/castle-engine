@@ -45,7 +45,8 @@ type
   Box[0, 2] <= Box[1, 2]
 )
     The only exception is the special value EmptyBox3d. }
-  TBox3d = array[0..1]of TVector3Single;
+  TBox3d     = array [0..1   ] of TVector3Single;
+  TBox3dBool = array [boolean] of TVector3Single;
   PBox3d = ^TBox3d;
 
   TObjectBBox = class
@@ -1144,11 +1145,15 @@ function Box3dPlaneCollision(const Box: TBox3d;
 var
   I: Integer;
   VMin, VMax: TVector3Single;
+  B: boolean;
+  BoxBool: TBox3dBool absolute Box;
 begin
   if IsEmptyBox3d(Box) then
     Exit(pcNone);
 
   for I := 0 to 2 do
+  begin
+    { Normal code:
     if Plane[I] >= 0 then
     begin
       VMin[I] := Box[0][I];
@@ -1158,6 +1163,13 @@ begin
       VMin[I] := Box[1][I];
       VMax[I] := Box[0][I];
     end;
+    }
+
+    { Code optimized to avoid "if", instead doing table lookup by BoxBool }
+    B := Plane[I] >= 0;
+    VMin[I] := BoxBool[not B][I];
+    VMax[I] := BoxBool[B][I];
+  end;
 
   if Plane[0] * VMin[0] +
      Plane[1] * VMin[1] +
@@ -1187,39 +1199,31 @@ function Box3dPlaneCollisionInside(const Box: TBox3d;
     Plane[3]
 }
 var
-  I: Integer;
-  PlaneResult: Single;
+  BoxBool: TBox3dBool absolute Box;
 begin
   if IsEmptyBox3d(Box) then
     Exit(false);
 
-  PlaneResult := Plane[3];
-
-  for I := 0 to 2 do
-    if Plane[I] >= 0 then
-      PlaneResult += Box[1][I] * Plane[I] else
-      PlaneResult += Box[0][I] * Plane[I];
-
-  Result := PlaneResult < 0;
+  Result :=
+    BoxBool[Plane[0] >= 0][0] * Plane[0] +
+    BoxBool[Plane[1] >= 0][1] * Plane[1] +
+    BoxBool[Plane[2] >= 0][2] * Plane[2] +
+    Plane[3] < 0;
 end;
 
 function Box3dPlaneCollisionOutside(const Box: TBox3d;
   const Plane: TVector4Single): boolean;
 var
-  I: Integer;
-  PlaneResult: Single;
+  BoxBool: TBox3dBool absolute Box;
 begin
   if IsEmptyBox3d(Box) then
     Exit(false);
 
-  PlaneResult := Plane[3];
-
-  for I := 0 to 2 do
-    if Plane[I] >= 0 then
-      PlaneResult += Box[0][I] * Plane[I] else
-      PlaneResult += Box[1][I] * Plane[I];
-
-  Result := PlaneResult > 0;
+  Result :=
+    BoxBool[Plane[0] < 0][0] * Plane[0] +
+    BoxBool[Plane[1] < 0][1] * Plane[1] +
+    BoxBool[Plane[2] < 0][2] * Plane[2] +
+    Plane[3] > 0;
 end;
 
 {$define TGenericFloat := Single}
