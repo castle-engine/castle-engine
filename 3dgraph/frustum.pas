@@ -175,7 +175,7 @@ type
       or only part of sphere may be inside frustum.
 
       Note that it's guaranteed that if the whole sphere
-      (or the whole box in case of FrustumBox3dCollisionPossible)
+      (or the whole box in case of Box3dCollisionPossible)
       is inside the frustum that fcInsideFrustum will be returned,
       not fcSomeCollisionPossible.
 

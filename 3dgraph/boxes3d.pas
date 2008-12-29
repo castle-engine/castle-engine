@@ -1197,8 +1197,8 @@ begin
 
   for I := 0 to 2 do
     if Plane[I] >= 0 then
-      PlaneResult += Box[1][I]  * Plane[I] else
-      PlaneResult += Box[0][I]  * Plane[I];
+      PlaneResult += Box[1][I] * Plane[I] else
+      PlaneResult += Box[0][I] * Plane[I];
 
   Result := PlaneResult < 0;
 end;
@@ -1216,8 +1216,8 @@ begin
 
   for I := 0 to 2 do
     if Plane[I] >= 0 then
-      PlaneResult += Box[0][I]  * Plane[I] else
-      PlaneResult += Box[1][I]  * Plane[I];
+      PlaneResult += Box[0][I] * Plane[I] else
+      PlaneResult += Box[1][I] * Plane[I];
 
   Result := PlaneResult > 0;
 end;
