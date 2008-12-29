@@ -521,22 +521,6 @@ function TFrustum.Box3dCollisionPossible(
 
 var
   fp: TFrustumPlane;
-  FrustumMultiplyBox: TBox3d;
-
-  function CheckOutsideCorner(const XIndex, YIndex, ZIndex: Cardinal): boolean;
-  begin
-   Result :=
-     { Frustum[fp][0] * Box[XIndex][0] +
-       Frustum[fp][1] * Box[YIndex][1] +
-       Frustum[fp][2] * Box[ZIndex][2] +
-       optimized version : }
-     FrustumMultiplyBox[XIndex][0] +
-     FrustumMultiplyBox[YIndex][1] +
-     FrustumMultiplyBox[ZIndex][2] +
-     Planes[fp][3] < 0;
-  end;
-
-var
   InsidePlanesCount: Cardinal;
   LastPlane: TFrustumPlane;
 begin
@@ -560,50 +544,12 @@ begin
 
   for fp := Low(fp) to LastPlane do
   begin
-   { This way I need 6 multiplications instead of 8*3=24
-     (in case I would have to execute CheckOutsideCorner 8 times) }
-   FrustumMultiplyBox[0][0] := Planes[fp][0] * Box[0][0];
-   FrustumMultiplyBox[0][1] := Planes[fp][1] * Box[0][1];
-   FrustumMultiplyBox[0][2] := Planes[fp][2] * Box[0][2];
-   FrustumMultiplyBox[1][0] := Planes[fp][0] * Box[1][0];
-   FrustumMultiplyBox[1][1] := Planes[fp][1] * Box[1][1];
-   FrustumMultiplyBox[1][2] := Planes[fp][2] * Box[1][2];
-
-   { I'm splitting code below to two possilibilities.
-     This way I can calculate 7 remaining CheckOutsideCorner
-     calls using code  like
-       "... and ... and ..."
-     or
-       "... or ... or ..."
-     , and this means that short-circuit boolean evaluation
-     may usually reduce number of needed CheckOutsideCorner calls
-     (i.e. I will not need to actually call CheckOutsideCorner 8 times
-     per frustum plane). }
-
-   if CheckOutsideCorner(0, 0, 0) then
-   begin
-    if CheckOutsideCorner(0, 0, 1) and
-       CheckOutsideCorner(0, 1, 0) and
-       CheckOutsideCorner(0, 1, 1) and
-       CheckOutsideCorner(1, 0, 0) and
-       CheckOutsideCorner(1, 0, 1) and
-       CheckOutsideCorner(1, 1, 0) and
-       CheckOutsideCorner(1, 1, 1) then
-     { All 8 corners outside }
-     Exit(fcNoCollision);
-   end else
-   begin
-    if not (
-       CheckOutsideCorner(0, 0, 1) or
-       CheckOutsideCorner(0, 1, 0) or
-       CheckOutsideCorner(0, 1, 1) or
-       CheckOutsideCorner(1, 0, 0) or
-       CheckOutsideCorner(1, 0, 1) or
-       CheckOutsideCorner(1, 1, 0) or
-       CheckOutsideCorner(1, 1, 1) ) then
-     { All 8 corners inside }
-     Inc(InsidePlanesCount);
-   end;
+    { Don't be confused by names below: pcOutside means that box
+      is where Planes[fp] normal points, which means *inside* the frustum... }
+    case Box3dPlaneCollision(Box, Planes[fp]) of
+      pcInside: Exit(fcNoCollision);
+      pcOutside: Inc(InsidePlanesCount);
+    end;
   end;
 
   if InsidePlanesCount = 6 then
@@ -615,26 +561,10 @@ function TFrustum.Box3dCollisionPossibleSimple(
   const Box: TBox3d): boolean;
 
 { Implementation is obviously based on
-  FrustumBox3dCollisionPossible above, see there for more comments. }
+  TFrustum.Box3dCollisionPossible above, see there for more comments. }
 
 var
   fp: TFrustumPlane;
-  FrustumMultiplyBox: TBox3d;
-
-  function CheckOutsideCorner(const XIndex, YIndex, ZIndex: Cardinal): boolean;
-  begin
-   Result :=
-     { Planes[fp][0] * Box[XIndex][0] +
-       Planes[fp][1] * Box[YIndex][1] +
-       Planes[fp][2] * Box[ZIndex][2] +
-       optimized version : }
-     FrustumMultiplyBox[XIndex][0] +
-     FrustumMultiplyBox[YIndex][1] +
-     FrustumMultiplyBox[ZIndex][2] +
-     Planes[fp][3] < 0;
-  end;
-
-var
   LastPlane: TFrustumPlane;
 begin
   LastPlane := High(FP);
@@ -645,25 +575,11 @@ begin
     LastPlane := Pred(LastPlane);
 
   for fp := Low(fp) to LastPlane do
-  begin
-    { This way I need 6 multiplications instead of 8*3=24 }
-    FrustumMultiplyBox[0][0] := Planes[fp][0] * Box[0][0];
-    FrustumMultiplyBox[0][1] := Planes[fp][1] * Box[0][1];
-    FrustumMultiplyBox[0][2] := Planes[fp][2] * Box[0][2];
-    FrustumMultiplyBox[1][0] := Planes[fp][0] * Box[1][0];
-    FrustumMultiplyBox[1][1] := Planes[fp][1] * Box[1][1];
-    FrustumMultiplyBox[1][2] := Planes[fp][2] * Box[1][2];
-
-    if CheckOutsideCorner(0, 0, 0) and
-       CheckOutsideCorner(0, 0, 1) and
-       CheckOutsideCorner(0, 1, 0) and
-       CheckOutsideCorner(0, 1, 1) and
-       CheckOutsideCorner(1, 0, 0) and
-       CheckOutsideCorner(1, 0, 1) and
-       CheckOutsideCorner(1, 1, 0) and
-       CheckOutsideCorner(1, 1, 1) then
+    { Again, don't be confused by name "Inside" below: pcInside
+      means that box is where Planes[fp] inverted normal points,
+      which means *outside* the frustum... }
+    if Box3dPlaneCollisionInside(Box, Planes[fp]) then
       Exit(false);
-  end;
 
   Result := true;
 end;

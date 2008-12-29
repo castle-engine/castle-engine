@@ -308,8 +308,31 @@ type
     plane equation, will yield = 0. }
   TPlaneCollision = (pcIntersecting, pcOutside, pcInside, pcNone);
 
+{ Collision between axis-aligned box (TBox3d) and 3D plane.
+  Returns detailed result as TPlaneCollision. }
 function Box3dPlaneCollision(const Box: TBox3d;
   const Plane: TVector4Single): TPlaneCollision;
+
+{ Check is axis-aligned box (TBox3d) fully inside/outside the plane.
+
+  Inside/outside are defined as for TPlaneCollision:
+  Outside is where plane direction (normal) points.
+  Inside is where the @italic(inverted) plane direction (normal) points.
+
+  They work exactly like Box3dPlaneCollision, except they returns @true
+  when box is inside/outside (when Box3dPlaneCollision returned pcInside/pcOutside),
+  and @false otherwise.
+
+  For example Box3dPlaneCollisionInside doesn't differentiate between case
+  when box is empty, of partially intersects the plane, and is on the outside.
+  But it works (very slightly) faster.
+
+  @groupBegin }
+function Box3dPlaneCollisionInside(const Box: TBox3d;
+  const Plane: TVector4Single): boolean;
+function Box3dPlaneCollisionOutside(const Box: TBox3d;
+  const Plane: TVector4Single): boolean;
+{ @groupEnd }
 
 function IsBox3dTriangleCollision(
   const Box: TBox3d;
@@ -1149,6 +1172,54 @@ begin
     Exit(pcInside);
 
   Result := pcIntersecting;
+end;
+
+function Box3dPlaneCollisionInside(const Box: TBox3d;
+  const Plane: TVector4Single): boolean;
+{ Based on Box3dPlaneCollision, except now we need only VMax point.
+
+  Actually, we don't even store VMax. Instead, we calculate to
+  PlaneResult the equation
+
+    Plane[0] * VMax[0] +
+    Plane[1] * VMax[1] +
+    Plane[2] * VMax[2] +
+    Plane[3]
+}
+var
+  I: Integer;
+  PlaneResult: Single;
+begin
+  if IsEmptyBox3d(Box) then
+    Exit(false);
+
+  PlaneResult := Plane[3];
+
+  for I := 0 to 2 do
+    if Plane[I] >= 0 then
+      PlaneResult += Box[1][I]  * Plane[I] else
+      PlaneResult += Box[0][I]  * Plane[I];
+
+  Result := PlaneResult < 0;
+end;
+
+function Box3dPlaneCollisionOutside(const Box: TBox3d;
+  const Plane: TVector4Single): boolean;
+var
+  I: Integer;
+  PlaneResult: Single;
+begin
+  if IsEmptyBox3d(Box) then
+    Exit(false);
+
+  PlaneResult := Plane[3];
+
+  for I := 0 to 2 do
+    if Plane[I] >= 0 then
+      PlaneResult += Box[0][I]  * Plane[I] else
+      PlaneResult += Box[1][I]  * Plane[I];
+
+  Result := PlaneResult > 0;
 end;
 
 {$define TGenericFloat := Single}
