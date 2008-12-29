@@ -88,6 +88,8 @@ type
     We define this using old-style "object", to have comfort and low-overhead
     at the same time. }
   TFrustum = object
+  private
+    procedure NormalizePlanes;
   public
     { Calculate frustum, knowing the combined matrix (modelview * projection). }
     constructor Init(const Matrix: TMatrix4Single);
@@ -242,8 +244,6 @@ type
 implementation
 
 constructor TFrustum.Init(const Matrix: TMatrix4Single);
-var
-  fp, LastPlane: TFrustumPlane;
 begin
   { Based on [http://www2.ravensoft.com/users/ggribb/plane%20extraction.pdf].
     Note that position of bottom and top planes in array Frustum is swapped
@@ -286,6 +286,13 @@ begin
     (Planes[fpFar][1] = 0) and
     (Planes[fpFar][2] = 0);
 
+  NormalizePlanes;
+end;
+
+procedure TFrustum.NormalizePlanes;
+var
+  fp, LastPlane: TFrustumPlane;
+begin
   LastPlane := High(fp);
   if ZFarInfinity then
     LastPlane := Pred(LastPlane);
@@ -588,6 +595,7 @@ begin
     PlaneMove will simply keep the far plane invalid }
   Result.Planes[fpFar   ] := PlaneMove(Planes[fpFar]   , M);
   Result.ZFarInfinity := ZFarInfinity;
+  Result.NormalizePlanes;
 end;
 
 procedure TFrustum.MoveTo1st(const M: TVector3Single);
@@ -600,6 +608,7 @@ begin
   { This is Ok for frustum with infinite far plane, since
     PlaneMove will simply keep the far plane invalid }
   PlaneMoveTo1st(Planes[fpFar]   , M);
+  NormalizePlanes;
 end;
 
 function TFrustum.DirectionInside(const Direction: TVector3Single): boolean;
