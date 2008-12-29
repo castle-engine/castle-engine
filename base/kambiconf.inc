@@ -127,9 +127,9 @@
     {$define SUPPORTS_INLINE}
   {$endif}
 
-  {$ifdef VER_2_0}   {$define USE_KAMBI_XMLREAD} {$endif}
-  {$ifdef VER_2_2_0} {$define USE_KAMBI_XMLREAD} {$endif}
-  {$ifdef VER_2_2_2} {$define USE_KAMBI_XMLREAD} {$endif}
+  {$ifdef VER2_0}   {$define USE_KAMBI_XMLREAD} {$endif}
+  {$ifdef VER2_2_0} {$define USE_KAMBI_XMLREAD} {$endif}
+  {$ifdef VER2_2_2} {$define USE_KAMBI_XMLREAD} {$endif}
 
   { Do not use KambiXMLRead for FPC > 2.2.2, no need
     (http://bugs.freepascal.org/view.php?id=11957 already fixed there)
