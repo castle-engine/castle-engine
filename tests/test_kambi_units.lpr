@@ -37,13 +37,13 @@ uses
   TestShadowFields;
 
 {var
-  T: TTestKambiScript;}
+  T: TTestFrustum;}
 begin
 { Sometimes it's comfortable to just run the rest directly, to get
-  full backtrace from FPC.
+  full backtrace from FPC. 
 
-  T := TTestKambiScript.Create;
-  T.TestArrays;
+  T := TTestFrustum.Create;
+  T.TestCompareWithUnoptimizedPlaneCollision;
   T.Free;}
 
   Application.Initialize;
