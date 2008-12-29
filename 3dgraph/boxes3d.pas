@@ -308,7 +308,7 @@ type
     plane equation, will yield = 0. }
   TPlaneCollision = (pcIntersecting, pcOutside, pcInside, pcNone);
 
-function IsBox3dPlaneCollision(const Box: TBox3d;
+function Box3dPlaneCollision(const Box: TBox3d;
   const Plane: TVector4Single): TPlaneCollision;
 
 function IsBox3dTriangleCollision(
@@ -1111,7 +1111,7 @@ begin
   Result := false;
 end;
 
-function IsBox3dPlaneCollision(const Box: TBox3d;
+function Box3dPlaneCollision(const Box: TBox3d;
   const Plane: TVector4Single): TPlaneCollision;
 { This generalizes the idea from IsCenteredBox3dPlaneCollision
   in boxes3d_generic_float.inc.
