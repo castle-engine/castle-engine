@@ -102,8 +102,8 @@ type
     constructor Init(const ProjectionMatrix, ModelviewMatrix: TMatrix4Single);
 
     { Six planes defining the frustum.
-      Direction vectors of these planes (not "normal vectors" as they don't
-      have to be normalized) must point to the inside of the frustum.
+      Direction vectors of these planes must point to the inside of the frustum.
+      Currently, they are always normalized.
 
       Note that if projection has far plane in infinity (indicated by
       ZFarInfinity) then the far plane will be invalid ---
@@ -241,70 +241,77 @@ type
 
 implementation
 
-constructor TFrustum.Init(
-  const Matrix: TMatrix4Single);
-var fp: TFrustumPlane;
+constructor TFrustum.Init(const Matrix: TMatrix4Single);
+var
+  fp, LastPlane: TFrustumPlane;
 begin
- { Based on [http://www2.ravensoft.com/users/ggribb/plane%20extraction.pdf].
-   Note that position of bottom and top planes in array Frustum is swapped
-   in my code. }
+  { Based on [http://www2.ravensoft.com/users/ggribb/plane%20extraction.pdf].
+    Note that position of bottom and top planes in array Frustum is swapped
+    in my code. }
 
- Planes[fpLeft][0] := Matrix[0][3] + Matrix[0][0];
- Planes[fpLeft][1] := Matrix[1][3] + Matrix[1][0];
- Planes[fpLeft][2] := Matrix[2][3] + Matrix[2][0];
- Planes[fpLeft][3] := Matrix[3][3] + Matrix[3][0];
+  Planes[fpLeft][0] := Matrix[0][3] + Matrix[0][0];
+  Planes[fpLeft][1] := Matrix[1][3] + Matrix[1][0];
+  Planes[fpLeft][2] := Matrix[2][3] + Matrix[2][0];
+  Planes[fpLeft][3] := Matrix[3][3] + Matrix[3][0];
 
- Planes[fpRight][0] := Matrix[0][3] - Matrix[0][0];
- Planes[fpRight][1] := Matrix[1][3] - Matrix[1][0];
- Planes[fpRight][2] := Matrix[2][3] - Matrix[2][0];
- Planes[fpRight][3] := Matrix[3][3] - Matrix[3][0];
+  Planes[fpRight][0] := Matrix[0][3] - Matrix[0][0];
+  Planes[fpRight][1] := Matrix[1][3] - Matrix[1][0];
+  Planes[fpRight][2] := Matrix[2][3] - Matrix[2][0];
+  Planes[fpRight][3] := Matrix[3][3] - Matrix[3][0];
 
- Planes[fpBottom][0] := Matrix[0][3] + Matrix[0][1];
- Planes[fpBottom][1] := Matrix[1][3] + Matrix[1][1];
- Planes[fpBottom][2] := Matrix[2][3] + Matrix[2][1];
- Planes[fpBottom][3] := Matrix[3][3] + Matrix[3][1];
+  Planes[fpBottom][0] := Matrix[0][3] + Matrix[0][1];
+  Planes[fpBottom][1] := Matrix[1][3] + Matrix[1][1];
+  Planes[fpBottom][2] := Matrix[2][3] + Matrix[2][1];
+  Planes[fpBottom][3] := Matrix[3][3] + Matrix[3][1];
 
- Planes[fpTop][0] := Matrix[0][3] - Matrix[0][1];
- Planes[fpTop][1] := Matrix[1][3] - Matrix[1][1];
- Planes[fpTop][2] := Matrix[2][3] - Matrix[2][1];
- Planes[fpTop][3] := Matrix[3][3] - Matrix[3][1];
+  Planes[fpTop][0] := Matrix[0][3] - Matrix[0][1];
+  Planes[fpTop][1] := Matrix[1][3] - Matrix[1][1];
+  Planes[fpTop][2] := Matrix[2][3] - Matrix[2][1];
+  Planes[fpTop][3] := Matrix[3][3] - Matrix[3][1];
 
- Planes[fpNear][0] := Matrix[0][3] + Matrix[0][2];
- Planes[fpNear][1] := Matrix[1][3] + Matrix[1][2];
- Planes[fpNear][2] := Matrix[2][3] + Matrix[2][2];
- Planes[fpNear][3] := Matrix[3][3] + Matrix[3][2];
+  Planes[fpNear][0] := Matrix[0][3] + Matrix[0][2];
+  Planes[fpNear][1] := Matrix[1][3] + Matrix[1][2];
+  Planes[fpNear][2] := Matrix[2][3] + Matrix[2][2];
+  Planes[fpNear][3] := Matrix[3][3] + Matrix[3][2];
 
- Planes[fpFar][0] := Matrix[0][3] - Matrix[0][2];
- Planes[fpFar][1] := Matrix[1][3] - Matrix[1][2];
- Planes[fpFar][2] := Matrix[2][3] - Matrix[2][2];
- Planes[fpFar][3] := Matrix[3][3] - Matrix[3][2];
+  Planes[fpFar][0] := Matrix[0][3] - Matrix[0][2];
+  Planes[fpFar][1] := Matrix[1][3] - Matrix[1][2];
+  Planes[fpFar][2] := Matrix[2][3] - Matrix[2][2];
+  Planes[fpFar][3] := Matrix[3][3] - Matrix[3][2];
 
- for fp := Low(fp) to High(fp) do
- begin
-  { This is a hack.
+  { If Planes[fpFar] has really exactly zero vector,
+    then far plane is in infinity. }
+  ZFarInfinity :=
+    (Planes[fpFar][0] = 0) and
+    (Planes[fpFar][1] = 0) and
+    (Planes[fpFar][2] = 0);
 
-    We know that every plane Planes[fp] is correct, i.e. it's direction
-    vector has non-zero length. But sometimes algorithm above calculates
-    such vector with very small length, especially for fpFar plane.
-    This causes problems when I'm later processing this plane,
-    errors cumulate and suddenly something thinks that it has
-    a zero-vector, while actually it is (or was) a vector with
-    very small (but non-zero) length.
+  LastPlane := High(fp);
+  if ZFarInfinity then
+    LastPlane := Pred(LastPlane);
 
-    I could do here
-      NormalizePlaneTo1st(Planes[fp]);
-    instead, but that would be slow (NormalizePlaneTo1st costs me
-    calculating 1 Sqrt). }
-  if VectorLenSqr(PVector3Single(@Planes[fp])^) < 0.001 then
-   VectorScaleTo1st(Planes[fp], 100000);
- end;
+  for fp := Low(fp) to LastPlane do
+  begin
+    NormalizePlaneTo1st(Planes[fp]);
 
- { If Planes[fpFar] has really exactly zero vector,
-   then far plane is in infinity. }
- ZFarInfinity :=
-   (Planes[fpFar][0] = 0) and
-   (Planes[fpFar][1] = 0) and
-   (Planes[fpFar][2] = 0);
+    { Previously we used this hack:
+
+      We know that every plane Planes[fp] is correct, i.e. it's direction
+      vector has non-zero length. But sometimes algorithm above calculates
+      such vector with very small length, especially for fpFar plane.
+      This causes problems when I'm later processing this plane,
+      errors cumulate and suddenly something thinks that it has
+      a zero-vector, while actually it is (or was) a vector with
+      very small (but non-zero) length.
+
+      I could do here
+        NormalizePlaneTo1st(Planes[fp]);
+      instead, but that would be slow (NormalizePlaneTo1st costs me
+      calculating 1 Sqrt).
+    if VectorLenSqr(PVector3Single(@Planes[fp])^) < 0.001 then
+      VectorScaleTo1st(Planes[fp], 100000);
+    }
+  end;
 end;
 
 constructor TFrustum.Init(
@@ -440,20 +447,13 @@ begin
     VectorDotProduct or PointToPlaneDistanceSqr }
   for fp := Low(fp) to LastPlane do
   begin
-   { This is not a true distance since
-     1. This is signed
-     2. My plane (Planes[fp]) is not normalized, so this distance is wrong.
-        (should be divided by
-        Sqrt(Sqr(Plane[0]) + Sqr(Plane[1]) + Sqr(Plane[2])) ) }
+   { This is not a true distance since this is signed }
    Distance := Planes[fp][0] * SphereCenter[0] +
                Planes[fp][1] * SphereCenter[1] +
                Planes[fp][2] * SphereCenter[2] +
                Planes[fp][3];
 
-   SqrRealDistance := Sqr(Distance) /
-     ( Sqr(Planes[fp][0]) +
-       Sqr(Planes[fp][1]) +
-       Sqr(Planes[fp][2]) );
+   SqrRealDistance := Sqr(Distance);
 
    if (Distance < 0) and (SqrRealDistance > SphereRadiusSqr) then
    begin
@@ -486,20 +486,13 @@ begin
 
   for fp := Low(fp) to LastPlane do
   begin
-   { This is not a true distance since
-     1. This is signed
-     2. My plane (Planes[fp]) is not normalized, so this distance is wrong.
-        (should be divided by
-        Sqrt(Sqr(Plane[0]) + Sqr(Plane[1]) + Sqr(Plane[2])) ) }
+   { This is not a true distance since this is signed }
    Distance := Planes[fp][0] * SphereCenter[0] +
                Planes[fp][1] * SphereCenter[1] +
                Planes[fp][2] * SphereCenter[2] +
                Planes[fp][3];
 
-   SqrRealDistance := Sqr(Distance) /
-     ( Sqr(Planes[fp][0]) +
-       Sqr(Planes[fp][1]) +
-       Sqr(Planes[fp][2]) );
+   SqrRealDistance := Sqr(Distance);
 
    if (Distance < 0) and (SqrRealDistance > SphereRadiusSqr) then
    begin
