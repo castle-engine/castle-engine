@@ -70,29 +70,43 @@ begin
 
   { box 10, 1, 1 with a plane that crosses 0,0,0 point always collides }
   Assert(IsBox3dPlaneCollision(
-    Box, Vector4Single(0, 0, 1, 0)));
+    Box, Vector4Single(0, 0, 1, 0)) = pcIntersecting);
   Assert(IsBox3dPlaneCollision(
-    Box, Vector4Single(0, 1, 0, 0)));
+    Box, Vector4Single(0, 1, 0, 0)) = pcIntersecting);
   Assert(IsBox3dPlaneCollision(
-    Box, Vector4Single(1, 0, 0, 0)));
+    Box, Vector4Single(1, 0, 0, 0)) = pcIntersecting);
   Assert(IsBox3dPlaneCollision(
-    Box, Vector4Single(123, 456, 789, 0)));
+    Box, Vector4Single(123, 456, 789, 0)) = pcIntersecting);
 
-  Assert(not IsBox3dPlaneCollision(
-    Box, Vector4Single(0, 0, -1, 5)));
-  Assert(not IsBox3dPlaneCollision(
-    Box, Vector4Single(0, -1, 0, 5)));
+  { test inside/outside difference }
   Assert(IsBox3dPlaneCollision(
-    Box, Vector4Single(-1, 0, 0, 5)));
+    Box3d(Vector3Single(-1, -1, 10),
+          Vector3Single( 1,  1, 20)),
+    Vector4Single(0, 0, 1, 0)) = pcOutside);
+  Assert(IsBox3dPlaneCollision(
+    Box3d(Vector3Single(-1, -1, -20),
+          Vector3Single( 1,  1, -10)),
+    Vector4Single(0, 0, 1, 0)) = pcInside);
+
+  { basic test for pcNone }
+  Assert(IsBox3dPlaneCollision(EmptyBox3d,
+    Vector4Single(0, 0, 1, 0)) = pcNone);
+
+  Assert(IsBox3dPlaneCollision(
+    Box, Vector4Single(0, 0, -1, 5)) = pcOutside);
+  Assert(IsBox3dPlaneCollision(
+    Box, Vector4Single(0, -1, 0, 5)) = pcOutside);
+  Assert(IsBox3dPlaneCollision(
+    Box, Vector4Single(-1, 0, 0, 5)) = pcIntersecting);
 
   Box := Box3dTranslate(Box, Vector3Single(0, 1000, 0));
 
   Assert(IsBox3dPlaneCollision(
-    Box, Vector4Single(0, 0, 1, 0)));
-  Assert(not IsBox3dPlaneCollision(
-    Box, Vector4Single(0, 1, 0, 0)));
+    Box, Vector4Single(0, 0, 1, 0)) = pcIntersecting);
   Assert(IsBox3dPlaneCollision(
-    Box, Vector4Single(1, 0, 0, 0)));
+    Box, Vector4Single(0, 1, 0, 0)) = pcOutside);
+  Assert(IsBox3dPlaneCollision(
+    Box, Vector4Single(1, 0, 0, 0)) = pcIntersecting);
 
   Plane[0] := 0;
   Plane[1] := 0;
@@ -104,7 +118,7 @@ begin
   Box[1][0] :=  1.283623352E+02;
   Box[1][1] :=  3.240192413E+00;
   Box[1][2] :=  3.100979996E+01;
-  Assert(IsBox3dPlaneCollision(Box, Plane));
+  Assert(IsBox3dPlaneCollision(Box, Plane) = pcIntersecting);
 end;
 
 procedure TTestBoxes3d.TestIsBox3dTriangleCollision;

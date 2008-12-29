@@ -256,7 +256,7 @@ function TryBoxRayClosestIntersection(
   This means that if Ray0 is inside the box, TryBoxRayEntrance simply returns
   Ray0. If Ray0 is outside of the box, the answer is the same
   as with TryBoxRayClosestIntersection.
-  
+
   @groupBegin }
 function TryBoxRayEntrance(
   out Entrance: TVector3Single; out EntranceDistance: Single;
@@ -287,8 +287,29 @@ function IsCenteredBox3dPlaneCollision(
   const Plane: TVector4Double): boolean; overload;
 { @groupEnd }
 
-function IsBox3dPlaneCollision(const Box3d: TBox3d;
-  const Plane: TVector4Single): boolean;
+type
+  { State of collision between a plane and some other object.
+
+    pcNone occurs only when the "other object" is empty
+    (IsEmptyBox3d, in case of box).
+    Other values mean that the other object is not empty.
+
+    pcOutside means that the whole object is on the side of the plane pointed
+    by plane direction (normal) vector. More formally, every point P
+    inserted into the plane equation will yield (P*PlaneNormal + PlaneD) > 0.
+
+    pcInside is the reverse of pcOutside:
+    the other object is on the side of plane
+    pointed by inverted plane normal. Every point inserted into plane
+    equation will yield < 0.
+
+    pcIntersecting is, well, the remaining case. It means that there's
+    for sure some point P of other object that, when inserted into
+    plane equation, will yield = 0. }
+  TPlaneCollision = (pcIntersecting, pcOutside, pcInside, pcNone);
+
+function IsBox3dPlaneCollision(const Box: TBox3d;
+  const Plane: TVector4Single): TPlaneCollision;
 
 function IsBox3dTriangleCollision(
   const Box: TBox3d;
@@ -1090,27 +1111,44 @@ begin
   Result := false;
 end;
 
-function IsBox3dPlaneCollision(const Box3d: TBox3d;
-  const Plane: TVector4Single): boolean;
+function IsBox3dPlaneCollision(const Box: TBox3d;
+  const Plane: TVector4Single): TPlaneCollision;
+{ This generalizes the idea from IsCenteredBox3dPlaneCollision
+  in boxes3d_generic_float.inc.
+  It's also explained in
+  Akenine-Moller, Haines "Real-Time Rendering" (2nd ed), 13.9 (page 586)
+}
 var
-  BoxCenter, BoxHalfSize: TVector3Single;
-  PlaneMoved: TVector4Single;
   I: Integer;
+  VMin, VMax: TVector3Single;
 begin
-  if IsEmptyBox3d(Box3d) then
-    Exit(false);
+  if IsEmptyBox3d(Box) then
+    Exit(pcNone);
 
-  { calculate BoxCenter and BoxHalfSize }
   for I := 0 to 2 do
-  begin
-    BoxCenter[I] := (Box3d[0, I] + Box3d[1, I]) / 2;
-    BoxHalfSize[I] := (Box3d[1, I] - Box3d[0, I]) / 2;
-  end;
+    if Plane[I] >= 0 then
+    begin
+      VMin[I] := Box[0][I];
+      VMax[I] := Box[1][I];
+    end else
+    begin
+      VMin[I] := Box[1][I];
+      VMax[I] := Box[0][I];
+    end;
 
-  { calculate PlaneMoved = Plane moved by -BoxCenter }
-  PlaneMoved := PlaneAntiMove(Plane, BoxCenter);
+  if Plane[0] * VMin[0] +
+     Plane[1] * VMin[1] +
+     Plane[2] * VMin[2] +
+     Plane[3] > 0 then
+    Exit(pcOutside);
 
-  Result := IsCenteredBox3dPlaneCollision(BoxHalfSize, PlaneMoved);
+  if Plane[0] * VMax[0] +
+     Plane[1] * VMax[1] +
+     Plane[2] * VMax[2] +
+     Plane[3] < 0 then
+    Exit(pcInside);
+
+  Result := pcIntersecting;
 end;
 
 {$define TGenericFloat := Single}

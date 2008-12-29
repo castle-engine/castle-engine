@@ -25,7 +25,8 @@ unit TestVectorMath;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, VectorMath, Boxes3d;
+  Classes, SysUtils, fpcunit, testutils, testregistry,
+  VectorMath, Boxes3d, Frustum;
 
 type
   TTestVectorMath = class(TTestCase)
@@ -195,9 +196,9 @@ end;
 procedure TTestVectorMath.AssertFrustumBox3dCollisionPossible(const Frustum: TFrustum;
   const Box3d: TBox3d; const GoodResult: TFrustumCollisionPossible);
 begin
- Assert( FrustumBox3dCollisionPossible(Frustum, Box3d) = GoodResult);
+ Assert( Frustum.Box3dCollisionPossible(Box3d) = GoodResult);
 
- Assert( FrustumBox3dCollisionPossibleSimple(Frustum, Box3d) =
+ Assert( Frustum.Box3dCollisionPossibleSimple(Box3d) =
    (GoodResult <> fcNoCollision) );
 end;
 
