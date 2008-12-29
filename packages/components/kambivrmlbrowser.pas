@@ -240,7 +240,7 @@ end;
 
 destructor TKamVRMLBrowser.Destroy;
 begin
-  FreeAndNil(Scene);
+  FreeAndNil(FScene);
   Navigator.Free;
   Navigator := nil;
   FreeAndNil(FIgnoreAreas);
@@ -254,7 +254,7 @@ end;
 
 procedure TKamVRMLBrowser.Load(ARootNode: TVRMLNode; const OwnsRootNode: boolean);
 begin
-  FreeAndNil(Scene);
+  FreeAndNil(FScene);
   Navigator.Free;
   Navigator := nil;
 
