@@ -36,26 +36,27 @@ uses SysUtils, KambiUtils, Classes, KambiStringUtils, KambiFilesUtils;
 
 function FileLinesToParams(const fname: string): string;
 
-  {sorry}
   function Quoted(const s: string): string;
   begin
-   Result := '"' + s + '"';
+    Result := '''' + s + '''';
   end;
 
-var slist: TStringList;
-    i: integer;
+var
+  slist: TStringList;
+  i: integer;
 begin
- slist := TStringList.Create;
- try
-  slist.LoadFromFile(fname);
-  result := '';
-  for i := 0 to slist.Count-1 do
-  begin
-   slist[i] := Trim(slist[i]);
-   if slist[i] <> '' then result := result +Quoted(slist[i]) +' ';
-  end;
-  if result <> '' then SetLength(result, Length(result)-1); { remove one trailing space }
- finally slist.Free end;
+  slist := TStringList.Create;
+  try
+    slist.LoadFromFile(fname);
+    result := '';
+    for i := 0 to slist.Count-1 do
+    begin
+      slist[i] := Trim(slist[i]);
+      if slist[i] <> '' then
+        result := result +Quoted(slist[i]) +' ';
+    end;
+    if result <> '' then SetLength(result, Length(result)-1); { remove one trailing space }
+  finally slist.Free end;
 end;
 
 { ExpandFileName, and change all backslashes to slashes.
@@ -63,77 +64,86 @@ end;
   handled in Makefiles etc., so this is sometimes useful. }
 function ExpandPosixFileName(const S: string): string;
 begin
- Result := SReplaceChars(ExpandFileName(S), '\', '/');
+  Result := SReplaceChars(ExpandFileName(S), '\', '/');
 end;
 
 { help ------------------------------------------------------------------  }
 
 const
   HelpString =
-    'stringoper.' +nl+
-    'Narzedzie przydatne w pisaniu skryptow powloki, wykonuje sporo' +nl+
-    ' operacji na stringach. by Kambi.' +nl+
-    'Aktualnie obslugiwane wywolania :' +nl+
-    ' help                      StdOut <<ta pomoc' +nl+
-    ' ChangeFileExt fname ext   StdOut <<ChangeFileExt(fname, ext)' +nl+
-    '     Zmienia ostatnie rozszerzenie na ext. ext powinno zawierac kropke' +nl+
-    ' DeleteFileExt fname       StdOut <<fname bez ostatniego rozszerzenia' +nl+
-    ' ExtractFileExt fname      StdOut <<ostatnie rozszerzenie fname (z kropka)' +nl+
-    ' ExtractOnlyFilename fname StdOut <<tylko nazwa pliku, ' +nl+
-    '     bez dysku, katalogu i ostatniego rozszerzenia' +nl+
-    ' ExtractFileName fname     StdOut <<sama nazwa pliku + rozszerzenie' +nl+
-    '     czyli wycina nazwe dysku+katalogu' +nl+
-    ' ExtractFileDrive fname    StdOut <<drive pliku.' +nl+
-    ' ExtractFilePath fname     StdOut <<drive+katalog pliku' +nl+
-    '     wycina drive i filename+extension. Wynik zawiera (back)slash.' +nl+
-    ' ExtractFileDir fname      StdOut <<drive+katalog pliku' +nl+
-    '     Jak FilePath ale bez (back)slasha.' +nl+
-    '     Wynik (jezeli niepusty) nadaje sie do zrobienia cd $wynik itp.' +nl+
-    ' InclPathDelim dirname     StdOut <<dirname z (back)slashem na koncu' +nl+
-    ' ExclPathDelim dirname     StdOut <<dirname bez (back)slasha na koncu' +nl+
-    '     dirname jesli go tam nie ma' +nl+
-    ' FileLinesToParams fname   StdOut <<plik fname jest czytany i kazda'+nl+
-    '     jego linia (za wyjatkiem linii pustych lub skladajacych sie z'+nl+
-    '     samych bialych znakow) jest wypisywana w apostrofach (cudzyslowach'+nl+
-    '     pod Windowsem), zamiast znakow nowej linii linie sa przy tym'+nl+
-    '     oddzielane pojedyncza spacja. Przydatne do zapisywania argumentow'+nl+
-    '     dowolnego programu w pliku.' +nl+
-    ' SubString str start len StdOut <<wycina ze stringa STR LEN znakow, ' +nl+
-    '     zaczynajac od pozycji START (pozycje sa liczone od 1). ' +nl+
-    '     Jesli str jest za krotki to wynik jest obcinany (nie jest ' +nl+
-    '     sygnalizowany blad ani nic).' +nl+
-    '     Mozesz nie podac LEN - bedzie to oznaczalo jakby LEN bylo nieskonczone.'+nl+
-    ' AppendToFileName FILENAME APPENDED-STR'+nl+
-    ' ExpandFileName FILENAME'+nl+
-    ' ExpandPosixFileName FILENAME'+nl+
-    '     Just like ExpandFileName, but returns path with only "/".' +nl+
-    '     Useful for Makefiles, that poorly handle things with "\" inside.' +nl+
-    ' FnameAutoInc FNAME-PATTERN'+nl+
-    ' UpperCase STR - print STR upper case. Conversion respects current locale.'+nl+
-    ' LowerCase STR - print STR lower case. Conversion respects current locale.'+nl+
-    ' ReplaceAll STR OLD-PATTERN NEW-PATTERN '+nl+
-    '     Replace is STR all occurences of OLD-PATTERN (not-case-sens)' +nl+
-    '     with NEW-PATTERN.' +nl+
-    ' Trim STR - trim whitespaces at beginning and ending of STR' +nl+
-    ' -- (druga grupa polecen - polecenia na ktore odp = true lub false' +nl+
+    'stringoper: Command-line utility for various string and filename operations.' +nl+
+    'Very useful in scripts (bash etc.). By Kambi.' +nl+
+    nl+
+    'Allowed command-line parameters:' +nl+
+    '  help                      StdOut <<ta pomoc' +nl+
+    '  ChangeFileExt fname ext   StdOut <<ChangeFileExt(fname, ext)' +nl+
+    '    Change the last filename (fname) extension to ext. ext should contain' +nl+
+    '    the leading dot (if you want to see it in the result).' +nl+
+    '  DeleteFileExt fname       StdOut <<fname without last extension' +nl+
+    '  ExtractFileExt fname      StdOut <<last extension of fname (with leading dot)' +nl+
+    '  ExtractOnlyFilename fname StdOut <<tylko nazwa pliku, ' +nl+
+    '    bez dysku, katalogu i ostatniego rozszerzenia' +nl+
+    '  ExtractFileName fname     StdOut <<sama nazwa pliku + rozszerzenie' +nl+
+    '    czyli wycina nazwe dysku+katalogu' +nl+
+    '  ExtractFileDrive fname    StdOut <<drive pliku.' +nl+
+    '  ExtractFilePath fname     StdOut <<drive+katalog pliku' +nl+
+    '    wycina drive i filename+extension. Wynik zawiera (back)slash.' +nl+
+    '  ExtractFileDir fname      StdOut <<drive+katalog pliku' +nl+
+    '    Jak FilePath ale bez (back)slasha.' +nl+
+    '    Wynik (jezeli niepusty) nadaje sie do zrobienia cd $wynik itp.' +nl+
+    '  InclPathDelim dirname     StdOut <<dirname z (back)slashem na koncu' +nl+
+    '  ExclPathDelim dirname     StdOut <<dirname bez (back)slasha na koncu' +nl+
+    '    dirname jesli go tam nie ma' +nl+
+    '  FileLinesToParams fname   StdOut <<plik fname jest czytany i kazda'+nl+
+    '    jego linia (za wyjatkiem linii pustych lub skladajacych sie z'+nl+
+    '    samych bialych znakow) jest wypisywana w apostrofach,'+nl+
+    '    zamiast znakow nowej linii linie sa przy tym'+nl+
+    '    oddzielane pojedyncza spacja. Przydatne do zapisywania argumentow'+nl+
+    '    dowolnego programu w pliku.' +nl+
+    '  SubString str start len StdOut <<wycina ze stringa STR LEN znakow, ' +nl+
+    '    zaczynajac od pozycji START (pozycje sa liczone od 1). ' +nl+
+    '    Jesli str jest za krotki to wynik jest obcinany (nie jest ' +nl+
+    '    sygnalizowany blad ani nic).' +nl+
+    '    Mozesz nie podac LEN - bedzie to oznaczalo jakby LEN bylo nieskonczone.'+nl+
+    '  AppendToFileName FILENAME APPENDED-STR'+nl+
+    '  ExpandFileName FILENAME'+nl+
+    '  ExpandPosixFileName FILENAME'+nl+
+    '    Just like ExpandFileName, but returns path with only "/".' +nl+
+    '    Useful for Makefiles, that poorly handle things with "\" inside.' +nl+
+    '  FnameAutoInc FNAME-PATTERN'+nl+
+    '  UpperCase STR - print STR upper case. Conversion respects current locale.'+nl+
+    '  LowerCase STR - print STR lower case. Conversion respects current locale.'+nl+
+    '  ReplaceAll STR OLD-PATTERN NEW-PATTERN '+nl+
+    '    Replace is STR all occurences of OLD-PATTERN (not-case-sens)' +nl+
+    '    with NEW-PATTERN.' +nl+
+    '  Trim STR - trim whitespaces at beginning and ending of STR' +nl+
+    '  -- (druga grupa polecen - polecenia na ktore odp = true lub false' +nl+
     '     co sygnalizowane jest kodem wyjscia 0 (true) lub 1 (false), ' +nl+
     '     tak jak program ''test'' pod UNIXami)' +nl+
-    ' IsPrefix prefix s         czy prefix jest prefixem s ? (not-case-sens)' +nl+
-    ' IsSuffix suffix s         czy suffix jest sufiksem s ? (not-case-sens)' +nl+
+    '  IsPrefix prefix s         czy prefix jest prefixem s ? (not-case-sens)' +nl+
+    '  IsSuffix suffix s         czy suffix jest sufiksem s ? (not-case-sens)' +nl+
     nl+
-    ' Pod Linuxem, drive jest zawsze = empty string.' +nl+
-    ' Kropka jest uwazana za czesc rozszerzenia i zwracana razem z nim.' +nl+
-    ' (Back)slash jest uwazany za czesc katalogu i zwracany razem z nim.' +nl+
-    ' Gdy filename nie zawiera rozszerzenia / katalogu zwracany jest pusty' +nl+
-    '   string zamiast pojedynczej kropki lub (back)slasha.' +nl+
-    ' Gdy filename mial kilka rozszerzen wszystkie rozszerzenia poza ostatnim' +nl+
-    '   uznawane sa za czesc normalnej nazwy pliku.' +nl+
-    ' Nazwy polecen sa case - insensitive.' +nl+
+    'Notes:'+nl+
+    '- Kropka jest uwazana za czesc rozszerzenia i zwracana razem z nim.' +nl+
+    '- (Back)slash jest uwazany za czesc katalogu i zwracany razem z nim.' +nl+
+    '- Gdy filename nie zawiera rozszerzenia / katalogu zwracany jest pusty' +nl+
+    '  string zamiast pojedynczej kropki lub (back)slasha.' +nl+
+    '- Gdy filename mial kilka rozszerzen wszystkie rozszerzenia poza ostatnim' +nl+
+    '  uznawane sa za czesc normalnej nazwy pliku.' +nl+
+    '- Under non-Windows, "drive letter" is always an empty string.' +nl+
+    '- Command names are case-insensitive.' +nl+
     nl+
-    ' Przyklad :   c:      \programy\fpc\  fpc         .exe' +nl+
-    '              ||      |------------|  |--|        |--|' +nl+
-    '              drive   path            onlyfname   ext' +nl+
-    '                            filename= onlyfname + ext';
+    'Examples :'+nl+
+    nl+
+    ' (unix)  /usr/share/doc/fpc/  README         .txt' +nl+
+    '         |-----------------|  |----|         |--|' +nl+
+    '         path                 onlyfname      ext' +nl+
+    '                              filename= onlyfname   +  ext' +nl+
+    nl+
+    ' (win)   c:      \programy\fpc\  fpc         .exe' +nl+
+    '         ||      |------------|  |--|        |--|' +nl+
+    '         drive   path            onlyfname   ext' +nl+
+    '                       filename= onlyfname + ext';
 
 { Commands type and consts and funcs --------------------------------------- }
 
@@ -143,7 +153,7 @@ type
     { must be in lowercase (according even to current locale, i.e. to "Ansi"
       string functions) ! }
     Param: string;
-    { -1 aby zaznaczyc ze zaden ParCount nie jest required }
+    { -1 if no paramater is required }
     ParCountRequired: Integer;
     CommandResult: TCommandResult;
   end;
@@ -152,34 +162,34 @@ const
   CommandsCount = 22;
   Commands: array [0..CommandsCount-1]of TCommand =
   (
-    (Param:'changefileext'; ParCountRequired:2; CommandResult: crString),
-    (Param:'deletefileext'; ParCountRequired:1; CommandResult: crString),
-    (Param:'extractfileext'; ParCountRequired:1; CommandResult: crString),
-    (Param:'extractonlyfilename'; ParCountRequired:1; CommandResult: crString),
-    (Param:'extractfilename'; ParCountRequired:1; CommandResult: crString),
-    (Param:'extractfiledrive'; ParCountRequired:1; CommandResult: crString),
-    (Param:'extractfilepath'; ParCountRequired:1; CommandResult: crString),
-    (Param:'extractfiledir'; ParCountRequired:1; CommandResult: crString),
-    (Param:'inclpathdelim'; ParCountRequired:1; CommandResult: crString),
-    (Param:'exclpathdelim'; ParCountRequired:1; CommandResult: crString),
-    (Param:'filelinestoparams'; ParCountRequired:1; CommandResult: crString),
-    (Param:'isprefix'; ParCountRequired:2; CommandResult: crBoolean),
-    (Param:'issuffix'; ParCountRequired:2; CommandResult: crBoolean),
+    (Param:'changefileext'; ParCountRequired: 2; CommandResult: crString),
+    (Param:'deletefileext'; ParCountRequired: 1; CommandResult: crString),
+    (Param:'extractfileext'; ParCountRequired: 1; CommandResult: crString),
+    (Param:'extractonlyfilename'; ParCountRequired: 1; CommandResult: crString),
+    (Param:'extractfilename'; ParCountRequired: 1; CommandResult: crString),
+    (Param:'extractfiledrive'; ParCountRequired: 1; CommandResult: crString),
+    (Param:'extractfilepath'; ParCountRequired: 1; CommandResult: crString),
+    (Param:'extractfiledir'; ParCountRequired: 1; CommandResult: crString),
+    (Param:'inclpathdelim'; ParCountRequired: 1; CommandResult: crString),
+    (Param:'exclpathdelim'; ParCountRequired: 1; CommandResult: crString),
+    (Param:'filelinestoparams'; ParCountRequired: 1; CommandResult: crString),
+    (Param:'isprefix'; ParCountRequired: 2; CommandResult: crBoolean),
+    (Param:'issuffix'; ParCountRequired: 2; CommandResult: crBoolean),
     (Param:'substring'; ParCountRequired:-1; CommandResult: crString),
-    (Param:'appendtofilename'; ParCountRequired:2; CommandResult: crString),
-    (Param:'expandfilename'; ParCountRequired:1; CommandResult: crString),
-    (Param:'fnameautoinc'; ParCountRequired:1; CommandResult: crString),
-    (Param:'uppercase'; ParCountRequired:1; CommandResult: crString),
-    (Param:'lowercase'; ParCountRequired:1; CommandResult: crString),
-    (Param:'expandposixfilename'; ParCountRequired:1; CommandResult: crString),
+    (Param:'appendtofilename'; ParCountRequired: 2; CommandResult: crString),
+    (Param:'expandfilename'; ParCountRequired: 1; CommandResult: crString),
+    (Param:'fnameautoinc'; ParCountRequired: 1; CommandResult: crString),
+    (Param:'uppercase'; ParCountRequired: 1; CommandResult: crString),
+    (Param:'lowercase'; ParCountRequired: 1; CommandResult: crString),
+    (Param:'expandposixfilename'; ParCountRequired: 1; CommandResult: crString),
     (Param:'replaceall'; ParCountRequired:3; CommandResult: crString),
-    (Param:'trim'; ParCountRequired:1; CommandResult: crString)
+    (Param:'trim'; ParCountRequired: 1; CommandResult: crString)
   );
 
-function ParamToCommand(const Param: string): Integer;
 { zwraca liczbe z przedzialu 0..CommandsCount-1 jesli Param zgadza sie
   (case-insensitive) z Commands[result].Param. Jesli nie zgadza sie z zadnym,
   to zwraca -1. }
+function ParamToCommand(const Param: string): Integer;
 var ParamLower: string;
 begin
  ParamLower := AnsiLowerCase(Param);
@@ -194,13 +204,13 @@ var CommandNum: Integer;
     ResultStr: string;
     ResultBool: boolean;
 begin
- BonusErrorMessg := 'Uruchom z parametrem help po pomoc.';
+ BonusErrorMessg := 'Run with parameter "help" for, well, help about using program.';
 
  Parameters.CheckHighAtLeast(1);
  if AnsiLowerCase(Parameters[1]) = 'help' then
   begin Writeln(HelpString); Exit end;
 
- { evaluate CommandNum. Check Commands[CommandNum].ParCountRequired. }
+ { calculate CommandNum. Check Commands[CommandNum].ParCountRequired. }
  CommandNum := ParamToCommand(Parameters[1]);
  if CommandNum = -1 then
   raise EInvalidParams.Create('invalid first parameter "'+Parameters[1]+'"');
@@ -208,15 +218,16 @@ begin
  if Commands[CommandNum].ParCountRequired <> -1 then
   Parameters.CheckHigh(Commands[CommandNum].ParCountRequired);
 
- { evaluate Result*, czyli wykonaj komende.
-   Kazda komenda moze czytac parametry Parameters[1]..ParStr(ParCount)
-     (i powinna sprawdzic ze nie ma nadmiarowych ani brakujacych parametrow;
-     najlatwiej mogla to zrobic dajac ParCountRequired <> -1 ale byc moze
-     niektore komendy beda potrzebowaly bardziej zlozonego testu na
-     poprawnosc parametrow).
-   Komendy powinny ustawic jedna ze zmiennych Result*, odpowiednia dla swojego
-     CommandResult - ctString to ResultStr, ctBoolean to ResultBool.
-   Komenda w razie problemow moze rzucic dowolne exception.  }
+ { calculate Result*, executing CommandNum.
+
+   Each command may read parameters from Parameters[1]..Parameters[Parameters.High]
+   (and should check if there are no missing/excessive args;
+   easiest way to do this was to define ParCountRequired <> -1,
+   but sometimes more complex rules need checking.)
+
+   Command must set one of the Result* variables, suitable for
+   it's type in CommandResult: ctString to ResultStr, ctBoolean to ResultBool.
+   In case of problems, raise any exception. }
  case CommandNum of
   0 : ResultStr := ChangeFileExt(Parameters[1], Parameters[2]);
   1 : ResultStr := DeleteFileExt(Parameters[1]);
@@ -248,7 +259,7 @@ begin
   else raise EInternalError.Create('CommandNum not impl');
  end;
 
- { zwroc Result* w odpowiedni sposob }
+ { return Result* in appropriate way }
  case Commands[CommandNum].CommandResult of
   crString: Write(ResultStr);
   crBoolean: HaltBool(ResultBool);
