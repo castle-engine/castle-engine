@@ -200,6 +200,7 @@ EXAMPLES_BASE_NAMES := \
   kambiscript/examples/kambi_calc \
   kambiscript/examples/image_make_by_script \
   base/tools/svg_grayscale \
+  base/tools/stringoper \
   images/examples/image_convert \
   images/tools/image_to_pas \
   opengl/examples/gl_win_events \
