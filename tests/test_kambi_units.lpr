@@ -16,6 +16,7 @@ uses
   TestDynArrays,
   TestKambiClassUtils,
   TestVectorMath,
+  TestImages,
   TestBoxes3d,
   TestFrustum,
   TestParsingParameters,
