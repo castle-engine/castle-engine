@@ -17,6 +17,7 @@ uses
   TestKambiClassUtils,
   TestVectorMath,
   TestImages,
+  TestOldFPCBugs,
   TestBoxes3d,
   TestFrustum,
   TestParsingParameters,
@@ -41,7 +42,7 @@ uses
   T: TTestFrustum;}
 begin
 { Sometimes it's comfortable to just run the rest directly, to get
-  full backtrace from FPC. 
+  full backtrace from FPC.
 
   T := TTestFrustum.Create;
   T.TestCompareWithUnoptimizedPlaneCollision;
