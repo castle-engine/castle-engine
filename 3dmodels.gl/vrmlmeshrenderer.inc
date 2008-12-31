@@ -825,7 +825,10 @@ begin
     To reproduce: open with view3dscene almost any non-empty model,
     like kambi_vrml_test_suite/x3d/kambi_extensions/teapot_simple.x3dv.
     Sometimes you need to open it a couple of times... and you get this crash.
-    I don't know is it known bug, in what Mesa version it's produced
+    Reproducible easily on "chantal" (mac book pro) and "domek"
+    (netbook MSI Wind).
+
+    TODO: I don't know is it known bug, in what Mesa version it's produced
     and when (if) it's fixed... for now I'll just avoid doing
     glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT) with Mesa.
     Yes, this makes rendering code buggy (GL_CLIENT_VERTEX_ARRAY_BIT
