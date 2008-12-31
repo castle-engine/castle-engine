@@ -222,11 +222,77 @@ end;
 { TGLVersion ----------------------------------------------------------------- }
 
 constructor TGLVersion.Create(const VersionString, AVendor: string);
-const
-  Digits = ['0'..'9'];
+
+  { Parse Mesa version, starting from S[I] (where I should
+    be the index in S right after the word "Mesa"). }
+  procedure ParseMesaVersion(const S: string; var I: Integer);
+  const
+    Digits = ['0'..'9'];
+  var
+    NumberBegin: Integer;
+  begin
+    { Whitespace }
+    ParseWhiteSpaces(S, I);
+
+    { Mesa major number }
+    if not SCharIs(S, I, Digits) then
+      raise EInvalidGLVersionString.Create('Mesa major version number not found');
+    NumberBegin := I;
+    while SCharIs(S, I, Digits) do Inc(I);
+    MesaMajor := StrToInt(CopyPos(S, NumberBegin, I - 1));
+
+    { Whitespace }
+    ParseWhiteSpaces(S, I);
+
+    { Dot }
+    if not SCharIs(S, I, '.') then
+      raise EInvalidGLVersionString.Create(
+        'The dot "." separator between Mesa major and minor version number not found');
+    Inc(I);
+
+    { Whitespace }
+    ParseWhiteSpaces(S, I);
+
+    { Mesa minor number }
+    if not SCharIs(S, I, Digits) then
+      raise EInvalidGLVersionString.Create('Mesa minor version number not found');
+    NumberBegin := I;
+    while SCharIs(S, I, Digits) do Inc(I);
+    MesaMinor := StrToInt(CopyPos(S, NumberBegin, I - 1));
+
+    { Whitespace }
+    ParseWhiteSpaces(S, I);
+
+    { Dot }
+    if SCharIs(S, I, '.') then
+    begin
+      Inc(I);
+
+      { Whitespace }
+      ParseWhiteSpaces(S, I);
+
+      { Mesa release number }
+      if not SCharIs(S, I, Digits) then
+        raise EInvalidGLVersionString.Create('Mesa release version number not found');
+      NumberBegin := I;
+      while SCharIs(S, I, Digits) do Inc(I);
+      MesaRelease := StrToInt(CopyPos(S, NumberBegin, I - 1));
+    end else
+    begin
+      { Some older Mesa versions (like 5.1) and newer (7.2) really
+        don't have release number inside a version string.
+        Seems like they don't have
+        release number at all, and assuming "0" seems sensible following
+        version names on WWW. So the missing dot "."
+        separator between Mesa minor and release version number should
+        be ignored. }
+      MesaRelease := 0;
+    end;
+  end;
+
 var
-  NumberBegin, I: Integer;
-  VendorName: string;
+  VendorName, S: string;
+  MesaStartIndex, I: Integer;
 begin
   inherited Create(VersionString);
 
@@ -236,65 +302,36 @@ begin
 
     VendorName := CopyPos(VendorVersion, 1, I - 1);
     IsMesa := SameText(VendorName, 'Mesa');
-
     if IsMesa then
+      ParseMesaVersion(VendorVersion, I) else
     begin
-      { Whitespace }
-      ParseWhiteSpaces(VendorVersion, I);
-
-      { Mesa major number }
-      if not SCharIs(VendorVersion, I, Digits) then
-        raise EInvalidGLVersionString.Create('Mesa major version number not found');
-      NumberBegin := I;
-      while SCharIs(VendorVersion, I, Digits) do Inc(I);
-      MesaMajor := StrToInt(CopyPos(VendorVersion, NumberBegin, I - 1));
-
-      { Whitespace }
-      ParseWhiteSpaces(VendorVersion, I);
-
-      { Dot }
-      if not SCharIs(VendorVersion, I, '.') then
-        raise EInvalidGLVersionString.Create(
-          'The dot "." separator between Mesa major and minor version number not found');
-      Inc(I);
-
-      { Whitespace }
-      ParseWhiteSpaces(VendorVersion, I);
-
-      { Mesa minor number }
-      if not SCharIs(VendorVersion, I, Digits) then
-        raise EInvalidGLVersionString.Create('Mesa minor version number not found');
-      NumberBegin := I;
-      while SCharIs(VendorVersion, I, Digits) do Inc(I);
-      MesaMinor := StrToInt(CopyPos(VendorVersion, NumberBegin, I - 1));
-
-      { Whitespace }
-      ParseWhiteSpaces(VendorVersion, I);
-
-      { Dot }
-      if SCharIs(VendorVersion, I, '.') then
+      { I'm seeing also things like GL_VERSION = 1.4 (2.1 Mesa 7.0.4)
+        (Debian testing (lenny) on 2008-12-31).
+        So "Mesa" may be within parenthesis, preceeded by another version
+        number. }
+      if SCharIs(VendorVersion, 1, '(') and
+         (VendorVersion[Length(VendorVersion)] = ')') then
       begin
-        Inc(I);
+        S := Copy(VendorVersion, 2, Length(VendorVersion) - 2);
+        I := 1;
 
-        { Whitespace }
-        ParseWhiteSpaces(VendorVersion, I);
+        { omit preceeding version number }
+        while SCharIs(S, I, AllChars - WhiteSpaces) do Inc(I);
 
-        { Mesa release number }
-        if not SCharIs(VendorVersion, I, Digits) then
-          raise EInvalidGLVersionString.Create('Mesa release version number not found');
-        NumberBegin := I;
-        while SCharIs(VendorVersion, I, Digits) do Inc(I);
-        MesaRelease := StrToInt(CopyPos(VendorVersion, NumberBegin, I - 1));
-      end else
-      begin
-        { Some older Mesa versions (like 5.1) really don't have release
-          number inside a version string. Seems like they don't have
-          release number at all. So the missing dot "."
-          separator between Mesa minor and release version number should
-          be ignored. }
-        MesaRelease := 0;
+        { omit whitespace }
+        ParseWhiteSpaces(S, I);
+
+        { read "Mesa" (hopefully) string }
+        MesaStartIndex := I;
+        while SCharIs(S, I, AllChars - WhiteSpaces) do Inc(I);
+
+        VendorName := CopyPos(S, MesaStartIndex, I - 1);
+        IsMesa := SameText(VendorName, 'Mesa');
+        if IsMesa then
+          ParseMesaVersion(S, I);
       end;
     end;
+
   except
     { Just like in TGenericGLVersion: in case of trouble (broken GL_VERSION
       string) ignore the problem. }
@@ -305,9 +342,7 @@ begin
   { Although "ATI Technologies Inc." is usually found,
     according to http://delphi3d.net/hardware/listreports.php
     also just "ATI" is possible. }
-
   FIsVendorATI := (Vendor = 'ATI Technologies Inc.') or (Vendor = 'ATI');
-
   FIsFglrx := {$ifdef LINUX} IsVendorATI {$else} false {$endif};
 
   FBuggyPointSetAttrib := IsMesa;
