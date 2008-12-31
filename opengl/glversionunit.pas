@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2007 Michalis Kamburelis.
+  Copyright 2001-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -74,6 +74,7 @@ type
     FVendor: string;
     FIsVendorATI: boolean;
     FIsFglrx: boolean;
+    FBuggyPointSetAttrib: boolean;
   public
     constructor Create(const VersionString, AVendor: string);
 
@@ -94,6 +95,22 @@ type
 
     { Is the Vendor ATI and we're on Linux? }
     property IsFglrx: boolean read FIsFglrx;
+
+    { Detect Mesa 7.2 with buggy GL_POINT_SET flag for glPushAttrib.
+      Observed on Ubuntu 8.10 on computer "domek".
+
+      TODO: I don't know is it
+      applicable to other (older? newer? non-Ubuntu ones?) Mesa versions.
+      I honestly tried to test Mesa versions from upstream http://mesa3d.org/,
+      but it seems that just *every* Mesa version is buggy.
+      Segfaults on opening any non-trivial 3D model file are just normal
+      with Mesa.
+
+      So for now this is @true just always when IsMesa is detected,
+      as avoiding GL_POINT_SET doesn't hurt us much. Feel free to investigate
+      various Mesa versions and report to me which version does / does not
+      need BuggyPointSetAttrib = @true. }
+    property BuggyPointSetAttrib: boolean read FBuggyPointSetAttrib;
   end;
 
 var
@@ -292,6 +309,8 @@ begin
   FIsVendorATI := (Vendor = 'ATI Technologies Inc.') or (Vendor = 'ATI');
 
   FIsFglrx := {$ifdef LINUX} IsVendorATI {$else} false {$endif};
+
+  FBuggyPointSetAttrib := IsMesa;
 end;
 
 finalization

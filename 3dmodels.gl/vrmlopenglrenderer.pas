@@ -3515,9 +3515,16 @@ procedure TVRMLOpenGLRenderer.RenderBegin(FogNode: TNodeFog;
 
 var i: integer;
 begin
- {push attribs and matrices (by pushing attribs FIRST we save also current
-  matrix mode)}
- glPushAttrib(GL_ALL_ATTRIB_BITS);
+ { Push attribs and matrices (by pushing attribs FIRST we save also current
+   matrix mode).
+
+   Note for BuggyPointSetAttrib: yes, this may cause bugs,
+   as glPointSize call "leaks" out. But there's nothing we can do about it,
+   we cannot use GL_POINT_BIT as it crashes Mesa (and produces "invalid
+   enumerant" error in case of debug compile). }
+ if not GLVersion.BuggyPointSetAttrib then
+   glPushAttrib(GL_ALL_ATTRIB_BITS) else
+   glPushAttrib(GL_ALL_ATTRIB_BITS and (not GL_POINT_BIT));
  glPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS);
 
  { TODO: push/pop is not fully correctly done for multitexturing now:
