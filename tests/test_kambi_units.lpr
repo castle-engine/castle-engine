@@ -36,7 +36,8 @@ uses
   TestKambiScript,
   TestKambiScriptVectors,
   TestCubeEnvMap,
-  TestShadowFields;
+  TestShadowFields,
+  TestGLVersion;
 
 {var
   T: TTestFrustum;}

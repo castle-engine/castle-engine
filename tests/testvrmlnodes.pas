@@ -28,6 +28,7 @@ uses
 
 type
   TTestVRMLNodes = class(TTestCase)
+  published
     procedure TestNodesManager;
 
     { This is really large test that reads and writes various VRML files
