@@ -813,8 +813,28 @@ begin
   { Initialize vertex arrays that we we will use with indexed nodes.
     GL_CLIENT_VERTEX_ARRAY_BIT pushes state of every vertex array, including
     eventual normal and texture coord arrays (possibly set by
-    RenderCoordinateBegin). }
-  glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+    RenderCoordinateBegin).
+
+    Mesa3D: well, you know the drill. Mesa 7.2 (at least this one)
+    crashes awfully when using glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT).
+    The crash is a segfault, sometimes from my code, sometimes from
+    within the mesa lib, sometimes from GTK... evidently, Mesa's
+    glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT) cripples some memory
+    leading to crash at some random place later.
+
+    To reproduce: open with view3dscene almost any non-empty model,
+    like kambi_vrml_test_suite/x3d/kambi_extensions/teapot_simple.x3dv.
+    Sometimes you need to open it a couple of times... and you get this crash.
+    I don't know is it known bug, in what Mesa version it's produced
+    and when (if) it's fixed... for now I'll just avoid doing
+    glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT) with Mesa.
+    Yes, this makes rendering code buggy (GL_CLIENT_VERTEX_ARRAY_BIT
+    "leaks out" from our VRML renderer), but it's not a problem
+    in practice for my programs --- I didn't depend anywhere that
+    VRML renderer preserves that glVertexPointer state.
+  }
+  if not GLVersion.IsMesa then
+    glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
   try
     glVertexPointer(3, GL_FLOAT, 0, Coord.Items.Items);
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -827,7 +847,10 @@ begin
         RenderCoordinate;
       finally LockArraysEnd; end;
     finally RenderCoordinateEnd; end;
-  finally glPopClientAttrib; end;
+  finally
+    if not GLVersion.IsMesa then
+      glPopClientAttrib;
+  end;
 end;
 
 procedure TAbstractCoordinateRenderer.RenderCoordinateBegin;
