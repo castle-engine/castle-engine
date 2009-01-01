@@ -879,10 +879,8 @@ begin
     VertexNum := CoordIndex.Items.Items[IndexNum];
     if VertexNum >= Coord.Count then
     begin
-      VRMLNonFatalError(Format('Wrong vertex index in indexed node %s ' +
-        '(not enouch points in Coordinate node defined: ' +
-        'index is %d, we have only %d vertices)',
-        [Geometry.NodeTypeName, VertexNum, Coord.Count]));
+      CoordIndex.VRMLNonFatalError_WrongVertexIndex(
+        Geometry.NodeTypeName, VertexNum, Coord.Count);
       Exit;
     end;
   end else
@@ -904,10 +902,8 @@ begin
     VertexNum := CoordIndex.Items.Items[IndexNum];
     if VertexNum >= Coord.Count then
     begin
-      VRMLNonFatalError(Format('Wrong vertex index in indexed node %s ' +
-        '(not enouch points in Coordinate node defined: ' +
-        'index is %d, we have only %d vertices)',
-        [Geometry.NodeTypeName, VertexNum, Coord.Count]));
+      CoordIndex.VRMLNonFatalError_WrongVertexIndex(
+        Geometry.NodeTypeName, VertexNum, Coord.Count);
       Exit(ZeroVector3Single);
     end;
   end else

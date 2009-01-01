@@ -1469,6 +1469,7 @@ type
     DefaultValuesCount: integer;
     DefaultValue: Longint;
     FSaveToStreamLineUptoNegative: boolean;
+    WrongVertexIndexWarnings: Integer;
     function GetItemsSafe(Index: Integer): LongInt;
     procedure SetItemsSafe(Index: Integer; const Value: LongInt);
     function GetItems: TDynLongIntArray;
@@ -1506,6 +1507,28 @@ type
       and both will produce clear VRMLNonFatalError. }
     property ItemsSafe[Index: Integer]: LongInt
       read GetItemsSafe write SetItemsSafe;
+
+    { Call VRMLNonFatalError reporting that an invalid vertex index
+      is caused from this field. This simply calls VRMLNonFatalError
+      formatting appropriate message.
+
+      Additionally this guards
+      us against producing too many warnings from the same field.
+      When a given threshold will be reached, further
+      VRMLNonFatalError_WrongVertexIndex calls for this field instance
+      will be simply ignored. This is a good thing, as some invalid models
+      have really an incredible amount of invalid indexes, and the very
+      amount of lines printed on console makes viewing these invalid files
+      (at least, the valid parts of them) impossible.
+
+      Example test cases:
+      content/examples/Basic/HumanoidAnimation/AllenStandShootRifleM24.x3d
+      and
+      content/examples/Basic/HumanoidAnimation/NancyDiving.x3dv
+      from http://www.web3d.org/ example models. }
+    procedure VRMLNonFatalError_WrongVertexIndex(
+      const GeometryNodeTypeName: string;
+      const VertexNum: Integer; const CoordCount: Integer);
   end;
 
   TMFInt32 = class(TMFLong)
@@ -4606,6 +4629,21 @@ begin
   begin
     VRMLNonFatalError(Format('Invalid index for VRML field %s: index is %d, but we have only %d items', [VRMLTypeName, Index, Count]));
   end;
+end;
+
+procedure TMFLong.VRMLNonFatalError_WrongVertexIndex(
+  const GeometryNodeTypeName: string;
+  const VertexNum: Integer; const CoordCount: Integer);
+const
+  MaxWrongVertexIndexWarnings = 100;
+begin
+  Inc(WrongVertexIndexWarnings);
+  if WrongVertexIndexWarnings < MaxWrongVertexIndexWarnings then
+    VRMLNonFatalError(Format('Wrong vertex index in indexed node %s (not enouch points in Coordinate node defined: index is %d, we have only %d vertices)',
+      [GeometryNodeTypeName, VertexNum, CoordCount])) else
+  if WrongVertexIndexWarnings = MaxWrongVertexIndexWarnings then
+    VRMLNonFatalError(Format('Wrong vertex index in indexed node %s reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
+      [GeometryNodeTypeName, WrongVertexIndexWarnings]));
 end;
 
 { TMFInt32 ------------------------------------------------------------------- }

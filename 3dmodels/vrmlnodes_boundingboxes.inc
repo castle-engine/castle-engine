@@ -41,6 +41,7 @@ type
   private
     Coord: TMFVec3f;
     CoordIndex: TMFLong;
+    Geometry: TVRMLGeometryNode;
     function GetVertexFromIndex(index: integer): TVector3Single;
     function GetIndex(indexNum: integer): integer;
   end;
@@ -52,10 +53,8 @@ begin
   if Index < Coord.Count then
     Result := Coord.Items.Items[Index] else
   begin
-    VRMLNonFatalError(Format('Wrong vertex index in indexed node ' +
-      '(not enouch points in Coordinate node defined: ' +
-      'index is %d, we have only %d vertices)',
-      [Index, Coord.Count]));
+    CoordIndex.VRMLNonFatalError_WrongVertexIndex(
+      Geometry.NodeTypeName, Index, Coord.Count);
     Result := ZeroVector3Single;
   end;
 end;
@@ -68,7 +67,8 @@ begin
   Result := CoordIndex.Items.Items[IndexNum];
 end;
 
-function IndexedCoords_BoundingBox(State: TVRMLGraphTraverseState;
+function IndexedCoords_BoundingBox(Geometry: TVRMLGeometryNode;
+  State: TVRMLGraphTraverseState;
   Coord: TMFVec3f; CoordIndex: TMFLong): TBox3d;
 var
   Calculator: TGI_BBox_Calculator;
@@ -77,6 +77,7 @@ begin
   try
     Calculator.Coord := Coord;
     Calculator.CoordIndex := CoordIndex;
+    Calculator.Geometry := Geometry;
     Result := CalculateBoundingBoxFromIndices(
       {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetIndex,
       CoordIndex.Count,
@@ -85,7 +86,8 @@ begin
   finally Calculator.Free end;
 end;
 
-function IndexedCoords_LocalBoundingBox(State: TVRMLGraphTraverseState;
+function IndexedCoords_LocalBoundingBox(Geometry: TVRMLGeometryNode;
+  State: TVRMLGraphTraverseState;
   Coord: TMFVec3f; CoordIndex: TMFLong): TBox3d;
 var
   Calculator: TGI_BBox_Calculator;
@@ -94,6 +96,7 @@ begin
   try
     Calculator.Coord := Coord;
     Calculator.CoordIndex := CoordIndex;
+    Calculator.Geometry := Geometry;
     Result := CalculateBoundingBoxFromIndices(
       {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetIndex,
       CoordIndex.Count,
@@ -127,7 +130,7 @@ begin
     if C <> nil then
     begin
       if CoordIndex <> nil then
-        Result := IndexedCoords_BoundingBox(State, C, CoordIndex) else
+        Result := IndexedCoords_BoundingBox(Self, State, C, CoordIndex) else
         Result := Coords_BoundingBox(State, C);
     end else
       Result := EmptyBox3d;
@@ -155,7 +158,7 @@ begin
     if C <> nil then
     begin
       if CoordIndex <> nil then
-        Result := IndexedCoords_LocalBoundingBox(State, C, CoordIndex) else
+        Result := IndexedCoords_LocalBoundingBox(Self, State, C, CoordIndex) else
         Result := Coords_LocalBoundingBox(State, C);
     end else
       Result := EmptyBox3d;
