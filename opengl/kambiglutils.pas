@@ -1103,7 +1103,8 @@ procedure LoadAllExtensions;
 
 begin
  FreeAndNil(GLVersion);
- GLVersion := TGLVersion.Create(glGetString(GL_VERSION), glGetString(GL_VENDOR));
+ GLVersion := TGLVersion.Create(glGetString(GL_VERSION),
+   glGetString(GL_VENDOR), glGetString(GL_RENDERER));
 
  FreeAndNil(GLUVersion);
  { gluGetString is valid for version 1.1 or later }
@@ -2235,7 +2236,7 @@ function GLCapsString: string;
 
   function ParsedVersionReport(Version: TGenericGLVersion): string;
   begin
-    Result := Format('Parsed: major: %d, minor: %d, release exists: %s, ' +
+    Result := Format('Detected: version major: %d, minor: %d, release exists: %s, ' +
       'release: %d, vendor-specific version: "%s"',
       [ Version.Major, Version.Minor, BoolToStr[Version.ReleaseExists],
         Version.Release,  Version.VendorVersion ]);
@@ -2243,10 +2244,18 @@ function GLCapsString: string;
 
   function ParsedGLVersionReport(Version: TGLVersion): string;
   begin
-    Result := ParsedVersionReport(Version) +
-      Format(', vendor Mesa: %s (Mesa major: %d, minor: %d, release: %d)',
+    Result := ParsedVersionReport(Version) +nl+
+      Format(
+        '  Vendor Mesa: %s (Mesa major: %d, minor: %d, release: %d)' +nl+
+        '  Vendor ATI: %s (fglrx: %s)' +nl+
+        '  Buggy glPushAttrib(GL_POINT_SET): %s',
         [ BoolToStr[Version.IsMesa],
-          Version.MesaMajor, Version.MesaMinor, Version.MesaRelease ]);
+          Version.MesaMajor, Version.MesaMinor, Version.MesaRelease,
+
+          BoolToStr[Version.IsVendorATI], BoolToStr[Version.IsFglrx],
+
+          BoolToStr[Version.BuggyPointSetAttrib]
+        ]);
   end;
 
   function GetMaxTextureUnits: string;
@@ -2284,9 +2293,10 @@ begin
 
   '--- OpenGL string queries :' +nl+
   'GL_VERSION : ' +glGetString(GL_VERSION) +nl+
-  ParsedGLVersionReport(GLVersion) +nl+
   'GL_VENDOR : ' +glGetString(GL_VENDOR) +nl+
   'GL_RENDERER : ' +glGetString(GL_RENDERER) +nl+
+  ParsedGLVersionReport(GLVersion) +nl+
+  nl+
   'GL_EXTENSIONS : ' +glGetString(GL_EXTENSIONS) +nl+
   nl+
 
@@ -2302,6 +2312,7 @@ begin
   '--- GLU string queries : '+nl+
   'GLU_VERSION : ' +gluGetString(GLU_VERSION) +nl+
   ParsedVersionReport(GLUVersion) +nl+
+  nl+
   'GLU_EXTENSIONS : '+gluGetString(GLU_EXTENSIONS) +nl+
   nl+
 
