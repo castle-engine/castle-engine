@@ -34,10 +34,13 @@ uses SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils,
 
 const
   DefLocalTriangleOctreeMaxDepth = 10;
-  DefLocalTriangleOctreeLeafCapacity = 64 { TODO: why is this different then def?
-    this is based on view3dscene defaults?
-    castle uses normal defaults?
-    maybe use them generally? };
+  { Default octree leaf capacity for TVRMLShape.OctreeTriangles.
+
+    This is slightly larger than DefTriangleOctreeLeafCapacity, as this
+    octree will usually be used interactively for collision detection,
+    not by ray-tracer. So octree construction speed is somewhat important,
+    and cannot be too large... }
+  DefLocalTriangleOctreeLeafCapacity = 32;
   DefLocalTriangleOctreeLimits: TOctreeLimits = (
     MaxDepth: DefLocalTriangleOctreeMaxDepth;
     LeafCapacity: DefLocalTriangleOctreeLeafCapacity
