@@ -170,6 +170,9 @@ type
 
     FSpatial: TVRMLShapeSpatialStructures;
     procedure SetSpatial(const Value: TVRMLShapeSpatialStructures);
+
+    function OverrideOctreeLimits(
+      const BaseLimits: TOctreeLimits): TOctreeLimits;
   public
     constructor Create(AParentScene: TObject;
       AGeometryNode: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
@@ -664,6 +667,21 @@ begin
    FBoundingSphereCenter, FBoundingSphereRadiusSqr);
 end;
 
+function TVRMLShape.OverrideOctreeLimits(
+  const BaseLimits: TOctreeLimits): TOctreeLimits;
+var
+  Props: TNodeKambiOctreeProperties;
+begin
+  Result := BaseLimits;
+  if (State.ParentShape <> nil) and
+     (State.ParentShape.FdOctreeTriangles.Value <> nil) and
+     (State.ParentShape.FdOctreeTriangles.Value is TNodeKambiOctreeProperties) then
+  begin
+    Props := TNodeKambiOctreeProperties(State.ParentShape.FdOctreeTriangles.Value);
+    Props.OverrideLimits(Result);
+  end;
+end;
+
 procedure TVRMLShape.AddTriangleToOctreeProgress(
   const Triangle: TTriangle3Single;
   State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
@@ -717,7 +735,7 @@ begin
     if New and not Old then
     begin
       FOctreeTriangles := CreateTriangleOctree(
-        FTriangleOctreeLimits,
+        OverrideOctreeLimits(FTriangleOctreeLimits),
         TriangleOctreeProgressTitle);
     end;
 
@@ -739,7 +757,7 @@ begin
 
     FreeAndNil(FOctreeTriangles);
     FOctreeTriangles := CreateTriangleOctree(
-      FTriangleOctreeLimits,
+      OverrideOctreeLimits(FTriangleOctreeLimits),
       TriangleOctreeProgressTitle);
   end;
 end;

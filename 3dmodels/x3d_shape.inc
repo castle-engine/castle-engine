@@ -86,6 +86,9 @@
     { This is like @link(Texture), but it returns Material
       of Apperance. }
     function Material: TNodeMaterial_2;
+
+    private FFdoctreeTriangles: TSFNode;
+    public property FdoctreeTriangles: TSFNode read FFdoctreeTriangles;
   end;
 
   TNodeAppearance = class(TNodeX3DAppearanceNode)
@@ -390,6 +393,10 @@ begin
   FFdbboxSize.Exposed := false;
   Fields.Add(FFdbboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
+
+  FFdoctreeTriangles := TSFNode.Create(Self, 'octreeTriangles', [TNodeKambiOctreeProperties]);
+  FFdoctreeTriangles.Exposed := false;
+  Fields.Add(FFdoctreeTriangles);
 end;
 
 procedure TNodeX3DShapeNode.DirectEnumerateActive(
