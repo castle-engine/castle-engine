@@ -72,15 +72,18 @@ type
   TGLVersion = class(TGenericGLVersion)
   private
     FVendor: string;
+    FRenderer: string;
     FIsVendorATI: boolean;
     FIsFglrx: boolean;
     FBuggyPointSetAttrib: boolean;
   public
-    constructor Create(const VersionString, AVendor: string);
+    constructor Create(const VersionString, AVendor, ARenderer: string);
 
-    { Using VendorSpecific information (extracted by base TGenericGLVersion)
-      we can detect whether we the OpenGL implementation is Mesa (check IsMesa)
-      and Mesa version.
+    { @abstract(Are we using Mesa (http://mesa3d.org/)?)
+
+      Detected using VendorSpecific information
+      (extracted by base TGenericGLVersion), this allows us to detect
+      Mesa and Mesa version.
       @groupBegin }
     IsMesa: boolean;
     MesaMajor: Integer;
@@ -88,26 +91,31 @@ type
     MesaRelease: Integer;
     { @groupEnd }
 
+    { This is just glGetString(GL_VENDOR). }
     property Vendor: string read FVendor;
 
-    { Is the Vendor ATI ? In other words, is it an ATI GPU with ATI drivers. }
+    { This is just glGetString(GL_RENDERER). }
+    property Renderer: string read FRenderer;
+
+    { Is the Vendor ATI? In other words, is it an ATI GPU with ATI drivers. }
     property IsVendorATI: boolean read FIsVendorATI;
 
     { Is the Vendor ATI and we're on Linux? }
     property IsFglrx: boolean read FIsFglrx;
 
-    { Detect Mesa 7.2 with buggy GL_POINT_SET flag for glPushAttrib.
+    { Detect Mesa DRI Intel with buggy GL_POINT_SET flag for glPushAttrib.
+
       Observed on Ubuntu 8.10 on computer "domek".
+      It seems a bug in upstream Mesa 7.2, as it's reproducible with
+      version from http://mesa3d.org/.
+      Seemingly reproducible only with "DRI Intel"
+      (not reproducible on "chantal" with upstream Mesa 7.2).
 
-      TODO: I don't know is it
-      applicable to other (older? newer? non-Ubuntu ones?) Mesa versions.
-      I honestly tried to test Mesa versions from upstream http://mesa3d.org/,
-      but it seems that just *every* Mesa version is buggy.
-      Segfaults on opening any non-trivial 3D model file are just normal
-      with Mesa.
-
-      So for now this is @true just always when IsMesa is detected,
-      as avoiding GL_POINT_SET doesn't hurt us much. Feel free to investigate
+      TODO: report to Mesa? In what Mesa version is it introduced,
+      in what (if any) is it fixed?
+      For now this is @true just always when IsMesa is detected
+      and Renderer indicates "Mesa DRI Intel...".
+      Avoiding GL_POINT_SET doesn't hurt us much. Feel free to investigate
       various Mesa versions and report to me which version does / does not
       need BuggyPointSetAttrib = @true. }
     property BuggyPointSetAttrib: boolean read FBuggyPointSetAttrib;
@@ -221,7 +229,7 @@ end;
 
 { TGLVersion ----------------------------------------------------------------- }
 
-constructor TGLVersion.Create(const VersionString, AVendor: string);
+constructor TGLVersion.Create(const VersionString, AVendor, ARenderer: string);
 
   { Parse Mesa version, starting from S[I] (where I should
     be the index in S right after the word "Mesa"). }
@@ -338,6 +346,7 @@ begin
   end;
 
   FVendor := AVendor;
+  FRenderer := ARenderer;
 
   { Although "ATI Technologies Inc." is usually found,
     according to http://delphi3d.net/hardware/listreports.php
@@ -345,7 +354,7 @@ begin
   FIsVendorATI := (Vendor = 'ATI Technologies Inc.') or (Vendor = 'ATI');
   FIsFglrx := {$ifdef LINUX} IsVendorATI {$else} false {$endif};
 
-  FBuggyPointSetAttrib := IsMesa;
+  FBuggyPointSetAttrib := IsMesa and IsPrefix('Mesa DRI Intel', Renderer);
 end;
 
 finalization
