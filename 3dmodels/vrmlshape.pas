@@ -28,13 +28,20 @@ unit VRMLShape;
 interface
 
 uses SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils,
-  KambiUtils, VRMLTriangleOctree, Frustum;
+  KambiUtils, VRMLTriangleOctree, Frustum, KambiOctree;
 
 {$define read_interface}
 
 const
   DefLocalTriangleOctreeMaxDepth = 10;
-  DefLocalTriangleOctreeLeafCapacity = 64;
+  DefLocalTriangleOctreeLeafCapacity = 64 { TODO: why is this different then def?
+    this is based on view3dscene defaults?
+    castle uses normal defaults?
+    maybe use them generally? };
+  DefLocalTriangleOctreeLimits: TOctreeLimits = (
+    MaxDepth: DefLocalTriangleOctreeMaxDepth;
+    LeafCapacity: DefLocalTriangleOctreeLeafCapacity
+  );
 
 type
   { Internal type for TVRMLShape
@@ -153,11 +160,10 @@ type
     procedure AddTriangleToOctreeProgress(const Triangle: TTriangle3Single;
       State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
-    function CreateTriangleOctree(const AMaxDepth, ALeafCapacity: Integer;
+    function CreateTriangleOctree(const ALimits: TOctreeLimits;
       const ProgressTitle: string): TVRMLTriangleOctree;
 
-    FTriangleOctreeMaxDepth: Integer;
-    FTriangleOctreeLeafCapacity: Integer;
+    FTriangleOctreeLimits: TOctreeLimits;
     FTriangleOctreeProgressTitle: string;
 
     FOctreeTriangles: TVRMLTriangleOctree;
@@ -264,6 +270,8 @@ type
     { Properties of created triangle octrees.
       See VRMLTriangleOctree unit comments for description.
 
+      Default value comes from DefLocalTriangleOctreeLimits.
+
       If TriangleOctreeProgressTitle <> '', it will be shown during
       octree creation (through TProgress.Title). Will be shown only
       if progress is not active already
@@ -274,15 +282,7 @@ type
       to something else.
 
       @groupBegin }
-    property     TriangleOctreeMaxDepth: Integer
-      read      FTriangleOctreeMaxDepth
-      write     FTriangleOctreeMaxDepth
-      default DefLocalTriangleOctreeMaxDepth;
-
-    property     TriangleOctreeLeafCapacity: Integer
-       read     FTriangleOctreeLeafCapacity
-      write     FTriangleOctreeLeafCapacity
-      default DefLocalTriangleOctreeLeafCapacity;
+    function TriangleOctreeLimits: POctreeLimits;
 
     property TriangleOctreeProgressTitle: string
       read  FTriangleOctreeProgressTitle
@@ -552,8 +552,7 @@ constructor TVRMLShape.Create(AParentScene: TObject;
 begin
   inherited Create(AParentScene);
 
-  FTriangleOctreeMaxDepth := DefLocalTriangleOctreeMaxDepth;
-  FTriangleOctreeLeafCapacity := DefLocalTriangleOctreeLeafCapacity;
+  FTriangleOctreeLimits := DefLocalTriangleOctreeLimits;
 
   FGeometryNode := AGeometryNode;
   FState := AState;
@@ -564,6 +563,11 @@ begin
   FreeAndNil(FState);
   FreeAndNil(FOctreeTriangles);
   inherited;
+end;
+
+function TVRMLShape.TriangleOctreeLimits: POctreeLimits;
+begin
+  Result := @FTriangleOctreeLimits;
 end;
 
 function TVRMLShape.LocalBoundingBox: TBox3d;
@@ -671,10 +675,10 @@ begin
 end;
 
 function TVRMLShape.CreateTriangleOctree(
-  const AMaxDepth, ALeafCapacity: integer;
+  const ALimits: TOctreeLimits;
   const ProgressTitle: string): TVRMLTriangleOctree;
 begin
-  Result := TVRMLTriangleOctree.Create(AMaxDepth, ALeafCapacity, LocalBoundingBox);
+  Result := TVRMLTriangleOctree.Create(ALimits, LocalBoundingBox);
   try
     Result.Triangles.AllowedCapacityOverflow := TrianglesCount(false);
     try
@@ -713,8 +717,7 @@ begin
     if New and not Old then
     begin
       FOctreeTriangles := CreateTriangleOctree(
-        TriangleOctreeMaxDepth,
-        TriangleOctreeLeafCapacity,
+        FTriangleOctreeLimits,
         TriangleOctreeProgressTitle);
     end;
 
@@ -736,8 +739,7 @@ begin
 
     FreeAndNil(FOctreeTriangles);
     FOctreeTriangles := CreateTriangleOctree(
-      TriangleOctreeMaxDepth,
-      TriangleOctreeLeafCapacity,
+      FTriangleOctreeLimits,
       TriangleOctreeProgressTitle);
   end;
 end;

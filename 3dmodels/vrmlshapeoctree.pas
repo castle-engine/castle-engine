@@ -55,6 +55,10 @@ const
   { }
   DefShapeOctreeMaxDepth = 5;
   DefShapeOctreeLeafCapacity = 10;
+  DefShapeOctreeLimits: TOctreeLimits = (
+    MaxDepth: DefShapeOctreeMaxDepth;
+    LeafCapacity: DefShapeOctreeLeafCapacity
+  );
 
 type
   TVRMLShapeOctree = class;
@@ -192,7 +196,7 @@ type
     function StatisticsBonus(
       const LeavesCount, ItemsCount, NonLeafNodesCount: Int64): string; override;
   public
-    constructor Create(AMaxDepth, ALeafCapacity: Integer;
+    constructor Create(const ALimits: TOctreeLimits;
       const ARootBox: TBox3d; AShapesList: TVRMLShapesList;
       AOwnsShapesList: boolean);
 
@@ -624,12 +628,11 @@ end;
 
 { TVRMLShapeOctree ------------------------------------------ }
 
-constructor TVRMLShapeOctree.Create(AMaxDepth, ALeafCapacity: Integer;
+constructor TVRMLShapeOctree.Create(const ALimits: TOctreeLimits;
   const ARootBox: TBox3d; AShapesList: TVRMLShapesList;
   AOwnsShapesList: boolean);
 begin
-  inherited Create(AMaxDepth, ALeafCapacity, ARootBox,
-    TVRMLShapeOctreeNode, true);
+  inherited Create(ALimits, ARootBox, TVRMLShapeOctreeNode, true);
   FShapesList := AShapesList;
   FOwnsShapesList := AOwnsShapesList;
 end;
@@ -648,10 +651,15 @@ end;
 function TVRMLShapeOctree.StatisticsBonus(
   const LeavesCount, ItemsCount, NonLeafNodesCount: Int64): string;
 begin
+ Result := nl+
+   Format(
+   '  Octree constructed with limits: max depth %d, leaf capacity %d.',
+   [MaxDepth, LeafCapacity]) + nl + nl;
+
  if ShapesList.Count = 0 then
-  Result :=
+  Result +=
     '  Empty octree - scene has no Shapes, i.e. no visible nodes.' +nl else
-  Result := Format(
+  Result += Format(
     '  %d items (=Shapes) defined for octree, %d items in octree''s nodes' +nl+
     '  - so each shape is present in tree about %f times.' +nl,
     [ ShapesList.Count, ItemsCount, ItemsCount / ShapesList.Count] );

@@ -27,7 +27,7 @@ interface
 uses
   SysUtils, Classes, VectorMath, Boxes3d,
   VRMLFields, VRMLNodes, KambiClassUtils, KambiUtils,
-  VRMLShape, VRMLTriangleOctree, ProgressUnit, VRMLShapeOctree,
+  VRMLShape, VRMLTriangleOctree, ProgressUnit, KambiOctree, VRMLShapeOctree,
   Keys, VRMLTime, Navigation, VRMLTriangle, Contnrs;
 
 {$define read_interface}
@@ -690,10 +690,10 @@ type
       Octrees, as implemented here, are a lot more flexible.
 
       @groupBegin }
-    function CreateTriangleOctree(AMaxDepth, ALeafCapacity: integer;
+    function CreateTriangleOctree(const Limits: TOctreeLimits;
       const ProgressTitle: string;
       const Collidable: boolean): TVRMLTriangleOctree;
-    function CreateShapeOctree(AMaxDepth, ALeafCapacity: integer;
+    function CreateShapeOctree(const Limits: TOctreeLimits;
       const ProgressTitle: string;
       const Collidable: boolean): TVRMLShapeOctree;
     { @groupEnd }
@@ -703,12 +703,10 @@ type
       State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 
-    FTriangleOctreeMaxDepth: Integer;
-    FTriangleOctreeLeafCapacity: Integer;
+    FTriangleOctreeLimits: TOctreeLimits;
     FTriangleOctreeProgressTitle: string;
 
-    FShapeOctreeMaxDepth: Integer;
-    FShapeOctreeLeafCapacity: Integer;
+    FShapeOctreeLimits: TOctreeLimits;
     FShapeOctreeProgressTitle: string;
 
     FOctreeRendering: TVRMLShapeOctree;
@@ -1122,20 +1120,21 @@ type
       you want this to be [ssRendering, ssDynamicCollisions].
 
       Before setting any value <> [] you may want to adjust
-      TriangleOctreeMaxDepth, TriangleOctreeLeafCapacity,
-      ShapeOctreeMaxDepth, ShapeOctreeLeafCapacity.
+      TriangleOctreeLimits, ShapeOctreeLimits.
       These properties fine-tune how the octrees will be generated
       (although default values should be Ok for typical cases).
 
       Default value of this property is [], which means that
       no octrees will be created. This has to be the default value,
-      to 1. get you chance to change TriangleOctreeMaxDepth and such
+      to 1. get you chance to change TriangleOctreeLimits and such
       before creating octree 2. otherwise, scenes that not require
       collision detection would unnecessarily create octrees at construction. }
     property Spatial: TVRMLSceneSpatialStructures read FSpatial write SetSpatial;
 
     { Properties of created triangle octrees.
       See VRMLTriangleOctree unit comments for description.
+
+      Default value comes from DefTriangleOctreeLimits.
 
       If TriangleOctreeProgressTitle <> '', it will be shown during
       octree creation (through TProgress.Title). Will be shown only
@@ -1146,16 +1145,11 @@ type
       want to set them right before changing @link(Spatial) from []
       to something else.
 
-      @groupBegin }
-    property     TriangleOctreeMaxDepth: Integer
-      read      FTriangleOctreeMaxDepth
-      write     FTriangleOctreeMaxDepth
-      default DefTriangleOctreeMaxDepth;
+      Note that particular models may override this by
+      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_octree_properties].
 
-    property     TriangleOctreeLeafCapacity: Integer
-       read     FTriangleOctreeLeafCapacity
-      write     FTriangleOctreeLeafCapacity
-      default DefTriangleOctreeLeafCapacity;
+      @groupBegin }
+    function TriangleOctreeLimits: POctreeLimits;
 
     property TriangleOctreeProgressTitle: string
       read  FTriangleOctreeProgressTitle
@@ -1165,25 +1159,22 @@ type
     { Properties of created shape octrees.
       See VRMLShapeOctree unit comments for description.
 
+      Default value comes from DefShapeOctreeLimits.
+
       If ShapeOctreeProgressTitle <> '', it will be shown during
       octree creation (through TProgress.Title). Will be shown only
       if progress is not active already
-      ( so we avoid starting "progress bar within progress bar").
+      (so we avoid starting "progress bar within progress bar").
 
       They are used only when the octree is created, so usually you
       want to set them right before changing @link(Spatial) from []
       to something else.
 
-      @groupBegin }
-    property     ShapeOctreeMaxDepth: Integer
-      read      FShapeOctreeMaxDepth
-      write     FShapeOctreeMaxDepth
-      default DefShapeOctreeMaxDepth;
+      Note that particular models may override this by
+      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_octree_properties].
 
-    property     ShapeOctreeLeafCapacity: Integer
-       read     FShapeOctreeLeafCapacity
-      write     FShapeOctreeLeafCapacity
-      default DefShapeOctreeLeafCapacity;
+      @groupBegin }
+    function ShapeOctreeLimits: POctreeLimits;
 
     property ShapeOctreeProgressTitle: string
       read  FShapeOctreeProgressTitle
@@ -1814,10 +1805,8 @@ begin
  FRootNode := ARootNode;
  FOwnsRootNode := AOwnsRootNode;
 
- FTriangleOctreeMaxDepth := DefTriangleOctreeMaxDepth;
- FTriangleOctreeLeafCapacity := DefTriangleOctreeLeafCapacity;
- FShapeOctreeMaxDepth := DefShapeOctreeMaxDepth;
- FShapeOctreeLeafCapacity := DefShapeOctreeLeafCapacity;
+ FTriangleOctreeLimits := DefTriangleOctreeLimits;
+ FShapeOctreeLimits := DefShapeOctreeLimits;
 
  FShapes := TVRMLShapeTreeGroup.Create(Self);
  ShapeLODs := TObjectList.Create(false);
@@ -3207,8 +3196,7 @@ begin
 
     FreeAndNil(FOctreeRendering);
     FOctreeRendering := CreateShapeOctree(
-      ShapeOctreeMaxDepth,
-      ShapeOctreeLeafCapacity,
+      FShapeOctreeLimits,
       ShapeOctreeProgressTitle,
       false);
 
@@ -3223,8 +3211,7 @@ begin
   begin
     FreeAndNil(FOctreeDynamicCollisions);
     FOctreeDynamicCollisions := CreateShapeOctree(
-      ShapeOctreeMaxDepth,
-      ShapeOctreeLeafCapacity,
+      FShapeOctreeLimits,
       ShapeOctreeProgressTitle,
       true);
 
@@ -3363,6 +3350,16 @@ end;
 
 { octrees -------------------------------------------------------------------- }
 
+function TVRMLScene.TriangleOctreeLimits: POctreeLimits;
+begin
+  Result := @FTriangleOctreeLimits;
+end;
+
+function TVRMLScene.ShapeOctreeLimits: POctreeLimits;
+begin
+  Result := @FShapeOctreeLimits;
+end;
+
 procedure TVRMLScene.AddTriangleToOctreeProgress(
   const Triangle: TTriangle3Single;
   State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
@@ -3389,13 +3386,16 @@ procedure TVRMLScene.SetSpatial(const Value: TVRMLSceneSpatialStructures);
            (not OnlyCollidable) or
            (SI.Current.Collidable) then
         begin
-          {
-            SI.Current.TriangleOctreeMaxDepth :=
-            SI.Current.TriangleOctreeLeafCapacity :=
+          { Note: do not change here
+              SI.Current.TriangleOctreeLimits :=
+            Our own TriangleOctreeLimits properties may be *not* suitable
+            for this (as our properties are for global octrees).
 
-            Leave them at defaults? We shouldn't just use
-            our TriangleOctreeMaxDepth properties, they may be unsuitable.
+            Just let programmer change per-shape properties if he wants,
+            or user to change this per-shape by
+            [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_octree_properties].
           }
+
           SI.Current.TriangleOctreeProgressTitle := TriangleOctreeProgressTitle;
           SI.Current.Spatial := Value;
         end;
@@ -3420,8 +3420,7 @@ begin
     if New and not Old then
     begin
       FOctreeRendering := CreateShapeOctree(
-        ShapeOctreeMaxDepth,
-        ShapeOctreeLeafCapacity,
+        FShapeOctreeLimits,
         ShapeOctreeProgressTitle,
         false);
     end;
@@ -3439,8 +3438,7 @@ begin
     if New and not Old then
     begin
       FOctreeDynamicCollisions := CreateShapeOctree(
-        ShapeOctreeMaxDepth,
-        ShapeOctreeLeafCapacity,
+        FShapeOctreeLimits,
         ShapeOctreeProgressTitle,
         true);
 
@@ -3462,8 +3460,7 @@ begin
     if New and not Old then
     begin
       FOctreeVisibleTriangles := CreateTriangleOctree(
-        TriangleOctreeMaxDepth,
-        TriangleOctreeLeafCapacity,
+        FTriangleOctreeLimits,
         TriangleOctreeProgressTitle,
         false);
     end;
@@ -3480,8 +3477,7 @@ begin
     if New and not Old then
     begin
       FOctreeCollidableTriangles := CreateTriangleOctree(
-        TriangleOctreeMaxDepth,
-        TriangleOctreeLeafCapacity,
+        FTriangleOctreeLimits,
         TriangleOctreeProgressTitle,
         true);
     end;
@@ -3500,7 +3496,7 @@ begin
 end;
 
 function TVRMLScene.CreateTriangleOctree(
-  AMaxDepth, ALeafCapacity: integer;
+  const Limits: TOctreeLimits;
   const ProgressTitle: string;
   const Collidable: boolean): TVRMLTriangleOctree;
 
@@ -3519,7 +3515,7 @@ function TVRMLScene.CreateTriangleOctree(
   end;
 
 begin
-  Result := TVRMLTriangleOctree.Create(AMaxDepth, ALeafCapacity, BoundingBox);
+  Result := TVRMLTriangleOctree.Create(Limits, BoundingBox);
   try
     Result.Triangles.AllowedCapacityOverflow := TrianglesCount(false);
     try
@@ -3541,7 +3537,7 @@ begin
 end;
 
 function TVRMLScene.CreateShapeOctree(
-  AMaxDepth, ALeafCapacity: integer;
+  const Limits: TOctreeLimits;
   const ProgressTitle: string;
   const Collidable: boolean): TVRMLShapeOctree;
 var
@@ -3554,8 +3550,7 @@ begin
     { Add only active and visible shapes }
     ShapesList := TVRMLShapesList.Create(Shapes, true, true, false);
 
-  Result := TVRMLShapeOctree.Create(AMaxDepth, ALeafCapacity,
-    BoundingBox, ShapesList, true);
+  Result := TVRMLShapeOctree.Create(Limits, BoundingBox, ShapesList, true);
   try
     if (ProgressTitle <> '') and
        (Progress.UserInterface <> nil) and

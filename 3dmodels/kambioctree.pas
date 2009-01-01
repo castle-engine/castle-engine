@@ -282,6 +282,15 @@ type
       out SubnodeLow, SubnodeHigh: TOctreeSubnodeIndex);
   end;
 
+  { Helper structure to keep octree limits. Useful to implement
+    VRML extension
+    [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_octree_properties]. }
+  TOctreeLimits = record
+    MaxDepth: integer;
+    LeafCapacity: Integer;
+  end;
+  POctreeLimits = ^TOctreeLimits;
+
   TOctree = class
   private
     FTreeRoot: TOctreeNode;
@@ -377,6 +386,9 @@ type
       read FOctreeNodeFinalClass;
 
     constructor Create(AMaxDepth, ALeafCapacity: integer;
+      const ARootBox: TBox3d; AOctreeNodeFinalClass: TOctreeNodeClass;
+      AItemsInNonLeafNodes: boolean);
+    constructor Create(const Limits: TOctreeLimits;
       const ARootBox: TBox3d; AOctreeNodeFinalClass: TOctreeNodeClass;
       AItemsInNonLeafNodes: boolean);
     destructor Destroy; override;
@@ -729,6 +741,14 @@ begin
  FOctreeNodeFinalClass := AOctreeNodeFinalClass;
  FItemsInNonLeafNodes := AItemsInNonLeafNodes;
  FTreeRoot := OctreeNodeFinalClass.Create(ARootBox, Self, 0, true);
+end;
+
+constructor TOctree.Create(const Limits: TOctreeLimits;
+  const ARootBox: TBox3d; AOctreeNodeFinalClass: TOctreeNodeClass;
+  AItemsInNonLeafNodes: boolean);
+begin
+  Create(Limits.MaxDepth, Limits.LeafCapacity,
+    ARootBox, AOctreeNodeFinalClass, AItemsInNonLeafNodes);
 end;
 
 destructor TOctree.Destroy;

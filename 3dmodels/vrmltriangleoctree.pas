@@ -65,6 +65,10 @@ uses VectorMath, SysUtils, KambiUtils, VRMLNodes, Boxes3d, Math,
 const
   DefTriangleOctreeMaxDepth = 10;
   DefTriangleOctreeLeafCapacity = 20;
+  DefTriangleOctreeLimits: TOctreeLimits = (
+    MaxDepth: DefTriangleOctreeMaxDepth;
+    LeafCapacity: DefTriangleOctreeLeafCapacity
+  );
 
 { TTriangleOctreeNode ------------------------------------------------------------------}
 
@@ -174,8 +178,7 @@ type
       const LeavesCount, ItemsCount, NonLeafNodesCount: Int64): string; override;
   public
     constructor Create(const ARootBox: TBox3d); overload;
-    constructor Create(AMaxDepth, ALeafCapacity: integer;
-      const ARootBox: TBox3d); overload;
+    constructor Create(const ALimits: TOctreeLimits; const ARootBox: TBox3d); overload;
     destructor Destroy; override;
 
     { tu beda zgromadzone wszystkie Triangles jakie mamy w drzewie.
@@ -492,14 +495,13 @@ end;
 
 constructor TVRMLTriangleOctree.Create(const ARootBox: TBox3d);
 begin
- Create(DefTriangleOctreeMaxDepth, DefTriangleOctreeLeafCapacity, ARootBox);
+ Create(DefTriangleOctreeLimits, ARootBox);
 end;
 
-constructor TVRMLTriangleOctree.Create(AMaxDepth, ALeafCapacity: integer;
+constructor TVRMLTriangleOctree.Create(const ALimits: TOctreeLimits;
   const ARootBox: TBox3d);
 begin
- inherited Create (AMaxDepth, ALeafCapacity, ARootBox,
-   TTriangleOctreeNode, false);
+ inherited Create (ALimits, ARootBox, TTriangleOctreeNode, false);
  Triangles := TDynVRMLTriangleArray.Create;
 end;
 
@@ -517,10 +519,15 @@ end;
 function TVRMLTriangleOctree.StatisticsBonus(
   const LeavesCount, ItemsCount, NonLeafNodesCount: Int64): string;
 begin
+ Result := nl+
+   Format(
+   '  Octree constructed with limits: max depth %d, leaf capacity %d.',
+   [MaxDepth, LeafCapacity]) + nl + nl;
+
  if Triangles.Count = 0 then
-  Result :=
+  Result +=
     '  Empty octree - no triangles defined.' +nl else
-  Result := Format(
+  Result += Format(
     '  %d items (=triangles) defined for octree, %d items in octree''s nodes' +nl+
     '  - so each triangle is present in tree about %f times.' +nl,
     [ Triangles.Count, ItemsCount, ItemsCount / Triangles.Count] );
