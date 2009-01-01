@@ -194,6 +194,14 @@
     public property FdreplaceNodes: TMFNode read FFdreplaceNodes;
   end;
 
+  TSceneOctreeProperties = (
+    opRendering,
+    opDynamicCollisions,
+    opVisibleTriangles,
+    opCollidableTriangles);
+
+  TNodeKambiOctreeProperties = class;
+
   TNodeKambiNavigationInfo = class(TNodeNavigationInfo)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -202,6 +210,39 @@
 
     private FFdtimeOriginAtLoad: TSFBool;
     public property FdtimeOriginAtLoad: TSFBool read FFdtimeOriginAtLoad;
+
+    private FFdoctreeRendering: TSFNode;
+    public property FdoctreeRendering: TSFNode read FFdoctreeRendering;
+
+    private FFdoctreeDynamicCollisions: TSFNode;
+    public property FdoctreeDynamicCollisions: TSFNode read FFdoctreeDynamicCollisions;
+
+    private FFdoctreeVisibleTriangles: TSFNode;
+    public property FdoctreeVisibleTriangles: TSFNode read FFdoctreeVisibleTriangles;
+
+    private FFdoctreeCollidableTriangles: TSFNode;
+    public property FdoctreeCollidableTriangles: TSFNode read FFdoctreeCollidableTriangles;
+
+    { Return value of appropriate FdOctreeXxx field.
+      Returns @nil if the field doesn't have allowed (TNodeKambiOctreeProperties)
+      value (or if the field is actually @nil, naturally). }
+    function OctreeProperties(OP: TSceneOctreeProperties): TNodeKambiOctreeProperties;
+  end;
+
+  TNodeKambiOctreeProperties = class(TNodeX3DNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdMaxDepth: TSFInt32;
+    public property FdMaxDepth: TSFInt32 read FFdMaxDepth;
+
+    private FFdLeafCapacity: TSFInt32;
+    public property FdLeafCapacity: TSFInt32 read FFdLeafCapacity;
+
+    { Override Limits fields, where our own fields have values <> -1. }
+    procedure OverrideLimits(var Limits: TOctreeLimits);
   end;
 
 {$endif read_interface}
@@ -519,7 +560,24 @@ begin
   inherited;
 
   FFdtimeOriginAtLoad := TSFBool.Create(Self, 'timeOriginAtLoad', false);
+  FFdtimeOriginAtLoad.Exposed := false;
   Fields.Add(FFdtimeOriginAtLoad);
+
+  FFdoctreeRendering := TSFNode.Create(Self, 'octreeRendering', [TNodeKambiOctreeProperties]);
+  FFdoctreeRendering.Exposed := false;
+  Fields.Add(FFdoctreeRendering);
+
+  FFdoctreeDynamicCollisions := TSFNode.Create(Self, 'octreeDynamicCollisions', [TNodeKambiOctreeProperties]);
+  FFdoctreeDynamicCollisions.Exposed := false;
+  Fields.Add(FFdoctreeDynamicCollisions);
+
+  FFdoctreeVisibleTriangles := TSFNode.Create(Self, 'octreeVisibleTriangles', [TNodeKambiOctreeProperties]);
+  FFdoctreeVisibleTriangles.Exposed := false;
+  Fields.Add(FFdoctreeVisibleTriangles);
+
+  FFdoctreeCollidableTriangles := TSFNode.Create(Self, 'octreeCollidableTriangles', [TNodeKambiOctreeProperties]);
+  FFdoctreeCollidableTriangles.Exposed := false;
+  Fields.Add(FFdoctreeCollidableTriangles);
 end;
 
 class function TNodeKambiNavigationInfo.ClassNodeTypeName: string;
@@ -532,6 +590,59 @@ begin
   Result := (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
+function TNodeKambiNavigationInfo.OctreeProperties(
+  OP: TSceneOctreeProperties): TNodeKambiOctreeProperties;
+var
+  N: TVRMLNode;
+begin
+  case OP of
+    opRendering           : N := FdOctreeRendering          .Value;
+    opDynamicCollisions   : N := FdOctreeDynamicCollisions  .Value;
+    opVisibleTriangles    : N := FdOctreeVisibleTriangles   .Value;
+    opCollidableTriangles : N := FdOctreeCollidableTriangles.Value;
+    else raise EInternalError.Create('TNodeKambiOctreeProperties.OctreeProperties');
+  end;
+  if N is TNodeKambiOctreeProperties then
+    Result := TNodeKambiOctreeProperties(N) else
+    Result := nil;
+end;
+
+constructor TNodeKambiOctreeProperties.Create(
+  const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdMaxDepth := TSFInt32.Create(Self, 'maxDepth', -1);
+  Fields.Add(FFdMaxDepth);
+
+  FFdLeafCapacity := TSFInt32.Create(Self, 'leafCapacity', -1);
+  Fields.Add(FFdLeafCapacity);
+end;
+
+class function TNodeKambiOctreeProperties.ClassNodeTypeName: string;
+begin
+  Result := 'KambiOctreeProperties';
+end;
+
+class function TNodeKambiOctreeProperties.URNMatching(const URN: string): boolean;
+begin
+  Result := (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
+
+procedure TNodeKambiOctreeProperties.OverrideLimits(var Limits: TOctreeLimits);
+begin
+  if FdMaxDepth.Value >= 0 then
+    Limits.MaxDepth := FdMaxDepth.Value else
+  if FdMaxDepth.Value <> -1 then
+    VRMLNonFatalError('KambiOctreeProperties.maxDepth must be >= -1');
+
+  if FdLeafCapacity.Value >= 0 then
+    Limits.LeafCapacity := FdLeafCapacity.Value else
+  if FdLeafCapacity.Value <> -1 then
+    VRMLNonFatalError('KambiOctreeProperties.leafCapacity must be >= -1');
+end;
+
 procedure RegisterKambiNodes;
 begin
   NodesManager.RegisterNodeClasses([
@@ -541,7 +652,8 @@ begin
     TNodeBlendMode,
     TNodeKambiAppearance,
     TNodeKambiInline,
-    TNodeKambiNavigationInfo
+    TNodeKambiNavigationInfo,
+    TNodeKambiOctreeProperties
   ]);
 end;
 

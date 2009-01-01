@@ -644,6 +644,10 @@ type
 
     FCompiledScriptHandlers: TDynCompiledScriptHandlerInfoArray;
 
+    function OverrideOctreeLimits(
+      const BaseLimits: TOctreeLimits;
+      const OP: TSceneOctreeProperties): TOctreeLimits;
+
     { Create octree containing all triangles or shapes from our scene.
       Create octree, inits it with our BoundingBox
       and adds shapes (or all triangles from our Shapes).
@@ -3196,7 +3200,7 @@ begin
 
     FreeAndNil(FOctreeRendering);
     FOctreeRendering := CreateShapeOctree(
-      FShapeOctreeLimits,
+      OverrideOctreeLimits(FShapeOctreeLimits, opRendering),
       ShapeOctreeProgressTitle,
       false);
 
@@ -3211,7 +3215,7 @@ begin
   begin
     FreeAndNil(FOctreeDynamicCollisions);
     FOctreeDynamicCollisions := CreateShapeOctree(
-      FShapeOctreeLimits,
+      OverrideOctreeLimits(FShapeOctreeLimits, opDynamicCollisions),
       ShapeOctreeProgressTitle,
       true);
 
@@ -3350,6 +3354,22 @@ end;
 
 { octrees -------------------------------------------------------------------- }
 
+function TVRMLScene.OverrideOctreeLimits(
+  const BaseLimits: TOctreeLimits;
+  const OP: TSceneOctreeProperties): TOctreeLimits;
+var
+  Props: TNodeKambiOctreeProperties;
+begin
+  Result := BaseLimits;
+  if (NavigationInfoStack.Top <> nil) and
+     (NavigationInfoStack.Top is TNodeKambiNavigationInfo) then
+  begin
+    Props := TNodeKambiNavigationInfo(NavigationInfoStack.Top).OctreeProperties(OP);
+    if Props <> nil then
+      Props.OverrideLimits(Result);
+  end;
+end;
+
 function TVRMLScene.TriangleOctreeLimits: POctreeLimits;
 begin
   Result := @FTriangleOctreeLimits;
@@ -3420,7 +3440,7 @@ begin
     if New and not Old then
     begin
       FOctreeRendering := CreateShapeOctree(
-        FShapeOctreeLimits,
+        OverrideOctreeLimits(FShapeOctreeLimits, opRendering),
         ShapeOctreeProgressTitle,
         false);
     end;
@@ -3438,7 +3458,7 @@ begin
     if New and not Old then
     begin
       FOctreeDynamicCollisions := CreateShapeOctree(
-        FShapeOctreeLimits,
+        OverrideOctreeLimits(FShapeOctreeLimits, opDynamicCollisions),
         ShapeOctreeProgressTitle,
         true);
 
@@ -3460,7 +3480,7 @@ begin
     if New and not Old then
     begin
       FOctreeVisibleTriangles := CreateTriangleOctree(
-        FTriangleOctreeLimits,
+        OverrideOctreeLimits(FTriangleOctreeLimits, opVisibleTriangles),
         TriangleOctreeProgressTitle,
         false);
     end;
@@ -3477,7 +3497,7 @@ begin
     if New and not Old then
     begin
       FOctreeCollidableTriangles := CreateTriangleOctree(
-        FTriangleOctreeLimits,
+        OverrideOctreeLimits(FTriangleOctreeLimits, opCollidableTriangles),
         TriangleOctreeProgressTitle,
         true);
     end;
