@@ -111,8 +111,9 @@ type
       Seemingly reproducible only with "DRI Intel"
       (not reproducible on "chantal" with upstream Mesa 7.2).
 
-      TODO: report to Mesa? In what Mesa version is it introduced,
-      in what (if any) is it fixed?
+      Reported to Ubuntu as
+      https://bugs.launchpad.net/ubuntu/+source/mesa/+bug/312830,
+      let them report upstream if needed.
       For now this is @true just always when IsMesa is detected
       and Renderer indicates "Mesa DRI Intel...".
       Avoiding GL_POINT_SET doesn't hurt us much. Feel free to investigate
