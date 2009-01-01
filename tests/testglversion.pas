@@ -39,10 +39,12 @@ procedure TTestGLVersion.Test1;
 var
   G: TGLVersion;
 begin
-  G := TGLVersion.Create('1.4 (2.1 Mesa 7.0.4)', 'Mesa project: www.mesa3d.org');
+  G := TGLVersion.Create('1.4 (2.1 Mesa 7.0.4)',
+    'Mesa project: www.mesa3d.org', 'Mesa GLX Indirect');
   try
     Assert(G.VendorVersion = '(2.1 Mesa 7.0.4)');
     Assert(G.Vendor = 'Mesa project: www.mesa3d.org');
+    Assert(G.Renderer = 'Mesa GLX Indirect');
 
     Assert(G.Major = 1);
     Assert(G.Minor = 4);
@@ -61,12 +63,16 @@ begin
     Assert(G.MesaMajor = 7);
     Assert(G.MesaMinor = 0);
     Assert(G.MesaRelease = 4);
+
+    Assert(not G.BuggyPointSetAttrib);
   finally FreeAndNil(G) end;
 
-  G := TGLVersion.Create('2.1 Mesa 7.1', 'Brian Paul');
+  G := TGLVersion.Create('2.1 Mesa 7.1', 'Brian Paul',
+    'Mesa DRI Intel(blah blah blah)');
   try
     Assert(G.VendorVersion = 'Mesa 7.1');
     Assert(G.Vendor = 'Brian Paul');
+    Assert(G.Renderer = 'Mesa DRI Intel(blah blah blah)');
 
     Assert(G.Major = 2);
     Assert(G.Minor = 1);
@@ -77,18 +83,23 @@ begin
     Assert(G.MesaMajor = 7);
     Assert(G.MesaMinor = 1);
     Assert(G.MesaRelease = 0);
+
+    Assert(G.BuggyPointSetAttrib);
   finally FreeAndNil(G) end;
 
-  G := TGLVersion.Create('1.2.3', 'foobar');
+  G := TGLVersion.Create('1.2.3', 'foobar', '');
   try
     Assert(G.VendorVersion = '');
     Assert(G.Vendor = 'foobar');
+    Assert(G.Renderer = '');
 
     Assert(G.Major = 1);
     Assert(G.Minor = 2);
     Assert(G.ReleaseExists);
     Assert(G.Release = 3);
     Assert(not G.IsMesa);
+
+    Assert(not G.BuggyPointSetAttrib);
   finally FreeAndNil(G) end;
 end;
 
