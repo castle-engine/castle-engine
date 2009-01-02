@@ -86,7 +86,7 @@ type
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
       const Pos1, Pos2: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -96,7 +96,7 @@ type
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -117,7 +117,7 @@ type
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
       const pos1, pos2: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -127,7 +127,7 @@ type
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -157,7 +157,7 @@ type
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
       const Pos1, Pos2: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -165,7 +165,7 @@ type
 
     function IsSegmentCollision(
       const Pos1, Pos2: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const Tag: TMailboxTag;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
@@ -174,7 +174,7 @@ type
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -182,7 +182,7 @@ type
 
     function IsRayCollision(
       const Ray0, RayVector: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const Tag: TMailboxTag;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
@@ -355,7 +355,7 @@ function TVRMLShapeOctreeNode.CommonSegmentLeaf(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Pos1, Pos2: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
@@ -378,7 +378,7 @@ begin
       try
         LocalPos1 := MatrixMultPoint(Shape.State.InvertedTransform, Pos1);
         LocalPos2 := MatrixMultPoint(Shape.State.InvertedTransform, Pos2);
-        Result := Shape.OctreeTriangles.SegmentCollision(
+        Result := Shape.SegmentCollision(Tag,
           Intersection, IntersectionDistance, LocalPos1, LocalPos2,
           ReturnClosestIntersection,
           TriangleToIgnore, IgnoreMarginAtStart, TrianglesToIgnoreFunc);
@@ -404,7 +404,7 @@ begin
       try
         LocalPos1 := MatrixMultPoint(Shape.State.InvertedTransform, Pos1);
         LocalPos2 := MatrixMultPoint(Shape.State.InvertedTransform, Pos2);
-        ThisResult := Shape.OctreeTriangles.SegmentCollision(
+        ThisResult := Shape.SegmentCollision(Tag,
           ThisIntersection, ThisIntersectionDistance, LocalPos1, LocalPos2,
           ReturnClosestIntersection,
           TriangleToIgnore, IgnoreMarginAtStart, TrianglesToIgnoreFunc);
@@ -430,7 +430,7 @@ function TVRMLShapeOctreeNode.LocalSegmentCollision(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Pos1, Pos2: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
@@ -438,7 +438,7 @@ function TVRMLShapeOctreeNode.LocalSegmentCollision(
 begin
   Result := CommonSegment(
     Intersection, IntersectionDistance, Pos1, Pos2,
-    {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+    Tag,
     ReturnClosestIntersection, TriangleToIgnore,
     IgnoreMarginAtStart, TrianglesToIgnoreFunc);
 end;
@@ -447,7 +447,7 @@ function TVRMLShapeOctreeNode.SegmentCollision(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Pos1, Pos2: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
@@ -455,7 +455,7 @@ function TVRMLShapeOctreeNode.SegmentCollision(
 begin
   Result := LocalSegmentCollision(
     Intersection, IntersectionDistance, Pos1, Pos2,
-    {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+    Tag,
     ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
     TrianglesToIgnoreFunc);
 
@@ -472,7 +472,7 @@ end;
 
 function TVRMLShapeOctreeNode.IsSegmentCollision(
   const Pos1, Pos2: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const Tag: TMailboxTag;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
@@ -483,7 +483,7 @@ var
 begin
   Result := LocalSegmentCollision(
     Intersection, IntersectionDistance, Pos1, Pos2,
-    {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+    Tag,
     {ReturnClosestIntersection}false, TriangleToIgnore, IgnoreMarginAtStart,
     TrianglesToIgnoreFunc) <> nil;
 end;
@@ -492,7 +492,7 @@ function TVRMLShapeOctreeNode.CommonRayLeaf(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
@@ -515,7 +515,7 @@ begin
       try
         LocalRay0 := MatrixMultPoint(Shape.State.InvertedTransform, Ray0);
         LocalRayVector := MatrixMultDirection(Shape.State.InvertedTransform, RayVector);
-        Result := Shape.OctreeTriangles.RayCollision(
+        Result := Shape.RayCollision(Tag,
           Intersection, IntersectionDistance, LocalRay0, LocalRayVector,
           ReturnClosestIntersection,
           TriangleToIgnore, IgnoreMarginAtStart, TrianglesToIgnoreFunc);
@@ -542,7 +542,7 @@ begin
       try
         LocalRay0 := MatrixMultPoint(Shape.State.InvertedTransform, Ray0);
         LocalRayVector := MatrixMultDirection(Shape.State.InvertedTransform, RayVector);
-        ThisResult := Shape.OctreeTriangles.RayCollision(
+        ThisResult := Shape.RayCollision(Tag,
           ThisIntersection, ThisIntersectionDistance, LocalRay0, LocalRayVector,
           ReturnClosestIntersection,
           TriangleToIgnore, IgnoreMarginAtStart, TrianglesToIgnoreFunc);
@@ -568,7 +568,7 @@ function TVRMLShapeOctreeNode.LocalRayCollision(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
@@ -576,7 +576,7 @@ function TVRMLShapeOctreeNode.LocalRayCollision(
 begin
   Result := CommonRay(
     Intersection, IntersectionDistance, Ray0, RayVector,
-    {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+    Tag,
     ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
     TrianglesToIgnoreFunc);
 end;
@@ -585,7 +585,7 @@ function TVRMLShapeOctreeNode.RayCollision(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
@@ -593,7 +593,7 @@ function TVRMLShapeOctreeNode.RayCollision(
 begin
   Result := LocalRayCollision(Intersection, IntersectionDistance,
     Ray0, RayVector,
-    {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+    Tag,
     ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
     TrianglesToIgnoreFunc);
 
@@ -610,7 +610,7 @@ end;
 
 function TVRMLShapeOctreeNode.IsRayCollision(
   const Ray0, RayVector: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const Tag: TMailboxTag;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
@@ -621,7 +621,7 @@ var
 begin
   Result := LocalRayCollision(Intersection, IntersectionDistance,
     Ray0, RayVector,
-    {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+    Tag,
     {ReturnClosestIntersection}false, TriangleToIgnore, IgnoreMarginAtStart,
     TrianglesToIgnoreFunc) <> nil;
 end;
@@ -683,6 +683,5 @@ begin
   for I := 0 to ShapesList.Count - 1 do
     Result += ShapesList.Items[I].OctreeTriangles.TrianglesCount;
 end;
-
 
 end.

@@ -37,8 +37,8 @@ uses VectorMath, SysUtils, KambiUtils, VRMLNodes, Boxes3d, Math,
 
 type
   { }
-  TVRMLTriangleMailboxState = (msEmpty, msRay, msSegmentDir);
   TCollisionCount = Int64;
+  TMailboxTag = Int64;
 
   TVRMLTriangleGeometry = record
     Triangle: TTriangle3Single;
@@ -124,8 +124,9 @@ type
       is a TNodeSphere) then both FaceCoordIndex* are -1. }
     FaceCoordIndexBegin, FaceCoordIndexEnd: Integer;
 
-    {$ifdef OCTREE_ITEM_USE_MAILBOX}
-    { MailboxSavedTag is a tag of item for which we have saved an
+    {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
+    { MailboxSavedTag is a tag of object (like ray or line segment)
+      for which we have saved an
       intersection result. Intersection result is in
       MailboxIsIntersection, MailboxIntersection, MailboxIntersectionDistance.
 
@@ -136,7 +137,7 @@ type
       starting from 0.
 
       @groupBegin }
-    MailboxSavedTag: Int64;
+    MailboxSavedTag: TMailboxTag;
     MailboxIsIntersection: boolean;
     MailboxIntersection: TVector3Single;
     MailboxIntersectionDistance: Single;
@@ -147,7 +148,7 @@ type
 
       Always use these routines to check for collisions,
       to use mailboxes if possible. Mailboxes are used only if this was
-      compiled with OCTREE_ITEM_USE_MAILBOX defined.
+      compiled with TRIANGLE_OCTREE_USE_MAILBOX defined.
 
       Increments DirectCollisionTestsCounter if actual test was done
       (that is, if we couldn't use mailbox to get the result quickier).
@@ -157,14 +158,14 @@ type
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
       const Odc0, OdcVector: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const OdcTag: Int64; {$endif}
+      const SegmentTag: TMailboxTag;
       var DirectCollisionTestsCounter: TCollisionCount): boolean;
 
     function RayCollision(
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayTag: Int64; {$endif}
+      const RayTag: TMailboxTag;
       var DirectCollisionTestsCounter: TCollisionCount): boolean;
     { @groupEnd }
 
@@ -229,7 +230,7 @@ type
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
       const pos1, pos2: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -239,7 +240,7 @@ type
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
       const pos1, pos2: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -249,7 +250,7 @@ type
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -259,7 +260,7 @@ type
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -311,7 +312,7 @@ type
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
       const pos1, pos2: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -319,7 +320,7 @@ type
 
     function IsSegmentCollision(
       const pos1, pos2: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const Tag: TMailboxTag;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; virtual; abstract;
@@ -328,7 +329,7 @@ type
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -336,7 +337,7 @@ type
 
     function IsRayCollision(
       const Ray0, RayVector: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const Tag: TMailboxTag;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; virtual; abstract;
@@ -358,28 +359,26 @@ type
     with TVRMLTriangle, even though it doesn't directly store TVRMLTriangle items. }
   TVRMLBaseTrianglesOctree = class(TOctree)
   private
-    {$ifdef OCTREE_ITEM_USE_MAILBOX}
     { nastepny wolny tag ktory przydzielimy nastepnemu promieniowi lub
       odcinkowi z ktorym bedziemy chcieli robic test na kolizje z octree.
-      Ta zmienna moze byc czytana/pisana tylko przez AssignNewRayOdcTag. }
-    NextFreeRayOdcTag: Int64;
+      Ta zmienna moze byc czytana/pisana tylko przez AssignNewTag. }
+    NextFreeTag: TMailboxTag;
 
-    { zwroci NextFreeRayOdcTag i zrobi Inc(NextFreeRayOdcTag).
+    { zwroci NextFreeTag i zrobi Inc(NextFreeTag).
       Uzywaj tego aby przydzielic nowy tag. Uzywanie tej funkcji przy okazji
       zapobiega potencjalnie blednej sytuacji :
-        TreeRoot.SegmentColision(..., NextFreeRayOdcTag, ...)
-        Inc(NextFreeRayOdcTag);
+        TreeRoot.SegmentColision(..., NextFreeTag, ...)
+        Inc(NextFreeTag);
       Powyzszy kod bedzie ZAZWYCZAJ dzialal - ale spowoduje on ze nie bedzie
       mozna uzywac Segment/RayCollision na tym samym TVRMLTriangleOctree gdy juz
       jestesmy w trakcie badania kolizji. Np. callbacki w rodzaju
       TVRMLTriangleIgnoreFunc nie beda mogly wywolywac kolizji. Innymi slowy,
       taki zapis uczynilby Segment/RayCollision non-reentrant. A to na dluzsza
-      mete zawsze jest klopotliwe. Natomiast robienie Inc(NextFreeRayOdcTag);
+      mete zawsze jest klopotliwe. Natomiast robienie Inc(NextFreeTag);
       przed faktycznym wejsciem do funkcji TreeRoot.SegmentColision
-      usuwa ten blad. Uzywajac funkcji AssignNewRayOdcTag automatycznie
+      usuwa ten blad. Uzywajac funkcji AssignNewTag automatycznie
       to robimy. }
-    function AssignNewRayOdcTag: Int64;
-    {$endif OCTREE_ITEM_USE_MAILBOX}
+    function AssignNewTag: TMailboxTag;
   public
     { Collision checking using the octree.
 
@@ -781,7 +780,7 @@ begin
   FaceCoordIndexBegin := AFaceCoordIndexBegin;
   FaceCoordIndexEnd := AFaceCoordIndexEnd;
 
-  {$ifdef OCTREE_ITEM_USE_MAILBOX}
+  {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
   MailboxSavedTag := -1;
   {$endif}
 end;
@@ -797,11 +796,11 @@ function TVRMLTriangle.SegmentDirCollision(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Odc0, OdcVector: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const OdcTag: Int64; {$endif}
+  const SegmentTag: TMailboxTag;
   var DirectCollisionTestsCounter: TCollisionCount): boolean;
 begin
-  {$ifdef OCTREE_ITEM_USE_MAILBOX}
-  if MailboxSavedTag = OdcTag then
+  {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
+  if MailboxSavedTag = SegmentTag then
   begin
     result := MailboxIsIntersection;
     if result then
@@ -819,9 +818,9 @@ begin
       Odc0, OdcVector);
     Inc(DirectCollisionTestsCounter);
 
-  {$ifdef OCTREE_ITEM_USE_MAILBOX}
+  {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
     { save result to mailbox }
-    MailboxSavedTag := OdcTag;
+    MailboxSavedTag := SegmentTag;
     MailboxIsIntersection := result;
     if result then
     begin
@@ -836,14 +835,14 @@ function TVRMLTriangle.RayCollision(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayTag: Int64; {$endif}
+  const RayTag: TMailboxTag;
   var DirectCollisionTestsCounter: TCollisionCount): boolean;
 begin
   { uwzgledniam tu fakt ze czesto bedzie wypuszczanych wiele promieni
     z jednego Ray0 ale z roznym RayVector (np. w raytracerze). Wiec lepiej
     najpierw porownywac przechowywane w skrzynce RayVector (niz Ray0)
     zeby moc szybciej stwierdzic niezgodnosc. }
-  {$ifdef OCTREE_ITEM_USE_MAILBOX}
+  {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
   if MailboxSavedTag = RayTag then
   begin
     result := MailboxIsIntersection;
@@ -862,7 +861,7 @@ begin
       Ray0, RayVector);
     Inc(DirectCollisionTestsCounter);
 
-  {$ifdef OCTREE_ITEM_USE_MAILBOX}
+  {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
     { zapisz wyniki do mailboxa }
     MailboxSavedTag := RayTag;
     MailboxIsIntersection := result;
@@ -950,7 +949,7 @@ function TVRMLBaseTrianglesOctreeNode.CommonSegment(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Pos1, Pos2: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
@@ -963,7 +962,7 @@ function TVRMLBaseTrianglesOctreeNode.CommonRay(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
@@ -985,7 +984,7 @@ begin
   Result := TVRMLBaseTrianglesOctreeNode(InternalTreeRoot).SegmentCollision(
     Intersection, IntersectionDistance,
     Pos1, Pos2,
-    {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
+    AssignNewTag,
     ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
     TrianglesToIgnoreFunc);
 end;}
@@ -1028,7 +1027,7 @@ function TVRMLBaseTrianglesOctree.IsSegmentCollision(
 begin
   Result := TVRMLBaseTrianglesOctreeNode(InternalTreeRoot).IsSegmentCollision(
     Pos1, Pos2,
-    {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
+    AssignNewTag,
     TriangleToIgnore, IgnoreMarginAtStart,
     TrianglesToIgnoreFunc);
 end;
@@ -1080,7 +1079,7 @@ begin
   Result := TVRMLBaseTrianglesOctreeNode(InternalTreeRoot).RayCollision(
     Intersection, IntersectionDistance,
     Ray0, RayVector,
-    {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
+    AssignNewTag,
     ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
     TrianglesToIgnoreFunc);
 end;}
@@ -1123,7 +1122,7 @@ function TVRMLBaseTrianglesOctree.IsRayCollision(
 begin
   Result := TVRMLBaseTrianglesOctreeNode(InternalTreeRoot).IsRayCollision(
     Ray0, RayVector,
-    {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
+    AssignNewTag,
     TriangleToIgnore, IgnoreMarginAtStart,
     TrianglesToIgnoreFunc);
 end;
@@ -1289,13 +1288,11 @@ end;
 
 { Other TVRMLBaseTrianglesOctree utils ----------------------------------------------- }
 
-{$ifdef OCTREE_ITEM_USE_MAILBOX}
-function TVRMLBaseTrianglesOctree.AssignNewRayOdcTag: Int64;
+function TVRMLBaseTrianglesOctree.AssignNewTag: TMailboxTag;
 begin
- result := NextFreeRayOdcTag;
- Inc(NextFreeRayOdcTag);
+ result := NextFreeTag;
+ Inc(NextFreeTag);
 end;
-{$endif}
 
 class function TVRMLBaseTrianglesOctree.IgnoreTransparentItem(
   const Octree: TVRMLBaseTrianglesOctree;

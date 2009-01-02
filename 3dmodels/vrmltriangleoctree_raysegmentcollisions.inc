@@ -80,12 +80,12 @@ var
       {$ifdef SEGMENT_COLLISION}
       Item.SegmentDirCollision(Intersection, IntersectionDistance,
         Pos1, RayVector,
-        {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+        Tag,
         ParentTree.DirectCollisionTestsCounter)
       {$else}
       Item.RayCollision(Intersection, IntersectionDistance,
         Ray0, RayVector,
-        {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+        Tag,
         ParentTree.DirectCollisionTestsCounter)
       {$endif}
   end;

@@ -1,5 +1,6 @@
-{ zdefiniuj OCTREE_ITEM_USE_MAILBOX aby w TVRMLTriangle.*Collision uzywac
-  wlasciwosci Mailbox* obiektow TVRMLTriangle. W ten sposob mozemy uniknac
+{ Define TRIANGLE_OCTREE_USE_MAILBOX to use mailboxes for TVRMLTriangleOctree.
+
+  W ten sposob mozemy uniknac
   wielokrotnego sprawdzania przeciecia tego samego trojkata z tym samym
   promieniem na skutek tego ze jeden trojkat moze trafic do wielu lisci.
 
@@ -15,4 +16,17 @@
   przeciêtny zysk czasowy ze zdefiniowania tego symbolu dla drzew
   o¶emkowych w rodzaju max-depth = 10 i leaf-capacity = 20 wynosi
   1.09 (tzn.  stary czas dzia³ania / nowy czas dzia³ania = 1.09) }
-{$define OCTREE_ITEM_USE_MAILBOX}
+{$define TRIANGLE_OCTREE_USE_MAILBOX}
+
+{ Define SHAPE_OCTREE_USE_MAILBOX to use in TVRMLShapeOctree the
+  mailbox method.
+  This helps for TVRMLShapeOctree with a lot of shapes duplicated in leaves.
+
+  E.g. caste's gate_final.wrl speed --- more than 2 times speedup
+  with rayhunter using OctreeDynamicCollisions! (from 12.87 to 5.20).
+  Tests show that this helps for any model where shapes are duplicated > 1.
+  For models where shapes are not duplicated (like alien_mirror.wrl),
+  this makes a slight slowdown (from to 1.38 to 1.49), but I think that's
+  acceptable. Trivial models are fast enough anyway.
+}
+{$define SHAPE_OCTREE_USE_MAILBOX}

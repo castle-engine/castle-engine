@@ -287,12 +287,12 @@
         ustawiona na false. }
       {$ifdef SEGMENT_COLLISION}
       CommonSegment(Intersection, IntersectionDistance, Pos1, Pos2,
-        {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+        Tag,
         ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
         TrianglesToIgnoreFunc)
       {$else}
       CommonRay(Intersection, IntersectionDistance, Ray0, RayVector,
-        {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+        Tag,
         ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
         TrianglesToIgnoreFunc)
       {$endif}
@@ -316,12 +316,12 @@ begin
     Result :=
       {$ifdef SEGMENT_COLLISION}
       CommonSegmentLeaf(Intersection, IntersectionDistance, Pos1, Pos2,
-        {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+        Tag,
         ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
         TrianglesToIgnoreFunc)
       {$else}
       CommonRayLeaf(Intersection, IntersectionDistance, Ray0, RayVector,
-        {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+        Tag,
         ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
         TrianglesToIgnoreFunc)
       {$endif}

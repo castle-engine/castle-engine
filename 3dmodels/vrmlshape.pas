@@ -25,10 +25,12 @@
 
 unit VRMLShape;
 
+{$I vrmloctreeconf.inc}
+
 interface
 
 uses SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils,
-  KambiUtils, VRMLTriangleOctree, Frustum, KambiOctree;
+  KambiUtils, VRMLTriangleOctree, Frustum, KambiOctree, VRMLTriangle;
 
 {$define read_interface}
 
@@ -176,6 +178,16 @@ type
 
     function OverrideOctreeLimits(
       const BaseLimits: TOctreeLimits): TOctreeLimits;
+
+    {$ifdef SHAPE_OCTREE_USE_MAILBOX}
+    { Mailbox, for speeding up collision queries.
+      @groupBegin }
+    MailboxSavedTag: TMailboxTag;
+    MailboxResult: PVRMLTriangle;
+    MailboxIntersection: TVector3Single;
+    MailboxIntersectionDistance: Single;
+    { @groupEnd }
+    {$endif}
   public
     constructor Create(AParentScene: TObject;
       AGeometryNode: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
@@ -337,6 +349,30 @@ type
       Ths is simply a shortcut (with more obvious name) for
       @code(State.InsideIgnoreCollision = 0). }
     function Collidable: boolean;
+
+    { Equivalent to using OctreeTriangles.RayCollision, except this
+      wil use the mailbox. }
+    function RayCollision(
+      const Tag: TMailboxTag;
+      out Intersection: TVector3Single;
+      out IntersectionDistance: Single;
+      const Ray0, RayVector: TVector3Single;
+      const ReturnClosestIntersection: boolean;
+      const TriangleToIgnore: PVRMLTriangle;
+      const IgnoreMarginAtStart: boolean;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+
+    { Equivalent to using OctreeTriangles.SegmentCollision, except this
+      wil use the mailbox. }
+    function SegmentCollision(
+      const Tag: TMailboxTag;
+      out Intersection: TVector3Single;
+      out IntersectionDistance: Single;
+      const Pos1, Pos2: TVector3Single;
+      const ReturnClosestIntersection: boolean;
+      const TriangleToIgnore: PVRMLTriangle;
+      const IgnoreMarginAtStart: boolean;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
   end;
 
   TObjectsListItem_2 = TVRMLShapeTree;
@@ -480,7 +516,7 @@ type
 
 implementation
 
-uses ProgressUnit, VRMLTriangle, VRMLScene, VRMLErrors;
+uses ProgressUnit, VRMLScene, VRMLErrors;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -562,6 +598,10 @@ begin
 
   FGeometryNode := AGeometryNode;
   FState := AState;
+
+  {$ifdef SHAPE_OCTREE_USE_MAILBOX}
+  MailboxSavedTag := -1;
+  {$endif}
 end;
 
 destructor TVRMLShape.Destroy;
@@ -818,6 +858,88 @@ end;
 function TVRMLShape.Collidable: boolean;
 begin
   Result := State.InsideIgnoreCollision = 0;
+end;
+
+function TVRMLShape.RayCollision(
+  const Tag: TMailboxTag;
+  out Intersection: TVector3Single;
+  out IntersectionDistance: Single;
+  const Ray0, RayVector: TVector3Single;
+  const ReturnClosestIntersection: boolean;
+  const TriangleToIgnore: PVRMLTriangle;
+  const IgnoreMarginAtStart: boolean;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+begin
+  {$ifdef SHAPE_OCTREE_USE_MAILBOX}
+  if MailboxSavedTag = Tag then
+  begin
+    Result := MailboxResult;
+    if Result <> nil then
+    begin
+      Intersection         := MailboxIntersection;
+      IntersectionDistance := MailboxIntersectionDistance;
+    end;
+  end else
+  begin
+  {$endif}
+
+    Result := OctreeTriangles.RayCollision(
+      Intersection, IntersectionDistance, Ray0, RayVector,
+      ReturnClosestIntersection,
+      TriangleToIgnore, IgnoreMarginAtStart, TrianglesToIgnoreFunc);
+
+  {$ifdef SHAPE_OCTREE_USE_MAILBOX}
+    { save result to mailbox }
+    MailboxSavedTag := Tag;
+    MailboxResult := Result;
+    if Result <> nil then
+    begin
+      MailboxIntersection         := Intersection;
+      MailboxIntersectionDistance := IntersectionDistance;
+    end;
+  end;
+  {$endif}
+end;
+
+function TVRMLShape.SegmentCollision(
+  const Tag: TMailboxTag;
+  out Intersection: TVector3Single;
+  out IntersectionDistance: Single;
+  const Pos1, Pos2: TVector3Single;
+  const ReturnClosestIntersection: boolean;
+  const TriangleToIgnore: PVRMLTriangle;
+  const IgnoreMarginAtStart: boolean;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+begin
+  {$ifdef SHAPE_OCTREE_USE_MAILBOX}
+  if MailboxSavedTag = Tag then
+  begin
+    Result := MailboxResult;
+    if Result <> nil then
+    begin
+      Intersection         := MailboxIntersection;
+      IntersectionDistance := MailboxIntersectionDistance;
+    end;
+  end else
+  begin
+  {$endif}
+
+    Result := OctreeTriangles.SegmentCollision(
+      Intersection, IntersectionDistance, Pos1, Pos2,
+      ReturnClosestIntersection,
+      TriangleToIgnore, IgnoreMarginAtStart, TrianglesToIgnoreFunc);
+
+  {$ifdef SHAPE_OCTREE_USE_MAILBOX}
+    { save result to mailbox }
+    MailboxSavedTag := Tag;
+    MailboxResult := Result;
+    if Result <> nil then
+    begin
+      MailboxIntersection         := Intersection;
+      MailboxIntersectionDistance := IntersectionDistance;
+    end;
+  end;
+  {$endif}
 end;
 
 { TVRMLShapeTreeGroup -------------------------------------------------------- }

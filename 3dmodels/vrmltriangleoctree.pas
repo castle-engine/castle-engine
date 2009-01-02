@@ -92,7 +92,7 @@ type
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
       const pos1, pos2: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -102,7 +102,7 @@ type
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -139,7 +139,7 @@ type
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
       const pos1, pos2: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -147,7 +147,7 @@ type
 
     function IsSegmentCollision(
       const pos1, pos2: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const Tag: TMailboxTag;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
@@ -156,7 +156,7 @@ type
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -164,7 +164,7 @@ type
 
     function IsRayCollision(
       const Ray0, RayVector: TVector3Single;
-      {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+      const Tag: TMailboxTag;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
@@ -191,7 +191,7 @@ type
       mi miec w lapie kazdy element tylko raz.
       - ponadto unikajac robienia TVRMLTriangle jako obiektow unikam fragmentacji
         pamieci
-      - umozliwilem sobie zrobienie OCTREE_ITEM_USE_MAILBOX
+      - umozliwilem sobie uzycie mailboxow (for TRIANGLE_OCTREE_USE_MAILBOX)
       - umozliwiam realizowanie TriangleToIgnore w RayCollision przez szybkie
         porownywanie of a simple pointer (zamiast np. zawartosci TVRMLTriangle) }
     Triangles: TDynVRMLTriangleArray;
@@ -402,7 +402,7 @@ function TTriangleOctreeNode.SegmentCollision(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Pos1, Pos2: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
@@ -410,7 +410,7 @@ function TTriangleOctreeNode.SegmentCollision(
 begin
   Result := CommonSegment(
     Intersection, IntersectionDistance, Pos1, Pos2,
-    {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+    Tag,
     ReturnClosestIntersection, TriangleToIgnore,
     IgnoreMarginAtStart, TrianglesToIgnoreFunc);
 end;
@@ -419,7 +419,7 @@ function TTriangleOctreeNode.CommonSegmentLeaf(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Pos1, Pos2: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
@@ -430,7 +430,7 @@ function TTriangleOctreeNode.CommonSegmentLeaf(
 
 function TTriangleOctreeNode.IsSegmentCollision(
   const Pos1, Pos2: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const Tag: TMailboxTag;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
@@ -440,7 +440,7 @@ var
   IntersectionDistance: Single;
 begin
   Result := SegmentCollision(Intersection, IntersectionDistance, Pos1, Pos2,
-    {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+    Tag,
     {ReturnClosestIntersection}false,
     TriangleToIgnore, IgnoreMarginAtStart, TrianglesToIgnoreFunc) <> nil;
 end;
@@ -449,7 +449,7 @@ function TTriangleOctreeNode.RayCollision(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
@@ -457,7 +457,7 @@ function TTriangleOctreeNode.RayCollision(
 begin
   Result := CommonRay(
     Intersection, IntersectionDistance, Ray0, RayVector,
-    {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+    Tag,
     ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
     TrianglesToIgnoreFunc);
 end;
@@ -466,7 +466,7 @@ function TTriangleOctreeNode.CommonRayLeaf(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
@@ -475,7 +475,7 @@ function TTriangleOctreeNode.CommonRayLeaf(
 
 function TTriangleOctreeNode.IsRayCollision(
   const Ray0, RayVector: TVector3Single;
-  {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
+  const Tag: TMailboxTag;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
@@ -486,7 +486,7 @@ var
 begin
   Result := RayCollision(Intersection, IntersectionDistance,
     Ray0, RayVector,
-    {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+    Tag,
     {ReturnClosestIntersection}false,
     TriangleToIgnore, IgnoreMarginAtStart, TrianglesToIgnoreFunc) <> nil;
 end;
