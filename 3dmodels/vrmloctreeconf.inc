@@ -25,8 +25,12 @@
   E.g. caste's gate_final.wrl speed --- more than 2 times speedup
   with rayhunter using OctreeDynamicCollisions! (from 12.87 to 5.20).
   Tests show that this helps for any model where shapes are duplicated > 1.
+
   For models where shapes are not duplicated (like alien_mirror.wrl),
   this makes a slight slowdown (from to 1.38 to 1.49), but I think that's
-  acceptable. Trivial models are fast enough anyway.
+  acceptable. Trivial models are fast enough anyway. And note that ray-tracers
+  are free to use OctreeVisibleTriangles, not based on shapes,
+  since the scene is static there. This is really only for interactive usage
+  with OctreeDynamicCollisions and such.
 }
 {$define SHAPE_OCTREE_USE_MAILBOX}
