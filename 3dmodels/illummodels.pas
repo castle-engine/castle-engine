@@ -205,24 +205,66 @@ procedure VRML97FogTo1st(var Color: TVector3_Single;
   const CameraPos, VertexPos: TVector3_Single;
   FogNode: TNodeFog; const FogDistanceScaling: Single; FogType: Integer);
 var
-  F: Single;
   FogVisibilityRangeScaled: Single;
-  DistanceFromCameraSqr, DistanceFromCamera: Single;
+
+  procedure ApplyDistance(const Distance: Single);
+  var
+    F: Single;
+  begin
+    case FogType of
+      0: F := (FogVisibilityRangeScaled - Distance) / FogVisibilityRangeScaled;
+      1: F := Exp(-Distance / (FogVisibilityRangeScaled - Distance));
+    end;
+    Color := Vector_Init_Lerp(F, FogNode.FdColor.Value, Color);
+  end;
+
+var
+  FogVolumetricVisibilityStart: Single;
+  Distance, DistanceSqr: Single;
+  VertProjected: TVector3Single;
 begin
   if FogType <> -1 then
   begin
     FogVisibilityRangeScaled :=
       FogNode.FdVisibilityRange.Value * FogDistanceScaling;
-    DistanceFromCameraSqr := PointsDistanceSqr(CameraPos, VertexPos);
-    if DistanceFromCameraSqr >= Sqr(FogVisibilityRangeScaled - SingleEqualityEpsilon) then
-      Color := FogNode.FdColor.Value else
+
+    if FogNode.FdVolumetric.Value then
     begin
-      DistanceFromCamera := Sqrt(DistanceFromCameraSqr);
-      case FogType of
-        0: F := (FogVisibilityRangeScaled - DistanceFromCamera) / FogVisibilityRangeScaled;
-        1: F := Exp(-DistanceFromCamera / (FogVisibilityRangeScaled - DistanceFromCamera));
-      end;
-      Color := Vector_Init_Lerp(F, FogNode.FdColor.Value, Color);
+      FogVolumetricVisibilityStart :=
+        FogNode.FdVolumetricVisibilityStart.Value * FogDistanceScaling;
+
+      { Calculation of Distance for volumetric fog
+        below is analogous to TVRMLMeshRenderer.DoBeforeGLVertex
+        caculation. }
+
+      VertProjected := PointOnLineClosestToPoint(
+        ZeroVector3Single, FogNode.FdVolumetricDirection.Value, VertexPos);
+      Distance := VectorLen(VertProjected);
+      if not AreParallelVectorsSameDirection(
+        VertProjected, FogNode.FdVolumetricDirection.Value) then
+        Distance := -Distance;
+      { Now I want
+        - Distance = FogVolumetricVisibilityStart -> 0
+        - Distance = FogVolumetricVisibilityStart + X -> X
+          (so that Distance = FogVolumetricVisibilityStart +
+          FogVisibilityRangeScaled -> FogVisibilityRangeScaled) }
+      Distance -= FogVolumetricVisibilityStart;
+
+      { When Distance < 0 our intention is to have no fog.
+        So Distance < 0 should be equivalent to Distance = 0. }
+      MaxTo1st(Distance, 0);
+
+      if Distance >= FogVisibilityRangeScaled - SingleEqualityEpsilon then
+        Color := FogNode.FdColor.Value else
+        ApplyDistance(Distance);
+    end else
+    begin
+      DistanceSqr := PointsDistanceSqr(CameraPos, VertexPos);
+
+      if DistanceSqr >= Sqr(FogVisibilityRangeScaled - SingleEqualityEpsilon) then
+        Color := FogNode.FdColor.Value else
+        ApplyDistance(Sqrt(DistanceSqr));
+
     end;
   end;
 end;
