@@ -207,16 +207,17 @@ procedure VRML97FogTo1st(var Color: TVector3_Single;
 var
   F: Single;
   FogVisibilityRangeScaled: Single;
-  DistanceFromCamera: Single;
+  DistanceFromCameraSqr, DistanceFromCamera: Single;
 begin
   if FogType <> -1 then
   begin
     FogVisibilityRangeScaled :=
       FogNode.FdVisibilityRange.Value * FogDistanceScaling;
-    DistanceFromCamera := PointsDistance(CameraPos, VertexPos);
-    if DistanceFromCamera >= FogVisibilityRangeScaled - SingleEqualityEpsilon then
+    DistanceFromCameraSqr := PointsDistanceSqr(CameraPos, VertexPos);
+    if DistanceFromCameraSqr >= Sqr(FogVisibilityRangeScaled - SingleEqualityEpsilon) then
       Color := FogNode.FdColor.Value else
     begin
+      DistanceFromCamera := Sqrt(DistanceFromCameraSqr);
       case FogType of
         0: F := (FogVisibilityRangeScaled - DistanceFromCamera) / FogVisibilityRangeScaled;
         1: F := Exp(-DistanceFromCamera / (FogVisibilityRangeScaled - DistanceFromCamera));
