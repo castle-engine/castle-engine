@@ -105,29 +105,41 @@ function VRML97LightContribution(const Light: TActiveLight;
 function VRML97LightContribution_CameraIndependent(const Light: TActiveLight;
   const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3_Single): TVector3_Single;
 
-{ FogNode jak zwykle moze byc = nil aby powiedziec ze nie uzywamy mgly.
-  Jak zwykle mamy tutaj FogDistanceScaling, podobnie jak w
-  TVRMLScene.
+type
+  TVRMLFogType = type Integer;
 
-  FogType: Integer musi byc poprzednio wyliczone przez VRML97FogType.
-  (to po to zeby VRMLFog() nie musiala za kazdym razem porownywac stringow,
-  co jest raczej wazne gdy np. uzywasz jej jako elementu raytracera).
-  Jesli FogType = -1 to wiesz ze mgla nie bedzie uwzgledniana przez VRML97Fog
-  (byc moze bo FogNode = nil, byc moze bo FogNode.FogType bylo nieznane ale
-  VRMLNonFatalError pozwolilo nam kontynuowac, byc moze
-  FogNode.FdVisibilityRange = 0 itp.), tzn. VRML97Fog
-  zwroci wtedy po prostu Color. Mozesz wtedy przekazac
-  cokolwiek do DistanceFromCamera (tzn. nie musisz liczyc DistanceFromCamera,
-  co zazwyczaj jest czasochlonne bo wiaze sie z pierwiastkowaniem)
-  no i mozesz naturalnie w ogole nie wywolywac VRML97Fog.
+function VRML97FogType(FogNode: TNodeFog): TVRMLFogType;
 
-  Podany Color to suma VRML97Emission i VRML97LightContribution dla
-  kazdego swiatla oswietlajacego element. Ta funkcja uwzgledni node mgly
-  i ew. zrobi Vector_Lerp pomiedzy kolorem mgly a podanym Color. }
-function VRML97FogType(FogNode: TNodeFog): Integer;
-function VRML97Fog(const Color: TVector3_Single; const DistanceFromCamera: Single;
-  FogNode: TNodeFog; const FogDistanceScaling: Single; FogType: Integer):
-  TVector3_Single;
+{ Apply fog to color of the vertex.
+
+  Given Color is assumed to contain already the sum of
+@preformatted(
+  material emission (VRML97Emission)
+  + for each light:
+    materuial * lighting properties (VRML97LightContribution)
+)
+
+  This procedure will apply the fog, making the linear interpolation
+  between original Color and the fog color, as appropriate.
+
+  @param(FogType Must be calculated by VRML97FogType.
+    The idea is that VRML97FogType has to compare strings to calculate
+    fog type from user-specified type. You don't want to do this in each
+    VRML97FogTo1st call, that is e.g. called for every ray in ray-tracer.)
+
+  @param(FogNode If the fog is not used, FogNode may be @nil.
+    In this case FogType must be -1, which is always satisfied by
+    VRML97FogType(nil) resulting in -1.
+
+    Note that FogType may be -1 for other reasons too,
+    for example FogNode.FogType was unknown or FogNode.FdVisibilityRange = 0.)
+
+  @param(FogDistanceScaling, taken from Fog node transformation.
+    See @link(TVRMLScene.FogDistanceScaling).) }
+procedure VRML97FogTo1st(
+  var Color: TVector3_Single;
+  const CameraPos, VertexPos: TVector3_Single;
+  FogNode: TNodeFog; const FogDistanceScaling: Single; FogType: Integer);
 
 implementation
 
@@ -178,37 +190,40 @@ function VRML97LightContribution_CameraIndependent(const Light: TActiveLight;
 {$I illummodels_vrml97lightcontribution.inc}
 {$undef CAMERA_INDEP}
 
-function VRML97FogType(FogNode: TNodeFog): Integer;
+function VRML97FogType(FogNode: TNodeFog): TVRMLFogType;
 begin
- if (FogNode = nil) or (FogNode.FdVisibilityRange.Value = 0.0) then Exit(-1);
+  if (FogNode = nil) or
+     (FogNode.FdVisibilityRange.Value = 0.0) then
+    Exit(-1);
 
- result := ArrayPosStr(FogNode.FdFogType.Value, ['LINEAR', 'EXPONENTIAL']);
- if result = -1 then
-  VRMLNonFatalError('Unknown fog type '''+FogNode.FdFogType.Value+'''');
+  Result := ArrayPosStr(FogNode.FdFogType.Value, ['LINEAR', 'EXPONENTIAL']);
+  if Result = -1 then
+    VRMLNonFatalError('Unknown fog type '''+FogNode.FdFogType.Value+'''');
 end;
 
-function VRML97Fog(const Color: TVector3_Single; const DistanceFromCamera: Single;
-  FogNode: TNodeFog; const FogDistanceScaling: Single; FogType: Integer):
-  TVector3_Single;
+procedure VRML97FogTo1st(var Color: TVector3_Single;
+  const CameraPos, VertexPos: TVector3_Single;
+  FogNode: TNodeFog; const FogDistanceScaling: Single; FogType: Integer);
 var
   F: Single;
   FogVisibilityRangeScaled: Single;
+  DistanceFromCamera: Single;
 begin
- if FogType <> -1 then
- begin
-  FogVisibilityRangeScaled :=
-    FogNode.FdVisibilityRange.Value * FogDistanceScaling;
-  if DistanceFromCamera >= FogVisibilityRangeScaled-SingleEqualityEpsilon then
-   result := FogNode.FdColor.Value else
+  if FogType <> -1 then
   begin
-   case FogType of
-    0: f := (FogVisibilityRangeScaled - DistanceFromCamera) / FogVisibilityRangeScaled;
-    1: f := Exp(-DistanceFromCamera / (FogVisibilityRangeScaled - DistanceFromCamera));
-   end;
-   result := Vector_Init_Lerp(f, FogNode.FdColor.Value, Color);
+    FogVisibilityRangeScaled :=
+      FogNode.FdVisibilityRange.Value * FogDistanceScaling;
+    DistanceFromCamera := PointsDistance(CameraPos, VertexPos);
+    if DistanceFromCamera >= FogVisibilityRangeScaled - SingleEqualityEpsilon then
+      Color := FogNode.FdColor.Value else
+    begin
+      case FogType of
+        0: F := (FogVisibilityRangeScaled - DistanceFromCamera) / FogVisibilityRangeScaled;
+        1: F := Exp(-DistanceFromCamera / (FogVisibilityRangeScaled - DistanceFromCamera));
+      end;
+      Color := Vector_Init_Lerp(F, FogNode.FdColor.Value, Color);
+    end;
   end;
- end else
-  result := Color;
 end;
 
 end.

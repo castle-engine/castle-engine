@@ -571,10 +571,8 @@ var
       glass wasn't affected much by the fog, you will see a forest
       covered by the fog. So each recursive call of Trace should bring
       a color affected by the fog. }
-    if FogType <> -1 then
-      Result := VRML97Fog(Result,
-        PointsDistance(CamPosition, Intersection),
-        FogNode, FogDistanceScaling, FogType);
+    VRML97FogTo1st(Result, CamPosition, Intersection,
+      FogNode, FogDistanceScaling, FogType);
   end;
 
 var
