@@ -55,6 +55,7 @@ type
     FSpot: boolean;
     FSpotCutOffAngle: Single;
     FSpotDropOffRate: Single;
+    ActiveLightNode: TVRMLLightNode;
   public
     constructor Create(HeadLightNode: TNodeKambiHeadLight);
     destructor Destroy; override;
@@ -66,6 +67,20 @@ type
     property Spot: boolean read FSpot write FSpot;
     property SpotCutOffAngle: Single read FSpotCutOffAngle write FSpotCutOffAngle;
     property SpotDropOffRate: Single read FSpotDropOffRate write FSpotDropOffRate;
+
+    { TActiveLight record describing this headlight assuming
+      given camera Position, Direction.
+
+      Note: for now, it contains a link to temporary light node
+      inside TActiveLight.LightNode. This is owned by this class,
+      so if you call TActiveLight more than once for the same TVRMLHeadLight,
+      and TVRMLHeadLight properties will change in between, than the older
+      TActiveLight record may become invalid.
+
+      This is not a problem for now (we need headlight as TActiveLight
+      for ray-tracer only). When needed, maybe TActiveLight will be able
+      to own LightNode. }
+    function ActiveLight(const Position, Direction: TVector3Single): TActiveLight;
   end;
 
 implementation
@@ -101,7 +116,51 @@ end;
 
 destructor TVRMLHeadLight.Destroy;
 begin
+  FreeAndNil(ActiveLightNode);
   inherited;
+end;
+
+function TVRMLHeadLight.ActiveLight(
+  const Position, Direction: TVector3Single): TActiveLight;
+begin
+  FreeAndNil(ActiveLightNode);
+
+  if Spot then
+  begin
+    ActiveLightNode := TNodeSpotLight_2.Create('', '');
+    TNodeSpotLight_2(ActiveLightNode).FdLocation.Value := Position;
+    TNodeSpotLight_2(ActiveLightNode).FdDirection.Value := Direction;
+
+    { For SpotDropOffRate = 0, spot is sharp, no drop-off.
+      This can be expressed precisely by BeamWidth = SpotCutOffAngle.
+      For other SpotDropOffRate, there's no way to properly translate
+      to beamWidth. }
+    if SpotDropOffRate = 0 then
+      TNodeSpotLight_2(ActiveLightNode).FdBeamWidth.Value := SpotCutOffAngle else
+      TNodeSpotLight_2(ActiveLightNode).FdBeamWidth.Value := SpotCutOffAngle / 2;
+    TNodeSpotLight_2(ActiveLightNode).FdCutOffAngle.Value := SpotCutOffAngle;
+
+    { infinite radius }
+    TNodeSpotLight_2(ActiveLightNode).FdRadius.Value := MaxSingle;
+    TNodeSpotLight_2(ActiveLightNode).FdAttenuation.Value := Attenuation;
+  end else
+  begin
+    ActiveLightNode := TNodeDirectionalLight_2.Create('', '');
+    TNodeDirectionalLight_2(ActiveLightNode).FdDirection.Value := Direction;
+  end;
+
+  ActiveLightNode.FdAmbientIntensity.Value := AmbientIntensity;
+  ActiveLightNode.FdColor.Value := Color;
+  ActiveLightNode.FdIntensity.Value := Intensity;
+
+  Result.LightNode := ActiveLightNode;
+
+  Result.Transform := IdentityMatrix4Single;
+  Result.AverageScaleTransform := 1;
+
+  Result.TransfLocation := Position;
+  Result.TransfNormDirection := Normalized(Direction);
+  Result.TransfRadius := MaxSingle;
 end;
 
 end.

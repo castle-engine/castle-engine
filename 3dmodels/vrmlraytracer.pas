@@ -209,6 +209,11 @@ type
       TVRMLScene o tej samej naziwe. }
     FogNode: TNodeFog;
     FogDistanceScaling: Single;
+
+    { If there's a headlight on the scene, set HeadLightExists and initialize
+      HeadLight. }
+    HeadLight: TActiveLight;
+    HeadLightExists: boolean;
   end;
 
   { Path tracer. See
@@ -514,6 +519,38 @@ var
           if LightNotBlocked(ActiveLights.Items[i]) then
             Result += VRML97LightContribution(
               ActiveLights.Items[i], Intersection, IntersectNode^, CamPosition);
+
+        { Add headlight light contribution, just like normal light.
+
+          Note for LightNotBlocked testing: theoretically, just using
+          LightNotBlocked always (no matter Depth/InitialDepth) should
+          be fully correct. But:
+
+          1. For Depth = InitialDepth, we know that headlight is not blocked
+             (since a camera sees a point, so headlight on camera also sees it).
+             So shadow ray test then is an optimization.
+
+          2. For directional headlights, this somewhat workarounds a problem
+             with our shadow rays. LightNotBlocked treats directional
+             lights as coming from infinity. While directional headlight
+             doesn't come from infinity: it comes from camera position.
+             For example, imagine a player with directional headlight standing
+             inside a closed cube (or any closed labirynth). LightNotBlocked
+             would make the headlight not visible (as it's blocked from all
+             sides by the cube), since LightNotBlocked doesn't know
+             that light source is standing inside the cube...
+
+             To fix this fully correctly, we should invent new light type,
+             like "directional, but not from infinity, but from given plane",
+             and modify LightNotBlocked accordingly.
+
+             For now, treating Depth = InitialDepth as special case, fixes
+             the problem at least for primary rays: directional light always
+             reaches them. }
+
+        if HeadLightExists and
+           ( (Depth = InitialDepth) or LightNotBlocked(HeadLight) ) then
+          Result += VRML97LightContribution(HeadLight, Intersection, IntersectNode^, CamPosition);
 
         { Calculate recursively reflected and transmitted rays.
           Note that the order of calls (first reflected or first transmitted ?)
