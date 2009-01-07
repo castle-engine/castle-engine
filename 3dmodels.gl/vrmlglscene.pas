@@ -29,7 +29,7 @@ interface
 uses
   SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLScene, VRMLOpenGLRenderer, GL, GLU, GLExt, BackgroundGL, KambiGLUtils,
-  VRMLShapeOctree, VRMLGLHeadLight, VRMLRendererOptimization,
+  VRMLShapeOctree, VRMLHeadLight, VRMLGLHeadLight, VRMLRendererOptimization,
   ShadowVolumes, Navigation, VRMLFields, VRMLLightSetGL, VRMLShape, Frustum;
 
 {$define read_interface}
@@ -654,6 +654,8 @@ type
       Field: TVRMLField); override;
     function CreateShape(AGeometryNode: TVRMLGeometryNode;
       AState: TVRMLGraphTraverseState): TVRMLShape; override;
+    function CreateHeadLightInstance
+      (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight; override;
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
       AOptimization: TGLRendererOptimization;
@@ -1114,13 +1116,6 @@ type
 
     function GetBumpMappingLightDiffuseColor: TVector4Single;
     procedure SetBumpMappingLightDiffuseColor(const Value: TVector4Single);
-
-    FHeadlight: TVRMLGLHeadlight;
-    FHeadlightInitialized: boolean;
-    procedure SetHeadlightInitialized(const Value: boolean);
-    property HeadlightInitialized: boolean
-      read FHeadlightInitialized
-      write SetHeadlightInitialized default false;
   public
     property BackgroundSkySphereRadius: Single
       read FBackgroundSkySphereRadius write SetBackgroundSkySphereRadius
@@ -1178,12 +1173,8 @@ type
     { Creates a headlight, using (if present) KambiHeadLight node defined
       in this VRML file. You're responsible for freeing this node.
 
-      Note that this is @italic(not) concerned whether you
-      actually should use this headlight (this information usually comes from
-      NavigationInfo.headlight value).
-
-      If you're looking for more comfortable alternative to this,
-      that uses all VRML information, see @link(Headlight) property.
+      See @link(TVRMLScene.CreateHeadLight) documentation,
+      this just returns headlight already casted to TVRMLGLHeadLight for OpenGL.
 
       @seealso Headlight }
     function CreateHeadLight: TVRMLGLHeadLight;
@@ -1191,21 +1182,13 @@ type
     { Headlight that should be used for this scene,
       or @nil if no headlight should be used.
 
-      This uses (if present) NavigationInfo.headlight and KambiHeadLight
-      node defined in this VRML file.
+      See @link(TVRMLScene.HeadLight) documentation,
+      this just returns headlight already casted to TVRMLGLHeadLight for OpenGL
+      Just use this when rendering, typically by
 
-      This object is automatically managed inside this class.
-      Calling this method automatically initializes it, CloseGL automatically
-      releases it. So you just don't have to worry about anything ---
-      just use this Headlight method when rendering, typically by
 @longCode(#
   TVRMLGLHeadlight.RenderOrDisable(Headlight, 0);
-#)
-
-      If you want, it's a little dirty but allowed to directly change
-      this light's properties after it's initialized. Just be aware
-      that at CloseGL, this Headlight is released and all changes you did
-      to it are lost. }
+#) }
     function Headlight: TVRMLGLHeadlight;
 
     { @abstract(Which bump mapping method will be used ?)
@@ -1503,8 +1486,6 @@ begin
   end;
 
   OptimizationDestroy;
-
-  HeadlightInitialized := false;
 
   inherited;
 end;
@@ -3794,17 +3775,6 @@ begin
   Result := Renderer.Attributes as TVRMLSceneRenderingAttributes;
 end;
 
-function TVRMLGLScene.CreateHeadLight: TVRMLGLHeadLight;
-var
-  HeadLightNode: TNodeKambiHeadLight;
-begin
-  HeadLightNode := nil;
-  if RootNode <> nil then
-    HeadLightNode := RootNode.TryFindNode(TNodeKambiHeadLight, true) as
-      TNodeKambiHeadLight;
-  Result := TVRMLGLHeadLight.Create(HeadLightNode);
-end;
-
 function TVRMLGLScene.BumpMappingMethod: TBumpMappingMethod;
 begin
   Result := Renderer.BumpMappingMethod;
@@ -3966,33 +3936,24 @@ begin
       WalkProjectionNear, WalkProjectionFar);
 end;
 
-procedure TVRMLGLScene.SetHeadlightInitialized(const Value: boolean);
-var
-  UseHeadlight: boolean;
+function TVRMLGLScene.CreateHeadLightInstance
+  (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight;
 begin
-  if FHeadlightInitialized <> Value then
-  begin
-    FHeadlightInitialized := Value;
-    if Value then
-    begin
-      if NavigationInfoStack.Top <> nil then
-        UseHeadlight := (NavigationInfoStack.Top as TNodeNavigationInfo).FdHeadlight.Value else
-        UseHeadlight := DefaultNavigationInfoHeadlight;
+  Result := TVRMLGLHeadLight.Create(HeadLightNode);
+end;
 
-      if UseHeadlight then
-        FHeadlight := CreateHeadlight else
-        FHeadlight := nil;
-    end else
-    begin
-      FreeAndNil(FHeadlight);
-    end;
-  end;
+function TVRMLGLScene.CreateHeadLight: TVRMLGLHeadLight;
+begin
+  { Our CreateHeadLightInstance makes sure that this is castable to
+    TVRMLGLHeadlight. }
+  Result := TVRMLGLHeadlight(inherited CreateHeadLight);
 end;
 
 function TVRMLGLScene.Headlight: TVRMLGLHeadlight;
 begin
-  HeadlightInitialized := true;
-  Result := FHeadlight;
+  { Our CreateHeadLightInstance makes sure that this is castable to
+    TVRMLGLHeadlight. }
+  Result := TVRMLGLHeadlight(inherited Headlight);
 end;
 
 procedure TVRMLGLScene.LastRender_SumNext;

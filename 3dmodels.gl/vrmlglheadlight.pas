@@ -18,55 +18,17 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ }
+{ VRML headlight rendered by OpenGL --- TVRMLGLHeadLight class. }
 unit VRMLGLHeadLight;
 
 interface
 
-uses VectorMath, VRMLNodes;
+uses VectorMath, VRMLNodes, VRMLHeadlight;
 
 type
-  { This is a class that helps you render a headlight.
-
-    The most common use is to render a headlight conforming to VRML
-    specification, and configurable by KambiHeadLight VRML node
-    (see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_headlight]).
-
-    @unorderedList(
-      @item(
-        If you create this passing HeadLightNode = @nil to constructor then
-        the default VRML headlight (as required by NavigationInfo.headlight
-        specification in VRML 2.0) properties will be set up.
-
-        Equivalently, you can say that the default KambiHeadLight node
-        properties will be assumed --- because default KambiHeadLight node
-        are intentionally set such that they are identical with default
-        headlight required by VRML 2.0 spec.)
-
-      @item(Pass HeadLightNode <> @nil to constructor to use
-        appropriate KambiHeadLight node properties.)
-    ) }
-  TVRMLGLHeadLight = class
-  private
-    FAmbientIntensity: Single;
-    FAttenuation: TVector3Single;
-    FColor: TVector3Single;
-    FIntensity: Single;
-    FSpot: boolean;
-    FSpotCutOffAngle: Single;
-    FSpotDropOffRate: Single;
+  { VRML headlight rendered by OpenGL. }
+  TVRMLGLHeadLight = class(TVRMLHeadLight)
   public
-    constructor Create(HeadLightNode: TNodeKambiHeadLight);
-    destructor Destroy; override;
-
-    property AmbientIntensity: Single read FAmbientIntensity write FAmbientIntensity;
-    property Attenuation: TVector3Single read FAttenuation write FAttenuation;
-    property Color: TVector3Single read FColor write FColor;
-    property Intensity: Single read FIntensity write FIntensity;
-    property Spot: boolean read FSpot write FSpot;
-    property SpotCutOffAngle: Single read FSpotCutOffAngle write FSpotCutOffAngle;
-    property SpotDropOffRate: Single read FSpotDropOffRate write FSpotDropOffRate;
-
     { This sets properties of GL_LIGHT_GLLightNumber to render given light.
 
       Note that this requires that current matrix is modelview.
@@ -88,38 +50,6 @@ type
 implementation
 
 uses GL, GLU, GLExt, KambiGLUtils, SysUtils, Math;
-
-constructor TVRMLGLHeadLight.Create(HeadLightNode: TNodeKambiHeadLight);
-
-  procedure CreateFromNode(Node: TNodeKambiHeadLight);
-  begin
-    FAmbientIntensity := Node.FdAmbientIntensity.Value;
-    FAttenuation := Node.FdAttenuation.Value;
-    FColor := Node.FdColor.Value;
-    FIntensity := Node.FdIntensity.Value;
-    FSpot := Node.FdSpot.Value;
-    FSpotCutOffAngle := Node.FdSpotCutOffAngle.Value;
-    FSpotDropOffRate := Node.FdSpotDropOffRate.Value;
-  end;
-
-begin
-  inherited Create;
-
-  if HeadLightNode <> nil then
-    CreateFromNode(HeadLightNode) else
-  begin
-    { Create temporary HeadLightNode with default values. }
-    HeadLightNode := TNodeKambiHeadLight.Create('', '');
-    try
-      CreateFromNode(HeadLightNode);
-    finally FreeAndNil(HeadLightNode) end;
-  end;
-end;
-
-destructor TVRMLGLHeadLight.Destroy;
-begin
-  inherited;
-end;
 
 procedure TVRMLGLHeadLight.Render(GLLightNumber: Cardinal; CallEnabled: boolean);
 var

@@ -28,7 +28,7 @@ uses
   SysUtils, Classes, VectorMath, Boxes3d,
   VRMLFields, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLShape, VRMLTriangleOctree, ProgressUnit, KambiOctree, VRMLShapeOctree,
-  Keys, VRMLTime, Navigation, VRMLTriangle, Contnrs;
+  Keys, VRMLTime, Navigation, VRMLTriangle, Contnrs, VRMLHeadLight;
 
 {$define read_interface}
 
@@ -732,6 +732,13 @@ type
       calculate FMainLightForShadows (position). }
     procedure CalculateMainLightForShadowsPosition;
     procedure ValidateMainLightForShadows;
+
+    FHeadlight: TVRMLHeadlight;
+    FHeadlightInitialized: boolean;
+    procedure SetHeadlightInitialized(const Value: boolean);
+    property HeadlightInitialized: boolean
+      read FHeadlightInitialized
+      write SetHeadlightInitialized default false;
   protected
     { Called when LightNode fields changed, while LightNode is in
       active part of VRML graph. }
@@ -768,6 +775,12 @@ type
       Example: TVRMLGLScene uses this to create TVRMLGLShape. }
     function CreateShape(AGeometryNode: TVRMLGeometryNode;
       AState: TVRMLGraphTraverseState): TVRMLShape; virtual;
+
+    { Create TVRMLHeadLight instance suitable for this TVRMLScene descendant.
+      In this class, this simply creates new TVRMLHeadLight instance.
+      You can override it in descendants to create something more specialized. }
+    function CreateHeadLightInstance
+      (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight; virtual;
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
     destructor Destroy; override;
@@ -1628,6 +1641,32 @@ type
     function MainLightForShadowsExists: boolean;
     function MainLightForShadows: TVector4Single;
     { @groupEnd }
+
+    { Creates a headlight, using (if present) KambiHeadLight node defined
+      in this VRML file. You're responsible for freeing this node.
+
+      Note that this is @italic(not) concerned whether you
+      actually should use this headlight (this information usually comes from
+      NavigationInfo.headlight value).
+
+      If you're looking for more comfortable alternative to this,
+      that uses all VRML information, see @link(Headlight) property.
+
+      @seealso Headlight }
+    function CreateHeadLight: TVRMLHeadLight;
+
+    { Headlight that should be used for this scene,
+      or @nil if no headlight should be used.
+
+      This uses (if present) NavigationInfo.headlight and KambiHeadLight
+      node defined in this VRML file.
+
+      This object is automatically managed inside this class.
+      Calling this method automatically initializes it.
+
+      If you want, it's a little dirty but allowed to directly change
+      this light's properties after it's initialized. }
+    function Headlight: TVRMLHeadlight;
   end;
 
 {$undef read_interface}
@@ -1832,6 +1871,8 @@ begin
   { This also frees related lists, like KeySensorNodes,
     and does UnregisterProcessEvents(RootNode). }
   ProcessEvents := false;
+
+  HeadlightInitialized := false;
 
  { free FTrianglesList* variables }
  InvalidateTrianglesList(false);
@@ -5161,6 +5202,52 @@ function TVRMLScene.MainLightForShadowsExists: boolean;
 begin
   ValidateMainLightForShadows;
   Result := FMainLightForShadowsExists;
+end;
+
+function TVRMLScene.CreateHeadLightInstance
+  (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight;
+begin
+  Result := TVRMLHeadLight.Create(HeadLightNode);
+end;
+
+function TVRMLScene.CreateHeadLight: TVRMLHeadLight;
+var
+  HeadLightNode: TNodeKambiHeadLight;
+begin
+  HeadLightNode := nil;
+  if RootNode <> nil then
+    HeadLightNode := RootNode.TryFindNode(TNodeKambiHeadLight, true) as
+      TNodeKambiHeadLight;
+  Result := CreateHeadLightInstance(HeadLightNode);
+end;
+
+procedure TVRMLScene.SetHeadlightInitialized(const Value: boolean);
+var
+  UseHeadlight: boolean;
+begin
+  if FHeadlightInitialized <> Value then
+  begin
+    FHeadlightInitialized := Value;
+    if Value then
+    begin
+      if NavigationInfoStack.Top <> nil then
+        UseHeadlight := (NavigationInfoStack.Top as TNodeNavigationInfo).FdHeadlight.Value else
+        UseHeadlight := DefaultNavigationInfoHeadlight;
+
+      if UseHeadlight then
+        FHeadlight := CreateHeadlight else
+        FHeadlight := nil;
+    end else
+    begin
+      FreeAndNil(FHeadlight);
+    end;
+  end;
+end;
+
+function TVRMLScene.Headlight: TVRMLHeadlight;
+begin
+  HeadlightInitialized := true;
+  Result := FHeadlight;
 end;
 
 end.
