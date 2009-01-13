@@ -25,7 +25,7 @@ unit VRMLCameraUtils;
 
 interface
 
-uses Math, KambiUtils, VectorMath, Boxes3d, VRMLNodes;
+uses Math, KambiUtils, VectorMath, Boxes3d, VRMLNodes, Quaternions;
 
 type
   { VRML major version for VRMLCameraUtils: either VRML 1.0 or 2.0.
@@ -81,16 +81,32 @@ function MakeVRMLCameraNode(Version: TVRMLCameraVersion;
 
   @groupBegin }
 function CamDirUp2Orient(const CamDir, CamUp: TVector3Single): TVector4Single;
-procedure CamDirUp2Orient(CamDir, CamUp: TVector3Single;
+procedure CamDirUp2Orient(const CamDir, CamUp: TVector3Single;
   out OrientAxis: TVector3Single; out OrientRadAngle: Single);
+{ @groupEnd }
+
+{ Convert camera direction and up vectors into "rotation quaternion" of
+  VRML "orientation".
+
+  VRML orientation expresses CamDir and CamUp as a rotation.
+  This means that you should rotate the standard
+  direction and up (see StdVRMLCamDir, StdVRMLCamUp) by this rotation
+  to get CamDir and CamUp.
+
+  Given here CamDir and CamUp must be orthogonal and non-zero.
+  Their lengths are not relevant (that is, you don't need to normalize them
+  before passing here).
+
+  @groupBegin }
+function CamDirUp2OrientQuat(CamDir, CamUp: TVector3Single): TQuaternion;
 { @groupEnd }
 
 implementation
 
-uses SysUtils, Quaternions;
+uses SysUtils;
 
-procedure CamDirUp2Orient(CamDir, CamUp: TVector3Single;
-  out OrientAxis: TVector3Single; out OrientRadAngle: Single);
+function CamDirUp2OrientQuat(CamDir, CamUp: TVector3Single): TQuaternion;
+
 { Poczatkowo byl tutaj kod based on Stephen Chenney's ANSI C code orient.c.
   Byl w nim bledzik (patrz testUnits.Test_VRMLFields - TestOrints[4])
   i nawet teraz nie wiem jaki bo ostatecznie zrozumialem sama idee tamtego kodu
@@ -127,7 +143,7 @@ procedure CamDirUp2Orient(CamDir, CamUp: TVector3Single;
   end;
 
 var Rot1Axis, Rot2Axis, StdCamUpAfterRot1: TVector3Single;
-    Rot1Quat, Rot2Quat, OrientQuat: TQuaternion;
+    Rot1Quat, Rot2Quat: TQuaternion;
     Rot1CosAngle, Rot2CosAngle: Single;
 begin
  NormalizeTo1st(CamDir);
@@ -148,12 +164,17 @@ begin
  Rot2CosAngle := VectorDotProduct(StdCamUpAfterRot1, CamUp);
  Rot2Quat := QuatFromAxisAngleCos(Rot2Axis, Rot2CosAngle);
 
- { evaluate OrientQuat = zlozenie Rot1 i Rot2 (tak, kolejnosc mnozenia QQMul musi
+ { evaluate Result = zlozenie Rot1 i Rot2 (tak, kolejnosc mnozenia QQMul musi
    byc odwrotna) }
- OrientQuat := QuatMultiply(Rot2Quat, Rot1Quat);
+ Result := QuatMultiply(Rot2Quat, Rot1Quat);
+end;
 
- { Extract the axis and angle from the quaternion. }
- QuatToAxisAngle(OrientQuat, OrientAxis, OrientRadAngle);
+procedure CamDirUp2Orient(const CamDir, CamUp: TVector3Single;
+  out OrientAxis: TVector3Single; out OrientRadAngle: Single);
+begin
+  { Call CamDirUp2OrientQuat,
+    and extract the axis and angle from the quaternion. }
+  QuatToAxisAngle(CamDirUp2OrientQuat(CamDir, CamUp), OrientAxis, OrientRadAngle);
 end;
 
 function CamDirUp2Orient(const CamDir, CamUp: TVector3Single): TVector4Single;

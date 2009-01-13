@@ -975,7 +975,8 @@ type
       For now, only changes InitialCameraPos are reflected by the same
       (relative) change in current CameraPos. TODO - more. }
     procedure SetInitialCameraLookDir(
-      const AInitialCameraPos, AInitialCameraDir, AInitialCameraUp: TVector3Single;
+      const AInitialCameraPos: TVector3Single;
+      AInitialCameraDir, AInitialCameraUp: TVector3Single;
       const TransformCurrentCamera: boolean);
 
     procedure SetInitialCameraLookAt(
@@ -1366,7 +1367,7 @@ const
 
 implementation
 
-uses Math, KambiStringUtils;
+uses Math, KambiStringUtils, VRMLCameraUtils;
 
 { TInputShortcut ------------------------------------------------------------- }
 
@@ -3164,22 +3165,46 @@ begin
  end;
 end;
 
-procedure TWalkNavigator.SetInitialCameraLookDir(const AInitialCameraPos,
+procedure TWalkNavigator.SetInitialCameraLookDir(
+  const AInitialCameraPos: TVector3Single;
   AInitialCameraDir, AInitialCameraUp: TVector3Single;
   const TransformCurrentCamera: boolean);
+var
+  OldInitialOrientation, NewInitialOrientation, Orientation: TQuaternion;
 begin
+  MakeVectorsOrthoOnTheirPlane(AInitialCameraUp, AInitialCameraDir);
+
   if TransformCurrentCamera then
   begin
     { We change FCameraPos directly, not by SetCameraPos.
       This is Ok, ScheduleMatrixChanged will be called anyway at the end. }
     VectorAddTo1st(FCameraPos,
       VectorSubtract(AInitialCameraPos, FInitialCameraPos));
+
+    if not (VectorsPerfectlyEqual(FInitialCameraDir, AInitialCameraDir) and
+            VectorsPerfectlyEqual(FInitialCameraUp , AInitialCameraUp ) ) then
+    begin
+      OldInitialOrientation := CamDirUp2OrientQuat(FInitialCameraDir, FInitialCameraUp);
+      NewInitialOrientation := CamDirUp2OrientQuat(AInitialCameraDir, AInitialCameraUp);
+      Orientation           := CamDirUp2OrientQuat(FCameraDir, FCameraUp);
+
+      { I want new Orientation :=
+          (Orientation - OldInitialOrientation) + NewInitialOrientation. }
+      Orientation := QuatMultiply(QuatConjugate(OldInitialOrientation), Orientation);
+      Orientation := QuatMultiply(NewInitialOrientation, Orientation);
+
+      { Now that we have Orientation, transform it into new FCameraDir/Up.
+        Like with FCameraPos above, we set them directly, ScheduleMatrixChanged
+        will be done below anyway. }
+      FCameraDir := QuatRotate(Orientation, StdVRMLCamDir);
+      FCameraUp  := QuatRotate(Orientation, StdVRMLCamUp);
+    end;
   end;
 
   FInitialCameraPos := AInitialCameraPos;
   FInitialCameraDir := AInitialCameraDir;
-  FInitialCameraUp := AInitialCameraUp;
-  MakeVectorsOrthoOnTheirPlane(FInitialCameraUp, FInitialCameraDir);
+  FInitialCameraUp  := AInitialCameraUp;
+
   ScheduleMatrixChanged;
 end;
 

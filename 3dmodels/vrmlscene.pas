@@ -929,7 +929,7 @@ type
       Note that this also doesn't notify you about changes to
       currently bound viewpoint, for this you rather want to use
       @link(TVRMLBindableStack.OnBoundChanged ViewpointStack.OnBoundChanged).
-      This is called only when @italic(currentl bound viewpoint stays
+      This is called only when @italic(currently bound viewpoint stays
       the same, only it's vectors change). }
     property OnBoundViewpointVectorsChanged: TVRMLSceneNotification
       read FOnBoundViewpointVectorsChanged write FOnBoundViewpointVectorsChanged;

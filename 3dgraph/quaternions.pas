@@ -67,7 +67,7 @@ function QuatToRotationMatrix(const Q: TQuaternion): TMatrix4Single;
 
   Normal of result is equal to norm of Q1 * norm of Q2 (in particular,
   multiplying unit quaternions (used for rotations) yields another unit
-  questernion for sure). }
+  quaternion for sure). }
 function QuatMultiply(const Q1, Q2: TQuaternion): TQuaternion;
 
 { Quaternion conjugation. This is just a fancy name for negating Q.Vector.
@@ -92,7 +92,7 @@ procedure QuatNormalizeTo1st(var Q: TQuaternion);
 { Perform normalization, only if the quaternion is detected to be
   "significantly unnormalized". It checks if the quaternion needs
   normalization using fast VectorLenSqr, that is quaternion length
-  is not need for the check (sqrt not needed). Only if it's significantly
+  is not needed for the check (sqrt not needed). Only if it's significantly
   different that 1.0, sqrt is done and quaternion is normalized.
 
   This may be useful if you fear of eventual
