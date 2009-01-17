@@ -1015,7 +1015,8 @@ procedure TAbstractTexCoordinateRenderer.RenderCoordinateBegin;
     begin
       for I := 0 to Renderer.TexCoordsNeeded - 1 do
       begin
-        Renderer.ActiveTexture(I);
+        glClientActiveTextureARB(
+          GL_TEXTURE0_ARB + Integer(Attributes.FirstGLFreeTexture) + I);
         glTexCoordPointer(2, GL_FLOAT, 0, TexCoord.Items);
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
       end;
