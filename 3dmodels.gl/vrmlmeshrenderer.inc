@@ -135,8 +135,9 @@ type
       Render_BindMaterial_1.
 
       Texture: you only have to generate texture coordinates in descendants.
-      If not Render_TexCoordsNeeded, you don't have to (but you can,
-      although they will be unused) generate texture coords.
+      For all texture units < TexCoordsNeeded. (For other tex units,
+      you don't have to (but you can,
+      although they will be unused) generate texture coords.)
       Do not change here the bound texture or operate on texture matrix
       or texture enabled state.
 
@@ -1145,7 +1146,8 @@ procedure TAbstractTexCoordinateRenderer.RenderVertex(indexNum: integer);
     if Renderer.UseMultiTexturing then
     begin
       for I := 0 to Renderer.TexCoordsNeeded - 1 do
-        glMultiTexCoordv(GL_TEXTURE0 + I, ST);
+        glMultiTexCoordv(
+          GL_TEXTURE0 + Integer(Renderer.Attributes.FirstGLFreeTexture) + I, ST);
     end else
       glTexCoordv(ST);
   end;
