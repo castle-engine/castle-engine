@@ -661,11 +661,30 @@ begin
 end;
 
 function TVRMLShape.EnableDisplayList: boolean;
-{$define PRECALC_VALUE_ENUM := svEnableDisplayList}
-{$define PRECALC_VALUE := FEnableDisplayList}
-{$define PRECALC_VALUE_CALCULATE :=
-  (not (State.Texture is TNodeMovieTexture))}
-PRECALC_VALUE_RETURN
+var
+  I: Integer;
+  T: TNodeX3DTextureNode;
+begin
+  if not (svEnableDisplayList in Validities) then
+  begin
+    { calculate EnableDisplayList.
+      If texture is MovieTexture, or it's MultiTexture containing
+      MovieTexture as a child, then disable display lists. }
+    FEnableDisplayList := true;
+    T := State.AnyTexture;
+    if T is TNodeMovieTexture then
+      FEnableDisplayList := false else
+    if T is TNodeMultiTexture then
+    begin
+      for I := 0 to TNodeMultiTexture(T).FdTexture.Count - 1 do
+        if TNodeMultiTexture(T).FdTexture.Items[I] is TNodeMovieTexture then
+          FEnableDisplayList := false;
+    end;
+
+    Include(Validities, svEnableDisplayList);
+  end;
+  Result := FEnableDisplayList;
+end;
 
 procedure TVRMLShape.Changed;
 begin
