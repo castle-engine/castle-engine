@@ -20,10 +20,15 @@
 
 {
   TODO:
-  - should render all vertexes by DoGLVertex or DoGLArrayElement,
+  - Should render all vertexes by DoGLVertex or DoGLArrayElement,
     (so using GLU utils is not possible, or DrawGLPlane...,
     or text display lists... this will be difficult to implement
     without wasting resources)
+
+  - We set texture coords only for texture unit 0 here.
+    So using multi-texturing with these nodes will produce bad results:
+    although many textures will be enabled, actually only the 0th will
+    have predictable texture coords.
 }
 
 type
@@ -283,7 +288,7 @@ begin
 
           { uzywamy ponizej print*AndMove bo przeciez za chwile i tak zrobimy
             popMatrix (wiec po co marnowac jedno miejsce na matrix stack ?) }
-          if Renderer.Render_TexCoordsNeeded then
+          if Renderer.TexCoordsNeeded > 0 then
             CurrentFont.PrintTexturedAndMove(Strings[i], 0, 0) else
             CurrentFont.PrintAndMove(Strings[i]);
         glPopMatrix;
@@ -313,7 +318,7 @@ begin
 
             { uzywamy ponizej print*AndMove bo przeciez za chwile i tak zrobimy
               popMatrix (wiec po co marnowac jedno miejsce na matrix stack ?) }
-            if Renderer.Render_TexCoordsNeeded then
+            if Renderer.TexCoordsNeeded > 0 then
               CurrentFont.PrintTexturedAndMove(Strings[i], 0, 0) else
               CurrentFont.PrintAndMove(Strings[i]);
           glPopMatrix;
@@ -339,7 +344,7 @@ begin
 
               { uzywamy ponizej print*AndMove bo przeciez za chwile i tak zrobimy
                 popMatrix (wiec po co marnowac jedno miejsce na matrix stack ?) }
-              if Renderer.Render_TexCoordsNeeded then
+              if Renderer.TexCoordsNeeded > 0 then
                 CurrentFont.PrintTexturedExtrusionAndMove(Strings[i], Depth, 0, 0) else
                 CurrentFont.PrintExtrusionAndMove(Strings[i], Depth);
             glPopMatrix;
@@ -597,7 +602,7 @@ begin
 
  Renderer.Render_BindMaterial_1(0);
 
- q := NewGLUQuadric(Ord(Renderer.Render_TexCoordsNeeded),
+ q := NewGLUQuadric(Ord(Renderer.TexCoordsNeeded > 0),
    Attributes.SmoothNormalsGLU, GLU_OUTSIDE, GLU_FILL);
  try
   glPushMatrix;
@@ -664,7 +669,7 @@ begin
 
  Renderer.Render_BindMaterial_1(0);
 
- q := NewGLUQuadric(Ord(Renderer.Render_TexCoordsNeeded),
+ q := NewGLUQuadric(Ord(Renderer.TexCoordsNeeded > 0),
    Attributes.SmoothNormalsGLU, GLU_OUTSIDE, GLU_FILL);
  try
   glPushMatrix;
@@ -743,20 +748,20 @@ begin
 
  Renderer.Render_BindMaterial_1(0);
 
- if Renderer.Render_TexCoordsNeeded then
+ if Renderer.TexCoordsNeeded > 0 then
  begin
   {we have to rotate the sphere to get tex coords as specified by VRML}
   glPushMatrix;
   glRotatef(-90, 1, 0, 0);
  end;
 
- q := NewGLUQuadric(Ord(Renderer.Render_TexCoordsNeeded),
+ q := NewGLUQuadric(Ord(Renderer.TexCoordsNeeded > 0),
    Attributes.SmoothNormalsGLU, GLU_OUTSIDE, GLU_FILL);
  try
   gluSphere(q, Radius, QuadricSlices, QuadricStacks);
  finally gluDeleteQuadric(q) end;
 
- if Renderer.Render_TexCoordsNeeded then glPopMatrix;
+ if Renderer.TexCoordsNeeded > 0 then glPopMatrix;
 end;
 
 procedure TSphere_1Renderer.DoRender;

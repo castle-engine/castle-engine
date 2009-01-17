@@ -276,7 +276,7 @@ var
 
   procedure Vertex(const I, J: Integer; const V: TVector3Single);
   begin
-    if Renderer.Render_TexCoordsNeeded then
+    if Renderer.TexCoordsNeeded > 0 then
     begin
       if TexCoordUseful then
         glTexCoordv(

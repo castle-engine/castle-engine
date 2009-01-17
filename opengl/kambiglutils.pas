@@ -427,6 +427,23 @@ procedure glClipPlane(plane: GLenum; const V: TVector4d); overload;
 procedure gluLookAtv(const Eye, Center, Up: TVector3Single);
 procedure gluLookDirv(const Eye, Dir, Up: TVector3Single);
 
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector1d); overload;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector1f); overload;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector1i); overload;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector1s); overload;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector2d); overload;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector2f); overload;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector2i); overload;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector2s); overload;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector3d); overload;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector3f); overload;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector3i); overload;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector3s); overload;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4d); overload;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4f); overload;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4i); overload;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4s); overload;
+
 {$ifdef IMPLEMENT_OPENGL_STUBS}
 
 procedure glNormalv(const v: TVector3d); overload;
@@ -1370,6 +1387,23 @@ begin
             Eye[0] + Dir[0], Eye[1] + Dir[1], Eye[2] +Dir[2],
             Up [0]         , Up [1]         , Up [2]);
 end;
+
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector1d);  begin glMultiTexCoord1dv(Target, @v); end;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector1f);  begin glMultiTexCoord1fv(Target, @v); end;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector1i);  begin glMultiTexCoord1iv(Target, @v); end;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector1s);  begin glMultiTexCoord1sv(Target, @v); end;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector2d);  begin glMultiTexCoord2dv(Target, @v); end;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector2f);  begin glMultiTexCoord2fv(Target, @v); end;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector2i);  begin glMultiTexCoord2iv(Target, @v); end;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector2s);  begin glMultiTexCoord2sv(Target, @v); end;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector3d);  begin glMultiTexCoord3dv(Target, @v); end;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector3f);  begin glMultiTexCoord3fv(Target, @v); end;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector3i);  begin glMultiTexCoord3iv(Target, @v); end;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector3s);  begin glMultiTexCoord3sv(Target, @v); end;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4d);  begin glMultiTexCoord4dv(Target, @v); end;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4f);  begin glMultiTexCoord4fv(Target, @v); end;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4i);  begin glMultiTexCoord4iv(Target, @v); end;
+procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4s);  begin glMultiTexCoord4sv(Target, @v); end;
 
 {$ifdef IMPLEMENT_OPENGL_STUBS}
 

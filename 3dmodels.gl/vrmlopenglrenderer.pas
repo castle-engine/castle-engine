@@ -1248,8 +1248,26 @@ type
     { Judge whether the node can be lit. }
     function NodeLit(Node: TVRMLGeometryNode): boolean;
 
-    { czy Render node'ow musi generowac tex coords ? }
-    Render_TexCoordsNeeded: boolean;
+    { For how many texture units does Render must generate tex coords?
+
+      This is the number of texture units used.
+      Always <= 1 if OpenGL doesn't support multitexturing
+      (UseMultiTexturing = @false).
+      It's also already clamped by the number of available texture units
+      (determined from First/LastGLFreeTexture).
+
+      Always = 1 if bump mapping is used (our multitexturing setup is
+      special then, we will actually use more texture units for special
+      purposes). }
+    TexCoordsNeeded: Cardinal;
+
+    { @true if OpenGL allows and we should use multi-texturing
+      for VRML/X3D MultiTexture support.
+
+      This is orthogonal to bump mapping method, and in fact will be ignored
+      where bump mapping is used (bump mapping methods check the multitexturing
+      support explicitly, for themselves). }
+    UseMultiTexturing: boolean;
 
     { ----------------------------------------------------------------- }
 
@@ -3555,6 +3573,36 @@ procedure TVRMLOpenGLRenderer.RenderBegin(FogNode: TNodeFog;
 
 var i: integer;
 begin
+  { calculate UseMultiTexturing: check extensions required for multitexturing.
+
+    We simply require all extensions, like
+    EXT_texture_env_combine and ARB_multitexture and
+    ARB_texture_env_dot3. If any of them is missing, I'll not use
+    multitexturing. This is acceptable, as all modern OpenGL versions
+    will have them all. }
+
+  UseMultiTexturing :=
+    { EXT_texture_env_combine (standard since 1.3) required }
+    (GL_EXT_texture_env_combine or GL_version_1_3) and
+
+    { Actually, other extensions also don't have to exist, they are built in
+      newer OpenGL version. But this requires getting their procedures under different
+      names (without extension suffix). For EXT_texture_env_combine, this is simpler
+      since it only defines new constants and these are the same, whether it's extension
+      or built-in GL 1.3. }
+
+    { ARB_multitexture required (TODO: standard since 1.3, see above comments) }
+    GL_ARB_multitexture and
+
+    { GL >= 1.3 required for GL_SUBTRACT.
+
+      As you see, actually this whole check could be substituted by GL >= 1.3,
+      as this allows GL_SUBTRACT and provides all extensions required here. }
+    GL_version_1_3 and
+
+    { ARB_texture_env_dot3 required (TODO: standard since 1.3, see above comments) }
+    GL_ARB_texture_env_dot3;
+
  { Push attribs and matrices (by pushing attribs FIRST we save also current
    matrix mode).
 
@@ -3794,80 +3842,49 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(
   end;
 
   procedure InitTextures;
-
-    procedure EnableClassicTexturing(GLTexture: TGLuint);
-    begin
-      ActiveTexture(0);
-      glEnable(GL_TEXTURE_2D);
-      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-      glBindTexture(GL_TEXTURE_2D, GLTexture);
-    end;
-
   var
     AlphaTest: boolean;
-    IndexedFaceRenderer: TIndexedFaceSetRenderer;
-    TextureReferencesIndex: Integer;
-    TextureNode: TVRMLTextureNode;
-    Success: boolean;
-    TexImageReference: PTextureImageReference;
-    TexVideoReference: PTextureVideoReference;
-    VideoTime: TKamTime;
-  begin
-    if Attributes.PureGeometry then
+
+    procedure DisableTexture(const TextureUnit: Cardinal);
     begin
-      Render_TexCoordsNeeded := false;
-      Exit;
+      ActiveTexture(TextureUnit);
+      glDisable(GL_TEXTURE_2D);
     end;
 
-    if not Attributes.ControlTextures then
+    { Enable non-multi texture.
+      TextureNode must be non-nil.
+
+      Returns success: false means that texture node was not prepared
+      for OpenGL, which means (we assume that you called Prepare before
+      Render) that texture failed to load. You should then disable
+      the texture unit, and you don't have to generate tex coords for it.
+
+      AlphaTest may be modified, but only to true, by this procedure. }
+    function EnableNonMultiTexture(const TextureUnit: Cardinal;
+      TextureNode: TVRMLTextureNode;
+      UseForBumpMappingAllowed: boolean): boolean;
+
+      procedure EnableClassicTexturing(GLTexture: TGLuint);
+      begin
+        ActiveTexture(TextureUnit);
+        glEnable(GL_TEXTURE_2D);
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+        glBindTexture(GL_TEXTURE_2D, GLTexture);
+      end;
+
+    var
+      IndexedFaceRenderer: TIndexedFaceSetRenderer;
+      TextureReferencesIndex: Integer;
+      TexImageReference: PTextureImageReference;
+      TexVideoReference: PTextureVideoReference;
+      VideoTime: TKamTime;
     begin
-      { require texture coordinates, but don't do anything else
-        (like setting active texture, enabling/disabling it, don't even look
-        at VRML texture node.) }
-      Render_TexCoordsNeeded := true;
-      Exit;
-    end;
+      Result := false;
 
-    {ponizej zarzadzamy wlasciwosciami alphaTest(+enabled), i texture2d enabled}
-
-    {notka : nalezy tu zauwazyc ze robimy alphaTest ale jezeli
-     GL_TEXTURE_ENV_MODE = GL_MODULATE to alpha ktore bedzie testowane
-     tak naprawde nie bedzie alpha textury - to bedzie alpha textury
-     zmieszane z alpha koloru zmieszane z alpha swiatla. Nawet gdybysmy
-     dali texture env mode = GL_REPLACE to ciagle alpha swiatla ma wplyw
-     na testowane alpha fragmentu (chociaz to juz nie jest takie zle,
-     bo w VRML'u nie ma czegos takiego jak "alpha" czy "transparency"
-     koloru swiatla co jest dosc rozsadnym uproszczeniem) ALE przeciez
-     my chcemy miec GL_MODULATE bo powinnismy modulowac kolor tekstury
-     kolorem materialu ! Nie widze tu ladnego sposobu jak mialbym
-     pogodzic transparency materialu z kanalem alpha tekstury, przeciez
-     chcac zadowolic specyfikacje VRML'a musze honorowac obie te rzeczy.
-     Wiec niniejszym decyduje sie po prostu mieszac alpha textury z
-     transparency materialu tak jak to robi OpenGL w GL_MODULATE.
-
-     (Dementi - chyba alpha swiatla w OpenGLu nie ma wplywu
-      na wyliczone alpha vertexu. Do czego jest alpha swiatla ?)
-
-     To wszystko ma wieksze znaczenie gdy
-     ktos zechce kombinowac finezyjne transparency
-     materialu z finezyjnym (nie-0-1-kowym) kanalem alpha textury.
-    }
-    TextureNode := State.Texture;
-    {$ifdef USE_VRML_NODES_TRIANGULATION}
-    { We don't generate texture coords, so disable textures. }
-    TextureNode := nil;
-    {$endif}
-
-    Success := false;
-
-    if (TextureNode <> nil) and
-       Attributes.EnableTextures and
-       NodeTextured(CurrentGeometry) then
-    begin
       { Note: don't call IsTextureImage, IsTextureVideo here --- this
         would causes reloading images/videos, nullifying
-        TVRMLScene.FreeResouces([frTextureDataInNodes]) purpose.
+        TVRMLScene.FreeResources([frTextureDataInNodes]) purpose.
 
         Actually, it would be safe to call this for non-MovieTexture nodes,
         as they should be prepared to display lists before doing
@@ -3881,9 +3898,11 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(
         TexImageReference := TextureImageReferences.Pointers[
           TextureReferencesIndex];
 
-        AlphaTest := TexImageReference^.AlphaChannelType = atSimpleYesNo;
+        AlphaTest := AlphaTest or
+          (TexImageReference^.AlphaChannelType = atSimpleYesNo);
 
-        if (MeshRenderer <> nil) and
+        if UseForBumpMappingAllowed and
+           (MeshRenderer <> nil) and
            MeshRenderer.BumpMappingAllowed and
            (BumpMappingMethod <> bmNone) then
         begin
@@ -3908,8 +3927,7 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(
         end else
           EnableClassicTexturing(TexImageReference^.GLName);
 
-        Render_TexCoordsNeeded := true;
-        Success := true;
+        Result := true;
       end else
       begin
         TextureReferencesIndex := TextureVideoReferences.TextureNodeIndex(
@@ -3918,7 +3936,8 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(
         begin
           TexVideoReference := TextureVideoReferences.Pointers[TextureReferencesIndex];
 
-          AlphaTest := TexVideoReference^.AlphaChannelType = atSimpleYesNo;
+          AlphaTest := AlphaTest or
+            (TexVideoReference^.AlphaChannelType = atSimpleYesNo);
 
           VideoTime := TexVideoReference^.Node.TimeDependentNodeHandler.ElapsedTime *
                        TexVideoReference^.Node.FdSpeed.Value;
@@ -3928,21 +3947,156 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(
           EnableClassicTexturing(
             TexVideoReference^.GLVideo.GLTextureFromTime(VideoTime));
 
-          Render_TexCoordsNeeded := true;
-          Success := true;
+          Result := true;
         end;
       end;
     end;
 
-    if not Success then
+    { Do the necessary preparations for a multi-texture node.
+      MultiTexture must be non-nil.
+
+      Sets enabled/disabled texture state for all texture units < TexCount. }
+    procedure EnableMultiTexture(const TexCount: Cardinal;
+      MultiTexture: TNodeMultiTexture);
+    var
+      ChildTex: TVRMLNode;
+      I: Integer;
+      Success: boolean;
     begin
-      ActiveTexture(0);
-      glDisable(GL_TEXTURE_2D);
-      AlphaTest := false;
-      Render_TexCoordsNeeded := false;
+      Assert(Integer(TexCount) <= MultiTexture.FdTexture.Items.Count);
+      for I := 0 to Integer(TexCount) - 1 do
+      begin
+        ChildTex := MultiTexture.FdTexture.Items.Items[I];
+        Success := false;
+
+        if ChildTex <> nil then
+        begin
+          if ChildTex is TNodeMultiTexture then
+            VRMLNonFatalError('Child of MultiTexture node cannot be another MultiTexture node') else
+          if ChildTex is TVRMLTextureNode then
+            Success := EnableNonMultiTexture(I, TVRMLTextureNode(ChildTex), false);
+        end;
+
+        if not Success then
+          DisableTexture(I);
+      end;
     end;
 
+  var
+    I: Integer;
+    TextureNode: TNodeX3DTextureNode;
+  begin
+    if Attributes.PureGeometry then
+    begin
+      TexCoordsNeeded := 0;
+      Exit;
+    end;
+
+    if not Attributes.ControlTextures then
+    begin
+      { Require texture coordinates for 1st texture, but don't do anything else
+        (like setting active texture, enabling/disabling it, don't even look
+        at VRML texture node.) }
+      TexCoordsNeeded := 1;
+      Exit;
+    end;
+
+    AlphaTest := false;
+
+    TextureNode := State.AnyTexture;
+    {$ifdef USE_VRML_NODES_TRIANGULATION}
+    { We don't generate texture coords, so disable textures. }
+    TextureNode := nil;
+    {$endif}
+
+    TexCoordsNeeded := 0;
+
+    if (TextureNode <> nil) and
+       Attributes.EnableTextures and
+       NodeTextured(CurrentGeometry) then
+    begin
+      if TextureNode is TVRMLTextureNode then
+      begin
+        if EnableNonMultiTexture(0, TVRMLTextureNode(TextureNode), true) then
+          TexCoordsNeeded := 1 else
+          TexCoordsNeeded := 0;
+      end else
+      if TextureNode is TNodeMultiTexture then
+      begin
+        { We set TexCoordsNeeded assuming that all EnableNonMultiTexture
+          will succeed. In other words, we're potentially loosing a small
+          optimization here: if some textures in multitexture failed
+          to load, we could avoid generating texture coords for them.
+          This would requre changing TexCoordsNeeded into bool array,
+          and generally is not considered worthy implementing for now. }
+
+        TexCoordsNeeded := Min(
+          Max(LastGLFreeTexture - Attributes.FirstGLFreeTexture + 1, 0),
+          TNodeMultiTexture(TextureNode).FdTexture.Count);
+
+        if not UseMultiTexturing then
+          MinTo1st(TexCoordsNeeded, 1);
+
+        EnableMultiTexture(TexCoordsNeeded, TNodeMultiTexture(TextureNode));
+      end;
+    end;
+
+    { Disable unused textures }
+    if UseMultiTexturing then
+    begin
+      for I := Attributes.FirstGLFreeTexture + TexCoordsNeeded to LastGLFreeTexture do
+        glActiveTextureARB(GL_TEXTURE0_ARB + I);
+    end else
+    begin
+      if TexCoordsNeeded = 0 then
+        glDisable(GL_TEXTURE_2D);
+    end;
+
+    { Set alpha_test enabled state.
+      Current approach: if there is any texture used,
+      with simple alpha channel, then use alpha_test.
+
+      This is not necessarily perfect for multitexturing,
+      but there's really no way to set it automatically correct for
+      multitexturing, as various operations may effectively flatten
+      alpha anyway.
+
+      So we only care to make it correct for a single texture case.
+    }
+
+    { Notka: nalezy tu zauwazyc ze robimy alphaTest ale jezeli
+      GL_TEXTURE_ENV_MODE = GL_MODULATE to alpha ktore bedzie testowane
+      tak naprawde nie bedzie alpha textury - to bedzie alpha textury
+      zmieszane z alpha koloru zmieszane z alpha swiatla. Nawet gdybysmy
+      dali texture env mode = GL_REPLACE to ciagle alpha swiatla ma wplyw
+      na testowane alpha fragmentu (chociaz to juz nie jest takie zle,
+      bo w VRML'u nie ma czegos takiego jak "alpha" czy "transparency"
+      koloru swiatla co jest dosc rozsadnym uproszczeniem) ALE przeciez
+      my chcemy miec GL_MODULATE bo powinnismy modulowac kolor tekstury
+      kolorem materialu ! Nie widze tu ladnego sposobu jak mialbym
+      pogodzic transparency materialu z kanalem alpha tekstury, przeciez
+      chcac zadowolic specyfikacje VRML'a musze honorowac obie te rzeczy.
+      Wiec niniejszym decyduje sie po prostu mieszac alpha textury z
+      transparency materialu tak jak to robi OpenGL w GL_MODULATE.
+
+      (Dementi - chyba alpha swiatla w OpenGLu nie ma wplywu
+       na wyliczone alpha vertexu. Do czego jest alpha swiatla ?)
+
+      To wszystko ma wieksze znaczenie gdy
+      ktos zechce kombinowac finezyjne transparency
+      materialu z finezyjnym (nie-0-1-kowym) kanalem alpha textury.
+    }
+
     SetGLEnabled(GL_ALPHA_TEST, AlphaTest);
+
+    { Make active texture 0. This is helpful for rendering code of
+      some primitives that do not support multitexturing now
+      (for example, primitives inside vrmlmeshrenderer_simple_nodes.inc),
+      this way they will at least define correct texture coordinates
+      for texture unit 0. }
+
+    if (TexCoordsNeeded > 0) and UseMultiTexturing then
+      ActiveTexture(0);
   end;
 
   var
