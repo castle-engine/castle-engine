@@ -326,6 +326,7 @@ type
   TNodeX3DShapeNode = class;
   TVRMLTextureNode = class;
   TNodeBlendMode = class;
+  TNodeX3DTextureNode = class;
 
   TVRMLNodeClass = class of TVRMLNode;
 
@@ -547,16 +548,23 @@ type
       For example, it ignores Transform, AverageScaleTransform, InvertedTransform. }
     function EqualsNoTransform(SecondValue: TVRMLGraphTraverseState): boolean;
 
-    { Returns proper texture node that should be used
-      for nodes within this State, regardless whether this is in
-      VRML 1.0 or 2.0.
+    { Non-multi texture node.
+
+      TODO: this is supposed to be removed, and then AnyTexture will be renamed
+      to just Texture. When multi-texture will be fully supported. }
+    function Texture: TVRMLTextureNode;
+
+    { Returns texture node that should be used for nodes within this State.
+      Regardless of VRML/X3D version. May return multi-texture
+      (TNodeMultiTexture), or normal 2D texture (TVRMLTextureNode),
+      or some other TNodeX3DTextureNode descendant (TODO: 3d textures unhandled for now).
 
       Details:
       If ParentShape <> nil, this returns texture node taken from
       ParentShape.Texture (note that it may be nil, if Apperance
       of Appearance.Texture node is NULL in VRML).
       Otherwise it returns texture from LastNodes.Texture2. }
-    function Texture: TVRMLTextureNode;
+    function AnyTexture: TNodeX3DTextureNode;
 
     { Returns BlendMode for this state, or @nil if not present.
 
@@ -3841,6 +3849,13 @@ begin
   if ParentShape = nil then
     Result := LastNodes.Texture2 else
     Result := ParentShape.Texture;
+end;
+
+function TVRMLGraphTraverseState.AnyTexture: TNodeX3DTextureNode;
+begin
+  if ParentShape = nil then
+    Result := LastNodes.Texture2 else
+    Result := ParentShape.AnyTexture;
 end;
 
 function TVRMLGraphTraverseState.BlendMode: TNodeBlendMode;

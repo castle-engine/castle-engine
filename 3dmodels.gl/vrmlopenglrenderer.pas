@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2008 Michalis Kamburelis.
+  Copyright 2002-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -570,7 +570,6 @@ type
     property OnVertexColor: TVertexColorFunction
       read FOnVertexColor write SetOnVertexColor;
 
-
     { Ponizsze ustawienie kontroluje czy na poczatku renderowania sceny wywolac
       glShadeModel(GL_SMOOTH) czy GL_FLAT. Ponadto w czasie renderowania
       sceny beda generowane odpowiednie normale (troszeczke inne normale
@@ -684,7 +683,7 @@ type
 
     { These specify which OpenGL texture units are free to use.
 
-      Note that for now we assume that at least one tetxure unit is free.
+      Note that for now we assume that at least one texture unit is free.
       If OpenGL multitexturing is not available, we will just use the default
       texture unit.
 
@@ -2972,210 +2971,251 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     end;
   end;
 
-const
-  TextureRepeatToGL: array[boolean]of TGLenum = (
-    { GL_CLAMP is useless if VRML doesn't allow to control texture border color,
-      and CLAMP_TO_EDGE is the more natural clamping method anyway...
-      Hm, but X3D specification seems to indicate that normal clamp is OpenGL's CLAMP,
-      and CLAMP_TO_EDGE is available by TextureProperties.boundaryMode*.
-      But until this will get implemented, it's much safer (and more sensible?)
-      to use GL_CLAMP_TO_EDGE here. }
-    GL_CLAMP_TO_EDGE,
-    GL_REPEAT);
+  { Do the necessary preparations for a non-multi texture node.
+    TextureNode must be non-nil. }
+  procedure PrepareNonMultiTexture(TextureNode: TVRMLTextureNode);
+  var
+    TextureImageReference: TTextureImageReference;
+    TextureVideoReference: TTextureVideoReference;
+    HeightMapGrayscale: TGrayscaleImage;
+    OriginalTexture: TImage;
+    TextureProperties: TNodeTextureProperties;
+    MinFilter, MagFilter: TGLint;
+  const
+    TextureRepeatToGL: array[boolean]of TGLenum = (
+      { GL_CLAMP is useless if VRML doesn't allow to control texture border color,
+        and CLAMP_TO_EDGE is the more natural clamping method anyway...
+        Hm, but X3D specification seems to indicate that normal clamp is OpenGL's CLAMP,
+        and CLAMP_TO_EDGE is available by TextureProperties.boundaryMode*.
+        But until this will get implemented, it's much safer (and more sensible?)
+        to use GL_CLAMP_TO_EDGE here. }
+      GL_CLAMP_TO_EDGE,
+      GL_REPEAT);
+  begin
+    if (TextureImageReferences.TextureNodeIndex(TextureNode) = -1) and
+       (TextureVideoReferences.TextureNodeIndex(TextureNode) = -1) then
+    begin
+      TextureNode.ImagesVideosCache := Cache;
+
+      { calculate MinFilter, MagFilter }
+      TextureProperties := TextureNode.TextureProperties;
+      if TextureProperties <> nil then
+      begin
+        MinFilter := StrToMinFilter(TextureProperties.FdMinificationFilter.Value);
+        MagFilter := StrToMagFilter(TextureProperties.FdMagnificationFilter.Value);
+      end else
+      begin
+        MinFilter := Attributes.TextureMinFilter;
+        MagFilter := Attributes.TextureMagFilter;
+      end;
+
+      if TextureNode.IsTextureImage then
+      begin
+        TextureImageReference.Node := TextureNode;
+        TextureImageReference.GLName := Cache.TextureImage_IncReference(
+          TextureNode.TextureImage,
+          TextureNode.TextureUsedFullUrl,
+          TextureNode,
+          MinFilter,
+          MagFilter,
+          TextureRepeatToGL[TextureNode.RepeatS],
+          TextureRepeatToGL[TextureNode.RepeatT],
+          Attributes.ColorModulatorByte,
+          { This way, our AlphaChannelType is calculated (or taken from cache)
+            by TextureImage_IncReference }
+          TextureImageReference.AlphaChannelType);
+
+        { TODO: for now, bump mapping is used only if the node has normal texture
+          too. It should be possible to use bump mapping even if the node is colored
+          only by material (in this case we should remember to still generate
+          texture coords etc.).
+
+          TODO: Also, now for each texture, there must always be the same bump map
+          (since we store it in the same TextureImageReference }
+
+        TextureImageReference.NormalMap := 0;
+        if (BumpMappingMethod <> bmNone) and
+           (State.ParentShape <> nil) and
+           (State.ParentShape.NormalMap <> nil) then
+        begin
+          State.ParentShape.NormalMap.ImagesVideosCache := Cache;
+          if State.ParentShape.NormalMap.IsTextureImage then
+          begin
+            { TODO: normal map textures should be shared by Cache }
+            TextureImageReference.NormalMap := LoadGLTexture(
+              State.ParentShape.NormalMap.TextureImage,
+              GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
+              TextureRepeatToGL[TextureNode.RepeatS],
+              TextureRepeatToGL[TextureNode.RepeatT]);
+          end;
+        end;
+
+        TextureImageReference.HeightMap := 0;
+        if (BumpMappingMethod <> bmNone) and
+           (State.ParentShape <> nil) and
+           (State.ParentShape.HeightMap <> nil) then
+        begin
+          State.ParentShape.HeightMap.ImagesVideosCache := Cache;
+          if State.ParentShape.HeightMap.IsTextureImage then
+          begin
+            { TODO: height map textures should be shared by Cache }
+
+            OriginalTexture := State.ParentShape.HeightMap.TextureImage;
+
+            { Calculate HeightMapGrayscale }
+            { TODO: this is not nice to convert here, we should load
+              straight to TGrayscalaImage }
+            if OriginalTexture is TRGBImage then
+              HeightMapGrayscale := TRGBImage(OriginalTexture).ToGrayscale else
+            if OriginalTexture is TGrayscaleImage then
+              HeightMapGrayscale := TGrayscaleImage(OriginalTexture) else
+              HeightMapGrayscale := nil;
+
+            if HeightMapGrayscale <> nil then
+            try
+              TextureImageReference.HeightMap :=
+                LoadGLTexture(HeightMapGrayscale,
+                  GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
+                  TextureRepeatToGL[TextureNode.RepeatS],
+                  TextureRepeatToGL[TextureNode.RepeatT]);
+              TextureImageReference.HeightMapScale :=
+                State.ParentShape.HeightMapScale;
+            finally
+              if HeightMapGrayscale <> OriginalTexture then
+                FreeAndNil(HeightMapGrayscale);
+            end;
+          end;
+        end;
+
+        TextureImageReferences.AppendItem(TextureImageReference);
+
+        { Note: do PrepareBumpMapping *after* TextureImageReferences.AppendItem.
+          This way in case of errors (some GLSL errors on current OpenGL ?)
+          we exit with nice state, able to free this texture reference later. }
+
+        if TextureImageReference.NormalMap <> 0 then
+          PrepareBumpMapping(
+            (TextureImageReference.HeightMap <> 0) and
+            (BumpMappingMethod >= bmGLSLParallax));
+      end else
+      if TextureNode.IsTextureVideo then
+      begin
+        TextureVideoReference.Node :=
+          { Only TNodeMovieTexture can have IsTextureVideo }
+          TextureNode as TNodeMovieTexture;
+        TextureVideoReference.GLVideo := Cache.TextureVideo_IncReference(
+          TextureNode.TextureVideo,
+          TextureNode.TextureUsedFullUrl,
+          TextureVideoReference.Node,
+          MinFilter,
+          MagFilter,
+          TextureRepeatToGL[TextureNode.RepeatS],
+          TextureRepeatToGL[TextureNode.RepeatT],
+          Attributes.ColorModulatorByte,
+          { This way, our AlphaChannelType is calculated (or taken from cache)
+            by TextureVideo_IncReference }
+          TextureVideoReference.AlphaChannelType);
+
+        TextureVideoReferences.AppendItem(TextureVideoReference);
+      end;
+    end;
+  end;
+
+  { Do the necessary preparations for a multi-texture node.
+    MultiTexture must be non-nil. }
+  procedure PrepareMultiTexture(MultiTexture: TNodeMultiTexture);
+  var
+    ChildTex: TVRMLNode;
+    I: Integer;
+  begin
+    for I := 0 to MultiTexture.FdTexture.Items.Count - 1 do
+    begin
+      ChildTex := MultiTexture.FdTexture.Items.Items[I];
+      if ChildTex <> nil then
+      begin
+        if ChildTex is TNodeMultiTexture then
+          VRMLNonFatalError('Child of MultiTexture node cannot be another MultiTexture node') else
+        if ChildTex is TVRMLTextureNode then
+          PrepareNonMultiTexture(TVRMLTextureNode(ChildTex));
+      end;
+    end;
+  end;
+
+  { Prepare texture.
+
+    Accepts multi texture or not-multi texture nodes, accepts (and ignores)
+    also @nil as TextureNode. }
+  procedure PrepareTexture(TextureNode: TNodeX3DTextureNode);
+  begin
+    { Conditions below describing when the texture is added to the cache
+      (along with "...TextureNodeIndex(TextureNode) = -1" inside
+      PrepareTextureNonMulti)
+      are reflected in PreparedTextureAlphaChannelType interface. }
+
+    if (not Attributes.PureGeometry) and
+       (TextureNode <> nil) then
+    begin
+      if TextureNode is TNodeMultiTexture then
+        PrepareMultiTexture(TNodeMultiTexture(TextureNode)) else
+      if TextureNode is TVRMLTextureNode then
+        PrepareNonMultiTexture(TVRMLTextureNode(TextureNode));
+    end;
+  end;
+
 var
-  TextureImageReference: TTextureImageReference;
-  TextureVideoReference: TTextureVideoReference;
-  TextureNode: TVRMLTextureNode;
   FontStyle: TNodeFontStyle_2;
-  HeightMapGrayscale: TGrayscaleImage;
-  OriginalTexture: TImage;
-  TextureProperties: TNodeTextureProperties;
-  MinFilter, MagFilter: TGLint;
 begin
- { przygotuj font }
- if State.ParentShape = nil then
-   PrepareFont(
-     State.LastNodes.FontStyle.Family,
-     State.LastNodes.FontStyle.Bold,
-     State.LastNodes.FontStyle.Italic,
-     State.LastNodes.FontStyle.TTF_Font) else
- if (State.ParentShape.FdGeometry.Value <> nil) and
-    (State.ParentShape.FdGeometry.Value is TNodeText) then
- begin
-   { We know that TNodeText(State.ParentShape.FdGeometry.Value)
-     will be the shape node rendered along with this State.
-     That's how it works in VRML 2.0: State actually contains
-     reference to Shape that contains reference to geometry node,
-     which means that actually State contains rendered node too. }
-   FontStyle := TNodeText(State.ParentShape.FdGeometry.Value).FontStyle;
-   if FontStyle = nil then
-     PrepareFont(
-       TNodeFontStyle_2.DefaultFamily,
-       TNodeFontStyle_2.DefaultBold,
-       TNodeFontStyle_2.DefaultItalic,
-       TNodeFontStyle_2.DefaultTTF_Font) else
-     PrepareFont(
-       FontStyle.Family,
-       FontStyle.Bold,
-       FontStyle.Italic,
-       FontStyle.TTF_Font);
- end else
- if (State.ParentShape.FdGeometry.Value <> nil) and
-    (State.ParentShape.FdGeometry.Value is TNodeText3D) then
- begin
-   { We know that TNodeText3D(State.ParentShape.FdGeometry.Value)
-     will be the shape node rendered along with this State.
-     That's how it works in VRML 2.0: State actually contains
-     reference to Shape that contains reference to geometry node,
-     which means that actually State contains rendered node too. }
-   FontStyle := TNodeText3D(State.ParentShape.FdGeometry.Value).FontStyle;
-   if FontStyle = nil then
-     PrepareFont(
-       TNodeFontStyle_2.DefaultFamily,
-       TNodeFontStyle_2.DefaultBold,
-       TNodeFontStyle_2.DefaultItalic,
-       TNodeFontStyle_2.DefaultTTF_Font) else
-     PrepareFont(
-       FontStyle.Family,
-       FontStyle.Bold,
-       FontStyle.Italic,
-       FontStyle.TTF_Font);
- end;
-
- { przygotuj teksture }
- { Conditions below describing when the texture is added to the cache
-   are reflected in PreparedTextureAlphaChannelType interface. }
-
- TextureNode := State.Texture;
- if (not Attributes.PureGeometry) and
-    (TextureNode <> nil) and
-    (TextureImageReferences.TextureNodeIndex(TextureNode) = -1) and
-    (TextureVideoReferences.TextureNodeIndex(TextureNode) = -1) then
- begin
-  TextureNode.ImagesVideosCache := Cache;
-
-  { calculate MinFilter, MagFilter }
-  TextureProperties := TextureNode.TextureProperties;
-  if TextureProperties <> nil then
+  { przygotuj font }
+  if State.ParentShape = nil then
+    PrepareFont(
+      State.LastNodes.FontStyle.Family,
+      State.LastNodes.FontStyle.Bold,
+      State.LastNodes.FontStyle.Italic,
+      State.LastNodes.FontStyle.TTF_Font) else
+  if (State.ParentShape.FdGeometry.Value <> nil) and
+     (State.ParentShape.FdGeometry.Value is TNodeText) then
   begin
-    MinFilter := StrToMinFilter(TextureProperties.FdMinificationFilter.Value);
-    MagFilter := StrToMagFilter(TextureProperties.FdMagnificationFilter.Value);
+    { We know that TNodeText(State.ParentShape.FdGeometry.Value)
+      will be the shape node rendered along with this State.
+      That's how it works in VRML 2.0: State actually contains
+      reference to Shape that contains reference to geometry node,
+      which means that actually State contains rendered node too. }
+    FontStyle := TNodeText(State.ParentShape.FdGeometry.Value).FontStyle;
+    if FontStyle = nil then
+      PrepareFont(
+        TNodeFontStyle_2.DefaultFamily,
+        TNodeFontStyle_2.DefaultBold,
+        TNodeFontStyle_2.DefaultItalic,
+        TNodeFontStyle_2.DefaultTTF_Font) else
+      PrepareFont(
+        FontStyle.Family,
+        FontStyle.Bold,
+        FontStyle.Italic,
+        FontStyle.TTF_Font);
   end else
+  if (State.ParentShape.FdGeometry.Value <> nil) and
+     (State.ParentShape.FdGeometry.Value is TNodeText3D) then
   begin
-    MinFilter := Attributes.TextureMinFilter;
-    MagFilter := Attributes.TextureMagFilter;
+    { We know that TNodeText3D(State.ParentShape.FdGeometry.Value)
+      will be the shape node rendered along with this State.
+      That's how it works in VRML 2.0: State actually contains
+      reference to Shape that contains reference to geometry node,
+      which means that actually State contains rendered node too. }
+    FontStyle := TNodeText3D(State.ParentShape.FdGeometry.Value).FontStyle;
+    if FontStyle = nil then
+      PrepareFont(
+        TNodeFontStyle_2.DefaultFamily,
+        TNodeFontStyle_2.DefaultBold,
+        TNodeFontStyle_2.DefaultItalic,
+        TNodeFontStyle_2.DefaultTTF_Font) else
+      PrepareFont(
+        FontStyle.Family,
+        FontStyle.Bold,
+        FontStyle.Italic,
+        FontStyle.TTF_Font);
   end;
 
-  if TextureNode.IsTextureImage then
-  begin
-   TextureImageReference.Node := TextureNode;
-   TextureImageReference.GLName := Cache.TextureImage_IncReference(
-     TextureNode.TextureImage,
-     TextureNode.TextureUsedFullUrl,
-     TextureNode,
-     MinFilter,
-     MagFilter,
-     TextureRepeatToGL[TextureNode.RepeatS],
-     TextureRepeatToGL[TextureNode.RepeatT],
-     Attributes.ColorModulatorByte,
-     { This way, our AlphaChannelType is calculated (or taken from cache)
-       by TextureImage_IncReference }
-     TextureImageReference.AlphaChannelType);
-
-   { TODO: for now, bump mapping is used only if the node has normal texture
-     too. It should be possible to use bump mapping even if the node is colored
-     only by material (in this case we should remember to still generate
-     texture coords etc.).
-
-     TODO: Also, now for each texture, there must always be the same bump map
-     (since we store it in the same TextureImageReference }
-
-   TextureImageReference.NormalMap := 0;
-   if (BumpMappingMethod <> bmNone) and
-      (State.ParentShape <> nil) and
-      (State.ParentShape.NormalMap <> nil) then
-   begin
-     State.ParentShape.NormalMap.ImagesVideosCache := Cache;
-     if State.ParentShape.NormalMap.IsTextureImage then
-     begin
-       { TODO: normal map textures should be shared by Cache }
-       TextureImageReference.NormalMap := LoadGLTexture(
-         State.ParentShape.NormalMap.TextureImage,
-         GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
-         TextureRepeatToGL[TextureNode.RepeatS],
-         TextureRepeatToGL[TextureNode.RepeatT]);
-     end;
-   end;
-
-   TextureImageReference.HeightMap := 0;
-   if (BumpMappingMethod <> bmNone) and
-      (State.ParentShape <> nil) and
-      (State.ParentShape.HeightMap <> nil) then
-   begin
-     State.ParentShape.HeightMap.ImagesVideosCache := Cache;
-     if State.ParentShape.HeightMap.IsTextureImage then
-     begin
-       { TODO: height map textures should be shared by Cache }
-
-       OriginalTexture := State.ParentShape.HeightMap.TextureImage;
-
-       { Calculate HeightMapGrayscale }
-       { TODO: this is not nice to convert here, we should load
-         straight to TGrayscalaImage }
-       if OriginalTexture is TRGBImage then
-         HeightMapGrayscale := TRGBImage(OriginalTexture).ToGrayscale else
-       if OriginalTexture is TGrayscaleImage then
-         HeightMapGrayscale := TGrayscaleImage(OriginalTexture) else
-         HeightMapGrayscale := nil;
-
-       if HeightMapGrayscale <> nil then
-       try
-         TextureImageReference.HeightMap :=
-           LoadGLTexture(HeightMapGrayscale,
-             GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
-             TextureRepeatToGL[TextureNode.RepeatS],
-             TextureRepeatToGL[TextureNode.RepeatT]);
-         TextureImageReference.HeightMapScale :=
-           State.ParentShape.HeightMapScale;
-       finally
-         if HeightMapGrayscale <> OriginalTexture then
-           FreeAndNil(HeightMapGrayscale);
-       end;
-     end;
-   end;
-
-   TextureImageReferences.AppendItem(TextureImageReference);
-
-   { Note: do PrepareBumpMapping *after* TextureImageReferences.AppendItem.
-     This way in case of errors (some GLSL errors on current OpenGL ?)
-     we exit with nice state, able to free this texture reference later. }
-
-   if TextureImageReference.NormalMap <> 0 then
-     PrepareBumpMapping(
-       (TextureImageReference.HeightMap <> 0) and
-       (BumpMappingMethod >= bmGLSLParallax));
-  end else
-  if TextureNode.IsTextureVideo then
-  begin
-   TextureVideoReference.Node :=
-     { Only TNodeMovieTexture can have IsTextureVideo }
-     TextureNode as TNodeMovieTexture;
-   TextureVideoReference.GLVideo := Cache.TextureVideo_IncReference(
-     TextureNode.TextureVideo,
-     TextureNode.TextureUsedFullUrl,
-     TextureVideoReference.Node,
-     MinFilter,
-     MagFilter,
-     TextureRepeatToGL[TextureNode.RepeatS],
-     TextureRepeatToGL[TextureNode.RepeatT],
-     Attributes.ColorModulatorByte,
-     { This way, our AlphaChannelType is calculated (or taken from cache)
-       by TextureVideo_IncReference }
-     TextureVideoReference.AlphaChannelType);
-
-   TextureVideoReferences.AppendItem(TextureVideoReference);
-  end;
- end;
+  PrepareTexture(State.AnyTexture);
 
   PrepareGLSLProgram;
 end;

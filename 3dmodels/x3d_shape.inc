@@ -66,8 +66,17 @@
     { This is a shortcut for FdAppearance.Value.FdTexture.Value.
       If anything makes this impossible (Apperance field is NULL,
       or Appearance.Texture field is NULL, or wrong node class is
-      passed as Appearance or Texture node), then returns nil. }
+      passed as Appearance or Texture node), then returns nil.
+
+      TODO: this is supposed to be removed, and AnyTexture renamed to Texture,
+      once everything will support multi-texturing. }
     function Texture: TVRMLTextureNode;
+
+    { This is a shortcut for FdAppearance.Value.FdTexture.Value.
+      If anything makes this impossible (Apperance field is NULL,
+      or Appearance.Texture field is NULL, or wrong node class is
+      passed as Appearance or Texture node), then returns nil. }
+    function AnyTexture: TNodeX3DTextureNode;
 
     { This is like @link(Texture), but it returns normalMap field
       of KambiAppearance. }
@@ -450,6 +459,21 @@ begin
     if (A.FdTexture.Value <> nil) and
        (A.FdTexture.Value is TVRMLTextureNode) then
       Result := TVRMLTextureNode(A.FdTexture.Value);
+  end;
+end;
+
+function TNodeX3DShapeNode.AnyTexture: TNodeX3DTextureNode;
+var
+  A: TNodeAppearance;
+begin
+  Result := nil;
+  if (FdAppearance.Value <> nil) and
+     (FdAppearance.Value is TNodeAppearance) then
+  begin
+    A := TNodeAppearance(FdAppearance.Value);
+    if (A.FdTexture.Value <> nil) and
+       (A.FdTexture.Value is TNodeX3DTextureNode) then
+      Result := TNodeX3DTextureNode(A.FdTexture.Value);
   end;
 end;
 
