@@ -347,7 +347,7 @@ procedure TVRMLEvent.Send(const Value: array of TVector3Single; const Time: TVRM
 var
   Field: TVRMLField;
 begin
-  if FieldClass = TSFColor then
+  if FieldClass = TMFColor then
     Field := TMFColor.Create(ParentNode, Name, Value) else
     Field := TMFVec3f.Create(ParentNode, Name, Value);
   try
@@ -359,9 +359,9 @@ procedure TVRMLEvent.Send(const Value: array of TVector4Single; const Time: TVRM
 var
   Field: TVRMLField;
 begin
-  if FieldClass = TSFColorRGBA then
+  if FieldClass = TMFColorRGBA then
     Field := TMFColorRGBA.Create(ParentNode, Name, Value) else
-  if FieldClass = TSFRotation then
+  if FieldClass = TMFRotation then
     Field := TMFRotation.Create(ParentNode, Name, Value) else
     Field := TMFVec4f.Create(ParentNode, Name, Value);
   try
