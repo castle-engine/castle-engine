@@ -1178,8 +1178,13 @@ type
 
       To minimize number of glGetInteger calls, the result of this is cached
       in FLastGLFreeTexture. }
-    FLastGLFreeTexture: integer;
-    function LastGLFreeTexture: integer;
+    FLastGLFreeTexture: Integer;
+    function LastGLFreeTexture: Cardinal;
+
+    { Number of available texture units.
+      Just a shortcut for LastGLFreeTexture - FirstGLFreeTexture + 1,
+      always >= 0. }
+    function FreeGLTexturesCount: Cardinal;
 
     BumpMappingMethodCached: TBumpMappingMethod;
     BumpMappingMethodIsCached: boolean;
@@ -1269,6 +1274,11 @@ type
       support explicitly, for themselves). }
     UseMultiTexturing: boolean;
 
+    { Set by RenderShapeBegin, used by RenderShapeEnd. Tells for which
+      texture units we pushed and modified the texture matrix.
+      Always <= 1 if not UseMultiTexturing. }
+    TextureTransformUnitsUsed: Cardinal;
+
     { ----------------------------------------------------------------- }
 
     {$ifdef USE_VRML_NODES_TRIANGULATION}
@@ -1293,8 +1303,8 @@ type
       TextureUnit is newly active unit, this is added to GL_TEXTURE0_ARB
       + FirstGLFreeTexture.
 
-      So the only thing that you have to care about is to specify TextureUnit <=
-      LastGLFreeTexture - FirstGLFreeTexture.
+      So the only thing that you have to care about is to specify TextureUnit <
+      FreeGLTexturesCount.
       Everything else (ARB_multitexturing, GL_TEXTURE0_ARB,
       FirstGLFreeTexture values) is taken care of inside here. }
     procedure ActiveTexture(TextureUnit: Cardinal);
@@ -3341,7 +3351,7 @@ begin
  result := FLastGLFreeLight;
 end;
 
-function TVRMLOpenGLRenderer.LastGLFreeTexture: Integer;
+function TVRMLOpenGLRenderer.LastGLFreeTexture: Cardinal;
 begin
   if FLastGLFreeTexture = -1 then
   begin
@@ -3355,6 +3365,13 @@ begin
       FLastGLFreeTexture := Attributes.LastGLFreeTexture;
   end;
   Result := FLastGLFreeTexture;
+end;
+
+function TVRMLOpenGLRenderer.FreeGLTexturesCount: Cardinal;
+begin
+  if LastGLFreeTexture >= Attributes.FirstGLFreeTexture then
+    Result := LastGLFreeTexture - Attributes.FirstGLFreeTexture + 1 else
+    Result := 0;
 end;
 
 class function TVRMLOpenGLRenderer.GLContextBumpMappingMethod(
@@ -3718,43 +3735,124 @@ end;
 procedure TVRMLOpenGLRenderer.RenderShapeBegin(
   Geometry: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState);
+
+  { Pass non-nil TextureTransform that is not a MultiTextureTransform.
+    Then this will simply do glMultMatrix (or equivalent) applying
+    transformations encoded in this TextureTransform node. }
+  procedure TextureMultMatrix(TextureTransform: TNodeX3DTextureTransformNode);
+  begin
+    if TextureTransform is TNodeTextureTransform then
+    begin
+      { Optimized version of
+          glMultMatrix(TextureTransform.TransformMatrix);
+        specially for TNodeTextureTransform. Possibly using OpenGL
+        translate etc. commands instead of loading directly 4x4 matrix will
+        result in some performance/precision gain (but, not confirmed in
+        practice). }
+      with TNodeTextureTransform(TextureTransform) do
+      begin
+        glTranslatef(
+          FdTranslation.Value[0] + FdCenter.Value[0],
+          FdTranslation.Value[1] + FdCenter.Value[1], 0);
+        glRotatef(RadToDeg(FdRotation.Value), 0, 0, 1);
+        glScalef(FdScale.Value[0], FdScale.Value[1], 1);
+        glTranslatef(-FdCenter.Value[0], -FdCenter.Value[1], 0);
+      end;
+    end else
+      glMultMatrix(TextureTransform.TransformMatrix);
+  end;
+
 var
   TextureTransform: TNodeX3DTextureTransformNode;
+  Child: TVRMLNode;
+  Transforms: TMFNode;
+  I: Integer;
 begin
+  TextureTransformUnitsUsed := 0;
+
   if (State.ParentShape = nil { VRML 1.0, always some texture transform }) or
      (State.ParentShape.TextureTransform <> nil { VRML 2.0 with tex transform }) then
   begin
     glMatrixMode(GL_TEXTURE);
 
+    { We work assuming that texture matrix before RenderShapeBegin was identity.
+      Texture transform encoded in VRML/X3D will be multiplied by this.
+
+      This allows the programmer to eventually transform all textures
+      by placing non-identity texture matrix (just like a programmer
+      can transform whole rendered model by changing modelview matrix).
+      So this is a good thing.
+
+      Additional advantage is that we do not have to explicitly "clear"
+      the texture matrix if it's an identity transformation in VRML/X3D.
+      We just let it stay like it was.
+
+      This also nicely cooperates with X3D MultiTextureTransform desired
+      behavior: "If there are too few entries in the textureTransform field,
+      identity matrices shall be used for all remaining undefined channels.".
+      Which means that looking at MultiTextureTransform node, we know exactly
+      on which texture units we have to apply transform: we can leave
+      the remaining texture units as they were, regardless of whether
+      MultiTexture is used at all and regardless of how many texture units
+      are actually used by MultiTexture. }
+
     { TODO: for bump mapping, TextureTransform should be done on more than one texture unit. }
-    ActiveTexture(0);
-    glPushMatrix;
 
     if State.ParentShape = nil then
-      glMultMatrix(State.TextureTransform) else
+    begin
+      { No multitexturing in VRML 1.0, just always transform first tex unit. }
+      TextureTransformUnitsUsed := 1;
+      ActiveTexture(0);
+      glPushMatrix;
+      glMultMatrix(State.TextureTransform);
+    end else
     begin
       TextureTransform := State.ParentShape.TextureTransform;
       if TextureTransform <> nil then
       begin
-        if TextureTransform is TNodeTextureTransform then
+        if TextureTransform is TNodeMultiTextureTransform then
         begin
-          { Optimized version of
-              glMultMatrix(TextureTransform.TransformMatrix);
-            specially for TNodeTextureTransform. Possibly using OpenGL
-            translate etc. commands instead of loading directly 4x4 matrix will
-            result in some performance/precision gain (but, not confirmed in
-            practice). }
-          with TNodeTextureTransform(TextureTransform) do
+          Transforms := TNodeMultiTextureTransform(TextureTransform).FdTextureTransform;
+
+          { Multitexturing, so use as many texture units as there are children in
+            MultiTextureTransform.textureTransform.
+
+            Cap by available texture units (First/LastGLFreeTexture,
+            and check UseMultiTexturing in case OpenGL cannot support
+            multitex at all). }
+          TextureTransformUnitsUsed := Min(Transforms.Count, FreeGLTexturesCount);
+          if not UseMultiTexturing then
+            MinTo1st(TextureTransformUnitsUsed, 1);
+
+          for I := 0 to TextureTransformUnitsUsed - 1 do
           begin
-            glTranslatef(
-              FdTranslation.Value[0] + FdCenter.Value[0],
-              FdTranslation.Value[1] + FdCenter.Value[1], 0);
-            glRotatef(RadToDeg(FdRotation.Value), 0, 0, 1);
-            glScalef(FdScale.Value[0], FdScale.Value[1], 1);
-            glTranslatef(-FdCenter.Value[0], -FdCenter.Value[1], 0);
+            ActiveTexture(I);
+            glPushMatrix;
+            Child := Transforms.Items[I];
+            if (Child <> nil) and
+               (Child is TNodeX3DTextureTransformNode) then
+            begin
+              if Child is TNodeMultiTextureTransform then
+                VRMLNonFatalError('MultiTextureTransform.textureTransform list cannot contain another MultiTextureTransform instance') else
+                TextureMultMatrix(TNodeX3DTextureTransformNode(Child));
+            end;
           end;
         end else
-          glMultMatrix(TextureTransform.TransformMatrix);
+        { Check below is done because X3D specification explicitly
+          says that MultiTexture is affected *only* by MultiTextureTransform,
+          that is normal TextureTransform and such is ignored (treated
+          like identity transform, *not* applied to 1st texture unit).
+
+          By the way, we don't do any texture transform if AnyTexture = nil,
+          since then no texture is used anyway. }
+        if (State.AnyTexture <> nil) and
+           (not (State.AnyTexture is TNodeMultiTexture)) then
+        begin
+          TextureTransformUnitsUsed := 1;
+          ActiveTexture(0);
+          glPushMatrix;
+          TextureMultMatrix(TextureTransform);
+        end;
       end;
     end;
   end;
@@ -4031,7 +4129,7 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(
           and generally is not considered worthy implementing for now. }
 
         TexCoordsNeeded := Min(
-          Max(LastGLFreeTexture - Attributes.FirstGLFreeTexture + 1, 0),
+          FreeGLTexturesCount,
           TNodeMultiTexture(TextureNode).FdTexture.Count);
 
         if not UseMultiTexturing then
@@ -4198,13 +4296,20 @@ end;
 procedure TVRMLOpenGLRenderer.RenderShapeEnd(
   Geometry: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState);
+var
+  I: Integer;
 begin
-  if (State.ParentShape = nil { VRML 1.0, always some texture transform }) or
-     (State.ParentShape.TextureTransform <> nil { VRML 2.0 with tex transform }) then
+  if TextureTransformUnitsUsed <> 0 then
   begin
-    ActiveTexture(0);
     glMatrixMode(GL_TEXTURE);
-    glPopMatrix;
+    for I := 0 to TextureTransformUnitsUsed - 1 do
+    begin
+      { This code is Ok when not UseMultiTexturing: then
+        TextureTransformUnitsUsed for sure is <= 1 and ActiveTexture
+        will be simply ignored. }
+      ActiveTexture(I);
+      glPopMatrix;
+    end;
   end;
 
   glMatrixMode(GL_MODELVIEW);

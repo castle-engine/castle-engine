@@ -380,6 +380,12 @@
     private FFdtextureTransform: TMFNode;
     public property FdtextureTransform: TMFNode read FFdtextureTransform;
 
+    { For MultiTextureTransform, this always raises an internal error.
+      Reason: you cannot get single texture transform matrix from
+      MultiTextureTransform.
+
+      @raises(EInternalError Always, since this method has no sense
+        for MultiTextureTransform.) }
     function TransformMatrix: TMatrix4Single; override;
   end;
 
@@ -1015,20 +1021,9 @@ begin
 end;
 
 function TNodeMultiTextureTransform.TransformMatrix: TMatrix4Single;
-var
-  I: Integer;
 begin
-  { Since we don't support multitexturing yet, this simply returns
-    the first valid texture transform item. }
-  for I := 0 to FdtextureTransform.Count - 1 do
-    if (FdtextureTransform.Items[I] <> nil) and
-       (FdtextureTransform.Items[I] is TNodeX3DTextureTransformNode) then
-    begin
-      Result := TNodeX3DTextureTransformNode(FdtextureTransform.Items[I]).TransformMatrix;
-      Exit;
-    end;
-  VRMLNonFatalError('No valid nodes on MultiTextureTransform.textureTransform, assuming no transform');
-  Result := IdentityMatrix4Single;
+  raise EInternalError.Create('You cannot get single TransformMatrix from MultiTextureTransform node');
+  Result := IdentityMatrix4Single; { avoid warnings that result not set }
 end;
 
 constructor TNodePixelTexture.Create(const ANodeName: string;
