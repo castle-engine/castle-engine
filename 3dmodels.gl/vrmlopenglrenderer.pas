@@ -4143,7 +4143,10 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(
     if UseMultiTexturing then
     begin
       for I := Attributes.FirstGLFreeTexture + TexCoordsNeeded to LastGLFreeTexture do
+      begin
         glActiveTextureARB(GL_TEXTURE0_ARB + I);
+        glDisable(GL_TEXTURE_2D);
+      end;
     end else
     begin
       if TexCoordsNeeded = 0 then
