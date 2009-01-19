@@ -3909,17 +3909,22 @@ begin
      (not IsEmptyBox3d(Box)) then
     ZNear := Box3dAvgSize(Box) * 0.1 else
     ZNear := WalkProjectionNear;
-  if ForceZFarInfinity then
-    ZFar := ZFarInfinity else
-    ZFar := WalkProjectionFar;
+  ZFar := WalkProjectionFar;
 
   if ViewpointNode <> nil then
     CameraKind := ViewpointNode.CameraKind else
     CameraKind := ckPerspective;
 
   if CameraKind = ckPerspective then
+  begin
+    { Only perspective projection supports z far in infinity.
+      So apply ForceZFarInfinity only in perspective projection. }
+    if ForceZFarInfinity then
+      ZFar := ZFarInfinity;
+
     ProjectionGLPerspective(AngleOfViewY, WindowWidth / WindowHeight,
-      ZNear, ZFar) else
+      ZNear, ZFar);
+  end else
   begin
     if IsEmptyBox3d(Box) then
       MaxSize := 1.0 { any dummy value } else
