@@ -599,6 +599,8 @@ type
     FInput_DownRotate: TInputShortcut;
     FInput_UpMove: TInputShortcut;
     FInput_DownMove: TInputShortcut;
+    FInput_IncreaseCameraPreferredHeight: TInputShortcut;
+    FInput_DecreaseCameraPreferredHeight: TInputShortcut;
     FInput_GravityUp: TInputShortcut;
     FInput_MoveSpeedInc: TInputShortcut;
     FInput_MoveSpeedDec: TInputShortcut;
@@ -756,6 +758,8 @@ type
     property Input_UpRotate: TInputShortcut read FInput_UpRotate;
     property Input_DownRotate: TInputShortcut read FInput_DownRotate;
     property Input_UpMove: TInputShortcut read FInput_UpMove;
+    property Input_IncreaseCameraPreferredHeight: TInputShortcut read FInput_IncreaseCameraPreferredHeight;
+    property Input_DecreaseCameraPreferredHeight: TInputShortcut read FInput_DecreaseCameraPreferredHeight;
     property Input_DownMove: TInputShortcut read FInput_DownMove;
     property Input_GravityUp: TInputShortcut read FInput_GravityUp;
 
@@ -784,14 +788,17 @@ type
 
       If @true then all keys work only when no modifiers or only shift are
       pressed. Additionally when Ctrl is pressed (and AllowSlowerRotations) then
-      rotation keys work 10x slower. Other keys with other modifiers
+      rotation keys work 10x slower. Also Increase/DecreaseCameraPreferredHeight
+      work only when Ctrl pressed.
+      Other keys with other modifiers
       don't work. We allow shift, because to press character "+" on non-numpad
       keyboard (useful on laptops, where numpad is difficult) you
       probably need to press shift.
 
       If @false then all keys work as usual, no matter what
       modifiers are pressed. And rotation keys never work 10x slower
-      (AllowSlowerRotations is ignored). }
+      (AllowSlowerRotations is ignored),
+      also Increase/DecreaseCameraPreferredHeight are ignored. }
     property CheckModsDown: boolean
       read FCheckModsDown write FCheckModsDown
       default true;
@@ -2012,6 +2019,8 @@ begin
   FInput_DownRotate   := TInputShortcut.Create(K_PageDown    , K_None, #0, false, mbLeft);
   FInput_UpMove       := TInputShortcut.Create(K_Insert      , K_None, #0, false, mbRight);
   FInput_DownMove     := TInputShortcut.Create(K_Delete      , K_None, #0, false, mbLeft);
+  FInput_IncreaseCameraPreferredHeight := TInputShortcut.Create(K_Insert , K_None, #0, false, mbLeft);
+  FInput_DecreaseCameraPreferredHeight := TInputShortcut.Create(K_Delete , K_None, #0, false, mbLeft);
   FInput_GravityUp    := TInputShortcut.Create(K_Home        , K_None, #0, false, mbLeft);
 
   { For move speed inc/dev we use also character codes +/-, as numpad
@@ -2035,6 +2044,8 @@ begin
   FreeAndNil(FInput_DownRotate);
   FreeAndNil(FInput_UpMove);
   FreeAndNil(FInput_DownMove);
+  FreeAndNil(FInput_IncreaseCameraPreferredHeight);
+  FreeAndNil(FInput_DecreaseCameraPreferredHeight);
   FreeAndNil(FInput_GravityUp);
   FreeAndNil(FInput_MoveSpeedInc);
   FreeAndNil(FInput_MoveSpeedDec);
@@ -2929,6 +2940,22 @@ var
   begin
   end;
 
+  procedure ChangeCameraPreferredHeight(const Increase: Integer);
+  begin
+    CameraPreferredHeight := CameraPreferredHeight +
+      { It's best to scale CameraPreferredHeight changes by
+        VectorLen(CameraDir), to make it faster/slower depending on scene size
+        (which usually corresponds to move speed). }
+      Increase * VectorLen(CameraDir) * CompSpeed * 10;
+
+    MaxTo1st(CameraPreferredHeight, 0.001);
+    { TODO: CorrectCameraPreferredHeight }
+
+    { Why ScheduleMatrixChanged here? Reasoning the same as for
+      MoveSpeedInc/Dec changes. }
+    ScheduleMatrixChanged;
+  end;
+
 var
   ModsDown: TModifierKeys;
 begin
@@ -2967,6 +2994,7 @@ begin
           RotateHorizontalForStrafeMove(-90);
         end;
 
+
         { A simple implementation of Input_UpMove was
             RotateVertical(90); Move(MoveVerticalSpeed * CompSpeed * 50); RotateVertical(-90)
           Similarly, simple implementation of Input_DownMove was
@@ -2974,6 +3002,7 @@ begin
           But this is not good, because when PreferGravityUp, we want to move
           along the GravityUp. (Also later note: RotateVertical is now bounded by
           MinAngleRadFromGravityUp). }
+
         if Input_UpMove.IsPressed(KeysDown, CharactersDown, MousePressed) then
           MoveVertical( 1);
         if Input_DownMove.IsPressed(KeysDown, CharactersDown, MousePressed) then
@@ -3007,9 +3036,21 @@ begin
           ScheduleMatrixChanged;
         end;
       end else
-      if AllowSlowerRotations and (ModsDown = [mkCtrl]) then
+      if ModsDown = [mkCtrl] then
       begin
-        CheckRotates(0.1);
+        if AllowSlowerRotations then
+          CheckRotates(0.1);
+
+        { Either MoveSpeedInc/Dec work, or Increase/DecreaseCameraPreferredHeight,
+          as they by default have the same shortcuts, so should not work
+          together. }
+        if ModsDown = [mkCtrl] then
+        begin
+          if Input_IncreaseCameraPreferredHeight.IsPressed(KeysDown, CharactersDown, MousePressed) then
+            ChangeCameraPreferredHeight(+1);
+          if Input_DecreaseCameraPreferredHeight.IsPressed(KeysDown, CharactersDown, MousePressed) then
+            ChangeCameraPreferredHeight(-1);
+        end;
       end;
     end;
 
