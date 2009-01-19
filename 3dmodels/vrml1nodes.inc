@@ -893,11 +893,19 @@
   TNodeWWWInline = class(TNodeX3DChildNode, IVRMLInlineNode)
   private
     BeforeTraversePushedState: boolean;
+
+    { Is the inline currently loaded. This means "loaded",
+      not "successfully loaded": when Loaded := true,
+      we condider "url" field as handled, and loaded *if possible*.
+      If "url" didn't contain anything useful, Loaded is still set to @true,
+      to avoid constantly trying to reload. }
+    Loaded: boolean;
   protected
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
     procedure LoadInlined(CanReload: boolean);
+    procedure UnLoadInlined;
 
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -2449,13 +2457,21 @@ begin
   result := 'WWWInline';
 end;
 
+procedure TNodeWWWInline.UnLoadInlined;
+begin
+  RemoveAllChildren;
+  Loaded := false;
+end;
+
 procedure TNodeWWWInline.LoadInlined(CanReload: boolean);
 begin
-  if ChildrenCount > 0 then
+  if Loaded then
   begin
-   if CanReload then RemoveAllChildren else exit;
+    if CanReload then UnLoadInlined else exit;
   end;
+
   AddChild(LoadAsVRML(PathFromWWWBasePath(FdName.Value), false));
+  Loaded := true;
 end;
 
 procedure TNodeWWWInline.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);

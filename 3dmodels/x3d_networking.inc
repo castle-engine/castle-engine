@@ -111,6 +111,13 @@
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
     procedure EventUrlReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+
+    { Is the inline currently loaded. This means "loaded",
+      not "successfully loaded": when Loaded := true,
+      we condider "url" field as handled, and loaded *if possible*.
+      If "url" didn't contain anything useful, Loaded is still set to @true,
+      to avoid constantly trying to reload. }
+    Loaded: boolean;
   protected
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
@@ -388,6 +395,7 @@ end;
 procedure TNodeInline.UnLoadInlined;
 begin
   RemoveAllChildren;
+  Loaded := false;
 end;
 
 procedure TNodeInline.LoadInlined(CanReload: boolean);
@@ -396,9 +404,9 @@ var
   FullUrl: string;
   NewNode: TVRMLNode;
 begin
-  if ChildrenCount > 0 then
+  if Loaded then
   begin
-    if CanReload then RemoveAllChildren else Exit;
+    if CanReload then UnLoadInlined else Exit;
   end;
 
   if not FdLoad.Value then Exit;
@@ -426,6 +434,12 @@ begin
     AddChild(NewNode);
     AfterLoadInlined;
   end;
+
+  { Whether or not we successfully got NewNode <> nil, we always set
+    Loaded to true here. This way we will not try to reload this inline
+    at next BeforeTraverse (this would be bad, as we already did
+    VRMLNonFatalError in case loading failed and such). }
+  Loaded := true;
 end;
 
 procedure TNodeInline.AfterLoadInlined;
