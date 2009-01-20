@@ -47,6 +47,7 @@ var
 type
   TAOElement = record
     Area: Single;
+    { Position and Normal are in *world* coordinates (not local!) }
     Position, Normal: TVector3Single;
   end;
   PAOElement = ^TAOElement;
@@ -95,7 +96,10 @@ begin
 
   FaceNormal := IndexedPolygonNormal(
     PArray_LongInt(DirectIndexes), Length(DirectIndexes),
-    Coord.ItemsArray, Coord.Count,
+    { I pass ShapeElements, not Coord.ItemsArray, pointer here,
+      to calculate normals in world-coordinates (that are
+      in ShapeElements[*].Position). }
+    PVector3Single(@(ShapeElements[0].Position)), Coord.Count, SizeOf(TAOElement),
     Vector3Single(0, 0, 0));
 
   for I := 0 to Length(Indexes) - 1 do
@@ -129,7 +133,8 @@ procedure CalculateElements;
         clear normals and area at the beginning, we will sum to them. }
       for I := 0 to Coord.Count - 1 do
       begin
-        ShapeElements[I].Position := Coord.Items.Items[I];
+        ShapeElements[I].Position :=
+          MatrixMultPoint(Shape.State.Transform, Coord.Items.Items[I]);
         ShapeElements[I].Normal := ZeroVector3Single;
         ShapeElements[I].Area := 0;
       end;
