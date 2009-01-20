@@ -1529,14 +1529,20 @@ function TriangleTransform(const Tri: TTriangle3Double; const M: TMatrix4Double)
 function IndexedTriangleNormal(const Indexes: TVector3Cardinal;
   VerticesArray: PVector3Single; VerticesStride: integer): TVector3Single;
 
+{ Surface area of 3D triangle.
+  This works for degenerated (equal to line segment or even single point)
+  triangles too: returns 0 for them.
+
+  @groupBegin }
 function TriangleArea(const Tri: TTriangle3Single): Single; overload;
 function TriangleArea(const Tri: TTriangle3Double): Double; overload;
 function TriangleAreaSqr(const Tri: TTriangle3Single): Single; overload;
 function TriangleAreaSqr(const Tri: TTriangle3Double): Double; overload;
+{ @groupEnd }
 
 { oblicz plane of triangle. Wiadomo ze to zadanie ma niesk wiele rozw
   bo kazdy plane ma niesk wiele reprezentacji jako Ax+By+Cz+D = 0.
-  TrianglePlane znajdujepo prostu jakies rozwiazanie,
+  TrianglePlane znajduje po prostu jakies rozwiazanie,
 
   It's guaranteed that the direction of this plane (i.e. first 3 items
   of returned vector) will be in the same direction as calcualted by
@@ -1657,6 +1663,22 @@ function IndexedPolygonNormal(
   Indices: PArray_Longint; IndicesCount: integer;
   Verts: PVector3Single; const VertsCount: Integer; const VertsStride: PtrUInt;
   const ResultForIncorrectPoly: TVector3Single): TVector3Single;
+{ @groupEnd }
+
+{ Surface area of indexed convex polygon.
+  Polygon is defines as vertices
+  Verts[Indices[0]], Verts[Indices[1]] ... Verts[Indices[IndicesCount-1]].
+
+  It's secured against invalid indexes on Indices list (that's the only
+  reason why it takes VertsCount parameter, after all): they are ignored.
+
+  @groupBegin }
+function IndexedConvexPolygonArea(
+  Indices: PArray_Longint; IndicesCount: integer;
+  Verts: PArray_Vector3Single; const VertsCount: Integer): Single;
+function IndexedConvexPolygonArea(
+  Indices: PArray_Longint; IndicesCount: integer;
+  Verts: PVector3Single; const VertsCount: Integer; const VertsStride: PtrUInt): Single;
 { @groupEnd }
 
 { dla zadanego polygonu 2d, ktory nie musi byc convex i moze byc kawalkami
@@ -2978,6 +3000,67 @@ begin
   if ZeroVector(Result) then
     Result := ResultForIncorrectPoly else
     NormalizeTo1st(Result);
+end;
+
+function IndexedConvexPolygonArea(
+  Indices: PArray_Longint; IndicesCount: integer;
+  Verts: PArray_Vector3Single; const VertsCount: Integer): Single;
+begin
+  Result := IndexedConvexPolygonArea(
+    Indices, IndicesCount,
+    PVector3Single(Verts), VertsCount, SizeOf(TVector3Single));
+end;
+
+function IndexedConvexPolygonArea(
+  Indices: PArray_Longint; IndicesCount: integer;
+  Verts: PVector3Single; const VertsCount: Integer; const VertsStride: PtrUInt): Single;
+var
+  Tri: TTriangle3Single;
+  i: integer;
+begin
+  { We calculate area as a sum of areas of
+    polygon's triangles. Not taking into account invalid Indices
+    (pointing beyond the VertsCount range). }
+
+  Result := 0;
+
+  I := 0;
+
+  { Verts_Indices_I = Verts[Indices[I]], but takes into account
+    that Verts is an array with VertsStride. }
+  {$define Verts_Indices_I :=
+    PVector3Single(PtrUInt(Verts) + PtrUInt(Indices^[I]) * VertsStride)^}
+
+  while (I < IndicesCount) and (Indices^[I] >= VertsCount) do Inc(I);
+  { This secures us against polygons with no valid Indices[].
+    (including case when IndicesCount = 0). }
+  if I >= IndicesCount then
+    Exit;
+  Tri[0] := Verts_Indices_I;
+
+  repeat Inc(I) until (I >= IndicesCount) or (Indices^[I] < VertsCount);
+  if I >= IndicesCount then
+    Exit;
+  Tri[1] := Verts_Indices_I;
+
+  repeat Inc(I) until (I >= IndicesCount) or (Indices^[I] < VertsCount);
+  if I >= IndicesCount then
+    Exit;
+  Tri[2] := Verts_Indices_I;
+
+  Result += TriangleArea(Tri);
+
+  repeat
+    { find next valid point, which makes another triangle of polygon }
+
+    repeat Inc(I) until (I >= IndicesCount) or (Indices^[I] < VertsCount);
+    if I >= IndicesCount then
+      Break;
+    Tri[1] := Tri[2];
+    Tri[2] := Verts_Indices_I;
+
+    Result += TriangleArea(Tri);
+  until false;
 end;
 
 function IsPolygon2dCCW(Verts: PArray_Vector2Single; const VertsCount: Integer): Single;

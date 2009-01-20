@@ -40,6 +40,7 @@ type
     procedure TestMatrixInverse;
     procedure TestMultMatrixTranslation;
     procedure TestMultMatricesTranslation;
+    procedure TestIndexedPolygonNormalArea;
   end;
 
 function RandomVector: TVector3Single;
@@ -415,6 +416,31 @@ begin
     Assert(MatricesEqual(M, NewM, 0.001));
     Assert(MatricesEqual(MInverse, NewMInverse, 0.001));
   end;
+end;
+
+procedure TTestVectorMath.TestIndexedPolygonNormalArea;
+const
+  Poly: array [0..4] of TVector3Single = ((5, 4, 0), (4, 4, 0), (2, 3, 0), (2, 1, 0), (6, 2, 0));
+  CCWPolyIndex: array [0..6] of LongInt = (0, 1, 5, 2, 3, 4, 999);
+  CWPolyIndex: array [0..6] of LongInt = (666, 4, 105, 3, 2, 1, 0);
+begin
+  Assert(VectorsEqual(
+    IndexedPolygonNormal(@CCWPolyIndex, High(CCWPolyIndex) + 1,
+      @Poly, High(Poly) + 1, ZeroVector3Single),
+    Vector3Single(0, 0, 1)));
+
+  Assert(VectorsEqual(
+    IndexedPolygonNormal(@CWPolyIndex, High(CWPolyIndex) + 1,
+      @Poly, High(Poly) + 1, ZeroVector3Single),
+    Vector3Single(0, 0, -1)));
+
+  Assert(FloatsEqual(
+    IndexedConvexPolygonArea(@CCWPolyIndex, High(CCWPolyIndex) + 1,
+      @Poly, High(Poly) + 1), 8));
+
+  Assert(FloatsEqual(
+    IndexedConvexPolygonArea(@CWPolyIndex , High(CWPolyIndex) + 1,
+      @Poly, High(Poly) + 1), 8));
 end;
 
 { global utils --------------------------------------------------------------- }
