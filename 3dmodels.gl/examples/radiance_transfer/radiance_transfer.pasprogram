@@ -43,7 +43,6 @@ type
 
 var
   Scene: TVRMLGLScene;
-  CameraRadius: Single;
   ViewMode: TViewMode = vmFull;
   UseLighting: boolean = true;
   LightRadius: Single;
@@ -134,7 +133,7 @@ procedure Resize(Glwin: TGLWindow);
 var
   AngleOfViewX, AngleOfViewY: Single;
 begin
-  Scene.GLProjection(Glw.Navigator, Scene.BoundingBox, CameraRadius,
+  Scene.GLProjection(Glw.Navigator, Scene.BoundingBox,
     Glwin.Width, Glwin.Height, AngleOfViewX, AngleOfViewY);
 end;
 
@@ -291,7 +290,7 @@ begin
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;
 
-    Glw.Navigator := Scene.CreateNavigator(CameraRadius);
+    Glw.Navigator := Scene.CreateNavigator;
     Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
 
     Glw.OnInit := @Init;

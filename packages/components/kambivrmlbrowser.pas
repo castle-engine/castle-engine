@@ -92,8 +92,6 @@ type
     FOnNavigatorChanged: TNavigatorNotifyFunc;
     FScene: TVRMLGLScene;
 
-    CameraRadius: Single;
-
     AngleOfViewX, AngleOfViewY: Single;
 
     FIgnoreAreas: TDynAreaArray;
@@ -265,7 +263,7 @@ begin
   Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
 
   { init Navigator }
-  Navigator := Scene.CreateNavigator(CameraRadius);
+  Navigator := Scene.CreateNavigator;
   Navigator.OnMatrixChanged := @MatrixChanged;
 
   if Navigator is TWalkNavigator then
@@ -417,7 +415,7 @@ procedure TKamVRMLBrowser.Resize;
 begin
   inherited;
   if not MakeCurrent then Exit;
-  Scene.GLProjection(Navigator, Scene.BoundingBox, CameraRadius,
+  Scene.GLProjection(Navigator, Scene.BoundingBox,
     Width, Height, AngleOfViewX, AngleOfViewY, ShadowVolumesPossible);
 end;
 
@@ -523,7 +521,7 @@ begin
   if Scene.OctreeCollisions <> nil then
   begin
     Result := Scene.OctreeCollisions.MoveAllowed(
-      ANavigator.CameraPos, ProposedNewPos, NewPos, CameraRadius,
+      ANavigator.CameraPos, ProposedNewPos, NewPos, ANavigator.CameraRadius,
       { Don't let user to fall outside of the box because of gravity. }
       BecauseOfGravity);
   end else
@@ -577,12 +575,12 @@ end;
 
 procedure TKamVRMLBrowser.BoundViewpointChanged(Scene: TVRMLScene);
 begin
-  Scene.NavigatorBindToViewpoint(Navigator, CameraRadius, false);
+  Scene.NavigatorBindToViewpoint(Navigator, false);
 end;
 
 procedure TKamVRMLBrowser.BoundViewpointVectorsChanged(Scene: TVRMLScene);
 begin
-  Scene.NavigatorBindToViewpoint(Navigator, CameraRadius, true);
+  Scene.NavigatorBindToViewpoint(Navigator, true);
 end;
 
 procedure TKamVRMLBrowser.GeometryChanged(Scene: TVRMLScene;

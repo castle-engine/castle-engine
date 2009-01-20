@@ -1260,13 +1260,13 @@ type
 
       By the way, calculates AngleOfViewX, AngleOfViewY (in degrees). }
     procedure GLProjection(Nav: TNavigator;
-      const Box: TBox3d; const CameraRadius: Single;
+      const Box: TBox3d;
       const WindowWidth, WindowHeight: Cardinal;
       out AngleOfViewX, AngleOfViewY: Single;
       const ForceZFarInfinity: boolean = false);
 
     procedure GLProjectionCore(Nav: TNavigator;
-      const Box: TBox3d; const CameraRadius: Single;
+      const Box: TBox3d;
       const WindowWidth, WindowHeight: Cardinal;
       out AngleOfViewX, AngleOfViewY: Single;
       const ForceZFarInfinity: boolean;
@@ -3818,21 +3818,21 @@ begin
 end;
 
 procedure TVRMLGLScene.GLProjection(Nav: TNavigator;
-  const Box: TBox3d; const CameraRadius: Single;
+  const Box: TBox3d;
   const WindowWidth, WindowHeight: Cardinal;
   out AngleOfViewX, AngleOfViewY: Single;
   const ForceZFarInfinity: boolean);
 var
   NewBackgroundSkySphereRadius: Single;
 begin
-  GLProjectionCore(Nav, Box, CameraRadius, WindowWidth, WindowHeight,
+  GLProjectionCore(Nav, Box, WindowWidth, WindowHeight,
     AngleOfViewX, AngleOfViewY, ForceZFarInfinity,
     NewBackgroundSkySphereRadius);
   BackgroundSkySphereRadius := NewBackgroundSkySphereRadius;
 end;
 
 procedure TVRMLGLScene.GLProjectionCore(Nav: TNavigator;
-  const Box: TBox3d; const CameraRadius: Single;
+  const Box: TBox3d;
   const WindowWidth, WindowHeight: Cardinal;
   out AngleOfViewX, AngleOfViewY: Single;
   const ForceZFarInfinity: boolean;
@@ -3880,7 +3880,7 @@ begin
       FdVisibilityLimit.Value else
     VisibilityLimit := 0;
 
-  WalkProjectionNear := CameraRadius * 0.6;
+  WalkProjectionNear := Nav.CameraRadius * 0.6;
 
   if VisibilityLimit <> 0.0 then
     WalkProjectionFar := VisibilityLimit else

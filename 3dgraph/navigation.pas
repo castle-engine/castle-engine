@@ -270,6 +270,8 @@ type
 
     FProjectionMatrix: TMatrix4Single;
     procedure SetProjectionMatrix(const Value: TMatrix4Single);
+
+    FCameraRadius: Single;
   protected
     { This is called always when @link(Matrix) changed.
       Actually, when any
@@ -399,6 +401,21 @@ type
       This is used whenever Frustum is recalculated. }
     property ProjectionMatrix: TMatrix4Single
       read FProjectionMatrix write SetProjectionMatrix;
+
+    { Camera radius.
+
+      Walk navigator uses this for automatically correcting CameraPreferredHeight,
+      see @link(CorrectCameraPreferredHeight). Especially useful if you let
+      user change CameraPreferredHeight at runtime by
+      Input_IncreaseCameraPreferredHeight, Input_DcreaseCameraPreferredHeight.
+
+      Note that Navigator class doesn't need CameraRadius information
+      desperately, as it doesn't perform collision detection directly
+      (Walk navigator delegates these to callbacks
+      TWalkNavigator.OnGetCameraHeight, TWalkNavigator.OnMoveAllowed).
+      Still, navigator class is usually a comfortable place to store this. }
+    property CameraRadius: Single
+      read FCameraRadius write FCameraRadius default 0.0;
   end;
 
   TNavigatorClass = class of TNavigator;
@@ -518,7 +535,7 @@ type
 
       In other words, this is just a shortcut to setting ModelBox
       and then calling @link(Home). }
-    procedure Init(const AModelBox: TBox3d);
+    procedure Init(const AModelBox: TBox3d; const ACameraRadius: Single = 0);
     procedure Home;
 
     { Methods performing navigation.
@@ -1004,7 +1021,8 @@ type
       Sets initial camera properties (InitialCameraXxx),
       sets current camera properties to them (CameraXxx := InitialCameraXxx).
 
-      It will also call CorrectCameraPreferredHeight(ACameraRadius),
+      Sets also CameraPreferredHeight and CameraRadius.
+      It will automatically call CorrectCameraPreferredHeight(ACameraRadius),
       because this is important thing that's too easy to otherwise forget.
       Just pass ACameraRadius = 0.0 if you don't really want this. }
     procedure Init(const AInitialCameraPos, AInitialCameraDir,
@@ -1170,7 +1188,7 @@ type
       holds by eventually adjusting (making larger) CameraPreferredHeight.
       Note that for CameraRadius = 0.0 this will always leave
       CameraPreferredHeight as it is. }
-    procedure CorrectCameraPreferredHeight(const CameraRadius: Single);
+    procedure CorrectCameraPreferredHeight;
 
     { Assign here the callback (or override DoGetCameraHeight)
       to say what is the current height of camera above the ground.
@@ -1780,9 +1798,10 @@ begin FScaleFactor *= ScaleBy; MatrixChanged; end;
 procedure TExamineNavigator.Move(coord: integer; const MoveDistance: Single);
 begin FMoveAmount[coord] += MoveDistance; MatrixChanged; end;
 
-procedure TExamineNavigator.Init(const AModelBox: TBox3d);
+procedure TExamineNavigator.Init(const AModelBox: TBox3d; const ACameraRadius: Single);
 begin
  ModelBox := AModelBox;
+ CameraRadius := ACameraRadius;
  Home;
 end;
 
@@ -2948,8 +2967,7 @@ var
         (which usually corresponds to move speed). }
       Increase * VectorLen(CameraDir) * CompSpeed * 10;
 
-    MaxTo1st(CameraPreferredHeight, 0.001);
-    { TODO: CorrectCameraPreferredHeight }
+    CorrectCameraPreferredHeight;
 
     { Why ScheduleMatrixChanged here? Reasoning the same as for
       MoveSpeedInc/Dec changes. }
@@ -3180,7 +3198,8 @@ begin
     AInitialCameraUp, false);
   FGravityUp := AGravityUp;
   CameraPreferredHeight := ACameraPreferredHeight;
-  CorrectCameraPreferredHeight(ACameraRadius);
+  CameraRadius := ACameraRadius;
+  CorrectCameraPreferredHeight;
   Home;
 end;
 
@@ -3278,7 +3297,7 @@ begin
   ScheduleMatrixChanged;
 end;
 
-procedure TWalkNavigator.CorrectCameraPreferredHeight(const CameraRadius: Single);
+procedure TWalkNavigator.CorrectCameraPreferredHeight;
 begin
   Navigation.CorrectCameraPreferredHeight(
     FCameraPreferredHeight, CameraRadius, CrouchHeight, HeadBobbing);

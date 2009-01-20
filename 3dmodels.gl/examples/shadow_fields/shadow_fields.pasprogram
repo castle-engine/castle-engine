@@ -55,7 +55,6 @@ uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3d,
 
 var
   SceneCaster, SceneReceiver, SceneLocalLight: TVRMLGLScene;
-  CameraRadius: Single;
   CasterOOF: TShadowField;
   LocalLightSRF: TShadowField;
   GLList_EnvLight: TGLuint;
@@ -242,7 +241,6 @@ var
   AngleOfViewX, AngleOfViewY: Single;
 begin
   SceneReceiver.GLProjection(Glw.Navigator, SceneReceiver.BoundingBox,
-    CameraRadius,
     Glwin.Width, Glwin.Height, AngleOfViewX, AngleOfViewY);
 end;
 
@@ -553,7 +551,7 @@ begin
 
     { initialize navigators }
 
-    NavigatorAll := SceneReceiver.CreateNavigator(CameraRadius);
+    NavigatorAll := SceneReceiver.CreateNavigator;
     NavigatorAll.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
 
     NavigatorCaster := TExamineNavigator.Create(

@@ -523,7 +523,7 @@ type
 
       @seealso TVRMLGLScene.GLProjection }
     procedure GLProjection(Nav: TNavigator;
-      const Box: TBox3d; const CameraRadius: Single;
+      const Box: TBox3d;
       const WindowWidth, WindowHeight: Cardinal;
       out AngleOfViewX, AngleOfViewY: Single;
       const ForceZFarInfinity: boolean = false);
@@ -1586,14 +1586,14 @@ begin
 end;
 
 procedure TVRMLGLAnimation.GLProjection(Nav: TNavigator;
-  const Box: TBox3d; const CameraRadius: Single;
+  const Box: TBox3d;
   const WindowWidth, WindowHeight: Cardinal;
   out AngleOfViewX, AngleOfViewY: Single;
   const ForceZFarInfinity: boolean);
 var
   NewBackgroundSkySphereRadius: Single;
 begin
-  FirstScene.GLProjectionCore(Nav, Box, CameraRadius, WindowWidth, WindowHeight,
+  FirstScene.GLProjectionCore(Nav, Box, WindowWidth, WindowHeight,
     AngleOfViewX, AngleOfViewY, ForceZFarInfinity,
     NewBackgroundSkySphereRadius);
   BackgroundSkySphereRadius := NewBackgroundSkySphereRadius;

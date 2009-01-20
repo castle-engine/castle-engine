@@ -1585,12 +1585,13 @@ type
 
     { Create and initialize TNavigator instance based on currently
       bound NavigationInfo and Viewpoint node.
-      Calculates also CameraRadius for you.
 
       Bound NavigationInfo node is just
       NavigationInfoStack.Top. If no NavigationInfo is bound, this is @nil,
       and we will create navigator corresponding to default NavigationInfo
       values (this is following VRML spec), so it will have type = EXAMINE.
+
+      Sets also @link(TNavigator.CameraRadius).
 
       This initializes many TWalkNavigator properties, if this is determined
       to be proper result class:
@@ -1604,7 +1605,7 @@ type
 
       This also calls NavigatorBindToViewpoint at the end,
       so navigator is bound to current vewpoint. }
-    function CreateNavigator(out CameraRadius: Single): TNavigator;
+    function CreateNavigator: TNavigator;
 
     { Update navigator when currently bound viewpoint changes.
       When no viewpoint is currently bound, we will go to standard (initial)
@@ -1617,7 +1618,7 @@ type
       Currently bound NavigationInfo.speed is also taken into account here.
       Navigator's MoveHorizontalSpeed and MoveVerticalSpeed are updated. }
     procedure NavigatorBindToViewpoint(Nav: TNavigator;
-      const CameraRadius: Single; const OnlyViewpointVectorsChanged: boolean);
+      const OnlyViewpointVectorsChanged: boolean);
 
     { Detect position/direction of the main light that produces shadows.
       This is useful when you want to make shadows on the scene
@@ -4968,11 +4969,11 @@ end;
 
 { navigator ------------------------------------------------------------------ }
 
-function TVRMLScene.CreateNavigator(out CameraRadius: Single): TNavigator;
+function TVRMLScene.CreateNavigator: TNavigator;
 var
   NavigationNode: TNodeNavigationInfo;
   I: Integer;
-  CameraPreferredHeight: Single;
+  CameraPreferredHeight, CameraRadius: Single;
 begin
   NavigationNode := NavigationInfoStack.Top as TNodeNavigationInfo;
 
@@ -5033,6 +5034,8 @@ begin
   if CameraRadius <= 0 then
     CameraRadius := Box3dAvgSize(BoundingBox, 1.0) * 0.01;
 
+  TNavigator(Result).CameraRadius := CameraRadius;
+
   if Result is TWalkNavigator then
   begin
     { For NavigationNode = nil, always Examine is created. }
@@ -5044,18 +5047,18 @@ begin
       CameraPreferredHeight := CameraRadius * 2;
 
     TWalkNavigator(Result).CameraPreferredHeight := CameraPreferredHeight;
-    TWalkNavigator(Result).CorrectCameraPreferredHeight(CameraRadius);
+    TWalkNavigator(Result).CorrectCameraPreferredHeight;
   end else
   if Result is TExamineNavigator then
   begin
-    TExamineNavigator(Result).Init(BoundingBox);
+    TExamineNavigator(Result).Init(BoundingBox, CameraRadius);
   end;
 
-  NavigatorBindToViewpoint(Result, CameraRadius, false);
+  NavigatorBindToViewpoint(Result, false);
 end;
 
 procedure TVRMLScene.NavigatorBindToViewpoint(Nav: TNavigator;
-  const CameraRadius: Single; const OnlyViewpointVectorsChanged: boolean);
+  const OnlyViewpointVectorsChanged: boolean);
 var
   CameraPos: TVector3Single;
   CameraDir: TVector3Single;
@@ -5093,7 +5096,7 @@ begin
       speed that should "feel sensible". We base it on CameraRadius.
       CameraRadius in turn was calculated based on
       Box3dAvgSize(SceneAnimation.BoundingBoxSum). }
-    VectorAdjustToLengthTo1st(CameraDir, CameraRadius * 0.4);
+    VectorAdjustToLengthTo1st(CameraDir, Nav.CameraRadius * 0.4);
     WalkNav.MoveHorizontalSpeed := 1;
     WalkNav.MoveVerticalSpeed := 1;
   end else
