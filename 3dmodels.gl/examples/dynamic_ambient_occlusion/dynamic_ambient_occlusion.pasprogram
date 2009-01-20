@@ -36,7 +36,7 @@ uses VectorMath, GL, GLU, GLExt, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLScene, VRMLGLScene, Navigation,
   KambiFilesUtils, KambiStringUtils, VRMLErrors, GLShaders, VRMLShape,
-  VRMLFields;
+  VRMLFields, Images, Boxes3d, GLImages;
 
 var
   Scene: TVRMLGLScene;
@@ -196,6 +196,132 @@ begin
   end;}
 end;
 
+var
+  ElementsPositionAreaTex: TRGBAlphaImage;
+  ElementsNormalTex: TRGBImage;
+  { All Elements*Tex are square and have the same size:
+    ElementsTexSize x ElementsTexSize. }
+  ElementsTexSize: Cardinal;
+
+  GLElementsPositionAreaTex: TGLuint;
+  GLElementsNormalTex: TGLuint;
+
+  { We will pack position (with arbitrary 3 float) and areas (with arbitrary
+    float >= 0) and normal components (with floats in -1..1 range)
+    into the texture components, which are limited to 0..1 range.
+
+    "Scale" and "shift" are used on CPU to squeeze value into texture,
+    such that
+      tex_value := value / scale - shift;
+    Then GPU can do
+      value := (tex_value + shift) * scale;
+    (as you see, we do the more costly division on CPU, to allow GPU
+    to run with maximum speed).
+
+    For normal vector components, scale = 2, shift = -0.5.
+    For area, shift = 0, scale = calculated using max area.
+    For positions, both scale and shoft are calculated, using bounding box
+    of points. }
+  PositionScale, PositionShift: TVector3Single;
+  AreaScale: Single;
+
+procedure CalculateElementsTex;
+
+  { Trivially convert Value in 0..1 range to a byte.
+    By the way, checks is the Value really in 0..1 range (eventually,
+    slightly off due to fp errors). This way it checks if our scale/shift
+    variables are not too large. }
+  function ClampedCheck(const Value: Single): Byte;
+  var
+    ResultInt: Integer;
+  begin
+    ResultInt := Round(Value * High(Byte));
+
+    { I check ResultInt below with 25 margin, which is 25/255 ~= 0.1 error
+      tolerance. That's pretty large tolerance, values really should fit
+      within. }
+    Assert(ResultInt >= -25, 'Value squeezed into texture is < 0');
+    Assert(ResultInt <= High(Byte)+25, 'Value squeezed into texture is > 1');
+
+    if ResultInt < 0 then
+      Result := 0 else
+    if ResultInt > High(Byte) then
+      Result := High(Byte) else
+      Result := ResultInt;
+  end;
+
+var
+  TexSizeExponent: Cardinal;
+  I: Integer;
+  PositionArea: PVector4Byte;
+  Normal: PVector3Byte;
+  Element: PAOElement;
+begin
+  if (Elements.Count = 0) or
+     IsEmptyBox3d(Scene.BoundingBox) then
+    raise Exception.Create('No elements, or empty bounding box --- we cannot do dyn ambient occlusion.');
+
+  TexSizeExponent := Smallest2Exponent(Elements.Count);
+  if TexSizeExponent mod 2 = 0 then
+    TexSizeExponent := TexSizeExponent div 2 else
+    TexSizeExponent := TexSizeExponent div 2 + 1;
+  ElementsTexSize := 1 shl TexSizeExponent;
+
+  Assert(Sqr(ElementsTexSize) >= Elements.Count);
+  Writeln('For elements ', Elements.Count,
+    ' we use texture size ', ElementsTexSize, '^2 = ', Sqr(ElementsTexSize), ' pixels');
+
+  { calculate maximum area, which is just AreaScale }
+  AreaScale := 0;
+  for I := 0 to Elements.Count - 1 do
+    MaxTo1st(AreaScale, Elements.Items[I].Area);
+
+  { calculate PositionScale, PositionShift.
+    We have min/max in Scene.BoundingBox. }
+  PositionScale := Box3dSizes(Scene.BoundingBox);
+  for I := 0 to 2 do
+    PositionShift[I] := Scene.BoundingBox[0][I] / PositionScale[I];
+
+  Writeln('To squeeze area into texture we use area_scale = ', AreaScale:1:10);
+  Writeln('To squeeze positions into texture we use scale = ',
+    VectorToNiceStr(PositionScale), ' and shift ',
+    VectorToNiceStr(PositionShift), ' (bbox is ',
+    Box3dToNiceStr(Scene.BoundingBox), ')');
+
+  { initialize textures }
+  FreeAndNil(ElementsPositionAreaTex);
+  FreeAndNil(ElementsNormalTex);
+
+  ElementsPositionAreaTex := TRGBAlphaImage.Create(ElementsTexSize, ElementsTexSize);
+  ElementsNormalTex := TRGBImage.Create(ElementsTexSize, ElementsTexSize);
+
+  { fill textures }
+  PositionArea := ElementsPositionAreaTex.AlphaPixels;
+  Normal := ElementsNormalTex.RGBPixels;
+  Element := PAOElement(Elements.ItemsArray);
+  for I := 0 to Elements.Count - 1 do
+  begin
+    Writeln('pos');
+    PositionArea^[0] := ClampedCheck(Element^.Position[0] / PositionScale[0] - PositionShift[0]);
+    PositionArea^[1] := ClampedCheck(Element^.Position[1] / PositionScale[1] - PositionShift[1]);
+    PositionArea^[2] := ClampedCheck(Element^.Position[2] / PositionScale[2] - PositionShift[2]);
+    Writeln('area');
+    PositionArea^[3] := ClampedCheck(Element^.Area / AreaScale);
+    Writeln('norm');
+    Normal^[0] := ClampedCheck(Element^.Normal[0] / 2 + 0.5);
+    Normal^[1] := ClampedCheck(Element^.Normal[1] / 2 + 0.5);
+    Normal^[2] := ClampedCheck(Element^.Normal[2] / 2 + 0.5);
+    Inc(Element);
+    Inc(PositionArea);
+    Inc(Normal);
+  end;
+
+  GLElementsPositionAreaTex := LoadGLTexture(ElementsPositionAreaTex,
+    GL_NEAREST, GL_NEAREST);
+  GLElementsNormalTex := LoadGLTexture(ElementsNormalTex,
+    GL_NEAREST, GL_NEAREST);
+end;
+
 { GLWindow callbacks --------------------------------------------------------- }
 
 procedure Draw(Glwin: TGLWindow);
@@ -208,6 +334,9 @@ procedure Draw(Glwin: TGLWindow);
     Radius: Float;
   begin
     glEnable(GL_DEPTH_TEST);
+    glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(1, 1, 0, 1));
+    glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, Vector4Single(0, 0, 0, 1));
+
     Q := NewGLUQuadric(GL_FALSE, GLU_FLAT, GLU_OUTSIDE, GLU_FILL);
 
     for I := 0 to Elements.Count - 1 do
@@ -237,7 +366,25 @@ begin
     DoShowElements else
   begin
     if GLSLProgram.Support <> gsNone then
+    begin
+{      glActiveTextureARB(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, GLElementsPositionAreaTex);
+      glEnable(GL_TEXTURE_2D);
+      GLSLProgram.SetUniform('tex_elements_position_area', 0);
+
+      glActiveTextureARB(GL_TEXTURE1);
+      glBindTexture(GL_TEXTURE_2D, GLElementsNormalTex);
+      glEnable(GL_TEXTURE_2D);
+      GLSLProgram.SetUniform('tex_elements_normal', 1);
+}
+{      GLSLProgram.SetUniform('tex_elements_size', ElementsTexSize);
+      GLSLProgram.SetUniform('area_scale', AreaScale);
+      GLSLProgram.SetUniform('position_scale', PositionScale);
+      GLSLProgram.SetUniform('position_shift', PositionShift);
+      GLSLProgram.SetUniform('elements_count', Elements.Count);
+}
       GLSLProgram.Enable;
+    end;
 
     Scene.Render(nil, tgAll);
 
@@ -261,11 +408,17 @@ begin
     We display debug info, so user should know what's going on. }
   GLSLProgram.Link(false);
   Writeln(GLSLProgram.DebugInfo);
+
+  CalculateElementsTex;
 end;
 
 procedure Close(Glwin: TGLWindow);
 begin
-  Scene.CloseGL;
+  { Scene may be @nil e.g. if Draw raised an exception, then we will
+    free scene before the window will get closed. }
+  if Scene <> nil then
+    Scene.CloseGL;
+
   FreeAndNil(GLSLProgram);
 end;
 
@@ -327,5 +480,7 @@ begin
   finally
     FreeAndNil(Scene);
     FreeAndNil(Elements);
+    FreeAndNil(ElementsPositionAreaTex);
+    FreeAndNil(ElementsNormalTex);
   end;
 end.
