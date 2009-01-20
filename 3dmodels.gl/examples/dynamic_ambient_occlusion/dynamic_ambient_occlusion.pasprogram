@@ -26,17 +26,152 @@
   http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter14.html
   (PDF version on
   http://http.download.nvidia.com/developer/GPU_Gems_2/GPU_Gems2_ch14.pdf).
+
+  TODO: make model animated, just call CalculateElements on each geometry
+  change (or, better: optimized version of it).
 }
 program dynamic_ambient_occlusion;
 
-uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
+uses VectorMath, GL, GLU, GLExt, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLScene, VRMLGLScene, Navigation,
-  KambiFilesUtils, KambiStringUtils, VRMLErrors, GLShaders;
+  KambiFilesUtils, KambiStringUtils, VRMLErrors, GLShaders, VRMLShape,
+  VRMLFields;
 
 var
   Scene: TVRMLGLScene;
   GLSLProgram: TGLSLProgram;
+
+{ Storing and calculating "elements" for algorithm --------------------------- }
+
+type
+  TAOElement = record
+    Area: Single;
+    Position, Normal: TVector3Single;
+  end;
+  PAOElement = ^TAOElement;
+
+  TDynArrayItem_1 = TAOElement;
+  PDynArrayItem_1 = PAOElement;
+  {$define DYNARRAY_1_IS_STRUCT}
+  {$define read_interface}
+  {$define read_implementation}
+  {$I dynarray_1.inc}
+type
+  TDynAOElementArray = TDynArray_1;
+
+var
+  Elements: TDynAOElementArray;
+
+type
+  TElementsCalculator = class
+  public
+    CoordIndex: TDynLongIntArray;
+    Coord: TDynVector3SingleArray;
+    ShapeElements: PAOElement;
+
+    procedure Polygon(const Indexes: array of Cardinal);
+  end;
+
+procedure TElementsCalculator.Polygon(
+  const Indexes: array of Cardinal);
+var
+  FaceNormal: TVector3Single;
+  { DirectIndexes is LongInt, not Cardinal array, since we cannot
+    guarantee that CoordIndex items are >= 0. }
+  DirectIndexes: array of LongInt;
+  I: Integer;
+begin
+  SetLength(DirectIndexes, Length(Indexes));
+  if CoordIndex <> nil then
+  begin
+    for I := 0 to Length(Indexes) - 1 do
+      DirectIndexes[I] := CoordIndex.Items[Indexes[I]];
+  end else
+  begin
+    for I := 0 to Length(Indexes) - 1 do
+      DirectIndexes[I] := Indexes[I];
+  end;
+
+  FaceNormal := IndexedPolygonNormal(
+    PArray_LongInt(DirectIndexes), Length(DirectIndexes),
+    Coord.ItemsArray, Coord.Count,
+    Vector3Single(0, 0, 0));
+
+  for I := 0 to Length(Indexes) - 1 do
+    if DirectIndexes[I] >= 0 then
+      VectorAddTo1st(ShapeElements[DirectIndexes[I]].Normal, FaceNormal);
+end;
+
+procedure CalculateElements;
+
+  procedure AddShapeElements(Shape: TVRMLShape);
+  var
+    Coord: TMFVec3f;
+    Calculator: TElementsCalculator;
+    ShapeElementIndex: Cardinal;
+    ShapeElements: PAOElement;
+    I: Integer;
+  begin
+    if Shape.GeometryNode.Coord(Shape.State, Coord) and (Coord <> nil) then
+    begin
+      { Grow Elements array }
+      ShapeElementIndex := Elements.Count;
+      Elements.Count := Elements.Count + Coord.Count;
+      ShapeElements := Elements.Pointers[ShapeElementIndex];
+
+      { This does a modified and tweaked version of normal calculation
+        from CreateSmoothNormalsCoordinateNode from NormalsCalculator.
+        We want to additionally store Position and calculate Area for
+        each element (= just vertex). }
+
+      { Initialize: set position,
+        clear normals and area at the beginning, we will sum to them. }
+      for I := 0 to Coord.Count - 1 do
+      begin
+        ShapeElements[I].Position := Coord.Items.Items[I];
+        ShapeElements[I].Normal := ZeroVector3Single;
+        ShapeElements[I].Area := 0;
+      end;
+
+      { Iterate over polygons, adding normals and areas of new elements }
+      Calculator := TElementsCalculator.Create;
+      try
+        Calculator.Coord := Coord.Items;
+        if Shape.GeometryNode.CoordIndex <> nil then
+          Calculator.CoordIndex := Shape.GeometryNode.CoordIndex.Items else
+          Calculator.CoordIndex := nil;
+        Calculator.ShapeElements := ShapeElements;
+        Shape.GeometryNode.CoordPolygons(Shape.State, @Calculator.Polygon);
+      finally FreeAndNil(Calculator) end;
+
+      { Normalize all new normals }
+      for I := 0 to Coord.Count - 1 do
+        NormalizeTo1st(ShapeElements[I].Normal);
+    end;
+  end;
+
+var
+  SI: TVRMLShapeTreeIterator;
+  I: Integer;
+begin
+  Elements.Count := 0;
+  SI := TVRMLShapeTreeIterator.Create(Scene.Shapes, true, true, false);
+  try
+    while SI.GetNext do
+      AddShapeElements(SI.Current);
+  finally FreeAndNil(SI) end;
+
+  Writeln('Elements: ', Elements.Count);
+  for I := 0 to Elements.Count - 1 do
+  begin
+    Writeln('pos ', VectorToNiceStr(Elements.Items[I].Position),
+            ' nor ', VectorToNiceStr(Elements.Items[I].Normal),
+            ' area ', VectorToNiceStr(Elements.Items[I].Area));
+  end;
+end;
+
+{ GLWindow callbacks --------------------------------------------------------- }
 
 procedure Draw(Glwin: TGLWindow);
 begin
@@ -85,11 +220,14 @@ begin
 end;
 
 begin
+  Elements := TDynAOElementArray.Create;
+
   Parameters.CheckHigh(1);
   try
     VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
 
     Scene := TVRMLGLScene.Create(Parameters[1], roSceneAsAWhole);
+    CalculateElements;
 
     { init Glw.Navigator }
     Glw.Navigator := Scene.CreateNavigator;
@@ -99,5 +237,8 @@ begin
     Glw.OnClose := @Close;
     Glw.OnResize := @Resize;
     Glw.InitLoop(ProgramName, @Draw);
-  finally Scene.Free end;
+  finally
+    FreeAndNil(Scene);
+    FreeAndNil(Elements);
+  end;
 end.
