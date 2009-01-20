@@ -41,6 +41,7 @@ uses VectorMath, GL, GLU, GLExt, GLWindow,
 var
   Scene: TVRMLGLScene;
   GLSLProgram: TGLSLProgram;
+  ShowElements: boolean;
 
 { Storing and calculating "elements" for algorithm --------------------------- }
 
@@ -158,7 +159,6 @@ procedure CalculateElements;
 
 var
   SI: TVRMLShapeTreeIterator;
-  I: Integer;
 begin
   Elements.Count := 0;
   SI := TVRMLShapeTreeIterator.Create(Scene.Shapes, true, true, false);
@@ -167,29 +167,65 @@ begin
       AddShapeElements(SI.Current);
   finally FreeAndNil(SI) end;
 
+{ Tests:
+
   Writeln('Elements: ', Elements.Count);
   for I := 0 to Elements.Count - 1 do
   begin
     Writeln('pos ', VectorToNiceStr(Elements.Items[I].Position),
             ' nor ', VectorToNiceStr(Elements.Items[I].Normal),
             ' area ', VectorToNiceStr(Elements.Items[I].Area));
-  end;
+  end;}
 end;
 
 { GLWindow callbacks --------------------------------------------------------- }
 
 procedure Draw(Glwin: TGLWindow);
+
+  procedure DoShowElements;
+  var
+    I: Integer;
+    Q: PGLUQuadric;
+    NewX, NewY, NewZ: TVector3Single;
+    Radius: Float;
+  begin
+    Q := NewGLUQuadric(GL_FALSE, GLU_FLAT, GLU_OUTSIDE, GLU_FILL);
+
+    for I := 0 to Elements.Count - 1 do
+    begin
+      glPushMatrix;
+        NewZ := Elements.Items[I].Normal;
+        NewX := AnyPerpVector(NewZ);
+        NewY := VectorProduct(NewZ, NewX);
+        glMultMatrix(TransformToCoordsMatrix(Elements.Items[I].Position,
+          NewX, NewY, NewZ));
+
+        { Area = Pi * Radius^2, so Radius := Sqrt(Area/Pi) }
+        Radius := Sqrt(Elements.Items[I].Area/Pi);
+        { TODO: for now Area is always 0 } Radius := 0.01;
+        gluDisk(Q, 0, Radius, 8, 2);
+
+      glPopMatrix;
+    end;
+
+    gluDeleteQuadric(Q);
+  end;
+
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(glw.Navigator.Matrix);
 
-  if GLSLProgram.Support <> gsNone then
-    GLSLProgram.Enable;
+  if ShowElements then
+    DoShowElements else
+  begin
+    if GLSLProgram.Support <> gsNone then
+      GLSLProgram.Enable;
 
-  Scene.Render(nil, tgAll);
+    Scene.Render(nil, tgAll);
 
-  if GLSLProgram.Support <> gsNone then
-    GLSLProgram.Disable;
+    if GLSLProgram.Support <> gsNone then
+      GLSLProgram.Disable;
+  end;
 end;
 
 procedure Init(Glwin: TGLWindow);
@@ -224,6 +260,31 @@ begin
     Glwin.Width, Glwin.Height, AngleOfViewX, AngleOfViewY);
 end;
 
+{ menu ----------------------------------------------------------------------- }
+
+function CreateMainMenu: TMenu;
+var
+  M: TMenu;
+begin
+  Result := TMenu.Create('Main menu');
+  M := TMenu.Create('_Program');
+    M.Append(TMenuItemChecked.Create('_Show Elements', 100, ShowElements, true));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('_Exit', 200));
+    Result.Append(M);
+end;
+
+procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
+begin
+  case Item.IntData of
+    100: ShowElements := not ShowElements;
+    200: Glwin.Close;
+    else Exit;
+  end;
+
+  Glw.PostRedisplay;
+end;
+
 begin
   Elements := TDynAOElementArray.Create;
 
@@ -237,6 +298,9 @@ begin
     { init Glw.Navigator }
     Glw.Navigator := Scene.CreateNavigator;
     Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
+
+    Glw.MainMenu := CreateMainMenu;
+    Glw.OnMenuCommand := @MenuCommand;
 
     Glw.OnInit := @Init;
     Glw.OnClose := @Close;
