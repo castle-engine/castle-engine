@@ -32,27 +32,47 @@ program dynamic_ambient_occlusion;
 uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLScene, VRMLGLScene, Navigation,
-  KambiFilesUtils, VRMLErrors;
+  KambiFilesUtils, KambiStringUtils, VRMLErrors, GLShaders;
 
 var
   Scene: TVRMLGLScene;
+  GLSLProgram: TGLSLProgram;
 
 procedure Draw(Glwin: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(glw.Navigator.Matrix);
+
+  if GLSLProgram.Support <> gsNone then
+    GLSLProgram.Enable;
+
   Scene.Render(nil, tgAll);
+
+  if GLSLProgram.Support <> gsNone then
+    GLSLProgram.Disable;
 end;
 
 procedure Init(Glwin: TGLWindow);
+const
+  GLSLProgramBaseName = 'dynamic_ambient_occlusion';
 begin
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
+
+  { initialize GLSL program }
+  GLSLProgram := TGLSLProgram.Create;
+  GLSLProgram.AttachVertexShader(FileToString(GLSLProgramBaseName + '.vs'));
+//  GLSLProgram.AttachFragmentShader(FileToString(GLSLProgramBaseName + '.fs'));
+  { For this test program, we eventually allow shader to run in software.
+    We display debug info, so user should know what's going on. }
+  GLSLProgram.Link(false);
+  Writeln(GLSLProgram.DebugInfo);
 end;
 
 procedure Close(Glwin: TGLWindow);
 begin
   Scene.CloseGL;
+  FreeAndNil(GLSLProgram);
 end;
 
 procedure Resize(Glwin: TGLWindow);
