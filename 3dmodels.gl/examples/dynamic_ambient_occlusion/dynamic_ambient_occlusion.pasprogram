@@ -26,9 +26,6 @@
   http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter14.html
   (PDF version on
   http://http.download.nvidia.com/developer/GPU_Gems_2/GPU_Gems2_ch14.pdf).
-
-  TODO: make model animated, just call CalculateElements on each geometry
-  change (or, better: optimized version of it).
 }
 program dynamic_ambient_occlusion;
 

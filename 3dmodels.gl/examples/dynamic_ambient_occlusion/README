@@ -17,3 +17,10 @@ Idea:
 TODO: our current method of generating elements works only for nodes
 with explicit vertexes, so will not work for VRML primitives (sphere,
 cone and and such).
+
+TODO: make model animated, just call CalculateElements on each geometry
+change (or, better: optimized version of it).
+
+TODO: change uniform vars into constants inside shader (they don't change
+during shader execution, just set them once at frame beginning) ->
+some speedup.
