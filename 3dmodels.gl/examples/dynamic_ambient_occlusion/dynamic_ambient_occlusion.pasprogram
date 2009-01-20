@@ -83,6 +83,7 @@ var
     guarantee that CoordIndex items are >= 0. }
   DirectIndexes: array of LongInt;
   I: Integer;
+  FaceArea: Single;
 begin
   SetLength(DirectIndexes, Length(Indexes));
   if CoordIndex <> nil then
@@ -103,9 +104,26 @@ begin
     PVector3Single(@(ShapeElements[0].Position)), Coord.Count, SizeOf(TAOElement),
     Vector3Single(0, 0, 0));
 
+  { We assume here that polygon is convex, while in fact it doesn't
+    have to be. But this will be a good approximation anyway, usually. }
+
+  FaceArea := IndexedConvexPolygonArea(
+    PArray_LongInt(DirectIndexes), Length(DirectIndexes),
+    { I pass ShapeElements, not Coord.ItemsArray, pointer here,
+      to calculate area in world-coordinates (that are
+      in ShapeElements[*].Position). }
+    PVector3Single(@(ShapeElements[0].Position)), Coord.Count, SizeOf(TAOElement));
+
+  { Split FaceArea into the number of polygon corners. }
+  FaceArea /= Length(Indexes);
+
   for I := 0 to Length(Indexes) - 1 do
     if DirectIndexes[I] >= 0 then
+    begin
       VectorAddTo1st(ShapeElements[DirectIndexes[I]].Normal, FaceNormal);
+      { Split FaceArea into the number of polygon corners. }
+      ShapeElements[DirectIndexes[I]].Area += FaceArea;
+    end;
 end;
 
 procedure CalculateElements;
@@ -174,7 +192,7 @@ begin
   begin
     Writeln('pos ', VectorToNiceStr(Elements.Items[I].Position),
             ' nor ', VectorToNiceStr(Elements.Items[I].Normal),
-            ' area ', VectorToNiceStr(Elements.Items[I].Area));
+            ' area ', Elements.Items[I].Area:1:10);
   end;}
 end;
 
@@ -189,6 +207,7 @@ procedure Draw(Glwin: TGLWindow);
     NewX, NewY, NewZ: TVector3Single;
     Radius: Float;
   begin
+    glEnable(GL_DEPTH_TEST);
     Q := NewGLUQuadric(GL_FALSE, GLU_FLAT, GLU_OUTSIDE, GLU_FILL);
 
     for I := 0 to Elements.Count - 1 do
@@ -202,7 +221,6 @@ procedure Draw(Glwin: TGLWindow);
 
         { Area = Pi * Radius^2, so Radius := Sqrt(Area/Pi) }
         Radius := Sqrt(Elements.Items[I].Area/Pi);
-        { TODO: for now Area is always 0 } Radius := 0.01;
         gluDisk(Q, 0, Radius, 8, 2);
 
       glPopMatrix;
