@@ -248,7 +248,7 @@ var
 
     For normal vector components, scale = 2, shift = -0.5.
     For area, shift = 0, scale = calculated using max area.
-    For positions, both scale and shoft are calculated, using bounding box
+    For positions, both scale and shift are calculated, using bounding box
     of points. }
   PositionScale, PositionShift: TVector3Single;
   AreaScale: Single;
@@ -388,24 +388,25 @@ begin
   begin
     if GLSLProgram.Support <> gsNone then
     begin
-    { TODO: commented for testing }
-{      glActiveTextureARB(GL_TEXTURE0);
+      glActiveTextureARB(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, GLElementsPositionAreaTex);
-      glEnable(GL_TEXTURE_2D);
-      GLSLProgram.SetUniform('tex_elements_position_area', 0);
 
       glActiveTextureARB(GL_TEXTURE1);
       glBindTexture(GL_TEXTURE_2D, GLElementsNormalTex);
-      glEnable(GL_TEXTURE_2D);
+
+      GLSLProgram.Enable;
+
+      GLSLProgram.SetUniform('tex_elements_position_area', 0);
       GLSLProgram.SetUniform('tex_elements_normal', 1);
-}
-{      GLSLProgram.SetUniform('tex_elements_size', ElementsTexSize);
+
+      GLSLProgram.SetUniform('tex_elements_size', ElementsTexSize);
       GLSLProgram.SetUniform('area_scale', AreaScale);
       GLSLProgram.SetUniform('position_scale', PositionScale);
       GLSLProgram.SetUniform('position_shift', PositionShift);
       GLSLProgram.SetUniform('elements_count', Elements.Count);
-}
-      GLSLProgram.Enable;
+
+      GLSLProgram.SetUniform('zero_5', 0.5);
+      GLSLProgram.SetUniform('pi', Pi);
     end;
 
     Scene.Render(nil, tgAll);
