@@ -177,6 +177,7 @@ procedure CalculateElements;
 
 var
   SI: TVRMLShapeTreeIterator;
+  I, GoodElementsCount: Integer;
 begin
   Elements.Count := 0;
   SI := TVRMLShapeTreeIterator.Create(Scene.Shapes, true, true, false);
@@ -184,6 +185,36 @@ begin
     while SI.GetNext do
       AddShapeElements(SI.Current);
   finally FreeAndNil(SI) end;
+
+  { Remove Elements with zero normal vector.
+
+    This means that vertex isn't neighbor to any other vertex,
+    which means e.g. that IndexedFaceSet has no coordIndex (or maybe
+    just doesn't use this particular vertex), or maybe we have IndexedLineSet
+    (that has coordinates, but no polygons).
+
+    In any case, we want to remove them, as they are invalid (zero normal,
+    zero area, besides unused vertexes may be outside of Scene.BoundingBox
+    (as calculating Scene.BoundingBox may conserve bbox to not contain
+    unused vertexes) --- so unused vertexes would fail to be "squeezed"
+    inside texture component correctly. }
+
+  GoodElementsCount := 0;
+  for I := 0 to Elements.Count - 1 do
+  begin
+    if not PerfectlyZeroVector(Elements.Items[I].Normal) then
+    begin
+      { Then Element I should be on position GoodElementsCount. }
+      if GoodElementsCount <> I then
+        Elements.Items[GoodElementsCount] := Elements.Items[I];
+      Inc(GoodElementsCount);
+    end;
+  end;
+
+  Writeln('Bad elements (vertexes with no neighbors) removed: ',
+    Elements.Count - GoodElementsCount, ', remaining good elements: ',
+    GoodElementsCount);
+  Elements.Count := GoodElementsCount;
 
 { Tests:
 
@@ -232,17 +263,6 @@ procedure CalculateElementsTex;
     slightly off due to fp errors). This way it checks if our scale/shift
     variables are not too large. }
   function ClampedCheck(const Value: Single): Byte;
-
-    { TODO: testing }
-    procedure Assert(v: boolean; const s: string);
-    begin
-      if not v then
-      begin
-        Writeln(s);
-        Writeln(Value:1:10);
-      end;
-    end;
-
   var
     ResultInt: Integer;
   begin
@@ -308,13 +328,10 @@ begin
   Element := PAOElement(Elements.ItemsArray);
   for I := 0 to Elements.Count - 1 do
   begin
-    Writeln('pos');
     PositionArea^[0] := ClampedCheck(Element^.Position[0] / PositionScale[0] - PositionShift[0]);
     PositionArea^[1] := ClampedCheck(Element^.Position[1] / PositionScale[1] - PositionShift[1]);
     PositionArea^[2] := ClampedCheck(Element^.Position[2] / PositionScale[2] - PositionShift[2]);
-    Writeln('area');
     PositionArea^[3] := ClampedCheck(Element^.Area / AreaScale);
-    Writeln('norm');
     Normal^[0] := ClampedCheck(Element^.Normal[0] / 2 + 0.5);
     Normal^[1] := ClampedCheck(Element^.Normal[1] / 2 + 0.5);
     Normal^[2] := ClampedCheck(Element^.Normal[2] / 2 + 0.5);
