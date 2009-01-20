@@ -5032,7 +5032,7 @@ begin
   { if avatarSize doesn't specify CameraRadius, or specifies invalid <= 0,
     calculate something suitable based on Scene.BoundingBox. }
   if CameraRadius <= 0 then
-    CameraRadius := Box3dAvgSize(BoundingBox, 1.0) * 0.01;
+    CameraRadius := Box3dAvgSize(BoundingBox, 1.0) * 0.005;
 
   TNavigator(Result).CameraRadius := CameraRadius;
 
@@ -5044,7 +5044,11 @@ begin
     { calculate CameraPreferredHeight }
     if NavigationNode.FdAvatarSize.Count >= 2 then
       CameraPreferredHeight := NavigationNode.FdAvatarSize.Items[1] else
-      CameraPreferredHeight := CameraRadius * 2;
+      { Make it something >> CameraRadius * 2, to allow some
+        space to decrease (e.g. by Input_DecreaseCameraPreferredHeight
+        in view3dscene). Remember that CorrectCameraPreferredHeight
+        adds a limit to CameraPreferredHeight, around CameraRadius * 2. }
+      CameraPreferredHeight := CameraRadius * 4;
 
     TWalkNavigator(Result).CameraPreferredHeight := CameraPreferredHeight;
     TWalkNavigator(Result).CorrectCameraPreferredHeight;
