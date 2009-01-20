@@ -36,7 +36,7 @@ uses VectorMath, GL, GLU, GLExt, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLScene, VRMLGLScene, Navigation,
   KambiFilesUtils, KambiStringUtils, VRMLErrors, GLShaders, VRMLShape,
-  VRMLFields, Images, Boxes3d, GLImages;
+  VRMLFields, Images, Boxes3d, GLImages, GLWinMessages;
 
 var
   Scene: TVRMLGLScene;
@@ -232,6 +232,17 @@ procedure CalculateElementsTex;
     slightly off due to fp errors). This way it checks if our scale/shift
     variables are not too large. }
   function ClampedCheck(const Value: Single): Byte;
+
+    { TODO: testing }
+    procedure Assert(v: boolean; const s: string);
+    begin
+      if not v then
+      begin
+        Writeln(s);
+        Writeln(Value:1:10);
+      end;
+    end;
+
   var
     ResultInt: Integer;
   begin
@@ -257,10 +268,6 @@ var
   Normal: PVector3Byte;
   Element: PAOElement;
 begin
-  if (Elements.Count = 0) or
-     IsEmptyBox3d(Scene.BoundingBox) then
-    raise Exception.Create('No elements, or empty bounding box --- we cannot do dyn ambient occlusion.');
-
   TexSizeExponent := Smallest2Exponent(Elements.Count);
   if TexSizeExponent mod 2 = 0 then
     TexSizeExponent := TexSizeExponent div 2 else
@@ -367,6 +374,7 @@ begin
   begin
     if GLSLProgram.Support <> gsNone then
     begin
+    { TODO: commented for testing }
 {      glActiveTextureARB(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, GLElementsPositionAreaTex);
       glEnable(GL_TEXTURE_2D);
@@ -399,6 +407,15 @@ const
 begin
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
+
+  if (Elements.Count = 0) or
+     IsEmptyBox3d(Scene.BoundingBox) then
+  begin
+    Glwin.OnDraw := nil;
+    MessageOk(Glwin, 'No elements, or empty bounding box --- we cannot do dyn ambient occlusion. Exiting.', taLeft);
+    Glwin.Close;
+    Exit;
+  end;
 
   { initialize GLSL program }
   GLSLProgram := TGLSLProgram.Create;

@@ -13,3 +13,7 @@ Idea:
 - Encode elements info into the texture.
 
 - On each vertex do (in vertex shader): calculate AO using elements info.
+
+TODO: our current method of generating elements works only for nodes
+with explicit vertexes, so will not work for VRML primitives (sphere,
+cone and and such).
