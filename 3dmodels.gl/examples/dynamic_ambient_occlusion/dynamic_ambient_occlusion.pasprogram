@@ -416,6 +416,16 @@ begin
   end;
 end;
 
+type
+  THelper = class
+    procedure BeforeShapeRender(Shape: TVRMLShape);
+  end;
+
+procedure THelper.BeforeShapeRender(Shape: TVRMLShape);
+begin
+  GLSLProgram.SetUniform('transform_to_world', Shape.State.Transform);
+end;
+
 procedure Init(Glwin: TGLWindow);
 const
   GLSLProgramBaseName = 'dynamic_ambient_occlusion';
@@ -495,7 +505,8 @@ begin
   try
     VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
 
-    Scene := TVRMLGLScene.Create(Parameters[1], roSceneAsAWhole);
+    Scene := TVRMLGLScene.Create(Parameters[1], {}{roSceneAsAWhole}roNone);
+    Scene.Attributes.OnBeforeShapeRender := @THelper(nil).BeforeShapeRender;
     CalculateElements;
 
     { init Glw.Navigator }

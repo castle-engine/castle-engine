@@ -2,6 +2,11 @@ uniform sampler2D tex_elements_position_area;
 uniform sampler2D tex_elements_normal;
 uniform int tex_elements_size;
 
+/* We need matrix converting to world space (this is where elements
+   positions, normals, areas are encoded). OpenGL modelview is not
+   suitable for this (it contains also camera stuff). */
+uniform mat4 transform_to_world;
+
 uniform float area_scale;
 uniform vec3 position_scale;
 uniform vec3 position_shift;
@@ -17,9 +22,7 @@ void main(void)
   gl_Position = ftransform();
 
   float color = 1.0;
-  /* TODO: this is bad. we want it transformed by shape transform, nothing else
-     (no camera). */
-  vec3 position = gl_Position.xyz;
+  vec3 position = (transform_to_world * gl_Vertex).xyz;
 
   for (int i = 0; i < elements_count; i++)
   {

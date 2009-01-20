@@ -168,6 +168,8 @@ type
       See weSolidWireframe TODO notes. }
     weSilhouette);
 
+  TBeforeShapeRenderProc = procedure (Shape: TVRMLShape) of object;
+
   TVRMLSceneRenderingAttributes = class(TVRMLRenderingAttributes)
   private
     { Scenes that use Renderer with this TVRMLSceneRenderingAttributes instance. }
@@ -179,6 +181,7 @@ type
     FWireframeColor: TVector3Single;
     FWireframeWidth: Single;
     FWireframeEffect: TVRMLWireframeEffect;
+    FOnBeforeShapeRender: TBeforeShapeRenderProc;
   protected
     procedure SetOnBeforeGLVertex(const Value: TBeforeGLVertexProc); override;
     procedure SetOnRadianceTransfer(const Value: TRadianceTransferFunction); override;
@@ -205,6 +208,7 @@ type
     procedure SetBlending(const Value: boolean); virtual;
     procedure SetBlendingSourceFactor(const Value: TGLenum); virtual;
     procedure SetBlendingDestinationFactor(const Value: TGLenum); virtual;
+    procedure SetOnBeforeShapeRender(const Value: TBeforeShapeRenderProc); virtual;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -289,6 +293,16 @@ type
     property WireframeWidth: Single
       read FWireframeWidth write FWireframeWidth default DefaultWireframeWidth;
     { @groupEnd }
+
+    { If assigned, this callback will be called always right before rendering
+      given shape. Use this if you want to customize rendering, this is
+      the place for per-shape code.
+
+      For example, you can use this to activate GLSL shader for this specific
+      shape, or to pass uniform values to GLSL shader that only change
+      once before each shape. }
+    property OnBeforeShapeRender: TBeforeShapeRenderProc
+      read FOnBeforeShapeRender write SetOnBeforeShapeRender;
   end;
 
   { TVRMLShape descendant for usage within TVRMLGLScene.
@@ -1788,6 +1802,8 @@ var
        TestShapeVisibility(Shape) then
     begin
       Inc(FLastRender_RenderedShapesCount);
+      if Assigned(Attributes.OnBeforeShapeRender) then
+        Attributes.OnBeforeShapeRender(Shape);
       RenderShapeProc(LightsRenderer, Shape);
     end;
   end;
@@ -3999,6 +4015,7 @@ begin
     Blending := S.Blending;
     BlendingSourceFactor := S.BlendingSourceFactor;
     BlendingDestinationFactor := S.BlendingDestinationFactor;
+    OnBeforeShapeRender := S.OnBeforeShapeRender;
     inherited;
   end else
     inherited;
@@ -4010,7 +4027,8 @@ begin
     (SecondValue is TVRMLSceneRenderingAttributes) and
     (TVRMLSceneRenderingAttributes(SecondValue).Blending = Blending) and
     (TVRMLSceneRenderingAttributes(SecondValue).BlendingSourceFactor = BlendingSourceFactor) and
-    (TVRMLSceneRenderingAttributes(SecondValue).BlendingDestinationFactor = BlendingDestinationFactor);
+    (TVRMLSceneRenderingAttributes(SecondValue).BlendingDestinationFactor = BlendingDestinationFactor) and
+    (TVRMLSceneRenderingAttributes(SecondValue).OnBeforeShapeRender = OnBeforeShapeRender);
 end;
 
 { Interfejs Renderera mowi ze zeby zmienic atrybut renderer musi byc wolny
@@ -4050,6 +4068,16 @@ begin
   begin
     FScenes.CloseGLRenderer;
     FBlendingDestinationFactor := Value;
+  end;
+end;
+
+procedure TVRMLSceneRenderingAttributes.SetOnBeforeShapeRender(
+  const Value: TBeforeShapeRenderProc);
+begin
+  if OnBeforeShapeRender <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    FOnBeforeShapeRender := Value;
   end;
 end;
 
