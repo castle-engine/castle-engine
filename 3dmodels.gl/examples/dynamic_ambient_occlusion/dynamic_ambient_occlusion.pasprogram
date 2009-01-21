@@ -465,9 +465,7 @@ procedure Draw(Glwin: TGLWindow);
       glPushMatrix;
 
         glLoadIdentity;
-        glPixelZoom(5, 5);
         DoRender;
-        glPixelZoom(1, 1);
 
       glPopMatrix;
 
