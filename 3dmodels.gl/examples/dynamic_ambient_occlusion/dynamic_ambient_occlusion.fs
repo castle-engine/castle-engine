@@ -85,8 +85,8 @@ void main(void)
            (that is, only if they are lighted then they also block the light).
 
            That's the reasoning behind these checks. */
-        if (cos_emitter_angle >= 0 &&
-            cos_current_angle >= 0)
+        if (cos_emitter_angle >= 0.0 &&
+            cos_current_angle >= 0.0)
         {
           color -= (element_area * cos_emitter_angle * cos_current_angle *
             shadow_scale / sqr_distance)
