@@ -54,6 +54,35 @@ Practice:
     much newer Radeon on MacBookPro can handle at least 20k (although
     naive implementation gets really slow then).
 
+  - Note that GPU Gems text gives two (different) equations for calculating
+    element-to-element shadowing, both of them wrong IMO...
+    Yes, I did implemented and tried them. It's a matter of changing
+    "color -= ..." line.
+    Math eq on page 3 is equivalent to
+
+      color -= sqrt(sqr_distance) * cos_emitter_angle *
+	max(1.0, 4.0 * cos_current_angle) /
+	sqrt(element_area / pi + sqr_distance);
+
+    Code on page 4 is (possibly --- not sure, as they put "1 - " part
+    already there, so I don't see a reasonable way to use it?) equivalent to
+
+      color -= inversesqrt((element_area/pi)/sqr_distance + 1) *
+        cos_emitter_angle *
+	max(1.0, 4.0 * cos_current_angle);
+
+    If you grok reasoning behind their equations, and/or if there's an
+    error in my implementations above, mail me. My implementation follows
+    normal approximation for solid angle:
+
+      element_area * cos_emitter_angle / sqr_distance
+
+    additionally divided by 4 * Pi, since this is the surface area
+    of the sphere (and we want result to fit in 1.0).
+    I multiply it by max(1.0, 4.0 * cos_current_angle), as this is sensible
+    (light coming from an angle is scaled down).
+
+
 TODO: our current method of generating elements works only for nodes
 with explicit vertexes, so will not work for VRML primitives (sphere,
 cone and and such).

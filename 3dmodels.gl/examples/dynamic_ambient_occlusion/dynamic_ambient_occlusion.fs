@@ -32,6 +32,9 @@ void main(void)
     vec4 current_pos_area = texture2D(tex_elements_position_area, current_st);
     vec3 current_pos = (current_pos_area.xyz + position_shift) * position_scale;
 
+    vec3 current_normal = texture2D(tex_elements_normal, current_st).xyz;
+    current_normal = (current_normal - zero_5) * 2.0;
+
     /* Another happy ATI (Radeon) on Linux (fglrx) bug:
        When for testing I did "color = 0.0"
        initialization, it... never executed "current_index < elements_count"
@@ -62,12 +65,15 @@ void main(void)
         float cos_emitter_angle = dot(normalize(direction_to_current), element_normal);
         float sqr_distance = dot(direction_to_current, direction_to_current);
 
+        float cos_current_angle = dot(-direction_to_current, current_normal);
+
         /* TODO: actually, both sides could cast shadows, so this if
            should be eliminated, and abs(cos_emitter_angle) taken.
            Needs 2nd pass to remove excessive shadows. */
         if (cos_emitter_angle >= 0)
         {
-          color -= (element_area * cos_emitter_angle / (4.0 * pi * sqr_distance));
+          color -= (element_area * cos_emitter_angle *
+            max(1.0, 4.0 * cos_current_angle) / (4.0 * pi * sqr_distance));
         }
       }
     }
