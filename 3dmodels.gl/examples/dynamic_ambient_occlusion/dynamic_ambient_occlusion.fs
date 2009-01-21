@@ -1,12 +1,19 @@
 uniform sampler2D tex_elements_position_area;
 uniform sampler2D tex_elements_normal;
+
+#ifdef FGLRX
+/* Fglrx is dumb and fails when elements_count is a constant...
+   For other GPUs, elements_count as a constant is a good idea. */
+uniform int tex_elements_size;
+uniform int elements_count;
+#else
 const int tex_elements_size = $tex_elements_size;
+const int elements_count = $elements_count;
+#endif
 
 uniform float area_scale;
 uniform vec3 position_scale;
 uniform vec3 position_shift;
-
-const int elements_count = $elements_count;
 
 /* ATI (Radeon) on Linux (fglrx) doesn't tolerate const floats in code. */
 uniform float zero_5;

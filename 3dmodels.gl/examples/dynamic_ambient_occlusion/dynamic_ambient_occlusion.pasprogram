@@ -33,7 +33,7 @@ uses VectorMath, GL, GLU, GLExt, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLScene, VRMLGLScene, Navigation,
   KambiFilesUtils, KambiStringUtils, VRMLErrors, GLShaders, VRMLShape,
-  VRMLFields, Images, Boxes3d, GLImages, GLWinMessages, DataErrors;
+  VRMLFields, Images, Boxes3d, GLImages, GLWinMessages, DataErrors, GLVersionUnit;
 
 type
   TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtFull);
@@ -442,6 +442,12 @@ procedure Draw(Glwin: TGLWindow);
       GLSLProgram.SetUniform('position_scale', PositionScale);
       GLSLProgram.SetUniform('position_shift', PositionShift);
 
+      if GLVersion.IsFglrx then
+      begin
+        GLSLProgram.SetUniform('elements_count', Elements.Count);
+        GLSLProgram.SetUniform('tex_elements_size', ElementsTexSize);
+      end;
+
       GLSLProgram.SetUniform('zero_5', 0.5);
       GLSLProgram.SetUniform('pi', Pi);
 
@@ -545,13 +551,20 @@ begin
   end;
 
   ShaderString := FileToString(GLSLProgramBaseName + '.fs');
-  { Integer constants are really constant for the shader.
-    This allows OpenGL to optimize them more.
-    Especially important for $elements_count, since then the "for" loop
-    inside the shader can be unrolled.
-    Required e.g. by NVidia GPU "GeForce FX 5200/AGP/SSE2/3DNOW!" }
-  StringReplaceAllTo1st(ShaderString, '$tex_elements_size', IntToStr(ElementsTexSize));
-  StringReplaceAllTo1st(ShaderString, '$elements_count', IntToStr(Elements.Count));
+
+  if GLVersion.IsFglrx then
+  begin
+    ShaderString := '#define FGLRX' + NL + ShaderString;
+  end else
+  begin
+    { Integer constants are really constant for the shader.
+      This allows OpenGL to optimize them more.
+      Especially important for $elements_count, since then the "for" loop
+      inside the shader can be unrolled.
+      Required e.g. by NVidia GPU "GeForce FX 5200/AGP/SSE2/3DNOW!" }
+    StringReplaceAllTo1st(ShaderString, '$tex_elements_size', IntToStr(ElementsTexSize));
+    StringReplaceAllTo1st(ShaderString, '$elements_count', IntToStr(Elements.Count));
+  end;
 
   GLSLProgram.AttachFragmentShader(ShaderString);
   { For this test program, we eventually allow shader to run in software.
