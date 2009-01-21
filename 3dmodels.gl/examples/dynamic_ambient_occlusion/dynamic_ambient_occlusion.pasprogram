@@ -504,7 +504,9 @@ procedure Draw(Glwin: TGLWindow);
   var
     TexHeight: Cardinal;
   begin
-    { TODO: why TRGBAlphaImage? grayscale would be Ok.}
+    { TODO: we want one value, so actually even TGrayscaleImage
+      would be Ok. For some reason, I can't get it correctly
+      (it's too bright with GL_luminance). }
     if SizePower2 then
       TexHeight := ElementsTexSize else
       { If size doesn't have to be power of 2 (e.g. if this is grabbed
@@ -585,7 +587,10 @@ procedure Draw(Glwin: TGLWindow);
 
           glActiveTextureARB(GL_TEXTURE2);
           glBindTexture(GL_TEXTURE_2D, GLElementsIntensityTex);
-          glCopyTexImage2D(GL_TEXTURE_2D, 0, {TODO: why RGB?}3,
+          glCopyTexImage2D(GL_TEXTURE_2D, 0,
+            { TODO: Instead of 3, one component would be enough, as we
+              want only intensity. This waits for analogous fix
+              to CaptureAORect. } 3,
             0, 0, ElementsTexSize, ElementsTexSize, 0);
 
           DoRender(1);
