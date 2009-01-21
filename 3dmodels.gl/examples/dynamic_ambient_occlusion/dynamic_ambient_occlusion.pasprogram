@@ -54,6 +54,8 @@ var
     more "dramatic". }
   ShadowScale: Single = 1 / (1 * Pi);
 
+  AnimationPlaying: boolean = true;
+
 { Storing and calculating "elements" for algorithm --------------------------- }
 
 type
@@ -649,6 +651,11 @@ type
     procedure VertexColor(var Color: TVector3Single;
       Shape: TVRMLShape; const VertexPosition: TVector3Single;
       VertexIndex: Integer);
+
+    procedure SceneGeometryChanged(Scene: TVRMLScene;
+      const SomeLocalGeometryChanged: boolean);
+
+    procedure ScenePostRedisplay(Scene: TVRMLScene);
   end;
 
 procedure THelper.VertexColor(var Color: TVector3Single;
@@ -680,6 +687,19 @@ begin
     Color[1] *= Intensity;
     Color[2] *= Intensity;
   end;
+end;
+
+procedure THelper.SceneGeometryChanged(Scene: TVRMLScene;
+  const SomeLocalGeometryChanged: boolean);
+begin
+  CalculateElements;
+  CalculateElementsTex;
+  { TODO: check elements num and tex size the same, they are set }
+end;
+
+procedure THelper.ScenePostRedisplay(Scene: TVRMLScene);
+begin
+  Glw.PostRedisplay;
 end;
 
 procedure Init(Glwin: TGLWindow);
@@ -783,6 +803,8 @@ begin
     ShadowScale *= Power(1/1.1, Glwin.Fps.IdleSpeed * 20);
     Glwin.PostRedisplay;
   end;
+  if AnimationPlaying then
+    Scene.IncreaseWorldTime(Glwin.Fps.IdleSpeed);
 end;
 
 { menu ----------------------------------------------------------------------- }
@@ -807,13 +829,17 @@ begin
     Radio.Group := RadioGroup;
     M.Append(Radio);
 
-    Radio := TMenuItemRadio.Create('Draw _Dynamic AO (only 1st pass)', 103, DrawType = dtPass1, true);
+    Radio := TMenuItemRadio.Create('Draw Dynamic AO (only _1st pass)', 103, DrawType = dtPass1, true);
     Radio.Group := RadioGroup;
     M.Append(Radio);
 
-    Radio := TMenuItemRadio.Create('Draw _Dynamic AO (2 passes)', 104, DrawType = dtPass2, true);
+    Radio := TMenuItemRadio.Create('Draw Dynamic AO (_2 passes)', 104, DrawType = dtPass2, true);
     Radio.Group := RadioGroup;
     M.Append(Radio);
+
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItemChecked.Create(
+      'Animation _Playing / Paused', 150, CtrlP, AnimationPlaying, true));
 
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 200));
@@ -845,6 +871,9 @@ begin
     102: DrawType := dtElementsIntensity;
     103: begin DrawType := dtPass1; UpdateSceneAttribs; end;
     104: begin DrawType := dtPass2; UpdateSceneAttribs; end;
+
+    150: AnimationPlaying := not AnimationPlaying;
+
     200: Glwin.Close;
     else Exit;
   end;
@@ -862,7 +891,14 @@ begin
 
     Scene := TVRMLGLScene.Create(Parameters[1], roNone);
     UpdateSceneAttribs;
+
     CalculateElements;
+
+    { start Scene animation }
+    Scene.ResetWorldTimeAtLoad;
+    Scene.OnPostRedisplay := @THelper(nil).ScenePostRedisplay;
+    Scene.OnGeometryChanged := @THelper(nil).SceneGeometryChanged;
+    Scene.ProcessEvents := true;
 
     { init Glw.Navigator }
     Glw.Navigator := Scene.CreateNavigator;
