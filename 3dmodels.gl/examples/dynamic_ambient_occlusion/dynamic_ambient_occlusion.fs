@@ -66,22 +66,32 @@ void main(void)
         element_normal = (element_normal - zero_5) * 2.0;
 
         vec3 direction_to_current = current_pos - element_pos;
-        float cos_emitter_angle = dot(normalize(direction_to_current), element_normal);
         float sqr_distance = dot(direction_to_current, direction_to_current);
 
+        /* normalize direction_to_current for following cos() calculations */
+        direction_to_current = normalize(direction_to_current);
+        float cos_emitter_angle = dot( direction_to_current, element_normal);
         float cos_current_angle = dot(-direction_to_current, current_normal);
 
         color -= (element_area * abs(cos_emitter_angle)
-          /* TODO:
-          * max(0.0, cos_current_angle) */ / (4.0 * pi * sqr_distance))
+          /* TODO: */
+          /* max(0.0, cos_current_angle) */ / (4.0 * pi * sqr_distance))
           #ifdef PASS_2
+          /* Multiply by intensity of this element from 1st pass.
+             If element is in shadow, then this is 0, and then we will
+             not take it's contribution --- as this means that something else
+             shadows it, so it will also shadow us. */
           * texture2D(tex_elements_intensity, element_st).x
           #endif
           ;
       }
     }
 
-    /* TODO: average */
+    #ifdef PASS_2
+    /* At the end of 2nd pass, result is the average of 1st and 2nd pass
+       results. */
+    color = (color + texture2D(tex_elements_intensity, current_st).x) / 2.0;
+    #endif
 
     gl_FragColor = vec4(color, color, color, 1.0);
   }
