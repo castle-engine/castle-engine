@@ -55,7 +55,7 @@ procedure TTestVRMLScene.TestIteratorSpeed;
           List := TVRMLShapesList.Create(Scene.Shapes, OnlyActive);
           for I := 0 to List.Count - 1 do
             { Just do anything that requires access to List[I] }
-            PointerToStr(List[I].GeometryNode);
+            PointerToStr(List[I].Geometry);
           FreeAndNil(List);
         end;
         Writeln('TVRMLShapesList traverse: ', ProcessTimerEnd:1:2);
@@ -65,7 +65,7 @@ procedure TTestVRMLScene.TestIteratorSpeed;
         begin
           SI := TVRMLShapeTreeIterator.Create(Scene.Shapes, OnlyActive);
           while SI.GetNext do
-            PointerToStr(SI.Current.GeometryNode);
+            PointerToStr(SI.Current.Geometry);
           FreeAndNil(SI);
         end;
         Writeln('TVRMLShapeTreeIterator: ', ProcessTimerEnd:1:2);

@@ -225,7 +225,7 @@ begin
     try
       while SI.GetNext do
       begin
-        Geometry := SI.Current.GeometryNode;
+        Geometry := SI.Current.Geometry;
         State := SI.Current.State;
 
         if Geometry is TNodeX3DComposedGeometryNode then

@@ -400,7 +400,7 @@ type
     and some optimizations (like using OpenGL's display lists)
     that couldn't be achieved inside @link(TVRMLOpenGLRenderer) class
     (because they require looking at rendered VRML model as a whole,
-    not only as a separate GeometryNode+State parts).
+    not only as a separate Geometry+State parts).
     See @link(Render) method for more details.
 
     Also this class can provide comfortable management for
@@ -666,7 +666,7 @@ type
   protected
     procedure ChangedActiveLightNode(LightNode: TVRMLLightNode;
       Field: TVRMLField); override;
-    function CreateShape(AGeometryNode: TVRMLGeometryNode;
+    function CreateShape(AGeometry: TVRMLGeometryNode;
       AState: TVRMLGraphTraverseState): TVRMLShape; override;
     function CreateHeadLightInstance
       (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight; override;
@@ -786,7 +786,7 @@ type
   for S := each item of Shapes list,
     if (TestShapeVisibility is not assigned) or
       (TestShapeVisibility returns true for given Shape) then
-    call Render(S.GeometryNode, S.State)
+    call Render(S.Geometry, S.State)
 #))
         @item RenderEnd
       )
@@ -1504,10 +1504,10 @@ begin
   inherited;
 end;
 
-function TVRMLGLScene.CreateShape(AGeometryNode: TVRMLGeometryNode;
+function TVRMLGLScene.CreateShape(AGeometry: TVRMLGeometryNode;
   AState: TVRMLGraphTraverseState): TVRMLShape;
 begin
-  Result := TVRMLGLShape.Create(Self, AGeometryNode, AState);
+  Result := TVRMLGLShape.Create(Self, AGeometry, AState);
 end;
 
 procedure TVRMLGLScene.SetOptimization(const Value: TGLRendererOptimization);
@@ -1631,7 +1631,7 @@ end;
 
 procedure TVRMLGLScene.RenderShape_NoLight(Shape: TVRMLGLShape);
 begin
-  Renderer.RenderShape(Shape.GeometryNode, Shape.State);
+  Renderer.RenderShape(Shape);
 end;
 
 procedure TVRMLGLScene.RenderShape_WithLight(
@@ -1639,7 +1639,7 @@ procedure TVRMLGLScene.RenderShape_WithLight(
   Shape: TVRMLGLShape);
 begin
   Renderer.RenderShapeLights(LightsRenderer, Shape.State);
-  Renderer.RenderShape(Shape.GeometryNode, Shape.State);
+  Renderer.RenderShape(Shape);
 end;
 
 procedure TVRMLGLScene.RenderBeginSimple;
@@ -2152,7 +2152,7 @@ begin
   if Shape.EnableDisplayList and
      (not Renderer.Cache.Shape_IncReference_Existing(
        Attributes,
-       Shape.GeometryNode,
+       Shape.Geometry,
        Shape.State,
        FogNode, FogDistanceScaling,
        Shape.SSSX_DisplayList)) then
@@ -2181,7 +2181,7 @@ begin
       Shape.State);
     Renderer.Cache.Shape_IncReference_New(
       AttributesCopy,
-      Shape.GeometryNode,
+      Shape.Geometry,
       StateCopy,
       FogNode, FogDistanceScaling,
       Shape.SSSX_DisplayList);
@@ -2221,7 +2221,7 @@ begin
   if Shape.EnableDisplayList and
      (not Renderer.Cache.ShapeNoTransform_IncReference_Existing(
        Attributes,
-       Shape.GeometryNode,
+       Shape.Geometry,
        Shape.State,
        FogNode, FogDistanceScaling,
        Shape.SSSX_DisplayList)) then
@@ -2230,9 +2230,7 @@ begin
       'TVRMLGLScene.SSSNT_PrepareShape');
     glNewList(Shape.SSSX_DisplayList, GL_COMPILE);
     try
-      Renderer.RenderShapeNoTransform(
-        Shape.GeometryNode,
-        Shape.State);
+      Renderer.RenderShapeNoTransform(Shape);
       glEndList;
     except
       glEndList;
@@ -2252,7 +2250,7 @@ begin
       Shape.State);
     Renderer.Cache.ShapeNoTransform_IncReference_New(
       AttributesCopy,
-      Shape.GeometryNode,
+      Shape.Geometry,
       StateCopy,
       FogNode, FogDistanceScaling,
       Shape.SSSX_DisplayList);
@@ -2270,11 +2268,11 @@ begin
 
     Renderer.RenderShapeLights(LightsRenderer, Shape.State);
 
-    Renderer.RenderShapeBegin(Shape.GeometryNode, Shape.State);
+    Renderer.RenderShapeBegin(Shape);
     try
       glCallList(Shape.SSSX_DisplayList);
     finally
-      Renderer.RenderShapeEnd(Shape.GeometryNode, Shape.State);
+      Renderer.RenderShapeEnd(Shape);
     end;
   end else
   begin

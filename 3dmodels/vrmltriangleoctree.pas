@@ -203,7 +203,7 @@ type
       Triangles.AllowedCapacityCount na odpowiednio duza wartosc.  }
     procedure AddItemTriangle(const Triangle: TTriangle3Single;
       State: TVRMLGraphTraverseState;
-      GeometryNode: TVRMLGeometryNode;
+      Geometry: TVRMLGeometryNode;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 
     { Direct collisions counter, to test octree efficiency.
@@ -534,13 +534,13 @@ begin
 end;
 
 procedure TVRMLTriangleOctree.AddItemTriangle(const Triangle: TTriangle3Single;
-  State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
+  State: TVRMLGraphTraverseState; Geometry: TVRMLGeometryNode;
   const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 begin
   if IsValidTriangle(Triangle) then
   begin
     Triangles.AppendItem^.Init(
-      Triangle, State, GeometryNode, MatNum,
+      Triangle, State, Geometry, MatNum,
       FaceCoordIndexBegin, FaceCoordIndexEnd);
     TreeRoot.AddItem(Triangles.High);
   end;

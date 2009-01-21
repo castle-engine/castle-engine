@@ -653,7 +653,7 @@ type
       and adds shapes (or all triangles from our Shapes).
 
       Triangles are generated using calls like
-      @code(GeometryNode.Triangulate(State, false, ...)).
+      @code(Geometry.Triangulate(State, false, ...)).
       Note that OverTriangulate parameter for Triangulate call above is @false:
       it shouldn't be needed to have triangle octree with over-triangulate
       (over-triangulate is only for rendering with Gouraud shading).
@@ -704,7 +704,7 @@ type
 
     TriangleOctreeToAdd: TVRMLTriangleOctree;
     procedure AddTriangleToOctreeProgress(const Triangle: TTriangle3Single;
-      State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
+      State: TVRMLGraphTraverseState; Geometry: TVRMLGeometryNode;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 
     FTriangleOctreeLimits: TOctreeLimits;
@@ -746,7 +746,7 @@ type
       Field: TVRMLField); virtual;
 
     { Notify scene that you changed only given Shape.
-      This means that you changed only fields within Shape.GeometryNode,
+      This means that you changed only fields within Shape.Geometry,
       Shape.State.Last*. And you're sure that
       these nodes are not shared by other shapes using VRML DEF/USE
       mechanism.
@@ -773,7 +773,7 @@ type
       this.
 
       Example: TVRMLGLScene uses this to create TVRMLGLShape. }
-    function CreateShape(AGeometryNode: TVRMLGeometryNode;
+    function CreateShape(AGeometry: TVRMLGeometryNode;
       AState: TVRMLGraphTraverseState): TVRMLShape; virtual;
 
     { Create TVRMLHeadLight instance suitable for this TVRMLScene descendant.
@@ -1998,10 +1998,10 @@ begin
  end;
 end;
 
-function TVRMLScene.CreateShape(AGeometryNode: TVRMLGeometryNode;
+function TVRMLScene.CreateShape(AGeometry: TVRMLGeometryNode;
   AState: TVRMLGraphTraverseState): TVRMLShape;
 begin
-  Result := TVRMLShape.Create(Self, AGeometryNode, AState);
+  Result := TVRMLShape.Create(Self, AGeometry, AState);
 end;
 
 type
@@ -2795,7 +2795,7 @@ begin
       SI := TVRMLShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
-          if SI.Current.GeometryNode.Coord(SI.Current.State, Coord) and
+          if SI.Current.Geometry.Coord(SI.Current.State, Coord) and
              (Coord.ParentNode = Node) then
           begin
             ChangedShapeFields(SI.Current, false, false);
@@ -2837,8 +2837,8 @@ begin
       SI := TVRMLShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
-          if (SI.Current.GeometryNode is TNodeX3DComposedGeometryNode) and
-             (TNodeX3DComposedGeometryNode(SI.Current.GeometryNode).
+          if (SI.Current.Geometry is TNodeX3DComposedGeometryNode) and
+             (TNodeX3DComposedGeometryNode(SI.Current.Geometry).
                FdTexCoord.Value = Node) then
             ChangedShapeFields(SI.Current, false, false);
       finally FreeAndNil(SI) end;
@@ -2850,11 +2850,11 @@ begin
     if Node is TVRMLGeometryNode then
     begin
       { node jest Shape'm. Wiec wplynal tylko na Shapes gdzie wystepuje jako
-        GeometryNode. }
+        Geometry. }
       SI := TVRMLShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
-          if SI.Current.GeometryNode = Node then
+          if SI.Current.Geometry = Node then
           begin
             ChangedShapeFields(SI.Current, false, false);
 
@@ -2880,7 +2880,7 @@ begin
 
         Besides, while traversing to current transform node, we have to count
         Shapes, to know which Shapes will be affected by what
-        state change (as we cannot deduce it from the mere GeometryNode
+        state change (as we cannot deduce it from the mere Geometry
         reference, since node may be instantiated many times under
         different transformation, many times within our changing Transform
         node, and many times outside of the changing Transform group).
@@ -3424,11 +3424,11 @@ end;
 
 procedure TVRMLScene.AddTriangleToOctreeProgress(
   const Triangle: TTriangle3Single;
-  State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
+  State: TVRMLGraphTraverseState; Geometry: TVRMLGeometryNode;
   const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 begin
   Progress.Step;
-  TriangleOctreeToAdd.AddItemTriangle(Triangle, State, GeometryNode, MatNum,
+  TriangleOctreeToAdd.AddItemTriangle(Triangle, State, Geometry, MatNum,
     FaceCoordIndexBegin, FaceCoordIndexEnd);
 end;
 
@@ -3571,7 +3571,7 @@ function TVRMLScene.CreateTriangleOctree(
       while SI.GetNext do
         if (Collidable and SI.Current.Collidable) or
            ((not Collidable) and SI.Current.Visible) then
-          SI.Current.GeometryNode.Triangulate(
+          SI.Current.Geometry.Triangulate(
             SI.Current.State, false, AddTriProc);
     finally FreeAndNil(SI) end;
   end;
@@ -3790,13 +3790,13 @@ type
     TriangleList: TDynTriangle3SingleArray;
     procedure AddTriangle(const Triangle: TTriangle3Single;
       State: TVRMLGraphTraverseState;
-      GeometryNode: TVRMLGeometryNode;
+      Geometry: TVRMLGeometryNode;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
   end;
 
   procedure TTriangleAdder.AddTriangle(const Triangle: TTriangle3Single;
     State: TVRMLGraphTraverseState;
-    GeometryNode: TVRMLGeometryNode;
+    Geometry: TVRMLGeometryNode;
     const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
   begin
     if IsValidTriangle(Triangle) then
@@ -3820,7 +3820,7 @@ begin
         SI := TVRMLShapeTreeIterator.Create(Shapes, true);
         try
           while SI.GetNext do
-            SI.Current.GeometryNode.Triangulate(
+            SI.Current.Geometry.Triangulate(
               SI.Current.State, OverTriangulate,
               @TriangleAdder.AddTriangle);
         finally FreeAndNil(SI) end;
@@ -3890,7 +3890,7 @@ function TVRMLScene.TrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
               if ShadowCaster(SI.Current) then
               begin
                 if not SI.Current.Transparent then
-                  SI.Current.GeometryNode.Triangulate(
+                  SI.Current.Geometry.Triangulate(
                     SI.Current.State, false, @TriangleAdder.AddTriangle) else
                   WasSomeTransparentShadowCaster := true;
               end;
@@ -3907,7 +3907,7 @@ function TVRMLScene.TrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
               while SI.GetNext do
                 if ShadowCaster(SI.Current) and
                    SI.Current.Transparent then
-                  SI.Current.GeometryNode.Triangulate(
+                  SI.Current.Geometry.Triangulate(
                     SI.Current.State, false, @TriangleAdder.AddTriangle);
             finally FreeAndNil(SI) end;
           end;

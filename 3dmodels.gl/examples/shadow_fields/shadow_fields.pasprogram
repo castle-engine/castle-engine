@@ -51,7 +51,7 @@ program shadow_fields;
 uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3d,
   GLWindow, Glw_Navigated, VRMLGLScene, VRMLErrors, Navigation,
   ShadowFields, KambiUtils, CubeEnvMap, VRMLNodes,
-  SphericalHarmonics, GLCubeEnvMap, GLWinMessages;
+  SphericalHarmonics, GLCubeEnvMap, GLWinMessages, VRMLShape;
 
 var
   SceneCaster, SceneReceiver, SceneLocalLight: TVRMLGLScene;
@@ -246,14 +246,14 @@ end;
 
 type
   THelper = class
-    function VertexColor(Node: TVRMLGeometryNode;
-      State: TVRMLGraphTraverseState;
-      const VertexPosition: TVector3Single): TVector3Single;
+    function VertexColor(Shape: TVRMLShape;
+      const VertexPosition: TVector3Single;
+      VertexIndex: Integer): TVector3Single;
   end;
 
-function THelper.VertexColor(Node: TVRMLGeometryNode;
-  State: TVRMLGraphTraverseState;
-  const VertexPosition: TVector3Single): TVector3Single;
+function THelper.VertexColor(Shape: TVRMLShape;
+  const VertexPosition: TVector3Single;
+  VertexIndex: Integer): TVector3Single;
 const
   { TODO: this is needed to make results with CalculateByEnvMaps
     and CalculateBySH. Why? I thought I normalized all integrals
@@ -388,7 +388,7 @@ var
   end;
 
 begin
-  Position := MatrixMultPoint(State.Transform, VertexPosition);
+  Position := MatrixMultPoint(Shape.State.Transform, VertexPosition);
 
   CasterBeforeLocalLight :=
     PointsDistanceSqr(Position, NavigatorCaster.MoveAmount) <

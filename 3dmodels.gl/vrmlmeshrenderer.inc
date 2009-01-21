@@ -62,6 +62,7 @@ type
     procedure DoBeforeGLVertex(const Vert: TVector3Single);
 
     FRenderer: TVRMLOpenGLRenderer;
+    FShape: TVRMLShape;
     FState: TVRMLGraphTraverseState;
     FGeometry: TVRMLGeometryNode;
     FAttributes: TVRMLRenderingAttributes;
@@ -80,8 +81,9 @@ type
 
     { Current rendering properties, constant for the whole
       lifetime of the renderer, set in constructor.
-      Setting Renderer automatically sets State, Geometry, Attributes. }
+      Setting Renderer automatically sets Shape, State, Geometry, Attributes. }
     property Renderer: TVRMLOpenGLRenderer read FRenderer;
+    property Shape: TVRMLShape read FShape;
     property State: TVRMLGraphTraverseState read FState;
     property Geometry: TVRMLGeometryNode read FGeometry;
     property Attributes: TVRMLRenderingAttributes read FAttributes;
@@ -609,6 +611,7 @@ begin
   inherited Create;
 
   FRenderer := ARenderer;
+  FShape := Renderer.CurrentShape;
   FState := Renderer.CurrentState;
   FGeometry := Renderer.CurrentGeometry;
   FAttributes := Renderer.Attributes;
@@ -1325,8 +1328,11 @@ begin
   { Implement different color per vertex here. }
   if Assigned(Renderer.Attributes.OnVertexColor) then
   begin
-    VertexColor := Renderer.Attributes.OnVertexColor(Geometry, State,
-      GetVertex(IndexNum));
+    if CoordIndex <> nil then
+      VertexIndex := CoordIndex.ItemsSafe[IndexNum] else
+      VertexIndex := IndexNum;
+    VertexColor := Renderer.Attributes.OnVertexColor(Shape,
+      GetVertex(IndexNum), VertexIndex);
     Renderer.SetColor(VertexColor);
   end else
   if RadianceTransfer <> nil then

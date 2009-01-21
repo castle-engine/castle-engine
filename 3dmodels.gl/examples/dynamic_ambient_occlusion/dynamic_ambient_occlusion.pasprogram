@@ -136,7 +136,7 @@ procedure CalculateElements;
     ShapeElements: PAOElement;
     I: Integer;
   begin
-    if Shape.GeometryNode.Coord(Shape.State, Coord) and (Coord <> nil) then
+    if Shape.Geometry.Coord(Shape.State, Coord) and (Coord <> nil) then
     begin
       { Grow Elements array }
       ShapeElementIndex := Elements.Count;
@@ -162,11 +162,11 @@ procedure CalculateElements;
       Calculator := TElementsCalculator.Create;
       try
         Calculator.Coord := Coord.Items;
-        if Shape.GeometryNode.CoordIndex <> nil then
-          Calculator.CoordIndex := Shape.GeometryNode.CoordIndex.Items else
+        if Shape.Geometry.CoordIndex <> nil then
+          Calculator.CoordIndex := Shape.Geometry.CoordIndex.Items else
           Calculator.CoordIndex := nil;
         Calculator.ShapeElements := ShapeElements;
-        Shape.GeometryNode.CoordPolygons(Shape.State, @Calculator.Polygon);
+        Shape.Geometry.CoordPolygons(Shape.State, @Calculator.Polygon);
       finally FreeAndNil(Calculator) end;
 
       { Normalize all new normals }

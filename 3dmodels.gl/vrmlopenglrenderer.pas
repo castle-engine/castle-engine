@@ -339,7 +339,7 @@ uses
   Classes, SysUtils, KambiUtils, VectorMath, GL, GLU, GLExt,
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3d, OpenGLTTFonts, Images,
   OpenGLFonts, KambiGLUtils, VRMLLightSetGL, TTFontsTypes,
-  VRMLErrors, VideosCache, GLShaders, GLImages, Videos, VRMLTime;
+  VRMLErrors, VideosCache, GLShaders, GLImages, Videos, VRMLTime, VRMLShape;
 
 {$define read_interface}
 
@@ -357,10 +357,11 @@ type
 
   { Callback used by TVRMLRendererAttributes.OnVertexColorFunction.
     Passed here VertexPosition is in local coordinates (that is,
-    local of this object, multiply by State.Transform to get scene coords). }
-  TVertexColorFunction = function (Node: TVRMLGeometryNode;
-    State: TVRMLGraphTraverseState;
-    const VertexPosition: TVector3Single): TVector3Single of object;
+    local of this object, multiply by State.Transform to get scene coords).
+    VertexIndex is the direct index to Node.Coordinates. }
+  TVertexColorFunction = function (Shape: TVRMLShape;
+    const VertexPosition: TVector3Single;
+    VertexIndex: Integer): TVector3Single of object;
 
   { Various bump mapping methods. Generally sorted from worst one
     (bmNone, which does no bump mapping) to the best.
@@ -385,7 +386,7 @@ type
       @unorderedList(
         @item(You use optimizations with display lists, like roSceneAsAWhole.
           Then changing BumpMappingLightPosition is very costly operation
-          (display ilsts must be rebuild), so you should not do this
+          (display lists must be rebuild), so you should not do this
           e.g. every frame.)
 
         @item(Or you can use optimization roNone. Then changing
@@ -1226,7 +1227,8 @@ type
       don't want to expose TVRMLMeshRenderer class in the interface. }
     ExposedMeshRenderer: TObject;
 
-    { kopie aktualnego State i Node na czas Render }
+    { kopie aktualnego Shape, Shape.State i Shape.Geometry na czas Render }
+    CurrentShape: TVRMLShape;
     CurrentState: TVRMLGraphTraverseState;
     CurrentGeometry: TVRMLGeometryNode;
 
@@ -1365,15 +1367,11 @@ type
     procedure RenderShapeLights(
       LightsRenderer: TVRMLGLLightsCachingRenderer;
       State: TVRMLGraphTraverseState);
-    procedure RenderShapeBegin(Geometry: TVRMLGeometryNode;
-      State: TVRMLGraphTraverseState);
-    procedure RenderShapeNoTransform(Geometry: TVRMLGeometryNode;
-      State: TVRMLGraphTraverseState);
-    procedure RenderShapeEnd(Geometry: TVRMLGeometryNode;
-      State: TVRMLGraphTraverseState);
+    procedure RenderShapeBegin(Shape: TVRMLShape);
+    procedure RenderShapeNoTransform(Shape: TVRMLShape);
+    procedure RenderShapeEnd(Shape: TVRMLShape);
 
-    procedure RenderShape(Geometry: TVRMLGeometryNode;
-      State: TVRMLGraphTraverseState);
+    procedure RenderShape(Shape: TVRMLShape);
 
     { This checks Attributes (mainly Attributes.BumpMappingMaximum) and OpenGL
       context capabilities to check which bump mapping method (if any)
@@ -3732,9 +3730,7 @@ begin
       Attributes.ColorModulatorSingle);}
 end;
 
-procedure TVRMLOpenGLRenderer.RenderShapeBegin(
-  Geometry: TVRMLGeometryNode;
-  State: TVRMLGraphTraverseState);
+procedure TVRMLOpenGLRenderer.RenderShapeBegin(Shape: TVRMLShape);
 
   { Pass non-nil TextureTransform that is not a MultiTextureTransform.
     Then this will simply do glMultMatrix (or equivalent) applying
@@ -3767,7 +3763,10 @@ var
   Child: TVRMLNode;
   Transforms: TMFNode;
   I: Integer;
+  State: TVRMLGraphTraverseState;
 begin
+  State := Shape.State;
+
   TextureTransformUnitsUsed := 0;
 
   if (State.ParentShape = nil { VRML 1.0, always some texture transform }) or
@@ -3863,9 +3862,7 @@ begin
     glMultMatrix(State.Transform);
 end;
 
-procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(
-  Geometry: TVRMLGeometryNode;
-  State: TVRMLGraphTraverseState);
+procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
 
   function NodeTextured(Node: TVRMLGeometryNode): boolean;
   begin
@@ -4101,7 +4098,7 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(
 
     AlphaTest := false;
 
-    TextureNode := State.AnyTexture;
+    TextureNode := CurrentState.AnyTexture;
     {$ifdef USE_VRML_NODES_TRIANGULATION}
     { We don't generate texture coords, so disable textures. }
     TextureNode := nil;
@@ -4213,12 +4210,12 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(
     UsedGLSLProgram := nil;
 
     if (not Attributes.PureGeometry) and
-       (State.ParentShape <> nil) and
-       (State.ParentShape.Appearance <> nil) then
+       (CurrentState.ParentShape <> nil) and
+       (CurrentState.ParentShape.Appearance <> nil) then
     begin
-      for I := 0 to State.ParentShape.Appearance.FdShaders.Items.Count - 1 do
+      for I := 0 to CurrentState.ParentShape.Appearance.FdShaders.Items.Count - 1 do
       begin
-        ProgramNode := State.ParentShape.Appearance.GLSLShader(I);
+        ProgramNode := CurrentState.ParentShape.Appearance.GLSLShader(I);
         if ProgramNode <> nil then
         begin
           ProgramReference := GLSLProgramReferences.ProgramNodeIndex(ProgramNode);
@@ -4242,17 +4239,18 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(
 
 begin
   { make a copy to our class fields }
-  CurrentState := State;
+  CurrentShape := Shape;
+  CurrentState := Shape.State;
 
   { Node class, like TNodeTeapot must be mentioned here explicitly,
     to use it's Proxy, for now. This is to allow nodes with a Proxy
     still be rendered using direct specialized method, if available.
     This may be improved in the future, if the Proxy mechanism will
     get used by more nodes. }
-  if (Geometry is TNodeTeapot) or
-     (Geometry is TNodeExtrusion) then
-    CurrentGeometry := Geometry.Proxy else
-    CurrentGeometry := Geometry;
+  if (Shape.Geometry is TNodeTeapot) or
+     (Shape.Geometry is TNodeExtrusion) then
+    CurrentGeometry := Shape.Geometry.Proxy else
+    CurrentGeometry := Shape.Geometry;
   try
     RenderShadersBegin;
     try
@@ -4275,12 +4273,12 @@ begin
           if MeshRenderer <> nil then
             MeshRenderer.Render else
             VRMLNonFatalError(
-              { We display for user Geometry.NodeTypeName,
+              { We display for user Shape.Geometry.NodeTypeName,
                 although actually it's CurrentGeometry.NodeTypeName
                 that cannot be rendered. Internally, this is different
                 only when we know that original Geometry cannot be directly
-                renderer, so it's al Ok. }
-              'Rendering of node kind "' + Geometry.NodeTypeName + '" not implemented');
+                renderer, so it's all Ok. }
+              'Rendering of node kind "' + Shape.Geometry.NodeTypeName + '" not implemented');
 
           {$endif USE_VRML_NODES_TRIANGULATION}
 
@@ -4288,7 +4286,7 @@ begin
       finally FreeAndNil(ExposedMeshRenderer); end;
     finally RenderShadersEnd; end;
   finally
-    if CurrentGeometry <> Geometry then
+    if CurrentGeometry <> Shape.Geometry then
       FreeAndNil(CurrentGeometry);
     { Just for safety, force them @nil now }
     CurrentGeometry := nil;
@@ -4296,9 +4294,7 @@ begin
   end;
 end;
 
-procedure TVRMLOpenGLRenderer.RenderShapeEnd(
-  Geometry: TVRMLGeometryNode;
-  State: TVRMLGraphTraverseState);
+procedure TVRMLOpenGLRenderer.RenderShapeEnd(Shape: TVRMLShape);
 var
   I: Integer;
 begin
@@ -4321,15 +4317,13 @@ begin
   { at the end, we're in modelview mode }
 end;
 
-procedure TVRMLOpenGLRenderer.RenderShape(
-  Geometry: TVRMLGeometryNode;
-  State: TVRMLGraphTraverseState);
+procedure TVRMLOpenGLRenderer.RenderShape(Shape: TVRMLShape);
 begin
-  RenderShapeBegin(Geometry, State);
+  RenderShapeBegin(Shape);
   try
-    RenderShapeNoTransform(Geometry, State);
+    RenderShapeNoTransform(Shape);
   finally
-    RenderShapeEnd(Geometry, State);
+    RenderShapeEnd(Shape);
   end;
 end;
 

@@ -55,7 +55,7 @@ type
     procedure TraverseForWaypoints(
       BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
       BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
-      GeometryNode: TVRMLGeometryNode;
+      Geometry: TVRMLGeometryNode;
       StateStack: TVRMLGraphTraverseStateStack);
   public
     { Shapes placed under the name Waypoint<index>_<ignored>
@@ -129,7 +129,7 @@ type
     procedure TraverseForSectors(
       BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
       BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
-      GeometryNode: TVRMLGeometryNode;
+      Geometry: TVRMLGeometryNode;
       StateStack: TVRMLGraphTraverseStateStack);
   public
     { Shapes placed under the name Sector<index>_<ignored>
@@ -215,7 +215,7 @@ end;
 procedure TSceneWaypointsList.TraverseForWaypoints(
   BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
   BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
-  GeometryNode: TVRMLGeometryNode;
+  Geometry: TVRMLGeometryNode;
   StateStack: TVRMLGraphTraverseStateStack);
 
   procedure CreateNewWaypoint(const WaypointNodeName: string);
@@ -229,7 +229,7 @@ procedure TSceneWaypointsList.TraverseForWaypoints(
       WaypointIndex := StrToInt(WaypointNodeName) else
       WaypointIndex := StrToInt(Copy(WaypointNodeName, 1, IgnoredBegin - 1));
 
-    WaypointPosition := Box3dMiddle(GeometryNode.BoundingBox(StateStack.Top));
+    WaypointPosition := Box3dMiddle(Geometry.BoundingBox(StateStack.Top));
 
     Count := Max(Count, WaypointIndex + 1);
     if Items[WaypointIndex] <> nil then
@@ -315,7 +315,7 @@ end;
 procedure TSceneSectorsList.TraverseForSectors(
   BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
   BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
-  GeometryNode: TVRMLGeometryNode;
+  Geometry: TVRMLGeometryNode;
   StateStack: TVRMLGraphTraverseStateStack);
 
   procedure AddSectorBoundingBox(const SectorNodeName: string);
@@ -329,7 +329,7 @@ procedure TSceneSectorsList.TraverseForSectors(
       SectorIndex := StrToInt(SectorNodeName) else
       SectorIndex := StrToInt(Copy(SectorNodeName, 1, IgnoredBegin - 1));
 
-    SectorBoundingBox := GeometryNode.BoundingBox(StateStack.Top);
+    SectorBoundingBox := Geometry.BoundingBox(StateStack.Top);
 
     Count := Max(Count, SectorIndex + 1);
     if Items[SectorIndex] = nil then

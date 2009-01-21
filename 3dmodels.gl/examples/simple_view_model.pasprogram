@@ -102,7 +102,7 @@ begin
       with Scene.Shapes[i] do
       begin
        Writeln(Format('Shape name ''%10s'' (''%20s'') : LocalBBox = %50s, BBox = %50s',
-         [GeometryNode.NodeName, GeometryNode.NodeTypeName,
+         [Geometry.NodeName, Geometry.NodeTypeName,
           Box3dToNiceStr(LocalBoundingBox), Box3dToNiceStr(BoundingBox)]));
       end;}
 

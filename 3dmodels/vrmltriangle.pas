@@ -74,7 +74,7 @@ type
   public
     { Initialize new TVRMLTriangle. Given Triangle must satisfy IsValidTriangle. }
     constructor Init(const ATriangle: TTriangle3Single;
-      AState: TVRMLGraphTraverseState; AGeometryNode: TVRMLGeometryNode;
+      AState: TVRMLGraphTraverseState; AGeometry: TVRMLGeometryNode;
       const AMatNum, AFaceCoordIndexBegin, AFaceCoordIndexEnd: integer);
 
     { Geometry of this item.
@@ -107,20 +107,20 @@ type
     procedure UpdateWorld;
 
     State: TVRMLGraphTraverseState;
-    GeometryNode: TVRMLGeometryNode;
+    Geometry: TVRMLGeometryNode;
     MatNum: integer;
 
     { If this triangle is part of a face created by coordIndex field
       (like all faces in IndexedFaceSet) then these fields indicate where
       in this coordIndex this face is located.
 
-      You should look into GeometryNode, get it's coordIndex field,
+      You should look into Geometry, get it's coordIndex field,
       and the relevant indexes are between FaceCoordIndexBegin
       and FaceCoordIndexEnd - 1. Index FaceCoordIndexEnd is either
       non-existing (coordIndex list ended) or is the "-1" (faces separator
       on coordIndex fields).
 
-      If this triangle doesn't come from any coordIndex (e.g. because GeometryNode
+      If this triangle doesn't come from any coordIndex (e.g. because Geometry
       is a TNodeSphere) then both FaceCoordIndex* are -1. }
     FaceCoordIndexBegin, FaceCoordIndexEnd: Integer;
 
@@ -765,7 +765,7 @@ implementation
 { TVRMLTriangle  ------------------------------------------------------------ }
 
 constructor TVRMLTriangle.Init(const ATriangle: TTriangle3Single;
-  AState: TVRMLGraphTraverseState; AGeometryNode: TVRMLGeometryNode;
+  AState: TVRMLGraphTraverseState; AGeometry: TVRMLGeometryNode;
   const AMatNum, AFaceCoordIndexBegin, AFaceCoordIndexEnd: Integer);
 begin
   Loc.Triangle := ATriangle;
@@ -775,7 +775,7 @@ begin
   World := Loc;
 
   State := AState;
-  GeometryNode := AGeometryNode;
+  Geometry := AGeometry;
   MatNum := AMatNum;
   FaceCoordIndexBegin := AFaceCoordIndexBegin;
   FaceCoordIndexEnd := AFaceCoordIndexEnd;
