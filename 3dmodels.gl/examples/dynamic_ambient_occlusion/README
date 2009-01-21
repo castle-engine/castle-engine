@@ -33,13 +33,20 @@ Practice:
   one element, and simply write result back to buffer. To be read back
   to texture, or even possibly grabbed by CPU.
 
+- More shader notes:
+  - Remember to expand constant variables for the shader, instead
+    of making them uniforms. This is important, not only for speed,
+    also for correctness: older GPUs need to unroll "for" loop
+    (to elements_count) at compilation.
+  - Above unrolling also means that this may just get too difficult
+    for older GPUs for larger models: too many instructions after unrolling.
+    E.g. my NVidia GPU (kocury) "GeForce FX 5200/AGP/SSE2/3DNOW!" handles
+    smaller models (simplico), but fails with
+    "error: too many instructions" on larger ones (peach, chinchilla).
+
 TODO: our current method of generating elements works only for nodes
 with explicit vertexes, so will not work for VRML primitives (sphere,
 cone and and such).
 
 TODO: make model animated, just call CalculateElements on each geometry
 change (or, better: optimized version of it).
-
-TODO: change uniform vars into constants inside shader (they don't change
-during shader execution, just set them once at frame beginning) ->
-some speedup.

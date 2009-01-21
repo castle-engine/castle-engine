@@ -438,11 +438,9 @@ procedure Draw(Glwin: TGLWindow);
       GLSLProgram.SetUniform('tex_elements_position_area', 0);
       GLSLProgram.SetUniform('tex_elements_normal', 1);
 
-      GLSLProgram.SetUniform('tex_elements_size', ElementsTexSize);
       GLSLProgram.SetUniform('area_scale', AreaScale);
       GLSLProgram.SetUniform('position_scale', PositionScale);
       GLSLProgram.SetUniform('position_shift', PositionShift);
-      GLSLProgram.SetUniform('elements_count', Elements.Count);
 
       GLSLProgram.SetUniform('zero_5', 0.5);
       GLSLProgram.SetUniform('pi', Pi);
@@ -519,6 +517,8 @@ end;
 procedure Init(Glwin: TGLWindow);
 const
   GLSLProgramBaseName = 'dynamic_ambient_occlusion';
+var
+  ShaderString: string;
 begin
   glEnable(GL_LIGHT0);
 
@@ -531,16 +531,10 @@ begin
     Exit;
   end;
 
+  CalculateElementsTex;
+
   { initialize GLSL program }
   GLSLProgram := TGLSLProgram.Create;
-  GLSLProgram.AttachFragmentShader(FileToString(GLSLProgramBaseName + '.fs'));
-  { For this test program, we eventually allow shader to run in software.
-    We display debug info, so user should know what's going on. }
-  GLSLProgram.Link(false);
-  { Only warn on non-used uniforms. This is more comfortable for shader
-    development, you can easily comment shader parts. }
-  GLSLProgram.UniformNotFoundAction := uaWarning;
-  Writeln(GLSLProgram.DebugInfo);
 
   if GLSLProgram.Support = gsNone then
   begin
@@ -550,7 +544,23 @@ begin
     Exit;
   end;
 
-  CalculateElementsTex;
+  ShaderString := FileToString(GLSLProgramBaseName + '.fs');
+  { Integer constants are really constant for the shader.
+    This allows OpenGL to optimize them more.
+    Especially important for $elements_count, since then the "for" loop
+    inside the shader can be unrolled.
+    Required e.g. by NVidia GPU "GeForce FX 5200/AGP/SSE2/3DNOW!" }
+  StringReplaceAllTo1st(ShaderString, '$tex_elements_size', IntToStr(ElementsTexSize));
+  StringReplaceAllTo1st(ShaderString, '$elements_count', IntToStr(Elements.Count));
+
+  GLSLProgram.AttachFragmentShader(ShaderString);
+  { For this test program, we eventually allow shader to run in software.
+    We display debug info, so user should know what's going on. }
+  GLSLProgram.Link(false);
+  { Only warn on non-used uniforms. This is more comfortable for shader
+    development, you can easily comment shader parts. }
+  GLSLProgram.UniformNotFoundAction := uaWarning;
+  Writeln(GLSLProgram.DebugInfo);
 end;
 
 procedure Close(Glwin: TGLWindow);

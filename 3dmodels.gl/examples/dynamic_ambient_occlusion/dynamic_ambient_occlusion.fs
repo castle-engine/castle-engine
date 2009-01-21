@@ -1,12 +1,12 @@
 uniform sampler2D tex_elements_position_area;
 uniform sampler2D tex_elements_normal;
-uniform int tex_elements_size;
+const int tex_elements_size = $tex_elements_size;
 
 uniform float area_scale;
 uniform vec3 position_scale;
 uniform vec3 position_shift;
 
-uniform int elements_count;
+const int elements_count = $elements_count;
 
 /* ATI (Radeon) on Linux (fglrx) doesn't tolerate const floats in code. */
 uniform float zero_5;
@@ -21,7 +21,7 @@ void main(void)
 
   if (current_index < elements_count)
   {
-    current_st /= tex_elements_size; /* make ST coords of the texture in 0..1 */
+    current_st /= float(tex_elements_size); /* make ST coords of the texture in 0..1 */
     vec4 current_pos_area = texture2D(tex_elements_position_area, current_st);
     vec3 current_pos = (current_pos_area.xyz + position_shift) * position_scale;
 
@@ -42,7 +42,7 @@ void main(void)
         vec2 element_st = vec2(
           float(i % tex_elements_size),
           float(i / tex_elements_size));
-        element_st /= tex_elements_size; /* make ST coords of the texture in 0..1 */
+        element_st /= float(tex_elements_size); /* make ST coords of the texture in 0..1 */
 
         vec4 element_pos_area = texture2D(tex_elements_position_area, element_st);
         vec3 element_pos = (element_pos_area.xyz + position_shift) * position_scale;
