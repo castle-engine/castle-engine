@@ -41,7 +41,7 @@ type
 var
   Scene: TVRMLGLScene;
   GLSLProgram: TGLSLProgram;
-  DrawType: TDrawType = dtElementsIntensity;
+  DrawType: TDrawType = dtFull;
 
 { Storing and calculating "elements" for algorithm --------------------------- }
 
@@ -64,6 +64,16 @@ type
 
 var
   Elements: TDynAOElementArray;
+
+type
+  TShapeInfo = record
+    Shape: TVRMLShape;
+    CoordToElement: array of Integer;
+  end;
+  PShapeInfo = ^TShapeInfo;
+
+var
+  Shapes: array of TShapeInfo;
 
 type
   TElementsCalculator = class
@@ -128,7 +138,7 @@ end;
 
 procedure CalculateElements;
 
-  procedure AddShapeElements(Shape: TVRMLShape);
+  procedure AddShapeElements(ShapeIndex: Integer; Shape: TVRMLShape);
   var
     Coord: TMFVec3f;
     Calculator: TElementsCalculator;
@@ -136,12 +146,16 @@ procedure CalculateElements;
     ShapeElements: PAOElement;
     I: Integer;
   begin
+    Shapes[ShapeIndex].Shape := Shape;
+
     if Shape.Geometry.Coord(Shape.State, Coord) and (Coord <> nil) then
     begin
       { Grow Elements array }
       ShapeElementIndex := Elements.Count;
       Elements.Count := Elements.Count + Coord.Count;
       ShapeElements := Elements.Pointers[ShapeElementIndex];
+
+      SetLength(Shapes[ShapeIndex].CoordToElement, Coord.Count);
 
       { This does a modified and tweaked version of normal calculation
         from CreateSmoothNormalsCoordinateNode from NormalsCalculator.
@@ -172,18 +186,28 @@ procedure CalculateElements;
       { Normalize all new normals }
       for I := 0 to Coord.Count - 1 do
         NormalizeTo1st(ShapeElements[I].Normal);
+    end else
+    begin
+      SetLength(Shapes[ShapeIndex].CoordToElement, 0);
     end;
   end;
 
 var
   SI: TVRMLShapeTreeIterator;
-  I, GoodElementsCount: Integer;
+  I, GoodElementsCount, ShapeIndex, ShapeCoord: Integer;
 begin
   Elements.Count := 0;
+
+  SetLength(Shapes, Scene.Shapes.ShapesCount(true, true, false));
+
+  ShapeIndex := 0;
   SI := TVRMLShapeTreeIterator.Create(Scene.Shapes, true, true, false);
   try
     while SI.GetNext do
-      AddShapeElements(SI.Current);
+    begin
+      AddShapeElements(ShapeIndex, SI.Current);
+      Inc(ShapeIndex);
+    end;
   finally FreeAndNil(SI) end;
 
   { Remove Elements with zero normal vector.
@@ -197,9 +221,21 @@ begin
     zero area, besides unused vertexes may be outside of Scene.BoundingBox
     (as calculating Scene.BoundingBox may conserve bbox to not contain
     unused vertexes) --- so unused vertexes would fail to be "squeezed"
-    inside texture component correctly. }
+    inside texture component correctly.
+
+    By the way, you also have to initialize Shapes[].CoordToElement.
+    This provides a mapping from original (per-shape, and before this removal)
+    coords back to elements. }
 
   GoodElementsCount := 0;
+
+  { increase ShapeIndex, ShapeCoord to next coord }
+  ShapeIndex := 0;
+  ShapeCoord := 0;
+  while (ShapeIndex < Length(Shapes)) and
+        (Length(Shapes[ShapeIndex].CoordToElement) = 0) do
+    Inc(ShapeIndex);
+
   for I := 0 to Elements.Count - 1 do
   begin
     if not PerfectlyZeroVector(Elements.Items[I].Normal) then
@@ -207,9 +243,26 @@ begin
       { Then Element I should be on position GoodElementsCount. }
       if GoodElementsCount <> I then
         Elements.Items[GoodElementsCount] := Elements.Items[I];
+      Shapes[ShapeIndex].CoordToElement[ShapeCoord] := GoodElementsCount;
       Inc(GoodElementsCount);
+    end else
+    begin
+      Shapes[ShapeIndex].CoordToElement[ShapeCoord] := -1;
+    end;
+
+    { increase ShapeIndex, ShapeCoord to next coord }
+    Inc(ShapeCoord);
+    if ShapeCoord >= Length(Shapes[ShapeIndex].CoordToElement) then
+    begin
+      Inc(ShapeIndex);
+      ShapeCoord := 0;
+      while (ShapeIndex < Length(Shapes)) and
+            (Length(Shapes[ShapeIndex].CoordToElement) = 0) do
+        Inc(ShapeIndex);
     end;
   end;
+
+  Assert(ShapeIndex = Length(Shapes));
 
   Writeln('Bad elements (vertexes with no neighbors) removed: ',
     Elements.Count - GoodElementsCount, ', remaining good elements: ',
@@ -368,6 +421,11 @@ end;
 
 { GLWindow callbacks --------------------------------------------------------- }
 
+var
+  FullRenderShape: TVRMLShape;
+  FullRenderShapeInfo: PShapeInfo;
+  FullRenderIntensityTex: TRGBAlphaImage;
+
 procedure Draw(Glwin: TGLWindow);
 
   { If ElementsIntensityTex = nil,
@@ -516,7 +574,52 @@ begin
         finally FreeAndNil(ElementsIntensityTex) end;
       end;
     dtFull:
-      begin {TODO} end;
+      begin
+        RenderAORect;
+        FullRenderIntensityTex := CaptureAORect;
+        try
+          FullRenderShape := nil;
+          Scene.Render(nil, tgAll);
+        finally FreeAndNil(FullRenderIntensityTex) end;
+      end;
+  end;
+end;
+
+type
+  THelper = class
+    function VertexColor(Shape: TVRMLShape;
+      const VertexPosition: TVector3Single;
+      VertexIndex: Integer): TVector3Single;
+  end;
+
+function THelper.VertexColor(Shape: TVRMLShape;
+  const VertexPosition: TVector3Single;
+  VertexIndex: Integer): TVector3Single;
+var
+  ElemIndex, I: Integer;
+  Intensity: Single;
+begin
+  if FullRenderShape <> Shape then
+  begin
+    FullRenderShape := Shape;
+    FullRenderShapeInfo := nil;
+    for I := 0 to Length(Shapes) - 1 do
+      if Shapes[I].Shape = Shape then
+      begin
+        FullRenderShapeInfo := @Shapes[I];
+        Break;
+      end;
+    Assert(FullRenderShapeInfo <> nil, 'Shape info not found');
+  end;
+
+  ElemIndex := FullRenderShapeInfo^.CoordToElement[VertexIndex];
+  if ElemIndex = -1 then
+    Result := ZeroVector3Single { element invalid, probably separate vertex } else
+  begin
+    Intensity := FullRenderIntensityTex.AlphaPixels[ElemIndex][0]/255;
+    Result[0] := Intensity;
+    Result[1] := Intensity;
+    Result[2] := Intensity;
   end;
 end;
 
@@ -626,13 +729,30 @@ begin
     Result.Append(M);
 end;
 
+procedure UpdateSceneAttribs;
+begin
+  case DrawType of
+    dtNormalGL:
+      begin
+        Scene.Attributes.OnVertexColor := nil;
+        Scene.Optimization := roSeparateShapes;
+      end;
+    dtFull:
+      begin
+        Scene.Attributes.OnVertexColor := @THelper(nil).VertexColor;
+        Scene.Optimization := roNone;
+      end;
+    { else they don't matter }
+  end;
+end;
+
 procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
 begin
   case Item.IntData of
-    100: begin DrawType := dtNormalGL; Scene.Optimization := roSeparateShapes; end;
+    100: begin DrawType := dtNormalGL; UpdateSceneAttribs; end;
     101: DrawType := dtElements;
     102: DrawType := dtElementsIntensity;
-    103: begin DrawType := dtFull; Scene.Optimization := roNone; end;
+    103: begin DrawType := dtFull; UpdateSceneAttribs; end;
     200: Glwin.Close;
     else Exit;
   end;
@@ -648,7 +768,8 @@ begin
     VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
     DataNonFatalError := @DataNonFatalError_WarningWrite;
 
-    Scene := TVRMLGLScene.Create(Parameters[1], {}{roSceneAsAWhole}roNone);
+    Scene := TVRMLGLScene.Create(Parameters[1], roNone);
+    UpdateSceneAttribs;
     CalculateElements;
 
     { init Glw.Navigator }
