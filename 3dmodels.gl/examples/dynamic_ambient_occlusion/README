@@ -93,10 +93,9 @@ Practice:
 
     element_area * cos_emitter_angle / sqr_distance
 
-  additionally divided by 4 * Pi, since this is the surface area
-  of the sphere (and we want result to fit in 1.0).
-  I multiply it by max(0.0, cos_current_angle)
-  (as light coming from an angle is scaled down).
+  We also multiply by cos_current_angle
+  (as light coming from an angle is scaled down, so blocker for
+  which cos_current_angle is small blocks less light).
 
 TODO: our current method of generating elements works only for nodes
 with explicit vertexes, so will not work for VRML primitives (sphere,

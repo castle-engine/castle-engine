@@ -21,11 +21,15 @@
 }
 
 { Sample implementation of "Dynamic ambient occlusion".
+  See README for descriptions and links.
 
-  See GPU Gems 2 chapter 14, online on
-  http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter14.html
-  (PDF version on
-  http://http.download.nvidia.com/developer/GPU_Gems_2/GPU_Gems2_ch14.pdf).
+  Run with $1 = 3d model to open.
+  Navigate by mouse/keys like in view3dscene (see
+  http://vrmlengine.sourceforge.net/view3dscene.php).
+
+  Keys s / S scale shadow more / less (for more/less dramatic effect;
+  the default scale is anyway 2 times larger than what math suggests,
+  to be more dramatic).
 }
 program dynamic_ambient_occlusion;
 
@@ -33,7 +37,8 @@ uses VectorMath, GL, GLU, GLExt, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLScene, VRMLGLScene, Navigation,
   KambiFilesUtils, KambiStringUtils, VRMLErrors, GLShaders, VRMLShape,
-  VRMLFields, Images, Boxes3d, GLImages, GLWinMessages, DataErrors, GLVersionUnit;
+  VRMLFields, Images, Boxes3d, GLImages, GLWinMessages, DataErrors,
+  GLVersionUnit, Math;
 
 type
   TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);
@@ -42,6 +47,12 @@ var
   Scene: TVRMLGLScene;
   GLSLProgram: array [0..1] of TGLSLProgram;
   DrawType: TDrawType = dtPass2;
+
+  { Math correctly, this should be 1 / (2 * Pi)
+    (= inverted hemisphere surface area).
+    In practice, larger values are useful, to make shadows look
+    more "dramatic". }
+  ShadowScale: Single = 1 / (1 * Pi);
 
 { Storing and calculating "elements" for algorithm --------------------------- }
 
@@ -536,7 +547,8 @@ procedure Draw(Glwin: TGLWindow);
       end;
 
       GLSLProgram[Pass].SetUniform('zero_5', 0.5);
-      GLSLProgram[Pass].SetUniform('pi', Pi);
+      { GLSLProgram[Pass].SetUniform('pi', Pi); <- not used now in shader }
+      GLSLProgram[Pass].SetUniform('shadow_scale', ShadowScale);
 
       { Render rectange with each pixel corresponding to one element
         that needs intensity calculated. }
@@ -754,6 +766,20 @@ begin
     Glwin.Width, Glwin.Height, AngleOfViewX, AngleOfViewY);
 end;
 
+procedure Idle(Glwin: TGLWindow);
+begin
+  if Glwin.CharactersDown['s'] then
+  begin
+    ShadowScale *= Power(1.1, Glwin.Fps.IdleSpeed * 20);
+    Glwin.PostRedisplay;
+  end;
+  if Glwin.CharactersDown['S'] then
+  begin
+    ShadowScale *= Power(1/1.1, Glwin.Fps.IdleSpeed * 20);
+    Glwin.PostRedisplay;
+  end;
+end;
+
 { menu ----------------------------------------------------------------------- }
 
 function CreateMainMenu: TMenu;
@@ -843,6 +869,7 @@ begin
     Glw.OnInit := @Init;
     Glw.OnClose := @Close;
     Glw.OnResize := @Resize;
+    Glw.OnIdle := @Idle;
     Glw.InitLoop(ProgramName, @Draw);
   finally
     FreeAndNil(Scene);
