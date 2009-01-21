@@ -840,6 +840,9 @@ type
     procedure Clear(const Pixel: TVector4Byte); override;
     function IsClear(const Pixel: TVector4Byte): boolean; override;
 
+    { Set alpha channel on every pixel to the same given value. }
+    procedure ClearAlpha(const Alpha: Byte);
+
     procedure TransformRGB(const Matrix: TMatrix3Single); override;
     procedure ModulateRGB(const ColorModulator: TColorModulatorByteFunc); override;
 
@@ -2279,6 +2282,19 @@ end;
 procedure TRGBAlphaImage.Clear(const Pixel: TVector4Byte);
 begin
  FillDWord(RawPixels^, Width*Height, LongWord(Pixel));
+end;
+
+procedure TRGBAlphaImage.ClearAlpha(const Alpha: Byte);
+var
+  i: Cardinal;
+  palpha: PVector4byte;
+begin
+  palpha := AlphaPixels;
+  for i := 1 to Width * Height do
+  begin
+    palpha^[3] := Alpha;
+    Inc(palpha);
+  end;
 end;
 
 function TRGBAlphaImage.IsClear(const Pixel: TVector4Byte): boolean;
