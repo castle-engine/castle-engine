@@ -33,7 +33,7 @@ uses VectorMath, GL, GLU, GLExt, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLScene, VRMLGLScene, Navigation,
   KambiFilesUtils, KambiStringUtils, VRMLErrors, GLShaders, VRMLShape,
-  VRMLFields, Images, Boxes3d, GLImages, GLWinMessages;
+  VRMLFields, Images, Boxes3d, GLImages, GLWinMessages, DataErrors;
 
 type
   TDrawType = (dtElements, dtElementsIntensity, dtFull);
@@ -524,6 +524,9 @@ begin
   { For this test program, we eventually allow shader to run in software.
     We display debug info, so user should know what's going on. }
   GLSLProgram.Link(false);
+  { Only warn on non-used uniforms. This is more comfortable for shader
+    development, you can easily comment shader parts. }
+  GLSLProgram.UniformNotFoundAction := uaWarning;
   Writeln(GLSLProgram.DebugInfo);
 
   if GLSLProgram.Support = gsNone then
@@ -602,6 +605,7 @@ begin
   Parameters.CheckHigh(1);
   try
     VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
+    DataNonFatalError := @DataNonFatalError_WarningWrite;
 
     Scene := TVRMLGLScene.Create(Parameters[1], {}{roSceneAsAWhole}roNone);
     CalculateElements;

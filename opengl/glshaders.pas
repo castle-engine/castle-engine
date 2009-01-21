@@ -134,6 +134,14 @@ type
     procedure SetValue(const Value: TMatrix4Single);
   end;
 
+  { What to do when GLSL uniform variable is set (TGLSLProgram.SetUniform)
+    but doesn't exist in shader. }
+  TUniformNotFoundAction = (
+    { Report that uniform variable not found to DataNonFatalError. }
+    uaWarning,
+    { Report that uniform variable not found by raising EGLSLUniformNotFound. }
+    uaException);
+
   { Easily handle program in GLSL (OpenGL Shading Language). }
   TGLSLProgram = class
   private
@@ -143,6 +151,9 @@ type
       But TGLhandleARB = TGLuint in practice, so this is not a problem. }
     ProgramId: TGLuint;
     ShaderIds: TDynGLuintArray;
+
+    FUniformNotFoundAction: TUniformNotFoundAction;
+    procedure UniformNotFound(const Name: string);
 
     procedure AttachShader(AType: TGLenum; const S: string);
 
@@ -227,6 +238,17 @@ type
       This is much like @link(Support), but it's a class function. }
     class function ClassSupport: TGLSupport;
 
+    { What to do when GLSL uniform variable is set (SetUniform)
+      but doesn't exist in the shader.
+      Note that OpenGL aggresively removes
+      unused code and variables from the shader when compiling/linking,
+      so this also happens for "declared but detected to not used" variables.
+
+      @seealso TUniformNotFoundAction }
+    property UniformNotFoundAction: TUniformNotFoundAction
+      read FUniformNotFoundAction write FUniformNotFoundAction
+      default uaException;
+
     { Set appropriate uniform variable value.
       The used type must match the type of this variable in GLSL program.
 
@@ -260,7 +282,7 @@ type
       Will be done when needed.
 
       @raises(EGLSLUniformNotFound If the variable is not found within
-        the program.
+        the program and UniformNotFoundAction = uaException (default).
 
         Note that this is only one of the many things that can
         go wrong. And on most cases we don't raise any error,
@@ -340,7 +362,7 @@ type
 
 implementation
 
-uses KambiStringUtils;
+uses KambiStringUtils, DataErrors;
 
 const
   SupportNames: array [TGLSupport] of string =
@@ -688,6 +710,8 @@ begin
     raise EGLSLError.Create('Creation of GLSL program failed');
 
   ShaderIds := TDynGLuintArray.Create;
+
+  FUniformNotFoundAction := uaException;
 end;
 
 destructor TGLSLProgram.Destroy;
@@ -1106,12 +1130,25 @@ begin
   end;
 end;
 
+procedure TGLSLProgram.UniformNotFound(const Name: string);
+var
+  S: string;
+begin
+  S := Format('Uniform variable "%s" not found', [Name]);
+  case UniformNotFoundAction of
+    uaWarning: DataNonFatalError(S);
+    uaException: raise EGLSLUniformNotFound.Create(S);
+    else raise EInternalError.Create('UniformNotFoundAction? in TGLSLProgram.UniformNotFound');
+  end;
+end;
+
 { Wrapper over glGetUniformLocationARB (use only if gsARBExtension) }
 {$define GetLocationCheckARB :=
   Location := glGetUniformLocationARB(ProgramId, PCharOrNil(Name));
   if Location = -1 then
   begin
-    raise EGLSLUniformNotFound.CreateFmt('Uniform variable "%s" not found', [Name]);
+    UniformNotFound(Name);
+    Exit;
   end;}
 
 { Wrapper over glGetUniformLocation (use only if gsStandard) }
@@ -1119,7 +1156,8 @@ end;
   Location := glGetUniformLocation   (ProgramId, PCharOrNil(Name));
   if Location = -1 then
   begin
-    raise EGLSLUniformNotFound.CreateFmt('Uniform variable "%s" not found', [Name]);
+    UniformNotFound(Name);
+    Exit;
   end;}
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLint);
