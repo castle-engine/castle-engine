@@ -34,15 +34,25 @@ Practice:
   to texture, or even possibly grabbed by CPU.
 
 - More shader notes:
+
   - Remember to expand constant variables for the shader, instead
     of making them uniforms. This is important, not only for speed,
     also for correctness: older GPUs need to unroll "for" loop
     (to elements_count) at compilation.
+
+    (I didn't expand all possible vars, because fglrx doesn't tolerate
+    floats with fractional part in GLSL code; so to be safe for fglrx too,
+    only ints can be expanded such.)
+
   - Above unrolling also means that this may just get too difficult
     for older GPUs for larger models: too many instructions after unrolling.
     E.g. my NVidia GPU (kocury) "GeForce FX 5200/AGP/SSE2/3DNOW!" handles
     smaller models (simplico), but fails with
     "error: too many instructions" on larger ones (peach, chinchilla).
+    More tests show that the border is somewhere between
+    48 (Ok) and 72 (not Ok) verts (for this GPU, of course;
+    much newer Radeon on MacBookPro can handle at least 20k (although
+    naive implementation gets really slow then).
 
 TODO: our current method of generating elements works only for nodes
 with explicit vertexes, so will not work for VRML primitives (sphere,
