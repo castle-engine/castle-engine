@@ -62,7 +62,13 @@ void main(void)
         float cos_emitter_angle = dot(normalize(direction_to_current), element_normal);
         float sqr_distance = dot(direction_to_current, direction_to_current);
 
-        color -= (element_area * cos_emitter_angle / (4.0 * pi * sqr_distance));
+        /* TODO: actually, both sides could cast shadows, so this if
+           should be eliminated, and abs(cos_emitter_angle) taken.
+           Needs 2nd pass to remove excessive shadows. */t
+        if (cos_emitter_angle >= 0)
+        {
+          color -= (element_area * cos_emitter_angle / (4.0 * pi * sqr_distance));
+        }
       }
     }
 
