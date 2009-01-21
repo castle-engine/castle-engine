@@ -691,10 +691,20 @@ end;
 
 procedure THelper.SceneGeometryChanged(Scene: TVRMLScene;
   const SomeLocalGeometryChanged: boolean);
+var
+  OldElementsTexSize, OldElementsCount: Cardinal;
 begin
+  OldElementsTexSize := ElementsTexSize;
+  OldElementsCount := Elements.Count;
+
   CalculateElements;
   CalculateElementsTex;
-  { TODO: check elements num and tex size the same, they are set }
+
+  if (OldElementsTexSize <> ElementsTexSize) or
+     (OldElementsCount <> Cardinal(Elements.Count)) then
+  begin
+    Writeln('TODO: animation changed elements count / texture size. Shaders need to reinitialiazed.');
+  end;
 end;
 
 procedure THelper.ScenePostRedisplay(Scene: TVRMLScene);
