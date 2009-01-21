@@ -64,7 +64,7 @@ void main(void)
 
         /* TODO: actually, both sides could cast shadows, so this if
            should be eliminated, and abs(cos_emitter_angle) taken.
-           Needs 2nd pass to remove excessive shadows. */t
+           Needs 2nd pass to remove excessive shadows. */
         if (cos_emitter_angle >= 0)
         {
           color -= (element_area * cos_emitter_angle / (4.0 * pi * sqr_distance));
