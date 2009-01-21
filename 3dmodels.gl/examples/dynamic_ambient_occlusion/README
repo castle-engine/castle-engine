@@ -104,3 +104,5 @@ cone and and such).
 
 TODO: make model animated, just call CalculateElements on each geometry
 change (or, better: optimized version of it).
+
+TODO: scale by normal material.

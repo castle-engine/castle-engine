@@ -65,25 +65,37 @@ void main(void)
         vec3 element_normal = texture2D(tex_elements_normal, element_st).xyz;
         element_normal = (element_normal - zero_5) * 2.0;
 
-        vec3 direction_to_current = current_pos - element_pos;
-        float sqr_distance = dot(direction_to_current, direction_to_current);
+        vec3 direction_from_current = element_pos - current_pos;
+        float sqr_distance = dot(direction_from_current, direction_from_current);
 
-        /* normalize direction_to_current for following cos() calculations */
-        direction_to_current = normalize(direction_to_current);
-        float cos_emitter_angle = dot( direction_to_current, element_normal);
-        float cos_current_angle = dot(-direction_to_current, current_normal);
+        /* normalize direction_from_current for following cos() calculations */
+        direction_from_current = normalize(direction_from_current);
+        float cos_emitter_angle = dot(direction_from_current, element_normal);
+        float cos_current_angle = dot(direction_from_current, current_normal);
 
-        color -= (element_area * abs(cos_emitter_angle)
-          /* TODO: */
-          /* max(0.0, cos_current_angle) */ / (4.0 * pi * sqr_distance))
-          #ifdef PASS_2
-          /* Multiply by intensity of this element from 1st pass.
-             If element is in shadow, then this is 0, and then we will
-             not take it's contribution --- as this means that something else
-             shadows it, so it will also shadow us. */
-          * texture2D(tex_elements_intensity, element_st).x
-          #endif
-          ;
+        /* We gather the light only from the dir of our normal,
+           so only when cos_current_angle >= 0.
+           This also means that we normalize by 2*pi (not 4*pi),
+           as we have effectively already cut off to hemisphere.
+
+           Also, we are shadowed only by items that gather light
+           (that is, only if they are lighted then they also block the light).
+
+           That's the reasoning behind these checks. */
+        if (cos_emitter_angle >= 0 &&
+            cos_current_angle >= 0)
+        {
+          color -= (element_area * cos_emitter_angle * cos_current_angle /
+            (2.0 * pi * sqr_distance))
+            #ifdef PASS_2
+            /* Multiply by intensity of this element from 1st pass.
+               If element is in shadow, then this is 0, and then we will
+               not take it's contribution --- as this means that something else
+               shadows it, so it will also shadow us. */
+            * texture2D(tex_elements_intensity, element_st).x
+            #endif
+            ;
+        }
       }
     }
 
