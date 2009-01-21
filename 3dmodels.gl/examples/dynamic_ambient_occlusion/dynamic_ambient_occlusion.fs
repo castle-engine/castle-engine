@@ -25,6 +25,14 @@ void main(void)
     vec4 current_pos_area = texture2D(tex_elements_position_area, current_st);
     vec3 current_pos = (current_pos_area.xyz + position_shift) * position_scale;
 
+    /* Another happy ATI (Radeon) on Linux (fglrx) bug:
+       When for testing I did "color = 0.0"
+       initialization, it... never executed "current_index < elements_count"
+       branch. Yes, I'm sure --- changing color initializer changes it's
+       idea of "current_index < elements_count". FUBAR optimizer.
+
+       So beware if experimenting with this.
+    */
     float color = 1.0;
 
     for (int i = 0; i < elements_count; i++)
