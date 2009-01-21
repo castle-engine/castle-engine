@@ -590,9 +590,9 @@ procedure Draw(Glwin: TGLWindow);
           glActiveTextureARB(GL_TEXTURE2);
           glBindTexture(GL_TEXTURE_2D, GLElementsIntensityTex);
           glCopyTexImage2D(GL_TEXTURE_2D, 0,
-            { TODO: Instead of 3, one component would be enough, as we
+            { TODO: Instead of GL_RGB, one component would be enough, as we
               want only intensity. This waits for analogous fix
-              to CaptureAORect. } 3,
+              to CaptureAORect. } GL_RGB,
             0, 0, ElementsTexSize, ElementsTexSize, 0);
 
           DoRender(1);

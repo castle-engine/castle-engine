@@ -66,7 +66,7 @@ Practice:
     smaller models (simplico), but fails with
     "error: too many instructions" on larger ones (peach, chinchilla).
     More tests show that the border is somewhere between
-    48 (Ok) and 72 (not Ok) verts (for this GPU, of course;
+    24 (Ok) and 42 (not Ok) verts (for this GPU, of course;
     much newer Radeon on MacBookPro can handle at least 20k (although
     naive implementation gets really slow then).
 
