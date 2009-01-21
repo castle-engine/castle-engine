@@ -35,10 +35,13 @@ uses VectorMath, GL, GLU, GLExt, GLWindow,
   KambiFilesUtils, KambiStringUtils, VRMLErrors, GLShaders, VRMLShape,
   VRMLFields, Images, Boxes3d, GLImages, GLWinMessages;
 
+type
+  TDrawType = (dtElements, dtElementsIntensity, dtFull);
+
 var
   Scene: TVRMLGLScene;
   GLSLProgram: TGLSLProgram;
-  ShowElements: boolean;
+  DrawType: TDrawType = dtElementsIntensity;
 
 { Storing and calculating "elements" for algorithm --------------------------- }
 
@@ -367,21 +370,40 @@ end;
 
 procedure Draw(Glwin: TGLWindow);
 
-  procedure DoShowElements;
+  { If ElementsIntensityTex = nil,
+    then all element discs will have the same glMaterial.
+
+    Otherwise, we will assign single glColor for each element,
+    using values from ElementsIntensityTex. }
+  procedure DoShowElements(ElementsIntensityTex: TRGBAlphaImage);
   var
     I: Integer;
     Q: PGLUQuadric;
     NewX, NewY, NewZ: TVector3Single;
     Radius: Float;
+    ElementIntensity: PVector4Byte;
   begin
     glEnable(GL_DEPTH_TEST);
-    glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(1, 1, 0, 1));
     glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, Vector4Single(0, 0, 0, 1));
+
+    if ElementsIntensityTex = nil then
+    begin
+      glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(1, 1, 0, 1));
+    end else
+    begin
+      ElementIntensity := ElementsIntensityTex.AlphaPixels;
+    end;
 
     Q := NewGLUQuadric(GL_FALSE, GLU_FLAT, GLU_OUTSIDE, GLU_FILL);
 
     for I := 0 to Elements.Count - 1 do
     begin
+      if ElementsIntensityTex <> nil then
+      begin
+        glColorv(ElementIntensity^);
+        Inc(ElementIntensity);
+      end;
+
       glPushMatrix;
         NewZ := Elements.Items[I].Normal;
         NewX := AnyPerpVector(NewZ);
@@ -400,63 +422,84 @@ procedure Draw(Glwin: TGLWindow);
   end;
 
   procedure RenderAORect;
+
+    procedure DoRender;
+    begin
+      glActiveTextureARB(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, GLElementsPositionAreaTex);
+
+      glActiveTextureARB(GL_TEXTURE1);
+      glBindTexture(GL_TEXTURE_2D, GLElementsNormalTex);
+
+      GLSLProgram.Enable;
+
+      GLSLProgram.SetUniform('tex_elements_position_area', 0);
+      GLSLProgram.SetUniform('tex_elements_normal', 1);
+
+      GLSLProgram.SetUniform('tex_elements_size', ElementsTexSize);
+      GLSLProgram.SetUniform('area_scale', AreaScale);
+      GLSLProgram.SetUniform('position_scale', PositionScale);
+      GLSLProgram.SetUniform('position_shift', PositionShift);
+      GLSLProgram.SetUniform('elements_count', Elements.Count);
+
+      GLSLProgram.SetUniform('zero_5', 0.5);
+      GLSLProgram.SetUniform('pi', Pi);
+
+      { Render rectange with each pixel corresponding to one element
+        that needs intensity calculated. }
+      glRecti(0, 0, ElementsTexSize,
+        DivRoundUp(Cardinal(Elements.Count), ElementsTexSize));
+
+      GLSLProgram.Disable;
+    end;
+
   begin
-    glActiveTextureARB(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, GLElementsPositionAreaTex);
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix;
+      glLoadIdentity;
+      gluOrtho2D(0, Glwin.Width, 0, Glwin.Height);
+      glMatrixMode(GL_MODELVIEW);
 
-    glActiveTextureARB(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, GLElementsNormalTex);
+      glPushMatrix;
 
-    GLSLProgram.Enable;
+        glLoadIdentity;
+        glPixelZoom(5, 5);
+        DoRender;
+        glPixelZoom(1, 1);
 
-    GLSLProgram.SetUniform('tex_elements_position_area', 0);
-    GLSLProgram.SetUniform('tex_elements_normal', 1);
+      glPopMatrix;
 
-    GLSLProgram.SetUniform('tex_elements_size', ElementsTexSize);
-    GLSLProgram.SetUniform('area_scale', AreaScale);
-    GLSLProgram.SetUniform('position_scale', PositionScale);
-    GLSLProgram.SetUniform('position_shift', PositionShift);
-    GLSLProgram.SetUniform('elements_count', Elements.Count);
+      glMatrixMode(GL_PROJECTION);
+    glPopMatrix;
+    glMatrixMode(GL_MODELVIEW);
+  end;
 
-    GLSLProgram.SetUniform('zero_5', 0.5);
-    GLSLProgram.SetUniform('pi', Pi);
-
-    { Render rectange with each pixel corresponding to one element
-      that needs intensity calculated. }
-    glRecti(0, 0, ElementsTexSize,
-      DivRoundUp(Cardinal(Elements.Count), ElementsTexSize));
-
-    GLSLProgram.Disable;
+  function CaptureAORect: TRGBAlphaImage;
+  begin
+    Result := TRGBAlphaImage(SaveScreen_noflush(TRGBAlphaImage,
+      0, 0, ElementsTexSize,
+      DivRoundUp(Cardinal(Elements.Count), ElementsTexSize),
+      GL_BACK));
   end;
 
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(glw.Navigator.Matrix);
 
-  if ShowElements then
-    DoShowElements else
-  begin
-    if GLSLProgram.Support <> gsNone then
-    begin
-      glMatrixMode(GL_PROJECTION);
-      glPushMatrix;
-        glLoadIdentity;
-        gluOrtho2D(0, Glwin.Width, 0, Glwin.Height);
-        glMatrixMode(GL_MODELVIEW);
-
-        glPushMatrix;
-
-          glLoadIdentity;
-          RenderAORect;
-
-        glPopMatrix;
-
-        glMatrixMode(GL_PROJECTION);
-      glPopMatrix;
-      glMatrixMode(GL_MODELVIEW);
-    end;
-
-//TODO:    Scene.Render(nil, tgAll);
+  case DrawType of
+    dtElements:
+      begin
+        glEnable(GL_LIGHTING);
+        DoShowElements(nil);
+        glDisable(GL_LIGHTING);
+      end;
+    dtElementsIntensity:
+      begin
+        RenderAORect;
+        DoShowElements(CaptureAORect);
+      end;
+    dtFull:
+      begin {TODO} end;
   end;
 end;
 
@@ -464,7 +507,6 @@ procedure Init(Glwin: TGLWindow);
 const
   GLSLProgramBaseName = 'dynamic_ambient_occlusion';
 begin
-  glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
 
   if (Elements.Count = 0) or
@@ -483,6 +525,14 @@ begin
     We display debug info, so user should know what's going on. }
   GLSLProgram.Link(false);
   Writeln(GLSLProgram.DebugInfo);
+
+  if GLSLProgram.Support = gsNone then
+  begin
+    Glwin.OnDraw := nil;
+    MessageOk(Glwin, 'Sorry, GLSL shaders not supported on your graphic card. Exiting.', taLeft);
+    Glwin.Close;
+    Exit;
+  end;
 
   CalculateElementsTex;
 end;
@@ -511,10 +561,23 @@ end;
 function CreateMainMenu: TMenu;
 var
   M: TMenu;
+  Radio: TMenuItemRadio;
+  RadioGroup: TMenuItemRadioGroup;
 begin
   Result := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');
-    M.Append(TMenuItemChecked.Create('_Show Elements', 100, ShowElements, true));
+    Radio := TMenuItemRadio.Create('Draw _Elements', 100, DrawType = dtElements, true);
+    RadioGroup := Radio.Group;
+    M.Append(Radio);
+
+    Radio := TMenuItemRadio.Create('Draw Elements _Intensity', 101, DrawType = dtElementsIntensity, true);
+    Radio.Group := RadioGroup;
+    M.Append(Radio);
+
+    Radio := TMenuItemRadio.Create('Draw _Full', 102, DrawType = dtFull, true);
+    Radio.Group := RadioGroup;
+    M.Append(Radio);
+
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 200));
     Result.Append(M);
@@ -523,7 +586,9 @@ end;
 procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
 begin
   case Item.IntData of
-    100: ShowElements := not ShowElements;
+    100: DrawType := dtElements;
+    101: DrawType := dtElementsIntensity;
+    102: DrawType := dtFull;
     200: Glwin.Close;
     else Exit;
   end;
