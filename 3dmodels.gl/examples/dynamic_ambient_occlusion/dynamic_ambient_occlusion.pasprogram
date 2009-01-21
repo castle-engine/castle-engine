@@ -36,12 +36,12 @@ uses VectorMath, GL, GLU, GLExt, GLWindow,
   VRMLFields, Images, Boxes3d, GLImages, GLWinMessages, DataErrors, GLVersionUnit;
 
 type
-  TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtFull);
+  TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);
 
 var
   Scene: TVRMLGLScene;
-  GLSLProgram: TGLSLProgram;
-  DrawType: TDrawType = dtFull;
+  GLSLProgram: array [0..1] of TGLSLProgram;
+  DrawType: TDrawType = dtPass2;
 
 { Storing and calculating "elements" for algorithm --------------------------- }
 
@@ -289,6 +289,7 @@ var
 
   GLElementsPositionAreaTex: TGLuint;
   GLElementsNormalTex: TGLuint;
+  GLElementsIntensityTex: TGLuint;
 
   { We will pack position (with arbitrary 3 float) and areas (with arbitrary
     float >= 0) and normal components (with floats in -1..1 range)
@@ -417,6 +418,13 @@ begin
     GL_NEAREST, GL_NEAREST);
   GLElementsNormalTex := LoadGLTexture(ElementsNormalTex,
     GL_NEAREST, GL_NEAREST);
+
+  { Prepare OpenGL texture for shaders output (and also input to 2nd pass
+    of algorithm). Texture data is not initialized at this point. }
+  glGenTextures(1, @GLElementsIntensityTex);
+  glBindTexture(GL_TEXTURE_2D, GLElementsIntensityTex);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 end;
 
 { GLWindow callbacks --------------------------------------------------------- }
@@ -481,40 +489,61 @@ procedure Draw(Glwin: TGLWindow);
     glPopAttrib;
   end;
 
+  function CaptureAORect(SizePower2: boolean): TRGBAlphaImage;
+  var
+    TexHeight: Cardinal;
+  begin
+    { TODO: why TRGBAlphaImage? grayscale would be Ok.}
+    if SizePower2 then
+      TexHeight := ElementsTexSize else
+      { If size doesn't have to be power of 2 (e.g. if this is grabbed
+        only for CPU), then height may be smaller, which is a good thing
+        --- we don't have to grab so much pixels from color buffer. }
+      TexHeight := DivRoundUp(Cardinal(Elements.Count), ElementsTexSize);
+    Result := TRGBAlphaImage(SaveScreen_noflush(TRGBAlphaImage,
+      0, 0, ElementsTexSize, TexHeight,
+      GL_BACK));
+  end;
+
   procedure RenderAORect;
 
-    procedure DoRender;
+    procedure DoRender(Pass: Integer);
     begin
+      GLSLProgram[Pass].Enable;
+
       glActiveTextureARB(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, GLElementsPositionAreaTex);
+      GLSLProgram[Pass].SetUniform('tex_elements_position_area', 0);
 
       glActiveTextureARB(GL_TEXTURE1);
       glBindTexture(GL_TEXTURE_2D, GLElementsNormalTex);
+      GLSLProgram[Pass].SetUniform('tex_elements_normal', 1);
 
-      GLSLProgram.Enable;
+      if Pass = 1 then
+      begin
+        { GLElementsIntensityTex is already bound to GL_TEXTURE2 }
+        GLSLProgram[Pass].SetUniform('tex_elements_intensity', 2);
+      end;
 
-      GLSLProgram.SetUniform('tex_elements_position_area', 0);
-      GLSLProgram.SetUniform('tex_elements_normal', 1);
-
-      GLSLProgram.SetUniform('area_scale', AreaScale);
-      GLSLProgram.SetUniform('position_scale', PositionScale);
-      GLSLProgram.SetUniform('position_shift', PositionShift);
+      GLSLProgram[Pass].SetUniform('area_scale', AreaScale);
+      GLSLProgram[Pass].SetUniform('position_scale', PositionScale);
+      GLSLProgram[Pass].SetUniform('position_shift', PositionShift);
 
       if GLVersion.IsFglrx then
       begin
-        GLSLProgram.SetUniform('elements_count', Elements.Count);
-        GLSLProgram.SetUniform('tex_elements_size', ElementsTexSize);
+        GLSLProgram[Pass].SetUniform('elements_count', Elements.Count);
+        GLSLProgram[Pass].SetUniform('tex_elements_size', ElementsTexSize);
       end;
 
-      GLSLProgram.SetUniform('zero_5', 0.5);
-      GLSLProgram.SetUniform('pi', Pi);
+      GLSLProgram[Pass].SetUniform('zero_5', 0.5);
+      GLSLProgram[Pass].SetUniform('pi', Pi);
 
       { Render rectange with each pixel corresponding to one element
         that needs intensity calculated. }
       glRecti(0, 0, ElementsTexSize,
         DivRoundUp(Cardinal(Elements.Count), ElementsTexSize));
 
-      GLSLProgram.Disable;
+      GLSLProgram[Pass].Disable;
     end;
 
   begin
@@ -527,21 +556,34 @@ procedure Draw(Glwin: TGLWindow);
       glPushMatrix;
 
         glLoadIdentity;
-        DoRender;
+        DoRender(0);
+
+        if DrawType = dtPass2 then
+        begin
+          { Alternative way to copy texture through CPU:
+          var
+            ElementsIntensityTex: TRGBAlphaImage;
+          ElementsIntensityTex := CaptureAORect(true);
+          LoadGLGeneratedTexture(GLElementsIntensityTex, ElementsIntensityTex,
+            GL_NEAREST, GL_NEAREST);}
+
+          { Capture result of 1st pass into GLElementsIntensityTex
+            using glCopyTexImage2D. Also, this BTW binds GLElementsIntensityTex
+            to GL_TEXTURE2 texture unit, used by DoRender(1). }
+
+          glActiveTextureARB(GL_TEXTURE2);
+          glBindTexture(GL_TEXTURE_2D, GLElementsIntensityTex);
+          glCopyTexImage2D(GL_TEXTURE_2D, 0, {TODO: why RGB?}3,
+            0, 0, ElementsTexSize, ElementsTexSize, 0);
+
+          DoRender(1);
+        end;
 
       glPopMatrix;
 
       glMatrixMode(GL_PROJECTION);
     glPopMatrix;
     glMatrixMode(GL_MODELVIEW);
-  end;
-
-  function CaptureAORect: TRGBAlphaImage;
-  begin
-    Result := TRGBAlphaImage(SaveScreen_noflush(TRGBAlphaImage,
-      0, 0, ElementsTexSize,
-      DivRoundUp(Cardinal(Elements.Count), ElementsTexSize),
-      GL_BACK));
   end;
 
 var
@@ -568,15 +610,15 @@ begin
     dtElementsIntensity:
       begin
         RenderAORect;
-        ElementsIntensityTex := CaptureAORect;
+        ElementsIntensityTex := CaptureAORect(false);
         try
           DoShowElements(ElementsIntensityTex);
         finally FreeAndNil(ElementsIntensityTex) end;
       end;
-    dtFull:
+    dtPass1, dtPass2:
       begin
         RenderAORect;
-        FullRenderIntensityTex := CaptureAORect;
+        FullRenderIntensityTex := CaptureAORect(false);
         try
           FullRenderShape := nil;
           Scene.Render(nil, tgAll);
@@ -643,9 +685,9 @@ begin
   CalculateElementsTex;
 
   { initialize GLSL program }
-  GLSLProgram := TGLSLProgram.Create;
+  GLSLProgram[0] := TGLSLProgram.Create;
 
-  if GLSLProgram.Support = gsNone then
+  if GLSLProgram[0].Support = gsNone then
   begin
     Glwin.OnDraw := nil;
     MessageOk(Glwin, 'Sorry, GLSL shaders not supported on your graphic card. Exiting.', taLeft);
@@ -669,14 +711,27 @@ begin
     StringReplaceAllTo1st(ShaderString, '$elements_count', IntToStr(Elements.Count));
   end;
 
-  GLSLProgram.AttachFragmentShader(ShaderString);
+  GLSLProgram[0].AttachFragmentShader(ShaderString);
   { For this test program, we eventually allow shader to run in software.
     We display debug info, so user should know what's going on. }
-  GLSLProgram.Link(false);
+  GLSLProgram[0].Link(false);
   { Only warn on non-used uniforms. This is more comfortable for shader
     development, you can easily comment shader parts. }
-  GLSLProgram.UniformNotFoundAction := uaWarning;
-  Writeln(GLSLProgram.DebugInfo);
+  GLSLProgram[0].UniformNotFoundAction := uaWarning;
+  Writeln('----------------------------- Shader for 1st pass:');
+  Writeln(GLSLProgram[0].DebugInfo);
+
+  { Analogously, load GLSLProgram[1] (for 2nd pass). The only difference
+    is that we #define PASS_2 this time. }
+  ShaderString := '#define PASS_2' + NL + ShaderString;
+  GLSLProgram[1] := TGLSLProgram.Create;
+  GLSLProgram[1].AttachFragmentShader(ShaderString);
+  GLSLProgram[1].UniformNotFoundAction := uaWarning;
+  GLSLProgram[1].Link(false);
+  Writeln('----------------------------- Shader for 2nd pass:');
+  Writeln(GLSLProgram[1].DebugInfo);
+
+  Writeln('--------------------------------------------------');
 end;
 
 procedure Close(Glwin: TGLWindow);
@@ -686,7 +741,8 @@ begin
   if Scene <> nil then
     Scene.CloseGL;
 
-  FreeAndNil(GLSLProgram);
+  FreeAndNil(GLSLProgram[0]);
+  FreeAndNil(GLSLProgram[1]);
 end;
 
 procedure Resize(Glwin: TGLWindow);
@@ -720,7 +776,11 @@ begin
     Radio.Group := RadioGroup;
     M.Append(Radio);
 
-    Radio := TMenuItemRadio.Create('Draw _Full', 103, DrawType = dtFull, true);
+    Radio := TMenuItemRadio.Create('Draw _Dynamic AO (only 1st pass)', 103, DrawType = dtPass1, true);
+    Radio.Group := RadioGroup;
+    M.Append(Radio);
+
+    Radio := TMenuItemRadio.Create('Draw _Dynamic AO (2 passes)', 104, DrawType = dtPass2, true);
     Radio.Group := RadioGroup;
     M.Append(Radio);
 
@@ -737,7 +797,7 @@ begin
         Scene.Attributes.OnVertexColor := nil;
         Scene.Optimization := roSeparateShapes;
       end;
-    dtFull:
+    dtPass1, dtPass2:
       begin
         Scene.Attributes.OnVertexColor := @THelper(nil).VertexColor;
         Scene.Optimization := roNone;
@@ -752,7 +812,8 @@ begin
     100: begin DrawType := dtNormalGL; UpdateSceneAttribs; end;
     101: DrawType := dtElements;
     102: DrawType := dtElementsIntensity;
-    103: begin DrawType := dtFull; UpdateSceneAttribs; end;
+    103: begin DrawType := dtPass1; UpdateSceneAttribs; end;
+    104: begin DrawType := dtPass2; UpdateSceneAttribs; end;
     200: Glwin.Close;
     else Exit;
   end;

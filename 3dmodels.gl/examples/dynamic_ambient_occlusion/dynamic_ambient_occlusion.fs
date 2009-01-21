@@ -1,6 +1,10 @@
 uniform sampler2D tex_elements_position_area;
 uniform sampler2D tex_elements_normal;
 
+#ifdef PASS_2
+uniform sampler2D tex_elements_intensity;
+#endif
+
 #ifdef FGLRX
 /* Fglrx is dumb and fails when elements_count is a constant...
    For other GPUs, elements_count as a constant is a good idea. */
@@ -67,16 +71,17 @@ void main(void)
 
         float cos_current_angle = dot(-direction_to_current, current_normal);
 
-        /* TODO: actually, both sides could cast shadows, so this if
-           should be eliminated, and abs(cos_emitter_angle) taken.
-           Needs 2nd pass to remove excessive shadows. */
-        if (cos_emitter_angle >= 0)
-        {
-          color -= (element_area * cos_emitter_angle *
-            max(1.0, 4.0 * cos_current_angle) / (4.0 * pi * sqr_distance));
-        }
+        color -= (element_area * abs(cos_emitter_angle)
+          /* TODO:
+          * max(0.0, cos_current_angle) */ / (4.0 * pi * sqr_distance))
+          #ifdef PASS_2
+          * texture2D(tex_elements_intensity, element_st).x
+          #endif
+          ;
       }
     }
+
+    /* TODO: average */
 
     gl_FragColor = vec4(color, color, color, 1.0);
   }

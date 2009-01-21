@@ -16,8 +16,16 @@ Idea:
 
 Practice:
 
-- First of all, this AO will have to much shadow (multiple shadows
-  on the same item). So calculate 2nd time, multiplying.
+- First of all, this AO will have too much shadow (multiple shadows
+  on the same item). So calculate 2nd time, multiplying by 1st result.
+  The key is that "if element is already in shadow, then it also doesn't
+  contribute anything to the other shadows".
+
+  2nd pass will make the result too much light (because we multiplied
+  by results of 1st pass, which were too dark...). Theoretically,
+  more passes are needed. In practice: the result is between 1st
+  and 2nd passes, so just at the end of 2nd pass take the results
+  and average.
 
 - Note that you cannot actually do this in vertex shader: with arch 3,
   texture2D calls in vertex shader are not allowed or
@@ -30,10 +38,18 @@ Practice:
   on fglrx.)
 
 - So do this on fragment shader. Also, render such that 1 screen pixel =
-  one element, and simply write result back to buffer. To be read back
-  to texture, or even possibly grabbed by CPU.
+  one element, and simply write result back to buffer. Using the texture,
+  1st shader passes results to the 2nd, and 2nd passes it to the CPU.
 
-- More shader notes:
+  For communication between shaders, texture data doesn't have
+  to go through CPU --- glCopyTexImage2D is perfectly designed for such tricks.
+
+  For actual rendering, I grab the colors to the CPU --- while it would be possible
+  to avoid this, I would then run into trouble trying to access textures
+  from vertex shader, which is practically prohibited for shaders gen <= 3,
+  see above notes.
+
+- Shader optimization notes:
 
   - Remember to expand constant variables for the shader, instead
     of making them uniforms. This is important, not only for speed,
@@ -54,34 +70,33 @@ Practice:
     much newer Radeon on MacBookPro can handle at least 20k (although
     naive implementation gets really slow then).
 
-  - Note that GPU Gems text gives two (different) equations for calculating
-    element-to-element shadowing, both of them wrong IMO...
-    Yes, I did implemented and tried them. It's a matter of changing
-    "color -= ..." line.
-    Math eq on page 3 is equivalent to
+- Note that GPU Gems text gives two (different) equations for calculating
+  element-to-element shadowing, both of them wrong IMO...
+  Yes, I did implemented and tried them. It's a matter of changing
+  "color -= ..." line.
+  Math eq on page 3 is equivalent to
 
-      color -= sqrt(sqr_distance) * cos_emitter_angle *
-	max(1.0, 4.0 * cos_current_angle) /
-	sqrt(element_area / pi + sqr_distance);
+    color -= sqrt(sqr_distance) * cos_emitter_angle *
+      max(1.0, 4.0 * cos_current_angle) /
+      sqrt(element_area / pi + sqr_distance);
 
-    Code on page 4 is (possibly --- not sure, as they put "1 - " part
-    already there, so I don't see a reasonable way to use it?) equivalent to
+  Code on page 4 is (possibly --- not sure, as they put "1 - " part
+  already there, so I don't see a reasonable way to use it?) equivalent to
 
-      color -= inversesqrt((element_area/pi)/sqr_distance + 1) *
-        cos_emitter_angle *
-	max(1.0, 4.0 * cos_current_angle);
+    color -= inversesqrt((element_area/pi)/sqr_distance + 1) *
+      cos_emitter_angle *
+      min(1.0, 4.0 * cos_current_angle);
 
-    If you grok reasoning behind their equations, and/or if there's an
-    error in my implementations above, mail me. My implementation follows
-    normal approximation for solid angle:
+  If you grok reasoning behind their equations, and/or if there's an
+  error in my implementations above, mail me. My implementation follows
+  normal approximation for solid angle:
 
-      element_area * cos_emitter_angle / sqr_distance
+    element_area * cos_emitter_angle / sqr_distance
 
-    additionally divided by 4 * Pi, since this is the surface area
-    of the sphere (and we want result to fit in 1.0).
-    I multiply it by max(1.0, 4.0 * cos_current_angle), as this is sensible
-    (light coming from an angle is scaled down).
-
+  additionally divided by 4 * Pi, since this is the surface area
+  of the sphere (and we want result to fit in 1.0).
+  I multiply it by max(0.0, cos_current_angle)
+  (as light coming from an angle is scaled down).
 
 TODO: our current method of generating elements works only for nodes
 with explicit vertexes, so will not work for VRML primitives (sphere,
