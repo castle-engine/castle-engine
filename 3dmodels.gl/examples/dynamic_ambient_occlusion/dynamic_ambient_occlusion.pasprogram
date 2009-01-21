@@ -646,14 +646,14 @@ end;
 
 type
   THelper = class
-    function VertexColor(Shape: TVRMLShape;
-      const VertexPosition: TVector3Single;
-      VertexIndex: Integer): TVector3Single;
+    procedure VertexColor(var Color: TVector3Single;
+      Shape: TVRMLShape; const VertexPosition: TVector3Single;
+      VertexIndex: Integer);
   end;
 
-function THelper.VertexColor(Shape: TVRMLShape;
-  const VertexPosition: TVector3Single;
-  VertexIndex: Integer): TVector3Single;
+procedure THelper.VertexColor(var Color: TVector3Single;
+  Shape: TVRMLShape; const VertexPosition: TVector3Single;
+  VertexIndex: Integer);
 var
   ElemIndex, I: Integer;
   Intensity: Single;
@@ -673,12 +673,12 @@ begin
 
   ElemIndex := FullRenderShapeInfo^.CoordToElement[VertexIndex];
   if ElemIndex = -1 then
-    Result := ZeroVector3Single { element invalid, probably separate vertex } else
+    Color := ZeroVector3Single { element invalid, probably separate vertex } else
   begin
     Intensity := FullRenderIntensityTex.AlphaPixels[ElemIndex][0]/255;
-    Result[0] := Intensity;
-    Result[1] := Intensity;
-    Result[2] := Intensity;
+    Color[0] *= Intensity;
+    Color[1] *= Intensity;
+    Color[2] *= Intensity;
   end;
 end;
 

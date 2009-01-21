@@ -359,9 +359,9 @@ type
     Passed here VertexPosition is in local coordinates (that is,
     local of this object, multiply by State.Transform to get scene coords).
     VertexIndex is the direct index to Node.Coordinates. }
-  TVertexColorFunction = function (Shape: TVRMLShape;
-    const VertexPosition: TVector3Single;
-    VertexIndex: Integer): TVector3Single of object;
+  TVertexColorFunction = procedure (var Color: TVector3Single;
+    Shape: TVRMLShape; const VertexPosition: TVector3Single;
+    VertexIndex: Integer) of object;
 
   { Various bump mapping methods. Generally sorted from worst one
     (bmNone, which does no bump mapping) to the best.

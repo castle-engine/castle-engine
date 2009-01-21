@@ -246,14 +246,14 @@ end;
 
 type
   THelper = class
-    function VertexColor(Shape: TVRMLShape;
-      const VertexPosition: TVector3Single;
-      VertexIndex: Integer): TVector3Single;
+    procedure VertexColor(var Color: TVector3Single;
+      Shape: TVRMLShape; const VertexPosition: TVector3Single;
+      VertexIndex: Integer);
   end;
 
-function THelper.VertexColor(Shape: TVRMLShape;
-  const VertexPosition: TVector3Single;
-  VertexIndex: Integer): TVector3Single;
+procedure THelper.VertexColor(var Color: TVector3Single;
+  Shape: TVRMLShape; const VertexPosition: TVector3Single;
+  VertexIndex: Integer);
 const
   { TODO: this is needed to make results with CalculateByEnvMaps
     and CalculateBySH. Why? I thought I normalized all integrals
@@ -280,6 +280,7 @@ var
     B: LongWord;
     Side: TEnvMapSide;
     Pixel: Cardinal;
+    C: Single;
   begin
     CasterMap := CasterOOF.EnvMapFromPoint(VectorSubtract(
       Position, NavigatorCaster.MoveAmount),
@@ -294,7 +295,7 @@ var
 
     if LocalLightMap = nil then
       { Too far from light }
-      Result := Vector3Single(0, 0, 0) else
+      Color := Vector3Single(0, 0, 0) else
     begin
       { TODO: we completely ignore here BRDF and cos() for light equations! }
 
@@ -330,10 +331,10 @@ var
       end;
 
       { normalize B, apply LightIntensity }
-      Result[0] := (B / 255) *
-        LightIntensity / (6 * Sqr(EnvMapSize));
-      Result[1] := Result[0];
-      Result[2] := Result[0];
+      C := (B / 255) * LightIntensity / (6 * Sqr(EnvMapSize));
+      Color[0] *= C;
+      Color[1] *= C;
+      Color[2] *= C;
     end;
   end;
 
@@ -341,6 +342,7 @@ var
   var
     CasterVector, LightVector: PSHVectorSingle;
     B: Single;
+    C: Single;
     LM: Cardinal;
   begin
     CasterVector := CasterOOF.SHVectorFromPoint(VectorSubtract(
@@ -361,7 +363,7 @@ var
 
     if LightVector = nil then
       { Too far from light }
-      Result := Vector3Single(0, 0, 0) else
+      Color := Vector3Single(0, 0, 0) else
     begin
       B := 0;
 
@@ -381,9 +383,10 @@ var
       end;
 
       { apply LightIntensity }
-      Result[0] := B * LightIntensity * SHLightIntensity;
-      Result[1] := Result[0];
-      Result[2] := Result[0];
+      C := B * LightIntensity * SHLightIntensity;
+      Color[0] *= C;
+      Color[1] *= C;
+      Color[2] *= C;
     end;
   end;
 

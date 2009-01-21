@@ -1331,7 +1331,25 @@ begin
     if CoordIndex <> nil then
       VertexIndex := CoordIndex.ItemsSafe[IndexNum] else
       VertexIndex := IndexNum;
-    VertexColor := Renderer.Attributes.OnVertexColor(Shape,
+
+    { Get vertex color, taking various possible configurations.
+      OnVertexColor will be able to change it. }
+    if (Color <> nil) and ColorPerVertex then
+    begin
+      if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
+        VertexColor := Color.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]] else
+      if CoordIndex <> nil then
+        VertexColor := Color.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]] else
+        VertexColor := Color.ItemsSafe[IndexNum];
+    end else
+    if (State.ParentShape <> nil) and
+       (State.ParentShape.Material <> nil) then
+    begin
+      VertexColor := State.ParentShape.Material.FdDiffuseColor.Value;
+    end else
+      VertexColor := White3Single; { default fallback }
+
+    Renderer.Attributes.OnVertexColor(VertexColor, Shape,
       GetVertex(IndexNum), VertexIndex);
     Renderer.SetColor(VertexColor);
   end else
