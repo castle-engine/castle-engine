@@ -36,7 +36,7 @@ uses VectorMath, GL, GLU, GLExt, GLWindow,
   VRMLFields, Images, Boxes3d, GLImages, GLWinMessages, DataErrors;
 
 type
-  TDrawType = (dtElements, dtElementsIntensity, dtFull);
+  TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtFull);
 
 var
   Scene: TVRMLGLScene;
@@ -383,42 +383,44 @@ procedure Draw(Glwin: TGLWindow);
     Radius: Float;
     ElementIntensity: PVector4Byte;
   begin
-    glEnable(GL_DEPTH_TEST);
-    glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, Vector4Single(0, 0, 0, 1));
+    glPushAttrib(GL_ENABLE_BIT);
+      glEnable(GL_DEPTH_TEST);
+      glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, Vector4Single(0, 0, 0, 1));
 
-    if ElementsIntensityTex = nil then
-    begin
-      glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(1, 1, 0, 1));
-    end else
-    begin
-      ElementIntensity := ElementsIntensityTex.AlphaPixels;
-    end;
-
-    Q := NewGLUQuadric(GL_FALSE, GLU_FLAT, GLU_OUTSIDE, GLU_FILL);
-
-    for I := 0 to Elements.Count - 1 do
-    begin
-      if ElementsIntensityTex <> nil then
+      if ElementsIntensityTex = nil then
       begin
-        glColorv(ElementIntensity^);
-        Inc(ElementIntensity);
+        glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(1, 1, 0, 1));
+      end else
+      begin
+        ElementIntensity := ElementsIntensityTex.AlphaPixels;
       end;
 
-      glPushMatrix;
-        NewZ := Elements.Items[I].Normal;
-        NewX := AnyPerpVector(NewZ);
-        NewY := VectorProduct(NewZ, NewX);
-        glMultMatrix(TransformToCoordsMatrix(Elements.Items[I].Position,
-          NewX, NewY, NewZ));
+      Q := NewGLUQuadric(GL_FALSE, GLU_FLAT, GLU_OUTSIDE, GLU_FILL);
 
-        { Area = Pi * Radius^2, so Radius := Sqrt(Area/Pi) }
-        Radius := Sqrt(Elements.Items[I].Area/Pi);
-        gluDisk(Q, 0, Radius, 8, 2);
+      for I := 0 to Elements.Count - 1 do
+      begin
+        if ElementsIntensityTex <> nil then
+        begin
+          glColorv(ElementIntensity^);
+          Inc(ElementIntensity);
+        end;
 
-      glPopMatrix;
-    end;
+        glPushMatrix;
+          NewZ := Elements.Items[I].Normal;
+          NewX := AnyPerpVector(NewZ);
+          NewY := VectorProduct(NewZ, NewX);
+          glMultMatrix(TransformToCoordsMatrix(Elements.Items[I].Position,
+            NewX, NewY, NewZ));
 
-    gluDeleteQuadric(Q);
+          { Area = Pi * Radius^2, so Radius := Sqrt(Area/Pi) }
+          Radius := Sqrt(Elements.Items[I].Area/Pi);
+          gluDisk(Q, 0, Radius, 8, 2);
+
+        glPopMatrix;
+      end;
+
+      gluDeleteQuadric(Q);
+    glPopAttrib;
   end;
 
   procedure RenderAORect;
@@ -489,11 +491,19 @@ begin
   glLoadMatrix(glw.Navigator.Matrix);
 
   case DrawType of
+    dtNormalGL:
+      begin
+        glPushAttrib(GL_ENABLE_BIT);
+          glEnable(GL_LIGHTING);
+          Scene.Render(nil, tgAll);
+        glPopAttrib;
+      end;
     dtElements:
       begin
-        glEnable(GL_LIGHTING);
-        DoShowElements(nil);
-        glDisable(GL_LIGHTING);
+        glPushAttrib(GL_ENABLE_BIT);
+          glEnable(GL_LIGHTING);
+          DoShowElements(nil);
+        glPopAttrib;
       end;
     dtElementsIntensity:
       begin
@@ -574,15 +584,19 @@ var
 begin
   Result := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');
-    Radio := TMenuItemRadio.Create('Draw _Elements', 100, DrawType = dtElements, true);
+    Radio := TMenuItemRadio.Create('Draw _Normal OpenGL', 100, DrawType = dtNormalGL, true);
     RadioGroup := Radio.Group;
     M.Append(Radio);
 
-    Radio := TMenuItemRadio.Create('Draw Elements _Intensity', 101, DrawType = dtElementsIntensity, true);
+    Radio := TMenuItemRadio.Create('Draw _Elements', 101, DrawType = dtElements, true);
     Radio.Group := RadioGroup;
     M.Append(Radio);
 
-    Radio := TMenuItemRadio.Create('Draw _Full', 102, DrawType = dtFull, true);
+    Radio := TMenuItemRadio.Create('Draw Elements _Intensity', 102, DrawType = dtElementsIntensity, true);
+    Radio.Group := RadioGroup;
+    M.Append(Radio);
+
+    Radio := TMenuItemRadio.Create('Draw _Full', 103, DrawType = dtFull, true);
     Radio.Group := RadioGroup;
     M.Append(Radio);
 
@@ -594,9 +608,10 @@ end;
 procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
 begin
   case Item.IntData of
-    100: DrawType := dtElements;
-    101: DrawType := dtElementsIntensity;
-    102: DrawType := dtFull;
+    100: begin DrawType := dtNormalGL; Scene.Optimization := roSeparateShapes; end;
+    101: DrawType := dtElements;
+    102: DrawType := dtElementsIntensity;
+    103: begin DrawType := dtFull; Scene.Optimization := roNone; end;
     200: Glwin.Close;
     else Exit;
   end;
