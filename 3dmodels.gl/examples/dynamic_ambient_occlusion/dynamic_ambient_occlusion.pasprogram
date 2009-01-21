@@ -337,6 +337,26 @@ begin
     Inc(Normal);
   end;
 
+  { Only for testing purposes, fill the rest of the texture will special
+    value. This is only for testing, that is correct shader and other code
+    should not even touch the remaining pixels --- but in case of trouble
+    (if something will accidentally access other values),
+    it's easier when things don't jump randomly (because of memory garbage),
+    and can be easily detected by changing the special value below. }
+  for I := Elements.Count to Sqr(ElementsTexSize) - 1 do
+  begin
+    PositionArea^[0] := 255;
+    PositionArea^[1] := 0;
+    PositionArea^[2] := 0;
+    PositionArea^[3] := 255;
+    Normal^[0] := 255;
+    Normal^[1] := 0;
+    Normal^[2] := 0;
+    Inc(Element);
+    Inc(PositionArea);
+    Inc(Normal);
+  end;
+
   GLElementsPositionAreaTex := LoadGLTexture(ElementsPositionAreaTex,
     GL_NEAREST, GL_NEAREST);
   GLElementsNormalTex := LoadGLTexture(ElementsNormalTex,
@@ -379,6 +399,36 @@ procedure Draw(Glwin: TGLWindow);
     gluDeleteQuadric(Q);
   end;
 
+  procedure RenderAORect;
+  begin
+    glActiveTextureARB(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, GLElementsPositionAreaTex);
+
+    glActiveTextureARB(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, GLElementsNormalTex);
+
+    GLSLProgram.Enable;
+
+    GLSLProgram.SetUniform('tex_elements_position_area', 0);
+    GLSLProgram.SetUniform('tex_elements_normal', 1);
+
+    GLSLProgram.SetUniform('tex_elements_size', ElementsTexSize);
+    GLSLProgram.SetUniform('area_scale', AreaScale);
+    GLSLProgram.SetUniform('position_scale', PositionScale);
+    GLSLProgram.SetUniform('position_shift', PositionShift);
+    GLSLProgram.SetUniform('elements_count', Elements.Count);
+
+    GLSLProgram.SetUniform('zero_5', 0.5);
+    GLSLProgram.SetUniform('pi', Pi);
+
+    { Render rectange with each pixel corresponding to one element
+      that needs intensity calculated. }
+    glRecti(0, 0, ElementsTexSize,
+      DivRoundUp(Cardinal(Elements.Count), ElementsTexSize));
+
+    GLSLProgram.Disable;
+  end;
+
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(glw.Navigator.Matrix);
@@ -388,42 +438,26 @@ begin
   begin
     if GLSLProgram.Support <> gsNone then
     begin
-      glActiveTextureARB(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_2D, GLElementsPositionAreaTex);
+      glMatrixMode(GL_PROJECTION);
+      glPushMatrix;
+        glLoadIdentity;
+        gluOrtho2D(0, Glwin.Width, 0, Glwin.Height);
+        glMatrixMode(GL_MODELVIEW);
 
-      glActiveTextureARB(GL_TEXTURE1);
-      glBindTexture(GL_TEXTURE_2D, GLElementsNormalTex);
+        glPushMatrix;
 
-      GLSLProgram.Enable;
+          glLoadIdentity;
+          RenderAORect;
 
-      GLSLProgram.SetUniform('tex_elements_position_area', 0);
-      GLSLProgram.SetUniform('tex_elements_normal', 1);
+        glPopMatrix;
 
-      GLSLProgram.SetUniform('tex_elements_size', ElementsTexSize);
-      GLSLProgram.SetUniform('area_scale', AreaScale);
-      GLSLProgram.SetUniform('position_scale', PositionScale);
-      GLSLProgram.SetUniform('position_shift', PositionShift);
-      GLSLProgram.SetUniform('elements_count', Elements.Count);
-
-      GLSLProgram.SetUniform('zero_5', 0.5);
-      GLSLProgram.SetUniform('pi', Pi);
+        glMatrixMode(GL_PROJECTION);
+      glPopMatrix;
+      glMatrixMode(GL_MODELVIEW);
     end;
 
-    Scene.Render(nil, tgAll);
-
-    if GLSLProgram.Support <> gsNone then
-      GLSLProgram.Disable;
+//TODO:    Scene.Render(nil, tgAll);
   end;
-end;
-
-type
-  THelper = class
-    procedure BeforeShapeRender(Shape: TVRMLShape);
-  end;
-
-procedure THelper.BeforeShapeRender(Shape: TVRMLShape);
-begin
-  GLSLProgram.SetUniform('transform_to_world', Shape.State.Transform);
 end;
 
 procedure Init(Glwin: TGLWindow);
@@ -444,8 +478,7 @@ begin
 
   { initialize GLSL program }
   GLSLProgram := TGLSLProgram.Create;
-  GLSLProgram.AttachVertexShader(FileToString(GLSLProgramBaseName + '.vs'));
-//  GLSLProgram.AttachFragmentShader(FileToString(GLSLProgramBaseName + '.fs'));
+  GLSLProgram.AttachFragmentShader(FileToString(GLSLProgramBaseName + '.fs'));
   { For this test program, we eventually allow shader to run in software.
     We display debug info, so user should know what's going on. }
   GLSLProgram.Link(false);
@@ -506,7 +539,6 @@ begin
     VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
 
     Scene := TVRMLGLScene.Create(Parameters[1], {}{roSceneAsAWhole}roNone);
-    Scene.Attributes.OnBeforeShapeRender := @THelper(nil).BeforeShapeRender;
     CalculateElements;
 
     { init Glw.Navigator }

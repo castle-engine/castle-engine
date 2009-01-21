@@ -14,6 +14,25 @@ Idea:
 
 - On each vertex do (in vertex shader): calculate AO using elements info.
 
+Practice:
+
+- First of all, this AO will have to much shadow (multiple shadows
+  on the same item). So calculate 2nd time, multiplying.
+
+- Note that you cannot actually do this in vertex shader: with arch 3,
+  texture2D calls in vertex shader are not allowed or
+  very very horribly-terribly slow. And you want to read texture a lot
+  to get all element infos.
+
+  (I tried to do the 1st testing implementation
+  of one pass on vertex shader, it simply doesn't work when tested on older
+  NVidia and works with 1 frame / couple seconds (even with 1 element count!!!)
+  on fglrx.)
+
+- So do this on fragment shader. Also, render such that 1 screen pixel =
+  one element, and simply write result back to buffer. To be read back
+  to texture, or even possibly grabbed by CPU.
+
 TODO: our current method of generating elements works only for nodes
 with explicit vertexes, so will not work for VRML primitives (sphere,
 cone and and such).
