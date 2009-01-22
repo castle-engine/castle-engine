@@ -97,6 +97,23 @@ Practice:
   (as light coming from an angle is scaled down, so blocker for
   which cos_current_angle is small blocks less light).
 
+Advantages:
+
+- Since all work is done on the fly, the scene may be absolutely dynamic. (On changes, list of elements must be updated, but this shouldn't be so bad with a few optimizations?). Any deformations, transformations, changes  --- all is allowed, nothing needs to be precomputed.
+  For example, see:
+  models/chinchilla_awakens (timesensor animation) and
+  models/dynamic_world_ifs (interactive world changing, press left mouse down, use keys werxdf, uiojkl)
+- Can make bent normals, indirect lighting almost for free.
+- Although the work is done on shaders, resulting colors are grabbed by CPU, and may be fed to fixed-function gl pipeline at the end. This is important, makes it much easier to plug this technique into existing renderer.
+- Can work with practically any 3d model.
+  For example, check out castle/data/levels/fountain/fountain_final.wrl
+
+Disadvantages:
+
+- Like PRT and shadow fields, this requires a large number of vertexes (elements) to look good, and still number vertexes is also the key thing that determines speed. (On the up side, it's not difficult to make lower LOD versions of elements, since they are so simple? Hierarchy idea will also help a lot.)
+  On dynamic models, when too few vertexes are available, it can be seen as moving shadows are "sticky" to vertexes.
+- Requires a good GPU. Fragment shader must do a *lot* of work, a lot of texture lookups. Simply not possible on older GPUs.
+
 TODO: our current method of generating elements works only for nodes
 with explicit vertexes, so will not work for VRML primitives (sphere,
 cone and and such).
