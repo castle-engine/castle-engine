@@ -38,7 +38,7 @@ uses VectorMath, GL, GLU, GLExt, GLWindow,
   KambiGLUtils, VRMLScene, VRMLGLScene, Navigation,
   KambiFilesUtils, KambiStringUtils, VRMLErrors, GLShaders, VRMLShape,
   VRMLFields, Images, Boxes3d, GLImages, GLWinMessages, DataErrors,
-  GLVersionUnit, Math;
+  GLVersionUnit, Math, VRMLTriangle;
 
 type
   TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);
@@ -792,9 +792,10 @@ begin
   FreeAndNil(GLSLProgram[1]);
 end;
 
-procedure Resize(Glwin: TGLWindow);
 var
   AngleOfViewX, AngleOfViewY: Single;
+
+procedure Resize(Glwin: TGLWindow);
 begin
   glViewport(0, 0, glwin.Width, glwin.Height);
   Scene.GLProjection(Glw.Navigator, Scene.BoundingBox,
@@ -815,6 +816,74 @@ begin
   end;
   if AnimationPlaying then
     Scene.IncreaseWorldTime(Glwin.Fps.IdleSpeed);
+end;
+
+{ passing events to scene sensors (to make scene interactive)
+  TODO: I could just use TGLWindowVRMLBrowser instead...
+  ---------------------------------------------------------------------------- }
+
+procedure MouseDown(Glwin: TGLWindow; btn: TMouseButton);
+begin
+  { In Examiner mode, mouse clicks start dragging, so don't do
+    anything here (not even a warning about SOnlyInWalker,
+    since it would only interfere with navigation). }
+
+  if (Glw.Navigator is TWalkNavigator) and (btn = mbLeft) then
+    Scene.PointingDeviceActive := true;
+end;
+
+procedure MouseUp(Glwin: TGLWindow; btn: TMouseButton);
+begin
+  if (Glw.Navigator is TWalkNavigator) and (btn = mbLeft) then
+    Scene.PointingDeviceActive := false;
+end;
+
+procedure MouseMove(Glwin: TGLWindow; NewX, NewY: Integer);
+var
+  Ray0, RayVector: TVector3Single;
+  OverPoint: TVector3Single;
+  Item: PVRMLTriangle;
+
+  function SensorsCount: Cardinal;
+  begin
+    if Scene.PointingDeviceSensors <> nil then
+      Result := Scene.PointingDeviceSensors.EnabledCount else
+      Result := 0;
+    if Scene.PointingDeviceActiveSensor <> nil then
+      Inc(Result);
+  end;
+
+var
+  NewSensorsCount: Cardinal;
+begin
+  if (Glw.Navigator is TWalkNavigator) and
+     (Scene.OctreeCollisions <> nil) then
+  begin
+    Glw.Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, Ray0, RayVector);
+
+    Item := Scene.OctreeCollisions.RayCollision(
+      OverPoint, Ray0, RayVector, true, nil, false, nil);
+
+    Scene.PointingDeviceMove(OverPoint, Item);
+
+    NewSensorsCount := SensorsCount;
+
+    { I want to keep assertion that Glwin.CursorNonMouseLook = gcHand when
+      we're over or keeping active some pointing-device sensors. }
+    if NewSensorsCount <> 0 then
+      Glw.CursorNonMouseLook := gcHand else
+      Glw.CursorNonMouseLook := gcDefault;
+  end;
+end;
+
+procedure KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
+begin
+  Scene.KeyDown(Key, C, @Glwin.KeysDown);
+end;
+
+procedure KeyUp(Glwin: TGLWindow; Key: TKey; C: char);
+begin
+  Scene.KeyUp(Key, C);
 end;
 
 { menu ----------------------------------------------------------------------- }
@@ -905,6 +974,7 @@ begin
     CalculateElements;
 
     { start Scene animation }
+    Scene.Spatial := [ssRendering, ssDynamicCollisions];
     Scene.ResetWorldTimeAtLoad;
     Scene.OnPostRedisplay := @THelper(nil).ScenePostRedisplay;
     Scene.OnGeometryChanged := @THelper(nil).SceneGeometryChanged;
@@ -916,6 +986,12 @@ begin
 
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;
+
+    Glw.OnKeyDown := @KeyDown;
+    Glw.OnKeyUp := @KeyUp;
+    Glw.OnMouseDown := @MouseDown;
+    Glw.OnMouseUp := @MouseUp;
+    Glw.OnMouseMove := @MouseMove;
 
     Glw.OnInit := @Init;
     Glw.OnClose := @Close;
