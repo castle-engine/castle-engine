@@ -1,0 +1,615 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+# dynamic_world.x3dv example redone to use only indexed face sets
+# (no VRML primitives like sphere/box), to work with dynamic_ambient_occlusion
+# demo.
+
+PROTO MyBox [
+  initializeOnly SFVec3f size 1 1 1
+  initializeOnly SFColor color 0.8 0.8 0.8
+  initializeOnly SFBool solid TRUE
+] {
+      Transform { scale IS size
+        children
+        Transform { scale 0.5 0.5 0.5 # make default box size = 1 1 1
+        children Shape {
+                                              appearance Appearance {
+                                                material Material {
+                                                  diffuseColor IS color
+                                                }
+                                              }
+                                              geometry IndexedFaceSet {
+                                                      solid IS solid
+                                                      creaseAngle 0.000000
+                                                      coord DEF coord_Cube Coordinate {
+                                                              point [
+      1.0 0.999999940395 -1.0
+       1.0 -1.0 -1.0
+       -1.00000011921 -0.999999821186 -1.0
+       -0.999999642372 1.00000035763 -1.0
+       1.00000047684 0.999999463558 1.0
+       0.999999344349 -1.00000059605 1.0
+       -1.00000035763 -0.999999642372 1.0
+       -0.999999940395 1.0 1.0
+       -5.96046447754e-08 -0.999999880791 -1.0
+       1.0 -2.98023223877e-08 -1.0
+       1.78813934326e-07 1.00000011921 -1.0
+       -0.999999880791 2.68220901489e-07 -1.0
+       0.999999880791 -5.66244125366e-07 1.0
+       -5.06639480591e-07 -1.00000011921 1.0
+       -1.00000011921 1.78813934326e-07 1.0
+       2.68220901489e-07 0.999999761581 1.0
+       0.999999642372 -1.00000023842 0.0
+       1.00000023842 0.999999701977 0.0
+       -1.00000023842 -0.999999761581 0.0
+       -0.999999761581 1.00000023842 0.0
+       5.96046447754e-08 1.19209289551e-07 -1.0
+       -1.19209289551e-07 -1.9371509552e-07 1.0
+       0.999999940395 -2.98023223877e-07 0.0
+       -2.83122062683e-07 -1.0 0.0
+       -1.0 2.23517417908e-07 0.0
+       2.23517417908e-07 0.999999940395 0.0
+       -0.500000119209 -0.999999880791 -1.0
+       0.499999970198 -0.999999940395 -1.0
+       1.0 -0.5 -1.0
+       1.0 0.499999940395 -1.0
+       -0.499999731779 1.00000023842 -1.0
+       0.500000119209 1.0 -1.0
+       -1.0 -0.499999761581 -1.0
+       -0.999999761581 0.500000298023 -1.0
+       1.00000023842 0.499999463558 1.0
+       0.999999642372 -0.500000596046 1.0
+       -0.500000417233 -0.999999880791 1.0
+       0.499999403954 -1.00000035763 1.0
+       -1.00000023842 -0.499999731779 1.0
+       -1.0 0.500000119209 1.0
+       -0.499999821186 0.999999880791 1.0
+       0.500000357628 0.999999642372 1.0
+       0.999999523163 -1.00000047684 0.5
+       0.999999821186 -1.00000011921 -0.5
+       1.00000035763 0.999999582767 0.5
+       1.00000011921 0.999999821186 -0.5
+       -1.00000023842 -0.999999701977 0.5
+       -1.00000023842 -0.999999761581 -0.5
+       -0.999999880791 1.00000011921 0.5
+       -0.999999701977 1.00000023842 -0.5
+       1.19209289551e-07 0.500000119209 -1.0
+       -0.499999910593 1.9371509552e-07 -1.0
+       0.0 -0.499999880791 -1.0
+       0.5 4.47034835815e-08 -1.0
+       -0.500000119209 -7.45058059692e-09 1.0
+       7.45058059692e-08 0.499999791384 1.0
+       0.499999880791 -3.79979610443e-07 1.0
+       -3.12924385071e-07 -0.500000178814 1.0
+       0.999999880791 -4.32133674622e-07 0.5
+       1.00000011921 0.499999701977 0.0
+       1.0 -1.63912773132e-07 -0.5
+       0.999999761581 -0.500000238419 0.0
+       -3.94880771637e-07 -1.0 0.5
+       0.499999672174 -1.00000011921 0.0
+       -1.71363353729e-07 -0.999999940395 -0.5
+       -0.500000238419 -0.999999880791 0.0
+       -1.0 2.01165676117e-07 0.5
+       -1.00000011921 -0.499999761581 0.0
+       -0.999999940395 2.45869159698e-07 -0.5
+       -0.999999880791 0.500000238419 0.0
+       2.45869159698e-07 0.999999880791 0.5
+       -0.499999761581 1.00000011921 0.0
+       2.01165676117e-07 1.0 -0.5
+       0.500000238419 0.999999821186 0.0
+       -0.499999821186 0.500000238419 -1.0
+       -0.5 -0.499999850988 -1.0
+       0.500000059605 0.5 -1.0
+       0.5 -0.499999940395 -1.0
+       -0.499999970198 0.499999940395 1.0
+       0.500000178814 0.499999642372 1.0
+       -0.500000298023 -0.499999940395 1.0
+       0.499999672174 -0.500000357628 1.0
+       1.00000023842 0.499999582767 0.5
+       1.0 0.499999821186 -0.5
+       0.999999701977 -0.500000417233 0.5
+       0.999999880791 -0.500000119209 -0.5
+       0.499999523163 -1.00000023842 0.5
+       0.499999821186 -1.0 -0.5
+       -0.500000357628 -0.999999880791 0.5
+       -0.500000178814 -0.999999880791 -0.5
+       -1.00000023842 -0.499999761581 0.5
+       -1.0 -0.499999761581 -0.5
+       -0.999999940395 0.500000178814 0.5
+       -0.999999821186 0.500000238419 -0.5
+       -0.499999791384 1.0 0.5
+       -0.499999761581 1.00000023842 -0.5
+       0.500000298023 0.999999761581 0.5
+       0.500000178814 0.999999880791 -0.5
+                                                              ]
+                                                      }
+
+                                                      coordIndex [
+      33 3 30 74 -1,
+      11 33 74 51 -1,
+      74 30 10 50 -1,
+      51 74 50 20 -1,
+      32 11 51 75 -1,
+      2 32 75 26 -1,
+      75 51 20 52 -1,
+      26 75 52 8 -1,
+      50 10 31 76 -1,
+      20 50 76 53 -1,
+      0 29 76 31 -1,
+      53 76 29 9 -1,
+      52 20 53 77 -1,
+      8 52 77 27 -1,
+      77 53 9 28 -1,
+      27 77 28 1 -1,
+      40 7 39 78 -1,
+      15 40 78 55 -1,
+      78 39 14 54 -1,
+      55 78 54 21 -1,
+      41 15 55 79 -1,
+      4 41 79 34 -1,
+      79 55 21 56 -1,
+      34 79 56 12 -1,
+      54 14 38 80 -1,
+      21 54 80 57 -1,
+      80 38 6 36 -1,
+      57 80 36 13 -1,
+      56 21 57 81 -1,
+      12 56 81 35 -1,
+      81 57 13 37 -1,
+      35 81 37 5 -1,
+      44 4 34 82 -1,
+      17 44 82 59 -1,
+      82 34 12 58 -1,
+      59 82 58 22 -1,
+      45 17 59 83 -1,
+      0 45 83 29 -1,
+      83 59 22 60 -1,
+      29 83 60 9 -1,
+      58 12 35 84 -1,
+      22 58 84 61 -1,
+      84 35 5 42 -1,
+      61 84 42 16 -1,
+      60 22 61 85 -1,
+      9 60 85 28 -1,
+      85 61 16 43 -1,
+      28 85 43 1 -1,
+      42 5 37 86 -1,
+      16 42 86 63 -1,
+      86 37 13 62 -1,
+      63 86 62 23 -1,
+      43 16 63 87 -1,
+      1 43 87 27 -1,
+      87 63 23 64 -1,
+      27 87 64 8 -1,
+      62 13 36 88 -1,
+      23 62 88 65 -1,
+      88 36 6 46 -1,
+      65 88 46 18 -1,
+      64 23 65 89 -1,
+      8 64 89 26 -1,
+      89 65 18 47 -1,
+      26 89 47 2 -1,
+      46 6 38 90 -1,
+      18 46 90 67 -1,
+      90 38 14 66 -1,
+      67 90 66 24 -1,
+      47 18 67 91 -1,
+      2 47 91 32 -1,
+      91 67 24 68 -1,
+      32 91 68 11 -1,
+      66 14 39 92 -1,
+      24 66 92 69 -1,
+      92 39 7 48 -1,
+      69 92 48 19 -1,
+      68 24 69 93 -1,
+      11 68 93 33 -1,
+      93 69 19 49 -1,
+      33 93 49 3 -1,
+      48 7 40 94 -1,
+      19 48 94 71 -1,
+      94 40 15 70 -1,
+      71 94 70 25 -1,
+      49 19 71 95 -1,
+      3 49 95 30 -1,
+      95 71 25 72 -1,
+      30 95 72 10 -1,
+      70 15 41 96 -1,
+      25 70 96 73 -1,
+      96 41 4 44 -1,
+      73 96 44 17 -1,
+      72 25 73 97 -1,
+      10 72 97 31 -1,
+      97 73 17 45 -1,
+      45 0 31 97 -1,
+                                                      ]
+                                              }
+                                      }
+      }
+} }
+
+PROTO MySphere [
+  initializeOnly SFColor color 0.8 0.8 0.8
+  initializeOnly SFVec3f size 1 1 1
+] {
+      Transform { scale IS size
+        children
+
+                                   Shape {
+                                           appearance Appearance {
+                                             material Material {
+                                               diffuseColor IS color
+                                             }
+                                           }
+                                           geometry IndexedFaceSet {
+                                                   creaseAngle 4.000000
+                                                   coord DEF coord_rsvd_Sphere Coordinate {
+                                                           point [
+      0.0 0.0 1.0
+      0.382683455944 0.0 0.923879504204
+      0.707106769085 0.0 0.707106769085
+      0.923879504204 0.0 0.382683426142
+      1.0 0.0 -4.37113882867e-08
+      0.923879504204 0.0 -0.382683515549
+      0.707106769085 0.0 -0.707106769085
+      0.382683485746 0.0 -0.923879504204
+      0.270598083735 0.270598113537 -0.923879504204
+      0.499999970198 0.5 -0.70710682869
+      0.653281450272 0.653281509876 -0.382683515549
+      0.707106769085 0.70710682869 0.0
+      0.653281450272 0.653281509876 0.382683396339
+      0.499999970198 0.5 0.707106769085
+      0.270598053932 0.270598083735 0.923879504204
+      -3.72023265527e-08 0.382683455944 0.923879504204
+      -5.08757480588e-08 0.707106769085 0.707106769085
+      -8.10854601241e-08 0.923879563808 0.382683396339
+      -8.42937026846e-08 1.0 0.0
+      -8.10854601241e-08 0.923879563808 -0.382683515549
+      -5.08757480588e-08 0.707106769085 -0.70710682869
+      -3.72023265527e-08 0.382683515549 -0.923879504204
+      -0.270598143339 0.270598083735 -0.923879504204
+      -0.500000059605 0.499999940395 -0.70710682869
+      -0.653281629086 0.653281450272 -0.382683515549
+      -0.707106888294 0.70710670948 0.0
+      -0.653281629086 0.653281450272 0.382683396339
+      -0.500000059605 0.499999940395 0.707106769085
+      -0.270598113537 0.27059802413 0.923879504204
+      -0.382683455944 -7.9349177895e-08 0.923879504204
+      -0.707106769085 -1.14096025072e-07 0.707106769085
+      -0.923879623413 -1.65379162809e-07 0.382683396339
+      -1.0 -1.68587405369e-07 0.0
+      -0.923879623413 -1.65379162809e-07 -0.382683515549
+      -0.707106769085 -1.14096025072e-07 -0.70710682869
+      -0.382683545351 -5.82757522238e-08 -0.923879504204
+      -1.06770151831e-07 -1.06770208674e-07 -1.0
+      -0.270598083735 -0.270598202944 -0.923879504204
+      -0.499999910593 -0.500000119209 -0.70710682869
+      -0.653281390667 -0.65328168869 -0.382683515549
+      -0.707106649876 -0.707106947899 0.0
+      -0.653281390667 -0.65328168869 0.382683396339
+      -0.499999910593 -0.500000119209 0.707106769085
+      -0.270597994328 -0.270598143339 0.923879504204
+      1.21496029237e-07 -0.382683455944 0.923879504204
+      1.7731629498e-07 -0.70710682869 0.707106769085
+      2.49672865493e-07 -0.923879623413 0.382683396339
+      2.52881108054e-07 -1.0 0.0
+      2.49672865493e-07 -0.923879623413 -0.382683515549
+      1.7731629498e-07 -0.70710682869 -0.70710682869
+      1.00422603566e-07 -0.382683575153 -0.923879504204
+      0.270598232746 -0.270598083735 -0.923879504204
+      0.500000178814 -0.499999910593 -0.70710682869
+      0.653281748295 -0.653281331062 -0.382683515549
+      0.707107007504 -0.707106590271 0.0
+      0.653281748295 -0.653281331062 0.382683396339
+      0.500000178814 -0.499999910593 0.707106769085
+      0.270598173141 -0.270597964525 0.923879504204
+                                                           ]
+                                                   }
+
+                                                   coordIndex [
+      36 8 7 -1,
+      7 8 9 6 -1,
+      6 9 10 5 -1,
+      5 10 11 4 -1,
+      4 11 12 3 -1,
+      3 12 13 2 -1,
+      2 13 14 1 -1,
+      14 0 1 -1,
+      15 0 14 -1,
+      13 16 15 14 -1,
+      12 17 16 13 -1,
+      11 18 17 12 -1,
+      10 19 18 11 -1,
+      9 20 19 10 -1,
+      8 21 20 9 -1,
+      36 21 8 -1,
+      36 22 21 -1,
+      21 22 23 20 -1,
+      20 23 24 19 -1,
+      19 24 25 18 -1,
+      18 25 26 17 -1,
+      17 26 27 16 -1,
+      16 27 28 15 -1,
+      28 0 15 -1,
+      29 0 28 -1,
+      27 30 29 28 -1,
+      26 31 30 27 -1,
+      25 32 31 26 -1,
+      24 33 32 25 -1,
+      23 34 33 24 -1,
+      22 35 34 23 -1,
+      36 35 22 -1,
+      36 37 35 -1,
+      35 37 38 34 -1,
+      34 38 39 33 -1,
+      33 39 40 32 -1,
+      32 40 41 31 -1,
+      31 41 42 30 -1,
+      30 42 43 29 -1,
+      43 0 29 -1,
+      44 0 43 -1,
+      42 45 44 43 -1,
+      41 46 45 42 -1,
+      40 47 46 41 -1,
+      39 48 47 40 -1,
+      38 49 48 39 -1,
+      37 50 49 38 -1,
+      36 50 37 -1,
+      36 51 50 -1,
+      50 51 52 49 -1,
+      49 52 53 48 -1,
+      48 53 54 47 -1,
+      47 54 55 46 -1,
+      46 55 56 45 -1,
+      45 56 57 44 -1,
+      57 0 44 -1,
+      1 0 57 -1,
+      56 2 1 57 -1,
+      55 3 2 56 -1,
+      54 4 3 55 -1,
+      53 5 4 54 -1,
+      52 6 5 53 -1,
+      51 7 6 52 -1,
+      36 7 51 -1,
+                                                   ]
+                                           }
+                                   }
+} }
+
+Transform {
+  translation 0 2.5 0
+  children MyBox { size 10 5 10 color 0.5 0.5 1 solid FALSE }
+}
+
+NavigationInfo {
+  type [ "FLY", "ANY" ]
+  headlight TRUE
+  avatarSize [ 0.1 2 ]
+  speed 5
+}
+
+# Camera settings "encoded" in the VRML declaration below :
+# direction -0.0596485435962677 -0.0162141267210245 0.0786075368523597
+# up -0.098011203110218 0.986767828464508 0.1291647404432296
+# gravityUp 0 1 0
+Viewpoint {
+  position 3.7595176696777344 1.8154925107955933 -4.429600715637207
+  orientation -0.0273569524288177 0.9963133931159973 0.0813096836209297 2.4947032928466797
+}
+
+DEF Light PointLight {
+  location 0 4 0
+  kambiShadows TRUE
+  kambiShadowsMain TRUE
+}
+
+# info text ------------------------------------------------------------------
+
+DEF Prox ProximitySensor {
+  size 100 100 100
+}
+
+DEF SwitchInfoText Switch {
+  children Collision {
+    enabled FALSE
+    children DEF InfoText Transform {
+      children Transform {
+        translation -0.1 0.07 -0.2
+        children Shape {
+          appearance KambiAppearance {
+            material Material { diffuseColor 0 0 0 }
+            shadowCaster FALSE
+          }
+          geometry Text {
+            fontStyle FontStyle { size 0.008 style "BOLD" }
+            string [
+              "Usage:"
+              "- Click on any editable shape"
+              "- While holding the mouse down (while TouchSensor is active)"
+              "  you can edit the transform with keys:"
+              "- Keys esdf wr - change translation"
+              "- Keys ijkl uo - change scale"
+              ""
+              "Note that the collisions between avatar and objects,"
+              "checked when the avatar moves (but not when objects move)"
+              "work all the time for current geometry."
+              ""
+              "As a bonus, you can see dynamic shadows from everything."
+              ""
+              "Press key h (help) to hide/show this text at any time."
+              ]
+          }
+        }
+      }
+    }
+  }
+  whichChoice 0
+}
+ROUTE Prox.position_changed TO InfoText.translation
+ROUTE Prox.orientation_changed TO InfoText.rotation
+
+DEF KeyInfoText KeySensor { }
+DEF ScrInfoText Script {
+  inputOnly SFString keyPress
+  outputOnly SFInt32 infoTextVisible
+  url "kambiscript:
+
+function keyPress(value, time)
+  when(value = 'h',
+    infoTextVisible := if (infoTextVisible = 0, -1, 0))
+" }
+
+ROUTE KeyInfoText.keyPress TO ScrInfoText.keyPress
+ROUTE ScrInfoText.infoTextVisible TO SwitchInfoText.whichChoice
+
+# editable objects -----------------------------------------------------------
+
+PROTO EditableTransform [
+  inputOutput MFNode children []
+  inputOutput SFVec3f translation 0 0 0
+  inputOutput SFVec3f scale 1 1 1
+] {
+  Transform {
+    children [
+      DEF Trans Transform {
+        translation IS translation
+        scale IS scale
+        children IS children
+      }
+      DEF Touch TouchSensor { }
+      DEF Key KeySensor { }
+      DEF Time TimeSensor { loop TRUE cycleInterval 10000000 }
+      DEF Scr Script {
+        # Input to script from touch and key sensors.
+        # isActive is inputOutput, as it's value must be saved (for use
+        # in time function).
+        inputOutput SFBool isActive FALSE
+        inputOnly SFString keyPress
+        inputOnly SFString keyRelease
+
+        # Output from script to translation.
+        # Initialized to the same values as Trans, so they match at the start.
+        inputOutput SFVec3f translation IS translation
+        inputOutput SFVec3f scale IS scale
+
+        # Variables storing keys state, needed by time,
+        # modified by keyPress/Release.
+        initializeOnly SFBool f_pressed FALSE
+        initializeOnly SFBool s_pressed FALSE
+        initializeOnly SFBool e_pressed FALSE
+        initializeOnly SFBool d_pressed FALSE
+        initializeOnly SFBool w_pressed FALSE
+        initializeOnly SFBool r_pressed FALSE
+
+        initializeOnly SFBool i_pressed FALSE
+        initializeOnly SFBool j_pressed FALSE
+        initializeOnly SFBool k_pressed FALSE
+        initializeOnly SFBool l_pressed FALSE
+        initializeOnly SFBool u_pressed FALSE
+        initializeOnly SFBool o_pressed FALSE
+
+        # Variables storing time difference, for time-based animation.
+        initializeOnly SFTime previousTime -1
+        initializeOnly SFTime timeDiff 0
+        inputOnly SFTime time
+
+        # This is a constant, feel free to change to suit your taste.
+        initializeOnly SFTime editSpeed 2
+
+        url "kambiscript:
+
+function keyPress(value, time)
+  when (isActive,
+      if (value = 'f', f_pressed := true,
+      if (value = 's', s_pressed := true,
+      if (value = 'e', e_pressed := true,
+      if (value = 'd', d_pressed := true,
+      if (value = 'w', w_pressed := true,
+      if (value = 'r', r_pressed := true,
+
+      if (value = 'i', i_pressed := true,
+      if (value = 'j', j_pressed := true,
+      if (value = 'k', k_pressed := true,
+      if (value = 'l', l_pressed := true,
+      if (value = 'u', u_pressed := true,
+    when (value = 'o', o_pressed := true)))))))))))))
+
+function keyRelease(value, time)
+  when (isActive,
+      if (value = 'f', f_pressed := false,
+      if (value = 's', s_pressed := false,
+      if (value = 'e', e_pressed := false,
+      if (value = 'd', d_pressed := false,
+      if (value = 'w', w_pressed := false,
+      if (value = 'r', r_pressed := false,
+
+      if (value = 'i', i_pressed := false,
+      if (value = 'j', j_pressed := false,
+      if (value = 'k', k_pressed := false,
+      if (value = 'l', l_pressed := false,
+      if (value = 'u', u_pressed := false,
+    when (value = 'o', o_pressed := false)))))))))))))
+
+function time(value, timestamp)
+  { calculate timeDiff, to scale animations
+    (so that it runs with the same speed on every system) }
+  timeDiff := if (previousTime >= 0, value - previousTime, 0);
+
+  { update previousTime }
+  previousTime := value;
+
+  when (f_pressed, vector_set(translation, 0, vector_get(translation, 0) - editSpeed * timeDiff));
+  when (s_pressed, vector_set(translation, 0, vector_get(translation, 0) + editSpeed * timeDiff));
+  when (e_pressed, vector_set(translation, 2, vector_get(translation, 2) + editSpeed * timeDiff));
+  when (d_pressed, vector_set(translation, 2, vector_get(translation, 2) - editSpeed * timeDiff));
+  when (w_pressed, vector_set(translation, 1, vector_get(translation, 1) - editSpeed * timeDiff));
+  when (r_pressed, vector_set(translation, 1, vector_get(translation, 1) + editSpeed * timeDiff));
+
+  when (l_pressed, vector_set(scale, 0, max(vector_get(scale, 0) - editSpeed * timeDiff, 0.01)));
+  when (j_pressed, vector_set(scale, 0, vector_get(scale, 0) + editSpeed * timeDiff));
+  when (i_pressed, vector_set(scale, 2, vector_get(scale, 2) + editSpeed * timeDiff));
+  when (k_pressed, vector_set(scale, 2, max(vector_get(scale, 2) - editSpeed * timeDiff, 0.01)));
+  when (u_pressed, vector_set(scale, 1, max(vector_get(scale, 1) - editSpeed * timeDiff, 0.01)));
+  when (o_pressed, vector_set(scale, 1, vector_get(scale, 1) + editSpeed * timeDiff))
+"
+      }
+    ]
+  }
+  ROUTE Touch.isActive TO Scr.isActive
+  ROUTE Key.keyPress TO Scr.keyPress
+  ROUTE Key.keyRelease TO Scr.keyRelease
+  ROUTE Time.elapsedTime TO Scr.time
+
+  ROUTE Scr.translation TO Trans.translation
+  ROUTE Scr.scale TO Trans.scale
+}
+
+EditableTransform {
+  translation 0 0.5 0
+  children MyBox { size 1 1.5 1 color 1 1 0 }
+}
+
+EditableTransform {
+  translation -2 0.5 0
+  children MyBox { size 1 1.5 1 color 0 1 0 }
+}
+
+EditableTransform {
+  translation -4 0.5 0
+  children MyBox { size 1 1.5 1 color 1 1 1 }
+}
+
+EditableTransform {
+  translation -1 0.5 1
+  children MySphere { color 1 1 0 size 0.5 0.5 0.5 }
+}
+
+EditableTransform {
+  translation -2 0.5 1
+  children MySphere { color 0 1 0 size 0.5 0.5 0.5 }
+}
+
+EditableTransform {
+  translation -3 0.5 1
+  children MySphere { color 1 1 1 size 0.5 0.5 0.5 }
+}
