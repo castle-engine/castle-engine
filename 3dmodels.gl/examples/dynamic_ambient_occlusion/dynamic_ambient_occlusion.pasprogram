@@ -982,6 +982,11 @@ begin
 
     { init Glw.Navigator }
     Glw.Navigator := Scene.CreateNavigator;
+    { Even if VRML navigation info suggests using gravity, turn it off,
+      simply because this demo doesn't do collision detection for now
+      (so gravity will make you fall down forever...) }
+    if Glw.Navigator is TWalkNavigator then
+      TWalkNavigator(Glw.Navigator).Gravity := false;
     Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
 
     Glw.MainMenu := CreateMainMenu;
