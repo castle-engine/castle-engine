@@ -56,6 +56,13 @@ procedure URLExtractAnchor(var URL: string; out Anchor: string);
 function RawUrlDecode(const S: string): string;
 
 function UrlProtocol(const S: string): string;
+
+{ Check does URL contain given Protocol.
+  This is equivalent to checking UrlProtocol(S) = Protocol, ignoring case,
+  although may be a little faster. Given Protocol string cannot contain
+  ":" character. }
+function UrlProtocolIs(const S: string; Protocol: string): boolean;
+
 function UrlDeleteProtocol(const S: string): string;
 
 implementation
@@ -160,6 +167,26 @@ begin
   if P = 0 then
     Result := '' else
     Result := Copy(S, 1, P - 1);
+end;
+
+function UrlProtocolIs(const S: string; Protocol: string): boolean;
+var
+  I: Integer;
+begin
+  { we need at least Protocol characters + 1 (for the ":" sign) is S }
+  if Length(S) < Length(Protocol) + 1 then
+    Exit(false);
+
+  { for incorrect protocol, this check will usually fail, so check
+    it first (before actually comparing Protocol string). }
+  if S[Length(Protocol) + 1] <> ':' then
+    Exit(false);
+
+  for I := 1 to Length(Protocol) do
+    if UpCase(Protocol[I]) <> UpCase(S[I]) then
+      Exit(false);
+
+  Result := true;
 end;
 
 function UrlDeleteProtocol(const S: string): string;

@@ -37,7 +37,8 @@ uses
   TestKambiScriptVectors,
   TestCubeEnvMap,
   TestShadowFields,
-  TestGLVersion;
+  TestGLVersion,
+  TestURLUtils;
 
 {var
   T: TTestFrustum;}
