@@ -452,7 +452,7 @@ type
     Geometry: TVRMLGeometryNode;
     State: TVRMLGraphTraverseState;
     NewTriangleProc: TNewTriangleProc;
-    Coord: TDynVector3SingleArray;
+    Coord: TMFVec3f;
 
     { This is passed from IndexedFaceSet_LocalTriangulate to HandleCoordRange. }
     { VRML1MaterialBinding should be one of BIND_xxx constants,
@@ -479,9 +479,9 @@ procedure TIndexedFaceSetTriangulator.TriangleIndexes(
 var
   Tri: TTriangle3Single;
 begin
-  Tri[0] := Coord.Items[FaceIndices^[TriIndices[0]]];
-  Tri[1] := Coord.Items[FaceIndices^[TriIndices[1]]];
-  Tri[2] := Coord.Items[FaceIndices^[TriIndices[2]]];
+  Tri[0] := Coord.ItemsSafe[FaceIndices^[TriIndices[0]]];
+  Tri[1] := Coord.ItemsSafe[FaceIndices^[TriIndices[1]]];
+  Tri[2] := Coord.ItemsSafe[FaceIndices^[TriIndices[2]]];
   NewTriangleProc(Tri, State, Geometry, VRML1MaterialNumber,
     FaceCoordIndexBegin, FaceCoordIndexEnd);
 end;
@@ -509,7 +509,7 @@ begin
     TriangulateConvexFace(EndIndex - BeginIndex,
       @TriangleIndexes, 0) else
     TriangulateFace(FaceIndices, EndIndex - BeginIndex,
-      Coord.ItemsArray, @TriangleIndexes, 0);
+      Coord.Items.ItemsArray, @TriangleIndexes, 0);
 end;
 
 procedure TNodeIndexedFaceSet_1.LocalTriangulate(
@@ -523,7 +523,7 @@ begin
     Triangulator.Geometry := Self;
     Triangulator.State := State;
     Triangulator.NewTriangleProc := NewTriangleProc;
-    Triangulator.Coord := State.LastNodes.Coordinate3.FdPoint.Items;
+    Triangulator.Coord := State.LastNodes.Coordinate3.FdPoint;
     Triangulator.CoordIndex := FdCoordIndex;
     Triangulator.VRML1MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
     Triangulator.VRML1MaterialIndex := FdMaterialIndex;
@@ -544,7 +544,7 @@ begin
     Triangulator.Geometry := Self;
     Triangulator.State := State;
     Triangulator.NewTriangleProc := NewTriangleProc;
-    Triangulator.Coord := Coordinates(State).Items;
+    Triangulator.Coord := Coordinates(State);
     Triangulator.CoordIndex := FdCoordIndex;
     Triangulator.VRML1MaterialBinding := BIND_DEFAULT;
     Triangulator.VRML1MaterialIndex := nil;
