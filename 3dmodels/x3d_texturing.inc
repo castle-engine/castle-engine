@@ -191,7 +191,11 @@
       or '' if no URL was used. "No URL was used" may mean that
       no URL was valid, or inlined image was used.
 
-      This is always a full, expanded (i.e. not relative) URL. }
+      This is always a full, expanded (i.e. not relative) URL.
+
+      In case of data: URLs, this doesn't contain actual data (it would
+      be too long then, and TextureUsedFullUrl is mainly for showing to the
+      user), it's cutted. }
     property TextureUsedFullUrl: string read FTextureUsedFullUrl;
 
     { Returns TextureProperties node, if this node has some "textureProperties"
@@ -744,6 +748,127 @@ begin
 end;
 
 procedure TNodeImageTexture.LoadTextureData(out CacheUsed: boolean);
+
+  { Load image from URL containing "data:" protocol
+    (http://en.wikipedia.org/wiki/Data_URI_scheme).
+    If success,
+    - sets FTextureImage, CacheUsed, FTextureUsedFullUrl
+    - returns true
+    otherwise
+    - makes VRMLNonFatalError
+    - returns false }
+  function LoadImageFromDataProtocol(const URL: string): boolean;
+  var
+    Mime, Charset: string;
+    Base64: boolean;
+    PosBegin, PosNow: Integer;
+    Part, URLPrefix: string;
+    ImageFormat: TImageFormat;
+    SStream, DecStream: TStream;
+  begin
+    Mime := 'text/plain'; { default mime-type when not specified }
+    Base64 := false; { default encoding is not base64 }
+    Charset := 'US-ASCII'; { default charset }
+
+    { First 5 characters were already parsed by UrlProtocolIs as "data:".
+      Read mime-type now. }
+
+    PosBegin := 6;
+    PosNow := PosBegin;
+    while (PosNow <= Length(URL)) and
+          (URL[PosNow] <> ';') and
+          (URL[PosNow] <> ',') do
+      Inc(PosNow);
+
+    if PosBegin < PosNow then
+      Mime := CopyPos(URL, PosBegin, PosNow - 1);
+
+    repeat
+      { Now, we either stand on ";" (then read charset or base64 tag)
+        or we stand on "," (then read data and exit)
+        or we have end of string (then error). }
+
+      if PosNow > Length(URL) then
+      begin
+        VRMLNonFatalError(Format('Data URI "%s" unexpectedly ended (expected ",")', [URL]));
+        Exit(false);
+      end else
+      if URL[PosNow] = ';' then
+      begin
+        PosBegin := PosNow + 1;
+        PosNow := PosBegin;
+        while (PosNow <= Length(URL)) and
+              (URL[PosNow] <> ';') and
+              (URL[PosNow] <> ',') do
+          Inc(PosNow);
+
+        Part := CopyPos(URL, PosBegin, PosNow - 1);
+        if Part = 'base64' then
+          Base64 := true else
+        if IsPrefix('charset=', Part) then
+          Charset := SEnding(Part, Length('charset=') + 1) else
+          VRMLNonFatalError(Format('Data URI has invalid part "%s" (expected "base64" or "charset=...")', [Part]));
+      end else
+      if URL[PosNow] = ',' then
+      begin
+        Break;
+      end;
+    until false;
+
+    if Log then
+      WritelnLog('Texture loading',
+        Format('Loading from data URI with mime "%s", charset "%s", base64 "%s"',
+        [Mime, Charset, BoolToStr[Base64]]));
+
+    if not Base64 then
+    begin
+      VRMLNonFatalError('TODO: Loading from data URI not base64-encoded not implemented now, please report');
+      Exit(false);
+    end;
+
+    if Mime = 'image/bmp' then
+      ImageFormat := ifBMP else
+    if Mime = 'image/png' then
+      ImageFormat := ifPNG else
+    if (Mime = 'image/jpeg') or
+       (Mime = 'image/jpg') then
+      ImageFormat := ifJPEG else
+    if Mime = 'image/gif' then
+      ImageFormat := ifGIF else
+    begin
+      VRMLNonFatalError(Format('Data mime-type "%s" not recognized, not loading. If this is a valid image mime type that should be supported, please report.', [Mime]));
+      Exit(false);
+    end;
+
+    { URL without data part --- good to show user }
+    URLPrefix := Copy(URL, 1, PosNow - 1);
+
+    { Read data now }
+    SStream := TStringStream.Create(SEnding(URL, PosNow + 1));
+    try
+      DecStream := TBase64DecodingStream.Create(SStream, bdmMIME);
+      try
+        try
+          FTextureImage := LoadImage(DecStream, ImageFormat,
+            [TRGBImage, TRGBAlphaImage, TGrayscaleImage, TGrayscaleAlphaImage], []);
+          CacheUsed := false;
+          FTextureUsedFullUrl := URLPrefix;
+          Result := true;
+        except
+          on E: Exception do
+          begin
+            { pamietajmy ze VRMLNonFatalError moze spowodowac rzucenie wyjatku
+              (chociaz nie musi) }
+            VRMLNonFatalError('Exception ' + E.ClassName +
+              ' occured when trying to load ' +
+              'texture from data URI starting with "' + URLPrefix + '" : ' + E.Message);
+            Result := false;
+          end;
+        end;
+      finally FreeAndNil(DecStream) end;
+    finally FreeAndNil(SStream) end;
+  end;
+
 var
   I: Integer;
   FullUrl: string;
@@ -757,6 +882,10 @@ begin
       { Empty URL would be expanded by PathFromWWWBasePath to directory
         and produce unclear error message. }
       VRMLNonFatalError(Format('Empty URL for %s ignored', [NodeTypeName]));
+    end else
+    if UrlProtocolIs(FdUrl.Items[I], 'data') then
+    begin
+      if LoadImageFromDataProtocol(FdUrl.Items[I]) then Break;
     end else
     begin
       FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
