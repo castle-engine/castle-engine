@@ -742,7 +742,7 @@ type
       dragging the camera down. Can happen only if @link(Gravity)
       is @true. You can use BecauseOfGravity to control DoMoveAllowed
       behavior --- e.g. view3dscene will not allow camera to move
-      outside scene's bounding box when BecauseOfGravity
+      lower that some minimal plane when BecauseOfGravity
       (because this would mean that camera falls down infinitely),
       on the other hand when BecauseOfGravity is @false moving
       outside bounding box is allowed (to allow viewer to look at the
