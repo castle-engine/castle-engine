@@ -42,6 +42,7 @@ type
     Coord: TMFVec3f;
     CoordIndex: TMFLong;
     Geometry: TVRMLGeometryNode;
+    WasSomeValidIndex: boolean;
     function GetVertexFromIndex(index: integer): TVector3Single;
     function GetIndex(indexNum: integer): integer;
   end;
@@ -51,7 +52,10 @@ begin
   { na pewno index >= 0, CalculateBoundingBoxFromIndices nie bedzie
     pytalo o indeksy ujemne. }
   if Index < Coord.Count then
-    Result := Coord.Items.Items[Index] else
+  begin
+    WasSomeValidIndex := true;
+    Result := Coord.Items.Items[Index];
+  end else
   begin
     CoordIndex.VRMLNonFatalError_WrongVertexIndex(
       Geometry.NodeTypeName, Index, Coord.Count);
@@ -62,7 +66,7 @@ end;
 function TGI_BBox_Calculator.GetIndex(IndexNum: integer): integer;
 begin
   { nie musimy sprawdzac czy indexNum jest dobry -
-    CalculateBoundingBoxFromIndices bedzie pytalo tylko o indeksy spomiedzy
+    CalculateBoundingBoxFromIndices bedzie pytalo tylko o indeksy between
     0..VertIndices.Count-1 }
   Result := CoordIndex.Items.Items[IndexNum];
 end;
@@ -78,11 +82,14 @@ begin
     Calculator.Coord := Coord;
     Calculator.CoordIndex := CoordIndex;
     Calculator.Geometry := Geometry;
+    Calculator.WasSomeValidIndex := false;
     Result := CalculateBoundingBoxFromIndices(
       {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetIndex,
       CoordIndex.Count,
       {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexFromIndex,
       State.Transform);
+    if not Calculator.WasSomeValidIndex then
+      Result := EmptyBox3d;
   finally Calculator.Free end;
 end;
 
@@ -97,10 +104,13 @@ begin
     Calculator.Coord := Coord;
     Calculator.CoordIndex := CoordIndex;
     Calculator.Geometry := Geometry;
+    Calculator.WasSomeValidIndex := false;
     Result := CalculateBoundingBoxFromIndices(
       {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetIndex,
       CoordIndex.Count,
       {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexFromIndex);
+    if not Calculator.WasSomeValidIndex then
+      Result := EmptyBox3d;
   finally Calculator.Free end;
 end;
 
