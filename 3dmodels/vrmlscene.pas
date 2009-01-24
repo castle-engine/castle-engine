@@ -2665,7 +2665,7 @@ var
     end;
   end;
 
-  procedure DoLogChanges;
+  procedure DoLogChanges(const Additional: string = '');
   var
     S: string;
   begin
@@ -2673,6 +2673,8 @@ var
       [ Node.NodeName, Node.NodeTypeName, Node.ClassName, PointerToStr(Node) ]);
     if Field <> nil then
       S += Format('. Field %s (%s)', [ Field.Name, Field.VRMLTypeName ]);
+    if Additional <> '' then
+      S += '. ' + Additional;
     WritelnLog('VRML changes', S);
   end;
 
@@ -2816,6 +2818,25 @@ begin
       try
         while SI.GetNext do
           if SI.Current.State.LastNodes.Nodes[NodeLastNodesIndex] = Node then
+            ChangedShapeFields(SI.Current, false, false);
+      finally FreeAndNil(SI) end;
+    end else
+    if Node is TNodeX3DColorNode then
+    begin
+      { Affects all geometry nodes with "color" field referencing this node.
+
+        Note: also TNodeParticleSystem may have color in FdcolorRamp field.
+        This is not detected for now, and doesn't matter (we do not handle
+        particle systems at all now). }
+
+      SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+      try
+        while SI.GetNext do
+          if ((SI.Current.Geometry is TNodeX3DComposedGeometryNode) and (TNodeX3DComposedGeometryNode(SI.Current.Geometry).FdColor.Value = Node)) or
+	     ((SI.Current.Geometry is TNodeIndexedLineSet_2       ) and (TNodeIndexedLineSet_2       (SI.Current.Geometry).FdColor.Value = Node)) or
+	     ((SI.Current.Geometry is TNodeLineSet                ) and (TNodeLineSet                (SI.Current.Geometry).FdColor.Value = Node)) or
+	     ((SI.Current.Geometry is TNodePointSet_2             ) and (TNodePointSet_2             (SI.Current.Geometry).FdColor.Value = Node)) or
+	     ((SI.Current.Geometry is TNodeElevationGrid          ) and (TNodeElevationGrid          (SI.Current.Geometry).FdColor.Value = Node)) then
             ChangedShapeFields(SI.Current, false, false);
       finally FreeAndNil(SI) end;
     end else
@@ -3063,6 +3084,10 @@ begin
       { Node is something else. So we must assume that an arbitrary change
         occured, possibly changing State of following and/or children
         nodes of this Node. }
+
+      if Log and LogChanges then
+        DoLogChanges('-> causes ChangedAll (no optimized action)');
+
       ScheduleChangedAll;
       Exit;
     end;
