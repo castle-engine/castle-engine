@@ -404,11 +404,23 @@ function Box3dSphereCollision(const Box: TBox3d;
 
   For example, if Direction = -Z = (0, 0, -1), then this will return
   the bottom plane of this box. For Direction = (1, 1, 1), this will return
-  a plane intersecting the Box[1] (maximum ) point, with slope = (1, 1, 1).
+  a plane intersecting the Box[1] (maximum) point, with slope = (1, 1, 1).
   The resulting plane always intersects at least one of the 8 corners of the box.
 
   @raises(EBox3dEmpty If the Box is empty.) }
 function Box3dMaximumPlane(const Box: TBox3d;
+  const Direction: TVector3Single): TVector4Single;
+
+{ Calculate a plane in 3D space with direction = given Direction, moved
+  such that it touches the Box but takes minimum volume of this box.
+
+  For example, if Direction = +Z = (0, 0, 1), then this will return
+  the bottom plane of this box. For Direction = (1, 1, 1), this will return
+  a plane intersecting the Box[0] (minimum) point, with slope = (1, 1, 1).
+  The resulting plane always intersects at least one of the 8 corners of the box.
+
+  @raises(EBox3dEmpty If the Box is empty.) }
+function Box3dMinimumPlane(const Box: TBox3d;
   const Direction: TVector3Single): TVector4Single;
 
 type
@@ -1606,6 +1618,23 @@ begin
   Result[3] := - (BoxBool[Direction[0] >= 0][0] * Result[0] +
                   BoxBool[Direction[1] >= 0][1] * Result[1] +
                   BoxBool[Direction[2] >= 0][2] * Result[2]);
+end;
+
+function Box3dMinimumPlane(const Box: TBox3d;
+  const Direction: TVector3Single): TVector4Single;
+var
+  BoxBool: TBox3dBool absolute Box;
+  ResultDir: TVector3Single absolute Result;
+begin
+  CheckNonEmpty(Box);
+
+  { first 3 plane components are just copied from Direction }
+  ResultDir := Direction;
+
+  { optimized version, just do this in one go: }
+  Result[3] := - (BoxBool[Direction[0] < 0][0] * Result[0] +
+                  BoxBool[Direction[1] < 0][1] * Result[1] +
+                  BoxBool[Direction[2] < 0][2] * Result[2]);
 end;
 
 end.

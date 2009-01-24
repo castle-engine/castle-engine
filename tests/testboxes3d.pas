@@ -34,6 +34,7 @@ type
     procedure TestIsBox3dTriangleCollisionEpsilons;
     procedure TestBox3dTransform;
     procedure TestBox3dMaximumPlane;
+    procedure TestBox3dMinimumPlane;
   end;
 
 implementation
@@ -728,6 +729,33 @@ begin
     Vector4Single(1, 1, 1,
       { 50 + 60 + 70 + Result[3] = 0 }
       - 50 - 60 - 70
+    )));
+end;
+
+procedure TTestBoxes3d.TestBox3dMinimumPlane;
+begin
+  try
+    Box3dMinimumPlane(EmptyBox3d, Vector3Single(1, 1, 1));
+  except
+    on E: EBox3dEmpty do { Ok };
+  end;
+
+  Assert(VectorsEqual(Box3dMinimumPlane(Box3d(
+    Vector3Single(2, 3, 4),
+    Vector3Single(50, 60, 70)), Vector3Single(1, 0, 0)),
+    Vector4Single(1, 0, 0, -2)));
+
+  Assert(VectorsEqual(Box3dMinimumPlane(Box3d(
+    Vector3Single(2, 3, 4),
+    Vector3Single(50, 60, 70)), Vector3Single(0, 0, 1)),
+    Vector4Single(0, 0, 1, -4)));
+
+  Assert(VectorsEqual(Box3dMinimumPlane(Box3d(
+    Vector3Single(2, 3, 4),
+    Vector3Single(50, 60, 70)), Vector3Single(1, 1, 1)),
+    Vector4Single(1, 1, 1,
+      { 2 + 3 + 4 + Result[3] = 0 }
+      - 2 - 3 - 4
     )));
 end;
 
