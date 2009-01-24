@@ -4635,7 +4635,7 @@ procedure TMFLong.VRMLNonFatalError_WrongVertexIndex(
   const GeometryNodeTypeName: string;
   const VertexNum: Integer; const CoordCount: Integer);
 const
-  MaxWrongVertexIndexWarnings = 100;
+  MaxWrongVertexIndexWarnings = 10;
 begin
   Inc(WrongVertexIndexWarnings);
   if WrongVertexIndexWarnings < MaxWrongVertexIndexWarnings then
