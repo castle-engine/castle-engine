@@ -682,6 +682,8 @@ type
         from some "array of TXxx".)
     ) }
   TVRMLSimpleMultField = class(TVRMLMultField)
+  private
+    InvalidIndexWarnings: Cardinal;
   protected
     fItemClass: TVRMLSingleFieldClass;
 
@@ -696,6 +698,8 @@ type
       Item contents as appropriate (remember that Item instance itself
       may be freed soon, so copy contents, not only some reference). }
     procedure RawItemsAdd(Item: TVRMLSingleField); virtual abstract;
+
+    procedure VRMLNonFatalError_InvalidIndex(const Index, ACount: Integer);
   protected
     { SaveToStreamValue overriden for MF fields. This class handles
       SaveToStreamValue fully, no need to override it again in
@@ -2697,6 +2701,19 @@ begin
    (TVRMLSimpleMultField(SecondValue).ItemClass = ItemClass);
 end;
 
+procedure TVRMLSimpleMultField.VRMLNonFatalError_InvalidIndex(
+  const Index, ACount: Integer);
+const
+  MaxInvalidIndexWarnings = 10;
+begin
+  Inc(InvalidIndexWarnings);
+  if InvalidIndexWarnings < MaxInvalidIndexWarnings then
+    VRMLNonFatalError(Format('Invalid index for VRML field %s: index is %d, but we have only %d items', [VRMLTypeName, Index, ACount])) else
+  if InvalidIndexWarnings = MaxInvalidIndexWarnings then
+    VRMLNonFatalError(Format('Invalid index for VRML field %s reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
+      [VRMLTypeName, InvalidIndexWarnings]));
+end;
+
 { simple helpful parsing functions ---------------------------------------- }
 
 { This returns Float, not just Single, because it's used by
@@ -4617,7 +4634,7 @@ begin
   if (Index >= 0) and (Index < Items.Count) then
     Result := Items.Items[Index] else
   begin
-    VRMLNonFatalError(Format('Invalid index for VRML field %s: index is %d, but we have only %d items', [VRMLTypeName, Index, Count]));
+    VRMLNonFatalError_InvalidIndex(Index, Count);
     Result := 0;
   end;
 end;
@@ -4627,7 +4644,7 @@ begin
   if (Index >= 0) and (Index < Items.Count) then
     Items.Items[Index] := Value else
   begin
-    VRMLNonFatalError(Format('Invalid index for VRML field %s: index is %d, but we have only %d items', [VRMLTypeName, Index, Count]));
+    VRMLNonFatalError_InvalidIndex(Index, Count);
   end;
 end;
 
@@ -4693,7 +4710,7 @@ begin
   if (Index >= 0) and (Index < Items.Count) then
     Result := Items.Items[Index] else
   begin
-    VRMLNonFatalError(Format('Invalid index for VRML field %s: index is %d, but we have only %d items', [VRMLTypeName, Index, Count]));
+    VRMLNonFatalError_InvalidIndex(Index, Count);
     Result := ZeroVector2Single;
   end;
 end;
@@ -4703,7 +4720,7 @@ begin
   if (Index >= 0) and (Index < Items.Count) then
     Items.Items[Index] := Value else
   begin
-    VRMLNonFatalError(Format('Invalid index for VRML field %s: index is %d, but we have only %d items', [VRMLTypeName, Index, Count]));
+    VRMLNonFatalError_InvalidIndex(Index, Count);
   end;
 end;
 
@@ -4719,7 +4736,7 @@ begin
   if (Index >= 0) and (Index < Items.Count) then
     Result := Items.Items[Index] else
   begin
-    VRMLNonFatalError(Format('Invalid index for VRML field %s: index is %d, but we have only %d items', [VRMLTypeName, Index, Count]));
+    VRMLNonFatalError_InvalidIndex(Index, Count);
     Result := ZeroVector3Single;
   end;
 end;
@@ -4729,7 +4746,7 @@ begin
   if (Index >= 0) and (Index < Items.Count) then
     Items.Items[Index] := Value else
   begin
-    VRMLNonFatalError(Format('Invalid index for VRML field %s: index is %d, but we have only %d items', [VRMLTypeName, Index, Count]));
+    VRMLNonFatalError_InvalidIndex(Index, Count);
   end;
 end;
 
