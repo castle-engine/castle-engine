@@ -54,6 +54,8 @@ type
     function BoundingBox: TBox3d; virtual; abstract;
   end;
 
+  EBox3dEmpty = class(Exception);
+
 const
   { Special value for TBox3d meaning "bounding box doesn't exist".
     This is used when the object has no points, so bounding box
@@ -73,7 +75,8 @@ function Box3dOrderUp(const p0, p1: TVector3Single): TBox3d;
 
 { These functions calculate the middle point, average size, max size
   and particular sizes of given bounding box.
-  When given Box is empty (IsEmptyBox3d), they raise some exception.
+
+  @raises(EBox3dEmpty If the Box is empty.)
 
   @groupBegin }
 function Box3dMiddle(const Box: TBox3d): TVector3Single;
@@ -396,6 +399,18 @@ function Box3dSphereSimpleCollision(const Box: TBox3d;
 function Box3dSphereCollision(const Box: TBox3d;
   const SphereCenter: TVector3Single; const SphereRadius: Single): boolean;
 
+{ Calculate a plane in 3D space with direction = given Direction, moved
+  maximally in Direction and still intersecting the given Box.
+
+  For example, if Direction = -Z = (0, 0, -1), then this will return
+  the bottom plane of this box. For Direction = (1, 1, 1), this will return
+  a plane intersecting the Box[1] (maximum ) point, with slope = (1, 1, 1).
+  The resulting plane always intersects at least one of the 8 corners of the box.
+
+  @raises(EBox3dEmpty If the Box is empty.) }
+function Box3dMaximumPlane(const Box: TBox3d;
+  const Direction: TVector3Single): TVector4Single;
+
 type
   TDynArrayItem_1 = TBox3d;
   PDynArrayItem_1 = PBox3d;
@@ -430,9 +445,15 @@ begin
  OrderUp(p0[2], p1[2], result[0, 2], result[1, 2]);
 end;
 
+procedure CheckNonEmpty(const B: TBox3d);
+begin
+  if IsEmptyBox3d(B) then
+    raise EBox3dEmpty.Create('Empty box 3d: no middle point, no sizes etc.');
+end;
+
 function Box3dMiddle(const Box: TBox3d): TVector3Single;
 begin
- Check(not IsEmptyBox3d(Box), 'Empty box 3d - no middle point');
+ CheckNonEmpty(Box);
  {petla for i := 0 to 2 rozwinieta aby zyskac tycityci na czasie}
  result[0] := (Box[0, 0]+Box[1, 0])/2;
  result[1] := (Box[0, 1]+Box[1, 1])/2;
@@ -441,7 +462,7 @@ end;
 
 function Box3dAvgSize(const Box: TBox3d): Single;
 begin
- Check(not IsEmptyBox3d(Box), 'Empty box 3d - no average size');
+ CheckNonEmpty(Box);
  {korzystamy z faktu ze Box3d ma wierzcholki uporzadkowane
   i w zwiazku z tym w roznicach ponizej nie musimy robic abs() }
  result := ((Box[1, 0]-Box[0, 0]) +
@@ -460,7 +481,7 @@ end;
 
 function Box3dMaxSize(const box: TBox3d): Single;
 begin
-  Check(not IsEmptyBox3d(Box), 'Empty box 3d - no maximum size');
+  CheckNonEmpty(Box);
   Result := Max(
      Box[1, 0] - Box[0, 0],
      Box[1, 1] - Box[0, 1],
@@ -479,7 +500,7 @@ end;
 
 function Box3dMinSize(const box: TBox3d): Single;
 begin
- Check(not IsEmptyBox3d(Box), 'Empty box 3d - no maximum size');
+ CheckNonEmpty(Box);
 
  Result := Min(
    Box[1, 0] - Box[0, 0],
@@ -496,19 +517,19 @@ end;
 
 function Box3dSizeX(const box: TBox3d): Single;
 begin
-  Check(not IsEmptyBox3d(Box), 'Empty box 3d - no size');
+  CheckNonEmpty(Box);
   Result := Box[1, 0] - Box[0, 0];
 end;
 
 function Box3dSizeY(const box: TBox3d): Single;
 begin
-  Check(not IsEmptyBox3d(Box), 'Empty box 3d - no size');
+  CheckNonEmpty(Box);
   Result := Box[1, 1] - Box[0, 1];
 end;
 
 function Box3dSizeZ(const box: TBox3d): Single;
 begin
-  Check(not IsEmptyBox3d(Box), 'Empty box 3d - no size');
+  CheckNonEmpty(Box);
   Result := Box[1, 2] - Box[0, 2];
 end;
 
@@ -807,7 +828,7 @@ end;
 
 function Box3dSizes(const Box: TBox3d): TVector3Single;
 begin
-  Check(not IsEmptyBox3d(Box), 'Empty box 3d - no size');
+  CheckNonEmpty(Box);
   Result[0] := Box[1, 0] - Box[0, 0];
   Result[1] := Box[1, 1] - Box[0, 1];
   Result[2] := Box[1, 2] - Box[0, 2];
@@ -1552,6 +1573,39 @@ begin
   if SphereCenter[2] > Box[1][2] then D += Sqr(SphereCenter[2] - Box[1][2]);
 
   Result := D <= Sqr(SphereRadius);
+end;
+
+function Box3dMaximumPlane(const Box: TBox3d;
+  const Direction: TVector3Single): TVector4Single;
+var
+  BoxBool: TBox3dBool absolute Box;
+  ResultDir: TVector3Single absolute Result;
+begin
+  CheckNonEmpty(Box);
+
+  { first 3 plane components are just copied from Direction }
+  ResultDir := Direction;
+
+(*
+  { calculate box corner that intersects resulting plane:
+    just choose appropriate coords using Direction. }
+  P[0] := BoxBool[Direction[0] >= 0][0];
+  P[1] := BoxBool[Direction[1] >= 0][1];
+  P[2] := BoxBool[Direction[2] >= 0][2];
+
+  { calculate 4th plane component.
+    Plane must intersect P, so
+      P[0] * Result[0] + .... + Result[3] = 0
+  }
+  Result[3] := - (P[0] * Result[0] +
+                  P[1] * Result[1] +
+                  P[2] * Result[2]);
+*)
+
+  { optimized version, just do this in one go: }
+  Result[3] := - (BoxBool[Direction[0] >= 0][0] * Result[0] +
+                  BoxBool[Direction[1] >= 0][1] * Result[1] +
+                  BoxBool[Direction[2] >= 0][2] * Result[2]);
 end;
 
 end.

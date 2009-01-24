@@ -33,6 +33,7 @@ type
     procedure TestIsBox3dTriangleCollision;
     procedure TestIsBox3dTriangleCollisionEpsilons;
     procedure TestBox3dTransform;
+    procedure TestBox3dMaximumPlane;
   end;
 
 implementation
@@ -701,6 +702,33 @@ begin
   for I := 0 to 1000000 do Box3dTransform(Box, Matrix);
   Writeln(Format('Box3dTransform: %f', [ProcessTimerEnd]));
   {$endif BOX3D_TRANSFORM_SPEED_TEST}
+end;
+
+procedure TTestBoxes3d.TestBox3dMaximumPlane;
+begin
+  try
+    Box3dMaximumPlane(EmptyBox3d, Vector3Single(1, 1, 1));
+  except
+    on E: EBox3dEmpty do { Ok };
+  end;
+
+  Assert(VectorsEqual(Box3dMaximumPlane(Box3d(
+    Vector3Single(2, 3, 4),
+    Vector3Single(50, 60, 70)), Vector3Single(-1, 0, 0)),
+    Vector4Single(-1, 0, 0, 2)));
+
+  Assert(VectorsEqual(Box3dMaximumPlane(Box3d(
+    Vector3Single(2, 3, 4),
+    Vector3Single(50, 60, 70)), Vector3Single(0, 0, -1)),
+    Vector4Single(0, 0, -1, 4)));
+
+  Assert(VectorsEqual(Box3dMaximumPlane(Box3d(
+    Vector3Single(2, 3, 4),
+    Vector3Single(50, 60, 70)), Vector3Single(1, 1, 1)),
+    Vector4Single(1, 1, 1,
+      { 50 + 60 + 70 + Result[3] = 0 }
+      - 50 - 60 - 70
+    )));
 end;
 
 initialization
