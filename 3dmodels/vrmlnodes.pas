@@ -558,7 +558,7 @@ type
       ParentShape.Texture (note that it may be nil, if Apperance
       of Appearance.Texture node is NULL in VRML).
       Otherwise it returns texture from LastNodes.Texture2. }
-    function AnyTexture: TNodeX3DTextureNode;
+    function Texture: TNodeX3DTextureNode;
 
     { Returns BlendMode for this state, or @nil if not present.
 
@@ -3838,11 +3838,11 @@ begin
   end;
 end;
 
-function TVRMLGraphTraverseState.AnyTexture: TNodeX3DTextureNode;
+function TVRMLGraphTraverseState.Texture: TNodeX3DTextureNode;
 begin
   if ParentShape = nil then
     Result := LastNodes.Texture2 else
-    Result := ParentShape.AnyTexture;
+    Result := ParentShape.Texture;
 end;
 
 function TVRMLGraphTraverseState.BlendMode: TNodeBlendMode;

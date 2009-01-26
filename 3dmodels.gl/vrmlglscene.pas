@@ -2017,7 +2017,7 @@ procedure TVRMLGLScene.PrepareAndCalculateUseBlendingForAll;
         are prepared, if any has full range alpha channel ---
         then force blending. }
 
-      Tex := State.AnyTexture;
+      Tex := State.Texture;
       if Tex <> nil then
       begin
         if Tex is TVRMLTextureNode then
@@ -2666,7 +2666,7 @@ begin
 
   if TextureImageChanged then
   begin
-    Renderer.Unprepare(Shape.State.AnyTexture);
+    Renderer.Unprepare(Shape.State.Texture);
     TVRMLGLShape(Shape).PreparedAndUseBlendingCalculated := false;
   end;
 end;

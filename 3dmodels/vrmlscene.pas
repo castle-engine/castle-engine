@@ -3039,7 +3039,7 @@ begin
       try
         while SI.GetNext do
         begin
-          ShapeTexture := SI.Current.State.AnyTexture;
+          ShapeTexture := SI.Current.State.Texture;
           if (ShapeTexture = Node) or
              ( (ShapeTexture is TNodeMultiTexture) and
                (TNodeMultiTexture(ShapeTexture).FdTexture.Items.IndexOf(Node) <> -1) ) then

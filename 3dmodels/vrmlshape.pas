@@ -671,7 +671,7 @@ begin
       If texture is MovieTexture, or it's MultiTexture containing
       MovieTexture as a child, then disable display lists. }
     FEnableDisplayList := true;
-    T := State.AnyTexture;
+    T := State.Texture;
     if T is TNodeMovieTexture then
       FEnableDisplayList := false else
     if T is TNodeMultiTexture then

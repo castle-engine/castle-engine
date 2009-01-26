@@ -3241,7 +3241,7 @@ begin
         FontStyle.TTF_Font);
   end;
 
-  PrepareTexture(State.AnyTexture);
+  PrepareTexture(State.Texture);
 
   PrepareGLSLProgram;
 end;
@@ -3867,10 +3867,10 @@ begin
           that is normal TextureTransform and such is ignored (treated
           like identity transform, *not* applied to 1st texture unit).
 
-          By the way, we don't do any texture transform if AnyTexture = nil,
+          By the way, we don't do any texture transform if Texture = nil,
           since then no texture is used anyway. }
-        if (State.AnyTexture <> nil) and
-           (not (State.AnyTexture is TNodeMultiTexture)) then
+        if (State.Texture <> nil) and
+           (not (State.Texture is TNodeMultiTexture)) then
         begin
           TextureTransformUnitsUsed := 1;
           ActiveTexture(0);
@@ -4123,7 +4123,7 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
 
     AlphaTest := false;
 
-    TextureNode := CurrentState.AnyTexture;
+    TextureNode := CurrentState.Texture;
     {$ifdef USE_VRML_NODES_TRIANGULATION}
     { We don't generate texture coords, so disable textures. }
     TextureNode := nil;
