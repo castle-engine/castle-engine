@@ -537,7 +537,7 @@ procedure TIndexedFaceSetRenderer.RenderVertex(IndexNum: Integer);
     { This is OK, we want Vertex in object space here. }
     Vertex := Coord.Items.ItemsArray^[CoordIndex.Items.Items[indexNum]];
 
-    Check(GetTextureCoord(IndexNum, Tex), 'TexCoord for BumpMapping');
+    Check(GetTextureCoord(IndexNum, 0, Tex), 'TexCoord for BumpMapping');
 
     { set all textures coordinates }
     case BumpMappingMethod of
@@ -966,9 +966,9 @@ procedure TIndexedFaceSetRenderer.RenderCoordsRange(
 
       HasTangentVectors :=
         { calculate TriangleTexCoord }
-        GetTextureCoord(BeginIndex    , TriangleTexCoord[0]) and
-        GetTextureCoord(BeginIndex + 1, TriangleTexCoord[1]) and
-        GetTextureCoord(BeginIndex + 2, TriangleTexCoord[2]) and
+        GetTextureCoord(BeginIndex    , 0, TriangleTexCoord[0]) and
+        GetTextureCoord(BeginIndex + 1, 0, TriangleTexCoord[1]) and
+        GetTextureCoord(BeginIndex + 2, 0, TriangleTexCoord[2]) and
         { calculate STangent, TTangent }
         CalculateTangent(true , STangent, Triangle3D, TriangleTexCoord) and
         CalculateTangent(false, TTangent, Triangle3D, TriangleTexCoord) and
@@ -1074,7 +1074,7 @@ begin
   ANode := Geometry as TNodeIndexedFaceSet_1;
 
   TexCoordIndex := ANode.FdTextureCoordIndex;
-  TexCoord := State.LastNodes.TextureCoordinate2.FdPoint;
+  TexCoord := State.LastNodes.TextureCoordinate2;
 
   MaterialIndex := ANode.FdMaterialIndex;
   MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
@@ -1115,7 +1115,7 @@ begin
   ANode := Geometry as TNodeIndexedFaceSet_2;
 
   TexCoordIndex := ANode.FdTexCoordIndex;
-  TexCoord := ANode.TexCoord;
+  TexCoord := ANode.FdTexCoord.Value;
 
   Normals := ANode.NormalItems;
   if Normals <> nil then

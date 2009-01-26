@@ -74,10 +74,6 @@
     function Coord(State: TVRMLGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
 
-    { Returns texCoord.point field, assuming that texCoord is set and
-      specifies TextureCoordinate node. Otherwise returns @nil. }
-    function TexCoord: TMFVec2f;
-
     { Returns color.point field, assuming that color is set and
       specifies Color node. Otherwise returns @nil. }
     function Color: TMFVec3f;
@@ -510,14 +506,6 @@ begin
      (FdCoord.Value is TNodeCoordinate) then
     ACoord := TNodeCoordinate(FdCoord.Value).FdPoint else
     ACoord := nil;
-end;
-
-function TNodeX3DComposedGeometryNode.TexCoord: TMFVec2f;
-begin
-  if (FdTexCoord.Value <> nil) and
-     (FdTexCoord.Value is TNodeTextureCoordinate) then
-    Result := TNodeTextureCoordinate(FdTexCoord.Value).FdPoint else
-    Result := nil;
 end;
 
 function TNodeX3DComposedGeometryNode.Color: TMFVec3f;
