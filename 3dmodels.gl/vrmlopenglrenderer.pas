@@ -3979,6 +3979,12 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       Render) that texture failed to load. You should then disable
       the texture unit, and you don't have to generate tex coords for it.
 
+      When returns @true (success) you can be sure that the specified
+      TextureUnit is currently bound (if OpenGL multitexturing
+      extensions are available at all). This is useful, if you want
+      to later adjust texture unit parameters, like
+      glTexEnvi(GL_TEXTURE_ENV, ...).
+
       AlphaTest may be modified, but only to true, by this procedure. }
     function EnableNonMultiTexture(const TextureUnit: Cardinal;
       TextureNode: TVRMLTextureNode;
@@ -3988,7 +3994,6 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       begin
         ActiveTexture(TextureUnit);
         glEnable(GL_TEXTURE_2D);
-        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
         glBindTexture(GL_TEXTURE_2D, GLTexture);
       end;
@@ -4042,6 +4047,9 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
             if (IndexedFaceRenderer.TexHeightMap = 0) and
                (MeshRenderer.BumpMappingMethod >= bmGLSLParallax) then
               MeshRenderer.BumpMappingMethod := bmGLSLNormal;
+
+            { Bind specified TextureUnit. }
+            ActiveTexture(TextureUnit);
           end else
             EnableClassicTexturing(TexImageReference^.GLName);
         end else
@@ -4078,10 +4086,31 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       Sets enabled/disabled texture state for all texture units < TexCount. }
     procedure EnableMultiTexture(const TexCount: Cardinal;
       MultiTexture: TNodeMultiTexture);
+
+      function MultiTexModeToString(const S: string): TGLint;
+      var
+        LS: string;
+      begin
+        LS := LowerCase(S);
+        if LS = 'modulate' then
+          Result := GL_MODULATE else
+        if LS = 'replace' then
+          Result := GL_REPLACE else
+        if LS = 'add' then
+          Result := GL_ADD else
+        if LS = 'subtract' then
+          Result := GL_SUBTRACT else
+        begin
+          Result := GL_MODULATE;
+          VRMLNonFatalError(Format('Not supported multi-texturing mode "%s"', [S]))
+        end;
+      end;
+
     var
       ChildTex: TVRMLNode;
       I: Integer;
       Success: boolean;
+      Mode: TGLint;
     begin
       Assert(Integer(TexCount) <= MultiTexture.FdTexture.Items.Count);
       for I := 0 to Integer(TexCount) - 1 do
@@ -4094,7 +4123,43 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
           if ChildTex is TNodeMultiTexture then
             VRMLNonFatalError('Child of MultiTexture node cannot be another MultiTexture node') else
           if ChildTex is TVRMLTextureNode then
+          begin
             Success := EnableNonMultiTexture(I, TVRMLTextureNode(ChildTex), false);
+
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+
+            if I < MultiTexture.FdMode.Count then
+              Mode := MultiTexModeToString(MultiTexture.FdMode.Items[I]) else
+              { X3D spec says explicitly that default mode is "MODULATE" }
+              Mode := GL_MODULATE;
+
+            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, Mode);
+            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, Mode);
+
+            if Mode = GL_REPLACE then
+            begin
+              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
+              glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+
+              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_TEXTURE);
+              glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
+            end else
+            begin
+              { TODO: for now, we always have 2 arguments for given Mode,
+                and we use all std settings. }
+              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS);
+              glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+
+              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_PREVIOUS);
+              glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
+
+              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
+              glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
+
+              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA_EXT, GL_TEXTURE);
+              glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA_EXT, GL_SRC_ALPHA);
+            end;
+          end;
         end;
 
         if not Success then
@@ -4138,7 +4203,12 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       if TextureNode is TVRMLTextureNode then
       begin
         if EnableNonMultiTexture(0, TVRMLTextureNode(TextureNode), true) then
-          TexCoordsNeeded := 1 else
+        begin
+          { TODO: this should be fixed, for non-multi tex decal
+            is standard? }
+          glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+          TexCoordsNeeded := 1;
+        end else
           TexCoordsNeeded := 0;
       end else
       if TextureNode is TNodeMultiTexture then
