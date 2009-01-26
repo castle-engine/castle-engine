@@ -2685,6 +2685,7 @@ var
   SI: TVRMLShapeTreeIterator;
   NodeInfo: PTransformNodeInfo;
   TransformShapesParentInfo: TShapesParentInfo;
+  ShapeTexture: TNodeX3DTextureNode;
 begin
   NodeLastNodesIndex := Node.TraverseStateLastNodesIndex;
 
@@ -3037,8 +3038,13 @@ begin
       SI := TVRMLShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
-          if SI.Current.State.Texture = Node then
+        begin
+          ShapeTexture := SI.Current.State.AnyTexture;
+          if (ShapeTexture = Node) or
+             ( (ShapeTexture is TNodeMultiTexture) and
+               (TNodeMultiTexture(ShapeTexture).FdTexture.Items.IndexOf(Node) <> -1) ) then
             ChangedShapeFields(SI.Current, false, true);
+        end;
       finally FreeAndNil(SI) end;
     end else
     if (Node is TNodeKambiAppearance) and

@@ -548,12 +548,6 @@ type
       For example, it ignores Transform, AverageScaleTransform, InvertedTransform. }
     function EqualsNoTransform(SecondValue: TVRMLGraphTraverseState): boolean;
 
-    { Non-multi texture node.
-
-      TODO: this is supposed to be removed, and then AnyTexture will be renamed
-      to just Texture. When multi-texture will be fully supported. }
-    function Texture: TVRMLTextureNode;
-
     { Returns texture node that should be used for nodes within this State.
       Regardless of VRML/X3D version. May return multi-texture
       (TNodeMultiTexture), or normal 2D texture (TVRMLTextureNode),
@@ -3842,13 +3836,6 @@ begin
       if SecondValue.LastNodes.Nodes[I] <> LastNodes.Nodes[I] then
         Exit(false);
   end;
-end;
-
-function TVRMLGraphTraverseState.Texture: TVRMLTextureNode;
-begin
-  if ParentShape = nil then
-    Result := LastNodes.Texture2 else
-    Result := ParentShape.Texture;
 end;
 
 function TVRMLGraphTraverseState.AnyTexture: TNodeX3DTextureNode;

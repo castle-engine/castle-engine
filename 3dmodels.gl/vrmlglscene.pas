@@ -1984,8 +1984,10 @@ procedure TVRMLGLScene.PrepareAndCalculateUseBlendingForAll;
   var
     Result: boolean;
     State: TVRMLGraphTraverseState;
-    Tex: TVRMLTextureNode;
+    Tex: TNodeX3DTextureNode;
+    MultiTex: TMFNode;
     AlphaChannelType: TAlphaChannelType;
+    I: Integer;
   begin
     State := Shape.State;
 
@@ -2010,11 +2012,34 @@ procedure TVRMLGLScene.PrepareAndCalculateUseBlendingForAll;
 
     if not Result then
     begin
-      { check texture for full range alpha channel }
-      Tex := State.Texture;
-      if (Tex <> nil) and
-        Renderer.PreparedTextureAlphaChannelType(Tex, AlphaChannelType) then
-        Result := AlphaChannelType = atFullRange;
+      { Check texture(s) for full range alpha channel.
+        Take all textures (may be > 1 in case of multitexturing) that
+        are prepared, if any has full range alpha channel ---
+        then force blending. }
+
+      Tex := State.AnyTexture;
+      if Tex <> nil then
+      begin
+        if Tex is TVRMLTextureNode then
+        begin
+          if Renderer.PreparedTextureAlphaChannelType(TVRMLTextureNode(Tex), AlphaChannelType) then
+            Result := AlphaChannelType = atFullRange;
+        end else
+        if Tex is TNodeMultiTexture then
+        begin
+          MultiTex := TNodeMultiTexture(Tex).FdTexture;
+          for I := 0 to MultiTex.Count - 1 do
+          begin
+            if (MultiTex.Items[I] <> nil) and
+               (MultiTex.Items[I] is TVRMLTextureNode) and
+               (Renderer.PreparedTextureAlphaChannelType(TVRMLTextureNode(MultiTex.Items[I]), AlphaChannelType)) then
+            begin
+              Result := AlphaChannelType = atFullRange;
+              if Result then Exit;
+            end;
+          end;
+        end;
+      end;
     end;
 
     Shape.UseBlending := Result;
@@ -2641,7 +2666,7 @@ begin
 
   if TextureImageChanged then
   begin
-    Renderer.Unprepare(Shape.State.Texture);
+    Renderer.Unprepare(Shape.State.AnyTexture);
     TVRMLGLShape(Shape).PreparedAndUseBlendingCalculated := false;
   end;
 end;

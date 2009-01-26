@@ -3247,30 +3247,55 @@ begin
 end;
 
 procedure TVRMLOpenGLRenderer.Unprepare(Node: TVRMLNode);
-var i: integer;
+
+  procedure UnprepareSingleTexture(Tex: TVRMLTextureNode);
+  var
+    i: integer;
+  begin
+    i := TextureImageReferences.TextureNodeIndex(Tex);
+    if i >= 0 then
+    begin
+      Cache.TextureImage_DecReference(TextureImageReferences.Items[i].GLName);
+      TextureImageReferences.Delete(i, 1);
+    end;
+
+    i := TextureVideoReferences.TextureNodeIndex(Tex);
+    if i >= 0 then
+    begin
+      Cache.TextureVideo_DecReference(TextureVideoReferences.Items[i].GLVideo);
+      TextureVideoReferences.Delete(i, 1);
+    end;
+  end;
+
+  procedure UnprepareMultiTexture(Tex: TNodeMultiTexture);
+  var
+    TexItem: TVRMLNode;
+    I: Integer;
+  begin
+    for I := 0 to Tex.FdTexture.Count - 1 do
+    begin
+      TexItem := Tex.FdTexture.Items[I];
+      if (TexItem <> nil) and
+         (TexItem is TVRMLTextureNode) then
+        UnprepareSingleTexture(TVRMLTextureNode(TexItem));
+    end;
+  end;
+
+var
+  I: Integer;
 begin
- {zwracam uwage ze nie niszczymy tu fontow dla (LastNode is TNodeFontStyle)
-  bo fonty sa gromadzone w tablicy Cache.Fonts i wszystkie Font Styles
-  o takich samych wlasciwosciach Family i Style korzystaja zawsze z tego
-  samego juz utworzonego fontu.}
+  {zwracam uwage ze nie niszczymy tu fontow dla (LastNode is TNodeFontStyle)
+   bo fonty sa gromadzone w tablicy Cache.Fonts i wszystkie Font Styles
+   o takich samych wlasciwosciach Family i Style korzystaja zawsze z tego
+   samego juz utworzonego fontu.}
 
- {niszczymy teksture}
- if Node is TVRMLTextureNode then
- begin
-   i := TextureImageReferences.TextureNodeIndex(TVRMLTextureNode(Node));
-   if i >= 0 then
-   begin
-     Cache.TextureImage_DecReference(TextureImageReferences.Items[i].GLName);
-     TextureImageReferences.Delete(i, 1);
-   end;
+  { unprepare single texture }
+  if Node is TVRMLTextureNode then
+    UnprepareSingleTexture(TVRMLTextureNode(Node)) else
 
-   i := TextureVideoReferences.TextureNodeIndex(TVRMLTextureNode(Node));
-   if i >= 0 then
-   begin
-     Cache.TextureVideo_DecReference(TextureVideoReferences.Items[i].GLVideo);
-     TextureVideoReferences.Delete(i, 1);
-   end;
- end;
+  { unprepare multi texture }
+  if Node is TNodeMultiTexture then
+    UnprepareMultiTexture(TNodeMultiTexture(Node)) else
 
   { unprepare GLSLProgram }
   { This is not used for now anywhere actually ? Nowhere I unprepare
