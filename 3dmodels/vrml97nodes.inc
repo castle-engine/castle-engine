@@ -137,6 +137,10 @@
 
     procedure LoadInlined(CanReload: boolean);
     procedure UnLoadInlined;
+
+    { Call this to indicate that you loaded the inline contents directly,
+      by using AddChild yourself. }
+    procedure LoadedInlineDirectly;
   end;
 
   TNodeNurbsCurve_2 = class(TNodeX3DGeometryNode)
@@ -519,6 +523,9 @@ begin
     if CanReload then UnLoadInlined else Exit;
   end;
 
+  Assert(not Loaded);
+  Assert(ChildrenCount = 0);
+
   if not FdLoad.Value then Exit;
 
   NewNode := nil;
@@ -557,6 +564,11 @@ begin
     Loaded to true here. This way we will not try to reload this inline
     at next BeforeTraverse (this would be bad, as we already did
     VRMLNonFatalError in case loading failed and such). }
+  Loaded := true;
+end;
+
+procedure TNodeInlineLoadControl.LoadedInlineDirectly;
+begin
   Loaded := true;
 end;
 

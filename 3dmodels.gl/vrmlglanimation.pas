@@ -939,6 +939,24 @@ procedure TVRMLGLAnimation.LoadCore(
     Result := TVRMLNodeClass(Model1.ClassType).Create(Model1.NodeName,
       Model1.WWWBasePath);
     try
+      { We already loaded all inlines (in CheckVRMLModelsStructurallyEqual).
+        We have to mark it now, by setting Loaded := true field as necessary
+        inside inline nodes --- otherwise, they could be loaded again
+        (adding content to already existing nodes, making content loaded
+        more than once). }
+      if Result is TNodeWWWInline then
+      begin
+        TNodeWWWInline(Result).LoadedInlineDirectly;
+      end else
+      if Result is TNodeInline then
+      begin
+        TNodeInline(Result).LoadedInlineDirectly;
+      end else
+      if Result is TNodeInlineLoadControl then
+      begin
+        TNodeInline(Result).LoadedInlineDirectly;
+      end;
+
       { TODO: the code below doesn't deal efficiently with the situation when single
         TVRMLNode is used as a child many times in one of the nodes.
         (through VRML "USE" keyword). Code below will then unnecessarily

@@ -907,6 +907,10 @@
     procedure LoadInlined(CanReload: boolean);
     procedure UnLoadInlined;
 
+    { Call this to indicate that you loaded the inline contents directly,
+      by using AddChild yourself. }
+    procedure LoadedInlineDirectly;
+
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
@@ -2470,7 +2474,15 @@ begin
     if CanReload then UnLoadInlined else exit;
   end;
 
+  Assert(not Loaded);
+  Assert(ChildrenCount = 0);
+
   AddChild(LoadAsVRML(PathFromWWWBasePath(FdName.Value), false));
+  Loaded := true;
+end;
+
+procedure TNodeWWWInline.LoadedInlineDirectly;
+begin
   Loaded := true;
 end;
 
