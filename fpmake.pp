@@ -18,15 +18,16 @@ var
 begin
   with Installer do
   begin
-    P := AddPackage('KambiVRMLGameEngine');
+    P := AddPackage('kambi-vrml-game-engine');
 
-    P.OSes := AllUnixOSes + [win32, win64];
-    { Actually, the tested OSes are:
-      P.OSes := [win32, freebsd, darwin, linux]; }
+    { Actually, may work on at least
+        P.OSes := AllUnixOSes + [win32, win64];
+      OSes below are actually tested. }
+    P.OSes := [darwin, linux, freebsd, win32];
 
     P.Options := '@kambi.cfg';
 
-    { Add dependencies.
+    { Add dependencies on FPC packages.
       These aren't really needed, as your default fpc.cfg should
       point to them anyway. They are needed only when compiling with --nofpccfg.
       Anyway, maybe this is a good place to document my dependencies
@@ -43,6 +44,14 @@ begin
     if Defaults.OS in AllWindowsOSes then
     begin
     end;
+
+    { Some general variables, visible only (as far as I can see) when
+      using "./fpmake manifest". }
+    P.Author := 'Michalis Kamburelis';
+    P.License := 'GNU GPL >= 2';
+    P.HomepageURL := 'http://vrmlengine.sourceforge.net/';
+    P.Email := 'michalis.kambi' + '@gmail.com'; { at least protect sources from spammers }
+    P.Version := '1.7.0';
 
     P.SourcePath.Add('3dgraph');
     P.Targets.AddUnit('backgroundbase.pas');
