@@ -1982,7 +1982,7 @@ procedure TVRMLGLScene.PrepareAndCalculateUseBlendingForAll;
 
   procedure CalculateUseBlending(Shape: TVRMLGLShape);
   var
-    Result: boolean;
+    UseBlending: boolean;
     State: TVRMLGraphTraverseState;
     Tex: TNodeX3DTextureNode;
     MultiTex: TMFNode;
@@ -2008,9 +2008,9 @@ procedure TVRMLGLScene.PrepareAndCalculateUseBlendingForAll;
       AlphaChannelType efficiently.
     }
 
-    Result := Shape.Transparent;
+    UseBlending := Shape.Transparent;
 
-    if not Result then
+    if not UseBlending then
     begin
       { Check texture(s) for full range alpha channel.
         Take all textures (may be > 1 in case of multitexturing) that
@@ -2023,7 +2023,7 @@ procedure TVRMLGLScene.PrepareAndCalculateUseBlendingForAll;
         if Tex is TVRMLTextureNode then
         begin
           if Renderer.PreparedTextureAlphaChannelType(TVRMLTextureNode(Tex), AlphaChannelType) then
-            Result := AlphaChannelType = atFullRange;
+            UseBlending := AlphaChannelType = atFullRange;
         end else
         if Tex is TNodeMultiTexture then
         begin
@@ -2034,15 +2034,15 @@ procedure TVRMLGLScene.PrepareAndCalculateUseBlendingForAll;
                (MultiTex.Items[I] is TVRMLTextureNode) and
                (Renderer.PreparedTextureAlphaChannelType(TVRMLTextureNode(MultiTex.Items[I]), AlphaChannelType)) then
             begin
-              Result := AlphaChannelType = atFullRange;
-              if Result then Exit;
+              UseBlending := AlphaChannelType = atFullRange;
+              if UseBlending then Break;
             end;
           end;
         end;
       end;
     end;
 
-    Shape.UseBlending := Result;
+    Shape.UseBlending := UseBlending;
   end;
 
 var
