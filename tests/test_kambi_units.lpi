@@ -2,16 +2,16 @@
 <CONFIG>
   <ProjectOptions>
     <PathDelim Value="/"/>
-    <Version Value="6"/>
+    <Version Value="7"/>
     <General>
       <Flags>
         <SaveClosedFiles Value="False"/>
+        <LRSInOutputDirectory Value="False"/>
       </Flags>
       <MainUnit Value="0"/>
-      <IconPath Value="./"/>
       <TargetFileExt Value=""/>
       <Title Value="test_kambi_units"/>
-      <ActiveEditorIndexAtStart Value="4"/>
+      <ActiveEditorIndexAtStart Value="1"/>
     </General>
     <PublishOptions>
       <Version Value="2"/>
@@ -39,14 +39,16 @@
         <PackageName Value="FCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="18">
+    <Units Count="16">
       <Unit0>
         <Filename Value="test_kambi_units.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="test_kambi_units"/>
         <CursorPos X="51" Y="20"/>
-        <TopLine Value="1"/>
+        <TopLine Value="12"/>
+        <EditorIndex Value="1"/>
         <UsageCount Value="37"/>
+        <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="testkambiclassutils.pas"/>
@@ -86,9 +88,7 @@
         <UnitName Value="TestDynArrays"/>
         <CursorPos X="60" Y="72"/>
         <TopLine Value="36"/>
-        <EditorIndex Value="1"/>
         <UsageCount Value="34"/>
-        <Loaded Value="True"/>
       </Unit5>
       <Unit6>
         <Filename Value="TestFNMatch.pas"/>
@@ -151,77 +151,26 @@
         <Loaded Value="True"/>
       </Unit14>
       <Unit15>
-        <Filename Value="../base/kambidynlib.pas"/>
-        <UnitName Value="KambiDynLib"/>
-        <CursorPos X="1" Y="221"/>
-        <TopLine Value="183"/>
-        <EditorIndex Value="2"/>
-        <UsageCount Value="10"/>
-        <Loaded Value="True"/>
+        <Filename Value="../3dmodels.gl/examples/shadow_fields/testshadowfields.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="TestShadowFields"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="20"/>
       </Unit15>
-      <Unit16>
-        <Filename Value="../base/kambiutils_os_error.inc"/>
-        <CursorPos X="1" Y="89"/>
-        <TopLine Value="60"/>
-        <EditorIndex Value="3"/>
-        <UsageCount Value="10"/>
-        <Loaded Value="True"/>
-      </Unit16>
-      <Unit17>
-        <Filename Value="../base/parseparametersunit.pas"/>
-        <UnitName Value="ParseParametersUnit"/>
-        <CursorPos X="1" Y="587"/>
-        <TopLine Value="564"/>
-        <EditorIndex Value="4"/>
-        <UsageCount Value="10"/>
-        <Loaded Value="True"/>
-      </Unit17>
     </Units>
-    <JumpHistory Count="10" HistoryIndex="9">
+    <JumpHistory Count="1" HistoryIndex="0">
       <Position1>
         <Filename Value="../audio/kambiogg.pas"/>
         <Caret Line="1" Column="1" TopLine="1"/>
       </Position1>
-      <Position2>
-        <Filename Value="testdynarrays.pas"/>
-        <Caret Line="6" Column="1" TopLine="1"/>
-      </Position2>
-      <Position3>
-        <Filename Value="testdynarrays.pas"/>
-        <Caret Line="72" Column="60" TopLine="36"/>
-      </Position3>
-      <Position4>
-        <Filename Value="../base/kambidynlib.pas"/>
-        <Caret Line="221" Column="1" TopLine="183"/>
-      </Position4>
-      <Position5>
-        <Filename Value="../base/kambiutils_os_error.inc"/>
-        <Caret Line="89" Column="1" TopLine="60"/>
-      </Position5>
-      <Position6>
-        <Filename Value="../base/parseparametersunit.pas"/>
-        <Caret Line="616" Column="1" TopLine="592"/>
-      </Position6>
-      <Position7>
-        <Filename Value="../base/parseparametersunit.pas"/>
-        <Caret Line="634" Column="1" TopLine="611"/>
-      </Position7>
-      <Position8>
-        <Filename Value="../base/parseparametersunit.pas"/>
-        <Caret Line="587" Column="1" TopLine="564"/>
-      </Position8>
-      <Position9>
-        <Filename Value="../base/parseparametersunit.pas"/>
-        <Caret Line="747" Column="1" TopLine="724"/>
-      </Position9>
-      <Position10>
-        <Filename Value="../base/parseparametersunit.pas"/>
-        <Caret Line="753" Column="1" TopLine="730"/>
-      </Position10>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="8"/>
+    <SearchPaths>
+      <OtherUnitFiles Value="../3dmodels.gl/examples/shadow_fields/"/>
+    </SearchPaths>
     <Parsing>
       <SyntaxOptions>
         <IncludeAssertionCode Value="True"/>
