@@ -49,7 +49,11 @@ begin
       using "./fpmake manifest". }
     P.Author := 'Michalis Kamburelis';
     P.License := 'GNU GPL >= 2';
-    P.HomepageURL := 'http://vrmlengine.sourceforge.net/';
+    {$ifdef VER2_2_2}
+    P.ExternalURL
+    {$else}
+    P.HomepageURL
+    {$endif} := 'http://vrmlengine.sourceforge.net/';
     P.Email := 'michalis.kambi' + '@gmail.com'; { at least protect sources from spammers }
     P.Version := '1.7.0';
 
