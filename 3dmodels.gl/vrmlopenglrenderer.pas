@@ -1855,6 +1855,8 @@ begin
   { program must be active to set uniform values. }
   GLSLProgram.Enable;
 
+  CheckGLErrors('Cleaning GL errors before setting GLSL uniform:');
+
   try
     if UniformValue is TSFBool then
       GLSLProgram.SetUniform(UniformName, TSFBool(UniformValue).Value) else
@@ -1908,6 +1910,16 @@ begin
 
       VRMLNonFatalError('Setting uniform GLSL variable from X3D field type "' + UniformValue.VRMLTypeName + '" not supported');
 
+    { Invalid glUniform call, that specifies wrong uniform variable type,
+      may cause OpenGL error "invalid operation". We want to catch it,
+      and convert into appropriate nice VRML warning.
+      We cleaned GL error before doing SetUniform, so if there's an error
+      now --- we know it's because of SetUniform.
+
+      CheckGLError below will raise EOpenGLError, will be catched
+      and converter to VRMLNonFatalError below. }
+    CheckGLErrors;
+
     { TODO: other field types, full list is in X3D spec in
       "OpenGL shading language (GLSL) binding".
       Remaining:
@@ -1930,6 +1942,13 @@ begin
         WritelnLog('GLSL', 'ComposedShader specifies uniform variable ' +
           'name not found (or not used) in the shader source: ' +
           E.Message);
+    end;
+
+    on E: EOpenGLError do
+    begin
+      VRMLNonFatalError(
+        Format('When setting GLSL uniform variable "%s": ', [UniformName])
+        + E.Message);
     end;
   end;
 
