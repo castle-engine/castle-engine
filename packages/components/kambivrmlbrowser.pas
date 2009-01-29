@@ -521,14 +521,17 @@ begin
   if Scene.OctreeCollisions <> nil then
   begin
     Result := Scene.OctreeCollisions.MoveAllowed(
-      ANavigator.CameraPos, ProposedNewPos, NewPos, ANavigator.CameraRadius,
-      { Don't let user to fall outside of the box because of gravity. }
-      BecauseOfGravity);
+      ANavigator.CameraPos, ProposedNewPos, NewPos, ANavigator.CameraRadius);
   end else
   begin
     Result := true;
     NewPos := ProposedNewPos;
   end;
+
+  { Don't let user to fall outside of the box because of gravity. }
+  if Result and BecauseOfGravity then
+    Result := SimpleKeepAboveMinPlane(NewPos, Scene.BoundingBox,
+      ANavigator.GravityUp);
 end;
 
 procedure TKamVRMLBrowser.GetCameraHeight(ANavigator: TWalkNavigator;

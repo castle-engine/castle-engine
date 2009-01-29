@@ -569,10 +569,6 @@ type
       See @link(MoveAllowed) for some more sophisticated way of
       collision detection.
 
-      If KeepWithinRootBox then it will additionally make sure that
-      user stays within the whole octree box. That is, moving outside
-      of the RootNode.Box will be disallowed.
-
       TriangleToIgnore and TrianglesToIgnoreFunc meaning
       is just like for RayCollision. This can be used to allow
       camera to walk thorugh some surfaces (e.g. through water
@@ -585,7 +581,6 @@ type
     function MoveAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
       const CameraRadius: Single;
-      const KeepWithinRootBox: boolean;
       const TriangleToIgnore: PVRMLTriangle = nil;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc = nil): boolean;
 
@@ -594,7 +589,6 @@ type
     function MoveBoxAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
       const ProposedNewBox: TBox3d;
-      const KeepWithinRootBox: boolean;
       const TriangleToIgnore: PVRMLTriangle = nil;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc = nil): boolean;
 
@@ -618,23 +612,47 @@ type
       NewPos is undefined (especiall since NewPos is "out" parameter
       and it may be implicitly modified anyway).
 
-      If KeepWithinRootBox then it will additionally make sure that
-      user stays within the whole octree box. That is, moving outside
-      of the RootNode.Box will be disallowed.
+      If KeepAboveMinPlane then we will additionally make sure that
+      the resulting position is above (or exactly on) the @italic(minimal plane).
+      Minimal plane in calculated as minimal plane intersecting
+      MinPlaneBox pointed at direction MinPlaneDirection (see
+      Box3dMinimumPlane for more precise definition).
+      When MinPlaneBox is empty and KeepAboveMinPlane, then
+      we will not allow any move.
+
+      KeepAboveMinPlane is specifically useful for handling moves because
+      of gravity. Typically, you can pass KeepAboveMinPlane = BecauseOfGravity
+      (where BecauseOfGravity comes from callback like Navigation.TMoveAllowedFunc),
+      MinPlaneBox = your animation box, MinPlaneDirection = gravity up vector.
+      This way, we will not allow player to fall below the lowest plane
+      when gravity works --- this is good sometimes, otherwise the player
+      could fall infinitely down outside of this box.
 
       TriangleToIgnore and TrianglesToIgnoreFunc meaning
       is just like for RayCollision.
 
       @seealso(TWalkNavigator.DoMoveAllowed
         TWalkNavigator.DoMoveAllowed is some place
-        where you can use this function) }
+        where you can use this function)
+
+      @groupBegin }
     function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single;
       out NewPos: TVector3Single;
       const CameraRadius: Single;
-      const KeepWithinRootBox: boolean;
+      const KeepAboveMinPlane: boolean;
+      const MinPlaneBox: TBox3d;
+      const MinPlaneDirection: TVector3Single;
       const TriangleToIgnore: PVRMLTriangle = nil;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc = nil): boolean;
+
+    function MoveAllowed(
+      const OldPos, ProposedNewPos: TVector3Single;
+      out NewPos: TVector3Single;
+      const CameraRadius: Single;
+      const TriangleToIgnore: PVRMLTriangle = nil;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc = nil): boolean;
+    { @groupEnd }
 
     { For given camera position and up vector, calculate camera height
       above the ground. This is comfortable for cooperation with
@@ -752,6 +770,14 @@ type
       const Triangle: PVRMLTriangle): boolean;
     constructor Create(AOneItem: PVRMLTriangle);
   end;
+
+{ Check is NewPos above the minimal plane, just like
+  TVRMLBaseTrianglesOctree.MoveAllowed does when KeepAboveMinPlane = @true.
+  Sometimes it's useful to call this separately. }
+function SimpleKeepAboveMinPlane(
+  const NewPos: TVector3Single;
+  const MinPlaneBox: TBox3d;
+  const MinPlaneDirection: TVector3Single): boolean;
 
 {$undef read_interface}
 
@@ -1129,10 +1155,34 @@ end;
 
 { MoveAllowed / GetCameraHeight methods -------------------------------------- }
 
+function SimpleKeepAboveMinPlane(
+  const NewPos: TVector3Single;
+  const MinPlaneBox: TBox3d;
+  const MinPlaneDirection: TVector3Single): boolean;
+var
+  GravityPlane: TVector4Single;
+begin
+  if IsEmptyBox3d(MinPlaneBox) then
+    Result := false else
+  begin
+    { TODO: instead of setting Result to false, this should
+      actually update NewPos so that it's *exactly* on the GravityPlane.
+      In other words, implementation below is Ok for MoveAllowedSimple,
+      but for full-features MoveAllowed we can do something slightly better.
+
+      Doesn't seem to matter in practice, it's not noticeable. }
+
+    GravityPlane := Box3dMinimumPlane(MinPlaneBox, MinPlaneDirection);
+    Result := GravityPlane[0] * NewPos[0] +
+              GravityPlane[1] * NewPos[1] +
+              GravityPlane[2] * NewPos[2] +
+              GravityPlane[3] >= 0;
+  end;
+end;
+
 function TVRMLBaseTrianglesOctree.MoveAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const CameraRadius: Single;
-  const KeepWithinRootBox: boolean;
   const TriangleToIgnore: PVRMLTriangle;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
 begin
@@ -1141,19 +1191,11 @@ begin
       TriangleToIgnore, false, TrianglesToIgnoreFunc)) and
     (not IsSphereCollision(ProposedNewPos, CameraRadius,
       TriangleToIgnore, TrianglesToIgnoreFunc));
-
-  if Result and
-     KeepWithinRootBox then
-    { TODO: instead of setting Result to false, this should
-      actually move NewPos so that it's *exactly* on the border
-      of bounding box. }
-    Result := Box3dPointInside(ProposedNewPos, InternalTreeRoot.Box);
 end;
 
 function TVRMLBaseTrianglesOctree.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const ProposedNewBox: TBox3d;
-  const KeepWithinRootBox: boolean;
   const TriangleToIgnore: PVRMLTriangle;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
 begin
@@ -1162,20 +1204,12 @@ begin
       TriangleToIgnore, false, TrianglesToIgnoreFunc)) and
     (not IsBoxCollision(ProposedNewBox,
       TriangleToIgnore, TrianglesToIgnoreFunc));
-
-  if Result and
-     KeepWithinRootBox then
-    { TODO: instead of setting Result to false, this should
-      actually move NewPos so that it's *exactly* on the border
-      of bounding box. }
-    Result := Box3dPointInside(ProposedNewPos, InternalTreeRoot.Box);
 end;
 
 function TVRMLBaseTrianglesOctree.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single;
   out NewPos: TVector3Single;
   const CameraRadius: Single;
-  const KeepWithinRootBox: boolean;
   const TriangleToIgnore: PVRMLTriangle;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
 
@@ -1211,7 +1245,7 @@ function TVRMLBaseTrianglesOctree.MoveAllowed(
       (e.g. if player is trying to walk into the corner (two walls)).
       I can do it by using my simple MoveAllowedSimple. }
 
-    Result := MoveAllowedSimple(OldPos, NewPos, CameraRadius, false,
+    Result := MoveAllowedSimple(OldPos, NewPos, CameraRadius,
       TriangleToIgnore, TrianglesToIgnoreFunc);
   end;
 
@@ -1240,13 +1274,22 @@ begin
       Result := MoveAlongTheBlocker(Blocker);
   end else
     Result := MoveAlongTheBlocker(Blocker);
+end;
 
-  if Result and
-     KeepWithinRootBox then
-    { TODO: instead of setting Result to false, this should
-      actually move NewPos so that it's *exactly* on the border
-      of bounding box. }
-    Result := Box3dPointInside(NewPos, InternalTreeRoot.Box);
+function TVRMLBaseTrianglesOctree.MoveAllowed(
+  const OldPos, ProposedNewPos: TVector3Single;
+  out NewPos: TVector3Single;
+  const CameraRadius: Single;
+  const KeepAboveMinPlane: boolean;
+  const MinPlaneBox: TBox3d;
+  const MinPlaneDirection: TVector3Single;
+  const TriangleToIgnore: PVRMLTriangle;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+begin
+  Result := MoveAllowed(OldPos, ProposedNewPos, NewPos, CameraRadius,
+    TriangleToIgnore, TrianglesToIgnoreFunc);
+  if Result and KeepAboveMinPlane then
+    Result := SimpleKeepAboveMinPlane(NewPos, MinPlaneBox, MinPlaneDirection);
 end;
 
 procedure TVRMLBaseTrianglesOctree.GetCameraHeight(

@@ -124,7 +124,7 @@ class function THelperObj.MoveAllowed(Navigator: TWalkNavigator;
 begin
   Result := Scene.OctreeCollisions.MoveAllowed(
     Navigator.CameraPos, ProposedNewPos, NewPos, CameraRadius,
-    BecauseOfGravity);
+    BecauseOfGravity, Scene.BoundingBox, Navigator.GravityUp);
 end;
 
 var

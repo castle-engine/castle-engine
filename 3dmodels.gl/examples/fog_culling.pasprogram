@@ -157,7 +157,7 @@ class function TDummy.MoveAllowed(Navigator: TWalkNavigator;
 begin
  Result := Scene.OctreeCollisions.MoveAllowed(
    Navigator.CameraPos, ProposedNewPos, NewPos, CameraRadius,
-   BecauseOfGravity, nil, nil);
+   BecauseOfGravity, Scene.BoundingBox, Navigator.GravityUp);
 end;
 
 var
