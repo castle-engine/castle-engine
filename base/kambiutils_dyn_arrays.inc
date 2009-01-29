@@ -209,7 +209,7 @@ type
 
   {$define DYNARRAY_11_USE_EQUALITY_OP}
   {$define DYNARRAY_11_USE_PLUSMINUS_OP}
-  TDynArrayItem_11 = Double  ; PDynArrayItem_11 = PDouble  ; {$I dynarray_11.inc} TDynDoubleArray   = TDynArray_11; TArray_Double   = TInfiniteArray_11; PArray_Double   = PInfiniteArray_11;
+  TDynArrayItem_11 = Double  ; PDynArrayItem_11 = PDouble  ; {$I dynarray_11.inc} {TDynDoubleArray is below}        TArray_Double   = TInfiniteArray_11; PArray_Double   = PInfiniteArray_11;
 
   {$define DYNARRAY_12_USE_EQUALITY_OP}
   {$define DYNARRAY_12_USE_PLUSMINUS_OP}
@@ -239,11 +239,16 @@ type
     procedure AppendFloats(Floats: TDynFloatArray);
   end;
 
+  TDynDoubleArray = class(TDynArray_11)
+    function ToSingle: TDynSingleArray;
+  end;
+
   TDynCardinalArray = class(TDynArray_1)
     function BigSum: Int64;
   end;
 
   TDynBooleanArray = class(TDynArray_16)
+  public
     { SetFalse and SetTrue are trivial methods that set appropriate
       Items[Index] to given value. They are useful methods to pass
       as callback in some situations (e.g. TVRMLGLScene.RenderFrustumOctree
@@ -251,6 +256,8 @@ type
       that should mark visible items). }
     procedure SetFalse(Index: Integer);
     procedure SetTrue(Index: Integer);
+
+    function ToLongInt: TDynLongIntArray;
   end;
 
 {$endif}
@@ -397,6 +404,17 @@ begin
  for i := 0 to Floats.High do Items[OldCount+i] := Floats.Items[i];
 end;
 
+{ TDynDoubleArray ------------------------------------------------------------ }
+
+function TDynDoubleArray.ToSingle: TDynSingleArray;
+var
+  I: Integer;
+begin
+  Result := TDynSingleArray.Create(Count);
+  for I := 0 to High do
+    Result.Items[I] := Items[I];
+end;
+
 { TDynCardinalArray ------------------------------------------------------------ }
 
 function TDynCardinalArray.BigSum: Int64;
@@ -416,6 +434,15 @@ end;
 procedure TDynBooleanArray.SetTrue(Index: Integer);
 begin
  Items[Index] := true;
+end;
+
+function TDynBooleanArray.ToLongInt: TDynLongIntArray;
+var
+  I: Integer;
+begin
+  Result := TDynLongIntArray.Create(Count);
+  for I := 0 to High do
+    Result.Items[I] := Ord(Items[I]);
 end;
 
 {$endif}

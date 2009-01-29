@@ -370,6 +370,8 @@ type
     and some more "infinite" arrays defined by the way. }
 
   { }
+  TDynVector4SingleArray = class;
+
   TDynArrayItem_1 = TVector3Single;
   PDynArrayItem_1 = PVector3Single;
   {$define DYNARRAY_1_IS_STRUCT}
@@ -377,6 +379,7 @@ type
   TArray_Vector3Single = TInfiniteArray_1;
   PArray_Vector3Single = PInfiniteArray_1;
   TDynVector3SingleArray = class(TDynArray_1)
+  public
     procedure AssignNegated(Source: TDynVector3SingleArray);
     { Negate all items. }
     procedure Negate;
@@ -395,6 +398,10 @@ type
       (although it's Ok for current implementation). }
     procedure AssignLerp(const Fraction: Single;
       V1, V2: TDynVector3SingleArray; Index1, Index2, ACount: Integer);
+
+    { Convert to TDynVector4SingleArray, with 4th vector component in
+      new array set to constant W. }
+    function ToVector4Single(const W: Single): TDynVector4SingleArray;
   end;
 
   TDynArrayItem_2 = TVector2Single;
@@ -421,7 +428,7 @@ type
   {$I dynarray_5.inc}
   TArray_Vector4Single = TInfiniteArray_5;
   PArray_Vector4Single = PInfiniteArray_5;
-  TDynVector4SingleArray = TDynArray_5;
+  TDynVector4SingleArray = class(TDynArray_5);
 
   TDynArrayItem_3 = TVector3Cardinal;
   PDynArrayItem_3 = PVector3Cardinal;
@@ -437,7 +444,10 @@ type
   {$I dynarray_6.inc}
   TArray_Vector2Double = TInfiniteArray_6;
   PArray_Vector2Double = PInfiniteArray_6;
-  TDynVector2DoubleArray = TDynArray_6;
+  TDynVector2DoubleArray = class(TDynArray_6)
+  public
+    function ToVector2Single: TDynVector2SingleArray;
+  end;
 
   TDynArrayItem_7 = TVector3Double;
   PDynArrayItem_7 = PVector3Double;
@@ -445,7 +455,10 @@ type
   {$I dynarray_7.inc}
   TArray_Vector3Double = TInfiniteArray_7;
   PArray_Vector3Double = PInfiniteArray_7;
-  TDynVector3DoubleArray = TDynArray_7;
+  TDynVector3DoubleArray = class(TDynArray_7)
+  public
+    function ToVector3Single: TDynVector3SingleArray;
+  end;
 
   TDynArrayItem_8 = TVector4Double;
   PDynArrayItem_8 = PVector4Double;
@@ -453,7 +466,10 @@ type
   {$I dynarray_8.inc}
   TArray_Vector4Double = TInfiniteArray_8;
   PArray_Vector4Double = PInfiniteArray_8;
-  TDynVector4DoubleArray = TDynArray_8;
+  TDynVector4DoubleArray = class(TDynArray_8)
+  public
+    function ToVector4Single: TDynVector4SingleArray;
+  end;
 
   TDynArrayItem_9 = TMatrix3Single;
   PDynArrayItem_9 = PMatrix3Single;
@@ -469,7 +485,10 @@ type
   {$I dynarray_10.inc}
   TArray_Matrix3Double = TInfiniteArray_10;
   PArray_Matrix3Double = PInfiniteArray_10;
-  TDynMatrix3DoubleArray = TDynArray_10;
+  TDynMatrix3DoubleArray = class(TDynArray_10)
+  public
+    function ToMatrix3Single: TDynMatrix3SingleArray;
+  end;
 
   TDynArrayItem_11 = TMatrix4Single;
   PDynArrayItem_11 = PMatrix4Single;
@@ -485,7 +504,10 @@ type
   {$I dynarray_12.inc}
   TArray_Matrix4Double = TInfiniteArray_12;
   PArray_Matrix4Double = PInfiniteArray_12;
-  TDynMatrix4DoubleArray = TDynArray_12;
+  TDynMatrix4DoubleArray = class(TDynArray_12)
+  public
+    function ToMatrix4Single: TDynMatrix4SingleArray;
+  end;
 
   { Exceptions }
 
@@ -2227,6 +2249,15 @@ begin
     Items[I] := Lerp(Fraction, V1.Items[Index1 + I], V2.Items[Index2 + I]);
 end;
 
+function TDynVector3SingleArray.ToVector4Single(const W: Single): TDynVector4SingleArray;
+var
+  I: Integer;
+begin
+  Result := TDynVector4SingleArray.Create(Count);
+  for I := 0 to High do
+    Result.Items[I] := Vector4Single(Items[I], W);
+end;
+
 { TDynVector2SingleArray ----------------------------------------------------- }
 
 function TDynVector2SingleArray.MinMax(out Min, Max: TVector2Single): boolean;
@@ -2257,6 +2288,93 @@ begin
   Count := ACount;
   for I := 0 to Count - 1 do
     Items[I] := Lerp(Fraction, V1.Items[Index1 + I], V2.Items[Index2 + I]);
+end;
+
+{ TDyn*Double ---------------------------------------------------------------- }
+
+function TDynVector2DoubleArray.ToVector2Single: TDynVector2SingleArray;
+var
+  I: Integer;
+  Source: PDouble;
+  Dest: PSingle;
+begin
+  Result := TDynVector2SingleArray.Create(Count);
+  Source := PDouble(ItemsArray);
+  Dest := PSingle(Result.ItemsArray);
+  for I := 0 to Count * 2 - 1 do
+  begin
+    Dest^ := Source^;
+    Inc(Source);
+    Inc(Dest);
+  end;
+end;
+
+function TDynVector3DoubleArray.ToVector3Single: TDynVector3SingleArray;
+var
+  I: Integer;
+  Source: PDouble;
+  Dest: PSingle;
+begin
+  Result := TDynVector3SingleArray.Create(Count);
+  Source := PDouble(ItemsArray);
+  Dest := PSingle(Result.ItemsArray);
+  for I := 0 to Count * 3 - 1 do
+  begin
+    Dest^ := Source^;
+    Inc(Source);
+    Inc(Dest);
+  end;
+end;
+
+function TDynVector4DoubleArray.ToVector4Single: TDynVector4SingleArray;
+var
+  I: Integer;
+  Source: PDouble;
+  Dest: PSingle;
+begin
+  Result := TDynVector4SingleArray.Create(Count);
+  Source := PDouble(ItemsArray);
+  Dest := PSingle(Result.ItemsArray);
+  for I := 0 to Count * 4 - 1 do
+  begin
+    Dest^ := Source^;
+    Inc(Source);
+    Inc(Dest);
+  end;
+end;
+
+function TDynMatrix3DoubleArray.ToMatrix3Single: TDynMatrix3SingleArray;
+var
+  I: Integer;
+  Source: PDouble;
+  Dest: PSingle;
+begin
+  Result := TDynMatrix3SingleArray.Create(Count);
+  Source := PDouble(ItemsArray);
+  Dest := PSingle(Result.ItemsArray);
+  for I := 0 to Count * 3 * 3 - 1 do
+  begin
+    Dest^ := Source^;
+    Inc(Source);
+    Inc(Dest);
+  end;
+end;
+
+function TDynMatrix4DoubleArray.ToMatrix4Single: TDynMatrix4SingleArray;
+var
+  I: Integer;
+  Source: PDouble;
+  Dest: PSingle;
+begin
+  Result := TDynMatrix4SingleArray.Create(Count);
+  Source := PDouble(ItemsArray);
+  Dest := PSingle(Result.ItemsArray);
+  for I := 0 to Count * 4 * 4 - 1 do
+  begin
+    Dest^ := Source^;
+    Inc(Source);
+    Inc(Dest);
+  end;
 end;
 
 { FloatsEqual ------------------------------------------------------------- }

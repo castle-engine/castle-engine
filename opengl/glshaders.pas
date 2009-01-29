@@ -1,5 +1,5 @@
 {
-  Copyright 2007 Michalis Kamburelis.
+  Copyright 2007-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -277,10 +277,6 @@ type
           active for your shader.)
       )
 
-      For now, there are no SetUniform versions to set uniform variables
-      of arrays type (that is, using "count" <> 1 for glUniform* calls).
-      Will be done when needed.
-
       @raises(EGLSLUniformNotFound If the variable is not found within
         the program and UniformNotFoundAction = uaException (default).
 
@@ -302,6 +298,15 @@ type
     procedure SetUniform(const Name: string; const Value: TMatrix2Single);
     procedure SetUniform(const Name: string; const Value: TMatrix3Single);
     procedure SetUniform(const Name: string; const Value: TMatrix4Single);
+
+    procedure SetUniform(const Name: string; const Value: TDynBooleanArray);
+    procedure SetUniform(const Name: string; const Value: TDynLongIntArray);
+    procedure SetUniform(const Name: string; const Value: TDynSingleArray);
+    procedure SetUniform(const Name: string; const Value: TDynVector2SingleArray);
+    procedure SetUniform(const Name: string; const Value: TDynVector3SingleArray);
+    procedure SetUniform(const Name: string; const Value: TDynVector4SingleArray);
+    procedure SetUniform(const Name: string; const Value: TDynMatrix3SingleArray);
+    procedure SetUniform(const Name: string; const Value: TDynMatrix4SingleArray);
     { @groupEnd }
 
     { Set attribute variable value.
@@ -1289,6 +1294,99 @@ begin
   case Support of
     gsARBExtension: begin GetLocationCheckARB glUniformMatrix4fvARB(Location, 1, GL_FALSE, @Value); end;
     gsStandard    : begin GetLocationCheck    glUniformMatrix4fv   (Location, 1, GL_FALSE, @Value); end;
+  end;
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynBooleanArray);
+var
+  Location: TGLint;
+  Ints: TDynLongIntArray;
+begin
+  { We cannot pass Value.ItemsArray, as Pascal booleans do not have 4 bytes
+    (well, actually I could change this by compiler directive or
+    by using LongBool for TDynBooleanArray --- but for TDynBooleanArray
+    this would enlarge it 4 times, not nice).
+
+    Unfortunately, there's no glUniform*ub (unsigned byte) or such function.
+
+    So convert to longints. }
+  Ints := Value.ToLongInt;
+  try
+    case Support of
+      gsARBExtension: begin GetLocationCheckARB glUniform1ivARB(Location, Value.Count, PGLint(Ints.ItemsArray)); end;
+      gsStandard    : begin GetLocationCheck    glUniform1iv   (Location, Value.Count, PGLint(Ints.ItemsArray)); end;
+    end;
+  finally FreeAndNil(Ints) end;
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynLongIntArray);
+var
+  Location: TGLint;
+begin
+  Assert(SizeOf(LongInt) = SizeOf(TGLint));
+  case Support of
+    gsARBExtension: begin GetLocationCheckARB glUniform1ivARB(Location, Value.Count, PGLint(Value.ItemsArray)); end;
+    gsStandard    : begin GetLocationCheck    glUniform1iv   (Location, Value.Count, PGLint(Value.ItemsArray)); end;
+  end;
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynSingleArray);
+var
+  Location: TGLint;
+begin
+  case Support of
+    gsARBExtension: begin GetLocationCheckARB glUniform1fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); end;
+    gsStandard    : begin GetLocationCheck    glUniform1fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); end;
+  end;
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynVector2SingleArray);
+var
+  Location: TGLint;
+begin
+  case Support of
+    gsARBExtension: begin GetLocationCheckARB glUniform2fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); end;
+    gsStandard    : begin GetLocationCheck    glUniform2fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); end;
+  end;
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynVector3SingleArray);
+var
+  Location: TGLint;
+begin
+  case Support of
+    gsARBExtension: begin GetLocationCheckARB glUniform3fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); end;
+    gsStandard    : begin GetLocationCheck    glUniform3fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); end;
+  end;
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynVector4SingleArray);
+var
+  Location: TGLint;
+begin
+  case Support of
+    gsARBExtension: begin GetLocationCheckARB glUniform4fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); end;
+    gsStandard    : begin GetLocationCheck    glUniform4fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); end;
+  end;
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynMatrix3SingleArray);
+var
+  Location: TGLint;
+begin
+  case Support of
+    gsARBExtension: begin GetLocationCheckARB glUniformMatrix3fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); end;
+    gsStandard    : begin GetLocationCheck    glUniformMatrix3fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); end;
+  end;
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynMatrix4SingleArray);
+var
+  Location: TGLint;
+begin
+  case Support of
+    gsARBExtension: begin GetLocationCheckARB glUniformMatrix4fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); end;
+    gsStandard    : begin GetLocationCheck    glUniformMatrix4fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); end;
   end;
 end;
 

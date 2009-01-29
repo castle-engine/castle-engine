@@ -1851,6 +1851,13 @@ end;
 procedure TVRMLOpenGLRendererContextCache.SetUniformFromField(
   GLSLProgram: TGLSLProgram; UniformName: string;
   UniformValue: TVRMLField);
+var
+  TempF: TDynSingleArray;
+  TempVec2f: TDynVector2SingleArray;
+  TempVec3f: TDynVector3SingleArray;
+  TempVec4f: TDynVector4SingleArray;
+  TempMat3f: TDynMatrix3SingleArray;
+  TempMat4f: TDynMatrix4SingleArray;
 begin
   { program must be active to set uniform values. }
   GLSLProgram.Enable;
@@ -1908,6 +1915,75 @@ begin
     if UniformValue is TSFMatrix4d then
       GLSLProgram.SetUniform(UniformName, Matrix4Single(TSFMatrix4d(UniformValue).Value)) else
 
+    { Now repeat this for array types }
+    if UniformValue is TMFBool then
+      GLSLProgram.SetUniform(UniformName, TMFBool(UniformValue).Items) else
+    if UniformValue is TMFLong then
+      GLSLProgram.SetUniform(UniformName, TMFLong(UniformValue).Items) else
+    if UniformValue is TMFVec2f then
+      GLSLProgram.SetUniform(UniformName, TMFVec2f(UniformValue).Items) else
+    if UniformValue is TMFColor then
+    begin
+      TempVec4f := TMFColor(UniformValue).Items.ToVector4Single(1.0);
+      try
+        GLSLProgram.SetUniform(UniformName, TempVec4f);
+      finally FreeAndNil(TempVec4f) end;
+    end else
+    if UniformValue is TMFVec3f then
+      GLSLProgram.SetUniform(UniformName, TMFVec3f(UniformValue).Items) else
+    if UniformValue is TMFVec4f then
+      GLSLProgram.SetUniform(UniformName, TMFVec4f(UniformValue).Items) else
+    if UniformValue is TMFRotation then
+      GLSLProgram.SetUniform(UniformName, TMFRotation(UniformValue).Items) else
+    if UniformValue is TMFMatrix3f then
+      GLSLProgram.SetUniform(UniformName, TMFMatrix3f(UniformValue).Items) else
+    if UniformValue is TMFMatrix4f then
+      GLSLProgram.SetUniform(UniformName, TMFMatrix4f(UniformValue).Items) else
+    if UniformValue is TMFFloat then
+      GLSLProgram.SetUniform(UniformName, TMFFloat(UniformValue).Items) else
+    if UniformValue is TMFDouble then
+    begin
+      TempF := TMFDouble(UniformValue).Items.ToSingle;
+      try
+        GLSLProgram.SetUniform(UniformName, TempF);
+      finally FreeAndNil(TempF) end;
+    end else
+    if UniformValue is TMFVec2d then
+    begin
+      TempVec2f := TMFVec2d(UniformValue).Items.ToVector2Single;
+      try
+        GLSLProgram.SetUniform(UniformName, TempVec2f);
+      finally FreeAndNil(TempVec2f) end;
+    end else
+    if UniformValue is TMFVec3d then
+    begin
+      TempVec3f := TMFVec3d(UniformValue).Items.ToVector3Single;
+      try
+        GLSLProgram.SetUniform(UniformName, TempVec3f);
+      finally FreeAndNil(TempVec3f) end;
+    end else
+    if UniformValue is TMFVec4d then
+    begin
+      TempVec4f := TMFVec4d(UniformValue).Items.ToVector4Single;
+      try
+        GLSLProgram.SetUniform(UniformName, TempVec4f);
+      finally FreeAndNil(TempVec4f) end;
+    end else
+    if UniformValue is TMFMatrix3d then
+    begin
+      TempMat3f := TMFMatrix3d(UniformValue).Items.ToMatrix3Single;
+      try
+        GLSLProgram.SetUniform(UniformName, TempMat3f);
+      finally FreeAndNil(TempMat3f) end;
+    end else
+    if UniformValue is TMFMatrix4d then
+    begin
+      TempMat4f := TMFMatrix4d(UniformValue).Items.ToMatrix4Single;
+      try
+        GLSLProgram.SetUniform(UniformName, TempMat4f);
+      finally FreeAndNil(TempMat4f) end;
+    end else
+
       VRMLNonFatalError('Setting uniform GLSL variable from X3D field type "' + UniformValue.VRMLTypeName + '" not supported');
 
     { Invalid glUniform call, that specifies wrong uniform variable type,
@@ -1924,7 +2000,6 @@ begin
       "OpenGL shading language (GLSL) binding".
       Remaining:
         SF/MFNode,
-        all MF.
         SF/MFImage }
 
   except

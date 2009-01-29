@@ -4674,28 +4674,28 @@ end;
 
 class function TMFMatrix3f.VRMLTypeName: string;
 begin
-  Result := 'Matrix3f';
+  Result := 'MFMatrix3f';
 end;
 
 { TMFMatrix3d ------------------------------------------------------------------- }
 
 class function TMFMatrix3d.VRMLTypeName: string;
 begin
-  Result := 'Matrix3d';
+  Result := 'MFMatrix3d';
 end;
 
 { TMFMatrix4f ------------------------------------------------------------------- }
 
 class function TMFMatrix4f.VRMLTypeName: string;
 begin
-  Result := 'Matrix4f';
+  Result := 'MFMatrix4f';
 end;
 
 { TMFMatrix4d ------------------------------------------------------------------- }
 
 class function TMFMatrix4d.VRMLTypeName: string;
 begin
-  Result := 'Matrix4d';
+  Result := 'MFMatrix4d';
 end;
 
 { TMFVec2f ------------------------------------------------------------------- }
