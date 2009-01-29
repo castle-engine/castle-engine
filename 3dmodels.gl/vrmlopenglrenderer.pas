@@ -1863,10 +1863,13 @@ begin
       GLSLProgram.SetUniform(UniformName, TSFLong(UniformValue).Value) else
     if UniformValue is TSFVec2f then
       GLSLProgram.SetUniform(UniformName, TSFVec2f(UniformValue).Value) else
+    { Check TSFColor first, otherwise TSFVec3f would also catch and handle
+      TSFColor. And we don't want this: for GLSL, color is passed
+      as vec4 (so says the spec, I guess that the reason is that for GLSL most
+      input/output colors are vec4). }
+    if UniformValue is TSFColor then
+      GLSLProgram.SetUniform(UniformName, Vector4Single(TSFColor(UniformValue).Value, 1.0)) else
     if UniformValue is TSFVec3f then
-      { Handling of SFVec3f also takes care of SFColor.
-        Although X3D spec says SFColor should go to vec4, not vec3,
-        but this is an error? SFColor has just 3 components... }
       GLSLProgram.SetUniform(UniformName, TSFVec3f(UniformValue).Value) else
     if UniformValue is TSFVec4f then
       GLSLProgram.SetUniform(UniformName, TSFVec4f(UniformValue).Value) else
