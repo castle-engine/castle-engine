@@ -665,7 +665,10 @@ function Zero(const f1, EqEpsilon: Extended): boolean; overload;
 
 function Vector2Cardinal(const x, y: Cardinal): TVector2Cardinal;
 function Vector2Integer(const x, y: Integer): TVector2Integer;
+
 function Vector2Single(const x, y: Single): TVector2Single;
+function Vector2Single(const V: TVector2Double): TVector2Single;
+
 function Vector2Double(const x, y: Double): TVector2Double;
 
 function Vector3Single(const x, y: Single; const z: Single = 0.0): TVector3Single; overload;
@@ -2360,6 +2363,12 @@ begin result[0] := x; result[1] := y end;
 
 function Vector2Single(const x, y: Single): TVector2Single;
 begin result[0] := x; result[1] := y end;
+
+function Vector2Single(const V: TVector2Double): TVector2Single;
+begin
+  Result[0] := V[0];
+  Result[1] := V[1];
+end;
 
 function Vector2Double(const x, y: Double): TVector2Double;
 begin result[0] := x; result[1] := y end;

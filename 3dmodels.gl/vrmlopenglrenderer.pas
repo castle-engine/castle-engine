@@ -1856,6 +1856,8 @@ begin
   GLSLProgram.Enable;
 
   try
+    if UniformValue is TSFBool then
+      GLSLProgram.SetUniform(UniformName, TSFBool(UniformValue).Value) else
     if UniformValue is TSFLong then
       { Handling of SFLong also takes care of SFInt32. }
       GLSLProgram.SetUniform(UniformName, TSFLong(UniformValue).Value) else
@@ -1877,11 +1879,38 @@ begin
     if UniformValue is TSFFloat then
       GLSLProgram.SetUniform(UniformName, TSFFloat(UniformValue).Value) else
     if UniformValue is TSFDouble then
+      { SFDouble also takes care of SFTime }
       GLSLProgram.SetUniform(UniformName, TSFDouble(UniformValue).Value) else
+
+    { Double-precision vector and matrix types.
+
+      Note that X3D spec specifies only mapping for SF/MFVec3d, 4d
+      (not specifying any mapping for SF/MFVec2d, and all matrix types).
+      And it specifies that they map to types float3, float4 ---
+      which are not valid types in GLSL?
+
+      So I simply ignore non-sensible specification, and take
+      the reasonable approach: support all double-precision vectors and matrices,
+      just like single-precision. }
+    if UniformValue is TSFVec2d then
+      GLSLProgram.SetUniform(UniformName, Vector2Single(TSFVec2d(UniformValue).Value)) else
+    if UniformValue is TSFVec3d then
+      GLSLProgram.SetUniform(UniformName, Vector3Single(TSFVec3d(UniformValue).Value)) else
+    if UniformValue is TSFVec4d then
+      GLSLProgram.SetUniform(UniformName, Vector4Single(TSFVec4d(UniformValue).Value)) else
+    if UniformValue is TSFMatrix3d then
+      GLSLProgram.SetUniform(UniformName, Matrix3Single(TSFMatrix3d(UniformValue).Value)) else
+    if UniformValue is TSFMatrix4d then
+      GLSLProgram.SetUniform(UniformName, Matrix4Single(TSFMatrix4d(UniformValue).Value)) else
+
       VRMLNonFatalError('Setting uniform GLSL variable from X3D field type "' + UniformValue.VRMLTypeName + '" not supported');
 
     { TODO: other field types, full list is in X3D spec in
-      "OpenGL shading language (GLSL) binding" }
+      "OpenGL shading language (GLSL) binding".
+      Remaining:
+        SF/MFNode,
+        all MF.
+        SF/MFImage }
 
   except
     { X3D spec "OpenGL shading language (GLSL) binding" says

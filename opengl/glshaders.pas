@@ -290,6 +290,7 @@ type
         call CheckGLErrors from time to time to catch them.)
 
       @groupBegin }
+    procedure SetUniform(const Name: string; const Value: boolean);
     procedure SetUniform(const Name: string; const Value: TGLint);
     procedure SetUniform(const Name: string; const Value: TVector2Integer);
     procedure SetUniform(const Name: string; const Value: TVector3Integer);
@@ -1159,6 +1160,27 @@ end;
     UniformNotFound(Name);
     Exit;
   end;}
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: boolean);
+var
+  Location: TGLint;
+begin
+  { GLSL "bool" types are set using the "i" version. From manpage:
+
+    "Either the i or the f variants
+     may be used to provide values for uniform variables of type
+     bool, bvec2, bvec3, bvec4, or arrays of these. The uniform
+     variable will be set to false if the input value is 0 or 0.0f,
+     and it will be set to true otherwise.
+    "
+
+    Which means that I can simply call glUniform1i, with Ord(Value). }
+
+  case Support of
+    gsARBExtension: begin GetLocationCheckARB glUniform1iARB(Location, Ord(Value)); end;
+    gsStandard    : begin GetLocationCheck    glUniform1i   (Location, Ord(Value)); end;
+  end;
+end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLint);
 var
