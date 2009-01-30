@@ -99,8 +99,7 @@ uses KambiUtils, KambiFilesUtils;
 procedure VRMLWarning_Write(
   const WarningType: TVRMLWarningType; const s: string);
 begin
-  WarningWrite(ProgramName+ ': VRML Warning[' +
-    WarningTypeToStr[WarningType] + ']: '+ S);
+  WarningWrite(ProgramName+ ': VRML Warning: '+ S);
 end;
 
 procedure VRMLWarning_RaiseErrorIfSerious(

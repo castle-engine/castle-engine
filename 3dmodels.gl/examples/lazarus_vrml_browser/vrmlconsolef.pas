@@ -35,8 +35,7 @@ uses MainF;
 procedure VRMLWarning_VrmlConsole(
   const WarningType: TVRMLWarningType; const S: string);
 begin
-  VrmlConsole.Memo1.Lines.Append(
-    '[' + WarningTypeToStr[WarningType] + ']: ' + S);
+  VrmlConsole.Memo1.Lines.Append(S);
   VrmlConsole.WasWarnings := true;
 end;
 
