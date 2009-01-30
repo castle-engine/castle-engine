@@ -459,7 +459,7 @@
     { Texture in this class is loaded z pliku (pole filename)
       lub inlined (pole image). Pierwszenstwo ma tekstura z pliku,
       jesli filename = '' (lub wystapi jakis blad przy ladowaniu z filename
-      ale VRMLNonFatalError to zignoruje) to zostanie uzyta tekstura inline.
+      ale VRMLWarning to zignoruje) to zostanie uzyta tekstura inline.
 
       BTW, in VRML 1.0 node z IsTextureLoaded = true i
       IsTextureImage = false tez ma swoje znaczenie:
@@ -1658,9 +1658,9 @@ begin
     Exit;
   except
     on E: Exception do
-      { pamietajmy ze VRMLNonFatalError moze spowodowac rzucenie wyjatku
+      { pamietajmy ze VRMLWarning moze spowodowac rzucenie wyjatku
         (chociaz nie musi) }
-      VRMLNonFatalError('Exception ' + E.ClassName +
+      VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
         ' occured when trying to load '+
         'texture from filename "' + FullUrl + '" : ' + E.Message);
   end;

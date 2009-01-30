@@ -5048,7 +5048,7 @@ begin
       begin
         { Do nothing, also do not report this NavigationInfo.type as unknown. }
       end else
-        VRMLNonFatalError(Format('Unknown NavigationInfo.type "%s"',
+        VRMLWarning(vwSerious, Format('Unknown NavigationInfo.type "%s"',
           [NavigationNode.FdType.Items[I]]));
 
   if Result = nil then

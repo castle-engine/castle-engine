@@ -160,8 +160,8 @@
     { Load shader code from node's URLs (or CDATA).
 
       Will return '' if no valid URLs and no CDATA present.
-      (assuming that VRMLNonFatalError will not raise
-      an exception; if VRMLNonFatalError will raise exception,
+      (assuming that VRMLWarning will not raise
+      an exception; if VRMLWarning will raise exception,
       then this will propagate this exception).
 
       Sets UsedFullUrl. }
@@ -473,9 +473,9 @@ begin
       Exit;
     except
       on E: Exception do
-        { pamietajmy ze VRMLNonFatalError moze spowodowac rzucenie wyjatku
+        { pamietajmy ze VRMLWarning moze spowodowac rzucenie wyjatku
           (chociaz nie musi) }
-        VRMLNonFatalError('Exception ' + E.ClassName +
+        VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
           ' occured when trying to load '+
           'shader file from URL "' + FullUrl + ' : ' + E.Message);
     end;

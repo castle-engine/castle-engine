@@ -249,7 +249,7 @@ begin
       Exit(ffSans) else
     if FdFamily.Items[I] = 'TYPEWRITER' then
       Exit(ffTypeWriter) else
-      VRMLNonFatalError('Font family "' + FdFamily.Items[I] + '" not supported');
+      VRMLWarning(vwSerious, 'Font family "' + FdFamily.Items[I] + '" not supported');
 
   { If no supported values on FdFamily.Items then fall back to serif }
   Result := ffSerif;
@@ -277,7 +277,7 @@ begin
       (FdStyle.Value = StyleItalic) or
       (FdStyle.Value = StylePlain) or
       (FdStyle.Value = '')) then
-      VRMLNonFatalError('Font style "' + FdStyle.Value + '" not supported');
+      VRMLWarning(vwSerious, 'Font style "' + FdStyle.Value + '" not supported');
   end;
 end;
 
@@ -297,7 +297,7 @@ begin
       (FdStyle.Value = StyleBold) or
       (FdStyle.Value = StylePlain) or
       (FdStyle.Value = '')) then
-      VRMLNonFatalError('Font style "' + FdStyle.Value + '" not supported');
+      VRMLWarning(vwSerious, 'Font style "' + FdStyle.Value + '" not supported');
   end;
 end;
 
@@ -314,7 +314,7 @@ begin
       test models. }
     J := UpperCase(FdJustify.Items[0]);
     if J <> FdJustify.Items[0] then
-      VRMLNonFatalError(Format(
+      VRMLWarning(vwSerious, Format(
         'Font justify value "%s" should be specified in uppercase',
         [ FdJustify.Items[0] ]));
 
@@ -329,23 +329,23 @@ begin
     { Some X3D models use old justify names, like cic.nist.gov X3D demos. }
     if J = 'LEFT' then
     begin
-      VRMLNonFatalError(Format(SJustifyObsolete, ['LEFT', 'BEGIN']));
+      VRMLWarning(vwSerious, Format(SJustifyObsolete, ['LEFT', 'BEGIN']));
       Result := fjBegin;
     end else
     if J = 'CENTER' then
     begin
-      VRMLNonFatalError(Format(SJustifyObsolete, ['CENTER', 'MIDDLE']));
+      VRMLWarning(vwSerious, Format(SJustifyObsolete, ['CENTER', 'MIDDLE']));
       Result := fjMiddle;
     end else
     if J = 'RIGHT' then
     begin
-      VRMLNonFatalError(Format(SJustifyObsolete, ['RIGHT', 'END']));
+      VRMLWarning(vwSerious, Format(SJustifyObsolete, ['RIGHT', 'END']));
       Result := fjEnd;
     end else
 
     begin
       Result := fjBegin;
-      VRMLNonFatalError('Font justify "' + FdJustify.Items[0] +
+      VRMLWarning(vwSerious, 'Font justify "' + FdJustify.Items[0] +
         '" not supported');
     end;
   end;

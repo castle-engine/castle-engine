@@ -38,7 +38,7 @@
     { zwracaja wartosc z odpowiedniego pola FdXxx lub,
       jesli ta wartosc jest -1, zwracaja Detail_Xxx.
 
-      (Jesli ta wartosc jest nieprawidlowa to wywoluja VRMLNonFatalError
+      (Jesli ta wartosc jest nieprawidlowa to wywoluja VRMLWarning
       a potem "po cichu" zmieniaja ta wartosc na wartosc wzieta z Detail_Xxx.
       A wiec poprawiaja blednego VRMLa.) }
     function QuadricStacks: Cardinal;
@@ -278,7 +278,7 @@ begin
  begin
   if Int64(TRIANGULATION_DETAIL_FIELD.Value) < Int64(TRIANGULATION_DETAIL_MIN) then
   begin
-   VRMLNonFatalError(Format('Node "KambiTriangulation" '+
+   VRMLWarning(vwSerious, Format('Node "KambiTriangulation" '+
      'field "%s" value is %d but must be >= %d (or = -1)',
      [TRIANGULATION_DETAIL_FIELD_STRING,
       TRIANGULATION_DETAIL_FIELD.Value,
@@ -519,7 +519,7 @@ begin
   ReplaceCount := Min(FdreplaceNames.Count, FdreplaceNodes.Count);
   if (FdreplaceNames.Count <> ReplaceCount) or
      (FdreplaceNodes.Count <> ReplaceCount) then
-    VRMLNonFatalError('replaceNames and replaceNodes for KambiInline node should have the same number of items');
+    VRMLWarning(vwSerious, 'replaceNames and replaceNodes for KambiInline node should have the same number of items');
 
   { After successfull loading, there's always exactly one child. }
   Assert(ChildrenCount = 1);
@@ -635,12 +635,12 @@ begin
   if FdMaxDepth.Value >= 0 then
     Limits.MaxDepth := FdMaxDepth.Value else
   if FdMaxDepth.Value <> -1 then
-    VRMLNonFatalError('KambiOctreeProperties.maxDepth must be >= -1');
+    VRMLWarning(vwSerious, 'KambiOctreeProperties.maxDepth must be >= -1');
 
   if FdLeafCapacity.Value >= 0 then
     Limits.LeafCapacity := FdLeafCapacity.Value else
   if FdLeafCapacity.Value <> -1 then
-    VRMLNonFatalError('KambiOctreeProperties.leafCapacity must be >= -1');
+    VRMLWarning(vwSerious, 'KambiOctreeProperties.leafCapacity must be >= -1');
 end;
 
 procedure RegisterKambiNodes;

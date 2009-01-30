@@ -92,7 +92,7 @@ const
     begin
       if not DOMGetAttribute(Element, AttrName, Result) then
       begin
-        VRMLNonFatalError('Missing ROUTE ' + AttrName + ' attribute');
+        VRMLWarning(vwSerious, 'Missing ROUTE ' + AttrName + ' attribute');
         Result := '';
       end;
     end;
@@ -135,7 +135,7 @@ const
          (Value[1] = '"') and
          (Value[Length(Value)] = '"') then
       begin
-        VRMLNonFatalError('X3D XML: found quotes around SFString value. Assuming incorrect X3D file, and stripping quotes from ''' + Value + '''. Note: this may cause accidental stripping of legal quotes (that could actually be wanted in string content). Well, thank the authors of many incorrect X3D files... this hack may hopefully be removed in the future.');
+        VRMLWarning(vwSerious, 'X3D XML: found quotes around SFString value. Assuming incorrect X3D file, and stripping quotes from ''' + Value + '''. Note: this may cause accidental stripping of legal quotes (that could actually be wanted in string content). Well, thank the authors of many incorrect X3D files... this hack may hopefully be removed in the future.');
         TSFString(Field).Value := Copy(Value, 2, Length(Value) - 2);
       end else
         TSFString(Field).Value := Value;
@@ -155,7 +155,7 @@ const
       begin
         if Value = SNull then
           SF.Value := nil else
-          VRMLNonFatalError(Format('Invalid node name for SFNode field: "%s"', [Value]));
+          VRMLWarning(vwSerious, Format('Invalid node name for SFNode field: "%s"', [Value]));
       end else
       begin
         Node := TVRMLNode(NodeNameBinding.Objects[NodeIndex]);
@@ -172,7 +172,7 @@ const
       if NodeIndex = -1 then
       begin
         { NULL not allowed for MFNode, like for SFNode }
-        VRMLNonFatalError(Format('Invalid node name for MFNode field: "%s"', [Value]));
+        VRMLWarning(vwSerious, Format('Invalid node name for MFNode field: "%s"', [Value]));
       end else
       begin
         Node := TVRMLNode(NodeNameBinding.Objects[NodeIndex]);
@@ -197,11 +197,11 @@ const
                 components should always be enclosed within double
                 quotes. We just do what Xj3D seems to do, that is
                 we handle this as a single string (producing a warning). }
-              VRMLNonFatalError('Error when parsing MFString field "' + Field.Name + '" value, probably missing double quotes (treating as a single string): ' + E.Message);
+              VRMLWarning(vwSerious, 'Error when parsing MFString field "' + Field.Name + '" value, probably missing double quotes (treating as a single string): ' + E.Message);
               TMFString(Field).Items.Count := 0;
               TMFString(Field).Items.AppendItem(Value);
             end else
-              VRMLNonFatalError('Error when parsing field "' + Field.Name + '" value: ' + E.Message);
+              VRMLWarning(vwSerious, 'Error when parsing field "' + Field.Name + '" value: ' + E.Message);
           end;
         end;
       finally FreeAndNil(Lexer) end;
@@ -218,19 +218,19 @@ const
 
     if Element.TagName <> 'connect' then
     begin
-      VRMLNonFatalError('Only <connect> elements are allowed inside <IS> element');
+      VRMLWarning(vwSerious, 'Only <connect> elements are allowed inside <IS> element');
       Exit;
     end;
 
     if not DOMGetAttribute(Element, 'nodeField', NodeField) then
     begin
-      VRMLNonFatalError('Missing "nodeField" inside <connect> element');
+      VRMLWarning(vwSerious, 'Missing "nodeField" inside <connect> element');
       Exit;
     end;
 
     if not DOMGetAttribute(Element, 'protoField', ProtoField) then
     begin
-      VRMLNonFatalError('Missing "protoField" inside <connect> element');
+      VRMLWarning(vwSerious, 'Missing "protoField" inside <connect> element');
       Exit;
     end;
 
@@ -269,7 +269,7 @@ const
           begin
             Child.FreeIfUnused;
             Child := nil;
-            VRMLNonFatalError('X3D field "' + Field.Name + '" is not SFNode or MFNode, but a node value (XML element) is specified');
+            VRMLWarning(vwSerious, 'X3D field "' + Field.Name + '" is not SFNode or MFNode, but a node value (XML element) is specified');
           end;
         end;
       end;
@@ -295,7 +295,7 @@ const
             NodeFieldOrEvent.PositionInParent := PositionInParent;
             Inc(PositionInParent);
           end else
-            VRMLNonFatalError(Format('<connect> element "nodeField" doesn''t indicate any known field/event name: "%s"', [NodeField]));
+            VRMLWarning(vwSerious, Format('<connect> element "nodeField" doesn''t indicate any known field/event name: "%s"', [NodeField]));
         end;
     finally FreeAndNil(I) end;
   end;
@@ -334,7 +334,7 @@ const
           Node.Fields[Index].PositionInParent := PositionInParent;
           Inc(PositionInParent);
         end else
-          VRMLNonFatalError('Unknown X3D field name (unhandled X3D XML attribute) "' + Attr.Name + '" in node "' + Node.NodeTypeName + '"');
+          VRMLWarning(vwSerious, 'Unknown X3D field name (unhandled X3D XML attribute) "' + Attr.Name + '" in node "' + Node.NodeTypeName + '"');
       end;
     end;
 
@@ -393,7 +393,7 @@ const
               end else
               begin
                 FreeAndNil(IDecl);
-                VRMLNonFatalError('X3D XML: specified <field> inside node, but this node doesn''t allow interface declaration with such accessType');
+                VRMLWarning(vwSerious, 'X3D XML: specified <field> inside node, but this node doesn''t allow interface declaration with such accessType');
               end;
             except
               FreeAndNil(IDecl);
@@ -415,7 +415,7 @@ const
                   and is different than current ContainerField. }
                 FieldIndex := Node.Fields.IndexOf(Child.DefaultContainerField);
                 if FieldIndex >= 0 then
-                  VRMLNonFatalError('X3D XML: containerField indicated unknown field name ("' + ContainerField + '" by node "' + Child.NodeTypeName + '" inside node "' + Node.NodeTypeName + '"), using the default containerField value "' + Child.DefaultContainerField + '" succeded');
+                  VRMLWarning(vwSerious, 'X3D XML: containerField indicated unknown field name ("' + ContainerField + '" by node "' + Child.NodeTypeName + '" inside node "' + Node.NodeTypeName + '"), using the default containerField value "' + Child.DefaultContainerField + '" succeded');
               end;
 
               if FieldIndex >= 0 then
@@ -454,12 +454,12 @@ const
                 begin
                   Child.FreeIfUnused;
                   Child := nil;
-                  VRMLNonFatalError('X3D field "' + ContainerField + '" is not SFNode or MFNode, but a node value (XML element) is specified');
+                  VRMLWarning(vwSerious, 'X3D field "' + ContainerField + '" is not SFNode or MFNode, but a node value (XML element) is specified');
                 end;
               end else
               begin
                 try
-                  VRMLNonFatalError('Unknown X3D field name (indicated by containerField value) "' + ContainerField + '" by node "' + Child.NodeTypeName + '" inside node "' + Node.NodeTypeName + '"');
+                  VRMLWarning(vwSerious, 'Unknown X3D field name (indicated by containerField value) "' + ContainerField + '" by node "' + Child.NodeTypeName + '" inside node "' + Node.NodeTypeName + '"');
                 finally
                   Child.FreeIfUnused;
                   Child := nil;
@@ -485,7 +485,7 @@ const
         begin
           Node.CDataExists := true;
           if not Node.CDataAllowed then
-            VRMLNonFatalError(Format('VRML / X3D node %s doesn''t allow CDATA section, but it''s specified',
+            VRMLWarning(vwSerious, Format('VRML / X3D node %s doesn''t allow CDATA section, but it''s specified',
               [Node.NodeTypeName]));
           { append all CData sections to Node.CData }
           repeat
@@ -519,7 +519,7 @@ const
     However, this is a particular parsing error, because we can probably
     pretty safely continue parsing, ignoring this error.
     So if you pass NilIfUnresolvedUSE = @true, this function will do
-    VRMLNonFatalError and simply return @nil.
+    VRMLWarning and simply return @nil.
 
     @raises(EX3DXmlNotAllowedError On various not-allowed errors.)
 
@@ -577,14 +577,14 @@ const
             begin
               if not DOMGetAttribute(ProtoIter.Current, 'name', FieldName) then
               begin
-                VRMLNonFatalError('X3D XML: missing "name" attribute for <fieldValue> element');
+                VRMLWarning(vwSerious, 'X3D XML: missing "name" attribute for <fieldValue> element');
                 Continue;
               end;
 
               FieldIndex := Result.Fields.IndexOf(FieldName);
               if FieldIndex = -1 then
               begin
-                VRMLNonFatalError(Format('X3D XML: <fieldValue> element references unknown field name "%s"', [FieldName]));
+                VRMLWarning(vwSerious, Format('X3D XML: <fieldValue> element references unknown field name "%s"', [FieldName]));
                 Continue;
               end;
 
@@ -599,7 +599,7 @@ const
               ParseISStatement(Result, ProtoIter.Current, PositionInParent);
             end else
             begin
-              VRMLNonFatalError(Format('X3D XML: only <fieldValue> or <IS> elements expected in prototype instantiation, but "%s" found', [ProtoIter.Current.TagName]));
+              VRMLWarning(vwSerious, Format('X3D XML: only <fieldValue> or <IS> elements expected in prototype instantiation, but "%s" found', [ProtoIter.Current.TagName]));
             end;
 
             Inc(PositionInParent);
@@ -615,7 +615,7 @@ const
           on E: EVRMLPrototypeInstantiateError do
             { Just write E.Message and silence the exception.
               Result will simply remain as TVRMLPrototypeNode instance in this case. }
-            VRMLNonFatalError(E.Message);
+            VRMLWarning(vwSerious, E.Message);
         end;
       end else
       begin
@@ -634,9 +634,9 @@ const
             ParseIgnoreToMatchingCurlyBracket. This is not needed for
             X3D XML, we can simply omit the node by not looking
             at it's attributes. All we need to do is to make
-            VRMLNonFatalError warning. }
+            VRMLWarning warning. }
 
-          VRMLNonFatalError('Unknown X3D node type "' + NodeTypeName + '"');
+          VRMLWarning(vwSerious, 'Unknown X3D node type "' + NodeTypeName + '"');
         end;
       end;
 
@@ -666,7 +666,7 @@ const
           if NilIfUnresolvedUSE then
           begin
             Result := nil;
-            VRMLNonFatalError(S);
+            VRMLWarning(vwSerious, S);
           end else
             raise EX3DXmlNotAllowedError.Create(S);
         end else
@@ -807,7 +807,7 @@ const
           Proto.InterfaceDeclarations.Add(I);
           ParseInterfaceDeclaration(I, Iter.Current, not ExternalProto);
         end else
-          VRMLNonFatalError('X3D XML: only <field> elements expected in prototype interface');
+          VRMLWarning(vwSerious, 'X3D XML: only <field> elements expected in prototype interface');
       end;
     finally FreeAndNil(Iter) end;
   end;
@@ -924,7 +924,7 @@ const
       end else
         { We allow PROFILE to be omitted.
           Actually, we do not use profile for anything right now. }
-        VRMLNonFatalError('X3D "profile" attribute missing');
+        VRMLWarning(vwSerious, 'X3D "profile" attribute missing');
     end;
 
     procedure ParseComponentsAndMetas;
@@ -960,10 +960,10 @@ const
               (Result as TVRMLRootNode_2).X3DComponentNames.AppendItem(ComponentName);
               (Result as TVRMLRootNode_2).X3DComponentLevels.AppendItem(ComponentLevel);
             end else
-              VRMLNonFatalError(Format('X3D XML: <component> element without required "name" attribute',
+              VRMLWarning(vwSerious, Format('X3D XML: <component> element without required "name" attribute',
                 [I.Current.TagName]));
           end else
-            VRMLNonFatalError(Format('X3D XML: unrecognized element "%s" in <head>',
+            VRMLWarning(vwSerious, Format('X3D XML: unrecognized element "%s" in <head>',
               [I.Current.TagName]));
         end;
       finally FreeAndNil(I) end;
@@ -1077,7 +1077,7 @@ begin
         DeFormat(Version, '%d.%d', [@VRMLVerMajor, @VRMLVerMinor]);
         if VRMLVerMajor < 3 then
         begin
-          VRMLNonFatalError(Format('X3D version number too low (%d.%d)', [VRMLVerMajor, VRMLVerMinor]));
+          VRMLWarning(vwSerious, Format('X3D version number too low (%d.%d)', [VRMLVerMajor, VRMLVerMinor]));
           VRMLVerMajor := 3;
           VRMLVerMinor := 2;
         end;
@@ -1086,7 +1086,7 @@ begin
         { Max X3D version number supported }
         VRMLVerMajor := 3;
         VRMLVerMinor := 2;
-        VRMLNonFatalError(Format('Missing X3D version number, assuming %d.%d', [VRMLVerMajor, VRMLVerMinor]));
+        VRMLWarning(vwSerious, Format('Missing X3D version number, assuming %d.%d', [VRMLVerMajor, VRMLVerMinor]));
       end;
 
       SceneElement := DOMGetChildElement(Doc.DocumentElement, 'Scene', true);

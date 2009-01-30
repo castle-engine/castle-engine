@@ -538,9 +538,9 @@ begin
       Break;
     except
       on E: Exception do
-        { pamietajmy ze VRMLNonFatalError moze spowodowac rzucenie wyjatku
+        { pamietajmy ze VRMLWarning moze spowodowac rzucenie wyjatku
           (chociaz nie musi) }
-        VRMLNonFatalError('Exception ' + E.ClassName +
+        VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
           ' occured when trying to load '+
           'inline file from URL "' + FullUrl + ' : ' + E.Message);
     end;
@@ -563,7 +563,7 @@ begin
   { Whether or not we successfully got NewNode <> nil, we always set
     Loaded to true here. This way we will not try to reload this inline
     at next BeforeTraverse (this would be bad, as we already did
-    VRMLNonFatalError in case loading failed and such). }
+    VRMLWarning in case loading failed and such). }
   Loaded := true;
 end;
 

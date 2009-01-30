@@ -384,7 +384,7 @@ begin
     CamDir := FdDirection.Items.Items[0];
     if ZeroVector(CamDir) then
     begin
-      VRMLNonFatalError('Viewpoint "direction" must not be zero, assuming defaults');
+      VRMLWarning(vwSerious, 'Viewpoint "direction" must not be zero, assuming defaults');
       CamDir := FdOrientation.RotatedPoint( StdVRMLCamDir );
     end;
   end else
@@ -395,7 +395,7 @@ begin
     CamUp := FdUp.Items.Items[0];
     if ZeroVector(CamUp) then
     begin
-      VRMLNonFatalError('Viewpoint "up" must not be zero, assuming defaults');
+      VRMLWarning(vwSerious, 'Viewpoint "up" must not be zero, assuming defaults');
       CamUp := FdOrientation.RotatedPoint( StdVRMLCamUp );
     end;
   end else

@@ -289,7 +289,7 @@ procedure TNodeLogger.EventWriteReceive(
 
   procedure StdOutNotAvail;
   begin
-    VRMLNonFatalError(
+    VRMLWarning(vwSerious, 
       'Logger node wants to write on standard output, but it seems that stdout (standard output) ' +
       'is not available. Under Windows you should explicitly ' +
       'redirect program''s stdout to make it available, e.g. ' +

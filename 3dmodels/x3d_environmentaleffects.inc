@@ -385,7 +385,7 @@ procedure TNodeBackground.SetBgImagesLoaded(const Value: boolean);
       except
         on E: Exception do
         begin
-          VRMLNonFatalError('Exception ' + E.ClassName +
+          VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
             ' occured when trying to load ' +
             'background image from URL "' + URL + '" : '+E.Message);
           { and silence exception }
@@ -408,7 +408,7 @@ begin
         LoadImg(bsTop, FdTopUrl);
       except
         { In case of trouble, free the images that were loaded.
-          This may happen if VRMLNonFatalError raises exception and some
+          This may happen if VRMLWarning raises exception and some
           image cannot be loaded. }
         BackgroundImagesFreeAll(FbgImages, ImagesCache);
         raise;

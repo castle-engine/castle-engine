@@ -69,7 +69,7 @@
       It should set either FTextureImage or FTextureVideo to something non-nil
       (don't care here about the previous value of these fields --- it's for
       sure @nil). If you leave them as @nil, this means that loading failed
-      (and VRMLNonFatalError or DataNonFatalError don't cause an exception,
+      (and VRMLWarning or DataWarning don't cause an exception,
       so we can ignore this).
 
       You do not care in this method about things like
@@ -77,9 +77,9 @@
       unconditionally, make everything it can do to load texture data from
       file(s).
 
-      You can use VRMLNonFatalError or DataNonFatalError inside,
+      You can use VRMLWarning or DataWarning inside,
       so we're prepared that this may even exit with exception
-      (since VRML/DataNonFatalError can raise exception).
+      (since VRML/DataWarning can raise exception).
 
       If you set FTextureImage, you have to set it to TRGBImage, TRGBAlphaImage,
       TGrayscaleImage or TGrayscaleAlphaImage. See TextureImage docs.
@@ -90,7 +90,7 @@
 
       Also, set FTextureUsedFullUrl here.
 
-      In this class, this simply produces VRMLNonFatalError with
+      In this class, this simply produces VRMLWarning with
       "not implemented" message and returns @nil. It's not declared
       as abstract, because there may be classes descending from this,
       and we want to at least be able to parse them
@@ -117,7 +117,7 @@
 
       Note that either one of TextureImage or TextureVideo may be @nil,
       if the other one is loaded. Or when loading failed with non-fatal
-      error (reported by VRMLNonFatalError and eventually DataNonFatalError).
+      error (reported by VRMLWarning and eventually DataWarning).
       IsTextureImage checks that TextureImage is non-nil (so it's successfully
       loaded) and additionally that texture size is not zero.
       Similar for IsTextureVideo.
@@ -158,7 +158,7 @@
       This is deliberate --- it means that each call to TextureImage etc.
       will not unnecessarily read the disk (or even connect to internet)
       when the file does not exist. Also, the loading errors reported
-      by VRML/DataNonFatalError will not be repeated --- they will
+      by VRML/DataWarning will not be repeated --- they will
       occur only once, when IsTextureLoaded changes from @false to @true. }
     property IsTextureLoaded: boolean
       read FIsTextureLoaded write SetIsTextureLoaded;
@@ -636,7 +636,7 @@ begin
   CacheUsed := false;
   FTextureUsedFullUrl := '';
 
-  VRMLNonFatalError(Format('Loading textures from "%s" node not implemented', [NodeTypeName]));
+  VRMLWarning(vwSerious, Format('Loading textures from "%s" node not implemented', [NodeTypeName]));
 end;
 
 function TVRMLTextureNode.TextureDescription: string;
@@ -661,7 +661,7 @@ function TVRMLTextureNode.DetectAlphaChannel: TDetectAlphaChannel;
     if S = 'FULL_RANGE' then
       Result := daFullRange else
     begin
-      VRMLNonFatalError(Format('Invalid "alphaChannel" field value "%s"', [S]));
+      VRMLWarning(vwSerious, Format('Invalid "alphaChannel" field value "%s"', [S]));
       Result := daAuto;
     end;
   end;
@@ -755,7 +755,7 @@ procedure TNodeImageTexture.LoadTextureData(out CacheUsed: boolean);
     - sets FTextureImage, CacheUsed, FTextureUsedFullUrl
     - returns true
     otherwise
-    - makes VRMLNonFatalError
+    - makes VRMLWarning
     - returns false }
   function LoadImageFromDataProtocol(const URL: string): boolean;
   var
@@ -790,7 +790,7 @@ procedure TNodeImageTexture.LoadTextureData(out CacheUsed: boolean);
 
       if PosNow > Length(URL) then
       begin
-        VRMLNonFatalError(Format('Data URI "%s" unexpectedly ended (expected ",")', [URL]));
+        VRMLWarning(vwSerious, Format('Data URI "%s" unexpectedly ended (expected ",")', [URL]));
         Exit(false);
       end else
       if URL[PosNow] = ';' then
@@ -807,7 +807,7 @@ procedure TNodeImageTexture.LoadTextureData(out CacheUsed: boolean);
           Base64 := true else
         if IsPrefix('charset=', Part) then
           Charset := SEnding(Part, Length('charset=') + 1) else
-          VRMLNonFatalError(Format('Data URI has invalid part "%s" (expected "base64" or "charset=...")', [Part]));
+          VRMLWarning(vwSerious, Format('Data URI has invalid part "%s" (expected "base64" or "charset=...")', [Part]));
       end else
       if URL[PosNow] = ',' then
       begin
@@ -822,7 +822,7 @@ procedure TNodeImageTexture.LoadTextureData(out CacheUsed: boolean);
 
     if not Base64 then
     begin
-      VRMLNonFatalError('TODO: Loading from data URI not base64-encoded not implemented now, please report');
+      VRMLWarning(vwSerious, 'TODO: Loading from data URI not base64-encoded not implemented now, please report');
       Exit(false);
     end;
 
@@ -836,7 +836,7 @@ procedure TNodeImageTexture.LoadTextureData(out CacheUsed: boolean);
     if Mime = 'image/gif' then
       ImageFormat := ifGIF else
     begin
-      VRMLNonFatalError(Format('Data mime-type "%s" not recognized, not loading. If this is a valid image mime type that should be supported, please report.', [Mime]));
+      VRMLWarning(vwSerious, Format('Data mime-type "%s" not recognized, not loading. If this is a valid image mime type that should be supported, please report.', [Mime]));
       Exit(false);
     end;
 
@@ -857,9 +857,9 @@ procedure TNodeImageTexture.LoadTextureData(out CacheUsed: boolean);
         except
           on E: Exception do
           begin
-            { pamietajmy ze VRMLNonFatalError moze spowodowac rzucenie wyjatku
+            { pamietajmy ze VRMLWarning moze spowodowac rzucenie wyjatku
               (chociaz nie musi) }
-            VRMLNonFatalError('Exception ' + E.ClassName +
+            VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
               ' occured when trying to load ' +
               'texture from data URI starting with "' + URLPrefix + '" : ' + E.Message);
             Result := false;
@@ -881,7 +881,7 @@ begin
     begin
       { Empty URL would be expanded by PathFromWWWBasePath to directory
         and produce unclear error message. }
-      VRMLNonFatalError(Format('Empty URL for %s ignored', [NodeTypeName]));
+      VRMLWarning(vwIgnorable, Format('Empty URL for %s ignored', [NodeTypeName]));
     end else
     if UrlProtocolIs(FdUrl.Items[I], 'data') then
     begin
@@ -896,9 +896,9 @@ begin
         Break;
       except
         on E: Exception do
-          { pamietajmy ze VRMLNonFatalError moze spowodowac rzucenie wyjatku
+          { pamietajmy ze VRMLWarning moze spowodowac rzucenie wyjatku
             (chociaz nie musi) }
-          VRMLNonFatalError('Exception ' + E.ClassName +
+          VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
             ' occured when trying to load ' +
             'texture from url "' + FullUrl + '" : ' + E.Message);
       end;
@@ -1025,9 +1025,9 @@ begin
       Break;
     except
       on E: Exception do
-        { pamietajmy ze VRMLNonFatalError moze spowodowac rzucenie wyjatku
+        { pamietajmy ze VRMLWarning moze spowodowac rzucenie wyjatku
           (chociaz nie musi) }
-        VRMLNonFatalError('Exception ' + E.ClassName +
+        VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
           ' occured when trying to load ' +
           'video from filename "' + FullUrl + '" : ' + E.Message);
     end;

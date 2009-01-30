@@ -194,7 +194,7 @@ begin
             except
               on E: EKamScriptError do
               begin
-                VRMLNonFatalError('Error when executing KambiScript: ' + E.Message);
+                VRMLWarning(vwSerious, 'Error when executing KambiScript: ' + E.Message);
                 Exit;
               end;
             end;
@@ -276,7 +276,7 @@ procedure TNodeX3DScriptNode.SetInitialized(const Value: boolean);
       except
         { This catches exceptions from KambiScriptInitialize }
         on E: EKamScriptSyntaxError do
-          VRMLNonFatalError(Format(
+          VRMLWarning(vwSerious, Format(
             'Exception %s when parsing KambiScript: %s',
               [E.ClassName, E.Message ]));
       end;
@@ -299,7 +299,7 @@ procedure TNodeX3DScriptNode.SetInitialized(const Value: boolean);
           and exceptions from KambiScriptInitialize
           (EKamScriptSyntaxError only). }
         on E: Exception do
-          VRMLNonFatalError(Format(
+          VRMLWarning(vwIgnorable, Format(
             'Exception %s when loading Script from URL "%s": %s',
               [E.ClassName, PotentialFullUrl, E.Message ]));
       end;
@@ -307,8 +307,8 @@ procedure TNodeX3DScriptNode.SetInitialized(const Value: boolean);
 
     begin
       if Protocol <> '' then
-        VRMLNonFatalError(Format('Script protocol "%s" not handled', [Protocol])) else
-        VRMLNonFatalError(Format('Script from URL "%s" not handled', [Url]));
+        VRMLWarning(vwIgnorable, Format('Script protocol "%s" not handled', [Protocol])) else
+        VRMLWarning(vwIgnorable, Format('Script from URL "%s" not handled', [Url]));
     end;
 
     { TODO: checks for Protocol <> '', above and below, are done
@@ -357,7 +357,7 @@ begin
         ExecuteScript('initialize', nil);
       end else
       begin
-        VRMLNonFatalError('Script node ignored: no supported protocol found');
+        VRMLWarning(vwIgnorable, 'Script node ignored: no supported protocol found');
       end;
     end else
     begin

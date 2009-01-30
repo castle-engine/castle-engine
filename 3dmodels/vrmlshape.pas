@@ -1053,7 +1053,7 @@ begin
     except
       on E: ETransformedResultInvalid do
       begin
-        VRMLNonFatalError(Format('Cannot transform viewer position %s to LOD node local coordinate space, transformation results in direction (not point): %s',
+        VRMLWarning(vwSerious, Format('Cannot transform viewer position %s to LOD node local coordinate space, transformation results in direction (not point): %s',
           [ VectorToRawStr(ViewerPosition), E.Message ]));
         Result := 0;
       end;

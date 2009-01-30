@@ -1990,17 +1990,17 @@ type
     class function VRMLTypeName: string; override;
 
     { Checks is Child allowed as a value of thia SFNode,
-      and makes VRMLNonFatalError if not.
+      and makes VRMLWarning if not.
 
       Check is allowed is done looking at AllowedChildrenAll
       and AllowedChildren properties.
 
       Child must not be @nil.
 
-      VRMLNonFatalError message will suggest that this Child is used as value
+      VRMLWarning message will suggest that this Child is used as value
       of this node. In other words, you should only pass as Child
       a node that you want to assign as Value to this field,
-      otherwise VRMLNonFatalError message will be a little unsensible. }
+      otherwise VRMLWarning message will be a little unsensible. }
     procedure WarningIfChildNotAllowed(Child: TVRMLNode);
 
     function ChildAllowed(Child: TVRMLNode): boolean;
@@ -2110,17 +2110,17 @@ type
     class function VRMLTypeName: string; override;
 
     { Checks is Child allowed on the list of nodes of this MFNode,
-      and makes VRMLNonFatalError if not.
+      and makes VRMLWarning if not.
 
       Check is allowed is done looking at AllowedChildrenAll
       and AllowedChildren properties.
 
       Child must not be @nil.
 
-      VRMLNonFatalError message will suggest that this Child is used as value
+      VRMLWarning message will suggest that this Child is used as value
       of this node. In other words, you should only pass as Child
       a node that you want to add (e.g. by AddItem) to this field,
-      otherwise VRMLNonFatalError message will be a little unsensible. }
+      otherwise VRMLWarning message will be a little unsensible. }
     procedure WarningIfChildNotAllowed(Child: TVRMLNode);
 
     function ChildAllowed(Child: TVRMLNode): boolean;
@@ -2583,7 +2583,7 @@ type
     typu, nawet 1, moga byc nazywane i mozna sie pozniej do nich
     odwolywac przez USE. Jezeli node jest typu 2 i 3 to nawet
     ich SubNode'y beda wlaczone w ten standardowy mechanizm !
-    Po Parse node'u unknown typu 1) robimy VRMLNonFatalError
+    Po Parse node'u unknown typu 1) robimy VRMLWarning
     (bo dokladnie to zaszlo --- to jest nieprawidlowy node, ale umiemy sobie
     poradzic).
   *)
@@ -2801,7 +2801,7 @@ type
       from Source.
 
       For fields basically does Destination.AssignValue(Source).
-      In case of EVRMLFieldAssign, make VRMLNonFatalError with clear message.
+      In case of EVRMLFieldAssign, make VRMLWarning with clear message.
 
       For events establishes internal route.
 
@@ -2883,7 +2883,7 @@ type
 
       @raises(EVRMLPrototypeInstantiateError if for some reason
         the prototype cannot be instantiated.
-        You can catch this and replace with VRMLNonFatalError, if possible.)
+        You can catch this and replace with VRMLWarning, if possible.)
     }
     function Instantiate: TVRMLNode;
   end;
@@ -3067,7 +3067,7 @@ type
       NodeNameBinding, then it looks for field/event within this node,
       and if everything is successfull --- sets route properties.
 
-      If something goes wrong, VRMLNonFatalError is generated
+      If something goes wrong, VRMLWarning is generated
       and route ending is left unset.
 
       @groupBegin }
@@ -3114,7 +3114,7 @@ type
 
     { Save a ROUTE to VRML file.
 
-      Will generate VRMLNonFatalError when route cannot be saved.
+      Will generate VRMLWarning when route cannot be saved.
       This can happen when SourceNode or SourceEvent
       or DestinationNode or DestinationEvent are @nil.
       Also, if SourceNode and DestinationNode are without a name,
@@ -3249,7 +3249,7 @@ var
   However, this is a particular parsing error, because we can probably
   pretty safely continue parsing, ignoring this error.
   So if you pass NilIfUnresolvedUSE = @true, this function will do
-  VRMLNonFatalError and simply return @nil.
+  VRMLWarning and simply return @nil.
 
   @raises(EVRMLParserError On various parsing errors.)
 *)
@@ -5734,7 +5734,7 @@ procedure TSFNode.WarningIfChildNotAllowed(Child: TVRMLNode);
       [Child.NodeTypeName, Name]);
     if ParentNode <> nil then
       S += Format(' of the node "%s"', [ParentNode.NodeTypeName]);
-    VRMLNonFatalError(S);
+    VRMLWarning(vwSerious, S);
   end;
 
 begin
@@ -6048,7 +6048,7 @@ procedure TMFNode.WarningIfChildNotAllowed(Child: TVRMLNode);
       [Child.NodeTypeName, Name]);
     if ParentNode <> nil then
       S += Format(' of the node "%s"', [ParentNode.NodeTypeName]);
-    VRMLNonFatalError(S);
+    VRMLWarning(vwSerious, S);
   end;
 
 begin
@@ -6223,13 +6223,13 @@ begin
           as EndIndex is not taken into account by CoordRangeHandler. }
         if EndIndex > C.Count then
         begin
-          VRMLNonFatalError(Format('Too much %s (not enough coordinates) in %s',
+          VRMLWarning(vwSerious, Format('Too much %s (not enough coordinates) in %s',
             [SRanges, NodeTypeName]));
           Break;
         end;
         if Cardinal(EndIndex - BeginIndex) >= RangeMinimumCount then
           CoordRangeHandler(RangeNumber, BeginIndex, EndIndex) else
-          VRMLNonFatalError(Format('%s is less than %d in %s',
+          VRMLWarning(vwSerious, Format('%s is less than %d in %s',
             [SRangeName, RangeMinimumCount, NodeTypeName]));
       end;
   end;
@@ -6258,7 +6258,7 @@ procedure ParseIgnoreToMatchingCurlyBracket(Lexer: TVRMLLexer); forward;
 
 procedure TVRMLUnknownNode.Parse(Lexer: TVRMLLexer);
 { TODO: tutaj zrobic parsowanie node'ow unknown typu 2) i 3),
-  VRMlNonFatalError tez nie trzeba zawsze rzucac. }
+  VRMLWarning tez nie trzeba zawsze rzucac. }
 begin
   { w przypadku TVRMLUnknownNode musimy fAllowedChildren i fParseAllowedChildren
     inicjowac na podstawie parsowania. }
@@ -6271,7 +6271,7 @@ begin
 
   FWWWBasePath := Lexer.WWWBasePath;
 
-  VRMLNonFatalError('Unknown VRML node of type '''+NodeTypeName+
+  VRMLWarning(vwSerious, 'Unknown VRML node of type '''+NodeTypeName+
     ''' (named '''+NodeName+''')');
 end;
 
@@ -6648,7 +6648,7 @@ begin
 
       If ReferencedPrototype = nil (e.g. because couldn't
       be loaded) then Instantiate will not be able to instantiate
-      it anyway (and will produce appropriate VRMLNonFatalError). }
+      it anyway (and will produce appropriate VRMLWarning). }
     ProtoInitial := TVRMLExternalPrototype(ProtoInitial).ReferencedPrototype;
 
   for Index := 0 to ProtoInitial.InterfaceDeclarations.Count - 1 do
@@ -6704,7 +6704,7 @@ begin
     except
       on E: EVRMLFieldAssignInvalidClass do
       begin
-        VRMLNonFatalError(Format('Within prototype "%s", ' +
+        VRMLWarning(vwSerious, Format('Within prototype "%s", ' +
           'field of type %s (named "%s") references ' +
           '(by "IS" clause) field of different type %s (named "%s")',
           [Prototype.Name,
@@ -6715,7 +6715,7 @@ begin
       end;
       on E: EVRMLFieldAssign do
       begin
-        VRMLNonFatalError(Format('Error when expanding prototype "%s": ',
+        VRMLWarning(vwSerious, Format('Error when expanding prototype "%s": ',
           [Prototype.Name]) + E.Message);
       end;
     end;
@@ -6728,7 +6728,7 @@ begin
 
     if SourceEvent.InEvent <> DestinationEvent.InEvent then
     begin
-      VRMLNonFatalError(Format('When expanding prototype "%s": "%s" event references (by "IS" clause) "%s" event',
+      VRMLWarning(vwSerious, Format('When expanding prototype "%s": "%s" event references (by "IS" clause) "%s" event',
         [ Prototype.Name,
           InEventName[DestinationEvent.InEvent],
           InEventName[SourceEvent.InEvent] ]));
@@ -6737,7 +6737,7 @@ begin
 
     if SourceEvent.FieldClass <> DestinationEvent.FieldClass then
     begin
-      VRMLNonFatalError(Format('When expanding prototype "%s": "%s" event references (by "IS" clause) "%s" event',
+      VRMLWarning(vwSerious, Format('When expanding prototype "%s": "%s" event references (by "IS" clause) "%s" event',
         [ Prototype.Name,
           DestinationEvent.FieldClass.VRMLTypeName,
           SourceEvent.FieldClass.VRMLTypeName ]));
@@ -6852,10 +6852,10 @@ procedure TVRMLPrototypeNode.InstantiateHandleIsClauses(
                 FieldOrEventHandleIsClause(InstanceField.EventIn , OurEvent, NewIsClauseNames) else
                 FieldOrEventHandleIsClause(InstanceField.EventOut, OurEvent, NewIsClauseNames);
             end else
-              VRMLNonFatalError(Format('Within prototype "%s", exposed field "%s" references (by "IS" clause) non-existing field/event name "%s"',
+              VRMLWarning(vwSerious, Format('Within prototype "%s", exposed field "%s" references (by "IS" clause) non-existing field/event name "%s"',
                 [Prototype.Name, InstanceField.Name, IsClauseName]));
           end else
-            VRMLNonFatalError(Format('Within prototype "%s", field "%s" references (by "IS" clause) non-existing field "%s"',
+            VRMLWarning(vwSerious, Format('Within prototype "%s", field "%s" references (by "IS" clause) non-existing field "%s"',
               [Prototype.Name, InstanceField.Name, IsClauseName]));
         end;
 
@@ -6913,7 +6913,7 @@ procedure TVRMLPrototypeNode.InstantiateHandleIsClauses(
             FieldOrEventHandleIsClause(InstanceEvent, OurEvent,
               NewIsClauseNames);
           end else
-            VRMLNonFatalError(Format('Within prototype "%s", event "%s" references (by "IS" clause) non-existing event "%s"',
+            VRMLWarning(vwSerious, Format('Within prototype "%s", event "%s" references (by "IS" clause) non-existing event "%s"',
               [Prototype.Name, InstanceEvent.Name, IsClauseName]));
         end;
 
@@ -7305,13 +7305,13 @@ procedure TVRMLExternalPrototype.LoadReferenced;
           except
             on E: EVRMLFieldAssign do
             begin
-              VRMLNonFatalError(Format(
+              VRMLWarning(vwSerious, Format(
                 'Error when linking external prototype "%s" with prototype "%s": ',
                 [Name, ReferencedPrototype.Name]) + E.Message);
             end;
           end;
         end else
-          VRMLNonFatalError(Format('Prototype "%s" referenced by external ' +
+          VRMLWarning(vwSerious, Format('Prototype "%s" referenced by external ' +
             'prototype "%s" doesn''t have field "%s"',
             [ReferencedPrototype.Name, Name, I.Field.Name]));
       end;
@@ -7325,9 +7325,9 @@ var
   var
     URL: string;
 
-    procedure ProtoNonFatalError(const S: string);
+    procedure ProtoWarning(const S: string);
     begin
-      VRMLNonFatalError(Format('Cannot load external prototype from URL "%s": ',
+      VRMLWarning(vwIgnorable, Format('Cannot load external prototype from URL "%s": ',
         [URL]) + S);
     end;
 
@@ -7363,7 +7363,7 @@ var
     except
       on E: Exception do
       begin
-        ProtoNonFatalError(E.Message);
+        ProtoWarning(E.Message);
         Exit;
       end;
     end;
@@ -7373,8 +7373,8 @@ var
     begin
       FreeAndNil(ReferencedPrototypeNode);
       if Anchor = '' then
-        ProtoNonFatalError('No PROTO found') else
-        ProtoNonFatalError(Format('No PROTO named "%s" found', [Anchor]));
+        ProtoWarning('No PROTO found') else
+        ProtoWarning(Format('No PROTO named "%s" found', [Anchor]));
       Exit;
     end;
 
@@ -7388,7 +7388,7 @@ var
     FReferencedClass := NodesManager.URNToClass(URN);
     Result := ReferencedClass <> nil;
     if not Result then
-      VRMLNonFatalError(Format('Unknown node URN "%s"', [URN]));
+      VRMLWarning(vwSerious, Format('Unknown node URN "%s"', [URN]));
   end;
 
 var
@@ -7704,7 +7704,7 @@ begin
     on E: ERouteSetEndingError do
     begin
       UnsetEnding(Node, Event, DestEnding);
-      VRMLNonFatalError(E.Message);
+      VRMLWarning(vwSerious, E.Message);
     end;
   end;
 end;
@@ -7745,7 +7745,7 @@ begin
     on E: ERouteSetEndingError do
     begin
       UnsetEnding(Node, Event, DestEnding);
-      VRMLNonFatalError(E.Message);
+      VRMLWarning(vwSerious, E.Message);
     end;
   end;
 end;
@@ -7835,7 +7835,7 @@ begin
   except
     on E: EVRMLRouteSaveError do
     begin
-      VRMLNonFatalError(E.Message);
+      VRMLWarning(vwSerious, E.Message);
     end;
   end;
 end;
@@ -7989,7 +7989,7 @@ function ParseNode(Lexer: TVRMLLexer;
       on E: EVRMLPrototypeInstantiateError do
         { Just write E.Message and silence the exception.
           Result will simply remain as TVRMLPrototypeNode instance in this case. }
-        VRMLNonFatalError(E.Message);
+        VRMLWarning(vwSerious, E.Message);
     end;
 
     { Cycles in VRML graph are bad, I think we all agree about this.
@@ -8034,7 +8034,7 @@ function ParseNode(Lexer: TVRMLLexer;
       And events like addChildren can create cycles easily.
 
       For now, NilIfUnresolvedUSE successfully changes there special
-      cycles in Script into mere VRMLNonFatalError, so they don't stop
+      cycles in Script into mere VRMLWarning, so they don't stop
       us from reading the rest of VRML file. And since we don't handle
       any scripting, this is not a problem in practice. But some day it'll
       have to be fixed... }
@@ -8078,7 +8078,7 @@ begin
              if NilIfUnresolvedUSE then
              begin
                Result := nil;
-               VRMLNonFatalError(S);
+               VRMLWarning(vwSerious, S);
              end else
                raise EVRMLParserError.Create(Lexer, S);
            end else
@@ -8142,7 +8142,7 @@ var
     end else
       { We allow PROFILE to be omitted, which is not really allowed by
         X3D spec. }
-      VRMLNonFatalError('X3D PROFILE statement missing');
+      VRMLWarning(vwSerious, 'X3D PROFILE statement missing');
   end;
 
   procedure ParseComponents;

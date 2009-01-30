@@ -198,7 +198,7 @@ begin
 
   Result := ArrayPosStr(FogNode.FdFogType.Value, ['LINEAR', 'EXPONENTIAL']);
   if Result = -1 then
-    VRMLNonFatalError('Unknown fog type '''+FogNode.FdFogType.Value+'''');
+    VRMLWarning(vwSerious, 'Unknown fog type '''+FogNode.FdFogType.Value+'''');
 end;
 
 procedure VRML97FogTo1st(var Color: TVector3_Single;

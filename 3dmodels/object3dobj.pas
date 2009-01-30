@@ -349,7 +349,7 @@ var
     except
       on E: EFileOpenError do
       begin
-        DataNonFatalError(E.Message);
+        DataWarning(E.Message);
         Exit;
       end;
     end;
@@ -452,7 +452,7 @@ begin
              begin
                UsedMaterial := Materials.TryFindName(LineAfterMarker);
                if UsedMaterial = nil then
-                 DataNonFatalError(Format('Unknown material name "%s"',
+                 DataWarning(Format('Unknown material name "%s"',
                    [LineAfterMarker]));
              end;
            end;

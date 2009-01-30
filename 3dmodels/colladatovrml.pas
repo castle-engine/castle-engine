@@ -306,12 +306,12 @@ var
     begin
       if not DOMGetAttribute(Element, 'type', AType) then
       begin
-        DataNonFatalError('<param> has no type attribute');
+        DataWarning('<param> has no type attribute');
         Result := ZeroVector3Single;
       end else
       if AType <> 'float3' then
       begin
-        DataNonFatalError('Expected <param> with type "float3"');
+        DataWarning('Expected <param> with type "float3"');
         Result := ZeroVector3Single;
       end else
         Result := Vector3SingleFromStr(DOMGetTextData(Element));
@@ -323,12 +323,12 @@ var
     begin
       if not DOMGetAttribute(Element, 'type', AType) then
       begin
-        DataNonFatalError('<param> has no type attribute');
+        DataWarning('<param> has no type attribute');
         Result := 0;
       end else
       if AType <> 'float' then
       begin
-        DataNonFatalError('Expected <param> with type "float"');
+        DataWarning('Expected <param> with type "float"');
         Result := 0;
       end else
         Result := StrToFloat(DOMGetTextData(Element));
@@ -460,7 +460,7 @@ var
             Mat.NodeName := MatId;
             Materials.Add(Mat);
           end else
-            DataNonFatalError(Format('Collada material "%s" references ' +
+            DataWarning(Format('Collada material "%s" references ' +
               'non-existing effect "%s"', [MatId, EffectId]));
         end;
       end;
@@ -539,7 +539,7 @@ var
         if not DOMGetIntegerAttribute(FloatArray, 'count', FloatArrayCount) then
         begin
           FloatArrayCount := 0;
-          DataNonFatalError('Collada <float_array> without a count attribute');
+          DataWarning('Collada <float_array> without a count attribute');
         end;
 
         Floats := TDynFloatArray.Create(FloatArrayCount);
@@ -552,7 +552,7 @@ var
             Token := NextToken(FloatArrayContents, SeekPos, WhiteSpaces);
             if Token = '' then
             begin
-              DataNonFatalError('Collada: actual number of tokens in <float_array>' +
+              DataWarning('Collada: actual number of tokens in <float_array>' +
                 ' less than declated in the count attribute');
               Break;
             end;
@@ -575,7 +575,7 @@ var
 
             if not DOMGetIntegerAttribute(Accessor, 'count', AccessorCount) then
             begin
-              DataNonFatalError('Collada: <accessor> has no count attribute');
+              DataWarning('Collada: <accessor> has no count attribute');
               AccessorCount := 0;
             end;
 
@@ -589,7 +589,7 @@ var
 
             if not DOMGetAttribute(Accessor, 'source', AccessorSource) then
             begin
-              DataNonFatalError('Collada: <accessor> has no source attribute');
+              DataWarning('Collada: <accessor> has no source attribute');
               AccessorSource := '';
             end;
             { TODO: we ignore AccessorSource, just assume that it refers to
@@ -604,7 +604,7 @@ var
               MinCount := AccessorOffset + AccessorStride * (AccessorCount - 1) + 3;
               if Floats.Count < MinCount then
               begin
-                DataNonFatalError(Format('Collada: <accessor> count requires at least %d float ' +
+                DataWarning(Format('Collada: <accessor> count requires at least %d float ' +
                   'values (offset %d + stride %d * (count %d - 1) + 3) in <float_array>, ' +
                   'but only %d are avilable', [MinCount,
                     AccessorOffset, AccessorStride, AccessorCount, Floats.Count]));
@@ -669,7 +669,7 @@ var
                 Exit;
               end else
               begin
-                DataNonFatalError(Format('Collada: source attribute ' +
+                DataWarning(Format('Collada: source attribute ' +
                   '(of <input> element within <vertices>) ' +
                   'references non-existing source "%s"', [InputSource]));
               end;
@@ -678,7 +678,7 @@ var
         end;
       finally Children.Release; end;
 
-      DataNonFatalError('Collada: <vertices> element has no <input> child' +
+      DataWarning('Collada: <vertices> element has no <input> child' +
         ' with semantic="POSITION" and some source attribute');
     end;
 
@@ -749,7 +749,7 @@ var
               begin
                 if not (DOMGetAttribute(ChildElement, 'source', InputSource) and
                         (InputSource = '#' + VerticesId))  then
-                  DataNonFatalError('Collada: <input> with semantic="VERTEX" ' +
+                  DataWarning('Collada: <input> with semantic="VERTEX" ' +
                     '(of <polygons> element within <mesh>) does not reference ' +
                     '<vertices> element within the same <mesh>');
 
@@ -855,7 +855,7 @@ var
             Token := NextToken(PContent, SeekPosP, WhiteSpaces);
             if Token = '' then
             begin
-              DataNonFatalError('Collada: unexpected end of <p> data in <polylist>');
+              DataWarning('Collada: unexpected end of <p> data in <polylist>');
               Exit;
             end;
             Index := StrToInt(Token);
@@ -1020,7 +1020,7 @@ var
         Token := NextToken(Content, SeekPos, WhiteSpaces);
         if Token = '' then
         begin
-          DataNonFatalError('Collada: Matrix (<matrix> or <bind_shape_matrix> ' +
+          DataWarning('Collada: Matrix (<matrix> or <bind_shape_matrix> ' +
             'element) has not enough items');
           Break;
         end;
@@ -1046,7 +1046,7 @@ var
         Token := NextToken(Content, SeekPos, WhiteSpaces);
         if Token = '' then
         begin
-          DataNonFatalError('Collada: unexpected end of data of <lookat>');
+          DataWarning('Collada: unexpected end of data of <lookat>');
           Exit(false);
         end;
         Vector[I] := StrToFloat(Token);
@@ -1128,7 +1128,7 @@ var
       MaterialIndex := Materials.FindNodeName(MaterialId);
       if MaterialIndex = -1 then
       begin
-        DataNonFatalError(Format('Collada: referencing non-existing material name "%s"',
+        DataWarning(Format('Collada: referencing non-existing material name "%s"',
           [MaterialId]));
       end else
       begin
@@ -1154,7 +1154,7 @@ var
         GeometryIndex := Geometries.FindNodeName(GeometryId);
         if GeometryIndex = -1 then
         begin
-          DataNonFatalError(Format('Collada <node> instantiates non-existing ' +
+          DataWarning(Format('Collada <node> instantiates non-existing ' +
             '<geometry> element "%s"', [GeometryId]));
         end else
         begin
@@ -1187,7 +1187,7 @@ var
         ControllerIndex := Controllers.FindName(ControllerId);
         if ControllerIndex = -1 then
         begin
-          DataNonFatalError(Format('Collada <node> instantiates non-existing ' +
+          DataWarning(Format('Collada <node> instantiates non-existing ' +
             '<controller> element "%s"', [ControllerId]));
         end else
         begin
@@ -1196,7 +1196,7 @@ var
           GeometryIndex := Geometries.FindNodeName(Controller.Source);
           if GeometryIndex = -1 then
           begin
-            DataNonFatalError(Format('Collada <controller> references non-existing ' +
+            DataWarning(Format('Collada <controller> references non-existing ' +
               '<geometry> element "%s"', [Controller.Source]));
           end else
           begin
@@ -1400,7 +1400,7 @@ var
           VisualSceneIndex := VisualScenes.FindNodeName(VisualSceneId);
           if VisualSceneIndex = -1 then
           begin
-            DataNonFatalError(Format('Collada <instance_visual_scene> instantiates non-existing ' +
+            DataWarning(Format('Collada <instance_visual_scene> instantiates non-existing ' +
               '<visual_scene> element "%s"', [VisualSceneId]));
           end else
           begin
@@ -1581,7 +1581,7 @@ begin
     begin
       Version := '';
       Version14 := false;
-      DataNonFatalError('<COLLADA> element misses "version" attribute');
+      DataWarning('<COLLADA> element misses "version" attribute');
     end else
     begin
       { TODO: uhm, terrible hack... I should move my lazy ass and tokenize

@@ -119,7 +119,7 @@ begin
   if (Node.FdScale.Count = 0) or
      (Node.FdOrientation.Count = 0) then
   begin
-    VRMLNonFatalError('Extrusion has no scale or orientation specified');
+    VRMLWarning(vwSerious, 'Extrusion has no scale or orientation specified');
     FHigh := -1;
   end else
   begin
@@ -133,12 +133,12 @@ begin
 
     if (Node.FdScale.Count > 1) and
        (Node.FdScale.Count < Node.FdSpine.Count) then
-      VRMLNonFatalError('Extrusion has more scales than 1, but not as much as spines. ' +
+      VRMLWarning(vwSerious, 'Extrusion has more scales than 1, but not as much as spines. ' +
         'We''ll use only the first scale.');
 
     if (Node.FdOrientation.Count > 1) and
        (Node.FdOrientation.Count < Node.FdSpine.Count) then
-      VRMLNonFatalError('Extrusion has more orientations than 1, but not as much as spines. ' +
+      VRMLWarning(vwSerious, 'Extrusion has more orientations than 1, but not as much as spines. ' +
         'We''ll use only the first orientation.');
   end;
 

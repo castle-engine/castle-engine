@@ -699,7 +699,7 @@ type
       may be freed soon, so copy contents, not only some reference). }
     procedure RawItemsAdd(Item: TVRMLSingleField); virtual abstract;
 
-    procedure VRMLNonFatalError_InvalidIndex(const Index, ACount: Integer);
+    procedure VRMLWarning_InvalidIndex(const Index, ACount: Integer);
   protected
     { SaveToStreamValue overriden for MF fields. This class handles
       SaveToStreamValue fully, no need to override it again in
@@ -1508,18 +1508,18 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero vector, Set will do nothing,
-      and both will produce clear VRMLNonFatalError. }
+      and both will produce clear VRMLWarning. }
     property ItemsSafe[Index: Integer]: LongInt
       read GetItemsSafe write SetItemsSafe;
 
-    { Call VRMLNonFatalError reporting that an invalid vertex index
-      is caused from this field. This simply calls VRMLNonFatalError
+    { Call VRMLWarning reporting that an invalid vertex index
+      is caused from this field. This simply calls VRMLWarning
       formatting appropriate message.
 
       Additionally this guards
       us against producing too many warnings from the same field.
       When a given threshold will be reached, further
-      VRMLNonFatalError_WrongVertexIndex calls for this field instance
+      VRMLWarning_WrongVertexIndex calls for this field instance
       will be simply ignored. This is a good thing, as some invalid models
       have really an incredible amount of invalid indexes, and the very
       amount of lines printed on console makes viewing these invalid files
@@ -1530,7 +1530,7 @@ type
       and
       content/examples/Basic/HumanoidAnimation/NancyDiving.x3dv
       from http://www.web3d.org/ example models. }
-    procedure VRMLNonFatalError_WrongVertexIndex(
+    procedure VRMLWarning_WrongVertexIndex(
       const GeometryNodeTypeName: string;
       const VertexNum: Integer; const CoordCount: Integer);
   end;
@@ -1688,7 +1688,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero vector, Set will do nothing,
-      and both will produce clear VRMLNonFatalError. }
+      and both will produce clear VRMLWarning. }
     property ItemsSafe[Index: Integer]: TVector2Single
       read GetItemsSafe write SetItemsSafe;
   end;
@@ -1725,7 +1725,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero vector, Set will do nothing,
-      and both will produce clear VRMLNonFatalError. }
+      and both will produce clear VRMLWarning. }
     property ItemsSafe[Index: Integer]: TVector3Single
       read GetItemsSafe write SetItemsSafe;
   end;
@@ -2701,16 +2701,16 @@ begin
    (TVRMLSimpleMultField(SecondValue).ItemClass = ItemClass);
 end;
 
-procedure TVRMLSimpleMultField.VRMLNonFatalError_InvalidIndex(
+procedure TVRMLSimpleMultField.VRMLWarning_InvalidIndex(
   const Index, ACount: Integer);
 const
   MaxInvalidIndexWarnings = 10;
 begin
   Inc(InvalidIndexWarnings);
   if InvalidIndexWarnings < MaxInvalidIndexWarnings then
-    VRMLNonFatalError(Format('Invalid index for VRML field %s: index is %d, but we have only %d items', [VRMLTypeName, Index, ACount])) else
+    VRMLWarning(vwSerious, Format('Invalid index for VRML field %s: index is %d, but we have only %d items', [VRMLTypeName, Index, ACount])) else
   if InvalidIndexWarnings = MaxInvalidIndexWarnings then
-    VRMLNonFatalError(Format('Invalid index for VRML field %s reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
+    VRMLWarning(vwSerious, Format('Invalid index for VRML field %s reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
       [VRMLTypeName, InvalidIndexWarnings]));
 end;
 
@@ -2759,10 +2759,10 @@ end;
 
 procedure TSFBool.ParseValue(Lexer: TVRMLLexer);
 
-  procedure VRML2BooleanIntegerNonFatalError;
+  procedure VRML2BooleanIntegerWarning;
   begin
     if Lexer.VRMLVerMajor >= 2 then
-      VRMLNonFatalError('In VRML >= 2.0 you cannot express boolean values ' +
+      VRMLWarning(vwSerious, 'In VRML >= 2.0 you cannot express boolean values ' +
         'as 0 (instead of FALSE) or 1 (instead of TRUE)');
   end;
 
@@ -2781,12 +2781,12 @@ begin
    if Lexer.TokenInteger = 1 then
    begin
      Value := true;
-     VRML2BooleanIntegerNonFatalError;
+     VRML2BooleanIntegerWarning;
    end else
    if Lexer.TokenInteger = 0 then
    begin
      Value := false;
-     VRML2BooleanIntegerNonFatalError;
+     VRML2BooleanIntegerWarning;
    end else
      raise EVRMLParserError.Create(Lexer,
        'Expected '+SBoolExpected+', got '+Lexer.DescribeToken);
@@ -3299,7 +3299,7 @@ begin
     Value := Lexer.TokenInteger;
   end else
   begin
-    VRMLNonFatalError(Format('Integer in the file is out of 32-bit range: %d',
+    VRMLWarning(vwSerious, Format('Integer in the file is out of 32-bit range: %d',
       [Lexer.TokenInteger]));
     Value := -1;
   end;
@@ -3622,7 +3622,7 @@ begin
       results (actually, Result would be filled with Nan values).
       VRML spec says that SFRotation should always specify a normalized vector. }
     Result := Pt;
-    VRMLNonFatalError('SFRotation field specifies rotation around zero vector');
+    VRMLWarning(vwSerious, 'SFRotation field specifies rotation around zero vector');
   end;
 end;
 
@@ -4634,7 +4634,7 @@ begin
   if (Index >= 0) and (Index < Items.Count) then
     Result := Items.Items[Index] else
   begin
-    VRMLNonFatalError_InvalidIndex(Index, Count);
+    VRMLWarning_InvalidIndex(Index, Count);
     Result := 0;
   end;
 end;
@@ -4644,11 +4644,11 @@ begin
   if (Index >= 0) and (Index < Items.Count) then
     Items.Items[Index] := Value else
   begin
-    VRMLNonFatalError_InvalidIndex(Index, Count);
+    VRMLWarning_InvalidIndex(Index, Count);
   end;
 end;
 
-procedure TMFLong.VRMLNonFatalError_WrongVertexIndex(
+procedure TMFLong.VRMLWarning_WrongVertexIndex(
   const GeometryNodeTypeName: string;
   const VertexNum: Integer; const CoordCount: Integer);
 const
@@ -4656,10 +4656,10 @@ const
 begin
   Inc(WrongVertexIndexWarnings);
   if WrongVertexIndexWarnings < MaxWrongVertexIndexWarnings then
-    VRMLNonFatalError(Format('Wrong vertex index in indexed node %s (not enouch points in Coordinate node defined: index is %d, we have only %d vertices)',
+    VRMLWarning(vwSerious, Format('Wrong vertex index in indexed node %s (not enouch points in Coordinate node defined: index is %d, we have only %d vertices)',
       [GeometryNodeTypeName, VertexNum, CoordCount])) else
   if WrongVertexIndexWarnings = MaxWrongVertexIndexWarnings then
-    VRMLNonFatalError(Format('Wrong vertex index in indexed node %s reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
+    VRMLWarning(vwSerious, Format('Wrong vertex index in indexed node %s reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
       [GeometryNodeTypeName, WrongVertexIndexWarnings]));
 end;
 
@@ -4710,7 +4710,7 @@ begin
   if (Index >= 0) and (Index < Items.Count) then
     Result := Items.Items[Index] else
   begin
-    VRMLNonFatalError_InvalidIndex(Index, Count);
+    VRMLWarning_InvalidIndex(Index, Count);
     Result := ZeroVector2Single;
   end;
 end;
@@ -4720,7 +4720,7 @@ begin
   if (Index >= 0) and (Index < Items.Count) then
     Items.Items[Index] := Value else
   begin
-    VRMLNonFatalError_InvalidIndex(Index, Count);
+    VRMLWarning_InvalidIndex(Index, Count);
   end;
 end;
 
@@ -4736,7 +4736,7 @@ begin
   if (Index >= 0) and (Index < Items.Count) then
     Result := Items.Items[Index] else
   begin
-    VRMLNonFatalError_InvalidIndex(Index, Count);
+    VRMLWarning_InvalidIndex(Index, Count);
     Result := ZeroVector3Single;
   end;
 end;
@@ -4746,7 +4746,7 @@ begin
   if (Index >= 0) and (Index < Items.Count) then
     Items.Items[Index] := Value else
   begin
-    VRMLNonFatalError_InvalidIndex(Index, Count);
+    VRMLWarning_InvalidIndex(Index, Count);
   end;
 end;
 
