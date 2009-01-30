@@ -4110,6 +4110,8 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       to later adjust texture unit parameters, like
       glTexEnvi(GL_TEXTURE_ENV, ...).
 
+      It's also already enabled by glEnable(GL_TEXTURE_2D).
+
       AlphaTest may be modified, but only to true, by this procedure. }
     function EnableNonMultiTexture(const TextureUnit: Cardinal;
       TextureNode: TVRMLTextureNode;
@@ -4212,22 +4214,164 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
     procedure EnableMultiTexture(const TexCount: Cardinal;
       MultiTexture: TNodeMultiTexture);
 
-      function MultiTexModeToString(const S: string): TGLint;
+      { Return OpenGL values for
+        GL_COMBINE_RGB_EXT, GL_COMBINE_ALPHA_EXT.
+
+        Also, specify which argument (0, 1, 2 for
+        GL_SOURCE0, GL_SOURCE1, GL_SOURCE2, or -1 if none) should represent
+        current texture unit (this is "Arg1" in X3D spec wording),
+        and which is the source (default is previous texture unit,
+        although may change by "source" field; this is "Arg2" in X3D spec).
+
+        Also, specify RGBScale, AlphaScale (remember OpenGL allows
+        only 1.0, 2.0 and 4.0 scales). By default are 1. }
+      procedure ModeFromString(const S: string;
+        out CombineRGB, CombineAlpha: TGLint;
+        out Arg1, Arg2: Integer;
+        var RGBScale, AlphaScale: TGLfloat;
+        var AlreadyHandled: boolean);
       var
         LS: string;
       begin
         LS := LowerCase(S);
-        if LS = 'modulate' then
-          Result := GL_MODULATE else
-        if LS = 'replace' then
-          Result := GL_REPLACE else
-        if LS = 'add' then
-          Result := GL_ADD else
-        if LS = 'subtract' then
-          Result := GL_SUBTRACT else
+        if (LS = 'modulate') or (LS = '') then
         begin
-          Result := GL_MODULATE;
+          { LS = '' means that mode list was too short.
+            X3D spec says explicitly that default mode is "MODULATE"
+            in this case. (Accidentaly, this also will accept
+            explict "" string as "MODULATE" --- not a worry, we don't
+            have to produce error messages for all possible invalid VRMLs...). }
+          CombineRGB := GL_MODULATE;
+          CombineAlpha := GL_MODULATE;
+          Arg1 := 0;
+          Arg2 := 1;
+        end else
+        if LS = 'modulate2x' then
+        begin
+          CombineRGB := GL_MODULATE;
+          CombineAlpha := GL_MODULATE;
+          Arg1 := 0;
+          Arg2 := 1;
+          RGBScale := 2;
+          AlphaScale := 2;
+        end else
+        if LS = 'modulate4x' then
+        begin
+          CombineRGB := GL_MODULATE;
+          CombineAlpha := GL_MODULATE;
+          Arg1 := 0;
+          Arg2 := 1;
+          RGBScale := 4;
+          AlphaScale := 4;
+        end else
+        if (LS = 'replace') or (LS = 'selectarg1') then
+        begin
+          { SELECTARG1 is exactly the same as REPLACE.
+
+            Note: don't get confused by X3D spec saying in table 18.3 that
+            "REPLACE" takes the Arg2, that's an error, it takes
+            from Arg1 to be consistent with other spec words.
+            I wrote some remarks about this on
+            http://vrmlengine.sourceforge.net/vrml_implementation_status.php }
+
+          CombineRGB := GL_REPLACE;
+          CombineAlpha := GL_REPLACE;
+          Arg1 := 0;
+          Arg2 := -1;
+        end else
+        if LS = 'selectarg2' then
+        begin
+          CombineRGB := GL_REPLACE;
+          CombineAlpha := GL_REPLACE;
+          Arg1 := -1;
+          Arg2 := 0;
+        end else
+        if LS = 'off' then
+        begin
+          { For OFF, turn off the texture unit? This is the correct
+            interpretation, right? }
+          glDisable(GL_TEXTURE_2D);
+          AlreadyHandled := true;
+        end else
+        if LS = 'add' then
+        begin
+          CombineRGB := GL_ADD;
+          CombineAlpha := GL_ADD;
+          Arg1 := 0;
+          Arg2 := 1;
+        end else
+        if LS = 'addsigned' then
+        begin
+          CombineRGB := GL_ADD_SIGNED_EXT;
+          CombineAlpha := GL_ADD_SIGNED_EXT;
+          Arg1 := 0;
+          Arg2 := 1;
+        end else
+        if LS = 'addsigned2x' then
+        begin
+          CombineRGB := GL_ADD_SIGNED_EXT;
+          CombineAlpha := GL_ADD_SIGNED_EXT;
+          Arg1 := 0;
+          Arg2 := 1;
+          RGBScale := 2;
+          AlphaScale := 2;
+        end else
+        if LS = 'subtract' then
+        begin
+          CombineRGB := GL_SUBTRACT;
+          CombineAlpha := GL_SUBTRACT;
+          Arg1 := 0;
+          Arg2 := 1;
+        end else
+        if LS = 'dotproduct3' then
+        begin
+          { We use DOT3_RGBA_ARB, not DOT3_RGB_ARB.
+            See [http://www.opengl.org/registry/specs/ARB/texture_env_dot3.txt].
+
+            This means that the dot (done on only RGB channels) will
+            be replicated to all four channels (RGBA). This is exactly what
+            the X3D specification requires, so we're happy.
+            Yes, this means that COMBINE_ALPHA_ARB will be ignored. }
+
+          CombineRGB := GL_DOT3_RGBA_ARB;
+          CombineAlpha := GL_REPLACE; { <- whatever, will be ignored }
+          Arg1 := 0;
+          Arg2 := 1;
+        end else
+        begin
+          CombineRGB := GL_MODULATE;
+          CombineAlpha := GL_MODULATE;
+          Arg1 := 0;
+          Arg2 := 1;
           VRMLWarning(vwSerious, Format('Not supported multi-texturing mode "%s"', [S]))
+        end;
+      end;
+
+      procedure SourceFromString(const S: string; out Source: TGLint);
+      var
+        LS: string;
+      begin
+        LS := LowerCase(S);
+        if LS = '' then
+          Source := GL_PREVIOUS_EXT else
+        if (LS = 'diffuse') or (LS = 'specular') then
+          Source := GL_PRIMARY_COLOR_EXT else
+        if LS = 'factor' then
+        begin
+          { Assign constant color now, when we know it should be used.
+            Although we could actually just do this unconditionally
+            inside EnableMultiTexture, only once, doing it the way
+            below (possibly zero times, possibly more than once)
+            may be in practice faster: because I suppose that in 99%
+            of cases, constant factor will not be used. }
+          glTexEnvv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, Vector4Single(
+            MultiTexture.FdColor.Value,
+            MultiTexture.FdAlpha.Value));
+          Source := GL_CONSTANT_EXT;
+        end else
+        begin
+          Source := GL_PREVIOUS_EXT;
+          VRMLWarning(vwSerious, Format('Not supported multi-texturing source "%s"', [S]))
         end;
       end;
 
@@ -4235,7 +4379,12 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       ChildTex: TVRMLNode;
       I: Integer;
       Success: boolean;
-      Mode: TGLint;
+      CombineRGB, CombineAlpha: TGLint;
+      Arg1, Arg2: Integer;
+      RGBScale, AlphaScale: TGLfloat;
+      S: string;
+      AlreadyHandled: boolean;
+      Source: TGLint;
     begin
       Assert(Integer(TexCount) <= MultiTexture.FdTexture.Items.Count);
       for I := 0 to Integer(TexCount) - 1 do
@@ -4251,38 +4400,60 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
           begin
             Success := EnableNonMultiTexture(I, TVRMLTextureNode(ChildTex), false);
 
-            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
-
-            if I < MultiTexture.FdMode.Count then
-              Mode := MultiTexModeToString(MultiTexture.FdMode.Items[I]) else
-              { X3D spec says explicitly that default mode is "MODULATE" }
-              Mode := GL_MODULATE;
-
-            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, Mode);
-            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, Mode);
-
-            if Mode = GL_REPLACE then
+            if Success then
             begin
-              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
-              glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+              { Set all the multitexture mode-related stuff.
+                Below we handle MultiTexture.mode, source, color, alpha,
+                function fields. }
 
-              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_TEXTURE);
-              glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
-            end else
-            begin
-              { TODO: for now, we always have 2 arguments for given Mode,
-                and we use all std settings. }
-              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS);
-              glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+              AlreadyHandled := false;
+              RGBScale := 1;
+              AlphaScale := 1;
 
-              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_PREVIOUS);
-              glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
+              if I < MultiTexture.FdMode.Count then
+                S := MultiTexture.FdMode.Items[I] else
+                S := '';
 
-              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
-              glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
+              ModeFromString(S, CombineRGB, CombineAlpha, Arg1, Arg2,
+                RGBScale, AlphaScale, AlreadyHandled);
 
-              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA_EXT, GL_TEXTURE);
-              glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA_EXT, GL_SRC_ALPHA);
+              if not AlreadyHandled then
+              begin
+                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+
+                glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, CombineRGB);
+                glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, CombineAlpha);
+
+                glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, RGBScale);
+                glTexEnvf(GL_TEXTURE_ENV, GL_ALPHA_SCALE, AlphaScale);
+
+                if Arg1 <> -1 then
+                begin
+                  { First argument is always current texture unit.
+                    (This is indicated by X3D spec wording
+                    "The source field determines the colour source for the second argument.") }
+                  glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT + Arg1, GL_TEXTURE);
+                  glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT + Arg1, GL_SRC_COLOR);
+
+                  glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT + Arg1, GL_TEXTURE);
+                  glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT + Arg1, GL_SRC_ALPHA);
+                end;
+
+                if Arg2 <> -1 then
+                begin
+                  if I < MultiTexture.FdSource.Count then
+                    S := MultiTexture.FdSource.Items[I] else
+                    S := '';
+
+                  SourceFromString(S, Source);
+
+                  glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT + Arg2, Source);
+                  glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT + Arg2, GL_SRC_COLOR);
+
+                  glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT + Arg2, Source);
+                  glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT + Arg2, GL_SRC_ALPHA);
+                end;
+              end;
             end;
           end;
         end;
