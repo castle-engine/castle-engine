@@ -61,7 +61,7 @@ end;
 begin
   Parameters.CheckHigh(1);
 
-  VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
+  VRMLWarning := @VRMLWarning_Write;
   Progress.UserInterface := ProgressConsoleInterface;
 
   BrowserWindow := TGLWindowVRMLBrowser.Create;

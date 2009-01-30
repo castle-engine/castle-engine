@@ -124,7 +124,7 @@ end;
 
 begin
   Parameters.CheckHigh(0);
-  VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
+  VRMLWarning := @VRMLWarning_Write;
 
   { We use a lot of boxes, so make their rendering fastest. }
   Detail_RectDivisions := 0;

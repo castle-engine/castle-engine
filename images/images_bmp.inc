@@ -162,7 +162,7 @@ begin
      - and GIMP
      all fail trying to open them.) }
    if biSize <> SizeOf(TBitmapInfoHeader) then
-      DataNonFatalError(Format(
+      DataWarning(Format(
         'Wrong size of a bitmap header --- should be %d, is %d',
         [SizeOf(TBitmapInfoHeader), biSize]));
 

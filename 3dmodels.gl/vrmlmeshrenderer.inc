@@ -776,7 +776,7 @@ procedure TVRMLMeshRenderer.WarningShadingProblems(
 const
   SPerVertex: array [boolean] of string = ('per-face', 'per-vertex');
 begin
-  VRMLNonFatalError(Format(
+  VRMLWarning(vwSerious, Format(
     'Colors %s and normals %s used in the same node %s. Shading results may be incorrect',
     [ SPerVertex[ColorPerVertex], SPerVertex[NormalPerVertex],
       Geometry.NodeTypeName]));
@@ -895,7 +895,7 @@ begin
     VertexNum := CoordIndex.Items.Items[IndexNum];
     if VertexNum >= Coord.Count then
     begin
-      CoordIndex.VRMLNonFatalError_WrongVertexIndex(
+      CoordIndex.VRMLWarning_WrongVertexIndex(
         Geometry.NodeTypeName, VertexNum, Coord.Count);
       Exit;
     end;
@@ -918,7 +918,7 @@ begin
     VertexNum := CoordIndex.Items.Items[IndexNum];
     if VertexNum >= Coord.Count then
     begin
-      CoordIndex.VRMLNonFatalError_WrongVertexIndex(
+      CoordIndex.VRMLWarning_WrongVertexIndex(
         Geometry.NodeTypeName, VertexNum, Coord.Count);
       Exit(ZeroVector3Single);
     end;
@@ -998,15 +998,15 @@ var
         begin
           SetLength(TexCoordArray, 0);
           if MultiTexCoord.Items[I] <> nil then
-            VRMLNonFatalError(Format('Unsupported texture coordinate node: %s, inside multiple texture coordinate', [MultiTexCoord.Items[I].NodeTypeName])) else
-            VRMLNonFatalError('NULL texture coordinate node');
+            VRMLWarning(vwSerious, Format('Unsupported texture coordinate node: %s, inside multiple texture coordinate', [MultiTexCoord.Items[I].NodeTypeName])) else
+            VRMLWarning(vwSerious, 'NULL texture coordinate node');
           Exit;
         end;
       end;
     end else
     begin
       SetLength(TexCoordArray, 0);
-      VRMLNonFatalError(Format('Unsupported texture coordinate node: %s', [TexCoord.NodeTypeName]));
+      VRMLWarning(vwSerious, Format('Unsupported texture coordinate node: %s', [TexCoord.NodeTypeName]));
       Exit;
     end;
 
@@ -1439,12 +1439,12 @@ begin
   begin
     if RadianceTransfer.Count mod Coord.Count <> 0 then
     begin
-      VRMLNonFatalError('radianceTransfer field must be emppty, or have a number of items being multiple of coods');
+      VRMLWarning(vwSerious, 'radianceTransfer field must be emppty, or have a number of items being multiple of coods');
       FRadianceTransfer := nil;
     end else
     if RadianceTransfer.Count < Coord.Count then
     begin
-      VRMLNonFatalError('radianceTransfer field must be emppty, or have a number of items >= number of coods');
+      VRMLWarning(vwSerious, 'radianceTransfer field must be emppty, or have a number of items >= number of coods');
       FRadianceTransfer := nil;
     end else
       RadianceTransferVertexSize := RadianceTransfer.Count div Coord.Count;

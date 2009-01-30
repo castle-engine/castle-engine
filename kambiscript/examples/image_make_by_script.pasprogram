@@ -30,7 +30,7 @@ var
 begin
   Parameters.CheckHigh(2);
 
-  DataNonFatalError := @DataNonFatalError_WarningWrite;
+  DataWarning := @DataWarning_Write;
 
   Vars := TKamScriptValuesList.Create;
   try

@@ -965,8 +965,8 @@ begin
 
   Parameters.CheckHigh(1);
   try
-    VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
-    DataNonFatalError := @DataNonFatalError_WarningWrite;
+    VRMLWarning := @VRMLWarning_Write;
+    DataWarning := @DataWarning_Write;
 
     Scene := TVRMLGLScene.Create(Parameters[1], roNone);
     UpdateSceneAttribs;

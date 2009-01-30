@@ -285,7 +285,7 @@ begin
 
   if CurrentState.ParentShape = nil then
   begin
-    VRMLNonFatalError('VRML node "' + CurrentGeometry.NodeTypeName +
+    VRMLWarning(vwSerious, 'VRML node "' + CurrentGeometry.NodeTypeName +
       '" can be specified only in a "geometry" field of "Shape" node');
     Exit;
   end;

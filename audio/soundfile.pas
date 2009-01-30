@@ -429,7 +429,7 @@ begin
  if Riff.Header.Len = Stream.Size then
  begin
    Riff.Header.Len -= SizeOf(TWavChunkHeader);
-   DataNonFatalError('Warning: WAV file is invalid ' +
+   DataWarning('WAV file is invalid ' +
      '(Riff.Header.Len equals Stream.Size, but it should be ' +
      '<= Stream.Size - SizeOf(TWavChunkHeader)). Reading anyway.');
  end;

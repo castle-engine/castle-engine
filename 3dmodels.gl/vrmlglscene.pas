@@ -1764,7 +1764,7 @@ begin
     end;
 
   if not Result then
-    VRMLNonFatalError(Format('Unknown blending %s factor name "%s"',
+    VRMLWarning(vwSerious, Format('Unknown blending %s factor name "%s"',
       [ SourceToStr[Source], S ]));
 end;
 
@@ -3739,14 +3739,14 @@ begin
 
     if SkyColorCount <= 0 then
     begin
-      VRMLNonFatalError('Background node incorrect: ' +
+      VRMLWarning(vwSerious, 'Background node incorrect: ' +
         'Sky must have at least one color');
       FBackground := nil;
     end else
     begin
       if SkyAngleCount + 1 <> SkyColorCount then
       begin
-        VRMLNonFatalError('Background node incorrect: ' +
+        VRMLWarning(vwSerious, 'Background node incorrect: ' +
           'Sky must have exactly one more Color than Angles');
         { We know now that SkyColorCount >= 1 and
           SkyAngleCount >= 0 (since SkyAngleCount is a count of an array).
@@ -3762,7 +3762,7 @@ begin
       if (GroundAngleCount <> 0) and
          (GroundAngleCount + 1 <> GroundColorCount) then
       begin
-        VRMLNonFatalError('Background node incorrect: ' +
+        VRMLWarning(vwSerious, 'Background node incorrect: ' +
           'Ground must have exactly one more Color than Angles');
         { We know now that GroundColorCount >= 1 and
           GroundAngleCount >= 0 (since GroundAngleCount is a count of an array).

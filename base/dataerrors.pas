@@ -35,30 +35,29 @@ interface
 { Write error message using WarningWrite (for Windows programs with no console
   available, this will make a message box, in all other cases the error
   just goes to ErrOutput). }
-procedure DataNonFatalError_WarningWrite(const S: string);
+procedure DataWarning_Write(const S: string);
 
 { Ignore error (do nothing). }
-procedure DataNonFatalError_Ignore(const S: string);
+procedure DataWarning_Ignore(const S: string);
 
 type
-  TDataNonFatalErrorProc = procedure (const S: string);
+  TDataWarningProc = procedure (const S: string);
 
 var
   { Used to report non-fatal errors. Should always be non-nil
-    (assign DataNonFatalError_Ignore if you want to ignore warnings). }
-  DataNonFatalError: TDataNonFatalErrorProc =
-    {$ifdef FPC_OBJFPC} @ {$endif} DataNonFatalError_Ignore;
+    (assign DataWarning_Ignore if you want to ignore warnings). }
+  DataWarning: TDataWarningProc = @DataWarning_Ignore;
 
 implementation
 
 uses KambiUtils, KambiFilesUtils;
 
-procedure DataNonFatalError_WarningWrite(const S: string);
+procedure DataWarning_Write(const S: string);
 begin
   WarningWrite(ProgramName+ ': Warning: '+ s);
 end;
 
-procedure DataNonFatalError_Ignore(const S: string);
+procedure DataWarning_Ignore(const S: string);
 begin
 end;
 

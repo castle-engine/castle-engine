@@ -35,7 +35,7 @@ procedure URLExtractAnchor(var URL: string; out Anchor: string);
   The intention is that this is similat to PHP function with the same name.
 
   To account for badly encoded strings, invalid encoded URLs do not
-  raise an error --- they are only reported to DataNonFatalError.
+  raise an error --- they are only reported to DataWarning.
   So you can simply ignore them, or write a warning about them for user.
   This is done because often you will use this with
   URLs provided by the user, read from some file etc., so you can't be sure
@@ -86,7 +86,7 @@ function RawUrlDecode(const S: string): string;
   { Assume Position <= Length(S).
     Check is S[Positon] is a start of %xx sequence:
     - if not, exit false
-    - if yes, but %xx is invalid, report DataNonFatalError and exit false
+    - if yes, but %xx is invalid, report DataWarning and exit false
     - if yes and %xx is valid, set DecodedChar and exit true }
   function ValidSequence(const S: string; Position: Integer;
     out DecodedChar: char): boolean;
@@ -110,7 +110,7 @@ function RawUrlDecode(const S: string): string;
     begin
       if Position + 2 > Length(S) then
       begin
-        DataNonFatalError(Format(
+        DataWarning(Format(
           'URL "%s" incorrectly encoded, %%xx sequence ends unexpectedly', [S]));
         Exit(false);
       end;
@@ -118,7 +118,7 @@ function RawUrlDecode(const S: string): string;
       if (not (S[Position + 1] in ValidHexaChars)) or
          (not (S[Position + 2] in ValidHexaChars)) then
       begin
-        DataNonFatalError(Format(
+        DataWarning(Format(
           'URL "%s" incorrectly encoded, %s if not a valid hexadecimal number',
           [S, S[Position + 1] + S[Position + 2]]));
         Exit(false);

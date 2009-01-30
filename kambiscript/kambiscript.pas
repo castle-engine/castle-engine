@@ -97,7 +97,7 @@ type
       Similar to TVRMLNode.WWWBasePath. }
     property WWWBasePath: string read FWWWBasePath write FWWWBasePath;
     { If assigned, it will be used to realize writeln()
-      function. If not assigned, we will use DataNonFatalError. }
+      function. If not assigned, we will use DataWarning. }
     property OutputProc: TKamScriptOutputProc read FOutputProc
       write FOutputProc;
   end;
@@ -1905,7 +1905,7 @@ begin
   if (AFunction.Environment <> nil) and
      Assigned(AFunction.Environment.OutputProc) then
     AFunction.Environment.OutputProc(S) else
-    DataNonFatalError('KambiScript message: ' + S);
+    DataWarning('KambiScript message: ' + S);
 end;
 
 procedure TKamScriptString.AssignValue(Source: TKamScriptValue);

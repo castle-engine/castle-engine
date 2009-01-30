@@ -422,7 +422,7 @@ procedure TVideo.LoadFromFile(const FileName: string);
         if RemoveLoadedTempImages then
         begin
           if not DeleteFile(S) then
-            DataNonFatalError(Format('Cannot delete temporary file "%s"', [S]));
+            DataWarning(Format('Cannot delete temporary file "%s"', [S]));
         end;
 
         Inc(Index);
@@ -442,7 +442,7 @@ procedure TVideo.LoadFromFile(const FileName: string);
       if RemoveLoadedTempImages then
       begin
         if not DeleteFile(FileName) then
-          DataNonFatalError(Format('Cannot delete temporary file "%s"', [FileName]));
+          DataWarning(Format('Cannot delete temporary file "%s"', [FileName]));
       end;
     end;
   end;
@@ -552,12 +552,12 @@ procedure TVideo.SaveToFile(const FileName: string);
       begin
         S := FormatIndexedName(FileName, Index);
         if not DeleteFile(S) then
-          DataNonFatalError(Format('Cannot delete temporary file "%s"', [S]));
+          DataWarning(Format('Cannot delete temporary file "%s"', [S]));
       end;
     end else
     begin
       if not DeleteFile(FileName) then
-        DataNonFatalError(Format('Cannot delete temporary file "%s"', [FileName]));
+        DataWarning(Format('Cannot delete temporary file "%s"', [FileName]));
     end;
     Writeln('done.');
   end;

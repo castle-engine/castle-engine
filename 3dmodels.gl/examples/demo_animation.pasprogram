@@ -194,7 +194,7 @@ begin
   ParseParameters(Options, @OptionProc, nil);
 
   try
-    VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
+    VRMLWarning := @VRMLWarning_Write;
 
     Animation := TVRMLGLAnimation.Create;
     if Parameters.High = 1 then

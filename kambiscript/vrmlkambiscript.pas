@@ -189,7 +189,7 @@ begin
      FieldClass.InheritsFrom(TMFImage) }then
     Result := TKamScriptImage.Create(true) else
   begin
-    VRMLNonFatalError('Note that KambiScript is not yet suitable to process values of type ' + FieldClass.VrmlTypeName);
+    VRMLWarning(vwSerious, 'Note that KambiScript is not yet suitable to process values of type ' + FieldClass.VrmlTypeName);
     Result := TKamScriptFloat.Create(true);
   end;
 

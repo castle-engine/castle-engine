@@ -137,7 +137,7 @@ type
   { What to do when GLSL uniform variable is set (TGLSLProgram.SetUniform)
     but doesn't exist in shader. }
   TUniformNotFoundAction = (
-    { Report that uniform variable not found to DataNonFatalError. }
+    { Report that uniform variable not found to DataWarning. }
     uaWarning,
     { Report that uniform variable not found by raising EGLSLUniformNotFound. }
     uaException);
@@ -1142,7 +1142,7 @@ var
 begin
   S := Format('Uniform variable "%s" not found', [Name]);
   case UniformNotFoundAction of
-    uaWarning: DataNonFatalError(S);
+    uaWarning: DataWarning(S);
     uaException: raise EGLSLUniformNotFound.Create(S);
     else raise EInternalError.Create('UniformNotFoundAction? in TGLSLProgram.UniformNotFound');
   end;

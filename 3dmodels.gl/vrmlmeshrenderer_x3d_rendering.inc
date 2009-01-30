@@ -165,7 +165,7 @@ begin
       Color := TNodeColor(Node.FdColor.Value).FdColor;
       if Color.Count < Coord.Count then
       begin
-        VRMLNonFatalError('Not enough colors specified for PointSet');
+        VRMLWarning(vwSerious, 'Not enough colors specified for PointSet');
         Color := nil;
       end;
     end;
@@ -174,7 +174,7 @@ begin
     begin
       if State.ParentShape = nil then
       begin
-        VRMLNonFatalError('PointSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
+        VRMLWarning(vwSerious, 'PointSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
         Renderer.SetColor(White3Single);
       end else
       begin
@@ -725,7 +725,7 @@ begin
   begin
     if State.ParentShape = nil then
     begin
-      VRMLNonFatalError('LineSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
+      VRMLWarning(vwSerious, 'LineSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
       Renderer.SetColor(White3Single);
     end else
     begin

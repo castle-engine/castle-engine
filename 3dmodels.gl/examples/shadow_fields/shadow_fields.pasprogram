@@ -540,7 +540,7 @@ begin
     LocalLightFileName := Parameters[3];
 
   try
-    VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
+    VRMLWarning := @VRMLWarning_Write;
 
     SceneCaster := TVRMLGLScene.Create(ShadowCasterFileName, roSceneAsAWhole);
     SceneReceiver := TVRMLGLScene.Create(ShadowReceiverFileName, roNone);

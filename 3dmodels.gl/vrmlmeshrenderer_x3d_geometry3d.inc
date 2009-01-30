@@ -247,7 +247,7 @@ var
            (Normal.Count < (XDimension - 1) *
                            (ZDimension - 1))) then
       begin
-        VRMLNonFatalError(SNotEnoughNormals);
+        VRMLWarning(vwSerious, SNotEnoughNormals);
         GenerateNormals;
       end else
       begin

@@ -569,7 +569,7 @@ begin
     SceneFileName := Parameters[1] else
     SceneFileName := '';
 
-  VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
+  VRMLWarning := @VRMLWarning_Write;
 
   { calculate RootNode }
   if SceneFileName <> '' then

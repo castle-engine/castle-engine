@@ -1984,7 +1984,7 @@ begin
       finally FreeAndNil(TempMat4f) end;
     end else
 
-      VRMLNonFatalError('Setting uniform GLSL variable from X3D field type "' + UniformValue.VRMLTypeName + '" not supported');
+      VRMLWarning(vwSerious, 'Setting uniform GLSL variable from X3D field type "' + UniformValue.VRMLTypeName + '" not supported');
 
     { Invalid glUniform call, that specifies wrong uniform variable type,
       may cause OpenGL error "invalid operation". We want to catch it,
@@ -1993,7 +1993,7 @@ begin
       now --- we know it's because of SetUniform.
 
       CheckGLError below will raise EOpenGLError, will be catched
-      and converter to VRMLNonFatalError below. }
+      and converter to VRMLWarning below. }
     CheckGLErrors;
 
     { TODO: other field types, full list is in X3D spec in
@@ -2009,19 +2009,18 @@ begin
       (although it says when talking about "Vertex attributes",
       seems they mixed attributes and uniforms meaning in spec?).
 
-      So we catch EGLSLUniformNotFound and don't even report it
-      by VRMLNonFatalError. (Still, we report to debug WritelnLog.) }
+      So we catch EGLSLUniformNotFound and report it through
+      VRMLWarning(vwIgnorable, ...). }
     on E: EGLSLUniformNotFound do
     begin
-      if Log then
-        WritelnLog('GLSL', 'ComposedShader specifies uniform variable ' +
-          'name not found (or not used) in the shader source: ' +
-          E.Message);
+      VRMLWarning(vwIgnorable, 'ComposedShader specifies uniform variable ' +
+        'name not found (or not used) in the shader source: ' +
+        E.Message);
     end;
 
     on E: EOpenGLError do
     begin
-      VRMLNonFatalError(
+      VRMLWarning(vwSerious,
         Format('When setting GLSL uniform variable "%s": ', [UniformName])
         + E.Message);
     end;
@@ -2072,7 +2071,7 @@ begin
     end;
   end;
 
-  VRMLNonFatalError(Format(
+  VRMLWarning(vwSerious, Format(
     'INTERNAL ERROR, we can continue but please report a bug: uniform variable "%s" should be set from event now, but it turns out that GLSL program for this event''s ComposedShader node is not in the cache',
     [Event.Name]));
 end;
@@ -2123,7 +2122,7 @@ function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
           end;
         end else
 
-          VRMLNonFatalError(Format('Unknown type for ShaderPart: "%s"',
+          VRMLWarning(vwSerious, Format('Unknown type for ShaderPart: "%s"',
             [Part.FdType.Value]));
       end;
 
@@ -2190,7 +2189,7 @@ begin
   except
     { In case of problems with initializing GLSL program, free the program
       and reraise exception. Caller of GLSLProgram_IncReference will
-      decide what to do with it (TVRMLOpenGLRenderer will make VRMLNonFatalError
+      decide what to do with it (TVRMLOpenGLRenderer will make VRMLWarning
       and record that this shader program failed to initialize by recording
       GLSLProgram = nil). }
     FreeAndNil(Result);
@@ -2938,7 +2937,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
                 EGLSLShaderCompileError or EGLSLProgramLinkError }
               on E: EGLSLError do
               begin
-                VRMLNonFatalError('Error when initializing GLSL shader : ' + E.Message);
+                VRMLWarning(vwSerious, 'Error when initializing GLSL shader : ' + E.Message);
                 GLSLProgram := nil;
                 ProgramNode.EventIsSelectedSend(false);
               end;
@@ -3089,13 +3088,13 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
 
     if S = 'NEAREST' then
     begin
-      VRMLNonFatalError(Format('"%s" is not allowed texture minification, this is an Avalon-only extension, please fix to "NEAREST_PIXEL"', [S]));
+      VRMLWarning(vwSerious, Format('"%s" is not allowed texture minification, this is an Avalon-only extension, please fix to "NEAREST_PIXEL"', [S]));
       Result := GL_NEAREST;
     end else
 
     begin
       Result := Attributes.TextureMinFilter;
-      VRMLNonFatalError(Format('Unknown texture minification filter "%s"', [S]));
+      VRMLWarning(vwSerious, Format('Unknown texture minification filter "%s"', [S]));
     end;
   end;
 
@@ -3113,13 +3112,13 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
 
     if S = 'NEAREST' then
     begin
-      VRMLNonFatalError(Format('"%s" is not allowed texture minification, this is an Avalon-only extension, please fix to "NEAREST_PIXEL"', [S]));
+      VRMLWarning(vwSerious, Format('"%s" is not allowed texture minification, this is an Avalon-only extension, please fix to "NEAREST_PIXEL"', [S]));
       Result := GL_NEAREST;
     end else
 
     begin
       Result := Attributes.TextureMagFilter;
-      VRMLNonFatalError(Format('Unknown texture minification filter "%s"', [S]));
+      VRMLWarning(vwSerious, Format('Unknown texture minification filter "%s"', [S]));
     end;
   end;
 
@@ -3286,7 +3285,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
       if ChildTex <> nil then
       begin
         if ChildTex is TNodeMultiTexture then
-          VRMLNonFatalError('Child of MultiTexture node cannot be another MultiTexture node') else
+          VRMLWarning(vwSerious, 'Child of MultiTexture node cannot be another MultiTexture node') else
         if ChildTex is TVRMLTextureNode then
           PrepareNonMultiTexture(TVRMLTextureNode(ChildTex));
       end;
@@ -3681,7 +3680,7 @@ procedure TVRMLOpenGLRenderer.RenderBegin(FogNode: TNodeFog;
    FogType := ArrayPosStr(FogNode.FdFogType.Value, ['LINEAR', 'EXPONENTIAL']);
    if FogType = -1 then
    begin
-     VRMLNonFatalError('Unknown fog type "' + FogNode.FdFogType.Value + '"');
+     VRMLWarning(vwSerious, 'Unknown fog type "' + FogNode.FdFogType.Value + '"');
      SetupFog(FogNode.Alternative);
      Exit;
    end;
@@ -3983,7 +3982,7 @@ begin
                (Child is TNodeX3DTextureTransformNode) then
             begin
               if Child is TNodeMultiTextureTransform then
-                VRMLNonFatalError('MultiTextureTransform.textureTransform list cannot contain another MultiTextureTransform instance') else
+                VRMLWarning(vwSerious, 'MultiTextureTransform.textureTransform list cannot contain another MultiTextureTransform instance') else
                 TextureMultMatrix(TNodeX3DTextureTransformNode(Child));
             end;
           end;
@@ -4228,7 +4227,7 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
           Result := GL_SUBTRACT else
         begin
           Result := GL_MODULATE;
-          VRMLNonFatalError(Format('Not supported multi-texturing mode "%s"', [S]))
+          VRMLWarning(vwSerious, Format('Not supported multi-texturing mode "%s"', [S]))
         end;
       end;
 
@@ -4247,7 +4246,7 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
         if ChildTex <> nil then
         begin
           if ChildTex is TNodeMultiTexture then
-            VRMLNonFatalError('Child of MultiTexture node cannot be another MultiTexture node') else
+            VRMLWarning(vwSerious, 'Child of MultiTexture node cannot be another MultiTexture node') else
           if ChildTex is TVRMLTextureNode then
           begin
             Success := EnableNonMultiTexture(I, TVRMLTextureNode(ChildTex), false);
@@ -4493,7 +4492,7 @@ begin
 
           if MeshRenderer <> nil then
             MeshRenderer.Render else
-            VRMLNonFatalError(
+            VRMLWarning(vwSerious,
               { We display for user Shape.Geometry.NodeTypeName,
                 although actually it's CurrentGeometry.NodeTypeName
                 that cannot be rendered. Internally, this is different

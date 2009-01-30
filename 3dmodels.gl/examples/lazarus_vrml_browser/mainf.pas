@@ -151,7 +151,7 @@ begin
   MenuFocusGLControl.ShortCut := ShortCut(VK_Escape, []);
 
   VrmlConsole := TVrmlConsole.Create(Application);
-  VRMLNonFatalError := @VRMLNonFatalError_VrmlConsole;
+  VRMLWarning := @VRMLWarning_VrmlConsole;
 
   if Parameters.High >= 1 then
     OpenScene(Parameters[1]);

@@ -44,7 +44,7 @@ var
   FileName: string;
   FAL: TALSoundFile;
 begin
-  DataNonFatalError := @DataNonFatalError_WarningWrite;
+  DataWarning := @DataWarning_Write;
 
   OpenALOptionsParse;
   BeginAL(false);

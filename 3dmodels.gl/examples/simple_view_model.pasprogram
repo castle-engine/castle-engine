@@ -91,7 +91,7 @@ end;
 begin
   Parameters.CheckHigh(1);
   try
-    VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
+    VRMLWarning := @VRMLWarning_Write;
 
     Scene := TVRMLGLScene.Create(Parameters[1], roSceneAsAWhole);
 

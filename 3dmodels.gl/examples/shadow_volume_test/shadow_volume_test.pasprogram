@@ -656,7 +656,7 @@ begin
     ShadowCasterVrmlName := Parameters[3];
 
     { init vrml-related objects }
-    VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
+    VRMLWarning := @VRMLWarning_Write;
     LightSet := TVRMLLightSetGL.Create(
       ParseVRMLFile(LightSetVrmlName, false), true, 0, -1);
     Scene := TVRMLGLScene.Create(SceneVrmlName, roSceneAsAWhole);
