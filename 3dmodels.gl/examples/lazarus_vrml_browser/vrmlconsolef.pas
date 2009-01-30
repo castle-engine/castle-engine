@@ -5,7 +5,8 @@ unit VrmlConsoleF;
 interface
 
 uses
-  Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs, StdCtrls;
+  Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs, StdCtrls,
+  VRMLErrors;
 
 type
 
