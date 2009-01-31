@@ -992,7 +992,7 @@ var
         Result := tgSphere else
       if S = 'COORD' then
         Result := tgCoord else
-      if S = 'COORD-EYE' then
+      if (S = 'COORD-EYE') or (S = 'CAMERASPACEPOSITION') then
         Result := tgCoordEye else
       begin
         Result := tgCoord;
