@@ -295,7 +295,9 @@ type
     tgExplicit,
     tgSphere,
     tgCoord,
-    tgCoordEye);
+    tgCoordEye,
+    tgCameraSpaceNormal,
+    tgCameraSpaceReflectionVector);
 
   TTextureCoordsImplementation = (
     { Texture coords not generated, because not needed by Renderer. }
@@ -994,6 +996,10 @@ var
         Result := tgCoord else
       if (S = 'COORD-EYE') or (S = 'CAMERASPACEPOSITION') then
         Result := tgCoordEye else
+      if S = 'CAMERASPACENORMAL' then
+        Result := tgCameraSpaceNormal else
+      if S = 'CAMERASPACEREFLECTIONVECTOR' then
+        Result := tgCameraSpaceReflectionVector else
       begin
         Result := tgCoord;
         VRMLWarning(vwSerious, Format('Unsupported TextureCoordinateGenerator.mode: "%s", will use "COORD" instead',
@@ -1236,8 +1242,11 @@ var
             glTexGenv(GL_S, GL_OBJECT_PLANE, Vector4Single(1, 0, 0, 0));
             glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
             glTexGenv(GL_T, GL_OBJECT_PLANE, Vector4Single(0, 1, 0, 0));
+            glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+            glTexGenv(GL_R, GL_OBJECT_PLANE, Vector4Single(0, 0, 1, 0));
             glEnable(GL_TEXTURE_GEN_S);
             glEnable(GL_TEXTURE_GEN_T);
+            glEnable(GL_TEXTURE_GEN_R);
           end;
         tgCoordEye:
           begin
@@ -1251,9 +1260,56 @@ var
               glTexGenv(GL_S, GL_EYE_PLANE, Vector4Single(1, 0, 0, 0));
               glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
               glTexGenv(GL_T, GL_EYE_PLANE, Vector4Single(0, 1, 0, 0));
+              glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+              glTexGenv(GL_R, GL_EYE_PLANE, Vector4Single(0, 0, 1, 0));
             glPopMatrix;
             glEnable(GL_TEXTURE_GEN_S);
             glEnable(GL_TEXTURE_GEN_T);
+            glEnable(GL_TEXTURE_GEN_R);
+          end;
+        tgCameraSpaceNormal:
+          begin
+            if not GL_ARB_texture_cube_map then
+            begin
+              VRMLWarning(vwSerious, 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACENORMAL", will do "COORD" instead');
+              glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+              glTexGenv(GL_S, GL_OBJECT_PLANE, Vector4Single(1, 0, 0, 0));
+              glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+              glTexGenv(GL_T, GL_OBJECT_PLANE, Vector4Single(0, 1, 0, 0));
+              glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+              glTexGenv(GL_R, GL_OBJECT_PLANE, Vector4Single(0, 0, 1, 0));
+            end else
+            begin
+              glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP_ARB);
+              glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP_ARB);
+              glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP_ARB);
+            end;
+
+            glEnable(GL_TEXTURE_GEN_S);
+            glEnable(GL_TEXTURE_GEN_T);
+            glEnable(GL_TEXTURE_GEN_R);
+          end;
+        tgCameraSpaceReflectionVector:
+          begin
+            if not GL_ARB_texture_cube_map then
+            begin
+              VRMLWarning(vwSerious, 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACEREFLECTIONVECTOR", will do "COORD" instead');
+              glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+              glTexGenv(GL_S, GL_OBJECT_PLANE, Vector4Single(1, 0, 0, 0));
+              glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+              glTexGenv(GL_T, GL_OBJECT_PLANE, Vector4Single(0, 1, 0, 0));
+              glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+              glTexGenv(GL_R, GL_OBJECT_PLANE, Vector4Single(0, 0, 1, 0));
+            end else
+            begin
+              glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
+              glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
+              glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
+            end;
+
+            glEnable(GL_TEXTURE_GEN_S);
+            glEnable(GL_TEXTURE_GEN_T);
+            glEnable(GL_TEXTURE_GEN_R);
           end;
         else raise EInternalError.Create('SetupTextureGen - Gen?');
       end;
@@ -1370,12 +1426,14 @@ begin
           Renderer.ActiveTexture(I);
           glDisable(GL_TEXTURE_GEN_S);
           glDisable(GL_TEXTURE_GEN_T);
+          glDisable(GL_TEXTURE_GEN_R);
         end;
     end else
     if TexCoordGen[0] <> tgExplicit then
     begin
       glDisable(GL_TEXTURE_GEN_S);
       glDisable(GL_TEXTURE_GEN_T);
+      glDisable(GL_TEXTURE_GEN_R);
     end;
   end;
 
