@@ -1241,10 +1241,17 @@ var
           end;
         tgCoordEye:
           begin
-            glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-            glTexGenv(GL_S, GL_EYE_PLANE, Vector4Single(1, 0, 0, 0));
-            glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-            glTexGenv(GL_T, GL_EYE_PLANE, Vector4Single(0, 1, 0, 0));
+            { Vectors given to EYE_PLANE are transformed by inverted
+              modelview matrix (at the moment of glTexGen call).
+              We don't want to transform them, so just temporarily setting
+              modelview matrix to identity makes things work Ok. }
+            glPushMatrix;
+              glLoadIdentity;
+              glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+              glTexGenv(GL_S, GL_EYE_PLANE, Vector4Single(1, 0, 0, 0));
+              glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+              glTexGenv(GL_T, GL_EYE_PLANE, Vector4Single(0, 1, 0, 0));
+            glPopMatrix;
             glEnable(GL_TEXTURE_GEN_S);
             glEnable(GL_TEXTURE_GEN_T);
           end;
