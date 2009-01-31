@@ -294,7 +294,8 @@ type
   TTextureCoordinateGeneration = (
     tgExplicit,
     tgSphere,
-    tgCoord);
+    tgCoord,
+    tgCoordEye);
 
   TTextureCoordsImplementation = (
     { Texture coords not generated, because not needed by Renderer. }
@@ -991,6 +992,8 @@ var
         Result := tgSphere else
       if S = 'COORD' then
         Result := tgCoord else
+      if S = 'COORD-EYE' then
+        Result := tgCoordEye else
       begin
         Result := tgCoord;
         VRMLWarning(vwSerious, Format('Unsupported TextureCoordinateGenerator.mode: "%s", will use "COORD" instead',
@@ -1220,6 +1223,13 @@ var
     procedure SetupTextureGen(const Gen: TTextureCoordinateGeneration);
     begin
       case Gen of
+        tgSphere:
+          begin
+            glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+            glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+            glEnable(GL_TEXTURE_GEN_S);
+            glEnable(GL_TEXTURE_GEN_T);
+          end;
         tgCoord:
           begin
             glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
@@ -1229,10 +1239,12 @@ var
             glEnable(GL_TEXTURE_GEN_S);
             glEnable(GL_TEXTURE_GEN_T);
           end;
-        tgSphere:
+        tgCoordEye:
           begin
-            glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-            glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+            glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+            glTexGenv(GL_S, GL_EYE_PLANE, Vector4Single(1, 0, 0, 0));
+            glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+            glTexGenv(GL_T, GL_EYE_PLANE, Vector4Single(0, 1, 0, 0));
             glEnable(GL_TEXTURE_GEN_S);
             glEnable(GL_TEXTURE_GEN_T);
           end;
