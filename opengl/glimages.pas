@@ -975,29 +975,21 @@ var
 
   procedure LoadMipmapped(const image: TImage);
   begin
-    {}{TODO: check does GL_SGIS_generate_mipmap work for cube map tex}
-    (*
-    if GL_SGIS_generate_mipmap then
-    begin
-      { hardware-accelerated mipmap generation.
-        Thanks go to Eric Grange for mentioning it on
-        [http://www.pascalgamedevelopment.com/forums/viewtopic.php?p=20514]
-        Documentation is on
-        [http://oss.sgi.com/projects/ogl-sample/registry/SGIS/generate_mipmap.txt] }
-      glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
-      glTexImage2DImage(Image);
-    end else*)
-    begin
-      gluBuild2DMipmapsImage(Image);
-    end;
+    { Testing on ATI Mobility Radeon X1600 (fglrx, Linux, on Mac Book Pro),
+      it looks like SGIS_generate_mipmap doesn't work on cube map texture
+      targets: I get GL error "invalid enumerant" when trying
+
+      glTexParameteri(Target, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
+
+      So I don't use SGIS_generate_mipmap, instead making mipmaps always
+      by gluBuild2DMipmapsImage.
+    }
+
+    gluBuild2DMipmapsImage(Image);
   end;
 
   procedure LoadNormal(const image: TImage);
   begin
-    {}{TODO: check does GL_SGIS_generate_mipmap work for cube map tex}
-    (*
-    if GL_SGIS_generate_mipmap then
-      glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_FALSE);*)
     glTexImage2DImage(Image);
   end;
 
