@@ -4223,13 +4223,18 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
         and which is the source (default is previous texture unit,
         although may change by "source" field; this is "Arg2" in X3D spec).
 
+        You can assign here explicitly sources/operands for other
+        arguments, if needed (e.g. "BLEND*" modes fill here 3rd source/operand
+        directly).
+
         Also, specify RGBScale, AlphaScale (remember OpenGL allows
         only 1.0, 2.0 and 4.0 scales). By default are 1. }
       procedure ModeFromString(const S: string;
         out CombineRGB, CombineAlpha: TGLint;
         out Arg1, Arg2: Integer;
         var RGBScale, AlphaScale: TGLfloat;
-        var AlreadyHandled: boolean);
+        var AlreadyHandled: boolean;
+        var NeedsConstantColor: boolean);
       var
         LS: string;
       begin
@@ -4338,6 +4343,61 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
           Arg1 := 0;
           Arg2 := 1;
         end else
+        if LS = 'blenddiffusealpha' then
+        begin
+          CombineRGB := GL_INTERPOLATE_EXT;
+          CombineAlpha := GL_INTERPOLATE_EXT;
+          Arg1 := 0;
+          Arg2 := 1;
+
+          { Whole source2 (both RGB and alpha) is filled by alpha of material
+            (primary color). }
+          glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB_EXT, GL_PRIMARY_COLOR_EXT);
+          glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB_EXT, GL_SRC_ALPHA);
+          glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA_EXT, GL_PRIMARY_COLOR_EXT);
+          glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA_EXT, GL_SRC_ALPHA);
+        end else
+        if LS = 'blendtexturealpha' then
+        begin
+          CombineRGB := GL_INTERPOLATE_EXT;
+          CombineAlpha := GL_INTERPOLATE_EXT;
+          Arg1 := 0;
+          Arg2 := 1;
+
+          { Whole source2 (both RGB and alpha) is filled by alpha of current
+            tex unit. }
+          glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB_EXT, GL_TEXTURE);
+          glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB_EXT, GL_SRC_ALPHA);
+          glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA_EXT, GL_TEXTURE);
+          glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA_EXT, GL_SRC_ALPHA);
+        end else
+        if LS = 'blendfactoralpha' then
+        begin
+          CombineRGB := GL_INTERPOLATE_EXT;
+          CombineAlpha := GL_INTERPOLATE_EXT;
+          Arg1 := 0;
+          Arg2 := 1;
+
+          { Whole source2 (both RGB and alpha) is filled by const alpha. }
+          NeedsConstantColor := true;
+          glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB_EXT, GL_CONSTANT_EXT);
+          glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB_EXT, GL_SRC_ALPHA);
+          glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA_EXT, GL_CONSTANT_EXT);
+          glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA_EXT, GL_SRC_ALPHA);
+        end else
+        if LS = 'blendcurrentalpha' then
+        begin
+          CombineRGB := GL_INTERPOLATE_EXT;
+          CombineAlpha := GL_INTERPOLATE_EXT;
+          Arg1 := 0;
+          Arg2 := 1;
+
+          { Whole source2 (both RGB and alpha) is filled by alpha from prev tex. }
+          glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB_EXT, GL_PREVIOUS_EXT);
+          glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB_EXT, GL_SRC_ALPHA);
+          glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA_EXT, GL_PREVIOUS_EXT);
+          glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA_EXT, GL_SRC_ALPHA);
+        end else
         begin
           CombineRGB := GL_MODULATE;
           CombineAlpha := GL_MODULATE;
@@ -4347,7 +4407,8 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
         end;
       end;
 
-      procedure SourceFromString(const S: string; out Source: TGLint);
+      procedure SourceFromString(const S: string; out Source: TGLint;
+        var NeedsConstantColor: boolean);
       var
         LS: string;
       begin
@@ -4358,15 +4419,7 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
           Source := GL_PRIMARY_COLOR_EXT else
         if LS = 'factor' then
         begin
-          { Assign constant color now, when we know it should be used.
-            Although we could actually just do this unconditionally
-            inside EnableMultiTexture, only once, doing it the way
-            below (possibly zero times, possibly more than once)
-            may be in practice faster: because I suppose that in 99%
-            of cases, constant factor will not be used. }
-          glTexEnvv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, Vector4Single(
-            MultiTexture.FdColor.Value,
-            MultiTexture.FdAlpha.Value));
+          NeedsConstantColor := true;
           Source := GL_CONSTANT_EXT;
         end else
         begin
@@ -4384,6 +4437,7 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       RGBScale, AlphaScale: TGLfloat;
       S: string;
       AlreadyHandled: boolean;
+      NeedsConstantColor: boolean;
       Source: TGLint;
     begin
       Assert(Integer(TexCount) <= MultiTexture.FdTexture.Items.Count);
@@ -4409,13 +4463,14 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
               AlreadyHandled := false;
               RGBScale := 1;
               AlphaScale := 1;
+              NeedsConstantColor := false;
 
               if I < MultiTexture.FdMode.Count then
                 S := MultiTexture.FdMode.Items[I] else
                 S := '';
 
               ModeFromString(S, CombineRGB, CombineAlpha, Arg1, Arg2,
-                RGBScale, AlphaScale, AlreadyHandled);
+                RGBScale, AlphaScale, AlreadyHandled, NeedsConstantColor);
 
               if not AlreadyHandled then
               begin
@@ -4445,13 +4500,21 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
                     S := MultiTexture.FdSource.Items[I] else
                     S := '';
 
-                  SourceFromString(S, Source);
+                  SourceFromString(S, Source, NeedsConstantColor);
 
                   glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT + Arg2, Source);
                   glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT + Arg2, GL_SRC_COLOR);
 
                   glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT + Arg2, Source);
                   glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT + Arg2, GL_SRC_ALPHA);
+                end;
+
+                if NeedsConstantColor then
+                begin
+                  { Assign constant color now, when we know it should be used. }
+                  glTexEnvv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, Vector4Single(
+                    MultiTexture.FdColor.Value,
+                    MultiTexture.FdAlpha.Value));
                 end;
               end;
             end;
