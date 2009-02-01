@@ -672,7 +672,7 @@ type
 
         @item(When ControlTextures = @true but EnableTextures = @false,
           you force the engine to ignore textures in your model.
-          The whole scene will be rendered with glDisable(GL_TEXTURE2D),
+          The whole scene will be rendered with glDisable(GL_TEXTURE_*),
           texture coordinates will not be generated etc.
           This is for special purposes.)
 
@@ -884,6 +884,23 @@ type
   TDynTextureVideoCacheArray = class(TDynArray_7)
   end;
 
+  TTextureCubeMapCache = record
+    InitialNode: TNodeX3DEnvironmentTextureNode;
+    MinFilter: TGLint;
+    MagFilter: TGLint;
+    References: Cardinal;
+    GLName: TGLuint;
+  end;
+  PTextureCubeMapCache = ^TTextureCubeMapCache;
+
+  TDynArrayItem_9 = TTextureCubeMapCache;
+  PDynArrayItem_9 = PTextureCubeMapCache;
+  {$define DYNARRAY_9_IS_STRUCT}
+  {$define DYNARRAY_9_IS_INIT_FINI_TYPE}
+  {$I dynarray_9.inc}
+  TDynTextureCubeMapCacheArray = class(TDynArray_9)
+  end;
+
   { Note that Attributes and State are owned by this record
     (TVRMLOpenGLRendererContextCache will make sure about creating/destroying
     them), but GeometryNode and FogNode are a references somewhere to the scene
@@ -958,6 +975,7 @@ type
     Fonts: array[TVRMLFontFamily, boolean, boolean] of TGLOutlineFontCache;
     TextureImageCaches: TDynTextureImageCacheArray;
     TextureVideoCaches: TDynTextureVideoCacheArray;
+    TextureCubeMapCaches: TDynTextureCubeMapCacheArray;
     ShapeCaches: TDynShapeCacheArray;
     ShapeNoTransformCaches: TDynShapeCacheArray;
     RenderBeginCaches: TDynRenderBeginEndCacheArray;
@@ -987,6 +1005,14 @@ type
 
     procedure TextureVideo_DecReference(
       const TextureVideo: TGLVideo);
+
+    function TextureCubeMap_IncReference(
+      Node: TNodeX3DEnvironmentTextureNode;
+      const MinFilter, MagFilter: TGLint;
+      Back, Bottom, Front, Left, Right, Top: TImage): TGLuint;
+
+    procedure TextureCubeMap_DecReference(
+      const TextureGLName: TGLuint);
 
     function FogParametersEqual(
       FogNode1: TNodeFog; const FogDistanceScaling1: Single;
@@ -1137,6 +1163,23 @@ type
     function TextureNodeIndex(ANode: TVRMLTextureNode): integer;
   end;
 
+  TTextureCubeMapReference = record
+    Node: TNodeX3DEnvironmentTextureNode;
+    GLName: TGLuint;
+  end;
+  PTextureCubeMapReference = ^TTextureCubeMapReference;
+
+  TDynArrayItem_10 = TTextureCubeMapReference;
+  PDynArrayItem_10 = PTextureCubeMapReference;
+  {$define DYNARRAY_10_IS_STRUCT}
+  {$I dynarray_10.inc}
+  TDynTextureCubeMapReferenceArray = class(TDynArray_10)
+  public
+    { Looks for item with given ANode.
+      Returns -1 if not found. }
+    function TextureNodeIndex(ANode: TNodeX3DEnvironmentTextureNode): Integer;
+  end;
+
   TGLSLProgramReference = record
     ProgramNode: TNodeComposedShader;
 
@@ -1213,6 +1256,7 @@ type
 
     TextureImageReferences: TDynTextureImageReferenceArray;
     TextureVideoReferences: TDynTextureVideoReferenceArray;
+    TextureCubeMapReferences: TDynTextureCubeMapReferenceArray;
     GLSLProgramReferences: TDynGLSLProgramReferenceArray;
 
     { To which fonts we made a reference in the cache ? }
@@ -1513,6 +1557,8 @@ uses NormalsCalculator, Math, Triangulator, NormalizationCubeMap,
 {$I dynarray_6.inc}
 {$I dynarray_7.inc}
 {$I dynarray_8.inc}
+{$I dynarray_9.inc}
+{$I dynarray_10.inc}
 
 {$I openglmac.inc}
 
@@ -1531,6 +1577,7 @@ begin
   inherited;
   TextureImageCaches := TDynTextureImageCacheArray.Create;
   TextureVideoCaches := TDynTextureVideoCacheArray.Create;
+  TextureCubeMapCaches := TDynTextureCubeMapCacheArray.Create;
   ShapeCaches := TDynShapeCacheArray.Create;
   ShapeNoTransformCaches := TDynShapeCacheArray.Create;
   RenderBeginCaches := TDynRenderBeginEndCacheArray.Create;
@@ -1567,6 +1614,13 @@ begin
     Assert(TextureVideoCaches.Count = 0, 'Some references to texture videos still exist' +
       ' when freeing TVRMLOpenGLRendererContextCache');
     FreeAndNil(TextureVideoCaches);
+  end;
+
+  if TextureCubeMapCaches <> nil then
+  begin
+    Assert(TextureCubeMapCaches.Count = 0, 'Some references to texture cubemaps still exist' +
+      ' when freeing TVRMLOpenGLRendererContextCache');
+    FreeAndNil(TextureCubeMapCaches);
   end;
 
   if ShapeCaches <> nil then
@@ -1846,6 +1900,93 @@ begin
   raise EInternalError.CreateFmt(
     'TVRMLOpenGLRendererContextCache.TextureVideo_DecReference: no reference ' +
     'found to texture %s', [PointerToStr(TextureVideo)]);
+end;
+
+function TVRMLOpenGLRendererContextCache.TextureCubeMap_IncReference(
+  Node: TNodeX3DEnvironmentTextureNode;
+  const MinFilter, MagFilter: TGLint;
+  Back, Bottom, Front, Left, Right, Top: TImage): TGLuint;
+
+  procedure SideLoad(Image: TImage; GLSide: TGLint);
+  begin
+    Assert(Image is TRGBImage);
+    glTexImage2D(GLSide, 0, 3, Image.Width, Image.Height,
+      0, GL_RGB, GL_UNSIGNED_BYTE, Image.RawPixels);
+  end;
+
+var
+  I: Integer;
+  TextureCached: PTextureCubeMapCache;
+begin
+  for I := 0 to TextureCubeMapCaches.High do
+  begin
+    TextureCached := TextureCubeMapCaches.Pointers[I];
+
+    if (TextureCached^.InitialNode = Node) and
+       (TextureCached^.MinFilter = MinFilter) and
+       (TextureCached^.MagFilter = MagFilter) then
+    begin
+      Inc(TextureCached^.References);
+      {$ifdef DEBUG_VRML_RENDERER_CACHE}
+      Writeln('++ : cube map ', PointerToStr(Node), ' : ', TextureCached^.References);
+      {$endif}
+      Exit(TextureCached^.GLName);
+    end;
+  end;
+
+  glGenTextures(1, @Result);
+  glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, Result);
+
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_MAG_FILTER, MagFilter);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_MIN_FILTER, MinFilter);
+
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+  { TODO: temp we assume all images are TRGBImage }
+
+  SideLoad(Back  , GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB);
+  SideLoad(Bottom, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB);
+  SideLoad(Front , GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB);
+  SideLoad(Left  , GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB);
+  SideLoad(Right , GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB);
+  SideLoad(Top   , GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB);
+
+  TextureCached := TextureCubeMapCaches.AppendItem;
+  TextureCached^.InitialNode := Node;
+  TextureCached^.MinFilter := MinFilter;
+  TextureCached^.MagFilter := MagFilter;
+  TextureCached^.References := 1;
+  TextureCached^.GLName := Result;
+
+  {$ifdef DEBUG_VRML_RENDERER_CACHE}
+  Writeln('++ : cube map ', PointerToStr(Node), ' : ', 1);
+  {$endif}
+end;
+
+procedure TVRMLOpenGLRendererContextCache.TextureCubeMap_DecReference(
+  const TextureGLName: TGLuint);
+var
+  I: Integer;
+begin
+  for I := 0 to TextureCubeMapCaches.High do
+    if TextureCubeMapCaches.Items[I].GLName = TextureGLName then
+    begin
+      Dec(TextureCubeMapCaches.Items[I].References);
+      {$ifdef DEBUG_VRML_RENDERER_CACHE}
+      Writeln('-- : cube map ', PointerToStr(Node), ' : ', TextureCubeMapCaches.Items[I].References);
+      {$endif}
+      if TextureCubeMapCaches.Items[I].References = 0 then
+      begin
+        glDeleteTextures(1, @(TextureCubeMapCaches.Items[I].GLName));
+        TextureCubeMapCaches.Delete(I, 1);
+      end;
+      Exit;
+    end;
+
+  raise EInternalError.CreateFmt(
+    'TVRMLOpenGLRendererContextCache.TextureCubeMap_DecReference: no reference ' +
+    'found to texture %d', [TextureGLName]);
 end;
 
 procedure TVRMLOpenGLRendererContextCache.SetUniformFromField(
@@ -2828,6 +2969,16 @@ begin
   result := -1;
 end;
 
+{ TDynTextureCubeMapReferenceArray --------------------------------------------- }
+
+function TDynTextureCubeMapReferenceArray.TextureNodeIndex(
+  ANode: TNodeX3DEnvironmentTextureNode): integer;
+begin
+  for Result := 0 to Count - 1 do
+    if Items[result].Node = ANode then exit;
+  result := -1;
+end;
+
 { TDynGLSLProgramReferenceArray ---------------------------------------------- }
 
 function TDynGLSLProgramReferenceArray.ProgramNodeIndex(
@@ -2861,6 +3012,7 @@ begin
   FAttributes := AttributesClass.Create;
   TextureImageReferences := TDynTextureImageReferenceArray.Create;
   TextureVideoReferences := TDynTextureVideoReferenceArray.Create;
+  TextureCubeMapReferences := TDynTextureCubeMapReferenceArray.Create;
   GLSLProgramReferences := TDynGLSLProgramReferenceArray.Create;
 
   OwnsCache := ACache = nil;
@@ -2874,6 +3026,7 @@ begin
   UnprepareAll;
   FreeAndNil(TextureImageReferences);
   FreeAndNil(TextureVideoReferences);
+  FreeAndNil(TextureCubeMapReferences);
   FreeAndNil(GLSLProgramReferences);
   FreeAndNil(FAttributes);
 
@@ -3124,7 +3277,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
 
   { Do the necessary preparations for a non-multi texture node.
     TextureNode must be non-nil. }
-  procedure PrepareNonMultiTexture(TextureNode: TVRMLTextureNode);
+  procedure PrepareSingle2DTexture(TextureNode: TVRMLTextureNode);
   var
     TextureImageReference: TTextureImageReference;
     TextureVideoReference: TTextureVideoReference;
@@ -3272,6 +3425,102 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     end;
   end;
 
+  { Do the necessary preparations for a cube env map texture node.
+    CubeTexture must be non-nil. }
+  procedure PrepareSingleCubeTexture(CubeTexture: TNodeComposedCubeMapTexture);
+
+    { Checks is given side has non-nil valid node class,
+      and then if image there can be loaded. }
+    function SideLoaded(SideField: TSFNode): boolean;
+    var
+      SideTex: TVRMLTextureNode;
+    begin
+      Result :=
+        (SideField.Value <> nil) and
+        (SideField.Value is TVRMLTextureNode);
+      if Result then
+      begin
+        SideTex := TVRMLTextureNode(SideField.Value);
+        SideTex.ImagesVideosCache := Cache;
+        Result := SideTex.IsTextureImage;
+      end;
+    end;
+
+  var
+    TextureProperties: TNodeTextureProperties;
+    MinFilter, MagFilter: TGLint;
+    TextureCubeMapReference: TTextureCubeMapReference;
+    BackRot, FrontRot, LeftRot, RightRot: TImage;
+  begin
+    if TextureCubeMapReferences.TextureNodeIndex(CubeTexture) <> -1 then
+      { Already loaded, nothing to do }
+      Exit;
+
+    if not GL_ARB_texture_cube_map then
+    begin
+      VRMLWarning(vwSerious, 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
+      Exit;
+    end;
+
+    if not (SideLoaded(CubeTexture.FdBack) and
+       SideLoaded(CubeTexture.FdBottom) and
+       SideLoaded(CubeTexture.FdFront) and
+       SideLoaded(CubeTexture.FdLeft) and
+       SideLoaded(CubeTexture.FdRight) and
+       SideLoaded(CubeTexture.FdTop)) then
+    begin
+      VRMLWarning(vwSerious, 'Not all sides of a CubeMapTexture are correctly set and loaded, cannot use cube map');
+      Exit;
+    end;
+
+    { calculate MinFilter, MagFilter }
+    TextureProperties := TVRMLTextureNode(CubeTexture.FdBack.Value).TextureProperties;
+    if TextureProperties <> nil then
+    begin
+      MinFilter := StrToMinFilter(TextureProperties.FdMinificationFilter.Value);
+      MagFilter := StrToMagFilter(TextureProperties.FdMagnificationFilter.Value);
+    end else
+    begin
+      MinFilter := Attributes.TextureMinFilter;
+      MagFilter := Attributes.TextureMagFilter;
+    end;
+
+    { Mipmaps for cube maps are not supported now, so just force using
+      GL_LINEAR in this case. }
+    if (MinFilter = GL_NEAREST_MIPMAP_NEAREST) or
+       (MinFilter = GL_LINEAR_MIPMAP_NEAREST) or
+       (MinFilter = GL_NEAREST_MIPMAP_LINEAR) or
+       (MinFilter = GL_LINEAR_MIPMAP_LINEAR) then
+      MinFilter := GL_LINEAR;
+
+    try
+      { To match expected orientation for OpenGL, we have to rotate images.
+        (source images are oriented as for VRML Background.) }
+      BackRot  := TVRMLTextureNode(CubeTexture.FdBack .Value).TextureImage.MakeRotated(2);
+      FrontRot := TVRMLTextureNode(CubeTexture.FdFront.Value).TextureImage.MakeRotated(2);
+      LeftRot  := TVRMLTextureNode(CubeTexture.FdLeft .Value).TextureImage.MakeRotated(2);
+      RightRot := TVRMLTextureNode(CubeTexture.FdRight.Value).TextureImage.MakeRotated(2);
+
+      TextureCubeMapReference.Node := CubeTexture;
+      TextureCubeMapReference.GLName := Cache.TextureCubeMap_IncReference(
+        CubeTexture,
+        MinFilter, MagFilter,
+        BackRot,
+        TVRMLTextureNode(CubeTexture.FdBottom.Value).TextureImage,
+        FrontRot,
+        LeftRot,
+        RightRot,
+        TVRMLTextureNode(CubeTexture.FdTop   .Value).TextureImage);
+      TextureCubeMapReferences.AppendItem(TextureCubeMapReference);
+
+    finally
+      FreeAndNil(BackRot);
+      FreeAndNil(FrontRot);
+      FreeAndNil(LeftRot);
+      FreeAndNil(RightRot);
+    end;
+  end;
+
   { Do the necessary preparations for a multi-texture node.
     MultiTexture must be non-nil. }
   procedure PrepareMultiTexture(MultiTexture: TNodeMultiTexture);
@@ -3286,8 +3535,10 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
       begin
         if ChildTex is TNodeMultiTexture then
           VRMLWarning(vwSerious, 'Child of MultiTexture node cannot be another MultiTexture node') else
+        if ChildTex is TNodeComposedCubeMapTexture then
+          PrepareSingleCubeTexture(TNodeComposedCubeMapTexture(ChildTex)) else
         if ChildTex is TVRMLTextureNode then
-          PrepareNonMultiTexture(TVRMLTextureNode(ChildTex));
+          PrepareSingle2DTexture(TVRMLTextureNode(ChildTex));
       end;
     end;
   end;
@@ -3308,8 +3559,10 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     begin
       if TextureNode is TNodeMultiTexture then
         PrepareMultiTexture(TNodeMultiTexture(TextureNode)) else
+      if TextureNode is TNodeComposedCubeMapTexture then
+        PrepareSingleCubeTexture(TNodeComposedCubeMapTexture(TextureNode)) else
       if TextureNode is TVRMLTextureNode then
-        PrepareNonMultiTexture(TVRMLTextureNode(TextureNode));
+        PrepareSingle2DTexture(TVRMLTextureNode(TextureNode));
     end;
   end;
 
@@ -3373,7 +3626,7 @@ end;
 
 procedure TVRMLOpenGLRenderer.Unprepare(Node: TVRMLNode);
 
-  procedure UnprepareSingleTexture(Tex: TVRMLTextureNode);
+  procedure UnprepareSingle2DTexture(Tex: TVRMLTextureNode);
   var
     i: integer;
   begin
@@ -3392,6 +3645,18 @@ procedure TVRMLOpenGLRenderer.Unprepare(Node: TVRMLNode);
     end;
   end;
 
+  procedure UnprepareSingleCubeMapTexture(Tex: TNodeX3DEnvironmentTextureNode);
+  var
+    i: integer;
+  begin
+    i := TextureCubeMapReferences.TextureNodeIndex(Tex);
+    if i >= 0 then
+    begin
+      Cache.TextureCubeMap_DecReference(TextureCubeMapReferences.Items[i].GLName);
+      TextureCubeMapReferences.Delete(i, 1);
+    end;
+  end;
+
   procedure UnprepareMultiTexture(Tex: TNodeMultiTexture);
   var
     TexItem: TVRMLNode;
@@ -3402,7 +3667,10 @@ procedure TVRMLOpenGLRenderer.Unprepare(Node: TVRMLNode);
       TexItem := Tex.FdTexture.Items[I];
       if (TexItem <> nil) and
          (TexItem is TVRMLTextureNode) then
-        UnprepareSingleTexture(TVRMLTextureNode(TexItem));
+        UnprepareSingle2DTexture(TVRMLTextureNode(TexItem)) else
+      if (TexItem <> nil) and
+         (TexItem is TNodeX3DEnvironmentTextureNode) then
+        UnprepareSingleCubeMapTexture(TNodeX3DEnvironmentTextureNode(TexItem));
     end;
   end;
 
@@ -3416,11 +3684,15 @@ begin
 
   { unprepare single texture }
   if Node is TVRMLTextureNode then
-    UnprepareSingleTexture(TVRMLTextureNode(Node)) else
+    UnprepareSingle2DTexture(TVRMLTextureNode(Node)) else
 
   { unprepare multi texture }
   if Node is TNodeMultiTexture then
     UnprepareMultiTexture(TNodeMultiTexture(Node)) else
+
+  { unprepare cube map texture }
+  if Node is TNodeX3DEnvironmentTextureNode then
+    UnprepareSingleCubeMapTexture(TNodeX3DEnvironmentTextureNode(Node));
 
   { unprepare GLSLProgram }
   { This is not used for now anywhere actually ? Nowhere I unprepare
@@ -3466,10 +3738,12 @@ begin
   TextureImageReferences.SetLength(0);
 
   for i := 0 to TextureVideoReferences.Count-1 do
-  begin
     Cache.TextureVideo_DecReference(TextureVideoReferences.Items[i].GLVideo);
-  end;
   TextureVideoReferences.SetLength(0);
+
+  for i := 0 to TextureCubeMapReferences.Count-1 do
+    Cache.TextureCubeMap_DecReference(TextureCubeMapReferences.Items[i].GLName);
+  TextureCubeMapReferences.SetLength(0);
 
   { unprepare all GLSLPrograms }
   for i := 0 to GLSLProgramReferences.Count - 1 do
@@ -4087,13 +4361,40 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
   end;
 
   procedure InitTextures;
+
+    type
+      TTextureEnableDisable = (etOff, et2D, etCubeMap);
+
+    { Enable/disable texturing (2D and cube map) on current texture unit. }
+    procedure TextureEnableDisable(const Enable: TTextureEnableDisable);
+    begin
+      case Enable of
+        etOff:
+          begin
+            glDisable(GL_TEXTURE_2D);
+            if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+          end;
+        et2D:
+          begin
+            glEnable(GL_TEXTURE_2D);
+            if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+          end;
+        etCubeMap:
+          begin
+            glDisable(GL_TEXTURE_2D);
+            if GL_ARB_texture_cube_map then glEnable(GL_TEXTURE_CUBE_MAP_ARB);
+          end;
+        else raise EInternalError.Create('TextureEnableDisable?');
+      end;
+    end;
+
   var
     AlphaTest: boolean;
 
     procedure DisableTexture(const TextureUnit: Cardinal);
     begin
       ActiveTexture(TextureUnit);
-      glDisable(GL_TEXTURE_2D);
+      TextureEnableDisable(etOff);
     end;
 
     { Enable non-multi texture.
@@ -4113,14 +4414,14 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       It's also already enabled by glEnable(GL_TEXTURE_2D).
 
       AlphaTest may be modified, but only to true, by this procedure. }
-    function EnableNonMultiTexture(const TextureUnit: Cardinal;
+    function EnableSingle2DTexture(const TextureUnit: Cardinal;
       TextureNode: TVRMLTextureNode;
       UseForBumpMappingAllowed: boolean): boolean;
 
       procedure EnableClassicTexturing(GLTexture: TGLuint);
       begin
         ActiveTexture(TextureUnit);
-        glEnable(GL_TEXTURE_2D);
+        TextureEnableDisable(et2D);
 
         glBindTexture(GL_TEXTURE_2D, GLTexture);
       end;
@@ -4204,6 +4505,24 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
 
           Result := true;
         end;
+      end;
+    end;
+
+    function EnableSingleCubeMapTexture(const TextureUnit: Cardinal;
+      CubeTexture: TNodeX3DEnvironmentTextureNode): boolean;
+    var
+      TexRefIndex: Integer;
+      TexRef: PTextureCubeMapReference;
+    begin
+      TexRefIndex := TextureCubeMapReferences.TextureNodeIndex(CubeTexture);
+      Result := TexRefIndex <> -1;
+      if Result then
+      begin
+        TexRef := TextureCubeMapReferences.Pointers[TexRefIndex];
+
+        ActiveTexture(TextureUnit);
+        glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, TexRef^.GLName);
+        TextureEnableDisable(etCubeMap);
       end;
     end;
 
@@ -4295,7 +4614,7 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
         begin
           { For OFF, turn off the texture unit? This is the correct
             interpretation, right? }
-          glDisable(GL_TEXTURE_2D);
+          TextureEnableDisable(etOff);
           AlreadyHandled := true;
         end else
         if LS = 'add' then
@@ -4451,71 +4770,71 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
           if ChildTex is TNodeMultiTexture then
             VRMLWarning(vwSerious, 'Child of MultiTexture node cannot be another MultiTexture node') else
           if ChildTex is TVRMLTextureNode then
+            Success := EnableSingle2DTexture(I, TVRMLTextureNode(ChildTex), false) else
+          if ChildTex is TNodeX3DEnvironmentTextureNode then
+            Success := EnableSingleCubeMapTexture(I, TNodeX3DEnvironmentTextureNode(ChildTex));
+
+          if Success then
           begin
-            Success := EnableNonMultiTexture(I, TVRMLTextureNode(ChildTex), false);
+            { Set all the multitexture mode-related stuff.
+              Below we handle MultiTexture.mode, source, color, alpha,
+              function fields. }
 
-            if Success then
+            AlreadyHandled := false;
+            RGBScale := 1;
+            AlphaScale := 1;
+            NeedsConstantColor := false;
+
+            if I < MultiTexture.FdMode.Count then
+              S := MultiTexture.FdMode.Items[I] else
+              S := '';
+
+            ModeFromString(S, CombineRGB, CombineAlpha, Arg1, Arg2,
+              RGBScale, AlphaScale, AlreadyHandled, NeedsConstantColor);
+
+            if not AlreadyHandled then
             begin
-              { Set all the multitexture mode-related stuff.
-                Below we handle MultiTexture.mode, source, color, alpha,
-                function fields. }
+              glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
 
-              AlreadyHandled := false;
-              RGBScale := 1;
-              AlphaScale := 1;
-              NeedsConstantColor := false;
+              glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, CombineRGB);
+              glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, CombineAlpha);
 
-              if I < MultiTexture.FdMode.Count then
-                S := MultiTexture.FdMode.Items[I] else
-                S := '';
+              glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, RGBScale);
+              glTexEnvf(GL_TEXTURE_ENV, GL_ALPHA_SCALE, AlphaScale);
 
-              ModeFromString(S, CombineRGB, CombineAlpha, Arg1, Arg2,
-                RGBScale, AlphaScale, AlreadyHandled, NeedsConstantColor);
-
-              if not AlreadyHandled then
+              if Arg1 <> -1 then
               begin
-                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+                { First argument is always current texture unit.
+                  (This is indicated by X3D spec wording
+                  "The source field determines the colour source for the second argument.") }
+                glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT + Arg1, GL_TEXTURE);
+                glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT + Arg1, GL_SRC_COLOR);
 
-                glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, CombineRGB);
-                glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, CombineAlpha);
+                glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT + Arg1, GL_TEXTURE);
+                glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT + Arg1, GL_SRC_ALPHA);
+              end;
 
-                glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, RGBScale);
-                glTexEnvf(GL_TEXTURE_ENV, GL_ALPHA_SCALE, AlphaScale);
+              if Arg2 <> -1 then
+              begin
+                if I < MultiTexture.FdSource.Count then
+                  S := MultiTexture.FdSource.Items[I] else
+                  S := '';
 
-                if Arg1 <> -1 then
-                begin
-                  { First argument is always current texture unit.
-                    (This is indicated by X3D spec wording
-                    "The source field determines the colour source for the second argument.") }
-                  glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT + Arg1, GL_TEXTURE);
-                  glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT + Arg1, GL_SRC_COLOR);
+                SourceFromString(S, Source, NeedsConstantColor);
 
-                  glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT + Arg1, GL_TEXTURE);
-                  glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT + Arg1, GL_SRC_ALPHA);
-                end;
+                glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT + Arg2, Source);
+                glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT + Arg2, GL_SRC_COLOR);
 
-                if Arg2 <> -1 then
-                begin
-                  if I < MultiTexture.FdSource.Count then
-                    S := MultiTexture.FdSource.Items[I] else
-                    S := '';
+                glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT + Arg2, Source);
+                glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT + Arg2, GL_SRC_ALPHA);
+              end;
 
-                  SourceFromString(S, Source, NeedsConstantColor);
-
-                  glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT + Arg2, Source);
-                  glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT + Arg2, GL_SRC_COLOR);
-
-                  glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT + Arg2, Source);
-                  glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT + Arg2, GL_SRC_ALPHA);
-                end;
-
-                if NeedsConstantColor then
-                begin
-                  { Assign constant color now, when we know it should be used. }
-                  glTexEnvv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, Vector4Single(
-                    MultiTexture.FdColor.Value,
-                    MultiTexture.FdAlpha.Value));
-                end;
+              if NeedsConstantColor then
+              begin
+                { Assign constant color now, when we know it should be used. }
+                glTexEnvv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, Vector4Single(
+                  MultiTexture.FdColor.Value,
+                  MultiTexture.FdAlpha.Value));
               end;
             end;
           end;
@@ -4561,7 +4880,18 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
     begin
       if TextureNode is TVRMLTextureNode then
       begin
-        if EnableNonMultiTexture(0, TVRMLTextureNode(TextureNode), true) then
+        if EnableSingle2DTexture(0, TVRMLTextureNode(TextureNode), true) then
+        begin
+          { TODO: this should be fixed, for non-multi tex decal
+            is standard? }
+          glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+          TexCoordsNeeded := 1;
+        end else
+          TexCoordsNeeded := 0;
+      end else
+      if TextureNode is TNodeX3DEnvironmentTextureNode then
+      begin
+        if EnableSingleCubeMapTexture(0, TNodeX3DEnvironmentTextureNode(TextureNode)) then
         begin
           { TODO: this should be fixed, for non-multi tex decal
             is standard? }
@@ -4596,12 +4926,12 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       for I := Attributes.FirstGLFreeTexture + TexCoordsNeeded to LastGLFreeTexture do
       begin
         glActiveTextureARB(GL_TEXTURE0_ARB + I);
-        glDisable(GL_TEXTURE_2D);
+        TextureEnableDisable(etOff);
       end;
     end else
     begin
       if TexCoordsNeeded = 0 then
-        glDisable(GL_TEXTURE_2D);
+        TextureEnableDisable(etOff);
     end;
 
     { Set alpha_test enabled state.
