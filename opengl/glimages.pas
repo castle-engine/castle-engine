@@ -284,8 +284,9 @@ function SaveScreenToDisplayList_noflush(xpos, ypos, width, height: integer;
 { ----------------------------------------------------------------------
   Adjusting image size to load them as textures. }
 
-{ Resizes the image to a size accepted as texture size for OpenGL.
-  It tries to resize to larger size, not smaller, to avoid losing image
+{ Resize the image to a size accepted as GL_TEXTURE_2D texture size
+  for OpenGL. It tries to resize to a larger size, not smaller,
+  to avoid losing image
   information. Usually you don't have to call this, LoadGLTexture*
   functions call it automatically when needed.
 
@@ -294,8 +295,9 @@ procedure ResizeForTextureSize(var r: TImage);
 function ResizeToTextureSize(const r: TImage): TImage;
 { @groupEnd }
 
-{ Tests if texture has proper size for OpenGL, that is for passing
-  it to glTexImage2d. This checks glGet(GL_MAX_TEXTURE_SIZE),
+{ Does image have proper size for OpenGL texture (GL_TEXTURE_2D).
+  That is, for passing to glTexImage2D for GL_TEXTURE_2D target.
+  This checks glGet(GL_MAX_TEXTURE_SIZE),
   so requires initialized OpenGL context. }
 function IsTextureSized(const r: TImage): boolean;
 
@@ -400,6 +402,23 @@ type
     property TimeBackwards: boolean
       read FTimeBackwards write FTimeBackwards;
   end;
+
+{ Comfortably load a single image for one cube map texture side.
+  Think about this as doing only glTexImage2D(Target, ...) for you.
+  Target should be one of the six cube map texture targets:
+  GL_TEXTURE_CUBE_MAP_POSITIVE/NEGATIVE_X/Y/Z_ARB.
+
+  It automatically takes care to adjust the texture size to
+  appropriate size, honoring the "power of two" requirement and
+  the GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB limit of OpenGL. So texture image
+  may be resized (preferably up) internally before loading.
+
+  It takes care about OpenGL unpack parameters. Just don't worry about it.
+
+  If mipmaps, then all mipmap levels will be automatically created and loaded.
+}
+procedure glTexImage2DForCubeMap(
+  Target: TGLenum; const Image: TImage; Mipmaps: boolean);
 
 implementation
 
@@ -572,52 +591,115 @@ begin
 end;
 
 function IsTextureSized(const r: TImage): boolean;
-var maxTexSize: Cardinal;
+var
+  MaxTexSize: Cardinal;
 begin
- maxTexSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
+  maxTexSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
 
- if TextureNonPowerOfTwo then
-   Result :=
-     (r.Width <= maxTexSize) and
-     (r.Height <= maxTexSize) else
-   Result :=
-     IsPowerOf2(r.Width) and
-     IsPowerOf2(r.Height) and
-     (BiggestPowerOf2(r.Width) <= maxTexSize) and
-     (BiggestPowerOf2(r.Height) <= maxTexSize);
+  if TextureNonPowerOfTwo then
+    Result :=
+      (r.Width <= maxTexSize) and
+      (r.Height <= maxTexSize) else
+    Result :=
+      IsPowerOf2(r.Width) and
+      IsPowerOf2(r.Height) and
+      (BiggestPowerOf2(r.Width) <= maxTexSize) and
+      (BiggestPowerOf2(r.Height) <= maxTexSize);
 end;
 
 procedure ResizeForTextureSize(var r: TImage);
-var newR: TImage;
+var
+  newR: TImage;
 begin
- if not IsTextureSized(r) then
- begin
-  newR := ResizeToTextureSize(r);
-  FreeAndNil(r);
-  r := newR;
- end;
+  if not IsTextureSized(r) then
+  begin
+    newR := ResizeToTextureSize(r);
+    FreeAndNil(r);
+    r := newR;
+  end;
 end;
 
 function ResizeToTextureSize(const r: TImage): TImage;
-var maxTexSize: Cardinal;
+var
+  maxTexSize: Cardinal;
 
   function BestTexSize(size: Cardinal): Cardinal;
   begin
-   if size > maxTexSize then
-    result := maxTexSize else
-   begin
-    if TextureNonPowerOfTwo or IsPowerOf2(size) then
-     result := size else
-     result := 1 shl (Biggest2Exponent(size)+1);
-     {result jakie otrzymamy w ostatnim przypisaniu jest na pewno < maxTexSize bo
-      skoro size <= maxTexSize i not IsPowerOf2(size) to size < maxTexSize a maxTexSize
-      samo jest potega dwojki. }
-   end;
+    if size > maxTexSize then
+      result := maxTexSize else
+    begin
+      if TextureNonPowerOfTwo or IsPowerOf2(size) then
+        result := size else
+        result := 1 shl (Biggest2Exponent(size)+1);
+        {result jakie otrzymamy w ostatnim przypisaniu jest na pewno < maxTexSize bo
+         skoro size <= maxTexSize i not IsPowerOf2(size) to size < maxTexSize a maxTexSize
+         samo jest potega dwojki. }
+     end;
   end;
 
 begin
- maxTexSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
- result := r.MakeResized(BestTexSize(r.Width), BestTexSize(r.Height));
+  maxTexSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
+  result := r.MakeResized(BestTexSize(r.Width), BestTexSize(r.Height));
+end;
+
+{ ----------------------------------------------------------------------------
+  Adjusting image size for cube map texture. }
+
+function IsCubeMapTextureSized(const R: TImage): boolean;
+var
+  MaxTexSize: Cardinal;
+begin
+  if not GL_ARB_texture_cube_map then
+    Exit(true);
+
+  maxTexSize := glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB);
+
+  Result :=
+    IsPowerOf2(r.Width) and
+    IsPowerOf2(r.Height) and
+    (BiggestPowerOf2(r.Width) <= maxTexSize) and
+    (BiggestPowerOf2(r.Height) <= maxTexSize);
+end;
+
+function ResizeToCubeMapTextureSize(const r: TImage): TImage; forward;
+
+procedure ResizeForCubeMapTextureSize(var r: TImage);
+var
+  newR: TImage;
+begin
+  if not IsCubeMapTextureSized(r) then
+  begin
+    newR := ResizeToCubeMapTextureSize(r);
+    FreeAndNil(r);
+    r := newR;
+  end;
+end;
+
+function ResizeToCubeMapTextureSize(const r: TImage): TImage;
+var
+  maxTexSize: Cardinal;
+
+  function BestTexSize(size: Cardinal): Cardinal;
+  begin
+    if size > maxTexSize then
+      result := maxTexSize else
+    begin
+      if IsPowerOf2(size) then
+        result := size else
+        result := 1 shl (Biggest2Exponent(size)+1);
+        {result jakie otrzymamy w ostatnim przypisaniu jest na pewno < maxTexSize bo
+         skoro size <= maxTexSize i not IsPowerOf2(size) to size < maxTexSize a maxTexSize
+         samo jest potega dwojki. }
+     end;
+  end;
+
+begin
+  if GL_ARB_texture_cube_map then
+  begin
+    maxTexSize := glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB);
+    result := r.MakeResized(BestTexSize(r.Width), BestTexSize(r.Height));
+  end else
+    result := r.MakeCopy;
 end;
 
 { implementacja procedur LoadGLTextures_XXX
@@ -826,6 +908,107 @@ end;
 function TGLVideo.GLTextureFromTime(const Time: Single): TGLuint;
 begin
   Result := FItems[IndexFromTime(Time)];
+end;
+
+{ Cube map texture loading --------------------------------------------------- }
+
+procedure glTexImage2DForCubeMap(
+  Target: TGLenum; const Image: TImage; Mipmaps: boolean);
+var
+  ImageInternalFormat: TGLuint;
+  ImageFormat: TGLuint;
+
+  { Calls glTexImage2D for given image.
+    Takes care of OpenGL unpacking (alignment etc.).
+    Takes care of Image size --- makes sure that image has the right size
+    (power of 2, within OpenGL required sizes). }
+  procedure glTexImage2DImage(Image: TImage);
+
+    { This is like glTexImage2DImage, but it doesn't take care
+      of Image size. }
+    procedure Core(Image: TImage);
+    var
+      UnpackData: TUnpackNotAlignedData;
+    begin
+      { Nawet jesli ladujemy obrazek o ktorym wiemy ze ma wymiary dobre
+        dla glTexImage2d, musimy zadbac o jego aligment : bo co by bylo
+        jesli tekstura ma szerokosc 1 lub 2  ?
+        Poza tym, planuje dodac tutaj robienie borderow dla tekstury, a wtedy
+        wymiar dobry dla glTexImage2d to rownie dobrze 2^n+2 (a wiec prawie zawsze
+        niepodzielne na 4). }
+      BeforeUnpackImage(UnpackData, Image);
+      try
+        glTexImage2D(Target, 0, ImageInternalFormat,
+          Image.Width, Image.Height, 0, ImageFormat, ImageGLType(Image),
+          Image.RawPixels);
+      finally AfterUnpackImage(UnpackData, Image) end;
+    end;
+
+  var
+    ImgGood: TImage;
+  begin
+    if IsCubeMapTextureSized(Image) then
+      Core(Image) else
+    begin
+      ImgGood := ResizeToCubeMapTextureSize(Image);
+      try
+        Core(ImgGood);
+      finally ImgGood.Free end;
+    end;
+  end;
+
+  { Calls gluBuild2DMipmaps for given image.
+    Takes care of OpenGL unpacking (alignment etc.).
+    gluBuild2DMipmaps doesn't require size to be a power of 2, so no problems
+    here. }
+  procedure gluBuild2DMipmapsImage(Image: TImage);
+  var
+    UnpackData: TUnpackNotAlignedData;
+  begin
+    BeforeUnpackImage(UnpackData, Image);
+    try
+      gluBuild2DMipmaps(Target, ImageInternalFormat,
+        Image.Width, Image.Height, ImageFormat, ImageGLType(Image),
+        Image.RawPixels);
+    finally AfterUnpackImage(UnpackData, Image) end;
+  end;
+
+  procedure LoadMipmapped(const image: TImage);
+  begin
+    {}{TODO: check does GL_SGIS_generate_mipmap work for cube map tex}
+    (*
+    if GL_SGIS_generate_mipmap then
+    begin
+      { hardware-accelerated mipmap generation.
+        Thanks go to Eric Grange for mentioning it on
+        [http://www.pascalgamedevelopment.com/forums/viewtopic.php?p=20514]
+        Documentation is on
+        [http://oss.sgi.com/projects/ogl-sample/registry/SGIS/generate_mipmap.txt] }
+      glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
+      glTexImage2DImage(Image);
+    end else*)
+    begin
+      gluBuild2DMipmapsImage(Image);
+    end;
+  end;
+
+  procedure LoadNormal(const image: TImage);
+  begin
+    {}{TODO: check does GL_SGIS_generate_mipmap work for cube map tex}
+    (*
+    if GL_SGIS_generate_mipmap then
+      glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_FALSE);*)
+    glTexImage2DImage(Image);
+  end;
+
+begin
+  ImageInternalFormat := Image.ColorComponentsCount;
+  ImageFormat := ImageGLFormat(Image);
+
+  { give the texture data }
+  if Mipmaps then
+    LoadMipmapped(Image) else
+    LoadNormal(Image);
 end;
 
 end.

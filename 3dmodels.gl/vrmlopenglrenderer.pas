@@ -1906,17 +1906,10 @@ function TVRMLOpenGLRendererContextCache.TextureCubeMap_IncReference(
   Node: TNodeX3DEnvironmentTextureNode;
   const MinFilter, MagFilter: TGLint;
   Back, Bottom, Front, Left, Right, Top: TImage): TGLuint;
-
-  procedure SideLoad(Image: TImage; GLSide: TGLint);
-  begin
-    Assert(Image is TRGBImage);
-    glTexImage2D(GLSide, 0, 3, Image.Width, Image.Height,
-      0, GL_RGB, GL_UNSIGNED_BYTE, Image.RawPixels);
-  end;
-
 var
   I: Integer;
   TextureCached: PTextureCubeMapCache;
+  Mipmaps: boolean;
 begin
   for I := 0 to TextureCubeMapCaches.High do
   begin
@@ -1943,14 +1936,18 @@ begin
   glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-  { TODO: temp we assume all images are TRGBImage }
+  Mipmaps :=
+    (MinFilter = GL_NEAREST_MIPMAP_NEAREST) or
+    (MinFilter = GL_LINEAR_MIPMAP_NEAREST) or
+    (MinFilter = GL_NEAREST_MIPMAP_LINEAR) or
+    (MinFilter = GL_LINEAR_MIPMAP_LINEAR);
 
-  SideLoad(Back  , GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB);
-  SideLoad(Bottom, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB);
-  SideLoad(Front , GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB);
-  SideLoad(Left  , GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB);
-  SideLoad(Right , GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB);
-  SideLoad(Top   , GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB);
+  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB, Back  , Mipmaps);
+  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB, Bottom, Mipmaps);
+  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB, Front , Mipmaps);
+  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB, Left  , Mipmaps);
+  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, Right , Mipmaps);
+  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB, Top   , Mipmaps);
 
   TextureCached := TextureCubeMapCaches.AppendItem;
   TextureCached^.InitialNode := Node;
@@ -3484,14 +3481,6 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
       MinFilter := Attributes.TextureMinFilter;
       MagFilter := Attributes.TextureMagFilter;
     end;
-
-    { Mipmaps for cube maps are not supported now, so just force using
-      GL_LINEAR in this case. }
-    if (MinFilter = GL_NEAREST_MIPMAP_NEAREST) or
-       (MinFilter = GL_LINEAR_MIPMAP_NEAREST) or
-       (MinFilter = GL_NEAREST_MIPMAP_LINEAR) or
-       (MinFilter = GL_LINEAR_MIPMAP_LINEAR) then
-      MinFilter := GL_LINEAR;
 
     try
       { To match expected orientation for OpenGL, we have to rotate images.
