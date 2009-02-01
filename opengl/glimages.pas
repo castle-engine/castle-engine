@@ -422,7 +422,7 @@ procedure glTexImage2DForCubeMap(
 
 implementation
 
-uses SysUtils, KambiUtils;
+uses SysUtils, KambiUtils, KambiLog;
 
 function ImageGLFormat(const Img: TImage): TGLenum;
 begin
@@ -655,10 +655,9 @@ begin
   maxTexSize := glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB);
 
   Result :=
+    (r.Width = r.Height) { must be square } and
     IsPowerOf2(r.Width) and
-    IsPowerOf2(r.Height) and
-    (BiggestPowerOf2(r.Width) <= maxTexSize) and
-    (BiggestPowerOf2(r.Height) <= maxTexSize);
+    (BiggestPowerOf2(r.Width) <= maxTexSize);
 end;
 
 function ResizeToCubeMapTextureSize(const r: TImage): TImage; forward;
@@ -678,26 +677,33 @@ end;
 function ResizeToCubeMapTextureSize(const r: TImage): TImage;
 var
   maxTexSize: Cardinal;
+  size: Cardinal;
 
   function BestTexSize(size: Cardinal): Cardinal;
   begin
     if size > maxTexSize then
       result := maxTexSize else
-    begin
-      if IsPowerOf2(size) then
-        result := size else
-        result := 1 shl (Biggest2Exponent(size)+1);
-        {result jakie otrzymamy w ostatnim przypisaniu jest na pewno < maxTexSize bo
-         skoro size <= maxTexSize i not IsPowerOf2(size) to size < maxTexSize a maxTexSize
-         samo jest potega dwojki. }
-     end;
+    if IsPowerOf2(size) then
+      result := size else
+      { result jakie otrzymamy below jest na pewno < maxTexSize bo
+        skoro size <= maxTexSize i not IsPowerOf2(size) to size < maxTexSize
+        a maxTexSize samo jest potega dwojki. }
+      result := 1 shl (Biggest2Exponent(size)+1);
   end;
 
 begin
   if GL_ARB_texture_cube_map then
   begin
     maxTexSize := glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB);
-    result := r.MakeResized(BestTexSize(r.Width), BestTexSize(r.Height));
+
+    size := Max(r.Width, r.Height);
+    size := BestTexSize(size);
+
+    if Log then
+      WritelnLog('Texture loading', Format('Resizing image for cube map texture from (%d, %d) to (%d, %d)',
+        [R.Width, R.Height, Size, Size]));
+
+    result := r.MakeResized(size, size);
   end else
     result := r.MakeCopy;
 end;
