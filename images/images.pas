@@ -416,6 +416,16 @@ type
     { Mirror image horizotally (i.e. right edge is swapped with left edge) }
     procedure FlipHorizontal;
 
+    { Make rotated version of the image.
+      See @link(Rotate) for description of parameters. }
+    function MakeRotated(Angle: Integer): TImage;
+
+    { Rotate image by Angle * 90 degrees, clockwise.
+      For example, 0 does nothing. 1 rotates by 90 degrees, 2 rotates
+      by 180, 3 rotates by 270. All other values (negative too) are circular
+      (modulo), so e.g. 4 again does nothing, 5 rotates by 90 degrees and so on. }
+    procedure Rotate(const Angle: Integer);
+
     { Returns new instance with the same class as our and size
       TileX * Width and TileY * Height and contents being our contents
       duplicated (tiled).
@@ -1685,6 +1695,62 @@ begin
      Result.RawPixels, Result.Width, Result.Height,
      ProgressTitle);
  except Result.Free; raise end;
+end;
+
+function TImage.MakeRotated(Angle: Integer): TImage;
+
+  procedure Rotate90;
+  var
+    X, Y: Integer;
+  begin
+    Result := TImageClass(ClassType).Create(Height, Width);
+    for X := 0 to Width - 1 do
+      for Y := 0 to Height - 1 do
+        Move(PixelPtr(X, Y)^, Result.PixelPtr(Y, Width - 1 - X)^, PixelSize);
+  end;
+
+  procedure Rotate180;
+  var
+    X, Y: Integer;
+  begin
+    Result := TImageClass(ClassType).Create(Width, Height);
+    for X := 0 to Width - 1 do
+      for Y := 0 to Height - 1 do
+        Move(PixelPtr(X, Y)^, Result.PixelPtr(Width - 1 - X, Height - 1 - Y)^, PixelSize);
+  end;
+
+  procedure Rotate270;
+  var
+    X, Y: Integer;
+  begin
+    Result := TImageClass(ClassType).Create(Height, Width);
+    for X := 0 to Width - 1 do
+      for Y := 0 to Height - 1 do
+        Move(PixelPtr(X, Y)^, Result.PixelPtr(Height - 1 - Y, X)^, PixelSize);
+  end;
+
+begin
+  { convert Angle to 0..3 range }
+  Angle := Angle mod 4;
+  if Angle < 0 then Angle += 4;
+
+  case Angle of
+    1: Rotate90;
+    2: Rotate180;
+    3: Rotate270;
+    { else Angle = 0, nothing to do }
+  end;
+end;
+
+procedure TImage.Rotate(const Angle: Integer);
+var
+  New: TImage;
+begin
+  New := MakeRotated(Angle);
+  try
+    SetSize(New.Width, New.Height);
+    Move(New.RawPixels^, RawPixels^, New.Width * New.Height * PixelSize);
+  finally FreeAndNil(New) end;
 end;
 
 procedure TImage.FlipHorizontal;
