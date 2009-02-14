@@ -276,8 +276,8 @@ begin
  except
   { EReadError is thrown by Stream.ReadBuffer when it can't read
     specified number of bytes }
-  on E: EReadError do raise EInvalidBMP.Create('Read error : ' + E.Message);
-  on E: ECheckFailed do raise EInvalidBMP.Create('Wrong bitmap : ' + E.Message);
+  on E: EReadError do raise EInvalidBMP.Create('Read error: ' + E.Message);
+  on E: ECheckFailed do raise EInvalidBMP.Create('Wrong bitmap: ' + E.Message);
  end;
 end;
 
