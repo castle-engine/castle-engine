@@ -117,7 +117,8 @@ type
 
 implementation
 
-uses SysUtils, KambiUtils, KambiClassUtils, DataErrors;
+uses SysUtils, KambiUtils, KambiClassUtils, DataErrors, KambiStringUtils,
+  VectorMath;
 
 { ----------------------------------------------------------------------------
   Constants and types for DDS file handling.
@@ -206,7 +207,7 @@ var
   I: Integer;
 begin
   for I := 0 to Length(FImages) - 1 do
-    FreeAndNil(FImages);
+    FreeAndNil(FImages[I]);
   SetLength(FImages, 0);
 end;
 
@@ -236,6 +237,9 @@ procedure TDDSImage.LoadFromStream(Stream: TStream);
 var
   Header: TDDSHeader;
   Magic: array [0 .. 3] of char;
+  RowBytePadding: Integer;
+  X, Y: Integer;
+  Row: PVector3Byte;
 begin
   try
     Stream.ReadBuffer(Magic, SizeOf(Magic));
@@ -301,20 +305,61 @@ begin
     Close;
 
     Check(Header.PixelFormat.Size = SizeOf(Header.PixelFormat), 'Incorrect size of DDS pixel format record');
-{
-    Tests:
-    if Header.PixelFormat.Flags and DDPF_RGB <> 0 then
-      Writeln('DDPF_RGB, RGBBitCount is ', Header.PixelFormat.RGBBitCount);
-    if Header.PixelFormat.Flags and DDPF_FOURCC <> 0 then
-      Writeln('DDPF_FOURCC, FourCC is "',
-        Header.PixelFormat.FourCC[0],
-        Header.PixelFormat.FourCC[1],
-        Header.PixelFormat.FourCC[2],
-        Header.PixelFormat.FourCC[3], '"');
-    if Header.PixelFormat.Flags and DDPF_ALPHAPIXELS <> 0 then
-      Writeln('DDPF_ALPHAPIXELS');
-}
-    { TODO }
+
+    { TODO: only R8G8B8 uncompressed format is supported, temporarily }
+    if (Header.PixelFormat.Flags and DDPF_RGB <> 0) and
+       (Header.PixelFormat.Flags and DDPF_FOURCC = 0) and
+       (Header.PixelFormat.Flags and DDPF_ALPHAPIXELS = 0) and
+       (Header.PixelFormat.RGBBitCount = 24) and
+       (Header.PixelFormat.RBitMask = $FF0000) and
+       (Header.PixelFormat.GBitMask = $00FF00) and
+       (Header.PixelFormat.BBitMask = $0000FF) then
+    begin
+      { TODO: read just the 1st image for now, always as TRGBImage for now }
+      SetLength(FImages, 1);
+      FImages[0] := TRGBImage.Create(Width, Height);
+
+      { Header.LinearSize for uncompressed texture may indicate row length
+        in bytes. This is useful to indicate padding of lines.
+        I understand that otherwise I should assume lines are not padded? }
+      if (Header.Flags and DDSD_LINEARSIZE <> 0) and
+         (Header.LinearSize <> 0) then
+        RowBytePadding := Max(Header.LinearSize - 3 * Width, 0) else
+        RowBytePadding := 0;
+
+      for Y := Height - 1 downto 0 do
+      begin
+        Row := FImages[0].RowPtr(Y);
+        Stream.ReadBuffer(Row^, 3 * Width);
+
+        { Now invert red and blue. (Since all masks are little-endian,
+          RBitMask = $FF0000 means that red is the 3rd (not 1st) byte...) }
+        for X := 0 to Width - 1 do
+        begin
+          SwapValues(Row^[2], Row^[0]);
+          Inc(Row);
+        end;
+
+        if RowBytePadding <> 0 then
+          Stream.Seek(RowBytePadding, soFromCurrent);
+      end;
+    end else
+    begin
+      raise EInvalidDDS.CreateFmt('Unsupported pixel format for DDS: uncompressed RGB = %s (%d bits), alpha = %s, compressed = %s (fourcc: %s%s%s%s), R/G/B/AMask = %s/%s/%s/%s',
+        [ BoolToStr[Header.PixelFormat.Flags and DDPF_RGB <> 0],
+          Header.PixelFormat.RGBBitCount,
+          BoolToStr[Header.PixelFormat.Flags and DDPF_ALPHAPIXELS <> 0],
+          BoolToStr[Header.PixelFormat.Flags and DDPF_FOURCC <> 0],
+          SReadableForm(Header.PixelFormat.FourCC[0]),
+          SReadableForm(Header.PixelFormat.FourCC[1]),
+          SReadableForm(Header.PixelFormat.FourCC[2]),
+          SReadableForm(Header.PixelFormat.FourCC[3]),
+          IntToHex(Header.PixelFormat.RBitMask, 8),
+          IntToHex(Header.PixelFormat.GBitMask, 8),
+          IntToHex(Header.PixelFormat.BBitMask, 8),
+          IntToHex(Header.PixelFormat.ABitMask, 8) ]);
+    end;
+
   except
     { EReadError is raised by Stream.ReadBuffer when it can't read
       specified number of bytes }

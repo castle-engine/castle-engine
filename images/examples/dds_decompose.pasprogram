@@ -28,7 +28,7 @@
   and the files are saved in $1 directory). }
 program dds_decompose;
 
-uses SysUtils, KambiUtils, DDS, DataErrors;
+uses SysUtils, KambiUtils, Images, DDS, DataErrors, KambiStringUtils;
 
 const
   DDSTypeToString: array [TDDSType] of string =
@@ -36,6 +36,8 @@ const
 
 var
   DImg: TDDSImage;
+  OutputName, OutputBaseName: string;
+  I: Integer;
 begin
   DataWarning := @DataWarning_Write;
   Parameters.CheckHigh(1);
@@ -45,8 +47,17 @@ begin
     Writeln('DDS loaded:', nl,
       '  Width x Height: ', DImg.Width, ' x ', DImg.Height, nl,
       '  Type: ', DDSTypeToString[DImg.DDSType], nl,
-      '  Mipmaps: ', DImg.Mipmaps);
+      '  Mipmaps: ', DImg.Mipmaps, nl,
+      '  Simple 2D images inside: ', DImg.ImagesCount);
 
-    { TODO: output images }
+    OutputBaseName := ExtractFilePath(Parameters[1]) +
+      ExtractOnlyFileName(Parameters[1]) + '_';
+    for I := 0 to DImg.ImagesCount - 1 do
+    begin
+      OutputName := OutputBaseName + IntToStrZPad(I, 2) + '.png';
+      Writeln('Writing ', OutputName);
+      SaveImage(DImg.Images[I], OutputName);
+    end;
+
   finally FreeAndNil(DImg) end;
 end.

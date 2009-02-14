@@ -24,6 +24,7 @@
 {$ifdef read_interface}
 
 { zamien wartosci a z b }
+procedure SwapValues(var a, b: Byte); overload;
 procedure SwapValues(var a, b: Int64); overload;
 procedure SwapValues(var a, b: Integer); overload;
 procedure SwapValues(var a, b: Cardinal); overload;
@@ -410,6 +411,7 @@ function KamCoTan(const Value: Float): Float;
 
 {$ifdef read_implementation}
 
+procedure SwapValues(var a, b: Byte);     type TT = Byte;    {$I kambiutils_implement_swapvalues.inc}
 procedure SwapValues(var a, b: Int64);    type TT = Int64;   {$I kambiutils_implement_swapvalues.inc}
 procedure SwapValues(var a, b: Integer);  type TT = integer; {$I kambiutils_implement_swapvalues.inc}
 procedure SwapValues(var a, b: Cardinal); type TT = Cardinal;{$I kambiutils_implement_swapvalues.inc}
