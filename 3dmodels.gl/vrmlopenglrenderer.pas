@@ -1325,6 +1325,26 @@ type
       Always <= 1 if not UseMultiTexturing. }
     TextureTransformUnitsUsed: Cardinal;
 
+    { Additional texture units used,
+      in addition to 0..TextureTransformUnitsUsed - 1.
+      Cleared by RenderShapeBegin, added by PushTextureUnit,
+      used by RenderShapeEnd. }
+    TextureTransformUnitsUsedMore: TDynLongIntArray;
+
+    { This calls glPushMatrix, assuming that current matrix mode is GL_TEXTURE
+      and current tex unit is TexUnit (always make sure this is true when
+      calling it!).
+
+      It also records this fact, so that RenderShapeEnd will be able to
+      make pop texture matrix later.
+
+      In fact this optimizes push/pops on texture matrix stack, such that
+      VRML TextureTransform nodes and such together with PushTextureUnit
+      will only use only matrix stack place, even if texture will be
+      "pushed" multiple times (both by PushTextureUnit and normal
+      VRML TextureTransform realized in RenderShapeBegin.) }
+    procedure PushTextureUnit(const TexUnit: Cardinal);
+
     { ----------------------------------------------------------------- }
 
     {$ifdef USE_VRML_NODES_TRIANGULATION}
@@ -1539,6 +1559,16 @@ const
 
   bmMultiTexAll = [bmMultiTexDotNotNormalized, bmMultiTexDotNormalized];
   bmGLSLAll = [bmGLSLNormal, bmGLSLParallax];
+
+var
+  { Current camera matrix. Transforms from world space (normal 3D space)
+    to camera space (camera space is the space where you're always
+    standing on zero point, looking in -Z, and so on).
+    This is currently needed only for handling correctly
+    TextureCoordinateGenerator.mode = "WORLDSPACEREFLECTIONVECTOR".
+
+    TODO: this is not supposed to be global var }
+  CameraMatrix: TMatrix4Single;
 
 {$undef read_interface}
 
@@ -3011,6 +3041,7 @@ begin
   TextureVideoReferences := TDynTextureVideoReferenceArray.Create;
   TextureCubeMapReferences := TDynTextureCubeMapReferenceArray.Create;
   GLSLProgramReferences := TDynGLSLProgramReferenceArray.Create;
+  TextureTransformUnitsUsedMore := TDynLongIntArray.Create;
 
   OwnsCache := ACache = nil;
   if OwnsCache then
@@ -3021,6 +3052,8 @@ end;
 destructor TVRMLOpenGLRenderer.Destroy;
 begin
   UnprepareAll;
+
+  FreeAndNil(TextureTransformUnitsUsedMore);
   FreeAndNil(TextureImageReferences);
   FreeAndNil(TextureVideoReferences);
   FreeAndNil(TextureCubeMapReferences);
@@ -4181,6 +4214,7 @@ begin
   State := Shape.State;
 
   TextureTransformUnitsUsed := 0;
+  TextureTransformUnitsUsedMore.Count := 0;
 
   if (State.ParentShape = nil { VRML 1.0, always some texture transform }) or
      (State.ParentShape.TextureTransform <> nil { VRML 2.0 with tex transform }) then
@@ -5071,15 +5105,23 @@ procedure TVRMLOpenGLRenderer.RenderShapeEnd(Shape: TVRMLShape);
 var
   I: Integer;
 begin
-  if TextureTransformUnitsUsed <> 0 then
+  if (TextureTransformUnitsUsed <> 0) or
+     (TextureTransformUnitsUsedMore.Count <> 0) then
   begin
     glMatrixMode(GL_TEXTURE);
+
     for I := 0 to TextureTransformUnitsUsed - 1 do
     begin
-      { This code is Ok when not UseMultiTexturing: then
+      { This code is Ok also when not UseMultiTexturing: then
         TextureTransformUnitsUsed for sure is <= 1 and ActiveTexture
         will be simply ignored. }
       ActiveTexture(I);
+      glPopMatrix;
+    end;
+
+    for I := 0 to TextureTransformUnitsUsedMore.High do
+    begin
+      ActiveTexture(TextureTransformUnitsUsedMore.Items[I]);
       glPopMatrix;
     end;
   end;
@@ -5097,6 +5139,40 @@ begin
     RenderShapeNoTransform(Shape);
   finally
     RenderShapeEnd(Shape);
+  end;
+end;
+
+procedure TVRMLOpenGLRenderer.PushTextureUnit(const TexUnit: Cardinal);
+begin
+  { Only continue if texture unit is not already pushed
+    (otherwise glPushMatrix would not be paired by exactly one glPopMatrix
+    later). }
+
+  if (TexUnit >= TextureTransformUnitsUsed) and
+     (TextureTransformUnitsUsedMore.IndexOf(TexUnit) = -1) then
+  begin
+    glPushMatrix;
+
+    { Simple implementation would just add always TexUnit
+      to TextureTransformUnitsUsedMore. But there are optimizations possible,
+      knowing that TextureTransformUnitsUsed already takes care of many units,
+      and TextureTransformUnitsUsed can only be increased (by this
+      very method...) between RenderShapeBegin/End.
+
+      If texture unit is = TextureTransformUnitsUsed, this can be taken care
+      of easily, just increase TextureTransformUnitsUsed. (This is an often
+      case, as it happens when no texture transform was explicitly defined
+      in VRML file, and only one texture unit using WORLDSPACEREFLECTIONVECTOR
+      is defined; this is the most common case when using cube env mapping
+      with WORLDSPACEREFLECTIONVECTOR.)
+
+      Otherwise, we know (from previous checks) that
+      TexUnit > TextureTransformUnitsUsed and it's not mentioned in
+      TextureTransformUnitsUsedMore. So add it there. }
+
+    if TexUnit = TextureTransformUnitsUsed then
+      Inc(TextureTransformUnitsUsed) else
+      TextureTransformUnitsUsedMore.AppendItem(TexUnit);
   end;
 end;
 

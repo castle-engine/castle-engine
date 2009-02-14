@@ -297,7 +297,8 @@ type
     tgCoord,
     tgCoordEye,
     tgCameraSpaceNormal,
-    tgCameraSpaceReflectionVector);
+    tgCameraSpaceReflectionVector,
+    tgWorldSpaceReflectionVector);
 
   TTextureCoordsImplementation = (
     { Texture coords not generated, because not needed by Renderer. }
@@ -1000,6 +1001,8 @@ var
         Result := tgCameraSpaceNormal else
       if S = 'CAMERASPACEREFLECTIONVECTOR' then
         Result := tgCameraSpaceReflectionVector else
+      if S = 'WORLDSPACEREFLECTIONVECTOR' then
+        Result := tgWorldSpaceReflectionVector else
       begin
         Result := tgCoord;
         VRMLWarning(vwSerious, Format('Unsupported TextureCoordinateGenerator.mode: "%s", will use "COORD" instead',
@@ -1226,7 +1229,10 @@ var
     TexCoordGen/Array. }
   procedure EnableTextureCoordGen;
 
-    procedure SetupTextureGen(const Gen: TTextureCoordinateGeneration);
+    procedure SetupTextureGen(const TexUnit: Cardinal;
+      const Gen: TTextureCoordinateGeneration);
+    var
+      CameraInverseMatrix: TMatrix4Single;
     begin
       case Gen of
         tgSphere:
@@ -1289,7 +1295,8 @@ var
             glEnable(GL_TEXTURE_GEN_T);
             glEnable(GL_TEXTURE_GEN_R);
           end;
-        tgCameraSpaceReflectionVector:
+        tgCameraSpaceReflectionVector,
+        tgWorldSpaceReflectionVector:
           begin
             if not GL_ARB_texture_cube_map then
             begin
@@ -1305,6 +1312,31 @@ var
               glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
               glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
               glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
+
+              if Gen = tgWorldSpaceReflectionVector then
+              begin
+                if TryMatrixInverse(CameraMatrix, CameraInverseMatrix) then
+                begin
+                  { Set the 4th texture coord component (Q) to 0.0.
+                    Reason: We use matrix 4x4, so it will transform whole texture
+                    coordinate (4-valued vector, since we're in homogeneous
+                    coordinates). We want the generated STR to be transformed
+                    like a direction, so we want to set Q = always 0.0
+                    (in homogeneous coords, this means that vector represents
+                    a direction and will be accordingly transformed). }
+                  glTexCoord4f(0, 0, 0, 0);
+
+                  glMatrixMode(GL_TEXTURE);
+                  Renderer.PushTextureUnit(TexUnit);
+                  { CameraMatrix transforms from world space to camera space,
+                    we want to transform directions from camera space to world
+                    space below. So inverted CameraMatrix is exactly what we need. }
+                  glMultMatrix(CameraInverseMatrix);
+                  glMatrixMode(GL_MODELVIEW);
+                end else
+                if Log then
+                  WritelnLog('Camera', 'Camera matrix cannot be inverted, WORLDSPACEREFLECTIONVECTOR will work like CAMERASPACEREFLECTIONVECTOR');
+              end;
             end;
 
             glEnable(GL_TEXTURE_GEN_S);
@@ -1324,12 +1356,12 @@ var
         if TexCoordGen[I] <> tgExplicit then
         begin
           Renderer.ActiveTexture(I);
-          SetupTextureGen(TexCoordGen[I]);
+          SetupTextureGen(I, TexCoordGen[I]);
         end;
     end else
     if TexCoordGen[0] <> tgExplicit then
     begin
-      SetupTextureGen(TexCoordGen[0]);
+      SetupTextureGen(0, TexCoordGen[0]);
     end;
   end;
 
