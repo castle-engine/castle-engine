@@ -202,6 +202,7 @@ EXAMPLES_BASE_NAMES := \
   base/tools/svg_grayscale \
   base/tools/stringoper \
   images/examples/image_convert \
+  images/examples/dds_decompose \
   images/tools/image_to_pas \
   opengl/examples/gl_win_events \
   opengl/examples/menu_test_alternative \
