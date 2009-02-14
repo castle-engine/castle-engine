@@ -28,7 +28,7 @@
   and the files are saved in $1 directory). }
 program dds_decompose;
 
-uses SysUtils, KambiUtils, DDS;
+uses SysUtils, KambiUtils, DDS, DataErrors;
 
 const
   DDSTypeToString: array [TDDSType] of string =
@@ -37,6 +37,7 @@ const
 var
   DImg: TDDSImage;
 begin
+  DataWarning := @DataWarning_Write;
   Parameters.CheckHigh(1);
   DImg := TDDSImage.Create;
   try

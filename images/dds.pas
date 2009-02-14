@@ -117,7 +117,7 @@ type
 
 implementation
 
-uses SysUtils, KambiUtils, KambiClassUtils;
+uses SysUtils, KambiUtils, KambiClassUtils, DataErrors;
 
 { ----------------------------------------------------------------------------
   Constants and types for DDS file handling.
@@ -159,7 +159,7 @@ const
   DDSCAPS2_VOLUME             = $00200000;
 
 type
-  TDDSPixelFormat = record
+  TDDSPixelFormat = packed record
     Size: LongWord;
     Flags: LongWord;
     FourCC: array [0 .. 3] of char;
@@ -226,6 +226,13 @@ begin
 end;
 
 procedure TDDSImage.LoadFromStream(Stream: TStream);
+
+  procedure CheckWarn(const Check: boolean; const Message: string);
+  begin
+    if not Check then
+      DataWarning('DDS image: ' + Message);
+  end;
+
 var
   Header: TDDSHeader;
   Magic: array [0 .. 3] of char;
@@ -285,10 +292,28 @@ begin
     end else
       FDDSType := dtTexture;
     if FDDSType <> dtTexture then
-      Check(Header.Caps1 and DDSCAPS_COMPLEX <> 0, 'Missing DDSCAPS_COMPLEX, but caps indicate that this DDS image has cube map or volume');
+      { This invalid situation happens on
+        http://regedit.gamedev.pl/Download/Rozne/Tekstury%20narzedziowe/NoiseVolume.dds
+        (from
+        http://regedit.gamedev.pl/download.php5?x=Rozne%2FTekstury+narzedziowe) }
+      CheckWarn(Header.Caps1 and DDSCAPS_COMPLEX <> 0, 'Missing DDSCAPS_COMPLEX, but caps indicate that this DDS image has cube map or volume');
 
     Close;
 
+    Check(Header.PixelFormat.Size = SizeOf(Header.PixelFormat), 'Incorrect size of DDS pixel format record');
+{
+    Tests:
+    if Header.PixelFormat.Flags and DDPF_RGB <> 0 then
+      Writeln('DDPF_RGB, RGBBitCount is ', Header.PixelFormat.RGBBitCount);
+    if Header.PixelFormat.Flags and DDPF_FOURCC <> 0 then
+      Writeln('DDPF_FOURCC, FourCC is "',
+        Header.PixelFormat.FourCC[0],
+        Header.PixelFormat.FourCC[1],
+        Header.PixelFormat.FourCC[2],
+        Header.PixelFormat.FourCC[3], '"');
+    if Header.PixelFormat.Flags and DDPF_ALPHAPIXELS <> 0 then
+      Writeln('DDPF_ALPHAPIXELS');
+}
     { TODO }
   except
     { EReadError is raised by Stream.ReadBuffer when it can't read
