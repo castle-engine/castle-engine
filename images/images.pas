@@ -290,7 +290,7 @@ type
     procedure LerpSimpleCheckConditions(SecondImage: TImage);
   public
     { Constructor without parameters creates image with Width = Height = 0
-      and RawPixels = nil, so IsNull will return false.
+      and RawPixels = nil, so IsNull will return @true.
 
       Both constructors must be virtual, this allows to implement things
       like TImage.MakeCopy. }
@@ -1091,25 +1091,36 @@ type
   { }
   EUnableToLoadImage = class(EImageLoadError);
 
-type
+  TImageLoadConversion = (
+    ilcAlphaDelete, ilcFloatPrecDelete, ilcRGBFlattenToGrayscale,
+    ilcAlphaAdd, ilcFloatPrecAdd, ilcGrayscaleExpandToRGB);
+  TImageLoadConversions = set of TImageLoadConversion;
+
+
   TImageFormatRequirements = (frWithoutAlpha, frWithAlpha, frAny);
 
-{ LoadAnyPNG : zaladuj png. Jesli frAny to zwroci ikRGB lub ikAlpha,
-  w zaleznosci od tego co jest zapisane w obrazku. Jesli frWithoutAlpha
-  to zwroci ikRGB - jesli obrazek mial zapisane alpha to albo je usunie
-  (jesli ConvertToRequired = true) lub rzuci wyjatek EUnableToLoadImage
-  (jesli ConvertToRequired = false). Podobnie jesli frWithAlpha to zwroci
-  obrazek ikAlpha - jesli obrazek nie mial zapisanego alpha to doda
-  alpha (jesli ConvertToRequired = true) rowne wszedzie 1.0 (czyli High(Byte))
-  lub rzuci wyjatek EUnableToLoadImage (jesli ConvertToRequired = false).
+{ Load PNG file, possibly forcing specific number of components in the result.
 
-  LoadPNG mozna teraz zrealizowac jako proste
-  ImageRecToRGB(LoadAnyPNG(Stream, frWithoutAlpha, true)); }
-function LoadAnyPNG(Stream: TStream; FormatRequired: TImageFormatRequirements;
+  It can load (and automatically convert to, if forced) to four output classes
+  TGrayscaleImage, TGrayscaleAlphaImage, TRGBImage, TRGBAlphaImage.
+
+  @raises(EUnableToLoadImage)
+
+  TODO: change all LoadAny* to follow this standard
+  TODO: make LoadImage use these
+  TODO: make all SaveAny* allow to save grayscale and grayscale+alpha images
+    too, as we will see them now more often.
+}
+function _LoadAnyPNG(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
+
+function LoadAnyPNG(Stream: TStream;
+  FormatRequired: TImageFormatRequirements;
   ConvertToRequired: boolean): TImage;
 
-{ SaveAnyPNG: Img moze miec Kind = ikRGB (wtedy zadziala jak SavePNG)
-  lub ikAlpha (wtedy zapamieta alpha obrazka w pliku) }
+{ Save PNG file. Currently, accepts TRGBImage and TRGBAlphaImage
+  (in the 2nd case, it will naturally save alpha channel to the file). }
 procedure SaveAnyPNG(const Img: TImage; Stream: TStream; Interlaced: boolean);
 
 function LoadAnyBMP(Stream: TStream; FormatRequired: TImageFormatRequirements;
@@ -1134,6 +1145,17 @@ function LoadAnyEXR(Stream: TStream; FormatRequired: TImageFormatRequirements;
   ConvertToRequired: boolean): TImage;
 
 { File formats managing ----------------------------------------------------- }
+
+{ TODO: use something like this:
+type
+  TImageFormatHandler = class
+  protected
+  public
+    function LoadImage(Stream: TStream;
+      const AllowedImageClasses: array of TImageClass;
+      const ForbiddenConvs: TImageLoadConversions): TImage; virtual; abstract;
+  end;
+}
 
 type
   { }
@@ -1420,10 +1442,6 @@ function LoadRGBImage(const fname: string; resizeToX: Cardinal; resizeToY: Cardi
   ikAlpha i ikRGBE to chyba ikRGB tez umiesz;
   --- jesli kiedys skorzystam z tej zaleznosci to skresle ta linie
       i dodam tutaj komentarz gdzie to sie moze przydac ------) }
-type
-  TImageLoadConversion = (ilcAlphaDelete, ilcFloatPrecDelete,
-    ilcAlphaAdd, ilcFloatPrecAdd, ilcRGBFlattenToGrayscale);
-  TImageLoadConversions = set of TImageLoadConversion;
 const
   AllImageLoadConversions: TImageLoadConversions =
   [Low(TImageLoadConversion) .. High(TImageLoadConversion)];
@@ -3091,6 +3109,29 @@ function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
   const ForbiddenConvs: TImageLoadConversions)
   :TImage;
 
+  { check is Conv Forbidden, if it is -> raise exception }
+  procedure DoingConversion(Conv: TImageLoadConversion);
+  const
+    ConvToStr: array[TImageLoadConversion]of string = (
+    'delete alpha channel',
+    'lose float precision',
+    'flatten RGB colors to grayscale',
+    'add dummy constant alpha channel',
+    'add useless float precision',
+    'expand grayscale to RGB (three channels)'
+    );
+  begin
+    if Conv in ForbiddenConvs then
+      raise EUnableToLoadImage.Create('LoadImage: to load this image format '+
+        'conversion "'+ConvToStr[Conv]+'" must be done, but it is forbidden here');
+  end;
+
+  function ClassAllowed(ImageClass: TImageClass): boolean;
+  begin
+    Result := (High(AllowedImageClasses) = -1) or
+      InImageClasses(ImageClass, AllowedImageClasses);
+  end;
+
   { On input, Image must be TRGBImage and on output it will be TGrayscaleImage. }
   procedure ImageGrayscaleTo1st(var Image: TImage);
   var
@@ -3101,32 +3142,12 @@ function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
     Image := NewImage;
   end;
 
-  procedure DoingConversion(Conv: TImageLoadConversion);
-  { check is Conv Forbidden, if it is -> raise exception }
-  const ConvToStr: array[TImageLoadConversion]of string=(
-    'delete alpha channel',
-    'lose float precision',
-    'add dummy alpha channel',
-    'add useless float precision',
-    'flatten RGB colors to grayscale');
-  begin
-   if Conv in ForbiddenConvs then
-    raise EUnableToLoadImage.Create('LoadImage: to load this image format '+
-      'conversion "'+ConvToStr[Conv]+'" must be done, but it is forbidden here');
-  end;
-
   procedure ImageRGBToRGBETo1st(var Image: TImage);
   var NewResult: TImage;
   begin
    NewResult := (Image as TRGBImage).ToRGBEImage;
    Image.Free;
    Image := NewResult;
-  end;
-
-  function ClassAllowed(ImageClass: TImageClass): boolean;
-  begin
-   Result := (High(AllowedImageClasses) = -1) or
-     InImageClasses(ImageClass, AllowedImageClasses);
   end;
 
   procedure LoadAny(Load: TImageLoadFunc);

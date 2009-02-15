@@ -59,6 +59,9 @@ function SO_PNG_LIBPNG_VER_RELEASE: Integer;
   (often comfortable way to check KambiPngInited is to call
   one of SO_xxx functions above). }
 
+procedure png_transform_to_g1byte(png_ptr: png_structp; info_ptr: png_infop);
+procedure png_transform_to_ga2byte(png_ptr: png_structp; info_ptr: png_infop);
+
 { Apply transformations in such a way that EVERY png format wil be converted to
   RGB 8bit depth, no fill, no alpha.
   So, paletted and grayscales must be converted, bytes got to have appriopriate
@@ -75,7 +78,9 @@ procedure png_transform_to_rgba4byte(png_ptr: png_structp; info_ptr: png_infop);
   or if it has tRNS chunk (for paletted image this stores alpha values
   for each palette color, for grayscale/rgb it determines one particular
   color to mean "transparent"). Function below checks it. }
-function png_has_alpha_info(png_ptr: png_structp; info_ptr: png_infop): boolean;
+function png_is_alpha(png_ptr: png_structp; info_ptr: png_infop): boolean;
+
+function png_is_grayscale(png_ptr: png_structp; info_ptr: png_infop): boolean;
 
 function PngColorTypeToStr(PngColorType: longint): string;
 function PngInterlaceTypeToStr(PngInterlaceType: longint): string;
@@ -150,10 +155,241 @@ begin Check_SO_VER; result := fSO_VER_RELEASE end;
   Czyli wolno tego uzywac tylko w taki sposob w jaki napisali w manualu -
   jednorazowo, juz po wykonaniu wszystkich transformacji. }
 
+{ Make sure you have grayscale image, with 8 bits per color.
+
+  Assumes we already have stripped palette, so it's "true" color per pixel.
+
+  Alpha channel is never added/stripped by this, although it will
+  be converted to 8 bits too if exists. }
+procedure png_transform_rgb_to_grayscale8bit(png_ptr: png_structp;
+  var ColorType, BitDepth: LongWord);
+begin
+  { rgb -> grayscale }
+  if (ColorType and PNG_COLOR_MASK_COLOR) <> 0 then
+  begin
+    png_set_rgb_to_gray_fixed(png_ptr,
+      { Error_action = 1 means "silently do the conversion" }
+      1,
+      { Negative weights means "use the default weight" (matches my
+	GrayscaleValuesByte weights, actually my GrayscaleValuesByte
+	was copied from libpng documentation...) }
+      -1, -1);
+    ColorType := ColorType and (not PNG_COLOR_MASK_COLOR);
+  end;
+
+  { grayscale-non-8-bit -> 8bit grayscale }
+  if BitDepth < 8 then
+  begin
+    png_set_gray_1_2_4_to_8(png_ptr);
+    BitDepth := 8;
+  end;
+
+  {now he have grayscale 8/16 bitDepth + maybe alpha, maybe unapplied tRNS}
+  {rgb 16 bitdepth -> rgb 8 bitdepth}
+  if BitDepth = 16 then
+  begin
+    png_set_strip_16(png_ptr);
+    BitDepth := 8;
+  end;
+end;
+
+{ Make sure you have RGB (not grayscale) image, with 8 bits per color.
+
+  Assumes we already have stripped palette, so it's "true" color per pixel.
+
+  Alpha channel is never added/stripped by this, although it will
+  be converted to 8 bits too if exists. }
+procedure png_transform_rgb_to_rgb8bit(png_ptr: png_structp;
+  var ColorType, BitDepth: LongWord);
+begin
+  { grayscale -> 8bit rgb }
+  if (ColorType and PNG_COLOR_MASK_COLOR) = 0 then
+  begin
+    if BitDepth < 8 then
+    begin
+      png_set_gray_1_2_4_to_8(png_ptr);
+      BitDepth := 8;
+    end;
+
+    png_set_gray_to_rgb(png_ptr);
+    {gray color means ColorType = PNG_COLOR_TYPE_GRAY or GRAY_ALPHA
+                                = 0 or MASK_ALPHA
+     and that's why here we can simply combine it bitwise with MASK_COOR }
+    ColorType := ColorType or PNG_COLOR_MASK_COLOR;
+  end;
+
+  {now he have rgb 8/16 bitDepth + maybe alpha, maybe unapplied tRNS}
+  {rgb 16 bitdepth -> rgb 8 bitdepth}
+  if BitDepth = 16 then
+  begin
+    png_set_strip_16(png_ptr);
+    BitDepth := 8;
+  end;
+end;
+
+procedure png_transform_to_g1byte(png_ptr: png_structp; info_ptr: png_infop);
+var
+  bKGD_col_ptr: png_color_16p;
+  {my_background_col: png_color_16;}
+  ColorType, BitDepth: LongWord;
+begin
+ BitDepth := png_get_bit_depth(png_ptr, info_ptr);
+ ColorType := png_get_color_type(png_ptr, info_ptr);
+
+ {palette -> rgb, maybe with alpha}
+ if (ColorType and PNG_COLOR_MASK_PALETTE) <> 0 then
+ begin
+  png_set_palette_to_rgb(png_ptr);
+  { we converted palette to rgb; actually it may be RGB or RGBA;
+    paletted images can contain alpha channel only using tRNS chunk
+    so here we can check whether we got RGB or RGBA by checking
+    whether there exists tRNS chunk;
+    Ufff; this was a bug corrected after a long day : 21.12.2002}
+  if png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS) <> 0 then
+   ColorType := PNG_COLOR_TYPE_RGB_ALPHA else
+   ColorType := PNG_COLOR_TYPE_RGB;
+  BitDepth := 8; { when expanding palette we always get 8 bit depth because pallete entries
+                 are always in 8bit RGB }
+ end;
+
+ png_transform_rgb_to_grayscale8bit(png_ptr, ColorType, BitDepth);
+
+ {handle alpha and tRNS by combining image with color in bKGD header part
+  (we do it just to get rid of alpha channel; in case of PngGraphic bedziemy
+  aplikowac pozniej filler jako czwarty bajt i bedziemy ten czwarty bajt
+  ignorowac ale generalnie tak czy siak nalezy skombinowac alpha channel
+  z obrazkiem zeby obrazek wygladal tak jakby sie tego mogl spodziewac
+  autor obrazka.)}
+ if (ColorType and PNG_COLOR_MASK_ALPHA) <> 0 then
+ begin
+  { combinig with background requires a few parameters.
+    We set need_expand (4th parameter) to 1 when we take color from file because
+    in file it's written in file's original format and so it must be expanded
+    to the currently set format (8 bit rgb). However, we are supplying
+    my_background_col in 8bit rgb format already so there we set need_expand to 0.
+
+    We set background_gamma (5th parameter) always as 1.0 - bacause that's
+    considered the "default" and we want do just the default thing
+    (we want to do what author of the image expected). }
+  if png_get_bKGD(png_ptr, info_ptr, @bKGD_col_ptr) <> 0 then
+  begin  { combine it with supplied bKGD color }
+   png_set_background(png_ptr, bKGD_col_ptr, PNG_BACKGROUND_GAMMA_FILE, 1, 1.0);
+  end else
+  begin
+   { What should we do now ?
+     We can apply image on an arbitrary background color
+     (but which one ?) or we can just strip alpha channel.
+
+     Some interesting case from testing:
+
+     - png/bufferfs.png: requires stripping, only then looks good.
+       Possibly it's just a bad image ? Opening in GIMP, it shows
+       only as a text (butterflies not visible), everything else
+       is completely transparent. That's why
+       - doing png_set_background with my_background_col = white
+         makes this image just a text on clear white background and
+       - doing png_set_background with my_background_col = black
+         makes this image just a text on clear black background
+       If you want to see butterflies there, you cannot use
+       png_set_background, you must just strip alpha channel.
+
+     - png/moose/customize-m.png. Well this is interesting image...
+       It seems that the alpha channel contains negative of how
+       the image should look. Somehow, when you combine it with
+       white background, it looks perfect. If you combine it with
+       black background, it looks black. It you strip alpha,
+       looks unsensible (partially clear white, partially black
+       silhouette...). I don't know why, but it seems that
+       combinging with white is the only sensible option.
+
+     What should I do ? I don't know. }
+
+   { Version with combining with background }
+   (*
+    with my_background_col do
+    begin
+      { my_background_col := white color }
+      red := $FF; green := $FF;  blue := $FF;
+    end;
+    png_set_background(png_ptr, @my_background_col, PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
+    *)
+
+   { Version with stripping }
+   png_set_strip_alpha(png_ptr);
+  end;
+  ColorType := ColorType and LongWord(not PNG_COLOR_MASK_ALPHA);
+ end;
+
+ { Test ColorType and BitDepth are as expected. }
+ Assert((ColorType = PNG_COLOR_TYPE_GRAY) and (BitDepth = 8),
+   'png_transform_to_g1byte failed to apply good png transformations');
+end;
+
+procedure png_transform_to_ga2byte(png_ptr: png_structp; info_ptr: png_infop);
+var
+  {my_background_col: png_color_16;}
+  ColorType, BitDepth: LongWord;
+  TRNSHandled: boolean;
+begin
+ BitDepth := png_get_bit_depth(png_ptr, info_ptr);
+ ColorType := png_get_color_type(png_ptr, info_ptr);
+
+ { At the beginning: tRNS chunk is already handled if it doesn't
+   exist, right ? }
+ TRNSHandled := png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS) = 0;
+
+ { palette -> 8bit rgb }
+ if (ColorType and PNG_COLOR_MASK_PALETTE) <> 0 then
+ begin
+   png_set_palette_to_rgb(png_ptr);
+
+   { paletted images can contain alpha channel only using tRNS chunk
+     so here we can check whether we got RGB or RGBA by checking
+     whether there exists tRNS chunk;
+     Ufff; this was a bug corrected after a long day : 21.12.2002 }
+   if not TRNSHandled then
+   begin
+     ColorType := PNG_COLOR_TYPE_RGB_ALPHA;
+     TRNSHandled := true;
+   end else
+     ColorType := PNG_COLOR_TYPE_RGB;
+
+   { When expanding palette we always get 8 bit depth because
+     pallete entries are always in 8bit RGB }
+   BitDepth := 8;
+ end;
+
+ png_transform_rgb_to_grayscale8bit(png_ptr, ColorType, BitDepth);
+
+ if (not TRNSHandled) and
+    (ColorType and PNG_COLOR_MASK_ALPHA = 0) then
+ begin
+   png_set_tRNS_to_alpha(png_ptr);
+   TRNSHandled := true;
+ end;
+
+ { In case of some invalid image (Like an image with alpha channel
+   and also tRNS chunk ? Does libPNG allow such things ?)
+   probably (not confirmed) I may be left here with TRNSHandled = false.
+   Ignore this. }
+
+ if (ColorType and PNG_COLOR_MASK_ALPHA = 0) and
+    (BitDepth = 8) then
+ begin
+   png_set_filler(png_ptr, High(byte), PNG_FILLER_AFTER);
+   ColorType := ColorType or PNG_COLOR_MASK_ALPHA;
+ end;
+
+ { Test ColorType and BitDepth are as expected. }
+ Assert((ColorType = PNG_COLOR_TYPE_GRAY_ALPHA) and (BitDepth = 8),
+   'png_transform_to_ga2byte failed to apply good png transformations');
+end;
+
 procedure png_transform_to_rgb3byte(png_ptr: png_structp; info_ptr: png_infop);
-var bKGD_col_ptr: png_color_16p;
-    {my_background_col: png_color_16;}
-    ColorType, BitDepth: LongWord;
+var
+  bKGD_col_ptr: png_color_16p;
+  {my_background_col: png_color_16;}
+  ColorType, BitDepth: LongWord;
 begin
  BitDepth := png_get_bit_depth(png_ptr, info_ptr);
  ColorType := png_get_color_type(png_ptr, info_ptr);
@@ -180,27 +416,9 @@ begin
   BitDepth := 8; { when expanding palette we always get 8 bit depth because pallete entries
                  are always in 8bit RGB }
  end;
- {grayscale -> 8bit rgb}
- if (ColorType and PNG_COLOR_MASK_COLOR) = 0 then
- begin
-  if BitDepth < 8 then
-  begin
-   png_set_gray_1_2_4_to_8(png_ptr);
-   BitDepth := 8;
-  end;
-  png_set_gray_to_rgb(png_ptr);
-  {gray color means ColorType = PNG_COLOR_TYPE_GRAY or GRAY_ALPHA
-                              = 0 or MASK_ALPHA
-   and that's why here we can simply combine it bitwise with MASK_COOR }
-  ColorType := ColorType or PNG_COLOR_MASK_COLOR;
- end;
- {now he have rgb 8/16 bitDepth + maybe alpha}
- {rgb 16 bitdepth -> rgb 8 bitdepth}
- if BitDepth = 16 then
- begin
-  png_set_strip_16(png_ptr);
-  BitDepth := 8;
- end;
+
+ png_transform_rgb_to_rgb8bit(png_ptr, ColorType, BitDepth);
+
  {handle alpha and tRNS by combining image with color in bKGD header part
   (we do it just to get rid of alpha channel; in case of PngGraphic bedziemy
   aplikowac pozniej filler jako czwarty bajt i bedziemy ten czwarty bajt
@@ -307,30 +525,10 @@ begin
    BitDepth := 8;
  end;
 
- { grayscale -> 8bit rgb }
- if (ColorType and PNG_COLOR_MASK_COLOR) = 0 then
- begin
-   if BitDepth < 8 then
-   begin
-     png_set_gray_1_2_4_to_8(png_ptr);
-     BitDepth := 8;
-   end;
-   png_set_gray_to_rgb(png_ptr);
-   {gray color means ColorType = PNG_COLOR_TYPE_GRAY or GRAY_ALPHA
-                               = 0 or MASK_ALPHA
-    and that's why here we can simply combine it bitwise with MASK_COOR }
-   ColorType := ColorType or PNG_COLOR_MASK_COLOR;
- end;
+ png_transform_rgb_to_rgb8bit(png_ptr, ColorType, BitDepth);
 
- {now he have rgb 8/16 bitDepth + maybe alpha, maybe unapplied tRNS}
- {rgb 16 bitdepth -> rgb 8 bitdepth}
- if BitDepth = 16 then
- begin
-   png_set_strip_16(png_ptr);
-   BitDepth := 8;
- end;
-
- if (not TRNSHandled) and (ColorType = PNG_COLOR_TYPE_RGB) then
+ if (not TRNSHandled) and
+    (ColorType and PNG_COLOR_MASK_ALPHA = 0) then
  begin
    png_set_tRNS_to_alpha(png_ptr);
    TRNSHandled := true;
@@ -341,18 +539,32 @@ begin
    probably (not confirmed) I may be left here with TRNSHandled = false.
    Ignore this. }
 
- if (ColorType = PNG_COLOR_TYPE_RGB) and (BitDepth = 8) then
-   png_set_filler(png_ptr, High(byte), PNG_FILLER_AFTER) else
+ if (ColorType and PNG_COLOR_MASK_ALPHA = 0) and
+    (BitDepth = 8) then
+ begin
+   png_set_filler(png_ptr, High(byte), PNG_FILLER_AFTER);
+   ColorType := ColorType or PNG_COLOR_MASK_ALPHA;
+ end;
+
  Assert((ColorType = PNG_COLOR_TYPE_RGB_ALPHA) and (BitDepth = 8),
    'png_transform_to_rgba4byte failed to apply good png transformations');
 end;
 
-function png_has_alpha_info(png_ptr: png_structp; info_ptr: png_infop): boolean;
-var ColorType: LongWord;
+function png_is_grayscale(png_ptr: png_structp; info_ptr: png_infop): boolean;
+var
+  ColorType: LongWord;
 begin
- ColorType := png_get_color_type(png_ptr, info_ptr);
- result:= ((ColorType and PNG_COLOR_MASK_ALPHA) <> 0) or
-          (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS) <> 0);
+  ColorType := png_get_color_type(png_ptr, info_ptr);
+  Result := (ColorType and PNG_COLOR_MASK_COLOR) = 0;
+end;
+
+function png_is_alpha(png_ptr: png_structp; info_ptr: png_infop): boolean;
+var
+  ColorType: LongWord;
+begin
+  ColorType := png_get_color_type(png_ptr, info_ptr);
+  result := ( (ColorType and PNG_COLOR_MASK_ALPHA) <> 0) or
+              (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS) <> 0);
 end;
 
 { *ToStr -------------------------------------------------------------- }

@@ -91,29 +91,85 @@ end;
 
 { LoadPNG ------------------------------------------------------------------- }
 
-function LoadAnyPNG(Stream: TStream; FormatRequired: TImageFormatRequirements;
-    ConvertToRequired: boolean): TImage;
-var row_pointers: TDynPointerArray;
-    png_ptr: png_structp;
-    info_ptr: png_infop;
-    i: Cardinal;
-    warningslist: TDynStringArray;
-    has_alpha_info: boolean;
-    AllocateWidth, AllocateHeight: Cardinal;
+function _LoadAnyPNG(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
+
+  { TODO: this is copied from LoadImage impl, to be implemented more
+    gracefully by TImageFormatHandler soon. }
+
+  { check is Conv Forbidden, if it is -> raise exception }
+  procedure DoingConversion(Conv: TImageLoadConversion);
+  const
+    ConvToStr: array[TImageLoadConversion]of string = (
+    'delete alpha channel',
+    'lose float precision',
+    'flatten RGB colors to grayscale',
+    'add dummy constant alpha channel',
+    'add useless float precision',
+    'expand grayscale to RGB (three channels)'
+    );
+  begin
+    if Conv in ForbiddenConvs then
+      raise EUnableToLoadImage.Create('LoadImage: to load this image format '+
+        'conversion "'+ConvToStr[Conv]+'" must be done, but it is forbidden here');
+  end;
+
+  function ClassAllowed(ImageClass: TImageClass): boolean;
+  begin
+    Result := (High(AllowedImageClasses) = -1) or
+      InImageClasses(ImageClass, AllowedImageClasses);
+  end;
+
+var
+  PNGResult: TImage absolute Result;
+  AllocateWidth, AllocateHeight: Cardinal;
+  png_ptr: png_structp;
+  info_ptr: png_infop;
+
+  { Allocates Result to given class and applies libpng transforms to
+    make resulting data matching given Result class.
+    Does this (and returns @true) only if ImageClass and NeededConversions
+    are allowed. }
+  function TransformPng(ImageClass: TImageClass;
+    const NeededConversions: TImageLoadConversions): boolean;
+  begin
+    Result := ClassAllowed(ImageClass) and
+      (ForbiddenConvs * NeededConversions = []);
+
+    if Result then
+    begin
+      PNGResult := ImageClass.Create(AllocateWidth, AllocateHeight);
+      if ImageClass = TGrayscaleImage then
+        png_transform_to_g1byte(png_ptr, info_ptr) else
+      if ImageClass = TGrayscaleAlphaImage then
+        png_transform_to_ga2byte(png_ptr, info_ptr) else
+      if ImageClass = TRGBImage then
+        png_transform_to_rgb3byte(png_ptr, info_ptr) else
+      if ImageClass = TRGBAlphaImage then
+        png_transform_to_rgba4byte(png_ptr, info_ptr);
+    end;
+  end;
+
+var
+  row_pointers: TDynPointerArray;
+  i: Cardinal;
+  warningslist: TDynStringArray;
+  IsAlpha, IsGrayscale: boolean;
 begin
  warningslist := TDynStringArray.Create;
  png_ptr := nil;
  try
   png_ptr := png_create_read_struct(SO_PNG_LIBPNG_VER_STRING,
-    WarningsList, 
-    {$ifdef FPC_OBJFPC} @ {$endif} our_png_error_fn, 
+    WarningsList,
+    {$ifdef FPC_OBJFPC} @ {$endif} our_png_error_fn,
     {$ifdef FPC_OBJFPC} @ {$endif} our_png_warning_fn);
   Check( png_ptr <> nil, 'png_create_read_struct failed');
 
   info_ptr := png_create_info_struct(png_ptr);
   Check( info_ptr <> nil, 'png_create_info_struct failed');
 
-  png_set_read_fn(png_ptr, Stream, 
+  png_set_read_fn(png_ptr, Stream,
     {$ifdef FPC_OBJFPC} @ {$endif} our_png_read_fn);
 
   { TODO -- uzyj tu png_set_read_status_fn aby miec progressa }
@@ -124,35 +180,54 @@ begin
   result := nil; { zeby mozna bylo ponizej zapisac wygodnie try..except }
 
   try
-   { transfrom EVERY png to RGB_3byte or RGBA_4byte format }
-   has_alpha_info := png_has_alpha_info(png_ptr, info_ptr);
-   case FormatRequired of
-    frWithoutAlpha: 
-      begin
-       if has_alpha_info and (not ConvertToRequired) then
-	raise EUnableToLoadImage.Create('Not allowed PNG format : alpha information in PNG is not allowed here');
-       Result := TRGBImage.Create(AllocateWidth, AllocateHeight);
-       png_transform_to_rgb3byte(png_ptr, info_ptr);
-      end;
-    frWithAlpha: 
-      begin
-       if (not has_alpha_info) and (not ConvertToRequired) then
-	raise EUnableToLoadImage.Create('Not allowed PNG format : alpha information in PNG is required here');
-       Result := TRGBAlphaImage.Create(AllocateWidth, AllocateHeight);
-       png_transform_to_rgba4byte(png_ptr, info_ptr);
-      end;
-    else {frAny:}
-      begin
-       if has_alpha_info then
-       begin
-	result := TRGBAlphaImage.Create(AllocateWidth, AllocateHeight);
-	png_transform_to_rgba4byte(png_ptr, info_ptr);
-       end else
-       begin
-	result := TRGBImage.Create(AllocateWidth, AllocateHeight);
-	png_transform_to_rgb3byte(png_ptr, info_ptr);
-       end;
-      end;
+   IsAlpha := png_is_alpha(png_ptr, info_ptr);
+   IsGrayscale := png_is_grayscale(png_ptr, info_ptr);
+
+   { First, check to what TImage descendant (we can make four,
+     with 1, 2, 3, 4 number of components) our image file most matches.
+
+     If it's not on the list of allowed classes, try to transform
+     it to the most matching class. When doing this, we try to perform
+     the most lossless convertion --- this means that we prefer to
+     add image channel or expand grayscale->RGB than the other way around.
+     For example, if image file is grayscale+alpha, we prefer to make
+     it RGB+alpha (expand grayscale to RGB) than to grayscale (strip alpha).
+   }
+
+   if IsGrayScale then
+   begin
+     if IsAlpha then
+     begin
+       if not TransformPng(TGrayscaleAlphaImage, []) then
+       if not TransformPng(TRGBAlphaImage, [ilcGrayscaleExpandToRGB]) then
+       if not TransformPng(TGrayscaleImage, [ilcAlphaDelete]) then
+       if not TransformPng(TRGBImage, [ilcGrayscaleExpandToRGB, ilcAlphaDelete]) then
+         raise EUnableToLoadImage.Create('Cannot load PNG image to required class');
+     end else
+     begin
+       if not TransformPng(TGrayscaleImage, []) then
+       if not TransformPng(TGrayscaleAlphaImage, [ilcAlphaAdd]) then
+       if not TransformPng(TRGBImage, [ilcGrayscaleExpandToRGB]) then
+       if not TransformPng(TRGBAlphaImage, [ilcAlphaAdd, ilcGrayscaleExpandToRGB]) then
+         raise EUnableToLoadImage.Create('Cannot load PNG image to required class');
+     end;
+   end else
+   begin
+     if IsAlpha then
+     begin
+       if not TransformPng(TRGBAlphaImage, []) then
+       if not TransformPng(TRGBImage, [ilcAlphaDelete]) then
+       if not TransformPng(TGrayscaleAlphaImage, [ilcRGBFlattenToGrayscale]) then
+       if not TransformPng(TGrayscaleImage, [ilcAlphaDelete, ilcRGBFlattenToGrayscale]) then
+         raise EUnableToLoadImage.Create('Cannot load PNG image to required class');
+     end else
+     begin
+       if not TransformPng(TRGBImage, []) then
+       if not TransformPng(TRGBAlphaImage, [ilcAlphaAdd]) then
+       if not TransformPng(TGrayscaleImage, [ilcRGBFlattenToGrayscale]) then
+       if not TransformPng(TGrayscaleAlphaImage, [ilcAlphaAdd, ilcRGBFlattenToGrayscale]) then
+         raise EUnableToLoadImage.Create('Cannot load PNG image to required class');
+     end;
    end;
 
    png_read_update_info(png_ptr, info_ptr);
@@ -160,8 +235,8 @@ begin
      SysUtils.Format('internal error : applied wrong png transformations, width '+
        '%d with %d bytes per pixel gave row byte length %d instead of %d',
        [ Result.Width, Result.PixelSize,
-	 png_get_rowbytes(png_ptr, info_ptr),
-	 Result.PixelSize * Result.Width]));
+         png_get_rowbytes(png_ptr, info_ptr),
+         Result.PixelSize * Result.Width]));
 
    { now ready row_pointers as ScanLines }
    row_pointers := TDynPointerArray.Create(result.Height);
@@ -188,9 +263,29 @@ begin
  end;
 end;
 
+function LoadAnyPNG(Stream: TStream;
+  FormatRequired: TImageFormatRequirements;
+  ConvertToRequired: boolean): TImage;
+begin
+  case FormatRequired of
+    frAny         : Result := _LoadAnyPNG(Stream, [], []);
+    { For FormatRequired <> frAny, this reflects previous
+      frWithoutAlpha/frAny behavior: only RGB or RGBAlpha is possible. }
+    frWithoutAlpha:
+      if ConvertToRequired then
+        Result := _LoadAnyPNG(Stream, [TRGBImage], []) else
+        Result := _LoadAnyPNG(Stream, [TRGBImage], [ilcAlphaDelete]);
+    frWithAlpha   :
+      if ConvertToRequired then
+        Result := _LoadAnyPNG(Stream, [TRGBAlphaImage], []) else
+        Result := _LoadAnyPNG(Stream, [TRGBAlphaImage], [ilcAlphaAdd]);
+    else raise EInternalError.Create('LoadAnyPNG:FormatRequired?');
+  end;
+end;
+
 function LoadPNG(Stream: TStream): TRGBImage;
 begin
- result := LoadAnyPNG(Stream, frWithoutAlpha, true) as TRGBImage;
+ result := _LoadAnyPNG(Stream, [TRGBImage], []) as TRGBImage;
 end;
 
 { Save[Any]PNG --------------------------------------------------------------------- }
@@ -208,16 +303,16 @@ begin
  png_ptr := nil;
  try
   png_ptr := png_create_write_struct(SO_PNG_LIBPNG_VER_STRING,
-    WarningsList, 
-    {$ifdef FPC_OBJFPC} @ {$endif} our_png_error_fn, 
+    WarningsList,
+    {$ifdef FPC_OBJFPC} @ {$endif} our_png_error_fn,
     {$ifdef FPC_OBJFPC} @ {$endif} our_png_warning_fn);
   Check( png_ptr <> nil, 'png_create_write_struct failed');
 
   info_ptr := png_create_info_struct(png_ptr);
   Check( info_ptr <> nil, 'png_create_info_struct failed');
 
-  png_set_write_fn(png_ptr, Stream, 
-    {$ifdef FPC_OBJFPC} @ {$endif} our_png_write_fn, 
+  png_set_write_fn(png_ptr, Stream,
+    {$ifdef FPC_OBJFPC} @ {$endif} our_png_write_fn,
     {$ifdef FPC_OBJFPC} @ {$endif} our_png_flush_fn);
 
   { TODO -- uzyj tu png_set_write_status_fn aby miec progressa }
