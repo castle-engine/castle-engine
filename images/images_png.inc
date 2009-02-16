@@ -91,7 +91,7 @@ end;
 
 { LoadPNG ------------------------------------------------------------------- }
 
-function _LoadAnyPNG(Stream: TStream;
+function LoadAnyPNG(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
 
@@ -263,29 +263,9 @@ begin
  end;
 end;
 
-function LoadAnyPNG(Stream: TStream;
-  FormatRequired: TImageFormatRequirements;
-  ConvertToRequired: boolean): TImage;
-begin
-  case FormatRequired of
-    frAny         : Result := _LoadAnyPNG(Stream, [], []);
-    { For FormatRequired <> frAny, this reflects previous
-      frWithoutAlpha/frAny behavior: only RGB or RGBAlpha is possible. }
-    frWithoutAlpha:
-      if ConvertToRequired then
-        Result := _LoadAnyPNG(Stream, [TRGBImage], []) else
-        Result := _LoadAnyPNG(Stream, [TRGBImage], [ilcAlphaDelete]);
-    frWithAlpha   :
-      if ConvertToRequired then
-        Result := _LoadAnyPNG(Stream, [TRGBAlphaImage], []) else
-        Result := _LoadAnyPNG(Stream, [TRGBAlphaImage], [ilcAlphaAdd]);
-    else raise EInternalError.Create('LoadAnyPNG:FormatRequired?');
-  end;
-end;
-
 function LoadPNG(Stream: TStream): TRGBImage;
 begin
- result := _LoadAnyPNG(Stream, [TRGBImage], []) as TRGBImage;
+ result := LoadAnyPNG(Stream, [TRGBImage], []) as TRGBImage;
 end;
 
 { Save[Any]PNG --------------------------------------------------------------------- }

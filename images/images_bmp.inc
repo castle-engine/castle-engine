@@ -59,8 +59,9 @@ const
   BI_RLE4 = 2;
   BI_BITFIELDS = 3;
 
-function LoadAnyBMP(Stream: TStream; FormatRequired: TImageFormatRequirements;
-  ConvertToRequired: boolean): TImage;
+function LoadAnyBMP(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
 var fhead: TBitmapFileHeader;
     ihead: TBitmapInfoHeader;
     paletteSize: integer;    { rozmiar palety (0 jesli brak) }
@@ -142,6 +143,15 @@ var fhead: TBitmapFileHeader;
    end;
   end;
 
+  { TODO: this is copied from LoadImage impl, to be implemented more
+    gracefully by TImageFormatHandler soon. }
+
+  function ClassAllowed(ImageClass: TImageClass): boolean;
+  begin
+    Result := (High(AllowedImageClasses) = -1) or
+      InImageClasses(ImageClass, AllowedImageClasses);
+  end;
+
 var i: integer;
     rowsGoingUp: boolean;
     rowdata: PByteArray;
@@ -220,23 +230,30 @@ begin
      Stream.Position := fhead.bfOffBits;
      rowdata := GetMem(rowLength);
 
-     { Behave like FormatRequired = frAny, since this is Ok most the time
-       and allows easy programming later. }
+     { We always allocate Result most matching to file format
+       (biBitCount = 32 is RGBA, else RGB).
+
+       We also check AllowedImageClasses and ForbiddenConvs, to see if they can
+       be satisfied. There's no point in loading if we would later
+       be unable to convert to requested class.
+
+       However, actual conversion to satisfy AllowedImageClasses, ForbiddenConvs
+       (adding/stripping alpha channel) will be done (if needed) later,
+       after reading BMP file. }
      if biBitCount = 32 then
-       Result := TRGBAlphaImage.Create(biWidth, biHeight) else
-       Result := TRGBImage.Create(biWidth, biHeight);
-
-     if not ConvertToRequired then
      begin
-       { If FormatRequired doesn't match, raise error now
-         (no sense in reading the image data). }
-       if (FormatRequired = frWithoutAlpha) and
-          (Result is TRGBAlphaImage) then
-         raise EUnableToLoadImage.Create('Not allowed BMP format: alpha information in BMP is not allowed here');
-
-       if (FormatRequired = frWithAlpha) and
-          (Result is TRGBImage) then
-         raise EUnableToLoadImage.Create('Not allowed BMP format: alpha information in BMP is required here');
+       if ClassAllowed(TRGBAlphaImage) or
+          ( ClassAllowed(TRGBImage) and
+            (not (ilcAlphaDelete in ForbiddenConvs)) ) then
+         Result := TRGBAlphaImage.Create(biWidth, biHeight) else
+         raise EUnableToLoadImage.Create('Cannot load BMP file (with alpha channel) to any of the requested image classes');
+     end else
+     begin
+       if ClassAllowed(TRGBImage) or
+          ( ClassAllowed(TRGBAlphaImage) and
+            (not (ilcAlphaAdd in ForbiddenConvs)) ) then
+         Result := TRGBImage.Create(biWidth, biHeight) else
+         raise EUnableToLoadImage.Create('Cannot load BMP file (without alpha channel) to any of the requested image classes');
      end;
 
      for i := 0 to biHeight - 1 do
@@ -248,18 +265,18 @@ begin
       WriteRow(Result.RowPtr(rownum), rowData);
      end;
 
-     { If FormatRequired doesn't match, convert now
-       (we already checked ConvertToRequired, we know we can convert Ok). }
-     if (FormatRequired = frWithoutAlpha) and
-        (Result is TRGBAlphaImage) then
+     { Convert now to satisfy AllowedImageClasses.
+       (We already checked ForbiddenConvs, we know we can convert Ok). }
+     if (Result is TRGBAlphaImage) and
+        (not ClassAllowed(TRGBAlphaImage)) then
      begin
        NewResult := TRGBAlphaImage(Result).ToRGBImage;
        FreeAndNil(Result);
        Result := NewResult;
      end;
 
-     if (FormatRequired = frWithAlpha) and
-        (Result is TRGBImage) then
+     if (Result is TRGBImage) and
+        (not ClassAllowed(TRGBImage)) then
      begin
        NewResult := TRGBImage(Result).ToRGBAlphaImage_AlphaConst(255);
        FreeAndNil(Result);
@@ -283,7 +300,7 @@ end;
 
 function LoadBMP(Stream: TStream): TRGBImage;
 begin
-  Result := LoadAnyBMP(Stream, frWithoutAlpha, true) as TRGBImage;
+  Result := LoadAnyBMP(Stream, [TRGBImage], []) as TRGBImage;
 end;
 
 procedure SaveBMP(const Img: TRGBImage; Stream: TStream);

@@ -3,8 +3,9 @@
 {$endif}
 
 function LoadAnyImageExternalTool(
-  Stream: TStream; FormatRequired: TImageFormatRequirements;
-  ConvertToRequired: boolean;
+  Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions;
   const ImageMagickName: string): TImage;
 {$ifdef HAS_EXECUTE_PROCESS}
 
@@ -116,7 +117,7 @@ begin
 
     PngStream := CreateReadFileStream(PngFileName);
     try
-      Result := LoadAnyPng(PngStream, FormatRequired, ConvertToRequired);
+      Result := LoadAnyPNG(PngStream, AllowedImageClasses, ForbiddenConvs);
     finally FreeAndNil(PngStream) end;
 
   finally
@@ -137,72 +138,78 @@ end;
 
 function LoadGIF(Stream: TStream): TRGBImage;
 begin
-  Result := LoadAnyGIF(Stream, frWithoutAlpha, true) as TRGBImage;
+  Result := LoadAnyGIF(Stream, [TRGBImage], []) as TRGBImage;
 end;
 
-function LoadAnyGIF(Stream: TStream; FormatRequired: TImageFormatRequirements;
-  ConvertToRequired: boolean): TImage;
+function LoadAnyGIF(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
 begin
   Result := LoadAnyImageExternalTool(
-    Stream, FormatRequired, ConvertToRequired, 'gif');
+    Stream, AllowedImageClasses, ForbiddenConvs, 'gif');
 end;
 
 function LoadTGA(Stream: TStream): TRGBImage;
 begin
-  Result := LoadAnyTGA(Stream, frWithoutAlpha, true) as TRGBImage;
+  Result := LoadAnyTGA(Stream, [TRGBImage], []) as TRGBImage;
 end;
 
-function LoadAnyTGA(Stream: TStream; FormatRequired: TImageFormatRequirements;
-  ConvertToRequired: boolean): TImage;
+function LoadAnyTGA(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
 begin
   Result := LoadAnyImageExternalTool(
-    Stream, FormatRequired, ConvertToRequired, 'tga');
+    Stream, AllowedImageClasses, ForbiddenConvs, 'tga');
 end;
 
 function LoadSGI(Stream: TStream): TRGBImage;
 begin
-  Result := LoadAnySGI(Stream, frWithoutAlpha, true) as TRGBImage;
+  Result := LoadAnySGI(Stream, [TRGBImage], []) as TRGBImage;
 end;
 
-function LoadAnySGI(Stream: TStream; FormatRequired: TImageFormatRequirements;
-  ConvertToRequired: boolean): TImage;
+function LoadAnySGI(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
 begin
   Result := LoadAnyImageExternalTool(
-    Stream, FormatRequired, ConvertToRequired, 'sgi');
+    Stream, AllowedImageClasses, ForbiddenConvs, 'sgi');
 end;
 
 function LoadTIFF(Stream: TStream): TRGBImage;
 begin
-  Result := LoadAnyTIFF(Stream, frWithoutAlpha, true) as TRGBImage;
+  Result := LoadAnyTIFF(Stream, [TRGBImage], []) as TRGBImage;
 end;
 
-function LoadAnyTIFF(Stream: TStream; FormatRequired: TImageFormatRequirements;
-  ConvertToRequired: boolean): TImage;
+function LoadAnyTIFF(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
 begin
   Result := LoadAnyImageExternalTool(
-    Stream, FormatRequired, ConvertToRequired, 'tiff');
+    Stream, AllowedImageClasses, ForbiddenConvs, 'tiff');
 end;
 
 function LoadJP2(Stream: TStream): TRGBImage;
 begin
-  Result := LoadAnyJP2(Stream, frWithoutAlpha, true) as TRGBImage;
+  Result := LoadAnyJP2(Stream, [TRGBImage], []) as TRGBImage;
 end;
 
-function LoadAnyJP2(Stream: TStream; FormatRequired: TImageFormatRequirements;
-  ConvertToRequired: boolean): TImage;
+function LoadAnyJP2(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
 begin
   Result := LoadAnyImageExternalTool(
-    Stream, FormatRequired, ConvertToRequired, 'jp2');
+    Stream, AllowedImageClasses, ForbiddenConvs, 'jp2');
 end;
 
 function LoadEXR(Stream: TStream): TRGBImage;
 begin
-  Result := LoadAnyEXR(Stream, frWithoutAlpha, true) as TRGBImage;
+  Result := LoadAnyEXR(Stream, [TRGBImage], []) as TRGBImage;
 end;
 
-function LoadAnyEXR(Stream: TStream; FormatRequired: TImageFormatRequirements;
-  ConvertToRequired: boolean): TImage;
+function LoadAnyEXR(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
 begin
   Result := LoadAnyImageExternalTool(
-    Stream, FormatRequired, ConvertToRequired, 'exr');
+    Stream, AllowedImageClasses, ForbiddenConvs, 'exr');
 end;

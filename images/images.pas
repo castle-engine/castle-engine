@@ -1114,79 +1114,46 @@ type
     class function LoadImage(Stream: TStream;
       const AllowedImageClasses: array of TImageClass;
       const ForbiddenConvs: TImageLoadConversions): TImage; virtual; abstract;
-
-    { Possible TImage classes that can be returned by LoadImage of this handler.
-      It's assumed that LoadImage() here can return only these classes,
-      and any of these classes,
-      and can convert (as much as ForbiddenConvs will allow) between them.
-
-      If (and only if) the programmer will call global Images.LoadImage function
-      requesting only TImage descendants that cannot be returned by
-      LoadImage of this handler, then global Images.LoadImage will take care
-      to automatically do the necessary transformations of the image.
-
-      This is generally costly (as converting in Images.LoadImage means
-      that image is first loaded to one memory format, and then it's
-      recoded into another memory format; while inside handler's LoadImage,
-      some convertions can be done on-the-fly (that is, right at the
-      pixel reading), making them more memory-efficient).
-      So generally it's adviced that handler LoadImage will try to load
-      as many formats that are reasonaly possible in image file.
-    }
-    class function LoadImagePossibleClass(ImageClass: TImageClass): boolean;
-      virtual; abstract;
   end;
 
-type
   { }
   EUnableToLoadImage = class(EImageLoadError);
 
-  TImageFormatRequirements = (frWithoutAlpha, frWithAlpha, frAny);
-
-{ Load PNG file, possibly forcing specific number of components in the result.
-
-  It can load (and automatically convert to, if forced) to four output classes
-  TGrayscaleImage, TGrayscaleAlphaImage, TRGBImage, TRGBAlphaImage.
-
-  @raises(EUnableToLoadImage)
-
-  TODO: change all LoadAny* to follow this standard
-  TODO: make LoadImage use these
-  TODO: make all SaveAny* allow to save grayscale and grayscale+alpha images
-    too, as we will see them now more often.
-}
-function _LoadAnyPNG(Stream: TStream;
+function LoadAnyPNG(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
-
-function LoadAnyPNG(Stream: TStream;
-  FormatRequired: TImageFormatRequirements;
-  ConvertToRequired: boolean): TImage;
 
 { Save PNG file. Currently, accepts TRGBImage and TRGBAlphaImage
   (in the 2nd case, it will naturally save alpha channel to the file). }
 procedure SaveAnyPNG(const Img: TImage; Stream: TStream; Interlaced: boolean);
 
-function LoadAnyBMP(Stream: TStream; FormatRequired: TImageFormatRequirements;
-  ConvertToRequired: boolean): TImage;
+function LoadAnyBMP(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
 
-function LoadAnyGIF(Stream: TStream; FormatRequired: TImageFormatRequirements;
-  ConvertToRequired: boolean): TImage;
+function LoadAnyGIF(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
 
-function LoadAnyTGA(Stream: TStream; FormatRequired: TImageFormatRequirements;
-  ConvertToRequired: boolean): TImage;
+function LoadAnyTGA(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
 
-function LoadAnySGI(Stream: TStream; FormatRequired: TImageFormatRequirements;
-  ConvertToRequired: boolean): TImage;
+function LoadAnySGI(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
 
-function LoadAnyTIFF(Stream: TStream; FormatRequired: TImageFormatRequirements;
-  ConvertToRequired: boolean): TImage;
+function LoadAnyTIFF(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
 
-function LoadAnyJP2(Stream: TStream; FormatRequired: TImageFormatRequirements;
-  ConvertToRequired: boolean): TImage;
+function LoadAnyJP2(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
 
-function LoadAnyEXR(Stream: TStream; FormatRequired: TImageFormatRequirements;
-  ConvertToRequired: boolean): TImage;
+function LoadAnyEXR(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
 
 { File formats managing ----------------------------------------------------- }
 
@@ -1198,9 +1165,38 @@ type
   TRGBImageLoadFunc = function (Stream: TStream): TRGBImage;
   TRGBImageSaveFunc = procedure (const Img: TRGBImage; Stream: TStream);
   TImageLoadFunc = function (Stream: TStream;
-    FormatRequired: TImageFormatRequirements;
-    ConvertToRequired: boolean): TImage;
+    const AllowedImageClasses: array of TImageClass;
+    const ForbiddenConvs: TImageLoadConversions): TImage;
   { some day TImageSaveFunc will be added too }
+
+  { Possible TImage classes that can be returned by Load method
+    of this file format. It's assumed that appropriate Load can return
+    only these classes, and any of these classes,
+    and can convert (as much as ForbiddenConvs will allow) between them.
+
+    If the LoadImage will be called allowing some TImage descendants
+    that can be returned by Load of this format,
+    then LoadImage will pretty much just pass the call to Load
+    for appropriate file format.
+    The above is expected to be the most common and most efficient case.
+    This way necessary conversion (e.g. adding alpha channel) can be
+    done at the lowest level, right inside image format handler,
+    which means that e.g. you can do it per-pixel, or by libpng transforms
+    in case of PNG format.
+
+    Only when it's not possible (if, and only if, none of the AllowedImageClasses
+    specified in LoadImage call can be returned by Load of this format)
+    then LoadImage will try more elaborate approach. This means that
+    it will try using Load of this image format, followed by
+    some convertions of the image afterwards. This is generally less
+    efficient, as it means that temporary image will be created during
+    loading.
+  }
+  TImageLoadHandledClasses = (
+    icRGB,
+    icRGB_RGBA,
+    icG_GA_RGB_RGBA
+  );
 
   { A type to index TImageFormatInfo.Exts array and also for TImageFormatInfo.ExtsCount.
     So TImageFormatInfo.Exts array is indexed from 1,
@@ -1238,7 +1234,13 @@ type
 
     LoadRGB: TRGBImageLoadFunc; {< = nil if we can't load it from RGB }
     SaveRGB: TRGBImageSaveFunc; {< = nil if we can't save it to RGB }
-    Load: TImageLoadFunc; {< = nil if can't load it with alpha channel }
+    Load: TImageLoadFunc; {< = nil if can't load it with AllowedClasses/ForbiddenConvs interface }
+
+    { If Load is assigned, this describes what TImage descendants
+      can be returned by this Load. LoadImage will need this information,
+      to make necessary convertions to other TImage classes,
+      when possible. }
+    HandledClasses: TImageLoadHandledClasses;
   end;
 
 const
@@ -1247,71 +1249,84 @@ const
       ExtsCount: 1; Exts: ('bmp', '', '');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadBMP;
       SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SaveBMP;
-      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyBMP),
+      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyBMP;
+      HandledClasses: icRGB_RGBA; ),
     { Portable Network Graphic } { }
     ( FormatName: 'PNG image';
       ExtsCount: 1; Exts: ('png', '', '');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadPNG;
       SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SavePNG;
-      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyPNG),
+      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyPNG;
+      HandledClasses: icG_GA_RGB_RGBA; ),
     { JFIF, JPEG File Interchange Format } { }
     ( FormatName: 'JPEG image';
       ExtsCount: 3; Exts: ('jpg', 'jpeg', 'jpe');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadJPEG;
       SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SaveJPEG;
-      Load: nil),
+      Load: nil;
+      HandledClasses: icG_GA_RGB_RGBA; ),
     ( FormatName: 'ZSoft PCX image';
       ExtsCount: 1; Exts: ('pcx', '', '');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadPCX;
       SaveRGB: nil;
-      Load: nil),
+      Load: nil;
+      HandledClasses: icG_GA_RGB_RGBA; ),
     { Portable Pixel Map } { }
     ( FormatName: 'PPM image';
       ExtsCount: 1; Exts: ('ppm', '', '');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadPPM;
       SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SavePPM;
-      Load: nil),
+      Load: nil;
+      HandledClasses: icG_GA_RGB_RGBA; ),
     ( FormatName: 'IPLab image';
       ExtsCount: 1; Exts: ('ipl', '', '');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadIPL;
       SaveRGB: nil;
-      Load: nil),
+      Load: nil;
+      HandledClasses: icG_GA_RGB_RGBA; ),
     ( FormatName: 'RGBE (RGB+Exponent) image';
       ExtsCount: 2; Exts: ('rgbe', 'pic', '');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadRGBEToByteRGB;
       SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SaveRGBEFromByteRGB;
-      Load: nil),
+      Load: nil;
+      HandledClasses: icG_GA_RGB_RGBA; ),
     { Graphics Interchange Format } { }
     ( FormatName: 'GIF image';
       ExtsCount: 1; Exts: ('gif', '', '');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadGIF;
       SaveRGB: nil;
-      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyGIF),
+      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyGIF;
+      HandledClasses: icG_GA_RGB_RGBA; ),
     ( FormatName: 'TarGA image';
       ExtsCount: 1; Exts: ('tga', '', '');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadTGA;
       SaveRGB: nil;
-      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyTGA),
+      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyTGA;
+      HandledClasses: icG_GA_RGB_RGBA; ),
     ( FormatName: 'SGI image';
       ExtsCount: 1; Exts: ('sgi', '', '');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadSGI;
       SaveRGB: nil;
-      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnySGI),
+      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnySGI;
+      HandledClasses: icG_GA_RGB_RGBA; ),
     ( FormatName: 'TIFF image';
       ExtsCount: 1; Exts: ('tif', '', '');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadTIFF;
       SaveRGB: nil;
-      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyTIFF),
+      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyTIFF;
+      HandledClasses: icG_GA_RGB_RGBA; ),
     ( FormatName: 'JP2 image';
       ExtsCount: 1; Exts: ('jp2', '', '');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadJP2;
       SaveRGB: nil;
-      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyJP2),
+      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyJP2;
+      HandledClasses: icG_GA_RGB_RGBA; ),
     ( FormatName: 'EXR image';
       ExtsCount: 1; Exts: ('exr', '', '');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadEXR;
       SaveRGB: nil;
-      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyEXR)
+      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyEXR;
+      HandledClasses: icG_GA_RGB_RGBA; )
   );
 
   DefaultSaveImageFormat: TImageFormat = ifBMP;
@@ -1524,8 +1539,8 @@ type
   TGrayscaleImage, TGrayscaleAlphaImage, TRGBAlphaImage
   can be saved only to PNG format for now.
   Wpp. rzuci wyjatek EUnableToSaveImage.
-  TODO: do it nicer, z podobnymi parametrami jak przy LoadImage. 
-  
+  TODO: do it nicer, z podobnymi parametrami jak przy LoadImage.
+
   @raises(EUnableToSaveImage When it's not possible to save image,
     because of Img class (memory format) and/or image file format.) }
 procedure SaveImage(const img: TImage; const Format: TImageFormat; Stream: TStream); overload;
@@ -3203,61 +3218,6 @@ function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
    Image := NewResult;
   end;
 
-  procedure LoadAny(Load: TImageLoadFunc);
-  begin
-    if ClassAllowed(TRGBAlphaImage) then
-    begin
-      if ClassAllowed(TRGBImage) then
-        Result := Load(Stream, frAny, false) else
-      if ClassAllowed(TRGBEImage) then
-      begin
-        { AllowedImageClasses have TRGBEImage and TRGBAlphaImage but not TRGBImage.
-          Jezeli dodawanie alpha channela jest dozwolone to nie ma problemu :
-          zaladuj obrazek wymagajc alpha, ew. dodajac alpha.
-          Wpp. zaladuj obrazek nie konwertujac nic i jesli wyjdzie nam
-          ikRGB to zamien go na ikRGBE. }
-        if not(ilcAlphaAdd in ForbiddenConvs) then
-          Result := Load(Stream, frWithAlpha, true) else
-        begin
-          Result := Load(Stream, frAny, false);
-          if Result is TRGBImage then
-          begin
-            DoingConversion(ilcFloatPrecAdd);
-            ImageRGBToRGBETo1st(result);
-          end;
-        end;
-      end else
-        { w AllowedImageKinds jest tylko ikAlpha. Wiec musimy dac frWithAlpha }
-        result := Load(Stream, frWithAlpha, not (ilcAlphaAdd in ForbiddenConvs));
-    end else
-    { TODO: here we should take into account that TGrayscaleAlphaImage
-      may be allowed }
-    begin
-      { bez wzgledu na wszystko,
-        jesli nie ma ClassAllowed(TRGBAlphaImage)
-        to chcemy stracic alpha obrazka (jesli go ma), tzn. chcemy zaladowac
-        teraz obrazek do RGB. }
-      Result := Load(Stream, frWithoutAlpha, not (ilcAlphaDelete in ForbiddenConvs));
-
-      Assert(Result is TRGBImage);
-
-      if not (ClassAllowed(TRGBImage)) then
-      begin
-        if ClassAllowed(TRGBEImage) then
-        begin
-          DoingConversion(ilcFloatPrecAdd);
-          ImageRGBToRGBETo1st(result);
-        end else
-        if ClassAllowed(TGrayscaleImage) then
-        begin
-          DoingConversion(ilcRGBFlattenToGrayscale);
-          ImageGrayscaleTo1st(Result);
-        end else
-          raise EInternalError.Create('LoadImage: unknown target required');
-      end;
-    end;
-  end;
-
 const
   DummyDefaultAlpha = High(Byte);
 
@@ -3297,28 +3257,11 @@ const
     end;
   end;
 
+var
+  Load: TImageLoadFunc;
 begin
   Result := nil;
   try
-    { TODO: Temporary, we just check explicitly for PNG.
-      In the future, this should just work for any image whose handler
-      can load all four byte images (TGrayscale[Alpha], TRGB[Alpha]),
-      but not RGBE. }
-    if StreamFormat = ifPNG then
-    begin
-      if ClassAllowed(TRGBImage) or
-         ClassAllowed(TRGBAlphaImage) or
-         ClassAllowed(TGrayscaleImage) or
-         ClassAllowed(TGrayscaleAlphaImage) then
-        Result := _LoadAnyPNG(Stream, AllowedImageClasses, ForbiddenConvs) else
-      if ClassAllowed(TRGBEImage) then
-      begin
-        Result := _LoadAnyPNG(Stream, [TRGBImage], ForbiddenConvs);
-        DoingConversion(ilcFloatPrecAdd);
-        ImageRGBToRGBETo1st(result);
-      end else
-        raise EInternalError.Create('LoadImage cannot load this image file format to requested class');
-    end else
     if StreamFormat = ifRGBE then
     begin
       if ClassAllowed(TRGBEImage) then
@@ -3352,7 +3295,46 @@ begin
       end;
     end else
     if Assigned(ImageFormatInfos[StreamFormat].Load) then
-      LoadAny(ImageFormatInfos[StreamFormat].Load) else
+    begin
+      Load := ImageFormatInfos[StreamFormat].Load;
+      case ImageFormatInfos[StreamFormat].HandledClasses of
+        icG_GA_RGB_RGBA:
+          begin
+            if ClassAllowed(TRGBImage) or
+               ClassAllowed(TRGBAlphaImage) or
+               ClassAllowed(TGrayscaleImage) or
+               ClassAllowed(TGrayscaleAlphaImage) then
+              Result := Load(Stream, AllowedImageClasses, ForbiddenConvs) else
+            if ClassAllowed(TRGBEImage) then
+            begin
+              Result := Load(Stream, [TRGBImage], ForbiddenConvs);
+              DoingConversion(ilcFloatPrecAdd);
+              ImageRGBToRGBETo1st(result);
+            end else
+              raise EInternalError.Create('LoadImage cannot load this image file format to requested class');
+          end;
+        icRGB_RGBA:
+          begin
+            if ClassAllowed(TRGBImage) or
+               ClassAllowed(TRGBAlphaImage) then
+              Result := Load(Stream, AllowedImageClasses, ForbiddenConvs) else
+{TODO:            if ClassAllowed(TGrayscaleImage) or
+               ClassAllowed(TGrayscaleAlphaImage) }
+            if ClassAllowed(TRGBEImage) then
+            begin
+              Result := Load(Stream, [TRGBImage], ForbiddenConvs);
+              DoingConversion(ilcFloatPrecAdd);
+              ImageRGBToRGBETo1st(result);
+            end else
+              raise EInternalError.Create('LoadImage cannot load this image file format to requested class');
+          end;
+        icRGB:
+          begin
+            { TODO: LoadRGB code goes here }
+          end;
+        else raise EInternalError.Create('LoadImage: HandledClasses?');
+      end;
+    end else
     if Assigned(ImageFormatInfos[StreamFormat].LoadRGB) then
       LoadRGB(ImageFormatInfos[StreamFormat].LoadRGB) else
     raise EImageFormatNotSupported.Create('Can''t load image format "'+
