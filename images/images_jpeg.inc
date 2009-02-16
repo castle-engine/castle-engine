@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2005 Michalis Kamburelis.
+  Copyright 2001-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -18,14 +18,16 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-function LoadJPEG(Stream: TStream): TRGBImage;
+function LoadJPEG(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
 var MemS: TMemoryStream;
 begin
  MemS := TMemoryStream.Create;
  try
   KambiPasJpeg.LoadJPEG(Stream, MemS, true, 0, nil);
   MemS.Position := 0;
-  result := LoadBMP(MemS);
+  result := LoadBMP(MemS, AllowedImageClasses, ForbiddenConvs);
  finally MemS.Free end;
 end;
 
@@ -41,4 +43,4 @@ begin
 end;
 
 procedure SaveJPEG(const img: TRGBImage; Stream: TStream); { quality = 90 }
-begin SaveJPEG(img, Stream, 90) end; 
+begin SaveJPEG(img, Stream, 90) end;

@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2008 Michalis Kamburelis.
+  Copyright 2001-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -59,7 +59,7 @@ const
   BI_RLE4 = 2;
   BI_BITFIELDS = 3;
 
-function LoadAnyBMP(Stream: TStream;
+function LoadBMP(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
 var fhead: TBitmapFileHeader;
@@ -296,11 +296,6 @@ begin
   on E: EReadError do raise EInvalidBMP.Create('Read error: ' + E.Message);
   on E: ECheckFailed do raise EInvalidBMP.Create('Wrong bitmap: ' + E.Message);
  end;
-end;
-
-function LoadBMP(Stream: TStream): TRGBImage;
-begin
-  Result := LoadAnyBMP(Stream, [TRGBImage], []) as TRGBImage;
 end;
 
 procedure SaveBMP(const Img: TRGBImage; Stream: TStream);

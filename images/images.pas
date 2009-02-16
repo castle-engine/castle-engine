@@ -76,7 +76,7 @@
     z pliku w dowolnym formacie (no, przynajmniej BMP, PNG i JPG, a wiec
     cos prostego, cos skompresowanego i cos skompresowanego stratnie)
     do tablicy 2 wymiarowej ktorej kazdy element bylby 3-ka bajtow RGB.
-    Funkcja ktora to robi nazywa sie teraz LoadRGBImage.
+    Funkcja ktora to robi nazywa sie teraz LoadImage(..., [TRGBImage], ...).
 
     Znalazlem libpng i libjpeg ktore pozwolily mi latwo opanowac formaty
     png i jpg. Implementacja formatu bmp samemu okazala sie dziecinnie prosta.
@@ -168,7 +168,7 @@ unit Images;
     knows special things about PNG (that it can have alpha channel).
 
     It should be done in a more
-    general way - like "LoadRGB/SaveRGB/Load" functions in ImageformatInfos[],
+    general way - like "SaveRGB/Load" functions in ImageformatInfos[],
     ImageformatInfos[] should also allow for other functions to be specified
     that can deal with a particular file format, like Save
     (for SaveAnyPNG etc.)
@@ -1001,64 +1001,6 @@ function Vector3ToRGBE(const v: TVector3Single): TVector4Byte;
 { Decode Red + Green + Blue + Exponent back into RGB 3 x Single. }
 function VectorRGBETo3Single(const v: TVector4Byte): TVector3Single;
 
-{ --------------------------------------------------------------------
-  rzeczy speszial do rgbe (jako format pliku i jako TImageKind) }
-
-{ jesli RoundToByteRGB to zwroci result.Kind = ikRGB (patrz komentarze
-  przy LoadRGBEToByteRGB). Wpp. result.Kind = ikRGBE. }
-function LoadRGBE(Stream: TStream; RoundToByteRGB: boolean): TImage;
-{ Img.Kind musi byc in ikRGB, ikRGBE (checked even in RELEASE).
-  W tym pierwszym przypadku - patrz komentarze przy SaveRGBEFromByteRGB. }
-procedure SaveRGBE(const Img: TImage; Stream: TStream);
-
-{ rownowazne ImageRecToRGB(LoadRGBE(Stream, true)). Nazwa jest taka
-  pokrecona ("ToByteRGB") bo naprawde rzadko powinienes tego uzywac i zawsze
-  musisz zdawac sobie sprawe z ograniczen : zaokraglanie do bajtu w zasadzie
-  zabija caly sens formatu RGBE. Odczytaj plik RGBE to RGB (3xByte) i potem
-  go zapisz (chocby nawet z powrotem w RGBE) a stracisz cala precyzje zawarta
-  w formacie RGBE. }
-function LoadRGBEToByteRGB(Stream: TStream): TRGBImage;
-{ rownowazne SaveRGBE(ImageRecFromRGB(Img), Stream). Podobnie jak przy
-  ImageRGBToRGBE, konwersja RGB na RGBE jest bezstratna ale moze byc
-  bezsensowna (po co ci precyzja skoro dane juz sa pozbawione precyzji ?)  }
-procedure SaveRGBEFromByteRGB(const Img: TRGBImage; Stream: TStream);
-
-{ -------------------------------------------------------------------------- }
-
-{ LoadXxx : load image from Stream.
-  An appropriate descendant of EImageLoadError will be raised
-  in case of error when reading from Stream or when Stream will not
-  contain correct data. }
-
-type
-  EImageLoadError = class(Exception);
-  EInvalidImageFormat = class(EImageLoadError);
-  EInvalidBMP = class(EInvalidImageFormat);
-  EInvalidPNG = class(EInvalidImageFormat);
-  EInvalidJPEG = class(EInvalidImageFormat);
-  EInvalidPCX =  class(EInvalidImageFormat);
-  EInvalidPPM = class(EInvalidImageFormat);
-  EInvalidIPL = class(EInvalidImageFormat);
-  EInvalidRGBE = class(EInvalidImageFormat);
-
-function LoadBMP(Stream: TStream): TRGBImage;
-function LoadPNG(Stream: TStream): TRGBImage;
-function LoadJPEG(Stream: TStream): TRGBImage;
-{ Only 256-color PCX can be handled.
-  This will not probably be ever improved (al least by me, Kambi),
-  since I don't use PCX images anymore.
-  Use PNG if you want lossless compression. }
-function LoadPCX(Stream: TStream): TRGBImage;
-{ Loads only the first image in .ppm file. }
-function LoadPPM(Stream: TStream): TRGBImage;
-function LoadIPL(Stream: TStream): TRGBImage;
-function LoadGIF(Stream: TStream): TRGBImage;
-function LoadTGA(Stream: TStream): TRGBImage;
-function LoadSGI(Stream: TStream): TRGBImage;
-function LoadTIFF(Stream: TStream): TRGBImage;
-function LoadJP2(Stream: TStream): TRGBImage;
-function LoadEXR(Stream: TStream): TRGBImage;
-
 { ------------------------------------------------------------------------------
 
   SaveXxx. Each file format has specialized SaveXxx that allows
@@ -1079,9 +1021,30 @@ procedure SaveJPEG(const img: TRGBImage; Stream: TStream); { quality = 90 } over
 procedure SavePPM(const img: TRGBImage; Stream: TStream; binary: boolean); overload;
 procedure SavePPM(const img: TRGBImage; Stream: TStream); { binary = true } overload;
 
-{ Load and save various image formats ---------------------------------- }
+{ Load image formats ---------------------------------- }
+
+{ LoadXxx: load image from Stream.
+
+  They must honour AllowedImageClasses and ForbiddenConvs, just like
+  LoadImage does. Except they don't have to care about returning all TImage
+  descendants: see @link(TImageFormatInfo.HandledClasses). So higher-level
+  LoadImage will use them and eventually convert their result.
+
+  An appropriate descendant of EImageLoadError will be raised
+  in case of error when reading from Stream or when Stream will not
+  contain correct data. }
 
 type
+  EImageLoadError = class(Exception);
+  EInvalidImageFormat = class(EImageLoadError);
+  EInvalidBMP = class(EInvalidImageFormat);
+  EInvalidPNG = class(EInvalidImageFormat);
+  EInvalidJPEG = class(EInvalidImageFormat);
+  EInvalidPCX =  class(EInvalidImageFormat);
+  EInvalidPPM = class(EInvalidImageFormat);
+  EInvalidIPL = class(EInvalidImageFormat);
+  EInvalidRGBE = class(EInvalidImageFormat);
+
   TImageLoadConversion = (
     ilcAlphaDelete, ilcFloatPrecDelete, ilcRGBFlattenToGrayscale,
     ilcAlphaAdd, ilcFloatPrecAdd, ilcGrayscaleExpandToRGB);
@@ -1119,7 +1082,7 @@ type
   { }
   EUnableToLoadImage = class(EImageLoadError);
 
-function LoadAnyPNG(Stream: TStream;
+function LoadPNG(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
 
@@ -1127,33 +1090,82 @@ function LoadAnyPNG(Stream: TStream;
   (in the 2nd case, it will naturally save alpha channel to the file). }
 procedure SaveAnyPNG(const Img: TImage; Stream: TStream; Interlaced: boolean);
 
-function LoadAnyBMP(Stream: TStream;
+function LoadBMP(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
 
-function LoadAnyGIF(Stream: TStream;
+function LoadGIF(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
 
-function LoadAnyTGA(Stream: TStream;
+function LoadTGA(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
 
-function LoadAnySGI(Stream: TStream;
+function LoadSGI(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
 
-function LoadAnyTIFF(Stream: TStream;
+function LoadTIFF(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
 
-function LoadAnyJP2(Stream: TStream;
+function LoadJP2(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
 
-function LoadAnyEXR(Stream: TStream;
+function LoadEXR(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
+
+function LoadJPEG(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
+
+{ Load PCX image.
+
+  Only 256-color PCX can be handled.
+  This will not probably be ever improved (al least by me, Kambi),
+  since I don't use PCX images anymore.
+  Use PNG if you want lossless compression. }
+function LoadPCX(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
+
+{ Load PPM image.
+  Loads only the first image in .ppm file. }
+function LoadPPM(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
+
+function LoadIPL(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
+
+{ --------------------------------------------------------------------
+  rzeczy speszial do rgbe (jako format pliku i jako TImageKind) }
+
+{ jesli RoundToByteRGB to zwroci result.Kind = ikRGB (patrz komentarze
+  przy LoadRGBEToByteRGB). Wpp. result.Kind = ikRGBE. }
+function LoadRGBE(Stream: TStream; RoundToByteRGB: boolean): TImage;
+{ Img.Kind musi byc in ikRGB, ikRGBE (checked even in RELEASE).
+  W tym pierwszym przypadku - patrz komentarze przy SaveRGBEFromByteRGB. }
+procedure SaveRGBE(const Img: TImage; Stream: TStream);
+
+{ Load RGBE image file to TRGBImage class.
+  Equivalent LoadRGBE(Stream, true). Nazwa jest taka
+  pokrecona ("ToByteRGB") bo naprawde rzadko powinienes tego uzywac i zawsze
+  musisz zdawac sobie sprawe z ograniczen : zaokraglanie do bajtu w zasadzie
+  zabija caly sens formatu RGBE. Odczytaj plik RGBE to RGB (3xByte) i potem
+  go zapisz (chocby nawet z powrotem w RGBE) a stracisz cala precyzje zawarta
+  w formacie RGBE. }
+function LoadRGBEToByteRGB(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
+{ rownowazne SaveRGBE(ImageRecFromRGB(Img), Stream). Podobnie jak przy
+  ImageRGBToRGBE, konwersja RGB na RGBE jest bezstratna ale moze byc
+  bezsensowna (po co ci precyzja skoro dane juz sa pozbawione precyzji ?)  }
+procedure SaveRGBEFromByteRGB(const Img: TRGBImage; Stream: TStream);
 
 { File formats managing ----------------------------------------------------- }
 
@@ -1205,7 +1217,7 @@ type
   TImageFormatInfoExtsCount = 1..3;
 
   TImageFormatInfo = record
-    { Human-readble format name.
+    { Human-readable format name.
 
       Note that this is supposed to be shown to normal user,
       in save dialog boxes etc. So it should be short and concise. I used to
@@ -1232,7 +1244,6 @@ type
       (some procedures make use of it). }
     Exts: array[TImageFormatInfoExtsCount] of string;
 
-    LoadRGB: TRGBImageLoadFunc; {< = nil if we can't load it from RGB }
     SaveRGB: TRGBImageSaveFunc; {< = nil if we can't save it to RGB }
     Load: TImageLoadFunc; {< = nil if can't load it with AllowedClasses/ForbiddenConvs interface }
 
@@ -1247,85 +1258,72 @@ const
   ImageFormatInfos :array[TImageFormat]of TImageFormatInfo =
   ( ( FormatName: 'Windows BMP image';
       ExtsCount: 1; Exts: ('bmp', '', '');
-      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadBMP;
-      SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SaveBMP;
-      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyBMP;
+      SaveRGB: @SaveBMP;
+      Load: @LoadBMP;
       HandledClasses: icRGB_RGBA; ),
     { Portable Network Graphic } { }
     ( FormatName: 'PNG image';
       ExtsCount: 1; Exts: ('png', '', '');
-      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadPNG;
-      SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SavePNG;
-      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyPNG;
+      SaveRGB: @SavePNG;
+      Load: @LoadPNG;
       HandledClasses: icG_GA_RGB_RGBA; ),
     { JFIF, JPEG File Interchange Format } { }
     ( FormatName: 'JPEG image';
       ExtsCount: 3; Exts: ('jpg', 'jpeg', 'jpe');
-      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadJPEG;
-      SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SaveJPEG;
-      Load: nil;
-      HandledClasses: icG_GA_RGB_RGBA; ),
+      SaveRGB: @SaveJPEG;
+      Load: @LoadJPEG;
+      HandledClasses: icRGB_RGBA; ),
     ( FormatName: 'ZSoft PCX image';
       ExtsCount: 1; Exts: ('pcx', '', '');
-      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadPCX;
       SaveRGB: nil;
-      Load: nil;
-      HandledClasses: icG_GA_RGB_RGBA; ),
+      Load: @LoadPCX;
+      HandledClasses: icRGB; ),
     { Portable Pixel Map } { }
     ( FormatName: 'PPM image';
       ExtsCount: 1; Exts: ('ppm', '', '');
-      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadPPM;
-      SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SavePPM;
-      Load: nil;
-      HandledClasses: icG_GA_RGB_RGBA; ),
+      SaveRGB: @SavePPM;
+      Load: @LoadPPM;
+      HandledClasses: icRGB; ),
     ( FormatName: 'IPLab image';
       ExtsCount: 1; Exts: ('ipl', '', '');
-      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadIPL;
       SaveRGB: nil;
-      Load: nil;
-      HandledClasses: icG_GA_RGB_RGBA; ),
+      Load: @LoadIPL;
+      HandledClasses: icRGB; ),
     ( FormatName: 'RGBE (RGB+Exponent) image';
       ExtsCount: 2; Exts: ('rgbe', 'pic', '');
-      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadRGBEToByteRGB;
-      SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SaveRGBEFromByteRGB;
-      Load: nil;
+      SaveRGB: @SaveRGBEFromByteRGB;
+      Load: @LoadRGBEToByteRGB;
       HandledClasses: icG_GA_RGB_RGBA; ),
     { Graphics Interchange Format } { }
     ( FormatName: 'GIF image';
       ExtsCount: 1; Exts: ('gif', '', '');
-      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadGIF;
       SaveRGB: nil;
-      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyGIF;
+      Load: @LoadGIF;
       HandledClasses: icG_GA_RGB_RGBA; ),
     ( FormatName: 'TarGA image';
       ExtsCount: 1; Exts: ('tga', '', '');
-      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadTGA;
       SaveRGB: nil;
-      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyTGA;
+      Load: @LoadTGA;
       HandledClasses: icG_GA_RGB_RGBA; ),
     ( FormatName: 'SGI image';
       ExtsCount: 1; Exts: ('sgi', '', '');
-      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadSGI;
       SaveRGB: nil;
-      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnySGI;
+      Load: @LoadSGI;
       HandledClasses: icG_GA_RGB_RGBA; ),
     ( FormatName: 'TIFF image';
       ExtsCount: 1; Exts: ('tif', '', '');
-      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadTIFF;
       SaveRGB: nil;
-      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyTIFF;
+      Load: @LoadTIFF;
       HandledClasses: icG_GA_RGB_RGBA; ),
     ( FormatName: 'JP2 image';
       ExtsCount: 1; Exts: ('jp2', '', '');
-      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadJP2;
       SaveRGB: nil;
-      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyJP2;
+      Load: @LoadJP2;
       HandledClasses: icG_GA_RGB_RGBA; ),
     ( FormatName: 'EXR image';
       ExtsCount: 1; Exts: ('exr', '', '');
-      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadEXR;
       SaveRGB: nil;
-      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyEXR;
+      Load: @LoadEXR;
       HandledClasses: icG_GA_RGB_RGBA; )
   );
 
@@ -1383,39 +1381,19 @@ function ListImageExtsLong(OnlyLoadable, OnlySaveable: boolean; const LinePrefix
 function ListImageExtsShort(OnlyLoadable, OnlySaveable: boolean): string;
 { @groupEnd }
 
-{ Load[RGB]Image -------------------------------------------------------------- }
+{ LoadImage -------------------------------------------------------------- }
 
-{ LoadRGBImage : zgadnij format strumienia na podstawie rozszerzenia pliku
+{ Zgadnij format strumienia na podstawie rozszerzenia pliku
   i zaladuj. typeext moze ale nie musi zawierac na poczatku kropke.
   Mozna tez podac zamiast strumienia nazwe pliku (kazdy rozumie,
   ze implementacja utworzy strumien CreateReadFileStream).
 
-  LoadRGBImage wywoluje odpowiednie LoadXxx na podstawie podanego rozszerzenia.
+  LoadImage wywoluje odpowiednie Load* na podstawie podanego rozszerzenia.
   Jesli nie rozpoznaje rozszerzenia - wyjatek EImageFormatNotSupported.
 }
 
 type
   EImageFormatNotSupported = class(Exception);
-
-function LoadRGBImage(Stream: TStream; const typeext: string): TRGBImage; overload;
-function LoadRGBImage(const fname: string): TRGBImage; overload;
-
-type
-  TProcedureRGBImage = procedure(var Image: TRGBImage);
-
-{ Jesli resizeTo[] <> 0 to dany wymiar bedzie resizowany.
-
-  ImageProc, jesli <> nil, jest wywolywane dla zaladowanego image'a PRZED wykonaniem
-  ewentualnego skalowania. Ma to zastosowanie np. gdy chcesz zaladowac stosunkowo
-  maly obrazek z pliku, zamienic go np. na czarno-bialy i potem przeskalowac na
-  bardzo duzy rozmiar. W takiej sytuacji duzo bardziej ekonomiczne jest wywolanie
-  konwersji na black&white jeszcze PRZED skalowaniem, a wiec najlepiej przekaz
-  MakeBlackAndWhite jako ImageProc. Acha, jesli chcesz to mozesz w ImageProc
-  zmienic rozmiary obrazka. (chociaz dla typowego resizu pewnie wygodniej bedzie
-  uzyc parametrow resizeToX, resizeToY)
-}
-function LoadRGBImage(const fname: string; resizeToX: Cardinal; resizeToY: Cardinal;
-  UnscaledImageProc: TProcedureRGBImage {$IFDEF DEFPARS}=nil{$ENDIF}): TRGBImage; overload;
 
 { TODO: zrobic LoadImageGuess ktore zgaduje format na podstawie
   zawartosci. }
@@ -1478,18 +1456,7 @@ function LoadRGBImage(const fname: string; resizeToX: Cardinal; resizeToY: Cardi
   and ForbiddenConvs = [ilcAlphaAdd] to be sure that
   LoadImage will return TRGBAlphaImage with alpha channel loaded from file.
   If file wlil not have alpha channel, @link(EUnableToLoadImage) will
-  be raised.
-
-  Pl:
-  Jedna nie-1-znaczna dotad sytuacja : jezeli mamy obrazek RGB (tzn. bez alpha,
-  bez precyzji float) a musimy dodac alpha _lub_ precyzje
-  (to znaczy AllowedImageKinds = [ikAlpha, ikRGBE]) i
-  mozemy dodac obie (tzn. nie ma ilcAlphaAdd ani ilcFloatPrecAdd w ForbiddenConvs)
-  to dodamy alpha. (tak czy siak, kombinacja [ikAlpha, ikRGBE] jest malo
-  sensowna, w kazdym realnym zastosowaniu jesli umiesz obsluzyc i
-  ikAlpha i ikRGBE to chyba ikRGB tez umiesz;
-  --- jesli kiedys skorzystam z tej zaleznosci to skresle ta linie
-      i dodam tutaj komentarz gdzie to sie moze przydac ------) }
+  be raised. }
 const
   AllImageLoadConversions: TImageLoadConversions =
   [Low(TImageLoadConversion) .. High(TImageLoadConversion)];
@@ -1560,16 +1527,15 @@ procedure ImageAlphaConstTo1st(var Img: TImage; const AlphaConst: byte);
   ExtractFileExt(ImageFilename), false, true, DefaultSaveImageFormat))
   (wersja z ImgFormat juz ma to w ImgFormat).
 
-  Potem wybiera TImageKind ktory ma najwiekszy sens dla zadanego
-  formatu - tzn. taki TImageKind ze przy sejwowaniu obrazka o takim
-  Kind do pliku o takiej nazwie (a wiec i takim formacie) nie bedzie
+  Potem wybiera TImageClass ktore ma najwiekszy sens dla zadanego
+  formatu - tzn. takie TImageClass ze przy sejwowaniu obrazka o takiej
+  class do pliku o takiej nazwie (a wiec i takim formacie) nie bedzie
   robiona zadna strata, nie bedzie zadnego odrzucania kanalu alpha
   ani precyzji i zakresu floatow. W tym momencie oznacza to ze dla
-    ifRGBE zwroci ikRGBE
-    a dla wszystkich pozostalych ikRGB.
-  W tej chwili zadne format nie ma dac kind z alpha - bede tu musial
-  kiedys dodac jakis arg aby pozwolic tej funkcji na zwracanie kanalu
-  alpha np. dla png. }
+    ifRGBE zwroci TRGBEImage
+    a dla wszystkich pozostalych TRGBImage.
+
+  TODO: this cannot return image classes with alpha and/or grayscale for now. }
 function ImageClassBestForSavingToFormat(ImgFormat: TImageFormat): TImageClass; overload;
 function ImageClassBestForSavingToFormat(const FileName: string): TImageClass; overload;
 
@@ -1581,7 +1547,6 @@ var
     Initialization / finalization of this unit automatically take care of them.
 
     @groupBegin }
-  LoadRGBImage_FileFilters: TFileFiltersList;
   LoadImage_FileFilters: TFileFiltersList;
   SaveImage_FileFilters: TFileFiltersList;
   { @groupEnd }
@@ -1915,7 +1880,7 @@ end;
 
 procedure TImage.Grayscale;
 begin
- ModulateRGB({$ifdef FPC_OBJFPC} @ {$endif} ColorGrayscaleByte);
+ ModulateRGB(@ColorGrayscaleByte);
 end;
 
 {$ifdef FPC}
@@ -1923,9 +1888,9 @@ end;
 procedure TImage.ConvertToChannelRGB(Channel: Integer);
 begin
  case Channel of
-  0: ModulateRGB({$ifdef FPC_OBJFPC} @ {$endif} ColorRedConvertByte);
-  1: ModulateRGB({$ifdef FPC_OBJFPC} @ {$endif} ColorGreenConvertByte);
-  2: ModulateRGB({$ifdef FPC_OBJFPC} @ {$endif} ColorBlueConvertByte);
+  0: ModulateRGB(@ColorRedConvertByte);
+  1: ModulateRGB(@ColorGreenConvertByte);
+  2: ModulateRGB(@ColorBlueConvertByte);
   else raise EInternalError.Create(
     'ConvertToChannelRGB: Channel must be 0, 1 or 2');
  end;
@@ -1934,9 +1899,9 @@ end;
 procedure TImage.StripToChannelRGB(Channel: Integer);
 begin
  case Channel of
-  0: ModulateRGB({$ifdef FPC_OBJFPC} @ {$endif} ColorRedStripByte);
-  1: ModulateRGB({$ifdef FPC_OBJFPC} @ {$endif} ColorGreenStripByte);
-  2: ModulateRGB({$ifdef FPC_OBJFPC} @ {$endif} ColorBlueStripByte);
+  0: ModulateRGB(@ColorRedStripByte);
+  1: ModulateRGB(@ColorGreenStripByte);
+  2: ModulateRGB(@ColorBlueStripByte);
   else raise EInternalError.Create(
     'StripToChannelRGB: Channel must be 0, 1 or 2');
  end;
@@ -3012,7 +2977,7 @@ begin
  fileext := AnsiLowerCase(fileext);
  for iff := Low(iff) to High(iff) do
  begin
-  if ((not OnlyLoadable) or Assigned(ImageFormatInfos[iff].LoadRGB)) and
+  if ((not OnlyLoadable) or Assigned(ImageFormatInfos[iff].Load)) and
      ((not OnlySaveable) or Assigned(ImageFormatInfos[iff].SaveRGB)) then
   for i := 1 to ImageFormatInfos[iff].extsCount do
    if fileext = ImageFormatInfos[iff].exts[i] then
@@ -3048,7 +3013,7 @@ var iff: TImageFormat;
     i: integer;
 begin
  for iff := Low(iff) to High(iff) do
-  if (not OnlyLoadable) or Assigned(ImageFormatInfos[iff].LoadRGB) then
+  if (not OnlyLoadable) or Assigned(ImageFormatInfos[iff].Load) then
   begin
    for i := 1 to ImageFormatInfos[iff].extsCount do
    begin
@@ -3073,7 +3038,7 @@ begin
  result := '';
 
  for iff := Low(iff) to High(iff) do
-  if ((not OnlyLoadable) or Assigned(ImageFormatInfos[iff].LoadRGB)) and
+  if ((not OnlyLoadable) or Assigned(ImageFormatInfos[iff].Load)) and
      ((not OnlySaveable) or Assigned(ImageFormatInfos[iff].SaveRGB)) then
   begin
    { zwrocmy uwage ze nie chcemy doklejac nl na koncu (bo zalatwieniu
@@ -3096,7 +3061,7 @@ begin
  result := '';
 
  for iff := Low(iff) to High(iff) do
-  if ((not OnlyLoadable) or Assigned(ImageFormatInfos[iff].LoadRGB)) and
+  if ((not OnlyLoadable) or Assigned(ImageFormatInfos[iff].Load)) and
      ((not OnlySaveable) or Assigned(ImageFormatInfos[iff].SaveRGB)) then
   begin
    for i := 1 to ImageFormatInfos[iff].extsCount do
@@ -3132,52 +3097,6 @@ class function TImageFormatHandler.ClassAllowed(ImageClass: TImageClass;
 begin
   Result := (High(AllowedImageClasses) = -1) or
     InImageClasses(ImageClass, AllowedImageClasses);
-end;
-
-{ LoadRGBImage ----------------------------------------------------------------- }
-
-function LoadRGBImage(Stream: TStream; const typeext: string): TRGBImage;
-var
-  iff: TImageFormat;
-begin
-  if FileExtToImageFormat(typeext, true, false, iff) then
-    result := ImageFormatInfos[iff].LoadRGB(Stream) else
-    raise EImageFormatNotSupported.Create(
-      'Unrecognized image format : "' + typeext + '"');
-end;
-
-function LoadRGBImage(const fname: string): TRGBImage;
-var f: TStream;
-begin
- {$ifdef DELPHI} Result := nil; { <- only to avoid stupid warning } {$endif}
-
- f := CreateReadFileStream(fname);
-      { tests: TFileStream.Create(fname, fmOpenRead) }
- try
-  try
-   Result := LoadRGBImage(f, ExtractFileExt(fname));
-  except
-   on E: EImageLoadError do begin
-     E.Message := 'Error when loading image from file "'+fname+'" : '+E.Message;
-     raise;
-    end;
-   on E: EImageFormatNotSupported do begin
-     { przechwyc EImageFormatNotSupported i w tresci wyjatku wklej pelne fname }
-     E.Message := 'Unrecognized image format : file "'+fname+'"';
-     raise;
-    end;
-  end;
- finally f.Free end;
-end;
-
-function LoadRGBImage(const fname: string; ResizeToX, ResizeToY: Cardinal;
-  UnscaledImageProc: TProcedureRGBImage): TRGBImage;
-begin
- result := Images.LoadRGBImage(fname);
- try
-  if Assigned(UnscaledImageProc) then UnscaledImageProc(result);
-  Result.Resize(ResizeToX, ResizeToY);
- except Result.Free; raise end;
 end;
 
 { LoadImage --------------------------------------------------------------- }
@@ -3220,42 +3139,6 @@ function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
 
 const
   DummyDefaultAlpha = High(Byte);
-
-  { ten kod zadziala gdy format mozna zaladowac tylko
-    ladujac go poprzez ImageFormatInfos[StreamFormat].LoadRGB(Stream).
-    Potem trzeba ew. dodac kanal alpha i precyzje float. }
-  procedure LoadRGB(Load: TRGBImageLoadFunc);
-  begin
-    result := Load(Stream);
-
-    Assert(Result is TRGBImage);
-
-    if not (ClassAllowed(TRGBImage)) then
-    begin
-      if (ClassAllowed(TRGBAlphaImage)) and not(ilcAlphaAdd in ForbiddenConvs) then
-      begin
-        ImageAlphaConstTo1st(result, DummyDefaultAlpha);
-      end else
-      if ClassAllowed(TGrayscaleImage) then
-      begin
-        DoingConversion(ilcRGBFlattenToGrayscale);
-        ImageGrayscaleTo1st(Result);
-      end else
-      if ClassAllowed(TRGBEImage) then
-      begin
-        DoingConversion(ilcFloatPrecAdd);
-        ImageRGBToRGBETo1st(result);
-      end else
-        { TODO: here we should take into account that TGrayscaleAlphaImage
-          may be allowed }
-        { The only situation when this can happen (assuming no internal error,
-          and at least one image class was allowed) was if
-          ClassAllowed(TRGBAlphaImage) and (ilcAlphaAdd in ForbiddenConvs). }
-        raise EUnableToLoadImage.Create('LoadImage: unable to load image: '+
-          'alpha channel requested but dummy alpha channel creation forbidden '+
-          'but image has no alpha channel');
-    end;
-  end;
 
 var
   Load: TImageLoadFunc;
@@ -3330,13 +3213,40 @@ begin
           end;
         icRGB:
           begin
-            { TODO: LoadRGB code goes here }
+            Result := Load(Stream, [TRGBImage], ForbiddenConvs);
+            Assert(Result is TRGBImage);
+
+            if not (ClassAllowed(TRGBImage)) then
+            begin
+              if ClassAllowed(TRGBAlphaImage) then
+              begin
+                DoingConversion(ilcAlphaAdd);
+                ImageAlphaConstTo1st(Result, DummyDefaultAlpha);
+              end else
+              if ClassAllowed(TGrayscaleImage) then
+              begin
+                DoingConversion(ilcRGBFlattenToGrayscale);
+                ImageGrayscaleTo1st(Result);
+              end else
+              { TODO:
+              if ClassAllowed(TGrayscaleAlphaImage) then
+              begin
+                DoingConversion(ilcAlphaAdd);
+                DoingConversion(ilcRGBFlattenToGrayscale);
+                ImageAlphaConstTo1st(Result, DummyDefaultAlpha);
+                ImageGrayscaleAlphaTo1st(Result);
+              end else }
+              if ClassAllowed(TRGBEImage) then
+              begin
+                DoingConversion(ilcFloatPrecAdd);
+                ImageRGBToRGBETo1st(result);
+              end else
+                raise EInternalError.Create('LoadImage cannot load this image file format to requested class');
+            end;
           end;
         else raise EInternalError.Create('LoadImage: HandledClasses?');
       end;
     end else
-    if Assigned(ImageFormatInfos[StreamFormat].LoadRGB) then
-      LoadRGB(ImageFormatInfos[StreamFormat].LoadRGB) else
     raise EImageFormatNotSupported.Create('Can''t load image format "'+
       ImageFormatInfos[StreamFormat].FormatName+'"');
 
@@ -3388,7 +3298,6 @@ function LoadImage(const filename: string;
   const ResizeToX, ResizeToY: Cardinal): TImage;
 begin
  result := LoadImage(filename, AllowedImageClasses, ForbiddenConvs);
- {unused for now : if Assigned(UnscaledImageProc) then UnscaledImageProc(result);}
  Result.Resize(ResizeToX, ResizeToY);
 end;
 
@@ -3528,26 +3437,13 @@ procedure InitializeImagesFileFilters;
 var
   Format: TImageFormat;
 begin
-  LoadRGBImage_FileFilters := CreateImagesFilters;
   LoadImage_FileFilters := CreateImagesFilters;
   SaveImage_FileFilters := CreateImagesFilters;
 
   for Format := Low(Format) to High(Format) do
   begin
-    if Assigned(ImageFormatInfos[Format].LoadRGB) then
-    begin
-      AddImageFormat(LoadRGBImage_FileFilters, ImageFormatInfos[Format]);
-
-      { For LoadImage, the allowed formats list is specified implicitly
-        by LoadImage documentation. As it happens, for now every image
-        can be loaded to RGBImage, and so every image can be loaded by
-        LoadImage.
-
-        So actually LoadImage_FileFilters is (for now) always equal
-        to LoadRGBImage_FileFilters. }
-
+    if Assigned(ImageFormatInfos[Format].Load) then
       AddImageFormat(LoadImage_FileFilters, ImageFormatInfos[Format]);
-    end;
 
     { For SaveImage, the allowed formats list is specified implicitly
       by SaveImage documentation.
@@ -3565,7 +3461,6 @@ end;
 initialization
   InitializeImagesFileFilters;
 finalization
-  FreeWithContentsAndNil(LoadRGBImage_FileFilters);
   FreeWithContentsAndNil(LoadImage_FileFilters);
   FreeWithContentsAndNil(SaveImage_FileFilters);
 end.

@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -18,7 +18,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-function LoadIPL(Stream: TStream): TRGBImage;
+function LoadIPL(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
 { napisane na podstawie iplab_read.m z www cornell box'a, zreszta napisane
   tylko po to zeby moc odczytac tamtejsze obrazki bo w MatLabie iplab_read.m
   nie dzialalo (teraz juz wiem dlaczego - byl tam blad, typeflag zajmuje dwa 

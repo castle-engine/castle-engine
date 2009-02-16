@@ -91,7 +91,7 @@ end;
 
 { LoadPNG ------------------------------------------------------------------- }
 
-function LoadAnyPNG(Stream: TStream;
+function LoadPNG(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
 
@@ -261,11 +261,6 @@ begin
   end;
   FreeAndNil(warningslist);
  end;
-end;
-
-function LoadPNG(Stream: TStream): TRGBImage;
-begin
- result := LoadAnyPNG(Stream, [TRGBImage], []) as TRGBImage;
 end;
 
 { Save[Any]PNG --------------------------------------------------------------------- }

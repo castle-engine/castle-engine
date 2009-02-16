@@ -224,9 +224,11 @@ end;
 
 { simple helper funcs ---------------------------------------- }
 
-function LoadRGBEToByteRGB(Stream: TStream): TRGBImage;
+function LoadRGBEToByteRGB(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
 begin
- result := LoadRGBE(Stream, true) as TRGBImage;
+ result := LoadRGBE(Stream, true);
 end;
 
 procedure SaveRGBEFromByteRGB(const Img: TRGBImage; Stream: TStream);

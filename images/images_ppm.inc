@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2005 Michalis Kamburelis.
+  Copyright 2002-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -21,7 +21,9 @@
 { Zaczete przy okazji zabaw na PGK (ot, chcialem zobaczyc ze to
   rzeczywiscie moge latwo wmontowac do mojego modulu Images; i udalo sie) }
 
-function LoadPPM(Stream: TStream): TRGBImage;
+function LoadPPM(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
 
   function ReadPPMToken(Stream: TStream): string;
   {reads next token in ppm - skips any blanks that it stands on ,

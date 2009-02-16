@@ -25,7 +25,9 @@
    sie wlasnym starym kodem - nie zamierzam usprawniac obslugi pcx'ow
    w najblizszym czasie. }
 
-function LoadPCX(Stream: TStream): TRGBImage;
+function LoadPCX(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
 
   type
     TPCXHeader = packed record
@@ -54,7 +56,7 @@ var head: TPCXHeader;
   procedure PalettePut(x, y, palIndex: integer);
   { ustaw na wspolrzednych x, y result.data kolor palette[palIndex] }
   begin
-   Result.PixelPtr(x, y)^ := palette[palIndex];
+   PVector3Byte(Result.PixelPtr(x, y))^ := palette[palIndex];
   end;
 
 begin
