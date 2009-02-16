@@ -1085,17 +1085,67 @@ procedure SaveJPEG(const img: TRGBImage; Stream: TStream); { quality = 90 } over
 procedure SavePPM(const img: TRGBImage; Stream: TStream; binary: boolean); overload;
 procedure SavePPM(const img: TRGBImage; Stream: TStream); { binary = true } overload;
 
-{ Load and save with possible alpha channel ---------------------------------- }
+{ Load and save various image formats ---------------------------------- }
 
 type
-  { }
-  EUnableToLoadImage = class(EImageLoadError);
-
   TImageLoadConversion = (
     ilcAlphaDelete, ilcFloatPrecDelete, ilcRGBFlattenToGrayscale,
     ilcAlphaAdd, ilcFloatPrecAdd, ilcGrayscaleExpandToRGB);
   TImageLoadConversions = set of TImageLoadConversion;
 
+  { Each image file format should have such handler.
+    TODO: In the future, all work specific to given image file format
+    should be performed by this. }
+  TImageFormatHandler = class
+  protected
+    { Helper methods for implemented LoadImage. }
+
+    { Check is Conv on the ForbiddenConvs list, if it is raise an exception.
+      @raises(EUnableToLoadImage If Conv is forbidden.) }
+    class procedure DoingConversion(
+      const Conv: TImageLoadConversion;
+      const ForbiddenConvs: TImageLoadConversions);
+
+    class function ClassAllowed(ImageClass: TImageClass;
+      const AllowedImageClasses: array of TImageClass): boolean;
+  public
+    { Load image to TImage descendant. Honouring AllowedImageClasses
+      and ForbiddenConvs, just like Images.LoadImage.
+      In fact, Images.LoadImage will use this handler's LoadImage
+      if the image file format will be appropriate.
+
+      @raises(EUnableToLoadImage When it's not possible to
+        load image to requested AllowedImageClasses and honoring
+        ForbiddenConvs.) }
+    class function LoadImage(Stream: TStream;
+      const AllowedImageClasses: array of TImageClass;
+      const ForbiddenConvs: TImageLoadConversions): TImage; virtual; abstract;
+
+    { Possible TImage classes that can be returned by LoadImage of this handler.
+      It's assumed that LoadImage() here can return only these classes,
+      and any of these classes,
+      and can convert (as much as ForbiddenConvs will allow) between them.
+
+      If (and only if) the programmer will call global Images.LoadImage function
+      requesting only TImage descendants that cannot be returned by
+      LoadImage of this handler, then global Images.LoadImage will take care
+      to automatically do the necessary transformations of the image.
+
+      This is generally costly (as converting in Images.LoadImage means
+      that image is first loaded to one memory format, and then it's
+      recoded into another memory format; while inside handler's LoadImage,
+      some convertions can be done on-the-fly (that is, right at the
+      pixel reading), making them more memory-efficient).
+      So generally it's adviced that handler LoadImage will try to load
+      as many formats that are reasonaly possible in image file.
+    }
+    class function LoadImagePossibleClass(ImageClass: TImageClass): boolean;
+      virtual; abstract;
+  end;
+
+type
+  { }
+  EUnableToLoadImage = class(EImageLoadError);
 
   TImageFormatRequirements = (frWithoutAlpha, frWithAlpha, frAny);
 
@@ -1145,17 +1195,6 @@ function LoadAnyEXR(Stream: TStream; FormatRequired: TImageFormatRequirements;
   ConvertToRequired: boolean): TImage;
 
 { File formats managing ----------------------------------------------------- }
-
-{ TODO: use something like this:
-type
-  TImageFormatHandler = class
-  protected
-  public
-    function LoadImage(Stream: TStream;
-      const AllowedImageClasses: array of TImageClass;
-      const ForbiddenConvs: TImageLoadConversions): TImage; virtual; abstract;
-  end;
-}
 
 type
   { }
@@ -3056,6 +3095,33 @@ begin
   end;
 end;
 
+{ TImageFormatHandler -------------------------------------------------------- }
+
+class procedure TImageFormatHandler.DoingConversion(
+  const Conv: TImageLoadConversion;
+  const ForbiddenConvs: TImageLoadConversions);
+const
+  ConvToStr: array[TImageLoadConversion]of string = (
+  'delete alpha channel',
+  'lose float precision',
+  'flatten RGB colors to grayscale',
+  'add dummy constant alpha channel',
+  'add useless float precision',
+  'expand grayscale to RGB (three channels)'
+  );
+begin
+  if Conv in ForbiddenConvs then
+    raise EUnableToLoadImage.Create('LoadImage: to load this image format '+
+      'conversion "'+ConvToStr[Conv]+'" must be done, but it is forbidden here');
+end;
+
+class function TImageFormatHandler.ClassAllowed(ImageClass: TImageClass;
+  const AllowedImageClasses: array of TImageClass): boolean;
+begin
+  Result := (High(AllowedImageClasses) = -1) or
+    InImageClasses(ImageClass, AllowedImageClasses);
+end;
+
 { LoadRGBImage ----------------------------------------------------------------- }
 
 function LoadRGBImage(Stream: TStream; const typeext: string): TRGBImage;
@@ -3109,27 +3175,17 @@ function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
   const ForbiddenConvs: TImageLoadConversions)
   :TImage;
 
-  { check is Conv Forbidden, if it is -> raise exception }
-  procedure DoingConversion(Conv: TImageLoadConversion);
-  const
-    ConvToStr: array[TImageLoadConversion]of string = (
-    'delete alpha channel',
-    'lose float precision',
-    'flatten RGB colors to grayscale',
-    'add dummy constant alpha channel',
-    'add useless float precision',
-    'expand grayscale to RGB (three channels)'
-    );
+  { DoingConversion and ClassAllowed are only shortcuts to
+    TImageFormatHandler utilities. }
+
+  procedure DoingConversion(const Conv: TImageLoadConversion);
   begin
-    if Conv in ForbiddenConvs then
-      raise EUnableToLoadImage.Create('LoadImage: to load this image format '+
-        'conversion "'+ConvToStr[Conv]+'" must be done, but it is forbidden here');
+    TImageFormatHandler.DoingConversion(Conv, ForbiddenConvs);
   end;
 
   function ClassAllowed(ImageClass: TImageClass): boolean;
   begin
-    Result := (High(AllowedImageClasses) = -1) or
-      InImageClasses(ImageClass, AllowedImageClasses);
+    Result := TImageFormatHandler.ClassAllowed(ImageClass, AllowedImageClasses);
   end;
 
   { On input, Image must be TRGBImage and on output it will be TGrayscaleImage. }
@@ -3247,6 +3303,25 @@ const
 begin
   Result := nil;
   try
+    { TODO: Temporary, we just check explicitly for PNG.
+      In the future, this should just work for any image whose handler
+      can load all four byte images (TGrayscale[Alpha], TRGB[Alpha]),
+      but not RGBE. }
+    if StreamFormat = ifPNG then
+    begin
+      if ClassAllowed(TRGBImage) or
+         ClassAllowed(TRGBAlphaImage) or
+         ClassAllowed(TGrayscaleImage) or
+         ClassAllowed(TGrayscaleAlphaImage) then
+        Result := _LoadAnyPNG(Stream, AllowedImageClasses, ForbiddenConvs) else
+      if ClassAllowed(TRGBEImage) then
+      begin
+        Result := _LoadAnyPNG(Stream, [TRGBImage], ForbiddenConvs);
+        DoingConversion(ilcFloatPrecAdd);
+        ImageRGBToRGBETo1st(result);
+      end else
+        raise EInternalError.Create('LoadImage cannot load this image file format to requested class');
+    end else
     if StreamFormat = ifRGBE then
     begin
       if ClassAllowed(TRGBEImage) then
