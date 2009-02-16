@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2005 Michalis Kamburelis.
+  Copyright 2002-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -325,6 +325,10 @@ begin
    ColorType := PNG_COLOR_TYPE_RGB else
   if Img is TRGBAlphaImage then
    ColorType := PNG_COLOR_TYPE_RGBA else
+  if Img is TGrayscaleImage then
+   ColorType := PNG_COLOR_TYPE_GRAY else
+  if Img is TGrayscaleAlphaImage then
+   ColorType := PNG_COLOR_TYPE_GRAY_ALPHA else
    raise EUnableToSaveImage.CreateFmt('Saving to PNG image class %s not possible', [Img.ClassName]);
 
   png_set_IHDR(png_ptr, info_ptr, Img.Width, Img.Height, 8, ColorType,

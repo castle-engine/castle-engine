@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2008 Michalis Kamburelis.
+  Copyright 2001-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -930,13 +930,7 @@ type
     procedure LerpWith(const Value: Single; SecondImage: TImage); override;
   end;
 
-  { Grayscale image. Color is a simple Byte value.
-
-    TODO: this is just a start, not supported by many routines as it should
-    for now. Many loading routines should be able to directly load image
-    to this, if it's the most appropriate format. Right now, LoadImage
-    routine will load to this only if TRGBImage will not be allowed and
-    this will be (and loading will be done by conversion of RGB to this...). }
+  { Grayscale image. Color is a simple Byte value. }
   TGrayscaleImage = class(TImage)
   private
     function GetGrayscalePixels: PByte;
