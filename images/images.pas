@@ -1527,10 +1527,13 @@ type
   moze kiedys zrobie jeszcze jakis format pliku (if) / lub obrazka
   w pamieci (ik) ktore uznawalbym za precyzyjne na poziomie float.
 
-  TRGBAlphaImage: Format must support saving alpha images then
-  (for now this means only ifPNG),
-  zapisze wtedy obrazek z alpha. Wpp. rzuci wyjatek Exception.
-  TODO: do it nicer, z podobnymi parametrami jak przy LoadImage.  }
+  TGrayscaleImage, TGrayscaleAlphaImage, TRGBAlphaImage
+  can be saved only to PNG format for now.
+  Wpp. rzuci wyjatek EUnableToSaveImage.
+  TODO: do it nicer, z podobnymi parametrami jak przy LoadImage. 
+  
+  @raises(EUnableToSaveImage When it's not possible to save image,
+    because of Img class (memory format) and/or image file format.) }
 procedure SaveImage(const img: TImage; const Format: TImageFormat; Stream: TStream); overload;
 procedure SaveImage(const img: TImage; const typeext: string; Stream: TStream); overload;
 procedure SaveImage(const Img: TImage; const fname: string); overload;
@@ -3442,14 +3445,16 @@ begin
   end;
  end else
 
- if Img is TRGBAlphaImage then
+ if (Img is TRGBAlphaImage) or
+    (Img is TGrayscaleImage) or
+    (Img is TGrayscaleAlphaImage) then
  begin
   if Format = ifPNG then
    SaveAnyPNG(Img, Stream, false) else
-   raise Exception.Create('SaveImage can save images with alpha channel only to PNG.');
+   raise EUnableToSaveImage.Create('Saving image not possible: Can save images grayscale and/or with alpha channel images only to PNG');
  end else
 
-  raise EInternalError.Create('SaveImage: not implemented for this TImage descendant');
+  raise EUnableToSaveImage.CreateFmt('Saving image class %s not implemented', [Img.ClassName]);
 end;
 
 procedure SaveImage(const img: TImage; const typeext: string; Stream: TStream);

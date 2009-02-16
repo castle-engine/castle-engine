@@ -325,7 +325,7 @@ begin
    ColorType := PNG_COLOR_TYPE_RGB else
   if Img is TRGBAlphaImage then
    ColorType := PNG_COLOR_TYPE_RGBA else
-   raise Exception.Create('Can''t save to PNG images with this kind');
+   raise EUnableToSaveImage.CreateFmt('Saving to PNG image class %s not possible', [Img.ClassName]);
 
   png_set_IHDR(png_ptr, info_ptr, Img.Width, Img.Height, 8, ColorType,
     interlaceType, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
