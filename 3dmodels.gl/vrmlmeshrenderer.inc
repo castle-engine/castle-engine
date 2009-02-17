@@ -1449,6 +1449,7 @@ begin
     glDisable(GL_TEXTURE_GEN_S);
     glDisable(GL_TEXTURE_GEN_T);
   end else
+  if Renderer.TexCoordsNeeded > 0 then
   begin
     if Renderer.UseMultiTexturing then
     begin
