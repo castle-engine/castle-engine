@@ -164,13 +164,6 @@ unit Images;
 
 {
   TODO:
-  - Possibly only LoadImage (with ForbiddenConvertions
-    etc.) should be exposed in the interface?
-    Load/Save specific to file format should be internal?
-    (Although this allows me for file-format specific settings,
-    like Interlaced for PNG or Compression for JPG, to be publicly
-    availble for now.)
-
   - implement more impressive resizing filters, at least simple
     linear like gluScaleImage
 }
