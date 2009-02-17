@@ -115,6 +115,15 @@ begin
  DoTest('rgbe.rgbe', [TRGBAlphaImage], [], TRGBAlphaImage);
  DoFailTest('rgbe.rgbe', [TRGBAlphaImage], [ilcFloatPrecDelete]);
  DoFailTest('rgbe.rgbe', [TRGBAlphaImage], [ilcAlphaAdd]);
+
+ { zaladuj obrazek z grayscale }
+ DoTest('alpha_grayscale.png', [], [], TGrayscaleAlphaImage);
+ DoTest('alpha_grayscale.png', [TGrayscaleImage], [], TGrayscaleImage);
+ DoTest('alpha_grayscale.png', [TRGBImage], [], TRGBImage);
+ DoTest('alpha_grayscale.png', [TRGBAlphaImage], [], TRGBAlphaImage);
+ DoTest('alpha_grayscale.png', [], AllImageLoadConversions, TGrayscaleAlphaImage);
+ DoFailTest('alpha_grayscale.png', [TGrayscaleImage], AllImageLoadConversions);
+ DoFailTest('alpha_grayscale.png', [TRGBImage], [ilcAlphaDelete])
 end;
 
 procedure TTestImages.TestImageClassBestForSavingToFormat;
