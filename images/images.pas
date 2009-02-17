@@ -1009,35 +1009,6 @@ type
     ilcAlphaAdd, ilcFloatPrecAdd, ilcGrayscaleExpandToRGB);
   TImageLoadConversions = set of TImageLoadConversion;
 
-  { Each image file format should have such handler.
-    TODO: In the future, all work specific to given image file format
-    should be performed by this. }
-  TImageFormatHandler = class
-  protected
-    { Helper methods for implemented LoadImage. }
-
-    { Check is Conv on the ForbiddenConvs list, if it is raise an exception.
-      @raises(EUnableToLoadImage If Conv is forbidden.) }
-    class procedure DoingConversion(
-      const Conv: TImageLoadConversion;
-      const ForbiddenConvs: TImageLoadConversions);
-
-    class function ClassAllowed(ImageClass: TImageClass;
-      const AllowedImageClasses: array of TImageClass): boolean;
-  public
-    { Load image to TImage descendant. Honouring AllowedImageClasses
-      and ForbiddenConvs, just like Images.LoadImage.
-      In fact, Images.LoadImage will use this handler's LoadImage
-      if the image file format will be appropriate.
-
-      @raises(EUnableToLoadImage When it's not possible to
-        load image to requested AllowedImageClasses and honoring
-        ForbiddenConvs.) }
-    class function LoadImage(Stream: TStream;
-      const AllowedImageClasses: array of TImageClass;
-      const ForbiddenConvs: TImageLoadConversions): TImage; virtual; abstract;
-  end;
-
   { }
   EUnableToLoadImage = class(EImageLoadError);
 
@@ -1519,7 +1490,39 @@ implementation
 uses ProgressUnit, KambiClassUtils, KambiStringUtils, KambiFilesUtils,
   DataErrors;
 
-{ file format specific functions : }
+{ image loading utilities --------------------------------------------------- }
+
+{ Helper methods for implemented LoadImage. }
+
+{ Check is Conv on the ForbiddenConvs list, if it is raise an exception.
+  @raises(EUnableToLoadImage If Conv is forbidden.) }
+procedure DoingConversion(
+  const Conv: TImageLoadConversion;
+  const ForbiddenConvs: TImageLoadConversions);
+const
+  ConvToStr: array[TImageLoadConversion]of string = (
+  'delete alpha channel',
+  'lose float precision',
+  'flatten RGB colors to grayscale',
+  'add dummy constant alpha channel',
+  'add useless float precision',
+  'expand grayscale to RGB (three channels)'
+  );
+begin
+  if Conv in ForbiddenConvs then
+    raise EUnableToLoadImage.Create('LoadImage: to load this image format '+
+      'conversion "'+ConvToStr[Conv]+'" must be done, but it is forbidden here');
+end;
+
+function ClassAllowed(ImageClass: TImageClass;
+  const AllowedImageClasses: array of TImageClass): boolean;
+begin
+  Result := (High(AllowedImageClasses) = -1) or
+    InImageClasses(ImageClass, AllowedImageClasses);
+end;
+
+{ file format specific ------------------------------------------------------- }
+
 {$I images_bmp.inc}
 {$I images_png.inc}
 {$I images_jpeg.inc}
@@ -3035,33 +3038,6 @@ begin
   end;
 end;
 
-{ TImageFormatHandler -------------------------------------------------------- }
-
-class procedure TImageFormatHandler.DoingConversion(
-  const Conv: TImageLoadConversion;
-  const ForbiddenConvs: TImageLoadConversions);
-const
-  ConvToStr: array[TImageLoadConversion]of string = (
-  'delete alpha channel',
-  'lose float precision',
-  'flatten RGB colors to grayscale',
-  'add dummy constant alpha channel',
-  'add useless float precision',
-  'expand grayscale to RGB (three channels)'
-  );
-begin
-  if Conv in ForbiddenConvs then
-    raise EUnableToLoadImage.Create('LoadImage: to load this image format '+
-      'conversion "'+ConvToStr[Conv]+'" must be done, but it is forbidden here');
-end;
-
-class function TImageFormatHandler.ClassAllowed(ImageClass: TImageClass;
-  const AllowedImageClasses: array of TImageClass): boolean;
-begin
-  Result := (High(AllowedImageClasses) = -1) or
-    InImageClasses(ImageClass, AllowedImageClasses);
-end;
-
 { LoadImage --------------------------------------------------------------- }
 
 function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
@@ -3070,16 +3046,15 @@ function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
   :TImage;
 
   { DoingConversion and ClassAllowed are only shortcuts to
-    TImageFormatHandler utilities. }
-
+    global utilities. }
   procedure DoingConversion(const Conv: TImageLoadConversion);
   begin
-    TImageFormatHandler.DoingConversion(Conv, ForbiddenConvs);
+    Images.DoingConversion(Conv, ForbiddenConvs);
   end;
 
   function ClassAllowed(ImageClass: TImageClass): boolean;
   begin
-    Result := TImageFormatHandler.ClassAllowed(ImageClass, AllowedImageClasses);
+    Result := Images.ClassAllowed(ImageClass, AllowedImageClasses);
   end;
 
   { On input, Image must be TRGBImage and on output it will be TGrayscaleImage. }

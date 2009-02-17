@@ -143,13 +143,10 @@ var fhead: TBitmapFileHeader;
    end;
   end;
 
-  { TODO: this is copied from LoadImage impl, to be implemented more
-    gracefully by TImageFormatHandler soon. }
-
+  { ClassAllowed is only shortcut to global utility. }
   function ClassAllowed(ImageClass: TImageClass): boolean;
   begin
-    Result := (High(AllowedImageClasses) = -1) or
-      InImageClasses(ImageClass, AllowedImageClasses);
+    Result := Images.ClassAllowed(ImageClass, AllowedImageClasses);
   end;
 
 var i: integer;

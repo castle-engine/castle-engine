@@ -136,30 +136,16 @@ var LoadResult: TImage absolute result;
    end;
   end;
 
-  { TODO: this is copied from LoadImage impl, to be implemented more
-    gracefully by TImageFormatHandler soon. }
-
-  { check is Conv Forbidden, if it is -> raise exception }
-  procedure DoingConversion(Conv: TImageLoadConversion);
-  const
-    ConvToStr: array[TImageLoadConversion]of string = (
-    'delete alpha channel',
-    'lose float precision',
-    'flatten RGB colors to grayscale',
-    'add dummy constant alpha channel',
-    'add useless float precision',
-    'expand grayscale to RGB (three channels)'
-    );
+  { DoingConversion and ClassAllowed are only shortcuts to
+    global utilities. }
+  procedure DoingConversion(const Conv: TImageLoadConversion);
   begin
-    if Conv in ForbiddenConvs then
-      raise EUnableToLoadImage.Create('LoadImage: to load this image format '+
-        'conversion "'+ConvToStr[Conv]+'" must be done, but it is forbidden here');
+    Images.DoingConversion(Conv, ForbiddenConvs);
   end;
 
   function ClassAllowed(ImageClass: TImageClass): boolean;
   begin
-    Result := (High(AllowedImageClasses) = -1) or
-      InImageClasses(ImageClass, AllowedImageClasses);
+    Result := Images.ClassAllowed(ImageClass, AllowedImageClasses);
   end;
 
 var
