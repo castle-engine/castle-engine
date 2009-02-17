@@ -188,14 +188,14 @@ begin
        if not TransformPng(TRGBAlphaImage, [ilcGrayscaleExpandToRGB]) then
        if not TransformPng(TGrayscaleImage, [ilcAlphaDelete]) then
        if not TransformPng(TRGBImage, [ilcGrayscaleExpandToRGB, ilcAlphaDelete]) then
-         raise EUnableToLoadImage.Create('Cannot load PNG image to required class');
+         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
      end else
      begin
        if not TransformPng(TGrayscaleImage, []) then
        if not TransformPng(TGrayscaleAlphaImage, [ilcAlphaAdd]) then
        if not TransformPng(TRGBImage, [ilcGrayscaleExpandToRGB]) then
        if not TransformPng(TRGBAlphaImage, [ilcAlphaAdd, ilcGrayscaleExpandToRGB]) then
-         raise EUnableToLoadImage.Create('Cannot load PNG image to required class');
+         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
      end;
    end else
    begin
@@ -205,14 +205,14 @@ begin
        if not TransformPng(TRGBImage, [ilcAlphaDelete]) then
        if not TransformPng(TGrayscaleAlphaImage, [ilcRGBFlattenToGrayscale]) then
        if not TransformPng(TGrayscaleImage, [ilcAlphaDelete, ilcRGBFlattenToGrayscale]) then
-         raise EUnableToLoadImage.Create('Cannot load PNG image to required class');
+         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to required %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
      end else
      begin
        if not TransformPng(TRGBImage, []) then
        if not TransformPng(TRGBAlphaImage, [ilcAlphaAdd]) then
        if not TransformPng(TGrayscaleImage, [ilcRGBFlattenToGrayscale]) then
        if not TransformPng(TGrayscaleAlphaImage, [ilcAlphaAdd, ilcRGBFlattenToGrayscale]) then
-         raise EUnableToLoadImage.Create('Cannot load PNG image to required class');
+         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to required %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
      end;
    end;
 

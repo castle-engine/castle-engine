@@ -1393,8 +1393,9 @@ const
     allowed AllowedImageClasses (at least, cannot be loaded
     without using any ForbiddenConvs).)
 
-  @raises(EImageFormatNotSupported If image file format (e.g. FileName
-    extension) is not recognized.)
+  @raises(EImageFormatNotSupported If image file format cannot be loaded at all.
+    This can happen only if format is totally unknown (e.g. not recognized
+    FileName extension) or if image format has no Load method at all.)
 
   @groupBegin }
 function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
@@ -1494,11 +1495,6 @@ uses ProgressUnit, KambiClassUtils, KambiStringUtils, KambiFilesUtils,
 
 { Helper methods for implemented LoadImage. }
 
-{ Check is Conv on the ForbiddenConvs list, if it is raise an exception.
-  @raises(EUnableToLoadImage If Conv is forbidden.) }
-procedure DoingConversion(
-  const Conv: TImageLoadConversion;
-  const ForbiddenConvs: TImageLoadConversions);
 const
   ConvToStr: array[TImageLoadConversion]of string = (
   'delete alpha channel',
@@ -1508,6 +1504,12 @@ const
   'add useless float precision',
   'expand grayscale to RGB (three channels)'
   );
+
+{ Check is Conv on the ForbiddenConvs list, if it is raise an exception.
+  @raises(EUnableToLoadImage If Conv is forbidden.) }
+procedure DoingConversion(
+  const Conv: TImageLoadConversion;
+  const ForbiddenConvs: TImageLoadConversions);
 begin
   if Conv in ForbiddenConvs then
     raise EUnableToLoadImage.Create('LoadImage: to load this image format '+
@@ -1519,6 +1521,48 @@ function ClassAllowed(ImageClass: TImageClass;
 begin
   Result := (High(AllowedImageClasses) = -1) or
     InImageClasses(ImageClass, AllowedImageClasses);
+end;
+
+function LoadImageParams(
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): string;
+
+  function ImageClassesToStr(const AllowedImageClasses: array of TImageClass): string;
+  var
+    I: Integer;
+  begin
+    if High(AllowedImageClasses) = -1 then
+      Result := 'all' else
+    begin
+      Result := '';
+      for I := 0 to High(AllowedImageClasses) do
+      begin
+        if Result <> '' then Result += ', ';
+        Result += AllowedImageClasses[I].ClassName;
+      end;
+    end;
+  end;
+
+  function ForbiddenConvsToStr(const ForbiddenConvs: TImageLoadConversions): string;
+  var
+    LC: TImageLoadConversion;
+  begin
+    if ForbiddenConvs = [] then
+      Result := 'none' else
+    begin
+      Result := '';
+      for LC := Low(LC) to High(LC) do
+        if LC in ForbiddenConvs then
+        begin
+          if Result <> '' then Result += ', ';
+          Result += ConvToStr[LC];
+        end;
+    end;
+  end;
+
+begin
+  Result := 'required class [' + ImageClassesToStr(AllowedImageClasses) +
+    '] with forbidden conversions [' + ForbiddenConvsToStr(ForbiddenConvs) + ']';
 end;
 
 { file format specific ------------------------------------------------------- }
@@ -3045,13 +3089,7 @@ function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
   const ForbiddenConvs: TImageLoadConversions)
   :TImage;
 
-  { DoingConversion and ClassAllowed are only shortcuts to
-    global utilities. }
-  procedure DoingConversion(const Conv: TImageLoadConversion);
-  begin
-    Images.DoingConversion(Conv, ForbiddenConvs);
-  end;
-
+  { ClassAllowed is only a shortcut to global utility. }
   function ClassAllowed(ImageClass: TImageClass): boolean;
   begin
     Result := Images.ClassAllowed(ImageClass, AllowedImageClasses);
@@ -3093,13 +3131,13 @@ begin
                ClassAllowed(TGrayscaleImage) or
                ClassAllowed(TGrayscaleAlphaImage) then
               Result := Load(Stream, AllowedImageClasses, ForbiddenConvs) else
-            if ClassAllowed(TRGBEImage) then
+            if ClassAllowed(TRGBEImage) and
+               (not (ilcFloatPrecAdd in ForbiddenConvs)) then
             begin
               Result := Load(Stream, [TRGBImage], ForbiddenConvs);
-              DoingConversion(ilcFloatPrecAdd);
               ImageRGBToRGBETo1st(result);
             end else
-              raise EInternalError.Create('LoadImage cannot load this image file format to requested class');
+              raise EUnableToLoadImage.CreateFmt('LoadImage cannot load this image file format to %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
           end;
         lcRGB_RGBA:
           begin
@@ -3108,13 +3146,13 @@ begin
               Result := Load(Stream, AllowedImageClasses, ForbiddenConvs) else
 {TODO:            if ClassAllowed(TGrayscaleImage) or
                ClassAllowed(TGrayscaleAlphaImage) }
-            if ClassAllowed(TRGBEImage) then
+            if ClassAllowed(TRGBEImage) and
+               (not (ilcFloatPrecAdd in ForbiddenConvs)) then
             begin
               Result := Load(Stream, [TRGBImage], ForbiddenConvs);
-              DoingConversion(ilcFloatPrecAdd);
               ImageRGBToRGBETo1st(result);
             end else
-              raise EInternalError.Create('LoadImage cannot load this image file format to requested class');
+              raise EUnableToLoadImage.CreateFmt('LoadImage cannot load this image file format to %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
           end;
         lcRGB:
           begin
@@ -3123,30 +3161,30 @@ begin
 
             if not (ClassAllowed(TRGBImage)) then
             begin
-              if ClassAllowed(TRGBAlphaImage) then
+              if ClassAllowed(TRGBAlphaImage) and
+                 (not (ilcAlphaAdd in ForbiddenConvs)) then
               begin
-                DoingConversion(ilcAlphaAdd);
                 ImageAlphaConstTo1st(Result, DummyDefaultAlpha);
               end else
-              if ClassAllowed(TGrayscaleImage) then
+              if ClassAllowed(TGrayscaleImage) and
+                 (not (ilcRGBFlattenToGrayscale in ForbiddenConvs)) then
               begin
-                DoingConversion(ilcRGBFlattenToGrayscale);
                 ImageGrayscaleTo1st(Result);
               end else
               { TODO:
-              if ClassAllowed(TGrayscaleAlphaImage) then
+              if ClassAllowed(TGrayscaleAlphaImage) and
+                 (not (ilcAlphaAdd in ForbiddenConvs)) and
+                 (not (ilcRGBFlattenToGrayscale in ForbiddenConvs)) then
               begin
-                DoingConversion(ilcAlphaAdd);
-                DoingConversion(ilcRGBFlattenToGrayscale);
                 ImageAlphaConstTo1st(Result, DummyDefaultAlpha);
                 ImageGrayscaleAlphaTo1st(Result);
               end else }
-              if ClassAllowed(TRGBEImage) then
+              if ClassAllowed(TRGBEImage) and
+                 (not (ilcFloatPrecAdd in ForbiddenConvs)) then
               begin
-                DoingConversion(ilcFloatPrecAdd);
                 ImageRGBToRGBETo1st(result);
               end else
-                raise EInternalError.Create('LoadImage cannot load this image file format to requested class');
+                raise EUnableToLoadImage.CreateFmt('LoadImage cannot load this image file format to %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
             end;
           end;
         lcRGB_RGBE:
@@ -3156,25 +3194,24 @@ begin
               Result := LoadRGBE(Stream, AllowedImageClasses, ForbiddenConvs) else
             begin
               Result := LoadRGBE(Stream, [TRGBImage], ForbiddenConvs);
-              if ClassAllowed(TRGBAlphaImage) then
+              if ClassAllowed(TRGBAlphaImage) and
+                 (not (ilcAlphaAdd in ForbiddenConvs)) then
               begin
-                DoingConversion(ilcAlphaAdd);
                 ImageAlphaConstTo1st(result, DummyDefaultAlpha);
               end else
-              if ClassAllowed(TGrayscaleImage) then
+              if ClassAllowed(TGrayscaleImage) and
+                 (not (ilcRGBFlattenToGrayscale in ForbiddenConvs)) then
               begin
-                DoingConversion(ilcRGBFlattenToGrayscale);
                 ImageGrayscaleTo1st(Result);
               end else
-              if ClassAllowed(TGrayscaleAlphaImage) then
+              if ClassAllowed(TGrayscaleAlphaImage) and
+                 (not (ilcAlphaAdd in ForbiddenConvs)) and
+                 (not (ilcRGBFlattenToGrayscale in ForbiddenConvs)) then
               begin
-                DoingConversion(ilcRGBFlattenToGrayscale);
                 ImageGrayscaleTo1st(Result);
-
-                DoingConversion(ilcAlphaAdd);
                 ImageAlphaConstTo1st(result, DummyDefaultAlpha);
               end else
-                raise EInternalError.Create('LoadImage: RGBE format cannot be loaded to any of the known classes');
+                raise EUnableToLoadImage.CreateFmt('LoadImage: RGBE format cannot be loaded to %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
             end;
           end;
         else raise EInternalError.Create('LoadImage: LoadedClasses?');

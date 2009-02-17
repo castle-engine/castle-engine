@@ -196,7 +196,7 @@ begin
         end;
       finally FreeMemNiling(Pointer(RGBERow)) end;
     end else
-      raise EUnableToLoadImage.Create('Cannot load RBGE file to any of the requested image classes');
+      raise EUnableToLoadImage.CreateFmt('Cannot load RGBE file to %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
   except Result.Free; raise end;
 end;
 

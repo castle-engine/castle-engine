@@ -243,14 +243,14 @@ begin
           ( ClassAllowed(TRGBImage) and
             (not (ilcAlphaDelete in ForbiddenConvs)) ) then
          Result := TRGBAlphaImage.Create(biWidth, biHeight) else
-         raise EUnableToLoadImage.Create('Cannot load BMP file (with alpha channel) to any of the requested image classes');
+         raise EUnableToLoadImage.CreateFmt('Cannot load BMP file (with alpha channel) to %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
      end else
      begin
        if ClassAllowed(TRGBImage) or
           ( ClassAllowed(TRGBAlphaImage) and
             (not (ilcAlphaAdd in ForbiddenConvs)) ) then
          Result := TRGBImage.Create(biWidth, biHeight) else
-         raise EUnableToLoadImage.Create('Cannot load BMP file (without alpha channel) to any of the requested image classes');
+         raise EUnableToLoadImage.CreateFmt('Cannot load BMP file (without alpha channel) to %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
      end;
 
      for i := 0 to biHeight - 1 do
