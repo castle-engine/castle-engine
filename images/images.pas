@@ -986,41 +986,9 @@ function Vector3ToRGBE(const v: TVector3Single): TVector4Byte;
 { Decode Red + Green + Blue + Exponent back into RGB 3 x Single. }
 function VectorRGBETo3Single(const v: TVector4Byte): TVector3Single;
 
-{ ------------------------------------------------------------------------------
+{ loading image (format-specific) ---------------------------------------
 
-  SaveXxx. Each file format may have specialized SaveXxx that allows
-  you to give some parameters special for given format.
-
-  Each format must also have procedure with two parameters
-  (Img: TImage; Stream: TStream), this will be used with
-  ImageFormatsInfo[].
-  This means that below we must use overloading instead of
-  default parameters, since pointers to given procedures must be
-  compatible with @link(TImageSaveFunc).
-
-  SaveXxx should
-    raise EUnableToSaveImage.CreateFmt('Saving to XXX image class %s not possible', [Img.ClassName]);
-  when Img doesn't have acceptable class.
-  Also, list of handled image classes should be reflected in SavedClasses
-  in ImageFormatsInfo[] for this format.
-}
-
-{ }
-procedure SaveBMP(Img: TImage; Stream: TStream);
-procedure SavePNG(Img: TImage; Stream: TStream; interlaced: boolean); overload;
-procedure SavePNG(Img: TImage; Stream: TStream); { interlaced = false } overload;
-{ }
-procedure SaveJPEG(Img: TImage; Stream: TStream; quality: integer); overload;
-procedure SaveJPEG(Img: TImage; Stream: TStream); { quality = 90 } overload;
-{ }
-procedure SavePPM(Img: TImage; Stream: TStream; binary: boolean); overload;
-procedure SavePPM(Img: TImage; Stream: TStream); { binary = true } overload;
-{ }
-procedure SaveRGBE(Img: TImage; Stream: TStream);
-
-{ Load image formats ---------------------------------- }
-
-{ LoadXxx: load image from Stream.
+  LoadXxx: load image from Stream.
 
   They must honour AllowedImageClasses and ForbiddenConvs, just like
   LoadImage does. Except they don't have to care about returning all TImage
@@ -1032,6 +1000,7 @@ procedure SaveRGBE(Img: TImage; Stream: TStream);
   contain correct data. }
 
 type
+  { }
   EImageLoadError = class(Exception);
   EInvalidImageFormat = class(EImageLoadError);
   EInvalidBMP = class(EInvalidImageFormat);
@@ -1141,6 +1110,38 @@ function LoadIPL(Stream: TStream;
 function LoadRGBE(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
+
+{ saving image (format-specific) --------------------------------------------
+
+  SaveXxx. Each file format may have specialized SaveXxx that allows
+  you to give some parameters special for given format.
+
+  Each format must also have procedure with two parameters
+  (Img: TImage; Stream: TStream), this will be used with
+  ImageFormatsInfo[].
+  This means that below we must use overloading instead of
+  default parameters, since pointers to given procedures must be
+  compatible with @link(TImageSaveFunc).
+
+  SaveXxx should
+    raise EUnableToSaveImage.CreateFmt('Saving to XXX image class %s not possible', [Img.ClassName]);
+  when Img doesn't have acceptable class.
+  Also, list of handled image classes should be reflected in SavedClasses
+  in ImageFormatsInfo[] for this format.
+}
+
+{ }
+procedure SaveBMP(Img: TImage; Stream: TStream);
+procedure SavePNG(Img: TImage; Stream: TStream; interlaced: boolean); overload;
+procedure SavePNG(Img: TImage; Stream: TStream); { interlaced = false } overload;
+{ }
+procedure SaveJPEG(Img: TImage; Stream: TStream; quality: integer); overload;
+procedure SaveJPEG(Img: TImage; Stream: TStream); { quality = 90 } overload;
+{ }
+procedure SavePPM(Img: TImage; Stream: TStream; binary: boolean); overload;
+procedure SavePPM(Img: TImage; Stream: TStream); { binary = true } overload;
+{ }
+procedure SaveRGBE(Img: TImage; Stream: TStream);
 
 { File formats managing ----------------------------------------------------- }
 
@@ -1356,19 +1357,14 @@ function ListImageExtsLong(OnlyLoadable, OnlySaveable: boolean; const LinePrefix
 function ListImageExtsShort(OnlyLoadable, OnlySaveable: boolean): string;
 { @groupEnd }
 
-{ LoadImage -------------------------------------------------------------- }
-
-{ Zgadnij format strumienia na podstawie rozszerzenia pliku
-  i zaladuj. typeext moze ale nie musi zawierac na poczatku kropke.
-  Mozna tez podac zamiast strumienia nazwe pliku (kazdy rozumie,
-  ze implementacja utworzy strumien CreateReadFileStream).
-
-  LoadImage wywoluje odpowiednie Load* na podstawie podanego rozszerzenia.
-  Jesli nie rozpoznaje rozszerzenia - wyjatek EImageFormatNotSupported.
-}
+{ loading image -------------------------------------------------------------- }
 
 type
   EImageFormatNotSupported = class(Exception);
+
+const
+  AllImageLoadConversions: TImageLoadConversions =
+  [Low(TImageLoadConversion) .. High(TImageLoadConversion)];
 
 { TODO: zrobic LoadImageGuess ktore zgaduje format na podstawie
   zawartosci. }
@@ -1382,33 +1378,35 @@ type
   (when you insist to get TRGBImage, not e.g. TRGBAlphaImage in case png
   image in file has some alpha channel).
 
+  Image file format is guess from FileName (or filename extension
+  in TypeExt (may but doesn't have to contain leading dot),
+  or can be just given explicitly by Format).
+
   AllowedImageClasses says what image classes are allowed.
   As a special case, AllowedImageClasses = [] is equivalent to
   AllowedImageClasses = [TImage] which says that all TImage descendants
   are allowed. Then this function will do everything it can to load
-  any image into the best subclass of TImage losing as little image
+  any image into the best subclass of TImage, losing as little image
   information it can.
 
   Example: consider you're loading a PNG file. Let's suppose you're
-  loading it with AllowedImageClasses = []. Then if PNG file will have
-  alpha channel, LoadImage will return TRGBAlphaImage descendant.
-  Else LoadImage will return TRGBImage descendant.
+  loading it with AllowedImageClasses = []. Then you can get
+  TGrayscaleImage, TGrayscaleAlphaImage, TRGBImage, TRGBAlphaImage,
+  depending on whether PNG file is grayscale or not and has alpha or not.
   Now let's suppose you specified AllowedImageClasses = [TRGBImage].
-  If PNG file will not have alpha channel,
+  If PNG file will not be grayscale and not have alpha channel,
   LoadImage will return TRGBImage descendant, as before.
   But if PNG fill *will* have alpha channel then
   1. if ForbiddenConvs does not contain [ilcAlphaDelete],
-     LoadImage will simply ignore alpha channel and return you TRGBImage
+     LoadImage will simply ignore (strip) alpha channel and return you TRGBImage
   2. if ForbiddenConvs does contain [ilcAlphaDelete],
      LoadImage will exit with exception EUnableToLoadImage.
-     This is somewhat safer, since you can't accidentaly ignore alpha
+     This is sometimes safer, since you can't accidentaly ignore alpha
      channel that was present in file.
 
-  All images have somehow specified RGB colors. Some of them may have alpha
-  channel, some of them may have float precision (for now, this is only
-  for RGBE images). This means that we may have to drop (ignore)
-  these two things while loading image. So you can firbid ignoring them
-  by adding to ForbiddenConvs ilcAlphaDelete and/or ilcFloatPrecDelete values.
+  Similar thing for grayscale: if image file was grayscale but you requested
+  only TRGBImage, then grayscale may be "expanded" into full three-channel
+  RGB. Unless prevented by ilcGrayscaleExpandToRGB inside ForbiddenConvs.
 
   There can also happen reverse situation: you e.g. insist that
   AllowedImageClasses = [TRGBAlphaImage] but given PNG image does not
@@ -1427,14 +1425,14 @@ type
   AllowedImageClasses without doing any forbidden convertions
   in ForbiddenConvs, it will raise @link(EUnableToLoadImage).
 
-  Again some example: specify AllowedImageClasses = [TRGBAlphaImage]
-  and ForbiddenConvs = [ilcAlphaAdd] to be sure that
-  LoadImage will return TRGBAlphaImage with alpha channel loaded from file.
-  If file wlil not have alpha channel, @link(EUnableToLoadImage) will
-  be raised. }
-const
-  AllImageLoadConversions: TImageLoadConversions =
-  [Low(TImageLoadConversion) .. High(TImageLoadConversion)];
+  @raises(EUnableToLoadImage If Image cannot be loaded into
+    allowed AllowedImageClasses (at least, cannot be loaded
+    without using any ForbiddenConvs).)
+
+  @raises(EImageFormatNotSupported If image file format (e.g. FileName
+    extension) is not recognized.)
+
+  @groupBegin }
 function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions)
@@ -1451,13 +1449,14 @@ function LoadImage(const filename: string;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions;
   const ResizeToX, ResizeToY: Cardinal): TImage; overload;
+{ @groupEnd }
 
-{ ------------------------------------------------------------------------------ }
+{ saving image --------------------------------------------------------------- }
 
 type
   EUnableToSaveImage = class(Exception);
 
-{ Save image to file.
+{ Save image to a file.
 
   File format is determined by given FileName, filename extension (TypeExt)
   or just given explicitly as Format parameter.
@@ -1484,10 +1483,13 @@ type
   to RGB before saving to PNG).
 
   @raises(EUnableToSaveImage When it's not possible to save image,
-    because of Img class (memory format) and/or image file format.) }
+    because of Img class (memory format) and/or image file format.)
+
+  @groupBegin }
 procedure SaveImage(const img: TImage; const Format: TImageFormat; Stream: TStream); overload;
 procedure SaveImage(const img: TImage; const typeext: string; Stream: TStream); overload;
 procedure SaveImage(const Img: TImage; const fname: string); overload;
+{ @groupEnd }
 
 { inne przetwarzanie obrazkow TImage ------------------------------------- }
 
