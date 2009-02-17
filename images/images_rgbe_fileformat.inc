@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -19,7 +19,7 @@
 }
 
 { LoadRGBE i SaveRGBE napisane na podstawie opisu formatu RGBE w
-  /c/docs/radiance/refer/filefmts.pdf, dostepnym w Internecie
+  /win/docs/radiance/refer/filefmts.pdf, dostepnym w Internecie
   ze stron Radiance'a. Zaczete przy okazji zabaw w wakacje po RGK.
 
   Format pixela RGBE jest wyjasniony przez Grega Warda w Graphic Gems II.5.
@@ -39,7 +39,9 @@
     nalezy przesuwac o 8, 16, itd. bitow w lewo.
 }
 
-function LoadRGBE(Stream: TStream; RoundToByteRGB: boolean): TImage;
+function LoadRGBE(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
 var LoadResult: TImage absolute result;
 
   procedure ReadRGBERow(RGBERow: PArray_Vector4Byte);
@@ -134,52 +136,82 @@ var LoadResult: TImage absolute result;
    end;
   end;
 
-const
-  RoundToByteRGB_To_ImageClass: array[boolean]of TImageClass = 
-  (TRGBEImage, TRGBImage);
-var line: string;
-    { jesli false to kazdy pixel to RGBE. Wpp. kazdy pixel w pliku to XYZE }
-    xyzFormat: boolean;
-    x, y, RGBEWidth, RGBEHeight: Integer;
-    RGBERow: PArray_Vector4Byte;
-    ImageRow: PArray_Vector3Byte;
-begin
- { read header }
- { klauzula FORMAT= moze nie wystapic w pliku, wtedy przyjmij xyzFormat = false }
- xyzFormat := false;
- repeat
-  line := StreamReadUpto_NotEOS(Stream, [#10]);
-  if line='FORMAT=32-bit_rle_xyze' then xyzFormat := true;
- until line = '';
+  { TODO: this is copied from LoadImage impl, to be implemented more
+    gracefully by TImageFormatHandler soon. }
 
- Check(not xyzFormat, 'TODO: reading XYZE images not implemented yet. '+
-   'Use ra_xyze (from Radiance programs) to convert this image to rgbe.');
-
- { read resolution string. As many other programs (ximage, ImageMagick's display)
-   we don't support any other resolution than -Y * +X * - TODO }
- line := StreamReadUpto_NotEOS(Stream, [#10]);
- DeFormat(line, '-Y %d +X %d', [@RGBEHeight, @RGBEWidth], false);
-
- Result := RoundToByteRGB_To_ImageClass[RoundToByteRGB].Create(RGBEWidth, RGBEHeight);
-
- try
-  if RoundToByteRGB then
+  { check is Conv Forbidden, if it is -> raise exception }
+  procedure DoingConversion(Conv: TImageLoadConversion);
+  const
+    ConvToStr: array[TImageLoadConversion]of string = (
+    'delete alpha channel',
+    'lose float precision',
+    'flatten RGB colors to grayscale',
+    'add dummy constant alpha channel',
+    'add useless float precision',
+    'expand grayscale to RGB (three channels)'
+    );
   begin
-   RGBERow := GetMem(SizeOf(TVector4Byte) * result.Width);
-   try
-    for y := result.Height-1 downto 0 do
-    begin
-     ReadRGBERow(RGBERow);
-     ImageRow := PArray_Vector3Byte(Result.RowPtr(y));
-     for x := 0 to result.Width-1 do
-      ImageRow^[x] := Vector3Byte( VectorRGBETo3Single(RGBERow^[x]) )
-    end;
-   finally FreeMemNiling(Pointer(RGBERow)) end;
-  end else
-  begin
-   for y := result.Height-1 downto 0 do ReadRGBERow( Result.RowPtr(y) );
+    if Conv in ForbiddenConvs then
+      raise EUnableToLoadImage.Create('LoadImage: to load this image format '+
+        'conversion "'+ConvToStr[Conv]+'" must be done, but it is forbidden here');
   end;
- except Result.Free; raise end;
+
+  function ClassAllowed(ImageClass: TImageClass): boolean;
+  begin
+    Result := (High(AllowedImageClasses) = -1) or
+      InImageClasses(ImageClass, AllowedImageClasses);
+  end;
+
+var
+  line: string;
+  { jesli false to kazdy pixel to RGBE. Wpp. kazdy pixel w pliku to XYZE }
+  xyzFormat: boolean;
+  x, y, RGBEWidth, RGBEHeight: Integer;
+  RGBERow: PArray_Vector4Byte;
+  ImageRow: PArray_Vector3Byte;
+begin
+  { read header }
+  { klauzula FORMAT= moze nie wystapic w pliku, wtedy przyjmij xyzFormat = false }
+  xyzFormat := false;
+  repeat
+    line := StreamReadUpto_NotEOS(Stream, [#10]);
+    if line='FORMAT=32-bit_rle_xyze' then xyzFormat := true;
+  until line = '';
+
+  Check(not xyzFormat, 'TODO: reading XYZE images not implemented yet. '+
+    'Use ra_xyze (from Radiance programs) to convert this image to rgbe.');
+
+  { read resolution string. As many other programs (ximage, ImageMagick's display)
+    we don't support any other resolution than -Y * +X * - TODO }
+  line := StreamReadUpto_NotEOS(Stream, [#10]);
+  DeFormat(line, '-Y %d +X %d', [@RGBEHeight, @RGBEWidth], false);
+
+  Result := nil;
+  try
+    if ClassAllowed(TRGBEImage) then
+    begin
+      Result := TRGBEImage.Create(RGBEWidth, RGBEHeight);
+      for y := result.Height-1 downto 0 do
+        ReadRGBERow( Result.RowPtr(y) );
+    end else
+    if ClassAllowed(TRGBImage) then
+    begin
+      DoingConversion(ilcFloatPrecDelete);
+      Result := TRGBImage.Create(RGBEWidth, RGBEHeight);
+
+      RGBERow := GetMem(SizeOf(TVector4Byte) * result.Width);
+      try
+        for y := result.Height-1 downto 0 do
+        begin
+          ReadRGBERow(RGBERow);
+          ImageRow := PArray_Vector3Byte(Result.RowPtr(y));
+          for x := 0 to result.Width-1 do
+            ImageRow^[x] := Vector3Byte( VectorRGBETo3Single(RGBERow^[x]) )
+        end;
+      finally FreeMemNiling(Pointer(RGBERow)) end;
+    end else
+      raise EUnableToLoadImage.Create('Cannot load RBGE file to any of the requested image classes');
+  except Result.Free; raise end;
 end;
 
 procedure SaveRGBE(const Img: TImage; Stream: TStream);
@@ -189,7 +221,7 @@ var pPixelRGB: PVector3Byte;
 begin
  Check((Img is TRGBImage) or (Img is TRGBEImage),
    'SaveRGBE can only save RGB or RGBE image');
-   
+
  WriteStr(Stream,'#?RADIANCE'#10+
                  'FORMAT=32-bit_rle_rgbe'#10+
 		 'SOFTWARE='+ProgramName+' by Michalis Kamburelis (Kambi)'#10+
@@ -223,13 +255,6 @@ begin
 end;
 
 { simple helper funcs ---------------------------------------- }
-
-function LoadRGBEToByteRGB(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
-begin
- result := LoadRGBE(Stream, true);
-end;
 
 procedure SaveRGBEFromByteRGB(const Img: TRGBImage; Stream: TStream);
 begin

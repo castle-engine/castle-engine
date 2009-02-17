@@ -41,9 +41,12 @@
     @item(jpeg (using pasjpeg package (it's libjpeg rewritten in Pascal)))
     @item(bmp)
     @item(rgbe (format of images created by Radiance, this is basically just
-      an RLE compressed storage format for Greg Ward's ikRGBE image memory
+      an RLE compressed storage format for Greg Ward's TRGBEImage image memory
       format. Also it allows to write colors in XYZ (CIE) instead of RGB.
-      Don't confuse file format ifRGBE with image format in memory ikRGBE !.))
+      Note that, while it's common to load file format RGBE to
+      class TRGBEImage (with "memory format" RGBE), it's not necessary,
+      you can also save normal RGB to RGBE files or load RGBE files to
+      normal RGB (although this will strip floating point precision of RGBE).))
     @item(ppm)
     @item(Other image formats are handled by converting them
       "under the hood" using external programs. This means that we may
@@ -92,10 +95,9 @@
     (aby moc zapisywac precyzyjne rysunki ktore dostaje od raytracera).
 
     Formaty w pamieci tez sie rozszerzyly : do TRGBImage doszedl TRGBAlphaImage
-    (abym mogl miec kanal alpha dla obrazkow) i TImage (jako pojemnik
-    ktory moze zawierac w srodku TRGBImage lub TRGBAlphaImage,
-    w tym momencie dodaje tez format RGBE (ktory prawdopodobnie nie bedzie mial
-    odpowiednika w postaci TRGBEImage, bedzie zawsze opakowany w TImage)).
+    (abym mogl miec kanal alpha dla obrazkow),
+    w tym momencie dodaje tez format RGBE,
+    pozniej dodalem tez formaty grayscale (TGrayscaleImage, TGrayscaleAlphaImage).
 
   OpenGL independency:
     While this unit is obviously useful when you're using OpenGL
@@ -134,8 +136,8 @@
     nie robiac tak brutalnego zaokraglania wartosci kolorow. Swietnym
     rozwiazaniem, ktore nie tworzy zbyt duzych obrazkow jest format
     rgbe (to samo co picture Radiance'a) Grega Warda, i to wlasnie
-    jest format ikRGBE obrazka w pamieci i ifRGBE obrazka w pliku
-    (ifRGBE to jest zasadniczo zrzut danych ikRGBE z naglowkiem i
+    jest format TRGBEImage obrazka w pamieci i ifRGBE obrazka w pliku
+    (ifRGBE to jest zasadniczo zrzut danych TRGBEImage z naglowkiem i
     spakowany prosta kompresja RLE). Przy okazji do Radiance'a jest dolaczonych
     wiele programow ktore potrafia wykorzystac ta precyzje o ktorej mowilem
     wyzej i wykonywac jakies przetwarzanie obrazkow, m.in. pfilt i ximage.
@@ -162,29 +164,23 @@ unit Images;
 
 {
   TODO
-  - SaveImage and LoadImage are not implemented in
-    an elegant way: they just know special things about "rgbe"
+  - SaveImage is not implemented in
+    an elegant way: it just knows special things about "rgbe"
     (that it always has float precision). For "png", SaveImage also
     knows special things about PNG (that it can have alpha channel).
 
     It should be done in a more
-    general way - like "SaveRGB/Load" functions in ImageformatInfos[],
+    general way - like "Load" functions and HandledClasses in ImageformatInfos[],
     ImageformatInfos[] should also allow for other functions to be specified
     that can deal with a particular file format, like Save
     (for SaveAnyPNG etc.)
 
-    Possibly LoadImage (with ForbiddenConvertions
-    etc.) should only be exposed in the interface ?
-    And Load/SaveXXX functions that load/save
-    only to RGB, and Load/SaveAnyXXX functions
-    (that load/save only rgb or alpha, but not rgbe)
-    should only be internal ?
-
-    In general, some manager of loading and saving functions
-    should be implemented, which knows with what format given
-    function works and what memory formats (i.e. what descendants
-    of TImage) it can produce (in case of loading function) or
-    save (in case of saving function).
+  - Possibly only LoadImage (with ForbiddenConvertions
+    etc.) should be exposed in the interface?
+    Load/Save specific to file format should be internal?
+    (Although this allows me for file-format specific settings,
+    like Interlaced for PNG or Compression for JPG, to be publicly
+    availble for now.)
 
   - implement more impressive resizing filters, at least simple
     linear like gluScaleImage
@@ -1021,6 +1017,15 @@ procedure SaveJPEG(const img: TRGBImage; Stream: TStream); { quality = 90 } over
 procedure SavePPM(const img: TRGBImage; Stream: TStream; binary: boolean); overload;
 procedure SavePPM(const img: TRGBImage; Stream: TStream); { binary = true } overload;
 
+{ Img.Kind musi byc in ikRGB, ikRGBE (checked even in RELEASE).
+  W tym pierwszym przypadku - patrz komentarze przy SaveRGBEFromByteRGB. }
+procedure SaveRGBE(const Img: TImage; Stream: TStream);
+
+{ rownowazne SaveRGBE(ImageRecFromRGB(Img), Stream). Podobnie jak przy
+  ImageRGBToRGBE, konwersja RGB na RGBE jest bezstratna ale moze byc
+  bezsensowna (po co ci precyzja skoro dane juz sa pozbawione precyzji ?)  }
+procedure SaveRGBEFromByteRGB(const Img: TRGBImage; Stream: TStream);
+
 { Load image formats ---------------------------------- }
 
 { LoadXxx: load image from Stream.
@@ -1142,30 +1147,12 @@ function LoadIPL(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
 
-{ --------------------------------------------------------------------
-  rzeczy speszial do rgbe (jako format pliku i jako TImageKind) }
-
-{ jesli RoundToByteRGB to zwroci result.Kind = ikRGB (patrz komentarze
-  przy LoadRGBEToByteRGB). Wpp. result.Kind = ikRGBE. }
-function LoadRGBE(Stream: TStream; RoundToByteRGB: boolean): TImage;
-{ Img.Kind musi byc in ikRGB, ikRGBE (checked even in RELEASE).
-  W tym pierwszym przypadku - patrz komentarze przy SaveRGBEFromByteRGB. }
-procedure SaveRGBE(const Img: TImage; Stream: TStream);
-
-{ Load RGBE image file to TRGBImage class.
-  Equivalent LoadRGBE(Stream, true). Nazwa jest taka
-  pokrecona ("ToByteRGB") bo naprawde rzadko powinienes tego uzywac i zawsze
-  musisz zdawac sobie sprawe z ograniczen : zaokraglanie do bajtu w zasadzie
-  zabija caly sens formatu RGBE. Odczytaj plik RGBE to RGB (3xByte) i potem
-  go zapisz (chocby nawet z powrotem w RGBE) a stracisz cala precyzje zawarta
-  w formacie RGBE. }
-function LoadRGBEToByteRGB(Stream: TStream;
+{ Load RGBE image file format.
+  This low-level function can load to TRGBEImage (preserving image data)
+  or to TRGBImage (loosing floating point precision of RGBE format). }
+function LoadRGBE(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
-{ rownowazne SaveRGBE(ImageRecFromRGB(Img), Stream). Podobnie jak przy
-  ImageRGBToRGBE, konwersja RGB na RGBE jest bezstratna ale moze byc
-  bezsensowna (po co ci precyzja skoro dane juz sa pozbawione precyzji ?)  }
-procedure SaveRGBEFromByteRGB(const Img: TRGBImage; Stream: TStream);
 
 { File formats managing ----------------------------------------------------- }
 
@@ -1207,7 +1194,8 @@ type
   TImageLoadHandledClasses = (
     icRGB,
     icRGB_RGBA,
-    icG_GA_RGB_RGBA
+    icG_GA_RGB_RGBA,
+    icRGB_RGBE
   );
 
   { A type to index TImageFormatInfo.Exts array and also for TImageFormatInfo.ExtsCount.
@@ -1292,8 +1280,8 @@ const
     ( FormatName: 'RGBE (RGB+Exponent) image';
       ExtsCount: 2; Exts: ('rgbe', 'pic', '');
       SaveRGB: @SaveRGBEFromByteRGB;
-      Load: @LoadRGBEToByteRGB;
-      HandledClasses: icG_GA_RGB_RGBA; ),
+      Load: @LoadRGBE;
+      HandledClasses: icRGB_RGBE; ),
     { Graphics Interchange Format } { }
     ( FormatName: 'GIF image';
       ExtsCount: 1; Exts: ('gif', '', '');
@@ -3139,44 +3127,11 @@ function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
 
 const
   DummyDefaultAlpha = High(Byte);
-
 var
   Load: TImageLoadFunc;
 begin
   Result := nil;
   try
-    if StreamFormat = ifRGBE then
-    begin
-      if ClassAllowed(TRGBEImage) then
-        result := LoadRGBE(Stream, false) else
-      begin
-        DoingConversion(ilcFloatPrecDelete);
-        result := LoadRGBE(Stream, true);
-
-        if not ClassAllowed(TRGBImage) then
-        begin
-          if ClassAllowed(TRGBAlphaImage) then
-          begin
-            DoingConversion(ilcAlphaAdd);
-            ImageAlphaConstTo1st(result, DummyDefaultAlpha);
-          end else
-          if ClassAllowed(TGrayscaleImage) then
-          begin
-            DoingConversion(ilcRGBFlattenToGrayscale);
-            ImageGrayscaleTo1st(Result);
-          end else
-          if ClassAllowed(TGrayscaleAlphaImage) then
-          begin
-            DoingConversion(ilcRGBFlattenToGrayscale);
-            ImageGrayscaleTo1st(Result);
-
-            DoingConversion(ilcAlphaAdd);
-            ImageAlphaConstTo1st(result, DummyDefaultAlpha);
-          end else
-            raise EInternalError.Create('LoadImage: RGBE format and unknown target required');
-        end;
-      end;
-    end else
     if Assigned(ImageFormatInfos[StreamFormat].Load) then
     begin
       Load := ImageFormatInfos[StreamFormat].Load;
@@ -3242,6 +3197,34 @@ begin
                 ImageRGBToRGBETo1st(result);
               end else
                 raise EInternalError.Create('LoadImage cannot load this image file format to requested class');
+            end;
+          end;
+        icRGB_RGBE:
+          begin
+            if ClassAllowed(TRGBEImage) or
+               ClassAllowed(TRGBImage) then
+              Result := LoadRGBE(Stream, AllowedImageClasses, ForbiddenConvs) else
+            begin
+              Result := LoadRGBE(Stream, [TRGBImage], ForbiddenConvs);
+              if ClassAllowed(TRGBAlphaImage) then
+              begin
+                DoingConversion(ilcAlphaAdd);
+                ImageAlphaConstTo1st(result, DummyDefaultAlpha);
+              end else
+              if ClassAllowed(TGrayscaleImage) then
+              begin
+                DoingConversion(ilcRGBFlattenToGrayscale);
+                ImageGrayscaleTo1st(Result);
+              end else
+              if ClassAllowed(TGrayscaleAlphaImage) then
+              begin
+                DoingConversion(ilcRGBFlattenToGrayscale);
+                ImageGrayscaleTo1st(Result);
+
+                DoingConversion(ilcAlphaAdd);
+                ImageAlphaConstTo1st(result, DummyDefaultAlpha);
+              end else
+                raise EInternalError.Create('LoadImage: RGBE format cannot be loaded to any of the known classes');
             end;
           end;
         else raise EInternalError.Create('LoadImage: HandledClasses?');
