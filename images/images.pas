@@ -1465,8 +1465,6 @@ type
   affect the created image file format, on the assumption that the
   "memory format" of the image (what TImage descendant is used)
   can be orthogonal to the actual "file format" used to save this file.
-  (However, if you really want to make file format depending on the
-  memory format, ImageClassBestForSavingToFormat can be helpful.)
 
   Tries to write the image preserving it as closely as possible in this
   image format. When it's not possible, according conversions may be done:
@@ -1499,22 +1497,17 @@ procedure SaveImage(const Img: TImage; const fname: string); overload;
   Alpha channel is then filled with AlphaConst }
 procedure ImageAlphaConstTo1st(var Img: TImage; const AlphaConst: byte);
 
-{ Na podstawie filename zgaduje format pliku ktory mozemy zapisac do
-  takiego filename (czyli robi FileExtToImageFormatDef(
-  ExtractFileExt(ImageFilename), false, true, DefaultSaveImageFormat))
-  (wersja z ImgFormat juz ma to w ImgFormat).
+{ Choose TImage descendant best matching for this image file format.
+  The only purpose of this for now is to pick TRGBEImage for RGBE files,
+  chooses TRGBImage for anything else.
 
-  Potem wybiera TImageClass ktore ma najwiekszy sens dla zadanego
-  formatu - tzn. takie TImageClass ze przy sejwowaniu obrazka o takiej
-  class do pliku o takiej nazwie (a wiec i takim formacie) nie bedzie
-  robiona zadna strata, nie bedzie zadnego odrzucania kanalu alpha
-  ani precyzji i zakresu floatow. W tym momencie oznacza to ze dla
-    ifRGBE zwroci TRGBEImage
-    a dla wszystkich pozostalych TRGBImage.
+  For the overloaded version with FileName, file format is determined
+  by FileName extension.
 
-  TODO: this cannot return image classes with alpha and/or grayscale for now. }
+  @groupBegin }
 function ImageClassBestForSavingToFormat(ImgFormat: TImageFormat): TImageClass; overload;
 function ImageClassBestForSavingToFormat(const FileName: string): TImageClass; overload;
+{ @groupEnd }
 
 var
   { File filters if you want to choose a file that can be loaded/saved
