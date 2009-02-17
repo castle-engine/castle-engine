@@ -163,18 +163,7 @@
 unit Images;
 
 {
-  TODO
-  - SaveImage is not implemented in
-    an elegant way: it just knows special things about "rgbe"
-    (that it always has float precision). For "png", SaveImage also
-    knows special things about PNG (that it can have alpha channel).
-
-    It should be done in a more
-    general way - like "Load" functions and HandledClasses in ImageformatInfos[],
-    ImageformatInfos[] should also allow for other functions to be specified
-    that can deal with a particular file format, like Save
-    (for SaveAnyPNG etc.)
-
+  TODO:
   - Possibly only LoadImage (with ForbiddenConvertions
     etc.) should be exposed in the interface?
     Load/Save specific to file format should be internal?
@@ -999,32 +988,35 @@ function VectorRGBETo3Single(const v: TVector4Byte): TVector3Single;
 
 { ------------------------------------------------------------------------------
 
-  SaveXxx. Each file format has specialized SaveXxx that allows
+  SaveXxx. Each file format may have specialized SaveXxx that allows
   you to give some parameters special for given format.
 
   Each format must also have procedure with two parameters
-  (const Img: TRGBImage; Stream: TStream), this will be used with
+  (Img: TImage; Stream: TStream), this will be used with
   ImageFormatsInfo[].
   This means that below we must use overloading instead of
   default parameters, since pointers to given procedures must be
-  compatible with @link(TRGBImageSaveFunc). }
+  compatible with @link(TImageSaveFunc).
 
-procedure SaveBMP(const img: TRGBImage; Stream: TStream);
-procedure SavePNG(const img: TRGBImage; Stream: TStream; interlaced: boolean); overload;
-procedure SavePNG(const img: TRGBImage; Stream: TStream); { interlaced = false } overload;
-procedure SaveJPEG(const img: TRGBImage; Stream: TStream; quality: integer); overload;
-procedure SaveJPEG(const img: TRGBImage; Stream: TStream); { quality = 90 } overload;
-procedure SavePPM(const img: TRGBImage; Stream: TStream; binary: boolean); overload;
-procedure SavePPM(const img: TRGBImage; Stream: TStream); { binary = true } overload;
+  SaveXxx should
+    raise EUnableToSaveImage.CreateFmt('Saving to XXX image class %s not possible', [Img.ClassName]);
+  when Img doesn't have acceptable class.
+  Also, list of handled image classes should be reflected in SavedClasses
+  in ImageFormatsInfo[] for this format.
+}
 
-{ Img.Kind musi byc in ikRGB, ikRGBE (checked even in RELEASE).
-  W tym pierwszym przypadku - patrz komentarze przy SaveRGBEFromByteRGB. }
-procedure SaveRGBE(const Img: TImage; Stream: TStream);
-
-{ rownowazne SaveRGBE(ImageRecFromRGB(Img), Stream). Podobnie jak przy
-  ImageRGBToRGBE, konwersja RGB na RGBE jest bezstratna ale moze byc
-  bezsensowna (po co ci precyzja skoro dane juz sa pozbawione precyzji ?)  }
-procedure SaveRGBEFromByteRGB(const Img: TRGBImage; Stream: TStream);
+{ }
+procedure SaveBMP(Img: TImage; Stream: TStream);
+procedure SavePNG(Img: TImage; Stream: TStream; interlaced: boolean); overload;
+procedure SavePNG(Img: TImage; Stream: TStream); { interlaced = false } overload;
+{ }
+procedure SaveJPEG(Img: TImage; Stream: TStream; quality: integer); overload;
+procedure SaveJPEG(Img: TImage; Stream: TStream); { quality = 90 } overload;
+{ }
+procedure SavePPM(Img: TImage; Stream: TStream; binary: boolean); overload;
+procedure SavePPM(Img: TImage; Stream: TStream); { binary = true } overload;
+{ }
+procedure SaveRGBE(Img: TImage; Stream: TStream);
 
 { Load image formats ---------------------------------- }
 
@@ -1032,7 +1024,7 @@ procedure SaveRGBEFromByteRGB(const Img: TRGBImage; Stream: TStream);
 
   They must honour AllowedImageClasses and ForbiddenConvs, just like
   LoadImage does. Except they don't have to care about returning all TImage
-  descendants: see @link(TImageFormatInfo.HandledClasses). So higher-level
+  descendants: see @link(TImageFormatInfo.LoadedClasses). So higher-level
   LoadImage will use them and eventually convert their result.
 
   An appropriate descendant of EImageLoadError will be raised
@@ -1090,10 +1082,6 @@ type
 function LoadPNG(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
-
-{ Save PNG file. Currently, accepts TRGBImage and TRGBAlphaImage
-  (in the 2nd case, it will naturally save alpha channel to the file). }
-procedure SaveAnyPNG(const Img: TImage; Stream: TStream; Interlaced: boolean);
 
 function LoadBMP(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
@@ -1161,12 +1149,11 @@ type
   TImageFormat = (ifBMP, ifPNG, ifJPEG, ifPCX, ifPPM, ifIPL, ifRGBE,
     ifGIF, ifTGA, ifSGI, ifTIFF, ifJP2, ifEXR);
   TImageFormats = set of TImageFormat;
-  TRGBImageLoadFunc = function (Stream: TStream): TRGBImage;
-  TRGBImageSaveFunc = procedure (const Img: TRGBImage; Stream: TStream);
+
   TImageLoadFunc = function (Stream: TStream;
     const AllowedImageClasses: array of TImageClass;
     const ForbiddenConvs: TImageLoadConversions): TImage;
-  { some day TImageSaveFunc will be added too }
+  TImageSaveFunc = procedure (Img: TImage; Stream: TStream);
 
   { Possible TImage classes that can be returned by Load method
     of this file format. It's assumed that appropriate Load can return
@@ -1192,10 +1179,17 @@ type
     loading.
   }
   TImageLoadHandledClasses = (
-    icRGB,
-    icRGB_RGBA,
-    icG_GA_RGB_RGBA,
-    icRGB_RGBE
+    lcRGB,
+    lcRGB_RGBA,
+    lcG_GA_RGB_RGBA,
+    lcRGB_RGBE
+  );
+
+  { Possible TImage classes supported by Save method of this file format. }
+  TImageSaveHandledClasses = (
+    scRGB,
+    scG_GA_RGB_RGBA,
+    scRGB_RGBE
   );
 
   { A type to index TImageFormatInfo.Exts array and also for TImageFormatInfo.ExtsCount.
@@ -1232,87 +1226,80 @@ type
       (some procedures make use of it). }
     Exts: array[TImageFormatInfoExtsCount] of string;
 
-    SaveRGB: TRGBImageSaveFunc; {< = nil if we can't save it to RGB }
-    Load: TImageLoadFunc; {< = nil if can't load it with AllowedClasses/ForbiddenConvs interface }
+    { Load method for this file format.
+      @nil if cannot be loaded. }
+    Load: TImageLoadFunc;
 
     { If Load is assigned, this describes what TImage descendants
       can be returned by this Load. LoadImage will need this information,
       to make necessary convertions to other TImage classes,
       when possible. }
-    HandledClasses: TImageLoadHandledClasses;
+    LoadedClasses: TImageLoadHandledClasses;
+
+    { Save method for this file format.
+      @nil if cannot be saved. }
+    Save: TImageSaveFunc;
+    SavedClasses: TImageSaveHandledClasses;
   end;
 
 const
   ImageFormatInfos :array[TImageFormat]of TImageFormatInfo =
   ( ( FormatName: 'Windows BMP image';
       ExtsCount: 1; Exts: ('bmp', '', '');
-      SaveRGB: @SaveBMP;
-      Load: @LoadBMP;
-      HandledClasses: icRGB_RGBA; ),
+      Load: @LoadBMP; LoadedClasses: lcRGB_RGBA;
+      Save: @SaveBMP; SavedClasses: scRGB),
     { Portable Network Graphic } { }
     ( FormatName: 'PNG image';
       ExtsCount: 1; Exts: ('png', '', '');
-      SaveRGB: @SavePNG;
-      Load: @LoadPNG;
-      HandledClasses: icG_GA_RGB_RGBA; ),
+      Load: @LoadPNG; LoadedClasses: lcG_GA_RGB_RGBA;
+      Save: @SavePNG; SavedClasses: scG_GA_RGB_RGBA; ),
     { JFIF, JPEG File Interchange Format } { }
     ( FormatName: 'JPEG image';
       ExtsCount: 3; Exts: ('jpg', 'jpeg', 'jpe');
-      SaveRGB: @SaveJPEG;
-      Load: @LoadJPEG;
-      HandledClasses: icRGB_RGBA; ),
+      Load: @LoadJPEG; LoadedClasses: lcRGB_RGBA;
+      Save: @SaveJPEG; SavedClasses: scRGB ),
     ( FormatName: 'ZSoft PCX image';
       ExtsCount: 1; Exts: ('pcx', '', '');
-      SaveRGB: nil;
-      Load: @LoadPCX;
-      HandledClasses: icRGB; ),
+      Load: @LoadPCX; LoadedClasses: lcRGB;
+      Save: nil; SavedClasses: scRGB; ),
     { Portable Pixel Map } { }
     ( FormatName: 'PPM image';
       ExtsCount: 1; Exts: ('ppm', '', '');
-      SaveRGB: @SavePPM;
-      Load: @LoadPPM;
-      HandledClasses: icRGB; ),
+      Load: @LoadPPM; LoadedClasses: lcRGB;
+      Save: @SavePPM; SavedClasses: scRGB; ),
     ( FormatName: 'IPLab image';
       ExtsCount: 1; Exts: ('ipl', '', '');
-      SaveRGB: nil;
-      Load: @LoadIPL;
-      HandledClasses: icRGB; ),
+      Load: @LoadIPL; LoadedClasses: lcRGB;
+      Save: nil; SavedClasses: scRGB; ),
     ( FormatName: 'RGBE (RGB+Exponent) image';
       ExtsCount: 2; Exts: ('rgbe', 'pic', '');
-      SaveRGB: @SaveRGBEFromByteRGB;
-      Load: @LoadRGBE;
-      HandledClasses: icRGB_RGBE; ),
+      Load: @LoadRGBE; LoadedClasses: lcRGB_RGBE;
+      Save: @SaveRGBE; SavedClasses: scRGB_RGBE; ),
     { Graphics Interchange Format } { }
     ( FormatName: 'GIF image';
       ExtsCount: 1; Exts: ('gif', '', '');
-      SaveRGB: nil;
-      Load: @LoadGIF;
-      HandledClasses: icG_GA_RGB_RGBA; ),
+      Load: @LoadGIF; LoadedClasses: lcG_GA_RGB_RGBA;
+      Save: nil; SavedClasses: scRGB; ),
     ( FormatName: 'TarGA image';
       ExtsCount: 1; Exts: ('tga', '', '');
-      SaveRGB: nil;
-      Load: @LoadTGA;
-      HandledClasses: icG_GA_RGB_RGBA; ),
+      Load: @LoadTGA; LoadedClasses: lcG_GA_RGB_RGBA;
+      Save: nil; SavedClasses: scRGB; ),
     ( FormatName: 'SGI image';
       ExtsCount: 1; Exts: ('sgi', '', '');
-      SaveRGB: nil;
-      Load: @LoadSGI;
-      HandledClasses: icG_GA_RGB_RGBA; ),
+      Load: @LoadSGI; LoadedClasses: lcG_GA_RGB_RGBA;
+      Save: nil; SavedClasses: scRGB; ),
     ( FormatName: 'TIFF image';
       ExtsCount: 1; Exts: ('tif', '', '');
-      SaveRGB: nil;
-      Load: @LoadTIFF;
-      HandledClasses: icG_GA_RGB_RGBA; ),
+      Load: @LoadTIFF; LoadedClasses: lcG_GA_RGB_RGBA;
+      Save: nil; SavedClasses: scRGB; ),
     ( FormatName: 'JP2 image';
       ExtsCount: 1; Exts: ('jp2', '', '');
-      SaveRGB: nil;
-      Load: @LoadJP2;
-      HandledClasses: icG_GA_RGB_RGBA; ),
+      Load: @LoadJP2; LoadedClasses: lcG_GA_RGB_RGBA;
+      Save: nil; SavedClasses: scRGB; ),
     ( FormatName: 'EXR image';
       ExtsCount: 1; Exts: ('exr', '', '');
-      SaveRGB: nil;
-      Load: @LoadEXR;
-      HandledClasses: icG_GA_RGB_RGBA; )
+      Load: @LoadEXR; LoadedClasses: lcG_GA_RGB_RGBA;
+      Save: nil; SavedClasses: scRGB; )
   );
 
   DefaultSaveImageFormat: TImageFormat = ifBMP;
@@ -1470,31 +1457,31 @@ function LoadImage(const filename: string;
 type
   EUnableToSaveImage = class(Exception);
 
-{ SaveImage ktore pobiera jako parametr TImage. W zaleznosci od klasy Img :
+{ Save image to file.
 
-  TRGBImage - wybiera odpowiednie SaveXxx na podstawie Format,
-  TypeExt lub FileName (jezeli podales FileName to juz nie podajesz
-  Stream, naturalnie). Jesli rozszerzenie nie odpowiada niczemu co umiemy
-  zapisywac - sejwuje do formatu DefaultSaveImageFormat.
+  File format is determined by given FileName, filename extension (TypeExt)
+  or just given explicitly as Format parameter.
 
-  TRGBEImage - jezeli image format (zapisany implicite w FileName lub TypeExt)
-  = ifRGBE to zapisze obrazek uzywajac SaveRGBE(Img, fname),
-  a wiec precyzja zawarta w wewnetrznym formacie ikRGBE bedzie zapisana
-  w formacie pliku ifRGBE.
+  Img class does @bold(not)
+  affect the created image file format, on the assumption that the
+  "memory format" of the image (what TImage descendant is used)
+  can be orthogonal to the actual "file format" used to save this file.
+  (However, if you really want to make file format depending on the
+  memory format, ImageClassBestForSavingToFormat can be helpful.)
 
-  Jezeli image format <> ifRGBE to skonwertuje obrazek do RGB
-  (uzywajac TRGBEImage.ToRGBImage) i zapisze uzywajac SaveImage(TRGBImage,..).
-  Wiec precyzja zawarta w wewnetrznym formacie ikRGBE nie bedzie
-  zapisana w pliku, bo formaty inne niz ifRGBE nie pozwalaja na to.
+  Tries to write the image preserving it as closely as possible in this
+  image format. When it's not possible, according conversions may be done:
+  floating point precision of TRGBEImage may be lost (if saving
+  to any file format besides RGBE file), alpha channel may be lost,
+  grayscale may be expanded and such.
 
-  TODO: zrobic jakas ladniejsza forme, uwzgledniajaca fakt ze byc
-  moze kiedys zrobie jeszcze jakis format pliku (if) / lub obrazka
-  w pamieci (ik) ktore uznawalbym za precyzyjne na poziomie float.
-
-  TGrayscaleImage, TGrayscaleAlphaImage, TRGBAlphaImage
-  can be saved only to PNG format for now.
-  Wpp. rzuci wyjatek EUnableToSaveImage.
-  TODO: do it nicer, z podobnymi parametrami jak przy LoadImage.
+  Although not absolutely all conversions are implemented for now.
+  You can be sure that
+  all image formats (that allow any saving at all) can be saved
+  from TRGBImage. Also TRGBEImage can be saved to RGBE file.
+  Also PNG format supports full collection (grayscale/rgb, alpha/no alpha
+  are all perfectly possible in PNG file; and TRGBEImage will be just converted
+  to RGB before saving to PNG).
 
   @raises(EUnableToSaveImage When it's not possible to save image,
     because of Img class (memory format) and/or image file format.) }
@@ -2966,7 +2953,7 @@ begin
  for iff := Low(iff) to High(iff) do
  begin
   if ((not OnlyLoadable) or Assigned(ImageFormatInfos[iff].Load)) and
-     ((not OnlySaveable) or Assigned(ImageFormatInfos[iff].SaveRGB)) then
+     ((not OnlySaveable) or Assigned(ImageFormatInfos[iff].Save)) then
   for i := 1 to ImageFormatInfos[iff].extsCount do
    if fileext = ImageFormatInfos[iff].exts[i] then
    begin
@@ -3027,7 +3014,7 @@ begin
 
  for iff := Low(iff) to High(iff) do
   if ((not OnlyLoadable) or Assigned(ImageFormatInfos[iff].Load)) and
-     ((not OnlySaveable) or Assigned(ImageFormatInfos[iff].SaveRGB)) then
+     ((not OnlySaveable) or Assigned(ImageFormatInfos[iff].Save)) then
   begin
    { zwrocmy uwage ze nie chcemy doklejac nl na koncu (bo zalatwieniu
      sprawy z formatem iff) bo tam nie byloby zbyt wygodnie rozpoznawac
@@ -3050,7 +3037,7 @@ begin
 
  for iff := Low(iff) to High(iff) do
   if ((not OnlyLoadable) or Assigned(ImageFormatInfos[iff].Load)) and
-     ((not OnlySaveable) or Assigned(ImageFormatInfos[iff].SaveRGB)) then
+     ((not OnlySaveable) or Assigned(ImageFormatInfos[iff].Save)) then
   begin
    for i := 1 to ImageFormatInfos[iff].extsCount do
    begin
@@ -3135,8 +3122,8 @@ begin
     if Assigned(ImageFormatInfos[StreamFormat].Load) then
     begin
       Load := ImageFormatInfos[StreamFormat].Load;
-      case ImageFormatInfos[StreamFormat].HandledClasses of
-        icG_GA_RGB_RGBA:
+      case ImageFormatInfos[StreamFormat].LoadedClasses of
+        lcG_GA_RGB_RGBA:
           begin
             if ClassAllowed(TRGBImage) or
                ClassAllowed(TRGBAlphaImage) or
@@ -3151,7 +3138,7 @@ begin
             end else
               raise EInternalError.Create('LoadImage cannot load this image file format to requested class');
           end;
-        icRGB_RGBA:
+        lcRGB_RGBA:
           begin
             if ClassAllowed(TRGBImage) or
                ClassAllowed(TRGBAlphaImage) then
@@ -3166,7 +3153,7 @@ begin
             end else
               raise EInternalError.Create('LoadImage cannot load this image file format to requested class');
           end;
-        icRGB:
+        lcRGB:
           begin
             Result := Load(Stream, [TRGBImage], ForbiddenConvs);
             Assert(Result is TRGBImage);
@@ -3199,7 +3186,7 @@ begin
                 raise EInternalError.Create('LoadImage cannot load this image file format to requested class');
             end;
           end;
-        icRGB_RGBE:
+        lcRGB_RGBE:
           begin
             if ClassAllowed(TRGBEImage) or
                ClassAllowed(TRGBImage) then
@@ -3227,7 +3214,7 @@ begin
                 raise EInternalError.Create('LoadImage: RGBE format cannot be loaded to any of the known classes');
             end;
           end;
-        else raise EInternalError.Create('LoadImage: HandledClasses?');
+        else raise EInternalError.Create('LoadImage: LoadedClasses?');
       end;
     end else
     raise EImageFormatNotSupported.Create('Can''t load image format "'+
@@ -3287,42 +3274,54 @@ end;
 { SaveImage na TImage ---------------------------------------------------- }
 
 procedure SaveImage(const Img: TImage; const Format: TImageFormat; Stream: TStream);
-
-  procedure SaveRGB(const img: TRGBImage; const Format: TImageFormat; Stream: TStream);
-  begin
-   if Assigned(ImageFormatInfos[Format].SaveRGB) then
-    ImageFormatInfos[Format].SaveRGB(Img, Stream) else
-    raise EUnableToSaveImage.Create('Can''t save image format "'+
-      ImageFormatInfos[Format].FormatName +'"');
-  end;
-
-var ImgRGB: TRGBImage;
+var
+  ImgRGB: TRGBImage;
+  Save: TImageSaveFunc;
 begin
- if Img is TRGBImage then
-  SaveRGB(TRGBImage(Img), Format, Stream) else
-
- if Img is TRGBEImage then
- begin
-  if Format = ifRGBE then
-   SaveRGBE(Img, Stream) else
+  if Assigned(ImageFormatInfos[Format].Save) then
   begin
-   ImgRGB := TRGBEImage(Img).ToRGBImage;
-   try
-    SaveImage(ImgRGB, Format, Stream);
-   finally ImgRGB.Free end;
-  end;
- end else
-
- if (Img is TRGBAlphaImage) or
-    (Img is TGrayscaleImage) or
-    (Img is TGrayscaleAlphaImage) then
- begin
-  if Format = ifPNG then
-   SaveAnyPNG(Img, Stream, false) else
-   raise EUnableToSaveImage.Create('Saving image not possible: Can save images grayscale and/or with alpha channel images only to PNG');
- end else
-
-  raise EUnableToSaveImage.CreateFmt('Saving image class %s not implemented', [Img.ClassName]);
+    Save := ImageFormatInfos[Format].Save;
+    case ImageFormatInfos[Format].SavedClasses of
+      scRGB:
+        begin
+          if Img is TRGBImage then
+            Save(Img, Stream) else
+          if Img is TRGBEImage then
+          begin
+            ImgRGB := TRGBEImage(Img).ToRGBImage;
+            try
+              SaveImage(ImgRGB, Format, Stream);
+            finally ImgRGB.Free end;
+          end else
+            raise EUnableToSaveImage.CreateFmt('Saving image not possible: Cannot save image class %s to this format', [Img.ClassName]);
+        end;
+      scG_GA_RGB_RGBA:
+        begin
+          if (Img is TRGBImage) or
+             (Img is TRGBAlphaImage) or
+             (Img is TGrayscaleImage) or
+             (Img is TGrayscaleAlphaImage) then
+            Save(Img, Stream) else
+          if Img is TRGBEImage then
+          begin
+            ImgRGB := TRGBEImage(Img).ToRGBImage;
+            try
+              SaveImage(ImgRGB, Format, Stream);
+            finally ImgRGB.Free end;
+          end else
+            raise EUnableToSaveImage.CreateFmt('Saving image not possible: Cannot save image class %s to this format', [Img.ClassName]);
+        end;
+      scRGB_RGBE:
+        begin
+          if (Img is TRGBImage) or
+             (Img is TRGBEImage) then
+            Save(Img, Stream) else
+            raise EUnableToSaveImage.CreateFmt('Saving image not possible: Cannot save image class %s to this format', [Img.ClassName]);
+        end;
+      else raise EInternalError.Create('SaveImage: SavedClasses?');
+    end;
+  end else
+    raise EUnableToSaveImage.CreateFmt('Saving image class %s not implemented', [Img.ClassName]);
 end;
 
 procedure SaveImage(const img: TImage; const typeext: string; Stream: TStream);
@@ -3427,16 +3426,7 @@ begin
   begin
     if Assigned(ImageFormatInfos[Format].Load) then
       AddImageFormat(LoadImage_FileFilters, ImageFormatInfos[Format]);
-
-    { For SaveImage, the allowed formats list is specified implicitly
-      by SaveImage documentation.
-
-      For now, this means that SaveImage can save anything that can be saved
-      to RGB format and additionally directly handles RGBE and PNG image formats.
-      As it happens, these last two formats can also be saved directly from
-      RGB pixel format, so for now check below is simple. }
-
-    if Assigned(ImageFormatInfos[Format].SaveRGB) then
+    if Assigned(ImageFormatInfos[Format].Save) then
       AddImageFormat(SaveImage_FileFilters, ImageFormatInfos[Format]);
   end;
 end;

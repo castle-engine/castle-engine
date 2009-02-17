@@ -263,9 +263,9 @@ begin
  end;
 end;
 
-{ Save[Any]PNG --------------------------------------------------------------------- }
+{ SavePNG --------------------------------------------------------------------- }
 
-procedure SaveAnyPNG(const Img: TImage; Stream: TStream; Interlaced: boolean);
+procedure SavePNG(Img: TImage; Stream: TStream; Interlaced: boolean);
 var png_ptr: png_structp;
     info_ptr: png_infop;
     warningslist: TDynStringArray;
@@ -337,8 +337,7 @@ begin
  end;
 end;
 
-procedure SavePNG(const Img: TRGBImage; Stream: TStream; Interlaced: boolean);
-begin SaveAnyPNG(Img, Stream, Interlaced) end;
-
-procedure SavePNG(const Img: TRGBImage; Stream: TStream); { interlaced = false }
-begin SavePNG(Img, Stream, false) end;
+procedure SavePNG(Img: TImage; Stream: TStream); { interlaced = false }
+begin
+  SavePNG(Img, Stream, false)
+end;

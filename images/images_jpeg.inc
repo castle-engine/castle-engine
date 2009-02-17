@@ -31,7 +31,7 @@ begin
  finally MemS.Free end;
 end;
 
-procedure SaveJPEG(const img: TRGBImage; Stream: TStream; quality: integer);
+procedure SaveJPEG(Img: TImage; Stream: TStream; quality: integer);
 var MemS: TMemoryStream;
 begin
  MemS := TMemoryStream.Create;
@@ -42,5 +42,5 @@ begin
  finally MemS.Free end;
 end;
 
-procedure SaveJPEG(const img: TRGBImage; Stream: TStream); { quality = 90 }
+procedure SaveJPEG(Img: TImage; Stream: TStream); { quality = 90 }
 begin SaveJPEG(img, Stream, 90) end;

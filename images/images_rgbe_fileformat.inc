@@ -214,13 +214,13 @@ begin
   except Result.Free; raise end;
 end;
 
-procedure SaveRGBE(const Img: TImage; Stream: TStream);
+procedure SaveRGBE(Img: TImage; Stream: TStream);
 var pPixelRGB: PVector3Byte;
     x, y: Integer;
     rgbe: TVector4Byte;
 begin
- Check((Img is TRGBImage) or (Img is TRGBEImage),
-   'SaveRGBE can only save RGB or RGBE image');
+ if not ((Img is TRGBImage) or (Img is TRGBEImage)) then
+   raise EUnableToSaveImage.CreateFmt('Saving to RGBE image class %s not possible', [Img.ClassName]);
 
  WriteStr(Stream,'#?RADIANCE'#10+
                  'FORMAT=32-bit_rle_rgbe'#10+
@@ -233,7 +233,7 @@ begin
    Ale nie wszystkie programy umieja odczytywac obrazki zapisane w orientacji
    innej niz (-Y, +X) (nie umie nawet ximage Radiance'a ani display z
    ImageMagicka wiec prawde mowiac w ogole nie wiem jaki program umie;
-   chyba tylko moj wlasny glViewImage, o ile to napisze. }
+   moje wlasne tez nie, I didn't implement it since it's not used by anything. }
 
  if Img is TRGBImage then
  begin

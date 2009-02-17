@@ -138,10 +138,13 @@ begin
  end;
 end;
 
-procedure SavePPM(const img: TRGBImage; Stream: TStream; binary: boolean);
+procedure SavePPM(Img: TImage; Stream: TStream; Binary: boolean);
 var line: PArray_Vector3Byte;
     x, y: cardinal;
 begin
+  if not (Img is TRGBImage) then
+    raise EUnableToSaveImage.CreateFmt('Saving to PPM image class %s not possible', [Img.ClassName]);
+
  {najbezpieczniej w ppm uzywac znakow konca linii #10.
   To dlatego ze po MaxColVal wymagany jest DOKLADNIE jeden bialy znak. }
  if binary then
@@ -167,5 +170,5 @@ begin
  end;
 end;
 
-procedure SavePPM(const img: TRGBImage; Stream: TStream); { binary = true }
+procedure SavePPM(Img: TImage; Stream: TStream); { binary = true }
 begin SavePPM(img, Stream, true) end;

@@ -298,13 +298,16 @@ begin
  end;
 end;
 
-procedure SaveBMP(const Img: TRGBImage; Stream: TStream);
+procedure SaveBMP(Img: TImage; Stream: TStream);
 var fhead: TBitmapFileHeader;
     ihead: TBitmapInfoHeader;
     i, j, rowPaddedLength, PadSize: cardinal;
     p :PVector3Byte;
     row, rowdata :PRGB_BMP24;
 begin
+  if not (Img is TRGBImage) then
+    raise EUnableToSaveImage.CreateFmt('Saving to BMP image class %s not possible', [Img.ClassName]);
+
  rowPaddedLength := img.Width*SizeOf(TRGB_BMP24);
  if rowPaddedLength mod 4 <> 0 then
   padsize := 4-rowPaddedLength mod 4 else
@@ -337,7 +340,7 @@ begin
  try
   for j := 0 to img.Height-1 do
   begin
-   p := Img.PixelPtr(0, j);
+   p := PVector3Byte(Img.PixelPtr(0, j));
    row := rowdata;
    for i := 0 to img.Width - 1 do
    begin
