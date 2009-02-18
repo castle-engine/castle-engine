@@ -188,7 +188,7 @@ type
     Flags: LongWord;
     Height: LongWord;
     Width: LongWord;
-    LinearSize: LongWord;
+    PitchOrLinearSize: LongWord;
     Depth: LongWord;
     MipMapCount: LongWord;
     Reserved: array [0 .. 10] of LongWord;
@@ -269,12 +269,12 @@ var
     begin
       Result := TRGBImage.Create(Width, Height);
 
-      { Header.LinearSize for uncompressed texture may indicate row length
-        in bytes. This is useful to indicate padding of lines.
+      { Header.PitchOrLinearSize for uncompressed texture may indicate
+        row length (pitch) in bytes. This is useful to indicate padding of lines.
         I understand that otherwise I should assume lines are not padded? }
-      if (Header.Flags and DDSD_LINEARSIZE <> 0) and
-         (Header.LinearSize <> 0) then
-        RowBytePadding := Max(Header.LinearSize - Result.PixelSize * Width, 0) else
+      if (Header.Flags and DDSD_PITCH <> 0) and
+         (Header.PitchOrLinearSize <> 0) then
+        RowBytePadding := Max(Header.PitchOrLinearSize - Result.PixelSize * Width, 0) else
         RowBytePadding := 0;
 
       for Y := Height - 1 downto 0 do
@@ -307,12 +307,12 @@ var
     begin
       Result := TRGBAlphaImage.Create(Width, Height);
 
-      { Header.LinearSize for uncompressed texture may indicate row length
+      { Header.PitchOrLinearSize for uncompressed texture may indicate row length
         in bytes. This is useful to indicate padding of lines.
         I understand that otherwise I should assume lines are not padded? }
-      if (Header.Flags and DDSD_LINEARSIZE <> 0) and
-         (Header.LinearSize <> 0) then
-        RowBytePadding := Max(Header.LinearSize - Result.PixelSize * Width, 0) else
+      if (Header.Flags and DDSD_PITCH <> 0) and
+         (Header.PitchOrLinearSize <> 0) then
+        RowBytePadding := Max(Header.PitchOrLinearSize - Result.PixelSize * Width, 0) else
         RowBytePadding := 0;
 
       for Y := Height - 1 downto 0 do
