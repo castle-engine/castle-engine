@@ -1075,6 +1075,14 @@ function LoadRGBE(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
 
+{ Load DDS image file into a single 2D image. This simply returns the first
+  image found in DDS file, which should be the main image.
+  If you want to investigate other images in DDS, you have to use TDDSImage
+  class. }
+function LoadDDS(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
+
 { saving image (format-specific) --------------------------------------------
 
   SaveXxx. Each file format may have specialized SaveXxx that allows
@@ -1112,7 +1120,7 @@ procedure SaveRGBE(Img: TImage; Stream: TStream);
 type
   { }
   TImageFormat = (ifBMP, ifPNG, ifJPEG, ifPCX, ifPPM, ifIPL, ifRGBE,
-    ifGIF, ifTGA, ifSGI, ifTIFF, ifJP2, ifEXR);
+    ifGIF, ifTGA, ifSGI, ifTIFF, ifJP2, ifEXR, ifDDS);
   TImageFormats = set of TImageFormat;
 
   TImageLoadFunc = function (Stream: TStream;
@@ -1264,6 +1272,11 @@ const
     ( FormatName: 'EXR image';
       ExtsCount: 1; Exts: ('exr', '', '');
       Load: @LoadEXR; LoadedClasses: lcG_GA_RGB_RGBA;
+      Save: nil; SavedClasses: scRGB; ),
+    { Direct Draw Surface } { }
+    ( FormatName: 'DDS image';
+      ExtsCount: 1; Exts: ('dds', '', '');
+      Load: @LoadDDS; LoadedClasses: lcRGB_RGBA;
       Save: nil; SavedClasses: scRGB; )
   );
 
@@ -1489,7 +1502,7 @@ var
 implementation
 
 uses ProgressUnit, KambiClassUtils, KambiStringUtils, KambiFilesUtils,
-  DataErrors;
+  DataErrors, DDS;
 
 { image loading utilities --------------------------------------------------- }
 
@@ -1575,6 +1588,7 @@ end;
 {$I images_ipl.inc}
 {$I images_rgbe_fileformat.inc}
 {$I images_external_tool.inc}
+{$I images_dds.inc}
 
 { Colors ------------------------------------------------------------------ }
 

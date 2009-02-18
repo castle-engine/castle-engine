@@ -71,6 +71,8 @@ type
 
     { Valid only when image is loaded and is dtVolume. }
     FDepth: Cardinal;
+
+    FOwnsFirstImage: boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -113,6 +115,14 @@ type
       loaded by LoadFromStream, reverting the object to the state right
       after creation. }
     procedure Close;
+
+    { When @false, then closing this DDS image will not free Images[0].
+      Closing happens when you call the @link(Close) method or
+      destructor of this object. When this is @false, you're responsible
+      to storing and freeing Images[0] later yourself, or you'll get memory
+      leaks. }
+    property OwnsFirstImage: boolean read FOwnsFirstImage write FOwnsFirstImage
+      default true;
   end;
 
 implementation
@@ -194,6 +204,7 @@ type
 constructor TDDSImage.Create;
 begin
   inherited;
+  FOwnsFirstImage := true;
 end;
 
 destructor TDDSImage.Destroy;
@@ -207,7 +218,8 @@ var
   I: Integer;
 begin
   for I := 0 to Length(FImages) - 1 do
-    FreeAndNil(FImages[I]);
+    if OwnsFirstImage or (I <> 0) then
+      FreeAndNil(FImages[I]);
   SetLength(FImages, 0);
 end;
 
@@ -239,7 +251,8 @@ var
   Magic: array [0 .. 3] of char;
   RowBytePadding: Integer;
   X, Y: Integer;
-  Row: PVector3Byte;
+  Row3: PVector3Byte;
+  Row4: PVector4Byte;
 begin
   try
     Stream.ReadBuffer(Magic, SizeOf(Magic));
@@ -306,14 +319,14 @@ begin
 
     Check(Header.PixelFormat.Size = SizeOf(Header.PixelFormat), 'Incorrect size of DDS pixel format record');
 
-    { TODO: only R8G8B8 uncompressed format is supported, temporarily }
+    { Handle R8G8B8 uncompressed format. }
     if (Header.PixelFormat.Flags and DDPF_RGB <> 0) and
        (Header.PixelFormat.Flags and DDPF_FOURCC = 0) and
        (Header.PixelFormat.Flags and DDPF_ALPHAPIXELS = 0) and
        (Header.PixelFormat.RGBBitCount = 24) and
-       (Header.PixelFormat.RBitMask = $FF0000) and
-       (Header.PixelFormat.GBitMask = $00FF00) and
-       (Header.PixelFormat.BBitMask = $0000FF) then
+       (Header.PixelFormat.RBitMask = $ff0000) and
+       (Header.PixelFormat.GBitMask = $00ff00) and
+       (Header.PixelFormat.BBitMask = $0000ff) then
     begin
       { TODO: read just the 1st image for now, always as TRGBImage for now }
       SetLength(FImages, 1);
@@ -324,20 +337,59 @@ begin
         I understand that otherwise I should assume lines are not padded? }
       if (Header.Flags and DDSD_LINEARSIZE <> 0) and
          (Header.LinearSize <> 0) then
-        RowBytePadding := Max(Header.LinearSize - 3 * Width, 0) else
+        RowBytePadding := Max(Header.LinearSize - FImages[0].PixelSize * Width, 0) else
         RowBytePadding := 0;
 
       for Y := Height - 1 downto 0 do
       begin
-        Row := FImages[0].RowPtr(Y);
-        Stream.ReadBuffer(Row^, 3 * Width);
+        Row3 := FImages[0].RowPtr(Y);
+        Stream.ReadBuffer(Row3^, FImages[0].PixelSize * Width);
 
         { Now invert red and blue. (Since all masks are little-endian,
           RBitMask = $FF0000 means that red is the 3rd (not 1st) byte...) }
         for X := 0 to Width - 1 do
         begin
-          SwapValues(Row^[2], Row^[0]);
-          Inc(Row);
+          SwapValues(Row3^[2], Row3^[0]);
+          Inc(Row3);
+        end;
+
+        if RowBytePadding <> 0 then
+          Stream.Seek(RowBytePadding, soFromCurrent);
+      end;
+    end else
+    { Handle A8R8G8B8 uncompressed format. }
+    if (Header.PixelFormat.Flags and DDPF_RGB <> 0) and
+       (Header.PixelFormat.Flags and DDPF_FOURCC = 0) and
+       (Header.PixelFormat.Flags and DDPF_ALPHAPIXELS <> 0) and
+       (Header.PixelFormat.RGBBitCount = 32) and
+       (Header.PixelFormat.ABitMask = $ff000000) and
+       (Header.PixelFormat.RBitMask = $00ff0000) and
+       (Header.PixelFormat.GBitMask = $0000ff00) and
+       (Header.PixelFormat.BBitMask = $000000ff) then
+    begin
+      { TODO: read just the 1st image for now, always as TRGBImage for now }
+      SetLength(FImages, 1);
+      FImages[0] := TRGBAlphaImage.Create(Width, Height);
+
+      { Header.LinearSize for uncompressed texture may indicate row length
+        in bytes. This is useful to indicate padding of lines.
+        I understand that otherwise I should assume lines are not padded? }
+      if (Header.Flags and DDSD_LINEARSIZE <> 0) and
+         (Header.LinearSize <> 0) then
+        RowBytePadding := Max(Header.LinearSize - FImages[0].PixelSize * Width, 0) else
+        RowBytePadding := 0;
+
+      for Y := Height - 1 downto 0 do
+      begin
+        Row4 := FImages[0].RowPtr(Y);
+        Stream.ReadBuffer(Row4^, FImages[0].PixelSize * Width);
+
+        { Now invert BGRA to ARGB. (Since all masks are little-endian). }
+        for X := 0 to Width - 1 do
+        begin
+          SwapValues(Row4^[3], Row4^[0]);
+          SwapValues(Row4^[2], Row4^[1]);
+          Inc(Row4);
         end;
 
         if RowBytePadding <> 0 then
