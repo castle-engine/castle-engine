@@ -261,6 +261,7 @@ var
     if (Header.PixelFormat.Flags and DDPF_RGB <> 0) and
        (Header.PixelFormat.Flags and DDPF_FOURCC = 0) and
        (Header.PixelFormat.Flags and DDPF_ALPHAPIXELS = 0) and
+       (Header.PixelFormat.Flags and DDPF_PALETTEINDEXED8 = 0) and
        (Header.PixelFormat.RGBBitCount = 24) and
        (Header.PixelFormat.RBitMask = $ff0000) and
        (Header.PixelFormat.GBitMask = $00ff00) and
@@ -297,6 +298,7 @@ var
     if (Header.PixelFormat.Flags and DDPF_RGB <> 0) and
        (Header.PixelFormat.Flags and DDPF_FOURCC = 0) and
        (Header.PixelFormat.Flags and DDPF_ALPHAPIXELS <> 0) and
+       (Header.PixelFormat.Flags and DDPF_PALETTEINDEXED8 = 0) and
        (Header.PixelFormat.RGBBitCount = 32) and
        (Header.PixelFormat.ABitMask = $ff000000) and
        (Header.PixelFormat.RBitMask = $00ff0000) and
@@ -331,7 +333,7 @@ var
       end;
     end else
     begin
-      raise EInvalidDDS.CreateFmt('Unsupported pixel format for DDS: uncompressed RGB = %s (%d bits), alpha = %s, compressed = %s (fourcc: %s%s%s%s), R/G/B/AMask = %s/%s/%s/%s',
+      raise EInvalidDDS.CreateFmt('Unsupported pixel format for DDS: uncompressed RGB = %s (%d bits), alpha = %s, compressed = %s (fourcc: %s%s%s%s), palette = %s, R/G/B/AMask = %s/%s/%s/%s',
         [ BoolToStr[Header.PixelFormat.Flags and DDPF_RGB <> 0],
           Header.PixelFormat.RGBBitCount,
           BoolToStr[Header.PixelFormat.Flags and DDPF_ALPHAPIXELS <> 0],
@@ -340,6 +342,7 @@ var
           SReadableForm(Header.PixelFormat.FourCC[1]),
           SReadableForm(Header.PixelFormat.FourCC[2]),
           SReadableForm(Header.PixelFormat.FourCC[3]),
+          BoolToStr[Header.PixelFormat.Flags and DDPF_PALETTEINDEXED8 <> 0],
           IntToHex(Header.PixelFormat.RBitMask, 8),
           IntToHex(Header.PixelFormat.GBitMask, 8),
           IntToHex(Header.PixelFormat.BBitMask, 8),
