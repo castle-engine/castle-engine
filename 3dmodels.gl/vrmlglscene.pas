@@ -323,6 +323,20 @@ type
 
     { Private things only for RenderFrustumOctree ---------------------- }
     RenderFrustumOctree_Visible: boolean;
+
+    EnableDisplayListValid: boolean;
+    FEnableDisplayList: boolean;
+  public
+    procedure Changed; override;
+
+    { Can this shape be stored in a display list.
+
+      If @false then rendering of this shape cannot be stored
+      inside a display list, it must be passed to TVRMLOpenGLRenderer
+      in each frame. This is basically a hack to render some nodes that
+      change too dynamically to store them in display list.
+      For now, it's forced to @false on nodes using MovieTexture. }
+    function EnableDisplayList: boolean;
   end;
 
 type
@@ -1332,6 +1346,41 @@ uses VRMLErrors, GLVersionUnit, GLImages, Images, KambiLog,
 {$define read_implementation}
 {$I objectslist_1.inc}
 {$I dynarray_1.inc}
+
+{ TVRMLGLShape --------------------------------------------------------------- }
+
+function TVRMLGLShape.EnableDisplayList: boolean;
+var
+  I: Integer;
+  T: TNodeX3DTextureNode;
+begin
+  if not EnableDisplayListValid then
+  begin
+    { calculate EnableDisplayList.
+      If texture is MovieTexture, or it's MultiTexture containing
+      MovieTexture as a child, then disable display lists. }
+    FEnableDisplayList := true;
+    T := State.Texture;
+    if T is TNodeMovieTexture then
+      FEnableDisplayList := false else
+    if T is TNodeMultiTexture then
+    begin
+      for I := 0 to TNodeMultiTexture(T).FdTexture.Count - 1 do
+        if TNodeMultiTexture(T).FdTexture.Items[I] is TNodeMovieTexture then
+          FEnableDisplayList := false;
+    end;
+
+    EnableDisplayListValid := true;
+  end;
+
+  Result := FEnableDisplayList;
+end;
+
+procedure TVRMLGLShape.Changed;
+begin
+  inherited;
+  EnableDisplayListValid := false;
+end;
 
 { ------------------------------------------------------------ }
 

@@ -157,7 +157,6 @@ type
     FState: TVRMLGraphTraverseState;
     FBoundingSphereCenter: TVector3Single;
     FBoundingSphereRadiusSqr: Single;
-    FEnableDisplayList: boolean;
 
     procedure ValidateBoundingSphere;
 
@@ -221,16 +220,6 @@ type
     function BoundingSphereCenter: TVector3Single;
     function BoundingSphereRadiusSqr: Single;
 
-    { This is an information for the TVRMLGLScene renderer
-      whether this can be stored in a display list.
-
-      If @false then rendering of this shape cannot be stored
-      inside a display list, it must be passed to TVRMLOpenGLRenderer
-      in each frame. This is basically a hack to render some nodes that
-      change too dynamically to store them in display list.
-      For now, it's forced to @false on nodes using MovieTexture. }
-    function EnableDisplayList: boolean;
-
     { This is exactly equivalent to getting
       @link(BoundingSphereCenter) and @link(BoundingSphereRadiusSqr)
       and then using @link(TFrustum.SphereCollisionPossible).
@@ -250,7 +239,7 @@ type
     function FrustumBoundingSphereCollisionPossibleSimple(
       const Frustum: TFrustum): boolean;
 
-    procedure Changed;
+    procedure Changed; virtual;
 
     { The dynamic octree containing all triangles.
       It contains only triangles within this shape.
@@ -658,32 +647,6 @@ begin
   {$define PRECALC_VALUE := FTrianglesCountOver}
   PRECALC_VALUE_RETURN
  end;
-end;
-
-function TVRMLShape.EnableDisplayList: boolean;
-var
-  I: Integer;
-  T: TNodeX3DTextureNode;
-begin
-  if not (svEnableDisplayList in Validities) then
-  begin
-    { calculate EnableDisplayList.
-      If texture is MovieTexture, or it's MultiTexture containing
-      MovieTexture as a child, then disable display lists. }
-    FEnableDisplayList := true;
-    T := State.Texture;
-    if T is TNodeMovieTexture then
-      FEnableDisplayList := false else
-    if T is TNodeMultiTexture then
-    begin
-      for I := 0 to TNodeMultiTexture(T).FdTexture.Count - 1 do
-        if TNodeMultiTexture(T).FdTexture.Items[I] is TNodeMovieTexture then
-          FEnableDisplayList := false;
-    end;
-
-    Include(Validities, svEnableDisplayList);
-  end;
-  Result := FEnableDisplayList;
 end;
 
 procedure TVRMLShape.Changed;
