@@ -334,8 +334,7 @@ type
       If @false then rendering of this shape cannot be stored
       inside a display list, it must be passed to TVRMLOpenGLRenderer
       in each frame. This is basically a hack to render some nodes that
-      change too dynamically to store them in display list.
-      For now, it's forced to @false on nodes using MovieTexture. }
+      change too dynamically to store them in display list. }
     function EnableDisplayList: boolean;
   end;
 
@@ -1350,16 +1349,21 @@ uses VRMLErrors, GLVersionUnit, GLImages, Images, KambiLog,
 { TVRMLGLShape --------------------------------------------------------------- }
 
 function TVRMLGLShape.EnableDisplayList: boolean;
+const
+  SWorldSpaceReflectionVector = 'WORLDSPACEREFLECTIONVECTOR';
 var
   I: Integer;
   T: TNodeX3DTextureNode;
+  MulTexC: TVRMLNodesList;
+  TexCoord: TVRMLNode;
 begin
   if not EnableDisplayListValid then
   begin
-    { calculate EnableDisplayList.
-      If texture is MovieTexture, or it's MultiTexture containing
-      MovieTexture as a child, then disable display lists. }
+    { calculate EnableDisplayList }
     FEnableDisplayList := true;
+
+    { If texture is MovieTexture, or it's MultiTexture containing
+      MovieTexture as a child, then disable display lists. }
     T := State.Texture;
     if T is TNodeMovieTexture then
       FEnableDisplayList := false else
@@ -1368,6 +1372,33 @@ begin
       for I := 0 to TNodeMultiTexture(T).FdTexture.Count - 1 do
         if TNodeMultiTexture(T).FdTexture.Items[I] is TNodeMovieTexture then
           FEnableDisplayList := false;
+    end;
+
+    if FEnableDisplayList then
+    begin
+      { If texture coord is TextureCoordinateGenerator node
+        with mode = "WORLDSPACEREFLECTIONVECTOR", or if it's
+        MultiTextureCoordinate with such item as a child,
+        then disable display lists. }
+      if Geometry.TexCoord(State, TexCoord) and
+         (TexCoord <> nil) then
+      begin
+        if TexCoord is TNodeTextureCoordinateGenerator then
+        begin
+          if TNodeTextureCoordinateGenerator(TexCoord).FdMode.Value = SWorldSpaceReflectionVector then
+            FEnableDisplayList := false;
+        end else
+        if TexCoord is TNodeMultiTextureCoordinate then
+        begin
+          MulTexC := TNodeMultiTextureCoordinate(TexCoord).FdTexCoord.Items;
+          for I := 0 to MulTexC.Count - 1 do
+          begin
+            if (MulTexC[I] is TNodeTextureCoordinateGenerator) and
+               (TNodeTextureCoordinateGenerator(MulTexC[I]).FdMode.Value = SWorldSpaceReflectionVector) then
+              FEnableDisplayList := false;
+          end;
+        end;
+      end;
     end;
 
     EnableDisplayListValid := true;

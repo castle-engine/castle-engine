@@ -1074,7 +1074,6 @@ begin
   ANode := Geometry as TNodeIndexedFaceSet_1;
 
   TexCoordIndex := ANode.FdTextureCoordIndex;
-  TexCoord := State.LastNodes.TextureCoordinate2;
 
   MaterialIndex := ANode.FdMaterialIndex;
   MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
@@ -1115,7 +1114,6 @@ begin
   ANode := Geometry as TNodeIndexedFaceSet_2;
 
   TexCoordIndex := ANode.FdTexCoordIndex;
-  TexCoord := ANode.FdTexCoord.Value;
 
   Normals := ANode.NormalItems;
   if Normals <> nil then

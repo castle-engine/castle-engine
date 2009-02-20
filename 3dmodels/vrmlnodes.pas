@@ -2450,6 +2450,19 @@ type
       State: TVRMLGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); virtual;
 
+    { Return node's list of texture coordinates. Returns @false if node
+      cannot have texture coordinates.
+
+      Returns @true and sets ATexCoord to a node defining texture coords.
+      ATexCoord may be set to TNodeX3DTextureCoordinateNode descendant or
+      to TNodeTextureCoordinate2 (latter one only for VRML <= 1.0).
+      ATexCoord can also be set to @nil in this case, which means that
+      this node has a field for texCoord, but it's empty right now.
+
+      In base TVRMLGeometryNode class this always returns @false. }
+    function TexCoord(State: TVRMLGraphTraverseState;
+      out ATexCoord: TVRMLNode): boolean; virtual;
+
     { Converts this node to another node class that may be better supported.
 
       Typically, converts some complex geometry node (like
@@ -2462,7 +2475,7 @@ type
       a working and easy fallback.
 
       In the base TVRMLGeometryNode class, returns @nil indicating
-      that no conversion it known. }
+      that no conversion is known. }
     function Proxy: TVRMLGeometryNode; virtual;
   end;
 
@@ -6240,6 +6253,12 @@ procedure TVRMLGeometryNode.CoordPolygons(
   PolygonHandler: TIndexedPolygonHandler);
 begin
   { Nothing to do in this class. }
+end;
+
+function TVRMLGeometryNode.TexCoord(State: TVRMLGraphTraverseState;
+  out ATexCoord: TVRMLNode): boolean;
+begin
+  Result := false;
 end;
 
 function TVRMLGeometryNode.Proxy: TVRMLGeometryNode;

@@ -317,8 +317,11 @@ type
 
     Usage:
 
-    - Set TexCoord, if available. Don't worry, we will automatically
-      check TexCoord class, and do something useful with it only if we can.
+    - TexCoord is already set from TVRMLGeometryNode.TexCoord,
+      so just be sure it's overriden for your Geometry node class.
+
+      Don't worry, we will automatically check TexCoord class,
+      and do something useful with it only if we can.
       When TexCoord = @nil,
       then we'll generate default texture coordinates,
       following VRML 2.0 / X3D IndexedFaceSet default texture coord algorithm.
@@ -387,8 +390,9 @@ type
       (that is, Renderer.FirstGLFreeTexture), and so on. }
     TexCoordGen: array of TTextureCoordinateGeneration;
     TexCoordArray: array of TMFVec2f;
-  protected
+
     TexCoord: TVRMLNode;
+  protected
     TexCoordIndex: TMFLong;
 
     { Return texture coordinate for given vertex, identified by IndexNum.
@@ -407,6 +411,8 @@ type
 
     procedure RenderCoordinateBegin; override;
     procedure RenderCoordinateEnd; override;
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
   TMaterials1Implementation = (miOverall,
@@ -969,6 +975,13 @@ end;
   - maybe move NodeTextured here now? We can query created mesh renderer
     before calling it's render!
 }
+
+constructor TAbstractTexCoordinateRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+begin
+  inherited;
+  if not Geometry.TexCoord(State, TexCoord) then
+    TexCoord := nil;
+end;
 
 procedure TAbstractTexCoordinateRenderer.RenderCoordinateBegin;
 var

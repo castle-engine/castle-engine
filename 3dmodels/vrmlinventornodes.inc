@@ -29,6 +29,9 @@
     procedure CoordPolygons(
       State: TVRMLGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
+
+    function TexCoord(State: TVRMLGraphTraverseState;
+      out ATexCoord: TVRMLNode): boolean; override;
   end;
 
   { RotationXYZ node from Inventor. It's not in VRML 1.0 spec.
@@ -52,7 +55,14 @@
 {$ifdef read_implementation}
 class function TNodeIndexedTriangleMesh_1.ClassNodeTypeName: string;
 begin
- result := 'IndexedTriangleMesh';
+  result := 'IndexedTriangleMesh';
+end;
+
+function TNodeIndexedTriangleMesh_1.TexCoord(State: TVRMLGraphTraverseState;
+  out ATexCoord: TVRMLNode): boolean;
+begin
+  Result := true;
+  ATexCoord := State.LastNodes.TextureCoordinate2;
 end;
 
 constructor TNodeRotationXYZ.Create(const ANodeName: string; const AWWWBasePath: string);

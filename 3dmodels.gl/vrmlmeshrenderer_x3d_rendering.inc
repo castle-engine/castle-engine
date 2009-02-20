@@ -208,7 +208,6 @@ constructor TTriangleSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
 begin
   inherited;
 
-  TexCoord := (Geometry as TNodeX3DComposedGeometryNode).FdTexCoord.Value;
   Color := (Geometry as TNodeX3DComposedGeometryNode).Color;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
@@ -297,7 +296,6 @@ constructor TTriangleFanSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
 begin
   inherited;
 
-  TexCoord := (Geometry as TNodeX3DComposedGeometryNode).FdTexCoord.Value;
   Color := (Geometry as TNodeX3DComposedGeometryNode).Color;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
@@ -407,7 +405,6 @@ constructor TTriangleStripSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
     ANode := Geometry as TNodeIndexedTriangleMesh_1;
 
     TexCoordIndex := ANode.FdTextureCoordIndex;
-    TexCoord := State.LastNodes.TextureCoordinate2;
 
     MaterialIndex := ANode.FdMaterialIndex;
     MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
@@ -445,7 +442,6 @@ begin
 
   { Rest of this constructor initializes for X3D [Indexed]TriangleStripSet }
 
-  TexCoord := (Geometry as TNodeX3DComposedGeometryNode).FdTexCoord.Value;
   Color := (Geometry as TNodeX3DComposedGeometryNode).Color;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
@@ -552,7 +548,6 @@ constructor TQuadSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
 begin
   inherited;
 
-  TexCoord := (Geometry as TNodeX3DComposedGeometryNode).FdTexCoord.Value;
   Color := (Geometry as TNodeX3DComposedGeometryNode).Color;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
@@ -667,7 +662,6 @@ begin
   Node := Geometry as TNodeIndexedLineSet_1;
 
   TexCoordIndex := Node.FdTextureCoordIndex;
-  TexCoord := State.LastNodes.TextureCoordinate2;
 
   MaterialIndex := Node.FdMaterialIndex;
   MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;

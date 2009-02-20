@@ -176,12 +176,18 @@
 
     private FFdRadianceTransfer: TMFVec3f;
     public property FdRadianceTransfer: TMFVec3f read FFdRadianceTransfer;
+
+    function TexCoord(State: TVRMLGraphTraverseState;
+      out ATexCoord: TVRMLNode): boolean; override;
   end;
 
   TNodeIndexedLineSet_1 = class(TVRMLIndexedNode_1)
     class function ClassNodeTypeName: string; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+
+    function TexCoord(State: TVRMLGraphTraverseState;
+      out ATexCoord: TVRMLNode): boolean; override;
   end;
 
   TNodePointSet_1 = class(TVRMLGeometryNode_1)
@@ -1076,9 +1082,23 @@ begin
   result := 'IndexedFaceSet';
 end;
 
+function TNodeIndexedFaceSet_1.TexCoord(State: TVRMLGraphTraverseState;
+  out ATexCoord: TVRMLNode): boolean;
+begin
+  Result := true;
+  ATexCoord := State.LastNodes.TextureCoordinate2;
+end;
+
 class function TNodeIndexedLineSet_1.ClassNodeTypeName: string;
 begin
   result := 'IndexedLineSet';
+end;
+
+function TNodeIndexedLineSet_1.TexCoord(State: TVRMLGraphTraverseState;
+  out ATexCoord: TVRMLNode): boolean;
+begin
+  Result := true;
+  ATexCoord := State.LastNodes.TextureCoordinate2;
 end;
 
 constructor TNodePointSet_1.Create(const ANodeName: string; const AWWWBasePath: string);
