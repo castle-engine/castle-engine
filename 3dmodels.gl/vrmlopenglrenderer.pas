@@ -1574,7 +1574,7 @@ var
 
 implementation
 
-uses NormalsCalculator, Math, Triangulator, NormalizationCubeMap,
+uses Math, Triangulator, NormalizationCubeMap,
   KambiStringUtils, GLVersionUnit, KambiLog, KambiClassUtils,
   VRMLGeometry, VRMLScene;
 

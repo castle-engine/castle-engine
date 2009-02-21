@@ -760,22 +760,19 @@ begin
   begin
     if CreaseAngle >= Pi then
     begin
-      Normals := CreateSmoothNormalsCoordinateNode(Geometry, State, true);
+      Normals := Shape.NormalsSmooth;
       NorImplementation := niPerVertexCoordIndexed;
     end else
     begin
-      Normals := CreateNormals(
-        CoordIndex.Items, Coord.Items, CreaseAngle, true);
+      Normals := Shape.NormalsCreaseAngle(CreaseAngle);
       NorImplementation := niPerVertexNonIndexed;
     end;
   end else
   begin
-    Normals := CreateFlatNormals(
-      CoordIndex.Items, Coord.Items, true);
+    Normals := Shape.NormalsFlat;
     NorImplementation := niPerFace;
   end;
   NormalsCcw := true; { always generated from CCW }
-  NormalsFree := true;
 end;
 
 procedure TIndexedFaceSetRenderer.RenderCoordinateEnd;

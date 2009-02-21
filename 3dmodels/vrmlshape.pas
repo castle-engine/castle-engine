@@ -54,7 +54,12 @@ type
   TVRMLShapeValidities = set of (svLocalBBox, svBBox,
     svVerticesCountNotOver,  svVerticesCountOver,
     svTrianglesCountNotOver, svTrianglesCountOver,
-    svBoundingSphere, svEnableDisplayList);
+    svBoundingSphere, svEnableDisplayList,
+    svNormals);
+
+  { Internal type for TVRMLShape
+    @exclude }
+  TVRMLShapeNormalsCached = (ncSmooth, ncFlat, ncCreaseAngle);
 
   { Possible spatial structure types that may be managed by TVRMLShape,
     see TVRMLShape.Spatial. }
@@ -187,6 +192,14 @@ type
     MailboxIntersectionDistance: Single;
     { @groupEnd }
     {$endif}
+
+    { Meaningful only when svNormals in Validities.
+      Normals may be assigned only if svNormals in Validities. }
+    FNormalsCached: TVRMLShapeNormalsCached;
+    FNormals: TDynVector3SingleArray;
+    { Meaningful only when svNormals in Validities and
+      NormalsCached = ncCreaseAngle. }
+    FNormalsCreaseAngle: Single;
   public
     constructor Create(AParentScene: TObject;
       AGeometry: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
@@ -296,7 +309,20 @@ type
       write FTriangleOctreeProgressTitle;
     { @groupEnd }
 
-    { Update octree, if initialized. }
+    { Called by parent scene when local geometry changed.
+
+      "Local" means that we're concerned here about changes visible
+      in shape local coordinate system. E.g. things that only change our
+      transformation (State.Transform) do not cause "local" geometry changes.
+
+      "Geometry" means that we're concerned only about changes to topology
+      --- vertexes, edges, faces, how they connect each other.
+      Things that affect only appearance (e.g. whole Shape.appearance content
+      in stuff for VRML >= 2.0) is not relevant here. E.g. changing
+      material color does not cause "local" geometry changes
+
+      For now, this updates octree, if initialized.
+      Also removes cached normals. }
     procedure LocalGeometryChanged;
 
     { Internally used by TVRMLScene. Says if local geometry change is scheduled
@@ -362,6 +388,43 @@ type
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+
+    { Create normals suitable for this shape.
+
+      You can call this only for coordinate-based VRML geometry,
+      implementing Coord and having non-empty coordinates (that is,
+      Geometry.Coord returns @true and sets ACoord <> @nil), and having
+      Geometry.CoordIndex <> @nil.
+
+      @unorderedList(
+        @item(Smooth normals are perfectly smooth.
+          They are per-vertex, calculated by CreateSmoothNormalsCoordinateNode.
+          You can call this only for VRML coordinate-based
+          Geometry implementing TVRMLGeometryNode.CoordPolygons.
+
+          As an exception, you can call this even when coords are currently
+          empty (Geometry.Coord returns @true but ACoord is @nil),
+          then result is also @nil.)
+
+        @item(Flat normals are per-face.
+          Calculated by CreateFlatNormals.)
+
+        @item(Finally NormalsCreaseAngle creates separate
+          normal per index (auto-smoothing by CreaseAngle).)
+      )
+
+      The normals here are cached. So using these methods makes condiderable
+      speedup if the shape will not change (@link(Changed) method) and
+      will need normals many times (e.g. will be rendered many times).
+
+      Normals generated always point out from CCW (FromCCW = @true
+      is passed to all Create*Normals internally).
+
+      @groupBegin }
+    function NormalsSmooth: TDynVector3SingleArray;
+    function NormalsFlat: TDynVector3SingleArray;
+    function NormalsCreaseAngle(const CreaseAngle: Single): TDynVector3SingleArray;
+    { @groupEnd }
   end;
 
   TObjectsListItem_2 = TVRMLShapeTree;
@@ -505,7 +568,7 @@ type
 
 implementation
 
-uses ProgressUnit, VRMLScene, VRMLErrors;
+uses ProgressUnit, VRMLScene, VRMLErrors, NormalsCalculator, KambiLog;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -595,6 +658,7 @@ end;
 
 destructor TVRMLShape.Destroy;
 begin
+  FreeAndNil(FNormals);
   FreeAndNil(FState);
   FreeAndNil(FOctreeTriangles);
   inherited;
@@ -651,7 +715,8 @@ end;
 
 procedure TVRMLShape.Changed;
 begin
- Validities := [];
+  Validities := [];
+  FreeAndNil(FNormals);
 end;
 
 procedure TVRMLShape.ValidateBoundingSphere;
@@ -785,6 +850,10 @@ begin
       OverrideOctreeLimits(FTriangleOctreeLimits),
       TriangleOctreeProgressTitle);
   end;
+
+  { Remove cached normals }
+  FreeAndNil(FNormals);
+  Exclude(Validities, svNormals);
 end;
 
 function TVRMLShape.Transparent: boolean;
@@ -922,6 +991,70 @@ begin
     end;
   end;
   {$endif}
+end;
+
+function TVRMLShape.NormalsSmooth: TDynVector3SingleArray;
+begin
+  if not ((svNormals in Validities) and
+          (FNormalsCached = ncSmooth)) then
+  begin
+    if Log then
+      WritelnLog('Normals', 'Calculating shape smooth normals');
+
+    { Free previous normals }
+    FreeAndNil(FNormals);
+    Exclude(Validities, svNormals);
+
+    FNormals := CreateSmoothNormalsCoordinateNode(Geometry, State, true);
+    FNormalsCached := ncSmooth;
+    Include(Validities, svNormals);
+  end;
+
+  Result := FNormals;
+end;
+
+function TVRMLShape.NormalsFlat: TDynVector3SingleArray;
+begin
+  if not ((svNormals in Validities) and
+          (FNormalsCached = ncFlat)) then
+  begin
+    if Log then
+      WritelnLog('Normals', 'Calculating shape flat normals');
+
+    { Free previous normals }
+    FreeAndNil(FNormals);
+    Exclude(Validities, svNormals);
+
+    FNormals := CreateFlatNormals(Geometry.CoordIndex.Items,
+      Geometry.Coordinates(State).Items, true);
+    FNormalsCached := ncFlat;
+    Include(Validities, svNormals);
+  end;
+
+  Result := FNormals;
+end;
+
+function TVRMLShape.NormalsCreaseAngle(const CreaseAngle: Single): TDynVector3SingleArray;
+begin
+  if not ((svNormals in Validities) and
+          (FNormalsCached = ncCreaseAngle) and
+          (FNormalsCreaseAngle = CreaseAngle)) then
+  begin
+    if Log then
+      WritelnLog('Normals', 'Calculating shape CreaseAngle normals');
+
+    { Free previous normals }
+    FreeAndNil(FNormals);
+    Exclude(Validities, svNormals);
+
+    FNormals := CreateNormals(Geometry.CoordIndex.Items,
+      Geometry.Coordinates(State).Items, CreaseAngle, true);
+    FNormalsCached := ncCreaseAngle;
+    FNormalsCreaseAngle := CreaseAngle;
+    Include(Validities, svNormals);
+  end;
+
+  Result := FNormals;
 end;
 
 { TVRMLShapeTreeGroup -------------------------------------------------------- }

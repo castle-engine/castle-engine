@@ -635,10 +635,6 @@ type
     NormalIndex: TMFLong;
     Normals: TDynVector3SingleArray;
     NormalsCcw: boolean;
-    { If @true, our destructor will free Normals.
-      This is comfortable if you auto-generated Normals.
-      Default @false. }
-    NormalsFree: boolean;
 
     procedure RenderVertex(IndexNum: Integer); override;
   end;
@@ -1846,8 +1842,6 @@ end;
 
 destructor TAbstractNorColMatTexCoordinateRenderer.Destroy;
 begin
-  if NormalsFree then
-    FreeAndNil(Normals);
   inherited;
 end;
 
