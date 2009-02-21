@@ -279,6 +279,7 @@ var
   GL_NV_vertex_program2: boolean;
   GL_ATI_separate_stencil: boolean;
   GL_ARB_texture_non_power_of_two: boolean;
+  GL_ARB_vertex_buffer_object: boolean;
 
 {$ifdef NEEDS_FOG_COORD_FIX}
 var
@@ -1265,6 +1266,7 @@ begin
  GL_NV_vertex_program2 := Load_GL_NV_vertex_program2;
  GL_ATI_separate_stencil := Load_GL_ATI_separate_stencil;
  GL_ARB_texture_non_power_of_two := Load_GL_ARB_texture_non_power_of_two;
+ GL_ARB_vertex_buffer_object := Load_GL_ARB_vertex_buffer_object;
 end;
 {$endif}
 
