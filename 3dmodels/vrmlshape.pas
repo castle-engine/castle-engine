@@ -54,7 +54,7 @@ type
   TVRMLShapeValidities = set of (svLocalBBox, svBBox,
     svVerticesCountNotOver,  svVerticesCountOver,
     svTrianglesCountNotOver, svTrianglesCountOver,
-    svBoundingSphere, svEnableDisplayList,
+    svBoundingSphere,
     svNormals);
 
   { Internal type for TVRMLShape
@@ -252,7 +252,7 @@ type
     function FrustumBoundingSphereCollisionPossibleSimple(
       const Frustum: TFrustum): boolean;
 
-    procedure Changed; virtual;
+    procedure Changed(PossiblyLocalGeometryChanged: boolean); virtual;
 
     { The dynamic octree containing all triangles.
       It contains only triangles within this shape.
@@ -713,10 +713,21 @@ begin
  end;
 end;
 
-procedure TVRMLShape.Changed;
+procedure TVRMLShape.Changed(PossiblyLocalGeometryChanged: boolean);
 begin
-  Validities := [];
-  FreeAndNil(FNormals);
+  if PossiblyLocalGeometryChanged then
+  begin
+    Validities := [];
+    FreeAndNil(FNormals);
+  end else
+  begin
+    { Leave in Validities things that depend on local geometry.
+      Since PossiblyLocalGeometryChanged = false, they didn't change. }
+    Validities := Validities * [svLocalBBox,
+      svVerticesCountNotOver,  svVerticesCountOver,
+      svTrianglesCountNotOver, svTrianglesCountOver,
+      svNormals];
+  end;
 end;
 
 procedure TVRMLShape.ValidateBoundingSphere;
@@ -854,6 +865,14 @@ begin
   { Remove cached normals }
   FreeAndNil(FNormals);
   Exclude(Validities, svNormals);
+
+  { Remove from Validities things that depend on geometry.
+    Local geometry change means that also global (world-space) geometry changed. }
+  Validities := Validities - [svLocalBBox, svBBox,
+    svVerticesCountNotOver,  svVerticesCountOver,
+    svTrianglesCountNotOver, svTrianglesCountOver,
+    svBoundingSphere,
+    svNormals];
 end;
 
 function TVRMLShape.Transparent: boolean;

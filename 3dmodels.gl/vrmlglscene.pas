@@ -327,7 +327,7 @@ type
     EnableDisplayListValid: boolean;
     FEnableDisplayList: boolean;
   public
-    procedure Changed; override;
+    procedure Changed(PossiblyLocalGeometryChanged: boolean); override;
 
     { Can this shape be stored in a display list.
 
@@ -991,7 +991,7 @@ type
 
     procedure ChangedAll; override;
     procedure ChangedShapeFields(Shape: TVRMLShape;
-      const TransformOnly, TextureImageChanged: boolean); override;
+      const TransformOnly, TextureImageChanged, PossiblyLocalGeometryChanged: boolean); override;
 
     { Render shadow volume (sides and caps) of this scene, for shadow volume
       algorithm.
@@ -1407,7 +1407,7 @@ begin
   Result := FEnableDisplayList;
 end;
 
-procedure TVRMLGLShape.Changed;
+procedure TVRMLGLShape.Changed(PossiblyLocalGeometryChanged: boolean);
 begin
   inherited;
   EnableDisplayListValid := false;
@@ -2700,7 +2700,7 @@ begin
 end;
 
 procedure TVRMLGLScene.ChangedShapeFields(Shape: TVRMLShape;
-  const TransformOnly, TextureImageChanged: boolean);
+  const TransformOnly, TextureImageChanged, PossiblyLocalGeometryChanged: boolean);
 var
   TG: TTransparentGroup;
 begin

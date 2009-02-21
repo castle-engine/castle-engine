@@ -761,7 +761,7 @@ type
 
       Pass TransformOnly = @false if unsure, this is safer. }
     procedure ChangedShapeFields(Shape: TVRMLShape;
-      const TransformOnly, TextureImageChanged: boolean); virtual;
+      const TransformOnly, TextureImageChanged, PossiblyLocalGeometryChanged: boolean); virtual;
 
     { Create TVRMLShape (or descendant) instance suitable for this
       TVRMLScene descendant. In this class, this simply creates new
@@ -2335,7 +2335,7 @@ begin
 end;
 
 procedure TVRMLScene.ChangedShapeFields(Shape: TVRMLShape;
-  const TransformOnly, TextureImageChanged: boolean);
+  const TransformOnly, TextureImageChanged, PossiblyLocalGeometryChanged: boolean);
 begin
   { Eventual clearing of Validities items because shape changed
     can be done by DoGeometryChanged, where more specific info
@@ -2348,7 +2348,7 @@ begin
       fvManifoldAndBorderEdges
     are all related to geometry changes. }
 
-  Shape.Changed;
+  Shape.Changed(PossiblyLocalGeometryChanged);
   DoPostRedisplay;
 end;
 
@@ -2522,7 +2522,7 @@ begin
       Shape.State.AssignTransform(StateStack.Top);
       { TransformOnly = @true, suitable for roSeparateShapesNoTransform,
         they don't have Transform compiled in display list. }
-      ParentScene.ChangedShapeFields(Shape, true, false);
+      ParentScene.ChangedShapeFields(Shape, true, false, false);
 
       if Inactive = 0 then
       begin
@@ -2801,7 +2801,11 @@ begin
           if SI.Current.Geometry.Coord(SI.Current.State, Coord) and
              (Coord.ParentNode = Node) then
           begin
-            ChangedShapeFields(SI.Current, false, false);
+            ChangedShapeFields(SI.Current, false, false, false
+              { We pass PossiblyLocalGeometryChanged = false,
+                as we'll do ScheduledLocalGeometryChangedCoord := true
+                later that will take care of it anyway.
+                For now, this may be slightly more optimal. });
 
             { Another special thing about Coordinate node: it changes
               actual geometry. }
@@ -2819,7 +2823,7 @@ begin
       try
         while SI.GetNext do
           if SI.Current.State.LastNodes.Nodes[NodeLastNodesIndex] = Node then
-            ChangedShapeFields(SI.Current, false, false);
+            ChangedShapeFields(SI.Current, false, false, true);
       finally FreeAndNil(SI) end;
     end else
     if Node is TNodeX3DColorNode then
@@ -2838,7 +2842,7 @@ begin
 	     ((SI.Current.Geometry is TNodeLineSet                ) and (TNodeLineSet                (SI.Current.Geometry).FdColor.Value = Node)) or
 	     ((SI.Current.Geometry is TNodePointSet_2             ) and (TNodePointSet_2             (SI.Current.Geometry).FdColor.Value = Node)) or
 	     ((SI.Current.Geometry is TNodeElevationGrid          ) and (TNodeElevationGrid          (SI.Current.Geometry).FdColor.Value = Node)) then
-            ChangedShapeFields(SI.Current, false, false);
+            ChangedShapeFields(SI.Current, false, false, false);
       finally FreeAndNil(SI) end;
     end else
     if Node is TNodeMaterial_2 then
@@ -2849,7 +2853,7 @@ begin
       try
         while SI.GetNext do
           if SI.Current.State.ParentShape.Material = Node then
-            ChangedShapeFields(SI.Current, false, false);
+            ChangedShapeFields(SI.Current, false, false, false);
       finally FreeAndNil(SI) end;
     end else
     if Node is TNodeX3DTextureCoordinateNode then
@@ -2862,7 +2866,7 @@ begin
           if (SI.Current.Geometry is TNodeX3DComposedGeometryNode) and
              (TNodeX3DComposedGeometryNode(SI.Current.Geometry).
                FdTexCoord.Value = Node) then
-            ChangedShapeFields(SI.Current, false, false);
+            ChangedShapeFields(SI.Current, false, false, false);
       finally FreeAndNil(SI) end;
     end else
     if Node is TVRMLLightNode then
@@ -2878,7 +2882,11 @@ begin
         while SI.GetNext do
           if SI.Current.Geometry = Node then
           begin
-            ChangedShapeFields(SI.Current, false, false);
+            ChangedShapeFields(SI.Current, false, false, false
+              { We pass PossiblyLocalGeometryChanged = false,
+                as we'll do ScheduledLocalGeometryChangedCoord := true
+                later that will take care of it anyway.
+                For now, this may be slightly more optimal. });
 
             SI.Current.ScheduledLocalGeometryChanged := true;
             ScheduleGeometryChanged;
@@ -3043,7 +3051,7 @@ begin
           if (ShapeTexture = Node) or
              ( (ShapeTexture is TNodeMultiTexture) and
                (TNodeMultiTexture(ShapeTexture).FdTexture.Items.IndexOf(Node) <> -1) ) then
-            ChangedShapeFields(SI.Current, false, true);
+            ChangedShapeFields(SI.Current, false, true, false);
         end;
       finally FreeAndNil(SI) end;
     end else
