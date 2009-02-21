@@ -391,19 +391,29 @@ type
 
     { Create normals suitable for this shape.
 
-      You can call this only for coordinate-based VRML geometry,
-      implementing Coord and having non-empty coordinates (that is,
-      Geometry.Coord returns @true and sets ACoord <> @nil), and having
-      Geometry.CoordIndex <> @nil.
+      You can call this only for GeometryProxy being coordinate-based
+      VRML geometry, implementing Coord and having non-empty coordinates
+      (that is, GeometryProxy.Coord returns @true and sets ACoord <> @nil),
+      and having GeometryProxy.CoordIndex <> @nil.
+
+      GeometryProxy is the geometry of this shape. In cases when
+      our @link(Geometry) field is already a coordinate-based node,
+      you can and should simply pass it here. In cases when our Geometry
+      is not coordinate-based, but you have a Proxy that should be used
+      instead (see TVRMLGeometryNode.Proxy) you should pass here this proxy.
+      We assume that geometry of this proxy is directly derived from original
+      geometry defined by @link(Geometry) field --- for example,
+      normals will be cached until LocalGeometryChanged (or Changed
+      with PossiblyLocalGeometryChanged = @true).
 
       @unorderedList(
         @item(Smooth normals are perfectly smooth.
           They are per-vertex, calculated by CreateSmoothNormalsCoordinateNode.
           You can call this only for VRML coordinate-based
-          Geometry implementing TVRMLGeometryNode.CoordPolygons.
+          GeometryProxy implementing TVRMLGeometryNode.CoordPolygons.
 
           As an exception, you can call this even when coords are currently
-          empty (Geometry.Coord returns @true but ACoord is @nil),
+          empty (GeometryProxy.Coord returns @true but ACoord is @nil),
           then result is also @nil.)
 
         @item(Flat normals are per-face.
@@ -421,9 +431,10 @@ type
       is passed to all Create*Normals internally).
 
       @groupBegin }
-    function NormalsSmooth: TDynVector3SingleArray;
-    function NormalsFlat: TDynVector3SingleArray;
-    function NormalsCreaseAngle(const CreaseAngle: Single): TDynVector3SingleArray;
+    function NormalsSmooth(GeometryProxy: TVRMLGeometryNode): TDynVector3SingleArray;
+    function NormalsFlat(GeometryProxy: TVRMLGeometryNode): TDynVector3SingleArray;
+    function NormalsCreaseAngle(GeometryProxy: TVRMLGeometryNode;
+      const CreaseAngle: Single): TDynVector3SingleArray;
     { @groupEnd }
   end;
 
@@ -1012,7 +1023,7 @@ begin
   {$endif}
 end;
 
-function TVRMLShape.NormalsSmooth: TDynVector3SingleArray;
+function TVRMLShape.NormalsSmooth(GeometryProxy: TVRMLGeometryNode): TDynVector3SingleArray;
 begin
   if not ((svNormals in Validities) and
           (FNormalsCached = ncSmooth)) then
@@ -1024,7 +1035,7 @@ begin
     FreeAndNil(FNormals);
     Exclude(Validities, svNormals);
 
-    FNormals := CreateSmoothNormalsCoordinateNode(Geometry, State, true);
+    FNormals := CreateSmoothNormalsCoordinateNode(GeometryProxy, State, true);
     FNormalsCached := ncSmooth;
     Include(Validities, svNormals);
   end;
@@ -1032,7 +1043,7 @@ begin
   Result := FNormals;
 end;
 
-function TVRMLShape.NormalsFlat: TDynVector3SingleArray;
+function TVRMLShape.NormalsFlat(GeometryProxy: TVRMLGeometryNode): TDynVector3SingleArray;
 begin
   if not ((svNormals in Validities) and
           (FNormalsCached = ncFlat)) then
@@ -1044,8 +1055,8 @@ begin
     FreeAndNil(FNormals);
     Exclude(Validities, svNormals);
 
-    FNormals := CreateFlatNormals(Geometry.CoordIndex.Items,
-      Geometry.Coordinates(State).Items, true);
+    FNormals := CreateFlatNormals(GeometryProxy.CoordIndex.Items,
+      GeometryProxy.Coordinates(State).Items, true);
     FNormalsCached := ncFlat;
     Include(Validities, svNormals);
   end;
@@ -1053,7 +1064,8 @@ begin
   Result := FNormals;
 end;
 
-function TVRMLShape.NormalsCreaseAngle(const CreaseAngle: Single): TDynVector3SingleArray;
+function TVRMLShape.NormalsCreaseAngle(GeometryProxy: TVRMLGeometryNode;
+  const CreaseAngle: Single): TDynVector3SingleArray;
 begin
   if not ((svNormals in Validities) and
           (FNormalsCached = ncCreaseAngle) and
@@ -1066,8 +1078,8 @@ begin
     FreeAndNil(FNormals);
     Exclude(Validities, svNormals);
 
-    FNormals := CreateNormals(Geometry.CoordIndex.Items,
-      Geometry.Coordinates(State).Items, CreaseAngle, true);
+    FNormals := CreateNormals(GeometryProxy.CoordIndex.Items,
+      GeometryProxy.Coordinates(State).Items, CreaseAngle, true);
     FNormalsCached := ncCreaseAngle;
     FNormalsCreaseAngle := CreaseAngle;
     Include(Validities, svNormals);

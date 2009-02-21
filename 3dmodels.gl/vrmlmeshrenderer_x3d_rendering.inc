@@ -235,7 +235,7 @@ begin
   if (Geometry is TNodeIndexedTriangleSet) and
      TNodeIndexedTriangleSet(Geometry).FdNormalPerVertex.Value then
   begin
-    Normals := Shape.NormalsSmooth;
+    Normals := Shape.NormalsSmooth(Geometry);
     NormalsCcw := true;
     NorImplementation := niPerVertexCoordIndexed;
   end else
@@ -321,7 +321,7 @@ begin
   end else
   if (Geometry as TNodeX3DComposedGeometryNode).FdNormalPerVertex.Value then
   begin
-    Normals := Shape.NormalsSmooth;
+    Normals := Shape.NormalsSmooth(Geometry);
     NormalsCcw := true;
     NorImplementation := niPerVertexCoordIndexed;
   end else
@@ -466,7 +466,7 @@ begin
   end else
   if (Geometry as TNodeX3DComposedGeometryNode).FdNormalPerVertex.Value then
   begin
-    Normals := Shape.NormalsSmooth;
+    Normals := Shape.NormalsSmooth(Geometry);
     NormalsCcw := true;
     NorImplementation := niPerVertexCoordIndexed;
   end else
@@ -575,7 +575,7 @@ begin
   if (Geometry is TNodeIndexedQuadSet) and
      TNodeIndexedQuadSet(Geometry).FdNormalPerVertex.Value then
   begin
-    Normals := Shape.NormalsSmooth;
+    Normals := Shape.NormalsSmooth(Geometry);
     NormalsCcw := true;
     NorImplementation := niPerVertexCoordIndexed;
   end else
