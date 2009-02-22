@@ -253,101 +253,226 @@ var
   function ReadImage: TImage;
   var
     RowBytePadding: Integer;
-    X, Y: Integer;
-    Row3: PVector3Byte;
-    Row4: PVector4Byte;
-  begin
-    { Handle R8G8B8 uncompressed format. }
-    if (Header.PixelFormat.Flags and DDPF_RGB <> 0) and
-       (Header.PixelFormat.Flags and DDPF_FOURCC = 0) and
-       (Header.PixelFormat.Flags and DDPF_ALPHAPIXELS = 0) and
-       (Header.PixelFormat.Flags and DDPF_PALETTEINDEXED8 = 0) and
-       (Header.PixelFormat.RGBBitCount = 24) and
-       (Header.PixelFormat.RBitMask = $ff0000) and
-       (Header.PixelFormat.GBitMask = $00ff00) and
-       (Header.PixelFormat.BBitMask = $0000ff) then
+
+    { A couple of optimized routines for image formats that
+      closely match corresponding Images unit memory format are below.
+      Optimized routines already know the Result memory format (image class)
+      and file format (Header.PixelFormat), they don't have to check them.
+
+      Names for optimized routines follow the naming of DDS ms docs.
+      This means that they are actually inverted in memory,
+      since DDS bit masks should be treated as little-endian.
+      For example for RGB image, RBitMask = $ff0000 means that red is
+      the 3rd (not 1st) byte...)
+
+      That's why DDS format RGB8 must be inverted when writing to TRGBImage.
+      The format matching exactly TRGBImage is actually named BGR8 in DDS. }
+
+    procedure ReadOptimized_G8;
+    var
+      Y: Integer;
     begin
-      Result := TRGBImage.Create(Width, Height);
-
-      { Header.PitchOrLinearSize for uncompressed texture may indicate
-        row length (pitch) in bytes. This is useful to indicate padding of lines.
-        I understand that otherwise I should assume lines are not padded? }
-      if (Header.Flags and DDSD_PITCH <> 0) and
-         (Header.PitchOrLinearSize <> 0) then
-        RowBytePadding := Max(Header.PitchOrLinearSize - Result.PixelSize * Width, 0) else
-        RowBytePadding := 0;
-
       for Y := Height - 1 downto 0 do
       begin
-        Row3 := Result.RowPtr(Y);
-        Stream.ReadBuffer(Row3^, Result.PixelSize * Width);
+        Stream.ReadBuffer(Result.RowPtr(Y)^, Result.PixelSize * Width);
+        if RowBytePadding <> 0 then
+          Stream.Seek(RowBytePadding, soFromCurrent);
+      end;
+    end;
+
+    procedure ReadOptimized_RGB8;
+    var
+      X, Y: Integer;
+      Row: PVector3Byte;
+    begin
+      for Y := Height - 1 downto 0 do
+      begin
+        Row := Result.RowPtr(Y);
+        Stream.ReadBuffer(Row^, Result.PixelSize * Width);
 
         { Now invert red and blue. (Since all masks are little-endian,
           RBitMask = $FF0000 means that red is the 3rd (not 1st) byte...) }
         for X := 0 to Width - 1 do
         begin
-          SwapValues(Row3^[2], Row3^[0]);
-          Inc(Row3);
+          SwapValues(Row^[2], Row^[0]);
+          Inc(Row);
         end;
 
         if RowBytePadding <> 0 then
           Stream.Seek(RowBytePadding, soFromCurrent);
       end;
-    end else
-    { Handle A8R8G8B8 uncompressed format. }
-    if (Header.PixelFormat.Flags and DDPF_RGB <> 0) and
-       (Header.PixelFormat.Flags and DDPF_FOURCC = 0) and
-       (Header.PixelFormat.Flags and DDPF_ALPHAPIXELS <> 0) and
-       (Header.PixelFormat.Flags and DDPF_PALETTEINDEXED8 = 0) and
-       (Header.PixelFormat.RGBBitCount = 32) and
-       (Header.PixelFormat.ABitMask = $ff000000) and
-       (Header.PixelFormat.RBitMask = $00ff0000) and
-       (Header.PixelFormat.GBitMask = $0000ff00) and
-       (Header.PixelFormat.BBitMask = $000000ff) then
+    end;
+
+    procedure ReadOptimized_BGR8;
+    var
+      Y: Integer;
     begin
-      Result := TRGBAlphaImage.Create(Width, Height);
-
-      { Header.PitchOrLinearSize for uncompressed texture may indicate row length
-        in bytes. This is useful to indicate padding of lines.
-        I understand that otherwise I should assume lines are not padded? }
-      if (Header.Flags and DDSD_PITCH <> 0) and
-         (Header.PitchOrLinearSize <> 0) then
-        RowBytePadding := Max(Header.PitchOrLinearSize - Result.PixelSize * Width, 0) else
-        RowBytePadding := 0;
-
       for Y := Height - 1 downto 0 do
       begin
-        Row4 := Result.RowPtr(Y);
-        Stream.ReadBuffer(Row4^, Result.PixelSize * Width);
+        Stream.ReadBuffer(Result.RowPtr(Y)^, Result.PixelSize * Width);
+        if RowBytePadding <> 0 then
+          Stream.Seek(RowBytePadding, soFromCurrent);
+      end;
+    end;
 
-        { Now invert BGRA to ARGB. (Since all masks are little-endian). }
+    procedure ReadOptimized_ARGB8;
+    var
+      X, Y: Integer;
+      Row: PVector4Byte;
+    begin
+      for Y := Height - 1 downto 0 do
+      begin
+        Row := Result.RowPtr(Y);
+        Stream.ReadBuffer(Row^, Result.PixelSize * Width);
+
+        { Now invert ARGB to ABGR. So swap red<->blue, alpha and green are Ok. }
         for X := 0 to Width - 1 do
         begin
-          SwapValues(Row4^[3], Row4^[0]);
-          SwapValues(Row4^[2], Row4^[1]);
-          Inc(Row4);
+          SwapValues(Row^[2], Row^[0]);
+          Inc(Row);
         end;
 
         if RowBytePadding <> 0 then
           Stream.Seek(RowBytePadding, soFromCurrent);
       end;
-    end else
-    begin
-      raise EInvalidDDS.CreateFmt('Unsupported pixel format for DDS: uncompressed RGB = %s (%d bits), alpha = %s, compressed = %s (fourcc: %s%s%s%s), palette = %s, R/G/B/AMask = %s/%s/%s/%s',
-        [ BoolToStr[Header.PixelFormat.Flags and DDPF_RGB <> 0],
-          Header.PixelFormat.RGBBitCount,
-          BoolToStr[Header.PixelFormat.Flags and DDPF_ALPHAPIXELS <> 0],
-          BoolToStr[Header.PixelFormat.Flags and DDPF_FOURCC <> 0],
-          SReadableForm(Header.PixelFormat.FourCC[0]),
-          SReadableForm(Header.PixelFormat.FourCC[1]),
-          SReadableForm(Header.PixelFormat.FourCC[2]),
-          SReadableForm(Header.PixelFormat.FourCC[3]),
-          BoolToStr[Header.PixelFormat.Flags and DDPF_PALETTEINDEXED8 <> 0],
-          IntToHex(Header.PixelFormat.RBitMask, 8),
-          IntToHex(Header.PixelFormat.GBitMask, 8),
-          IntToHex(Header.PixelFormat.BBitMask, 8),
-          IntToHex(Header.PixelFormat.ABitMask, 8) ]);
     end;
+
+    procedure ReadOptimized_ABGR8;
+    var
+      Y: Integer;
+    begin
+      for Y := Height - 1 downto 0 do
+      begin
+        Stream.ReadBuffer(Result.RowPtr(Y)^, Result.PixelSize * Width);
+        if RowBytePadding <> 0 then
+          Stream.Seek(RowBytePadding, soFromCurrent);
+      end;
+    end;
+
+    procedure ReadToGrayscale;
+    begin
+      raise EInvalidDDS.Create('TODO');
+    end;
+
+    procedure ReadToGrayscaleAlpha;
+    begin
+      raise EInvalidDDS.Create('TODO');
+    end;
+
+    procedure ReadToRGB;
+    begin
+      raise EInvalidDDS.Create('TODO');
+    end;
+
+    procedure ReadToRGBAlpha;
+    begin
+      raise EInvalidDDS.Create('TODO');
+    end;
+
+  begin
+    { There are three mutually exclusive types of DDS pixel format:
+      uncompressed non-palette (DDPF_RGB) or
+      uncompressed palette (DDPF_PALETTEINDEXED8) or
+      compressed (DDPF_FOURCC).
+      One, and exactly one, of these flags must be specified. }
+      
+    Result := nil;
+    try
+      if Header.PixelFormat.Flags and DDPF_RGB <> 0 then
+      begin
+        Check(Header.PixelFormat.Flags and DDPF_FOURCC = 0, 'Invalid DDS pixel format: both uncompressed (DDPF_RGB) and compressed (DDPF_FOURCC) flags specified');
+        Check(Header.PixelFormat.Flags and DDPF_PALETTEINDEXED8 = 0, 'Invalid DDS pixel format: both non-palette (DDPF_RGB) and palette (DDPF_PALETTEINDEXED8) flags specified');
+
+        Check(Header.PixelFormat.RGBBitCount mod 8 = 0, 'Invalid DDS pixel format: only RGBBitCount being multiple of 8 is supported. Please report with sample image');
+        Check(Header.PixelFormat.RGBBitCount > 0, 'Invalid DDS pixel format: RGBBitCount must be non-zero');
+
+        { Header.PitchOrLinearSize for uncompressed texture may indicate
+          row length (pitch) in bytes. This is useful to indicate padding of lines.
+          I understand that otherwise I should assume lines are not padded? }
+        if (Header.Flags and DDSD_PITCH <> 0) and
+           (Header.PitchOrLinearSize <> 0) then
+          RowBytePadding := Max(Header.PitchOrLinearSize -
+            (Header.PixelFormat.RGBBitCount div 8) * Width, 0) else
+          RowBytePadding := 0;
+
+        if Header.PixelFormat.Flags and DDPF_ALPHAPIXELS = 0 then
+        begin
+          if (Header.PixelFormat.RBitMask =
+              Header.PixelFormat.GBitMask) and
+             (Header.PixelFormat.GBitMask =
+              Header.PixelFormat.BBitMask) then
+          begin
+            Result := TGrayscaleImage.Create(Width, Height);
+
+            if (Header.PixelFormat.RGBBitCount = 8) and
+               (Header.PixelFormat.RBitMask = $ff) then
+              ReadOptimized_G8 else
+              ReadToGrayscale;
+          end else
+          begin
+            Result := TRGBImage.Create(Width, Height);
+
+            if (Header.PixelFormat.RBitMask = $ff0000) and
+               (Header.PixelFormat.GBitMask = $00ff00) and
+               (Header.PixelFormat.BBitMask = $0000ff) then
+              ReadOptimized_RGB8 else
+            if (Header.PixelFormat.RBitMask = $0000ff) and
+               (Header.PixelFormat.GBitMask = $00ff00) and
+               (Header.PixelFormat.BBitMask = $ff0000) then
+              ReadOptimized_BGR8 else
+              ReadToRGB;
+          end;
+        end else
+        begin
+          Check(Header.PixelFormat.ABitMask <> 0, 'Invalid DDS pixel format: alpha channel flag specified (DDPF_ALPHAPIXELS), but alpha mask is zero');
+
+          if (Header.PixelFormat.RBitMask =
+              Header.PixelFormat.GBitMask) and
+             (Header.PixelFormat.GBitMask =
+              Header.PixelFormat.BBitMask) then
+          begin
+            Result := TGrayscaleAlphaImage.Create(Width, Height);
+            ReadToGrayscaleAlpha;
+          end else
+          begin
+            Result := TRGBAlphaImage.Create(Width, Height);
+
+            if (Header.PixelFormat.RGBBitCount = 32) and
+               (Header.PixelFormat.ABitMask = $ff000000) and
+               (Header.PixelFormat.RBitMask = $00ff0000) and
+               (Header.PixelFormat.GBitMask = $0000ff00) and
+               (Header.PixelFormat.BBitMask = $000000ff) then
+              ReadOptimized_ARGB8 else
+            if (Header.PixelFormat.RGBBitCount = 32) and
+               (Header.PixelFormat.ABitMask = $ff000000) and
+               (Header.PixelFormat.RBitMask = $000000ff) and
+               (Header.PixelFormat.GBitMask = $0000ff00) and
+               (Header.PixelFormat.BBitMask = $00ff0000) then
+              ReadOptimized_ABGR8 else
+              ReadToRGBAlpha;
+          end;
+        end;
+      end else
+      if Header.PixelFormat.Flags and DDPF_PALETTEINDEXED8 <> 0 then
+      begin
+        Assert(Header.PixelFormat.Flags and DDPF_RGB = 0);
+        Check(Header.PixelFormat.Flags and DDPF_FOURCC = 0, 'Invalid DDS pixel format: both uncompressed (palette, DDPF_PALETTEINDEXED8) and compressed (DDPF_FOURCC) flags specified');
+
+        raise EInvalidDDS.Create('TODO: Unsupported pixel format for DDS: palette images not supported now, please report with sample image');
+      end else
+      if Header.PixelFormat.Flags and DDPF_FOURCC <> 0 then
+      begin
+        Assert(Header.PixelFormat.Flags and DDPF_RGB = 0);
+        Assert(Header.PixelFormat.Flags and DDPF_PALETTEINDEXED8 = 0);
+
+        raise EInvalidDDS.CreateFmt('TODO: Unsupported pixel format for DDS: compressed (FourCC: %s%s%s%s) texture images not supported now, please report with sample image',
+          [ SReadableForm(Header.PixelFormat.FourCC[0]),
+            SReadableForm(Header.PixelFormat.FourCC[1]),
+            SReadableForm(Header.PixelFormat.FourCC[2]),
+            SReadableForm(Header.PixelFormat.FourCC[3]) ]);
+      end else
+        raise EInvalidDDS.Create('Invalid DDS pixel format: no flags indicating format type specified (exactly one of DDPF_RGB, DDPF_PALETTEINDEXED8, DDPF_FOURCC is required)');
+    except FreeAndNil(Result); raise end;
   end;
 
 var
