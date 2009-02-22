@@ -435,7 +435,13 @@ end;
     60/55 FPS, while without TRIANGLE_FAN I get 165/155 !!
 
     Clearly, using TRIANGLE_FAN is not a good idea for Radeon.
-    TODO: test on NVidia.
+
+    Tests on NVidia (on kocury, "GeForce FX 5200/AGP/SSE2/3DNOW!")
+    show that speed difference is not noticeable there
+    (well, it may be very very slightly slower, but I blame the fact
+    that NVidia card is quite older... Besides it's really noticeable
+    only in special cases and it's like 21 FPS -> 18 FPS, so not large lost.)
+    So I think I'll resign from TRIANGLE_FAN usage everywhere.
 }
 { $define TRY_RENDERING_FACE_AS_FAN}
 
