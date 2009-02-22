@@ -397,6 +397,69 @@ end;
 
 { TIndexedFaceSetRenderer -------------------------------------------------- }
 
+{ Theoretically, using TRIANGLE_FAN to render convex face
+  (instead of TRIANGLES) can speed things up, as vertices are more shared.
+
+  - In practice, the speedup is not that great:
+
+    1. On new GPUs, with vertex arrays (and eventually vertex buffers)
+       rendering TRIANGLES by indexes will cache calculated vertex data.
+       (This requires that vertex data is fed in cache-friendly order
+       (triangles sharing the same vertex are specified
+       close to each other), this is in practice usually true with typical
+       data.)
+
+    2. Note that the saving works only for faces with more than 3 vertices.
+       For each vertex above 3, we waste two vertex data calls when
+       using TRIANGLES, as compared to TRIANGLE_FAN.
+       Typical faces have at most 4, 5 vertexes, so we waste 2-4 vertex
+       calls.
+
+  - Of course, above reasoning only says that "speedup is not terribly large".
+    But can it be actually bad?
+
+    It turns out that yes. For using TRIANGLE_FAN (at least for some faces),
+    we have to make glBegin / glEnd for each face. While when using TRIANGLES
+    for all faces, we can just call glBegin(GL_TRIANGLES) / glEnd for whole
+    shape (in RenderCoordinate).
+
+    Tests with roNone rendering even on small models like teapot
+    with fglrx (Radeon) on Mac Book Pro show that the glBegin / glEnd
+    is very noticeable in this case. Not only it slows down rendering,
+    it also causes awful "jerks" (sudden stops in rendering for ~0.01 second,
+    very noticeable for human eye in the middle of smooth animation
+    (like simply rotating an object in Examine mode).)
+    Even when roNone is not used (when we push all into display lists),
+    it still turns out very noticeable. Tests with "castle" on "gate"
+    level (default view after level loading): with TRIANGLE_FAN, I get
+    60/55 FPS, while without TRIANGLE_FAN I get 165/155 !!
+
+    Clearly, using TRIANGLE_FAN is not a good idea for Radeon.
+    TODO: test on NVidia.
+}
+{ $define TRY_RENDERING_FACE_AS_FAN}
+
+{$ifdef DARWIN}
+  { On Mac OS X 10.4.9, with Radeon ATI graphic card
+    (it's MacBook Pro computer), there's definitely a bug
+    in OpenGL implementation: it seems not able to handle
+    GL_TRIANGLE_FAN properly, which is visible on "The Gate" and
+    "Cages" levels of "The Castle": some triangles on these
+    levels (on "The Gate", it concerns that back wall and gate
+    geometry) seem to randomly disappear.
+
+    I didn't make enough
+    tests to actually make sure what's the precise condition
+    to trigger this bug (as other "The Castle" levels,
+    and castle.wrl sample VRML work OK). I also didn't test
+    on other Mac OS X systems. (However, I did test this on the
+    same computer with Linux Radeon OpenGL, and on Linux
+    it works OK --- so the problem is within software, OpenGL
+    probably, on Mac OS X ?). For safety I disable using
+    GL_TRIANGLE_FAN entirely for now on Darwin. }
+  {$undef TRY_RENDERING_FACE_AS_FAN}
+{$endif}
+
 constructor TIndexedFaceSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
 begin
   inherited;
@@ -405,7 +468,11 @@ end;
 
 procedure TIndexedFaceSetRenderer.RenderCoordinate;
 begin
+  {$ifndef TRY_RENDERING_FACE_AS_FAN} glBegin(GL_TRIANGLES); {$endif}
+
   Geometry.MakeCoordRanges(State, @RenderCoordsRange);
+
+  {$ifndef TRY_RENDERING_FACE_AS_FAN} glEnd; {$endif}
 end;
 
 procedure TIndexedFaceSetRenderer.RenderVertex(IndexNum: Integer);
@@ -973,89 +1040,51 @@ procedure TIndexedFaceSetRenderer.RenderCoordsRange(
     end;
   end;
 
+var
+  I: Integer;
 begin
   inherited;
 
   CalculateTangentVectors;
 
- if not FaceConvex then
- begin
-  glBegin(GL_TRIANGLES);
-  TriangulateFace(Addr(CoordIndex.Items.Items[BeginIndex]),
-    EndIndex-BeginIndex, Coord.Items.ItemsArray,
-    {$ifdef FPC_OBJFPC} @ {$endif} Render_Triangulated, BeginIndex);
-  glEnd;
- end else
- begin
-   {$ifdef DARWIN}
-
-   { On Mac OS X 10.4.9, with Radeon ATI graphic card
-     (it's MacBook Pro computer), there's definitely a bug
-     in OpenGL implementation: it seems not able to handle
-     GL_TRIANGLE_FAN properly, which is visible on "The Gate" and
-     "Cages" levels of "The Castle": some triangles on these
-     levels (on "The Gate", it concerns that back wall and gate
-     geometry) seem to randomly disappear.
-
-     I didn't make enough
-     tests to actually make sure what's the precise condition
-     to trigger this bug (as other "The Castle" levels,
-     and castle.wrl sample VRML work OK). I also didn't test
-     on other Mac OS X systems. (However, I did test this on the
-     same computer with Linux Radeon OpenGL, and on Linux
-     it works OK --- so the problem is within software, OpenGL
-     probably, on Mac OS X ?). For safety I disable using
-     GL_TRIANGLE_FAN entirely for now on Darwin. }
-
-  glBegin(GL_TRIANGLES);
-  TriangulateConvexFace(EndIndex-BeginIndex,
-    {$ifdef FPC_OBJFPC} @ {$endif} Render_Triangulated, BeginIndex);
-  glEnd;
-
-  {$else DARWIN}
-
-  { zamiast GL_POLYGON uzywamy GL_TRIANGLES i robimy cos jak GL_TRIANGLE_FAN
-    uzywajac glEdgeFlag. De facto, to co my chcemy zrobic to jest
-    wlasnie wykonac GL_TRIANGLE_FAN tyle ze w triangle fan glEdgeFlag
-    jest ignorowane (jakby zawsze bylo GL_TRUE).
-
-    Zamiast GL_POLYGON uzywamy GL_TRIANGLE_FAN. Dlaczego ?
-    Bo chcemy miec 1-znaczna triangulacje kazdego polygonu. To ma
-    znaczenie kiedy np. renderujemy prostokat z cieniowaniem smooth
-    i kazdy z 4 vertexow ma inny kolor. Wtedy widac wzdluz ktorej
-    przekatnej biegnie triangulacja trojkata. I np. jezeli kawalek
-    kwadratu wyjezdza za ekran wtedy widac jak (na skutek przycinania
-    polygonu do frustum) przesuwa sie linia triangulacji. Wychodzi
-    bardzo dziwny efekt, bo widac ze kolory na prostokacie sie nieco
-    zmieniaja w miare jak ten wyjezdza za ekran, a to zdecydowanie nie jest
-    efekt na jakim nam zalezy. Rozwiazaniem jest ustawlic 1-znaczna
-    triangulacje prostokata, wtedy linia podzialu zawsze bedzie taka
-    sama i problemu nie bedzie.
-
-    Jedyna rzecz jaka (poza 1-znacznym wyznaczeniem triangulacji) robi
-    GL_TRIANGLE_FAN to dodawanie w srodku dodatkowych krawedzi.
-    Mozna to zobaczyc gdy przelaczymy sie na widok wireframe.
-    Nie mozna uzywac glEdgeFlag z GL_TRIANGLE_FAN, jest przez nie
-    ignorowane. Wiec zeby obejsc ten problem trzeba recznie realizowac
-    GL_TRIANGLE_FAN przez GL_TRIANGLES i tam uzywac glEdgeFlag.
-    Zrobilem to - patrz VRMLNodes_old_funcs.txt, ale niestety
-    okazalo sie to bardzo zwalniac rendering (nic dziwnego -
-    - musialem przeciez podawac wiele razy te same vertexy). Wiec
-    chwilowo tego nie uzywam. A to ze GL_TRIANGLES_FAN powoduje ze
-    w widoku wireframe widoczne jest wiecej krawedzi ? No coz,
-    to zaden problem, przeciez nikt mi nie kaze dokladnie renderowac
-    obiektu wireframe. }
-
-  glBegin(GL_TRIANGLE_FAN);
-  while BeginIndex < endIndex do
+  if not FaceConvex then
   begin
-   RenderVertex(BeginIndex);
-   Inc(BeginIndex);
-  end;
-  glEnd;
+   {$ifdef TRY_RENDERING_FACE_AS_FAN} glBegin(GL_TRIANGLES); {$endif}
 
-  {$endif DARWIN}
- end;
+   TriangulateFace(Addr(CoordIndex.Items.Items[BeginIndex]),
+     EndIndex-BeginIndex, Coord.Items.ItemsArray,
+     @Render_Triangulated, BeginIndex);
+
+   {$ifdef TRY_RENDERING_FACE_AS_FAN} glEnd; {$endif}
+  end else
+  begin
+    {$ifdef TRY_RENDERING_FACE_AS_FAN}
+
+    glBegin(GL_TRIANGLE_FAN);
+    while BeginIndex < EndIndex do
+    begin
+      RenderVertex(BeginIndex);
+      Inc(BeginIndex);
+    end;
+    glEnd;
+
+    {$else}
+
+    (* Alternative version:
+
+       TriangulateConvexFace(EndIndex - BeginIndex,
+         @Render_Triangulated, BeginIndex);
+    *)
+
+    for I := BeginIndex to EndIndex - 3 do
+    begin
+      RenderVertex(BeginIndex);
+      RenderVertex(I + 1);
+      RenderVertex(I + 2);
+    end;
+
+    {$endif}
+  end;
 end;
 
 { TIndexedFaceSet_1Renderer -------------------------------------------------- }
