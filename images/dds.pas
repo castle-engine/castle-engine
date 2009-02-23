@@ -180,6 +180,7 @@ type
     BBitMask: LongWord;
     ABitMask: LongWord;
   end;
+  PDDSPixelFormat = ^TDDSPixelFormat;
 
   { Corresponds to DDS_HEADER (Direct3D 10),
     http://msdn.microsoft.com/en-us/library/bb943982(VS.85).aspx. }
@@ -236,6 +237,150 @@ end;
 function TDDSImage.CubeMapImage(const Side: TCubeMapSide): TImage;
 begin
   { TODO }
+end;
+
+type
+  TRGBAChannel = 0..3;
+
+  { Reads DDS image rows, loading them to temporary memory.
+
+    After reading row (by ReadRow) you can uncompress it by
+    using RGBA (return value as 8-bit Byte, for Red, Green, Blue, Alpha
+    according to Channel parameter)
+    and NextPixel repeatedly.
+
+    It's callers responsibility to make sure that you use
+    RGBA only with channels for which masks are non-zero.
+
+    This is not the most efficient reader (it reads rows to temporary memory,
+    for starters), but it works for all covered uncompressed non-palette
+    DDS pixel formats. For special pixel formats, we use specialized
+    optimized readers in ReadOptimized_*. }
+  TDDSRowReader = class
+  private
+    FPixelFormat: PDDSPixelFormat;
+    FWidth, FRowBytePadding: Cardinal;
+    Row: Pointer;
+    Pixel: Pointer;
+    PixelValue: LongWord;
+    RowByteSize, PixelByteSize: Cardinal;
+    ChannelMask: array [TRGBAChannel] of LongWord;
+    ChannelShift: array [TRGBAChannel] of Integer;
+    procedure CalculatePixelValue;
+  public
+    constructor Create(const PixelFormat: PDDSPixelFormat;
+      const Width, RowBytePadding: Cardinal);
+    destructor Destroy; override;
+
+    procedure ReadRow(Stream: TStream);
+    procedure NextPixel;
+    function RGBA(Channel: TRGBAChannel): Byte;
+  end;
+
+constructor TDDSRowReader.Create(const PixelFormat: PDDSPixelFormat;
+  const Width, RowBytePadding: Cardinal);
+
+  { Calculate shift (to the right, i.e. "shr") to extract color value to 8bit. }
+  function CalculateChannelShift(Mask: LongWord): Integer;
+  const
+    High1 = LongWord(1) shl 31;
+  var
+    LeadingZeros{, Ones}: Integer;
+  begin
+    if Mask = 0 then Exit(0);
+
+    LeadingZeros := 0;
+    while Mask and High1 = 0 do
+    begin
+      Inc(LeadingZeros);
+      Mask := Mask shl 1;
+    end;
+
+    { Actually, that's not needed.
+    Ones := 0;
+    while Mask and High1 = 0 do
+    begin
+      Inc(Ones);
+      Mask := Mask shl 1;
+    end; }
+
+    { So the mask in binary starts with LeadingZeros of 0,
+      then Ones of 1. We assume that mask doesn't contain any more ones,
+      i.e. that the rest of the mask is zero (nothing produces DDS
+      files with other values, that would be pretty strange). }
+
+    Result := 24 - LeadingZeros;
+  end;
+
+var
+  I: Integer;
+begin
+  inherited Create;
+  FPixelFormat := PixelFormat;
+  FWidth := Width;
+  FRowBytePadding := RowBytePadding;
+
+  { We already checked in TDDSImage.LoadFromStream that RGBitCount divides
+    by 8 and is not zero. }
+  PixelByteSize := FPixelFormat^.RGBBitCount div 8;
+
+  if PixelByteSize > SizeOf(PixelValue) then
+    raise EInvalidDDS.CreateFmt('Unsupported DDS pixel format: more than 32 bits per pixel (RGBitCount is %d). Please report with sample image',
+      [FPixelFormat^.RGBBitCount]);
+
+  RowByteSize := PixelByteSize * Width;
+  Row := GetMem(RowByteSize);
+
+  ChannelMask[0] := FPixelFormat^.RBitMask;
+  ChannelMask[1] := FPixelFormat^.GBitMask;
+  ChannelMask[2] := FPixelFormat^.BBitMask;
+  ChannelMask[3] := FPixelFormat^.ABitMask;
+
+  for I := 0 to 3 do
+    ChannelShift[I] := CalculateChannelShift(ChannelMask[I]);
+end;
+
+destructor TDDSRowReader.Destroy;
+begin
+  FreeMem(Row);
+  inherited;
+end;
+
+procedure TDDSRowReader.CalculatePixelValue;
+begin
+  PixelValue := 0;
+
+  { The tricky memory part: move the meaningful bytes of current pixel
+    (under Pixel^) to appropriate part of PixelValue, such that
+    PixelValue can be directly and'ed with DDS masks (in ChannelMask[]).
+    The copied bytes are the least significant part of LongWord value
+    (DDS masks are specified like that). }
+
+  Move(Pixel^, Pointer(PtrUInt(PtrUInt(@PixelValue)
+    {$ifdef ENDIAN_BIG} + SizeOf(PixelValue) - PixelByteSize {$endif} ))^,
+    PixelByteSize);
+end;
+
+procedure TDDSRowReader.ReadRow(Stream: TStream);
+begin
+  Stream.ReadBuffer(Row^, RowByteSize);
+
+  if FRowBytePadding <> 0 then
+    Stream.Seek(FRowBytePadding, soFromCurrent);
+
+  Pixel := Row;
+  CalculatePixelValue;
+end;
+
+procedure TDDSRowReader.NextPixel;
+begin
+  PtrUInt(Pixel) += PixelByteSize;
+  CalculatePixelValue;
+end;
+
+function TDDSRowReader.RGBA(Channel: TRGBAChannel): Byte;
+begin
+  Result := (PixelValue and ChannelMask[Channel]) shr ChannelShift[Channel];
 end;
 
 procedure TDDSImage.LoadFromStream(Stream: TStream);
@@ -364,23 +509,97 @@ var
       end;
 
       procedure ReadToGrayscale;
+      var
+        Reader: TDDSRowReader;
+        Y, X: Integer;
+        G: PByte;
       begin
-        raise EInvalidDDS.Create('TODO');
+        Reader := TDDSRowReader.Create(@Header.PixelFormat, Width, RowBytePadding);
+        try
+          for Y := Height - 1 downto 0 do
+          begin
+            Reader.ReadRow(Stream);
+            G := Result.RowPtr(Y);
+            for X := 0 to Width - 1 do
+            begin
+              G^ := Reader.RGBA(0);
+              Reader.NextPixel;
+              Inc(G);
+            end;
+          end;
+        finally FreeAndNil(Reader) end;
       end;
 
       procedure ReadToGrayscaleAlpha;
+      var
+        Reader: TDDSRowReader;
+        Y, X: Integer;
+        GA: PVector2Byte;
       begin
-        raise EInvalidDDS.Create('TODO');
+        Reader := TDDSRowReader.Create(@Header.PixelFormat, Width, RowBytePadding);
+        try
+          for Y := Height - 1 downto 0 do
+          begin
+            Reader.ReadRow(Stream);
+            GA := Result.RowPtr(Y);
+            for X := 0 to Width - 1 do
+            begin
+              GA^[0] := Reader.RGBA(0);
+              GA^[1] := Reader.RGBA(3);
+              Reader.NextPixel;
+              Inc(GA);
+            end;
+          end;
+        finally FreeAndNil(Reader) end;
       end;
 
       procedure ReadToRGB;
+      var
+        Reader: TDDSRowReader;
+        Y, X: Integer;
+        RGB: PVector3Byte;
       begin
-        raise EInvalidDDS.Create('TODO');
+        Reader := TDDSRowReader.Create(@Header.PixelFormat, Width, RowBytePadding);
+        try
+          for Y := Height - 1 downto 0 do
+          begin
+            Reader.ReadRow(Stream);
+            RGB := Result.RowPtr(Y);
+            for X := 0 to Width - 1 do
+            begin
+              RGB^[0] := Reader.RGBA(0);
+              RGB^[1] := Reader.RGBA(1);
+              RGB^[2] := Reader.RGBA(2);
+              Reader.NextPixel;
+              Inc(RGB);
+            end;
+          end;
+        finally FreeAndNil(Reader) end;
       end;
 
       procedure ReadToRGBAlpha;
+      var
+        Reader: TDDSRowReader;
+        Y, X: Integer;
+        RGBA: PVector4Byte;
       begin
-        raise EInvalidDDS.Create('TODO');
+        Reader := TDDSRowReader.Create(@Header.PixelFormat, Width, RowBytePadding);
+        try
+          for Y := Height - 1 downto 0 do
+          begin
+            Reader.ReadRow(Stream);
+            RGBA := Result.RowPtr(Y);
+            for X := 0 to Width - 1 do
+            begin
+              RGBA^[0] := Reader.RGBA(0);
+              RGBA^[1] := Reader.RGBA(1);
+              RGBA^[2] := Reader.RGBA(2);
+              RGBA^[3] := Reader.RGBA(3);
+              Reader.NextPixel;
+              Inc(RGBA);
+            end;
+          end;
+        finally FreeAndNil(Reader) end;
       end;
 
     begin
