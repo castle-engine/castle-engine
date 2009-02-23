@@ -282,6 +282,18 @@ var
         end;
       end;
 
+      procedure ReadOptimized_AG8;
+      var
+        Y: Integer;
+      begin
+        for Y := Height - 1 downto 0 do
+        begin
+          Stream.ReadBuffer(Result.RowPtr(Y)^, Result.PixelSize * Width);
+          if RowBytePadding <> 0 then
+            Stream.Seek(RowBytePadding, soFromCurrent);
+        end;
+      end;
+
       procedure ReadOptimized_RGB8;
       var
         X, Y: Integer;
@@ -420,6 +432,10 @@ var
             ReadToRGBAlpha;
         end;
       end else
+      { If not IsRGB, than I already know (it's checked earlier)
+        that masks for red / green / blue are equal.
+        That may be all zero (alpha only image) or no (grayscale
+        with possible alpha). }
       if Header.PixelFormat.RBitMask <> 0 then
       begin
         if Header.PixelFormat.Flags and DDPF_ALPHAPIXELS = 0 then
@@ -433,8 +449,11 @@ var
         end else
         begin
           Result := TGrayscaleAlphaImage.Create(Width, Height);
-          { TODO: optim AL8 }
-          ReadToGrayscaleAlpha;
+          if (Header.PixelFormat.RGBBitCount = 16) and
+             (Header.PixelFormat.ABitMask = $ff00) and
+             (Header.PixelFormat.RBitMask = $00ff) then
+            ReadOptimized_AG8 else
+            ReadToGrayscaleAlpha;
         end;
       end else
       begin
