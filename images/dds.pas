@@ -251,207 +251,213 @@ var
 
   { Read a single, normal 2D image from DDS file. }
   function ReadImage: TImage;
-  var
-    RowBytePadding: Integer;
 
-    { A couple of optimized routines for image formats that
-      closely match corresponding Images unit memory format are below.
-      Optimized routines already know the Result memory format (image class)
-      and file format (Header.PixelFormat), they don't have to check them.
-
-      Names for optimized routines follow the naming of DDS ms docs.
-      This means that they are actually inverted in memory,
-      since DDS bit masks should be treated as little-endian.
-      For example for RGB image, RBitMask = $ff0000 means that red is
-      the 3rd (not 1st) byte...)
-
-      That's why DDS format RGB8 must be inverted when writing to TRGBImage.
-      The format matching exactly TRGBImage is actually named BGR8 in DDS. }
-
-    procedure ReadOptimized_G8;
+    procedure ReadUncompressed(IsRGB: boolean);
     var
-      Y: Integer;
-    begin
-      for Y := Height - 1 downto 0 do
-      begin
-        Stream.ReadBuffer(Result.RowPtr(Y)^, Result.PixelSize * Width);
-        if RowBytePadding <> 0 then
-          Stream.Seek(RowBytePadding, soFromCurrent);
-      end;
-    end;
+      RowBytePadding: Integer;
 
-    procedure ReadOptimized_RGB8;
-    var
-      X, Y: Integer;
-      Row: PVector3Byte;
-    begin
-      for Y := Height - 1 downto 0 do
-      begin
-        Row := Result.RowPtr(Y);
-        Stream.ReadBuffer(Row^, Result.PixelSize * Width);
+      { A couple of optimized routines for image formats that
+        closely match corresponding Images unit memory format are below.
+        Optimized routines already know the Result memory format (image class)
+        and file format (Header.PixelFormat), they don't have to check them.
 
-        { Now invert red and blue. (Since all masks are little-endian,
-          RBitMask = $FF0000 means that red is the 3rd (not 1st) byte...) }
-        for X := 0 to Width - 1 do
+        Names for optimized routines follow the naming of DDS ms docs.
+        This means that they are actually inverted in memory,
+        since DDS bit masks should be treated as little-endian.
+        For example for RGB image, RBitMask = $ff0000 means that red is
+        the 3rd (not 1st) byte...)
+
+        That's why DDS format RGB8 must be inverted when writing to TRGBImage.
+        The format matching exactly TRGBImage is actually named BGR8 in DDS. }
+
+      procedure ReadOptimized_G8;
+      var
+        Y: Integer;
+      begin
+        for Y := Height - 1 downto 0 do
         begin
-          SwapValues(Row^[2], Row^[0]);
-          Inc(Row);
+          Stream.ReadBuffer(Result.RowPtr(Y)^, Result.PixelSize * Width);
+          if RowBytePadding <> 0 then
+            Stream.Seek(RowBytePadding, soFromCurrent);
         end;
-
-        if RowBytePadding <> 0 then
-          Stream.Seek(RowBytePadding, soFromCurrent);
       end;
-    end;
 
-    procedure ReadOptimized_BGR8;
-    var
-      Y: Integer;
-    begin
-      for Y := Height - 1 downto 0 do
+      procedure ReadOptimized_RGB8;
+      var
+        X, Y: Integer;
+        Row: PVector3Byte;
       begin
-        Stream.ReadBuffer(Result.RowPtr(Y)^, Result.PixelSize * Width);
-        if RowBytePadding <> 0 then
-          Stream.Seek(RowBytePadding, soFromCurrent);
-      end;
-    end;
-
-    procedure ReadOptimized_ARGB8;
-    var
-      X, Y: Integer;
-      Row: PVector4Byte;
-    begin
-      for Y := Height - 1 downto 0 do
-      begin
-        Row := Result.RowPtr(Y);
-        Stream.ReadBuffer(Row^, Result.PixelSize * Width);
-
-        { Now invert ARGB to ABGR. So swap red<->blue, alpha and green are Ok. }
-        for X := 0 to Width - 1 do
+        for Y := Height - 1 downto 0 do
         begin
-          SwapValues(Row^[2], Row^[0]);
-          Inc(Row);
+          Row := Result.RowPtr(Y);
+          Stream.ReadBuffer(Row^, Result.PixelSize * Width);
+
+          { Now invert red and blue. (Since all masks are little-endian,
+            RBitMask = $FF0000 means that red is the 3rd (not 1st) byte...) }
+          for X := 0 to Width - 1 do
+          begin
+            SwapValues(Row^[2], Row^[0]);
+            Inc(Row);
+          end;
+
+          if RowBytePadding <> 0 then
+            Stream.Seek(RowBytePadding, soFromCurrent);
         end;
-
-        if RowBytePadding <> 0 then
-          Stream.Seek(RowBytePadding, soFromCurrent);
       end;
-    end;
 
-    procedure ReadOptimized_ABGR8;
-    var
-      Y: Integer;
-    begin
-      for Y := Height - 1 downto 0 do
+      procedure ReadOptimized_BGR8;
+      var
+        Y: Integer;
       begin
-        Stream.ReadBuffer(Result.RowPtr(Y)^, Result.PixelSize * Width);
-        if RowBytePadding <> 0 then
-          Stream.Seek(RowBytePadding, soFromCurrent);
+        for Y := Height - 1 downto 0 do
+        begin
+          Stream.ReadBuffer(Result.RowPtr(Y)^, Result.PixelSize * Width);
+          if RowBytePadding <> 0 then
+            Stream.Seek(RowBytePadding, soFromCurrent);
+        end;
       end;
-    end;
 
-    procedure ReadToGrayscale;
-    begin
-      raise EInvalidDDS.Create('TODO');
-    end;
+      procedure ReadOptimized_ARGB8;
+      var
+        X, Y: Integer;
+        Row: PVector4Byte;
+      begin
+        for Y := Height - 1 downto 0 do
+        begin
+          Row := Result.RowPtr(Y);
+          Stream.ReadBuffer(Row^, Result.PixelSize * Width);
 
-    procedure ReadToGrayscaleAlpha;
-    begin
-      raise EInvalidDDS.Create('TODO');
-    end;
+          { Now invert ARGB to ABGR. So swap red<->blue, alpha and green are Ok. }
+          for X := 0 to Width - 1 do
+          begin
+            SwapValues(Row^[2], Row^[0]);
+            Inc(Row);
+          end;
 
-    procedure ReadToRGB;
-    begin
-      raise EInvalidDDS.Create('TODO');
-    end;
+          if RowBytePadding <> 0 then
+            Stream.Seek(RowBytePadding, soFromCurrent);
+        end;
+      end;
 
-    procedure ReadToRGBAlpha;
+      procedure ReadOptimized_ABGR8;
+      var
+        Y: Integer;
+      begin
+        for Y := Height - 1 downto 0 do
+        begin
+          Stream.ReadBuffer(Result.RowPtr(Y)^, Result.PixelSize * Width);
+          if RowBytePadding <> 0 then
+            Stream.Seek(RowBytePadding, soFromCurrent);
+        end;
+      end;
+
+      procedure ReadToGrayscale;
+      begin
+        raise EInvalidDDS.Create('TODO');
+      end;
+
+      procedure ReadToGrayscaleAlpha;
+      begin
+        raise EInvalidDDS.Create('TODO');
+      end;
+
+      procedure ReadToRGB;
+      begin
+        raise EInvalidDDS.Create('TODO');
+      end;
+
+      procedure ReadToRGBAlpha;
+      begin
+        raise EInvalidDDS.Create('TODO');
+      end;
+
     begin
-      raise EInvalidDDS.Create('TODO');
+      Check(Header.PixelFormat.RGBBitCount mod 8 = 0, 'Invalid DDS pixel format: only RGBBitCount being multiple of 8 is supported. Please report with sample image');
+      Check(Header.PixelFormat.RGBBitCount > 0, 'Invalid DDS pixel format: RGBBitCount must be non-zero');
+
+      { Header.PitchOrLinearSize for uncompressed texture may indicate
+        row length (pitch) in bytes. This is useful to indicate padding of lines.
+        I understand that otherwise I should assume lines are not padded? }
+      if (Header.Flags and DDSD_PITCH <> 0) and
+         (Header.PitchOrLinearSize <> 0) then
+        RowBytePadding := Max(Header.PitchOrLinearSize -
+          (Header.PixelFormat.RGBBitCount div 8) * Width, 0) else
+        RowBytePadding := 0;
+
+      if IsRGB then
+      begin
+        if Header.PixelFormat.Flags and DDPF_ALPHAPIXELS = 0 then
+        begin
+          Result := TRGBImage.Create(Width, Height);
+
+          if (Header.PixelFormat.RBitMask = $ff0000) and
+             (Header.PixelFormat.GBitMask = $00ff00) and
+             (Header.PixelFormat.BBitMask = $0000ff) then
+            ReadOptimized_RGB8 else
+          if (Header.PixelFormat.RBitMask = $0000ff) and
+             (Header.PixelFormat.GBitMask = $00ff00) and
+             (Header.PixelFormat.BBitMask = $ff0000) then
+            ReadOptimized_BGR8 else
+            ReadToRGB;
+        end else
+        begin
+          Check(Header.PixelFormat.ABitMask <> 0, 'Invalid DDS pixel format: alpha channel flag specified (DDPF_ALPHAPIXELS), but alpha mask is zero');
+
+          Result := TRGBAlphaImage.Create(Width, Height);
+
+          if (Header.PixelFormat.RGBBitCount = 32) and
+             (Header.PixelFormat.ABitMask = $ff000000) and
+             (Header.PixelFormat.RBitMask = $00ff0000) and
+             (Header.PixelFormat.GBitMask = $0000ff00) and
+             (Header.PixelFormat.BBitMask = $000000ff) then
+            ReadOptimized_ARGB8 else
+          if (Header.PixelFormat.RGBBitCount = 32) and
+             (Header.PixelFormat.ABitMask = $ff000000) and
+             (Header.PixelFormat.RBitMask = $000000ff) and
+             (Header.PixelFormat.GBitMask = $0000ff00) and
+             (Header.PixelFormat.BBitMask = $00ff0000) then
+            ReadOptimized_ABGR8 else
+            ReadToRGBAlpha;
+        end;
+      end else
+      if Header.PixelFormat.RBitMask <> 0 then
+      begin
+        if Header.PixelFormat.Flags and DDPF_ALPHAPIXELS = 0 then
+        begin
+          Result := TGrayscaleImage.Create(Width, Height);
+
+          if (Header.PixelFormat.RGBBitCount = 8) and
+             (Header.PixelFormat.RBitMask = $ff) then
+            ReadOptimized_G8 else
+            ReadToGrayscale;
+        end else
+        begin
+          Result := TGrayscaleAlphaImage.Create(Width, Height);
+          { TODO: optim AL8 }
+          ReadToGrayscaleAlpha;
+        end;
+      end else
+      begin
+        if Header.PixelFormat.Flags and DDPF_ALPHAPIXELS <> 0 then
+          raise EInvalidDDS.Create('TODO: Unsupported pixel format for DDS: pure alpha channel') else
+          raise EInvalidDDS.Create('Invalid DDS pixel format: no flag specified (so assuming grayscale inmage), but all r/g/b masks are zero');
+      end;
     end;
 
   begin
-    { There are three mutually exclusive types of DDS pixel format:
+    { There are four mutually exclusive types of DDS pixel format:
       uncompressed non-palette (DDPF_RGB) or
       uncompressed palette (DDPF_PALETTEINDEXED8) or
-      compressed (DDPF_FOURCC).
-      One, and exactly one, of these flags must be specified. }
-      
+      compressed (DDPF_FOURCC) or
+      uncompressed grayscale and/or alpha (neither flag, GIMP-DDS can write such images). }
+
     Result := nil;
     try
       if Header.PixelFormat.Flags and DDPF_RGB <> 0 then
       begin
         Check(Header.PixelFormat.Flags and DDPF_FOURCC = 0, 'Invalid DDS pixel format: both uncompressed (DDPF_RGB) and compressed (DDPF_FOURCC) flags specified');
         Check(Header.PixelFormat.Flags and DDPF_PALETTEINDEXED8 = 0, 'Invalid DDS pixel format: both non-palette (DDPF_RGB) and palette (DDPF_PALETTEINDEXED8) flags specified');
-
-        Check(Header.PixelFormat.RGBBitCount mod 8 = 0, 'Invalid DDS pixel format: only RGBBitCount being multiple of 8 is supported. Please report with sample image');
-        Check(Header.PixelFormat.RGBBitCount > 0, 'Invalid DDS pixel format: RGBBitCount must be non-zero');
-
-        { Header.PitchOrLinearSize for uncompressed texture may indicate
-          row length (pitch) in bytes. This is useful to indicate padding of lines.
-          I understand that otherwise I should assume lines are not padded? }
-        if (Header.Flags and DDSD_PITCH <> 0) and
-           (Header.PitchOrLinearSize <> 0) then
-          RowBytePadding := Max(Header.PitchOrLinearSize -
-            (Header.PixelFormat.RGBBitCount div 8) * Width, 0) else
-          RowBytePadding := 0;
-
-        if Header.PixelFormat.Flags and DDPF_ALPHAPIXELS = 0 then
-        begin
-          if (Header.PixelFormat.RBitMask =
-              Header.PixelFormat.GBitMask) and
-             (Header.PixelFormat.GBitMask =
-              Header.PixelFormat.BBitMask) then
-          begin
-            Result := TGrayscaleImage.Create(Width, Height);
-
-            if (Header.PixelFormat.RGBBitCount = 8) and
-               (Header.PixelFormat.RBitMask = $ff) then
-              ReadOptimized_G8 else
-              ReadToGrayscale;
-          end else
-          begin
-            Result := TRGBImage.Create(Width, Height);
-
-            if (Header.PixelFormat.RBitMask = $ff0000) and
-               (Header.PixelFormat.GBitMask = $00ff00) and
-               (Header.PixelFormat.BBitMask = $0000ff) then
-              ReadOptimized_RGB8 else
-            if (Header.PixelFormat.RBitMask = $0000ff) and
-               (Header.PixelFormat.GBitMask = $00ff00) and
-               (Header.PixelFormat.BBitMask = $ff0000) then
-              ReadOptimized_BGR8 else
-              ReadToRGB;
-          end;
-        end else
-        begin
-          Check(Header.PixelFormat.ABitMask <> 0, 'Invalid DDS pixel format: alpha channel flag specified (DDPF_ALPHAPIXELS), but alpha mask is zero');
-
-          if (Header.PixelFormat.RBitMask =
-              Header.PixelFormat.GBitMask) and
-             (Header.PixelFormat.GBitMask =
-              Header.PixelFormat.BBitMask) then
-          begin
-            Result := TGrayscaleAlphaImage.Create(Width, Height);
-            ReadToGrayscaleAlpha;
-          end else
-          begin
-            Result := TRGBAlphaImage.Create(Width, Height);
-
-            if (Header.PixelFormat.RGBBitCount = 32) and
-               (Header.PixelFormat.ABitMask = $ff000000) and
-               (Header.PixelFormat.RBitMask = $00ff0000) and
-               (Header.PixelFormat.GBitMask = $0000ff00) and
-               (Header.PixelFormat.BBitMask = $000000ff) then
-              ReadOptimized_ARGB8 else
-            if (Header.PixelFormat.RGBBitCount = 32) and
-               (Header.PixelFormat.ABitMask = $ff000000) and
-               (Header.PixelFormat.RBitMask = $000000ff) and
-               (Header.PixelFormat.GBitMask = $0000ff00) and
-               (Header.PixelFormat.BBitMask = $00ff0000) then
-              ReadOptimized_ABGR8 else
-              ReadToRGBAlpha;
-          end;
-        end;
+        ReadUncompressed(true);
       end else
       if Header.PixelFormat.Flags and DDPF_PALETTEINDEXED8 <> 0 then
       begin
@@ -471,7 +477,15 @@ var
             SReadableForm(Header.PixelFormat.FourCC[2]),
             SReadableForm(Header.PixelFormat.FourCC[3]) ]);
       end else
-        raise EInvalidDDS.Create('Invalid DDS pixel format: no flags indicating format type specified (exactly one of DDPF_RGB, DDPF_PALETTEINDEXED8, DDPF_FOURCC is required)');
+      begin
+        { No flags specified, this means uncompressed image
+          without RGB: grayscale (possibly with alpha), or even only
+          alpha channel. At least GIMP-DDS plugin can write such images. }
+        Check(
+          (Header.PixelFormat.RBitMask = Header.PixelFormat.GBitMask) and
+          (Header.PixelFormat.GBitMask = Header.PixelFormat.BBitMask), 'Invalid DDS pixel format: neighter DDPF_RGB, DDPF_FOURCC, DDPF_PALETTEINDEXED8 flags specified, so this must be a grayscale and/or alpha image. But R/G/B masks are different');
+        ReadUncompressed(false);
+      end;
     except FreeAndNil(Result); raise end;
   end;
 
