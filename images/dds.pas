@@ -285,7 +285,7 @@ constructor TDDSRowReader.Create(const PixelFormat: PDDSPixelFormat;
   const
     High1 = LongWord(1) shl 31;
   var
-    LeadingZeros{, Ones}: Integer;
+    LeadingZeros: Integer;
   begin
     if Mask = 0 then Exit(0);
 
@@ -296,18 +296,16 @@ constructor TDDSRowReader.Create(const PixelFormat: PDDSPixelFormat;
       Mask := Mask shl 1;
     end;
 
-    { Actually, that's not needed.
-    Ones := 0;
-    while Mask and High1 = 0 do
-    begin
-      Inc(Ones);
-      Mask := Mask shl 1;
-    end; }
-
     { So the mask in binary starts with LeadingZeros of 0,
-      then Ones of 1. We assume that mask doesn't contain any more ones,
-      i.e. that the rest of the mask is zero (nothing produces DDS
-      files with other values, that would be pretty strange). }
+      then some 1.
+
+      We could detect how many 1 digits are present.
+      We could even assume that there's a sequence of 1's and then the
+      following are all zero (nothing produces DDS
+      files with other values, that would be pretty strange).
+      But that's not actually necessary, all we need is to know
+      the position of the most significant 1 digit, and then the trivial
+      equation below will work Ok. }
 
     Result := 24 - LeadingZeros;
   end;
