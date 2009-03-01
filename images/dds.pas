@@ -693,9 +693,10 @@ var
         end;
       end else
       begin
-        if Header.PixelFormat.Flags and DDPF_ALPHAPIXELS <> 0 then
-          raise EInvalidDDS.Create('TODO: Unsupported pixel format for DDS: pure alpha channel') else
-          raise EInvalidDDS.Create('Invalid DDS pixel format: no flag specified (so assuming grayscale inmage), but all r/g/b masks are zero');
+        { GIMP-DDS plugin doesn't set DDPF_ALPHAPIXELS, but this is wrong IMO,
+          so I warn about it. }
+        CheckWarn(Header.PixelFormat.Flags and DDPF_ALPHAPIXELS <> 0, 'Invalid DDS pixel format: no flag specified (so must be grayscale inmage), but all r/g/b masks are zero. We will assume this is alpha-only image, as GIMP-DDS plugin can write such files');
+        raise EInvalidDDS.Create('TODO: Unsupported pixel format for DDS: pure alpha channel');
       end;
     end;
 
