@@ -277,23 +277,36 @@ type
     function RGBA(Channel: TRGBAChannel): Byte;
   end;
 
+{ Shift bits to the right if Value is positive.
+  Shift to the left if negative. }
+function ShiftR(const Value: LongWord; const Shift: Integer): LongWord;
+begin
+  if Shift >= 0 then
+    Result := Value shr Shift else
+    Result := Value shl (-Shift);
+end;
+
 constructor TDDSRowReader.Create(const PixelFormat: PDDSPixelFormat;
   const Width, RowBytePadding: Cardinal);
 
-  { Calculate shift (to the right, i.e. "shr") to extract color value to 8bit. }
-  function CalculateChannelShift(Mask: LongWord): Integer;
+  { Calculate shift (to the right, i.e. for ShiftR)
+    to extract color value to 8bit. }
+  function CalculateChannelShift(const Mask: LongWord): Integer;
   const
     High1 = LongWord(1) shl 31;
   var
     LeadingZeros: Integer;
+    M: LongWord;
   begin
     if Mask = 0 then Exit(0);
 
+    M := Mask;
+
     LeadingZeros := 0;
-    while Mask and High1 = 0 do
+    while M and High1 = 0 do
     begin
       Inc(LeadingZeros);
-      Mask := Mask shl 1;
+      M := M shl 1;
     end;
 
     { So the mask in binary starts with LeadingZeros of 0,
@@ -308,6 +321,11 @@ constructor TDDSRowReader.Create(const PixelFormat: PDDSPixelFormat;
       equation below will work Ok. }
 
     Result := 24 - LeadingZeros;
+
+    { Assert that after shifting, all bits above Byte are clear
+      and the most significant bit of color is in the most significant bit
+      of byte. }
+    Assert(ShiftR(Mask, Result) and $FFFFFF80 = $80);
   end;
 
 var
@@ -378,7 +396,7 @@ end;
 
 function TDDSRowReader.RGBA(Channel: TRGBAChannel): Byte;
 begin
-  Result := (PixelValue and ChannelMask[Channel]) shr ChannelShift[Channel];
+  Result := ShiftR(PixelValue and ChannelMask[Channel], ChannelShift[Channel]);
 end;
 
 procedure TDDSImage.LoadFromStream(Stream: TStream);
@@ -666,6 +684,7 @@ var
         end else
         begin
           Result := TGrayscaleAlphaImage.Create(Width, Height);
+
           if (Header.PixelFormat.RGBBitCount = 16) and
              (Header.PixelFormat.ABitMask = $ff00) and
              (Header.PixelFormat.RBitMask = $00ff) then
