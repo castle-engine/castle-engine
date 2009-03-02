@@ -478,7 +478,16 @@ var
         the 3rd (not 1st) byte...)
 
         That's why DDS format RGB8 must be inverted when writing to TRGBImage.
-        The format matching exactly TRGBImage is actually named BGR8 in DDS. }
+        The format matching exactly TRGBImage is actually named BGR8 in DDS.
+
+        The optimized routines are much faster as they don't use TDDSRowReader,
+        so they don't need a temporary row (they load directly into output
+        image memory), they don't need any mask/shift operations for each channel
+        of each pixel (as the pixel format already matches what is needed,
+        eventual swaps BGR<->RGB are fast).
+        Tests shown that optimized versions are 4-7 times faster than
+        if TDDSRowReader would be used to read the same images.
+      }
 
       procedure ReadOptimized_G8;
       var
