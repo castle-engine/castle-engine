@@ -667,6 +667,30 @@ var
         finally FreeAndNil(Reader) end;
       end;
 
+      { Read alpha-only images (may be produced by GIMP-DDS) }
+      procedure ReadToGrayscaleAlphaPure;
+      var
+        Reader: TDDSRowReader;
+        Y, X: Integer;
+        GA: PVector2Byte;
+      begin
+        Reader := TDDSRowReader.Create(@Header.PixelFormat, Width, RowBytePadding);
+        try
+          for Y := Height - 1 downto 0 do
+          begin
+            Reader.ReadRow(Stream);
+            GA := Result.RowPtr(Y);
+            for X := 0 to Width - 1 do
+            begin
+              GA^[0] := 255;
+              GA^[1] := Reader.RGBA(3);
+              Reader.NextPixel;
+              Inc(GA);
+            end;
+          end;
+        finally FreeAndNil(Reader) end;
+      end;
+
     begin
       Check(Header.PixelFormat.RGBBitCount mod 8 = 0, 'Invalid DDS pixel format: only RGBBitCount being multiple of 8 is supported. Please report with sample image');
       Check(Header.PixelFormat.RGBBitCount > 0, 'Invalid DDS pixel format: RGBBitCount must be non-zero');
@@ -745,7 +769,8 @@ var
         { GIMP-DDS plugin doesn't set DDPF_ALPHAPIXELS, but this is wrong IMO,
           so I warn about it. }
         CheckWarn(Header.PixelFormat.Flags and DDPF_ALPHAPIXELS <> 0, 'Invalid DDS pixel format: no flag specified (so must be grayscale inmage), but all r/g/b masks are zero. We will assume this is alpha-only image, as GIMP-DDS plugin can write such files');
-        raise EInvalidDDS.Create('TODO: Unsupported pixel format for DDS: pure alpha channel');
+        Result := TGrayscaleAlphaImage.Create(Width, Height);
+        ReadToGrayscaleAlphaPure;
       end;
     end;
 
