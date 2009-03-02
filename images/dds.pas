@@ -200,52 +200,26 @@ type
     Reserved2: LongWord;
   end;
 
-{ TDDSImage ------------------------------------------------------------------ }
-
-constructor TDDSImage.Create;
-begin
-  inherited;
-  FOwnsFirstImage := true;
-end;
-
-destructor TDDSImage.Destroy;
-begin
-  Close;
-  inherited;
-end;
-
-procedure TDDSImage.Close;
-var
-  I: Integer;
-begin
-  for I := 0 to Length(FImages) - 1 do
-    if OwnsFirstImage or (I <> 0) then
-      FreeAndNil(FImages[I]);
-  SetLength(FImages, 0);
-end;
-
-function TDDSImage.GetImages(const Index: Integer): TImage;
-begin
-  Result := FImages[Index];
-end;
-
-function TDDSImage.ImagesCount: Cardinal;
-begin
-  Result := Length(FImages);
-end;
-
-function TDDSImage.CubeMapImage(const Side: TCubeMapSide): TImage;
-begin
-  { TODO }
-end;
+{ TDDSRowReader -------------------------------------------------------------- }
 
 type
   TRGBAChannel = 0..3;
 
+  TChannelInfo = record
+    Mask: LongWord;
+    { Shift (to the right, by ShiftR) to fit into Byte }
+    ShiftToByte: Integer;
+    { Shift (to the right, by ShiftR) to have the least significant bit at
+      1st position. }
+    ShiftToLeast: Integer;
+    { How long is the sequence of 1 bits inside the mask. }
+    MaskOnes: Cardinal;
+  end;
+
   { Reads DDS image rows, loading them to temporary memory.
 
     After reading row (by ReadRow) you can uncompress it by
-    using RGBA (return value as 8-bit Byte, for Red, Green, Blue, Alpha
+    using RGBA (returns value as 8-bit Byte, for Red, Green, Blue, Alpha
     according to Channel parameter)
     and NextPixel repeatedly.
 
@@ -264,8 +238,7 @@ type
     Pixel: Pointer;
     PixelValue: LongWord;
     RowByteSize, PixelByteSize: Cardinal;
-    ChannelMask: array [TRGBAChannel] of LongWord;
-    ChannelShift: array [TRGBAChannel] of Integer;
+    Channels: array [TRGBAChannel] of TChannelInfo;
     procedure CalculatePixelValue;
   public
     constructor Create(const PixelFormat: PDDSPixelFormat;
@@ -289,16 +262,23 @@ end;
 constructor TDDSRowReader.Create(const PixelFormat: PDDSPixelFormat;
   const Width, RowBytePadding: Cardinal);
 
-  { Calculate shift (to the right, i.e. for ShiftR)
-    to extract color value to 8bit. }
-  function CalculateChannelShift(const Mask: LongWord): Integer;
+  { Calculate TChannelInfo. }
+  procedure CalculateChannelInfo(const Mask: LongWord; var Info: TChannelInfo);
   const
     High1 = LongWord(1) shl 31;
   var
-    LeadingZeros: Integer;
+    LeadingZeros, Ones: Integer;
     M: LongWord;
   begin
-    if Mask = 0 then Exit(0);
+    Info.Mask := Mask;
+
+    if Mask = 0 then
+    begin
+      Info.ShiftToByte := 0;
+      Info.ShiftToLeast := 0;
+      Info.MaskOnes := 0;
+      Exit;
+    end;
 
     M := Mask;
 
@@ -309,27 +289,34 @@ constructor TDDSRowReader.Create(const PixelFormat: PDDSPixelFormat;
       M := M shl 1;
     end;
 
-    { So the mask in binary starts with LeadingZeros of 0,
-      then some 1.
+    Ones := 0;
+    while M <> 0 do
+    begin
+      Inc(Ones);
+      M := M shl 1;
+    end;
+    Info.MaskOnes := Ones;
 
-      We could detect how many 1 digits are present.
-      We could even assume that there's a sequence of 1's and then the
-      following are all zero (nothing produces DDS
+    { So the mask in binary starts with LeadingZeros of 0,
+      then some 1. After Ones digits, the mask is zero.
+
+      (In other words, we have a sequence of Ones bits inside the Mask
+      that start and end with digit 1. We could assume here that
+      this sequence is just full of 1 (nothing produces DDS
       files with other values, that would be pretty strange).
       But that's not actually necessary, all we need is to know
-      the position of the most significant 1 digit, and then the trivial
-      equation below will work Ok. }
+      the position of the most and least significant 1 digit,
+      and then the trivial equation below will work Ok. }
 
-    Result := 24 - LeadingZeros;
+    Info.ShiftToByte := 24 - LeadingZeros;
+    Info.ShiftToLeast := 32 - LeadingZeros - Ones;
 
     { Assert that after shifting, all bits above Byte are clear
       and the most significant bit of color is in the most significant bit
       of byte. }
-    Assert(ShiftR(Mask, Result) and $FFFFFF80 = $80);
+    Assert(ShiftR(Mask, Info.ShiftToByte) and $FFFFFF80 = $80);
   end;
 
-var
-  I: Integer;
 begin
   inherited Create;
   FPixelFormat := PixelFormat;
@@ -347,13 +334,10 @@ begin
   RowByteSize := PixelByteSize * Width;
   Row := GetMem(RowByteSize);
 
-  ChannelMask[0] := FPixelFormat^.RBitMask;
-  ChannelMask[1] := FPixelFormat^.GBitMask;
-  ChannelMask[2] := FPixelFormat^.BBitMask;
-  ChannelMask[3] := FPixelFormat^.ABitMask;
-
-  for I := 0 to 3 do
-    ChannelShift[I] := CalculateChannelShift(ChannelMask[I]);
+  CalculateChannelInfo(FPixelFormat^.RBitMask, Channels[0]);
+  CalculateChannelInfo(FPixelFormat^.GBitMask, Channels[1]);
+  CalculateChannelInfo(FPixelFormat^.BBitMask, Channels[2]);
+  CalculateChannelInfo(FPixelFormat^.ABitMask, Channels[3]);
 end;
 
 destructor TDDSRowReader.Destroy;
@@ -396,7 +380,72 @@ end;
 
 function TDDSRowReader.RGBA(Channel: TRGBAChannel): Byte;
 begin
-  Result := ShiftR(PixelValue and ChannelMask[Channel], ChannelShift[Channel]);
+  with Channels[Channel] do
+  begin
+    Result := ShiftR(PixelValue and Mask, ShiftToByte);
+
+    { What to with bits that are not set by PixelValue?
+      That is, when the mask is less than 8 bits?
+
+      It's important that pure white be preserved as pure white,
+      and pure black as pure black. This is especially important for alpha
+      channel (otherwise opaque image will suddenly turn into
+      partially transparent, e.g. if you load image with 2 bits for alpha,
+      and fill the remaining 6 bits with 0, then alpha = 11 (binary)
+      will be turned into 11000000 (no longer completely opaque).)
+
+      So it seems most sensible to fill the remaining bits with the contents
+      of least-significant color bit. If this bit is zero, we actually
+      have to do nothing, but when it's one --- we need to insert 1 bits
+      into Result.
+
+      This is done only when MaskOnes < 8, to optimize. }
+    if (MaskOnes < 8) and
+       (ShiftR(PixelValue, ShiftToLeast) and 1 <> 0) then
+    begin
+      { So the least-significant color bit is 1. }
+      Result := Result or (ShiftR(not Mask, ShiftToByte) and $FF);
+    end;
+  end;
+end;
+
+{ TDDSImage ------------------------------------------------------------------ }
+
+constructor TDDSImage.Create;
+begin
+  inherited;
+  FOwnsFirstImage := true;
+end;
+
+destructor TDDSImage.Destroy;
+begin
+  Close;
+  inherited;
+end;
+
+procedure TDDSImage.Close;
+var
+  I: Integer;
+begin
+  for I := 0 to Length(FImages) - 1 do
+    if OwnsFirstImage or (I <> 0) then
+      FreeAndNil(FImages[I]);
+  SetLength(FImages, 0);
+end;
+
+function TDDSImage.GetImages(const Index: Integer): TImage;
+begin
+  Result := FImages[Index];
+end;
+
+function TDDSImage.ImagesCount: Cardinal;
+begin
+  Result := Length(FImages);
+end;
+
+function TDDSImage.CubeMapImage(const Side: TCubeMapSide): TImage;
+begin
+  { TODO }
 end;
 
 procedure TDDSImage.LoadFromStream(Stream: TStream);
