@@ -1009,7 +1009,9 @@ type
     function TextureCubeMap_IncReference(
       Node: TNodeX3DEnvironmentTextureNode;
       const MinFilter, MagFilter: TGLint;
-      Back, Bottom, Front, Left, Right, Top: TImage): TGLuint;
+      PositiveX, NegativeX,
+      PositiveY, NegativeY,
+      PositiveZ, NegativeZ: TImage): TGLuint;
 
     procedure TextureCubeMap_DecReference(
       const TextureGLName: TGLuint);
@@ -1576,7 +1578,7 @@ implementation
 
 uses Math, Triangulator, NormalizationCubeMap,
   KambiStringUtils, GLVersionUnit, KambiLog, KambiClassUtils,
-  VRMLGeometry, VRMLScene;
+  VRMLGeometry, VRMLScene, DDS;
 
 {$define read_implementation}
 {$I dynarray_1.inc}
@@ -1935,7 +1937,9 @@ end;
 function TVRMLOpenGLRendererContextCache.TextureCubeMap_IncReference(
   Node: TNodeX3DEnvironmentTextureNode;
   const MinFilter, MagFilter: TGLint;
-  Back, Bottom, Front, Left, Right, Top: TImage): TGLuint;
+  PositiveX, NegativeX,
+  PositiveY, NegativeY,
+  PositiveZ, NegativeZ: TImage): TGLuint;
 var
   I: Integer;
   TextureCached: PTextureCubeMapCache;
@@ -1972,12 +1976,12 @@ begin
     (MinFilter = GL_NEAREST_MIPMAP_LINEAR) or
     (MinFilter = GL_LINEAR_MIPMAP_LINEAR);
 
-  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB, Back  , Mipmaps);
-  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB, Bottom, Mipmaps);
-  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB, Front , Mipmaps);
-  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB, Left  , Mipmaps);
-  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, Right , Mipmaps);
-  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB, Top   , Mipmaps);
+  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, PositiveX, Mipmaps);
+  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB, NegativeX, Mipmaps);
+  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB, PositiveY, Mipmaps);
+  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB, NegativeY, Mipmaps);
+  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB, PositiveZ, Mipmaps);
+  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB, NegativeZ, Mipmaps);
 
   TextureCached := TextureCubeMapCaches.AppendItem;
   TextureCached^.InitialNode := Node;
@@ -3457,7 +3461,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
 
   { Do the necessary preparations for a cube env map texture node.
     CubeTexture must be non-nil. }
-  procedure PrepareSingleCubeTexture(CubeTexture: TNodeComposedCubeMapTexture);
+  procedure PrepareSingleComposedCubeTexture(CubeTexture: TNodeComposedCubeMapTexture);
 
     { Checks is given side has non-nil valid node class,
       and then if image there can be loaded. }
@@ -3527,12 +3531,12 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
       TextureCubeMapReference.GLName := Cache.TextureCubeMap_IncReference(
         CubeTexture,
         MinFilter, MagFilter,
-        BackRot,
-        TVRMLTextureNode(CubeTexture.FdBottom.Value).TextureImage,
-        FrontRot,
-        LeftRot,
-        RightRot,
-        TVRMLTextureNode(CubeTexture.FdTop   .Value).TextureImage);
+        { positive x } RightRot,
+        { negative x } LeftRot,
+        { positive y } TVRMLTextureNode(CubeTexture.FdTop   .Value).TextureImage,
+        { negative y } TVRMLTextureNode(CubeTexture.FdBottom.Value).TextureImage,
+        { positive z } BackRot,
+        { negative z } FrontRot);
       TextureCubeMapReferences.AppendItem(TextureCubeMapReference);
 
     finally
@@ -3541,6 +3545,67 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
       FreeAndNil(LeftRot);
       FreeAndNil(RightRot);
     end;
+  end;
+
+  { Do the necessary preparations for a cube env map texture node.
+    CubeTexture must be non-nil. }
+  procedure PrepareSingleImageCubeTexture(CubeTexture: TNodeImageCubeMapTexture);
+  var
+    TextureProperties: TNodeTextureProperties;
+    MinFilter, MagFilter: TGLint;
+    TextureCubeMapReference: TTextureCubeMapReference;
+    DDS: TDDSImage;
+  begin
+    if TextureCubeMapReferences.TextureNodeIndex(CubeTexture) <> -1 then
+      { Already loaded, nothing to do }
+      Exit;
+
+    if not GL_ARB_texture_cube_map then
+    begin
+      VRMLWarning(vwSerious, 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
+      Exit;
+    end;
+
+    DDS := CubeTexture.LoadImage;
+    { If CubeTexture doesn't contain anything useful, just exit.
+      CubeTexture.LoadImage already did necessary VRMLWarnings. }
+    if DDS = nil then Exit;
+
+    try
+
+      { calculate MinFilter, MagFilter }
+      if (CubeTexture.FdTextureProperties.Value <> nil) and
+         (CubeTexture.FdTextureProperties.Value is TNodeTextureProperties) then
+      begin
+        TextureProperties := TNodeTextureProperties(CubeTexture.FdTextureProperties.Value);
+        MinFilter := StrToMinFilter(TextureProperties.FdMinificationFilter.Value);
+        MagFilter := StrToMagFilter(TextureProperties.FdMagnificationFilter.Value);
+      end else
+      begin
+        MinFilter := Attributes.TextureMinFilter;
+        MagFilter := Attributes.TextureMagFilter;
+      end;
+
+      { TODO: this is a quick and dirty method:
+        - We call LoadImage each time, while load calls should
+          be minimized (to avoid loading image many times, but also
+          to avoid making repeated warnings in case image fails).
+          Should be cached, like for 2D texture nodes.
+        - We do not use cube map mipmaps. }
+
+      TextureCubeMapReference.Node := CubeTexture;
+      TextureCubeMapReference.GLName := Cache.TextureCubeMap_IncReference(
+        CubeTexture,
+        MinFilter, MagFilter,
+        DDS.CubeMapImage(csPositiveX),
+        DDS.CubeMapImage(csNegativeX),
+        DDS.CubeMapImage(csPositiveY),
+        DDS.CubeMapImage(csNegativeY),
+        DDS.CubeMapImage(csPositiveZ),
+        DDS.CubeMapImage(csNegativeZ));
+      TextureCubeMapReferences.AppendItem(TextureCubeMapReference);
+
+    finally FreeAndNil(DDS); end;
   end;
 
   { Do the necessary preparations for a multi-texture node.
@@ -3558,7 +3623,9 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
         if ChildTex is TNodeMultiTexture then
           VRMLWarning(vwSerious, 'Child of MultiTexture node cannot be another MultiTexture node') else
         if ChildTex is TNodeComposedCubeMapTexture then
-          PrepareSingleCubeTexture(TNodeComposedCubeMapTexture(ChildTex)) else
+          PrepareSingleComposedCubeTexture(TNodeComposedCubeMapTexture(ChildTex)) else
+        if ChildTex is TNodeImageCubeMapTexture then
+          PrepareSingleImageCubeTexture(TNodeImageCubeMapTexture(ChildTex)) else
         if ChildTex is TVRMLTextureNode then
           PrepareSingle2DTexture(TVRMLTextureNode(ChildTex));
       end;
@@ -3582,7 +3649,9 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
       if TextureNode is TNodeMultiTexture then
         PrepareMultiTexture(TNodeMultiTexture(TextureNode)) else
       if TextureNode is TNodeComposedCubeMapTexture then
-        PrepareSingleCubeTexture(TNodeComposedCubeMapTexture(TextureNode)) else
+        PrepareSingleComposedCubeTexture(TNodeComposedCubeMapTexture(TextureNode)) else
+      if TextureNode is TNodeImageCubeMapTexture then
+        PrepareSingleImageCubeTexture(TNodeImageCubeMapTexture(TextureNode)) else
       if TextureNode is TVRMLTextureNode then
         PrepareSingle2DTexture(TVRMLTextureNode(TextureNode));
     end;

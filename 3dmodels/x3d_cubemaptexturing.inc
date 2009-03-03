@@ -83,6 +83,16 @@
 
     private FFdtextureProperties: TSFNode;
     public property FdtextureProperties: TSFNode read FFdtextureProperties;
+
+    { Load cube environment map from DDS image.
+
+      In case of problems, will make VRMLWarning.
+      This includes situations when url cannot be loaded for whatever reason.
+      Also problems when url contains valid DDS image,
+      but not describing cube map with all 6 sides.
+
+      If all URLs failed, will return @nil. }
+    function LoadImage: TDDSImage;
   end;
 
 {$endif read_interface}
@@ -206,6 +216,57 @@ class function TNodeImageCubeMapTexture.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TNodeImageCubeMapTexture.LoadImage: TDDSImage;
+var
+  I: Integer;
+  FullUrl: string;
+begin
+  Result := TDDSImage.Create;
+  try
+    for I := 0 to FdUrl.Items.Count - 1 do
+    begin
+      FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
+
+      if FileExtToImageFormatDef(ExtractFileExt(FullUrl),
+        false, false, ifBMP) <> ifDDS then
+      begin
+        VRMLWarning(vwIgnorable, Format('Only DDS format is supported for ImageCubeMapTexture node, but URL is "%s"', [FullUrl]));
+        Continue;
+      end;
+
+      try
+        Result.LoadFromFile(FullUrl);
+      except
+        on E: Exception do
+        begin
+          Result.Close;
+          VRMLWarning(vwIgnorable, Format('Error when loading DDS file "%s": %s', [FullUrl, E.Message]));
+          Continue;
+        end;
+      end;
+
+      if Result.DDSType <> dtCubeMap then
+      begin
+        Result.Close;
+        VRMLWarning(vwIgnorable, Format('DDS image "%s" given for ImageCubeMapTexture doesn''t describe a cube map texture', [FullUrl]));
+        Continue;
+      end;
+
+      if Result.CubeMapSides <> AllCubeMapSides then
+      begin
+        Result.Close;
+        VRMLWarning(vwIgnorable, Format('DDS image "%s" given for ImageCubeMapTexture doesn''t contain all cube map sides', [FullUrl]));
+        Continue;
+      end;
+
+      Exit;
+    end;
+
+    { If we got here, then no URL was good. So set Result to @nil. }
+    FreeAndNil(Result);
+  except FreeAndNil(Result); raise end;
 end;
 
 procedure RegisterCubeMapTexturingNodes;

@@ -281,7 +281,7 @@ interface
 uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
   VRMLFields, Boxes3d, Images, TTFontsTypes, BackgroundBase, VRMLErrors,
   ImagesCache, VideosCache, KambiInterfaces, Videos, VRMLTime,
-  KambiScript, VRMLKambiScript, KambiOctree;
+  KambiScript, VRMLKambiScript, KambiOctree, DDS;
 
 {$define read_interface}
 

@@ -65,11 +65,7 @@ type
     FDDSType: TDDSType;
     FMipmaps: boolean;
     FMipmapsCount: Cardinal;
-
-    { Valid only when image is loaded and is dtCubeMap. }
     FCubeMapSides: TCubeMapSides;
-
-    { Valid only when image is loaded and is dtVolume. }
     FDepth: Cardinal;
 
     FOwnsFirstImage: boolean;
@@ -97,6 +93,14 @@ type
     { Mipmaps count.
       Always 1 when @link(Mipmaps) = @false, this is usually comfortable. }
     property MipmapsCount: Cardinal read FMipmapsCount;
+
+    { Present cube map sides.
+      Valid only when image is loaded and is dtCubeMap. }
+    property CubeMapSides: TCubeMapSides read FCubeMapSides;
+
+    { Depth of volume (3D) texture.
+      Valid only when image is loaded and is dtVolume. }
+    property Depth: Cardinal read FDepth;
 
     { Return given side of cube map.
       Assumes DDSType = dtCubeMap and CubeMapSides = all.
@@ -127,6 +131,9 @@ type
     property OwnsFirstImage: boolean read FOwnsFirstImage write FOwnsFirstImage
       default true;
   end;
+
+const
+  AllCubeMapSides = [Low(TCubeMapSide) .. High(TCubeMapSide)];
 
 implementation
 
