@@ -45,6 +45,9 @@
   end;
 
   TNodeTeapot = class(TNodeX3DGeometryNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -57,6 +60,9 @@
 
     private FFdsolid: TSFBool;
     public property Fdsolid: TSFBool read FFdsolid;
+
+    private FFdtexCoord: TSFNode;
+    public property FdtexCoord: TSFNode read FFdtexCoord;
 
     function Proxy: TVRMLGeometryNode; override;
   end;
@@ -199,6 +205,9 @@ begin
   FFdsolid := TSFBool.Create(Self, 'solid', true);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
+
+  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinateGenerator]);
+  Fields.Add(FFdtexCoord);
 end;
 
 class function TNodeTeapot.ClassNodeTypeName: string;
@@ -247,10 +256,21 @@ begin
 
     IFS.FdSolid.Value := FdSolid.Value;
 
+    if (FdTexCoord.Value <> nil) and
+       (FdTexCoord.Value is TNodeTextureCoordinateGenerator) then
+      IFS.FdTexCoord.Value := FdTexCoord.Value;
+
     { Set CreaseAngle to anything larger than Pi, to make this completely
       smooth later using fast CreateSmoothNormalsCoordinateNode routine. }
     IFS.FdCreaseAngle.Value := 4;
   except FreeAndNil(Result); raise end;
+end;
+
+procedure TNodeTeapot.DirectEnumerateActive(
+  Func: TEnumerateChildrenFunction);
+begin
+  inherited;
+  FdtexCoord.EnumerateValid(Func);
 end;
 
 constructor TNodeLogger.Create(const ANodeName: string;
@@ -289,7 +309,7 @@ procedure TNodeLogger.EventWriteReceive(
 
   procedure StdOutNotAvail;
   begin
-    VRMLWarning(vwSerious, 
+    VRMLWarning(vwSerious,
       'Logger node wants to write on standard output, but it seems that stdout (standard output) ' +
       'is not available. Under Windows you should explicitly ' +
       'redirect program''s stdout to make it available, e.g. ' +
