@@ -96,13 +96,13 @@ type
     property MipmapsCount: Cardinal read FMipmapsCount;
 
     { Return given side of cube map.
-
-      Returns @nil if DDSType is not dtCubeMap, or when the given side
-      is omitted (even for dtCubeMap, not all cube map sides have to be
-      specified in DDS file).
+      Assumes DDSType = dtCubeMap and CubeMapSides = all.
 
       This returns always the main mipmap level of the image,
-      thus ignoring whether the DDS image has mipmaps or not. }
+      thus ignoring whether the DDS image has mipmaps or not.
+
+      TODO: this is actually for testing, not really for production
+      (as for real usage, you will want to eventually use also mipmaps). }
     function CubeMapImage(const Side: TCubeMapSide): TImage;
 
     { Load DDS image from any TStream.
@@ -916,7 +916,7 @@ var
 
   var
     W, H: Cardinal;
-    I: Integer;
+    NextI, I: Integer;
     Side: TCubeMapSide;
   begin
     { Check that Width/Height are power of two, this is needed to make
@@ -955,24 +955,28 @@ var
             AllocateImages(FMipmapsCount * 6) else
             AllocateImages(6);
 
+          NextI := 0;
+
           for Side := Low(Side) to High(Side) do
-          begin
-            if Mipmaps then
+            if Side in FCubeMapSides then
             begin
-              W := Width;
-              H := Height;
-              for I := 0 to FMipmapsCount - 1 do
+              if Mipmaps then
               begin
-                FImages[Cardinal(I) +
-                  Cardinal(Ord(Side)) * FMipmapsCount] := ReadImage(W, H);
-                W := Max(1, W div 2);
-                H := Max(1, H div 2);
+                W := Width;
+                H := Height;
+                for I := 0 to FMipmapsCount - 1 do
+                begin
+                  FImages[NextI] := ReadImage(W, H);
+                  Inc(NextI);
+                  W := Max(1, W div 2);
+                  H := Max(1, H div 2);
+                end;
+              end else
+              begin
+                FImages[NextI] := ReadImage(Width, Height);
+                Inc(NextI);
               end;
-            end else
-            begin
-              FImages[Ord(Side)] := ReadImage(Width, Height);
             end;
-          end;
         end;
       dtVolume:
         raise EInvalidDDS.Create('TODO: Volume (3D) textures not supported yet');
