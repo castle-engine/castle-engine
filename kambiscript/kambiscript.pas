@@ -929,22 +929,14 @@ uses KambiScriptCoreFunctions, DataErrors;
   try..except block.
 
   The only workaround seems to be to use Set8087CW to mask exceptions,
-  and then compare with NaN to make proper Execute implementation. }
-{$ifdef VER2_2_2}
-  {$define WORKAROUND_EXCEPTIONS_FOR_SCRIPT_EXPRESSIONS}
-{$endif}
+  and then compare with NaN to make proper Execute implementation.
 
-{ Tests show that FPC 2.2.3 (fixes_2_2) also has this bug, and so 2.2.4
-  will probably have this too... }
+  Tests show that FPC 2.2.3 (fixes_2_2) also has this bug, and so 2.2.4
+  will probably have this too...
 
-{$ifdef VER2_2_3}
-  {$define WORKAROUND_EXCEPTIONS_FOR_SCRIPT_EXPRESSIONS}
-{$endif}
-
-{$ifdef VER2_2_4}
-  {$define WORKAROUND_EXCEPTIONS_FOR_SCRIPT_EXPRESSIONS}
-{$endif}
-
+  Also 2.3.1 (current trunk on 2009-03-03) still has it...
+  It's easier to just define it always, for now. }
+{$define WORKAROUND_EXCEPTIONS_FOR_SCRIPT_EXPRESSIONS}
 
 { TKamScriptExpression ------------------------------------------------------- }
 
