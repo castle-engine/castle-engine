@@ -90,6 +90,9 @@ type
 
     property DDSType: TDDSType read FDDSType;
 
+    { Does this DDS file contain mipmaps.
+      If @true, then all @link(Images) are guaranteed to have sizes
+      being power of 2. }
     property Mipmaps: boolean read FMipmaps;
     { Mipmaps count.
       Always 1 when @link(Mipmaps) = @false, this is usually comfortable. }
@@ -490,6 +493,7 @@ var
       Check(Header.Flags and DDSD_MIPMAPCOUNT <> 0, 'Missing DDSD_MIPMAPCOUNT, but caps indicate that this DDS image has mipmaps');
       Check(Header.Caps1 and DDSCAPS_COMPLEX <> 0, 'Missing DDSCAPS_COMPLEX, but caps indicate that this DDS image has mipmaps');
       FMipmapsCount := Header.MipMapCount;
+      Check(MipmapsCount > 0, 'Specified mipmaps, but mipmap count is zero');
     end else
       FMipmapsCount := 1;
 
