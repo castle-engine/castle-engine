@@ -1276,7 +1276,7 @@ const
     { Direct Draw Surface } { }
     ( FormatName: 'DDS image';
       ExtsCount: 1; Exts: ('dds', '', '');
-      Load: @LoadDDS; LoadedClasses: lcRGB_RGBA;
+      Load: @LoadDDS; LoadedClasses: lcG_GA_RGB_RGBA;
       Save: nil; SavedClasses: scRGB; )
   );
 
