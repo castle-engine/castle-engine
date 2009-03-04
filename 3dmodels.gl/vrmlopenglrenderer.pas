@@ -3599,8 +3599,9 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
         MinFilter, MagFilter,
         DDS.CubeMapImage(csPositiveX),
         DDS.CubeMapImage(csNegativeX),
-        DDS.CubeMapImage(csPositiveY),
+        { TODO: why Pos/NegativeY must be swapped to make them look Ok? !! }
         DDS.CubeMapImage(csNegativeY),
+        DDS.CubeMapImage(csPositiveY),
         DDS.CubeMapImage(csPositiveZ),
         DDS.CubeMapImage(csNegativeZ));
       TextureCubeMapReferences.AppendItem(TextureCubeMapReference);
