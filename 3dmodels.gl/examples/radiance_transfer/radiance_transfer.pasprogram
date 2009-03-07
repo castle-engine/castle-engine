@@ -36,7 +36,7 @@ uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindo
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLScene, VRMLGLScene, Navigation, Keys,
   KambiFilesUtils, VRMLErrors, SphericalHarmonics, Math, Images, GLImages,
-  SphereSampling, CubeEnvMap, GLCubeEnvMap;
+  SphereSampling, CubeMap, GLCubeMap;
 
 type
   TViewMode = (vmNormal, vmSimpleOcclusion, vmFull);

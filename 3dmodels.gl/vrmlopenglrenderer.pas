@@ -3597,14 +3597,14 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
       TextureCubeMapReference.GLName := Cache.TextureCubeMap_IncReference(
         CubeTexture,
         MinFilter, MagFilter,
-        DDS.CubeMapImage(csPositiveX),
-        DDS.CubeMapImage(csNegativeX),
+        DDS.CubeMapImage(dcsPositiveX),
+        DDS.CubeMapImage(dcsNegativeX),
         { Swap meaning of positive/negative Y faces from DDS,
           see TDDSCubeMapSide for explanation. }
-        DDS.CubeMapImage(csNegativeY),
-        DDS.CubeMapImage(csPositiveY),
-        DDS.CubeMapImage(csPositiveZ),
-        DDS.CubeMapImage(csNegativeZ));
+        DDS.CubeMapImage(dcsNegativeY),
+        DDS.CubeMapImage(dcsPositiveY),
+        DDS.CubeMapImage(dcsPositiveZ),
+        DDS.CubeMapImage(dcsNegativeZ));
       TextureCubeMapReferences.AppendItem(TextureCubeMapReference);
 
     finally FreeAndNil(DDS); end;

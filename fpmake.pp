@@ -61,7 +61,7 @@ begin
     P.Targets.AddUnit('backgroundbase.pas');
     P.Targets.AddUnit('boxes3d.pas');
     P.Targets.AddUnit('convexhullunit.pas');
-    P.Targets.AddUnit('cubeenvmap.pas');
+    P.Targets.AddUnit('cubemap.pas');
     P.Targets.AddUnit('frustum.pas');
     P.Targets.AddUnit('keys.pas');
     P.Targets.AddUnit('navigation.pas');
@@ -206,7 +206,7 @@ begin
     P.Targets.AddUnit('beziercurve.pas');
     P.Targets.AddUnit('curve.pas');
     P.Targets.AddUnit('glantialiasing.pas');
-    P.Targets.AddUnit('glcubeenvmap.pas');
+    P.Targets.AddUnit('glcubemap.pas');
     P.Targets.AddUnit('glimages.pas');
     P.Targets.AddUnit('glmenu.pas');
     P.Targets.AddUnit('glshaders.pas');

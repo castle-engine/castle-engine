@@ -20,12 +20,12 @@
   ----------------------------------------------------------------------------
 }
 
-{ OpenGL utilities for cube environment maps. }
-unit GLCubeEnvMap;
+{ OpenGL utilities for cube (environment) maps. }
+unit GLCubeMap;
 
 interface
 
-uses VectorMath, CubeEnvMap;
+uses VectorMath, CubeMap;
 
 type
   TSHVectorRenderFunction = procedure (ForMap: boolean);
@@ -63,26 +63,26 @@ procedure SHVectorGLCapture(
   const MapScreenX, MapScreenY: Integer;
   const ScaleColor: Single);
 
-  procedure DrawMap(Side: TEnvMapSide);
+  procedure DrawMap(Side: TCubeMapSide);
   var
     Map: TGrayscaleImage;
     I, SHBasis, ScreenX, ScreenY: Integer;
   begin
-    ScreenX := EnvMapInfo[Side].ScreenX + MapScreenX;
-    ScreenY := EnvMapInfo[Side].ScreenY + MapScreenY;
+    ScreenX := CubeMapInfo[Side].ScreenX + MapScreenX;
+    ScreenY := CubeMapInfo[Side].ScreenY + MapScreenY;
 
     { We have to clear the buffer first. Clearing with glClear is fast,
       but it must be clipped with scissor (glViewport does not clip glClear).
       Later: actually, clearing is not needed now, since we call DrawLightMap
       at the beginning, right after clearing the whole screen.
 
-    glScissor(ScreenX, ScreenY, EnvMapSize, EnvMapSize);
+    glScissor(ScreenX, ScreenY, CubeMapSize, CubeMapSize);
     glEnable(GL_SCISSOR_TEST);
       glClear(GL_COLOR_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
     }
 
-    glViewport(ScreenX, ScreenY, EnvMapSize, EnvMapSize);
+    glViewport(ScreenX, ScreenY, CubeMapSize, CubeMapSize);
 
     glMatrixMode(GL_PROJECTION);
     glPushMatrix;
@@ -93,7 +93,7 @@ procedure SHVectorGLCapture(
       glPushMatrix;
 
         glLoadIdentity;
-        gluLookDirv(CapturePoint, EnvMapInfo[Side].Dir, EnvMapInfo[Side].Up);
+        gluLookDirv(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up);
         Render(true);
 
       glPopMatrix;
@@ -103,14 +103,14 @@ procedure SHVectorGLCapture(
     glMatrixMode(GL_MODELVIEW);
 
     Map := TGrayscaleImage(SaveScreen_noflush(TGrayscaleImage,
-      ScreenX, ScreenY, EnvMapSize, EnvMapSize, GL_BACK));
+      ScreenX, ScreenY, CubeMapSize, CubeMapSize, GL_BACK));
     try
       { Use the Map to calculate SHVector[SHBasis] (this is the actual
         purpose of drawing the Render). SHVector[SHBasis] is just a dot product
         for all directions (for all pixels, in this case) of
         light intensity values * SH basis values. }
 
-      for I := 0 to Sqr(EnvMapSize) - 1 do
+      for I := 0 to Sqr(CubeMapSize) - 1 do
         for SHBasis := 0 to High(SHVector) do
           SHVector[SHBasis] += (Map.GrayscalePixels[I]/255) *
             ScaleColor *
@@ -120,7 +120,7 @@ procedure SHVectorGLCapture(
 
 var
   SHBasis: Integer;
-  Side: TEnvMapSide;
+  Side: TCubeMapSide;
 begin
   InitializeSHBasisMap;
 
@@ -130,7 +130,7 @@ begin
   for SHBasis := 0 to High(SHVector) do
     SHVector[SHBasis] := 0;
 
-  for Side := Low(TEnvMapSide) to High(TEnvMapSide) do
+  for Side := Low(TCubeMapSide) to High(TCubeMapSide) do
     DrawMap(Side);
 
   for SHBasis := 0 to High(SHVector) do

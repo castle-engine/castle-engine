@@ -49,12 +49,12 @@ type
     See [http://vrmlengine.sourceforge.net/vrml_implementation_status.php#section_dds]
     for more. }
   TDDSCubeMapSide = (
-    csPositiveX,
-    csNegativeX,
-    csPositiveY,
-    csNegativeY,
-    csPositiveZ,
-    csNegativeZ);
+    dcsPositiveX,
+    dcsNegativeX,
+    dcsPositiveY,
+    dcsNegativeY,
+    dcsPositiveZ,
+    dcsNegativeZ);
   TDDSCubeMapSides = set of TDDSCubeMapSide;
 
   { DDS image file. Basically, DDS is just a sequence of images
@@ -521,12 +521,12 @@ var
 
       { calculate FCubeMapSides }
       FCubeMapSides := [];
-      if Header.Caps2 and DDSCAPS2_CUBEMAP_POSITIVEX <> 0 then Include(FCubeMapSides, csPositiveX);
-      if Header.Caps2 and DDSCAPS2_CUBEMAP_NEGATIVEX <> 0 then Include(FCubeMapSides, csNegativeX);
-      if Header.Caps2 and DDSCAPS2_CUBEMAP_POSITIVEY <> 0 then Include(FCubeMapSides, csPositiveY);
-      if Header.Caps2 and DDSCAPS2_CUBEMAP_NEGATIVEY <> 0 then Include(FCubeMapSides, csNegativeY);
-      if Header.Caps2 and DDSCAPS2_CUBEMAP_POSITIVEZ <> 0 then Include(FCubeMapSides, csPositiveZ);
-      if Header.Caps2 and DDSCAPS2_CUBEMAP_NEGATIVEZ <> 0 then Include(FCubeMapSides, csNegativeZ);
+      if Header.Caps2 and DDSCAPS2_CUBEMAP_POSITIVEX <> 0 then Include(FCubeMapSides, dcsPositiveX);
+      if Header.Caps2 and DDSCAPS2_CUBEMAP_NEGATIVEX <> 0 then Include(FCubeMapSides, dcsNegativeX);
+      if Header.Caps2 and DDSCAPS2_CUBEMAP_POSITIVEY <> 0 then Include(FCubeMapSides, dcsPositiveY);
+      if Header.Caps2 and DDSCAPS2_CUBEMAP_NEGATIVEY <> 0 then Include(FCubeMapSides, dcsNegativeY);
+      if Header.Caps2 and DDSCAPS2_CUBEMAP_POSITIVEZ <> 0 then Include(FCubeMapSides, dcsPositiveZ);
+      if Header.Caps2 and DDSCAPS2_CUBEMAP_NEGATIVEZ <> 0 then Include(FCubeMapSides, dcsNegativeZ);
       Check(FCubeMapSides <> [], 'DDS file is a cube map, but all six sides of the cube are missing');
     end else
     if Header.Caps2 and DDSCAPS2_VOLUME <> 0 then

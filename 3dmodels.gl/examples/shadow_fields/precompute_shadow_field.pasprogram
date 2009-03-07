@@ -45,31 +45,31 @@ program precompute_shadow_field;
 
 uses SysUtils, ProgressUnit, ProgressConsole, KambiUtils,
   VRMLScene, Object3dAsVRML, ShadowFields, KambiTimeUtils, VectorMath,
-  CubeEnvMap, Boxes3d, SphericalHarmonics, ParseParametersUnit;
+  CubeMap, Boxes3d, SphericalHarmonics, ParseParametersUnit;
 
 var
   Scene: TVRMLScene;
   LightSource: boolean;
 
-procedure ComputeEnvMap(const Point: TVector3Single;
-  var EnvMap: TEnvMapByte; var SHVector: TSHVectorSingle);
+procedure ComputeCubeMap(const Point: TVector3Single;
+  var CubeMap: TCubeMapByte; var SHVector: TSHVectorSingle);
 var
-  Side: TEnvMapSide;
+  Side: TCubeMapSide;
   Pixel: Cardinal;
   Color: Byte;
 begin
   for Side := Low(Side) to High(Side) do
-    for Pixel := 0 to Sqr(EnvMapSize) - 1 do
+    for Pixel := 0 to Sqr(CubeMapSize) - 1 do
     begin
       if Scene.OctreeVisibleTriangles.IsRayCollision(Point,
-        EnvMapDirection(Side, Pixel), nil, false, nil) then
+        CubeMapDirection(Side, Pixel), nil, false, nil) then
         Color := 0 else
         Color := High(Byte);
       if LightSource then Color := High(Byte)- Color;
-      EnvMap[Side, Pixel] := Color;
+      CubeMap[Side, Pixel] := Color;
     end;
 
-  SHVectorFromEnvMap(SHVector, EnvMap);
+  SHVectorFromCubeMap(SHVector, CubeMap);
 end;
 
 const
@@ -87,7 +87,7 @@ const
 var
   SF: TShadowField;
   Sphere, Pixel: Cardinal;
-  Side: TEnvMapSide;
+  Side: TCubeMapSide;
   BoundingSphereCenter: TVector3Single;
   BoundingSphereRadius: Single;
   InputFileName, OutputFileName: string;
@@ -134,14 +134,14 @@ begin
 
       ProcessTimerBegin;
 
-      Progress.Init(SFSpheresCount * 6 * Sqr(EnvMapSize), 'Shadow field calculation');
+      Progress.Init(SFSpheresCount * 6 * Sqr(CubeMapSize), 'Shadow field calculation');
       try
 
         for Sphere := 0 to SFSpheresCount - 1 do
           for Side := Low(Side) to High(Side) do
-            for Pixel := 0 to Sqr(EnvMapSize) - 1 do
+            for Pixel := 0 to Sqr(CubeMapSize) - 1 do
             begin
-              ComputeEnvMap(
+              ComputeCubeMap(
                 SF.PointFromIndex(Sphere, Side, Pixel),
                 SF.EnvMaps[Sphere, Side, Pixel],
                 SF.SHVectors[Sphere, Side, Pixel]);
@@ -151,8 +151,8 @@ begin
       finally Progress.Fini end;
 
       Writeln(Format('Shadow field computed: %d rays, %f secs',
-        [ SFSpheresCount * 6 * Sqr(EnvMapSize) *
-                           6 * Sqr(EnvMapSize),
+        [ SFSpheresCount * 6 * Sqr(CubeMapSize) *
+                           6 * Sqr(CubeMapSize),
           ProcessTimerEnd]));
 
       SF.SaveToFile(OutputFileName);

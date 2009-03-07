@@ -25,7 +25,7 @@ unit SphericalHarmonics;
 
 interface
 
-uses VectorMath, KambiUtils, Math, CubeEnvMap;
+uses VectorMath, KambiUtils, Math, CubeMap;
 
 const
   { How many basis can SHBasis calculate. LM for SHBasis must be within
@@ -67,12 +67,12 @@ var
     You have to initialize this (once, like at the beginning of your
     program) by InitializeSHBasisMap.
 
-    This is useful for calculating sh basis vector from given cube env map:
+    This is useful for calculating sh basis vector from given cube map:
     since you can just project any function on any basis, so if you have
     a particular cube map you can project it on each SH basis function.
-    See SHVectorFromEnvMap implementation for code how to use SHBasisMap
-    for this, and in simple cases you can just call SHVectorFromEnvMap. *)
-  SHBasisMap: array [0..MaxSHBasis - 1] of TEnvMapFloat;
+    See SHVectorFromCubeMap implementation for code how to use SHBasisMap
+    for this, and in simple cases you can just call SHVectorFromCubeMap. *)
+  SHBasisMap: array [0..MaxSHBasis - 1] of TCubeMapFloat;
 
 procedure InitializeSHBasisMap;
 
@@ -82,8 +82,8 @@ type
 
 { Calculate SH basis coefficients that approximate function in Map.
   This uses SHBasisMap, so be sure to initialize it first. }
-procedure SHVectorFromEnvMap(var SHVector: array of Single;
-  const Map: TEnvMapByte);
+procedure SHVectorFromCubeMap(var SHVector: array of Single;
+  const Map: TCubeMapByte);
 
 implementation
 
@@ -220,28 +220,28 @@ var
 procedure InitializeSHBasisMap;
 var
   LM: Cardinal;
-  Side: TEnvMapSide;
+  Side: TCubeMapSide;
   Pixel: Cardinal;
 begin
   if SHBasisMapInitialized then Exit;
 
   for LM := 0 to MaxSHBasis - 1 do
     for Side := Low(Side) to High(Side) do
-      for Pixel := 0 to Sqr(EnvMapSize) - 1 do
+      for Pixel := 0 to Sqr(CubeMapSize) - 1 do
       begin
         SHBasisMap[LM][Side][Pixel] :=
-          SHBasis(LM, XYZToPhiTheta(EnvMapDirection(Side, Pixel))) *
-          EnvMapSolidAngle(Side, Pixel);
+          SHBasis(LM, XYZToPhiTheta(CubeMapDirection(Side, Pixel))) *
+          CubeMapSolidAngle(Side, Pixel);
       end;
 
   SHBasisMapInitialized := true;
 end;
 
-procedure SHVectorFromEnvMap(var SHVector: array of Single;
-  const Map: TEnvMapByte);
+procedure SHVectorFromCubeMap(var SHVector: array of Single;
+  const Map: TCubeMapByte);
 var
   LM: Cardinal;
-  Side: TEnvMapSide;
+  Side: TCubeMapSide;
   Pixel: Cardinal;
 begin
   Assert(SHBasisMapInitialized);
@@ -250,7 +250,7 @@ begin
   begin
     SHVector[LM] := 0;
     for Side := Low(Side) to High(Side) do
-      for Pixel := 0 to Sqr(EnvMapSize) - 1 do
+      for Pixel := 0 to Sqr(CubeMapSize) - 1 do
         SHVector[LM] += (Map[Side, Pixel]/255) * SHBasisMap[LM, Side, Pixel];
 
     { SHVector[LM] is now calculated for all sphere points.

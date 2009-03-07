@@ -53,8 +53,8 @@
         <UnitName Value="ConvexHullUnit"/>
       </Item3>
       <Item4>
-        <Filename Value="..\..\3dgraph\cubeenvmap.pas"/>
-        <UnitName Value="CubeEnvMap"/>
+        <Filename Value="..\..\3dgraph\cubemap.pas"/>
+        <UnitName Value="CubeMap"/>
       </Item4>
       <Item5>
         <Filename Value="..\..\3dgraph\frustum.pas"/>
@@ -541,8 +541,8 @@
         <UnitName Value="GLAntiAliasing"/>
       </Item125>
       <Item126>
-        <Filename Value="..\..\opengl\glcubeenvmap.pas"/>
-        <UnitName Value="GLCubeEnvMap"/>
+        <Filename Value="..\..\opengl\glcubemap.pas"/>
+        <UnitName Value="GLCubeMap"/>
       </Item126>
       <Item127>
         <Filename Value="..\..\opengl\glimages.pas"/>

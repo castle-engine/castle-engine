@@ -50,8 +50,8 @@ program shadow_fields;
 
 uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3d,
   GLWindow, Glw_Navigated, VRMLGLScene, VRMLErrors, Navigation,
-  ShadowFields, KambiUtils, CubeEnvMap, VRMLNodes,
-  SphericalHarmonics, GLCubeEnvMap, GLWinMessages, VRMLShape;
+  ShadowFields, KambiUtils, CubeMap, VRMLNodes,
+  SphericalHarmonics, GLCubeMap, GLWinMessages, VRMLShape;
 
 var
   SceneCaster, SceneReceiver, SceneLocalLight: TVRMLGLScene;
@@ -133,8 +133,8 @@ procedure Draw(Glwin: TGLWindow);
       const FieldScale: Single;
       const ShiftX, ShiftY: Integer);
     var
-      Map: PEnvMapByte;
-      Side: TEnvMapSide;
+      Map: PCubeMapByte;
+      Side: TCubeMapSide;
     begin
       Map := Field.EnvMapFromPoint(VectorSubtract(
         NavigatorSFExplorer.MoveAmount, FieldMoveAmount), FieldScale);
@@ -142,12 +142,12 @@ procedure Draw(Glwin: TGLWindow);
       begin
         for Side := Low(Side) to High(Side) do
         begin
-          SetWindowPos(EnvMapInfo[Side].ScreenX * Scale + ShiftX,
-                       EnvMapInfo[Side].ScreenY * Scale + ShiftY);
+          SetWindowPos(CubeMapInfo[Side].ScreenX * Scale + ShiftX,
+                       CubeMapInfo[Side].ScreenY * Scale + ShiftY);
           { Since ordering of bytes in our env maps is matching OpenGL
             pixel ordering, I can just draw these like TGrayscaleImage
             by glDrawPixels. }
-          glDrawPixels(EnvMapSize, EnvMapSize, GL_LUMINANCE,
+          glDrawPixels(CubeMapSize, CubeMapSize, GL_LUMINANCE,
             GL_UNSIGNED_BYTE, @(Map^[Side]));
         end;
       end;
@@ -276,9 +276,9 @@ var
       different solid angle
   }
   var
-    CasterMap, LocalLightMap: PEnvMapByte;
+    CasterMap, LocalLightMap: PCubeMapByte;
     B: LongWord;
-    Side: TEnvMapSide;
+    Side: TCubeMapSide;
     Pixel: Cardinal;
     C: Single;
   begin
@@ -305,7 +305,7 @@ var
         { Too far from shadow caster, so just integrate over the light }
 
         for Side := Low(Side) to High(Side) do
-          for Pixel := 0 to Sqr(EnvMapSize) - 1 do
+          for Pixel := 0 to Sqr(CubeMapSize) - 1 do
             B += LocalLightMap^[Side, Pixel];
       end else
       begin
@@ -323,7 +323,7 @@ var
           }
 
         for Side := Low(Side) to High(Side) do
-          for Pixel := 0 to Sqr(EnvMapSize) - 1 do
+          for Pixel := 0 to Sqr(CubeMapSize) - 1 do
             B += Word(LocalLightMap^[Side, Pixel]) *
                           CasterMap^[Side, Pixel];
 
@@ -331,7 +331,7 @@ var
       end;
 
       { normalize B, apply LightIntensity }
-      C := (B / 255) * LightIntensity / (6 * Sqr(EnvMapSize));
+      C := (B / 255) * LightIntensity / (6 * Sqr(CubeMapSize));
       Color[0] *= C;
       Color[1] *= C;
       Color[2] *= C;

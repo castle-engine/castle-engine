@@ -35,7 +35,7 @@ uses
   TestKambiStringUtils,
   TestKambiScript,
   TestKambiScriptVectors,
-  TestCubeEnvMap,
+  TestCubeMap,
   TestShadowFields,
   TestGLVersion,
   TestURLUtils;

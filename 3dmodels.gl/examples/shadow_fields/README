@@ -85,8 +85,8 @@ compressed file is very small.
 Source code: besides sources in this directory, take a look at
 the spherical harmonics and cube env map utilities in units
   3dgraph/sphericalharmonics.pas,
-  3dgraph/cubeenvmap.pas,
-  opengl/glcubeenvmap.pas
+  3dgraph/cubemap.pas,
+  opengl/glcubemap.pas
 Some of them were created directly for shadow_fields demo,
 some of them are shared by radiance_transfer demo.
 
@@ -102,13 +102,13 @@ Note:
   This can be confirmed empirically with my code:
 
   var
-    PureWhiteMap: TEnvMapByte;
+    PureWhiteMap: TCubeMapByte;
     PureWhiteVector: TSHVectorSingle;
 
     InitializeSHBasisMap;
 
     FillChar(PureWhiteMap, SizeOf(PureWhiteMap), High(Byte));
-    SHVectorFromEnvMap(PureWhiteVector, PureWhiteMap);
+    SHVectorFromCubeMap(PureWhiteVector, PureWhiteMap);
     Writeln(VectorToRawStr(PureWhiteVector));
 
   and note that resulting PureWhiteVector has only the first factor non-zero

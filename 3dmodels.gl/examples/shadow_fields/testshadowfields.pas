@@ -41,19 +41,19 @@ type
 
 implementation
 
-uses VectorMath, ShadowFields, KambiUtils, CubeEnvMap;
+uses VectorMath, ShadowFields, KambiUtils, CubeMap;
 
 procedure TTestShadowFields.Test1;
 var
   SF: TShadowField;
   FileName: string;
-  Map: PEnvMapByte;
+  Map: PCubeMapByte;
 begin
   FileName := InclPathDelim(GetTempDir) + 'testing.shadow_field';
 
   { Save and load shadow field with some non-zero values.
     Tests that save, load work.
-    Also test that EnvMapFromPoint works, and returns various env maps. }
+    Also test that CubeMapFromPoint works, and returns various env maps. }
 
   SF := TShadowField.Create;
   try
@@ -72,16 +72,16 @@ begin
     Map := SF.EnvMapFromPoint(Vector3Single(55, 0, 0), 1);
     Assert(Map <> nil);
     Map := SF.EnvMapFromPoint(Vector3Single(51, 0, 0), 1);
-    Map^[emsRight, 10] := 55;
-    Map^[emsLeft , 20] := 66;
+    Map^[csPositiveX, 10] := 55;
+    Map^[csNegativeX, 20] := 66;
 
     Map := SF.EnvMapFromPoint(Vector3Single(55, 0, 0), 1);
-    Map^[emsRight, 10] := 11;
-    Map^[emsLeft , 20] := 22;
+    Map^[csPositiveX, 10] := 11;
+    Map^[csNegativeX, 20] := 22;
 
     Map := SF.EnvMapFromPoint(Vector3Single(60, 0, 0), 1);
-    Map^[emsRight, 10] := 99;
-    Map^[emsLeft , 20] := 88;
+    Map^[csPositiveX, 10] := 99;
+    Map^[csNegativeX, 20] := 88;
 
     SF.SaveToFile(FileName);
   finally FreeAndNil(SF) end;
@@ -103,43 +103,43 @@ begin
     Assert(Map <> nil);
 
     Map := SF.EnvMapFromPoint(Vector3Single(51, 0, 0), 1);
-    Assert(Map^[emsRight, 10] = 55);
-    Assert(Map^[emsLeft , 20] = 66);
+    Assert(Map^[csPositiveX, 10] = 55);
+    Assert(Map^[csNegativeX, 20] = 66);
 
     Map := SF.EnvMapFromPoint(Vector3Single(55, 0, 0), 1);
-    Assert(Map^[emsRight, 10] = 11);
-    Assert(Map^[emsLeft , 20] = 22);
+    Assert(Map^[csPositiveX, 10] = 11);
+    Assert(Map^[csNegativeX, 20] = 22);
 
     Map := SF.EnvMapFromPoint(Vector3Single(60, 0, 0), 1);
-    Assert(Map^[emsRight, 10] = 99);
-    Assert(Map^[emsLeft , 20] = 88);
+    Assert(Map^[csPositiveX, 10] = 99);
+    Assert(Map^[csNegativeX, 20] = 88);
 
     { Also, test PointFromIndex }
     Assert(
-      VectorLen(SF.PointFromIndex(0, emsRight, 0)) <
-      VectorLen(SF.PointFromIndex(1, emsRight, 0)));
+      VectorLen(SF.PointFromIndex(0, csPositiveX, 0)) <
+      VectorLen(SF.PointFromIndex(1, csPositiveX, 0)));
 
     Assert(
-      VectorLen(SF.PointFromIndex(1, emsRight, 0)) <
-      VectorLen(SF.PointFromIndex(2, emsRight, 0)));
+      VectorLen(SF.PointFromIndex(1, csPositiveX, 0)) <
+      VectorLen(SF.PointFromIndex(2, csPositiveX, 0)));
 
     Assert(
-      VectorLen(SF.PointFromIndex(10, emsRight, 0)) <
-      VectorLen(SF.PointFromIndex(11, emsRight, 0)));
+      VectorLen(SF.PointFromIndex(10, csPositiveX, 0)) <
+      VectorLen(SF.PointFromIndex(11, csPositiveX, 0)));
 
     { Test PointFromIndex further: since SpheresMiddle is in +x,
-      so looking at emsLeft sides with larger radius gets us closer to 0. }
+      so looking at csNegativeX sides with larger radius gets us closer to 0. }
     Assert(
-      VectorLen(SF.PointFromIndex(0, emsLeft, 0)) >
-      VectorLen(SF.PointFromIndex(1, emsLeft, 0)));
+      VectorLen(SF.PointFromIndex(0, csNegativeX, 0)) >
+      VectorLen(SF.PointFromIndex(1, csNegativeX, 0)));
 
     Assert(
-      VectorLen(SF.PointFromIndex(1, emsLeft, 0)) >
-      VectorLen(SF.PointFromIndex(2, emsLeft, 0)));
+      VectorLen(SF.PointFromIndex(1, csNegativeX, 0)) >
+      VectorLen(SF.PointFromIndex(2, csNegativeX, 0)));
 
     Assert(
-      VectorLen(SF.PointFromIndex(10, emsLeft, 0)) >
-      VectorLen(SF.PointFromIndex(11, emsLeft, 0)));
+      VectorLen(SF.PointFromIndex(10, csNegativeX, 0)) >
+      VectorLen(SF.PointFromIndex(11, csNegativeX, 0)));
   finally FreeAndNil(SF) end;
 end;
 

@@ -539,8 +539,8 @@
         <UnitName Value="GLAntiAliasing"/>
       </Item122>
       <Item123>
-        <Filename Value="../../opengl/glcubeenvmap.pas"/>
-        <UnitName Value="GLCubeEnvMap"/>
+        <Filename Value="../../opengl/glcubemap.pas"/>
+        <UnitName Value="GLCubeMap"/>
       </Item123>
       <Item124>
         <Filename Value="../../opengl/glimages.pas"/>
@@ -587,8 +587,8 @@
         <UnitName Value="XlibUtils"/>
       </Item134>
       <Item135>
-        <Filename Value="../../3dgraph/cubeenvmap.pas"/>
-        <UnitName Value="CubeEnvMap"/>
+        <Filename Value="../../3dgraph/cubemap.pas"/>
+        <UnitName Value="CubeMap"/>
       </Item135>
       <Item136>
         <Filename Value="../../fonts/font2pascalunit.pas"/>

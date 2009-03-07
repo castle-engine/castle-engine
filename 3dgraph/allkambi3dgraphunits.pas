@@ -13,7 +13,7 @@ uses
   backgroundbase,
   boxes3d,
   convexhullunit,
-  cubeenvmap,
+  cubemap,
   frustum,
   keys,
   navigation,
