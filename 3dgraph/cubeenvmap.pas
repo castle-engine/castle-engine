@@ -28,7 +28,9 @@ interface
 uses VectorMath, Math;
 
 type
-  TEnvMapSide = (emsRight, emsBack, emsLeft, emsFront, emsTop, emsBottom);
+  TEnvMapSide = (emsPositiveX, emsNegativeX,
+                 emsPositiveY, emsNegativeY,
+                 emsPositiveZ, emsNegativeZ);
   TEnvMapInfo = record
     Dir, Up, Side: TVector3Single;
     ScreenX, ScreenY: Integer;
@@ -37,13 +39,20 @@ type
 const
   EnvMapSize = 16;
 
+  { Information about cube map faces.
+
+    Names and orientation of faces match precisely OpenGL naming and
+    orientation (see http://www.opengl.org/registry/specs/ARB/texture_cube_map.txt),
+    so it's straighforward to use this for OpenGL cube maps. }
   EnvMapInfo: array [TEnvMapSide] of TEnvMapInfo =
-  ( (Dir: ( 1,  0, 0); Up: (0, 0, 1); Side: ( 0, -1, 0); ScreenX: 0             ; ScreenY: 0),
-    (Dir: ( 0, -1, 0); Up: (0, 0, 1); Side: (-1,  0, 0); ScreenX:     EnvMapSize; ScreenY: 0),
-    (Dir: (-1,  0, 0); Up: (0, 0, 1); Side: ( 0,  1, 0); ScreenX: 2 * EnvMapSize; ScreenY: 0),
-    (Dir: ( 0,  1, 0); Up: (0, 0, 1); Side: ( 1,  0, 0); ScreenX: 3 * EnvMapSize; ScreenY: 0),
-    (Dir: (0, 0,  1); Up: (-1, 0, 0); Side: (0, -1, 0); ScreenX: 0; ScreenY: + EnvMapSize),
-    (Dir: (0, 0, -1); Up: ( 1, 0, 0); Side: (0, -1, 0); ScreenX: 0; ScreenY: - EnvMapSize)
+  ( (Dir: ( 1,  0, 0); Up: (0, -1, 0); Side: ( 0, 0,-1); ScreenX:     EnvMapSize; ScreenY: 0),
+    (Dir: (-1,  0, 0); Up: (0, -1, 0); Side: ( 0, 0, 1); ScreenX: 3 * EnvMapSize; ScreenY: 0),
+
+    (Dir: ( 0,  1, 0); Up: (0, 0,  1); Side: ( 1, 0, 0); ScreenX: 2 * EnvMapSize; ScreenY: + EnvMapSize),
+    (Dir: ( 0, -1, 0); Up: (0, 0, -1); Side: ( 1, 0, 0); ScreenX: 2 * EnvMapSize; ScreenY: - EnvMapSize),
+
+    (Dir: ( 0, 0,  1); Up: (0, -1, 0); Side: ( 1, 0, 0); ScreenX: 2 * EnvMapSize; ScreenY: 0),
+    (Dir: ( 0, 0, -1); Up: (0, -1, 0); Side: (-1, 0, 0); ScreenX: 0             ; ScreenY: 0)
   );
 
 { Direction corresponding to given environment map side and pixel number.
@@ -151,9 +160,9 @@ var
 begin
   SideCoord := MaxAbsVectorCoord(Dir);
   case SideCoord of
-    0: if Dir[0] >= 0 then Side := emsRight else Side := emsLeft;
-    1: if Dir[1] >= 0 then Side := emsFront else Side := emsBack;
-    2: if Dir[2] >= 0 then Side := emsTop   else Side := emsBottom;
+    0: if Dir[0] >= 0 then Side := emsPositiveX else Side := emsNegativeX;
+    1: if Dir[1] >= 0 then Side := emsPositiveY else Side := emsNegativeY;
+    2: if Dir[2] >= 0 then Side := emsPositiveZ else Side := emsNegativeZ;
   end;
 
   SidePlaneDir := EnvMapInfo[Side].Dir;
@@ -207,9 +216,9 @@ var
 begin
   SideCoord := MaxAbsVectorCoord(Dir);
   case SideCoord of
-    0: if Dir[0] >= 0 then Side[0] := emsRight else Side[0] := emsLeft;
-    1: if Dir[1] >= 0 then Side[0] := emsFront else Side[0] := emsBack;
-    2: if Dir[2] >= 0 then Side[0] := emsTop   else Side[0] := emsBottom;
+    0: if Dir[0] >= 0 then Side[0] := emsPositiveX else Side[0] := emsNegativeX;
+    1: if Dir[1] >= 0 then Side[0] := emsPositiveY else Side[0] := emsNegativeY;
+    2: if Dir[2] >= 0 then Side[0] := emsPositiveZ else Side[0] := emsNegativeZ;
   end;
 
   { TODO: for now, all four sides are always equal.
