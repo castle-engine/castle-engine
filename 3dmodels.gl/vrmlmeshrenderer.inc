@@ -297,6 +297,7 @@ type
     tgCoord,
     tgCoordEye,
     tgCameraSpaceNormal,
+    tgWorldSpaceNormal,
     tgCameraSpaceReflectionVector,
     tgWorldSpaceReflectionVector);
 
@@ -1008,6 +1009,8 @@ var
         Result := tgCoordEye else
       if S = 'CAMERASPACENORMAL' then
         Result := tgCameraSpaceNormal else
+      if S = 'WORLDSPACENORMAL' then
+        Result := tgWorldSpaceNormal else
       if S = 'CAMERASPACEREFLECTIONVECTOR' then
         Result := tgCameraSpaceReflectionVector else
       if S = 'WORLDSPACEREFLECTIONVECTOR' then
@@ -1240,8 +1243,37 @@ var
 
     procedure SetupTextureGen(const TexUnit: Cardinal;
       const Gen: TTextureCoordinateGeneration);
-    var
-      CameraInverseMatrix: TMatrix4Single;
+
+      { Do the necessary things for WorldSpaceNormal and
+        WorldSpaceReflectionVector. }
+      procedure TextureTransformToWorldSpace(const SuccessName, FailName: string);
+      var
+        CameraInverseMatrix: TMatrix4Single;
+      begin
+        if TryMatrixInverse(CameraMatrix, CameraInverseMatrix) then
+        begin
+          { Set the 4th texture coord component (Q) to 0.0.
+            Reason: We use matrix 4x4, so it will transform whole texture
+            coordinate (4-valued vector, since we're in homogeneous
+            coordinates). We want the generated STR to be transformed
+            like a direction, so we want to set Q = always 0.0
+            (in homogeneous coords, this means that vector represents
+            a direction and will be accordingly transformed). }
+          glTexCoord4f(0, 0, 0, 0);
+
+          glMatrixMode(GL_TEXTURE);
+          Renderer.PushTextureUnit(TexUnit);
+          { CameraMatrix transforms from world space to camera space,
+            we want to transform directions from camera space to world
+            space below. So inverted CameraMatrix is exactly what we need. }
+          glMultMatrix(CameraInverseMatrix);
+          glMatrixMode(GL_MODELVIEW);
+        end else
+        if Log then
+          WritelnLog('Camera', Format('Camera matrix cannot be inverted, %s will work like %s',
+            [SuccessName, FailName]));
+      end;
+
     begin
       case Gen of
         tgSphere:
@@ -1282,7 +1314,8 @@ var
             glEnable(GL_TEXTURE_GEN_T);
             glEnable(GL_TEXTURE_GEN_R);
           end;
-        tgCameraSpaceNormal:
+        tgCameraSpaceNormal,
+        tgWorldSpaceNormal:
           begin
             if not GL_ARB_texture_cube_map then
             begin
@@ -1298,6 +1331,9 @@ var
               glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP_ARB);
               glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP_ARB);
               glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP_ARB);
+
+              if Gen = tgWorldSpaceNormal then
+                TextureTransformToWorldSpace('WORLDSPACENORMAL', 'CAMERASPACENORMAL');
             end;
 
             glEnable(GL_TEXTURE_GEN_S);
@@ -1323,29 +1359,7 @@ var
               glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
 
               if Gen = tgWorldSpaceReflectionVector then
-              begin
-                if TryMatrixInverse(CameraMatrix, CameraInverseMatrix) then
-                begin
-                  { Set the 4th texture coord component (Q) to 0.0.
-                    Reason: We use matrix 4x4, so it will transform whole texture
-                    coordinate (4-valued vector, since we're in homogeneous
-                    coordinates). We want the generated STR to be transformed
-                    like a direction, so we want to set Q = always 0.0
-                    (in homogeneous coords, this means that vector represents
-                    a direction and will be accordingly transformed). }
-                  glTexCoord4f(0, 0, 0, 0);
-
-                  glMatrixMode(GL_TEXTURE);
-                  Renderer.PushTextureUnit(TexUnit);
-                  { CameraMatrix transforms from world space to camera space,
-                    we want to transform directions from camera space to world
-                    space below. So inverted CameraMatrix is exactly what we need. }
-                  glMultMatrix(CameraInverseMatrix);
-                  glMatrixMode(GL_MODELVIEW);
-                end else
-                if Log then
-                  WritelnLog('Camera', 'Camera matrix cannot be inverted, WORLDSPACEREFLECTIONVECTOR will work like CAMERASPACEREFLECTIONVECTOR');
-              end;
+                TextureTransformToWorldSpace('WORLDSPACEREFLECTIONVECTOR', 'CAMERASPACEREFLECTIONVECTOR');
             end;
 
             glEnable(GL_TEXTURE_GEN_S);
