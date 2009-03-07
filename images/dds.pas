@@ -37,20 +37,25 @@ type
     dtCubeMap,
     dtVolume);
 
-  { Cube map sides.
+  { DDS cube map sides.
 
-    Ordered exactly like OpenGL constants
-    GL_TEXTURE_CUBE_MAP_POSITIVE/NEGATIVE_X/Y/Z (see
-    http://opengl.org/registry/specs/ARB/texture_cube_map.txt),
-    for comfort. }
-  TCubeMapSide = (
+    Note that if you work in right-handed coordinate system (like
+    OpenGL, see http://opengl.org/registry/specs/ARB/texture_cube_map.txt)
+    then you should swap the meaning of positive/negative y faces.
+    That's because cube map sides are named and written in DDS file
+    in a way natural for DirectX, and DirectX has left-handed coordinate system,
+    which means that one axis seems reverted when you want OpenGL right-handed
+    coord system.
+    See [http://vrmlengine.sourceforge.net/vrml_implementation_status.php#section_dds]
+    for more. }
+  TDDSCubeMapSide = (
     csPositiveX,
     csNegativeX,
     csPositiveY,
     csNegativeY,
     csPositiveZ,
     csNegativeZ);
-  TCubeMapSides = set of TCubeMapSide;
+  TDDSCubeMapSides = set of TDDSCubeMapSide;
 
   { DDS image file. Basically, DDS is just a sequence of images
     (in the @link(Images) property). The interpretation of the image sequence
@@ -65,7 +70,7 @@ type
     FDDSType: TDDSType;
     FMipmaps: boolean;
     FMipmapsCount: Cardinal;
-    FCubeMapSides: TCubeMapSides;
+    FCubeMapSides: TDDSCubeMapSides;
     FDepth: Cardinal;
 
     FOwnsFirstImage: boolean;
@@ -96,7 +101,7 @@ type
 
     { Present cube map sides.
       Valid only when image is loaded and is dtCubeMap. }
-    property CubeMapSides: TCubeMapSides read FCubeMapSides;
+    property CubeMapSides: TDDSCubeMapSides read FCubeMapSides;
 
     { Depth of volume (3D) texture.
       Valid only when image is loaded and is dtVolume. }
@@ -110,7 +115,7 @@ type
 
       TODO: this is actually for testing, not really for production
       (as for real usage, you will want to eventually use also mipmaps). }
-    function CubeMapImage(const Side: TCubeMapSide): TImage;
+    function CubeMapImage(const Side: TDDSCubeMapSide): TImage;
 
     { Load DDS image from any TStream.
       @raises(EInvalidDDS In case of any error in the file data.) }
@@ -133,7 +138,7 @@ type
   end;
 
 const
-  AllCubeMapSides = [Low(TCubeMapSide) .. High(TCubeMapSide)];
+  AllDDSCubeMapSides = [Low(TDDSCubeMapSide) .. High(TDDSCubeMapSide)];
 
 implementation
 
@@ -453,7 +458,7 @@ begin
   Result := Length(FImages);
 end;
 
-function TDDSImage.CubeMapImage(const Side: TCubeMapSide): TImage;
+function TDDSImage.CubeMapImage(const Side: TDDSCubeMapSide): TImage;
 begin
   if Mipmaps then
     Result := FImages[Cardinal(Ord(Side)) * FMipmapsCount] else
@@ -928,7 +933,7 @@ var
   var
     W, H: Cardinal;
     NextI, I: Integer;
-    Side: TCubeMapSide;
+    Side: TDDSCubeMapSide;
   begin
     { Check that Width/Height are power of two, this is needed to make
       sure images reading code is sensible (otherwise, there's no way

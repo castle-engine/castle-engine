@@ -3599,7 +3599,8 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
         MinFilter, MagFilter,
         DDS.CubeMapImage(csPositiveX),
         DDS.CubeMapImage(csNegativeX),
-        { TODO: why Pos/NegativeY must be swapped to make them look Ok? !! }
+        { Swap meaning of positive/negative Y faces from DDS,
+          see TDDSCubeMapSide for explanation. }
         DDS.CubeMapImage(csNegativeY),
         DDS.CubeMapImage(csPositiveY),
         DDS.CubeMapImage(csPositiveZ),

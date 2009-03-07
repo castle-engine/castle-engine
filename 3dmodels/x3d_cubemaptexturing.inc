@@ -254,7 +254,7 @@ begin
         Continue;
       end;
 
-      if Result.CubeMapSides <> AllCubeMapSides then
+      if Result.CubeMapSides <> AllDDSCubeMapSides then
       begin
         Result.Close;
         VRMLWarning(vwIgnorable, Format('DDS image "%s" given for ImageCubeMapTexture doesn''t contain all cube map sides', [FullUrl]));
