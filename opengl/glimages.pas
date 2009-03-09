@@ -258,6 +258,10 @@ function ImageDrawToDisplayList(const img: TImage): TGLuint;
 
   Version with ImageClass can save to any image format from GLImageClasses.
 
+  Version with TImage instance just uses this instance to save the image.
+  You must pass here already created TImage instance, it's class,
+  Width and Height will be used when saving.
+
   @groupBegin }
 procedure SaveScreen_noflush(const FileName: string; ReadBuffer: TGLenum); overload;
 function SaveScreen_noflush(ReadBuffer: TGLenum): TRGBImage; overload;
@@ -268,6 +272,11 @@ function SaveScreen_noflush(
   ImageClass: TImageClass;
   xpos, ypos, width, height: integer;
   ReadBuffer: TGLenum): TImage; overload;
+
+procedure SaveScreen_noflush(
+  Image: TImage;
+  xpos, ypos: integer;
+  ReadBuffer: TGLenum); overload;
 { @groupEnd }
 
 { Saves the current color buffer (captured like
@@ -518,21 +527,29 @@ end;
 { Saving screen to TRGBImage ------------------------------------------------ }
 
 { This is the basis for all other SaveScreen* functions below. }
+procedure SaveScreen_noflush(
+  Image: TImage;
+  xpos, ypos: integer;
+  ReadBuffer: TGLenum);
+var
+  PackData: TPackNotAlignedData;
+begin
+  BeforePackNotAlignedRGBImage(packData, Image.width);
+  try
+    glReadBuffer(ReadBuffer);
+    glReadPixels(xpos, ypos, Image.width, Image.height, ImageGLFormat(Image),
+      ImageGLType(Image), Image.RawPixels);
+  finally AfterPackNotAlignedRGBImage(packData, Image.width) end;
+end;
+
 function SaveScreen_noflush(
   ImageClass: TImageClass;
   xpos, ypos, width, height: integer;
   ReadBuffer: TGLenum): TImage;
-var
-  PackData: TPackNotAlignedData;
 begin
   Result := ImageClass.Create(width, height);
   try
-    BeforePackNotAlignedRGBImage(packData, width);
-    try
-      glReadBuffer(ReadBuffer);
-      glReadPixels(xpos, ypos, width, height, ImageGLFormat(Result),
-        ImageGLType(Result), Result.RawPixels);
-    finally AfterPackNotAlignedRGBImage(packData, width) end;
+    SaveScreen_noflush(Result, xpos, ypos, ReadBuffer);
   except Result.Free; raise end;
 end;
 

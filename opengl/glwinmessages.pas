@@ -191,19 +191,30 @@ function MessageInputQuery(glwin: TGLWindow; textlist: TStringList;
     and what they mean. ClosingInfo is displayed below basic Text of the
     message, and in a different color. If may be '' if you don't want this.)
 
+  @param(IgnoreCase This means that case of letters in AllowedChars
+    will be ignored. For example, you can include only uppercase 'A' in
+    AllowedChars. Or you can include lowercase 'a'. Or you can include
+    both. It doesn't matter --- we will always accept both lower and upper case.
+
+    Also, when character is returned, it's always uppercased.
+    So you can't even know if user pressed lower of upper case letter.)
+
   @groupBegin }
 function MessageChar(glwin: TGLWindow; const s: string;
   const AllowedChars: TSetOfChars;
   const ClosingInfo: string;
-  textalign: TTextAlign = taMiddle): char; overload;
+  textalign: TTextAlign = taMiddle;
+  IgnoreCase: boolean = false): char; overload;
 function MessageChar(glwin: TGLWindow;  const SArray: array of string;
   const AllowedChars: TSetOfChars;
   const ClosingInfo: string;
-  textalign: TTextAlign = taMiddle): char; overload;
+  textalign: TTextAlign = taMiddle;
+  IgnoreCase: boolean = false): char; overload;
 function MessageChar(glwin: TGLWindow;  textlist: TStringList;
   const AllowedChars: TSetOfChars;
   const ClosingInfo: string;
-  textalign: TTextAlign = taMiddle): char; overload;
+  textalign: TTextAlign = taMiddle;
+  IgnoreCase: boolean = false): char; overload;
 { @groupEnd }
 
 { Ask user to press any key, return this key as Keys.TKey.
@@ -1266,53 +1277,70 @@ type
   TCharData = record
     AllowedChars: TSetOfChars;
     answer: char;
+    IgnoreCase: boolean;
   end;
   PCharData = ^TCharData;
 
 procedure KeyDownMessgChar(glwin: TGLWindow; key: TKey; c: char);
-var md: TMessageData;
-    cd: PCharData;
+var
+  md: TMessageData;
+  cd: PCharData;
 begin
- md := TMessageData(glwin.UserData);
- cd := PCharData(md.userdata);
+  md := TMessageData(glwin.UserData);
+  cd := PCharData(md.userdata);
 
- if c in cd^.AllowedChars then
- begin
-  md.answered := true;
-  cd^.answer := c;
- end;
+  if cd^.IgnoreCase then
+  begin
+    if (UpCase(C) in cd^.AllowedChars) or
+       (LoCase(C) in cd^.AllowedChars) then
+    begin
+      md.answered := true;
+      cd^.answer := LoCase(c);
+    end;
+  end else
+  begin
+    if c in cd^.AllowedChars then
+    begin
+      md.answered := true;
+      cd^.answer := c;
+    end;
+  end;
 end;
 
 function MessageChar(glwin: TGLWindow; const s: string; const AllowedChars: TSetOfChars;
-  const ClosingInfo: string; textalign: TTextAlign): char;
+  const ClosingInfo: string; textalign: TTextAlign;
+  IgnoreCase: boolean): char;
 var textlist: TStringList;
 begin
  textlist := TStringList.Create;
  try
   Strings_SetText(textlist, s);
-  result := MessageChar(glwin, textlist, AllowedChars, ClosingInfo, textalign);
+  result := MessageChar(glwin, textlist, AllowedChars, ClosingInfo, textalign, IgnoreCase);
  finally textlist.free end;
 end;
 
 function MessageChar(glwin: TGLWindow;  const SArray: array of string; const AllowedChars: TSetOfChars;
-  const ClosingInfo: string; textalign: TTextAlign): char; overload;
+  const ClosingInfo: string; textalign: TTextAlign;
+  IgnoreCase: boolean): char; overload;
 var textlist: TStringList;
 begin
  textlist := TStringList.Create;
  try
   AddStrArrayToStrings(SArray, textlist);
-  result := MessageChar(glwin, textlist, AllowedChars, ClosingInfo, textalign);
+  result := MessageChar(glwin, textlist, AllowedChars, ClosingInfo, textalign, IgnoreCase);
  finally textlist.Free end;
 end;
 
 function MessageChar(glwin: TGLWindow; textlist: TStringList;
   const AllowedChars: TSetOfChars; const ClosingInfo: string;
-  textalign: TTextAlign): char; overload;
+  textalign: TTextAlign;
+  IgnoreCase: boolean): char; overload;
 var charData: TCharData;
 begin
  chardata.allowedChars := AllowedChars;
+ chardata.IgnoreCase := IgnoreCase;
  GLWinMessage_NoAdditional(glwin, textlist, textalign,
-   {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgChar, nil, false,
+   @KeyDownMessgChar, nil, false,
    @chardata, ClosingInfo);
  result := chardata.answer;
 end;
