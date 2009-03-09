@@ -31,6 +31,7 @@ begin
     DDS.Height := Img.Height;
     DDS.DDSType := dtTexture;
     DDS.Mipmaps := false;
+    DDS.MipmapsCount := 1;
     DDS.Images.Count := 1;
     DDS.Images[0] := Img;
 

@@ -25,7 +25,7 @@ unit GLCubeMap;
 
 interface
 
-uses VectorMath, CubeMap, Images, Frustum;
+uses VectorMath, CubeMap, Images, Frustum, DDS;
 
 type
   TCubeMapRenderSimpleFunction = procedure (ForCubeMap: boolean);
@@ -103,6 +103,18 @@ procedure GLCaptureCubeMapImages(
   const Render: TCubeMapRenderFunction;
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer);
+
+{ Capture cube map to DDS image by rendering environment from CapturePoint.
+
+  See GLCaptureCubeMapImages for documentation, this works the same,
+  but it creates TDDSImage instance containing all six images (oriented
+  as appropriate for DDS). }
+function GLCaptureCubeMapDDS(
+  const Size: Cardinal;
+  const CapturePoint: TVector3Single;
+  const Render: TCubeMapRenderFunction;
+  const MapsOverlap: boolean;
+  const MapScreenX, MapScreenY: Integer): TDDSImage;
 
 implementation
 
@@ -253,6 +265,40 @@ begin
 
   for Side := Low(TCubeMapSide) to High(TCubeMapSide) do
     DrawMap(Side);
+end;
+
+function GLCaptureCubeMapDDS(
+  const Size: Cardinal;
+  const CapturePoint: TVector3Single;
+  const Render: TCubeMapRenderFunction;
+  const MapsOverlap: boolean;
+  const MapScreenX, MapScreenY: Integer): TDDSImage;
+var
+  Images: TCubeMapImages;
+  Side: TCubeMapSide;
+begin
+  for Side := Low(Side) to High(Side) do
+    Images[Side] := TRGBImage.Create(Size, Size);
+
+  GLCaptureCubeMapImages(Images, CapturePoint, Render,
+    MapsOverlap, MapScreenX, MapScreenY);
+
+  Result := TDDSImage.Create;
+  Result.Width := Size;
+  Result.Height := Size;
+  Result.DDSType := dtCubeMap;
+  Result.CubeMapSides := AllDDSCubeMapSides;
+  Result.Mipmaps := false;
+  Result.MipmapsCount := 1;
+  Result.Images.Count := 6;
+  Result.Images[Ord(dcsPositiveX)] := Images[csPositiveX];
+  Result.Images[Ord(dcsNegativeX)] := Images[csNegativeX];
+  { For DDS positive/negative Y must be swapped (Direct X has left-handed
+    coord system). }
+  Result.Images[Ord(dcsNegativeY)] := Images[csPositiveY];
+  Result.Images[Ord(dcsPositiveY)] := Images[csNegativeY];
+  Result.Images[Ord(dcsPositiveZ)] := Images[csPositiveZ];
+  Result.Images[Ord(dcsNegativeZ)] := Images[csNegativeZ];
 end;
 
 end.
