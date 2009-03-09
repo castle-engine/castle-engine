@@ -106,6 +106,9 @@ type
     FOptimization: TGLRendererOptimization;
     procedure SetOptimization(const Value: TGLRendererOptimization);
 
+    FWalkProjectionNear: Single;
+    FWalkProjectionFar : Single;
+
     { Helpers for Load implementation. }
     Load_RootNodes: TVRMLNodesList;
     Load_Times: TDynSingleArray;
@@ -527,6 +530,9 @@ type
       const WindowWidth, WindowHeight: Cardinal;
       out AngleOfViewX, AngleOfViewY: Single;
       const ForceZFarInfinity: boolean = false);
+
+    property WalkProjectionNear: Single read FWalkProjectionNear;
+    property WalkProjectionFar : Single read FWalkProjectionFar ;
   end;
 
   TObjectsListItem_1 = TVRMLGLAnimation;
@@ -1615,6 +1621,9 @@ begin
     AngleOfViewX, AngleOfViewY, ForceZFarInfinity,
     NewBackgroundSkySphereRadius);
   BackgroundSkySphereRadius := NewBackgroundSkySphereRadius;
+
+  FWalkProjectionNear := FirstScene.WalkProjectionNear;
+  FWalkProjectionFar  := FirstScene.WalkProjectionFar ;
 end;
 
 end.

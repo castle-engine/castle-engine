@@ -565,6 +565,9 @@ type
     PreparedFogDistanceScaling: Single;
     procedure CheckFogChanged;
 
+    FWalkProjectionNear: Single;
+    FWalkProjectionFar : Single;
+
     { Private things for RenderFrustum --------------------------------------- }
 
     function FrustumCulling_None(Shape: TVRMLGLShape): boolean;
@@ -1298,6 +1301,16 @@ type
       out AngleOfViewX, AngleOfViewY: Single;
       const ForceZFarInfinity: boolean;
       out NewBackgroundSkySphereRadius: Single);
+
+    { Every GLProjection call calculates it.
+
+      This is the best projection near/far for Walk mode
+      (although GLProjection may use some other values for other modes
+      (like Examine), it will always calculate values for Walk mode anyway.)
+
+      WalkProjectionFar is never ZFarInfinity. }
+    property WalkProjectionNear: Single read FWalkProjectionNear;
+    property WalkProjectionFar : Single read FWalkProjectionFar ;
   end;
 
   TObjectsListItem_1 = TVRMLGLScene;
@@ -3969,8 +3982,6 @@ var
   ViewpointNode: TVRMLViewpointNode;
   FieldOfView: Single;
   VisibilityLimit: Single;
-  WalkProjectionNear: Single;
-  WalkProjectionFar: Single;
   MaxSize, ZNear, ZFar: TGLdouble;
   CameraKind: TVRMLCameraKind;
 begin
@@ -3999,17 +4010,17 @@ begin
       FdVisibilityLimit.Value else
     VisibilityLimit := 0;
 
-  WalkProjectionNear := Nav.CameraRadius * 0.6;
+  FWalkProjectionNear := Nav.CameraRadius * 0.6;
 
   if VisibilityLimit <> 0.0 then
-    WalkProjectionFar := VisibilityLimit else
+    FWalkProjectionFar := VisibilityLimit else
   begin
     if IsEmptyBox3d(Box) then
       { When IsEmptyBox3d, Result is not simply "any dummy value".
         It must be appropriately larger than WalkProjectionNear
         to provide sufficient space for rendering Background node. }
-      WalkProjectionFar := WalkProjectionNear * 10 else
-      WalkProjectionFar := Box3dAvgSize(Box) * 20.0;
+      FWalkProjectionFar := FWalkProjectionNear * 10 else
+      FWalkProjectionFar := Box3dAvgSize(Box) * 20.0;
   end;
 
   { To minimize depth buffer errors we want to make ZNear/ZFar dependent

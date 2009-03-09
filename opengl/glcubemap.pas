@@ -82,6 +82,9 @@ type
   This changes glViewport, so be sure to reset glViewport to something
   normal after calling this.
 
+  ProjectionNear, ProjectionFar parameters will be used to set GL
+  projection matrix.
+
   @param(MapsOverlap
 
     If @false then the six maps will be drawn on non-overlapping
@@ -101,6 +104,7 @@ procedure GLCaptureCubeMapImages(
   const Images: TCubeMapImages;
   const CapturePoint: TVector3Single;
   const Render: TCubeMapRenderFunction;
+  const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer);
 
@@ -113,6 +117,7 @@ function GLCaptureCubeMapDDS(
   const Size: Cardinal;
   const CapturePoint: TVector3Single;
   const Render: TCubeMapRenderFunction;
+  const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer): TDDSImage;
 
@@ -214,6 +219,7 @@ procedure GLCaptureCubeMapImages(
   const Images: TCubeMapImages;
   const CapturePoint: TVector3Single;
   const Render: TCubeMapRenderFunction;
+  const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer);
 var
@@ -240,7 +246,7 @@ var
     glMatrixMode(GL_PROJECTION);
     glPushMatrix;
       glLoadIdentity;
-      gluPerspective(90, 1, 0.01, 100);
+      gluPerspective(90, 1, ProjectionNear, ProjectionFar);
       glMatrixMode(GL_MODELVIEW);
 
         CameraMatrix := LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up);
@@ -271,6 +277,7 @@ function GLCaptureCubeMapDDS(
   const Size: Cardinal;
   const CapturePoint: TVector3Single;
   const Render: TCubeMapRenderFunction;
+  const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer): TDDSImage;
 var
@@ -281,6 +288,7 @@ begin
     Images[Side] := TRGBImage.Create(Size, Size);
 
   GLCaptureCubeMapImages(Images, CapturePoint, Render,
+    ProjectionNear, ProjectionFar,
     MapsOverlap, MapScreenX, MapScreenY);
 
   Result := TDDSImage.Create;
