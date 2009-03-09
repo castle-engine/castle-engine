@@ -57,12 +57,25 @@ type
     dcsNegativeZ);
   TDDSCubeMapSides = set of TDDSCubeMapSide;
 
-  { DDS image file. Basically, DDS is just a sequence of images
+  { DDS image file.
+
+    Basically, DDS is just a sequence of images
     (in the @link(Images) property). The interpretation of the image sequence
-    depends on other fields: first of all @link(DDSType) and @link(Mipmaps). }
+    depends on other fields: first of all @link(DDSType) and @link(Mipmaps).
+
+    The basic usage of this class is to load a DDS file: see LoadFromFile,
+    LoadFromStream.
+
+    Note that you can write (change) many properties of this class.
+    This allows you to create, or load and edit, DDS files.
+    You can even later save the DDS image back to the stream (like a file) by
+    SaveToStream or SaveToFile. Be careful though: you're responsible then
+    to set all properties to sensible values. For example, the length
+    (and interpretation) of @link(Images) list is determined by other properties
+    of this class, so be sure to set them all to something sensible. }
   TDDSImage = class
   private
-    FImages: array of TImage;
+    FImages: TImageList;
     function GetImages(const Index: Integer): TImage;
 
     FWidth: Cardinal;
@@ -83,29 +96,28 @@ type
       This has always length > 0 when DDS is successfully loaded
       (that is, when LoadFromStream method finished without raising any
       exception). }
-    property Images [Index: Integer]: TImage read GetImages;
-    function ImagesCount: Cardinal;
+    property Images: TImageList read FImages;
 
-    property Width: Cardinal read FWidth;
-    property Height: Cardinal read FHeight;
+    property Width: Cardinal read FWidth write FWidth;
+    property Height: Cardinal read FHeight write FHeight;
 
-    property DDSType: TDDSType read FDDSType;
+    property DDSType: TDDSType read FDDSType write FDDSType;
 
     { Does this DDS file contain mipmaps.
       If @true, then all @link(Images) are guaranteed to have sizes
       being power of 2. }
-    property Mipmaps: boolean read FMipmaps;
+    property Mipmaps: boolean read FMipmaps write FMipmaps;
     { Mipmaps count.
       Always 1 when @link(Mipmaps) = @false, this is usually comfortable. }
-    property MipmapsCount: Cardinal read FMipmapsCount;
+    property MipmapsCount: Cardinal read FMipmapsCount write FMipmapsCount;
 
     { Present cube map sides.
       Valid only when image is loaded and is dtCubeMap. }
-    property CubeMapSides: TDDSCubeMapSides read FCubeMapSides;
+    property CubeMapSides: TDDSCubeMapSides read FCubeMapSides write FCubeMapSides;
 
     { Depth of volume (3D) texture.
       Valid only when image is loaded and is dtVolume. }
-    property Depth: Cardinal read FDepth;
+    property Depth: Cardinal read FDepth write FDepth;
 
     { Return given side of cube map.
       Assumes DDSType = dtCubeMap and CubeMapSides = all.
@@ -122,6 +134,9 @@ type
     procedure LoadFromStream(Stream: TStream);
 
     procedure LoadFromFile(const FileName: string);
+
+    procedure SaveToStream(Stream: TStream);
+    procedure SaveToFile(const FileName: string);
 
     { Close all loaded image data. Effectively, this releases all data
       loaded by LoadFromStream, reverting the object to the state right
@@ -430,11 +445,13 @@ constructor TDDSImage.Create;
 begin
   inherited;
   FOwnsFirstImage := true;
+  FImages := TImageList.Create;
 end;
 
 destructor TDDSImage.Destroy;
 begin
   Close;
+  FreeAndNil(FImages);
   inherited;
 end;
 
@@ -442,20 +459,15 @@ procedure TDDSImage.Close;
 var
   I: Integer;
 begin
-  for I := 0 to Length(FImages) - 1 do
+  for I := 0 to Images.High do
     if OwnsFirstImage or (I <> 0) then
-      FreeAndNil(FImages[I]);
-  SetLength(FImages, 0);
+      Images.FreeAndNil(I);
+  Images.Count := 0;
 end;
 
 function TDDSImage.GetImages(const Index: Integer): TImage;
 begin
   Result := FImages[Index];
-end;
-
-function TDDSImage.ImagesCount: Cardinal;
-begin
-  Result := Length(FImages);
 end;
 
 function TDDSImage.CubeMapImage(const Side: TDDSCubeMapSide): TImage;
@@ -924,10 +936,10 @@ var
 
     procedure AllocateImages(const Count: Cardinal);
     begin
-      SetLength(FImages, Count);
+      Images.Count := Count;
       { zero memory, to allow easy deallocation in case an exception will
         be raised during image reading. }
-      FillChar(Pointer(FImages)^, SizeOf(FImages), 0);
+      Images.SetAll(nil);
     end;
 
   var
@@ -1020,6 +1032,131 @@ begin
   S := CreateReadFileStream(FileName);
   try
     LoadFromStream(S);
+  finally FreeAndNil(S) end;
+end;
+
+procedure TDDSImage.SaveToStream(Stream: TStream);
+
+  procedure WriteHeader;
+  const
+    Magic: array [0 .. 3] of char = 'DDS ';
+  var
+    Header: TDDSHeader;
+  begin
+    Stream.WriteBuffer(Magic, SizeOf(Magic));
+
+    { initially fill Header with zeros, to avoid writing memory garbage
+      (which would be potential security risk) to file. }
+    FillChar(Header, SizeOf(Header), 0);
+
+    Header.Size := SizeOf(Header);
+    Header.Flags := DDSD_CAPS or DDSD_HEIGHT or DDSD_WIDTH or DDSD_PIXELFORMAT
+      or DDSCAPS_TEXTURE;
+    Header.Height := Height;
+    Header.Width := Width;
+    Header.Caps1 := 0; { for starters }
+
+    if Mipmaps then
+    begin
+      Header.Caps1 := Header.Caps1 or DDSCAPS_COMPLEX or DDSCAPS_MIPMAP;
+      Header.Flags := Header.Flags or DDSD_MIPMAPCOUNT;
+      Header.MipMapCount := MipmapsCount;
+    end;
+
+    case DDSType of
+      dtTexture: ;
+      dtCubeMap:
+        begin
+          Header.Caps1 := Header.Caps1 or DDSCAPS_COMPLEX;
+          Header.Caps2 := Header.Caps2 or DDSCAPS2_CUBEMAP;
+
+          if dcsPositiveX in CubeMapSides then Header.Caps2 := Header.Caps2 or DDSCAPS2_CUBEMAP_POSITIVEX;
+          if dcsNegativeX in CubeMapSides then Header.Caps2 := Header.Caps2 or DDSCAPS2_CUBEMAP_NEGATIVEX;
+          if dcsPositiveY in CubeMapSides then Header.Caps2 := Header.Caps2 or DDSCAPS2_CUBEMAP_POSITIVEY;
+          if dcsNegativeY in CubeMapSides then Header.Caps2 := Header.Caps2 or DDSCAPS2_CUBEMAP_NEGATIVEY;
+          if dcsPositiveZ in CubeMapSides then Header.Caps2 := Header.Caps2 or DDSCAPS2_CUBEMAP_POSITIVEZ;
+          if dcsNegativeZ in CubeMapSides then Header.Caps2 := Header.Caps2 or DDSCAPS2_CUBEMAP_NEGATIVEZ;
+        end;
+      dtVolume:
+        begin
+          Header.Caps1 := Header.Caps1 or DDSCAPS_COMPLEX;
+          Header.Caps2 := Header.Caps2 or DDSCAPS2_VOLUME;
+          Header.Flags := Header.Flags or DDSD_DEPTH;
+          Header.Depth := Depth;
+        end;
+      else raise EInternalError.Create('DDSType');
+    end;
+
+    Header.Flags := Header.Flags or DDSD_PITCH;
+    Header.PitchOrLinearSize := Width * Images[0].PixelSize;
+
+    Header.PixelFormat.Size := SizeOf(Header.PixelFormat);
+    Header.PixelFormat.Flags := 0; { for starters }
+
+    if Images[0] is TGrayscaleImage then
+    begin
+      Header.PixelFormat.Flags := 0;
+      Header.PixelFormat.RGBBitCount := 8;
+      Header.PixelFormat.RBitMask := $ff;
+      Header.PixelFormat.GBitMask := $ff;
+      Header.PixelFormat.BBitMask := $ff;
+      Header.PixelFormat.ABitMask := 0;
+    end else
+    if Images[0] is TGrayscaleAlphaImage then
+    begin
+      Header.PixelFormat.Flags := DDPF_ALPHAPIXELS;
+      Header.PixelFormat.RGBBitCount := 16;
+      Header.PixelFormat.RBitMask := $00ff;
+      Header.PixelFormat.GBitMask := $00ff;
+      Header.PixelFormat.BBitMask := $00ff;
+      Header.PixelFormat.ABitMask := $ff00;
+    end else
+    if Images[0] is TRGBImage then
+    begin
+      Header.PixelFormat.Flags := DDPF_RGB;
+      Header.PixelFormat.RGBBitCount := 24;
+      Header.PixelFormat.RBitMask := $000000ff;
+      Header.PixelFormat.GBitMask := $0000ff00;
+      Header.PixelFormat.BBitMask := $00ff0000;
+      Header.PixelFormat.ABitMask := 0;
+    end else
+    if Images[0] is TRGBAlphaImage then
+    begin
+      Header.PixelFormat.Flags := DDPF_RGB or DDPF_ALPHAPIXELS;
+      Header.PixelFormat.RGBBitCount := 32;
+      Header.PixelFormat.RBitMask := $000000ff;
+      Header.PixelFormat.GBitMask := $0000ff00;
+      Header.PixelFormat.BBitMask := $00ff0000;
+      Header.PixelFormat.ABitMask := $ff000000;
+    end else
+      raise Exception.CreateFmt('Unable to save image class %s to DDS image',
+        [Images[0].ClassName]);
+
+    Stream.WriteBuffer(Header, SizeOf(Header));
+  end;
+
+  procedure WriteImages;
+  var
+    I, Y: Integer;
+  begin
+    for I := 0 to Images.Count - 1 do
+      for Y := Images[I].Height - 1 downto 0 do
+        Stream.WriteBuffer(Images[I].RowPtr(Y)^, Width * Images[I].PixelSize);
+  end;
+
+begin
+  Assert(Images.Count > 0, 'Images count must be > 0 when saving DDS image');
+  WriteHeader;
+  WriteImages;
+end;
+
+procedure TDDSImage.SaveToFile(const FileName: string);
+var
+  S: TStream;
+begin
+  S := TFileStream.Create(FileName, fmCreate);
+  try
+    SaveToStream(S);
   finally FreeAndNil(S) end;
 end;
 

@@ -155,6 +155,8 @@
     { zamieni wszystkie wystapienia OldItem na NewItem }
     procedure ReplaceAll(OldItem, NewItem: TObjectsListItem);
 
+    procedure SetAll(Item: TObjectsListItem);
+
     { ------------------------------------------------------------
       rzeczy ktore robia gdzies Free obiektom na liscie }
 
@@ -471,6 +473,18 @@ procedure TObjectsList.ReplaceAll(OldItem, NewItem: TObjectsListItem);
 var i: integer;
 begin
  for i := 0 to Count-1 do if Items[i] = OldItem then Items[i] := NewItem;
+end;
+
+procedure TObjectsList.SetAll(Item: TObjectsListItem);
+{$ifdef CPU32}
+begin
+  FillDWord(Arr^, Count, PtrUInt(Item));
+{$else}
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do Items[I] := Item;
+{$endif}
 end;
 
 procedure TObjectsList.FreeAndNil(Index: integer);

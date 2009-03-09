@@ -174,7 +174,9 @@ unit Images;
 interface
 
 uses SysUtils, Classes, Math, KambiUtils, VectorMath,
-  KambiPng, KambiPngUtils, KambiPasJpeg, FileFilters;
+  KambiPng, KambiPngUtils, KambiPasJpeg, FileFilters, KambiClassUtils;
+
+{$define read_interface}
 
 type
   { See TImage.AlphaChannelType. }
@@ -666,6 +668,10 @@ type
     procedure LerpWith(const Value: Single; SecondImage: TImage); virtual;
   end;
 
+  TObjectsListItem_1 = TImage;
+  {$I objectslist_1.inc}
+  TImageList = TObjectsList_1;
+
 { TImageClass and arrays of TImageClasses ----------------------------- }
 
 type
@@ -1115,6 +1121,8 @@ procedure SavePPM(Img: TImage; Stream: TStream); { binary = true } overload;
 { }
 procedure SaveRGBE(Img: TImage; Stream: TStream);
 
+procedure SaveDDS(Img: TImage; Stream: TStream);
+
 { File formats managing ----------------------------------------------------- }
 
 type
@@ -1277,7 +1285,7 @@ const
     ( FormatName: 'DDS image';
       ExtsCount: 1; Exts: ('dds', '', '');
       Load: @LoadDDS; LoadedClasses: lcG_GA_RGB_RGBA;
-      Save: nil; SavedClasses: scRGB; )
+      Save: @SaveDDS; SavedClasses: scG_GA_RGB_RGBA; )
   );
 
   DefaultSaveImageFormat: TImageFormat = ifBMP;
@@ -1499,10 +1507,15 @@ var
   SaveImage_FileFilters: TFileFiltersList;
   { @groupEnd }
 
+{$undef read_interface}
+
 implementation
 
-uses ProgressUnit, KambiClassUtils, KambiStringUtils, KambiFilesUtils,
+uses ProgressUnit, KambiStringUtils, KambiFilesUtils,
   DataErrors, DDS;
+
+{$define read_implementation}
+{$I objectslist_1.inc}
 
 { image loading utilities --------------------------------------------------- }
 
