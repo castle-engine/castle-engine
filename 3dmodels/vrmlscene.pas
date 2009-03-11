@@ -783,6 +783,7 @@ type
       (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight; virtual;
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
+    constructor Create(const SceneFileName: string);
     destructor Destroy; override;
 
     { Simple (usually very flat) tree of shapes within this VRML scene.
@@ -1674,7 +1675,8 @@ type
 
 implementation
 
-uses VRMLCameraUtils, KambiStringUtils, KambiLog, VRMLErrors, DateUtils;
+uses VRMLCameraUtils, KambiStringUtils, KambiLog, VRMLErrors, DateUtils,
+  Object3dAsVRML;
 
 {$define read_implementation}
 {$I macprecalcvaluereturn.inc}
@@ -1865,6 +1867,11 @@ begin
  TransformNodesInfo := TDynTransformNodeInfoArray.Create;
 
  ScheduleChangedAll;
+end;
+
+constructor TVRMLScene.Create(const SceneFileName: string);
+begin
+  Create(LoadAsVRML(SceneFileName, false), true);
 end;
 
 destructor TVRMLScene.Destroy;
