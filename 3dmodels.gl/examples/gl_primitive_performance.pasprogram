@@ -41,7 +41,10 @@ type
     { Vertex arrays, each vertex is specified by glArrayElement. }
     rmVARTrianglesByVertex, rmVARLockedTrianglesByVertex,
     { Vertex arrays, all vertexes are passed by 1 call to glDrawElements. }
-    rmVARTriangles, rmVARLockedTriangles
+    rmVARTriangles, rmVARLockedTriangles,
+    { Vertex buffers. }
+    rmVBOTrianglesByVertex,
+    rmVBOTriangles
     );
 
 var
@@ -53,6 +56,7 @@ var
 
   Mode: TRenderMode = rmDirectOnceTriangles;
   Wireframe: boolean;
+  VBOVertex: TGLuint;
 
 procedure Draw(glwin: TGLWindow);
 var
@@ -99,18 +103,19 @@ begin
             glVertexv(Vertexes.Items[TrianglesCoordIndex.Items[I]]);
         glEnd;
       end;
-    rmVARTrianglesByVertex, rmVARLockedTrianglesByVertex:
+    rmVARTrianglesByVertex,
+    rmVARLockedTrianglesByVertex,
+    rmVBOTrianglesByVertex:
       begin
-        glEnableClientState(GL_VERTEX_ARRAY);
         glBegin(GL_TRIANGLES);
           for I := 0 to TrianglesCoordIndex.Count - 1 do
             glArrayElement(TrianglesCoordIndex.Items[I]);
         glEnd;
       end;
-
-    rmVARTriangles, rmVARLockedTriangles:
+    rmVARTriangles,
+    rmVARLockedTriangles,
+    rmVBOTriangles:
       begin
-        glEnableClientState(GL_VERTEX_ARRAY);
         glDrawElements(GL_TRIANGLES, TrianglesCoordIndex.Count, GL_UNSIGNED_INT,
           TrianglesCoordIndex.ItemsArray);
       end;
@@ -120,6 +125,10 @@ end;
 
 procedure Init(glwin: TGLWindow);
 begin
+  Writeln('OpenGL has locking VAR support: ', GL_EXT_compiled_vertex_array);
+  Writeln('Vertex arrays optimal fill: ',
+    glGetInteger(GL_MAX_ELEMENTS_VERTICES), ' vertexes, ',
+    glGetInteger(GL_MAX_ELEMENTS_INDICES), ' indices.');
 //  glEnable(GL_LIGHTING);
 //  glEnable(GL_LIGHT0);
 //  glEnable(GL_DEPTH_TEST);
@@ -135,8 +144,8 @@ begin
 end;
 
 var
-  { This is used only by LockArraysBegin and LockArraysEnd. }
-  ArraysLocked: boolean;
+  { Used only by LockArraysBegin and LockArraysEnd. }
+  ArraysLocked: boolean = false;
 
   procedure LockArraysBegin;
   begin
@@ -154,7 +163,10 @@ var
   procedure LockArraysEnd;
   begin
     if ArraysLocked then
+    begin
       glUnlockArraysEXT;
+      ArraysLocked := false;
+    end;
   end;
 
 procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
@@ -167,6 +179,7 @@ const
     rmVARLockedTrianglesByVertex,
     rmVARLockedTriangles
   ];
+  VBOModes = [rmVBOTrianglesByVertex, rmVBOTriangles];
 begin
   case Item.IntData of
     10: begin
@@ -177,19 +190,36 @@ begin
         end;
     20..40:
         begin
+          { simply disable/destroy all vertex arrays/buffers from
+            previous Mode }
+          LockArraysEnd;
+          glDisableClientState(GL_VERTEX_ARRAY);
+          if Mode in VBOModes then
+          begin
+            glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+            glDeleteBuffersARB(1, @VBOVertex);
+          end;
+
           Mode := TRenderMode(Item.IntData - 20);
 
-          { simply disable all specials from previous Mode, that's easiest }
-          glDisableClientState(GL_VERTEX_ARRAY);
-          LockArraysEnd;
-
+          { enable/create vertex arrays/buffers for new Mode }
           if Mode in VARModes then
           begin
-            glEnableClientState(GL_VERTEX_ARRAY);
             glVertexPointer(3, GL_FLOAT, 0, Vertexes.ItemsArray);
+            glEnableClientState(GL_VERTEX_ARRAY);
 
             if Mode in VARLockedModes then
               LockArraysBegin;
+          end else
+          if Mode in VBOModes then
+          begin
+            glGenBuffersARB(1, @VBOVertex);
+            glBindBufferARB(GL_ARRAY_BUFFER_ARB, VBOVertex);
+            glBufferDataARB(GL_ARRAY_BUFFER_ARB,
+              3 * SizeOf(Single) * Vertexes.Count, Vertexes.ItemsArray,
+              GL_STATIC_DRAW_ARB);
+            glVertexPointer(3, GL_FLOAT, 0, nil);
+            glEnableClientState(GL_VERTEX_ARRAY);
           end;
         end;
     200: Glwin.Close;
@@ -209,7 +239,9 @@ function CreateMainMenu: TMenu;
       'Vertex array: glArrayElement',
       'Vertex array: glArrayElement, locked',
       'Vertex array: glDrawElements',
-      'Vertex array: glDrawElements, locked'
+      'Vertex array: glDrawElements, locked',
+      'Vertex buffer object: glArrayElement',
+      'Vertex buffer object: glDrawElements'
     );
   var
     RadioGroup: TMenuItemRadioGroup;
@@ -323,7 +355,6 @@ begin
     Writeln('Vertexes count: ', Vertexes.Count);
     Writeln('CoordIndex count: ', CoordIndex.Count);
     Writeln('Triangles count: ', Shape.TrianglesCount(false), ' (made: ', TrianglesCoordIndex.Count div 3, ')');
-    Writeln('OpenGL has locking VAR support: ', GL_EXT_compiled_vertex_array);
 
     { init Glw.Navigator }
     Glw.Navigator := TExamineNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
