@@ -712,6 +712,8 @@ const
 
   DefaultDepthBufferBits = 16;
 
+  DefaultFpsCaptionUpdateInterval = 5000;
+
 type
   TGLWindow = class;
 
@@ -2368,6 +2370,7 @@ type
     FSwapFullScreen_Key: TKey;
     FClose_CharKey: char;
     procedure SetFpsBaseCaption(const Value: string);
+    FFpsCaptionUpdateInterval: TMilisecTime;
   public
     { Whether to show current Fps (frames per second) on window's Caption.
       You can modify this property only @italic(before calling @link(Init).) }
@@ -2392,12 +2395,34 @@ type
       I know, it's a problem. Well, if in doubt, just turn off FpsShowOnCaption. }
     property FpsBaseCaption: string read FFpsBaseCaption write SetFpsBaseCaption;
 
+    { The amount of time (in miliseconds) between updating Caption
+      with current FPS value. Used when FpsShowOnCaption.
+
+      Note that updating Caption of the window too often *may* cause
+      a significant FPS dropdown, in other words: don't set this to too small value.
+      I once used here value 200. It's 5 times per second,
+      this didn't seem too often, until once I checked my program
+      with this turned off and found that my program runs now
+      much faster (you can see that looking at FpsRealTime
+      (FpsFrameTime does not change)).
+
+      That's why I use here quite big value by default,
+      DefaultFpsCaptionUpdateInterval.
+
+      If you really want to show FPS counts updated more constantly,
+      you should display them each frame as a text in OpenGL
+      (like I do in view3dscene). }
+    property FpsCaptionUpdateInterval: TMilisecTime
+      read FFpsCaptionUpdateInterval write FFpsCaptionUpdateInterval
+      default DefaultFpsCaptionUpdateInterval;
+
     { w czasie OnInit / OnClose mozesz sprawdzic wartosc tej wlasciwosci.
       Jesli true to znaczy ze ten OnInit / OnClose sa wykonywane w czasie
       zmiany okna z fullscreen na windowed albo w druga strone. }
     property SwappingFullscr: boolean read fSwappingFullscr;
 
     procedure SwapFullScreen;
+
 
     procedure EventInit; override;
     procedure EventKeyDown(Key: TKey; c: char); override;
@@ -4108,25 +4133,6 @@ begin
 end;
 
 procedure TGLWindowDemo.EventIdle;
-const
-  { This is the amount of time (in miliseconds) that we must wait
-    before updating Caption next time.
-
-    Note that updating Caption of the window too often *may* cause
-    a significant FPS dropdown, i.e. : don't do this too often !
-    I once used here value 200. It's 5 times per second,
-    this didn't seem too often, until once I checked my program
-    with this turned off and found that my program runs now
-    much faster (you can see that looking at FpsRealTime
-    (FpsFrameTime does not change)).
-
-    That's why I use here so big value, and I don't recomment
-    anyone trying to set this to something smaller.
-
-    If you really want to show FPS counts updated more constantly,
-    you should display them each frame as a text in OpenGL
-    (like I do in view3dscene). }
-  FpsOutputMilisec = 5000;
 begin
  inherited;
  {ponizej udalo mi sie zaimplementowac cos jak timer, a jednak nie uzylem
@@ -4136,7 +4142,7 @@ begin
   Glwm.TimerMilisec. }
  if FpsShowOnCaption and
     ((lastFpsOutputTick = 0) or
-     (TimeTickDiff(lastFpsOutputTick, GetTickCount) >= FpsOutputMilisec)) then
+     (TimeTickDiff(lastFpsOutputTick, GetTickCount) >= FpsCaptionUpdateInterval)) then
  begin
   lastFpsOutputTick := GetTickCount;
   FpsToCaption(FFpsBaseCaption);
@@ -4199,7 +4205,7 @@ begin
   begin
     FFpsBaseCaption := Value;
     { Update Caption now, otherwise Caption would get updated with
-      some latency (because only when FpsOutputMilisec is reached). }
+      some latency (because only when FpsCaptionUpdateInterval is reached). }
     FpsToCaption(FFpsBaseCaption);
   end;
 end;
