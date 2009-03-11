@@ -1,0 +1,261 @@
+{
+  Copyright 2009 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+}
+
+{ Simple demo/test of various ways to push indexed vertex data to OpenGL.
+
+  For maximum simplicity, it only renders one shape (IndexedFaceSet)
+  from X3D/VRML model (other 3D model formats are converted to VRML
+  on load under the hood). }
+program gl_primitive_performance;
+
+uses VectorMath, Boxes3d, VRMLNodes, GL, GLU, GLExt, GLWindow,
+  GLW_Navigated, KambiUtils, SysUtils, Classes, Object3dAsVRML,
+  KambiGLUtils, KambiFilesUtils, VRMLScene, Navigation,
+  ProgressUnit, VRMLErrors, VRMLShape;
+
+type
+  TRenderMode = (
+    { The worst versions: do not pass indexes to OpenGL, instead
+      pass direct vector values. This implies no vertex sharing
+      (well, almost: within polygon and triangle_fan verts will be shared).
+      For polygon and triangle_fan this also makes a lot of primiive
+      restarts, which may hurt quite like state changes. }
+    rmDirectManyPolygons, rmDirectManyFans, rmDirectOnceTriangles);
+
+var
+  Scene: TVRMLScene;
+  Shape: TVRMLShape;
+  Vertexes: TDynVector3SingleArray;
+  CoordIndex: TDynLongIntArray;
+  TrianglesCoordIndex: TDynLongIntArray;
+
+  Mode: TRenderMode = rmDirectOnceTriangles;
+  Wireframe: boolean;
+
+procedure Draw(glwin: TGLWindow);
+var
+  I: Integer;
+begin
+  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+  glLoadMatrix(glw.Navigator.Matrix);
+  glMultMatrix(Shape.State.Transform);
+
+  { render scene }
+  case Mode of
+    rmDirectManyPolygons:
+      begin
+        glBegin(GL_POLYGON);
+          for I := 0 to CoordIndex.Count - 1 do
+          begin
+            if CoordIndex.Items[I] < 0 then
+            begin
+              glEnd;
+              glBegin(GL_POLYGON);
+            end else
+              glVertexv(Vertexes.Items[CoordIndex.Items[I]]);
+          end;
+        glEnd;
+      end;
+    rmDirectManyFans:
+      begin
+        glBegin(GL_TRIANGLE_FAN);
+          for I := 0 to CoordIndex.Count - 1 do
+          begin
+            if CoordIndex.Items[I] < 0 then
+            begin
+              glEnd;
+              glBegin(GL_TRIANGLE_FAN);
+            end else
+              glVertexv(Vertexes.Items[CoordIndex.Items[I]]);
+          end;
+        glEnd;
+      end;
+    rmDirectOnceTriangles:
+      begin
+        glBegin(GL_TRIANGLES);
+          for I := 0 to TrianglesCoordIndex.Count - 1 do
+            glVertexv(Vertexes.Items[TrianglesCoordIndex.Items[I]]);
+        glEnd;
+      end;
+  end;
+end;
+
+procedure Init(glwin: TGLWindow);
+begin
+//  glEnable(GL_LIGHTING);
+//  glEnable(GL_LIGHT0);
+//  glEnable(GL_DEPTH_TEST);
+  glColor3f(1, 1, 0);
+end;
+
+procedure Resize(glwin: TGLWindow);
+begin
+  glViewport(0, 0, glwin.Width, glwin.Height);
+  ProjectionGLPerspective(45.0, glwin.Width/glwin.Height,
+    Box3dAvgSize(Scene.BoundingBox) * 0.01,
+    Box3dMaxSize(Scene.BoundingBox) * 10.0);
+end;
+
+procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
+begin
+  case Item.IntData of
+    10: begin
+          Wireframe := not Wireframe;
+          if Wireframe then
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE) else
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        end;
+    20..22: Mode := TRenderMode(Item.IntData - 20);
+    200: Glwin.Close;
+    else Exit;
+  end;
+  Glw.PostRedisplay;
+end;
+
+function CreateMainMenu: TMenu;
+var
+  M: TMenu;
+  Radio: TMenuItemRadio;
+  RadioGroup: TMenuItemRadioGroup;
+begin
+  Result := TMenu.Create('Main menu');
+  M := TMenu.Create('_Program');
+
+    Radio := TMenuItemRadio.Create('Direct: many POLYGONs', 20, Mode = rmDirectManyPolygons, true);
+    RadioGroup := Radio.Group;
+    M.Append(Radio);
+
+    Radio := TMenuItemRadio.Create('Direct: many TRIANGLE_FANs', 21, Mode = rmDirectManyFans, true);
+    Radio.Group := RadioGroup;
+    M.Append(Radio);
+
+    Radio := TMenuItemRadio.Create('Direct: once TRIANGLES', 22, Mode = rmDirectOnceTriangles, true);
+    Radio.Group := RadioGroup;
+    M.Append(Radio);
+
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItemChecked.Create('_Wireframe', 10, Wireframe, true));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('_Exit', 200));
+    Result.Append(M);
+end;
+
+procedure MakeTrianglesCoordIndex;
+
+  procedure Poly(BeginIndex, EndIndex: Integer);
+  var
+    FirstIndex, C: Integer;
+  begin
+    FirstIndex := BeginIndex;
+
+    while BeginIndex + 2 < EndIndex do
+    begin
+      C := TrianglesCoordIndex.Count;
+      TrianglesCoordIndex.Count := TrianglesCoordIndex.Count + 3;
+      TrianglesCoordIndex.Items[C    ] := CoordIndex.Items[FirstIndex    ];
+      TrianglesCoordIndex.Items[C + 1] := CoordIndex.Items[BeginIndex + 1];
+      TrianglesCoordIndex.Items[C + 2] := CoordIndex.Items[BeginIndex + 2];
+      Inc(BeginIndex);
+    end;
+  end;
+
+var
+  BeginIndex, EndIndex: Integer;
+begin
+  BeginIndex := 0;
+  while BeginIndex < CoordIndex.Count do
+  begin
+    EndIndex := BeginIndex;
+    while (EndIndex < CoordIndex.Count) and
+          (CoordIndex.Items[EndIndex] >= 0) do
+      Inc(EndIndex);
+    Poly(BeginIndex, EndIndex);
+    BeginIndex := EndIndex + 1;
+  end;
+end;
+
+var
+  ShapeNum: Integer;
+begin
+  Parameters.CheckHighAtLeast(1);
+  Parameters.CheckHighAtMost(2);
+  try
+    VRMLWarning := @VRMLWarning_Write;
+
+    Scene := TVRMLScene.Create(Parameters[1]);
+
+    if Parameters.High >= 2 then
+      ShapeNum := StrToInt(Parameters[2]) else
+      ShapeNum := 0;
+
+    if not (Scene.Shapes is TVRMLShapeTreeGroup) then
+      raise Exception.Create('Shapes tree starts from LOD or Switch, not supported in this trivial demo');
+    if ShapeNum >= TVRMLShapeTreeGroup(Scene.Shapes).Children.Count then
+      raise Exception.CreateFmt('No shape number %d (means empty scene if shape number = 0)', [ShapeNum]);
+    if not (TVRMLShapeTreeGroup(Scene.Shapes).Children[ShapeNum] is TVRMLShape) then
+      raise Exception.Create('Shape is compound (LOD or Switch), not supported in this trivial demo');
+    Shape := TVRMLShape(TVRMLShapeTreeGroup(Scene.Shapes).Children[ShapeNum]);
+
+    { Get info about vertexes, coordindex from 1st shape on our scene.
+
+      Don't even think about using it in production code, the simple
+      code below omits a lot of X3D/VRML complexity just to get to
+      the raw (and extremely dumbed down) vertex data. }
+    if Shape.Geometry is TNodeIndexedFaceSet_1 then
+    begin
+      Vertexes := TNodeIndexedFaceSet_1(Shape.Geometry).Coordinates(Shape.State).Items;
+      CoordIndex := TNodeIndexedFaceSet_1(Shape.Geometry).CoordIndex.Items;
+    end else
+    if Shape.Geometry is TNodeIndexedFaceSet_2 then
+    begin
+      Vertexes := TNodeIndexedFaceSet_2(Shape.Geometry).Coordinates(Shape.State).Items;
+      CoordIndex := TNodeIndexedFaceSet_2(Shape.Geometry).CoordIndex.Items;
+    end else
+      raise Exception.Create('This shape is not IndexedFaceSet');
+
+    { create coordIndex for rendering by separate triangles }
+    TrianglesCoordIndex := TDynLongIntArray.Create;
+    TrianglesCoordIndex.AllowedCapacityOverflow := CoordIndex.Count;
+    MakeTrianglesCoordIndex;
+
+    Writeln('Vertexes count: ', Vertexes.Count);
+    Writeln('CoordIndex count: ', CoordIndex.Count);
+    Writeln('Triangles count: ', Shape.TrianglesCount(false), ' (made: ', TrianglesCoordIndex.Count div 3, ')');
+
+    { init Glw.Navigator }
+    Glw.Navigator := TExamineNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+    Glw.ExamineNav.Init(Shape.BoundingBox);
+
+    { to get quickier FPS update }
+    Glw.Fps.SecondsToAutoReset := 2;
+    Glw.FpsCaptionUpdateInterval := 1000;
+    Glw.AutoRedisplay := true;
+
+    Glw.MainMenu := CreateMainMenu;
+    Glw.OnMenuCommand := @MenuCommand;
+
+    Glw.OnInit := @Init;
+    Glw.OnResize := @Resize;
+    Glw.InitLoop(ProgramName, @Draw);
+  finally
+    FreeAndNil(Scene);
+    FreeAndNil(TrianglesCoordIndex);
+  end;
+end.
