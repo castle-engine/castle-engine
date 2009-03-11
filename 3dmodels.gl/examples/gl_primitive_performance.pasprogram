@@ -56,29 +56,6 @@ var
 
 procedure Draw(glwin: TGLWindow);
 var
-  { This is used only by LockArraysBegin and LockArraysEnd. }
-  UseLockArrays: boolean;
-
-  procedure LockArraysBegin;
-  begin
-    { See
-      [http://www.opengl.org/documentation/specs/version1.2/EXTspecs/compiled_vertex_array.txt]
-      for description of GL_EXT_compiled_vertex_array.
-      Note that I can't use it when TrianglesCoordIndex has no items
-      (because glLockArraysEXT(0, 0) causes OpenGL error "invalid value".) }
-    UseLockArrays := GL_EXT_compiled_vertex_array and
-      (TrianglesCoordIndex.Count <> 0);
-    if UseLockArrays then
-      glLockArraysEXT(0, TrianglesCoordIndex.Count);
-  end;
-
-  procedure LockArraysEnd;
-  begin
-    if UseLockArrays then
-      glUnlockArraysEXT;
-  end;
-
-var
   I: Integer;
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
@@ -124,33 +101,18 @@ begin
       end;
     rmVARTrianglesByVertex, rmVARLockedTrianglesByVertex:
       begin
-        if Mode = rmVARLockedTrianglesByVertex then
-          LockArraysBegin;
-
-        glVertexPointer(3, GL_FLOAT, 0, Vertexes.ItemsArray);
         glEnableClientState(GL_VERTEX_ARRAY);
         glBegin(GL_TRIANGLES);
           for I := 0 to TrianglesCoordIndex.Count - 1 do
             glArrayElement(TrianglesCoordIndex.Items[I]);
         glEnd;
-
-        if Mode = rmVARLockedTrianglesByVertex then
-          LockArraysEnd;
       end;
 
     rmVARTriangles, rmVARLockedTriangles:
       begin
-        if Mode = rmVARLockedTriangles then
-          LockArraysBegin;
-
-        glVertexPointer(3, GL_FLOAT, 0, Vertexes.ItemsArray);
         glEnableClientState(GL_VERTEX_ARRAY);
-
         glDrawElements(GL_TRIANGLES, TrianglesCoordIndex.Count, GL_UNSIGNED_INT,
           TrianglesCoordIndex.ItemsArray);
-
-        if Mode = rmVARLockedTriangles then
-          LockArraysEnd;
       end;
 
   end;
@@ -172,7 +134,39 @@ begin
     Box3dMaxSize(Scene.BoundingBox) * 10.0);
 end;
 
+var
+  { This is used only by LockArraysBegin and LockArraysEnd. }
+  ArraysLocked: boolean;
+
+  procedure LockArraysBegin;
+  begin
+    { See
+      [http://www.opengl.org/documentation/specs/version1.2/EXTspecs/compiled_vertex_array.txt]
+      for description of GL_EXT_compiled_vertex_array.
+      Note that I can't use it when TrianglesCoordIndex has no items
+      (because glLockArraysEXT(0, 0) causes OpenGL error "invalid value".) }
+    ArraysLocked := GL_EXT_compiled_vertex_array and
+      (TrianglesCoordIndex.Count <> 0);
+    if ArraysLocked then
+      glLockArraysEXT(0, TrianglesCoordIndex.Count);
+  end;
+
+  procedure LockArraysEnd;
+  begin
+    if ArraysLocked then
+      glUnlockArraysEXT;
+  end;
+
 procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
+const
+  VARModes = [
+    rmVARTrianglesByVertex, rmVARLockedTrianglesByVertex,
+    rmVARTriangles        , rmVARLockedTriangles
+  ];
+  VARLockedModes = [
+    rmVARLockedTrianglesByVertex,
+    rmVARLockedTriangles
+  ];
 begin
   case Item.IntData of
     10: begin
@@ -181,7 +175,23 @@ begin
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE) else
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         end;
-    20..22: Mode := TRenderMode(Item.IntData - 20);
+    20..40:
+        begin
+          Mode := TRenderMode(Item.IntData - 20);
+
+          { simply disable all specials from previous Mode, that's easiest }
+          glDisableClientState(GL_VERTEX_ARRAY);
+          LockArraysEnd;
+
+          if Mode in VARModes then
+          begin
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glVertexPointer(3, GL_FLOAT, 0, Vertexes.ItemsArray);
+
+            if Mode in VARLockedModes then
+              LockArraysBegin;
+          end;
+        end;
     200: Glwin.Close;
     else Exit;
   end;
@@ -194,7 +204,7 @@ function CreateMainMenu: TMenu;
   const
     ModeNames: array [TRenderMode] of string =
     ( 'Direct: many POLYGONs',
-      'Direct: many TRIANGLE_FANs',
+      'Direct: many TRIANGLE__FANs',
       'Direct: once TRIANGLES',
       'Vertex array: glArrayElement',
       'Vertex array: glArrayElement, locked',
