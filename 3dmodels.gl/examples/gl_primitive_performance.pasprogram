@@ -37,7 +37,12 @@ type
       (well, almost: within polygon and triangle_fan verts will be shared).
       For polygon and triangle_fan this also makes a lot of primiive
       restarts, which may hurt quite like state changes. }
-    rmDirectManyPolygons, rmDirectManyFans, rmDirectOnceTriangles);
+    rmDirectManyPolygons, rmDirectManyFans, rmDirectOnceTriangles,
+    { Vertex arrays, each vertex is specified by glArrayElement. }
+    rmVARTrianglesByVertex, rmVARLockedTrianglesByVertex,
+    { Vertex arrays, all vertexes are passed by 1 call to glDrawElements. }
+    rmVARTriangles, rmVARLockedTriangles
+    );
 
 var
   Scene: TVRMLScene;
@@ -50,6 +55,29 @@ var
   Wireframe: boolean;
 
 procedure Draw(glwin: TGLWindow);
+var
+  { This is used only by LockArraysBegin and LockArraysEnd. }
+  UseLockArrays: boolean;
+
+  procedure LockArraysBegin;
+  begin
+    { See
+      [http://www.opengl.org/documentation/specs/version1.2/EXTspecs/compiled_vertex_array.txt]
+      for description of GL_EXT_compiled_vertex_array.
+      Note that I can't use it when TrianglesCoordIndex has no items
+      (because glLockArraysEXT(0, 0) causes OpenGL error "invalid value".) }
+    UseLockArrays := GL_EXT_compiled_vertex_array and
+      (TrianglesCoordIndex.Count <> 0);
+    if UseLockArrays then
+      glLockArraysEXT(0, TrianglesCoordIndex.Count);
+  end;
+
+  procedure LockArraysEnd;
+  begin
+    if UseLockArrays then
+      glUnlockArraysEXT;
+  end;
+
 var
   I: Integer;
 begin
@@ -94,6 +122,37 @@ begin
             glVertexv(Vertexes.Items[TrianglesCoordIndex.Items[I]]);
         glEnd;
       end;
+    rmVARTrianglesByVertex, rmVARLockedTrianglesByVertex:
+      begin
+        if Mode = rmVARLockedTrianglesByVertex then
+          LockArraysBegin;
+
+        glVertexPointer(3, GL_FLOAT, 0, Vertexes.ItemsArray);
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glBegin(GL_TRIANGLES);
+          for I := 0 to TrianglesCoordIndex.Count - 1 do
+            glArrayElement(TrianglesCoordIndex.Items[I]);
+        glEnd;
+
+        if Mode = rmVARLockedTrianglesByVertex then
+          LockArraysEnd;
+      end;
+
+    rmVARTriangles, rmVARLockedTriangles:
+      begin
+        if Mode = rmVARLockedTriangles then
+          LockArraysBegin;
+
+        glVertexPointer(3, GL_FLOAT, 0, Vertexes.ItemsArray);
+        glEnableClientState(GL_VERTEX_ARRAY);
+
+        glDrawElements(GL_TRIANGLES, TrianglesCoordIndex.Count, GL_UNSIGNED_INT,
+          TrianglesCoordIndex.ItemsArray);
+
+        if Mode = rmVARLockedTriangles then
+          LockArraysEnd;
+      end;
+
   end;
 end;
 
@@ -130,26 +189,42 @@ begin
 end;
 
 function CreateMainMenu: TMenu;
+
+  procedure AddRenderModes(const Base: Integer; M: TMenu);
+  const
+    ModeNames: array [TRenderMode] of string =
+    ( 'Direct: many POLYGONs',
+      'Direct: many TRIANGLE_FANs',
+      'Direct: once TRIANGLES',
+      'Vertex array: glArrayElement',
+      'Vertex array: glArrayElement, locked',
+      'Vertex array: glDrawElements',
+      'Vertex array: glDrawElements, locked'
+    );
+  var
+    RadioGroup: TMenuItemRadioGroup;
+    Radio: TMenuItemRadio;
+    RM: TRenderMode;
+  begin
+    RadioGroup := nil;
+
+    for RM := Low(RM) to High(RM) do
+    begin
+      Radio := TMenuItemRadio.Create(ModeNames[RM], Base + Ord(RM),
+        Mode = RM, true);
+      if RadioGroup <> nil then
+        Radio.Group := RadioGroup else
+        RadioGroup := Radio.Group;
+      M.Append(Radio);
+    end;
+  end;
+
 var
   M: TMenu;
-  Radio: TMenuItemRadio;
-  RadioGroup: TMenuItemRadioGroup;
 begin
   Result := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');
-
-    Radio := TMenuItemRadio.Create('Direct: many POLYGONs', 20, Mode = rmDirectManyPolygons, true);
-    RadioGroup := Radio.Group;
-    M.Append(Radio);
-
-    Radio := TMenuItemRadio.Create('Direct: many TRIANGLE_FANs', 21, Mode = rmDirectManyFans, true);
-    Radio.Group := RadioGroup;
-    M.Append(Radio);
-
-    Radio := TMenuItemRadio.Create('Direct: once TRIANGLES', 22, Mode = rmDirectOnceTriangles, true);
-    Radio.Group := RadioGroup;
-    M.Append(Radio);
-
+    AddRenderModes(20, M);
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('_Wireframe', 10, Wireframe, true));
     M.Append(TMenuSeparator.Create);
@@ -238,6 +313,7 @@ begin
     Writeln('Vertexes count: ', Vertexes.Count);
     Writeln('CoordIndex count: ', CoordIndex.Count);
     Writeln('Triangles count: ', Shape.TrianglesCount(false), ' (made: ', TrianglesCoordIndex.Count div 3, ')');
+    Writeln('OpenGL has locking VAR support: ', GL_EXT_compiled_vertex_array);
 
     { init Glw.Navigator }
     Glw.Navigator := TExamineNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
