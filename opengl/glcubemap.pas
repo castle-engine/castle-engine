@@ -25,7 +25,7 @@ unit GLCubeMap;
 
 interface
 
-uses VectorMath, CubeMap, Images, Frustum, DDS;
+uses VectorMath, CubeMap, Images, Frustum, DDS, GL, GLU, KambiGLUtils;
 
 type
   TCubeMapRenderSimpleFunction = procedure (ForCubeMap: boolean);
@@ -121,9 +121,23 @@ function GLCaptureCubeMapDDS(
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer): TDDSImage;
 
+{ Capture cube map to DDS image by rendering environment from CapturePoint.
+
+  See GLCaptureCubeMapImages for documentation, this works the same,
+  but it captures images to given OpenGL texture name Tex.
+  Tex must already be created cube map texture, with square images of Size. }
+procedure GLCaptureCubeMapTexture(
+  const Tex: TGLuint;
+  const Size: Cardinal;
+  const CapturePoint: TVector3Single;
+  const Render: TCubeMapRenderFunction;
+  const ProjectionNear, ProjectionFar: Single;
+  const MapsOverlap: boolean;
+  const MapScreenX, MapScreenY: Integer);
+
 implementation
 
-uses SysUtils, GL, GLU, GLImages, KambiGLUtils, SphericalHarmonics;
+uses SysUtils, SphericalHarmonics, GLImages, GLExt;
 
 procedure SHVectorGLCapture(
   var SHVector: array of Single;
@@ -307,6 +321,62 @@ begin
   Result.Images[Ord(dcsPositiveY)] := Images[csNegativeY];
   Result.Images[Ord(dcsPositiveZ)] := Images[csPositiveZ];
   Result.Images[Ord(dcsNegativeZ)] := Images[csNegativeZ];
+end;
+
+procedure GLCaptureCubeMapTexture(
+  const Tex: TGLuint;
+  const Size: Cardinal;
+  const CapturePoint: TVector3Single;
+  const Render: TCubeMapRenderFunction;
+  const ProjectionNear, ProjectionFar: Single;
+  const MapsOverlap: boolean;
+  const MapScreenX, MapScreenY: Integer);
+
+  procedure DrawMap(Side: TCubeMapSide);
+  var
+    ScreenX, ScreenY: Integer;
+    ProjectionMatrix, CameraMatrix, CameraRotationOnlyMatrix: TMatrix4Single;
+    Frustum: TFrustum;
+  begin
+    if MapsOverlap then
+    begin
+      ScreenX := 0;
+      ScreenY := 0;
+    end else
+    begin
+      ScreenX := CubeMapInfo[Side].ScreenX * Integer(Size) + MapScreenX;
+      ScreenY := CubeMapInfo[Side].ScreenY * Integer(Size) + MapScreenY;
+    end;
+
+    glViewport(ScreenX, ScreenY, Size, Size);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix;
+      glLoadIdentity;
+      gluPerspective(90, 1, ProjectionNear, ProjectionFar);
+      glMatrixMode(GL_MODELVIEW);
+
+        CameraMatrix := LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up);
+        CameraRotationOnlyMatrix := LookDirMatrix(ZeroVector3Single, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up);
+        glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
+        Frustum.Init(ProjectionMatrix, CameraMatrix);
+
+        Render(true, CameraMatrix, CameraRotationOnlyMatrix, Frustum);
+
+      glMatrixMode(GL_PROJECTION);
+    glPopMatrix;
+    glMatrixMode(GL_MODELVIEW);
+
+    glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, Tex);
+    glCopyTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB + Ord(Side), 0,
+      GL_RGB, 0, 0, Size, Size, 0);
+  end;
+
+var
+  Side: TCubeMapSide;
+begin
+  for Side := Low(TCubeMapSide) to High(TCubeMapSide) do
+    DrawMap(Side);
 end;
 
 end.

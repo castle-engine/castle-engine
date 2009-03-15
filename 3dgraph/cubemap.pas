@@ -28,6 +28,10 @@ interface
 uses VectorMath, Math;
 
 type
+  { Cube map faces.
+
+    Order matches order of OpenGL constants
+    GL_TEXTURE_CUBE_MAP_POSITIVE/NEGATIVE_X/Y/Z_ARB. }
   TCubeMapSide = (csPositiveX, csNegativeX,
                   csPositiveY, csNegativeY,
                   csPositiveZ, csNegativeZ);

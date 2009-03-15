@@ -339,7 +339,8 @@ uses
   Classes, SysUtils, KambiUtils, VectorMath, GL, GLU, GLExt,
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3d, OpenGLTTFonts, Images,
   OpenGLFonts, KambiGLUtils, VRMLLightSetGL, TTFontsTypes,
-  VRMLErrors, VideosCache, GLShaders, GLImages, Videos, VRMLTime, VRMLShape;
+  VRMLErrors, VideosCache, GLShaders, GLImages, Videos, VRMLTime, VRMLShape,
+  GLCubeMap;
 
 {$define read_interface}
 
@@ -1547,6 +1548,12 @@ type
       will actually make appropriate glGetInteger call to get number of
       available lights in this OpenGL context. }
     function LastGLFreeLight: integer;
+
+    procedure UpdateGeneratedTextures(Shape: TVRMLShape;
+      const Render: TCubeMapRenderFunction;
+      const ProjectionNear, ProjectionFar: Single;
+      const MapsOverlap: boolean;
+      const MapScreenX, MapScreenY: Integer);
   end;
 
   EVRMLOpenGLRenderError = class(EVRMLError);
@@ -3610,6 +3617,63 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     finally FreeAndNil(DDS); end;
   end;
 
+  procedure PrepareSingleGeneratedCubeTexture(CubeTexture: TNodeGeneratedCubeMapTexture);
+  var
+    { TextureProperties: TNodeTextureProperties; }
+    MinFilter, MagFilter: TGLint;
+    TextureCubeMapReference: TTextureCubeMapReference;
+    InitialImage: TImage;
+  begin
+    if TextureCubeMapReferences.TextureNodeIndex(CubeTexture) <> -1 then
+      { Already loaded, nothing to do }
+      Exit;
+
+    if not GL_ARB_texture_cube_map then
+    begin
+      VRMLWarning(vwSerious, 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
+      Exit;
+    end;
+
+    { calculate MinFilter, MagFilter.
+      TODO: for now turn off mipmap using on gen cube map, as I will copy
+      only the base level, for now avoiding creating mipmaps (their creation
+      would take some time?) }
+    {
+    if (CubeTexture.FdTextureProperties.Value <> nil) and
+       (CubeTexture.FdTextureProperties.Value is TNodeTextureProperties) then
+    begin
+      TextureProperties := TNodeTextureProperties(CubeTexture.FdTextureProperties.Value);
+      MinFilter := StrToMinFilter(TextureProperties.FdMinificationFilter.Value);
+      MagFilter := StrToMagFilter(TextureProperties.FdMagnificationFilter.Value);
+    end else
+    begin
+      MinFilter := Attributes.TextureMinFilter;
+      MagFilter := Attributes.TextureMagFilter;
+    end;}
+
+    MinFilter := GL_LINEAR;
+    MagFilter := GL_LINEAR;
+
+    InitialImage := TRGBImage.Create(
+      CubeTexture.FdSize.Value,
+      CubeTexture.FdSize.Value);
+    try
+      { Fill with deliberately stupid (but constant) color,
+        to recognize easily GeneratedCubeMapTexture which don't have textures
+        updated. }
+      InitialImage.Clear(Vector4Byte(255, 0, 255, 255));
+
+      TextureCubeMapReference.Node := CubeTexture;
+      TextureCubeMapReference.GLName := Cache.TextureCubeMap_IncReference(
+        CubeTexture,
+        MinFilter, MagFilter,
+        InitialImage, InitialImage,
+        InitialImage, InitialImage,
+        InitialImage, InitialImage);
+      TextureCubeMapReferences.AppendItem(TextureCubeMapReference);
+    finally FreeAndNil(InitialImage) end;
+  end;
+
   { Do the necessary preparations for a multi-texture node.
     MultiTexture must be non-nil. }
   procedure PrepareMultiTexture(MultiTexture: TNodeMultiTexture);
@@ -3628,6 +3692,8 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
           PrepareSingleComposedCubeTexture(TNodeComposedCubeMapTexture(ChildTex)) else
         if ChildTex is TNodeImageCubeMapTexture then
           PrepareSingleImageCubeTexture(TNodeImageCubeMapTexture(ChildTex)) else
+        if ChildTex is TNodeGeneratedCubeMapTexture then
+          PrepareSingleGeneratedCubeTexture(TNodeGeneratedCubeMapTexture(ChildTex)) else
         if ChildTex is TVRMLTextureNode then
           PrepareSingle2DTexture(TVRMLTextureNode(ChildTex));
       end;
@@ -3654,6 +3720,8 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
         PrepareSingleComposedCubeTexture(TNodeComposedCubeMapTexture(TextureNode)) else
       if TextureNode is TNodeImageCubeMapTexture then
         PrepareSingleImageCubeTexture(TNodeImageCubeMapTexture(TextureNode)) else
+      if TextureNode is TNodeGeneratedCubeMapTexture then
+        PrepareSingleGeneratedCubeTexture(TNodeGeneratedCubeMapTexture(TextureNode)) else
       if TextureNode is TVRMLTextureNode then
         PrepareSingle2DTexture(TVRMLTextureNode(TextureNode));
     end;
@@ -5305,6 +5373,56 @@ begin
 
   SetInProgram(BmGLSLProgram[false]);
   SetInProgram(BmGLSLProgram[true]);
+end;
+
+procedure TVRMLOpenGLRenderer.UpdateGeneratedTextures(Shape: TVRMLShape;
+  const Render: TCubeMapRenderFunction;
+  const ProjectionNear, ProjectionFar: Single;
+  const MapsOverlap: boolean;
+  const MapScreenX, MapScreenY: Integer);
+var
+  TexNode: TNodeGeneratedCubeMapTexture;
+  TexRefIndex: Integer;
+  TexRef: PTextureCubeMapReference;
+  CapturePoint: TVector3Single;
+begin
+  if
+    { Shape.BoundingBox must be non-empty, otherwise we don't know from what
+      3D point to capture encironment. }
+    not IsEmptyBox3d(Shape.BoundingBox) and
+    { Capturing makes sense only for shapes with GeneratedCubeMapTexture for now.
+      TODO: this doesn't work for cube maps within mult-textures for now.
+      TODO: update looking (and eventually changing "update" field. }
+    (Shape.State.ParentShape <> nil) and
+    (Shape.State.ParentShape.Appearance <> nil) and
+    (Shape.State.ParentShape.Appearance.FdTexture.Value <> nil) and
+    (Shape.State.ParentShape.Appearance.FdTexture.Value is TNodeGeneratedCubeMapTexture) then
+  begin
+    TexNode := TNodeGeneratedCubeMapTexture(
+      Shape.State.ParentShape.Appearance.FdTexture.Value);
+
+    TexRefIndex := TextureCubeMapReferences.TextureNodeIndex(TexNode);
+    if TexRefIndex <> -1 then
+    begin
+      TexRef := TextureCubeMapReferences.Pointers[TexRefIndex];
+
+      if Log then
+        WritelnLog('CubeMap', 'GeneratedCubeMapTexture texture regenerated');
+
+      { TODO: we should disable this very shape from rendering,
+        otherwise we usually render ourtselves from the middle of shape 3d box.
+        For now, for testing, we tweak CapturePoint to be slightly higher than
+        shape bbox (thus outside, but close, to shape). }
+
+      CapturePoint := Box3dMiddle(Shape.BoundingBox);
+      CapturePoint[1] += (Shape.BoundingBox[1][1] - Shape.BoundingBox[0][1]) * 0.6;
+
+      GLCaptureCubeMapTexture(TexRef^.GLName, TexNode.FdSize.Value,
+        CapturePoint,
+        Render, ProjectionNear, ProjectionFar, MapsOverlap,
+        MapScreenX, MapScreenY);
+    end;
+  end;
 end;
 
 end.

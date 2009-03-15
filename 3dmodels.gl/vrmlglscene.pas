@@ -30,7 +30,8 @@ uses
   SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLScene, VRMLOpenGLRenderer, GL, GLU, GLExt, BackgroundGL, KambiGLUtils,
   VRMLShapeOctree, VRMLHeadLight, VRMLGLHeadLight, VRMLRendererOptimization,
-  ShadowVolumes, Navigation, VRMLFields, VRMLLightSetGL, VRMLShape, Frustum;
+  ShadowVolumes, Navigation, VRMLFields, VRMLLightSetGL, VRMLShape, Frustum,
+  GLCubeMap;
 
 {$define read_interface}
 
@@ -1311,6 +1312,12 @@ type
       WalkProjectionFar is never ZFarInfinity. }
     property WalkProjectionNear: Single read FWalkProjectionNear;
     property WalkProjectionFar : Single read FWalkProjectionFar ;
+
+    procedure UpdateGeneratedTextures(
+      const RenderFunc: TCubeMapRenderFunction;
+      const ProjectionNear, ProjectionFar: Single;
+      const MapsOverlap: boolean;
+      const MapScreenX, MapScreenY: Integer);
   end;
 
   TObjectsListItem_1 = TVRMLGLScene;
@@ -1362,8 +1369,13 @@ uses VRMLErrors, GLVersionUnit, GLImages, Images, KambiLog,
 { TVRMLGLShape --------------------------------------------------------------- }
 
 function TVRMLGLShape.EnableDisplayList: boolean;
-const
-  SWorldSpaceReflectionVector = 'WORLDSPACEREFLECTIONVECTOR';
+
+  function TexGenModeDisablesDL(const S: string): boolean;
+  begin
+    Result :=
+      (S = 'WORLDSPACEREFLECTIONVECTOR') or
+      (S = 'WORLDSPACENORMAL');
+  end;
 var
   I: Integer;
   T: TNodeX3DTextureNode;
@@ -1398,7 +1410,7 @@ begin
       begin
         if TexCoord is TNodeTextureCoordinateGenerator then
         begin
-          if TNodeTextureCoordinateGenerator(TexCoord).FdMode.Value = SWorldSpaceReflectionVector then
+          if TexGenModeDisablesDL(TNodeTextureCoordinateGenerator(TexCoord).FdMode.Value) then
             FEnableDisplayList := false;
         end else
         if TexCoord is TNodeMultiTextureCoordinate then
@@ -1407,7 +1419,7 @@ begin
           for I := 0 to MulTexC.Count - 1 do
           begin
             if (MulTexC[I] is TNodeTextureCoordinateGenerator) and
-               (TNodeTextureCoordinateGenerator(MulTexC[I]).FdMode.Value = SWorldSpaceReflectionVector) then
+               TexGenModeDisablesDL(TNodeTextureCoordinateGenerator(MulTexC[I]).FdMode.Value) then
               FEnableDisplayList := false;
           end;
         end;
@@ -4094,6 +4106,28 @@ end;
 procedure TVRMLGLScene.LastRender_SumNext;
 begin
   FLastRender_SumNext := true;
+end;
+
+procedure TVRMLGLScene.UpdateGeneratedTextures(
+  const RenderFunc: TCubeMapRenderFunction;
+  const ProjectionNear, ProjectionFar: Single;
+  const MapsOverlap: boolean;
+  const MapScreenX, MapScreenY: Integer);
+var
+  SI: TVRMLShapeTreeIterator;
+begin
+  { TODO: optimize this for often case when no work is needed,
+    keep some count of GeneratedCubeMapTexture
+    and do this only when non-zero.
+    Also, return bool to eliminate unneeded glViewport in view3dscene after this,
+    when no work was done. }
+  SI := TVRMLShapeTreeIterator.Create(Shapes, false, false, false);
+  try
+    while SI.GetNext do
+      Renderer.UpdateGeneratedTextures(SI.Current,
+        RenderFunc, ProjectionNear, ProjectionFar, MapsOverlap,
+        MapScreenX, MapScreenY);
+  finally FreeAndNil(SI) end;
 end;
 
 { TVRMLSceneRenderingAttributes ---------------------------------------------- }
