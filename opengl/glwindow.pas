@@ -4216,6 +4216,7 @@ begin
   Close_CharKey := CharEscape;
   SwapFullScreen_Key := K_F11;
   FpsShowOnCaption := true;
+  FFpsCaptionUpdateInterval := DefaultFpsCaptionUpdateInterval;
 end;
 
 { TGLWindowNavigated ------------------------------------------------------------------ }
