@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2007 Michalis Kamburelis.
+  Copyright 2003-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -33,7 +33,7 @@
 program algets;
 
 uses KambiOpenAL, ALUtils, SysUtils, KambiUtils, VectorMath, SoundFile,
-  KambiStringUtils;
+  KambiStringUtils, EFX;
 
 { force compatibility : use alCreateSources/Buffers instead of alGen*.
 
@@ -122,6 +122,7 @@ var
 
 var
   TestSoundFileName: string;
+  Device: PALCDevice;
 begin
   {$ifdef FORCE_COMPAT}
   alCreateSources(1, @SampleSource);
@@ -183,6 +184,19 @@ begin
         SampleSourceState,
         SampleBufferState
       );
+    end;
+
+    Writeln('EFX  -------------------------------');
+    Device := alcGetContextsDevice(alcGetCurrentContext());
+    Writeln('ALC_EXT_EFX extension present: ', alcIsExtensionPresent(Device, ALC_EXT_EFX_NAME));
+    Writeln('EFX supported (ALC_EXT_EFX extension and all entry points): ', EFXSupported);
+
+    if EFXSupported then
+    begin
+      Writeln('ALC_MAX_AUXILIARY_SENDS: ', alcGetInterger1(Device, ALC_MAX_AUXILIARY_SENDS));
+    end else
+    begin
+
     end;
 
   finally

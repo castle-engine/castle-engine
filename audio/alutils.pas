@@ -202,6 +202,8 @@ var
     as this is the only way to get detailed info why @link(TryBeginAL) failed. }
   ALActivationErrorMessage: string = '';
 
+  EFXSupported: boolean = false;
+
 { BeginAL creates and activates OpenAL context for the ALCDevice device.
 
   You should deactivate and free the context by calling EndAL.
@@ -229,6 +231,12 @@ var
       (with Message equal to ALActivationErrorStr value).
 
       If this initialization will succeed, ALActive will be set to @true.)
+
+    @item(
+      If the context will be successfully activated, we will also try to init
+      EFX extensions for it by doing EFXSupported := Load_EFX(Device).
+      If the context will not be activated for whatever reason,
+      EFXSupported will be set to @false.)
   )
 }
 procedure BeginAL(CheckForAlut: boolean);
@@ -359,6 +367,8 @@ function alGetListener1f(Attribute: TALenum): TALfloat;
 function alGetListener3f(Attribute: TALenum): TALVector3f;
 function alGetListenerOrientation: TALTwoVectors3f;
 
+function alcGetInterger1(deviceHandle:PALCdevice; token:TALenum): TALint;
+
 { @groupEnd }
 
 { ---------------------------------------------------------------------------- }
@@ -424,7 +434,7 @@ const
 
 implementation
 
-uses VectorMath, KambiStringUtils;
+uses VectorMath, KambiStringUtils, EFX;
 
 {$define read_implementation}
 
@@ -660,13 +670,12 @@ procedure BeginAL(CheckForAlut: boolean);
 var argc: Integer;
 {$endif}
 begin
- {
-   Notka (ale jeszcze nie wiem czy ma ona znaczenie) : patrzylem na implementacje
-   alutInit/Exit i one nie robia alcProcessContext/alcSuspendContext.
- }
+ { We don't do alcProcessContext/alcSuspendContext, no need
+   (spec says that context is initially in processing state). }
 
  try
   ALActive := false;
+  EFXSupported := false;
 
   {$ifdef USE_ALUT}
   CheckALUTInited;
@@ -693,6 +702,7 @@ begin
   {$endif USE_ALUT}
 
   ALActive := true;
+  EFXSupported := Load_EFX(audio_device);
  except
   on E: EOpenALError do
   begin
@@ -717,6 +727,7 @@ begin
  if not ALActive then Exit;
 
  ALActive := false;
+ EFXSupported := false;
 
  {$ifdef USE_ALUT}
  alutExit;
@@ -931,6 +942,11 @@ end;
 function alGetListenerOrientation: TALTwoVectors3f;
 begin
  alGetListenerfv(AL_ORIENTATION, @result);
+end;
+
+function alcGetInterger1(deviceHandle:PALCdevice; token:TALenum): TALint;
+begin
+  alcGetIntegerv(deviceHandle, token, 1, @Result);
 end;
 
 { opakowania na funkcje OpenALa aby dac parametry typu TALVector ------------ }
