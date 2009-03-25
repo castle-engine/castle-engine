@@ -654,9 +654,18 @@ var
      end;
   end;
 
+var
+  NewWidth, NewHeight: Cardinal;
 begin
+  NewWidth  := BestTexSize(r.Width );
+  NewHeight := BestTexSize(r.Height);
+
+  if Log then
+    WritelnLog('Textures', Format('Resizing 2D texture from %dx%d to %dx%d to satisfy OpenGL',
+      [R.Width, R.Height, NewWidth, NewHeight]));
+
   maxTexSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
-  result := r.MakeResized(BestTexSize(r.Width), BestTexSize(r.Height));
+  result := r.MakeResized(NewWidth, NewHeight);
 end;
 
 { ----------------------------------------------------------------------------
