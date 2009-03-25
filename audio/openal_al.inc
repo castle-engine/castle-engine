@@ -154,6 +154,8 @@ var
 
   { Set an integer parameter for a Source object. }
   alSourcei : procedure( sid:TALuint; param:TALenum; value:TALint ); extdecl;
+  { Note: possibly not present in older OpenAL < 1.1, particularly from Loki }
+  alSource3i : procedure( sid:TALuint; param:TALenum; f1, f2, f3:TALint ); extdecl;
   alSourcef : procedure( sid:TALuint; param:TALenum; value:TALfloat ); extdecl;
   alSource3f : procedure( sid:TALuint; param:TALenum; f1, f2, f3:TALfloat ); extdecl;
   alSourcefv : procedure( sid:TALuint; param:TALenum; values:PALfloat ); extdecl;

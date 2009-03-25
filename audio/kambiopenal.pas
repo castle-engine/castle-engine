@@ -342,6 +342,16 @@ begin
   ProcVarCast(alDeleteSources) := ALLibrary.Symbol('alDeleteSources');
   ProcVarCast(alIsSource) := ALLibrary.Symbol('alIsSource');
   ProcVarCast(alSourcei) := ALLibrary.Symbol('alSourcei');
+
+  { alSource3i possibily not present in older < 1.1 OpenAL implementations,
+    in particular in Loki versions. Handle gracefully: set to @nil, allowing
+    programs that don't use alSource3i to still work. }
+  try
+    ProcVarCast(alSource3i) := ALLibrary.Symbol('alSource3i');
+  except
+    on EDynLibError do alSource3i := nil;
+  end;
+
   ProcVarCast(alSourcef) := ALLibrary.Symbol('alSourcef');
   ProcVarCast(alSource3f) := ALLibrary.Symbol('alSource3f');
   ProcVarCast(alSourcefv) := ALLibrary.Symbol('alSourcefv');
