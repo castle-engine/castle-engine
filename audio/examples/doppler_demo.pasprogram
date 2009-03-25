@@ -1,0 +1,108 @@
+{
+  Copyright 2009 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+}
+
+{ Simple demo of Doppler effect using OpenAL.
+  You move the sound source by dragging with mouse over the window,
+  velocity is automatically calculated. Try to drag a horizontal line
+  through the window to hear the Doppler effect, listener is positioned
+  in the center of the window.
+
+  Accepts command-line options from
+  http://vrmlengine.sourceforge.net/openal_notes.php }
+program doppler_demo;
+
+uses Matrix, VectorMath, GLWindow, GLW_Demo, GL, GLU, KambiGLUtils,
+  KambiOpenAL, ALUtils;
+
+const
+  ALDistanceScaling = 0.02;
+
+var
+  PreviousSourcePosition, SourcePosition, ListenerPosition: TVector3_Single;
+  Source: TALuint;
+
+procedure Draw(Glwin: TGLWindow);
+begin
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  glPointSize(20.0);
+
+  glColor3f(1, 1, 0);
+  glBegin(GL_POINTS);
+    glVertexv(ListenerPosition);
+  glEnd;
+
+  glColor3f(1, 1, 1);
+  glBegin(GL_POINTS);
+    glVertexv(SourcePosition);
+  glEnd;
+end;
+
+procedure Timer(Glwin: TGLWindow);
+begin
+  alSourceVector3f(Source, AL_VELOCITY,
+    (SourcePosition - PreviousSourcePosition) * ALDistanceScaling);
+  PreviousSourcePosition := SourcePosition;
+end;
+
+procedure MouseMove(Glwin: TGLWindow; NewX, NewY: Integer);
+begin
+  if mbLeft in Glw.MousePressed then
+  begin
+    SourcePosition := Vector3Single(NewX, Glwin.Height - NewY);
+    alSourceVector3f(Source, AL_POSITION, SourcePosition * ALDistanceScaling);
+    Glw.PostRedisplay;
+  end;
+end;
+
+var
+  Buffer: TALuint;
+begin
+  OpenALOptionsParse;
+  BeginAL(false);
+  try
+    Buffer := TALSoundFile.alCreateBufferDataFromFile('tone.wav');
+
+    //alDopplerFactor(3.0);
+
+    alCreateSources(1, @Source);
+    alSourcei(Source, AL_BUFFER, Buffer);
+    alSourcei(Source, AL_LOOPING, AL_TRUE);
+    SourcePosition.Init(200, 300, 0);
+    PreviousSourcePosition := SourcePosition;
+    alSourceVector3f(Source, AL_POSITION, SourcePosition * ALDistanceScaling);
+    alSourcePlay(Source);
+
+    ListenerPosition.Init(300, 300, 0);
+    alListenerVector3f(AL_POSITION, ListenerPosition * ALDistanceScaling);
+    alListenerOrientation(Vector3Single(0, 1, 0), Vector3Single(0, 0, 1));
+
+    Glwm.TimerMilisec := 1000;
+    Glw.OnTimer := @Timer;
+    Glw.OnDraw := @Draw;
+    Glw.OnResize := @Resize2D;
+    Glw.OnMouseMove := @MouseMove;
+    Glw.InitLoop;
+
+    alSourceStop(Source);
+    alDeleteSources(1, @Source);
+    alDeleteBuffers(1, @Buffer);
+  finally EndAL end;
+end.
