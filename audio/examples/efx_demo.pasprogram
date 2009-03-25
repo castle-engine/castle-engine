@@ -1,0 +1,194 @@
+{
+  Copyright 2009 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
+}
+
+{ Simple demo of EFX effects. }
+program efx_demo;
+
+{ If OPENAL_SOFT is defined, we use somewhat dumbed down version of the test,
+  that should pass on OpenAL Soft 1.7.411 (current as of 2009-03-25)
+  and 1.4.272 (current in Debian testing). OpenAL Soft doesn't support EFX
+  fully yet. In particular:
+  - OpenAL soft can create only 1 aux slot for now (this is confirmed
+    explicitly in source code OpenAL32/alAuxEffectSlot.c)
+  - OpenAL soft doesn't support Flanger effect (looking in source code,
+    only AL_EFFECT_NULL and AL_EFFECT_REVERB effect types are supported)
+}
+{$define OPENAL_SOFT}
+
+uses KambiUtils, KambiOpenAL, ALUtils, EFX, KambiTimeUtils;
+
+var
+  uiEffectSlot: array [0.. {$ifdef OPENAL_SOFT} 0 {$else} 3 {$endif}] of TALuint;
+  uiEffect: array [0..1] of TALuint;
+  uiFilter: array [0..0] of TALuint;
+
+procedure InitEFX_OnlyFilter(Source: TALuint);
+begin
+  alGenFilters(High(uiFilter) + 1, @uiFilter);
+  CheckAL('after alGenFilters');
+
+  { Set Filter type to Low-Pass and set parameters }
+  alFilteri(uiFilter[0], AL_FILTER_TYPE, AL_FILTER_LOWPASS);
+  CheckAL('Low Pass Filter not supported');
+  alFilterf(uiFilter[0], AL_LOWPASS_GAIN, 0.5);
+  alFilterf(uiFilter[0], AL_LOWPASS_GAINHF, 0.5);
+
+  { Filter 'Source', a generated Source }
+  alSourcei(Source, AL_DIRECT_FILTER, uiFilter[0]);
+  CheckAL('Failed to apply a direct path filter');
+end;
+
+procedure CloseEFX_OnlyFilter;
+begin
+  alDeleteFilters(High(uiFilter) + 1, @uiFilter);
+end;
+
+procedure InitEFX(Source: TALuint);
+begin
+  { Below is a simplified version of OpenAL SDL doc about EFX, tutorial 2:
+    Creating Auxiliary Effect Slots, Effects, and Filters. }
+
+  CheckAL('before creating EFX objects');
+
+  { Try to create Auxiliary Effect Slots }
+  alGenAuxiliaryEffectSlots(High(uiEffectSlot) + 1, @uiEffectSlot);
+  CheckAL('after alGenAuxiliaryEffectSlots');
+
+  { Try to create Effects }
+  alGenEffects(High(uiEffect) + 1, @uiEffect);
+  CheckAL('after alGenEffects');
+
+  { Set first Effect Type to Reverb and change Decay Time }
+  alEffecti(uiEffect[0], AL_EFFECT_TYPE, AL_EFFECT_REVERB);
+  CheckAL('Reverb Effect not supported');
+  alEffectf(uiEffect[0], AL_REVERB_DECAY_TIME, 5.0);
+
+{$ifndef OPENAL_SOFT}
+  { Set second Effect Type to Flanger and change Phase }
+  alEffecti(uiEffect[1], AL_EFFECT_TYPE, AL_EFFECT_FLANGER);
+  CheckAL('Flanger effect not supported');
+  alEffecti(uiEffect[1], AL_FLANGER_PHASE, 180);
+{$endif}
+
+  { Try to create a Filter }
+  alGenFilters(High(uiFilter) + 1, @uiFilter);
+  CheckAL('after alGenFilters');
+
+  { Set Filter type to Low-Pass and set parameters }
+  alFilteri(uiFilter[0], AL_FILTER_TYPE, AL_FILTER_LOWPASS);
+  CheckAL('Low Pass Filter not supported');
+  alFilterf(uiFilter[0], AL_LOWPASS_GAIN, 0.5);
+  alFilterf(uiFilter[0], AL_LOWPASS_GAINHF, 0.5);
+
+  { Below is a simplified version of OpenAL SDL doc about EFX, tutorial 3:
+    Attaching an Effect to an Auxiliary Effect Slot. }
+
+  alAuxiliaryEffectSloti(uiEffectSlot[0], AL_EFFECTSLOT_EFFECT, uiEffect[0]);
+  CheckAL('Unable to load effect into effect slot');
+
+  { Below is a simplified version of OpenAL SDL doc about EFX, tutorial 4:
+    Configuring Source Auxiliary Sends. }
+
+  { Set Source Send 0 to feed uiEffectSlot[0] without filtering }
+  alSource3i(Source, AL_AUXILIARY_SEND_FILTER, uiEffectSlot[0], 0, 0);
+  CheckAL('Failed to configure Source Send 0');
+
+{$ifndef OPENAL_SOFT}
+  { Set Source Send 1 to feed uiEffectSlot[1] with filter uiFilter[0] }
+  alSource3i(Source, AL_AUXILIARY_SEND_FILTER, uiEffectSlot[1], 1, uiFilter[0]);
+  CheckAL('Failed to configure Source Send 1');*)
+{$endif}
+(*
+  { Disable Send 0 }
+  alSource3i(Source, AL_AUXILIARY_SEND_FILTER, AL_EFFECTSLOT_NULL, 0, 0);
+  CheckAL('Failed to disable Source Send 0');
+
+  alSource3i(Source, AL_AUXILIARY_SEND_FILTER, AL_EFFECTSLOT_NULL, 1, 0);
+  CheckAL('Failed to disable Source Send 1');
+*)
+  { Below is a simplified version of OpenAL SDL doc about EFX, tutorial 5:
+    Attaching Filters to Sources. }
+
+  { Filter 'Source', a generated Source }
+  alSourcei(Source, AL_DIRECT_FILTER, uiFilter[0]);
+  CheckAL('Failed to apply a direct path filter');
+(*  { Remove filter from 'Source' }
+  alSourcei(Source, AL_DIRECT_FILTER, AL_FILTER_NULL);
+  CheckAL('Failed to remove direct filter');
+*)
+
+(*
+  { Filter the Source send 0 from 'Source' to
+    Auxiliary Effect Slot uiEffectSlot[0]
+    using Filter uiFilter[0] }
+  alSource3i(Source, AL_AUXILIARY_SEND_FILTER, uiEffectSlot[0], 0, uiFilter[0]);
+  CheckAL('Failed to apply aux send filter');
+  { Remove Filter from Source Auxiliary Send }
+  alSource3i(Source, AL_AUXILIARY_SEND_FILTER, uiEffectSlot[0], 0, AL_FILTER_NULL);
+  CheckAL('Failed to remove filter');
+*)
+end;
+
+procedure CloseEFX;
+begin
+  alDeleteFilters(High(uiFilter) + 1, @uiFilter);
+  alDeleteEffects(High(uiEffect) + 1, @uiEffect);
+  alDeleteAuxiliaryEffectSlots(High(uiEffectSlot) + 1, @uiEffectSlot);
+end;
+
+var
+  Buffer, Source: TALuint;
+begin
+  OpenALOptionsParse;
+  BeginAL(false);
+  try
+    alCreateSources(1, @Source);
+    CheckAL('preparing source and buffer');
+
+    try
+      { parse params }
+      Parameters.CheckHigh(1);
+      Buffer := TALSoundFile.alCreateBufferDataFromFile(Parameters[1]);
+
+      { play sound }
+      alSourcei(Source, AL_BUFFER, Buffer);
+
+      if EFXSupported then
+      begin
+        Writeln('EFX supported, applying effects');
+        InitEFX_OnlyFilter(Source);
+      end else
+        Writeln('EFX not supported, not using any effects');
+
+      alSourcePlay(Source);
+      CheckAL('starting playing sound');
+      while alGetSource1i(Source, AL_SOURCE_STATE) = AL_PLAYING do Delay(100);
+      CheckAL('playing sound');
+
+      if EFXSupported then
+        CloseEFX_OnlyFilter;
+    finally
+      alDeleteSources(1, @Source);
+      alDeleteBuffers(1, @Buffer);
+    end;
+  finally EndAL end;
+end.

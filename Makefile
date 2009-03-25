@@ -195,6 +195,7 @@ EXAMPLES_BASE_NAMES := \
   audio/examples/algets \
   audio/examples/alplay \
   audio/examples/doppler_demo \
+  audio/examples/efx_demo \
   base/examples/demo_parseparameters \
   base/examples/demo_textreader \
   base/examples/test_platform_specific_utils \

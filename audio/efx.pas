@@ -30,6 +30,10 @@ interface
 
 uses VectorMath, KambiOpenAL, Math;
 
+{ Macro below must be named "extdecl", to workaround Lazarus code tools
+  known bug http://bugs.freepascal.org/view.php?id=7431 }
+{$define extdecl := cdecl}
+
 {$I efx.inc}
 {$I efx-creative.inc}
 

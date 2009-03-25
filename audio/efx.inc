@@ -196,29 +196,29 @@ var
  } { }
 
 { Create Effect objects. } { }
-  alGenEffects: procedure ( n: TALsizei; effects: PALuint );
+  alGenEffects: procedure ( n: TALsizei; effects: PALuint ); extdecl;
 
 { Delete Effect objects. } { }
-  alDeleteEffects: procedure ( n: TALsizei; effects: PALuint );
+  alDeleteEffects: procedure ( n: TALsizei; effects: PALuint ); extdecl;
 
 { Verify a handle is a valid Effect. } { }
-  alIsEffect: function ( eid: TALuint ): TALboolean;
+  alIsEffect: function ( eid: TALuint ): TALboolean; extdecl;
 
 { Set an integer parameter for an Effect object. } { }
-  alEffecti: procedure ( eid: TALuint; param: TALenum; value: TALint);
-  alEffectiv: procedure ( eid: TALuint; param: TALenum; values: PALint );
+  alEffecti: procedure ( eid: TALuint; param: TALenum; value: TALint); extdecl;
+  alEffectiv: procedure ( eid: TALuint; param: TALenum; values: PALint ); extdecl;
 
 { Set a floating point parameter for an Effect object. } { }
-  alEffectf: procedure ( eid: TALuint; param: TALenum; value: TALfloat);
-  alEffectfv: procedure ( eid: TALuint; param: TALenum; values: PALfloat );
+  alEffectf: procedure ( eid: TALuint; param: TALenum; value: TALfloat); extdecl;
+  alEffectfv: procedure ( eid: TALuint; param: TALenum; values: PALfloat ); extdecl;
 
 { Get an integer parameter for an Effect object. } { }
-  alGetEffecti: procedure ( eid: TALuint; pname: TALenum; value: PALint );
-  alGetEffectiv: procedure ( eid: TALuint; pname: TALenum; values: PALint );
+  alGetEffecti: procedure ( eid: TALuint; pname: TALenum; value: PALint ); extdecl;
+  alGetEffectiv: procedure ( eid: TALuint; pname: TALenum; values: PALint ); extdecl;
 
 { Get a floating point parameter for an Effect object. } { }
-  alGetEffectf: procedure ( eid: TALuint; pname: TALenum; value: PALfloat );
-  alGetEffectfv: procedure ( eid: TALuint; pname: TALenum; values: PALfloat );
+  alGetEffectf: procedure ( eid: TALuint; pname: TALenum; value: PALfloat ); extdecl;
+  alGetEffectfv: procedure ( eid: TALuint; pname: TALenum; values: PALfloat ); extdecl;
 
 
 {*
@@ -226,29 +226,29 @@ var
  } { }
 
 { Create Filter objects. } { }
-  alGenFilters: procedure ( n: TALsizei; filters: PALuint );
+  alGenFilters: procedure ( n: TALsizei; filters: PALuint ); extdecl;
 
 { Delete Filter objects. } { }
-  alDeleteFilters: procedure ( n: TALsizei; filters: PALuint );
+  alDeleteFilters: procedure ( n: TALsizei; filters: PALuint ); extdecl;
 
 { Verify a handle is a valid Filter. } { }
-  alIsFilter: function ( fid: TALuint ): TALboolean;
+  alIsFilter: function ( fid: TALuint ): TALboolean; extdecl;
 
 { Set an integer parameter for a Filter object. } { }
-  alFilteri: procedure ( fid: TALuint; param: TALenum; value: TALint );
-  alFilteriv: procedure ( fid: TALuint; param: TALenum; values: PALint );
+  alFilteri: procedure ( fid: TALuint; param: TALenum; value: TALint ); extdecl;
+  alFilteriv: procedure ( fid: TALuint; param: TALenum; values: PALint ); extdecl;
 
 { Set a floating point parameter for an Filter object. } { }
-  alFilterf: procedure ( fid: TALuint; param: TALenum; value: TALfloat);
-  alFilterfv: procedure ( fid: TALuint; param: TALenum; values: PALfloat );
+  alFilterf: procedure ( fid: TALuint; param: TALenum; value: TALfloat); extdecl;
+  alFilterfv: procedure ( fid: TALuint; param: TALenum; values: PALfloat ); extdecl;
 
 { Get an integer parameter for a Filter object. } { }
-  alGetFilteri: procedure ( fid: TALuint; pname: TALenum; value: PALint );
-  alGetFilteriv: procedure ( fid: TALuint; pname: TALenum; values: PALint );
+  alGetFilteri: procedure ( fid: TALuint; pname: TALenum; value: PALint ); extdecl;
+  alGetFilteriv: procedure ( fid: TALuint; pname: TALenum; values: PALint ); extdecl;
 
 { Get a floating point parameter for a Filter object. } { }
-  alGetFilterf: procedure ( fid: TALuint; pname: TALenum; value: PALfloat );
-  alGetFilterfv: procedure ( fid: TALuint; pname: TALenum; values: PALfloat );
+  alGetFilterf: procedure ( fid: TALuint; pname: TALenum; value: PALfloat ); extdecl;
+  alGetFilterfv: procedure ( fid: TALuint; pname: TALenum; values: PALfloat ); extdecl;
 
 
 {*
@@ -256,29 +256,29 @@ var
  } { }
 
 { Create Auxiliary Slot objects. } { }
-  alGenAuxiliaryEffectSlots: procedure ( n: TALsizei; slots: PALuint );
+  alGenAuxiliaryEffectSlots: procedure ( n: TALsizei; slots: PALuint ); extdecl;
 
 { Delete Auxiliary Slot objects. } { }
-  alDeleteAuxiliaryEffectSlots: procedure ( n: TALsizei; slots: PALuint );
+  alDeleteAuxiliaryEffectSlots: procedure ( n: TALsizei; slots: PALuint ); extdecl;
 
 { Verify a handle is a valid Auxiliary Slot. } { }
-  alIsAuxiliaryEffectSlot: function ( slot: TALuint ): TALboolean;
+  alIsAuxiliaryEffectSlot: function ( slot: TALuint ): TALboolean; extdecl;
 
 { Set an integer parameter for a Auxiliary Slot object. } { }
-  alAuxiliaryEffectSloti: procedure ( asid: TALuint; param: TALenum; value: TALint );
-  alAuxiliaryEffectSlotiv: procedure ( asid: TALuint; param: TALenum; values: PALint );
+  alAuxiliaryEffectSloti: procedure ( asid: TALuint; param: TALenum; value: TALint ); extdecl;
+  alAuxiliaryEffectSlotiv: procedure ( asid: TALuint; param: TALenum; values: PALint ); extdecl;
 
 { Set a floating point parameter for an Auxiliary Slot object. } { }
-  alAuxiliaryEffectSlotf: procedure ( asid: TALuint; param: TALenum; value: TALfloat );
-  alAuxiliaryEffectSlotfv: procedure ( asid: TALuint; param: TALenum; values: PALfloat );
+  alAuxiliaryEffectSlotf: procedure ( asid: TALuint; param: TALenum; value: TALfloat ); extdecl;
+  alAuxiliaryEffectSlotfv: procedure ( asid: TALuint; param: TALenum; values: PALfloat ); extdecl;
 
 { Get an integer parameter for a Auxiliary Slot object. } { }
-  alGetAuxiliaryEffectSloti: procedure ( asid: TALuint; pname: TALenum; value: PALint );
-  alGetAuxiliaryEffectSlotiv: procedure ( asid: TALuint; pname: TALenum; values: PALint );
+  alGetAuxiliaryEffectSloti: procedure ( asid: TALuint; pname: TALenum; value: PALint ); extdecl;
+  alGetAuxiliaryEffectSlotiv: procedure ( asid: TALuint; pname: TALenum; values: PALint ); extdecl;
 
 { Get a floating point parameter for a Auxiliary Slot object. } { }
-  alGetAuxiliaryEffectSlotf: procedure ( asid: TALuint; pname: TALenum; value: PALfloat );
-  alGetAuxiliaryEffectSlotfv: procedure ( asid: TALuint; pname: TALenum; values: PALfloat );
+  alGetAuxiliaryEffectSlotf: procedure ( asid: TALuint; pname: TALenum; value: PALfloat ); extdecl;
+  alGetAuxiliaryEffectSlotfv: procedure ( asid: TALuint; pname: TALenum; values: PALfloat ); extdecl;
 
 {*********************************************************
  * Filter ranges and defaults.
