@@ -1442,14 +1442,14 @@ begin
         }
         if State.ParentShape <> nil then
         begin
+          TexImplementation := tcCoordIndexed;
+
           { When BumpMappingMethod <> bmNone, texture coords will be
             explicitly taken at each vertex using GetTextureCoord.
-            This glTexCoordPointer would only collide with this. }
+            glTexCoordPointer (inside EnableTextureCoordArray) would only collide with this. }
           if BumpMappingMethod = bmNone then
           begin
             EnableTextureCoordArray;
-            TexImplementation := tcCoordIndexed;
-
             { Setup generation of non-explicit texture coords }
             EnableTextureCoordGen;
           end;
