@@ -1213,14 +1213,26 @@ function TVRMLBaseTrianglesOctree.MoveAllowed(
   const TriangleToIgnore: PVRMLTriangle;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
 
-  function MoveAlongTheBlocker(Blocker: PVRMLTriangle): boolean;
   const
-    { This must be something slightly larger than 1.
-      Must be larger than 1 (otherwise MoveAlongTheBlocker will
-      never produce NewPos that will be satisfied by final
-      MoveAllowedSimple test), and obviously must be close to 1
+    { For wall-sliding inside MoveAlongTheBlocker implementations,
+      we want to position ourselves slightly farther away than
+      CameraRadius. (Exactly on CameraRadius would mean that it's
+      sensitive to floating point imprecision, and sometimes the sphere
+      could be considered colliding with Blocker anyway, instead
+      of sliding along it. And final MoveAllowedSimple test will
+      then fail, making wall-sliding non-working.)
+
+      So this must be something slightly larger than 1.
+      And obviously must be close to 1
       (otherwise NewPos will not be sensible). }
     CameraRadiusEnlarge = 1.01;
+
+  { This is the worse version of wall-sliding:
+    we don't know the 3D point of intersection with blocker,
+    which means we can't really calculate a vector to make
+    proper wall-sliding. We do some tricks to still perform wall-sliding
+    in many positions, but it's not perfect. }
+  function MoveAlongTheBlocker(Blocker: PVRMLTriangle): boolean;
   var
     PlanePtr: PVector4Single;
     PlaneNormalPtr: PVector3Single;
@@ -1249,8 +1261,75 @@ function TVRMLBaseTrianglesOctree.MoveAllowed(
       TriangleToIgnore, TrianglesToIgnoreFunc);
   end;
 
+  { The better wall-sliding implementation, that can calculate
+    nice vector along which to slide.
+
+    It requires as input BlockerIntersection, this is the 3D point
+    of intersection between player move line (from OldPos to ProposedNewPos)
+    and the Blocker.World.Plane.
+
+    SegmentCollision says whether segment OldPos->ProposedNewPos was detected
+    as colliding with Blocker.World.Plane (IOW, ProposedNewPos is on the other
+    side of the blocker plane) or not (IOW, ProposedNewPos is on the same
+    side of the blocker plane). }
+  function MoveAlongTheBlocker(
+    const BlockerIntersection: TVector3Single;
+    SegmentCollision: boolean;
+    Blocker: PVRMLTriangle): boolean;
+  var
+    PlanePtr: PVector4Single;
+    Slide, Projected: TVector3Single;
+  begin
+    PlanePtr := @(Blocker^.World.Plane);
+
+    { Project ProposedNewPos or OldPos on Blocker plane.
+      The idea is that knowing this projection, and knowing BlockerIntersection,
+      we can calculate Slide (= vector that will move us parallel to
+      Blocker plane).
+
+      We could always project ProposedNewPos. But for
+      SegmentCollision = @false, OldPos is also good to use,
+      and it's farther from BlockerIntersection than ProposedNewPos
+      --- this is good, as we want Slide vector to be long, to avoid
+      floating point imprecision when Slide is very very short vector. }
+    if SegmentCollision then
+    begin
+      Projected := PointOnPlaneClosestToPoint(PlanePtr^, ProposedNewPos);
+      Slide := VectorSubtract(Projected, BlockerIntersection);
+    end else
+    begin
+      Projected := PointOnPlaneClosestToPoint(PlanePtr^, OldPos);
+      Slide := VectorSubtract(BlockerIntersection, Projected);
+    end;
+
+    if not ZeroVector(Slide) then
+    begin
+      { Move by Slide.
+
+        Length of Slide is taken from the distance between
+        OldPos and ProposedNewPos. This is Ok, as we do not try to
+        make perfect wall-sliding (that would first move as close to Blocker
+        plane as possible, and then move along the blocker).
+        Instead we move all the way along the blocker. This is in practice Ok. }
+
+      VectorAdjustToLengthTo1st(Slide, PointsDistance(OldPos, ProposedNewPos));
+      NewPos := VectorAdd(OldPos, Slide);
+
+      { Even though I calculated NewPos so that it's not blocked by object
+        Blocker, I must check whether it's not blocked by something else
+        (e.g. if player is trying to walk into the corner (two walls)).
+        I can do it by using my simple MoveAllowedSimple. }
+
+      Result := MoveAllowedSimple(OldPos, NewPos, CameraRadius,
+        TriangleToIgnore, TrianglesToIgnoreFunc);
+    end else
+      { Fallback to worse wall-sliding version. }
+      Result := MoveAlongTheBlocker(Blocker);
+  end;
+
 var
   Blocker: PVRMLTriangle;
+  BlockerIntersection: TVector3Single;
 begin
   { Tests: make MoveAllowed equivalent to MoveAllowedSimple:
   Result := MoveAllowedSimple(OldPos, ProposedNewPos, CameraRadius,
@@ -1259,7 +1338,8 @@ begin
   Exit;
   }
 
-  Blocker := SegmentCollision(OldPos, ProposedNewPos,
+  Blocker := SegmentCollision(
+    BlockerIntersection, OldPos, ProposedNewPos,
     true { return closest blocker },
     TriangleToIgnore, false, TrianglesToIgnoreFunc);
   if Blocker = nil then
@@ -1271,9 +1351,21 @@ begin
       Result := true;
       NewPos := ProposedNewPos;
     end else
+    if TryPlaneLineIntersection(BlockerIntersection, Blocker^.World.Plane,
+      OldPos, VectorSubtract(ProposedNewPos, OldPos)) then
+    begin
+      Result := MoveAlongTheBlocker(BlockerIntersection, false, Blocker);
+      {$ifdef DEBUG_WALL_SLIDING} if not Result then Writeln('Failing wall-sliding because of sphere check, has intersect'); {$endif}
+    end else
+    begin
       Result := MoveAlongTheBlocker(Blocker);
+      {$ifdef DEBUG_WALL_SLIDING} if not Result then Writeln('Failing wall-sliding because of sphere check'); {$endif}
+    end;
   end else
-    Result := MoveAlongTheBlocker(Blocker);
+  begin
+    Result := MoveAlongTheBlocker(BlockerIntersection, true, Blocker);
+    {$ifdef DEBUG_WALL_SLIDING} if not Result then Writeln('Failing wall-sliding because of segment check'); {$endif}
+  end;
 end;
 
 function TVRMLBaseTrianglesOctree.MoveAllowed(
