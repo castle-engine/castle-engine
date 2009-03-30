@@ -128,6 +128,11 @@ begin
                  Ptr^.Im := 0;
                end;
              end;
+          10:if Odd(X + Y) then
+             begin
+               Ptr^.Re := -Ptr^.Re;
+               Ptr^.Im := -Ptr^.Im;
+             end;
         end;
         Inc(Ptr);
       end;
@@ -170,9 +175,10 @@ begin
     M.Append(TMenuItem.Create('Normalize'        , 104));
     M.Append(TMenuItem.Create('Conjugate'        , 105));
     M.Append(TMenuItem.Create('Scale real down'  , 106));
-    M.Append(TMenuItem.Create('Multiply by m^2+n^2', 107));
+    M.Append(TMenuItem.Create('Multiply by m^2+n^2'    , 107));
     M.Append(TMenuItem.Create('Zero outside the square', 108));
-    M.Append(TMenuItem.Create('Zero inside the square', 109));
+    M.Append(TMenuItem.Create('Zero inside the square' , 109));
+    M.Append(TMenuItem.Create('Multiply by (-1)^(m+n)' , 110));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Quit', 10, CharEscape));
     Result.Append(M);
