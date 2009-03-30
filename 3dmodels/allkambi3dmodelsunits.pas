@@ -27,6 +27,7 @@ uses
   vrmlerrors,
   vrmlfields,
   vrmlgeometry,
+  vrmlheadlight,
   vrmllexer,
   vrmllightmap,
   vrmllightset,

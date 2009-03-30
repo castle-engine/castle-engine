@@ -10,8 +10,10 @@ unit AllKambiImagesUnits;
 interface
 
 uses
+  dds,
   images,
   imagescache,
+  { imagesfftw, --- imagesfftw is not compiled here for now, as it requires FPC > 2.2.x, and is not actually used by anything else from the engine }
   kambipasjpeg,
   kambipasjpeg_error_mgrs,
   kambipasjpeg_stream_mgrs,

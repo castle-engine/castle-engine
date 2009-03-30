@@ -177,6 +177,7 @@ fonts/allkambifontsunits.pas:
 images/allkambiimagesunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
   (write-unit-all-units-in-dir \"images/\" \"AllKambiImagesUnits\") \
+  (kam-simple-replace-buffer \"imagesfftw,\" \"{ imagesfftw, --- imagesfftw is not compiled here for now, as it requires FPC > 2.2.x, and is not actually used by anything else from the engine }\") \
   (save-buffer))"
 
 opengl/allkambiopenglunits.pas:
@@ -190,6 +191,18 @@ kambiscript/allkambiscriptunits.pas:
   (save-buffer))"
 
 # examples and tools -----------------------------------------------------------
+
+# Note that images/examples/fft_tests is not included here,
+# and unit images/imagesfftw.pas is not included in allimagesunits.pas
+# (and fpmake.pp doesn't include imagesfftw.pas),
+# because
+# 1. it requires to compile FPC > 2.2.x, which currently means that you
+#    have to use FPC from SVN trunk.
+# 2. to link the example, you need the fftw library. I don't want
+#    to force everyone who wants to execute "make examples" to install
+#    fftw library (especially since it's really not needed by my engine,
+#    currently my fftw code is just for testing, it's not actually used
+#    by VRML engine or any game for anything).
 
 EXAMPLES_BASE_NAMES := \
   audio/examples/algets \

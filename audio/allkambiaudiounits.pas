@@ -12,6 +12,7 @@ interface
 uses
   alsourceallocator,
   alutils,
+  efx,
   gamesoundengine,
   kambiogg,
   kambiopenal,
