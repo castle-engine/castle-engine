@@ -79,8 +79,9 @@ var
 { Remake Freq.Image and Output.Image, using Fft }
 procedure MakeFft;
 var
-  Color, I: Integer;
+  X, Y, Color: Integer;
   Ptr: Pcomplex_single;
+  Tmp: Single;
 begin
   Fft.Image := Source.Image;
 
@@ -94,20 +95,41 @@ begin
   for Color := 0 to 2 do
   begin
     Ptr := Fft.ImageF[Color];
-    for I := 0 to Fft.Size - 1 do
-    begin
-      case Operation of
-        1: Ptr^.Im := 0;
-        2: Ptr^.Re := 0;
-        3: begin Ptr^.Re := CMod(Ptr^); Ptr^.Im := 0; end;
-        4: Ptr^ := CNormalized(Ptr^);
-        5: Ptr^.Im := -Ptr^.Im;
-        6: Ptr^.Re *= 0.25;
-        7: ;
-        8: ;
+    for Y := 0 to Freq.Image.Height - 1 do
+      for X := 0 to Freq.Image.Width - 1 do
+      begin
+        case Operation of
+          1: Ptr^.Im := 0;
+          2: Ptr^.Re := 0;
+          3: begin Ptr^.Re := CMod(Ptr^); Ptr^.Im := 0; end;
+          4: Ptr^ := CNormalized(Ptr^);
+          5: Ptr^.Im := -Ptr^.Im;
+          6: Ptr^.Re *= 0.25;
+          7: begin
+               Tmp := (Sqr(X {- Freq.Image.Width  div 2}) +
+                       Sqr(Y {- Freq.Image.Height div 2})) / 100000.0;
+               Ptr^.Re *= Tmp;
+               Ptr^.Im *= Tmp;
+             end;
+          8: begin
+               if (X {- Freq.Image.Width  div 2} > 25) or
+                  (Y {- Freq.Image.Height div 2} > 25) then
+               begin
+                 Ptr^.Re := 0;
+                 Ptr^.Im := 0;
+               end;
+             end;
+          9: begin
+               if (X {- Freq.Image.Width  div 2} <= 25) and
+                  (Y {- Freq.Image.Height div 2} <= 25) then
+               begin
+                 Ptr^.Re := 0;
+                 Ptr^.Im := 0;
+               end;
+             end;
+        end;
+        Inc(Ptr);
       end;
-      Inc(Ptr);
-    end;
   end;
 
   Fft.ImageFModulusAsRGB(Freq.Image, 0.01);
@@ -148,7 +170,8 @@ begin
     M.Append(TMenuItem.Create('Conjugate'        , 105));
     M.Append(TMenuItem.Create('Scale real down'  , 106));
     M.Append(TMenuItem.Create('Multiply by m^2+n^2', 107));
-    M.Append(TMenuItem.Create('Zero outside square', 108));
+    M.Append(TMenuItem.Create('Zero outside the square', 108));
+    M.Append(TMenuItem.Create('Zero inside the square', 109));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Quit', 10, CtrlQ));
     Result.Append(M);
