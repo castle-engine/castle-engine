@@ -24,11 +24,14 @@
   Uses ImagesFftw unit (that uses FFTW library) to perform DFT and IDFT
   on the image.
 
-  As $1 pass image file name. }
+  As $1 pass image file name.
+
+  Practically, this is the solution for exercise 2 on
+  http://www.ii.uni.wroc.pl/~anl/dyd/PO/ }
 program fft_tests;
 
 uses SysUtils, KambiUtils, Images, ImagesFftw, GLWindow, GL, GLImages,
-  KambiTimeUtils;
+  KambiTimeUtils, KambiStringUtils, Fftw_s, KambiGLUtils;
 
 type
   TGLWindowImage = class(TGLWindowDemo)
@@ -63,15 +66,21 @@ end;
 
 procedure TGLWindowImage.UpdateDL;
 begin
+  glFreeDisplayList(ImageDL);
   ImageDL := ImageDrawToDisplayList(Image);
+  PostRedisplay;
 end;
 
 var
   Source, Freq, Output: TGLWindowImage;
   Fft: TImageFftw;
+  Operation: Integer;
 
 { Remake Freq.Image and Output.Image, using Fft }
 procedure MakeFft;
+var
+  Color, I: Integer;
+  Ptr: Pcomplex_single;
 begin
   Fft.Image := Source.Image;
 
@@ -79,7 +88,29 @@ begin
   Fft.DFT;
   Writeln('Making DFT: ', ProcessTimerEnd:1:2, ' secs');
 
-  Fft.ImageFAsRGB(Freq.Image, 0.01);
+  { Now perform the Operation on image in frequency domain.
+    Lameness warning: yes, it's ultra lame to perform "case Operation..."
+    check in every loop, but this allowed me to write this very shortly. }
+  for Color := 0 to 2 do
+  begin
+    Ptr := Fft.ImageF[Color];
+    for I := 0 to Fft.Size - 1 do
+    begin
+      case Operation of
+        1: Ptr^.Im := 0;
+        2: Ptr^.Re := 0;
+        3: begin Ptr^.Re := CMod(Ptr^); Ptr^.Im := 0; end;
+        4: Ptr^ := CNormalized(Ptr^);
+        5: Ptr^.Im := -Ptr^.Im;
+        6: Ptr^.Re *= 0.25;
+        7: ;
+        8: ;
+      end;
+      Inc(Ptr);
+    end;
+  end;
+
+  Fft.ImageFModulusAsRGB(Freq.Image, 0.01);
   if not Freq.Closed then Freq.UpdateDL;
 
   Fft.Image := Output.Image;
@@ -89,6 +120,38 @@ begin
   Writeln('Making IDFT: ', ProcessTimerEnd:1:2, ' secs');
 
   if not Output.Closed then Output.UpdateDL;
+end;
+
+procedure MenuCommand(glwin: TGLWindow; Item: TMenuItem);
+begin
+  case Item.IntData of
+    10: Glwm.Quit;
+    100..110:
+      begin
+        Operation := Item.IntData - 100;
+        MakeFft;
+      end;
+  end;
+end;
+
+function CreateMainMenu: TMenu;
+var
+  M: TMenu;
+begin
+  Result := TMenu.Create('Main menu');
+  M := TMenu.Create('_File');
+    M.Append(TMenuItem.Create('No operation'     , 100));
+    M.Append(TMenuItem.Create('Only real'        , 101));
+    M.Append(TMenuItem.Create('Only imaginary'   , 102));
+    M.Append(TMenuItem.Create('Set to norm'      , 103));
+    M.Append(TMenuItem.Create('Normalize'        , 104));
+    M.Append(TMenuItem.Create('Conjugate'        , 105));
+    M.Append(TMenuItem.Create('Scale real down'  , 106));
+    M.Append(TMenuItem.Create('Multiply by m^2+n^2', 107));
+    M.Append(TMenuItem.Create('Zero outside square', 108));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('_Quit', 10, CtrlQ));
+    Result.Append(M);
 end;
 
 begin
@@ -107,7 +170,7 @@ begin
     Freq.Image := TRGBImage.Create(Source.Image.Width, Source.Image.Height);
     Freq.Width  := Freq.Image.Width ;
     Freq.Height := Freq.Image.Height;
-    Freq.Caption := 'Frequency domain';
+    Freq.Caption := 'Frequency domain - modulus';
     Freq.OnResize := @Resize2d;
     Freq.Left := 10;
     Freq.Top := Source.Top + Source.Height + 10;
@@ -120,6 +183,9 @@ begin
     Output.OnResize := @Resize2d;
     Output.Left := Source.Left + Source.Width + 10;
     Output.Top := Source.Top + Source.Height + 10;
+
+    Output.MainMenu := CreateMainMenu;
+    Output.OnMenuCommand := @MenuCommand;
 
     ProcessTimerBegin;
     Fft := TImageFftw.Create(Source.Image);

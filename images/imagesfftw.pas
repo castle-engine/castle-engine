@@ -71,12 +71,12 @@ type
       DFT followed by IDFT just to get the same image...). }
     property ImageF[Color: Integer]: Pcomplex_single read GetImageF;
 
-    { Fill TRGBImage showing the ImageF contents.
+    { Fill TRGBImage showing the ImageF modulus contents.
       This actually shows the image in frequency domain, so is generally
       useful only for testing (you usually do not want to look
       at image in frequency domain, unless you understand what
       the frequency domain represents.) }
-    procedure ImageFAsRGB(Img: TRGBImage; const Scale: Single);
+    procedure ImageFModulusAsRGB(Img: TRGBImage; const Scale: Single);
 
     { Perform DFT: from Image contents, make ImageF. }
     procedure DFT;
@@ -88,6 +88,16 @@ type
       the number of Image pixels. }
     procedure IDFT;
   end;
+
+{ Basic functions to operate on complex numbers.
+  FFTW library unfortunately uses different complex type than
+  UComplex standard unit (no surprise, they cannot depend on each other...),
+  so unfortunately we have to write out own routines. }
+
+{ }
+function CNormalized(const Z: complex_single): complex_single;
+function CMod(const Z: complex_single): Single;
+function CNorm(const Z: complex_single): Single;
 
 implementation
 
@@ -142,14 +152,13 @@ end;
 procedure TImageFftw.DFT;
 var
   Ptr: PVector3Byte;
-  ImgComplexPtr: array [0..2] of Pcomplex_single;
+  ImgComplexPtr: TImageComplex;
   Color, I: Integer;
 begin
   { Copy Image to ImageComplex }
 
   Ptr := Image.RGBPixels;
-  for Color := 0 to 2 do
-    ImgComplexPtr[Color] := FImageComplex[Color];
+  ImgComplexPtr := FImageComplex;
 
   for I := 0 to Size - 1 do
   begin
@@ -189,9 +198,26 @@ begin
   end;
 end;
 
-procedure TImageFftw.ImageFAsRGB(Img: TRGBImage; const Scale: Single);
+procedure TImageFftw.ImageFModulusAsRGB(Img: TRGBImage; const Scale: Single);
+var
+  Ptr: PVector3Byte;
+  Color, I: Integer;
+  Complex: TImageComplex;
 begin
-  ComplexToRGB(FImageF, Img, Scale);
+  Ptr := Img.RGBPixels;
+  Complex := FImageF;
+
+  for I := 0 to Size - 1 do
+  begin
+    for Color := 0 to 2 do
+    begin
+      Ptr^[Color] := Clamped(Round(CMod(Complex[Color]^) * Scale),
+        Low(Byte), High(Byte));
+      Inc(Complex[Color]);
+    end;
+
+    Inc(Ptr);
+  end;
 end;
 
 procedure TImageFftw.IDFT;
@@ -205,6 +231,27 @@ begin
   { Copy ImageComplex to Image, also normalizing (dividing by Size)
     by the way. }
   ComplexToRGB(FImageComplex, Image, 1 / Size);
+end;
+
+{ Complex functions ---------------------------------------------------------- }
+
+function CNormalized(const Z: complex_single): complex_single;
+var
+  M: Single;
+begin
+  M := CMod(Z);
+  Result.Re := Z.Re / M;
+  Result.Im := Z.Im / M;
+end;
+
+function CMod(const Z: complex_single): Single;
+begin
+  Result := Sqrt(Sqr(Z.Re) + Sqr(Z.Im));
+end;
+
+function CNorm(const Z: complex_single): Single;
+begin
+  Result := Sqr(Z.Re) + Sqr(Z.Im);
 end;
 
 end.
