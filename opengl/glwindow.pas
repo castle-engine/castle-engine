@@ -4473,13 +4473,28 @@ begin
 end;
 
 procedure TGLWindowsManager.Quit;
-var i: integer;
+var
+  OldActiveCount: Integer;
 begin
- { We're calling here Close(false) so we will not cause infinite recursive
-   Quit calls. }
- for i := 0 to ActiveCount-1 do Active[i].Close(false);
+  { We're calling here Close(false) so we will not cause infinite recursive
+    Quit calls.
 
- QuitWhenNoWindowsActive;
+    Remember that calling Close actually calls Glwm.ActiveRemove.
+    In fact, it's guaranteed that calling Close on active (not closed)
+    window will remove it from Active list (we even check it by assert,
+    otherwise our "while" could never finish).
+    o the number of active windows will drop during while
+    (that's why "for I := 0 to ActiveCount - 1 do ..." would be stupid
+    code here, but "while ActiveCount > 0 ..." is Ok). }
+
+  while ActiveCount > 0 do
+  begin
+    OldActiveCount := ActiveCount;
+    Active[0].Close(false);
+    Assert(ActiveCount = OldActiveCount - 1);
+  end;
+
+  QuitWhenNoWindowsActive;
 end;
 
 procedure TGLWindowsManager.DoSelfIdle;
