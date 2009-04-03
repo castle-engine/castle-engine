@@ -31,7 +31,11 @@
 program fft_tests;
 
 uses SysUtils, KambiUtils, Images, ImagesFftw, GLWindow, GL, GLImages,
-  KambiTimeUtils, KambiStringUtils, Fftw_s, KambiGLUtils;
+  KambiTimeUtils, KambiStringUtils, Fftw_s, KambiGLUtils, Math;
+
+
+var
+  Alpha: Single = 0.5;
 
 type
   TGLWindowImage = class(TGLWindowDemo)
@@ -82,7 +86,7 @@ procedure MakeFft;
 var
   X, Y, Color: Integer;
   Ptr: Pcomplex_single;
-  Tmp: Single;
+  Tmp, Phi, R: Single;
 begin
   Fft.Image := Source.Image;
 
@@ -105,7 +109,7 @@ begin
           3: begin Ptr^.Re := CMod(Ptr^); Ptr^.Im := 0; end;
           4: Ptr^ := CNormalized(Ptr^);
           5: Ptr^.Im := -Ptr^.Im;
-          6: Ptr^.Re *= 0.25;
+          6: Ptr^.Re *= Alpha;
           7: begin
                Tmp := (Sqr(X {- Freq.Image.Width  div 2}) +
                        Sqr(Y {- Freq.Image.Height div 2})) / 100000.0;
@@ -133,6 +137,15 @@ begin
                Ptr^.Re := -Ptr^.Re;
                Ptr^.Im := -Ptr^.Im;
              end;
+          11:begin
+               R := Sqrt(Sqr(Ptr^.Re) + Sqr(Ptr^.Im));
+               Phi := ArcTan2(Ptr^.Im, Ptr^.Re);
+
+               Phi += Alpha;
+
+               Ptr^.Re := R * Cos(Phi);
+               Ptr^.Im := R * Sin(Phi);
+             end;
         end;
         Inc(Ptr);
       end;
@@ -154,10 +167,22 @@ procedure MenuCommand(glwin: TGLWindow; Item: TMenuItem);
 begin
   case Item.IntData of
     10: Glwm.Quit;
-    100..110:
+    100..150:
       begin
         Operation := Item.IntData - 100;
         MakeFft;
+      end;
+    200:
+      begin
+        Alpha -= 0.1;
+        MakeFft;
+        Writeln('Alpha = ', Alpha:1:10);
+      end;
+    201:
+      begin
+        Alpha += 0.1;
+        MakeFft;
+        Writeln('Alpha = ', Alpha:1:10);
       end;
   end;
 end;
@@ -174,11 +199,16 @@ begin
     M.Append(TMenuItem.Create('Set to norm'      , 103));
     M.Append(TMenuItem.Create('Normalize'        , 104));
     M.Append(TMenuItem.Create('Conjugate'        , 105));
-    M.Append(TMenuItem.Create('Scale real down'  , 106));
+    M.Append(TMenuItem.Create('Re *= Alpha'      , 106));
     M.Append(TMenuItem.Create('Multiply by m^2+n^2'    , 107));
     M.Append(TMenuItem.Create('Zero outside the square', 108));
     M.Append(TMenuItem.Create('Zero inside the square' , 109));
     M.Append(TMenuItem.Create('Multiply by (-1)^(m+n)' , 110));
+    M.Append(TMenuItem.Create('Phi += Alpha' , 111));
+    { numbers up to ..150 are reserved for future testing operations }
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('Alpha -= 0.1' , 200, CtrlA));
+    M.Append(TMenuItem.Create('Alpha += 0.1' , 201, CtrlD));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Quit', 10, CharEscape));
     Result.Append(M);
