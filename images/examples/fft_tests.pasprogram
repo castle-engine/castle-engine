@@ -141,7 +141,7 @@ begin
                R := Sqrt(Sqr(Ptr^.Re) + Sqr(Ptr^.Im));
                Phi := ArcTan2(Ptr^.Im, Ptr^.Re);
 
-               Phi += Alpha;
+               Phi += Alpha * (X + Y);
 
                Ptr^.Re := R * Cos(Phi);
                Ptr^.Im := R * Sin(Phi);
@@ -204,7 +204,7 @@ begin
     M.Append(TMenuItem.Create('Zero outside the square', 108));
     M.Append(TMenuItem.Create('Zero inside the square' , 109));
     M.Append(TMenuItem.Create('Multiply by (-1)^(m+n)' , 110));
-    M.Append(TMenuItem.Create('Phi += Alpha' , 111));
+    M.Append(TMenuItem.Create('Phase += Alpha (shift image)' , 111));
     { numbers up to ..150 are reserved for future testing operations }
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Alpha -= 0.1' , 200, CtrlA));
