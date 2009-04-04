@@ -83,6 +83,18 @@ var
 
 { Remake Freq.Image and Output.Image, using Fft }
 procedure MakeFft;
+
+  { Is X, Y inside square (with size SquareSize with waves of lowest frequency). }
+  function InsideSquare(const X, Y: Integer): boolean;
+  const
+    SquareSize = 50;
+    SquareSize2 = SquareSize div 2;
+  begin
+    Result :=
+      ( (X <=                    SquareSize2) and ( (Y <= SquareSize2) or (Y >= Freq.Image.Height - SquareSize2) ) ) or
+      ( (X >= Freq.Image.Width - SquareSize2) and ( (Y <= SquareSize2) or (Y >= Freq.Image.Height - SquareSize2) ) );
+  end;
+
 var
   X, Y, Color: Integer;
   Ptr: Pcomplex_single;
@@ -116,22 +128,8 @@ begin
                Ptr^.Re *= Tmp;
                Ptr^.Im *= Tmp;
              end;
-          8: begin
-               if (X {- Freq.Image.Width  div 2} > 25) or
-                  (Y {- Freq.Image.Height div 2} > 25) then
-               begin
-                 Ptr^.Re := 0;
-                 Ptr^.Im := 0;
-               end;
-             end;
-          9: begin
-               if (X {- Freq.Image.Width  div 2} <= 25) and
-                  (Y {- Freq.Image.Height div 2} <= 25) then
-               begin
-                 Ptr^.Re := 0;
-                 Ptr^.Im := 0;
-               end;
-             end;
+          8: if not InsideSquare(X, Y) then Ptr^ := CZero;
+          9: if     InsideSquare(X, Y) then Ptr^ := CZero;
           10:if Odd(X + Y) then
              begin
                Ptr^.Re := -Ptr^.Re;
