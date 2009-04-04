@@ -431,9 +431,10 @@ procedure TShadowVolumes.InitSceneDontSetupStencil(const SceneBox: TBox3d);
     end;
 
   var
-    LightPosition3: TVector3Double absolute FLightPositionDouble;
+    LightPosition3: PVector3Double;
     NearPlane: TVector4Double;
   begin
+    LightPosition3 := @FLightPositionDouble;
     if LightPosition[3] <> 0 then
     begin
       { Idea: calculate a pyramid between light position and near plane rectangle
@@ -481,18 +482,18 @@ procedure TShadowVolumes.InitSceneDontSetupStencil(const SceneBox: TBox3d);
         VectorNegateTo1st(NearPlane);
         Result :=
           InsidePlane(NearPlane) and
-          InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[0].XYZ, LightPosition3)) and
-          InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[1].XYZ, LightPosition3)) and
-          InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[2].XYZ, LightPosition3)) and
-          InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[3].XYZ, LightPosition3));
+          InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[0].XYZ, LightPosition3^)) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[1].XYZ, LightPosition3^)) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[2].XYZ, LightPosition3^)) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[3].XYZ, LightPosition3^));
       end else
       begin
         Result :=
           InsidePlane(NearPlane) and
-          InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[1].XYZ, LightPosition3)) and
-          InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[2].XYZ, LightPosition3)) and
-          InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[3].XYZ, LightPosition3)) and
-          InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[0].XYZ, LightPosition3));
+          InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[1].XYZ, LightPosition3^)) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[2].XYZ, LightPosition3^)) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[3].XYZ, LightPosition3^)) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[0].XYZ, LightPosition3^));
       end;
     end else
     begin
@@ -517,17 +518,17 @@ procedure TShadowVolumes.InitSceneDontSetupStencil(const SceneBox: TBox3d);
           NearPlane[2] * LightPositionDouble[2]) > 0 then
       begin
         Result :=
-          InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[1].XYZ, VectorAdd(FrustumNearPoints[0].XYZ, LightPosition3))) and
-          InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[2].XYZ, VectorAdd(FrustumNearPoints[1].XYZ, LightPosition3))) and
-          InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[3].XYZ, VectorAdd(FrustumNearPoints[2].XYZ, LightPosition3))) and
-          InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[0].XYZ, VectorAdd(FrustumNearPoints[3].XYZ, LightPosition3)));
+          InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[1].XYZ, VectorAdd(FrustumNearPoints[0].XYZ, LightPosition3^))) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[2].XYZ, VectorAdd(FrustumNearPoints[1].XYZ, LightPosition3^))) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[3].XYZ, VectorAdd(FrustumNearPoints[2].XYZ, LightPosition3^))) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[0].XYZ, VectorAdd(FrustumNearPoints[3].XYZ, LightPosition3^)));
       end else
       begin
         Result :=
-          InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[0].XYZ, VectorAdd(FrustumNearPoints[1].XYZ, LightPosition3))) and
-          InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[1].XYZ, VectorAdd(FrustumNearPoints[2].XYZ, LightPosition3))) and
-          InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[2].XYZ, VectorAdd(FrustumNearPoints[3].XYZ, LightPosition3))) and
-          InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[3].XYZ, VectorAdd(FrustumNearPoints[0].XYZ, LightPosition3)));
+          InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[0].XYZ, VectorAdd(FrustumNearPoints[1].XYZ, LightPosition3^))) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[1].XYZ, VectorAdd(FrustumNearPoints[2].XYZ, LightPosition3^))) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[2].XYZ, VectorAdd(FrustumNearPoints[3].XYZ, LightPosition3^))) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[3].XYZ, VectorAdd(FrustumNearPoints[0].XYZ, LightPosition3^)));
       end;
     end;
   end;
