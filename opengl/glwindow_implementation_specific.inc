@@ -1,5 +1,9 @@
 { Include files appropriate for current GLWindow implementation. }
 
+{ In various include files here, we dereference memory allocated
+  with various libraries, so pointer checks will make false errors. }
+{$checkpointer off}
+
 {$ifdef GLWINDOW_GLUT}
   {$I glwindow_glut.inc}
 {$endif}
@@ -28,4 +32,9 @@
 
 {$ifdef GLWINDOW_TEMPLATE}
   {$I glwindow_implementation_template.inc}
+{$endif}
+
+{$ifdef KAMBI_CHECK_POINTER}
+{ Turn checkpointer back on }
+{$checkpointer on}
 {$endif}

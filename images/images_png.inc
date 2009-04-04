@@ -70,6 +70,10 @@ end;
   --------------------------------------------------------------------------
 }
 
+{ We dereference here memory allocated with PNG, so pointer checks
+  will make false errors. }
+{$checkpointer off}
+
 procedure our_png_read_fn(png_ptr: png_structp; data: png_bytep; len: png_size_t);
   {$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
 begin
@@ -88,6 +92,11 @@ begin
  {we would like to do here something like TStream(png_get_io_ptr(png_ptr)).Flush;
   but there is no "flush" method in TStream or any of its descendant; }
 end;
+
+{$ifdef KAMBI_CHECK_POINTER}
+{ Turn checkpointer back on }
+{$checkpointer on}
+{$endif}
 
 { LoadPNG ------------------------------------------------------------------- }
 
