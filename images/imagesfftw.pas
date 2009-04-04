@@ -24,7 +24,8 @@
   Uses FFTW library through fftw_s unit provided with FPC.
 
   Note that this compiles only with FPC > 2.2.x (previous fftw unit
-  contained bugs, like missing fftw_getmem/freemem in the interface,
+  contained bugs, like missing fftw_getmem/freemem in the interface
+  (although we workaround this one anyway of FftwUtils),
   and unneeded linking to libraries like gcc). }
 unit ImagesFftw;
 
@@ -95,13 +96,16 @@ type
   so unfortunately we have to write out own routines. }
 
 { }
+const
+  CZero: complex_single = (re: 0; im: 0);
+
 function CNormalized(const Z: complex_single): complex_single;
 function CMod(const Z: complex_single): Single;
 function CNorm(const Z: complex_single): Single;
 
 implementation
 
-uses VectorMath, KambiUtils;
+uses VectorMath, KambiUtils, FftwUtils;
 
 constructor TImageFftw.Create(AImage: TRGBImage);
 var
@@ -114,8 +118,8 @@ begin
 
   for Color := 0 to 2 do
   begin
-    fftw_getmem(FImageComplex[Color], Size * SizeOf(complex_single));
-    fftw_getmem(FImageF      [Color], Size * SizeOf(complex_single));
+    kam_fftw_getmem(FImageComplex[Color], Size * SizeOf(complex_single));
+    kam_fftw_getmem(FImageF      [Color], Size * SizeOf(complex_single));
 
     { Make FFTW plans, since pointers FImageComplex and FImageF
       (for this Color index) are now constant. }
@@ -138,8 +142,8 @@ begin
     fftw_destroy_plan(PlanDFT[Color]);
     fftw_destroy_plan(PlanIDFT[Color]);
 
-    fftw_freemem(FImageComplex[Color]);
-    fftw_freemem(FImageF      [Color]);
+    kam_fftw_freemem(FImageComplex[Color]);
+    kam_fftw_freemem(FImageF      [Color]);
   end;
   inherited;
 end;
