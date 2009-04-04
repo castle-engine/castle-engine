@@ -295,6 +295,14 @@ end;
 procedure TObjectsList_4.Assign(Source: TObjectsList_4);
 begin
   Count := Source.Count;
+
+  {$ifdef KAMBI_CHECK_POINTER}
+  { It's actually legal to call System.Move with nil pointers
+    and Count = 0. But pointer validity (-gc) checks will fail
+    (they detect that you try to dereference nil pointers). }
+  if Count = 0 then Exit;
+  {$endif}
+
   System.Move(Source.Arr^, Arr^, Count * SizeOf(Pointer));
 end;
 
@@ -478,6 +486,13 @@ end;
 procedure TObjectsList_4.SetAll(Item: TObjectsListItem_4);
 {$ifdef CPU32}
 begin
+  {$ifdef KAMBI_CHECK_POINTER}
+  { It's actually legal to call FillDWord with nil pointer
+    when Count = 0. But pointer validity (-gc) checks will fail
+    (they detect that you try to dereference nil pointers). }
+  if Count = 0 then Exit;
+  {$endif}
+
   FillDWord(Arr^, Count, PtrUInt(Item));
 {$else}
 var
