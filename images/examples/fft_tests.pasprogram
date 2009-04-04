@@ -33,10 +33,6 @@ program fft_tests;
 uses SysUtils, KambiUtils, Images, ImagesFftw, GLWindow, GL, GLImages,
   KambiTimeUtils, KambiStringUtils, Fftw_s, KambiGLUtils, Math;
 
-
-var
-  Alpha: Single = 0.5;
-
 type
   TGLWindowImage = class(TGLWindowDemo)
   public
@@ -76,10 +72,16 @@ begin
   PostRedisplay;
 end;
 
+type
+  TOperation = (opNone, opRe, opIm, opModulus, opNormalize, opConjugate,
+    opScaleRe, opMulMNSqr, opZeroOutsideSquare, opZeroInsideSquare,
+    opMulMinus1, opShift);
+
 var
   Source, Freq, Output: TGLWindowImage;
   Fft: TImageFftw;
-  Operation: Integer;
+  Operation: TOperation;
+  Alpha: Single = 0.5;
 
 { Remake Freq.Image and Output.Image, using Fft }
 procedure MakeFft;
@@ -116,34 +118,38 @@ begin
       for X := 0 to Freq.Image.Width - 1 do
       begin
         case Operation of
-          1: Ptr^.Im := 0;
-          2: Ptr^.Re := 0;
-          3: begin Ptr^.Re := CMod(Ptr^); Ptr^.Im := 0; end;
-          4: Ptr^ := CNormalized(Ptr^);
-          5: Ptr^.Im := -Ptr^.Im;
-          6: Ptr^.Re *= Alpha;
-          7: begin
-               Tmp := (Sqr(X {- Freq.Image.Width  div 2}) +
-                       Sqr(Y {- Freq.Image.Height div 2})) / 100000.0;
-               Ptr^.Re *= Tmp;
-               Ptr^.Im *= Tmp;
-             end;
-          8: if not InsideSquare(X, Y) then Ptr^ := CZero;
-          9: if     InsideSquare(X, Y) then Ptr^ := CZero;
-          10:if Odd(X + Y) then
-             begin
-               Ptr^.Re := -Ptr^.Re;
-               Ptr^.Im := -Ptr^.Im;
-             end;
-          11:begin
-               R := Sqrt(Sqr(Ptr^.Re) + Sqr(Ptr^.Im));
-               Phi := ArcTan2(Ptr^.Im, Ptr^.Re);
+          opNone: ;
+          opRe: Ptr^.Im := 0;
+          opIm: Ptr^.Re := 0;
+          opModulus: begin Ptr^.Re := CMod(Ptr^); Ptr^.Im := 0; end;
+          opNormalize: Ptr^ := CNormalized(Ptr^);
+          opConjugate: Ptr^.Im := -Ptr^.Im;
+          opScaleRe: Ptr^.Re *= Alpha;
+          opMulMNSqr:
+            begin
+              Tmp := (Sqr(X {- Freq.Image.Width  div 2}) +
+                      Sqr(Y {- Freq.Image.Height div 2})) / 100000.0;
+              Ptr^.Re *= Tmp;
+              Ptr^.Im *= Tmp;
+            end;
+          opZeroOutsideSquare: if not InsideSquare(X, Y) then Ptr^ := CZero;
+          opZeroInsideSquare : if     InsideSquare(X, Y) then Ptr^ := CZero;
+          opMulMinus1:
+            if Odd(X + Y) then
+            begin
+              Ptr^.Re := -Ptr^.Re;
+              Ptr^.Im := -Ptr^.Im;
+            end;
+          opShift:
+            begin
+              R := Sqrt(Sqr(Ptr^.Re) + Sqr(Ptr^.Im));
+              Phi := ArcTan2(Ptr^.Im, Ptr^.Re);
 
-               Phi += Alpha * (X + Y);
+              Phi += Alpha * (X + Y);
 
-               Ptr^.Re := R * Cos(Phi);
-               Ptr^.Im := R * Sin(Phi);
-             end;
+              Ptr^.Re := R * Cos(Phi);
+              Ptr^.Im := R * Sin(Phi);
+            end;
         end;
         Inc(Ptr);
       end;
@@ -165,9 +171,9 @@ procedure MenuCommand(glwin: TGLWindow; Item: TMenuItem);
 begin
   case Item.IntData of
     10: Glwm.Quit;
-    100..150:
+    100..100 + Ord(High(TOperation)):
       begin
-        Operation := Item.IntData - 100;
+        Operation := TOperation(Item.IntData - 100);
         MakeFft;
       end;
     200:
@@ -186,24 +192,46 @@ begin
 end;
 
 function CreateMainMenu: TMenu;
+
+  procedure AddOperations(const Base: Integer; M: TMenu);
+  const
+    OperationNames: array [TOperation] of string =
+    ('No operation',
+     'Only real',
+     'Only imaginary',
+     'Set to modulus',
+     'Normalize',
+     'Conjugate',
+     'Re *= Alpha',
+     'Multiply by m^2+n^2',
+     'Zero outside the square',
+     'Zero inside the square',
+     'Multiply by (-1)^(m+n)',
+     'Phase += Alpha (shift image)');
+  var
+    RadioGroup: TMenuItemRadioGroup;
+    Radio: TMenuItemRadio;
+    Op: TOperation;
+  begin
+    RadioGroup := nil;
+
+    for Op := Low(Op) to High(Op) do
+    begin
+      Radio := TMenuItemRadio.Create(OperationNames[Op], Base + Ord(Op),
+        Operation = Op, true);
+      if RadioGroup <> nil then
+        Radio.Group := RadioGroup else
+        RadioGroup := Radio.Group;
+      M.Append(Radio);
+    end;
+  end;
+
 var
   M: TMenu;
 begin
   Result := TMenu.Create('Main menu');
   M := TMenu.Create('_File');
-    M.Append(TMenuItem.Create('No operation'     , 100));
-    M.Append(TMenuItem.Create('Only real'        , 101));
-    M.Append(TMenuItem.Create('Only imaginary'   , 102));
-    M.Append(TMenuItem.Create('Set to norm'      , 103));
-    M.Append(TMenuItem.Create('Normalize'        , 104));
-    M.Append(TMenuItem.Create('Conjugate'        , 105));
-    M.Append(TMenuItem.Create('Re *= Alpha'      , 106));
-    M.Append(TMenuItem.Create('Multiply by m^2+n^2'    , 107));
-    M.Append(TMenuItem.Create('Zero outside the square', 108));
-    M.Append(TMenuItem.Create('Zero inside the square' , 109));
-    M.Append(TMenuItem.Create('Multiply by (-1)^(m+n)' , 110));
-    M.Append(TMenuItem.Create('Phase += Alpha (shift image)' , 111));
-    { numbers up to ..150 are reserved for future testing operations }
+    AddOperations(100, M);
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Alpha -= 0.1' , 200, CtrlA));
     M.Append(TMenuItem.Create('Alpha += 0.1' , 201, CtrlD));
