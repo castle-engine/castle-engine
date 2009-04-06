@@ -86,7 +86,7 @@ const
   GlutDLL =
     {$ifdef UNIX}
       {$ifdef DARWIN} 'libglut.dylib'
-      {$else} 'libglut.so'
+      {$else} 'libglut.so.3'
       {$endif}
     {$endif}
     {$ifdef MSWINDOWS} {TODO: fix for win64?} 'glut32.dll' {$endif};
