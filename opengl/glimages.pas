@@ -652,14 +652,14 @@ var
 begin
   if GLVersion.BuggyPixelUnpack1 then
   begin
-     ScreenImage := SaveAlignedScreen_noflush(GL_FRONT, SavedScreenWidth);
+     ScreenImage := SaveAlignedScreen_noflush(ReadBuffer, SavedScreenWidth);
      try
        SavedScreenHeight := ScreenImage.Height;
        Result := ImageDrawCuttedToDisplayList(ScreenImage, SavedScreenWidth, SavedScreenHeight);
      finally FreeAndNil(ScreenImage) end;
   end else
   begin
-     ScreenImage := SaveScreen_noflush(GL_FRONT);
+     ScreenImage := SaveScreen_noflush(ReadBuffer);
      try
        SavedScreenWidth  := ScreenImage.Width ;
        SavedScreenHeight := ScreenImage.Height;
