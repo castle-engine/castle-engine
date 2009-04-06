@@ -77,7 +77,7 @@ type
     FIsFglrx: boolean;
     FVendorNVidia: boolean;
     FBuggyPointSetAttrib: boolean;
-    FBuggyPixelUnpack1: boolean;
+    FBuggyDrawOddWidth: boolean;
   public
     constructor Create(const VersionString, AVendor, ARenderer: string);
 
@@ -123,8 +123,8 @@ type
       need BuggyPointSetAttrib = @true. }
     property BuggyPointSetAttrib: boolean read FBuggyPointSetAttrib;
 
-    { Detect fglrx (ATI Radeon on Linux) with buggy drawing of
-      glPixelStorei(GL_UNPACK_ALIGNMENT, 1) behavior.
+    { Detect fglrx (ATI Radeon on Linux) with buggy drawing of images
+      with odd width.
 
       I observe this under Debian testing after upgrading fglrx
       from 8-12-4 to 9-2-2. I know the bug wasn't present in 8-12-4
@@ -132,13 +132,18 @@ type
 
       Precisely, the problem is for images with size like 819 x 614.
       Drawing them by glDrawPixels (including the case when you put
-      this glDrawPixels) requires glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+      this in display list) requires glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
       (as our TRGBImage is not aligned). And on GPUs with
-      BuggyPixelUnpack1, such glDrawPixels will simply draw a random
+      BuggyDrawOddWidth, such glDrawPixels will simply draw a random
       mess of colors on the screen, like some memory garbage.
       (Note that the image is actually correct, even capturing it
-      by glReadPixels works Ok; only drawing of it fails.) }
-    property BuggyPixelUnpack1: boolean read FBuggyPixelUnpack1;
+      by glReadPixels works Ok; only drawing of it fails.)
+
+      As far as I tested, this doesn't seem related to
+      actual GL_UNPACK_ALIGNMENT (glPixelStorei(GL_UNPACK_ALIGNMENT, 4)
+      may also produce the bug, e.g. when used with ImageDrawPart
+      trying to draw subimage with odd width). }
+    property BuggyDrawOddWidth: boolean read FBuggyDrawOddWidth;
 
     { Detect NVidia GPU. }
     property VendorNVidia: boolean read FVendorNVidia;
@@ -387,7 +392,7 @@ begin
     maybe the last number in GL_VERSION4? But it's 8494 for 9.2 version...
     It's a completely blind and probably incorrect guess,
     but for now I'll just assume that Release >= 8490 indicates 9.x. }
-  FBuggyPixelUnpack1 := IsFglrx and ReleaseExists and (Release >= 8490);
+  FBuggyDrawOddWidth := IsFglrx and ReleaseExists and (Release >= 8490);
 end;
 
 finalization

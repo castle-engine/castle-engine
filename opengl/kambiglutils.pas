@@ -2286,7 +2286,7 @@ function GLCapsString: string;
         '  Vendor Mesa: %s (Mesa major: %d, minor: %d, release: %d)' +nl+
         '  Vendor ATI: %s (fglrx: %s)' +nl+
         '  Buggy glPushAttrib(GL_POINT_SET): %s' +nl+
-        '  Buggy glDrawPixels after glPixelStorei(GL_UNPACK_ALIGNMENT, 1): %s',
+        '  Buggy glDrawPixels for odd widths: %s',
         [ BoolToStr[Version.VendorNVidia],
 
           BoolToStr[Version.IsMesa],
@@ -2295,7 +2295,7 @@ function GLCapsString: string;
           BoolToStr[Version.IsVendorATI], BoolToStr[Version.IsFglrx],
 
           BoolToStr[Version.BuggyPointSetAttrib],
-          BoolToStr[Version.BuggyPixelUnpack1]
+          BoolToStr[Version.BuggyDrawOddWidth]
         ]);
   end;
 

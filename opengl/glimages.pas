@@ -194,21 +194,34 @@ procedure ImageDraw(const Image: TImage);
   starting from Row0. }
 procedure ImageDrawRows(const Image: TImage; Row0, RowsCount: integer);
 
-{ Same as @link(ImageDraw), but will omit 1st CutX columns (1st from the left)
-  and 1st CutY rows (1st from down).
+{ Draw a part of the image by glDrawPixels.
 
-  This is implemented using
-  glPixelStorei(GL_UNPACK_ROW_LENGTH / GL_UNPACK_SKIP_PIXELS /
-  GL_UNPACK_SKIP_ROWS). So it works fast.
-  Don't worry, we will take care here of changing (and later restoring
-  to previous values) such unpack settings, just like GL_UNPACK_ALIGNMENT. }
-procedure ImageDrawCutted(const image: TImage; cutx, cuty: cardinal);
+  Part of the image starts from X0, Y0 (where 0, 0 is the left/bottom
+  pixel, i.e. where the normal ImageDraw starts) and spans Width/Height.
+  Overloaded version without Width, Height parameters just draws the
+  whole remaining image.
+
+  Too large X0, Y0, Width, Height values are automatically detected
+  and cut as appropriate, so you can safely pass any large values here.
+
+  This will cut of some columns at the left/right and bottom/top
+  by using tricks with OpenGL pixel store unpack (don't worry, the whole
+  state of pixel store unpack will be taken care of and preserved
+  by this). So it works fast.
+
+  @groupBegin }
+procedure ImageDrawPart(const image: TImage;
+  const X0, Y0, Width, Height: Cardinal); overload;
+procedure ImageDrawPart(const image: TImage;
+  const X0, Y0: Cardinal); overload;
+{ @groupEnd }
 
 { This creates new display list with a call to ImageDraw(Img) inside. }
 function ImageDrawToDisplayList(const img: TImage): TGLuint;
 
-function ImageDrawCuttedToDisplayList(
-  const image: TImage; cutx, cuty: cardinal): TGLuint;
+function ImageDrawPartToDisplayList(
+  const Image: TImage;
+  const X0, Y0, Width, Height: Cardinal): TGLuint;
 
 { Saving screen to TRGBImage ----------------------------------- }
 
@@ -288,17 +301,20 @@ procedure SaveScreen_noflush(
 { @groupEnd }
 
 { Like SaveScreen_noflush(ReadBuffer), except it may make the width larger,
-  to workaround fglrx bug TGLVersion.BuggyPixelUnpack1.
+  to make it divisible by four,
+  to workaround fglrx bug TGLVersion.BuggyDrawOddWidth.
 
   It will eventually enlarge the Width to make it a multiple of 4.
-  This way the image lines are safely aligned to a multiple of 4,
-  and you can draw them by standard OpenGL PIXEL_UNPACK alignment = 4.
+  Possibly, multiple of 2 would be enough, but you don't want to risk
+  with fglrx bugs...
 
   You can draw this image by normal ImageDraw, although you risk
   then that you will see an additional column at the right filled
   with garbage colors (due to enlarging of screen done here).
-  It's best to draw this only by ImageDrawCutted(RealScreenWidth, Image.Height),
-  that is: use RealScreenWidth when drawing, not Image.Width. }
+  Ideally, it would be best to draw this only by
+  ImageDrawPart(0, 0, RealScreenWidth, Image.Height)
+  (that is: use RealScreenWidth when drawing, not Image.Width)
+  but it may not be possible --- again, thanks to TGLVersion.BuggyDrawOddWidth. }
 function SaveAlignedScreen_noflush(ReadBuffer: TGLenum;
   out RealScreenWidth: Cardinal): TRGBImage;
 
@@ -308,9 +324,10 @@ function SaveAlignedScreen_noflush(ReadBuffer: TGLenum;
   drawing of the image is done normally,
   and placed in a display list.
 
-  When TGLVersion.BuggyPixelUnpack1 is present, this is actually more complicated
+  When TGLVersion.BuggyDrawOddWidth is present, this is actually more complicated
   (we capture a little larger screen by SaveAlignedScreen_noflush,
-  and draw by ImageDrawCutted), but the intention of this procedure is to
+  we also have to actually draw it a little larger),
+  but the intention of this procedure is to
   completely hide this completexity from you.
 
   They have "Whole_" in their name, otherwise they could be easily
@@ -535,27 +552,38 @@ begin
  finally AfterUnpackImage(UnpackData, image) end;
 end;
 
-procedure ImageDrawCutted(const image: TImage; cutx, cuty: cardinal);
-var pixUnpack: TPixelStoreUnpack;
-    width, height: cardinal;
+procedure ImageDrawPart(const image: TImage;
+  const X0, Y0, Width, Height: Cardinal);
+var
+  pixUnpack: TPixelStoreUnpack;
+  W, H: cardinal;
 begin
- width := image.Width;
- height := image.Height;
- if (cutx >= width) or (cuty >= height) then exit; { no need to draw anything }
+  if (X0 >= Image.Width) or
+     (Y0 >= Image.Height) then
+    Exit; { no need to draw anything }
 
- SavePixelStoreUnpack(pixUnpack);
- try
-  width := width - cutx;
-  height := height - cuty;
-  glPixelStorei(GL_UNPACK_ROW_LENGTH, image.Width);
-  glPixelStorei(GL_UNPACK_SKIP_PIXELS, cutx);
-  glPixelStorei(GL_UNPACK_SKIP_ROWS, cuty);
-  {nie uzywamy tutaj Before/After Unpack NotAligned Image bo i tak
-   zawsze robimy Save/Load Pixel Store Unpack wiec najwygodniej jest
-   po prostu ustalic zawsze GL_UNPACK_ALIGNMENT na 1}
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  glDrawPixels(width, height, ImageGLFormat(image), ImageGLType(image), image.RawPixels);
- finally LoadPixelStoreUnpack(pixUnpack) end;
+  SavePixelStoreUnpack(pixUnpack);
+  try
+    W := Min(Image.Width  - X0, Width );
+    H := Min(Image.Height - Y0, Height);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, Image.Width);
+    glPixelStorei(GL_UNPACK_SKIP_PIXELS, X0);
+    glPixelStorei(GL_UNPACK_SKIP_ROWS, Y0);
+
+    { We always make Save/Load Pixel Store Unpack here, so there's
+      no need to use Before/After Unpack NotAligned Image.
+      However, we still have to set some alignment. We can just
+      set it to 1, this will be always correct. }
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    glDrawPixels(W, H, ImageGLFormat(image), ImageGLType(image), image.RawPixels);
+  finally LoadPixelStoreUnpack(pixUnpack) end;
+end;
+
+procedure ImageDrawPart(const image: TImage;
+  const X0, Y0: Cardinal);
+begin
+  ImageDrawPart(Image, X0, Y0, MaxInt, MaxInt);
 end;
 
 function ImageDrawToDisplayList(const Img: TImage): TGLuint;
@@ -567,13 +595,13 @@ begin
   finally glEndList end;
 end;
 
-function ImageDrawCuttedToDisplayList(
-  const image: TImage; cutx, cuty: cardinal): TGLuint;
+function ImageDrawPartToDisplayList(
+  const image: TImage; const X0, Y0, Width, Height: Cardinal): TGLuint;
 begin
-  Result := glGenListsCheck(1, 'ImageDrawCuttedToDisplayList');
+  Result := glGenListsCheck(1, 'ImageDrawPartToDisplayList');
   glNewList(Result, GL_COMPILE);
   try
-    ImageDrawCutted(Image, cutx, cuty);
+    ImageDrawPart(Image, X0, Y0, Width, Height);
   finally glEndList end;
 end;
 
@@ -650,12 +678,14 @@ function SaveScreenWhole_ToDisplayList_noflush(ReadBuffer: TGLenum;
 var
   ScreenImage: TRGBImage;
 begin
-  if GLVersion.BuggyPixelUnpack1 then
+  if GLVersion.BuggyDrawOddWidth then
   begin
      ScreenImage := SaveAlignedScreen_noflush(ReadBuffer, SavedScreenWidth);
      try
        SavedScreenHeight := ScreenImage.Height;
-       Result := ImageDrawCuttedToDisplayList(ScreenImage, SavedScreenWidth, SavedScreenHeight);
+       Result := { ImageDrawPartToDisplayList(ScreenImage,
+         0, 0, SavedScreenWidth, SavedScreenHeight); }
+         ImageDrawToDisplayList(ScreenImage);
      finally FreeAndNil(ScreenImage) end;
   end else
   begin
