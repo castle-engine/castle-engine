@@ -48,11 +48,11 @@ begin
       '  Width x Height: ', DImg.Width, ' x ', DImg.Height, nl,
       '  Type: ', DDSTypeToString[DImg.DDSType], nl,
       '  Mipmaps: ', DImg.Mipmaps, nl,
-      '  Simple 2D images inside: ', DImg.ImagesCount);
+      '  Simple 2D images inside: ', DImg.Images.Count);
 
     OutputBaseName := ExtractFilePath(Parameters[1]) +
       ExtractOnlyFileName(Parameters[1]) + '_';
-    for I := 0 to DImg.ImagesCount - 1 do
+    for I := 0 to DImg.Images.Count - 1 do
     begin
       OutputName := OutputBaseName + IntToStrZPad(I, 2) + '.png';
       Writeln('Writing ', OutputName);
