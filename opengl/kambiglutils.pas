@@ -2282,11 +2282,14 @@ function GLCapsString: string;
   begin
     Result := ParsedVersionReport(Version) +nl+
       Format(
+        '  Vendor NVidia: %s' +nl+
         '  Vendor Mesa: %s (Mesa major: %d, minor: %d, release: %d)' +nl+
         '  Vendor ATI: %s (fglrx: %s)' +nl+
         '  Buggy glPushAttrib(GL_POINT_SET): %s' +nl+
         '  Buggy glDrawPixels after glPixelStorei(GL_UNPACK_ALIGNMENT, 1): %s',
-        [ BoolToStr[Version.IsMesa],
+        [ BoolToStr[Version.VendorNVidia],
+
+          BoolToStr[Version.IsMesa],
           Version.MesaMajor, Version.MesaMinor, Version.MesaRelease,
 
           BoolToStr[Version.IsVendorATI], BoolToStr[Version.IsFglrx],

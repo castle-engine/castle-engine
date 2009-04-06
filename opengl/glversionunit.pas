@@ -75,6 +75,7 @@ type
     FRenderer: string;
     FIsVendorATI: boolean;
     FIsFglrx: boolean;
+    FVendorNVidia: boolean;
     FBuggyPointSetAttrib: boolean;
     FBuggyPixelUnpack1: boolean;
   public
@@ -138,6 +139,9 @@ type
       (Note that the image is actually correct, even capturing it
       by glReadPixels works Ok; only drawing of it fails.) }
     property BuggyPixelUnpack1: boolean read FBuggyPixelUnpack1;
+
+    { Detect NVidia GPU. }
+    property VendorNVidia: boolean read FVendorNVidia;
   end;
 
 var
@@ -366,6 +370,9 @@ begin
 
   FVendor := AVendor;
   FRenderer := ARenderer;
+
+  { Actually seen possible values here: 'NVIDIA Corporation'. }
+  FVendorNVidia := IsPrefix('NVIDIA', Vendor);
 
   { Although "ATI Technologies Inc." is usually found,
     according to http://delphi3d.net/hardware/listreports.php
