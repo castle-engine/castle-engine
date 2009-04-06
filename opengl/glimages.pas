@@ -207,6 +207,9 @@ procedure ImageDrawCutted(const image: TImage; cutx, cuty: cardinal);
 { This creates new display list with a call to ImageDraw(Img) inside. }
 function ImageDrawToDisplayList(const img: TImage): TGLuint;
 
+function ImageDrawCuttedToDisplayList(
+  const image: TImage; cutx, cuty: cardinal): TGLuint;
+
 { Saving screen to TRGBImage ----------------------------------- }
 
 { Note about saving images from GL_FRONT:
@@ -237,6 +240,7 @@ function ImageDrawToDisplayList(const img: TImage): TGLuint;
 
 { Saves the current color buffer contents
   to an image file or to TRGBImage object.
+
   Sidenote: useful function to generate image
   filename for game screenshots is @link(FnameAutoInc) in @link(KambiUtils)
   unit.
@@ -253,8 +257,11 @@ function ImageDrawToDisplayList(const img: TImage): TGLuint;
   color buffer -- so be sure that it contains what you want
   before using this function.
 
+  The versions that don't get any xpos, ypos, width, height parameters
+  save the whole screen (more precisely, the current OpenGL viewport).
+
   Note that you can pass here any ReadBuffer value allowed by
-  glReadBuffer OpenGL function).
+  glReadBuffer OpenGL function.
 
   Version with ImageClass can save to any image format from GLImageClasses.
 
@@ -265,6 +272,7 @@ function ImageDrawToDisplayList(const img: TImage): TGLuint;
   @groupBegin }
 procedure SaveScreen_noflush(const FileName: string; ReadBuffer: TGLenum); overload;
 function SaveScreen_noflush(ReadBuffer: TGLenum): TRGBImage; overload;
+
 function SaveScreen_noflush(xpos, ypos, width, height: integer;
   ReadBuffer: TGLenum): TRGBImage; overload;
 
@@ -279,14 +287,49 @@ procedure SaveScreen_noflush(
   ReadBuffer: TGLenum); overload;
 { @groupEnd }
 
+{ Like SaveScreen_noflush(ReadBuffer), except it may make the width larger,
+  to workaround fglrx bug TGLVersion.BuggyPixelUnpack1.
+
+  It will eventually enlarge the Width to make it a multiple of 4.
+  This way the image lines are safely aligned to a multiple of 4,
+  and you can draw them by standard OpenGL PIXEL_UNPACK alignment = 4.
+
+  You can draw this image by normal ImageDraw, although you risk
+  then that you will see an additional column at the right filled
+  with garbage colors (due to enlarging of screen done here).
+  It's best to draw this only by ImageDrawCutted(RealScreenWidth, Image.Height),
+  that is: use RealScreenWidth when drawing, not Image.Width. }
+function SaveAlignedScreen_noflush(ReadBuffer: TGLenum;
+  out RealScreenWidth: Cardinal): TRGBImage;
+
+{ Captures current screen and creates a display list to draw it in the future.
+
+  Capturing the screen is done by SaveScreen_noflush,
+  drawing of the image is done normally,
+  and placed in a display list.
+
+  When TGLVersion.BuggyPixelUnpack1 is present, this is actually more complicated
+  (we capture a little larger screen by SaveAlignedScreen_noflush,
+  and draw by ImageDrawCutted), but the intention of this procedure is to
+  completely hide this completexity from you.
+
+  They have "Whole_" in their name, otherwise they could be easily
+  confused with SaveScreen_ToDisplayList_noflush that takes 5 integers
+  (and can save a part of the screen).
+
+  @groupBegin }
+function SaveScreenWhole_ToDisplayList_noflush(ReadBuffer: TGLenum;
+  out SavedScreenWidth, SavedScreenHeight: Cardinal): TGLuint;
+function SaveScreenWhole_ToDisplayList_noflush(ReadBuffer: TGLenum): TGLuint;
+{ @groupEnd }
+
 { Saves the current color buffer (captured like
   @link(SaveScreen_noflush)) into the display list to redraw it.
   That is, it returns newly created display list that contains
   call to ImageDraw on a captured image.
 
   @groupBegin }
-function SaveScreenToDisplayList_noflush(ReadBuffer: TGLenum): TGLuint; overload;
-function SaveScreenToDisplayList_noflush(xpos, ypos, width, height: integer;
+function SaveScreen_ToDisplayList_noflush(xpos, ypos, width, height: integer;
   ReadBuffer: TGLenum): TGLuint; overload;
 { @groupEnd }
 
@@ -431,7 +474,7 @@ procedure glTexImage2DForCubeMap(
 
 implementation
 
-uses SysUtils, KambiUtils, KambiLog;
+uses SysUtils, KambiUtils, KambiLog, GLVersionUnit;
 
 function ImageGLFormat(const Img: TImage): TGLenum;
 begin
@@ -524,6 +567,16 @@ begin
   finally glEndList end;
 end;
 
+function ImageDrawCuttedToDisplayList(
+  const image: TImage; cutx, cuty: cardinal): TGLuint;
+begin
+  Result := glGenListsCheck(1, 'ImageDrawCuttedToDisplayList');
+  glNewList(Result, GL_COMPILE);
+  try
+    ImageDrawCutted(Image, cutx, cuty);
+  finally glEndList end;
+end;
+
 { Saving screen to TRGBImage ------------------------------------------------ }
 
 { This is the basis for all other SaveScreen* functions below. }
@@ -561,31 +614,70 @@ begin
 end;
 
 procedure SaveScreen_noflush(const FileName: string; ReadBuffer: TGLenum);
-var img: TRGBImage;
+var
+  img: TRGBImage;
 begin
- try
   img := SaveScreen_noflush(ReadBuffer);
-  SaveImage(img, FileName);
- finally Img.Free end;
+  try
+    SaveImage(img, FileName);
+  finally Img.Free end;
 end;
 
 function SaveScreen_noflush(ReadBuffer: TGLenum): TRGBImage;
-var viewport: TVector4i;
+var
+  Viewport: TVector4i;
 begin
- glGetIntegerv(GL_VIEWPORT, @viewport);
- result := SaveScreen_noflush(viewport[0], viewport[1], viewport[2], viewport[3], ReadBuffer);
+  glGetIntegerv(GL_VIEWPORT, @viewport);
+  result := SaveScreen_noflush(viewport[0], viewport[1], viewport[2], viewport[3], ReadBuffer);
 end;
 
-function SaveScreenToDisplayList_noflush(ReadBuffer: TGLenum): TGLuint; overload;
-var img: TImage;
+function SaveAlignedScreen_noflush(ReadBuffer: TGLenum;
+  out RealScreenWidth: Cardinal): TRGBImage;
+var
+  Viewport: TVector4i;
 begin
- img := SaveScreen_noflush(ReadBuffer);
- try
-  result := ImageDrawToDisplayList(img);
- finally Img.Free end;
+  glGetIntegerv(GL_VIEWPORT, @viewport);
+  RealScreenWidth := Viewport[2];
+
+  if RealScreenWidth mod 4 <> 0 then
+    Viewport[2] += (4 - RealScreenWidth mod 4);
+
+  result := SaveScreen_noflush(viewport[0], viewport[1], viewport[2], viewport[3], ReadBuffer);
 end;
 
-function SaveScreenToDisplayList_noflush(xpos, ypos, width, height: integer; ReadBuffer: TGLenum): TGLuint; overload;
+function SaveScreenWhole_ToDisplayList_noflush(ReadBuffer: TGLenum;
+  out SavedScreenWidth, SavedScreenHeight: Cardinal): TGLuint;
+var
+  ScreenImage: TRGBImage;
+begin
+  if GLVersion.BuggyPixelUnpack1 then
+  begin
+     ScreenImage := SaveAlignedScreen_noflush(GL_FRONT, SavedScreenWidth);
+     try
+       SavedScreenHeight := ScreenImage.Height;
+       Result := ImageDrawCuttedToDisplayList(ScreenImage, SavedScreenWidth, SavedScreenHeight);
+     finally FreeAndNil(ScreenImage) end;
+  end else
+  begin
+     ScreenImage := SaveScreen_noflush(GL_FRONT);
+     try
+       SavedScreenWidth  := ScreenImage.Width ;
+       SavedScreenHeight := ScreenImage.Height;
+       Result := ImageDrawToDisplayList(ScreenImage);
+     finally FreeAndNil(ScreenImage) end;
+  end;
+end;
+
+function SaveScreenWhole_ToDisplayList_noflush(ReadBuffer: TGLenum): TGLuint;
+var
+  SavedScreenWidth, SavedScreenHeight: Cardinal;
+begin
+  Result := SaveScreenWhole_ToDisplayList_noflush(ReadBuffer,
+    SavedScreenWidth, SavedScreenHeight);
+end;
+
+function SaveScreen_ToDisplayList_noflush(
+  xpos, ypos, width, height: integer; ReadBuffer: TGLenum): TGLuint;
 var img: TImage;
 begin
  img := SaveScreen_noflush(xpos, ypos, width, height, ReadBuffer);

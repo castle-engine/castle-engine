@@ -276,7 +276,7 @@ type
   TGLModeFrozenScreen = class(TGLMode)
   private
     dlScreenImage: TGLuint;
-    ScreenImage: TImage;
+    SavedScreenWidth, SavedScreenHeight: Cardinal;
     FPolygonStipple: PPolygonStipple;
   public
     { This mode on enter catches current screen (with glwin.SaveScreen) then
@@ -550,8 +550,8 @@ begin
  { TODO:  I should build display list with this in each FrozenImageResize
    (glwin.Width, glwin.Height may change with time). }
 
- if (glwin.Width > Mode.ScreenImage.Width) or
-    (glwin.Height > Mode.ScreenImage.Height) then
+ if (Cardinal(glwin.Width ) > Mode.SavedScreenWidth ) or
+    (Cardinal(glwin.Height) > Mode.SavedScreenHeight) then
   glClear(GL_COLOR_BUFFER_BIT);
 
  Attribs := GL_CURRENT_BIT or GL_ENABLE_BIT;
@@ -601,8 +601,8 @@ begin
  { setup our 2d projection. We must do it before SaveScreen }
  glwin.EventResize;
 
- ScreenImage := SaveScreen_noflush(GL_FRONT);
- dlScreenImage := ImageDrawToDisplayList(ScreenImage);
+ dlScreenImage := SaveScreenWhole_ToDisplayList_noflush(GL_FRONT,
+   SavedScreenWidth, SavedScreenHeight);
 end;
 
 destructor TGLModeFrozenScreen.Destroy;
@@ -610,7 +610,6 @@ begin
  inherited;
  { it's a little safer to call this after inherited }
  glFreeDisplayList(dlScreenImage);
- FreeAndNil(ScreenImage);
 end;
 
 end.

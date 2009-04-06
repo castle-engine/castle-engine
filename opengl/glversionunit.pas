@@ -76,6 +76,7 @@ type
     FIsVendorATI: boolean;
     FIsFglrx: boolean;
     FBuggyPointSetAttrib: boolean;
+    FBuggyPixelUnpack1: boolean;
   public
     constructor Create(const VersionString, AVendor, ARenderer: string);
 
@@ -120,6 +121,23 @@ type
       various Mesa versions and report to me which version does / does not
       need BuggyPointSetAttrib = @true. }
     property BuggyPointSetAttrib: boolean read FBuggyPointSetAttrib;
+
+    { Detect fglrx (ATI Radeon on Linux) with buggy drawing of
+      glPixelStorei(GL_UNPACK_ALIGNMENT, 1) behavior.
+
+      I observe this under Debian testing after upgrading fglrx
+      from 8-12-4 to 9-2-2. I know the bug wasn't present in 8-12-4
+      (and some other < 8-12-4 that I previously used), and it is in 9-2-2.
+
+      Precisely, the problem is for images with size like 819 x 614.
+      Drawing them by glDrawPixels (including the case when you put
+      this glDrawPixels) requires glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+      (as our TRGBImage is not aligned). And on GPUs with
+      BuggyPixelUnpack1, such glDrawPixels will simply draw a random
+      mess of colors on the screen, like some memory garbage.
+      (Note that the image is actually correct, even capturing it
+      by glReadPixels works Ok; only drawing of it fails.) }
+    property BuggyPixelUnpack1: boolean read FBuggyPixelUnpack1;
   end;
 
 var
@@ -356,6 +374,13 @@ begin
   FIsFglrx := {$ifdef LINUX} IsVendorATI {$else} false {$endif};
 
   FBuggyPointSetAttrib := IsMesa and IsPrefix('Mesa DRI Intel', Renderer);
+
+  { I would like to set this when fglrx is detected with version 9.x.
+    But I really don't see anything clearly indicating fglrx version,
+    maybe the last number in GL_VERSION4? But it's 8494 for 9.2 version...
+    It's a completely blind and probably incorrect guess,
+    but for now I'll just assume that Release >= 8490 indicates 9.x. }
+  FBuggyPixelUnpack1 := IsFglrx and ReleaseExists and (Release >= 8490);
 end;
 
 finalization

@@ -99,7 +99,7 @@ procedure InputAnyKey(glwin: TGLWindow; ReadBuffer: TGLenum; FlushGLWindow: bool
 
 implementation
 
-uses GLImages;
+uses SysUtils, GLImages;
 
 { gl window callbacks for GLWinInput -------------------------------------------- }
 
@@ -166,7 +166,7 @@ begin
  SavedMode := TGLMode.Create(glwin, 0, false);
  try
   if FlushGLWindow then glwin.FlushRedisplay;
-  Data.dlBGImage := SaveScreenToDisplayList_noflush(ReadBuffer);
+  Data.dlBGImage := SaveScreenWhole_ToDisplayList_noflush(ReadBuffer);
   Data.Answer := AnswerDefault;
   Data.MinLength := MinLength;
   Data.MaxLength := MaxLength;
@@ -193,7 +193,7 @@ end;
 type
   TInputAnyKeyData = record
     DoClear: boolean;
-    dlImage: TGLuint;
+    dlDrawImage: TGLuint;
     KeyPressed: boolean;
   end;
   PInputAnyKeyData = ^TInputAnyKeyData;
@@ -203,7 +203,7 @@ var D: PInputAnyKeyData;
 begin
  D := PInputAnyKeyData(glwin.UserData);
  if D^.DoClear then glClear(GL_COLOR_BUFFER_BIT);
- glCallList(D^.dlImage);
+ glCallList(D^.dlDrawImage);
 end;
 
 procedure KeyDownAnyKey(glwin: TGLWindow; key: TKey; c: char);
@@ -215,48 +215,70 @@ end;
 
 { GLWinInputAnyKey ----------------------------------------------------------- }
 
-procedure InputAnyKey(glwin: TGLWindow; const Img: TImage; RasterX, RasterY: Integer);
-var Data: TInputAnyKeyData;
-    savedMode: TGLMode;
+procedure InputAnyKeyCore(glwin: TGLWindow; dlDrawImage: TGLuint;
+  RasterX, RasterY: Integer; BGImageWidth, BGImageHeight: Cardinal);
+var
+  Data: TInputAnyKeyData;
+  savedMode: TGLMode;
 begin
  SavedMode := TGLMode.Create(glwin, GL_COLOR_BUFFER_BIT, false);
  try
   glDisable(GL_ALPHA_TEST);
 
-  Data.DoClear := (glwin.Width > Img.Width) or (glwin.Height > Img.Height);
-  Data.dlImage := ImageDrawToDisplayList(Img);
+  Data.DoClear := (Cardinal(glwin.Width ) > BGImageWidth ) or
+                  (Cardinal(glwin.Height) > BGImageHeight);
+  Data.dlDrawImage := dlDrawImage;
   Data.KeyPressed := false;
 
-  try
-   SetStdNoCloseGLWindowState(glwin, @DrawGLAnyKey, nil, @Data,
-     false, false, false, K_None, false, false);
-   glwin.OnKeyDown := @KeyDownAnyKey;
+  SetStdNoCloseGLWindowState(glwin, @DrawGLAnyKey, nil, @Data,
+    false, false, false, K_None, false, false);
+  glwin.OnKeyDown := @KeyDownAnyKey;
 
-   glRasterPos2i(RasterX, RasterY);
-   repeat glwm.ProcessMessage(true) until Data.KeyPressed;
-
-  finally glDeleteLists(Data.dlImage, 1) end;
+  glRasterPos2i(RasterX, RasterY);
+  repeat glwm.ProcessMessage(true) until Data.KeyPressed;
  finally SavedMode.Free end;
 end;
 
-procedure InputAnyKey(glwin: TGLWindow; const ImgFileName: string; ResizeX, ResizeY, RasterX, RasterY: Integer);
-var Img: TImage;
+procedure InputAnyKey(glwin: TGLWindow; const Img: TImage;
+  RasterX, RasterY: Integer);
+var
+  DL: TGLuint;
 begin
- Img := LoadImage(ImgFileName, [TRGBImage], [], ResizeX, ResizeY);
- try
-  InputAnyKey(glwin, Img, RasterX, RasterY);
- finally Img.Free end;
+  DL := ImageDrawToDisplayList(Img);
+  try
+    InputAnyKeyCore(glwin, DL, RasterX, RasterY, Img.Width, Img.Height);
+  finally glFreeDisplayList(DL) end;
 end;
 
-procedure InputAnyKey(glwin: TGLWindow; ReadBuffer: TGLenum; FlushGLWindow: boolean;
-  RasterX, RasterY: Integer);
-var Img: TImage;
+procedure InputAnyKey(glwin: TGLWindow; const ImgFileName: string;
+  ResizeX, ResizeY, RasterX, RasterY: Integer);
+var
+  DL: TGLuint;
+  Image: TImage;
+  BGImageWidth, BGImageHeight: Cardinal;
 begin
- if FlushGLWindow then glwin.FlushRedisplay;
- Img := SaveScreen_noflush(ReadBuffer);
- try
-  InputAnyKey(glwin, Img, RasterX, RasterY);
- finally Img.Free end;
+  Image := LoadImage(ImgFileName, [TRGBImage], [], ResizeX, ResizeY);
+  try
+    BGImageWidth  := Image.Width ;
+    BGImageHeight := Image.Height;
+    DL := ImageDrawToDisplayList(Image);
+  finally FreeAndNil(Image) end;
+  try
+    InputAnyKeyCore(glwin, DL, RasterX, RasterY, BGImageWidth, BGImageHeight);
+  finally glFreeDisplayList(DL) end;
+end;
+
+procedure InputAnyKey(glwin: TGLWindow; ReadBuffer: TGLenum;
+  FlushGLWindow: boolean; RasterX, RasterY: Integer);
+var
+  DL: TGLuint;
+  BGImageWidth, BGImageHeight: Cardinal;
+begin
+  if FlushGLWindow then glwin.FlushRedisplay;
+  DL := SaveScreenWhole_ToDisplayList_noflush(ReadBuffer, BGImageWidth, BGImageHeight);
+  try
+    InputAnyKeyCore(glwin, DL, RasterX, RasterY, BGImageWidth, BGImageHeight);
+  finally glFreeDisplayList(DL) end;
 end;
 
 end.

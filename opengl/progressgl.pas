@@ -114,7 +114,7 @@ begin
  glRectf(margines, y1, glwin.width-margines, y2);
  glColor3f(0.2, 0.5, 0);
  glRectf(margines, y1,
-   margines + (glwin.width-2*margines) * Progress.Position/Progress.Max, y2);
+   margines + (Cardinal(glwin.width)-2*margines) * Progress.Position/Progress.Max, y2);
 
  glColor3f(0, 0,0);
  glRasterPos2f(margines + 20,
@@ -139,7 +139,7 @@ begin
    GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT, false);
 
  {catch screen}
- list_drawProgressBG := Window.SaveScreenToDisplayList;
+ list_drawProgressBG := Window.SaveScreen_ToDisplayList;
 
  {init our state}
  SetStdNoCloseGLWindowState(Window,

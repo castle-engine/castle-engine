@@ -2097,13 +2097,17 @@ type
       If you *intent* to use something other than GL_FRONT,
       or simply have some more advanced needs than just "save current screen",
       use KambiGLUtils.SaveScreenXxx_noflush instead of these. }
+
     procedure SaveScreen(const fname: string); overload;
     function SaveScreen: TRGBImage; overload;
-    function SaveScreen( const xpos, ypos, SavedAreaWidth,
-      SavedAreaHeight: integer): TRGBImage; overload;
-    function SaveScreenToDisplayList: TGLuint; overload;
-    function SaveScreenToDisplayList(const xpos, ypos, SavedAreaWidth,
-      SavedAreaHeight: integer): TGLuint; overload;
+    function SaveScreen_ToDisplayList: TGLuint; overload;
+
+    function SaveScreen(
+      const xpos, ypos, SavedAreaWidth,
+        SavedAreaHeight: integer): TRGBImage; overload;
+    function SaveScreen_ToDisplayList(
+      const xpos, ypos, SavedAreaWidth,
+        SavedAreaHeight: integer): TGLuint; overload;
 
     {$ifndef GLWINDOW_GLUT}
     { This asks user where to save the file (using @link(FileDialog),
@@ -3670,20 +3674,20 @@ begin
     SavedAreaWidth, SavedAreaHeight, ReadBuffer);
 end;
 
-function TGLWindow.SaveScreenToDisplayList: TGLuint;
+function TGLWindow.SaveScreen_ToDisplayList: TGLuint;
 begin
  if DoubleBuffer then
  begin
   EventDraw;
-  Result := SaveScreenToDisplayList_noflush(GL_BACK);
+  Result := SaveScreenWhole_ToDisplayList_noflush(GL_BACK);
  end else
  begin
   FlushRedisplay;
-  Result := SaveScreenToDisplayList_noflush(GL_FRONT);
+  Result := SaveScreenWhole_ToDisplayList_noflush(GL_FRONT);
  end;
 end;
 
-function TGLWindow.SaveScreenToDisplayList(
+function TGLWindow.SaveScreen_ToDisplayList(
   const xpos, ypos, SavedAreaWidth, SavedAreaHeight: integer): TGLuint;
 var
   ReadBuffer: TGLenum;
@@ -3697,7 +3701,7 @@ begin
     FlushRedisplay;
     ReadBuffer := GL_FRONT;
   end;
-  Result := SaveScreenToDisplayList_noflush(xpos, ypos,
+  Result := SaveScreen_ToDisplayList_noflush(xpos, ypos,
     SavedAreaWidth, SavedAreaHeight, ReadBuffer);
 end;
 

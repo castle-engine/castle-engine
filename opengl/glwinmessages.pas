@@ -983,7 +983,7 @@ begin
    wlasne callbacki)
 
    If we have DoubleBuffer then we simply call glwin.EventDraw,
-   see comments at KambiGLUtils.SaveScreen_noflush to know why
+   see comments at GLImage.SaveScreen_noflush to know why
    (in short: we DON'T want to use front buffer to save screen). }
  if glwin.DoubleBuffer then
   glwin.EventDraw else
@@ -1037,8 +1037,8 @@ begin
    OnUserMouseDown := MessageOnUserMouseDown;
    UserMouseDownOnlyWithinRect := AUserMouseDownOnlyWithinRect;
    if glwin.DoubleBuffer then
-    dlDrawBG := SaveScreenToDisplayList_noflush(GL_BACK) else
-    dlDrawBG := SaveScreenToDisplayList_noflush(GL_FRONT);
+    dlDrawBG := SaveScreenWhole_ToDisplayList_noflush(GL_BACK) else
+    dlDrawBG := SaveScreenWhole_ToDisplayList_noflush(GL_FRONT);
    answered := false;
    if GLWinMessagesTheme.Font = nil then
     font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_m18) else
