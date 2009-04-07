@@ -783,6 +783,8 @@ function SimpleKeepAboveMinPlane(
 
 implementation
 
+uses KambiStringUtils;
+
 {$define read_implementation}
 {$I dynarray_1.inc}
 
@@ -1213,6 +1215,8 @@ function TVRMLBaseTrianglesOctree.MoveAllowed(
   const TriangleToIgnore: PVRMLTriangle;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
 
+  { $define DEBUG_WALL_SLIDING}
+
   const
     { For wall-sliding inside MoveAlongTheBlocker implementations,
       we want to position ourselves slightly farther away than
@@ -1259,6 +1263,10 @@ function TVRMLBaseTrianglesOctree.MoveAllowed(
 
     Result := MoveAllowedSimple(OldPos, NewPos, CameraRadius,
       TriangleToIgnore, TrianglesToIgnoreFunc);
+
+    {$ifdef DEBUG_WALL_SLIDING}
+    Writeln('Wall-sliding: WORSE version without 3d intersection. Blocker ', PointerToStr(Blocker), '.');
+    {$endif}
   end;
 
   { The better wall-sliding implementation, that can calculate
@@ -1279,8 +1287,18 @@ function TVRMLBaseTrianglesOctree.MoveAllowed(
   var
     PlanePtr: PVector4Single;
     Slide, Projected: TVector3Single;
+    NewBlocker: PVRMLTriangle;
+    NewBlockerIntersection: TVector3Single;
   begin
     PlanePtr := @(Blocker^.World.Plane);
+
+    {$ifdef DEBUG_WALL_SLIDING}
+    Write('Wall-sliding: Better version (with 3d intersection). ');
+    if SegmentCollision then
+      Write('Segment collided. ') else
+      Write('Sphere collided . ');
+    Writeln('Blocker ', PointerToStr(Blocker), '.');
+    {$endif}
 
     { Project ProposedNewPos or OldPos on Blocker plane.
       The idea is that knowing this projection, and knowing BlockerIntersection,
@@ -1313,6 +1331,7 @@ function TVRMLBaseTrianglesOctree.MoveAllowed(
         Instead we move all the way along the blocker. This is in practice Ok. }
 
       VectorAdjustToLengthTo1st(Slide, PointsDistance(OldPos, ProposedNewPos));
+
       NewPos := VectorAdd(OldPos, Slide);
 
       { Even though I calculated NewPos so that it's not blocked by object
@@ -1320,11 +1339,84 @@ function TVRMLBaseTrianglesOctree.MoveAllowed(
         (e.g. if player is trying to walk into the corner (two walls)).
         I can do it by using my simple MoveAllowedSimple. }
 
-      Result := MoveAllowedSimple(OldPos, NewPos, CameraRadius,
-        TriangleToIgnore, TrianglesToIgnoreFunc);
+      Result := MoveAllowedSimple(OldPos, NewPos,
+        CameraRadius, TriangleToIgnore, TrianglesToIgnoreFunc);
+
+      {$ifdef DEBUG_WALL_SLIDING} Writeln('Wall-sliding: Final check of sliding result: ', Result); {$endif}
+
+      if (not Result) and (not SegmentCollision) then
+      begin
+        { When going through corners, previous code will not necessarily make
+          good wall-sliding, because our Blocker may be taken from sphere
+          collision. So it's not really a good plane to slide along.
+          Let's try harder to to get a better blocker: use RayCollision
+          in the previous Slide direction,
+          and check is result still within our sphere.
+
+          We preserve below the old value of Blocker (have our own NewBlocker
+          and NewBlockerIntersection), but the rest of variables may be
+          mercilessly overriden by code below:
+          PlanePtr, Projected, Slide helpers.
+
+          Check that it works: e.g. test beginning of castle_hall_final.wrl,
+          new_acts.wrl. }
+
+        NewBlocker := RayCollision(
+          OldPos, Slide, true { return closest blocker },
+          TriangleToIgnore, false, TrianglesToIgnoreFunc);
+
+        if (NewBlocker <> nil) and
+           (NewBlocker <> Blocker) and
+           IsTriangleSphereCollision(
+             NewBlocker^.World.Triangle,
+             NewBlocker^.World.Plane,
+             ProposedNewPos,
+             { NewBlocker is accepted more generously, within 2 * normal radius. }
+             CameraRadius * 2) and
+           TryPlaneLineIntersection(NewBlockerIntersection,
+             NewBlocker^.World.Plane,
+             OldPos, VectorSubtract(ProposedNewPos, OldPos)) then
+        begin
+          {$ifdef DEBUG_WALL_SLIDING} Writeln('Wall-sliding: Better blocker found: ', PointerToStr(NewBlocker), '.'); {$endif}
+
+          { Below we essentially make the wall-sliding computation again.
+            We know that we're in sphere collision case
+            (checked above that "not SegmentCollision"). }
+
+          PlanePtr := @(NewBlocker^.World.Plane);
+          Projected := PointOnPlaneClosestToPoint(PlanePtr^, OldPos);
+          Slide := VectorSubtract(NewBlockerIntersection, Projected);
+
+          if not ZeroVector(Slide) then
+          begin
+            VectorAdjustToLengthTo1st(Slide, PointsDistance(OldPos, ProposedNewPos));
+            NewPos := VectorAdd(OldPos, Slide);
+            Result := MoveAllowedSimple(OldPos, NewPos,
+              CameraRadius, TriangleToIgnore, TrianglesToIgnoreFunc);
+
+            {$ifdef DEBUG_WALL_SLIDING} Writeln('Wall-sliding: Better blocker final check of sliding result: ', Result); {$endif}
+          end;
+        end else
+        if NewBlocker <> nil then
+        begin
+          {$ifdef DEBUG_WALL_SLIDING}
+          Writeln('Wall-sliding: Better blocker NOT found: ', PointerToStr(NewBlocker), ' ',
+            IsTriangleSphereCollision(
+              NewBlocker^.World.Triangle,
+              NewBlocker^.World.Plane,
+              ProposedNewPos, CameraRadius), ' ',
+            TryPlaneLineIntersection(NewBlockerIntersection,
+              NewBlocker^.World.Plane,
+              OldPos, VectorSubtract(ProposedNewPos, OldPos)), '.');
+          {$endif}
+        end;
+      end;
     end else
+    begin
       { Fallback to worse wall-sliding version. }
+      {$ifdef DEBUG_WALL_SLIDING} Writeln('Wall-sliding: Need to fallback to worse version (Slide = 0)'); {$endif}
       Result := MoveAlongTheBlocker(Blocker);
+    end;
   end;
 
 var
@@ -1353,19 +1445,10 @@ begin
     end else
     if TryPlaneLineIntersection(BlockerIntersection, Blocker^.World.Plane,
       OldPos, VectorSubtract(ProposedNewPos, OldPos)) then
-    begin
-      Result := MoveAlongTheBlocker(BlockerIntersection, false, Blocker);
-      {$ifdef DEBUG_WALL_SLIDING} if not Result then Writeln('Failing wall-sliding because of sphere check, has intersect'); {$endif}
-    end else
-    begin
+      Result := MoveAlongTheBlocker(BlockerIntersection, false, Blocker) else
       Result := MoveAlongTheBlocker(Blocker);
-      {$ifdef DEBUG_WALL_SLIDING} if not Result then Writeln('Failing wall-sliding because of sphere check'); {$endif}
-    end;
   end else
-  begin
     Result := MoveAlongTheBlocker(BlockerIntersection, true, Blocker);
-    {$ifdef DEBUG_WALL_SLIDING} if not Result then Writeln('Failing wall-sliding because of segment check'); {$endif}
-  end;
 end;
 
 function TVRMLBaseTrianglesOctree.MoveAllowed(
