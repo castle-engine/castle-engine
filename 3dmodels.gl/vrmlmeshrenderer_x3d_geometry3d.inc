@@ -58,6 +58,57 @@ type
 
     { Set these in descendant's constructor. }
     FaceConvex: boolean;
+
+    { Theoretically, using TRIANGLE_FAN to render convex face
+      (instead of TRIANGLES) can speed things up, as vertices are more shared.
+
+      - In practice, the speedup is not that great:
+
+        1. On new GPUs, with vertex arrays (and eventually vertex buffers)
+           rendering TRIANGLES by indexes will cache calculated vertex data.
+           (This requires that vertex data is fed in cache-friendly order
+           (triangles sharing the same vertex are specified
+           close to each other), this is in practice usually true with typical
+           data.)
+
+        2. Note that the saving works only for faces with more than 3 vertices.
+           For each vertex above 3, we waste two vertex data calls when
+           using TRIANGLES, as compared to TRIANGLE_FAN.
+           Typical faces have at most 4, 5 vertexes, so we waste 2-4 vertex
+           calls.
+
+      - Of course, above reasoning only says that "speedup is not terribly large".
+        But can it be actually bad?
+
+        It turns out that yes. For using TRIANGLE_FAN (at least for some faces),
+        we have to make glBegin / glEnd for each face. While when using TRIANGLES
+        for all faces, we can just call glBegin(GL_TRIANGLES) / glEnd for whole
+        shape (in RenderCoordinate).
+
+        Tests with roNone rendering even on small models like teapot
+        with fglrx (Radeon) on Mac Book Pro show that the glBegin / glEnd
+        is very noticeable in this case. Not only it slows down rendering,
+        it also causes awful "jerks" (sudden stops in rendering for ~0.01 second,
+        very noticeable for human eye in the middle of smooth animation
+        (like simply rotating an object in Examine mode).)
+        Even when roNone is not used (when we push all into display lists),
+        it still turns out very noticeable. Tests with "castle" on "gate"
+        level (default view after level loading): with TRIANGLE_FAN, I get
+        60/55 FPS, while without TRIANGLE_FAN I get 165/155 !!
+
+        Clearly, using TRIANGLE_FAN is not a good idea for Radeon.
+
+        Tests on NVidia (on kocury, "GeForce FX 5200/AGP/SSE2/3DNOW!")
+        show that speed difference is not noticeable there
+        (well, it may be very very slightly slower, but I blame the fact
+        that NVidia card is quite older... Besides it's really noticeable
+        only in special cases and it's like 21 FPS -> 18 FPS, so not large lost.)
+        So I think I'll resign from TRIANGLE_FAN usage everywhere.
+
+      By default it's false, set this to true (*before* RenderCoordinate)
+      in constructor if you're sure you need this.
+    }
+    TryRenderingFaceAsFan: boolean;
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
 
@@ -68,6 +119,8 @@ type
   end;
 
   TIndexedFaceSet_1Renderer = class(TIndexedFaceSetRenderer)
+  protected
+    procedure RenderCoordinateBegin; override;
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
@@ -397,75 +450,6 @@ end;
 
 { TIndexedFaceSetRenderer -------------------------------------------------- }
 
-{ Theoretically, using TRIANGLE_FAN to render convex face
-  (instead of TRIANGLES) can speed things up, as vertices are more shared.
-
-  - In practice, the speedup is not that great:
-
-    1. On new GPUs, with vertex arrays (and eventually vertex buffers)
-       rendering TRIANGLES by indexes will cache calculated vertex data.
-       (This requires that vertex data is fed in cache-friendly order
-       (triangles sharing the same vertex are specified
-       close to each other), this is in practice usually true with typical
-       data.)
-
-    2. Note that the saving works only for faces with more than 3 vertices.
-       For each vertex above 3, we waste two vertex data calls when
-       using TRIANGLES, as compared to TRIANGLE_FAN.
-       Typical faces have at most 4, 5 vertexes, so we waste 2-4 vertex
-       calls.
-
-  - Of course, above reasoning only says that "speedup is not terribly large".
-    But can it be actually bad?
-
-    It turns out that yes. For using TRIANGLE_FAN (at least for some faces),
-    we have to make glBegin / glEnd for each face. While when using TRIANGLES
-    for all faces, we can just call glBegin(GL_TRIANGLES) / glEnd for whole
-    shape (in RenderCoordinate).
-
-    Tests with roNone rendering even on small models like teapot
-    with fglrx (Radeon) on Mac Book Pro show that the glBegin / glEnd
-    is very noticeable in this case. Not only it slows down rendering,
-    it also causes awful "jerks" (sudden stops in rendering for ~0.01 second,
-    very noticeable for human eye in the middle of smooth animation
-    (like simply rotating an object in Examine mode).)
-    Even when roNone is not used (when we push all into display lists),
-    it still turns out very noticeable. Tests with "castle" on "gate"
-    level (default view after level loading): with TRIANGLE_FAN, I get
-    60/55 FPS, while without TRIANGLE_FAN I get 165/155 !!
-
-    Clearly, using TRIANGLE_FAN is not a good idea for Radeon.
-
-    Tests on NVidia (on kocury, "GeForce FX 5200/AGP/SSE2/3DNOW!")
-    show that speed difference is not noticeable there
-    (well, it may be very very slightly slower, but I blame the fact
-    that NVidia card is quite older... Besides it's really noticeable
-    only in special cases and it's like 21 FPS -> 18 FPS, so not large lost.)
-    So I think I'll resign from TRIANGLE_FAN usage everywhere.
-}
-{ $define TRY_RENDERING_FACE_AS_FAN}
-
-{$ifdef DARWIN}
-  { On Mac OS X 10.4.9, with Radeon ATI graphic card
-    (it's MacBook Pro computer), there's definitely a bug
-    in OpenGL implementation: it seems not able to handle
-    GL_TRIANGLE_FAN properly, which is visible on "The Gate" and
-    "Cages" levels of "The Castle": some triangles on these
-    levels (on "The Gate", it concerns that back wall and gate
-    geometry) seem to randomly disappear.
-
-    I didn't make enough
-    tests to actually make sure what's the precise condition
-    to trigger this bug (as other "The Castle" levels,
-    and castle.wrl sample VRML work OK). I also didn't test
-    on other Mac OS X systems. (However, I did test this on the
-    same computer with Linux Radeon OpenGL, and on Linux
-    it works OK --- so the problem is within software, OpenGL
-    probably, on Mac OS X ?). For safety I disable using
-    GL_TRIANGLE_FAN entirely for now on Darwin. }
-  {$undef TRY_RENDERING_FACE_AS_FAN}
-{$endif}
-
 constructor TIndexedFaceSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
 begin
   inherited;
@@ -474,11 +458,11 @@ end;
 
 procedure TIndexedFaceSetRenderer.RenderCoordinate;
 begin
-  {$ifndef TRY_RENDERING_FACE_AS_FAN} glBegin(GL_TRIANGLES); {$endif}
+  if not TryRenderingFaceAsFan then glBegin(GL_TRIANGLES);
 
   Geometry.MakeCoordRanges(State, @RenderCoordsRange);
 
-  {$ifndef TRY_RENDERING_FACE_AS_FAN} glEnd; {$endif}
+  if not TryRenderingFaceAsFan then glEnd;
 end;
 
 procedure TIndexedFaceSetRenderer.RenderVertex(IndexNum: Integer);
@@ -1055,41 +1039,40 @@ begin
 
   if not FaceConvex then
   begin
-   {$ifdef TRY_RENDERING_FACE_AS_FAN} glBegin(GL_TRIANGLES); {$endif}
+   if TryRenderingFaceAsFan then glBegin(GL_TRIANGLES);
 
    TriangulateFace(Addr(CoordIndex.Items.Items[BeginIndex]),
      EndIndex-BeginIndex, Coord.Items.ItemsArray,
      @Render_Triangulated, BeginIndex);
 
-   {$ifdef TRY_RENDERING_FACE_AS_FAN} glEnd; {$endif}
+   if TryRenderingFaceAsFan then glEnd;
   end else
   begin
-    {$ifdef TRY_RENDERING_FACE_AS_FAN}
-
-    glBegin(GL_TRIANGLE_FAN);
-    while BeginIndex < EndIndex do
+    { Render convex face }
+    if TryRenderingFaceAsFan then
     begin
-      RenderVertex(BeginIndex);
-      Inc(BeginIndex);
-    end;
-    glEnd;
-
-    {$else}
-
-    (* Alternative version:
-
-       TriangulateConvexFace(EndIndex - BeginIndex,
-         @Render_Triangulated, BeginIndex);
-    *)
-
-    for I := BeginIndex to EndIndex - 3 do
+      glBegin(GL_TRIANGLE_FAN);
+      while BeginIndex < EndIndex do
+      begin
+        RenderVertex(BeginIndex);
+        Inc(BeginIndex);
+      end;
+      glEnd;
+    end else
     begin
-      RenderVertex(BeginIndex);
-      RenderVertex(I + 1);
-      RenderVertex(I + 2);
-    end;
+      (* Alternative version:
 
-    {$endif}
+         TriangulateConvexFace(EndIndex - BeginIndex,
+           @Render_Triangulated, BeginIndex);
+      *)
+
+      for I := BeginIndex to EndIndex - 3 do
+      begin
+        RenderVertex(BeginIndex);
+        RenderVertex(I + 1);
+        RenderVertex(I + 2);
+      end;
+    end;
   end;
 end;
 
@@ -1132,6 +1115,66 @@ begin
     AutoGenerateNormals(SH.FdCreaseAngle.Value);
 
   RadianceTransfer := ANode.FdRadianceTransfer.Items;
+end;
+
+procedure TIndexedFaceSet_1Renderer.RenderCoordinateBegin;
+begin
+  inherited;
+
+  { inherited set Mat1Implementation (basing on our own MaterialIndex and such
+    fields), we depend on it below. }
+
+  { On Mac OS X 10.4.9, with Radeon ATI graphic card
+    (it's MacBook Pro computer), there's definitely a bug
+    in OpenGL implementation: it seems not able to handle
+    GL_TRIANGLE_FAN properly, which is visible on "The Gate" and
+    "Cages" levels of "The Castle": some triangles on these
+    levels (on "The Gate", it concerns that back wall and gate
+    geometry) seem to randomly disappear.
+
+    I didn't make enough
+    tests to actually make sure what's the precise condition
+    to trigger this bug (as other "The Castle" levels,
+    and castle.wrl sample VRML work OK). I also didn't test
+    on other Mac OS X systems. (However, I did test this on the
+    same computer with Linux Radeon OpenGL, and on Linux
+    it works OK --- so the problem is within software, OpenGL
+    probably, on Mac OS X ?). For safety I disable using
+    GL_TRIANGLE_FAN entirely for now on Darwin.
+
+    In other words, for Darwin, TryRenderingFaceAsFan will always remain
+    false. }
+  {$ifndef DARWIN}
+
+  { When we have material per-face or per-vertex, Render_BindMaterial_1
+    will be called during rendering. But Render_BindMaterial_1 doesn't
+    work all perfectly within glBegin...glEnd, it may do things not
+    allowed, like disable/enable lighting or fog
+    (although it works in the usual case, as changing glMaterial/Color is Ok).
+
+    This also workarounds NVidia GeForce 5200 problems for material
+    binding PER_FACE_INDEXED, see
+    kambi_vrml_test_suite/vrml_1/material_per_face_problematic_on_nvidia_gf_5200.wrl
+
+    TODO: for per-vertex, this is actually still not correct.
+    The only way is to make Render_BindMaterial_1 always correct within glBegin/End,
+    by making some knowledge (like fogImmune or only-emissive)
+    known for the whole material (not just for it's index), and initialize
+    them in RenderMaterialBegin.
+
+    Then TryRenderingFaceAsFan should be called only to workaround this
+    NVidia bug (possibly, only for thse NVidia models?).
+  }
+
+  if Mat1Implementation in
+    [ miPerVertexCoordIndexed, miPerVertexMatIndexed,
+      miPerFace, miPerFaceMatIndexed ] then
+  begin
+    TryRenderingFaceAsFan := true;
+    if Log then
+      WritelnLog('Rendering', 'Forcing rendering by separate TRIANGLE_FAN primitives, because we have VRML 1.0 with Material per-face or per-vertex');
+  end;
+  {$endif}
 end;
 
 { TIndexedFaceSet_2Renderer -------------------------------------------------- }
