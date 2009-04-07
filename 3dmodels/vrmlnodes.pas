@@ -4396,7 +4396,7 @@ begin
       end else
       begin
         raise EVRMLParserError.Create(Lexer,
-          Format('Invalid VRML node content (unknown or not allowed' +
+          Format('Invalid VRML node content (probably unknown or not allowed' +
             ' field, prototype or VRML 1.0-style children) inside "%s": got %s',
             [NodeTypeName, Lexer.DescribeToken]));
       end;
@@ -8290,10 +8290,36 @@ begin
 
     PositionInParent := 0;
 
-    while Lexer.Token <> EndToken do
+    if EndToken <> vtEnd then
     begin
-      ParseVRMLStatement;
-      Inc(PositionInParent);
+      while Lexer.Token <> EndToken do
+      begin
+        ParseVRMLStatement;
+        Inc(PositionInParent);
+      end;
+    end else
+    begin
+      { Somewhat more involved version of the loop, the idea is to catch
+        EVRMLParserError, EVRMLLexerError happening in the ParseVRMLStatement
+        and convert them to VRMLWarning (that merely stop reading VRML file,
+        but the file contents read so far are Ok). }
+      while Lexer.Token <> EndToken do
+      try
+        ParseVRMLStatement;
+        Inc(PositionInParent);
+      except
+        on E: EVRMLParserError do
+        begin
+          VRMLWarning(vwSerious, Format('Error when parsing, will skip the rest of VRML file: %s', [E.Message]));
+          Break;
+        end;
+
+        on E: EVRMLLexerError do
+        begin
+          VRMLWarning(vwSerious, Format('Lexical error, will skip the rest of VRML file: %s', [E.Message]));
+          Break;
+        end;
+      end;
     end;
   except FreeAndNil(Result); raise end;
 end;
