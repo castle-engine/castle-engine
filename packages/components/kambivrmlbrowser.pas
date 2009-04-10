@@ -365,9 +365,11 @@ begin
 
   glClear(ClearBuffers);
 
-  TVRMLGLHeadlight.RenderOrDisable(Scene.Headlight, 0);
-
   glLoadMatrix(Navigator.Matrix);
+
+  { TODO: passing Navigator here, and using ForCubeMap, have to be done at some point }
+  TVRMLGLHeadlight.RenderOrDisable(Scene.Headlight, 0, true, nil);
+
   if ShadowVolumesPossible and
      ShadowVolumes and
      Scene.MainLightForShadowsExists then

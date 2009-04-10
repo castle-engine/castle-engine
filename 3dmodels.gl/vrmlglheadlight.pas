@@ -23,7 +23,7 @@ unit VRMLGLHeadLight;
 
 interface
 
-uses VectorMath, VRMLNodes, VRMLHeadlight;
+uses VectorMath, VRMLNodes, VRMLHeadlight, Navigation;
 
 type
   { VRML headlight rendered by OpenGL. }
@@ -34,24 +34,67 @@ type
       Note that this requires that current matrix is modelview.
       Matrix @italic(may) be reset to identity by this procedure.
 
-      If CallEnabled then it will also call glEnable(GL_LIGHT_GLLightNumber). }
-    procedure Render(GLLightNumber: Cardinal; CallEnabled: boolean);
+      If HeadlightFromCurrentView = @true, then we assume
+      that headlight should be done from current view. This is the usual
+      meaning of "headlight". In this case,
+      matrix contents don't matter --- so e.g. it doesn't matter if
+      you call this before or after loading camera matrix.
+      (Internally, we'll just set matrix to identity and use lighting
+      position like (0, 0, 0), since it's Ok to do this then.)
+      Values of HeadlightPosition, HeadlightDirection also don't matter in these cases.
 
-    { This is like Light.Render(GLLightNumber, true), but will call
+      If HeadlightFromCurrentView = @false, then we assume that
+      the headlight shines from given HeadlightPosition and HeadlightDirection.
+      The modelview matrix should contain in this case the current view
+      (camera) matrix. This allows you to simulate "headlight" shining
+      from other place than current OpenGL view.
+
+      This always preserves current matrix value (doing push/pops if necessary).
+
+      If CallEnabled then it will also call glEnable(GL_LIGHT_GLLightNumber).
+
+      Overloaded version with Navigator simply uses Navigator.CameraPos/Dir
+      to get HeadlightPosition, HeadlightDirection.
+      When HeadlightFromCurrentView = @true, Navigator doesn't matter
+      (mey be @nil).
+
+      @groupBegin }
+    procedure Render(GLLightNumber: Cardinal; CallEnabled: boolean;
+      const HeadlightFromCurrentView: boolean;
+      const HeadlightPosition, HeadlightDirection: TVector3Single);
+
+    procedure Render(GLLightNumber: Cardinal; CallEnabled: boolean;
+      const HeadlightFromCurrentView: boolean;
+      Navigator: TWalkNavigator);
+    { @groupEnd }
+
+    { This is like Light.Render(GLLightNumber, true, ...), but will call
       glDisable(GL_LIGHT_GLLightNumber) if Light is nil.
 
       In effect, you can call this procedure with nil or non-nil
       parameter, and you can be sure that enabled/disabled state
-      of light GL_LIGHT_GLLightNumber will be set. }
+      of light GL_LIGHT_GLLightNumber will be set.
+
+      @groupBegin }
     class procedure RenderOrDisable(Light: TVRMLGLHeadlight;
-      GLLightNumber: Cardinal);
+      GLLightNumber: Cardinal;
+      const HeadlightFromCurrentView: boolean;
+      const HeadlightPosition, HeadlightDirection: TVector3Single);
+
+    class procedure RenderOrDisable(Light: TVRMLGLHeadlight;
+      GLLightNumber: Cardinal;
+      const HeadlightFromCurrentView: boolean;
+      Navigator: TWalkNavigator);
+    { @groupEnd }
   end;
 
 implementation
 
 uses GL, GLU, GLExt, KambiGLUtils, SysUtils, Math;
 
-procedure TVRMLGLHeadLight.Render(GLLightNumber: Cardinal; CallEnabled: boolean);
+procedure TVRMLGLHeadLight.Render(GLLightNumber: Cardinal; CallEnabled: boolean;
+  const HeadlightFromCurrentView: boolean;
+  const HeadlightPosition, HeadlightDirection: TVector3Single);
 var
   GLLight: TGLenum;
   GLAmbientColor: TVector4Single;
@@ -61,16 +104,29 @@ var
 begin
   GLLight := GL_LIGHT0 + GLLightNumber;
 
-  { GL_POSITION of the light is affected by current matrix
-    (i.e. current at the time of glLightv(GLLight, GL_POSITION, ...) call).
-    This is headlight, so this always wants to be relative to identity
-    matrix. }
-  glLoadIdentity;
+  if HeadlightFromCurrentView then
+  begin
+    glPushMatrix;
 
-  if Spot then
-    glLightv(GLLight, GL_POSITION, Vector4Single(0, 0, 0, 1)) else
-    { The light is directional }
-    glLightv(GLLight, GL_POSITION, Vector4Single(0, 0, 1, 0));
+      { GL_POSITION of the light is affected by current matrix
+        (i.e. current at the time of glLightv(GLLight, GL_POSITION, ...) call).
+        This is headlight, so this always wants to be relative to identity
+        matrix. }
+      glLoadIdentity;
+
+      if Spot then
+        glLightv(GLLight, GL_POSITION, Vector4Single(0, 0, 0, 1)) else
+        { The light is directional }
+        glLightv(GLLight, GL_POSITION, Vector4Single(0, 0, 1, 0));
+
+    glPopMatrix;
+  end else
+  begin
+    if Spot then
+      glLightv(GLLight, GL_POSITION, Vector4Single(HeadlightPosition, 1)) else
+      { The light is directional }
+      glLightv(GLLight, GL_POSITION, Vector4Single(HeadlightDirection, 0));
+  end;
 
   GLAmbientColor3 := VectorScale(Color, AmbientIntensity);
   GLAmbientColor[3] := 1.0;
@@ -96,12 +152,32 @@ begin
     glEnable(GLLight);
 end;
 
+procedure TVRMLGLHeadLight.Render(GLLightNumber: Cardinal; CallEnabled: boolean;
+  const HeadlightFromCurrentView: boolean;
+  Navigator: TWalkNavigator);
+begin
+  Render(GLLightNumber, CallEnabled, HeadlightFromCurrentView,
+    Navigator.CameraPos, Navigator.CameraDir);
+end;
+
 class procedure TVRMLGLHeadLight.RenderOrDisable(Light: TVRMLGLHeadlight;
-  GLLightNumber: Cardinal);
+  GLLightNumber: Cardinal;
+  const HeadlightFromCurrentView: boolean;
+  const HeadlightPosition, HeadlightDirection: TVector3Single);
 begin
   if Light <> nil then
-    Light.Render(GLLightNumber, true) else
+    Light.Render(GLLightNumber, true,
+      HeadlightFromCurrentView, HeadlightPosition, HeadlightDirection) else
     glDisable(GL_LIGHT0 + GLLightNumber);
+end;
+
+class procedure TVRMLGLHeadLight.RenderOrDisable(Light: TVRMLGLHeadlight;
+  GLLightNumber: Cardinal;
+  const HeadlightFromCurrentView: boolean;
+  Navigator: TWalkNavigator);
+begin
+  RenderOrDisable(Light, GLLightNumber, HeadlightFromCurrentView,
+    Navigator.CameraPos, Navigator.CameraDir);
 end;
 
 end.
