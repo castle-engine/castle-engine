@@ -290,7 +290,7 @@ procedure TGLWindow.init_window_menu_bar;
          PChar(TMenuItem(Entry).Caption)));
        gtk_check_menu_item_set_active(PGtkCheckMenuItem(Result),
          TMenuItemChecked(Entry).Checked);
-       gtk_check_menu_item_set_show_toggle(PGtkCheckMenuItem(Result), true);
+       gtk_check_menu_item_set_show_toggle(PGtkCheckMenuItem(Result), LongBool(gtrue));
 
        { To implement TMenuItemRadio I use normal GTK check menu items
          and just make them look like radio items.
