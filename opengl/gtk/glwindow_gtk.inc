@@ -809,7 +809,7 @@ end;
 procedure TGLWindow.FlushRedisplay;
 begin
  {$ifdef GLWINDOW_GTK_2}
- gdk_window_process_updates(GTK_WIDGET(WindowGtk)^.Window, true);
+ gdk_window_process_updates(GTK_WIDGET(WindowGtk)^.Window, LongBool(gtrue));
  {$else}
  { I don't know how to implement it efficiently under GTK 1.x
    -- maybe it's not possible ?
@@ -1042,7 +1042,10 @@ begin
    ContextNotPossible;
 
   GLAreaGtk := gtk_drawing_area_new;
-  if not gtk_widget_set_gl_capability(GLAreaGtk, GLConfig, nil, true,
+  if not gtk_widget_set_gl_capability(GLAreaGtk, GLConfig, nil,
+    { Use LongBool(gtrue), not just true, to workaround
+      http://lists.freepascal.org/lists/fpc-devel/2009-April/016668.html }
+    LongBool(gtrue),
     GDK_GL_RGBA_TYPE) then
    ContextNotPossible;
 
@@ -1385,7 +1388,7 @@ begin
   gtk_signal_connect(GTK_OBJECT(Data.Dialog),
     'delete_event', GTK_SIGNAL_FUNC(@signal_dialog_delete_event),   @Data);
 
-  gtk_window_set_modal(ADialog, true);
+  gtk_window_set_modal(ADialog, LongBool(gtrue));
   gtk_window_set_transient_for(ADialog, WindowGtk);
 
   { prepare Data }
@@ -1481,7 +1484,7 @@ begin
   if not OpenDialog then
   begin
     if Assigned(Glwm.gtk_file_chooser_set_do_overwrite_confirmation) then
-      Glwm.gtk_file_chooser_set_do_overwrite_confirmation(Dialog, true);
+      Glwm.gtk_file_chooser_set_do_overwrite_confirmation(Dialog, LongBool(gtrue));
   end;
 
   { We don't want to simply call gtk_file_chooser_set_filename,
