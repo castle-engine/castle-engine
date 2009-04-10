@@ -2100,6 +2100,7 @@ type
 
     procedure SaveScreen(const fname: string); overload;
     function SaveScreen: TRGBImage; overload;
+    function SaveAlignedScreen(out RealScreenWidth: Cardinal): TRGBImage;
     function SaveScreen_ToDisplayList: TGLuint; overload;
 
     function SaveScreen(
@@ -2984,7 +2985,7 @@ procedure Resize2D(glwin: TGLWindow);
 
 implementation
 
-uses ParseParametersUnit, KambiLog, GLImages
+uses ParseParametersUnit, KambiLog, GLImages, GLVersionUnit
   { using here GLWinModes/Messages makes recursive uses,
     but it's needed for FileDialog }
   {$ifdef GLWINDOW_GTK_ANY}, GLWinModes, EnumerateFiles {$endif}
@@ -3654,6 +3655,26 @@ begin
   FlushRedisplay;
   Result := SaveScreen_noflush(GL_FRONT);
  end;
+end;
+
+function TGLWindow.SaveAlignedScreen(out RealScreenWidth: Cardinal): TRGBImage;
+begin
+  if GLVersion.BuggyDrawOddWidth then
+  begin
+    if DoubleBuffer then
+    begin
+      EventDraw;
+      Result := SaveAlignedScreen_noflush(GL_BACK, RealScreenWidth);
+    end else
+    begin
+      FlushRedisplay;
+      Result := SaveAlignedScreen_noflush(GL_FRONT, RealScreenWidth);
+    end;
+  end else
+  begin
+    Result := SaveScreen;
+    RealScreenWidth := Result.Width;
+  end;
 end;
 
 function TGLWindow.SaveScreen(
