@@ -304,7 +304,8 @@ procedure SaveScreen_noflush(
   to make it divisible by four,
   to workaround fglrx bug TGLVersion.BuggyDrawOddWidth.
 
-  It will eventually enlarge the Width to make it a multiple of 4.
+  If GLVersion.BuggyDrawOddWidth then it will eventually
+  enlarge the Width to make it a multiple of 4.
   Possibly, multiple of 2 would be enough, but you don't want to risk
   with fglrx bugs...
 
@@ -324,8 +325,9 @@ function SaveAlignedScreen_noflush(ReadBuffer: TGLenum;
   drawing of the image is done normally,
   and placed in a display list.
 
-  When TGLVersion.BuggyDrawOddWidth is present, this is actually more complicated
-  (we capture a little larger screen by SaveAlignedScreen_noflush,
+  Actually, this is more complicated
+  (we capture the screen with SaveAlignedScreen_noflush,
+  to workaround GLVersion.BuggyDrawOddWidth bug,
   we also have to actually draw it a little larger),
   but the intention of this procedure is to
   completely hide this completexity from you.
@@ -667,7 +669,7 @@ begin
   glGetIntegerv(GL_VIEWPORT, @viewport);
   RealScreenWidth := Viewport[2];
 
-  if RealScreenWidth mod 4 <> 0 then
+  if GLVersion.BuggyDrawOddWidth and (RealScreenWidth mod 4 <> 0) then
     Viewport[2] += (4 - RealScreenWidth mod 4);
 
   result := SaveScreen_noflush(viewport[0], viewport[1], viewport[2], viewport[3], ReadBuffer);
@@ -678,24 +680,17 @@ function SaveScreenWhole_ToDisplayList_noflush(ReadBuffer: TGLenum;
 var
   ScreenImage: TRGBImage;
 begin
-  if GLVersion.BuggyDrawOddWidth then
-  begin
-     ScreenImage := SaveAlignedScreen_noflush(ReadBuffer, SavedScreenWidth);
-     try
-       SavedScreenHeight := ScreenImage.Height;
-       Result := { ImageDrawPartToDisplayList(ScreenImage,
-         0, 0, SavedScreenWidth, SavedScreenHeight); }
-         ImageDrawToDisplayList(ScreenImage);
-     finally FreeAndNil(ScreenImage) end;
-  end else
-  begin
-     ScreenImage := SaveScreen_noflush(ReadBuffer);
-     try
-       SavedScreenWidth  := ScreenImage.Width ;
-       SavedScreenHeight := ScreenImage.Height;
-       Result := ImageDrawToDisplayList(ScreenImage);
-     finally FreeAndNil(ScreenImage) end;
-  end;
+   ScreenImage := SaveAlignedScreen_noflush(ReadBuffer, SavedScreenWidth);
+   try
+     SavedScreenHeight := ScreenImage.Height;
+     { There was an idea to do here
+         ImageDrawPartToDisplayList(ScreenImage,
+           0, 0, SavedScreenWidth, SavedScreenHeight);
+       to draw only part of the screen when GLVersion.BuggyDrawOddWidth.
+       Unfortunately, it doesn't really work, drawing the screen
+       is buggy with GLVersion.BuggyDrawOddWidth... }
+     Result := ImageDrawToDisplayList(ScreenImage);
+   finally FreeAndNil(ScreenImage) end;
 end;
 
 function SaveScreenWhole_ToDisplayList_noflush(ReadBuffer: TGLenum): TGLuint;

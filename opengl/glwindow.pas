@@ -3659,21 +3659,14 @@ end;
 
 function TGLWindow.SaveAlignedScreen(out RealScreenWidth: Cardinal): TRGBImage;
 begin
-  if GLVersion.BuggyDrawOddWidth then
+  if DoubleBuffer then
   begin
-    if DoubleBuffer then
-    begin
-      EventDraw;
-      Result := SaveAlignedScreen_noflush(GL_BACK, RealScreenWidth);
-    end else
-    begin
-      FlushRedisplay;
-      Result := SaveAlignedScreen_noflush(GL_FRONT, RealScreenWidth);
-    end;
+    EventDraw;
+    Result := SaveAlignedScreen_noflush(GL_BACK, RealScreenWidth);
   end else
   begin
-    Result := SaveScreen;
-    RealScreenWidth := Result.Width;
+    FlushRedisplay;
+    Result := SaveAlignedScreen_noflush(GL_FRONT, RealScreenWidth);
   end;
 end;
 
