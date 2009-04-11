@@ -569,6 +569,12 @@ type
     FWalkProjectionNear: Single;
     FWalkProjectionFar : Single;
 
+    { Used by UpdateGeneratedTextures, to prevent rendering the shape
+      for which reflection texture is generated. (This wouldn't cause
+      recursive loop in our engine, but still it's bad --- rendering
+      from the inside of the object usually obscures the world around...). }
+    AvoidShapeRendering: TVRMLGLShape;
+
     { Private things for RenderFrustum --------------------------------------- }
 
     function FrustumCulling_None(Shape: TVRMLGLShape): boolean;
@@ -1903,8 +1909,9 @@ var
 
   procedure TestRenderShapeProc(Shape: TVRMLGLShape);
   begin
-    if (not Assigned(TestShapeVisibility)) or
-       TestShapeVisibility(Shape) then
+    if ( (not Assigned(TestShapeVisibility)) or
+         TestShapeVisibility(Shape)) and
+       (Shape <> AvoidShapeRendering) then
     begin
       Inc(FLastRender_RenderedShapesCount);
       if Assigned(Attributes.OnBeforeShapeRender) then
@@ -4124,9 +4131,13 @@ begin
   SI := TVRMLShapeTreeIterator.Create(Shapes, false, false, false);
   try
     while SI.GetNext do
+    begin
+      AvoidShapeRendering := TVRMLGLShape(SI.Current);
       Renderer.UpdateGeneratedTextures(SI.Current,
         RenderFunc, ProjectionNear, ProjectionFar, MapsOverlap,
         MapScreenX, MapScreenY);
+    end;
+    AvoidShapeRendering := nil;
   finally FreeAndNil(SI) end;
 end;
 

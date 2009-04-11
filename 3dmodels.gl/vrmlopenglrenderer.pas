@@ -5384,7 +5384,6 @@ var
   TexNode: TNodeGeneratedCubeMapTexture;
   TexRefIndex: Integer;
   TexRef: PTextureCubeMapReference;
-  CapturePoint: TVector3Single;
 begin
   if
     { Shape.BoundingBox must be non-empty, otherwise we don't know from what
@@ -5409,16 +5408,8 @@ begin
       if Log then
         WritelnLog('CubeMap', 'GeneratedCubeMapTexture texture regenerated');
 
-      { TODO: we should disable this very shape from rendering,
-        otherwise we usually render ourtselves from the middle of shape 3d box.
-        For now, for testing, we tweak CapturePoint to be slightly higher than
-        shape bbox (thus outside, but close, to shape). }
-
-      CapturePoint := Box3dMiddle(Shape.BoundingBox);
-      CapturePoint[1] += (Shape.BoundingBox[1][1] - Shape.BoundingBox[0][1]) * 0.6;
-
       GLCaptureCubeMapTexture(TexRef^.GLName, TexNode.FdSize.Value,
-        CapturePoint,
+        Box3dMiddle(Shape.BoundingBox),
         Render, ProjectionNear, ProjectionFar, MapsOverlap,
         MapScreenX, MapScreenY);
     end;
