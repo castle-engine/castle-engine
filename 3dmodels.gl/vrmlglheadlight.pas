@@ -124,8 +124,12 @@ begin
   begin
     if Spot then
       glLightv(GLLight, GL_POSITION, Vector4Single(HeadlightPosition, 1)) else
-      { The light is directional }
-      glLightv(GLLight, GL_POSITION, Vector4Single(HeadlightDirection, 0));
+      { The light is directional.
+        Negate HeadlightDirection: for glLightv(.., GL_POSITION, ...)
+        this is like "position in infinity from where light shines"
+        (*not* direction *in* which the light shines, as our
+        HeadlightDirection). }
+      glLightv(GLLight, GL_POSITION, Vector4Single(VectorNegate(HeadlightDirection), 0));
   end;
 
   GLAmbientColor3 := VectorScale(Color, AmbientIntensity);
