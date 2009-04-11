@@ -121,11 +121,15 @@ function GLCaptureCubeMapDDS(
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer): TDDSImage;
 
-{ Capture cube map to DDS image by rendering environment from CapturePoint.
+{ Capture cube map to OpenGL cube map texture by rendering environment
+  from CapturePoint.
 
   See GLCaptureCubeMapImages for documentation, this works the same,
   but it captures images to given OpenGL texture name Tex.
-  Tex must already be created cube map texture, with square images of Size. }
+  Tex must already be created cube map texture, with square images of Size.
+
+  This also means that Size must be a valid OpenGL cube map texture size,
+  you can check it by GLImages.IsCubeMapTextureSized. }
 procedure GLCaptureCubeMapTexture(
   const Tex: TGLuint;
   const Size: Cardinal;

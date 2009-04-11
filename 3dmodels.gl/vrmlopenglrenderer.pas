@@ -1169,6 +1169,12 @@ type
   TTextureCubeMapReference = record
     Node: TNodeX3DEnvironmentTextureNode;
     GLName: TGLuint;
+    { When Node is TNodeGeneratedTextureCubeMap,
+      this is the right size of the texture,
+      that satisfies all OpenGL cube map sizes requirements
+      (IsCubeMapTextureSized).
+      Unused for other Node classes. }
+    GeneratedSize: Cardinal;
   end;
   PTextureCubeMapReference = ^TTextureCubeMapReference;
 
@@ -3623,6 +3629,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     MinFilter, MagFilter: TGLint;
     TextureCubeMapReference: TTextureCubeMapReference;
     InitialImage: TImage;
+    Size: Cardinal;
   begin
     if TextureCubeMapReferences.TextureNodeIndex(CubeTexture) <> -1 then
       { Already loaded, nothing to do }
@@ -3654,9 +3661,22 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     MinFilter := GL_LINEAR;
     MagFilter := GL_LINEAR;
 
-    InitialImage := TRGBImage.Create(
-      CubeTexture.FdSize.Value,
-      CubeTexture.FdSize.Value);
+    Size := Max(CubeTexture.FdSize.Value, 0);
+    if not IsCubeMapTextureSized(Size) then
+    begin
+      Size := ResizeToCubeMapTextureSize(Size);
+      VRMLWarning(vwIgnorable { This may be caused by OpenGL implementation
+        limits, so it may be impossible to predict by VRML author,
+        so it's "ignorable" warning. },
+        Format('Cube map texture size %d is incorrect (cube map texture size must be a power of two, > 0 and <= GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB = %d), corrected to %d',
+          [ CubeTexture.FdSize.Value,
+            glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB),
+            Size]));
+    end;
+
+    TextureCubeMapReference.GeneratedSize := Size;
+
+    InitialImage := TRGBImage.Create(Size, Size);
     try
       { Fill with deliberately stupid (but constant) color,
         to recognize easily GeneratedCubeMapTexture which don't have textures
@@ -5408,7 +5428,7 @@ begin
       if Log then
         WritelnLog('CubeMap', 'GeneratedCubeMapTexture texture regenerated');
 
-      GLCaptureCubeMapTexture(TexRef^.GLName, TexNode.FdSize.Value,
+      GLCaptureCubeMapTexture(TexRef^.GLName, TexRef^.GeneratedSize,
         Box3dMiddle(Shape.BoundingBox),
         Render, ProjectionNear, ProjectionFar, MapsOverlap,
         MapScreenX, MapScreenY);

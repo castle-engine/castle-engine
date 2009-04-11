@@ -372,6 +372,9 @@ function ResizeToTextureSize(const r: TImage): TImage;
   so requires initialized OpenGL context. }
 function IsTextureSized(const r: TImage): boolean;
 
+function IsCubeMapTextureSized(const Size: Cardinal): boolean;
+function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal;
+
 { Loading textures ----------------------------------------------------------- }
 
 { Load new texture. It generates new texture number by glGenTextures.
@@ -737,8 +740,8 @@ begin
     Result :=
       IsPowerOf2(r.Width) and
       IsPowerOf2(r.Height) and
-      (BiggestPowerOf2(r.Width) <= maxTexSize) and
-      (BiggestPowerOf2(r.Height) <= maxTexSize);
+      (r.Width <= maxTexSize) and
+      (r.Height <= maxTexSize);
 end;
 
 procedure ResizeForTextureSize(var r: TImage);
@@ -788,19 +791,27 @@ end;
 { ----------------------------------------------------------------------------
   Adjusting image size for cube map texture. }
 
-function IsCubeMapTextureSized(const R: TImage): boolean;
-var
-  MaxTexSize: Cardinal;
+function IsCubeMapTextureSized(const Size: Cardinal): boolean;
 begin
-  if not GL_ARB_texture_cube_map then
-    Exit(true);
-
-  maxTexSize := glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB);
-
   Result :=
-    (r.Width = r.Height) { must be square } and
-    IsPowerOf2(r.Width) and
-    (BiggestPowerOf2(r.Width) <= maxTexSize);
+    (not GL_ARB_texture_cube_map) or
+    (
+      IsPowerOf2(Size) and
+      (Size > 0) and
+      (Size <= glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB))
+    );
+end;
+
+function IsCubeMapTextureSized(const R: TImage): boolean;
+begin
+  Result :=
+    (not GL_ARB_texture_cube_map) or
+    (
+      (r.Width = r.Height) { must be square } and
+      IsPowerOf2(r.Width) and
+      (r.Width > 0) and
+      (r.Width <= glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB))
+    );
 end;
 
 function ResizeToCubeMapTextureSize(const r: TImage): TImage; forward;
@@ -817,36 +828,41 @@ begin
   end;
 end;
 
+function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal;
+var
+  MaxTexSize: Cardinal;
+begin
+  Result := Size;
+  if GL_ARB_texture_cube_map then
+  begin
+    MaxTexSize := glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB);
+    if Size <= 0 then
+      Result := 1 else
+    if Size > MaxTexSize then
+      Result := MaxTexSize else
+    if IsPowerOf2(Size) then
+      Result := Size else
+      { Result jakie otrzymamy below jest na pewno < MaxTexSize bo
+        skoro Size <= MaxTexSize i not IsPowerOf2(Size) to Size < MaxTexSize
+        a MaxTexSize samo jest potega dwojki. }
+      Result := 1 shl (Biggest2Exponent(Size) + 1);
+  end;
+end;
+
 function ResizeToCubeMapTextureSize(const r: TImage): TImage;
 var
-  maxTexSize: Cardinal;
-  size: Cardinal;
-
-  function BestTexSize(size: Cardinal): Cardinal;
-  begin
-    if size > maxTexSize then
-      result := maxTexSize else
-    if IsPowerOf2(size) then
-      result := size else
-      { result jakie otrzymamy below jest na pewno < maxTexSize bo
-        skoro size <= maxTexSize i not IsPowerOf2(size) to size < maxTexSize
-        a maxTexSize samo jest potega dwojki. }
-      result := 1 shl (Biggest2Exponent(size)+1);
-  end;
-
+  Size: Cardinal;
 begin
   if GL_ARB_texture_cube_map then
   begin
-    maxTexSize := glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB);
-
-    size := Max(r.Width, r.Height);
-    size := BestTexSize(size);
+    Size := Max(r.Width, r.Height);
+    Size := ResizeToCubeMapTextureSize(Size);
 
     if Log then
       WritelnLog('Texture loading', Format('Resizing image for cube map texture from (%d, %d) to (%d, %d)',
         [R.Width, R.Height, Size, Size]));
 
-    result := r.MakeResized(size, size);
+    result := r.MakeResized(Size, Size);
   end else
     result := r.MakeCopy;
 end;

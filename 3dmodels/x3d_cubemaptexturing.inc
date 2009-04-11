@@ -156,7 +156,7 @@ begin
   Fields.Add(FFdupdate);
   { X3D specification comment: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"] }
 
-  FFdsize := TSFInt32.Create(Self, 'size', 128);
+  FFdsize := TSFInt32.Create(Self, 'size', 128, { MustBeNonnegative } true);
   FFdsize.Exposed := false;
   Fields.Add(FFdsize);
   { X3D specification comment: (0,Inf) }
