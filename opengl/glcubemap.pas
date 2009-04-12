@@ -127,9 +127,14 @@ function GLCaptureCubeMapDDS(
   See GLCaptureCubeMapImages for documentation, this works the same,
   but it captures images to given OpenGL texture name Tex.
   Tex must already be created cube map texture, with square images of Size.
-
   This also means that Size must be a valid OpenGL cube map texture size,
-  you can check it by GLImages.IsCubeMapTextureSized. }
+  you can check it by GLImages.IsCubeMapTextureSized.
+
+  This captures the cube map images to "zero" texture level.
+  If you use mipmaps, it's your problem how to generate other texture levels
+  --- in the simplest case, call GenerateMipmap(GL_TEXTURE_CUBE_MAP).
+
+  At the end, you can be sure that texture Tex is already bound. }
 procedure GLCaptureCubeMapTexture(
   const Tex: TGLuint;
   const Size: Cardinal;

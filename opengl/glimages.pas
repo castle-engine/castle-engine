@@ -1207,8 +1207,6 @@ procedure glTexImages2DForCubeMap(
   PositiveZ, NegativeZ: TImage;
   Mipmaps: boolean);
 begin
-(*
-TODO:
   if Mipmaps and HasGenerateMipmap then
   begin
     { Load six cube faces without mipmaps, then generate them all
@@ -1222,7 +1220,7 @@ TODO:
     GenerateMipmap(GL_TEXTURE_CUBE_MAP);
     if Log then
       WritelnLog('Mipmaps', 'Generating mipmaps for cube map by GenerateMipmap (GOOD)');
-  end else*)
+  end else
   begin
     glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, PositiveX, Mipmaps);
     glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB, NegativeX, Mipmaps);
@@ -1235,7 +1233,8 @@ end;
 
 function HasGenerateMipmap: boolean;
 begin
-  Result := GL_EXT_framebuffer_object;
+  { TODO: how can I make glGenerateMipmapEXT work under Fglrx ? }
+  Result := GL_EXT_framebuffer_object and (not GLVersion.IsFglrx);
 end;
 
 procedure GenerateMipmap(target: GLenum);

@@ -1175,6 +1175,9 @@ type
       (IsCubeMapTextureSized).
       Unused for other Node classes. }
     GeneratedSize: Cardinal;
+    { When Node is TNodeGeneratedTextureCubeMap,
+      this says if MinFilter needs mipmaps. }
+    GeneratedNeedsMipmaps: boolean;
   end;
   PTextureCubeMapReference = ^TTextureCubeMapReference;
 
@@ -3622,6 +3625,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     TextureCubeMapReference: TTextureCubeMapReference;
     InitialImage: TImage;
     Size: Cardinal;
+    NeedsMipmaps: boolean;
   begin
     if TextureCubeMapReferences.TextureNodeIndex(CubeTexture) <> -1 then
       { Already loaded, nothing to do }
@@ -3633,7 +3637,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
       Exit;
     end;
 
-    { calculate MinFilter, MagFilter. }
+    { calculate MinFilter, MagFilter, NeedsMipmaps. }
     if (CubeTexture.FdTextureProperties.Value <> nil) and
        (CubeTexture.FdTextureProperties.Value is TNodeTextureProperties) then
     begin
@@ -3645,7 +3649,19 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
       MinFilter := Attributes.TextureMinFilter;
       MagFilter := Attributes.TextureMagFilter;
     end;
+    NeedsMipmaps := TextureMinFilterNeedsMipmaps(MinFilter);
+    if NeedsMipmaps and not HasGenerateMipmap then
+    begin
+      VRMLWarning(vwIgnorable { This may be caused by OpenGL implementation
+        limits, so it may be impossible to predict by VRML author,
+        so it's "ignorable" warning. },
+        'OpenGL implementation doesn''t allow any glGenerateMipmap* version, so you cannot use mipmaps for GeneratedCubeMapTexture');
+      MinFilter := GL_LINEAR;
+      NeedsMipmaps := false;
+    end;
+    TextureCubeMapReference.GeneratedNeedsMipmaps := NeedsMipmaps;
 
+    { calculate Size }
     Size := Max(CubeTexture.FdSize.Value, 0);
     if not IsCubeMapTextureSized(Size) then
     begin
@@ -3658,8 +3674,6 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
             glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB),
             Size]));
     end;
-
-    TextureCubeMapReference.Node := CubeTexture;
     TextureCubeMapReference.GeneratedSize := Size;
 
     InitialImage := TRGBImage.Create(Size, Size);
@@ -3669,7 +3683,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
         updated. }
       InitialImage.Clear(Vector4Byte(255, 0, 255, 255));
 
-
+      TextureCubeMapReference.Node := CubeTexture;
       TextureCubeMapReference.GLName := Cache.TextureCubeMap_IncReference(
         CubeTexture,
         MinFilter, MagFilter,
@@ -5418,6 +5432,12 @@ begin
         Box3dMiddle(Shape.BoundingBox),
         Render, ProjectionNear, ProjectionFar, MapsOverlap,
         MapScreenX, MapScreenY);
+
+      if TexRef^.GeneratedNeedsMipmaps then
+      begin
+        { GLCaptureCubeMapTexture already bound the texture for OpenGL. }
+        GenerateMipmap(GL_TEXTURE_CUBE_MAP);
+      end;
     end;
   end;
 end;
