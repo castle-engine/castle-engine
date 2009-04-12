@@ -1956,7 +1956,6 @@ function TVRMLOpenGLRendererContextCache.TextureCubeMap_IncReference(
 var
   I: Integer;
   TextureCached: PTextureCubeMapCache;
-  Mipmaps: boolean;
 begin
   for I := 0 to TextureCubeMapCaches.High do
   begin
@@ -1983,18 +1982,11 @@ begin
   glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-  Mipmaps :=
-    (MinFilter = GL_NEAREST_MIPMAP_NEAREST) or
-    (MinFilter = GL_LINEAR_MIPMAP_NEAREST) or
-    (MinFilter = GL_NEAREST_MIPMAP_LINEAR) or
-    (MinFilter = GL_LINEAR_MIPMAP_LINEAR);
-
-  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, PositiveX, Mipmaps);
-  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB, NegativeX, Mipmaps);
-  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB, PositiveY, Mipmaps);
-  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB, NegativeY, Mipmaps);
-  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB, PositiveZ, Mipmaps);
-  glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB, NegativeZ, Mipmaps);
+  glTexImages2DForCubeMap(
+    PositiveX, NegativeX,
+    PositiveY, NegativeY,
+    PositiveZ, NegativeZ,
+    TextureMinFilterNeedsMipmaps(MinFilter));
 
   TextureCached := TextureCubeMapCaches.AppendItem;
   TextureCached^.InitialNode := Node;
@@ -3625,7 +3617,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
 
   procedure PrepareSingleGeneratedCubeTexture(CubeTexture: TNodeGeneratedCubeMapTexture);
   var
-    { TextureProperties: TNodeTextureProperties; }
+    TextureProperties: TNodeTextureProperties;
     MinFilter, MagFilter: TGLint;
     TextureCubeMapReference: TTextureCubeMapReference;
     InitialImage: TImage;
@@ -3641,11 +3633,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
       Exit;
     end;
 
-    { calculate MinFilter, MagFilter.
-      TODO: for now turn off mipmap using on gen cube map, as I will copy
-      only the base level, for now avoiding creating mipmaps (their creation
-      would take some time?) }
-    {
+    { calculate MinFilter, MagFilter. }
     if (CubeTexture.FdTextureProperties.Value <> nil) and
        (CubeTexture.FdTextureProperties.Value is TNodeTextureProperties) then
     begin
@@ -3656,10 +3644,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     begin
       MinFilter := Attributes.TextureMinFilter;
       MagFilter := Attributes.TextureMagFilter;
-    end;}
-
-    MinFilter := GL_LINEAR;
-    MagFilter := GL_LINEAR;
+    end;
 
     Size := Max(CubeTexture.FdSize.Value, 0);
     if not IsCubeMapTextureSized(Size) then
@@ -3674,6 +3659,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
             Size]));
     end;
 
+    TextureCubeMapReference.Node := CubeTexture;
     TextureCubeMapReference.GeneratedSize := Size;
 
     InitialImage := TRGBImage.Create(Size, Size);
@@ -3683,7 +3669,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
         updated. }
       InitialImage.Clear(Vector4Byte(255, 0, 255, 255));
 
-      TextureCubeMapReference.Node := CubeTexture;
+
       TextureCubeMapReference.GLName := Cache.TextureCubeMap_IncReference(
         CubeTexture,
         MinFilter, MagFilter,

@@ -377,6 +377,8 @@ function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal;
 
 { Loading textures ----------------------------------------------------------- }
 
+function TextureMinFilterNeedsMipmaps(const MinFilter: TGLenum): boolean;
+
 { Load new texture. It generates new texture number by glGenTextures.
   This takes care of UNPACK_ALIGNMENT (if needed, we'll change it and
   later revert back, so that the texture is correctly loaded).
@@ -490,9 +492,33 @@ type
   It takes care about OpenGL unpack parameters. Just don't worry about it.
 
   If mipmaps, then all mipmap levels will be automatically created and loaded.
+  This can create mipmaps only by gluBuild2DMipmaps. If you want to use
+  more modern GenerateMipmap, you should use higher-level
+  glTexImages2DForCubeMap (takes all six images), or pass Mipmaps = @false
+  and do it yourself.
 }
 procedure glTexImage2DForCubeMap(
   Target: TGLenum; const Image: TImage; Mipmaps: boolean);
+
+{ Comfortably load all six cube map texture images.
+  It takes care of many things for you, see glTexImage2DForCubeMap.
+
+  For mipmaps, it will use GenerateMipmap OpenGL call (if available,
+  otherwise gluBuild2DMipmaps). }
+procedure glTexImages2DForCubeMap(
+  PositiveX, NegativeX,
+  PositiveY, NegativeY,
+  PositiveZ, NegativeZ: TImage;
+  Mipmaps: boolean);
+
+{ Is GenerateMipmap avaiable. This checks some GL extensions/versions that
+  give us glGenerateMipmap or glGenerateMipmapEXT call, used by GenerateMipmap. }
+function HasGenerateMipmap: boolean;
+
+{ Call glGenerateMipmap (or analogous function from some OpenGL extension).
+  Raises exception if not available (always check HasGenerateMipmap
+  first to avoid this). }
+procedure GenerateMipmap(target: GLenum);
 
 implementation
 
@@ -798,7 +824,7 @@ begin
     (
       IsPowerOf2(Size) and
       (Size > 0) and
-      (Size <= glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB))
+      (Integer(Size) <= glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB))
     );
 end;
 
@@ -810,7 +836,7 @@ begin
       (r.Width = r.Height) { must be square } and
       IsPowerOf2(r.Width) and
       (r.Width > 0) and
-      (r.Width <= glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB))
+      (Integer(r.Width) <= glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB))
     );
 end;
 
@@ -895,6 +921,17 @@ begin
   Result := LoadGLTexture(Image, MinFilter, MagFilter, WrapS, WrapT,
     GrayscaleIsAlpha);
  finally Image.Free end;
+end;
+
+function TextureMinFilterNeedsMipmaps(const MinFilter: TGLenum): boolean;
+const
+  MipmapFilters: array [0..3] of TGLenum =
+  ( GL_NEAREST_MIPMAP_NEAREST,
+    GL_LINEAR_MIPMAP_NEAREST,
+    GL_NEAREST_MIPMAP_LINEAR,
+    GL_LINEAR_MIPMAP_LINEAR );
+begin
+  Result := ArrayPosCard(MinFilter, MipmapFilters) >= 0;
 end;
 
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TImage;
@@ -982,10 +1019,6 @@ var
     glTexImage2DImage(Image);
   end;
 
-const
-  MIPMAP_FLAGS_ARRAY :array[0..3]of TGLenum =
-  ( GL_NEAREST_MIPMAP_NEAREST, GL_LINEAR_MIPMAP_NEAREST,
-    GL_NEAREST_MIPMAP_LINEAR, GL_LINEAR_MIPMAP_LINEAR );
 begin
   if (Image is TGrayscaleImage) and GrayscaleIsAlpha then
   begin
@@ -1005,7 +1038,7 @@ begin
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
 
   { give the texture data }
-  if ArrayPosCard(minFilter, MIPMAP_FLAGS_ARRAY) >= 0 then
+  if TextureMinFilterNeedsMipmaps(MinFilter) then
     LoadMipmapped(Image) else
     LoadNormal(Image);
 end;
@@ -1166,6 +1199,50 @@ begin
   if Mipmaps then
     LoadMipmapped(Image) else
     LoadNormal(Image);
+end;
+
+procedure glTexImages2DForCubeMap(
+  PositiveX, NegativeX,
+  PositiveY, NegativeY,
+  PositiveZ, NegativeZ: TImage;
+  Mipmaps: boolean);
+begin
+(*
+TODO:
+  if Mipmaps and HasGenerateMipmap then
+  begin
+    { Load six cube faces without mipmaps, then generate them all
+      in one go with GenerateMipmap. }
+    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, PositiveX, false);
+    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB, NegativeX, false);
+    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB, PositiveY, false);
+    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB, NegativeY, false);
+    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB, PositiveZ, false);
+    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB, NegativeZ, false);
+    GenerateMipmap(GL_TEXTURE_CUBE_MAP);
+    if Log then
+      WritelnLog('Mipmaps', 'Generating mipmaps for cube map by GenerateMipmap (GOOD)');
+  end else*)
+  begin
+    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, PositiveX, Mipmaps);
+    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB, NegativeX, Mipmaps);
+    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB, PositiveY, Mipmaps);
+    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB, NegativeY, Mipmaps);
+    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB, PositiveZ, Mipmaps);
+    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB, NegativeZ, Mipmaps);
+  end;
+end;
+
+function HasGenerateMipmap: boolean;
+begin
+  Result := GL_EXT_framebuffer_object;
+end;
+
+procedure GenerateMipmap(target: GLenum);
+begin
+  if GL_EXT_framebuffer_object then
+    glGenerateMipmapEXT(Target) else
+    raise Exception.Create('EXT_framebuffer_object not supported, glGenerateMipmapEXT not available');
 end;
 
 end.

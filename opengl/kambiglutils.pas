@@ -280,6 +280,7 @@ var
   GL_ATI_separate_stencil: boolean;
   GL_ARB_texture_non_power_of_two: boolean;
   GL_ARB_vertex_buffer_object: boolean;
+  GL_EXT_framebuffer_object: boolean;
 
 {$ifdef NEEDS_FOG_COORD_FIX}
 var
@@ -1085,7 +1086,7 @@ implementation
 
 {$define read_implementation}
 
-uses KambiFilesUtils, KambiStringUtils, GLVersionUnit;
+uses KambiFilesUtils, KambiStringUtils, GLVersionUnit, GLShaders, GLImages;
 
 {$ifdef USE_GL_GLU_UNITS}
 {$I opengltypes.inc}
@@ -1267,6 +1268,7 @@ begin
  GL_ATI_separate_stencil := Load_GL_ATI_separate_stencil;
  GL_ARB_texture_non_power_of_two := Load_GL_ARB_texture_non_power_of_two;
  GL_ARB_vertex_buffer_object := Load_GL_ARB_vertex_buffer_object;
+ GL_EXT_framebuffer_object := Load_GL_EXT_framebuffer_object;
 end;
 {$endif}
 
@@ -2332,13 +2334,19 @@ begin
   ProgramName +' - OpenGL capabilities : ' +nl+
   nl+
 
-  '--- OpenGL string queries :' +nl+
+  '--- Version :' +nl+
   'GL_VERSION : ' +glGetString(GL_VERSION) +nl+
   'GL_VENDOR : ' +glGetString(GL_VENDOR) +nl+
   'GL_RENDERER : ' +glGetString(GL_RENDERER) +nl+
   ParsedGLVersionReport(GLVersion) +nl+
   nl+
+  '--- Capabilities :' +nl+
   'GL_EXTENSIONS : ' +glGetString(GL_EXTENSIONS) +nl+
+  nl+
+  'GLSL shaders support: ' + GLSupportNames[TGLSLProgram.ClassSupport] +nl+
+  'Assembly ARB vertex program support: ' + GLSupportNames[TARBVertexProgram.ClassSupport] +nl+
+  'Assembly ARB fragment program support: ' + GLSupportNames[TARBFragmentProgram.ClassSupport] +nl+
+  'GenerateMipmap available: ' + BoolToStr[HasGenerateMipmap] +nl+
   nl+
 
   '--- Which OpenGL entry points are actually available ?' +nl+

@@ -366,13 +366,13 @@ type
     function CreateAttribute(const Name: string): TGLSLAttribute;
   end;
 
+const
+  GLSupportNames: array [TGLSupport] of string =
+  ( 'None', 'ARB Extension', 'Standard' );
+
 implementation
 
 uses KambiStringUtils, DataErrors;
-
-const
-  SupportNames: array [TGLSupport] of string =
-  ( 'None', 'ARB Extension', 'Standard' );
 
 { Comfortable shortcut for glGetProgramivARB that always returns 1 value. }
 function glGetProgramiARB(target: TGLenum; pname: TGLenum): TGLint;
@@ -452,7 +452,7 @@ end;
 
 function TARBProgram.DebugInfo: string;
 begin
-  Result := 'support: ' + SupportNames[Support];
+  Result := 'support: ' + GLSupportNames[Support];
 
   case Support of
     gsARBExtension:
@@ -959,7 +959,7 @@ var
   S: TStringList;
   I: Integer;
 begin
-  Result := 'GLSL program support: ' + SupportNames[Support];
+  Result := 'GLSL program support: ' + GLSupportNames[Support];
 
   CheckGLErrors('Check at the beginning of TGLSLProgram.DebugInfo');
 
