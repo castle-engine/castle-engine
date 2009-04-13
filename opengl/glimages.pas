@@ -1233,14 +1233,22 @@ end;
 
 function HasGenerateMipmap: boolean;
 begin
-  { TODO: how can I make glGenerateMipmapEXT work under Fglrx ? }
-  Result := GL_EXT_framebuffer_object and (not GLVersion.IsFglrx);
+  Result := GL_EXT_framebuffer_object;
 end;
 
 procedure GenerateMipmap(target: GLenum);
 begin
   if GL_EXT_framebuffer_object then
-    glGenerateMipmapEXT(Target) else
+  begin
+    glPushAttrib(GL_ENABLE_BIT);
+      { To work under fglrx (confirmed on chantal (ATI Mobility Radeon X1600)),
+        we have to temporarily enable target.
+        This is a known ATI drivers problem:
+        http://www.opengl.org/discussion_boards/ubbthreads.php?ubb=showflat&Number=237052 }
+      glEnable(Target);
+      glGenerateMipmapEXT(Target);
+    glPopAttrib;
+  end else
     raise Exception.Create('EXT_framebuffer_object not supported, glGenerateMipmapEXT not available');
 end;
 
