@@ -5420,9 +5420,6 @@ begin
     begin
       TexRef := TextureCubeMapReferences.Pointers[TexRefIndex];
 
-      if Log then
-        WritelnLog('CubeMap', 'GeneratedCubeMapTexture texture regenerated');
-
       GLCaptureCubeMapTexture(TexRef^.GLName, TexRef^.GeneratedSize,
         Box3dMiddle(Shape.BoundingBox),
         Render, ProjectionNear, ProjectionFar, MapsOverlap,
@@ -5433,6 +5430,9 @@ begin
         { GLCaptureCubeMapTexture already bound the texture for OpenGL. }
         GenerateMipmap(GL_TEXTURE_CUBE_MAP);
       end;
+
+      if Log then
+        WritelnLog('CubeMap', 'GeneratedCubeMapTexture texture regenerated');
     end;
   end;
 end;

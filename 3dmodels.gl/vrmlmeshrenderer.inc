@@ -1270,8 +1270,9 @@ var
           glMatrixMode(GL_MODELVIEW);
         end else
         if Log then
-          WritelnLog('Camera', Format('Camera matrix cannot be inverted, %s will work like %s',
-            [SuccessName, FailName]));
+          WritelnLogMultiline('Camera', Format('Camera matrix cannot be inverted, %s will work like %s. Camera matrix is:',
+            [SuccessName, FailName]) + NL +
+            MatrixToRawStr(CameraMatrix, '  '));
       end;
 
     begin
