@@ -4126,7 +4126,7 @@ procedure TVRMLGLScene.UpdateGeneratedTextures(
   const OriginalViewportX, OriginalViewportY: TGLint;
   const OriginalViewportWidth, OriginalViewportHeight: TGLsizei);
 var
-  SI: TVRMLShapeTreeIterator;
+  I: Integer;
   NeedsRestoreViewport: boolean;
 begin
   { TODO: optimize this for often case when no work is needed,
@@ -4134,17 +4134,17 @@ begin
     and do this only when non-zero. }
 
   NeedsRestoreViewport := false;
-  SI := TVRMLShapeTreeIterator.Create(Shapes, false, false, false);
-  try
-    while SI.GetNext do
-    begin
-      AvoidShapeRendering := TVRMLGLShape(SI.Current);
-      Renderer.UpdateGeneratedTextures(SI.Current,
-        RenderFunc, ProjectionNear, ProjectionFar, MapsOverlap,
-        MapScreenX, MapScreenY, NeedsRestoreViewport);
-    end;
-    AvoidShapeRendering := nil;
-  finally FreeAndNil(SI) end;
+
+  for I := 0 to GeneratedTextures.Count - 1 do
+  begin
+    AvoidShapeRendering := TVRMLGLShape(GeneratedTextures.Items[I].Shape);
+    Renderer.UpdateGeneratedTextures(GeneratedTextures.Items[I].Shape,
+      GeneratedTextures.Items[I].TextureNode,
+      RenderFunc, ProjectionNear, ProjectionFar, MapsOverlap,
+      MapScreenX, MapScreenY, NeedsRestoreViewport);
+  end;
+
+  AvoidShapeRendering := nil;
 
   if NeedsRestoreViewport then
     glViewport(OriginalViewportX, OriginalViewportY,

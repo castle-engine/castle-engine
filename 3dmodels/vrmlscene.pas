@@ -335,7 +335,27 @@ type
     more than once --- it will produce more than one entry in this array). }
   TDynProximitySensorInstanceArray = TDynArray_4;
 
-type
+  { @exclude }
+  TGeneratedTexture = record
+    { May be only TNodeGeneratedCubeMapTexture or TNodeRenderedTexture. }
+    TextureNode: TVRMLNode;
+    Shape: TVRMLShape;
+  end;
+  { @exclude }
+  PGeneratedTexture = ^TGeneratedTexture;
+  { @exclude }
+  TDynArrayItem_7 = TGeneratedTexture;
+  { @exclude }
+  PDynArrayItem_7 = PGeneratedTexture;
+  {$define DYNARRAY_7_IS_STRUCT}
+  { @exclude }
+  {$I dynarray_7.inc}
+  { @exclude
+    Internal for TVRMLScene: list of generated textures
+    (GeneratedCubeMapTexture and RenderedTexture and any similar nodes
+    in the future) along with their shape. }
+  TDynGeneratedTextureArray = TDynArray_7;
+
   { Internal helper for TVRMLScene, gathers information for transform nodes.
 
     Transform nodes are all nodes that have any field with Transform = true,
@@ -781,6 +801,8 @@ type
       You can override it in descendants to create something more specialized. }
     function CreateHeadLightInstance
       (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight; virtual;
+
+    GeneratedTextures: TDynGeneratedTextureArray;
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
     constructor Create(const SceneFileName: string);
@@ -1686,6 +1708,7 @@ uses VRMLCameraUtils, KambiStringUtils, KambiLog, VRMLErrors, DateUtils,
 {$I dynarray_4.inc}
 {$I dynarray_5.inc}
 {$I dynarray_6.inc}
+{$I dynarray_7.inc}
 
 { TVRMLBindableStack ----------------------------------------------------- }
 
@@ -1863,8 +1886,8 @@ begin
  FViewpointStack := TVRMLBindableStack.Create(Self);
 
  FCompiledScriptHandlers := TDynCompiledScriptHandlerInfoArray.Create;
-
  TransformNodesInfo := TDynTransformNodeInfoArray.Create;
+ GeneratedTextures := TDynGeneratedTextureArray.Create;
 
  ScheduleChangedAll;
 end;
@@ -1890,8 +1913,8 @@ begin
  { frees FManifoldEdges, FBorderEdges if needed }
  InvalidateManifoldAndBorderEdges;
 
+ FreeAndNil(GeneratedTextures);
  FreeAndNil(TransformNodesInfo);
-
  FreeAndNil(FCompiledScriptHandlers);
 
  FreeAndNil(FBackgroundStack);
@@ -2101,6 +2124,41 @@ procedure TChangedAllTraverser.Traverse(
     TraverseIntoChildren := false;
   end;
 
+  { Add items to GeneratedTextures for this Shape, if it has any
+    generated textures. }
+  procedure AddGeneratedTexturesOfShape(Shape: TVRMLShape);
+  var
+    Tex, ChildTex: TVRMLNode;
+    NewGenTex: PGeneratedTexture;
+    I: Integer;
+  begin
+    if (Shape.State.ParentShape <> nil) and
+       (Shape.State.ParentShape.Appearance <> nil) and
+       (Shape.State.ParentShape.Appearance.FdTexture.Value <> nil) then
+    begin
+      Tex := Shape.State.ParentShape.Appearance.FdTexture.Value;
+      if Tex is TNodeGeneratedCubeMapTexture then
+      begin
+        NewGenTex := ParentScene.GeneratedTextures.AppendItem;
+        NewGenTex^.TextureNode := Tex;
+        NewGenTex^.Shape := Shape;
+      end else
+      if Tex is TNodeMultiTexture then
+      begin
+        for I := 0 to TNodeMultiTexture(Tex).FdTexture.Items.Count - 1 do
+        begin
+          ChildTex := TNodeMultiTexture(Tex).FdTexture.Items.Items[I];
+          if ChildTex is TNodeGeneratedCubeMapTexture then
+          begin
+            NewGenTex := ParentScene.GeneratedTextures.AppendItem;
+            NewGenTex^.TextureNode := ChildTex;
+            NewGenTex^.Shape := Shape;
+          end;
+        end;
+      end;
+    end;
+  end;
+
 var
   Shape: TVRMLShape;
   Info: PTransformNodeInfo;
@@ -2122,6 +2180,8 @@ begin
       Shape.TriangleOctreeProgressTitle := ParentScene.TriangleOctreeProgressTitle;
       Shape.Spatial := [ssTriangles];
     end;
+
+    AddGeneratedTexturesOfShape(Shape);
   end else
 
   if Node is TVRMLLightNode then
@@ -2292,6 +2352,9 @@ begin
 
   { TransformNodesInfo will be recalculated by ChangedAll }
   TransformNodesInfo.Count := 0;
+
+  { GeneratedTextures will be recalculated by ChangedAll }
+  GeneratedTextures.Count := 0;
 
   BackgroundStack.CheckForDeletedNodes(RootNode, true);
   FogStack.CheckForDeletedNodes(RootNode, true);

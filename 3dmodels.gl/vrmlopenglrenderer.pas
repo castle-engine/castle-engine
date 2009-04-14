@@ -1559,6 +1559,7 @@ type
       (possibly) changed by this procedure (otherwise, NeedsRestoreViewport
       will not be modified). }
     procedure UpdateGeneratedTextures(Shape: TVRMLShape;
+      TextureNode: TVRMLNode;
       const Render: TCubeMapRenderFunction;
       const ProjectionNear, ProjectionFar: Single;
       const MapsOverlap: boolean;
@@ -5397,6 +5398,7 @@ begin
 end;
 
 procedure TVRMLOpenGLRenderer.UpdateGeneratedTextures(Shape: TVRMLShape;
+  TextureNode: TVRMLNode;
   const Render: TCubeMapRenderFunction;
   const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
@@ -5407,20 +5409,14 @@ var
   TexRefIndex: Integer;
   TexRef: PTextureCubeMapReference;
 begin
-  if
-    { Shape.BoundingBox must be non-empty, otherwise we don't know from what
-      3D point to capture encironment. }
-    not IsEmptyBox3d(Shape.BoundingBox) and
-    { Capturing makes sense only for shapes with GeneratedCubeMapTexture for now.
-      TODO: this doesn't work for cube maps within mult-textures for now.
-      TODO: update looking (and eventually changing "update" field. }
-    (Shape.State.ParentShape <> nil) and
-    (Shape.State.ParentShape.Appearance <> nil) and
-    (Shape.State.ParentShape.Appearance.FdTexture.Value <> nil) and
-    (Shape.State.ParentShape.Appearance.FdTexture.Value is TNodeGeneratedCubeMapTexture) then
+  if { Shape.BoundingBox must be non-empty, otherwise we don't know from what
+       3D point to capture encironment. }
+     not IsEmptyBox3d(Shape.BoundingBox) and
+     { Capturing makes sense only for shapes with GeneratedCubeMapTexture for now.
+       TODO: update looking (and eventually changing "update" field. }
+     (TextureNode is TNodeGeneratedCubeMapTexture) then
   begin
-    TexNode := TNodeGeneratedCubeMapTexture(
-      Shape.State.ParentShape.Appearance.FdTexture.Value);
+    TexNode := TNodeGeneratedCubeMapTexture(TextureNode);
 
     TexRefIndex := TextureCubeMapReferences.TextureNodeIndex(TexNode);
     if TexRefIndex <> -1 then
