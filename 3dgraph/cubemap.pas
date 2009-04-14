@@ -49,11 +49,11 @@ const
     orientation (see http://www.opengl.org/registry/specs/ARB/texture_cube_map.txt),
     so it's straighforward to use this for OpenGL cube maps. }
   CubeMapInfo: array [TCubeMapSide] of TCubeMapInfo =
-  ( (Dir: ( 1,  0, 0); Up: (0, -1, 0); Side: ( 0, 0,-1); ScreenX: 1; ScreenY: 0),
-    (Dir: (-1,  0, 0); Up: (0, -1, 0); Side: ( 0, 0, 1); ScreenX: 3; ScreenY: 0),
+  ( (Dir: ( 1,  0, 0); Up: (0, -1, 0); Side: ( 0, 0,-1); ScreenX: 3; ScreenY: 0),
+    (Dir: (-1,  0, 0); Up: (0, -1, 0); Side: ( 0, 0, 1); ScreenX: 1; ScreenY: 0),
 
-    (Dir: ( 0,  1, 0); Up: (0, 0,  1); Side: ( 1, 0, 0); ScreenX: 2; ScreenY: +1),
-    (Dir: ( 0, -1, 0); Up: (0, 0, -1); Side: ( 1, 0, 0); ScreenX: 2; ScreenY: -1),
+    (Dir: ( 0,  1, 0); Up: (0, 0,  1); Side: ( 1, 0, 0); ScreenX: 2; ScreenY: -1),
+    (Dir: ( 0, -1, 0); Up: (0, 0, -1); Side: ( 1, 0, 0); ScreenX: 2; ScreenY: +1),
 
     (Dir: ( 0, 0,  1); Up: (0, -1, 0); Side: ( 1, 0, 0); ScreenX: 2; ScreenY: 0),
     (Dir: ( 0, 0, -1); Up: (0, -1, 0); Side: (-1, 0, 0); ScreenX: 0; ScreenY: 0)
