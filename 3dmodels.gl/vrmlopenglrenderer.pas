@@ -1553,11 +1553,17 @@ type
       available lights in this OpenGL context. }
     function LastGLFreeLight: integer;
 
+    { Update generated texture for this shape.
+
+      NeedsRestoreViewport will be set to @true if viewport was
+      (possibly) changed by this procedure (otherwise, NeedsRestoreViewport
+      will not be modified). }
     procedure UpdateGeneratedTextures(Shape: TVRMLShape;
       const Render: TCubeMapRenderFunction;
       const ProjectionNear, ProjectionFar: Single;
       const MapsOverlap: boolean;
-      const MapScreenX, MapScreenY: Integer);
+      const MapScreenX, MapScreenY: Integer;
+      var NeedsRestoreViewport: boolean);
   end;
 
   EVRMLOpenGLRenderError = class(EVRMLError);
@@ -5394,7 +5400,8 @@ procedure TVRMLOpenGLRenderer.UpdateGeneratedTextures(Shape: TVRMLShape;
   const Render: TCubeMapRenderFunction;
   const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
-  const MapScreenX, MapScreenY: Integer);
+  const MapScreenX, MapScreenY: Integer;
+  var NeedsRestoreViewport: boolean);
 var
   TexNode: TNodeGeneratedCubeMapTexture;
   TexRefIndex: Integer;
@@ -5424,6 +5431,8 @@ begin
         Box3dMiddle(Shape.BoundingBox),
         Render, ProjectionNear, ProjectionFar, MapsOverlap,
         MapScreenX, MapScreenY);
+
+      NeedsRestoreViewport := true;
 
       if TexRef^.GeneratedNeedsMipmaps then
       begin

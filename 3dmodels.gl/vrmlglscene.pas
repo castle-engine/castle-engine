@@ -4139,10 +4139,9 @@ begin
     while SI.GetNext do
     begin
       AvoidShapeRendering := TVRMLGLShape(SI.Current);
-      NeedsRestoreViewport := true;
       Renderer.UpdateGeneratedTextures(SI.Current,
         RenderFunc, ProjectionNear, ProjectionFar, MapsOverlap,
-        MapScreenX, MapScreenY);
+        MapScreenX, MapScreenY, NeedsRestoreViewport);
     end;
     AvoidShapeRendering := nil;
   finally FreeAndNil(SI) end;
