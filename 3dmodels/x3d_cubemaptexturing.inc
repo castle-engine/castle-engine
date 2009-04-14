@@ -50,6 +50,9 @@
 
     private FFdtop: TSFNode;
     public property Fdtop: TSFNode read FFdtop;
+
+    private FFdtextureProperties: TSFNode;
+    public property FdtextureProperties: TSFNode read FFdtextureProperties;
   end;
 
   TNodeGeneratedCubeMapTexture = class(TNodeX3DEnvironmentTextureNode)
@@ -126,6 +129,12 @@ begin
 
   FFdtop := TSFNode.Create(Self, 'top', [TNodeX3DTexture2DNode]);
   Fields.Add(FFdtop);
+
+  { X3D spec 3.2 doesn't specify this, but it's natural,
+    instantreality also uses this. }
+  FFdtextureProperties := TSFNode.Create(Self, 'textureProperties', [TNodeTextureProperties]);
+  FFdtextureProperties.Exposed := false;
+  Fields.Add(FFdtextureProperties);
 end;
 
 class function TNodeComposedCubeMapTexture.ClassNodeTypeName: string;

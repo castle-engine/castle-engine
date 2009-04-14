@@ -3518,9 +3518,10 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     end;
 
     { calculate MinFilter, MagFilter }
-    TextureProperties := TVRMLTextureNode(CubeTexture.FdBack.Value).TextureProperties;
-    if TextureProperties <> nil then
+    if (CubeTexture.FdTextureProperties.Value <> nil) and
+       (CubeTexture.FdTextureProperties.Value is TNodeTextureProperties) then
     begin
+      TextureProperties := TNodeTextureProperties(CubeTexture.FdTextureProperties.Value);
       MinFilter := StrToMinFilter(TextureProperties.FdMinificationFilter.Value);
       MagFilter := StrToMagFilter(TextureProperties.FdMagnificationFilter.Value);
     end else
@@ -5408,36 +5409,58 @@ var
   TexNode: TNodeGeneratedCubeMapTexture;
   TexRefIndex: Integer;
   TexRef: PTextureCubeMapReference;
+  UpdateIndex: Integer;
 begin
   if { Shape.BoundingBox must be non-empty, otherwise we don't know from what
        3D point to capture encironment. }
      not IsEmptyBox3d(Shape.BoundingBox) and
-     { Capturing makes sense only for shapes with GeneratedCubeMapTexture for now.
-       TODO: update looking (and eventually changing "update" field. }
+     { Capturing makes sense only for shapes with GeneratedCubeMapTexture for now. }
      (TextureNode is TNodeGeneratedCubeMapTexture) then
   begin
     TexNode := TNodeGeneratedCubeMapTexture(TextureNode);
 
-    TexRefIndex := TextureCubeMapReferences.TextureNodeIndex(TexNode);
-    if TexRefIndex <> -1 then
+    UpdateIndex := ArrayPosStr(LowerCase(TexNode.FdUpdate.Value),
+      { Names below must be lowercase }
+      ['none', 'next_frame_only', 'always']);
+
+    { Only if update = 'NEXT_FRAME_ONLY' or 'ALWAYS' remake the texture. }
+    if UpdateIndex > 0 then
     begin
-      TexRef := TextureCubeMapReferences.Pointers[TexRefIndex];
-
-      GLCaptureCubeMapTexture(TexRef^.GLName, TexRef^.GeneratedSize,
-        Box3dMiddle(Shape.BoundingBox),
-        Render, ProjectionNear, ProjectionFar, MapsOverlap,
-        MapScreenX, MapScreenY);
-
-      NeedsRestoreViewport := true;
-
-      if TexRef^.GeneratedNeedsMipmaps then
+      TexRefIndex := TextureCubeMapReferences.TextureNodeIndex(TexNode);
+      if TexRefIndex <> -1 then
       begin
-        { GLCaptureCubeMapTexture already bound the texture for OpenGL. }
-        GenerateMipmap(GL_TEXTURE_CUBE_MAP);
-      end;
+        TexRef := TextureCubeMapReferences.Pointers[TexRefIndex];
 
-      if Log then
-        WritelnLog('CubeMap', 'GeneratedCubeMapTexture texture regenerated');
+        GLCaptureCubeMapTexture(TexRef^.GLName, TexRef^.GeneratedSize,
+          Box3dMiddle(Shape.BoundingBox),
+          Render, ProjectionNear, ProjectionFar, MapsOverlap,
+          MapScreenX, MapScreenY);
+
+        if TexRef^.GeneratedNeedsMipmaps then
+        begin
+          { GLCaptureCubeMapTexture already bound the texture for OpenGL. }
+          GenerateMipmap(GL_TEXTURE_CUBE_MAP);
+        end;
+
+        NeedsRestoreViewport := true;
+
+        { If update = 'NEXT_FRAME_ONLY', change it to 'NONE' now }
+        if UpdateIndex = 1 then
+        begin
+          if TexNode.ParentEventsProcessor <> nil then
+            TexNode.FdUpdate.EventIn.Send('NONE',
+              (TexNode.ParentEventsProcessor as TVRMLScene).WorldTime) else
+            TexNode.FdUpdate.Value := 'NONE';
+        end;
+
+        if Log then
+          WritelnLog('CubeMap', 'GeneratedCubeMapTexture texture regenerated');
+      end;
+    end else
+    begin
+      if UpdateIndex = -1 then
+        VRMLWarning(vwSerious, Format('GeneratedCubeMapTexture.update invalid field value "%s", will be treated like "NONE"',
+          [TexNode.FdUpdate.Value]));
     end;
   end;
 end;
