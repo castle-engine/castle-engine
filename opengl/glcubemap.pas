@@ -83,7 +83,8 @@ type
   normal after calling this.
 
   ProjectionNear, ProjectionFar parameters will be used to set GL
-  projection matrix.
+  projection matrix. ProjectionFar may be equal to ZFarInfinity,
+  as always.
 
   @param(MapsOverlap
 
@@ -179,7 +180,7 @@ procedure SHVectorGLCapture(
     glMatrixMode(GL_PROJECTION);
     glPushMatrix;
       glLoadIdentity;
-      gluPerspective(90, 1, 0.01, 100);
+      glMultMatrix(PerspectiveProjMatrixDeg(90, 1, 0.01, 100));
       glMatrixMode(GL_MODELVIEW);
 
       glPushMatrix;
@@ -269,7 +270,7 @@ var
     glMatrixMode(GL_PROJECTION);
     glPushMatrix;
       glLoadIdentity;
-      gluPerspective(90, 1, ProjectionNear, ProjectionFar);
+      glMultMatrix(PerspectiveProjMatrixDeg(90, 1, ProjectionNear, ProjectionFar));
       glMatrixMode(GL_MODELVIEW);
 
         CameraMatrix := LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up);
@@ -362,7 +363,7 @@ procedure GLCaptureCubeMapTexture(
     glMatrixMode(GL_PROJECTION);
     glPushMatrix;
       glLoadIdentity;
-      gluPerspective(90, 1, ProjectionNear, ProjectionFar);
+      glMultMatrix(PerspectiveProjMatrixDeg(90, 1, ProjectionNear, ProjectionFar));
       glMatrixMode(GL_MODELVIEW);
 
         CameraMatrix := LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up);

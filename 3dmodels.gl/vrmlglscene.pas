@@ -1315,7 +1315,7 @@ type
       (although GLProjection may use some other values for other modes
       (like Examine), it will always calculate values for Walk mode anyway.)
 
-      WalkProjectionFar is never ZFarInfinity. }
+      WalkProjectionFar may be ZFarInfinity. }
     property WalkProjectionNear: Single read FWalkProjectionNear;
     property WalkProjectionFar : Single read FWalkProjectionFar ;
 
@@ -4001,7 +4001,7 @@ var
   ViewpointNode: TVRMLViewpointNode;
   FieldOfView: Single;
   VisibilityLimit: Single;
-  MaxSize, ZNear, ZFar: TGLdouble;
+  MaxSize, ZNear: TGLdouble;
   CameraKind: TVRMLCameraKind;
 begin
   glViewport(0, 0, WindowWidth, WindowHeight);
@@ -4058,21 +4058,26 @@ begin
      (not IsEmptyBox3d(Box)) then
     ZNear := Box3dAvgSize(Box) * 0.1 else
     ZNear := WalkProjectionNear;
-  ZFar := WalkProjectionFar;
 
   if ViewpointNode <> nil then
     CameraKind := ViewpointNode.CameraKind else
     CameraKind := ckPerspective;
+
+  { Calculate NewBackgroundSkySphereRadius here,
+    using WalkProjectionFar that is *not* ZFarInfinity }
+  NewBackgroundSkySphereRadius :=
+    TBackgroundGL.NearFarToSkySphereRadius(
+      WalkProjectionNear, WalkProjectionFar);
 
   if CameraKind = ckPerspective then
   begin
     { Only perspective projection supports z far in infinity.
       So apply ForceZFarInfinity only in perspective projection. }
     if ForceZFarInfinity then
-      ZFar := ZFarInfinity;
+      FWalkProjectionFar := ZFarInfinity;
 
     ProjectionGLPerspective(AngleOfViewY, WindowWidth / WindowHeight,
-      ZNear, ZFar);
+      ZNear, WalkProjectionFar);
   end else
   begin
     if IsEmptyBox3d(Box) then
@@ -4080,14 +4085,10 @@ begin
       MaxSize := Box3dMaxSize(Box);
     ProjectionGLOrtho(-MaxSize / 2, MaxSize / 2,
                       -MaxSize / 2, MaxSize / 2,
-                      ZNear, ZFar);
+                      ZNear, WalkProjectionFar);
   end;
 
   UpdateNavigatorProjectionMatrix;
-
-  NewBackgroundSkySphereRadius :=
-    TBackgroundGL.NearFarToSkySphereRadius(
-      WalkProjectionNear, WalkProjectionFar);
 end;
 
 function TVRMLGLScene.CreateHeadLightInstance
