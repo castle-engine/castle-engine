@@ -1323,7 +1323,9 @@ type
       const RenderFunc: TCubeMapRenderFunction;
       const ProjectionNear, ProjectionFar: Single;
       const MapsOverlap: boolean;
-      const MapScreenX, MapScreenY: Integer);
+      const MapScreenX, MapScreenY: Integer;
+      const OriginalViewportX, OriginalViewportY: TGLint;
+      const OriginalViewportWidth, OriginalViewportHeight: TGLsizei);
   end;
 
   TObjectsListItem_1 = TVRMLGLScene;
@@ -4120,26 +4122,34 @@ procedure TVRMLGLScene.UpdateGeneratedTextures(
   const RenderFunc: TCubeMapRenderFunction;
   const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
-  const MapScreenX, MapScreenY: Integer);
+  const MapScreenX, MapScreenY: Integer;
+  const OriginalViewportX, OriginalViewportY: TGLint;
+  const OriginalViewportWidth, OriginalViewportHeight: TGLsizei);
 var
   SI: TVRMLShapeTreeIterator;
+  NeedsRestoreViewport: boolean;
 begin
   { TODO: optimize this for often case when no work is needed,
     keep some count of GeneratedCubeMapTexture
-    and do this only when non-zero.
-    Also, return bool to eliminate unneeded glViewport in view3dscene after this,
-    when no work was done. }
+    and do this only when non-zero. }
+
+  NeedsRestoreViewport := false;
   SI := TVRMLShapeTreeIterator.Create(Shapes, false, false, false);
   try
     while SI.GetNext do
     begin
       AvoidShapeRendering := TVRMLGLShape(SI.Current);
+      NeedsRestoreViewport := true;
       Renderer.UpdateGeneratedTextures(SI.Current,
         RenderFunc, ProjectionNear, ProjectionFar, MapsOverlap,
         MapScreenX, MapScreenY);
     end;
     AvoidShapeRendering := nil;
   finally FreeAndNil(SI) end;
+
+  if NeedsRestoreViewport then
+    glViewport(OriginalViewportX, OriginalViewportY,
+               OriginalViewportWidth, OriginalViewportHeight);
 end;
 
 { TVRMLSceneRenderingAttributes ---------------------------------------------- }
