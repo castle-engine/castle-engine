@@ -1252,22 +1252,32 @@ var
       begin
         if TryMatrixInverse(CameraMatrix, CameraInverseMatrix) then
         begin
-          { Set the 4th texture coord component (Q) to 0.0.
-            Reason: We use matrix 4x4, so it will transform whole texture
-            coordinate (4-valued vector, since we're in homogeneous
-            coordinates). We want the generated STR to be transformed
-            like a direction, so we want to set Q = always 0.0
-            (in homogeneous coords, this means that vector represents
-            a direction and will be accordingly transformed). }
-          glTexCoord4f(0, 0, 0, 0);
+          if not GLVersion.IsMesa then
+          begin
+            { Set the 4th texture coord component (Q) to 0.0.
+              Reason: We use matrix 4x4, so it will transform whole texture
+              coordinate (4-valued vector, since we're in homogeneous
+              coordinates). We want the generated STR to be transformed
+              like a direction, so we want to set Q = always 0.0
+              (in homogeneous coords, this means that vector represents
+              a direction and will be accordingly transformed). }
+            glTexCoord4f(0, 0, 0, 0);
 
-          glMatrixMode(GL_TEXTURE);
-          Renderer.PushTextureUnit(TexUnit);
-          { CameraMatrix transforms from world space to camera space,
-            we want to transform directions from camera space to world
-            space below. So inverted CameraMatrix is exactly what we need. }
-          glMultMatrix(CameraInverseMatrix);
-          glMatrixMode(GL_MODELVIEW);
+            glMatrixMode(GL_TEXTURE);
+            Renderer.PushTextureUnit(TexUnit);
+            { CameraMatrix transforms from world space to camera space,
+              we want to transform directions from camera space to world
+              space below. So inverted CameraMatrix is exactly what we need. }
+            glMultMatrix(CameraInverseMatrix);
+            glMatrixMode(GL_MODELVIEW);
+          end else
+          if Log then
+            { Mesa 7.0.4 makes textures strange (like each cube face was
+              1-pixel wide?, although I checked --- they are loaded with
+              correct sizes). Output this on log, since it's done by renderer,
+              potentially many times for a frame. }
+            WritelnLog('TexCoord', Format('Transforming tex coords to WORLDSPACE doesn''t work under Mesa3d, so mode %s will work like %s',
+              [SuccessName, FailName]));
         end else
         if Log then
           WritelnLogMultiline('Camera', Format('Camera matrix cannot be inverted, %s will work like %s. Camera matrix is:',
