@@ -436,6 +436,13 @@
     public property Fdparameter: TMFFloat read FFdparameter;
   end;
 
+  { Old BS Contact name for TextureCoordinateGenerator.
+    See examples from [http://www.bitmanagement.de/developer/contact/relnotes6.html] }
+  TNodeTextureCoordGen = class(TNodeTextureCoordinateGenerator)
+  public
+    class function ClassNodeTypeName: string; override;
+  end;
+
   TNodeTextureProperties = class(TNodeX3DNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -1267,6 +1274,11 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+class function TNodeTextureCoordGen.ClassNodeTypeName: string;
+begin
+  Result := 'TextureCoordGen';
+end;
+
 constructor TNodeTextureProperties.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -1446,6 +1458,7 @@ begin
     TNodePixelTexture,
     TNodeTextureCoordinate,
     TNodeTextureCoordinateGenerator,
+    TNodeTextureCoordGen,
     TNodeTextureProperties,
     TNodeTextureTransform
   ]);
