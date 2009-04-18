@@ -3164,6 +3164,13 @@ begin
       ScheduledGeometryActiveShapesChanged := true;
       ScheduleGeometryChanged;
     end else
+    if (Node is TNodeGeneratedCubeMapTexture) and
+       (TNodeGeneratedCubeMapTexture(Node).FdUpdate = Field) then
+    begin
+      { GeneratedCubeMapTexture.update changes will be handled automatically
+        at next UpdateGeneratedTextures call.
+        So just make DoPostRedisplay, and nothing else is needed. }
+    end else
     begin
       { Node is something else. So we must assume that an arbitrary change
         occured, possibly changing State of following and/or children
