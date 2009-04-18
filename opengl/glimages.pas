@@ -1233,7 +1233,10 @@ end;
 
 function HasGenerateMipmap: boolean;
 begin
-  Result := GL_EXT_framebuffer_object;
+  Result := GL_EXT_framebuffer_object and
+    { glGenerateMipmapEXT segfaults under Mesa 7.0.2,
+      under Mesa 7.2 makes X crashing. Sweet. }
+    (not GLVersion.IsMesa);
 end;
 
 procedure GenerateMipmap(target: GLenum);
