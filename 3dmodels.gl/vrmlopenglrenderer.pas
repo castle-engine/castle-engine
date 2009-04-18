@@ -2015,7 +2015,7 @@ begin
     begin
       Dec(TextureCubeMapCaches.Items[I].References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('-- : cube map ', PointerToStr(Node), ' : ', TextureCubeMapCaches.Items[I].References);
+      Writeln('-- : cube map ', PointerToStr(TextureCubeMapCaches.Items[I].InitialNode), ' : ', TextureCubeMapCaches.Items[I].References);
       {$endif}
       if TextureCubeMapCaches.Items[I].References = 0 then
       begin
