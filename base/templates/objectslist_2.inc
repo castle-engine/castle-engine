@@ -76,6 +76,9 @@
      zwiekszanie - dodawanie nil'i}
     property Count: Integer read fCount write SetCount;
 
+    procedure IncCount;
+    procedure DecCount;
+
     { Shortcut for Count - 1. Yes, when Count = 0, High is -1. }
     function High: Integer;
 
@@ -233,9 +236,19 @@ begin
  fCount := value;
 end;
 
+procedure TObjectsList_2.IncCount;
+begin
+  Count := FCount + 1;
+end;
+
+procedure TObjectsList_2.DecCount;
+begin
+  Count := FCount - 1;
+end;
+
 function TObjectsList_2.High: Integer;
 begin
- Result := Count - 1;
+ Result := FCount - 1;
 end;
 
 function TObjectsList_2.GetFirst: TObjectsListItem_2;
