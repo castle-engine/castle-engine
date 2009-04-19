@@ -856,7 +856,9 @@ var
           end;
         end else
         { If not IsRGB, than I already know (it's checked earlier)
-          that masks for red / green / blue are equal.
+          that masks for red / green / blue are equal
+          (or green / blue are zero and should be just ignored, GIMP-DDS
+          can write this).
           That may be all zero (alpha only image) or no (grayscale
           with possible alpha). }
         if Header.PixelFormat.RBitMask <> 0 then
@@ -927,8 +929,11 @@ var
             without RGB: grayscale (possibly with alpha), or even only
             alpha channel. At least GIMP-DDS plugin can write such images. }
           Check(
-            (Header.PixelFormat.RBitMask = Header.PixelFormat.GBitMask) and
-            (Header.PixelFormat.GBitMask = Header.PixelFormat.BBitMask), 'Invalid DDS pixel format: neighter DDPF_RGB, DDPF_FOURCC, DDPF_PALETTEINDEXED8 flags specified, so this must be a grayscale and/or alpha image. But R/G/B masks are different');
+            ( (Header.PixelFormat.RBitMask = Header.PixelFormat.GBitMask) and
+              (Header.PixelFormat.GBitMask = Header.PixelFormat.BBitMask) ) or
+            ( (Header.PixelFormat.GBitMask = 0) and
+              (Header.PixelFormat.BBitMask = 0) ),
+            'Invalid DDS pixel format: neighter DDPF_RGB, DDPF_FOURCC, DDPF_PALETTEINDEXED8 flags specified. So this must be a grayscale and/or alpha image. So R/G/B masks must be equal, or G/B masks should be zero (ignored). But this is not true');
           ReadUncompressed(false);
         end;
       except FreeAndNil(Result); raise end;
@@ -942,9 +947,15 @@ var
       Images.SetAll(nil);
     end;
 
+    procedure AddOneImage(const Image: TImage);
+    begin
+      Images.IncCount;
+      Images.Last := Image;
+    end;
+
   var
-    W, H: Cardinal;
-    NextI, I: Integer;
+    W, H, D: Cardinal;
+    I, J: Integer;
     Side: TDDSCubeMapSide;
   begin
     { Check that Width/Height are power of two, this is needed to make
@@ -979,12 +990,6 @@ var
         end;
       dtCubeMap:
         begin
-          if Mipmaps then
-            AllocateImages(FMipmapsCount * 6) else
-            AllocateImages(6);
-
-          NextI := 0;
-
           for Side := Low(Side) to High(Side) do
             if Side in FCubeMapSides then
             begin
@@ -994,20 +999,37 @@ var
                 H := Height;
                 for I := 0 to FMipmapsCount - 1 do
                 begin
-                  FImages[NextI] := ReadImage(W, H);
-                  Inc(NextI);
+                  AddOneImage(ReadImage(W, H));
                   W := Max(1, W div 2);
                   H := Max(1, H div 2);
                 end;
               end else
               begin
-                FImages[NextI] := ReadImage(Width, Height);
-                Inc(NextI);
+                AddOneImage(ReadImage(Width, Height));
               end;
             end;
         end;
       dtVolume:
-        raise EInvalidDDS.Create('TODO: Volume (3D) textures not supported yet');
+        begin
+          if Mipmaps then
+          begin
+            W := Width;
+            H := Height;
+            D := Depth;
+            for J := 0 to FMipmapsCount - 1 do
+            begin
+              for I := 0 to D - 1 do
+                AddOneImage(ReadImage(W, H));
+              W := Max(1, W div 2);
+              H := Max(1, H div 2);
+              D := Max(1, D div 2);
+            end;
+          end else
+          begin
+            for I := 0 to Depth - 1 do
+              AddOneImage(ReadImage(Width, Height));
+          end;
+        end;
       else raise EInternalError.Create('DDSType?');
     end;
   end { ReadImages };
