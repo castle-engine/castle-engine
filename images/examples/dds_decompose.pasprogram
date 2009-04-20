@@ -44,11 +44,16 @@ begin
   DImg := TDDSImage.Create;
   try
     DImg.LoadFromFile(Parameters[1]);
+    DImg.Flatten3d;
     Writeln('DDS loaded:', nl,
-      '  Width x Height: ', DImg.Width, ' x ', DImg.Height, nl,
+      '  Width x Height x Depth: ', DImg.Width, ' x ', DImg.Height, ' x ', DImg.Depth, nl,
       '  Type: ', DDSTypeToString[DImg.DDSType], nl,
       '  Mipmaps: ', DImg.Mipmaps, nl,
       '  Simple 2D images inside: ', DImg.Images.Count);
+
+    if not (DImg.Images[0] is TImage) then
+      raise Exception.CreateFmt('Cannot save S3TC compressed images (image class is %s)',
+        [DImg.Images[0].ClassName]);
 
     OutputBaseName := ExtractFilePath(Parameters[1]) +
       ExtractOnlyFileName(Parameters[1]) + '_';
@@ -56,7 +61,7 @@ begin
     begin
       OutputName := OutputBaseName + IntToStrZPad(I, 2) + '.png';
       Writeln('Writing ', OutputName);
-      SaveImage(DImg.Images[I], OutputName);
+      SaveImage(DImg.Images[I] as TImage, OutputName);
     end;
 
   finally FreeAndNil(DImg) end;

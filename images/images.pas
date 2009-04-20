@@ -1733,7 +1733,7 @@ end;
 function TImage.MakeCopy: TImage;
 begin
  Result := TImageClass(Self.ClassType).Create(Width, Height);
- Move(RawPixels^, Result.RawPixels^, Width * Height * PixelSize);
+ Move(RawPixels^, Result.RawPixels^, Depth * Width * Height * PixelSize);
 end;
 
 { This does the real resizing work.

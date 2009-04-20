@@ -116,7 +116,7 @@ type
     property CubeMapSides: TDDSCubeMapSides read FCubeMapSides write FCubeMapSides;
 
     { Depth of volume (3D) texture.
-      Valid only when image is loaded and is dtVolume. }
+      Always 1 when DDSType is not dtVolume, this is usually comfortable. }
     property Depth: Cardinal read FDepth write FDepth;
 
     { Return given side of cube map.
@@ -150,6 +150,32 @@ type
       leaks. }
     property OwnsFirstImage: boolean read FOwnsFirstImage write FOwnsFirstImage
       default true;
+
+    { Convert 3D images in @link(Images) list into a sequences of 2D images.
+      Useful utility for 3d (volume) textures.
+
+      Normal loading of 3d DDS textures creates single TImage (using Depth
+      possibly > 1) for each mipmap level. Such TImage with depth
+      is comfortable if you want to load this 3d texture into OpenGL
+      (as then the image data is just a continous memory area,
+      loadable by glTexImage3d). But it's not comfortable if you want
+      to display it using some 2D GUI. For example, it's not comfortable
+      for image viewer like glViewImage.
+
+      So this method will convert such TImage instances (with Depth > 1)
+      into a sequence of TImage instances all with Depth = 1.
+      This isn't difficult, memory contents on 3d TImage may be splitted
+      into many 2d TImage instances without problems.
+
+      Note that it's safe to do this before saving the image.
+      SaveToFile/SaveToStream methods accept both layouts of images
+      (because, as said, memory contents actually are the same before
+      and after splitting).
+
+      Note that this frees all Images (actually, whole Images object),
+      disregarding OwnsFirstImage (as it would be difficult, since
+      it may or may not create new first image). }
+    procedure Flatten3d;
   end;
 
 const
@@ -523,6 +549,9 @@ var
 
     Check(Header.Flags and DDSCAPS_TEXTURE <> 0, 'Missing DDSCAPS_TEXTURE');
 
+    { May be changed later if volume texture }
+    FDepth := 1;
+
     { calculate DDSType }
     Check( (Header.Caps2 and DDSCAPS2_VOLUME = 0) or
            (Header.Caps2 and DDSCAPS2_CUBEMAP = 0),
@@ -602,7 +631,7 @@ var
           for Z := 0 to Depth - 1 do
             for Y := Height - 1 downto 0 do
             begin
-              Stream.ReadBuffer(Res.RowPtr(Y)^, Res.PixelSize * Width);
+              Stream.ReadBuffer(Res.RowPtr(Y, Z)^, Res.PixelSize * Width);
               if RowBytePadding <> 0 then
                 Stream.Seek(RowBytePadding, soFromCurrent);
             end;
@@ -615,7 +644,7 @@ var
           for Z := 0 to Depth - 1 do
             for Y := Height - 1 downto 0 do
             begin
-              Stream.ReadBuffer(Res.RowPtr(Y)^, Res.PixelSize * Width);
+              Stream.ReadBuffer(Res.RowPtr(Y, Z)^, Res.PixelSize * Width);
               if RowBytePadding <> 0 then
                 Stream.Seek(RowBytePadding, soFromCurrent);
             end;
@@ -629,7 +658,7 @@ var
           for Z := 0 to Depth - 1 do
             for Y := Height - 1 downto 0 do
             begin
-              Row := Res.RowPtr(Y);
+              Row := Res.RowPtr(Y, Z);
               Stream.ReadBuffer(Row^, Res.PixelSize * Width);
 
               { Now invert red and blue. (Since all masks are little-endian,
@@ -652,7 +681,7 @@ var
           for Z := 0 to Depth - 1 do
             for Y := Height - 1 downto 0 do
             begin
-              Stream.ReadBuffer(Res.RowPtr(Y)^, Res.PixelSize * Width);
+              Stream.ReadBuffer(Res.RowPtr(Y, Z)^, Res.PixelSize * Width);
               if RowBytePadding <> 0 then
                 Stream.Seek(RowBytePadding, soFromCurrent);
             end;
@@ -666,7 +695,7 @@ var
           for Z := 0 to Depth - 1 do
             for Y := Height - 1 downto 0 do
             begin
-              Row := Res.RowPtr(Y);
+              Row := Res.RowPtr(Y, Z);
               Stream.ReadBuffer(Row^, Res.PixelSize * Width);
 
               { Now invert ARGB to ABGR. So swap red<->blue, alpha and green are Ok. }
@@ -688,7 +717,7 @@ var
           for Z := 0 to Depth - 1 do
             for Y := Height - 1 downto 0 do
             begin
-              Stream.ReadBuffer(Res.RowPtr(Y)^, Res.PixelSize * Width);
+              Stream.ReadBuffer(Res.RowPtr(Y, Z)^, Res.PixelSize * Width);
               if RowBytePadding <> 0 then
                 Stream.Seek(RowBytePadding, soFromCurrent);
             end;
@@ -706,7 +735,7 @@ var
               for Y := Height - 1 downto 0 do
               begin
                 Reader.ReadRow(Stream);
-                G := Res.RowPtr(Y);
+                G := Res.RowPtr(Y, Z);
                 for X := 0 to Width - 1 do
                 begin
                   G^ := Reader.RGBA(0);
@@ -729,7 +758,7 @@ var
               for Y := Height - 1 downto 0 do
               begin
                 Reader.ReadRow(Stream);
-                GA := Res.RowPtr(Y);
+                GA := Res.RowPtr(Y, Z);
                 for X := 0 to Width - 1 do
                 begin
                   GA^[0] := Reader.RGBA(0);
@@ -753,7 +782,7 @@ var
               for Y := Height - 1 downto 0 do
               begin
                 Reader.ReadRow(Stream);
-                RGB := Res.RowPtr(Y);
+                RGB := Res.RowPtr(Y, Z);
                 for X := 0 to Width - 1 do
                 begin
                   RGB^[0] := Reader.RGBA(0);
@@ -778,7 +807,7 @@ var
               for Y := Height - 1 downto 0 do
               begin
                 Reader.ReadRow(Stream);
-                RGBA := Res.RowPtr(Y);
+                RGBA := Res.RowPtr(Y, Z);
                 for X := 0 to Width - 1 do
                 begin
                   RGBA^[0] := Reader.RGBA(0);
@@ -805,7 +834,7 @@ var
               for Y := Height - 1 downto 0 do
               begin
                 Reader.ReadRow(Stream);
-                GA := Res.RowPtr(Y);
+                GA := Res.RowPtr(Y, Z);
                 for X := 0 to Width - 1 do
                 begin
                   GA^[0] := 255;
@@ -835,7 +864,7 @@ var
         begin
           if Header.PixelFormat.Flags and DDPF_ALPHAPIXELS = 0 then
           begin
-            Result := TRGBImage.Create(Width, Height);
+            Result := TRGBImage.Create(Width, Height, Depth);
 
             if (Header.PixelFormat.RBitMask = $ff0000) and
                (Header.PixelFormat.GBitMask = $00ff00) and
@@ -850,7 +879,7 @@ var
           begin
             Check(Header.PixelFormat.ABitMask <> 0, 'Invalid DDS pixel format: alpha channel flag specified (DDPF_ALPHAPIXELS), but alpha mask is zero');
 
-            Result := TRGBAlphaImage.Create(Width, Height);
+            Result := TRGBAlphaImage.Create(Width, Height, Depth);
 
             if (Header.PixelFormat.RGBBitCount = 32) and
                (Header.PixelFormat.ABitMask = $ff000000) and
@@ -877,7 +906,7 @@ var
         begin
           if Header.PixelFormat.Flags and DDPF_ALPHAPIXELS = 0 then
           begin
-            Result := TGrayscaleImage.Create(Width, Height);
+            Result := TGrayscaleImage.Create(Width, Height, Depth);
 
             if (Header.PixelFormat.RGBBitCount = 8) and
                (Header.PixelFormat.RBitMask = $ff) then
@@ -885,7 +914,7 @@ var
               ReadToGrayscale;
           end else
           begin
-            Result := TGrayscaleAlphaImage.Create(Width, Height);
+            Result := TGrayscaleAlphaImage.Create(Width, Height, Depth);
 
             if (Header.PixelFormat.RGBBitCount = 16) and
                (Header.PixelFormat.ABitMask = $ff00) and
@@ -898,7 +927,7 @@ var
           { GIMP-DDS plugin doesn't set DDPF_ALPHAPIXELS, but this is wrong IMO,
             so I warn about it. }
           CheckWarn(Header.PixelFormat.Flags and DDPF_ALPHAPIXELS <> 0, 'Invalid DDS pixel format: no flag specified (so must be grayscale image), but all r/g/b masks are zero. We will assume this is alpha-only image, as GIMP-DDS plugin can write such files');
-          Result := TGrayscaleAlphaImage.Create(Width, Height);
+          Result := TGrayscaleAlphaImage.Create(Width, Height, Depth);
           ReadToGrayscaleAlphaPure;
         end;
       end { ReadUncompressed };
@@ -1252,6 +1281,38 @@ begin
   try
     SaveToStream(S);
   finally FreeAndNil(S) end;
+end;
+
+procedure TDDSImage.Flatten3d;
+var
+  NewImages: TEncodedImageList;
+  OldImage, NewImage: TImage;
+  I, J: Integer;
+begin
+  if (DDSType = dtVolume) and (Depth > 1) then
+  begin
+    NewImages := TEncodedImageList.Create;
+
+    for I := 0 to Images.Count - 1 do
+    begin
+      if not (Images[I] is TImage) then
+        raise Exception.CreateFmt('Cannot do Flatten3d on this image class: %s',
+          [Images[I].ClassName]);
+      OldImage := TImage(Images[I]);
+
+      for J := 0 to OldImage.Depth - 1 do
+      begin
+        NewImage := TImageClass(OldImage.ClassType).Create(
+          OldImage.Width, OldImage.Height, 1);
+        Move(OldImage.PixelPtr(0, 0, J)^, NewImage.RawPixels^,
+          OldImage.Width * OldImage.Height * OldImage.PixelSize);
+        NewImages.Add(NewImage);
+      end;
+    end;
+
+    FreeWithContentsAndNil(FImages);
+    FImages := NewImages;
+  end;
 end;
 
 end.
