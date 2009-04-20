@@ -375,6 +375,15 @@ function IsTextureSized(const r: TImage): boolean;
 function IsCubeMapTextureSized(const Size: Cardinal): boolean;
 function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal;
 
+{ Texture wrapping modes ----------------------------------------------------- }
+
+type
+  TTextureWrap2D = array [0..1] of TGLenum;
+  TTextureWrap3D = array [0..2] of TGLenum;
+
+operator = (const W1, W2: TTextureWrap2D): boolean;
+operator = (const W1, W2: TTextureWrap3D): boolean;
+
 { Loading textures ----------------------------------------------------------- }
 
 function TextureMinFilterNeedsMipmaps(const MinFilter: TGLenum): boolean;
@@ -383,7 +392,7 @@ function TextureMinFilterNeedsMipmaps(const MinFilter: TGLenum): boolean;
   This takes care of UNPACK_ALIGNMENT (if needed, we'll change it and
   later revert back, so that the texture is correctly loaded).
 
-  If you omit WrapS / WrapT parameters then they will not be set
+  If you omit Wrap parameter then wrap parameters will not be set
   (so default OpenGL values will be used, since we always initialize
   new texture here).
 
@@ -401,17 +410,19 @@ function TextureMinFilterNeedsMipmaps(const MinFilter: TGLenum): boolean;
 function LoadGLTexture(const image: TImage; minFilter, magFilter: TGLenum;
   GrayscaleIsAlpha: boolean = false): TGLuint; overload;
 function LoadGLTexture(const image: TImage;
-  minFilter, magFilter, WrapS, WrapT: TGLenum;
+  minFilter, magFilter: TGLenum;
+  const Wrap: TTextureWrap2D;
   GrayscaleIsAlpha: boolean = false): TGLuint; overload;
 function LoadGLTexture(const FileName: string;
-  minFilter, magFilter, WrapS, WrapT: TGLenum;
+  minFilter, magFilter: TGLenum;
+  const Wrap: TTextureWrap2D;
   GrayscaleIsAlpha: boolean = false): TGLuint; overload;
 { @groupEnd }
 
 { Load texture into already reserved texture number.
 
   Besides this, works exactly like LoadGLTexture.
-  If you omit WrapS / WrapT parameters then they will not be set.
+  If you omit Wrap parameters then they will not be set.
   Changes currently bound texture to TexNum.
 
   You can use this to set "default unnamed OpenGL texture" parameters
@@ -419,7 +430,8 @@ function LoadGLTexture(const FileName: string;
 
   @groupBegin }
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TImage;
-  minFilter, magFilter, wrapS, wrapT: TGLenum;
+  minFilter, magFilter: TGLenum;
+  const Wrap: TTextureWrap2D;
   GrayscaleIsAlpha: boolean = false); overload;
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TImage;
   minFilter, magFilter: TGLenum;
@@ -428,12 +440,13 @@ procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TImage;
 
 { As LoadGLTexture, but the texture will be modified using ColorModulatorByte.
   If not Assigned(ColorModulatorByte) then this will simply return
-  LoadGLTexture(Image, MinFilter, MagFilter, WrapS, WrapT).
+  LoadGLTexture(Image, MinFilter, MagFilter, Wrap).
   Else it will return
-  LoadGLTexture(ImageModulated(Image), MinFilter, MagFilter, WrapS, WrapT)
+  LoadGLTexture(ImageModulated(Image), MinFilter, MagFilter, Wrap)
   (without introducing any memoty leaks). }
 function LoadGLTextureModulated(const Image: TImage;
-  MinFilter, MagFilter, WrapS, WrapT: TGLenum;
+  MinFilter, MagFilter: TGLenum;
+  const Wrap: TTextureWrap2D;
   ColorModulatorByte: TColorModulatorByteFunc): TGLuint;
 
 type
@@ -459,7 +472,8 @@ type
       (Actually, TGLVideo itself may eat a lot of texture memory,
       so be careful with large videos anyway.) }
     constructor Create(Video: TVideo;
-      MinFilter, MagFilter, WrapS, WrapT: TGLenum;
+      MinFilter, MagFilter: TGLenum;
+      const Wrap: TTextureWrap2D;
       ColorModulatorByte: TColorModulatorByteFunc = nil);
 
     destructor Destroy; override;
@@ -935,6 +949,18 @@ begin
     Result := true;
 end;
 
+{ Texture wrapping modes ----------------------------------------------------- }
+
+operator = (const W1, W2: TTextureWrap2D): boolean;
+begin
+  Result := CompareMem(@W1, @W2, SizeOf(W1));
+end;
+
+operator = (const W1, W2: TTextureWrap3D): boolean;
+begin
+  Result := CompareMem(@W1, @W2, SizeOf(W1));
+end;
+
 { implementacja procedur LoadGLTextures_XXX
   -----------------------------------------------------------------------------}
 
@@ -946,22 +972,24 @@ begin
     GrayscaleIsAlpha);
 end;
 
-function LoadGLTexture(const image: TImage; minFilter, magFilter,
-  wrapS, wrapT: TGLenum; GrayscaleIsAlpha: boolean): TGLuint; overload;
+function LoadGLTexture(const image: TImage; minFilter, magFilter: TGLenum;
+  const Wrap: TTextureWrap2D;
+  GrayscaleIsAlpha: boolean): TGLuint; overload;
 begin
  result := LoadGLTexture(Image, MinFilter, MagFilter, GrayscaleIsAlpha);
- glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, WrapS);
- glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, WrapT);
+ glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Wrap[0]);
+ glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Wrap[1]);
 end;
 
 function LoadGLTexture(const FileName: string;
-  MinFilter, MagFilter, WrapS, WrapT: TGLenum; GrayscaleIsAlpha: boolean): TGLuint;
+  MinFilter, MagFilter: TGLenum;
+  const Wrap: TTextureWrap2D;
+  GrayscaleIsAlpha: boolean): TGLuint;
 var Image: TImage;
 begin
  Image := LoadImage(FileName, GLImageClasses, []);
  try
-  Result := LoadGLTexture(Image, MinFilter, MagFilter, WrapS, WrapT,
-    GrayscaleIsAlpha);
+  Result := LoadGLTexture(Image, MinFilter, MagFilter, Wrap, GrayscaleIsAlpha);
  finally Image.Free end;
 end;
 
@@ -1086,31 +1114,36 @@ begin
 end;
 
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TImage;
-  minFilter, magFilter, wrapS, wrapT: TGLenum; GrayscaleIsAlpha: boolean);
+  minFilter, magFilter: TGLenum;
+  const Wrap: TTextureWrap2D;
+  GrayscaleIsAlpha: boolean);
 begin
  LoadGLGeneratedTexture(TexNum, Image, MinFilter, MagFilter, GrayscaleIsAlpha);
- glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, WrapS);
- glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, WrapT);
+ glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Wrap[0]);
+ glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Wrap[1]);
 end;
 
-function LoadGLTextureModulated(const Image: TImage; MinFilter, MagFilter,
-  WrapS, WrapT: TGLenum; ColorModulatorByte: TColorModulatorByteFunc): TGLuint;
+function LoadGLTextureModulated(const Image: TImage;
+  MinFilter, MagFilter: TGLenum;
+  const Wrap: TTextureWrap2D;
+  ColorModulatorByte: TColorModulatorByteFunc): TGLuint;
 var ImageModul: TImage;
 begin
  if Assigned(ColorModulatorByte) then
  begin
   ImageModul := Image.MakeModulatedRGB(ColorModulatorByte);
   try
-   Result := LoadGLTexture(ImageModul, MinFilter, MagFilter, WrapS, WrapT);
+   Result := LoadGLTexture(ImageModul, MinFilter, MagFilter, Wrap);
   finally ImageModul.Free; end;
  end else
-  Result := LoadGLTexture(Image, MinFilter, MagFilter, WrapS, WrapT);
+  Result := LoadGLTexture(Image, MinFilter, MagFilter, Wrap);
 end;
 
 { TGLVideo ------------------------------------------------------------------- }
 
 constructor TGLVideo.Create(Video: TVideo;
-  MinFilter, MagFilter, WrapS, WrapT: TGLenum;
+  MinFilter, MagFilter: TGLenum;
+  const Wrap: TTextureWrap2D;
   ColorModulatorByte: TColorModulatorByteFunc = nil);
 var
   I: Integer;
@@ -1124,7 +1157,7 @@ begin
   SetLength(FItems, Count);
   for I := 0 to High(FItems) do
     FItems[I] := LoadGLTextureModulated(Video.Items[I],
-      MinFilter, MagFilter, WrapS, WrapT, ColorModulatorByte);
+      MinFilter, MagFilter, Wrap, ColorModulatorByte);
 
   FTimeLoop := Video.TimeLoop;
   FTimeBackwards := Video.TimeBackwards;

@@ -822,8 +822,7 @@ type
 
     MinFilter: TGLint;
     MagFilter: TGLint;
-    WrapS: TGLenum;
-    WrapT: TGLenum;
+    Wrap: TTextureWrap2D;
     ColorModulator: TColorModulatorByteFunc;
     References: Cardinal;
     GLName: TGLuint;
@@ -858,8 +857,7 @@ type
 
     MinFilter: TGLint;
     MagFilter: TGLint;
-    WrapS: TGLenum;
-    WrapT: TGLenum;
+    Wrap: TTextureWrap2D;
     ColorModulator: TColorModulatorByteFunc;
     References: Cardinal;
     GLVideo: TGLVideo;
@@ -1000,7 +998,7 @@ type
       const TextureFullUrl: string;
       const TextureNode: TVRMLTextureNode;
       const TextureMinFilter, TextureMagFilter: TGLint;
-      const TextureWrapS, TextureWrapT: TGLenum;
+      const TextureWrap: TTextureWrap2D;
       const TextureColorModulator: TColorModulatorByteFunc;
       out AlphaChannelType: TAlphaChannelType): TGLuint;
 
@@ -1012,7 +1010,7 @@ type
       const TextureFullUrl: string;
       const TextureNode: TNodeMovieTexture;
       const TextureMinFilter, TextureMagFilter: TGLint;
-      const TextureWrapS, TextureWrapT: TGLenum;
+      const TextureWrap: TTextureWrap2D;
       const TextureColorModulator: TColorModulatorByteFunc;
       out AlphaChannelType: TAlphaChannelType): TGLVideo;
 
@@ -1799,7 +1797,7 @@ function TVRMLOpenGLRendererContextCache.TextureImage_IncReference(
   const TextureFullUrl: string;
   const TextureNode: TVRMLTextureNode;
   const TextureMinFilter, TextureMagFilter: TGLint;
-  const TextureWrapS, TextureWrapT: TGLenum;
+  const TextureWrap: TTextureWrap2D;
   const TextureColorModulator: TColorModulatorByteFunc;
   out AlphaChannelType: TAlphaChannelType): TGLuint;
 var
@@ -1836,8 +1834,7 @@ begin
          (TextureCached^.InitialNode = TextureNode) ) and
        (TextureCached^.MinFilter = TextureMinFilter) and
        (TextureCached^.MagFilter = TextureMagFilter) and
-       (TextureCached^.WrapS = TextureWrapS) and
-       (TextureCached^.WrapT = TextureWrapT) and
+       (TextureCached^.Wrap = TextureWrap) and
        (TextureCached^.ColorModulator = TextureColorModulator) then
     begin
       Inc(TextureCached^.References);
@@ -1855,15 +1852,14 @@ begin
     no way to call TextureImage_DecReference later). }
   Result := LoadGLTextureModulated(
     TextureImage, TextureMinFilter, TextureMagFilter,
-    TextureWrapS, TextureWrapT, TextureColorModulator);
+    TextureWrap, TextureColorModulator);
 
   TextureCached := TextureImageCaches.AppendItem;
   TextureCached^.FullUrl := TextureFullUrl;
   TextureCached^.InitialNode := TextureNode;
   TextureCached^.MinFilter := TextureMinFilter;
   TextureCached^.MagFilter := TextureMagFilter;
-  TextureCached^.WrapS := TextureWrapS;
-  TextureCached^.WrapT := TextureWrapT;
+  TextureCached^.Wrap := TextureWrap;
   TextureCached^.ColorModulator := TextureColorModulator;
   TextureCached^.References := 1;
   TextureCached^.GLName := Result;
@@ -1915,7 +1911,7 @@ function TVRMLOpenGLRendererContextCache.TextureVideo_IncReference(
   const TextureFullUrl: string;
   const TextureNode: TNodeMovieTexture;
   const TextureMinFilter, TextureMagFilter: TGLint;
-  const TextureWrapS, TextureWrapT: TGLenum;
+  const TextureWrap: TTextureWrap2D;
   const TextureColorModulator: TColorModulatorByteFunc;
   out AlphaChannelType: TAlphaChannelType): TGLVideo;
 var
@@ -1931,8 +1927,7 @@ begin
          (TextureCached^.InitialNode = TextureNode) ) and
        (TextureCached^.MinFilter = TextureMinFilter) and
        (TextureCached^.MagFilter = TextureMagFilter) and
-       (TextureCached^.WrapS = TextureWrapS) and
-       (TextureCached^.WrapT = TextureWrapT) and
+       (TextureCached^.Wrap = TextureWrap) and
        (TextureCached^.ColorModulator = TextureColorModulator) then
     begin
       Inc(TextureCached^.References);
@@ -1950,15 +1945,14 @@ begin
     no way to call TextureVideo_DecReference later). }
   Result := TGLVideo.Create(
     TextureVideo, TextureMinFilter, TextureMagFilter,
-    TextureWrapS, TextureWrapT, TextureColorModulator);
+    TextureWrap, TextureColorModulator);
 
   TextureCached := TextureVideoCaches.AppendItem;
   TextureCached^.FullUrl := TextureFullUrl;
   TextureCached^.InitialNode := TextureNode;
   TextureCached^.MinFilter := TextureMinFilter;
   TextureCached^.MagFilter := TextureMagFilter;
-  TextureCached^.WrapS := TextureWrapS;
-  TextureCached^.WrapT := TextureWrapT;
+  TextureCached^.Wrap := TextureWrap;
   TextureCached^.ColorModulator := TextureColorModulator;
   TextureCached^.References := 1;
   TextureCached^.GLVideo := Result;
@@ -3469,6 +3463,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     OriginalTexture: TImage;
     TextureProperties: TNodeTextureProperties;
     MinFilter, MagFilter: TGLint;
+    TextureWrap: TTextureWrap2D;
   const
     TextureRepeatToGL: array[boolean]of TGLenum = (
       { GL_CLAMP is useless if VRML doesn't allow to control texture border color,
@@ -3497,6 +3492,9 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
         MagFilter := Attributes.TextureMagFilter;
       end;
 
+      TextureWrap[0] := TextureRepeatToGL[TextureNode.RepeatS];
+      TextureWrap[1] := TextureRepeatToGL[TextureNode.RepeatT];
+
       if TextureNode.IsTextureImage then
       begin
         TextureImageReference.Node := TextureNode;
@@ -3506,8 +3504,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
           TextureNode,
           MinFilter,
           MagFilter,
-          TextureRepeatToGL[TextureNode.RepeatS],
-          TextureRepeatToGL[TextureNode.RepeatT],
+          TextureWrap,
           Attributes.ColorModulatorByte,
           { This way, our AlphaChannelType is calculated (or taken from cache)
             by TextureImage_IncReference }
@@ -3532,9 +3529,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
             { TODO: normal map textures should be shared by Cache }
             TextureImageReference.NormalMap := LoadGLTexture(
               State.ParentShape.NormalMap.TextureImage,
-              GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
-              TextureRepeatToGL[TextureNode.RepeatS],
-              TextureRepeatToGL[TextureNode.RepeatT]);
+              GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, TextureWrap);
           end;
         end;
 
@@ -3563,9 +3558,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
             try
               TextureImageReference.HeightMap :=
                 LoadGLTexture(HeightMapGrayscale,
-                  GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
-                  TextureRepeatToGL[TextureNode.RepeatS],
-                  TextureRepeatToGL[TextureNode.RepeatT]);
+                  GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, TextureWrap);
               TextureImageReference.HeightMapScale :=
                 State.ParentShape.HeightMapScale;
             finally
@@ -3597,8 +3590,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
           TextureVideoReference.Node,
           MinFilter,
           MagFilter,
-          TextureRepeatToGL[TextureNode.RepeatS],
-          TextureRepeatToGL[TextureNode.RepeatT],
+          TextureWrap,
           Attributes.ColorModulatorByte,
           { This way, our AlphaChannelType is calculated (or taken from cache)
             by TextureVideo_IncReference }
