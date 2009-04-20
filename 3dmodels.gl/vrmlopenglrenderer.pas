@@ -899,6 +899,7 @@ type
     InitialNode: TNodeX3DTexture3DNode;
     MinFilter: TGLint;
     MagFilter: TGLint;
+    Wrap: TTextureWrap3D;
     References: Cardinal;
     GLName: TGLuint;
   end;
@@ -1030,6 +1031,7 @@ type
     function Texture3D_IncReference(
       Node: TNodeX3DTexture3DNode;
       const MinFilter, MagFilter: TGLint;
+      const TextureWrap: TTextureWrap3D;
       Image: TImage): TGLuint;
 
     procedure Texture3D_DecReference(
@@ -2080,6 +2082,7 @@ end;
 function TVRMLOpenGLRendererContextCache.Texture3D_IncReference(
   Node: TNodeX3DTexture3DNode;
   const MinFilter, MagFilter: TGLint;
+  const TextureWrap: TTextureWrap3D;
   Image: TImage): TGLuint;
 var
   I: Integer;
@@ -2091,7 +2094,8 @@ begin
 
     if (TextureCached^.InitialNode = Node) and
        (TextureCached^.MinFilter = MinFilter) and
-       (TextureCached^.MagFilter = MagFilter) then
+       (TextureCached^.MagFilter = MagFilter) and
+       (TextureCached^.Wrap = TextureWrap) then
     begin
       Inc(TextureCached^.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
@@ -2107,11 +2111,9 @@ begin
   glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_MAG_FILTER, MagFilter);
   glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_MIN_FILTER, MinFilter);
 
-  { TODO: wrapping should come from Node, and be part of Texture3DCache,
-    like min/magFilter (right? how do 2d textures do it, check) }
-  glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_WRAP_S, TextureWrap[0]);
+  glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_WRAP_T, TextureWrap[1]);
+  glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_WRAP_R, TextureWrap[2]);
 
   glTextureImage3d(Image, TextureMinFilterNeedsMipmaps(MinFilter));
 
@@ -2119,6 +2121,7 @@ begin
   TextureCached^.InitialNode := Node;
   TextureCached^.MinFilter := MinFilter;
   TextureCached^.MagFilter := MagFilter;
+  TextureCached^.Wrap := TextureWrap;
   TextureCached^.References := 1;
   TextureCached^.GLName := Result;
 
@@ -3453,6 +3456,17 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     end;
   end;
 
+  const
+    TextureRepeatToGL: array[boolean]of TGLenum = (
+      { GL_CLAMP is useless if VRML doesn't allow to control texture border color,
+        and CLAMP_TO_EDGE is the more natural clamping method anyway...
+        Hm, but X3D specification seems to indicate that normal clamp is OpenGL's CLAMP,
+        and CLAMP_TO_EDGE is available by TextureProperties.boundaryMode*.
+        But until this will get implemented, it's much safer (and more sensible?)
+        to use GL_CLAMP_TO_EDGE here. }
+      GL_CLAMP_TO_EDGE,
+      GL_REPEAT);
+
   { Do the necessary preparations for a non-multi texture node.
     TextureNode must be non-nil. }
   procedure PrepareSingle2DTexture(TextureNode: TVRMLTextureNode);
@@ -3464,16 +3478,6 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     TextureProperties: TNodeTextureProperties;
     MinFilter, MagFilter: TGLint;
     TextureWrap: TTextureWrap2D;
-  const
-    TextureRepeatToGL: array[boolean]of TGLenum = (
-      { GL_CLAMP is useless if VRML doesn't allow to control texture border color,
-        and CLAMP_TO_EDGE is the more natural clamping method anyway...
-        Hm, but X3D specification seems to indicate that normal clamp is OpenGL's CLAMP,
-        and CLAMP_TO_EDGE is available by TextureProperties.boundaryMode*.
-        But until this will get implemented, it's much safer (and more sensible?)
-        to use GL_CLAMP_TO_EDGE here. }
-      GL_CLAMP_TO_EDGE,
-      GL_REPEAT);
   begin
     if (TextureImageReferences.TextureNodeIndex(TextureNode) = -1) and
        (TextureVideoReferences.TextureNodeIndex(TextureNode) = -1) then
@@ -3840,6 +3844,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     TextureReference: TTexture3DReference;
     DDS: TDDSImage;
     Image: TEncodedImage;
+    TextureWrap: TTextureWrap3D;
   begin
     if Texture3DReferences.TextureNodeIndex(Texture) <> -1 then
       { Already loaded, nothing to do }
@@ -3871,6 +3876,11 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
         MagFilter := Attributes.TextureMagFilter;
       end;
 
+      { calculate TextureWrap }
+      TextureWrap[0] := TextureRepeatToGL[Texture.FdRepeatS.Value];
+      TextureWrap[1] := TextureRepeatToGL[Texture.FdRepeatT.Value];
+      TextureWrap[2] := TextureRepeatToGL[Texture.FdRepeatR.Value];
+
       { TODO: this is a quick and dirty method:
         - We call LoadImage each time, while load calls should
           be minimized (to avoid loading image many times, but also
@@ -3884,7 +3894,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
 
       TextureReference.Node := Texture;
       TextureReference.GLName := Cache.Texture3D_IncReference(
-        Texture, MinFilter, MagFilter, Image as TImage);
+        Texture, MinFilter, MagFilter, TextureWrap, Image as TImage);
       Texture3DReferences.AppendItem(TextureReference);
 
     finally
