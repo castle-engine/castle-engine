@@ -767,7 +767,7 @@ type
 
     { Notify scene that you changed only given Shape.
       This means that you changed only fields within Shape.Geometry,
-      Shape.State.Last*. And you're sure that
+      Shape.State.Last*, Shape.State.ParentShape. And you're sure that
       these nodes are not shared by other shapes using VRML DEF/USE
       mechanism.
 
@@ -2748,6 +2748,28 @@ var
     WritelnLog('VRML changes', S);
   end;
 
+  { If Appearance.TextureTransform contains TextureTransform
+    (which should be some TextureTransform* VRML/X3D node,
+    but not nil and not TNodeMultiTextureTransform). }
+  function AppearanceUsesTextureTransform(Appearance: TNodeAppearance;
+    TextureTransform: TVRMLNode): boolean;
+  var
+    MultiTrans: TMFNode;
+    I: Integer;
+  begin
+    Result := Appearance.FdTextureTransform.Value = TextureTransform;
+    if (not Result) and
+       (Appearance.FdTextureTransform.Value <> nil) and
+       (Appearance.FdTextureTransform.Value is TNodeMultiTextureTransform) then
+    begin
+      MultiTrans := TNodeMultiTextureTransform(
+        Appearance.FdTextureTransform.Value).FdTextureTransform;
+      for I := 0 to MultiTrans.Count - 1 do
+        if MultiTrans.Items[I] = TextureTransform then
+          Exit(true);
+    end;
+  end;
+
 var
   NodeLastNodesIndex, I: integer;
   Coord: TMFVec3f;
@@ -2936,6 +2958,23 @@ begin
           if (SI.Current.Geometry is TNodeX3DComposedGeometryNode) and
              (TNodeX3DComposedGeometryNode(SI.Current.Geometry).
                FdTexCoord.Value = Node) then
+            ChangedShapeFields(SI.Current, false, false, false);
+      finally FreeAndNil(SI) end;
+    end else
+    if (Node is TNodeTextureTransform) or
+       (Node is TNodeTextureTransformMatrix3D) or
+       (Node is TNodeTextureTransform3D) then
+    begin
+      { VRML 2.0 / X3D TextureTransform* affects only shapes where it's
+        placed inside textureTransform field. }
+      SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+      try
+        while SI.GetNext do
+          if (SI.Current.State.ParentShape <> nil) and
+             (SI.Current.State.ParentShape.FdAppearance.Value <> nil) and
+             (SI.Current.State.ParentShape.FdAppearance.Value is TNodeAppearance) and
+             AppearanceUsesTextureTransform(
+               TNodeAppearance(SI.Current.State.ParentShape.FdAppearance.Value), Node) then
             ChangedShapeFields(SI.Current, false, false, false);
       finally FreeAndNil(SI) end;
     end else
