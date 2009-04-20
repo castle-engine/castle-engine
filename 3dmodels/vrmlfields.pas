@@ -1739,6 +1739,8 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: TVector4Single;
+    function GetItemsSafe(Index: Integer): TVector4Single;
+    procedure SetItemsSafe(Index: Integer; const Value: TVector4Single);
     function GetItems: TDynVector4SingleArray;
     procedure SetItems(const Value: TDynVector4SingleArray);
   protected
@@ -1762,6 +1764,12 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    { Access Items[] checking for range errors.
+      In case of errors, Get will return zero vector, Set will do nothing,
+      and both will produce clear VRMLWarning. }
+    property ItemsSafe[Index: Integer]: TVector4Single
+      read GetItemsSafe write SetItemsSafe;
   end;
 
   TMFColorRGBA = class(TMFVec4f)
@@ -4764,7 +4772,26 @@ begin
   Result := 'MFVec4f';
 end;
 
-{ TMFColorRGBA ------------------------------------------------------------------- }
+function TMFVec4f.GetItemsSafe(Index: Integer): TVector4Single;
+begin
+  if (Index >= 0) and (Index < Items.Count) then
+    Result := Items.Items[Index] else
+  begin
+    VRMLWarning_InvalidIndex(Index, Count);
+    Result := ZeroVector4Single;
+  end;
+end;
+
+procedure TMFVec4f.SetItemsSafe(Index: Integer; const Value: TVector4Single);
+begin
+  if (Index >= 0) and (Index < Items.Count) then
+    Items.Items[Index] := Value else
+  begin
+    VRMLWarning_InvalidIndex(Index, Count);
+  end;
+end;
+
+{ TMFColorRGBA --------------------------------------------------------------- }
 
 class function TMFColorRGBA.VRMLTypeName: string;
 begin
