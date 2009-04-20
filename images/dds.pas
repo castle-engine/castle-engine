@@ -75,8 +75,8 @@ type
     of this class, so be sure to set them all to something sensible. }
   TDDSImage = class
   private
-    FImages: TImageList;
-    function GetImages(const Index: Integer): TImage;
+    FImages: TEncodedImageList;
+    function GetImages(const Index: Integer): TEncodedImage;
 
     FWidth: Cardinal;
     FHeight: Cardinal;
@@ -96,7 +96,7 @@ type
       This has always length > 0 when DDS is successfully loaded
       (that is, when LoadFromStream method finished without raising any
       exception). }
-    property Images: TImageList read FImages;
+    property Images: TEncodedImageList read FImages;
 
     property Width: Cardinal read FWidth write FWidth;
     property Height: Cardinal read FHeight write FHeight;
@@ -127,7 +127,7 @@ type
 
       TODO: this is actually for testing, not really for production
       (as for real usage, you will want to eventually use also mipmaps). }
-    function CubeMapImage(const Side: TDDSCubeMapSide): TImage;
+    function CubeMapImage(const Side: TDDSCubeMapSide): TEncodedImage;
 
     { Load DDS image from any TStream.
       @raises(EInvalidDDS In case of any error in the file data.) }
@@ -445,7 +445,7 @@ constructor TDDSImage.Create;
 begin
   inherited;
   FOwnsFirstImage := true;
-  FImages := TImageList.Create;
+  FImages := TEncodedImageList.Create;
 end;
 
 destructor TDDSImage.Destroy;
@@ -465,12 +465,12 @@ begin
   Images.Count := 0;
 end;
 
-function TDDSImage.GetImages(const Index: Integer): TImage;
+function TDDSImage.GetImages(const Index: Integer): TEncodedImage;
 begin
   Result := FImages[Index];
 end;
 
-function TDDSImage.CubeMapImage(const Side: TDDSCubeMapSide): TImage;
+function TDDSImage.CubeMapImage(const Side: TDDSCubeMapSide): TEncodedImage;
 begin
   if Mipmaps then
     Result := FImages[Cardinal(Ord(Side)) * FMipmapsCount] else
@@ -563,12 +563,14 @@ var
   { Read actual image data, initializing FImages contents }
   procedure ReadImages;
 
-    { Read a single, normal 2D image from DDS file. }
-    function ReadImage(const Width, Height: Cardinal): TImage;
+    { Read a single, normal 2D (or 3D) image from DDS file. }
+    function ReadImage(const Width, Height, Depth, MipmapLevel: Cardinal): TEncodedImage;
 
       procedure ReadUncompressed(IsRGB: boolean);
       var
         RowBytePadding: Integer;
+        { Within ReadUncompressed, Result is always of TImage class }
+        Res: TImage absolute Result;
 
         { A couple of optimized routines for image formats that
           closely match corresponding Images unit memory format are below.
@@ -595,188 +597,198 @@ var
 
         procedure ReadOptimized_G8;
         var
-          Y: Integer;
+          Y, Z: Integer;
         begin
-          for Y := Height - 1 downto 0 do
-          begin
-            Stream.ReadBuffer(Result.RowPtr(Y)^, Result.PixelSize * Width);
-            if RowBytePadding <> 0 then
-              Stream.Seek(RowBytePadding, soFromCurrent);
-          end;
+          for Z := 0 to Depth - 1 do
+            for Y := Height - 1 downto 0 do
+            begin
+              Stream.ReadBuffer(Res.RowPtr(Y)^, Res.PixelSize * Width);
+              if RowBytePadding <> 0 then
+                Stream.Seek(RowBytePadding, soFromCurrent);
+            end;
         end;
 
         procedure ReadOptimized_AG8;
         var
-          Y: Integer;
+          Y, Z: Integer;
         begin
-          for Y := Height - 1 downto 0 do
-          begin
-            Stream.ReadBuffer(Result.RowPtr(Y)^, Result.PixelSize * Width);
-            if RowBytePadding <> 0 then
-              Stream.Seek(RowBytePadding, soFromCurrent);
-          end;
+          for Z := 0 to Depth - 1 do
+            for Y := Height - 1 downto 0 do
+            begin
+              Stream.ReadBuffer(Res.RowPtr(Y)^, Res.PixelSize * Width);
+              if RowBytePadding <> 0 then
+                Stream.Seek(RowBytePadding, soFromCurrent);
+            end;
         end;
 
         procedure ReadOptimized_RGB8;
         var
-          X, Y: Integer;
+          X, Y, Z: Integer;
           Row: PVector3Byte;
         begin
-          for Y := Height - 1 downto 0 do
-          begin
-            Row := Result.RowPtr(Y);
-            Stream.ReadBuffer(Row^, Result.PixelSize * Width);
-
-            { Now invert red and blue. (Since all masks are little-endian,
-              RBitMask = $FF0000 means that red is the 3rd (not 1st) byte...) }
-            for X := 0 to Width - 1 do
+          for Z := 0 to Depth - 1 do
+            for Y := Height - 1 downto 0 do
             begin
-              SwapValues(Row^[2], Row^[0]);
-              Inc(Row);
-            end;
+              Row := Res.RowPtr(Y);
+              Stream.ReadBuffer(Row^, Res.PixelSize * Width);
 
-            if RowBytePadding <> 0 then
-              Stream.Seek(RowBytePadding, soFromCurrent);
-          end;
+              { Now invert red and blue. (Since all masks are little-endian,
+                RBitMask = $FF0000 means that red is the 3rd (not 1st) byte...) }
+              for X := 0 to Width - 1 do
+              begin
+                SwapValues(Row^[2], Row^[0]);
+                Inc(Row);
+              end;
+
+              if RowBytePadding <> 0 then
+                Stream.Seek(RowBytePadding, soFromCurrent);
+            end;
         end;
 
         procedure ReadOptimized_BGR8;
         var
-          Y: Integer;
+          Y, Z: Integer;
         begin
-          for Y := Height - 1 downto 0 do
-          begin
-            Stream.ReadBuffer(Result.RowPtr(Y)^, Result.PixelSize * Width);
-            if RowBytePadding <> 0 then
-              Stream.Seek(RowBytePadding, soFromCurrent);
-          end;
+          for Z := 0 to Depth - 1 do
+            for Y := Height - 1 downto 0 do
+            begin
+              Stream.ReadBuffer(Res.RowPtr(Y)^, Res.PixelSize * Width);
+              if RowBytePadding <> 0 then
+                Stream.Seek(RowBytePadding, soFromCurrent);
+            end;
         end;
 
         procedure ReadOptimized_ARGB8;
         var
-          X, Y: Integer;
+          X, Y, Z: Integer;
           Row: PVector4Byte;
         begin
-          for Y := Height - 1 downto 0 do
-          begin
-            Row := Result.RowPtr(Y);
-            Stream.ReadBuffer(Row^, Result.PixelSize * Width);
-
-            { Now invert ARGB to ABGR. So swap red<->blue, alpha and green are Ok. }
-            for X := 0 to Width - 1 do
+          for Z := 0 to Depth - 1 do
+            for Y := Height - 1 downto 0 do
             begin
-              SwapValues(Row^[2], Row^[0]);
-              Inc(Row);
-            end;
+              Row := Res.RowPtr(Y);
+              Stream.ReadBuffer(Row^, Res.PixelSize * Width);
 
-            if RowBytePadding <> 0 then
-              Stream.Seek(RowBytePadding, soFromCurrent);
-          end;
+              { Now invert ARGB to ABGR. So swap red<->blue, alpha and green are Ok. }
+              for X := 0 to Width - 1 do
+              begin
+                SwapValues(Row^[2], Row^[0]);
+                Inc(Row);
+              end;
+
+              if RowBytePadding <> 0 then
+                Stream.Seek(RowBytePadding, soFromCurrent);
+            end;
         end;
 
         procedure ReadOptimized_ABGR8;
         var
-          Y: Integer;
+          Y, Z: Integer;
         begin
-          for Y := Height - 1 downto 0 do
-          begin
-            Stream.ReadBuffer(Result.RowPtr(Y)^, Result.PixelSize * Width);
-            if RowBytePadding <> 0 then
-              Stream.Seek(RowBytePadding, soFromCurrent);
-          end;
+          for Z := 0 to Depth - 1 do
+            for Y := Height - 1 downto 0 do
+            begin
+              Stream.ReadBuffer(Res.RowPtr(Y)^, Res.PixelSize * Width);
+              if RowBytePadding <> 0 then
+                Stream.Seek(RowBytePadding, soFromCurrent);
+            end;
         end;
 
         procedure ReadToGrayscale;
         var
           Reader: TDDSRowReader;
-          Y, X: Integer;
+          X, Y, Z: Integer;
           G: PByte;
         begin
           Reader := TDDSRowReader.Create(@Header.PixelFormat, Width, RowBytePadding);
           try
-            for Y := Height - 1 downto 0 do
-            begin
-              Reader.ReadRow(Stream);
-              G := Result.RowPtr(Y);
-              for X := 0 to Width - 1 do
+            for Z := 0 to Depth - 1 do
+              for Y := Height - 1 downto 0 do
               begin
-                G^ := Reader.RGBA(0);
-                Reader.NextPixel;
-                Inc(G);
+                Reader.ReadRow(Stream);
+                G := Res.RowPtr(Y);
+                for X := 0 to Width - 1 do
+                begin
+                  G^ := Reader.RGBA(0);
+                  Reader.NextPixel;
+                  Inc(G);
+                end;
               end;
-            end;
           finally FreeAndNil(Reader) end;
         end;
 
         procedure ReadToGrayscaleAlpha;
         var
           Reader: TDDSRowReader;
-          Y, X: Integer;
+          X, Y, Z: Integer;
           GA: PVector2Byte;
         begin
           Reader := TDDSRowReader.Create(@Header.PixelFormat, Width, RowBytePadding);
           try
-            for Y := Height - 1 downto 0 do
-            begin
-              Reader.ReadRow(Stream);
-              GA := Result.RowPtr(Y);
-              for X := 0 to Width - 1 do
+            for Z := 0 to Depth - 1 do
+              for Y := Height - 1 downto 0 do
               begin
-                GA^[0] := Reader.RGBA(0);
-                GA^[1] := Reader.RGBA(3);
-                Reader.NextPixel;
-                Inc(GA);
+                Reader.ReadRow(Stream);
+                GA := Res.RowPtr(Y);
+                for X := 0 to Width - 1 do
+                begin
+                  GA^[0] := Reader.RGBA(0);
+                  GA^[1] := Reader.RGBA(3);
+                  Reader.NextPixel;
+                  Inc(GA);
+                end;
               end;
-            end;
           finally FreeAndNil(Reader) end;
         end;
 
         procedure ReadToRGB;
         var
           Reader: TDDSRowReader;
-          Y, X: Integer;
+          X, Y, Z: Integer;
           RGB: PVector3Byte;
         begin
           Reader := TDDSRowReader.Create(@Header.PixelFormat, Width, RowBytePadding);
           try
-            for Y := Height - 1 downto 0 do
-            begin
-              Reader.ReadRow(Stream);
-              RGB := Result.RowPtr(Y);
-              for X := 0 to Width - 1 do
+            for Z := 0 to Depth - 1 do
+              for Y := Height - 1 downto 0 do
               begin
-                RGB^[0] := Reader.RGBA(0);
-                RGB^[1] := Reader.RGBA(1);
-                RGB^[2] := Reader.RGBA(2);
-                Reader.NextPixel;
-                Inc(RGB);
+                Reader.ReadRow(Stream);
+                RGB := Res.RowPtr(Y);
+                for X := 0 to Width - 1 do
+                begin
+                  RGB^[0] := Reader.RGBA(0);
+                  RGB^[1] := Reader.RGBA(1);
+                  RGB^[2] := Reader.RGBA(2);
+                  Reader.NextPixel;
+                  Inc(RGB);
+                end;
               end;
-            end;
           finally FreeAndNil(Reader) end;
         end;
 
         procedure ReadToRGBAlpha;
         var
           Reader: TDDSRowReader;
-          Y, X: Integer;
+          X, Y, Z: Integer;
           RGBA: PVector4Byte;
         begin
           Reader := TDDSRowReader.Create(@Header.PixelFormat, Width, RowBytePadding);
           try
-            for Y := Height - 1 downto 0 do
-            begin
-              Reader.ReadRow(Stream);
-              RGBA := Result.RowPtr(Y);
-              for X := 0 to Width - 1 do
+            for Z := 0 to Depth - 1 do
+              for Y := Height - 1 downto 0 do
               begin
-                RGBA^[0] := Reader.RGBA(0);
-                RGBA^[1] := Reader.RGBA(1);
-                RGBA^[2] := Reader.RGBA(2);
-                RGBA^[3] := Reader.RGBA(3);
-                Reader.NextPixel;
-                Inc(RGBA);
+                Reader.ReadRow(Stream);
+                RGBA := Res.RowPtr(Y);
+                for X := 0 to Width - 1 do
+                begin
+                  RGBA^[0] := Reader.RGBA(0);
+                  RGBA^[1] := Reader.RGBA(1);
+                  RGBA^[2] := Reader.RGBA(2);
+                  RGBA^[3] := Reader.RGBA(3);
+                  Reader.NextPixel;
+                  Inc(RGBA);
+                end;
               end;
-            end;
           finally FreeAndNil(Reader) end;
         end;
 
@@ -784,27 +796,28 @@ var
         procedure ReadToGrayscaleAlphaPure;
         var
           Reader: TDDSRowReader;
-          Y, X: Integer;
+          X, Y, Z: Integer;
           GA: PVector2Byte;
         begin
           Reader := TDDSRowReader.Create(@Header.PixelFormat, Width, RowBytePadding);
           try
-            for Y := Height - 1 downto 0 do
-            begin
-              Reader.ReadRow(Stream);
-              GA := Result.RowPtr(Y);
-              for X := 0 to Width - 1 do
+            for Z := 0 to Depth - 1 do
+              for Y := Height - 1 downto 0 do
               begin
-                GA^[0] := 255;
-                GA^[1] := Reader.RGBA(3);
-                Reader.NextPixel;
-                Inc(GA);
+                Reader.ReadRow(Stream);
+                GA := Res.RowPtr(Y);
+                for X := 0 to Width - 1 do
+                begin
+                  GA^[0] := 255;
+                  GA^[1] := Reader.RGBA(3);
+                  Reader.NextPixel;
+                  Inc(GA);
+                end;
               end;
-            end;
           finally FreeAndNil(Reader) end;
         end;
 
-      begin
+      begin { ReadUncompressed }
         Check(Header.PixelFormat.RGBBitCount mod 8 = 0, 'Invalid DDS pixel format: only RGBBitCount being multiple of 8 is supported. Please report with sample image');
         Check(Header.PixelFormat.RGBBitCount > 0, 'Invalid DDS pixel format: RGBBitCount must be non-zero');
 
@@ -813,8 +826,7 @@ var
           I understand that otherwise I should assume lines are not padded? }
         if (Header.Flags and DDSD_PITCH <> 0) and
            (Header.PitchOrLinearSize <> 0) and
-           { Use this only for level 0 of mipmap level }
-           (Width = Self.Width) then
+           (MipmapLevel = 0) then
           RowBytePadding := Max(Header.PitchOrLinearSize -
             (Header.PixelFormat.RGBBitCount div 8) * Width, 0) else
           RowBytePadding := 0;
@@ -885,10 +897,29 @@ var
         begin
           { GIMP-DDS plugin doesn't set DDPF_ALPHAPIXELS, but this is wrong IMO,
             so I warn about it. }
-          CheckWarn(Header.PixelFormat.Flags and DDPF_ALPHAPIXELS <> 0, 'Invalid DDS pixel format: no flag specified (so must be grayscale inmage), but all r/g/b masks are zero. We will assume this is alpha-only image, as GIMP-DDS plugin can write such files');
+          CheckWarn(Header.PixelFormat.Flags and DDPF_ALPHAPIXELS <> 0, 'Invalid DDS pixel format: no flag specified (so must be grayscale image), but all r/g/b masks are zero. We will assume this is alpha-only image, as GIMP-DDS plugin can write such files');
           Result := TGrayscaleAlphaImage.Create(Width, Height);
           ReadToGrayscaleAlphaPure;
         end;
+      end { ReadUncompressed };
+
+      procedure ReadCompressed(Compression: TS3TCCompression);
+      var
+        { Within ReadUncompressed, Result is always of TS3TCImage class }
+        Res: TS3TCImage absolute Result;
+      begin
+        Result := TS3TCImage.Create(Width, Height, Depth, Compression);
+
+        { TODO: we don't invert rows when reading compressed DDS }
+
+        if (Header.Flags and DDSD_LINEARSIZE <> 0) and
+           { Checl this only for level 0 of mipmap level }
+           (MipmapLevel = 0) and
+           (Header.PitchOrLinearSize <> Res.Size) then
+          raise EInvalidDDS.CreateFmt('DDS header indicates different S3TC compressed image size (%d) than our image unit (%d)',
+            [Header.PitchOrLinearSize, Res.Size]);
+
+        Stream.ReadBuffer(Res.RawPixels^, Res.Size);
       end;
 
     begin
@@ -918,11 +949,17 @@ var
           Assert(Header.PixelFormat.Flags and DDPF_RGB = 0);
           Assert(Header.PixelFormat.Flags and DDPF_PALETTEINDEXED8 = 0);
 
-          raise EInvalidDDS.CreateFmt('TODO: Unsupported pixel format for DDS: compressed (FourCC: %s%s%s%s) texture images not supported now, please report with sample image',
-            [ SReadableForm(Header.PixelFormat.FourCC[0]),
-              SReadableForm(Header.PixelFormat.FourCC[1]),
-              SReadableForm(Header.PixelFormat.FourCC[2]),
-              SReadableForm(Header.PixelFormat.FourCC[3]) ]);
+          if Header.PixelFormat.FourCC = 'DXT1' then
+            ReadCompressed(s3tcDxt1) else
+          if Header.PixelFormat.FourCC = 'DXT3' then
+            ReadCompressed(s3tcDxt3) else
+          if Header.PixelFormat.FourCC = 'DXT5' then
+            ReadCompressed(s3tcDxt5) else
+            raise EInvalidDDS.CreateFmt('Unsupported texture compression for DDS: FourCC is "%s%s%s%s"',
+              [ SReadableForm(Header.PixelFormat.FourCC[0]),
+                SReadableForm(Header.PixelFormat.FourCC[1]),
+                SReadableForm(Header.PixelFormat.FourCC[2]),
+                SReadableForm(Header.PixelFormat.FourCC[3]) ]);
         end else
         begin
           { No flags specified, this means uncompressed image
@@ -947,7 +984,7 @@ var
       Images.SetAll(nil);
     end;
 
-    procedure AddOneImage(const Image: TImage);
+    procedure AddOneImage(const Image: TEncodedImage);
     begin
       Images.IncCount;
       Images.Last := Image;
@@ -955,7 +992,7 @@ var
 
   var
     W, H, D: Cardinal;
-    I, J: Integer;
+    I: Integer;
     Side: TDDSCubeMapSide;
   begin
     { Check that Width/Height are power of two, this is needed to make
@@ -978,14 +1015,14 @@ var
             H := Height;
             for I := 0 to FMipmapsCount - 1 do
             begin
-              FImages[I] := ReadImage(W, H);
+              FImages[I] := ReadImage(W, H, 1, I);
               W := Max(1, W div 2);
               H := Max(1, H div 2);
             end;
           end else
           begin
             AllocateImages(1);
-            FImages[0] := ReadImage(Width, Height);
+            FImages[0] := ReadImage(Width, Height, 1, 0);
           end;
         end;
       dtCubeMap:
@@ -999,13 +1036,13 @@ var
                 H := Height;
                 for I := 0 to FMipmapsCount - 1 do
                 begin
-                  AddOneImage(ReadImage(W, H));
+                  AddOneImage(ReadImage(W, H, 1, I));
                   W := Max(1, W div 2);
                   H := Max(1, H div 2);
                 end;
               end else
               begin
-                AddOneImage(ReadImage(Width, Height));
+                AddOneImage(ReadImage(Width, Height, 1, 0));
               end;
             end;
         end;
@@ -1016,18 +1053,16 @@ var
             W := Width;
             H := Height;
             D := Depth;
-            for J := 0 to FMipmapsCount - 1 do
+            for I := 0 to FMipmapsCount - 1 do
             begin
-              for I := 0 to D - 1 do
-                AddOneImage(ReadImage(W, H));
+              AddOneImage(ReadImage(W, H, D, I));
               W := Max(1, W div 2);
               H := Max(1, H div 2);
               D := Max(1, D div 2);
             end;
           end else
           begin
-            for I := 0 to Depth - 1 do
-              AddOneImage(ReadImage(Width, Height));
+            AddOneImage(ReadImage(Width, Height, Depth, 0));
           end;
         end;
       else raise EInternalError.Create('DDSType?');
@@ -1109,8 +1144,19 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
       else raise EInternalError.Create('DDSType');
     end;
 
-    Header.Flags := Header.Flags or DDSD_PITCH;
-    Header.PitchOrLinearSize := Width * Images[0].PixelSize;
+    if Images[0] is TImage then
+    begin
+      { For uncompressed image, PitchOrLinearSize is row length }
+      Header.PitchOrLinearSize := Width * TImage(Images[0]).PixelSize;
+      Header.Flags := Header.Flags or DDSD_PITCH;
+    end else
+    if Images[0] is TS3TCImage then
+    begin
+      { For uncompressed image, PitchOrLinearSize is image length }
+      Header.PitchOrLinearSize := TS3TCImage(Images[0]).Size;
+      Header.Flags := Header.Flags or DDSD_LINEARSIZE;
+    end else
+      raise Exception.CreateFmt('Cannot save image class %s to DDS file', [Images[0].ClassName]);
 
     Header.PixelFormat.Size := SizeOf(Header.PixelFormat);
     Header.PixelFormat.Flags := 0; { for starters }
@@ -1158,12 +1204,33 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
   end;
 
   procedure WriteImages;
+
+    procedure WriteUncompressedImage(Image: TImage);
+    var
+      Z, Y: Integer;
+    begin
+      for Z := 0 to Image.Depth - 1 do
+        { We have to invert rows order when saving to DDS }
+        for Y := Image.Height - 1 downto 0 do
+          Stream.WriteBuffer(Image.RowPtr(Y, Z)^, Width * Image.PixelSize);
+    end;
+
+    procedure WriteCompressedImage(Image: TS3TCImage);
+    begin
+      { TODO: we can't invert rows when saving compressed to DDS? }
+      Stream.WriteBuffer(Image.RawPixels^, Image.Size);
+    end;
+
   var
-    I, Y: Integer;
+    I: Integer;
   begin
     for I := 0 to Images.Count - 1 do
-      for Y := Images[I].Height - 1 downto 0 do
-        Stream.WriteBuffer(Images[I].RowPtr(Y)^, Width * Images[I].PixelSize);
+      if Images[I] is TImage then
+        WriteUncompressedImage(TImage(Images[I])) else
+      begin
+        Assert(Images[I] is TS3TCImage);
+        WriteCompressedImage(TS3TCImage(Images[I]));
+      end;
   end;
 
 begin

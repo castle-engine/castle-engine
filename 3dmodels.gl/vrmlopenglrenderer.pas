@@ -3602,20 +3602,22 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
           be minimized (to avoid loading image many times, but also
           to avoid making repeated warnings in case image fails).
           Should be cached, like for 2D texture nodes.
-        - We do not use cube map mipmaps stored inside DDS file. }
+        - We do not use cube map mipmaps stored inside DDS file. 
+        - We crash ("as") on S3TC compressed cube maps.
+      }
 
       TextureCubeMapReference.Node := CubeTexture;
       TextureCubeMapReference.GLName := Cache.TextureCubeMap_IncReference(
         CubeTexture,
         MinFilter, MagFilter,
-        DDS.CubeMapImage(dcsPositiveX),
-        DDS.CubeMapImage(dcsNegativeX),
+        DDS.CubeMapImage(dcsPositiveX) as TImage,
+        DDS.CubeMapImage(dcsNegativeX) as TImage,
         { Swap meaning of positive/negative Y faces from DDS,
           see TDDSCubeMapSide for explanation. }
-        DDS.CubeMapImage(dcsNegativeY),
-        DDS.CubeMapImage(dcsPositiveY),
-        DDS.CubeMapImage(dcsPositiveZ),
-        DDS.CubeMapImage(dcsNegativeZ));
+        DDS.CubeMapImage(dcsNegativeY) as TImage,
+        DDS.CubeMapImage(dcsPositiveY) as TImage,
+        DDS.CubeMapImage(dcsPositiveZ) as TImage,
+        DDS.CubeMapImage(dcsNegativeZ) as TImage);
       TextureCubeMapReferences.AppendItem(TextureCubeMapReference);
 
     finally FreeAndNil(DDS); end;

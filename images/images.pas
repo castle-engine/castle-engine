@@ -205,8 +205,28 @@ type
     see AlphaChannelTypeOverride. }
   TDetectAlphaChannel = (daAuto, daSimpleYesNo, daFullRange);
 
+  { Abstract class for an image with unspecified, possibly compressed,
+    memory format. The idea is that both uncompressed images (TImage)
+    and compressed images (TS3TCImage) are derived from this class. }
+  TEncodedImage = class
+  private
+    FWidth, FHeight, FDepth: Cardinal;
+  protected
+    { Operate on this by Get/Realloc/FreeMem.
+      It's always freed and nil'ed in destructor. }
+    FRawPixels: Pointer;
+  public
+    destructor Destroy; override;
+
+    property Width: Cardinal read FWidth;
+    property Height: Cardinal read FHeight;
+    property Depth: Cardinal read FDepth;
+
+    property RawPixels: Pointer read FRawPixels;
+  end;
+
   { TImage is an abstract class representing image as a simple array of pixels.
-    RawPixels is a pointer to Width * Height of values of some
+    RawPixels is a pointer to Width * Height * Depth of values of some
     type, let's call it TPixel. TPixel specifies the color of the pixel
     (but potentially can also represent some other values
     in some descendants of TImage, not only color).
@@ -218,11 +238,19 @@ type
     TRGBAlphaImage encodes colors as 4 bytes, RGB+Alpha.
     RGBE encodes colors as 4 bytes, RGB+Exponent.
 
-    Pixels in RawPixels are ordered in rows, in each row pixels are specified
+    When Depth > 1, the image is actually a 3D (not just 2D!) image.
+    We call the particular 2D layers then "slices".
+    TODO: This is currently (2009-04-19) not perfectly polished,
+    and possibly not handled by all methods, so be careful when using this.
+    Many TImage methods (and functions in other units, like GLImages)
+    still operate only on the 1st "slice", that is the 2D image on Depth = 0.
+
+    Pixels in RawPixels are ordered in slices, each slice is ordered in rows,
+    in each row pixels are specified
     from left to right, rows are specified starting from lower row to upper.
     This means that you can think of RawPixels as
-      ^(packed array[0..Height - 1, 0..Width - 1] of TPixel)
-    Then RawPixels^[y, x] is color of pixel at position x, y.
+      ^(packed array[0..Depth - 1, 0..Height - 1, 0..Width - 1] of TPixel)
+    Then RawPixels^[z, y, x] is color of pixel at position z, x, y.
 
     Note that specifying rows from lower to upper is an OpenGL standard,
     this makes using this unit with OpenGL straightforward.
@@ -235,30 +263,26 @@ type
     (like with any class).
 
     Note that the only valid states of instances of this class
-    are when (Width * Height > 0 and RawPixels <> nil) or
-    (Width * Height = 0 and RawPixels = nil). Otherwise the fundamental
-    assumption that RawPixels is a pointer to Width * Height pixels would
+    are when (Width * Height * Depth > 0 and RawPixels <> nil) or
+    (Width * Height * Depth = 0 and RawPixels = nil). Otherwise the fundamental
+    assumption that RawPixels is a pointer to Width * Height * Depth pixels would
     be broken (as nil pointer cannot point to anything, and on the other
     side it's rather useless to have a pointer to 0 bytes (since you
     can never dereference it anyway) even if theoretically every PtrInt
     value can be treated as valid pointer to 0 bytes).
 
     Note about coordinates:
-    1. all X, Y coordinates of pixels are 0-based
-       (X in range 0..Width-1, and Y in 0..Height-1).
+    1. all X, Y, Z coordinates of pixels are 0-based
+       (X in range 0..Width-1, and Y in 0..Height-1, and Z in 0..Depth-1).
     2. if documentation for some method does not specify otherwise,
        correctness of coordinates is *not* checked in method,
        which can lead to various errors at runtime if you will pass
-       incorrect coordinates to given routine. }
-  TImage = class
+       incorrect coordinates to given routine.
+  }
+  TImage = class(TEncodedImage)
   private
-    FWidth, FHeight: Cardinal;
     procedure NotImplemented(const AMethodName: string);
   protected
-    { Operate on this by Get/Realloc/FreeMem.
-      It's always freed and nil'ed in destructor. }
-    FRawPixels: Pointer;
-
     { Check that both images have the same sizes and Second image class
       descends from First image class. If not, raise appropriate ELerpXxx
       exceptions.
@@ -275,13 +299,9 @@ type
       Both constructors must be virtual, this allows to implement things
       like TImage.MakeCopy. }
     constructor Create; overload; virtual;
-    constructor Create(AWidth, AHeight: Cardinal); overload; virtual;
-
-    destructor Destroy; override;
-
-    property Width: Cardinal read FWidth;
-    property Height: Cardinal read FHeight;
-    property RawPixels: Pointer read FRawPixels;
+    constructor Create(
+      const AWidth, AHeight: Cardinal;
+      const ADepth: Cardinal = 1); overload; virtual;
 
     { True means that RawPixels = nil.
       In this case Width*Height must be 0, so either Width = 0 or Height = 0.
@@ -298,7 +318,9 @@ type
       Previous image contents are lost. (use one of the other methods,
       like @link(Resize), if you want to change image size preserving
       it's contents) }
-    procedure SetSize(AWidth, AHeight: Cardinal);
+    procedure SetSize(
+      const AWidth, AHeight: Cardinal;
+      const ADepth: Cardinal = 1);
 
     { This is size of TPixel in bytes for this TImage descendant. }
     class function PixelSize: Cardinal; virtual; abstract;
@@ -311,23 +333,23 @@ type
       to correctly interpret these, it's not a 4th component)). }
     class function ColorComponentsCount: Cardinal; virtual; abstract;
 
-    { Returns pointer to (x, y) pixel of image.
+    { Returns pointer to (x, y, z) pixel of image.
 
-      Note that they don't check X, Y correctness in any way,
+      Note that they don't check X, Y, Z correctness in any way,
       it's your responsibility to always pass 0 <= X < Width and
-      0 <= Y < Height.
+      0 <= Y < Height and 0 <= Z < Depth.
 
       Note that this function *should* be reintroduced in descendants
       to return the same value but typecasted to something better then Pointer
       (something like ^TPixel). }
-    function PixelPtr(X, Y: Cardinal): Pointer;
+    function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): Pointer;
 
     { Same thing as @link(PixelPtr) but always with X = 0.
 
       Note that this function *should* be reintroduced in descendants
       to return the same value but typecasted to something better then Pointer,
       preferably something like ^(array of TPixel). }
-    function RowPtr(Y: Cardinal): Pointer;
+    function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): Pointer;
 
     { This inverts RGB colors (i.e. changes each RGB component's value
       to High(Byte)-value). Doesn't touch other components,
@@ -672,6 +694,28 @@ type
   {$I objectslist_1.inc}
   TImageList = TObjectsList_1;
 
+  TObjectsListItem_2 = TEncodedImage;
+  {$I objectslist_2.inc}
+  TEncodedImageList = TObjectsList_2;
+
+  TS3TCCompression = (s3tcDxt1, s3tcDxt3, s3tcDxt5);
+
+  { Image encoded with S3TC compression. }
+  TS3TCImage = class(TEncodedImage)
+  private
+    FCompression: TS3TCCompression;
+    FSize: Cardinal;
+  public
+    constructor Create(const AWidth, AHeight: Cardinal;
+      const ADepth: Cardinal;
+      const ACompression: TS3TCCompression);
+
+    property Compression: TS3TCCompression read FCompression;
+
+    { Size of the whole image data inside RawPixels, in bytes. }
+    property Size: Cardinal read FSize;
+  end;
+
 { TImageClass and arrays of TImageClasses ----------------------------- }
 
 type
@@ -735,8 +779,8 @@ type
     class function PixelSize: Cardinal; override;
     class function ColorComponentsCount: Cardinal; override;
 
-    function PixelPtr(X, Y: Cardinal): PVector3Byte;
-    function RowPtr(Y: Cardinal): PArray_Vector3Byte;
+    function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PVector3Byte;
+    function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector3Byte;
 
     procedure InvertRGBColors; override;
 
@@ -824,8 +868,8 @@ type
     class function PixelSize: Cardinal; override;
     class function ColorComponentsCount: Cardinal; override;
 
-    function PixelPtr(X, Y: Cardinal): PVector4Byte;
-    function RowPtr(Y: Cardinal): PArray_Vector4Byte;
+    function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PVector4Byte;
+    function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector4Byte;
 
     procedure InvertRGBColors; override;
 
@@ -882,8 +926,8 @@ type
     class function PixelSize: Cardinal; override;
     class function ColorComponentsCount: Cardinal; override;
 
-    function PixelPtr(X, Y: Cardinal): PVector4Byte;
-    function RowPtr(Y: Cardinal): PArray_Vector4Byte;
+    function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PVector4Byte;
+    function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector4Byte;
 
     procedure SetColorRGB(const x, y: Integer; const v: TVector3Single); override;
 
@@ -925,8 +969,8 @@ type
     class function PixelSize: Cardinal; override;
     class function ColorComponentsCount: Cardinal; override;
 
-    function PixelPtr(X, Y: Cardinal): PByte;
-    function RowPtr(Y: Cardinal): PByteArray;
+    function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PByte;
+    function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PByteArray;
 
     procedure Clear(const Pixel: Byte); reintroduce;
     function IsClear(const Pixel: Byte): boolean; reintroduce;
@@ -955,8 +999,8 @@ type
     class function PixelSize: Cardinal; override;
     class function ColorComponentsCount: Cardinal; override;
 
-    function PixelPtr(X, Y: Cardinal): PVector2Byte;
-    function RowPtr(Y: Cardinal): PArray_Vector2Byte;
+    function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PVector2Byte;
+    function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector2Byte;
 
     procedure Clear(const Pixel: TVector2Byte); reintroduce;
     function IsClear(const Pixel: TVector2Byte): boolean; reintroduce;
@@ -1516,6 +1560,7 @@ uses ProgressUnit, KambiStringUtils, KambiFilesUtils,
 
 {$define read_implementation}
 {$I objectslist_1.inc}
+{$I objectslist_2.inc}
 
 { image loading utilities --------------------------------------------------- }
 
@@ -1612,6 +1657,14 @@ begin
          (Abs(Smallint(Color1[2])-Color2[2]) <= tolerance);
 end;
 
+{ TEncodedImage -------------------------------------------------------------- }
+
+destructor TEncodedImage.Destroy;
+begin
+  FreeMemNiling(FRawPixels);
+  inherited;
+end;
+
 { TImage ------------------------------------------------------------ }
 
 constructor TImage.Create;
@@ -1620,16 +1673,12 @@ begin
  { Everything is already inited to nil and 0. }
 end;
 
-constructor TImage.Create(AWidth, AHeight: Cardinal);
+constructor TImage.Create(
+  const AWidth, AHeight: Cardinal;
+  const ADepth: Cardinal = 1);
 begin
  Create;
- SetSize(AWidth, AHeight);
-end;
-
-destructor TImage.Destroy;
-begin
- FreeMemNiling(FRawPixels);
- inherited;
+ SetSize(AWidth, AHeight, ADepth);
 end;
 
 function TImage.IsNull: boolean;
@@ -1644,23 +1693,25 @@ begin
  FHeight := 0;
 end;
 
-procedure TImage.SetSize(AWidth, AHeight: Cardinal);
+procedure TImage.SetSize(const AWidth, AHeight: Cardinal;
+  const ADepth: Cardinal = 1);
 begin
  FreeMemNiling(FRawPixels);
  FWidth := AWidth;
  FHeight := AHeight;
- if (AWidth <> 0) and (AHeight <> 0) then
-  FRawPixels := GetMem(PixelSize * AWidth * AHeight);
+ FDepth := ADepth;
+ if (AWidth <> 0) and (AHeight <> 0) and (ADepth <> 0) then
+  FRawPixels := GetMem(PixelSize * AWidth * AHeight * ADepth);
 end;
 
-function TImage.PixelPtr(X, Y: Cardinal): Pointer;
+function TImage.PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): Pointer;
 begin
- Result := PointerAdd(RawPixels, PixelSize * (Width * Y + X));
+ Result := PointerAdd(RawPixels, PixelSize * (Width * (Height * Z + Y) + X));
 end;
 
-function TImage.RowPtr(Y: Cardinal): Pointer;
+function TImage.RowPtr(const Y: Cardinal; const Z: Cardinal = 0): Pointer;
 begin
- Result := PointerAdd(RawPixels, PixelSize * (Width * Y));
+ Result := PointerAdd(RawPixels, PixelSize * (Width * (Height * Z + Y)));
 end;
 
 procedure TImage.NotImplemented(const AMethodName: string);
@@ -2084,6 +2135,32 @@ begin
   raise EImageLerpInvalidClasses.Create('Linear interpolation (TImage.LerpWith) not possible with the base TImage class');
 end;
 
+{ TS3TCImage ----------------------------------------------------------------- }
+
+constructor TS3TCImage.Create(const AWidth, AHeight: Cardinal;
+  const ADepth: Cardinal;
+  const ACompression: TS3TCCompression);
+begin
+  inherited Create;
+  FWidth := AWidth;
+  FHeight := AHeight;
+  FDepth := ADepth;
+  FCompression := ACompression;
+
+  if (Width mod 4 <> 0) or (Height mod 4 <> 0) then
+    raise Exception.CreateFmt('Cannot create TS3TCImage with sizes not being multiple of 4: %d x %d',
+      [Width, Height]);
+
+  case Compression of
+    s3tcDxt1: FSize := Depth * Width * Height div 2 { 8 bytes for each 16 pixels };
+    s3tcDxt3,
+    s3tcDxt5: FSize := Depth * Width * Height { 16 bytes for each 16 pixels };
+    else EInternalError.Create('TS3TCImage.Create-Compression?');
+  end;
+
+  FRawPixels := GetMem(FSize);
+end;
+
 { TImageClass and arrays of TImageClasses ----------------------------- }
 
 function InImageClasses(ImageClass: TImageClass;
@@ -2179,14 +2256,14 @@ begin
  Result := 3;
 end;
 
-function TRGBImage.PixelPtr(X, Y: Cardinal): PVector3Byte;
+function TRGBImage.PixelPtr(const X, Y, Z: Cardinal): PVector3Byte;
 begin
- Result := PVector3Byte(inherited PixelPtr(X, Y));
+ Result := PVector3Byte(inherited PixelPtr(X, Y, Z));
 end;
 
-function TRGBImage.RowPtr(Y: Cardinal): PArray_Vector3Byte;
+function TRGBImage.RowPtr(const Y, Z: Cardinal): PArray_Vector3Byte;
 begin
- Result := PArray_Vector3Byte(inherited RowPtr(Y));
+ Result := PArray_Vector3Byte(inherited RowPtr(Y, Z));
 end;
 
 procedure TRGBImage.InvertRGBColors;
@@ -2387,14 +2464,14 @@ begin
  Result := 4;
 end;
 
-function TRGBAlphaImage.PixelPtr(X, Y: Cardinal): PVector4Byte;
+function TRGBAlphaImage.PixelPtr(const X, Y, Z: Cardinal): PVector4Byte;
 begin
- Result := PVector4Byte(inherited PixelPtr(X, Y));
+ Result := PVector4Byte(inherited PixelPtr(X, Y, Z));
 end;
 
-function TRGBAlphaImage.RowPtr(Y: Cardinal): PArray_Vector4Byte;
+function TRGBAlphaImage.RowPtr(const Y, Z: Cardinal): PArray_Vector4Byte;
 begin
- Result := PArray_Vector4Byte(inherited RowPtr(Y));
+ Result := PArray_Vector4Byte(inherited RowPtr(Y, Z));
 end;
 
 procedure TRGBAlphaImage.InvertRGBColors;
@@ -2598,14 +2675,14 @@ begin
  Result := 3;
 end;
 
-function TRGBEImage.PixelPtr(X, Y: Cardinal): PVector4Byte;
+function TRGBEImage.PixelPtr(const X, Y, Z: Cardinal): PVector4Byte;
 begin
- Result := PVector4Byte(inherited PixelPtr(X, Y));
+ Result := PVector4Byte(inherited PixelPtr(X, Y, Z));
 end;
 
-function TRGBEImage.RowPtr(Y: Cardinal): PArray_Vector4Byte;
+function TRGBEImage.RowPtr(const Y, Z: Cardinal): PArray_Vector4Byte;
 begin
- Result := PArray_Vector4Byte(inherited RowPtr(Y));
+ Result := PArray_Vector4Byte(inherited RowPtr(Y, Z));
 end;
 
 procedure TRGBEImage.SetColorRGB(const x, y: Integer; const v: TVector3Single);
@@ -2704,14 +2781,14 @@ begin
   Result := 1;
 end;
 
-function TGrayscaleImage.PixelPtr(X, Y: Cardinal): PByte;
+function TGrayscaleImage.PixelPtr(const X, Y, Z: Cardinal): PByte;
 begin
-  Result := PByte(inherited PixelPtr(X, Y));
+  Result := PByte(inherited PixelPtr(X, Y, Z));
 end;
 
-function TGrayscaleImage.RowPtr(Y: Cardinal): PByteArray;
+function TGrayscaleImage.RowPtr(const Y, Z: Cardinal): PByteArray;
 begin
-  Result := PByteArray(inherited RowPtr(Y));
+  Result := PByteArray(inherited RowPtr(Y, Z));
 end;
 
 procedure TGrayscaleImage.Clear(const Pixel: Byte);
@@ -2790,14 +2867,14 @@ begin
   Result := 2;
 end;
 
-function TGrayscaleAlphaImage.PixelPtr(X, Y: Cardinal): PVector2Byte;
+function TGrayscaleAlphaImage.PixelPtr(const X, Y, Z: Cardinal): PVector2Byte;
 begin
-  Result := PVector2Byte(inherited PixelPtr(X, Y));
+  Result := PVector2Byte(inherited PixelPtr(X, Y, Z));
 end;
 
-function TGrayscaleAlphaImage.RowPtr(Y: Cardinal): PArray_Vector2Byte;
+function TGrayscaleAlphaImage.RowPtr(const Y, Z: Cardinal): PArray_Vector2Byte;
 begin
-  Result := PArray_Vector2Byte(inherited RowPtr(Y));
+  Result := PArray_Vector2Byte(inherited RowPtr(Y, Z));
 end;
 
 procedure TGrayscaleAlphaImage.Clear(const Pixel: TVector2Byte);
