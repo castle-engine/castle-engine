@@ -913,6 +913,11 @@ var
         { TODO: we don't invert rows when reading compressed DDS }
 
         if (Header.Flags and DDSD_LINEARSIZE <> 0) and
+           { It seems there are textures with DDSD_LINEARSIZE set but
+             PitchOrLinearSize still 0, so I guess I should ignore
+             PitchOrLinearSize then (e.g. ~/images/dds_tests/greek_imperial_swordsman.tga.dds
+             on chantal) }
+           (Header.PitchOrLinearSize <> 0) and
            { Checl this only for level 0 of mipmap level }
            (MipmapLevel = 0) and
            (Header.PitchOrLinearSize <> Res.Size) then
