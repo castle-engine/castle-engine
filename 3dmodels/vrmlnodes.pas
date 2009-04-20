@@ -551,7 +551,7 @@ type
     { Returns texture node that should be used for nodes within this State.
       Regardless of VRML/X3D version. May return multi-texture
       (TNodeMultiTexture), or normal 2D texture (TVRMLTextureNode),
-      or some other TNodeX3DTextureNode descendant (TODO: 3d textures unhandled for now).
+      or some other TNodeX3DTextureNode descendant (cube map, 3d texture).
 
       Details:
       If ParentShape <> nil, this returns texture node taken from

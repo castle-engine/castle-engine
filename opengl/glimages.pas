@@ -511,6 +511,19 @@ procedure glTexImages2DForCubeMap(
   PositiveZ, NegativeZ: TImage;
   Mipmaps: boolean);
 
+{ Comfortably load a 3D texture.
+  Think about this as doing only glTexImage3D(...) for you.
+
+  It checks OpenGL 3D texture size requirements, and throws exceptions
+  if not satisfied.
+
+  It takes care about OpenGL unpack parameters. Just don't worry about it.
+
+  If mipmaps, then all mipmap levels will be automatically created and loaded.
+  They will be created by GenerateMipmap, make sure HasGenerateMipmap
+  is @true before passing Mipmaps = @true here. }
+procedure glTextureImage3D(const Image: TImage; Mipmaps: boolean);
+
 { Is GenerateMipmap avaiable. This checks some GL extensions/versions that
   give us glGenerateMipmap or glGenerateMipmapEXT call, used by GenerateMipmap. }
 function HasGenerateMipmap: boolean;
@@ -893,6 +906,35 @@ begin
     result := r.MakeCopy;
 end;
 
+{ ----------------------------------------------------------------------------
+  Adjusting image size for 3d texture. }
+
+function IsTexture3DSized(const Size: Cardinal): boolean;
+begin
+  Result :=
+    (not GL_EXT_texture3D) or
+    (
+      IsPowerOf2(Size) and
+      (Size > 0) and
+      (Integer(Size) <= glGetInteger(GL_MAX_3D_TEXTURE_SIZE_EXT))
+    );
+end;
+
+function IsTexture3DSized(const R: TImage): boolean;
+var
+  MaxSize: Cardinal;
+begin
+  if GL_EXT_texture3D then
+  begin
+    MaxSize := Cardinal(glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB));
+    Result :=
+      IsPowerOf2(R.Width ) and (R.Width  > 0) and (R.Width  <= MaxSize) and
+      IsPowerOf2(R.Height) and (R.Height > 0) and (R.Height <= MaxSize) and
+      IsPowerOf2(R.Depth ) and (R.Depth  > 0) and (R.Depth  <= MaxSize);
+  end else
+    Result := true;
+end;
+
 { implementacja procedur LoadGLTextures_XXX
   -----------------------------------------------------------------------------}
 
@@ -1230,6 +1272,54 @@ begin
     glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB, NegativeZ, Mipmaps);
   end;
 end;
+
+{ 3D texture loading --------------------------------------------------------- }
+
+procedure glTextureImage3D(const Image: TImage; Mipmaps: boolean);
+var
+  ImageInternalFormat: TGLuint;
+  ImageFormat: TGLuint;
+
+  { Calls glTexImage3D for given image.
+    Takes care of OpenGL unpacking (alignment etc.).
+    Takes care of Image size --- makes sure that image has the right size
+    (power of 2, within OpenGL required sizes). }
+  procedure glTexImage3DImage(Image: TImage);
+
+    { This is like glTexImage3DImage, but it doesn't take care
+      of Image size. }
+    procedure Core(Image: TImage);
+    var
+      UnpackData: TUnpackNotAlignedData;
+    begin
+      BeforeUnpackImage(UnpackData, Image);
+      try
+        glTexImage3DExt(GL_TEXTURE_3D_EXT, 0, ImageInternalFormat,
+          Image.Width, Image.Height, Image.Depth, 0, ImageFormat, ImageGLType(Image),
+          Image.RawPixels);
+      finally AfterUnpackImage(UnpackData, Image) end;
+    end;
+
+  begin
+    if not IsTexture3DSized(Image) then
+      raise Exception.CreateFmt('Image is not properly sized for a 3D texture, sizes must be a power-of-two and <= GL_MAX_3D_TEXTURE_SIZE_EXT (%d). Sizes are: %d x %d x %d',
+        [ glGetInteger(GL_MAX_3D_TEXTURE_SIZE_EXT),
+          Image.Width, Image.Height, Image.Depth ]);
+
+    Core(Image);
+  end;
+
+begin
+  ImageInternalFormat := Image.ColorComponentsCount;
+  ImageFormat := ImageGLFormat(Image);
+
+  glTexImage3DImage(Image);
+
+  if Mipmaps then
+    GenerateMipmap(GL_TEXTURE_3D_EXT);
+end;
+
+{ GenerateMipmap ------------------------------------------------------------- }
 
 function HasGenerateMipmap: boolean;
 begin

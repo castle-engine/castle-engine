@@ -35,6 +35,17 @@
 
     private FFdtextureProperties: TSFNode;
     public property FdtextureProperties: TSFNode read FFdtextureProperties;
+
+    { Load 3D texture image.
+
+      If the image comes from DDS image, returns also this DDS image.
+      This is useful, as then we also can use mipmaps defined inside this DDS.
+      Otherwise, DDSImage will be set @nil.
+
+      In case of problems, will make VRMLWarning.
+      This includes situations when url cannot be loaded for whatever reason.
+      If all URLs failed, will return @nil (and DDSImage will be set to @nil also). }
+    function LoadImage(out DDSImage: TDDSImage): TEncodedImage; virtual; abstract;
   end;
 
   TNodeComposedTexture3D = class(TNodeX3DTexture3DNode)
@@ -47,6 +58,8 @@
 
     private FFdtexture: TMFNode;
     public property Fdtexture: TMFNode read FFdtexture;
+
+    function LoadImage(out DDSImage: TDDSImage): TEncodedImage; override;
   end;
 
   TNodeImageTexture3D = class(TNodeX3DTexture3DNode, INodeX3DUrlObject)
@@ -59,6 +72,8 @@
 
     private FFdurl: TMFString;
     public property Fdurl: TMFString read FFdurl;
+
+    function LoadImage(out DDSImage: TDDSImage): TEncodedImage; override;
   end;
 
   TNodePixelTexture3D = class(TNodeX3DTexture3DNode)
@@ -71,6 +86,8 @@
 
     private FFdimage: TMFInt32;
     public property Fdimage: TMFInt32 read FFdimage;
+
+    function LoadImage(out DDSImage: TDDSImage): TEncodedImage; override;
   end;
 
   TNodeTextureCoordinate3D = class(TNodeX3DTextureCoordinateNode)
@@ -187,6 +204,13 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+function TNodeComposedTexture3D.LoadImage(out DDSImage: TDDSImage): TEncodedImage;
+begin
+  Result := nil;
+  DDSImage := nil;
+  VRMLWarning(vwIgnorable, 'TODO: Cannot load 3d textures from ComposedTexture3D for now');
+end;
+
 constructor TNodeImageTexture3D.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -216,6 +240,56 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+function TNodeImageTexture3D.LoadImage(out DDSImage: TDDSImage): TEncodedImage;
+var
+  I: Integer;
+  FullUrl: string;
+begin
+  DDSImage := TDDSImage.Create;
+  try
+    for I := 0 to FdUrl.Items.Count - 1 do
+    begin
+      FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
+
+      if FileExtToImageFormatDef(ExtractFileExt(FullUrl),
+        false, false, ifBMP) <> ifDDS then
+      begin
+        VRMLWarning(vwIgnorable, Format('Only DDS format is supported for ImageTexture3D node, but URL is "%s"', [FullUrl]));
+        Continue;
+      end;
+
+      try
+        DDSImage.LoadFromFile(FullUrl);
+      except
+        on E: Exception do
+        begin
+          DDSImage.Close;
+          VRMLWarning(vwIgnorable, Format('Error when loading DDS file "%s": %s', [FullUrl, E.Message]));
+          Continue;
+        end;
+      end;
+
+      if DDSImage.DDSType <> dtVolume then
+      begin
+        DDSImage.Close;
+        VRMLWarning(vwIgnorable, Format('DDS image "%s" given for ImageTexture3D doesn''t describe a volume (3d) texture', [FullUrl]));
+        Continue;
+      end;
+
+      { Success, set Result }
+      DDSImage.OwnsFirstImage := false;
+      Result := DDSImage.Images[0];
+
+      Exit;
+    end;
+
+  except FreeAndNil(DDSImage); raise end;
+
+  { If we got here, then no URL was good. So set DDSImage and Result to @nil. }
+  FreeAndNil(DDSImage);
+  Result := nil;
+end;
+
 constructor TNodePixelTexture3D.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -242,6 +316,13 @@ class function TNodePixelTexture3D.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TNodePixelTexture3D.LoadImage(out DDSImage: TDDSImage): TEncodedImage;
+begin
+  Result := nil;
+  DDSImage := nil;
+  VRMLWarning(vwIgnorable, 'TODO: Cannot load 3d textures from PixelTexture3D for now');
 end;
 
 constructor TNodeTextureCoordinate3D.Create(const ANodeName: string;

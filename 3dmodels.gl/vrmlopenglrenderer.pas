@@ -897,6 +897,22 @@ type
   TDynTextureCubeMapCacheArray = class(TDynArray_9)
   end;
 
+  TTexture3DCache = record
+    InitialNode: TNodeX3DTexture3DNode;
+    MinFilter: TGLint;
+    MagFilter: TGLint;
+    References: Cardinal;
+    GLName: TGLuint;
+  end;
+  PTexture3DCache = ^TTexture3DCache;
+
+  TDynArrayItem_11 = TTexture3DCache;
+  PDynArrayItem_11 = PTexture3DCache;
+  {$define DYNARRAY_11_IS_STRUCT}
+  {$define DYNARRAY_11_IS_INIT_FINI_TYPE}
+  {$I dynarray_11.inc}
+  TDynTexture3DCacheArray = TDynArray_11;
+
   { Note that Attributes and State are owned by this record
     (TVRMLOpenGLRendererContextCache will make sure about creating/destroying
     them), but GeometryNode and FogNode are a references somewhere to the scene
@@ -972,6 +988,7 @@ type
     TextureImageCaches: TDynTextureImageCacheArray;
     TextureVideoCaches: TDynTextureVideoCacheArray;
     TextureCubeMapCaches: TDynTextureCubeMapCacheArray;
+    Texture3DCaches: TDynTexture3DCacheArray;
     ShapeCaches: TDynShapeCacheArray;
     ShapeNoTransformCaches: TDynShapeCacheArray;
     RenderBeginCaches: TDynRenderBeginEndCacheArray;
@@ -1010,6 +1027,14 @@ type
       PositiveZ, NegativeZ: TImage): TGLuint;
 
     procedure TextureCubeMap_DecReference(
+      const TextureGLName: TGLuint);
+
+    function Texture3D_IncReference(
+      Node: TNodeX3DTexture3DNode;
+      const MinFilter, MagFilter: TGLint;
+      Image: TImage): TGLuint;
+
+    procedure Texture3D_DecReference(
       const TextureGLName: TGLuint);
 
     function FogParametersEqual(
@@ -1187,6 +1212,23 @@ type
     function TextureNodeIndex(ANode: TNodeX3DEnvironmentTextureNode): Integer;
   end;
 
+  TTexture3DReference = record
+    Node: TNodeX3DTexture3DNode;
+    GLName: TGLuint;
+  end;
+  PTexture3DReference = ^TTexture3DReference;
+
+  TDynArrayItem_12 = TTexture3DReference;
+  PDynArrayItem_12 = PTexture3DReference;
+  {$define DYNARRAY_12_IS_STRUCT}
+  {$I dynarray_12.inc}
+  TDynTexture3DReferenceArray = class(TDynArray_12)
+  public
+    { Looks for item with given ANode.
+      Returns -1 if not found. }
+    function TextureNodeIndex(ANode: TNodeX3DTexture3DNode): Integer;
+  end;
+
   TGLSLProgramReference = record
     ProgramNode: TNodeComposedShader;
 
@@ -1264,6 +1306,7 @@ type
     TextureImageReferences: TDynTextureImageReferenceArray;
     TextureVideoReferences: TDynTextureVideoReferenceArray;
     TextureCubeMapReferences: TDynTextureCubeMapReferenceArray;
+    Texture3DReferences: TDynTexture3DReferenceArray;
     GLSLProgramReferences: TDynGLSLProgramReferenceArray;
 
     { To which fonts we made a reference in the cache ? }
@@ -1609,6 +1652,8 @@ uses Math, Triangulator, NormalizationCubeMap,
 {$I dynarray_8.inc}
 {$I dynarray_9.inc}
 {$I dynarray_10.inc}
+{$I dynarray_11.inc}
+{$I dynarray_12.inc}
 
 {$I openglmac.inc}
 
@@ -1628,6 +1673,7 @@ begin
   TextureImageCaches := TDynTextureImageCacheArray.Create;
   TextureVideoCaches := TDynTextureVideoCacheArray.Create;
   TextureCubeMapCaches := TDynTextureCubeMapCacheArray.Create;
+  Texture3DCaches := TDynTexture3DCacheArray.Create;
   ShapeCaches := TDynShapeCacheArray.Create;
   ShapeNoTransformCaches := TDynShapeCacheArray.Create;
   RenderBeginCaches := TDynRenderBeginEndCacheArray.Create;
@@ -1671,6 +1717,13 @@ begin
     Assert(TextureCubeMapCaches.Count = 0, 'Some references to texture cubemaps still exist' +
       ' when freeing TVRMLOpenGLRendererContextCache');
     FreeAndNil(TextureCubeMapCaches);
+  end;
+
+  if Texture3DCaches <> nil then
+  begin
+    Assert(Texture3DCaches.Count = 0, 'Some references to texture 3D still exist' +
+      ' when freeing TVRMLOpenGLRendererContextCache');
+    FreeAndNil(Texture3DCaches);
   end;
 
   if ShapeCaches <> nil then
@@ -2027,6 +2080,81 @@ begin
 
   raise EInternalError.CreateFmt(
     'TVRMLOpenGLRendererContextCache.TextureCubeMap_DecReference: no reference ' +
+    'found to texture %d', [TextureGLName]);
+end;
+
+function TVRMLOpenGLRendererContextCache.Texture3D_IncReference(
+  Node: TNodeX3DTexture3DNode;
+  const MinFilter, MagFilter: TGLint;
+  Image: TImage): TGLuint;
+var
+  I: Integer;
+  TextureCached: PTexture3DCache;
+begin
+  for I := 0 to Texture3DCaches.High do
+  begin
+    TextureCached := Texture3DCaches.Pointers[I];
+
+    if (TextureCached^.InitialNode = Node) and
+       (TextureCached^.MinFilter = MinFilter) and
+       (TextureCached^.MagFilter = MagFilter) then
+    begin
+      Inc(TextureCached^.References);
+      {$ifdef DEBUG_VRML_RENDERER_CACHE}
+      Writeln('++ : 3d texture ', PointerToStr(Node), ' : ', TextureCached^.References);
+      {$endif}
+      Exit(TextureCached^.GLName);
+    end;
+  end;
+
+  glGenTextures(1, @Result);
+  glBindTexture(GL_TEXTURE_3D_EXT, Result);
+
+  glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_MAG_FILTER, MagFilter);
+  glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_MIN_FILTER, MinFilter);
+
+  { TODO: wrapping should come from Node, and be part of Texture3DCache,
+    like min/magFilter (right? how do 2d textures do it, check) }
+  glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+  glTextureImage3d(Image, TextureMinFilterNeedsMipmaps(MinFilter));
+
+  TextureCached := Texture3DCaches.AppendItem;
+  TextureCached^.InitialNode := Node;
+  TextureCached^.MinFilter := MinFilter;
+  TextureCached^.MagFilter := MagFilter;
+  TextureCached^.References := 1;
+  TextureCached^.GLName := Result;
+
+  {$ifdef DEBUG_VRML_RENDERER_CACHE}
+  Writeln('++ : 3d texture ', PointerToStr(Node), ' : ', 1);
+  {$endif}
+end;
+
+procedure TVRMLOpenGLRendererContextCache.Texture3D_DecReference(
+  const TextureGLName: TGLuint);
+var
+  I: Integer;
+begin
+  for I := 0 to Texture3DCaches.High do
+    if Texture3DCaches.Items[I].GLName = TextureGLName then
+    begin
+      Dec(Texture3DCaches.Items[I].References);
+      {$ifdef DEBUG_VRML_RENDERER_CACHE}
+      Writeln('-- : 3d texture ', PointerToStr(Texture3DCaches.Items[I].InitialNode), ' : ', Texture3DCaches.Items[I].References);
+      {$endif}
+      if Texture3DCaches.Items[I].References = 0 then
+      begin
+        glDeleteTextures(1, @(Texture3DCaches.Items[I].GLName));
+        Texture3DCaches.Delete(I, 1);
+      end;
+      Exit;
+    end;
+
+  raise EInternalError.CreateFmt(
+    'TVRMLOpenGLRendererContextCache.Texture3D_DecReference: no reference ' +
     'found to texture %d', [TextureGLName]);
 end;
 
@@ -3020,6 +3148,16 @@ begin
   result := -1;
 end;
 
+{ TDynTexture3DReferenceArray --------------------------------------------- }
+
+function TDynTexture3DReferenceArray.TextureNodeIndex(
+  ANode: TNodeX3DTexture3DNode): integer;
+begin
+  for Result := 0 to Count - 1 do
+    if Items[result].Node = ANode then exit;
+  result := -1;
+end;
+
 { TDynGLSLProgramReferenceArray ---------------------------------------------- }
 
 function TDynGLSLProgramReferenceArray.ProgramNodeIndex(
@@ -3054,6 +3192,7 @@ begin
   TextureImageReferences := TDynTextureImageReferenceArray.Create;
   TextureVideoReferences := TDynTextureVideoReferenceArray.Create;
   TextureCubeMapReferences := TDynTextureCubeMapReferenceArray.Create;
+  Texture3DReferences := TDynTexture3DReferenceArray.Create;
   GLSLProgramReferences := TDynGLSLProgramReferenceArray.Create;
   TextureTransformUnitsUsedMore := TDynLongIntArray.Create;
 
@@ -3071,6 +3210,7 @@ begin
   FreeAndNil(TextureImageReferences);
   FreeAndNil(TextureVideoReferences);
   FreeAndNil(TextureCubeMapReferences);
+  FreeAndNil(Texture3DReferences);
   FreeAndNil(GLSLProgramReferences);
   FreeAndNil(FAttributes);
 
@@ -3602,7 +3742,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
           be minimized (to avoid loading image many times, but also
           to avoid making repeated warnings in case image fails).
           Should be cached, like for 2D texture nodes.
-        - We do not use cube map mipmaps stored inside DDS file. 
+        - We do not use cube map mipmaps stored inside DDS file.
         - We crash ("as") on S3TC compressed cube maps.
       }
 
@@ -3699,6 +3839,68 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     finally FreeAndNil(InitialImage) end;
   end;
 
+  { Do the necessary preparations for a 3d texture node.
+    Texture must be non-nil. }
+  procedure PrepareSingleTexture3D(Texture: TNodeX3DTexture3DNode);
+  var
+    TextureProperties: TNodeTextureProperties;
+    MinFilter, MagFilter: TGLint;
+    TextureReference: TTexture3DReference;
+    DDS: TDDSImage;
+    Image: TEncodedImage;
+  begin
+    if Texture3DReferences.TextureNodeIndex(Texture) <> -1 then
+      { Already loaded, nothing to do }
+      Exit;
+
+    if not GL_EXT_texture3D then
+    begin
+      VRMLWarning(vwSerious, 'Your OpenGL doesn''t support EXT_texture3D, cannot use Texture3D nodes');
+      Exit;
+    end;
+
+    Image := Texture.LoadImage(DDS);
+    { If Texture doesn't contain anything useful, just exit.
+      Texture.LoadImage already did necessary VRMLWarnings. }
+    if Image = nil then Exit;
+
+    try
+
+      { calculate MinFilter, MagFilter }
+      if (Texture.FdTextureProperties.Value <> nil) and
+         (Texture.FdTextureProperties.Value is TNodeTextureProperties) then
+      begin
+        TextureProperties := TNodeTextureProperties(Texture.FdTextureProperties.Value);
+        MinFilter := StrToMinFilter(TextureProperties.FdMinificationFilter.Value);
+        MagFilter := StrToMagFilter(TextureProperties.FdMagnificationFilter.Value);
+      end else
+      begin
+        MinFilter := Attributes.TextureMinFilter;
+        MagFilter := Attributes.TextureMagFilter;
+      end;
+
+      { TODO: this is a quick and dirty method:
+        - We call LoadImage each time, while load calls should
+          be minimized (to avoid loading image many times, but also
+          to avoid making repeated warnings in case image fails).
+          Should be cached, like for 2D texture nodes.
+        - We do not use texture 3d mipmaps stored inside DDS file.
+        - We crash ("as") on S3TC compressed images.
+          (although DDS doesn't allow compressed 3d textures, so this
+          is not so important now.)
+      }
+
+      TextureReference.Node := Texture;
+      TextureReference.GLName := Cache.Texture3D_IncReference(
+        Texture, MinFilter, MagFilter, Image as TImage);
+      Texture3DReferences.AppendItem(TextureReference);
+
+    finally
+      FreeAndNil(Image);
+      FreeAndNil(DDS);
+    end;
+  end;
+
   { Do the necessary preparations for a multi-texture node.
     MultiTexture must be non-nil. }
   procedure PrepareMultiTexture(MultiTexture: TNodeMultiTexture);
@@ -3720,7 +3922,9 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
         if ChildTex is TNodeGeneratedCubeMapTexture then
           PrepareSingleGeneratedCubeTexture(TNodeGeneratedCubeMapTexture(ChildTex)) else
         if ChildTex is TVRMLTextureNode then
-          PrepareSingle2DTexture(TVRMLTextureNode(ChildTex));
+          PrepareSingle2DTexture(TVRMLTextureNode(ChildTex)) else
+        if ChildTex is TNodeX3DTexture3DNode then
+          PrepareSingleTexture3D(TNodeX3DTexture3DNode(ChildTex));
       end;
     end;
   end;
@@ -3748,7 +3952,9 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
       if TextureNode is TNodeGeneratedCubeMapTexture then
         PrepareSingleGeneratedCubeTexture(TNodeGeneratedCubeMapTexture(TextureNode)) else
       if TextureNode is TVRMLTextureNode then
-        PrepareSingle2DTexture(TVRMLTextureNode(TextureNode));
+        PrepareSingle2DTexture(TVRMLTextureNode(TextureNode)) else
+      if TextureNode is TNodeX3DTexture3DNode then
+        PrepareSingleTexture3D(TNodeX3DTexture3DNode(TextureNode));
     end;
   end;
 
@@ -3843,6 +4049,18 @@ procedure TVRMLOpenGLRenderer.Unprepare(Node: TVRMLNode);
     end;
   end;
 
+  procedure UnprepareSingleTexture3D(Tex: TNodeX3DTexture3DNode);
+  var
+    i: integer;
+  begin
+    i := Texture3DReferences.TextureNodeIndex(Tex);
+    if i >= 0 then
+    begin
+      Cache.Texture3D_DecReference(Texture3DReferences.Items[i].GLName);
+      Texture3DReferences.Delete(i, 1);
+    end;
+  end;
+
   procedure UnprepareMultiTexture(Tex: TNodeMultiTexture);
   var
     TexItem: TVRMLNode;
@@ -3851,12 +4069,14 @@ procedure TVRMLOpenGLRenderer.Unprepare(Node: TVRMLNode);
     for I := 0 to Tex.FdTexture.Count - 1 do
     begin
       TexItem := Tex.FdTexture.Items[I];
-      if (TexItem <> nil) and
-         (TexItem is TVRMLTextureNode) then
+      if TexItem = nil then Continue;
+
+      if TexItem is TVRMLTextureNode then
         UnprepareSingle2DTexture(TVRMLTextureNode(TexItem)) else
-      if (TexItem <> nil) and
-         (TexItem is TNodeX3DEnvironmentTextureNode) then
-        UnprepareSingleCubeMapTexture(TNodeX3DEnvironmentTextureNode(TexItem));
+      if TexItem is TNodeX3DEnvironmentTextureNode then
+        UnprepareSingleCubeMapTexture(TNodeX3DEnvironmentTextureNode(TexItem)) else
+      if TexItem is TNodeX3DTexture3DNode then
+        UnprepareSingleTexture3D(TNodeX3DTexture3DNode(TexItem));
     end;
   end;
 
@@ -3879,6 +4099,9 @@ begin
   { unprepare cube map texture }
   if Node is TNodeX3DEnvironmentTextureNode then
     UnprepareSingleCubeMapTexture(TNodeX3DEnvironmentTextureNode(Node));
+
+  if Node is TNodeX3DTexture3DNode then
+    UnprepareSingleTexture3D(TNodeX3DTexture3DNode(Node));
 
   { unprepare GLSLProgram }
   { This is not used for now anywhere actually ? Nowhere I unprepare
@@ -3930,6 +4153,10 @@ begin
   for i := 0 to TextureCubeMapReferences.Count-1 do
     Cache.TextureCubeMap_DecReference(TextureCubeMapReferences.Items[i].GLName);
   TextureCubeMapReferences.SetLength(0);
+
+  for i := 0 to Texture3DReferences.Count-1 do
+    Cache.Texture3D_DecReference(Texture3DReferences.Items[i].GLName);
+  Texture3DReferences.SetLength(0);
 
   { unprepare all GLSLPrograms }
   for i := 0 to GLSLProgramReferences.Count - 1 do
@@ -4550,7 +4777,7 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
   procedure InitTextures;
 
     type
-      TTextureEnableDisable = (etOff, et2D, etCubeMap);
+      TTextureEnableDisable = (etOff, et2D, etCubeMap, et3D);
 
     { Enable/disable texturing (2D and cube map) on current texture unit. }
     procedure TextureEnableDisable(const Enable: TTextureEnableDisable);
@@ -4560,16 +4787,25 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
           begin
             glDisable(GL_TEXTURE_2D);
             if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+            if GL_EXT_texture3D        then glDisable(GL_TEXTURE_3D_EXT);
           end;
         et2D:
           begin
             glEnable(GL_TEXTURE_2D);
             if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+            if GL_EXT_texture3D        then glDisable(GL_TEXTURE_3D_EXT);
           end;
         etCubeMap:
           begin
             glDisable(GL_TEXTURE_2D);
             if GL_ARB_texture_cube_map then glEnable(GL_TEXTURE_CUBE_MAP_ARB);
+            if GL_EXT_texture3D        then glDisable(GL_TEXTURE_3D_EXT);
+          end;
+        et3D:
+          begin
+            glDisable(GL_TEXTURE_2D);
+            if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+            if GL_EXT_texture3D        then glEnable(GL_TEXTURE_3D_EXT);
           end;
         else raise EInternalError.Create('TextureEnableDisable?');
       end;
@@ -4710,6 +4946,24 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
         ActiveTexture(TextureUnit);
         glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, TexRef^.GLName);
         TextureEnableDisable(etCubeMap);
+      end;
+    end;
+
+    function EnableSingleTexture3D(const TextureUnit: Cardinal;
+      Texture: TNodeX3DTexture3DNode): boolean;
+    var
+      TexRefIndex: Integer;
+      TexRef: PTexture3DReference;
+    begin
+      TexRefIndex := Texture3DReferences.TextureNodeIndex(Texture);
+      Result := TexRefIndex <> -1;
+      if Result then
+      begin
+        TexRef := Texture3DReferences.Pointers[TexRefIndex];
+
+        ActiveTexture(TextureUnit);
+        glBindTexture(GL_TEXTURE_3D_EXT, TexRef^.GLName);
+        TextureEnableDisable(et3D);
       end;
     end;
 
@@ -4959,7 +5213,9 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
           if ChildTex is TVRMLTextureNode then
             Success := EnableSingle2DTexture(I, TVRMLTextureNode(ChildTex), false) else
           if ChildTex is TNodeX3DEnvironmentTextureNode then
-            Success := EnableSingleCubeMapTexture(I, TNodeX3DEnvironmentTextureNode(ChildTex));
+            Success := EnableSingleCubeMapTexture(I, TNodeX3DEnvironmentTextureNode(ChildTex)) else
+          if ChildTex is TNodeX3DTexture3DNode then
+            Success := EnableSingleTexture3D(I, TNodeX3DTexture3DNode(ChildTex));
 
           if Success then
           begin
@@ -5079,6 +5335,17 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       if TextureNode is TNodeX3DEnvironmentTextureNode then
       begin
         if EnableSingleCubeMapTexture(0, TNodeX3DEnvironmentTextureNode(TextureNode)) then
+        begin
+          { TODO: this should be fixed, for non-multi tex decal
+            is standard? }
+          glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+          TexCoordsNeeded := 1;
+        end else
+          TexCoordsNeeded := 0;
+      end else
+      if TextureNode is TNodeX3DTexture3DNode then
+      begin
+        if EnableSingleTexture3D(0, TNodeX3DTexture3DNode(TextureNode)) then
         begin
           { TODO: this should be fixed, for non-multi tex decal
             is standard? }

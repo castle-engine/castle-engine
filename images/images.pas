@@ -293,7 +293,7 @@ type
       implementations (although it's comfortable for simple implementations). }
     procedure LerpSimpleCheckConditions(SecondImage: TImage);
   public
-    { Constructor without parameters creates image with Width = Height = 0
+    { Constructor without parameters creates image with Width = Height = Depth = 0
       and RawPixels = nil, so IsNull will return @true.
 
       Both constructors must be virtual, this allows to implement things
@@ -304,9 +304,10 @@ type
       const ADepth: Cardinal = 1); overload; virtual;
 
     { True means that RawPixels = nil.
-      In this case Width*Height must be 0, so either Width = 0 or Height = 0.
-      False means that RawPixels <> nil and Width*Height <> 0,
-      so both Width > 0 and Height > 0. }
+      If @true, then you know Width * Height * Depth must be 0,
+      so either Width = 0 or Height = 0 or Depth = 0.
+      @false means that RawPixels <> nil and Width * Height * Depth <> 0,
+      so all Width > 0 and Height > 0 and Depth > 0. }
     function IsNull: boolean;
 
     { This is equivalent to SetSize(0, 0).
@@ -1691,6 +1692,7 @@ begin
  FreeMemNiling(FRawPixels);
  FWidth := 0;
  FHeight := 0;
+ FDepth := 0;
 end;
 
 procedure TImage.SetSize(const AWidth, AHeight: Cardinal;

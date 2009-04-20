@@ -2315,6 +2315,13 @@ function GLCapsString: string;
       Result := 'ARB_texture_cube_map not available';
   end;
 
+  function GetMaxTexture3DSize: string;
+  begin
+    if GL_EXT_texture3D then
+      Result := GetInteger(GL_MAX_3D_TEXTURE_SIZE_EXT) else
+      Result := 'EXT_texture3D not available';
+  end;
+
   function GetSampleBuffers: string;
   begin
     if GL_ARB_multisample then
@@ -2401,7 +2408,8 @@ begin
   'GL_MAX_TEXTURE_SIZE : ' +GetInteger(GL_MAX_TEXTURE_SIZE) +nl+
   'GL_MAX_VIEWPORT_DIMS : ' +GetInteger2(GL_MAX_VIEWPORT_DIMS, 'width %d / height %d') +nl+
   'GL_MAX_TEXTURE_UNITS_ARB : ' + GetMaxTextureUnits +nl+
-  'GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB : ' + GetMaxCubeMapTextureSize;
+  'GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB : ' + GetMaxCubeMapTextureSize +nl+
+  'GL_MAX_3D_TEXTURE_SIZE_EXT : ' + GetMaxTexture3DSize;
 
  CheckGLErrors;
 end;
