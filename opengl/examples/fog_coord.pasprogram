@@ -273,6 +273,8 @@ begin
 end;
 
 procedure Init(Glwin: TGLWindow);
+const
+  Wrap: TTextureWrap2D = (GL_REPEAT, GL_REPEAT);
 begin
   glEnable(GL_TEXTURE_2D);
   glClearColor(0.0, 0.0, 0.0, 0.5);
@@ -289,8 +291,7 @@ begin
 
   camz := -19.0;
 
-  Texture := LoadGLTexture('brickwall.png', GL_LINEAR, GL_LINEAR,
-    GL_REPEAT, GL_REPEAT);
+  Texture := LoadGLTexture('brickwall.png', GL_LINEAR, GL_LINEAR, Wrap);
 
 {$ifdef ARRAYS}
    glEnableClientState(GL_VERTEX_ARRAY);
