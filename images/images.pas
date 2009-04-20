@@ -2147,14 +2147,22 @@ begin
   FDepth := ADepth;
   FCompression := ACompression;
 
-  if (Width mod 4 <> 0) or (Height mod 4 <> 0) then
-    raise Exception.CreateFmt('Cannot create TS3TCImage with sizes not being multiple of 4: %d x %d',
-      [Width, Height]);
+  { All DXT* compression methods compress 4x4 pixels into some constant size.
+    When Width / Height is not divisible by 4, we have to round up.
+
+    This matches what MSDN docs say about DDS with mipmaps:
+    http://msdn.microsoft.com/en-us/library/bb205578(VS.85).aspx
+    When mipmaps are used, DDS Width/Height must be power-of-two,
+    so the base level is usually divisible by 4. But on the following mipmap
+    levels the size decreases, eventually to 1x1, so this still matters.
+    And MSDN says then explicitly that with DXT1, you have always
+    minimum 8 bytes, and with DXT2-5 minimum 16 bytes.
+  }
 
   case Compression of
-    s3tcDxt1: FSize := Depth * Width * Height div 2 { 8 bytes for each 16 pixels };
+    s3tcDxt1: FSize := Depth * DivRoundUp(Width, 4) * DivRoundUp(Height, 4) * 8 { 8 bytes for each 16 pixels };
     s3tcDxt3,
-    s3tcDxt5: FSize := Depth * Width * Height { 16 bytes for each 16 pixels };
+    s3tcDxt5: FSize := Depth * DivRoundUp(Width, 4) * DivRoundUp(Height, 4) * 16 { 16 bytes for each 16 pixels };
     else EInternalError.Create('TS3TCImage.Create-Compression?');
   end;
 
