@@ -826,6 +826,7 @@ type
     ColorModulator: TColorModulatorByteFunc;
     References: Cardinal;
     GLName: TGLuint;
+
     { This is the saved result of TImage.AlphaChannelType.
 
       Detecting AlphaChannelType is a little time-consuming
@@ -861,6 +862,7 @@ type
     ColorModulator: TColorModulatorByteFunc;
     References: Cardinal;
     GLVideo: TGLVideo;
+
     { This is the saved result of TVideo.AlphaChannelType.
 
       Detecting AlphaChannelType is a little time-consuming
@@ -884,6 +886,13 @@ type
     MagFilter: TGLint;
     References: Cardinal;
     GLName: TGLuint;
+
+    { This is the saved result of TImage.AlphaChannelType.
+
+      Detecting AlphaChannelType is a little time-consuming
+      (iteration over all pixels is needed),
+      so it's done only once and kept in the cache, just like GLName. }
+    AlphaChannelType: TAlphaChannelType;
   end;
   PTextureCubeMapCache = ^TTextureCubeMapCache;
 
@@ -902,6 +911,13 @@ type
     Wrap: TTextureWrap3D;
     References: Cardinal;
     GLName: TGLuint;
+
+    { This is the saved result of TImage.AlphaChannelType.
+
+      Detecting AlphaChannelType is a little time-consuming
+      (iteration over all pixels is needed),
+      so it's done only once and kept in the cache, just like GLName. }
+    AlphaChannelType: TAlphaChannelType;
   end;
   PTexture3DCache = ^TTexture3DCache;
 
@@ -1023,7 +1039,8 @@ type
       const MinFilter, MagFilter: TGLint;
       PositiveX, NegativeX,
       PositiveY, NegativeY,
-      PositiveZ, NegativeZ: TImage): TGLuint;
+      PositiveZ, NegativeZ: TImage;
+      out AlphaChannelType: TAlphaChannelType): TGLuint;
 
     procedure TextureCubeMap_DecReference(
       const TextureGLName: TGLuint);
@@ -1032,7 +1049,8 @@ type
       Node: TNodeX3DTexture3DNode;
       const MinFilter, MagFilter: TGLint;
       const TextureWrap: TTextureWrap3D;
-      Image: TImage): TGLuint;
+      Image: TImage;
+      out AlphaChannelType: TAlphaChannelType): TGLuint;
 
     procedure Texture3D_DecReference(
       const TextureGLName: TGLuint);
@@ -1198,6 +1216,9 @@ type
     { When Node is TNodeGeneratedTextureCubeMap,
       this says if MinFilter needs mipmaps. }
     GeneratedNeedsMipmaps: boolean;
+
+    { This is the saved result of TImage.AlphaChannelType. }
+    AlphaChannelType: TAlphaChannelType;
   end;
   PTextureCubeMapReference = ^TTextureCubeMapReference;
 
@@ -1215,6 +1236,9 @@ type
   TTexture3DReference = record
     Node: TNodeX3DTexture3DNode;
     GLName: TGLuint;
+
+    { This is the saved result of TImage.AlphaChannelType. }
+    AlphaChannelType: TAlphaChannelType;
   end;
   PTexture3DReference = ^TTexture3DReference;
 
@@ -1582,10 +1606,11 @@ type
           as State.Texture),)
         @item(Attributes.PureGeometry = @false,)
         @item(and node must have some texture data
-          (check TextureNode.IsTextureImage or TextureNode.IsTextureVideo))
+          (for TVRMLTextureNode, check TextureNode.IsTextureImage or
+          TextureNode.IsTextureVideo))
       ) }
     function PreparedTextureAlphaChannelType(
-      TextureNode: TVRMLTextureNode;
+      TextureNode: TNodeX3DTextureNode;
       out AlphaChannelType: TAlphaChannelType): boolean;
 
     { Last available OpenGL light number.
@@ -2006,7 +2031,8 @@ function TVRMLOpenGLRendererContextCache.TextureCubeMap_IncReference(
   const MinFilter, MagFilter: TGLint;
   PositiveX, NegativeX,
   PositiveY, NegativeY,
-  PositiveZ, NegativeZ: TImage): TGLuint;
+  PositiveZ, NegativeZ: TImage;
+  out AlphaChannelType: TAlphaChannelType): TGLuint;
 var
   I: Integer;
   TextureCached: PTextureCubeMapCache;
@@ -2023,6 +2049,7 @@ begin
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
       Writeln('++ : cube map ', PointerToStr(Node), ' : ', TextureCached^.References);
       {$endif}
+      AlphaChannelType := TextureCached^.AlphaChannelType;
       Exit(TextureCached^.GLName);
     end;
   end;
@@ -2048,6 +2075,18 @@ begin
   TextureCached^.MagFilter := MagFilter;
   TextureCached^.References := 1;
   TextureCached^.GLName := Result;
+
+  { calculate and save AlphaChannelType in the cache.
+    Use PositiveX image --- it doesn't matter, they all should have
+    the same AlphaChannelType. }
+  TextureCached^.AlphaChannelType := PositiveX.AlphaChannelType(
+    AlphaTolerance, AlphaWrongPixelsTolerance);
+  if Log and (TextureCached^.AlphaChannelType <> atNone)  then
+    WritelnLog('Alpha Detection', 'Alpha cube map texture ' + PointerToStr(Node) +
+      ' detected as simple yes/no alpha channel: ' +
+      BoolToStr[TextureCached^.AlphaChannelType = atSimpleYesNo]);
+
+  AlphaChannelType := TextureCached^.AlphaChannelType;
 
   {$ifdef DEBUG_VRML_RENDERER_CACHE}
   Writeln('++ : cube map ', PointerToStr(Node), ' : ', 1);
@@ -2083,7 +2122,8 @@ function TVRMLOpenGLRendererContextCache.Texture3D_IncReference(
   Node: TNodeX3DTexture3DNode;
   const MinFilter, MagFilter: TGLint;
   const TextureWrap: TTextureWrap3D;
-  Image: TImage): TGLuint;
+  Image: TImage;
+  out AlphaChannelType: TAlphaChannelType): TGLuint;
 var
   I: Integer;
   TextureCached: PTexture3DCache;
@@ -2101,6 +2141,7 @@ begin
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
       Writeln('++ : 3d texture ', PointerToStr(Node), ' : ', TextureCached^.References);
       {$endif}
+      AlphaChannelType := TextureCached^.AlphaChannelType;
       Exit(TextureCached^.GLName);
     end;
   end;
@@ -2124,6 +2165,16 @@ begin
   TextureCached^.Wrap := TextureWrap;
   TextureCached^.References := 1;
   TextureCached^.GLName := Result;
+
+  { calculate and save AlphaChannelType in the cache }
+  TextureCached^.AlphaChannelType := Image.AlphaChannelType(
+    AlphaTolerance, AlphaWrongPixelsTolerance);
+  if Log and (TextureCached^.AlphaChannelType <> atNone)  then
+    WritelnLog('Alpha Detection', 'Alpha 3D texture ' + PointerToStr(Node) +
+      ' detected as simple yes/no alpha channel: ' +
+      BoolToStr[TextureCached^.AlphaChannelType = atSimpleYesNo]);
+
+  AlphaChannelType := TextureCached^.AlphaChannelType;
 
   {$ifdef DEBUG_VRML_RENDERER_CACHE}
   Writeln('++ : 3d texture ', PointerToStr(Node), ' : ', 1);
@@ -3683,7 +3734,8 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
         { positive y } TVRMLTextureNode(CubeTexture.FdTop   .Value).TextureImage,
         { negative y } TVRMLTextureNode(CubeTexture.FdBottom.Value).TextureImage,
         { positive z } BackRot,
-        { negative z } FrontRot);
+        { negative z } FrontRot,
+        TextureCubeMapReference.AlphaChannelType);
       TextureCubeMapReferences.AppendItem(TextureCubeMapReference);
 
     finally
@@ -3753,7 +3805,8 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
         DDS.CubeMapImage(dcsNegativeY) as TImage,
         DDS.CubeMapImage(dcsPositiveY) as TImage,
         DDS.CubeMapImage(dcsPositiveZ) as TImage,
-        DDS.CubeMapImage(dcsNegativeZ) as TImage);
+        DDS.CubeMapImage(dcsNegativeZ) as TImage,
+        TextureCubeMapReference.AlphaChannelType);
       TextureCubeMapReferences.AppendItem(TextureCubeMapReference);
 
     finally FreeAndNil(DDS); end;
@@ -3830,7 +3883,8 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
         MinFilter, MagFilter,
         InitialImage, InitialImage,
         InitialImage, InitialImage,
-        InitialImage, InitialImage);
+        InitialImage, InitialImage,
+        TextureCubeMapReference.AlphaChannelType);
       TextureCubeMapReferences.AppendItem(TextureCubeMapReference);
     finally FreeAndNil(InitialImage) end;
   end;
@@ -3894,7 +3948,8 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
 
       TextureReference.Node := Texture;
       TextureReference.GLName := Cache.Texture3D_IncReference(
-        Texture, MinFilter, MagFilter, TextureWrap, Image as TImage);
+        Texture, MinFilter, MagFilter, TextureWrap, Image as TImage,
+        TextureReference.AlphaChannelType);
       Texture3DReferences.AppendItem(TextureReference);
 
     finally
@@ -4317,23 +4372,55 @@ begin
 end;
 
 function TVRMLOpenGLRenderer.PreparedTextureAlphaChannelType(
-  TextureNode: TVRMLTextureNode;
+  TextureNode: TNodeX3DTextureNode;
   out AlphaChannelType: TAlphaChannelType): boolean;
-var
-  Index: Integer;
-begin
-  Index := TextureImageReferences.TextureNodeIndex(TextureNode);
-  Result := Index <> -1;
 
-  if Result then
-    AlphaChannelType := TextureImageReferences.Items[Index].AlphaChannelType else
+  procedure DoIt2D(TextureNode: TVRMLTextureNode);
+  var
+    Index: Integer;
   begin
-    Index := TextureVideoReferences.TextureNodeIndex(TextureNode);
+    Index := TextureImageReferences.TextureNodeIndex(TextureNode);
     Result := Index <> -1;
 
     if Result then
-      AlphaChannelType := TextureVideoReferences.Items[Index].AlphaChannelType;
+      AlphaChannelType := TextureImageReferences.Items[Index].AlphaChannelType else
+    begin
+      Index := TextureVideoReferences.TextureNodeIndex(TextureNode);
+      Result := Index <> -1;
+
+      if Result then
+        AlphaChannelType := TextureVideoReferences.Items[Index].AlphaChannelType;
+    end;
   end;
+
+  procedure DoItCubeMap(TextureNode: TNodeX3DEnvironmentTextureNode);
+  var
+    Index: Integer;
+  begin
+    Index := TextureCubeMapReferences.TextureNodeIndex(TextureNode);
+    Result := Index <> -1;
+    if Result then
+      AlphaChannelType := TextureCubeMapReferences.Items[Index].AlphaChannelType;
+  end;
+
+  procedure DoIt3D(TextureNode: TNodeX3DTexture3DNode);
+  var
+    Index: Integer;
+  begin
+    Index := Texture3DReferences.TextureNodeIndex(TextureNode);
+    Result := Index <> -1;
+    if Result then
+      AlphaChannelType := Texture3DReferences.Items[Index].AlphaChannelType;
+  end;
+
+begin
+  if TextureNode is TVRMLTextureNode then
+    DoIt2D(TVRMLTextureNode(TextureNode)) else
+  if TextureNode is TNodeX3DEnvironmentTextureNode then
+    DoItCubeMap(TNodeX3DEnvironmentTextureNode(TextureNode)) else
+  if TextureNode is TNodeX3DTexture3DNode then
+    DoIt3D(TNodeX3DTexture3DNode(TextureNode)) else
+    Result := false;
 end;
 
 { Render ---------------------------------------------------------------------- }
@@ -4945,6 +5032,8 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       begin
         TexRef := TextureCubeMapReferences.Pointers[TexRefIndex];
 
+        AlphaTest := AlphaTest or (TexRef^.AlphaChannelType = atSimpleYesNo);
+
         ActiveTexture(TextureUnit);
         glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, TexRef^.GLName);
         TextureEnableDisable(etCubeMap);
@@ -4962,6 +5051,8 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       if Result then
       begin
         TexRef := Texture3DReferences.Pointers[TexRefIndex];
+
+        AlphaTest := AlphaTest or (TexRef^.AlphaChannelType = atSimpleYesNo);
 
         ActiveTexture(TextureUnit);
         glBindTexture(GL_TEXTURE_3D_EXT, TexRef^.GLName);

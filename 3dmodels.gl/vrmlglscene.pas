@@ -2134,25 +2134,22 @@ procedure TVRMLGLScene.PrepareAndCalculateUseBlendingForAll;
       Tex := State.Texture;
       if Tex <> nil then
       begin
-        if Tex is TVRMLTextureNode then
-        begin
-          if Renderer.PreparedTextureAlphaChannelType(TVRMLTextureNode(Tex), AlphaChannelType) then
-            UseBlending := AlphaChannelType = atFullRange;
-        end else
         if Tex is TNodeMultiTexture then
         begin
           MultiTex := TNodeMultiTexture(Tex).FdTexture;
           for I := 0 to MultiTex.Count - 1 do
           begin
             if (MultiTex.Items[I] <> nil) and
-               (MultiTex.Items[I] is TVRMLTextureNode) and
-               (Renderer.PreparedTextureAlphaChannelType(TVRMLTextureNode(MultiTex.Items[I]), AlphaChannelType)) then
+               (MultiTex.Items[I] is TNodeX3DTextureNode) and
+               (Renderer.PreparedTextureAlphaChannelType(TNodeX3DTextureNode(MultiTex.Items[I]), AlphaChannelType)) then
             begin
               UseBlending := AlphaChannelType = atFullRange;
               if UseBlending then Break;
             end;
           end;
-        end;
+        end else
+        if Renderer.PreparedTextureAlphaChannelType(Tex, AlphaChannelType) then
+          UseBlending := AlphaChannelType = atFullRange;
       end;
     end;
 
