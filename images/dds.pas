@@ -984,7 +984,12 @@ var
           Assert(Header.PixelFormat.Flags and DDPF_PALETTEINDEXED8 = 0);
 
           if Header.PixelFormat.FourCC = 'DXT1' then
-            ReadCompressed(s3tcDxt1) else
+            { There's no way to recognize from DDS file header whether it uses
+              or not some transparent pixels. (DDPF_ALPHAPIXELS is never
+              specified for compressed formats.)
+              Theoreticall, every DXT1 image may have some transparent pixels,
+              so use s3tcDxt1_RGBA. }
+            ReadCompressed(s3tcDxt1_RGBA) else
           if Header.PixelFormat.FourCC = 'DXT3' then
             ReadCompressed(s3tcDxt3) else
           if Header.PixelFormat.FourCC = 'DXT5' then

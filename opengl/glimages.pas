@@ -582,9 +582,10 @@ begin
   if Img is TS3TCImage then
   begin
     case TS3TCImage(Img).Compression of
-      s3tcDxt1: Result := GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
-      s3tcDxt3: Result := GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-      s3tcDxt5: Result := GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+      s3tcDxt1_RGB : Result := GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+      s3tcDxt1_RGBA: Result := GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+      s3tcDxt3     : Result := GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+      s3tcDxt5     : Result := GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
       else Result := GL_INVALID_ENUM;
     end;
   end else
