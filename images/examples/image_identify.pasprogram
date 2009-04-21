@@ -46,6 +46,11 @@ begin
         Writeln(Parameters[I], ': load error: ', E.Message);
         Continue;
       end;
+      on E: EImageFormatNotSupported do
+      begin
+        Writeln(Parameters[I], ': image format not supported: ', E.Message);
+        Continue;
+      end;
     end;
     try
       Writeln(Parameters[I], ': ', Img.Width, ' x ', Img.Height, ' - ', Img.ClassName);

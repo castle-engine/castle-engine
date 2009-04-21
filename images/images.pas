@@ -699,7 +699,24 @@ type
   {$I objectslist_2.inc}
   TEncodedImageList = TObjectsList_2;
 
-  TS3TCCompression = (s3tcDxt1, s3tcDxt3, s3tcDxt5);
+  TS3TCCompression = (
+    { s3tcDxt1_RGB and s3tcDxt1_RGBA are the same compression method,
+      except in s3tcDxt1_RGB the alpha information is ignored,
+      while in s3tcDxt1_RGBA we have simple yes/no alpha.
+
+      The difference is equivalent to OpenGL differences in treating
+      @unorderedList(
+        @itemSpacing compact
+        @item GL_COMPRESSED_RGB_S3TC_DXT1_EXT and
+        @item GL_COMPRESSED_RGBA_S3TC_DXT1_EXT.
+      )
+    }
+    s3tcDxt1_RGB,
+    s3tcDxt1_RGBA,
+
+    { DXT3 and DXT5 are always treated like they had full-range alpha channel. }
+    s3tcDxt3,
+    s3tcDxt5);
 
   { Image encoded with S3TC compression. }
   TS3TCImage = class(TEncodedImage)
@@ -715,11 +732,11 @@ type
 
     { Size of the whole image data inside RawPixels, in bytes. }
     property Size: Cardinal read FSize;
-    
+
     function HasAlpha: boolean; override;
     function AlphaChannelType(
       const AlphaTolerance: Byte;
-      const WrongPixelsTolerance: Single): TAlphaChannelType; override;    
+      const WrongPixelsTolerance: Single): TAlphaChannelType; override;
   end;
 
 { TImageClass and arrays of TImageClasses ----------------------------- }
@@ -2168,7 +2185,8 @@ begin
   }
 
   case Compression of
-    s3tcDxt1: FSize := Depth * DivRoundUp(Width, 4) * DivRoundUp(Height, 4) * 8 { 8 bytes for each 16 pixels };
+    s3tcDxt1_RGB,
+    s3tcDxt1_RGBA: FSize := Depth * DivRoundUp(Width, 4) * DivRoundUp(Height, 4) * 8 { 8 bytes for each 16 pixels };
     s3tcDxt3,
     s3tcDxt5: FSize := Depth * DivRoundUp(Width, 4) * DivRoundUp(Height, 4) * 16 { 16 bytes for each 16 pixels };
     else EInternalError.Create('TS3TCImage.Create-Compression?');
@@ -2179,7 +2197,7 @@ end;
 
 function TS3TCImage.HasAlpha: boolean;
 begin
-  Result := Compression in [s3tcDxt3, s3tcDxt5];
+  Result := Compression in [s3tcDxt1_RGBA, s3tcDxt3, s3tcDxt5];
 end;
 
 function TS3TCImage.AlphaChannelType(
@@ -2188,9 +2206,11 @@ function TS3TCImage.AlphaChannelType(
 begin
   { S3TCImage doesn't analyze for alpha channel, instead simply assumes
     image is always full-range alpha it if has alpha channel. }
-  if HasAlpha then
-    Result := atFullRange else
-    Result := atNone;
+  case Compression of
+    s3tcDxt1_RGB : Result := atNone;
+    s3tcDxt1_RGBA: Result := atSimpleYesNo;
+    s3tcDxt3, s3tcDxt5: Result := atFullRange;
+  end;
 end;
 
 { TImageClass and arrays of TImageClasses ----------------------------- }
@@ -3372,30 +3392,38 @@ end;
 
 function LoadImage(const filename: string;
   const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions)
-  :TImage;
-var f: TStream;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
+var
+  f: TStream;
 begin
- {$ifdef DELPHI} Result := nil; { <- only to avoid stupid warning } {$endif}
+  {$ifdef DELPHI} Result := nil; { <- only to avoid stupid warning } {$endif}
 
- f := CreateReadFileStream(filename);
- try
   try
-   result := LoadImage(f, ExtractFileExt(filename), AllowedImageClasses,
-     ForbiddenConvs);
+    { Even CreateReadFileStream may already raise an exception if FileName
+      points to a directory. }
+    try
+      f := CreateReadFileStream(filename);
+    except
+      on E: EReadError do
+        raise EImageLoadError.Create('Cannot read file: ' + E.Message);
+    end;
+
+    try
+      result := LoadImage(f, ExtractFileExt(filename), AllowedImageClasses,
+        ForbiddenConvs);
+    finally f.Free end;
   except
-   on E: EImageLoadError do begin
-     E.Message := 'Error when loading image from file "'+filename+'" : '+E.Message;
-     raise;
+    on E: EImageLoadError do begin
+      E.Message := 'Error when loading image from file "'+filename+'" : '+E.Message;
+      raise;
     end;
-   on E: EImageFormatNotSupported do begin
-     { przechwyc EImageFormatNotSupported i w tresci wyjatku wklej pelne filename }
-     E.Message := 'Unrecognized image format : file "'+filename+'"';
-     raise;
+    on E: EImageFormatNotSupported do begin
+      { przechwyc EImageFormatNotSupported i w tresci wyjatku wklej pelne filename }
+      E.Message := 'Unrecognized image format : file "'+filename+'"';
+      raise;
     end;
-   else raise;
+    else raise;
   end;
- finally f.Free end;
 end;
 
 function LoadImage(const filename: string;
