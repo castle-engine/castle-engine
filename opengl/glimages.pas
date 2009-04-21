@@ -138,6 +138,13 @@ const
     TGrayscaleImage,
     TGrayscaleAlphaImage);
 
+  GLImageClassesAll: array [0..4] of TEncodedImageClass = (
+    TRGBImage,
+    TRGBAlphaImage,
+    TGrayscaleImage,
+    TGrayscaleAlphaImage,
+    TS3TCImage);
+
 { These functions return appropriate GL_xxx format and type
   for given TImage descendant. If you will pass here Img
   that is not a descendant of one of GLImageClasses,
@@ -164,8 +171,12 @@ const
   And, in practice, current OpenGL implementations *will* signal errors
   so things are checked.).
 
+  ImageGLInternalFormat works with TS3TCImage classes also, returning
+  appropriate GL_COMPRESSED_*_S3TC_*_EXT, suitable for glCompressedTexImage2D.
+
   @groupBegin }
-function ImageGLFormat(const Img: TImage): TGLenum;
+function ImageGLFormat(const Img: TEncodedImage): TGLenum;
+function ImageGLInternalFormat(const Img: TEncodedImage): TGLenum;
 function ImageGLType(const Img: TImage): TGLenum;
 { @groupEnd }
 
@@ -370,7 +381,7 @@ function ResizeToTextureSize(const r: TImage): TImage;
   That is, for passing to glTexImage2D for GL_TEXTURE_2D target.
   This checks glGet(GL_MAX_TEXTURE_SIZE),
   so requires initialized OpenGL context. }
-function IsTextureSized(const r: TImage): boolean;
+function IsTextureSized(const r: TEncodedImage): boolean;
 
 function IsCubeMapTextureSized(const Size: Cardinal): boolean;
 function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal;
@@ -407,9 +418,9 @@ function TextureMinFilterNeedsMipmaps(const MinFilter: TGLenum): boolean;
   it's only for opacity).
 
   @groupBegin }
-function LoadGLTexture(const image: TImage; minFilter, magFilter: TGLenum;
+function LoadGLTexture(const image: TEncodedImage; minFilter, magFilter: TGLenum;
   GrayscaleIsAlpha: boolean = false): TGLuint; overload;
-function LoadGLTexture(const image: TImage;
+function LoadGLTexture(const image: TEncodedImage;
   minFilter, magFilter: TGLenum;
   const Wrap: TTextureWrap2D;
   GrayscaleIsAlpha: boolean = false): TGLuint; overload;
@@ -429,11 +440,11 @@ function LoadGLTexture(const FileName: string;
   by passing TexNum = 0.
 
   @groupBegin }
-procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TImage;
+procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
   minFilter, magFilter: TGLenum;
   const Wrap: TTextureWrap2D;
   GrayscaleIsAlpha: boolean = false); overload;
-procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TImage;
+procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
   minFilter, magFilter: TGLenum;
   GrayscaleIsAlpha: boolean = false); overload;
 { @groupEnd }
@@ -551,7 +562,7 @@ implementation
 
 uses SysUtils, KambiUtils, KambiLog, GLVersionUnit;
 
-function ImageGLFormat(const Img: TImage): TGLenum;
+function ImageGLFormat(const Img: TEncodedImage): TGLenum;
 begin
   if Img is TRGBImage then
     Result := GL_RGB else
@@ -561,6 +572,22 @@ begin
     Result := GL_LUMINANCE else
   if Img is TGrayscaleAlphaImage then
     Result := GL_LUMINANCE_ALPHA else
+    Result := GL_INVALID_ENUM;
+end;
+
+function ImageGLInternalFormat(const Img: TEncodedImage): TGLenum;
+begin
+  if Img is TImage then
+    Result := TImage(Img).ColorComponentsCount else
+  if Img is TS3TCImage then
+  begin
+    case TS3TCImage(Img).Compression of
+      s3tcDxt1: Result := GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+      s3tcDxt3: Result := GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+      s3tcDxt5: Result := GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+      else Result := GL_INVALID_ENUM;
+    end;
+  end else
     Result := GL_INVALID_ENUM;
 end;
 
@@ -780,7 +807,7 @@ begin
     {GL_ARB_texture_non_power_of_two or GL_version_2_0};
 end;
 
-function IsTextureSized(const r: TImage): boolean;
+function IsTextureSized(const r: TEncodedImage): boolean;
 var
   MaxTexSize: Cardinal;
 begin
@@ -964,7 +991,7 @@ end;
 { implementacja procedur LoadGLTextures_XXX
   -----------------------------------------------------------------------------}
 
-function LoadGLTexture(const image: TImage; minFilter, magFilter: TGLenum;
+function LoadGLTexture(const image: TEncodedImage; minFilter, magFilter: TGLenum;
   GrayscaleIsAlpha: boolean): TGLuint;
 begin
   glGenTextures(1, @result);
@@ -972,7 +999,7 @@ begin
     GrayscaleIsAlpha);
 end;
 
-function LoadGLTexture(const image: TImage; minFilter, magFilter: TGLenum;
+function LoadGLTexture(const image: TEncodedImage; minFilter, magFilter: TGLenum;
   const Wrap: TTextureWrap2D;
   GrayscaleIsAlpha: boolean): TGLuint; overload;
 begin
@@ -1004,7 +1031,7 @@ begin
   Result := ArrayPosCard(MinFilter, MipmapFilters) >= 0;
 end;
 
-procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TImage;
+procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
   minFilter, magFilter: TGLenum; GrayscaleIsAlpha: boolean);
 var
   ImageInternalFormat: TGLuint;
@@ -1089,6 +1116,22 @@ var
     glTexImage2DImage(Image);
   end;
 
+  procedure LoadCompressed(Image: TS3TCImage);
+  begin
+    if not (GL_ARB_texture_compression and GL_EXT_texture_compression_s3tc) then
+      raise Exception.Create('Cannot load S3TC compressed textures: OpenGL doesn''t support one (or both) of ARB_texture_compression and EXT_texture_compression_s3tc extensions');
+
+    if not IsTextureSized(Image) then
+      raise Exception.Create('Cannot load S3TC compressed textures: texture doesn''t have correct size, and we cannot resize on CPU compressed textures');
+
+    { Pixel packing parameters (stuff changed by Before/AfterUnpackImage)
+      doesn't affect loading compressed textures, as far as I understand.
+      So no need to call it. }
+    glCompressedTexImage2DARB(GL_TEXTURE_2D, 0, ImageInternalFormat,
+      Image.Width, Image.Height, 0, Image.Size,
+      Image.RawPixels);
+  end;
+
 begin
   if (Image is TGrayscaleImage) and GrayscaleIsAlpha then
   begin
@@ -1098,7 +1141,7 @@ begin
     ImageFormat := GL_ALPHA;
   end else
   begin
-    ImageInternalFormat := Image.ColorComponentsCount;
+    ImageInternalFormat := ImageGLInternalFormat(Image);
     ImageFormat := ImageGLFormat(Image);
   end;
 
@@ -1108,12 +1151,25 @@ begin
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
 
   { give the texture data }
-  if TextureMinFilterNeedsMipmaps(MinFilter) then
-    LoadMipmapped(Image) else
-    LoadNormal(Image);
+  if Image is TImage then
+  begin
+    { Load uncompressed }
+    if TextureMinFilterNeedsMipmaps(MinFilter) then
+      LoadMipmapped(TImage(Image)) else
+      LoadNormal(TImage(Image));
+  end else
+  if Image is TS3TCImage then
+  begin
+    { Load compressed }
+    LoadCompressed(TS3TCImage(Image));
+
+    if TextureMinFilterNeedsMipmaps(MinFilter) then
+      GenerateMipmap(GL_TEXTURE_2D);
+  end else
+    raise Exception.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
 end;
 
-procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TImage;
+procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
   minFilter, magFilter: TGLenum;
   const Wrap: TTextureWrap2D;
   GrayscaleIsAlpha: boolean);

@@ -45,7 +45,7 @@
 
       Note that this may still have zero size (IsNull = @true),
       IsTextureImage checks this also. }
-    FTextureImage: TImage;
+    FTextureImage: TEncodedImage;
 
     { Analogous to FTextureImage, this is the loaded video file.
       Assigned here, should always have TVideo.Loaded = @true. }
@@ -129,7 +129,7 @@
       even such "ideological" one.
 
       @groupBegin }
-    function TextureImage: TImage;
+    function TextureImage: TEncodedImage;
     function IsTextureImage: boolean;
     function TextureVideo: TVideo;
     function IsTextureVideo: boolean;
@@ -561,7 +561,7 @@ begin
   begin
     if TextureDataUsedCache <> nil then
     begin
-      TextureDataUsedCache.LoadImage_DecReference(FTextureImage);
+      TextureDataUsedCache.LoadImage_DecReference(TImage(FTextureImage));
       TextureDataUsedCache := nil;
     end else
       FreeAndNil(FTextureImage);
@@ -578,7 +578,7 @@ begin
   end;
 end;
 
-function TVRMLTextureNode.TextureImage: TImage;
+function TVRMLTextureNode.TextureImage: TEncodedImage;
 begin
   { Setting IsTextureLoaded property will initialize FTextureImage. }
   IsTextureLoaded := true;
@@ -879,6 +879,7 @@ procedure TNodeImageTexture.LoadTextureData(out CacheUsed: boolean);
 var
   I: Integer;
   FullUrl: string;
+  DDS: TDDSImage;
 begin
   CacheUsed := false;
   FTextureUsedFullUrl := '';
@@ -896,18 +897,43 @@ begin
     end else
     begin
       FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
-      try
-        FTextureImage := ImagesVideosCache.LoadImage_IncReference(FullUrl);
-        CacheUsed := true;
-        FTextureUsedFullUrl := FullUrl;
-        Break;
-      except
-        on E: Exception do
-          { pamietajmy ze VRMLWarning moze spowodowac rzucenie wyjatku
-            (chociaz nie musi) }
-          VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
-            ' occured when trying to load ' +
-            'texture from url "' + FullUrl + '" : ' + E.Message);
+
+      if FileExtToImageFormatDef(ExtractFileExt(FullUrl),
+        false, false, ifBMP) <> ifDDS then
+      begin
+        { Load texture straight to TImage class by
+          ImagesVideosCache.LoadImage_IncReference }
+        try
+          FTextureImage := ImagesVideosCache.LoadImage_IncReference(FullUrl);
+          CacheUsed := true;
+          FTextureUsedFullUrl := FullUrl;
+          Break;
+        except
+          on E: Exception do
+            { pamietajmy ze VRMLWarning moze spowodowac rzucenie wyjatku
+              (chociaz nie musi) }
+            VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
+              ' occured when trying to load ' +
+              'texture from url "' + FullUrl + '" : ' + E.Message);
+        end;
+      end else
+      begin
+        { Load texture by DDS loader, this may we may get compressed texture }
+        DDS := TDDSImage.Create;
+        try
+          try
+            DDS.LoadFromFile(FullUrl);
+
+            FTextureUsedFullUrl := FullUrl;
+            DDS.OwnsFirstImage := false;
+            FTextureImage := DDS.Images[0];
+        except
+          on E: Exception do
+            VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
+              ' occured when trying to load ' +
+              'DDS texture from url "' + FullUrl + '" : ' + E.Message);
+        end;
+        finally FreeAndNil(DDS) end;
       end;
     end;
 end;

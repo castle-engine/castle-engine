@@ -223,6 +223,87 @@ type
     property Depth: Cardinal read FDepth;
 
     property RawPixels: Pointer read FRawPixels;
+
+    { True means that RawPixels = nil.
+      If @true, then you know Width * Height * Depth must be 0,
+      so either Width = 0 or Height = 0 or Depth = 0.
+      @false means that RawPixels <> nil and Width * Height * Depth <> 0,
+      so all Width > 0 and Height > 0 and Depth > 0. }
+    function IsNull: boolean;
+
+    { Does an image have alpha channel.
+
+      You may also be interested in AlphaChannelType.
+      AlphaChannelType answers always atNone if HasAlpha = false,
+      and always atSimpleYesNo or atFullRange if HasAlpha = true.
+      But AlphaChannelType may perform longer analysis of pixels
+      (to differ between atSimpleYesNo and atFullRange), while this
+      function always executes ultra-fast (as it's constant for each
+      TImage descendant).
+
+      @italic(Descendants implementors notes:) in this class, TImage,
+      this returns @false. Override to return @true for images with
+      alpha channel. }
+    function HasAlpha: boolean; virtual;
+
+    { @abstract(Check does image have an alpha channel,
+      and if yes analyze alpha channel: is it a single yes-no (only full
+      or none values), or does it have alpha values in between?)
+
+      This is quite useful for automatic detection how alpha textures
+      should be displayed: for simple yes/no alpha, OpenGL alpha_test
+      is a simple solution. For full range alpha, OpenGL blending should
+      be used. Blending is a little problematic, since it requires
+      special rendering order, since it doesn't cooperate nicely with
+      Z-buffer. That's why we try to detect simple yes/no alpha textures,
+      so that we're able to use simpler alpha test for them.
+
+      This method analyzes every pixel. It's alpha is considered "simple"
+      if it's <= AlphaTolerance, or >= 255 - AlphaTolerance.
+      So for the default AlphaTolerance, "simple" alpha means only exactly
+      0 or 255 (maximum Byte values).
+      The method returns true if the ratio of non-simple pixels is
+      WrongPixelsTolerance. For example, default WrongPixelsTolerance = 0
+      means that every pixel must have "simple" alpha channel.
+      Greated WrongPixelsTolerance values may allow some tolerance,
+      for example WrongPixelsTolerance = 0.01 allows 1 percent of pixels
+      to fail the "simple alpha" test and the image can still be considered
+      "simple yes/no alpha channel".
+
+      In summary, default Tolerance values are 0, so exactly all pixels
+      must have exactly full or exactly none alpha. Increasing
+      tolerance values (for example, AlphaTolerance = 5
+      and WrongPixelsTolerance = 0.01 may be good start --- still conservative
+      enough, and tolerate small deviations) allows you to accept
+      more images as simple yes/no alpha. Of course too large tolerance
+      values have no sense --- AlphaTolerance >= 128, or WrongPixelsTolerance >= 1.0
+      will cause all images to be accepted as "simple yes/no alpha".
+
+      @italic(Descendants implementors notes:) in this class, this simply
+      always returns atNone. For descendants that have alpha channel,
+      implement it, honouring AlphaTolerance and WrongPixelsTolerance as
+      described. }
+    function AlphaChannelType(
+      const AlphaTolerance: Byte = 0;
+      const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType; virtual;
+
+    { Usually calls @link(AlphaChannelType), but allows you to override
+      detection by TDetectAlphaChannel.
+
+      When DetectAlphaChannel is daAuto, this is simply equivalent to
+      normal AlphaChannelType.
+
+      For other values of DetectAlphaChannel,
+      when the image has any alpha channel,
+      then DetectAlphaChannel decides whether this is full range or simple
+      yes/no alpha channel. This means that nice algorithm of AlphaChannelType
+      will not be used. This allows you to give user control over alpha
+      channel detection,
+      like for [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_alpha_channel_detection]. }
+    function AlphaChannelTypeOverride(
+      const DetectAlphaChannel: TDetectAlphaChannel;
+      const AlphaTolerance: Byte = 0;
+      const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType;
   end;
 
   { TImage is an abstract class representing image as a simple array of pixels.
@@ -303,14 +384,7 @@ type
       const AWidth, AHeight: Cardinal;
       const ADepth: Cardinal = 1); overload; virtual;
 
-    { True means that RawPixels = nil.
-      If @true, then you know Width * Height * Depth must be 0,
-      so either Width = 0 or Height = 0 or Depth = 0.
-      @false means that RawPixels <> nil and Width * Height * Depth <> 0,
-      so all Width > 0 and Height > 0 and Depth > 0. }
-    function IsNull: boolean;
-
-    { This is equivalent to SetSize(0, 0).
+    { This is equivalent to SetSize(0, 0, 0).
       It sets Width = Height = 0 and RawPixels = nil. }
     procedure Null;
 
@@ -590,80 +664,6 @@ type
     procedure CopyTo(Image: TImage; const X0, Y0: Cardinal);
     { @groupEnd }
 
-    { Does an image have alpha channel.
-
-      You may also be interested in AlphaChannelType.
-      AlphaChannelType answers always atNone if HasAlpha = false,
-      and always atSimpleYesNo or atFullRange if HasAlpha = true.
-      But AlphaChannelType may perform longer analysis of pixels
-      (to differ between atSimpleYesNo and atFullRange), while this
-      function always executes ultra-fast (as it's constant for each
-      TImage descendant).
-
-      @italic(Descendants implementors notes:) in this class, TImage,
-      this returns @false. Override to return @true for images with
-      alpha channel. }
-    function HasAlpha: boolean; virtual;
-
-    { @abstract(Check does image have an alpha channel,
-      and if yes analyze alpha channel: is it a single yes-no (only full
-      or none values), or does it have alpha values in between?)
-
-      This is quite useful for automatic detection how alpha textures
-      should be displayed: for simple yes/no alpha, OpenGL alpha_test
-      is a simple solution. For full range alpha, OpenGL blending should
-      be used. Blending is a little problematic, since it requires
-      special rendering order, since it doesn't cooperate nicely with
-      Z-buffer. That's why we try to detect simple yes/no alpha textures,
-      so that we're able to use simpler alpha test for them.
-
-      This method analyzes every pixel. It's alpha is considered "simple"
-      if it's <= AlphaTolerance, or >= 255 - AlphaTolerance.
-      So for the default AlphaTolerance, "simple" alpha means only exactly
-      0 or 255 (maximum Byte values).
-      The method returns true if the ratio of non-simple pixels is
-      WrongPixelsTolerance. For example, default WrongPixelsTolerance = 0
-      means that every pixel must have "simple" alpha channel.
-      Greated WrongPixelsTolerance values may allow some tolerance,
-      for example WrongPixelsTolerance = 0.01 allows 1 percent of pixels
-      to fail the "simple alpha" test and the image can still be considered
-      "simple yes/no alpha channel".
-
-      In summary, default Tolerance values are 0, so exactly all pixels
-      must have exactly full or exactly none alpha. Increasing
-      tolerance values (for example, AlphaTolerance = 5
-      and WrongPixelsTolerance = 0.01 may be good start --- still conservative
-      enough, and tolerate small deviations) allows you to accept
-      more images as simple yes/no alpha. Of course too large tolerance
-      values have no sense --- AlphaTolerance >= 128, or WrongPixelsTolerance >= 1.0
-      will cause all images to be accepted as "simple yes/no alpha".
-
-      @italic(Descendants implementors notes:) in this class, this simply
-      always returns atNone. For descendants that have alpha channel,
-      implement it, honouring AlphaTolerance and WrongPixelsTolerance as
-      described. }
-    function AlphaChannelType(
-      const AlphaTolerance: Byte = 0;
-      const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType; virtual;
-
-    { Usually calls @link(AlphaChannelType), but allows you to override
-      detection by TDetectAlphaChannel.
-
-      When DetectAlphaChannel is daAuto, this is simply equivalent to
-      normal AlphaChannelType.
-
-      For other values of DetectAlphaChannel,
-      when the image has any alpha channel,
-      then DetectAlphaChannel decides whether this is full range or simple
-      yes/no alpha channel. This means that nice algorithm of AlphaChannelType
-      will not be used. This allows you to give user control over alpha
-      channel detection,
-      like for [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_alpha_channel_detection]. }
-    function AlphaChannelTypeOverride(
-      const DetectAlphaChannel: TDetectAlphaChannel;
-      const AlphaTolerance: Byte = 0;
-      const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType;
-
     { Makes linear interpolation of colors from this image and the SecondImage.
       Intuitively, every pixel in new image is set to
 
@@ -715,12 +715,18 @@ type
 
     { Size of the whole image data inside RawPixels, in bytes. }
     property Size: Cardinal read FSize;
+    
+    function HasAlpha: boolean; override;
+    function AlphaChannelType(
+      const AlphaTolerance: Byte;
+      const WrongPixelsTolerance: Single): TAlphaChannelType; override;    
   end;
 
 { TImageClass and arrays of TImageClasses ----------------------------- }
 
 type
   TImageClass = class of TImage;
+  TEncodedImageClass = class of TEncodedImage;
 
   { Note: Don't name it TDynImageClassesArray,
     as such naming convention is reserved for TDynArray_Base descendants. }
@@ -1666,6 +1672,41 @@ begin
   inherited;
 end;
 
+function TEncodedImage.IsNull: boolean;
+begin
+ Result := RawPixels = nil;
+end;
+
+function TEncodedImage.HasAlpha: boolean;
+begin
+  Result := false;
+end;
+
+function TEncodedImage.AlphaChannelType(
+  const AlphaTolerance: Byte;
+  const WrongPixelsTolerance: Single): TAlphaChannelType;
+begin
+  Result := atNone;
+end;
+
+function TEncodedImage.AlphaChannelTypeOverride(
+  const DetectAlphaChannel: TDetectAlphaChannel;
+  const AlphaTolerance: Byte = 0;
+  const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType;
+begin
+  if DetectAlphaChannel = daAuto then
+    Result := AlphaChannelType(AlphaTolerance, WrongPixelsTolerance) else
+  begin
+    if HasAlpha then
+    begin
+      if DetectAlphaChannel = daFullRange then
+        Result := atFullRange else
+        Result := atSimpleYesNo;
+    end else
+      Result := atNone;
+  end;
+end;
+
 { TImage ------------------------------------------------------------ }
 
 constructor TImage.Create;
@@ -1680,11 +1721,6 @@ constructor TImage.Create(
 begin
  Create;
  SetSize(AWidth, AHeight, ADepth);
-end;
-
-function TImage.IsNull: boolean;
-begin
- Result := RawPixels = nil;
 end;
 
 procedure TImage.Null;
@@ -2090,36 +2126,6 @@ begin
   Image.CopyFrom(Self, X0, Y0);
 end;
 
-function TImage.HasAlpha: boolean;
-begin
-  Result := false;
-end;
-
-function TImage.AlphaChannelType(
-  const AlphaTolerance: Byte;
-  const WrongPixelsTolerance: Single): TAlphaChannelType;
-begin
-  Result := atNone;
-end;
-
-function TImage.AlphaChannelTypeOverride(
-  const DetectAlphaChannel: TDetectAlphaChannel;
-  const AlphaTolerance: Byte = 0;
-  const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType;
-begin
-  if DetectAlphaChannel = daAuto then
-    Result := AlphaChannelType(AlphaTolerance, WrongPixelsTolerance) else
-  begin
-    if HasAlpha then
-    begin
-      if DetectAlphaChannel = daFullRange then
-        Result := atFullRange else
-        Result := atSimpleYesNo;
-    end else
-      Result := atNone;
-  end;
-end;
-
 procedure TImage.LerpSimpleCheckConditions(SecondImage: TImage);
 begin
   if (Width <> SecondImage.Width) or
@@ -2169,6 +2175,22 @@ begin
   end;
 
   FRawPixels := GetMem(FSize);
+end;
+
+function TS3TCImage.HasAlpha: boolean;
+begin
+  Result := Compression in [s3tcDxt3, s3tcDxt5];
+end;
+
+function TS3TCImage.AlphaChannelType(
+  const AlphaTolerance: Byte;
+  const WrongPixelsTolerance: Single): TAlphaChannelType;
+begin
+  { S3TCImage doesn't analyze for alpha channel, instead simply assumes
+    image is always full-range alpha it if has alpha channel. }
+  if HasAlpha then
+    Result := atFullRange else
+    Result := atNone;
 end;
 
 { TImageClass and arrays of TImageClasses ----------------------------- }

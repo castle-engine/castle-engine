@@ -1011,7 +1011,7 @@ type
     GLSLProgramCaches: TDynGLSLProgramCacheArray;
 
     function TextureImage_IncReference(
-      const TextureImage: TImage;
+      const TextureImage: TEncodedImage;
       const TextureFullUrl: string;
       const TextureNode: TVRMLTextureNode;
       const TextureMinFilter, TextureMagFilter: TGLint;
@@ -1820,7 +1820,7 @@ const
   AlphaWrongPixelsTolerance = 0.01;
 
 function TVRMLOpenGLRendererContextCache.TextureImage_IncReference(
-  const TextureImage: TImage;
+  const TextureImage: TEncodedImage;
   const TextureFullUrl: string;
   const TextureNode: TVRMLTextureNode;
   const TextureMinFilter, TextureMagFilter: TGLint;
@@ -1877,9 +1877,24 @@ begin
     That's because in case LoadGLTextureModulated raises exception,
     we don't want to add texture to cache (because caller would have
     no way to call TextureImage_DecReference later). }
-  Result := LoadGLTextureModulated(
-    TextureImage, TextureMinFilter, TextureMagFilter,
-    TextureWrap, TextureColorModulator);
+  if Assigned(TextureColorModulator) then
+  begin
+    if TextureImage is TImage then
+    begin
+      Result := LoadGLTextureModulated(
+        TImage(TextureImage), TextureMinFilter, TextureMagFilter,
+        TextureWrap, TextureColorModulator);
+    end else
+    begin
+      VRMLWarning(vwIgnorable, 'Cannot modulate S3TC compressed texture by ColorModulator, loading unmodulated');
+      Result := LoadGLTexture(
+        TextureImage, TextureMinFilter, TextureMagFilter, TextureWrap);
+    end;
+  end else
+  begin
+    Result := LoadGLTexture(
+      TextureImage, TextureMinFilter, TextureMagFilter, TextureWrap);
+  end;
 
   TextureCached := TextureImageCaches.AppendItem;
   TextureCached^.FullUrl := TextureFullUrl;
@@ -3525,7 +3540,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     TextureImageReference: TTextureImageReference;
     TextureVideoReference: TTextureVideoReference;
     HeightMapGrayscale: TGrayscaleImage;
-    OriginalTexture: TImage;
+    OriginalTexture: TEncodedImage;
     TextureProperties: TNodeTextureProperties;
     MinFilter, MagFilter: TGLint;
     TextureWrap: TTextureWrap2D;
@@ -3674,6 +3689,12 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
         SideTex := TVRMLTextureNode(SideField.Value);
         SideTex.ImagesVideosCache := Cache;
         Result := SideTex.IsTextureImage;
+
+        if Result and not (SideTex.TextureImage is TImage) then
+        begin
+          VRMLWarning(vwIgnorable, 'ComposedCubeMapTexture cannot contain S3TC images, as we have to rotate images within, and we cannot do this (fast) with compressed textures');
+          Result := false;
+        end;
       end;
     end;
 
@@ -3719,11 +3740,13 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
 
     try
       { To match expected orientation for OpenGL, we have to rotate images.
-        (source images are oriented as for VRML Background.) }
-      BackRot  := TVRMLTextureNode(CubeTexture.FdBack .Value).TextureImage.MakeRotated(2);
-      FrontRot := TVRMLTextureNode(CubeTexture.FdFront.Value).TextureImage.MakeRotated(2);
-      LeftRot  := TVRMLTextureNode(CubeTexture.FdLeft .Value).TextureImage.MakeRotated(2);
-      RightRot := TVRMLTextureNode(CubeTexture.FdRight.Value).TextureImage.MakeRotated(2);
+        (source images are oriented as for VRML Background.)
+        We safely cast them to TImage below, SideLoaded above checked
+        that they are indeed of TImage class. }
+      BackRot  := (TVRMLTextureNode(CubeTexture.FdBack .Value).TextureImage as TImage).MakeRotated(2);
+      FrontRot := (TVRMLTextureNode(CubeTexture.FdFront.Value).TextureImage as TImage).MakeRotated(2);
+      LeftRot  := (TVRMLTextureNode(CubeTexture.FdLeft .Value).TextureImage as TImage).MakeRotated(2);
+      RightRot := (TVRMLTextureNode(CubeTexture.FdRight.Value).TextureImage as TImage).MakeRotated(2);
 
       TextureCubeMapReference.Node := CubeTexture;
       TextureCubeMapReference.GLName := Cache.TextureCubeMap_IncReference(
@@ -3731,8 +3754,8 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
         MinFilter, MagFilter,
         { positive x } RightRot,
         { negative x } LeftRot,
-        { positive y } TVRMLTextureNode(CubeTexture.FdTop   .Value).TextureImage,
-        { negative y } TVRMLTextureNode(CubeTexture.FdBottom.Value).TextureImage,
+        { positive y } TVRMLTextureNode(CubeTexture.FdTop   .Value).TextureImage as TImage,
+        { negative y } TVRMLTextureNode(CubeTexture.FdBottom.Value).TextureImage as TImage,
         { positive z } BackRot,
         { negative z } FrontRot,
         TextureCubeMapReference.AlphaChannelType);
