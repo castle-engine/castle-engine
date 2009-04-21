@@ -822,6 +822,7 @@ type
 
     MinFilter: TGLint;
     MagFilter: TGLint;
+    Anisotropy: TGLfloat;
     Wrap: TTextureWrap2D;
     ColorModulator: TColorModulatorByteFunc;
     References: Cardinal;
@@ -858,6 +859,7 @@ type
 
     MinFilter: TGLint;
     MagFilter: TGLint;
+    Anisotropy: TGLfloat;
     Wrap: TTextureWrap2D;
     ColorModulator: TColorModulatorByteFunc;
     References: Cardinal;
@@ -884,6 +886,7 @@ type
     InitialNode: TNodeX3DEnvironmentTextureNode;
     MinFilter: TGLint;
     MagFilter: TGLint;
+    Anisotropy: TGLfloat;
     References: Cardinal;
     GLName: TGLuint;
 
@@ -908,6 +911,7 @@ type
     InitialNode: TNodeX3DTexture3DNode;
     MinFilter: TGLint;
     MagFilter: TGLint;
+    Anisotropy: TGLfloat;
     Wrap: TTextureWrap3D;
     References: Cardinal;
     GLName: TGLuint;
@@ -1015,6 +1019,7 @@ type
       const TextureFullUrl: string;
       const TextureNode: TVRMLTextureNode;
       const TextureMinFilter, TextureMagFilter: TGLint;
+      const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
       const TextureColorModulator: TColorModulatorByteFunc;
       out AlphaChannelType: TAlphaChannelType): TGLuint;
@@ -1027,6 +1032,7 @@ type
       const TextureFullUrl: string;
       const TextureNode: TNodeMovieTexture;
       const TextureMinFilter, TextureMagFilter: TGLint;
+      const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
       const TextureColorModulator: TColorModulatorByteFunc;
       out AlphaChannelType: TAlphaChannelType): TGLVideo;
@@ -1037,6 +1043,7 @@ type
     function TextureCubeMap_IncReference(
       Node: TNodeX3DEnvironmentTextureNode;
       const MinFilter, MagFilter: TGLint;
+      const Anisotropy: TGLfloat;
       PositiveX, NegativeX,
       PositiveY, NegativeY,
       PositiveZ, NegativeZ: TImage;
@@ -1048,6 +1055,7 @@ type
     function Texture3D_IncReference(
       Node: TNodeX3DTexture3DNode;
       const MinFilter, MagFilter: TGLint;
+      const Anisotropy: TGLfloat;
       const TextureWrap: TTextureWrap3D;
       Image: TImage;
       out AlphaChannelType: TAlphaChannelType): TGLuint;
@@ -1824,6 +1832,7 @@ function TVRMLOpenGLRendererContextCache.TextureImage_IncReference(
   const TextureFullUrl: string;
   const TextureNode: TVRMLTextureNode;
   const TextureMinFilter, TextureMagFilter: TGLint;
+  const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
   const TextureColorModulator: TColorModulatorByteFunc;
   out AlphaChannelType: TAlphaChannelType): TGLuint;
@@ -1861,6 +1870,7 @@ begin
          (TextureCached^.InitialNode = TextureNode) ) and
        (TextureCached^.MinFilter = TextureMinFilter) and
        (TextureCached^.MagFilter = TextureMagFilter) and
+       (TextureCached^.Anisotropy = TextureAnisotropy) and
        (TextureCached^.Wrap = TextureWrap) and
        (TextureCached^.ColorModulator = TextureColorModulator) then
     begin
@@ -1896,11 +1906,14 @@ begin
       TextureImage, TextureMinFilter, TextureMagFilter, TextureWrap);
   end;
 
+  TexParameterMaxAnisotropy(GL_TEXTURE_2D, TextureAnisotropy);
+
   TextureCached := TextureImageCaches.AppendItem;
   TextureCached^.FullUrl := TextureFullUrl;
   TextureCached^.InitialNode := TextureNode;
   TextureCached^.MinFilter := TextureMinFilter;
   TextureCached^.MagFilter := TextureMagFilter;
+  TextureCached^.Anisotropy := TextureAnisotropy;
   TextureCached^.Wrap := TextureWrap;
   TextureCached^.ColorModulator := TextureColorModulator;
   TextureCached^.References := 1;
@@ -1953,6 +1966,7 @@ function TVRMLOpenGLRendererContextCache.TextureVideo_IncReference(
   const TextureFullUrl: string;
   const TextureNode: TNodeMovieTexture;
   const TextureMinFilter, TextureMagFilter: TGLint;
+  const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
   const TextureColorModulator: TColorModulatorByteFunc;
   out AlphaChannelType: TAlphaChannelType): TGLVideo;
@@ -1969,6 +1983,7 @@ begin
          (TextureCached^.InitialNode = TextureNode) ) and
        (TextureCached^.MinFilter = TextureMinFilter) and
        (TextureCached^.MagFilter = TextureMagFilter) and
+       (TextureCached^.Anisotropy = TextureAnisotropy) and
        (TextureCached^.Wrap = TextureWrap) and
        (TextureCached^.ColorModulator = TextureColorModulator) then
     begin
@@ -1986,7 +2001,7 @@ begin
     we don't want to add texture to cache (because caller would have
     no way to call TextureVideo_DecReference later). }
   Result := TGLVideo.Create(
-    TextureVideo, TextureMinFilter, TextureMagFilter,
+    TextureVideo, TextureMinFilter, TextureMagFilter, TextureAnisotropy,
     TextureWrap, TextureColorModulator);
 
   TextureCached := TextureVideoCaches.AppendItem;
@@ -1994,6 +2009,7 @@ begin
   TextureCached^.InitialNode := TextureNode;
   TextureCached^.MinFilter := TextureMinFilter;
   TextureCached^.MagFilter := TextureMagFilter;
+  TextureCached^.Anisotropy := TextureAnisotropy;
   TextureCached^.Wrap := TextureWrap;
   TextureCached^.ColorModulator := TextureColorModulator;
   TextureCached^.References := 1;
@@ -2044,6 +2060,7 @@ end;
 function TVRMLOpenGLRendererContextCache.TextureCubeMap_IncReference(
   Node: TNodeX3DEnvironmentTextureNode;
   const MinFilter, MagFilter: TGLint;
+  const Anisotropy: TGLfloat;
   PositiveX, NegativeX,
   PositiveY, NegativeY,
   PositiveZ, NegativeZ: TImage;
@@ -2058,7 +2075,8 @@ begin
 
     if (TextureCached^.InitialNode = Node) and
        (TextureCached^.MinFilter = MinFilter) and
-       (TextureCached^.MagFilter = MagFilter) then
+       (TextureCached^.MagFilter = MagFilter) and
+       (TextureCached^.Anisotropy = Anisotropy) then
     begin
       Inc(TextureCached^.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
@@ -2084,10 +2102,13 @@ begin
     PositiveZ, NegativeZ,
     TextureMinFilterNeedsMipmaps(MinFilter));
 
+  TexParameterMaxAnisotropy(GL_TEXTURE_CUBE_MAP_ARB, Anisotropy);
+
   TextureCached := TextureCubeMapCaches.AppendItem;
   TextureCached^.InitialNode := Node;
   TextureCached^.MinFilter := MinFilter;
   TextureCached^.MagFilter := MagFilter;
+  TextureCached^.Anisotropy := Anisotropy;
   TextureCached^.References := 1;
   TextureCached^.GLName := Result;
 
@@ -2136,6 +2157,7 @@ end;
 function TVRMLOpenGLRendererContextCache.Texture3D_IncReference(
   Node: TNodeX3DTexture3DNode;
   const MinFilter, MagFilter: TGLint;
+  const Anisotropy: TGLfloat;
   const TextureWrap: TTextureWrap3D;
   Image: TImage;
   out AlphaChannelType: TAlphaChannelType): TGLuint;
@@ -2150,6 +2172,7 @@ begin
     if (TextureCached^.InitialNode = Node) and
        (TextureCached^.MinFilter = MinFilter) and
        (TextureCached^.MagFilter = MagFilter) and
+       (TextureCached^.Anisotropy = Anisotropy) and
        (TextureCached^.Wrap = TextureWrap) then
     begin
       Inc(TextureCached^.References);
@@ -2173,10 +2196,13 @@ begin
 
   glTextureImage3d(Image, TextureMinFilterNeedsMipmaps(MinFilter));
 
+  TexParameterMaxAnisotropy(GL_TEXTURE_3D_EXT, Anisotropy);
+
   TextureCached := Texture3DCaches.AppendItem;
   TextureCached^.InitialNode := Node;
   TextureCached^.MinFilter := MinFilter;
   TextureCached^.MagFilter := MagFilter;
+  TextureCached^.Anisotropy := Anisotropy;
   TextureCached^.Wrap := TextureWrap;
   TextureCached^.References := 1;
   TextureCached^.GLName := Result;
@@ -3470,56 +3496,97 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     end;
   end;
 
-  function StrToMinFilter(S: string): TGLint;
-  begin
-    S := UpperCase(S);
+  { Calculate things from TextureProperties node.
+    If TextureProperties = @nil, they are taken from defaults
+    (possibly in Attributes). }
+  procedure HandleTexturePropertiesCore(
+    TextureProperties: TNodeTextureProperties;
+    out MinFilter, MagFilter: TGLint;
+    out Anisotropy: TGLfloat);
 
-    if S = 'AVG_PIXEL' then Result := GL_LINEAR else
-    if S = 'AVG_PIXEL_AVG_MIPMAP' then Result := GL_LINEAR_MIPMAP_LINEAR else
-    if S = 'AVG_PIXEL_NEAREST_MIPMAP' then Result := GL_LINEAR_MIPMAP_NEAREST else
-    if S = 'NEAREST_PIXEL_AVG_MIPMAP' then Result := GL_NEAREST_MIPMAP_LINEAR else
-    if S = 'NEAREST_PIXEL_NEAREST_MIPMAP' then Result := GL_NEAREST_MIPMAP_NEAREST else
-    if S = 'NEAREST_PIXEL' then Result := GL_NEAREST else
-
-    if S = 'DEFAULT' then Result := Attributes.TextureMinFilter else
-
-    if S = 'FASTEST' then Result := GL_NEAREST else
-    if S = 'NICEST' then Result := GL_LINEAR_MIPMAP_LINEAR else
-
-    if S = 'NEAREST' then
+    function StrToMinFilter(S: string): TGLint;
     begin
-      VRMLWarning(vwSerious, Format('"%s" is not allowed texture minification, this is an Avalon-only extension, please fix to "NEAREST_PIXEL"', [S]));
-      Result := GL_NEAREST;
-    end else
+      S := UpperCase(S);
 
-    begin
-      Result := Attributes.TextureMinFilter;
-      VRMLWarning(vwSerious, Format('Unknown texture minification filter "%s"', [S]));
+      if S = 'AVG_PIXEL' then Result := GL_LINEAR else
+      if S = 'AVG_PIXEL_AVG_MIPMAP' then Result := GL_LINEAR_MIPMAP_LINEAR else
+      if S = 'AVG_PIXEL_NEAREST_MIPMAP' then Result := GL_LINEAR_MIPMAP_NEAREST else
+      if S = 'NEAREST_PIXEL_AVG_MIPMAP' then Result := GL_NEAREST_MIPMAP_LINEAR else
+      if S = 'NEAREST_PIXEL_NEAREST_MIPMAP' then Result := GL_NEAREST_MIPMAP_NEAREST else
+      if S = 'NEAREST_PIXEL' then Result := GL_NEAREST else
+
+      if S = 'DEFAULT' then Result := Attributes.TextureMinFilter else
+
+      if S = 'FASTEST' then Result := GL_NEAREST else
+      if S = 'NICEST' then Result := GL_LINEAR_MIPMAP_LINEAR else
+
+      if S = 'NEAREST' then
+      begin
+        VRMLWarning(vwSerious, Format('"%s" is not allowed texture minification, this is an Avalon-only extension, please fix to "NEAREST_PIXEL"', [S]));
+        Result := GL_NEAREST;
+      end else
+
+      begin
+        Result := Attributes.TextureMinFilter;
+        VRMLWarning(vwSerious, Format('Unknown texture minification filter "%s"', [S]));
+      end;
     end;
-  end;
 
-  function StrToMagFilter(S: string): TGLint;
-  begin
-    S := UpperCase(S);
-
-    if S = 'AVG_PIXEL' then Result := GL_LINEAR else
-    if S = 'NEAREST_PIXEL' then Result := GL_NEAREST else
-
-    if S = 'DEFAULT' then Result := Attributes.TextureMagFilter else
-
-    if S = 'FASTEST' then Result := GL_NEAREST else
-    if S = 'NICEST' then Result := GL_LINEAR else
-
-    if S = 'NEAREST' then
+    function StrToMagFilter(S: string): TGLint;
     begin
-      VRMLWarning(vwSerious, Format('"%s" is not allowed texture minification, this is an Avalon-only extension, please fix to "NEAREST_PIXEL"', [S]));
-      Result := GL_NEAREST;
-    end else
+      S := UpperCase(S);
 
-    begin
-      Result := Attributes.TextureMagFilter;
-      VRMLWarning(vwSerious, Format('Unknown texture minification filter "%s"', [S]));
+      if S = 'AVG_PIXEL' then Result := GL_LINEAR else
+      if S = 'NEAREST_PIXEL' then Result := GL_NEAREST else
+
+      if S = 'DEFAULT' then Result := Attributes.TextureMagFilter else
+
+      if S = 'FASTEST' then Result := GL_NEAREST else
+      if S = 'NICEST' then Result := GL_LINEAR else
+
+      if S = 'NEAREST' then
+      begin
+        VRMLWarning(vwSerious, Format('"%s" is not allowed texture minification, this is an Avalon-only extension, please fix to "NEAREST_PIXEL"', [S]));
+        Result := GL_NEAREST;
+      end else
+
+      begin
+        Result := Attributes.TextureMagFilter;
+        VRMLWarning(vwSerious, Format('Unknown texture minification filter "%s"', [S]));
+      end;
     end;
+
+  begin { HandleTextureProperties }
+    if TextureProperties <> nil then
+    begin
+      MinFilter := StrToMinFilter(TextureProperties.FdMinificationFilter.Value);
+      MagFilter := StrToMagFilter(TextureProperties.FdMagnificationFilter.Value);
+      Anisotropy := TextureProperties.FdAnisotropicDegree.Value;
+    end else
+    begin
+      MinFilter := Attributes.TextureMinFilter;
+      MagFilter := Attributes.TextureMagFilter;
+      Anisotropy := 1;
+    end;
+  end { HandleTextureProperties };
+
+  { Calculate things from TextureProperties node.
+    If TextureProperties = @nil or not of TNodeTextureProperties class,
+    they are taken from defaults (possibly in Attributes).
+
+    This is useful when interpreting VRML/X3D files,
+    as you have no guarantee user didn't place there some disallowed node
+    in "textureProperties" field. }
+  procedure HandleTextureProperties(
+    TextureProperties: TVRMLNode;
+    out MinFilter, MagFilter: TGLint;
+    out Anisotropy: TGLfloat);
+  begin
+    if (TextureProperties = nil) or
+       not (TextureProperties is TNodeTextureProperties) then
+      HandleTexturePropertiesCore(nil, MinFilter, MagFilter, Anisotropy) else
+      HandleTexturePropertiesCore(TNodeTextureProperties(TextureProperties),
+        MinFilter, MagFilter, Anisotropy);
   end;
 
   const
@@ -3541,8 +3608,8 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     TextureVideoReference: TTextureVideoReference;
     HeightMapGrayscale: TGrayscaleImage;
     OriginalTexture: TEncodedImage;
-    TextureProperties: TNodeTextureProperties;
     MinFilter, MagFilter: TGLint;
+    Anisotropy: TGLfloat;
     TextureWrap: TTextureWrap2D;
   begin
     if (TextureImageReferences.TextureNodeIndex(TextureNode) = -1) and
@@ -3550,17 +3617,8 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     begin
       TextureNode.ImagesVideosCache := Cache;
 
-      { calculate MinFilter, MagFilter }
-      TextureProperties := TextureNode.TextureProperties;
-      if TextureProperties <> nil then
-      begin
-        MinFilter := StrToMinFilter(TextureProperties.FdMinificationFilter.Value);
-        MagFilter := StrToMagFilter(TextureProperties.FdMagnificationFilter.Value);
-      end else
-      begin
-        MinFilter := Attributes.TextureMinFilter;
-        MagFilter := Attributes.TextureMagFilter;
-      end;
+      HandleTexturePropertiesCore(TextureNode.TextureProperties,
+        MinFilter, MagFilter, Anisotropy);
 
       TextureWrap[0] := TextureRepeatToGL[TextureNode.RepeatS];
       TextureWrap[1] := TextureRepeatToGL[TextureNode.RepeatT];
@@ -3574,6 +3632,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
           TextureNode,
           MinFilter,
           MagFilter,
+          Anisotropy,
           TextureWrap,
           Attributes.ColorModulatorByte,
           { This way, our AlphaChannelType is calculated (or taken from cache)
@@ -3660,6 +3719,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
           TextureVideoReference.Node,
           MinFilter,
           MagFilter,
+          Anisotropy,
           TextureWrap,
           Attributes.ColorModulatorByte,
           { This way, our AlphaChannelType is calculated (or taken from cache)
@@ -3699,8 +3759,8 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     end;
 
   var
-    TextureProperties: TNodeTextureProperties;
     MinFilter, MagFilter: TGLint;
+    Anisotropy: TGLfloat;
     TextureCubeMapReference: TTextureCubeMapReference;
     BackRot, FrontRot, LeftRot, RightRot: TImage;
   begin
@@ -3725,18 +3785,8 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
       Exit;
     end;
 
-    { calculate MinFilter, MagFilter }
-    if (CubeTexture.FdTextureProperties.Value <> nil) and
-       (CubeTexture.FdTextureProperties.Value is TNodeTextureProperties) then
-    begin
-      TextureProperties := TNodeTextureProperties(CubeTexture.FdTextureProperties.Value);
-      MinFilter := StrToMinFilter(TextureProperties.FdMinificationFilter.Value);
-      MagFilter := StrToMagFilter(TextureProperties.FdMagnificationFilter.Value);
-    end else
-    begin
-      MinFilter := Attributes.TextureMinFilter;
-      MagFilter := Attributes.TextureMagFilter;
-    end;
+    HandleTextureProperties(CubeTexture.FdTextureProperties.Value,
+      MinFilter, MagFilter, Anisotropy);
 
     try
       { To match expected orientation for OpenGL, we have to rotate images.
@@ -3751,7 +3801,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
       TextureCubeMapReference.Node := CubeTexture;
       TextureCubeMapReference.GLName := Cache.TextureCubeMap_IncReference(
         CubeTexture,
-        MinFilter, MagFilter,
+        MinFilter, MagFilter, Anisotropy,
         { positive x } RightRot,
         { negative x } LeftRot,
         { positive y } TVRMLTextureNode(CubeTexture.FdTop   .Value).TextureImage as TImage,
@@ -3773,8 +3823,8 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     CubeTexture must be non-nil. }
   procedure PrepareSingleImageCubeTexture(CubeTexture: TNodeImageCubeMapTexture);
   var
-    TextureProperties: TNodeTextureProperties;
     MinFilter, MagFilter: TGLint;
+    Anisotropy: TGLfloat;
     TextureCubeMapReference: TTextureCubeMapReference;
     DDS: TDDSImage;
   begin
@@ -3795,18 +3845,8 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
 
     try
 
-      { calculate MinFilter, MagFilter }
-      if (CubeTexture.FdTextureProperties.Value <> nil) and
-         (CubeTexture.FdTextureProperties.Value is TNodeTextureProperties) then
-      begin
-        TextureProperties := TNodeTextureProperties(CubeTexture.FdTextureProperties.Value);
-        MinFilter := StrToMinFilter(TextureProperties.FdMinificationFilter.Value);
-        MagFilter := StrToMagFilter(TextureProperties.FdMagnificationFilter.Value);
-      end else
-      begin
-        MinFilter := Attributes.TextureMinFilter;
-        MagFilter := Attributes.TextureMagFilter;
-      end;
+      HandleTextureProperties(CubeTexture.FdTextureProperties.Value,
+        MinFilter, MagFilter, Anisotropy);
 
       { TODO: this is a quick and dirty method:
         - We call LoadImage each time, while load calls should
@@ -3820,7 +3860,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
       TextureCubeMapReference.Node := CubeTexture;
       TextureCubeMapReference.GLName := Cache.TextureCubeMap_IncReference(
         CubeTexture,
-        MinFilter, MagFilter,
+        MinFilter, MagFilter, Anisotropy,
         DDS.CubeMapImage(dcsPositiveX) as TImage,
         DDS.CubeMapImage(dcsNegativeX) as TImage,
         { Swap meaning of positive/negative Y faces from DDS,
@@ -3837,8 +3877,8 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
 
   procedure PrepareSingleGeneratedCubeTexture(CubeTexture: TNodeGeneratedCubeMapTexture);
   var
-    TextureProperties: TNodeTextureProperties;
     MinFilter, MagFilter: TGLint;
+    Anisotropy: TGLfloat;
     TextureCubeMapReference: TTextureCubeMapReference;
     InitialImage: TImage;
     Size: Cardinal;
@@ -3854,18 +3894,10 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
       Exit;
     end;
 
-    { calculate MinFilter, MagFilter, NeedsMipmaps. }
-    if (CubeTexture.FdTextureProperties.Value <> nil) and
-       (CubeTexture.FdTextureProperties.Value is TNodeTextureProperties) then
-    begin
-      TextureProperties := TNodeTextureProperties(CubeTexture.FdTextureProperties.Value);
-      MinFilter := StrToMinFilter(TextureProperties.FdMinificationFilter.Value);
-      MagFilter := StrToMagFilter(TextureProperties.FdMagnificationFilter.Value);
-    end else
-    begin
-      MinFilter := Attributes.TextureMinFilter;
-      MagFilter := Attributes.TextureMagFilter;
-    end;
+    HandleTextureProperties(CubeTexture.FdTextureProperties.Value,
+      MinFilter, MagFilter, Anisotropy);
+
+    { calculate MinFilter, MagFilter, Anisotropy, NeedsMipmaps }
     NeedsMipmaps := TextureMinFilterNeedsMipmaps(MinFilter);
     if NeedsMipmaps and not HasGenerateMipmap then
     begin
@@ -3903,7 +3935,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
       TextureCubeMapReference.Node := CubeTexture;
       TextureCubeMapReference.GLName := Cache.TextureCubeMap_IncReference(
         CubeTexture,
-        MinFilter, MagFilter,
+        MinFilter, MagFilter, Anisotropy,
         InitialImage, InitialImage,
         InitialImage, InitialImage,
         InitialImage, InitialImage,
@@ -3916,8 +3948,8 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     Texture must be non-nil. }
   procedure PrepareSingleTexture3D(Texture: TNodeX3DTexture3DNode);
   var
-    TextureProperties: TNodeTextureProperties;
     MinFilter, MagFilter: TGLint;
+    Anisotropy: TGLfloat;
     TextureReference: TTexture3DReference;
     DDS: TDDSImage;
     Image: TEncodedImage;
@@ -3940,18 +3972,8 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
 
     try
 
-      { calculate MinFilter, MagFilter }
-      if (Texture.FdTextureProperties.Value <> nil) and
-         (Texture.FdTextureProperties.Value is TNodeTextureProperties) then
-      begin
-        TextureProperties := TNodeTextureProperties(Texture.FdTextureProperties.Value);
-        MinFilter := StrToMinFilter(TextureProperties.FdMinificationFilter.Value);
-        MagFilter := StrToMagFilter(TextureProperties.FdMagnificationFilter.Value);
-      end else
-      begin
-        MinFilter := Attributes.TextureMinFilter;
-        MagFilter := Attributes.TextureMagFilter;
-      end;
+      HandleTextureProperties(Texture.FdTextureProperties.Value,
+        MinFilter, MagFilter, Anisotropy);
 
       { calculate TextureWrap }
       TextureWrap[0] := TextureRepeatToGL[Texture.FdRepeatS.Value];
@@ -3971,7 +3993,8 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
 
       TextureReference.Node := Texture;
       TextureReference.GLName := Cache.Texture3D_IncReference(
-        Texture, MinFilter, MagFilter, TextureWrap, Image as TImage,
+        Texture, MinFilter, MagFilter, Anisotropy,
+        TextureWrap, Image as TImage,
         TextureReference.AlphaChannelType);
       Texture3DReferences.AppendItem(TextureReference);
 

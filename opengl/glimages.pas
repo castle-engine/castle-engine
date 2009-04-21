@@ -484,6 +484,7 @@ type
       so be careful with large videos anyway.) }
     constructor Create(Video: TVideo;
       MinFilter, MagFilter: TGLenum;
+      const Anisotropy: TGLfloat;
       const Wrap: TTextureWrap2D;
       ColorModulatorByte: TColorModulatorByteFunc = nil);
 
@@ -557,6 +558,14 @@ function HasGenerateMipmap: boolean;
   Raises exception if not available (always check HasGenerateMipmap
   first to avoid this). }
 procedure GenerateMipmap(target: GLenum);
+
+{ Call glTexParameterf to set GL_TEXTURE_MAX_ANISOTROPY_EXT on given texture
+  target.
+
+  Takes care to check for appropriate OpenGL extension (if not present,
+  does nothing), and to query OpenGL limit for Anisotropy (eventually
+  clamping provided Anisotropy down). }
+procedure TexParameterMaxAnisotropy(const target: GLenum; const Anisotropy: TGLfloat);
 
 implementation
 
@@ -872,7 +881,7 @@ begin
     (
       IsPowerOf2(Size) and
       (Size > 0) and
-      (Integer(Size) <= GLMaxCubeMapTextureSizeARB)
+      (Size <= GLMaxCubeMapTextureSizeARB)
     );
 end;
 
@@ -884,7 +893,7 @@ begin
       (r.Width = r.Height) { must be square } and
       IsPowerOf2(r.Width) and
       (r.Width > 0) and
-      (Integer(r.Width) <= GLMaxCubeMapTextureSizeARB)
+      (r.Width <= GLMaxCubeMapTextureSizeARB)
     );
 end;
 
@@ -948,7 +957,7 @@ begin
     (
       IsPowerOf2(Size) and
       (Size > 0) and
-      (Integer(Size) <= GLMax3DTextureSizeEXT)
+      (Size <= GLMax3DTextureSizeEXT)
     );
 end;
 
@@ -1187,6 +1196,7 @@ end;
 
 constructor TGLVideo.Create(Video: TVideo;
   MinFilter, MagFilter: TGLenum;
+  const Anisotropy: TGLfloat;
   const Wrap: TTextureWrap2D;
   ColorModulatorByte: TColorModulatorByteFunc = nil);
 var
@@ -1200,8 +1210,11 @@ begin
 
   SetLength(FItems, Count);
   for I := 0 to High(FItems) do
+  begin
     FItems[I] := LoadGLTextureModulated(Video.Items[I],
       MinFilter, MagFilter, Wrap, ColorModulatorByte);
+    TexParameterMaxAnisotropy(GL_TEXTURE_2D, Anisotropy);
+  end;
 
   FTimeLoop := Video.TimeLoop;
   FTimeBackwards := Video.TimeBackwards;
@@ -1420,6 +1433,15 @@ begin
     glPopAttrib;
   end else
     raise Exception.Create('EXT_framebuffer_object not supported, glGenerateMipmapEXT not available');
+end;
+
+{ Anisotropy ----------------------------------------------------------------- }
+
+procedure TexParameterMaxAnisotropy(const target: GLenum; const Anisotropy: TGLfloat);
+begin
+  if GL_EXT_texture_filter_anisotropic then
+    glTexParameterf(Target, GL_TEXTURE_MAX_ANISOTROPY_EXT,
+      Min(GLMaxTextureMaxAnisotropyEXT, Anisotropy));
 end;
 
 end.
