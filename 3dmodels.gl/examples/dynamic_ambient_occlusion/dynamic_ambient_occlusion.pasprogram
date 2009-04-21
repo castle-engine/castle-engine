@@ -589,6 +589,7 @@ procedure Draw(Glwin: TGLWindow);
 
           glActiveTextureARB(GL_TEXTURE2);
           glBindTexture(GL_TEXTURE_2D, GLElementsIntensityTex);
+          glReadBuffer(GL_BACK);
           glCopyTexImage2D(GL_TEXTURE_2D, 0,
             { TODO: Instead of GL_RGB, one component would be enough, as we
               want only intensity. This waits for analogous fix

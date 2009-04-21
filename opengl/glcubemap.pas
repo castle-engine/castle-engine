@@ -378,6 +378,7 @@ procedure GLCaptureCubeMapTexture(
     glMatrixMode(GL_MODELVIEW);
 
     glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, Tex);
+    glReadBuffer(GL_BACK);
     glCopyTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB + Ord(Side), 0,
       GL_RGB, 0, 0, Size, Size, 0);
   end;
