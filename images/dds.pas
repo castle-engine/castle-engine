@@ -225,16 +225,29 @@ const
   DDSCAPS2_CUBEMAP_NEGATIVEZ  = $00008000;
   DDSCAPS2_VOLUME             = $00200000;
 
+  { Special FourCC constants, indicating float textures,
+    from OGRE OgreDDSCodec.cpp. }
+  D3DFMT_R16F            = 111;
+  D3DFMT_G16R16F         = 112;
+  D3DFMT_A16B16G16R16F   = 113;
+  D3DFMT_R32F            = 114;
+  D3DFMT_G32R32F         = 115;
+  D3DFMT_A32B32G32R32F   = 116;
+
 type
   TDDSPixelFormat = packed record
     Size: LongWord;
     Flags: LongWord;
-    FourCC: array [0 .. 3] of char;
-    RGBBitCount: LongWord;
-    RBitMask: LongWord;
-    GBitMask: LongWord;
-    BBitMask: LongWord;
-    ABitMask: LongWord;
+    case Integer of
+      0: ( FourCC: array [0 .. 3] of char;
+           RGBBitCount: LongWord;
+           RBitMask: LongWord;
+           GBitMask: LongWord;
+           BBitMask: LongWord;
+           ABitMask: LongWord; );
+      1: ( { Alternative FourCC view, as LongWord }
+           FourCCLW: LongWord; )
+
   end;
   PDDSPixelFormat = ^TDDSPixelFormat;
 
@@ -994,6 +1007,13 @@ var
             ReadCompressed(s3tcDxt3) else
           if Header.PixelFormat.FourCC = 'DXT5' then
             ReadCompressed(s3tcDxt5) else
+          if (Header.PixelFormat.FourCCLW = D3DFMT_R16F) or
+             (Header.PixelFormat.FourCCLW = D3DFMT_G16R16F) or
+             (Header.PixelFormat.FourCCLW = D3DFMT_A16B16G16R16F) or
+             (Header.PixelFormat.FourCCLW = D3DFMT_R32F) or
+             (Header.PixelFormat.FourCCLW = D3DFMT_G32R32F) or
+             (Header.PixelFormat.FourCCLW = D3DFMT_A32B32G32R32F) then
+            raise EInvalidDDS.Create('Unsupported texture compression for DDS: FourCC indicates float texture, not supported yet') else
             raise EInvalidDDS.CreateFmt('Unsupported texture compression for DDS: FourCC is "%s%s%s%s"',
               [ SReadableForm(Header.PixelFormat.FourCC[0]),
                 SReadableForm(Header.PixelFormat.FourCC[1]),
