@@ -809,20 +809,16 @@ begin
 end;
 
 function IsTextureSized(const r: TEncodedImage): boolean;
-var
-  MaxTexSize: Cardinal;
 begin
-  maxTexSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
-
   if TextureNonPowerOfTwo then
     Result :=
-      (r.Width <= maxTexSize) and
-      (r.Height <= maxTexSize) else
+      (r.Width <= GLMaxTextureSize) and
+      (r.Height <= GLMaxTextureSize) else
     Result :=
       IsPowerOf2(r.Width) and
       IsPowerOf2(r.Height) and
-      (r.Width <= maxTexSize) and
-      (r.Height <= maxTexSize);
+      (r.Width <= GLMaxTextureSize) and
+      (r.Height <= GLMaxTextureSize);
 end;
 
 procedure ResizeForTextureSize(var r: TImage);
@@ -838,19 +834,17 @@ begin
 end;
 
 function ResizeToTextureSize(const r: TImage): TImage;
-var
-  maxTexSize: Cardinal;
 
   function BestTexSize(size: Cardinal): Cardinal;
   begin
-    if size > maxTexSize then
-      result := maxTexSize else
+    if size > GLMaxTextureSize then
+      result := GLMaxTextureSize else
     begin
       if TextureNonPowerOfTwo or IsPowerOf2(size) then
         result := size else
         result := 1 shl (Biggest2Exponent(size)+1);
-        {result jakie otrzymamy w ostatnim przypisaniu jest na pewno < maxTexSize bo
-         skoro size <= maxTexSize i not IsPowerOf2(size) to size < maxTexSize a maxTexSize
+        {result jakie otrzymamy w ostatnim przypisaniu jest na pewno < GLMaxTextureSize bo
+         skoro size <= GLMaxTextureSize i not IsPowerOf2(size) to size < GLMaxTextureSize a GLMaxTextureSize
          samo jest potega dwojki. }
      end;
   end;
@@ -865,7 +859,6 @@ begin
     WritelnLog('Textures', Format('Resizing 2D texture from %dx%d to %dx%d to satisfy OpenGL',
       [R.Width, R.Height, NewWidth, NewHeight]));
 
-  maxTexSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
   result := r.MakeResized(NewWidth, NewHeight);
 end;
 
@@ -879,7 +872,7 @@ begin
     (
       IsPowerOf2(Size) and
       (Size > 0) and
-      (Integer(Size) <= glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB))
+      (Integer(Size) <= GLMaxCubeMapTextureSizeARB)
     );
 end;
 
@@ -891,7 +884,7 @@ begin
       (r.Width = r.Height) { must be square } and
       IsPowerOf2(r.Width) and
       (r.Width > 0) and
-      (Integer(r.Width) <= glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB))
+      (Integer(r.Width) <= GLMaxCubeMapTextureSizeARB)
     );
 end;
 
@@ -910,17 +903,14 @@ begin
 end;
 
 function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal;
-var
-  MaxTexSize: Cardinal;
 begin
   Result := Size;
   if GL_ARB_texture_cube_map then
   begin
-    MaxTexSize := glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB);
     if Size <= 0 then
       Result := 1 else
-    if Size > MaxTexSize then
-      Result := MaxTexSize else
+    if Size > GLMaxCubeMapTextureSizeARB then
+      Result := GLMaxCubeMapTextureSizeARB else
     if IsPowerOf2(Size) then
       Result := Size else
       { Result jakie otrzymamy below jest na pewno < MaxTexSize bo
@@ -958,21 +948,18 @@ begin
     (
       IsPowerOf2(Size) and
       (Size > 0) and
-      (Integer(Size) <= glGetInteger(GL_MAX_3D_TEXTURE_SIZE_EXT))
+      (Integer(Size) <= GLMax3DTextureSizeEXT)
     );
 end;
 
 function IsTexture3DSized(const R: TImage): boolean;
-var
-  MaxSize: Cardinal;
 begin
   if GL_EXT_texture3D then
   begin
-    MaxSize := Cardinal(glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB));
     Result :=
-      IsPowerOf2(R.Width ) and (R.Width  > 0) and (R.Width  <= MaxSize) and
-      IsPowerOf2(R.Height) and (R.Height > 0) and (R.Height <= MaxSize) and
-      IsPowerOf2(R.Depth ) and (R.Depth  > 0) and (R.Depth  <= MaxSize);
+      IsPowerOf2(R.Width ) and (R.Width  > 0) and (R.Width  <= GLMax3DTextureSizeEXT) and
+      IsPowerOf2(R.Height) and (R.Height > 0) and (R.Height <= GLMax3DTextureSizeEXT) and
+      IsPowerOf2(R.Depth ) and (R.Depth  > 0) and (R.Depth  <= GLMax3DTextureSizeEXT);
   end else
     Result := true;
 end;
@@ -1393,7 +1380,7 @@ var
   begin
     if not IsTexture3DSized(Image) then
       raise Exception.CreateFmt('Image is not properly sized for a 3D texture, sizes must be a power-of-two and <= GL_MAX_3D_TEXTURE_SIZE_EXT (%d). Sizes are: %d x %d x %d',
-        [ glGetInteger(GL_MAX_3D_TEXTURE_SIZE_EXT),
+        [ GLMax3DTextureSizeEXT,
           Image.Width, Image.Height, Image.Depth ]);
 
     Core(Image);

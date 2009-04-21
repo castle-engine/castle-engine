@@ -3888,7 +3888,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
         so it's "ignorable" warning. },
         Format('Cube map texture size %d is incorrect (cube map texture size must be a power of two, > 0 and <= GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB = %d), corrected to %d',
           [ CubeTexture.FdSize.Value,
-            glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB),
+            GLMaxCubeMapTextureSizeARB,
             Size]));
     end;
     TextureCubeMapReference.GeneratedSize := Size;
@@ -4274,7 +4274,7 @@ begin
     begin
       { actually get this from OpenGL }
       if GL_ARB_multitexture then
-        FLastGLFreeTexture := glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) - 1 else
+        FLastGLFreeTexture := GLMaxTextureUnitsARB - 1 else
         FLastGLFreeTexture := 0;
     end else
       FLastGLFreeTexture := Attributes.LastGLFreeTexture;
@@ -4311,7 +4311,7 @@ begin
         of the cases it's very comfortable being able to pass -1 for this. }
 
     if GL_ARB_multitexture then
-      ALastGLFreeTexture := glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) - 1 else
+      ALastGLFreeTexture := GLMaxTextureUnitsARB - 1 else
       ALastGLFreeTexture := 0;
   end;
 

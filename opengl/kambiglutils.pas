@@ -298,6 +298,18 @@ var
     {$ifdef OPENGL_STDCALL} stdcall; {$endif}
 {$endif}
 
+var
+  { Constant (for given context) OpenGL limits.
+    Initialized once by LoadAllExtensions, this is usually most comfortable.
+    Initialized to 0 if appropriate OpenGL extension is not available.
+    @groupBegin }
+  GLMaxTextureSize: Cardinal;
+  GLMaxTextureUnitsARB: Cardinal;
+  GLMaxCubeMapTextureSizeARB: Cardinal;
+  GLMax3DTextureSizeEXT: Cardinal;
+  GLMaxTextureMaxAnisotropyEXT: Single;
+  { @groupEnd }
+
 { Initialize all extensions and OpenGL versions.
 
   Calls all Load_GLXxx routines from glext unit, so tries to init
@@ -1269,6 +1281,24 @@ begin
  GL_ARB_texture_non_power_of_two := Load_GL_ARB_texture_non_power_of_two;
  GL_ARB_vertex_buffer_object := Load_GL_ARB_vertex_buffer_object;
  GL_EXT_framebuffer_object := Load_GL_EXT_framebuffer_object;
+
+ GLMaxTextureSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
+
+ if GL_ARB_multitexture then
+   GLMaxTextureUnitsARB := glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) else
+   GLMaxTextureUnitsARB := 0;
+
+ if GL_ARB_texture_cube_map then
+   GLMaxCubeMapTextureSizeARB := glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB) else
+   GLMaxCubeMapTextureSizeARB := 0;
+
+ if GL_EXT_texture3D then
+   GLMax3DTextureSizeEXT := glGetInteger(GL_MAX_3D_TEXTURE_SIZE_EXT) else
+   GLMax3DTextureSizeEXT := 0;
+
+ if GL_EXT_texture_filter_anisotropic then
+   GLMaxTextureMaxAnisotropyEXT := glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT) else
+   GLMaxTextureMaxAnisotropyEXT := 0.0;
 end;
 {$endif}
 
@@ -2304,22 +2334,29 @@ function GLCapsString: string;
   function GetMaxTextureUnits: string;
   begin
     if GL_ARB_multitexture then
-      Result := GetInteger(GL_MAX_TEXTURE_UNITS_ARB) else
+      Result := IntToStr(GLMaxTextureUnitsARB) else
       Result := 'ARB_multitexture not available';
   end;
 
   function GetMaxCubeMapTextureSize: string;
   begin
     if GL_ARB_texture_cube_map then
-      Result := GetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB) else
+      Result := IntToStr(GLMaxCubeMapTextureSizeARB) else
       Result := 'ARB_texture_cube_map not available';
   end;
 
   function GetMaxTexture3DSize: string;
   begin
     if GL_EXT_texture3D then
-      Result := GetInteger(GL_MAX_3D_TEXTURE_SIZE_EXT) else
+      Result := IntToStr(GLMax3DTextureSizeEXT) else
       Result := 'EXT_texture3D not available';
+  end;
+
+  function GetMaxTextureMaxAnisotropy: string;
+  begin
+    if GL_EXT_texture_filter_anisotropic then
+      Result := FloatToStr(GLMaxTextureMaxAnisotropyEXT) else
+      Result := 'EXT_texture_filter_anisotropic not available';
   end;
 
   function GetSampleBuffers: string;
@@ -2405,11 +2442,12 @@ begin
   'GL_MAX_LIGHTS : ' +GetInteger(GL_MAX_LIGHTS) +nl+
   'GL_MAX_LIST_NESTING : ' +GetInteger(GL_MAX_LIST_NESTING) +nl+
   'GL_MAX_PIXEL_MAP_TABLE : ' +GetInteger(GL_MAX_PIXEL_MAP_TABLE) +nl+
-  'GL_MAX_TEXTURE_SIZE : ' +GetInteger(GL_MAX_TEXTURE_SIZE) +nl+
+  'GL_MAX_TEXTURE_SIZE : ' + IntToStr(GLMaxTextureSize) +nl+
   'GL_MAX_VIEWPORT_DIMS : ' +GetInteger2(GL_MAX_VIEWPORT_DIMS, 'width %d / height %d') +nl+
   'GL_MAX_TEXTURE_UNITS_ARB : ' + GetMaxTextureUnits +nl+
   'GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB : ' + GetMaxCubeMapTextureSize +nl+
-  'GL_MAX_3D_TEXTURE_SIZE_EXT : ' + GetMaxTexture3DSize;
+  'GL_MAX_3D_TEXTURE_SIZE_EXT : ' + GetMaxTexture3DSize +nl+
+  'GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT : ' + GetMaxTextureMaxAnisotropy;
 
  CheckGLErrors;
 end;
