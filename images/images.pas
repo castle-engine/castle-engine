@@ -2231,10 +2231,6 @@ begin
   end;
 end;
 
-procedure TS3TCImage.FlipVertical;
-var
-  BlockSize, WidthInBlocks: PtrUInt;
-
 type
   TRGBBlock = packed record
     Color0, Color1: Word;
@@ -2242,21 +2238,44 @@ type
   end;
   PRGBBlock = ^TRGBBlock;
 
-  procedure Flip4WithinRow(Row: PtrUInt);
+  TS3TCFlipRGBBlockProcedure = procedure (var Block: TRGBBlock);
 
-    procedure Flip4WithinBlock(Block: PtrUInt);
-    var
-      Tmp: Byte;
-    begin
-      Tmp := PRGBBlock(Block)^.Row0;
-      PRGBBlock(Block)^.Row0 := PRGBBlock(Block)^.Row3;
-      PRGBBlock(Block)^.Row3 := Tmp;
+  procedure S3TC_Flip4Block(var Block: TRGBBlock);
+  var
+    Tmp: Byte;
+  begin
+    Tmp := Block.Row0;
+    Block.Row0 := Block.Row3;
+    Block.Row3 := Tmp;
 
-      Tmp := PRGBBlock(Block)^.Row1;
-      PRGBBlock(Block)^.Row1 := PRGBBlock(Block)^.Row2;
-      PRGBBlock(Block)^.Row2 := Tmp;
-    end;
+    Tmp := Block.Row1;
+    Block.Row1 := Block.Row2;
+    Block.Row2 := Tmp;
+  end;
 
+  procedure S3TC_Flip3Block(var Block: TRGBBlock);
+  var
+    Tmp: Byte;
+  begin
+    Tmp := Block.Row0;
+    Block.Row0 := Block.Row2;
+    Block.Row2 := Tmp;
+  end;
+
+  procedure S3TC_Flip2Block(var Block: TRGBBlock);
+  var
+    Tmp: Byte;
+  begin
+    Tmp := Block.Row0;
+    Block.Row0 := Block.Row1;
+    Block.Row1 := Tmp;
+  end;
+
+procedure TS3TCImage.FlipVertical;
+var
+  BlockSize, WidthInBlocks: PtrUInt;
+
+  procedure FlipRow(Row: PtrUInt; FlipBlock: TS3TCFlipRGBBlockProcedure);
   var
     X: PtrUInt;
   begin
@@ -2266,57 +2285,7 @@ type
 
     for X := 1 to WidthInBlocks do
     begin
-      Flip4WithinBlock(Row);
-      Row += BlockSize;
-    end;
-  end;
-
-  procedure Flip3WithinRow(Row: PtrUInt);
-
-    procedure Flip3WithinBlock(Block: PtrUInt);
-    var
-      Tmp: Byte;
-    begin
-      Tmp := PRGBBlock(Block)^.Row0;
-      PRGBBlock(Block)^.Row0 := PRGBBlock(Block)^.Row2;
-      PRGBBlock(Block)^.Row2 := Tmp;
-    end;
-
-  var
-    X: Integer;
-  begin
-    { Omit alpha channel info for now }
-    if BlockSize = 16 then
-      Row += 8;
-
-    for X := 1 to WidthInBlocks do
-    begin
-      Flip3WithinBlock(Row);
-      Row += BlockSize;
-    end;
-  end;
-
-  procedure Flip2WithinRow(Row: PtrUInt);
-
-    procedure Flip2WithinBlock(Block: PtrUInt);
-    var
-      Tmp: Byte;
-    begin
-      Tmp := PRGBBlock(Block)^.Row0;
-      PRGBBlock(Block)^.Row0 := PRGBBlock(Block)^.Row1;
-      PRGBBlock(Block)^.Row1 := Tmp;
-    end;
-
-  var
-    X: Integer;
-  begin
-    { Omit alpha channel info for now }
-    if BlockSize = 16 then
-      Row += 8;
-
-    for X := 1 to WidthInBlocks do
-    begin
-      Flip2WithinBlock(Row);
+      FlipBlock(PRGBBlock(Row)^);
       Row += BlockSize;
     end;
   end;
@@ -2341,11 +2310,13 @@ begin
 
     while LowerRow < UpperRow do
     begin
-      Flip4WithinRow(LowerRow);
+      FlipRow(LowerRow, @S3TC_Flip4Block);
+
       Move(Pointer(UpperRow)^, TempRow^, RowSize);
       Move(Pointer(LowerRow)^, Pointer(UpperRow)^, RowSize);
       Move(TempRow^, Pointer(LowerRow)^, RowSize);
-      Flip4WithinRow(LowerRow);
+
+      FlipRow(LowerRow, @S3TC_Flip4Block);
       LowerRow += RowSize;
       UpperRow -= RowSize;
     end;
@@ -2354,11 +2325,11 @@ begin
   end else
   if Height = 3 then
   begin
-    Flip3WithinRow(PtrUInt(RawPixels));
+    FlipRow(PtrUInt(RawPixels), @S3TC_Flip3Block);
   end else
   if Height = 2 then
   begin
-    Flip2WithinRow(PtrUInt(RawPixels));
+    FlipRow(PtrUInt(RawPixels), @S3TC_Flip2Block);
   end else
   if Height = 1 then
   begin
