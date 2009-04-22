@@ -2238,65 +2238,181 @@ type
   end;
   PRGBBlock = ^TRGBBlock;
 
-  TS3TCFlipRGBBlockProcedure = procedure (var Block: TRGBBlock);
+  TS3TCFlipBlockProcedure = procedure (var Block: PtrUInt);
 
-  procedure S3TC_Flip4Block(var Block: TRGBBlock);
+  procedure DXT1_Flip4Block(var Block: PtrUInt);
   var
     Tmp: Byte;
   begin
-    Tmp := Block.Row0;
-    Block.Row0 := Block.Row3;
-    Block.Row3 := Tmp;
+    Tmp := PRGBBlock(Block)^.Row0;
+    PRGBBlock(Block)^.Row0 := PRGBBlock(Block)^.Row3;
+    PRGBBlock(Block)^.Row3 := Tmp;
 
-    Tmp := Block.Row1;
-    Block.Row1 := Block.Row2;
-    Block.Row2 := Tmp;
+    Tmp := PRGBBlock(Block)^.Row1;
+    PRGBBlock(Block)^.Row1 := PRGBBlock(Block)^.Row2;
+    PRGBBlock(Block)^.Row2 := Tmp;
+
+    Block += SizeOf(TRGBBlock);
   end;
 
-  procedure S3TC_Flip3Block(var Block: TRGBBlock);
+  procedure DXT1_Flip3Block(var Block: PtrUInt);
   var
     Tmp: Byte;
   begin
-    Tmp := Block.Row0;
-    Block.Row0 := Block.Row2;
-    Block.Row2 := Tmp;
+    Tmp := PRGBBlock(Block)^.Row0;
+    PRGBBlock(Block)^.Row0 := PRGBBlock(Block)^.Row2;
+    PRGBBlock(Block)^.Row2 := Tmp;
+
+    Block += SizeOf(TRGBBlock);
   end;
 
-  procedure S3TC_Flip2Block(var Block: TRGBBlock);
+  procedure DXT1_Flip2Block(var Block: PtrUInt);
   var
     Tmp: Byte;
   begin
-    Tmp := Block.Row0;
-    Block.Row0 := Block.Row1;
-    Block.Row1 := Tmp;
+    Tmp := PRGBBlock(Block)^.Row0;
+    PRGBBlock(Block)^.Row0 := PRGBBlock(Block)^.Row1;
+    PRGBBlock(Block)^.Row1 := Tmp;
+
+    Block += SizeOf(TRGBBlock);
+  end;
+
+type
+  TAlphaDXT23Block = packed record
+    Row0, Row1, Row2, Row3: Word;
+  end;
+  PAlphaDXT23Block = ^TAlphaDXT23Block;
+
+  procedure DXT23_Flip4Block(var Block: PtrUInt);
+  var
+    Tmp: Word;
+  begin
+    Tmp := PAlphaDXT23Block(Block)^.Row0;
+    PAlphaDXT23Block(Block)^.Row0 := PAlphaDXT23Block(Block)^.Row3;
+    PAlphaDXT23Block(Block)^.Row3 := Tmp;
+
+    Tmp := PAlphaDXT23Block(Block)^.Row1;
+    PAlphaDXT23Block(Block)^.Row1 := PAlphaDXT23Block(Block)^.Row2;
+    PAlphaDXT23Block(Block)^.Row2 := Tmp;
+
+    Block += SizeOf(TAlphaDXT23Block);
+    DXT1_Flip4Block(Block);
+  end;
+
+  procedure DXT23_Flip3Block(var Block: PtrUInt);
+  var
+    Tmp: Word;
+  begin
+    Tmp := PAlphaDXT23Block(Block)^.Row0;
+    PAlphaDXT23Block(Block)^.Row0 := PAlphaDXT23Block(Block)^.Row2;
+    PAlphaDXT23Block(Block)^.Row2 := Tmp;
+
+    Block += SizeOf(TAlphaDXT23Block);
+    DXT1_Flip4Block(Block);
+  end;
+
+  procedure DXT23_Flip2Block(var Block: PtrUInt);
+  var
+    Tmp: Word;
+  begin
+    Tmp := PAlphaDXT23Block(Block)^.Row0;
+    PAlphaDXT23Block(Block)^.Row0 := PAlphaDXT23Block(Block)^.Row1;
+    PAlphaDXT23Block(Block)^.Row1 := Tmp;
+
+    Block += SizeOf(TAlphaDXT23Block);
+    DXT1_Flip4Block(Block);
+  end;
+
+type
+  TAlphaDXT45Block = packed record
+    Alpha0, Alpha1: Byte;
+    { 3 bits per pixel -> we cannot divide this easily into separate bytes }
+    EncRow0, EncRow1, EncRow2, EncRow3, EncRow4, EncRow5: Byte;
+  end;
+  PAlphaDXT45Block = ^TAlphaDXT45Block;
+
+  procedure DXT45_Flip4Block(var Block: PtrUInt);
+{  var
+    Tmp: Byte;}
+  begin
+{    Tmp := PAlphaDXT23Block(Block)^.Row0;
+    PAlphaDXT23Block(Block)^.Row0 := PAlphaDXT23Block(Block)^.Row3;
+    PAlphaDXT23Block(Block)^.Row3 := Tmp;
+
+    Tmp := PAlphaDXT23Block(Block)^.Row1;
+    PAlphaDXT23Block(Block)^.Row1 := PAlphaDXT23Block(Block)^.Row2;
+    PAlphaDXT23Block(Block)^.Row2 := Tmp;}
+
+    Block += SizeOf(TAlphaDXT45Block);
+    DXT1_Flip4Block(Block);
+  end;
+
+  procedure DXT45_Flip3Block(var Block: PtrUInt);
+{  var
+    Tmp: Byte;}
+  begin
+{    Tmp := PAlphaDXT23Block(Block)^.Row0;
+    PAlphaDXT23Block(Block)^.Row0 := PAlphaDXT23Block(Block)^.Row2;
+    PAlphaDXT23Block(Block)^.Row2 := Tmp;}
+
+    Block += SizeOf(TAlphaDXT45Block);
+    DXT1_Flip4Block(Block);
+  end;
+
+  procedure DXT45_Flip2Block(var Block: PtrUInt);
+{  var
+    Tmp: Byte;}
+  begin
+{    Tmp := PAlphaDXT23Block(Block)^.Row0;
+    PAlphaDXT23Block(Block)^.Row0 := PAlphaDXT23Block(Block)^.Row1;
+    PAlphaDXT23Block(Block)^.Row1 := Tmp;}
+
+    Block += SizeOf(TAlphaDXT45Block);
+    DXT1_Flip4Block(Block);
   end;
 
 procedure TS3TCImage.FlipVertical;
 var
-  BlockSize, WidthInBlocks: PtrUInt;
+  WidthInBlocks: PtrUInt;
 
-  procedure FlipRow(Row: PtrUInt; FlipBlock: TS3TCFlipRGBBlockProcedure);
+  procedure FlipRow(Row: PtrUInt; FlipBlock: TS3TCFlipBlockProcedure);
   var
     X: PtrUInt;
   begin
-    { Omit alpha channel info for now }
-    if BlockSize = 16 then
-      Row += 8;
-
     for X := 1 to WidthInBlocks do
-    begin
-      FlipBlock(PRGBBlock(Row)^);
-      Row += BlockSize;
-    end;
+      FlipBlock(Row);
+      { FlipBlock will advance Row pointer by itself }
   end;
 
 var
   TempRow: Pointer;
-  RowSize, LowerRow, UpperRow: PtrUInt;
+  RowSize, BlockSize, LowerRow, UpperRow: PtrUInt;
+  FlipBlock: array [2..4] of TS3TCFlipBlockProcedure;
 begin
-  if Compression in [s3tcDxt1_RGB, s3tcDxt1_RGBA] then
-    BlockSize := 8 else
-    BlockSize := 16;
+  case Compression of
+    s3tcDxt1_RGB, s3tcDxt1_RGBA:
+      begin
+        BlockSize := 8;
+        FlipBlock[2] := @DXT1_Flip2Block;
+        FlipBlock[3] := @DXT1_Flip3Block;
+        FlipBlock[4] := @DXT1_Flip4Block;
+      end;
+    s3tcDxt3:
+      begin
+        BlockSize := 16;
+        FlipBlock[2] := @DXT23_Flip2Block;
+        FlipBlock[3] := @DXT23_Flip3Block;
+        FlipBlock[4] := @DXT23_Flip4Block;
+      end;
+    s3tcDxt5:
+      begin
+        BlockSize := 16;
+        FlipBlock[2] := @DXT45_Flip2Block;
+        FlipBlock[3] := @DXT45_Flip3Block;
+        FlipBlock[4] := @DXT45_Flip4Block;
+      end;
+  end;
+
   WidthInBlocks := DivRoundUp(Width, 4);
 
   if Height mod 4 = 0 then
@@ -2310,13 +2426,13 @@ begin
 
     while LowerRow < UpperRow do
     begin
-      FlipRow(LowerRow, @S3TC_Flip4Block);
+      FlipRow(LowerRow, FlipBlock[4]);
 
       Move(Pointer(UpperRow)^, TempRow^, RowSize);
       Move(Pointer(LowerRow)^, Pointer(UpperRow)^, RowSize);
       Move(TempRow^, Pointer(LowerRow)^, RowSize);
 
-      FlipRow(LowerRow, @S3TC_Flip4Block);
+      FlipRow(LowerRow, FlipBlock[4]);
       LowerRow += RowSize;
       UpperRow -= RowSize;
     end;
@@ -2325,11 +2441,11 @@ begin
   end else
   if Height = 3 then
   begin
-    FlipRow(PtrUInt(RawPixels), @S3TC_Flip3Block);
+    FlipRow(PtrUInt(RawPixels), FlipBlock[3]);
   end else
   if Height = 2 then
   begin
-    FlipRow(PtrUInt(RawPixels), @S3TC_Flip2Block);
+    FlipRow(PtrUInt(RawPixels), FlipBlock[2]);
   end else
   if Height = 1 then
   begin
