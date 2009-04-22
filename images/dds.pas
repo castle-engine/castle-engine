@@ -968,7 +968,14 @@ var
 
         Stream.ReadBuffer(Res.RawPixels^, Res.Size);
 
-        Res.FlipVertical;
+        try
+          Res.FlipVertical;
+        except
+          { Change ECannotFlipS3TCImage into DataWarning,
+            image will be inverted but otherwise Ok. }
+          on E: ECannotFlipS3TCImage do
+            DataWarning(E.Message);
+        end;
       end;
 
     begin
