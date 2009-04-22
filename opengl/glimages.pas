@@ -1119,7 +1119,8 @@ var
       raise Exception.Create('Cannot load S3TC compressed textures: OpenGL doesn''t support one (or both) of ARB_texture_compression and EXT_texture_compression_s3tc extensions');
 
     if not IsTextureSized(Image) then
-      raise Exception.Create('Cannot load S3TC compressed textures: texture doesn''t have correct size, and we cannot resize on CPU compressed textures');
+      raise Exception.CreateFmt('Cannot load S3TC compressed textures: texture size is %d x %d, it''s not correct for OpenGL, and we cannot resize on CPU compressed textures',
+        [Image.Width, Image.Height]);
 
     { Pixel packing parameters (stuff changed by Before/AfterUnpackImage)
       doesn't affect loading compressed textures, as far as I understand.
