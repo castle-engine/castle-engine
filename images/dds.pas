@@ -952,8 +952,6 @@ var
       begin
         Result := TS3TCImage.Create(Width, Height, Depth, Compression);
 
-        { TODO: we don't invert rows when reading compressed DDS }
-
         if (Header.Flags and DDSD_LINEARSIZE <> 0) and
            { It seems there are textures with DDSD_LINEARSIZE set but
              PitchOrLinearSize still 0, so I guess I should ignore
@@ -1285,7 +1283,7 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
 
     procedure WriteCompressedImage(Image: TS3TCImage);
     begin
-      { TODO: we can't invert rows when saving compressed to DDS? }
+      { TODO: invert rows (to temp image) when saving compressed to DDS }
       Stream.WriteBuffer(Image.RawPixels^, Image.Size);
     end;
 
