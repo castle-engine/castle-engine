@@ -57,7 +57,7 @@ var
 begin
   Anim := TVRMLGLAnimation.Create;
   try
-    Anim.LoadFromFile('../../../kambi_vrml_test_suite/vrml_2/waves/waves.kanim');
+    Anim.LoadFromFile('../../../kambi_vrml_test_suite/x3d/water_reflections/water.kanim');
     Vrml := Anim.Scenes[0].RootNode.DeepCopy;
     try
       Interp := TNodeCoordinateInterpolator.Create('Interp', '');
@@ -73,7 +73,7 @@ begin
         Interp.FdKey.Items.AppendItem(I / (Anim.ScenesCount - 1));
       end;
 
-      SaveFile(Vrml, '../../../kambi_vrml_test_suite/vrml_2/waves/waves.wrl');
+      SaveFile(Vrml, '../../../kambi_vrml_test_suite/x3d/water_reflections/water_converted.wrl');
     finally FreeAndNil(Vrml) end;
   finally FreeAndNil(Anim) end;
 end.
