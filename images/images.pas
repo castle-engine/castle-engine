@@ -718,6 +718,8 @@ type
     s3tcDxt3,
     s3tcDxt5);
 
+  ECannotFlipS3TCImage = class(Exception);
+
   { Image encoded with S3TC compression. }
   TS3TCImage = class(TEncodedImage)
   private
@@ -737,6 +739,22 @@ type
     function AlphaChannelType(
       const AlphaTolerance: Byte;
       const WrongPixelsTolerance: Single): TAlphaChannelType; override;
+
+    { Flip compressed image vertically, losslessly.
+
+      This usese the knowledge of how S3TC compression works,
+      how the data is coded for each 4x4 block,
+      to losslessly flip the image, without re-compressing it.
+      The idea is described here
+      [http://users.telenet.be/tfautre/softdev/ddsload/explanation.htm].
+
+      @raises(ECannotFlipS3TCImage
+        Raises ECannotFlipS3TCImage when image Height is not 1, 2, 3
+        or a multiple of 4 (since the trick doesn't work in these cases,
+        pixels would move between 4x4 blocks). Note that if Height
+        is a power of two (as common for OpenGL textures) then it's
+        always possible to make a flip.) }
+    procedure FlipVertical;
   end;
 
 { TImageClass and arrays of TImageClasses ----------------------------- }
@@ -2211,6 +2229,145 @@ begin
     s3tcDxt1_RGBA: Result := atSimpleYesNo;
     s3tcDxt3, s3tcDxt5: Result := atFullRange;
   end;
+end;
+
+procedure TS3TCImage.FlipVertical;
+var
+  BlockSize, WidthInBlocks: PtrUInt;
+
+type
+  TRGBBlock = packed record
+    Color0, Color1: Word;
+    Row0, Row1, Row2, Row3: Byte;
+  end;
+  PRGBBlock = ^TRGBBlock;
+
+  procedure Flip4WithinRow(Row: PtrUInt);
+
+    procedure Flip4WithinBlock(Block: PtrUInt);
+    var
+      Tmp: Byte;
+    begin
+      Tmp := PRGBBlock(Block)^.Row0;
+      PRGBBlock(Block)^.Row0 := PRGBBlock(Block)^.Row3;
+      PRGBBlock(Block)^.Row3 := Tmp;
+
+      Tmp := PRGBBlock(Block)^.Row1;
+      PRGBBlock(Block)^.Row1 := PRGBBlock(Block)^.Row2;
+      PRGBBlock(Block)^.Row2 := Tmp;
+    end;
+
+  var
+    X: PtrUInt;
+  begin
+    { Omit alpha channel info for now }
+    if BlockSize = 16 then
+      Row += 8;
+
+    for X := 1 to WidthInBlocks do
+    begin
+      Flip4WithinBlock(Row);
+      Row += BlockSize;
+    end;
+  end;
+
+  procedure Flip3WithinRow(Row: PtrUInt);
+
+    procedure Flip3WithinBlock(Block: PtrUInt);
+    var
+      Tmp: Byte;
+    begin
+      Tmp := PRGBBlock(Block)^.Row0;
+      PRGBBlock(Block)^.Row0 := PRGBBlock(Block)^.Row2;
+      PRGBBlock(Block)^.Row2 := Tmp;
+    end;
+
+  var
+    X: Integer;
+  begin
+    { Omit alpha channel info for now }
+    if BlockSize = 16 then
+      Row += 8;
+
+    for X := 1 to WidthInBlocks do
+    begin
+      Flip3WithinBlock(Row);
+      Row += BlockSize;
+    end;
+  end;
+
+  procedure Flip2WithinRow(Row: PtrUInt);
+
+    procedure Flip2WithinBlock(Block: PtrUInt);
+    var
+      Tmp: Byte;
+    begin
+      Tmp := PRGBBlock(Block)^.Row0;
+      PRGBBlock(Block)^.Row0 := PRGBBlock(Block)^.Row1;
+      PRGBBlock(Block)^.Row1 := Tmp;
+    end;
+
+  var
+    X: Integer;
+  begin
+    { Omit alpha channel info for now }
+    if BlockSize = 16 then
+      Row += 8;
+
+    for X := 1 to WidthInBlocks do
+    begin
+      Flip2WithinBlock(Row);
+      Row += BlockSize;
+    end;
+  end;
+
+var
+  TempRow: Pointer;
+  RowSize, LowerRow, UpperRow: PtrUInt;
+begin
+  if Compression in [s3tcDxt1_RGB, s3tcDxt1_RGBA] then
+    BlockSize := 8 else
+    BlockSize := 16;
+  WidthInBlocks := DivRoundUp(Width, 4);
+
+  if Height mod 4 = 0 then
+  begin
+    RowSize := WidthInBlocks * BlockSize;
+
+    TempRow := GetMem(RowSize);
+
+    LowerRow := PtrUInt(RawPixels);
+    UpperRow := PtrUInt(RawPixels) + RowSize * (Height div 4 - 1);
+
+    while LowerRow < UpperRow do
+    begin
+      Flip4WithinRow(LowerRow);
+      Move(Pointer(UpperRow)^, TempRow^, RowSize);
+      Move(Pointer(LowerRow)^, Pointer(UpperRow)^, RowSize);
+      Move(TempRow^, Pointer(LowerRow)^, RowSize);
+      Flip4WithinRow(LowerRow);
+      LowerRow += RowSize;
+      UpperRow -= RowSize;
+    end;
+
+    FreeMem(TempRow);
+  end else
+  if Height = 3 then
+  begin
+    Flip3WithinRow(PtrUInt(RawPixels));
+  end else
+  if Height = 2 then
+  begin
+    Flip2WithinRow(PtrUInt(RawPixels));
+  end else
+  if Height = 1 then
+  begin
+    { Nothing to do }
+  end else
+    raise ECannotFlipS3TCImage.CreateFmt('Cannot flip image compressed with S3TC when image height is not a multiple of 4 (or 1, 2, 3). Image height is %d',
+      [Height]);
+
+  { TODO: alpha flip also }
 end;
 
 { TImageClass and arrays of TImageClasses ----------------------------- }

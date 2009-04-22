@@ -967,6 +967,8 @@ var
             [Header.PitchOrLinearSize, Res.Size]);
 
         Stream.ReadBuffer(Res.RawPixels^, Res.Size);
+
+        Res.FlipVertical;
       end;
 
     begin
