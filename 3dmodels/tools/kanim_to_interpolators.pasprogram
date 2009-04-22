@@ -1,0 +1,79 @@
+{
+  Copyright 2009 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
+}
+
+{ Convert kanim animation (sequence of vrml files) to single file using
+  interpolator.
+
+  ****************************************************************
+  This is currently adjusted to a one, specific kanim file!!!
+  It's not a general kanim -> interpolators converter!!!
+  (And I don't know if I'll ever want to implement general converter,
+  kanim is just an obsolete hack only to work with poor Blender exporter.)
+  ****************************************************************
+}
+program kanim_to_interpolators;
+
+uses SysUtils, Classes, KambiClassUtils, VRMLNodes, VRMLGLAnimation;
+
+procedure SaveFile(Node: TVRMLNode;
+  const Filename: string);
+const
+  SceneSuffix = {$I kanim_to_interpolators_suffix.inc};
+var
+  Stream: TFileStream;
+begin
+  Stream := TFileStream.Create(Filename, fmCreate);
+  try
+    SaveToVRMLFile(Node, Stream, '');
+    WritelnStr(Stream, SceneSuffix);
+  finally Stream.Free end;
+end;
+
+var
+  Anim: TVRMLGLAnimation;
+  Vrml: TVRMLNode;
+  Interp: TNodeCoordinateInterpolator;
+  Coord: TNodeCoordinate;
+  I: Integer;
+begin
+  Anim := TVRMLGLAnimation.Create;
+  try
+    Anim.LoadFromFile('../../../kambi_vrml_test_suite/vrml_2/waves/waves.kanim');
+    Vrml := Anim.Scenes[0].RootNode.DeepCopy;
+    try
+      Interp := TNodeCoordinateInterpolator.Create('Interp', '');
+      Vrml.SmartAddChild(Interp);
+
+      Interp.FdKeyValue.Items.Count := 0;
+
+      for I := 0 to Anim.ScenesCount - 1 do
+      begin
+        Coord := Anim.Scenes[I].RootNode.FindNodeByName(
+          TNodeCoordinate, 'coord_MOD_Plane', false) as TNodeCoordinate;
+        Interp.FdKeyValue.Items.AppendDynArray(Coord.FdPoint.Items);
+        Interp.FdKey.Items.AppendItem(I / (Anim.ScenesCount - 1));
+      end;
+
+      SaveFile(Vrml, '../../../kambi_vrml_test_suite/vrml_2/waves/waves.wrl');
+    finally FreeAndNil(Vrml) end;
+  finally FreeAndNil(Anim) end;
+end.
