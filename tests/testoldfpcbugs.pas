@@ -39,6 +39,7 @@ type
     procedure TestFormatIncompatibility;
     procedure TestSizeOfObject;
     procedure TestOthers;
+    procedure TestSwapEndian;
   end;
 
 implementation
@@ -218,6 +219,20 @@ begin
  Assert(CompareMem(@b1, @b2, 0));
  { test is "Format incompatible with Delphi" bug fixed }
  Assert(Format('%d %d %0:d %d', [0, 1, 2, 3]) = '0 1 0 1');
+end;
+
+procedure TTestOldFPCBugs.TestSwapEndian;
+const
+  A1: QWord = $0123456789ABCDEF;
+var
+  A2: QWord;
+begin
+  { I want A2 = $EFCDAB8967452301, but I can't write it easily,
+    FPC 2.2.2 says "Error: range check error while evaluating constants". }
+  A2 := $FCDAB8967452301;
+  A2 := A2 or ($E shl (7*8 + 4));
+  Assert(SwapEndian(A1) = A2);
+  Assert(SwapEndian(A2) = A1);
 end;
 
 initialization
