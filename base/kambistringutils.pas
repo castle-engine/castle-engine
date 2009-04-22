@@ -658,9 +658,11 @@ function DigitAsByte(c: char): byte;
 function IntToStrZPad(n: integer; minLength: integer): string;
 { zamienia n na string w ukladzie poz-pozycyjnym. Poz nie moze byc wieksze
   niz 'Z'-'A'+1+10 (zabrakloby nam wtedy symboli). }
-function IntToStrPoz(n: Int64; poz: Byte): string; overload;
+function IntToStrPoz(const n: Int64; poz: Byte): string; overload;
+function IntToStrPoz(      n: QWord; poz: Byte): string; overload;
 { j.w., ale padded with zeros }
-function IntToStrPoz(n: Int64; poz: Byte; minLength: Cardinal): string; overload;
+function IntToStrPoz(const n: Int64; poz: Byte; minLength: Cardinal): string; overload;
+function IntToStrPoz(const n: QWord; poz: Byte; minLength: Cardinal): string; overload;
 { Write n in binary.
   MinLength means to left-pad with zeros if necessary.
   You can supply a value for zero digit (default '0'), one digit (default '1')
@@ -669,7 +671,8 @@ function IntToStr2(n: Int64; minLength: Cardinal = 1): string; overload;
 function IntToStr2(n: Int64; MinLength: Cardinal;
   ZeroDigit, OneDigit, MinusSign: char): string; overload;
 { wypisuje n zapisana heksadecymalnie (w ukladnie 16-stkowym) }
-function IntToStr16(n: Int64; minLength: Cardinal = 1): string; overload;
+function IntToStr16(const n: Int64; const minLength: Cardinal = 1): string; overload;
+function IntToStr16(const n: QWord; const minLength: Cardinal = 1): string; overload;
 function ToStr(const args: array of const): string;
 function VarRecToStr(const v: TVarRec): string;
 
@@ -1819,7 +1822,7 @@ begin Result := byte(c)-byte('0') end;
 function IntToStrZPad(n: integer; minLength: integer): string;
 begin result := SZeroPad(IntToStr(n), minLength) end;
 
-function IntToStrPoz(n: Int64; poz: Byte): string;
+function IntToStrPoz(n: QWord; poz: Byte): string;
 
   function TablZnakow(cyfra: Byte): char;
   { result := symbol cyfry 'cyfra'. Zawsze cyfra < poz }
@@ -1829,31 +1832,41 @@ function IntToStrPoz(n: Int64; poz: Byte): string;
     result := Chr( cyfra-10+Ord('A') ); {'A'=10 , 'B'=11 itd.}
   end;
 
-var minus: boolean;
 begin
  {Nasze symbole to 0..9, 'A' ..'Z'. Mamy wiec 10+'Z'-'A'+1 symboli na poz cyfr. }
  Assert(poz < 10+Ord('Z')-Ord('A')+1, 'za duzy arg poz w IntToStrPoz');
  if n = 0 then result := '0' else
  begin
-  minus := n < 0;
-  n := Abs(n);
   result := '';
   while n <> 0 do
   begin
    result := TablZnakow(n mod poz)+result;
    n := n div poz;
   end;
-  if minus then result := '-'+result;
  end;
 end;
 
-function IntToStrPoz(n: Int64; poz: Byte; minLength: Cardinal): string;
+function IntToStrPoz(const n: Int64; poz: Byte): string;
+begin
+  if N < 0 then
+    Result := '-' + IntToStrPoz(QWord(Abs(N)), Poz) else
+    Result := IntToStrPoz(QWord(N), Poz);
+end;
+
+function IntToStrPoz(const n: Int64; poz: Byte; minLength: Cardinal): string;
 {wywoluje IntToStrPoz, dodatkowo wypelniajac zerami z lewej, jesli trzeba}
 begin
  result := IntToStrPoz(n, poz);
  if n < 0 then
   result := '-'+SZeroPad(SEnding(result, 2), minLength) else
   result := SZeroPad(result, minLength);
+end;
+
+function IntToStrPoz(const n: QWord; poz: Byte; minLength: Cardinal): string;
+{wywoluje IntToStrPoz, dodatkowo wypelniajac zerami z lewej, jesli trzeba}
+begin
+ result := IntToStrPoz(n, poz);
+ result := SZeroPad(result, minLength);
 end;
 
 function IntToStr2(n: Int64; MinLength: Cardinal; ZeroDigit, OneDigit,
@@ -1890,7 +1903,10 @@ begin
  Result := IntToStr2(n, MinLength, '0', '1', '-');
 end;
 
-function IntToStr16(n: Int64; minLength: Cardinal): string;
+function IntToStr16(const n: Int64; const minLength: Cardinal): string;
+begin result := IntToStrPoz(n, 16, minLength) end;
+
+function IntToStr16(const n: QWord; const minLength: Cardinal): string;
 begin result := IntToStrPoz(n, 16, minLength) end;
 
 function IntToStrThousandSep(const Value: Int64): string;

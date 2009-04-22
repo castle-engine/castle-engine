@@ -38,6 +38,7 @@ type
     procedure TestIntToStrThousandSep;
     procedure TestCompressWhiteSpace;
     procedure TestFormatIndexedName;
+    procedure TestIntToStr64;
   end;
 
 implementation
@@ -194,7 +195,34 @@ begin
   Assert(FormatIndexedName('%%number%0d%2d.again%4d', 66, ReplacementsDone) = '%number6666.again0066');
 end;
 
+procedure TTestKambiStringUtils.TestIntToStr64;
+const
+  A1: QWord = $ABCDEF123;
+  A2: Int64 = $ABCDEF123;
+  A3: Int64 = -$ABCDEF123;
+  A4: QWord = $0123456789ABCDEF;
+var
+  A5, A6: QWord;
+begin
+  Assert(IntToStr16(A1) = 'ABCDEF123');
+  Assert(IntToStr16(A2) = 'ABCDEF123');
+  Assert(IntToStr16(A3) = '-ABCDEF123');
+
+  Assert(IntToStr16(A4) = '123456789ABCDEF');
+
+  { I want A5 = $EFCDAB8967452301, but I can't write it easily,
+    FPC 2.2.2 says "Error: range check error while evaluating constants". }
+  A5 := $FCDAB8967452301;
+  A5 := A5 or ($E shl (7*8 + 4));
+  Assert(IntToStr16(A5) = 'EFCDAB8967452301');
+
+  { I want A6 = $FFEE000000000000, but I can't write it easily,
+    FPC 2.2.2 says "Error: range check error while evaluating constants". }
+  A6 := $FEE000000000000;
+  A6 := A6 or ($F shl (7*8 + 4));
+  Assert(IntToStr16(A6) = 'FFEE000000000000');
+end;
+
 initialization
   RegisterTest(TTestKambiStringUtils);
 end.
-
