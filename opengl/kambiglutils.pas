@@ -930,6 +930,14 @@ procedure DrawGLBoxWire(const x1, y1, z1, x2, y2, z2: TGLfloat; DetailX, DetailY
   --- it only draws 8 lines. }
 procedure glDrawBox3dWire(const Box: TBox3d);
 
+{ Simplest drawing of Box into OpenGL, just as a six planes.
+  Nothing is generated besides vertexes position --- no normal vectors,
+  no texture coords, nothing. Order is CCW outside (so if you want, you
+  can turn on backface culling yourself).
+
+  It can be safely placed in a display list. }
+procedure glDrawBox3dSimple(const Box: TBox3d);
+
 { rysuje trojkat o zadanych wierzcholkach i wspolrzednych tekstury,
     generuje tez normal jako Normalized(p2-p1, p2-p3) a wiec normal
     kieruje sie w strone z ktorej trojkat wyglada na CCW.
@@ -2080,6 +2088,49 @@ begin
     BoxVertex(2, 0); BoxVertex(2, 1);
     BoxVertex(3, 0); BoxVertex(3, 1);
   glEnd;
+end;
+
+procedure glDrawBox3dSimple(const Box: TBox3d);
+var
+  Verts: array [0..7] of TVector3Single;
+const
+  VertsIndices: array [0..5, 0..3] of TGLuint =
+  (
+    (0, 1, 3, 2),
+    (1, 5, 7, 3),
+    (5, 4, 6, 7),
+    (4, 0, 2, 6),
+    (2, 3, 7, 6),
+    (0, 4, 5, 1)
+  );
+begin
+  { Verts index in octal notation indicates which of 8 vertexes it is. }
+  Verts[0] := Box[0];
+  Verts[1] := Box[0]; Verts[1][0] := Box[1][0];
+  Verts[2] := Box[0]; Verts[2][1] := Box[1][1];
+  Verts[4] := Box[0]; Verts[4][2] := Box[1][2];
+
+  Verts[3] := Box[1]; Verts[3][2] := Box[0][2];
+  Verts[5] := Box[1]; Verts[5][1] := Box[0][1];
+  Verts[6] := Box[1]; Verts[6][0] := Box[0][0];
+  Verts[7] := Box[1];
+
+  { Not for Mesa --- see comments in TAbstractCoordinateRenderer.DoRender }
+  if not GLVersion.IsMesa then
+    glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+
+  if GL_EXT_compiled_vertex_array then
+    glLockArraysEXT(0, 8);
+
+  glVertexPointer(3, GL_FLOAT, 0, @Verts);
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, @VertsIndices);
+
+  if GL_EXT_compiled_vertex_array then
+    glUnlockArraysEXT;
+
+  if not GLVersion.IsMesa then
+    glPopClientAttrib;
 end;
 
 procedure DrawGLTriangle(const p1, p2, p3: TVector3f;

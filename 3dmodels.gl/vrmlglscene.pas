@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2008 Michalis Kamburelis.
+  Copyright 2003-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -183,6 +183,12 @@ type
     FWireframeWidth: Single;
     FWireframeEffect: TVRMLWireframeEffect;
     FOnBeforeShapeRender: TBeforeShapeRenderProc;
+    FUseOcclusionQuery: boolean;
+
+    { Checks UseOcclusionQuery, existence of GL_ARB_occlusion_query,
+      and GLQueryCounterBits > 0. If @false, ARB_occlusion_query just cannot
+      be used. }
+    function ReallyUseOcclusionQuery: boolean;
   protected
     procedure SetOnBeforeGLVertex(const Value: TBeforeGLVertexProc); override;
     procedure SetOnRadianceTransfer(const Value: TRadianceTransferFunction); override;
@@ -304,6 +310,26 @@ type
       once before each shape. }
     property OnBeforeShapeRender: TBeforeShapeRenderProc
       read FOnBeforeShapeRender write SetOnBeforeShapeRender;
+
+    { Should we use ARB_occlusion_query (if available) to avoid rendering
+      shapes that didn't pass occlusion test in previous frame.
+      Ignored if GPU doesn't support ARB_occlusion_query.
+
+      @true may give you a large speedup in some scenes.
+      OTOH, a lag of one frame may happen between an object should
+      be rendered and it actually appears.
+
+      When you render more than once the same instance of TVRMLGLScene scene,
+      you should not activate it (as the occlusion query doesn't make sense
+      if each following render of the scene takes place at totally different
+      translation). Also, when rendering something more than just
+      one TVRMLGLScene scene (maybe many times the same TVRMLGLScene instance,
+      maybe many different TVRMLGLScene instances, maybe something totally
+      independent from VRML scenes) you should try to sort rendering order
+      from the most to the least possible occluder (otherwise occlusion
+      query will not be as efficient at culling). }
+    property UseOcclusionQuery: boolean
+      read FUseOcclusionQuery write FUseOcclusionQuery default false;
   end;
 
   { TVRMLShape descendant for usage within TVRMLGLScene.
@@ -311,8 +337,12 @@ type
     internal information needed by TVRMLGLScene. }
   TVRMLGLShape = class(TVRMLShape)
   private
+    { Keeps track if this shape was passed to Renderer.Prepare. }
+    PreparedForRenderer: boolean;
+
     UseBlending: boolean;
-    PreparedAndUseBlendingCalculated: boolean;
+    { Is UseBlending calculated and current. }
+    PreparedUseBlending: boolean;
 
     { ------------------------------------------------------------
       Private things used only when Optimization is
@@ -327,6 +357,16 @@ type
 
     EnableDisplayListValid: boolean;
     FEnableDisplayList: boolean;
+
+    { ------------------------------------------------------------
+      Private things used only when Attributes.ReallyUseOcclusionQuery }
+
+    { OcclusionQueryId is 0 if not initialized yet.
+      When it's 0, value of OcclusionQueryAsked doesn't matter,
+      OcclusionQueryAsked is always reset to @false when initializing
+      OcclusionQueryId. }
+    OcclusionQueryId: TGLint;
+    OcclusionQueryAsked: boolean;
   public
     procedure Changed(PossiblyLocalGeometryChanged: boolean); override;
 
@@ -528,27 +568,6 @@ type
       whether we have Mesa. }
     function RenderBeginEndToDisplayList: boolean;
 
-    { UseBlending is used by RenderShapesNoDisplayList to decide
-      is Blending used for given shape. In every optimization
-      method, you must make sure that you called
-      CalculateUseBlending() on every shape index before
-      using RenderShapesNoDisplayList.
-
-      Note that CalculateUseBlending checks
-      Renderer.Cache.PreparedTextureAlphaChannelType,
-      so assumes that given shape is already prepared for Renderer.
-      It also looks at texture node, material node data,
-      so should be done right after preparing given state,
-      before user calls any FreeResources.
-
-      In practice, right now it's most comfortable to call CalculateUseBlending
-      for all shapes, right before calling Renderer.Prepare on all of them,
-      regardless of Optimization. This is done by
-      PrepareAndCalculateUseBlendingForAll. To speed this up a little,
-      we also have PreparedAndUseBlendingCalculated array. }
-
-    procedure PrepareAndCalculateUseBlendingForAll;
-
     procedure SetOptimization(const Value: TGLRendererOptimization);
 
     { Create resources (the ones not tied to OpenGL) needed by current
@@ -638,30 +657,26 @@ type
     { Use this only when Optimization = roSeparateShapes.
       It can be passed as RenderShapeProc.
 
-      This renders Shape.SSSX_DisplayList
-      display list (creating it if necessary). }
+      This renders the shape (by display list SSSX_DisplayList or not).
+
+      Shape must already be prepared (by SSS[NT]_PrepareShape
+      before calling this (it's not checked, and will
+      not be automatically done by this method.) }
     procedure SSS_RenderShape(
       LightsRenderer: TVRMLGLLightsCachingRenderer;
       Shape: TVRMLGLShape);
 
-    { Call this only when Optimization = roSeparateShapes and
-      Shape.SSSX_DisplayList = 0.
+    { Call this only when Optimization = roSeparateShapes.
 
-      Shape must be prepared earlier (by
-      Renderer.Prepare(Shape.State), this is done
-      right now by PrepareAndCalculateUseBlendingForAll).
+      Shape must be passed to Renderer.Prepare earlier
+      (this is done right now by Common_PrepareShape).
 
-      Then creates display list Shape.SSSX_DisplayList
+      If necessary this creates display list Shape.SSSX_DisplayList
       and initializes it with contents of RenderShape_NoLight(Shape).
       Mode GL_COMPILE is passed to glNewList, so it only creates
       given display list.
 
-      This is somehow equivalent to SAAW_Prepare,
-      but it operates only on a single Shape.
-
-      Note that SSS_RenderShape simply calls
-      SSS_PrepareShape if display list has to be created.
-      Then it renders the list. }
+      If necessary it initializes OcclusionQueryId/Asked. }
     procedure SSS_PrepareShape(Shape: TVRMLGLShape);
 
     { ------------------------------------------------------------
@@ -1638,26 +1653,16 @@ begin
 end;
 
 procedure TVRMLGLScene.OptimizationCreate;
-var
-  SI: TVRMLShapeTreeIterator;
 begin
+  { This was supposed to be used for tricks like
+
   case Optimization of
     roSeparateShapes, roSeparateShapesNoTransform:
-      begin
-        { When this is called from constructor, it's before
-          inherited constructor and ChangedAll, so Shapes
-          are not initialized yet. So don't iterate over them yet
-          (will be done later in ChangedAll). }
-        if Shapes <> nil then
-        begin
-          SI := TVRMLShapeTreeIterator.Create(Shapes, false, true);
-          try
-            while SI.GetNext do
-              TVRMLGLShape(SI.Current).SSSX_DisplayList := 0;
-          finally FreeAndNil(SI) end;
-        end;
-      end;
+      ...
   end;
+
+    Currently, this method is simply useless, may be removed later.
+  }
 end;
 
 procedure TVRMLGLScene.OptimizationDestroy;
@@ -1674,6 +1679,7 @@ procedure TVRMLGLScene.CloseGLRenderer;
 var
   SI: TVRMLShapeTreeIterator;
   TG: TTransparentGroup;
+  S: TVRMLGLShape;
 begin
   case Optimization of
     roSceneAsAWhole:
@@ -1693,16 +1699,17 @@ begin
               false);
             try
               while SI.GetNext do
-                if TVRMLGLShape(SI.Current).SSSX_DisplayList <> 0 then
+              begin
+                S := TVRMLGLShape(SI.Current);
+
+                if S.SSSX_DisplayList <> 0 then
                 begin
                   if Optimization = roSeparateShapes then
-                    Renderer.Cache.Shape_DecReference(
-                      TVRMLGLShape(SI.Current).SSSX_DisplayList) else
-                    Renderer.Cache.ShapeNoTransform_DecReference(
-                      TVRMLGLShape(SI.Current).SSSX_DisplayList);
-
-                  TVRMLGLShape(SI.Current).SSSX_DisplayList := 0;
+                    Renderer.Cache.Shape_DecReference(S.SSSX_DisplayList) else
+                    Renderer.Cache.ShapeNoTransform_DecReference(S.SSSX_DisplayList);
+                  S.SSSX_DisplayList := 0;
                 end;
+              end;
             finally FreeAndNil(SI) end;
           end;
 
@@ -1731,7 +1738,18 @@ begin
     SI := TVRMLShapeTreeIterator.Create(Shapes, false, true);
     try
       while SI.GetNext do
-        TVRMLGLShape(SI.Current).PreparedAndUseBlendingCalculated := false;
+      begin
+        S := TVRMLGLShape(SI.Current);
+
+        S.PreparedForRenderer := false;
+        S.PreparedUseBlending := false;
+
+        if S.OcclusionQueryId <> 0 then
+        begin
+          glDeleteQueriesARB(1, @(S.OcclusionQueryId));
+          S.OcclusionQueryId := 0;
+        end;
+      end;
     finally FreeAndNil(SI) end;
   end;
 end;
@@ -1910,15 +1928,51 @@ var
   LightsRenderer: TVRMLGLLightsCachingRenderer;
 
   procedure TestRenderShapeProc(Shape: TVRMLGLShape);
-  begin
-    if ( (not Assigned(TestShapeVisibility)) or
-         TestShapeVisibility(Shape)) and
-       (Shape <> AvoidShapeRendering) then
+
+    procedure DoRenderShape;
     begin
       Inc(FLastRender_RenderedShapesCount);
       if Assigned(Attributes.OnBeforeShapeRender) then
         Attributes.OnBeforeShapeRender(Shape);
       RenderShapeProc(LightsRenderer, Shape);
+    end;
+
+  var
+    SampleCount: TGLuint;
+  begin
+    if ( (not Assigned(TestShapeVisibility)) or
+         TestShapeVisibility(Shape)) and
+       (Shape <> AvoidShapeRendering) then
+    begin
+      if Attributes.ReallyUseOcclusionQuery then
+      begin
+        Assert(Shape.OcclusionQueryId <> 0);
+        if Shape.OcclusionQueryAsked then
+          glGetQueryObjectuivARB(Shape.OcclusionQueryId, GL_QUERY_RESULT_ARB,
+            @SampleCount) else
+          SampleCount := 1; { if not asked, assume it's visible }
+        glBeginQueryARB(GL_SAMPLES_PASSED_ARB, Shape.OcclusionQueryId);
+          if SampleCount > 0 then
+          begin
+            DoRenderShape;
+          end else
+          begin
+            { Object was not visible in the last frame.
+              In this frame, only render it's bounding box, to test
+              occlusion query. This is the speedup of using occlusion query:
+              we render only bbox. }
+
+            glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+              glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); { saved by GL_COLOR_BUFFER_BIT }
+              glDepthMask(GL_FALSE); { saved by GL_DEPTH_BUFFER_BIT }
+
+              glDrawBox3dSimple(Shape.BoundingBox);
+            glPopAttrib;
+          end;
+          Shape.OcclusionQueryAsked := true;
+        glEndQueryARB(GL_SAMPLES_PASSED_ARB);
+      end else
+        DoRenderShape;
     end;
   end;
 
@@ -2041,7 +2095,7 @@ begin
             try
               while SI.GetNext do
                 begin
-                  Assert(TVRMLGLShape(SI.Current).PreparedAndUseBlendingCalculated);
+                  Assert(TVRMLGLShape(SI.Current).PreparedUseBlending);
                   if not TVRMLGLShape(SI.Current).UseBlending then
                   begin
                     if TransparentGroup in AllOrOpaque then
@@ -2090,85 +2144,6 @@ begin
       LightsRenderer.Statistics[false]); }
     FreeAndNil(LightsRenderer);
   end;
-end;
-
-procedure TVRMLGLScene.PrepareAndCalculateUseBlendingForAll;
-
-  procedure CalculateUseBlending(Shape: TVRMLGLShape);
-  var
-    UseBlending: boolean;
-    State: TVRMLGraphTraverseState;
-    Tex: TNodeX3DTextureNode;
-    MultiTex: TMFNode;
-    AlphaChannelType: TAlphaChannelType;
-    I: Integer;
-  begin
-    State := Shape.State;
-
-    { Note that we either render the whole geometry node with or without
-      blending.
-
-      Note that this looks at nodes, calling
-      State.LastNodes.Material.AllMaterialsTransparent, looking
-      at TextureNode.TextureImage / TextureVidep etc.
-      So it's important to initialize UseBlending before
-      user has any chance to do FreeResources or to free RootNode
-      (see TVRMLScene.RootNode docs).
-
-      TODO: ideally, we would like to just push all our logic into
-      TVRMLShape.Transparent, and write just
-        UseBlending.Items[Index] := Shapes[Index].Transparent;
-      But we cannot, for now: we need Renderer to check image's
-      AlphaChannelType efficiently.
-    }
-
-    UseBlending := Shape.Transparent;
-
-    if not UseBlending then
-    begin
-      { Check texture(s) for full range alpha channel.
-        Take all textures (may be > 1 in case of multitexturing) that
-        are prepared, if any has full range alpha channel ---
-        then force blending. }
-
-      Tex := State.Texture;
-      if Tex <> nil then
-      begin
-        if Tex is TNodeMultiTexture then
-        begin
-          MultiTex := TNodeMultiTexture(Tex).FdTexture;
-          for I := 0 to MultiTex.Count - 1 do
-          begin
-            if (MultiTex.Items[I] <> nil) and
-               (MultiTex.Items[I] is TNodeX3DTextureNode) and
-               (Renderer.PreparedTextureAlphaChannelType(TNodeX3DTextureNode(MultiTex.Items[I]), AlphaChannelType)) then
-            begin
-              UseBlending := AlphaChannelType = atFullRange;
-              if UseBlending then Break;
-            end;
-          end;
-        end else
-        if Renderer.PreparedTextureAlphaChannelType(Tex, AlphaChannelType) then
-          UseBlending := AlphaChannelType = atFullRange;
-      end;
-    end;
-
-    Shape.UseBlending := UseBlending;
-  end;
-
-var
-  SI: TVRMLShapeTreeIterator;
-begin
-  SI := TVRMLShapeTreeIterator.Create(Shapes, false, true);
-  try
-    while SI.GetNext do
-      if not TVRMLGLShape(SI.Current).PreparedAndUseBlendingCalculated then
-      begin
-        Renderer.Prepare(TVRMLGLShape(SI.Current).State);
-        CalculateUseBlending(TVRMLGLShape(SI.Current));
-        TVRMLGLShape(SI.Current).PreparedAndUseBlendingCalculated := true;
-      end;
-  finally FreeAndNil(SI) end;
 end;
 
 procedure TVRMLGLScene.SSSX_PrepareBegin;
@@ -2285,7 +2260,8 @@ begin
     inside TVRMLShape --- otherwise after FreeResources([frRootNode])
     calling EnableDisplayList would be dangerous. }
 
-  if Shape.EnableDisplayList and
+  if (Shape.SSSX_DisplayList = 0) and
+     Shape.EnableDisplayList and
      (not Renderer.Cache.Shape_IncReference_Existing(
        Attributes,
        Shape.Geometry,
@@ -2330,20 +2306,13 @@ procedure TVRMLGLScene.SSS_RenderShape(
 begin
   if Shape.EnableDisplayList then
   begin
-    if Shape.SSSX_DisplayList = 0 then
-      SSS_PrepareShape(Shape);
-
     Renderer.RenderShapeLights(LightsRenderer, Shape.State);
-
     glCallList(Shape.SSSX_DisplayList);
   end else
   begin
     Assert(Shape.SSSX_DisplayList = 0);
-    { Make sure that it's prepared. }
-    SSS_PrepareShape(Shape);
 
     Renderer.RenderShapeLights(LightsRenderer, Shape.State);
-
     RenderShape_NoLight(Shape);
   end;
 end;
@@ -2354,7 +2323,8 @@ var
   AttributesCopy: TVRMLSceneRenderingAttributes;
   StateCopy: TVRMLGraphTraverseState;
 begin
-  if Shape.EnableDisplayList and
+  if (Shape.SSSX_DisplayList = 0) and
+     Shape.EnableDisplayList and
      (not Renderer.Cache.ShapeNoTransform_IncReference_Existing(
        Attributes,
        Shape.Geometry,
@@ -2399,11 +2369,7 @@ procedure TVRMLGLScene.SSSNT_RenderShape(
 begin
   if Shape.EnableDisplayList then
   begin
-    if Shape.SSSX_DisplayList = 0 then
-      SSSNT_PrepareShape(Shape);
-
     Renderer.RenderShapeLights(LightsRenderer, Shape.State);
-
     Renderer.RenderShapeBegin(Shape);
     try
       glCallList(Shape.SSSX_DisplayList);
@@ -2413,11 +2379,8 @@ begin
   end else
   begin
     Assert(Shape.SSSX_DisplayList = 0);
-    { Make sure that it's prepared. }
-    SSSNT_PrepareShape(Shape);
 
     Renderer.RenderShapeLights(LightsRenderer, Shape.State);
-
     RenderShape_NoLight(Shape);
   end;
 end;
@@ -2465,17 +2428,13 @@ end;
 
 procedure TVRMLGLScene.SAAW_Render(TransparentGroup: TTransparentGroup);
 begin
-  if SAAW_DisplayList[TransparentGroup] = 0 then
-    SAAW_Prepare(TransparentGroup) else
-  begin
-    { In this case I must directly set here LastRender_Xxx variables.
-      TODO: this is wrong when TransparentGroup <> tgAll, then something
-      < ShapesActiveVisibleCount should be used. This is also why this
-      doesn't honor the LastRender_SumNext now, only resets it. }
-    FLastRender_SumNext := false;
-    FLastRender_VisibleShapesCount := ShapesActiveVisibleCount;
-    FLastRender_RenderedShapesCount := FLastRender_VisibleShapesCount;
-  end;
+  { In this case I must directly set here LastRender_Xxx variables.
+    TODO: this is wrong when TransparentGroup <> tgAll, then something
+    < ShapesActiveVisibleCount should be used. This is also why this
+    doesn't honor the LastRender_SumNext now, only resets it. }
+  FLastRender_SumNext := false;
+  FLastRender_VisibleShapesCount := ShapesActiveVisibleCount;
+  FLastRender_RenderedShapesCount := FLastRender_VisibleShapesCount;
 
   if RenderBeginEndToDisplayList then
     glCallList(SAAW_DisplayList[TransparentGroup]) else
@@ -2527,6 +2486,122 @@ end;
 procedure TVRMLGLScene.PrepareRender(
   TransparentGroups: TTransparentGroups;
   Options: TPrepareRenderOptions);
+
+  procedure Common_PrepareShape(Shape: TVRMLGLShape);
+
+    { UseBlending is used by RenderShapesNoDisplayList to decide
+      is Blending used for given shape. In every optimization
+      method, you must make sure that you called
+      CalculateUseBlending() on every shape index before
+      using RenderShapesNoDisplayList.
+
+      Note that CalculateUseBlending checks
+      Renderer.Cache.PreparedTextureAlphaChannelType,
+      so assumes that given shape is already prepared for Renderer.
+      It also looks at texture node, material node data,
+      so should be done right after preparing given state,
+      before user calls any FreeResources.
+
+      In practice, right now it's most comfortable to call CalculateUseBlending
+      for all shapes, right after calling Renderer.Prepare on all of them,
+      regardless of Optimization. This is done by
+      Common_PrepareShape. To speed this up a little,
+      we also have PreparedUseBlending variable to avoid preparing twice. }
+
+    procedure CalculateUseBlending(Shape: TVRMLGLShape);
+    var
+      UseBlending: boolean;
+      State: TVRMLGraphTraverseState;
+      Tex: TNodeX3DTextureNode;
+      MultiTex: TMFNode;
+      AlphaChannelType: TAlphaChannelType;
+      I: Integer;
+    begin
+      State := Shape.State;
+
+      { Note that we either render the whole geometry node with or without
+        blending.
+
+        Note that this looks at nodes, calling
+        State.LastNodes.Material.AllMaterialsTransparent, looking
+        at TextureNode.TextureImage / TextureVidep etc.
+        So it's important to initialize UseBlending before
+        user has any chance to do FreeResources or to free RootNode
+        (see TVRMLScene.RootNode docs).
+
+        TODO: ideally, we would like to just push all our logic into
+        TVRMLShape.Transparent, and write just
+          UseBlending.Items[Index] := Shapes[Index].Transparent;
+        But we cannot, for now: we need Renderer to check image's
+        AlphaChannelType efficiently.
+      }
+
+      UseBlending := Shape.Transparent;
+
+      if not UseBlending then
+      begin
+        { Check texture(s) for full range alpha channel.
+          Take all textures (may be > 1 in case of multitexturing) that
+          are prepared, if any has full range alpha channel ---
+          then force blending. }
+
+        Tex := State.Texture;
+        if Tex <> nil then
+        begin
+          if Tex is TNodeMultiTexture then
+          begin
+            MultiTex := TNodeMultiTexture(Tex).FdTexture;
+            for I := 0 to MultiTex.Count - 1 do
+            begin
+              if (MultiTex.Items[I] <> nil) and
+                 (MultiTex.Items[I] is TNodeX3DTextureNode) and
+                 (Renderer.PreparedTextureAlphaChannelType(TNodeX3DTextureNode(MultiTex.Items[I]), AlphaChannelType)) then
+              begin
+                UseBlending := AlphaChannelType = atFullRange;
+                if UseBlending then Break;
+              end;
+            end;
+          end else
+          if Renderer.PreparedTextureAlphaChannelType(Tex, AlphaChannelType) then
+            UseBlending := AlphaChannelType = atFullRange;
+        end;
+      end;
+
+      Shape.UseBlending := UseBlending;
+    end;
+
+  begin
+    if not Shape.PreparedForRenderer then
+    begin
+      Renderer.Prepare(Shape.State);
+      Shape.PreparedForRenderer := true;
+    end;
+
+    if not Shape.PreparedUseBlending then
+    begin
+      CalculateUseBlending(Shape);
+      Shape.PreparedUseBlending := true;
+    end;
+
+    if Attributes.ReallyUseOcclusionQuery and
+       (Shape.OcclusionQueryId = 0) then
+    begin
+      glGenQueriesARB(1, @Shape.OcclusionQueryId);
+      Shape.OcclusionQueryAsked := false;
+    end;
+  end;
+
+  procedure Common_PrepareAllShapes;
+  var
+    SI: TVRMLShapeTreeIterator;
+  begin
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false, true);
+    try
+      while SI.GetNext do
+        Common_PrepareShape(TVRMLGLShape(SI.Current));
+    finally FreeAndNil(SI) end;
+  end;
+
 var
   SI: TVRMLShapeTreeIterator;
   TG: TTransparentGroup;
@@ -2534,12 +2609,11 @@ begin
   CheckFogChanged;
 
   case Optimization of
-    { For roNone, PrepareAndCalculateUseBlendingForAll doesn't have
-      to be called here (it will be done anyway in Render). }
+      roNone: Common_PrepareAllShapes;
 
     roSceneAsAWhole:
       begin
-        PrepareAndCalculateUseBlendingForAll;
+        Common_PrepareAllShapes;
 
         for TG := Low(TG) to High(TG) do
           if (TG in TransparentGroups) and (SAAW_DisplayList[TG] = 0) then
@@ -2548,21 +2622,19 @@ begin
 
     roSeparateShapes, roSeparateShapesNoTransform:
       begin
-        PrepareAndCalculateUseBlendingForAll;
-
-        { Build display lists (if needed) for begin/end and all shapes. }
+        { Prepare (if needed) GL stuff for begin/end and all shapes. }
         if SSSX_RenderBeginDisplayList = 0 then
           SSSX_PrepareBegin;
         try
           SI := TVRMLShapeTreeIterator.Create(Shapes, false, true);
           try
             while SI.GetNext do
-              if TVRMLGLShape(SI.Current).SSSX_DisplayList = 0 then
-              begin
-                if Optimization = roSeparateShapes then
-                  SSS_PrepareShape(TVRMLGLShape(SI.Current)) else
-                  SSSNT_PrepareShape(TVRMLGLShape(SI.Current));
-              end;
+            begin
+              Common_PrepareShape(TVRMLGLShape(SI.Current));
+              if Optimization = roSeparateShapes then
+                SSS_PrepareShape(TVRMLGLShape(SI.Current)) else
+                SSSNT_PrepareShape(TVRMLGLShape(SI.Current));
+            end;
           finally FreeAndNil(SI) end;
         finally
           if SSSX_RenderEndDisplayList = 0 then
@@ -2600,8 +2672,6 @@ procedure TVRMLGLScene.Render(
 
   procedure RenderNormal;
   begin
-    CheckFogChanged;
-
     case Optimization of
       roNone:
         begin
@@ -2653,13 +2723,22 @@ procedure TVRMLGLScene.Render(
   end;
 
 begin
-  { First prepare all and calculate their UseBlending.
-    This is suitable for all Optimization values right now.
-    I can't call Renderer.Prepare later while being inside display-list.
-    I also have to prepare all UseBlending before even calling
-    RenderShapesNoDisplayList
-    (I cannot initialize UseBlending later, e.g. in SSS_PrepareShape). }
-  PrepareAndCalculateUseBlendingForAll;
+  { I used to make here more complex "prepare" mechanism, that was trying
+    to prepare for particular shapes only right before they are rendered
+    (so instead of calling PrepareRender below, I was calling PrepareShape
+    at the beginning of each RenderShape and such).
+
+    After a while, it turns out this was a useless complication of code
+    logic. They are things that *have* to be prepared before whole
+    rendering, for example
+    - UseBlending must be calculated for all shapes.
+    - Occlusion query id must be generated (as we may start occlusion query
+      before actually rendering the shape).
+
+    It's much simpler to just call PrepareRender at the beginning.
+    Things like SSSNT_RenderShape, SSS_RenderShape may simply assume
+    that shape is for sure already prepared. }
+  PrepareRender([TransparentGroup], []);
 
   case Attributes.WireframeEffect of
     weNormal: RenderNormal;
@@ -2668,10 +2747,10 @@ begin
       begin
         glPushAttrib(GL_POLYGON_BIT);
           { enable polygon offset for everything (whole scene) }
-          glEnable(GL_POLYGON_OFFSET_FILL); { saved  by GL_POLYGON_BIT }
-          glEnable(GL_POLYGON_OFFSET_LINE); { saved  by GL_POLYGON_BIT }
-          glEnable(GL_POLYGON_OFFSET_POINT); { saved  by GL_POLYGON_BIT }
-          glPolygonOffset(1, 1); { saved  by GL_POLYGON_BIT }
+          glEnable(GL_POLYGON_OFFSET_FILL); { saved by GL_POLYGON_BIT }
+          glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
+          glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
+          glPolygonOffset(1, 1); { saved by GL_POLYGON_BIT }
           RenderNormal;
         glPopAttrib;
         RenderWireframe(true);
@@ -2680,8 +2759,8 @@ begin
       begin
         RenderNormal;
         glPushAttrib(GL_POLYGON_BIT);
-          glEnable(GL_POLYGON_OFFSET_LINE); { saved  by GL_POLYGON_BIT }
-          glPolygonOffset(5, 5); { saved  by GL_POLYGON_BIT }
+          glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
+          glPolygonOffset(5, 5); { saved by GL_POLYGON_BIT }
           { PureGeometry still does backface culling.
             This is very good in this case. When PureGeometry and weSilhouette,
             and objects are solid (so backface culling is used) we can
@@ -2725,9 +2804,9 @@ begin
     initialized as required:
 
     for roSeparateShapes, roSeparateShapesNoTransform:
-    they have SSSX_DisplayList = 0.
-
-    they have PreparedAndUseBlendingCalculated = false. }
+    - they have SSSX_DisplayList = 0.
+    - they have PreparedForRenderer, PreparedUseBlending  = false,
+    - OcclusionQueryId = 0. }
 end;
 
 procedure TVRMLGLScene.ChangedShapeFields(Shape: TVRMLShape;
@@ -2778,7 +2857,8 @@ begin
   if TextureImageChanged then
   begin
     Renderer.Unprepare(Shape.State.Texture);
-    TVRMLGLShape(Shape).PreparedAndUseBlendingCalculated := false;
+    TVRMLGLShape(Shape).PreparedForRenderer := false;
+    TVRMLGLShape(Shape).PreparedUseBlending := false;
   end;
 end;
 
@@ -4442,6 +4522,12 @@ begin
     FScenes.CloseGLRenderer;
     inherited;
   end;
+end;
+
+function TVRMLSceneRenderingAttributes.ReallyUseOcclusionQuery: boolean;
+begin
+  Result := UseOcclusionQuery and GL_ARB_occlusion_query and
+    (GLQueryCounterBits > 0);
 end;
 
 { TVRMLGLScenesList ------------------------------------------------------ }
