@@ -281,6 +281,7 @@ var
   GL_ARB_texture_non_power_of_two: boolean;
   GL_ARB_vertex_buffer_object: boolean;
   GL_EXT_framebuffer_object: boolean;
+  GL_ARB_occlusion_query: boolean;
 
 {$ifdef NEEDS_FOG_COORD_FIX}
 var
@@ -308,6 +309,7 @@ var
   GLMaxCubeMapTextureSizeARB: Cardinal;
   GLMax3DTextureSizeEXT: Cardinal;
   GLMaxTextureMaxAnisotropyEXT: Single;
+  GLQueryCounterBits: TGLint;
   { @groupEnd }
 
 { Initialize all extensions and OpenGL versions.
@@ -1281,6 +1283,7 @@ begin
  GL_ARB_texture_non_power_of_two := Load_GL_ARB_texture_non_power_of_two;
  GL_ARB_vertex_buffer_object := Load_GL_ARB_vertex_buffer_object;
  GL_EXT_framebuffer_object := Load_GL_EXT_framebuffer_object;
+ GL_ARB_occlusion_query := Load_GL_ARB_occlusion_query;
 
  GLMaxTextureSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
 
@@ -1299,6 +1302,10 @@ begin
  if GL_EXT_texture_filter_anisotropic then
    GLMaxTextureMaxAnisotropyEXT := glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT) else
    GLMaxTextureMaxAnisotropyEXT := 0.0;
+
+ if GL_ARB_occlusion_query then
+   glGetQueryivARB(GL_SAMPLES_PASSED_ARB, GL_QUERY_COUNTER_BITS_ARB, @GLQueryCounterBits) else
+   GLQueryCounterBits := 0;
 end;
 {$endif}
 
@@ -2373,6 +2380,13 @@ function GLCapsString: string;
       Result := 'GL_ARB_multisample not available';
   end;
 
+  function GetQueryCounterBits: string;
+  begin
+    if GL_ARB_occlusion_query then
+      Result := IntToStr(GLQueryCounterBits) else
+      Result := 'ARB_occlusion_query not available';
+  end;
+
 begin
  result:=
   ProgramName +' - OpenGL capabilities : ' +nl+
@@ -2447,7 +2461,9 @@ begin
   'GL_MAX_TEXTURE_UNITS_ARB : ' + GetMaxTextureUnits +nl+
   'GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB : ' + GetMaxCubeMapTextureSize +nl+
   'GL_MAX_3D_TEXTURE_SIZE_EXT : ' + GetMaxTexture3DSize +nl+
-  'GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT : ' + GetMaxTextureMaxAnisotropy;
+  'GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT : ' + GetMaxTextureMaxAnisotropy +nl+
+  'GL_QUERY_COUNTER_BITS_ARB (for occlusion query GL_SAMPLES_PASSED_ARB) : ' +
+    GetQueryCounterBits;
 
  CheckGLErrors;
 end;
