@@ -1341,6 +1341,17 @@ type
       const MapScreenX, MapScreenY: Integer;
       const OriginalViewportX, OriginalViewportY: TGLint;
       const OriginalViewportWidth, OriginalViewportHeight: TGLsizei);
+
+    { If you use Attributes.UseOcclusionQuery you may find this useful
+      to call when you make a sudden change to the camera, like teleporting
+      the player to the completely different scene part.
+
+      Normally, occlusion query tries to reuse results from previous
+      frame, using the assumption that usually camera changes slowly
+      and objects appear progressively in the view. When you make
+      a sudden camera jump/change, this assumption breaks, so it's
+      better to resign from occlusion query for the very next frame. }
+    procedure ResetOcclusionQuery;
   end;
 
   TObjectsListItem_1 = TVRMLGLScene;
@@ -4226,6 +4237,21 @@ begin
   if NeedsRestoreViewport then
     glViewport(OriginalViewportX, OriginalViewportY,
                OriginalViewportWidth, OriginalViewportHeight);
+end;
+
+procedure TVRMLGLScene.ResetOcclusionQuery;
+var
+  SI: TVRMLShapeTreeIterator;
+begin
+  if Attributes.ReallyUseOcclusionQuery then
+  begin
+    { Set OcclusionQueryAsked := false for all shapes. }
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false, false, false);
+    try
+      while SI.GetNext do
+        TVRMLGLShape(SI.Current).OcclusionQueryAsked := false;
+    finally FreeAndNil(SI) end;
+  end;
 end;
 
 { TVRMLSceneRenderingAttributes ---------------------------------------------- }
