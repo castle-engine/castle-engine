@@ -534,7 +534,7 @@ type
     property WalkProjectionNear: Single read FWalkProjectionNear;
     property WalkProjectionFar : Single read FWalkProjectionFar ;
 
-    procedure ResetOcclusionQuery;
+    procedure ViewChangedSuddenly;
   end;
 
   TObjectsListItem_1 = TVRMLGLAnimation;
@@ -1628,12 +1628,12 @@ begin
   FWalkProjectionFar  := FirstScene.WalkProjectionFar ;
 end;
 
-procedure TVRMLGLAnimation.ResetOcclusionQuery;
+procedure TVRMLGLAnimation.ViewChangedSuddenly;
 var
   I: Integer;
 begin
   for I := 0 to FScenes.High do
-    FScenes[I].ResetOcclusionQuery;
+    FScenes[I].ViewChangedSuddenly;
 end;
 
 end.

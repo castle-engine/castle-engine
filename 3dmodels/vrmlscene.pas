@@ -1691,6 +1691,26 @@ type
       If you want, it's a little dirty but allowed to directly change
       this light's properties after it's initialized. }
     function Headlight: TVRMLHeadlight;
+
+    { Notify the scene that viewer position/direction changed a lot.
+      It may be called when you make a sudden change to the camera,
+      like teleporting the player to a completely different scene part.
+
+      This may be used as a hint by some optimizations. It tells that what
+      will be visible in the next rendered frame will be probably
+      very different from what was visible in the last frame.
+
+      @italic(Current implementation notes:)
+
+      Currently, this is used by TVRMLGLScene if you use
+      Attributes.UseOcclusionQuery.
+      Normally, occlusion query tries to reuse results from previous
+      frame, using the assumption that usually camera changes slowly
+      and objects appear progressively in the view. When you make
+      a sudden camera jump/change, this assumption breaks, so it's
+      better to resign from occlusion query for the very next frame.
+      This method will do exactly that. }
+    procedure ViewChangedSuddenly; virtual;
   end;
 
 {$undef read_interface}
@@ -4762,7 +4782,13 @@ procedure TVRMLScene.SetPointingDeviceActive(const Value: boolean);
         ScheduleChangedAll;
       end;
       if NewViewpoint <> nil then
+      begin
         NewViewpoint.EventSet_Bind.Send(true, WorldTime);
+
+        { The other viewpoint may be in some totally
+          different place of the scene. }
+        ViewChangedSuddenly;
+      end;
     end;
   end;
 
@@ -5410,6 +5436,11 @@ function TVRMLScene.Headlight: TVRMLHeadlight;
 begin
   HeadlightInitialized := true;
   Result := FHeadlight;
+end;
+
+procedure TVRMLScene.ViewChangedSuddenly;
+begin
+  { Nothing to do in this class }
 end;
 
 end.
