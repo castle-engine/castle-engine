@@ -2113,9 +2113,29 @@ var
               occlusion query. This is the speedup of using occlusion query:
               we render only bbox. }
 
-            glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+            glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_ENABLE_BIT);
               glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); { saved by GL_COLOR_BUFFER_BIT }
               glDepthMask(GL_FALSE); { saved by GL_DEPTH_BUFFER_BIT }
+
+              { A lot of state should be disabled. Remember that this is done
+                in the middle of TVRMLOpenGLRenderer rendering, between
+                RenderBegin/End, and TVRMLOpenGLRenderer doesn't need to
+                restore state after each shape render. So e.g. texturing
+                and alpha test may be enabled, which could lead to very
+                strange effects (box would be rendered with random texel,
+                possibly alpha tested and rejected...).
+
+                Also, some state should be disabled just to speed up
+                rendering. E.g. lighting is totally not needed here. }
+
+              glDisable(GL_LIGHTING); { saved by GL_ENABLE_BIT }
+              glDisable(GL_CULL_FACE); { saved by GL_ENABLE_BIT }
+              glDisable(GL_COLOR_MATERIAL); { saved by GL_ENABLE_BIT }
+              glDisable(GL_ALPHA_TEST); { saved by GL_ENABLE_BIT }
+              glDisable(GL_FOG); { saved by GL_ENABLE_BIT }
+              glDisable(GL_TEXTURE_2D); { saved by GL_ENABLE_BIT }
+              if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+              if GL_EXT_texture3D        then glDisable(GL_TEXTURE_3D_EXT);
 
               glDrawBox3dSimple(Shape.BoundingBox);
             glPopAttrib;
