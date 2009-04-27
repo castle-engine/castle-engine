@@ -935,6 +935,13 @@ procedure glDrawBox3dWire(const Box: TBox3d);
   no texture coords, nothing. Order is CCW outside (so if you want, you
   can turn on backface culling yourself).
 
+  You @bold(must enable GL_VERTEX_ARRAY before using this).
+  (It's not done automatically, as it's much faster to do it once
+  for many glDrawBox3dSimple calls. Example --- bzwgen city view behind
+  building 1, with occlusion query used: FPC 150 vs 110 when
+  GL_VERTEX_ARRAY is activated once in OcclusionBoxStateBegin, not here.
+  Tested on fglrx on Radeon X1600 (chantal).)
+
   It can be safely placed in a display list. }
 procedure glDrawBox3dSimple(const Box: TBox3d);
 
@@ -2094,14 +2101,14 @@ procedure glDrawBox3dSimple(const Box: TBox3d);
 var
   Verts: array [0..7] of TVector3Single;
 const
-  VertsIndices: array [0..5, 0..3] of TGLuint =
+  VertsIndices: array [0..23] of TGLuint =
   (
-    (0, 1, 3, 2),
-    (1, 5, 7, 3),
-    (5, 4, 6, 7),
-    (4, 0, 2, 6),
-    (2, 3, 7, 6),
-    (0, 4, 5, 1)
+    0, 1, 3, 2,
+    1, 5, 7, 3,
+    5, 4, 6, 7,
+    4, 0, 2, 6,
+    2, 3, 7, 6,
+    0, 4, 5, 1
   );
 begin
   if IsEmptyBox3d(Box) then Exit;
@@ -2117,12 +2124,7 @@ begin
   Verts[6] := Box[1]; Verts[6][0] := Box[0][0];
   Verts[7] := Box[1];
 
-  { Not for Mesa --- see comments in TAbstractCoordinateRenderer.DoRender }
-  if not GLVersion.IsMesa then
-    glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-
   glVertexPointer(3, GL_FLOAT, 0, @Verts);
-  glEnableClientState(GL_VERTEX_ARRAY);
 
   if GL_EXT_compiled_vertex_array then
     glLockArraysEXT(0, 8);
@@ -2131,9 +2133,6 @@ begin
 
   if GL_EXT_compiled_vertex_array then
     glUnlockArraysEXT;
-
-  if not GLVersion.IsMesa then
-    glPopClientAttrib;
 end;
 
 procedure DrawGLTriangle(const p1, p2, p3: TVector3f;

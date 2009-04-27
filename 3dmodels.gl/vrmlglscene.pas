@@ -2109,6 +2109,8 @@ var
       if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
       if GL_EXT_texture3D        then glDisable(GL_TEXTURE_3D_EXT);
 
+      glEnableClientState(GL_VERTEX_ARRAY);
+
       OcclusionBoxState := true;
     end;
   end;
@@ -2117,6 +2119,7 @@ var
   begin
     if OcclusionBoxState then
     begin
+      glDisableClientState(GL_VERTEX_ARRAY);
       glPopAttrib;
       OcclusionBoxState := false;
     end;
