@@ -2121,11 +2121,12 @@ begin
   if not GLVersion.IsMesa then
     glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 
+  glVertexPointer(3, GL_FLOAT, 0, @Verts);
+  glEnableClientState(GL_VERTEX_ARRAY);
+
   if GL_EXT_compiled_vertex_array then
     glLockArraysEXT(0, 8);
 
-  glVertexPointer(3, GL_FLOAT, 0, @Verts);
-  glEnableClientState(GL_VERTEX_ARRAY);
   glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, @VertsIndices);
 
   if GL_EXT_compiled_vertex_array then
