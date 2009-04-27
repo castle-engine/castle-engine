@@ -1463,6 +1463,87 @@ begin
   EnableDisplayListValid := false;
 end;
 
+{ VRMLShapesSplitBlending ---------------------------------------------------- }
+
+type
+  TShapesSplitBlendingHelper = class
+    Shapes: array [boolean] of TVRMLShapesList;
+    procedure AddToList(Shape: TVRMLShape);
+    procedure AddToListIfVisible(Shape: TVRMLShape);
+    procedure AddToListIfCollidable(Shape: TVRMLShape);
+    procedure AddToListIfVisibleAndCollidable(Shape: TVRMLShape);
+  end;
+
+procedure TShapesSplitBlendingHelper.AddToList(Shape: TVRMLShape);
+begin
+  Shapes[TVRMLGLShape(Shape).UseBlending].Add(Shape);
+end;
+
+procedure TShapesSplitBlendingHelper.AddToListIfVisible(Shape: TVRMLShape);
+begin
+  if Shape.Visible then
+    Shapes[TVRMLGLShape(Shape).UseBlending].Add(Shape);
+end;
+
+procedure TShapesSplitBlendingHelper.AddToListIfCollidable(Shape: TVRMLShape);
+begin
+  if Shape.Collidable then
+    Shapes[TVRMLGLShape(Shape).UseBlending].Add(Shape);
+end;
+
+procedure TShapesSplitBlendingHelper.AddToListIfVisibleAndCollidable(Shape: TVRMLShape);
+begin
+  if Shape.Visible and Shape.Collidable then
+    Shapes[TVRMLGLShape(Shape).UseBlending].Add(Shape);
+end;
+
+{ Create two TVRMLShapesList lists simultaneously, one with opaque shapes
+  (UseBlending = @false), the other with transparent shapes
+  (UseBlending = @true).
+
+  It's exactly like you would create a list TVRMLShapesList by traversing
+  the Tree (by @code(TVRMLShapesList.Create(Tree: TVRMLShapeTree;
+  const OnlyActive, OnlyVisible, OnlyCollidable: boolean))),
+  and then filter it to two lists: one only with UseBlending = @false,
+  the other with the rest.
+
+  Except this procedure does this faster, by one traverse in the tree.
+  Also, this makes some rendering code simpler. Having shapes separated
+  into lists, I can sort them easily (sorting is used for BlendingSort,
+  and UseOcclusionQuery). }
+
+procedure VRMLShapesSplitBlending(
+  Tree: TVRMLShapeTree;
+  const OnlyActive, OnlyVisible, OnlyCollidable: boolean;
+  out OpaqueShapes, TransparentShapes: TVRMLShapesList);
+var
+  Helper: TShapesSplitBlendingHelper;
+  Capacity: Integer;
+begin
+  OpaqueShapes      := TVRMLShapesList.Create;
+  TransparentShapes := TVRMLShapesList.Create;
+
+  Helper := TShapesSplitBlendingHelper.Create;
+  try
+    Helper.Shapes[false] := OpaqueShapes;
+    Helper.Shapes[true ] := TransparentShapes;
+
+    { Set Capacity to max value at the beginning, to speed ading items  later. }
+    Capacity := Tree.ShapesCount(OnlyActive, OnlyVisible, OnlyCollidable);
+    OpaqueShapes     .Capacity := Capacity;
+    TransparentShapes.Capacity := Capacity;
+
+    if OnlyVisible and OnlyCollidable then
+      Tree.Traverse(@Helper.AddToListIfVisibleAndCollidable, OnlyActive) else
+    if OnlyVisible then
+      Tree.Traverse(@Helper.AddToListIfVisible, OnlyActive) else
+    if OnlyCollidable then
+      Tree.Traverse(@Helper.AddToListIfCollidable, OnlyActive) else
+      Tree.Traverse(@Helper.AddToList, OnlyActive);
+
+  finally FreeAndNil(Helper) end;
+end;
+
 { ------------------------------------------------------------ }
 
 { Notes about GL_COMPILE_AND_EXECUTE mode for glNewList:
@@ -2053,9 +2134,9 @@ var
   end;
 
 var
-  SI: TVRMLShapeTreeIterator;
-  TransparentObjectsExist: boolean;
+  OpaqueShapes, TransparentShapes: TVRMLShapesList;
   BlendingSourceFactorSet, BlendingDestinationFactorSet: TGLEnum;
+  I: Integer;
 begin
   if FLastRender_SumNext then
     FLastRender_SumNext := false else
@@ -2089,49 +2170,36 @@ begin
           glDisable(GL_BLEND);
           if Attributes.Blending then
           begin
-            { uzywamy zmiennej TransparentObjectsExist aby ew. (jesli na scenie
-              nie ma zadnych obiektow ktore chcemy renderowac z blending)
-              zaoszczedzic czas i nie robic zmian stanu OpenGLa glDepthMask(GL_FALSE);
-              itd. i nie iterowac ponownie po liscie Shapes }
-            TransparentObjectsExist := false;
-
-            { draw fully opaque objects }
-            SI := TVRMLShapeTreeIterator.Create(Shapes, true, true);
+            VRMLShapesSplitBlending(Shapes, true, true, false,
+              OpaqueShapes, TransparentShapes);
             try
-              while SI.GetNext do
+              { draw fully opaque objects }
+              if TransparentGroup in AllOrOpaque then
+                for I := 0 to OpaqueShapes.Count - 1 do
+                  TestRenderShapeProc(TVRMLGLShape(OpaqueShapes.Items[I]));
+
+              { draw partially transparent objects }
+              if (TransparentShapes.Count <> 0) and
+                 (TransparentGroup in AllOrTransparent) then
+              begin
+                glDepthMask(GL_FALSE);
+                glEnable(GL_BLEND);
+
+                { Set glBlendFunc using Attributes.BlendingXxxFactor }
+                BlendingSourceFactorSet := Attributes.BlendingSourceFactor;
+                BlendingDestinationFactorSet := Attributes.BlendingDestinationFactor;
+                glBlendFunc(BlendingSourceFactorSet, BlendingDestinationFactorSet);
+
+                for I := 0 to TransparentShapes.Count - 1 do
                 begin
-                  Assert(TVRMLGLShape(SI.Current).PreparedUseBlending);
-                  if not TVRMLGLShape(SI.Current).UseBlending then
-                  begin
-                    if TransparentGroup in AllOrOpaque then
-                      TestRenderShapeProc(TVRMLGLShape(SI.Current));
-                  end else
-                    TransparentObjectsExist := true;
+                  AdjustBlendFunc(TVRMLGLShape(TransparentShapes.Items[I]),
+                    BlendingSourceFactorSet, BlendingDestinationFactorSet);
+                  TestRenderShapeProc(TVRMLGLShape(TransparentShapes.Items[I]));
                 end;
-            finally FreeAndNil(SI) end;
-
-            { draw partially transparent objects }
-            if TransparentObjectsExist and
-               (TransparentGroup in AllOrTransparent) then
-            begin
-              glDepthMask(GL_FALSE);
-              glEnable(GL_BLEND);
-
-              { Set glBlendFunc using Attributes.BlendingXxxFactor }
-              BlendingSourceFactorSet := Attributes.BlendingSourceFactor;
-              BlendingDestinationFactorSet := Attributes.BlendingDestinationFactor;
-              glBlendFunc(BlendingSourceFactorSet, BlendingDestinationFactorSet);
-
-              SI := TVRMLShapeTreeIterator.Create(Shapes, true, true);
-              try
-                while SI.GetNext do
-                  if TVRMLGLShape(SI.Current).UseBlending then
-                  begin
-                    AdjustBlendFunc(TVRMLGLShape(SI.Current),
-                      BlendingSourceFactorSet, BlendingDestinationFactorSet);
-                    TestRenderShapeProc(TVRMLGLShape(SI.Current));
-                  end;
-              finally FreeAndNil(SI) end;
+              end;
+            finally
+              FreeAndNil(OpaqueShapes);
+              FreeAndNil(TransparentShapes);
             end;
           end else
             RenderAllAsOpaque;
