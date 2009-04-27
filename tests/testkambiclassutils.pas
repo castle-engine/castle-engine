@@ -18,16 +18,16 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-unit TestKambiClassUtils; 
+unit TestKambiClassUtils;
 
 interface
 
-uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, KambiClassUtils;
+uses Classes, SysUtils, fpcunit, testutils, testregistry, KambiUtils,
+  KambiClassUtils;
 
 type
   TStreamFromStreamFunc = function(Stream: TStream): TPeekCharStream of object;
-  
+
   TTestKambiClassUtils = class(TTestCase)
   private
     BufferSize: LongWord;
@@ -38,9 +38,52 @@ type
   published
     procedure TestStreamPeekChar;
     procedure TestBufferedReadStream;
-  end; 
+    procedure TestObjectsListSort;
+  end;
+
+  TFoo = class
+    constructor Create(AI: Integer; AnS: string);
+    I: Integer;
+    S: string;
+  end;
+
+{$define read_interface}
+
+  TObjectsListItem_1 = TFoo;
+  {$I objectslist_1.inc}
+  TFoosList = class(TObjectsList_1)
+  private
+    function IsFooSmaller(const A, B: TFoo): boolean;
+  public
+    procedure SortFoo;
+  end;
+
+{$undef read_interface}
 
 implementation
+
+{$define read_implementation}
+{$I objectslist_1.inc}
+
+{ TFoo, TFoosList ------------------------------------------------------------ }
+
+constructor TFoo.Create(AI: Integer; AnS: string);
+begin
+  I := AI;
+  S := AnS;
+end;
+
+procedure TFoosList.SortFoo;
+begin
+  Sort(@IsFooSmaller);
+end;
+
+function TFoosList.IsFooSmaller(const A, B: TFoo): boolean;
+begin
+  Result := A.I < B.I;
+end;
+
+{ TTestKambiClassUtils ------------------------------------------------------- }
 
 procedure TTestKambiClassUtils.TestIndirectReadStream(
   StreamFromStreamFunc: TStreamFromStreamFunc);
@@ -113,6 +156,23 @@ begin
   BufferSize := i;
   TestIndirectReadStream(@BufferedReadStreamFromStream);
  end;
+end;
+
+procedure TTestKambiClassUtils.TestObjectsListSort;
+var
+  L: TFoosList;
+begin
+  L := TFoosList.Create;
+  try
+    L.Add(TFoo.Create(123, 'abc'));
+    L.Add(TFoo.Create(-5, 'ZZZ'));
+    L.Add(TFoo.Create(65, 'zuzanna'));
+    L.SortFoo;
+    Assert(L.Count = 3);
+    Assert(L[0].I = -5);
+    Assert(L[1].I = 65);
+    Assert(L[2].I = 123);
+  finally FreeWithContentsAndNil(L) end;
 end;
 
 initialization
