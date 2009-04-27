@@ -2104,6 +2104,8 @@ const
     (0, 4, 5, 1)
   );
 begin
+  if IsEmptyBox3d(Box) then Exit;
+
   { Verts index in octal notation indicates which of 8 vertexes it is. }
   Verts[0] := Box[0];
   Verts[1] := Box[0]; Verts[1][0] := Box[1][0];
