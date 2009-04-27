@@ -220,6 +220,7 @@ type
     procedure SetBlendingDestinationFactor(const Value: TGLenum); virtual;
     procedure SetBlendingSort(const Value: boolean); virtual;
     procedure SetOnBeforeShapeRender(const Value: TBeforeShapeRenderProc); virtual;
+    procedure SetUseOcclusionQuery(const Value: boolean); virtual;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -336,7 +337,7 @@ type
       from the most to the least possible occluder (otherwise occlusion
       query will not be as efficient at culling). }
     property UseOcclusionQuery: boolean
-      read FUseOcclusionQuery write FUseOcclusionQuery default false;
+      read FUseOcclusionQuery write SetUseOcclusionQuery default false;
   end;
 
   { TVRMLShape descendant for usage within TVRMLGLScene.
@@ -1378,6 +1379,9 @@ type
   public
     { Just call CloseGL on all items. }
     procedure CloseGL;
+
+    { Just call ViewChangedSuddenly on all items. }
+    procedure ViewChangedSuddenly;
   end;
 
 const
@@ -4574,6 +4578,20 @@ begin
   end;
 end;
 
+procedure TVRMLSceneRenderingAttributes.SetUseOcclusionQuery(const Value: boolean);
+begin
+  if UseOcclusionQuery <> Value then
+  begin
+    FUseOcclusionQuery := Value;
+
+    if UseOcclusionQuery then
+      { If you switch UseOcclusionQuery on, then off, then move around the scene
+        a lot, then switch UseOcclusionQuery back on --- you don't want to use
+        results from previous query that was done many frames ago. }
+      FScenes.ViewChangedSuddenly;
+  end;
+end;
+
 procedure TVRMLSceneRenderingAttributes.SetOnBeforeGLVertex(
   const Value: TBeforeGLVertexProc);
 begin
@@ -4810,6 +4828,15 @@ begin
  for I := 0 to Count - 1 do
    if Items[I] <> nil then
      Items[I].CloseGLRenderer;
+end;
+
+procedure TVRMLGLScenesList.ViewChangedSuddenly;
+var
+  I: Integer;
+begin
+ for I := 0 to Count - 1 do
+   if Items[I] <> nil then
+     Items[I].ViewChangedSuddenly;
 end;
 
 end.
