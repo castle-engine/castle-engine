@@ -260,9 +260,6 @@ type
 
     FOnBoundChanged: TVRMLSceneNotification;
 
-    { Call OnBoundChanged if assigned. }
-    procedure DoBoundChanged;
-
     { Add new node to the top.
 
       This is internal, note that it doesn't send any events
@@ -275,6 +272,14 @@ type
       This is internal, note that it doesn't send any events
       and doesn't produce DoBoundChanged. }
     function Pop: TNodeX3DBindableNode;
+  protected
+    { Notification when the currently bound node, that is
+      @link(Top), changed. This also includes notification
+      when @link(Top) changed to (or from) @nil, that is
+      when no node becomes bound or when some node is initially bound.
+
+      In this class, just calls OnBoundChanged if assigned. }
+    procedure DoBoundChanged; virtual;
   public
     constructor Create(AParentScene: TVRMLScene);
 
@@ -306,11 +311,15 @@ type
     procedure Set_Bind(Node: TNodeX3DBindableNode; const Value: boolean);
 
     { Notification when the currently bound node, that is
-      @link(Top), changed. This also includes notification
-      when @link(Top) changed to (or from) @nil, that is
-      when no node becomes bound or when some node is initially bound. }
+      @link(Top), changed.
+      @seealso DoBoundChanged }
     property OnBoundChanged: TVRMLSceneNotification
       read FOnBoundChanged write FOnBoundChanged;
+  end;
+
+  TVRMLViewpointStack = class(TVRMLBindableStack)
+  protected
+    procedure DoBoundChanged; override;
   end;
 
   { @exclude }
@@ -594,7 +603,7 @@ type
     FBackgroundStack: TVRMLBindableStack;
     FFogStack: TVRMLBindableStack;
     FNavigationInfoStack: TVRMLBindableStack;
-    FViewpointStack: TVRMLBindableStack;
+    FViewpointStack: TVRMLViewpointStack;
 
     { Mechanism to schedule geometry changed calls.
 
@@ -1565,7 +1574,7 @@ type
       All descend from TVRMLViewpointNode (not necessarily from
       TNodeX3DViewpointNode, so VRML 1.0 camera nodes are also included in
       this stack.) }
-    property ViewpointStack: TVRMLBindableStack read FViewpointStack;
+    property ViewpointStack: TVRMLViewpointStack read FViewpointStack;
 
     { If true, and also KambiLog.Log is true, then we will log
       ChangedFields and ChangedAll occurences. Useful only for debugging
@@ -1871,6 +1880,22 @@ begin
     OnBoundChanged(ParentScene);
 end;
 
+{ TVRMLViewpointStack -------------------------------------------------------- }
+
+procedure TVRMLViewpointStack.DoBoundChanged;
+begin
+  { The new viewpoint may be in some totally different place of the scene,
+    so call ViewChangedSuddenly.
+
+    This takes care of all viewpoints switching, like
+    - switching to other viewpoint through view3dscene "viewpoints" menu,
+    - just getting an event set_bind = true through vrml route. }
+
+  ParentScene.ViewChangedSuddenly;
+
+  inherited;
+end;
+
 { TDynTransformNodeInfoArray ------------------------------------------------- }
 
 function TDynTransformNodeInfoArray.NodeInfo(Node: TVRMLNode): PTransformNodeInfo;
@@ -1903,7 +1928,7 @@ begin
  FBackgroundStack := TVRMLBindableStack.Create(Self);
  FFogStack := TVRMLBindableStack.Create(Self);
  FNavigationInfoStack := TVRMLBindableStack.Create(Self);
- FViewpointStack := TVRMLBindableStack.Create(Self);
+ FViewpointStack := TVRMLViewpointStack.Create(Self);
 
  FCompiledScriptHandlers := TDynCompiledScriptHandlerInfoArray.Create;
  TransformNodesInfo := TDynTransformNodeInfoArray.Create;
@@ -4782,13 +4807,7 @@ procedure TVRMLScene.SetPointingDeviceActive(const Value: boolean);
         ScheduleChangedAll;
       end;
       if NewViewpoint <> nil then
-      begin
         NewViewpoint.EventSet_Bind.Send(true, WorldTime);
-
-        { The other viewpoint may be in some totally
-          different place of the scene. }
-        ViewChangedSuddenly;
-      end;
     end;
   end;
 
@@ -5440,7 +5459,10 @@ end;
 
 procedure TVRMLScene.ViewChangedSuddenly;
 begin
-  { Nothing to do in this class }
+  if Log then
+    WritelnLog('Scene', 'Optimizer received hint: View changed suddenly');
+
+  { Nothing meaningful to do in this class }
 end;
 
 end.

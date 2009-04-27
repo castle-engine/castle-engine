@@ -1534,20 +1534,16 @@ procedure TVRMLGLScene.CommonCreate(
   AUsingProvidedRenderer: boolean;
   ARenderer: TVRMLOpenGLRenderer);
 begin
-  { inherited Create calls ChangedAll that is overriden in this class
-    and uses SSSX_DisplayLists,
-    RenderFrustumOctree_Visible, UseBlending, Optimization.
-    That's why I have to init them *before* "inherited Create" }
+  { inherited Create calls virtual ChangedAll:
+    - that is overriden in this class and uses SSSX_DisplayLists,
+      RenderFrustumOctree_Visible, UseBlending, Optimization.
+    - also, in the base TVRMLScene class, it may bind new viewpoint
+      which may call ViewChangedSuddenly which is overridden here
+      and uses Attributes.
+    That's why I have to initialize them *before* "inherited Create" }
 
   FOptimization := AOptimization;
   OptimizationCreate;
-
-  inherited Create(ARootNode, AOwnsRootNode);
-
-  FBackgroundSkySphereRadius := 1.0;
-  FBackgroundValid := false;
-  FBackgroundNode := nil;
-  FBackground := nil;
 
   FUsingProvidedRenderer := AUsingProvidedRenderer;
 
@@ -1557,6 +1553,13 @@ begin
   { Note that this calls Renderer.Attributes, so use this after
     initializing Renderer. }
   Attributes.FScenes.Add(Self);
+
+  inherited Create(ARootNode, AOwnsRootNode);
+
+  FBackgroundSkySphereRadius := 1.0;
+  FBackgroundValid := false;
+  FBackgroundNode := nil;
+  FBackground := nil;
 
   FFrustumCulling := fcBoth;
    FrustumCulling := fcBox; { set through property setter }
