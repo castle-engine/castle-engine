@@ -566,6 +566,10 @@ type
     procedure AddToListIfVisible(Shape: TVRMLShape);
     procedure AddToListIfCollidable(Shape: TVRMLShape);
     procedure AddToListIfVisibleAndCollidable(Shape: TVRMLShape);
+
+    SortPosition: TVector3Single;
+    function IsSmallerFrontToBack(const A, B: TVRMLShape): boolean;
+    function IsSmallerBackToFront(const A, B: TVRMLShape): boolean;
   public
     constructor Create;
 
@@ -573,13 +577,20 @@ type
     constructor Create(Tree: TVRMLShapeTree; const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false);
+
+    { Sort shapes by distance to given Position point, closest first. }
+    procedure SortFrontToBack(const Position: TVector3Single);
+
+    { Sort shapes by distance to given Position point, farthest first. }
+    procedure SortBackToFront(const Position: TVector3Single);
   end;
 
 {$undef read_interface}
 
 implementation
 
-uses ProgressUnit, VRMLScene, VRMLErrors, NormalsCalculator, KambiLog;
+uses ProgressUnit, VRMLScene, VRMLErrors, NormalsCalculator, KambiLog,
+  KambiStringUtils;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -1331,6 +1342,42 @@ begin
     Items[AddedCount] := Shape;
     Inc(AddedCount);
   end;
+end;
+
+function TVRMLShapesList.IsSmallerFrontToBack(const A, B: TVRMLShape): boolean;
+begin
+  { We always treat empty box as closer than non-empty.
+    And two empty boxes are always equal.
+
+    Remember that code below must make sure that IsSmaller = always false
+    for equal elements (our Sort depends on this). So A < B only when:
+    - A empty, and B non-empty
+    - both non-empty, and A closer }
+
+  Result := (not IsEmptyBox3d(B.BoundingBox)) and
+    ( IsEmptyBox3d(A.BoundingBox) or
+      ( PointsDistanceSqr(Box3dMiddle(A.BoundingBox), SortPosition) <
+        PointsDistanceSqr(Box3dMiddle(B.BoundingBox), SortPosition)));
+end;
+
+function TVRMLShapesList.IsSmallerBackToFront(const A, B: TVRMLShape): boolean;
+begin
+  Result := (not IsEmptyBox3d(A.BoundingBox)) and
+    ( IsEmptyBox3d(B.BoundingBox) or
+      ( PointsDistanceSqr(Box3dMiddle(A.BoundingBox), SortPosition) >
+        PointsDistanceSqr(Box3dMiddle(B.BoundingBox), SortPosition)));
+end;
+
+procedure TVRMLShapesList.SortFrontToBack(const Position: TVector3Single);
+begin
+  SortPosition := Position;
+  Sort(@IsSmallerFrontToBack);
+end;
+
+procedure TVRMLShapesList.SortBackToFront(const Position: TVector3Single);
+begin
+  SortPosition := Position;
+  Sort(@IsSmallerBackToFront);
 end;
 
 end.

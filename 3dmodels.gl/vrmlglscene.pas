@@ -62,6 +62,8 @@ const
     ) }
   DefaultBlendingDestinationFactor = GL_ONE {_MINUS_SRC_ALPHA};
 
+  DefaultBlendingSort = false;
+
 type
   { }
   TGLRendererOptimization = VRMLRendererOptimization.TGLRendererOptimization;
@@ -179,6 +181,7 @@ type
     FBlending: boolean;
     FBlendingSourceFactor: TGLenum;
     FBlendingDestinationFactor: TGLenum;
+    FBlendingSort: boolean;
     FWireframeColor: TVector3Single;
     FWireframeWidth: Single;
     FWireframeEffect: TVRMLWireframeEffect;
@@ -215,6 +218,7 @@ type
     procedure SetBlending(const Value: boolean); virtual;
     procedure SetBlendingSourceFactor(const Value: TGLenum); virtual;
     procedure SetBlendingDestinationFactor(const Value: TGLenum); virtual;
+    procedure SetBlendingSort(const Value: boolean); virtual;
     procedure SetOnBeforeShapeRender(const Value: TBeforeShapeRenderProc); virtual;
   public
     constructor Create; override;
@@ -276,6 +280,9 @@ type
     property BlendingDestinationFactor: TGLenum
       read FBlendingDestinationFactor write SetBlendingDestinationFactor
       default DefaultBlendingDestinationFactor;
+    property BlendingSort: boolean
+      read FBlendingSort write SetBlendingSort
+      default DefaultBlendingSort;
     { @groupEnd }
 
     { You can use this to turn on some effects related to rendering model
@@ -2162,10 +2169,6 @@ begin
       begin
         glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
         try
-          { TODO: sorting of shapes is doable and should be done
-            at some point (if Attributes.BlendingSort is @true,
-            @false by default). }
-
           glDepthMask(GL_TRUE);
           glDisable(GL_BLEND);
           if Attributes.Blending then
@@ -2173,10 +2176,18 @@ begin
             VRMLShapesSplitBlending(Shapes, true, true, false,
               OpaqueShapes, TransparentShapes);
             try
+              { TODO: I should already eliminate some shapes that
+                are eliminated by TestRenderShapeProc, to speed up sorting. }
+
               { draw fully opaque objects }
               if TransparentGroup in AllOrOpaque then
+              begin
+                if IsLastViewer and Attributes.ReallyUseOcclusionQuery then
+                  OpaqueShapes.SortFrontToBack(LastViewerPosition);
+
                 for I := 0 to OpaqueShapes.Count - 1 do
                   TestRenderShapeProc(TVRMLGLShape(OpaqueShapes.Items[I]));
+              end;
 
               { draw partially transparent objects }
               if (TransparentShapes.Count <> 0) and
@@ -2189,6 +2200,9 @@ begin
                 BlendingSourceFactorSet := Attributes.BlendingSourceFactor;
                 BlendingDestinationFactorSet := Attributes.BlendingDestinationFactor;
                 glBlendFunc(BlendingSourceFactorSet, BlendingDestinationFactorSet);
+
+                if IsLastViewer and Attributes.BlendingSort then
+                  TransparentShapes.SortBackToFront(LastViewerPosition);
 
                 for I := 0 to TransparentShapes.Count - 1 do
                 begin
@@ -4327,6 +4341,7 @@ begin
   FBlending := true;
   FBlendingSourceFactor := DefaultBlendingSourceFactor;
   FBlendingDestinationFactor := DefaultBlendingDestinationFactor;
+  FBlendingSort := false;
 
   FWireframeEffect := weNormal;
   FWireframeWidth := DefaultWireframeWidth;
@@ -4350,8 +4365,10 @@ begin
     S := TVRMLSceneRenderingAttributes(Source);
     Blending := S.Blending;
     BlendingSourceFactor := S.BlendingSourceFactor;
+    BlendingSort := S.BlendingSort;
     BlendingDestinationFactor := S.BlendingDestinationFactor;
     OnBeforeShapeRender := S.OnBeforeShapeRender;
+    UseOcclusionQuery := S.UseOcclusionQuery;
     inherited;
   end else
     inherited;
@@ -4364,7 +4381,9 @@ begin
     (TVRMLSceneRenderingAttributes(SecondValue).Blending = Blending) and
     (TVRMLSceneRenderingAttributes(SecondValue).BlendingSourceFactor = BlendingSourceFactor) and
     (TVRMLSceneRenderingAttributes(SecondValue).BlendingDestinationFactor = BlendingDestinationFactor) and
-    (TVRMLSceneRenderingAttributes(SecondValue).OnBeforeShapeRender = OnBeforeShapeRender);
+    (TVRMLSceneRenderingAttributes(SecondValue).BlendingSort = BlendingSort) and
+    (TVRMLSceneRenderingAttributes(SecondValue).OnBeforeShapeRender = OnBeforeShapeRender) and
+    (TVRMLSceneRenderingAttributes(SecondValue).UseOcclusionQuery = UseOcclusionQuery);
 end;
 
 { Interfejs Renderera mowi ze zeby zmienic atrybut renderer musi byc wolny
@@ -4394,6 +4413,15 @@ begin
   begin
     FScenes.CloseGLRenderer;
     FBlendingSourceFactor := Value;
+  end;
+end;
+
+procedure TVRMLSceneRenderingAttributes.SetBlendingSort(const Value: boolean);
+begin
+  if BlendingSort <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    FBlendingSort := Value;
   end;
 end;
 
