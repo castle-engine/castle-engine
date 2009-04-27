@@ -89,7 +89,7 @@ type
   { @exclude }
   TObjectProcedure = procedure of object;
 
-  TTestShapeVisibility = function(Shape: TVRMLGLShape): boolean
+  TTestShapeVisibility = function (Shape: TVRMLGLShape): boolean
     of object;
 
   TVRMLGLScenesList = class;
@@ -1488,10 +1488,17 @@ end;
 type
   TShapesSplitBlendingHelper = class
     Shapes: array [boolean] of TVRMLShapesList;
+    TestShapeVisibility: TTestShapeVisibility;
+
     procedure AddToList(Shape: TVRMLShape);
     procedure AddToListIfVisible(Shape: TVRMLShape);
     procedure AddToListIfCollidable(Shape: TVRMLShape);
     procedure AddToListIfVisibleAndCollidable(Shape: TVRMLShape);
+
+    procedure AddToListIfTested(Shape: TVRMLShape);
+    procedure AddToListIfVisibleAndTested(Shape: TVRMLShape);
+    procedure AddToListIfCollidableAndTested(Shape: TVRMLShape);
+    procedure AddToListIfVisibleAndCollidableAndTested(Shape: TVRMLShape);
   end;
 
 procedure TShapesSplitBlendingHelper.AddToList(Shape: TVRMLShape);
@@ -1517,6 +1524,30 @@ begin
     Shapes[TVRMLGLShape(Shape).UseBlending].Add(Shape);
 end;
 
+procedure TShapesSplitBlendingHelper.AddToListIfTested(Shape: TVRMLShape);
+begin
+  if TestShapeVisibility(TVRMLGLShape(Shape)) then
+    Shapes[TVRMLGLShape(Shape).UseBlending].Add(Shape);
+end;
+
+procedure TShapesSplitBlendingHelper.AddToListIfVisibleAndTested(Shape: TVRMLShape);
+begin
+  if Shape.Visible and TestShapeVisibility(TVRMLGLShape(Shape)) then
+    Shapes[TVRMLGLShape(Shape).UseBlending].Add(Shape);
+end;
+
+procedure TShapesSplitBlendingHelper.AddToListIfCollidableAndTested(Shape: TVRMLShape);
+begin
+  if Shape.Collidable and TestShapeVisibility(TVRMLGLShape(Shape)) then
+    Shapes[TVRMLGLShape(Shape).UseBlending].Add(Shape);
+end;
+
+procedure TShapesSplitBlendingHelper.AddToListIfVisibleAndCollidableAndTested(Shape: TVRMLShape);
+begin
+  if Shape.Visible and Shape.Collidable and TestShapeVisibility(TVRMLGLShape(Shape)) then
+    Shapes[TVRMLGLShape(Shape).UseBlending].Add(Shape);
+end;
+
 { Create two TVRMLShapesList lists simultaneously, one with opaque shapes
   (UseBlending = @false), the other with transparent shapes
   (UseBlending = @true).
@@ -1535,6 +1566,7 @@ end;
 procedure VRMLShapesSplitBlending(
   Tree: TVRMLShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean;
+  TestShapeVisibility: TTestShapeVisibility;
   out OpaqueShapes, TransparentShapes: TVRMLShapesList);
 var
   Helper: TShapesSplitBlendingHelper;
@@ -1547,19 +1579,32 @@ begin
   try
     Helper.Shapes[false] := OpaqueShapes;
     Helper.Shapes[true ] := TransparentShapes;
+    Helper.TestShapeVisibility := TestShapeVisibility;
 
     { Set Capacity to max value at the beginning, to speed ading items  later. }
     Capacity := Tree.ShapesCount(OnlyActive, OnlyVisible, OnlyCollidable);
     OpaqueShapes     .Capacity := Capacity;
     TransparentShapes.Capacity := Capacity;
 
-    if OnlyVisible and OnlyCollidable then
-      Tree.Traverse(@Helper.AddToListIfVisibleAndCollidable, OnlyActive) else
-    if OnlyVisible then
-      Tree.Traverse(@Helper.AddToListIfVisible, OnlyActive) else
-    if OnlyCollidable then
-      Tree.Traverse(@Helper.AddToListIfCollidable, OnlyActive) else
-      Tree.Traverse(@Helper.AddToList, OnlyActive);
+    if Assigned(TestShapeVisibility) then
+    begin
+      if OnlyVisible and OnlyCollidable then
+        Tree.Traverse(@Helper.AddToListIfVisibleAndCollidableAndTested, OnlyActive) else
+      if OnlyVisible then
+        Tree.Traverse(@Helper.AddToListIfVisibleAndTested, OnlyActive) else
+      if OnlyCollidable then
+        Tree.Traverse(@Helper.AddToListIfCollidableAndTested, OnlyActive) else
+        Tree.Traverse(@Helper.AddToListIfTested, OnlyActive);
+    end else
+    begin
+      if OnlyVisible and OnlyCollidable then
+        Tree.Traverse(@Helper.AddToListIfVisibleAndCollidable, OnlyActive) else
+      if OnlyVisible then
+        Tree.Traverse(@Helper.AddToListIfVisible, OnlyActive) else
+      if OnlyCollidable then
+        Tree.Traverse(@Helper.AddToListIfCollidable, OnlyActive) else
+        Tree.Traverse(@Helper.AddToList, OnlyActive);
+    end;
 
   finally FreeAndNil(Helper) end;
 end;
@@ -2033,7 +2078,9 @@ const
 var
   LightsRenderer: TVRMLGLLightsCachingRenderer;
 
-  procedure TestRenderShapeProc(Shape: TVRMLGLShape);
+  { Call RenderShapeProc if some tests succeed.
+    It assumes that test with TestShapeVisibility is already done. }
+  procedure RenderShapeProc_SomeTests(Shape: TVRMLGLShape);
 
     procedure DoRenderShape;
     begin
@@ -2046,9 +2093,7 @@ var
   var
     SampleCount: TGLuint;
   begin
-    if ( (not Assigned(TestShapeVisibility)) or
-         TestShapeVisibility(Shape)) and
-       (Shape <> AvoidShapeRendering) then
+    if Shape <> AvoidShapeRendering then
     begin
       if Attributes.ReallyUseOcclusionQuery then
       begin
@@ -2084,6 +2129,15 @@ var
     end;
   end;
 
+  { Call RenderShapeProc if many tests, including TestShapeVisibility,
+    succeed. }
+  procedure RenderShapeProc_AllTests(Shape: TVRMLGLShape);
+  begin
+    if ( (not Assigned(TestShapeVisibility)) or
+         TestShapeVisibility(Shape)) then
+      RenderShapeProc_SomeTests(Shape);
+  end;
+
   procedure RenderAllAsOpaque;
   var
     SI: TVRMLShapeTreeIterator;
@@ -2093,7 +2147,7 @@ var
       SI := TVRMLShapeTreeIterator.Create(Shapes, true, true);
       try
         while SI.GetNext do
-          TestRenderShapeProc(TVRMLGLShape(SI.Current));
+          RenderShapeProc_AllTests(TVRMLGLShape(SI.Current));
       finally FreeAndNil(SI) end;
     end;
   end;
@@ -2190,10 +2244,15 @@ begin
           if Attributes.Blending then
           begin
             VRMLShapesSplitBlending(Shapes, true, true, false,
+              TestShapeVisibility,
               OpaqueShapes, TransparentShapes);
             try
-              { TODO: I should already eliminate some shapes that
-                are eliminated by TestRenderShapeProc, to speed up sorting. }
+              { VRMLShapesSplitBlending already filtered shapes through
+                TestShapeVisibility callback, so below we can render them
+                with RenderShapeProc_SomeTests to skip checking
+                TestShapeVisibility twice.
+                This is a good thing: it means that sorting below has
+                much less shapes to consider. }
 
               { draw fully opaque objects }
               if TransparentGroup in AllOrOpaque then
@@ -2202,7 +2261,7 @@ begin
                   OpaqueShapes.SortFrontToBack(LastViewerPosition);
 
                 for I := 0 to OpaqueShapes.Count - 1 do
-                  TestRenderShapeProc(TVRMLGLShape(OpaqueShapes.Items[I]));
+                  RenderShapeProc_SomeTests(TVRMLGLShape(OpaqueShapes.Items[I]));
               end;
 
               { draw partially transparent objects }
@@ -2224,7 +2283,7 @@ begin
                 begin
                   AdjustBlendFunc(TVRMLGLShape(TransparentShapes.Items[I]),
                     BlendingSourceFactorSet, BlendingDestinationFactorSet);
-                  TestRenderShapeProc(TVRMLGLShape(TransparentShapes.Items[I]));
+                  RenderShapeProc_SomeTests(TVRMLGLShape(TransparentShapes.Items[I]));
                 end;
               end;
             finally
