@@ -527,8 +527,10 @@ type
       (assuming that RenderShapeProc, RenderBeginProc and RenderEndProc
       are something that can be part of display list).
 
-      This sets FLastRender_RenderedShapesCount and
-      FLastRender_VisibleShapesCount, handling also handles LastRender_SumNext. }
+      This sets FLastRender_RenderedShapesCount,
+        FLastRender_BoxesOcclusionQueriedCount,
+        FLastRender_VisibleShapesCount,
+        handling also handles LastRender_SumNext. }
     procedure RenderShapesNoDisplayList(
       TestShapeVisibility: TTestShapeVisibility;
       RenderShapeProc: TRenderShape;
@@ -550,6 +552,7 @@ type
     procedure CloseGLRenderer;
 
     FLastRender_RenderedShapesCount: Cardinal;
+    FLastRender_BoxesOcclusionQueriedCount: Cardinal;
     FLastRender_VisibleShapesCount: Cardinal;
     FLastRender_SumNext: boolean;
 
@@ -634,7 +637,8 @@ type
       SAAW_DisplayList[TransparentGroup] = 0.
 
       This calls RenderShapesNoDisplayList so this sets
-      FLastRender_RenderedShapesCount and
+      FLastRender_RenderedShapesCount,
+      FLastRender_BoxesOcclusionQueriedCount,
       FLastRender_VisibleShapesCount. }
     procedure SAAW_Prepare(TransparentGroup: TTransparentGroup);
 
@@ -973,9 +977,18 @@ type
       Then they are updated each time you called
       @link(RenderFrustum) or @link(Render).
 
+      Also, LastRender_BoxesOcclusionQueriedCount is useful to test
+      if you use Attributes.UseOcclusionQuery (it's always zero when
+      not using occlusion query). This tells the number of shapes that
+      were not rendered, but their bounding box was rendered to check
+      with occlusion query.
+
       @groupBegin }
     property LastRender_RenderedShapesCount: Cardinal
       read FLastRender_RenderedShapesCount;
+
+    property LastRender_BoxesOcclusionQueriedCount: Cardinal
+      read FLastRender_BoxesOcclusionQueriedCount;
 
     property LastRender_VisibleShapesCount: Cardinal
       read FLastRender_VisibleShapesCount;
@@ -2061,6 +2074,8 @@ var
 
               glDrawBox3dSimple(Shape.BoundingBox);
             glPopAttrib;
+
+            Inc(FLastRender_BoxesOcclusionQueriedCount);
           end;
           Shape.OcclusionQueryAsked := true;
         glEndQueryARB(GL_SAMPLES_PASSED_ARB);
@@ -2149,6 +2164,7 @@ begin
     FLastRender_SumNext := false else
   begin
     FLastRender_RenderedShapesCount := 0;
+    FLastRender_BoxesOcclusionQueriedCount := 0;
     FLastRender_VisibleShapesCount := ShapesActiveVisibleCount;
   end;
 
@@ -2521,6 +2537,7 @@ begin
     doesn't honor the LastRender_SumNext now, only resets it. }
   FLastRender_SumNext := false;
   FLastRender_VisibleShapesCount := ShapesActiveVisibleCount;
+  FLastRender_BoxesOcclusionQueriedCount := 0;
   FLastRender_RenderedShapesCount := FLastRender_VisibleShapesCount;
 
   if RenderBeginEndToDisplayList then
