@@ -360,7 +360,8 @@ type
       Also, it always does frustum culling (like fcBox for now),
       regardless of TVRMLGLScene.OctreeFrustumCulling setting.
 
-      The algorithm used underneath is described in detail in "GPU Gems 2",
+      The algorithm used underneath is "Coherent Hierarchical Culling",
+      described in detail in "GPU Gems 2",
       Chapter 6: "Hardware Occlusion Queries Made Useful",
       by Michael Wimmer and Jiri Bittner. Online on
       [http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter06.html]. }
@@ -2378,8 +2379,52 @@ var
       end;
     end;
 
+    procedure RenderLeafNodeVolume(Node: TVRMLShapeOctreeNode);
+    var
+      I: Integer;
+      Shape: TVRMLGLShape;
+      Box: TBox3d;
+    begin
+      OcclusionBoxStateBegin;
+
+      { How to render bounding volume of leaf for occlusion query?
+
+        - Simple version is just to render Node.Box. But this may be
+          much greater than actual box of shapes inside, Box of our
+          octree node is not adjusted to be tight.
+
+        - Another version is to render boxes of all shapes within this leaf.
+          This is much tighter than Node.Box, and results in much less
+          shapes quialified as visible. (See e.g. bzwgen city view behind
+          building 1 when trying to walk towards the city center.)
+          Unfortunately, this produces really a lot of boxes, so the
+          overhead of drawing glDrawBox3dSimple becomes large then.
+
+        - Compromise: calculate tight bounding box here, and use it.
+          Works best: number of both visible shapes and cull boxes
+          is small.
+
+        Note that we can render here boxes of only non-rendered shapes,
+        that's Ok and may actually speed up. }
+      Box := EmptyBox3d;
+
+      for I := 0 to Node.ItemsIndices.Count - 1 do
+      begin
+        Shape := TVRMLGLShape(OctreeRendering.ShapesList[Node.ItemsIndices.Items[I]]);
+        if Shape.RenderedFrameId <> FrameId then
+          Box3dSumTo1st(Box, Shape.BoundingBox);
+      end;
+
+      glDrawBox3dSimple(Box);
+      Inc(FLastRender_BoxesOcclusionQueriedCount);
+    end;
+
   const
     VisibilityThreshold = 0;
+  { $define VISIBILITY_KEEP_FRAMES}
+  {$ifdef VISIBILITY_KEEP_FRAMES}
+    VisibilityKeepFrames = 30;
+  {$endif}
   var
     { queue of TOcclusionQuery }
     QueryQueue: TKamObjectQueue;
@@ -2419,74 +2464,95 @@ var
           Node := TVRMLShapeOctreeNode(TraversalStack.Pop);
           if Node.FrustumCollisionPossible(RenderFrustum_Frustum^) then
           begin
-            WasVisible := Node.Visible and (Node.LastVisitedFrameId = FrameId - 1);
-            LeafOrWasInvisible := (not WasVisible) or Node.IsLeaf;
-            Node.Visible := false;
-            Node.LastVisitedFrameId := FrameId;
+            {$ifdef VISIBILITY_KEEP_FRAMES}
+            { There was a resigned idea below (maybe useful later) to do
+              "or (Node.Depth >= 5)", to assume visible = true below some
+              octree depth. }
 
-            { Original logic goes like:
-
-                if LeafOrWasInvisible then
-                  Add query with Node.Box;
-                if WasVisible then
-                  TraverseNode(Node);
-
-              But this is not optimal: it would always query using bounding
-              boxes. Even for the case when we have a visible leaf,
-              then the above version would query using box of this leaf
-              and then render this leaf.
-              But in this case we can query using actual geometry.
-
-              So a modification is to do
-
-                if LeafOrWasInvisible then
-                begin
-                  if Leaf and WasVisible then
-                    Add query for Node and render the leaf else
-                    Add query with Node.Box;
-                end else
-                if WasVisible then
-                  TraverseNode(Node);
-
-              This exhausts all possibilities, since if
-              LeafOrWasInvisible and WasVisible then only leaf nodes
-              could satisfy this.
-
-              There's additional note about this:
-              rendering inside TraverseNode may render
-              only part of the leaf's items (or even none at all).
-              This is needed (although in original paper they write
-              about rendering single shape there, unline my many-shapes-in-leaf
-              approach, but still they have to safeguard against rendering
-              the same node many times, since visible leaf confirmed to
-              be visible may be passed twice to Render).
-
-              But this means that object may be classified as invisible
-              (because it didn't have any unrendered shapes), while in fact
-              it's visible. That's not a problem, since we check our
-              query in the next frame, and the object will be found
-              then visible again (or again invisible if other leafs
-              will render it's shapes, but then it's not a problem). }
-
-            if LeafOrWasInvisible then
+            if (Node.Visible and (Node.LastVisitedFrameId >= FrameId - VisibilityKeepFrames)) then
             begin
-              Q := TOcclusionQuery.Create;
-              Q.Node := Node;
-
-              glBeginQueryARB(GL_SAMPLES_PASSED_ARB, Q.Id);
-                if Node.IsLeaf and WasVisible then
-                  TraverseNode(Node) else
-                begin
-                  OcclusionBoxStateBegin;
-                  glDrawBox3dSimple(Node.Box);
-                  Inc(FLastRender_BoxesOcclusionQueriedCount);
-                end;
-              glEndQueryARB(GL_SAMPLES_PASSED_ARB);
-
-              QueryQueue.Push(Q);
-            end else
-            if WasVisible then
+              { Visible somewhere during VisibilityKeepFrames.
+                Just assume it's still visible.
+                (This is the optimization described in 6.6.4
+                "Conservative Visibility Testing") }
               TraverseNode(Node);
+            end else
+            {$endif VISIBILITY_KEEP_FRAMES}
+            begin
+              WasVisible := Node.Visible and (Node.LastVisitedFrameId = FrameId - 1);
+              LeafOrWasInvisible := (not WasVisible) or Node.IsLeaf;
+
+              Node.Visible := false;
+              Node.LastVisitedFrameId := FrameId;
+
+              { Original logic goes like:
+
+                  if LeafOrWasInvisible then
+                    Add query with Node.Box;
+                  if WasVisible then
+                    TraverseNode(Node);
+
+                But this is not optimal: it would always query using bounding
+                boxes. Even for the case when we have a visible leaf,
+                then the above version would query using box of this leaf
+                and then render this leaf.
+                But in this case we can query using actual geometry.
+
+                So a modification is to do
+
+                  if LeafOrWasInvisible then
+                  begin
+                    if Leaf and WasVisible then
+                      Add query for Node and render the leaf else
+                      Add query with Node.Box;
+                  end else
+                  if WasVisible then
+                    TraverseNode(Node);
+
+                This exhausts all possibilities, since if
+                LeafOrWasInvisible and WasVisible then only leaf nodes
+                could satisfy this.
+
+                There's additional note about this:
+                rendering inside TraverseNode may render
+                only part of the leaf's items (or even none at all).
+                This is needed (although in original paper they write
+                about rendering single shape there, unline my many-shapes-in-leaf
+                approach, but still they have to safeguard against rendering
+                the same node many times, since visible leaf confirmed to
+                be visible may be passed twice to Render).
+
+                But this means that object may be classified as invisible
+                (because it didn't have any unrendered shapes), while in fact
+                it's visible. That's not a problem, since we check our
+                query in the next frame, and the object will be found
+                then visible again (or again invisible if other leafs
+                will render it's shapes, but then it's not a problem). }
+
+              if LeafOrWasInvisible then
+              begin
+                Q := TOcclusionQuery.Create;
+                Q.Node := Node;
+
+                glBeginQueryARB(GL_SAMPLES_PASSED_ARB, Q.Id);
+                  if Node.IsLeaf and WasVisible then
+                    TraverseNode(Node) else
+                  if Node.IsLeaf then
+                    { Leaf nodes have optimized version of rendering their
+                      bounding volume for occlusion query. }
+                    RenderLeafNodeVolume(Node) else
+                  begin
+                    OcclusionBoxStateBegin;
+                    glDrawBox3dSimple(Node.Box);
+                    Inc(FLastRender_BoxesOcclusionQueriedCount);
+                  end;
+                glEndQueryARB(GL_SAMPLES_PASSED_ARB);
+
+                QueryQueue.Push(Q);
+              end else
+              if WasVisible then
+                TraverseNode(Node);
+            end;
           end;
         end;
 
