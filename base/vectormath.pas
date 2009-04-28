@@ -1105,6 +1105,9 @@ function MaxVectorCoord(const v: TVector4Double): integer; overload;
 function MaxAbsVectorCoord(const v: TVector3Single): integer; overload;
 function MaxAbsVectorCoord(const v: TVector3Double): integer; overload;
 
+procedure SortAbsVectorCoord(const v: TVector3Single; out Max, Middle, Min: Integer);
+procedure SortAbsVectorCoord(const v: TVector3Double; out Max, Middle, Min: Integer);
+
 { PlaneDirInDirection - taka banalna procedurka - dla zadanego
   Plane (albo jako PlaneDir albo jako czworka Plane, ale to bez znaczenia
   bo i tak Plane[3] jest bez znaczenia) zwroci PlaneDir albo -PlaneDir,

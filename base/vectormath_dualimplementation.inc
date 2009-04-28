@@ -334,6 +334,20 @@ begin
  if Abs(v[2]) > Abs(v[result]) then result := 2;
 end;
 
+procedure SortAbsVectorCoord(const v: TYPE_VECTOR3;
+  out Max, Middle, Min: Integer);
+begin
+  Max := 0;
+  if Abs(V[1]) > Abs(V[Max]) then Max := 1;
+  if Abs(V[2]) > Abs(V[Max]) then Max := 2;
+  case Max of
+    0: if Abs(V[1]) >= Abs(V[2]) then begin Middle := 1; Min := 2; end else begin Middle := 2; Min := 1; end;
+    1: if Abs(V[0]) >= Abs(V[2]) then begin Middle := 0; Min := 2; end else begin Middle := 2; Min := 0; end;
+    else {2: }
+       if Abs(V[0]) >= Abs(V[1]) then begin Middle := 0; Min := 1; end else begin Middle := 1; Min := 0; end;
+  end;
+end;
+
 function PlaneDirInDirection(const Plane: TYPE_VECTOR4; const Direction: TYPE_VECTOR3): TYPE_VECTOR3;
 var PlaneDir: TYPE_VECTOR3 absolute Plane;
 begin
