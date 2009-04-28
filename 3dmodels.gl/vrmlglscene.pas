@@ -188,10 +188,14 @@ type
     FOnBeforeShapeRender: TBeforeShapeRenderProc;
     FUseOcclusionQuery: boolean;
     FUseHierarchicalOcclusionQuery: boolean;
+    FDebugHierOcclusionQueryResults: boolean;
 
     { Checks UseOcclusionQuery, existence of GL_ARB_occlusion_query,
       and GLQueryCounterBits > 0. If @false, ARB_occlusion_query just cannot
-      be used. }
+      be used.
+
+      Also, returns @false when UseHierarchicalOcclusionQuery is @true
+      --- because then UseHierarchicalOcclusionQuery should take precedence. }
     function ReallyUseOcclusionQuery: boolean;
 
     { Checks UseHierarchicalOcclusionQuery, existence of GL_ARB_occlusion_query,
@@ -368,6 +372,21 @@ type
     property UseHierarchicalOcclusionQuery: boolean
       read FUseHierarchicalOcclusionQuery
       write FUseHierarchicalOcclusionQuery default false;
+
+    { View only the shapes that were detected as visible by occlusion query
+      in last Render.
+
+      Use this only after render with UseHierarchicalOcclusionQuery.
+      TODO: for UseOcclusionQuery I would also like to make it work,
+      for now not done as frustum information is gone.
+      This will disable actual occlusion query,
+      instead reusing results from last occlusion
+      query done when this debug flag was @false.
+
+      Useful to quickly visualize the benefits of occlusion query. }
+    property DebugHierOcclusionQueryResults: boolean
+      read FDebugHierOcclusionQueryResults
+      write FDebugHierOcclusionQueryResults default false;
   end;
 
   { TVRMLShape descendant for usage within TVRMLGLScene.
@@ -2246,6 +2265,13 @@ var
           Shape.OcclusionQueryAsked := true;
         glEndQueryARB(GL_SAMPLES_PASSED_ARB);
       end else
+      if Attributes.DebugHierOcclusionQueryResults and
+         Attributes.UseHierarchicalOcclusionQuery then
+      begin
+        if Shape.RenderedFrameId = FrameId then
+          DoRenderShape;
+      end else
+        { No occlusion query-related stuff. Just render the shape. }
         DoRenderShape;
     end;
   end;
@@ -2423,7 +2449,7 @@ var
     VisibilityThreshold = 0;
   { $define VISIBILITY_KEEP_FRAMES}
   {$ifdef VISIBILITY_KEEP_FRAMES}
-    VisibilityKeepFrames = 30;
+    VisibilityKeepFrames = 10;
   {$endif}
   var
     { queue of TOcclusionQuery }
@@ -2596,6 +2622,7 @@ begin
         OcclusionBoxStateEnd;
       end else
       if Attributes.ReallyUseHierarchicalOcclusionQuery and
+         (not Attributes.DebugHierOcclusionQueryResults) and
          (OctreeRendering <> nil) then
       begin
         DoHierarchicalOcclusionQuery;
