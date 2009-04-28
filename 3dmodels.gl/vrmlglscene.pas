@@ -2529,7 +2529,8 @@ begin
         { Each RenderShapeProc_SomeTests inside could set OcclusionBoxState }
         OcclusionBoxStateEnd;
       end else
-      if Attributes.ReallyUseHierarchicalOcclusionQuery then
+      if Attributes.ReallyUseHierarchicalOcclusionQuery and
+         (OctreeRendering <> nil) then
       begin
         DoHierarchicalOcclusionQuery;
 
