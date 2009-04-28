@@ -2393,7 +2393,7 @@ var
 
     TraversalStack := TKamObjectStack.Create;
     TraversalStack.Capacity := OctreeRendering.ShapesList.Count;
-    
+
     QueryQueue := TKamObjectQueue.Create;
     QueryQueue.Capacity := OctreeRendering.ShapesList.Count;
 
@@ -2424,9 +2424,49 @@ var
             Node.Visible := false;
             Node.LastVisitedFrameId := FrameId;
 
-            { TODO: like they wrote, it would be useful here to optimize
-              and for a leaf node with WasVisible render both leaf
-              with query at the same time, instead of making it's bbox. }
+            { Original logic goes like:
+
+                if LeafOrWasInvisible then
+                  Add query with Node.Box;
+                if WasVisible then
+                  TraverseNode(Node);
+
+              But this is not optimal: it would always query using bounding
+              boxes. Even for the case when we have a visible leaf,
+              then the above version would query using box of this leaf
+              and then render this leaf.
+              But in this case we can query using actual geometry.
+
+              So a modification is to do
+
+                if LeafOrWasInvisible then
+                begin
+                  if Leaf and WasVisible then
+                    Add query for Node and render the leaf else
+                    Add query with Node.Box;
+                end else
+                if WasVisible then
+                  TraverseNode(Node);
+
+              This exhausts all possibilities, since if
+              LeafOrWasInvisible and WasVisible then only leaf nodes
+              could satisfy this.
+
+              There's additional note about this:
+              rendering inside TraverseNode may render
+              only part of the leaf's items (or even none at all).
+              This is needed (although in original paper they write
+              about rendering single shape there, unline my many-shapes-in-leaf
+              approach, but still they have to safeguard against rendering
+              the same node many times, since visible leaf confirmed to
+              be visible may be passed twice to Render).
+
+              But this means that object may be classified as invisible
+              (because it didn't have any unrendered shapes), while in fact
+              it's visible. That's not a problem, since we check our
+              query in the next frame, and the object will be found
+              then visible again (or again invisible if other leafs
+              will render it's shapes, but then it's not a problem). }
 
             if LeafOrWasInvisible then
             begin
@@ -2434,14 +2474,17 @@ var
               Q.Node := Node;
 
               glBeginQueryARB(GL_SAMPLES_PASSED_ARB, Q.Id);
-                OcclusionBoxStateBegin;
-                glDrawBox3dSimple(Node.Box);
-                Inc(FLastRender_BoxesOcclusionQueriedCount);
+                if Node.IsLeaf and WasVisible then
+                  TraverseNode(Node) else
+                begin
+                  OcclusionBoxStateBegin;
+                  glDrawBox3dSimple(Node.Box);
+                  Inc(FLastRender_BoxesOcclusionQueriedCount);
+                end;
               glEndQueryARB(GL_SAMPLES_PASSED_ARB);
 
               QueryQueue.Push(Q);
-            end;
-
+            end else
             if WasVisible then
               TraverseNode(Node);
           end;
