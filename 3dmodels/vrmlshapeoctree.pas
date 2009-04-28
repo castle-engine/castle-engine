@@ -134,6 +134,7 @@ type
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
   public
     function ParentTree: TVRMLShapeOctree;
+    function ParentNode: TVRMLShapeOctreeNode;
 
     function SphereCollision(const pos: TVector3Single;
       const Radius: Single;
@@ -186,6 +187,10 @@ type
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+
+    { For Hierarchical Occlusion Culling }
+    LastVisitedFrameId: Cardinal;
+    Visible: boolean;
   end;
 
   TVRMLShapeOctree = class(TVRMLBaseTrianglesOctree)
@@ -241,7 +246,12 @@ end;
 
 function TVRMLShapeOctreeNode.ParentTree: TVRMLShapeOctree;
 begin
- Result := TVRMLShapeOctree(InternalParentTree);
+  Result := TVRMLShapeOctree(InternalParentTree);
+end;
+
+function TVRMLShapeOctreeNode.ParentNode: TVRMLShapeOctreeNode;
+begin
+  Result := TVRMLShapeOctreeNode(InternalParentNode);
 end;
 
 function TVRMLShapeOctreeNode.CommonSphereLeaf(const Pos: TVector3Single;

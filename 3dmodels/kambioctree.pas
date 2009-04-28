@@ -95,7 +95,7 @@ unit KambiOctree;
 
 interface
 
-uses SysUtils, VectorMath, Boxes3d, KambiUtils, Frustum;
+uses SysUtils, VectorMath, Boxes3d, KambiUtils, Frustum, Contnrs;
 
 type
   { }
@@ -116,6 +116,7 @@ type
     FMiddlePoint: TVector3Single;
     FDepth: Integer;
     FParentTree: TOctree;
+    FParentNode: TOctreeNode;
     FBoundingSphereRadiusSqr: Single;
     FBoundingSphereCenter: TVector3Single;
 
@@ -158,6 +159,9 @@ type
     procedure PutItemIntoSubNodes(ItemIndex: integer); virtual; abstract;
 
     property InternalParentTree: TOctree read FParentTree;
+
+    { Parent node of the octree. @nil for the root node. }
+    property InternalParentNode: TOctreeNode read FParentNode;
   public
     { TreeSubNodes sa wszystkie = nil gdy IsLeaf i wszystkie <> nil gdy not IsLeaf.
       znaczenie indeksow : pierwszy indeks mowi czy X sa >= MiddlePoint[0],
@@ -254,6 +258,7 @@ type
       or as (0, 0, 0) if ABox is empty.
       Then it simply calls @link(CreateBase) }
     constructor Create(const ABox: TBox3d; AParentTree: TOctree;
+      AParentNode: TOctreeNode;
       ADepth: integer; AsLeaf: boolean);
 
     { This is the virtual constructor that you want to override
@@ -263,6 +268,7 @@ type
       using class reference (given by Self.ClassType in CreateTreeSubNodes
       or OctreeNodeFinalClass in TOctree.Create). }
     constructor CreateBase(const ABox: TBox3d; AParentTree: TOctree;
+      AParentNode: TOctreeNode;
       ADepth: integer; AsLeaf: boolean;
       const AMiddlePoint: TVector3Single); virtual;
 
@@ -280,6 +286,16 @@ type
 
     procedure SubnodesWithBox(const ABox: TBox3d;
       out SubnodeLow, SubnodeHigh: TOctreeSubnodeIndex);
+
+    { Simple check for frustum collision. }
+    function FrustumCollisionPossible(const Frustum: TFrustum): boolean;
+
+    { Push children nodes (use this only for non-leafs) into the List.
+      @groupBegin }
+    procedure PushChildrenFrontToBack(List: TOrderedList; const Position: TVector3Single);
+    procedure PushChildrenBackToFront(List: TOrderedList; const Position: TVector3Single);
+    procedure PushChildren(List: TOrderedList);
+    { @groupEnd }
   end;
 
   { Helper structure to keep octree limits. Useful to implement
@@ -490,7 +506,7 @@ begin
 
     TreeSubNodes[b[0], b[1], b[2]] :=
       TOctreeNodeClass(Self.ClassType).Create(
-        SubBox, FParentTree, Depth + 1, AsLeaves);
+        SubBox, FParentTree, Self, Depth + 1, AsLeaves);
    end;
 end;
 
@@ -556,6 +572,7 @@ begin
 end;
 
 constructor TOctreeNode.Create(const ABox: TBox3d; AParentTree: TOctree;
+  AParentNode: TOctreeNode;
   ADepth: integer; AsLeaf: boolean);
 var AMiddlePoint: TVector3Single;
 begin
@@ -567,10 +584,11 @@ begin
  end else
   AMiddlePoint := Box3dMiddle(ABox);
 
- CreateBase(ABox, AParentTree, ADepth, AsLeaf, AMiddlePoint);
+ CreateBase(ABox, AParentTree, AParentNode, ADepth, AsLeaf, AMiddlePoint);
 end;
 
-constructor TOctreeNode.CreateBase(const ABox: TBox3d; AParentTree: TOctree;
+constructor TOctreeNode.CreateBase(const ABox: TBox3d;
+  AParentTree: TOctree; AParentNode: TOctreeNode;
   ADepth: integer; AsLeaf: boolean; const AMiddlePoint: TVector3Single);
 begin
  inherited Create;
@@ -580,6 +598,7 @@ begin
  FMiddlePoint := AMiddlePoint;
 
  FParentTree := AParentTree;
+ FParentNode := AParentNode;
  FDepth := ADepth;
  FIsLeaf := AsLeaf;
  if IsLeaf then
@@ -729,6 +748,78 @@ begin
  end;
 end;
 
+function TOctreeNode.FrustumCollisionPossible(const Frustum: TFrustum): boolean;
+begin
+  Result :=
+    Frustum.SphereCollisionPossibleSimple(
+      BoundingSphereCenter, BoundingSphereRadiusSqr) and
+    Frustum.Box3dCollisionPossibleSimple(Box);
+end;
+
+procedure TOctreeNode.PushChildrenFrontToBack(List: TOrderedList;
+  const Position: TVector3Single);
+var
+  Index: TOctreeSubnodeIndex;
+begin
+  Index := SubnodeWithPoint(Position);
+  List.Push(TreeSubNodes[Index[0], Index[1], Index[2]]);
+
+  { next, push 3 children with one Index bit negated }
+  List.Push(TreeSubNodes[not Index[0],     Index[1],     Index[2]]);
+  List.Push(TreeSubNodes[    Index[0], not Index[1],     Index[2]]);
+  List.Push(TreeSubNodes[    Index[0],     Index[1], not Index[2]]);
+
+  Index[0] := not Index[0];
+  Index[1] := not Index[1];
+  Index[2] := not Index[2];
+
+  { next, push 3 children with two Index bits negated.
+    We just negated all 3 bits, so below we negate one back... }
+  List.Push(TreeSubNodes[not Index[0],     Index[1],     Index[2]]);
+  List.Push(TreeSubNodes[    Index[0], not Index[1],     Index[2]]);
+  List.Push(TreeSubNodes[    Index[0],     Index[1], not Index[2]]);
+
+  List.Push(TreeSubNodes[Index[0], Index[1], Index[2]]);
+end;
+
+procedure TOctreeNode.PushChildrenBackToFront(List: TOrderedList;
+  const Position: TVector3Single);
+var
+  FrontIndex, BackIndex: TOctreeSubnodeIndex;
+begin
+  FrontIndex := SubnodeWithPoint(Position);
+  BackIndex[0] := not FrontIndex[0];
+  BackIndex[1] := not FrontIndex[1];
+  BackIndex[2] := not FrontIndex[2];
+
+  List.Push(TreeSubNodes[BackIndex[0], BackIndex[1], BackIndex[2]]);
+
+  { next, push 3 children with one BackIndex bit negated }
+  List.Push(TreeSubNodes[not BackIndex[0],     BackIndex[1],     BackIndex[2]]);
+  List.Push(TreeSubNodes[    BackIndex[0], not BackIndex[1],     BackIndex[2]]);
+  List.Push(TreeSubNodes[    BackIndex[0],     BackIndex[1], not BackIndex[2]]);
+
+
+  { next, push 3 children with one FrontIndex bit negated. }
+  List.Push(TreeSubNodes[not FrontIndex[0],     FrontIndex[1],     FrontIndex[2]]);
+  List.Push(TreeSubNodes[    FrontIndex[0], not FrontIndex[1],     FrontIndex[2]]);
+  List.Push(TreeSubNodes[    FrontIndex[0],     FrontIndex[1], not FrontIndex[2]]);
+
+  List.Push(TreeSubNodes[FrontIndex[0], FrontIndex[1], FrontIndex[2]]);
+end;
+
+procedure TOctreeNode.PushChildren(List: TOrderedList);
+begin
+  List.Push(TreeSubNodes[false, false, false]);
+  List.Push(TreeSubNodes[false, false, true ]);
+  List.Push(TreeSubNodes[false, true , false]);
+  List.Push(TreeSubNodes[false, true , true ]);
+  List.Push(TreeSubNodes[true , false, false]);
+  List.Push(TreeSubNodes[true , false, true ]);
+  List.Push(TreeSubNodes[true , true , false]);
+  List.Push(TreeSubNodes[true , true , true ]);
+end;
+
 { TOctree ------------------------------------------------------------ }
 
 constructor TOctree.Create(AMaxDepth, ALeafCapacity: integer;
@@ -740,7 +831,7 @@ begin
  FLeafCapacity := ALeafCapacity;
  FOctreeNodeFinalClass := AOctreeNodeFinalClass;
  FItemsInNonLeafNodes := AItemsInNonLeafNodes;
- FTreeRoot := OctreeNodeFinalClass.Create(ARootBox, Self, 0, true);
+ FTreeRoot := OctreeNodeFinalClass.Create(ARootBox, Self, nil, 0, true);
 end;
 
 constructor TOctree.Create(const Limits: TOctreeLimits;

@@ -187,11 +187,17 @@ type
     FWireframeEffect: TVRMLWireframeEffect;
     FOnBeforeShapeRender: TBeforeShapeRenderProc;
     FUseOcclusionQuery: boolean;
+    FUseHierarchicalOcclusionQuery: boolean;
 
     { Checks UseOcclusionQuery, existence of GL_ARB_occlusion_query,
       and GLQueryCounterBits > 0. If @false, ARB_occlusion_query just cannot
       be used. }
     function ReallyUseOcclusionQuery: boolean;
+
+    { Checks UseHierarchicalOcclusionQuery, existence of GL_ARB_occlusion_query,
+      and GLQueryCounterBits > 0. If @false, ARB_occlusion_query just cannot
+      be used. }
+    function ReallyUseHierarchicalOcclusionQuery: boolean;
   protected
     procedure SetOnBeforeGLVertex(const Value: TBeforeGLVertexProc); override;
     procedure SetOnRadianceTransfer(const Value: TRadianceTransferFunction); override;
@@ -335,9 +341,32 @@ type
       maybe many different TVRMLGLScene instances, maybe something totally
       independent from VRML scenes) you should try to sort rendering order
       from the most to the least possible occluder (otherwise occlusion
-      query will not be as efficient at culling). }
+      query will not be as efficient at culling).
+
+      This is ignored if UseHierarchicalOcclusionQuery. }
     property UseOcclusionQuery: boolean
       read FUseOcclusionQuery write SetUseOcclusionQuery default false;
+
+    { Should we use ARB_occlusion_query (if available) with
+      a hierarchical algorithm  to avoid rendering
+      shapes that didn't pass occlusion test in previous frame.
+      Ignored if GPU doesn't support ARB_occlusion_query.
+
+      @true may give you a large speedup in some scenes.
+
+      This method doesn't impose any lag of one frame (like UseOcclusionQuery).
+
+      This requires the usage of TVRMLScene.OctreeRendering.
+      Also, it always does frustum culling (like fcBox for now),
+      regardless of TVRMLGLScene.OctreeFrustumCulling setting.
+
+      The algorithm used underneath is described in detail in "GPU Gems 2",
+      Chapter 6: "Hardware Occlusion Queries Made Useful",
+      by Michael Wimmer and Jiri Bittner. Online on
+      [http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter06.html]. }
+    property UseHierarchicalOcclusionQuery: boolean
+      read FUseHierarchicalOcclusionQuery
+      write FUseHierarchicalOcclusionQuery default false;
   end;
 
   { TVRMLShape descendant for usage within TVRMLGLScene.
@@ -375,6 +404,9 @@ type
       OcclusionQueryId. }
     OcclusionQueryId: TGLint;
     OcclusionQueryAsked: boolean;
+
+    { For Hierarchical Occlusion Culling }
+    RenderedFrameId: Cardinal;
   public
     procedure Changed(PossiblyLocalGeometryChanged: boolean); override;
 
@@ -713,6 +745,9 @@ type
       const TransformIsIdentity: boolean;
       const Transform: TMatrix4Single;
       LightCap, DarkCap: boolean);
+
+    { For Hierarchical Occlusion Culling }
+    FrameId: Cardinal;
   protected
     procedure ChangedActiveLightNode(LightNode: TVRMLLightNode;
       Field: TVRMLField); override;
@@ -1409,7 +1444,7 @@ type
 implementation
 
 uses VRMLErrors, GLVersionUnit, GLImages, Images, KambiLog,
-  Object3dAsVRML, Math, RaysWindow, KambiStringUtils;
+  Object3dAsVRML, Math, RaysWindow, KambiStringUtils, Contnrs;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -2054,6 +2089,43 @@ begin
       [ SourceToStr[Source], S ]));
 end;
 
+type
+  TOcclusionQuery = class
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    Id: TGLuint;
+
+    Node: TVRMLShapeOctreeNode;
+
+    function Available: LongBool;
+    function GetResult: TGLuint;
+  end;
+
+constructor TOcclusionQuery.Create;
+begin
+  inherited;
+  glGenQueriesARB(1, @Id);
+end;
+
+destructor TOcclusionQuery.Destroy;
+begin
+  glDeleteQueriesARB(1, @Id);
+  inherited;
+end;
+
+function TOcclusionQuery.Available: LongBool;
+begin
+  Assert(SizeOf(LongBool) = SizeOf(TGLuint));
+  glGetQueryObjectuivARB(Id, GL_QUERY_RESULT_AVAILABLE_ARB, @Result);
+end;
+
+function TOcclusionQuery.GetResult: TGLuint;
+begin
+  glGetQueryObjectuivARB(Id, GL_QUERY_RESULT_ARB, @Result);
+end;
+
 function TVRMLGLScene.RenderBeginEndToDisplayList: boolean;
 begin
   Result := not GLVersion.IsMesa;
@@ -2257,6 +2329,128 @@ var
     end;
   end;
 
+  procedure DoHierarchicalOcclusionQuery;
+  var
+    { Stack of TVRMLShapeOctreeNode.
+
+      Although queue would also work not so bad, stack is better.
+      The idea is that it should try to keep front-to-back order,
+      assuming that Node.PushChildren* keeps this order.
+      Stack gives more chance to process front shapes first. }
+    TraversalStack: TObjectStack;
+
+    procedure TraverseNode(Node: TVRMLShapeOctreeNode);
+    var
+      I: Integer;
+      Shape: TVRMLGLShape;
+    begin
+      if Node.IsLeaf then
+      begin
+        { Render all shapes within this leaf, taking care to render
+          shape only once within this frame (FrameId is useful here). }
+        for I := 0 to Node.ItemsIndices.Count - 1 do
+        begin
+          Shape := TVRMLGLShape(OctreeRendering.ShapesList[Node.ItemsIndices.Items[I]]);
+          if Shape.RenderedFrameId <> FrameId then
+          begin
+            RenderShapeProc_SomeTests(Shape);
+            Shape.RenderedFrameId := FrameId;
+          end;
+        end;
+      end else
+      begin
+        { Push Node children onto TraversalStack.
+          We want to Pop them front-first, to (since this is a stack)
+          we want to push back first. }
+        if IsLastViewer then
+          Node.PushChildrenBackToFront(TraversalStack, LastViewerPosition) else
+          Node.PushChildren(TraversalStack);
+      end;
+    end;
+
+    procedure PullUpVisibility(Node: TVRMLShapeOctreeNode);
+    begin
+      while not Node.Visible do
+      begin
+        Node.Visible := true;
+        Node := Node.ParentNode;
+        if Node = nil then Break;
+      end;
+    end;
+
+  const
+    VisibilityThreshold = 0;
+  var
+    { queue of TOcclusionQuery }
+    QueryQueue: TObjectQueue;
+    Q: TOcclusionQuery;
+    Node: TVRMLShapeOctreeNode;
+    WasVisible, LeafOrWasInvisible: boolean;
+  begin
+    {$include norqcheckbegin.inc}
+    Inc(FrameId);
+    {$include norqcheckend.inc}
+
+    TraversalStack := TObjectStack.Create;
+    QueryQueue := TObjectQueue.Create;
+
+    try
+      TraversalStack.Push(OctreeRendering.TreeRoot);
+
+      repeat
+        if (QueryQueue.Count <> 0) and
+           ( (TOcclusionQuery(QueryQueue.Peek).Available) or
+             (TraversalStack.Count = 0) ) then
+        begin
+          Q := TOcclusionQuery(QueryQueue.Pop);
+          if Q.GetResult > VisibilityThreshold then
+          begin
+            PullUpVisibility(Q.Node);
+            TraverseNode(Q.Node);
+          end;
+          FreeAndNil(Q);
+        end;
+
+        if TraversalStack.Count <> 0 then
+        begin
+          Node := TVRMLShapeOctreeNode(TraversalStack.Pop);
+          if Node.FrustumCollisionPossible(RenderFrustum_Frustum^) then
+          begin
+            WasVisible := Node.Visible and (Node.LastVisitedFrameId = FrameId - 1);
+            LeafOrWasInvisible := (not WasVisible) or Node.IsLeaf;
+            Node.Visible := false;
+            Node.LastVisitedFrameId := FrameId;
+
+            { TODO: like they wrote, it would be useful here to optimize
+              and for a leaf node with WasVisible render both leaf
+              with query at the same time, instead of making it's bbox. }
+
+            if LeafOrWasInvisible then
+            begin
+              Q := TOcclusionQuery.Create;
+              Q.Node := Node;
+
+              glBeginQueryARB(GL_SAMPLES_PASSED_ARB, Q.Id);
+                OcclusionBoxStateBegin;
+                glDrawBox3dSimple(Node.Box);
+                Inc(FLastRender_BoxesOcclusionQueriedCount);
+              glEndQueryARB(GL_SAMPLES_PASSED_ARB);
+
+              QueryQueue.Push(Q);
+            end;
+
+            if WasVisible then
+              TraverseNode(Node);
+          end;
+        end;
+
+      until (TraversalStack.Count = 0) and (QueryQueue.Count = 0);
+    finally
+      FreeAndNil(TraversalStack);
+      FreeAndNil(QueryQueue);
+    end;
+  end;
+
 var
   OpaqueShapes, TransparentShapes: TVRMLShapesList;
   BlendingSourceFactorSet, BlendingDestinationFactorSet: TGLEnum;
@@ -2287,6 +2481,13 @@ begin
         RenderAllAsOpaque;
 
         { Each RenderShapeProc_SomeTests inside could set OcclusionBoxState }
+        OcclusionBoxStateEnd;
+      end else
+      if Attributes.ReallyUseHierarchicalOcclusionQuery then
+      begin
+        DoHierarchicalOcclusionQuery;
+
+        { Inside we could set OcclusionBoxState }
         OcclusionBoxStateEnd;
       end else
       begin
@@ -4502,6 +4703,7 @@ begin
     BlendingDestinationFactor := S.BlendingDestinationFactor;
     OnBeforeShapeRender := S.OnBeforeShapeRender;
     UseOcclusionQuery := S.UseOcclusionQuery;
+    UseHierarchicalOcclusionQuery := S.UseHierarchicalOcclusionQuery;
     inherited;
   end else
     inherited;
@@ -4516,7 +4718,8 @@ begin
     (TVRMLSceneRenderingAttributes(SecondValue).BlendingDestinationFactor = BlendingDestinationFactor) and
     (TVRMLSceneRenderingAttributes(SecondValue).BlendingSort = BlendingSort) and
     (TVRMLSceneRenderingAttributes(SecondValue).OnBeforeShapeRender = OnBeforeShapeRender) and
-    (TVRMLSceneRenderingAttributes(SecondValue).UseOcclusionQuery = UseOcclusionQuery);
+    (TVRMLSceneRenderingAttributes(SecondValue).UseOcclusionQuery = UseOcclusionQuery) and
+    (TVRMLSceneRenderingAttributes(SecondValue).UseHierarchicalOcclusionQuery = UseHierarchicalOcclusionQuery);
 end;
 
 { Interfejs Renderera mowi ze zeby zmienic atrybut renderer musi byc wolny
@@ -4791,7 +4994,14 @@ end;
 
 function TVRMLSceneRenderingAttributes.ReallyUseOcclusionQuery: boolean;
 begin
-  Result := UseOcclusionQuery and GL_ARB_occlusion_query and
+  Result := UseOcclusionQuery and (not UseHierarchicalOcclusionQuery) and
+    GL_ARB_occlusion_query and (GLQueryCounterBits > 0);
+end;
+
+function TVRMLSceneRenderingAttributes.
+  ReallyUseHierarchicalOcclusionQuery: boolean;
+begin
+  Result := UseHierarchicalOcclusionQuery and GL_ARB_occlusion_query and
     (GLQueryCounterBits > 0);
 end;
 
