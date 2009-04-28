@@ -2337,7 +2337,7 @@ var
       The idea is that it should try to keep front-to-back order,
       assuming that Node.PushChildren* keeps this order.
       Stack gives more chance to process front shapes first. }
-    TraversalStack: TObjectStack;
+    TraversalStack: TKamObjectStack;
 
     procedure TraverseNode(Node: TVRMLShapeOctreeNode);
     var
@@ -2382,7 +2382,7 @@ var
     VisibilityThreshold = 0;
   var
     { queue of TOcclusionQuery }
-    QueryQueue: TObjectQueue;
+    QueryQueue: TKamObjectQueue;
     Q: TOcclusionQuery;
     Node: TVRMLShapeOctreeNode;
     WasVisible, LeafOrWasInvisible: boolean;
@@ -2391,8 +2391,11 @@ var
     Inc(FrameId);
     {$include norqcheckend.inc}
 
-    TraversalStack := TObjectStack.Create;
-    QueryQueue := TObjectQueue.Create;
+    TraversalStack := TKamObjectStack.Create;
+    TraversalStack.Capacity := OctreeRendering.ShapesList.Count;
+    
+    QueryQueue := TKamObjectQueue.Create;
+    QueryQueue.Capacity := OctreeRendering.ShapesList.Count;
 
     try
       TraversalStack.Push(OctreeRendering.TreeRoot);

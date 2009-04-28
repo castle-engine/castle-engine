@@ -102,7 +102,7 @@ unit KambiClassUtils;
 
 interface
 
-uses Classes, SysUtils, KambiUtils, IniFiles, KambiStringUtils;
+uses Classes, SysUtils, KambiUtils, IniFiles, KambiStringUtils, Contnrs;
 
 { ---------------------------------------------------------------------------- }
 { @section(Text reading) }
@@ -678,6 +678,26 @@ var
   }
   StdInStream, StdOutStream, StdErrStream :TStream;
   StdInReader: TTextReader;
+
+{ ---------------------------------------------------------------------------- }
+{ @section(Stack, Queue) }
+
+type
+  TKamObjectStack = class(TObjectStack)
+  private
+    function GetCapacity: Integer;
+    procedure SetCapacity(const Value: Integer);
+  public
+    property Capacity: Integer read GetCapacity write SetCapacity;
+  end;
+
+  TKamObjectQueue = class(TObjectQueue)
+  private
+    function GetCapacity: Integer;
+    procedure SetCapacity(const Value: Integer);
+  public
+    property Capacity: Integer read GetCapacity write SetCapacity;
+  end;
 
 implementation
 
@@ -1590,6 +1610,30 @@ begin
   FreeAndNil(StdOutStream);
   FreeAndNil(StdErrStream);
   FreeAndNil(StdInReader);
+end;
+
+{ TKamObjectStack ------------------------------------------------------------ }
+
+function TKamObjectStack.GetCapacity: Integer;
+begin
+  Result := List.Capacity;
+end;
+
+procedure TKamObjectStack.SetCapacity(const Value: Integer);
+begin
+  List.Capacity := Value;
+end;
+
+{ TKamObjectQueue ------------------------------------------------------------ }
+
+function TKamObjectQueue.GetCapacity: Integer;
+begin
+  Result := List.Capacity;
+end;
+
+procedure TKamObjectQueue.SetCapacity(const Value: Integer);
+begin
+  List.Capacity := Value;
 end;
 
 initialization
