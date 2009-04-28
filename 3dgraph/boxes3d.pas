@@ -94,6 +94,8 @@ function Box3dAvgSize(const Box: TBox3d; const EmptyBoxSize: Single): Single;
 { Calculate maximum size of TBox3d, or return EmptyBoxSize is box empty. }
 function Box3dMaxSize(const box: TBox3d; const EmptyBoxSize: Single): Single;
 
+function Box3dArea(const box: TBox3d; const EmptyBoxArea: Single): Single;
+
 { This decreases Box[0, 0], Box[0, 1], Box[0, 2] by Expand
    and increases Box[1, 0], Box[1, 1], Box[1, 2] by Expand.
   So you get Box with all sizes increased by 2 * Expand.
@@ -508,6 +510,20 @@ begin
       Box[1, 0] - Box[0, 0],
       Box[1, 1] - Box[0, 1],
       Box[1, 2] - Box[0, 2]);
+end;
+
+function Box3dArea(const box: TBox3d; const EmptyBoxArea: Single): Single;
+var
+  A, B, C: Single;
+begin
+  if IsEmptyBox3d(Box) then
+    Result := EmptyBoxArea else
+  begin
+    A := Box[1, 0] - Box[0, 0];
+    B := Box[1, 1] - Box[0, 1];
+    C := Box[1, 2] - Box[0, 2];
+    Result := 2*A*B + 2*B*C + 2*A*C;
+  end;
 end;
 
 function Box3dMinSize(const box: TBox3d): Single;
