@@ -2180,7 +2180,8 @@ var
   begin
     if not OcclusionBoxState then
     begin
-      glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_ENABLE_BIT);
+      glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or
+        GL_ENABLE_BIT or GL_LIGHTING_BIT);
 
       glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); { saved by GL_COLOR_BUFFER_BIT }
       glDepthMask(GL_FALSE); { saved by GL_DEPTH_BUFFER_BIT }
@@ -2204,6 +2205,8 @@ var
       glDisable(GL_TEXTURE_2D); { saved by GL_ENABLE_BIT }
       if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
       if GL_EXT_texture3D        then glDisable(GL_TEXTURE_3D_EXT);
+
+      glShadeModel(GL_FLAT); { saved by GL_LIGHTING_BIT }
 
       glEnableClientState(GL_VERTEX_ARRAY);
 
