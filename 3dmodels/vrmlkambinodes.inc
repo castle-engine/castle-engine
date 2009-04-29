@@ -245,6 +245,22 @@
     procedure OverrideLimits(var Limits: TOctreeLimits);
   end;
 
+  TNodeGeneratedShadowMap = class(TNodeX3DTextureNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdupdate: TSFString;
+    public property Fdupdate: TSFString read FFdupdate;
+
+    private FFdsize: TSFInt32;
+    public property Fdsize: TSFInt32 read FFdsize;
+
+    private FFdlight: TSFNode;
+    public property Fdlight: TSFNode read FFdlight;
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -643,6 +659,39 @@ begin
     VRMLWarning(vwSerious, 'KambiOctreeProperties.leafCapacity must be >= -1');
 end;
 
+constructor TNodeGeneratedShadowMap.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdupdate := TSFString.Create(Self, 'update', 'NONE');
+  Fields.Add(FFdupdate);
+  { X3D specification comment: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"] }
+
+  FFdsize := TSFInt32.Create(Self, 'size', 128, { MustBeNonnegative } true);
+  FFdsize.Exposed := false;
+  Fields.Add(FFdsize);
+  { X3D specification comment: (0,Inf) }
+
+  { Note that light node is not enumerated as an active node
+    for traversing (in DirectEnumerateActive), because the light doesn't
+    shine here. We don't want
+    to override it's transform with transformation of this
+    TextureCoordinateGenerator. }
+  FFdlight := TSFNode.Create(Self, 'light', [TNodeX3DLightNode]);
+  Fields.Add(FFdlight);
+end;
+
+class function TNodeGeneratedShadowMap.ClassNodeTypeName: string;
+begin
+  Result := 'GeneratedShadowMap';
+end;
+
+class function TNodeGeneratedShadowMap.URNMatching(const URN: string): boolean;
+begin
+  Result := (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
 procedure RegisterKambiNodes;
 begin
   NodesManager.RegisterNodeClasses([
@@ -653,7 +702,8 @@ begin
     TNodeKambiAppearance,
     TNodeKambiInline,
     TNodeKambiNavigationInfo,
-    TNodeKambiOctreeProperties
+    TNodeKambiOctreeProperties,
+    TNodeGeneratedShadowMap
   ]);
 end;
 

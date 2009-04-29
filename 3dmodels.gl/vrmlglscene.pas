@@ -1411,7 +1411,7 @@ type
     property WalkProjectionFar : Single read FWalkProjectionFar ;
 
     procedure UpdateGeneratedTextures(
-      const RenderFunc: TCubeMapRenderFunction;
+      const RenderFunc: TRenderTargetFunction;
       const ProjectionNear, ProjectionFar: Single;
       const MapsOverlap: boolean;
       const MapScreenX, MapScreenY: Integer;
@@ -4761,7 +4761,7 @@ begin
 end;
 
 procedure TVRMLGLScene.UpdateGeneratedTextures(
-  const RenderFunc: TCubeMapRenderFunction;
+  const RenderFunc: TRenderTargetFunction;
   const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer;
@@ -4770,23 +4770,26 @@ procedure TVRMLGLScene.UpdateGeneratedTextures(
 var
   I: Integer;
   NeedsRestoreViewport: boolean;
+  Shape: TVRMLGLShape;
+  TextureNode: TVRMLNode;
 begin
-  { TODO: optimize this for often case when no work is needed,
-    keep some count of GeneratedCubeMapTexture
-    and do this only when non-zero. }
-
   NeedsRestoreViewport := false;
 
   for I := 0 to GeneratedTextures.Count - 1 do
   begin
-    AvoidShapeRendering := TVRMLGLShape(GeneratedTextures.Items[I].Shape);
-    Renderer.UpdateGeneratedTextures(GeneratedTextures.Items[I].Shape,
-      GeneratedTextures.Items[I].TextureNode,
+    Shape := TVRMLGLShape(GeneratedTextures.Items[I].Shape);
+    TextureNode := GeneratedTextures.Items[I].TextureNode;
+
+    if TextureNode is TNodeGeneratedCubeMapTexture then
+      AvoidShapeRendering := Shape;
+
+    Renderer.UpdateGeneratedTextures(Shape,
+      TextureNode,
       RenderFunc, ProjectionNear, ProjectionFar, MapsOverlap,
       MapScreenX, MapScreenY, NeedsRestoreViewport);
-  end;
 
-  AvoidShapeRendering := nil;
+    AvoidShapeRendering := nil;
+  end;
 
   if NeedsRestoreViewport then
     glViewport(OriginalViewportX, OriginalViewportY,

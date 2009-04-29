@@ -346,7 +346,8 @@ type
 
   { @exclude }
   TGeneratedTexture = record
-    { May be only TNodeGeneratedCubeMapTexture or TNodeRenderedTexture. }
+    { May be only TNodeGeneratedCubeMapTexture or TNodeRenderedTexture
+      or TNodeGeneratedShadowMap. }
     TextureNode: TVRMLNode;
     Shape: TVRMLShape;
   end;
@@ -2182,7 +2183,8 @@ procedure TChangedAllTraverser.Traverse(
        (Shape.State.ParentShape.Appearance.FdTexture.Value <> nil) then
     begin
       Tex := Shape.State.ParentShape.Appearance.FdTexture.Value;
-      if Tex is TNodeGeneratedCubeMapTexture then
+      if (Tex is TNodeGeneratedCubeMapTexture) or
+         (Tex is TNodeGeneratedShadowMap) then
       begin
         NewGenTex := ParentScene.GeneratedTextures.AppendItem;
         NewGenTex^.TextureNode := Tex;
@@ -2193,7 +2195,8 @@ procedure TChangedAllTraverser.Traverse(
         for I := 0 to TNodeMultiTexture(Tex).FdTexture.Items.Count - 1 do
         begin
           ChildTex := TNodeMultiTexture(Tex).FdTexture.Items.Items[I];
-          if ChildTex is TNodeGeneratedCubeMapTexture then
+          if (ChildTex is TNodeGeneratedCubeMapTexture) or
+             (ChildTex is TNodeGeneratedShadowMap) then
           begin
             NewGenTex := ParentScene.GeneratedTextures.AppendItem;
             NewGenTex^.TextureNode := ChildTex;

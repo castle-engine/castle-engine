@@ -32,7 +32,7 @@
 
   TNodeTextureProperties = class;
 
-  { Common texture node for all VRML / X3D texture nodes.
+  { Common texture node for all normal (2D) VRML / X3D texture nodes.
 
     For X3D, this descends from X3DTextureNode and is an ancestor
     for X3DTexture2DNode, so X3D hierarchy is nicely preserved. }

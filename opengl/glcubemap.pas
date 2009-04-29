@@ -30,13 +30,19 @@ uses VectorMath, CubeMap, Images, Frustum, DDS, GL, GLU, KambiGLUtils;
 type
   TCubeMapRenderSimpleFunction = procedure (ForCubeMap: boolean);
 
-  TCubeMapRenderFunction = procedure (
-    const ForCubeMap: boolean;
+  TRenderTarget = (
+    rtScreen,
+    rtCubeMapEnvironment,
+    rtShadowMap);
+
+  TRenderTargetFunction = procedure (
+    const RenderTarget: TRenderTarget;
     const CameraMatrix, CameraRotationOnlyMatrix: TMatrix4Single;
     const Frustum: TFrustum);
 
 { Calculate spherical harmonics basis describing environment rendered
-  by OpenGL. Environment is rendered by Render(true) callback, from the
+  by OpenGL. Environment is rendered by
+  Render(rtCubeMapEnvironment, ...) callback, from the
   CapturePoint. It's rendered to color buffer, and captured as grayscale.
   Captured pixel value is just assumed to be the value of spherical function
   at this direction. It's also scaled by ScaleColor (since rendering
@@ -61,7 +67,7 @@ type
 
 { Capture cube map by rendering environment from CapturePoint.
 
-  Environment is rendered by Render(true, CameraMatrix, ...) callback.
+  Environment is rendered by Render(rtCubeMapEnvironment, ...) callback.
   CameraMatrix describes desired camera matrix, with camera position
   from the CapturePoint. You should load CameraMatrix
   to OpenGL modelview matrix before rendering your 3D scene,
@@ -104,7 +110,7 @@ type
 procedure GLCaptureCubeMapImages(
   const Images: TCubeMapImages;
   const CapturePoint: TVector3Single;
-  const Render: TCubeMapRenderFunction;
+  const Render: TRenderTargetFunction;
   const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer);
@@ -117,7 +123,7 @@ procedure GLCaptureCubeMapImages(
 function GLCaptureCubeMapDDS(
   const Size: Cardinal;
   const CapturePoint: TVector3Single;
-  const Render: TCubeMapRenderFunction;
+  const Render: TRenderTargetFunction;
   const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer): TDDSImage;
@@ -140,7 +146,7 @@ procedure GLCaptureCubeMapTexture(
   const Tex: TGLuint;
   const Size: Cardinal;
   const CapturePoint: TVector3Single;
-  const Render: TCubeMapRenderFunction;
+  const Render: TRenderTargetFunction;
   const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer);
@@ -242,7 +248,7 @@ end;
 procedure GLCaptureCubeMapImages(
   const Images: TCubeMapImages;
   const CapturePoint: TVector3Single;
-  const Render: TCubeMapRenderFunction;
+  const Render: TRenderTargetFunction;
   const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer);
@@ -278,7 +284,7 @@ var
         glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
         Frustum.Init(ProjectionMatrix, CameraMatrix);
 
-        Render(true, CameraMatrix, CameraRotationOnlyMatrix, Frustum);
+        Render(rtCubeMapEnvironment, CameraMatrix, CameraRotationOnlyMatrix, Frustum);
 
       glMatrixMode(GL_PROJECTION);
     glPopMatrix;
@@ -300,7 +306,7 @@ end;
 function GLCaptureCubeMapDDS(
   const Size: Cardinal;
   const CapturePoint: TVector3Single;
-  const Render: TCubeMapRenderFunction;
+  const Render: TRenderTargetFunction;
   const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer): TDDSImage;
@@ -337,7 +343,7 @@ procedure GLCaptureCubeMapTexture(
   const Tex: TGLuint;
   const Size: Cardinal;
   const CapturePoint: TVector3Single;
-  const Render: TCubeMapRenderFunction;
+  const Render: TRenderTargetFunction;
   const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer);
@@ -371,7 +377,7 @@ procedure GLCaptureCubeMapTexture(
         glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
         Frustum.Init(ProjectionMatrix, CameraMatrix);
 
-        Render(true, CameraMatrix, CameraRotationOnlyMatrix, Frustum);
+        Render(rtCubeMapEnvironment, CameraMatrix, CameraRotationOnlyMatrix, Frustum);
 
       glMatrixMode(GL_PROJECTION);
     glPopMatrix;

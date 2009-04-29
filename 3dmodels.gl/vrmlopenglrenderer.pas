@@ -932,6 +932,20 @@ type
   {$I dynarray_11.inc}
   TDynTexture3DCacheArray = TDynArray_11;
 
+  TTextureDepthCache = record
+    InitialNode: TNodeGeneratedShadowMap;
+    References: Cardinal;
+    GLName: TGLuint;
+  end;
+  PTextureDepthCache = ^TTextureDepthCache;
+
+  TDynArrayItem_13 = TTextureDepthCache;
+  PDynArrayItem_13 = PTextureDepthCache;
+  {$define DYNARRAY_13_IS_STRUCT}
+  {$define DYNARRAY_13_IS_INIT_FINI_TYPE}
+  {$I dynarray_13.inc}
+  TDynTextureDepthCacheArray = TDynArray_13;
+
   { Note that Attributes and State are owned by this record
     (TVRMLOpenGLRendererContextCache will make sure about creating/destroying
     them), but GeometryNode and FogNode are a references somewhere to the scene
@@ -1008,6 +1022,7 @@ type
     TextureVideoCaches: TDynTextureVideoCacheArray;
     TextureCubeMapCaches: TDynTextureCubeMapCacheArray;
     Texture3DCaches: TDynTexture3DCacheArray;
+    TextureDepthCaches: TDynTextureDepthCacheArray;
     ShapeCaches: TDynShapeCacheArray;
     ShapeNoTransformCaches: TDynShapeCacheArray;
     RenderBeginCaches: TDynRenderBeginEndCacheArray;
@@ -1050,6 +1065,13 @@ type
       out AlphaChannelType: TAlphaChannelType): TGLuint;
 
     procedure TextureCubeMap_DecReference(
+      const TextureGLName: TGLuint);
+
+    function TextureDepth_IncReference(
+      Node: TNodeGeneratedShadowMap;
+      const Size: Cardinal): TGLuint;
+
+    procedure TextureDepth_DecReference(
       const TextureGLName: TGLuint);
 
     function Texture3D_IncReference(
@@ -1261,6 +1283,28 @@ type
     function TextureNodeIndex(ANode: TNodeX3DTexture3DNode): Integer;
   end;
 
+  TTextureDepthReference = record
+    Node: TNodeGeneratedShadowMap;
+    GLName: TGLuint;
+    { When Node is TNodeGeneratedShadowMap,
+      this is the right size of the texture,
+      that satisfies all OpenGL sizes requirements.
+      Unused for other Node classes. }
+    GeneratedSize: Cardinal;
+  end;
+  PTextureDepthReference = ^TTextureDepthReference;
+
+  TDynArrayItem_14 = TTextureDepthReference;
+  PDynArrayItem_14 = PTextureDepthReference;
+  {$define DYNARRAY_14_IS_STRUCT}
+  {$I dynarray_14.inc}
+  TDynTextureDepthReferenceArray = class(TDynArray_14)
+  public
+    { Looks for item with given ANode.
+      Returns -1 if not found. }
+    function TextureNodeIndex(ANode: TNodeGeneratedShadowMap): Integer;
+  end;
+
   TGLSLProgramReference = record
     ProgramNode: TNodeComposedShader;
 
@@ -1339,6 +1383,7 @@ type
     TextureVideoReferences: TDynTextureVideoReferenceArray;
     TextureCubeMapReferences: TDynTextureCubeMapReferenceArray;
     Texture3DReferences: TDynTexture3DReferenceArray;
+    TextureDepthReferences: TDynTextureDepthReferenceArray;
     GLSLProgramReferences: TDynGLSLProgramReferenceArray;
 
     { To which fonts we made a reference in the cache ? }
@@ -1636,7 +1681,7 @@ type
       will not be modified). }
     procedure UpdateGeneratedTextures(Shape: TVRMLShape;
       TextureNode: TVRMLNode;
-      const Render: TCubeMapRenderFunction;
+      const Render: TRenderTargetFunction;
       const ProjectionNear, ProjectionFar: Single;
       const MapsOverlap: boolean;
       const MapScreenX, MapScreenY: Integer;
@@ -1672,7 +1717,7 @@ implementation
 
 uses Math, Triangulator, NormalizationCubeMap,
   KambiStringUtils, GLVersionUnit, KambiLog, KambiClassUtils,
-  VRMLGeometry, VRMLScene, DDS;
+  VRMLGeometry, VRMLScene, DDS, Frustum;
 
 {$define read_implementation}
 {$I dynarray_1.inc}
@@ -1687,6 +1732,8 @@ uses Math, Triangulator, NormalizationCubeMap,
 {$I dynarray_10.inc}
 {$I dynarray_11.inc}
 {$I dynarray_12.inc}
+{$I dynarray_13.inc}
+{$I dynarray_14.inc}
 
 {$I openglmac.inc}
 
@@ -1707,6 +1754,7 @@ begin
   TextureVideoCaches := TDynTextureVideoCacheArray.Create;
   TextureCubeMapCaches := TDynTextureCubeMapCacheArray.Create;
   Texture3DCaches := TDynTexture3DCacheArray.Create;
+  TextureDepthCaches := TDynTextureDepthCacheArray.Create;
   ShapeCaches := TDynShapeCacheArray.Create;
   ShapeNoTransformCaches := TDynShapeCacheArray.Create;
   RenderBeginCaches := TDynRenderBeginEndCacheArray.Create;
@@ -1757,6 +1805,13 @@ begin
     Assert(Texture3DCaches.Count = 0, 'Some references to texture 3D still exist' +
       ' when freeing TVRMLOpenGLRendererContextCache');
     FreeAndNil(Texture3DCaches);
+  end;
+
+  if TextureDepthCaches <> nil then
+  begin
+    Assert(TextureDepthCaches.Count = 0, 'Some references to depth texture still exist' +
+      ' when freeing TVRMLOpenGLRendererContextCache');
+    FreeAndNil(TextureDepthCaches);
   end;
 
   if ShapeCaches <> nil then
@@ -2244,6 +2299,79 @@ begin
 
   raise EInternalError.CreateFmt(
     'TVRMLOpenGLRendererContextCache.Texture3D_DecReference: no reference ' +
+    'found to texture %d', [TextureGLName]);
+end;
+
+function TVRMLOpenGLRendererContextCache.TextureDepth_IncReference(
+  Node: TNodeGeneratedShadowMap;
+  const Size: Cardinal): TGLuint;
+var
+  I: Integer;
+  TextureCached: PTextureDepthCache;
+begin
+  for I := 0 to TextureDepthCaches.High do
+  begin
+    TextureCached := TextureDepthCaches.Pointers[I];
+
+    if TextureCached^.InitialNode = Node then
+    begin
+      Inc(TextureCached^.References);
+      {$ifdef DEBUG_VRML_RENDERER_CACHE}
+      Writeln('++ : Depth texture ', PointerToStr(Node), ' : ', TextureCached^.References);
+      {$endif}
+      Exit(TextureCached^.GLName);
+    end;
+  end;
+
+  glGenTextures(1, @Result);
+  glBindTexture(GL_TEXTURE_2D, Result);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+  { In this case, clamp to border is Ok? TODO: test here }
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP);
+
+  { Do not init any texture image. Just initialize texture sizes
+    and both internal and external formats to GL_DEPTH_COMPONENT_ARB
+    (will match depth buffer precision). }
+  glTexImage2d(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+    Size, Size, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nil);
+
+  TextureCached := TextureDepthCaches.AppendItem;
+  TextureCached^.InitialNode := Node;
+  TextureCached^.References := 1;
+  TextureCached^.GLName := Result;
+
+  {$ifdef DEBUG_VRML_RENDERER_CACHE}
+  Writeln('++ : Depth texture ', PointerToStr(Node), ' : ', 1);
+  {$endif}
+end;
+
+procedure TVRMLOpenGLRendererContextCache.TextureDepth_DecReference(
+  const TextureGLName: TGLuint);
+var
+  I: Integer;
+begin
+  for I := 0 to TextureDepthCaches.High do
+    if TextureDepthCaches.Items[I].GLName = TextureGLName then
+    begin
+      Dec(TextureDepthCaches.Items[I].References);
+      {$ifdef DEBUG_VRML_RENDERER_CACHE}
+      Writeln('-- : Depth texture ', PointerToStr(TextureDepthCaches.Items[I].InitialNode), ' : ', TextureDepthCaches.Items[I].References);
+      {$endif}
+      if TextureDepthCaches.Items[I].References = 0 then
+      begin
+        glDeleteTextures(1, @(TextureDepthCaches.Items[I].GLName));
+        TextureDepthCaches.Delete(I, 1);
+      end;
+      Exit;
+    end;
+
+  raise EInternalError.CreateFmt(
+    'TVRMLOpenGLRendererContextCache.TextureDepth_DecReference: no reference ' +
     'found to texture %d', [TextureGLName]);
 end;
 
@@ -3247,6 +3375,16 @@ begin
   result := -1;
 end;
 
+{ TDynTextureDepthReferenceArray --------------------------------------------- }
+
+function TDynTextureDepthReferenceArray.TextureNodeIndex(
+  ANode: TNodeGeneratedShadowMap): integer;
+begin
+  for Result := 0 to Count - 1 do
+    if Items[result].Node = ANode then exit;
+  result := -1;
+end;
+
 { TDynGLSLProgramReferenceArray ---------------------------------------------- }
 
 function TDynGLSLProgramReferenceArray.ProgramNodeIndex(
@@ -3282,6 +3420,7 @@ begin
   TextureVideoReferences := TDynTextureVideoReferenceArray.Create;
   TextureCubeMapReferences := TDynTextureCubeMapReferenceArray.Create;
   Texture3DReferences := TDynTexture3DReferenceArray.Create;
+  TextureDepthReferences := TDynTextureDepthReferenceArray.Create;
   GLSLProgramReferences := TDynGLSLProgramReferenceArray.Create;
   TextureTransformUnitsUsedMore := TDynLongIntArray.Create;
 
@@ -3300,6 +3439,7 @@ begin
   FreeAndNil(TextureVideoReferences);
   FreeAndNil(TextureCubeMapReferences);
   FreeAndNil(Texture3DReferences);
+  FreeAndNil(TextureDepthReferences);
   FreeAndNil(GLSLProgramReferences);
   FreeAndNil(FAttributes);
 
@@ -4004,6 +4144,32 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     end;
   end;
 
+  { Do the necessary preparations for a 3d texture node.
+    Texture must be non-nil. }
+  procedure PrepareSingleTextureDepth(Texture: TNodeGeneratedShadowMap);
+  var
+    TextureReference: TTextureDepthReference;
+  begin
+    if TextureDepthReferences.TextureNodeIndex(Texture) <> -1 then
+      { Already loaded, nothing to do }
+      Exit;
+
+    if not GL_ARB_depth_texture then
+    begin
+      VRMLWarning(vwSerious, 'Your OpenGL doesn''t support ARB_depth_texture, cannot use GeneratedShadowMap nodes');
+      Exit;
+    end;
+
+    { TODO: fix Texture.FdSize.Value if needed }
+    TextureReference.GeneratedSize := Texture.FdSize.Value;
+
+    TextureReference.Node := Texture;
+    TextureReference.GLName := Cache.TextureDepth_IncReference(
+      Texture, TextureReference.GeneratedSize);
+
+    TextureDepthReferences.AppendItem(TextureReference);
+  end;
+
   { Do the necessary preparations for a multi-texture node.
     MultiTexture must be non-nil. }
   procedure PrepareMultiTexture(MultiTexture: TNodeMultiTexture);
@@ -4027,7 +4193,9 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
         if ChildTex is TVRMLTextureNode then
           PrepareSingle2DTexture(TVRMLTextureNode(ChildTex)) else
         if ChildTex is TNodeX3DTexture3DNode then
-          PrepareSingleTexture3D(TNodeX3DTexture3DNode(ChildTex));
+          PrepareSingleTexture3D(TNodeX3DTexture3DNode(ChildTex)) else
+        if ChildTex is TNodeGeneratedShadowMap then
+          PrepareSingleTextureDepth(TNodeGeneratedShadowMap(ChildTex));
       end;
     end;
   end;
@@ -4057,7 +4225,9 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
       if TextureNode is TVRMLTextureNode then
         PrepareSingle2DTexture(TVRMLTextureNode(TextureNode)) else
       if TextureNode is TNodeX3DTexture3DNode then
-        PrepareSingleTexture3D(TNodeX3DTexture3DNode(TextureNode));
+        PrepareSingleTexture3D(TNodeX3DTexture3DNode(TextureNode)) else
+      if TextureNode is TNodeGeneratedShadowMap then
+        PrepareSingleTextureDepth(TNodeGeneratedShadowMap(TextureNode));
     end;
   end;
 
@@ -4164,6 +4334,18 @@ procedure TVRMLOpenGLRenderer.Unprepare(Node: TVRMLNode);
     end;
   end;
 
+  procedure UnprepareSingleTextureDepth(Tex: TNodeGeneratedShadowMap);
+  var
+    i: integer;
+  begin
+    i := TextureDepthReferences.TextureNodeIndex(Tex);
+    if i >= 0 then
+    begin
+      Cache.TextureDepth_DecReference(TextureDepthReferences.Items[i].GLName);
+      TextureDepthReferences.Delete(i, 1);
+    end;
+  end;
+
   procedure UnprepareMultiTexture(Tex: TNodeMultiTexture);
   var
     TexItem: TVRMLNode;
@@ -4179,7 +4361,9 @@ procedure TVRMLOpenGLRenderer.Unprepare(Node: TVRMLNode);
       if TexItem is TNodeX3DEnvironmentTextureNode then
         UnprepareSingleCubeMapTexture(TNodeX3DEnvironmentTextureNode(TexItem)) else
       if TexItem is TNodeX3DTexture3DNode then
-        UnprepareSingleTexture3D(TNodeX3DTexture3DNode(TexItem));
+        UnprepareSingleTexture3D(TNodeX3DTexture3DNode(TexItem)) else
+      if TexItem is TNodeGeneratedShadowMap then
+        UnprepareSingleTextureDepth(TNodeGeneratedShadowMap(TexItem));
     end;
   end;
 
@@ -4205,6 +4389,9 @@ begin
 
   if Node is TNodeX3DTexture3DNode then
     UnprepareSingleTexture3D(TNodeX3DTexture3DNode(Node));
+
+  if Node is TNodeGeneratedShadowMap then
+    UnprepareSingleTextureDepth(TNodeGeneratedShadowMap(Node));
 
   { unprepare GLSLProgram }
   { This is not used for now anywhere actually ? Nowhere I unprepare
@@ -4260,6 +4447,10 @@ begin
   for i := 0 to Texture3DReferences.Count-1 do
     Cache.Texture3D_DecReference(Texture3DReferences.Items[i].GLName);
   Texture3DReferences.SetLength(0);
+
+  for i := 0 to TextureDepthReferences.Count-1 do
+    Cache.TextureDepth_DecReference(TextureDepthReferences.Items[i].GLName);
+  TextureDepthReferences.SetLength(0);
 
   { unprepare all GLSLPrograms }
   for i := 0 to GLSLProgramReferences.Count - 1 do
@@ -4459,6 +4650,17 @@ function TVRMLOpenGLRenderer.PreparedTextureAlphaChannelType(
       AlphaChannelType := Texture3DReferences.Items[Index].AlphaChannelType;
   end;
 
+  procedure DoItDepth(TextureNode: TNodeGeneratedShadowMap);
+  var
+    Index: Integer;
+  begin
+    Index := TextureDepthReferences.TextureNodeIndex(TextureNode);
+    Result := Index <> -1;
+    if Result then
+      { Our depth textures never have alpha channel. }
+      AlphaChannelType := atNone;
+  end;
+
 begin
   if TextureNode is TVRMLTextureNode then
     DoIt2D(TVRMLTextureNode(TextureNode)) else
@@ -4466,6 +4668,8 @@ begin
     DoItCubeMap(TNodeX3DEnvironmentTextureNode(TextureNode)) else
   if TextureNode is TNodeX3DTexture3DNode then
     DoIt3D(TNodeX3DTexture3DNode(TextureNode)) else
+  if TextureNode is TNodeGeneratedShadowMap then
+    DoItDepth(TNodeGeneratedShadowMap(TextureNode)) else
     Result := false;
 end;
 
@@ -5106,6 +5310,27 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       end;
     end;
 
+    function EnableSingleTextureDepth(const TextureUnit: Cardinal;
+      Texture: TNodeGeneratedShadowMap): boolean;
+    var
+      TexRefIndex: Integer;
+      TexRef: PTextureDepthReference;
+    begin
+      TexRefIndex := TextureDepthReferences.TextureNodeIndex(Texture);
+      Result := TexRefIndex <> -1;
+      if Result then
+      begin
+        TexRef := TextureDepthReferences.Pointers[TexRefIndex];
+
+        { Depth textures never have an alpha channel:
+        AlphaTest := AlphaTest or (TexRef^.AlphaChannelType = atSimpleYesNo); }
+
+        ActiveTexture(TextureUnit);
+        glBindTexture(GL_TEXTURE_2D, TexRef^.GLName);
+        TextureEnableDisable(et2D);
+      end;
+    end;
+
     { Do the necessary preparations for a multi-texture node.
       MultiTexture must be non-nil.
 
@@ -5354,7 +5579,9 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
           if ChildTex is TNodeX3DEnvironmentTextureNode then
             Success := EnableSingleCubeMapTexture(I, TNodeX3DEnvironmentTextureNode(ChildTex)) else
           if ChildTex is TNodeX3DTexture3DNode then
-            Success := EnableSingleTexture3D(I, TNodeX3DTexture3DNode(ChildTex));
+            Success := EnableSingleTexture3D(I, TNodeX3DTexture3DNode(ChildTex)) else
+          if ChildTex is TNodeGeneratedShadowMap then
+            Success := EnableSingleTextureDepth(I, TNodeGeneratedShadowMap(ChildTex));
 
           if Success then
           begin
@@ -5485,6 +5712,17 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       if TextureNode is TNodeX3DTexture3DNode then
       begin
         if EnableSingleTexture3D(0, TNodeX3DTexture3DNode(TextureNode)) then
+        begin
+          { TODO: this should be fixed, for non-multi tex decal
+            is standard? }
+          glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+          TexCoordsNeeded := 1;
+        end else
+          TexCoordsNeeded := 0;
+      end else
+      if TextureNode is TNodeGeneratedShadowMap then
+      begin
+        if EnableSingleTextureDepth(0, TNodeGeneratedShadowMap(TextureNode)) then
         begin
           { TODO: this should be fixed, for non-multi tex decal
             is standard? }
@@ -5808,31 +6046,60 @@ end;
 
 procedure TVRMLOpenGLRenderer.UpdateGeneratedTextures(Shape: TVRMLShape;
   TextureNode: TVRMLNode;
-  const Render: TCubeMapRenderFunction;
+  const Render: TRenderTargetFunction;
   const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer;
   var NeedsRestoreViewport: boolean);
-var
-  TexNode: TNodeGeneratedCubeMapTexture;
-  TexRefIndex: Integer;
-  TexRef: PTextureCubeMapReference;
-  UpdateIndex: Integer;
-begin
-  if { Shape.BoundingBox must be non-empty, otherwise we don't know from what
-       3D point to capture encironment. }
-     not IsEmptyBox3d(Shape.BoundingBox) and
-     { Capturing makes sense only for shapes with GeneratedCubeMapTexture for now. }
-     (TextureNode is TNodeGeneratedCubeMapTexture) then
-  begin
-    TexNode := TNodeGeneratedCubeMapTexture(TextureNode);
 
-    UpdateIndex := ArrayPosStr(LowerCase(TexNode.FdUpdate.Value),
+var
+  { Only for CheckUpdateField and PostUpdateField }
+  UpdateIndex: Integer;
+  SavedUpdateField: TSFString;
+
+  { Look at the "update" field's value, decide whether we need updating.
+    Will take care of making warning on incorrect "update". }
+  function CheckUpdate(UpdateField: TSFString): boolean;
+  begin
+    SavedUpdateField := UpdateField; { for PostUpdateField }
+
+    UpdateIndex := ArrayPosStr(LowerCase(UpdateField.Value),
       { Names below must be lowercase }
       ['none', 'next_frame_only', 'always']);
 
     { Only if update = 'NEXT_FRAME_ONLY' or 'ALWAYS' remake the texture. }
-    if UpdateIndex > 0 then
+    Result := UpdateIndex > 0;
+
+    if UpdateIndex = -1 then
+      VRMLWarning(vwSerious, Format('%s.update invalid field value "%s", will be treated like "NONE"',
+        [TextureNode.NodeTypeName, UpdateField.Value]));
+  end;
+
+  { Call this after CheckUpdateField returned @true and you updated
+    the texture.
+    Will take care of sending "NONE" after "NEXT_FRAME_ONLY". }
+  procedure PostUpdate;
+  begin
+    { If update = 'NEXT_FRAME_ONLY', change it to 'NONE' now }
+    if UpdateIndex = 1 then
+    begin
+      if TextureNode.ParentEventsProcessor <> nil then
+        SavedUpdateField.EventIn.Send('NONE',
+          (TextureNode.ParentEventsProcessor as TVRMLScene).WorldTime) else
+        SavedUpdateField.Value := 'NONE';
+    end;
+  end;
+
+  procedure UpdateGeneratedCubeMap(TexNode: TNodeGeneratedCubeMapTexture);
+  var
+    TexRefIndex: Integer;
+    TexRef: PTextureCubeMapReference;
+  begin
+    { Shape.BoundingBox must be non-empty, otherwise we don't know from what
+      3D point to capture encironment. }
+    if IsEmptyBox3d(Shape.BoundingBox) then Exit;
+
+    if CheckUpdate(TexNode.FdUpdate) then
     begin
       TexRefIndex := TextureCubeMapReferences.TextureNodeIndex(TexNode);
       if TexRefIndex <> -1 then
@@ -5852,25 +6119,75 @@ begin
 
         NeedsRestoreViewport := true;
 
-        { If update = 'NEXT_FRAME_ONLY', change it to 'NONE' now }
-        if UpdateIndex = 1 then
-        begin
-          if TexNode.ParentEventsProcessor <> nil then
-            TexNode.FdUpdate.EventIn.Send('NONE',
-              (TexNode.ParentEventsProcessor as TVRMLScene).WorldTime) else
-            TexNode.FdUpdate.Value := 'NONE';
-        end;
+        PostUpdate;
 
         if Log then
           WritelnLog('CubeMap', 'GeneratedCubeMapTexture texture regenerated');
       end;
-    end else
-    begin
-      if UpdateIndex = -1 then
-        VRMLWarning(vwSerious, Format('GeneratedCubeMapTexture.update invalid field value "%s", will be treated like "NONE"',
-          [TexNode.FdUpdate.Value]));
     end;
   end;
+
+  procedure UpdateGeneratedShadowMap(TexNode: TNodeGeneratedShadowMap);
+  var
+    Light: TNodeX3DLightNode;
+    TexRefIndex: Integer;
+    TexRef: PTextureDepthReference;
+    ProjectionMatrix, CameraMatrix, CameraRotationOnlyMatrix: TMatrix4Single;
+    Frustum: TFrustum;
+    Size: Cardinal;
+  begin
+    if CheckUpdate(TexNode.FdUpdate) then
+    begin
+      if (TexNode.FdLight.Value <> nil) and
+         (TexNode.FdLight.Value is TNodeX3DLightNode) then
+      begin
+        Light := TNodeX3DLightNode(TexNode.FdLight.Value);
+
+        TexRefIndex := TextureDepthReferences.TextureNodeIndex(TexNode);
+        if TexRefIndex <> -1 then
+        begin
+          TexRef := TextureDepthReferences.Pointers[TexRefIndex];
+
+          { Render view for shadow map }
+          ProjectionMatrix := Light.MapProjectionMatrix;
+          CameraMatrix := Light.MapModelviewMatrix;
+          CameraRotationOnlyMatrix := IdentityMatrix4Single;
+          Size := TexRef^.GeneratedSize;
+
+          glViewport(0, 0, Size, Size);
+
+          glMatrixMode(GL_PROJECTION);
+          glPushMatrix;
+            glLoadMatrix(ProjectionMatrix);
+            glMatrixMode(GL_MODELVIEW);
+              Frustum.Init(ProjectionMatrix, CameraMatrix);
+              Render(rtShadowMap, CameraMatrix, CameraRotationOnlyMatrix, Frustum);
+            glMatrixMode(GL_PROJECTION);
+          glPopMatrix;
+          glMatrixMode(GL_MODELVIEW);
+
+          { Actually update OpenGL texture TexRef^.GLName }
+          glBindTexture(GL_TEXTURE_2D, TexRef^.GLName);
+          glReadBuffer(GL_BACK);
+          glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, Size, Size);
+
+          NeedsRestoreViewport := true;
+
+          PostUpdate;
+
+          if Log then
+            WritelnLog('GeneratedShadowMap', 'GeneratedShadowMap texture regenerated');
+        end;
+      end else
+        VRMLWarning(vwSerious, 'GeneratedShadowMap needs updating, but light = NULL or incorrect');
+    end;
+  end;
+
+begin
+  if TextureNode is TNodeGeneratedCubeMapTexture then
+    UpdateGeneratedCubeMap(TNodeGeneratedCubeMapTexture(TextureNode)) else
+  if TextureNode is TNodeGeneratedShadowMap then
+    UpdateGeneratedShadowMap(TNodeGeneratedShadowMap(TextureNode));
 end;
 
 end.
