@@ -21,6 +21,10 @@
 {$ifdef read_interface}
   { X3DLightNode. }
   TNodeX3DLightNode = class(TNodeX3DChildNode)
+  private
+    FTransform: TMatrix4Single;
+  protected
+    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -49,13 +53,49 @@
     { showProxyGeometry field is an Avalon extension, see
       [http://instant-reality.com/documentation/nodetype/Light/]. }
     public property FdshowProxyGeometry: TSFBool read FFdshowProxyGeometry;
+
+    private FFdProjectionNear: TSFFloat;
+    { projectionNear / projectionFar / up are Kambi extensions, see
+      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadow_map_lights] }
+    public property FdProjectionNear: TSFFloat read FFdProjectionNear;
+
+    private FFdProjectionFar: TSFFloat;
+    public property FdProjectionFar: TSFFloat read FFdProjectionFar;
+
+    private FFdUp: TSFVec3f;
+    public property FdUp: TSFVec3f read FFdUp;
+
+    { Transformation of this light node.
+      Normal lights can be instanced many times within the scene, with
+      various transformation, so @italic(this transformation property
+      cannot be used).
+
+      However, in special cases, you know that light node occurs only once
+      within the scene (see
+      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadow_map]).
+      Then it's useful.
+
+      It is gathered during traversing. Last BeforeTraverse call for this
+      node sets Transform properties. By default, it represents identity
+      transformation.
+
+      @groupBegin }
+    property Transform: TMatrix4Single read FTransform;
+    { @groupEnd }
+
+    { Matrices for rendering shadow map from this light.
+      Identity in this class, override for subclases able to do shadow mapping.
+      @groupBegin }
+    function MapProjectionMatrix: TMatrix4Single; virtual;
+    function MapModelviewMatrix: TMatrix4Single; virtual;
+    { @groupEnd }
   end;
 
   { This is the base class for all VRML / X3D light nodes.
 
     This is for all VRML versions --- in particular, VRML 1.0 nodes
     also inherit from this, to reuse this and other light classes.
-    The fact that is descends from TNodeX3DLightNode is no problem for older
+    The fact that it descends from TNodeX3DLightNode is no problem for older
     than X3D versions, the interpretation of all fields is the same
     (and older VRML versions only benefit from additional fields).
     Well, actually, VRML 1.0 interprets them a little differently
@@ -97,7 +137,16 @@
     private FFdDirection: TSFVec3f;
     public property FdDirection: TSFVec3f read FFdDirection;
 
+    private FFdProjectionRectangle: TSFVec4f;
+    public property FdProjectionRectangle: TSFVec4f read FFdProjectionRectangle;
+
+    private FFdProjectionLocation: TSFVec3f;
+    public property FdProjectionLocation: TSFVec3f read FFdProjectionLocation;
+
     procedure UpdateActiveLight(var ActiveLight: TActiveLight); override;
+
+    function MapProjectionMatrix: TMatrix4Single; override;
+    function MapModelviewMatrix: TMatrix4Single; override;
   end;
 
   TVRMLPositionalLightNode = class(TVRMLLightNode)
@@ -181,10 +230,16 @@
     private FFdradius: TSFFloat;
     public property Fdradius: TSFFloat read FFdradius;
 
+    private FFdProjectionAngle: TSFFloat;
+    public property FdProjectionAngle: TSFFloat read FFdProjectionAngle;
+
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
 
     procedure UpdateActiveLight(var ActiveLight: TActiveLight); override;
+
+    function MapProjectionMatrix: TMatrix4Single; override;
+    function MapModelviewMatrix: TMatrix4Single; override;
   end;
 
 {$endif read_interface}
@@ -219,7 +274,36 @@ begin
   FFdshowProxyGeometry := TSFBool.Create(Self, 'showProxyGeometry', false);
   Fields.Add(FFdshowProxyGeometry);
 
+  FFdProjectionNear := TSFFloat.Create(Self, 'projectionNear', 0.01);
+  Fields.Add(FFdProjectionNear);
+
+  FFdProjectionFar := TSFFloat.Create(Self, 'projectionFar', 100);
+  Fields.Add(FFdProjectionFar);
+
+  FFdUp := TSFVec3f.Create(Self, 'up', Vector3Single(0, 1, 0));
+  Fields.Add(FFdUp);
+
   DefaultContainerField := 'children';
+
+  FTransform := IdentityMatrix4Single;
+end;
+
+procedure TNodeX3DLightNode.BeforeTraverse(
+  StateStack: TVRMLGraphTraverseStateStack);
+begin
+  inherited;
+
+  FTransform := StateStack.Top.Transform;
+end;
+
+function TNodeX3DLightNode.MapProjectionMatrix: TMatrix4Single;
+begin
+  Result := IdentityMatrix4Single;
+end;
+
+function TNodeX3DLightNode.MapModelviewMatrix: TMatrix4Single;
+begin
+  Result := IdentityMatrix4Single;
 end;
 
 function TVRMLLightNode.CreateActiveLight(
@@ -258,6 +342,13 @@ begin
   FFddirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, -1));
   Fields.Add(FFddirection);
   FFddirection.ProcessedInActiveLight := true;
+
+  FFdProjectionRectangle := TSFVec4f.Create(Self, 'projectionRectangle',
+    Vector4Single(-10, 10, -10, 10));
+  Fields.Add(FFdProjectionRectangle);
+
+  FFdprojectionLocation := TSFVec3f.Create(Self, 'projectionLocation', Vector3Single(0, 0, 0));
+  Fields.Add(FFdprojectionLocation);
 end;
 
 class function TVRMLDirectionalLightNode.ClassNodeTypeName: string;
@@ -271,6 +362,24 @@ begin
   inherited;
   ActiveLight.TransfNormDirection :=
     Normalized( MatrixMultDirection(ActiveLight.Transform, FdDirection.Value) );
+end;
+
+function TVRMLDirectionalLightNode.MapProjectionMatrix: TMatrix4Single;
+begin
+  Result := OrthoProjMatrix(
+    FdProjectionRectangle.Value[0],
+    FdProjectionRectangle.Value[1],
+    FdProjectionRectangle.Value[2],
+    FdProjectionRectangle.Value[3],
+    FdProjectionNear.Value, FdProjectionFar.Value);
+end;
+
+function TVRMLDirectionalLightNode.MapModelviewMatrix: TMatrix4Single;
+begin
+  Result := LookDirMatrix(
+    MatrixMultPoint(Transform, FdProjectionLocation.Value),
+    MatrixMultDirection(Transform, FdDirection.Value),
+    MatrixMultDirection(Transform, FdUp.Value));
 end;
 
 constructor TVRMLPositionalLightNode.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -454,6 +563,9 @@ begin
 
   FdGlobal.Value := true;
 
+  FFdprojectionAngle := TSFFloat.Create(Self, 'projectionAngle', 0);
+  Fields.Add(FFdprojectionAngle);
+
   DefaultContainerField := 'children';
 end;
 
@@ -494,6 +606,27 @@ begin
   { TODO: For non-uniform scale, this is too easy,
     see TNodePointLight_2.CreateActiveLight for more comments. }
   ActiveLight.TransfRadius := FdRadius.Value * ActiveLight.AverageScaleTransform;
+end;
+
+function TNodeSpotLight_2.MapProjectionMatrix: TMatrix4Single;
+var
+  ProjectionAngle: Single;
+begin
+  if FdprojectionAngle.Value <= 0 then
+    ProjectionAngle := 2 * FdCutOffAngle.Value else
+    ProjectionAngle := FdprojectionAngle.Value;
+
+  Result := PerspectiveProjMatrixRad(
+    ProjectionAngle, 1,
+    FdProjectionNear.Value, FdProjectionFar.Value);
+end;
+
+function TNodeSpotLight_2.MapModelviewMatrix: TMatrix4Single;
+begin
+  Result := LookDirMatrix(
+    MatrixMultPoint(Transform, FdLocation.Value),
+    MatrixMultDirection(Transform, FdDirection.Value),
+    MatrixMultDirection(Transform, FdUp.Value));
 end;
 
 procedure RegisterLightingNodes;

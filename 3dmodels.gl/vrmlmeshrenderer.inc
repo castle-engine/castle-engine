@@ -301,7 +301,8 @@ type
     tgCameraSpaceNormal,
     tgWorldSpaceNormal,
     tgCameraSpaceReflectionVector,
-    tgWorldSpaceReflectionVector);
+    tgWorldSpaceReflectionVector,
+    tgProjection);
 
 const
   ExplicitTexCoords = [tgExplicit2d, tgExplicit3d, tgExplicit4d];
@@ -403,6 +404,7 @@ type
       TexCoordGen/Array[0] are coords for 1st texture unit
       (that is, Renderer.FirstGLFreeTexture), and so on. }
     TexCoordGen: array of TTextureCoordinateGeneration;
+    TexCoordGenNode: array of TNodeTextureCoordinateGenerator;
     TexCoordArray2d: array of TMFVec2f;
     TexCoordArray3d: array of TMFVec3f;
     TexCoordArray4d: array of TMFVec4f;
@@ -1036,6 +1038,8 @@ var
         Result := tgCameraSpaceReflectionVector else
       if S = 'WORLDSPACEREFLECTIONVECTOR' then
         Result := tgWorldSpaceReflectionVector else
+      if S = 'PROJECTION' then
+        Result := tgProjection else
       begin
         Result := tgCoord;
         VRMLWarning(vwSerious, Format('Unsupported TextureCoordinateGenerator.mode: "%s", will use "COORD" instead',
@@ -1043,22 +1047,24 @@ var
       end;
     end;
 
-    { Set length of TexCoordGen, TexCoordArray* arrays. }
+    { Set length of TexCoordGen*, TexCoordArray* arrays. }
     procedure SetTexLengths(const Count: Integer);
     begin
       SetLength(TexCoordGen    , Count);
+      SetLength(TexCoordGenNode, Count);
       SetLength(TexCoordArray2d, Count);
       SetLength(TexCoordArray3d, Count);
       SetLength(TexCoordArray4d, Count);
     end;
 
-    { Set length of TexCoordGen, TexCoordArray* arrays.
-      Also, sets to nil all TexCoordArray* arrays items. }
+    { Set length of TexCoordGen*, TexCoordArray* arrays.
+      Also, sets to nil all TexCoordGenNode and TexCoordArray* arrays items. }
     procedure InitializeTexLengths(const Count: Integer);
     begin
       SetTexLengths(Count);
       if Count <> 0 then
       begin
+        FillChar(TexCoordGenNode[0], SizeOf(Pointer) * Count, 0);
         FillChar(TexCoordArray2d[0], SizeOf(Pointer) * Count, 0);
         FillChar(TexCoordArray3d[0], SizeOf(Pointer) * Count, 0);
         FillChar(TexCoordArray4d[0], SizeOf(Pointer) * Count, 0);
@@ -1101,7 +1107,8 @@ var
     if TexCoord is TNodeTextureCoordinateGenerator then
     begin
       InitializeTexLengths(1);
-      TexCoordGen    [0] := TexCoordGenFromString(TNodeTextureCoordinateGenerator(TexCoord).FdMode.Value);
+      TexCoordGenNode[0] := TNodeTextureCoordinateGenerator(TexCoord);
+      TexCoordGen    [0] := TexCoordGenFromString(TexCoordGenNode[0].FdMode.Value);
     end else
     if TexCoord is TNodeMultiTextureCoordinate then
     begin
@@ -1130,8 +1137,9 @@ var
         if (MultiTexCoord.Items[I] <> nil) and
            (MultiTexCoord.Items[I] is TNodeTextureCoordinateGenerator) then
         begin
-          TexCoordGen  [I] := TexCoordGenFromString(
-            TNodeTextureCoordinateGenerator(MultiTexCoord.Items[I]).FdMode.Value);
+          TexCoordGenNode[I] := TNodeTextureCoordinateGenerator(MultiTexCoord.Items[I]);
+          TexCoordGen    [I] := TexCoordGenFromString(
+            TexCoordGenNode[I].FdMode.Value);
         end else
         begin
           SetTexLengths(0);
@@ -1313,7 +1321,8 @@ var
   procedure EnableTextureCoordGen;
 
     procedure SetupTextureGen(const TexUnit: Cardinal;
-      const Gen: TTextureCoordinateGeneration);
+      const Gen: TTextureCoordinateGeneration;
+      const GenNode: TNodeTextureCoordinateGenerator);
 
       { Do the necessary things for WorldSpaceNormal and
         WorldSpaceReflectionVector. }
@@ -1355,6 +1364,15 @@ var
             MatrixToRawStr(CameraMatrix, '  '));
       end;
 
+    const
+      ProjectionScalingMatrix: TMatrix4Single =
+      ( (0.5,   0,   0, 0),
+        (  0, 0.5,   0, 0),
+        (  0,   0, 0.5, 0),
+        (0.5, 0.5, 0.5, 1) );
+    var
+      ProjectionM: TMatrix4Single;
+      ProjectedLight: TNodeX3DLightNode;
     begin
       case Gen of
         tgSphere:
@@ -1447,6 +1465,40 @@ var
             glEnable(GL_TEXTURE_GEN_T);
             glEnable(GL_TEXTURE_GEN_R);
           end;
+        tgProjection:
+          begin
+            if (GenNode.FdProjectedLight.Value <> nil) and
+               (GenNode.FdProjectedLight.Value is TNodeX3DLightNode) then
+            begin
+              ProjectedLight := TNodeX3DLightNode(GenNode.FdProjectedLight.Value);
+
+              glPushMatrix;
+                glLoadMatrix(CameraMatrix);
+                ProjectionM := MatrixMult(
+                  ProjectionScalingMatrix,
+                  MatrixMult(
+                    ProjectedLight.MapProjectionMatrix,
+                    ProjectedLight.MapModelviewMatrix));
+
+                glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+                glTexGenv(GL_S, GL_EYE_PLANE, MatrixRow(ProjectionM, 0));
+
+                glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+                glTexGenv(GL_T, GL_EYE_PLANE, MatrixRow(ProjectionM, 1));
+
+                glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+                glTexGenv(GL_R, GL_EYE_PLANE, MatrixRow(ProjectionM, 2));
+
+                glTexGeni(GL_Q, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+                glTexGenv(GL_Q, GL_EYE_PLANE, MatrixRow(ProjectionM, 3));
+              glPopMatrix;
+              glEnable(GL_TEXTURE_GEN_S);
+              glEnable(GL_TEXTURE_GEN_T);
+              glEnable(GL_TEXTURE_GEN_R);
+              glEnable(GL_TEXTURE_GEN_Q);
+            end else
+              VRMLWarning(vwSerious, 'Using TextureCoordinateGenerator.mode = "PROJECTION", but TextureCoordinateGenerator.projectedLight is NULL or incorrect');
+          end;
         else raise EInternalError.Create('SetupTextureGen - Gen?');
       end;
     end;
@@ -1460,12 +1512,12 @@ var
         if not (TexCoordGen[I] in ExplicitTexCoords) then
         begin
           Renderer.ActiveTexture(I);
-          SetupTextureGen(I, TexCoordGen[I]);
+          SetupTextureGen(I, TexCoordGen[I], TexCoordGenNode[I]);
         end;
     end else
     if not (TexCoordGen[0] in ExplicitTexCoords) then
     begin
-      SetupTextureGen(0, TexCoordGen[0]);
+      SetupTextureGen(0, TexCoordGen[0], TexCoordGenNode[0]);
     end;
   end;
 

@@ -434,6 +434,9 @@
 
     private FFdparameter: TMFFloat;
     public property Fdparameter: TMFFloat read FFdparameter;
+
+    private FFdprojectedLight: TSFNode;
+    public property FdprojectedLight: TSFNode read FFdprojectedLight;
   end;
 
   { Old BS Contact name for TextureCoordinateGenerator.
@@ -1279,6 +1282,14 @@ begin
   FFdparameter := TMFFloat.Create(Self, 'parameter', []);
   Fields.Add(FFdparameter);
   { X3D specification comment: [see Table 18.6] }
+
+  { Note that projectedLight node is not enumerated as an active node
+    for traversing (in DirectEnumerateActive), because the light doesn't
+    shine here. We don't want
+    to override it's transform with transformation of this
+    TextureCoordinateGenerator. }
+  FFdprojectedLight := TSFNode.Create(Self, 'projectedLight', [TNodeX3DLightNode]);
+  Fields.Add(FFdprojectedLight);
 end;
 
 class function TNodeTextureCoordinateGenerator.ClassNodeTypeName: string;

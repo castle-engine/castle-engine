@@ -1849,6 +1849,13 @@ function MatrixMult(const m1, m2: TMatrix4Single): TMatrix4Single;
 function MatrixMult(const m1, m2: TMatrix3Double): TMatrix3Double;
 function MatrixMult(const m1, m2: TMatrix4Double): TMatrix4Double;
 
+function MatrixRow(const m: TMatrix2Single; const Row: Integer): TVector2Single; overload;
+function MatrixRow(const m: TMatrix3Single; const Row: Integer): TVector3Single; overload;
+function MatrixRow(const m: TMatrix4Single; const Row: Integer): TVector4Single; overload;
+function MatrixRow(const m: TMatrix2Double; const Row: Integer): TVector2Double; overload;
+function MatrixRow(const m: TMatrix3Double; const Row: Integer): TVector3Double; overload;
+function MatrixRow(const m: TMatrix4Double; const Row: Integer): TVector4Double; overload;
+
 {$ifdef FPC}
 function MatrixDeterminant(const M: TMatrix2Single): Single;
 function MatrixDeterminant(const M: TMatrix2Double): Double;

@@ -78,7 +78,7 @@ type
       here, a their property.
 
       It is gathered during traversing. Last BeforeTraverse call for this
-      node sets Transform properties. By default, these represent idenity
+      node sets Transform properties. By default, these represent identity
       transformation.
 
       @groupBegin }

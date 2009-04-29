@@ -1478,7 +1478,8 @@ function TVRMLGLShape.EnableDisplayList: boolean;
   begin
     Result :=
       (S = 'WORLDSPACEREFLECTIONVECTOR') or
-      (S = 'WORLDSPACENORMAL');
+      (S = 'WORLDSPACENORMAL') or
+      (S = 'PROJECTION');
   end;
 var
   I: Integer;

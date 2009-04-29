@@ -1990,3 +1990,24 @@ begin
   Result := MM.Inverse(Determinant).Data;
 end;
 {$endif}
+
+function MatrixRow(const m: TYPE_MATRIX2; const Row: Integer): TYPE_VECTOR2;
+begin
+  Result[0] := M[0][Row];
+  Result[1] := M[1][Row];
+end;
+
+function MatrixRow(const m: TYPE_MATRIX3; const Row: Integer): TYPE_VECTOR3;
+begin
+  Result[0] := M[0][Row];
+  Result[1] := M[1][Row];
+  Result[2] := M[2][Row];
+end;
+
+function MatrixRow(const m: TYPE_MATRIX4; const Row: Integer): TYPE_VECTOR4;
+begin
+  Result[0] := M[0][Row];
+  Result[1] := M[1][Row];
+  Result[2] := M[2][Row];
+  Result[3] := M[3][Row];
+end;
