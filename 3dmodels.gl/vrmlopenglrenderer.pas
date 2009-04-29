@@ -2340,6 +2340,14 @@ begin
   glTexImage2d(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
     Size, Size, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nil);
 
+  if GL_ARB_shadow then
+  begin
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_LEQUAL);
+    glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE_ARB, GL_INTENSITY);
+  end else
+    VRMLWarning(vwIgnorable, 'OpenGL doesn''t support ARB_shadow, we cannot set depth comparison for depth texture');
+
   TextureCached := TextureDepthCaches.AppendItem;
   TextureCached^.InitialNode := Node;
   TextureCached^.References := 1;
@@ -6160,8 +6168,18 @@ var
           glPushMatrix;
             glLoadMatrix(ProjectionMatrix);
             glMatrixMode(GL_MODELVIEW);
+
+            glPushAttrib(GL_POLYGON_BIT);
+              { enable polygon offset for everything (whole scene) }
+              glEnable(GL_POLYGON_OFFSET_FILL); { saved by GL_POLYGON_BIT }
+              glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
+              glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
+              glPolygonOffset(1.1, 4); { saved by GL_POLYGON_BIT }
+
               Frustum.Init(ProjectionMatrix, CameraMatrix);
               Render(rtShadowMap, CameraMatrix, CameraRotationOnlyMatrix, Frustum);
+            glPopAttrib;
+
             glMatrixMode(GL_PROJECTION);
           glPopMatrix;
           glMatrixMode(GL_MODELVIEW);
