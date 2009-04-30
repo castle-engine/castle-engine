@@ -2332,7 +2332,6 @@ begin
   { In this case, clamp to border is Ok? TODO: test here }
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP);
 
   { Do not init any texture image. Just initialize texture sizes
     and both internal and external formats to GL_DEPTH_COMPONENT_ARB
