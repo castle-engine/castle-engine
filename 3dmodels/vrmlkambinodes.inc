@@ -259,6 +259,12 @@
 
     private FFdlight: TSFNode;
     public property Fdlight: TSFNode read FFdlight;
+
+    private FFdscale: TSFFloat;
+    public property Fdscale: TSFFloat read FFdscale;
+
+    private FFdbias: TSFFloat;
+    public property Fdbias: TSFFloat read FFdbias;
   end;
 
 {$endif read_interface}
@@ -680,6 +686,12 @@ begin
     TextureCoordinateGenerator. }
   FFdlight := TSFNode.Create(Self, 'light', [TNodeX3DLightNode]);
   Fields.Add(FFdlight);
+
+  FFdscale := TSFFloat.Create(Self, 'scale', 1.1, { MustBeNonnegative } true);
+  Fields.Add(FFdscale);
+
+  FFdbias := TSFFloat.Create(Self, 'bias', 4.0, { MustBeNonnegative } true);
+  Fields.Add(FFdbias);
 end;
 
 class function TNodeGeneratedShadowMap.ClassNodeTypeName: string;

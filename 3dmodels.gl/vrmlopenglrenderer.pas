@@ -6173,7 +6173,7 @@ var
               glEnable(GL_POLYGON_OFFSET_FILL); { saved by GL_POLYGON_BIT }
               glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
               glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
-              glPolygonOffset(1.1, 4); { saved by GL_POLYGON_BIT }
+              glPolygonOffset(TexNode.FdScale.Value, TexNode.FdBias.Value); { saved by GL_POLYGON_BIT }
 
               Frustum.Init(ProjectionMatrix, CameraMatrix);
               Render(rtShadowMap, CameraMatrix, CameraRotationOnlyMatrix, Frustum);
