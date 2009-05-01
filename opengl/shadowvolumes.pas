@@ -251,7 +251,8 @@ type
 
 implementation
 
-uses SysUtils, KambiUtils, KambiStringUtils, KambiLog, GLVersionUnit;
+uses SysUtils, KambiUtils, KambiStringUtils, KambiLog, GLVersionUnit,
+  GLRenderState;
 
 procedure TShadowVolumes.InitGLContext;
 begin
@@ -782,7 +783,9 @@ begin
     glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
     glStencilFunc(GL_EQUAL, 0, StencilShadowBits);
     glEnable(GL_STENCIL_TEST);
+      Inc(RenderState.StencilTest);
       RenderShadowReceivers(false, tgOpaque);
+      Dec(RenderState.StencilTest);
     glDisable(GL_STENCIL_TEST);
   glPopAttrib();
 

@@ -1464,7 +1464,7 @@ type
 implementation
 
 uses VRMLErrors, GLVersionUnit, GLImages, Images, KambiLog,
-  Object3dAsVRML, Math, RaysWindow, KambiStringUtils, Contnrs;
+  Object3dAsVRML, Math, RaysWindow, KambiStringUtils, Contnrs, GLRenderState;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -2251,7 +2251,17 @@ var
           glGetQueryObjectuivARB(Shape.OcclusionQueryId, GL_QUERY_RESULT_ARB,
             @SampleCount) else
           SampleCount := 1; { if not asked, assume it's visible }
-        glBeginQueryARB(GL_SAMPLES_PASSED_ARB, Shape.OcclusionQueryId);
+
+        { Do not do occlusion query (although still use results from previous
+          query) if we're within stencil test (like in InShadow = false pass
+          of shadow volumes). This would incorrectly mark some shapes
+          as non-visible (just because they don't pass stencil test on any pixel),
+          while in fact they should be visible in the very next
+          (with InShadow = true) render pass. }
+
+        if RenderState.StencilTest = 0 then
+          glBeginQueryARB(GL_SAMPLES_PASSED_ARB, Shape.OcclusionQueryId);
+
           if SampleCount > 0 then
           begin
             DoRenderShape;
@@ -2266,8 +2276,12 @@ var
             glDrawBox3dSimple(Shape.BoundingBox);
             Inc(FLastRender_BoxesOcclusionQueriedCount);
           end;
+
+        if RenderState.StencilTest = 0 then
+        begin
+          glEndQueryARB(GL_SAMPLES_PASSED_ARB);
           Shape.OcclusionQueryAsked := true;
-        glEndQueryARB(GL_SAMPLES_PASSED_ARB);
+        end;
       end else
       if Attributes.DebugHierOcclusionQueryResults and
          Attributes.UseHierarchicalOcclusionQuery then
