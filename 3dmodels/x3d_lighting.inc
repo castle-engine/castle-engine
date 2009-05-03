@@ -274,7 +274,7 @@ begin
   FFdshowProxyGeometry := TSFBool.Create(Self, 'showProxyGeometry', false);
   Fields.Add(FFdshowProxyGeometry);
 
-  FFdProjectionNear := TSFFloat.Create(Self, 'projectionNear', 0.01);
+  FFdProjectionNear := TSFFloat.Create(Self, 'projectionNear', 1);
   Fields.Add(FFdProjectionNear);
 
   FFdProjectionFar := TSFFloat.Create(Self, 'projectionFar', 100);
