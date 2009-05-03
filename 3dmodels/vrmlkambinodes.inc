@@ -265,6 +265,9 @@
 
     private FFdbias: TSFFloat;
     public property Fdbias: TSFFloat read FFdbias;
+
+    private FFdcompareMode: TSFstring;
+    public property FdcompareMode: TSFString read FFdcompareMode;
   end;
 
 {$endif read_interface}
@@ -692,6 +695,9 @@ begin
 
   FFdbias := TSFFloat.Create(Self, 'bias', 4.0, { MustBeNonnegative } true);
   Fields.Add(FFdbias);
+
+  FFdcompareMode := TSFString.Create(Self, 'compareMode', 'COMPARE_R_LEQUAL');
+  Fields.Add(FFdcompareMode);
 end;
 
 class function TNodeGeneratedShadowMap.ClassNodeTypeName: string;
