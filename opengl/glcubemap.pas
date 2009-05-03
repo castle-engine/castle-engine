@@ -133,7 +133,8 @@ function GLCaptureCubeMapDDS(
 
   See GLCaptureCubeMapImages for documentation, this works the same,
   but it captures images to given OpenGL texture name Tex.
-  Tex must already be created cube map texture, with square images of Size.
+  Tex must already be created cube map texture (with OpenGL
+  size and internal formats set), with square images of Size.
   This also means that Size must be a valid OpenGL cube map texture size,
   you can check it by GLImages.IsCubeMapTextureSized.
 
@@ -385,8 +386,8 @@ procedure GLCaptureCubeMapTexture(
 
     glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, Tex);
     glReadBuffer(GL_BACK);
-    glCopyTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB + Ord(Side), 0,
-      GL_RGB, 0, 0, Size, Size, 0);
+    glCopyTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB + Ord(Side),
+      0, 0, 0, 0, 0, Size, Size);
   end;
 
 var
