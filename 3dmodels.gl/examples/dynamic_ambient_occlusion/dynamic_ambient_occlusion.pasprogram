@@ -433,9 +433,20 @@ begin
     GL_NEAREST, GL_NEAREST);
 
   { Prepare OpenGL texture for shaders output (and also input to 2nd pass
-    of algorithm). Texture data is not initialized at this point. }
+    of algorithm). }
   glGenTextures(1, @GLElementsIntensityTex);
   glBindTexture(GL_TEXTURE_2D, GLElementsIntensityTex);
+
+  { Texture data is not initialized at this point,
+    but we set texture width, height, format and such.
+    This will allow texture to be updated by glCopyTexSubImage,
+    which is faster than glCopyTexImage. }
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
+    ElementsTexSize, ElementsTexSize, 0,
+    { Format and type don't matter, as far as I understand, since pixels
+      pointer is nil. }
+    GL_LUMINANCE, GL_UNSIGNED_BYTE, nil);
+
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 end;
@@ -581,14 +592,14 @@ procedure Draw(Glwin: TGLWindow);
             GL_NEAREST, GL_NEAREST);}
 
           { Capture result of 1st pass into GLElementsIntensityTex
-            using glCopyTexImage2D. Also, this BTW binds GLElementsIntensityTex
+            using glCopyTexSubImage2D. Also, this BTW binds GLElementsIntensityTex
             to GL_TEXTURE2 texture unit, used by DoRender(1). }
 
           glActiveTextureARB(GL_TEXTURE2);
           glBindTexture(GL_TEXTURE_2D, GLElementsIntensityTex);
           glReadBuffer(GL_BACK);
-          glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
-            0, 0, ElementsTexSize, ElementsTexSize, 0);
+          glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0,
+            ElementsTexSize, ElementsTexSize);
 
           DoRender(1);
         end;
