@@ -133,11 +133,21 @@ void main(void)
     color = (color + texture2D(tex_elements_intensity, current_st).x) / 2.0;
     #endif
 
-    gl_FragColor = vec4(color, color, color, 1.0);
+    /* Return color only in the red component. Note that using "color"
+       for all RGB components (like
+         gl_FragColor = vec4(color, color, color, 1.0);
+       ) causes wrong behavior if we catch the resulting fragments
+       to GL_LUMINANCE texture. It looks like the resulting luminance
+       is the sum of (red + green + blue), and so it's
+       far larger than expected. OpenGL spec says that luminance comes
+       from only red, so possibly this is a bug of fglrx (Linux ATI
+       drivers, ATI Mobility Radeon X1600, Mac Book Pro, chantal). */
+
+    gl_FragColor = vec4(color, 0.0, 0.0, 1.0);
   }
   else
   {
     /* Only for testing, to mark colors not corresponding to any element. */
-    gl_FragColor = vec4(1, 0, 0, 1.0);
+    gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
   }
 }

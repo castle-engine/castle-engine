@@ -445,7 +445,7 @@ end;
 var
   FullRenderShape: TVRMLShape;
   FullRenderShapeInfo: PShapeInfo;
-  FullRenderIntensityTex: TRGBAlphaImage;
+  FullRenderIntensityTex: TGrayscaleImage;
 
 procedure Draw(Glwin: TGLWindow);
 
@@ -454,13 +454,13 @@ procedure Draw(Glwin: TGLWindow);
 
     Otherwise, we will assign single glColor for each element,
     using values from ElementsIntensityTex. }
-  procedure DoShowElements(ElementsIntensityTex: TRGBAlphaImage);
+  procedure DoShowElements(ElementsIntensityTex: TGrayscaleImage);
   var
     I: Integer;
     Q: PGLUQuadric;
     NewX, NewY, NewZ: TVector3Single;
     Radius: Float;
-    ElementIntensity: PVector4Byte;
+    ElementIntensity: PByte;
   begin
     glPushAttrib(GL_ENABLE_BIT);
       glEnable(GL_DEPTH_TEST);
@@ -471,7 +471,7 @@ procedure Draw(Glwin: TGLWindow);
         glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(1, 1, 0, 1));
       end else
       begin
-        ElementIntensity := ElementsIntensityTex.AlphaPixels;
+        ElementIntensity := ElementsIntensityTex.GrayscalePixels;
       end;
 
       Q := NewGLUQuadric(GL_FALSE, GLU_FLAT, GLU_OUTSIDE, GLU_FILL);
@@ -480,7 +480,7 @@ procedure Draw(Glwin: TGLWindow);
       begin
         if ElementsIntensityTex <> nil then
         begin
-          glColorv(ElementIntensity^);
+          glColor3ub(ElementIntensity^, ElementIntensity^, ElementIntensity^);
           Inc(ElementIntensity);
         end;
 
@@ -502,20 +502,17 @@ procedure Draw(Glwin: TGLWindow);
     glPopAttrib;
   end;
 
-  function CaptureAORect(SizePower2: boolean): TRGBAlphaImage;
+  function CaptureAORect(SizePower2: boolean): TGrayscaleImage;
   var
     TexHeight: Cardinal;
   begin
-    { TODO: we want one value, so actually even TGrayscaleImage
-      would be Ok. For some reason, I can't get it correctly
-      (it's too bright with GL_luminance). }
     if SizePower2 then
       TexHeight := ElementsTexSize else
       { If size doesn't have to be power of 2 (e.g. if this is grabbed
         only for CPU), then height may be smaller, which is a good thing
         --- we don't have to grab so much pixels from color buffer. }
       TexHeight := DivRoundUp(Cardinal(Elements.Count), ElementsTexSize);
-    Result := TRGBAlphaImage(SaveScreen_noflush(TRGBAlphaImage,
+    Result := TGrayscaleImage(SaveScreen_noflush(TGrayscaleImage,
       0, 0, ElementsTexSize, TexHeight,
       GL_BACK));
   end;
@@ -578,7 +575,7 @@ procedure Draw(Glwin: TGLWindow);
         begin
           { Alternative way to copy texture through CPU:
           var
-            ElementsIntensityTex: TRGBAlphaImage;
+            ElementsIntensityTex: TGrayscaleImage;
           ElementsIntensityTex := CaptureAORect(true);
           LoadGLGeneratedTexture(GLElementsIntensityTex, ElementsIntensityTex,
             GL_NEAREST, GL_NEAREST);}
@@ -590,10 +587,7 @@ procedure Draw(Glwin: TGLWindow);
           glActiveTextureARB(GL_TEXTURE2);
           glBindTexture(GL_TEXTURE_2D, GLElementsIntensityTex);
           glReadBuffer(GL_BACK);
-          glCopyTexImage2D(GL_TEXTURE_2D, 0,
-            { TODO: Instead of GL_RGB, one component would be enough, as we
-              want only intensity. This waits for analogous fix
-              to CaptureAORect. } GL_RGB,
+          glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
             0, 0, ElementsTexSize, ElementsTexSize, 0);
 
           DoRender(1);
@@ -607,7 +601,7 @@ procedure Draw(Glwin: TGLWindow);
   end;
 
 var
-  ElementsIntensityTex: TRGBAlphaImage;
+  ElementsIntensityTex: TGrayscaleImage;
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(glw.Navigator.Matrix);
@@ -683,7 +677,7 @@ begin
   if ElemIndex = -1 then
     Color := ZeroVector3Single { element invalid, probably separate vertex } else
   begin
-    Intensity := FullRenderIntensityTex.AlphaPixels[ElemIndex][0]/255;
+    Intensity := FullRenderIntensityTex.GrayscalePixels[ElemIndex]/255;
     Color[0] *= Intensity;
     Color[1] *= Intensity;
     Color[2] *= Intensity;
