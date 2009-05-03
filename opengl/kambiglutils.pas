@@ -637,8 +637,8 @@ type
     UnpackLSBFirst: TGLboolean;
     UnpackRowLength,
     UnpackSkipRows,
-    UnpackSkipPixels,
-    UnpackAlignment: TGLint;
+    UnpackSkipPixels: TGLint;
+    UnpackAlignment: Cardinal;
   end;
 
 procedure SavePixelStoreUnpack(out pixUnpack: TPixelStoreUnpack);
@@ -646,7 +646,7 @@ procedure LoadPixelStoreUnpack(const pixUnpack: TPixelStoreUnpack);
 
 type
   TUnpackNotAlignedData = record
-    Alignment: TGLint;
+    Alignment: Cardinal;
   end;
   TPackNotAlignedData = TUnpackNotAlignedData;
 
@@ -671,6 +671,8 @@ procedure AfterPackNotAlignedRGBImage(const packData: TPackNotAlignedData; image
 { wersje tych procedur z prostszymi nazwami i na typie TImage }
 procedure BeforeUnpackImage(out unpackdata: TUnpackNotAlignedData; image: TImage);
 procedure AfterUnpackImage(const unpackData: TUnpackNotAlignedData; image: TImage);
+procedure BeforePackImage(out packdata: TPackNotAlignedData; image: TImage);
+procedure AfterPackImage(const packData: TPackNotAlignedData; image: TImage);
 
 { manipulacje projection matrix -------------------------------------------------------- }
 
@@ -1570,47 +1572,54 @@ end;
 
 procedure BeforeUnpackImage(out unpackdata: TUnpackNotAlignedData; image: TImage);
 begin
- if (image.Width * Image.PixelSize mod cardinal(glGetInteger(GL_UNPACK_ALIGNMENT))) <> 0 then
- begin
   unpackData.Alignment := glGetInteger(GL_UNPACK_ALIGNMENT);
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
- end;
+  if (image.Width * Image.PixelSize mod unpackData.Alignment) <> 0 then
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 end;
 
 procedure AfterUnpackImage(const unpackData: TUnpackNotAlignedData; image: TImage);
 begin
- if (image.Width * Image.PixelSize mod cardinal(glGetInteger(GL_UNPACK_ALIGNMENT))) <> 0 then
-  glPixelStorei(GL_UNPACK_ALIGNMENT, unpackData.Alignment);
+  if (image.Width * Image.PixelSize mod unpackData.Alignment) <> 0 then
+    glPixelStorei(GL_UNPACK_ALIGNMENT, unpackData.Alignment);
 end;
 
 procedure BeforeUnpackNotAlignedRGBImage(out unpackData: TUnpackNotAlignedData; imageWidth: cardinal);
 begin
- if (imageWidth*3 mod cardinal(glGetInteger(GL_UNPACK_ALIGNMENT))) <> 0 then
- begin
   unpackData.Alignment := glGetInteger(GL_UNPACK_ALIGNMENT);
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
- end;
+  if (imageWidth*3 mod unpackData.Alignment) <> 0 then
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 end;
 
 procedure AfterUnpackNotAlignedRGBImage(const unpackData: TUnpackNotAlignedData; imageWidth: cardinal);
 begin
- if (imageWidth*3 mod cardinal(glGetInteger(GL_UNPACK_ALIGNMENT))) <> 0 then
-  glPixelStorei(GL_UNPACK_ALIGNMENT, unpackData.Alignment);
+  if (imageWidth*3 mod unpackData.Alignment) <> 0 then
+    glPixelStorei(GL_UNPACK_ALIGNMENT, unpackData.Alignment);
+end;
+
+procedure BeforePackImage(out packdata: TPackNotAlignedData; image: TImage);
+begin
+  packData.Alignment := glGetInteger(GL_PACK_ALIGNMENT);
+  if (image.Width * Image.PixelSize mod packData.Alignment) <> 0 then
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+end;
+
+procedure AfterPackImage(const packData: TPackNotAlignedData; image: TImage);
+begin
+  if (image.Width * Image.PixelSize mod packData.Alignment) <> 0 then
+    glPixelStorei(GL_PACK_ALIGNMENT, packData.Alignment);
 end;
 
 procedure BeforePackNotAlignedRGBImage(out packdata: TPackNotAlignedData; imageWidth: cardinal);
 begin
- if (imageWidth*3 mod cardinal(glGetInteger(GL_PACK_ALIGNMENT))) <> 0 then
- begin
   packData.Alignment := glGetInteger(GL_PACK_ALIGNMENT);
-  glPixelStorei(GL_PACK_ALIGNMENT, 1);
- end;
+  if (imageWidth*3 mod packData.Alignment) <> 0 then
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
 end;
 
 procedure AfterPackNotAlignedRGBImage(const packData: TPackNotAlignedData; imageWidth: cardinal);
 begin
- if (imageWidth*3 mod cardinal(glGetInteger(GL_PACK_ALIGNMENT))) <> 0 then
-  glPixelStorei(GL_PACK_ALIGNMENT, packData.Alignment);
+  if (imageWidth*3 mod packData.Alignment) <> 0 then
+    glPixelStorei(GL_PACK_ALIGNMENT, packData.Alignment);
 end;
 
 { manipulacje projection matrix ---------------------------------------------- }

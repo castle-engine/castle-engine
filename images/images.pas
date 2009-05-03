@@ -755,7 +755,28 @@ type
         is a power of two (as common for OpenGL textures) then it's
         always possible to make a flip.) }
     procedure FlipVertical;
+
+    { Decompress S3TC image.
+
+      This uses DecompressS3TC variable, so you have to initialialize it
+      first (for example to GLImage.GLDecompressS3TC) before using this.
+
+      @raises(ECannotDecompressS3TC If cannot decompress S3TC,
+        because decompressor is not set and there was some other error
+        within decompressor.) }
+    function Decompress: TImage;
   end;
+
+  ECannotDecompressS3TC = class(Exception);
+
+  TDecompressS3TCFunction = function (Image: TS3TCImage): TImage;
+
+var
+  { Assign here S3TC decompression function that is available.
+    This way the "decompressor" is pluggable, which means that
+    you can even use OpenGL to decompress S3TC textures, if you're going
+    to load images while some OpenGL context is active. }
+  DecompressS3TC: TDecompressS3TCFunction;
 
 { TImageClass and arrays of TImageClasses ----------------------------- }
 
@@ -2232,6 +2253,13 @@ begin
 end;
 
 {$I images_s3tc_flip_vertical.inc}
+
+function TS3TCImage.Decompress: TImage;
+begin
+  if Assigned(DecompressS3TC) then
+    Result := DecompressS3TC(Self) else
+    raise ECannotDecompressS3TC.Create('Cannot decompress S3TC image: no decompressor initialized');
+end;
 
 { TImageClass and arrays of TImageClasses ----------------------------- }
 

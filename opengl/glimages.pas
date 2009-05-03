@@ -567,6 +567,14 @@ procedure GenerateMipmap(target: GLenum);
   clamping provided Anisotropy down). }
 procedure TexParameterMaxAnisotropy(const target: GLenum; const Anisotropy: TGLfloat);
 
+{ Decompress S3TC image by loading it to temporary OpenGL texture and
+  reading back. So this internally uses current OpenGL context.
+
+  @raises(ECannotLoadS3TCTexture If cannot decompress S3TC, for example
+    because we cannot load to OpenGL this S3TC texture (because OpenGL S3TC
+    extensions are not available, or such).) }
+function GLDecompressS3TC(Image: TS3TCImage): TImage;
+
 implementation
 
 uses SysUtils, KambiUtils, KambiLog, GLVersionUnit;
@@ -1028,6 +1036,31 @@ begin
   Result := ArrayPosCard(MinFilter, MipmapFilters) >= 0;
 end;
 
+type
+  ECannotLoadS3TCTexture = class(Exception);
+
+{ Load Image through glCompressedTexImage2DARB.
+  This checks existence of OpenGL extensions for S3TC,
+  and checks Image sizes.
+  It also takes care of pixel packing, although actually nothing needs
+  be done about it when using compressed textures. }
+procedure glCompressedTextureImage2D(Image: TS3TCImage);
+begin
+  if not (GL_ARB_texture_compression and GL_EXT_texture_compression_s3tc) then
+    raise ECannotLoadS3TCTexture.Create('Cannot load S3TC compressed textures: OpenGL doesn''t support one (or both) of ARB_texture_compression and EXT_texture_compression_s3tc extensions');
+
+  if not IsTextureSized(Image) then
+    raise ECannotLoadS3TCTexture.CreateFmt('Cannot load S3TC compressed textures: texture size is %d x %d, it''s not correct for OpenGL, and we cannot resize on CPU compressed textures',
+      [Image.Width, Image.Height]);
+
+  { Pixel packing parameters (stuff changed by Before/AfterUnpackImage)
+    doesn't affect loading compressed textures, as far as I understand.
+    So no need to call it. }
+  glCompressedTexImage2DARB(GL_TEXTURE_2D, 0, ImageGLInternalFormat(Image),
+    Image.Width, Image.Height, 0, Image.Size,
+    Image.RawPixels);
+end;
+
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
   minFilter, magFilter: TGLenum; GrayscaleIsAlpha: boolean);
 var
@@ -1113,23 +1146,6 @@ var
     glTexImage2DImage(Image);
   end;
 
-  procedure LoadCompressed(Image: TS3TCImage);
-  begin
-    if not (GL_ARB_texture_compression and GL_EXT_texture_compression_s3tc) then
-      raise Exception.Create('Cannot load S3TC compressed textures: OpenGL doesn''t support one (or both) of ARB_texture_compression and EXT_texture_compression_s3tc extensions');
-
-    if not IsTextureSized(Image) then
-      raise Exception.CreateFmt('Cannot load S3TC compressed textures: texture size is %d x %d, it''s not correct for OpenGL, and we cannot resize on CPU compressed textures',
-        [Image.Width, Image.Height]);
-
-    { Pixel packing parameters (stuff changed by Before/AfterUnpackImage)
-      doesn't affect loading compressed textures, as far as I understand.
-      So no need to call it. }
-    glCompressedTexImage2DARB(GL_TEXTURE_2D, 0, ImageInternalFormat,
-      Image.Width, Image.Height, 0, Image.Size,
-      Image.RawPixels);
-  end;
-
 begin
   if (Image is TGrayscaleImage) and GrayscaleIsAlpha then
   begin
@@ -1159,7 +1175,7 @@ begin
   if Image is TS3TCImage then
   begin
     { Load compressed }
-    LoadCompressed(TS3TCImage(Image));
+    glCompressedTextureImage2D(TS3TCImage(Image));
 
     if TextureMinFilterNeedsMipmaps(MinFilter) then
       GenerateMipmap(GL_TEXTURE_2D);
@@ -1443,6 +1459,39 @@ begin
   if GL_EXT_texture_filter_anisotropic then
     glTexParameterf(Target, GL_TEXTURE_MAX_ANISOTROPY_EXT,
       Min(GLMaxTextureMaxAnisotropyEXT, Anisotropy));
+end;
+
+function GLDecompressS3TC(Image: TS3TCImage): TImage;
+var
+  Tex: TGLuint;
+  PackData: TPackNotAlignedData;
+begin
+  glGenTextures(1, @Tex);
+  glBindTexture(GL_TEXTURE_2D, Tex);
+
+  try
+    glCompressedTextureImage2D(Image);
+  except
+    { catch ECannotLoadS3TCTexture and change it to ECannotDecompressS3TC }
+    on E: ECannotLoadS3TCTexture do
+      raise ECannotDecompressS3TC.Create('Cannot decompress S3TC texture: ' + E.Message);
+  end;
+
+  case Image.Compression of
+    s3tcDxt1_RGB: Result := TRGBImage.Create(Image.Width, Image.Height, Image.Depth);
+    s3tcDxt1_RGBA,
+    s3tcDxt3,
+    s3tcDxt5: Result := TRGBAlphaImage.Create(Image.Width, Image.Height, Image.Depth);
+    else raise EInternalError.Create('GLDecompressS3TC-Compression?');
+  end;
+
+  BeforePackImage(PackData, Result);
+  try
+    glGetTexImage(GL_TEXTURE_2D, 0,
+      ImageGLFormat(Result), ImageGLType(Result), Result.RawPixels);
+  finally AfterPackImage(PackData, Result) end;
+  
+  glDeleteTextures(1, @Tex);
 end;
 
 end.

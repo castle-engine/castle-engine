@@ -172,10 +172,22 @@ type
       (because, as said, memory contents actually are the same before
       and after splitting).
 
-      Note that this frees all Images (actually, whole Images object),
+      Note that this may free all Images (possibly even whole Images object),
       disregarding OwnsFirstImage (as it would be difficult, since
-      it may or may not create new first image). }
+      it may or may not replace it with new images). }
     procedure Flatten3d;
+
+    { Decompress S3TC images (if any) on the @link(Images) list,
+      replacing them with uncompressed equivalents.
+
+      Just like Flatten3d:
+      Note that this may free all Images (possibly even whole Images object),
+      disregarding OwnsFirstImage (as it would be difficult, since
+      it may or may not replace it with new images).
+
+      @raises(ECannotDecompressS3TC If some S3TC image cannot be decompressed
+        for whatever reason.) }
+    procedure DecompressS3TC;
   end;
 
 const
@@ -1344,6 +1356,20 @@ begin
 
     FreeWithContentsAndNil(FImages);
     FImages := NewImages;
+  end;
+end;
+
+procedure TDDSImage.DecompressS3TC;
+var
+  OldImage: TS3TCImage;
+  I: Integer;
+begin
+  for I := 0 to Images.Count - 1 do
+  if Images[I] is TS3TCImage then
+  begin
+    OldImage := TS3TCImage(Images[I]);
+    Images[I] := OldImage.Decompress;
+    FreeAndNil(OldImage);
   end;
 end;
 
