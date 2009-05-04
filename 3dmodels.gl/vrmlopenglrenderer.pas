@@ -335,7 +335,7 @@ uses
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3d, OpenGLTTFonts, Images,
   OpenGLFonts, KambiGLUtils, VRMLLightSetGL, TTFontsTypes,
   VRMLErrors, VideosCache, GLShaders, GLImages, Videos, VRMLTime, VRMLShape,
-  GLCubeMap;
+  GLCubeMap, TextureImages;
 
 {$define read_interface}
 
@@ -1015,7 +1015,7 @@ type
     Instance of this class is tied to particular OpenGL context if and only if
     there are some TVRMLOpenGLRenderer instances using this cache and
     tied to that OpenGL context. }
-  TVRMLOpenGLRendererContextCache = class(TImagesVideosCache)
+  TVRMLOpenGLRendererContextCache = class(TTexturesImagesVideosCache)
   private
     Fonts: array[TVRMLFontFamily, boolean, boolean] of TGLOutlineFontCache;
     TextureImageCaches: TDynTextureImageCacheArray;
@@ -1950,24 +1950,9 @@ begin
     That's because in case LoadGLTextureModulated raises exception,
     we don't want to add texture to cache (because caller would have
     no way to call TextureImage_DecReference later). }
-  if Assigned(TextureColorModulator) then
-  begin
-    if TextureImage is TImage then
-    begin
-      Result := LoadGLTextureModulated(
-        TImage(TextureImage), TextureMinFilter, TextureMagFilter,
-        TextureWrap, TextureColorModulator);
-    end else
-    begin
-      VRMLWarning(vwIgnorable, 'Cannot modulate S3TC compressed texture by ColorModulator, loading unmodulated');
-      Result := LoadGLTexture(
-        TextureImage, TextureMinFilter, TextureMagFilter, TextureWrap);
-    end;
-  end else
-  begin
-    Result := LoadGLTexture(
-      TextureImage, TextureMinFilter, TextureMagFilter, TextureWrap);
-  end;
+  Result := LoadGLTextureModulated(
+    TextureImage, TextureMinFilter, TextureMagFilter,
+    TextureWrap, TextureColorModulator);
 
   TexParameterMaxAnisotropy(GL_TEXTURE_2D, TextureAnisotropy);
 

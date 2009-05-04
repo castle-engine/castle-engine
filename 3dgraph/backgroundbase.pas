@@ -26,13 +26,13 @@ unit BackgroundBase;
 
 interface
 
-uses Images, ImagesCache;
+uses Images, TextureImages;
 
 type
   { }
   TBackgroundSide = (bsBack, bsBottom, bsFront, bsLeft, bsRight, bsTop);
   TBackgroundSides = set of TBackgroundSide;
-  TBackgroundImages = array[TBackgroundSide]of TImage;
+  TBackgroundImages = array [TBackgroundSide] of TEncodedImage;
 
 const
   BGAllSides: TBackgroundSides = [Low(TBackgroundSide) .. High(TBackgroundSide)];
@@ -73,21 +73,18 @@ function BackgroundImages(const BackImg, BottomImg, FrontImg, LeftImg,
     zapomniec)
 
   Rozszerzenie pliku bedzie zgadywane przy pomocy FindExistingImageExt.
-  Potem obazki beda ladowane z LoadAnyImage(FileName, ImageAllowedClasses,
-  [], 0, 0) a wiec obrazek zostanie zaladowany tylko do typow ImageAllowedFormats
-  (poniewaz tego wymagaja obiekty zdefiniowane w tym module - jesli kiedys
-  pojawi sie sens uzywania w TBackgroundImages obrazkow spoza ImageAllowedFormats
-  to dorobie jakis parametr do tej funkcji).
+  Potem obazki beda ladowane z LoadTextureImage(FileName)
+  a wiec obrazek zostanie zaladowany do czegos co nadaje sie na teksture.
   W ten sposob odpowiednio nazwane szesc (lub mniej jesli wiecej
   niz jeden obrazek bedzie uzyty z _any) obrazkow zdefiniuje niebo. }
-function BackgroundImagesLoadFromOldNamePattern(const SkyNamePattern: string;
-  const ImageAllowedClasses: array of TImageClass): TBackgroundImages;
+function BackgroundImagesLoadFromOldNamePattern(
+  const SkyNamePattern: string): TBackgroundImages;
 
 { This releases and sets to @nil all images in BgImages.
   If Cache is @nil, it releases images by simple FreeAndNil,
-  otherwise they are released from the cache by LoadImage_DecReference. }
+  otherwise they are released from the cache by TextureImage_DecReference. }
 procedure BackgroundImagesFreeAll(var BGImages: TBackgroundImages;
-  Cache: TImagesCache);
+  Cache: TTexturesImagesVideosCache);
 
 implementation
 
@@ -106,8 +103,8 @@ begin
  result[bsTop   ] := TopImg;
 end;
 
-function BackgroundImagesLoadFromOldNamePattern(const SkyNamePattern: string;
-  const ImageAllowedClasses: array of TImageClass): TBackgroundImages;
+function BackgroundImagesLoadFromOldNamePattern(
+  const SkyNamePattern: string): TBackgroundImages;
 const
   names_suffix: array[TBackgroundSide]of string = ('b', 'd', 'f', 'r', 'l', 'u');
 var
@@ -120,22 +117,22 @@ begin
     TryFindExistingImageExt(SkyNamePattern +'_' +names_suffix[bs], true);
   if ImgFileName = '' then
    ImgFileName := FindExistingImageExt(SkyNamePattern +'_any', true);
-  result[bs] := LoadImage(ImgFileName, ImageAllowedClasses, [], 0, 0);
+  result[bs] := LoadTextureImage(ImgFileName);
  end;
 end;
 
 procedure BackgroundImagesFreeAll(var BGImages: TBackgroundImages;
-  Cache: TImagesCache);
+  Cache: TTexturesImagesVideosCache);
 var
   bs: TBackgroundSide;
 begin
   if Cache <> nil then
   begin
     for bs := Low(bs) to High(bs) do
-      { Cache.LoadImage_DecReference is not prepared for nil parameters,
+      { Cache.TextureImage_DecReference is not prepared for nil parameters,
         and some of our BGImages[bs] may be nil. }
       if BGImages[bs] <> nil then
-        Cache.LoadImage_DecReference(BGImages[bs]);
+        Cache.TextureImage_DecReference(BGImages[bs]);
   end else
   begin
     for bs := Low(bs) to High(bs) do FreeAndNil(BGImages[bs]);

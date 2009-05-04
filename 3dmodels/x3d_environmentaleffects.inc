@@ -60,15 +60,14 @@
     FBgImages: TBackgroundImages;
 
     { Non-nil only if FBgImages should be freed using
-      UsedCache.LoadImage_DecReference. }
-    UsedCache: TImagesCache;
+      UsedCache.TextureImage_DecReference. }
+    UsedCache: TTexturesImagesVideosCache;
 
     procedure SetBgImagesLoaded(const Value: boolean);
 
-    FAllowedBgImagesClasses: TDynArrayImageClasses;
     function GetBgImages: TBackgroundImages;
 
-    FImagesCache: TImagesCache;
+    FCache: TTexturesImagesVideosCache;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     destructor Destroy; override;
@@ -102,7 +101,8 @@
       automatycznie zaladuje obrazki z URLi
       BackUrl/BottomUrl itd. Obrazki dla ktorych zaden osiagalny URL nie byl
       podany zostana ustawione na ImageNone.
-      Obrazki beda mialy Kind wsrod AllowedBgImagesKinds.
+
+      Images may have classes allowed by LoadTextureImage.
 
       Obrazki beda zawsze odpowiadaly URLom w polach Fd*Url - dlatego po
       zrobieniu Parse na tym obiekcie nastepne wywolanie BgImages bedzie
@@ -125,17 +125,6 @@
     property BgImagesLoaded: boolean read FBgImagesLoaded
       write SetBgImagesLoaded;
 
-    { Wszystkie obrazki na BgImages (ktore nie sa nil) maja zawsze
-      klase wsrod AllowedBgImagesClasses.
-
-      Aby zapewnic ze to stwierdzenie zawsze zachodzi jezeli BgImages zostalo
-      juz chociaz raz wywolane to zmiana AllowedBgImagesClasses spowoduje
-      uniewaznienie BgImages (tzn. nastepne wywolanie BgImages bedzie
-      musialo przeladowac obrazki od nowa) }
-    property AllowedBgImagesClasses: TDynArrayImageClasses
-      read FAllowedBgImagesClasses; { = [], so all image classes are allowed }
-    procedure SetAllowedBgImagesClasses(const Value: array of TImageClass);
-
     { Set this to non-nil before background images are loaded, this way bacground
       images will be loaded from this cache.
 
@@ -143,7 +132,7 @@
       cache then (so remember that used cache must remain valid for the lifetime
       of this node, or you have to call BgImagesLoaded := false explicitly to
       break the connection from this node to the cache). }
-    property ImagesCache: TImagesCache read FImagesCache write FImagesCache;
+    property Cache: TTexturesImagesVideosCache read FCache write FCache;
   end;
 
   TNodeFog = class(TNodeX3DBindableNode, INodeX3DFogObject)
@@ -329,7 +318,6 @@ begin
 
   DefaultContainerField := 'children';
 
-  ImageClassesAssign(FAllowedBgImagesClasses, []);
   FBgImagesLoaded := false;
   FBgImages := BackgroundImagesNone;
 end;
@@ -373,14 +361,11 @@ procedure TNodeBackground.SetBgImagesLoaded(const Value: boolean);
     begin
       try
         URL := PathFromWWWBasePath(Urls.Items.Items[i]);
-        if ImagesCache <> nil then
+        if Cache <> nil then
         begin
-          { TODO: this doesn't honour AllowedBgImagesClasses for now,
-            ImagesCache.LoadImage_IncReference always loads with
-            AllowedImageClasses = [TRGBImage, TRGBAlphaImage, TGrayscaleImage, TGrayscaleAlphaImage] }
-          FBgImages[bs] := ImagesCache.LoadImage_IncReference(URL);
+          FBgImages[bs] := Cache.TextureImage_IncReference(URL);
         end else
-          FBgImages[bs] := LoadImage(URL, AllowedBgImagesClasses, [], 0, 0);
+          FBgImages[bs] := LoadTextureImage(URL);
         Break;
       except
         on E: Exception do
@@ -410,10 +395,10 @@ begin
         { In case of trouble, free the images that were loaded.
           This may happen if VRMLWarning raises exception and some
           image cannot be loaded. }
-        BackgroundImagesFreeAll(FbgImages, ImagesCache);
+        BackgroundImagesFreeAll(FbgImages, Cache);
         raise;
       end;
-      UsedCache := ImagesCache;
+      UsedCache := Cache;
     end else
     begin
       BackgroundImagesFreeAll(FbgImages, UsedCache);
@@ -435,15 +420,6 @@ function TNodeBackground.GetBgImages: TBackgroundImages;
 begin
   BgImagesLoaded := true;
   Result := FBgImages;
-end;
-
-procedure TNodeBackground.SetAllowedBgImagesClasses(const Value: array of TImageClass);
-begin
-  if not ImageClassesEqual(Value, AllowedBgImagesClasses) then
-  begin
-    ImageClassesAssign(FAllowedBgImagesClasses, Value);
-    BgImagesLoaded := false;
-  end;
 end;
 
 constructor TNodeFog.Create(const ANodeName: string;

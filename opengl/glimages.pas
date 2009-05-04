@@ -116,6 +116,13 @@
   @code(packed array[0..Image.Height - 1,  0..Image.Width - 1] of TVector3Byte).
   So we have rows of TVector3Byte structures, stored from lowest row to
   highest row.
+
+  All routines in this unit that take TImage paramater
+  accept only TextureImageClasses.
+  Note that *not everywhere* this is checked (especially if you
+  compile with -dRELEASE) so just be sure that you're always passing
+  only TImage instances of correct class (e.g. using
+  InImageClasses(MyImage, TextureImageClasses)).
 }
 unit GLImages;
 
@@ -125,41 +132,21 @@ interface
 
 uses GL, GLU, GLExt, SysUtils, Images, VectorMath, KambiGLUtils, Videos;
 
-const
-  { All routines in this unit that take TImage paramater
-    accept only TImage descendants enumerated here.
-    Note that *not everywhere* this is checked (especially if you
-    compile with -dRELEASE) so just be sure that you're always passing
-    only TImage instances of correct class (e.g. using
-    InImageClasses(MyImage, GLImageClasses)). }
-  GLImageClasses: array [0..3] of TImageClass = (
-    TRGBImage,
-    TRGBAlphaImage,
-    TGrayscaleImage,
-    TGrayscaleAlphaImage);
-
-  GLImageClassesAll: array [0..4] of TEncodedImageClass = (
-    TRGBImage,
-    TRGBAlphaImage,
-    TGrayscaleImage,
-    TGrayscaleAlphaImage,
-    TS3TCImage);
-
 { These functions return appropriate GL_xxx format and type
   for given TImage descendant. If you will pass here Img
-  that is not a descendant of one of GLImageClasses,
+  that is not a descendant of one of TextureImageClasses,
   they will return GL_INVALID_ENUM.
 
   Note that OpenGL does not guarantee that GL_INVALID_ENUM <> GL_RGB, GL_RGBA
   etc. (even if every OpenGL implementation has constants defined that in a way
   that satisfies this). So better to not assume that instead of
-  checking InImageClasses(MyImage, GLImageClasses)
+  checking InImageClasses(MyImage, TextureImageClasses)
   you can simply check ImageGLFormat(MyImage) <> GL_INVALID_ENUM.
 
   (But this fact can be used to make routines in this unit like
   ImageDraw work faster, because I don't guarantee anywhere that
   ImageDraw will check at runtime that passed Image has class
-  in GLImageClasses. So ImageDraw simply passes to OpenGL values
+  in TextureImageClasses. So ImageDraw simply passes to OpenGL values
   returned by ImageGLFormat/Type, so in case of incorrect
   Image class OpenGL will get GL_INVALID_ENUM. Since it's not guaranteed
   that GL_INVALID_ENUM <> GL_RGB etc., it's not guaranteed that OpenGL
@@ -187,7 +174,7 @@ function ImageGLType(const Img: TImage): TGLenum;
   Image will be loaded with AllowedImageClasses = LoadAsClass and
   ForbiddenConvs = LoadForbiddenConvs, see @link(Images.LoadImage)
   for description what these parameters mean.
-  LoadAsClass may contain only classes present in GLImageClasses. }
+  LoadAsClass may contain only classes present in TextureImageClasses. }
 function LoadImageToDisplayList(const FileName: string;
   const LoadAsClass: array of TImageClass;
   const LoadForbiddenConvs: TImageLoadConversions;
@@ -287,7 +274,7 @@ function ImageDrawPartToDisplayList(
   Note that you can pass here any ReadBuffer value allowed by
   glReadBuffer OpenGL function.
 
-  Version with ImageClass can save to any image format from GLImageClasses.
+  Version with ImageClass can save to any image format from TextureImageClasses.
 
   Version with TImage instance just uses this instance to save the image.
   You must pass here already created TImage instance, it's class,
@@ -469,13 +456,17 @@ procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
   GrayscaleIsAlpha: boolean = false); overload;
 { @groupEnd }
 
-{ As LoadGLTexture, but the texture will be modified using ColorModulatorByte.
+{ Like LoadGLTexture, but the texture will be modified using ColorModulatorByte.
+
   If not Assigned(ColorModulatorByte) then this will simply return
   LoadGLTexture(Image, MinFilter, MagFilter, Wrap).
   Else it will return
   LoadGLTexture(ImageModulated(Image), MinFilter, MagFilter, Wrap)
-  (without introducing any memoty leaks). }
-function LoadGLTextureModulated(const Image: TImage;
+  (without introducing any memoty leaks).
+
+  If the image memory format doesn't allow editing (for example it's
+  TS3TCImage) then will make DataWarning and simply ignore ColorModulatorByte. }
+function LoadGLTextureModulated(const Image: TEncodedImage;
   MinFilter, MagFilter: TGLenum;
   const Wrap: TTextureWrap2D;
   ColorModulatorByte: TColorModulatorByteFunc): TGLuint;
@@ -613,7 +604,7 @@ function GLDecompressS3TC(Image: TS3TCImage): TImage;
 
 implementation
 
-uses KambiUtils, KambiLog, GLVersionUnit, DataErrors;
+uses KambiUtils, KambiLog, GLVersionUnit, DataErrors, DDS, TextureImages;
 
 function ImageGLFormat(const Img: TEncodedImage): TGLenum;
 begin
@@ -1053,12 +1044,13 @@ function LoadGLTexture(const FileName: string;
   MinFilter, MagFilter: TGLenum;
   const Wrap: TTextureWrap2D;
   GrayscaleIsAlpha: boolean): TGLuint;
-var Image: TImage;
+var
+  Image: TEncodedImage;
 begin
- Image := LoadImage(FileName, GLImageClasses, []);
- try
-  Result := LoadGLTexture(Image, MinFilter, MagFilter, Wrap, GrayscaleIsAlpha);
- finally Image.Free end;
+  Image := LoadTextureImage(FileName);
+  try
+    Result := LoadGLTexture(Image, MinFilter, MagFilter, Wrap, GrayscaleIsAlpha);
+  finally Image.Free end;
 end;
 
 function TextureMinFilterNeedsMipmaps(const MinFilter: TGLenum): boolean;
@@ -1239,20 +1231,28 @@ begin
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Wrap[1]);
 end;
 
-function LoadGLTextureModulated(const Image: TImage;
+function LoadGLTextureModulated(const Image: TEncodedImage;
   MinFilter, MagFilter: TGLenum;
   const Wrap: TTextureWrap2D;
   ColorModulatorByte: TColorModulatorByteFunc): TGLuint;
-var ImageModul: TImage;
+var
+  ImageModulated: TImage;
 begin
- if Assigned(ColorModulatorByte) then
- begin
-  ImageModul := Image.MakeModulatedRGB(ColorModulatorByte);
-  try
-   Result := LoadGLTexture(ImageModul, MinFilter, MagFilter, Wrap);
-  finally ImageModul.Free; end;
- end else
-  Result := LoadGLTexture(Image, MinFilter, MagFilter, Wrap);
+  if Assigned(ColorModulatorByte) then
+  begin
+    if Image is TImage then
+    begin
+      ImageModulated := TImage(Image).MakeModulatedRGB(ColorModulatorByte);
+      try
+        Result := LoadGLTexture(ImageModulated, MinFilter, MagFilter, Wrap);
+      finally FreeAndNil(ImageModulated); end;
+    end else
+    begin
+      DataWarning('Cannot modulate S3TC compressed texture by ColorModulator, loading unmodulated');
+      Result := LoadGLTexture(Image, MinFilter, MagFilter, Wrap);
+    end;
+  end else
+    Result := LoadGLTexture(Image, MinFilter, MagFilter, Wrap);
 end;
 
 { TGLVideo ------------------------------------------------------------------- }
