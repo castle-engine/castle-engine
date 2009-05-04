@@ -326,7 +326,9 @@ begin
   KeyCount := FdKey.Items.Count;
   if KeyCount = 0 then
   begin
-    OutputValue := KeyValue(0);
+    // Interpolator nodes containing no keys in the key field
+    // shall not produce any events.
+    Exit;
   end else
   begin
     Range := KeyRange((Value as TSFFloat).Value, T);
@@ -393,7 +395,11 @@ begin
   KeyCount := FdKey.Items.Count;
   if KeyCount = 0 then
   begin
-    OutputValue := KeyValue(0);
+    // Interpolator nodes containing no keys in the key field
+    // shall not produce any events.
+    // Moreover, "div KeyCount" would cause errors if we would try
+    // to get some KeyValue or KeyValueLerp.
+    Exit;
   end else
   begin
     Range := KeyRange((Value as TSFFloat).Value, T);
