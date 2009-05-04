@@ -1673,7 +1673,7 @@ begin
   if FdFilename.Value <> '' then
   try
     FullUrl := PathFromWWWBasePath(FdFilename.Value);
-    FTextureImage := ImagesVideosCache.LoadImage_IncReference(FullUrl);
+    FTextureImage := Cache.TextureImage_IncReference(FullUrl, FTextureDDS);
     FTextureUsedFullUrl := FullUrl;
     CacheUsed := true;
     Exit;

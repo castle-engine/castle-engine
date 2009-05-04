@@ -3764,7 +3764,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     if (TextureImageReferences.TextureNodeIndex(TextureNode) = -1) and
        (TextureVideoReferences.TextureNodeIndex(TextureNode) = -1) then
     begin
-      TextureNode.ImagesVideosCache := Cache;
+      TextureNode.Cache := Cache;
 
       HandleTexturePropertiesCore(TextureNode.TextureProperties,
         MinFilter, MagFilter, Anisotropy);
@@ -3810,7 +3810,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
            (State.ParentShape <> nil) and
            (State.ParentShape.NormalMap <> nil) then
         begin
-          State.ParentShape.NormalMap.ImagesVideosCache := Cache;
+          State.ParentShape.NormalMap.Cache := Cache;
           if State.ParentShape.NormalMap.IsTextureImage then
           begin
             { TODO: normal map textures should be shared by Cache }
@@ -3825,7 +3825,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
            (State.ParentShape <> nil) and
            (State.ParentShape.HeightMap <> nil) then
         begin
-          State.ParentShape.HeightMap.ImagesVideosCache := Cache;
+          State.ParentShape.HeightMap.Cache := Cache;
           if State.ParentShape.HeightMap.IsTextureImage then
           begin
             { TODO: height map textures should be shared by Cache }
@@ -3905,7 +3905,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
       if Result then
       begin
         SideTex := TVRMLTextureNode(SideField.Value);
-        SideTex.ImagesVideosCache := Cache;
+        SideTex.Cache := Cache;
         Result := SideTex.IsTextureImage;
 
         if Result and not (SideTex.TextureImage is TImage) then

@@ -290,7 +290,7 @@ begin
   end;
 
   raise EInternalError.CreateFmt(
-    'TTexturesImagesVideosCache.LoadImage_DecReference: no reference found for texture image %s',
+    'TTexturesImagesVideosCache.TextureImage_DecReference: no reference found for texture image %s',
     [PointerToStr(Image)]);
 end;
 

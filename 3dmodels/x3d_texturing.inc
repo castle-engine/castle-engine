@@ -38,7 +38,8 @@
     for X3DTexture2DNode, so X3D hierarchy is nicely preserved. }
   TVRMLTextureNode = class(TNodeX3DTextureNode)
   private
-    { Together we call FTextureImage and FTextureVideo as "texture data". }
+    { Together we call FTextureImage, FTextureDDS,
+      FTextureVideo as "texture data". }
 
     { FTextureImage is <> nil if texture is currently loaded (IsTextureLoaded)
       and it was loaded to an image (not video).
@@ -47,20 +48,25 @@
       IsTextureImage checks this also. }
     FTextureImage: TEncodedImage;
 
+    { Only if FTextureImage is <> nil, then FTextureDDS may also be <> nil,
+      it this image is part of DDS file. }
+    FTextureDDS: TDDSImage;
+
     { Analogous to FTextureImage, this is the loaded video file.
       Assigned here, should always have TVideo.Loaded = @true. }
     FTextureVideo: TVideo;
 
-    { Non-nil only if FTextureImage or FTextueVideo should be freed using
-      TextureDataUsedCache (LoadImage_DecReference or Video_DecReference).
+    { Non-nil only if FTextureImage, FTextureDDS or FTextueVideo
+      should be freed using
+      UsedCache (TextureImage_DecReference or Video_DecReference).
       Also loaded FTextureVideo should always have it's own Cache property set
       to this. }
-    TextureDataUsedCache: TImagesVideosCache;
+    UsedCache: TTexturesImagesVideosCache;
 
     FIsTextureLoaded: boolean;
     procedure SetIsTextureLoaded(Value: boolean);
 
-    FImagesVideosCache: TImagesVideosCache;
+    FCache: TTexturesImagesVideosCache;
 
     procedure FreeAndNilTextureData;
   protected
@@ -68,7 +74,8 @@
 
       It should set either FTextureImage or FTextureVideo to something non-nil
       (don't care here about the previous value of these fields --- it's for
-      sure @nil). If you leave them as @nil, this means that loading failed
+      sure @nil). If FTextureImage is set, you can also set FTextureDDS.
+      If you leave them as @nil, this means that loading failed
       (and VRMLWarning or DataWarning don't cause an exception,
       so we can ignore this).
 
@@ -81,12 +88,12 @@
       so we're prepared that this may even exit with exception
       (since VRML/DataWarning can raise exception).
 
-      If you set FTextureImage, you have to set it to TRGBImage, TRGBAlphaImage,
-      TGrayscaleImage or TGrayscaleAlphaImage. See TextureImage docs.
+      If you set FTextureImage, you have to set it to something
+      returned by LoadTextureImage. See TextureImage docs.
 
-      Set CacheUsed here. @true means you loaded the data using ImagesVideosCache.
+      Set WasCacheUsed here. @true means you loaded the data using Cache.
       For FTextureVideo, it's Cache property should also be set to
-      ImagesVideosCache, this happens automatically in Video_IncReference.
+      our Cache, this happens automatically in Video_IncReference.
 
       Also, set FTextureUsedFullUrl here.
 
@@ -96,24 +103,25 @@
       and we want to at least be able to parse them
       and then ignore (while not overriden abstract method would cause
       simple crashes). }
-    procedure LoadTextureData(out CacheUsed: boolean); virtual;
+    procedure LoadTextureData(out WasCacheUsed: boolean); virtual;
     FTextureUsedFullUrl: string;
   public
     constructor Create(const ANodeName: string;
       const AWWWBasePath: string); override;
     destructor Destroy; override;
 
-    { TextureImage and TextureVideo contain actual texture data.
+    { TextureImage, TextureDDS and TextureVideo contain actual texture data.
       TextureImage may come from inline VRML texture or could be loaded
       from file (including from some URL), this doesn't concern you here.
 
-      Calls to TextureImage, TextureVideo, IsTextureImage, IsTextureVideo
+      Calls to TextureImage, TextureVideo, IsTextureImage, IsTextureVideo,
+      TextureDDS
       will automatically load the data, so in simple situations you really
       don't need to do anything. Just check and use them when you want,
       and things will just work. See IsTextureLoaded for more control
       about loading / unloading.
 
-      Be sure to set ImagesVideosCache before loading the texture data.
+      Be sure to set Cache before loading the texture data.
 
       Note that either one of TextureImage or TextureVideo may be @nil,
       if the other one is loaded. Or when loading failed with non-fatal
@@ -122,15 +130,12 @@
       loaded) and additionally that texture size is not zero.
       Similar for IsTextureVideo.
 
-      TextureImage class is always in (TRGBImage, TRGBAlphaImage,
-      TGrayscaleImage, TGrayscaleAlphaImage)
-      simply because only these formats are accepted by GLImages.
-      TODO: this is not nice, we do not want any OpenGL dependency in this unit,
-      even such "ideological" one.
+      TextureImage may have any class allowed by LoadTextureImage.
 
       @groupBegin }
     function TextureImage: TEncodedImage;
     function IsTextureImage: boolean;
+    function TextureDDS: TDDSImage;
     function TextureVideo: TVideo;
     function IsTextureVideo: boolean;
     { @groupEnd }
@@ -147,7 +152,7 @@
       if it's not loaded already. Setting to @false may be useful if you want
       to release resources (e.g. when you want to keep TNodeTexture instance
       loaded but you know that you will not need
-      TextureImage / TextureVideo anymore).
+      TextureImage / TextureDDS / TextureVideo anymore).
       You can also set it to @false and then back to @true if you want to
       request reloading the texture from URL (e.g. if you suspect that
       the URL contents changed).
@@ -163,11 +168,11 @@
     property IsTextureLoaded: boolean
       read FIsTextureLoaded write SetIsTextureLoaded;
 
-    { TImagesVideosCache instance used to load images and videos.
-      Be sure to set ImagesVideosCache before loading the texture.
-      TODO: allow ImagesVideosCache to be @nil. }
-    property ImagesVideosCache: TImagesVideosCache
-      read FImagesVideosCache write FImagesVideosCache;
+    { Cache instance used to load images and videos.
+      Be sure to set Cache before loading the texture.
+      TODO: allow Cache to be @nil. }
+    property Cache: TTexturesImagesVideosCache
+      read FCache write FCache;
 
     { Short description how texture is defined, is it inline or loaded
       from URL, is it video of simple image texture.
@@ -242,7 +247,7 @@
 
   TNodeImageTexture = class(TNodeX3DTexture2DNode, INodeX3DUrlObject)
   protected
-    procedure LoadTextureData(out CacheUsed: boolean); override;
+    procedure LoadTextureData(out WasCacheUsed: boolean); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -262,7 +267,7 @@
     FTimeDependentNodeHandler: TTimeDependentNodeHandler;
     function CycleInterval: TKamTime;
   protected
-    procedure LoadTextureData(out CacheUsed: boolean); override;
+    procedure LoadTextureData(out WasCacheUsed: boolean); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     destructor Destroy; override;
@@ -395,7 +400,7 @@
 
   TNodePixelTexture = class(TNodeX3DTexture2DNode)
   protected
-    procedure LoadTextureData(out CacheUsed: boolean); override;
+    procedure LoadTextureData(out WasCacheUsed: boolean); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -548,7 +553,7 @@ begin
   FFdAlphaChannel.Exposed := false;
   Fields.Add(FFdAlphaChannel);
 
-  TextureDataUsedCache := nil;
+  UsedCache := nil;
   FIsTextureLoaded := false;
 end;
 
@@ -562,20 +567,23 @@ procedure TVRMLTextureNode.FreeAndNilTextureData;
 begin
   if FTextureImage <> nil then
   begin
-    if TextureDataUsedCache <> nil then
+    if UsedCache <> nil then
     begin
-      TextureDataUsedCache.LoadImage_DecReference(TImage(FTextureImage));
-      TextureDataUsedCache := nil;
+      UsedCache.TextureImage_DecReference(FTextureImage, FTextureDDS);
+      UsedCache := nil;
     end else
+    begin
       FreeAndNil(FTextureImage);
+      FreeAndNil(FTextureDDS);
+    end;
   end;
 
   if FTextureVideo <> nil then
   begin
-    if TextureDataUsedCache <> nil then
+    if UsedCache <> nil then
     begin
-      TextureDataUsedCache.Video_DecReference(FTextureVideo);
-      TextureDataUsedCache := nil;
+      UsedCache.Video_DecReference(FTextureVideo);
+      UsedCache := nil;
     end else
       FreeAndNil(FTextureVideo);
   end;
@@ -592,6 +600,15 @@ end;
 function TVRMLTextureNode.IsTextureImage: boolean;
 begin
   Result := (TextureImage <> nil) and (not TextureImage.IsNull);
+end;
+
+function TVRMLTextureNode.TextureDDS: TDDSImage;
+begin
+  { Setting IsTextureLoaded property will initialize
+    FTextureImage, FTextureDDS. }
+  IsTextureLoaded := true;
+
+  Result := FTextureDDS;
 end;
 
 function TVRMLTextureNode.TextureVideo: TVideo;
@@ -613,15 +630,15 @@ procedure TVRMLTextureNode.SetIsTextureLoaded(Value: boolean);
 
   procedure DoLoadTexture;
   var
-    UsedCache: boolean;
+    WasCacheUsed: boolean;
   begin
-    Assert(ImagesVideosCache <> nil, 'ImagesVideosCache must be set before loading the texture');
+    Assert(Cache <> nil, 'Cache must be set before loading the texture');
 
     FreeAndNilTextureData;
 
-    LoadTextureData(UsedCache);
-    if UsedCache then
-      TextureDataUsedCache := ImagesVideosCache;
+    LoadTextureData(WasCacheUsed);
+    if WasCacheUsed then
+      UsedCache := Cache;
   end;
 
 begin
@@ -641,9 +658,9 @@ begin
   end;
 end;
 
-procedure TVRMLTextureNode.LoadTextureData(out CacheUsed: boolean);
+procedure TVRMLTextureNode.LoadTextureData(out WasCacheUsed: boolean);
 begin
-  CacheUsed := false;
+  WasCacheUsed := false;
   FTextureUsedFullUrl := '';
 
   VRMLWarning(vwSerious, Format('Loading textures from "%s" node not implemented', [NodeTypeName]));
@@ -757,12 +774,12 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeImageTexture.LoadTextureData(out CacheUsed: boolean);
+procedure TNodeImageTexture.LoadTextureData(out WasCacheUsed: boolean);
 
   { Load image from URL containing "data:" protocol
     (http://en.wikipedia.org/wiki/Data_URI_scheme).
     If success,
-    - sets FTextureImage, CacheUsed, FTextureUsedFullUrl
+    - sets FTextureImage, FTextureDDS, WasCacheUsed, FTextureUsedFullUrl
     - returns true
     otherwise
     - makes VRMLWarning
@@ -861,7 +878,7 @@ procedure TNodeImageTexture.LoadTextureData(out CacheUsed: boolean);
         try
           FTextureImage := LoadImage(DecStream, ImageFormat,
             [TRGBImage, TRGBAlphaImage, TGrayscaleImage, TGrayscaleAlphaImage], []);
-          CacheUsed := false;
+          WasCacheUsed := false;
           FTextureUsedFullUrl := URLPrefix;
           Result := true;
         except
@@ -882,9 +899,8 @@ procedure TNodeImageTexture.LoadTextureData(out CacheUsed: boolean);
 var
   I: Integer;
   FullUrl: string;
-  DDS: TDDSImage;
 begin
-  CacheUsed := false;
+  WasCacheUsed := false;
   FTextureUsedFullUrl := '';
 
   for I := 0 to FdUrl.Count - 1 do
@@ -900,43 +916,18 @@ begin
     end else
     begin
       FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
-
-      if FileExtToImageFormatDef(ExtractFileExt(FullUrl),
-        false, false, ifBMP) <> ifDDS then
-      begin
-        { Load texture straight to TImage class by
-          ImagesVideosCache.LoadImage_IncReference }
-        try
-          FTextureImage := ImagesVideosCache.LoadImage_IncReference(FullUrl);
-          CacheUsed := true;
-          FTextureUsedFullUrl := FullUrl;
-          Break;
-        except
-          on E: Exception do
-            { pamietajmy ze VRMLWarning moze spowodowac rzucenie wyjatku
-              (chociaz nie musi) }
-            VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
-              ' occured when trying to load ' +
-              'texture from url "' + FullUrl + '" : ' + E.Message);
-        end;
-      end else
-      begin
-        { Load texture by DDS loader, this may we may get compressed texture }
-        DDS := TDDSImage.Create;
-        try
-          try
-            DDS.LoadFromFile(FullUrl);
-
-            FTextureUsedFullUrl := FullUrl;
-            DDS.OwnsFirstImage := false;
-            FTextureImage := DDS.Images[0];
-        except
-          on E: Exception do
-            VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
-              ' occured when trying to load ' +
-              'DDS texture from url "' + FullUrl + '" : ' + E.Message);
-        end;
-        finally FreeAndNil(DDS) end;
+      try
+        FTextureImage := Cache.TextureImage_IncReference(FullUrl, FTextureDDS);
+        WasCacheUsed := true;
+        FTextureUsedFullUrl := FullUrl;
+        Break;
+      except
+        on E: Exception do
+          { pamietajmy ze VRMLWarning moze spowodowac rzucenie wyjatku
+            (chociaz nie musi) }
+          VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
+            ' occured when trying to load ' +
+            'texture from url "' + FullUrl + '" : ' + E.Message);
       end;
     end;
 end;
@@ -1037,22 +1028,22 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeMovieTexture.LoadTextureData(out CacheUsed: boolean);
+procedure TNodeMovieTexture.LoadTextureData(out WasCacheUsed: boolean);
 var
   I: Integer;
   FullUrl: string;
 begin
-  CacheUsed := true;
+  WasCacheUsed := true;
   FTextureUsedFullUrl := '';
 
   for I := 0 to FdUrl.Count - 1 do
   begin
     FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
     try
-      FTextureVideo := ImagesVideosCache.Video_IncReference(FullUrl);
+      FTextureVideo := Cache.Video_IncReference(FullUrl);
 
-      { it loading succeded, set CacheUsed and others and break. }
-      CacheUsed := true;
+      { it loading succeded, set WasCacheUsed and others and break. }
+      WasCacheUsed := true;
       FTextureUsedFullUrl := FullUrl;
       FDuration := FTextureVideo.TimeDuration;
       if ParentEventsProcessor <> nil then
@@ -1222,9 +1213,9 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodePixelTexture.LoadTextureData(out CacheUsed: boolean);
+procedure TNodePixelTexture.LoadTextureData(out WasCacheUsed: boolean);
 begin
-  CacheUsed := false;
+  WasCacheUsed := false;
 
   if not FdImage.Value.IsNull then
     FTextureImage := FdImage.Value.MakeCopy;
