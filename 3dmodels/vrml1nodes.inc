@@ -909,6 +909,7 @@
   protected
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    function DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; override;
   public
     procedure LoadInlined(CanReload: boolean);
     procedure UnLoadInlined;
@@ -2504,6 +2505,14 @@ end;
 procedure TNodeWWWInline.LoadedInlineDirectly;
 begin
   Loaded := true;
+end;
+
+function TNodeWWWInline.DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;
+begin
+  Result := inherited DeepCopyCore(CopyState);
+  { Since inherited copied our Children, we should also set "Loaded"
+    field to the same value. }
+  (Result as TNodeWWWInline).Loaded := Loaded;
 end;
 
 procedure TNodeWWWInline.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);

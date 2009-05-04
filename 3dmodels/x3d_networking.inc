@@ -126,6 +126,7 @@
       called when LoadInlined was called on the already-loaded node with
       CanReload = @false. }
     procedure AfterLoadInlined; virtual;
+    function DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -452,6 +453,14 @@ end;
 procedure TNodeInline.LoadedInlineDirectly;
 begin
   Loaded := true;
+end;
+
+function TNodeInline.DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;
+begin
+  Result := inherited DeepCopyCore(CopyState);
+  { Since inherited copied our Children, we should also set "Loaded"
+    field to the same value. }
+  (Result as TNodeInline).Loaded := Loaded;
 end;
 
 procedure TNodeInline.AfterLoadInlined;
