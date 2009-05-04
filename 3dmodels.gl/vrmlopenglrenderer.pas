@@ -1029,6 +1029,10 @@ type
     RenderEndCaches: TDynRenderBeginEndCacheArray;
     GLSLProgramCaches: TDynGLSLProgramCacheArray;
 
+    { Load given texture to OpenGL, using our cache.
+
+      @raises(ETextureLoadError If texture cannot be loaded for whatever
+      reason.) }
     function TextureImage_IncReference(
       const TextureImage: TEncodedImage;
       const TextureFullUrl: string;
@@ -1074,6 +1078,10 @@ type
     procedure TextureDepth_DecReference(
       const TextureGLName: TGLuint);
 
+    { Load given 3D texture to OpenGL, using our cache.
+
+      @raises(ETextureLoadError If texture cannot be loaded for whatever
+      reason.) }
     function Texture3D_IncReference(
       Node: TNodeX3DTexture3DNode;
       const MinFilter, MagFilter: TGLint;
@@ -2242,14 +2250,11 @@ begin
   glGenTextures(1, @Result);
   glBindTexture(GL_TEXTURE_3D_EXT, Result);
 
-  glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_MAG_FILTER, MagFilter);
-  glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_MIN_FILTER, MinFilter);
+  glTextureImage3d(Image, MinFilter, MagFilter);
 
   glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_WRAP_S, TextureWrap[0]);
   glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_WRAP_T, TextureWrap[1]);
   glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_WRAP_R, TextureWrap[2]);
-
-  glTextureImage3d(Image, TextureMinFilterNeedsMipmaps(MinFilter));
 
   TexParameterMaxAnisotropy(GL_TEXTURE_3D_EXT, Anisotropy);
 

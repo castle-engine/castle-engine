@@ -123,7 +123,7 @@ unit GLImages;
 
 interface
 
-uses GL, GLU, GLExt, Images, VectorMath, KambiGLUtils, Videos;
+uses GL, GLU, GLExt, SysUtils, Images, VectorMath, KambiGLUtils, Videos;
 
 const
   { All routines in this unit that take TImage paramater
@@ -397,6 +397,11 @@ operator = (const W1, W2: TTextureWrap3D): boolean;
 
 { Loading textures ----------------------------------------------------------- }
 
+type
+  ETextureLoadError = class(Exception);
+  ECannotLoadS3TCTexture = class(ETextureLoadError);
+  EInvalidImageForOpenGLTexture = class(ETextureLoadError);
+
 function TextureMinFilterNeedsMipmaps(const MinFilter: TGLenum): boolean;
 
 { Load new texture. It generates new texture number by glGenTextures.
@@ -417,6 +422,20 @@ function TextureMinFilterNeedsMipmaps(const MinFilter: TGLenum): boolean;
   fragments alpha value, it doesn't have any "color" in the normal sense,
   it's only for opacity).
 
+  If GenerateMipmap functionality will be required to create mipmaps,
+  but is not available on this OpenGL implementation,
+  we will change MinFilter to simple GL_LINEAR and make DataWarning.
+  So usually you just don't have to worry about this.
+  Note that current implementation requires GenerateMipmap functionality
+  only for S3TC textures, for normal uncompressed textures we can
+  generate mipmaps on CPU or through SGIS_GENERATE_MIPMAP extension.
+
+  @raises(ETextureLoadError If texture cannot be loaded for whatever reason.
+    This includes ECannotLoadS3TCTexture if the S3TC texture cannot be
+    loaded for whatever reason.
+    This includes EInvalidImageForOpenGLTexture if Image class is invalid
+    for an OpenGL texture.)
+
   @groupBegin }
 function LoadGLTexture(const image: TEncodedImage; minFilter, magFilter: TGLenum;
   GrayscaleIsAlpha: boolean = false): TGLuint; overload;
@@ -433,6 +452,7 @@ function LoadGLTexture(const FileName: string;
 { Load texture into already reserved texture number.
 
   Besides this, works exactly like LoadGLTexture.
+  May raise the same exception classes.
   If you omit Wrap parameters then they will not be set.
   Changes currently bound texture to TexNum.
 
@@ -538,25 +558,41 @@ procedure glTexImages2DForCubeMap(
   Mipmaps: boolean);
 
 { Comfortably load a 3D texture.
-  Think about this as doing only glTexImage3D(...) for you.
+  Think about this as doing glTexImage3D(...) for you.
+  It also sets texture minification, magnification filters and creates
+  mipmaps if necessary.
 
   It checks OpenGL 3D texture size requirements, and throws exceptions
   if not satisfied.
 
   It takes care about OpenGL unpack parameters. Just don't worry about it.
 
-  If mipmaps, then all mipmap levels will be automatically created and loaded.
-  They will be created by GenerateMipmap, make sure HasGenerateMipmap
-  is @true before passing Mipmaps = @true here. }
-procedure glTextureImage3D(const Image: TImage; Mipmaps: boolean);
+  If MinFilter uses mipmaps, then all mipmap levels will be
+  automatically created and loaded.
+
+  GenerateMipmap functionality will be required to create mipmaps.
+  When it is not available on this OpenGL implementation,
+  we will change MinFilter to simple GL_LINEAR and make DataWarning.
+  So usually you just don't have to worry about this.
+
+  @raises(ETextureLoadError If texture cannot be loaded for whatever reason,
+    for example it's size is not correct for OpenGL 3D texture (we cannot
+    automatically resize 3D textures, at least for now).) }
+procedure glTextureImage3D(const Image: TImage; MinFilter, MagFilter: TGLenum);
+
+type
+  EGenerateMipmapNotAvailable = class(Exception);
 
 { Is GenerateMipmap avaiable. This checks some GL extensions/versions that
   give us glGenerateMipmap or glGenerateMipmapEXT call, used by GenerateMipmap. }
 function HasGenerateMipmap: boolean;
 
 { Call glGenerateMipmap (or analogous function from some OpenGL extension).
-  Raises exception if not available (always check HasGenerateMipmap
-  first to avoid this). }
+
+  @raises(EGenerateMipmapNotAvailable If no glGenerateMipmap version
+    is available on this OpenGL version. If you don't want to get
+    this exception, you can always check HasGenerateMipmap
+    before calling this.) }
 procedure GenerateMipmap(target: GLenum);
 
 { Call glTexParameterf to set GL_TEXTURE_MAX_ANISOTROPY_EXT on given texture
@@ -577,7 +613,7 @@ function GLDecompressS3TC(Image: TS3TCImage): TImage;
 
 implementation
 
-uses SysUtils, KambiUtils, KambiLog, GLVersionUnit;
+uses KambiUtils, KambiLog, GLVersionUnit, DataErrors;
 
 function ImageGLFormat(const Img: TEncodedImage): TGLenum;
 begin
@@ -1036,14 +1072,14 @@ begin
   Result := ArrayPosCard(MinFilter, MipmapFilters) >= 0;
 end;
 
-type
-  ECannotLoadS3TCTexture = class(Exception);
-
 { Load Image through glCompressedTexImage2DARB.
   This checks existence of OpenGL extensions for S3TC,
   and checks Image sizes.
   It also takes care of pixel packing, although actually nothing needs
-  be done about it when using compressed textures. }
+  be done about it when using compressed textures.
+
+  @raises(ECannotLoadS3TCTexture If texture size is bad or OpenGL S3TC
+    extensions are missing.) }
 procedure glCompressedTextureImage2D(Image: TS3TCImage);
 begin
   if not (GL_ARB_texture_compression and GL_EXT_texture_compression_s3tc) then
@@ -1178,9 +1214,19 @@ begin
     glCompressedTextureImage2D(TS3TCImage(Image));
 
     if TextureMinFilterNeedsMipmaps(MinFilter) then
+    try
       GenerateMipmap(GL_TEXTURE_2D);
+    except
+      on E: EGenerateMipmapNotAvailable do
+      begin
+        MinFilter := GL_LINEAR;
+        { Update GL_TEXTURE_MIN_FILTER, since we already initialized it earlier. }
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, MinFilter);
+        DataWarning('Creating mipmaps for S3TC compressed textures requires GenerateMipmap functionality, will fallback to GL_LINEAR minification: ' + E.Message);
+      end;
+    end;
   end else
-    raise Exception.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
+    raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
 end;
 
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
@@ -1188,9 +1234,9 @@ procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
   const Wrap: TTextureWrap2D;
   GrayscaleIsAlpha: boolean);
 begin
- LoadGLGeneratedTexture(TexNum, Image, MinFilter, MagFilter, GrayscaleIsAlpha);
- glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Wrap[0]);
- glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Wrap[1]);
+  LoadGLGeneratedTexture(TexNum, Image, MinFilter, MagFilter, GrayscaleIsAlpha);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Wrap[0]);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Wrap[1]);
 end;
 
 function LoadGLTextureModulated(const Image: TImage;
@@ -1382,7 +1428,7 @@ end;
 
 { 3D texture loading --------------------------------------------------------- }
 
-procedure glTextureImage3D(const Image: TImage; Mipmaps: boolean);
+procedure glTextureImage3D(const Image: TImage; MinFilter, MagFilter: TGLenum);
 var
   ImageInternalFormat: TGLuint;
   ImageFormat: TGLuint;
@@ -1409,7 +1455,7 @@ var
 
   begin
     if not IsTexture3DSized(Image) then
-      raise Exception.CreateFmt('Image is not properly sized for a 3D texture, sizes must be a power-of-two and <= GL_MAX_3D_TEXTURE_SIZE_EXT (%d). Sizes are: %d x %d x %d',
+      raise ETextureLoadError.CreateFmt('Image is not properly sized for a 3D texture, sizes must be a power-of-two and <= GL_MAX_3D_TEXTURE_SIZE_EXT (%d). Sizes are: %d x %d x %d',
         [ GLMax3DTextureSizeEXT,
           Image.Width, Image.Height, Image.Depth ]);
 
@@ -1422,22 +1468,41 @@ begin
 
   glTexImage3DImage(Image);
 
-  if Mipmaps then
+  if TextureMinFilterNeedsMipmaps(MinFilter) then
+  try
     GenerateMipmap(GL_TEXTURE_3D_EXT);
+  except
+    on E: EGenerateMipmapNotAvailable do
+    begin
+      MinFilter := GL_LINEAR;
+      DataWarning('Creating mipmaps for 3D textures requires GenerateMipmap functionality, will fallback to GL_LINEAR minification: ' + E.Message);
+    end;
+  end;
+
+  glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_MAG_FILTER, MagFilter);
+  glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_MIN_FILTER, MinFilter);
 end;
 
 { GenerateMipmap ------------------------------------------------------------- }
 
+{ $define TEST_NO_GENERATE_MIPMAP}
+
 function HasGenerateMipmap: boolean;
+{$ifdef TEST_NO_GENERATE_MIPMAP}
+begin
+  Result := false;
+{$else}
 begin
   Result := GL_EXT_framebuffer_object and
     { glGenerateMipmapEXT segfaults under Mesa 7.0.2,
       under Mesa 7.2 makes X crashing. Sweet. }
     (not GLVersion.IsMesa);
+{$endif}
 end;
 
 procedure GenerateMipmap(target: GLenum);
 begin
+  {$ifndef TEST_NO_GENERATE_MIPMAP}
   if GL_EXT_framebuffer_object then
   begin
     glPushAttrib(GL_ENABLE_BIT);
@@ -1449,7 +1514,8 @@ begin
       glGenerateMipmapEXT(Target);
     glPopAttrib;
   end else
-    raise Exception.Create('EXT_framebuffer_object not supported, glGenerateMipmapEXT not available');
+  {$endif}
+    raise EGenerateMipmapNotAvailable.Create('EXT_framebuffer_object not supported, glGenerateMipmapEXT not available');
 end;
 
 { Anisotropy ----------------------------------------------------------------- }
@@ -1490,7 +1556,7 @@ begin
     glGetTexImage(GL_TEXTURE_2D, 0,
       ImageGLFormat(Result), ImageGLType(Result), Result.RawPixels);
   finally AfterPackImage(PackData, Result) end;
-  
+
   glDeleteTextures(1, @Tex);
 end;
 
