@@ -3790,18 +3790,27 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
       if TextureNode.IsTextureImage then
       begin
         TextureImageReference.Node := TextureNode;
-        TextureImageReference.GLName := Cache.TextureImage_IncReference(
-          TextureNode.TextureImage,
-          TextureNode.TextureUsedFullUrl,
-          TextureNode,
-          MinFilter,
-          MagFilter,
-          Anisotropy,
-          TextureWrap,
-          Attributes.ColorModulatorByte,
-          { This way, our AlphaChannelType is calculated (or taken from cache)
-            by TextureImage_IncReference }
-          TextureImageReference.AlphaChannelType);
+
+        try
+          TextureImageReference.GLName := Cache.TextureImage_IncReference(
+            TextureNode.TextureImage,
+            TextureNode.TextureUsedFullUrl,
+            TextureNode,
+            MinFilter,
+            MagFilter,
+            Anisotropy,
+            TextureWrap,
+            Attributes.ColorModulatorByte,
+            { This way, our AlphaChannelType is calculated (or taken from cache)
+              by TextureImage_IncReference }
+            TextureImageReference.AlphaChannelType);
+        except
+          on E: ETextureLoadError do
+          begin
+            VRMLWarning(vwIgnorable, 'Cannot load 2D texture to OpenGL: ' + E.Message);
+            Exit;
+          end;
+        end;
 
         { TODO: for now, bump mapping is used only if the node has normal texture
           too. It should be possible to use bump mapping even if the node is colored
@@ -4150,18 +4159,27 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
           to avoid making repeated warnings in case image fails).
           Should be cached, like for 2D texture nodes.
         - We do not use texture 3d mipmaps stored inside DDS file.
-        - We crash ("as") on S3TC compressed images.
+        - We crash (because of "Image as TImage") on S3TC compressed images.
           (although DDS doesn't allow compressed 3d textures, so this
           is not so important now.)
       }
 
       TextureReference.Node := Texture;
-      TextureReference.GLName := Cache.Texture3D_IncReference(
-        Texture, MinFilter, MagFilter, Anisotropy,
-        TextureWrap, Image as TImage,
-        TextureReference.AlphaChannelType);
-      Texture3DReferences.AppendItem(TextureReference);
 
+      try
+        TextureReference.GLName := Cache.Texture3D_IncReference(
+          Texture, MinFilter, MagFilter, Anisotropy,
+          TextureWrap, Image as TImage,
+          TextureReference.AlphaChannelType);
+      except
+        on E: ETextureLoadError do
+        begin
+          VRMLWarning(vwIgnorable, 'Cannot load 3D texture to OpenGL: ' + E.Message);
+          Exit;
+        end;
+      end;
+
+      Texture3DReferences.AppendItem(TextureReference);
     finally
       FreeAndNil(Image);
       FreeAndNil(DDS);
