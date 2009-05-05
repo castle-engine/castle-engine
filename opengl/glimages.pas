@@ -118,13 +118,13 @@
   highest row.
 
   Routines in this unit that take TImage or TEncodedImage paramater
-  are limited to TextureImageClasses (for routines dealing with textures)
+  are limited to TextureImageClassesAll (for routines dealing with textures)
   or PixelsImageClasses (for routines dealing with pixel buffer, like
   glReadPixels, glDrawPixels).
   Note that *not everywhere* this is checked (especially if you
   compile with -dRELEASE) so just be sure that you're always passing
   only image instances of correct class (e.g. using
-  InImageClasses(MyImage, TextureImageClasses)).
+  InImageClasses(MyImage, PixelsImageClasses)).
 }
 unit GLImages;
 
@@ -143,19 +143,20 @@ const
 
 { These functions return appropriate GL_xxx format and type
   for given TImage descendant. If you will pass here Img
-  that is not a descendant of one of TextureImageClasses,
+  that is not a descendant of one of TextureImageClassesAll
+  or PixelsImageClasses,
   they will return GL_INVALID_ENUM.
 
   Note that OpenGL does not guarantee that GL_INVALID_ENUM <> GL_RGB, GL_RGBA
   etc. (even if every OpenGL implementation has constants defined that in a way
   that satisfies this). So better to not assume that instead of
-  checking InImageClasses(MyImage, TextureImageClasses)
+  checking InImageClasses(MyImage, PixelsImageClasses)
   you can simply check ImageGLFormat(MyImage) <> GL_INVALID_ENUM.
 
   (But this fact can be used to make routines in this unit like
   ImageDraw work faster, because I don't guarantee anywhere that
   ImageDraw will check at runtime that passed Image has class
-  in TextureImageClasses. So ImageDraw simply passes to OpenGL values
+  in PixelsImageClasses. So ImageDraw simply passes to OpenGL values
   returned by ImageGLFormat/Type, so in case of incorrect
   Image class OpenGL will get GL_INVALID_ENUM. Since it's not guaranteed
   that GL_INVALID_ENUM <> GL_RGB etc., it's not guaranteed that OpenGL
@@ -183,7 +184,7 @@ function ImageGLType(const Img: TImage): TGLenum;
   Image will be loaded with AllowedImageClasses = LoadAsClass and
   ForbiddenConvs = LoadForbiddenConvs, see @link(Images.LoadImage)
   for description what these parameters mean.
-  LoadAsClass may contain only classes present in TextureImageClasses. }
+  LoadAsClass may contain only classes present in PixelsImageClasses. }
 function LoadImageToDisplayList(const FileName: string;
   const LoadAsClass: array of TImageClass;
   const LoadForbiddenConvs: TImageLoadConversions;
@@ -283,7 +284,7 @@ function ImageDrawPartToDisplayList(
   Note that you can pass here any ReadBuffer value allowed by
   glReadBuffer OpenGL function.
 
-  Version with ImageClass can save to any image format from TextureImageClasses.
+  Version with ImageClass can save to any image format from PixelsImageClasses.
 
   Version with TImage instance just uses this instance to save the image.
   You must pass here already created TImage instance, it's class,
