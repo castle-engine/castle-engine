@@ -117,11 +117,13 @@
   So we have rows of TVector3Byte structures, stored from lowest row to
   highest row.
 
-  All routines in this unit that take TImage paramater
-  accept only TextureImageClasses.
+  Routines in this unit that take TImage or TEncodedImage paramater
+  are limited to TextureImageClasses (for routines dealing with textures)
+  or PixelsImageClasses (for routines dealing with pixel buffer, like
+  glReadPixels, glDrawPixels).
   Note that *not everywhere* this is checked (especially if you
   compile with -dRELEASE) so just be sure that you're always passing
-  only TImage instances of correct class (e.g. using
+  only image instances of correct class (e.g. using
   InImageClasses(MyImage, TextureImageClasses)).
 }
 unit GLImages;
@@ -131,6 +133,13 @@ unit GLImages;
 interface
 
 uses GL, GLU, GLExt, SysUtils, Images, VectorMath, KambiGLUtils, Videos;
+
+const
+  PixelsImageClasses: array [0..3] of TImageClass = (
+    TRGBImage,
+    TRGBAlphaImage,
+    TGrayscaleImage,
+    TGrayscaleAlphaImage);
 
 { These functions return appropriate GL_xxx format and type
   for given TImage descendant. If you will pass here Img
