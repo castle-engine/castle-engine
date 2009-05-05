@@ -2012,6 +2012,11 @@ procedure DecodeImageColor(const Pixel: LongWord; var G: Byte);
 procedure DecodeImageColor(const Pixel: LongWord; var GA: TVector2Byte);
 procedure DecodeImageColor(const Pixel: LongWord; var RGB: TVector3Byte);
 procedure DecodeImageColor(const Pixel: LongWord; var RGBA: TVector4Byte);
+
+procedure DecodeImageColor(const Pixel: LongInt; var G: Byte);
+procedure DecodeImageColor(const Pixel: LongInt; var GA: TVector2Byte);
+procedure DecodeImageColor(const Pixel: LongInt; var RGB: TVector3Byte);
+procedure DecodeImageColor(const Pixel: LongInt; var RGBA: TVector4Byte);
 { @groupEnd }
 
 {$undef read_interface}
@@ -2754,7 +2759,6 @@ begin
   for i := 0 to High(Vector) do Vector[i] := ParseFloat(Lexer);
 end;
 
-
 function ParseLongWord(Lexer: TVRMLLexer): LongWord;
 begin
  Lexer.CheckTokenIs(vtInteger);
@@ -3119,6 +3123,38 @@ begin
   RGBA[2] := (pixel shr 8) and $FF;
   RGBA[3] := pixel and $FF;
 end;
+
+{ We have to turn range checking off, because converting from LongInt
+  to LongWord below may cause range check errors. Yes, we want to
+  directly treat LongInt as 4 bytes here, because DecodeImageColor
+  works on separate bytes. See
+  http://vrmlengine.sourceforge.net/vrml_implementation_status.php
+  comments about PixelTexture3D. }
+
+{$include norqcheckbegin.inc}
+
+procedure DecodeImageColor(const Pixel: LongInt; var G: Byte);
+begin
+  DecodeImageColor(LongWord(Pixel), G);
+end;
+
+procedure DecodeImageColor(const Pixel: LongInt; var GA: TVector2Byte);
+begin
+  DecodeImageColor(LongWord(Pixel), GA);
+end;
+
+procedure DecodeImageColor(const Pixel: LongInt; var RGB: TVector3Byte);
+begin
+  DecodeImageColor(LongWord(Pixel), RGB);
+end;
+
+procedure DecodeImageColor(const Pixel: LongInt; var RGBA: TVector4Byte);
+begin
+  DecodeImageColor(LongWord(Pixel), RGBA);
+end;
+
+{$include norqcheckend.inc}
+
 
 procedure TSFImage.ParseValue(Lexer: TVRMLLexer);
 
