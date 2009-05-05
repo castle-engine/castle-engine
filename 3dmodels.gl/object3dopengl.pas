@@ -65,7 +65,7 @@ procedure Render3DS(scene: TScene3ds; useTexture2d: boolean);
 implementation
 
 uses SysUtils, KambiUtils, GL, GLU, GLExt, KambiGLUtils, Object3dsMaterial, Images,
-  GLImages;
+  GLImages, TextureImages;
 
 procedure RenderGEO(geo: TObject3dGEO);
 { Renderujemy w naturalny sposor uzywajac vertex arrays. }
@@ -148,10 +148,10 @@ procedure Render3DSTrimesh(Trimesh: TTrimesh3ds; useTexture2d: boolean);
     { wiedzac ze TexMap.Exists = true, sprobuj zaladowac teksture TexMap
       do domyslnej unnamed tekstury OpenGLa (nr 0).
       Jesli sie udalo ustaw GL_TEXTURE_2D enabled, wpp. disabled. }
-    var Image: TImage;
+    var Image: TEncodedImage;
     begin
      try
-      Image := LoadImage(TexMap.MapFilename, GLImageClasses, []);
+      Image := LoadTextureImage(TexMap.MapFilename);
      except
       on E: Exception do begin
        WarningWrite('WARNING : Exception raised while trying to load texture "'+
