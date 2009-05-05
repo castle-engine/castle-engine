@@ -316,7 +316,7 @@ begin
   try
     Move(Slice.RawPixels^, TImage(FTextureImage).RawPixels^,
       Slice.Width * Slice.Height * Slice.PixelSize);
-  
+
     for I := 1 to FdTexture.Count - 1 do
     begin
       Slice := LoadOneSlice(I);
@@ -444,8 +444,76 @@ begin
 end;
 
 procedure TNodePixelTexture3D.LoadTextureData;
+var
+  Components, Width, Height, Depth: Cardinal;
+  G: PByte;
+  GA: PVector2Byte;
+  RGB: PVector3Byte;
+  RGBA: PVector4Byte;
+  I: Integer;
 begin
-  VRMLWarning(vwIgnorable, 'TODO: Cannot load 3d textures from PixelTexture3D for now');
+  if FdImage.Count < 4 then
+  begin
+    VRMLWarning(vwIgnorable, 'PixelTexture3D.image has too few items (must have at least 4)');
+    Exit;
+  end;
+
+  Components := FdImage.Items.Items[0];
+  Width := FdImage.Items.Items[1];
+  Height := FdImage.Items.Items[2];
+  Depth := FdImage.Items.Items[3];
+
+  if Cardinal(FdImage.Count) < 4 + Width * Height * Depth then
+  begin
+    VRMLWarning(vwIgnorable, Format('PixelTexture3D.image has too few items, must have at least %d (= 4 + Width * Height * Depth = 4 + %d * %d * %d)',
+      [ 4 + Width * Height * Depth,  Width, Height, Depth ]));
+    Exit;
+  end;
+
+  case Components of
+    0: { 0 components is allowed by the spec, and results in an empty image };
+    1: begin
+         FTextureImage := TGrayscaleImage.Create(Width, Height, Depth);
+         G := TGrayscaleImage(FTextureImage).GrayscalePixels;
+         for I := 0 to Width * Height * Depth - 1 do
+         begin
+           DecodeImageColor(FdImage.Items.Items[4 + I], G^);
+           Inc(G);
+         end;
+       end;
+    2: begin
+         FTextureImage := TGrayscaleAlphaImage.Create(Width, Height, Depth);
+         GA := TGrayscaleAlphaImage(FTextureImage).GrayscaleAlphaPixels;
+         for I := 0 to Width * Height * Depth - 1 do
+         begin
+           DecodeImageColor(FdImage.Items.Items[4 + I], GA^);
+           Inc(GA);
+         end;
+       end;
+    3: begin
+         FTextureImage := TRGBImage.Create(Width, Height, Depth);
+         RGB := TRGBImage(FTextureImage).RGBPixels;
+         for I := 0 to Width * Height * Depth - 1 do
+         begin
+           DecodeImageColor(FdImage.Items.Items[4 + I], RGB^);
+           Inc(RGB);
+         end;
+       end;
+    4: begin
+         FTextureImage := TRGBAlphaImage.Create(Width, Height, Depth);
+         RGBA := TRGBAlphaImage(FTextureImage).AlphaPixels;
+         for I := 0 to Width * Height * Depth - 1 do
+         begin
+           DecodeImageColor(FdImage.Items.Items[4 + I], RGBA^);
+           Inc(RGBA);
+         end;
+       end;
+    else
+    begin
+      VRMLWarning(vwIgnorable, 'PixelTexture3D.image has invalid components count (must be between 0..4)');
+      Exit;
+    end;
+  end;
 end;
 
 constructor TNodeTextureCoordinate3D.Create(const ANodeName: string;

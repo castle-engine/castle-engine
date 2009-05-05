@@ -2006,6 +2006,14 @@ type
 
 function VRMLFieldsManager: TVRMLFieldsManager;
 
+{ Decode color from integer value, following VRML SFImage specification.
+  @groupBegin }
+procedure DecodeImageColor(const Pixel: LongWord; var G: Byte);
+procedure DecodeImageColor(const Pixel: LongWord; var GA: TVector2Byte);
+procedure DecodeImageColor(const Pixel: LongWord; var RGB: TVector3Byte);
+procedure DecodeImageColor(const Pixel: LongWord; var RGBA: TVector4Byte);
+{ @groupEnd }
+
 {$undef read_interface}
 
 implementation
@@ -3086,6 +3094,32 @@ begin
  inherited;
 end;
 
+procedure DecodeImageColor(const Pixel: LongWord; var G: Byte);
+begin
+  G := Pixel and $FF;
+end;
+
+procedure DecodeImageColor(const Pixel: LongWord; var GA: TVector2Byte);
+begin
+  GA[0] := (pixel shr 8) and $FF;
+  GA[1] := pixel and $FF;
+end;
+
+procedure DecodeImageColor(const Pixel: LongWord; var RGB: TVector3Byte);
+begin
+  RGB[0] := (pixel shr 16) and $FF;
+  RGB[1] := (pixel shr 8) and $FF;
+  RGB[2] := pixel and $FF;
+end;
+
+procedure DecodeImageColor(const Pixel: LongWord; var RGBA: TVector4Byte);
+begin
+  RGBA[0] := (pixel shr 24) and $FF;
+  RGBA[1] := (pixel shr 16) and $FF;
+  RGBA[2] := (pixel shr 8) and $FF;
+  RGBA[3] := pixel and $FF;
+end;
+
 procedure TSFImage.ParseValue(Lexer: TVRMLLexer);
 
   procedure ReplaceValue(NewValue: TImage);
@@ -3095,7 +3129,7 @@ procedure TSFImage.ParseValue(Lexer: TVRMLLexer);
   end;
 
 var
-  w, h, comp, pixel: LongWord;
+  w, h, comp: LongWord;
   i: Cardinal;
   RGBPixels: PArray_Vector3Byte;
   RGBAlphaPixels: PArray_Vector4Byte;
@@ -3134,43 +3168,25 @@ begin
         ReplaceValue(TGrayscaleImage.Create(w, h));
         GrayscalePixels := PByteArray(Value.RawPixels);
         for i := 0 to w*h-1 do
-        begin
-         pixel := ParseLongWord(Lexer);
-         GrayscalePixels^[I] := pixel and $FF;
-        end;
+          DecodeImageColor(ParseLongWord(Lexer), GrayscalePixels^[I]);
        end;
     2: begin
         ReplaceValue(TGrayscaleAlphaImage.Create(w, h));
         GrayscaleAlphaPixels := PArray_Vector2Byte(Value.RawPixels);
         for i := 0 to w*h-1 do
-        begin
-         pixel := ParseLongWord(Lexer);
-         GrayscaleAlphaPixels^[i, 0] := (pixel shr 8) and $FF;
-         GrayscaleAlphaPixels^[i, 1] := pixel and $FF;
-        end;
+          DecodeImageColor(ParseLongWord(Lexer), GrayscaleAlphaPixels^[i]);
        end;
     3: begin
         ReplaceValue(TRGBImage.Create(w, h));
         RGBPixels := PArray_Vector3Byte(Value.RawPixels);
         for i := 0 to w*h-1 do
-        begin
-         pixel := ParseLongWord(Lexer);
-         RGBPixels^[i, 0] := (pixel shr 16) and $FF;
-         RGBPixels^[i, 1] := (pixel shr 8) and $FF;
-         RGBPixels^[i, 2] := pixel and $FF;
-        end;
+          DecodeImageColor(ParseLongWord(Lexer), RGBPixels^[i]);
        end;
     4: begin
         ReplaceValue(TRGBAlphaImage.Create(w, h));
         RGBAlphaPixels := PArray_Vector4Byte(Value.RawPixels);
         for i := 0 to w*h-1 do
-        begin
-         pixel := ParseLongWord(Lexer);
-         RGBAlphaPixels^[i, 0] := (pixel shr 24) and $FF;
-         RGBAlphaPixels^[i, 1] := (pixel shr 16) and $FF;
-         RGBAlphaPixels^[i, 2] := (pixel shr 8) and $FF;
-         RGBAlphaPixels^[i, 3] := pixel and $FF;
-        end;
+          DecodeImageColor(ParseLongWord(Lexer), RGBAlphaPixels^[i]);
        end;
     else raise EVRMLParserError.Create(Lexer, Format('Invalid components count'+
            ' for SFImage : is %d, should be 1, 2, 3 or 4.',[comp]));
