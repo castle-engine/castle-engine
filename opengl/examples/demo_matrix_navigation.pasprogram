@@ -47,7 +47,7 @@ begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(glw.Navigator.Matrix);
 
-  q := NewGLUQuadric(GL_FALSE, GLU_SMOOTH, GLU_OUTSIDE, GLU_FILL);
+  q := NewGLUQuadric(false, GLU_SMOOTH, GLU_OUTSIDE, GLU_FILL);
   try
     gluSphere(q, 1, 10, 10);
   finally gluDeleteQuadric(q) end;

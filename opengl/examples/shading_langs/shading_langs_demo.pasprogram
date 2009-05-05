@@ -127,7 +127,7 @@ procedure Draw(glwin: TGLWindow);
     glPushMatrix;
       glTranslatef(+6, 0, 0);
       glRotatef(-90, 1, 0, 0);
-      Q := NewGLUQuadric(GL_TRUE, GLU_SMOOTH, GLU_OUTSIDE, GLU_FILL);
+      Q := NewGLUQuadric(true, GLU_SMOOTH, GLU_OUTSIDE, GLU_FILL);
       try
         gluSphere(Q, 1, 20, 20);
       finally gluDeleteQuadric(Q) end;

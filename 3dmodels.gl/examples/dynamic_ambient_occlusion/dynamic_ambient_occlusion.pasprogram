@@ -485,7 +485,7 @@ procedure Draw(Glwin: TGLWindow);
         ElementIntensity := ElementsIntensityTex.GrayscalePixels;
       end;
 
-      Q := NewGLUQuadric(GL_FALSE, GLU_FLAT, GLU_OUTSIDE, GLU_FILL);
+      Q := NewGLUQuadric(false, GLU_FLAT, GLU_OUTSIDE, GLU_FILL);
 
       for I := 0 to Elements.Count - 1 do
       begin

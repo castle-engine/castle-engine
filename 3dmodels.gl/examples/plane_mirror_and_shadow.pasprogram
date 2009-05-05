@@ -291,7 +291,7 @@ var
                 Box[1, PlaneOtherCoord1] + BoxMaxSize, Box[1, PlaneOtherCoord2] + BoxMaxSize,
                 Box[0, PlaneConstCoord] - PlaneDistance * BoxMaxSize,
                 PlaneConstCoord,
-                0, 0, true);
+                0, 0, true, false);
   end;
 
 begin

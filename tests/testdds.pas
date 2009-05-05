@@ -94,9 +94,9 @@ procedure TTestDDS.TestLoadSaveDDS;
       StreamNoFlatten.Position := 0;
       StreamFlatten.Position := 0;
 
-      { tests: }
+      { tests:
       StreamNoFlatten.SaveToFile('/tmp/StreamNoFlatten.dds');
-      StreamFlatten.SaveToFile('/tmp/StreamFlatten.dds');
+      StreamFlatten.SaveToFile('/tmp/StreamFlatten.dds'); }
 
       Assert(StreamNoFlatten.Size = StreamFlatten.Size);
       Assert(CompareMem(StreamNoFlatten.Memory, StreamFlatten.Memory,
