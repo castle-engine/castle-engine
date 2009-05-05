@@ -263,8 +263,87 @@ begin
 end;
 
 procedure TNodeComposedTexture3D.LoadTextureData;
+
+  { Load one slice (child texture). Returns @nil and makes VRMLWarning if failed. }
+  function LoadOneSlice(const Index: Integer): TImage;
+  var
+    Tex: TVRMLTextureNode;
+  begin
+    if not ((FdTexture.Items[Index] <> nil) and
+            (FdTexture.Items[Index] is TVRMLTextureNode)) then
+    begin
+      VRMLWarning(vwIgnorable, Format('ComposedTexture3D slice %d is not a valid 2D texture node',
+        [Index]));
+      Exit(nil);
+    end;
+
+    Tex := TVRMLTextureNode(FdTexture.Items[Index]);
+    Tex.Cache := Cache;
+    if not Tex.IsTextureImage then
+    begin
+      Exit(nil);{ Tex.IsTextureImage already did proper VRMLWarning }
+    end;
+
+    if not (Tex.TextureImage is TImage) then
+    begin
+      VRMLWarning(vwIgnorable, Format('ComposedTexture3D slice %d is an S3TC compressed texture, not allowed (we need to be able to glue 2D textures for 3D texture)',
+        [Index]));
+      Exit(nil);
+    end;
+
+    Result := TImage(Tex.TextureImage);
+  end;
+
+var
+  I: Integer;
+  Slice: TImage;
 begin
-  VRMLWarning(vwIgnorable, 'TODO: Cannot load 3d textures from ComposedTexture3D for now');
+  if FdTexture.Items.Count = 0 then
+  begin
+    VRMLWarning(vwIgnorable, 'ComposedTexture3D has no textures');
+    Exit;
+  end;
+
+  { First Slice is treated specially, as it determines width/height/class
+    of the resulting image. }
+
+  Slice := LoadOneSlice(0);
+  if Slice = nil then Exit;
+
+  FTextureImage := TImageClass(Slice.ClassType).Create(
+    Slice.Width, Slice.Height, FdTexture.Count);
+
+  try
+    Move(Slice.RawPixels^, TImage(FTextureImage).RawPixels^,
+      Slice.Width * Slice.Height * Slice.PixelSize);
+  
+    for I := 1 to FdTexture.Count - 1 do
+    begin
+      Slice := LoadOneSlice(I);
+      if Slice = nil then
+      begin
+        FreeAndNil(FTextureImage);
+        Exit;
+      end;
+
+      if (Slice.Width <> FTextureImage.Width) or
+         (Slice.Height <> FTextureImage.Height) or
+         (Slice.ClassType <> FTextureImage.ClassType) then
+      begin
+        VRMLWarning(vwIgnorable, Format('ComposedTexture3D slice %d doesn''t have matching size/type (%d x %d of %s), all slices must have the same size/type (first slice had %d x %d of %s)',
+          [I, Slice        .Width, Slice        .Height, Slice        .ClassName,
+              FTextureImage.Width, FTextureImage.Height, FTextureImage.ClassName]));
+        FreeAndNil(FTextureImage);
+        Exit;
+      end;
+
+      Move(Slice.RawPixels^, TImage(FTextureImage).PixelPtr(0, 0, I)^,
+        Slice.Width * Slice.Height * Slice.PixelSize);
+    end;
+  except
+    FreeAndNil(FTextureImage);
+    raise;
+  end;
 end;
 
 constructor TNodeImageTexture3D.Create(const ANodeName: string;
