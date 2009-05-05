@@ -143,9 +143,6 @@ type
   TTexturesImagesVideosCache = class(TImagesVideosCache)
   private
     CachedTextures: TDynCachedTextureArray;
-    { If not WantsDDS, DDS returned is always @nil. }
-    function CoreTextureImage_IncReference(
-      const FileName: string; WantsDDS: boolean; out DDS: TDDSImage): TEncodedImage;
   public
     constructor Create;
     destructor Destroy; override;
@@ -176,9 +173,14 @@ begin
   end else
   begin
     DDS := TDDSImage.Create;
-    DDS.LoadFromFile(FileName);
-    DDS.OwnsFirstImage := false;
-    Result := DDS.Images[0];
+    try
+      DDS.LoadFromFile(FileName);
+      DDS.OwnsFirstImage := false;
+      Result := DDS.Images[0];
+    except
+      FreeAndNil(DDS);
+      raise;
+    end;
   end;
 end;
 
@@ -211,8 +213,8 @@ begin
   inherited;
 end;
 
-function TTexturesImagesVideosCache.CoreTextureImage_IncReference(
-  const FileName: string; WantsDDS: boolean; out DDS: TDDSImage): TEncodedImage;
+function TTexturesImagesVideosCache.TextureImage_IncReference(
+  const FileName: string; out DDS: TDDSImage): TEncodedImage;
 var
   I: Integer;
   C: PCachedTexture;
@@ -228,6 +230,7 @@ begin
       Writeln('++ : texture image ', FileName, ' : ', C^.References);
       {$endif}
 
+      DDS := C^.DDS;
       Exit(C^.Image);
     end;
     Inc(C);
@@ -238,12 +241,7 @@ begin
     we don't want to add image to cache (because caller would have
     no way to call TextureImage_DecReference later). }
 
-  if WantsDDS then
-    Result := LoadTextureImage(FileName, DDS) else
-  begin
-    Result := LoadTextureImage(FileName);
-    DDS := nil;
-  end;
+  Result := LoadTextureImage(FileName, DDS);
 
   C := CachedTextures.AppendItem;
   C^.References := 1;
@@ -271,7 +269,25 @@ begin
       Writeln('-- : texture image ', C^.FileName, ' : ', C^.References - 1);
       {$endif}
 
-      Assert(C^.DDS = DDS, 'Image pointers match in TTexturesImagesVideosCache, DDS pointers should match too');
+      { We cannot simply assert
+
+          C^.DDS = DDS
+
+        because when textures have many references,
+        some references may be with and some without DDS information.
+        We don't want to force all references to the same URL to always
+        have or never have DDS information. (This would be uncomfortable
+        for caller, as different nodes may share textures, e.g. VRML Background
+        and ImageTexture nodes. They would all be forced to remember DDS
+        information this way.)
+
+        So we have to always keep DDS information in the cache,
+        and free it, regardless of whether called knows this DDS information.
+
+        Only if passed DDS <> nil (we know caller keeps it) then we can
+        check it for correctness. }
+
+      Assert((DDS = nil) or (C^.DDS = DDS), 'Image pointers match in TTexturesImagesVideosCache, DDS pointers should match too');
 
       Image := nil;
       DDS := nil;
@@ -295,17 +311,11 @@ begin
 end;
 
 function TTexturesImagesVideosCache.TextureImage_IncReference(
-  const FileName: string; out DDS: TDDSImage): TEncodedImage;
-begin
-  Result := CoreTextureImage_IncReference(FileName, true, DDS);
-end;
-
-function TTexturesImagesVideosCache.TextureImage_IncReference(
   const FileName: string): TEncodedImage;
 var
   Dummy: TDDSImage;
 begin
-  Result := CoreTextureImage_IncReference(FileName, false, Dummy);
+  Result := TextureImage_IncReference(FileName, Dummy);
 end;
 
 procedure TTexturesImagesVideosCache.TextureImage_DecReference(

@@ -4109,8 +4109,6 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     MinFilter, MagFilter: TGLint;
     Anisotropy: TGLfloat;
     TextureReference: TTexture3DReference;
-    DDS: TDDSImage;
-    Image: TEncodedImage;
     TextureWrap: TTextureWrap3D;
   begin
     if Texture3DReferences.TextureNodeIndex(Texture) <> -1 then
@@ -4123,52 +4121,44 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
       Exit;
     end;
 
-    Image := Texture.LoadImage(DDS);
-    { If Texture doesn't contain anything useful, just exit.
-      Texture.LoadImage already did necessary VRMLWarnings. }
-    if Image = nil then Exit;
+    Texture.Cache := Cache;
+    Texture.TextureLoaded := true;
+
+    { If TextureImage doesn't contain anything useful, just exit.
+      Setting TextureLoaded already did necessary VRMLWarnings. }
+    if Texture.TextureImage = nil then Exit;
+
+    HandleTextureProperties(Texture.FdTextureProperties.Value,
+      MinFilter, MagFilter, Anisotropy);
+
+    { calculate TextureWrap }
+    TextureWrap[0] := TextureRepeatToGL[Texture.FdRepeatS.Value];
+    TextureWrap[1] := TextureRepeatToGL[Texture.FdRepeatT.Value];
+    TextureWrap[2] := TextureRepeatToGL[Texture.FdRepeatR.Value];
+
+    { TODO: this is a quick and dirty method:
+      - We do not use texture 3d mipmaps stored inside DDS file.
+      - We crash (because of "Image as TImage") on S3TC compressed images.
+        (although DDS doesn't allow compressed 3d textures, so this
+        is not so important now.)
+    }
+
+    TextureReference.Node := Texture;
 
     try
-
-      HandleTextureProperties(Texture.FdTextureProperties.Value,
-        MinFilter, MagFilter, Anisotropy);
-
-      { calculate TextureWrap }
-      TextureWrap[0] := TextureRepeatToGL[Texture.FdRepeatS.Value];
-      TextureWrap[1] := TextureRepeatToGL[Texture.FdRepeatT.Value];
-      TextureWrap[2] := TextureRepeatToGL[Texture.FdRepeatR.Value];
-
-      { TODO: this is a quick and dirty method:
-        - We call LoadImage each time, while load calls should
-          be minimized (to avoid loading image many times, but also
-          to avoid making repeated warnings in case image fails).
-          Should be cached, like for 2D texture nodes.
-        - We do not use texture 3d mipmaps stored inside DDS file.
-        - We crash (because of "Image as TImage") on S3TC compressed images.
-          (although DDS doesn't allow compressed 3d textures, so this
-          is not so important now.)
-      }
-
-      TextureReference.Node := Texture;
-
-      try
-        TextureReference.GLName := Cache.Texture3D_IncReference(
-          Texture, MinFilter, MagFilter, Anisotropy,
-          TextureWrap, Image as TImage,
-          TextureReference.AlphaChannelType);
-      except
-        on E: ETextureLoadError do
-        begin
-          VRMLWarning(vwIgnorable, 'Cannot load 3D texture to OpenGL: ' + E.Message);
-          Exit;
-        end;
+      TextureReference.GLName := Cache.Texture3D_IncReference(
+        Texture, MinFilter, MagFilter, Anisotropy,
+        TextureWrap, Texture.TextureImage as TImage,
+        TextureReference.AlphaChannelType);
+    except
+      on E: ETextureLoadError do
+      begin
+        VRMLWarning(vwIgnorable, 'Cannot load 3D texture to OpenGL: ' + E.Message);
+        Exit;
       end;
-
-      Texture3DReferences.AppendItem(TextureReference);
-    finally
-      FreeAndNil(Image);
-      FreeAndNil(DDS);
     end;
+
+    Texture3DReferences.AppendItem(TextureReference);
   end;
 
   { Do the necessary preparations for a 3d texture node.
