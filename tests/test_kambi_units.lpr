@@ -38,7 +38,8 @@ uses
   TestCubeMap,
   TestShadowFields,
   TestGLVersion,
-  TestURLUtils;
+  TestURLUtils,
+  TestDDS;
 
 {var
   T: TTestFrustum;}

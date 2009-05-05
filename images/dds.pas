@@ -1308,7 +1308,7 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
       for Z := 0 to Image.Depth - 1 do
         { We have to invert rows order when saving to DDS }
         for Y := Image.Height - 1 downto 0 do
-          Stream.WriteBuffer(Image.RowPtr(Y, Z)^, Width * Image.PixelSize);
+          Stream.WriteBuffer(Image.RowPtr(Y, Z)^, Image.Width * Image.PixelSize);
     end;
 
     procedure WriteCompressedImage(Image: TS3TCImage);
