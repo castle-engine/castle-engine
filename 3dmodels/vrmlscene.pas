@@ -1726,6 +1726,8 @@ type
       better to resign from occlusion query for the very next frame.
       This method will do exactly that. }
     procedure ViewChangedSuddenly; virtual;
+
+    procedure CameraMatrixChanged(const CameraMatrix: TMatrix4Single);
   end;
 
 {$undef read_interface}
@@ -5525,6 +5527,29 @@ begin
     WritelnLog('Scene', 'Optimizer received hint: View changed suddenly');
 
   { Nothing meaningful to do in this class }
+end;
+
+procedure TVRMLScene.CameraMatrixChanged(const CameraMatrix: TMatrix4Single);
+var
+  V: TVRMLViewpointNode;
+  CameraInverseMatrix: TMatrix4Single;
+begin
+  { TODO: don't send this every damn frame. Also, catch this automatically
+    when CameraMatrix is set (instead of forcing view3dscene to do it
+    manually). }
+
+  if (ViewpointStack.Top <> nil) and
+     (ViewpointStack.Top is TVRMLViewpointNode) then
+  begin
+    V := TVRMLViewpointNode(ViewpointStack.Top);
+
+    if V.EventCameraMatrix.SendNeeded then
+      V.EventCameraMatrix.Send(CameraMatrix, WorldTime);
+
+    if V.EventCameraInverseMatrix.SendNeeded and
+       TryMatrixInverse(CameraMatrix, CameraInverseMatrix) then
+      V.EventCameraInverseMatrix.Send(CameraInverseMatrix, WorldTime);
+  end;
 end;
 
 end.

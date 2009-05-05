@@ -43,6 +43,12 @@
     private FFdGravityUp: TSFVec3f;
     public property FdGravityUp: TSFVec3f read FFdGravityUp;
 
+    private FEventCameraMatrix: TVRMLEvent;
+    public property EventCameraMatrix: TVRMLEvent read FEventCameraMatrix;
+
+    private FEventCameraInverseMatrix: TVRMLEvent;
+    public property EventCameraInverseMatrix: TVRMLEvent read FEventCameraInverseMatrix;
+
     { Position of the viewpoint.
 
       This is an abstract function, not a simple FdPosition, because one of
@@ -370,6 +376,12 @@ begin
 
   FFdgravityUp := TSFVec3f.Create(Self, 'gravityUp', StdVRMLGravityUp);
   Fields.Add(FFdgravityUp);
+
+  FEventCameraMatrix := TVRMLEvent.Create(Self, 'cameraMatrix', TSFMatrix4f, false);
+  Events.Add(FEventCameraMatrix);
+
+  FEventCameraInverseMatrix := TVRMLEvent.Create(Self, 'cameraInverseMatrix', TSFMatrix4f, false);
+  Events.Add(FEventCameraInverseMatrix);
 
   Eventset_bind.OnReceive.AppendItem(@EventSet_BindReceive);
 end;

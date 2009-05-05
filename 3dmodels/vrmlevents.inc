@@ -107,6 +107,10 @@
     procedure Send(const Value: TVector4Single; const Time: TVRMLTime);
     procedure Send(const Value: Single; const Time: TVRMLTime);
     procedure Send(const Value: Double; const Time: TVRMLTime);
+    procedure Send(const Value: TMatrix3Single; const Time: TVRMLTime);
+    procedure Send(const Value: TMatrix4Single; const Time: TVRMLTime);
+    procedure Send(const Value: TMatrix3Double; const Time: TVRMLTime);
+    procedure Send(const Value: TMatrix4Double; const Time: TVRMLTime);
 
     procedure Send(const Value: array of TVector2Single; const Time: TVRMLTime);
     procedure Send(const Value: array of TVector3Single; const Time: TVRMLTime);
@@ -328,6 +332,46 @@ begin
   if FieldClass = TSFTime then
     Field := TSFTime.Create(ParentNode, Name, Value) else
     Field := TSFDouble.Create(ParentNode, Name, Value);
+  try
+    Send(Field, Time);
+  finally FreeAndNil(Field) end;
+end;
+
+procedure TVRMLEvent.Send(const Value: TMatrix3Single; const Time: TVRMLTime);
+var
+  Field: TVRMLField;
+begin
+  Field := TSFMatrix3f.Create(ParentNode, Name, Value);
+  try
+    Send(Field, Time);
+  finally FreeAndNil(Field) end;
+end;
+
+procedure TVRMLEvent.Send(const Value: TMatrix4Single; const Time: TVRMLTime);
+var
+  Field: TVRMLField;
+begin
+  Field := TSFMatrix4f.Create(ParentNode, Name, Value);
+  try
+    Send(Field, Time);
+  finally FreeAndNil(Field) end;
+end;
+
+procedure TVRMLEvent.Send(const Value: TMatrix3Double; const Time: TVRMLTime);
+var
+  Field: TVRMLField;
+begin
+  Field := TSFMatrix3d.Create(ParentNode, Name, Value);
+  try
+    Send(Field, Time);
+  finally FreeAndNil(Field) end;
+end;
+
+procedure TVRMLEvent.Send(const Value: TMatrix4Double; const Time: TVRMLTime);
+var
+  Field: TVRMLField;
+begin
+  Field := TSFMatrix4d.Create(ParentNode, Name, Value);
   try
     Send(Field, Time);
   finally FreeAndNil(Field) end;
