@@ -1480,6 +1480,13 @@ type
       VRML TextureTransform realized in RenderShapeBegin.) }
     procedure PushTextureUnit(const TexUnit: Cardinal);
 
+    { Should primitives generate 3D texture coords, following
+      X3D spec "33.2.4 Texture coordinate generation for primitive objects".
+      This is mostly a hack now, as with multi-texturing each texture
+      unit may have either 2D or 3D texture, so this should be set
+      per-unit. }
+    Primitives3DTextureCoords: boolean;
+
     { ----------------------------------------------------------------- }
 
     {$ifdef USE_VRML_NODES_TRIANGULATION}
@@ -5176,7 +5183,9 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       TextureEnableDisable(etOff);
     end;
 
-    { Enable non-multi texture.
+    { Every EnableSingle*Texture behaves the same:
+
+      Enables non-multi texture.
       TextureNode must be non-nil.
 
       Returns success: false means that texture node was not prepared
@@ -5190,9 +5199,14 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       to later adjust texture unit parameters, like
       glTexEnvi(GL_TEXTURE_ENV, ...).
 
-      It's also already enabled by glEnable(GL_TEXTURE_2D).
+      It's also already enabled (by glEnable(GL_TEXTURE_2D /
+      GL_TEXTURE_CUBE_MAP_ARB / GL_TEXTURE_3D_EXT) ).
 
-      AlphaTest may be modified, but only to true, by this procedure. }
+      AlphaTest may be modified, but only to true, by this procedure.
+
+      Also Primitives3DTextureCoords may be modified,
+      but only to true, by this procedure. }
+
     function EnableSingle2DTexture(const TextureUnit: Cardinal;
       TextureNode: TVRMLTextureNode;
       UseForBumpMappingAllowed: boolean): boolean;
@@ -5320,6 +5334,8 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
         TexRef := Texture3DReferences.Pointers[TexRefIndex];
 
         AlphaTest := AlphaTest or (TexRef^.AlphaChannelType = atSimpleYesNo);
+
+        Primitives3DTextureCoords := true;
 
         ActiveTexture(TextureUnit);
         glBindTexture(GL_TEXTURE_3D_EXT, TexRef^.GLName);
@@ -5691,6 +5707,7 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
     end;
 
     AlphaTest := false;
+    Primitives3DTextureCoords := false;
 
     TextureNode := CurrentState.Texture;
     {$ifdef USE_VRML_NODES_TRIANGULATION}

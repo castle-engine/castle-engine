@@ -32,6 +32,26 @@
 }
 
 type
+  { Used for primitives that should honour automatic 3D texture coordinate
+    generation. (see X3D spec
+    "33.2.4 Texture coordinate generation for primitive objects").
+
+    This will setup appropriate texture coord gen in Render
+    that takes care of Renderer.Primitives3DTextureCoords = @true
+    situation.
+
+    You should override DoRenderPrimitive (not DoRender!),
+    and generate your own 2D texture coords only if
+    PrimitiveMake2DTextureCoords (this checks "not Renderer.Primitives3DTextureCoords",
+    also checks Renderer.TexCoordsNeeded). }
+  TPrimitiveRenderer = class(TVRMLMeshRenderer)
+  protected
+    procedure DoRender; override;
+    procedure DoRenderPrimitive; virtual; abstract;
+
+    function PrimitiveMake2DTextureCoords: boolean;
+  end;
+
   TAbstractTextRenderer = class(TVRMLMeshRenderer)
   protected
     procedure RenderText(
@@ -61,25 +81,25 @@ type
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
-  TAbstractBoxRenderer = class(TVRMLMeshRenderer)
+  TAbstractBoxRenderer = class(TPrimitiveRenderer)
   protected
     procedure RenderBox(const SizeX, SizeY, SizeZ: Single);
   end;
 
   TCube_1Renderer = class(TAbstractBoxRenderer)
   protected
-    procedure DoRender; override;
+    procedure DoRenderPrimitive; override;
   end;
 
   TBoxRenderer = class(TAbstractBoxRenderer)
   protected
-    procedure DoRender; override;
+    procedure DoRenderPrimitive; override;
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
   { Common class for quadric rendering, with some helper methods/properties. }
-  TQuadricRenderer = class(TVRMLMeshRenderer)
+  TQuadricRenderer = class(TPrimitiveRenderer)
   private
     FQuadricSlices, FQuadricStacks: Cardinal;
   protected
@@ -101,12 +121,12 @@ type
 
   TCone_1Renderer = class(TConeRenderer)
   protected
-    procedure DoRender; override;
+    procedure DoRenderPrimitive; override;
   end;
 
   TCone_2Renderer = class(TConeRenderer)
   protected
-    procedure DoRender; override;
+    procedure DoRenderPrimitive; override;
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
@@ -120,12 +140,12 @@ type
 
   TCylinder_1Renderer = class(TCylinderRenderer)
   protected
-    procedure DoRender; override;
+    procedure DoRenderPrimitive; override;
   end;
 
   TCylinder_2Renderer = class(TCylinderRenderer)
   protected
-    procedure DoRender; override;
+    procedure DoRenderPrimitive; override;
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
@@ -138,15 +158,80 @@ type
 
   TSphere_1Renderer = class(TSphereRenderer)
   protected
-    procedure DoRender; override;
+    procedure DoRenderPrimitive; override;
   end;
 
   TSphere_2Renderer = class(TSphereRenderer)
   protected
-    procedure DoRender; override;
+    procedure DoRenderPrimitive; override;
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
+
+{ TPrimitiveRenderer --------------------------------------------------------- }
+
+procedure TPrimitiveRenderer.DoRender;
+
+  procedure BeginPrimitives3DTextureCoords;
+  var
+    Box: TBox3d;
+    XStart, YStart, ZStart, XSize, YSize, ZSize: Single;
+  begin
+    Box := Shape.LocalBoundingBox;
+
+    { If 3D texture coordinates are wanted, it's easiest to generate them
+      with glTexGen.
+
+      Texture S should range from 0..1 when X changes from X1 .. X2.
+      So S = X / (X2 - X1) - X1 / (X2 - X1).
+      Same for T.
+      For R, X3D spec says that coords go backwards, so just SwapValues.
+    }
+
+    SwapValues(Box[0][2], Box[1][2]);
+
+    XStart := Box[0][0];
+    YStart := Box[0][1];
+    ZStart := Box[0][2];
+
+    XSize := Box[1][0] - Box[0][0];
+    YSize := Box[1][1] - Box[0][1];
+    ZSize := Box[1][2] - Box[0][2];
+
+    glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+    glTexGenv(GL_S, GL_OBJECT_PLANE, Vector4Single(1 / XSize, 0, 0, - XStart / XSize));
+    glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+    glTexGenv(GL_T, GL_OBJECT_PLANE, Vector4Single(0, 1 / YSize, 0, - YStart / YSize));
+    glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+    glTexGenv(GL_R, GL_OBJECT_PLANE, Vector4Single(0, 0, 1 / ZSize, - ZStart / ZSize));
+    glEnable(GL_TEXTURE_GEN_S);
+    glEnable(GL_TEXTURE_GEN_T);
+    glEnable(GL_TEXTURE_GEN_R);
+  end;
+
+  procedure EndPrimitives3DTextureCoords;
+  begin
+    glDisable(GL_TEXTURE_GEN_S);
+    glDisable(GL_TEXTURE_GEN_T);
+    glDisable(GL_TEXTURE_GEN_R);
+  end;
+
+begin
+  if Renderer.Primitives3DTextureCoords then
+    BeginPrimitives3DTextureCoords;
+
+  DoRenderPrimitive;
+
+  if Renderer.Primitives3DTextureCoords then
+    EndPrimitives3DTextureCoords;
+end;
+
+function TPrimitiveRenderer.PrimitiveMake2DTextureCoords: boolean;
+begin
+  Result :=
+    (Renderer.TexCoordsNeeded > 0) and
+    (not Renderer.Primitives3DTextureCoords);
+end;
 
 { Text ----------------------------------------------------------------------- }
 
@@ -505,22 +590,22 @@ begin
    do back-face culling with "solid" X3D field. }
 
  PartMat(2);
- DrawGLPlaneSpecialTex(y1, z1, y2, z2, x1, 0, DetailY, DetailZ, false, 0, 0, 1, 1, false);
+ DrawGLPlaneSpecialTex(y1, z1, y2, z2, x1, 0, DetailY, DetailZ, false, PrimitiveMake2DTextureCoords, 0, 0, 1, 1, false);
  PartMat(3);
- DrawGLPlaneSpecialTex(y1, z1, y2, z2, x2, 0, DetailY, DetailZ, true,  0, 1, 1, 0, false);
+ DrawGLPlaneSpecialTex(y1, z1, y2, z2, x2, 0, DetailY, DetailZ, true,  PrimitiveMake2DTextureCoords, 0, 1, 1, 0, false);
 
  PartMat(5);
- DrawGLPlaneSpecialTex(x1, z1, x2, z2, y1, 1, DetailX, DetailZ, false, 0, 0, 1, 1, true);
+ DrawGLPlaneSpecialTex(x1, z1, x2, z2, y1, 1, DetailX, DetailZ, false, PrimitiveMake2DTextureCoords, 0, 0, 1, 1, true );
  PartMat(4);
- DrawGLPlaneSpecialTex(x1, z1, x2, z2, y2, 1, DetailX, DetailZ, true,  0, 1, 1, 0, true);
+ DrawGLPlaneSpecialTex(x1, z1, x2, z2, y2, 1, DetailX, DetailZ, true,  PrimitiveMake2DTextureCoords, 0, 1, 1, 0, true );
 
  PartMat(1);
- DrawGLPlaneSpecialTex(x1, y1, x2, y2, z1, 2, DetailX, DetailY, false, 1, 0, 0, 1, true);
+ DrawGLPlaneSpecialTex(x1, y1, x2, y2, z1, 2, DetailX, DetailY, false, PrimitiveMake2DTextureCoords, 1, 0, 0, 1, true );
  PartMat(0);
- DrawGLPlaneSpecialTex(x1, y1, x2, y2, z2, 2, DetailX, DetailY, true,  0, 0, 1, 1, true);
+ DrawGLPlaneSpecialTex(x1, y1, x2, y2, z2, 2, DetailX, DetailY, true,  PrimitiveMake2DTextureCoords, 0, 0, 1, 1, true );
 end;
 
-procedure TCube_1Renderer.DoRender;
+procedure TCube_1Renderer.DoRenderPrimitive;
 var
   Node: TNodeCube_1;
 begin
@@ -540,7 +625,7 @@ begin
   FrontFaceCcw := true;
 end;
 
-procedure TBoxRenderer.DoRender;
+procedure TBoxRenderer.DoRenderPrimitive;
 var
   Node: TNodeBox;
 begin
@@ -562,7 +647,7 @@ procedure TQuadricRenderer.RenderBottomDisk(
 begin
   { The rotation is needed
     - for proper texture coordinates (these are actually only needed
-      when Renderer.Render_TexCoordsNeeded)
+      when PrimitiveMake2DTextureCoords)
     - also, so that "solid" field makes outside visible, inside invisible.
       (only when "solid" = @true).
 
@@ -602,7 +687,7 @@ begin
 
  Renderer.Render_BindMaterial_1(0);
 
- q := NewGLUQuadric(Ord(Renderer.TexCoordsNeeded > 0),
+ q := NewGLUQuadric(PrimitiveMake2DTextureCoords,
    Attributes.SmoothNormalsGLU, GLU_OUTSIDE, GLU_FILL);
  try
   glPushMatrix;
@@ -621,7 +706,7 @@ begin
  finally gluDeleteQuadric(q) end;
 end;
 
-procedure TCone_1Renderer.DoRender;
+procedure TCone_1Renderer.DoRenderPrimitive;
 var
   Node: TNodeCone_1;
 begin
@@ -645,7 +730,7 @@ begin
   FrontFaceCcw := true;
 end;
 
-procedure TCone_2Renderer.DoRender;
+procedure TCone_2Renderer.DoRenderPrimitive;
 var
   Node: TNodeCone_2;
 begin
@@ -669,7 +754,7 @@ begin
 
  Renderer.Render_BindMaterial_1(0);
 
- q := NewGLUQuadric(Ord(Renderer.TexCoordsNeeded > 0),
+ q := NewGLUQuadric(PrimitiveMake2DTextureCoords,
    Attributes.SmoothNormalsGLU, GLU_OUTSIDE, GLU_FILL);
  try
   glPushMatrix;
@@ -700,7 +785,7 @@ begin
  finally gluDeleteQuadric(q) end;
 end;
 
-procedure TCylinder_1Renderer.DoRender;
+procedure TCylinder_1Renderer.DoRenderPrimitive;
 var
   Node: TNodeCylinder_1;
 begin
@@ -725,7 +810,7 @@ begin
   FrontFaceCcw := true;
 end;
 
-procedure TCylinder_2Renderer.DoRender;
+procedure TCylinder_2Renderer.DoRenderPrimitive;
 var
   Node: TNodeCylinder_2;
 begin
@@ -748,23 +833,23 @@ begin
 
  Renderer.Render_BindMaterial_1(0);
 
- if Renderer.TexCoordsNeeded > 0 then
+ if PrimitiveMake2DTextureCoords then
  begin
   {we have to rotate the sphere to get tex coords as specified by VRML}
   glPushMatrix;
   glRotatef(-90, 1, 0, 0);
  end;
 
- q := NewGLUQuadric(Ord(Renderer.TexCoordsNeeded > 0),
+ q := NewGLUQuadric(PrimitiveMake2DTextureCoords,
    Attributes.SmoothNormalsGLU, GLU_OUTSIDE, GLU_FILL);
  try
   gluSphere(q, Radius, QuadricSlices, QuadricStacks);
  finally gluDeleteQuadric(q) end;
 
- if Renderer.TexCoordsNeeded > 0 then glPopMatrix;
+ if PrimitiveMake2DTextureCoords then glPopMatrix;
 end;
 
-procedure TSphere_1Renderer.DoRender;
+procedure TSphere_1Renderer.DoRenderPrimitive;
 var
   Node: TNodeSphere_1;
 begin
@@ -784,7 +869,7 @@ begin
   FrontFaceCcw := true;
 end;
 
-procedure TSphere_2Renderer.DoRender;
+procedure TSphere_2Renderer.DoRenderPrimitive;
 var
   Node: TNodeSphere_2;
 begin

@@ -828,7 +828,7 @@ procedure DrawArrow(grotThickness, grotLength: TGLfloat); overload;
   quadrica, ustawia callback GLU_ERROR na ReportGLerror i
   sprawdza automatycznie (i rzuca Exception jesli nie) czy result <> nil. }
 function NewGLUQuadric(
-  Texture: TGLboolean = GL_TRUE;
+  Texture: boolean = true;
   Normals: TGLenum = GLU_NONE;
   Orientation: TGLenum = GLU_OUTSIDE;
   DrawStyle: TGLenum = GLU_FILL): PGLUQuadric; overload;
@@ -839,34 +839,39 @@ function NewGLUQuadric(
 procedure KamGluSphere(
   const Radius: TGLdouble;
   const Slices, Stacks: TGLint;
-  Texture: TGLboolean = GL_TRUE;
+  Texture: boolean = true;
   Normals: TGLenum = GLU_NONE;
   Orientation: TGLenum = GLU_OUTSIDE;
   DrawStyle: TGLenum = GLU_FILL);
 
 { rysuje rectangle od x1, y1 do x2, y2. Wspolrzedna constCoordx jest stala
-  i ma zawsze wartosc constValue. Wspolrzedne tesktury i normal (jeden
+  i ma zawsze wartosc constValue. Normale (jeden
   normal dla calej sciany) sa generowane. Paranetry x1, y1, x2, y2 niekoniecznie
   oznaczaja rzeczywiscie x-y i y-ki : jezeli constCoord = 0 to oznaczaja
   one odpowiednio y i z, jezeli constCoord = 1 to oznaczaja x i z.
 
+  Texture coordinates are generated if MakeTextureCoords.
+  Texture S goes from 0 to 1 when X goes from X1 to X2,
+  texture T goes from 0 to 1 when Y goes from Y1 to Y2,
+
   Jezeli DetailLevel1 <> 0 or DetailLevel2 <> 0 to rectangle jest rozbijany
-    na wiele polygonow zeby mial w sobie duzo vertexow, co powoduje ze swiatlo
-    jest duzo ladniej renderowane na prostokacie. Rozbijanie jest robione
-    na paski i kolumny, tak ze powstaje nam taka kratka : plane ma
-    DetailLevelX+1 kolumn i DetailLevelY+1 paskow. Wiec tak naprawde jeden
-    plane sklada sie z (DetailLevelX+1)*(DetailLevelY+1) kwadracikow.
+  na wiele polygonow zeby mial w sobie duzo vertexow, co powoduje ze swiatlo
+  jest duzo ladniej renderowane na prostokacie. Rozbijanie jest robione
+  na paski i kolumny, tak ze powstaje nam taka kratka : plane ma
+  DetailLevelX+1 kolumn i DetailLevelY+1 paskow. Wiec tak naprawde jeden
+  plane sklada sie z (DetailLevelX+1)*(DetailLevelY+1) kwadracikow.
 
   O ile tylko x1 <= y1 i x2 <= y2 to :
-    Jezeli constCoordGivesNormal1 to
+  - Jezeli constCoordGivesNormal1 to
     normal bedzie rowny 1 na wspolrzednej constCoord (na pozostalych bedzie = 0)
     i wszystkie polygony tworzace prostokat beda zwrocone CCW w strone
     constCoorda rosnacego.
-    Wpp. normal bedzie rowny -1 na tej wspolrzednej w wszystkie polygony beda
+  - Wpp. normal bedzie rowny -1 na tej wspolrzednej w wszystkie polygony beda
     zwrocone w strone constCoorda malejacego. }
 procedure DrawGLPlane(x1, y1, x2, y2: TGLfloat; constValue: TGLfloat;
   constCoord, DetailLevelX, DetailLevelY: integer;
-  constCoordGivesNormal1: boolean);
+  constCoordGivesNormal1: boolean;
+  MakeTextureCoords: boolean);
 
 { DrawGLPlaneSpecialTex umozliwia podanie wspolrzednych tekstury na
   czterech rogach prostokata. texX1, texY1 to wspolrzedne tekstury na x1, y1
@@ -884,10 +889,14 @@ procedure DrawGLPlane(x1, y1, x2, y2: TGLfloat; constValue: TGLfloat;
 
   Wszystkie pozostale parametry jak w DrawGLPlane. DrawGLPlane
   po prostu wywoluje ta procedure z texX1, texY1, texX2, texY2 = 0, 0, 1, 1
-  order_ST_XYZ = true. }
+  order_ST_XYZ = true.
+
+  Jezeli MakeTextureCoords = @false to wspolrzedne tekstury nie sa generowane
+  (i rownie dobrze moglbys uzyc zwyklego DrawGLPlane). }
 procedure DrawGLPlaneSpecialTex(x1, y1, x2, y2: TGLfloat; constValue: TGLfloat;
   constCoord, DetailLevelX, DetailLevelY: integer;
   constCoordGivesNormal1: boolean;
+  MakeTextureCoords: boolean;
   texX1, texY1, texX2, texY2: TGLfloat; order_ST_XYZ: boolean);
 
 { Rysuje Box3d. Starsze wersje pobieraja szesc parametrow zamiast jednego TBox3d,
@@ -899,12 +908,14 @@ procedure DrawGLPlaneSpecialTex(x1, y1, x2, y2: TGLfloat; constValue: TGLfloat;
   wieksza ilosc malych trojkatow (zeby cieniowanie Gourauda lepiej sie
   renderowalo na boxie) jezeli ktores z DetailX, Y lub Z jest <>0.
 
-  Na boxie sa generowane wspolrzedne tekstury i normale. Wszystkie sciany
+  Na boxie sa generowane wspolrzedne normale. Wszystkie sciany
   sa CCW z punktu widzenia zewnatrz i wszystkie normale wskazuja na zewnatrz
   jezeli ccwOutside, wpp. CCW jest do wewnatrz i wszystkie normale wskazuja
-  tam. }
-procedure DrawGLBox(const Box: TBox3d; DetailX, DetailY, DetailZ: integer; ccwOutside: boolean); overload;
-procedure DrawGLBox(const x1, y1, z1, x2, y2, z2: TGLfloat; DetailX, DetailY, DetailZ: integer; ccwOutside: boolean); overload;
+  tam.
+
+  Texture coordinates are generated if MakeTextureCoords. }
+procedure DrawGLBox(const Box: TBox3d; DetailX, DetailY, DetailZ: integer; ccwOutside: boolean; MakeTextureCoords: boolean); overload;
+procedure DrawGLBox(const x1, y1, z1, x2, y2, z2: TGLfloat; DetailX, DetailY, DetailZ: integer; ccwOutside: boolean; MakeTextureCoords: boolean); overload;
 
 (*
 { DrawGLBoxWire is like DrawGLBox, but draws only wireframe.
@@ -1887,17 +1898,14 @@ begin
  glEnd;
 end;
 
-function NewGLUQuadric(
-  texture: TGLboolean {$ifdef DEFPARS} = GL_TRUE {$endif};
-  normals: TGLenum {$ifdef DEFPARS} = GLU_NONE {$endif};
-  orientation: TGLenum {$ifdef DEFPARS} = GLU_OUTSIDE {$endif};
-  drawStyle: TGLenum {$ifdef DEFPARS} = GLU_FILL {$endif}): PGLUQuadric;
+function NewGLUQuadric(texture: boolean; normals: TGLenum;
+  orientation: TGLenum; drawStyle: TGLenum): PGLUQuadric;
 begin
  result := gluNewQuadric();
  Check(result <> nil, 'gluNewQuadric');
  gluQuadricCallback(result, GLU_ERROR,
    {$ifdef USE_GL_GLU_UNITS} TCallBack {$endif} (@ReportGLError));
- gluQuadricTexture(result, texture);
+ gluQuadricTexture(result, Ord(texture));
  gluQuadricNormals(result, normals);
  gluQuadricOrientation(result, orientation);
  gluQuadricDrawStyle(result, drawStyle);
@@ -1906,7 +1914,7 @@ end;
 procedure KamGluSphere(
   const Radius: TGLdouble;
   const Slices, Stacks: TGLint;
-  Texture: TGLboolean; Normals: TGLenum;
+  Texture: boolean; Normals: TGLenum;
   Orientation: TGLenum; DrawStyle: TGLenum);
 var
   Q: PGLUQuadric;
@@ -1919,17 +1927,19 @@ end;
 
 procedure DrawGLPlane(x1, y1, x2, y2: TGLfloat; constValue: TGLfloat;
   constCoord, DetailLevelX, DetailLevelY: integer;
-  constCoordGivesNormal1: boolean);
+  constCoordGivesNormal1: boolean;
+  MakeTextureCoords: boolean);
 begin
  DrawGLPlaneSpecialTex(x1, y1, x2, y2, constValue,
    constCoord, DetailLevelX, DetailLevelY,
    constCoordGivesNormal1,
-   0, 0, 1, 1, true);
+   MakeTextureCoords, 0, 0, 1, 1, true);
 end;
 
 procedure DrawGLPlaneSpecialTex(x1, y1, x2, y2: TGLfloat; constValue: TGLfloat;
   constCoord, DetailLevelX, DetailLevelY: integer;
   constCoordGivesNormal1: boolean;
+  MakeTextureCoords: boolean;
   texX1, texY1, texX2, texY2: TGLfloat; order_ST_XYZ: boolean);
 var xstep, ystep, texXStep, texYStep, texY, y, ynext, texYnext: TGLfloat;
     indX, indY, i, j: integer;
@@ -1945,7 +1955,10 @@ var xstep, ystep, texXStep, texYStep, texY, y, ynext, texYnext: TGLfloat;
      byc x, z lub y, z). Parametr order_ST_XYZ mowi czy x odpowiada S
      a y T czy na odwrot.}
     begin
-     if order_ST_XYZ then glTexCoord2f(x, y) else glTexCoord2f(y, x);
+      if MakeTextureCoords then
+        if order_ST_XYZ then
+          glTexCoord2f(x, y) else
+          glTexCoord2f(y, x);
     end;
 
     procedure Nizej;
@@ -2033,23 +2046,24 @@ begin
 end;
 
 procedure DrawGLBox(const Box: TBox3d; DetailX, DetailY, DetailZ: integer;
-  ccwOutside: boolean);
+  ccwOutside: boolean; MakeTextureCoords: boolean);
 begin
- DrawGLPlane(Box[0, 1], Box[0, 2], Box[1, 1], Box[1, 2], Box[0, 0], 0, DetailY, DetailZ, not ccwOutside);
- DrawGLPlane(Box[0, 1], Box[0, 2], Box[1, 1], Box[1, 2], Box[1, 0], 0, DetailY, DetailZ, ccwOutside);
+ DrawGLPlane(Box[0, 1], Box[0, 2], Box[1, 1], Box[1, 2], Box[0, 0], 0, DetailY, DetailZ, not ccwOutside, MakeTextureCoords);
+ DrawGLPlane(Box[0, 1], Box[0, 2], Box[1, 1], Box[1, 2], Box[1, 0], 0, DetailY, DetailZ, ccwOutside    , MakeTextureCoords);
 
- DrawGLPlane(Box[0, 0], Box[0, 2], Box[1, 0], Box[1, 2], Box[0, 1], 1, DetailX, DetailZ, not ccwOutside);
- DrawGLPlane(Box[0, 0], Box[0, 2], Box[1, 0], Box[1, 2], Box[1, 1], 1, DetailX, DetailZ, ccwOutside);
+ DrawGLPlane(Box[0, 0], Box[0, 2], Box[1, 0], Box[1, 2], Box[0, 1], 1, DetailX, DetailZ, not ccwOutside, MakeTextureCoords);
+ DrawGLPlane(Box[0, 0], Box[0, 2], Box[1, 0], Box[1, 2], Box[1, 1], 1, DetailX, DetailZ, ccwOutside    , MakeTextureCoords);
 
- DrawGLPlane(Box[0, 0], Box[0, 1], Box[1, 0], Box[1, 1], Box[0, 2], 2, DetailX, DetailY, not ccwOutside);
- DrawGLPlane(Box[0, 0], Box[0, 1], Box[1, 0], Box[1, 1], Box[1, 2], 2, DetailX, DetailY, ccwOutside);
+ DrawGLPlane(Box[0, 0], Box[0, 1], Box[1, 0], Box[1, 1], Box[0, 2], 2, DetailX, DetailY, not ccwOutside, MakeTextureCoords);
+ DrawGLPlane(Box[0, 0], Box[0, 1], Box[1, 0], Box[1, 1], Box[1, 2], 2, DetailX, DetailY, ccwOutside    , MakeTextureCoords);
 end;
 
 procedure DrawGLBox(const x1, y1, z1, x2, y2, z2: TGLfloat;
-  DetailX, DetailY, DetailZ: integer; ccwOutside: boolean);
+  DetailX, DetailY, DetailZ: integer; ccwOutside: boolean;
+  MakeTextureCoords: boolean);
 begin
  DrawGLBox(Box3dOrderUp(Vector3Single(x1, y1, z1), Vector3Single(x2, y2, z2)),
-   DetailX, DetailY, DetailZ, ccwOutside);
+   DetailX, DetailY, DetailZ, ccwOutside, MakeTextureCoords);
 end;
 
 (*
