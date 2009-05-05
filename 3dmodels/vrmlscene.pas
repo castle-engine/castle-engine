@@ -572,6 +572,7 @@ type
     procedure CalculateIfNeededManifoldAndBorderEdges;
 
     procedure FreeResources_UnloadTextureData(Node: TVRMLNode);
+    procedure FreeResources_UnloadTexture3DData(Node: TVRMLNode);
     procedure FreeResources_UnloadBackgroundImage(Node: TVRMLNode);
 
     FOnGeometryChanged: TVRMLSceneGeometryChanged;
@@ -4413,6 +4414,11 @@ begin
   (Node as TVRMLTextureNode).IsTextureLoaded := false;
 end;
 
+procedure TVRMLScene.FreeResources_UnloadTexture3DData(Node: TVRMLNode);
+begin
+  (Node as TNodeX3DTexture3DNode).TextureLoaded := false;
+end;
+
 procedure TVRMLScene.FreeResources_UnloadBackgroundImage(Node: TVRMLNode);
 begin
   (Node as TNodeBackground).BgImagesLoaded := false;
@@ -4427,8 +4433,12 @@ begin
   end;
 
   if (frTextureDataInNodes in Resources) and (RootNode <> nil) then
+  begin
     RootNode.EnumerateNodes(TVRMLTextureNode,
       @FreeResources_UnloadTextureData, false);
+    RootNode.EnumerateNodes(TNodeX3DTexture3DNode,
+      @FreeResources_UnloadTexture3DData, false);
+  end;
 
   if (frBackgroundImageInNodes in Resources) and (RootNode <> nil) then
     RootNode.EnumerateNodes(TNodeBackground,
