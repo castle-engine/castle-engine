@@ -620,7 +620,13 @@ var
     { Read a single, normal 2D (or 3D) image from DDS file. }
     function ReadImage(const Width, Height, Depth, MipmapLevel: Cardinal): TEncodedImage;
 
-      procedure ReadUncompressed(IsRGB: boolean);
+    type
+      TUncompressedType = (
+        utRGB_AlphaPossible,
+        utGrayscale_AlphaPossible,
+        utPureAlpha );
+
+      procedure ReadUncompressed(const UncompressedType: TUncompressedType);
       var
         RowBytePadding: Integer;
         { Within ReadUncompressed, Result is always of TImage class }
@@ -885,75 +891,70 @@ var
             (Header.PixelFormat.RGBBitCount div 8) * Width, 0) else
           RowBytePadding := 0;
 
-        if IsRGB then
-        begin
-          if Header.PixelFormat.Flags and DDPF_ALPHAPIXELS = 0 then
-          begin
-            Result := TRGBImage.Create(Width, Height, Depth);
+        case UncompressedType of
+          utRGB_AlphaPossible:
+            if Header.PixelFormat.Flags and DDPF_ALPHAPIXELS = 0 then
+            begin
+              Result := TRGBImage.Create(Width, Height, Depth);
 
-            if (Header.PixelFormat.RBitMask = $ff0000) and
-               (Header.PixelFormat.GBitMask = $00ff00) and
-               (Header.PixelFormat.BBitMask = $0000ff) then
-              ReadOptimized_RGB8 else
-            if (Header.PixelFormat.RBitMask = $0000ff) and
-               (Header.PixelFormat.GBitMask = $00ff00) and
-               (Header.PixelFormat.BBitMask = $ff0000) then
-              ReadOptimized_BGR8 else
-              ReadToRGB;
-          end else
-          begin
-            Check(Header.PixelFormat.ABitMask <> 0, 'Invalid DDS pixel format: alpha channel flag specified (DDPF_ALPHAPIXELS), but alpha mask is zero');
+              if (Header.PixelFormat.RBitMask = $ff0000) and
+                 (Header.PixelFormat.GBitMask = $00ff00) and
+                 (Header.PixelFormat.BBitMask = $0000ff) then
+                ReadOptimized_RGB8 else
+              if (Header.PixelFormat.RBitMask = $0000ff) and
+                 (Header.PixelFormat.GBitMask = $00ff00) and
+                 (Header.PixelFormat.BBitMask = $ff0000) then
+                ReadOptimized_BGR8 else
+                ReadToRGB;
+            end else
+            begin
+              Check(Header.PixelFormat.ABitMask <> 0, 'Invalid DDS pixel format: alpha channel flag specified (DDPF_ALPHAPIXELS), but alpha mask is zero');
 
-            Result := TRGBAlphaImage.Create(Width, Height, Depth);
+              Result := TRGBAlphaImage.Create(Width, Height, Depth);
 
-            if (Header.PixelFormat.RGBBitCount = 32) and
-               (Header.PixelFormat.ABitMask = $ff000000) and
-               (Header.PixelFormat.RBitMask = $00ff0000) and
-               (Header.PixelFormat.GBitMask = $0000ff00) and
-               (Header.PixelFormat.BBitMask = $000000ff) then
-              ReadOptimized_ARGB8 else
-            if (Header.PixelFormat.RGBBitCount = 32) and
-               (Header.PixelFormat.ABitMask = $ff000000) and
-               (Header.PixelFormat.RBitMask = $000000ff) and
-               (Header.PixelFormat.GBitMask = $0000ff00) and
-               (Header.PixelFormat.BBitMask = $00ff0000) then
-              ReadOptimized_ABGR8 else
-              ReadToRGBAlpha;
-          end;
-        end else
-        { If not IsRGB, than I already know (it's checked earlier)
-          that masks for red / green / blue are equal
-          (or green / blue are zero and should be just ignored, GIMP-DDS
-          can write this).
-          That may be all zero (alpha only image) or no (grayscale
-          with possible alpha). }
-        if Header.PixelFormat.RBitMask <> 0 then
-        begin
-          if Header.PixelFormat.Flags and DDPF_ALPHAPIXELS = 0 then
-          begin
-            Result := TGrayscaleImage.Create(Width, Height, Depth);
+              if (Header.PixelFormat.RGBBitCount = 32) and
+                 (Header.PixelFormat.ABitMask = $ff000000) and
+                 (Header.PixelFormat.RBitMask = $00ff0000) and
+                 (Header.PixelFormat.GBitMask = $0000ff00) and
+                 (Header.PixelFormat.BBitMask = $000000ff) then
+                ReadOptimized_ARGB8 else
+              if (Header.PixelFormat.RGBBitCount = 32) and
+                 (Header.PixelFormat.ABitMask = $ff000000) and
+                 (Header.PixelFormat.RBitMask = $000000ff) and
+                 (Header.PixelFormat.GBitMask = $0000ff00) and
+                 (Header.PixelFormat.BBitMask = $00ff0000) then
+                ReadOptimized_ABGR8 else
+                ReadToRGBAlpha;
+            end;
+          utGrayscale_AlphaPossible:
+            if Header.PixelFormat.Flags and DDPF_ALPHAPIXELS = 0 then
+            begin
+              Result := TGrayscaleImage.Create(Width, Height, Depth);
 
-            if (Header.PixelFormat.RGBBitCount = 8) and
-               (Header.PixelFormat.RBitMask = $ff) then
-              ReadOptimized_G8 else
-              ReadToGrayscale;
-          end else
-          begin
-            Result := TGrayscaleAlphaImage.Create(Width, Height, Depth);
+              if (Header.PixelFormat.RGBBitCount = 8) and
+                 (Header.PixelFormat.RBitMask = $ff) then
+                ReadOptimized_G8 else
+                ReadToGrayscale;
+            end else
+            begin
+              Check(Header.PixelFormat.ABitMask <> 0, 'Invalid DDS pixel format: alpha channel flag specified (DDPF_ALPHAPIXELS), but alpha mask is zero');
 
-            if (Header.PixelFormat.RGBBitCount = 16) and
-               (Header.PixelFormat.ABitMask = $ff00) and
-               (Header.PixelFormat.RBitMask = $00ff) then
-              ReadOptimized_AG8 else
-              ReadToGrayscaleAlpha;
-          end;
-        end else
-        begin
-          { GIMP-DDS plugin doesn't set DDPF_ALPHAPIXELS, but this is wrong IMO,
-            so I warn about it. }
-          CheckWarn(Header.PixelFormat.Flags and DDPF_ALPHAPIXELS <> 0, 'Invalid DDS pixel format: no flag specified (so must be grayscale image), but all r/g/b masks are zero. We will assume this is alpha-only image, as GIMP-DDS plugin can write such files');
-          Result := TGrayscaleAlphaImage.Create(Width, Height, Depth);
-          ReadToGrayscaleAlphaPure;
+              Result := TGrayscaleAlphaImage.Create(Width, Height, Depth);
+
+              if (Header.PixelFormat.RGBBitCount = 16) and
+                 (Header.PixelFormat.ABitMask = $ff00) and
+                 (Header.PixelFormat.RBitMask = $00ff) then
+                ReadOptimized_AG8 else
+                ReadToGrayscaleAlpha;
+            end;
+          utPureAlpha:
+            begin
+              Check(Header.PixelFormat.ABitMask <> 0, 'Invalid DDS pixel format: pure alpha expected, but alpha mask is zero');
+
+              Result := TGrayscaleAlphaImage.Create(Width, Height, Depth);
+              ReadToGrayscaleAlphaPure;
+            end;
+          else raise EInternalError.Create('UncompressedType?');
         end;
       end { ReadUncompressed };
 
@@ -989,11 +990,16 @@ var
       end;
 
     begin
-      { There are four mutually exclusive types of DDS pixel format:
-        uncompressed non-palette (DDPF_RGB) or
-        uncompressed palette (DDPF_PALETTEINDEXED8) or
-        compressed (DDPF_FOURCC) or
-        uncompressed grayscale and/or alpha (neither flag, GIMP-DDS can write such images). }
+      { There are five mutually exclusive types of DDS pixel format:
+        - uncompressed non-palette (DDPF_RGB, optional DDPF_ALPHAPIXELS) or
+        - uncompressed palette (DDPF_PALETTEINDEXED8) or
+        - compressed (DDPF_FOURCC) or
+        - uncompressed grayscale (DDPF_LUMINANCE, optional DDPF_ALPHAPIXELS,
+          GIMP-DDS can write such images).
+        - neighter of the above: only DDPF_ALPHAPIXELS (pure alpha,
+          GIMP-DDS can write such images; actually, GIMP-DDS omits even
+          DDPF_ALPHAPIXELS).
+      }
 
       Result := nil;
       try
@@ -1001,7 +1007,7 @@ var
         begin
           Check(Header.PixelFormat.Flags and DDPF_FOURCC = 0, 'Invalid DDS pixel format: both uncompressed (DDPF_RGB) and compressed (DDPF_FOURCC) flags specified');
           Check(Header.PixelFormat.Flags and DDPF_PALETTEINDEXED8 = 0, 'Invalid DDS pixel format: both non-palette (DDPF_RGB) and palette (DDPF_PALETTEINDEXED8) flags specified');
-          ReadUncompressed(true);
+          ReadUncompressed(utRGB_AlphaPossible);
         end else
         if Header.PixelFormat.Flags and DDPF_PALETTEINDEXED8 <> 0 then
         begin
@@ -1039,17 +1045,29 @@ var
                 SReadableForm(Header.PixelFormat.FourCC[2]),
                 SReadableForm(Header.PixelFormat.FourCC[3]) ]);
         end else
+        if Header.PixelFormat.Flags and DDPF_LUMINANCE <> 0 then
         begin
-          { No flags specified, this means uncompressed image
-            without RGB: grayscale (possibly with alpha), or even only
-            alpha channel. At least GIMP-DDS plugin can write such images. }
+          { Uncompressed grayscale image (possibly with alpha). }
+          Check(Header.PixelFormat.RBitMask <> 0,
+            'Invalid DDS pixel format: luminance image (DDPF_LUMINANCE flag) specified, but Red mask is zero');
           Check(
             ( (Header.PixelFormat.RBitMask = Header.PixelFormat.GBitMask) and
-              (Header.PixelFormat.GBitMask = Header.PixelFormat.BBitMask) ) or
+              (Header.PixelFormat.RBitMask = Header.PixelFormat.BBitMask) ) or
             ( (Header.PixelFormat.GBitMask = 0) and
               (Header.PixelFormat.BBitMask = 0) ),
-            'Invalid DDS pixel format: neighter DDPF_RGB, DDPF_FOURCC, DDPF_PALETTEINDEXED8 flags specified. So this must be a grayscale and/or alpha image. So R/G/B masks must be equal, or G/B masks should be zero (ignored). But this is not true');
-          ReadUncompressed(false);
+            'Invalid DDS pixel format: luminance image (DDPF_LUMINANCE flag) specified, so Red = Green = Blue masks should be equal or Green = Blue = should be zero, but they are not');
+          ReadUncompressed(utGrayscale_AlphaPossible);
+        end else
+        begin
+          { GIMP-DDS plugin doesn't set DDPF_ALPHAPIXELS, but this is wrong IMO,
+            so I warn about it. }
+          CheckWarn(Header.PixelFormat.Flags and DDPF_ALPHAPIXELS <> 0, 'Invalid DDS pixel format: no flag specified, even not DDPF_ALPHAPIXELS. We will assume this is alpha-only image, as GIMP-DDS plugin can write such files');
+          Check(
+            (Header.PixelFormat.RBitMask = 0) and
+            (Header.PixelFormat.GBitMask = 0) and
+            (Header.PixelFormat.BBitMask = 0),
+            'Invalid DDS pixel format: pure alpha image (only DDPF_ALPHAPIXELS flag) specified, but Red / Green / Blue makss are not zero');
+          ReadUncompressed(utPureAlpha);
         end;
       except FreeAndNil(Result); raise end;
     end { ReadImage };
@@ -1230,7 +1248,7 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
     end else
     if Images[0] is TS3TCImage then
     begin
-      { For uncompressed image, PitchOrLinearSize is image length }
+      { For compressed image, PitchOrLinearSize is image length }
       Header.PitchOrLinearSize := TS3TCImage(Images[0]).Size;
       Header.Flags := Header.Flags or DDSD_LINEARSIZE;
     end else
@@ -1241,7 +1259,7 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
 
     if Images[0] is TGrayscaleImage then
     begin
-      Header.PixelFormat.Flags := 0;
+      Header.PixelFormat.Flags := DDPF_LUMINANCE;
       Header.PixelFormat.RGBBitCount := 8;
       Header.PixelFormat.RBitMask := $ff;
       Header.PixelFormat.GBitMask := $ff;
@@ -1250,7 +1268,7 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
     end else
     if Images[0] is TGrayscaleAlphaImage then
     begin
-      Header.PixelFormat.Flags := DDPF_ALPHAPIXELS;
+      Header.PixelFormat.Flags := DDPF_LUMINANCE or DDPF_ALPHAPIXELS;
       Header.PixelFormat.RGBBitCount := 16;
       Header.PixelFormat.RBitMask := $00ff;
       Header.PixelFormat.GBitMask := $00ff;
