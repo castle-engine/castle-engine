@@ -1727,7 +1727,7 @@ type
       This method will do exactly that. }
     procedure ViewChangedSuddenly; virtual;
 
-    procedure CameraMatrixChanged(const CameraMatrix: TMatrix4Single);
+    procedure CameraMatrixChanged;
   end;
 
 {$undef read_interface}
@@ -1735,7 +1735,7 @@ type
 implementation
 
 uses VRMLCameraUtils, KambiStringUtils, KambiLog, VRMLErrors, DateUtils,
-  Object3dAsVRML;
+  Object3dAsVRML, RenderStateUnit;
 
 {$define read_implementation}
 {$I macprecalcvaluereturn.inc}
@@ -5529,26 +5529,29 @@ begin
   { Nothing meaningful to do in this class }
 end;
 
-procedure TVRMLScene.CameraMatrixChanged(const CameraMatrix: TMatrix4Single);
+procedure TVRMLScene.CameraMatrixChanged;
 var
   V: TVRMLViewpointNode;
-  CameraInverseMatrix: TMatrix4Single;
 begin
-  { TODO: don't send this every damn frame. Also, catch this automatically
-    when CameraMatrix is set (instead of forcing view3dscene to do it
-    manually). }
-
-  if (ViewpointStack.Top <> nil) and
+  if ProcessEvents and
+     (ViewpointStack.Top <> nil) and
      (ViewpointStack.Top is TVRMLViewpointNode) then
   begin
     V := TVRMLViewpointNode(ViewpointStack.Top);
 
-    if V.EventCameraMatrix.SendNeeded then
-      V.EventCameraMatrix.Send(CameraMatrix, WorldTime);
+    BeginChangesSchedule;
+    try
+      Inc(FWorldTime.PlusTicks);
 
-    if V.EventCameraInverseMatrix.SendNeeded and
-       TryMatrixInverse(CameraMatrix, CameraInverseMatrix) then
-      V.EventCameraInverseMatrix.Send(CameraInverseMatrix, WorldTime);
+      if V.EventCameraMatrix.SendNeeded then
+        V.EventCameraMatrix.Send(RenderState.CameraMatrix, WorldTime);
+
+      if V.EventCameraInverseMatrix.SendNeeded then
+      begin
+        RenderState.CameraInverseMatrixNeeded;
+        V.EventCameraInverseMatrix.Send(RenderState.CameraInverseMatrix, WorldTime);
+      end;
+    finally EndChangesSchedule end;
   end;
 end;
 

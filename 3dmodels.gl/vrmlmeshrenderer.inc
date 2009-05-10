@@ -1327,41 +1327,33 @@ var
       { Do the necessary things for WorldSpaceNormal and
         WorldSpaceReflectionVector. }
       procedure TextureTransformToWorldSpace(const SuccessName, FailName: string);
-      var
-        CameraInverseMatrix: TMatrix4Single;
       begin
-        if TryMatrixInverse(CameraMatrix, CameraInverseMatrix) then
-        begin
-          { Set the 4th texture coord component (Q) to 0.0.
-            Reason: We use matrix 4x4, so it will transform whole texture
-            coordinate (4-valued vector, since we're in homogeneous
-            coordinates). We want the generated STR to be transformed
-            like a direction, so we want to set Q = always 0.0
-            (in homogeneous coords, this means that vector represents
-            a direction and will be accordingly transformed). }
-          glTexCoord4f(0, 0, 0, 0);
+        { Set the 4th texture coord component (Q) to 0.0.
+          Reason: We use matrix 4x4, so it will transform whole texture
+          coordinate (4-valued vector, since we're in homogeneous
+          coordinates). We want the generated STR to be transformed
+          like a direction, so we want to set Q = always 0.0
+          (in homogeneous coords, this means that vector represents
+          a direction and will be accordingly transformed). }
+        glTexCoord4f(0, 0, 0, 0);
 
-          glMatrixMode(GL_TEXTURE);
-          Renderer.PushTextureUnit(TexUnit);
-          { CameraMatrix transforms from world space to camera space,
-            we want to transform directions from camera space to world
-            space below. So inverted CameraMatrix is exactly what we need. }
-          glMultMatrix(CameraInverseMatrix);
-          glMatrixMode(GL_MODELVIEW);
+        glMatrixMode(GL_TEXTURE);
+        Renderer.PushTextureUnit(TexUnit);
+        { CameraMatrix transforms from world space to camera space,
+          we want to transform directions from camera space to world
+          space below. So inverted CameraMatrix is exactly what we need. }
+        RenderState.CameraInverseMatrixNeeded;
+        glMultMatrix(RenderState.CameraInverseMatrix);
+        glMatrixMode(GL_MODELVIEW);
 
-          if GLVersion.IsMesa and Log then
-            { Mesa 7.0.4 makes textures strange (like each cube face was
-              1-pixel wide?, although I checked --- they are loaded with
-              correct sizes). Output this on log, since it's done by renderer,
-              potentially many times for a frame.
-              Nothing more intelligent now than warning about this is done. }
-            WritelnLog('TexCoord', Format('Warning: Transforming tex coords to WORLDSPACE* under Mesa3D may mess up static cube maps (ImageCubeMapTexture and ComposedCubeMapTexture, but not GeneratedCubeMapTexure)',
-              [SuccessName, FailName]));
-        end else
-        if Log then
-          WritelnLogMultiline('Camera', Format('Camera matrix cannot be inverted, %s will work like %s. Camera matrix is:',
-            [SuccessName, FailName]) + NL +
-            MatrixToRawStr(CameraMatrix, '  '));
+        if GLVersion.IsMesa and Log then
+          { Mesa 7.0.4 makes textures strange (like each cube face was
+            1-pixel wide?, although I checked --- they are loaded with
+            correct sizes). Output this on log, since it's done by renderer,
+            potentially many times for a frame.
+            Nothing more intelligent now than warning about this is done. }
+          WritelnLog('TexCoord', Format('Warning: Transforming tex coords to WORLDSPACE* under Mesa3D may mess up static cube maps (ImageCubeMapTexture and ComposedCubeMapTexture, but not GeneratedCubeMapTexure)',
+            [SuccessName, FailName]));
       end;
 
     const
@@ -1473,7 +1465,7 @@ var
               ProjectedLight := TNodeX3DLightNode(GenNode.FdProjectedLight.Value);
 
               glPushMatrix;
-                glLoadMatrix(CameraMatrix);
+                glLoadMatrix(RenderState.CameraMatrix);
                 ProjectionM := MatrixMult(
                   ProjectionScalingMatrix,
                   MatrixMult(

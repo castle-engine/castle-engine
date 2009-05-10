@@ -1716,23 +1716,13 @@ const
   bmMultiTexAll = [bmMultiTexDotNotNormalized, bmMultiTexDotNormalized];
   bmGLSLAll = [bmGLSLNormal, bmGLSLParallax];
 
-var
-  { Current camera matrix. Transforms from world space (normal 3D space)
-    to camera space (camera space is the space where you're always
-    standing on zero point, looking in -Z, and so on).
-    This is currently needed only for handling correctly
-    TextureCoordinateGenerator.mode = "WORLDSPACEREFLECTIONVECTOR".
-
-    TODO: this is not supposed to be global var }
-  CameraMatrix: TMatrix4Single;
-
 {$undef read_interface}
 
 implementation
 
 uses Math, Triangulator, NormalizationCubeMap,
   KambiStringUtils, GLVersionUnit, KambiLog, KambiClassUtils,
-  VRMLGeometry, VRMLScene, DDS, Frustum;
+  VRMLGeometry, VRMLScene, DDS, Frustum, RenderStateUnit;
 
 {$define read_implementation}
 {$I dynarray_1.inc}

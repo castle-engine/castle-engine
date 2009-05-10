@@ -1464,7 +1464,7 @@ type
 implementation
 
 uses VRMLErrors, GLVersionUnit, GLImages, Images, KambiLog,
-  Object3dAsVRML, Math, RaysWindow, KambiStringUtils, Contnrs, GLRenderState;
+  Object3dAsVRML, Math, RaysWindow, KambiStringUtils, Contnrs, RenderStateUnit;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
