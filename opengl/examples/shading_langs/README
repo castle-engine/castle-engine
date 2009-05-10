@@ -67,16 +67,22 @@ Notes
   written with very specific environment in mind (e.g. "I will use
   only one light source, and without attenuation").
 
-- There's no requirement to replace both vertex and fragment shaders.
+- In GLSL < 1.40:
+  There's no requirement to replace both vertex and fragment shaders.
   It's Ok to replace only one of them, and let the other do it's fixed-function
   job.
 
-- ... but it's often useful to replace both. When we write both vertex and
+  ... but it's often useful to replace both. When we write both vertex and
   fragment shaders, we're able to pass from vertex shader to
   fragment shader any value to interpolate. This is called "varying" variable.
 
   For example, Phong shading: trivial vertex program to just pass normal
   for interpolation, and fragment program to calculate lighting per-pixel.
+
+- In GLSL 1.40:
+  you can't mix fixed-function stages with shaders.
+  E.g. if you provide fragment shader, you should also provide vertex shader.
+  Mixing is deprecated in GLSL 1.30, disallowed in GLSL 1.40.
 
 http://en.wikipedia.org/wiki/Shading_language
 
@@ -305,6 +311,8 @@ assembly langs actually).
   So if you develop on NVidia, be sure to test afterwards also on ATI/Mesa
   and fix eventual small things (like texture coords for texture2D functions
   should have ".st" qualifiers).
+  * This is no longer true for newer nvidia drivers, it seems.
+  They are more strict now with GLSL syntax. *
 
   There's GLSLvalidate
   http://developer.3dlabs.com/downloads/glslvalidate/index.htm
