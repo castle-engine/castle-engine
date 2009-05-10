@@ -98,6 +98,11 @@
       to ease debugging (you can see e.g. by Logger node the originating
       event name then).
 
+      We have separate names for single-value and multiple-value fields
+      (Send and SendArray), otherwise overloads could get confused
+      (as vector is also just an array of floats, and matrix is just an
+      array of vectors).
+
       @groupBegin }
     procedure Send(const Value: LongInt; const Time: TVRMLTime);
     procedure Send(const Value: boolean; const Time: TVRMLTime);
@@ -112,9 +117,9 @@
     procedure Send(const Value: TMatrix3Double; const Time: TVRMLTime);
     procedure Send(const Value: TMatrix4Double; const Time: TVRMLTime);
 
-    procedure Send(const Value: array of TVector2Single; const Time: TVRMLTime);
-    procedure Send(const Value: array of TVector3Single; const Time: TVRMLTime);
-    procedure Send(const Value: array of TVector4Single; const Time: TVRMLTime);
+    procedure SendArray(const Value: array of TVector2Single; const Time: TVRMLTime);
+    procedure SendArray(const Value: array of TVector3Single; const Time: TVRMLTime);
+    procedure SendArray(const Value: array of TVector4Single; const Time: TVRMLTime);
     { @groupEnd }
 
     { Notifications about receiving an item. For input fields,
@@ -377,7 +382,7 @@ begin
   finally FreeAndNil(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: array of TVector2Single; const Time: TVRMLTime);
+procedure TVRMLEvent.SendArray(const Value: array of TVector2Single; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
@@ -387,7 +392,7 @@ begin
   finally FreeAndNil(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: array of TVector3Single; const Time: TVRMLTime);
+procedure TVRMLEvent.SendArray(const Value: array of TVector3Single; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
@@ -399,7 +404,7 @@ begin
   finally FreeAndNil(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: array of TVector4Single; const Time: TVRMLTime);
+procedure TVRMLEvent.SendArray(const Value: array of TVector4Single; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
