@@ -321,8 +321,13 @@ type
 
     { Extract only rotation from your current camera @link(Matrix).
       This is useful for rendering skybox in 3D programs
-      (e.g. for Background VRML 97 node). }
-    function RotationOnlyMatrix: TMatrix4Single; virtual; abstract;
+      (e.g. for Background VRML 97 node) and generally to transform
+      directions between world and camera space.
+
+      It's guaranteed that this is actually only 3x3 matrix,
+      the 4th row and 4th column are all zero except the lowest right item
+      which is 1.0. }
+    function RotationMatrix: TMatrix4Single; virtual; abstract;
 
     (*Handle key press event.
       Returns @true if the key was somehow handled.
@@ -471,7 +476,7 @@ type
     destructor Destroy; override;
 
     function Matrix: TMatrix4Single; override;
-    function RotationOnlyMatrix: TMatrix4Single; override;
+    function RotationMatrix: TMatrix4Single; override;
     procedure Idle(const CompSpeed: Single;
       KeysDown: PKeysBooleans;
       CharactersDown: PCharactersBooleans;
@@ -697,7 +702,7 @@ type
       out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single); virtual;
 
     function Matrix: TMatrix4Single; override;
-    function RotationOnlyMatrix: TMatrix4Single; override;
+    function RotationMatrix: TMatrix4Single; override;
     procedure Idle(const CompSpeed: Single;
       KeysDown: PKeysBooleans;
       CharactersDown: PCharactersBooleans;
@@ -1695,7 +1700,7 @@ begin
  result := MatrixMult(result, TranslationMatrix(VectorNegate(FModelBoxMiddle)));
 end;
 
-function TExamineNavigator.RotationOnlyMatrix: TMatrix4Single;
+function TExamineNavigator.RotationMatrix: TMatrix4Single;
 begin
  Result := QuatToRotationMatrix(Rotations);
 end;
@@ -2085,7 +2090,7 @@ begin
     Result := LookDirMatrix(CameraPos, CameraDir, CameraUp);
 end;
 
-function TWalkNavigator.RotationOnlyMatrix: TMatrix4Single;
+function TWalkNavigator.RotationMatrix: TMatrix4Single;
 begin
  result := LookDirMatrix(ZeroVector3Single, CameraDir, CameraUp);
 end;

@@ -37,7 +37,7 @@ type
 
   TRenderTargetFunction = procedure (
     const RenderTarget: TRenderTarget;
-    const CameraMatrix, CameraRotationOnlyMatrix: TMatrix4Single;
+    const CameraMatrix, CameraRotationMatrix: TMatrix4Single;
     const Frustum: TFrustum);
 
 { Calculate spherical harmonics basis describing environment rendered
@@ -72,7 +72,7 @@ type
   from the CapturePoint. You should load CameraMatrix
   to OpenGL modelview matrix before rendering your 3D scene,
   For specialized uses, like skybox rendering,
-  also CubeMapCameraRotationOnlyMatrix may be useful, and for
+  also CameraRotationMatrix may be useful, and for
   frustum culling you may want to use CubeMapFrustum.
 
   Scene is rendered to color buffer, captured as appropriate
@@ -259,7 +259,7 @@ var
   procedure DrawMap(Side: TCubeMapSide);
   var
     ScreenX, ScreenY: Integer;
-    ProjectionMatrix, CameraMatrix, CameraRotationOnlyMatrix: TMatrix4Single;
+    ProjectionMatrix, CameraMatrix, CameraRotationMatrix: TMatrix4Single;
     Frustum: TFrustum;
   begin
     if MapsOverlap then
@@ -281,11 +281,11 @@ var
       glMatrixMode(GL_MODELVIEW);
 
         CameraMatrix := LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up);
-        CameraRotationOnlyMatrix := LookDirMatrix(ZeroVector3Single, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up);
+        CameraRotationMatrix := LookDirMatrix(ZeroVector3Single, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up);
         glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
         Frustum.Init(ProjectionMatrix, CameraMatrix);
 
-        Render(rtCubeMapEnvironment, CameraMatrix, CameraRotationOnlyMatrix, Frustum);
+        Render(rtCubeMapEnvironment, CameraMatrix, CameraRotationMatrix, Frustum);
 
       glMatrixMode(GL_PROJECTION);
     glPopMatrix;
@@ -352,7 +352,7 @@ procedure GLCaptureCubeMapTexture(
   procedure DrawMap(Side: TCubeMapSide);
   var
     ScreenX, ScreenY: Integer;
-    ProjectionMatrix, CameraMatrix, CameraRotationOnlyMatrix: TMatrix4Single;
+    ProjectionMatrix, CameraMatrix, CameraRotationMatrix: TMatrix4Single;
     Frustum: TFrustum;
   begin
     if MapsOverlap then
@@ -374,11 +374,11 @@ procedure GLCaptureCubeMapTexture(
       glMatrixMode(GL_MODELVIEW);
 
         CameraMatrix := LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up);
-        CameraRotationOnlyMatrix := LookDirMatrix(ZeroVector3Single, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up);
+        CameraRotationMatrix := LookDirMatrix(ZeroVector3Single, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up);
         glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
         Frustum.Init(ProjectionMatrix, CameraMatrix);
 
-        Render(rtCubeMapEnvironment, CameraMatrix, CameraRotationOnlyMatrix, Frustum);
+        Render(rtCubeMapEnvironment, CameraMatrix, CameraRotationMatrix, Frustum);
 
       glMatrixMode(GL_PROJECTION);
     glPopMatrix;

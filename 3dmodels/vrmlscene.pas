@@ -5561,6 +5561,15 @@ begin
         RenderState.CameraInverseMatrixNeeded;
         V.EventCameraInverseMatrix.Send(RenderState.CameraInverseMatrix, WorldTime);
       end;
+
+      if V.EventCameraRotationMatrix.SendNeeded then
+        V.EventCameraRotationMatrix.Send(RenderState.CameraRotationMatrix3, WorldTime);
+
+      if V.EventCameraRotationInverseMatrix.SendNeeded then
+      begin
+        RenderState.CameraRotationInverseMatrixNeeded;
+        V.EventCameraRotationInverseMatrix.Send(RenderState.CameraRotationInverseMatrix3, WorldTime);
+      end;
     finally EndChangesSchedule end;
   end;
 end;

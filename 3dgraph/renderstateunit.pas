@@ -60,6 +60,12 @@ type
       InShadow = @false pass of shadow volumes). }
     StencilTest: Cardinal;
 
+    { Always called after camera changed.
+      This will call all registered OnCameraChanged events. }
+    procedure CameraChanged;
+
+    property OnCameraChanged: TDynCameraChangedEventArray read FOnCameraChanged;
+
     { Current camera matrix. Transforms from world space (normal 3D space)
       to camera space (camera space is the space where you're always
       standing on zero point, looking in -Z, and so on).
@@ -83,11 +89,28 @@ type
 
     procedure CameraInverseMatrixNeeded;
 
-    { Always called after camera changed.
-      This will call all registered OnCameraChanged events. }
-    procedure CameraChanged;
+    { Camera rotation matrix. That is, this is like CameraMatrix but
+      it doesn't move the camera, only rotates it.
 
-    property OnCameraChanged: TDynCameraChangedEventArray read FOnCameraChanged;
+      It's guaranteed that this is actually only 3x3 matrix,
+      the 4th row and 4th column are all zero except the lowest right item
+      which is 1.0. }
+    CameraRotationMatrix: TMatrix4Single;
+
+    { Inverse of CameraRotationMatrix.
+
+      Always call CameraRotationInverseMatrixNeeded before using it,
+      CameraRotationInverseMatrixNeeded will check CameraRotationInverseMatrixDone
+      and eventually will calculate inverse and set CameraRotationInverseMatrixDone to
+      @true. }
+    CameraRotationInverseMatrix: TMatrix4Single;
+    CameraRotationInverseMatrixDone: boolean;
+
+    procedure CameraRotationInverseMatrixNeeded;
+
+    { Camera rotation matrix, as a 3x3 matrix. }
+    function CameraRotationMatrix3: TMatrix3Single;
+    function CameraRotationInverseMatrix3: TMatrix3Single;
   end;
 
 var
@@ -126,6 +149,11 @@ begin
   inherited;
 end;
 
+procedure TRenderState.CameraChanged;
+begin
+  FOnCameraChanged.ExecuteAll(Self);
+end;
+
 procedure TRenderState.CameraInverseMatrixNeeded;
 begin
   if not CameraInverseMatrixDone then
@@ -141,9 +169,33 @@ begin
   end;
 end;
 
-procedure TRenderState.CameraChanged;
+procedure TRenderState.CameraRotationInverseMatrixNeeded;
 begin
-  FOnCameraChanged.ExecuteAll(Self);
+  if not CameraRotationInverseMatrixDone then
+  begin
+    if not TryMatrixInverse(CameraRotationMatrix, CameraRotationInverseMatrix) then
+    begin
+      CameraRotationInverseMatrix := IdentityMatrix4Single;
+      if Log then
+        WritelnLogMultiline('Camera', 'Camera rotation matrix cannot be inverted, convertions between world and camera space will not be done. Camera matrix is: ' +
+          MatrixToRawStr(CameraRotationMatrix, '  '));
+    end;
+    CameraRotationInverseMatrixDone := true;
+  end;
+end;
+
+function TRenderState.CameraRotationMatrix3: TMatrix3Single;
+begin
+  Move(CameraRotationMatrix[0], Result[0], SizeOf(Single) * 3);
+  Move(CameraRotationMatrix[1], Result[1], SizeOf(Single) * 3);
+  Move(CameraRotationMatrix[2], Result[2], SizeOf(Single) * 3);
+end;
+
+function TRenderState.CameraRotationInverseMatrix3: TMatrix3Single;
+begin
+  Move(CameraRotationInverseMatrix[0], Result[0], SizeOf(Single) * 3);
+  Move(CameraRotationInverseMatrix[1], Result[1], SizeOf(Single) * 3);
+  Move(CameraRotationInverseMatrix[2], Result[2], SizeOf(Single) * 3);
 end;
 
 initialization
