@@ -353,7 +353,7 @@ begin
 
   if Scene.Background <> nil then
   begin
-    glLoadMatrix(Navigator.RotationOnlyMatrix);
+    glLoadMatrix(Navigator.RotationMatrix);
     Scene.Background.Render;
   end else
     ClearBuffers := ClearBuffers or GL_COLOR_BUFFER_BIT;

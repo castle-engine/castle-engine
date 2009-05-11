@@ -6120,7 +6120,7 @@ var
     TexRef: PTextureCubeMapReference;
   begin
     { Shape.BoundingBox must be non-empty, otherwise we don't know from what
-      3D point to capture encironment. }
+      3D point to capture environment. }
     if IsEmptyBox3d(Shape.BoundingBox) then Exit;
 
     if CheckUpdate(TexNode.FdUpdate) then

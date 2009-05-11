@@ -846,7 +846,7 @@ begin
 
   if (Method = bmVRML) and (Scene.Background <> nil) then
   begin
-    glLoadMatrix(Glw.Navigator.RotationOnlyMatrix);
+    glLoadMatrix(Glw.Navigator.RotationMatrix);
     Scene.Background.Render;
   end;
 

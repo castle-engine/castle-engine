@@ -79,7 +79,7 @@ procedure Draw(glwin: TGLWindow);
 begin
   if Scene.Background <> nil then
   begin
-    glLoadMatrix(Glw.Navigator.RotationOnlyMatrix);
+    glLoadMatrix(Glw.Navigator.RotationMatrix);
     Scene.Background.Render;
     glClear(GL_DEPTH_BUFFER_BIT);
   end else
