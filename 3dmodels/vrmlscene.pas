@@ -28,7 +28,8 @@ uses
   SysUtils, Classes, VectorMath, Boxes3d,
   VRMLFields, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLShape, VRMLTriangleOctree, ProgressUnit, KambiOctree, VRMLShapeOctree,
-  Keys, VRMLTime, Navigation, VRMLTriangle, Contnrs, VRMLHeadLight;
+  Keys, VRMLTime, Navigation, VRMLTriangle, Contnrs, VRMLHeadLight,
+  RenderStateUnit;
 
 {$define read_interface}
 
@@ -774,6 +775,8 @@ type
     property HeadlightInitialized: boolean
       read FHeadlightInitialized
       write SetHeadlightInitialized default false;
+
+    procedure CameraChanged(RenderState: TRenderState);
   protected
     { Called when LightNode fields changed, while LightNode is in
       active part of VRML graph. }
@@ -1726,8 +1729,6 @@ type
       better to resign from occlusion query for the very next frame.
       This method will do exactly that. }
     procedure ViewChangedSuddenly; virtual;
-
-    procedure CameraMatrixChanged;
   end;
 
 {$undef read_interface}
@@ -1735,7 +1736,7 @@ type
 implementation
 
 uses VRMLCameraUtils, KambiStringUtils, KambiLog, VRMLErrors, DateUtils,
-  Object3dAsVRML, RenderStateUnit;
+  Object3dAsVRML;
 
 {$define read_implementation}
 {$I macprecalcvaluereturn.inc}
@@ -4586,6 +4587,8 @@ begin
 
       CollectNodesForEvents;
       InitialProximitySensorsEvents;
+
+      RenderState.OnCameraChanged.AppendItem(@CameraChanged);
     end else
     begin
       UnregisterProcessEvents(RootNode);
@@ -4596,6 +4599,8 @@ begin
       PointingDeviceClear;
 
       FProcessEvents := Value;
+
+      RenderState.OnCameraChanged.DeleteFirstEqual(@CameraChanged);
     end;
   end;
 end;
@@ -5529,10 +5534,15 @@ begin
   { Nothing meaningful to do in this class }
 end;
 
-procedure TVRMLScene.CameraMatrixChanged;
+procedure TVRMLScene.CameraChanged(RenderState: TRenderState);
 var
   V: TVRMLViewpointNode;
 begin
+  { Although we register this callback only when ProcessEvents,
+    so we could assume here that ProcessEvents is already true...
+    But, just in case, check ProcessEvents again (in case in the future
+    there will be some queue of events and they could arrive with delay). }
+
   if ProcessEvents and
      (ViewpointStack.Top <> nil) and
      (ViewpointStack.Top is TVRMLViewpointNode) then

@@ -34,7 +34,7 @@
   TDynVRMLEventReceiveArray = class(TDynArray_1)
   public
     { This calls all functions (all Items) passing them
-      (Event, Value) parameters. }
+      (Event, Value, Time) parameters. }
     procedure ExecuteAll(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
   end;
