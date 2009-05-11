@@ -6156,8 +6156,7 @@ var
     Light: TNodeX3DLightNode;
     TexRefIndex: Integer;
     TexRef: PTextureDepthReference;
-    ProjectionMatrix, CameraMatrix, CameraRotationOnlyMatrix: TMatrix4Single;
-    Frustum: TFrustum;
+    ProjectionMatrix: TMatrix4Single;
     Size: Cardinal;
   begin
     if CheckUpdate(TexNode.FdUpdate) then
@@ -6174,8 +6173,12 @@ var
 
           { Render view for shadow map }
           ProjectionMatrix := Light.MapProjectionMatrix;
-          CameraMatrix := Light.MapModelviewMatrix;
-          CameraRotationOnlyMatrix := IdentityMatrix4Single;
+
+          RenderState.CameraFromMatrix(
+            Light.MapModelviewMatrix,
+            IdentityMatrix4Single { TODO: RotationMatrix is always identity here },
+            ProjectionMatrix);
+
           Size := TexRef^.GeneratedSize;
 
           glViewport(0, 0, Size, Size);
@@ -6192,8 +6195,7 @@ var
               glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
               glPolygonOffset(TexNode.FdScale.Value, TexNode.FdBias.Value); { saved by GL_POLYGON_BIT }
 
-              Frustum.Init(ProjectionMatrix, CameraMatrix);
-              Render(rtShadowMap, CameraMatrix, CameraRotationOnlyMatrix, Frustum);
+              Render(rtShadowMap);
             glPopAttrib;
 
             glMatrixMode(GL_PROJECTION);

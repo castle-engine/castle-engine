@@ -25,7 +25,8 @@ unit GLCubeMap;
 
 interface
 
-uses VectorMath, CubeMap, Images, Frustum, DDS, GL, GLU, KambiGLUtils;
+uses VectorMath, CubeMap, Images, Frustum, DDS, GL, GLU, KambiGLUtils,
+  RenderStateUnit;
 
 type
   TCubeMapRenderSimpleFunction = procedure (ForCubeMap: boolean);
@@ -35,10 +36,7 @@ type
     rtCubeMapEnvironment,
     rtShadowMap);
 
-  TRenderTargetFunction = procedure (
-    const RenderTarget: TRenderTarget;
-    const CameraMatrix, CameraRotationMatrix: TMatrix4Single;
-    const Frustum: TFrustum);
+  TRenderTargetFunction = procedure (const RenderTarget: TRenderTarget);
 
 { Calculate spherical harmonics basis describing environment rendered
   by OpenGL. Environment is rendered by
@@ -67,13 +65,11 @@ type
 
 { Capture cube map by rendering environment from CapturePoint.
 
-  Environment is rendered by Render(rtCubeMapEnvironment, ...) callback.
-  CameraMatrix describes desired camera matrix, with camera position
-  from the CapturePoint. You should load CameraMatrix
-  to OpenGL modelview matrix before rendering your 3D scene,
-  For specialized uses, like skybox rendering,
-  also CameraRotationMatrix may be useful, and for
-  frustum culling you may want to use CubeMapFrustum.
+  Environment is rendered by Render(rtCubeMapEnvironment) callback
+  that must honour camera described in RenderState object.
+  RenderState camera will be set to appropriate views
+  from the CapturePoint. You should at least load RenderState.CameraMatrix
+  to OpenGL modelview matrix before rendering your 3D scene.
 
   Scene is rendered to color buffer, captured as appropriate
   for Images classes (e.g. TGrayscaleImage, or TRGBImage).
@@ -246,6 +242,17 @@ begin
   end;
 end;
 
+procedure SetRenderStateCamera(
+  const CapturePoint: TVector3Single;
+  const Side: TCubeMapSide;
+  const ProjectionMatrix: TMatrix4Single);
+begin
+  RenderState.CameraFromMatrix(
+    LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
+    LookDirMatrix(ZeroVector3Single, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
+    ProjectionMatrix);
+end;
+
 procedure GLCaptureCubeMapImages(
   const Images: TCubeMapImages;
   const CapturePoint: TVector3Single;
@@ -259,8 +266,7 @@ var
   procedure DrawMap(Side: TCubeMapSide);
   var
     ScreenX, ScreenY: Integer;
-    ProjectionMatrix, CameraMatrix, CameraRotationMatrix: TMatrix4Single;
-    Frustum: TFrustum;
+    ProjectionMatrix: TMatrix4Single;
   begin
     if MapsOverlap then
     begin
@@ -276,16 +282,12 @@ var
 
     glMatrixMode(GL_PROJECTION);
     glPushMatrix;
-      glLoadIdentity;
-      glMultMatrix(PerspectiveProjMatrixDeg(90, 1, ProjectionNear, ProjectionFar));
+      ProjectionMatrix := PerspectiveProjMatrixDeg(90, 1, ProjectionNear, ProjectionFar);
+      glLoadMatrix(ProjectionMatrix);
       glMatrixMode(GL_MODELVIEW);
 
-        CameraMatrix := LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up);
-        CameraRotationMatrix := LookDirMatrix(ZeroVector3Single, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up);
-        glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
-        Frustum.Init(ProjectionMatrix, CameraMatrix);
-
-        Render(rtCubeMapEnvironment, CameraMatrix, CameraRotationMatrix, Frustum);
+        SetRenderStateCamera(CapturePoint, Side, ProjectionMatrix);
+        Render(rtCubeMapEnvironment);
 
       glMatrixMode(GL_PROJECTION);
     glPopMatrix;
@@ -352,8 +354,7 @@ procedure GLCaptureCubeMapTexture(
   procedure DrawMap(Side: TCubeMapSide);
   var
     ScreenX, ScreenY: Integer;
-    ProjectionMatrix, CameraMatrix, CameraRotationMatrix: TMatrix4Single;
-    Frustum: TFrustum;
+    ProjectionMatrix: TMatrix4Single;
   begin
     if MapsOverlap then
     begin
@@ -369,16 +370,12 @@ procedure GLCaptureCubeMapTexture(
 
     glMatrixMode(GL_PROJECTION);
     glPushMatrix;
-      glLoadIdentity;
-      glMultMatrix(PerspectiveProjMatrixDeg(90, 1, ProjectionNear, ProjectionFar));
+      ProjectionMatrix := PerspectiveProjMatrixDeg(90, 1, ProjectionNear, ProjectionFar);
+      glLoadMatrix(ProjectionMatrix);
       glMatrixMode(GL_MODELVIEW);
 
-        CameraMatrix := LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up);
-        CameraRotationMatrix := LookDirMatrix(ZeroVector3Single, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up);
-        glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
-        Frustum.Init(ProjectionMatrix, CameraMatrix);
-
-        Render(rtCubeMapEnvironment, CameraMatrix, CameraRotationMatrix, Frustum);
+        SetRenderStateCamera(CapturePoint, Side, ProjectionMatrix);
+        Render(rtCubeMapEnvironment);
 
       glMatrixMode(GL_PROJECTION);
     glPopMatrix;

@@ -25,7 +25,7 @@ unit RenderStateUnit;
 
 interface
 
-uses KambiUtils, VectorMath;
+uses KambiUtils, VectorMath, Frustum, Navigation;
 
 {$define read_interface}
 
@@ -111,6 +111,16 @@ type
     { Camera rotation matrix, as a 3x3 matrix. }
     function CameraRotationMatrix3: TMatrix3Single;
     function CameraRotationInverseMatrix3: TMatrix3Single;
+
+    CameraFrustum: TFrustum;
+
+    { Set all Camera* properties from navigator Nav. }
+    procedure CameraFromNavigator(Nav: TNavigator);
+
+    { Set all Camera* properties from explict matrices.
+      ProjectionMatrix is needed to calculate frustum. }
+    procedure CameraFromMatrix(const ACameraMatrix, ACameraRotationMatrix,
+      ProjectionMatrix: TMatrix4Single);
   end;
 
 var
@@ -196,6 +206,27 @@ begin
   Move(CameraRotationInverseMatrix[0], Result[0], SizeOf(Single) * 3);
   Move(CameraRotationInverseMatrix[1], Result[1], SizeOf(Single) * 3);
   Move(CameraRotationInverseMatrix[2], Result[2], SizeOf(Single) * 3);
+end;
+
+procedure TRenderState.CameraFromNavigator(Nav: TNavigator);
+begin
+  CameraMatrix := Nav.Matrix;
+  CameraInverseMatrixDone := false;
+  CameraRotationMatrix := Nav.RotationMatrix;
+  CameraRotationInverseMatrixDone := false;
+  CameraFrustum := Nav.Frustum;
+  CameraChanged;
+end;
+
+procedure TRenderState.CameraFromMatrix(const ACameraMatrix, ACameraRotationMatrix,
+  ProjectionMatrix: TMatrix4Single);
+begin
+  CameraMatrix := ACameraMatrix;
+  CameraInverseMatrixDone := false;
+  CameraRotationMatrix := ACameraRotationMatrix;
+  CameraRotationInverseMatrixDone := false;
+  CameraFrustum.Init(ProjectionMatrix, ACameraMatrix);
+  CameraChanged;
 end;
 
 initialization
