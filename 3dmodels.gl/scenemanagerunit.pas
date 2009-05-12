@@ -86,12 +86,31 @@ type
     FViewportWidth: TGLsizei;
     FViewportHeight: TGLsizei;
 
-    procedure RenderScene(InShadow: boolean; TransparentGroup: TTransparentGroup);
-    procedure RenderShadowVolumes;
-    { Render all from specific camera view.
-      Takes care of shadow volumes, but doesn't take care of updating
-      generated textures. }
-    procedure RenderFromView(const RenderTarget: TRenderTarget);
+    FBackgroundWireframe: boolean;
+  protected
+    { Render one pass, from current (in RenderState) camera view,
+      for specific lights setup, for given TransparentGroup. }
+    procedure RenderScene(InShadow: boolean; TransparentGroup: TTransparentGroup); virtual;
+
+    procedure RenderShadowVolumes; virtual;
+
+    { Render everything from current (in RenderState) camera view.
+      Takes care of making many passes for shadow volumes,
+      but doesn't take care of updating generated textures. }
+    procedure RenderFromView(const RenderTarget: TRenderTarget); virtual;
+
+    { Render the headlight. Called by RenderFromView, when camera matrix
+      is set. Should enable or disable OpenGL GL_LIGHT0 for headlight.
+
+      Implementation in this class uses headlight defined
+      in the Scene, following NavigationInfo.headlight and KambiHeadlight
+      nodes. }
+    procedure RenderHeadLight(const RenderTarget: TRenderTarget); virtual;
+
+    { Render the 3D part of scene. Called by RenderFromView at the end,
+      when everything (clearing, background, headlight, loading camera
+      matrix) is done and all that remains is to pass to OpenGL actual 3D world. }
+    procedure RenderFromView3D(const RenderTarget: TRenderTarget); virtual;
   public
     property Scene: TVRMLGLScene read FScene write FScene;
     property Navigator: TNavigator read FNavigator write FNavigator;
@@ -105,6 +124,22 @@ type
     property ViewportY: TGLint read FViewportY write FViewportY;
     property ViewportWidth: TGLsizei read FViewportWidth write FViewportWidth;
     property ViewportHeight: TGLsizei read FViewportHeight write FViewportHeight;
+
+    { If yes then the scene background will be rendered wireframe,
+      over the background filled with glClearColor.
+
+      There's a catch here: this works only if the background is actually
+      internally rendered as a geometry. If the background is rendered
+      by clearing the screen (this is an optimized case of sky color
+      being just one simple color, and no textures),
+      then it will just cover the screen as normal, like without wireframe.
+      This is uncertain situation anyway (what should the wireframe
+      look like in this case anyway?), so I don't consider it a bug.
+
+      Useful especially for debugging when you want to see how your background
+      geometry looks like. }
+    property BackgroundWireframe: boolean
+      read FBackgroundWireframe write FBackgroundWireframe default false;
 
     procedure PrepareRender;
     procedure Render;
@@ -152,41 +187,10 @@ begin
   Scene.InitAndRenderShadowVolume(SV, true, IdentityMatrix4Single);
 end;
 
-procedure TSceneManager.RenderFromView(const RenderTarget: TRenderTarget);
-
-  procedure RenderNoShadows;
-  begin
-    RenderScene(false, tgAll);
-  end;
-
-  procedure RenderWithShadows(const MainLightPosition: TVector4Single);
-  begin
-    SV.InitFrustumAndLight(RenderState.CameraFrustum, MainLightPosition);
-    SV.Render(nil, @RenderScene, @RenderShadowVolumes, ShadowVolumesDraw);
-  end;
-
+procedure TSceneManager.RenderHeadLight(const RenderTarget: TRenderTarget);
 var
-  ClearBuffers: TGLbitfield;
   HeadlightPosition, HeadlightDirection: TVector3Single;
 begin
-  ClearBuffers := GL_DEPTH_BUFFER_BIT;
-
-  if Scene.Background <> nil then
-  begin
-    glLoadMatrix(RenderState.CameraRotationMatrix);
-    Scene.Background.Render;
-  end else
-    ClearBuffers := ClearBuffers or GL_COLOR_BUFFER_BIT;
-
-  if ShadowVolumesPossible and
-     ShadowVolumes and
-     Scene.MainLightForShadowsExists then
-    ClearBuffers := ClearBuffers or GL_STENCIL_BUFFER_BIT;
-
-  glClear(ClearBuffers);
-
-  glLoadMatrix(RenderState.CameraMatrix);
-
   if RenderTarget <> rtScreen then
   begin
     if Navigator is TWalkNavigator then
@@ -204,12 +208,64 @@ begin
 
   TVRMLGLHeadlight.RenderOrDisable(Scene.Headlight, 0, RenderTarget = rtScreen,
     HeadlightPosition, HeadlightDirection);
+end;
 
+procedure TSceneManager.RenderFromView3D(const RenderTarget: TRenderTarget);
+
+  procedure RenderNoShadows;
+  begin
+    RenderScene(false, tgAll);
+  end;
+
+  procedure RenderWithShadows(const MainLightPosition: TVector4Single);
+  begin
+    SV.InitFrustumAndLight(RenderState.CameraFrustum, MainLightPosition);
+    SV.Render(nil, @RenderScene, @RenderShadowVolumes, ShadowVolumesDraw);
+  end;
+
+begin
   if ShadowVolumesPossible and
      ShadowVolumes and
      Scene.MainLightForShadowsExists then
     RenderWithShadows(Scene.MainLightForShadows) else
     RenderNoShadows;
+end;
+
+procedure TSceneManager.RenderFromView(const RenderTarget: TRenderTarget);
+var
+  ClearBuffers: TGLbitfield;
+begin
+  ClearBuffers := GL_DEPTH_BUFFER_BIT;
+
+  if Scene.Background <> nil then
+  begin
+    glLoadMatrix(RenderState.CameraRotationMatrix);
+
+    if BackgroundWireframe then
+    begin
+      { Color buffer needs clear *now*, before drawing background. }
+      glClear(GL_COLOR_BUFFER_BIT);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      try
+        Scene.Background.Render;
+      finally glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); end;
+    end else
+      Scene.Background.Render;
+  end else
+    ClearBuffers := ClearBuffers or GL_COLOR_BUFFER_BIT;
+
+  if ShadowVolumesPossible and
+     ShadowVolumes and
+     Scene.MainLightForShadowsExists then
+    ClearBuffers := ClearBuffers or GL_STENCIL_BUFFER_BIT;
+
+  glClear(ClearBuffers);
+
+  glLoadMatrix(RenderState.CameraMatrix);
+
+  RenderHeadLight(RenderTarget);
+
+  RenderFromView3D(RenderTarget);
 end;
 
 procedure TSceneManager.Render;
