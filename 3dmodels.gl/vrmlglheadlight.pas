@@ -56,7 +56,7 @@ type
       Overloaded version with Navigator simply uses Navigator.CameraPos/Dir
       to get HeadlightPosition, HeadlightDirection.
       When HeadlightFromCurrentView = @true, Navigator doesn't matter
-      (mey be @nil).
+      (may be @nil).
 
       @groupBegin }
     procedure Render(GLLightNumber: Cardinal; CallEnabled: boolean;

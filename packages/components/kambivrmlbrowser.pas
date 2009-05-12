@@ -27,7 +27,7 @@ interface
 
 uses Classes, KambiGLControl, VectorMath, Controls,
   VRMLNodes, VRMLGLScene, VRMLScene, Navigation, VRMLGLHeadlight, Areas,
-  ShadowVolumes;
+  ShadowVolumes, SceneManagerUnit;
 
 type
   { A simple VRML browser as a Lazarus component. This manages TVRMLGLScene,
@@ -117,8 +117,12 @@ type
     FShadowVolumesDraw: boolean;
     SV: TShadowVolumes;
 
-    procedure RenderScene(InShadow: boolean; TransparentGroup: TTransparentGroup);
-    procedure RenderShadowVolumes;
+    SceneManager: TSceneManager;
+    { Set all SceneManager properties. This is a temporary solution,
+      in the future initializing SceneManager properties should be integrated
+      with this unit, and generally most of this unit's functionality
+      should move to scene manager. }
+    procedure InitSceneManager;
   protected
     procedure DoBeforeDraw; override;
     procedure DoDraw; override;
@@ -228,6 +232,8 @@ constructor TKamVRMLBrowser.Create(AOwner :TComponent);
 begin
   inherited;
 
+  SceneManager := TSceneManager.Create;
+
   FIgnoreAreas := TDynAreaArray.Create;
 
   { we manage Navigator ourselves, this makes code more consequent to follow }
@@ -238,6 +244,7 @@ end;
 
 destructor TKamVRMLBrowser.Destroy;
 begin
+  FreeAndNil(SceneManager);
   FreeAndNil(FScene);
   Navigator.Free;
   Navigator := nil;
@@ -298,84 +305,31 @@ begin
   end;
 end;
 
-procedure TKamVRMLBrowser.DoBeforeDraw;
-var
-  Options: TPrepareRenderOptions;
-  TG: TTransparentGroups;
+procedure TKamVRMLBrowser.InitSceneManager;
 begin
-  Options := [prBackground, prBoundingBox];
-  if ShadowVolumesPossible and
-     ShadowVolumes and
-     Scene.MainLightForShadowsExists then
-    Options := Options + prShadowVolume;
+  SceneManager.Scene := Scene;
+  SceneManager.Navigator := Navigator;
+  SceneManager.ShadowVolumesPossible := ShadowVolumesPossible;
+  SceneManager.ShadowVolumes := ShadowVolumes;
+  SceneManager.ShadowVolumesDraw := ShadowVolumesDraw;
+  SceneManager.SV := SV;
+  SceneManager.ViewportX := 0;
+  SceneManager.ViewportY := 0;
+  SceneManager.ViewportWidth := Width;
+  SceneManager.ViewportHeight := Height;
+end;
 
-  TG := [tgAll];
-  if ShadowVolumesPossible then
-    TG := TG + [tgOpaque, tgTransparent];
-
-  Scene.PrepareRender(TG, Options);
-
+procedure TKamVRMLBrowser.DoBeforeDraw;
+begin
+  InitSceneManager;
+  SceneManager.PrepareRender;
   inherited;
 end;
 
-procedure TKamVRMLBrowser.RenderScene(InShadow: boolean; TransparentGroup: TTransparentGroup);
-begin
-  if TransparentGroup = tgTransparent then
-    Scene.LastRender_SumNext;
-
-  if InShadow then
-    Scene.RenderFrustum(Navigator.Frustum, TransparentGroup, @Scene.LightRenderInShadow) else
-    Scene.RenderFrustum(Navigator.Frustum, TransparentGroup, nil);
-end;
-
-procedure TKamVRMLBrowser.RenderShadowVolumes;
-begin
-  Scene.InitAndRenderShadowVolume(SV, true, IdentityMatrix4Single);
-end;
-
 procedure TKamVRMLBrowser.DoDraw;
-
-  procedure RenderNoShadows;
-  begin
-    RenderScene(false, tgAll);
-  end;
-
-  procedure RenderWithShadows(const MainLightPosition: TVector4Single);
-  begin
-    SV.InitFrustumAndLight(Navigator.Frustum, MainLightPosition);
-    SV.Render(nil, @RenderScene, @RenderShadowVolumes, ShadowVolumesDraw);
-  end;
-
-var
-  ClearBuffers: TGLbitfield;
 begin
-  ClearBuffers := GL_DEPTH_BUFFER_BIT;
-
-  if Scene.Background <> nil then
-  begin
-    glLoadMatrix(Navigator.RotationMatrix);
-    Scene.Background.Render;
-  end else
-    ClearBuffers := ClearBuffers or GL_COLOR_BUFFER_BIT;
-
-  if ShadowVolumesPossible and
-     ShadowVolumes and
-     Scene.MainLightForShadowsExists then
-    ClearBuffers := ClearBuffers or GL_STENCIL_BUFFER_BIT;
-
-  glClear(ClearBuffers);
-
-  glLoadMatrix(Navigator.Matrix);
-
-  { TODO: passing Navigator here, and using ForCubeMap, have to be done at some point }
-  TVRMLGLHeadlight.RenderOrDisable(Scene.Headlight, 0, true, nil);
-
-  if ShadowVolumesPossible and
-     ShadowVolumes and
-     Scene.MainLightForShadowsExists then
-    RenderWithShadows(Scene.MainLightForShadows) else
-    RenderNoShadows;
-
+  InitSceneManager;
+  SceneManager.Render;
   inherited;
 end;
 

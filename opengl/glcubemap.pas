@@ -36,7 +36,7 @@ type
     rtCubeMapEnvironment,
     rtShadowMap);
 
-  TRenderTargetFunction = procedure (const RenderTarget: TRenderTarget);
+  TRenderTargetFunction = procedure (const RenderTarget: TRenderTarget) of object;
 
 { Calculate spherical harmonics basis describing environment rendered
   by OpenGL. Environment is rendered by
