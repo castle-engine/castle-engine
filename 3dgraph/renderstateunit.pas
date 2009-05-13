@@ -45,6 +45,11 @@ type
     procedure ExecuteAll(RenderState: TRenderState);
   end;
 
+  TRenderTarget = (
+    rtScreen,
+    rtCubeMapEnvironment,
+    rtShadowMap);
+
   { Common knowledge about currently rendered 3D state.
     This is basically just a collection of global variables that
     for whatever reason have to be read/write in various distinct
@@ -52,6 +57,7 @@ type
   TRenderState = class
   private
     FOnCameraChanged: TDynCameraChangedEventArray;
+    FTarget: TRenderTarget;
   public
     constructor Create;
     destructor Destroy; override;
@@ -121,6 +127,8 @@ type
       ProjectionMatrix is needed to calculate frustum. }
     procedure CameraFromMatrix(const ACameraMatrix, ACameraRotationMatrix,
       ProjectionMatrix: TMatrix4Single);
+
+    property Target: TRenderTarget read FTarget write FTarget;
   end;
 
 var

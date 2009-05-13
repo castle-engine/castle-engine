@@ -31,16 +31,11 @@ uses VectorMath, CubeMap, Images, Frustum, DDS, GL, GLU, KambiGLUtils,
 type
   TCubeMapRenderSimpleFunction = procedure (ForCubeMap: boolean);
 
-  TRenderTarget = (
-    rtScreen,
-    rtCubeMapEnvironment,
-    rtShadowMap);
-
-  TRenderTargetFunction = procedure (const RenderTarget: TRenderTarget) of object;
+  TRenderFromViewFunction = procedure of object;
 
 { Calculate spherical harmonics basis describing environment rendered
   by OpenGL. Environment is rendered by
-  Render(rtCubeMapEnvironment, ...) callback, from the
+  Render(true) callback, from the
   CapturePoint. It's rendered to color buffer, and captured as grayscale.
   Captured pixel value is just assumed to be the value of spherical function
   at this direction. It's also scaled by ScaleColor (since rendering
@@ -65,8 +60,9 @@ type
 
 { Capture cube map by rendering environment from CapturePoint.
 
-  Environment is rendered by Render(rtCubeMapEnvironment) callback
+  Environment is rendered by Render callback
   that must honour camera described in RenderState object.
+  RenderState.Target will be set to rtCubeMapEnvironment.
   RenderState camera will be set to appropriate views
   from the CapturePoint. You should at least load RenderState.CameraMatrix
   to OpenGL modelview matrix before rendering your 3D scene.
@@ -106,7 +102,7 @@ type
 procedure GLCaptureCubeMapImages(
   const Images: TCubeMapImages;
   const CapturePoint: TVector3Single;
-  const Render: TRenderTargetFunction;
+  const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer);
@@ -119,7 +115,7 @@ procedure GLCaptureCubeMapImages(
 function GLCaptureCubeMapDDS(
   const Size: Cardinal;
   const CapturePoint: TVector3Single;
-  const Render: TRenderTargetFunction;
+  const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer): TDDSImage;
@@ -143,7 +139,7 @@ procedure GLCaptureCubeMapTexture(
   const Tex: TGLuint;
   const Size: Cardinal;
   const CapturePoint: TVector3Single;
-  const Render: TRenderTargetFunction;
+  const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer);
@@ -256,7 +252,7 @@ end;
 procedure GLCaptureCubeMapImages(
   const Images: TCubeMapImages;
   const CapturePoint: TVector3Single;
-  const Render: TRenderTargetFunction;
+  const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer);
@@ -287,7 +283,8 @@ var
       glMatrixMode(GL_MODELVIEW);
 
         SetRenderStateCamera(CapturePoint, Side, ProjectionMatrix);
-        Render(rtCubeMapEnvironment);
+        RenderState.Target := rtCubeMapEnvironment;
+        Render;
 
       glMatrixMode(GL_PROJECTION);
     glPopMatrix;
@@ -309,7 +306,7 @@ end;
 function GLCaptureCubeMapDDS(
   const Size: Cardinal;
   const CapturePoint: TVector3Single;
-  const Render: TRenderTargetFunction;
+  const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer): TDDSImage;
@@ -346,7 +343,7 @@ procedure GLCaptureCubeMapTexture(
   const Tex: TGLuint;
   const Size: Cardinal;
   const CapturePoint: TVector3Single;
-  const Render: TRenderTargetFunction;
+  const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer);
@@ -375,7 +372,8 @@ procedure GLCaptureCubeMapTexture(
       glMatrixMode(GL_MODELVIEW);
 
         SetRenderStateCamera(CapturePoint, Side, ProjectionMatrix);
-        Render(rtCubeMapEnvironment);
+        RenderState.Target := rtCubeMapEnvironment;
+        Render;
 
       glMatrixMode(GL_PROJECTION);
     glPopMatrix;

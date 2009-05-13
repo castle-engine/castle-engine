@@ -1146,7 +1146,7 @@ type
       back facing triangles with respect to LightPos, so "LightPos" and
       "scene transformed by Transform" must be in the same coordinate system.
       (That's why explicit Transform parameter is needed, you can't get away
-      with simply doing glPush/PopMatrix and glMustMatrix around RenderShadowVolume
+      with simply doing glPush/PopMatrix and glMultMatrix around RenderShadowVolume
       call.) If TransformIsIdentity then Transform value is ignored and
       everything works like Transform = identity matrix (and is a little
       faster in this special case).
@@ -1411,7 +1411,7 @@ type
     property WalkProjectionFar : Single read FWalkProjectionFar ;
 
     procedure UpdateGeneratedTextures(
-      const RenderFunc: TRenderTargetFunction;
+      const RenderFunc: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
       const MapsOverlap: boolean;
       const MapScreenX, MapScreenY: Integer;
@@ -4774,7 +4774,7 @@ begin
 end;
 
 procedure TVRMLGLScene.UpdateGeneratedTextures(
-  const RenderFunc: TRenderTargetFunction;
+  const RenderFunc: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer;

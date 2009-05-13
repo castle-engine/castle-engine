@@ -95,9 +95,10 @@ type
     procedure RenderShadowVolumes; virtual;
 
     { Render everything from current (in RenderState) camera view.
+      RenderState.Target says to where we generate image.
       Takes care of making many passes for shadow volumes,
       but doesn't take care of updating generated textures. }
-    procedure RenderFromView(const RenderTarget: TRenderTarget); virtual;
+    procedure RenderFromView; virtual;
 
     { Render the headlight. Called by RenderFromView, when camera matrix
       is set. Should enable or disable OpenGL GL_LIGHT0 for headlight.
@@ -105,12 +106,12 @@ type
       Implementation in this class uses headlight defined
       in the Scene, following NavigationInfo.headlight and KambiHeadlight
       nodes. }
-    procedure RenderHeadLight(const RenderTarget: TRenderTarget); virtual;
+    procedure RenderHeadLight; virtual;
 
     { Render the 3D part of scene. Called by RenderFromView at the end,
       when everything (clearing, background, headlight, loading camera
       matrix) is done and all that remains is to pass to OpenGL actual 3D world. }
-    procedure RenderFromView3D(const RenderTarget: TRenderTarget); virtual;
+    procedure RenderFromView3D; virtual;
   public
     property Scene: TVRMLGLScene read FScene write FScene;
     property Navigator: TNavigator read FNavigator write FNavigator;
@@ -187,11 +188,11 @@ begin
   Scene.InitAndRenderShadowVolume(SV, true, IdentityMatrix4Single);
 end;
 
-procedure TSceneManager.RenderHeadLight(const RenderTarget: TRenderTarget);
+procedure TSceneManager.RenderHeadLight;
 var
   HeadlightPosition, HeadlightDirection: TVector3Single;
 begin
-  if RenderTarget <> rtScreen then
+  if RenderState.Target <> rtScreen then
   begin
     if Navigator is TWalkNavigator then
     begin
@@ -206,11 +207,12 @@ begin
     end;
   end;
 
-  TVRMLGLHeadlight.RenderOrDisable(Scene.Headlight, 0, RenderTarget = rtScreen,
+  TVRMLGLHeadlight.RenderOrDisable(Scene.Headlight, 0,
+    RenderState.Target = rtScreen,
     HeadlightPosition, HeadlightDirection);
 end;
 
-procedure TSceneManager.RenderFromView3D(const RenderTarget: TRenderTarget);
+procedure TSceneManager.RenderFromView3D;
 
   procedure RenderNoShadows;
   begin
@@ -231,7 +233,7 @@ begin
     RenderNoShadows;
 end;
 
-procedure TSceneManager.RenderFromView(const RenderTarget: TRenderTarget);
+procedure TSceneManager.RenderFromView;
 var
   ClearBuffers: TGLbitfield;
 begin
@@ -263,9 +265,9 @@ begin
 
   glLoadMatrix(RenderState.CameraMatrix);
 
-  RenderHeadLight(RenderTarget);
+  RenderHeadLight;
 
-  RenderFromView3D(RenderTarget);
+  RenderFromView3D;
 end;
 
 procedure TSceneManager.Render;
@@ -277,7 +279,8 @@ begin
     ViewportWidth, ViewportHeight);
 
   RenderState.CameraFromNavigator(Navigator);
-  RenderFromView(rtScreen);
+  RenderState.Target := rtScreen;
+  RenderFromView;
 end;
 
 end.

@@ -1696,7 +1696,7 @@ type
       will not be modified). }
     procedure UpdateGeneratedTextures(Shape: TVRMLShape;
       TextureNode: TVRMLNode;
-      const Render: TRenderTargetFunction;
+      const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
       const MapsOverlap: boolean;
       const MapScreenX, MapScreenY: Integer;
@@ -6070,7 +6070,7 @@ end;
 
 procedure TVRMLOpenGLRenderer.UpdateGeneratedTextures(Shape: TVRMLShape;
   TextureNode: TVRMLNode;
-  const Render: TRenderTargetFunction;
+  const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer;
@@ -6178,6 +6178,7 @@ var
             Light.MapModelviewMatrix,
             IdentityMatrix4Single { TODO: RotationMatrix is always identity here },
             ProjectionMatrix);
+          RenderState.Target := rtShadowMap;
 
           Size := TexRef^.GeneratedSize;
 
@@ -6195,7 +6196,7 @@ var
               glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
               glPolygonOffset(TexNode.FdScale.Value, TexNode.FdBias.Value); { saved by GL_POLYGON_BIT }
 
-              Render(rtShadowMap);
+              Render;
             glPopAttrib;
 
             glMatrixMode(GL_PROJECTION);
