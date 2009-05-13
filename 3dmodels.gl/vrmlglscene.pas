@@ -2244,7 +2244,20 @@ var
   begin
     if Shape <> AvoidShapeRendering then
     begin
-      if Attributes.ReallyUseOcclusionQuery then
+      { We do not make occlusion query when rendering to something else
+        than screen (like shadow map or cube map environment for mirror).
+        Such views are drastically different from normal camera view,
+        so the whole idea that "what is visible in this frame is similar
+        to what was visible in previous frame" breaks down there.
+
+        TODO: In the future, this could be solved nicer, by having separate
+        occlusion query states for different views. But this isn't easy
+        to implement, as occlusion query state is part of TVRMLShape and
+        octree nodes (for hierarchical occ query), so all these things
+        should have a map "target->oq state" for various rendering targets. }
+
+      if Attributes.ReallyUseOcclusionQuery and
+         (RenderState.Target = rtScreen) then
       begin
         Assert(Shape.OcclusionQueryId <> 0);
         if Shape.OcclusionQueryAsked then
@@ -2641,6 +2654,7 @@ begin
       end else
       if Attributes.ReallyUseHierarchicalOcclusionQuery and
          (not Attributes.DebugHierOcclusionQueryResults) and
+         (RenderState.Target = rtScreen) and
          (OctreeRendering <> nil) then
       begin
         DoHierarchicalOcclusionQuery;
