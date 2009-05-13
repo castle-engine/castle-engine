@@ -31,6 +31,7 @@ type
   TTestDDS = class(TTestCase)
   published
     procedure TestLoadSaveDDS;
+    procedure TestLoadSaveS3TC;
   end;
 
 implementation
@@ -128,6 +129,54 @@ begin
   TestImage('images' + PathDelim + 'mipmaps_yes.dds', false);
   TestImage('images' + PathDelim + 'random3d.dds', true);
   TestImage('images' + PathDelim + 'random3d_with_mipmaps.dds', true);
+end;
+
+procedure TTestDDS.TestLoadSaveS3TC;
+
+  procedure TestImage(const FileName: string; const Is3d: boolean);
+  var
+    DDS: TDDSImage;
+    Stream1, Stream2: TMemoryStream;
+  begin
+    Stream1 := TMemoryStream.Create;
+    Stream2 := TMemoryStream.Create;
+    DDS := TDDSImage.Create;
+    try
+      { load file into DDS }
+      DDS.LoadFromFile(FileName);
+      Assert(DDS.Images[0] is TS3TCImage);
+
+      { save DDS into Stream1 }
+      DDS.SaveToStream(Stream1);
+
+      { load Stream1 into DDS }
+      Stream1.Position := 0;
+      DDS.LoadFromStream(Stream1);
+      Assert(DDS.Images[0] is TS3TCImage);
+
+      { save DDS into Stream2 }
+      DDS.SaveToStream(Stream2);
+
+      { Test that both save and load do appropriate vertical flip.
+        If only one would do vertical flip, streams would differ.
+
+        Note that we compare two streams obtained from saving DDS.
+        We do *not* compare original FileName stream, as it's not guaranteed
+        that we save it to exactly the same binary stream (for example,
+        when saving we always add PitchOrLinearSize, while on load it may
+        not be present). }
+
+      Assert(Stream1.Size = Stream2.Size);
+      Assert(CompareMem(Stream1.Memory, Stream2.Memory, Stream1.Size));
+    finally
+      FreeAndNil(DDS);
+      FreeAndNil(Stream1);
+      FreeAndNil(Stream2);
+    end;
+  end;
+
+begin
+  TestImage('images' + PathDelim + 'metal_decal_dxt5.dds', true);
 end;
 
 initialization

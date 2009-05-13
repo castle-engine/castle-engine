@@ -1293,6 +1293,17 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
       Header.PixelFormat.BBitMask := $00ff0000;
       Header.PixelFormat.ABitMask := $ff000000;
     end else
+    if Images[0] is TS3TCImage then
+    begin
+      Header.PixelFormat.Flags := DDPF_FOURCC;
+      case TS3TCImage(Images[0]).Compression of
+        s3tcDxt1_RGB,
+        s3tcDxt1_RGBA: Header.PixelFormat.FourCC := 'DXT1';
+        s3tcDxt3:      Header.PixelFormat.FourCC := 'DXT3';
+        s3tcDxt5:      Header.PixelFormat.FourCC := 'DXT5';
+        else EInternalError.Create('saving DDS S3TC-Compression?');
+      end;
+    end else
       raise Exception.CreateFmt('Unable to save image class %s to DDS image',
         [Images[0].ClassName]);
 
@@ -1312,9 +1323,15 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
     end;
 
     procedure WriteCompressedImage(Image: TS3TCImage);
+    var
+      Temp: TS3TCImage;
     begin
-      { TODO: invert rows (to temp image) when saving compressed to DDS }
-      Stream.WriteBuffer(Image.RawPixels^, Image.Size);
+      Temp := Image.MakeCopy;
+      try
+        { invert rows when saving to DDS }
+        Temp.FlipVertical;
+        Stream.WriteBuffer(Temp.RawPixels^, Temp.Size);
+      finally FreeAndNil(Temp) end;
     end;
 
   var

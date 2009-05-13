@@ -765,6 +765,8 @@ type
         because decompressor is not set and there was some other error
         within decompressor.) }
     function Decompress: TImage;
+
+    function MakeCopy: TS3TCImage;
   end;
 
   ECannotDecompressS3TC = class(Exception);
@@ -2259,6 +2261,13 @@ begin
   if Assigned(DecompressS3TC) then
     Result := DecompressS3TC(Self) else
     raise ECannotDecompressS3TC.Create('Cannot decompress S3TC image: no decompressor initialized');
+end;
+
+function TS3TCImage.MakeCopy: TS3TCImage;
+begin
+  Result := TS3TCImage.Create(Width, Height, Depth, Compression);
+  Assert(Result.Size = Size);
+  Move(RawPixels^, Result.RawPixels^, Size);
 end;
 
 { TImageClass and arrays of TImageClasses ----------------------------- }
