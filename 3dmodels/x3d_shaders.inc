@@ -168,7 +168,9 @@
     function LoadContents: string;
 
     { Once the LoadContents is called, this is set to the URL that was used to load
-      the shader contents, or '' if no URL was used.
+      the shader contents, or '' if no URL was used, or something
+      special if shader contents came from CDATA (X3D XML encoding)
+      or were inlined inside URL.
 
       This is always a full, expanded (i.e. not relative) URL. }
     property UsedFullUrl: string read FUsedFullUrl;
@@ -457,6 +459,23 @@ begin
 end;
 
 function TNodeShaderPart.LoadContents: string;
+
+  function IsDirectShaderSource(const S: string): boolean;
+  { URL is recognized as direct shader source if it
+    doesn't start with any protocol *and*
+    has some newlines (needed to recognize relative URLs without
+    protocol correctly). }
+  var
+    Protocol: string;
+  begin
+    Result := CharsPos([#10, #13], S) > 0;
+    if Result then
+    begin
+      Protocol := UrlProtocol(S);
+      Result := (Protocol = '') or (CharsPos(WhiteSpaces, S) > 0);
+    end;
+  end;
+
 var
   I: Integer;
   FullUrl: string;
@@ -466,18 +485,26 @@ begin
 
   for I := 0 to FdUrl.Items.Count - 1 do
   begin
-    FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
-    try
-      Result := FileToString(FullUrl);
-      FUsedFullUrl := FullUrl;
+    if IsDirectShaderSource(FdUrl.Items[I]) then
+    begin
+      Result := FdUrl.Items[I];
+      FUsedFullUrl := 'SHADER-SOURCE-INLINED';
       Exit;
-    except
-      on E: Exception do
-        { pamietajmy ze VRMLWarning moze spowodowac rzucenie wyjatku
-          (chociaz nie musi) }
-        VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
-          ' occured when trying to load '+
-          'shader file from URL "' + FullUrl + ' : ' + E.Message);
+    end else
+    begin
+      FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
+      try
+        Result := FileToString(FullUrl);
+        FUsedFullUrl := FullUrl;
+        Exit;
+      except
+        on E: Exception do
+          { pamietajmy ze VRMLWarning moze spowodowac rzucenie wyjatku
+            (chociaz nie musi) }
+          VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
+            ' occured when trying to load '+
+            'shader file from URL "' + FullUrl + ' : ' + E.Message);
+      end;
     end;
   end;
 
