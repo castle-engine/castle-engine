@@ -527,7 +527,7 @@ type
 
     { tuz przed narysowaniem KAZDEGO vertexa bedzie wywolywana ta procedura.
       (to znaczy TUZ przed glVertex, juz po ustaleniu koloru (glColor),
-      glTexCoord, glNormal, glEdgeFlag, no w ogole - wszystkiego).
+      gl[Multi]TexCoord, glNormal, glEdgeFlag, no w ogole - wszystkiego).
       Najpierw bedzie wywolana ta procedura z parametrami a)node podklasy
       TVRMLGeometryNode ktory renderuje ten vertex i b)wspolrzedne vertexa
       przemnozone przez RenderState.Transform. Innymi slowy bedzie to
@@ -1515,7 +1515,18 @@ type
       FreeGLTexturesCount.
       Everything else (ARB_multitexturing, GL_TEXTURE0_ARB,
       FirstGLFreeTexture values) is taken care of inside here. }
-    procedure ActiveTexture(TextureUnit: Cardinal);
+    procedure ActiveTexture(const TextureUnit: Cardinal);
+
+    { If ARB_multitexturing available, sets texture coordinate for texture
+      unit TextureUnit (by appropriate glMultiTexCoord).
+      Otherwise (when no multitexturing), sets texture coordinate for
+      the only texture unit (glTexCoord).
+
+      The only thing that you have to care about is to specify TextureUnit <
+      FreeGLTexturesCount. Everything else (whether ARB_multitexturing
+      exists, and shifting TextureUnit by GL_TEXTURE0_ARB +
+      FirstGLFreeTexture values) is taken care of inside here. }
+    procedure MultiTexCoord(const TextureUnit: Cardinal; const TexCoord: TVector4f);
 
     FBumpMappingLightPosition: TVector3Single;
     procedure SetBumpMappingLightPosition(const Value: TVector3Single);
@@ -4693,11 +4704,20 @@ end;
 
 {$I vrmlopenglrenderer_render_materials.inc}
 
-procedure TVRMLOpenGLRenderer.ActiveTexture(TextureUnit: Cardinal);
+procedure TVRMLOpenGLRenderer.ActiveTexture(const TextureUnit: Cardinal);
 begin
   if GL_ARB_multitexture then
     glActiveTextureARB(GL_TEXTURE0_ARB +
       Attributes.FirstGLFreeTexture + TextureUnit);
+end;
+
+procedure TVRMLOpenGLRenderer.MultiTexCoord(const TextureUnit: Cardinal;
+  const TexCoord: TVector4f);
+begin
+  if GL_ARB_multitexture then
+    glMultiTexCoordv(GL_TEXTURE0_ARB +
+      Attributes.FirstGLFreeTexture + TextureUnit, TexCoord) else
+    glTexCoordv(TexCoord);
 end;
 
 procedure TVRMLOpenGLRenderer.RenderBegin(FogNode: TNodeFog;

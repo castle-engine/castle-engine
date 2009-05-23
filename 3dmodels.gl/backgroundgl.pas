@@ -424,9 +424,13 @@ begin
    glDisable(GL_DEPTH_TEST);
    glDisable(GL_LIGHTING);
    glDisable(GL_FOG);
+   glDisable(GL_BLEND);
+
+   if GL_ARB_multitexture then
+     glActiveTextureARB(GL_TEXTURE0_ARB);
    glDisable(GL_TEXTURE_2D);
    if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-   glDisable(GL_BLEND);
+   if GL_EXT_texture3D        then glDisable(GL_TEXTURE_3D_EXT);
 
    glMultMatrix(Transform);
 
