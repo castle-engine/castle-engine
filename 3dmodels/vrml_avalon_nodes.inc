@@ -61,6 +61,9 @@
     private FFdsolid: TSFBool;
     public property Fdsolid: TSFBool read FFdsolid;
 
+    private FFdmanifold: TSFBool;
+    public property Fdmanifold: TSFBool read FFdmanifold;
+
     private FFdtexCoord: TSFNode;
     public property FdtexCoord: TSFNode read FFdtexCoord;
 
@@ -209,6 +212,10 @@ begin
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
 
+  FFdmanifold := TSFBool.Create(Self, 'manifold', false);
+  FFdmanifold.Exposed := false;
+  Fields.Add(FFdmanifold);
+
   FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinateGenerator]);
   Fields.Add(FFdtexCoord);
 end;
@@ -237,6 +244,8 @@ function TNodeTeapot.Proxy: TVRMLGeometryNode;
 const
   TeapotCoord {$I teapot_data/teapot_coord.inc};
   TeapotCoordIndex {$I teapot_data/teapot_coord_index.inc};
+  TeapotManifoldCoord {$I teapot_data/teapot_manifold_coord.inc};
+  TeapotManifoldCoordIndex {$I teapot_data/teapot_manifold_coord_index.inc};
 var
   CoordNode: TNodeCoordinate;
   IFS: TNodeIndexedFaceSet_2 absolute Result;
@@ -245,7 +254,9 @@ begin
   try
     CoordNode := TNodeCoordinate.Create('', WWWBasePath);
     IFS.FdCoord.Value := CoordNode;
-    CoordNode.FdPoint.Items.AssignArray(TeapotCoord);
+    if FdManifold.Value then
+      CoordNode.FdPoint.Items.AssignArray(TeapotManifoldCoord) else
+      CoordNode.FdPoint.Items.AssignArray(TeapotCoord);
 
     { Scale Coords according to "size" field.
       Assumes that original coords are good for default size (3, 3, 3). }
@@ -255,7 +266,9 @@ begin
         VectorScale(FdSize.Value, 1/3));
     end;
 
-    IFS.FdCoordIndex.Items.AssignArray(TeapotCoordIndex);
+    if FdManifold.Value then
+      IFS.FdCoordIndex.Items.AssignArray(TeapotManifoldCoordIndex) else
+      IFS.FdCoordIndex.Items.AssignArray(TeapotCoordIndex);
 
     IFS.FdSolid.Value := FdSolid.Value;
 
