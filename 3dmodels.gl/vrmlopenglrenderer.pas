@@ -5383,7 +5383,8 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
 
       type
         TChannel = (cRGB, cAlpha);
-        TCombinePerChannel = array [TChannel] of TGLint;
+        TGLIntPerChannel = array [TChannel] of TGLint;
+        TCombinePerChannel = TGLIntPerChannel;
         TArgPerChannel = array [TChannel] of Integer;
         TScalePerChannel = array [TChannel] of TGLfloat;
         TStringPerChannel = array [TChannel] of string;
@@ -5696,24 +5697,41 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
           BothModesFromString(LS, Combine, Arg1, Arg2, Scale);
       end;
 
-      procedure SourceFromString(const S: string; out Source: TGLint;
+      procedure SourceFromString(const S: string; out Source: TGLIntPerChannel;
         var NeedsConstantColor: boolean);
+
+        procedure SimpleSourceFromString(const LS: string;
+          out Source: TGLint;
+          var NeedsConstantColor: boolean);
+        begin
+          if LS = '' then
+            Source := GL_PREVIOUS_EXT else
+          if (LS = 'diffuse') or (LS = 'specular') then
+            Source := GL_PRIMARY_COLOR_EXT else
+          if LS = 'factor' then
+          begin
+            NeedsConstantColor := true;
+            Source := GL_CONSTANT_EXT;
+          end else
+          begin
+            Source := GL_PREVIOUS_EXT;
+            VRMLWarning(vwSerious, Format('Not supported multi-texturing source "%s"', [LS]))
+          end;
+        end;
+
       var
         LS: string;
+        SourcePerChannel: TStringPerChannel;
       begin
         LS := LowerCase(S);
-        if LS = '' then
-          Source := GL_PREVIOUS_EXT else
-        if (LS = 'diffuse') or (LS = 'specular') then
-          Source := GL_PRIMARY_COLOR_EXT else
-        if LS = 'factor' then
+        if SplitStringPerChannel(LS, SourcePerChannel) then
         begin
-          NeedsConstantColor := true;
-          Source := GL_CONSTANT_EXT;
+          SimpleSourceFromString(SourcePerChannel[cRGB  ], Source[cRGB  ], NeedsConstantColor);
+          SimpleSourceFromString(SourcePerChannel[cAlpha], Source[cAlpha], NeedsConstantColor);
         end else
         begin
-          Source := GL_PREVIOUS_EXT;
-          VRMLWarning(vwSerious, Format('Not supported multi-texturing source "%s"', [S]))
+          SimpleSourceFromString(LS, Source[cRGB], NeedsConstantColor);
+          Source[cAlpha] := Source[cRGB];
         end;
       end;
 
@@ -5727,7 +5745,7 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       S: string;
       AlreadyHandled: boolean;
       NeedsConstantColor: boolean;
-      Source: TGLint;
+      Source: TGLIntPerChannel;
     begin
       Assert(Integer(TexCount) <= MultiTexture.FdTexture.Items.Count);
       for I := 0 to Integer(TexCount) - 1 do
@@ -5803,13 +5821,13 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
 
                 if Arg2[cRGB] <> -1 then
                 begin
-                  glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT + Arg2[cRGB], Source);
+                  glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT + Arg2[cRGB], Source[cRGB]);
                   glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT + Arg2[cRGB], GL_SRC_COLOR);
                 end;
 
                 if Arg2[cAlpha] <> -1 then
                 begin
-                  glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT + Arg2[cAlpha], Source);
+                  glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT + Arg2[cAlpha], Source[cAlpha]);
                   glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT + Arg2[cAlpha], GL_SRC_ALPHA);
                 end;
               end;
