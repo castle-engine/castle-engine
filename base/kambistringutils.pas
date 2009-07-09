@@ -248,9 +248,8 @@ procedure DeletePos(var S: string; StartPosition, EndPosition: Integer);
 
   Note: it's much easier to use CreateTokens instead of this procedure.
   But this procedure gives you quite more flexibility. *)
-function NextToken(const s: string; var SeekPos: integer;
+function NextToken(const S: string; var SeekPos: Integer;
   const TokenDelims: TSetOfChars = WhiteSpaces): string;
-  overload;
 
 { NextTokenOnce works just like NextToken, but doesn't advance the SeekPos
   position. This means that it's quite useless when you're interested
@@ -1054,22 +1053,25 @@ begin
  Delete(S, StartPosition, EndPosition - StartPosition + 1);
 end;
 
-function NextToken(const s: string; var SeekPos: integer;
+function NextToken(const S: string; var SeekPos: Integer;
   const TokenDelims: TSetOfChars): string;
-var TokStart: integer;
+var
+  TokStart: Integer;
 begin
- repeat
-  if SeekPos > Length(s) then begin result := ''; exit end;
-  if S[SeekPos] in TokenDelims then Inc(SeekPos) else break;
- until false;
- TokStart := SeekPos; {TokStart := pierwszy znak not in TokenDelims}
+  repeat
+    if SeekPos > Length(s) then begin Result := ''; Exit end;
+    if S[SeekPos] in TokenDelims then Inc(SeekPos) else Break;
+  until false;
+  TokStart := SeekPos; { TokStart := first character not in TokenDelims }
 
- while (SeekPos <= Length(s)) and not(S[SeekPos] in TokenDelims) do Inc(SeekPos);
+  while (SeekPos <= Length(s)) and not(S[SeekPos] in TokenDelims) do Inc(SeekPos);
 
- result := Copy(s, TokStart, SeekPos-TokStart); {result := s[TokStart, ... , SeekPos-1] }
- Inc(SeekPos); { moglibysmy nie robic tu Inc(seekPos) ale wiadomo ze szukania nastepnego
-                 tokenu nie warto zaczynac od SeekPos bo przeciez wiemy ze s[SeekPos] to
-                 TokenDelim ! }
+  { Calculate result := s[TokStart, ... , SeekPos-1] }
+  result := Copy(s, TokStart, SeekPos-TokStart);
+
+  { We don't have to do Inc(seekPos) below. But it's obvious that searching
+    for next token can skip SeekPos, since we know S[SeekPos] is TokenDelim. }
+  Inc(SeekPos);
 end;
 
 function NextTokenOnce(const s: string; SeekPos: integer;
