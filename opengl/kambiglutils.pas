@@ -310,6 +310,7 @@ var
   GLMax3DTextureSizeEXT: Cardinal;
   GLMaxTextureMaxAnisotropyEXT: Single;
   GLQueryCounterBits: TGLint;
+  GLMaxRenderbufferSize: TGLuint;
   { @groupEnd }
 
 { Initialize all extensions and OpenGL versions.
@@ -1334,6 +1335,10 @@ begin
  if GL_ARB_occlusion_query then
    glGetQueryivARB(GL_SAMPLES_PASSED_ARB, GL_QUERY_COUNTER_BITS_ARB, @GLQueryCounterBits) else
    GLQueryCounterBits := 0;
+
+ if GL_EXT_framebuffer_object then
+   GLMaxRenderbufferSize := glGetInteger(GL_MAX_RENDERBUFFER_SIZE_EXT) else
+   GLMaxRenderbufferSize := 0;
 end;
 {$endif}
 
@@ -2463,6 +2468,13 @@ function GLCapsString: string;
       Result := 'ARB_occlusion_query not available';
   end;
 
+  function GetMaxRenderbufferSize: string;
+  begin
+    if GL_EXT_framebuffer_object then
+      Result := IntToStr(GLMaxRenderbufferSize) else
+      Result := 'EXT_framebuffer_object not available';
+  end;
+
 begin
  result:=
   ProgramName +' - OpenGL capabilities : ' +nl+
@@ -2539,7 +2551,8 @@ begin
   'GL_MAX_3D_TEXTURE_SIZE_EXT : ' + GetMaxTexture3DSize +nl+
   'GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT : ' + GetMaxTextureMaxAnisotropy +nl+
   'GL_QUERY_COUNTER_BITS_ARB (for occlusion query GL_SAMPLES_PASSED_ARB) : ' +
-    GetQueryCounterBits;
+    GetQueryCounterBits +nl+
+  'GL_MAX_RENDERBUFFER_SIZE_EXT : ' + GetMaxRenderbufferSize;
 
  CheckGLErrors;
 end;
