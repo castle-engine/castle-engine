@@ -810,15 +810,19 @@ type
   end;
 
   TTextureImageCache = record
+    { Full URL of used texture image. Empty ('') if not known
+      (or maybe this texture didn't come from any URL, e.g. it's generated). }
     FullUrl: string;
 
-    { This is only the first TVRMLTextureNode node, that initiated this
+    { This is only the first node, that initiated this
       TTextureImageCache item. Note that many TVRMLTextureNode nodes
       may correspond to a single TTextureImageCache (since TTextureImageCache
       only tries to share GLName between them). So this may help during
       _IncReference, but nothing more --- it's *not* an exhaustive list
-      of texture nodes related to this video texture! }
-    InitialNode: TVRMLTextureNode;
+      of texture nodes related to this video texture!
+
+      It may be currently TVRMLTextureNode, or TNodeRenderedTexture. }
+    InitialNode: TVRMLNode;
 
     MinFilter: TGLint;
     MagFilter: TGLint;
@@ -1036,7 +1040,7 @@ type
     function TextureImage_IncReference(
       const TextureImage: TEncodedImage;
       const TextureFullUrl: string;
-      const TextureNode: TVRMLTextureNode;
+      const TextureNode: TVRMLNode;
       const TextureMinFilter, TextureMagFilter: TGLint;
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
@@ -1200,12 +1204,17 @@ type
   end;
 
   TTextureImageReference = record
-    Node: TVRMLTextureNode;
+    Node: TVRMLNode;
     GLName: TGLuint;
     NormalMap, HeightMap: TGLuint;
     HeightMapScale: Single;
     { This is the saved result of TImage.AlphaChannelType. }
     AlphaChannelType: TAlphaChannelType;
+
+    { Only for generated textures (from Node being TNodeRenderedTexture),
+      this is the actual decided image size and mipmap status. }
+    GeneratedWidth, GeneratedHeight: Cardinal;
+    GeneratedNeedsMipmaps: boolean;
   end;
   PTextureImageReference = ^TTextureImageReference;
 
@@ -1217,7 +1226,7 @@ type
   public
     { Looks for item with given ANode.
       Returns -1 if not found. }
-    function TextureNodeIndex(ANode: TVRMLTextureNode): integer;
+    function TextureNodeIndex(ANode: TVRMLNode): integer;
   end;
 
   TTextureVideoReference = record
@@ -1901,7 +1910,7 @@ const
 function TVRMLOpenGLRendererContextCache.TextureImage_IncReference(
   const TextureImage: TEncodedImage;
   const TextureFullUrl: string;
-  const TextureNode: TVRMLTextureNode;
+  const TextureNode: TVRMLNode;
   const TextureMinFilter, TextureMagFilter: TGLint;
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
@@ -1976,13 +1985,19 @@ begin
   TextureCached^.GLName := Result;
 
   { calculate and save AlphaChannelType in the cache }
-  TextureCached^.AlphaChannelType := TextureImage.AlphaChannelTypeOverride(
-    TextureNode.DetectAlphaChannel,
-    AlphaTolerance, AlphaWrongPixelsTolerance);
-  if Log and (TextureCached^.AlphaChannelType <> atNone)  then
-    WritelnLog('Alpha Detection', 'Alpha texture ' + TextureFullUrl +
-      ' detected as simple yes/no alpha channel: ' +
-      BoolToStr[TextureCached^.AlphaChannelType = atSimpleYesNo]);
+  if TextureNode is TVRMLTextureNode then
+  begin
+    TextureCached^.AlphaChannelType := TextureImage.AlphaChannelTypeOverride(
+      TVRMLTextureNode(TextureNode).DetectAlphaChannel,
+      AlphaTolerance, AlphaWrongPixelsTolerance);
+    if Log and (TextureCached^.AlphaChannelType <> atNone)  then
+      WritelnLog('Alpha Detection', 'Alpha texture ' + TextureFullUrl +
+        ' detected as simple yes/no alpha channel: ' +
+        BoolToStr[TextureCached^.AlphaChannelType = atSimpleYesNo]);
+  end else
+  begin
+    TextureCached^.AlphaChannelType := atNone; { TODO }
+  end;
 
   AlphaChannelType := TextureCached^.AlphaChannelType;
 
@@ -3355,7 +3370,7 @@ end;
 { TDynTextureImageReferenceArray --------------------------------------------- }
 
 function TDynTextureImageReferenceArray.TextureNodeIndex(
-  ANode: TVRMLTextureNode): integer;
+  ANode: TVRMLNode): integer;
 begin
   for result := 0 to Count - 1 do
     if Items[result].Node = ANode then exit;
@@ -4195,6 +4210,123 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     TextureDepthReferences.AppendItem(TextureReference);
   end;
 
+  procedure PrepareSingleRenderedTexture(TextureNode: TNodeRenderedTexture);
+  var
+    TextureImageReference: TTextureImageReference;
+    InitialImage: TImage;
+    MinFilter, MagFilter: TGLint;
+    Anisotropy: TGLfloat;
+    TextureWrap: TTextureWrap2D;
+    NeedsMipmaps: boolean;
+    NodeWidth, NodeHeight, Width, Height: Cardinal;
+  begin
+    if TextureImageReferences.TextureNodeIndex(TextureNode) <> -1 then
+      { Already loaded, nothing to do }
+      Exit;
+
+    HandleTextureProperties(TextureNode.FdTextureProperties.Value,
+      MinFilter, MagFilter, Anisotropy);
+
+    { calculate MinFilter, MagFilter, Anisotropy, NeedsMipmaps }
+    NeedsMipmaps := TextureMinFilterNeedsMipmaps(MinFilter);
+    if NeedsMipmaps and not HasGenerateMipmap then
+    begin
+      VRMLWarning(vwIgnorable { This may be caused by OpenGL implementation
+        limits, so it may be impossible to predict by VRML author,
+        so it's "ignorable" warning. },
+        'OpenGL implementation doesn''t allow any glGenerateMipmap* version, so you cannot use mipmaps for RenderedTexture');
+      MinFilter := GL_LINEAR;
+      NeedsMipmaps := false;
+    end;
+    TextureImageReference.GeneratedNeedsMipmaps := NeedsMipmaps;
+
+    TextureWrap[0] := {TODO}{TextureRepeatToGL[TextureNode.RepeatS]}GL_CLAMP_TO_EDGE;
+    TextureWrap[1] := {TODO}{TextureRepeatToGL[TextureNode.RepeatT]}GL_CLAMP_TO_EDGE;
+
+    { calculate Width, Height }
+    if TextureNode.FdDimensions.Items.High >= 0 then
+      NodeWidth := Max(TextureNode.FdDimensions.Items[0], 0) else
+      NodeWidth := DefaultRenderedTextureWidth;
+    if TextureNode.FdDimensions.Items.High >= 1 then
+      NodeHeight := Max(TextureNode.FdDimensions.Items[1], 0) else
+      NodeHeight := DefaultRenderedTextureHeight;
+    Width  := NodeWidth ;
+    Height := NodeHeight;
+    if not IsTextureSized(Width, Height) then
+    begin
+      ResizeToTextureSize(Width, Height);
+      VRMLWarning(vwIgnorable { This may be caused by OpenGL implementation
+        limits, so it may be impossible to predict by VRML author,
+        so it's "ignorable" warning. },
+        Format('Rendered texture size %d x %d is incorrect (texture size must be a power of two, > 0 and <= GL_MAX_TEXTURE_SIZE = %d), corrected to %d x %d',
+          [ NodeWidth, NodeHeight,
+            GLMaxTextureSize,
+            Width, Height]));
+    end;
+    TextureImageReference.GeneratedWidth  := Width ;
+    TextureImageReference.GeneratedHeight := Height;
+
+    InitialImage := TRGBImage.Create(Width, Height);
+    try
+      { Fill with deliberately stupid (but constant) color,
+        to recognize easily RenderedTexture which don't have textures
+        updated. }
+      InitialImage.Clear(Vector4Byte(255, 0, 255, 255));
+
+      TextureImageReference.Node := TextureNode;
+
+      try
+        TextureImageReference.GLName := Cache.TextureImage_IncReference(
+          InitialImage,
+          '',
+          TextureNode,
+          MinFilter,
+          MagFilter,
+          Anisotropy,
+          TextureWrap,
+          Attributes.ColorModulatorByte,
+          { This way, our AlphaChannelType is calculated (or taken from cache)
+            by TextureImage_IncReference }
+          TextureImageReference.AlphaChannelType);
+      except
+        on E: ETextureLoadError do
+        begin
+          VRMLWarning(vwIgnorable, 'Cannot load 2D texture to OpenGL: ' + E.Message);
+          Exit;
+        end;
+      end;
+
+      { RenderedTexture never has any normal / height map
+        (Hm, although it would be possible to generate some in theory
+        --- after all, we generate it from 3D data. Idea for the future.) }
+      TextureImageReference.NormalMap := 0;
+      TextureImageReference.HeightMap := 0;
+
+      TextureImageReferences.AppendItem(TextureImageReference);
+    finally FreeAndNil(InitialImage) end;
+  end;
+
+  { Do the necessary preparations for any texture node except TNodeMultiTexture.
+    Ignore not handled (this includes TNodeMultiTexture) nodes.
+    Tex must be non-nil. }
+  procedure PrepareSingleTexture(Tex: TVRMLNode);
+  begin
+    if Tex is TNodeComposedCubeMapTexture then
+      PrepareSingleComposedCubeTexture(TNodeComposedCubeMapTexture(Tex)) else
+    if Tex is TNodeImageCubeMapTexture then
+      PrepareSingleImageCubeTexture(TNodeImageCubeMapTexture(Tex)) else
+    if Tex is TNodeGeneratedCubeMapTexture then
+      PrepareSingleGeneratedCubeTexture(TNodeGeneratedCubeMapTexture(Tex)) else
+    if Tex is TVRMLTextureNode then
+      PrepareSingle2DTexture(TVRMLTextureNode(Tex)) else
+    if Tex is TNodeX3DTexture3DNode then
+      PrepareSingleTexture3D(TNodeX3DTexture3DNode(Tex)) else
+    if Tex is TNodeGeneratedShadowMap then
+      PrepareSingleTextureDepth(TNodeGeneratedShadowMap(Tex)) else
+    if Tex is TNodeRenderedTexture then
+      PrepareSingleRenderedTexture(TNodeRenderedTexture(Tex));
+  end;
+
   { Do the necessary preparations for a multi-texture node.
     MultiTexture must be non-nil. }
   procedure PrepareMultiTexture(MultiTexture: TNodeMultiTexture);
@@ -4209,18 +4341,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
       begin
         if ChildTex is TNodeMultiTexture then
           VRMLWarning(vwSerious, 'Child of MultiTexture node cannot be another MultiTexture node') else
-        if ChildTex is TNodeComposedCubeMapTexture then
-          PrepareSingleComposedCubeTexture(TNodeComposedCubeMapTexture(ChildTex)) else
-        if ChildTex is TNodeImageCubeMapTexture then
-          PrepareSingleImageCubeTexture(TNodeImageCubeMapTexture(ChildTex)) else
-        if ChildTex is TNodeGeneratedCubeMapTexture then
-          PrepareSingleGeneratedCubeTexture(TNodeGeneratedCubeMapTexture(ChildTex)) else
-        if ChildTex is TVRMLTextureNode then
-          PrepareSingle2DTexture(TVRMLTextureNode(ChildTex)) else
-        if ChildTex is TNodeX3DTexture3DNode then
-          PrepareSingleTexture3D(TNodeX3DTexture3DNode(ChildTex)) else
-        if ChildTex is TNodeGeneratedShadowMap then
-          PrepareSingleTextureDepth(TNodeGeneratedShadowMap(ChildTex));
+          PrepareSingleTexture(ChildTex);
       end;
     end;
   end;
@@ -4241,18 +4362,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     begin
       if TextureNode is TNodeMultiTexture then
         PrepareMultiTexture(TNodeMultiTexture(TextureNode)) else
-      if TextureNode is TNodeComposedCubeMapTexture then
-        PrepareSingleComposedCubeTexture(TNodeComposedCubeMapTexture(TextureNode)) else
-      if TextureNode is TNodeImageCubeMapTexture then
-        PrepareSingleImageCubeTexture(TNodeImageCubeMapTexture(TextureNode)) else
-      if TextureNode is TNodeGeneratedCubeMapTexture then
-        PrepareSingleGeneratedCubeTexture(TNodeGeneratedCubeMapTexture(TextureNode)) else
-      if TextureNode is TVRMLTextureNode then
-        PrepareSingle2DTexture(TVRMLTextureNode(TextureNode)) else
-      if TextureNode is TNodeX3DTexture3DNode then
-        PrepareSingleTexture3D(TNodeX3DTexture3DNode(TextureNode)) else
-      if TextureNode is TNodeGeneratedShadowMap then
-        PrepareSingleTextureDepth(TNodeGeneratedShadowMap(TextureNode));
+        PrepareSingleTexture(TextureNode);
     end;
   end;
 
@@ -4316,7 +4426,7 @@ end;
 
 procedure TVRMLOpenGLRenderer.Unprepare(Node: TVRMLNode);
 
-  procedure UnprepareSingle2DTexture(Tex: TVRMLTextureNode);
+  procedure UnprepareSingle2DTexture(Tex: TVRMLNode);
   var
     i: integer;
   begin
@@ -4327,11 +4437,14 @@ procedure TVRMLOpenGLRenderer.Unprepare(Node: TVRMLNode);
       TextureImageReferences.Delete(i, 1);
     end;
 
-    i := TextureVideoReferences.TextureNodeIndex(Tex);
-    if i >= 0 then
+    if Tex is TVRMLTextureNode then
     begin
-      Cache.TextureVideo_DecReference(TextureVideoReferences.Items[i].GLVideo);
-      TextureVideoReferences.Delete(i, 1);
+      i := TextureVideoReferences.TextureNodeIndex(TVRMLTextureNode(Tex));
+      if i >= 0 then
+      begin
+        Cache.TextureVideo_DecReference(TextureVideoReferences.Items[i].GLVideo);
+        TextureVideoReferences.Delete(i, 1);
+      end;
     end;
   end;
 
@@ -4381,8 +4494,9 @@ procedure TVRMLOpenGLRenderer.Unprepare(Node: TVRMLNode);
       TexItem := Tex.FdTexture.Items[I];
       if TexItem = nil then Continue;
 
-      if TexItem is TVRMLTextureNode then
-        UnprepareSingle2DTexture(TVRMLTextureNode(TexItem)) else
+      if (TexItem is TVRMLTextureNode) or
+         (TexItem is TNodeRenderedTexture) then
+        UnprepareSingle2DTexture(TexItem) else
       if TexItem is TNodeX3DEnvironmentTextureNode then
         UnprepareSingleCubeMapTexture(TNodeX3DEnvironmentTextureNode(TexItem)) else
       if TexItem is TNodeX3DTexture3DNode then
@@ -4401,8 +4515,9 @@ begin
    samego juz utworzonego fontu.}
 
   { unprepare single texture }
-  if Node is TVRMLTextureNode then
-    UnprepareSingle2DTexture(TVRMLTextureNode(Node)) else
+  if (Node is TVRMLTextureNode) or
+     (Node is TNodeRenderedTexture) then
+    UnprepareSingle2DTexture(Node) else
 
   { unprepare multi texture }
   if Node is TNodeMultiTexture then
@@ -4637,7 +4752,7 @@ function TVRMLOpenGLRenderer.PreparedTextureAlphaChannelType(
   TextureNode: TNodeX3DTextureNode;
   out AlphaChannelType: TAlphaChannelType): boolean;
 
-  procedure DoIt2D(TextureNode: TVRMLTextureNode);
+  procedure DoIt2D(TextureNode: TVRMLNode);
   var
     Index: Integer;
   begin
@@ -4646,8 +4761,9 @@ function TVRMLOpenGLRenderer.PreparedTextureAlphaChannelType(
 
     if Result then
       AlphaChannelType := TextureImageReferences.Items[Index].AlphaChannelType else
+    if TextureNode is TVRMLTextureNode then
     begin
-      Index := TextureVideoReferences.TextureNodeIndex(TextureNode);
+      Index := TextureVideoReferences.TextureNodeIndex(TVRMLTextureNode(TextureNode));
       Result := Index <> -1;
 
       if Result then
@@ -4687,8 +4803,9 @@ function TVRMLOpenGLRenderer.PreparedTextureAlphaChannelType(
   end;
 
 begin
-  if TextureNode is TVRMLTextureNode then
-    DoIt2D(TVRMLTextureNode(TextureNode)) else
+  if (TextureNode is TVRMLTextureNode) or
+     (TextureNode is TNodeRenderedTexture) then
+    DoIt2D(TextureNode) else
   if TextureNode is TNodeX3DEnvironmentTextureNode then
     DoItCubeMap(TNodeX3DEnvironmentTextureNode(TextureNode)) else
   if TextureNode is TNodeX3DTexture3DNode then
@@ -5311,6 +5428,26 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       end;
     end;
 
+    function EnableSingleRenderedTexture(const TextureUnit: Cardinal;
+      TextureNode: TNodeRenderedTexture): boolean;
+    var
+      TexRefIndex: Integer;
+      TexRef: PTextureImageReference;
+    begin
+      TexRefIndex := TextureImageReferences.TextureNodeIndex(TextureNode);
+      Result := TexRefIndex <> -1;
+      if Result then
+      begin
+        TexRef := TextureImageReferences.Pointers[TexRefIndex];
+
+        AlphaTest := AlphaTest or (TexRef^.AlphaChannelType = atSimpleYesNo);
+
+        ActiveTexture(TextureUnit);
+        glBindTexture(GL_TEXTURE_2D, TexRef^.GLName);
+        TextureEnableDisable(et2D);
+      end;
+    end;
+
     function EnableSingleCubeMapTexture(const TextureUnit: Cardinal;
       CubeTexture: TNodeX3DEnvironmentTextureNode): boolean;
     var
@@ -5764,7 +5901,9 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
           if ChildTex is TNodeX3DTexture3DNode then
             Success := EnableSingleTexture3D(I, TNodeX3DTexture3DNode(ChildTex)) else
           if ChildTex is TNodeGeneratedShadowMap then
-            Success := EnableSingleTextureDepth(I, TNodeGeneratedShadowMap(ChildTex));
+            Success := EnableSingleTextureDepth(I, TNodeGeneratedShadowMap(ChildTex)) else
+          if ChildTex is TNodeRenderedTexture then
+            Success := EnableSingleRenderedTexture(I, TNodeRenderedTexture(ChildTex));
 
           if Success then
           begin
@@ -5885,6 +6024,17 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       if TextureNode is TVRMLTextureNode then
       begin
         if EnableSingle2DTexture(0, TVRMLTextureNode(TextureNode), true) then
+        begin
+          { TODO: this should be fixed, for non-multi tex decal
+            is standard? }
+          glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+          TexCoordsNeeded := 1;
+        end else
+          TexCoordsNeeded := 0;
+      end else
+      if TextureNode is TNodeRenderedTexture then
+      begin
+        if EnableSingleRenderedTexture(0, TNodeRenderedTexture(TextureNode)) then
         begin
           { TODO: this should be fixed, for non-multi tex decal
             is standard? }
@@ -6391,11 +6541,72 @@ var
     end;
   end;
 
+  procedure UpdateRenderedTexture(TexNode: TNodeRenderedTexture);
+  var
+    TexRefIndex: Integer;
+    TexRef: PTextureImageReference;
+    Width, Height: Cardinal;
+    ProjectionMatrix: TMatrix4Single;
+  begin
+    if CheckUpdate(TexNode.FdUpdate) then
+    begin
+      TexRefIndex := TextureImageReferences.TextureNodeIndex(TexNode);
+      if TexRefIndex <> -1 then
+      begin
+        TexRef := TextureImageReferences.Pointers[TexRefIndex];
+
+        ProjectionMatrix := PerspectiveProjMatrixDeg(45, 1, 0.1, 100) { TODO };
+
+        RenderState.CameraFromMatrix(
+          LookDirMatrix(Vector3Single(0, 0, 0),
+            Vector3Single(0, 0, -1),
+            Vector3Single(0, 1, 0)) { TODO },
+          IdentityMatrix4Single { TODO },
+          ProjectionMatrix);
+        RenderState.Target := rfOffScreen;
+
+        Width := TexRef^.GeneratedWidth;
+        Height := TexRef^.GeneratedHeight;
+
+        glViewport(0, 0, Width, Height);
+
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix;
+          glLoadMatrix(ProjectionMatrix);
+          glMatrixMode(GL_MODELVIEW);
+          Render;
+          glMatrixMode(GL_PROJECTION);
+        glPopMatrix;
+        glMatrixMode(GL_MODELVIEW);
+
+        { Actually update OpenGL texture TexRef^.GLName }
+        glBindTexture(GL_TEXTURE_2D, TexRef^.GLName);
+        glReadBuffer(GL_BACK);
+        glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, Width, Height);
+
+        if TexRef^.GeneratedNeedsMipmaps then
+        begin
+          { We already bound the texture for OpenGL above. }
+          GenerateMipmap(GL_TEXTURE_CUBE_MAP);
+        end;
+
+        NeedsRestoreViewport := true;
+
+        PostUpdate;
+
+        if Log then
+          WritelnLog('RenderedTexture', 'RenderedTexture texture regenerated');
+      end;
+    end;
+  end;
+
 begin
   if TextureNode is TNodeGeneratedCubeMapTexture then
     UpdateGeneratedCubeMap(TNodeGeneratedCubeMapTexture(TextureNode)) else
   if TextureNode is TNodeGeneratedShadowMap then
-    UpdateGeneratedShadowMap(TNodeGeneratedShadowMap(TextureNode));
+    UpdateGeneratedShadowMap(TNodeGeneratedShadowMap(TextureNode)) else
+  if TextureNode is TNodeRenderedTexture then
+    UpdateRenderedTexture(TNodeRenderedTexture(TextureNode));
 end;
 
 end.

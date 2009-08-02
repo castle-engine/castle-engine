@@ -380,6 +380,9 @@ function ResizeToTextureSize(const r: TImage): TImage;
   so requires initialized OpenGL context. }
 function IsTextureSized(const r: TEncodedImage): boolean;
 
+function IsTextureSized(const Width, Height: Cardinal): boolean;
+procedure ResizeToTextureSize(var Width, Height: Cardinal);
+
 function IsCubeMapTextureSized(const Size: Cardinal): boolean;
 function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal;
 
@@ -939,17 +942,22 @@ begin
     {GL_ARB_texture_non_power_of_two or GL_version_2_0};
 end;
 
-function IsTextureSized(const r: TEncodedImage): boolean;
+function IsTextureSized(const Width, Height: Cardinal): boolean;
 begin
   if TextureNonPowerOfTwo then
     Result :=
-      (r.Width <= GLMaxTextureSize) and
-      (r.Height <= GLMaxTextureSize) else
+      (Width <= GLMaxTextureSize) and
+      (Height <= GLMaxTextureSize) else
     Result :=
-      IsPowerOf2(r.Width) and
-      IsPowerOf2(r.Height) and
-      (r.Width <= GLMaxTextureSize) and
-      (r.Height <= GLMaxTextureSize);
+      IsPowerOf2(Width) and
+      IsPowerOf2(Height) and
+      (Width <= GLMaxTextureSize) and
+      (Height <= GLMaxTextureSize);
+end;
+
+function IsTextureSized(const r: TEncodedImage): boolean;
+begin
+  Result := IsTextureSized(r.Width, r.Height);
 end;
 
 procedure ResizeForTextureSize(var r: TImage);
@@ -964,7 +972,7 @@ begin
   end;
 end;
 
-function ResizeToTextureSize(const r: TImage): TImage;
+procedure ResizeToTextureSize(var Width, Height: Cardinal);
 
   function BestTexSize(size: Cardinal): Cardinal;
   begin
@@ -980,11 +988,18 @@ function ResizeToTextureSize(const r: TImage): TImage;
      end;
   end;
 
+begin
+  Width  := BestTexSize(Width );
+  Height := BestTexSize(Height);
+end;
+
+function ResizeToTextureSize(const r: TImage): TImage;
 var
   NewWidth, NewHeight: Cardinal;
 begin
-  NewWidth  := BestTexSize(r.Width );
-  NewHeight := BestTexSize(r.Height);
+  NewWidth  := R.Width ;
+  NewHeight := R.Height;
+  ResizeToTextureSize(NewWidth, NewHeight);
 
   if Log then
     WritelnLog('Textures', Format('Resizing 2D texture from %dx%d to %dx%d to satisfy OpenGL',

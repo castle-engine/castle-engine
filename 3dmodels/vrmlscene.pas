@@ -363,8 +363,8 @@ type
   {$I dynarray_7.inc}
   { @exclude
     Internal for TVRMLScene: list of generated textures
-    (GeneratedCubeMapTexture and RenderedTexture and any similar nodes
-    in the future) along with their shape. }
+    (GeneratedCubeMapTexture, RenderedTexture and similar nodes)
+    along with their shape. }
   TDynGeneratedTextureArray = class(TDynArray_7)
   public
     function IndexOfTextureNode(TextureNode: TVRMLNode): Integer;
@@ -2207,7 +2207,8 @@ procedure TChangedAllTraverser.Traverse(
       GenTex: PGeneratedTexture;
     begin
       if (Tex is TNodeGeneratedCubeMapTexture) or
-         (Tex is TNodeGeneratedShadowMap) then
+         (Tex is TNodeGeneratedShadowMap) or
+         (Tex is TNodeRenderedTexture) then
       begin
         GenTex := ParentScene.GeneratedTextures.FindTextureNode(Tex);
         if GenTex <> nil then
@@ -2217,6 +2218,8 @@ procedure TChangedAllTraverser.Traverse(
             - For GeneratedShadowMap, the shape where it's used, and actually
               the whole place where it's used in the VRML graph, doesn't matter.
               (GeneratedShadowMap makes view from it's projectedLight).
+              Same thing for RenderedTexture (it makes view from specified viewpoint).
+
               So we can simply ignore duplicates (placing them
               on GeneratedTextures list would make it updated many times
               in UpdateGeneratedTextures, instead of just once).
@@ -2225,7 +2228,7 @@ procedure TChangedAllTraverser.Traverse(
               where they are used. They can be instanced many times only
               within a single shape (possible if you use MultiTexture
               and instance there the same GeneratedCubeMapTexture),
-              then duplicates are simplu ignored.
+              then duplicates are simply ignored.
 
               When GeneratedCubeMapTexture is instanced within different shapes,
               make a warning, and reject duplicate. }
@@ -3304,10 +3307,15 @@ begin
       ScheduledGeometryActiveShapesChanged := true;
       ScheduleGeometryChanged;
     end else
-    if (Node is TNodeGeneratedCubeMapTexture) and
-       (TNodeGeneratedCubeMapTexture(Node).FdUpdate = Field) then
+    if ( (Node is TNodeGeneratedCubeMapTexture) and
+         (TNodeGeneratedCubeMapTexture(Node).FdUpdate = Field) ) or
+       ( (Node is TNodeRenderedTexture) and
+         (TNodeRenderedTexture(Node).FdUpdate = Field) ) or
+       ( (Node is TNodeGeneratedShadowMap) and
+         (TNodeGeneratedShadowMap(Node).FdUpdate = Field) ) then
     begin
-      { GeneratedCubeMapTexture.update changes will be handled automatically
+      { For generated textures nodes "update" fields:
+        changes will be handled automatically
         at next UpdateGeneratedTextures call.
         So just make DoPostRedisplay, and nothing else is needed. }
     end else

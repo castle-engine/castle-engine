@@ -46,8 +46,13 @@ type
   end;
 
   TRenderTarget = (
+    { Normal rendering. }
     rtScreen,
+    { Rendering color buffer contents to normal single 2D texture. }
+    rfOffScreen,
+    { Rendering color buffer contents to cube map texture. }
     rtCubeMapEnvironment,
+    { Rendering depth buffer contents to shadow map texture. }
     rtShadowMap);
 
   { Common knowledge about currently rendered 3D state.

@@ -595,7 +595,9 @@ begin
   FFdscene := TSFNode.Create(Self, 'scene', [TVRMLNode]);
   Fields.Add(FFdscene);
 
-  FFddimensions := TMFInt32.Create(Self, 'dimensions', [128, 128, 4, 1, 1]);
+  FFddimensions := TMFInt32.Create(Self, 'dimensions',
+    [ DefaultRenderedTextureWidth,
+      DefaultRenderedTextureHeight, 4, 1, 1]);
   Fields.Add(FFddimensions);
 
   FFddepthMap := TMFBool.Create(Self, 'depthMap', []);
