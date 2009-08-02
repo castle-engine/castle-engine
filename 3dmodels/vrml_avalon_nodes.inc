@@ -124,6 +124,79 @@
     private FEventOut: TVRMLEvent;
     public property EventOut: TVRMLEvent read FEventOut;
   end;
+
+  TNodeRenderedTexture = class(TNodeX3DTextureNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdviewpoint: TSFNode;
+    public property Fdviewpoint: TSFNode read FFdviewpoint;
+
+    private FFdbackground: TSFNode;
+    public property Fdbackground: TSFNode read FFdbackground;
+
+    private FFdfog: TSFNode;
+    public property Fdfog: TSFNode read FFdfog;
+
+    private FFdenvironment: TSFNode;
+    public property Fdenvironment: TSFNode read FFdenvironment;
+
+    private FFdscene: TSFNode;
+    public property Fdscene: TSFNode read FFdscene;
+
+    private FFddimensions: TMFInt32;
+    public property Fddimensions: TMFInt32 read FFddimensions;
+
+    private FFddepthMap: TMFBool;
+    public property FddepthMap: TMFBool read FFddepthMap;
+
+    private FFdforeground: TSFNode;
+    public property Fdforeground: TSFNode read FFdforeground;
+
+    private FFdzOffset: TMFInt32;
+    public property FdzOffset: TMFInt32 read FFdzOffset;
+
+    private FFdtargets: TMFNode;
+    public property Fdtargets: TMFNode read FFdtargets;
+
+    private FFddescription: TSFString;
+    public property Fddescription: TSFString read FFddescription;
+
+    { Event: SFMatrix4f, out } { }
+    private FEventviewing: TVRMLEvent;
+    public property Eventviewing: TVRMLEvent read FEventviewing;
+
+    { Event: SFMatrix4f, out } { }
+    private FEventprojection: TVRMLEvent;
+    public property Eventprojection: TVRMLEvent read FEventprojection;
+
+    private FFdupdate: TSFString;
+    public property Fdupdate: TSFString read FFdupdate;
+
+    private FFdframeBufferMode: TSFString;
+    public property FdframeBufferMode: TSFString read FFdframeBufferMode;
+
+    private FFdexcludeNodes: TMFNode;
+    public property FdexcludeNodes: TMFNode read FFdexcludeNodes;
+
+    private FFdtriggerName: TSFString;
+    public property FdtriggerName: TSFString read FFdtriggerName;
+
+    { Event: SFTime, in } { }
+    private FEventtriggerSlot: TVRMLEvent;
+    public property EventtriggerSlot: TVRMLEvent read FEventtriggerSlot;
+
+    { Event: SFImage, out } { }
+    private FEventimage_changed: TVRMLEvent;
+    public property Eventimage_changed: TVRMLEvent read FEventimage_changed;
+
+    private FFdtextureProperties: TSFNode;
+    public property FdtextureProperties: TSFNode read FFdtextureProperties;
+  end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -502,13 +575,103 @@ begin
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
+constructor TNodeRenderedTexture.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdviewpoint := TSFNode.Create(Self, 'viewpoint', [TVRMLViewpointNode]);
+  Fields.Add(FFdviewpoint);
+
+  FFdbackground := TSFNode.Create(Self, 'background', [TNodeX3DBackgroundNode]);
+  Fields.Add(FFdbackground);
+
+  FFdfog := TSFNode.Create(Self, 'fog', [TNodeFog]);
+  Fields.Add(FFdfog);
+
+  FFdenvironment := TSFNode.Create(Self, 'environment', [TVRMLNode] { nothing sensible in core X3D for this });
+  Fields.Add(FFdenvironment);
+
+  FFdscene := TSFNode.Create(Self, 'scene', [TVRMLNode]);
+  Fields.Add(FFdscene);
+
+  FFddimensions := TMFInt32.Create(Self, 'dimensions', [128, 128, 4, 1, 1]);
+  Fields.Add(FFddimensions);
+
+  FFddepthMap := TMFBool.Create(Self, 'depthMap', []);
+  Fields.Add(FFddepthMap);
+
+  FFdforeground := TSFNode.Create(Self, 'foreground', [TVRMLNode] { nothing sensible in core X3D for this });
+  Fields.Add(FFdforeground);
+
+  FFdzOffset := TMFInt32.Create(Self, 'zOffset', []);
+  Fields.Add(FFdzOffset);
+
+  FFdtargets := TMFNode.Create(Self, 'targets', [TNodeX3DTextureNode]);
+  Fields.Add(FFdtargets);
+
+  FFddescription := TSFString.Create(Self, 'description', '');
+  Fields.Add(FFddescription);
+
+  FEventviewing := TVRMLEvent.Create(Self, 'viewing', TSFMatrix4f, false);
+  Events.Add(FEventviewing);
+
+  FEventprojection := TVRMLEvent.Create(Self, 'projection', TSFMatrix4f, false);
+  Events.Add(FEventprojection);
+
+  FFdupdate := TSFString.Create(Self, 'update', 'NONE');
+  Fields.Add(FFdupdate);
+
+  FFdframeBufferMode := TSFString.Create(Self, 'frameBufferMode', 'auto');
+  Fields.Add(FFdframeBufferMode);
+
+  FFdexcludeNodes := TMFNode.Create(Self, 'excludeNodes', [TVRMLNode]);
+  FFdexcludeNodes.Exposed := false;
+  Fields.Add(FFdexcludeNodes);
+
+  FFdtriggerName := TSFString.Create(Self, 'triggerName', 'Render');
+  FFdtriggerName.Exposed := false;
+  Fields.Add(FFdtriggerName);
+
+  FEventtriggerSlot := TVRMLEvent.Create(Self, 'triggerSlot', TSFTime, true);
+  Events.Add(FEventtriggerSlot);
+
+  FEventimage_changed := TVRMLEvent.Create(Self, 'image_changed', TSFImage, false);
+  Events.Add(FEventimage_changed);
+
+  FFdtextureProperties := TSFNode.Create(Self, 'textureProperties', [TNodeTextureProperties]);
+  FFdtextureProperties.Exposed := false;
+  Fields.Add(FFdtextureProperties);
+end;
+
+class function TNodeRenderedTexture.ClassNodeTypeName: string;
+begin
+  Result := 'RenderedTexture';
+end;
+
+function TNodeRenderedTexture.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
+class function TNodeRenderedTexture.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
 procedure RegisterAvalonNodes;
 begin
   NodesManager.RegisterNodeClasses([
     TNodeMatrixTransform_2,
     TNodeTeapot,
     TNodeLogger,
-    TNodeConverter
+    TNodeConverter,
+    TNodeRenderedTexture
   ]);
 end;
 {$endif read_implementation}
