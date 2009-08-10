@@ -1719,7 +1719,7 @@ begin
   glPopMatrix;
   glMatrixMode(GL_MODELVIEW);
 
-  { Actually update OpenGL texture GLNode.GLName }
+  { Actually update OpenGL texture GLName }
   glBindTexture(GL_TEXTURE_2D, GLName);
   glReadBuffer(GL_BACK);
   glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, Width, Height);
@@ -2178,7 +2178,7 @@ begin
   glPopMatrix;
   glMatrixMode(GL_MODELVIEW);
 
-  { Actually update OpenGL texture GLNode.GLName }
+  { Actually update OpenGL texture GLName }
   glBindTexture(GL_TEXTURE_2D, GLName);
   glReadBuffer(GL_BACK);
   glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, Size, Size);
