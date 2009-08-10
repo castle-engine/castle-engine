@@ -1,7 +1,8 @@
-{$ifdef GLWINDOW_LOGFILE}
+{$ifdef GLWINDOW_LOG}
 
-LogWrite('TGLWindow event '+eventname+' begin'
-  {$ifdef BONUS_LOG_STRING} + ' ' + BONUS_LOG_STRING {$endif});
+if Log then
+  WritelnLog('TGLWindow event', eventname+' begin'
+    {$ifdef BONUS_LOG_STRING} + ' ' + BONUS_LOG_STRING {$endif});
 
 try
 {$endif}

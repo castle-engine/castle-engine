@@ -403,21 +403,19 @@ unit GLWindow;
   GLWindow i nie ma sensu jakos automatyzowac tego (tzn. zebys mogl
   modyfikowac te opcje nie modyfikujac zrodel GLWindow.pas). }
 
-{ Zdefiniuj GLWINDOW_LOGFILE aby w tym module bylo generowanych troche wywolan
-  do LogWrite. W tej chwili oznacza to otoczenie wszystkich TGLWindow.EventXxx
-  klauzulami LogWrite('event xxx begin') LogWrite('event xxx end').
-  Jest to wygodne gdy chcesz sie dowiedziec w ktorym z callbackow okna OnXxx program
-  sie wywala.
+{ When GLWINDOW_LOG is defined, TGLWindow events will be logged.
+  This means logging (using KambiLog) at begin, end, and at exception exit
+  inside all TGLWindow events (EventXxx methods).
+  Very useful, although produces a lot of log information usually.
 
-  Jezeli bedzie zdefiniowane GLWINDOW_LOGFILE_IDLELIKE i GLWINDOW_LOGFILE
-  to dodatkowo do logfile beda szly zdarzenia OnIdle i OnTimer, ktore normalnie
-  sa wylaczone z logowania (bo zabieraja bardzo duzo miejsca w logu bo
-  sa wywolywane bardzo czesto).
+  Actually, GLWINDOW_LOG by itself turns logging for @italic(almost) all events.
+  For the really really often events (OnIdle and OnTimer right now),
+  you'll need to define also GLWINDOW_LOG_IDLELIKE (relevant only if GLWINDOW_LOG).
 }
-{ $define GLWINDOW_LOGFILE}
-{ $define GLWINDOW_LOGFILE_IDLELIKE}
-{$ifndef GLWINDOW_LOGFILE}
-  {$undef GLWINDOW_LOGFILE_IDLELIKE}
+{ $define GLWINDOW_LOG}
+{ $define GLWINDOW_LOG_IDLELIKE}
+{$ifndef GLWINDOW_LOG}
+  {$undef GLWINDOW_LOG_IDLELIKE}
 {$endif}
 
 { zdefiniuj symbol GLWINDOW_CHECK_GL_ERRORS_AFTER_DRAW aby w DoDraw,
@@ -598,7 +596,6 @@ uses
   {$ifdef GLWINDOW_GTK_WITH_XLIB} X, Xlib, {$endif}
   {$ifdef GLWINDOW_GTK_1} Glib, Gdk, Gtk, GtkGLArea, {$endif}
   {$ifdef GLWINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, KambiDynLib, {$endif}
-  {$ifdef GLWINDOW_LOGFILE} LogFile, {$endif}
   KambiUtils, KambiClassUtils, KambiGLUtils, Images, Keys, Navigation,
   RaysWindow, KambiStringUtils, KambiFilesUtils, KambiTimeUtils,
   FileFilters;
@@ -3591,19 +3588,19 @@ procedure TGLWindow.EventMouseUp(btn: TMouseButton);     const EventName = 'Mous
 {$undef BONUS_LOG_STRING}
 procedure TGLWindow.EventMenuCommand(Item: TMenuItem);   const EventName = 'MenuCommand';begin {$I glwindow_eventbegin.inc} if Assigned(OnMenuCommand) then begin {$I glwindow_eventoncallbegin.inc} OnMenuCommand(Self, Item);  {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
 
-{ ponizej sa zdarzenia idlelike. Jezeli not GLWINDOW_LOGFILE_IDLELIKE
-  to tymczasowo robimy tez undefine GLWINDOW_LOGFILE. }
-{$ifndef GLWINDOW_LOGFILE_IDLELIKE}
-  {$ifdef GLWINDOW_LOGFILE}
-    {$define WAS_GLWINDOW_LOGFILE}
-    {$undef GLWINDOW_LOGFILE}
+{ ponizej sa zdarzenia idlelike. Jezeli not GLWINDOW_LOG_IDLELIKE
+  to tymczasowo robimy tez undefine GLWINDOW_LOG. }
+{$ifndef GLWINDOW_LOG_IDLELIKE}
+  {$ifdef GLWINDOW_LOG}
+    {$define WAS_GLWINDOW_LOG}
+    {$undef GLWINDOW_LOG}
   {$endif}
 {$endif}
 procedure TGLWindow.EventIdle;                          const EventName = 'Idle';      begin {$I glwindow_eventbegin.inc} if Assigned(OnIdle)      then begin {$I glwindow_eventoncallbegin.inc} OnIdle(Self);                  {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
 procedure TGLWindow.EventTimer;                         const EventName = 'Timer';     begin {$I glwindow_eventbegin.inc} if Assigned(OnTimer)     then begin {$I glwindow_eventoncallbegin.inc} OnTimer(Self);                 {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
-{$ifndef GLWINDOW_LOGFILE_IDLELIKE}
-  {$ifdef WAS_GLWINDOW_LOGFILE}
-    {$define GLWINDOW_LOGFILE}
+{$ifndef GLWINDOW_LOG_IDLELIKE}
+  {$ifdef WAS_GLWINDOW_LOG}
+    {$define GLWINDOW_LOG}
   {$endif}
 {$endif}
 
