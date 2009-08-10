@@ -422,8 +422,7 @@ var
 begin
   inherited;
 
-  if (Scene.OctreeCollisions <> nil) and
-     (Navigator is TWalkNavigator) then
+  if Scene.OctreeCollisions <> nil then
   begin
     if IgnoreAreas.FindArea(NewX, NewY) = -1 then
     begin

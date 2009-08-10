@@ -367,8 +367,7 @@ var
 begin
   inherited;
 
-  if (Scene.OctreeCollisions <> nil) and
-     (Navigator is TWalkNavigator) then
+  if (Scene.OctreeCollisions <> nil) then
   begin
     Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, Ray0, RayVector);
 
