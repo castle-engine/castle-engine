@@ -246,9 +246,11 @@ begin
   Scene.ViewpointStack.OnBoundChanged := @BoundViewpointChanged;
   Scene.OnGeometryChanged := @GeometryChanged;
 
+  InitSceneManager;
+
   { Call initial ViewerChanged (this allows ProximitySensors to work
     as soon as ProcessEvent becomes true). }
-  Scene.ViewerChanged(Navigator);
+  Scene.ViewerChanged(Navigator, SceneManager.ViewerToChanges);
 
   { allow the scene to use it's own lights }
   Scene.Attributes.UseLights := true;
@@ -446,8 +448,10 @@ begin
     here Scene <> nil. }
 
   if Scene <> nil then
-    Scene.ViewerChanged(Navigator);
-  PostRedisplay;
+  begin
+    InitSceneManager;
+    Scene.ViewerChanged(Navigator, SceneManager.ViewerToChanges);
+  end;
 end;
 
 procedure TGLWindowVRMLBrowser.BoundViewpointChanged(Scene: TVRMLScene);
