@@ -476,6 +476,9 @@ type
     destructor Destroy; override;
 
     function Matrix: TMatrix4Single; override;
+
+    function MatrixInverse: TMatrix4Single;
+
     function RotationMatrix: TMatrix4Single; override;
     procedure Idle(const CompSpeed: Single;
       KeysDown: PKeysBooleans;
@@ -574,6 +577,9 @@ type
 
     property MouseNavigation: boolean
       read FMouseNavigation write FMouseNavigation default true;
+
+    { Express current view as camera vectors, suitable for TWalkNavigator. }
+    procedure GetCameraVectors(out Pos, Dir, Up: TVector3Single);
   end;
 
   TWalkNavigator = class;
@@ -1694,10 +1700,18 @@ end;
 
 function TExamineNavigator.Matrix: TMatrix4Single;
 begin
- result := TranslationMatrix(VectorAdd(MoveAmount, FModelBoxMiddle));
- result := MatrixMult(result, QuatToRotationMatrix(Rotations));
- result := MatrixMult(result, ScalingMatrix(Vector3Single(ScaleFactor, ScaleFactor, ScaleFactor)));
- result := MatrixMult(result, TranslationMatrix(VectorNegate(FModelBoxMiddle)));
+  Result := TranslationMatrix(VectorAdd(MoveAmount, FModelBoxMiddle));
+  Result := MatrixMult(Result, QuatToRotationMatrix(Rotations));
+  Result := MatrixMult(Result, ScalingMatrix(Vector3Single(ScaleFactor, ScaleFactor, ScaleFactor)));
+  Result := MatrixMult(Result, TranslationMatrix(VectorNegate(FModelBoxMiddle)));
+end;
+
+function TExamineNavigator.MatrixInverse: TMatrix4Single;
+begin
+  Result := TranslationMatrix(VectorNegate(VectorAdd(MoveAmount, FModelBoxMiddle)));
+  Result := MatrixMult(QuatToRotationMatrix(QuatConjugate(Rotations)), Result);
+  Result := MatrixMult(ScalingMatrix(Vector3Single(1/ScaleFactor, 1/ScaleFactor, 1/ScaleFactor)), Result);
+  Result := MatrixMult(TranslationMatrix(FModelBoxMiddle), Result);
 end;
 
 function TExamineNavigator.RotationMatrix: TMatrix4Single;
@@ -1996,6 +2010,17 @@ begin
     MatrixChanged;
     Result := true;
   end;
+end;
+
+procedure TExamineNavigator.GetCameraVectors(
+  out Pos, Dir, Up: TVector3Single);
+var
+  M: TMatrix4Single;
+begin
+  M := MatrixInverse;
+  Pos := MatrixMultPoint(M, Vector3Single(0, 0, 0));
+  Dir := MatrixMultDirection(M, Vector3Single(0, 0, -1));
+  Up  := MatrixMultDirection(M, Vector3Single(0, 1,  0));
 end;
 
 { TWalkNavigator ---------------------------------------------------------------- }
