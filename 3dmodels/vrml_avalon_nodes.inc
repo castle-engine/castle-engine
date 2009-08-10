@@ -196,6 +196,12 @@
 
     private FFdtextureProperties: TSFNode;
     public property FdtextureProperties: TSFNode read FFdtextureProperties;
+
+    private FFdrepeatS: TSFBool;
+    public property FdrepeatS: TSFBool read FFdrepeatS;
+
+    private FFdrepeatT: TSFBool;
+    public property FdrepeatT: TSFBool read FFdrepeatT;
   end;
 {$endif read_interface}
 
@@ -644,6 +650,14 @@ begin
   FFdtextureProperties := TSFNode.Create(Self, 'textureProperties', [TNodeTextureProperties]);
   FFdtextureProperties.Exposed := false;
   Fields.Add(FFdtextureProperties);
+
+  FFdrepeatS := TSFBool.Create(Self, 'repeatS', false);
+  FFdrepeatS.Exposed := false;
+  Fields.Add(FFdrepeatS);
+
+  FFdrepeatT := TSFBool.Create(Self, 'repeatT', false);
+  FFdrepeatT.Exposed := false;
+  Fields.Add(FFdrepeatT);
 end;
 
 class function TNodeRenderedTexture.ClassNodeTypeName: string;

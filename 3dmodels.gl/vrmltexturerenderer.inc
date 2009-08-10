@@ -258,8 +258,8 @@
     GLName: TGLuint;
 
     { The actual decided image size and mipmap status. }
-    GeneratedWidth, GeneratedHeight: Cardinal;
-    GeneratedNeedsMipmaps: boolean;
+    Width, Height: Cardinal;
+    NeedsMipmaps: boolean;
 
     function TextureNode: TNodeRenderedTexture;
 
@@ -318,10 +318,10 @@
     { The right size of the texture,
       that satisfies all OpenGL cube map sizes requirements
       (IsCubeMapTextureSized). }
-    GeneratedSize: Cardinal;
+    Size: Cardinal;
 
     { This says if MinFilter needs mipmaps. }
-    GeneratedNeedsMipmaps: boolean;
+    NeedsMipmaps: boolean;
 
     function TextureNode: TNodeGeneratedCubeMapTexture;
 
@@ -355,7 +355,7 @@
 
     { The right size of the texture,
       that satisfies all OpenGL sizes requirements. }
-    GeneratedSize: Cardinal;
+    Size: Cardinal;
 
     function TextureNode: TNodeGeneratedShadowMap;
 
@@ -1424,8 +1424,7 @@ var
   MinFilter, MagFilter: TGLint;
   Anisotropy: TGLfloat;
   TextureWrap: TTextureWrap2D;
-  NeedsMipmaps: boolean;
-  NodeWidth, NodeHeight, Width, Height: Cardinal;
+  NodeWidth, NodeHeight: Cardinal;
 begin
   HandleTextureProperties(TextureNode.FdTextureProperties.Value,
     MinFilter, MagFilter, Anisotropy);
@@ -1441,10 +1440,9 @@ begin
     MinFilter := GL_LINEAR;
     NeedsMipmaps := false;
   end;
-  GeneratedNeedsMipmaps := NeedsMipmaps;
 
-  TextureWrap[0] := {TODO}{TextureRepeatToGL[TextureNode.RepeatS]}GL_CLAMP_TO_EDGE;
-  TextureWrap[1] := {TODO}{TextureRepeatToGL[TextureNode.RepeatT]}GL_CLAMP_TO_EDGE;
+  TextureWrap[0] := TextureRepeatToGL[TextureNode.FdRepeatS.Value];
+  TextureWrap[1] := TextureRepeatToGL[TextureNode.FdRepeatT.Value];
 
   { calculate Width, Height }
   if TextureNode.FdDimensions.Items.High >= 0 then
@@ -1466,8 +1464,6 @@ begin
           GLMaxTextureSize,
           Width, Height]));
   end;
-  GeneratedWidth  := Width ;
-  GeneratedHeight := Height;
 
   InitialImage := TRGBImage.Create(Width, Height);
   try
@@ -1719,8 +1715,6 @@ var
   MinFilter, MagFilter: TGLint;
   Anisotropy: TGLfloat;
   InitialImage: TImage;
-  Size: Cardinal;
-  NeedsMipmaps: boolean;
 begin
   if not GL_ARB_texture_cube_map then
   begin
@@ -1742,7 +1736,6 @@ begin
     MinFilter := GL_LINEAR;
     NeedsMipmaps := false;
   end;
-  GeneratedNeedsMipmaps := NeedsMipmaps;
 
   { calculate Size }
   Size := Max(TextureNode.FdSize.Value, 0);
@@ -1757,7 +1750,6 @@ begin
           GLMaxCubeMapTextureSizeARB,
           Size]));
   end;
-  GeneratedSize := Size;
 
   InitialImage := TRGBImage.Create(Size, Size);
   try
@@ -1881,10 +1873,10 @@ begin
   end;
 
   { TODO: fix TextureNode.FdSize.Value if needed }
-  GeneratedSize := TextureNode.FdSize.Value;
+  Size := TextureNode.FdSize.Value;
 
   GLName := Renderer.Cache.TextureDepth_IncReference(
-    TextureNode, GeneratedSize);
+    TextureNode, TextureNode.FdCompareMode, Size);
 end;
 
 procedure TGLGeneratedShadowMap.Unprepare;

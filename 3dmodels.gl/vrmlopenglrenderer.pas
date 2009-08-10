@@ -937,7 +937,8 @@ type
   TDynTexture3DCacheArray = TDynArray_11;
 
   TTextureDepthCache = record
-    InitialNode: TNodeGeneratedShadowMap;
+    { For now, this may be TNodeGeneratedShadowMap or TNodeRenderedTexture. }
+    InitialNode: TNodeX3DTextureNode;
     References: Cardinal;
     GLName: TGLuint;
   end;
@@ -1076,7 +1077,8 @@ type
       const TextureGLName: TGLuint);
 
     function TextureDepth_IncReference(
-      Node: TNodeGeneratedShadowMap;
+      Node: TNodeX3DTextureNode;
+      DepthCompareField: TSFString;
       const Size: Cardinal): TGLuint;
 
     procedure TextureDepth_DecReference(
@@ -2236,7 +2238,8 @@ begin
 end;
 
 function TVRMLOpenGLRendererContextCache.TextureDepth_IncReference(
-  Node: TNodeGeneratedShadowMap;
+  Node: TNodeX3DTextureNode;
+  DepthCompareField: TSFString;
   const Size: Cardinal): TGLuint;
 var
   I: Integer;
@@ -2274,19 +2277,19 @@ begin
 
   if GL_ARB_shadow then
   begin
-    if Node.FdCompareMode.Value = 'COMPARE_R_LEQUAL' then
+    if DepthCompareField.Value = 'COMPARE_R_LEQUAL' then
     begin
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_LEQUAL);
     end else
-    if Node.FdCompareMode.Value = 'COMPARE_R_GEQUAL' then
+    if DepthCompareField.Value = 'COMPARE_R_GEQUAL' then
     begin
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_GEQUAL);
     end else
-    if Node.FdCompareMode.Value = 'NONE' then
+    if DepthCompareField.Value = 'NONE' then
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE) else
-      VRMLWarning(vwSerious, Format('Invalid value for GeneratedShadowMode.compareMode: "%s"', [Node.FdCompareMode.Value]));
+      VRMLWarning(vwSerious, Format('Invalid value for GeneratedShadowMode.compareMode: "%s"', [DepthCompareField.Value]));
 
     glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
   end else
@@ -4734,12 +4737,12 @@ var
       GLNode := TGLGeneratedCubeMapTextureNode(GLTextureNodes.TextureNode(TexNode));
       if GLNode <> nil then
       begin
-        GLCaptureCubeMapTexture(GLNode.GLName, GLNode.GeneratedSize,
+        GLCaptureCubeMapTexture(GLNode.GLName, GLNode.Size,
           Box3dMiddle(Shape.BoundingBox),
           Render, ProjectionNear, ProjectionFar, MapsOverlap,
           MapScreenX, MapScreenY);
 
-        if GLNode.GeneratedNeedsMipmaps then
+        if GLNode.NeedsMipmaps then
         begin
           { GLCaptureCubeMapTexture already bound the texture for OpenGL. }
           GenerateMipmap(GL_TEXTURE_CUBE_MAP);
@@ -4781,7 +4784,7 @@ var
             ProjectionMatrix);
           RenderState.Target := rtShadowMap;
 
-          Size := GLNode.GeneratedSize;
+          Size := GLNode.Size;
 
           glViewport(0, 0, Size, Size);
 
@@ -4842,8 +4845,8 @@ var
           ProjectionMatrix);
         RenderState.Target := rfOffScreen;
 
-        Width := GLNode.GeneratedWidth;
-        Height := GLNode.GeneratedHeight;
+        Width := GLNode.Width;
+        Height := GLNode.Height;
 
         glViewport(0, 0, Width, Height);
 
@@ -4861,7 +4864,7 @@ var
         glReadBuffer(GL_BACK);
         glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, Width, Height);
 
-        if GLNode.GeneratedNeedsMipmaps then
+        if GLNode.NeedsMipmaps then
         begin
           { We already bound the texture for OpenGL above. }
           GenerateMipmap(GL_TEXTURE_CUBE_MAP);
