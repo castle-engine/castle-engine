@@ -446,6 +446,12 @@ procedure TGLTextureNode.HandleTexturePropertiesCore(
       Result := GL_NEAREST;
     end else
 
+    if S = 'LINEAR' then
+    begin
+      VRMLWarning(vwSerious, Format('"%s" is not allowed texture minification, this is an Avalon-only extension, please fix to "AVG_PIXEL"', [S]));
+      Result := GL_LINEAR;
+    end else
+
     begin
       Result := Renderer.Attributes.TextureMinFilter;
       VRMLWarning(vwSerious, Format('Unknown texture minification filter "%s"', [S]));
@@ -468,6 +474,12 @@ procedure TGLTextureNode.HandleTexturePropertiesCore(
     begin
       VRMLWarning(vwSerious, Format('"%s" is not allowed texture minification, this is an Avalon-only extension, please fix to "NEAREST_PIXEL"', [S]));
       Result := GL_NEAREST;
+    end else
+
+    if S = 'LINEAR' then
+    begin
+      VRMLWarning(vwSerious, Format('"%s" is not allowed texture minification, this is an Avalon-only extension, please fix to "AVG_PIXEL"', [S]));
+      Result := GL_LINEAR;
     end else
 
     begin
