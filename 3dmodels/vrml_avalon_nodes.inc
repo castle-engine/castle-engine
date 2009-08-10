@@ -203,6 +203,24 @@
     private FFdrepeatT: TSFBool;
     public property FdrepeatT: TSFBool read FFdrepeatT;
   end;
+  
+  TNodePlane = class(TNodeX3DGeometryNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdsize: TSFVec2f;
+    public property Fdsize: TSFVec2f read FFdsize;
+
+    private FFdsolid: TSFBool;
+    public property Fdsolid: TSFBool read FFdsolid;
+
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+  end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -680,6 +698,32 @@ begin
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
+constructor TNodePlane.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdsize := TSFVec2f.Create(Self, 'size', Vector2Single(2, 2));
+  FFdsize.Exposed := false;
+  Fields.Add(FFdsize);
+  { X3D specification comment: (0,Inf) }
+
+  FFdsolid := TSFBool.Create(Self, 'solid', true);
+  FFdsolid.Exposed := false;
+  Fields.Add(FFdsolid);
+end;
+
+class function TNodePlane.ClassNodeTypeName: string;
+begin
+  Result := 'Plane';
+end;
+
+class function TNodePlane.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
 procedure RegisterAvalonNodes;
 begin
   NodesManager.RegisterNodeClasses([
@@ -687,7 +731,8 @@ begin
     TNodeTeapot,
     TNodeLogger,
     TNodeConverter,
-    TNodeRenderedTexture
+    TNodeRenderedTexture,
+    TNodePlane
   ]);
 end;
 {$endif read_implementation}

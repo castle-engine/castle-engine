@@ -499,6 +499,12 @@ begin
   Result[1] := Vector3Single( FdSize.Value[1] / 2,  FdSize.Value[1] / 2, 0);
 end;
 
+function TNodePlane.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+begin
+  Result[0] := Vector3Single(-FdSize.Value[0] / 2, -FdSize.Value[1] / 2, 0);
+  Result[1] := Vector3Single( FdSize.Value[1] / 2,  FdSize.Value[1] / 2, 0);
+end;
+
 function TNodeCircle2D.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
 begin
   Result[0] := Vector3Single(-FdRadius.Value, -FdRadius.Value, 0);

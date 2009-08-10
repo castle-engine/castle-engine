@@ -493,6 +493,18 @@ begin
   Result := 4;
 end;
 
+function TNodePlane.TrianglesCount(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  Result := 2;
+end;
+
+function TNodePlane.VerticesCount(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  Result := 4;
+end;
+
 function TNodeCircle2D.TrianglesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin

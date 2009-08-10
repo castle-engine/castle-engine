@@ -1096,8 +1096,10 @@ end;
 
 { ---------------------------------------------------------------------------- }
 
-procedure TNodeRectangle2D.LocalTriangulate(State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+procedure Rectangle2D_LocalTriangulate(Self: TVRMLGeometryNode;
+  State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  FdSize: TSFVec2f);
 var
   Triangle: TTriangle3Single;
   V: TVector3Single;
@@ -1117,6 +1119,20 @@ begin
   V[1] := -V[1];
   Triangle[2] := V;
   NewTriangleProc(Triangle, State, Self, 0, -1, -1);
+end;
+
+procedure TNodeRectangle2D.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+  Rectangle2D_LocalTriangulate(Self, State, OverTriangulate, NewTriangleProc,
+    FdSize);
+end;
+
+procedure TNodePlane.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+  Rectangle2D_LocalTriangulate(Self, State, OverTriangulate, NewTriangleProc,
+    FdSize);
 end;
 
 procedure TNodeCircle2D.LocalTriangulate(State: TVRMLGraphTraverseState;
