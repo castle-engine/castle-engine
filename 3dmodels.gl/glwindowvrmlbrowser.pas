@@ -248,10 +248,7 @@ begin
 
   { Call initial ViewerChanged (this allows ProximitySensors to work
     as soon as ProcessEvent becomes true). }
-  if Navigator is TWalkNavigator then
-  begin
-    Scene.ViewerChanged(WalkNav.CameraPos, WalkNav.CameraDir, WalkNav.CameraUp);
-  end;
+  Scene.ViewerChanged(Navigator);
 
   { allow the scene to use it's own lights }
   Scene.Attributes.UseLights := true;
@@ -449,9 +446,8 @@ begin
     before Scene is initialized. So to be on the safest side, we check
     here Scene <> nil. }
 
-  if (Scene <> nil) and
-     (Navigator is TWalkNavigator) then
-    Scene.ViewerChanged(WalkNav.CameraPos, WalkNav.CameraDir, WalkNav.CameraUp);
+  if Scene <> nil then
+    Scene.ViewerChanged(Navigator);
   PostRedisplay;
 end;
 

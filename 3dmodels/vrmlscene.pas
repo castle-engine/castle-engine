@@ -1610,8 +1610,7 @@ type
 
     { Call when viewer position/dir/up changed, to update things depending
       on viewer settings: some sensors, LOD nodes etc. }
-    procedure ViewerChanged(
-      const ViewerPosition, ViewerDirection, ViewerUp: TVector3Single);
+    procedure ViewerChanged(Navigator: TNavigator);
 
     { List of handlers for VRML Script node with "compiled:" protocol.
       This is read-only, change this only by RegisterCompiledScript. }
@@ -5208,14 +5207,12 @@ begin
   end;
 end;
 
-procedure TVRMLScene.ViewerChanged(
-  const ViewerPosition, ViewerDirection, ViewerUp: TVector3Single);
+procedure TVRMLScene.ViewerChanged(Navigator: TNavigator);
 var
   I: Integer;
 begin
-  FLastViewerPosition  := ViewerPosition;
-  FLastViewerDirection := ViewerDirection;
-  FLastViewerUp        := ViewerUp;
+  Navigator.GetCameraVectors(
+    FLastViewerPosition, FLastViewerDirection, FLastViewerUp);
   FIsLastViewer := true;
 
   BeginChangesSchedule;
