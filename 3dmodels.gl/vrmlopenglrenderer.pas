@@ -335,7 +335,7 @@ uses
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3d, OpenGLTTFonts, Images,
   OpenGLFonts, KambiGLUtils, VRMLLightSetGL, TTFontsTypes,
   VRMLErrors, VideosCache, GLShaders, GLImages, Videos, VRMLTime, VRMLShape,
-  GLCubeMap, TextureImages;
+  GLCubeMap, TextureImages, KambiClassUtils;
 
 {$define read_interface}
 
@@ -1203,124 +1203,9 @@ type
       const GLList: TGLuint);
   end;
 
-  TTextureImageReference = record
-    Node: TVRMLNode;
-    GLName: TGLuint;
-    NormalMap, HeightMap: TGLuint;
-    HeightMapScale: Single;
-    { This is the saved result of TImage.AlphaChannelType. }
-    AlphaChannelType: TAlphaChannelType;
+  TVRMLOpenGLRenderer = class;
 
-    { Only for generated textures (from Node being TNodeRenderedTexture),
-      this is the actual decided image size and mipmap status. }
-    GeneratedWidth, GeneratedHeight: Cardinal;
-    GeneratedNeedsMipmaps: boolean;
-  end;
-  PTextureImageReference = ^TTextureImageReference;
-
-  TDynArrayItem_1 = TTextureImageReference;
-  PDynArrayItem_1 = PTextureImageReference;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$I dynarray_1.inc}
-  TDynTextureImageReferenceArray = class(TDynArray_1)
-  public
-    { Looks for item with given ANode.
-      Returns -1 if not found. }
-    function TextureNodeIndex(ANode: TVRMLNode): integer;
-  end;
-
-  TTextureVideoReference = record
-    Node: TNodeMovieTexture;
-    GLVideo: TGLVideo;
-    { For now, I don't support movie textures with bump mapping.
-    NormalMap, HeightMap: TGLuint;
-    HeightMapScale: Single; }
-    { This is the saved result of TVideo.AlphaChannelType. }
-    AlphaChannelType: TAlphaChannelType;
-  end;
-  PTextureVideoReference = ^TTextureVideoReference;
-
-  TDynArrayItem_8 = TTextureVideoReference;
-  PDynArrayItem_8 = PTextureVideoReference;
-  {$define DYNARRAY_8_IS_STRUCT}
-  {$I dynarray_8.inc}
-  TDynTextureVideoReferenceArray = class(TDynArray_8)
-  public
-    { Looks for item with given ANode.
-      Returns -1 if not found. }
-    function TextureNodeIndex(ANode: TVRMLTextureNode): integer;
-  end;
-
-  TTextureCubeMapReference = record
-    Node: TNodeX3DEnvironmentTextureNode;
-    GLName: TGLuint;
-    { When Node is TNodeGeneratedTextureCubeMap,
-      this is the right size of the texture,
-      that satisfies all OpenGL cube map sizes requirements
-      (IsCubeMapTextureSized).
-      Unused for other Node classes. }
-    GeneratedSize: Cardinal;
-    { When Node is TNodeGeneratedTextureCubeMap,
-      this says if MinFilter needs mipmaps. }
-    GeneratedNeedsMipmaps: boolean;
-
-    { This is the saved result of TImage.AlphaChannelType. }
-    AlphaChannelType: TAlphaChannelType;
-  end;
-  PTextureCubeMapReference = ^TTextureCubeMapReference;
-
-  TDynArrayItem_10 = TTextureCubeMapReference;
-  PDynArrayItem_10 = PTextureCubeMapReference;
-  {$define DYNARRAY_10_IS_STRUCT}
-  {$I dynarray_10.inc}
-  TDynTextureCubeMapReferenceArray = class(TDynArray_10)
-  public
-    { Looks for item with given ANode.
-      Returns -1 if not found. }
-    function TextureNodeIndex(ANode: TNodeX3DEnvironmentTextureNode): Integer;
-  end;
-
-  TTexture3DReference = record
-    Node: TNodeX3DTexture3DNode;
-    GLName: TGLuint;
-
-    { This is the saved result of TImage.AlphaChannelType. }
-    AlphaChannelType: TAlphaChannelType;
-  end;
-  PTexture3DReference = ^TTexture3DReference;
-
-  TDynArrayItem_12 = TTexture3DReference;
-  PDynArrayItem_12 = PTexture3DReference;
-  {$define DYNARRAY_12_IS_STRUCT}
-  {$I dynarray_12.inc}
-  TDynTexture3DReferenceArray = class(TDynArray_12)
-  public
-    { Looks for item with given ANode.
-      Returns -1 if not found. }
-    function TextureNodeIndex(ANode: TNodeX3DTexture3DNode): Integer;
-  end;
-
-  TTextureDepthReference = record
-    Node: TNodeGeneratedShadowMap;
-    GLName: TGLuint;
-    { When Node is TNodeGeneratedShadowMap,
-      this is the right size of the texture,
-      that satisfies all OpenGL sizes requirements.
-      Unused for other Node classes. }
-    GeneratedSize: Cardinal;
-  end;
-  PTextureDepthReference = ^TTextureDepthReference;
-
-  TDynArrayItem_14 = TTextureDepthReference;
-  PDynArrayItem_14 = PTextureDepthReference;
-  {$define DYNARRAY_14_IS_STRUCT}
-  {$I dynarray_14.inc}
-  TDynTextureDepthReferenceArray = class(TDynArray_14)
-  public
-    { Looks for item with given ANode.
-      Returns -1 if not found. }
-    function TextureNodeIndex(ANode: TNodeGeneratedShadowMap): Integer;
-  end;
+  {$I vrmltexturerenderer.inc}
 
   TGLSLProgramReference = record
     ProgramNode: TNodeComposedShader;
@@ -1396,11 +1281,8 @@ type
 
     BmGLSLAttribObjectSpaceToTangent: array[boolean] of TGLSLAttribute;
 
-    TextureImageReferences: TDynTextureImageReferenceArray;
-    TextureVideoReferences: TDynTextureVideoReferenceArray;
-    TextureCubeMapReferences: TDynTextureCubeMapReferenceArray;
-    Texture3DReferences: TDynTexture3DReferenceArray;
-    TextureDepthReferences: TDynTextureDepthReferenceArray;
+    GLTextureNodes: TGLTextureNodes;
+
     GLSLProgramReferences: TDynGLSLProgramReferenceArray;
 
     { To which fonts we made a reference in the cache ? }
@@ -1741,24 +1623,21 @@ const
 implementation
 
 uses Math, Triangulator, NormalizationCubeMap,
-  KambiStringUtils, GLVersionUnit, KambiLog, KambiClassUtils,
+  KambiStringUtils, GLVersionUnit, KambiLog,
   VRMLGeometry, VRMLScene, DDS, Frustum, RenderStateUnit;
 
 {$define read_implementation}
-{$I dynarray_1.inc}
 {$I dynarray_2.inc}
 {$I dynarray_3.inc}
 {$I dynarray_4.inc}
 {$I dynarray_5.inc}
 {$I dynarray_6.inc}
 {$I dynarray_7.inc}
-{$I dynarray_8.inc}
 {$I dynarray_9.inc}
-{$I dynarray_10.inc}
 {$I dynarray_11.inc}
-{$I dynarray_12.inc}
 {$I dynarray_13.inc}
-{$I dynarray_14.inc}
+
+{$I objectslist_1.inc}
 
 {$I openglmac.inc}
 
@@ -1767,6 +1646,8 @@ uses Math, Triangulator, NormalizationCubeMap,
 {$I vrmlmeshrenderer_x3d_geometry3d.inc}
 {$I vrmlmeshrenderer_x3d_geometry2d.inc}
 {$I vrmlmeshrenderer_simple_nodes.inc}
+
+{$I vrmltexturerenderer.inc}
 
 { TVRMLOpenGLRendererContextCache -------------------------------------------- }
 
@@ -3367,56 +3248,6 @@ begin
     Result := Color;
 end;
 
-{ TDynTextureImageReferenceArray --------------------------------------------- }
-
-function TDynTextureImageReferenceArray.TextureNodeIndex(
-  ANode: TVRMLNode): integer;
-begin
-  for result := 0 to Count - 1 do
-    if Items[result].Node = ANode then exit;
-  result := -1;
-end;
-
-{ TDynTextureVideoReferenceArray --------------------------------------------- }
-
-function TDynTextureVideoReferenceArray.TextureNodeIndex(
-  ANode: TVRMLTextureNode): integer;
-begin
-  for result := 0 to Count - 1 do
-    if Items[result].Node = ANode then exit;
-  result := -1;
-end;
-
-{ TDynTextureCubeMapReferenceArray --------------------------------------------- }
-
-function TDynTextureCubeMapReferenceArray.TextureNodeIndex(
-  ANode: TNodeX3DEnvironmentTextureNode): integer;
-begin
-  for Result := 0 to Count - 1 do
-    if Items[result].Node = ANode then exit;
-  result := -1;
-end;
-
-{ TDynTexture3DReferenceArray --------------------------------------------- }
-
-function TDynTexture3DReferenceArray.TextureNodeIndex(
-  ANode: TNodeX3DTexture3DNode): integer;
-begin
-  for Result := 0 to Count - 1 do
-    if Items[result].Node = ANode then exit;
-  result := -1;
-end;
-
-{ TDynTextureDepthReferenceArray --------------------------------------------- }
-
-function TDynTextureDepthReferenceArray.TextureNodeIndex(
-  ANode: TNodeGeneratedShadowMap): integer;
-begin
-  for Result := 0 to Count - 1 do
-    if Items[result].Node = ANode then exit;
-  result := -1;
-end;
-
 { TDynGLSLProgramReferenceArray ---------------------------------------------- }
 
 function TDynGLSLProgramReferenceArray.ProgramNodeIndex(
@@ -3448,11 +3279,9 @@ begin
   BmSteepParallaxMapping := true;
 
   FAttributes := AttributesClass.Create;
-  TextureImageReferences := TDynTextureImageReferenceArray.Create;
-  TextureVideoReferences := TDynTextureVideoReferenceArray.Create;
-  TextureCubeMapReferences := TDynTextureCubeMapReferenceArray.Create;
-  Texture3DReferences := TDynTexture3DReferenceArray.Create;
-  TextureDepthReferences := TDynTextureDepthReferenceArray.Create;
+
+  GLTextureNodes := TGLTextureNodes.Create;
+
   GLSLProgramReferences := TDynGLSLProgramReferenceArray.Create;
   TextureTransformUnitsUsedMore := TDynLongIntArray.Create;
 
@@ -3467,11 +3296,7 @@ begin
   UnprepareAll;
 
   FreeAndNil(TextureTransformUnitsUsedMore);
-  FreeAndNil(TextureImageReferences);
-  FreeAndNil(TextureVideoReferences);
-  FreeAndNil(TextureCubeMapReferences);
-  FreeAndNil(Texture3DReferences);
-  FreeAndNil(TextureDepthReferences);
+  FreeAndNil(GLTextureNodes);
   FreeAndNil(GLSLProgramReferences);
   FreeAndNil(FAttributes);
 
@@ -3668,663 +3493,33 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     end;
   end;
 
-  { Calculate things from TextureProperties node.
-    If TextureProperties = @nil, they are taken from defaults
-    (possibly in Attributes). }
-  procedure HandleTexturePropertiesCore(
-    TextureProperties: TNodeTextureProperties;
-    out MinFilter, MagFilter: TGLint;
-    out Anisotropy: TGLfloat);
-
-    function StrToMinFilter(S: string): TGLint;
-    begin
-      S := UpperCase(S);
-
-      if S = 'AVG_PIXEL' then Result := GL_LINEAR else
-      if S = 'AVG_PIXEL_AVG_MIPMAP' then Result := GL_LINEAR_MIPMAP_LINEAR else
-      if S = 'AVG_PIXEL_NEAREST_MIPMAP' then Result := GL_LINEAR_MIPMAP_NEAREST else
-      if S = 'NEAREST_PIXEL_AVG_MIPMAP' then Result := GL_NEAREST_MIPMAP_LINEAR else
-      if S = 'NEAREST_PIXEL_NEAREST_MIPMAP' then Result := GL_NEAREST_MIPMAP_NEAREST else
-      if S = 'NEAREST_PIXEL' then Result := GL_NEAREST else
-
-      if S = 'DEFAULT' then Result := Attributes.TextureMinFilter else
-
-      if S = 'FASTEST' then Result := GL_NEAREST else
-      if S = 'NICEST' then Result := GL_LINEAR_MIPMAP_LINEAR else
-
-      if S = 'NEAREST' then
-      begin
-        VRMLWarning(vwSerious, Format('"%s" is not allowed texture minification, this is an Avalon-only extension, please fix to "NEAREST_PIXEL"', [S]));
-        Result := GL_NEAREST;
-      end else
-
-      begin
-        Result := Attributes.TextureMinFilter;
-        VRMLWarning(vwSerious, Format('Unknown texture minification filter "%s"', [S]));
-      end;
-    end;
-
-    function StrToMagFilter(S: string): TGLint;
-    begin
-      S := UpperCase(S);
-
-      if S = 'AVG_PIXEL' then Result := GL_LINEAR else
-      if S = 'NEAREST_PIXEL' then Result := GL_NEAREST else
-
-      if S = 'DEFAULT' then Result := Attributes.TextureMagFilter else
-
-      if S = 'FASTEST' then Result := GL_NEAREST else
-      if S = 'NICEST' then Result := GL_LINEAR else
-
-      if S = 'NEAREST' then
-      begin
-        VRMLWarning(vwSerious, Format('"%s" is not allowed texture minification, this is an Avalon-only extension, please fix to "NEAREST_PIXEL"', [S]));
-        Result := GL_NEAREST;
-      end else
-
-      begin
-        Result := Attributes.TextureMagFilter;
-        VRMLWarning(vwSerious, Format('Unknown texture minification filter "%s"', [S]));
-      end;
-    end;
-
-  begin { HandleTextureProperties }
-    if TextureProperties <> nil then
-    begin
-      MinFilter := StrToMinFilter(TextureProperties.FdMinificationFilter.Value);
-      MagFilter := StrToMagFilter(TextureProperties.FdMagnificationFilter.Value);
-      Anisotropy := TextureProperties.FdAnisotropicDegree.Value;
-    end else
-    begin
-      MinFilter := Attributes.TextureMinFilter;
-      MagFilter := Attributes.TextureMagFilter;
-      Anisotropy := 1;
-    end;
-  end { HandleTextureProperties };
-
-  { Calculate things from TextureProperties node.
-    If TextureProperties = @nil or not of TNodeTextureProperties class,
-    they are taken from defaults (possibly in Attributes).
-
-    This is useful when interpreting VRML/X3D files,
-    as you have no guarantee user didn't place there some disallowed node
-    in "textureProperties" field. }
-  procedure HandleTextureProperties(
-    TextureProperties: TVRMLNode;
-    out MinFilter, MagFilter: TGLint;
-    out Anisotropy: TGLfloat);
-  begin
-    if (TextureProperties = nil) or
-       not (TextureProperties is TNodeTextureProperties) then
-      HandleTexturePropertiesCore(nil, MinFilter, MagFilter, Anisotropy) else
-      HandleTexturePropertiesCore(TNodeTextureProperties(TextureProperties),
-        MinFilter, MagFilter, Anisotropy);
-  end;
-
-  const
-    TextureRepeatToGL: array[boolean]of TGLenum = (
-      { GL_CLAMP is useless if VRML doesn't allow to control texture border color,
-        and CLAMP_TO_EDGE is the more natural clamping method anyway...
-        Hm, but X3D specification seems to indicate that normal clamp is OpenGL's CLAMP,
-        and CLAMP_TO_EDGE is available by TextureProperties.boundaryMode*.
-        But until this will get implemented, it's much safer (and more sensible?)
-        to use GL_CLAMP_TO_EDGE here. }
-      GL_CLAMP_TO_EDGE,
-      GL_REPEAT);
-
-  { Do the necessary preparations for a non-multi texture node.
-    TextureNode must be non-nil. }
-  procedure PrepareSingle2DTexture(TextureNode: TVRMLTextureNode);
-  var
-    TextureImageReference: TTextureImageReference;
-    TextureVideoReference: TTextureVideoReference;
-    HeightMapGrayscale: TGrayscaleImage;
-    OriginalTexture: TEncodedImage;
-    MinFilter, MagFilter: TGLint;
-    Anisotropy: TGLfloat;
-    TextureWrap: TTextureWrap2D;
-  begin
-    if (TextureImageReferences.TextureNodeIndex(TextureNode) = -1) and
-       (TextureVideoReferences.TextureNodeIndex(TextureNode) = -1) then
-    begin
-      TextureNode.Cache := Cache;
-
-      HandleTexturePropertiesCore(TextureNode.TextureProperties,
-        MinFilter, MagFilter, Anisotropy);
-
-      TextureWrap[0] := TextureRepeatToGL[TextureNode.RepeatS];
-      TextureWrap[1] := TextureRepeatToGL[TextureNode.RepeatT];
-
-      if TextureNode.IsTextureImage then
-      begin
-        TextureImageReference.Node := TextureNode;
-
-        try
-          TextureImageReference.GLName := Cache.TextureImage_IncReference(
-            TextureNode.TextureImage,
-            TextureNode.TextureUsedFullUrl,
-            TextureNode,
-            MinFilter,
-            MagFilter,
-            Anisotropy,
-            TextureWrap,
-            Attributes.ColorModulatorByte,
-            { This way, our AlphaChannelType is calculated (or taken from cache)
-              by TextureImage_IncReference }
-            TextureImageReference.AlphaChannelType);
-        except
-          on E: ETextureLoadError do
-          begin
-            VRMLWarning(vwIgnorable, 'Cannot load 2D texture to OpenGL: ' + E.Message);
-            Exit;
-          end;
-        end;
-
-        { TODO: for now, bump mapping is used only if the node has normal texture
-          too. It should be possible to use bump mapping even if the node is colored
-          only by material (in this case we should remember to still generate
-          texture coords etc.).
-
-          TODO: Also, now for each texture, there must always be the same bump map
-          (since we store it in the same TextureImageReference }
-
-        TextureImageReference.NormalMap := 0;
-        if (BumpMappingMethod <> bmNone) and
-           (State.ParentShape <> nil) and
-           (State.ParentShape.NormalMap <> nil) then
-        begin
-          State.ParentShape.NormalMap.Cache := Cache;
-          if State.ParentShape.NormalMap.IsTextureImage then
-          begin
-            { TODO: normal map textures should be shared by Cache }
-            TextureImageReference.NormalMap := LoadGLTexture(
-              State.ParentShape.NormalMap.TextureImage,
-              GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, TextureWrap);
-          end;
-        end;
-
-        TextureImageReference.HeightMap := 0;
-        if (BumpMappingMethod <> bmNone) and
-           (State.ParentShape <> nil) and
-           (State.ParentShape.HeightMap <> nil) then
-        begin
-          State.ParentShape.HeightMap.Cache := Cache;
-          if State.ParentShape.HeightMap.IsTextureImage then
-          begin
-            { TODO: height map textures should be shared by Cache }
-
-            OriginalTexture := State.ParentShape.HeightMap.TextureImage;
-
-            { Calculate HeightMapGrayscale }
-            { TODO: this is not nice to convert here, we should load
-              straight to TGrayscalaImage }
-            if OriginalTexture is TRGBImage then
-              HeightMapGrayscale := TRGBImage(OriginalTexture).ToGrayscale else
-            if OriginalTexture is TGrayscaleImage then
-              HeightMapGrayscale := TGrayscaleImage(OriginalTexture) else
-              HeightMapGrayscale := nil;
-
-            if HeightMapGrayscale <> nil then
-            try
-              TextureImageReference.HeightMap :=
-                LoadGLTexture(HeightMapGrayscale,
-                  GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, TextureWrap);
-              TextureImageReference.HeightMapScale :=
-                State.ParentShape.HeightMapScale;
-            finally
-              if HeightMapGrayscale <> OriginalTexture then
-                FreeAndNil(HeightMapGrayscale);
-            end;
-          end;
-        end;
-
-        TextureImageReferences.AppendItem(TextureImageReference);
-
-        { Note: do PrepareBumpMapping *after* TextureImageReferences.AppendItem.
-          This way in case of errors (some GLSL errors on current OpenGL ?)
-          we exit with nice state, able to free this texture reference later. }
-
-        if TextureImageReference.NormalMap <> 0 then
-          PrepareBumpMapping(
-            (TextureImageReference.HeightMap <> 0) and
-            (BumpMappingMethod >= bmGLSLParallax));
-      end else
-      if TextureNode.IsTextureVideo then
-      begin
-        TextureVideoReference.Node :=
-          { Only TNodeMovieTexture can have IsTextureVideo }
-          TextureNode as TNodeMovieTexture;
-        TextureVideoReference.GLVideo := Cache.TextureVideo_IncReference(
-          TextureNode.TextureVideo,
-          TextureNode.TextureUsedFullUrl,
-          TextureVideoReference.Node,
-          MinFilter,
-          MagFilter,
-          Anisotropy,
-          TextureWrap,
-          Attributes.ColorModulatorByte,
-          { This way, our AlphaChannelType is calculated (or taken from cache)
-            by TextureVideo_IncReference }
-          TextureVideoReference.AlphaChannelType);
-
-        TextureVideoReferences.AppendItem(TextureVideoReference);
-      end;
-    end;
-  end;
-
-  { Do the necessary preparations for a cube env map texture node.
-    CubeTexture must be non-nil. }
-  procedure PrepareSingleComposedCubeTexture(CubeTexture: TNodeComposedCubeMapTexture);
-
-    { Checks is given side has non-nil valid node class,
-      and then if image there can be loaded. }
-    function SideLoaded(SideField: TSFNode): boolean;
-    var
-      SideTex: TVRMLTextureNode;
-    begin
-      Result :=
-        (SideField.Value <> nil) and
-        (SideField.Value is TVRMLTextureNode);
-      if Result then
-      begin
-        SideTex := TVRMLTextureNode(SideField.Value);
-        SideTex.Cache := Cache;
-        Result := SideTex.IsTextureImage;
-
-        if Result and not (SideTex.TextureImage is TImage) then
-        begin
-          VRMLWarning(vwIgnorable, 'ComposedCubeMapTexture cannot contain S3TC images, as we have to rotate images within, and we cannot do this (fast) with compressed textures');
-          Result := false;
-        end;
-      end;
-    end;
-
-  var
-    MinFilter, MagFilter: TGLint;
-    Anisotropy: TGLfloat;
-    TextureCubeMapReference: TTextureCubeMapReference;
-    BackRot, FrontRot, LeftRot, RightRot: TImage;
-  begin
-    if TextureCubeMapReferences.TextureNodeIndex(CubeTexture) <> -1 then
-      { Already loaded, nothing to do }
-      Exit;
-
-    if not GL_ARB_texture_cube_map then
-    begin
-      VRMLWarning(vwSerious, 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
-      Exit;
-    end;
-
-    if not (SideLoaded(CubeTexture.FdBack) and
-       SideLoaded(CubeTexture.FdBottom) and
-       SideLoaded(CubeTexture.FdFront) and
-       SideLoaded(CubeTexture.FdLeft) and
-       SideLoaded(CubeTexture.FdRight) and
-       SideLoaded(CubeTexture.FdTop)) then
-    begin
-      VRMLWarning(vwSerious, 'Not all sides of a CubeMapTexture are correctly set and loaded, cannot use cube map');
-      Exit;
-    end;
-
-    HandleTextureProperties(CubeTexture.FdTextureProperties.Value,
-      MinFilter, MagFilter, Anisotropy);
-
-    try
-      { To match expected orientation for OpenGL, we have to rotate images.
-        (source images are oriented as for VRML Background.)
-        We safely cast them to TImage below, SideLoaded above checked
-        that they are indeed of TImage class. }
-      BackRot  := (TVRMLTextureNode(CubeTexture.FdBack .Value).TextureImage as TImage).MakeRotated(2);
-      FrontRot := (TVRMLTextureNode(CubeTexture.FdFront.Value).TextureImage as TImage).MakeRotated(2);
-      LeftRot  := (TVRMLTextureNode(CubeTexture.FdLeft .Value).TextureImage as TImage).MakeRotated(2);
-      RightRot := (TVRMLTextureNode(CubeTexture.FdRight.Value).TextureImage as TImage).MakeRotated(2);
-
-      TextureCubeMapReference.Node := CubeTexture;
-      TextureCubeMapReference.GLName := Cache.TextureCubeMap_IncReference(
-        CubeTexture,
-        MinFilter, MagFilter, Anisotropy,
-        { positive x } RightRot,
-        { negative x } LeftRot,
-        { positive y } TVRMLTextureNode(CubeTexture.FdTop   .Value).TextureImage as TImage,
-        { negative y } TVRMLTextureNode(CubeTexture.FdBottom.Value).TextureImage as TImage,
-        { positive z } BackRot,
-        { negative z } FrontRot,
-        TextureCubeMapReference.AlphaChannelType);
-      TextureCubeMapReferences.AppendItem(TextureCubeMapReference);
-
-    finally
-      FreeAndNil(BackRot);
-      FreeAndNil(FrontRot);
-      FreeAndNil(LeftRot);
-      FreeAndNil(RightRot);
-    end;
-  end;
-
-  { Do the necessary preparations for a cube env map texture node.
-    CubeTexture must be non-nil. }
-  procedure PrepareSingleImageCubeTexture(CubeTexture: TNodeImageCubeMapTexture);
-  var
-    MinFilter, MagFilter: TGLint;
-    Anisotropy: TGLfloat;
-    TextureCubeMapReference: TTextureCubeMapReference;
-    DDS: TDDSImage;
-  begin
-    if TextureCubeMapReferences.TextureNodeIndex(CubeTexture) <> -1 then
-      { Already loaded, nothing to do }
-      Exit;
-
-    if not GL_ARB_texture_cube_map then
-    begin
-      VRMLWarning(vwSerious, 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
-      Exit;
-    end;
-
-    DDS := CubeTexture.LoadImage;
-    { If CubeTexture doesn't contain anything useful, just exit.
-      CubeTexture.LoadImage already did necessary VRMLWarnings. }
-    if DDS = nil then Exit;
-
-    try
-
-      HandleTextureProperties(CubeTexture.FdTextureProperties.Value,
-        MinFilter, MagFilter, Anisotropy);
-
-      { TODO: this is a quick and dirty method:
-        - We call LoadImage each time, while load calls should
-          be minimized (to avoid loading image many times, but also
-          to avoid making repeated warnings in case image fails).
-          Should be cached, like for 2D texture nodes.
-        - We do not use cube map mipmaps stored inside DDS file.
-        - We crash ("as") on S3TC compressed cube maps.
-      }
-
-      TextureCubeMapReference.Node := CubeTexture;
-      TextureCubeMapReference.GLName := Cache.TextureCubeMap_IncReference(
-        CubeTexture,
-        MinFilter, MagFilter, Anisotropy,
-        DDS.CubeMapImage(dcsPositiveX) as TImage,
-        DDS.CubeMapImage(dcsNegativeX) as TImage,
-        { Swap meaning of positive/negative Y faces from DDS,
-          see TDDSCubeMapSide for explanation. }
-        DDS.CubeMapImage(dcsNegativeY) as TImage,
-        DDS.CubeMapImage(dcsPositiveY) as TImage,
-        DDS.CubeMapImage(dcsPositiveZ) as TImage,
-        DDS.CubeMapImage(dcsNegativeZ) as TImage,
-        TextureCubeMapReference.AlphaChannelType);
-      TextureCubeMapReferences.AppendItem(TextureCubeMapReference);
-
-    finally FreeAndNil(DDS); end;
-  end;
-
-  procedure PrepareSingleGeneratedCubeTexture(CubeTexture: TNodeGeneratedCubeMapTexture);
-  var
-    MinFilter, MagFilter: TGLint;
-    Anisotropy: TGLfloat;
-    TextureCubeMapReference: TTextureCubeMapReference;
-    InitialImage: TImage;
-    Size: Cardinal;
-    NeedsMipmaps: boolean;
-  begin
-    if TextureCubeMapReferences.TextureNodeIndex(CubeTexture) <> -1 then
-      { Already loaded, nothing to do }
-      Exit;
-
-    if not GL_ARB_texture_cube_map then
-    begin
-      VRMLWarning(vwSerious, 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
-      Exit;
-    end;
-
-    HandleTextureProperties(CubeTexture.FdTextureProperties.Value,
-      MinFilter, MagFilter, Anisotropy);
-
-    { calculate MinFilter, MagFilter, Anisotropy, NeedsMipmaps }
-    NeedsMipmaps := TextureMinFilterNeedsMipmaps(MinFilter);
-    if NeedsMipmaps and not HasGenerateMipmap then
-    begin
-      VRMLWarning(vwIgnorable { This may be caused by OpenGL implementation
-        limits, so it may be impossible to predict by VRML author,
-        so it's "ignorable" warning. },
-        'OpenGL implementation doesn''t allow any glGenerateMipmap* version, so you cannot use mipmaps for GeneratedCubeMapTexture');
-      MinFilter := GL_LINEAR;
-      NeedsMipmaps := false;
-    end;
-    TextureCubeMapReference.GeneratedNeedsMipmaps := NeedsMipmaps;
-
-    { calculate Size }
-    Size := Max(CubeTexture.FdSize.Value, 0);
-    if not IsCubeMapTextureSized(Size) then
-    begin
-      Size := ResizeToCubeMapTextureSize(Size);
-      VRMLWarning(vwIgnorable { This may be caused by OpenGL implementation
-        limits, so it may be impossible to predict by VRML author,
-        so it's "ignorable" warning. },
-        Format('Cube map texture size %d is incorrect (cube map texture size must be a power of two, > 0 and <= GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB = %d), corrected to %d',
-          [ CubeTexture.FdSize.Value,
-            GLMaxCubeMapTextureSizeARB,
-            Size]));
-    end;
-    TextureCubeMapReference.GeneratedSize := Size;
-
-    InitialImage := TRGBImage.Create(Size, Size);
-    try
-      { Fill with deliberately stupid (but constant) color,
-        to recognize easily GeneratedCubeMapTexture which don't have textures
-        updated. }
-      InitialImage.Clear(Vector4Byte(255, 0, 255, 255));
-
-      TextureCubeMapReference.Node := CubeTexture;
-      TextureCubeMapReference.GLName := Cache.TextureCubeMap_IncReference(
-        CubeTexture,
-        MinFilter, MagFilter, Anisotropy,
-        InitialImage, InitialImage,
-        InitialImage, InitialImage,
-        InitialImage, InitialImage,
-        TextureCubeMapReference.AlphaChannelType);
-      TextureCubeMapReferences.AppendItem(TextureCubeMapReference);
-    finally FreeAndNil(InitialImage) end;
-  end;
-
-  { Do the necessary preparations for a 3d texture node.
-    Texture must be non-nil. }
-  procedure PrepareSingleTexture3D(Texture: TNodeX3DTexture3DNode);
-  var
-    MinFilter, MagFilter: TGLint;
-    Anisotropy: TGLfloat;
-    TextureReference: TTexture3DReference;
-    TextureWrap: TTextureWrap3D;
-  begin
-    if Texture3DReferences.TextureNodeIndex(Texture) <> -1 then
-      { Already loaded, nothing to do }
-      Exit;
-
-    if not GL_EXT_texture3D then
-    begin
-      VRMLWarning(vwSerious, 'Your OpenGL doesn''t support EXT_texture3D, cannot use Texture3D nodes');
-      Exit;
-    end;
-
-    Texture.Cache := Cache;
-    Texture.TextureLoaded := true;
-
-    { If TextureImage doesn't contain anything useful, just exit.
-      Setting TextureLoaded already did necessary VRMLWarnings. }
-    if Texture.TextureImage = nil then Exit;
-
-    HandleTextureProperties(Texture.FdTextureProperties.Value,
-      MinFilter, MagFilter, Anisotropy);
-
-    { calculate TextureWrap }
-    TextureWrap[0] := TextureRepeatToGL[Texture.FdRepeatS.Value];
-    TextureWrap[1] := TextureRepeatToGL[Texture.FdRepeatT.Value];
-    TextureWrap[2] := TextureRepeatToGL[Texture.FdRepeatR.Value];
-
-    { TODO: this is a quick and dirty method:
-      - We do not use texture 3d mipmaps stored inside DDS file.
-      - We crash (because of "Image as TImage") on S3TC compressed images.
-        (although DDS doesn't allow compressed 3d textures, so this
-        is not so important now.)
-    }
-
-    TextureReference.Node := Texture;
-
-    try
-      TextureReference.GLName := Cache.Texture3D_IncReference(
-        Texture, MinFilter, MagFilter, Anisotropy,
-        TextureWrap, Texture.TextureImage as TImage,
-        TextureReference.AlphaChannelType);
-    except
-      on E: ETextureLoadError do
-      begin
-        VRMLWarning(vwIgnorable, 'Cannot load 3D texture to OpenGL: ' + E.Message);
-        Exit;
-      end;
-    end;
-
-    Texture3DReferences.AppendItem(TextureReference);
-  end;
-
-  { Do the necessary preparations for a 3d texture node.
-    Texture must be non-nil. }
-  procedure PrepareSingleTextureDepth(Texture: TNodeGeneratedShadowMap);
-  var
-    TextureReference: TTextureDepthReference;
-  begin
-    if TextureDepthReferences.TextureNodeIndex(Texture) <> -1 then
-      { Already loaded, nothing to do }
-      Exit;
-
-    if not GL_ARB_depth_texture then
-    begin
-      VRMLWarning(vwSerious, 'Your OpenGL doesn''t support ARB_depth_texture, cannot use GeneratedShadowMap nodes');
-      Exit;
-    end;
-
-    { TODO: fix Texture.FdSize.Value if needed }
-    TextureReference.GeneratedSize := Texture.FdSize.Value;
-
-    TextureReference.Node := Texture;
-    TextureReference.GLName := Cache.TextureDepth_IncReference(
-      Texture, TextureReference.GeneratedSize);
-
-    TextureDepthReferences.AppendItem(TextureReference);
-  end;
-
-  procedure PrepareSingleRenderedTexture(TextureNode: TNodeRenderedTexture);
-  var
-    TextureImageReference: TTextureImageReference;
-    InitialImage: TImage;
-    MinFilter, MagFilter: TGLint;
-    Anisotropy: TGLfloat;
-    TextureWrap: TTextureWrap2D;
-    NeedsMipmaps: boolean;
-    NodeWidth, NodeHeight, Width, Height: Cardinal;
-  begin
-    if TextureImageReferences.TextureNodeIndex(TextureNode) <> -1 then
-      { Already loaded, nothing to do }
-      Exit;
-
-    HandleTextureProperties(TextureNode.FdTextureProperties.Value,
-      MinFilter, MagFilter, Anisotropy);
-
-    { calculate MinFilter, MagFilter, Anisotropy, NeedsMipmaps }
-    NeedsMipmaps := TextureMinFilterNeedsMipmaps(MinFilter);
-    if NeedsMipmaps and not HasGenerateMipmap then
-    begin
-      VRMLWarning(vwIgnorable { This may be caused by OpenGL implementation
-        limits, so it may be impossible to predict by VRML author,
-        so it's "ignorable" warning. },
-        'OpenGL implementation doesn''t allow any glGenerateMipmap* version, so you cannot use mipmaps for RenderedTexture');
-      MinFilter := GL_LINEAR;
-      NeedsMipmaps := false;
-    end;
-    TextureImageReference.GeneratedNeedsMipmaps := NeedsMipmaps;
-
-    TextureWrap[0] := {TODO}{TextureRepeatToGL[TextureNode.RepeatS]}GL_CLAMP_TO_EDGE;
-    TextureWrap[1] := {TODO}{TextureRepeatToGL[TextureNode.RepeatT]}GL_CLAMP_TO_EDGE;
-
-    { calculate Width, Height }
-    if TextureNode.FdDimensions.Items.High >= 0 then
-      NodeWidth := Max(TextureNode.FdDimensions.Items[0], 0) else
-      NodeWidth := DefaultRenderedTextureWidth;
-    if TextureNode.FdDimensions.Items.High >= 1 then
-      NodeHeight := Max(TextureNode.FdDimensions.Items[1], 0) else
-      NodeHeight := DefaultRenderedTextureHeight;
-    Width  := NodeWidth ;
-    Height := NodeHeight;
-    if not IsTextureSized(Width, Height) then
-    begin
-      ResizeToTextureSize(Width, Height);
-      VRMLWarning(vwIgnorable { This may be caused by OpenGL implementation
-        limits, so it may be impossible to predict by VRML author,
-        so it's "ignorable" warning. },
-        Format('Rendered texture size %d x %d is incorrect (texture size must be a power of two, > 0 and <= GL_MAX_TEXTURE_SIZE = %d), corrected to %d x %d',
-          [ NodeWidth, NodeHeight,
-            GLMaxTextureSize,
-            Width, Height]));
-    end;
-    TextureImageReference.GeneratedWidth  := Width ;
-    TextureImageReference.GeneratedHeight := Height;
-
-    InitialImage := TRGBImage.Create(Width, Height);
-    try
-      { Fill with deliberately stupid (but constant) color,
-        to recognize easily RenderedTexture which don't have textures
-        updated. }
-      InitialImage.Clear(Vector4Byte(255, 0, 255, 255));
-
-      TextureImageReference.Node := TextureNode;
-
-      try
-        TextureImageReference.GLName := Cache.TextureImage_IncReference(
-          InitialImage,
-          '',
-          TextureNode,
-          MinFilter,
-          MagFilter,
-          Anisotropy,
-          TextureWrap,
-          Attributes.ColorModulatorByte,
-          { This way, our AlphaChannelType is calculated (or taken from cache)
-            by TextureImage_IncReference }
-          TextureImageReference.AlphaChannelType);
-      except
-        on E: ETextureLoadError do
-        begin
-          VRMLWarning(vwIgnorable, 'Cannot load 2D texture to OpenGL: ' + E.Message);
-          Exit;
-        end;
-      end;
-
-      { RenderedTexture never has any normal / height map
-        (Hm, although it would be possible to generate some in theory
-        --- after all, we generate it from 3D data. Idea for the future.) }
-      TextureImageReference.NormalMap := 0;
-      TextureImageReference.HeightMap := 0;
-
-      TextureImageReferences.AppendItem(TextureImageReference);
-    finally FreeAndNil(InitialImage) end;
-  end;
-
   { Do the necessary preparations for any texture node except TNodeMultiTexture.
     Ignore not handled (this includes TNodeMultiTexture) nodes.
-    Tex must be non-nil. }
-  procedure PrepareSingleTexture(Tex: TVRMLNode);
+    TextureNode must be non-nil. }
+  procedure PrepareSingleTexture(TextureNode: TVRMLNode);
+  var
+    GLTextureNodeClass: TGLTextureNodeClass;
+    GLTextureNode: TGLTextureNode;
+    BumpMappingWanted: TBumpMappingWanted;
   begin
-    if Tex is TNodeComposedCubeMapTexture then
-      PrepareSingleComposedCubeTexture(TNodeComposedCubeMapTexture(Tex)) else
-    if Tex is TNodeImageCubeMapTexture then
-      PrepareSingleImageCubeTexture(TNodeImageCubeMapTexture(Tex)) else
-    if Tex is TNodeGeneratedCubeMapTexture then
-      PrepareSingleGeneratedCubeTexture(TNodeGeneratedCubeMapTexture(Tex)) else
-    if Tex is TVRMLTextureNode then
-      PrepareSingle2DTexture(TVRMLTextureNode(Tex)) else
-    if Tex is TNodeX3DTexture3DNode then
-      PrepareSingleTexture3D(TNodeX3DTexture3DNode(Tex)) else
-    if Tex is TNodeGeneratedShadowMap then
-      PrepareSingleTextureDepth(TNodeGeneratedShadowMap(Tex)) else
-    if Tex is TNodeRenderedTexture then
-      PrepareSingleRenderedTexture(TNodeRenderedTexture(Tex));
+    GLTextureNodeClass := TGLTextureNodeClass.ClassForTextureNode(Cache, TextureNode);
+
+    { Ignore if not handled node (possibly, user placed invalid node
+      in "texture" field or such). }
+    if GLTextureNodeClass = nil then Exit;
+
+    if GLTextureNodes.TextureNodeIndex(TextureNode) = -1 then
+    begin
+      GLTextureNode := GLTextureNodeClass.Create(Self, TextureNode);
+      GLTextureNode.Prepare(State, BumpMappingWanted);
+      GLTextureNodes.Add(GLTextureNode);
+
+      { PrepareBumpMapping *after* GLTextureNodes.Add(Handler).
+        This way in case of errors (some GLSL errors on current OpenGL ?)
+        we exit with nice state, able to free this texture reference later. }
+      if BumpMappingWanted <> bmwNone then
+        PrepareBumpMapping(BumpMappingWanted = bmwParallax);
+    end;
   end;
 
   { Do the necessary preparations for a multi-texture node.
@@ -4426,61 +3621,17 @@ end;
 
 procedure TVRMLOpenGLRenderer.Unprepare(Node: TVRMLNode);
 
-  procedure UnprepareSingle2DTexture(Tex: TVRMLNode);
+  { Call Unprepare and release TGLTextureNode instance. }
+  procedure UnprepareSingleTexture(Tex: TVRMLNode);
   var
-    i: integer;
+    I: integer;
   begin
-    i := TextureImageReferences.TextureNodeIndex(Tex);
-    if i >= 0 then
+    I := GLTextureNodes.TextureNodeIndex(Tex);
+    if I >= 0 then
     begin
-      Cache.TextureImage_DecReference(TextureImageReferences.Items[i].GLName);
-      TextureImageReferences.Delete(i, 1);
-    end;
-
-    if Tex is TVRMLTextureNode then
-    begin
-      i := TextureVideoReferences.TextureNodeIndex(TVRMLTextureNode(Tex));
-      if i >= 0 then
-      begin
-        Cache.TextureVideo_DecReference(TextureVideoReferences.Items[i].GLVideo);
-        TextureVideoReferences.Delete(i, 1);
-      end;
-    end;
-  end;
-
-  procedure UnprepareSingleCubeMapTexture(Tex: TNodeX3DEnvironmentTextureNode);
-  var
-    i: integer;
-  begin
-    i := TextureCubeMapReferences.TextureNodeIndex(Tex);
-    if i >= 0 then
-    begin
-      Cache.TextureCubeMap_DecReference(TextureCubeMapReferences.Items[i].GLName);
-      TextureCubeMapReferences.Delete(i, 1);
-    end;
-  end;
-
-  procedure UnprepareSingleTexture3D(Tex: TNodeX3DTexture3DNode);
-  var
-    i: integer;
-  begin
-    i := Texture3DReferences.TextureNodeIndex(Tex);
-    if i >= 0 then
-    begin
-      Cache.Texture3D_DecReference(Texture3DReferences.Items[i].GLName);
-      Texture3DReferences.Delete(i, 1);
-    end;
-  end;
-
-  procedure UnprepareSingleTextureDepth(Tex: TNodeGeneratedShadowMap);
-  var
-    i: integer;
-  begin
-    i := TextureDepthReferences.TextureNodeIndex(Tex);
-    if i >= 0 then
-    begin
-      Cache.TextureDepth_DecReference(TextureDepthReferences.Items[i].GLName);
-      TextureDepthReferences.Delete(i, 1);
+      GLTextureNodes[I].Unprepare;
+      GLTextureNodes[I].Free;
+      GLTextureNodes.Delete(I);
     end;
   end;
 
@@ -4493,16 +3644,7 @@ procedure TVRMLOpenGLRenderer.Unprepare(Node: TVRMLNode);
     begin
       TexItem := Tex.FdTexture.Items[I];
       if TexItem = nil then Continue;
-
-      if (TexItem is TVRMLTextureNode) or
-         (TexItem is TNodeRenderedTexture) then
-        UnprepareSingle2DTexture(TexItem) else
-      if TexItem is TNodeX3DEnvironmentTextureNode then
-        UnprepareSingleCubeMapTexture(TNodeX3DEnvironmentTextureNode(TexItem)) else
-      if TexItem is TNodeX3DTexture3DNode then
-        UnprepareSingleTexture3D(TNodeX3DTexture3DNode(TexItem)) else
-      if TexItem is TNodeGeneratedShadowMap then
-        UnprepareSingleTextureDepth(TNodeGeneratedShadowMap(TexItem));
+      UnprepareSingleTexture(TexItem);
     end;
   end;
 
@@ -4514,24 +3656,12 @@ begin
    o takich samych wlasciwosciach Family i Style korzystaja zawsze z tego
    samego juz utworzonego fontu.}
 
-  { unprepare single texture }
-  if (Node is TVRMLTextureNode) or
-     (Node is TNodeRenderedTexture) then
-    UnprepareSingle2DTexture(Node) else
+  { unprepare if single texture }
+  UnprepareSingleTexture(Node);
 
   { unprepare multi texture }
   if Node is TNodeMultiTexture then
     UnprepareMultiTexture(TNodeMultiTexture(Node)) else
-
-  { unprepare cube map texture }
-  if Node is TNodeX3DEnvironmentTextureNode then
-    UnprepareSingleCubeMapTexture(TNodeX3DEnvironmentTextureNode(Node));
-
-  if Node is TNodeX3DTexture3DNode then
-    UnprepareSingleTexture3D(TNodeX3DTexture3DNode(Node));
-
-  if Node is TNodeGeneratedShadowMap then
-    UnprepareSingleTextureDepth(TNodeGeneratedShadowMap(Node));
 
   { unprepare GLSLProgram }
   { This is not used for now anywhere actually ? Nowhere I unprepare
@@ -4572,25 +3702,12 @@ begin
         end;
 
   {niszcz wszystkie tekstury}
-  for i := 0 to TextureImageReferences.Count-1 do
-    Cache.TextureImage_DecReference(TextureImageReferences.Items[i].GLName);
-  TextureImageReferences.SetLength(0);
-
-  for i := 0 to TextureVideoReferences.Count-1 do
-    Cache.TextureVideo_DecReference(TextureVideoReferences.Items[i].GLVideo);
-  TextureVideoReferences.SetLength(0);
-
-  for i := 0 to TextureCubeMapReferences.Count-1 do
-    Cache.TextureCubeMap_DecReference(TextureCubeMapReferences.Items[i].GLName);
-  TextureCubeMapReferences.SetLength(0);
-
-  for i := 0 to Texture3DReferences.Count-1 do
-    Cache.Texture3D_DecReference(Texture3DReferences.Items[i].GLName);
-  Texture3DReferences.SetLength(0);
-
-  for i := 0 to TextureDepthReferences.Count-1 do
-    Cache.TextureDepth_DecReference(TextureDepthReferences.Items[i].GLName);
-  TextureDepthReferences.SetLength(0);
+  for I := 0 to GLTextureNodes.Count - 1 do
+  begin
+    GLTextureNodes[I].Unprepare;
+    GLTextureNodes[I].Free;
+  end;
+  GLTextureNodes.Count := 0;
 
   { unprepare all GLSLPrograms }
   for i := 0 to GLSLProgramReferences.Count - 1 do
@@ -4751,68 +3868,14 @@ end;
 function TVRMLOpenGLRenderer.PreparedTextureAlphaChannelType(
   TextureNode: TNodeX3DTextureNode;
   out AlphaChannelType: TAlphaChannelType): boolean;
-
-  procedure DoIt2D(TextureNode: TVRMLNode);
-  var
-    Index: Integer;
-  begin
-    Index := TextureImageReferences.TextureNodeIndex(TextureNode);
-    Result := Index <> -1;
-
-    if Result then
-      AlphaChannelType := TextureImageReferences.Items[Index].AlphaChannelType else
-    if TextureNode is TVRMLTextureNode then
-    begin
-      Index := TextureVideoReferences.TextureNodeIndex(TVRMLTextureNode(TextureNode));
-      Result := Index <> -1;
-
-      if Result then
-        AlphaChannelType := TextureVideoReferences.Items[Index].AlphaChannelType;
-    end;
-  end;
-
-  procedure DoItCubeMap(TextureNode: TNodeX3DEnvironmentTextureNode);
-  var
-    Index: Integer;
-  begin
-    Index := TextureCubeMapReferences.TextureNodeIndex(TextureNode);
-    Result := Index <> -1;
-    if Result then
-      AlphaChannelType := TextureCubeMapReferences.Items[Index].AlphaChannelType;
-  end;
-
-  procedure DoIt3D(TextureNode: TNodeX3DTexture3DNode);
-  var
-    Index: Integer;
-  begin
-    Index := Texture3DReferences.TextureNodeIndex(TextureNode);
-    Result := Index <> -1;
-    if Result then
-      AlphaChannelType := Texture3DReferences.Items[Index].AlphaChannelType;
-  end;
-
-  procedure DoItDepth(TextureNode: TNodeGeneratedShadowMap);
-  var
-    Index: Integer;
-  begin
-    Index := TextureDepthReferences.TextureNodeIndex(TextureNode);
-    Result := Index <> -1;
-    if Result then
-      { Our depth textures never have alpha channel. }
-      AlphaChannelType := atNone;
-  end;
-
+var
+  Index: Integer;
 begin
-  if (TextureNode is TVRMLTextureNode) or
-     (TextureNode is TNodeRenderedTexture) then
-    DoIt2D(TextureNode) else
-  if TextureNode is TNodeX3DEnvironmentTextureNode then
-    DoItCubeMap(TNodeX3DEnvironmentTextureNode(TextureNode)) else
-  if TextureNode is TNodeX3DTexture3DNode then
-    DoIt3D(TNodeX3DTexture3DNode(TextureNode)) else
-  if TextureNode is TNodeGeneratedShadowMap then
-    DoItDepth(TNodeGeneratedShadowMap(TextureNode)) else
-    Result := false;
+  Index := GLTextureNodes.TextureNodeIndex(TextureNode);
+  Result := Index <> -1;
+
+  if Result then
+    AlphaChannelType := GLTextureNodes.Items[Index].AlphaChannelType;
 end;
 
 { Render ---------------------------------------------------------------------- }
@@ -5265,249 +4328,32 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
   end;
 
   procedure InitTextures;
-
-    type
-      TTextureEnableDisable = (etOff, et2D, etCubeMap, et3D);
-
-    { Enable/disable texturing (2D and cube map) on current texture unit. }
-    procedure TextureEnableDisable(const Enable: TTextureEnableDisable);
-    begin
-      case Enable of
-        etOff:
-          begin
-            glDisable(GL_TEXTURE_2D);
-            if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-            if GL_EXT_texture3D        then glDisable(GL_TEXTURE_3D_EXT);
-          end;
-        et2D:
-          begin
-            glEnable(GL_TEXTURE_2D);
-            if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-            if GL_EXT_texture3D        then glDisable(GL_TEXTURE_3D_EXT);
-          end;
-        etCubeMap:
-          begin
-            glDisable(GL_TEXTURE_2D);
-            if GL_ARB_texture_cube_map then glEnable(GL_TEXTURE_CUBE_MAP_ARB);
-            if GL_EXT_texture3D        then glDisable(GL_TEXTURE_3D_EXT);
-          end;
-        et3D:
-          begin
-            glDisable(GL_TEXTURE_2D);
-            if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-            if GL_EXT_texture3D        then glEnable(GL_TEXTURE_3D_EXT);
-          end;
-        else raise EInternalError.Create('TextureEnableDisable?');
-      end;
-    end;
-
   var
     AlphaTest: boolean;
 
     procedure DisableTexture(const TextureUnit: Cardinal);
     begin
       ActiveTexture(TextureUnit);
-      TextureEnableDisable(etOff);
+      TGLTextureNode.TextureEnableDisable(etOff);
     end;
 
-    { Every EnableSingle*Texture behaves the same:
-
-      Enables non-multi texture.
-      TextureNode must be non-nil.
-
-      Returns success: false means that texture node was not prepared
-      for OpenGL, which means (we assume that you called Prepare before
-      Render) that texture failed to load. You should then disable
-      the texture unit, and you don't have to generate tex coords for it.
-
-      When returns @true (success) you can be sure that the specified
-      TextureUnit is currently bound (if OpenGL multitexturing
-      extensions are available at all). This is useful, if you want
-      to later adjust texture unit parameters, like
-      glTexEnvi(GL_TEXTURE_ENV, ...).
-
-      It's also already enabled (by glEnable(GL_TEXTURE_2D /
-      GL_TEXTURE_CUBE_MAP_ARB / GL_TEXTURE_3D_EXT) ).
-
-      AlphaTest may be modified, but only to true, by this procedure.
-
-      Also Primitives3DTextureCoords may be modified,
-      but only to true, by this procedure. }
-
-    function EnableSingle2DTexture(const TextureUnit: Cardinal;
-      TextureNode: TVRMLTextureNode;
+    { AlphaTest may be modified, but only to true, by this procedure. }
+    function EnableSingleTexture(const TextureUnit: Cardinal;
+      TextureNode: TVRMLNode;
       UseForBumpMappingAllowed: boolean): boolean;
-
-      procedure EnableClassicTexturing(GLTexture: TGLuint);
-      begin
-        ActiveTexture(TextureUnit);
-        TextureEnableDisable(et2D);
-
-        glBindTexture(GL_TEXTURE_2D, GLTexture);
-      end;
-
     var
-      IndexedFaceRenderer: TIndexedFaceSetRenderer;
-      TextureReferencesIndex: Integer;
-      TexImageReference: PTextureImageReference;
-      TexVideoReference: PTextureVideoReference;
-      VideoTime: TKamTime;
+      Index: Integer;
+      GLTextureNode: TGLTextureNode;
     begin
-      Result := false;
-
-      { Note: don't call IsTextureImage, IsTextureVideo here --- this
-        would causes reloading images/videos, nullifying
-        TVRMLScene.FreeResources([frTextureDataInNodes]) purpose.
-
-        Actually, it would be safe to call this for non-MovieTexture nodes,
-        as they should be prepared to display lists before doing
-        FreeResources. But for MovieTexture nodes it's forbidden,
-        as it's called at every frame render. }
-
-      TextureReferencesIndex := TextureImageReferences.TextureNodeIndex(
-        TextureNode);
-      if TextureReferencesIndex <> -1 then
+      Index := GLTextureNodes.TextureNodeIndex(TextureNode);
+      Result := Index <> -1;
+      if Result then
       begin
-        TexImageReference := TextureImageReferences.Pointers[
-          TextureReferencesIndex];
-
+        GLTextureNode := GLTextureNodes[Index];
         AlphaTest := AlphaTest or
-          (TexImageReference^.AlphaChannelType = atSimpleYesNo);
-
-        if UseForBumpMappingAllowed and
-           (MeshRenderer <> nil) and
-           MeshRenderer.BumpMappingAllowed and
-           (BumpMappingMethod <> bmNone) then
-        begin
-          if TexImageReference^.NormalMap <> 0 then
-          begin
-            MeshRenderer.BumpMappingMethod := BumpMappingMethod;
-            Assert(MeshRenderer is TIndexedFaceSetRenderer,
-              'We assumed that only TIndexedFaceSetRenderer may actually have BumpMappingMethod <> bmNone');
-            IndexedFaceRenderer := TIndexedFaceSetRenderer(MeshRenderer);
-            IndexedFaceRenderer.TexNormalizationCube := TexNormalizationCube;
-            IndexedFaceRenderer.TexOriginal := TexImageReference^.GLName;
-            IndexedFaceRenderer.TexOriginalAlpha := AlphaTest;
-            IndexedFaceRenderer.TexNormalMap := TexImageReference^.NormalMap;
-            IndexedFaceRenderer.TexHeightMap := TexImageReference^.HeightMap;
-            IndexedFaceRenderer.TexHeightMapScale := TexImageReference^.HeightMapScale;
-            { use parallax only if the model actually has heightMap }
-            if (IndexedFaceRenderer.TexHeightMap = 0) and
-               (MeshRenderer.BumpMappingMethod >= bmGLSLParallax) then
-              MeshRenderer.BumpMappingMethod := bmGLSLNormal;
-
-            { Bind specified TextureUnit. }
-            ActiveTexture(TextureUnit);
-          end else
-            EnableClassicTexturing(TexImageReference^.GLName);
-        end else
-          EnableClassicTexturing(TexImageReference^.GLName);
-
-        Result := true;
-      end else
-      begin
-        TextureReferencesIndex := TextureVideoReferences.TextureNodeIndex(
-          TextureNode);
-        if TextureReferencesIndex <> -1 then
-        begin
-          TexVideoReference := TextureVideoReferences.Pointers[TextureReferencesIndex];
-
-          AlphaTest := AlphaTest or
-            (TexVideoReference^.AlphaChannelType = atSimpleYesNo);
-
-          VideoTime := TexVideoReference^.Node.TimeDependentNodeHandler.ElapsedTime *
-                       TexVideoReference^.Node.FdSpeed.Value;
-          if TexVideoReference^.Node.FdSpeed.Value < 0 then
-            VideoTime := TexVideoReference^.Node.Duration + VideoTime;
-
-          EnableClassicTexturing(
-            TexVideoReference^.GLVideo.GLTextureFromTime(VideoTime));
-
-          Result := true;
-        end;
-      end;
-    end;
-
-    function EnableSingleRenderedTexture(const TextureUnit: Cardinal;
-      TextureNode: TNodeRenderedTexture): boolean;
-    var
-      TexRefIndex: Integer;
-      TexRef: PTextureImageReference;
-    begin
-      TexRefIndex := TextureImageReferences.TextureNodeIndex(TextureNode);
-      Result := TexRefIndex <> -1;
-      if Result then
-      begin
-        TexRef := TextureImageReferences.Pointers[TexRefIndex];
-
-        AlphaTest := AlphaTest or (TexRef^.AlphaChannelType = atSimpleYesNo);
-
-        ActiveTexture(TextureUnit);
-        glBindTexture(GL_TEXTURE_2D, TexRef^.GLName);
-        TextureEnableDisable(et2D);
-      end;
-    end;
-
-    function EnableSingleCubeMapTexture(const TextureUnit: Cardinal;
-      CubeTexture: TNodeX3DEnvironmentTextureNode): boolean;
-    var
-      TexRefIndex: Integer;
-      TexRef: PTextureCubeMapReference;
-    begin
-      TexRefIndex := TextureCubeMapReferences.TextureNodeIndex(CubeTexture);
-      Result := TexRefIndex <> -1;
-      if Result then
-      begin
-        TexRef := TextureCubeMapReferences.Pointers[TexRefIndex];
-
-        AlphaTest := AlphaTest or (TexRef^.AlphaChannelType = atSimpleYesNo);
-
-        ActiveTexture(TextureUnit);
-        glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, TexRef^.GLName);
-        TextureEnableDisable(etCubeMap);
-      end;
-    end;
-
-    function EnableSingleTexture3D(const TextureUnit: Cardinal;
-      Texture: TNodeX3DTexture3DNode): boolean;
-    var
-      TexRefIndex: Integer;
-      TexRef: PTexture3DReference;
-    begin
-      TexRefIndex := Texture3DReferences.TextureNodeIndex(Texture);
-      Result := TexRefIndex <> -1;
-      if Result then
-      begin
-        TexRef := Texture3DReferences.Pointers[TexRefIndex];
-
-        AlphaTest := AlphaTest or (TexRef^.AlphaChannelType = atSimpleYesNo);
-
-        Primitives3DTextureCoords := true;
-
-        ActiveTexture(TextureUnit);
-        glBindTexture(GL_TEXTURE_3D_EXT, TexRef^.GLName);
-        TextureEnableDisable(et3D);
-      end;
-    end;
-
-    function EnableSingleTextureDepth(const TextureUnit: Cardinal;
-      Texture: TNodeGeneratedShadowMap): boolean;
-    var
-      TexRefIndex: Integer;
-      TexRef: PTextureDepthReference;
-    begin
-      TexRefIndex := TextureDepthReferences.TextureNodeIndex(Texture);
-      Result := TexRefIndex <> -1;
-      if Result then
-      begin
-        TexRef := TextureDepthReferences.Pointers[TexRefIndex];
-
-        { Depth textures never have an alpha channel:
-        AlphaTest := AlphaTest or (TexRef^.AlphaChannelType = atSimpleYesNo); }
-
-        ActiveTexture(TextureUnit);
-        glBindTexture(GL_TEXTURE_2D, TexRef^.GLName);
-        TextureEnableDisable(et2D);
+          (GLTextureNode.AlphaChannelType = atSimpleYesNo);
+        Result := GLTextureNode.Enable(TextureUnit, UseForBumpMappingAllowed,
+          Primitives3DTextureCoords);
       end;
     end;
 
@@ -5742,7 +4588,7 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
           begin
             { For OFF, turn off the texture unit? This is the correct
               interpretation, right? }
-            TextureEnableDisable(etOff);
+            TGLTextureNode.TextureEnableDisable(etOff);
             AlreadyHandled := true;
           end else
           if LS = 'dotproduct3' then
@@ -5894,16 +4740,7 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
         begin
           if ChildTex is TNodeMultiTexture then
             VRMLWarning(vwSerious, 'Child of MultiTexture node cannot be another MultiTexture node') else
-          if ChildTex is TVRMLTextureNode then
-            Success := EnableSingle2DTexture(I, TVRMLTextureNode(ChildTex), false) else
-          if ChildTex is TNodeX3DEnvironmentTextureNode then
-            Success := EnableSingleCubeMapTexture(I, TNodeX3DEnvironmentTextureNode(ChildTex)) else
-          if ChildTex is TNodeX3DTexture3DNode then
-            Success := EnableSingleTexture3D(I, TNodeX3DTexture3DNode(ChildTex)) else
-          if ChildTex is TNodeGeneratedShadowMap then
-            Success := EnableSingleTextureDepth(I, TNodeGeneratedShadowMap(ChildTex)) else
-          if ChildTex is TNodeRenderedTexture then
-            Success := EnableSingleRenderedTexture(I, TNodeRenderedTexture(ChildTex));
+            Success := EnableSingleTexture(I, ChildTex, false);
 
           if Success then
           begin
@@ -6021,61 +4858,6 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
        Attributes.EnableTextures and
        NodeTextured(CurrentGeometry) then
     begin
-      if TextureNode is TVRMLTextureNode then
-      begin
-        if EnableSingle2DTexture(0, TVRMLTextureNode(TextureNode), true) then
-        begin
-          { TODO: this should be fixed, for non-multi tex decal
-            is standard? }
-          glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-          TexCoordsNeeded := 1;
-        end else
-          TexCoordsNeeded := 0;
-      end else
-      if TextureNode is TNodeRenderedTexture then
-      begin
-        if EnableSingleRenderedTexture(0, TNodeRenderedTexture(TextureNode)) then
-        begin
-          { TODO: this should be fixed, for non-multi tex decal
-            is standard? }
-          glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-          TexCoordsNeeded := 1;
-        end else
-          TexCoordsNeeded := 0;
-      end else
-      if TextureNode is TNodeX3DEnvironmentTextureNode then
-      begin
-        if EnableSingleCubeMapTexture(0, TNodeX3DEnvironmentTextureNode(TextureNode)) then
-        begin
-          { TODO: this should be fixed, for non-multi tex decal
-            is standard? }
-          glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-          TexCoordsNeeded := 1;
-        end else
-          TexCoordsNeeded := 0;
-      end else
-      if TextureNode is TNodeX3DTexture3DNode then
-      begin
-        if EnableSingleTexture3D(0, TNodeX3DTexture3DNode(TextureNode)) then
-        begin
-          { TODO: this should be fixed, for non-multi tex decal
-            is standard? }
-          glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-          TexCoordsNeeded := 1;
-        end else
-          TexCoordsNeeded := 0;
-      end else
-      if TextureNode is TNodeGeneratedShadowMap then
-      begin
-        if EnableSingleTextureDepth(0, TNodeGeneratedShadowMap(TextureNode)) then
-        begin
-          { TODO: this should be fixed, for non-multi tex decal
-            is standard? }
-          glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-          TexCoordsNeeded := 1;
-        end else
-          TexCoordsNeeded := 0;
-      end else
       if TextureNode is TNodeMultiTexture then
       begin
         { We set TexCoordsNeeded assuming that all EnableNonMultiTexture
@@ -6093,6 +4875,16 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
           MinTo1st(TexCoordsNeeded, 1);
 
         EnableMultiTexture(TexCoordsNeeded, TNodeMultiTexture(TextureNode));
+      end else
+      begin
+        if EnableSingleTexture(0, TextureNode, true) then
+        begin
+          { TODO: this should be fixed, for non-multi tex decal
+            is standard? }
+          glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+          TexCoordsNeeded := 1;
+        end else
+          TexCoordsNeeded := 0;
       end;
     end;
 
@@ -6102,12 +4894,12 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       for I := Attributes.FirstGLFreeTexture + TexCoordsNeeded to LastGLFreeTexture do
       begin
         glActiveTextureARB(GL_TEXTURE0_ARB + I);
-        TextureEnableDisable(etOff);
+        TGLTextureNode.TextureEnableDisable(etOff);
       end;
     end else
     begin
       if TexCoordsNeeded = 0 then
-        TextureEnableDisable(etOff);
+        TGLTextureNode.TextureEnableDisable(etOff);
     end;
 
     { Set alpha_test enabled state.
@@ -6437,8 +5229,7 @@ var
 
   procedure UpdateGeneratedCubeMap(TexNode: TNodeGeneratedCubeMapTexture);
   var
-    TexRefIndex: Integer;
-    TexRef: PTextureCubeMapReference;
+    GLNode: TGLGeneratedCubeMapTextureNode;
   begin
     { Shape.BoundingBox must be non-empty, otherwise we don't know from what
       3D point to capture environment. }
@@ -6446,17 +5237,15 @@ var
 
     if CheckUpdate(TexNode.FdUpdate) then
     begin
-      TexRefIndex := TextureCubeMapReferences.TextureNodeIndex(TexNode);
-      if TexRefIndex <> -1 then
+      GLNode := TGLGeneratedCubeMapTextureNode(GLTextureNodes.TextureNode(TexNode));
+      if GLNode <> nil then
       begin
-        TexRef := TextureCubeMapReferences.Pointers[TexRefIndex];
-
-        GLCaptureCubeMapTexture(TexRef^.GLName, TexRef^.GeneratedSize,
+        GLCaptureCubeMapTexture(GLNode.GLName, GLNode.GeneratedSize,
           Box3dMiddle(Shape.BoundingBox),
           Render, ProjectionNear, ProjectionFar, MapsOverlap,
           MapScreenX, MapScreenY);
 
-        if TexRef^.GeneratedNeedsMipmaps then
+        if GLNode.GeneratedNeedsMipmaps then
         begin
           { GLCaptureCubeMapTexture already bound the texture for OpenGL. }
           GenerateMipmap(GL_TEXTURE_CUBE_MAP);
@@ -6475,10 +5264,9 @@ var
   procedure UpdateGeneratedShadowMap(TexNode: TNodeGeneratedShadowMap);
   var
     Light: TNodeX3DLightNode;
-    TexRefIndex: Integer;
-    TexRef: PTextureDepthReference;
     ProjectionMatrix: TMatrix4Single;
     Size: Cardinal;
+    GLNode: TGLGeneratedShadowMap;
   begin
     if CheckUpdate(TexNode.FdUpdate) then
     begin
@@ -6487,11 +5275,9 @@ var
       begin
         Light := TNodeX3DLightNode(TexNode.FdLight.Value);
 
-        TexRefIndex := TextureDepthReferences.TextureNodeIndex(TexNode);
-        if TexRefIndex <> -1 then
+        GLNode := TGLGeneratedShadowMap(GLTextureNodes.TextureNode(TexNode));
+        if GLNode <> nil then
         begin
-          TexRef := TextureDepthReferences.Pointers[TexRefIndex];
-
           { Render view for shadow map }
           ProjectionMatrix := Light.MapProjectionMatrix;
 
@@ -6501,7 +5287,7 @@ var
             ProjectionMatrix);
           RenderState.Target := rtShadowMap;
 
-          Size := TexRef^.GeneratedSize;
+          Size := GLNode.GeneratedSize;
 
           glViewport(0, 0, Size, Size);
 
@@ -6524,8 +5310,8 @@ var
           glPopMatrix;
           glMatrixMode(GL_MODELVIEW);
 
-          { Actually update OpenGL texture TexRef^.GLName }
-          glBindTexture(GL_TEXTURE_2D, TexRef^.GLName);
+          { Actually update OpenGL texture GLNode.GLName }
+          glBindTexture(GL_TEXTURE_2D, GLNode.GLName);
           glReadBuffer(GL_BACK);
           glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, Size, Size);
 
@@ -6543,18 +5329,15 @@ var
 
   procedure UpdateRenderedTexture(TexNode: TNodeRenderedTexture);
   var
-    TexRefIndex: Integer;
-    TexRef: PTextureImageReference;
     Width, Height: Cardinal;
     ProjectionMatrix: TMatrix4Single;
+    GLNode: TGLRenderedTextureNode;
   begin
     if CheckUpdate(TexNode.FdUpdate) then
     begin
-      TexRefIndex := TextureImageReferences.TextureNodeIndex(TexNode);
-      if TexRefIndex <> -1 then
+      GLNode := TGLRenderedTextureNode(GLTextureNodes.TextureNode(TexNode));
+      if GLNode <> nil then
       begin
-        TexRef := TextureImageReferences.Pointers[TexRefIndex];
-
         ProjectionMatrix := PerspectiveProjMatrixDeg(45, 1, 0.1, 100) { TODO };
 
         RenderState.CameraFromMatrix(
@@ -6565,8 +5348,8 @@ var
           ProjectionMatrix);
         RenderState.Target := rfOffScreen;
 
-        Width := TexRef^.GeneratedWidth;
-        Height := TexRef^.GeneratedHeight;
+        Width := GLNode.GeneratedWidth;
+        Height := GLNode.GeneratedHeight;
 
         glViewport(0, 0, Width, Height);
 
@@ -6579,12 +5362,12 @@ var
         glPopMatrix;
         glMatrixMode(GL_MODELVIEW);
 
-        { Actually update OpenGL texture TexRef^.GLName }
-        glBindTexture(GL_TEXTURE_2D, TexRef^.GLName);
+        { Actually update OpenGL texture GLNode.GLName }
+        glBindTexture(GL_TEXTURE_2D, GLNode.GLName);
         glReadBuffer(GL_BACK);
         glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, Width, Height);
 
-        if TexRef^.GeneratedNeedsMipmaps then
+        if GLNode.GeneratedNeedsMipmaps then
         begin
           { We already bound the texture for OpenGL above. }
           GenerateMipmap(GL_TEXTURE_CUBE_MAP);
