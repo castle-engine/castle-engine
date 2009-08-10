@@ -270,6 +270,16 @@
     function Enable(const TextureUnit: Cardinal;
       const UseForBumpMappingAllowed: boolean;
       var Primitives3DTextureCoords: boolean): boolean; override;
+
+    procedure Update(
+      const Render: TRenderFromViewFunction;
+      const ProjectionNear, ProjectionFar: Single;
+      const MapsOverlap: boolean;
+      const MapScreenX, MapScreenY: Integer;
+      var NeedsRestoreViewport: boolean;
+      CurrentViewpoint: TVRMLViewpointNode;
+      IsLastViewer: boolean;
+      const LastViewerPosition, LastViewerDirection, LastViewerUp: TVector3Single);
   end;
 
   { Common handling for texture nodes of TNodeX3DEnvironmentTextureNode. }
@@ -328,6 +338,14 @@
 
     procedure Prepare(State: TVRMLGraphTraverseState;
       var BumpMappingWanted: TBumpMappingWanted); override;
+
+    procedure Update(
+      const Render: TRenderFromViewFunction;
+      const ProjectionNear, ProjectionFar: Single;
+      const MapsOverlap: boolean;
+      const MapScreenX, MapScreenY: Integer;
+      var NeedsRestoreViewport: boolean;
+      const CubeMiddle: TVector3Single);
   end;
 
   TGL3DTextureNode = class(TGLSingleTextureNode)
@@ -366,6 +384,14 @@
     function Enable(const TextureUnit: Cardinal;
       const UseForBumpMappingAllowed: boolean;
       var Primitives3DTextureCoords: boolean): boolean; override;
+
+    procedure Update(
+      const Render: TRenderFromViewFunction;
+      const ProjectionNear, ProjectionFar: Single;
+      const MapsOverlap: boolean;
+      const MapScreenX, MapScreenY: Integer;
+      var NeedsRestoreViewport: boolean;
+      Light: TNodeX3DLightNode);
   end;
 
 {$endif read_interface}
@@ -1539,6 +1565,97 @@ begin
   TextureEnableDisable(et2D);
 end;
 
+procedure TGLRenderedTextureNode.Update(
+  const Render: TRenderFromViewFunction;
+  const ProjectionNear, ProjectionFar: Single;
+  const MapsOverlap: boolean;
+  const MapScreenX, MapScreenY: Integer;
+  var NeedsRestoreViewport: boolean;
+  CurrentViewpoint: TVRMLViewpointNode;
+  IsLastViewer: boolean;
+  const LastViewerPosition, LastViewerDirection, LastViewerUp: TVector3Single);
+
+  procedure GetRenderedTextureCamera(out Pos, Dir, Up: TVector3Single);
+  var
+    { It's returned by Viewpoint.GetCameraVectors, but we'll ignore it. }
+    GravityUp: TVector3Single;
+
+    procedure GetFromCurrent;
+    begin
+      if IsLastViewer then
+      begin
+        Pos := LastViewerPosition;
+        Dir := LastViewerDirection;
+        Up  := LastViewerUp;
+      end else
+      if CurrentViewpoint <> nil then
+        CurrentViewpoint.GetCameraVectors(Pos, Dir, Up, GravityUp) else
+      begin
+        { If all else fails (no viewpoint node bound, not known current
+          camera seetings) use defaults. }
+        Pos := StdVRMLCamPos[2];
+        Dir := StdVRMLCamDir;
+        Up  := StdVRMLCamUp;
+      end;
+    end;
+
+  var
+    Viewpoint: TVRMLViewpointNode;
+  begin
+    if (TextureNode.FdViewpoint.Value <> nil) and
+       (TextureNode.FdViewpoint.Value is TVRMLViewpointNode) then
+    begin
+      Viewpoint := TVRMLViewpointNode(TextureNode.FdViewpoint.Value);
+      if Viewpoint = CurrentViewpoint then
+        { If it's the current viewpoint, behave like viewpoint = nil:
+          prefer using current location in LastViewer*,
+          eventually use viewpoint's GetCameraVectors. }
+        GetFromCurrent else
+        Viewpoint.GetCameraVectors(Pos, Dir, Up, GravityUp);
+    end else
+      GetFromCurrent;
+  end;
+
+var
+  CameraMatrix, ProjectionMatrix: TMatrix4Single;
+  Pos, Dir, Up: TVector3Single;
+begin
+  ProjectionMatrix := PerspectiveProjMatrixDeg(45, 1, 0.1, 100) { TODO };
+
+  GetRenderedTextureCamera(Pos, Dir, Up);
+  CameraMatrix := LookDirMatrix(Pos, Dir, Up);
+
+  RenderState.CameraFromMatrix(
+    CameraMatrix,
+    IdentityMatrix4Single { TODO - should be CameraRotationMatrix },
+    ProjectionMatrix);
+  RenderState.Target := rfOffScreen;
+
+  glViewport(0, 0, Width, Height);
+
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix;
+    glLoadMatrix(ProjectionMatrix);
+    glMatrixMode(GL_MODELVIEW);
+    Render;
+    glMatrixMode(GL_PROJECTION);
+  glPopMatrix;
+  glMatrixMode(GL_MODELVIEW);
+
+  { Actually update OpenGL texture GLNode.GLName }
+  glBindTexture(GL_TEXTURE_2D, GLName);
+  glReadBuffer(GL_BACK);
+  glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, Width, Height);
+
+  if NeedsMipmaps then
+  begin
+    { We already bound the texture for OpenGL above. }
+    GenerateMipmap(GL_TEXTURE_CUBE_MAP);
+  end;
+
+  NeedsRestoreViewport := true;
+end;
+
 { TGLCubeMapTextureNode ------------------------------------------------------ }
 
 function TGLCubeMapTextureNode.TextureNode: TNodeX3DEnvironmentTextureNode;
@@ -1787,6 +1904,28 @@ begin
   finally FreeAndNil(InitialImage) end;
 end;
 
+procedure TGLGeneratedCubeMapTextureNode.Update(
+  const Render: TRenderFromViewFunction;
+  const ProjectionNear, ProjectionFar: Single;
+  const MapsOverlap: boolean;
+  const MapScreenX, MapScreenY: Integer;
+  var NeedsRestoreViewport: boolean;
+  const CubeMiddle: TVector3Single);
+begin
+  GLCaptureCubeMapTexture(GLName, Size,
+    CubeMiddle,
+    Render, ProjectionNear, ProjectionFar, MapsOverlap,
+    MapScreenX, MapScreenY);
+
+  if NeedsMipmaps then
+  begin
+    { GLCaptureCubeMapTexture already bound the texture for OpenGL. }
+    GenerateMipmap(GL_TEXTURE_CUBE_MAP);
+  end;
+
+  NeedsRestoreViewport := true;
+end;
+
 { TGL3DTextureNode ----------------------------------------------------------- }
 
 class function TGL3DTextureNode.IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
@@ -1920,6 +2059,54 @@ begin
   Renderer.ActiveTexture(TextureUnit);
   glBindTexture(GL_TEXTURE_2D, GLName);
   TextureEnableDisable(et2D);
+end;
+
+procedure TGLGeneratedShadowMap.Update(
+  const Render: TRenderFromViewFunction;
+  const ProjectionNear, ProjectionFar: Single;
+  const MapsOverlap: boolean;
+  const MapScreenX, MapScreenY: Integer;
+  var NeedsRestoreViewport: boolean;
+  Light: TNodeX3DLightNode);
+var
+  ProjectionMatrix: TMatrix4Single;
+begin
+  { Render view for shadow map }
+  ProjectionMatrix := Light.MapProjectionMatrix;
+
+  RenderState.CameraFromMatrix(
+    Light.MapModelviewMatrix,
+    IdentityMatrix4Single { TODO: RotationMatrix is always identity here },
+    ProjectionMatrix);
+  RenderState.Target := rtShadowMap;
+
+  glViewport(0, 0, Size, Size);
+
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix;
+    glLoadMatrix(ProjectionMatrix);
+    glMatrixMode(GL_MODELVIEW);
+
+    glPushAttrib(GL_POLYGON_BIT);
+      { enable polygon offset for everything (whole scene) }
+      glEnable(GL_POLYGON_OFFSET_FILL); { saved by GL_POLYGON_BIT }
+      glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
+      glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
+      glPolygonOffset(TextureNode.FdScale.Value, TextureNode.FdBias.Value); { saved by GL_POLYGON_BIT }
+
+      Render;
+    glPopAttrib;
+
+    glMatrixMode(GL_PROJECTION);
+  glPopMatrix;
+  glMatrixMode(GL_MODELVIEW);
+
+  { Actually update OpenGL texture GLNode.GLName }
+  glBindTexture(GL_TEXTURE_2D, GLName);
+  glReadBuffer(GL_BACK);
+  glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, Size, Size);
+
+  NeedsRestoreViewport := true;
 end;
 
 {$endif read_implementation}
