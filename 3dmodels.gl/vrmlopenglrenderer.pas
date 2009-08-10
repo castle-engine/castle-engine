@@ -1566,14 +1566,13 @@ type
       read FBumpMappingLightDiffuseColor
       write SetBumpMappingLightDiffuseColor;
 
-    { Get calculated TImage.AlphaChannelType for texture in our cache.
+    { Get calculated TImage.AlphaChannelType for a prepared texture.
 
-      Returns @false if texture is not in the cache. If you want to make
-      sure the texture is in the cache make sure that
+      Returns @false if texture is not prepared. If you want to make
+      sure the texture is prepared make sure that
       @unorderedList(
-        @item(Texture node was previously prepared
-          (passed to @link(Prepare) method along with some state,
-          as State.Texture),)
+        @item(Texture node was passed to @link(Prepare)
+          method as State.Texture),)
         @item(Attributes.PureGeometry = @false,)
         @item(and node must have some texture data
           (for TVRMLTextureNode, check TextureNode.IsTextureImage or
@@ -3496,7 +3495,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
   { Do the necessary preparations for any texture node except TNodeMultiTexture.
     Ignore not handled (this includes TNodeMultiTexture) nodes.
     TextureNode must be non-nil. }
-  procedure PrepareSingleTexture(TextureNode: TVRMLNode);
+  procedure PrepareSingleTexture(TextureNode: TNodeX3DTextureNode);
   var
     GLTextureNodeClass: TGLTextureNodeClass;
     GLTextureNode: TGLTextureNode;
@@ -3532,11 +3531,12 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     for I := 0 to MultiTexture.FdTexture.Items.Count - 1 do
     begin
       ChildTex := MultiTexture.FdTexture.Items.Items[I];
-      if ChildTex <> nil then
+      if (ChildTex <> nil) and
+         (ChildTex is TNodeX3DTextureNode) then
       begin
         if ChildTex is TNodeMultiTexture then
           VRMLWarning(vwSerious, 'Child of MultiTexture node cannot be another MultiTexture node') else
-          PrepareSingleTexture(ChildTex);
+          PrepareSingleTexture(TNodeX3DTextureNode(ChildTex));
       end;
     end;
   end;
@@ -3621,8 +3621,8 @@ end;
 
 procedure TVRMLOpenGLRenderer.Unprepare(Node: TVRMLNode);
 
-  { Call Unprepare and release TGLTextureNode instance. }
-  procedure UnprepareSingleTexture(Tex: TVRMLNode);
+  { Call Unprepare and release related TGLTextureNode instance. }
+  procedure UnprepareSingleTexture(Tex: TNodeX3DTextureNode);
   var
     I: integer;
   begin
@@ -3643,8 +3643,9 @@ procedure TVRMLOpenGLRenderer.Unprepare(Node: TVRMLNode);
     for I := 0 to Tex.FdTexture.Count - 1 do
     begin
       TexItem := Tex.FdTexture.Items[I];
-      if TexItem = nil then Continue;
-      UnprepareSingleTexture(TexItem);
+      if (TexItem <> nil) and
+         (TexItem is TNodeX3DTextureNode) then
+        UnprepareSingleTexture(TNodeX3DTextureNode(TexItem));
     end;
   end;
 
@@ -3656,12 +3657,13 @@ begin
    o takich samych wlasciwosciach Family i Style korzystaja zawsze z tego
    samego juz utworzonego fontu.}
 
-  { unprepare if single texture }
-  UnprepareSingleTexture(Node);
-
-  { unprepare multi texture }
-  if Node is TNodeMultiTexture then
-    UnprepareMultiTexture(TNodeMultiTexture(Node)) else
+  { unprepare texture }
+  if Node is TNodeX3DTextureNode then
+  begin
+    if Node is TNodeMultiTexture then
+      UnprepareMultiTexture(TNodeMultiTexture(Node)) else
+      UnprepareSingleTexture(TNodeX3DTextureNode(Node));
+  end;
 
   { unprepare GLSLProgram }
   { This is not used for now anywhere actually ? Nowhere I unprepare
@@ -4339,7 +4341,7 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
 
     { AlphaTest may be modified, but only to true, by this procedure. }
     function EnableSingleTexture(const TextureUnit: Cardinal;
-      TextureNode: TVRMLNode;
+      TextureNode: TNodeX3DTextureNode;
       UseForBumpMappingAllowed: boolean): boolean;
     var
       Index: Integer;
@@ -4736,11 +4738,12 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
         ChildTex := MultiTexture.FdTexture.Items.Items[I];
         Success := false;
 
-        if ChildTex <> nil then
+        if (ChildTex <> nil) and
+           (ChildTex is TNodeX3DTextureNode) then
         begin
           if ChildTex is TNodeMultiTexture then
             VRMLWarning(vwSerious, 'Child of MultiTexture node cannot be another MultiTexture node') else
-            Success := EnableSingleTexture(I, ChildTex, false);
+            Success := EnableSingleTexture(I, TNodeX3DTextureNode(ChildTex), false);
 
           if Success then
           begin
