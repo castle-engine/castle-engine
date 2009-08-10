@@ -80,6 +80,7 @@
 
     { This is the alpha channel of this texture.
       Used by TVRMLOpenGLRenderer.PreparedTextureAlphaChannelType.
+      Should be calculated and set in Prepare.
 
       For textures with normal images, this is the saved result of
       TImage.AlphaChannelType. For videos, saved result of
@@ -134,6 +135,26 @@
     { Looks for item with given Node.
       Returns @nil if not found. }
     function TextureNode(Node: TNodeX3DTextureNode): TGLTextureNode;
+  end;
+
+  { Handler for TNodeMultiTexture.
+
+    This is somewhat special, in that it will use other TGLTextureNode
+    handlers to handle single textures inside --- but this is completely
+    hidden from the interface. }
+  TGLMultiTextureNode = class(TGLTextureNode)
+  protected
+    class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
+      Node: TNodeX3DTextureNode): boolean; override;
+  public
+    function TextureNode: TNodeMultiTexture;
+
+    procedure Prepare(State: TVRMLGraphTraverseState;
+      var BumpMappingWanted: TBumpMappingWanted); override;
+    procedure Unprepare; override;
+    function Enable(const TextureUnit: Cardinal;
+      const UseForBumpMappingAllowed: boolean;
+      var Primitives3DTextureCoords: boolean): boolean; override;
   end;
 
   { Handler for TVRMLTextureNode with image (not a video). }
@@ -443,7 +464,8 @@ class function TGLTextureNode.ClassForTextureNode(Cache: TTexturesImagesVideosCa
 begin
   { TODO: in the future, some way of registering class for this will
     be done. For now, just try known final TGLTextureNode descendants. }
-  if not (TryResult(TGLImageTextureNode) or
+  if not (TryResult(TGLMultiTextureNode) or
+          TryResult(TGLImageTextureNode) or
           TryResult(TGLMovieTextureNode) or
           TryResult(TGLRenderedTextureNode) or
           TryResult(TGLComposedCubeMapTextureNode) or
@@ -473,6 +495,59 @@ begin
     if Result.TextureNode = Node then Exit;
   end;
   Result := nil;
+end;
+
+{ TGLMultiTextureNode -------------------------------------------------------- }
+
+
+class function TGLMultiTextureNode.IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
+  Node: TNodeX3DTextureNode): boolean;
+begin
+  Result := Node is TNodeMultiTexture;
+end;
+
+function TGLMultiTextureNode.TextureNode: TNodeMultiTexture;
+begin
+  Result := TNodeMultiTexture(inherited TextureNode);
+end;
+
+procedure TGLMultiTextureNode.Prepare(State: TVRMLGraphTraverseState;
+  var BumpMappingWanted: TBumpMappingWanted);
+var
+  ChildTex: TVRMLNode;
+  I: Integer;
+begin
+  for I := 0 to TextureNode.FdTexture.Count - 1 do
+  begin
+    ChildTex := TextureNode.FdTexture.Items[I];
+    if (ChildTex <> nil) and
+       (ChildTex is TNodeX3DTextureNode) then
+    begin
+      if ChildTex is TNodeMultiTexture then
+        VRMLWarning(vwSerious, 'Child of MultiTexture node cannot be another MultiTexture node') else
+        Renderer.PrepareTexture(State, TNodeX3DTextureNode(ChildTex));
+    end;
+  end;
+end;
+
+procedure TGLMultiTextureNode.Unprepare;
+var
+  ChildTex: TVRMLNode;
+  I: Integer;
+begin
+  for I := 0 to TextureNode.FdTexture.Count - 1 do
+  begin
+    ChildTex := TextureNode.FdTexture.Items[I];
+    if (ChildTex <> nil) and
+       (ChildTex is TNodeX3DTextureNode) then
+      Renderer.UnprepareTexture(TNodeX3DTextureNode(ChildTex));
+  end;
+end;
+
+function TGLMultiTextureNode.Enable(const TextureUnit: Cardinal;
+  const UseForBumpMappingAllowed: boolean;
+  var Primitives3DTextureCoords: boolean): boolean;
+begin
 end;
 
 { TGLImageTextureNode -------------------------------------------------------- }

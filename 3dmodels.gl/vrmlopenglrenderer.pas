@@ -1427,6 +1427,19 @@ type
 
     FBumpMappingLightDiffuseColor: TVector4Single;
     procedure SetBumpMappingLightDiffuseColor(const Value: TVector4Single);
+
+    { Prepare/Unprepare texture nodes.
+
+      These should be called only from TVRMLOpenGLRenderer.Prepare/Unprepare[All],
+      they are exposed only to allow recursive call from
+      TGLMultiTextureNode.Prepare.
+
+      Accepts multi texture or not-multi texture nodes, accepts (and ignores)
+      also @nil as TextureNode.
+      Ignores not handled node classes. }
+    procedure PrepareTexture(State: TVRMLGraphTraverseState;
+      TextureNode: TNodeX3DTextureNode);
+    procedure UnprepareTexture(TextureNode: TNodeX3DTextureNode);
   public
     { Constructor.
 
@@ -1571,8 +1584,10 @@ type
       Returns @false if texture is not prepared. If you want to make
       sure the texture is prepared make sure that
       @unorderedList(
-        @item(Texture node was passed to @link(Prepare)
-          method as State.Texture),)
+        @item(State with this texture was passed to @link(Prepare) method
+          (that is, @link(Prepare) was called with this texture
+          as State.Texture, or, in case of multi-texturing, among
+          State.Texture.FdTexture.Items),)
         @item(Attributes.PureGeometry = @false,)
         @item(and node must have some texture data
           (for TVRMLTextureNode, check TextureNode.IsTextureImage or
@@ -3307,85 +3322,8 @@ end;
 
 { Prepare/Unprepare[All] ------------------------------------------------------- }
 
-procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
-
-  procedure PrepareFont(
-    fsfam: TVRMLFontFamily;
-    fsbold, fsitalic: boolean;
-    TTF_Font: PTrueTypeFont);
-  begin
-    if not FontsReferences[fsfam, fsbold, fsitalic] then
-    begin
-      Cache.Fonts_IncReference(fsfam, fsbold, fsitalic, TTF_Font);
-      FontsReferences[fsfam, fsbold, fsitalic] := true;
-    end;
-  end;
-
-  procedure PrepareGLSLProgram;
-  var
-    I: Integer;
-    ProgramNode: TNodeComposedShader;
-    GLSLProgram: TGLSLProgram;
-    GLSLProgramReference: PGLSLProgramReference;
-    ExistingReferenceIndex: Integer;
-  begin
-    { prepare GLSLProgram }
-    if (not Attributes.PureGeometry) and
-       Attributes.GLSLShaders and
-       (State.ParentShape <> nil) and
-       (State.ParentShape.Appearance <> nil) then
-    begin
-      for I := 0 to State.ParentShape.Appearance.FdShaders.Items.Count - 1 do
-      begin
-        ProgramNode := State.ParentShape.Appearance.GLSLShader(I);
-        if ProgramNode <> nil then
-        begin
-          ExistingReferenceIndex := GLSLProgramReferences.ProgramNodeIndex(ProgramNode);
-
-          if ExistingReferenceIndex <> -1 then
-          begin
-            { This ProgramNode was already prepared.
-              So just take it's GLSLProgram (to decide lower whether we can Break or not
-              now). }
-            GLSLProgram := GLSLProgramReferences.Items[ExistingReferenceIndex].GLSLProgram;
-          end else
-          begin
-            try
-              GLSLProgram := Cache.GLSLProgram_IncReference(ProgramNode);
-              ProgramNode.EventIsSelectedSend(true);
-            except
-              { EGLSLError catches errors from Cache.GLSLProgram_IncReference,
-                including GLShaders errors like
-                EGLSLShaderCompileError or EGLSLProgramLinkError }
-              on E: EGLSLError do
-              begin
-                VRMLWarning(vwSerious, 'Error when initializing GLSL shader : ' + E.Message);
-                GLSLProgram := nil;
-                ProgramNode.EventIsSelectedSend(false);
-              end;
-            end;
-
-            { Whether GLSLProgram is nil or not (GLSLProgram_IncReference
-              succeded or not), we add record to GLSLProgramReferences }
-            GLSLProgramReference := GLSLProgramReferences.AppendItem;
-            GLSLProgramReference^.ProgramNode := ProgramNode;
-            GLSLProgramReference^.GLSLProgram := GLSLProgram;
-          end;
-
-          { Only if successfull, break. }
-          if GLSLProgram <> nil then
-            Break;
-        end else
-        begin
-          { GLSLShader(I) is nil, so this is not appropriate node class
-            or "language" field was bad.
-            So at least send him "isSelected" = false, if it's X3DShaderNode. }
-          if State.ParentShape.Appearance.FdShaders.Items[I] is TNodeX3DShaderNode then
-            (State.ParentShape.Appearance.FdShaders.Items[I] as TNodeX3DShaderNode).EventIsSelectedSend(false);
-        end;
-      end;
-    end;
-  end;
+procedure TVRMLOpenGLRenderer.PrepareTexture(State: TVRMLGraphTraverseState;
+  TextureNode: TNodeX3DTextureNode);
 
   { Called when BumpMappingMethod <> bmNone and it's detected that bump mapping
     may be actually used. This is supposed to initialize anything related to
@@ -3492,22 +3430,22 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     end;
   end;
 
-  { Do the necessary preparations for any texture node except TNodeMultiTexture.
-    Ignore not handled (this includes TNodeMultiTexture) nodes.
-    TextureNode must be non-nil. }
-  procedure PrepareSingleTexture(TextureNode: TNodeX3DTextureNode);
-  var
-    GLTextureNodeClass: TGLTextureNodeClass;
-    GLTextureNode: TGLTextureNode;
-    BumpMappingWanted: TBumpMappingWanted;
+var
+  GLTextureNodeClass: TGLTextureNodeClass;
+  GLTextureNode: TGLTextureNode;
+  BumpMappingWanted: TBumpMappingWanted;
+begin
+  { Conditions below describing when the texture is added to the cache
+    (more precisely, just "not Attributes.PureGeometry" for now)
+    are reflected in PreparedTextureAlphaChannelType documentation. }
+
+  if (not Attributes.PureGeometry) and
+     (TextureNode <> nil) then
   begin
     GLTextureNodeClass := TGLTextureNodeClass.ClassForTextureNode(Cache, TextureNode);
 
-    { Ignore if not handled node (possibly, user placed invalid node
-      in "texture" field or such). }
-    if GLTextureNodeClass = nil then Exit;
-
-    if GLTextureNodes.TextureNodeIndex(TextureNode) = -1 then
+    if (GLTextureNodeClass <> nil { Ignore if not handled node. }) and
+       (GLTextureNodes.TextureNodeIndex(TextureNode) = -1) then
     begin
       GLTextureNode := GLTextureNodeClass.Create(Self, TextureNode);
       GLTextureNode.Prepare(State, BumpMappingWanted);
@@ -3520,44 +3458,85 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
         PrepareBumpMapping(BumpMappingWanted = bmwParallax);
     end;
   end;
+end;
 
-  { Do the necessary preparations for a multi-texture node.
-    MultiTexture must be non-nil. }
-  procedure PrepareMultiTexture(MultiTexture: TNodeMultiTexture);
-  var
-    ChildTex: TVRMLNode;
-    I: Integer;
+procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
+
+  procedure PrepareFont(
+    fsfam: TVRMLFontFamily;
+    fsbold, fsitalic: boolean;
+    TTF_Font: PTrueTypeFont);
   begin
-    for I := 0 to MultiTexture.FdTexture.Items.Count - 1 do
+    if not FontsReferences[fsfam, fsbold, fsitalic] then
     begin
-      ChildTex := MultiTexture.FdTexture.Items.Items[I];
-      if (ChildTex <> nil) and
-         (ChildTex is TNodeX3DTextureNode) then
-      begin
-        if ChildTex is TNodeMultiTexture then
-          VRMLWarning(vwSerious, 'Child of MultiTexture node cannot be another MultiTexture node') else
-          PrepareSingleTexture(TNodeX3DTextureNode(ChildTex));
-      end;
+      Cache.Fonts_IncReference(fsfam, fsbold, fsitalic, TTF_Font);
+      FontsReferences[fsfam, fsbold, fsitalic] := true;
     end;
   end;
 
-  { Prepare texture.
-
-    Accepts multi texture or not-multi texture nodes, accepts (and ignores)
-    also @nil as TextureNode. }
-  procedure PrepareTexture(TextureNode: TNodeX3DTextureNode);
+  procedure PrepareGLSLProgram;
+  var
+    I: Integer;
+    ProgramNode: TNodeComposedShader;
+    GLSLProgram: TGLSLProgram;
+    GLSLProgramReference: PGLSLProgramReference;
+    ExistingReferenceIndex: Integer;
   begin
-    { Conditions below describing when the texture is added to the cache
-      (along with "...TextureNodeIndex(TextureNode) = -1" inside
-      PrepareTextureNonMulti)
-      are reflected in PreparedTextureAlphaChannelType interface. }
-
+    { prepare GLSLProgram }
     if (not Attributes.PureGeometry) and
-       (TextureNode <> nil) then
+       Attributes.GLSLShaders and
+       (State.ParentShape <> nil) and
+       (State.ParentShape.Appearance <> nil) then
     begin
-      if TextureNode is TNodeMultiTexture then
-        PrepareMultiTexture(TNodeMultiTexture(TextureNode)) else
-        PrepareSingleTexture(TextureNode);
+      for I := 0 to State.ParentShape.Appearance.FdShaders.Items.Count - 1 do
+      begin
+        ProgramNode := State.ParentShape.Appearance.GLSLShader(I);
+        if ProgramNode <> nil then
+        begin
+          ExistingReferenceIndex := GLSLProgramReferences.ProgramNodeIndex(ProgramNode);
+
+          if ExistingReferenceIndex <> -1 then
+          begin
+            { This ProgramNode was already prepared.
+              So just take it's GLSLProgram (to decide lower whether we can Break or not
+              now). }
+            GLSLProgram := GLSLProgramReferences.Items[ExistingReferenceIndex].GLSLProgram;
+          end else
+          begin
+            try
+              GLSLProgram := Cache.GLSLProgram_IncReference(ProgramNode);
+              ProgramNode.EventIsSelectedSend(true);
+            except
+              { EGLSLError catches errors from Cache.GLSLProgram_IncReference,
+                including GLShaders errors like
+                EGLSLShaderCompileError or EGLSLProgramLinkError }
+              on E: EGLSLError do
+              begin
+                VRMLWarning(vwSerious, 'Error when initializing GLSL shader : ' + E.Message);
+                GLSLProgram := nil;
+                ProgramNode.EventIsSelectedSend(false);
+              end;
+            end;
+
+            { Whether GLSLProgram is nil or not (GLSLProgram_IncReference
+              succeded or not), we add record to GLSLProgramReferences }
+            GLSLProgramReference := GLSLProgramReferences.AppendItem;
+            GLSLProgramReference^.ProgramNode := ProgramNode;
+            GLSLProgramReference^.GLSLProgram := GLSLProgram;
+          end;
+
+          { Only if successfull, break. }
+          if GLSLProgram <> nil then
+            Break;
+        end else
+        begin
+          { GLSLShader(I) is nil, so this is not appropriate node class
+            or "language" field was bad.
+            So at least send him "isSelected" = false, if it's X3DShaderNode. }
+          if State.ParentShape.Appearance.FdShaders.Items[I] is TNodeX3DShaderNode then
+            (State.ParentShape.Appearance.FdShaders.Items[I] as TNodeX3DShaderNode).EventIsSelectedSend(false);
+        end;
+      end;
     end;
   end;
 
@@ -3614,41 +3593,27 @@ begin
         FontStyle.TTF_Font);
   end;
 
-  PrepareTexture(State.Texture);
+  PrepareTexture(State, State.Texture);
 
   PrepareGLSLProgram;
 end;
 
-procedure TVRMLOpenGLRenderer.Unprepare(Node: TVRMLNode);
-
+procedure TVRMLOpenGLRenderer.UnprepareTexture(TextureNode: TNodeX3DTextureNode);
+var
+  I: integer;
+begin
   { Call Unprepare and release related TGLTextureNode instance. }
-  procedure UnprepareSingleTexture(Tex: TNodeX3DTextureNode);
-  var
-    I: integer;
-  begin
-    I := GLTextureNodes.TextureNodeIndex(Tex);
-    if I >= 0 then
-    begin
-      GLTextureNodes[I].Unprepare;
-      GLTextureNodes[I].Free;
-      GLTextureNodes.Delete(I);
-    end;
-  end;
 
-  procedure UnprepareMultiTexture(Tex: TNodeMultiTexture);
-  var
-    TexItem: TVRMLNode;
-    I: Integer;
+  I := GLTextureNodes.TextureNodeIndex(TextureNode);
+  if I >= 0 then
   begin
-    for I := 0 to Tex.FdTexture.Count - 1 do
-    begin
-      TexItem := Tex.FdTexture.Items[I];
-      if (TexItem <> nil) and
-         (TexItem is TNodeX3DTextureNode) then
-        UnprepareSingleTexture(TNodeX3DTextureNode(TexItem));
-    end;
+    GLTextureNodes[I].Unprepare;
+    GLTextureNodes[I].Free;
+    GLTextureNodes.Delete(I);
   end;
+end;
 
+procedure TVRMLOpenGLRenderer.Unprepare(Node: TVRMLNode);
 var
   I: Integer;
 begin
@@ -3659,11 +3624,7 @@ begin
 
   { unprepare texture }
   if Node is TNodeX3DTextureNode then
-  begin
-    if Node is TNodeMultiTexture then
-      UnprepareMultiTexture(TNodeMultiTexture(Node)) else
-      UnprepareSingleTexture(TNodeX3DTextureNode(Node));
-  end;
+    UnprepareTexture(TNodeX3DTextureNode(Node));
 
   { unprepare GLSLProgram }
   { This is not used for now anywhere actually ? Nowhere I unprepare
