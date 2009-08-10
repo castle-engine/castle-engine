@@ -84,7 +84,7 @@ type
     class procedure RenderOrDisable(Light: TVRMLGLHeadlight;
       GLLightNumber: Cardinal;
       const HeadlightFromCurrentView: boolean;
-      Navigator: TWalkNavigator);
+      Navigator: TNavigator);
     { @groupEnd }
   end;
 
@@ -180,10 +180,12 @@ end;
 class procedure TVRMLGLHeadLight.RenderOrDisable(Light: TVRMLGLHeadlight;
   GLLightNumber: Cardinal;
   const HeadlightFromCurrentView: boolean;
-  Navigator: TWalkNavigator);
+  Navigator: TNavigator);
+var
+  Pos, Dir, Up: TVector3Single;
 begin
-  RenderOrDisable(Light, GLLightNumber, HeadlightFromCurrentView,
-    Navigator.CameraPos, Navigator.CameraDir);
+  Navigator.GetCameraVectors(Pos, Dir, Up);
+  RenderOrDisable(Light, GLLightNumber, HeadlightFromCurrentView, Pos, Dir);
 end;
 
 end.

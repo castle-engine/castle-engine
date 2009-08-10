@@ -144,6 +144,12 @@ type
 
     procedure PrepareRender;
     procedure Render;
+
+    { What changes happen when viewer camera changes.
+      You may want to use it when calling Scene.ViewerChanges.
+
+      Implementation in this class is correlated with RenderHeadlight. }
+    function ViewerToChanges: TPostRedisplayChanges; virtual;
   end;
 
 implementation
@@ -189,27 +195,16 @@ begin
 end;
 
 procedure TSceneManager.RenderHeadLight;
-var
-  HeadlightPosition, HeadlightDirection: TVector3Single;
 begin
-  if RenderState.Target <> rtScreen then
-  begin
-    if Navigator is TWalkNavigator then
-    begin
-      HeadlightPosition := TWalkNavigator(Navigator).CameraPos;
-      HeadlightDirection := TWalkNavigator(Navigator).CameraDir;
-    end else
-    begin
-      { TODO: temporary. We want all navigators to return CameraPos/Dir,
-        to be able to cast headlight from it. }
-      HeadlightPosition := Vector3Single(0, 0, 0);
-      HeadlightDirection := Vector3Single(0, 0, -1);
-    end;
-  end;
-
   TVRMLGLHeadlight.RenderOrDisable(Scene.Headlight, 0,
-    RenderState.Target = rtScreen,
-    HeadlightPosition, HeadlightDirection);
+    RenderState.Target = rtScreen, Navigator);
+end;
+
+function TSceneManager.ViewerToChanges: TPostRedisplayChanges;
+begin
+  if Scene.Headlight <> nil then
+    Result := [prVisibleSceneNonGeometry] else
+    Result := [];
 end;
 
 procedure TSceneManager.RenderFromView3D;
