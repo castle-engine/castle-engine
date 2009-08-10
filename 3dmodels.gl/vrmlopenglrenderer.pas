@@ -4378,29 +4378,8 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
         since it has smartly calculated AlphaChannelType. }
       AlphaTest := GLTextureNode.AlphaChannelType = atSimpleYesNo;
 
-      if TextureNode is TNodeMultiTexture then
-      begin
-        { We set TexCoordsNeeded assuming that all EnableNonMultiTexture
-          will succeed. In other words, we're potentially loosing a small
-          optimization here: if some textures in multitexture failed
-          to load, we could avoid generating texture coords for them.
-          This would requre changing TexCoordsNeeded into bool array,
-          and generally is not considered worthy implementing for now. }
-
-        TexCoordsNeeded := Min(
-          FreeGLTexturesCount,
-          TNodeMultiTexture(TextureNode).FdTexture.Count);
-
-        if not UseMultiTexturing then
-          MinTo1st(TexCoordsNeeded, 1);
-
-        GLTextureNode.EnableAll(TexCoordsNeeded, Primitives3DTextureCoords);
-      end else
-      begin
-        if GLTextureNode.EnableAll(1, Primitives3DTextureCoords) then
-          TexCoordsNeeded := 1 else
-          TexCoordsNeeded := 0;
-      end;
+      GLTextureNode.EnableAll(FreeGLTexturesCount, UseMultiTexturing,
+        TexCoordsNeeded, Primitives3DTextureCoords);
     end;
 
     { Disable unused textures }

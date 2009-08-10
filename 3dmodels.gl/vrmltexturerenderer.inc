@@ -119,33 +119,47 @@
       const UseForBumpMappingAllowed: boolean;
       var Primitives3DTextureCoords: boolean): boolean; virtual; abstract;
 
-    { Sets texture state for all texture units < TexCount, based on this node.
-      Has to set enabled/disabled state on all texture units.
+    { Sets texture state for many texture units, based on this node.
       On every texture unit where something is enabled,
       proper texture identifier must be bound.
       Also, has to set complete glTexEnv on every enabled texture unit.
 
-      Classes other than TGLMultiTextureNode have special rules here
-      (TODO: this is somewhat dirty interface of a method):
-      they will always be called with TexCount = 1, and should not disable
-      this unit themselves if nothing is enabled. IOW, for non-TGLMultiTextureNode
-      classes, this should be just equivalent to normal @link(Enable)
-      or 0 texture unit, followed (if successfull) by glTexEnv on this unit.
-      In pratice, implementation of this method in this class (TGLTextureNode)
-      is suitable for non-TGLMultiTextureNode, and it should not be overridden.
+      TextureUnitsCount says how many texture units can be enabled/disabled.
 
-      Class TGLMultiTextureNode has to abide by full specification of this
-      procedure. It's return value doesn't matter.
+      TextureUnitsCount does *not* take into account whether multitexturing
+      OpenGL extensions are available at all.
+      Look at UseMultiTexturing for this.
+      Think of UseMultiTexturing as capping TextureUnitsCount to 1
+      (still, remember to honour TextureUnitsCount = 0 case in your implementation,
+      even when UseMultiTexturing = @true).
+
+      You have to set TexCoordsNeeded, this is the count of texture units
+      where some texture coordinates should be generated.
+      This means that all texture units above TexCoordsNeeded
+      (to TextureUnitsCount - 1) should be disabled by the caller (no need to
+      do this in EnableAll),
+      and there's no need to generated texture coords for them.
+
+      (
+      Yes, there is some small optimization missed in the definition
+      of TexCoordsNeeded: if some textures in the middle of
+      multitexture children list failed to load, but some following children
+      succeded, we'll generate tex coords even for the useless texture units
+      in the middle. We could avoid generating texture coords for them,
+      by changing TexCoordsNeeded into bool array.
+      This optimization is not considered worthy implementing for now.
+      )
+
+      You have to set texture state of all texture units < TexCoordsNeeded,
+      and only on them.
 
       Primitives3DTextureCoords may be modified,
       but only to true, by this procedure. }
-    function EnableAll(const TexCount: Cardinal;
-      var Primitives3DTextureCoords: boolean): boolean; virtual;
-  end;
-
-  { TVRMLTextureNode handler,
-    common for simple 2D image and MovieTexture nodes. }
-  TGLImageVideoTextureNode = class(TGLTextureNode)
+    procedure EnableAll(
+      const TextureUnitsCount: Cardinal;
+      const UseMultiTexturing: boolean;
+      out TexCoordsNeeded: Cardinal;
+      var Primitives3DTextureCoords: boolean); virtual; abstract;
   end;
 
   TObjectsListItem_1 = TGLTextureNode;
@@ -159,6 +173,19 @@
     { Looks for item with given Node.
       Returns @nil if not found. }
     function TextureNode(Node: TNodeX3DTextureNode): TGLTextureNode;
+  end;
+
+  { Common class for all single (not multi-texture) texture nodes.
+
+    Implements EnableAll method, by calling @link(Enable) call.
+    Override only @link(Enable) in descendants. }
+  TGLSingleTextureNode = class(TGLTextureNode)
+  public
+    procedure EnableAll(
+      const TextureUnitsCount: Cardinal;
+      const UseMultiTexturing: boolean;
+      out TexCoordsNeeded: Cardinal;
+      var Primitives3DTextureCoords: boolean); override;
   end;
 
   { Handler for TNodeMultiTexture.
@@ -179,12 +206,15 @@
     function Enable(const TextureUnit: Cardinal;
       const UseForBumpMappingAllowed: boolean;
       var Primitives3DTextureCoords: boolean): boolean; override;
-    function EnableAll(const TexCount: Cardinal;
-      var Primitives3DTextureCoords: boolean): boolean; override;
+    procedure EnableAll(
+      const TextureUnitsCount: Cardinal;
+      const UseMultiTexturing: boolean;
+      out TexCoordsNeeded: Cardinal;
+      var Primitives3DTextureCoords: boolean); override;
   end;
 
   { Handler for TVRMLTextureNode with image (not a video). }
-  TGLImageTextureNode = class(TGLImageVideoTextureNode)
+  TGLImageTextureNode = class(TGLSingleTextureNode)
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
       Node: TNodeX3DTextureNode): boolean; override;
@@ -203,7 +233,7 @@
       var Primitives3DTextureCoords: boolean): boolean; override;
   end;
 
-  TGLMovieTextureNode = class(TGLImageVideoTextureNode)
+  TGLMovieTextureNode = class(TGLSingleTextureNode)
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
       Node: TNodeX3DTextureNode): boolean; override;
@@ -220,7 +250,7 @@
       var Primitives3DTextureCoords: boolean): boolean; override;
   end;
 
-  TGLRenderedTextureNode = class(TGLTextureNode)
+  TGLRenderedTextureNode = class(TGLSingleTextureNode)
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
       Node: TNodeX3DTextureNode): boolean; override;
@@ -242,7 +272,7 @@
   end;
 
   { Common handling for texture nodes of TNodeX3DEnvironmentTextureNode. }
-  TGLCubeMapTextureNode = class(TGLTextureNode)
+  TGLCubeMapTextureNode = class(TGLSingleTextureNode)
   public
     GLName: TGLuint;
 
@@ -299,7 +329,7 @@
       var BumpMappingWanted: TBumpMappingWanted); override;
   end;
 
-  TGL3DTextureNode = class(TGLTextureNode)
+  TGL3DTextureNode = class(TGLSingleTextureNode)
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
       Node: TNodeX3DTextureNode): boolean; override;
@@ -316,7 +346,7 @@
       var Primitives3DTextureCoords: boolean): boolean; override;
   end;
 
-  TGLGeneratedShadowMap = class(TGLTextureNode)
+  TGLGeneratedShadowMap = class(TGLSingleTextureNode)
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
       Node: TNodeX3DTextureNode): boolean; override;
@@ -502,18 +532,6 @@ begin
     Result := nil;
 end;
 
-function TGLTextureNode.EnableAll(const TexCount: Cardinal;
-  var Primitives3DTextureCoords: boolean): boolean;
-begin
-  Assert(TexCount = 1);
-  Result := Enable(0, true, Primitives3DTextureCoords);
-  if Result then
-  begin
-    { TODO: this should be fixed, for non-multi tex decal is standard? }
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-  end;
-end;
-
 { TGLTextureNodes ------------------------------------------------------------ }
 
 function TGLTextureNodes.TextureNodeIndex(Node: TNodeX3DTextureNode): Integer;
@@ -535,8 +553,25 @@ begin
   Result := nil;
 end;
 
-{ TGLMultiTextureNode -------------------------------------------------------- }
+{ TGLSingleTextureNode ------------------------------------------------------- }
 
+procedure TGLSingleTextureNode.EnableAll(
+  const TextureUnitsCount: Cardinal;
+  const UseMultiTexturing: boolean;
+  out TexCoordsNeeded: Cardinal;
+  var Primitives3DTextureCoords: boolean);
+begin
+  TexCoordsNeeded := 0;
+  if (TextureUnitsCount > 0) and
+     Enable(0, true, Primitives3DTextureCoords) then
+  begin
+    { TODO: this should be fixed, for non-multi tex decal is standard? }
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    TexCoordsNeeded := 1;
+  end;
+end;
+
+{ TGLMultiTextureNode -------------------------------------------------------- }
 
 class function TGLMultiTextureNode.IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
   Node: TNodeX3DTextureNode): boolean;
@@ -616,8 +651,11 @@ begin
   Result := false;
 end;
 
-function TGLMultiTextureNode.EnableAll(const TexCount: Cardinal;
-  var Primitives3DTextureCoords: boolean): boolean;
+procedure TGLMultiTextureNode.EnableAll(
+  const TextureUnitsCount: Cardinal;
+  const UseMultiTexturing: boolean;
+  out TexCoordsNeeded: Cardinal;
+  var Primitives3DTextureCoords: boolean);
 type
   TChannel = (cRGB, cAlpha);
   TGLIntPerChannel = array [TChannel] of TGLint;
@@ -990,10 +1028,12 @@ var
   NeedsConstantColor: boolean;
   Source: TGLIntPerChannel;
 begin
-  Result := false; { Result doesn't matter for MultiTexture }
+  { calculate TexCoordsNeeded }
+  TexCoordsNeeded := Min(TextureUnitsCount, TextureNode.FdTexture.Count);
+  if not UseMultiTexturing then
+    MinTo1st(TexCoordsNeeded, 1);
 
-  Assert(Integer(TexCount) <= TextureNode.FdTexture.Items.Count);
-  for I := 0 to Integer(TexCount) - 1 do
+  for I := 0 to TexCoordsNeeded - 1 do
   begin
     ChildTex := TextureNode.FdTexture.Items.Items[I];
     Success := false;
