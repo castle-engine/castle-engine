@@ -1675,7 +1675,8 @@ implementation
 
 uses Math, Triangulator, NormalizationCubeMap,
   KambiStringUtils, GLVersionUnit, KambiLog,
-  VRMLGeometry, VRMLScene, DDS, Frustum, RenderStateUnit, VRMLCameraUtils;
+  VRMLGeometry, VRMLScene, DDS, Frustum, RenderStateUnit, VRMLCameraUtils,
+  RaysWindow;
 
 {$define read_implementation}
 {$I dynarray_2.inc}

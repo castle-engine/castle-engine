@@ -1575,6 +1575,83 @@ procedure TGLRenderedTextureNode.Update(
   IsLastViewer: boolean;
   const LastViewerPosition, LastViewerDirection, LastViewerUp: TVector3Single);
 
+var
+  Viewpoint: TVRMLViewpointNode;
+
+  function GetProjectionMatrix: TMatrix4Single;
+  { This somewhat follows the logic similar to TVRMLGLScene.GLProjectionCore:
+    we have to calculate projection, given Viewpoint node.
+
+    We have to calculate things a little differently, e.g. we have
+    no NavigationInfo (it would be bad to use scene bound NavigationInfo,
+    since VRML author cannot change it by any RenderedTexture field,
+    and adding such field could be too much...),
+    no knowledge of scene box (although we do have ProjectionNear / Far
+    already).
+  }
+
+    procedure DoPerspective;
+    var
+      FieldOfView: Single;
+      AngleOfViewX, AngleOfViewY: Single;
+    begin
+      if (Viewpoint <> nil) and
+         (Viewpoint is TNodeViewpoint) then
+        FieldOfView := TNodeViewpoint(Viewpoint).FdFieldOfView.Value else
+        FieldOfView := DefaultViewpointFieldOfView;
+
+      AngleOfViewX := RadToDeg(TNodeViewpoint.ViewpointAngleOfView(
+        FieldOfView, Width / Height));
+
+      AngleOfViewY := AdjustViewAngleDegToAspectRatio(
+        AngleOfViewX, Height / Width);
+
+      Result := PerspectiveProjMatrixDeg(AngleOfViewY, Width / Height,
+        ProjectionNear, ProjectionFar);
+    end;
+
+    procedure DoOrthographic;
+    var
+      FieldOfView: TDynSingleArray;
+      Left, Right, Bottom, Top: Single;
+    begin
+      { default left / right / bottom / top }
+      Left   := -1;
+      Right  :=  1;
+      Bottom := -1;
+      Top    :=  1;
+
+      { update left / right / bottom / top using OrthoViewpoint.fieldOfView }
+      if (Viewpoint <> nil) and
+         (Viewpoint is TNodeOrthoViewpoint) then
+      begin
+        FieldOfView := TNodeOrthoViewpoint(Viewpoint).FdFieldOfView.Items;
+        { Beware: order of OrthoViewpoint.fieldOfView is different
+          than typical OpenGL and our ProjectionGLOrtho. }
+        if FieldOfView.High >= 0 then Left   := FieldOfView.Items[0];
+        if FieldOfView.High >= 1 then Bottom := FieldOfView.Items[1];
+        if FieldOfView.High >= 2 then Right  := FieldOfView.Items[2];
+        if FieldOfView.High >= 3 then Top    := FieldOfView.Items[3];
+      end;
+
+      Result := OrthoProjMatrix(Left, Right, Bottom, Top,
+        ProjectionNear, ProjectionFar);
+    end;
+
+  var
+    CameraKind: TVRMLCameraKind;
+  begin
+    if Viewpoint <> nil then
+      CameraKind := Viewpoint.CameraKind else
+      CameraKind := ckPerspective;
+
+    case CameraKind of
+      ckPerspective: DoPerspective;
+      ckOrthographic: DoOrthographic;
+      else EInternalError.Create('TGLRenderedTextureNode.Update-CameraKind?');
+    end;
+  end;
+
   procedure GetRenderedTextureCamera(out Pos, Dir, Up: TVector3Single);
   var
     { It's returned by Viewpoint.GetCameraVectors, but we'll ignore it. }
@@ -1599,28 +1676,28 @@ procedure TGLRenderedTextureNode.Update(
       end;
     end;
 
-  var
-    Viewpoint: TVRMLViewpointNode;
   begin
-    if (TextureNode.FdViewpoint.Value <> nil) and
-       (TextureNode.FdViewpoint.Value is TVRMLViewpointNode) then
+    if Viewpoint = CurrentViewpoint then
+      GetFromCurrent else
     begin
-      Viewpoint := TVRMLViewpointNode(TextureNode.FdViewpoint.Value);
-      if Viewpoint = CurrentViewpoint then
-        { If it's the current viewpoint, behave like viewpoint = nil:
-          prefer using current location in LastViewer*,
-          eventually use viewpoint's GetCameraVectors. }
-        GetFromCurrent else
-        Viewpoint.GetCameraVectors(Pos, Dir, Up, GravityUp);
-    end else
-      GetFromCurrent;
+      { Viewpoint gets assigned something different than CurrentViewpoint
+        only when it's non-nil. }
+      Assert(Viewpoint <> nil);
+      Viewpoint.GetCameraVectors(Pos, Dir, Up, GravityUp);
+    end;
   end;
 
 var
   CameraMatrix, ProjectionMatrix: TMatrix4Single;
   Pos, Dir, Up: TVector3Single;
 begin
-  ProjectionMatrix := PerspectiveProjMatrixDeg(45, 1, 0.1, 100) { TODO };
+  { calculate Viewpoint }
+  if (TextureNode.FdViewpoint.Value <> nil) and
+     (TextureNode.FdViewpoint.Value is TVRMLViewpointNode) then
+    Viewpoint := TVRMLViewpointNode(TextureNode.FdViewpoint.Value) else
+    Viewpoint := CurrentViewpoint;
+
+  ProjectionMatrix := GetProjectionMatrix;
 
   GetRenderedTextureCamera(Pos, Dir, Up);
   CameraMatrix := LookDirMatrix(Pos, Dir, Up);

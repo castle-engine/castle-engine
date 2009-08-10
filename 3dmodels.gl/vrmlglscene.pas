@@ -4653,9 +4653,61 @@ procedure TVRMLGLScene.GLProjectionCore(Nav: TNavigator;
 
 var
   ViewpointNode: TVRMLViewpointNode;
-  FieldOfView: Single;
+  PerspectiveFieldOfView: Single;
   VisibilityLimit: Single;
-  MaxSize, ZNear: TGLdouble;
+  ZNear: TGLdouble;
+
+  procedure DoPerspective;
+  begin
+    { Only perspective projection supports z far in infinity.
+      So apply ForceZFarInfinity only in perspective projection. }
+    if ForceZFarInfinity then
+      FWalkProjectionFar := ZFarInfinity;
+
+    ProjectionGLPerspective(AngleOfViewY, WindowWidth / WindowHeight,
+      ZNear, WalkProjectionFar);
+  end;
+
+  procedure DoOrthographic;
+  var
+    FieldOfView: TDynSingleArray;
+    MaxSize: Single;
+    Left, Right, Bottom, Top: Single;
+  begin
+    if IsEmptyBox3d(Box) then
+      MaxSize := 1.0 { any dummy value } else
+      MaxSize := Box3dMaxSize(Box);
+
+    { default left / right / bottom / top, when not OrthoViewpoint }
+    Left   := -MaxSize / 2;
+    Right  :=  MaxSize / 2;
+    Bottom := -MaxSize / 2;
+    Top    :=  MaxSize / 2;
+
+    { update left / right / bottom / top using OrthoViewpoint.fieldOfView }
+    if (ViewpointNode <> nil) and
+       (ViewpointNode is TNodeOrthoViewpoint) then
+    begin
+      { default left / right / bottom / top, for OrthoViewpoint }
+      Left   := -1;
+      Right  :=  1;
+      Bottom := -1;
+      Top    :=  1;
+
+      FieldOfView := TNodeOrthoViewpoint(ViewpointNode).FdFieldOfView.Items;
+      { Beware: order of OrthoViewpoint.fieldOfView is different
+        than typical OpenGL and our ProjectionGLOrtho. }
+      if FieldOfView.High >= 0 then Left   := FieldOfView.Items[0];
+      if FieldOfView.High >= 1 then Bottom := FieldOfView.Items[1];
+      if FieldOfView.High >= 2 then Right  := FieldOfView.Items[2];
+      if FieldOfView.High >= 3 then Top    := FieldOfView.Items[3];
+    end;
+
+    ProjectionGLOrtho(Left, Right, Bottom, Top,
+      ZNear, WalkProjectionFar);
+  end;
+
+var
   CameraKind: TVRMLCameraKind;
 begin
   glViewport(0, 0, WindowWidth, WindowHeight);
@@ -4664,13 +4716,11 @@ begin
 
   if (ViewpointNode <> nil) and
      (ViewpointNode is TNodeViewpoint) then
-    { TODO: something similar should be done for OrthoViewpoint to take
-      into accound it's fieldOfView. }
-    FieldOfView := TNodeViewpoint(ViewpointNode).FdFieldOfView.Value else
-    FieldOfView := DefaultViewpointFieldOfView;
+    PerspectiveFieldOfView := TNodeViewpoint(ViewpointNode).FdFieldOfView.Value else
+    PerspectiveFieldOfView := DefaultViewpointFieldOfView;
 
   AngleOfViewX := RadToDeg(TNodeViewpoint.ViewpointAngleOfView(
-    FieldOfView, WindowWidth / WindowHeight));
+    PerspectiveFieldOfView, WindowWidth / WindowHeight));
 
   AngleOfViewY := AdjustViewAngleDegToAspectRatio(
     AngleOfViewX, WindowHeight / WindowWidth);
@@ -4723,23 +4773,10 @@ begin
     TBackgroundGL.NearFarToSkySphereRadius(
       WalkProjectionNear, WalkProjectionFar);
 
-  if CameraKind = ckPerspective then
-  begin
-    { Only perspective projection supports z far in infinity.
-      So apply ForceZFarInfinity only in perspective projection. }
-    if ForceZFarInfinity then
-      FWalkProjectionFar := ZFarInfinity;
-
-    ProjectionGLPerspective(AngleOfViewY, WindowWidth / WindowHeight,
-      ZNear, WalkProjectionFar);
-  end else
-  begin
-    if IsEmptyBox3d(Box) then
-      MaxSize := 1.0 { any dummy value } else
-      MaxSize := Box3dMaxSize(Box);
-    ProjectionGLOrtho(-MaxSize / 2, MaxSize / 2,
-                      -MaxSize / 2, MaxSize / 2,
-                      ZNear, WalkProjectionFar);
+  case CameraKind of
+    ckPerspective: DoPerspective;
+    ckOrthographic: DoOrthographic;
+    else EInternalError.Create('TVRMLGLScene.GLProjectionCore-CameraKind?');
   end;
 
   UpdateNavigatorProjectionMatrix;
