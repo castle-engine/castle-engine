@@ -2274,7 +2274,7 @@ begin
     ShapesGroup.Children.Add(Shape);
 
     { When Spatial contain ssDynamicCollisions, then each collidable
-      shape must hav octree created. Normally, this is watched over by
+      shape must have octree created. Normally, this is watched over by
       SetSpatial. In this case, we just created new Shape, so we have
       to set it's Spatial property correctly. }
     if (ssDynamicCollisions in ParentScene.Spatial) and
@@ -3439,20 +3439,11 @@ begin
     for SomeLocalGeometryChanged, knowing that this also checks for
     ScheduledGeometryChangedAll.
 
-    When we know SomeLocalGeometryChanged is true, also call
-    PointingDeviceClear, since some PVRMLTriangles became invalid.
-    Making later "if SomeLocalGeometryChanged then PointingDeviceClear;"
-    is not a good idea, since PointingDeviceClear must be called before
-    actual SI.Current.LocalGeometryChanged, because SI.Current.LocalGeometryChanged
-    may create progress bar that will cause redraw at the start,
-    that may require valid PointingDeviceSensor state.
-
     By the way, also calculate EdgesStructureChanged. }
 
   if ScheduledGeometryChangedAll then
   begin
     SomeLocalGeometryChanged := true;
-    PointingDeviceClear;
 
     EdgesStructureChanged := true;
 
@@ -3477,7 +3468,6 @@ begin
            SI.Current.ScheduledLocalGeometryChangedCoord then
         begin
           SomeLocalGeometryChanged := true;
-          PointingDeviceClear;
           SI.Current.LocalGeometryChanged;
           if Log and LogChanges and
              (SI.Current.OctreeTriangles <> nil) then

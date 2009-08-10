@@ -200,6 +200,11 @@ type
     { Meaningful only when svNormals in Validities and
       NormalsCached = ncCreaseAngle. }
     FNormalsCreaseAngle: Single;
+
+    { Free and nil FOctreeTriangles. Also, makes sure to call
+      PointingDeviceClear on ParentScene (since some PVRMLTriangle pointers
+      were freed). }
+    procedure FreeOctreeTriangles;
   public
     constructor Create(AParentScene: TObject;
       AGeometry: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
@@ -682,8 +687,19 @@ destructor TVRMLShape.Destroy;
 begin
   FreeAndNil(FNormals);
   FreeAndNil(FState);
-  FreeAndNil(FOctreeTriangles);
+  FreeOctreeTriangles;
   inherited;
+end;
+
+procedure TVRMLShape.FreeOctreeTriangles;
+begin
+  { secure against ParentScene = nil, since this may be called from destructor }
+
+  if ParentScene <> nil then
+    { some PVRMLTriangles became invalid }
+    TVRMLScene(ParentScene).PointingDeviceClear;
+
+  FreeAndNil(FOctreeTriangles);
 end;
 
 function TVRMLShape.TriangleOctreeLimits: POctreeLimits;
@@ -853,7 +869,7 @@ begin
 
     if Old and not New then
     begin
-      FreeAndNil(FOctreeTriangles);
+      FreeOctreeTriangles;
     end else
     if New and not Old then
     begin
@@ -876,9 +892,7 @@ begin
 
   if OctreeTriangles <> nil then
   begin
-    { TODO: make sure PointingDeviceClear; is called by parent TVRMLScene }
-
-    FreeAndNil(FOctreeTriangles);
+    FreeOctreeTriangles;
     FOctreeTriangles := CreateTriangleOctree(
       OverrideOctreeLimits(FTriangleOctreeLimits),
       TriangleOctreeProgressTitle);
