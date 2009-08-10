@@ -714,7 +714,7 @@ begin
       IndexedFaceRenderer := TIndexedFaceSetRenderer(MeshRenderer);
       IndexedFaceRenderer.TexNormalizationCube := Renderer.TexNormalizationCube;
       IndexedFaceRenderer.TexOriginal := GLName;
-      IndexedFaceRenderer.TexOriginalAlpha := {AlphaTest} false { TODO };
+      IndexedFaceRenderer.TexOriginalAlpha := AlphaChannelType = atSimpleYesNo;
       IndexedFaceRenderer.TexNormalMap := NormalMap;
       IndexedFaceRenderer.TexHeightMap := HeightMap;
       IndexedFaceRenderer.TexHeightMapScale := HeightMapScale;
