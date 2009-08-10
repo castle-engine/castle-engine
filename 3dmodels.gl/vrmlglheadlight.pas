@@ -53,7 +53,7 @@ type
 
       If CallEnabled then it will also call glEnable(GL_LIGHT_GLLightNumber).
 
-      Overloaded version with Navigator simply uses Navigator.CameraPos/Dir
+      Overloaded version with Navigator simply uses Navigator.GetCameraVectors
       to get HeadlightPosition, HeadlightDirection.
       When HeadlightFromCurrentView = @true, Navigator doesn't matter
       (may be @nil).
@@ -65,7 +65,7 @@ type
 
     procedure Render(GLLightNumber: Cardinal; CallEnabled: boolean;
       const HeadlightFromCurrentView: boolean;
-      Navigator: TWalkNavigator);
+      Navigator: TNavigator);
     { @groupEnd }
 
     { This is like Light.Render(GLLightNumber, true, ...), but will call
@@ -158,10 +158,12 @@ end;
 
 procedure TVRMLGLHeadLight.Render(GLLightNumber: Cardinal; CallEnabled: boolean;
   const HeadlightFromCurrentView: boolean;
-  Navigator: TWalkNavigator);
+  Navigator: TNavigator);
+var
+  Pos, Dir, Up: TVector3Single;
 begin
-  Render(GLLightNumber, CallEnabled, HeadlightFromCurrentView,
-    Navigator.CameraPos, Navigator.CameraDir);
+  Navigator.GetCameraVectors(Pos, Dir, Up);
+  Render(GLLightNumber, CallEnabled, HeadlightFromCurrentView, Pos, Dir);
 end;
 
 class procedure TVRMLGLHeadLight.RenderOrDisable(Light: TVRMLGLHeadlight;

@@ -421,6 +421,11 @@ type
       Still, navigator class is usually a comfortable place to store this. }
     property CameraRadius: Single
       read FCameraRadius write FCameraRadius default 0.0;
+
+    { Express current view as camera vectors: position, direction, up.
+
+      Returned Dir and Up must be orthogonal, do not have to be normalized. }
+    procedure GetCameraVectors(out Pos, Dir, Up: TVector3Single); virtual; abstract;
   end;
 
   TNavigatorClass = class of TNavigator;
@@ -518,7 +523,7 @@ type
     property MoveAmount: TVector3Single read FMoveAmount write SetMoveAmount;
 
     { How the mode is scaled. Scaling is done around MoveAmount added to
-      the middle of ModelBox. }
+      the middle of ModelBox. @italic(May never be zero (or too near zero).) }
     property ScaleFactor: Single
       read FScaleFactor write SetScaleFactor default 1;
 
@@ -578,8 +583,7 @@ type
     property MouseNavigation: boolean
       read FMouseNavigation write FMouseNavigation default true;
 
-    { Express current view as camera vectors, suitable for TWalkNavigator. }
-    procedure GetCameraVectors(out Pos, Dir, Up: TVector3Single);
+    procedure GetCameraVectors(out Pos, Dir, Up: TVector3Single); override;
   end;
 
   TWalkNavigator = class;
@@ -1391,6 +1395,8 @@ type
       The intention is that you can use this to make
       some "footsteps" sound for the player. }
     property IsWalkingOnTheGround: boolean read FIsWalkingOnTheGround;
+
+    procedure GetCameraVectors(out Pos, Dir, Up: TVector3Single); override;
   end;
 
 { See TWalkNavigator.CorrectCameraPreferredHeight.
@@ -1708,6 +1714,7 @@ end;
 
 function TExamineNavigator.MatrixInverse: TMatrix4Single;
 begin
+  { This inverse always exists, assuming ScaleFactor is <> 0. }
   Result := TranslationMatrix(VectorNegate(VectorAdd(MoveAmount, FModelBoxMiddle)));
   Result := MatrixMult(QuatToRotationMatrix(QuatConjugate(Rotations)), Result);
   Result := MatrixMult(ScalingMatrix(Vector3Single(1/ScaleFactor, 1/ScaleFactor, 1/ScaleFactor)), Result);
@@ -2018,6 +2025,12 @@ var
   M: TMatrix4Single;
 begin
   M := MatrixInverse;
+
+  { These MatrixMultPoint/Direction should never fail with ETransformedResultInvalid.
+    That's because M is composed from translations, rotations, scaling,
+    which preserve points/directions (4th component in homogeneus coordinates)
+    nicely. }
+
   Pos := MatrixMultPoint(M, Vector3Single(0, 0, 0));
   Dir := MatrixMultDirection(M, Vector3Single(0, 0, -1));
   Up  := MatrixMultDirection(M, Vector3Single(0, 1,  0));
@@ -3382,6 +3395,14 @@ begin
       RotateVertical(-MouseYChange * MouseLookVerticalSensitivity);
     end;
   end;
+end;
+
+procedure TWalkNavigator.GetCameraVectors(
+  out Pos, Dir, Up: TVector3Single);
+begin
+  Pos := FCameraPos;
+  Dir := FCameraDir;
+  Up  := FCameraUp;
 end;
 
 { global ------------------------------------------------------------ }
