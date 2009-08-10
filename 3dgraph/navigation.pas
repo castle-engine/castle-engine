@@ -426,6 +426,7 @@ type
 
       Returned Dir and Up must be orthogonal, do not have to be normalized. }
     procedure GetCameraVectors(out Pos, Dir, Up: TVector3Single); virtual; abstract;
+    function GetCameraPos: TVector3Single; virtual; abstract;
   end;
 
   TNavigatorClass = class of TNavigator;
@@ -584,6 +585,7 @@ type
       read FMouseNavigation write FMouseNavigation default true;
 
     procedure GetCameraVectors(out Pos, Dir, Up: TVector3Single); override;
+    function GetCameraPos: TVector3Single; override;
   end;
 
   TWalkNavigator = class;
@@ -1397,6 +1399,7 @@ type
     property IsWalkingOnTheGround: boolean read FIsWalkingOnTheGround;
 
     procedure GetCameraVectors(out Pos, Dir, Up: TVector3Single); override;
+    function GetCameraPos: TVector3Single; override;
   end;
 
 { See TWalkNavigator.CorrectCameraPreferredHeight.
@@ -2034,6 +2037,11 @@ begin
   Pos := MatrixMultPoint(M, Vector3Single(0, 0, 0));
   Dir := MatrixMultDirection(M, Vector3Single(0, 0, -1));
   Up  := MatrixMultDirection(M, Vector3Single(0, 1,  0));
+end;
+
+function TExamineNavigator.GetCameraPos: TVector3Single;
+begin
+  Result := MatrixMultPoint(MatrixInverse, Vector3Single(0, 0, 0));
 end;
 
 { TWalkNavigator ---------------------------------------------------------------- }
@@ -3403,6 +3411,11 @@ begin
   Pos := FCameraPos;
   Dir := FCameraDir;
   Up  := FCameraUp;
+end;
+
+function TWalkNavigator.GetCameraPos: TVector3Single;
+begin
+  Result := FCameraPos;
 end;
 
 { global ------------------------------------------------------------ }
