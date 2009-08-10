@@ -1192,9 +1192,7 @@ begin
     texture coords etc.).
 
     TODO: Also, now for each texture, there must always be the same bump map
-    (since we store it in the same TextureImageReference
-
-    TODO: generally, bump mapping should be decoupled from TGLTextureNode. }
+    (since we store it in the same TextureImageReference }
 
   NormalMap := 0;
   if (Renderer.BumpMappingMethod <> bmNone) and
