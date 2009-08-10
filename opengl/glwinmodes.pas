@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2008 Michalis Kamburelis.
+  Copyright 2003-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -204,11 +204,16 @@ type
 
         @item(
           W Enter wszystkie aktualnie wcisniete klawisze myszki sa sztucznie
-          wylaczane przez wywolanie glwin.EventMouseUp.
+          wylaczane przez wywolanie Glwin.EventMouseUp.
+          Also, all currently pressed keys are released by fake
+          Glwin.EventKeyUp. This is important: otherwise, if user releases
+          mouse / key when inside mode, your original callbacks would not
+          be informed about releasing a pressed key. And various things
+          may depend on that (including user scripts in VRML worlds.)
 
           If FakeMouseDown then
           w Exit wszystkie aktualnie wcisniete klawisze myszki sa sztucznie
-          wlaczane przez wywolanie glwin.EventMouseDown (juz PO przywroceniu
+          wlaczane przez wywolanie Glwin.EventMouseDown (juz PO przywroceniu
           oryginalnych callbackow okienka).
 
           W ten sposob callbacki okienka (ktore zapewne bedziesz podmienial
@@ -235,7 +240,7 @@ type
 
         @item(
           Jezeli rozmiary okienka (Width, Height) ulegly zmianie pomiedzy Enter
-          a Exit to w Exit wywolujemy sztucznie glwin.EventResize
+          a Exit to w Exit wywolujemy sztucznie Glwin.EventResize
           (juz PO przywroceniu oryginalnych callbackow okienka).
           Powod : jak wyzej - gdyby user zmienil rozmiary okienka w czasie
           trwania ModeGLEnter...Exit z podmienionymi callbackami to oryginalne
@@ -243,14 +248,14 @@ type
           i nie zareagowac na to prawidlowo.)
 
         @item(
-          W ModeEnter i Exit sa wywolywane glwin.PostRedisplay (bo spodziewam
+          W ModeEnter i Exit sa wywolywane Glwin.PostRedisplay (bo spodziewam
           sie ze podmienisz callback OnDraw a wiec zdecydowanie bedziesz
           chcial odmalowac okienko).)
 
         @item(
           ModeGLEnter nie moze byc uzyte na Closed okienku,
           oczywiscie. Wiec dla bezpiecznstwa jest w nim robiony
-          Check(not glwin.Closed, ...).)
+          Check(not Glwin.Closed, ...).)
 
         @item(
           We call IgnoreNextIdleSpeed at the end, when closing our mode,
@@ -279,7 +284,7 @@ type
     SavedScreenWidth, SavedScreenHeight: Cardinal;
     FPolygonStipple: PPolygonStipple;
   public
-    { This mode on enter catches current screen (with glwin.SaveScreen) then
+    { This mode on enter catches current screen (with Glwin.SaveScreen) then
       calls SetStdNoCloseGLWindowState with such OnDraw and OnResize private
       callbacks that
 
@@ -299,9 +304,9 @@ type
           PolygonStipple, not pointer's contents).)
       )
 
-      Between creation/destroy, glwin.UserData is used by this function
+      Between creation/destroy, Glwin.UserData is used by this function
       for "private" purposes so you should not use it yourself.
-      glwin.UserData will be restored after destroying this object
+      Glwin.UserData will be restored after destroying this object
       to whatever value it had at creation time.
 
       This mode is often quite usable because it gives you some minimal
@@ -335,14 +340,14 @@ uses KambiUtils, GLImages;
 
 function GetGLWindowState(glwin: TGLWindow): TGLWindowState;
 begin
- result.oldCallbacks := glwin.GetCallbacksState;
- result.oldCaption := glwin.Caption;
- result.oldUserdata := glwin.Userdata;
- result.oldAutoRedisplay := glwin.AutoRedisplay;
- result.oldFPSActive := glwin.Fps.Active;
- result.oldMainMenu := glwin.MainMenu;
- if glwin.MainMenu <> nil then
-   result.oldMainMenuEnabled := glwin.MainMenu.Enabled;
+ result.oldCallbacks := Glwin.GetCallbacksState;
+ result.oldCaption := Glwin.Caption;
+ result.oldUserdata := Glwin.Userdata;
+ result.oldAutoRedisplay := Glwin.AutoRedisplay;
+ result.oldFPSActive := Glwin.Fps.Active;
+ result.oldMainMenu := Glwin.MainMenu;
+ if Glwin.MainMenu <> nil then
+   result.oldMainMenuEnabled := Glwin.MainMenu.Enabled;
  Result.OldCursor := Glwin.Cursor;
  Result.OldCustomCursor := Glwin.CustomCursor;
 
@@ -359,14 +364,14 @@ end;
 
 procedure SetGLWindowState(glwin: TGLWindow; const State: TGLWindowState);
 begin
- glwin.SetCallbacksState(State.oldCallbacks);
- glwin.Caption := State.oldCaption;
- glwin.Userdata := State.oldUserdata;
- glwin.AutoRedisplay := State.oldAutoRedisplay;
- glwin.Fps.Active := State.oldFPSActive;
- glwin.MainMenu := State.oldMainMenu;
- if glwin.MainMenu <> nil then
-   glwin.MainMenu.Enabled := State.OldMainMenuEnabled;
+ Glwin.SetCallbacksState(State.oldCallbacks);
+ Glwin.Caption := State.oldCaption;
+ Glwin.Userdata := State.oldUserdata;
+ Glwin.AutoRedisplay := State.oldAutoRedisplay;
+ Glwin.Fps.Active := State.oldFPSActive;
+ Glwin.MainMenu := State.oldMainMenu;
+ if Glwin.MainMenu <> nil then
+   Glwin.MainMenu.Enabled := State.OldMainMenuEnabled;
  Glwin.Cursor := State.OldCursor;
  Glwin.CustomCursor := State.OldCustomCursor;
 
@@ -388,17 +393,17 @@ procedure SetStandardGLWindowState(glwin: TGLWindow;
   NewSwapFullScreen_Key: TKey;
   NewClose_charkey: char; NewFpsShowOnCaption, NewUseNavigator: boolean);
 begin
- glwin.SetCallbacksState(DefaultCallbacksState);
- glwin.OnDraw := NewDraw;
- glwin.OnCloseQuery := NewCloseQuery;
- glwin.OnResize := NewResize;
- {glwin.Caption := leave current value}
- glwin.Userdata := NewUserdata;
- glwin.AutoRedisplay := NewAutoRedisplay;
- glwin.Fps.Active := NewFPSActive;
- if glwin.MainMenu <> nil then
-   glwin.MainMenu.Enabled := NewMainMenuEnabled;
- {glwin.MainMenu := leave current value}
+ Glwin.SetCallbacksState(DefaultCallbacksState);
+ Glwin.OnDraw := NewDraw;
+ Glwin.OnCloseQuery := NewCloseQuery;
+ Glwin.OnResize := NewResize;
+ {Glwin.Caption := leave current value}
+ Glwin.Userdata := NewUserdata;
+ Glwin.AutoRedisplay := NewAutoRedisplay;
+ Glwin.Fps.Active := NewFPSActive;
+ if Glwin.MainMenu <> nil then
+   Glwin.MainMenu.Enabled := NewMainMenuEnabled;
+ {Glwin.MainMenu := leave current value}
  Glwin.Cursor := gcDefault;
 
  if glwin is TGLWindowDemo then
@@ -432,7 +437,26 @@ end;
 
 constructor TGLMode.Create(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
   APushPopGLWinMessagesTheme: boolean);
-var btn: TMouseButton;
+
+  procedure SimulateReleaseAll;
+  var
+    Button: TMouseButton;
+    Key: TKey;
+    C: char;
+  begin
+    { Simulate (to original callbacks) that user releases
+      all mouse buttons and key presses now. }
+    for Button := Low(Button) to High(Button) do
+      if Button in Glwin.MousePressed then
+        Glwin.EventMouseUp(Button);
+    for Key := Low(Key) to High(Key) do
+      if Glwin.KeysDown[Key] then
+        Glwin.EventKeyUp(Key, #0);
+    for C := Low(C) to High(C) do
+      if Glwin.CharactersDown[C] then
+        Glwin.EventKeyUp(K_None, C);
+  end;
+
 begin
  inherited Create;
 
@@ -443,22 +467,19 @@ begin
  FRestoreModelviewMatrix := true;
  FRestoreTextureMatrix := true;
 
- Check(not glwin.Closed, 'ModeGLEnter cannot be called on a closed GLWindow.');
+ Check(not Glwin.Closed, 'ModeGLEnter cannot be called on a closed GLWindow.');
 
  oldWinState := GetGLWindowState(glwin);
- oldWinWidth := glwin.Width;
- oldWinHeight := glwin.Height;
+ oldWinWidth := Glwin.Width;
+ oldWinHeight := Glwin.Height;
 
  FPushPopGLWinMessagesTheme := APushPopGLWinMessagesTheme;
  if FPushPopGLWinMessagesTheme then
    oldGLWinMessagesTheme := GLWinMessagesTheme;
 
- { udajemy ze wszystkie przyciski myszy jakie byly wcisniete sa puszczane.
-   (pamietajmy ze przed EventXxx musi byc MakeCurrent) }
- glwin.MakeCurrent;
- for btn := Low(btn) to High(btn) do
-  if btn in glwin.mousePressed then
-   glwin.EventMouseUp(btn);
+ Glwin.MakeCurrent;
+
+ SimulateReleaseAll;
 
  { save some OpenGL state.
    Musimy sejwowac MatrixMode specjalnie - nie mozemy polegac na tym ze
@@ -473,7 +494,7 @@ begin
  oldMatrixMode := glGetInteger(GL_MATRIX_MODE);
  SavePixelStoreUnpack(oldPixelStoreUnpack);
 
- glwin.PostRedisplay;
+ Glwin.PostRedisplay;
 end;
 
 destructor TGLMode.Destroy;
@@ -490,7 +511,7 @@ begin
    everything should be possible). }
  if not Glwin.Closed then
  begin
-   glwin.MakeCurrent;
+   Glwin.MakeCurrent;
 
    { restore OpenGL state }
    LoadPixelStoreUnpack(oldPixelStoreUnpack);
@@ -520,18 +541,18 @@ begin
      je powyzej }
    { Gdy byly aktywne nasze callbacki mogly zajsc zdarzenia co do ktorych
      oryginalne callbacki chcialyby byc poinformowane. Np. OnResize. }
-   if (oldWinWidth <> glwin.Width) or
-      (oldWinHeight <> glwin.Height) then
-    glwin.EventResize;
+   if (oldWinWidth <> Glwin.Width) or
+      (oldWinHeight <> Glwin.Height) then
+    Glwin.EventResize;
 
    { udajemy ze wszystkie przyciski myszy jakie sa wcisniete sa wciskane wlasnie
      teraz }
    if FakeMouseDown then
      for btn := Low(btn) to High(btn) do
-       if btn in glwin.mousePressed then
-         glwin.EventMouseDown(btn);
+       if btn in Glwin.mousePressed then
+         Glwin.EventMouseDown(btn);
 
-   glwin.PostRedisplay;
+   Glwin.PostRedisplay;
 
    Glwin.Fps.IgnoreNextIdleSpeed;
  end;
@@ -545,13 +566,13 @@ procedure FrozenImageDraw(glwin: TGLWindow);
 var Mode: TGLModeFrozenScreen;
     Attribs: TGLbitfield;
 begin
- Mode := TGLModeFrozenScreen(glwin.UserData);
+ Mode := TGLModeFrozenScreen(Glwin.UserData);
 
  { TODO:  I should build display list with this in each FrozenImageResize
-   (glwin.Width, glwin.Height may change with time). }
+   (Glwin.Width, Glwin.Height may change with time). }
 
- if (Cardinal(glwin.Width ) > Mode.SavedScreenWidth ) or
-    (Cardinal(glwin.Height) > Mode.SavedScreenHeight) then
+ if (Cardinal(Glwin.Width ) > Mode.SavedScreenWidth ) or
+    (Cardinal(Glwin.Height) > Mode.SavedScreenHeight) then
   glClear(GL_COLOR_BUFFER_BIT);
 
  Attribs := GL_CURRENT_BIT or GL_ENABLE_BIT;
@@ -573,7 +594,7 @@ begin
     glEnable(GL_POLYGON_STIPPLE);
     KamGLPolygonStipple(Mode.FPolygonStipple);
     glColor3ub(0, 0, 0);
-    glRectf(0, 0, glwin.Width, glwin.Height);
+    glRectf(0, 0, Glwin.Width, Glwin.Height);
    end;
   finally glPopMatrix end;
  finally glPopAttrib end;
@@ -590,8 +611,8 @@ begin
  { We must do it before SaveScreen.
    Moreover, we must do it before we set our own projection below
    (calling EventResize) and before we set OnDraw to FrozenImageDraw
-   (because we want that glwin.FlushRedisplay calls original OnDraw). }
- glwin.FlushRedisplay;
+   (because we want that Glwin.FlushRedisplay calls original OnDraw). }
+ Glwin.FlushRedisplay;
 
  SetStdNoCloseGLWindowState(AGLWindow,
    {$ifdef FPC_OBJFPC} @ {$endif} FrozenImageDraw,
@@ -599,7 +620,7 @@ begin
    Self, false, AGLWindow.Fps.Active, false, K_None, false, false);
 
  { setup our 2d projection. We must do it before SaveScreen }
- glwin.EventResize;
+ Glwin.EventResize;
 
  dlScreenImage := SaveScreenWhole_ToDisplayList_noflush(GL_FRONT,
    SavedScreenWidth, SavedScreenHeight);
