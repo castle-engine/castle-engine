@@ -1092,7 +1092,7 @@ type
 
     procedure ChangedAll; override;
     procedure ChangedShapeFields(Shape: TVRMLShape;
-      const TransformOnly, TextureImageChanged, PossiblyLocalGeometryChanged: boolean); override;
+      const TransformOnly, InactiveOnly, TextureImageChanged, PossiblyLocalGeometryChanged: boolean); override;
 
     { Render shadow volume (sides and caps) of this scene, for shadow volume
       algorithm.
@@ -1419,6 +1419,8 @@ type
       const OriginalViewportWidth, OriginalViewportHeight: TGLsizei);
 
     procedure ViewChangedSuddenly; override;
+
+    procedure PostRedisplay(const Changes: TPostRedisplayChanges); override;
   end;
 
   TObjectsListItem_1 = TVRMLGLScene;
@@ -3386,7 +3388,7 @@ begin
 end;
 
 procedure TVRMLGLScene.ChangedShapeFields(Shape: TVRMLShape;
-  const TransformOnly, TextureImageChanged, PossiblyLocalGeometryChanged: boolean);
+  const TransformOnly, InactiveOnly, TextureImageChanged, PossiblyLocalGeometryChanged: boolean);
 var
   TG: TTransparentGroup;
 begin
@@ -4861,6 +4863,39 @@ begin
         TVRMLGLShape(SI.Current).OcclusionQueryAsked := false;
     finally FreeAndNil(SI) end;
   end;
+end;
+
+procedure TVRMLGLScene.PostRedisplay(const Changes: TPostRedisplayChanges);
+var
+  I: Integer;
+begin
+  { set UpdateNeeded := true before calling inherited (with OnPostRedisplay
+    callback), because inside OnPostRedisplay callback we'll actually
+    initialize regenerating the textures. }
+  if Changes <> [] then
+  begin
+    for I := 0 to GeneratedTextures.Count - 1 do
+    begin
+      if GeneratedTextures.Items[I].TextureNode is TNodeGeneratedCubeMapTexture then
+      begin
+        if [prVisibleSceneGeometry, prVisibleSceneNonGeometry] * Changes <> [] then
+          GeneratedTextures.Items[I].Handler.UpdateNeeded := true;
+      end else
+      if GeneratedTextures.Items[I].TextureNode is TNodeGeneratedShadowMap then
+      begin
+        if prVisibleSceneGeometry in Changes then
+          GeneratedTextures.Items[I].Handler.UpdateNeeded := true;
+      end else
+        { Even mere prViewer causes regenerate of RenderedTexture,
+          as RenderedTexture with viewpoint = NULL uses current camera.
+          So any Changes <> [] causes regeneration of RenderedTexture.
+          Also, for other than RenderedTexture nodes, default is to regenerate
+          (safer).  }
+        GeneratedTextures.Items[I].Handler.UpdateNeeded := true;
+    end;
+  end;
+
+  inherited;
 end;
 
 { TVRMLSceneRenderingAttributes ---------------------------------------------- }

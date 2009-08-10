@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2008 Michalis Kamburelis.
+  Copyright 2003-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -350,6 +350,7 @@ type
     { May be only TNodeGeneratedCubeMapTexture or TNodeRenderedTexture
       or TNodeGeneratedShadowMap. }
     TextureNode: TVRMLNode;
+    Handler: TGeneratedTextureHandler;
     Shape: TVRMLShape;
   end;
   { @exclude }
@@ -467,6 +468,21 @@ type
       on this list. }
     property OpaqueCount: Cardinal read FOpaqueCount;
   end;
+
+  TPostRedisplayChange = (
+    { Something visible in the scene geometry changed.
+      "Geometry" means that this is applicable only to actual 3D shape
+      changes. (Think about "does depth buffer from some point in space
+      changes" --- this is actually why we have separate prVisibleSceneGeometry
+      and prVisibleSceneNonGeometry for now, as GeneratedShadowMap
+      does need to be updated only on geometry changes.) So it's not applicable
+      when only light conditions, materials, textures and such change. }
+    prVisibleSceneGeometry,
+    { Something visible,  but not geometry, in the scene changed. }
+    prVisibleSceneNonGeometry,
+    { Viewer (the settings passed to ViewerChanged) changed. }
+    prViewer);
+  TPostRedisplayChanges = set of TPostRedisplayChange;
 
   { VRML scene, a final class to handle VRML models
     (with the exception of rendering, which is delegated to descendants,
@@ -797,9 +813,12 @@ type
       Setting TransformOnly = @true is very beneficial if you
       use TVRMLGLScene with roSeparateShapesNoTransform.
 
-      Pass TransformOnly = @false if unsure, this is safer. }
+      Pass TransformOnly = @false if unsure, this is safer.
+
+      Pass InactiveOnly = @true is you know that shape is fully in inactive
+      VRML graph part (inactive Switch, LOD etc. children). }
     procedure ChangedShapeFields(Shape: TVRMLShape;
-      const TransformOnly, TextureImageChanged, PossiblyLocalGeometryChanged: boolean); virtual;
+      const TransformOnly, InactiveOnly, TextureImageChanged, PossiblyLocalGeometryChanged: boolean); virtual;
 
     { Create TVRMLShape (or descendant) instance suitable for this
       TVRMLScene descendant. In this class, this simply creates new
@@ -975,8 +994,23 @@ type
     property OnBoundViewpointVectorsChanged: TVRMLSceneNotification
       read FOnBoundViewpointVectorsChanged write FOnBoundViewpointVectorsChanged;
 
-    { Call OnPostRedisplay, if assigned. }
-    procedure DoPostRedisplay;
+    { Something visible changed.
+
+      In this class, just calls OnPostRedisplay, if assigned.
+
+      Changes is a set describing what changes occured that caused this
+      redisplay. It can be [], meaning "something else", we'll
+      still make OnPostRedisplay then. See TPostRedisplayChange
+      docs for possible values. It must specify all parts that possibly
+      changed.
+
+      When you want to initialize OnPostRedisplay from your own code,
+      and there's a chance that Changes <> [],
+      it's important that you call this (not directly call OnPostRedisplay).
+      That's because descendant TVRMLGLScene does important updates for
+      generated textures (potentially instructing them to regenerate
+      next frame) when Changes <> []. }
+    procedure PostRedisplay(const Changes: TPostRedisplayChanges); virtual;
 
     { Call OnGeometryChanged, if assigned. }
     procedure DoGeometryChanged; virtual;
@@ -1609,8 +1643,20 @@ type
     { @groupEnd }
 
     { Call when viewer position/dir/up changed, to update things depending
-      on viewer settings: some sensors, LOD nodes etc. }
-    procedure ViewerChanged(Navigator: TNavigator);
+      on viewer settings. This includes sensors like ProximitySensor,
+      LOD nodes, camera settings for next RenderedTexture update and more.
+      It automatically does proper PostRedisplay / OnPostRedisplay.
+
+      @param(Changes describes changes to the scene caused by viewer change.
+        This is needed if some geometry / light follows the player.
+
+        We'll automatically add here "prViewer", so not need to specify it.
+
+        You should add here prVisibleSceneNonGeometry if player has a headlight.
+        You should add here prVisibleSceneGeometry if player has a rendered
+        avatar.) }
+    procedure ViewerChanged(Navigator: TNavigator;
+      const Changes: TPostRedisplayChanges);
 
     { List of handlers for VRML Script node with "compiled:" protocol.
       This is read-only, change this only by RegisterCompiledScript. }
@@ -2239,6 +2285,15 @@ procedure TChangedAllTraverser.Traverse(
         begin
           GenTex := ParentScene.GeneratedTextures.AppendItem;
           GenTex^.TextureNode := Tex;
+
+          if Tex is TNodeGeneratedCubeMapTexture then
+            GenTex^.Handler := TNodeGeneratedCubeMapTexture(Tex).GeneratedTextureHandler else
+          if Tex is TNodeGeneratedShadowMap then
+            GenTex^.Handler := TNodeGeneratedShadowMap(Tex).GeneratedTextureHandler else
+          if Tex is TNodeRenderedTexture then
+            GenTex^.Handler := TNodeRenderedTexture(Tex).GeneratedTextureHandler else
+            raise EInternalError.Create('sf34234');
+
           GenTex^.Shape := Shape;
         end;
       end;
@@ -2503,12 +2558,12 @@ begin
   ScheduledGeometryChangedAll := true;
   ScheduleGeometryChanged;
 
-  DoPostRedisplay;
+  PostRedisplay([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
   DoViewpointsChanged;
 end;
 
 procedure TVRMLScene.ChangedShapeFields(Shape: TVRMLShape;
-  const TransformOnly, TextureImageChanged, PossiblyLocalGeometryChanged: boolean);
+  const TransformOnly, InactiveOnly, TextureImageChanged, PossiblyLocalGeometryChanged: boolean);
 begin
   { Eventual clearing of Validities items because shape changed
     can be done by DoGeometryChanged, where more specific info
@@ -2522,7 +2577,9 @@ begin
     are all related to geometry changes. }
 
   Shape.Changed(PossiblyLocalGeometryChanged);
-  DoPostRedisplay;
+
+  if not InactiveOnly then
+    PostRedisplay([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
 end;
 
 type
@@ -2704,7 +2761,7 @@ begin
       Shape.State.AssignTransform(StateStack.Top);
       { TransformOnly = @true, suitable for roSeparateShapesNoTransform,
         they don't have Transform compiled in display list. }
-      ParentScene.ChangedShapeFields(Shape, true, false, false);
+      ParentScene.ChangedShapeFields(Shape, true, Inactive <> 0, false, false);
 
       if Inactive = 0 then
       begin
@@ -2735,7 +2792,8 @@ begin
         Renderer in TVRMLGLScene should detect this, and eventually
         destroy display lists and such when rendering next time.
       }
-      ParentScene.DoPostRedisplay;
+      if Inactive = 0 then
+        ParentScene.PostRedisplay([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
     end else
     if Node is TNodeNavigationInfo then
     begin
@@ -2988,7 +3046,7 @@ begin
       { Do nothing here, as TVRMLOpenGLRenderer registers and takes care
         to update shaders' uniform variables. We don't have to do
         anything here, no need to rebuild/recalculate anything.
-        The only thing that needs to be called is redisplay, by DoPostRedisplay
+        The only thing that needs to be called is redisplay, by PostRedisplay
         at the end of ChangedFields. }
     end else
     if Node is TNodeCoordinate then
@@ -3005,7 +3063,7 @@ begin
           if SI.Current.Geometry.Coord(SI.Current.State, Coord) and
              (Coord.ParentNode = Node) then
           begin
-            ChangedShapeFields(SI.Current, false, false, false
+            ChangedShapeFields(SI.Current, false, false, false, false
               { We pass PossiblyLocalGeometryChanged = false,
                 as we'll do ScheduledLocalGeometryChangedCoord := true
                 later that will take care of it anyway.
@@ -3027,7 +3085,7 @@ begin
       try
         while SI.GetNext do
           if SI.Current.State.LastNodes.Nodes[NodeLastNodesIndex] = Node then
-            ChangedShapeFields(SI.Current, false, false, true);
+            ChangedShapeFields(SI.Current, false, false, false, true);
       finally FreeAndNil(SI) end;
     end else
     if Node is TNodeX3DColorNode then
@@ -3046,7 +3104,7 @@ begin
 	     ((SI.Current.Geometry is TNodeLineSet                ) and (TNodeLineSet                (SI.Current.Geometry).FdColor.Value = Node)) or
 	     ((SI.Current.Geometry is TNodePointSet_2             ) and (TNodePointSet_2             (SI.Current.Geometry).FdColor.Value = Node)) or
 	     ((SI.Current.Geometry is TNodeElevationGrid          ) and (TNodeElevationGrid          (SI.Current.Geometry).FdColor.Value = Node)) then
-            ChangedShapeFields(SI.Current, false, false, false);
+            ChangedShapeFields(SI.Current, false, false, false, false);
       finally FreeAndNil(SI) end;
     end else
     if Node is TNodeMaterial_2 then
@@ -3057,7 +3115,7 @@ begin
       try
         while SI.GetNext do
           if SI.Current.State.ParentShape.Material = Node then
-            ChangedShapeFields(SI.Current, false, false, false);
+            ChangedShapeFields(SI.Current, false, false, false, false);
       finally FreeAndNil(SI) end;
     end else
     if Node is TNodeX3DTextureCoordinateNode then
@@ -3070,7 +3128,7 @@ begin
           if (SI.Current.Geometry is TNodeX3DComposedGeometryNode) and
              (TNodeX3DComposedGeometryNode(SI.Current.Geometry).
                FdTexCoord.Value = Node) then
-            ChangedShapeFields(SI.Current, false, false, false);
+            ChangedShapeFields(SI.Current, false, false, false, false);
       finally FreeAndNil(SI) end;
     end else
     if (Node is TNodeTextureTransform) or
@@ -3087,7 +3145,7 @@ begin
              (SI.Current.State.ParentShape.FdAppearance.Value is TNodeAppearance) and
              AppearanceUsesTextureTransform(
                TNodeAppearance(SI.Current.State.ParentShape.FdAppearance.Value), Node) then
-            ChangedShapeFields(SI.Current, false, false, false);
+            ChangedShapeFields(SI.Current, false, false, false, false);
       finally FreeAndNil(SI) end;
     end else
     if Node is TVRMLLightNode then
@@ -3103,7 +3161,7 @@ begin
         while SI.GetNext do
           if SI.Current.Geometry = Node then
           begin
-            ChangedShapeFields(SI.Current, false, false, false
+            ChangedShapeFields(SI.Current, false, false, false, false
               { We pass PossiblyLocalGeometryChanged = false,
                 as we'll do ScheduledLocalGeometryChangedCoord := true
                 later that will take care of it anyway.
@@ -3181,7 +3239,7 @@ begin
           end;
 
           if not TransformChangeHelper.AnythingChanged then
-            { No need to even DoPostRedisplay at the end. }
+            { No need to even PostRedisplay at the end. }
             Exit;
         finally
           FreeAndNil(TransformChangeHelper);
@@ -3218,14 +3276,14 @@ begin
     if Node is TNodeMovieTexture then
     begin
       ChangedTimeDependentNode(TNodeMovieTexture(Node).TimeDependentNodeHandler);
-      { No need to do DoPostRedisplay.
+      { No need to do PostRedisplay.
         Redisplay will be done by next IncreaseWorldTime run, if active now. }
       Exit;
     end else
     if Node is TNodeTimeSensor then
     begin
       ChangedTimeDependentNode(TNodeTimeSensor(Node).TimeDependentNodeHandler);
-      { DoPostRedisplay not needed --- this is only a sensor, it's state
+      { PostRedisplay not needed --- this is only a sensor, it's state
         is not directly visible. }
       Exit;
     end else
@@ -3274,7 +3332,7 @@ begin
           if (ShapeTexture = Node) or
              ( (ShapeTexture is TNodeMultiTexture) and
                (TNodeMultiTexture(ShapeTexture).FdTexture.Items.IndexOf(Node) <> -1) ) then
-            ChangedShapeFields(SI.Current, false, true, false);
+            ChangedShapeFields(SI.Current, false, false, true, false);
         end;
       finally FreeAndNil(SI) end;
     end else
@@ -3317,17 +3375,46 @@ begin
       ScheduledGeometryActiveShapesChanged := true;
       ScheduleGeometryChanged;
     end else
-    if ( (Node is TNodeGeneratedCubeMapTexture) and
-         (TNodeGeneratedCubeMapTexture(Node).FdUpdate = Field) ) or
-       ( (Node is TNodeRenderedTexture) and
-         (TNodeRenderedTexture(Node).FdUpdate = Field) ) or
-       ( (Node is TNodeGeneratedShadowMap) and
-         (TNodeGeneratedShadowMap(Node).FdUpdate = Field) ) then
+    if Node is TNodeGeneratedCubeMapTexture then
     begin
       { For generated textures nodes "update" fields:
         changes will be handled automatically
         at next UpdateGeneratedTextures call.
-        So just make DoPostRedisplay, and nothing else is needed. }
+        So just make PostRedisplay and nothing else is needed.
+
+        Note we pass Changes = [] to PostRedisplay.
+        That's logical --- only the change of "update" doesn't visibly
+        change anything on the scene. This means that if you change "update"
+        to "ALWAYS", but no visible change was registered since last update
+        of the texture, the texture will not be actually immediately
+        regenerated --- correct optimization!
+
+        For other fields, even PostRedisplay isn't needed. }
+
+      if (Field = nil) or
+         (Field = TNodeGeneratedCubeMapTexture(Node).FdUpdate) then
+        PostRedisplay([]);
+      Exit;
+    end else
+    if Node is TNodeRenderedTexture then
+    begin
+      if (Field = nil) or
+         (Field = TNodeRenderedTexture(Node).FdUpdate) or
+         (Field = TNodeRenderedTexture(Node).FdDimensions) or
+         (Field = TNodeRenderedTexture(Node).FdViewpoint) or
+         (Field = TNodeRenderedTexture(Node).FdDepthMap) then
+        PostRedisplay([]);
+      Exit;
+    end else
+    if Node is TNodeGeneratedShadowMap then
+    begin
+      if (Field = nil) or
+         (Field = TNodeGeneratedShadowMap(Node).FdUpdate) or
+         (Field = TNodeGeneratedShadowMap(Node).FdScale) or
+         (Field = TNodeGeneratedShadowMap(Node).FdBias) or
+         (Field = TNodeGeneratedShadowMap(Node).FdLight) then
+        PostRedisplay([]);
+      Exit;
     end else
     begin
       { Node is something else. So we must assume that an arbitrary change
@@ -3341,7 +3428,7 @@ begin
       Exit;
     end;
 
-    DoPostRedisplay;
+    PostRedisplay([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
   finally EndChangesSchedule end;
 end;
 
@@ -3416,7 +3503,7 @@ begin
     CalculateMainLightForShadowsPosition;
 end;
 
-procedure TVRMLScene.DoPostRedisplay;
+procedure TVRMLScene.PostRedisplay(const Changes: TPostRedisplayChanges);
 begin
   if Assigned(OnPostRedisplay) then
     OnPostRedisplay(Self);
@@ -4988,7 +5075,7 @@ begin
         other nodes only by events, and this will change EventChanged
         to catch it). }
       if SomethingChanged then
-        DoPostRedisplay;
+        PostRedisplay([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
 
       for I := 0 to TimeSensorNodes.Count - 1 do
         (TimeSensorNodes.Items[I] as TNodeTimeSensor).
@@ -5225,7 +5312,8 @@ begin
   end;
 end;
 
-procedure TVRMLScene.ViewerChanged(Navigator: TNavigator);
+procedure TVRMLScene.ViewerChanged(Navigator: TNavigator;
+  const Changes: TPostRedisplayChanges);
 var
   I: Integer;
 begin
@@ -5245,6 +5333,8 @@ begin
         ProximitySensorUpdate(ProximitySensorInstances.Items[I]);
     end;
   finally EndChangesSchedule end;
+
+  PostRedisplay(Changes + [prViewer]);
 end;
 
 { compiled scripts ----------------------------------------------------------- }

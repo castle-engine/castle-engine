@@ -55,9 +55,35 @@
     public property FdtextureProperties: TSFNode read FFdtextureProperties;
   end;
 
+  { Helper class common to all VRML/X3D generated texture nodes. }
+  TGeneratedTextureHandler = class
+  private
+    FUpdateNeeded: boolean;
+  public
+    constructor Create;
+
+    { When update contains "ALWAYS", you can check this to know if really
+      something visible changed since last update.
+      If not, then you do not have to update the texture --- no point, since
+      it would look exactly like the current one.
+
+      Scene classes (TVRMLScene, TVRMLGLScene, TVRMLOpenGLRenderers)
+      take care to set this field. After each actual update of the texture,
+      it's set to @false. Each time something visible affecting the look
+      of this texture possibly changed, it's set to @true. }
+    property UpdateNeeded: boolean read FUpdateNeeded write FUpdateNeeded
+      default true;
+
+    FdUpdate: TSFString;
+  end;
+
   TNodeGeneratedCubeMapTexture = class(TNodeX3DEnvironmentTextureNode)
+  private
+    FGeneratedTextureHandler: TGeneratedTextureHandler;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    destructor Destroy; override;
+
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -71,6 +97,9 @@
 
     private FFdtextureProperties: TSFNode;
     public property FdtextureProperties: TSFNode read FFdtextureProperties;
+
+    property GeneratedTextureHandler: TGeneratedTextureHandler
+      read FGeneratedTextureHandler;
   end;
 
   TNodeImageCubeMapTexture = class(TNodeX3DEnvironmentTextureNode, INodeX3DUrlObject)
@@ -156,6 +185,12 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+constructor TGeneratedTextureHandler.Create;
+begin
+  inherited;
+  FUpdateNeeded := true;
+end;
+
 constructor TNodeGeneratedCubeMapTexture.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -173,6 +208,15 @@ begin
   FFdtextureProperties := TSFNode.Create(Self, 'textureProperties', [TNodeTextureProperties]);
   FFdtextureProperties.Exposed := false;
   Fields.Add(FFdtextureProperties);
+
+  FGeneratedTextureHandler := TGeneratedTextureHandler.Create;
+  FGeneratedTextureHandler.FdUpdate := FdUpdate;
+end;
+
+destructor TNodeGeneratedCubeMapTexture.Destroy;
+begin
+  FreeAndNil(FGeneratedTextureHandler);
+  inherited;
 end;
 
 class function TNodeGeneratedCubeMapTexture.ClassNodeTypeName: string;

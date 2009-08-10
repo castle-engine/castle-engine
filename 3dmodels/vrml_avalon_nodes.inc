@@ -126,12 +126,19 @@
   end;
 
   TNodeRenderedTexture = class(TNodeX3DTextureNode)
+  private
+    FGeneratedTextureHandler: TGeneratedTextureHandler;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    destructor Destroy; override;
+
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+
+    property GeneratedTextureHandler: TGeneratedTextureHandler
+      read FGeneratedTextureHandler;
 
     private FFdviewpoint: TSFNode;
     public property Fdviewpoint: TSFNode read FFdviewpoint;
@@ -683,6 +690,15 @@ begin
   FFdrepeatR := TSFBool.Create(Self, 'repeatR', true);
   FFdrepeatR.Exposed := false;
   Fields.Add(FFdrepeatR);
+
+  FGeneratedTextureHandler := TGeneratedTextureHandler.Create;
+  FGeneratedTextureHandler.FdUpdate := FdUpdate;
+end;
+
+destructor TNodeRenderedTexture.Destroy;
+begin
+  FreeAndNil(FGeneratedTextureHandler);
+  inherited;
 end;
 
 class function TNodeRenderedTexture.ClassNodeTypeName: string;

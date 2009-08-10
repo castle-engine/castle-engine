@@ -2558,12 +2558,12 @@ begin
         about changes to ParentEventsProcessor, we can also get here
         by eventIn invocation (which doesn't trigger
         ParentEventsProcessor.ChangedFields, since it doesn't change a field...).
-        So we should explicitly do DoPostRedisplay here, to make sure
+        So we should explicitly do PostRedisplay here, to make sure
         it gets called when uniform changed. }
 
       EventsProcessor := GLSLProgramCache^.ProgramNode.ParentEventsProcessor;
       if EventsProcessor <> nil then
-        (EventsProcessor as TVRMLScene).DoPostRedisplay;
+        (EventsProcessor as TVRMLScene).PostRedisplay([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
 
       Exit;
     end;
@@ -4715,24 +4715,26 @@ procedure TVRMLOpenGLRenderer.UpdateGeneratedTextures(Shape: TVRMLShape;
 var
   { Only for CheckUpdateField and PostUpdateField }
   UpdateIndex: Integer;
-  SavedUpdateField: TSFString;
+  SavedHandler: TGeneratedTextureHandler;
 
   { Look at the "update" field's value, decide whether we need updating.
     Will take care of making warning on incorrect "update". }
-  function CheckUpdate(UpdateField: TSFString): boolean;
+  function CheckUpdate(Handler: TGeneratedTextureHandler): boolean;
   begin
-    SavedUpdateField := UpdateField; { for PostUpdateField }
+    SavedHandler := Handler; { for PostUpdateField }
 
-    UpdateIndex := ArrayPosStr(LowerCase(UpdateField.Value),
+    UpdateIndex := ArrayPosStr(LowerCase(Handler.FdUpdate.Value),
       { Names below must be lowercase }
       ['none', 'next_frame_only', 'always']);
 
-    { Only if update = 'NEXT_FRAME_ONLY' or 'ALWAYS' remake the texture. }
-    Result := UpdateIndex > 0;
+    { Only if update = 'NEXT_FRAME_ONLY',
+      or 'ALWAYS' (and UpdateNeeded) remake the texture. }
+    Result := (UpdateIndex = 1) or
+      ( (UpdateIndex = 2) and Handler.UpdateNeeded );
 
     if UpdateIndex = -1 then
       VRMLWarning(vwSerious, Format('%s.update invalid field value "%s", will be treated like "NONE"',
-        [TextureNode.NodeTypeName, UpdateField.Value]));
+        [TextureNode.NodeTypeName, Handler.FdUpdate.Value]));
   end;
 
   { Call this after CheckUpdateField returned @true and you updated
@@ -4744,10 +4746,12 @@ var
     if UpdateIndex = 1 then
     begin
       if TextureNode.ParentEventsProcessor <> nil then
-        SavedUpdateField.EventIn.Send('NONE',
+        SavedHandler.FdUpdate.EventIn.Send('NONE',
           (TextureNode.ParentEventsProcessor as TVRMLScene).WorldTime) else
-        SavedUpdateField.Value := 'NONE';
+        SavedHandler.FdUpdate.Value := 'NONE';
     end;
+
+    SavedHandler.UpdateNeeded := false;
   end;
 
   procedure UpdateGeneratedCubeMap(TexNode: TNodeGeneratedCubeMapTexture);
@@ -4758,7 +4762,7 @@ var
       3D point to capture environment. }
     if IsEmptyBox3d(Shape.BoundingBox) then Exit;
 
-    if CheckUpdate(TexNode.FdUpdate) then
+    if CheckUpdate(TexNode.GeneratedTextureHandler) then
     begin
       GLNode := TGLGeneratedCubeMapTextureNode(GLTextureNodes.TextureNode(TexNode));
       if GLNode <> nil then
@@ -4779,7 +4783,7 @@ var
   var
     GLNode: TGLGeneratedShadowMap;
   begin
-    if CheckUpdate(TexNode.FdUpdate) then
+    if CheckUpdate(TexNode.GeneratedTextureHandler) then
     begin
       if (TexNode.FdLight.Value <> nil) and
          (TexNode.FdLight.Value is TNodeX3DLightNode) then
@@ -4805,7 +4809,7 @@ var
   var
     GLNode: TGLRenderedTextureNode;
   begin
-    if CheckUpdate(TexNode.FdUpdate) then
+    if CheckUpdate(TexNode.GeneratedTextureHandler) then
     begin
       GLNode := TGLRenderedTextureNode(GLTextureNodes.TextureNode(TexNode));
       if GLNode <> nil then

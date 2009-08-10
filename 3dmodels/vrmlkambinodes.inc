@@ -246,10 +246,17 @@
   end;
 
   TNodeGeneratedShadowMap = class(TNodeX3DTextureNode)
+  private
+    FGeneratedTextureHandler: TGeneratedTextureHandler;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    destructor Destroy; override;
+
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
+
+    property GeneratedTextureHandler: TGeneratedTextureHandler
+      read FGeneratedTextureHandler;
 
     private FFdupdate: TSFString;
     public property Fdupdate: TSFString read FFdupdate;
@@ -698,6 +705,15 @@ begin
 
   FFdcompareMode := TSFString.Create(Self, 'compareMode', 'COMPARE_R_LEQUAL');
   Fields.Add(FFdcompareMode);
+
+  FGeneratedTextureHandler := TGeneratedTextureHandler.Create;
+  FGeneratedTextureHandler.FdUpdate := FdUpdate;
+end;
+
+destructor TNodeGeneratedShadowMap.Destroy;
+begin
+  FreeAndNil(FGeneratedTextureHandler);
+  inherited;
 end;
 
 class function TNodeGeneratedShadowMap.ClassNodeTypeName: string;
