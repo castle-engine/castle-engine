@@ -13,6 +13,7 @@ uses
   backgroundgl,
   glwindowvrmlbrowser,
   object3dopengl,
+  scenemanagerunit,
   vrmlglanimation,
   vrmlglheadlight,
   vrmlglscene,

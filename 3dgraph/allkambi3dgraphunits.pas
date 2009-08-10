@@ -20,6 +20,7 @@ uses
   polynomials,
   quaternions,
   rayswindow,
+  renderstateunit,
   spacefillingcurves,
   spheresampling,
   sphericalharmonics

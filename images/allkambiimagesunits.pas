@@ -11,6 +11,7 @@ interface
 
 uses
   dds,
+  fftwutils,
   images,
   imagescache,
   { imagesfftw, --- imagesfftw is not compiled here for now, as it requires FPC > 2.2.x, and is not actually used by anything else from the engine }
@@ -19,6 +20,7 @@ uses
   kambipasjpeg_stream_mgrs,
   kambipng,
   kambipngutils,
+  textureimages,
   videos,
   videoscache
   ;
