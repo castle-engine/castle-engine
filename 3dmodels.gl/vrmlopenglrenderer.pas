@@ -939,6 +939,7 @@ type
   TTextureDepthCache = record
     { For now, this may be TNodeGeneratedShadowMap or TNodeRenderedTexture. }
     InitialNode: TNodeX3DTextureNode;
+    Wrap: TTextureWrap2D;
     References: Cardinal;
     GLName: TGLuint;
   end;
@@ -1076,10 +1077,16 @@ type
     procedure TextureCubeMap_DecReference(
       const TextureGLName: TGLuint);
 
+    { Required ARB_depth_texture before calling this.
+
+      For interpreating DepthCompareField, ARB_shadow will be needed
+      (but we'll make nice warning if it's not available).
+      DepthCompareField may be @nil, then it's equivalent to "NONE". }
     function TextureDepth_IncReference(
       Node: TNodeX3DTextureNode;
+      const TextureWrap: TTextureWrap2D;
       DepthCompareField: TSFString;
-      const Size: Cardinal): TGLuint;
+      const Width, Height: Cardinal): TGLuint;
 
     procedure TextureDepth_DecReference(
       const TextureGLName: TGLuint);
@@ -2239,8 +2246,9 @@ end;
 
 function TVRMLOpenGLRendererContextCache.TextureDepth_IncReference(
   Node: TNodeX3DTextureNode;
+  const TextureWrap: TTextureWrap2D;
   DepthCompareField: TSFString;
-  const Size: Cardinal): TGLuint;
+  const Width, Height: Cardinal): TGLuint;
 var
   I: Integer;
   TextureCached: PTextureDepthCache;
@@ -2249,7 +2257,8 @@ begin
   begin
     TextureCached := TextureDepthCaches.Pointers[I];
 
-    if TextureCached^.InitialNode = Node then
+    if (TextureCached^.InitialNode = Node) and
+       (TextureCached^.Wrap = TextureWrap) then
     begin
       Inc(TextureCached^.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
@@ -2265,31 +2274,34 @@ begin
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-  { In this case, clamp to border is Ok? TODO: test here }
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TextureWrap[0]);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TextureWrap[1]);
 
   { Do not init any texture image. Just initialize texture sizes
     and both internal and external formats to GL_DEPTH_COMPONENT_ARB
     (will match depth buffer precision). }
   glTexImage2d(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-    Size, Size, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nil);
+    Width, Height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nil);
 
   if GL_ARB_shadow then
   begin
-    if DepthCompareField.Value = 'COMPARE_R_LEQUAL' then
+    if DepthCompareField <> nil then
     begin
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_LEQUAL);
+      if DepthCompareField.Value = 'COMPARE_R_LEQUAL' then
+      begin
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_LEQUAL);
+      end else
+      if DepthCompareField.Value = 'COMPARE_R_GEQUAL' then
+      begin
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_GEQUAL);
+      end else
+      if DepthCompareField.Value = 'NONE' then
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE) else
+        VRMLWarning(vwSerious, Format('Invalid value for GeneratedShadowMode.compareMode: "%s"', [DepthCompareField.Value]));
     end else
-    if DepthCompareField.Value = 'COMPARE_R_GEQUAL' then
-    begin
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_GEQUAL);
-    end else
-    if DepthCompareField.Value = 'NONE' then
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE) else
-      VRMLWarning(vwSerious, Format('Invalid value for GeneratedShadowMode.compareMode: "%s"', [DepthCompareField.Value]));
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
 
     glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
   end else

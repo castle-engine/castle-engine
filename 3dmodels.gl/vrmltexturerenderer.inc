@@ -260,6 +260,7 @@
     { The actual decided image size and mipmap status. }
     Width, Height: Cardinal;
     NeedsMipmaps: boolean;
+    DepthMap: boolean;
 
     function TextureNode: TNodeRenderedTexture;
 
@@ -1465,47 +1466,67 @@ begin
           Width, Height]));
   end;
 
-  InitialImage := TRGBImage.Create(Width, Height);
-  try
-    { Fill with deliberately stupid (but constant) color,
-      to recognize easily RenderedTexture which don't have textures
-      updated. }
-    InitialImage.Clear(Vector4Byte(255, 0, 255, 255));
+  { calculate DepthMap }
+  if TextureNode.FdDepthMap.Count > 0 then
+    DepthMap := TextureNode.FdDepthMap.Items[0] else
+    DepthMap := false;
 
-    try
-      GLName := Renderer.Cache.TextureImage_IncReference(
-        InitialImage,
-        '',
-        TextureNode,
-        MinFilter,
-        MagFilter,
-        Anisotropy,
-        TextureWrap,
-        Renderer.Attributes.ColorModulatorByte,
-        { This way, our AlphaChannelType is calculated (or taken from cache)
-          by TextureImage_IncReference }
-        AlphaChannelType);
-    except
-      on E: ETextureLoadError do
-      begin
-        VRMLWarning(vwIgnorable, 'Cannot load 2D texture to OpenGL: ' + E.Message);
-        Exit;
-      end;
+  if DepthMap then
+  begin
+    if not GL_ARB_depth_texture then
+    begin
+      VRMLWarning(vwSerious, 'Your OpenGL doesn''t support ARB_depth_texture, cannot use RenderedTexture with depthMap = TRUE');
+      Exit;
     end;
 
-    { RenderedTexture never has any normal / height map
-      (Hm, although it would be possible to generate some in theory
-      --- after all, we generate it from 3D data. Idea for the future.)
-    NormalMap := 0;
-    HeightMap := 0;
-    }
-  finally FreeAndNil(InitialImage) end;
+    GLName := Renderer.Cache.TextureDepth_IncReference(
+      TextureNode, TextureWrap, nil, Width, Height);
+  end else
+  begin
+    InitialImage := TRGBImage.Create(Width, Height);
+    try
+      { Fill with deliberately stupid (but constant) color,
+        to recognize easily RenderedTexture which don't have textures
+        updated. }
+      InitialImage.Clear(Vector4Byte(255, 0, 255, 255));
+
+      try
+        GLName := Renderer.Cache.TextureImage_IncReference(
+          InitialImage,
+          '',
+          TextureNode,
+          MinFilter,
+          MagFilter,
+          Anisotropy,
+          TextureWrap,
+          Renderer.Attributes.ColorModulatorByte,
+          { This way, our AlphaChannelType is calculated (or taken from cache)
+            by TextureImage_IncReference }
+          AlphaChannelType);
+      except
+        on E: ETextureLoadError do
+        begin
+          VRMLWarning(vwIgnorable, 'Cannot load 2D texture to OpenGL: ' + E.Message);
+          Exit;
+        end;
+      end;
+
+      { RenderedTexture never has any normal / height map
+        (Hm, although it would be possible to generate some in theory
+        --- after all, we generate it from 3D data. Idea for the future.)
+      NormalMap := 0;
+      HeightMap := 0;
+      }
+    finally FreeAndNil(InitialImage) end;
+  end;
 end;
 
 procedure TGLRenderedTextureNode.Unprepare;
 begin
   if GLName <> 0 then
-    Renderer.Cache.TextureImage_DecReference(GLName);
+    if DepthMap then
+      Renderer.Cache.TextureDepth_DecReference(GLName) else
+      Renderer.Cache.TextureImage_DecReference(GLName);
 end;
 
 function TGLRenderedTextureNode.Enable(const TextureUnit: Cardinal;
@@ -1865,6 +1886,8 @@ end;
 
 procedure TGLGeneratedShadowMap.Prepare(State: TVRMLGraphTraverseState;
   var BumpMappingWanted: TBumpMappingWanted);
+var
+  TextureWrap: TTextureWrap2D;
 begin
   if not GL_ARB_depth_texture then
   begin
@@ -1875,8 +1898,12 @@ begin
   { TODO: fix TextureNode.FdSize.Value if needed }
   Size := TextureNode.FdSize.Value;
 
+  { In this case, clamp to border is Ok? TODO: test here }
+  TextureWrap[0] := GL_CLAMP;
+  TextureWrap[1] := GL_CLAMP;
+
   GLName := Renderer.Cache.TextureDepth_IncReference(
-    TextureNode, TextureNode.FdCompareMode, Size);
+    TextureNode, TextureWrap, TextureNode.FdCompareMode, Size, Size);
 end;
 
 procedure TGLGeneratedShadowMap.Unprepare;
