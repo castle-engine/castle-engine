@@ -3089,7 +3089,7 @@ procedure TVRMLGLScene.PrepareRender(
       using RenderShapesNoDisplayList.
 
       Note that CalculateUseBlending checks
-      Renderer.Cache.PreparedTextureAlphaChannelType,
+      Renderer.PreparedTextureAlphaChannelType,
       so assumes that given shape is already prepared for Renderer.
       It also looks at texture node, material node data,
       so should be done right after preparing given state,
@@ -3106,9 +3106,7 @@ procedure TVRMLGLScene.PrepareRender(
       UseBlending: boolean;
       State: TVRMLGraphTraverseState;
       Tex: TNodeX3DTextureNode;
-      MultiTex: TMFNode;
       AlphaChannelType: TAlphaChannelType;
-      I: Integer;
     begin
       State := Shape.State;
 
@@ -3116,7 +3114,7 @@ procedure TVRMLGLScene.PrepareRender(
         blending.
 
         Note that this looks at nodes, calling
-        State.LastNodes.Material.AllMaterialsTransparent, looking
+        State.LastNodes.Material.AllMaterialsTransparent, possibly looking
         at TextureNode.TextureImage / TextureVidep etc.
         So it's important to initialize UseBlending before
         user has any chance to do FreeResources or to free RootNode
@@ -3133,31 +3131,16 @@ procedure TVRMLGLScene.PrepareRender(
 
       if not UseBlending then
       begin
-        { Check texture(s) for full range alpha channel.
-          Take all textures (may be > 1 in case of multitexturing) that
-          are prepared, if any has full range alpha channel ---
-          then force blending. }
+        { If texture exists with full range alpha channel then use blending.
+
+          Note that State.Texture may be TNodeMultiTexture --- that's Ok,
+          it's also prepared by Renderer, and has AlphaChannelType = atFullRange
+          if any child has atFullRange. So it automatically works Ok too. }
 
         Tex := State.Texture;
-        if Tex <> nil then
-        begin
-          if Tex is TNodeMultiTexture then
-          begin
-            MultiTex := TNodeMultiTexture(Tex).FdTexture;
-            for I := 0 to MultiTex.Count - 1 do
-            begin
-              if (MultiTex.Items[I] <> nil) and
-                 (MultiTex.Items[I] is TNodeX3DTextureNode) and
-                 (Renderer.PreparedTextureAlphaChannelType(TNodeX3DTextureNode(MultiTex.Items[I]), AlphaChannelType)) then
-              begin
-                UseBlending := AlphaChannelType = atFullRange;
-                if UseBlending then Break;
-              end;
-            end;
-          end else
-          if Renderer.PreparedTextureAlphaChannelType(Tex, AlphaChannelType) then
-            UseBlending := AlphaChannelType = atFullRange;
-        end;
+        if (Tex <> nil) and
+           Renderer.PreparedTextureAlphaChannelType(Tex, AlphaChannelType) then
+          UseBlending := AlphaChannelType = atFullRange;
       end;
 
       Shape.UseBlending := UseBlending;

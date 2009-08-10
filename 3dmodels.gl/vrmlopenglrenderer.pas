@@ -1428,18 +1428,36 @@ type
     FBumpMappingLightDiffuseColor: TVector4Single;
     procedure SetBumpMappingLightDiffuseColor(const Value: TVector4Single);
 
-    { Prepare/Unprepare texture nodes.
+    { Prepare/Unprepare/Enable texture nodes.
 
-      These should be called only from TVRMLOpenGLRenderer.Prepare/Unprepare[All],
+      These should be called only from
+      TVRMLOpenGLRenderer.Prepare/Unprepare[All]/Enable(internally in rendering),
       they are exposed only to allow recursive call from
-      TGLMultiTextureNode.Prepare.
+      TGLMultiTextureNode methods.
 
-      Accepts multi texture or not-multi texture nodes, accepts (and ignores)
+      Basically, their required interface is the same as equivalent
+      TGLTextureNode methods.
+
+      PrepareTexture returns created TGLTextureNode (or @nil if none),
+      it may be useful in case of TGLMultiTextureNode.Prepare implementation.
+
+      If given TextureNode doesn't have
+      correspodning TGLTextureNode reference (in GLTextureNodes),
+      UnprepareTexture is simply ignored and EnableTexture returns @false.
+
+      Accept multi texture or not-multi texture nodes, accept (and ignore)
       also @nil as TextureNode.
-      Ignores not handled node classes. }
-    procedure PrepareTexture(State: TVRMLGraphTraverseState;
-      TextureNode: TNodeX3DTextureNode);
+      Ignore not handled node classes.
+
+      @groupBegin }
+    function PrepareTexture(State: TVRMLGraphTraverseState;
+      TextureNode: TNodeX3DTextureNode): TGLTextureNode;
     procedure UnprepareTexture(TextureNode: TNodeX3DTextureNode);
+    function EnableTexture(TextureNode: TNodeX3DTextureNode;
+      const TextureUnit: Cardinal;
+      const UseForBumpMappingAllowed: boolean;
+      var APrimitives3DTextureCoords: boolean): boolean;
+    { @groupEnd }
   public
     { Constructor.
 
@@ -1584,10 +1602,17 @@ type
       Returns @false if texture is not prepared. If you want to make
       sure the texture is prepared make sure that
       @unorderedList(
-        @item(State with this texture was passed to @link(Prepare) method
-          (that is, @link(Prepare) was called with this texture
-          as State.Texture, or, in case of multi-texturing, among
-          State.Texture.FdTexture.Items),)
+        @item(State with this texture was passed to @link(Prepare) method.
+          That is, @link(Prepare) was called with this texture
+          as State.Texture.
+
+          If the State.Texture was multi-texture,
+          then also all it's items (on the list of
+          State.Texture.FdTexture) are prepared.
+          The main multi-texture node is also considered prepared then,
+          it's AlphaChannelType was calculated looking at AlphaChannelType
+          of children.
+        )
         @item(Attributes.PureGeometry = @false,)
         @item(and node must have some texture data
           (for TVRMLTextureNode, check TextureNode.IsTextureImage or
@@ -3322,8 +3347,8 @@ end;
 
 { Prepare/Unprepare[All] ------------------------------------------------------- }
 
-procedure TVRMLOpenGLRenderer.PrepareTexture(State: TVRMLGraphTraverseState;
-  TextureNode: TNodeX3DTextureNode);
+function TVRMLOpenGLRenderer.PrepareTexture(State: TVRMLGraphTraverseState;
+  TextureNode: TNodeX3DTextureNode): TGLTextureNode;
 
   { Called when BumpMappingMethod <> bmNone and it's detected that bump mapping
     may be actually used. This is supposed to initialize anything related to
@@ -3432,9 +3457,10 @@ procedure TVRMLOpenGLRenderer.PrepareTexture(State: TVRMLGraphTraverseState;
 
 var
   GLTextureNodeClass: TGLTextureNodeClass;
-  GLTextureNode: TGLTextureNode;
   BumpMappingWanted: TBumpMappingWanted;
 begin
+  Result := nil;
+
   { Conditions below describing when the texture is added to the cache
     (more precisely, just "not Attributes.PureGeometry" for now)
     are reflected in PreparedTextureAlphaChannelType documentation. }
@@ -3447,9 +3473,9 @@ begin
     if (GLTextureNodeClass <> nil { Ignore if not handled node. }) and
        (GLTextureNodes.TextureNodeIndex(TextureNode) = -1) then
     begin
-      GLTextureNode := GLTextureNodeClass.Create(Self, TextureNode);
-      GLTextureNode.Prepare(State, BumpMappingWanted);
-      GLTextureNodes.Add(GLTextureNode);
+      Result := GLTextureNodeClass.Create(Self, TextureNode);
+      Result.Prepare(State, BumpMappingWanted);
+      GLTextureNodes.Add(Result);
 
       { PrepareBumpMapping *after* GLTextureNodes.Add(Handler).
         This way in case of errors (some GLSL errors on current OpenGL ?)
@@ -4216,6 +4242,24 @@ begin
     glMultMatrix(State.Transform);
 end;
 
+function TVRMLOpenGLRenderer.EnableTexture(TextureNode: TNodeX3DTextureNode;
+  const TextureUnit: Cardinal;
+  const UseForBumpMappingAllowed: boolean;
+  var APrimitives3DTextureCoords: boolean): boolean;
+var
+  Index: Integer;
+  GLTextureNode: TGLTextureNode;
+begin
+  Index := GLTextureNodes.TextureNodeIndex(TextureNode);
+  Result := Index <> -1;
+  if Result then
+  begin
+    GLTextureNode := GLTextureNodes[Index];
+    Result := GLTextureNode.Enable(TextureUnit, UseForBumpMappingAllowed,
+      APrimitives3DTextureCoords);
+  end;
+end;
+
 procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
 
   function NodeTextured(Node: TVRMLGeometryNode): boolean;
@@ -4292,505 +4336,10 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
 
   procedure InitTextures;
   var
-    AlphaTest: boolean;
-
-    procedure DisableTexture(const TextureUnit: Cardinal);
-    begin
-      ActiveTexture(TextureUnit);
-      TGLTextureNode.TextureEnableDisable(etOff);
-    end;
-
-    { AlphaTest may be modified, but only to true, by this procedure. }
-    function EnableSingleTexture(const TextureUnit: Cardinal;
-      TextureNode: TNodeX3DTextureNode;
-      UseForBumpMappingAllowed: boolean): boolean;
-    var
-      Index: Integer;
-      GLTextureNode: TGLTextureNode;
-    begin
-      Index := GLTextureNodes.TextureNodeIndex(TextureNode);
-      Result := Index <> -1;
-      if Result then
-      begin
-        GLTextureNode := GLTextureNodes[Index];
-        AlphaTest := AlphaTest or
-          (GLTextureNode.AlphaChannelType = atSimpleYesNo);
-        Result := GLTextureNode.Enable(TextureUnit, UseForBumpMappingAllowed,
-          Primitives3DTextureCoords);
-      end;
-    end;
-
-    { Do the necessary preparations for a multi-texture node.
-      MultiTexture must be non-nil.
-
-      Sets enabled/disabled texture state for all texture units < TexCount. }
-    procedure EnableMultiTexture(const TexCount: Cardinal;
-      MultiTexture: TNodeMultiTexture);
-
-      type
-        TChannel = (cRGB, cAlpha);
-        TGLIntPerChannel = array [TChannel] of TGLint;
-        TCombinePerChannel = TGLIntPerChannel;
-        TArgPerChannel = array [TChannel] of Integer;
-        TScalePerChannel = array [TChannel] of TGLfloat;
-        TStringPerChannel = array [TChannel] of string;
-
-      { Simple type constructors, for ease of coding.
-        Versions with only 1 argument set both channel (rgb and alpha) to the same. }
-      function CombinePerChannel(const RGB, Alpha: TGLint): TCombinePerChannel;
-      begin
-        Result[cRGB] := RGB;
-        Result[cAlpha] := Alpha;
-      end;
-
-      function CombinePerChannel(const Value: TGLint): TCombinePerChannel;
-      begin
-        Result := CombinePerChannel(Value, Value);
-      end;
-
-      function ArgPerChannel(const RGB, Alpha: Integer): TArgPerChannel;
-      begin
-        Result[cRGB] := RGB;
-        Result[cAlpha] := Alpha;
-      end;
-
-      function ArgPerChannel(const Value: Integer): TArgPerChannel;
-      begin
-        Result := ArgPerChannel(Value, Value);
-      end;
-
-      function ScalePerChannel(const RGB, Alpha: TGLfloat): TScalePerChannel;
-      begin
-        Result[cRGB] := RGB;
-        Result[cAlpha] := Alpha;
-      end;
-
-      function ScalePerChannel(const Value: TGLfloat): TScalePerChannel;
-      begin
-        Result := ScalePerChannel(Value, Value);
-      end;
-
-      { If S contains two separate modes (one for RGB, one for Alpha)
-        returns @true and sets PerChannel to these separate strings.
-        Strings returned in PerChannel will not contain the separator
-        (slash, comma), and will not contain whitespace. }
-      function SplitStringPerChannel(const S: string;
-        out PerChannel: TStringPerChannel): boolean;
-      var
-        P: Integer;
-      begin
-        P := CharsPos(['/', ','], S);
-        Result := P > 0;
-        if Result then
-        begin
-          PerChannel[cRGB] := Trim(Copy(S, 1, P - 1));
-          PerChannel[cAlpha] := Trim(SEnding(S, P + 1));
-        end;
-      end;
-
-      { Return OpenGL values for
-        GL_COMBINE_RGB_EXT, GL_COMBINE_ALPHA_EXT.
-
-        Also, specify which argument (0, 1, 2 for
-        GL_SOURCE0, GL_SOURCE1, GL_SOURCE2, or -1 if none) should represent
-        current texture unit (this is "Arg1" in X3D spec wording),
-        and which is the source (default is previous texture unit,
-        although may change by "source" field; this is "Arg2" in X3D spec).
-
-        You can assign here explicitly sources/operands for other
-        arguments, if needed (e.g. "BLEND*" modes fill here 3rd source/operand
-        directly).
-
-        Also, specify Scale (remember OpenGL allows
-        only 1.0, 2.0 and 4.0 scales). By default are 1. }
-      procedure ModeFromString(const S: string;
-        out Combine: TCombinePerChannel;
-        out Arg1: TArgPerChannel;
-        out Arg2: TArgPerChannel;
-        var Scale: TScalePerChannel;
-        var AlreadyHandled: boolean;
-        var NeedsConstantColor: boolean);
-
-        { Interpret simple mode name (this is for sure only one mode,
-          without any "/" and whitespaces). This handles only the simplest
-          modes, that behave the same and are allowed separately for
-          both RGB and alpha channel.
-
-          LS passed here must already be lowercase.
-
-          Scale passed here must be initially 1.0. }
-        procedure SimpleModeFromString(
-          const LS: string;
-          out Combine: TGLint;
-          out Arg1, Arg2: Integer;
-          var Scale: TGLfloat;
-          const Channels: string);
-        begin
-          if LS = 'modulate' then
-          begin
-            Combine := GL_MODULATE;
-            Arg1 := 0;
-            Arg2 := 1;
-          end else
-          if LS = 'modulate2x' then
-          begin
-            Combine := GL_MODULATE;
-            Arg1 := 0;
-            Arg2 := 1;
-            Scale := 2;
-          end else
-          if LS = 'modulate4x' then
-          begin
-            Combine := GL_MODULATE;
-            Arg1 := 0;
-            Arg2 := 1;
-            Scale := 4;
-          end else
-          if (LS = 'replace') or (LS = 'selectarg1') then
-          begin
-            { SELECTARG1 is exactly the same as REPLACE.
-
-              Note: don't get confused by X3D spec saying in table 18.3 that
-              "REPLACE" takes the Arg2, that's an error, it takes
-              from Arg1 to be consistent with other spec words.
-              I wrote some remarks about this on
-              http://vrmlengine.sourceforge.net/vrml_implementation_status.php }
-
-            Combine := GL_REPLACE;
-            Arg1 := 0;
-            Arg2 := -1;
-          end else
-          if LS = 'selectarg2' then
-          begin
-            Combine := GL_REPLACE;
-            Arg1 := -1;
-            Arg2 := 0;
-          end else
-          if LS = 'add' then
-          begin
-            Combine := GL_ADD;
-            Arg1 := 0;
-            Arg2 := 1;
-          end else
-          if LS = 'addsigned' then
-          begin
-            Combine := GL_ADD_SIGNED_EXT;
-            Arg1 := 0;
-            Arg2 := 1;
-          end else
-          if LS = 'addsigned2x' then
-          begin
-            Combine := GL_ADD_SIGNED_EXT;
-            Arg1 := 0;
-            Arg2 := 1;
-            Scale := 2;
-          end else
-          if LS = 'subtract' then
-          begin
-            Combine := GL_SUBTRACT;
-            Arg1 := 0;
-            Arg2 := 1;
-          end else
-          begin
-            Combine := GL_MODULATE;
-            Arg1 := 0;
-            Arg2 := 1;
-            VRMLWarning(vwSerious, Format('Not supported multi-texturing mode "%s" for channels "%s"', [LS, Channels]));
-          end;
-        end;
-
-        procedure RGBModeFromString(
-          const LS: string;
-          out Combine: TGLint;
-          out Arg1, Arg2: Integer;
-          var Scale: TGLfloat);
-        begin
-          if LS = 'dotproduct3' then
-          begin
-            { We use DOT3_RGB_ARB here.
-              This means it will fill only RGB values.
-
-              This is our extension (X3D spec allows only DOTPRODUCT3
-              for both channels, and to fill them both, this case is handled
-              in BothModesFromString). }
-            Combine := GL_DOT3_RGB_ARB;
-            Arg1 := 0;
-            Arg2 := 1;
-          end else
-            SimpleModeFromString(LS, Combine, Arg1, Arg2, Scale, 'RGB');
-        end;
-
-        procedure AlphaModeFromString(
-          const LS: string;
-          out Combine: TGLint;
-          out Arg1, Arg2: Integer;
-          var Scale: TGLfloat);
-        begin
-          SimpleModeFromString(LS, Combine, Arg1, Arg2, Scale, 'Alpha');
-        end;
-
-        procedure BothModesFromString(
-          const LS: string;
-          out Combine: TCombinePerChannel;
-          out Arg1, Arg2: TArgPerChannel;
-          var Scale: TScalePerChannel);
-        begin
-          if LS = '' then
-          begin
-            { LS = '' means that mode list was too short.
-              X3D spec says explicitly that default mode is "MODULATE"
-              in this case. (Accidentaly, this also will accept
-              explict "" string as "MODULATE" --- not a worry, we don't
-              have to produce error messages for all possible invalid VRMLs...). }
-
-            Combine := CombinePerChannel(GL_MODULATE);
-            Arg1 := ArgPerChannel(0);
-            Arg2 := ArgPerChannel(1);
-          end else
-          if LS = 'off' then
-          begin
-            { For OFF, turn off the texture unit? This is the correct
-              interpretation, right? }
-            TGLTextureNode.TextureEnableDisable(etOff);
-            AlreadyHandled := true;
-          end else
-          if LS = 'dotproduct3' then
-          begin
-            { We use DOT3_RGBA_ARB, not DOT3_RGB_ARB.
-              See [http://www.opengl.org/registry/specs/ARB/texture_env_dot3.txt].
-
-              This means that the dot (done on only RGB channels) will
-              be replicated to all four channels (RGBA). This is exactly what
-              the X3D specification requires, so we're happy.
-              Yes, this means that COMBINE_ALPHA_ARB will be ignored. }
-
-            Combine := CombinePerChannel(GL_DOT3_RGBA_ARB,
-              GL_REPLACE { <- whatever, alpha combine will be ignored });
-            Arg1 := ArgPerChannel(0);
-            Arg2 := ArgPerChannel(1);
-          end else
-          if LS = 'blenddiffusealpha' then
-          begin
-            Combine := CombinePerChannel(GL_INTERPOLATE_EXT);
-            Arg1 := ArgPerChannel(0);
-            Arg2 := ArgPerChannel(1);
-
-            { Whole source2 (both RGB and alpha) is filled by alpha of material
-              (primary color). }
-            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB_EXT, GL_PRIMARY_COLOR_EXT);
-            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB_EXT, GL_SRC_ALPHA);
-            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA_EXT, GL_PRIMARY_COLOR_EXT);
-            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA_EXT, GL_SRC_ALPHA);
-          end else
-          if LS = 'blendtexturealpha' then
-          begin
-            Combine := CombinePerChannel(GL_INTERPOLATE_EXT);
-            Arg1 := ArgPerChannel(0);
-            Arg2 := ArgPerChannel(1);
-
-            { Whole source2 (both RGB and alpha) is filled by alpha of current
-              tex unit. }
-            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB_EXT, GL_TEXTURE);
-            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB_EXT, GL_SRC_ALPHA);
-            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA_EXT, GL_TEXTURE);
-            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA_EXT, GL_SRC_ALPHA);
-          end else
-          if LS = 'blendfactoralpha' then
-          begin
-            Combine := CombinePerChannel(GL_INTERPOLATE_EXT);
-            Arg1 := ArgPerChannel(0);
-            Arg2 := ArgPerChannel(1);
-
-            { Whole source2 (both RGB and alpha) is filled by const alpha. }
-            NeedsConstantColor := true;
-            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB_EXT, GL_CONSTANT_EXT);
-            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB_EXT, GL_SRC_ALPHA);
-            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA_EXT, GL_CONSTANT_EXT);
-            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA_EXT, GL_SRC_ALPHA);
-          end else
-          if LS = 'blendcurrentalpha' then
-          begin
-            Combine := CombinePerChannel(GL_INTERPOLATE_EXT);
-            Arg1 := ArgPerChannel(0);
-            Arg2 := ArgPerChannel(1);
-
-            { Whole source2 (both RGB and alpha) is filled by alpha from prev tex. }
-            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB_EXT, GL_PREVIOUS_EXT);
-            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB_EXT, GL_SRC_ALPHA);
-            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA_EXT, GL_PREVIOUS_EXT);
-            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA_EXT, GL_SRC_ALPHA);
-          end else
-          begin
-            SimpleModeFromString(LS,
-              Combine[cRGB], Arg1[cRGB], Arg2[cRGB], Scale[cRGB], 'both RGB and Alpha');
-            Combine[cAlpha] := Combine[cRGB];
-            Arg1   [cAlpha] := Arg1   [cRGB];
-            Arg2   [cAlpha] := Arg2   [cRGB];
-            Scale  [cAlpha] := Scale  [cRGB];
-          end;
-        end;
-
-      var
-        LS: string;
-        StringPerChannel: TStringPerChannel;
-      begin
-        LS := LowerCase(S);
-        if SplitStringPerChannel(LS, StringPerChannel) then
-        begin
-          RGBModeFromString(StringPerChannel[cRGB], Combine[cRGB], Arg1[cRGB], Arg2[cRGB], Scale[cRGB]);
-          AlphaModeFromString(StringPerChannel[cAlpha], Combine[cAlpha], Arg1[cAlpha], Arg2[cAlpha], Scale[cAlpha]);
-        end else
-          BothModesFromString(LS, Combine, Arg1, Arg2, Scale);
-      end;
-
-      procedure SourceFromString(const S: string; out Source: TGLIntPerChannel;
-        var NeedsConstantColor: boolean);
-
-        procedure SimpleSourceFromString(const LS: string;
-          out Source: TGLint;
-          var NeedsConstantColor: boolean);
-        begin
-          if LS = '' then
-            Source := GL_PREVIOUS_EXT else
-          if (LS = 'diffuse') or (LS = 'specular') then
-            Source := GL_PRIMARY_COLOR_EXT else
-          if LS = 'factor' then
-          begin
-            NeedsConstantColor := true;
-            Source := GL_CONSTANT_EXT;
-          end else
-          begin
-            Source := GL_PREVIOUS_EXT;
-            VRMLWarning(vwSerious, Format('Not supported multi-texturing source "%s"', [LS]))
-          end;
-        end;
-
-      var
-        LS: string;
-        SourcePerChannel: TStringPerChannel;
-      begin
-        LS := LowerCase(S);
-        if SplitStringPerChannel(LS, SourcePerChannel) then
-        begin
-          SimpleSourceFromString(SourcePerChannel[cRGB  ], Source[cRGB  ], NeedsConstantColor);
-          SimpleSourceFromString(SourcePerChannel[cAlpha], Source[cAlpha], NeedsConstantColor);
-        end else
-        begin
-          SimpleSourceFromString(LS, Source[cRGB], NeedsConstantColor);
-          Source[cAlpha] := Source[cRGB];
-        end;
-      end;
-
-    var
-      ChildTex: TVRMLNode;
-      I: Integer;
-      Success: boolean;
-      Combine: TCombinePerChannel;
-      Arg1, Arg2: TArgPerChannel;
-      Scale: TScalePerChannel;
-      S: string;
-      AlreadyHandled: boolean;
-      NeedsConstantColor: boolean;
-      Source: TGLIntPerChannel;
-    begin
-      Assert(Integer(TexCount) <= MultiTexture.FdTexture.Items.Count);
-      for I := 0 to Integer(TexCount) - 1 do
-      begin
-        ChildTex := MultiTexture.FdTexture.Items.Items[I];
-        Success := false;
-
-        if (ChildTex <> nil) and
-           (ChildTex is TNodeX3DTextureNode) then
-        begin
-          if ChildTex is TNodeMultiTexture then
-            VRMLWarning(vwSerious, 'Child of MultiTexture node cannot be another MultiTexture node') else
-            Success := EnableSingleTexture(I, TNodeX3DTextureNode(ChildTex), false);
-
-          if Success then
-          begin
-            { Set all the multitexture mode-related stuff.
-              Below we handle MultiTexture.mode, source, color, alpha,
-              function fields. }
-
-            AlreadyHandled := false;
-            Scale[cRGB] := 1;
-            Scale[cAlpha] := 1;
-            NeedsConstantColor := false;
-
-            if I < MultiTexture.FdMode.Count then
-              S := MultiTexture.FdMode.Items[I] else
-              S := '';
-
-            ModeFromString(S, Combine, Arg1, Arg2,
-              Scale, AlreadyHandled, NeedsConstantColor);
-
-            if not AlreadyHandled then
-            begin
-              glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
-
-              glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, Combine[cRGB]);
-              glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, Combine[cAlpha]);
-
-              glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, Scale[cRGB]);
-              glTexEnvf(GL_TEXTURE_ENV, GL_ALPHA_SCALE, Scale[cAlpha]);
-
-              { Set Arg1 as source.
-                First argument is always current texture unit.
-                (This is indicated by X3D spec wording
-                "The source field determines the colour source for the second argument.") }
-
-              if Arg1[cRGB] <> -1 then
-              begin
-                glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT + Arg1[cRGB], GL_TEXTURE);
-                glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT + Arg1[cRGB], GL_SRC_COLOR);
-              end;
-
-              if Arg1[cAlpha] <> -1 then
-              begin
-                glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT + Arg1[cAlpha], GL_TEXTURE);
-                glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT + Arg1[cAlpha], GL_SRC_ALPHA);
-              end;
-
-              if (Arg2[cRGB] <> -1) or (Arg2[cAlpha] <> -1) then
-              begin
-                if I < MultiTexture.FdSource.Count then
-                  S := MultiTexture.FdSource.Items[I] else
-                  S := '';
-
-                SourceFromString(S, Source, NeedsConstantColor);
-
-                if Arg2[cRGB] <> -1 then
-                begin
-                  glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT + Arg2[cRGB], Source[cRGB]);
-                  glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT + Arg2[cRGB], GL_SRC_COLOR);
-                end;
-
-                if Arg2[cAlpha] <> -1 then
-                begin
-                  glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT + Arg2[cAlpha], Source[cAlpha]);
-                  glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT + Arg2[cAlpha], GL_SRC_ALPHA);
-                end;
-              end;
-
-              if NeedsConstantColor then
-              begin
-                { Assign constant color now, when we know it should be used. }
-                glTexEnvv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, Vector4Single(
-                  MultiTexture.FdColor.Value,
-                  MultiTexture.FdAlpha.Value));
-              end;
-            end;
-          end;
-        end;
-
-        if not Success then
-          DisableTexture(I);
-      end;
-    end;
-
-  var
     I: Integer;
     TextureNode: TNodeX3DTextureNode;
+    GLTextureNode: TGLTextureNode;
+    AlphaTest: boolean;
   begin
     if Attributes.PureGeometry then
     begin
@@ -4818,10 +4367,17 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
 
     TexCoordsNeeded := 0;
 
+    GLTextureNode := GLTextureNodes.TextureNode(TextureNode);
+
     if (TextureNode <> nil) and
        Attributes.EnableTextures and
-       NodeTextured(CurrentGeometry) then
+       NodeTextured(CurrentGeometry) and
+       (GLTextureNode <> nil) then
     begin
+      { This works also for TextureNode being TNodeMultiTexture,
+        since it has smartly calculated AlphaChannelType. }
+      AlphaTest := GLTextureNode.AlphaChannelType = atSimpleYesNo;
+
       if TextureNode is TNodeMultiTexture then
       begin
         { We set TexCoordsNeeded assuming that all EnableNonMultiTexture
@@ -4838,16 +4394,11 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
         if not UseMultiTexturing then
           MinTo1st(TexCoordsNeeded, 1);
 
-        EnableMultiTexture(TexCoordsNeeded, TNodeMultiTexture(TextureNode));
+        GLTextureNode.EnableAll(TexCoordsNeeded, Primitives3DTextureCoords);
       end else
       begin
-        if EnableSingleTexture(0, TextureNode, true) then
-        begin
-          { TODO: this should be fixed, for non-multi tex decal
-            is standard? }
-          glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-          TexCoordsNeeded := 1;
-        end else
+        if GLTextureNode.EnableAll(1, Primitives3DTextureCoords) then
+          TexCoordsNeeded := 1 else
           TexCoordsNeeded := 0;
       end;
     end;
