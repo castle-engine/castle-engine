@@ -1650,7 +1650,10 @@ type
       const ProjectionNear, ProjectionFar: Single;
       const MapsOverlap: boolean;
       const MapScreenX, MapScreenY: Integer;
-      var NeedsRestoreViewport: boolean);
+      var NeedsRestoreViewport: boolean;
+      CurrentViewpoint: TVRMLViewpointNode;
+      IsLastViewer: boolean;
+      const LastViewerPosition, LastViewerDirection, LastViewerUp: TVector3Single);
   end;
 
   EVRMLOpenGLRenderError = class(EVRMLError);
@@ -1672,7 +1675,7 @@ implementation
 
 uses Math, Triangulator, NormalizationCubeMap,
   KambiStringUtils, GLVersionUnit, KambiLog,
-  VRMLGeometry, VRMLScene, DDS, Frustum, RenderStateUnit;
+  VRMLGeometry, VRMLScene, DDS, Frustum, RenderStateUnit, VRMLCameraUtils;
 
 {$define read_implementation}
 {$I dynarray_2.inc}
@@ -4696,7 +4699,10 @@ procedure TVRMLOpenGLRenderer.UpdateGeneratedTextures(Shape: TVRMLShape;
   const ProjectionNear, ProjectionFar: Single;
   const MapsOverlap: boolean;
   const MapScreenX, MapScreenY: Integer;
-  var NeedsRestoreViewport: boolean);
+  var NeedsRestoreViewport: boolean;
+  CurrentViewpoint: TVRMLViewpointNode;
+  IsLastViewer: boolean;
+  const LastViewerPosition, LastViewerDirection, LastViewerUp: TVector3Single);
 
 var
   { Only for CheckUpdateField and PostUpdateField }
@@ -4837,10 +4843,53 @@ var
   end;
 
   procedure UpdateRenderedTexture(TexNode: TNodeRenderedTexture);
+
+    procedure GetRenderedTextureCamera(out Pos, Dir, Up: TVector3Single);
+    var
+      { It's returned by Viewpoint.GetCameraVectors, but we'll ignore it. }
+      GravityUp: TVector3Single;
+
+      procedure GetFromCurrent;
+      begin
+        if IsLastViewer then
+        begin
+          Pos := LastViewerPosition;
+          Dir := LastViewerDirection;
+          Up  := LastViewerUp;
+        end else
+        if CurrentViewpoint <> nil then
+          CurrentViewpoint.GetCameraVectors(Pos, Dir, Up, GravityUp) else
+        begin
+          { If all else fails (no viewpoint node bound, not known current
+            camera seetings) use defaults. }
+          Pos := StdVRMLCamPos[2];
+          Dir := StdVRMLCamDir;
+          Up  := StdVRMLCamUp;
+        end;
+      end;
+
+    var
+      Viewpoint: TVRMLViewpointNode;
+    begin
+      if (TexNode.FdViewpoint.Value <> nil) and
+         (TexNode.FdViewpoint.Value is TVRMLViewpointNode) then
+      begin
+        Viewpoint := TVRMLViewpointNode(TexNode.FdViewpoint.Value);
+        if Viewpoint = CurrentViewpoint then
+          { If it's the current viewpoint, behave like viewpoint = nil:
+            prefer using current location in LastViewer*,
+            eventually use viewpoint's GetCameraVectors. }
+          GetFromCurrent else
+          Viewpoint.GetCameraVectors(Pos, Dir, Up, GravityUp);
+      end else
+        GetFromCurrent;
+    end;
+
   var
     Width, Height: Cardinal;
-    ProjectionMatrix: TMatrix4Single;
+    CameraMatrix, ProjectionMatrix: TMatrix4Single;
     GLNode: TGLRenderedTextureNode;
+    Pos, Dir, Up: TVector3Single;
   begin
     if CheckUpdate(TexNode.FdUpdate) then
     begin
@@ -4849,11 +4898,12 @@ var
       begin
         ProjectionMatrix := PerspectiveProjMatrixDeg(45, 1, 0.1, 100) { TODO };
 
+        GetRenderedTextureCamera(Pos, Dir, Up);
+        CameraMatrix := LookDirMatrix(Pos, Dir, Up);
+
         RenderState.CameraFromMatrix(
-          LookDirMatrix(Vector3Single(0, 0, 0),
-            Vector3Single(0, 0, -1),
-            Vector3Single(0, 1, 0)) { TODO },
-          IdentityMatrix4Single { TODO },
+          CameraMatrix,
+          IdentityMatrix4Single { TODO - should be CameraRotationMatrix },
           ProjectionMatrix);
         RenderState.Target := rfOffScreen;
 

@@ -4796,7 +4796,10 @@ begin
     Renderer.UpdateGeneratedTextures(Shape,
       TextureNode,
       RenderFunc, ProjectionNear, ProjectionFar, MapsOverlap,
-      MapScreenX, MapScreenY, NeedsRestoreViewport);
+      MapScreenX, MapScreenY, NeedsRestoreViewport,
+      ViewpointStack.Top as TVRMLViewpointNode,
+      IsLastViewer,
+      LastViewerPosition, LastViewerDirection, LastViewerUp);
 
     AvoidShapeRendering := nil;
   end;
