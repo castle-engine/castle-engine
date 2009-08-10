@@ -2582,7 +2582,7 @@ function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
   var
     I: Integer;
     Part: TNodeShaderPart;
-    Source: String;
+    PartType, Source: String;
     HasAnyShader: boolean;
     IDecls: TVRMLInterfaceDeclarationsList;
     UniformField: TVRMLField;
@@ -2600,7 +2600,12 @@ function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
       begin
         Part := TNodeShaderPart(ProgramNode.FdParts.Items[I]);
 
-        if Part.FdType.Value = 'VERTEX' then
+        PartType := UpperCase(Part.FdType.Value);
+        if PartType <> Part.FdType.Value then
+          VRMLWarning(vwSerious, Format('ShaderPart.type should be uppercase, but is not: "%s"', [
+            Part.FdType.Value]));
+
+        if PartType = 'VERTEX' then
         begin
           Source := Part.LoadContents;
           if Part.UsedFullUrl <> '' then
@@ -2610,7 +2615,7 @@ function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
           end;
         end else
 
-        if Part.FdType.Value = 'FRAGMENT' then
+        if PartType = 'FRAGMENT' then
         begin
           Source := Part.LoadContents;
           if Part.UsedFullUrl <> '' then
@@ -2621,7 +2626,7 @@ function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
         end else
 
           VRMLWarning(vwSerious, Format('Unknown type for ShaderPart: "%s"',
-            [Part.FdType.Value]));
+            [PartType]));
       end;
 
     if not HasAnyShader then
@@ -4348,6 +4353,8 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       ExposedMeshRenderer := TSphere_2Renderer.Create(Self) else
     if CurrentGeometry is TNodeRectangle2D then
       ExposedMeshRenderer := TRectangle2DRenderer.Create(Self) else
+    if CurrentGeometry is TNodePlane then
+      ExposedMeshRenderer := TPlaneRenderer.Create(Self) else
     if CurrentGeometry is TNodeCircle2D then
       ExposedMeshRenderer := TCircle2DRenderer.Create(Self) else
       ExposedMeshRenderer := nil;
