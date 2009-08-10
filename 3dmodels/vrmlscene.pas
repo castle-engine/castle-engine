@@ -2526,9 +2526,18 @@ begin
 end;
 
 type
-  BreakTransformChangeFailed = class(TCodeBreaker);
+  BreakTransformChangeFailed = class(TCodeBreaker)
+    Reason: string;
+    constructor Create(const AReason: string);
+  end;
   BreakTransformChangeSuccess = class(TCodeBreaker);
 
+constructor BreakTransformChangeFailed.Create(const AReason: string);
+begin
+  Reason := AReason;
+end;
+
+type
   { When Transform changes, we have to traverse Shapes tree simultaneously
     with traversing VRML graph. So we have to know at each point
     the TVRMLShapeTree we're on. To record this, we'll manage a linked list
@@ -2714,7 +2723,7 @@ begin
     begin
       { TODO: make this work to actually change displayed background }
       if Node = ParentScene.BackgroundStack.Top then
-        raise BreakTransformChangeFailed.Create;
+        raise BreakTransformChangeFailed.Create('bound ' + Node.NodeTypeName);
     end else
     if Node is TNodeFog then
     begin
@@ -2748,7 +2757,7 @@ begin
           (by UpdateActiveLightState)
         - hmm, eventually ChangedAll may be needed to update
           CurrentActiveLights? }
-      raise BreakTransformChangeFailed.Create;
+      raise BreakTransformChangeFailed.Create(Node.NodeTypeName);
     end else
     if (Node is TNodeProximitySensor) and
        { We only care about ProximitySensor in active graph parts. }
@@ -3178,8 +3187,10 @@ begin
           FreeAndNil(TransformChangeHelper);
         end;
       except
-        on BreakTransformChangeFailed do
+        on B: BreakTransformChangeFailed do
         begin
+          if Log and LogChanges then
+            DoLogChanges('-> this Transform change (because of child: ' + B.Reason + ') causes ChangedAll (no optimized action)');
           ScheduleChangedAll;
           Exit;
         end;
