@@ -202,8 +202,11 @@
 
     private FFdrepeatT: TSFBool;
     public property FdrepeatT: TSFBool read FFdrepeatT;
+
+    private FFdrepeatR: TSFBool;
+    public property FdrepeatR: TSFBool read FFdrepeatR;
   end;
-  
+
   TNodePlane = class(TNodeX3DGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -669,13 +672,17 @@ begin
   FFdtextureProperties.Exposed := false;
   Fields.Add(FFdtextureProperties);
 
-  FFdrepeatS := TSFBool.Create(Self, 'repeatS', false);
+  FFdrepeatS := TSFBool.Create(Self, 'repeatS', true);
   FFdrepeatS.Exposed := false;
   Fields.Add(FFdrepeatS);
 
-  FFdrepeatT := TSFBool.Create(Self, 'repeatT', false);
+  FFdrepeatT := TSFBool.Create(Self, 'repeatT', true);
   FFdrepeatT.Exposed := false;
   Fields.Add(FFdrepeatT);
+
+  FFdrepeatR := TSFBool.Create(Self, 'repeatR', true);
+  FFdrepeatR.Exposed := false;
+  Fields.Add(FFdrepeatR);
 end;
 
 class function TNodeRenderedTexture.ClassNodeTypeName: string;
