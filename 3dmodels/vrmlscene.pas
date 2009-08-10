@@ -3439,11 +3439,21 @@ begin
     for SomeLocalGeometryChanged, knowing that this also checks for
     ScheduledGeometryChangedAll.
 
+    When we know SomeLocalGeometryChanged is true, also call
+    PointingDeviceClear, since some PVRMLTriangles became invalid.
+    Making later "if SomeLocalGeometryChanged then PointingDeviceClear;"
+    is not a good idea, since PointingDeviceClear must be called before
+    actual SI.Current.LocalGeometryChanged, because SI.Current.LocalGeometryChanged
+    may create progress bar that will cause redraw at the start,
+    that may require valid PointingDeviceSensor state.
+
     By the way, also calculate EdgesStructureChanged. }
 
   if ScheduledGeometryChangedAll then
   begin
     SomeLocalGeometryChanged := true;
+    PointingDeviceClear;
+
     EdgesStructureChanged := true;
 
     SI := TVRMLShapeTreeIterator.Create(Shapes, false);
@@ -3467,6 +3477,7 @@ begin
            SI.Current.ScheduledLocalGeometryChangedCoord then
         begin
           SomeLocalGeometryChanged := true;
+          PointingDeviceClear;
           SI.Current.LocalGeometryChanged;
           if Log and LogChanges and
              (SI.Current.OctreeTriangles <> nil) then
@@ -3527,10 +3538,6 @@ begin
     if Log and LogChanges then
       WritelnLog('VRML changes (octree)', 'OctreeDynamicCollisions updated');
   end;
-
-  if SomeLocalGeometryChanged then
-    { Some PVRMLTriangles became invalid. }
-    PointingDeviceClear;
 
   if Assigned(OnGeometryChanged) then
     OnGeometryChanged(Self, SomeLocalGeometryChanged);
@@ -5073,8 +5080,18 @@ begin
   Dec(GeometrySchedule);
   if (GeometrySchedule = 0) and GeometryChangedScheduled then
   begin
-    DoGeometryChanged;
+    { Set GeometryChangedScheduled before DoGeometryChanged,
+      to be in consistent state (pass assertion in BeginGeometryChangedSchedule).
+      Note that DoGeometryChanged may call many things,
+      e.g. it may want to show a progress bar while constructing the octree,
+      that will want to render the screen for background of progress bar,
+      that will want to update some generated texture nodes,
+      that will call CameraChanged to eventually make camera events,
+      that will secure itself by BeginGeometryChangedSchedule... }
+
     GeometryChangedScheduled := false;
+
+    DoGeometryChanged;
   end;
 end;
 
