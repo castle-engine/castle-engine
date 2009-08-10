@@ -8218,9 +8218,14 @@ var
       Route: TVRMLRoute;
     begin
       Route := TVRMLRoute.Create;
-      Result.Routes.Add(Route);
-      Route.Parse(Lexer);
-      Route.PositionInParent := PositionInParent;
+      try
+        Route.Parse(Lexer);
+        Route.PositionInParent := PositionInParent;
+        Result.Routes.Add(Route);
+      except
+        FreeAndNil(Route); { do not add invalid Route, free it }
+        raise;
+      end;
     end;
 
     { You can safely assume that current token is PROTO or EXTERNPROTO. }
@@ -8231,9 +8236,14 @@ var
       if Lexer.TokenKeyword = vkPROTO then
         Proto := TVRMLPrototype.Create else
         Proto := TVRMLExternalPrototype.Create;
-      Result.Prototypes.Add(Proto);
-      Proto.Parse(Lexer);
-      Proto.PositionInParent := PositionInParent;
+      try
+        Proto.Parse(Lexer);
+        Proto.PositionInParent := PositionInParent;
+        Result.Prototypes.Add(Proto);
+      except
+        FreeAndNil(Proto); { do not add invalid Proto, free it }
+        raise;
+      end;
     end;
 
     procedure ParseNodeInternal;
