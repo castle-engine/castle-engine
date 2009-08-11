@@ -385,7 +385,7 @@ procedure GLCaptureCubeMapTexture(
       glPopMatrix;
       glMatrixMode(GL_MODELVIEW);
 
-    RenderToTexture.RenderEnd;
+    RenderToTexture.RenderEnd(Side < High(Side));
   end;
 
 var

@@ -635,7 +635,7 @@ type
     FInitializedGL: boolean;
     Framebuffer, RenderbufferDepth, RenderbufferStencil: TGLuint;
 
-    InsideRender: boolean;
+    FramebufferBound: boolean;
   public
     { Constructor that doesn't require OpenGL context,
       and doesn't initialize the framebuffer.
@@ -743,8 +743,17 @@ type
 
       During copying, we may change OpenGL bound 2D texture and read buffer.
       So their values are ignored, and may be changed arbitrarily, by this
-      method. }
-    procedure RenderEnd;
+      method.
+
+      @param(RenderBeginFollows This allows for an optimizaion,
+        to minimize the number of BindFramebuffer calls when you render
+        many textures in the row using the same TGLRenderToTexture.
+        If @true, then you @bold(must) call RenderBegin after this
+        (before drawing anything else to OpenGL).
+        We will internally leave framebuffer bound, which means that
+        this RenderEnd and the very next RenderBegin will actually do nothing.)
+    }
+    procedure RenderEnd(const RenderBeginFollows: boolean = false);
 
     { Generate mipmaps for the texture.
       This will use glGenerateMipmap call, which is actually
@@ -1768,10 +1777,10 @@ begin
     FTextureTarget := ATextureTarget;
     if Framebuffer <> 0 then
     begin
-      if not InsideRender then
+      if not FramebufferBound then
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Framebuffer);
       glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, TextureTarget, Texture, 0);
-      if not InsideRender then
+      if not FramebufferBound then
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
     end;
   end;
@@ -1847,23 +1856,33 @@ end;
 procedure TGLRenderToTexture.RenderBegin;
 begin
   if Framebuffer <> 0 then
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Framebuffer);
-
-  InsideRender := true;
+  begin
+    if not FramebufferBound then
+    begin
+      glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Framebuffer);
+      FramebufferBound := true;
+    end;
+    Assert(FramebufferBound);
+  end;
 end;
 
-procedure TGLRenderToTexture.RenderEnd;
+procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: boolean);
 begin
   if Framebuffer <> 0 then
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0) else
+  begin
+    Assert(FramebufferBound);
+    if not RenderBeginFollows then
+    begin
+      glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+      FramebufferBound := false;
+    end;
+  end else
   begin
     { Actually update OpenGL texture }
     glBindTexture(CompleteTextureTarget, Texture);
     glReadBuffer(GL_BACK);
     glCopyTexSubImage2D(TextureTarget, 0, 0, 0, 0, 0, Width, Height);
   end;
-
-  InsideRender := false;
 end;
 
 procedure TGLRenderToTexture.GenerateMipmap;
