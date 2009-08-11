@@ -106,7 +106,7 @@ type
       ChangedNavigator: TNavigator);
 
     { Calculate a ray picked by WindowX, WindowY position on the window.
-      Use this only when Navigator <> nil and Navigator is TWalkNavigator.
+      Use this only when Navigator <> nil.
 
       ViewAngleDegX, ViewAngleDegY are your camera view angles.
 
@@ -471,14 +471,12 @@ end;
 procedure TKamOpenGLControl.Ray(const WindowX, WindowY: Integer;
   const ViewAngleDegX, ViewAngleDegY: Single;
   out Ray0, RayVector: TVector3Single);
-var
-  Nav: TWalkNavigator;
 begin
-  Nav := Navigator as TWalkNavigator;
-  Ray0 := Nav.CameraPos;
+  Navigator.GetCameraVectors(Pos, Dir, Up);
+  Ray0 := Pos;
   RayVector := PrimaryRay(WindowX, Height - WindowY,
     Width, Height,
-    Nav.CameraPos, Nav.CameraDir, Nav.CameraUp,
+    Pos, Dir, Up,
     ViewAngleDegX, ViewAngleDegY);
 end;
 
