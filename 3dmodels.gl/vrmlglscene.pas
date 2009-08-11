@@ -1413,8 +1413,6 @@ type
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
-      const MapsOverlap: boolean;
-      const MapScreenX, MapScreenY: Integer;
       const OriginalViewportX, OriginalViewportY: TGLint;
       const OriginalViewportWidth, OriginalViewportHeight: TGLsizei);
 
@@ -4812,8 +4810,6 @@ end;
 procedure TVRMLGLScene.UpdateGeneratedTextures(
   const RenderFunc: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
-  const MapsOverlap: boolean;
-  const MapScreenX, MapScreenY: Integer;
   const OriginalViewportX, OriginalViewportY: TGLint;
   const OriginalViewportWidth, OriginalViewportHeight: TGLsizei);
 var
@@ -4834,8 +4830,7 @@ begin
 
     Renderer.UpdateGeneratedTextures(Shape,
       TextureNode,
-      RenderFunc, ProjectionNear, ProjectionFar, MapsOverlap,
-      MapScreenX, MapScreenY, NeedsRestoreViewport,
+      RenderFunc, ProjectionNear, ProjectionFar, NeedsRestoreViewport,
       ViewpointStack.Top as TVRMLViewpointNode,
       IsLastViewer,
       LastViewerPosition, LastViewerDirection, LastViewerUp);

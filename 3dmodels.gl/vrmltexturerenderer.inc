@@ -276,8 +276,6 @@
     procedure Update(
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
-      const MapsOverlap: boolean;
-      const MapScreenX, MapScreenY: Integer;
       var NeedsRestoreViewport: boolean;
       CurrentViewpoint: TVRMLViewpointNode;
       IsLastViewer: boolean;
@@ -347,8 +345,6 @@
     procedure Update(
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
-      const MapsOverlap: boolean;
-      const MapScreenX, MapScreenY: Integer;
       var NeedsRestoreViewport: boolean;
       const CubeMiddle: TVector3Single);
   end;
@@ -371,6 +367,8 @@
   end;
 
   TGLGeneratedShadowMap = class(TGLSingleTextureNode)
+  private
+    RenderToTexture: TGLRenderToTexture;
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
       Node: TNodeX3DTextureNode): boolean; override;
@@ -393,8 +391,6 @@
     procedure Update(
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
-      const MapsOverlap: boolean;
-      const MapScreenX, MapScreenY: Integer;
       var NeedsRestoreViewport: boolean;
       Light: TNodeX3DLightNode);
   end;
@@ -477,13 +473,13 @@ procedure TGLTextureNode.HandleTexturePropertiesCore(
 
     if S = 'NEAREST' then
     begin
-      VRMLWarning(vwSerious, Format('"%s" is not allowed texture minification, this is an Avalon-only extension, please fix to "NEAREST_PIXEL"', [S]));
+      VRMLWarning(vwSerious, Format('"%s" is not allowed texture magnification, this is an Avalon-only extension, please fix to "NEAREST_PIXEL"', [S]));
       Result := GL_NEAREST;
     end else
 
     if S = 'LINEAR' then
     begin
-      VRMLWarning(vwSerious, Format('"%s" is not allowed texture minification, this is an Avalon-only extension, please fix to "AVG_PIXEL"', [S]));
+      VRMLWarning(vwSerious, Format('"%s" is not allowed texture magnification, this is an Avalon-only extension, please fix to "AVG_PIXEL"', [S]));
       Result := GL_LINEAR;
     end else
 
@@ -1561,7 +1557,9 @@ begin
     finally FreeAndNil(InitialImage) end;
   end;
 
-  RenderToTexture := TGLRenderToTexture.CreateGL(Width, Height, GLName, GL_TEXTURE_2D);
+  RenderToTexture := TGLRenderToTexture.Create(Width, Height);
+  RenderToTexture.SetTexture(GLName, GL_TEXTURE_2D);
+  RenderToTexture.InitGL;
 end;
 
 procedure TGLRenderedTextureNode.Unprepare;
@@ -1589,8 +1587,6 @@ end;
 procedure TGLRenderedTextureNode.Update(
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
-  const MapsOverlap: boolean;
-  const MapScreenX, MapScreenY: Integer;
   var NeedsRestoreViewport: boolean;
   CurrentViewpoint: TVRMLViewpointNode;
   IsLastViewer: boolean;
@@ -1997,8 +1993,9 @@ begin
       AlphaChannelType);
   finally FreeAndNil(InitialImage) end;
 
-  RenderToTexture := TGLRenderToTexture.CreateGL(Size, Size,
-    GLName, GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB);
+  RenderToTexture := TGLRenderToTexture.Create(Size, Size);
+  RenderToTexture.SetTexture(GLName, GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB);
+  RenderToTexture.InitGL;
 end;
 
 procedure TGLGeneratedCubeMapTextureNode.Unprepare;
@@ -2010,8 +2007,6 @@ end;
 procedure TGLGeneratedCubeMapTextureNode.Update(
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
-  const MapsOverlap: boolean;
-  const MapScreenX, MapScreenY: Integer;
   var NeedsRestoreViewport: boolean;
   const CubeMiddle: TVector3Single);
 begin
@@ -2141,10 +2136,17 @@ begin
 
   GLName := Renderer.Cache.TextureDepth_IncReference(
     TextureNode, TextureWrap, TextureNode.FdCompareMode, Size, Size);
+
+  RenderToTexture := TGLRenderToTexture.Create(Size, Size);
+  RenderToTexture.SetTexture(GLName, GL_TEXTURE_2D);
+  RenderToTexture.DepthTexture := true;
+  RenderToTexture.InitGL;
 end;
 
 procedure TGLGeneratedShadowMap.Unprepare;
 begin
+  FreeAndNil(RenderToTexture);
+
   if GLName <> 0 then
     Renderer.Cache.TextureDepth_DecReference(GLName);
 end;
@@ -2164,8 +2166,6 @@ end;
 procedure TGLGeneratedShadowMap.Update(
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
-  const MapsOverlap: boolean;
-  const MapScreenX, MapScreenY: Integer;
   var NeedsRestoreViewport: boolean;
   Light: TNodeX3DLightNode);
 var
@@ -2180,31 +2180,30 @@ begin
     ProjectionMatrix);
   RenderState.Target := rtShadowMap;
 
-  glViewport(0, 0, Size, Size);
+  RenderToTexture.RenderBegin;
 
-  glMatrixMode(GL_PROJECTION);
-  glPushMatrix;
-    glLoadMatrix(ProjectionMatrix);
-    glMatrixMode(GL_MODELVIEW);
-
-    glPushAttrib(GL_POLYGON_BIT);
-      { enable polygon offset for everything (whole scene) }
-      glEnable(GL_POLYGON_OFFSET_FILL); { saved by GL_POLYGON_BIT }
-      glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
-      glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
-      glPolygonOffset(TextureNode.FdScale.Value, TextureNode.FdBias.Value); { saved by GL_POLYGON_BIT }
-
-      Render;
-    glPopAttrib;
+    glViewport(0, 0, Size, Size);
 
     glMatrixMode(GL_PROJECTION);
-  glPopMatrix;
-  glMatrixMode(GL_MODELVIEW);
+    glPushMatrix;
+      glLoadMatrix(ProjectionMatrix);
+      glMatrixMode(GL_MODELVIEW);
 
-  { Actually update OpenGL texture GLName }
-  glBindTexture(GL_TEXTURE_2D, GLName);
-  glReadBuffer(GL_BACK);
-  glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, Size, Size);
+      glPushAttrib(GL_POLYGON_BIT);
+        { enable polygon offset for everything (whole scene) }
+        glEnable(GL_POLYGON_OFFSET_FILL); { saved by GL_POLYGON_BIT }
+        glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
+        glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
+        glPolygonOffset(TextureNode.FdScale.Value, TextureNode.FdBias.Value); { saved by GL_POLYGON_BIT }
+
+        Render;
+      glPopAttrib;
+
+      glMatrixMode(GL_PROJECTION);
+    glPopMatrix;
+    glMatrixMode(GL_MODELVIEW);
+
+  RenderToTexture.RenderEnd;
 
   NeedsRestoreViewport := true;
 end;

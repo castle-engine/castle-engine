@@ -631,34 +631,23 @@ type
     FTexture: TGLuint;
     FTextureTarget: TGLenum;
     FCompleteTextureTarget: TGLenum;
+    FDepthTexture: boolean;
 
     FInitializedGL: boolean;
     Framebuffer, RenderbufferDepth, RenderbufferStencil: TGLuint;
 
     FramebufferBound: boolean;
   public
-    { Constructor that doesn't require OpenGL context,
+    { Constructor. Doesn't require OpenGL context,
       and doesn't initialize the framebuffer.
       You'll have to use InitGL before actually making Render. }
-    constructor Create;
-
-    { Construct and initialize all OpenGL stuff (framebuffer).
-
-      @raises(EFramebufferSizeTooLow When required @link(Width) x @link(Height)
-        is larger than maximum renderbuffer (single buffer within framebuffer)
-        size.)
-
-      @raises(EFramebufferInvalid When framebuffer is used,
-        and check glCheckFramebufferStatusEXT fails.) }
-    constructor CreateGL(const AWidth, AHeight: Cardinal;
-      const ATexture: TGLuint;
-      const ATextureTarget: TGLenum);
+    constructor Create(const AWidth, AHeight: Cardinal);
 
     destructor Destroy; override;
 
     { Width and height must correspond to texture initialized width / height.
       You cannot change them when OpenGL stuff is already initialized
-      (after InitGL or CreateGL and before CloseGL or destructor).
+      (after InitGL and before CloseGL or destructor).
       @groupBegin }
     property Width: Cardinal read FWidth write FWidth;
     property Height: Cardinal read FHeight write FHeight;
@@ -667,7 +656,7 @@ type
     { Texture associated with rendered color buffer of rendered image.
 
       We currently require this texture to be set to valid texture (not 0)
-      before InitGL (or in CreateGL). Also, if you later change it,
+      before InitGL. Also, if you later change it,
       be careful to assign here other textures of only the same size and format.
       This allows us to call glCheckFramebufferStatusEXT (and eventually
       fallback to non-stencil version) right at InitGL call, and no need
@@ -705,9 +694,25 @@ type
     property CompleteTextureTarget: TGLenum
       read FCompleteTextureTarget write FCompleteTextureTarget default GL_TEXTURE_2D;
 
+    { Is this a depth texture intended for depth buffer.
+      This is suitable for rendering shadow maps. The texture is assumed
+      to have GL_DEPTH_COMPONENT* format, and we'll render depth buffer
+      contents to it.
+
+      If framebuffer is used, we will not use color buffer anywhere
+      in this case.
+
+      This must be set before InitGL, cannot be changed later.
+
+      Possibly, in the future this will be more flexible, to allow
+      attaching both color and/or depth textures. For now, this simple
+      property is... well, simple and it's all that is needed for shadow maps :) }
+    property DepthTexture: boolean
+      read FDepthTexture write FDepthTexture default false;
+
     { Initialize OpenGL stuff (framebuffer).
 
-      When OpenGL stuff is initialized (before InitGL or CreateGL until
+      When OpenGL stuff is initialized (from InitGL until
       CloseGL or destruction) this class is tied to the current OpenGL context.
 
       @raises(EFramebufferSizeTooLow When required @link(Width) x @link(Height)
@@ -1740,25 +1745,15 @@ end;
 
 { TGLRenderToTexture --------------------------------------------------------- }
 
-constructor TGLRenderToTexture.Create;
+constructor TGLRenderToTexture.Create(const AWidth, AHeight: Cardinal);
 begin
-  inherited;
+  inherited Create;
+
+  FWidth := AWidth;
+  FHeight := AHeight;
 
   FTextureTarget := GL_TEXTURE_2D;
   FCompleteTextureTarget := GL_TEXTURE_2D;
-end;
-
-constructor TGLRenderToTexture.CreateGL(const AWidth, AHeight: Cardinal;
-  const ATexture: TGLuint;
-  const ATextureTarget: TGLenum);
-begin
-  Create;
-
-  Width := AWidth;
-  Height := AHeight;
-  FTexture := ATexture;
-  FTextureTarget := ATextureTarget;
-  InitGL;
 end;
 
 destructor TGLRenderToTexture.Destroy;
@@ -1787,6 +1782,25 @@ begin
 end;
 
 procedure TGLRenderToTexture.InitGL;
+
+  function FramebufferStatusToString(const Status: TGLenum): string;
+  begin
+    { some of these messages based on spec wording
+      http://oss.sgi.com/projects/ogl-sample/registry/EXT/framebuffer_object.txt }
+    case Status of
+      GL_FRAMEBUFFER_COMPLETE_EXT                      : Result := 'Complete (no error)';
+      GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT         : Result := 'INCOMPLETE_ATTACHMENT: Not all framebuffer attachment points are "framebuffer attachment complete"';
+      GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT : Result := 'INCOMPLETE_MISSING_ATTACHMENT: None image attached to the framebuffer';
+      GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT         : Result := 'INCOMPLETE_DIMENSIONS: Not all attached images have the same width and height';
+      GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT            : Result := 'INCOMPLETE_FORMATS: Not all images attached to the attachment points COLOR_ATTACHMENT* have the same internal format';
+      GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT        : Result := 'INCOMPLETE_DRAW_BUFFER: The value of FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE_EXT is NONE for some color attachment point(s) named by DRAW_BUFFERi';
+      GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT        : Result := 'INCOMPLETE_READ_BUFFER: READ_BUFFER is not NONE, and the value of FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE_EXT is NONE for the color attachment point named by READ_BUFFER';
+      GL_FRAMEBUFFER_UNSUPPORTED_EXT                   : Result := 'UNSUPPORTED: The combination of internal formats of the attached images violates an implementation-dependent set of restrictions';
+      0: Result := 'OpenGL error during CheckFramebufferStatus';
+      else Result := 'Unknown FramebufferStatus error: ' + gluErrorString(Status);
+    end;
+  end;
+
 var
   Status: TGLenum;
 begin
@@ -1806,12 +1820,22 @@ begin
       Also, make it possible to have texture attached to depth buffer, not color
       (and color to go nowhere, if possible?) for shadow map rendering. }
 
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, TextureTarget, Texture, 0);
+    if DepthTexture then
+    begin
+      { Needed to consider FBO "complete" }
+      glDrawBuffer(GL_NONE);
+      glReadBuffer(GL_NONE);
 
-    glGenRenderbuffersEXT(1, @RenderbufferDepth);
-    glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, RenderbufferDepth);
-    glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, Width, Height);
-    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, RenderbufferDepth);
+      glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, TextureTarget, Texture, 0);
+    end else
+    begin
+      glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, TextureTarget, Texture, 0);
+
+      glGenRenderbuffersEXT(1, @RenderbufferDepth);
+      glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, RenderbufferDepth);
+      glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, Width, Height);
+      glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, RenderbufferDepth);
+    end;
 
 {TODO - ability to fallback on non-stencil
     glGenRenderbuffersEXT(1, @RenderbufferStencil);
@@ -1826,31 +1850,48 @@ begin
       GL_FRAMEBUFFER_UNSUPPORTED_EXT:
         raise EFramebufferInvalid.Create('Unsupported framebuffer configuration');
       else
-        raise EFramebufferInvalid.CreateFmt('Framebuffer check reported OpenGL error: %s (OpenGL error number %d)',
-          [ gluErrorString(Status), Status]);
+        raise EFramebufferInvalid.CreateFmt('Framebuffer check failed: %s (FBO error number %d)',
+          [ FramebufferStatusToString(Status), Status]);
     end;
 
     { Unbind renderbuffer, framebuffer }
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+
+    if DepthTexture then
+    begin
+      glDrawBuffer(GL_BACK);
+      glReadBuffer(GL_BACK);
+    end;
   end;
 
   FInitializedGL := true;
 end;
 
 procedure TGLRenderToTexture.CloseGL;
-begin
-  if Framebuffer <> 0 then
+
+  procedure FreeRenderbuffer(var Buf: TGLuint);
   begin
-    glDeleteRenderbuffersEXT(1, @RenderbufferDepth);
-    RenderbufferDepth := 0;
-
-    glDeleteRenderbuffersEXT(1, @RenderbufferStencil);
-    RenderbufferStencil := 0;
-
-    glDeleteFramebuffersEXT(1, @Framebuffer);
-    Framebuffer := 0;
+    if Buf <> 0 then
+    begin
+      glDeleteRenderbuffersEXT(1, @Buf);
+      Buf := 0;
+    end;
   end;
+
+  procedure FreeFramebuffer(var Buf: TGLuint);
+  begin
+    if Buf <> 0 then
+    begin
+      glDeleteFramebuffersEXT(1, @Buf);
+      Buf := 0;
+    end;
+  end;
+
+begin
+  FreeRenderbuffer(RenderbufferDepth);
+  FreeRenderbuffer(RenderbufferStencil);
+  FreeFramebuffer(Framebuffer);
 end;
 
 procedure TGLRenderToTexture.RenderBegin;
@@ -1861,6 +1902,12 @@ begin
     begin
       glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Framebuffer);
       FramebufferBound := true;
+
+      if DepthTexture then
+      begin
+        glDrawBuffer(GL_NONE);
+        glReadBuffer(GL_NONE);
+      end;
     end;
     Assert(FramebufferBound);
   end;
@@ -1875,6 +1922,12 @@ begin
     begin
       glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
       FramebufferBound := false;
+
+      if DepthTexture then
+      begin
+        glDrawBuffer(GL_BACK);
+        glReadBuffer(GL_BACK);
+      end;
     end;
   end else
   begin

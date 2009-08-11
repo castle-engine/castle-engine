@@ -269,7 +269,6 @@ procedure TSceneManager.Render;
 begin
   Scene.UpdateGeneratedTextures(@RenderFromView,
     Scene.WalkProjectionNear, Scene.WalkProjectionFar,
-    true, 0, 0,
     ViewportX, ViewportY,
     ViewportWidth, ViewportHeight);
 

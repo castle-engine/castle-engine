@@ -1648,8 +1648,6 @@ type
       TextureNode: TVRMLNode;
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
-      const MapsOverlap: boolean;
-      const MapScreenX, MapScreenY: Integer;
       var NeedsRestoreViewport: boolean;
       CurrentViewpoint: TVRMLViewpointNode;
       IsLastViewer: boolean;
@@ -4714,8 +4712,6 @@ procedure TVRMLOpenGLRenderer.UpdateGeneratedTextures(Shape: TVRMLShape;
   TextureNode: TVRMLNode;
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
-  const MapsOverlap: boolean;
-  const MapScreenX, MapScreenY: Integer;
   var NeedsRestoreViewport: boolean;
   CurrentViewpoint: TVRMLViewpointNode;
   IsLastViewer: boolean;
@@ -4777,7 +4773,7 @@ var
       if GLNode <> nil then
       begin
         GLNode.Update(Render, ProjectionNear, ProjectionFar,
-          MapsOverlap, MapScreenX, MapScreenY, NeedsRestoreViewport,
+          NeedsRestoreViewport,
           Box3dMiddle(Shape.BoundingBox));
 
         PostUpdate;
@@ -4801,7 +4797,7 @@ var
         if GLNode <> nil then
         begin
           GLNode.Update(Render, ProjectionNear, ProjectionFar,
-            MapsOverlap, MapScreenX, MapScreenY, NeedsRestoreViewport,
+            NeedsRestoreViewport,
             TNodeX3DLightNode(TexNode.FdLight.Value));
 
           PostUpdate;
@@ -4824,7 +4820,7 @@ var
       if GLNode <> nil then
       begin
         GLNode.Update(Render, ProjectionNear, ProjectionFar,
-          MapsOverlap, MapScreenX, MapScreenY, NeedsRestoreViewport,
+          NeedsRestoreViewport,
           CurrentViewpoint, IsLastViewer,
           LastViewerPosition, LastViewerDirection, LastViewerUp);
 
