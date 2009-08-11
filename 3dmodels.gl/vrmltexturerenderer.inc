@@ -324,6 +324,8 @@
   end;
 
   TGLGeneratedCubeMapTextureNode = class(TGLCubeMapTextureNode)
+  private
+    RenderToTexture: TGLRenderToTexture;
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
       Node: TNodeX3DTextureNode): boolean; override;
@@ -340,6 +342,7 @@
 
     procedure Prepare(State: TVRMLGraphTraverseState;
       var BumpMappingWanted: TBumpMappingWanted); override;
+    procedure Unprepare; override;
 
     procedure Update(
       const Render: TRenderFromViewFunction;
@@ -1558,7 +1561,7 @@ begin
     finally FreeAndNil(InitialImage) end;
   end;
 
-  RenderToTexture := TGLRenderToTexture.CreateGL(Width, Height, GLName);
+  RenderToTexture := TGLRenderToTexture.CreateGL(Width, Height, GLName, GL_TEXTURE_2D);
 end;
 
 procedure TGLRenderedTextureNode.Unprepare;
@@ -1742,10 +1745,7 @@ begin
   RenderToTexture.RenderEnd;
 
   if NeedsMipmaps then
-  begin
-    glBindTexture(GL_TEXTURE_2D, GLName);
-    GenerateMipmap(GL_TEXTURE_2D);
-  end;
+    RenderToTexture.GenerateMipmap;
 
   NeedsRestoreViewport := true;
 end;
@@ -1996,6 +1996,15 @@ begin
       InitialImage, InitialImage,
       AlphaChannelType);
   finally FreeAndNil(InitialImage) end;
+
+  RenderToTexture := TGLRenderToTexture.CreateGL(Size, Size,
+    GLName, GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB);
+end;
+
+procedure TGLGeneratedCubeMapTextureNode.Unprepare;
+begin
+  FreeAndNil(RenderToTexture);
+  inherited;
 end;
 
 procedure TGLGeneratedCubeMapTextureNode.Update(
@@ -2008,14 +2017,11 @@ procedure TGLGeneratedCubeMapTextureNode.Update(
 begin
   GLCaptureCubeMapTexture(GLName, Size,
     CubeMiddle,
-    Render, ProjectionNear, ProjectionFar, MapsOverlap,
-    MapScreenX, MapScreenY);
+    Render, ProjectionNear, ProjectionFar,
+    RenderToTexture);
 
   if NeedsMipmaps then
-  begin
-    { GLCaptureCubeMapTexture already bound the texture for OpenGL. }
-    GenerateMipmap(GL_TEXTURE_CUBE_MAP);
-  end;
+    RenderToTexture.GenerateMipmap;
 
   NeedsRestoreViewport := true;
 end;

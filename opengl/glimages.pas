@@ -634,18 +634,25 @@ type
 
     FInitializedGL: boolean;
     Framebuffer, RenderbufferDepth, RenderbufferStencil: TGLuint;
+
+    InsideRender: boolean;
   public
     { Constructor that doesn't require OpenGL context,
       and doesn't initialize the framebuffer.
       You'll have to use InitGL before actually making Render. }
     constructor Create;
 
-    { Constuct and initialize all OpenGL stuff (framebuffer).
+    { Construct and initialize all OpenGL stuff (framebuffer).
 
       @raises(EFramebufferSizeTooLow When required @link(Width) x @link(Height)
         is larger than maximum renderbuffer (single buffer within framebuffer)
-        size.) }
-    constructor CreateGL(const AWidth, AHeight: Cardinal; ATexture: TGLuint);
+        size.)
+
+      @raises(EFramebufferInvalid When framebuffer is used,
+        and check glCheckFramebufferStatusEXT fails.) }
+    constructor CreateGL(const AWidth, AHeight: Cardinal;
+      const ATexture: TGLuint;
+      const ATextureTarget: TGLenum);
 
     destructor Destroy; override;
 
@@ -658,7 +665,13 @@ type
     { @groupEnd }
 
     { Texture associated with rendered color buffer of rendered image.
-      May be 0 if none.
+
+      We currently require this texture to be set to valid texture (not 0)
+      before InitGL (or in CreateGL). Also, if you later change it,
+      be careful to assign here other textures of only the same size and format.
+      This allows us to call glCheckFramebufferStatusEXT (and eventually
+      fallback to non-stencil version) right at InitGL call, and no need
+      to repeat it (e.g. at each RenderBegin).
 
       Changed by SetTexture. }
     property Texture: TGLuint read FTexture default 0;
@@ -676,8 +689,15 @@ type
       May be changed also when OpenGL stuff (framebuffer) is already
       initialized. This is useful, as it allows you to reuse framebuffer
       setup for rendering to different textures (as long as other settings
-      are Ok, like Width and Height). }
-    procedure SetTexture(const ATexture: TGLuint; const ATextureTarget: TGLenum);
+      are Ok, like Width and Height).
+
+      It may even be changed between RenderBegin and RenderEnd.
+      In fact, this is adviced, if you have to call SetTexture often:
+      SetTexture call outside of RenderBegin / RenderEnd causes two
+      costly BindFramebuffer calls, that may be avoided when you're
+      already between RenderBegin / RenderEnd. }
+    procedure SetTexture(const ATexture: TGLuint;
+      const ATextureTarget: TGLenum);
 
     { Bind target of texture associated with rendered color buffer.
       "Bind target" means that it describes the whole texture, for example
@@ -692,7 +712,10 @@ type
 
       @raises(EFramebufferSizeTooLow When required @link(Width) x @link(Height)
         is larger than maximum renderbuffer (single buffer within framebuffer)
-        size.) }
+        size.)
+
+      @raises(EFramebufferInvalid When framebuffer is used,
+        and check glCheckFramebufferStatusEXT fails.) }
     procedure InitGL;
 
     { Release all OpenGL stuff (if anything initialized).
@@ -702,14 +725,10 @@ type
     { Begin rendering into the texture. Commands following this will
       render to the texture image.
 
-      When framebuffer is used, this checks it (glCheckFramebufferStatusEXT)
-      and binds.
+      When framebuffer is used, it's bound here.
 
       When framebuffer is not used, this doesn't do anything.
-      So note that all rendering will be done to normal screen in this case.
-
-      @raises(EFramebufferInvalid When framebuffer is used,
-        and check glCheckFramebufferStatusEXT fails.) }
+      So note that all rendering will be done to normal screen in this case. }
     procedure RenderBegin;
 
     { End rendering into the texture.
@@ -726,6 +745,18 @@ type
       So their values are ignored, and may be changed arbitrarily, by this
       method. }
     procedure RenderEnd;
+
+    { Generate mipmaps for the texture.
+      This will use glGenerateMipmap call, which is actually
+      a part of EXT_framebuffer_object extension (or GL core together
+      with framebuffer in GL core), so it will always
+      raise EGenerateMipmapNotAvailable if framebuffer is not available.
+
+      You should use HasGenerateMipmap and never call this
+      if not HasGenerateMipmap, if you don't want to get this exception.
+
+      @raises(EGenerateMipmapNotAvailable If glGenerateMipmap not available.) }
+    procedure GenerateMipmap;
   end;
 
 implementation
@@ -1708,13 +1739,16 @@ begin
   FCompleteTextureTarget := GL_TEXTURE_2D;
 end;
 
-constructor TGLRenderToTexture.CreateGL(const AWidth, AHeight: Cardinal; ATexture: TGLuint);
+constructor TGLRenderToTexture.CreateGL(const AWidth, AHeight: Cardinal;
+  const ATexture: TGLuint;
+  const ATextureTarget: TGLenum);
 begin
   Create;
 
   Width := AWidth;
   Height := AHeight;
   FTexture := ATexture;
+  FTextureTarget := ATextureTarget;
   InitGL;
 end;
 
@@ -1734,14 +1768,18 @@ begin
     FTextureTarget := ATextureTarget;
     if Framebuffer <> 0 then
     begin
-      glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Framebuffer);
+      if not InsideRender then
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Framebuffer);
       glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, TextureTarget, Texture, 0);
-      glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+      if not InsideRender then
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
     end;
   end;
 end;
 
 procedure TGLRenderToTexture.InitGL;
+var
+  Status: TGLenum;
 begin
   Assert(not FInitializedGL, 'You cannot call TGLRenderToTexture.InitGL on already OpenGL-initialized instance. Call CloseGL first if this is really what you want.');
 
@@ -1773,6 +1811,16 @@ begin
     glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, RenderbufferStencil);
 }
 
+    Status := glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+    case Status of
+      GL_FRAMEBUFFER_COMPLETE_EXT: { cool, continue };
+      GL_FRAMEBUFFER_UNSUPPORTED_EXT:
+        raise EFramebufferInvalid.Create('Unsupported framebuffer configuration');
+      else
+        raise EFramebufferInvalid.CreateFmt('Framebuffer check reported OpenGL error: %s (OpenGL error number %d)',
+          [ gluErrorString(Status), Status]);
+    end;
+
     { Unbind renderbuffer, framebuffer }
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
@@ -1797,22 +1845,11 @@ begin
 end;
 
 procedure TGLRenderToTexture.RenderBegin;
-var
-  Status: TGLenum;
 begin
   if Framebuffer <> 0 then
-  begin
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Framebuffer);
-    Status := glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-    case Status of
-      GL_FRAMEBUFFER_COMPLETE_EXT: { cool, continue };
-      GL_FRAMEBUFFER_UNSUPPORTED_EXT:
-        raise EFramebufferInvalid.Create('Unsupported framebuffer configuration');
-      else
-        raise EFramebufferInvalid.CreateFmt('Framebuffer check reported OpenGL error: %s (OpenGL error number %d)',
-          [ gluErrorString(Status), Status]);
-    end;
-  end;
+
+  InsideRender := true;
 end;
 
 procedure TGLRenderToTexture.RenderEnd;
@@ -1825,6 +1862,14 @@ begin
     glReadBuffer(GL_BACK);
     glCopyTexSubImage2D(TextureTarget, 0, 0, 0, 0, 0, Width, Height);
   end;
+
+  InsideRender := false;
+end;
+
+procedure TGLRenderToTexture.GenerateMipmap;
+begin
+  glBindTexture(CompleteTextureTarget, Texture);
+  GLImages.GenerateMipmap(CompleteTextureTarget);
 end;
 
 end.

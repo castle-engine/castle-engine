@@ -26,7 +26,7 @@ unit GLCubeMap;
 interface
 
 uses VectorMath, CubeMap, Images, Frustum, DDS, GL, GLU, KambiGLUtils,
-  RenderStateUnit;
+  RenderStateUnit, GLImages;
 
 type
   TCubeMapRenderSimpleFunction = procedure (ForCubeMap: boolean);
@@ -134,19 +134,19 @@ function GLCaptureCubeMapDDS(
   If you use mipmaps, it's your problem how to generate other texture levels
   --- in the simplest case, call GenerateMipmap(GL_TEXTURE_CUBE_MAP).
 
-  At the end, you can be sure that texture Tex is already bound. }
+  It uses RenderToTexture to render to the texture, so it will use
+  framebuffer if available, and it's fast. }
 procedure GLCaptureCubeMapTexture(
   const Tex: TGLuint;
   const Size: Cardinal;
   const CapturePoint: TVector3Single;
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
-  const MapsOverlap: boolean;
-  const MapScreenX, MapScreenY: Integer);
+  RenderToTexture: TGLRenderToTexture);
 
 implementation
 
-uses SysUtils, SphericalHarmonics, GLImages, GLExt;
+uses SysUtils, SphericalHarmonics, GLExt;
 
 procedure SHVectorGLCapture(
   var SHVector: array of Single;
@@ -345,14 +345,16 @@ procedure GLCaptureCubeMapTexture(
   const CapturePoint: TVector3Single;
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
-  const MapsOverlap: boolean;
-  const MapScreenX, MapScreenY: Integer);
+  RenderToTexture: TGLRenderToTexture);
 
   procedure DrawMap(Side: TCubeMapSide);
   var
-    ScreenX, ScreenY: Integer;
     ProjectionMatrix: TMatrix4Single;
   begin
+    { I used to implement here MapsOverlap, MapScreenX, MapScreenY,
+      but removed (since inherently conflicting with framebuffer possibility
+      inside TGLRenderToTexture).
+
     if MapsOverlap then
     begin
       ScreenX := 0;
@@ -362,32 +364,34 @@ procedure GLCaptureCubeMapTexture(
       ScreenX := CubeMapInfo[Side].ScreenX * Integer(Size) + MapScreenX;
       ScreenY := CubeMapInfo[Side].ScreenY * Integer(Size) + MapScreenY;
     end;
+    }
 
-    glViewport(ScreenX, ScreenY, Size, Size);
+    RenderToTexture.RenderBegin;
+    RenderToTexture.SetTexture(Tex, GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB + Ord(Side));
 
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix;
-      ProjectionMatrix := PerspectiveProjMatrixDeg(90, 1, ProjectionNear, ProjectionFar);
-      glLoadMatrix(ProjectionMatrix);
-      glMatrixMode(GL_MODELVIEW);
-
-        SetRenderStateCamera(CapturePoint, Side, ProjectionMatrix);
-        RenderState.Target := rtCubeMapEnvironment;
-        Render;
+      glViewport(0, 0, Size, Size);
 
       glMatrixMode(GL_PROJECTION);
-    glPopMatrix;
-    glMatrixMode(GL_MODELVIEW);
+      glPushMatrix;
+        ProjectionMatrix := PerspectiveProjMatrixDeg(90, 1, ProjectionNear, ProjectionFar);
+        glLoadMatrix(ProjectionMatrix);
+        glMatrixMode(GL_MODELVIEW);
 
-    glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, Tex);
-    glReadBuffer(GL_BACK);
-    glCopyTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB + Ord(Side),
-      0, 0, 0, 0, 0, Size, Size);
+          SetRenderStateCamera(CapturePoint, Side, ProjectionMatrix);
+          RenderState.Target := rtCubeMapEnvironment;
+          Render;
+
+        glMatrixMode(GL_PROJECTION);
+      glPopMatrix;
+      glMatrixMode(GL_MODELVIEW);
+
+    RenderToTexture.RenderEnd;
   end;
 
 var
   Side: TCubeMapSide;
 begin
+  RenderToTexture.CompleteTextureTarget := GL_TEXTURE_CUBE_MAP_ARB;
   for Side := Low(TCubeMapSide) to High(TCubeMapSide) do
     DrawMap(Side);
 end;
