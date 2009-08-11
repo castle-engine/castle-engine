@@ -1721,6 +1721,15 @@ begin
 end;
 
 destructor TVRMLOpenGLRendererContextCache.Destroy;
+
+{ Tests:
+  procedure Assert(const B: boolean; const S: string = '');
+  begin
+    if not B then
+      Writeln(ErrOutput, 'GLRendererContextCache warning: ' + S);
+  end;
+}
+
 var
   fsfam: TVRMLFontFamily;
   fsbold , fsitalic: boolean;
