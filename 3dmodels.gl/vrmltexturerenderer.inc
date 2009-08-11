@@ -1504,8 +1504,8 @@ begin
   end;
 
   { calculate DepthMap }
-//  if TextureNode.FdDepthMap.Count > 0 then
-//    DepthMap := TextureNode.FdDepthMap.Items[0] else
+  if TextureNode.FdDepthMap.Count > 0 then
+    DepthMap := TextureNode.FdDepthMap.Items[0] else
     DepthMap := false;
 
   if DepthMap then
@@ -1559,6 +1559,7 @@ begin
 
   RenderToTexture := TGLRenderToTexture.Create(Width, Height);
   RenderToTexture.SetTexture(GLName, GL_TEXTURE_2D);
+  RenderToTexture.DepthTexture := DepthMap;
   RenderToTexture.InitGL;
 end;
 
