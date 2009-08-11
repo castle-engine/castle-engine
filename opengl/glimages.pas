@@ -630,6 +630,7 @@ type
 
     FTexture: TGLuint;
     FTextureTarget: TGLenum;
+    FCompleteTextureTarget: TGLenum;
 
     FInitializedGL: boolean;
     Framebuffer, RenderbufferDepth, RenderbufferStencil: TGLuint;
@@ -677,6 +678,12 @@ type
       setup for rendering to different textures (as long as other settings
       are Ok, like Width and Height). }
     procedure SetTexture(const ATexture: TGLuint; const ATextureTarget: TGLenum);
+
+    { Bind target of texture associated with rendered color buffer.
+      "Bind target" means that it describes the whole texture, for example
+      for cube map it should be GL_TEXTURE_CUBE_MAP_ARB. }
+    property CompleteTextureTarget: TGLenum
+      read FCompleteTextureTarget write FCompleteTextureTarget default GL_TEXTURE_2D;
 
     { Initialize OpenGL stuff (framebuffer).
 
@@ -1698,6 +1705,7 @@ begin
   inherited;
 
   FTextureTarget := GL_TEXTURE_2D;
+  FCompleteTextureTarget := GL_TEXTURE_2D;
 end;
 
 constructor TGLRenderToTexture.CreateGL(const AWidth, AHeight: Cardinal; ATexture: TGLuint);
@@ -1813,9 +1821,9 @@ begin
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0) else
   begin
     { Actually update OpenGL texture }
-    glBindTexture(GL_TEXTURE_2D, Texture);
+    glBindTexture(CompleteTextureTarget, Texture);
     glReadBuffer(GL_BACK);
-    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, Width, Height);
+    glCopyTexSubImage2D(TextureTarget, 0, 0, 0, 0, 0, Width, Height);
   end;
 end;
 
