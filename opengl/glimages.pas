@@ -629,7 +629,7 @@ type
     FHeight: Cardinal;
 
     FTexture: TGLuint;
-    procedure SetTexture(const Value: TGLuint);
+    FTextureTarget: TGLenum;
 
     FInitializedGL: boolean;
     Framebuffer, RenderbufferDepth, RenderbufferStencil: TGLuint;
@@ -659,11 +659,24 @@ type
     { Texture associated with rendered color buffer of rendered image.
       May be 0 if none.
 
+      Changed by SetTexture. }
+    property Texture: TGLuint read FTexture default 0;
+
+    { Target of texture associated with rendered color buffer.
+      This is GL_TEXTURE2D for normal 2D textures, but may also be
+      GL_TEXTURE_RECTANGLE, GL_TEXTURE_CUBE_MAP_POSITIVE_X etc. for
+      other texture types.
+
+      Companion to @link(Texture) property, changed together by SetTexture. }
+    property TextureTarget: TGLenum read FTextureTarget default GL_TEXTURE_2D;
+
+    { Change @link(Texture) and @link(TextureTarget).
+
       May be changed also when OpenGL stuff (framebuffer) is already
       initialized. This is useful, as it allows you to reuse framebuffer
       setup for rendering to different textures (as long as other settings
       are Ok, like Width and Height). }
-    property Texture: TGLuint read FTexture write SetTexture;
+    procedure SetTexture(const ATexture: TGLuint; const ATextureTarget: TGLenum);
 
     { Initialize OpenGL stuff (framebuffer).
 
@@ -682,13 +695,29 @@ type
     { Begin rendering into the texture. Commands following this will
       render to the texture image.
 
-      Wheb framebuffer is used, this checks it (glCheckFramebufferStatusEXT)
+      When framebuffer is used, this checks it (glCheckFramebufferStatusEXT)
       and binds.
+
+      When framebuffer is not used, this doesn't do anything.
+      So note that all rendering will be done to normal screen in this case.
 
       @raises(EFramebufferInvalid When framebuffer is used,
         and check glCheckFramebufferStatusEXT fails.) }
     procedure RenderBegin;
 
+    { End rendering into the texture.
+
+      When framebuffer is used, this binds the normal screen back.
+
+      When framebuffer is not used, this does actual copying from the
+      screen to the texture using glCopyTexSubImage2D. We use
+      glCopyTexSubImage2D --- which means texture internal format
+      should already be initialized! If you don't have any initial texture data,
+      you can always initialize by glTexImage2D with @nil as pointer to data.
+
+      During copying, we may change OpenGL bound 2D texture and read buffer.
+      So their values are ignored, and may be changed arbitrarily, by this
+      method. }
     procedure RenderEnd;
   end;
 
@@ -1667,6 +1696,8 @@ end;
 constructor TGLRenderToTexture.Create;
 begin
   inherited;
+
+  FTextureTarget := GL_TEXTURE_2D;
 end;
 
 constructor TGLRenderToTexture.CreateGL(const AWidth, AHeight: Cardinal; ATexture: TGLuint);
@@ -1675,7 +1706,7 @@ begin
 
   Width := AWidth;
   Height := AHeight;
-  Texture := ATexture;
+  FTexture := ATexture;
   InitGL;
 end;
 
@@ -1685,15 +1716,18 @@ begin
   inherited;
 end;
 
-procedure TGLRenderToTexture.SetTexture(const Value: TGLuint);
+procedure TGLRenderToTexture.SetTexture(
+  const ATexture: TGLuint;
+  const ATextureTarget: TGLenum);
 begin
-  if Value <> FTexture then
+  if (ATexture <> FTexture) or (ATextureTarget <> FTextureTarget) then
   begin
-    FTexture := Value;
+    FTexture := ATexture;
+    FTextureTarget := ATextureTarget;
     if Framebuffer <> 0 then
     begin
       glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Framebuffer);
-      glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, Texture, 0);
+      glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, TextureTarget, Texture, 0);
       glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
     end;
   end;
@@ -1717,17 +1751,19 @@ begin
       Also, make it possible to have texture attached to depth buffer, not color
       (and color to go nowhere, if possible?) for shadow map rendering. }
 
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, Texture, 0);
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, TextureTarget, Texture, 0);
 
     glGenRenderbuffersEXT(1, @RenderbufferDepth);
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, RenderbufferDepth);
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, Width, Height);
     glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, RenderbufferDepth);
 
+{TODO - ability to fallback on non-stencil
     glGenRenderbuffersEXT(1, @RenderbufferStencil);
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, RenderbufferStencil);
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_STENCIL_INDEX, Width, Height);
     glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, RenderbufferStencil);
+}
 
     { Unbind renderbuffer, framebuffer }
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
@@ -1742,8 +1778,13 @@ begin
   if Framebuffer <> 0 then
   begin
     glDeleteRenderbuffersEXT(1, @RenderbufferDepth);
+    RenderbufferDepth := 0;
+
     glDeleteRenderbuffersEXT(1, @RenderbufferStencil);
+    RenderbufferStencil := 0;
+
     glDeleteFramebuffersEXT(1, @Framebuffer);
+    Framebuffer := 0;
   end;
 end;
 
@@ -1753,10 +1794,10 @@ var
 begin
   if Framebuffer <> 0 then
   begin
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Framebuffer);
     Status := glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
     case Status of
-      GL_FRAMEBUFFER_COMPLETE_EXT:
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Framebuffer);
+      GL_FRAMEBUFFER_COMPLETE_EXT: { cool, continue };
       GL_FRAMEBUFFER_UNSUPPORTED_EXT:
         raise EFramebufferInvalid.Create('Unsupported framebuffer configuration');
       else
@@ -1769,7 +1810,13 @@ end;
 procedure TGLRenderToTexture.RenderEnd;
 begin
   if Framebuffer <> 0 then
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0) else
+  begin
+    { Actually update OpenGL texture }
+    glBindTexture(GL_TEXTURE_2D, Texture);
+    glReadBuffer(GL_BACK);
+    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, Width, Height);
+  end;
 end;
 
 end.

@@ -251,6 +251,8 @@
   end;
 
   TGLRenderedTextureNode = class(TGLSingleTextureNode)
+  private
+    RenderToTexture: TGLRenderToTexture;
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
       Node: TNodeX3DTextureNode): boolean; override;
@@ -1503,8 +1505,8 @@ begin
   end;
 
   { calculate DepthMap }
-  if TextureNode.FdDepthMap.Count > 0 then
-    DepthMap := TextureNode.FdDepthMap.Items[0] else
+//  if TextureNode.FdDepthMap.Count > 0 then
+//    DepthMap := TextureNode.FdDepthMap.Items[0] else
     DepthMap := false;
 
   if DepthMap then
@@ -1555,10 +1557,14 @@ begin
       }
     finally FreeAndNil(InitialImage) end;
   end;
+
+  RenderToTexture := TGLRenderToTexture.CreateGL(Width, Height, GLName);
 end;
 
 procedure TGLRenderedTextureNode.Unprepare;
 begin
+  FreeAndNil(RenderToTexture);
+
   if GLName <> 0 then
     if DepthMap then
       Renderer.Cache.TextureDepth_DecReference(GLName) else
@@ -1720,26 +1726,25 @@ begin
     ProjectionMatrix);
   RenderState.Target := rfOffScreen;
 
-  glViewport(0, 0, Width, Height);
+  RenderToTexture.RenderBegin;
 
-  glMatrixMode(GL_PROJECTION);
-  glPushMatrix;
-    glLoadMatrix(ProjectionMatrix);
-    glMatrixMode(GL_MODELVIEW);
-    Render;
+    glViewport(0, 0, Width, Height);
+
     glMatrixMode(GL_PROJECTION);
-  glPopMatrix;
-  glMatrixMode(GL_MODELVIEW);
+    glPushMatrix;
+      glLoadMatrix(ProjectionMatrix);
+      glMatrixMode(GL_MODELVIEW);
+      Render;
+      glMatrixMode(GL_PROJECTION);
+    glPopMatrix;
+    glMatrixMode(GL_MODELVIEW);
 
-  { Actually update OpenGL texture GLName }
-  glBindTexture(GL_TEXTURE_2D, GLName);
-  glReadBuffer(GL_BACK);
-  glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, Width, Height);
+  RenderToTexture.RenderEnd;
 
   if NeedsMipmaps then
   begin
-    { We already bound the texture for OpenGL above. }
-    GenerateMipmap(GL_TEXTURE_CUBE_MAP);
+    glBindTexture(GL_TEXTURE_2D, GLName);
+    GenerateMipmap(GL_TEXTURE_2D);
   end;
 
   NeedsRestoreViewport := true;
