@@ -3996,6 +3996,17 @@ procedure TVRMLOpenGLRenderer.RenderBegin(FogNode: TNodeFog;
    end;
   end;
 
+  procedure DisabeAllTextureUnits;
+  var
+    I: Integer;
+  begin
+    for I := Attributes.FirstGLFreeTexture to LastGLFreeTexture do
+    begin
+      ActiveTexture(I);
+      TGLTextureNode.TextureEnableDisable(etOff);
+    end;
+  end;
+
 var i: integer;
 begin
   { calculate UseMultiTexturing: check extensions required for multitexturing.
@@ -4050,6 +4061,7 @@ begin
    we got glTexEnv covered. (this says OpenGL manpage for glPushAttrib,
    and it applies to both multitexturing by ARB extension and by standard GL).
  }
+ DisabeAllTextureUnits;
  ActiveTexture(0);
 
  {init our OpenGL state}
@@ -4369,7 +4381,6 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
 
   procedure RenderTexturesBegin;
   var
-    I: Integer;
     TextureNode: TNodeX3DTextureNode;
     GLTextureNode: TGLTextureNode;
     AlphaTest: boolean;
@@ -4415,20 +4426,6 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
         TexCoordsNeeded, Primitives3DTextureCoords);
     end;
 
-    { Disable unused textures }
-    if UseMultiTexturing then
-    begin
-      for I := Attributes.FirstGLFreeTexture + TexCoordsNeeded to LastGLFreeTexture do
-      begin
-        glActiveTextureARB(GL_TEXTURE0_ARB + I);
-        TGLTextureNode.TextureEnableDisable(etOff);
-      end;
-    end else
-    begin
-      if TexCoordsNeeded = 0 then
-        TGLTextureNode.TextureEnableDisable(etOff);
-    end;
-
     { Set ALPHA_TEST enabled state.
 
       This is not necessarily perfect for multitexturing,
@@ -4460,7 +4457,14 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
   end;
 
   procedure RenderTexturesEnd;
+  var
+    I: Integer;
   begin
+    for I := 0 to TexCoordsNeeded - 1 do
+    begin
+      ActiveTexture(I);
+      TGLTextureNode.TextureEnableDisable(etOff);
+    end;
   end;
 
   var
