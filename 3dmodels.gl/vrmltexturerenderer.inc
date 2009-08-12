@@ -4,7 +4,6 @@
   - it would be nice to remove dependency on TVRMLOpenGLRenderer entirely.
     This would make it more independent from TVRMLOpenGLRenderer,
     so much simpler.
-  - Maybe just remove Prepare/Unprepare and move them to constructor/destructor?
 }
   TGLTextureNode = class;
 
@@ -1293,7 +1292,10 @@ end;
 procedure TGLImageTextureNode.Unprepare;
 begin
   if GLName <> 0 then
+  begin
     Renderer.Cache.TextureImage_DecReference(GLName);
+    GLName := 0;
+  end;
 end;
 
 function TGLImageTextureNode.Enable(const TextureUnit: Cardinal;
@@ -1557,11 +1559,20 @@ begin
     finally FreeAndNil(InitialImage) end;
   end;
 
-  RenderToTexture := TGLRenderToTexture.Create(Width, Height);
-  RenderToTexture.SetTexture(GLName, GL_TEXTURE_2D);
-  RenderToTexture.DepthTexture := DepthMap;
-  RenderToTexture.Stencil := not DepthMap;
-  RenderToTexture.InitGL;
+  try
+    RenderToTexture := TGLRenderToTexture.Create(Width, Height);
+    RenderToTexture.SetTexture(GLName, GL_TEXTURE_2D);
+    RenderToTexture.DepthTexture := DepthMap;
+    RenderToTexture.Stencil := not DepthMap;
+    RenderToTexture.InitGL;
+  except
+    on E: EFramebufferError do
+    begin
+      Unprepare;
+      VRMLWarning(vwIgnorable, 'Framebuffer error, generated texture not possible: '
+        + E.Message);
+    end;
+  end;
 end;
 
 procedure TGLRenderedTextureNode.Unprepare;
@@ -1569,9 +1580,12 @@ begin
   FreeAndNil(RenderToTexture);
 
   if GLName <> 0 then
+  begin
     if DepthMap then
       Renderer.Cache.TextureDepth_DecReference(GLName) else
       Renderer.Cache.TextureImage_DecReference(GLName);
+    GLName := 0;
+  end;
 end;
 
 function TGLRenderedTextureNode.Enable(const TextureUnit: Cardinal;
@@ -1710,6 +1724,8 @@ var
   CameraMatrix, ProjectionMatrix: TMatrix4Single;
   Pos, Dir, Up: TVector3Single;
 begin
+  if GLName = 0 then Exit;
+
   { calculate Viewpoint }
   if (TextureNode.FdViewpoint.Value <> nil) and
      (TextureNode.FdViewpoint.Value is TVRMLViewpointNode) then
@@ -1757,7 +1773,11 @@ end;
 
 procedure TGLCubeMapTextureNode.Unprepare;
 begin
-  Renderer.Cache.TextureCubeMap_DecReference(GLName);
+  if GLName <> 0 then
+  begin
+    Renderer.Cache.TextureCubeMap_DecReference(GLName);
+    GLName := 0;
+  end;
 end;
 
 function TGLCubeMapTextureNode.Enable(const TextureUnit: Cardinal;
@@ -1995,9 +2015,18 @@ begin
       AlphaChannelType);
   finally FreeAndNil(InitialImage) end;
 
-  RenderToTexture := TGLRenderToTexture.Create(Size, Size);
-  RenderToTexture.SetTexture(GLName, GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB);
-  RenderToTexture.InitGL;
+  try
+    RenderToTexture := TGLRenderToTexture.Create(Size, Size);
+    RenderToTexture.SetTexture(GLName, GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB);
+    RenderToTexture.InitGL;
+  except
+    on E: EFramebufferError do
+    begin
+      Unprepare;
+      VRMLWarning(vwIgnorable, 'Framebuffer error, generated texture not possible: '
+        + E.Message);
+    end;
+  end;
 end;
 
 procedure TGLGeneratedCubeMapTextureNode.Unprepare;
@@ -2012,6 +2041,8 @@ procedure TGLGeneratedCubeMapTextureNode.Update(
   var NeedsRestoreViewport: boolean;
   const CubeMiddle: TVector3Single);
 begin
+  if GLName = 0 then Exit;
+
   GLCaptureCubeMapTexture(GLName, Size,
     CubeMiddle,
     Render, ProjectionNear, ProjectionFar,
@@ -2088,7 +2119,10 @@ end;
 procedure TGL3DTextureNode.Unprepare;
 begin
   if GLName <> 0 then
+  begin
     Renderer.Cache.Texture3D_DecReference(GLName);
+    GLName := 0;
+  end;
 end;
 
 function TGL3DTextureNode.Enable(const TextureUnit: Cardinal;
@@ -2139,11 +2173,20 @@ begin
   GLName := Renderer.Cache.TextureDepth_IncReference(
     TextureNode, TextureWrap, TextureNode.FdCompareMode, Size, Size);
 
-  RenderToTexture := TGLRenderToTexture.Create(Size, Size);
-  RenderToTexture.SetTexture(GLName, GL_TEXTURE_2D);
-  RenderToTexture.DepthTexture := true;
-  RenderToTexture.Stencil := false;
-  RenderToTexture.InitGL;
+  try
+    RenderToTexture := TGLRenderToTexture.Create(Size, Size);
+    RenderToTexture.SetTexture(GLName, GL_TEXTURE_2D);
+    RenderToTexture.DepthTexture := true;
+    RenderToTexture.Stencil := false;
+    RenderToTexture.InitGL;
+  except
+    on E: EFramebufferError do
+    begin
+      Unprepare;
+      VRMLWarning(vwIgnorable, 'Framebuffer error, generated texture not possible: '
+        + E.Message);
+    end;
+  end;
 end;
 
 procedure TGLGeneratedShadowMap.Unprepare;
@@ -2151,7 +2194,10 @@ begin
   FreeAndNil(RenderToTexture);
 
   if GLName <> 0 then
+  begin
     Renderer.Cache.TextureDepth_DecReference(GLName);
+    GLName := 0;
+  end;
 end;
 
 function TGLGeneratedShadowMap.Enable(const TextureUnit: Cardinal;
@@ -2174,6 +2220,8 @@ procedure TGLGeneratedShadowMap.Update(
 var
   ProjectionMatrix: TMatrix4Single;
 begin
+  if GLName = 0 then Exit;
+
   { Render view for shadow map }
   ProjectionMatrix := Light.MapProjectionMatrix;
 
