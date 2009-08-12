@@ -4367,7 +4367,7 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       ExposedMeshRenderer := nil;
   end;
 
-  procedure InitTextures;
+  procedure RenderTexturesBegin;
   var
     I: Integer;
     TextureNode: TNodeX3DTextureNode;
@@ -4429,40 +4429,23 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
         TGLTextureNode.TextureEnableDisable(etOff);
     end;
 
-    { Set alpha_test enabled state.
-      Current approach: if there is any texture used,
-      with simple alpha channel, then use alpha_test.
+    { Set ALPHA_TEST enabled state.
 
       This is not necessarily perfect for multitexturing,
       but there's really no way to set it automatically correct for
       multitexturing, as various operations may effectively flatten
       alpha anyway.
-
       So we only care to make it correct for a single texture case.
-    }
 
-    { Notka: nalezy tu zauwazyc ze robimy alphaTest ale jezeli
-      GL_TEXTURE_ENV_MODE = GL_MODULATE to alpha ktore bedzie testowane
-      tak naprawde nie bedzie alpha textury - to bedzie alpha textury
-      zmieszane z alpha koloru zmieszane z alpha swiatla. Nawet gdybysmy
-      dali texture env mode = GL_REPLACE to ciagle alpha swiatla ma wplyw
-      na testowane alpha fragmentu (chociaz to juz nie jest takie zle,
-      bo w VRML'u nie ma czegos takiego jak "alpha" czy "transparency"
-      koloru swiatla co jest dosc rozsadnym uproszczeniem) ALE przeciez
-      my chcemy miec GL_MODULATE bo powinnismy modulowac kolor tekstury
-      kolorem materialu ! Nie widze tu ladnego sposobu jak mialbym
-      pogodzic transparency materialu z kanalem alpha tekstury, przeciez
-      chcac zadowolic specyfikacje VRML'a musze honorowac obie te rzeczy.
-      Wiec niniejszym decyduje sie po prostu mieszac alpha textury z
-      transparency materialu tak jak to robi OpenGL w GL_MODULATE.
-
-      (Dementi - chyba alpha swiatla w OpenGLu nie ma wplywu
-       na wyliczone alpha vertexu. Do czego jest alpha swiatla ?)
-
-      To wszystko ma wieksze znaczenie gdy
-      ktos zechce kombinowac finezyjne transparency
-      materialu z finezyjnym (nie-0-1-kowym) kanalem alpha textury.
-    }
+      Note that if GL_MODULATE is combined with ALPHA_TEST and material
+      has some transparency (non-1 alpha) too, then the alpha
+      actually tested will not be the alpha of the texture alone ---
+      it will be the alpha of the texture mixed with the alpha of the material.
+      (Alpha of the light source isn't multiplied here, AFAIK,
+      I don't really know where light source alpha is used,
+      and VRML author cannot set it anyway.)
+      I don't see any sensible way to solve this with fixed-function OpenGL
+      pipeline, that's just how GL_MODULATE with GL_ALPHA_TEST work. }
 
     SetGLEnabled(GL_ALPHA_TEST, AlphaTest);
 
@@ -4474,6 +4457,10 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
 
     if (TexCoordsNeeded > 0) and UseMultiTexturing then
       ActiveTexture(0);
+  end;
+
+  procedure RenderTexturesEnd;
+  begin
   end;
 
   var
@@ -4535,35 +4522,36 @@ begin
     try
       InitMeshRenderer;
       try
-        InitTextures;
-
-        Render_MaterialsBegin;
+        RenderTexturesBegin;
         try
-          {$ifdef USE_VRML_NODES_TRIANGULATION}
+          Render_MaterialsBegin;
+          try
+            {$ifdef USE_VRML_NODES_TRIANGULATION}
 
-          { alternatywny prosty rendering przez LocalTriangulate, only to test
-            LocalTriangulate. We should use here OverTriagulate = true (but it's not
-            impl yet because I don't need it anywhere (well, I would use it here
-            but this is just some testing code)) }
-          CurrentGeometry.LocalTriangulate(State, false, @DrawTriangle);
+            { alternatywny prosty rendering przez LocalTriangulate, only to test
+              LocalTriangulate. We should use here OverTriagulate = true (but it's not
+              impl yet because I don't need it anywhere (well, I would use it here
+              but this is just some testing code)) }
+            CurrentGeometry.LocalTriangulate(State, false, @DrawTriangle);
 
-          {$else}
+            {$else}
 
-          if MeshRenderer <> nil then
-            MeshRenderer.Render else
-            VRMLWarning(vwSerious,
-              { We display for user Shape.Geometry.NodeTypeName,
-                although actually it's CurrentGeometry.NodeTypeName
-                that cannot be rendered. Internally, this is different
-                only when we know that original Geometry cannot be directly
-                renderer, so it's all Ok. }
-              'Rendering of node kind "' + Shape.Geometry.NodeTypeName + '" not implemented');
+            if MeshRenderer <> nil then
+              MeshRenderer.Render else
+              VRMLWarning(vwSerious,
+                { We display for user Shape.Geometry.NodeTypeName,
+                  although actually it's CurrentGeometry.NodeTypeName
+                  that cannot be rendered. Internally, this is different
+                  only when we know that original Geometry cannot be directly
+                  renderer, so it's all Ok. }
+                'Rendering of node kind "' + Shape.Geometry.NodeTypeName + '" not implemented');
 
-          {$endif USE_VRML_NODES_TRIANGULATION}
+            {$endif USE_VRML_NODES_TRIANGULATION}
 
-        finally Render_MaterialsEnd end;
-      finally FreeAndNil(ExposedMeshRenderer); end;
-    finally RenderShadersEnd; end;
+          finally Render_MaterialsEnd end;
+        finally RenderTexturesEnd end;
+      finally FreeAndNil(ExposedMeshRenderer) end;
+    finally RenderShadersEnd end;
   finally
     if CurrentGeometry <> Shape.Geometry then
       FreeAndNil(CurrentGeometry);
