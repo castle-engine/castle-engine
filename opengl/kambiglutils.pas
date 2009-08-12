@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2008 Michalis Kamburelis.
+  Copyright 2001-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -97,6 +97,7 @@ uses Math, GL, GLU, GLExt,
   Images, Matrix;
 
 {$define read_interface}
+{$I glext_packed_depth_stencil.inc}
 
 { ------------------------------------------------------------ }
 { @section(Utils needed only when using GL, GLU, GLExt bindings.
@@ -282,6 +283,7 @@ var
   GL_ARB_vertex_buffer_object: boolean;
   GL_EXT_framebuffer_object: boolean;
   GL_ARB_occlusion_query: boolean;
+  GL_EXT_packed_depth_stencil: boolean;
 
 {$ifdef NEEDS_FOG_COORD_FIX}
 var
@@ -1131,6 +1133,8 @@ implementation
 
 uses KambiFilesUtils, KambiStringUtils, GLVersionUnit, GLShaders, GLImages;
 
+{$I glext_packed_depth_stencil.inc}
+
 {$ifdef USE_GL_GLU_UNITS}
 {$I opengltypes.inc}
 
@@ -1313,6 +1317,7 @@ begin
  GL_ARB_vertex_buffer_object := Load_GL_ARB_vertex_buffer_object;
  GL_EXT_framebuffer_object := Load_GL_EXT_framebuffer_object;
  GL_ARB_occlusion_query := Load_GL_ARB_occlusion_query;
+ GL_EXT_packed_depth_stencil := Load_GL_EXT_packed_depth_stencil;
 
  GLMaxTextureSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
 

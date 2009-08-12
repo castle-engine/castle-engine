@@ -1560,6 +1560,7 @@ begin
   RenderToTexture := TGLRenderToTexture.Create(Width, Height);
   RenderToTexture.SetTexture(GLName, GL_TEXTURE_2D);
   RenderToTexture.DepthTexture := DepthMap;
+  RenderToTexture.Stencil := not DepthMap;
   RenderToTexture.InitGL;
 end;
 
@@ -2141,6 +2142,7 @@ begin
   RenderToTexture := TGLRenderToTexture.Create(Size, Size);
   RenderToTexture.SetTexture(GLName, GL_TEXTURE_2D);
   RenderToTexture.DepthTexture := true;
+  RenderToTexture.Stencil := false;
   RenderToTexture.InitGL;
 end;
 

@@ -632,6 +632,7 @@ type
     FTextureTarget: TGLenum;
     FCompleteTextureTarget: TGLenum;
     FDepthTexture: boolean;
+    FStencil: boolean;
 
     FInitializedGL: boolean;
     Framebuffer, RenderbufferDepth, RenderbufferStencil: TGLuint;
@@ -710,6 +711,23 @@ type
     property DepthTexture: boolean
       read FDepthTexture write FDepthTexture default false;
 
+    { Should we require stencil buffer.
+
+      This is usually safe, as FBO spec says even requires that some format
+      with stencil buffer must be available.
+
+      However, @italic(this has a high chance to fail if you need DepthTexture).
+      Reason: on GPU with packed depth and stencil buffer
+      (see http://www.opengl.org/registry/specs/EXT/packed_depth_stencil.txt)
+      FBO with separate depth and stencil may not be possible.
+      And when your texture is GL_DEPTH_COMPONENT, this is a must.
+      In the future, we could allow some flag to allow you to use texture
+      with GL_DEPTH_STENCIL format, this would work with packed depth/stencil
+      (actually, even require it). For now, @italic(it's adviced to turn
+      off @name when you use DepthTexture). }
+    property Stencil: boolean
+      read FStencil write FStencil default true;
+
     { Initialize OpenGL stuff (framebuffer).
 
       When OpenGL stuff is initialized (from InitGL until
@@ -720,7 +738,10 @@ type
         size.)
 
       @raises(EFramebufferInvalid When framebuffer is used,
-        and check glCheckFramebufferStatusEXT fails.) }
+        and check glCheckFramebufferStatusEXT fails. This should not happen,
+        it means a programmer error. Or "unsupported" result
+        of glCheckFramebufferStatusEXT (that is possible regardless of programmer)
+        we have a nice fallback to non-FBO implementation.) }
     procedure InitGL;
 
     { Release all OpenGL stuff (if anything initialized).
@@ -1749,11 +1770,12 @@ constructor TGLRenderToTexture.Create(const AWidth, AHeight: Cardinal);
 begin
   inherited Create;
 
-  FWidth := AWidth;
-  FHeight := AHeight;
-
   FTextureTarget := GL_TEXTURE_2D;
   FCompleteTextureTarget := GL_TEXTURE_2D;
+  FStencil := true;
+
+  FWidth := AWidth;
+  FHeight := AHeight;
 end;
 
 destructor TGLRenderToTexture.Destroy;
@@ -1801,8 +1823,18 @@ procedure TGLRenderToTexture.InitGL;
     end;
   end;
 
+  { initialize RenderbufferStencil, attach it to FBO stencil }
+  procedure AttachSeparateStencilRenderbuffer;
+  begin
+    glGenRenderbuffersEXT(1, @RenderbufferStencil);
+    glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, RenderbufferStencil);
+    glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_STENCIL_INDEX, Width, Height);
+    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, RenderbufferStencil);
+  end;
+
 var
   Status: TGLenum;
+  DepthBufferFormat: TGLenum;
 begin
   Assert(not FInitializedGL, 'You cannot call TGLRenderToTexture.InitGL on already OpenGL-initialized instance. Call CloseGL first if this is really what you want.');
 
@@ -1816,10 +1848,6 @@ begin
     glGenFramebuffersEXT(1, @Framebuffer);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Framebuffer);
 
-    { TODO: make stencil (and depth buffer?) optional for TGLRenderToTexture.
-      Also, make it possible to have texture attached to depth buffer, not color
-      (and color to go nowhere, if possible?) for shadow map rendering. }
-
     if DepthTexture then
     begin
       { Needed to consider FBO "complete" }
@@ -1827,28 +1855,48 @@ begin
       glReadBuffer(GL_NONE);
 
       glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, TextureTarget, Texture, 0);
+
+      if Stencil then
+      begin
+        { only separate stencil buffer possible in this case }
+        AttachSeparateStencilRenderbuffer;
+      end;
     end else
     begin
       glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, TextureTarget, Texture, 0);
 
+      { When EXT_packed_depth_stencil is present, and stencil is wanted
+        (a very common case!, as most GPUs have EXT_packed_depth_stencil
+        and for shadow volumes we want stencil) we desperately want to
+        use one renderbuffer with combined depth/stencil info.
+        Other possibilities may be not available at all (e.g. Radeon on chantal,
+        but probably most GPUs with EXT_packed_depth_stencil). }
+
+      if Stencil and GL_EXT_packed_depth_stencil then
+        DepthBufferFormat := GL_DEPTH_STENCIL_EXT else
+        DepthBufferFormat := GL_DEPTH_COMPONENT;
+
       glGenRenderbuffersEXT(1, @RenderbufferDepth);
       glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, RenderbufferDepth);
-      glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, Width, Height);
+      glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, DepthBufferFormat, Width, Height);
       glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, RenderbufferDepth);
-    end;
 
-{TODO - ability to fallback on non-stencil
-    glGenRenderbuffersEXT(1, @RenderbufferStencil);
-    glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, RenderbufferStencil);
-    glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_STENCIL_INDEX, Width, Height);
-    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, RenderbufferStencil);
-}
+      if Stencil then
+      begin
+        if GL_EXT_packed_depth_stencil then
+          glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, RenderbufferDepth) else
+          AttachSeparateStencilRenderbuffer;
+      end;
+    end;
 
     Status := glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
     case Status of
       GL_FRAMEBUFFER_COMPLETE_EXT: { cool, continue };
       GL_FRAMEBUFFER_UNSUPPORTED_EXT:
-        raise EFramebufferInvalid.Create('Unsupported framebuffer configuration');
+        begin
+          CloseGL;
+          DataWarning('Unsupported framebuffer configuration, will fallback to glCopyTexSubImage2D approach');
+        end;
       else
         raise EFramebufferInvalid.CreateFmt('Framebuffer check failed: %s (FBO error number %d)',
           [ FramebufferStatusToString(Status), Status]);
