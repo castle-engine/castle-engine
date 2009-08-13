@@ -5,14 +5,10 @@
     This would make it more independent from TVRMLOpenGLRenderer,
     so much simpler.
 }
+  { }
   TGLTextureNode = class;
 
   TGLTextureNodeClass = class of TGLTextureNode;
-
-  TBumpMappingWanted = (
-    bmwNone,
-    bmwNoParallax,
-    bmwParallax);
 
   TTextureEnableDisable = (etOff, et2D, etCubeMap, et3D);
 
@@ -67,12 +63,8 @@
       Node: TNodeX3DTextureNode): TGLTextureNodeClass;
 
     { Do the time-consuming preparations before rendering this texture.
-      Must be called with BumpMappingWanted = initially bmwNone,
-      implementation of this may set BumpMappingWanted <> bmwNone
-      if some bump mapping data (height map, normal map) found.
       Called from TVRMLOpenGLRenderer.Prepare. }
-    procedure Prepare(State: TVRMLGraphTraverseState;
-      var BumpMappingWanted: TBumpMappingWanted); virtual; abstract;
+    procedure Prepare(State: TVRMLGraphTraverseState); virtual; abstract;
 
     { Release all resources allocated by @link(Prepare). }
     procedure Unprepare; virtual; abstract;
@@ -115,7 +107,6 @@
       Primitives3DTextureCoords may be modified,
       but only to true, by this procedure. }
     function Enable(const TextureUnit: Cardinal;
-      const UseForBumpMappingAllowed: boolean;
       var Primitives3DTextureCoords: boolean): boolean; virtual; abstract;
 
     { Sets texture state for many texture units, based on this node.
@@ -199,11 +190,9 @@
   public
     function TextureNode: TNodeMultiTexture;
 
-    procedure Prepare(State: TVRMLGraphTraverseState;
-      var BumpMappingWanted: TBumpMappingWanted); override;
+    procedure Prepare(State: TVRMLGraphTraverseState); override;
     procedure Unprepare; override;
     function Enable(const TextureUnit: Cardinal;
-      const UseForBumpMappingAllowed: boolean;
       var Primitives3DTextureCoords: boolean): boolean; override;
     procedure EnableAll(
       const TextureUnitsCount: Cardinal;
@@ -224,11 +213,9 @@
 
     function TextureNode: TVRMLTextureNode;
 
-    procedure Prepare(State: TVRMLGraphTraverseState;
-      var BumpMappingWanted: TBumpMappingWanted); override;
+    procedure Prepare(State: TVRMLGraphTraverseState); override;
     procedure Unprepare; override;
     function Enable(const TextureUnit: Cardinal;
-      const UseForBumpMappingAllowed: boolean;
       var Primitives3DTextureCoords: boolean): boolean; override;
   end;
 
@@ -241,11 +228,9 @@
 
     function TextureNode: TNodeMovieTexture;
 
-    procedure Prepare(State: TVRMLGraphTraverseState;
-      var BumpMappingWanted: TBumpMappingWanted); override;
+    procedure Prepare(State: TVRMLGraphTraverseState); override;
     procedure Unprepare; override;
     function Enable(const TextureUnit: Cardinal;
-      const UseForBumpMappingAllowed: boolean;
       var Primitives3DTextureCoords: boolean): boolean; override;
   end;
 
@@ -265,11 +250,9 @@
 
     function TextureNode: TNodeRenderedTexture;
 
-    procedure Prepare(State: TVRMLGraphTraverseState;
-      var BumpMappingWanted: TBumpMappingWanted); override;
+    procedure Prepare(State: TVRMLGraphTraverseState); override;
     procedure Unprepare; override;
     function Enable(const TextureUnit: Cardinal;
-      const UseForBumpMappingAllowed: boolean;
       var Primitives3DTextureCoords: boolean): boolean; override;
 
     procedure Update(
@@ -294,7 +277,6 @@
     procedure Unprepare; override;
 
     function Enable(const TextureUnit: Cardinal;
-      const UseForBumpMappingAllowed: boolean;
       var Primitives3DTextureCoords: boolean): boolean; override;
   end;
 
@@ -305,8 +287,7 @@
   public
     function TextureNode: TNodeComposedCubeMapTexture;
 
-    procedure Prepare(State: TVRMLGraphTraverseState;
-      var BumpMappingWanted: TBumpMappingWanted); override;
+    procedure Prepare(State: TVRMLGraphTraverseState); override;
   end;
 
   TGLImageCubeMapTextureNode = class(TGLCubeMapTextureNode)
@@ -316,8 +297,7 @@
   public
     function TextureNode: TNodeImageCubeMapTexture;
 
-    procedure Prepare(State: TVRMLGraphTraverseState;
-      var BumpMappingWanted: TBumpMappingWanted); override;
+    procedure Prepare(State: TVRMLGraphTraverseState); override;
   end;
 
   TGLGeneratedCubeMapTextureNode = class(TGLCubeMapTextureNode)
@@ -337,8 +317,7 @@
 
     function TextureNode: TNodeGeneratedCubeMapTexture;
 
-    procedure Prepare(State: TVRMLGraphTraverseState;
-      var BumpMappingWanted: TBumpMappingWanted); override;
+    procedure Prepare(State: TVRMLGraphTraverseState); override;
     procedure Unprepare; override;
 
     procedure Update(
@@ -357,11 +336,9 @@
 
     function TextureNode: TNodeX3DTexture3DNode;
 
-    procedure Prepare(State: TVRMLGraphTraverseState;
-      var BumpMappingWanted: TBumpMappingWanted); override;
+    procedure Prepare(State: TVRMLGraphTraverseState); override;
     procedure Unprepare; override;
     function Enable(const TextureUnit: Cardinal;
-      const UseForBumpMappingAllowed: boolean;
       var Primitives3DTextureCoords: boolean): boolean; override;
   end;
 
@@ -380,11 +357,9 @@
 
     function TextureNode: TNodeGeneratedShadowMap;
 
-    procedure Prepare(State: TVRMLGraphTraverseState;
-      var BumpMappingWanted: TBumpMappingWanted); override;
+    procedure Prepare(State: TVRMLGraphTraverseState); override;
     procedure Unprepare; override;
     function Enable(const TextureUnit: Cardinal;
-      const UseForBumpMappingAllowed: boolean;
       var Primitives3DTextureCoords: boolean): boolean; override;
 
     procedure Update(
@@ -397,6 +372,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
+{$I objectslist_1.inc}
 
 const
   TextureRepeatToGL: array [boolean] of TGLenum = (
@@ -602,7 +578,7 @@ procedure TGLSingleTextureNode.EnableAll(
 begin
   TexCoordsNeeded := 0;
   if (TextureUnitsCount > 0) and
-     Enable(0, true, Primitives3DTextureCoords) then
+     Enable(0, Primitives3DTextureCoords) then
   begin
     { TODO: this should be fixed, for non-multi tex decal is standard? }
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -623,8 +599,7 @@ begin
   Result := TNodeMultiTexture(inherited TextureNode);
 end;
 
-procedure TGLMultiTextureNode.Prepare(State: TVRMLGraphTraverseState;
-  var BumpMappingWanted: TBumpMappingWanted);
+procedure TGLMultiTextureNode.Prepare(State: TVRMLGraphTraverseState);
 
   procedure MaxTo1st(var A: TAlphaChannelType; const B: TAlphaChannelType);
   begin
@@ -682,7 +657,6 @@ begin
 end;
 
 function TGLMultiTextureNode.Enable(const TextureUnit: Cardinal;
-  const UseForBumpMappingAllowed: boolean;
   var Primitives3DTextureCoords: boolean): boolean;
 begin
   { This should never be called. TGLMultiTextureNode cannot set only
@@ -1083,7 +1057,7 @@ begin
       if ChildTex is TNodeMultiTexture then
         VRMLWarning(vwSerious, 'Child of MultiTexture node cannot be another MultiTexture node') else
         Success := Renderer.EnableTexture(TNodeX3DTextureNode(ChildTex),
-          I, false, Primitives3DTextureCoords);
+          I, Primitives3DTextureCoords);
 
       if Success then
       begin
@@ -1186,11 +1160,8 @@ begin
   Result := TVRMLTextureNode(inherited TextureNode);
 end;
 
-procedure TGLImageTextureNode.Prepare(State: TVRMLGraphTraverseState;
-  var BumpMappingWanted: TBumpMappingWanted);
+procedure TGLImageTextureNode.Prepare(State: TVRMLGraphTraverseState);
 var
-  HeightMapGrayscale: TGrayscaleImage;
-  OriginalTexture: TEncodedImage;
   MinFilter, MagFilter: TGLint;
   Anisotropy: TGLfloat;
   TextureWrap: TTextureWrap2D;
@@ -1223,70 +1194,6 @@ begin
       Exit;
     end;
   end;
-
-  { TODO: for now, bump mapping is used only if the node has normal texture
-    too. It should be possible to use bump mapping even if the node is colored
-    only by material (in this case we should remember to still generate
-    texture coords etc.).
-
-    TODO: Also, now for each texture, there must always be the same bump map
-    (since we store it in the same TextureImageReference }
-
-  NormalMap := 0;
-  if (Renderer.BumpMappingMethod <> bmNone) and
-     (State.ParentShape <> nil) and
-     (State.ParentShape.NormalMap <> nil) then
-  begin
-    State.ParentShape.NormalMap.Cache := Renderer.Cache;
-    if State.ParentShape.NormalMap.IsTextureImage then
-    begin
-      { TODO: normal map textures should be shared by Cache }
-      NormalMap := LoadGLTexture(
-        State.ParentShape.NormalMap.TextureImage,
-        GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, TextureWrap);
-    end;
-  end;
-
-  HeightMap := 0;
-  if (Renderer.BumpMappingMethod <> bmNone) and
-     (State.ParentShape <> nil) and
-     (State.ParentShape.HeightMap <> nil) then
-  begin
-    State.ParentShape.HeightMap.Cache := Renderer.Cache;
-    if State.ParentShape.HeightMap.IsTextureImage then
-    begin
-      { TODO: height map textures should be shared by Cache }
-
-      OriginalTexture := State.ParentShape.HeightMap.TextureImage;
-
-      { Calculate HeightMapGrayscale }
-      { TODO: this is not nice to convert here, we should load
-        straight to TGrayscalaImage }
-      if OriginalTexture is TRGBImage then
-        HeightMapGrayscale := TRGBImage(OriginalTexture).ToGrayscale else
-      if OriginalTexture is TGrayscaleImage then
-        HeightMapGrayscale := TGrayscaleImage(OriginalTexture) else
-        HeightMapGrayscale := nil;
-
-      if HeightMapGrayscale <> nil then
-      try
-        HeightMap := LoadGLTexture(HeightMapGrayscale,
-            GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, TextureWrap);
-        HeightMapScale := State.ParentShape.HeightMapScale;
-      finally
-        if HeightMapGrayscale <> OriginalTexture then
-          FreeAndNil(HeightMapGrayscale);
-      end;
-    end;
-  end;
-
-  if NormalMap <> 0 then
-  begin
-    if (HeightMap <> 0) and
-       (Renderer.BumpMappingMethod >= bmGLSLParallax) then
-      BumpMappingWanted := bmwParallax else
-      BumpMappingWanted := bmwNoParallax;
-  end;
 end;
 
 procedure TGLImageTextureNode.Unprepare;
@@ -1299,56 +1206,14 @@ begin
 end;
 
 function TGLImageTextureNode.Enable(const TextureUnit: Cardinal;
-  const UseForBumpMappingAllowed: boolean;
   var Primitives3DTextureCoords: boolean): boolean;
-
-  procedure EnableClassicTexturing(GLTexture: TGLuint);
-  begin
-    Renderer.ActiveTexture(TextureUnit);
-    TextureEnableDisable(et2D);
-
-    glBindTexture(GL_TEXTURE_2D, GLTexture);
-  end;
-
-var
-  IndexedFaceRenderer: TIndexedFaceSetRenderer;
-  MeshRenderer: TVRMLMeshRenderer;
 begin
   Result := GLName <> 0;
   if not Result then Exit;
 
-  MeshRenderer := TVRMLMeshRenderer(Renderer.ExposedMeshRenderer);
-
-  if UseForBumpMappingAllowed and
-     (MeshRenderer <> nil) and
-     MeshRenderer.BumpMappingAllowed and
-     (Renderer.BumpMappingMethod <> bmNone) then
-  begin
-    if NormalMap <> 0 then
-    begin
-      MeshRenderer.BumpMappingMethod := Renderer.BumpMappingMethod;
-      Assert(MeshRenderer is TIndexedFaceSetRenderer,
-        'We assumed that only TIndexedFaceSetRenderer may actually have BumpMappingMethod <> bmNone');
-      IndexedFaceRenderer := TIndexedFaceSetRenderer(MeshRenderer);
-      IndexedFaceRenderer.TexNormalizationCube := Renderer.TexNormalizationCube;
-      IndexedFaceRenderer.TexOriginal := GLName;
-      IndexedFaceRenderer.TexOriginalAlpha := AlphaChannelType = atSimpleYesNo;
-      IndexedFaceRenderer.TexNormalMap := NormalMap;
-      IndexedFaceRenderer.TexHeightMap := HeightMap;
-      IndexedFaceRenderer.TexHeightMapScale := HeightMapScale;
-      { use parallax only if the model actually has heightMap }
-      if (IndexedFaceRenderer.TexHeightMap = 0) and
-         (MeshRenderer.BumpMappingMethod >= bmGLSLParallax) then
-        MeshRenderer.BumpMappingMethod := bmGLSLNormal;
-
-      { Bind specified TextureUnit. }
-      Renderer.ActiveTexture(TextureUnit);
-    end else
-      EnableClassicTexturing(GLName);
-  end else
-    EnableClassicTexturing(GLName);
-
-  Result := true;
+  Renderer.ActiveTexture(TextureUnit);
+  glBindTexture(GL_TEXTURE_2D, GLName);
+  TextureEnableDisable(et2D);
 end;
 
 { TGLMovieTextureNode -------------------------------------------------------- }
@@ -1378,8 +1243,7 @@ begin
   Result := TNodeMovieTexture(inherited TextureNode);
 end;
 
-procedure TGLMovieTextureNode.Prepare(State: TVRMLGraphTraverseState;
-  var BumpMappingWanted: TBumpMappingWanted);
+procedure TGLMovieTextureNode.Prepare(State: TVRMLGraphTraverseState);
 var
   MinFilter, MagFilter: TGLint;
   Anisotropy: TGLfloat;
@@ -1414,7 +1278,6 @@ begin
 end;
 
 function TGLMovieTextureNode.Enable(const TextureUnit: Cardinal;
-  const UseForBumpMappingAllowed: boolean;
   var Primitives3DTextureCoords: boolean): boolean;
 var
   VideoTime: TKamTime;
@@ -1457,8 +1320,7 @@ begin
   Result := TNodeRenderedTexture(inherited TextureNode);
 end;
 
-procedure TGLRenderedTextureNode.Prepare(State: TVRMLGraphTraverseState;
-  var BumpMappingWanted: TBumpMappingWanted);
+procedure TGLRenderedTextureNode.Prepare(State: TVRMLGraphTraverseState);
 var
   InitialImage: TImage;
   MinFilter, MagFilter: TGLint;
@@ -1589,7 +1451,6 @@ begin
 end;
 
 function TGLRenderedTextureNode.Enable(const TextureUnit: Cardinal;
-  const UseForBumpMappingAllowed: boolean;
   var Primitives3DTextureCoords: boolean): boolean;
 begin
   Result := GLName <> 0;
@@ -1781,7 +1642,6 @@ begin
 end;
 
 function TGLCubeMapTextureNode.Enable(const TextureUnit: Cardinal;
-  const UseForBumpMappingAllowed: boolean;
   var Primitives3DTextureCoords: boolean): boolean;
 begin
   Result := GLName <> 0;
@@ -1805,8 +1665,7 @@ begin
   Result := TNodeComposedCubeMapTexture(inherited TextureNode);
 end;
 
-procedure TGLComposedCubeMapTextureNode.Prepare(State: TVRMLGraphTraverseState;
-  var BumpMappingWanted: TBumpMappingWanted);
+procedure TGLComposedCubeMapTextureNode.Prepare(State: TVRMLGraphTraverseState);
 
   { Checks is given side has non-nil valid node class,
     and then if image there can be loaded. }
@@ -1897,8 +1756,7 @@ begin
   Result := TNodeImageCubeMapTexture(inherited TextureNode);
 end;
 
-procedure TGLImageCubeMapTextureNode.Prepare(State: TVRMLGraphTraverseState;
-  var BumpMappingWanted: TBumpMappingWanted);
+procedure TGLImageCubeMapTextureNode.Prepare(State: TVRMLGraphTraverseState);
 var
   MinFilter, MagFilter: TGLint;
   Anisotropy: TGLfloat;
@@ -1957,8 +1815,7 @@ begin
   Result := TNodeGeneratedCubeMapTexture(inherited TextureNode);
 end;
 
-procedure TGLGeneratedCubeMapTextureNode.Prepare(State: TVRMLGraphTraverseState;
-  var BumpMappingWanted: TBumpMappingWanted);
+procedure TGLGeneratedCubeMapTextureNode.Prepare(State: TVRMLGraphTraverseState);
 var
   MinFilter, MagFilter: TGLint;
   Anisotropy: TGLfloat;
@@ -2067,8 +1924,7 @@ begin
   Result := TNodeX3DTexture3DNode(inherited TextureNode);
 end;
 
-procedure TGL3DTextureNode.Prepare(State: TVRMLGraphTraverseState;
-  var BumpMappingWanted: TBumpMappingWanted);
+procedure TGL3DTextureNode.Prepare(State: TVRMLGraphTraverseState);
 var
   MinFilter, MagFilter: TGLint;
   Anisotropy: TGLfloat;
@@ -2126,7 +1982,6 @@ begin
 end;
 
 function TGL3DTextureNode.Enable(const TextureUnit: Cardinal;
-  const UseForBumpMappingAllowed: boolean;
   var Primitives3DTextureCoords: boolean): boolean;
 begin
   Result := GLName <> 0;
@@ -2152,8 +2007,7 @@ begin
   Result := TNodeGeneratedShadowMap(inherited TextureNode);
 end;
 
-procedure TGLGeneratedShadowMap.Prepare(State: TVRMLGraphTraverseState;
-  var BumpMappingWanted: TBumpMappingWanted);
+procedure TGLGeneratedShadowMap.Prepare(State: TVRMLGraphTraverseState);
 var
   TextureWrap: TTextureWrap2D;
 begin
@@ -2201,7 +2055,6 @@ begin
 end;
 
 function TGLGeneratedShadowMap.Enable(const TextureUnit: Cardinal;
-  const UseForBumpMappingAllowed: boolean;
   var Primitives3DTextureCoords: boolean): boolean;
 begin
   Result := GLName <> 0;

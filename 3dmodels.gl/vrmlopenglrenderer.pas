@@ -1215,6 +1215,7 @@ type
   TVRMLOpenGLRenderer = class;
 
   {$I vrmltexturerenderer.inc}
+  {$I vrmlbumpmappingrenderer.inc}
 
   TGLSLProgramReference = record
     ProgramNode: TNodeComposedShader;
@@ -1291,6 +1292,7 @@ type
     BmGLSLAttribObjectSpaceToTangent: array[boolean] of TGLSLAttribute;
 
     GLTextureNodes: TGLTextureNodes;
+    BumpMappingRenderers: TBumpMappingRenderersList;
 
     GLSLProgramReferences: TDynGLSLProgramReferenceArray;
 
@@ -1464,7 +1466,6 @@ type
     procedure UnprepareTexture(TextureNode: TNodeX3DTextureNode);
     function EnableTexture(TextureNode: TNodeX3DTextureNode;
       const TextureUnit: Cardinal;
-      const UseForBumpMappingAllowed: boolean;
       var APrimitives3DTextureCoords: boolean): boolean;
     { @groupEnd }
   public
@@ -1687,8 +1688,6 @@ uses Math, Triangulator, NormalizationCubeMap,
 {$I dynarray_11.inc}
 {$I dynarray_13.inc}
 
-{$I objectslist_1.inc}
-
 {$I openglmac.inc}
 
 {$I vrmlmeshrenderer.inc}
@@ -1698,6 +1697,7 @@ uses Math, Triangulator, NormalizationCubeMap,
 {$I vrmlmeshrenderer_simple_nodes.inc}
 
 {$I vrmltexturerenderer.inc}
+{$I vrmlbumpmappingrenderer.inc}
 
 { TVRMLOpenGLRendererContextCache -------------------------------------------- }
 
@@ -3351,6 +3351,7 @@ begin
   FAttributes := AttributesClass.Create;
 
   GLTextureNodes := TGLTextureNodes.Create;
+  BumpMappingRenderers := TBumpMappingRenderersList.Create;
 
   GLSLProgramReferences := TDynGLSLProgramReferenceArray.Create;
   TextureTransformUnitsUsedMore := TDynLongIntArray.Create;
@@ -3367,6 +3368,7 @@ begin
 
   FreeAndNil(TextureTransformUnitsUsedMore);
   FreeAndNil(GLTextureNodes);
+  FreeAndNil(BumpMappingRenderers);
   FreeAndNil(GLSLProgramReferences);
   FreeAndNil(FAttributes);
 
@@ -3380,115 +3382,8 @@ end;
 
 function TVRMLOpenGLRenderer.PrepareTexture(State: TVRMLGraphTraverseState;
   TextureNode: TNodeX3DTextureNode): TGLTextureNode;
-
-  { Called when BumpMappingMethod <> bmNone and it's detected that bump mapping
-    may be actually used. This is supposed to initialize anything related to
-    BumpMapping. }
-  procedure PrepareBumpMapping(Parallax: boolean);
-  var
-    ProgramDefines: string;
-  begin
-    case BumpMappingMethod of
-      bmMultiTexDotNormalized:
-        if TexNormalizationCube = 0 then
-        begin
-          TexNormalizationCube := MakeNormalizationCubeMap;
-        end;
-
-      bmGLSLNormal,
-      bmGLSLParallax:
-        if BmGLSLProgram[Parallax] = nil then
-        begin
-          BmGLSLProgram[Parallax] := TGLSLProgram.Create;
-
-          { If BumpMappingMethod is in bmGLSLAll, then we checked in
-            BumpMappingMethod that support is <> gsNone }
-          Assert(BmGLSLProgram[Parallax].Support <> gsNone);
-
-          try
-            if Parallax then
-            begin
-              { ATI Mobility Radeon X1600 (on Mac Book Pro, computer "chantal")
-                says that
-                  #version must occur before any other statement in the program
-                At the same time, NVidia requires this #version... To be
-                absolutely clean, I just place #version here, at the very
-                beginning of shader source. }
-              ProgramDefines := '#version 110' + LineEnding;
-
-              if BmSteepParallaxMapping then
-                ProgramDefines += '#define STEEP' + LineEnding else
-                ProgramDefines += '';
-
-              BmGLSLProgram[Parallax].AttachVertexShader(
-                ProgramDefines + {$I glsl_parallax_bump_mapping.vs.inc});
-              BmGLSLProgram[Parallax].AttachFragmentShader(
-                ProgramDefines + {$I glsl_parallax_bump_mapping.fs.inc});
-            end else
-            begin
-              BmGLSLProgram[Parallax].AttachVertexShader({$I glsl_bump_mapping.vs.inc});
-              BmGLSLProgram[Parallax].AttachFragmentShader({$I glsl_bump_mapping.fs.inc});
-            end;
-
-            BmGLSLProgram[Parallax].Link(true);
-
-            if Log then
-              WritelnLog('Bump mapping',
-                Format('Compiled and linked GLSL program for ' +
-                  'bump mapping. Parallax: %s (if true: steep parallax ' +
-                  'with self-shadowing: %s).',
-                  [BoolToStr[Parallax], BoolToStr[BmSteepParallaxMapping]]));
-          except
-            on E: EGLSLError do
-            begin
-              if Parallax and BmSteepParallaxMapping then
-              begin
-                { If we failed with compiling/linking steep parallax mapping,
-                  retry without BmSteepParallaxMapping.
-                  This happens e.g. on NVidia GeForce FX 5200
-                  ("kocury home" computer). }
-                if Log then
-                  WritelnLog('Bump mapping', 'Steep parallax mapping program ' +
-                    'not compiled or linked, falling back to classic parallax.');
-
-                FreeAndNil(BmGLSLProgram[Parallax]);
-                BmSteepParallaxMapping := false;
-                PrepareBumpMapping(Parallax);
-                Exit;
-              end else
-                raise;
-            end;
-          end;
-
-          { tests: Writeln(BmGLSLProgram[Parallax].DebugInfo); }
-
-          BmGLSLAttribObjectSpaceToTangent[Parallax] :=
-            BmGLSLProgram[Parallax].CreateAttribute('object_space_to_tangent');
-
-          BmGLSLProgram[Parallax].Enable;
-          BmGLSLProgram[Parallax].SetUniform('light_position_world_space',
-            BumpMappingLightPosition);
-          BmGLSLProgram[Parallax].SetUniform('light_ambient_color',
-            BumpMappingLightAmbientColor);
-          BmGLSLProgram[Parallax].SetUniform('light_diffuse_color',
-            BumpMappingLightDiffuseColor);
-
-          { set uniform samplers, so that fragment shader has access
-            to all bound textures }
-          BmGLSLProgram[Parallax].SetUniform('tex_normal_map', 0);
-          BmGLSLProgram[Parallax].SetUniform('tex_original', 1);
-          if Parallax then
-            BmGLSLProgram[Parallax].SetUniform('tex_height_map', 2);
-
-          { TODO: this should restore previously bound program }
-          BmGLSLProgram[Parallax].Disable;
-        end;
-    end;
-  end;
-
 var
   GLTextureNodeClass: TGLTextureNodeClass;
-  BumpMappingWanted: TBumpMappingWanted;
 begin
   Result := nil;
 
@@ -3505,14 +3400,8 @@ begin
        (GLTextureNodes.TextureNodeIndex(TextureNode) = -1) then
     begin
       Result := GLTextureNodeClass.Create(Self, TextureNode);
-      Result.Prepare(State, BumpMappingWanted);
+      Result.Prepare(State);
       GLTextureNodes.Add(Result);
-
-      { PrepareBumpMapping *after* GLTextureNodes.Add(Handler).
-        This way in case of errors (some GLSL errors on current OpenGL ?)
-        we exit with nice state, able to free this texture reference later. }
-      if BumpMappingWanted <> bmwNone then
-        PrepareBumpMapping(BumpMappingWanted = bmwParallax);
     end;
   end;
 end;
@@ -3652,6 +3541,8 @@ begin
 
   PrepareTexture(State, State.Texture);
 
+  BumpMappingRenderers.Prepare(State, Self);
+
   PrepareGLSLProgram;
 end;
 
@@ -3671,6 +3562,22 @@ begin
 end;
 
 procedure TVRMLOpenGLRenderer.Unprepare(Node: TVRMLNode);
+
+  procedure UnprepareKambiAppearance(Node: TNodeKambiAppearance);
+  var
+    I: integer;
+  begin
+    { Call Unprepare and release related TBumpMappingRenderer instance. }
+
+    I := BumpMappingRenderers.AppearanceNodeIndex(Node);
+    if I >= 0 then
+    begin
+      BumpMappingRenderers[I].Unprepare;
+      BumpMappingRenderers[I].Free;
+      BumpMappingRenderers.Delete(I);
+    end;
+  end;
+
 var
   I: Integer;
 begin
@@ -3682,6 +3589,9 @@ begin
   { unprepare texture }
   if Node is TNodeX3DTextureNode then
     UnprepareTexture(TNodeX3DTextureNode(Node));
+
+  if Node is TNodeKambiAppearance then
+    UnprepareKambiAppearance(TNodeKambiAppearance(Node));
 
   { unprepare GLSLProgram }
   { This is not used for now anywhere actually ? Nowhere I unprepare
@@ -3721,13 +3631,21 @@ begin
           Cache.Fonts_DecReference(fsfam, fsbold, fsitalic);
         end;
 
-  {niszcz wszystkie tekstury}
+  { unprepare all textures }
   for I := 0 to GLTextureNodes.Count - 1 do
   begin
     GLTextureNodes[I].Unprepare;
     GLTextureNodes[I].Free;
   end;
   GLTextureNodes.Count := 0;
+
+  { unprepare all bump mapping renderers }
+  for I := 0 to BumpMappingRenderers.Count - 1 do
+  begin
+    BumpMappingRenderers[I].Unprepare;
+    BumpMappingRenderers[I].Free;
+  end;
+  BumpMappingRenderers.Count := 0;
 
   { unprepare all GLSLPrograms }
   for i := 0 to GLSLProgramReferences.Count - 1 do
@@ -4287,20 +4205,14 @@ end;
 
 function TVRMLOpenGLRenderer.EnableTexture(TextureNode: TNodeX3DTextureNode;
   const TextureUnit: Cardinal;
-  const UseForBumpMappingAllowed: boolean;
   var APrimitives3DTextureCoords: boolean): boolean;
 var
-  Index: Integer;
   GLTextureNode: TGLTextureNode;
 begin
-  Index := GLTextureNodes.TextureNodeIndex(TextureNode);
-  Result := Index <> -1;
+  GLTextureNode := GLTextureNodes.TextureNode(TextureNode);
+  Result := GLTextureNode <> nil;
   if Result then
-  begin
-    GLTextureNode := GLTextureNodes[Index];
-    Result := GLTextureNode.Enable(TextureUnit, UseForBumpMappingAllowed,
-      APrimitives3DTextureCoords);
-  end;
+    Result := GLTextureNode.Enable(TextureUnit, APrimitives3DTextureCoords);
 end;
 
 procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
@@ -4379,12 +4291,19 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       ExposedMeshRenderer := nil;
   end;
 
+var
+  BumpMapping: TBumpMappingRenderer;
+
   procedure RenderTexturesBegin;
   var
     TextureNode: TNodeX3DTextureNode;
     GLTextureNode: TGLTextureNode;
     AlphaTest: boolean;
   begin
+    { set defaults for non-local variables }
+    BumpMapping :=  nil;
+    Primitives3DTextureCoords := false;
+
     if Attributes.PureGeometry then
     begin
       TexCoordsNeeded := 0;
@@ -4401,7 +4320,6 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
     end;
 
     AlphaTest := false;
-    Primitives3DTextureCoords := false;
 
     TextureNode := CurrentState.Texture;
     {$ifdef USE_VRML_NODES_TRIANGULATION}
@@ -4422,8 +4340,17 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
         since it has smartly calculated AlphaChannelType. }
       AlphaTest := GLTextureNode.AlphaChannelType = atSimpleYesNo;
 
-      GLTextureNode.EnableAll(FreeGLTexturesCount, UseMultiTexturing,
-        TexCoordsNeeded, Primitives3DTextureCoords);
+      BumpMapping := BumpMappingRenderers.Enable(CurrentState, GLTextureNode);
+
+      if BumpMapping = nil then
+      begin
+        GLTextureNode.EnableAll(FreeGLTexturesCount, UseMultiTexturing,
+          TexCoordsNeeded, Primitives3DTextureCoords);
+      end else
+      begin
+        { for bump mapping, always TexCoordsNeeded = 1 }
+        TexCoordsNeeded := 1;
+      end;
     end;
 
     { Set ALPHA_TEST enabled state.
@@ -4460,11 +4387,15 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
   var
     I: Integer;
   begin
-    for I := 0 to TexCoordsNeeded - 1 do
+    if BumpMapping = nil then
     begin
-      ActiveTexture(I);
-      TGLTextureNode.TextureEnableDisable(etOff);
-    end;
+      for I := 0 to TexCoordsNeeded - 1 do
+      begin
+        ActiveTexture(I);
+        TGLTextureNode.TextureEnableDisable(etOff);
+      end;
+    end else
+      BumpMapping.Disable;
   end;
 
   var
