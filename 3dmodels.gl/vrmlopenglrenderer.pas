@@ -4294,6 +4294,8 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
 var
   BumpMapping: TBumpMappingRenderer;
 
+  UsedGLSLProgram: TGLSLProgram;
+
   procedure RenderTexturesBegin;
   var
     TextureNode: TNodeX3DTextureNode;
@@ -4350,6 +4352,8 @@ var
       begin
         { for bump mapping, always TexCoordsNeeded = 1 }
         TexCoordsNeeded := 1;
+        if UsedGLSLProgram <> nil then
+          VRMLWarning(vwIgnorable, 'You use both GLSL shader (ComposedShader node) and bump mapping (normalMap, heightMap fields) on a single Shape. Note that this will (usually) not work correctly --- bump mapping has to set up special shader and multitexturing environment to work.');
       end;
     end;
 
@@ -4397,9 +4401,6 @@ var
     end else
       BumpMapping.Disable;
   end;
-
-  var
-    UsedGLSLProgram: TGLSLProgram;
 
   { Find if some shader is available and prepared for this state.
     If yes, then sets UsedGLSLProgram to non-nil and enables this shader. }
