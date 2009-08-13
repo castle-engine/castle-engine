@@ -170,6 +170,14 @@
     Implements EnableAll method, by calling @link(Enable) call.
     Override only @link(Enable) in descendants. }
   TGLSingleTextureNode = class(TGLTextureNode)
+  protected
+    { Determines should texture mode be suited for RGB and grayscale texture.
+      Default false, you should set this in descendant
+      (latest possibility is to set this is a successfull Enable call,
+      but usually you want to do it in a Prepare call).
+      You can set it by SetTextureRGBFromImage. }
+    TextureRGB: boolean;
+    procedure SetTextureRGBFromImage(Image: TEncodedImage);
   public
     procedure EnableAll(
       const TextureUnitsCount: Cardinal;
@@ -570,6 +578,15 @@ end;
 
 { TGLSingleTextureNode ------------------------------------------------------- }
 
+procedure TGLSingleTextureNode.SetTextureRGBFromImage(Image: TEncodedImage);
+begin
+  TextureRGB :=
+    (Image is TS3TCImage) or
+    (Image is TRGBImage) or
+    (Image is TRGBAlphaImage) or
+    (Image is TRGBEImage);
+end;
+
 procedure TGLSingleTextureNode.EnableAll(
   const TextureUnitsCount: Cardinal;
   const UseMultiTexturing: boolean;
@@ -580,8 +597,10 @@ begin
   if (TextureUnitsCount > 0) and
      Enable(0, Primitives3DTextureCoords) then
   begin
-    { TODO: this should be fixed, for non-multi tex decal is standard? }
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    { Set glTexEnvi using Attributes.TextureModeRGB/Grayscale }
+    if TextureRGB then
+      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, Renderer.Attributes.TextureModeRGB) else
+      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, Renderer.Attributes.TextureModeGrayscale);
     TexCoordsNeeded := 1;
   end;
 end;
@@ -1174,6 +1193,8 @@ begin
   TextureWrap[0] := TextureRepeatToGL[TextureNode.RepeatS];
   TextureWrap[1] := TextureRepeatToGL[TextureNode.RepeatT];
 
+  SetTextureRGBFromImage(TextureNode.TextureImage);
+
   try
     GLName := Renderer.Cache.TextureImage_IncReference(
       TextureNode.TextureImage,
@@ -1256,6 +1277,8 @@ begin
 
   TextureWrap[0] := TextureRepeatToGL[TextureNode.RepeatS];
   TextureWrap[1] := TextureRepeatToGL[TextureNode.RepeatT];
+
+  SetTextureRGBFromImage(TextureNode.TextureVideo.Items[0]);
 
   GLVideo := Renderer.Cache.TextureVideo_IncReference(
     TextureNode.TextureVideo,
@@ -1386,6 +1409,8 @@ begin
   begin
     InitialImage := TRGBImage.Create(Width, Height);
     try
+      SetTextureRGBFromImage(InitialImage);
+
       { Fill with deliberately stupid (but constant) color,
         to recognize easily RenderedTexture which don't have textures
         updated. }
@@ -1725,6 +1750,8 @@ begin
     LeftRot  := (TVRMLTextureNode(TextureNode.FdLeft .Value).TextureImage as TImage).MakeRotated(2);
     RightRot := (TVRMLTextureNode(TextureNode.FdRight.Value).TextureImage as TImage).MakeRotated(2);
 
+    SetTextureRGBFromImage(RightRot);
+
     GLName := Renderer.Cache.TextureCubeMap_IncReference(
       TextureNode,
       MinFilter, MagFilter, Anisotropy,
@@ -1786,6 +1813,8 @@ begin
       - We do not use cube map mipmaps stored inside DDS file.
       - We crash ("as") on S3TC compressed cube maps.
     }
+
+    SetTextureRGBFromImage(DDS.CubeMapImage(dcsPositiveX));
 
     GLName := Renderer.Cache.TextureCubeMap_IncReference(
       TextureNode,
@@ -1862,6 +1891,8 @@ begin
       to recognize easily GeneratedCubeMapTexture which don't have textures
       updated. }
     InitialImage.Clear(Vector4Byte(255, 0, 255, 255));
+
+    SetTextureRGBFromImage(InitialImage);
 
     GLName := Renderer.Cache.TextureCubeMap_IncReference(
       TextureNode,
@@ -1950,6 +1981,8 @@ begin
   TextureWrap[0] := TextureRepeatToGL[TextureNode.FdRepeatS.Value];
   TextureWrap[1] := TextureRepeatToGL[TextureNode.FdRepeatT.Value];
   TextureWrap[2] := TextureRepeatToGL[TextureNode.FdRepeatR.Value];
+
+  SetTextureRGBFromImage(TextureNode.TextureImage);
 
   { TODO: this is a quick and dirty method:
     - We do not use texture 3d mipmaps stored inside DDS file.

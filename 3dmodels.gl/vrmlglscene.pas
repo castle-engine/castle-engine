@@ -224,6 +224,8 @@ type
     procedure SetBumpMappingMaximum(const Value: TBumpMappingMethod); override;
     procedure SetGLSLShaders(const Value: boolean); override;
     procedure SetPureGeometry(const Value: boolean); override;
+    procedure SetTextureModeGrayscale(const Value: TGLenum); override;
+    procedure SetTextureModeRGB(const Value: TGLenum); override;
 
     procedure SetBlending(const Value: boolean); virtual;
     procedure SetBlendingSourceFactor(const Value: TGLenum); virtual;
@@ -5213,6 +5215,24 @@ end;
 procedure TVRMLSceneRenderingAttributes.SetPureGeometry(const Value: boolean);
 begin
   if PureGeometry <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
+
+procedure TVRMLSceneRenderingAttributes.SetTextureModeGrayscale(const Value: TGLenum);
+begin
+  if TextureModeGrayscale <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
+
+procedure TVRMLSceneRenderingAttributes.SetTextureModeRGB(const Value: TGLenum);
+begin
+  if TextureModeRGB <> Value then
   begin
     FScenes.CloseGLRenderer;
     inherited;

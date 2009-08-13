@@ -488,6 +488,8 @@ type
     FBumpMappingMaximum: TBumpMappingMethod;
     FGLSLShaders: boolean;
     FPureGeometry: boolean;
+    FTextureModeGrayscale: TGLenum;
+    FTextureModeRGB: TGLenum;
   protected
     { In this class these methods just set value on given property.
       In descendants you can do something more here, like automatic
@@ -517,6 +519,9 @@ type
     procedure SetBumpMappingMaximum(const Value: TBumpMappingMethod); virtual;
     procedure SetGLSLShaders(const Value: boolean); virtual;
     procedure SetPureGeometry(const Value: boolean); virtual;
+    procedure SetTextureModeGrayscale(const Value: TGLenum); virtual;
+    procedure SetTextureModeRGB(const Value: TGLenum); virtual;
+
     { @groupEnd }
   public
     constructor Create; virtual;
@@ -800,6 +805,31 @@ type
       testing. }
     property PureGeometry: boolean
       read FPureGeometry write SetPureGeometry default false;
+
+    { Default texture mode for single texturing.
+      For X3D MultiTexture nodes, they are always explicitly given
+      by MultiTexture.mode field. This field applies only to non-multi textures.
+
+      VRML 2 / X3D specifications say that the mode for TextureModeRGB
+      should be GL_REPLACE to be conforming (see "Lighting model"
+      spec). So our default value here contradicts the spec --- but,
+      practically, it's much more useful, so I decided that, as an exception,
+      I can contradict the spec in this case.
+
+      Note that this should specify the mode only on non-alpha channels.
+      On the alpha channel, specification says clearly that texture alpha
+      should replace (never modulate) alpha channel, if only texture
+      has any alpha channel.
+
+      TODO: this is not honored, for now setting below controls mode
+      on both alpha and non-alpha channels.
+
+      @groupBegin }
+    property TextureModeGrayscale: TGLenum
+      read FTextureModeGrayscale write SetTextureModeGrayscale default GL_MODULATE;
+    property TextureModeRGB: TGLenum
+      read FTextureModeRGB write SetTextureModeRGB default GL_MODULATE;
+    { @groupEnd }
   end;
 
   TVRMLRenderingAttributesClass = class of TVRMLRenderingAttributes;
@@ -3182,6 +3212,8 @@ begin
   FUseFog := true;
   FBumpMappingMaximum := bmNone;
   FGLSLShaders := true;
+  FTextureModeGrayscale := GL_MODULATE;
+  FTextureModeRGB := GL_MODULATE;
 end;
 
 procedure TVRMLRenderingAttributes.SetOnBeforeGLVertex(
@@ -3293,6 +3325,16 @@ end;
 procedure TVRMLRenderingAttributes.SetPureGeometry(const Value: boolean);
 begin
   FPureGeometry := Value;
+end;
+
+procedure TVRMLRenderingAttributes.SetTextureModeGrayscale(const Value: TGLenum);
+begin
+  FTextureModeGrayscale := Value;
+end;
+
+procedure TVRMLRenderingAttributes.SetTextureModeRGB(const Value: TGLenum);
+begin
+  FTextureModeRGB := Value;
 end;
 
 function TVRMLRenderingAttributes.SmoothNormalsGLU: TGLenum;
