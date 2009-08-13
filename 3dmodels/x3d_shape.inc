@@ -69,16 +69,6 @@
       passed as Appearance or Texture node), then returns nil. }
     function Texture: TNodeX3DTextureNode;
 
-    { This is like @link(Texture), but it returns normalMap field
-      of KambiAppearance. }
-    function NormalMap: TVRMLTextureNode;
-
-    { This is like @link(Texture), but it returns heightMap field
-      of KambiAppearance. }
-    function HeightMap: TVRMLTextureNode;
-
-    function HeightMapScale: Single;
-
     { This is like @link(Texture), but it returns TextureTransform
       of Apperance. }
     function TextureTransform: TNodeX3DTextureTransformNode;
@@ -451,49 +441,6 @@ begin
        (A.FdTexture.Value is TNodeX3DTextureNode) then
       Result := TNodeX3DTextureNode(A.FdTexture.Value);
   end;
-end;
-
-function TNodeX3DShapeNode.NormalMap: TVRMLTextureNode;
-var
-  A: TNodeKambiAppearance;
-begin
-  Result := nil;
-  if (FdAppearance.Value <> nil) and
-     (FdAppearance.Value is TNodeKambiAppearance) then
-  begin
-    A := TNodeKambiAppearance(FdAppearance.Value);
-    if (A.FdNormalMap.Value <> nil) and
-       (A.FdNormalMap.Value is TVRMLTextureNode) then
-      Result := TVRMLTextureNode(A.FdNormalMap.Value);
-  end;
-end;
-
-function TNodeX3DShapeNode.HeightMap: TVRMLTextureNode;
-var
-  A: TNodeKambiAppearance;
-begin
-  Result := nil;
-  if (FdAppearance.Value <> nil) and
-     (FdAppearance.Value is TNodeKambiAppearance) then
-  begin
-    A := TNodeKambiAppearance(FdAppearance.Value);
-    if (A.FdHeightMap.Value <> nil) and
-       (A.FdHeightMap.Value is TVRMLTextureNode) then
-      Result := TVRMLTextureNode(A.FdHeightMap.Value);
-  end;
-end;
-
-function TNodeX3DShapeNode.HeightMapScale: Single;
-var
-  A: TNodeKambiAppearance;
-begin
-  if (FdAppearance.Value <> nil) and
-     (FdAppearance.Value is TNodeKambiAppearance) then
-  begin
-    A := TNodeKambiAppearance(FdAppearance.Value);
-    Result := A.FdHeightMapScale.Value;
-  end else
-    Result := DefaultHeightMapScale;
 end;
 
 function TNodeX3DShapeNode.TextureTransform: TNodeX3DTextureTransformNode;
