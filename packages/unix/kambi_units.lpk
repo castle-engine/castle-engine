@@ -49,7 +49,7 @@
     <License Value="GNU GPL >= 2
 "/>
     <Version Major="1"/>
-    <Files Count="140">
+    <Files Count="151">
       <Item1>
         <Filename Value="../../3dgraph/backgroundbase.pas"/>
         <UnitName Value="BackgroundBase"/>
@@ -610,6 +610,50 @@
         <Filename Value="../../opengl/unix/xlibutils.pas"/>
         <UnitName Value="XlibUtils"/>
       </Item140>
+      <Item141>
+        <Filename Value="../../3dmodels.gl/glsl_bump_mapping.fs.inc"/>
+        <Type Value="Include"/>
+      </Item141>
+      <Item142>
+        <Filename Value="../../3dmodels.gl/glsl_bump_mapping.vs.inc"/>
+        <Type Value="Include"/>
+      </Item142>
+      <Item143>
+        <Filename Value="../../3dmodels.gl/glsl_parallax_bump_mapping.fs.inc"/>
+        <Type Value="Include"/>
+      </Item143>
+      <Item144>
+        <Filename Value="../../3dmodels.gl/glsl_parallax_bump_mapping.vs.inc"/>
+        <Type Value="Include"/>
+      </Item144>
+      <Item145>
+        <Filename Value="../../3dmodels.gl/vrmlbumpmappingrenderer.inc"/>
+        <Type Value="Include"/>
+      </Item145>
+      <Item146>
+        <Filename Value="../../3dmodels.gl/vrmlmeshrenderer.inc"/>
+        <Type Value="Include"/>
+      </Item146>
+      <Item147>
+        <Filename Value="../../3dmodels.gl/vrmlmeshrenderer_simple_nodes.inc"/>
+        <Type Value="Include"/>
+      </Item147>
+      <Item148>
+        <Filename Value="../../3dmodels.gl/vrmlmeshrenderer_x3d_geometry2d.inc"/>
+        <Type Value="Include"/>
+      </Item148>
+      <Item149>
+        <Filename Value="../../3dmodels.gl/vrmlmeshrenderer_x3d_geometry3d.inc"/>
+        <Type Value="Include"/>
+      </Item149>
+      <Item150>
+        <Filename Value="../../3dmodels.gl/vrmlmeshrenderer_x3d_rendering.inc"/>
+        <Type Value="Include"/>
+      </Item150>
+      <Item151>
+        <Filename Value="../../3dmodels.gl/vrmlopenglrenderer_render_materials.inc"/>
+        <Type Value="Include"/>
+      </Item151>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">

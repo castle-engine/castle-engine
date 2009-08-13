@@ -587,7 +587,8 @@ var
   Node: TNodeKambiAppearance;
   BumpMappingRenderer: TBumpMappingRenderer;
 begin
-  if (State.ParentShape.FdAppearance.Value <> nil) and
+  if (State.ParentShape <> nil) and
+     (State.ParentShape.FdAppearance.Value <> nil) and
      (State.ParentShape.FdAppearance.Value is TNodeKambiAppearance) then
   begin
     Node := TNodeKambiAppearance(State.ParentShape.FdAppearance.Value);
@@ -607,7 +608,8 @@ var
 begin
   Result := nil;
 
-  if (State.ParentShape.FdAppearance.Value <> nil) and
+  if (State.ParentShape <> nil) and
+     (State.ParentShape.FdAppearance.Value <> nil) and
      (State.ParentShape.FdAppearance.Value is TNodeKambiAppearance) then
   begin
     Node := TNodeKambiAppearance(State.ParentShape.FdAppearance.Value);
