@@ -4129,12 +4129,12 @@ procedure TVRMLOpenGLRenderer.RenderShapeBegin(Shape: TVRMLShape);
         practice). }
       with TNodeTextureTransform(TextureTransform) do
       begin
+        glTranslatef(-FdCenter.Value[0], -FdCenter.Value[1], 0);
+        glScalef(FdScale.Value[0], FdScale.Value[1], 1);
+        glRotatef(RadToDeg(FdRotation.Value), 0, 0, 1);
         glTranslatef(
           FdTranslation.Value[0] + FdCenter.Value[0],
           FdTranslation.Value[1] + FdCenter.Value[1], 0);
-        glRotatef(RadToDeg(FdRotation.Value), 0, 0, 1);
-        glScalef(FdScale.Value[0], FdScale.Value[1], 1);
-        glTranslatef(-FdCenter.Value[0], -FdCenter.Value[1], 0);
       end;
     end else
       glMultMatrix(TextureTransform.TransformMatrix);
