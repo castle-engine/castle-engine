@@ -29,33 +29,33 @@ interface
 
 uses VectorMath, Matrix;
 
-{ Given one viewing angle of camera (FirstViewAngleDeg) and
+{ Given one viewing angle of the camera (FirstViewAngleDeg) and
   aspect ratio of your window sizes (SecondToFirstRatio),
   calculate second viewing angle of the camera.
 
   The intention is that when projecting camera view (with given view angles)
-  on a screen with given aspect ratio, the image will not be deformed
+  on a screen with given aspect ratio), the image will not be distorted
   (squeezed horizontally or vertically).
 
   For the "Deg" version both angles (given and returned) are in degress,
-  for the "Rad" version both angles and in radians. }
+  for the "Rad" version both angles and in radians.
+
+  @groupBegin }
 function AdjustViewAngleDegToAspectRatio(const FirstViewAngleDeg,
   SecondToFirstRatio: Single): Single;
 function AdjustViewAngleRadToAspectRatio(const FirstViewAngleRad,
   SecondToFirstRatio: Single): Single;
+{ @groupEnd }
 
-{ This is used to calculate primary rays for given camera settings
+{ Calculate primary rays for given camera settings
   and screen size.
 
-  Mozesz zauwazyc ze caly ten obiekt to tylko dwie metody : konstruktor
-  i funkcja generujaca promien pierowtny. To rozdzielenie jest bardzo
-  wazne - w konstruktorze inicjujemy atrybuty Window* i poprawiamy
-  CamUp (zeby na pewno byl prostop. do CamDrection) i obie te rzeczy
-  w sumie marnuja troszeczke czasu. W PrimaryRay() juz wykorzystujemy
-  te obliczone wlasciwosci. W rezultacie raytracery moga zyskac troche
-  czasu inicjujac rzutnie tylko raz, na poczatku, a potem dla kazdego
-  pixela korzystac z tej samej rzutni i pytac sie jej tylko o kolejne
-  PrimaryRay. }
+  This has just two methods: constructor and PrimaryRay that calculates
+  the direction of primary ray. For typical ray-tracer usage,
+  you call constructor only once, and then call PrimaryRay for each pixel.
+  So constructor does some slightly more time-consuming work
+  (initializes Window* from angles, correct CamUp to be perfectly
+  orthogonal to CamDrection). In PrimaryRay we just use them. }
 type
   TRaysWindow = class
   private
@@ -67,42 +67,47 @@ type
     property WindowWidth: Single read FWindowWidth;
     property WindowHeight: Single read FWindowHeight;
 
-    { CamPosition/Direction i ViewAngle* beda identyczne z podanymi
-      w konstruktorze, natomiast CamUp bedzie poprawione tak zeby na pewno
-      bylo prostopadle do CamDirection (mozesz z tego skorzystac i po
-      utworzeniu rzutni wziac juz poprawiony CamUp). }
+    { Camera and view angles, initialized in constructor.
+
+      Note that CamUp may be changed in constructor, to be always perfectly
+      orthogonal to CamDriection.
+
+      @groupBegin }
     property CamPosition: TVector3_Single read FCamPosition;
     property CamDirection: TVector3_Single read FCamDirection;
     property CamUp: TVector3_Single read FCamUp;
 
     property ViewAngleDegX: Single read FViewAngleDegX;
     property ViewAngleDegY: Single read FViewAngleDegY;
+    { @groupEnd }
 
     constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3_Single;
       AViewAngleDegX, AViewAngleDegY: Single);
 
-    { x, y sa liczone od lewej do dolu. Jezeli X, Y sa calkowite i w zakresach
-      X = 0..ScreenWidth-1 (lewa..prawa), Y = 0..ScreenHeight-1 (dol..gora)
-      to wynikiem bedzie promien przechodzacy dokladnie przez srodek odpowiedniego
-      pixela na rzutni, ale mozna podawac dowolne X, Y. Np. jezeli chcemy wziac
-      kilka losowych probek z pixela PixX, PixY to mozemy kilkakrotnie
-      poprosic o promien dla (X, Y) = (PixX + Random - 0.5, PixY + Random - 0.5).
+    { Calculate direction of the primary ray cast from CamPosition,
+      going through the pixel X, Y.
 
-      Zwraca RayVector promienia, Ray0 masz przeciez w CamPosition. }
+      X, Y coordinates start from (0, 0) if bottom left (like in typical 2D
+      OpenGL).  When they are integers and in the range of
+      X = 0..ScreenWidth-1 (left..right), Y = 0..ScreenHeight-1 (bottom..top)
+      it's guaranteed that resulting ray will go exactly through the middle
+      of the appropriate pixel (on imaginary "rzutnia" = image positioned
+      paraller to view direction). But you can provide non-integer X, Y,
+      useful for multisampling (taking many samples within the pixel,
+      like (X, Y) = (PixX + Random - 0.5, PixY + Random - 0.5)). }
     function PrimaryRay(const x, y: Single;
       const ScreenWidth, ScreenHeight: Integer): TVector3_Single;
   end;
 
-{ Oblicz promien pierwotny na podstawie ulozenia kamery i ViewAngleXY.
-  Ta funkcja tworzy rzutnie, pyta ja o jeden PrimaryRay i zwraca go.
-  Jak juz napisalem przy TRaysWindow to jest bardzo nieefektywne zachowanie
-  wiec czesto bedziesz chcial uzyc typu TRaysWindow a nie tej funkcji ale
-  czasem rzeczywiscie nie zalezy ci na czasie - np. do wykonania mechanizmu
-  picking (jaki obiekt jest wyswietlany na pixlu ekranu x, y ?) -
-  takie picking bedzie poprawne o ile oryginalny rysunek ktory widzi user
-  byl wykonany z dokladnie takimi samymi ustawieniami perspektywy -
-  no i do picking wystarczy nam pozniej wysledzenie tego jednego promienia
-  wiec rzeczywiscie nie ma sensu pieprzyc sie z klasa TRaysWindow. }
+{ Calculate direction of the primary ray cast from CamPosition,
+  going through the pixel X, Y.
+  Takes into account camera 3D settings and screen sizes.
+
+  This simply creates and uses TRaysWindow instance, which is not optimal
+  if you will want to ask for PrimaryRay many times with the same camera
+  and window settings. Better use TRaysWindow class directly then.
+  For things like picking interactively objects with mouse this is usually
+  fast enough (camera will change anyway on each move). }
 function PrimaryRay(const x, y: Single; const ScreenWidth, ScreenHeight: Integer;
   const CamPosition, CamDirection, CamUp: TVector3_Single;
   const ViewAngleDegX, ViewAngleDegY: Single): TVector3_Single;

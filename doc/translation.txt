@@ -19,7 +19,7 @@ D   frustum.pas
 D   keys.pas
 D   matrixnavigation.pas
 D   polynomials.pas
-|   rayswindow.pas
+D   rayswindow.pas
 |   spacefillingcurves.pas
 D   spheresampling.pas
 
