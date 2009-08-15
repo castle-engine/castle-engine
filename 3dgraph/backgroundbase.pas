@@ -18,10 +18,10 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ Base definitions for 3D backgrounds (cubes with different texture on each
-  side). These are used in OpenGL programs (see unit BackgroundGL)
-  and for VRML TNodeBackground. }
-
+{ 3D backgrounds. In the simplest case, this is just a
+  textured cube around the player.
+  This unit provides common stuff, used by OpenGL programs
+  (see unit BackgroundGL) and for VRML TNodeBackground. }
 unit BackgroundBase;
 
 interface
@@ -44,44 +44,53 @@ const
 function BackgroundImages(const BackImg, BottomImg, FrontImg, LeftImg,
   RightImg, TopImg: TImage): TBackgroundImages;
 
-{ Laduje niebo z plikow nazywanych w konwencji panoramaToSzescian,
-  starych wersji szklanych lasow i starych wersji malfunction :
+{ Load background textures from files named in old "panoramaToSzescian"
+  convention. This is deprecated, used only by old "szklane lasy"
+  and old "malfunction" versions. @deprecated
 
-  SkyNamePattern to nazwa podstawowa plikow z niebem.
-  Beda do nich doklejane literki '_' i
-  'u'/ = (up) top
-  'd'/ = (down) bottom
-  'l'/ = right (!)
-  'r'/ = left  (!)
-  'f'/ = front
-  'b'  = back
-  (w zaleznosci od tego ktora scianke nieba bedziemy chcieli odczytac)
-  albo '_any' jezeli z powyzsza literka nie znajdzie (wiec mozesz
-  np. _u, _d, _r wrzucic do jednego pliku _any jesli sa takie same).
+  SkyNamePattern is the base filename. To construct actual filename,
+  we will append to them '_' (underscore character) followed by one
+  letter indicating cube side:
 
-  literka "u" (up) oznacza top,
-  literka "d" (down) oznacza bottom - to zamieszanie dlatego ze bottom
-    i back zaczynaja sie na ta sama litere.
-  ! przy left i right wynika z tego ze tak sobie to zdefiniowalem w
-    moim panoramaToSzescian i akurat jest to na odwrot niz definicja
-    w VRMLowym nodzie Background ktory renderuje klasa TBackground.
-    (W moim panoramaToSzescian jeden ciag (wlasnie "panorame") tworza
-    obrazki front, left, back, right. W VRMLu97 jeden ciag to obrazki
-    front, right, back, left; kwestia definicji - a tak sie nieszczesliwie
-    stalo ze moja definicja z panoramaToSzescian jest inna niz VRMLa 97;
-    no, ale to nic takiego, uzywanie tej funkcji pozwala mi wlasnie o tym
-    zapomniec)
+  @unorderedList(
+    @item 'u'/ = (up) top
+    @item 'd'/ = (down) bottom
+    @item 'l'/ = right (!)
+    @item 'r'/ = left  (!)
+    @item 'f'/ = front
+    @item 'b'  = back
+  )
 
-  Rozszerzenie pliku bedzie zgadywane przy pomocy FindExistingImageExt.
-  Potem obazki beda ladowane z LoadTextureImage(FileName)
-  a wiec obrazek zostanie zaladowany do czegos co nadaje sie na teksture.
-  W ten sposob odpowiednio nazwane szesc (lub mniej jesli wiecej
-  niz jeden obrazek bedzie uzyty z _any) obrazkow zdefiniuje niebo. }
+  If file for any cube side will not exist, we will try appending
+  '_any' (useful if some sides use the same texture, for example top
+  and bottom are sometimes just one black pixel).
+
+  Some reasoning:
+
+  @orderedList(
+    @item('u' / 'd' were chosen to name up / down, more commonly
+      (in VRML/X3D) named top / bottom. Reason: "bottom" and "back"
+      would otherwise start with the same letter.)
+
+    @item(Note (!) that left / right textures are swapped.
+      Reason: I defined it like this in "panoramaToSzescian" and
+      much later realized VRML Background node (and so my TBackground class)
+      has it exactly inverted.
+
+      (In "panoramaToSzescian" one the images sequence
+      @italic(front, left, back, right) were matching
+      when show in that order. In VRML/X3D the matching image sequence
+      is @italic(front, right, back, left).))
+  )
+
+  Filename extension for textures is guessed by FindExistingImageExt.
+  Images will be loaded by LoadTextureImage(FileName)
+  so they will be forced into some format renderable as OpenGL texture. }
 function BackgroundImagesLoadFromOldNamePattern(
   const SkyNamePattern: string): TBackgroundImages;
 
-{ This releases and sets to @nil all images in BgImages.
-  If Cache is @nil, it releases images by simple FreeAndNil,
+{ Release and set to @nil all images in BgImages.
+  If Cache is @nil, release images by simple FreeAndNil,
   otherwise they are released from the cache by TextureImage_DecReference. }
 procedure BackgroundImagesFreeAll(var BGImages: TBackgroundImages;
   Cache: TTexturesImagesVideosCache);
