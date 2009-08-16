@@ -409,9 +409,13 @@ type
 
 function TextureMinFilterNeedsMipmaps(const MinFilter: TGLenum): boolean;
 
-{ Load new texture. It generates new texture number by glGenTextures.
-  This takes care of UNPACK_ALIGNMENT (if needed, we'll change it and
+{ Load new texture to OpenGL. Generates new texture number by glGenTextures,
+  then binds this texture, and loads it's data.
+
+  Takes care of UNPACK_ALIGNMENT inside (if needed, we'll change it and
   later revert back, so that the texture is correctly loaded).
+
+  Sets texture minification, magnification filters and wrap parameters.
 
   Changes currently bound texture to this one (returned).
 
@@ -456,6 +460,7 @@ function LoadGLTexture(const image: TEncodedImage;
   const Wrap: TTextureWrap2D;
   GrayscaleIsAlpha: boolean = false;
   DDSForMipmaps: TDDSImage = nil): TGLuint; overload;
+
 function LoadGLTexture(const FileName: string;
   MinFilter, MagFilter: TGLenum;
   const Wrap: TTextureWrap2D;
@@ -463,15 +468,14 @@ function LoadGLTexture(const FileName: string;
   DDSForMipmaps: TDDSImage = nil): TGLuint; overload;
 { @groupEnd }
 
-{ Load texture into already reserved texture number.
+{ Load OpenGL texture into already reserved texture number.
+  It uses existing OpenGL texture number (texnum). Everything else
+  works exactly the same as LoadGLTexture.
 
-  Besides this, works exactly like LoadGLTexture.
-  May raise the same exception classes.
-  If you omit Wrap parameters then they will not be set.
-  Changes currently bound texture to TexNum.
-
-  You can use this to set "default unnamed OpenGL texture" parameters
+  You can also use this to set "default unnamed OpenGL texture" parameters
   by passing TexNum = 0.
+
+  @raises(ETextureLoadError Raised in the same situations as LoadGLTexture.)
 
   @groupBegin }
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
@@ -481,16 +485,15 @@ procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
   DDSForMipmaps: TDDSImage = nil); overload;
 { @groupEnd }
 
-{ Like LoadGLTexture, but the texture will be modified using ColorModulatorByte.
-
-  If not Assigned(ColorModulatorByte) then this will simply return
-  LoadGLTexture(Image, MinFilter, MagFilter, Wrap).
-  Else it will return
-  LoadGLTexture(ImageModulated(Image), MinFilter, MagFilter, Wrap)
-  (without introducing any memoty leaks).
+{ Load OpenGL texture, modulating it by function ColorModulatorByte.
+  When ColorModulatorByte is assigned (not @nil), we will process image
+  by Assigned(ColorModulatorByte). Everything else
+  works exactly the same as LoadGLTexture.
 
   If the image memory format doesn't allow editing (for example it's
-  TS3TCImage) then will make DataWarning and simply ignore ColorModulatorByte. }
+  TS3TCImage) then will make DataWarning and simply ignore ColorModulatorByte.
+
+  @raises(ETextureLoadError Raised in the same situations as LoadGLTexture.) }
 function LoadGLTextureModulated(const Image: TEncodedImage;
   MinFilter, MagFilter: TGLenum;
   const Wrap: TTextureWrap2D;
