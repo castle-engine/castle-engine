@@ -335,7 +335,7 @@ uses
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3d, OpenGLTTFonts, Images,
   OpenGLFonts, KambiGLUtils, VRMLLightSetGL, TTFontsTypes,
   VRMLErrors, VideosCache, GLShaders, GLImages, Videos, VRMLTime, VRMLShape,
-  GLCubeMap, TextureImages, KambiClassUtils;
+  GLCubeMap, TextureImages, KambiClassUtils, DDS;
 
 {$define read_interface}
 
@@ -1077,6 +1077,7 @@ type
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
       const TextureColorModulator: TColorModulatorByteFunc;
+      const DDSForMipmaps: TDDSImage;
       out AlphaChannelType: TAlphaChannelType): TGLuint;
 
     procedure TextureImage_DecReference(
@@ -1708,7 +1709,7 @@ implementation
 
 uses Math, Triangulator, NormalizationCubeMap,
   KambiStringUtils, GLVersionUnit, KambiLog,
-  VRMLGeometry, VRMLScene, DDS, Frustum, RenderStateUnit, VRMLCameraUtils,
+  VRMLGeometry, VRMLScene, Frustum, RenderStateUnit, VRMLCameraUtils,
   RaysWindow;
 
 {$define read_implementation}
@@ -1889,6 +1890,7 @@ function TVRMLOpenGLRendererContextCache.TextureImage_IncReference(
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
   const TextureColorModulator: TColorModulatorByteFunc;
+  const DDSForMipmaps: TDDSImage;
   out AlphaChannelType: TAlphaChannelType): TGLuint;
 var
   I: Integer;
@@ -1943,7 +1945,7 @@ begin
     no way to call TextureImage_DecReference later). }
   Result := LoadGLTextureModulated(
     TextureImage, TextureMinFilter, TextureMagFilter,
-    TextureWrap, TextureColorModulator);
+    TextureWrap, TextureColorModulator, DDSForMipmaps);
 
   TexParameterMaxAnisotropy(GL_TEXTURE_2D, TextureAnisotropy);
 

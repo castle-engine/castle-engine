@@ -132,7 +132,7 @@ unit GLImages;
 
 interface
 
-uses GL, GLU, GLExt, SysUtils, Images, VectorMath, KambiGLUtils, Videos;
+uses GL, GLU, GLExt, SysUtils, Images, VectorMath, KambiGLUtils, Videos, DDS;
 
 const
   PixelsImageClasses: array [0..3] of TImageClass = (
@@ -424,13 +424,26 @@ function TextureMinFilterNeedsMipmaps(const MinFilter: TGLenum): boolean;
   fragments alpha value, it doesn't have any "color" in the normal sense,
   it's only for opacity).
 
-  If GenerateMipmap functionality will be required to create mipmaps,
-  but is not available on this OpenGL implementation,
-  we will change MinFilter to simple GL_LINEAR and make DataWarning.
-  So usually you just don't have to worry about this.
-  Note that current implementation requires GenerateMipmap functionality
-  only for S3TC textures, for normal uncompressed textures we can
-  generate mipmaps on CPU or through SGIS_GENERATE_MIPMAP extension.
+  If mipmaps will be needed (this is decided looking at MinFilter)
+  we will load them too.
+
+  @orderedList(
+    @item(
+      As a first try, if DDSForMipmaps is non-nil
+      and has mipmaps (DDSForMipmaps.Mipmaps), we will load these mipmaps.
+      DDSForMipmaps must be a normal 2D texture (DDSType = dtTexture).
+
+      Otherwise, we'll try to generate mipmaps, using various OpenGL mechanisms.)
+
+    @item(
+      If GenerateMipmap functionality will be required to create mipmaps,
+      but is not available on this OpenGL implementation,
+      we will change MinFilter to simple GL_LINEAR and make DataWarning.
+      So usually you just don't have to worry about this.
+      Note that current implementation requires GenerateMipmap functionality
+      only for S3TC textures, for normal uncompressed textures we can
+      generate mipmaps on CPU or through SGIS_GENERATE_MIPMAP extension.)
+  )
 
   @raises(ETextureLoadError If texture cannot be loaded for whatever reason.
     This includes ECannotLoadS3TCTexture if the S3TC texture cannot be
@@ -440,15 +453,18 @@ function TextureMinFilterNeedsMipmaps(const MinFilter: TGLenum): boolean;
 
   @groupBegin }
 function LoadGLTexture(const image: TEncodedImage; minFilter, magFilter: TGLenum;
-  GrayscaleIsAlpha: boolean = false): TGLuint; overload;
+  GrayscaleIsAlpha: boolean = false;
+  DDSForMipmaps: TDDSImage = nil): TGLuint; overload;
 function LoadGLTexture(const image: TEncodedImage;
   minFilter, magFilter: TGLenum;
   const Wrap: TTextureWrap2D;
-  GrayscaleIsAlpha: boolean = false): TGLuint; overload;
+  GrayscaleIsAlpha: boolean = false;
+  DDSForMipmaps: TDDSImage = nil): TGLuint; overload;
 function LoadGLTexture(const FileName: string;
   minFilter, magFilter: TGLenum;
   const Wrap: TTextureWrap2D;
-  GrayscaleIsAlpha: boolean = false): TGLuint; overload;
+  GrayscaleIsAlpha: boolean = false;
+  DDSForMipmaps: TDDSImage = nil): TGLuint; overload;
 { @groupEnd }
 
 { Load texture into already reserved texture number.
@@ -465,10 +481,12 @@ function LoadGLTexture(const FileName: string;
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
   minFilter, magFilter: TGLenum;
   const Wrap: TTextureWrap2D;
-  GrayscaleIsAlpha: boolean = false); overload;
+  GrayscaleIsAlpha: boolean = false;
+  DDSForMipmaps: TDDSImage = nil); overload;
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
   minFilter, magFilter: TGLenum;
-  GrayscaleIsAlpha: boolean = false); overload;
+  GrayscaleIsAlpha: boolean = false;
+  DDSForMipmaps: TDDSImage = nil); overload;
 { @groupEnd }
 
 { Like LoadGLTexture, but the texture will be modified using ColorModulatorByte.
@@ -484,7 +502,8 @@ procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
 function LoadGLTextureModulated(const Image: TEncodedImage;
   MinFilter, MagFilter: TGLenum;
   const Wrap: TTextureWrap2D;
-  ColorModulatorByte: TColorModulatorByteFunc): TGLuint;
+  ColorModulatorByte: TColorModulatorByteFunc;
+  DDSForMipmaps: TDDSImage = nil): TGLuint;
 
 type
   { Sequence of OpenGL textures to be played as a video. }
@@ -818,7 +837,7 @@ type
 
 implementation
 
-uses KambiUtils, KambiLog, GLVersionUnit, DataErrors, DDS, TextureImages;
+uses KambiUtils, KambiLog, GLVersionUnit, DataErrors, TextureImages;
 
 function ImageGLFormat(const Img: TEncodedImage): TGLenum;
 begin
@@ -1250,18 +1269,20 @@ end;
   -----------------------------------------------------------------------------}
 
 function LoadGLTexture(const image: TEncodedImage; minFilter, magFilter: TGLenum;
-  GrayscaleIsAlpha: boolean): TGLuint;
+  GrayscaleIsAlpha: boolean;
+  DDSForMipmaps: TDDSImage): TGLuint;
 begin
   glGenTextures(1, @result);
   LoadGLGeneratedTexture(result, image, minFilter, magFilter,
-    GrayscaleIsAlpha);
+    GrayscaleIsAlpha, DDSForMipmaps);
 end;
 
 function LoadGLTexture(const image: TEncodedImage; minFilter, magFilter: TGLenum;
   const Wrap: TTextureWrap2D;
-  GrayscaleIsAlpha: boolean): TGLuint; overload;
+  GrayscaleIsAlpha: boolean;
+  DDSForMipmaps: TDDSImage): TGLuint; overload;
 begin
- result := LoadGLTexture(Image, MinFilter, MagFilter, GrayscaleIsAlpha);
+ result := LoadGLTexture(Image, MinFilter, MagFilter, GrayscaleIsAlpha, DDSForMipmaps);
  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Wrap[0]);
  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Wrap[1]);
 end;
@@ -1269,13 +1290,15 @@ end;
 function LoadGLTexture(const FileName: string;
   MinFilter, MagFilter: TGLenum;
   const Wrap: TTextureWrap2D;
-  GrayscaleIsAlpha: boolean): TGLuint;
+  GrayscaleIsAlpha: boolean;
+  DDSForMipmaps: TDDSImage): TGLuint;
 var
   Image: TEncodedImage;
 begin
   Image := LoadTextureImage(FileName);
   try
-    Result := LoadGLTexture(Image, MinFilter, MagFilter, Wrap, GrayscaleIsAlpha);
+    Result := LoadGLTexture(Image, MinFilter, MagFilter, Wrap,
+      GrayscaleIsAlpha, DDSForMipmaps);
   finally Image.Free end;
 end;
 
@@ -1296,9 +1319,11 @@ end;
   It also takes care of pixel packing, although actually nothing needs
   be done about it when using compressed textures.
 
+  Level = 0 for base (not a mipmap sublevel) image.
+
   @raises(ECannotLoadS3TCTexture If texture size is bad or OpenGL S3TC
     extensions are missing.) }
-procedure glCompressedTextureImage2D(Image: TS3TCImage);
+procedure glCompressedTextureImage2D(Image: TS3TCImage; Level: TGLint = 0);
 begin
   if not (GL_ARB_texture_compression and GL_EXT_texture_compression_s3tc) then
     raise ECannotLoadS3TCTexture.Create('Cannot load S3TC compressed textures: OpenGL doesn''t support one (or both) of ARB_texture_compression and EXT_texture_compression_s3tc extensions');
@@ -1310,13 +1335,14 @@ begin
   { Pixel packing parameters (stuff changed by Before/AfterUnpackImage)
     doesn't affect loading compressed textures, as far as I understand.
     So no need to call it. }
-  glCompressedTexImage2DARB(GL_TEXTURE_2D, 0, ImageGLInternalFormat(Image),
+  glCompressedTexImage2DARB(GL_TEXTURE_2D, Level, ImageGLInternalFormat(Image),
     Image.Width, Image.Height, 0, Image.Size,
     Image.RawPixels);
 end;
 
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
-  minFilter, magFilter: TGLenum; GrayscaleIsAlpha: boolean);
+  minFilter, magFilter: TGLenum; GrayscaleIsAlpha: boolean;
+  DDSForMipmaps: TDDSImage);
 var
   ImageInternalFormat: TGLuint;
   ImageFormat: TGLuint;
@@ -1324,8 +1350,9 @@ var
   { Calls glTexImage2D for given image.
     Takes care of OpenGL unpacking (alignment etc.).
     Takes care of Image size --- makes sure that image has the right size
-    (power of 2, within OpenGL required sizes). }
-  procedure glTexImage2DImage(Image: TImage);
+    (power of 2, within OpenGL required sizes).
+    Level = 0 for base (not a mipmap sublevel) image. }
+  procedure glTexImage2DImage(Image: TImage; Level: TGLint = 0);
 
     { This is like glTexImage2DImage, but it doesn't take care
       of Image size. }
@@ -1341,7 +1368,7 @@ var
         niepodzielne na 4). }
       BeforeUnpackImage(UnpackData, Image);
       try
-        glTexImage2D(GL_TEXTURE_2D, 0, ImageInternalFormat,
+        glTexImage2D(GL_TEXTURE_2D, Level, ImageInternalFormat,
           Image.Width, Image.Height, 0, ImageFormat, ImageGLType(Image),
           Image.RawPixels);
       finally AfterUnpackImage(UnpackData, Image) end;
@@ -1357,6 +1384,30 @@ var
       try
         Core(ImgGood);
       finally ImgGood.Free end;
+    end;
+  end;
+
+  { Check should we load mipmaps from DDS. Load them, if yes. }
+  function LoadMipmapsFromDDS(DDS: TDDSImage): boolean;
+  var
+    I: Integer;
+  begin
+    Result := (DDS <> nil) and DDS.Mipmaps;
+    if Result and (DDS.DDSType <> dtTexture) then
+    begin
+      DataWarning('DDS image contains mipmaps, but not for 2D texture');
+      Result := false;
+    end;
+
+    if Result then
+    begin
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, DDS.Images.High);
+      for I := 1 to DDS.Images.High do
+        if DDS.Images[I] is TImage then
+          glTexImage2DImage(TImage(DDS.Images[I]), I) else
+        if DDS.Images[I] is TS3TCImage then
+          glCompressedTextureImage2D(TS3TCImage(DDS.Images[I]), I) else
+          raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
     end;
   end;
 
@@ -1376,8 +1427,13 @@ var
     finally AfterUnpackImage(UnpackData, Image) end;
   end;
 
+  procedure LoadNormal(const image: TImage); forward;
+
   procedure LoadMipmapped(const image: TImage);
   begin
+    if LoadMipmapsFromDDS(DDSForMipmaps) then
+      { Load the base image normally, mipmaps are already set }
+      LoadNormal(Image) else
     if GL_SGIS_generate_mipmap then
     begin
       { hardware-accelerated mipmap generation.
@@ -1388,9 +1444,7 @@ var
       glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
       glTexImage2DImage(Image);
     end else
-    begin
       gluBuild2DMipmapsImage(Image);
-    end;
   end;
 
   procedure LoadNormal(const image: TImage);
@@ -1432,15 +1486,18 @@ begin
     glCompressedTextureImage2D(TS3TCImage(Image));
 
     if TextureMinFilterNeedsMipmaps(MinFilter) then
-    try
-      GenerateMipmap(GL_TEXTURE_2D);
-    except
-      on E: EGenerateMipmapNotAvailable do
-      begin
-        MinFilter := GL_LINEAR;
-        { Update GL_TEXTURE_MIN_FILTER, since we already initialized it earlier. }
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, MinFilter);
-        DataWarning('Creating mipmaps for S3TC compressed textures requires GenerateMipmap functionality, will fallback to GL_LINEAR minification: ' + E.Message);
+    begin
+      if not LoadMipmapsFromDDS(DDSForMipmaps) then
+      try
+        GenerateMipmap(GL_TEXTURE_2D);
+      except
+        on E: EGenerateMipmapNotAvailable do
+        begin
+          MinFilter := GL_LINEAR;
+          { Update GL_TEXTURE_MIN_FILTER, since we already initialized it earlier. }
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, MinFilter);
+          DataWarning('Creating mipmaps for S3TC compressed textures requires GenerateMipmap functionality, will fallback to GL_LINEAR minification: ' + E.Message);
+        end;
       end;
     end;
   end else
@@ -1450,9 +1507,11 @@ end;
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
   minFilter, magFilter: TGLenum;
   const Wrap: TTextureWrap2D;
-  GrayscaleIsAlpha: boolean);
+  GrayscaleIsAlpha: boolean;
+  DDSForMipmaps: TDDSImage);
 begin
-  LoadGLGeneratedTexture(TexNum, Image, MinFilter, MagFilter, GrayscaleIsAlpha);
+  LoadGLGeneratedTexture(TexNum, Image, MinFilter, MagFilter,
+    GrayscaleIsAlpha, DDSForMipmaps);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Wrap[0]);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Wrap[1]);
 end;
@@ -1460,7 +1519,8 @@ end;
 function LoadGLTextureModulated(const Image: TEncodedImage;
   MinFilter, MagFilter: TGLenum;
   const Wrap: TTextureWrap2D;
-  ColorModulatorByte: TColorModulatorByteFunc): TGLuint;
+  ColorModulatorByte: TColorModulatorByteFunc;
+  DDSForMipmaps: TDDSImage): TGLuint;
 var
   ImageModulated: TImage;
 begin
@@ -1470,15 +1530,15 @@ begin
     begin
       ImageModulated := TImage(Image).MakeModulatedRGB(ColorModulatorByte);
       try
-        Result := LoadGLTexture(ImageModulated, MinFilter, MagFilter, Wrap);
+        Result := LoadGLTexture(ImageModulated, MinFilter, MagFilter, Wrap, false, DDSForMipmaps);
       finally FreeAndNil(ImageModulated); end;
     end else
     begin
       DataWarning('Cannot modulate S3TC compressed texture by ColorModulator, loading unmodulated');
-      Result := LoadGLTexture(Image, MinFilter, MagFilter, Wrap);
+      Result := LoadGLTexture(Image, MinFilter, MagFilter, Wrap, false, DDSForMipmaps);
     end;
   end else
-    Result := LoadGLTexture(Image, MinFilter, MagFilter, Wrap);
+    Result := LoadGLTexture(Image, MinFilter, MagFilter, Wrap, false, DDSForMipmaps);
 end;
 
 { TGLVideo ------------------------------------------------------------------- }
