@@ -2302,8 +2302,12 @@ type
     { Shows a dialog window allowing user to choose an RGB color.
       Initial value of Color specifies initial RGB values proposed to the user.
       If user accepts, returns true and sets Color accordingly, else
-      returns false (and does not modify Color). }
+      returns false (and does not modify Color).
+
+      @groupBegin }
     function ColorDialog(var Color: TVector3Single): boolean;
+    function ColorDialog(var Color: TVector3Byte): boolean;
+    { @groupEnd }
 
     {$endif not GLWINDOW_GLUT}
   end;
@@ -3735,6 +3739,18 @@ begin
   finally FreeWithContentsAndNil(FFList) end;
 end;
 {$endif}
+
+function TGLWindow.ColorDialog(var Color: TVector3Byte): boolean;
+var
+  ColorSingle: TVector3Single;
+begin
+  ColorSingle[0] := Color[0] / High(Byte);
+  ColorSingle[1] := Color[1] / High(Byte);
+  ColorSingle[2] := Color[2] / High(Byte);
+  Result := ColorDialog(ColorSingle);
+  if Result then
+    Color := Vector3Byte(ColorSingle);
+end;
 
 { ----------------------------------------------------------------------------
   Get/Set callbacks State }
