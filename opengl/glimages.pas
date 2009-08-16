@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2008 Michalis Kamburelis.
+  Copyright 2001-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -389,6 +389,7 @@ function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal;
 { Texture wrapping modes ----------------------------------------------------- }
 
 type
+  { }
   TTextureWrap2D = array [0..1] of TGLenum;
   TTextureWrap3D = array [0..2] of TGLenum;
 
@@ -398,6 +399,7 @@ operator = (const W1, W2: TTextureWrap3D): boolean;
 { Loading textures ----------------------------------------------------------- }
 
 type
+  { }
   ETextureLoadError = class(Exception);
   ECannotLoadS3TCTexture = class(ETextureLoadError);
   EInvalidImageForOpenGLTexture = class(ETextureLoadError);
@@ -617,7 +619,7 @@ function HasGenerateMipmap: boolean;
     is available on this OpenGL version. If you don't want to get
     this exception, you can always check HasGenerateMipmap
     before calling this.) }
-procedure GenerateMipmap(target: GLenum);
+procedure GenerateMipmap(target: TGLenum);
 
 { Call glTexParameterf to set GL_TEXTURE_MAX_ANISOTROPY_EXT on given texture
   target.
@@ -625,7 +627,7 @@ procedure GenerateMipmap(target: GLenum);
   Takes care to check for appropriate OpenGL extension (if not present,
   does nothing), and to query OpenGL limit for Anisotropy (eventually
   clamping provided Anisotropy down). }
-procedure TexParameterMaxAnisotropy(const target: GLenum; const Anisotropy: TGLfloat);
+procedure TexParameterMaxAnisotropy(const target: TGLenum; const Anisotropy: TGLfloat);
 
 { Decompress S3TC image by loading it to temporary OpenGL texture and
   reading back. So this internally uses current OpenGL context.
@@ -1757,7 +1759,7 @@ begin
 {$endif}
 end;
 
-procedure GenerateMipmap(target: GLenum);
+procedure GenerateMipmap(target: TGLenum);
 begin
   {$ifndef TEST_NO_GENERATE_MIPMAP}
   if GL_EXT_framebuffer_object then
@@ -1777,7 +1779,7 @@ end;
 
 { Anisotropy ----------------------------------------------------------------- }
 
-procedure TexParameterMaxAnisotropy(const target: GLenum; const Anisotropy: TGLfloat);
+procedure TexParameterMaxAnisotropy(const target: TGLenum; const Anisotropy: TGLfloat);
 begin
   if GL_EXT_texture_filter_anisotropic then
     glTexParameterf(Target, GL_TEXTURE_MAX_ANISOTROPY_EXT,
