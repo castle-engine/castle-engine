@@ -1095,13 +1095,17 @@ type
     procedure TextureVideo_DecReference(
       const TextureVideo: TGLVideo);
 
+    { Load given cube texture to OpenGL, using our cache.
+
+      @raises(ETextureLoadError If texture cannot be loaded for whatever
+      reason.) }
     function TextureCubeMap_IncReference(
       Node: TNodeX3DEnvironmentTextureNode;
       const MinFilter, MagFilter: TGLint;
       const Anisotropy: TGLfloat;
       PositiveX, NegativeX,
       PositiveY, NegativeY,
-      PositiveZ, NegativeZ: TImage;
+      PositiveZ, NegativeZ: TEncodedImage;
       out AlphaChannelType: TAlphaChannelType): TGLuint;
 
     procedure TextureCubeMap_DecReference(
@@ -2104,7 +2108,7 @@ function TVRMLOpenGLRendererContextCache.TextureCubeMap_IncReference(
   const Anisotropy: TGLfloat;
   PositiveX, NegativeX,
   PositiveY, NegativeY,
-  PositiveZ, NegativeZ: TImage;
+  PositiveZ, NegativeZ: TEncodedImage;
   out AlphaChannelType: TAlphaChannelType): TGLuint;
 var
   I: Integer;

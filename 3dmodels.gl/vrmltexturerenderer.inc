@@ -44,6 +44,15 @@
 
     { Enable/disable texturing (2D and cube map) on current texture unit. }
     class procedure TextureEnableDisable(const Enable: TTextureEnableDisable);
+
+    { Do the time-consuming preparations before rendering this texture.
+      Called from TVRMLOpenGLRenderer.Prepare, always through our
+      Prepare method. Our Prepare method takes care to catch
+      common exceptions from this (EFramebufferError, ETextureLoadError),
+      convert them to VRMLWarning and make Unprepare to undo the preparations.
+      So Prepare-Unprepare work like constructor-destructor, with Unprepare
+      having to be prepared to finilizing incomplete instance. }
+    procedure PrepareCore(State: TVRMLGraphTraverseState); virtual; abstract;
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer; ATextureNode: TNodeX3DTextureNode);
 
@@ -63,8 +72,8 @@
       Node: TNodeX3DTextureNode): TGLTextureNodeClass;
 
     { Do the time-consuming preparations before rendering this texture.
-      Called from TVRMLOpenGLRenderer.Prepare. }
-    procedure Prepare(State: TVRMLGraphTraverseState); virtual; abstract;
+      Calls PrepareCore. }
+    procedure Prepare(State: TVRMLGraphTraverseState);
 
     { Release all resources allocated by @link(Prepare). }
     procedure Unprepare; virtual; abstract;
@@ -195,10 +204,10 @@
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
       Node: TNodeX3DTextureNode): boolean; override;
+    procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     function TextureNode: TNodeMultiTexture;
 
-    procedure Prepare(State: TVRMLGraphTraverseState); override;
     procedure Unprepare; override;
     function Enable(const TextureUnit: Cardinal;
       var Primitives3DTextureCoords: boolean): boolean; override;
@@ -214,6 +223,7 @@
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
       Node: TNodeX3DTextureNode): boolean; override;
+    procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     GLName: TGLuint;
     NormalMap, HeightMap: TGLuint;
@@ -221,7 +231,6 @@
 
     function TextureNode: TVRMLTextureNode;
 
-    procedure Prepare(State: TVRMLGraphTraverseState); override;
     procedure Unprepare; override;
     function Enable(const TextureUnit: Cardinal;
       var Primitives3DTextureCoords: boolean): boolean; override;
@@ -231,12 +240,12 @@
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
       Node: TNodeX3DTextureNode): boolean; override;
+    procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     GLVideo: TGLVideo;
 
     function TextureNode: TNodeMovieTexture;
 
-    procedure Prepare(State: TVRMLGraphTraverseState); override;
     procedure Unprepare; override;
     function Enable(const TextureUnit: Cardinal;
       var Primitives3DTextureCoords: boolean): boolean; override;
@@ -248,6 +257,7 @@
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
       Node: TNodeX3DTextureNode): boolean; override;
+    procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     GLName: TGLuint;
 
@@ -258,7 +268,6 @@
 
     function TextureNode: TNodeRenderedTexture;
 
-    procedure Prepare(State: TVRMLGraphTraverseState); override;
     procedure Unprepare; override;
     function Enable(const TextureUnit: Cardinal;
       var Primitives3DTextureCoords: boolean): boolean; override;
@@ -292,20 +301,18 @@
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
       Node: TNodeX3DTextureNode): boolean; override;
+    procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     function TextureNode: TNodeComposedCubeMapTexture;
-
-    procedure Prepare(State: TVRMLGraphTraverseState); override;
   end;
 
   TGLImageCubeMapTextureNode = class(TGLCubeMapTextureNode)
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
       Node: TNodeX3DTextureNode): boolean; override;
+    procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     function TextureNode: TNodeImageCubeMapTexture;
-
-    procedure Prepare(State: TVRMLGraphTraverseState); override;
   end;
 
   TGLGeneratedCubeMapTextureNode = class(TGLCubeMapTextureNode)
@@ -314,6 +321,7 @@
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
       Node: TNodeX3DTextureNode): boolean; override;
+    procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     { The right size of the texture,
       that satisfies all OpenGL cube map sizes requirements
@@ -325,7 +333,6 @@
 
     function TextureNode: TNodeGeneratedCubeMapTexture;
 
-    procedure Prepare(State: TVRMLGraphTraverseState); override;
     procedure Unprepare; override;
 
     procedure Update(
@@ -339,12 +346,12 @@
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
       Node: TNodeX3DTextureNode): boolean; override;
+    procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     GLName: TGLuint;
 
     function TextureNode: TNodeX3DTexture3DNode;
 
-    procedure Prepare(State: TVRMLGraphTraverseState); override;
     procedure Unprepare; override;
     function Enable(const TextureUnit: Cardinal;
       var Primitives3DTextureCoords: boolean): boolean; override;
@@ -356,6 +363,7 @@
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
       Node: TNodeX3DTextureNode): boolean; override;
+    procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     GLName: TGLuint;
 
@@ -365,7 +373,6 @@
 
     function TextureNode: TNodeGeneratedShadowMap;
 
-    procedure Prepare(State: TVRMLGraphTraverseState); override;
     procedure Unprepare; override;
     function Enable(const TextureUnit: Cardinal;
       var Primitives3DTextureCoords: boolean): boolean; override;
@@ -555,6 +562,26 @@ begin
     Result := nil;
 end;
 
+procedure TGLTextureNode.Prepare(State: TVRMLGraphTraverseState);
+begin
+  try
+    PrepareCore(State);
+  except
+    on E: EFramebufferError do
+    begin
+      Unprepare;
+      VRMLWarning(vwIgnorable, 'Framebuffer error, generated texture not possible: '
+        + E.Message);
+    end;
+
+    on E: ETextureLoadError do
+    begin
+      Unprepare;
+      VRMLWarning(vwIgnorable, 'Cannot load texture to OpenGL: ' + E.Message);
+    end;
+  end;
+end;
+
 { TGLTextureNodes ------------------------------------------------------------ }
 
 function TGLTextureNodes.TextureNodeIndex(Node: TNodeX3DTextureNode): Integer;
@@ -618,7 +645,7 @@ begin
   Result := TNodeMultiTexture(inherited TextureNode);
 end;
 
-procedure TGLMultiTextureNode.Prepare(State: TVRMLGraphTraverseState);
+procedure TGLMultiTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
 
   procedure MaxTo1st(var A: TAlphaChannelType; const B: TAlphaChannelType);
   begin
@@ -1179,7 +1206,7 @@ begin
   Result := TVRMLTextureNode(inherited TextureNode);
 end;
 
-procedure TGLImageTextureNode.Prepare(State: TVRMLGraphTraverseState);
+procedure TGLImageTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
 var
   MinFilter, MagFilter: TGLint;
   Anisotropy: TGLfloat;
@@ -1195,26 +1222,18 @@ begin
 
   SetTextureRGBFromImage(TextureNode.TextureImage);
 
-  try
-    GLName := Renderer.Cache.TextureImage_IncReference(
-      TextureNode.TextureImage,
-      TextureNode.TextureUsedFullUrl,
-      TextureNode,
-      MinFilter,
-      MagFilter,
-      Anisotropy,
-      TextureWrap,
-      Renderer.Attributes.ColorModulatorByte,
-      { This way, our AlphaChannelType is calculated (or taken from cache)
-        by TextureImage_IncReference }
-      AlphaChannelType);
-  except
-    on E: ETextureLoadError do
-    begin
-      VRMLWarning(vwIgnorable, 'Cannot load 2D texture to OpenGL: ' + E.Message);
-      Exit;
-    end;
-  end;
+  GLName := Renderer.Cache.TextureImage_IncReference(
+    TextureNode.TextureImage,
+    TextureNode.TextureUsedFullUrl,
+    TextureNode,
+    MinFilter,
+    MagFilter,
+    Anisotropy,
+    TextureWrap,
+    Renderer.Attributes.ColorModulatorByte,
+    { This way, our AlphaChannelType is calculated (or taken from cache)
+      by TextureImage_IncReference }
+    AlphaChannelType);
 end;
 
 procedure TGLImageTextureNode.Unprepare;
@@ -1264,7 +1283,7 @@ begin
   Result := TNodeMovieTexture(inherited TextureNode);
 end;
 
-procedure TGLMovieTextureNode.Prepare(State: TVRMLGraphTraverseState);
+procedure TGLMovieTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
 var
   MinFilter, MagFilter: TGLint;
   Anisotropy: TGLfloat;
@@ -1343,7 +1362,7 @@ begin
   Result := TNodeRenderedTexture(inherited TextureNode);
 end;
 
-procedure TGLRenderedTextureNode.Prepare(State: TVRMLGraphTraverseState);
+procedure TGLRenderedTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
 var
   InitialImage: TImage;
   MinFilter, MagFilter: TGLint;
@@ -1416,26 +1435,18 @@ begin
         updated. }
       InitialImage.Clear(Vector4Byte(255, 0, 255, 255));
 
-      try
-        GLName := Renderer.Cache.TextureImage_IncReference(
-          InitialImage,
-          '',
-          TextureNode,
-          MinFilter,
-          MagFilter,
-          Anisotropy,
-          TextureWrap,
-          Renderer.Attributes.ColorModulatorByte,
-          { This way, our AlphaChannelType is calculated (or taken from cache)
-            by TextureImage_IncReference }
-          AlphaChannelType);
-      except
-        on E: ETextureLoadError do
-        begin
-          VRMLWarning(vwIgnorable, 'Cannot load 2D texture to OpenGL: ' + E.Message);
-          Exit;
-        end;
-      end;
+      GLName := Renderer.Cache.TextureImage_IncReference(
+        InitialImage,
+        '',
+        TextureNode,
+        MinFilter,
+        MagFilter,
+        Anisotropy,
+        TextureWrap,
+        Renderer.Attributes.ColorModulatorByte,
+        { This way, our AlphaChannelType is calculated (or taken from cache)
+          by TextureImage_IncReference }
+        AlphaChannelType);
 
       { RenderedTexture never has any normal / height map
         (Hm, although it would be possible to generate some in theory
@@ -1446,20 +1457,11 @@ begin
     finally FreeAndNil(InitialImage) end;
   end;
 
-  try
-    RenderToTexture := TGLRenderToTexture.Create(Width, Height);
-    RenderToTexture.SetTexture(GLName, GL_TEXTURE_2D);
-    RenderToTexture.DepthTexture := DepthMap;
-    RenderToTexture.Stencil := not DepthMap;
-    RenderToTexture.InitGL;
-  except
-    on E: EFramebufferError do
-    begin
-      Unprepare;
-      VRMLWarning(vwIgnorable, 'Framebuffer error, generated texture not possible: '
-        + E.Message);
-    end;
-  end;
+  RenderToTexture := TGLRenderToTexture.Create(Width, Height);
+  RenderToTexture.SetTexture(GLName, GL_TEXTURE_2D);
+  RenderToTexture.DepthTexture := DepthMap;
+  RenderToTexture.Stencil := not DepthMap;
+  RenderToTexture.InitGL;
 end;
 
 procedure TGLRenderedTextureNode.Unprepare;
@@ -1690,7 +1692,7 @@ begin
   Result := TNodeComposedCubeMapTexture(inherited TextureNode);
 end;
 
-procedure TGLComposedCubeMapTextureNode.Prepare(State: TVRMLGraphTraverseState);
+procedure TGLComposedCubeMapTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
 
   { Checks is given side has non-nil valid node class,
     and then if image there can be loaded. }
@@ -1783,7 +1785,7 @@ begin
   Result := TNodeImageCubeMapTexture(inherited TextureNode);
 end;
 
-procedure TGLImageCubeMapTextureNode.Prepare(State: TVRMLGraphTraverseState);
+procedure TGLImageCubeMapTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
 var
   MinFilter, MagFilter: TGLint;
   Anisotropy: TGLfloat;
@@ -1811,7 +1813,6 @@ begin
         to avoid making repeated warnings in case image fails).
         Should be cached, like for 2D texture nodes.
       - We do not use cube map mipmaps stored inside DDS file.
-      - We crash ("as") on S3TC compressed cube maps.
     }
 
     SetTextureRGBFromImage(DDS.CubeMapImage(dcsPositiveX));
@@ -1819,14 +1820,14 @@ begin
     GLName := Renderer.Cache.TextureCubeMap_IncReference(
       TextureNode,
       MinFilter, MagFilter, Anisotropy,
-      DDS.CubeMapImage(dcsPositiveX) as TImage,
-      DDS.CubeMapImage(dcsNegativeX) as TImage,
+      DDS.CubeMapImage(dcsPositiveX),
+      DDS.CubeMapImage(dcsNegativeX),
       { Swap meaning of positive/negative Y faces from DDS,
         see TDDSCubeMapSide for explanation. }
-      DDS.CubeMapImage(dcsNegativeY) as TImage,
-      DDS.CubeMapImage(dcsPositiveY) as TImage,
-      DDS.CubeMapImage(dcsPositiveZ) as TImage,
-      DDS.CubeMapImage(dcsNegativeZ) as TImage,
+      DDS.CubeMapImage(dcsNegativeY),
+      DDS.CubeMapImage(dcsPositiveY),
+      DDS.CubeMapImage(dcsPositiveZ),
+      DDS.CubeMapImage(dcsNegativeZ),
       AlphaChannelType);
   finally FreeAndNil(DDS); end;
 end;
@@ -1844,7 +1845,7 @@ begin
   Result := TNodeGeneratedCubeMapTexture(inherited TextureNode);
 end;
 
-procedure TGLGeneratedCubeMapTextureNode.Prepare(State: TVRMLGraphTraverseState);
+procedure TGLGeneratedCubeMapTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
 var
   MinFilter, MagFilter: TGLint;
   Anisotropy: TGLfloat;
@@ -1903,18 +1904,9 @@ begin
       AlphaChannelType);
   finally FreeAndNil(InitialImage) end;
 
-  try
-    RenderToTexture := TGLRenderToTexture.Create(Size, Size);
-    RenderToTexture.SetTexture(GLName, GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB);
-    RenderToTexture.InitGL;
-  except
-    on E: EFramebufferError do
-    begin
-      Unprepare;
-      VRMLWarning(vwIgnorable, 'Framebuffer error, generated texture not possible: '
-        + E.Message);
-    end;
-  end;
+  RenderToTexture := TGLRenderToTexture.Create(Size, Size);
+  RenderToTexture.SetTexture(GLName, GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB);
+  RenderToTexture.InitGL;
 end;
 
 procedure TGLGeneratedCubeMapTextureNode.Unprepare;
@@ -1955,7 +1947,7 @@ begin
   Result := TNodeX3DTexture3DNode(inherited TextureNode);
 end;
 
-procedure TGL3DTextureNode.Prepare(State: TVRMLGraphTraverseState);
+procedure TGL3DTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
 var
   MinFilter, MagFilter: TGLint;
   Anisotropy: TGLfloat;
@@ -1991,18 +1983,10 @@ begin
       is not so important now.)
   }
 
-  try
-    GLName := Renderer.Cache.Texture3D_IncReference(
-      TextureNode, MinFilter, MagFilter, Anisotropy,
-      TextureWrap, TextureNode.TextureImage as TImage,
-      AlphaChannelType);
-  except
-    on E: ETextureLoadError do
-    begin
-      VRMLWarning(vwIgnorable, 'Cannot load 3D texture to OpenGL: ' + E.Message);
-      Exit;
-    end;
-  end;
+  GLName := Renderer.Cache.Texture3D_IncReference(
+    TextureNode, MinFilter, MagFilter, Anisotropy,
+    TextureWrap, TextureNode.TextureImage as TImage,
+    AlphaChannelType);
 end;
 
 procedure TGL3DTextureNode.Unprepare;
@@ -2040,7 +2024,7 @@ begin
   Result := TNodeGeneratedShadowMap(inherited TextureNode);
 end;
 
-procedure TGLGeneratedShadowMap.Prepare(State: TVRMLGraphTraverseState);
+procedure TGLGeneratedShadowMap.PrepareCore(State: TVRMLGraphTraverseState);
 var
   TextureWrap: TTextureWrap2D;
 begin
@@ -2060,20 +2044,11 @@ begin
   GLName := Renderer.Cache.TextureDepth_IncReference(
     TextureNode, TextureWrap, TextureNode.FdCompareMode, Size, Size);
 
-  try
-    RenderToTexture := TGLRenderToTexture.Create(Size, Size);
-    RenderToTexture.SetTexture(GLName, GL_TEXTURE_2D);
-    RenderToTexture.DepthTexture := true;
-    RenderToTexture.Stencil := false;
-    RenderToTexture.InitGL;
-  except
-    on E: EFramebufferError do
-    begin
-      Unprepare;
-      VRMLWarning(vwIgnorable, 'Framebuffer error, generated texture not possible: '
-        + E.Message);
-    end;
-  end;
+  RenderToTexture := TGLRenderToTexture.Create(Size, Size);
+  RenderToTexture.SetTexture(GLName, GL_TEXTURE_2D);
+  RenderToTexture.DepthTexture := true;
+  RenderToTexture.Stencil := false;
+  RenderToTexture.InitGL;
 end;
 
 procedure TGLGeneratedShadowMap.Unprepare;
