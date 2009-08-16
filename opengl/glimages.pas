@@ -1794,6 +1794,12 @@ begin
   glGenTextures(1, @Tex);
   glBindTexture(GL_TEXTURE_2D, Tex);
 
+  { Testcase that fails on Radeon chantal:
+    kambi_vrml_test_suite/textures/marble_with_mipmaps_s3tc.dds }
+  if GLVersion.IsFglrx and ( (Image.Width < 4) or (Image.Height < 4) ) then
+    raise ECannotDecompressS3TC.CreateFmt('Cannot decompress S3TC texture: fglrx (proprietary Radeon drivers on Linux) may awfully crash when one of texture sizes is smaller than 4, and your texture size is %d x %d',
+      [Image.Width, Image.Height]);
+
   try
     glCompressedTextureImage2D(Image);
   except
