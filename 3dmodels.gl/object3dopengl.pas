@@ -163,7 +163,7 @@ procedure Render3DSTrimesh(Trimesh: TTrimesh3ds; useTexture2d: boolean);
      end;
      try
       glEnable(GL_TEXTURE_2D);
-      LoadGLGeneratedTexture(0, Image, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+      LoadGLGeneratedTexture(0, Image, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, Texture2DRepeat);
      finally FreeAndNil(Image) end;
     end;
 

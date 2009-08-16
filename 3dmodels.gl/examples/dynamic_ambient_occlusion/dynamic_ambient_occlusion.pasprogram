@@ -428,9 +428,9 @@ begin
   end;
 
   GLElementsPositionAreaTex := LoadGLTexture(ElementsPositionAreaTex,
-    GL_NEAREST, GL_NEAREST);
+    GL_NEAREST, GL_NEAREST, Texture2DRepeat);
   GLElementsNormalTex := LoadGLTexture(ElementsNormalTex,
-    GL_NEAREST, GL_NEAREST);
+    GL_NEAREST, GL_NEAREST, Texture2DRepeat);
 
   { Prepare OpenGL texture for shaders output (and also input to 2nd pass
     of algorithm). }

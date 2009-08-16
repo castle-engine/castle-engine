@@ -396,6 +396,9 @@ type
 operator = (const W1, W2: TTextureWrap2D): boolean;
 operator = (const W1, W2: TTextureWrap3D): boolean;
 
+const
+  Texture2DRepeat: TTextureWrap2D = (GL_REPEAT, GL_REPEAT);
+
 { Loading textures ----------------------------------------------------------- }
 
 type
@@ -409,10 +412,6 @@ function TextureMinFilterNeedsMipmaps(const MinFilter: TGLenum): boolean;
 { Load new texture. It generates new texture number by glGenTextures.
   This takes care of UNPACK_ALIGNMENT (if needed, we'll change it and
   later revert back, so that the texture is correctly loaded).
-
-  If you omit Wrap parameter then wrap parameters will not be set
-  (so default OpenGL values will be used, since we always initialize
-  new texture here).
 
   Changes currently bound texture to this one (returned).
 
@@ -452,16 +451,13 @@ function TextureMinFilterNeedsMipmaps(const MinFilter: TGLenum): boolean;
     for an OpenGL texture.)
 
   @groupBegin }
-function LoadGLTexture(const image: TEncodedImage; minFilter, magFilter: TGLenum;
-  GrayscaleIsAlpha: boolean = false;
-  DDSForMipmaps: TDDSImage = nil): TGLuint; overload;
 function LoadGLTexture(const image: TEncodedImage;
-  minFilter, magFilter: TGLenum;
+  MinFilter, MagFilter: TGLenum;
   const Wrap: TTextureWrap2D;
   GrayscaleIsAlpha: boolean = false;
   DDSForMipmaps: TDDSImage = nil): TGLuint; overload;
 function LoadGLTexture(const FileName: string;
-  minFilter, magFilter: TGLenum;
+  MinFilter, MagFilter: TGLenum;
   const Wrap: TTextureWrap2D;
   GrayscaleIsAlpha: boolean = false;
   DDSForMipmaps: TDDSImage = nil): TGLuint; overload;
@@ -479,12 +475,8 @@ function LoadGLTexture(const FileName: string;
 
   @groupBegin }
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
-  minFilter, magFilter: TGLenum;
+  MinFilter, MagFilter: TGLenum;
   const Wrap: TTextureWrap2D;
-  GrayscaleIsAlpha: boolean = false;
-  DDSForMipmaps: TDDSImage = nil); overload;
-procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
-  minFilter, magFilter: TGLenum;
   GrayscaleIsAlpha: boolean = false;
   DDSForMipmaps: TDDSImage = nil); overload;
 { @groupEnd }
@@ -1268,23 +1260,15 @@ end;
 { implementacja procedur LoadGLTextures_XXX
   -----------------------------------------------------------------------------}
 
-function LoadGLTexture(const image: TEncodedImage; minFilter, magFilter: TGLenum;
+function LoadGLTexture(const image: TEncodedImage;
+  MinFilter, MagFilter: TGLenum;
+  const Wrap: TTextureWrap2D;
   GrayscaleIsAlpha: boolean;
   DDSForMipmaps: TDDSImage): TGLuint;
 begin
   glGenTextures(1, @result);
-  LoadGLGeneratedTexture(result, image, minFilter, magFilter,
+  LoadGLGeneratedTexture(result, image, MinFilter, MagFilter, Wrap,
     GrayscaleIsAlpha, DDSForMipmaps);
-end;
-
-function LoadGLTexture(const image: TEncodedImage; minFilter, magFilter: TGLenum;
-  const Wrap: TTextureWrap2D;
-  GrayscaleIsAlpha: boolean;
-  DDSForMipmaps: TDDSImage): TGLuint; overload;
-begin
- result := LoadGLTexture(Image, MinFilter, MagFilter, GrayscaleIsAlpha, DDSForMipmaps);
- glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Wrap[0]);
- glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Wrap[1]);
 end;
 
 function LoadGLTexture(const FileName: string;
@@ -1341,7 +1325,9 @@ begin
 end;
 
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
-  minFilter, magFilter: TGLenum; GrayscaleIsAlpha: boolean;
+  MinFilter, MagFilter: TGLenum;
+  const Wrap: TTextureWrap2D;
+  GrayscaleIsAlpha: boolean;
   DDSForMipmaps: TDDSImage);
 var
   ImageInternalFormat: TGLuint;
@@ -1467,10 +1453,12 @@ begin
     ImageFormat := ImageGLFormat(Image);
   end;
 
-  { bind the texture, set min and mag filters }
+  { bind the texture, set min, mag filters and wrap parameters }
   glBindTexture(GL_TEXTURE_2D, texnum);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Wrap[0]);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Wrap[1]);
 
   { give the texture data }
   if Image is TImage then
@@ -1502,18 +1490,6 @@ begin
     end;
   end else
     raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
-end;
-
-procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
-  minFilter, magFilter: TGLenum;
-  const Wrap: TTextureWrap2D;
-  GrayscaleIsAlpha: boolean;
-  DDSForMipmaps: TDDSImage);
-begin
-  LoadGLGeneratedTexture(TexNum, Image, MinFilter, MagFilter,
-    GrayscaleIsAlpha, DDSForMipmaps);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Wrap[0]);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Wrap[1]);
 end;
 
 function LoadGLTextureModulated(const Image: TEncodedImage;
