@@ -36,9 +36,6 @@ var
   SaveDecomposed: boolean = true;
 
 const
-  DDSTypeToString: array [TDDSType] of string =
-  ( 'Texture', 'CubeMap', 'Volume' );
-
   Options: array[0..0] of TOption =
   ( (Short:'n'; Long:'no-save'; Argument: oaNone) );
 

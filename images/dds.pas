@@ -191,6 +191,9 @@ type
 const
   AllDDSCubeMapSides = [Low(TDDSCubeMapSide) .. High(TDDSCubeMapSide)];
 
+  DDSTypeToString: array [TDDSType] of string =
+  ( 'Texture', 'CubeMap', 'Volume' );
+
 implementation
 
 uses SysUtils, KambiUtils, KambiClassUtils, DataErrors, KambiStringUtils,
