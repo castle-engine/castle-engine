@@ -1322,7 +1322,7 @@ end;
 
   @raises(ECannotLoadS3TCTexture If texture size is bad or OpenGL S3TC
     extensions are missing.) }
-procedure glCompressedTextureImage2D(Image: TS3TCImage; Level: TGLint = 0);
+procedure glCompressedTextureImage2D(Image: TS3TCImage; Level: TGLint);
 begin
   if not (GL_ARB_texture_compression and GL_EXT_texture_compression_s3tc) then
     raise ECannotLoadS3TCTexture.Create('Cannot load S3TC compressed textures: OpenGL doesn''t support one (or both) of ARB_texture_compression and EXT_texture_compression_s3tc extensions');
@@ -1353,7 +1353,7 @@ var
     Takes care of Image size --- makes sure that image has the right size
     (power of 2, within OpenGL required sizes).
     Level = 0 for base (not a mipmap sublevel) image. }
-  procedure glTexImage2DImage(Image: TImage; Level: TGLint = 0);
+  procedure glTexImage2DImage(Image: TImage; Level: TGLint);
 
     { This is like glTexImage2DImage, but it doesn't take care
       of Image size. }
@@ -1443,7 +1443,7 @@ var
         Documentation is on
         [http://oss.sgi.com/projects/ogl-sample/registry/SGIS/generate_mipmap.txt] }
       glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
-      glTexImage2DImage(Image);
+      glTexImage2DImage(Image, 0);
     end else
       gluBuild2DMipmapsImage(Image);
   end;
@@ -1452,7 +1452,7 @@ var
   begin
     if GL_SGIS_generate_mipmap then
       glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_FALSE);
-    glTexImage2DImage(Image);
+    glTexImage2DImage(Image, 0);
   end;
 
 begin
@@ -1486,7 +1486,7 @@ begin
   if Image is TS3TCImage then
   begin
     { Load compressed }
-    glCompressedTextureImage2D(TS3TCImage(Image));
+    glCompressedTextureImage2D(TS3TCImage(Image), 0);
 
     if TextureMinFilterNeedsMipmaps(MinFilter) then
     begin
@@ -1883,7 +1883,7 @@ begin
       [Image.Width, Image.Height]);
 
   try
-    glCompressedTextureImage2D(Image);
+    glCompressedTextureImage2D(Image, 0);
   except
     { catch ECannotLoadS3TCTexture and change it to ECannotDecompressS3TC }
     on E: ECannotLoadS3TCTexture do
