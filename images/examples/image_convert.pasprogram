@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2006 Michalis Kamburelis.
+  Copyright 2001-2006,2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -53,96 +53,96 @@ const
   procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
     const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
   begin
-   case OptionNum of
-    0: begin
-       Writeln(
-         'image_convert <inputfile> <outputfile> [<resize-x> <resize-y>]' +nl+
-         'will convert image in <inputfile> to image in <outputfile>.' +nl+
-         'Format of both images will be recognized from file extension.' +nl+
-         '<inputfile> and <outputfile> may be the same file, it doesn''t matter.' +nl+
-         '' +nl+
-         'If <resize-x> <resize-y> parameters are given then output image' +nl+
-         'is scaled to that size. Size = 0 means "do not scale in this dimension",' +nl+
-         'e.g. <resize-x> <resize-y> = 200 0 means "scale x dimension to 200' +nl+
-         'and leave y dimension as is". (effectively, specifying' +nl+
-         '<resize-x> <resize-y> = 0 0 has the same effect as omitting these' +nl+
-         'parameters).' +nl+
-         '' +nl+
-         'Additional params with no fixed position:' +nl+
-         '-s <float> or' +nl+
-         '--scale <float>' +nl+
-         '  Valid only if input file is in RGBE format (error will be raised' +nl+
-         '  if this param is specified when input file is not in RGBE format).' +nl+
-         '  Effect : before writing output image, scales each pixel color' +nl+
-         '  (it''s red, green and blue value) by <float>.' +nl+
-         '  Multiple --scale-rgbe _cummulate_ : e.g.' +nl+
-         '  "--scale-rgbe 1.5 --scale-rgbe 2" would have the same effect as' +nl+
-         '  "--scale-rgbe 3".' +nl+
-         '-g <float>' +nl+
-         '--gamma <float>' +nl+
-         '  Similiar to --scale - valid only when input is RGBE,' +nl+
-         '  multiple params are cummulated, default is 1.0.' +nl+
-         '  Each component is raised to 1/<float>.' +nl+
-         '' +nl+
-         '--grayscale' +nl+
-         '          Convert to grayscale.' +nl+
-         '--convert-to-channel 0|1|2' +nl+
-         '          Converts colors to red / green / blue channel,' +nl+
-         '          it''s like converting to grayscale and then' +nl+
-         '          writing output to only one channel.' +nl+
-         '--strip-to-channel 0|1|2' +nl+
-         '          Strips colors to only one channel, i.e.' +nl+
-         '          sets to zero intensities of other two channels.' +nl+
-         '');
-       ProgramBreak;
-      end;
-    1: RGBEScale *= StrToFloat(Argument);
-    2: RGBEGamma *= StrToFloat(Argument);
-    3: WasParam_GrayScale := true;
-    4: Param_ConvertToChannel := StrToInt(Argument);
-    5: Param_StripToChannel := StrToInt(Argument);
-    else raise EInternalError.Create('option not impl');
-   end;
+    case OptionNum of
+      0: begin
+           Writeln(
+             'image_convert <inputfile> <outputfile> [<resize-x> <resize-y>]' +nl+
+             'will convert image in <inputfile> to image in <outputfile>.' +nl+
+             'Format of both images will be recognized from file extension.' +nl+
+             '<inputfile> and <outputfile> may be the same file, it doesn''t matter.' +nl+
+             '' +nl+
+             'If <resize-x> <resize-y> parameters are given then output image' +nl+
+             'is scaled to that size. Size = 0 means "do not scale in this dimension",' +nl+
+             'e.g. <resize-x> <resize-y> = 200 0 means "scale x dimension to 200' +nl+
+             'and leave y dimension as is". (effectively, specifying' +nl+
+             '<resize-x> <resize-y> = 0 0 has the same effect as omitting these' +nl+
+             'parameters).' +nl+
+             '' +nl+
+             'Additional params with no fixed position:' +nl+
+             '-s <float> or' +nl+
+             '--scale <float>' +nl+
+             '  Valid only if input file is in RGBE format (error will be raised' +nl+
+             '  if this param is specified when input file is not in RGBE format).' +nl+
+             '  Effect : before writing output image, scales each pixel color' +nl+
+             '  (it''s red, green and blue value) by <float>.' +nl+
+             '  Multiple --scale-rgbe _cummulate_ : e.g.' +nl+
+             '  "--scale-rgbe 1.5 --scale-rgbe 2" would have the same effect as' +nl+
+             '  "--scale-rgbe 3".' +nl+
+             '-g <float>' +nl+
+             '--gamma <float>' +nl+
+             '  Similiar to --scale - valid only when input is RGBE,' +nl+
+             '  multiple params are cummulated, default is 1.0.' +nl+
+             '  Each component is raised to 1/<float>.' +nl+
+             '' +nl+
+             '--grayscale' +nl+
+             '          Convert to grayscale.' +nl+
+             '--convert-to-channel 0|1|2' +nl+
+             '          Converts colors to red / green / blue channel,' +nl+
+             '          it''s like converting to grayscale and then' +nl+
+             '          writing output to only one channel.' +nl+
+             '--strip-to-channel 0|1|2' +nl+
+             '          Strips colors to only one channel, i.e.' +nl+
+             '          sets to zero intensities of other two channels.' +nl+
+             '');
+           ProgramBreak;
+         end;
+      1: RGBEScale *= StrToFloat(Argument);
+      2: RGBEGamma *= StrToFloat(Argument);
+      3: WasParam_GrayScale := true;
+      4: Param_ConvertToChannel := StrToInt(Argument);
+      5: Param_StripToChannel := StrToInt(Argument);
+      else raise EInternalError.Create('option not impl');
+    end;
   end;
 
 var
   { helper variables }
   Img: TImage;
 begin
- { parse free position params }
- ParseParameters(Options, @OptionProc, nil);
+  { parse free position params }
+  ParseParameters(Options, @OptionProc, nil);
 
- { parse fixed position params }
- if Parameters.High = 4 then
- begin
-  ResizeX := StrToInt(Parameters[3]); Parameters.Delete(3, 1);
-  ResizeY := StrToInt(Parameters[3]); Parameters.Delete(3, 1);
- end;
- Parameters.CheckHigh(2);
- InputImageName := Parameters[1];
- OutputImageName := Parameters[2];
-
- { do. }
- Img := LoadImage(InputImageName, [], [], ResizeX, ResizeY);
- try
-  if RGBEScale <> 1.0 then
+  { parse fixed position params }
+  if Parameters.High = 4 then
   begin
-   Check(Img is TRGBEImage, '--scale <> 1.0 but input image is not in RGBE format');
-   (Img as TRGBEImage).ScaleColors(RGBEScale);
+    ResizeX := StrToInt(Parameters[3]); Parameters.Delete(3, 1);
+    ResizeY := StrToInt(Parameters[3]); Parameters.Delete(3, 1);
   end;
-  if RGBEGamma <> 1.0 then
-  begin
-   Check(Img is TRGBEImage, '--gamma <> 1.0 but input image is not in RGBE format');
-   (Img as TRGBEImage).ExpColors(1/RGBEGamma);
-  end;
+  Parameters.CheckHigh(2);
+  InputImageName := Parameters[1];
+  OutputImageName := Parameters[2];
 
-  if WasParam_GrayScale then
-   Img.Grayscale;
-  if Param_ConvertToChannel <> -1 then
-   Img.ConvertToChannelRGB(Param_ConvertToChannel);
-  if Param_StripToChannel <> -1 then
-    Img.StripToChannelRGB(Param_StripToChannel);
+  { do. }
+  Img := LoadImage(InputImageName, [], [], ResizeX, ResizeY);
+  try
+    if RGBEScale <> 1.0 then
+    begin
+      Check(Img is TRGBEImage, '--scale <> 1.0 but input image is not in RGBE format');
+      (Img as TRGBEImage).ScaleColors(RGBEScale);
+    end;
+    if RGBEGamma <> 1.0 then
+    begin
+      Check(Img is TRGBEImage, '--gamma <> 1.0 but input image is not in RGBE format');
+      (Img as TRGBEImage).ExpColors(1/RGBEGamma);
+    end;
 
-  SaveImage(Img, OutputImageName);
- finally Img.Free end;
+    if WasParam_GrayScale then
+      Img.Grayscale;
+    if Param_ConvertToChannel <> -1 then
+      Img.ConvertToChannelRGB(Param_ConvertToChannel);
+    if Param_StripToChannel <> -1 then
+      Img.StripToChannelRGB(Param_StripToChannel);
+
+    SaveImage(Img, OutputImageName);
+  finally Img.Free end;
 end.
