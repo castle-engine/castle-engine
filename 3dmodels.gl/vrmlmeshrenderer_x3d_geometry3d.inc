@@ -642,10 +642,11 @@ end;
 procedure TIndexedFaceSetRenderer.RenderCoordinateBegin;
 begin
   inherited;
-  
-  LightPositionObjectSpace := MatrixMultPoint(
-    State.InvertedTransform,
-    Renderer.BumpMappingLightPosition);
+
+  if BumpMappingMethod <> bmNone then
+    LightPositionObjectSpace := MatrixMultPoint(
+      State.InvertedTransform,
+      Renderer.BumpMappingLightPosition);
 end;
 
 procedure TIndexedFaceSetRenderer.AutoGenerateNormals(const CreaseAngle: Single);
