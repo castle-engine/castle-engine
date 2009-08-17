@@ -1631,7 +1631,7 @@ var
         niepodzielne na 4). }
       BeforeUnpackImage(UnpackData, Image);
       try
-        glTexImage2D(Target, 0, ImageInternalFormat,
+        glTexImage2D(Target, Level, ImageInternalFormat,
           Image.Width, Image.Height, 0, ImageFormat, ImageGLType(Image),
           Image.RawPixels);
       finally AfterUnpackImage(UnpackData, Image) end;
@@ -1709,7 +1709,7 @@ var
     { Pixel packing parameters (stuff changed by Before/AfterUnpackImage)
       doesn't affect loading compressed textures, as far as I understand.
       So no need to call it. }
-    glCompressedTexImage2DARB(Target, 0, ImageInternalFormat,
+    glCompressedTexImage2DARB(Target, Level, ImageInternalFormat,
       Image.Width, Image.Height, 0, Image.Size,
       Image.RawPixels);
   end;
@@ -1735,8 +1735,44 @@ procedure glTextureCubeMap(
   PositiveZ, NegativeZ: TEncodedImage;
   DDSForMipmaps: TDDSImage;
   Mipmaps: boolean);
+
+  { Check should we load mipmaps from DDS. }
+  function HasMipmapsFromDDS(DDS: TDDSImage): boolean;
+  begin
+    Result := (DDS <> nil) and DDS.Mipmaps;
+    if Result and (DDS.DDSType <> dtCubeMap) then
+    begin
+      DataWarning('DDS image contains mipmaps, but not for CubeMap texture');
+      Result := false;
+    end;
+  end;
+
+  { Load mipmaps from DDS. Assume HasMipmapsFromDDS was true. }
+  procedure LoadMipmapsFromDDS(DDS: TDDSImage);
+
+    procedure LoadMipmapsFromDDSSide(GLSide: TGLenum; DDSSide: TDDSCubeMapSide);
+    var
+      I: Integer;
+    begin
+      for I := 1 to DDS.MipmapsCount - 1 do
+        glTextureCubeMapSide(GLSide, DDS.CubeMapImage(DDSSide, I), I, false);
+    end;
+
+  begin
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, DDS.MipmapsCount - 1);
+    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, dcsPositiveX);
+    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB, dcsNegativeX);
+    { Note Positive/Negative are swapped for Y.
+      DDS cube map sides are in left-handed coordinate system, like Direct X.
+      See TDDSCubeMapSide comments. }
+    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB, dcsNegativeY);
+    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB, dcsPositiveY);
+    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB, dcsPositiveZ);
+    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB, dcsNegativeZ);
+  end;
+
 begin
-  if Mipmaps and HasGenerateMipmap then
+  if Mipmaps and (HasMipmapsFromDDS(DDSForMipmaps) or HasGenerateMipmap) then
   begin
     { Load six cube faces without mipmaps, then generate them all
       in one go with GenerateMipmap. }
@@ -1746,9 +1782,13 @@ begin
     glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB, NegativeY, 0, false);
     glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB, PositiveZ, 0, false);
     glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB, NegativeZ, 0, false);
-    GenerateMipmap(GL_TEXTURE_CUBE_MAP);
-    if Log then
-      WritelnLog('Mipmaps', 'Generating mipmaps for cube map by GenerateMipmap (GOOD)');
+    if HasMipmapsFromDDS(DDSForMipmaps) then
+      LoadMipmapsFromDDS(DDSForMipmaps) else
+    begin
+      GenerateMipmap(GL_TEXTURE_CUBE_MAP);
+      if Log then
+        WritelnLog('Mipmaps', 'Generating mipmaps for cube map by GenerateMipmap (GOOD)');
+    end;
   end else
   begin
     glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, PositiveX, 0, Mipmaps);

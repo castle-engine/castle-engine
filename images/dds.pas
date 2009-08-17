@@ -122,9 +122,10 @@ type
     { Return given side of cube map.
       Assumes DDSType = dtCubeMap and CubeMapSides = all.
 
-      This returns always the main mipmap level of the image,
-      thus ignoring whether the DDS image has mipmaps or not. }
-    function CubeMapImage(const Side: TDDSCubeMapSide): TEncodedImage;
+      Level is mipmap level. Pass 0 for base level.
+      When not @link(Mipmaps), Level must be 0. }
+    function CubeMapImage(const Side: TDDSCubeMapSide;
+      const Level: Cardinal = 0): TEncodedImage;
 
     { Load DDS image from any TStream.
       @raises(EInvalidDDS In case of any error in the file data.) }
@@ -518,10 +519,11 @@ begin
   Result := FImages[Index];
 end;
 
-function TDDSImage.CubeMapImage(const Side: TDDSCubeMapSide): TEncodedImage;
+function TDDSImage.CubeMapImage(const Side: TDDSCubeMapSide;
+  const Level: Cardinal): TEncodedImage;
 begin
   if Mipmaps then
-    Result := FImages[Cardinal(Ord(Side)) * FMipmapsCount] else
+    Result := FImages[Cardinal(Ord(Side)) * FMipmapsCount + Level] else
     Result := FImages[Ord(Side)];
 end;
 
