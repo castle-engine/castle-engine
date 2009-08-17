@@ -123,10 +123,7 @@ type
       Assumes DDSType = dtCubeMap and CubeMapSides = all.
 
       This returns always the main mipmap level of the image,
-      thus ignoring whether the DDS image has mipmaps or not.
-
-      TODO: this is actually for testing, not really for production
-      (as for real usage, you will want to eventually use also mipmaps). }
+      thus ignoring whether the DDS image has mipmaps or not. }
     function CubeMapImage(const Side: TDDSCubeMapSide): TEncodedImage;
 
     { Load DDS image from any TStream.
