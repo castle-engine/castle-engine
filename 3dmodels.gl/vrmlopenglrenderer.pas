@@ -1135,7 +1135,7 @@ type
       const MinFilter, MagFilter: TGLint;
       const Anisotropy: TGLfloat;
       const TextureWrap: TTextureWrap3D;
-      Image: TImage;
+      Image: TEncodedImage; DDS: TDDSImage;
       out AlphaChannelType: TAlphaChannelType): TGLuint;
 
     procedure Texture3D_DecReference(
@@ -2206,7 +2206,7 @@ function TVRMLOpenGLRendererContextCache.Texture3D_IncReference(
   const MinFilter, MagFilter: TGLint;
   const Anisotropy: TGLfloat;
   const TextureWrap: TTextureWrap3D;
-  Image: TImage;
+  Image: TEncodedImage; DDS: TDDSImage;
   out AlphaChannelType: TAlphaChannelType): TGLuint;
 var
   I: Integer;
@@ -2234,7 +2234,7 @@ begin
   glGenTextures(1, @Result);
   glBindTexture(GL_TEXTURE_3D_EXT, Result);
 
-  glTextureImage3d(Image, MinFilter, MagFilter);
+  glTextureImage3d(Image, MinFilter, MagFilter, DDS);
 
   glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_WRAP_S, TextureWrap[0]);
   glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_WRAP_T, TextureWrap[1]);

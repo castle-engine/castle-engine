@@ -1978,16 +1978,9 @@ begin
 
   SetTextureRGBFromImage(TextureNode.TextureImage);
 
-  { TODO: this is a quick and dirty method:
-    - We do not use texture 3d mipmaps stored inside DDS file.
-    - We crash (because of "Image as TImage") on S3TC compressed images.
-      (although DDS doesn't allow compressed 3d textures, so this
-      is not so important now.)
-  }
-
   GLName := Renderer.Cache.Texture3D_IncReference(
     TextureNode, MinFilter, MagFilter, Anisotropy,
-    TextureWrap, TextureNode.TextureImage as TImage,
+    TextureWrap, TextureNode.TextureImage, TextureNode.TextureDDS,
     AlphaChannelType);
 end;
 

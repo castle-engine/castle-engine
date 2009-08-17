@@ -607,18 +607,30 @@ procedure glTexImages2DForCubeMap(
 
   It takes care about OpenGL unpack parameters. Just don't worry about it.
 
-  If MinFilter uses mipmaps, then all mipmap levels will be
-  automatically created and loaded.
+  If MinFilter uses mipmaps, then all mipmap levels will be loaded.
 
-  GenerateMipmap functionality will be required to create mipmaps.
-  When it is not available on this OpenGL implementation,
-  we will change MinFilter to simple GL_LINEAR and make DataWarning.
-  So usually you just don't have to worry about this.
+  @orderedList(
+    @item(
+      As a first try, if DDSForMipmaps is non-nil
+      and has mipmaps (DDSForMipmaps.Mipmaps), we will load these mipmaps.
+      DDSForMipmaps must be a 3D texture (DDSType = dtVolume).)
+
+    @item(Otherwise, we'll generate mipmaps.
+
+      GenerateMipmap functionality will be required for this.
+      When it is not available on this OpenGL implementation,
+      we will change MinFilter to simple GL_LINEAR and make DataWarning.
+      So usually you just don't have to worry about this.)
+  )
 
   @raises(ETextureLoadError If texture cannot be loaded for whatever reason,
     for example it's size is not correct for OpenGL 3D texture (we cannot
-    automatically resize 3D textures, at least for now).) }
-procedure glTextureImage3D(const Image: TImage; MinFilter, MagFilter: TGLenum);
+    automatically resize 3D textures, at least for now).
+    Or it's compressed (although we support here TEncodedImage,
+    OpenGL doesn't have any 3D texture compression available.)) }
+procedure glTextureImage3D(const Image: TEncodedImage;
+  MinFilter, MagFilter: TGLenum;
+  DDSForMipmaps: TDDSImage);
 
 type
   EGenerateMipmapNotAvailable = class(Exception);
@@ -1726,7 +1738,8 @@ end;
 
 { 3D texture loading --------------------------------------------------------- }
 
-procedure glTextureImage3D(const Image: TImage; MinFilter, MagFilter: TGLenum);
+procedure glTextureImage3D(const Image: TEncodedImage; MinFilter, MagFilter: TGLenum;
+  DDSForMipmaps: TDDSImage);
 var
   ImageInternalFormat: TGLuint;
   ImageFormat: TGLuint;
@@ -1735,7 +1748,7 @@ var
     Takes care of OpenGL unpacking (alignment etc.).
     Takes care of Image size --- makes sure that image has the right size
     (power of 2, within OpenGL required sizes). }
-  procedure glTexImage3DImage(Image: TImage);
+  procedure glTexImage3DImage(Image: TImage; Level: TGLuint);
 
     { This is like glTexImage3DImage, but it doesn't take care
       of Image size. }
@@ -1745,7 +1758,7 @@ var
     begin
       BeforeUnpackImage(UnpackData, Image);
       try
-        glTexImage3DExt(GL_TEXTURE_3D_EXT, 0, ImageInternalFormat,
+        glTexImage3DExt(GL_TEXTURE_3D_EXT, Level, ImageInternalFormat,
           Image.Width, Image.Height, Image.Depth, 0, ImageFormat, ImageGLType(Image),
           Image.RawPixels);
       finally AfterUnpackImage(UnpackData, Image) end;
@@ -1760,20 +1773,50 @@ var
     Core(Image);
   end;
 
+  { Check should we load mipmaps from DDS. Load them, if yes. }
+  function LoadMipmapsFromDDS(DDS: TDDSImage): boolean;
+  var
+    I: Integer;
+  begin
+    Result := (DDS <> nil) and DDS.Mipmaps;
+    if Result and (DDS.DDSType <> dtVolume) then
+    begin
+      DataWarning('DDS image contains mipmaps, but not for 3D (volume) texture');
+      Result := false;
+    end;
+
+    if Result then
+    begin
+      glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_MAX_LEVEL, DDS.Images.High);
+      for I := 1 to DDS.Images.High do
+        if DDS.Images[I] is TImage then
+          glTexImage3DImage(TImage(DDS.Images[I]), I) else
+          raise ETextureLoadError.CreateFmt('Image class %s cannot be loaded to OpenGL 3D texture. OpenGL doesn''t allow any 3D texture compression formats',
+            [Image.ClassName]);
+    end;
+  end;
+
 begin
   ImageInternalFormat := ImageGLInternalFormat(Image);
   ImageFormat := ImageGLFormat(Image);
 
-  glTexImage3DImage(Image);
+  if not (Image is TImage) then
+    raise ETextureLoadError.CreateFmt('Image class %s cannot be loaded to OpenGL 3D texture. OpenGL doesn''t allow any 3D texture compression formats',
+      [Image.ClassName]);
+
+  glTexImage3DImage(TImage(Image), 0);
 
   if TextureMinFilterNeedsMipmaps(MinFilter) then
-  try
-    GenerateMipmap(GL_TEXTURE_3D_EXT);
-  except
-    on E: EGenerateMipmapNotAvailable do
-    begin
-      MinFilter := GL_LINEAR;
-      DataWarning('Creating mipmaps for 3D textures requires GenerateMipmap functionality, will fallback to GL_LINEAR minification: ' + E.Message);
+  begin
+    if not LoadMipmapsFromDDS(DDSForMipmaps) then
+    try
+      GenerateMipmap(GL_TEXTURE_3D_EXT);
+    except
+      on E: EGenerateMipmapNotAvailable do
+      begin
+        MinFilter := GL_LINEAR;
+        DataWarning('Creating mipmaps for 3D textures requires GenerateMipmap functionality, will fallback to GL_LINEAR minification: ' + E.Message);
+      end;
     end;
   end;
 
