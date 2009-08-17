@@ -23,9 +23,12 @@
   This unit implements various OpenGL utilities relates to handling images
   in TImage classes. This includes
   @unorderedList(
-    @item(Loading TImage instance as OpenGL texture.
-      Wrapper around glTexImage2D and other texture-related operations.
-      See LoadGLTexture.)
+    @item(Loading images as OpenGL textures.
+      A lot of utilities: for 2D textures (see LoadGLTexture),
+      cube maps (see glTextureCubeMap), 3D textures (see glTextureImage3D).
+      These function can be treated like a high-level wrappers around
+      glTexImage2D and analogous calls,
+      setting also common related texture parameters, generating mipmaps etc.)
 
     @item(Drawing TImage instance in OpenGL buffer.
       Wrapper around glDrawPixels and related things.
@@ -34,6 +37,10 @@
     @item(Screen saving, that is saving OpenGL buffer contents to TImage instance.
       Wrapper around glReadPixels and related things.
       See TGLWindow.SaveScreen, based on SaveScreen_noflush in this unit.)
+
+    @item(Rendering straight to texture (see TGLRenderToTexture class).
+      This is our abstraction
+      over OpenGL framebuffer or glCopyTexSubImage.)
   )
 
   See @link(Images) unit for functions to load, save, process
@@ -108,7 +115,7 @@
     )
   )
 
-  Internally, this unit depends on the knowledge on how pixels are stored
+  Internally, this unit depends on the knowledge of how pixels are stored
   in TRGBImage and similar classes. For example we know that
   TRGBImage stores image in format that OpenGL would call "GL_RGB
   using GL_UNSIGNED_BYTE, without any alignment". Which means that
