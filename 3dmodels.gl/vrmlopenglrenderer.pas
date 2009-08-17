@@ -1107,6 +1107,7 @@ type
       PositiveX, NegativeX,
       PositiveY, NegativeY,
       PositiveZ, NegativeZ: TEncodedImage;
+      DDSForMipmaps: TDDSImage;
       out AlphaChannelType: TAlphaChannelType): TGLuint;
 
     procedure TextureCubeMap_DecReference(
@@ -2111,6 +2112,7 @@ function TVRMLOpenGLRendererContextCache.TextureCubeMap_IncReference(
   PositiveX, NegativeX,
   PositiveY, NegativeY,
   PositiveZ, NegativeZ: TEncodedImage;
+  DDSForMipmaps: TDDSImage;
   out AlphaChannelType: TAlphaChannelType): TGLuint;
 var
   I: Integer;
@@ -2143,10 +2145,11 @@ begin
   glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-  glTexImages2DForCubeMap(
+  glTextureCubeMap(
     PositiveX, NegativeX,
     PositiveY, NegativeY,
     PositiveZ, NegativeZ,
+    DDSForMipmaps,
     TextureMinFilterNeedsMipmaps(MinFilter));
 
   TexParameterMaxAnisotropy(GL_TEXTURE_CUBE_MAP_ARB, Anisotropy);

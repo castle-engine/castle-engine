@@ -1765,6 +1765,7 @@ begin
       { negative y } TVRMLTextureNode(TextureNode.FdBottom.Value).TextureImage as TImage,
       { positive z } BackRot,
       { negative z } FrontRot,
+      nil,
       AlphaChannelType);
   finally
     FreeAndNil(BackRot);
@@ -1830,6 +1831,7 @@ begin
       DDS.CubeMapImage(dcsPositiveY),
       DDS.CubeMapImage(dcsPositiveZ),
       DDS.CubeMapImage(dcsNegativeZ),
+      DDS,
       AlphaChannelType);
   finally FreeAndNil(DDS); end;
 end;
@@ -1903,6 +1905,7 @@ begin
       InitialImage, InitialImage,
       InitialImage, InitialImage,
       InitialImage, InitialImage,
+      nil,
       AlphaChannelType);
   finally FreeAndNil(InitialImage) end;
 

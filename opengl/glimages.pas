@@ -545,10 +545,10 @@ type
       read FTimeBackwards write FTimeBackwards;
   end;
 
-{ Comfortably load a single image for one cube map texture side.
-  Think about this as doing only glTexImage2D(Target, ...) for you.
-  Target should be one of the six cube map texture targets:
-  GL_TEXTURE_CUBE_MAP_POSITIVE/NEGATIVE_X/Y/Z_ARB.
+{ Comfortably load all six cube map texture images.
+  Think about this as doing glTexImage2D(Side, ...) for each cube side.
+  It takes care of (almost?) everything you need to prepare OpenGL cube map
+  texture.
 
   It automatically takes care to adjust the texture size to
   appropriate size, honoring the "power of two" requirement and
@@ -560,41 +560,33 @@ type
 
   It takes care about OpenGL unpack parameters. Just don't worry about it.
 
-  If mipmaps, then all mipmap levels will be automatically created and loaded.
-  This can create mipmaps only by gluBuild2DMipmaps. It will also
-  fail with ECannotLoadS3TCTexture if mipmaps will be requested --- we cannot
-  generate mipmaps for S3TC compressed. If you want to use
-  more modern GenerateMipmap, you should use higher-level
-  glTexImages2DForCubeMap (takes all six images), or pass Mipmaps = @false
-  and do it yourself.
+  If mipmaps are requested:
+
+  @orderedList(
+    @item(First of all, if DDSForMipmaps is non-nil and has mipmaps defined,
+      we will load them from this DDS image.
+      DDSForMipmaps must have DDSType = dtCubeMap.)
+
+    @item(Otherwise, we'll try to generate images using OpenGL GenerateMipmap.)
+
+    @item(As a last resort, if GenerateMipmap is not available,
+      we will fallback to generating mipmaps on CPU by good old
+      gluBuild2DMipmaps call.)
+  )
 
   @raises(ETextureLoadError If texture cannot be loaded for whatever reason.
     This includes ECannotLoadS3TCTexture if the S3TC texture cannot be
     loaded for whatever reason (not availble S3TC extensions,
-    not correct texture size, mipmaps requested).
+    not correct texture size, mipmaps requested and
+    DDSForMipmaps/glGenerateMipmap not available).
     This includes EInvalidImageForOpenGLTexture if Image class is invalid
     for an OpenGL texture.)
 }
-procedure glTexImage2DForCubeMap(
-  Target: TGLenum; const Image: TEncodedImage; Mipmaps: boolean);
-
-{ Comfortably load all six cube map texture images.
-  It takes care of many things for you, see glTexImage2DForCubeMap.
-
-  For mipmaps, it will use GenerateMipmap OpenGL call (if available,
-  otherwise gluBuild2DMipmaps).
-
-  @raises(ETextureLoadError If texture cannot be loaded for whatever reason.
-    This includes ECannotLoadS3TCTexture if the S3TC texture cannot be
-    loaded for whatever reason (not availble S3TC extensions,
-    not correct texture size, mipmaps requested and glGenerateMipmap not available).
-    This includes EInvalidImageForOpenGLTexture if Image class is invalid
-    for an OpenGL texture.)
-}
-procedure glTexImages2DForCubeMap(
+procedure glTextureCubeMap(
   PositiveX, NegativeX,
   PositiveY, NegativeY,
   PositiveZ, NegativeZ: TEncodedImage;
+  DDSForMipmaps: TDDSImage;
   Mipmaps: boolean);
 
 { Comfortably load a 3D texture.
@@ -1582,8 +1574,32 @@ end;
 
 { Cube map texture loading --------------------------------------------------- }
 
-procedure glTexImage2DForCubeMap(
-  Target: TGLenum; const Image: TEncodedImage; Mipmaps: boolean);
+{ Comfortably load a single image for one cube map texture side.
+
+  This is pretty much like glTexImages2DForCubeMap,
+  except it operates only on one side of the cube.
+  Target should be one of the six cube map texture targets:
+  GL_TEXTURE_CUBE_MAP_POSITIVE/NEGATIVE_X/Y/Z_ARB.
+
+  Also, this cannot load mipmaps from DDS or use GenerateMipmap
+  (GenerateMipmap call must be done for whole cube map texture target).
+  So this can create mipmaps only by gluBuild2DMipmaps. It will also
+  fail with ECannotLoadS3TCTexture if mipmaps will be requested --- we cannot
+  generate mipmaps for S3TC compressed. If you want to use
+  more modern GenerateMipmap, you should use higher-level
+  glTexImages2DForCubeMap (takes all six images), or pass Mipmaps = @false
+  and do it yourself.
+
+  Level must be 0 is you require mipmaps.
+
+  @raises(ETextureLoadError If texture cannot be loaded for whatever reason.
+    This includes ECannotLoadS3TCTexture if the S3TC texture cannot be
+    loaded for whatever reason (not availble S3TC extensions,
+    not correct texture size, mipmaps requested).
+    This includes EInvalidImageForOpenGLTexture if Image class is invalid
+    for an OpenGL texture.) }
+procedure glTextureCubeMapSide(
+  Target: TGLenum; const Image: TEncodedImage; Level: TGLuint; Mipmaps: boolean);
 var
   ImageInternalFormat: TGLuint;
   ImageFormat: TGLuint;
@@ -1706,33 +1722,34 @@ begin
     raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
 end;
 
-procedure glTexImages2DForCubeMap(
+procedure glTextureCubeMap(
   PositiveX, NegativeX,
   PositiveY, NegativeY,
   PositiveZ, NegativeZ: TEncodedImage;
+  DDSForMipmaps: TDDSImage;
   Mipmaps: boolean);
 begin
   if Mipmaps and HasGenerateMipmap then
   begin
     { Load six cube faces without mipmaps, then generate them all
       in one go with GenerateMipmap. }
-    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, PositiveX, false);
-    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB, NegativeX, false);
-    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB, PositiveY, false);
-    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB, NegativeY, false);
-    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB, PositiveZ, false);
-    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB, NegativeZ, false);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, PositiveX, 0, false);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB, NegativeX, 0, false);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB, PositiveY, 0, false);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB, NegativeY, 0, false);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB, PositiveZ, 0, false);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB, NegativeZ, 0, false);
     GenerateMipmap(GL_TEXTURE_CUBE_MAP);
     if Log then
       WritelnLog('Mipmaps', 'Generating mipmaps for cube map by GenerateMipmap (GOOD)');
   end else
   begin
-    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, PositiveX, Mipmaps);
-    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB, NegativeX, Mipmaps);
-    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB, PositiveY, Mipmaps);
-    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB, NegativeY, Mipmaps);
-    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB, PositiveZ, Mipmaps);
-    glTexImage2DForCubeMap(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB, NegativeZ, Mipmaps);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, PositiveX, 0, Mipmaps);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB, NegativeX, 0, Mipmaps);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB, PositiveY, 0, Mipmaps);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB, NegativeY, 0, Mipmaps);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB, PositiveZ, 0, Mipmaps);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB, NegativeZ, 0, Mipmaps);
   end;
 end;
 
