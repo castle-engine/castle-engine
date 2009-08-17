@@ -1,0 +1,72 @@
+{
+  Copyright 2009 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
+}
+
+{ Remove from DDS mipmaps the levels with one of the sizes < 4.
+
+  This workarounds GIMP-DDS bugs related to this, it generates invalid
+  images for them. }
+program dds_remove_smallest_mipmaps;
+
+uses SysUtils, KambiUtils, Images, DDS, DataErrors, KambiStringUtils;
+
+var
+  D: TDDSImage;
+  NeedsSave: boolean;
+  I: Integer;
+begin
+  DataWarning := @DataWarning_Write;
+  Parameters.CheckHigh(1);
+  D := TDDSImage.Create;
+  try
+    D.LoadFromFile(Parameters[1]);
+    if D.DDSType <> dtTexture then
+      raise EInvalidParams.Create('For now, this works only for normal (2D) textures in DSS');
+
+    if D.Mipmaps then
+    begin
+      NeedsSave := false;
+      I := 1; { start from 1, to never remove base image }
+      while I <= D.Images.High do
+      begin
+        if (D.Images[I].Width < 4) or
+           (D.Images[I].Height < 4) then
+        begin
+          Writeln(Format('Removing mipmap with size %d x %d.',
+            [D.Images[I].Width, D.Images[I].Height]));
+          D.Images.FreeAndNil(I);
+          D.Images.Delete(I);
+          D.MipmapsCount := D.MipmapsCount - 1;
+          NeedsSave := true;
+        end else
+          Inc(I);
+      end;
+
+      if NeedsSave then
+      begin
+        D.SaveToFile(Parameters[1]);
+        Writeln('Saved changes.');
+      end else
+        Writeln('No changes needed (no small mipmaps found).');
+    end else
+      Writeln('No mipmaps, nothing to do.');
+  finally FreeAndNil(D) end;
+end.

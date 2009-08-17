@@ -220,6 +220,7 @@ EXAMPLES_BASE_NAMES := \
   images/examples/dds_decompose \
   images/examples/image_identify \
   images/tools/image_to_pas \
+  images/tools/dds_remove_small_mipmaps \
   opengl/examples/gl_win_events \
   opengl/examples/menu_test_alternative \
   opengl/examples/menu_test \
