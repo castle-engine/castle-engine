@@ -23,16 +23,33 @@
 { Simple test of DDS reading.
 
   Reads DDS file $1, outputs some information about it,
-  and saves a sequence of PNG files xxx-yyy.png (where xxx comes
+  and (if not --no-save) saves a sequence of PNG files xxx-yyy.png
+  (where xxx comes
   from the basename of $1, and yyy is the consecutive number from 0,
   and the files are saved in $1 directory). }
 program dds_decompose;
 
-uses SysUtils, KambiUtils, Images, DDS, DataErrors, KambiStringUtils;
+uses SysUtils, KambiUtils, Images, DDS, DataErrors, KambiStringUtils,
+  ParseParametersUnit;
+
+var
+  SaveDecomposed: boolean = true;
 
 const
   DDSTypeToString: array [TDDSType] of string =
   ( 'Texture', 'CubeMap', 'Volume' );
+
+  Options: array[0..0] of TOption =
+  ( (Short:'n'; Long:'no-save'; Argument: oaNone) );
+
+  procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+    const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+  begin
+    case OptionNum of
+      0: SaveDecomposed := false;
+      else raise EInternalError.Create('option not impl');
+    end;
+  end;
 
 var
   DImg: TDDSImage;
@@ -40,6 +57,7 @@ var
   I: Integer;
 begin
   DataWarning := @DataWarning_Write;
+  ParseParameters(Options, @OptionProc, nil);
   Parameters.CheckHigh(1);
   DImg := TDDSImage.Create;
   try
@@ -51,17 +69,20 @@ begin
       '  Mipmaps: ', DImg.Mipmaps, nl,
       '  Simple 2D images inside: ', DImg.Images.Count);
 
-    if not (DImg.Images[0] is TImage) then
-      raise Exception.CreateFmt('Cannot save S3TC compressed images (image class is %s)',
-        [DImg.Images[0].ClassName]);
-
-    OutputBaseName := ExtractFilePath(Parameters[1]) +
-      ExtractOnlyFileName(Parameters[1]) + '_';
-    for I := 0 to DImg.Images.Count - 1 do
+    if SaveDecomposed then
     begin
-      OutputName := OutputBaseName + IntToStrZPad(I, 2) + '.png';
-      Writeln('Writing ', OutputName);
-      SaveImage(DImg.Images[I] as TImage, OutputName);
+      if not (DImg.Images[0] is TImage) then
+        raise Exception.CreateFmt('Cannot save S3TC compressed images (image class is %s)',
+          [DImg.Images[0].ClassName]);
+
+      OutputBaseName := ExtractFilePath(Parameters[1]) +
+        ExtractOnlyFileName(Parameters[1]) + '_';
+      for I := 0 to DImg.Images.Count - 1 do
+      begin
+        OutputName := OutputBaseName + IntToStrZPad(I, 2) + '.png';
+        Writeln('Writing ', OutputName);
+        SaveImage(DImg.Images[I] as TImage, OutputName);
+      end;
     end;
 
   finally FreeAndNil(DImg) end;
