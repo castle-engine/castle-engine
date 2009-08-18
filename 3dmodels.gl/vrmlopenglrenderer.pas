@@ -1148,7 +1148,10 @@ type
 
     { Set GLSLProgram uniform variable from VRML field value.
       Uniform name is contained in UniformName. UniformValue indicates
-      uniform type and new value (UniformValue.Name is not used). }
+      uniform type and new value (UniformValue.Name is not used).
+
+      This ignores SFNode / MFNode fields (these will be set each
+      time when enabling this shader). }
     procedure SetUniformFromField(
       GLSLProgram: TGLSLProgram; UniformName: string;
       UniformValue: TVRMLField);
@@ -2476,7 +2479,15 @@ begin
         GLSLProgram.SetUniform(UniformName, TempMat4f);
       finally FreeAndNil(TempMat4f) end;
     end else
-
+    if (UniformValue is TSFNode) or
+       (UniformValue is TMFNode) then
+    begin
+      { Nothing to do, these will be set by TGLSLRenderer.Enable }
+    end else
+      { TODO: other field types, full list is in X3D spec in
+        "OpenGL shading language (GLSL) binding".
+        Remaining:
+        SF/MFImage }
       VRMLWarning(vwSerious, 'Setting uniform GLSL variable from X3D field type "' + UniformValue.VRMLTypeName + '" not supported');
 
     { Invalid glUniform call, that specifies wrong uniform variable type,
@@ -2488,13 +2499,6 @@ begin
       CheckGLError below will raise EOpenGLError, will be catched
       and converter to VRMLWarning below. }
     CheckGLErrors;
-
-    { TODO: other field types, full list is in X3D spec in
-      "OpenGL shading language (GLSL) binding".
-      Remaining:
-        SF/MFNode,
-        SF/MFImage }
-
   except
     { X3D spec "OpenGL shading language (GLSL) binding" says
       "If the name is not available as a uniform variable in the
@@ -4114,7 +4118,8 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
 var
   BumpMapping: TBumpMappingRenderer;
 
-  UsedGLSLProgram: TGLSLProgram;
+  UsedGLSL: TGLSLRenderer;
+  UsedGLSLBoundTextureUnits: Cardinal;
 
   procedure RenderTexturesBegin;
   var
@@ -4153,6 +4158,12 @@ var
 
     GLTextureNode := GLTextureNodes.TextureNode(TextureNode);
 
+    if UsedGLSLBoundTextureUnits > 0 then
+    begin
+      { Do not bind/enable normal textures. Just set TexCoordsNeeded,
+        to generate tex coords for textures used in the shader. }
+      TexCoordsNeeded := UsedGLSLBoundTextureUnits;
+    end else
     if (TextureNode <> nil) and
        Attributes.EnableTextures and
        NodeTextured(CurrentGeometry) and
@@ -4172,7 +4183,7 @@ var
       begin
         { for bump mapping, always TexCoordsNeeded = 1 }
         TexCoordsNeeded := 1;
-        if UsedGLSLProgram <> nil then
+        if UsedGLSL <> nil then
           VRMLWarning(vwIgnorable, 'You use both GLSL shader (ComposedShader node) and bump mapping (normalMap, heightMap fields) on a single Shape. Note that this will (usually) not work correctly --- bump mapping has to set up special shader and multitexturing environment to work.');
       end;
     end;
@@ -4223,19 +4234,20 @@ var
   end;
 
   { Find if some shader is available and prepared for this state.
-    If yes, then sets UsedGLSLProgram to non-nil and enables this shader. }
+    If yes, then sets UsedGLSL to non-nil and enables this shader. }
   procedure RenderShadersBegin;
   begin
-    UsedGLSLProgram := nil;
+    UsedGLSL := nil;
+    UsedGLSLBoundTextureUnits := 0;
 
     if not Attributes.PureGeometry then
-      UsedGLSLProgram := GLSLRenderers.Enable(CurrentState);
+      UsedGLSL := GLSLRenderers.Enable(CurrentState, UsedGLSLBoundTextureUnits);
   end;
 
   procedure RenderShadersEnd;
   begin
-    if UsedGLSLProgram <> nil then
-      UsedGLSLProgram.Disable;
+    if UsedGLSL <> nil then
+      UsedGLSL.Disable;
   end;
 
 begin

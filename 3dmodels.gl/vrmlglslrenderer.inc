@@ -3,20 +3,33 @@
   { Rendering GLSL program. }
   TGLSLRenderer = class(TResourceRenderer)
   private
-  public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer; ANode: TNodeComposedShader);
-
-    function Node: TNodeComposedShader;
-
     { GLSLProgram prepared.
 
       @nil means that this GLSL program failed to initialize.
       So do not try to initialize it again, and no need to unprepare
       it from Cache (as Cache doesn't have this program). }
     GLSLProgram: TGLSLProgram;
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer; ANode: TNodeComposedShader);
 
-    procedure Prepare;
+    function Node: TNodeComposedShader;
+
+    procedure Prepare(State: TVRMLGraphTraverseState);
     procedure Unprepare; override;
+
+    { Enable GLSL shader.
+      Binds also texture nodes for it's uniform variables.
+      (if any; returns BoundTextureUnits to indicate this).
+
+      Returns @false on failure, which means that something (ComposedShader
+      node, or texture node) was not successfully prepared (unable to load
+      etc.). Note that some shader / texture could be bound anyway,
+      but nothing should be enabled in case of failure.
+      BoundTextureUnits is always 0 in case of failure. }
+    function Enable(out BoundTextureUnits: Cardinal): boolean;
+
+    { Disable things. Assumes that previously it did a successfull Enable. }
+    procedure Disable;
   end;
 
   TGLSLRenderersList = class(TResourceRenderersList)
@@ -37,8 +50,12 @@
       ARenderer: TVRMLOpenGLRenderer);
 
     { If some shader is available and prepared for this state,
-      Enable it (and return it's program). Otherwise returns @nil. }
-    function Enable(State: TVRMLGraphTraverseState): TGLSLProgram;
+      Enable it (and return it). Returns @nil if no such shader
+      (that can be enabled successfully).
+
+      BoundTextureUnits is always 0 if returns @nil. }
+    function Enable(State: TVRMLGraphTraverseState;
+      out BoundTextureUnits: Cardinal): TGLSLRenderer;
   end;
 
 {$endif read_interface}
@@ -56,11 +73,52 @@ begin
   Result := TNodeComposedShader(inherited Node);
 end;
 
-procedure TGLSLRenderer.Prepare;
+procedure TGLSLRenderer.Prepare(State: TVRMLGraphTraverseState);
+
+  { Scan IDecls for SFNode and MFNode fields, prepare texture nodes inside. }
+  procedure PrepareShaderFields(IDecls: TVRMLInterfaceDeclarationsList);
+
+    { If TextureNode <> @nil and is a texture node, prepare it. }
+    procedure PrepareTexture(TextureNode: TVRMLNode);
+    begin
+      if (TextureNode <> nil) and
+         (TextureNode is TNodeX3DTextureNode) then
+        Renderer.GLTextureNodes.Prepare(State,
+          TNodeX3DTextureNode(TextureNode), Renderer);
+    end;
+
+  var
+    I, J: Integer;
+    UniformField: TVRMLField;
+  begin
+    for I := 0 to IDecls.Count - 1 do
+    begin
+      UniformField := IDecls.Items[I].Field;
+
+      if UniformField <> nil then
+      begin
+        if UniformField is TSFNode then
+        begin
+          PrepareTexture(TSFNode(UniformField).Value);
+        end else
+        if UniformField is TMFNode then
+        begin
+          for J := 0 to TMFNode(UniformField).Count - 1 do
+            PrepareTexture(TMFNode(UniformField).Items[J]);
+        end;
+      end;
+    end;
+  end;
+
 begin
   try
     GLSLProgram := Renderer.Cache.GLSLProgram_IncReference(Node);
     Node.EventIsSelectedSend(true);
+
+    { Only if GLSL program successfully created, prepare all texture nodes
+      in Node.InterfaceDeclarations. These will be passed to uniform
+      variable values in Enable. }
+    PrepareShaderFields(Node.InterfaceDeclarations);
   except
     { EGLSLError catches errors from Cache.GLSLProgram_IncReference,
       including GLShaders errors like
@@ -75,9 +133,115 @@ begin
 end;
 
 procedure TGLSLRenderer.Unprepare;
+
+  { Scan IDecls for SFNode and MFNode fields, unprepare texture nodes inside. }
+  procedure UnprepareShaderFields(IDecls: TVRMLInterfaceDeclarationsList);
+
+    { If TextureNode <> @nil and is a texture node, prepare it. }
+    procedure UnprepareTexture(TextureNode: TVRMLNode);
+    begin
+      if (TextureNode <> nil) and
+         (TextureNode is TNodeX3DTextureNode) then
+        Renderer.GLTextureNodes.Unprepare(TNodeX3DTextureNode(TextureNode));
+    end;
+
+  var
+    I, J: Integer;
+    UniformField: TVRMLField;
+  begin
+    for I := 0 to IDecls.Count - 1 do
+    begin
+      UniformField := IDecls.Items[I].Field;
+
+      if UniformField <> nil then
+      begin
+        if UniformField is TSFNode then
+        begin
+          UnprepareTexture(TSFNode(UniformField).Value);
+        end else
+        if UniformField is TMFNode then
+        begin
+          for J := 0 to TMFNode(UniformField).Count - 1 do
+            UnprepareTexture(TMFNode(UniformField).Items[J]);
+        end;
+      end;
+    end;
+  end;
+
 begin
   if GLSLProgram <> nil then
+  begin
     Renderer.Cache.GLSLProgram_DecReference(GLSLProgram);
+
+    UnprepareShaderFields(Node.InterfaceDeclarations);
+  end;
+end;
+
+function TGLSLRenderer.Enable(out BoundTextureUnits: Cardinal): boolean;
+
+  { Scan IDecls for SFNode and MFNode fields, bind texture nodes inside. }
+  procedure BindShaderFields(IDecls: TVRMLInterfaceDeclarationsList);
+
+    { If TextureNode <> @nil and is a texture node, prepare it. }
+    procedure BindTexture(const UniformName: string; TextureNode: TVRMLNode);
+    begin
+      if (TextureNode <> nil) and
+         (TextureNode is TNodeX3DTextureNode) then
+      begin
+        if BoundTextureUnits < Renderer.FreeGLTexturesCount then
+        begin
+          if Renderer.GLTextureNodes.Bind(
+            TNodeX3DTextureNode(TextureNode), BoundTextureUnits) then
+          begin
+            GLSLProgram.SetUniform(UniformName, BoundTextureUnits);
+            { TODO: catch errors and convert to vrml warnings, like
+              in SetUniformFromField }
+            Inc(BoundTextureUnits);
+          end else
+            Enable := false;
+        end else
+          VRMLWarning(vwIgnorable, 'Not enough free texture units to bind all textures for this GLSL shader');
+      end;
+    end;
+
+  var
+    I, J: Integer;
+    UniformField: TVRMLField;
+  begin
+    for I := 0 to IDecls.Count - 1 do
+    begin
+      UniformField := IDecls.Items[I].Field;
+
+      if UniformField <> nil then
+      begin
+        if UniformField is TSFNode then
+        begin
+          BindTexture(UniformField.Name, TSFNode(UniformField).Value);
+        end else
+        { TODO: this shouldn't work like this, it should be an array of textures. }
+        if UniformField is TMFNode then
+        begin
+          for J := 0 to TMFNode(UniformField).Count - 1 do
+            BindTexture(UniformField.Name, TMFNode(UniformField).Items[J]);
+        end;
+      end;
+    end;
+  end;
+
+begin
+  BoundTextureUnits := 0;
+  if GLSLProgram <> nil then
+  begin
+    Result := true;
+    GLSLProgram.Enable;
+    BindShaderFields(Node.InterfaceDeclarations);
+  end else
+    Result := false;
+end;
+
+procedure TGLSLRenderer.Disable;
+begin
+  GLSLProgram.Disable;
 end;
 
 { TGLSLRenderersList -------------------------------------------------- }
@@ -127,7 +291,7 @@ begin
         end else
         begin
           GLSLRenderer := TGLSLRenderer.Create(ARenderer, ProgramNode);
-          GLSLRenderer.Prepare;
+          GLSLRenderer.Prepare(State);
           Add(GLSLRenderer);
 
           GLSLProgram := GLSLRenderer.GLSLProgram;
@@ -148,10 +312,10 @@ begin
   end;
 end;
 
-function TGLSLRenderersList.Enable(State: TVRMLGraphTraverseState): TGLSLProgram;
+function TGLSLRenderersList.Enable(State: TVRMLGraphTraverseState;
+  out BoundTextureUnits: Cardinal): TGLSLRenderer;
 var
   I: Integer;
-  GLSLRenderer: TGLSLRenderer;
   ProgramNode: TNodeComposedShader;
 begin
   Result := nil;
@@ -163,17 +327,21 @@ begin
       ProgramNode := State.ParentShape.Appearance.GLSLShader(I);
       if ProgramNode <> nil then
       begin
-        GLSLRenderer := Node(ProgramNode);
-        if (GLSLRenderer <> nil) and
-           (GLSLRenderer.GLSLProgram <> nil) then
+        Result := Node(ProgramNode);
+        if Result <> nil then
         begin
-          Result := GLSLRenderer.GLSLProgram;
-          Result.Enable;
-          Break;
+          if Result.Enable(BoundTextureUnits) then
+            Break else
+            Result := nil;
         end;
       end;
     end;
   end;
+
+  { if no GLSL shader enabled fully successfully, ignore if some shader
+    bound some texture units. }
+  if Result = nil then
+    BoundTextureUnits := 0;
 end;
 
 {$endif read_implementation}

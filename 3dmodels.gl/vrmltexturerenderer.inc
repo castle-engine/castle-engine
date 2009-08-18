@@ -81,6 +81,13 @@
       TVRMLOpenGLRenderer.PreparedTextureAlphaChannelType ? }
     AlphaChannelType: TAlphaChannelType;
 
+    { Bind texture for OpenGL (without enabling it).
+
+      Just like Enable, returns @false when texture node was not successfully
+      prepared for OpenGL. Returns @true when is was successfully bound
+      (caller can be sure then that given texture unit is currently active). }
+    function Bind(const TextureUnit: Cardinal): boolean; virtual; abstract;
+
     { Enables texture for OpenGL. This has to bind texture identifier
       and enable proper texture state (for example:
       2D, and not 3D, and not cube).
@@ -176,7 +183,13 @@
       ANode: TNodeX3DTextureNode;
       ARenderer: TVRMLOpenGLRenderer): TGLTextureNode;
 
-    { Enable texture node. Calls TGLTextureNode.Enable method.
+    { Only bind texture node. Calls TGLTextureNode.Enable method.
+      If no texture renderer is prepared for this node,
+      returns @false. }
+    function Bind(ANode: TNodeX3DTextureNode;
+      const TextureUnit: Cardinal): boolean;
+
+    { Enable and bind texture node. Calls TGLTextureNode.Enable method.
       If no texture renderer is prepared for this node,
       returns @false. }
     function Enable(ANode: TNodeX3DTextureNode;
@@ -219,6 +232,7 @@
     function TextureNode: TNodeMultiTexture;
 
     procedure Unprepare; override;
+    function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
       var Primitives3DTextureCoords: boolean): boolean; override;
     procedure EnableAll(
@@ -242,6 +256,7 @@
     function TextureNode: TVRMLTextureNode;
 
     procedure Unprepare; override;
+    function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
       var Primitives3DTextureCoords: boolean): boolean; override;
   end;
@@ -257,6 +272,7 @@
     function TextureNode: TNodeMovieTexture;
 
     procedure Unprepare; override;
+    function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
       var Primitives3DTextureCoords: boolean): boolean; override;
   end;
@@ -279,6 +295,7 @@
     function TextureNode: TNodeRenderedTexture;
 
     procedure Unprepare; override;
+    function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
       var Primitives3DTextureCoords: boolean): boolean; override;
 
@@ -303,6 +320,7 @@
       TextureCubeMap_IncReference. }
     procedure Unprepare; override;
 
+    function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
       var Primitives3DTextureCoords: boolean): boolean; override;
   end;
@@ -363,6 +381,7 @@
     function TextureNode: TNodeX3DTexture3DNode;
 
     procedure Unprepare; override;
+    function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
       var Primitives3DTextureCoords: boolean): boolean; override;
   end;
@@ -384,6 +403,7 @@
     function TextureNode: TNodeGeneratedShadowMap;
 
     procedure Unprepare; override;
+    function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
       var Primitives3DTextureCoords: boolean): boolean; override;
 
@@ -638,6 +658,17 @@ begin
   end;
 end;
 
+function TGLTextureNodes.Bind(ANode: TNodeX3DTextureNode;
+  const TextureUnit: Cardinal): boolean;
+var
+  GLTextureNode: TGLTextureNode;
+begin
+  GLTextureNode := TextureNode(ANode);
+  Result := GLTextureNode <> nil;
+  if Result then
+    Result := GLTextureNode.Bind(TextureUnit);
+end;
+
 function TGLTextureNodes.Enable(ANode: TNodeX3DTextureNode;
   const TextureUnit: Cardinal;
   var APrimitives3DTextureCoords: boolean): boolean;
@@ -749,10 +780,19 @@ begin
   end;
 end;
 
+function TGLMultiTextureNode.Bind(const TextureUnit: Cardinal): boolean;
+begin
+  { TGLMultiTextureNode cannot set only one texture unit.
+    This may be called from GLSL shader, when someone will use MultiTexture
+    node for a shader uniform field. I don't know how this should be handled,
+    I guess returning failure is Ok for now. }
+  Result := false;
+end;
+
 function TGLMultiTextureNode.Enable(const TextureUnit: Cardinal;
   var Primitives3DTextureCoords: boolean): boolean;
 begin
-  { This should never be called. TGLMultiTextureNode cannot set only
+  { This should never be called. TGLMultiTextureNode cannot set only one
     texture unit. }
   Result := false;
 end;
@@ -1293,14 +1333,21 @@ begin
   end;
 end;
 
-function TGLImageTextureNode.Enable(const TextureUnit: Cardinal;
-  var Primitives3DTextureCoords: boolean): boolean;
+function TGLImageTextureNode.Bind(const TextureUnit: Cardinal): boolean;
 begin
   Result := GLName <> 0;
   if not Result then Exit;
 
   Renderer.ActiveTexture(TextureUnit);
   glBindTexture(GL_TEXTURE_2D, GLName);
+end;
+
+function TGLImageTextureNode.Enable(const TextureUnit: Cardinal;
+  var Primitives3DTextureCoords: boolean): boolean;
+begin
+  Result := Bind(TextureUnit);
+  if not Result then Exit;
+
   TextureEnableDisable(et2D);
 end;
 
@@ -1367,8 +1414,7 @@ begin
     Renderer.Cache.TextureVideo_DecReference(GLVideo);
 end;
 
-function TGLMovieTextureNode.Enable(const TextureUnit: Cardinal;
-  var Primitives3DTextureCoords: boolean): boolean;
+function TGLMovieTextureNode.Bind(const TextureUnit: Cardinal): boolean;
 var
   VideoTime: TKamTime;
 begin
@@ -1390,11 +1436,16 @@ begin
     VideoTime := TextureNode.Duration + VideoTime;
 
   Renderer.ActiveTexture(TextureUnit);
-  TextureEnableDisable(et2D);
-
   glBindTexture(GL_TEXTURE_2D, GLVideo.GLTextureFromTime(VideoTime));
+end;
 
-  Result := true;
+function TGLMovieTextureNode.Enable(const TextureUnit: Cardinal;
+  var Primitives3DTextureCoords: boolean): boolean;
+begin
+  Result := Bind(TextureUnit);
+  if not Result then Exit;
+
+  TextureEnableDisable(et2D);
 end;
 
 { TGLRenderedTextureNode ----------------------------------------------------- }
@@ -1526,14 +1577,21 @@ begin
   end;
 end;
 
-function TGLRenderedTextureNode.Enable(const TextureUnit: Cardinal;
-  var Primitives3DTextureCoords: boolean): boolean;
+function TGLRenderedTextureNode.Bind(const TextureUnit: Cardinal): boolean;
 begin
   Result := GLName <> 0;
   if not Result then Exit;
 
   Renderer.ActiveTexture(TextureUnit);
   glBindTexture(GL_TEXTURE_2D, GLName);
+end;
+
+function TGLRenderedTextureNode.Enable(const TextureUnit: Cardinal;
+  var Primitives3DTextureCoords: boolean): boolean;
+begin
+  Result := Bind(TextureUnit);
+  if not Result then Exit;
+
   TextureEnableDisable(et2D);
 end;
 
@@ -1717,14 +1775,21 @@ begin
   end;
 end;
 
-function TGLCubeMapTextureNode.Enable(const TextureUnit: Cardinal;
-  var Primitives3DTextureCoords: boolean): boolean;
+function TGLCubeMapTextureNode.Bind(const TextureUnit: Cardinal): boolean;
 begin
   Result := GLName <> 0;
   if not Result then Exit;
 
   Renderer.ActiveTexture(TextureUnit);
   glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, GLName);
+end;
+
+function TGLCubeMapTextureNode.Enable(const TextureUnit: Cardinal;
+  var Primitives3DTextureCoords: boolean): boolean;
+begin
+  Result := Bind(TextureUnit);
+  if not Result then Exit;
+
   TextureEnableDisable(etCubeMap);
 end;
 
@@ -2043,16 +2108,23 @@ begin
   end;
 end;
 
-function TGL3DTextureNode.Enable(const TextureUnit: Cardinal;
-  var Primitives3DTextureCoords: boolean): boolean;
+function TGL3DTextureNode.Bind(const TextureUnit: Cardinal): boolean;
 begin
   Result := GLName <> 0;
   if not Result then Exit;
 
-  Primitives3DTextureCoords := true;
-
   Renderer.ActiveTexture(TextureUnit);
   glBindTexture(GL_TEXTURE_3D_EXT, GLName);
+end;
+
+function TGL3DTextureNode.Enable(const TextureUnit: Cardinal;
+  var Primitives3DTextureCoords: boolean): boolean;
+begin
+  Result := Bind(TextureUnit);
+  if not Result then Exit;
+
+  Primitives3DTextureCoords := true;
+
   TextureEnableDisable(et3D);
 end;
 
@@ -2107,14 +2179,21 @@ begin
   end;
 end;
 
-function TGLGeneratedShadowMap.Enable(const TextureUnit: Cardinal;
-  var Primitives3DTextureCoords: boolean): boolean;
+function TGLGeneratedShadowMap.Bind(const TextureUnit: Cardinal): boolean;
 begin
   Result := GLName <> 0;
   if not Result then Exit;
 
   Renderer.ActiveTexture(TextureUnit);
   glBindTexture(GL_TEXTURE_2D, GLName);
+end;
+
+function TGLGeneratedShadowMap.Enable(const TextureUnit: Cardinal;
+  var Primitives3DTextureCoords: boolean): boolean;
+begin
+  Result := Bind(TextureUnit);
+  if not Result then Exit;
+
   TextureEnableDisable(et2D);
 end;
 
