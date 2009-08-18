@@ -1250,6 +1250,7 @@ type
 
   TVRMLOpenGLRenderer = class;
 
+  {$I resourcerenderer.inc}
   {$I vrmltexturerenderer.inc}
   {$I vrmlbumpmappingrenderer.inc}
 
@@ -1732,6 +1733,7 @@ uses Math, Triangulator, NormalizationCubeMap,
 {$I vrmlmeshrenderer_x3d_geometry2d.inc}
 {$I vrmlmeshrenderer_simple_nodes.inc}
 
+{$I resourcerenderer.inc}
 {$I vrmltexturerenderer.inc}
 {$I vrmlbumpmappingrenderer.inc}
 

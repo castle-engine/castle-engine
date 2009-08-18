@@ -13,10 +13,7 @@
   TTextureEnableDisable = (etOff, et2D, etCubeMap, et3D);
 
   { OpenGL handling for VRML texture node. }
-  TGLTextureNode = class
-  private
-    FRenderer: TVRMLOpenGLRenderer;
-    FTextureNode: TNodeX3DTextureNode;
+  TGLTextureNode = class(TResourceRenderer)
   protected
     { Calculate things from TextureProperties node.
       If TextureProperties = @nil, they are taken from defaults
@@ -40,7 +37,7 @@
 
     { Decide if this class can handle given texture Node. }
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
-      Node: TNodeX3DTextureNode): boolean; virtual; abstract;
+      ANode: TNodeX3DTextureNode): boolean; virtual; abstract;
 
     { Enable/disable texturing (2D and cube map) on current texture unit. }
     class procedure TextureEnableDisable(const Enable: TTextureEnableDisable);
@@ -56,12 +53,10 @@
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer; ATextureNode: TNodeX3DTextureNode);
 
-    property Renderer: TVRMLOpenGLRenderer read FRenderer;
-
     { Reference to handled texture node.
       Never @nil.
       It's guaranteed to satisfy IsClassForTextureNode method of this class. }
-    property TextureNode: TNodeX3DTextureNode read FTextureNode;
+    function TextureNode: TNodeX3DTextureNode;
 
     { Find suitable TGLTextureNode class that can best handle given Node
       (with given Cache). Returns @nil if not found.
@@ -69,7 +64,7 @@
       @italic(Descedants implementors): override IsClassForTextureNode
       to be correctly recognized by this. }
     class function ClassForTextureNode(Cache: TTexturesImagesVideosCache;
-      Node: TNodeX3DTextureNode): TGLTextureNodeClass;
+      ANode: TNodeX3DTextureNode): TGLTextureNodeClass;
 
     { Do the time-consuming preparations before rendering this texture.
       Calls PrepareCore. }
@@ -161,17 +156,19 @@
       var Primitives3DTextureCoords: boolean); virtual; abstract;
   end;
 
-  TObjectsListItem_1 = TGLTextureNode;
-  {$I objectslist_1.inc}
-  TGLTextureNodes = class(TObjectsList_1)
+  TGLTextureNodes = class(TResourceRenderersList)
+  private
+    function GetItems(const Index: Integer): TGLTextureNode;
   public
-    { Looks for item with given Node.
+    { Looks for item with given ANode.
       Returns -1 if not found. }
-    function TextureNodeIndex(Node: TNodeX3DTextureNode): Integer;
+    function TextureNodeIndex(ANode: TNodeX3DTextureNode): Integer;
 
-    { Looks for item with given Node.
+    { Looks for item with given ANode.
       Returns @nil if not found. }
-    function TextureNode(Node: TNodeX3DTextureNode): TGLTextureNode;
+    function TextureNode(ANode: TNodeX3DTextureNode): TGLTextureNode;
+
+    property Items[Index: Integer]: TGLTextureNode read GetItems; default;
   end;
 
   { Common class for all single (not multi-texture) texture nodes.
@@ -203,7 +200,7 @@
   TGLMultiTextureNode = class(TGLTextureNode)
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
-      Node: TNodeX3DTextureNode): boolean; override;
+      ANode: TNodeX3DTextureNode): boolean; override;
     procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     function TextureNode: TNodeMultiTexture;
@@ -222,7 +219,7 @@
   TGLImageTextureNode = class(TGLSingleTextureNode)
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
-      Node: TNodeX3DTextureNode): boolean; override;
+      ANode: TNodeX3DTextureNode): boolean; override;
     procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     GLName: TGLuint;
@@ -239,7 +236,7 @@
   TGLMovieTextureNode = class(TGLSingleTextureNode)
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
-      Node: TNodeX3DTextureNode): boolean; override;
+      ANode: TNodeX3DTextureNode): boolean; override;
     procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     GLVideo: TGLVideo;
@@ -256,7 +253,7 @@
     RenderToTexture: TGLRenderToTexture;
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
-      Node: TNodeX3DTextureNode): boolean; override;
+      ANode: TNodeX3DTextureNode): boolean; override;
     procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     GLName: TGLuint;
@@ -300,7 +297,7 @@
   TGLComposedCubeMapTextureNode = class(TGLCubeMapTextureNode)
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
-      Node: TNodeX3DTextureNode): boolean; override;
+      ANode: TNodeX3DTextureNode): boolean; override;
     procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     function TextureNode: TNodeComposedCubeMapTexture;
@@ -309,7 +306,7 @@
   TGLImageCubeMapTextureNode = class(TGLCubeMapTextureNode)
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
-      Node: TNodeX3DTextureNode): boolean; override;
+      ANode: TNodeX3DTextureNode): boolean; override;
     procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     function TextureNode: TNodeImageCubeMapTexture;
@@ -320,7 +317,7 @@
     RenderToTexture: TGLRenderToTexture;
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
-      Node: TNodeX3DTextureNode): boolean; override;
+      ANode: TNodeX3DTextureNode): boolean; override;
     procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     { The right size of the texture,
@@ -345,7 +342,7 @@
   TGL3DTextureNode = class(TGLSingleTextureNode)
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
-      Node: TNodeX3DTextureNode): boolean; override;
+      ANode: TNodeX3DTextureNode): boolean; override;
     procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     GLName: TGLuint;
@@ -362,7 +359,7 @@
     RenderToTexture: TGLRenderToTexture;
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
-      Node: TNodeX3DTextureNode): boolean; override;
+      ANode: TNodeX3DTextureNode): boolean; override;
     procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     GLName: TGLuint;
@@ -387,7 +384,6 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-{$I objectslist_1.inc}
 
 const
   TextureRepeatToGL: array [boolean] of TGLenum = (
@@ -405,9 +401,7 @@ const
 constructor TGLTextureNode.Create(ARenderer: TVRMLOpenGLRenderer;
   ATextureNode: TNodeX3DTextureNode);
 begin
-  inherited Create;
-  FRenderer := ARenderer;
-  FTextureNode := ATextureNode;
+  inherited Create(ARenderer, ATextureNode);
 end;
 
 procedure TGLTextureNode.HandleTexturePropertiesCore(
@@ -538,11 +532,11 @@ begin
 end;
 
 class function TGLTextureNode.ClassForTextureNode(Cache: TTexturesImagesVideosCache;
-  Node: TNodeX3DTextureNode): TGLTextureNodeClass;
+  ANode: TNodeX3DTextureNode): TGLTextureNodeClass;
 
   function TryResult(C: TGLTextureNodeClass): boolean;
   begin
-    Result := C.IsClassForTextureNode(Cache, Node);
+    Result := C.IsClassForTextureNode(Cache, ANode);
     if Result then
       ClassForTextureNode := C;
   end;
@@ -582,25 +576,26 @@ begin
   end;
 end;
 
-{ TGLTextureNodes ------------------------------------------------------------ }
-
-function TGLTextureNodes.TextureNodeIndex(Node: TNodeX3DTextureNode): Integer;
+function TGLTextureNode.TextureNode: TNodeX3DTextureNode;
 begin
-  for Result := 0 to Count - 1 do
-    if Items[Result].TextureNode = Node then Exit;
-  Result := -1;
+  Result := TNodeX3DTextureNode(inherited Node);
 end;
 
-function TGLTextureNodes.TextureNode(Node: TNodeX3DTextureNode): TGLTextureNode;
-var
-  I: Integer;
+{ TGLTextureNodes ------------------------------------------------------------ }
+
+function TGLTextureNodes.TextureNodeIndex(ANode: TNodeX3DTextureNode): Integer;
 begin
-  for I := 0 to Count - 1 do
-  begin
-    Result := Items[I];
-    if Result.TextureNode = Node then Exit;
-  end;
-  Result := nil;
+  Result := inherited NodeIndex(ANode);
+end;
+
+function TGLTextureNodes.TextureNode(ANode: TNodeX3DTextureNode): TGLTextureNode;
+begin
+  Result := TGLTextureNode(inherited Node(ANode));
+end;
+
+function TGLTextureNodes.GetItems(const Index: Integer): TGLTextureNode;
+begin
+  Result := TGLTextureNode(inherited Items[Index]);
 end;
 
 { TGLSingleTextureNode ------------------------------------------------------- }
@@ -635,9 +630,9 @@ end;
 { TGLMultiTextureNode -------------------------------------------------------- }
 
 class function TGLMultiTextureNode.IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
-  Node: TNodeX3DTextureNode): boolean;
+  ANode: TNodeX3DTextureNode): boolean;
 begin
-  Result := Node is TNodeMultiTexture;
+  Result := ANode is TNodeMultiTexture;
 end;
 
 function TGLMultiTextureNode.TextureNode: TNodeMultiTexture;
@@ -1190,13 +1185,13 @@ end;
 { TGLImageTextureNode -------------------------------------------------------- }
 
 class function TGLImageTextureNode.IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
-  Node: TNodeX3DTextureNode): boolean;
+  ANode: TNodeX3DTextureNode): boolean;
 begin
-  if Node is TVRMLTextureNode then
+  if ANode is TVRMLTextureNode then
   begin
     { You have to set Cache before using IsTextureImage. }
-    TVRMLTextureNode(Node).Cache := Cache;
-    Result := TVRMLTextureNode(Node).IsTextureImage;
+    TVRMLTextureNode(ANode).Cache := Cache;
+    Result := TVRMLTextureNode(ANode).IsTextureImage;
   end else
     Result := false;
 end;
@@ -1260,7 +1255,7 @@ end;
 { TGLMovieTextureNode -------------------------------------------------------- }
 
 class function TGLMovieTextureNode.IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
-  Node: TNodeX3DTextureNode): boolean;
+  ANode: TNodeX3DTextureNode): boolean;
 begin
   { Although for most code TGLMovieTextureNode, it would be enought
     to have any TVRMLTextureNode with IsTextureVideo = @true.
@@ -1270,11 +1265,11 @@ begin
     Anyway, TNodeMovieTexture is for now the only texture node possible
     that may have IsTextureVideo = @true, so it's not a real problem for now. }
 
-  if Node is TNodeMovieTexture then
+  if ANode is TNodeMovieTexture then
   begin
     { You have to set Cache before using IsTextureImage. }
-    TNodeMovieTexture(Node).Cache := Cache;
-    Result := TNodeMovieTexture(Node).IsTextureVideo;
+    TNodeMovieTexture(ANode).Cache := Cache;
+    Result := TNodeMovieTexture(ANode).IsTextureVideo;
   end else
     Result := false;
 end;
@@ -1353,9 +1348,9 @@ end;
 { TGLRenderedTextureNode ----------------------------------------------------- }
 
 class function TGLRenderedTextureNode.IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
-  Node: TNodeX3DTextureNode): boolean;
+  ANode: TNodeX3DTextureNode): boolean;
 begin
-  Result := Node is TNodeRenderedTexture;
+  Result := ANode is TNodeRenderedTexture;
 end;
 
 function TGLRenderedTextureNode.TextureNode: TNodeRenderedTexture;
@@ -1684,9 +1679,9 @@ end;
 { TGLComposedCubeMapTextureNode ---------------------------------------------- }
 
 class function TGLComposedCubeMapTextureNode.IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
-  Node: TNodeX3DTextureNode): boolean;
+  ANode: TNodeX3DTextureNode): boolean;
 begin
-  Result := Node is TNodeComposedCubeMapTexture;
+  Result := ANode is TNodeComposedCubeMapTexture;
 end;
 
 function TGLComposedCubeMapTextureNode.TextureNode: TNodeComposedCubeMapTexture;
@@ -1778,9 +1773,9 @@ end;
 { TGLImageCubeMapTextureNode ------------------------------------------------- }
 
 class function TGLImageCubeMapTextureNode.IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
-  Node: TNodeX3DTextureNode): boolean;
+  ANode: TNodeX3DTextureNode): boolean;
 begin
-  Result := Node is TNodeImageCubeMapTexture;
+  Result := ANode is TNodeImageCubeMapTexture;
 end;
 
 function TGLImageCubeMapTextureNode.TextureNode: TNodeImageCubeMapTexture;
@@ -1839,9 +1834,9 @@ end;
 { TGLGeneratedCubeMapTextureNode --------------------------------------------- }
 
 class function TGLGeneratedCubeMapTextureNode.IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
-  Node: TNodeX3DTextureNode): boolean;
+  ANode: TNodeX3DTextureNode): boolean;
 begin
-  Result := Node is TNodeGeneratedCubeMapTexture;
+  Result := ANode is TNodeGeneratedCubeMapTexture;
 end;
 
 function TGLGeneratedCubeMapTextureNode.TextureNode: TNodeGeneratedCubeMapTexture;
@@ -1942,9 +1937,9 @@ end;
 { TGL3DTextureNode ----------------------------------------------------------- }
 
 class function TGL3DTextureNode.IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
-  Node: TNodeX3DTextureNode): boolean;
+  ANode: TNodeX3DTextureNode): boolean;
 begin
-  Result := Node is TNodeX3DTexture3DNode;
+  Result := ANode is TNodeX3DTexture3DNode;
 end;
 
 function TGL3DTextureNode.TextureNode: TNodeX3DTexture3DNode;
@@ -2012,9 +2007,9 @@ end;
 { TGLGeneratedShadowMap ------------------------------------------------------ }
 
 class function TGLGeneratedShadowMap.IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
-  Node: TNodeX3DTextureNode): boolean;
+  ANode: TNodeX3DTextureNode): boolean;
 begin
-  Result := Node is TNodeGeneratedShadowMap;
+  Result := ANode is TNodeGeneratedShadowMap;
 end;
 
 function TGLGeneratedShadowMap.TextureNode: TNodeGeneratedShadowMap;
