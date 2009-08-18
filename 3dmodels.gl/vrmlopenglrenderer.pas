@@ -3384,72 +3384,6 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     end;
   end;
 
-  procedure PrepareGLSLProgram;
-  var
-    I: Integer;
-    ProgramNode: TNodeComposedShader;
-    GLSLProgram: TGLSLProgram;
-    GLSLRenderer: TGLSLRenderer;
-    ExistingReferenceIndex: Integer;
-  begin
-    { prepare GLSLProgram }
-    if (not Attributes.PureGeometry) and
-       Attributes.GLSLShaders and
-       (State.ParentShape <> nil) and
-       (State.ParentShape.Appearance <> nil) then
-    begin
-      for I := 0 to State.ParentShape.Appearance.FdShaders.Items.Count - 1 do
-      begin
-        ProgramNode := State.ParentShape.Appearance.GLSLShader(I);
-        if ProgramNode <> nil then
-        begin
-          ExistingReferenceIndex := GLSLRenderers.NodeIndex(ProgramNode);
-
-          if ExistingReferenceIndex <> -1 then
-          begin
-            { This ProgramNode was already prepared.
-              So just take it's GLSLProgram (to decide lower whether we can Break or not
-              now). }
-            GLSLProgram := GLSLRenderers.Items[ExistingReferenceIndex].GLSLProgram;
-          end else
-          begin
-            try
-              GLSLProgram := Cache.GLSLProgram_IncReference(ProgramNode);
-              ProgramNode.EventIsSelectedSend(true);
-            except
-              { EGLSLError catches errors from Cache.GLSLProgram_IncReference,
-                including GLShaders errors like
-                EGLSLShaderCompileError or EGLSLProgramLinkError }
-              on E: EGLSLError do
-              begin
-                VRMLWarning(vwSerious, 'Error when initializing GLSL shader : ' + E.Message);
-                GLSLProgram := nil;
-                ProgramNode.EventIsSelectedSend(false);
-              end;
-            end;
-
-            { Whether GLSLProgram is nil or not (GLSLProgram_IncReference
-              succeded or not), we add record to GLSLRenderers }
-            GLSLRenderer := TGLSLRenderer.Create(Self, ProgramNode);
-            GLSLRenderer.GLSLProgram := GLSLProgram;
-            GLSLRenderers.Add(GLSLRenderer);
-          end;
-
-          { Only if successfull, break. }
-          if GLSLProgram <> nil then
-            Break;
-        end else
-        begin
-          { GLSLShader(I) is nil, so this is not appropriate node class
-            or "language" field was bad.
-            So at least send him "isSelected" = false, if it's X3DShaderNode. }
-          if State.ParentShape.Appearance.FdShaders.Items[I] is TNodeX3DShaderNode then
-            (State.ParentShape.Appearance.FdShaders.Items[I] as TNodeX3DShaderNode).EventIsSelectedSend(false);
-        end;
-      end;
-    end;
-  end;
-
 var
   FontStyle: TNodeFontStyle_2;
 begin
@@ -3507,7 +3441,7 @@ begin
 
   BumpMappingRenderers.Prepare(State, Self);
 
-  PrepareGLSLProgram;
+  GLSLRenderers.Prepare(State, Self);
 end;
 
 procedure TVRMLOpenGLRenderer.Unprepare(Node: TVRMLNode);
@@ -4291,32 +4225,11 @@ var
   { Find if some shader is available and prepared for this state.
     If yes, then sets UsedGLSLProgram to non-nil and enables this shader. }
   procedure RenderShadersBegin;
-  var
-    I, ProgramReference: Integer;
-    ProgramNode: TNodeComposedShader;
   begin
     UsedGLSLProgram := nil;
 
-    if (not Attributes.PureGeometry) and
-       (CurrentState.ParentShape <> nil) and
-       (CurrentState.ParentShape.Appearance <> nil) then
-    begin
-      for I := 0 to CurrentState.ParentShape.Appearance.FdShaders.Items.Count - 1 do
-      begin
-        ProgramNode := CurrentState.ParentShape.Appearance.GLSLShader(I);
-        if ProgramNode <> nil then
-        begin
-          ProgramReference := GLSLRenderers.NodeIndex(ProgramNode);
-          if (ProgramReference <> -1) and
-             (GLSLRenderers.Items[ProgramReference].GLSLProgram <> nil) then
-          begin
-            UsedGLSLProgram := GLSLRenderers.Items[ProgramReference].GLSLProgram;
-            UsedGLSLProgram.Enable;
-            Break;
-          end;
-        end;
-      end;
-    end;
+    if not Attributes.PureGeometry then
+      UsedGLSLProgram := GLSLRenderers.Enable(CurrentState);
   end;
 
   procedure RenderShadersEnd;
