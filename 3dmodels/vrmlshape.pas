@@ -447,7 +447,8 @@ type
 
     { Enumerate to callback all single texture nodes possibly used by this shape.
       This looks into appearance.texture field (and if it's MultiTexture,
-      looks into it's children). And looks into shaders textures. }
+      looks into it's children). And looks into shaders textures.
+      Also, for VRML 1.0, looks into LastNodes.Texture2. }
     procedure EnumerateShapeTextures(Enumerate: TEnumerateShapeTexturesFunction);
   end;
 
@@ -1134,7 +1135,8 @@ procedure TVRMLShape.EnumerateShapeTextures(Enumerate: TEnumerateShapeTexturesFu
   var
     I: Integer;
   begin
-    if Tex is TNodeMultiTexture then
+    if (Tex <> nil) and
+       (Tex is TNodeMultiTexture) then
     begin
       for I := 0 to TNodeMultiTexture(Tex).FdTexture.Items.Count - 1 do
         HandleSingleTextureNode(TNodeMultiTexture(Tex).FdTexture.Items.Items[I]);
@@ -1171,6 +1173,8 @@ var
   ComposedShader: TNodeComposedShader;
   I: Integer;
 begin
+  HandleTextureNode(State.LastNodes.Texture2);
+
   if (State.ParentShape <> nil) and
      (State.ParentShape.Appearance <> nil) then
   begin

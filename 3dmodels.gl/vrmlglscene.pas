@@ -403,6 +403,9 @@ type
     { Is UseBlending calculated and current. }
     PreparedUseBlending: boolean;
 
+    procedure DisableDisplayListFromTexture(Shape: TVRMLShape;
+      Texture: TNodeX3DTextureNode);
+
     { ------------------------------------------------------------
       Private things used only when Optimization is
       roSeparateShapes or roSeparateShapesNoTransform.
@@ -1474,6 +1477,14 @@ uses VRMLErrors, GLVersionUnit, GLImages, Images, KambiLog,
 
 { TVRMLGLShape --------------------------------------------------------------- }
 
+procedure TVRMLGLShape.DisableDisplayListFromTexture(Shape: TVRMLShape;
+  Texture: TNodeX3DTextureNode);
+begin
+  { If one of the textures used is MovieTexture, then disable display lists. }
+  if Texture is TNodeMovieTexture then
+    FEnableDisplayList := false;
+end;
+
 function TVRMLGLShape.EnableDisplayList: boolean;
 
   function TexGenModeDisablesDL(const S: string): boolean;
@@ -1483,9 +1494,9 @@ function TVRMLGLShape.EnableDisplayList: boolean;
       (S = 'WORLDSPACENORMAL') or
       (S = 'PROJECTION');
   end;
+
 var
   I: Integer;
-  T: TNodeX3DTextureNode;
   MulTexC: TVRMLNodesList;
   TexCoord: TVRMLNode;
 begin
@@ -1494,17 +1505,7 @@ begin
     { calculate EnableDisplayList }
     FEnableDisplayList := true;
 
-    { If texture is MovieTexture, or it's MultiTexture containing
-      MovieTexture as a child, then disable display lists. }
-    T := State.Texture;
-    if T is TNodeMovieTexture then
-      FEnableDisplayList := false else
-    if T is TNodeMultiTexture then
-    begin
-      for I := 0 to TNodeMultiTexture(T).FdTexture.Count - 1 do
-        if TNodeMultiTexture(T).FdTexture.Items[I] is TNodeMovieTexture then
-          FEnableDisplayList := false;
-    end;
+    EnumerateShapeTextures(@DisableDisplayListFromTexture);
 
     if FEnableDisplayList then
     begin
