@@ -603,7 +603,7 @@ type
 implementation
 
 uses ProgressUnit, VRMLScene, VRMLErrors, NormalsCalculator, KambiLog,
-  KambiStringUtils;
+  KambiStringUtils, VRMLFields;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -1123,27 +1123,65 @@ end;
 
 procedure TVRMLShape.EnumerateShapeTextures(Enumerate: TEnumerateShapeTexturesFunction);
 
-  procedure HandleSingleTexture(Tex: TVRMLNode);
+  procedure HandleSingleTextureNode(Tex: TVRMLNode);
   begin
-    if Tex is TNodeX3DTextureNode then
+    if (Tex <> nil) and
+       (Tex is TNodeX3DTextureNode) then
       Enumerate(Self, TNodeX3DTextureNode(Tex));
   end;
 
-var
-  I: Integer;
-  Tex: TVRMLNode;
-begin
-  if (State.ParentShape <> nil) and
-     (State.ParentShape.Appearance <> nil) and
-     (State.ParentShape.Appearance.FdTexture.Value <> nil) then
+  procedure HandleTextureNode(Tex: TVRMLNode);
+  var
+    I: Integer;
   begin
-    Tex := State.ParentShape.Appearance.FdTexture.Value;
     if Tex is TNodeMultiTexture then
     begin
       for I := 0 to TNodeMultiTexture(Tex).FdTexture.Items.Count - 1 do
-        HandleSingleTexture(TNodeMultiTexture(Tex).FdTexture.Items.Items[I]);
+        HandleSingleTextureNode(TNodeMultiTexture(Tex).FdTexture.Items.Items[I]);
     end else
-      HandleSingleTexture(Tex);
+      HandleSingleTextureNode(Tex);
+  end;
+
+  { Scan IDecls for SFNode and MFNode fields, handling texture nodes inside. }
+  procedure HandleShaderFields(IDecls: TVRMLInterfaceDeclarationsList);
+  var
+    I, J: Integer;
+    UniformField: TVRMLField;
+  begin
+    for I := 0 to IDecls.Count - 1 do
+    begin
+      UniformField := IDecls.Items[I].Field;
+
+      if UniformField <> nil then
+      begin
+        if UniformField is TSFNode then
+        begin
+          HandleTextureNode(TSFNode(UniformField).Value);
+        end else
+        if UniformField is TMFNode then
+        begin
+          for J := 0 to TMFNode(UniformField).Count - 1 do
+            HandleTextureNode(TMFNode(UniformField).Items[J]);
+        end;
+      end;
+    end;
+  end;
+
+var
+  ComposedShader: TNodeComposedShader;
+  I: Integer;
+begin
+  if (State.ParentShape <> nil) and
+     (State.ParentShape.Appearance <> nil) then
+  begin
+    HandleTextureNode(State.ParentShape.Appearance.FdTexture.Value);
+
+    for I := 0 to State.ParentShape.Appearance.FdShaders.Items.Count - 1 do
+    begin
+      ComposedShader := State.ParentShape.Appearance.GLSLShader(I);
+      if ComposedShader <> nil then
+        HandleShaderFields(ComposedShader.InterfaceDeclarations);
+    end;
   end;
 end;
 
