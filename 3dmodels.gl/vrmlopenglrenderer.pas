@@ -1253,29 +1253,7 @@ type
   {$I resourcerenderer.inc}
   {$I vrmltexturerenderer.inc}
   {$I vrmlbumpmappingrenderer.inc}
-
-  TGLSLProgramReference = record
-    ProgramNode: TNodeComposedShader;
-
-    { GLSLProgram prepared.
-
-      @nil means that this GLSL program failed to initialize.
-      So do not try to initialize it again, and no need to unprepare
-      it from Cache (as Cache doesn't have this program). }
-    GLSLProgram: TGLSLProgram;
-  end;
-  PGLSLProgramReference = ^TGLSLProgramReference;
-
-  TDynArrayItem_6 = TGLSLProgramReference;
-  PDynArrayItem_6 = PGLSLProgramReference;
-  {$define DYNARRAY_6_IS_STRUCT}
-  {$I dynarray_6.inc}
-  TDynGLSLProgramReferenceArray = class(TDynArray_6)
-  public
-    { szuka rekordu z danym ProgramNode.
-      Zwraca jego indeks lub -1 jesli nie znajdzie. }
-    function ProgramNodeIndex(ProgramNode: TNodeComposedShader): Integer;
-  end;
+  {$I vrmlglslrenderer.inc}
 
   TVRMLOpenGLRenderer = class
   private
@@ -1330,8 +1308,7 @@ type
 
     GLTextureNodes: TGLTextureNodes;
     BumpMappingRenderers: TBumpMappingRenderersList;
-
-    GLSLProgramReferences: TDynGLSLProgramReferenceArray;
+    GLSLRenderers: TGLSLRenderersList;
 
     { To which fonts we made a reference in the cache ? }
     FontsReferences: array[TVRMLFontFamily, boolean, boolean] of boolean;
@@ -1689,7 +1666,6 @@ uses Math, Triangulator, NormalizationCubeMap,
 {$I dynarray_3.inc}
 {$I dynarray_4.inc}
 {$I dynarray_5.inc}
-{$I dynarray_6.inc}
 {$I dynarray_7.inc}
 {$I dynarray_9.inc}
 {$I dynarray_11.inc}
@@ -1706,6 +1682,7 @@ uses Math, Triangulator, NormalizationCubeMap,
 {$I resourcerenderer.inc}
 {$I vrmltexturerenderer.inc}
 {$I vrmlbumpmappingrenderer.inc}
+{$I vrmlglslrenderer.inc}
 
 { TVRMLOpenGLRendererContextCache -------------------------------------------- }
 
@@ -3341,16 +3318,6 @@ begin
     Result := Color;
 end;
 
-{ TDynGLSLProgramReferenceArray ---------------------------------------------- }
-
-function TDynGLSLProgramReferenceArray.ProgramNodeIndex(
-  ProgramNode: TNodeComposedShader): Integer;
-begin
-  for Result := 0 to Count - 1 do
-    if Items[result].ProgramNode = ProgramNode then Exit;
-  Result := -1;
-end;
-
 { TVRMLOpenGLRenderer ---------------------------------------------------------- }
 
 constructor TVRMLOpenGLRenderer.Create(
@@ -3375,8 +3342,8 @@ begin
 
   GLTextureNodes := TGLTextureNodes.Create;
   BumpMappingRenderers := TBumpMappingRenderersList.Create;
+  GLSLRenderers := TGLSLRenderersList.Create;
 
-  GLSLProgramReferences := TDynGLSLProgramReferenceArray.Create;
   TextureTransformUnitsUsedMore := TDynLongIntArray.Create;
 
   OwnsCache := ACache = nil;
@@ -3392,7 +3359,7 @@ begin
   FreeAndNil(TextureTransformUnitsUsedMore);
   FreeAndNil(GLTextureNodes);
   FreeAndNil(BumpMappingRenderers);
-  FreeAndNil(GLSLProgramReferences);
+  FreeAndNil(GLSLRenderers);
   FreeAndNil(FAttributes);
 
   if OwnsCache then
@@ -3422,7 +3389,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     I: Integer;
     ProgramNode: TNodeComposedShader;
     GLSLProgram: TGLSLProgram;
-    GLSLProgramReference: PGLSLProgramReference;
+    GLSLRenderer: TGLSLRenderer;
     ExistingReferenceIndex: Integer;
   begin
     { prepare GLSLProgram }
@@ -3436,14 +3403,14 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
         ProgramNode := State.ParentShape.Appearance.GLSLShader(I);
         if ProgramNode <> nil then
         begin
-          ExistingReferenceIndex := GLSLProgramReferences.ProgramNodeIndex(ProgramNode);
+          ExistingReferenceIndex := GLSLRenderers.NodeIndex(ProgramNode);
 
           if ExistingReferenceIndex <> -1 then
           begin
             { This ProgramNode was already prepared.
               So just take it's GLSLProgram (to decide lower whether we can Break or not
               now). }
-            GLSLProgram := GLSLProgramReferences.Items[ExistingReferenceIndex].GLSLProgram;
+            GLSLProgram := GLSLRenderers.Items[ExistingReferenceIndex].GLSLProgram;
           end else
           begin
             try
@@ -3462,10 +3429,10 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
             end;
 
             { Whether GLSLProgram is nil or not (GLSLProgram_IncReference
-              succeded or not), we add record to GLSLProgramReferences }
-            GLSLProgramReference := GLSLProgramReferences.AppendItem;
-            GLSLProgramReference^.ProgramNode := ProgramNode;
-            GLSLProgramReference^.GLSLProgram := GLSLProgram;
+              succeded or not), we add record to GLSLRenderers }
+            GLSLRenderer := TGLSLRenderer.Create(Self, ProgramNode);
+            GLSLRenderer.GLSLProgram := GLSLProgram;
+            GLSLRenderers.Add(GLSLRenderer);
           end;
 
           { Only if successfull, break. }
@@ -3544,13 +3511,9 @@ begin
 end;
 
 procedure TVRMLOpenGLRenderer.Unprepare(Node: TVRMLNode);
-var
-  I: Integer;
 begin
-  {zwracam uwage ze nie niszczymy tu fontow dla (LastNode is TNodeFontStyle)
-   bo fonty sa gromadzone w tablicy Cache.Fonts i wszystkie Font Styles
-   o takich samych wlasciwosciach Family i Style korzystaja zawsze z tego
-   samego juz utworzonego fontu.}
+  { Note that fonts (for LastNode is TNodeFontStyle) are not unprepared
+    here, since Cache.Fonts are shared by all font nodes. }
 
   if Node is TNodeX3DTextureNode then
     GLTextureNodes.Unprepare(Node);
@@ -3558,26 +3521,14 @@ begin
   if Node is TNodeKambiAppearance then
     BumpMappingRenderers.Unprepare(Node);
 
-  { unprepare GLSLProgram }
-  { This is not used for now anywhere actually ? Nowhere I unprepare
-    TNodeComposedShader nodes ? }
   if Node is TNodeComposedShader then
-  begin
-    I := GLSLProgramReferences.ProgramNodeIndex(TNodeComposedShader(Node));
-    if I >= 0 then
-    begin
-      if GLSLProgramReferences.Items[I].GLSLProgram <> nil then
-        Cache.GLSLProgram_DecReference(GLSLProgramReferences.Items[I].GLSLProgram);
-      GLSLProgramReferences.Delete(I, 1);
-    end;
-  end;
+    GLSLRenderers.Unprepare(Node);
 end;
 
 procedure TVRMLOpenGLRenderer.UnprepareAll;
 var
   fsfam: TVRMLFontFamily;
   fsbold , fsitalic: boolean;
-  i: integer;
 begin
   FLastGLFreeLight := -1;
   FLastGLFreeTexture := -1;
@@ -3598,12 +3549,7 @@ begin
 
   GLTextureNodes.UnprepareAll;
   BumpMappingRenderers.UnprepareAll;
-
-  { unprepare all GLSLPrograms }
-  for i := 0 to GLSLProgramReferences.Count - 1 do
-    if GLSLProgramReferences.Items[i].GLSLProgram <> nil then
-      Cache.GLSLProgram_DecReference(GLSLProgramReferences.Items[i].GLSLProgram);
-  GLSLProgramReferences.SetLength(0);
+  GLSLRenderers.UnprepareAll;
 
   { unprepare TexNormalizationCube }
   glFreeTexture(TexNormalizationCube);
@@ -4360,11 +4306,11 @@ var
         ProgramNode := CurrentState.ParentShape.Appearance.GLSLShader(I);
         if ProgramNode <> nil then
         begin
-          ProgramReference := GLSLProgramReferences.ProgramNodeIndex(ProgramNode);
+          ProgramReference := GLSLRenderers.NodeIndex(ProgramNode);
           if (ProgramReference <> -1) and
-             (GLSLProgramReferences.Items[ProgramReference].GLSLProgram <> nil) then
+             (GLSLRenderers.Items[ProgramReference].GLSLProgram <> nil) then
           begin
-            UsedGLSLProgram := GLSLProgramReferences.Items[ProgramReference].GLSLProgram;
+            UsedGLSLProgram := GLSLRenderers.Items[ProgramReference].GLSLProgram;
             UsedGLSLProgram.Enable;
             Break;
           end;
