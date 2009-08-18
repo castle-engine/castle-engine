@@ -450,6 +450,10 @@ type
       looks into it's children). And looks into shaders textures.
       Also, for VRML 1.0, looks into LastNodes.Texture2. }
     procedure EnumerateShapeTextures(Enumerate: TEnumerateShapeTexturesFunction);
+
+    { Is the texture node Node possibly used by this shape.
+      This is equivalent to checking does EnumerateShapeTextures return this shape. }
+    function UsesTexture(Node: TNodeX3DTextureNode): boolean;
   end;
 
   TObjectsListItem_2 = TVRMLShapeTree;
@@ -1187,6 +1191,37 @@ begin
         HandleShaderFields(ComposedShader.InterfaceDeclarations);
     end;
   end;
+end;
+
+type
+  TUsesTextureHelper = class
+    Node: TNodeX3DTextureNode;
+    procedure HandleTexture(Shape: TVRMLShape; Texture: TNodeX3DTextureNode);
+  end;
+
+  BreakUsesTexture = class(TCodeBreaker);
+
+procedure TUsesTextureHelper.HandleTexture(Shape: TVRMLShape;
+  Texture: TNodeX3DTextureNode);
+begin
+  if Texture = Node then
+    raise BreakUsesTexture.Create;
+end;
+
+function TVRMLShape.UsesTexture(Node: TNodeX3DTextureNode): boolean;
+var
+  Helper: TUsesTextureHelper;
+begin
+  Helper := TUsesTextureHelper.Create;
+  try
+    Helper.Node := Node;
+    try
+      EnumerateShapeTextures(@Helper.HandleTexture);
+      Result := false;
+    except
+      on BreakUsesTexture do Result := true;
+    end;
+  finally Helper.Free end;
 end;
 
 { TVRMLShapeTreeGroup -------------------------------------------------------- }
