@@ -2,7 +2,8 @@
 
   { Rendering with bump mapping. This requires some special preparations,
     enabling / disabling state and such, so it's natural to have this
-    in a nice separated class.
+    in a nice separated class. It's associated with KambiAppearance node
+    defining heightMap, normalMap and other bump mapping properties.
 
     Previously, some of this state was stored along inside TGLImageTextureNode.
     But this caused many problems:
@@ -28,18 +29,14 @@
     only by material (in this case we should remember to still generate
     texture coords etc.).
   }
-  TBumpMappingRenderer = class
+  TBumpMappingRenderer = class(TResourceRenderer)
   private
-    FRenderer: TVRMLOpenGLRenderer;
-    FNode: TNodeKambiAppearance;
-
-    class function IsImageTexture(Node: TVRMLNode): boolean;
+    class function IsImageTexture(ANode: TVRMLNode): boolean;
     class function IsGLImageTexture(GLNode: TGLTextureNode): boolean;
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer; ANode: TNodeKambiAppearance);
 
-    property Renderer: TVRMLOpenGLRenderer read FRenderer;
-    property Node: TNodeKambiAppearance read FNode;
+    function Node: TNodeKambiAppearance;
 
     { Prepare normalMap, heightMap (if exist) for rendering.
       If some success (there's a chance that bump mapping may be enabled
@@ -65,17 +62,19 @@
     procedure Disable;
   end;
 
-  TObjectsListItem_2 = TBumpMappingRenderer;
-  {$I objectslist_2.inc}
-  TBumpMappingRenderersList = class(TObjectsList_2)
+  TBumpMappingRenderersList = class(TResourceRenderersList)
+  private
+    function GetItems(const Index: Integer): TBumpMappingRenderer;
   public
     { Looks for item with given Node.
       Returns -1 if not found. }
-    function AppearanceNodeIndex(Node: TNodeKambiAppearance): Integer;
+    function NodeIndex(ANode: TNodeKambiAppearance): Integer;
 
     { Looks for item with given Node.
       Returns @nil if not found. }
-    function AppearanceNode(Node: TNodeKambiAppearance): TBumpMappingRenderer;
+    function Node(ANode: TNodeKambiAppearance): TBumpMappingRenderer;
+
+    property Items[Index: Integer]: TBumpMappingRenderer read GetItems; default;
 
     { If this State contains appropriate TNodeKambiAppearance,
       this will create and prepare TBumpMappingRenderer instance for it
@@ -98,22 +97,24 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-{$I objectslist_2.inc}
 
 constructor TBumpMappingRenderer.Create(ARenderer: TVRMLOpenGLRenderer;
   ANode: TNodeKambiAppearance);
 begin
-  inherited Create;
-  FRenderer := ARenderer;
-  FNode := ANode;
+  inherited Create(ARenderer, ANode);
 end;
 
-class function TBumpMappingRenderer.IsImageTexture(Node: TVRMLNode): boolean;
+function TBumpMappingRenderer.Node: TNodeKambiAppearance;
+begin
+  Result := TNodeKambiAppearance(inherited Node);
+end;
+
+class function TBumpMappingRenderer.IsImageTexture(ANode: TVRMLNode): boolean;
 begin
   Result :=
-    (Node <> nil) and
-    (Node is TVRMLTextureNode) and
-    (not (Node is TNodeMovieTexture));
+    (ANode <> nil) and
+    (ANode is TVRMLTextureNode) and
+    (not (ANode is TNodeMovieTexture));
 end;
 
 class function TBumpMappingRenderer.IsGLImageTexture(GLNode: TGLTextureNode): boolean;
@@ -562,39 +563,35 @@ end;
 
 { TBumpMappingRenderersList -------------------------------------------------- }
 
-function TBumpMappingRenderersList.AppearanceNodeIndex(Node: TNodeKambiAppearance): Integer;
+function TBumpMappingRenderersList.NodeIndex(ANode: TNodeKambiAppearance): Integer;
 begin
-  for Result := 0 to Count - 1 do
-    if Items[Result].Node = Node then Exit;
-  Result := -1;
+  Result := inherited NodeIndex(ANode);
 end;
 
-function TBumpMappingRenderersList.AppearanceNode(Node: TNodeKambiAppearance): TBumpMappingRenderer;
-var
-  I: Integer;
+function TBumpMappingRenderersList.Node(ANode: TNodeKambiAppearance): TBumpMappingRenderer;
 begin
-  for I := 0 to Count - 1 do
-  begin
-    Result := Items[I];
-    if Result.Node = Node then Exit;
-  end;
-  Result := nil;
+  Result := TBumpMappingRenderer(inherited Node(ANode));
+end;
+
+function TBumpMappingRenderersList.GetItems(const Index: Integer): TBumpMappingRenderer;
+begin
+  Result := TBumpMappingRenderer(inherited Items[Index]);
 end;
 
 procedure TBumpMappingRenderersList.Prepare(State: TVRMLGraphTraverseState;
   ARenderer: TVRMLOpenGLRenderer);
 var
-  Node: TNodeKambiAppearance;
+  ANode: TNodeKambiAppearance;
   BumpMappingRenderer: TBumpMappingRenderer;
 begin
   if (State.ParentShape <> nil) and
      (State.ParentShape.FdAppearance.Value <> nil) and
      (State.ParentShape.FdAppearance.Value is TNodeKambiAppearance) then
   begin
-    Node := TNodeKambiAppearance(State.ParentShape.FdAppearance.Value);
-    if AppearanceNode(Node) = nil then
+    ANode := TNodeKambiAppearance(State.ParentShape.FdAppearance.Value);
+    if Node(ANode) = nil then
     begin
-      BumpMappingRenderer := TBumpMappingRenderer.Create(ARenderer, Node);
+      BumpMappingRenderer := TBumpMappingRenderer.Create(ARenderer, ANode);
       BumpMappingRenderer.Prepare(State);
       Add(BumpMappingRenderer);
     end;
@@ -604,7 +601,7 @@ end;
 function TBumpMappingRenderersList.Enable(State: TVRMLGraphTraverseState;
   ColorTextureNode: TGLTextureNode): TBumpMappingRenderer;
 var
-  Node: TNodeKambiAppearance;
+  ANode: TNodeKambiAppearance;
 begin
   Result := nil;
 
@@ -612,8 +609,8 @@ begin
      (State.ParentShape.FdAppearance.Value <> nil) and
      (State.ParentShape.FdAppearance.Value is TNodeKambiAppearance) then
   begin
-    Node := TNodeKambiAppearance(State.ParentShape.FdAppearance.Value);
-    Result := AppearanceNode(Node);
+    ANode := TNodeKambiAppearance(State.ParentShape.FdAppearance.Value);
+    Result := Node(ANode);
     if Result <> nil then
     begin
       if not Result.Enable(State, ColorTextureNode) then

@@ -1,10 +1,5 @@
 {$ifdef read_interface}
 
-{ TODO:
-  - it would be nice to remove dependency on TVRMLOpenGLRenderer entirely.
-    This would make it more independent from TVRMLOpenGLRenderer,
-    so much simpler.
-}
   { }
   TGLTextureNode = class;
 

@@ -3622,7 +3622,7 @@ procedure TVRMLOpenGLRenderer.Unprepare(Node: TVRMLNode);
   begin
     { Call Unprepare and release related TBumpMappingRenderer instance. }
 
-    I := BumpMappingRenderers.AppearanceNodeIndex(Node);
+    I := BumpMappingRenderers.NodeIndex(Node);
     if I >= 0 then
     begin
       BumpMappingRenderers[I].Unprepare;
