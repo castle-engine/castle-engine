@@ -131,6 +131,9 @@ type
       OnlyActive: boolean = false): TVRMLShape;
   end;
 
+  TEnumerateShapeTexturesFunction = procedure (Shape: TVRMLShape;
+    Texture: TNodeX3DTextureNode) of object;
+
   { Shape is a geometry node @link(Geometry) instance and it's
     @link(State). For VRML >= 2.0, this usually corresponds to
     a single instance of actual VRML @code(Shape) node.
@@ -441,6 +444,11 @@ type
     function NormalsCreaseAngle(GeometryProxy: TVRMLGeometryNode;
       const CreaseAngle: Single): TDynVector3SingleArray;
     { @groupEnd }
+
+    { Enumerate to callback all single texture nodes possibly used by this shape.
+      This looks into appearance.texture field (and if it's MultiTexture,
+      looks into it's children). And looks into shaders textures. }
+    procedure EnumerateShapeTextures(Enumerate: TEnumerateShapeTexturesFunction);
   end;
 
   TObjectsListItem_2 = TVRMLShapeTree;
@@ -1111,6 +1119,32 @@ begin
   end;
 
   Result := FNormals;
+end;
+
+procedure TVRMLShape.EnumerateShapeTextures(Enumerate: TEnumerateShapeTexturesFunction);
+
+  procedure HandleSingleTexture(Tex: TVRMLNode);
+  begin
+    if Tex is TNodeX3DTextureNode then
+      Enumerate(Self, TNodeX3DTextureNode(Tex));
+  end;
+
+var
+  I: Integer;
+  Tex: TVRMLNode;
+begin
+  if (State.ParentShape <> nil) and
+     (State.ParentShape.Appearance <> nil) and
+     (State.ParentShape.Appearance.FdTexture.Value <> nil) then
+  begin
+    Tex := State.ParentShape.Appearance.FdTexture.Value;
+    if Tex is TNodeMultiTexture then
+    begin
+      for I := 0 to TNodeMultiTexture(Tex).FdTexture.Items.Count - 1 do
+        HandleSingleTexture(TNodeMultiTexture(Tex).FdTexture.Items.Items[I]);
+    end else
+      HandleSingleTexture(Tex);
+  end;
 end;
 
 { TVRMLShapeTreeGroup -------------------------------------------------------- }

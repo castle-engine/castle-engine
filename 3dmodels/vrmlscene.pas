@@ -370,6 +370,7 @@ type
   public
     function IndexOfTextureNode(TextureNode: TVRMLNode): Integer;
     function FindTextureNode(TextureNode: TVRMLNode): PGeneratedTexture;
+    procedure AddShapeTexture(Shape: TVRMLShape; Tex: TNodeX3DTextureNode);
   end;
 
   { Internal helper for TVRMLScene, gathers information for transform nodes.
@@ -1970,6 +1971,59 @@ begin
     Result := nil;
 end;
 
+procedure TDynGeneratedTextureArray.AddShapeTexture(Shape: TVRMLShape;
+  Tex: TNodeX3DTextureNode);
+var
+  GenTex: PGeneratedTexture;
+begin
+  if (Tex is TNodeGeneratedCubeMapTexture) or
+     (Tex is TNodeGeneratedShadowMap) or
+     (Tex is TNodeRenderedTexture) then
+  begin
+    GenTex := FindTextureNode(Tex);
+    if GenTex <> nil then
+    begin
+      { The same generated texture node Tex is instantiated more than once.
+
+        - For GeneratedShadowMap, the shape where it's used, and actually
+          the whole place where it's used in the VRML graph, doesn't matter.
+          (GeneratedShadowMap makes view from it's projectedLight).
+          Same thing for RenderedTexture (it makes view from specified viewpoint).
+
+          So we can simply ignore duplicates (placing them
+          on GeneratedTextures list would make it updated many times
+          in UpdateGeneratedTextures, instead of just once).
+
+        - For GeneratedCubeMapTexture, their view depends on the shape
+          where they are used. They can be instanced many times only
+          within a single shape (possible if you use MultiTexture
+          and instance there the same GeneratedCubeMapTexture),
+          then duplicates are simply ignored.
+
+          When GeneratedCubeMapTexture is instanced within different shapes,
+          make a warning, and reject duplicate. }
+
+      if (Tex is TNodeGeneratedCubeMapTexture) and
+         (Shape <> GenTex^.Shape) then
+        VRMLWarning(vwSerious, 'The same GeneratedCubeMapTexture node is used (instanced) within at least two different VRML shapes. This is bad, as we don''t know from which shape should environment be captured');
+    end else
+    begin
+      GenTex := AppendItem;
+      GenTex^.TextureNode := Tex;
+
+      if Tex is TNodeGeneratedCubeMapTexture then
+        GenTex^.Handler := TNodeGeneratedCubeMapTexture(Tex).GeneratedTextureHandler else
+      if Tex is TNodeGeneratedShadowMap then
+        GenTex^.Handler := TNodeGeneratedShadowMap(Tex).GeneratedTextureHandler else
+      if Tex is TNodeRenderedTexture then
+        GenTex^.Handler := TNodeRenderedTexture(Tex).GeneratedTextureHandler else
+        raise EInternalError.Create('sf34234');
+
+      GenTex^.Shape := Shape;
+    end;
+  end;
+end;
+
 { TDynTransformNodeInfoArray ------------------------------------------------- }
 
 function TDynTransformNodeInfoArray.NodeInfo(Node: TVRMLNode): PTransformNodeInfo;
@@ -2243,80 +2297,6 @@ procedure TChangedAllTraverser.Traverse(
     TraverseIntoChildren := false;
   end;
 
-  { Add items to GeneratedTextures for this Shape, if it has any
-    generated textures. }
-  procedure AddGeneratedTexturesOfShape(Shape: TVRMLShape);
-
-    procedure HandleSingleTexture(Tex: TVRMLNode);
-    var
-      GenTex: PGeneratedTexture;
-    begin
-      if (Tex is TNodeGeneratedCubeMapTexture) or
-         (Tex is TNodeGeneratedShadowMap) or
-         (Tex is TNodeRenderedTexture) then
-      begin
-        GenTex := ParentScene.GeneratedTextures.FindTextureNode(Tex);
-        if GenTex <> nil then
-        begin
-          { The same generated texture node Tex is instantiated more than once.
-
-            - For GeneratedShadowMap, the shape where it's used, and actually
-              the whole place where it's used in the VRML graph, doesn't matter.
-              (GeneratedShadowMap makes view from it's projectedLight).
-              Same thing for RenderedTexture (it makes view from specified viewpoint).
-
-              So we can simply ignore duplicates (placing them
-              on GeneratedTextures list would make it updated many times
-              in UpdateGeneratedTextures, instead of just once).
-
-            - For GeneratedCubeMapTexture, their view depends on the shape
-              where they are used. They can be instanced many times only
-              within a single shape (possible if you use MultiTexture
-              and instance there the same GeneratedCubeMapTexture),
-              then duplicates are simply ignored.
-
-              When GeneratedCubeMapTexture is instanced within different shapes,
-              make a warning, and reject duplicate. }
-
-          if (Tex is TNodeGeneratedCubeMapTexture) and
-             (Shape <> GenTex^.Shape) then
-            VRMLWarning(vwSerious, 'The same GeneratedCubeMapTexture node is used (instanced) within at least two different VRML shapes. This is bad, as we don''t know from which shape should environment be captured');
-        end else
-        begin
-          GenTex := ParentScene.GeneratedTextures.AppendItem;
-          GenTex^.TextureNode := Tex;
-
-          if Tex is TNodeGeneratedCubeMapTexture then
-            GenTex^.Handler := TNodeGeneratedCubeMapTexture(Tex).GeneratedTextureHandler else
-          if Tex is TNodeGeneratedShadowMap then
-            GenTex^.Handler := TNodeGeneratedShadowMap(Tex).GeneratedTextureHandler else
-          if Tex is TNodeRenderedTexture then
-            GenTex^.Handler := TNodeRenderedTexture(Tex).GeneratedTextureHandler else
-            raise EInternalError.Create('sf34234');
-
-          GenTex^.Shape := Shape;
-        end;
-      end;
-    end;
-
-  var
-    I: Integer;
-    Tex: TVRMLNode;
-  begin
-    if (Shape.State.ParentShape <> nil) and
-       (Shape.State.ParentShape.Appearance <> nil) and
-       (Shape.State.ParentShape.Appearance.FdTexture.Value <> nil) then
-    begin
-      Tex := Shape.State.ParentShape.Appearance.FdTexture.Value;
-      if Tex is TNodeMultiTexture then
-      begin
-        for I := 0 to TNodeMultiTexture(Tex).FdTexture.Items.Count - 1 do
-          HandleSingleTexture(TNodeMultiTexture(Tex).FdTexture.Items.Items[I]);
-      end else
-        HandleSingleTexture(Tex);
-    end;
-  end;
-
 var
   Shape: TVRMLShape;
   Info: PTransformNodeInfo;
@@ -2339,7 +2319,9 @@ begin
       Shape.Spatial := [ssTriangles];
     end;
 
-    AddGeneratedTexturesOfShape(Shape);
+    { Add items to GeneratedTextures for this Shape, if it has any
+      generated textures. }
+    Shape.EnumerateShapeTextures(@ParentScene.GeneratedTextures.AddShapeTexture);
   end else
 
   if Node is TVRMLLightNode then
