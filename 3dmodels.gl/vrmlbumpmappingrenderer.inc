@@ -44,7 +44,7 @@
     procedure Prepare(State: TVRMLGraphTraverseState);
 
     { Release things initialized by Prepare. }
-    procedure Unprepare;
+    procedure Unprepare; override;
 
     { Enable things for rendering with bump mapping.
 
@@ -248,11 +248,11 @@ begin
   if Renderer.BumpMappingMethod = bmNone then Exit;
 
   if IsImageTexture(Node.FdNormalMap.Value) then
-    NormalMap := Renderer.PrepareTexture(State, TVRMLTextureNode(Node.FdNormalMap.Value)) else
+    NormalMap := Renderer.GLTextureNodes.Prepare(State, TVRMLTextureNode(Node.FdNormalMap.Value), Renderer) else
     NormalMap := nil;
 
   if IsImageTexture(Node.FdHeightMap.Value) then
-    HeightMap := Renderer.PrepareTexture(State, TVRMLTextureNode(Node.FdHeightMap.Value)) else
+    HeightMap := Renderer.GLTextureNodes.Prepare(State, TVRMLTextureNode(Node.FdHeightMap.Value), Renderer) else
     HeightMap := nil;
 
       (* TODO: force texture to grayscale.
@@ -289,10 +289,10 @@ end;
 procedure TBumpMappingRenderer.Unprepare;
 begin
   if IsImageTexture(Node.FdNormalMap.Value) then
-    Renderer.UnprepareTexture(TVRMLTextureNode(Node.FdNormalMap.Value));
+    Renderer.GLTextureNodes.Unprepare(TVRMLTextureNode(Node.FdNormalMap.Value));
 
   if IsImageTexture(Node.FdHeightMap.Value) then
-    Renderer.UnprepareTexture(TVRMLTextureNode(Node.FdHeightMap.Value));
+    Renderer.GLTextureNodes.Unprepare(TVRMLTextureNode(Node.FdHeightMap.Value));
 end;
 
 function TBumpMappingRenderer.Enable(

@@ -15,6 +15,9 @@
     { Reference to handled VRML node.
       Never @nil. }
     property Node: TVRMLNode read FNode;
+
+    { Release all resources allocated by Prepare method. }
+    procedure Unprepare; virtual; abstract;
   end;
 
   TObjectsListItem_1 = TResourceRenderer;
@@ -28,6 +31,13 @@
     { Looks for item with given Node.
       Returns @nil if not found. }
     function Node(ANode: TVRMLNode): TResourceRenderer;
+
+    { If resources for this Node were created (and possibly prepared),
+      unprepare and remove them. }
+    procedure Unprepare(ANode: TVRMLNode);
+
+    { Unprepare and free and nodes. Clears the list. }
+    procedure UnprepareAll;
   end;
 
 {$endif read_interface}
@@ -64,6 +74,33 @@ begin
     if Result.Node = ANode then Exit;
   end;
   Result := nil;
+end;
+
+procedure TResourceRenderersList.Unprepare(ANode: TVRMLNode);
+var
+  I: integer;
+begin
+  { Call Unprepare and release related instance. }
+
+  I := NodeIndex(ANode);
+  if I >= 0 then
+  begin
+    Items[I].Unprepare;
+    Items[I].Free;
+    Delete(I);
+  end;
+end;
+
+procedure TResourceRenderersList.UnprepareAll;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+  begin
+    Items[I].Unprepare;
+    Items[I].Free;
+  end;
+  Count := 0;
 end;
 
 {$endif}

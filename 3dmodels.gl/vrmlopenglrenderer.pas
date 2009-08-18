@@ -1475,36 +1475,6 @@ type
 
     FBumpMappingLightDiffuseColor: TVector4Single;
     procedure SetBumpMappingLightDiffuseColor(const Value: TVector4Single);
-
-    { Prepare/Unprepare/Enable texture nodes.
-
-      These should be called only from
-      TVRMLOpenGLRenderer.Prepare/Unprepare[All]/Enable(internally in rendering),
-      they are exposed only to allow recursive call from
-      TGLMultiTextureNode methods.
-
-      Basically, their required interface is the same as equivalent
-      TGLTextureNode methods.
-
-      PrepareTexture returns created TGLTextureNode (or @nil if none),
-      it may be useful in case of TGLMultiTextureNode.Prepare implementation.
-
-      If given TextureNode doesn't have
-      correspodning TGLTextureNode reference (in GLTextureNodes),
-      UnprepareTexture is simply ignored and EnableTexture returns @false.
-
-      Accept multi texture or not-multi texture nodes, accept (and ignore)
-      also @nil as TextureNode.
-      Ignore not handled node classes.
-
-      @groupBegin }
-    function PrepareTexture(State: TVRMLGraphTraverseState;
-      TextureNode: TNodeX3DTextureNode): TGLTextureNode;
-    procedure UnprepareTexture(TextureNode: TNodeX3DTextureNode);
-    function EnableTexture(TextureNode: TNodeX3DTextureNode;
-      const TextureUnit: Cardinal;
-      var APrimitives3DTextureCoords: boolean): boolean;
-    { @groupEnd }
   public
     { Constructor.
 
@@ -3433,32 +3403,6 @@ end;
 
 { Prepare/Unprepare[All] ------------------------------------------------------- }
 
-function TVRMLOpenGLRenderer.PrepareTexture(State: TVRMLGraphTraverseState;
-  TextureNode: TNodeX3DTextureNode): TGLTextureNode;
-var
-  GLTextureNodeClass: TGLTextureNodeClass;
-begin
-  Result := nil;
-
-  { Conditions below describing when the texture is added to the cache
-    (more precisely, just "not Attributes.PureGeometry" for now)
-    are reflected in PreparedTextureAlphaChannelType documentation. }
-
-  if (not Attributes.PureGeometry) and
-     (TextureNode <> nil) then
-  begin
-    GLTextureNodeClass := TGLTextureNodeClass.ClassForTextureNode(Cache, TextureNode);
-
-    if (GLTextureNodeClass <> nil { Ignore if not handled node. }) and
-       (GLTextureNodes.TextureNodeIndex(TextureNode) = -1) then
-    begin
-      Result := GLTextureNodeClass.Create(Self, TextureNode);
-      Result.Prepare(State);
-      GLTextureNodes.Add(Result);
-    end;
-  end;
-end;
-
 procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
 
   procedure PrepareFont(
@@ -3592,45 +3536,14 @@ begin
         FontStyle.TTF_Font);
   end;
 
-  PrepareTexture(State, State.Texture);
+  GLTextureNodes.Prepare(State, State.Texture, Self);
 
   BumpMappingRenderers.Prepare(State, Self);
 
   PrepareGLSLProgram;
 end;
 
-procedure TVRMLOpenGLRenderer.UnprepareTexture(TextureNode: TNodeX3DTextureNode);
-var
-  I: integer;
-begin
-  { Call Unprepare and release related TGLTextureNode instance. }
-
-  I := GLTextureNodes.TextureNodeIndex(TextureNode);
-  if I >= 0 then
-  begin
-    GLTextureNodes[I].Unprepare;
-    GLTextureNodes[I].Free;
-    GLTextureNodes.Delete(I);
-  end;
-end;
-
 procedure TVRMLOpenGLRenderer.Unprepare(Node: TVRMLNode);
-
-  procedure UnprepareKambiAppearance(Node: TNodeKambiAppearance);
-  var
-    I: integer;
-  begin
-    { Call Unprepare and release related TBumpMappingRenderer instance. }
-
-    I := BumpMappingRenderers.NodeIndex(Node);
-    if I >= 0 then
-    begin
-      BumpMappingRenderers[I].Unprepare;
-      BumpMappingRenderers[I].Free;
-      BumpMappingRenderers.Delete(I);
-    end;
-  end;
-
 var
   I: Integer;
 begin
@@ -3639,12 +3552,11 @@ begin
    o takich samych wlasciwosciach Family i Style korzystaja zawsze z tego
    samego juz utworzonego fontu.}
 
-  { unprepare texture }
   if Node is TNodeX3DTextureNode then
-    UnprepareTexture(TNodeX3DTextureNode(Node));
+    GLTextureNodes.Unprepare(Node);
 
   if Node is TNodeKambiAppearance then
-    UnprepareKambiAppearance(TNodeKambiAppearance(Node));
+    BumpMappingRenderers.Unprepare(Node);
 
   { unprepare GLSLProgram }
   { This is not used for now anywhere actually ? Nowhere I unprepare
@@ -3684,21 +3596,8 @@ begin
           Cache.Fonts_DecReference(fsfam, fsbold, fsitalic);
         end;
 
-  { unprepare all textures }
-  for I := 0 to GLTextureNodes.Count - 1 do
-  begin
-    GLTextureNodes[I].Unprepare;
-    GLTextureNodes[I].Free;
-  end;
-  GLTextureNodes.Count := 0;
-
-  { unprepare all bump mapping renderers }
-  for I := 0 to BumpMappingRenderers.Count - 1 do
-  begin
-    BumpMappingRenderers[I].Unprepare;
-    BumpMappingRenderers[I].Free;
-  end;
-  BumpMappingRenderers.Count := 0;
+  GLTextureNodes.UnprepareAll;
+  BumpMappingRenderers.UnprepareAll;
 
   { unprepare all GLSLPrograms }
   for i := 0 to GLSLProgramReferences.Count - 1 do
@@ -4254,18 +4153,6 @@ begin
 
   glPushMatrix;
     glMultMatrix(State.Transform);
-end;
-
-function TVRMLOpenGLRenderer.EnableTexture(TextureNode: TNodeX3DTextureNode;
-  const TextureUnit: Cardinal;
-  var APrimitives3DTextureCoords: boolean): boolean;
-var
-  GLTextureNode: TGLTextureNode;
-begin
-  GLTextureNode := GLTextureNodes.TextureNode(TextureNode);
-  Result := GLTextureNode <> nil;
-  if Result then
-    Result := GLTextureNode.Enable(TextureUnit, APrimitives3DTextureCoords);
 end;
 
 procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);

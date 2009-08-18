@@ -65,9 +65,6 @@
       Calls PrepareCore. }
     procedure Prepare(State: TVRMLGraphTraverseState);
 
-    { Release all resources allocated by @link(Prepare). }
-    procedure Unprepare; virtual; abstract;
-
     { This is the alpha channel of this texture.
       Used by TVRMLOpenGLRenderer.PreparedTextureAlphaChannelType.
       Should be calculated and set in Prepare.
@@ -164,6 +161,27 @@
     function TextureNode(ANode: TNodeX3DTextureNode): TGLTextureNode;
 
     property Items[Index: Integer]: TGLTextureNode read GetItems; default;
+
+    { Prepare texture node, adding it to the list, if not prepared already.
+      Accepts multi texture or not-multi texture nodes, accepts (and ignores)
+      also @nil as TextureNode.
+      Ignore not handled node classes.
+
+      Returns created (or already existing) TGLTextureNode,
+      it may be useful in case of TGLMultiTextureNode.Prepare implementation.
+
+      Returns @nil if Node not suitable for TGLTextureNode (not handled,
+      or not really a texture node at all). }
+    function Prepare(State: TVRMLGraphTraverseState;
+      ANode: TNodeX3DTextureNode;
+      ARenderer: TVRMLOpenGLRenderer): TGLTextureNode;
+
+    { Enable texture node. Calls TGLTextureNode.Enable method.
+      If no texture renderer is prepared for this node,
+      returns @false. }
+    function Enable(ANode: TNodeX3DTextureNode;
+      const TextureUnit: Cardinal;
+      var APrimitives3DTextureCoords: boolean): boolean;
   end;
 
   { Common class for all single (not multi-texture) texture nodes.
@@ -593,6 +611,45 @@ begin
   Result := TGLTextureNode(inherited Items[Index]);
 end;
 
+function TGLTextureNodes.Prepare(State: TVRMLGraphTraverseState;
+  ANode: TNodeX3DTextureNode;
+  ARenderer: TVRMLOpenGLRenderer): TGLTextureNode;
+var
+  GLTextureNodeClass: TGLTextureNodeClass;
+begin
+  Result := nil;
+
+  { Conditions below describing when the texture is added to the cache
+    (more precisely, just "not Attributes.PureGeometry" for now)
+    are reflected in PreparedTextureAlphaChannelType documentation. }
+
+  if (not ARenderer.Attributes.PureGeometry) and
+     (ANode <> nil) then
+  begin
+    GLTextureNodeClass := TGLTextureNodeClass.ClassForTextureNode(ARenderer.Cache, ANode);
+
+    if (GLTextureNodeClass <> nil { Ignore if not handled node. }) and
+       (TextureNodeIndex(ANode) = -1) then
+    begin
+      Result := GLTextureNodeClass.Create(ARenderer, ANode);
+      Result.Prepare(State);
+      Add(Result);
+    end;
+  end;
+end;
+
+function TGLTextureNodes.Enable(ANode: TNodeX3DTextureNode;
+  const TextureUnit: Cardinal;
+  var APrimitives3DTextureCoords: boolean): boolean;
+var
+  GLTextureNode: TGLTextureNode;
+begin
+  GLTextureNode := TextureNode(ANode);
+  Result := GLTextureNode <> nil;
+  if Result then
+    Result := GLTextureNode.Enable(TextureUnit, APrimitives3DTextureCoords);
+end;
+
 { TGLSingleTextureNode ------------------------------------------------------- }
 
 procedure TGLSingleTextureNode.SetTextureRGBFromImage(Image: TEncodedImage);
@@ -670,7 +727,7 @@ begin
       if ChildTex is TNodeMultiTexture then
         VRMLWarning(vwSerious, 'Child of MultiTexture node cannot be another MultiTexture node') else
       begin
-        ChildPrepared := Renderer.PrepareTexture(State, TNodeX3DTextureNode(ChildTex));
+        ChildPrepared := Renderer.GLTextureNodes.Prepare(State, TNodeX3DTextureNode(ChildTex), Renderer);
         if ChildPrepared <> nil then
           MaxTo1st(AlphaChannelType, ChildPrepared.AlphaChannelType);
       end;
@@ -688,7 +745,7 @@ begin
     ChildTex := TextureNode.FdTexture.Items[I];
     if (ChildTex <> nil) and
        (ChildTex is TNodeX3DTextureNode) then
-      Renderer.UnprepareTexture(TNodeX3DTextureNode(ChildTex));
+      Renderer.GLTextureNodes.Unprepare(TNodeX3DTextureNode(ChildTex));
   end;
 end;
 
@@ -1092,7 +1149,7 @@ begin
     begin
       if ChildTex is TNodeMultiTexture then
         VRMLWarning(vwSerious, 'Child of MultiTexture node cannot be another MultiTexture node') else
-        Success := Renderer.EnableTexture(TNodeX3DTextureNode(ChildTex),
+        Success := Renderer.GLTextureNodes.Enable(TNodeX3DTextureNode(ChildTex),
           I, Primitives3DTextureCoords);
 
       if Success then
