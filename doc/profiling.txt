@@ -1,0 +1,22 @@
+Short primer on how to profile view3dscene with valgrind (actually callgrind, one of the many valgrind's tools.) This reflects some Kambi "preferences" (so, you do not have to follow it blindly, your real guide is documentation of FPC+valgrind and valgrind/callgrind manual.)
+
+http://valgrind.org/docs/manual/cl-manual.html
+
+Compile for valgrind:
+- look in ../kambi.cfg for valgrind options, uncomment them
+- clean units (to recompile all for valgrind), like
+    make -C kambi_vrml_game_engine/ clean
+    dircleaner view3dscene/ clean
+- compile as usual, with -dRELEASE (you want to profile released code)
+
+Run with valgrind:
+Generally, running program through callgrind adds an enormours slowdown, especially with instrumentation (this is when actual measurements take place). So it's adviced to start without instrumentation, and only turn it on for the interested code part.
+
+valgrind --tool=callgrind --instr-atstart=no ~/bin/view3dscene
+
+# from other shell:
+callgrind_control -i on
+callgrind_control -i off
+
+# investigate the report:
+kcachegrind
