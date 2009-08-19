@@ -471,12 +471,13 @@ end;
 procedure TKamOpenGLControl.Ray(const WindowX, WindowY: Integer;
   const ViewAngleDegX, ViewAngleDegY: Single;
   out Ray0, RayVector: TVector3Single);
+var
+  Dir, Up: TVector3Single;
 begin
-  Navigator.GetCameraVectors(Pos, Dir, Up);
-  Ray0 := Pos;
+  Navigator.GetCameraVectors(Ray0, Dir, Up);
   RayVector := PrimaryRay(WindowX, Height - WindowY,
     Width, Height,
-    Pos, Dir, Up,
+    Ray0, Dir, Up,
     ViewAngleDegX, ViewAngleDegY);
 end;
 
