@@ -194,8 +194,6 @@ function TGLSLRenderer.Enable(out BoundTextureUnits: Cardinal): boolean;
             TNodeX3DTextureNode(TextureNode), BoundTextureUnits) then
           begin
             GLSLProgram.SetUniform(UniformName, BoundTextureUnits);
-            { TODO: catch errors and convert to vrml warnings, like
-              in SetUniformFromField }
             Inc(BoundTextureUnits);
           end else
             Enable := false;

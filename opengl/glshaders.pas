@@ -139,6 +139,16 @@ type
   TUniformNotFoundAction = (
     { Report that uniform variable not found to DataWarning. }
     uaWarning,
+
+    { Report that uniform variable not found to DataWarning.
+
+      Additionally, catch (and also report to DataWarning) if the uniform
+      variable in shader type doesn't match. (Without this, type mismatch
+      causes  OpenGL error "invalid operation".) This causes a little
+      slowdown (we have to check OpenGL error state to detect it),
+      but it's the safest. }
+    uaWarningAlsoOnTypeMismatch,
+
     { Report that uniform variable not found by raising EGLSLUniformNotFound. }
     uaException);
 
@@ -154,6 +164,7 @@ type
 
     FUniformNotFoundAction: TUniformNotFoundAction;
     procedure UniformNotFound(const Name: string);
+    procedure SetUniformEnd(const UniformName: string);
 
     procedure AttachShader(AType: TGLenum; const S: string);
 
@@ -1140,9 +1151,9 @@ procedure TGLSLProgram.UniformNotFound(const Name: string);
 var
   S: string;
 begin
-  S := Format('Uniform variable "%s" not found', [Name]);
+  S := Format('Uniform variable "%s" not found (or not used) in the shader source code', [Name]);
   case UniformNotFoundAction of
-    uaWarning: DataWarning(S);
+    uaWarning, uaWarningAlsoOnTypeMismatch: DataWarning(S);
     uaException: raise EGLSLUniformNotFound.Create(S);
     else raise EInternalError.Create('UniformNotFoundAction? in TGLSLProgram.UniformNotFound');
   end;
@@ -1150,12 +1161,17 @@ end;
 
 { Wrapper over glGetUniformLocationARB (use only if gsARBExtension) }
 {$define GetLocationCheckARB :=
+
   Location := glGetUniformLocationARB(ProgramId, PCharOrNil(Name));
   if Location = -1 then
   begin
     UniformNotFound(Name);
     Exit;
-  end;}
+  end;
+
+  if UniformNotFoundAction = uaWarningAlsoOnTypeMismatch then
+    CheckGLErrors('Cleaning GL errors before setting GLSL uniform:');
+}
 
 { Wrapper over glGetUniformLocation (use only if gsStandard) }
 {$define GetLocationCheck :=
@@ -1164,7 +1180,34 @@ end;
   begin
     UniformNotFound(Name);
     Exit;
-  end;}
+  end;
+
+  if UniformNotFoundAction = uaWarningAlsoOnTypeMismatch then
+    CheckGLErrors('Cleaning GL errors before setting GLSL uniform:');
+}
+
+procedure TGLSLProgram.SetUniformEnd(const UniformName: string);
+var
+  ErrorCode: TGLenum;
+begin
+  if UniformNotFoundAction = uaWarningAlsoOnTypeMismatch then
+  begin
+    { Invalid glUniform call, that specifies wrong uniform variable type,
+      may cause OpenGL error "invalid operation". We want to catch it,
+      and convert into appropriate nice warning.
+      We cleaned GL error at the beginning of SetUniform
+      (at the end of macro glGetUniformLocation*), so if there's an error
+      now --- we know it's because of glUniform.
+
+      Note: we could do here CheckGLErrors and catch EOpenGLError,
+      but it's simpler and more efficient to just check it directly. }
+
+    ErrorCode := glGetError();
+    if ErrorCode <> GL_NO_ERROR then
+      DataWarning(Format('Error when setting GLSL uniform variable "%s" (check that the type of the variable in shader source code matches): OpenGL error (%d): %s',
+        [UniformName, ErrorCode,  gluErrorString(ErrorCode)]));
+  end;
+end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: boolean);
 var
@@ -1182,8 +1225,8 @@ begin
     Which means that I can simply call glUniform1i, with Ord(Value). }
 
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform1iARB(Location, Ord(Value)); end;
-    gsStandard    : begin GetLocationCheck    glUniform1i   (Location, Ord(Value)); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform1iARB(Location, Ord(Value)); SetUniformEnd(Name); end;
+    gsStandard    : begin GetLocationCheck    glUniform1i   (Location, Ord(Value)); SetUniformEnd(Name); end;
   end;
 end;
 
@@ -1192,8 +1235,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform1iARB(Location, Value); end;
-    gsStandard    : begin GetLocationCheck    glUniform1i   (Location, Value); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform1iARB(Location, Value); SetUniformEnd(Name); end;
+    gsStandard    : begin GetLocationCheck    glUniform1i   (Location, Value); SetUniformEnd(Name); end;
   end;
 end;
 
@@ -1202,8 +1245,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform2ivARB(Location, 1, @Value); end;
-    gsStandard    : begin GetLocationCheck    glUniform2iv   (Location, 1, @Value); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform2ivARB(Location, 1, @Value); SetUniformEnd(Name); end;
+    gsStandard    : begin GetLocationCheck    glUniform2iv   (Location, 1, @Value); SetUniformEnd(Name); end;
   end;
 end;
 
@@ -1212,8 +1255,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform3ivARB(Location, 1, @Value); end;
-    gsStandard    : begin GetLocationCheck    glUniform3iv   (Location, 1, @Value); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform3ivARB(Location, 1, @Value); SetUniformEnd(Name); end;
+    gsStandard    : begin GetLocationCheck    glUniform3iv   (Location, 1, @Value); SetUniformEnd(Name); end;
   end;
 end;
 
@@ -1222,8 +1265,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform4ivARB(Location, 1, @Value); end;
-    gsStandard    : begin GetLocationCheck    glUniform4iv   (Location, 1, @Value); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform4ivARB(Location, 1, @Value); SetUniformEnd(Name); end;
+    gsStandard    : begin GetLocationCheck    glUniform4iv   (Location, 1, @Value); SetUniformEnd(Name); end;
   end;
 end;
 
@@ -1232,8 +1275,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform1fARB(Location, Value); end;
-    gsStandard    : begin GetLocationCheck    glUniform1f   (Location, Value); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform1fARB(Location, Value); SetUniformEnd(Name); end;
+    gsStandard    : begin GetLocationCheck    glUniform1f   (Location, Value); SetUniformEnd(Name); end;
   end;
 end;
 
@@ -1242,8 +1285,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform2fvARB(Location, 1, @Value); end;
-    gsStandard    : begin GetLocationCheck    glUniform2fv   (Location, 1, @Value); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform2fvARB(Location, 1, @Value); SetUniformEnd(Name); end;
+    gsStandard    : begin GetLocationCheck    glUniform2fv   (Location, 1, @Value); SetUniformEnd(Name); end;
   end;
 end;
 
@@ -1252,8 +1295,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform3fvARB(Location, 1, @Value); end;
-    gsStandard    : begin GetLocationCheck    glUniform3fv   (Location, 1, @Value); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform3fvARB(Location, 1, @Value); SetUniformEnd(Name); end;
+    gsStandard    : begin GetLocationCheck    glUniform3fv   (Location, 1, @Value); SetUniformEnd(Name); end;
   end;
 end;
 
@@ -1262,8 +1305,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform4fvARB(Location, 1, @Value); end;
-    gsStandard    : begin GetLocationCheck    glUniform4fv   (Location, 1, @Value); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform4fvARB(Location, 1, @Value); SetUniformEnd(Name); end;
+    gsStandard    : begin GetLocationCheck    glUniform4fv   (Location, 1, @Value); SetUniformEnd(Name); end;
   end;
 end;
 
@@ -1272,8 +1315,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniformMatrix2fvARB(Location, 1, GL_FALSE, @Value); end;
-    gsStandard    : begin GetLocationCheck    glUniformMatrix2fv   (Location, 1, GL_FALSE, @Value); end;
+    gsARBExtension: begin GetLocationCheckARB glUniformMatrix2fvARB(Location, 1, GL_FALSE, @Value); SetUniformEnd(Name); end;
+    gsStandard    : begin GetLocationCheck    glUniformMatrix2fv   (Location, 1, GL_FALSE, @Value); SetUniformEnd(Name); end;
   end;
 end;
 
@@ -1282,8 +1325,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniformMatrix3fvARB(Location, 1, GL_FALSE, @Value); end;
-    gsStandard    : begin GetLocationCheck    glUniformMatrix3fv   (Location, 1, GL_FALSE, @Value); end;
+    gsARBExtension: begin GetLocationCheckARB glUniformMatrix3fvARB(Location, 1, GL_FALSE, @Value); SetUniformEnd(Name); end;
+    gsStandard    : begin GetLocationCheck    glUniformMatrix3fv   (Location, 1, GL_FALSE, @Value); SetUniformEnd(Name); end;
   end;
 end;
 
@@ -1292,8 +1335,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniformMatrix4fvARB(Location, 1, GL_FALSE, @Value); end;
-    gsStandard    : begin GetLocationCheck    glUniformMatrix4fv   (Location, 1, GL_FALSE, @Value); end;
+    gsARBExtension: begin GetLocationCheckARB glUniformMatrix4fvARB(Location, 1, GL_FALSE, @Value); SetUniformEnd(Name); end;
+    gsStandard    : begin GetLocationCheck    glUniformMatrix4fv   (Location, 1, GL_FALSE, @Value); SetUniformEnd(Name); end;
   end;
 end;
 
@@ -1313,8 +1356,8 @@ begin
   Ints := Value.ToLongInt;
   try
     case Support of
-      gsARBExtension: begin GetLocationCheckARB glUniform1ivARB(Location, Value.Count, PGLint(Ints.ItemsArray)); end;
-      gsStandard    : begin GetLocationCheck    glUniform1iv   (Location, Value.Count, PGLint(Ints.ItemsArray)); end;
+      gsARBExtension: begin GetLocationCheckARB glUniform1ivARB(Location, Value.Count, PGLint(Ints.ItemsArray)); SetUniformEnd(Name); end;
+      gsStandard    : begin GetLocationCheck    glUniform1iv   (Location, Value.Count, PGLint(Ints.ItemsArray)); SetUniformEnd(Name); end;
     end;
   finally FreeAndNil(Ints) end;
 end;
@@ -1325,8 +1368,8 @@ var
 begin
   Assert(SizeOf(LongInt) = SizeOf(TGLint));
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform1ivARB(Location, Value.Count, PGLint(Value.ItemsArray)); end;
-    gsStandard    : begin GetLocationCheck    glUniform1iv   (Location, Value.Count, PGLint(Value.ItemsArray)); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform1ivARB(Location, Value.Count, PGLint(Value.ItemsArray)); SetUniformEnd(Name); end;
+    gsStandard    : begin GetLocationCheck    glUniform1iv   (Location, Value.Count, PGLint(Value.ItemsArray)); SetUniformEnd(Name); end;
   end;
 end;
 
@@ -1335,8 +1378,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform1fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); end;
-    gsStandard    : begin GetLocationCheck    glUniform1fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform1fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
+    gsStandard    : begin GetLocationCheck    glUniform1fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
   end;
 end;
 
@@ -1345,8 +1388,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform2fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); end;
-    gsStandard    : begin GetLocationCheck    glUniform2fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform2fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
+    gsStandard    : begin GetLocationCheck    glUniform2fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
   end;
 end;
 
@@ -1355,8 +1398,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform3fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); end;
-    gsStandard    : begin GetLocationCheck    glUniform3fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform3fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
+    gsStandard    : begin GetLocationCheck    glUniform3fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
   end;
 end;
 
@@ -1365,8 +1408,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform4fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); end;
-    gsStandard    : begin GetLocationCheck    glUniform4fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform4fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
+    gsStandard    : begin GetLocationCheck    glUniform4fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
   end;
 end;
 
@@ -1375,8 +1418,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniformMatrix3fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); end;
-    gsStandard    : begin GetLocationCheck    glUniformMatrix3fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); end;
+    gsARBExtension: begin GetLocationCheckARB glUniformMatrix3fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
+    gsStandard    : begin GetLocationCheck    glUniformMatrix3fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
   end;
 end;
 
@@ -1385,8 +1428,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniformMatrix4fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); end;
-    gsStandard    : begin GetLocationCheck    glUniformMatrix4fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); end;
+    gsARBExtension: begin GetLocationCheckARB glUniformMatrix4fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
+    gsStandard    : begin GetLocationCheck    glUniformMatrix4fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
   end;
 end;
 
