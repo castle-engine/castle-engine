@@ -182,9 +182,12 @@ function TGLSLRenderer.Enable(out BoundTextureUnits: Cardinal): boolean;
   { Scan IDecls for SFNode and MFNode fields, bind texture nodes inside. }
   procedure BindShaderFields(IDecls: TVRMLInterfaceDeclarationsList);
 
-    { If TextureNode <> @nil and is a texture node, prepare it. }
-    procedure BindTexture(const UniformName: string; TextureNode: TVRMLNode);
+    { If TextureNode <> @nil and is a texture node, prepare it.
+      Returns bound texture number (or -1 if failed).
+      You should set shader uniform value to this number. }
+    function BindTexture(TextureNode: TVRMLNode): LongInt;
     begin
+      Result := -1;
       if (TextureNode <> nil) and
          (TextureNode is TNodeX3DTextureNode) then
       begin
@@ -193,7 +196,7 @@ function TGLSLRenderer.Enable(out BoundTextureUnits: Cardinal): boolean;
           if Renderer.GLTextureNodes.Bind(
             TNodeX3DTextureNode(TextureNode), BoundTextureUnits) then
           begin
-            GLSLProgram.SetUniform(UniformName, BoundTextureUnits);
+            Result := BoundTextureUnits;
             Inc(BoundTextureUnits);
           end else
             Enable := false;
@@ -205,6 +208,8 @@ function TGLSLRenderer.Enable(out BoundTextureUnits: Cardinal): boolean;
   var
     I, J: Integer;
     UniformField: TVRMLField;
+    BoundValue: LongInt;
+    UniformValue: TDynLongIntArray;
   begin
     for I := 0 to IDecls.Count - 1 do
     begin
@@ -214,13 +219,27 @@ function TGLSLRenderer.Enable(out BoundTextureUnits: Cardinal): boolean;
       begin
         if UniformField is TSFNode then
         begin
-          BindTexture(UniformField.Name, TSFNode(UniformField).Value);
+          BoundValue := BindTexture(TSFNode(UniformField).Value);
+          if BoundValue <> -1 then
+            GLSLProgram.SetUniform(UniformField.Name, BoundValue);
         end else
-        { TODO: this shouldn't work like this, it should be an array of textures. }
         if UniformField is TMFNode then
         begin
-          for J := 0 to TMFNode(UniformField).Count - 1 do
-            BindTexture(UniformField.Name, TMFNode(UniformField).Items[J]);
+          UniformValue := TDynLongIntArray.Create(TMFNode(UniformField).Count);
+          try
+            for J := 0 to TMFNode(UniformField).Count - 1 do
+            begin
+              BoundValue := BindTexture(TMFNode(UniformField).Items[J]);
+              { We cannot just resign from setting the field entirely,
+                and setting to -1 would likely produce wild OpenGL warnings
+                (setting texture sampler to -1...).
+                So on failure, assume safe 0. BindTexture already did
+                necessary warnings for user. }
+              if BoundValue = -1 then BoundValue := 0;
+              UniformValue[J] := BoundValue;
+            end;
+            GLSLProgram.SetUniform(UniformField.Name, UniformValue);
+          finally FreeAndNil(UniformValue) end;
         end;
       end;
     end;
