@@ -2024,6 +2024,32 @@ begin
   RenderToTexture := TGLRenderToTexture.Create(Size, Size);
   RenderToTexture.SetTexture(GLName, GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB);
   RenderToTexture.InitGL;
+
+  { Workaround for NVidia GeForce FX 5200 bug:
+    (Confirmed it's needed on Linux, both 32 and 64bit, Kambi's "kocury".
+     Confirmed it's *not* needed on Radeon (Linux 32bit, fglrx, Kambi's chantal).)
+
+    Although TextureCubeMap_IncReference (glTextureCubeMap inside) already
+    called initial GenerateMipmap (for our InitialImage), it's not enough.
+    It seems that assigning texture to FBO destroys it's mipmaps (at least
+    their contents).
+    So you have to call GenerateMipmap *after* RenderToTexture.InitGL
+    before showing this texture, to recreate mipmaps.
+
+    To see bug, comment below, and run view3scene on
+    kambi_vrml_test_suite/x3d/cubemap_generated_recursive.x3dv
+    Before pressing [space] (which triggers Update method), teapots
+    (or any other objects, reproducible with various IndexedFaceSets)
+    will have seemingly random mipmaps (base level 0 is Ok, RGB(255,0,255),
+    but mipmaps are seemingly filled with random garbage).
+    Line below fixes it at negligible cost (we'll generate mipmaps at loading
+    one more time than necessary). Other fix that works is to move
+    RenderToTexture.InitGL to first Update call, but this obfuscates code. }
+  if GLVersion.VendorNvidia and NeedsMipmaps then
+  begin
+    RenderToTexture.CompleteTextureTarget := GL_TEXTURE_CUBE_MAP_ARB;
+    RenderToTexture.GenerateMipmap;
+  end;
 end;
 
 procedure TGLGeneratedCubeMapTextureNode.Unprepare;
