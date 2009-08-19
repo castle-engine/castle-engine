@@ -1131,7 +1131,8 @@ implementation
 
 {$define read_implementation}
 
-uses KambiFilesUtils, KambiStringUtils, GLVersionUnit, GLShaders, GLImages;
+uses KambiFilesUtils, KambiStringUtils, GLVersionUnit, GLShaders, GLImages,
+  KambiLog;
 
 {$I glext_packed_depth_stencil.inc}
 
@@ -1330,7 +1331,14 @@ begin
    GLMaxCubeMapTextureSizeARB := 0;
 
  if GL_EXT_texture3D then
-   GLMax3DTextureSizeEXT := glGetInteger(GL_MAX_3D_TEXTURE_SIZE_EXT) else
+ begin
+   GLMax3DTextureSizeEXT := glGetInteger(GL_MAX_3D_TEXTURE_SIZE_EXT);
+   if GLMax3DTextureSizeEXT = 0 then
+   begin
+     GL_EXT_texture3D := false;
+     if Log then WritelnLog('OpenGL', 'Buggy OpenGL EXT_texture3D: reported as supported, but GL_MAX_3D_TEXTURE_SIZE_EXT is zero. (Bug may be found on Mesa 7.0.4.)');
+   end;
+ end else
    GLMax3DTextureSizeEXT := 0;
 
  if GL_EXT_texture_filter_anisotropic then
@@ -1342,7 +1350,14 @@ begin
    GLQueryCounterBits := 0;
 
  if GL_EXT_framebuffer_object then
-   GLMaxRenderbufferSize := glGetInteger(GL_MAX_RENDERBUFFER_SIZE_EXT) else
+ begin
+   GLMaxRenderbufferSize := glGetInteger(GL_MAX_RENDERBUFFER_SIZE_EXT);
+   if GLMaxRenderbufferSize = 0 then
+   begin
+     GL_EXT_framebuffer_object := false;
+     if Log then WritelnLog('OpenGL', 'Buggy OpenGL EXT_framebuffer_object: reported as supported, but GL_MAX_RENDERBUFFER_SIZE_EXT is zero. (Bug may be found on Mesa 7.0.4.)');
+   end;
+ end else
    GLMaxRenderbufferSize := 0;
 end;
 {$endif}
