@@ -1759,7 +1759,7 @@ procedure glTextureCubeMap(
     end;
 
   begin
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, DDS.MipmapsCount - 1);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_MAX_LEVEL, DDS.MipmapsCount - 1);
     LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, dcsPositiveX);
     LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB, dcsNegativeX);
     { Note Positive/Negative are swapped for Y.
@@ -1785,7 +1785,7 @@ begin
     if HasMipmapsFromDDS(DDSForMipmaps) then
       LoadMipmapsFromDDS(DDSForMipmaps) else
     begin
-      GenerateMipmap(GL_TEXTURE_CUBE_MAP);
+      GenerateMipmap(GL_TEXTURE_CUBE_MAP_ARB);
       if Log then
         WritelnLog('Mipmaps', 'Generating mipmaps for cube map by GenerateMipmap (GOOD)');
     end;
