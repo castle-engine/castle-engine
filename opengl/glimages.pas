@@ -1079,7 +1079,7 @@ begin
 end;
 
 { ----------------------------------------------------------------------
-  Adjusting image size to load them as textures. }
+  Adjusting image size for 2D texture. }
 
 function TextureNonPowerOfTwo: boolean;
 begin
@@ -1271,8 +1271,7 @@ begin
   Result := CompareMem(@W1, @W2, SizeOf(W1));
 end;
 
-{ implementacja procedur LoadGLTextures_XXX
-  -----------------------------------------------------------------------------}
+{ 2D texture loading --------------------------------------------------------- }
 
 function LoadGLTexture(const image: TEncodedImage;
   MinFilter, MagFilter: TGLenum;
@@ -1931,6 +1930,8 @@ begin
     glTexParameterf(Target, GL_TEXTURE_MAX_ANISOTROPY_EXT,
       Min(GLMaxTextureMaxAnisotropyEXT, Anisotropy));
 end;
+
+{ DecompressS3TC ------------------------------------------------------------- }
 
 function GLDecompressS3TC(Image: TS3TCImage): TImage;
 var
