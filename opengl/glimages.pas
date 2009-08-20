@@ -1386,10 +1386,37 @@ var
     end;
   end;
 
-  { Check should we load mipmaps from DDS. Load them, if yes. }
-  function LoadMipmapsFromDDS(DDS: TDDSImage): boolean;
+  procedure LoadNormal(const image: TImage);
+  begin
+    { Setting GL_GENERATE_MIPMAP_SGIS to GL_FALSE isn't really needed here, AFAIK.
+      It's false by default after all, and glTexParameter isn't part of the
+      global state, it's part of currently bound texture state (which means
+      you don't have to reset it to GL_FALSE just because you potentially
+      set it to GL_TRUE on some other texture previously loaded). }
+    if GL_SGIS_generate_mipmap then
+      glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_FALSE);
+
+    glTexImage2DImage(Image, 0);
+  end;
+
+  { Check should we load mipmaps from DDS. Load them, if yes.
+
+    If LoadBase this also loads the base image (mipmap level 0).
+
+    Note that I observed a bug on NVidia GeForce FX 5200, with various driver
+    versions on both Linux 32 bit, 64 bit, and Windows 32 bit:
+    you cannot load the base texture level (0) *after* loading the mipmaps.
+    Doing so results in mipmaps being ignored, and seemingly GL_NEAREST
+    mininification filtering used (ignoring our set MinFilter filtering).
+    This could be easily observed with
+    kambi_vrml_test_suite/x3d/tex_visualize_mipmaps.x3dv,
+    switching to viewpoint like "Mipmaps from DDS" or "Colored mipmaps from DDS"
+    --- you could clearly see that mipmaps are ignored and ugly nearest filtering
+    gets used.
+    Using LoadBase automatically workarounds this. }
+  function LoadMipmapsFromDDS(DDS: TDDSImage; LoadBase: boolean): boolean;
   var
-    I: Integer;
+    I, FromLevel: Integer;
   begin
     Result := (DDS <> nil) and DDS.Mipmaps;
     if Result and (DDS.DDSType <> dtTexture) then
@@ -1400,8 +1427,11 @@ var
 
     if Result then
     begin
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, DDS.Images.High);
-      for I := 1 to DDS.Images.High do
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, DDS.MipmapsCount - 1);
+      if LoadBase then
+        FromLevel := 0 else
+        FromLevel := 1;
+      for I := FromLevel to DDS.MipmapsCount - 1 do
         if DDS.Images[I] is TImage then
           glTexImage2DImage(TImage(DDS.Images[I]), I) else
         if DDS.Images[I] is TS3TCImage then
@@ -1426,13 +1456,9 @@ var
     finally AfterUnpackImage(UnpackData, Image) end;
   end;
 
-  procedure LoadNormal(const image: TImage); forward;
-
   procedure LoadMipmapped(const image: TImage);
   begin
-    if LoadMipmapsFromDDS(DDSForMipmaps) then
-      { Load the base image normally, mipmaps are already set }
-      LoadNormal(Image) else
+    if not LoadMipmapsFromDDS(DDSForMipmaps, true) then
     if GL_SGIS_generate_mipmap then
     begin
       { hardware-accelerated mipmap generation.
@@ -1444,13 +1470,6 @@ var
       glTexImage2DImage(Image, 0);
     end else
       gluBuild2DMipmapsImage(Image);
-  end;
-
-  procedure LoadNormal(const image: TImage);
-  begin
-    if GL_SGIS_generate_mipmap then
-      glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_FALSE);
-    glTexImage2DImage(Image, 0);
   end;
 
 begin
@@ -1488,7 +1507,7 @@ begin
 
     if TextureMinFilterNeedsMipmaps(MinFilter) then
     begin
-      if not LoadMipmapsFromDDS(DDSForMipmaps) then
+      if not LoadMipmapsFromDDS(DDSForMipmaps, false) then
       try
         GenerateMipmap(GL_TEXTURE_2D);
       except
@@ -1850,8 +1869,8 @@ var
 
     if Result then
     begin
-      glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_MAX_LEVEL, DDS.Images.High);
-      for I := 1 to DDS.Images.High do
+      glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_MAX_LEVEL, DDS.MipmapsCount - 1);
+      for I := 1 to DDS.MipmapsCount - 1 do
         if DDS.Images[I] is TImage then
           glTexImage3DImage(TImage(DDS.Images[I]), I) else
           raise ETextureLoadError.CreateFmt('Image class %s cannot be loaded to OpenGL 3D texture. OpenGL doesn''t allow any 3D texture compression formats',
