@@ -1940,8 +1940,12 @@ begin
   glGenTextures(1, @Tex);
   glBindTexture(GL_TEXTURE_2D, Tex);
 
-  { Testcase that fails on Radeon chantal:
-    kambi_vrml_test_suite/textures/marble_with_mipmaps_s3tc.dds }
+  { Testcase that fails on Radeon chantal (ATI Radeon X1600) Linux:
+    kambi_vrml_test_suite/textures/marble_with_mipmaps_s3tc.dds
+
+    No problem on NVidia (fpc 2.2.2 kocury/linux/32, fpc 2.2.4 kocury/linux/32),
+    and no problem on Mac OS X with the same GPU (also chantal, 32bit, fpc 2.2.4).
+    So I'm assuming it's fglrx-specific bug. }
   if GLVersion.IsFglrx and ( (Image.Width < 4) or (Image.Height < 4) ) then
     raise ECannotDecompressS3TC.CreateFmt('Cannot decompress S3TC texture: fglrx (proprietary Radeon drivers on Linux) may awfully crash when one of texture sizes is smaller than 4, and your texture size is %d x %d',
       [Image.Width, Image.Height]);
