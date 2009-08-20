@@ -23,6 +23,8 @@
   TObjectsListItem_1 = TResourceRenderer;
   {$I objectslist_1.inc}
   TResourceRenderersList = class(TObjectsList_1)
+  private
+    InsideUnprepareAll: Cardinal;
   public
     { Looks for item with given Node.
       Returns -1 if not found. }
@@ -33,7 +35,15 @@
     function Node(ANode: TVRMLNode): TResourceRenderer;
 
     { If resources for this Node were created (and possibly prepared),
-      unprepare and remove them. }
+      unprepare and remove them.
+
+      Note: for complicated reasons, this is ignored if called during
+      UnprepareAll call on the same list. E.g. it may happen when
+      your TResourceRenderer calls Unprepare on it's own list from it's
+      own Unprepare (like TGLMultiTextureNode). Although it's ignored
+      in this case, you still can be sure ANode will be unprepared (as UnprepareAll
+      will eventually unprepare, well, all). Just be aware that effect may
+      be delayed in this case. }
     procedure Unprepare(ANode: TVRMLNode);
 
     { Unprepare and free and nodes. Clears the list. }
@@ -80,6 +90,23 @@ procedure TResourceRenderersList.Unprepare(ANode: TVRMLNode);
 var
   I: integer;
 begin
+  { If we're already inside UnprepareAll on the same instance, prevent
+    Unprepare call.
+
+    This may happen if some TResourceRenderer overrides
+    Unprepare, and calls Unprepare *on the same list it's on* in it's own
+    Unprepare. For example, TGLMultiTextureNode.Unprepare unprepares also
+    it's own items.
+
+    In this case, the list is half-destroyed (some items freed, so invalid
+    pointers), so Unprepare cannot work correctly on it. Moreover, it would
+    actually break UnprepareAll if Unprepare would modify the list contents
+    (UnprepareAll loops over the list, assuming nothing else will change the
+    list during this time.) Solution --- simply ignore Unprepare in this case.
+    It's safe --- we know that all items on the list will eventually get
+    unprepared. }
+  if InsideUnprepareAll > 0 then Exit;
+
   { Call Unprepare and release related instance. }
 
   I := NodeIndex(ANode);
@@ -95,12 +122,15 @@ procedure TResourceRenderersList.UnprepareAll;
 var
   I: Integer;
 begin
-  for I := 0 to Count - 1 do
-  begin
-    Items[I].Unprepare;
-    Items[I].Free;
-  end;
-  Count := 0;
+  Inc(InsideUnprepareAll);
+  try
+    for I := 0 to Count - 1 do
+    begin
+      Items[I].Unprepare;
+      Items[I].Free;
+    end;
+    Count := 0;
+  finally Dec(InsideUnprepareAll) end;
 end;
 
 {$endif}
