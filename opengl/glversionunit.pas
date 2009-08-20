@@ -130,6 +130,13 @@ type
       from 8-12-4 to 9-2-2. I know the bug wasn't present in 8-12-4
       (and some other < 8-12-4 that I previously used), and it is in 9-2-2.
 
+      I also see this on Mac OS X with the same GPU (driver GL_VERSION:
+      2.0 ATI-1.4.56, GL_RENDERER: ATI Radeon X1600 OpenGL Engine).
+      Although it's less common on Mac OS X, but can be seen with
+      kambi_vrml_test_suite/x3d/kambi_extensions/rendered_texture.x3dv:
+      open it, then make some operation that saves screen,
+      e.g. open dialog by Ctrl+O.
+
       Precisely, the problem is for images with size like 819 x 614.
       Drawing them by glDrawPixels (including the case when you put
       this in display list) requires glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
@@ -387,12 +394,17 @@ begin
 
   FBuggyPointSetAttrib := IsMesa and IsPrefix('Mesa DRI Intel', Renderer);
 
-  { I would like to set this when fglrx is detected with version 9.x.
+  { Initially, I wanted t set this when fglrx is detected with version 9.x.
     But I really don't see anything clearly indicating fglrx version,
     maybe the last number in GL_VERSION4? But it's 8494 for 9.2 version...
-    It's a completely blind and probably incorrect guess,
-    but for now I'll just assume that Release >= 8490 indicates 9.x. }
-  FBuggyDrawOddWidth := IsFglrx and ReleaseExists and (Release >= 8490);
+    As a completely blind and probably incorrect guess,
+    I assumed that Release >= 8490 indicates 9.x, and used
+
+      IsFglrx and ReleaseExists and (Release >= 8490)
+
+    Later: I'll just do this do every ATI, since Mac OS X GPU has the same
+    problem on rendered_texture.x3dv test. }
+  FBuggyDrawOddWidth := IsVendorATI;
 end;
 
 finalization

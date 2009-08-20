@@ -317,12 +317,12 @@ procedure SaveScreen_noflush(
 
 { Like SaveScreen_noflush(ReadBuffer), except it may make the width larger,
   to make it divisible by four,
-  to workaround fglrx bug TGLVersion.BuggyDrawOddWidth.
+  to workaround Radeon bug TGLVersion.BuggyDrawOddWidth.
 
   If GLVersion.BuggyDrawOddWidth then it will eventually
   enlarge the Width to make it a multiple of 4.
   Possibly, multiple of 2 would be enough, but you don't want to risk
-  with fglrx bugs...
+  with Radeon bugs...
 
   You can draw this image by normal ImageDraw, although you risk
   then that you will see an additional column at the right filled
