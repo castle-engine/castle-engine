@@ -276,6 +276,14 @@ function IsBox3dSegmentCollision(
   const Box: TBox3d;
   const Segment1, Segment2: TVector3Single): boolean;
 
+var
+  { Special equality epsilon used by IsCenteredBox3dPlaneCollision
+    and IsBox3dPlaneCollision. For implementation reasons, they always
+    use Double precision (even when called with arguments with Single precision),
+    and still have to use epsilon slightly larger than usual
+    VectorMath.DoubleEqualityEpsilon. }
+  Box3dPlaneCollisionEqualityEpsilon: Double = 1e-5;
+
 { Tests for collision between box3d centered around (0, 0, 0)
   and a plane.
 
@@ -1304,9 +1312,8 @@ function IsBox3dTriangleCollision(
      this gives 3x3=9 more tests
 }
 
-const
-  { The same comments about precision as for IsCenteredBox3dPlaneCollision apply also here. }
-  EqualityEpsilon = 1e-5;
+{ The same comments about precision as for IsCenteredBox3dPlaneCollision apply also here. }
+{$define EqualityEpsilon := Box3dPlaneCollisionEqualityEpsilon}
 
 var
   TriangleMoved: TTriangle3Double;
@@ -1470,6 +1477,8 @@ begin
 
   Result := true; { box and triangle overlaps }
 end;
+
+{$undef EqualityEpsilon}
 
 procedure BoundingSphereFromBox3d(const Box3d: TBox3d;
   var SphereCenter: TVector3Single; var SphereRadiusSqr: Single);

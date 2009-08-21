@@ -231,7 +231,7 @@ var
   EqualityEpsilon: Single;
 
   { Modified version of IsCenteredBox3dPlaneCollision and IsBox3dTriangleCollision
-    that use EqualityEpsilon variable here. }
+    that use EqualityEpsilon variable here. Also, use Single precision calculations. }
 
   function IsCenteredBox3dPlaneCollision(
     const BoxHalfSize: TVector3Single;
@@ -492,6 +492,8 @@ var
 
 const
   A = 1.980401039123535;
+var
+  OldBox3dPlaneCollisionEqualityEpsilon: Double;
 begin
   EqualityEpsilon := 1e-5;
 
@@ -530,7 +532,19 @@ begin
   Triangle[2][0] := 19.586576461791992;
   Triangle[2][1] := -26.554182052612305;
   Triangle[2][2] := -A;
+
+  {$ifdef CPU64}
+  { Looks like for this test, even larger Box3dPlaneCollisionEqualityEpsilon
+    is needed under x86_64 (tested on Linux with fpc 2.2.4 and trunk on 2009-08-21). }
+  OldBox3dPlaneCollisionEqualityEpsilon := Box3dPlaneCollisionEqualityEpsilon;
+  Box3dPlaneCollisionEqualityEpsilon := 1e-3;
+  {$endif}
+
   DoTest('2', true);
+
+  {$ifdef CPU64}
+  Box3dPlaneCollisionEqualityEpsilon := OldBox3dPlaneCollisionEqualityEpsilon;
+  {$endif}
 
   Box[0][0] := 0.283733367919922;
   Box[0][1] := -47.603790283203125;

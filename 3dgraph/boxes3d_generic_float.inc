@@ -35,8 +35,7 @@ function IsCenteredBox3dPlaneCollision(
   You can test on VRML models like malfunction/trunk/vrmls/wawoz.wrl:
   view3dscene (when compiled with -dDEBUG) with fail loading
   (Assert(AddedSomewhere) will trigger) with too small epsilon. }
-const
-  EqualityEpsilon = 1e-5;
+{$define EqualityEpsilon := Box3dPlaneCollisionEqualityEpsilon}
 
 var
   I: Integer;
@@ -67,3 +66,5 @@ begin
              Plane[2] * VMax[2] +
              Plane[3] >= -EqualityEpsilon;
 end;
+
+{$undef EqualityEpsilon}
