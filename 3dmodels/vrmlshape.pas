@@ -1256,9 +1256,8 @@ begin
   Result := 0;
   for I := 0 to FChildren.Count - 1 do
   begin
-    { Workaround for FPC 2.2.4 with linux/x86_64: without using ResultPart
-      to hold partial result, this raises range check error.
-      TODO: investigate, submit bug. Confirmed it still occurs with current trunk. }
+    { Workaround for http://bugs.freepascal.org/bug_view_page.php?bug_id=14403
+      Without using ResultPart to hold partial result, this raises range check error. }
     ResultPart := FChildren.Items[I].ShapesCount(OnlyActive, OnlyVisible, OnlyCollidable);
     Result += ResultPart;
   end;
