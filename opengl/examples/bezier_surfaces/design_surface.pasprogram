@@ -615,7 +615,7 @@ begin
     M.Append(TMenuItem.Create('Select previous curve', 60, 's'));
     M.Append(TMenuItem.Create('Select next curve', 61, 'w'));
     M.Append(TMenuItem.Create('Select previous point', 70, 'a'));
-    M.Append(TMenuItem.Create('Select next curve', 71, 'd'));
+    M.Append(TMenuItem.Create('Select next point', 71, 'd'));
     Result.Append(M);
 end;
 
