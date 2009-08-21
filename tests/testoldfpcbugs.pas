@@ -227,10 +227,7 @@ const
 var
   A2: QWord;
 begin
-  { I want A2 = $EFCDAB8967452301, but I can't write it easily,
-    FPC 2.2.2 says "Error: range check error while evaluating constants". }
-  A2 := $FCDAB8967452301;
-  A2 := A2 or ($E shl (7*8 + 4));
+  A2 := QWord($EFCDAB8967452301);
   Assert(SwapEndian(A1) = A2);
   Assert(SwapEndian(A2) = A1);
 end;

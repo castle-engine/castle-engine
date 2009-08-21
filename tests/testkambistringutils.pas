@@ -210,16 +210,10 @@ begin
 
   Assert(IntToStr16(A4) = '123456789ABCDEF');
 
-  { I want A5 = $EFCDAB8967452301, but I can't write it easily,
-    FPC 2.2.2 says "Error: range check error while evaluating constants". }
-  A5 := $FCDAB8967452301;
-  A5 := A5 or ($E shl (7*8 + 4));
+  A5 := QWord($EFCDAB8967452301);
   Assert(IntToStr16(A5) = 'EFCDAB8967452301');
 
-  { I want A6 = $FFEE000000000000, but I can't write it easily,
-    FPC 2.2.2 says "Error: range check error while evaluating constants". }
-  A6 := $FEE000000000000;
-  A6 := A6 or ($F shl (7*8 + 4));
+  A6 := QWord($FFEE000000000000);
   Assert(IntToStr16(A6) = 'FFEE000000000000');
 end;
 
