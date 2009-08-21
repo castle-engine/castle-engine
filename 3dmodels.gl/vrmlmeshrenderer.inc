@@ -60,7 +60,7 @@ type
       Passed Vert is local vertex coordinate (in State.Transform space),
       just like for glVertex. }
     procedure DoBeforeGLVertex(const Vert: TVector3Single);
-
+  private
     FRenderer: TVRMLOpenGLRenderer;
     FShape: TVRMLShape;
     FState: TVRMLGraphTraverseState;
@@ -87,7 +87,7 @@ type
     property State: TVRMLGraphTraverseState read FState;
     property Geometry: TVRMLGeometryNode read FGeometry;
     property Attributes: TVRMLRenderingAttributes read FAttributes;
-
+  protected
     { Initialized in our constructor to false.
       Set this @italic(in constructor) (not later) to true when you're in
       subclass able to do bump mapping. }
@@ -162,7 +162,7 @@ type
       Don't override this, this only sets some common things
       (like CullBackFaces) and calls DoRender. }
     procedure Render;
-
+  public
     { Initialized in our constructor to bmNone.
       Renderer will set this to Renderer.BumpMappingMethod
       only if bump mapping should be used and BumpMappingAllowed. }
@@ -656,7 +656,7 @@ type
     procedure RenderCoordinateEnd; override;
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
-
+  protected
     NormalIndex: TMFLong;
     Normals: TDynVector3SingleArray;
     NormalsCcw: boolean;

@@ -346,11 +346,11 @@ type
     ItemAccessoryGrabbed: Integer;
     function GetCurrentItem: Integer;
     procedure SetCurrentItem(const Value: Integer);
-
+  private
     FDesignerModeWindow: TGLWindow;
     FDesignerMode: boolean;
     procedure SetDesignerMode(const Value: boolean);
-
+  private
     LastWindowWidth, LastWindowHeight: Cardinal;
     FPositionAbsolute,
       PositionScreenRelativeMove, PositionMenuRelativeMove: TVector2_Single;
@@ -358,6 +358,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
+  public
     { Position of the menu. Expressed as position of some corner of the menu
       (see PositionRelativeMenuX/Y), relative to some corner of the
       screen (see PositionRelativeScreenX/Y).

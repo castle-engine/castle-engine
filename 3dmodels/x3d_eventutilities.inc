@@ -28,7 +28,7 @@
       const Time: TVRMLTime);
     procedure EventPreviousReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
-
+  private
     FCurrentKeyRange: Integer;
   protected
     { Analogous to TNodeX3DInterpolatorNode.KeyRange. }

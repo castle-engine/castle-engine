@@ -188,6 +188,7 @@ type
       const IgnoreMarginAtStart: boolean;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
 
+  public
     { For Hierarchical Occlusion Culling }
     LastVisitedFrameId: Cardinal;
     Visible: boolean;

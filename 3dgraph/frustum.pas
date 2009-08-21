@@ -102,7 +102,7 @@ type
       unit like @link(FrustumProjMatrix)), then pass them to this routine
       and you get your current viewing frustum. }
     constructor Init(const ProjectionMatrix, ModelviewMatrix: TMatrix4Single);
-
+  public
     { Six planes defining the frustum.
       Direction vectors of these planes must point to the inside of the frustum.
       Currently, they are always normalized.

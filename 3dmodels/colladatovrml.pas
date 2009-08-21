@@ -248,7 +248,7 @@ var
                      ReadFloatOrParam(ChildElement);
                end;
              end;
-           finally Children.Release; end;
+           finally FreeChildNodes(Children); end;
 
            { Collada says (e.g.
              https://collada.org/public_forum/viewtopic.php?t=386)
@@ -294,7 +294,7 @@ var
             { other ChildElement.TagName not supported for now }
         end;
       end;
-    finally Children.Release; end
+    finally FreeChildNodes(Children); end
   end;
 
   { Read <material>. }
@@ -427,7 +427,7 @@ var
                      end;
                    end;
                  end;
-               finally Children.Release; end
+               finally FreeChildNodes(Children); end
              end;
            end;
          end;
@@ -501,7 +501,7 @@ var
             { other ChildElement.TagName not supported for now }
         end;
       end;
-    finally Children.Release; end
+    finally FreeChildNodes(Children); end
   end;
 
   { Read <geometry> }
@@ -676,7 +676,7 @@ var
             end;
           end;
         end;
-      finally Children.Release; end;
+      finally FreeChildNodes(Children); end;
 
       DataWarning('Collada: <vertices> element has no <input> child' +
         ' with semantic="POSITION" and some source attribute');
@@ -760,7 +760,7 @@ var
             end;
           end;
         end;
-      finally Children.Release; end;
+      finally FreeChildNodes(Children); end;
     end;
 
     { Read <polygons> within <mesh> }
@@ -814,7 +814,7 @@ var
               AddPolygon(DOMGetTextData(ChildElement));
           end;
         end;
-      finally Children.Release; end;
+      finally FreeChildNodes(Children); end;
     end;
 
     { Read <polylist> within <mesh> }
@@ -953,7 +953,7 @@ var
                 { other ChildElement.TagName not supported for now }
             end;
           end;
-        finally Children.Release; end
+        finally FreeChildNodes(Children); end
       finally StringList_FreeWithContentsAndNil(SourcesList); end;
     end;
   end;
@@ -984,7 +984,7 @@ var
             { other ChildElement.TagName not supported for now }
         end;
       end;
-    finally Children.Release; end
+    finally FreeChildNodes(Children); end
   end;
 
   { Read <library> element.
@@ -1121,7 +1121,7 @@ var
                 end;
               end;
             end;
-          finally Children.Release; end;
+          finally FreeChildNodes(Children); end;
         end;
       end;
 
@@ -1328,7 +1328,7 @@ var
           end;
         end;
       end;
-    finally Children.Release; end;
+    finally FreeChildNodes(Children); end;
 
     { Now iterate to read instantiations and recursive nodes. }
 
@@ -1349,7 +1349,7 @@ var
             ReadNodeElement(NodeTransform, ChildElement);
         end;
       end;
-    finally Children.Release; end
+    finally FreeChildNodes(Children); end
   end;
 
   { Read <node> sequence within given SceneElement, adding nodes to Group.
@@ -1375,7 +1375,7 @@ var
             ReadNodeElement(Group, ChildElement);
         end;
       end;
-    finally Children.Release; end
+    finally FreeChildNodes(Children); end
   end;
 
   { Read <scene> element. }
@@ -1485,7 +1485,7 @@ var
             { other ChildElement.TagName not supported for now }
         end;
       end;
-    finally Children.Release; end
+    finally FreeChildNodes(Children); end
   end;
 
   { Read <controller> from Collada 1.4.x }
@@ -1545,7 +1545,7 @@ var
             { other ChildElement.TagName not supported for now }
         end;
       end;
-    finally Children.Release; end
+    finally FreeChildNodes(Children); end
   end;
 
   procedure AddInfo(Element: TNodeGroup_2; const S: string);
@@ -1640,7 +1640,7 @@ begin
               { other ChildElement.TagName not supported for now }
           end;
         end;
-      finally DocChildren.Release; end;
+      finally FreeChildNodes(DocChildren); end;
 
       AddInfo(Result as TNodeGroup_2,
         'Converted from Collada version "' + Version + '" by ' +

@@ -50,6 +50,7 @@ type
     class procedure HandleVectorSqrLength(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleVectorDot(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TVector2Single;
     procedure SetValue(const AValue: TVector2Single);
   public
@@ -83,6 +84,7 @@ type
     class procedure HandleVectorCross(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleGrayscale(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TVector3Single;
     procedure SetValue(const AValue: TVector3Single);
   public
@@ -113,6 +115,7 @@ type
     class procedure HandleVectorSqrLength(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleVectorDot(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TVector4Single;
     procedure SetValue(const AValue: TVector4Single);
   public
@@ -143,6 +146,7 @@ type
     class procedure HandleVectorSqrLength(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleVectorDot(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TVector2Double;
     procedure SetValue(const AValue: TVector2Double);
   public
@@ -175,6 +179,7 @@ type
 
     class procedure HandleVectorCross(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TVector3Double;
     procedure SetValue(const AValue: TVector3Double);
   public
@@ -205,6 +210,7 @@ type
     class procedure HandleVectorSqrLength(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleVectorDot(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TVector4Double;
     procedure SetValue(const AValue: TVector4Double);
   public
@@ -228,6 +234,7 @@ type
     class procedure HandleMatrixSet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleMatrixGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TMatrix3Single;
     procedure SetValue(const AValue: TMatrix3Single);
   public
@@ -251,6 +258,7 @@ type
     class procedure HandleMatrixSet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleMatrixGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TMatrix4Single;
     procedure SetValue(const AValue: TMatrix4Single);
   public
@@ -274,6 +282,7 @@ type
     class procedure HandleMatrixSet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleMatrixGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TMatrix3Double;
     procedure SetValue(const AValue: TMatrix3Double);
   public
@@ -297,6 +306,7 @@ type
     class procedure HandleMatrixSet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleMatrixGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TMatrix4Double;
     procedure SetValue(const AValue: TMatrix4Double);
   public

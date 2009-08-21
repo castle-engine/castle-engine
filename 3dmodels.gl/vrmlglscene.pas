@@ -405,7 +405,7 @@ type
 
     procedure DisableDisplayListFromTexture(Shape: TVRMLShape;
       Texture: TNodeX3DTextureNode);
-
+  private
     { ------------------------------------------------------------
       Private things used only when Optimization is
       roSeparateShapes or roSeparateShapesNoTransform.
@@ -608,7 +608,7 @@ type
       requires that we disconnect Renderer from OpenGL context.
       Other things, like Background, don't have to be destroyed in this case. }
     procedure CloseGLRenderer;
-
+  private
     FLastRender_RenderedShapesCount: Cardinal;
     FLastRender_BoxesOcclusionQueriedCount: Cardinal;
     FLastRender_VisibleShapesCount: Cardinal;
@@ -648,11 +648,11 @@ type
       (actually, none other should be allocated), currently
       it just frees resources for all possible Optimization values. }
     procedure OptimizationDestroy;
-
+  private
     PreparedFogNode: TVRMLNode;
     PreparedFogDistanceScaling: Single;
     procedure CheckFogChanged;
-
+  private
     FWalkProjectionNear: Single;
     FWalkProjectionFar : Single;
 
@@ -668,11 +668,12 @@ type
     function FrustumCulling_Sphere(Shape: TVRMLGLShape): boolean;
     function FrustumCulling_Box(Shape: TVRMLGLShape): boolean;
     function FrustumCulling_Both(Shape: TVRMLGLShape): boolean;
-
+  private
           FFrustumCulling: TFrustumCulling;
     FOctreeFrustumCulling: TFrustumCulling;
     procedure       SetFrustumCulling(const Value: TFrustumCulling);
     procedure SetOctreeFrustumCulling(const Value: TFrustumCulling);
+  private
           FrustumCullingFunc: TTestShapeVisibility;
     OctreeFrustumCullingFunc: TTestShapeVisibility;
 
@@ -682,6 +683,7 @@ type
     procedure RenderFrustumOctree_EnumerateShapes(
       ShapeIndex: Integer; CollidesForSure: boolean);
 
+  private
     { ------------------------------------------------------------------------
       Private things used only when Optimization = roSceneAsAWhole.
       Prefixed with SAAW, for clarity. }
@@ -702,6 +704,7 @@ type
 
     procedure SAAW_Render(TransparentGroup: TTransparentGroup);
 
+  private
     { ------------------------------------------------------------
       Private things used only when Optimization is
       roSeparateShapes or roSeparateShapesNoTransform.
@@ -771,6 +774,7 @@ type
       const Transform: TMatrix4Single;
       LightCap, DarkCap: boolean);
 
+  private
     { For Hierarchical Occlusion Culling }
     FrameId: Cardinal;
   protected
@@ -2118,7 +2122,8 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-
+    
+  public
     Id: TGLuint;
 
     Node: TVRMLShapeOctreeNode;

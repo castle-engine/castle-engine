@@ -64,7 +64,7 @@
     { Do the time-consuming preparations before rendering this texture.
       Calls PrepareCore. }
     procedure Prepare(State: TVRMLGraphTraverseState);
-
+  public
     { This is the alpha channel of this texture.
       Used by TVRMLOpenGLRenderer.PreparedTextureAlphaChannelType.
       Should be calculated and set in Prepare.

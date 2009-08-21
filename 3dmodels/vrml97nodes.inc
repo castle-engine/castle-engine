@@ -99,7 +99,7 @@
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
     procedure EventUrlReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
-
+  private
     { Is the inline currently loaded. This means "loaded",
       not "successfully loaded": when Loaded := true,
       we condider "url" field as handled, and loaded *if possible*.

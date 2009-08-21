@@ -78,6 +78,7 @@ type
     FImages: TEncodedImageList;
     function GetImages(const Index: Integer): TEncodedImage;
 
+  private
     FWidth: Cardinal;
     FHeight: Cardinal;
     FDDSType: TDDSType;

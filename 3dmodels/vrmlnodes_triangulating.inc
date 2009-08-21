@@ -447,6 +447,7 @@ end;
 
 type
   TIndexedFaceSetTriangulator = class
+  public
     { This is passed all the way, from IndexedFaceSet_LocalTriangulate
       down to TriangleIndexes. }
     Geometry: TVRMLGeometryNode;
@@ -465,7 +466,7 @@ type
 
     procedure HandleCoordRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer);
-
+  public
     { This is passed from HandleCoordRange to TriangleIndexes. }
     VRML1MaterialNumber: Integer;
     FaceIndices: PArray_Longint;

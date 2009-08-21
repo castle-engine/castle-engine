@@ -62,12 +62,11 @@
     { Non-nil only if FBgImages should be freed using
       UsedCache.TextureImage_DecReference. }
     UsedCache: TTexturesImagesVideosCache;
+    FCache: TTexturesImagesVideosCache;
 
     procedure SetBgImagesLoaded(const Value: boolean);
 
     function GetBgImages: TBackgroundImages;
-
-    FCache: TTexturesImagesVideosCache;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     destructor Destroy; override;

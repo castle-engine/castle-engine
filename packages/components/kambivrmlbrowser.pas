@@ -110,9 +110,10 @@ type
       const SomeLocalGeometryChanged: boolean);
 
     procedure UpdateCursor;
-
+  private
     FShadowVolumesPossible: boolean;
     procedure SetShadowVolumesPossible(const Value: boolean);
+  private
     FShadowVolumes: boolean;
     FShadowVolumesDraw: boolean;
     SV: TShadowVolumes;

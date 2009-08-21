@@ -167,14 +167,14 @@ type
     FBoundingSphereRadiusSqr: Single;
 
     procedure ValidateBoundingSphere;
-
+  private
     TriangleOctreeToAdd: TVRMLTriangleOctree;
     procedure AddTriangleToOctreeProgress(const Triangle: TTriangle3Single;
       State: TVRMLGraphTraverseState; Geometry: TVRMLGeometryNode;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
     function CreateTriangleOctree(const ALimits: TOctreeLimits;
       const ProgressTitle: string): TVRMLTriangleOctree;
-
+  private
     FTriangleOctreeLimits: TOctreeLimits;
     FTriangleOctreeProgressTitle: string;
 
@@ -185,7 +185,7 @@ type
 
     function OverrideOctreeLimits(
       const BaseLimits: TOctreeLimits): TOctreeLimits;
-
+  private
     {$ifdef SHAPE_OCTREE_USE_MAILBOX}
     { Mailbox, for speeding up collision queries.
       @groupBegin }
@@ -333,6 +333,7 @@ type
       Also removes cached normals. }
     procedure LocalGeometryChanged;
 
+  public
     { Internally used by TVRMLScene. Says if local geometry change is scheduled
       (actual change will be done by TVRMLScene.DoGeometryChanged).
 
@@ -584,7 +585,7 @@ type
     procedure AddToListIfVisible(Shape: TVRMLShape);
     procedure AddToListIfCollidable(Shape: TVRMLShape);
     procedure AddToListIfVisibleAndCollidable(Shape: TVRMLShape);
-
+  private
     SortPosition: TVector3Single;
     function IsSmallerFrontToBack(const A, B: TVRMLShape): boolean;
     function IsSmallerBackToFront(const A, B: TVRMLShape): boolean;
@@ -1250,10 +1251,17 @@ function TVRMLShapeTreeGroup.ShapesCount(
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean): Cardinal;
 var
   I: Integer;
+  ResultPart: Cardinal;
 begin
   Result := 0;
   for I := 0 to FChildren.Count - 1 do
-    Result += FChildren.Items[I].ShapesCount(OnlyActive, OnlyVisible, OnlyCollidable);
+  begin
+    { Workaround for FPC 2.2.4 with linux/x86_64: without using ResultPart
+      to hold partial result, this raises range check error.
+      TODO: investigate, submit bug. Confirmed it still occurs with current trunk. }
+    ResultPart := FChildren.Items[I].ShapesCount(OnlyActive, OnlyVisible, OnlyCollidable);
+    Result += ResultPart;
+  end;
 end;
 
 { TVRMLShapeTreeSwitch ------------------------------------------------------- }

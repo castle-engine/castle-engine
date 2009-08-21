@@ -27,7 +27,7 @@
 
     FTextureLoaded: boolean;
     procedure SetTextureLoaded(const Value: boolean);
-
+  private
     FTextureImage: TEncodedImage;
     FTextureDDS: TDDSImage;
   protected

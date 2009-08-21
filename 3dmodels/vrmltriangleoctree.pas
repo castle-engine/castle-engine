@@ -180,7 +180,7 @@ type
     constructor Create(const ARootBox: TBox3d); overload;
     constructor Create(const ALimits: TOctreeLimits; const ARootBox: TBox3d); overload;
     destructor Destroy; override;
-
+  public
     { tu beda zgromadzone wszystkie Triangles jakie mamy w drzewie.
       W lisciach beda tylko ItemsIndices ktore beda indeksami do tej tablicy.
       Zrobilem to 27.04.2003 gdy zobaczylem w drzewie
@@ -205,7 +205,7 @@ type
       State: TVRMLGraphTraverseState;
       Geometry: TVRMLGeometryNode;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
-
+  public
     { Direct collisions counter, to test octree efficiency.
 
       It is incremented each time XxxCollision make a direct

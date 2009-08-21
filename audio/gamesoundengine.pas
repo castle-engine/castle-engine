@@ -140,7 +140,7 @@ type
     FSoundVolume: Single;
     function GetSoundVolume: Single;
     procedure SetSoundVolume(const Value: Single);
-
+  private
     FSoundNames: TStringList;
 
     SoundInfos: TDynSoundInfoArray;
@@ -173,7 +173,7 @@ type
 
     function GetALMaxAllocatedSources: Cardinal;
     procedure SetALMaxAllocatedSources(const Value: Cardinal);
-
+  private
     FSoundsXmlFileName: string;
   public
     constructor Create;
@@ -342,7 +342,7 @@ type
 
     FPlayedSound: TSoundType;
     procedure SetPlayedSound(const Value: TSoundType);
-
+  private
     { This is nil if we don't play music right now
       (because OpenAL is not initialized, or PlayedSound = stNone,
       or PlayerSound.FileName = '' (sound not existing)). }
@@ -353,7 +353,7 @@ type
     { Called by ALInitContext. You should check here if
       PlayedSound <> stNone and eventually initialize FAllocatedSource. }
     procedure AllocateSource;
-
+  private
     FMusicVolume: Single;
     function GetMusicVolume: Single;
     procedure SetMusicVolume(const Value: Single);
@@ -725,7 +725,7 @@ begin
           end;
         end;
       end;
-    finally SoundElements.Release; end;
+    finally FreeChildNodes(SoundElements); end;
   finally
     FreeAndNil(SoundConfig);
   end;

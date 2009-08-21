@@ -40,7 +40,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-
+  public
     Position: TVector3Single;
 
     { Sectors that contain this waypoint. }

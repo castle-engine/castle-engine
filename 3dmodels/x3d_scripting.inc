@@ -26,6 +26,7 @@
   private
     FInitialized: boolean;
     procedure SetInitialized(const Value: boolean);
+  private
     FInitializedFullUrl: string;
     FInitializedScriptType: TScriptType;
 

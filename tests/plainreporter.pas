@@ -45,7 +45,7 @@ type
     destructor  Destroy; override;
 
     procedure   WriteResult(pTestResult: TTestResult);
-
+  public
     Verbose: boolean;
 
     { ITestListener interface requirements }

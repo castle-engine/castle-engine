@@ -69,7 +69,7 @@ type
     property StencilOpIncrWrap: TGLenum read FStencilOpIncrWrap;
     property StencilOpDecrWrap: TGLenum read FStencilOpDecrWrap;
     { @groupEnd }
-
+  private
     FSceneShadowPossiblyVisible: boolean;
     FZFail: boolean;
     FZFailAndLightCap: boolean;
@@ -90,9 +90,9 @@ type
     FCountZFailNoLightCap: Cardinal;
     FCountZFailAndLightCap: Cardinal;
 
-    procedure UpdateCount;
-
     FStencilTwoSided: boolean;
+
+    procedure UpdateCount;
   public
     property WrapAvailable: boolean read FWrapAvailable;
 

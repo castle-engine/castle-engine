@@ -170,7 +170,7 @@ type
     property ColorModulatorSingle: TColorModulatorSingleFunc
       read FColorModulatorSingle;
     property LightRenderEvent: TVRMLLightRenderEvent read FLightRenderEvent;
-
+  public
     { Statistics of how many OpenGL lights setups were done
       (Statistics[true]) vs how many were avoided (Statistics[false]).
       This allows you to decide is using TVRMLGLLightsCachingRenderer
@@ -210,7 +210,7 @@ type
       Deinitialized in CloseGL (by setting this to invalid value = -1). }
     RealGLLightNum2: Integer;
     procedure CalculateRealGLLightNum2;
-
+  private
     FColorModulatorSingle: TColorModulatorSingleFunc;
     procedure SetGLLightNum1(Value: Integer);
     procedure SetGLLightNum2(Value: Integer);

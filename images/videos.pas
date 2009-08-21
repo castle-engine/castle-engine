@@ -66,6 +66,7 @@ type
   private
     FItems: array of TImage;
     function GetItems(Index: Integer): TImage;
+  private
     FCache: TImagesCache;
     FLoaded: boolean;
     FTimeLoop: boolean;

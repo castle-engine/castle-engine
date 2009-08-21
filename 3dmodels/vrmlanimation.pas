@@ -174,7 +174,7 @@ begin
     if ModelFileNames.Count = 0 then
       raise Exception.Create(
         'At least one <frame> is required within <animation> element');
-  finally Children.Release end;
+  finally FreeChildNodes(Children) end;
 end;
 
 end.

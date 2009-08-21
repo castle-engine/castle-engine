@@ -45,6 +45,7 @@ type
     class procedure HandleImageSetColor(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleImageSetAlpha(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TImage;
     procedure SetValue(const AValue: TImage);
   public

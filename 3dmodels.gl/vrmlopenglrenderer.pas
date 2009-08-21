@@ -1284,7 +1284,7 @@ type
       Just a shortcut for LastGLFreeTexture - FirstGLFreeTexture + 1,
       always >= 0. }
     function FreeGLTexturesCount: Cardinal;
-
+  private
     BumpMappingMethodCached: TBumpMappingMethod;
     BumpMappingMethodIsCached: boolean;
 
@@ -1352,7 +1352,7 @@ type
 
     { Judge whether the node can be lit. }
     function NodeLit(Node: TVRMLGeometryNode): boolean;
-
+  private
     { For how many texture units does Render must generate tex coords?
 
       This is the number of texture units used.
@@ -1398,7 +1398,7 @@ type
       "pushed" multiple times (both by PushTextureUnit and normal
       VRML TextureTransform realized in RenderShapeBegin.) }
     procedure PushTextureUnit(const TexUnit: Cardinal);
-
+  private
     { Should primitives generate 3D texture coords, following
       X3D spec "33.2.4 Texture coordinate generation for primitive objects".
       This is mostly a hack now, as with multi-texturing each texture
@@ -1446,13 +1446,13 @@ type
       exists, and shifting TextureUnit by GL_TEXTURE0_ARB +
       FirstGLFreeTexture values) is taken care of inside here. }
     procedure MultiTexCoord(const TextureUnit: Cardinal; const TexCoord: TVector4f);
-
+  private
     FBumpMappingLightPosition: TVector3Single;
     procedure SetBumpMappingLightPosition(const Value: TVector3Single);
-
+  private
     FBumpMappingLightAmbientColor: TVector4Single;
     procedure SetBumpMappingLightAmbientColor(const Value: TVector4Single);
-
+  private
     FBumpMappingLightDiffuseColor: TVector4Single;
     procedure SetBumpMappingLightDiffuseColor(const Value: TVector4Single);
   public

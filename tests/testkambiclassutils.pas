@@ -43,6 +43,7 @@ type
 
   TFoo = class
     constructor Create(AI: Integer; AnS: string);
+  public
     I: Integer;
     S: string;
   end;

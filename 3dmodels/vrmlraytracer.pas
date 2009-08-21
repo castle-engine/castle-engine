@@ -197,7 +197,8 @@ type
   TClassicRayTracer = class(TRayTracer)
   public
     procedure Execute; override;
-
+    
+  public
     { InitialDepth to ograniczenie raytracera na globokosc drzewa promieni - tak jak
       zad.2 z rgk, tzn. InitialDepth = 0 oznacza tylko promienie prierw,
       1 = promienie 1-krotnie odbite + bezposrednie cienie itd. }
@@ -226,7 +227,8 @@ type
   public
     constructor Create;
     procedure Execute; override;
-
+    
+  public
     { MinDepth i RRoulContinue razem ustalaja warunki konczenia sciezki.
       Wyglada to tak ze do glebokosci rekursji MinDepth wchodzimy na pewno,
       natomiast glebiej wchodzimy pod warunkiem powodzenia w rosyjskiej

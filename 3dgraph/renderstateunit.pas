@@ -66,7 +66,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-
+  public
     { Value > 0 means we're inside some stencil test (like for
       InShadow = @false pass of shadow volumes). }
     StencilTest: Cardinal;
@@ -76,7 +76,7 @@ type
     procedure CameraChanged;
 
     property OnCameraChanged: TDynCameraChangedEventArray read FOnCameraChanged;
-
+  public
     { Current camera matrix. Transforms from world space (normal 3D space)
       to camera space (camera space is the space where you're always
       standing on zero point, looking in -Z, and so on).
@@ -99,7 +99,7 @@ type
     CameraInverseMatrixDone: boolean;
 
     procedure CameraInverseMatrixNeeded;
-
+  public
     { Camera rotation matrix. That is, this is like CameraMatrix but
       it doesn't move the camera, only rotates it.
 
@@ -122,7 +122,7 @@ type
     { Camera rotation matrix, as a 3x3 matrix. }
     function CameraRotationMatrix3: TMatrix3Single;
     function CameraRotationInverseMatrix3: TMatrix3Single;
-
+  public
     CameraFrustum: TFrustum;
 
     { Set all Camera* properties from navigator Nav. }

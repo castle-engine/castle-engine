@@ -76,7 +76,7 @@ type
     constructor Init(const ATriangle: TTriangle3Single;
       AState: TVRMLGraphTraverseState; AGeometry: TVRMLGeometryNode;
       const AMatNum, AFaceCoordIndexBegin, AFaceCoordIndexEnd: integer);
-
+  public
     { Geometry of this item.
       We need two geometry descriptions:
 
@@ -105,7 +105,7 @@ type
       ) }
     Loc, World: TVRMLTriangleGeometry;
     procedure UpdateWorld;
-
+  public
     State: TVRMLGraphTraverseState;
     Geometry: TVRMLGeometryNode;
     MatNum: integer;

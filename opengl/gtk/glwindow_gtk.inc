@@ -82,7 +82,7 @@ private
     false). }
   function RunGtkDialog(ADialog: PGtkWindow;
     ok_button, cancel_button: PGtkWidget): boolean;
-
+private
   FBorderWidth: Cardinal;
 
   { If > 0, you cannot recreate menu. }
@@ -170,7 +170,7 @@ private
   { Same as TryActiveGLAreaGtk, but exception EInternalError when
     no such window is found. }
   function ActiveGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TGLWindow;
-
+private
   { Used by SetCursor, each item may be nil if not initialized. }
   Cursors: array [TGLWindowCursor] of PGdkCursor;
 
@@ -197,7 +197,7 @@ private
   function XDisplay: Xlib.PDisplay;
   function XScreen: Integer;
   {$endif}
-
+private
   {$ifdef GLWINDOW_GTK_2}
   { These functions are only in GTK >= 2.8. For example fink (stable) has only
     GTK 2.6 for now, so we have to be careful and use them only if they can be

@@ -315,6 +315,7 @@ type
     procedure CheckTokenIs(const Toks: TVRMLTokens; const ToksDescription: string); overload;
     procedure CheckTokenIsKeyword(const Keyword: TVRMLKeyword);
 
+  public
     { See TVRMLNode.WWWBasePath for a description of this field.
 
       This field is not used anywhere in the Lexer but it MUST be defined

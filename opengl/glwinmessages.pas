@@ -420,7 +420,7 @@ type
 
     procedure SetFloatShiftYPageDown(Glwin: TGLWindow);
     procedure SetFloatShiftYPageUp(Glwin: TGLWindow);
-
+  public
     { minimalne i maksymalne sensowne wartosci dla shiftY }
     minShiftY, maxShiftY: integer;
 
@@ -480,7 +480,7 @@ type
     { bedzie wyswietlany jezeli DrawAdditional }
     property SAdditional: string read FSAdditional;
     procedure SetSAdditional(glwin: TGLWindow; const value: string);
-
+  public
     UserData: Pointer;
 
     { Calculate height in pixels needed to draw ClosingInfo.

@@ -127,7 +127,7 @@ begin
         ... here goes your code to process ChildElement ...
       end;
     end;
-  finally ChildrenList.Release; end;
+  finally FreeChildNodes(ChildrenList); end;
 end;
 #)
 
@@ -189,6 +189,20 @@ end;
     function GetNext: boolean;
     property Current: string read FCurrent;
   end;
+
+{ If needed, free result of TDOMElement.ChildNodes.
+
+  This abstracts FPC DOM unit differences:
+  @unorderedList(
+    @item(
+      For FPC <= 2.2.x, it was needed to call ChildNodes.Release when you're
+      done with them.)
+
+    @item(
+      For FPC trunk, you do not have to free them at all (since rev 13143),
+      and their Release method doesn't exist (since rev 13113).)
+  ) }
+procedure FreeChildNodes(const ChildNodes: TDOMNodeList);
 
 implementation
 
@@ -278,7 +292,7 @@ begin
         end;
       end;
     end;
-  finally Children.Release end;
+  finally FreeChildNodes(Children) end;
 end;
 
 function DOMGetChildElement(const Element: TDOMElement;
@@ -307,7 +321,7 @@ begin
         end;
       end;
     end;
-  finally Children.Release end;
+  finally FreeChildNodes(Children) end;
 
   if (Result = nil) and RaiseOnError then
     raise EDOMChildElementError.CreateFmt(
@@ -332,7 +346,7 @@ begin
           'Child elements not allowed within element <%s>', [Element.TagName]);
       end;
     end;
-  finally Children.Release end;
+  finally FreeChildNodes(Children) end;
 end;
 
 function DOMGetTextChild(const Element: TDOMElement;
@@ -352,7 +366,7 @@ end;
 
 destructor TXMLElementIterator.Destroy;
 begin
-  ChildNodes.Release;
+  FreeChildNodes(ChildNodes);
   inherited;
 end;
 
@@ -391,7 +405,7 @@ end;
 
 destructor TXMLCDataIterator.Destroy;
 begin
-  ChildNodes.Release;
+  FreeChildNodes(ChildNodes);
   inherited;
 end;
 
@@ -417,6 +431,13 @@ begin
       end;
     end;
   until false;
+end;
+
+procedure FreeChildNodes(const ChildNodes: TDOMNodeList);
+begin
+  {$ifdef VER2_0} ChildNodes.Release; {$endif}
+  {$ifdef VER2_1} ChildNodes.Release; {$endif}
+  {$ifdef VER2_2} ChildNodes.Release; {$endif}
 end;
 
 end.

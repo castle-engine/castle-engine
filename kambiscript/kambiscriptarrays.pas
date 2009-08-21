@@ -39,6 +39,7 @@ type
     class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TDynLongIntArray;
     procedure SetValue(const AValue: TDynLongIntArray);
   public
@@ -60,6 +61,7 @@ type
     class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TDynSingleArray;
     procedure SetValue(const AValue: TDynSingleArray);
   public
@@ -81,6 +83,7 @@ type
     class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TDynDoubleArray;
     procedure SetValue(const AValue: TDynDoubleArray);
   public
@@ -102,6 +105,7 @@ type
     class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TDynBooleanArray;
     procedure SetValue(const AValue: TDynBooleanArray);
   public
@@ -123,6 +127,7 @@ type
     class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TDynStringArray;
     procedure SetValue(const AValue: TDynStringArray);
   public
@@ -144,6 +149,7 @@ type
     class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TDynVector2SingleArray;
     procedure SetValue(const AValue: TDynVector2SingleArray);
   public
@@ -165,6 +171,7 @@ type
     class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TDynVector3SingleArray;
     procedure SetValue(const AValue: TDynVector3SingleArray);
   public
@@ -186,6 +193,7 @@ type
     class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TDynVector4SingleArray;
     procedure SetValue(const AValue: TDynVector4SingleArray);
   public
@@ -207,6 +215,7 @@ type
     class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TDynVector2DoubleArray;
     procedure SetValue(const AValue: TDynVector2DoubleArray);
   public
@@ -228,6 +237,7 @@ type
     class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TDynVector3DoubleArray;
     procedure SetValue(const AValue: TDynVector3DoubleArray);
   public
@@ -249,6 +259,7 @@ type
     class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TDynVector4DoubleArray;
     procedure SetValue(const AValue: TDynVector4DoubleArray);
   public
@@ -270,6 +281,7 @@ type
     class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TDynMatrix3SingleArray;
     procedure SetValue(const AValue: TDynMatrix3SingleArray);
   public
@@ -291,6 +303,7 @@ type
     class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TDynMatrix4SingleArray;
     procedure SetValue(const AValue: TDynMatrix4SingleArray);
   public
@@ -312,6 +325,7 @@ type
     class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TDynMatrix3DoubleArray;
     procedure SetValue(const AValue: TDynMatrix3DoubleArray);
   public
@@ -333,6 +347,7 @@ type
     class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: TDynMatrix4DoubleArray;
     procedure SetValue(const AValue: TDynMatrix4DoubleArray);
   public

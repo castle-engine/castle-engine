@@ -823,19 +823,19 @@ type
     FMousePressed: TMouseButtons;
     FMouseX, FMouseY: integer;
     FColorBits: integer;
-
+  private
     FCursor: TGLWindowCursor;
     procedure SetCursor(const Value: TGLWindowCursor);
-
+  private
     FCustomCursor: TRGBAlphaImage;
     procedure SetCustomCursor(const Value: TRGBAlphaImage);
-
+  private
     FAutoRedisplay: boolean;
     procedure SetAutoRedisplay(value: boolean);
-
+  private
     FCaption: string;
     procedure SetCaption(const Value: string);
-
+  private
     { FClosed = are we outside of Init..Close }
     FClosed: boolean;
 
@@ -1054,7 +1054,7 @@ type
            (e.g. call ProcessAllMessages that calls OnMouseDown that calls
            ProcessAllMessages inside). }
     procedure DoDraw;
-
+  private
     PressedKeyToCharacter: array [TKey] of Char;
     PressedCharacterToKey: array [Char] of TKey;
 
@@ -1128,7 +1128,7 @@ type
         Item.DoCommand,
         optional EventMenuCommand or EventKeyDown }
     procedure DoMenuCommand(Item: TMenuItem);
-
+  private
     FFps: TFramesPerSecond;
   private
     { zwraca opis aktualnych zadanych wlasciwosci od buforow OpenGLa
@@ -1162,6 +1162,7 @@ type
       ProvidedAccumRedBits, ProvidedAccumGreenBits, ProvidedAccumBlueBits,
       ProvidedAccumAlphaBits, ProvidedMultiSampling: Cardinal);
 
+  private
     FDepthBufferBits: Cardinal;
     FStencilBufferBits: Cardinal;
     FAlphaBits: Cardinal;
@@ -1393,7 +1394,7 @@ type
       if ResizeAllowed <> raNotAllowed. If ResizeAllowed = raNotAllowed
       then Width and Height are constant, so this is obvious. }
     property OnInit: TGLWindowFunc read FOnInit write FOnInit; { = nil }
-
+  public
     (* zawsze po wywolaniu OnInit beda wywolywane wszystkie funkcje
        z listy OnInitList. Ten obiekt jest tylko tworzony i niszczony w
        tej klasie, poza tym mozesz na nim robic co ci sie zywnie podoba -
@@ -1522,7 +1523,7 @@ type
       will be possible in TGLWindow. }
     property AlphaBits: Cardinal
       read FAlphaBits write FAlphaBits default 0;
-
+  public
     { Required number of bits in color channels of accumulation buffer.
       Color channel is 0..3: red, green, blue, alpha.
       Zero means that given channel of accumulation buffer is not needed,
@@ -1880,7 +1881,7 @@ type
       functions. The only way to block menu from triggering ANY event is to
       set this to MainMenu.Enabled to @false. }
     property MainMenu: TMenu read FMainMenu write SetMainMenu;
-
+  public
     { If true then in TGLWindow destructor MainMenu will be destroyed too
       (if not nil, od course). Usually this is something useful. }
     OwnsMainMenu: boolean; { = true }
@@ -2376,6 +2377,7 @@ type
     FSwapFullScreen_Key: TKey;
     FClose_CharKey: char;
     procedure SetFpsBaseCaption(const Value: string);
+  private
     FFpsCaptionUpdateInterval: TMilisecTime;
   public
     { Whether to show current Fps (frames per second) on window's Caption.

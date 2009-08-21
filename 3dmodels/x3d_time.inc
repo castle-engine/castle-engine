@@ -100,11 +100,11 @@
     property IsPaused: boolean read FIsPaused write SetIsPaused;
     property ElapsedTime: TKamTime read FElapsedTime write SetElapsedTime;
     { @groupEnd }
-
+  public
     { Cycle interval for this time-dependent node. }
     OnCycleInterval: TTimeFunction;
     function CycleInterval: TKamTime;
-
+  public
     Fdloop: TSFBool;
     FdpauseTime: TSFTime;
     FdresumeTime: TSFTime;

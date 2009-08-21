@@ -78,6 +78,7 @@ type
     FDisplayPixelWidth: integer;
     FMessageFont: TGLBitmapFont_Abstract;
     procedure PostRedisplayMessages;
+  private
     FColor: TVector3Single;
   public
     { ile messagy mo¿e byc maksymalnie na ekranie }

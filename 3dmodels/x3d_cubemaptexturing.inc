@@ -73,7 +73,7 @@
       of this texture possibly changed, it's set to @true. }
     property UpdateNeeded: boolean read FUpdateNeeded write FUpdateNeeded
       default true;
-
+  public
     FdUpdate: TSFString;
   end;
 

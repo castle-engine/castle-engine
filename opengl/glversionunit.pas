@@ -46,7 +46,7 @@ type
   TGenericGLVersion = class
   public
     constructor Create(const VersionString: string);
-
+  public
     { Required (i.e. every OpenGL implemenetation has them)
       major and minor numbers.
       @groupBegin }
@@ -80,7 +80,7 @@ type
     FBuggyDrawOddWidth: boolean;
   public
     constructor Create(const VersionString, AVendor, ARenderer: string);
-
+  public
     { @abstract(Are we using Mesa (http://mesa3d.org/)?)
 
       Detected using VendorSpecific information

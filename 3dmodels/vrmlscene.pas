@@ -258,7 +258,7 @@ type
     { A useful utility: if the Node is not @nil, send isBound = Value and
       bindTime events to it. }
     procedure SendIsBound(Node: TNodeX3DBindableNode; const Value: boolean);
-
+  private
     FOnBoundChanged: TVRMLSceneNotification;
 
     { Add new node to the top.
@@ -538,7 +538,7 @@ type
     { Recalculate and update LODTree.Level (if viewer position known).
       Also sends level_changed when needed. }
     procedure UpdateLODLevel(LODTree: TVRMLShapeTreeLOD);
-
+  private
     TransformNodesInfo: TDynTransformNodeInfoArray;
 
     ChangedAll_TraversedLights: TDynActiveLightArray;
@@ -550,7 +550,7 @@ type
     function CalculateBoundingBox: TBox3d;
     function CalculateVerticesCount(OverTriangulate: boolean): Cardinal;
     function CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
-
+  private
     FShapesActiveCount: Cardinal;
     FShapesActiveVisibleCount: Cardinal;
 
@@ -559,9 +559,10 @@ type
       - calculate appropriate FTrianglesList[] item
       - add appropriate fvXxx to Validities. }
     procedure ValidateTrianglesList(OverTriangulate: boolean);
+  private
     FTrianglesList:
       array[boolean { OverTriangulate ?}] of TDynTriangle3SingleArray;
-
+  private
     FTrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
 
     { Removes fvTrianglesListShadowCasters from Validities,
@@ -578,7 +579,7 @@ type
       out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
       const ViewpointDescription: string):
       TVRMLViewpointNode;
-
+  private
     FManifoldEdges: TDynManifoldEdgeArray;
     FBorderEdges: TDynBorderEdgeArray;
     FOwnsManifoldAndBorderEdges: boolean;
@@ -592,7 +593,7 @@ type
     procedure FreeResources_UnloadTextureData(Node: TVRMLNode);
     procedure FreeResources_UnloadTexture3DData(Node: TVRMLNode);
     procedure FreeResources_UnloadBackgroundImage(Node: TVRMLNode);
-
+  private
     FOnGeometryChanged: TVRMLSceneGeometryChanged;
     FOnPostRedisplay: TVRMLSceneNotification;
     FOnViewpointsChanged: TVRMLSceneNotification;
@@ -600,7 +601,7 @@ type
 
     FProcessEvents: boolean;
     procedure SetProcessEvents(const Value: boolean);
-
+  private
     { This is collected by CollectNodesForEvents. @nil if not ProcessEvents. }
     KeySensorNodes, TimeSensorNodes, MovieTextureNodes: TVRMLNodesList;
     ProximitySensorInstances: TDynProximitySensorInstanceArray;
@@ -614,7 +615,7 @@ type
 
     procedure ScriptsInitialize(Node: TVRMLNode);
     procedure ScriptsDeInitialize(Node: TVRMLNode);
-
+  private
     FWorldTime: TVRMLTime;
 
     { Internal procedure that handles WorldTime changes. }
@@ -622,7 +623,7 @@ type
       const NewValue: TVRMLTime; const TimeIncrease: TKamTime);
 
     procedure ResetLastEventTime(Node: TVRMLNode);
-
+  private
     { Bindable nodes helpers }
     FBackgroundStack: TVRMLBindableStack;
     FFogStack: TVRMLBindableStack;
@@ -651,7 +652,7 @@ type
     procedure BeginGeometryChangedSchedule;
     procedure ScheduleGeometryChanged;
     procedure EndGeometryChangedSchedule;
-
+  private
     { Everything changed. All octrees must be rebuild, old State pointers
       may be invalid.
 
@@ -679,7 +680,7 @@ type
     FPointingDeviceActive: boolean;
     FPointingDeviceActiveSensor: TNodeX3DPointingDeviceSensorNode;
     procedure SetPointingDeviceActive(const Value: boolean);
-
+  private
     FLogChanges: boolean;
 
     { Call this when ProximitySensorInstance changed (either the box or
@@ -691,7 +692,7 @@ type
       Viewer position/dir/up must at this point be stored within
       LastViewerXxx. }
     procedure ProximitySensorUpdate(var PSI: TProximitySensorInstance);
-
+  private
     FLastViewerPosition, FLastViewerDirection, FLastViewerUp: TVector3Single;
     FIsLastViewer: boolean;
 
@@ -754,12 +755,12 @@ type
       const ProgressTitle: string;
       const Collidable: boolean): TVRMLShapeOctree;
     { @groupEnd }
-
+  private
     TriangleOctreeToAdd: TVRMLTriangleOctree;
     procedure AddTriangleToOctreeProgress(const Triangle: TTriangle3Single;
       State: TVRMLGraphTraverseState; Geometry: TVRMLGeometryNode;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
-
+  private
     FTriangleOctreeLimits: TOctreeLimits;
     FTriangleOctreeProgressTitle: string;
 
@@ -773,7 +774,7 @@ type
 
     FSpatial: TVRMLSceneSpatialStructures;
     procedure SetSpatial(const Value: TVRMLSceneSpatialStructures);
-
+  private
     FMainLightForShadowsExists: boolean;
     FMainLightForShadows: TVector4Single;
     FMainLightForShadowsNode: TVRMLLightNode;
@@ -785,7 +786,7 @@ type
       calculate FMainLightForShadows (position). }
     procedure CalculateMainLightForShadowsPosition;
     procedure ValidateMainLightForShadows;
-
+  private
     FHeadlight: TVRMLHeadlight;
     FHeadlightInitialized: boolean;
     procedure SetHeadlightInitialized(const Value: boolean);
@@ -839,7 +840,7 @@ type
       You can override it in descendants to create something more specialized. }
     function CreateHeadLightInstance
       (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight; virtual;
-
+  protected
     GeneratedTextures: TDynGeneratedTextureArray;
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);

@@ -81,7 +81,7 @@ type
     procedure SetCharacter(const Value: Char);
     procedure SetMouseButtonUse(const Value: boolean);
     procedure SetMouseButton(const Value: TMouseButton);
-
+  private
     FDefaultKey1: TKey;
     FDefaultKey2: TKey;
     FDefaultCharacter: Char;
@@ -267,10 +267,10 @@ type
 
     FFrustum: TFrustum;
     procedure RecalculateFrustum;
-
+  private
     FProjectionMatrix: TMatrix4Single;
     procedure SetProjectionMatrix(const Value: TMatrix4Single);
-
+  private
     FCameraRadius: Single;
   protected
     { This is called always when @link(Matrix) changed.
@@ -461,7 +461,7 @@ type
     procedure SetScaleFactor(const Value: Single);
     procedure SetMoveAmount(const Value: TVector3Single);
     procedure SetModelBox(const Value: TBox3d);
-
+  private
     FInputs_Move: T3BoolInputs;
     FInputs_Rotate: T3BoolInputs;
     FInput_ScaleLarger: TInputShortcut;
@@ -472,7 +472,7 @@ type
     function EventDown(MouseEvent: boolean; Key: TKey;
       ACharacter: Char;
       AMouseButton: TMouseButton): boolean;
-
+  private
     FMouseNavigation: boolean;
     FInputsExclusive: boolean;
 
@@ -636,6 +636,7 @@ type
     procedure SetCameraDir(const Value: TVector3Single);
     procedure SetCameraUp(const Value: TVector3Single);
 
+  private
     FInput_Forward: TInputShortcut;
     FInput_Backward: TInputShortcut;
     FInput_RightRot: TInputShortcut;
@@ -674,6 +675,7 @@ type
       ACharacter: Char;
       AMouseButton: TMouseButton): boolean;
 
+  private
     { Private things related to gravity ---------------------------- }
 
     FCameraPreferredHeight: Single;
@@ -705,6 +707,7 @@ type
     FHeadBobbingDistance: Single;
     function UseHeadBobbing: boolean;
 
+  private
     FCrouchHeight: Single;
     FIsCrouching: boolean;
 
@@ -714,10 +717,11 @@ type
     FIsOnTheGround: boolean;
     FIsWalkingOnTheGround: boolean;
 
+    FInvertVerticalMouseLook: boolean;
+    FOnMoveAllowed: TMoveAllowedFunc;
+
     function RealCameraPreferredHeightNoHeadBobbing: Single;
     function RealCameraPreferredHeightMargin: Single;
-
-    FInvertVerticalMouseLook: boolean;
   public
     constructor Create(const AOnMatrixChanged: TNavigatorNotifyFunc);
       override;
@@ -735,7 +739,7 @@ type
     function KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean; override;
 
     { This is used by @link(DoMoveAllowed), see there for description. }
-    OnMoveAllowed: TMoveAllowedFunc;
+    property OnMoveAllowed: TMoveAllowedFunc read FOnMoveAllowed write FOnMoveAllowed;
 
     { @abstract(DoMoveAllowed will be used when user will move in the scene,
       i.e. when user will want to change CameraPos.)

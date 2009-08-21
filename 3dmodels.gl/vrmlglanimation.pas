@@ -88,6 +88,7 @@ type
   private
     FScenes: TVRMLGLScenesList;
     function GetScenes(I: Integer): TVRMLGLScene;
+  private
     Renderer: TVRMLOpenGLRenderer;
     FTimeBegin, FTimeEnd: Single;
     FTimeLoop: boolean;
@@ -102,10 +103,10 @@ type
     procedure SetBackgroundSkySphereRadius(const Value: Single);
 
     function InfoBoundingBoxSum: string;
-
+  private
     FOptimization: TGLRendererOptimization;
     procedure SetOptimization(const Value: TGLRendererOptimization);
-
+  private
     FWalkProjectionNear: Single;
     FWalkProjectionFar : Single;
 
@@ -114,7 +115,7 @@ type
     Load_Times: TDynSingleArray;
     procedure Load_GetRootNodeWithTime(const Index: Cardinal;
       out RootNode: TVRMLNode; out Time: Single);
-
+  private
     { Helpers for LoadFromVRMLEvents implementation. }
     LoadFromVRMLEvents_TimeBegin: Single;
     LoadFromVRMLEvents_Scene: TVRMLScene;

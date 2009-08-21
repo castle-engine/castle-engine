@@ -55,7 +55,7 @@ type
     { Auto-generate normals and set Normals, NormalsCcw, NorImplementation
       properties to use them. }
     procedure AutoGenerateNormals(const CreaseAngle: Single);
-
+  protected
     { Set these in descendant's constructor. }
     FaceConvex: boolean;
 

@@ -39,6 +39,7 @@ type
     { @noAutoLinkHere }
     destructor Destroy; override;
 
+  public
     { Curves list.
 
       Note that each curve may be any TCurve descendant

@@ -45,6 +45,7 @@ type
     constructor Create(AStream: TStream);
     destructor Destroy; override;
 
+  public
     Stream: TStream;
 
     NodeNameBinding: TStringList;
@@ -285,12 +286,15 @@ type
     FExposed: boolean;
     procedure SetExposed(Value: boolean);
 
+  private
     FExposedEvents: array [boolean] of TVRMLEvent;
     function GetExposedEvents(InEvent: boolean): TVRMLEvent;
 
+  private
     procedure ExposedEventReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
 
+  private
     FTransform: boolean;
     FProcessedInActiveLight: boolean;
 
@@ -822,6 +826,7 @@ type
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: boolean);
 
+  public
     Value: boolean;
 
     DefaultValue: boolean;
@@ -857,6 +862,7 @@ type
       const AEnumNames: array of string; const AValue: integer);
     destructor Destroy; override;
 
+  public
     { Value between 0 .. EnumCount - 1. By default 0. }
     Value: integer;
 
@@ -894,6 +900,7 @@ type
 
     property Value: Single read FValue write SetValue;
 
+  public
     DefaultValue: Single;
     DefaultValueExists: boolean;
 
@@ -932,6 +939,7 @@ type
 
     property Value: Double read FValue write SetValue;
 
+  public
     DefaultValue: Double;
     DefaultValueExists: boolean;
 
@@ -1010,6 +1018,7 @@ type
 
     property Value: Longint read FValue write SetValue;
 
+  public
     DefaultValue: Longint;
     DefaultValueExists: boolean;
 
@@ -1183,6 +1192,7 @@ type
       const AName: string;
       const AValue: TVector4Single); overload;
 
+  public
     Axis: TVector3Single;
     RotationRad: Single;
 
@@ -1224,6 +1234,7 @@ type
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: string);
 
+  public
     Value: string;
 
     DefaultValue: string;
@@ -1250,6 +1261,7 @@ type
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TVector2Single);
 
+  public
     Value: TVector2Single;
 
     DefaultValue: TVector2Single;
@@ -1278,6 +1290,7 @@ type
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TVector3Single);
 
+  public
     Value: TVector3Single;
 
     DefaultValue: TVector3Single;
@@ -1311,6 +1324,7 @@ type
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TVector4Single);
 
+  public
     Value: TVector4Single;
 
     DefaultValue: TVector4Single;
@@ -1344,6 +1358,7 @@ type
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TVector2Double);
 
+  public
     Value: TVector2Double;
 
     DefaultValue: TVector2Double;
@@ -1372,6 +1387,7 @@ type
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TVector3Double);
 
+  public
     Value: TVector3Double;
 
     DefaultValue: TVector3Double;
@@ -1400,6 +1416,7 @@ type
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TVector4Double);
 
+  public
     Value: TVector4Double;
 
     DefaultValue: TVector4Double;

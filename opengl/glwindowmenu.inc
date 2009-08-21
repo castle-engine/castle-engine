@@ -32,7 +32,7 @@
   private
     { if ParentWindow <> nil, TGLWindow(ParentWindow).MainMenuChanged. }
     procedure Changed;
-
+  private
     { This is something internal for proper communication between this module
       and GLWindow.
 
@@ -63,7 +63,7 @@
   private
     FCaption: String;
     procedure SetCaption(const Value: String);
-
+  private
     FEnabled: boolean;
     procedure SetEnabled(Value: boolean);
   public

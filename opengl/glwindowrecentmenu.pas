@@ -44,6 +44,7 @@ type
       depends on FirstSeparator value. }
     procedure MenuDone;
     procedure SetNextMenuItem(Value: TMenuEntry);
+  private
     FMaxCount: Cardinal;
   public
     constructor Create;
@@ -97,6 +98,7 @@ type
     { Constructor. Number is 1-based number of this recent file entry. }
     constructor Create(const Number: Integer; const AFileName: string;
       AIntData: Integer);
+  public
     OnOpenRecent: TOnOpenRecent;
     property FileName: string read FFileName;
     function DoCommand: boolean; override;

@@ -437,6 +437,7 @@ type
       ten obiekt przez Create. }
     property LastNodes: TTraverseStateLastNodes read FLastNodes;
 
+  public
     { Lights active in this state, two separate versions for each VRML flavor
       needed here.
 
@@ -465,6 +466,7 @@ type
       when ParentShape is @nil, we're in VRML 1 mode, otherwise in VRML 2 mode. }
     function CurrentActiveLights: TDynActiveLightArray;
 
+  public
     { Current transformation. }
     Transform: TMatrix4Single;
 
@@ -504,6 +506,7 @@ type
       like InvertedTransform and AverageScaleTransform. }
     procedure AssignTransform(Source: TVRMLGraphTraverseState);
 
+  public
     { Current texture transformation. Usable only for VRML 1.0, in VRML 2.0
       texture transformations don't accumulate like modelview transformations. }
     TextureTransform: TMatrix4Single;
@@ -567,6 +570,7 @@ type
       Otherwise @nil. }
     function BlendMode: TNodeBlendMode;
 
+  public
     { Information if you're within any inline node or expanded prototype.
       InsideInline = 0 means you're not inside any inline node,
       1 means you're inside one inline, 2 means you're within content
@@ -778,6 +782,7 @@ type
     function GetChildrenItem(i: integer): TVRMLNode;
     function GetParentNodesItem(i: integer): TVRMLNode;
     procedure SetChildrenItem(I: Integer; Value: TVRMLNode);
+  private
     FParentFields: TVRMLFieldsList;
     function GetParentFieldsItem(Index: Integer): TVRMLField;
     function GetParentFieldsNodeItem(Index: Integer): TVRMLNode;
@@ -790,6 +795,7 @@ type
       const NewResult: boolean;
       const NewVerMajor, NewVerMinor, NewSuggestionPriority: Integer);
     procedure TryFindNode_Found(Node: TVRMLNode);
+  private
     FPrototypes: TVRMLPrototypeBasesList;
     FRoutes: TVRMLRoutesList;
     FFields: TVRMLFieldsList;
@@ -801,6 +807,7 @@ type
     FExplicitContainerField: string;
     FHasInterfaceDeclarations: TVRMLAccessTypes;
     procedure SetHasInterfaceDeclarations(const Value: TVRMLAccessTypes);
+  private
     FInterfaceDeclarations: TVRMLInterfaceDeclarationsList;
     FCDataAllowed: boolean;
     FCDataExists: boolean;
@@ -1903,7 +1910,7 @@ type
     FAllowedChildrenAll: boolean;
     FAllowedChildren: TVRMLNodeClassesList;
     procedure SetValue(AValue: TVRMLNode);
-
+  private
     FDefaultValue: TVRMLNode;
     FDefaultValueExists: boolean;
     procedure SetDefaultValue(ADefaultValue: TVRMLNode);
@@ -2647,7 +2654,7 @@ type
     FEvent: TVRMLEvent;
 
     procedure SetFieldOrEvent(const Value: TVRMLFieldOrEvent);
-
+  private
     FParentNode: TVRMLNode;
   public
     constructor Create(AParentNode: TVRMLNode);
@@ -2906,6 +2913,8 @@ type
     FName: string;
     FInterfaceDeclarations: TVRMLInterfaceDeclarationsList;
 
+    FWWWBasePath: string;
+
     { Parses InterfaceDeclarations. Also inits WWWBasePath from
       Lexer.WWWBasePath, by the way. }
     procedure ParseInterfaceDeclarations(ExternalProto: boolean;
@@ -2917,8 +2926,6 @@ type
     procedure SaveInterfaceDeclarationsToStream(
       SaveProperties: TVRMLSaveToStreamProperties;
       ExternalProto: boolean);
-
-    FWWWBasePath: string;
   public
     constructor Create;
     destructor Destroy; override;
@@ -3011,6 +3018,9 @@ type
     FDestinationNode: TVRMLNode;
     FDestinationEvent: TVRMLEvent;
 
+    LastEventTime: TVRMLTime;
+    FInternal: boolean;
+
     procedure DestructionNotification(Node: TVRMLNode);
 
     procedure UnsetEnding(
@@ -3036,12 +3046,8 @@ type
       var Node: TVRMLNode; var Event: TVRMLEvent;
       const DestEnding: boolean);
 
-    LastEventTime: TVRMLTime;
-
     procedure EventReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
-
-    FInternal: boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -4923,8 +4929,8 @@ end;
 
 type
   TNodeCounter = class
-    procedure CountNode(node: TVRMLNode);
     Counter: integer;
+    procedure CountNode(node: TVRMLNode);
   end;
 
   procedure TNodeCounter.CountNode(node: TVRMLNode);

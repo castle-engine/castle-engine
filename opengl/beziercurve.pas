@@ -53,7 +53,7 @@ type
 
     function Point(const t: Float): TVector3Single; override;
     class function NiceClassName: string; override;
-
+  public
     { Curve weights.
       Must always be Weights.Length = ControlPoints.Length.
       After changing Weights you also have to call UpdateControlPoints.}

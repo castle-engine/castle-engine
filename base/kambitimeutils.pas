@@ -234,6 +234,7 @@ type
     FActive: boolean;
     procedure SetActive(Value: boolean);
 
+  private
     FDrawSpeed: Single;
 
     FSecondsToAutoReset: Cardinal;

@@ -65,11 +65,13 @@
 
     FIsTextureLoaded: boolean;
     procedure SetIsTextureLoaded(Value: boolean);
-
+  private
     FCache: TTexturesImagesVideosCache;
 
     procedure FreeAndNilTextureData;
   protected
+    FTextureUsedFullUrl: string;
+
     { This loads texture data, actual image or video file.
 
       It should set either FTextureImage or FTextureVideo to something non-nil
@@ -104,7 +106,6 @@
       and then ignore (while not overriden abstract method would cause
       simple crashes). }
     procedure LoadTextureData(out WasCacheUsed: boolean); virtual;
-    FTextureUsedFullUrl: string;
   public
     constructor Create(const ANodeName: string;
       const AWWWBasePath: string); override;

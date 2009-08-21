@@ -70,6 +70,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
+  public
     Name: string;
 
     Vertexes: TDynMd3VertexArray;
@@ -95,6 +96,7 @@ type
 
   { MD3 (Quake3 engine model format) reader. }
   TObject3dMD3 = class
+  public
     { Reads MD3 from a file.
 
       Associated skin file is also read,
@@ -117,6 +119,7 @@ type
 
     destructor Destroy; override;
 
+  public
     Name: string;
 
     Surfaces: TMd3SurfacesList;

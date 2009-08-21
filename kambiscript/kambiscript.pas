@@ -305,6 +305,7 @@ type
     class procedure ConvertFromBool(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure ConvertFromString(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FPromoteToFloat: TKamScriptFloat;
 
     FValue: Int64;
@@ -379,6 +380,7 @@ type
     class procedure ConvertFromBool(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure ConvertFromString(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: Float;
     procedure SetValue(const AValue: Float);
   public
@@ -411,6 +413,7 @@ type
     class procedure ConvertFromBool(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure ConvertFromString(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: boolean;
     procedure SetValue(const AValue: boolean);
   public
@@ -443,6 +446,7 @@ type
 
     class procedure HandleWriteln(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+  private
     FValue: string;
     procedure SetValue(const AValue: string);
   public

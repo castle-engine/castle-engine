@@ -61,6 +61,7 @@ type
       potrzebne do renderowania sceny zostaly odczytane z pliku 3ds. }
     property Initialized:boolean read FInitialized; { =false }
 
+  public
     { wlasciwosci materialu. Maja pewne domyslne wartosci bo
       nikt nie mowi ze w chunku Material sa wszystkie zdefiniowane. }
     AmbientCol:TVector4Single; { = Default3dsMatAmbient }
