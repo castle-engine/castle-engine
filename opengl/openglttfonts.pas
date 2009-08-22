@@ -27,7 +27,10 @@ unit OpenGLTTFonts;
 
 interface
 
-uses OpenGLFonts, GL, GLU, GLExt, TTFontsTypes, SysUtils, KambiGLUtils;
+uses OpenGLFonts, GL, GLU, GLExt, TTFontsTypes, SysUtils, KambiGLUtils, KambiStringUtils;
+
+const
+  SimpleAsciiCharacters = [#32 .. #126];
 
 type
   { Outline 3D font for OpenGL.
@@ -106,9 +109,29 @@ type
 
       @param(OnlyLines
         If @true then the font will be only a "skeleton" (only lines,
-        no polygons).) }
-    constructor Create(TrueTypeFont: PTrueTypeFont; depth: TGLfloat = 0.0;
-      onlyLines: boolean = false); overload;
+        no polygons).)
+
+      @param(CharactersSubset If non-empty, this set defines the characters
+        that will be actually rendered.
+
+        Other characters can still be passed
+        in strings to @link(Print) and other methods, they just will
+        not be visible. (Although even invisible characters will still shift
+        the "cursor" used when writing the string. This means that
+        e.g. monospace font will be shifted appropriately, even if some
+        characters were excluded by CharactersSubset.)
+
+        By default we use SimpleAsciiCharacters constant here.
+
+        This makes font preparations faster (for example,
+        Debian Linux x86_64 currently has much slower GLU tesselator,
+        and so optimizing by providing only SimpleAsciiCharacters makes sense).
+        Also, font takes less memory space.)
+    }
+    constructor Create(TrueTypeFont: PTrueTypeFont;
+      const depth: TGLfloat = 0.0;
+      const onlyLines: boolean = false;
+      const CharactersSubset: TSetOfChars = SimpleAsciiCharacters); overload;
     destructor Destroy; override;
 
     procedure Print(const s: string); override;
@@ -206,7 +229,9 @@ begin
 end;
 
 constructor TGLOutlineFont.Create(TrueTypeFont: PTrueTypeFont;
-  depth: TGLfloat; onlyLines: boolean);
+  const depth: TGLfloat;
+  const onlyLines: boolean;
+  const CharactersSubset: TSetOfChars);
 var i, poz,
     linesCount, pointsCount :Cardinal;
     Znak: PTTFChar;
@@ -311,18 +336,21 @@ begin
    Znak := TTFont^[Chr(i)];
    glNewList(i+base, GL_COMPILE);
 
-   if Depth <> 0 then glNormal3f(0, 0, -1);
-
-   TesselatedPolygon(0);
-
-   if depth <> 0 then
+   if (CharactersSubset = []) or (Chr(i) in CharactersSubset) then
    begin
-     { Draw copy of polygons on Depth. This still gets
-       normal (0, 0, -1), set above for the 1st copy at Depth = 0.  }
-     TesselatedPolygon(depth);
+     if Depth <> 0 then glNormal3f(0, 0, -1);
 
-     { Draw sides. CharExtrusionPrint will produce appropriate normal vectors. }
-     CharExtrusionPrint(Chr(I), Depth, onlyLines);
+     TesselatedPolygon(0);
+
+     if depth <> 0 then
+     begin
+       { Draw copy of polygons on Depth. This still gets
+         normal (0, 0, -1), set above for the 1st copy at Depth = 0.  }
+       TesselatedPolygon(depth);
+
+       { Draw sides. CharExtrusionPrint will produce appropriate normal vectors. }
+       CharExtrusionPrint(Chr(I), Depth, onlyLines);
+     end;
    end;
 
    glEndList;
