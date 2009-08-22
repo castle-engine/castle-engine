@@ -448,6 +448,16 @@ begin
     ExecuteExpectError('main_test_invalid_index_set');
 
     FreeAndNil(Prog);
+
+    Prog := ParseProgram(FileToString('test_script_string_as_array.kscript'), Vars);
+    Prog.ExecuteFunction('main', []);
+    Assert(TKamScriptString(Vars[3]).Value = 'bbbbbbbbbbbb' + #123 + '13');
+
+    ExecuteExpectError('error1');
+    ExecuteExpectError('error2');
+    ExecuteExpectError('error3');
+
+    FreeAndNil(Prog);
   finally
     FreeWithContentsAndNil(Vars);
   end;

@@ -546,6 +546,99 @@ begin
   Result := Index = 0;
 end;
 
+{ Handling strings as arrays of characters ----------------------------------- }
+
+type
+  TKamScriptCharacterArray = class
+    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+  end;
+
+class procedure TKamScriptCharacterArray.HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
+  TKamScriptInteger(AResult).Value := Length(TKamScriptString(Arguments[0]).Value);
+end;
+
+class procedure TKamScriptCharacterArray.HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  NewCount: Int64;
+  NewValue: string;
+begin
+  if ParentOfResult then
+    AResult.FreeByParentExpression;
+  AResult := nil;
+  ParentOfResult := false;
+
+  NewCount := TKamScriptInteger(Arguments[1]).Value;
+  if NewCount < 0 then
+    raise EKamScriptError.CreateFmt('Invalid count %d for array_set_count (should be non-negative)',
+      [NewCount]);
+
+  NewValue := TKamScriptString(Arguments[0]).Value;
+  SetLength(NewValue, NewCount);
+  TKamScriptString(Arguments[0]).Value := NewValue;
+
+  TKamScriptString(Arguments[0]).ValueAssigned := true;
+
+  AResult := Arguments[0];
+end;
+
+class procedure TKamScriptCharacterArray.HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  Index: Integer;
+  Arr: string;
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptString);
+
+  Arr := TKamScriptString(Arguments[0]).Value;
+
+  Index := TKamScriptInteger(Arguments[1]).Value;
+  if not Between(Index, 0, Length(Arr) - 1) then
+    raise EKamScriptError.CreateFmt('Invalid index %d for array_get, array count is %d',
+      [Index, Length(Arr)]);
+
+  TKamScriptString(AResult).Value := Arr[Index+1];
+end;
+
+class procedure TKamScriptCharacterArray.HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  Index: Integer;
+  Arr: string;
+begin
+  if ParentOfResult then
+    AResult.FreeByParentExpression;
+  AResult := nil;
+  ParentOfResult := false;
+
+  Arr := TKamScriptString(Arguments[0]).Value;
+
+  Index := TKamScriptInteger(Arguments[1]).Value;
+  if not Between(Index, 0, Length(Arr) - 1) then
+    raise EKamScriptError.CreateFmt('Invalid index %d for array_set, array count is %d',
+      [Index, Length(Arr)]);
+
+  if Length(TKamScriptString(Arguments[2]).Value) <> 1 then
+    raise EKamScriptError.CreateFmt('Invalid value as the last array_set argument: given array is a string, so value is expected to be a character (that is, a string of length exactly 1). But given value is "%s" (length %d)',
+      [ TKamScriptString(Arguments[2]).Value,
+        Length(TKamScriptString(Arguments[2]).Value) ]);
+
+  Arr[Index+1] := TKamScriptString(Arguments[2]).Value[1];
+  TKamScriptString(Arguments[0]).Value := Arr;
+
+  AResult := Arguments[0];
+end;
+
+procedure RegisterCharacterFunctions;
+begin
+  FunctionHandlers.RegisterHandler(@TKamScriptCharacterArray(nil).HandleArrayGetCount, TKamScriptArrayGetCount, [TKamScriptString], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptCharacterArray(nil).HandleArraySetCount, TKamScriptArraySetCount, [TKamScriptString, TKamScriptInteger], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptCharacterArray(nil).HandleArrayGet, TKamScriptArrayGet, [TKamScriptString, TKamScriptInteger], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptCharacterArray(nil).HandleArraySet, TKamScriptArraySet, [TKamScriptString, TKamScriptInteger, TKamScriptString], false);
+end;
+
 initialization
   RegisterLongIntFunctions;
   RegisterSingleFunctions;
@@ -564,4 +657,6 @@ initialization
   RegisterMatrix4fFunctions;
   RegisterMatrix3dFunctions;
   RegisterMatrix4dFunctions;
+
+  RegisterCharacterFunctions;
 end.

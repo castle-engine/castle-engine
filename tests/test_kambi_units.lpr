@@ -42,13 +42,13 @@ uses
   TestDDS;
 
 {var
-  T: TTestFrustum;}
+  T: TTestKambiScript;}
 begin
 { Sometimes it's comfortable to just run the rest directly, to get
   full backtrace from FPC.
 
-  T := TTestFrustum.Create;
-  T.TestCompareWithUnoptimizedPlaneCollision;
+  T := TTestKambiScript.Create;
+  T.TestArrays;
   T.Free;}
 
   Application.Initialize;

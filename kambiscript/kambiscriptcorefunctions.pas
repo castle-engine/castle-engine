@@ -310,6 +310,11 @@ type
     class function ShortName: string; override;
   end;
 
+  TKamScriptCharacterFromCode = class(TKamScriptFunction)
+  public
+    class function ShortName: string; override;
+  end;
+
   TKamScriptRandom = class(TKamScriptFunction)
   public
     class function ShortName: string; override;
@@ -795,6 +800,11 @@ end;
 class function TKamScriptWriteln.ShortName: string;
 begin
   Result := 'writeln';
+end;
+
+class function TKamScriptCharacterFromCode.ShortName: string;
+begin
+  Result := 'character_from_code';
 end;
 
 class function TKamScriptRandom.ShortName: string;

@@ -445,7 +445,7 @@ type
     class procedure ConvertFromString(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
     class procedure HandleWriteln(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-
+    class procedure HandleCharacterFromCode(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
   private
     FValue: string;
     procedure SetValue(const AValue: string);
@@ -1904,6 +1904,19 @@ begin
     DataWarning('KambiScript message: ' + S);
 end;
 
+class procedure TKamScriptString.HandleCharacterFromCode(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  CharCode: Int64;
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptString);
+
+  CharCode := TKamScriptInteger(Arguments[0]).Value;
+
+  if Between(CharCode, Low(Byte), High(Byte)) then
+    TKamScriptString(AResult).Value := Chr(CharCode) else
+    TKamScriptString(AResult).Value := '';
+end;
+
 procedure TKamScriptString.AssignValue(Source: TKamScriptValue);
 begin
   if Source is TKamScriptString then
@@ -2726,6 +2739,7 @@ initialization
   FunctionHandlers.RegisterHandler(@TKamScriptString(nil).ConvertFromString, TKamScriptStringFun, [TKamScriptString], false);
 
   FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleWriteln, TKamScriptWriteln, [TKamScriptString], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptString(nil).HandleCharacterFromCode, TKamScriptCharacterFromCode, [TKamScriptInteger], false);
 finalization
   FreeAndNil(FunctionHandlers);
 end.
