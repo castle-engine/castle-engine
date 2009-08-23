@@ -1,0 +1,26 @@
+The central TODO file. There are also some TODOs scattered elsewhere, do "find -iname TODO*" to find them. In paricular, ../../www/TODO contains "next-release" stuff, usually has a list of blockers typically worked upon right before release.
+
+------------------------------------------------------------------------------
+
+- Only on x86_64: GLU tesselatator is ultra-slow.
+
+  So loading anything with a 3D Font takes some time (around 4-5 seconds per font; while it's instanteneous on 32bit). 3D Font is right now used only by VRML Text node, no program initializes TGLOutlineFont directly.
+
+  The slowness can be seen e.g. in castle when loading ("credits" model has 3D fonts). Or in view3dscene when opening any file using font, like x3d/cubemap_generated_in_dynamic_world.x3dv. Extreme case is kambi_vrml_test_suite/vrml_2/text.wrl: all 9 fonts used, loading time is 37 seconds.
+
+  This is also a blocker for making "welcome scene" in view3dscene using Text font.
+
+  The slowness is in Cache.Fonts_IncReference.
+  Not reproducible on 32 bit (fpc 2.2.4 kocury/linux/32), so it must be some 64-bit problem.
+  The slowness is inside gluTessVertex in TGLOutlineFont.Create. Which means I cannot do anything about it? It's the GLU tesselators that are much slower on x86_64, it seems.
+
+  One solution could be to cache the tesselated result. I could even compile the cached result into the program, this way user doesn't have to do it at all.
+  Trouble: is it really helpful in the long run? I would like some time to load fonts from TTF files and then runtime tesselation is a must. And then caching helps, but not for the 1st tesselation run...
+
+  Idea: not tesselating all letters would be useful?
+  This would be a valid optimization (needed in the long run anyway, for Unicode fonts I wouldn't want to tesselate all characters at loading anyway).
+  For now, possibly I would just need basic ASCII support, so not all 256 characters need to be defined?
+  Done: we use only a subset: SimpleAsciiCharacters. 4-5 and 37 seconds measures are with this already enabled... so it's working, but it's still slow.
+
+  For view3dscene 3.4, this will have to be enough.
+

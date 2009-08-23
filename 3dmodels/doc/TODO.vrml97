@@ -13,12 +13,6 @@ VRML 97 TODO items:
 - Remaining places where my code temporarily cannot handle VRML 2.0 files,
   should be updated:
 
-  - Ray-tracer: vrmlraytracer.pas: PathTracerTo1st uses only
-    VRML 1.0 material node.
-    Fixing this means also porting VRML extension on
-    http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php
-    "Phong's BRDF fields for materials" to VRML 2.0 Material.
-
   - Conversion from other 3D formats (make 3DS -> VRML 2.0 converter):
     ./object3dasvrml.pas
     (grep for _1 where I used only VRML 1.0 nodes versions)
@@ -79,9 +73,6 @@ A simple implementation can be imagined easily:
 ----------------------------------------------------------------------------
 - Redundant routing is ignored. If a VRML file repeats a routing path, the second and subsequent identical routes are ignored. This also applies for routes created dynamically via a scripting language supported by the browser.
   Currently, we don't honour above. Multiple routes will cause multiplication of sending event.
-
-- Navigation is performed relative to the Viewpoint's location and does not affect the location and orientation values of a Viewpoint node.
-  This will also allow animating camera move by animating Viewpoint or it's transformation, AFAI understand.
 ------------------------------------------------------------------------------
 
 Partial X3D TODO list:
