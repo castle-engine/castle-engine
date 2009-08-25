@@ -2,7 +2,9 @@ The central TODO file. There are also some TODOs scattered elsewhere, do "find -
 
 ------------------------------------------------------------------------------
 
-- on windows, FBO config is never supported - why? My error?
+- on kocury win 2000 prof with Geforce 5200, FBO config is never supported.
+  While on Linux (32, 64) it's Ok.
+  Why? Driver buggy? Test can we get FBO under *any* windows system?
 
 - Only on x86_64: GLU tesselatator is ultra-slow.
 
