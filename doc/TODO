@@ -2,6 +2,11 @@ The central TODO file. There are also some TODOs scattered elsewhere, do "find -
 
 ------------------------------------------------------------------------------
 
+- on windows, FBO config is never supported - why? My error?
+
+- on windows, glViewImage menu may have two rows, and so the GL area is smaller and doesn't contain default image. Seen when you run glViewImage without params.
+  Is it possible at all to take this into account?
+
 - Only on x86_64: GLU tesselatator is ultra-slow.
 
   So loading anything with a 3D Font takes some time (around 4-5 seconds per font; while it's instanteneous on 32bit). 3D Font is right now used only by VRML Text node, no program initializes TGLOutlineFont directly.
