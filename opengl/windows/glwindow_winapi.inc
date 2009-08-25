@@ -899,7 +899,25 @@ begin
    glwm.ScreenHeight) and this is already set. I could write it like that:
      AdjustWindowRectEx(WindowRect, dwStyle,
        (not FullScreen) and (MainMenu <> nil), dwExStyle);
-   but it's more clear to just omit AdjustWindowRectEx call when FullScreen. }
+   but it's more clear to just omit AdjustWindowRectEx call when FullScreen.
+
+   Note the (documented) WinAPI bug here: AdjustWindowRectEx cannot take
+   into account if the menu bar wraps (in two or more rows). This wrapping
+   happens, depending on menu contents and user fonts. But AdjustWindowRectEx
+   has to way to account for it: it only knows if the menu exists at all.
+   Documented in MSDN explicitly: "The AdjustWindowRectEx function does not add
+   extra space when a menu bar wraps to two or more rows.", with no workaround
+   pointed...
+
+   This means that actual OpenGL area size may be different than
+   requested (OnResize will report it corectly, eventually lying, honoring
+   ResizeAllowed properrty). Happened e.g. when glViewImage allowed minimal
+   window size = 200, and default welcome image had 256x256 pixels.
+   When you opened glViewImage with no params in directory with no images,
+   then OpenGL area of size 256x256 was requested, which was so narrow that
+   menu bar wrapped. Which made OpenGL area not tall enough for 256 pixels,
+   and glViewImage had to add a vertical scrollbar to display welcome image.
+ }
  if not FullScreen then
   AdjustWindowRectEx(WindowRect, dwStyle, MainMenu <> nil, dwExStyle);
 
