@@ -2,6 +2,25 @@ The central TODO file. There are also some TODOs scattered elsewhere, do "find -
 
 ------------------------------------------------------------------------------
 
+- More friendly kambi_vrml_game_engine archive and layout for new developers. Ideas?
+  - All "pure source" directories move, e.g. to source/ subdirectory.
+    Leave only special dirs, like tests/, doc/, packages/.
+  - Rename packages/ to lazarus/? Or lazarus-packages/?
+  - Put README file in central dir, pointing to WWW docs, reference/ dir etc.
+  - Add generated pasdoc documentation to reference/?
+  - Move examples out of sources/ directory, into separate dir --- to clearly
+    show the existence of examples/
+
+  So layout like
+
+    lazarus-packages/
+    doc/
+    reference/
+    source/
+    examples/
+    README
+    fpcmake.pp
+
 - on kocury win 2000 prof with Geforce 5200, FBO config is never supported.
   While on Linux (32, 64) it's Ok.
   Why? Driver buggy? Test can we get FBO under *any* windows system?
