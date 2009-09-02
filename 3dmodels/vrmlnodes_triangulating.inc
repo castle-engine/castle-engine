@@ -109,7 +109,7 @@ begin
       FreeAndNil(P);
     end;
   end else
-    raise EInternalError.Create('TVRMLGeometryNode.TrianglesCount not overridden, and node without a Proxy');
+    raise EInternalError.Create('TVRMLGeometryNode.LocalTriangulate not overridden, and node without a Proxy');
 end;
 
 { pomocnicze procedury LocalTriangulate* dla jakichs tworow geometrycznych

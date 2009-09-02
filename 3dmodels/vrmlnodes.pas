@@ -2419,7 +2419,7 @@ type
       here. It may be a line stip, or one triangle strip, etc. ---
       depending on the descendant.
 
-      Returns @true is this is available. In this case, RangeCount must
+      Returns @true if this is available. In this case, RangeCount must
       be set to something <> nil, and the rest of returned variables
       are mainly to generate proper warnings by MakeCoordRanges. }
     function CoordRangesCounts(out RangeCount: TDynLongIntArray;

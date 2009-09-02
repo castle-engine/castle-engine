@@ -4258,7 +4258,7 @@ begin
               LocalTriangulate. We should use here OverTriagulate = true (but it's not
               impl yet because I don't need it anywhere (well, I would use it here
               but this is just some testing code)) }
-            CurrentGeometry.LocalTriangulate(State, false, @DrawTriangle);
+            CurrentGeometry.LocalTriangulate(currentState, false, @DrawTriangle);
 
             {$else}
 
