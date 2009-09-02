@@ -176,6 +176,9 @@
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean; override;
 
     function Proxy: TVRMLGeometryNode; override;
+    function Coord(State: TVRMLGraphTraverseState; out ACoord: TMFVec3f): boolean; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
   end;
 
   TNodeNurbsCurve2D = class(TNodeX3DNurbsControlCurveNode)
@@ -243,6 +246,9 @@
     class function URNMatching(const URN: string): boolean; override;
 
     function Proxy: TVRMLGeometryNode; override;
+    function Coord(State: TVRMLGraphTraverseState; out ACoord: TMFVec3f): boolean; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
   end;
 
   TNodeNurbsPositionInterpolator_3 = class(TNodeX3DChildNode)
@@ -800,6 +806,38 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
+{ Coord implementation makes automatic, optimal and fast
+  (without the need for Proxy call) LocalBoundingBox, BoundingBox
+  implementation. }
+function TNodeNurbsCurve_3.Coord(State: TVRMLGraphTraverseState;
+  out ACoord: TMFVec3f): boolean;
+begin
+  Result := true;
+  if (FdControlPoint.Value <> nil) and
+     (FdControlPoint.Value is TNodeCoordinate) then
+    ACoord := TNodeCoordinate(FdControlPoint.Value).FdPoint else
+    ACoord := nil;
+end;
+
+function TNodeNurbsCurve_3.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  Result := 0;
+end;
+
+function TNodeNurbsCurve_3.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+var
+  ControlPoint: TNodeCoordinate;
+begin
+  if (FdControlPoint.Value <> nil) and
+     (FdControlPoint.Value is TNodeCoordinate) then
+    ControlPoint := TNodeCoordinate(FdControlPoint.Value) else
+    Exit(0);
+
+  if ControlPoint.CoordCount > 0 then
+    Result := ActualTessellation(FdTessellation.Value, ControlPoint.CoordCount) else
+    Result := 0;
+end;
+
 constructor TNodeNurbsCurve2D.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -1125,6 +1163,47 @@ begin
     FreeAndNil(UKnot);
     FreeAndNil(VKnot);
   except FreeAndNil(Result); raise end;
+end;
+
+{ Coord implementation makes automatic, optimal and fast
+  (without the need for Proxy call) LocalBoundingBox, BoundingBox
+  implementation. }
+function TNodeNurbsPatchSurface.Coord(State: TVRMLGraphTraverseState;
+  out ACoord: TMFVec3f): boolean;
+begin
+  Result := true;
+  if (FdControlPoint.Value <> nil) and
+     (FdControlPoint.Value is TNodeCoordinate) then
+    ACoord := TNodeCoordinate(FdControlPoint.Value).FdPoint else
+    ACoord := nil;
+end;
+
+function TNodeNurbsPatchSurface.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+var
+  UTess, VTess: Cardinal;
+begin
+  if (FdUDimension.Value > 0) and
+     (FdVDimension.Value > 0) then
+  begin
+    UTess := ActualTessellation(FdUTessellation.Value, FdUDimension.Value);
+    VTess := ActualTessellation(FdVTessellation.Value, FdVDimension.Value);
+    Result := (UTess - 1) * (VTess - 1) * 2;
+  end else
+    Result := 0;
+end;
+
+function TNodeNurbsPatchSurface.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+var
+  UTess, VTess: Cardinal;
+begin
+  if (FdUDimension.Value > 0) and
+     (FdVDimension.Value > 0) then
+  begin
+    UTess := ActualTessellation(FdUTessellation.Value, FdUDimension.Value);
+    VTess := ActualTessellation(FdVTessellation.Value, FdVDimension.Value);
+    Result := UTess * VTess;
+  end else
+    Result := 0;
 end;
 
 constructor TNodeNurbsPositionInterpolator_3.Create(const ANodeName: string;
