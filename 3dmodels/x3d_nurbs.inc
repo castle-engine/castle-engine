@@ -33,11 +33,6 @@
   end;
 
   TNodeX3DParametricGeometryNode = class(TNodeX3DGeometryNode)
-    { Geometry node not implemented } { }
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeX3DNurbsSurfaceGeometryNode = class(TNodeX3DParametricGeometryNode)
@@ -388,6 +383,12 @@
 
     private FFdsolid: TSFBool;
     public property Fdsolid: TSFBool read FFdsolid;
+
+    { Geometry node not implemented } { }
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeNurbsSwungSurface = class(TNodeX3DParametricGeometryNode)
@@ -412,6 +413,12 @@
 
     private FFdsolid: TSFBool;
     public property Fdsolid: TSFBool read FFdsolid;
+
+    { Geometry node not implemented } { }
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeNurbsTextureCoordinate = class(TNodeX3DNode)
@@ -468,6 +475,12 @@
 
     private FFdtrimmingContour: TMFNode;
     public property FdtrimmingContour: TMFNode read FFdtrimmingContour;
+
+    { Geometry node not implemented } { }
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
 {$endif read_interface}
@@ -484,9 +497,6 @@ begin
 
   DefaultContainerField := 'children';
 end;
-
-{$define TGeometryNotImplemented := TNodeX3DParametricGeometryNode}
-GeometryNotImplemented
 
 constructor TNodeX3DNurbsSurfaceGeometryNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
@@ -601,14 +611,14 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-{$define TGeometryNotImplemented := TNodeContour2D}
-GeometryNotImplemented
-
 procedure TNodeContour2D.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   Fdchildren.EnumerateValid(Func);
 end;
+
+{$define TGeometryNotImplemented := TNodeContour2D}
+GeometryNotImplemented
 
 constructor TNodeContourPolyline2D.Create(const ANodeName: string;
   const AWWWBasePath: string);
@@ -1351,6 +1361,9 @@ begin
   FdtrajectoryCurve.EnumerateValid(Func);
 end;
 
+{$define TGeometryNotImplemented := TNodeNurbsSweptSurface}
+GeometryNotImplemented
+
 constructor TNodeNurbsSwungSurface.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -1396,6 +1409,9 @@ begin
   FdprofileCurve.EnumerateValid(Func);
   FdtrajectoryCurve.EnumerateValid(Func);
 end;
+
+{$define TGeometryNotImplemented := TNodeNurbsSwungSurface}
+GeometryNotImplemented
 
 constructor TNodeNurbsTextureCoordinate.Create(const ANodeName: string;
   const AWWWBasePath: string);
@@ -1501,6 +1517,9 @@ procedure TNodeNurbsTrimmedSurface.DirectEnumerateActive(
 begin
   FdtrimmingContour.EnumerateValid(Func);
 end;
+
+{$define TGeometryNotImplemented := TNodeNurbsTrimmedSurface}
+GeometryNotImplemented
 
 procedure RegisterNURBSNodes;
 begin
