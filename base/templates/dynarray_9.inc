@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2005 Michalis Kamburelis.
+  Copyright 2002-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -130,6 +130,10 @@
       {$ifdef FPC_OBJFPC} PDynArrayItem_9 {$else} PInfiniteArray_9 {$endif};
       {$ifdef SUPPORTS_INLINE} inline; {$endif}
     function GetItemsArray: PInfiniteArray_9;
+    function GetFirst: TDynArrayItem_9;
+    function GetLast: TDynArrayItem_9;
+    procedure SetFirst(const Value: TDynArrayItem_9);
+    procedure SetLast(const Value: TDynArrayItem_9);
   private
     { Helpers to implement Sort() }
     Sort_IsSmallerFunc: TDynArrayItemIsSmallerFunc_9;
@@ -290,6 +294,9 @@
     {$ifdef DYNARRAY_9_USE_PLUSMINUS_OP}
     function Sum: TDynArrayItem_9;
     {$endif DYNARRAY_9_USE_PLUSMINUS_OP}
+
+    property First: TDynArrayItem_9 read GetFirst write SetFirst;
+    property Last : TDynArrayItem_9 read GetLast  write SetLast ;
   end;
 
 {$endif}
@@ -671,5 +678,25 @@ begin
     Result := Result + Items[I];
 end;
 {$endif DYNARRAY_9_USE_PLUSMINUS_OP}
+
+function TDynArray_9.GetFirst: TDynArrayItem_9;
+begin
+  Result := Items[0];
+end;
+
+function TDynArray_9.GetLast: TDynArrayItem_9;
+begin
+  Result := Items[Count - 1];
+end;
+
+procedure TDynArray_9.SetFirst(const Value: TDynArrayItem_9);
+begin
+  Items[0] := Value;
+end;
+
+procedure TDynArray_9.SetLast(const Value: TDynArrayItem_9);
+begin
+  Items[Count - 1] := Value;
+end;
 
 {$endif}
