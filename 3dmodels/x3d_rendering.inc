@@ -93,6 +93,9 @@
   TNodeX3DCoordinateNode = class(TNodeX3DGeometricPropertyNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
+    { Count of coordinates within. }
+    function CoordCount: Cardinal; virtual; abstract;
   end;
 
   TNodeX3DNormalNode = class(TNodeX3DGeometricPropertyNode)
@@ -147,6 +150,8 @@
 
     private FFdpoint: TMFVec3f;
     public property Fdpoint: TMFVec3f read FFdpoint;
+
+    function CoordCount: Cardinal; override;
   end;
 
   TNodeIndexedLineSet_2 = class(TNodeX3DGeometryNode)
@@ -690,6 +695,11 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TNodeCoordinate.CoordCount: Cardinal;
+begin
+  Result := FdPoint.Items.Count;
 end;
 
 constructor TNodeIndexedLineSet_2.Create(const ANodeName: string;

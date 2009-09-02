@@ -145,6 +145,8 @@
 
     private FFdpoint: TMFVec3d;
     public property Fdpoint: TMFVec3d read FFdpoint;
+
+    function CoordCount: Cardinal; override;
   end;
 
   TNodeNurbsCurve_3 = class(TNodeX3DParametricGeometryNode)
@@ -177,6 +179,8 @@
     public property Fdorder: TSFInt32 read FFdorder;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean; override;
+
+    function Proxy: TVRMLGeometryNode; override;
   end;
 
   TNodeNurbsCurve2D = class(TNodeX3DNurbsControlCurveNode)
@@ -242,6 +246,8 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+
+    function Proxy: TVRMLGeometryNode; override;
   end;
 
   TNodeNurbsPositionInterpolator_3 = class(TNodeX3DChildNode)
@@ -660,6 +666,11 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+function TNodeCoordinateDouble.CoordCount: Cardinal;
+begin
+  Result := FdPoint.Items.Count;
+end;
+
 constructor TNodeNurbsCurve_3.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -719,6 +730,21 @@ procedure TNodeNurbsCurve_3.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   FdcontrolPoint.EnumerateValid(Func);
+end;
+
+function TNodeNurbsCurve_3.Proxy: TVRMLGeometryNode;
+var
+  LS: TNodeLineSet absolute Result;
+begin
+  LS := TNodeLineSet.Create(NodeName, WWWBasePath);
+  try
+    LS.FdCoord.Value := FdControlPoint.Value;
+
+    { For LineSet to actually use the points in "coord" field, set "vertexCount" }
+    if (FdControlPoint.Value <> nil) and
+       (FdControlPoint.Value is TNodeX3DCoordinateNode) then
+      LS.FdVertexCount.Items.AppendItem(TNodeX3DCoordinateNode(FdControlPoint.Value).CoordCount);
+  except FreeAndNil(Result); raise end;
 end;
 
 constructor TNodeNurbsCurve2D.Create(const ANodeName: string;
@@ -849,6 +875,15 @@ class function TNodeNurbsPatchSurface.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TNodeNurbsPatchSurface.Proxy: TVRMLGeometryNode;
+var
+  IFS: TNodeIndexedFaceSet_2 absolute Result;
+begin
+  IFS := TNodeIndexedFaceSet_2.Create(NodeName, WWWBasePath);
+  try
+  except FreeAndNil(Result); raise end;
 end;
 
 constructor TNodeNurbsPositionInterpolator_3.Create(const ANodeName: string;

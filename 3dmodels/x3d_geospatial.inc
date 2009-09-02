@@ -55,6 +55,8 @@
 
     private FFdgeoSystem: TMFString;
     public property FdgeoSystem: TMFString read FFdgeoSystem;
+
+    function CoordCount: Cardinal; override;
   end;
 
   TNodeGeoElevationGrid = class(TNodeX3DGeometryNode)
@@ -119,7 +121,7 @@
 
     private FFdzSpacing: TSFDouble;
     public property FdzSpacing: TSFDouble read FFdzSpacing;
-    
+
     { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
@@ -434,6 +436,11 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TNodeGeoCoordinate.CoordCount: Cardinal;
+begin
+  Result := FdPoint.Items.Count;
 end;
 
 constructor TNodeGeoElevationGrid.Create(const ANodeName: string;

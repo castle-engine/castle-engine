@@ -4238,7 +4238,9 @@ begin
     This may be improved in the future, if the Proxy mechanism will
     get used by more nodes. }
   if (Shape.Geometry is TNodeTeapot) or
-     (Shape.Geometry is TNodeExtrusion) then
+     (Shape.Geometry is TNodeExtrusion) or
+     (Shape.Geometry is TNodeNurbsCurve_3) or
+     (Shape.Geometry is TNodeNurbsPatchSurface) then
     CurrentGeometry := Shape.Geometry.Proxy else
     CurrentGeometry := Shape.Geometry;
   try
