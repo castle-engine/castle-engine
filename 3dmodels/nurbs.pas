@@ -42,7 +42,6 @@ function ActualTessellation(const Tessellation: Integer;
 
   Requires:
   @unorderedList(
-    @item U in [0; 1] range.
     @item PointsCount > 0 (not exactly 0).
     @item Order >= 2 (X3D and VRML 97 spec require this too).
     @item Knot must have exactly PointsCount + Order items.
@@ -53,11 +52,11 @@ function ActualTessellation(const Tessellation: Integer;
   (this follows X3D spec).
 
   @groupBegin }
-function NurbsCurveValue(const Points: PVector3Single;
+function NurbsCurvePoint(const Points: PVector3Single;
   const PointsCount: Cardinal; const U: Single;
   const Order: Cardinal;
   Knot, Weight: TDynDoubleArray): TVector3_Single;
-function NurbsCurveValue(const Points: TDynVector3SingleArray;
+function NurbsCurvePoint(const Points: TDynVector3SingleArray;
   const U: Single;
   const Order: Cardinal;
   Knot, Weight: TDynDoubleArray): TVector3_Single;
@@ -67,7 +66,6 @@ function NurbsCurveValue(const Points: TDynVector3SingleArray;
 
   Requires:
   @unorderedList(
-    @item U, V is in [0; 1] range.
     @item UDimension, VDimension > 0 (not exactly 0).
     @item Points.Count must match UDimension * VDimension.
     @item Order >= 2 (X3D and VRML 97 spec require this too).
@@ -77,7 +75,7 @@ function NurbsCurveValue(const Points: TDynVector3SingleArray;
   Weight will be used only if it has the same length as PointsCount.
   Otherwise, weight = 1.0 (that is, defining non-rational curve) will be used
   (this follows X3D spec). }
-function NurbsSurfaceValue(const Points: TDynVector3SingleArray;
+function NurbsSurfacePoint(const Points: TDynVector3SingleArray;
   const UDimension, VDimension: Cardinal;
   const U, V: Single;
   const UOrder, VOrder: Cardinal;
@@ -86,15 +84,15 @@ function NurbsSurfaceValue(const Points: TDynVector3SingleArray;
 
 { Calculate uniform knot, if Knot doesn't already have required number of items.
   After this, it's guaranteed that Knot.Count is Dimension + Order
-  (just as required by NurbsCurveValue, NurbsSurfaceValue). }
+  (just as required by NurbsCurvePoint, NurbsSurfacePoint). }
 procedure NurbsUniformKnotIfNeeded(Knot: TDynDoubleArray;
   const Dimension, Order: Cardinal);
 
 implementation
 
 { findSpan and basisFuns is rewritten from white dune's C source code.
-  Also NurbsCurveValue is based on NodeNurbsCurve::curvePoint.
-  Also NurbsSurfaceValue is based on NodeNurbsSurface::surfacePoint.
+  Also NurbsCurvePoint is based on NodeNurbsCurve::curvePoint.
+  Also NurbsSurfacePoint is based on NodeNurbsSurface::surfacePoint.
   Also NurbsUniformKnotIfNeeded is based on NodeNurbsSurface::linearUknot.
 
   White dune:
@@ -192,7 +190,7 @@ begin
   Inc(Result);
 end;
 
-function NurbsCurveValue(const Points: PVector3Single;
+function NurbsCurvePoint(const Points: PVector3Single;
   const PointsCount: Cardinal; const U: Single;
   const Order: Cardinal;
   Knot, Weight: TDynDoubleArray): TVector3_Single;
@@ -228,15 +226,15 @@ begin
   FreeAndNil(deriv);
 end;
 
-function NurbsCurveValue(const Points: TDynVector3SingleArray;
+function NurbsCurvePoint(const Points: TDynVector3SingleArray;
   const U: Single;
   const Order: Cardinal;
   Knot, Weight: TDynDoubleArray): TVector3_Single;
 begin
-  Result := NurbsCurveValue(Points.Items, Points.Count, U, Order, Knot, Weight);
+  Result := NurbsCurvePoint(Points.Items, Points.Count, U, Order, Knot, Weight);
 end;
 
-function NurbsSurfaceValue(const Points: TDynVector3SingleArray;
+function NurbsSurfacePoint(const Points: TDynVector3SingleArray;
   const UDimension, VDimension: Cardinal;
   const U, V: Single;
   const UOrder, VOrder: Cardinal;
