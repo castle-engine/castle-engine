@@ -740,6 +740,7 @@ var
   Tess: Cardinal;
   I: Integer;
   Increase: Double;
+  Knot: TDynDoubleArray;
 begin
   LS := TNodeLineSet.Create(NodeName, WWWBasePath);
   try
@@ -751,11 +752,24 @@ begin
 
     if ControlPoint.FdPoint.Count = 0 then Exit;
 
-    { We can be sure now that we have ControlPoint, non-nil,
-      with at least 1 point. }
+    if FdOrder.Value < 2 then
+    begin
+      VRMLWarning(vwSerious, 'NURBS order must be >= 2');
+      Exit;
+    end;
 
+    { We can be sure now that
+      - we have ControlPoint, non-nil, with at least 1 point.
+      - we have Order >= 2 }
+
+    { calculate correct Knot vector }
+    Knot := TDynDoubleArray.Create;
+    Knot.Assign(FdKnot.Items);
+    NurbsUniformKnotIfNeeded(Knot, ControlPoint.CoordCount, FdOrder.Value);
+
+    { calculate tesselation: Tess, Increase }
     Tess := ActualTessellation(FdTessellation.Value, ControlPoint.CoordCount);
-    Increase := (FdKnot.Items.Last - FdKnot.Items.First) / (Tess - 1);
+    Increase := (Knot.Last - Knot.First) / (Tess - 1);
 
     { make resulting Coordinate node }
     ResultCoord := (TVRMLNodeClass(ControlPoint.ClassType).Create('', WWWBasePath)) as TNodeCoordinate;
@@ -766,11 +780,13 @@ begin
     for I := 0 to Tess - 1 do
       ResultCoord.FdPoint.Items.Items[I] :=
         NurbsCurveValue(ControlPoint.FdPoint.Items,
-          FdKnot.Items.First + Increase * I,
-          FdOrder.Value, FdKnot.Items, FdWeight.Items);
+          Knot.First + Increase * I,
+          FdOrder.Value, Knot, FdWeight.Items);
 
     { set LineSet.vertexCount (otherwise it's coord will be ignored) }
     LS.FdVertexCount.Items.AppendItem(Tess);
+
+    FreeAndNil(Knot);
   except FreeAndNil(Result); raise end;
 end;
 
@@ -970,6 +986,7 @@ var
   I, J, NextIndex: Cardinal;
   Normal: TVector3_Single;
   UIncrease, VIncrease: Double;
+  UKnot, VKnot: TDynDoubleArray;
 begin
   QS := TNodeIndexedQuadSet.Create(NodeName, WWWBasePath);
   try
@@ -998,15 +1015,18 @@ begin
       Exit;
     end;
 
+    if (FdUOrder.Value < 2) or
+       (FdVOrder.Value < 2) then
+    begin
+      VRMLWarning(vwSerious, 'NURBS order must be >= 2');
+      Exit;
+    end;
+
     { We can be sure now that we have
       - correct ControlPoint, non-nil, with at least 1 point.
       - uDimension, vDimension match ControlPoint count, and are > 0.
+      - we have Order >= 2.
     }
-
-    UTess := ActualTessellation(FdUTessellation.Value, FdUDimension.Value);
-    VTess := ActualTessellation(FdVTessellation.Value, FdVDimension.Value);
-    UIncrease := (FduKnot.Items.Last - FduKnot.Items.First) / (UTess - 1);
-    VIncrease := (FdvKnot.Items.Last - FdvKnot.Items.First) / (VTess - 1);
 
     { calculate actual UClosed, VClosed values.
 
@@ -1027,6 +1047,20 @@ begin
       e.g. "Fred The Bunny" in X3d.) }
     UClosed := CalculateUClosed;
     VClosed := CalculateVClosed;
+
+    { calculate correct UKnot, VKnot vectors }
+    UKnot := TDynDoubleArray.Create;
+    UKnot.Assign(FdUKnot.Items);
+    NurbsUniformKnotIfNeeded(UKnot, FdUDimension.Value, FdUOrder.Value);
+    VKnot := TDynDoubleArray.Create;
+    VKnot.Assign(FdVKnot.Items);
+    NurbsUniformKnotIfNeeded(VKnot, FdVDimension.Value, FdVOrder.Value);
+
+    { calculate tesselation: xTess, xIncrease }
+    UTess := ActualTessellation(FdUTessellation.Value, FdUDimension.Value);
+    VTess := ActualTessellation(FdVTessellation.Value, FdVDimension.Value);
+    UIncrease := (FduKnot.Items.Last - FduKnot.Items.First) / (UTess - 1);
+    VIncrease := (FdvKnot.Items.Last - FdvKnot.Items.First) / (VTess - 1);
 
     { make resulting Coordinate node }
     QS.FdCoord.Value := TVRMLNodeClass(ControlPoint.ClassType).Create('', WWWBasePath);
@@ -1066,6 +1100,9 @@ begin
 
     QS.FdSolid.Value := FdSolid.Value;
     QS.FdTexCoord.Value := FdTexCoord.Value;
+
+    FreeAndNil(UKnot);
+    FreeAndNil(VKnot);
   except FreeAndNil(Result); raise end;
 end;
 
