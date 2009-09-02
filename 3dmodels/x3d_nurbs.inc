@@ -924,6 +924,11 @@ function TNodeNurbsPatchSurface.Proxy: TVRMLGeometryNode;
 var
   ControlPoint: TNodeCoordinate;
 
+const
+  { This has to be slightly larger than normal epsilon
+    (test nurbs_dune_primitives.x3dv). }
+  ClosedCheckEpsilon = 0.000001;
+
   function CalculateUClosed: boolean;
   var
     Points: PVector3Single;
@@ -936,7 +941,7 @@ var
       for J := 0 to FdVDimension.Value - 1 do
         if not VectorsEqual(
           Points[                         J * FdUDimension.Value],
-          Points[FdUDimension.Value - 1 + J * FdUDimension.Value]) then
+          Points[FdUDimension.Value - 1 + J * FdUDimension.Value], ClosedCheckEpsilon) then
         begin
           if Log then
             WritelnLog('NURBS', 'NurbsPatchSurface.uClosed is TRUE, but looking at controlPoints it should be FALSE, ignoring (otherwise would cause invalid geometry/normals)');
@@ -960,7 +965,7 @@ var
       for I := 0 to FdUDimension.Value - 1 do
         if not VectorsEqual(
           Points[I                                                ],
-          Points[I + (FdVDimension.Value - 1) * FdUDimension.Value]) then
+          Points[I + (FdVDimension.Value - 1) * FdUDimension.Value], ClosedCheckEpsilon) then
         begin
           if Log then
             WritelnLog('NURBS', 'NurbsPatchSurface.vClosed is TRUE, but looking at controlPoints it should be FALSE, ignoring (otherwise would cause invalid geometry/normals)');
