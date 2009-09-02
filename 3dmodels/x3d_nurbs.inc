@@ -1059,8 +1059,8 @@ begin
     { calculate tesselation: xTess, xIncrease }
     UTess := ActualTessellation(FdUTessellation.Value, FdUDimension.Value);
     VTess := ActualTessellation(FdVTessellation.Value, FdVDimension.Value);
-    UIncrease := (FduKnot.Items.Last - FduKnot.Items.First) / (UTess - 1);
-    VIncrease := (FdvKnot.Items.Last - FdvKnot.Items.First) / (VTess - 1);
+    UIncrease := (UKnot.Last - UKnot.First) / (UTess - 1);
+    VIncrease := (VKnot.Last - VKnot.First) / (VTess - 1);
 
     { make resulting Coordinate node }
     QS.FdCoord.Value := TVRMLNodeClass(ControlPoint.ClassType).Create('', WWWBasePath);
@@ -1074,12 +1074,12 @@ begin
           NurbsSurfaceValue(ControlPoint.FdPoint.Items,
             FdUDimension.Value,
             FdVDimension.Value,
-            FdUKnot.Items.First + UIncrease * I,
-            FdVKnot.Items.First + VIncrease * J,
+            UKnot.First + UIncrease * I,
+            VKnot.First + VIncrease * J,
             FdUOrder.Value,
             FdVOrder.Value,
-            FdUKnot.Items,
-            FdVKnot.Items,
+            UKnot,
+            VKnot,
             FdWeight.Items,
             { unused for now }
             Normal);
