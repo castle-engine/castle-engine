@@ -739,6 +739,7 @@ var
   ResultCoord: TNodeCoordinate;
   Tess: Cardinal;
   I: Integer;
+  Increase: Double;
 begin
   LS := TNodeLineSet.Create(NodeName, WWWBasePath);
   try
@@ -754,6 +755,7 @@ begin
       with at least 1 point. }
 
     Tess := ActualTessellation(FdTessellation.Value, ControlPoint.CoordCount);
+    Increase := (FdKnot.Items.Last - FdKnot.Items.First) / (Tess - 1);
 
     { make resulting Coordinate node }
     ResultCoord := (TVRMLNodeClass(ControlPoint.ClassType).Create('', WWWBasePath)) as TNodeCoordinate;
@@ -763,7 +765,9 @@ begin
     ResultCoord.FdPoint.Items.Count := Tess;
     for I := 0 to Tess - 1 do
       ResultCoord.FdPoint.Items.Items[I] :=
-        NurbsCurveValue(ControlPoint.FdPoint.Items, I / (Tess - 1));
+        NurbsCurveValue(ControlPoint.FdPoint.Items,
+          FdKnot.Items.First + Increase * I,
+          FdOrder.Value, FdKnot.Items, FdWeight.Items);
 
     { set LineSet.vertexCount (otherwise it's coord will be ignored) }
     LS.FdVertexCount.Items.AppendItem(Tess);
@@ -918,7 +922,8 @@ var
           Points[                         J * FdUDimension.Value],
           Points[FdUDimension.Value - 1 + J * FdUDimension.Value]) then
         begin
-          VRMLWarning(vwSerious, 'NurbsPatchSurface.uClosed is TRUE, but looking at controlPoints it should be FALSE, ignoring (otherwise would cause invalid geometry/normals)');
+          if Log then
+            WritelnLog('NURBS', 'NurbsPatchSurface.uClosed is TRUE, but looking at controlPoints it should be FALSE, ignoring (otherwise would cause invalid geometry/normals)');
           Result := false;
           Exit;
         end;
@@ -939,7 +944,8 @@ var
           Points[I                                                ],
           Points[I + (FdVDimension.Value - 1) * FdUDimension.Value]) then
         begin
-          VRMLWarning(vwSerious, 'NurbsPatchSurface.vClosed is TRUE, but looking at controlPoints it should be FALSE, ignoring (otherwise would cause invalid geometry/normals)');
+          if Log then
+            WritelnLog('NURBS', 'NurbsPatchSurface.vClosed is TRUE, but looking at controlPoints it should be FALSE, ignoring (otherwise would cause invalid geometry/normals)');
           Result := false;
           Exit;
         end;
@@ -962,6 +968,8 @@ var
   ResultCoord: TDynVector3SingleArray;
   ResultIndex: TDynLongIntArray;
   I, J, NextIndex: Cardinal;
+  Normal: TVector3_Single;
+  UIncrease, VIncrease: Double;
 begin
   QS := TNodeIndexedQuadSet.Create(NodeName, WWWBasePath);
   try
@@ -997,8 +1005,10 @@ begin
 
     UTess := ActualTessellation(FdUTessellation.Value, FdUDimension.Value);
     VTess := ActualTessellation(FdVTessellation.Value, FdVDimension.Value);
+    UIncrease := (FduKnot.Items.Last - FduKnot.Items.First) / (UTess - 1);
+    VIncrease := (FdvKnot.Items.Last - FdvKnot.Items.First) / (VTess - 1);
 
-    { calculate correct UClosed, VClosed values.
+    { calculate actual UClosed, VClosed values.
 
       Since we use xClosed fields not only to calculate normals,
       but to actually set the geometry indexes, we have to check them
@@ -1006,7 +1016,12 @@ begin
       but the whole geometry would look bad when xClosed fields are wrongly
       set to TRUE.
 
-      (And examples of such wrong settings may be found
+      Moreover, X3D spec says "If the last control point is not identical
+      with the first control point, the field is ignored."
+      for X3DNurbsSurfaceGeometryNode. So it seems the implementation
+      isn't supposed to "trust" xClosed = TRUE value anyway (that's also
+      why no VRML warning is done about it, although we log it).
+      Examples of such wrong xClosed = TRUE settings may be found
       even on web3d.org examples, see
       http://www.web3d.org/x3d/content/examples/NURBS/
       e.g. "Fred The Bunny" in X3d.) }
@@ -1025,8 +1040,15 @@ begin
           NurbsSurfaceValue(ControlPoint.FdPoint.Items,
             FdUDimension.Value,
             FdVDimension.Value,
-            I / (UTess - 1),
-            J / (VTess - 1));
+            FdUKnot.Items.First + UIncrease * I,
+            FdVKnot.Items.First + VIncrease * J,
+            FdUOrder.Value,
+            FdVOrder.Value,
+            FdUKnot.Items,
+            FdVKnot.Items,
+            FdWeight.Items,
+            { unused for now }
+            Normal);
 
     { calculate index field }
     ResultIndex := QS.FdIndex.Items;

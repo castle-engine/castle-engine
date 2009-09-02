@@ -27,7 +27,7 @@ unit NURBS;
 
 interface
 
-uses SysUtils, KambiUtils, VectorMath;
+uses SysUtils, KambiUtils, VectorMath, Matrix;
 
 { Calculate the actual tessellation, that is the number of tessellation
   points. This follows X3D spec for "an implementation subdividing
@@ -42,15 +42,25 @@ function ActualTessellation(const Tessellation: Integer;
 
   Requires:
   @unorderedList(
-    @item T in [0; 1] range.
+    @item U in [0; 1] range.
     @item PointsCount > 0 (not exactly 0).
+    @item Order >= 2 (X3D and VRML 97 spec require this too).
+    @item Knot must have exactly PointsCount + Order items.
   )
+
+  Weight will be used only if it has the same length as PointsCount.
+  Otherwise, weight = 1.0 (that is, defining non-rational curve) will be used
+  (this follows X3D spec).
 
   @groupBegin }
 function NurbsCurveValue(const Points: PVector3Single;
-  const PointsCount: Cardinal; const T: Single): TVector3Single;
+  const PointsCount: Cardinal; const U: Single;
+  const Order: Cardinal;
+  Knot, Weight: TDynDoubleArray): TVector3_Single;
 function NurbsCurveValue(const Points: TDynVector3SingleArray;
-  const T: Single): TVector3Single;
+  const U: Single;
+  const Order: Cardinal;
+  Knot, Weight: TDynDoubleArray): TVector3_Single;
 { @groupEnd }
 
 { Return point on NURBS surface.
@@ -60,14 +70,32 @@ function NurbsCurveValue(const Points: TDynVector3SingleArray;
     @item U, V is in [0; 1] range.
     @item UDimension, VDimension > 0 (not exactly 0).
     @item Points.Count must match UDimension * VDimension.
-  ) }
+    @item Order >= 2 (X3D and VRML 97 spec require this too).
+    @item Each xKnot must have exactly xDimension + Order items.
+  )
+
+  Weight will be used only if it has the same length as PointsCount.
+  Otherwise, weight = 1.0 (that is, defining non-rational curve) will be used
+  (this follows X3D spec). }
 function NurbsSurfaceValue(const Points: TDynVector3SingleArray;
   const UDimension, VDimension: Cardinal;
-  const U, V: Single): TVector3Single;
+  const U, V: Single;
+  const UOrder, VOrder: Cardinal;
+  UKnot, VKnot, Weight: TDynDoubleArray;
+  out Normal: TVector3_Single): TVector3_Single;
+
+{ Calculate uniform knot, if Knot doesn't already have required number of items.
+  After this, it's guaranteed that Knot.Count is Dimension + Order
+  (just as required by NurbsCurveValue, NurbsSurfaceValue). }
+procedure NurbsUniformKnotIfNeeded(Knot: TDynDoubleArray;
+  const Dimension, Order: Cardinal);
 
 implementation
 
 { findSpan and basisFuns is rewritten from white dune's C source code.
+  Also NurbsCurveValue is based on NodeNurbsCurve::curvePoint.
+  Also NurbsSurfaceValue is based on NodeNurbsSurface::surfacePoint.
+  Also NurbsUniformKnotIfNeeded is based on NodeNurbsSurface::linearUknot.
 
   White dune:
   - http://vrml.cip.ica.uni-stuttgart.de/dune/
@@ -79,13 +107,13 @@ implementation
 	  return;
 }
 function findSpan(const dimension, order: LongInt;
-  const u: Single; knots: TDynSingleArray): LongInt;
+  const u: Single; Knot: TDynDoubleArray): LongInt;
 var
   low, mid, high, oldLow, oldMid, oldHigh, n: LongInt;
 begin
   n := dimension + order - 1;
 
-  if u >= knots[n] then
+  if u >= Knot[n] then
   begin
     Result := n - order;
     Exit;
@@ -99,9 +127,9 @@ begin
   oldLow := low;
   oldHigh := high;
   oldMid := mid;
-  while (u < knots[mid]) or (u >= knots[mid+1]) do
+  while (u < Knot[mid]) or (u >= Knot[mid+1]) do
   begin
-    if u < knots[mid] then
+    if u < Knot[mid] then
       high := mid else
       low := mid;
 
@@ -119,20 +147,20 @@ begin
 end;
 
 procedure basisFuns(const span: LongInt; const u: Single; const order: LongInt;
-  knots, basis, deriv: TDynSingleArray);
+  Knot, basis, deriv: TDynDoubleArray);
 var
-  left, right: TDynSingleArray;
+  left, right: TDynDoubleArray;
   j, r: LongInt;
   saved, dsaved, temp: Single;
 begin
-  left := TDynSingleArray.Create(order);
-  right := TDynSingleArray.Create(order);
+  left := TDynDoubleArray.Create(order);
+  right := TDynDoubleArray.Create(order);
 
   basis[0] := 1.0;
   for j := 1 to  order - 1 do
   begin
-    left[j] := u - knots[span+1-j];
-    right[j] := knots[span+j]-u;
+    left[j] := u - Knot[span+1-j];
+    right[j] := Knot[span+j]-u;
     saved := 0.0;
     dsaved := 0.0;
     for r := 0 to j - 1 do
@@ -165,51 +193,152 @@ begin
 end;
 
 function NurbsCurveValue(const Points: PVector3Single;
-  const PointsCount: Cardinal; const T: Single): TVector3Single;
+  const PointsCount: Cardinal; const U: Single;
+  const Order: Cardinal;
+  Knot, Weight: TDynDoubleArray): TVector3_Single;
 var
-  DivResult: Int64;
-  Remainder: Double;
+  i: Integer;
+  w: Single;
+  span: LongInt;
+  basis, deriv: TDynDoubleArray;
+  UseWeight: boolean;
 begin
-  Assert(PointsCount > 0);
-  if PointsCount = 1 then
-    Result := Points[0] else
+  UseWeight := Cardinal(Weight.Count) = PointsCount;
+
+  basis := TDynDoubleArray.Create(order);
+  deriv := TDynDoubleArray.Create(order);
+
+  span := findSpan(PointsCount, order, u, Knot);
+
+  basisFuns(span, u, order, Knot, basis, deriv);
+
+  Result.Init_Zero;
+  w := 0.0;
+  for i :=0 to order-1 do
   begin
-    FloatDivMod(T, 1 / (PointsCount - 1), DivResult, Remainder);
-    { floating point operations are never perfect, so prepare for various
-      strange DivResult values. }
-    if DivResult < 0 then
-      Result := Points[0] else
-    if DivResult >= PointsCount - 1 then
-      Result := Points[PointsCount - 1] else
-    begin
-      { then DivResult between 0 .. PointsCount - 2 }
-      Remainder := Clamped(Remainder / (1 / (PointsCount - 1)), 0, 1);
-      Result := Lerp(Remainder,
-        Points[DivResult],
-        Points[DivResult + 1]);
-    end;
+    Result += Points[span-order+1+i] * basis[i];
+    if UseWeight then
+      w += weight[span-order+1+i] * basis[i] else
+      w += basis[i];
   end;
+
+  Result /= w;
+
+  FreeAndNil(basis);
+  FreeAndNil(deriv);
 end;
 
 function NurbsCurveValue(const Points: TDynVector3SingleArray;
-  const T: Single): TVector3Single;
+  const U: Single;
+  const Order: Cardinal;
+  Knot, Weight: TDynDoubleArray): TVector3_Single;
 begin
-  Result := NurbsCurveValue(Points.Items, Points.Count, T);
+  Result := NurbsCurveValue(Points.Items, Points.Count, U, Order, Knot, Weight);
 end;
 
 function NurbsSurfaceValue(const Points: TDynVector3SingleArray;
   const UDimension, VDimension: Cardinal;
-  const U, V: Single): TVector3Single;
+  const U, V: Single;
+  const UOrder, VOrder: Cardinal;
+  UKnot, VKnot, Weight: TDynDoubleArray;
+  out Normal: TVector3_Single): TVector3_Single;
 var
-  VCurve: TDynVector3SingleArray;
-  I: Cardinal;
+  uBasis, vBasis, uDeriv, vDeriv: TDynDoubleArray;
+  uSpan, vSpan: LongInt;
+  I, J: LongInt;
+  uBase, vBase, index: Cardinal;
+  du, dv, un, vn: TVector3_Single;
+  w, duw, dvw: Single;
+  gain, dugain, dvgain: Single;
+  P: TVector3_Single;
+  UseWeight: boolean;
 begin
-  VCurve := TDynVector3SingleArray.Create(VDimension);
-  try
-    for I := 0 to VDimension - 1 do
-      VCurve.Items[I] := NurbsCurveValue(Points.Pointers[UDimension * I], UDimension, U);
-    Result := NurbsCurveValue(VCurve, V);
-  finally FreeAndNil(VCurve) end;
+  UseWeight := Weight.Count = Points.Count;
+
+  uBasis := TDynDoubleArray.Create(UOrder);
+  vBasis := TDynDoubleArray.Create(VOrder);
+  uDeriv := TDynDoubleArray.Create(UOrder);
+  vDeriv := TDynDoubleArray.Create(VOrder);
+
+  uSpan := findSpan(uDimension, uOrder, u, uKnot);
+  vSpan := findSpan(vDimension, vOrder, v, vKnot);
+
+  basisFuns(uSpan, u, uOrder, uKnot, uBasis, uDeriv);
+  basisFuns(vSpan, v, vOrder, vKnot, vBasis, vDeriv);
+
+  uBase := uSpan-uOrder+1;
+  vBase := vSpan-vOrder+1;
+
+  index := vBase*uDimension + uBase;
+  Result.Init_Zero;
+  du.Init_Zero;
+  dv.Init_Zero;
+
+  w := 0.0;
+  duw := 0.0;
+  dvw := 0.0;
+
+  for j := 0 to vOrder -1 do
+  begin
+    for i := 0 to uOrder - 1 do
+    begin
+      gain := uBasis[i] * vBasis[j];
+      dugain := uDeriv[i] * vBasis[j];
+      dvgain := uBasis[i] * vDeriv[j];
+
+      P := Points.Items[index];
+
+      Result += P * gain;
+
+      du += P * dugain;
+      dv += P * dvgain;
+      if UseWeight then
+      begin
+        w += weight[index] * gain;
+        duw += weight[index] * dugain;
+        dvw += weight[index] * dvgain;
+      end else
+      begin
+        w += gain;
+        duw += dugain;
+        dvw += dvgain;
+      end;
+      Inc(index);
+    end;
+    index += uDimension - uOrder;
+  end;
+
+  Result /= w;
+  un := (du - Result * duw) / w;
+  vn := (dv - Result * dvw) / w;
+  normal := un >< vn;
+  Vector_Normalize(normal);
+
+  FreeAndNil(uBasis);
+  FreeAndNil(vBasis);
+  FreeAndNil(uDeriv);
+  FreeAndNil(vDeriv);
+end;
+
+procedure NurbsUniformKnotIfNeeded(Knot: TDynDoubleArray;
+  const Dimension, Order: Cardinal);
+var
+  I: Integer;
+begin
+  if Cardinal(Knot.Count) <> Dimension + Order then
+  begin
+    Knot.Count := Dimension + Order;
+
+    for I := 0 to Order - 1 do
+    begin
+      Knot.Items[I] := 0;
+      Knot.Items[Cardinal(I) + Dimension] := Dimension - Order + 1;
+    end;
+    for I := 0 to Dimension - Order - 1 do
+      Knot.Items[Cardinal(I) + Order] := I + 1;
+    for I := 0 to Order + Dimension - 1 do
+      Knot.Items[I] /= Dimension - Order + 1;
+  end;
 end;
 
 end.
