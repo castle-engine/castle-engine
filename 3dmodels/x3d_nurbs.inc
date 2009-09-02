@@ -1091,10 +1091,12 @@ begin
     for I := 1 to UTess - 1 do
       for J := 1 to VTess - 1 do
       begin
+        { This order (important for solid = TRUE values) is compatible
+          with white dune and octagaplayer. }
         ResultIndex.Items[NextIndex] := MakeIndex(I  , J  ); Inc(NextIndex);
-        ResultIndex.Items[NextIndex] := MakeIndex(I  , J-1); Inc(NextIndex);
-        ResultIndex.Items[NextIndex] := MakeIndex(I-1, J-1); Inc(NextIndex);
         ResultIndex.Items[NextIndex] := MakeIndex(I-1, J  ); Inc(NextIndex);
+        ResultIndex.Items[NextIndex] := MakeIndex(I-1, J-1); Inc(NextIndex);
+        ResultIndex.Items[NextIndex] := MakeIndex(I  , J-1); Inc(NextIndex);
       end;
     Assert(NextIndex = Cardinal(ResultIndex.Count));
 
