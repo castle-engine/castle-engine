@@ -786,7 +786,7 @@ end;
 function NurbsCurveValue(const Points: TDynVector3SingleArray;
   const T: Single): TVector3Single;
 begin
-  Result := NurbsCurveValue(PVector3Single(Points.ItemsArray), Points.Count, T);
+  Result := NurbsCurveValue(Points.Items, Points.Count, T);
 end;
 
 { Return point on NURBS surface.
@@ -982,11 +982,65 @@ end;
 
 function TNodeNurbsPatchSurface.Proxy: TVRMLGeometryNode;
 var
-  QS: TNodeIndexedQuadSet absolute Result;
   ControlPoint: TNodeCoordinate;
+
+  function CalculateUClosed: boolean;
+  var
+    Points: PVector3Single;
+    J: Integer;
+  begin
+    Result := FdUClosed.Value;
+    if Result then
+    begin
+      Points := ControlPoint.FdPoint.Items.Items;
+      for J := 0 to FdVDimension.Value - 1 do
+        if not VectorsEqual(
+          Points[                         J * FdUDimension.Value],
+          Points[FdUDimension.Value - 1 + J * FdUDimension.Value]) then
+        begin
+          VRMLWarning(vwSerious, 'NurbsPatchSurface.uClosed is TRUE, but looking at controlPoints it should be FALSE, ignoring (otherwise would cause invalid geometry/normals)');
+          Result := false;
+          Exit;
+        end;
+    end;
+  end;
+
+  function CalculateVClosed: boolean;
+  var
+    Points: PVector3Single;
+    I: Integer;
+  begin
+    Result := FdUClosed.Value;
+    if Result then
+    begin
+      Points := ControlPoint.FdPoint.Items.Items;
+      for I := 0 to FdUDimension.Value - 1 do
+        if not VectorsEqual(
+          Points[I                                                ],
+          Points[I + (FdVDimension.Value - 1) * FdUDimension.Value]) then
+        begin
+          VRMLWarning(vwSerious, 'NurbsPatchSurface.vClosed is TRUE, but looking at controlPoints it should be FALSE, ignoring (otherwise would cause invalid geometry/normals)');
+          Result := false;
+          Exit;
+        end;
+    end;
+  end;
+
+var
+  UTess, VTess: Cardinal;
+  UClosed, VClosed: boolean;
+
+  function MakeIndex(I, J: Cardinal): Cardinal;
+  begin
+    if (I = UTess - 1) and UClosed then I := 0;
+    if (J = VTess - 1) and VClosed then J := 0;
+    Result := I + J * UTess;
+  end;
+
+var
+  QS: TNodeIndexedQuadSet absolute Result;
   ResultCoord: TDynVector3SingleArray;
   ResultIndex: TDynLongIntArray;
-  UTess, VTess: Cardinal;
   I, J, NextIndex: Cardinal;
 begin
   QS := TNodeIndexedQuadSet.Create(NodeName, WWWBasePath);
@@ -1024,6 +1078,21 @@ begin
     UTess := ActualTessellation(FdUTessellation.Value, FdUDimension.Value);
     VTess := ActualTessellation(FdVTessellation.Value, FdVDimension.Value);
 
+    { calculate correct UClosed, VClosed values.
+
+      Since we use xClosed fields not only to calculate normals,
+      but to actually set the geometry indexes, we have to check them
+      carefully and avoid using if look bad. Otherwise not only the normals,
+      but the whole geometry would look bad when xClosed fields are wrongly
+      set to TRUE.
+
+      (And examples of such wrong settings may be found
+      even on web3d.org examples, see
+      http://www.web3d.org/x3d/content/examples/NURBS/
+      e.g. "Fred The Bunny" in X3d.) }
+    UClosed := CalculateUClosed;
+    VClosed := CalculateVClosed;
+
     { make resulting Coordinate node }
     QS.FdCoord.Value := TVRMLNodeClass(ControlPoint.ClassType).Create('', WWWBasePath);
     ResultCoord := (QS.FdCoord.Value as TNodeCoordinate).FdPoint.Items;
@@ -1046,10 +1115,10 @@ begin
     for I := 1 to UTess - 1 do
       for J := 1 to VTess - 1 do
       begin
-        ResultIndex.Items[NextIndex] := I   +  J    * UTess; Inc(NextIndex);
-        ResultIndex.Items[NextIndex] := I   + (J-1) * UTess; Inc(NextIndex);
-        ResultIndex.Items[NextIndex] := I-1 + (J-1) * UTess; Inc(NextIndex);
-        ResultIndex.Items[NextIndex] := I-1 +  J    * UTess; Inc(NextIndex);
+        ResultIndex.Items[NextIndex] := MakeIndex(I  , J  ); Inc(NextIndex);
+        ResultIndex.Items[NextIndex] := MakeIndex(I  , J-1); Inc(NextIndex);
+        ResultIndex.Items[NextIndex] := MakeIndex(I-1, J-1); Inc(NextIndex);
+        ResultIndex.Items[NextIndex] := MakeIndex(I-1, J  ); Inc(NextIndex);
       end;
     Assert(NextIndex = Cardinal(ResultIndex.Count));
 
