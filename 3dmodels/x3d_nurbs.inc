@@ -779,7 +779,7 @@ begin
     ResultCoord.FdPoint.Items.Count := Tess;
     for I := 0 to Tess - 1 do
       ResultCoord.FdPoint.Items.Items[I] :=
-        NurbsCurveValue(ControlPoint.FdPoint.Items,
+        NurbsCurvePoint(ControlPoint.FdPoint.Items,
           Knot.First + Increase * I,
           FdOrder.Value, Knot, FdWeight.Items);
 
@@ -943,6 +943,8 @@ var
           Result := false;
           Exit;
         end;
+      if Log then
+        WritelnLog('NURBS', 'NurbsPatchSurface.uClosed confirmed Ok');
     end;
   end;
 
@@ -965,6 +967,8 @@ var
           Result := false;
           Exit;
         end;
+      if Log then
+        WritelnLog('NURBS', 'NurbsPatchSurface.vClosed confirmed Ok');
     end;
   end;
 
@@ -1071,7 +1075,7 @@ begin
     for I := 0 to UTess - 1 do
       for J := 0 to VTess - 1 do
         ResultCoord.Items[I + J * UTess] :=
-          NurbsSurfaceValue(ControlPoint.FdPoint.Items,
+          NurbsSurfacePoint(ControlPoint.FdPoint.Items,
             FdUDimension.Value,
             FdVDimension.Value,
             UKnot.First + UIncrease * I,
