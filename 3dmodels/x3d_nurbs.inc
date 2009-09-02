@@ -732,18 +732,121 @@ begin
   FdcontrolPoint.EnumerateValid(Func);
 end;
 
+{ Calculate the actual tessellation, that is the number of tessellation
+  points. This follows X3D spec for "an implementation subdividing
+  the surface into an equal number of subdivision steps".
+  Give value of tessellation field, and count of controlPoints.
+
+  Returned value is for sure > 0 (never exactly 0). }
+function ActualTessellation(const Tessellation: Integer;
+  const Dimension: Cardinal): Cardinal;
+begin
+  if Tessellation > 0 then
+    Result := Tessellation else
+  if Tessellation = 0 then
+    Result := 2 * Dimension else
+    Result := Cardinal(-Tessellation) * Dimension;
+  Inc(Result);
+end;
+
+{ Return point on NURBS curve.
+
+  Requires:
+  @unorderedList(
+    @item T in [0; 1] range.
+    @item PointsCount > 0 (not exactly 0).
+  ) }
+function NurbsCurveValue(const Points: PVector3Single;
+  const PointsCount: Cardinal; const T: Single): TVector3Single;
+var
+  DivResult: Int64;
+  Remainder: Double;
+begin
+  Assert(PointsCount > 0);
+  if PointsCount = 1 then
+    Result := Points[0] else
+  begin
+    FloatDivMod(T, 1 / (PointsCount - 1), DivResult, Remainder);
+    { floating point operations are never perfect, so prepare for various
+      strange DivResult values. }
+    if DivResult < 0 then
+      Result := Points[0] else
+    if DivResult >= PointsCount - 1 then
+      Result := Points[PointsCount - 1] else
+    begin
+      { then DivResult between 0 .. PointsCount - 2 }
+      Remainder := Clamped(Remainder / (1 / (PointsCount - 1)), 0, 1);
+      Result := Lerp(Remainder,
+        Points[DivResult],
+        Points[DivResult + 1]);
+    end;
+  end;
+end;
+
+function NurbsCurveValue(const Points: TDynVector3SingleArray;
+  const T: Single): TVector3Single;
+begin
+  Result := NurbsCurveValue(PVector3Single(Points.ItemsArray), Points.Count, T);
+end;
+
+{ Return point on NURBS surface.
+
+  Requires:
+  @unorderedList(
+    @item U, V is in [0; 1] range.
+    @item UDimension, VDimension > 0 (not exactly 0).
+    @item Points.Count must match UDimension * VDimension.
+  ) }
+function NurbsSurfaceValue(const Points: TDynVector3SingleArray;
+  const UDimension, VDimension: Cardinal;
+  const U, V: Single): TVector3Single;
+var
+  VCurve: TDynVector3SingleArray;
+  I: Cardinal;
+begin
+  VCurve := TDynVector3SingleArray.Create(VDimension);
+  try
+    for I := 0 to VDimension - 1 do
+      VCurve.Items[I] := NurbsCurveValue(Points.Pointers[UDimension * I], UDimension, U);
+    Result := NurbsCurveValue(VCurve, V);
+  finally FreeAndNil(VCurve) end;
+end;
+
 function TNodeNurbsCurve_3.Proxy: TVRMLGeometryNode;
 var
   LS: TNodeLineSet absolute Result;
+  ControlPoint: TNodeCoordinate;
+  ResultCoord: TNodeCoordinate;
+  Tess: Cardinal;
+  I: Integer;
 begin
   LS := TNodeLineSet.Create(NodeName, WWWBasePath);
   try
-    LS.FdCoord.Value := FdControlPoint.Value;
-
-    { For LineSet to actually use the points in "coord" field, set "vertexCount" }
+    { TODO: we should handle here all TNodeX3DCoordinateNode }
     if (FdControlPoint.Value <> nil) and
-       (FdControlPoint.Value is TNodeX3DCoordinateNode) then
-      LS.FdVertexCount.Items.AppendItem(TNodeX3DCoordinateNode(FdControlPoint.Value).CoordCount);
+       (FdControlPoint.Value is TNodeCoordinate) then
+      ControlPoint := TNodeCoordinate(FdControlPoint.Value) else
+      Exit;
+
+    if ControlPoint.FdPoint.Count = 0 then Exit;
+
+    { We can be sure now that we have ControlPoint, non-nil,
+      with at least 1 point. }
+
+    Tess := ActualTessellation(FdTessellation.Value, ControlPoint.CoordCount);
+
+    { make resulting Coordinate node }
+    ResultCoord := (TVRMLNodeClass(ControlPoint.ClassType).Create('', WWWBasePath)) as TNodeCoordinate;
+    LS.FdCoord.Value := ResultCoord;
+
+    { calculate result Coordinate.point field }
+    ResultCoord.FdPoint.Items.Count := Tess;
+    for I := 0 to Tess - 1 do
+      ResultCoord.FdPoint.Items.Items[I] :=
+        NurbsCurveValue(ControlPoint.FdPoint.Items, I / (Tess - 1));
+
+    { set LineSet.vertexCount (otherwise it's coord will be ignored) }
+    LS.FdVertexCount.Items.AppendItem(Tess);
   except FreeAndNil(Result); raise end;
 end;
 
@@ -879,10 +982,76 @@ end;
 
 function TNodeNurbsPatchSurface.Proxy: TVRMLGeometryNode;
 var
-  IFS: TNodeIndexedFaceSet_2 absolute Result;
+  QS: TNodeIndexedQuadSet absolute Result;
+  ControlPoint: TNodeCoordinate;
+  ResultCoord: TDynVector3SingleArray;
+  ResultIndex: TDynLongIntArray;
+  UTess, VTess: Cardinal;
+  I, J, NextIndex: Cardinal;
 begin
-  IFS := TNodeIndexedFaceSet_2.Create(NodeName, WWWBasePath);
+  QS := TNodeIndexedQuadSet.Create(NodeName, WWWBasePath);
   try
+    { TODO: we should handle here all TNodeX3DCoordinateNode }
+    if (FdControlPoint.Value <> nil) and
+       (FdControlPoint.Value is TNodeCoordinate) then
+      ControlPoint := TNodeCoordinate(FdControlPoint.Value) else
+      Exit;
+
+    if ControlPoint.CoordCount = 0 then Exit;
+
+    if FdUDimension.Value * FdVDimension.Value <>
+       Integer(ControlPoint.CoordCount) then
+    begin
+      VRMLWarning(vwSerious, Format('Number of coordinates in NurbsPatchSurface.controlPoint (%d) doesn''t match uDimension * vDimension (%d * %d = %d)',
+        [ ControlPoint.CoordCount,
+          FdUDimension.Value,  FdVDimension.Value,
+          FdUDimension.Value * FdVDimension.Value ]));
+      Exit;
+    end;
+
+    if (FdUDimension.Value < 0) or
+       (FdVDimension.Value < 0) then
+    begin
+      VRMLWarning(vwSerious, 'NurbsPatchSurface.u/vDimension is < 0');
+      Exit;
+    end;
+
+    { We can be sure now that we have
+      - correct ControlPoint, non-nil, with at least 1 point.
+      - uDimension, vDimension match ControlPoint count, and are > 0.
+    }
+
+    UTess := ActualTessellation(FdUTessellation.Value, FdUDimension.Value);
+    VTess := ActualTessellation(FdVTessellation.Value, FdVDimension.Value);
+
+    { make resulting Coordinate node }
+    QS.FdCoord.Value := TVRMLNodeClass(ControlPoint.ClassType).Create('', WWWBasePath);
+    ResultCoord := (QS.FdCoord.Value as TNodeCoordinate).FdPoint.Items;
+
+    { calculate result Coordinate.point field }
+    ResultCoord.Count := UTess * VTess;
+    for I := 0 to UTess - 1 do
+      for J := 0 to VTess - 1 do
+        ResultCoord.Items[I + J * UTess] :=
+          NurbsSurfaceValue(ControlPoint.FdPoint.Items,
+            FdUDimension.Value,
+            FdVDimension.Value,
+            I / (UTess - 1),
+            J / (VTess - 1));
+
+    { calculate index field }
+    ResultIndex := QS.FdIndex.Items;
+    ResultIndex.Count := 4 * (UTess - 1) * (VTess - 1);
+    NextIndex := 0;
+    for I := 1 to UTess - 1 do
+      for J := 1 to VTess - 1 do
+      begin
+        ResultIndex.Items[NextIndex] := I   +  J    * UTess; Inc(NextIndex);
+        ResultIndex.Items[NextIndex] := I   + (J-1) * UTess; Inc(NextIndex);
+        ResultIndex.Items[NextIndex] := I-1 + (J-1) * UTess; Inc(NextIndex);
+        ResultIndex.Items[NextIndex] := I-1 +  J    * UTess; Inc(NextIndex);
+      end;
+    Assert(NextIndex = Cardinal(ResultIndex.Count));
   except FreeAndNil(Result); raise end;
 end;
 
