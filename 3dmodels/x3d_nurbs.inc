@@ -1052,6 +1052,9 @@ begin
         ResultIndex.Items[NextIndex] := I-1 +  J    * UTess; Inc(NextIndex);
       end;
     Assert(NextIndex = Cardinal(ResultIndex.Count));
+
+    QS.FdSolid.Value := FdSolid.Value;
+    QS.FdTexCoord.Value := FdTexCoord.Value;
   except FreeAndNil(Result); raise end;
 end;
 
