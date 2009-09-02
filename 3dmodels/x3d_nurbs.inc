@@ -18,7 +18,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ NurbsCurve2D and Contour2D are shader with VRML 97 NURBS definition.
+{ NurbsCurve2D and Contour2D are shared with VRML 97 NURBS definition.
   The rest is, for now, completely separate from VRML 97 NURBS definition
   in vrml97nodes.inc. }
 
