@@ -82,11 +82,31 @@ function NurbsSurfacePoint(const Points: TDynVector3SingleArray;
   UKnot, VKnot, Weight: TDynDoubleArray;
   out Normal: TVector3_Single): TVector3_Single;
 
-{ Calculate uniform knot, if Knot doesn't already have required number of items.
+type
+  { Naming notes: what precisely is called a "uniform" knot vector seems
+    to differ in literature / software.
+    Blender calls nkPeriodicUniform as "Uniform",
+    and nkEndpointUniform as "Endpoint".
+    http://en.wiki.mcneel.com/default.aspx/McNeel/NURBSDoc.html
+    calls nkEndpointUniform as "Uniform".
+    "An introduction to NURBS: with historical perspective"
+    (by David F. Rogers) calls nkEndpointUniform "open uniform" and
+    nkPeriodicUniform "periodic uniform". }
+
+  { Type of NURBS knot vector to generate. }
+  TNurbsKnotKind = (
+    { All knot values are evenly spaced, all knots are single.
+      This is good for periodic curves. }
+    nkPeriodicUniform,
+    { Starting and ending knots have Order multiplicity, rest is evenly spaced.
+      The curve hits endpoints. }
+    nkEndpointUniform);
+
+{ Calculate a default knot, if Knot doesn't already have required number of items.
   After this, it's guaranteed that Knot.Count is Dimension + Order
   (just as required by NurbsCurvePoint, NurbsSurfacePoint). }
-procedure NurbsUniformKnotIfNeeded(Knot: TDynDoubleArray;
-  const Dimension, Order: Cardinal);
+procedure NurbsKnotIfNeeded(Knot: TDynDoubleArray;
+  const Dimension, Order: Cardinal; const Kind: TNurbsKnotKind);
 
 implementation
 
@@ -318,8 +338,8 @@ begin
   FreeAndNil(vDeriv);
 end;
 
-procedure NurbsUniformKnotIfNeeded(Knot: TDynDoubleArray;
-  const Dimension, Order: Cardinal);
+procedure NurbsKnotIfNeeded(Knot: TDynDoubleArray;
+  const Dimension, Order: Cardinal; const Kind: TNurbsKnotKind);
 var
   I: Integer;
 begin
@@ -327,15 +347,26 @@ begin
   begin
     Knot.Count := Dimension + Order;
 
-    for I := 0 to Order - 1 do
-    begin
-      Knot.Items[I] := 0;
-      Knot.Items[Cardinal(I) + Dimension] := Dimension - Order + 1;
+    case Kind of
+      nkPeriodicUniform:
+        begin
+          for I := 0 to Knot.Count - 1 do
+            Knot.Items[I] := I;
+        end;
+      nkEndpointUniform:
+        begin
+          for I := 0 to Order - 1 do
+          begin
+            Knot.Items[I] := 0;
+            Knot.Items[Cardinal(I) + Dimension] := Dimension - Order + 1;
+          end;
+          for I := 0 to Dimension - Order - 1 do
+            Knot.Items[Cardinal(I) + Order] := I + 1;
+          for I := 0 to Order + Dimension - 1 do
+            Knot.Items[I] /= Dimension - Order + 1;
+        end;
+      else raise EInternalError.Create('NurbsKnotIfNeeded 594');
     end;
-    for I := 0 to Dimension - Order - 1 do
-      Knot.Items[Cardinal(I) + Order] := I + 1;
-    for I := 0 to Order + Dimension - 1 do
-      Knot.Items[I] /= Dimension - Order + 1;
   end;
 end;
 

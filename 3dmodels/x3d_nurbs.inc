@@ -765,7 +765,7 @@ begin
     { calculate correct Knot vector }
     Knot := TDynDoubleArray.Create;
     Knot.Assign(FdKnot.Items);
-    NurbsUniformKnotIfNeeded(Knot, ControlPoint.CoordCount, FdOrder.Value);
+    NurbsKnotIfNeeded(Knot, ControlPoint.CoordCount, FdOrder.Value, nkEndpointUniform);
 
     { calculate tesselation: Tess, Increase }
     Tess := ActualTessellation(FdTessellation.Value, ControlPoint.CoordCount);
@@ -1055,10 +1055,10 @@ begin
     { calculate correct UKnot, VKnot vectors }
     UKnot := TDynDoubleArray.Create;
     UKnot.Assign(FdUKnot.Items);
-    NurbsUniformKnotIfNeeded(UKnot, FdUDimension.Value, FdUOrder.Value);
+    NurbsKnotIfNeeded(UKnot, FdUDimension.Value, FdUOrder.Value, nkEndpointUniform);
     VKnot := TDynDoubleArray.Create;
     VKnot.Assign(FdVKnot.Items);
-    NurbsUniformKnotIfNeeded(VKnot, FdVDimension.Value, FdVOrder.Value);
+    NurbsKnotIfNeeded(VKnot, FdVDimension.Value, FdVOrder.Value, nkEndpointUniform);
 
     { calculate tesselation: xTess, xIncrease }
     UTess := ActualTessellation(FdUTessellation.Value, FdUDimension.Value);
