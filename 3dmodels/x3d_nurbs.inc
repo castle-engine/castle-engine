@@ -41,6 +41,9 @@
   end;
 
   TNodeX3DNurbsSurfaceGeometryNode = class(TNodeX3DParametricGeometryNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -95,6 +98,9 @@
     both VRML 2.0 and X3D cases at once, or just split this class into
     two separate TNodeContour2D_2 and TNodeContour2D_3. }
   TNodeContour2D = class(TNodeX3DGeometryNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -112,7 +118,7 @@
 
     private FFdchildren: TMFNode;
     public property Fdchildren: TMFNode read FFdchildren;
-    
+
     { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
@@ -142,6 +148,9 @@
   end;
 
   TNodeNurbsCurve_3 = class(TNodeX3DParametricGeometryNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -195,6 +204,9 @@
   end;
 
   TNodeNurbsOrientationInterpolator = class(TNodeX3DChildNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -233,6 +245,9 @@
   end;
 
   TNodeNurbsPositionInterpolator_3 = class(TNodeX3DChildNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -279,6 +294,11 @@
     private FEventremoveGeometry: TVRMLEvent;
     public property EventremoveGeometry: TVRMLEvent read FEventremoveGeometry;
 
+    { Implementation note: Fdgeometry is not enumerated in DirectEnumerateActive,
+      as it's not actually rendered from NurbsSet node.
+      Children here have to be placed elsewhere, in some Shape,
+      to actually get enumerated as "active". }
+    { }
     private FFdgeometry: TMFNode;
     public property Fdgeometry: TMFNode read FFdgeometry;
 
@@ -293,6 +313,9 @@
   end;
 
   TNodeNurbsSurfaceInterpolator = class(TNodeX3DChildNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -338,6 +361,9 @@
   end;
 
   TNodeNurbsSweptSurface = class(TNodeX3DParametricGeometryNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -359,6 +385,9 @@
   end;
 
   TNodeNurbsSwungSurface = class(TNodeX3DParametricGeometryNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -413,6 +442,9 @@
   end;
 
   TNodeNurbsTrimmedSurface = class(TNodeX3DNurbsSurfaceGeometryNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -516,6 +548,13 @@ begin
   { X3D specification comment: [2,Inf) }
 end;
 
+procedure TNodeX3DNurbsSurfaceGeometryNode.DirectEnumerateActive(
+  Func: TEnumerateChildrenFunction);
+begin
+  FdcontrolPoint.EnumerateValid(Func);
+  FdtexCoord.EnumerateValid(Func);
+end;
+
 constructor TNodeContour2D.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -558,6 +597,12 @@ end;
 
 {$define TGeometryNotImplemented := TNodeContour2D}
 GeometryNotImplemented
+
+procedure TNodeContour2D.DirectEnumerateActive(
+  Func: TEnumerateChildrenFunction);
+begin
+  Fdchildren.EnumerateValid(Func);
+end;
 
 constructor TNodeContourPolyline2D.Create(const ANodeName: string;
   const AWWWBasePath: string);
@@ -670,6 +715,12 @@ begin
   Result := VerMajor >= 3;
 end;
 
+procedure TNodeNurbsCurve_3.DirectEnumerateActive(
+  Func: TEnumerateChildrenFunction);
+begin
+  FdcontrolPoint.EnumerateValid(Func);
+end;
+
 constructor TNodeNurbsCurve2D.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -769,6 +820,12 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+procedure TNodeNurbsOrientationInterpolator.DirectEnumerateActive(
+  Func: TEnumerateChildrenFunction);
+begin
+  FdcontrolPoint.EnumerateValid(Func);
+end;
+
 constructor TNodeNurbsPatchSurface.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -845,6 +902,12 @@ end;
 class function TNodeNurbsPositionInterpolator_3.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor >= 3;
+end;
+
+procedure TNodeNurbsPositionInterpolator_3.DirectEnumerateActive(
+  Func: TEnumerateChildrenFunction);
+begin
+  FdcontrolPoint.EnumerateValid(Func);
 end;
 
 constructor TNodeNurbsSet.Create(const ANodeName: string;
@@ -970,6 +1033,12 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+procedure TNodeNurbsSurfaceInterpolator.DirectEnumerateActive(
+  Func: TEnumerateChildrenFunction);
+begin
+  FdcontrolPoint.EnumerateValid(Func);
+end;
+
 constructor TNodeNurbsSweptSurface.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -1009,6 +1078,13 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+procedure TNodeNurbsSweptSurface.DirectEnumerateActive(
+  Func: TEnumerateChildrenFunction);
+begin
+  FdcrossSectionCurve.EnumerateValid(Func);
+  FdtrajectoryCurve.EnumerateValid(Func);
+end;
+
 constructor TNodeNurbsSwungSurface.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -1046,6 +1122,13 @@ class function TNodeNurbsSwungSurface.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure TNodeNurbsSwungSurface.DirectEnumerateActive(
+  Func: TEnumerateChildrenFunction);
+begin
+  FdprofileCurve.EnumerateValid(Func);
+  FdtrajectoryCurve.EnumerateValid(Func);
 end;
 
 constructor TNodeNurbsTextureCoordinate.Create(const ANodeName: string;
@@ -1145,6 +1228,12 @@ class function TNodeNurbsTrimmedSurface.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure TNodeNurbsTrimmedSurface.DirectEnumerateActive(
+  Func: TEnumerateChildrenFunction);
+begin
+  FdtrimmingContour.EnumerateValid(Func);
 end;
 
 procedure RegisterNURBSNodes;
