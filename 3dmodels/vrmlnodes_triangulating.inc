@@ -993,7 +993,7 @@ begin
     while I <= High(Indexes) do
     begin
       Triangle[1] := Triangle[2];
-      Triangle[2] := Coord.Items[Indexes[Index(I)]];
+      Triangle[2] := Coord.Items[Index(Indexes[I])];
       NewTriangleProc(Triangle, State, Geometry, VRML1MaterialNumber, -1, -1);
       Inc(I);
     end;
