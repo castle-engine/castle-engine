@@ -571,7 +571,7 @@ begin
   end;
 
   { We can be sure now that
-    - we have ControlPoint, non-nil, with at least 1 point.
+    - we have ControlPoint (in KeyValue), non-nil, with at least 1 point.
     - we have Order >= 2 }
 
   { calculate correct Knot vector }
