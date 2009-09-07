@@ -1074,13 +1074,13 @@ var
   end;
 
 var
-  ResultCoord: TDynVector3SingleArray;
+  ResultCoord, ResultNormal: TDynVector3SingleArray;
   ResultIndex: TDynLongIntArray;
   I, J, NextIndex: Cardinal;
-  Normal: TVector3_Single;
   UIncrease, VIncrease: Double;
   UKnot, VKnot: TDynDoubleArray;
   ResultTexCoord: TDynVector2SingleArray;
+  Normal: TVector3_Single;
 begin
   if ControlPoint.Count = 0 then Exit;
 
@@ -1157,14 +1157,19 @@ begin
   UIncrease := (UKnot.Last - UKnot.First) / (UTess - 1);
   VIncrease := (VKnot.Last - VKnot.First) / (VTess - 1);
 
-  { make resulting Coordinate node }
+  { make resulting Coordinate and Normal nodes }
   QS.FdCoord.Value := TNodeCoordinate.Create('', '');
   ResultCoord := (QS.FdCoord.Value as TNodeCoordinate).FdPoint.Items;
-
-  { calculate result Coordinate.point field }
   ResultCoord.Count := UTess * VTess;
+
+  QS.FdNormal.Value := TNodeNormal.Create('', '');
+  ResultNormal := (QS.FdNormal.Value as TNodeNormal).FdVector.Items;
+  ResultNormal.Count := UTess * VTess;
+
+  { calculate result Coordinate.point and Normal.vector field }
   for I := 0 to UTess - 1 do
     for J := 0 to VTess - 1 do
+    begin
       ResultCoord.Items[I + J * UTess] :=
         NurbsSurfacePoint(ControlPoint,
           UDimension,
@@ -1176,8 +1181,15 @@ begin
           UKnot,
           VKnot,
           Weight,
-          { unused for now }
-          Normal);
+          @Normal);
+      if Ccw then
+        ResultNormal.Items[I + J * UTess] := Normal.Data else
+        ResultNormal.Items[I + J * UTess] := (-Normal).Data;
+    end;
+
+  { For now, don't use normal values --- they are nonsense at the edges
+    of the surface? See nurbs_curve_interpolators.x3dv for demo. }
+  QS.FdNormal.Value := nil;
 
   { calculate index field }
   ResultIndex := QS.FdIndex.Items;

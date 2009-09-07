@@ -81,13 +81,17 @@ function NurbsCurvePoint(const Points: TDynVector3SingleArray;
 
   Weight will be used only if it has the same length as PointsCount.
   Otherwise, weight = 1.0 (that is, defining non-rational curve) will be used
-  (this follows X3D spec). }
+  (this follows X3D spec).
+
+  Normal, if non-nil, will be set to the normal at given point of the
+  surface. It will be normalized. You can use this to pass these normals
+  to rendering. Or to generate normals for X3D NurbsSurfaceInterpolator node. }
 function NurbsSurfacePoint(const Points: TDynVector3SingleArray;
   const UDimension, VDimension: Cardinal;
   const U, V: Single;
   const UOrder, VOrder: Cardinal;
   UKnot, VKnot, Weight: TDynDoubleArray;
-  out Normal: TVector3_Single): TVector3_Single;
+  Normal: PVector3_Single): TVector3_Single;
 
 type
   { Naming notes: what precisely is called a "uniform" knot vector seems
@@ -292,7 +296,7 @@ function NurbsSurfacePoint(const Points: TDynVector3SingleArray;
   const U, V: Single;
   const UOrder, VOrder: Cardinal;
   UKnot, VKnot, Weight: TDynDoubleArray;
-  out Normal: TVector3_Single): TVector3_Single;
+  Normal: PVector3_Single): TVector3_Single;
 var
   uBasis, vBasis, uDeriv, vDeriv: TDynDoubleArray;
   uSpan, vSpan: LongInt;
@@ -360,10 +364,14 @@ begin
   end;
 
   Result /= w;
-  un := (du - Result * duw) / w;
-  vn := (dv - Result * dvw) / w;
-  normal := un >< vn;
-  Vector_Normalize(normal);
+
+  if Normal <> nil then
+  begin
+    un := (du - Result * duw) / w;
+    vn := (dv - Result * dvw) / w;
+    normal^ := un >< vn;
+    Vector_Normalize(normal^);
+  end;
 
   FreeAndNil(uBasis);
   FreeAndNil(vBasis);
