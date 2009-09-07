@@ -264,8 +264,8 @@
   Implementation files organization notes:
 
   @unorderedList(
-    @item(vrml1nodes.inc contains only VRML-1.0 specific nodes)
-    @item(vrml97nodes.inc contains only VRML 97 specific nodes)
+    @item(vrmlnodes_1.inc contains only VRML-1.0 specific nodes)
+    @item(vrmlnodes_97.inc contains only VRML 97 specific nodes)
     @item(various x3d_xxx.inc contain X3D nodes belonging to specific xxx component.
       So most of the nodes (also VRML 97 nodes, since they are usually the same
       for VRML 97 and X3D) are inside x3d_xxx.inc.
@@ -2546,12 +2546,12 @@ type
 {$I x3d_followers.inc}
 {$I x3d_particlesystems.inc}
 
-{$I vrml1nodes.inc}
-{$I vrmlinventornodes.inc}
-{$I vrml97nodes.inc}
-{$I vrml97_h-anim.inc}
-{$I vrmlkambinodes.inc}
-{$I vrml_avalon_nodes.inc}
+{$I vrmlnodes_1.inc}
+{$I vrmlnodes_inventor.inc}
+{$I vrmlnodes_97.inc}
+{$I vrmlnodes_97_hanim.inc}
+{$I vrmlnodes_kambi.inc}
+{$I vrmlnodes_avalon.inc}
 
 { TVRMLUnknownNode --------------------------------------------------- }
 
@@ -3622,12 +3622,12 @@ uses
 {$I x3d_followers.inc}
 {$I x3d_particlesystems.inc}
 
-{$I vrml1nodes.inc}
-{$I vrmlinventornodes.inc}
-{$I vrml97nodes.inc}
-{$I vrml97_h-anim.inc}
-{$I vrmlkambinodes.inc}
-{$I vrml_avalon_nodes.inc}
+{$I vrmlnodes_1.inc}
+{$I vrmlnodes_inventor.inc}
+{$I vrmlnodes_97.inc}
+{$I vrmlnodes_97_hanim.inc}
+{$I vrmlnodes_kambi.inc}
+{$I vrmlnodes_avalon.inc}
 
 resourcestring
   SExpectedInterfaceDeclaration =
