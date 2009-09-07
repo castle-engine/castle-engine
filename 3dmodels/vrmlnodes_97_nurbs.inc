@@ -123,11 +123,9 @@
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean; override;
 
-    { Geometry node not implemented } { }
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function Proxy: TVRMLGeometryNode; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
   end;
 
   TNodeNurbsGroup = class(TNodeX3DGroupingNode)
@@ -442,8 +440,35 @@ begin
   Result := VerMajor = 2;
 end;
 
-{$define TGeometryNotImplemented := TNodeNurbsCurve_2}
-GeometryNotImplemented
+function TNodeNurbsCurve_2.Proxy: TVRMLGeometryNode;
+var
+  KnotDouble, WeightDouble: TDynDoubleArray;
+begin
+  Result := TNodeLineSet.Create(NodeName, WWWBasePath);
+  try
+    KnotDouble := FdKnot.Items.ToDouble;
+    WeightDouble := FdWeight.Items.ToDouble;
+    try
+      NurbsCurveProxy(TNodeLineSet(Result), FdControlPoint.Items,
+        FdTessellation.Value, FdOrder.Value, KnotDouble, WeightDouble);
+    finally
+      FreeAndNil(KnotDouble);
+      FreeAndNil(WeightDouble);
+    end;
+  except FreeAndNil(Result); raise end;
+end;
+
+function TNodeNurbsCurve_2.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  Result := 0;
+end;
+
+function TNodeNurbsCurve_2.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  if FdControlPoint.Count > 0 then
+    Result := ActualTessellation(FdTessellation.Value, FdControlPoint.Count) else
+    Result := 0;
+end;
 
 constructor TNodeNurbsGroup.Create(const ANodeName: string; const AWWWBasePath: string);
 begin

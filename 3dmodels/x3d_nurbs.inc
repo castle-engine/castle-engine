@@ -748,61 +748,72 @@ begin
   FdcontrolPoint.EnumerateValid(Func);
 end;
 
-function TNodeNurbsCurve_3.Proxy: TVRMLGeometryNode;
+{ Convert X3D or VRML 97 NurbsCurve to LineSet. }
+procedure NurbsCurveProxy(
+  const LS: TNodeLineSet;
+  const ControlPoint: TDynVector3SingleArray;
+  const Tessellation, Order: LongInt;
+  const FieldKnot, Weight: TDynDoubleArray);
 var
-  LS: TNodeLineSet absolute Result;
-  ControlPoint: TNodeCoordinate;
   ResultCoord: TNodeCoordinate;
   Tess: Cardinal;
   I: Integer;
   Increase: Double;
   Knot: TDynDoubleArray;
 begin
-  LS := TNodeLineSet.Create(NodeName, WWWBasePath);
+  if ControlPoint.Count = 0 then Exit;
+
+  if Order < 2 then
+  begin
+    VRMLWarning(vwSerious, 'NURBS order must be >= 2');
+    Exit;
+  end;
+
+  { We can be sure now that
+    - we have ControlPoint, non-nil, with at least 1 point.
+    - we have Order >= 2 }
+
+  { calculate correct Knot vector }
+  Knot := TDynDoubleArray.Create;
+  Knot.Assign(FieldKnot);
+  NurbsKnotIfNeeded(Knot, ControlPoint.Count, Order, nkEndpointUniform);
+
+  { calculate tesselation: Tess, Increase }
+  Tess := ActualTessellation(Tessellation, ControlPoint.Count);
+  Increase := (Knot.Last - Knot.First) / (Tess - 1);
+
+  { make resulting Coordinate node }
+  ResultCoord := TNodeCoordinate.Create('', '');
+  LS.FdCoord.Value := ResultCoord;
+
+  { calculate result Coordinate.point field }
+  ResultCoord.FdPoint.Items.Count := Tess;
+  for I := 0 to Tess - 1 do
+    ResultCoord.FdPoint.Items.Items[I] :=
+      NurbsCurvePoint(ControlPoint,
+        Knot.First + Increase * I,
+        Order, Knot, Weight);
+
+  { set LineSet.vertexCount (otherwise it's coord will be ignored) }
+  LS.FdVertexCount.Items.AppendItem(Tess);
+
+  FreeAndNil(Knot);
+end;
+
+function TNodeNurbsCurve_3.Proxy: TVRMLGeometryNode;
+var
+  ControlPoint: TDynVector3SingleArray;
+begin
+  Result := TNodeLineSet.Create(NodeName, WWWBasePath);
   try
     { TODO: we should handle here all TNodeX3DCoordinateNode }
     if (FdControlPoint.Value <> nil) and
        (FdControlPoint.Value is TNodeCoordinate) then
-      ControlPoint := TNodeCoordinate(FdControlPoint.Value) else
+      ControlPoint := TNodeCoordinate(FdControlPoint.Value).FdPoint.Items else
       Exit;
 
-    if ControlPoint.FdPoint.Count = 0 then Exit;
-
-    if FdOrder.Value < 2 then
-    begin
-      VRMLWarning(vwSerious, 'NURBS order must be >= 2');
-      Exit;
-    end;
-
-    { We can be sure now that
-      - we have ControlPoint, non-nil, with at least 1 point.
-      - we have Order >= 2 }
-
-    { calculate correct Knot vector }
-    Knot := TDynDoubleArray.Create;
-    Knot.Assign(FdKnot.Items);
-    NurbsKnotIfNeeded(Knot, ControlPoint.CoordCount, FdOrder.Value, nkEndpointUniform);
-
-    { calculate tesselation: Tess, Increase }
-    Tess := ActualTessellation(FdTessellation.Value, ControlPoint.CoordCount);
-    Increase := (Knot.Last - Knot.First) / (Tess - 1);
-
-    { make resulting Coordinate node }
-    ResultCoord := (TVRMLNodeClass(ControlPoint.ClassType).Create('', WWWBasePath)) as TNodeCoordinate;
-    LS.FdCoord.Value := ResultCoord;
-
-    { calculate result Coordinate.point field }
-    ResultCoord.FdPoint.Items.Count := Tess;
-    for I := 0 to Tess - 1 do
-      ResultCoord.FdPoint.Items.Items[I] :=
-        NurbsCurvePoint(ControlPoint.FdPoint.Items,
-          Knot.First + Increase * I,
-          FdOrder.Value, Knot, FdWeight.Items);
-
-    { set LineSet.vertexCount (otherwise it's coord will be ignored) }
-    LS.FdVertexCount.Items.AppendItem(Tess);
-
-    FreeAndNil(Knot);
+    NurbsCurveProxy(TNodeLineSet(Result), ControlPoint, FdTessellation.Value,
+      FdOrder.Value, FdKnot.Items, FdWeight.Items);
   except FreeAndNil(Result); raise end;
 end;
 

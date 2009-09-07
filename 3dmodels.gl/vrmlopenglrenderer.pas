@@ -4239,6 +4239,7 @@ begin
     get used by more nodes. }
   if (Shape.Geometry is TNodeTeapot) or
      (Shape.Geometry is TNodeExtrusion) or
+     (Shape.Geometry is TNodeNurbsCurve_2) or
      (Shape.Geometry is TNodeNurbsCurve_3) or
      (Shape.Geometry is TNodeNurbsPatchSurface) or
      (Shape.Geometry is TNodeNurbsSurface) then
