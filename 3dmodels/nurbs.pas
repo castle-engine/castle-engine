@@ -110,7 +110,8 @@ procedure NurbsKnotIfNeeded(Knot: TDynDoubleArray;
 
 implementation
 
-{ findSpan and basisFuns is rewritten from white dune's C source code.
+{ findSpan and basisFuns is rewritten from white dune's C source code
+  (almost identical methods of NodeNurbsCurve and NodeNurbsSurface).
   Also NurbsCurvePoint is based on NodeNurbsCurve::curvePoint.
   Also NurbsSurfacePoint is based on NodeNurbsSurface::surfacePoint.
   Also NurbsUniformKnotIfNeeded is based on NodeNurbsSurface::linearUknot.
@@ -119,10 +120,12 @@ implementation
   - http://vrml.cip.ica.uni-stuttgart.de/dune/
   - J. "MUFTI" Scheurich, Stephen F. White
   - GPL >= 2, so we're free to copy
-  - there were methods in NodeNurbsCurve (src/NodeNurbsCurve.cpp) and
-    NodeNurbsSurface. Exactly identical, except NodeNurbsSurface added:
+  - findSpan and basisFuns were methods in NodeNurbsCurve
+    (src/NodeNurbsCurve.cpp) and NodeNurbsSurface.
+    *Almost* exactly identical, the only difference: NodeNurbsSurface
+    had these two additional lines (safety check, included in my version):
       if ((right[r+1] + left[j-r]) == 0)
-	  return;
+          return;
 }
 function findSpan(const dimension, order: LongInt;
   const u: Single; Knot: TDynDoubleArray): LongInt;
