@@ -975,7 +975,7 @@ procedure NurbsPatchSurfaceProxy(
   ControlPoint: TDynVector3SingleArray;
   UTessellation, VTessellation, UDimension, VDimension, UOrder, VOrder: LongInt;
   FieldUKnot, FieldVKnot, Weight: TDynDoubleArray;
-  FieldUClosed, FieldVClosed, Solid: boolean;
+  PossiblyUClosed, PossiblyVClosed, Solid: boolean;
   TexCoord: TVRMLNode);
 
 const
@@ -983,25 +983,32 @@ const
     (test nurbs_dune_primitives.x3dv). }
   ClosedCheckEpsilon = 0.000001;
 
+  procedure LogClosed(Value: boolean);
+  begin
+    if Log then
+    begin
+      if Value then
+        WritelnLog('NURBS', 'Checking if NURBS surface is really closed (because it''s VRML 97 NurbsSurface or NurbsPatchSurface with .xClosed is TRUE): no, ignoring (otherwise would cause invalid geometry/normals)') else
+        WritelnLog('NURBS', 'Checking if NURBS surface is really closed: yes');
+    end;
+  end;
+
   function CalculateUClosed: boolean;
   var
     J: Integer;
   begin
-    Result := FieldUClosed;
+    Result := PossiblyUClosed;
     if Result then
     begin
       for J := 0 to VDimension - 1 do
         if not VectorsEqual(
-          ControlPoint.Items[                         J * UDimension],
+          ControlPoint.Items[                 J * UDimension],
           ControlPoint.Items[UDimension - 1 + J * UDimension], ClosedCheckEpsilon) then
         begin
-          if Log then
-            WritelnLog('NURBS', 'NurbsPatchSurface.uClosed is TRUE, but looking at controlPoints it should be FALSE, ignoring (otherwise would cause invalid geometry/normals)');
           Result := false;
-          Exit;
+          Break;
         end;
-      if Log then
-        WritelnLog('NURBS', 'NurbsPatchSurface.uClosed confirmed Ok');
+      LogClosed(Result);
     end;
   end;
 
@@ -1009,21 +1016,18 @@ const
   var
     I: Integer;
   begin
-    Result := FieldVClosed;
+    Result := PossiblyVClosed;
     if Result then
     begin
       for I := 0 to UDimension - 1 do
         if not VectorsEqual(
-          ControlPoint.Items[I                                                ],
+          ControlPoint.Items[I                                ],
           ControlPoint.Items[I + (VDimension - 1) * UDimension], ClosedCheckEpsilon) then
         begin
-          if Log then
-            WritelnLog('NURBS', 'NurbsPatchSurface.vClosed is TRUE, but looking at controlPoints it should be FALSE, ignoring (otherwise would cause invalid geometry/normals)');
           Result := false;
-          Exit;
+          Break;
         end;
-      if Log then
-        WritelnLog('NURBS', 'NurbsPatchSurface.vClosed confirmed Ok');
+      LogClosed(Result);
     end;
   end;
 
@@ -1079,23 +1083,32 @@ begin
     - we have Order >= 2.
   }
 
-  { calculate actual UClosed, VClosed values.
+  { calculate actual XClosed values, using PossiblyXClosed values.
 
-    Since we use xClosed fields not only to calculate normals,
-    but to actually set the geometry indexes, we have to check them
-    carefully and avoid using if look bad. Otherwise not only the normals,
-    but the whole geometry would look bad when xClosed fields are wrongly
-    set to TRUE.
+    For X3D:
 
-    Moreover, X3D spec says "If the last control point is not identical
-    with the first control point, the field is ignored."
-    for X3DNurbsSurfaceGeometryNode. So it seems the implementation
-    isn't supposed to "trust" xClosed = TRUE value anyway (that's also
-    why no VRML warning is done about it, although we log it).
-    Examples of such wrong xClosed = TRUE settings may be found
-    even on web3d.org examples, see
-    http://www.web3d.org/x3d/content/examples/NURBS/
-    e.g. "Fred The Bunny" in X3d.) }
+    - The PossiblyXClosed come from xClosed fields. Still, we have to check
+      them.
+
+      Since we use xClosed fields not only to calculate normals,
+      but to actually set the geometry indexes, we have to check them
+      carefully and avoid using if look bad. Otherwise not only the normals,
+      but the whole geometry would look bad when xClosed fields are wrongly
+      set to TRUE.
+
+      Moreover, X3D spec says "If the last control point is not identical
+      with the first control point, the field is ignored."
+      for X3DNurbsSurfaceGeometryNode. So it seems the implementation
+      isn't supposed to "trust" xClosed = TRUE value anyway (that's also
+      why no VRML warning is done about it, although we log it).
+      Examples of such wrong xClosed = TRUE settings may be found
+      even on web3d.org examples, see
+      http://www.web3d.org/x3d/content/examples/NURBS/
+      e.g. "Fred The Bunny" in X3d.)
+
+    For VRML 97 NurbsSurface, these are always true, we have to always
+    check this for VRML 97 NurbsSurface. }
+
   UClosed := CalculateUClosed;
   VClosed := CalculateVClosed;
 

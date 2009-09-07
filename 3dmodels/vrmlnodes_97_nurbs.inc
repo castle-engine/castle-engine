@@ -226,11 +226,9 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Geometry node not implemented } { }
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function Proxy: TVRMLGeometryNode; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
   end;
 
   TNodeNurbsTextureSurface = class(TVRMLNode)
@@ -597,8 +595,75 @@ begin
     true, 2, 0, 1000);
 end;
 
-{$define TGeometryNotImplemented := TNodeNurbsSurface}
-GeometryNotImplemented
+function TNodeNurbsSurface.Proxy: TVRMLGeometryNode;
+var
+  UKnotDouble, VKnotDouble, WeightDouble: TDynDoubleArray;
+begin
+  Result := TNodeIndexedQuadSet.Create(NodeName, WWWBasePath);
+  try
+    { For NurbsPatchSurfaceProxy (and underlying NurbsSurfacePoint)
+      we want knots and weights to be double-precision.
+      Implementing another version of
+      NurbsPatchSurfaceProxy (and underlying NurbsSurfacePoint)
+      based on Single would make a faster implementation, but it's not worth
+      the trouble --- VRML 97 NurbsSurface is only for compatibility,
+      newer models should use X3D version anyway. }
+    UKnotDouble := FdUKnot.Items.ToDouble;
+    VKnotDouble := FdVKnot.Items.ToDouble;
+    WeightDouble := FdWeight.Items.ToDouble;
+    try
+      NurbsPatchSurfaceProxy(TNodeIndexedQuadSet(Result),
+        FdControlPoint.Items,
+        FdUTessellation.Value,
+        FdVTessellation.Value,
+        FdUDimension.Value,
+        FdVDimension.Value,
+        FdUOrder.Value,
+        FdVOrder.Value,
+        UKnotDouble,
+        VKnotDouble,
+        WeightDouble,
+        { Both UClosed, VClosed are true for VRML 97 NurbsSurface.
+          NurbsPatchSurfaceProxy will always check whether it should be
+          closed based on whether limiting controlPoints match. }
+        true, true,
+        FdSolid.Value,
+        FdTexCoord.Value);
+    finally
+      FreeAndNil(UKnotDouble);
+      FreeAndNil(VKnotDouble);
+      FreeAndNil(WeightDouble);
+    end;
+  except FreeAndNil(Result); raise end;
+end;
+
+function TNodeNurbsSurface.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+var
+  UTess, VTess: Cardinal;
+begin
+  if (FdUDimension.Value > 0) and
+     (FdVDimension.Value > 0) then
+  begin
+    UTess := ActualTessellation(FdUTessellation.Value, FdUDimension.Value);
+    VTess := ActualTessellation(FdVTessellation.Value, FdVDimension.Value);
+    Result := (UTess - 1) * (VTess - 1) * 2;
+  end else
+    Result := 0;
+end;
+
+function TNodeNurbsSurface.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+var
+  UTess, VTess: Cardinal;
+begin
+  if (FdUDimension.Value > 0) and
+     (FdVDimension.Value > 0) then
+  begin
+    UTess := ActualTessellation(FdUTessellation.Value, FdUDimension.Value);
+    VTess := ActualTessellation(FdVTessellation.Value, FdVDimension.Value);
+    Result := UTess * VTess;
+  end else
+    Result := 0;
+end;
 
 constructor TNodeNurbsTextureSurface.Create(const ANodeName: string; const AWWWBasePath: string);
 begin

@@ -230,6 +230,7 @@ type
   TDynArrayItem_16 = Boolean ; PDynArrayItem_16 = PBoolean ; {$I dynarray_16.inc} {TDynBooleanArray is below}       TArray_Boolean  = TInfiniteArray_16; PArray_Boolean  = PInfiniteArray_16;
 
   TDynSingleArray = class;
+  TDynDoubleArray = class;
 
   TDynFloatArray = class(TDynArray_3)
     procedure AppendFloats(Floats: TDynSingleArray);
@@ -237,6 +238,7 @@ type
 
   TDynSingleArray = class(TDynArray_12)
     procedure AppendFloats(Floats: TDynFloatArray);
+    function ToDouble: TDynDoubleArray;
   end;
 
   TDynDoubleArray = class(TDynArray_11)
@@ -402,6 +404,23 @@ begin
  OldCount := Count;
  Count := Count + Floats.Count;
  for i := 0 to Floats.High do Items[OldCount+i] := Floats.Items[i];
+end;
+
+function TDynSingleArray.ToDouble: TDynDoubleArray;
+var
+  I: Integer;
+  Source: PSingle;
+  Dest: PDouble;
+begin
+  Result := TDynDoubleArray.Create(Count);
+  Source := PSingle(ItemsArray);
+  Dest := PDouble(Result.ItemsArray);
+  for I := 0 to Count - 1 do
+  begin
+    Dest^ := Source^;
+    Inc(Source);
+    Inc(Dest);
+  end;
 end;
 
 { TDynDoubleArray ------------------------------------------------------------ }

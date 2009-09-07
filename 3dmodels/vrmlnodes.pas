@@ -8684,7 +8684,6 @@ initialization
 
   RegistedInventorNodes;
   RegisterVRML1Nodes;
-  RegisterVRML97Nodes;
   RegisterVRML97HAnimNodes;
   RegisterVRML97NodesNurbs;
   RegisterKambiNodes;

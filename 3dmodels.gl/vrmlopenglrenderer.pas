@@ -4240,7 +4240,8 @@ begin
   if (Shape.Geometry is TNodeTeapot) or
      (Shape.Geometry is TNodeExtrusion) or
      (Shape.Geometry is TNodeNurbsCurve_3) or
-     (Shape.Geometry is TNodeNurbsPatchSurface) then
+     (Shape.Geometry is TNodeNurbsPatchSurface) or
+     (Shape.Geometry is TNodeNurbsSurface) then
     CurrentGeometry := Shape.Geometry.Proxy else
     CurrentGeometry := Shape.Geometry;
   try
