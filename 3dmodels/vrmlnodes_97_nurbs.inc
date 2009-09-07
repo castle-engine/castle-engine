@@ -124,6 +124,7 @@
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean; override;
 
     function Proxy: TVRMLGeometryNode; override;
+    function Coord(State: TVRMLGraphTraverseState; out ACoord: TMFVec3f): boolean; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
   end;
@@ -228,6 +229,7 @@
     class function URNMatching(const URN: string): boolean; override;
 
     function Proxy: TVRMLGeometryNode; override;
+    function Coord(State: TVRMLGraphTraverseState; out ACoord: TMFVec3f): boolean; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
   end;
@@ -459,6 +461,16 @@ begin
       FreeAndNil(WeightDouble);
     end;
   except FreeAndNil(Result); raise end;
+end;
+
+{ Coord implementation makes automatic, optimal and fast
+  (without the need for Proxy call) LocalBoundingBox, BoundingBox
+  implementation. }
+function TNodeNurbsCurve_2.Coord(State: TVRMLGraphTraverseState;
+  out ACoord: TMFVec3f): boolean;
+begin
+  Result := true;
+  ACoord := FdControlPoint;
 end;
 
 function TNodeNurbsCurve_2.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
@@ -702,6 +714,16 @@ begin
       FreeAndNil(WeightDouble);
     end;
   except FreeAndNil(Result); raise end;
+end;
+
+{ Coord implementation makes automatic, optimal and fast
+  (without the need for Proxy call) LocalBoundingBox, BoundingBox
+  implementation. }
+function TNodeNurbsSurface.Coord(State: TVRMLGraphTraverseState;
+  out ACoord: TMFVec3f): boolean;
+begin
+  Result := true;
+  ACoord := FdControlPoint;
 end;
 
 function TNodeNurbsSurface.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
