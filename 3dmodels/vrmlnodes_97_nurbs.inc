@@ -628,6 +628,7 @@ begin
           closed based on whether limiting controlPoints match. }
         true, true,
         FdSolid.Value,
+        FdCcw.Value,
         FdTexCoord.Value);
     finally
       FreeAndNil(UKnotDouble);

@@ -971,12 +971,12 @@ end;
 { Converting X3D NurbsPatchSurface and VRML 97 NurbsSurface to
   IndexedQuadSet. This is for Proxy methods implementation. }
 procedure NurbsPatchSurfaceProxy(
-  QS: TNodeIndexedQuadSet;
-  ControlPoint: TDynVector3SingleArray;
-  UTessellation, VTessellation, UDimension, VDimension, UOrder, VOrder: LongInt;
-  FieldUKnot, FieldVKnot, Weight: TDynDoubleArray;
-  PossiblyUClosed, PossiblyVClosed, Solid: boolean;
-  TexCoord: TVRMLNode);
+  const QS: TNodeIndexedQuadSet;
+  const ControlPoint: TDynVector3SingleArray;
+  const UTessellation, VTessellation, UDimension, VDimension, UOrder, VOrder: LongInt;
+  const FieldUKnot, FieldVKnot, Weight: TDynDoubleArray;
+  const PossiblyUClosed, PossiblyVClosed, Solid, Ccw: boolean;
+  const TexCoord: TVRMLNode);
 
 const
   { This has to be slightly larger than normal epsilon
@@ -1165,6 +1165,7 @@ begin
   Assert(NextIndex = Cardinal(ResultIndex.Count));
 
   QS.FdSolid.Value := Solid;
+  QS.FdCcw.Value := Ccw;
 
   { calculate texCoord field }
   QS.FdTexCoord.Value := TexCoord;
@@ -1213,6 +1214,7 @@ begin
         FdUClosed.Value,
         FdVClosed.Value,
         FdSolid.Value,
+        true { ccw always true for X3D NurbsPatchSurface },
         FdTexCoord.Value);
     end;
 
