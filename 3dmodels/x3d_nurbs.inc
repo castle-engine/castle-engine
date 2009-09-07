@@ -1294,7 +1294,7 @@ begin
   FEventremoveGeometry := TVRMLEvent.Create(Self, 'removeGeometry', TMFNode, true);
   Events.Add(FEventremoveGeometry);
 
-  FFdgeometry := TMFNode.Create(Self, 'geometry', [TNodeNurbsSurface]);
+  FFdgeometry := TMFNode.Create(Self, 'geometry', [TNodeX3DParametricGeometryNode]);
   Fields.Add(FFdgeometry);
 
   FFdtessellationScale := TSFFloat.Create(Self, 'tessellationScale', 1.0);

@@ -2550,6 +2550,7 @@ type
 {$I vrmlnodes_inventor.inc}
 {$I vrmlnodes_97.inc}
 {$I vrmlnodes_97_hanim.inc}
+{$I vrmlnodes_97_nurbs.inc}
 {$I vrmlnodes_kambi.inc}
 {$I vrmlnodes_avalon.inc}
 
@@ -3626,6 +3627,7 @@ uses
 {$I vrmlnodes_inventor.inc}
 {$I vrmlnodes_97.inc}
 {$I vrmlnodes_97_hanim.inc}
+{$I vrmlnodes_97_nurbs.inc}
 {$I vrmlnodes_kambi.inc}
 {$I vrmlnodes_avalon.inc}
 
@@ -8692,6 +8694,7 @@ initialization
   RegisterVRML1Nodes;
   RegisterVRML97Nodes;
   RegisterVRML97HAnimNodes;
+  RegisterVRML97NodesNurbs;
   RegisterKambiNodes;
   RegisterAvalonNodes;
 
