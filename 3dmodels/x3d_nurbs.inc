@@ -932,7 +932,7 @@ begin
   Fields.Add(FFdweight);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFRotation, false);
+  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', {}{TSFRotation}TSFVec3f, false);
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
@@ -967,11 +967,43 @@ end;
 
 procedure TNodeNurbsOrientationInterpolator.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+var
+  ControlPoint: TDynVector3SingleArray;
+  Knot: TDynDoubleArray;
+  Tangent: TVector3_Single;
 begin
   if not EventValue_Changed.SendNeeded then Exit;
 
-  { TODO
-  EventValue_Changed.Send(OutputValue, Time); }
+  { TODO: we should handle here all TNodeX3DCoordinateNode }
+  if (FdControlPoint.Value <> nil) and
+     (FdControlPoint.Value is TNodeCoordinate) then
+    ControlPoint := TNodeCoordinate(FdControlPoint.Value).FdPoint.Items else
+    Exit;
+
+  if ControlPoint.Count = 0 then Exit;
+
+  if FdOrder.Value < 2 then
+  begin
+    VRMLWarning(vwSerious, 'NURBS order must be >= 2');
+    Exit;
+  end;
+
+  { We can be sure now that
+    - we have ControlPoint, non-nil, with at least 1 point.
+    - we have Order >= 2 }
+
+  { calculate correct Knot vector }
+  Knot := TDynDoubleArray.Create;
+  Knot.Assign(FdKnot.Items);
+  NurbsKnotIfNeeded(Knot, ControlPoint.Count, FdOrder.Value, nkEndpointUniform);
+
+  NurbsCurvePoint(ControlPoint,
+    (Value as TSFFloat).Value,
+    FdOrder.Value, Knot, FdWeight.Items, @Tangent);
+
+  FreeAndNil(Knot);
+
+  EventValue_Changed.Send(Tangent, Time);
 end;
 
 constructor TNodeNurbsPatchSurface.Create(const ANodeName: string;
