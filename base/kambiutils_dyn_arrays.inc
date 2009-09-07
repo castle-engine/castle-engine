@@ -422,7 +422,7 @@ var
   Src: PDouble;
   Dest: PSingle;
 begin
-  Source.Count := Count;
+  Count := Source.Count;
   Src := PDouble(Source.ItemsArray);
   Dest := PSingle(ItemsArray);
   for I := 0 to Count - 1 do
@@ -447,7 +447,7 @@ var
   Src: PSingle;
   Dest: PDouble;
 begin
-  Source.Count := Count;
+  Count := Source.Count;
   Src := PSingle(Source.ItemsArray);
   Dest := PDouble(ItemsArray);
   for I := 0 to Count - 1 do
