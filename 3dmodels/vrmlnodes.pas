@@ -261,17 +261,11 @@
     rozna od domyslnej to uwzglednimy wszedzie to pole i zapiszemy je w
     razie potrzeby z powrotem do pliku VRMLa.
 
-  Implementation files organization notes:
-
-  @unorderedList(
-    @item(vrmlnodes_1.inc contains only VRML-1.0 specific nodes)
-    @item(vrmlnodes_97.inc contains only VRML 97 specific nodes)
-    @item(various x3d_xxx.inc contain X3D nodes belonging to specific xxx component.
-      So most of the nodes (also VRML 97 nodes, since they are usually the same
-      for VRML 97 and X3D) are inside x3d_xxx.inc.
-      That's a nice thing, since X3D components provide a natural way to group
-      the vast number of nodes into files.)
-  )
+  Files organization: X3D nodes are inside x3d_COMPONET_NAME.inc files.
+  That's a nice thing, since X3D components provide a natural way to group
+  the vast number of nodes into files. Some remaining nodes that are not part
+  of X3D are in other vrmlnodes_xxx.inc files, for example
+  vrmlnodes_1.inc contains only VRML-1.0 specific nodes.
 *)
 
 unit VRMLNodes;
@@ -2548,7 +2542,6 @@ type
 
 {$I vrmlnodes_1.inc}
 {$I vrmlnodes_inventor.inc}
-{$I vrmlnodes_97.inc}
 {$I vrmlnodes_97_hanim.inc}
 {$I vrmlnodes_97_nurbs.inc}
 {$I vrmlnodes_kambi.inc}
@@ -3625,7 +3618,6 @@ uses
 
 {$I vrmlnodes_1.inc}
 {$I vrmlnodes_inventor.inc}
-{$I vrmlnodes_97.inc}
 {$I vrmlnodes_97_hanim.inc}
 {$I vrmlnodes_97_nurbs.inc}
 {$I vrmlnodes_kambi.inc}

@@ -26,6 +26,77 @@
   backward compatible) as X3D NURBS nodes, these are defined and handled
   only in x3d_nurbs.inc. } { }
 {$ifdef read_interface}
+  TNodeCoordinateDeformer = class(TVRMLGroupingNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+
+    { Event: MFNode, in } { }
+    private FEventaddChildren: TVRMLEvent;
+    public property EventaddChildren: TVRMLEvent read FEventaddChildren;
+
+    { Event: MFNode, in } { }
+    private FEventremoveChildren: TVRMLEvent;
+    public property EventremoveChildren: TVRMLEvent read FEventremoveChildren;
+
+    private FFdchildren: TMFNode;
+    public property Fdchildren: TMFNode read FFdchildren;
+
+    private FFdcontrolPoint: TMFVec3f;
+    public property FdcontrolPoint: TMFVec3f read FFdcontrolPoint;
+
+    private FFdinputCoord: TMFNode;
+    public property FdinputCoord: TMFNode read FFdinputCoord;
+
+    private FFdinputTransform: TMFNode;
+    public property FdinputTransform: TMFNode read FFdinputTransform;
+
+    private FFdoutputCoord: TMFNode;
+    public property FdoutputCoord: TMFNode read FFdoutputCoord;
+
+    private FFdweight: TMFFloat;
+    public property Fdweight: TMFFloat read FFdweight;
+
+    private FFdbboxCenter: TSFVec3f;
+    public property FdbboxCenter: TSFVec3f read FFdbboxCenter;
+
+    private FFdbboxSize: TSFVec3f;
+    public property FdbboxSize: TSFVec3f read FFdbboxSize;
+
+    private FFduDimension: TSFInt32;
+    public property FduDimension: TSFInt32 read FFduDimension;
+
+    private FFduKnot: TMFFloat;
+    public property FduKnot: TMFFloat read FFduKnot;
+
+    private FFduOrder: TSFInt32;
+    public property FduOrder: TSFInt32 read FFduOrder;
+
+    private FFdvDimension: TSFInt32;
+    public property FdvDimension: TSFInt32 read FFdvDimension;
+
+    private FFdvKnot: TMFFloat;
+    public property FdvKnot: TMFFloat read FFdvKnot;
+
+    private FFdvOrder: TSFInt32;
+    public property FdvOrder: TSFInt32 read FFdvOrder;
+
+    private FFdwDimension: TSFInt32;
+    public property FdwDimension: TSFInt32 read FFdwDimension;
+
+    private FFdwKnot: TMFFloat;
+    public property FdwKnot: TMFFloat read FFdwKnot;
+
+    private FFdwOrder: TSFInt32;
+    public property FdwOrder: TSFInt32 read FFdwOrder;
+
+    function ChildrenField: TMFNode; override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+  end;
+
   TNodeNurbsCurve_2 = class(TNodeX3DGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -228,6 +299,105 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
+constructor TNodeCoordinateDeformer.Create(const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+
+  FEventaddChildren := TVRMLEvent.Create(Self, 'addChildren', TMFNode, true);
+  Events.Add(FEventaddChildren);
+
+  FEventremoveChildren := TVRMLEvent.Create(Self, 'removeChildren', TMFNode, true);
+  Events.Add(FEventremoveChildren);
+
+  FFdchildren := TMFNode.Create(Self, 'children', INodeX3DChildNode);
+  Fields.Add(FFdchildren);
+
+  FFdcontrolPoint := TMFVec3f.Create(Self, 'controlPoint', []);
+  Fields.Add(FFdcontrolPoint);
+
+  FFdinputCoord := TMFNode.Create(Self, 'inputCoord', [TNodeCoordinate]);
+  Fields.Add(FFdinputCoord);
+
+  FFdinputTransform := TMFNode.Create(Self, 'inputTransform', [TNodeTransform_2]);
+  Fields.Add(FFdinputTransform);
+
+  FFdoutputCoord := TMFNode.Create(Self, 'outputCoord', [TNodeCoordinate]);
+  Fields.Add(FFdoutputCoord);
+
+  FFdweight := TMFFloat.Create(Self, 'weight', []);
+  Fields.Add(FFdweight);
+
+  FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', ZeroVector3Single);
+  FFdbboxCenter.Exposed := false;
+  Fields.Add(FFdbboxCenter);
+
+  FFdbboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
+  FFdbboxSize.Exposed := false;
+  Fields.Add(FFdbboxSize);
+
+  FFduDimension := TSFInt32.Create(Self, 'uDimension', 0);
+  FFduDimension.Exposed := false;
+  Fields.Add(FFduDimension);
+
+  FFduKnot := TMFFloat.Create(Self, 'uKnot', []);
+  FFduKnot.Exposed := false;
+  Fields.Add(FFduKnot);
+
+  FFduOrder := TSFInt32.Create(Self, 'uOrder', 2);
+  FFduOrder.Exposed := false;
+  Fields.Add(FFduOrder);
+
+  FFdvDimension := TSFInt32.Create(Self, 'vDimension', 0);
+  FFdvDimension.Exposed := false;
+  Fields.Add(FFdvDimension);
+
+  FFdvKnot := TMFFloat.Create(Self, 'vKnot', []);
+  FFdvKnot.Exposed := false;
+  Fields.Add(FFdvKnot);
+
+  FFdvOrder := TSFInt32.Create(Self, 'vOrder', 2);
+  FFdvOrder.Exposed := false;
+  Fields.Add(FFdvOrder);
+
+  FFdwDimension := TSFInt32.Create(Self, 'wDimension', 0);
+  FFdwDimension.Exposed := false;
+  Fields.Add(FFdwDimension);
+
+  FFdwKnot := TMFFloat.Create(Self, 'wKnot', []);
+  FFdwKnot.Exposed := false;
+  Fields.Add(FFdwKnot);
+
+  FFdwOrder := TSFInt32.Create(Self, 'wOrder', 2);
+  FFdwOrder.Exposed := false;
+  Fields.Add(FFdwOrder);
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeCoordinateDeformer.ClassNodeTypeName: string;
+begin
+  Result := 'CoordinateDeformer';
+end;
+
+class function TNodeCoordinateDeformer.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
+function TNodeCoordinateDeformer.ChildrenField: TMFNode;
+begin
+  Result := FdChildren;
+end;
+
+function TNodeCoordinateDeformer.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 constructor TNodeNurbsCurve_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -526,6 +696,7 @@ GeometryNotImplemented
 procedure RegisterVRML97NodesNurbs;
 begin
   NodesManager.RegisterNodeClasses([
+    TNodeCoordinateDeformer,
     TNodeNurbsCurve_2,
     TNodeNurbsGroup,
     TNodeNurbsPositionInterpolator_2,
