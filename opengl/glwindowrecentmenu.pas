@@ -69,9 +69,13 @@ type
 
     { Adds as the most recent file FileName.
 
+      If MaybeStdIn, then we treat FileName = '-' specially:
+      it's ignored. Use this if your program interprets '-' as "load file
+      from standard input", such files should not be added to recent files menu.
+
       Note that you want to place here only absolute filenames,
       so this will always ExpandFileName to make sure FileName is absolute. }
-    procedure Add(const FileName: string);
+    procedure Add(const FileName: string; const MaybeStdIn: boolean = true);
 
     property OnOpenRecent: TOnOpenRecent read FOnOpenRecent write FOnOpenRecent;
 
@@ -206,11 +210,13 @@ begin
   end;
 end;
 
-procedure TGLRecentMenu.Add(const FileName: string);
+procedure TGLRecentMenu.Add(const FileName: string; const MaybeStdIn: boolean);
 var
   F: string;
   Index: Integer;
 begin
+  if MaybeStdIn and (Filename = '-') then Exit;
+
   F := ExpandFileName(FileName);
 
   { We calculate Index, because if user opens a file already on the "recent files"
