@@ -1540,13 +1540,79 @@ end;
 
 procedure TNodeNurbsSurfaceInterpolator.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+var
+  ControlPoint: TDynVector3SingleArray;
+  OutputNormal: TVector3_Single;
+  OutputPosition: TVector3Single;
+  UKnot, VKnot: TDynDoubleArray;
 begin
   if not (EventPosition_Changed.SendNeeded or
           EventNormal_Changed.SendNeeded) then Exit;
 
-  { TODO
+  { TODO: we should handle here all TNodeX3DCoordinateNode }
+  if (FdControlPoint.Value <> nil) and
+     (FdControlPoint.Value is TNodeCoordinate) then
+    ControlPoint := TNodeCoordinate(FdControlPoint.Value).FdPoint.Items else
+    Exit;
+
+  if ControlPoint.Count = 0 then Exit;
+
+  if FdUDimension.Value * FdVDimension.Value <>
+     Integer(ControlPoint.Count) then
+  begin
+    VRMLWarning(vwSerious, Format('Number of coordinates in NurbsSurfaceInterpolator.controlPoint (%d) doesn''t match uDimension * vDimension (%d * %d = %d)',
+      [ ControlPoint.Count,
+        FdUDimension.Value,  FdVDimension.Value,
+        FdUDimension.Value * FdVDimension.Value ]));
+    Exit;
+  end;
+
+  if (FdUDimension.Value < 0) or
+     (FdVDimension.Value < 0) then
+  begin
+    VRMLWarning(vwSerious, 'NurbsSurfaceInterpolator.u/vDimension is < 0');
+    Exit;
+  end;
+
+  if (FdUOrder.Value < 2) or
+     (FdVOrder.Value < 2) then
+  begin
+    VRMLWarning(vwSerious, 'NURBS order must be >= 2');
+    Exit;
+  end;
+
+  { We can be sure now that we have
+    - correct ControlPoint, non-nil, with at least 1 point.
+    - uDimension, vDimension match ControlPoint count, and are > 0.
+    - we have Order >= 2.
+  }
+
+  { calculate correct UKnot, VKnot vectors }
+  UKnot := TDynDoubleArray.Create;
+  UKnot.Assign(FdUKnot.Items);
+  NurbsKnotIfNeeded(UKnot, FdUDimension.Value, FdUOrder.Value, nkEndpointUniform);
+  VKnot := TDynDoubleArray.Create;
+  VKnot.Assign(FdVKnot.Items);
+  NurbsKnotIfNeeded(VKnot, FdVDimension.Value, FdVOrder.Value, nkEndpointUniform);
+
+  OutputPosition :=
+    NurbsSurfacePoint(ControlPoint,
+      FdUDimension.Value,
+      FdVDimension.Value,
+      (Value as TSFVec2f).Value[0],
+      (Value as TSFVec2f).Value[1],
+      FdUOrder.Value,
+      FdVOrder.Value,
+      UKnot,
+      VKnot,
+      FdWeight.Items,
+      @OutputNormal);
+
+  FreeAndNil(UKnot);
+  FreeAndNil(VKnot);
+
   EventPosition_Changed.Send(OutputPosition, Time);
-  EventNormal_Changed.Send(OutputNormal, Time); }
+  EventNormal_Changed.Send(OutputNormal, Time);
 end;
 
 constructor TNodeNurbsSweptSurface.Create(const ANodeName: string;
