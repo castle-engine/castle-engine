@@ -239,10 +239,14 @@ type
   TDynSingleArray = class(TDynArray_12)
     procedure AppendFloats(Floats: TDynFloatArray);
     function ToDouble: TDynDoubleArray;
+    { Assign value from TDynDoubleArray, converting to double-precision. }
+    procedure Assign(Source: TDynDoubleArray); overload;
   end;
 
   TDynDoubleArray = class(TDynArray_11)
     function ToSingle: TDynSingleArray;
+    { Assign value from TDynSingleArray, converting to double-precision. }
+    procedure Assign(Source: TDynSingleArray); overload;
   end;
 
   TDynCardinalArray = class(TDynArray_1)
@@ -407,18 +411,24 @@ begin
 end;
 
 function TDynSingleArray.ToDouble: TDynDoubleArray;
+begin
+  Result := TDynDoubleArray.Create;
+  Result.Assign(Self);
+end;
+
+procedure TDynSingleArray.Assign(Source: TDynDoubleArray);
 var
   I: Integer;
-  Source: PSingle;
-  Dest: PDouble;
+  Src: PDouble;
+  Dest: PSingle;
 begin
-  Result := TDynDoubleArray.Create(Count);
-  Source := PSingle(ItemsArray);
-  Dest := PDouble(Result.ItemsArray);
+  Source.Count := Count;
+  Src := PDouble(Source.ItemsArray);
+  Dest := PSingle(ItemsArray);
   for I := 0 to Count - 1 do
   begin
-    Dest^ := Source^;
-    Inc(Source);
+    Dest^ := Src^;
+    Inc(Src);
     Inc(Dest);
   end;
 end;
@@ -426,12 +436,26 @@ end;
 { TDynDoubleArray ------------------------------------------------------------ }
 
 function TDynDoubleArray.ToSingle: TDynSingleArray;
+begin
+  Result := TDynSingleArray.Create;
+  Result.Assign(Self);
+end;
+
+procedure TDynDoubleArray.Assign(Source: TDynSingleArray);
 var
   I: Integer;
+  Src: PSingle;
+  Dest: PDouble;
 begin
-  Result := TDynSingleArray.Create(Count);
-  for I := 0 to High do
-    Result.Items[I] := Items[I];
+  Source.Count := Count;
+  Src := PSingle(Source.ItemsArray);
+  Dest := PDouble(ItemsArray);
+  for I := 0 to Count - 1 do
+  begin
+    Dest^ := Src^;
+    Inc(Src);
+    Inc(Dest);
+  end;
 end;
 
 { TDynCardinalArray ------------------------------------------------------------ }

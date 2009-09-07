@@ -142,6 +142,9 @@
   end;
 
   TNodeNurbsPositionInterpolator_2 = class(TNodeX3DChildNode)
+  private
+    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -523,6 +526,8 @@ begin
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
+
+  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
 end;
 
 class function TNodeNurbsPositionInterpolator_2.ClassNodeTypeName: string;
@@ -547,6 +552,42 @@ end;
 class function TNodeNurbsPositionInterpolator_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor = 2;
+end;
+
+procedure TNodeNurbsPositionInterpolator_2.EventSet_FractionReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+var
+  Knot, KeyWeight: TDynDoubleArray;
+  OutputValue: TVector3Single;
+begin
+  if not EventValue_Changed.SendNeeded then Exit;
+
+  if FdKeyValue.Count = 0 then Exit;
+
+  if FdOrder.Value < 2 then
+  begin
+    VRMLWarning(vwSerious, 'NURBS order must be >= 2');
+    Exit;
+  end;
+
+  { We can be sure now that
+    - we have ControlPoint, non-nil, with at least 1 point.
+    - we have Order >= 2 }
+
+  { calculate correct Knot vector }
+  Knot := TDynDoubleArray.Create;
+  Knot.Assign(FdKnot.Items);
+  NurbsKnotIfNeeded(Knot, FdKeyValue.Count, FdOrder.Value, nkEndpointUniform);
+
+  KeyWeight := FdKeyWeight.Items.ToDouble;
+
+  OutputValue := NurbsCurvePoint(FdKeyValue.Items, (Value as TSFFloat).Value,
+    FdOrder.Value, Knot, KeyWeight);
+
+  FreeAndNil(KeyWeight);
+  FreeAndNil(Knot);
+
+  EventValue_Changed.Send(OutputValue, Time);
 end;
 
 constructor TNodeNurbsSurface.Create(const ANodeName: string; const AWWWBasePath: string);

@@ -206,6 +206,9 @@
   end;
 
   TNodeNurbsOrientationInterpolator = class(TNodeX3DChildNode)
+  private
+    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TVRMLTime);
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -252,6 +255,9 @@
   end;
 
   TNodeNurbsPositionInterpolator_3 = class(TNodeX3DChildNode)
+  private
+    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TVRMLTime);
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -320,6 +326,9 @@
   end;
 
   TNodeNurbsSurfaceInterpolator = class(TNodeX3DChildNode)
+  private
+    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TVRMLTime);
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -927,6 +936,8 @@ begin
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
+
+  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
 end;
 
 class function TNodeNurbsOrientationInterpolator.ClassNodeTypeName: string;
@@ -952,6 +963,15 @@ procedure TNodeNurbsOrientationInterpolator.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   FdcontrolPoint.EnumerateValid(Func);
+end;
+
+procedure TNodeNurbsOrientationInterpolator.EventSet_FractionReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+begin
+  if not EventValue_Changed.SendNeeded then Exit;
+
+  { TODO
+  EventValue_Changed.Send(OutputValue, Time); }
 end;
 
 constructor TNodeNurbsPatchSurface.Create(const ANodeName: string;
@@ -1302,6 +1322,8 @@ begin
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
+
+  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
 end;
 
 class function TNodeNurbsPositionInterpolator_3.ClassNodeTypeName: string;
@@ -1332,6 +1354,45 @@ procedure TNodeNurbsPositionInterpolator_3.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   FdcontrolPoint.EnumerateValid(Func);
+end;
+
+procedure TNodeNurbsPositionInterpolator_3.EventSet_FractionReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+var
+  ControlPoint: TDynVector3SingleArray;
+  Knot: TDynDoubleArray;
+  OutputValue: TVector3Single;
+begin
+  if not EventValue_Changed.SendNeeded then Exit;
+
+  if (FdControlPoint.Value <> nil) and
+     (FdControlPoint.Value is TNodeCoordinate) then
+    ControlPoint := TNodeCoordinate(FdControlPoint.Value).FdPoint.Items else
+    Exit;
+
+  if ControlPoint.Count = 0 then Exit;
+
+  if FdOrder.Value < 2 then
+  begin
+    VRMLWarning(vwSerious, 'NURBS order must be >= 2');
+    Exit;
+  end;
+
+  { We can be sure now that
+    - we have ControlPoint, non-nil, with at least 1 point.
+    - we have Order >= 2 }
+
+  { calculate correct Knot vector }
+  Knot := TDynDoubleArray.Create;
+  Knot.Assign(FdKnot.Items);
+  NurbsKnotIfNeeded(Knot, ControlPoint.Count, FdOrder.Value, nkEndpointUniform);
+
+  OutputValue := NurbsCurvePoint(ControlPoint, (Value as TSFFloat).Value,
+    FdOrder.Value, Knot, FdWeight.Items);
+
+  FreeAndNil(Knot);
+
+  EventValue_Changed.Send(OutputValue, Time);
 end;
 
 constructor TNodeNurbsSet.Create(const ANodeName: string;
@@ -1436,6 +1497,8 @@ begin
   { X3D specification comment: [2,Inf) }
 
   DefaultContainerField := 'children';
+
+  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
 end;
 
 class function TNodeNurbsSurfaceInterpolator.ClassNodeTypeName: string;
@@ -1461,6 +1524,17 @@ procedure TNodeNurbsSurfaceInterpolator.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   FdcontrolPoint.EnumerateValid(Func);
+end;
+
+procedure TNodeNurbsSurfaceInterpolator.EventSet_FractionReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+begin
+  if not (EventPosition_Changed.SendNeeded or
+          EventNormal_Changed.SendNeeded) then Exit;
+
+  { TODO
+  EventPosition_Changed.Send(OutputPosition, Time);
+  EventNormal_Changed.Send(OutputNormal, Time); }
 end;
 
 constructor TNodeNurbsSweptSurface.Create(const ANodeName: string;
