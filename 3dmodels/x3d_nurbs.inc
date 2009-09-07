@@ -932,7 +932,7 @@ begin
   Fields.Add(FFdweight);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', {}{TSFRotation}TSFVec3f, false);
+  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFRotation, false);
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
@@ -971,6 +971,7 @@ var
   ControlPoint: TDynVector3SingleArray;
   Knot: TDynDoubleArray;
   Tangent: TVector3_Single;
+  Orientation: TVector4Single;
 begin
   if not EventValue_Changed.SendNeeded then Exit;
 
@@ -1003,7 +1004,12 @@ begin
 
   FreeAndNil(Knot);
 
-  EventValue_Changed.Send(Tangent, Time);
+  { calculate Orientation from Tangent.
+    For this, we treat Tangent like "camera direction", and we have to set
+    "camera up" as anything orthogonal to direction. }
+  Orientation := CamDirUp2Orient(Tangent, AnyPerpVector(Tangent));
+
+  EventValue_Changed.Send(Orientation, Time);
 end;
 
 constructor TNodeNurbsPatchSurface.Create(const ANodeName: string;
