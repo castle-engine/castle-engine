@@ -968,9 +968,15 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeNurbsPatchSurface.Proxy: TVRMLGeometryNode;
-var
-  ControlPoint: TNodeCoordinate;
+{ Converting X3D NurbsPatchSurface and VRML 97 NurbsSurface to
+  IndexedQuadSet. This is for Proxy methods implementation. }
+procedure NurbsPatchSurfaceProxy(
+  QS: TNodeIndexedQuadSet;
+  ControlPoint: TDynVector3SingleArray;
+  UTessellation, VTessellation, UDimension, VDimension, UOrder, VOrder: LongInt;
+  FieldUKnot, FieldVKnot, Weight: TDynDoubleArray;
+  FieldUClosed, FieldVClosed, Solid: boolean;
+  TexCoord: TVRMLNode);
 
 const
   { This has to be slightly larger than normal epsilon
@@ -979,17 +985,15 @@ const
 
   function CalculateUClosed: boolean;
   var
-    Points: PVector3Single;
     J: Integer;
   begin
-    Result := FdUClosed.Value;
+    Result := FieldUClosed;
     if Result then
     begin
-      Points := ControlPoint.FdPoint.Items.Items;
-      for J := 0 to FdVDimension.Value - 1 do
+      for J := 0 to VDimension - 1 do
         if not VectorsEqual(
-          Points[                         J * FdUDimension.Value],
-          Points[FdUDimension.Value - 1 + J * FdUDimension.Value], ClosedCheckEpsilon) then
+          ControlPoint.Items[                         J * UDimension],
+          ControlPoint.Items[UDimension - 1 + J * UDimension], ClosedCheckEpsilon) then
         begin
           if Log then
             WritelnLog('NURBS', 'NurbsPatchSurface.uClosed is TRUE, but looking at controlPoints it should be FALSE, ignoring (otherwise would cause invalid geometry/normals)');
@@ -1003,17 +1007,15 @@ const
 
   function CalculateVClosed: boolean;
   var
-    Points: PVector3Single;
     I: Integer;
   begin
-    Result := FdUClosed.Value;
+    Result := FieldVClosed;
     if Result then
     begin
-      Points := ControlPoint.FdPoint.Items.Items;
-      for I := 0 to FdUDimension.Value - 1 do
+      for I := 0 to UDimension - 1 do
         if not VectorsEqual(
-          Points[I                                                ],
-          Points[I + (FdVDimension.Value - 1) * FdUDimension.Value], ClosedCheckEpsilon) then
+          ControlPoint.Items[I                                                ],
+          ControlPoint.Items[I + (VDimension - 1) * UDimension], ClosedCheckEpsilon) then
         begin
           if Log then
             WritelnLog('NURBS', 'NurbsPatchSurface.vClosed is TRUE, but looking at controlPoints it should be FALSE, ignoring (otherwise would cause invalid geometry/normals)');
@@ -1037,7 +1039,6 @@ var
   end;
 
 var
-  QS: TNodeIndexedQuadSet absolute Result;
   ResultCoord: TDynVector3SingleArray;
   ResultIndex: TDynLongIntArray;
   I, J, NextIndex: Cardinal;
@@ -1046,140 +1047,164 @@ var
   UKnot, VKnot: TDynDoubleArray;
   ResultTexCoord: TDynVector2SingleArray;
 begin
-  QS := TNodeIndexedQuadSet.Create(NodeName, WWWBasePath);
+  if ControlPoint.Count = 0 then Exit;
+
+  if UDimension * VDimension <>
+     Integer(ControlPoint.Count) then
+  begin
+    VRMLWarning(vwSerious, Format('Number of coordinates in NurbsPatchSurface.controlPoint (%d) doesn''t match uDimension * vDimension (%d * %d = %d)',
+      [ ControlPoint.Count,
+        UDimension,  VDimension,
+        UDimension * VDimension ]));
+    Exit;
+  end;
+
+  if (UDimension < 0) or
+     (VDimension < 0) then
+  begin
+    VRMLWarning(vwSerious, 'NurbsPatchSurface.u/vDimension is < 0');
+    Exit;
+  end;
+
+  if (UOrder < 2) or
+     (VOrder < 2) then
+  begin
+    VRMLWarning(vwSerious, 'NURBS order must be >= 2');
+    Exit;
+  end;
+
+  { We can be sure now that we have
+    - correct ControlPoint, non-nil, with at least 1 point.
+    - uDimension, vDimension match ControlPoint count, and are > 0.
+    - we have Order >= 2.
+  }
+
+  { calculate actual UClosed, VClosed values.
+
+    Since we use xClosed fields not only to calculate normals,
+    but to actually set the geometry indexes, we have to check them
+    carefully and avoid using if look bad. Otherwise not only the normals,
+    but the whole geometry would look bad when xClosed fields are wrongly
+    set to TRUE.
+
+    Moreover, X3D spec says "If the last control point is not identical
+    with the first control point, the field is ignored."
+    for X3DNurbsSurfaceGeometryNode. So it seems the implementation
+    isn't supposed to "trust" xClosed = TRUE value anyway (that's also
+    why no VRML warning is done about it, although we log it).
+    Examples of such wrong xClosed = TRUE settings may be found
+    even on web3d.org examples, see
+    http://www.web3d.org/x3d/content/examples/NURBS/
+    e.g. "Fred The Bunny" in X3d.) }
+  UClosed := CalculateUClosed;
+  VClosed := CalculateVClosed;
+
+  { calculate correct UKnot, VKnot vectors }
+  UKnot := TDynDoubleArray.Create;
+  UKnot.Assign(FieldUKnot);
+  NurbsKnotIfNeeded(UKnot, UDimension, UOrder, nkEndpointUniform);
+  VKnot := TDynDoubleArray.Create;
+  VKnot.Assign(FieldVKnot);
+  NurbsKnotIfNeeded(VKnot, VDimension, VOrder, nkEndpointUniform);
+
+  { calculate tesselation: xTess, xIncrease }
+  UTess := ActualTessellation(UTessellation, UDimension);
+  VTess := ActualTessellation(VTessellation, VDimension);
+  UIncrease := (UKnot.Last - UKnot.First) / (UTess - 1);
+  VIncrease := (VKnot.Last - VKnot.First) / (VTess - 1);
+
+  { make resulting Coordinate node }
+  QS.FdCoord.Value := TNodeCoordinate.Create('', '');
+  ResultCoord := (QS.FdCoord.Value as TNodeCoordinate).FdPoint.Items;
+
+  { calculate result Coordinate.point field }
+  ResultCoord.Count := UTess * VTess;
+  for I := 0 to UTess - 1 do
+    for J := 0 to VTess - 1 do
+      ResultCoord.Items[I + J * UTess] :=
+        NurbsSurfacePoint(ControlPoint,
+          UDimension,
+          VDimension,
+          UKnot.First + UIncrease * I,
+          VKnot.First + VIncrease * J,
+          UOrder,
+          VOrder,
+          UKnot,
+          VKnot,
+          Weight,
+          { unused for now }
+          Normal);
+
+  { calculate index field }
+  ResultIndex := QS.FdIndex.Items;
+  ResultIndex.Count := 4 * (UTess - 1) * (VTess - 1);
+  NextIndex := 0;
+  for I := 1 to UTess - 1 do
+    for J := 1 to VTess - 1 do
+    begin
+      { This order (important for solid = TRUE values) is compatible
+        with white dune and octagaplayer. }
+      ResultIndex.Items[NextIndex] := MakeIndex(I  , J  ); Inc(NextIndex);
+      ResultIndex.Items[NextIndex] := MakeIndex(I-1, J  ); Inc(NextIndex);
+      ResultIndex.Items[NextIndex] := MakeIndex(I-1, J-1); Inc(NextIndex);
+      ResultIndex.Items[NextIndex] := MakeIndex(I  , J-1); Inc(NextIndex);
+    end;
+  Assert(NextIndex = Cardinal(ResultIndex.Count));
+
+  QS.FdSolid.Value := Solid;
+
+  { calculate texCoord field }
+  QS.FdTexCoord.Value := TexCoord;
+  if QS.FdTexCoord.Value = nil then
+  begin
+    { X3D spec says "By default, texture coordinates in the unit square
+      (or cube for 3D coordinates) are generated automatically
+      from the parametric subdivision.". I think this means that tex coords
+      S/T = 0..1 range from starting to ending knot. }
+    QS.FdTexCoord.Value := TNodeTextureCoordinate.Create('', '');
+    ResultTexCoord := (QS.FdTexCoord.Value as TNodeTextureCoordinate).FdPoint.Items;
+    ResultTexCoord.Count := UTess * VTess;
+    for I := 0 to UTess - 1 do
+      for J := 0 to VTess - 1 do
+        ResultTexCoord.Items[I + J * UTess] := Vector2Single(
+          I / (UTess - 1),
+          J / (VTess - 1));
+  end;
+
+  FreeAndNil(UKnot);
+  FreeAndNil(VKnot);
+end;
+
+function TNodeNurbsPatchSurface.Proxy: TVRMLGeometryNode;
+var
+  ControlPoint: TDynVector3SingleArray;
+begin
+  Result := TNodeIndexedQuadSet.Create(NodeName, WWWBasePath);
   try
     { TODO: we should handle here all TNodeX3DCoordinateNode }
     if (FdControlPoint.Value <> nil) and
        (FdControlPoint.Value is TNodeCoordinate) then
-      ControlPoint := TNodeCoordinate(FdControlPoint.Value) else
-      Exit;
-
-    if ControlPoint.CoordCount = 0 then Exit;
-
-    if FdUDimension.Value * FdVDimension.Value <>
-       Integer(ControlPoint.CoordCount) then
     begin
-      VRMLWarning(vwSerious, Format('Number of coordinates in NurbsPatchSurface.controlPoint (%d) doesn''t match uDimension * vDimension (%d * %d = %d)',
-        [ ControlPoint.CoordCount,
-          FdUDimension.Value,  FdVDimension.Value,
-          FdUDimension.Value * FdVDimension.Value ]));
-      Exit;
+      ControlPoint := TNodeCoordinate(FdControlPoint.Value).FdPoint.Items;
+      NurbsPatchSurfaceProxy(TNodeIndexedQuadSet(Result),
+        ControlPoint,
+        FdUTessellation.Value,
+        FdVTessellation.Value,
+        FdUDimension.Value,
+        FdVDimension.Value,
+        FdUOrder.Value,
+        FdVOrder.Value,
+        FdUKnot.Items,
+        FdVKnot.Items,
+        FdWeight.Items,
+        FdUClosed.Value,
+        FdVClosed.Value,
+        FdSolid.Value,
+        FdTexCoord.Value);
     end;
 
-    if (FdUDimension.Value < 0) or
-       (FdVDimension.Value < 0) then
-    begin
-      VRMLWarning(vwSerious, 'NurbsPatchSurface.u/vDimension is < 0');
-      Exit;
-    end;
-
-    if (FdUOrder.Value < 2) or
-       (FdVOrder.Value < 2) then
-    begin
-      VRMLWarning(vwSerious, 'NURBS order must be >= 2');
-      Exit;
-    end;
-
-    { We can be sure now that we have
-      - correct ControlPoint, non-nil, with at least 1 point.
-      - uDimension, vDimension match ControlPoint count, and are > 0.
-      - we have Order >= 2.
-    }
-
-    { calculate actual UClosed, VClosed values.
-
-      Since we use xClosed fields not only to calculate normals,
-      but to actually set the geometry indexes, we have to check them
-      carefully and avoid using if look bad. Otherwise not only the normals,
-      but the whole geometry would look bad when xClosed fields are wrongly
-      set to TRUE.
-
-      Moreover, X3D spec says "If the last control point is not identical
-      with the first control point, the field is ignored."
-      for X3DNurbsSurfaceGeometryNode. So it seems the implementation
-      isn't supposed to "trust" xClosed = TRUE value anyway (that's also
-      why no VRML warning is done about it, although we log it).
-      Examples of such wrong xClosed = TRUE settings may be found
-      even on web3d.org examples, see
-      http://www.web3d.org/x3d/content/examples/NURBS/
-      e.g. "Fred The Bunny" in X3d.) }
-    UClosed := CalculateUClosed;
-    VClosed := CalculateVClosed;
-
-    { calculate correct UKnot, VKnot vectors }
-    UKnot := TDynDoubleArray.Create;
-    UKnot.Assign(FdUKnot.Items);
-    NurbsKnotIfNeeded(UKnot, FdUDimension.Value, FdUOrder.Value, nkEndpointUniform);
-    VKnot := TDynDoubleArray.Create;
-    VKnot.Assign(FdVKnot.Items);
-    NurbsKnotIfNeeded(VKnot, FdVDimension.Value, FdVOrder.Value, nkEndpointUniform);
-
-    { calculate tesselation: xTess, xIncrease }
-    UTess := ActualTessellation(FdUTessellation.Value, FdUDimension.Value);
-    VTess := ActualTessellation(FdVTessellation.Value, FdVDimension.Value);
-    UIncrease := (UKnot.Last - UKnot.First) / (UTess - 1);
-    VIncrease := (VKnot.Last - VKnot.First) / (VTess - 1);
-
-    { make resulting Coordinate node }
-    QS.FdCoord.Value := TVRMLNodeClass(ControlPoint.ClassType).Create('', WWWBasePath);
-    ResultCoord := (QS.FdCoord.Value as TNodeCoordinate).FdPoint.Items;
-
-    { calculate result Coordinate.point field }
-    ResultCoord.Count := UTess * VTess;
-    for I := 0 to UTess - 1 do
-      for J := 0 to VTess - 1 do
-        ResultCoord.Items[I + J * UTess] :=
-          NurbsSurfacePoint(ControlPoint.FdPoint.Items,
-            FdUDimension.Value,
-            FdVDimension.Value,
-            UKnot.First + UIncrease * I,
-            VKnot.First + VIncrease * J,
-            FdUOrder.Value,
-            FdVOrder.Value,
-            UKnot,
-            VKnot,
-            FdWeight.Items,
-            { unused for now }
-            Normal);
-
-    { calculate index field }
-    ResultIndex := QS.FdIndex.Items;
-    ResultIndex.Count := 4 * (UTess - 1) * (VTess - 1);
-    NextIndex := 0;
-    for I := 1 to UTess - 1 do
-      for J := 1 to VTess - 1 do
-      begin
-        { This order (important for solid = TRUE values) is compatible
-          with white dune and octagaplayer. }
-        ResultIndex.Items[NextIndex] := MakeIndex(I  , J  ); Inc(NextIndex);
-        ResultIndex.Items[NextIndex] := MakeIndex(I-1, J  ); Inc(NextIndex);
-        ResultIndex.Items[NextIndex] := MakeIndex(I-1, J-1); Inc(NextIndex);
-        ResultIndex.Items[NextIndex] := MakeIndex(I  , J-1); Inc(NextIndex);
-      end;
-    Assert(NextIndex = Cardinal(ResultIndex.Count));
-
-    QS.FdSolid.Value := FdSolid.Value;
-
-    { calculate texCoord field }
-    QS.FdTexCoord.Value := FdTexCoord.Value;
-    if QS.FdTexCoord.Value = nil then
-    begin
-      { X3D spec says "By default, texture coordinates in the unit square
-        (or cube for 3D coordinates) are generated automatically
-        from the parametric subdivision.". I think this means that tex coords
-        S/T = 0..1 range from starting to ending knot. }
-      QS.FdTexCoord.Value := TNodeTextureCoordinate.Create('', WWWBasePath);
-      ResultTexCoord := (QS.FdTexCoord.Value as TNodeTextureCoordinate).FdPoint.Items;
-      ResultTexCoord.Count := UTess * VTess;
-      for I := 0 to UTess - 1 do
-        for J := 0 to VTess - 1 do
-          ResultTexCoord.Items[I + J * UTess] := Vector2Single(
-            I / (UTess - 1),
-            J / (VTess - 1));
-    end;
-
-    FreeAndNil(UKnot);
-    FreeAndNil(VKnot);
+    { Note: In case of null / invalid / unhandled FdControlPoint.Value,
+      we still return valid (just empty) IndexedQuadSet node. }
   except FreeAndNil(Result); raise end;
 end;
 
