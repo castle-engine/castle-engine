@@ -1044,6 +1044,7 @@ var
   Normal: TVector3_Single;
   UIncrease, VIncrease: Double;
   UKnot, VKnot: TDynDoubleArray;
+  ResultTexCoord: TDynVector2SingleArray;
 begin
   QS := TNodeIndexedQuadSet.Create(NodeName, WWWBasePath);
   try
@@ -1158,7 +1159,24 @@ begin
     Assert(NextIndex = Cardinal(ResultIndex.Count));
 
     QS.FdSolid.Value := FdSolid.Value;
+
+    { calculate texCoord field }
     QS.FdTexCoord.Value := FdTexCoord.Value;
+    if QS.FdTexCoord.Value = nil then
+    begin
+      { X3D spec says "By default, texture coordinates in the unit square
+        (or cube for 3D coordinates) are generated automatically
+        from the parametric subdivision.". I think this means that tex coords
+        S/T = 0..1 range from starting to ending knot. }
+      QS.FdTexCoord.Value := TNodeTextureCoordinate.Create('', WWWBasePath);
+      ResultTexCoord := (QS.FdTexCoord.Value as TNodeTextureCoordinate).FdPoint.Items;
+      ResultTexCoord.Count := UTess * VTess;
+      for I := 0 to UTess - 1 do
+        for J := 0 to VTess - 1 do
+          ResultTexCoord.Items[I + J * UTess] := Vector2Single(
+            I / (UTess - 1),
+            J / (VTess - 1));
+    end;
 
     FreeAndNil(UKnot);
     FreeAndNil(VKnot);
