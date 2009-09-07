@@ -1056,7 +1056,7 @@ begin
   if UDimension * VDimension <>
      Integer(ControlPoint.Count) then
   begin
-    VRMLWarning(vwSerious, Format('Number of coordinates in NurbsPatchSurface.controlPoint (%d) doesn''t match uDimension * vDimension (%d * %d = %d)',
+    VRMLWarning(vwSerious, Format('Number of coordinates in Nurbs[Patch]Surface.controlPoint (%d) doesn''t match uDimension * vDimension (%d * %d = %d)',
       [ ControlPoint.Count,
         UDimension,  VDimension,
         UDimension * VDimension ]));
@@ -1066,7 +1066,7 @@ begin
   if (UDimension < 0) or
      (VDimension < 0) then
   begin
-    VRMLWarning(vwSerious, 'NurbsPatchSurface.u/vDimension is < 0');
+    VRMLWarning(vwSerious, 'Nurbs[Patch]Surface.u/vDimension is < 0');
     Exit;
   end;
 
