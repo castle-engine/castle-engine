@@ -51,15 +51,22 @@ function ActualTessellation(const Tessellation: Integer;
   Otherwise, weight = 1.0 (that is, defining non-rational curve) will be used
   (this follows X3D spec).
 
+  Tangent, if non-nil, will be set to the direction at given point of the
+  curve, pointing from the smaller to larger knot values.
+  It will be normalized. This can be directly useful to generate
+  orientations by X3D NurbsOrientationInterpolator node.
+
   @groupBegin }
 function NurbsCurvePoint(const Points: PVector3Single;
   const PointsCount: Cardinal; const U: Single;
   const Order: Cardinal;
-  Knot, Weight: TDynDoubleArray): TVector3_Single;
+  Knot, Weight: TDynDoubleArray;
+  Tangent: PVector3_Single): TVector3_Single;
 function NurbsCurvePoint(const Points: TDynVector3SingleArray;
   const U: Single;
   const Order: Cardinal;
-  Knot, Weight: TDynDoubleArray): TVector3_Single;
+  Knot, Weight: TDynDoubleArray;
+  Tangent: PVector3_Single): TVector3_Single;
 { @groupEnd }
 
 { Return point on NURBS surface.
@@ -216,13 +223,16 @@ end;
 function NurbsCurvePoint(const Points: PVector3Single;
   const PointsCount: Cardinal; const U: Single;
   const Order: Cardinal;
-  Knot, Weight: TDynDoubleArray): TVector3_Single;
+  Knot, Weight: TDynDoubleArray;
+  Tangent: PVector3_Single): TVector3_Single;
 var
   i: Integer;
-  w: Single;
+  w, duw: Single;
   span: LongInt;
   basis, deriv: TDynDoubleArray;
   UseWeight: boolean;
+  du: TVector3_Single;
+  index: Cardinal;
 begin
   UseWeight := Cardinal(Weight.Count) = PointsCount;
 
@@ -234,16 +244,34 @@ begin
   basisFuns(span, u, order, Knot, basis, deriv);
 
   Result.Init_Zero;
+  du.Init_Zero;
+
   w := 0.0;
-  for i :=0 to order-1 do
+  duw := 0.0;
+
+  for i := 0 to order-1 do
   begin
-    Result += Points[span-order+1+i] * basis[i];
+    index := span-order+1+i;
+    Result += Points[index] * basis[i];
+    du += Points[index] * deriv[i];
     if UseWeight then
-      w += weight[span-order+1+i] * basis[i] else
+    begin
+      w += weight[index] * basis[i];
+      duw += weight[index] * deriv[i];
+    end else
+    begin
       w += basis[i];
+      duw += deriv[i];
+    end;
   end;
 
   Result /= w;
+
+  if Tangent <> nil then
+  begin
+    Tangent^ := (du - Result * duw) / w;
+    Vector_Normalize(Tangent^);
+  end;
 
   FreeAndNil(basis);
   FreeAndNil(deriv);
@@ -252,9 +280,11 @@ end;
 function NurbsCurvePoint(const Points: TDynVector3SingleArray;
   const U: Single;
   const Order: Cardinal;
-  Knot, Weight: TDynDoubleArray): TVector3_Single;
+  Knot, Weight: TDynDoubleArray;
+  Tangent: PVector3_Single): TVector3_Single;
 begin
-  Result := NurbsCurvePoint(Points.Items, Points.Count, U, Order, Knot, Weight);
+  Result := NurbsCurvePoint(Points.Items, Points.Count, U, Order, Knot, Weight,
+    Tangent);
 end;
 
 function NurbsSurfacePoint(const Points: TDynVector3SingleArray;

@@ -594,7 +594,7 @@ begin
   KeyWeight := FdKeyWeight.Items.ToDouble;
 
   OutputValue := NurbsCurvePoint(FdKeyValue.Items, (Value as TSFFloat).Value,
-    FdOrder.Value, Knot, KeyWeight);
+    FdOrder.Value, Knot, KeyWeight, nil);
 
   FreeAndNil(KeyWeight);
   FreeAndNil(Knot);

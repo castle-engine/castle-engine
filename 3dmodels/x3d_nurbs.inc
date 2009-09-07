@@ -801,7 +801,7 @@ begin
     ResultCoord.FdPoint.Items.Items[I] :=
       NurbsCurvePoint(ControlPoint,
         Knot.First + Increase * I,
-        Order, Knot, Weight);
+        Order, Knot, Weight, nil);
 
   { set LineSet.vertexCount (otherwise it's coord will be ignored) }
   LS.FdVertexCount.Items.AppendItem(Tess);
@@ -1388,7 +1388,7 @@ begin
   NurbsKnotIfNeeded(Knot, ControlPoint.Count, FdOrder.Value, nkEndpointUniform);
 
   OutputValue := NurbsCurvePoint(ControlPoint, (Value as TSFFloat).Value,
-    FdOrder.Value, Knot, FdWeight.Items);
+    FdOrder.Value, Knot, FdWeight.Items, nil);
 
   FreeAndNil(Knot);
 

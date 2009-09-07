@@ -272,6 +272,34 @@ type    Tvector2_single_data=array[0..1] of single;
         Tmatrix4_extended_data=array[0..3,0..3] of extended;
 {$endif}
 
+{$ifdef HAS_MATRIX_UNIT}
+{ Define pointer types for all Matrix unit types. }
+type
+  Pvector2_single   = ^Tvector2_single  ;
+  Pvector2_double   = ^Tvector2_double  ;
+  Pvector2_extended = ^Tvector2_extended;
+
+  Pvector3_single   = ^Tvector3_single  ;
+  Pvector3_double   = ^Tvector3_double  ;
+  Pvector3_extended = ^Tvector3_extended;
+
+  Pvector4_single   = ^Tvector4_single  ;
+  Pvector4_double   = ^Tvector4_double  ;
+  Pvector4_extended = ^Tvector4_extended;
+
+  Pmatrix2_single   = ^Tmatrix2_single  ;
+  Pmatrix2_double   = ^Tmatrix2_double  ;
+  Pmatrix2_extended = ^Tmatrix2_extended;
+
+  Pmatrix3_single   = ^Tmatrix3_single  ;
+  Pmatrix3_double   = ^Tmatrix3_double  ;
+  Pmatrix3_extended = ^Tmatrix3_extended;
+
+  Pmatrix4_single   = ^Tmatrix4_single  ;
+  Pmatrix4_double   = ^Tmatrix4_double  ;
+  Pmatrix4_extended = ^Tmatrix4_extended;
+{$endif}
+
 { Most types below are packed anyway, so the "packed" keyword below
   is often not needed (but it doesn't hurt).
 
