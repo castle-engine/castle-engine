@@ -1716,7 +1716,7 @@ var
   end;
 
 var
-  CameraMatrix, ProjectionMatrix: TMatrix4Single;
+  ProjectionMatrix: TMatrix4Single;
   Pos, Dir, Up: TVector3Single;
 begin
   if GLName = 0 then Exit;
@@ -1730,12 +1730,11 @@ begin
   ProjectionMatrix := GetProjectionMatrix;
 
   GetRenderedTextureCamera(Pos, Dir, Up);
-  CameraMatrix := LookDirMatrix(Pos, Dir, Up);
 
   RenderState.Target := rfOffScreen;
   RenderState.CameraFromMatrix(
-    CameraMatrix,
-    IdentityMatrix4Single { TODO - should be CameraRotationMatrix },
+    LookDirMatrix(Pos, Dir, Up),
+    LookDirMatrix(ZeroVector3Single, Dir, Up),
     ProjectionMatrix);
 
   RenderToTexture.RenderBegin;
