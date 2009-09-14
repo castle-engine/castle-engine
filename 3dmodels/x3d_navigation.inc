@@ -55,6 +55,9 @@
     private FEventCameraRotationInverseMatrix: TVRMLEvent;
     public property EventCameraRotationInverseMatrix: TVRMLEvent read FEventCameraRotationInverseMatrix;
 
+    private FFdcameraMatrixSendAlsoOnOffscreenRendering: TSFBool;
+    public property FdcameraMatrixSendAlsoOnOffscreenRendering: TSFBool read FFdcameraMatrixSendAlsoOnOffscreenRendering;
+
     { Position of the viewpoint.
 
       This is an abstract function, not a simple FdPosition, because one of
@@ -394,6 +397,9 @@ begin
 
   FEventCameraRotationInverseMatrix := TVRMLEvent.Create(Self, 'cameraRotationInverseMatrix', TSFMatrix3f, false);
   Events.Add(FEventCameraRotationInverseMatrix);
+
+  FFdcameraMatrixSendAlsoOnOffscreenRendering := TSFBool.Create(Self, 'cameraMatrixSendAlsoOnOffscreenRendering', false);
+  Fields.Add(FFdcameraMatrixSendAlsoOnOffscreenRendering);
 
   Eventset_bind.OnReceive.AppendItem(@EventSet_BindReceive);
 end;

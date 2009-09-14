@@ -5637,7 +5637,9 @@ begin
 
   if ProcessEvents and
      (ViewpointStack.Top <> nil) and
-     (ViewpointStack.Top is TVRMLViewpointNode) then
+     (ViewpointStack.Top is TVRMLViewpointNode) and
+     ( (RenderState.Target = rtScreen) or
+       TVRMLViewpointNode(ViewpointStack.Top).FdcameraMatrixSendAlsoOnOffscreenRendering.Value ) then
   begin
     V := TVRMLViewpointNode(ViewpointStack.Top);
 
