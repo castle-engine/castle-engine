@@ -272,8 +272,8 @@ begin
     ViewportX, ViewportY,
     ViewportWidth, ViewportHeight);
 
-  RenderState.CameraFromNavigator(Navigator);
   RenderState.Target := rtScreen;
+  RenderState.CameraFromNavigator(Navigator);
   RenderFromView;
 end;
 

@@ -282,8 +282,8 @@ var
       glLoadMatrix(ProjectionMatrix);
       glMatrixMode(GL_MODELVIEW);
 
-        SetRenderStateCamera(CapturePoint, Side, ProjectionMatrix);
         RenderState.Target := rtCubeMapEnvironment;
+        SetRenderStateCamera(CapturePoint, Side, ProjectionMatrix);
         Render;
 
       glMatrixMode(GL_PROJECTION);
@@ -377,8 +377,8 @@ procedure GLCaptureCubeMapTexture(
         glLoadMatrix(ProjectionMatrix);
         glMatrixMode(GL_MODELVIEW);
 
-          SetRenderStateCamera(CapturePoint, Side, ProjectionMatrix);
           RenderState.Target := rtCubeMapEnvironment;
+          SetRenderStateCamera(CapturePoint, Side, ProjectionMatrix);
           Render;
 
         glMatrixMode(GL_PROJECTION);

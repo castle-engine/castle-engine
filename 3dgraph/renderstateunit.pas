@@ -72,7 +72,9 @@ type
     StencilTest: Cardinal;
 
     { Always called after camera changed.
-      This will call all registered OnCameraChanged events. }
+      This will call all registered OnCameraChanged events.
+      Remember that @link(Target) must be already set correctly when calling
+      this, registered OnCameraChanged callbacks may read it. }
     procedure CameraChanged;
 
     property OnCameraChanged: TDynCameraChangedEventArray read FOnCameraChanged;
@@ -125,11 +127,17 @@ type
   public
     CameraFrustum: TFrustum;
 
-    { Set all Camera* properties from navigator Nav. }
+    { Set all Camera* properties from navigator Nav.
+
+      Remember that @link(Target) must be already set correctly when calling
+      this, registered OnCameraChanged callbacks may read it. }
     procedure CameraFromNavigator(Nav: TNavigator);
 
     { Set all Camera* properties from explict matrices.
-      ProjectionMatrix is needed to calculate frustum. }
+      ProjectionMatrix is needed to calculate frustum.
+
+      Remember that @link(Target) must be already set correctly when calling
+      this, registered OnCameraChanged callbacks may read it. }
     procedure CameraFromMatrix(const ACameraMatrix, ACameraRotationMatrix,
       ProjectionMatrix: TMatrix4Single);
 

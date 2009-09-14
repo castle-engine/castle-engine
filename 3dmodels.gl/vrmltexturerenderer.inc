@@ -1732,11 +1732,11 @@ begin
   GetRenderedTextureCamera(Pos, Dir, Up);
   CameraMatrix := LookDirMatrix(Pos, Dir, Up);
 
+  RenderState.Target := rfOffScreen;
   RenderState.CameraFromMatrix(
     CameraMatrix,
     IdentityMatrix4Single { TODO - should be CameraRotationMatrix },
     ProjectionMatrix);
-  RenderState.Target := rfOffScreen;
 
   RenderToTexture.RenderBegin;
 
@@ -2236,11 +2236,11 @@ begin
   { Render view for shadow map }
   ProjectionMatrix := Light.MapProjectionMatrix;
 
+  RenderState.Target := rtShadowMap;
   RenderState.CameraFromMatrix(
     Light.MapModelviewMatrix,
-    IdentityMatrix4Single { TODO: RotationMatrix is always identity here },
+    Light.MapModelviewRotationMatrix,
     ProjectionMatrix);
-  RenderState.Target := rtShadowMap;
 
   RenderToTexture.RenderBegin;
 
