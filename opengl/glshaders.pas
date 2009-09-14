@@ -383,7 +383,7 @@ const
 
 implementation
 
-uses KambiStringUtils, DataErrors;
+uses KambiStringUtils, DataErrors, KambiLog;
 
 { Comfortable shortcut for glGetProgramivARB that always returns 1 value. }
 function glGetProgramiARB(target: TGLenum; pname: TGLenum): TGLint;
@@ -1121,6 +1121,9 @@ begin
     raise EGLSLRunningInSoftware.CreateFmt(
       'GLSL shader linked but rejected, as it seems it will run in software.' +
       'Program info log is "%s"', [ProgramInfoLog]);
+
+  if Log then
+    WritelnLogMultiline('GLSL', 'GLSL program successfully linked. Information:' + NL + DebugInfo);
 end;
 
 function TGLSLProgram.RunningInHardware: boolean;
