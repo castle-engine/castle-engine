@@ -662,6 +662,10 @@ type
       from the inside of the object usually obscures the world around...). }
     AvoidShapeRendering: TVRMLGLShape;
 
+    { Used by UpdateGeneratedTextures, to prevent rendering non-shadow casters
+      for shadow maps. }
+    AvoidNonShadowCasterRendering: boolean;
+
     { Private things for RenderFrustum --------------------------------------- }
 
     function FrustumCulling_None(Shape: TVRMLGLShape): boolean;
@@ -2122,7 +2126,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    
+
   public
     Id: TGLuint;
 
@@ -2250,7 +2254,8 @@ var
   var
     SampleCount: TGLuint;
   begin
-    if Shape <> AvoidShapeRendering then
+    if (Shape <> AvoidShapeRendering) and
+       ( (not AvoidNonShadowCasterRendering) or Shape.ShadowCaster) then
     begin
       { We do not make occlusion query when rendering to something else
         than screen (like shadow map or cube map environment for mirror).
@@ -4834,7 +4839,9 @@ begin
     TextureNode := GeneratedTextures.Items[I].TextureNode;
 
     if TextureNode is TNodeGeneratedCubeMapTexture then
-      AvoidShapeRendering := Shape;
+      AvoidShapeRendering := Shape else
+    if TextureNode is TNodeGeneratedShadowMap then
+      AvoidNonShadowCasterRendering := true;
 
     Renderer.UpdateGeneratedTextures(Shape,
       TextureNode,
@@ -4844,6 +4851,7 @@ begin
       LastViewerPosition, LastViewerDirection, LastViewerUp);
 
     AvoidShapeRendering := nil;
+    AvoidNonShadowCasterRendering := false;
   end;
 
   if NeedsRestoreViewport then

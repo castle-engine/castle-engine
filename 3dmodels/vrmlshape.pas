@@ -455,6 +455,11 @@ type
     { Is the texture node Node possibly used by this shape.
       This is equivalent to checking does EnumerateShapeTextures return this shape. }
     function UsesTexture(Node: TNodeX3DTextureNode): boolean;
+
+    { Check is shape a shadow caster. Looks at Shape's
+      KambiAppearance.shadowCaster field (see
+      http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadow_caster). }
+    function ShadowCaster: boolean;
   end;
 
   TObjectsListItem_2 = TVRMLShapeTree;
@@ -1223,6 +1228,23 @@ begin
       on BreakUsesTexture do Result := true;
     end;
   finally Helper.Free end;
+end;
+
+function TVRMLShape.ShadowCaster: boolean;
+var
+  S: TNodeX3DShapeNode;
+  A: TVRMLNode;
+begin
+  Result := true;
+
+  S := State.ParentShape;
+  if S <> nil then
+  begin
+    A := S.FdAppearance.Value;
+    if (A <> nil) and
+       (A is TNodeKambiAppearance) then
+      Result := TNodeKambiAppearance(A).FdShadowCaster.Value;
+  end;
 end;
 
 { TVRMLShapeTreeGroup -------------------------------------------------------- }
