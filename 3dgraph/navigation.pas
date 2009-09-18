@@ -1431,6 +1431,21 @@ implementation
 
 uses Math, KambiStringUtils, VRMLCameraUtils;
 
+{ Define this to have Input_RightRot/LeftRot (right / left arrow keys by default)
+  work in "single step" mode (single press => one rotation by 5 degrees)
+  instead of normal "continous" mode (smooth rotation when you hold the key
+  pressed).
+
+  Only in the Walk mode.
+
+  Note that even in the "single step" mode, holding the key for a longer time
+  will cause successive rotations, since key-down events are repeated.
+  (Just like in a text editor holding a letter key for some time will
+  cause inserting the same letter again and again...) This could be
+  removed in SINGLE_STEP_ROTATION code, but it's not --- it's useful and
+  desired IMHO :) }
+{ $define SINGLE_STEP_ROTATION}
+
 { TInputShortcut ------------------------------------------------------------- }
 
 constructor TInputShortcut.Create(AKey1: TKey; AKey2: TKey; ACharacter: Char;
@@ -2463,10 +2478,12 @@ var
     Uzyj SpeedScale aby skalowac szybkosc obracania sie, tzn. defaltowa
     szybkosc obracania sie = 1.0 }
   begin
+    {$ifndef SINGLE_STEP_ROTATION}
     if Input_RightRot.IsPressed(KeysDown, CharactersDown, MousePressed) then
       RotateHorizontal(-RotationHorizontalSpeed * CompSpeed * 50 * SpeedScale);
     if Input_LeftRot.IsPressed(KeysDown, CharactersDown, MousePressed) then
       RotateHorizontal(+RotationHorizontalSpeed * CompSpeed * 50 * SpeedScale);
+    {$endif not SINGLE_STEP_ROTATION}
 
     if Input_UpRotate.IsPressed(KeysDown, CharactersDown, MousePressed) then
       RotateVertical(+RotationVerticalSpeed * CompSpeed * 50 * SpeedScale);
@@ -3209,6 +3226,13 @@ function TWalkNavigator.EventDown(MouseEvent: boolean; Key: TKey;
   AMouseButton: TMouseButton): boolean;
 begin
   if IgnoreAllInputs then Exit(false);
+
+  {$ifdef SINGLE_STEP_ROTATION}
+  if Input_RightRot.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
+    RotateHorizontal(-5) else
+  if Input_LeftRot.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
+    RotateHorizontal(+5) else
+  {$endif SINGLE_STEP_ROTATION}
 
   if Input_GravityUp.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
   begin
