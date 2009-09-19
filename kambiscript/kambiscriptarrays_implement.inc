@@ -133,6 +133,23 @@ begin
   AResult := Arguments[0];
 end;
 
+class procedure TKamScriptXxxArray.HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
+  Arr: TDynXxxArray;
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptXxxArray);
+
+  Arr := TKamScriptXxxArray(AResult).Value;
+  { initially Arr is empty. This is needed to set explicitly,
+    since CreateValueIfNeeded could left previous AResult }
+  Arr.Count := 0;
+  for I := 0 to Length(Arguments) - 1 do
+    Arr.AppendDynArray(TKamScriptXxxArray(Arguments[I]).Value);
+
+  TKamScriptXxxArray(AResult).ValueAssigned := true;
+end;
+
 procedure RegisterXxxFunctions;
 begin
   FunctionHandlers.RegisterHandler(@TKamScriptXxxArray(nil).HandleArrayFun, TKamScriptXxxArrayFun, [TKamScriptXxxElement], true);
@@ -140,4 +157,5 @@ begin
   FunctionHandlers.RegisterHandler(@TKamScriptXxxArray(nil).HandleArraySetCount, TKamScriptArraySetCount, [TKamScriptXxxArray, TKamScriptInteger], false);
   FunctionHandlers.RegisterHandler(@TKamScriptXxxArray(nil).HandleArrayGet, TKamScriptArrayGet, [TKamScriptXxxArray, TKamScriptInteger], false);
   FunctionHandlers.RegisterHandler(@TKamScriptXxxArray(nil).HandleArraySet, TKamScriptArraySet, [TKamScriptXxxArray, TKamScriptInteger, TKamScriptXxxElement], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptXxxArray(nil).HandleAdd, TKamScriptAdd, [TKamScriptXxxArray], true);
 end;
