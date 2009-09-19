@@ -3378,20 +3378,24 @@ begin
     if Node is TNodeRenderedTexture then
     begin
       if (Field = nil) or
-         (Field = TNodeRenderedTexture(Node).FdUpdate) or
          (Field = TNodeRenderedTexture(Node).FdDimensions) or
          (Field = TNodeRenderedTexture(Node).FdViewpoint) or
          (Field = TNodeRenderedTexture(Node).FdDepthMap) then
+        { Call with prVisibleSceneGeometry, to regenerate even if UpdateNeeded = false }
+        PostRedisplay([prVisibleSceneGeometry]) else
+      if (Field = TNodeRenderedTexture(Node).FdUpdate) then
         PostRedisplay([]);
       Exit;
     end else
     if Node is TNodeGeneratedShadowMap then
     begin
       if (Field = nil) or
-         (Field = TNodeGeneratedShadowMap(Node).FdUpdate) or
          (Field = TNodeGeneratedShadowMap(Node).FdScale) or
          (Field = TNodeGeneratedShadowMap(Node).FdBias) or
          (Field = TNodeGeneratedShadowMap(Node).FdLight) then
+        { Call with prVisibleSceneGeometry, to regenerate even if UpdateNeeded = false }
+        PostRedisplay([prVisibleSceneGeometry]) else
+      if (Field = TNodeGeneratedShadowMap(Node).FdUpdate) then
         PostRedisplay([]);
       Exit;
     end else
