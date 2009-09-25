@@ -336,7 +336,7 @@ begin
       OutputValue := KeyValue(0) else
     if Range = KeyCount then
       OutputValue := KeyValue(KeyCount - 1) else
-      OutputValue := Lerp(T, KeyValue(Range - 1), KeyValue(Range));
+      OutputValue := SingleInterpolatorLerp(T, KeyValue(Range - 1), KeyValue(Range));
   end;
   EventValue_Changed.Send(OutputValue, Time);
 end;}
@@ -482,6 +482,7 @@ procedure TNodeColorInterpolator.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 {$define SingleInterpolatorType := TVector3Single}
 {$define SingleInterpolatorDefault := ZeroVector3Single}
+{$define SingleInterpolatorLerp := Lerp}
 SingleInterpolator
 
 constructor TNodeCoordinateInterpolator.Create(const ANodeName: string;
@@ -697,6 +698,7 @@ procedure TNodeOrientationInterpolator.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 {$define SingleInterpolatorType := TVector4Single}
 {$define SingleInterpolatorDefault := ZeroVector4Single}
+{$define SingleInterpolatorLerp := SLerp}
 SingleInterpolator
 
 constructor TNodePositionInterpolator.Create(const ANodeName: string;
@@ -741,6 +743,7 @@ procedure TNodePositionInterpolator.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 {$define SingleInterpolatorType := TVector3Single}
 {$define SingleInterpolatorDefault := ZeroVector3Single}
+{$define SingleInterpolatorLerp := Lerp}
 SingleInterpolator
 
 constructor TNodePositionInterpolator2D.Create(const ANodeName: string;
@@ -783,6 +786,7 @@ procedure TNodePositionInterpolator2D.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 {$define SingleInterpolatorType := TVector2Single}
 {$define SingleInterpolatorDefault := ZeroVector2Single}
+{$define SingleInterpolatorLerp := Lerp}
 SingleInterpolator
 
 constructor TNodeScalarInterpolator.Create(const ANodeName: string;
@@ -827,6 +831,7 @@ procedure TNodeScalarInterpolator.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 {$define SingleInterpolatorType := Single}
 {$define SingleInterpolatorDefault := 0}
+{$define SingleInterpolatorLerp := Lerp}
 SingleInterpolator
 
 constructor TNodeSplinePositionInterpolator.Create(const ANodeName: string;

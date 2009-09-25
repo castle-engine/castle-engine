@@ -115,6 +115,37 @@ procedure QuatNormalizeTo1st(var Q: TQuaternion);
   Anyway, this remains mostly a paranoid correctness measure.  }
 procedure QuatLazyNormalizeTo1st(var Q: TQuaternion);
 
+{ Interpolate between two rotations, along the shortest path on the unit sphere,
+  with constant speed.
+
+  The overloaded version that works with TVector4Single takes
+  a rotation (not a quaternion) expressed as an axis
+  (first 3 elements) and angle (in radians, 4th element).
+  Axis does not have to be normalized (we'll normalize it).
+  This is nice e.g. to interpolate VRML/X3D rotations.
+
+  @groupBegin }
+function SLerp(const A: Single; const Q1, Q2: TQuaternion): TQuaternion;
+function SLerp(const A: Single; const Rot1, Rot2: TVector4Single): TVector4Single;
+{ @groupEnd }
+
+{ Interpolate between two rotations, along the shortest path on the unit sphere.
+
+  This is faster than SLerp, but does not make the interpolation
+  with constant speed. Often it's not a noticeable / important problem.
+  See http://number-none.com/product/Understanding%20Slerp,%20Then%20Not%20Using%20It/
+
+  The overloaded version that works with TVector4Single takes
+  a rotation (not a quaternion) expressed as an axis
+  (first 3 elements) and angle (in radians, 4th element).
+  Axis does not have to be normalized (we'll normalize it).
+  This is nice e.g. to interpolate VRML/X3D rotations.
+
+  @groupBegin }
+function NLerp(const A: Single; const Q1, Q2: TQuaternion): TQuaternion;
+function NLerp(const A: Single; const Rot1, Rot2: TVector4Single): TVector4Single;
+{ @groupEnd }
+
 implementation
 
 uses Math;
@@ -266,6 +297,76 @@ begin
       Q.Real *= Len;
     end;
   end;
+end;
+
+{ Like QuatFromAxisAngle, except Axis is always normalized here,
+  and Axis+Angle are packed within a vector. }
+function QuatFromAxisAngle_UnnormalizedPacked(Rot: TVector4Single): TQuaternion;
+var
+  Axis: TVector3Single absolute Rot;
+begin
+  NormalizeTo1st(Axis);
+  Result := QuatFromAxisAngle(Axis, Rot[3]);
+end;
+
+{ Like QuatToAxisAngle, except Axis+Angle are packed within a vector.
+  Axis will be normalized only if quaternion was also normalized
+  (which is usually the case, if working with rotation quaternions). }
+function QuatToAxisAngle_Packed(const Q: TQuaternion): TVector4Single;
+var
+  Axis: TVector3Single absolute Result;
+begin
+  QuatToAxisAngle(Q, Axis, Result[3]);
+end;
+
+{ For SLerp and NLerp implementations, see
+  http://www.3dkingdoms.com/weekly/weekly.php?a=36
+  http://www.3dkingdoms.com/weekly/quat.h
+  http://number-none.com/product/Understanding%20Slerp,%20Then%20Not%20Using%20It/
+  http://en.wikipedia.org/wiki/Slerp
+}
+
+function SLerp(const A: Single; const Q1, Q2: TQuaternion): TQuaternion;
+var
+  W1, W2: Single;
+  CosTheta, Theta: Float;
+  SinTheta: Single;
+begin
+  CosTheta := VectorDotProduct(Q1.Vector4, Q2.Vector4);
+  Theta := ArcCos(CosTheta);
+  SinTheta := Sin(Theta);
+  if SinTheta > 0.001 then
+  begin
+    W1 := Sin( (1-A) * Theta ) / SinTheta;
+    W2 := Sin(    A  * Theta ) / SinTheta;
+  end else
+  begin
+    { Theta ~= 0, so both rotations equal (or opposite, in which case
+      result in undefined anyway). }
+    W1 := 1 - A;
+    W2 := A;
+  end;
+  Result.Vector4 := VectorAdd(VectorScale(Q1.Vector4, W1), VectorScale(Q2.Vector4, W2));
+end;
+
+function SLerp(const A: Single; const Rot1, Rot2: TVector4Single): TVector4Single;
+begin
+  Result := QuatToAxisAngle_Packed(SLerp(A,
+    QuatFromAxisAngle_UnnormalizedPacked(Rot1),
+    QuatFromAxisAngle_UnnormalizedPacked(Rot2)));
+end;
+
+function NLerp(const A: Single; const Q1, Q2: TQuaternion): TQuaternion;
+begin
+  Result.Vector4 := Lerp(A, Q1.Vector4, Q2.Vector4);
+  QuatNormalizeTo1st(Result);
+end;
+
+function NLerp(const A: Single; const Rot1, Rot2: TVector4Single): TVector4Single;
+begin
+  Result := QuatToAxisAngle_Packed(NLerp(A,
+    QuatFromAxisAngle_UnnormalizedPacked(Rot1),
+    QuatFromAxisAngle_UnnormalizedPacked(Rot2)));
 end;
 
 end.
