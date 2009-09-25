@@ -129,11 +129,19 @@ function SLerp(const A: Single; const Q1, Q2: TQuaternion): TQuaternion;
 function SLerp(const A: Single; const Rot1, Rot2: TVector4Single): TVector4Single;
 { @groupEnd }
 
-{ Interpolate between two rotations, along the shortest path on the unit sphere.
+{ Interpolate between two rotations, along the straightest path on the unit sphere.
 
-  This is faster than SLerp, but does not make the interpolation
-  with constant speed. Often it's not a noticeable / important problem.
-  See http://number-none.com/product/Understanding%20Slerp,%20Then%20Not%20Using%20It/
+  This is faster than SLerp, but:
+
+  @orderedList(
+    @item(Does not make the interpolation
+      with constant speed. Often it's not a noticeable / important problem.
+      See http://number-none.com/product/Understanding%20Slerp,%20Then%20Not%20Using%20It/)
+
+    @item(This doesn't guarantee choosing the shortest path.
+      Although it goes through the straightest path, there are two such paths,
+      it may go through the shorter or longer one.)
+  )
 
   The overloaded version that works with TVector4Single takes
   a rotation (not a quaternion) expressed as an axis
@@ -328,17 +336,35 @@ end;
 
 function SLerp(const A: Single; const Q1, Q2: TQuaternion): TQuaternion;
 var
-  W1, W2: Single;
+  W1, W2, NegateOneQuaternion: Single;
   CosTheta, Theta: Float;
   SinTheta: Single;
 begin
   CosTheta := VectorDotProduct(Q1.Vector4, Q2.Vector4);
+
+  { Following wikipedia:
+    Long paths can be prevented by negating one end if the dot product,
+    CosTheta, is negative. See also
+    http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/index.htm
+    http://www.shatters.net/forum/viewtopic.php?f=4&t=10955&p=86203
+
+    We do it by NegateOneQuaternion, either 1 (not negate) or -1 (negate).
+    Later W1 will be multiplied by this.
+    This way the actual negation of Q1 happens when it's multiplied by W1,
+    so at ~zero cost. }
+  if CosTheta < 0 then
+  begin
+    NegateOneQuaternion := -1;
+    CosTheta := -CosTheta;
+  end else
+    NegateOneQuaternion := 1;
+
   Theta := ArcCos(CosTheta);
   SinTheta := Sin(Theta);
   if SinTheta > 0.001 then
   begin
-    W1 := Sin( (1-A) * Theta ) / SinTheta;
-    W2 := Sin(    A  * Theta ) / SinTheta;
+    W1 := NegateOneQuaternion * Sin( (1-A) * Theta ) / SinTheta;
+    W2 :=                       Sin(    A  * Theta ) / SinTheta;
   end else
   begin
     { Theta ~= 0, so both rotations equal (or opposite, in which case
