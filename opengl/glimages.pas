@@ -1916,10 +1916,7 @@ begin
   Result := false;
 {$else}
 begin
-  Result := GL_EXT_framebuffer_object and
-    { glGenerateMipmapEXT segfaults under Mesa 7.0.2,
-      under Mesa 7.2 makes X crashing. Sweet. }
-    (not GLVersion.IsMesa);
+  Result := GL_EXT_framebuffer_object and (not GLVersion.BuggyGenerateMipmap);
 {$endif}
 end;
 

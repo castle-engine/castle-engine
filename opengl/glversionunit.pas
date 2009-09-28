@@ -78,6 +78,7 @@ type
     FVendorNVidia: boolean;
     FBuggyPointSetAttrib: boolean;
     FBuggyDrawOddWidth: boolean;
+    FBuggyGenerateMipmap: boolean;
   public
     constructor Create(const VersionString, AVendor, ARenderer: string);
   public
@@ -104,6 +105,9 @@ type
 
     { Is the Vendor ATI and we're on Linux? }
     property IsFglrx: boolean read FIsFglrx;
+
+    { Detect NVidia GPU. }
+    property VendorNVidia: boolean read FVendorNVidia;
 
     { Detect Mesa DRI Intel with buggy GL_POINT_SET flag for glPushAttrib.
 
@@ -152,8 +156,15 @@ type
       trying to draw subimage with odd width). }
     property BuggyDrawOddWidth: boolean read FBuggyDrawOddWidth;
 
-    { Detect NVidia GPU. }
-    property VendorNVidia: boolean read FVendorNVidia;
+    { Detect Mesa with crashing glGenerateMipmapEXT.
+
+      This was observed with software (no direct) rendering with
+      7.0.2 (segfaults) and 7.2.? (makes X crashing; sweet).
+      With Mesa 7.5.1 (but tested only with radeon and radeonhd,
+      so possibly it's not really related to Mesa version! Reports welcome)
+      no problems. }
+    property BuggyGenerateMipmap: boolean read FBuggyGenerateMipmap;
+
   end;
 
 var
@@ -333,6 +344,19 @@ constructor TGLVersion.Create(const VersionString, AVendor, ARenderer: string);
     end;
   end;
 
+  function MesaVersionAtLeast(VerMaj, VerMin, VerRel: Integer): boolean;
+  begin
+    Result :=
+        (MesaMajor > VerMaj) or
+      ( (MesaMajor = VerMaj) and (
+
+        (MesaMinor > VerMin) or
+      ( (MesaMinor = VerMin) and (
+
+         MesaRelease >= VerRel
+      ))));
+  end;
+
 var
   VendorName, S: string;
   MesaStartIndex, I: Integer;
@@ -405,6 +429,8 @@ begin
     Later: I'll just do this do every ATI, since Mac OS X GPU has the same
     problem on rendered_texture.x3dv test. }
   FBuggyDrawOddWidth := IsVendorATI;
+
+  FBuggyGenerateMipmap := IsMesa and (not MesaVersionAtLeast(7, 5, 0));
 end;
 
 finalization
