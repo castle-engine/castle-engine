@@ -131,17 +131,16 @@ function SLerp(const A: Single; const Rot1, Rot2: TVector4Single): TVector4Singl
 
 { Interpolate between two rotations, along the straightest path on the unit sphere.
 
-  This is faster than SLerp, but:
+  This is faster than SLerp, but does not guarantee the interpolated
+  result travels with constant speed.
+  Often it's not a noticeable / important problem (see
+  http://number-none.com/product/Understanding%20Slerp,%20Then%20Not%20Using%20It/)
 
-  @orderedList(
-    @item(Does not make the interpolation
-      with constant speed. Often it's not a noticeable / important problem.
-      See http://number-none.com/product/Understanding%20Slerp,%20Then%20Not%20Using%20It/)
-
-    @item(This doesn't guarantee choosing the shortest path.
-      Although it goes through the straightest path, there are two such paths,
-      it may go through the shorter or longer one.)
-  )
+  When ForceShortestPath = @false, this doesn't guarantee choosing
+  the shortest path. Although it goes through the @italic(straightest) path,
+  there are two such paths, it may go through the shorter or longer one.
+  Use ForceShortestPath = @true if you want to interpolate through the
+  shortest.
 
   The overloaded version that works with TVector4Single takes
   a rotation (not a quaternion) expressed as an axis
@@ -150,8 +149,10 @@ function SLerp(const A: Single; const Rot1, Rot2: TVector4Single): TVector4Singl
   This is nice e.g. to interpolate VRML/X3D rotations.
 
   @groupBegin }
-function NLerp(const A: Single; const Q1, Q2: TQuaternion): TQuaternion;
-function NLerp(const A: Single; const Rot1, Rot2: TVector4Single): TVector4Single;
+function NLerp(const A: Single; const Q1, Q2: TQuaternion;
+  const ForceShortestPath: boolean = true): TQuaternion;
+function NLerp(const A: Single; const Rot1, Rot2: TVector4Single;
+  const ForceShortestPath: boolean = true): TVector4Single;
 { @groupEnd }
 
 implementation
@@ -382,17 +383,26 @@ begin
     QuatFromAxisAngle_UnnormalizedPacked(Rot2)));
 end;
 
-function NLerp(const A: Single; const Q1, Q2: TQuaternion): TQuaternion;
+function NLerp(const A: Single; const Q1, Q2: TQuaternion;
+  const ForceShortestPath: boolean): TQuaternion;
 begin
-  Result.Vector4 := Lerp(A, Q1.Vector4, Q2.Vector4);
+  if ForceShortestPath and (VectorDotProduct(Q1.Vector4, Q2.Vector4) < 0) then
+  begin
+    { negate one quaternion }
+    Result.Vector4 := Lerp(A, VectorNegate(Q1.Vector4), Q2.Vector4);
+  end else
+    Result.Vector4 := Lerp(A, Q1.Vector4, Q2.Vector4);
+
   QuatNormalizeTo1st(Result);
 end;
 
-function NLerp(const A: Single; const Rot1, Rot2: TVector4Single): TVector4Single;
+function NLerp(const A: Single; const Rot1, Rot2: TVector4Single;
+  const ForceShortestPath: boolean): TVector4Single;
 begin
   Result := QuatToAxisAngle_Packed(NLerp(A,
     QuatFromAxisAngle_UnnormalizedPacked(Rot1),
-    QuatFromAxisAngle_UnnormalizedPacked(Rot2)));
+    QuatFromAxisAngle_UnnormalizedPacked(Rot2),
+    ForceShortestPath));
 end;
 
 end.

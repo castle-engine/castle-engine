@@ -698,6 +698,12 @@ procedure TNodeOrientationInterpolator.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 {$define SingleInterpolatorType := TVector4Single}
 {$define SingleInterpolatorDefault := ZeroVector4Single}
+
+{ In my tests, NLerp works as good as SLerp here.
+  Although NLerp doesn't guarantee constant velocity, and should be
+  faster --- neither of these qualities seem to be noticeable
+  in practice. }
+
 {$define SingleInterpolatorLerp := SLerp}
 SingleInterpolator
 
