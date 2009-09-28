@@ -4096,7 +4096,9 @@ var
   BumpMapping: TBumpMappingRenderer;
 
   UsedGLSL: TGLSLRenderer;
-  UsedGLSLTexCoordsNeeded: Cardinal; //< Always 0 if UsedGLSL is @nil.
+  { > 0 means that UsedGLSL is non-nil *and* we already bound needed texture
+    units when initializing shader. Always 0 otherwise. }
+  UsedGLSLTexCoordsNeeded: Cardinal;
 
   procedure RenderTexturesBegin;
   var
@@ -4238,11 +4240,17 @@ var
     begin
       UsedGLSL := GLSLRenderers.Enable(CurrentState, UsedGLSLTexCoordsNeeded);
 
-      if UsedGLSL <> nil then
+      { Only if we bound texture units defined in shader ComposedShader fields
+        (it we have shader but UsedGLSLTexCoordsNeeded = 0 then normal
+        texture apply (including normal TexCoordsNeeded calculation)
+        will be done):
+
+        Although we bound only UsedGLSLTexCoordsNeeded texture units,
+        we want to pass all texture coords defined in texCoord.
+        Shaders may use them (even when textures are not bound for them). }
+
+      if (UsedGLSL <> nil) and (UsedGLSLTexCoordsNeeded > 0) then
       begin
-        { Although we bound only UsedGLSLTexCoordsNeeded texture units,
-          we want to pass all texture coords defined in texCoord.
-          Shaders may use them (even when textures are not bound for them). }
         TCD := TextureCoordsDefined;
         if Log and (TCD > UsedGLSLTexCoordsNeeded) then
           WritelnLog('TexCoord', Format('Texture coords defined in VRML/X3D for %d texture units, using them all, even though we bound only %d texture units. Reason: GLSL shaders may use them',
