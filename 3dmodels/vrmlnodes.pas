@@ -270,6 +270,8 @@
 
 unit VRMLNodes;
 
+{$I kambiconf.inc}
+
 interface
 
 uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
@@ -3543,8 +3545,8 @@ uses
 
   Math, Triangulator, Object3dAsVRML, KambiZStream, VRMLCameraUtils,
   KambiStringUtils, KambiFilesUtils, RaysWindow, StrUtils, KambiURLUtils,
-  VRMLGeometry, KambiLog, VRMLScene, KambiScriptParser, Base64, NURBS, Matrix,
-  Quaternions;
+  VRMLGeometry, KambiLog, VRMLScene, KambiScriptParser, Base64,
+  {$ifdef KAMBI_HAS_NURBS} NURBS, {$endif} Matrix, Quaternions;
 
 {$define read_implementation}
 
@@ -8686,7 +8688,7 @@ initialization
   RegistedInventorNodes;
   RegisterVRML1Nodes;
   RegisterVRML97HAnimNodes;
-  RegisterVRML97NodesNurbs;
+  {$ifdef KAMBI_HAS_NURBS} RegisterVRML97NodesNurbs; {$endif}
   RegisterKambiNodes;
   RegisterAvalonNodes;
 
@@ -8712,7 +8714,7 @@ initialization
   RegisterEnvironmentalEffectsNodes;
   RegisterGeospatialNodes;
   RegisterHAnimNodes;
-  RegisterNURBSNodes;
+  {$ifdef KAMBI_HAS_NURBS} RegisterNURBSNodes; {$endif}
   RegisterDISNodes;
   RegisterScriptingNodes;
   RegisterEventUtilitiesNodes;

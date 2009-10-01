@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2005 Michalis Kamburelis.
+  Copyright 2002-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -38,6 +38,18 @@
 
 {$ifndef KambiConf_ALREADY_INCLUDED}
 {$define KambiConf_ALREADY_INCLUDED}
+
+{ Configurable: define KAMBI_VRMLENGINE_LGPL to compile only
+  components available on permissive LGPL (see
+  http://vrmlengine.sourceforge.net/kambi_vrml_game_engine.php#section_license) }
+{ $define KAMBI_VRMLENGINE_LGPL}
+
+{ Define KAMBI_HAS_NURBS only when not defined KAMBI_VRMLENGINE_LGPL.
+  NURBS implementatton uses GPL-only (strict) code from White Dune. }
+{$define KAMBI_HAS_NURBS}
+{$ifdef KAMBI_VRMLENGINE_LGPL}
+  {$undef KAMBI_HAS_NURBS}
+{$endif}
 
 { According to Borland starting from Delphi 6 MSWINDOWS
   is the preferred symbol to mark Windows-only code

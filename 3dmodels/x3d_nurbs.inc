@@ -22,6 +22,8 @@
   The rest is, for now, completely separate from VRML 97 NURBS definition
   in vrmlnodes_97_nurbs.inc. }
 
+{$ifdef KAMBI_HAS_NURBS}
+
 {$ifdef read_interface}
   { }
   TNodeX3DNurbsControlCurveNode = class(TNodeX3DNode)
@@ -1880,3 +1882,5 @@ begin
 end;
 
 {$endif read_implementation}
+
+{$endif KAMBI_HAS_NURBS}
