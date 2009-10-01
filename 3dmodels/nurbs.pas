@@ -1,23 +1,26 @@
 {
   Copyright 2009 Michalis Kamburelis.
-  Parts based on white dune (also GPL >= 2):
+  Parts based on white dune (GPL >= 2):
   Stephen F. White, J. "MUFTI" Scheurich, others.
 
   This file is part of "Kambi VRML game engine".
 
-  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
+  "Kambi VRML game engine" is free software.
+
+  Although most of the "Kambi VRML game engine" is available on terms
+  of LGPL (see COPYING.txt in this distribution for detailed info), this unit
+  is an exception (as it uses white dune strict GPL >= 2 code).
+  You can redistribute and/or modify *this unit, NURBS.pas*
+  only under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
 
+  If the engine is compiled with KAMBI_VRMLENGINE_LGPL symbol
+  (see ../base/kambiconf.inc), this unit will not be linked in.
+
   "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with "Kambi VRML game engine"; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
   ----------------------------------------------------------------------------
 }
