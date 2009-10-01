@@ -35,7 +35,8 @@
     </CompilerOptions>
     <Description Value="Kambi VRML game engine - trivial package that adds GLW_Navigated unit.
 This unit cannot be installed under Lazarus, it's only for being used in other programs (see kambi_glwindow package comments)."/>
-    <License Value="GNU GPL >= 2"/>
+    <License Value="GNU GPL >= 2
+(or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)"/>
     <Files Count="1">
       <Item1>
         <Filename Value="..\..\opengl\glw_navigated.pas"/>

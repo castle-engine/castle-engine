@@ -48,7 +48,7 @@ begin
     { Some general variables, visible only (as far as I can see) when
       using "./fpmake manifest". }
     P.Author := 'Michalis Kamburelis';
-    P.License := 'GNU GPL >= 2';
+    P.License := 'GNU GPL >= 2 (or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)';
     {$ifdef VER2_2_2}
     P.ExternalURL
     {$else}

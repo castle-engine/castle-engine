@@ -293,11 +293,6 @@ info:
 	@echo "for this Makefile):"
 	@echo $(UNITS_SUBDIRECTORIES)
 
-check_is_gpl_licensed:
-	find . '(' -type d -name '.svn' -prune ')' -or \
-	       '(' -type f '(' -iname '*.pas' -or -iname '*.pasprogram' ')' \
-	           -exec check_is_gpl_licensed '{}' ';' ')'
-
 # cleaning ------------------------------------------------------------
 
 .PHONY: clean cleanmore cleanall

@@ -206,8 +206,12 @@ uses SysUtils, KambiUtils, KambiClassUtils, DataErrors, KambiStringUtils,
   This is based on MS docs on
   http://msdn.microsoft.com/en-us/library/bb943991(VS.85).aspx
   and gimp-dds/gimp-dds-2.0.7/dds.h,
-  gimp-dds plugin source code (GNU GPL >= 2, so were compatible)
-  from http://nifelheim.dyndns.org/~cocidius/dds/ }
+  from gimp-dds plugin source code
+  from http://nifelheim.dyndns.org/~cocidius/dds/.
+
+  (gimp-dds is GNU GPL >= 2, and our engine is on LGPL >= 2,
+  but I think it's Ok --- I did't copy code, just constant values
+  known from DDS spec, and converted to Pascal). }
 
 const
   DDSD_CAPS                   = $00000001;
