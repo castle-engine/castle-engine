@@ -77,7 +77,7 @@ type
     procedure (const FileInfo: TEnumeratedFileInfo) of object;
 
   TEnumFilesOption = (eoSymlinks, eoRecursive, eoDirContentsLast,
-    eoReadAllFirst);
+    eoAllowStdIn, eoReadAllFirst);
   TEnumFilesOptions = set of TEnumFilesOption;
 
 { Argumenty :
@@ -139,6 +139,11 @@ type
       Jesli included to na odwrot - najpierw wchodzi w glab, a potem dopiero
       wypisuje zawartosc. Wiec kazdy podkatalog zostanie zgloszony do FileProc
       albo wcale albo dopiero po wypisaniu calej jego zawartosci.
+
+    eoAllowStdIn:
+      Then Mask equal exactly '-' will be intrepreted specially:
+      we will then return exactly one file record, with SearchRec.Name
+      and FullFileName equal to '-'.
 
     eoReadAllFirst:
       See below.
@@ -482,9 +487,22 @@ end;
 function EnumFiles(const Mask: string; attr: integer;
   FileProc: TEnumFileProc; FileProcData: Pointer;
   Options: TEnumFilesOptions): Cardinal;
-var FileInfos: TDynEnumeratedFileInfoArray;
-    i: Integer;
+const
+  { Ignore the fact some fields after Name are not initialized. }
+  {$warnings off}
+  StdInFileInfo: TEnumeratedFileInfo = (
+    SearchRec: (Time: 0; Size: 0; Attr: 0; Name: '-');
+    FullFileName: '-');
+  {$warnings on}
+var
+  FileInfos: TDynEnumeratedFileInfoArray;
+  i: Integer;
 begin
+ if (Mask = '-') and (eoAllowStdIn in Options) then
+ begin
+   FileProc(StdInFileInfo, FileProcData);
+   Result := 1;
+ end else
  if eoReadAllFirst in Options then
  begin
   FileInfos := TDynEnumeratedFileInfoArray.Create;

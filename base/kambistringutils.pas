@@ -337,8 +337,18 @@ function SRight(const s: string; const rpart: integer): string;
 { If S = '' then returns NextPart, else returns S + PartSeparator + NextPart. }
 function SAppendPart(const s, PartSeparator, NextPart: string): string;
 
-function FileToString(const fname: string): string;
-procedure StringToFile(const fname, contents: string);
+{ Read whole file contents to string.
+
+  If AllowStdIn, then FileName = '-' (one dash) is treated specially:
+  we will read stdin whole (Pascal Input) stream. Note that the current
+  implementation of this always changes newline into NL (current OS newline),
+  and may add additional newline at the end of the file (this may be fixed,
+  to return more accurately stdin contents; for usual text file reading,
+  this doesn't matter). }
+function FileToString(const FileName: string;
+  const AllowStdIn: boolean = false): string;
+
+procedure StringToFile(const FileName, contents: string);
 
 type
   EDeformatError = class(Exception);
@@ -1242,22 +1252,33 @@ begin
   result := s+PartSeparator+NextPart;
 end;
 
-function FileToString(const fname: string): string;
-var f: file;
+function FileToString(const FileName: string; const AllowStdIn: boolean): string;
+var
+  F: file;
+  S: string;
 begin
- SafeReset(f, fname, true);
- try
-  SetLength(result, FileSize(f));
-  BlockRead(f, PChar(result)^, Length(result));
- finally
-  CloseFile(F);
- end;
+  if AllowStdIn and (FileName = '-') then
+  begin
+    Result := '';
+    while not Eof(Input) do
+    begin
+      Readln(S);
+      Result += S + NL;
+    end;
+  end else
+  begin
+    SafeReset(f, FileName, true);
+    try
+      SetLength(Result, FileSize(f));
+      BlockRead(f, PChar(Result)^, Length(Result));
+    finally CloseFile(F) end;
+  end;
 end;
 
-procedure StringToFile(const fname, contents: string);
+procedure StringToFile(const FileName, contents: string);
 var F: File;
 begin
- SafeRewrite(F, fname);
+ SafeRewrite(F, FileName);
  try
    BlockWrite(F, PChar(contents)^, Length(contents));
  finally
