@@ -126,6 +126,7 @@ function Between(const a, vBegin, vEnd: Int64): boolean; overload;
 function Between(const a, vBegin, vEnd: integer): boolean; overload;
 function Between(const a, vBegin, vEnd: cardinal): boolean; overload;
 function Between(const a, vBegin, vEnd: Float): boolean; overload;
+function Between(const a, vBegin, vEnd: Char): boolean; overload;
 
 function Clamped(const a, vBegin, vEnd: Int64): Int64; overload;
 function Clamped(const a, vBegin, vEnd: integer): integer; overload;
@@ -513,6 +514,7 @@ function Between(const a, vBegin, vEnd: Int64): boolean; {$I KambiUtils_implemen
 function Between(const a, vBegin, vEnd: integer): boolean; {$I KambiUtils_implement_Between.inc}
 function Between(const a, vBegin, vEnd: cardinal): boolean; {$I KambiUtils_implement_Between.inc}
 function Between(const a, vBegin, vEnd: Float): boolean; {$I KambiUtils_implement_Between.inc}
+function Between(const a, vBegin, vEnd: Char): boolean; {$I KambiUtils_implement_Between.inc}
 
 function Clamped(const a, vBegin, vEnd: Int64): Int64; {$I KambiUtils_implement_Clamped.inc}
 function Clamped(const a, vBegin, vEnd: integer): integer; {$I KambiUtils_implement_Clamped.inc}
