@@ -7377,7 +7377,7 @@ var
     URL := CombinePaths(WWWBasePath, RelativeURL);
     URLExtractAnchor(URL, Anchor);
     try
-      ReferencedPrototypeNode := ParseVRMLFile(URL, false, ProtoNameBinding);
+      ReferencedPrototypeNode := LoadAsVRML(URL, false, ProtoNameBinding);
     except
       on E: Exception do
       begin

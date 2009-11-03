@@ -13,21 +13,27 @@
   ----------------------------------------------------------------------------
 }
 
-{ Read X3D encoded in XML, and convert it to VRML/X3D nodes graph. }
+{ Read X3D encoded in XML. }
 unit X3DXmlToVRML;
 
 {$I kambiconf.inc}
 
 interface
 
-uses VRMLNodes;
+uses VRMLNodes, Classes;
 
+{ Read X3D encoded in XML, and convert it to VRML/X3D nodes graph.
+
+  @param(CopyProtoNameBinding If <> @nil, will be filled with global
+  prototype namespace at the end of parsing the file.
+  Useful mostly for EXTERNPROTO implementation.) }
 function LoadX3DXmlAsVRML(const FileName: string;
-  Gzipped: boolean): TVRMLNode;
+  Gzipped: boolean;
+  CopyProtoNameBinding: TStringList = nil): TVRMLNode;
 
 implementation
 
-uses SysUtils, DOM, KambiXMLRead, KambiUtils, KambiXMLUtils, Classes,
+uses SysUtils, DOM, KambiXMLRead, KambiUtils, KambiXMLUtils,
   VRMLLexer, VRMLErrors, VRMLFields, KambiZStream,
   KambiClassUtils, KambiStringUtils;
 
@@ -41,7 +47,7 @@ type
   See 4.3.12 IMPORT/EXPORT statement syntax. }
 
 function LoadX3DXmlAsVRML(const FileName: string;
-  Gzipped: boolean): TVRMLNode;
+  Gzipped: boolean; CopyProtoNameBinding: TStringList): TVRMLNode;
 var
   WWWBasePath: string;
 
@@ -1085,6 +1091,9 @@ begin
       SceneElement := DOMGetChildElement(Doc.DocumentElement, 'Scene', true);
       Result := ParseVRMLStatements(SceneElement, true, Doc.DocumentElement);
     finally FreeAndNil(Doc) end;
+
+    if CopyProtoNameBinding <> nil then
+      CopyProtoNameBinding.Assign(ProtoNameBinding);
   finally
     FreeAndNil(NodeNameBinding);
     FreeAndNil(ProtoNameBinding);
