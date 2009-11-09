@@ -1,0 +1,179 @@
+{
+  Copyright 2009 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Simple walk over the terrain.
+  For now: reads terrain data from a very simple SRTM-3 *.hgt file
+  (pass $1 a filename of .hgt file).
+
+  See http://www2.jpl.nasa.gov/srtm/, see (linked there)
+  http://dds.cr.usgs.gov/srtm/ for sample data for whole Earth.
+  In you speak Polish, nice overview is also on
+  http://netgis.geo.uw.edu.pl/srtm/.
+  Sample files for Poland are on http://netgis.geo.uw.edu.pl/srtm/Poland/,
+  for Europe http://netgis.geo.uw.edu.pl/srtm/Europe/.
+}
+program terrain;
+
+uses SysUtils, Classes, KambiUtils, GLWindow, GLW_Navigated, GL, KambiGLUtils,
+  Navigation, VectorMath, KambiFilesUtils;
+
+type
+  { Elevation (height for each X, Y) data.
+
+    The specification of this is a little uncertain for now,
+    in the future I want to derive both TElevationSRTM (data from stored
+    1201 x 1201 grid) and TElevationPerlin (data calculated from Perlin
+    noise) from this. Still unsure how the final class interface should
+    look like, to be comfortable and sensible. }
+  TElevation = class
+  public
+    //TODO: function Height(const X, Y: Single): Single;
+
+    { HeightForCoord uses "natural" integer coordinates of your terrain data.
+
+      In other words, if your data comes from some simple set of
+      CoordWidth * CoordHeight points, then sampling each HeightForCoord
+      within (0..CoordWidth - 1, 0..CoordHeight - 1) will get you exactly
+      every interesting elevation height. You know in this case that
+      normal @link(Height) function only adds some interpolation/smoothing
+      for the same data.
+
+      If you data isn't laid out on a grid CoordWidth * CoordHeight,
+      then both CoordWidth and CoordHeight are zero, and you're forbidden
+      from calling HeightForCoord. TODO: or maybe CoordHeight have some
+      fixed value then? TODO: or maybe CoordHeight and this should not
+      be defined here at all?
+    }
+    function HeightCoord(const X, Y: Cardinal): Single; virtual; abstract;
+
+    function CoordWidth: Cardinal; virtual; abstract;
+    function CoordHeight: Cardinal; virtual; abstract;
+  end;
+
+  TElevationSRTM = class(TElevation)
+  private
+    FData: array [0..1200, 0..1200] of SmallInt;
+  public
+    constructor CreateFromFile(const FileName: string);
+
+    function HeightCoord(const X, Y: Cardinal): Single; override;
+    function CoordWidth: Cardinal; override;
+    function CoordHeight: Cardinal; override;
+  end;
+
+constructor TElevationSRTM.CreateFromFile(const FileName: string);
+var
+  Stream: TFileStream;
+  P: PSmallInt;
+  I: Cardinal;
+  LastCorrectHeight: SmallInt;
+begin
+  inherited Create;
+
+  Stream := TFileStream.Create(FileName, fmOpenRead);
+  try
+    Stream.ReadBuffer(FData, SizeOf(FData));
+  finally FreeAndNil(Stream) end;
+
+  LastCorrectHeight := 0; { any sensible value }
+  P := @(FData[0, 0]);
+  for I := 1 to 1201 * 1201 do
+  begin
+    {$ifdef ENDIAN_LITTLE}
+    P^ := Swap(P^);
+    {$endif ENDIAN_LITTLE}
+
+    { Fix unknown data by setting to last correct seen value.
+      Since we scan data cell-by-cell, in a row, this is in practice
+      somewhat excusable approach. Of course, we could do something much better
+      (filling unknown values by interpolating values from around). }
+    if P^ = Low(SmallInt) then
+      P^ := LastCorrectHeight else
+      LastCorrectHeight := P^;
+
+    Inc(P);
+  end;
+end;
+
+function TElevationSRTM.HeightCoord(const X, Y: Cardinal): Single;
+begin
+  Result := FData[X, Y] / 100;
+end;
+
+function TElevationSRTM.CoordWidth: Cardinal;
+begin
+  Result := 1201;
+end;
+
+function TElevationSRTM.CoordHeight: Cardinal;
+begin
+  Result := 1201;
+end;
+
+var
+  Elevation: TElevation;
+
+procedure Draw(Glwin: TGLWindow);
+const
+  CoordStep = 10;
+  ScaleSize = 100.0;
+var
+  I0, I, J: Cardinal;
+begin
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+  glLoadMatrix(Glw.Navigator.Matrix);
+
+  I := CoordStep;
+  while I < Elevation.CoordWidth do
+  begin
+    glBegin(GL_QUAD_STRIP);
+      J := 0;
+      while J < Elevation.CoordHeight do
+      begin
+        I0 := I - CoordStep;
+        glVertex3f(ScaleSize * I0 / Elevation.CoordWidth,
+          ScaleSize * J / Elevation.CoordHeight,
+          Elevation.HeightCoord(I0, J));
+        glVertex3f(ScaleSize * I / Elevation.CoordWidth,
+          ScaleSize * J / Elevation.CoordHeight,
+          Elevation.HeightCoord(I, J));
+        Inc(J, CoordStep);
+      end;
+    glEnd();
+    Inc(I, CoordStep);
+  end;
+end;
+
+procedure Resize(Glwin: TGLWindow);
+begin
+  ProjectionGLPerspective(30, Glwin.Width / Glwin.Height, 0.1, 100);
+end;
+
+begin
+  Parameters.CheckHigh(1);
+
+  Elevation := TElevationSRTM.CreateFromFile(Parameters[1]);
+  try
+    Glw.Navigator := TWalkNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+    Glw.WalkNav.Init(Vector3Single(0, 0, Elevation.HeightCoord(0, 0)) { pos },
+      Vector3Single(0, 1, 0) { dir },
+      Vector3Single(0, 0, 1) { up },
+      Vector3Single(0, 0, 1), 0.0, 0.0 { unused, we don't use Gravity here });
+
+    Glw.OnResize := @Resize;
+    Glw.InitLoop(ProgramName, @Draw);
+  finally FreeAndNil(Elevation) end;
+end.
