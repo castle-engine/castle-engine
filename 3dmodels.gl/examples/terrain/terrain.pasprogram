@@ -109,7 +109,7 @@ end;
 
 function TElevationSRTM.HeightCoord(const X, Y: Cardinal): Single;
 begin
-  Result := FData[X, Y] / 100;
+  Result := FData[X, Y];
 end;
 
 function TElevationSRTM.CoordWidth: Cardinal;
@@ -125,14 +125,38 @@ end;
 var
   Elevation: TElevation;
 
+const
+  ScaleSize = 100.0;
+  ScaleHeight = 0.01;
+
 procedure Draw(Glwin: TGLWindow);
+
+  procedure Vertex(I, J: Cardinal);
+  var
+    H: Single;
+  begin
+    H := Elevation.HeightCoord(I, J);
+
+    { Colors strategy from http://www.ii.uni.wroc.pl/~anl/dyd/PGK/pracownia.html }
+    if      (H < 0  )  then glColor3f(0,       0,         1) //blue
+    else if (H < 500)  then glColor3f(0,       H/500,     0) //->green
+    else if (H < 1000) then glColor3f(H/500-1, 1,         0) //->yellow
+    else if (H < 1500) then glColor3f(1,       H/500-2.0, 0) //->red
+    else glColor3f(1, 1, 1);                                 //white
+
+    glVertex3f(
+      ScaleSize * I / Elevation.CoordWidth,
+      ScaleSize * J / Elevation.CoordHeight,
+      ScaleHeight * H);
+  end;
+
 const
   CoordStep = 10;
-  ScaleSize = 100.0;
 var
-  I0, I, J: Cardinal;
+  I, J: Cardinal;
 begin
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+//  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  glEnable(GL_DEPTH_TEST);
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(Glw.Navigator.Matrix);
 
@@ -143,13 +167,8 @@ begin
       J := 0;
       while J < Elevation.CoordHeight do
       begin
-        I0 := I - CoordStep;
-        glVertex3f(ScaleSize * I0 / Elevation.CoordWidth,
-          ScaleSize * J / Elevation.CoordHeight,
-          Elevation.HeightCoord(I0, J));
-        glVertex3f(ScaleSize * I / Elevation.CoordWidth,
-          ScaleSize * J / Elevation.CoordHeight,
-          Elevation.HeightCoord(I, J));
+        Vertex(I - CoordStep, J);
+        Vertex(I            , J);
         Inc(J, CoordStep);
       end;
     glEnd();
@@ -168,7 +187,12 @@ begin
   Elevation := TElevationSRTM.CreateFromFile(Parameters[1]);
   try
     Glw.Navigator := TWalkNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
-    Glw.WalkNav.Init(Vector3Single(0, 0, Elevation.HeightCoord(0, 0)) { pos },
+    Glw.WalkNav.Init(Vector3Single(
+      ScaleSize * 0.5,
+      ScaleSize * 0.5,
+      ScaleHeight * Elevation.HeightCoord(
+        Elevation.CoordWidth div 2,
+	Elevation.CoordHeight div 2)) { pos },
       Vector3Single(0, 1, 0) { dir },
       Vector3Single(0, 0, 1) { up },
       Vector3Single(0, 0, 1), 0.0, 0.0 { unused, we don't use Gravity here });
