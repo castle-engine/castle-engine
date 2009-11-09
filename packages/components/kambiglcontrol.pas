@@ -386,14 +386,14 @@ end;
 function LMouseButtonToMyMouseButton(
   const MouseButton: Controls.TMouseButton;
   out MyMouseButton: Navigation.TMouseButton): boolean;
-const
-  T: array [Controls.TMouseButton] of Navigation.TMouseButton =
-    (Navigation.mbLeft,
-     Navigation.mbRight,
-     Navigation.mbMiddle);
 begin
-  MyMouseButton := T[MouseButton];
-  Result := true; { for now, this always succeeds }
+  Result := true;
+  case MouseButton of
+    Controls.mbLeft  : MyMouseButton := Navigation.mbLeft;
+    Controls.mbRight : MyMouseButton := Navigation.mbRight;
+    Controls.mbMiddle: MyMouseButton := Navigation.mbMiddle;
+    else Result := false;
+  end;
 end;
 
 procedure TKamOpenGLControl.MouseDown(Button: Controls.TMouseButton;
