@@ -13,96 +13,172 @@
   ----------------------------------------------------------------------------
 }
 
-{ Simple walk over the terrain.
-  For now: reads terrain data from a very simple SRTM-3 *.hgt file
-  (pass $1 a filename of .hgt file).
+{ Display, walk over the terrain.
 
-  See http://www2.jpl.nasa.gov/srtm/, see (linked there)
-  http://dds.cr.usgs.gov/srtm/ for sample data for whole Earth.
-  In you speak Polish, nice overview is also on
-  http://netgis.geo.uw.edu.pl/srtm/.
-  Sample files for Poland are on http://netgis.geo.uw.edu.pl/srtm/Poland/,
-  for Europe http://netgis.geo.uw.edu.pl/srtm/Europe/.
+  Terrain data may be obtained from various sources:
+
+  1. There's terrain data reader from a very simple SRTM-3 *.hgt file
+     (pass $1 a filename of .hgt file).
+
+     See http://www2.jpl.nasa.gov/srtm/, see (linked there)
+     http://dds.cr.usgs.gov/srtm/ for sample data for whole Earth.
+     In you speak Polish, nice overview is also on
+     http://netgis.geo.uw.edu.pl/srtm/.
+     Sample files for Poland are on http://netgis.geo.uw.edu.pl/srtm/Poland/,
+     for Europe http://netgis.geo.uw.edu.pl/srtm/Europe/.
+
+  2. You can also define terrain as an explicit function using KambiScript
+     expression syntax, [http://vrmlengine.sourceforge.net/kambi_script.php].
+     Try e.g. function like
+     - sin(x*10) + sin(y*10)
+     - (sin(x*10) + sin(x*20) / 2 + sin(x*40) / 4)  *
+       (sin(y*10) + sin(y*20) / 2 + sin(y*40) / 4)
+       (sum sinusoides of various frequencies and amplitudes).
+     TODO --- make command-line for this.
+
+  3. You can also (and this was actually the primary reason for this program
+     in the 1st place) generate random terrain.
+     TODO.
+
+  TODO: UI to
+  - load new terrain while prog is running
+  - switch between wireframe and solid
+  - switch view terrain:
+    1. current view - "Examine the [0..1, 0..1] range of the terrain"
+    2. new new - "Walk over the infinite terrain":
+       Walk mode,
+       optionally keeping avatar over the ground,
+       optionally with fog (since terrain is infinite in this case),
+       and using the algorithm that renders infinite terrain with LOD.
+       Optionally with sky displayed, just for effect.
 }
 program terrain;
 
-uses SysUtils, Classes, KambiUtils, GLWindow, GLW_Navigated, GL, KambiGLUtils,
+uses SysUtils, Classes, Boxes3d,
+  KambiUtils, GLWindow, GLW_Navigated, GL, KambiGLUtils,
   Navigation, VectorMath, KambiFilesUtils, Elevations;
 
 var
-  Elevation: TElevationGrid;
+  Elevation: TElevation;
 
 const
   ScaleSize = 100.0;
   ScaleHeight = 0.01;
 
-procedure Draw(Glwin: TGLWindow);
+procedure ElevationVertex(const X, Y, H: Single);
+begin
+  { Colors strategy from http://www.ii.uni.wroc.pl/~anl/dyd/PGK/pracownia.html }
+  if      (H < 0  )  then glColor3f(0,       0,         1) { blue }
+  else if (H < 500)  then glColor3f(0,       H/500,     0) { green }
+  else if (H < 1000) then glColor3f(H/500-1, 1,         0) { yellow }
+  else if (H < 1500) then glColor3f(1,       H/500-2.0, 0) { red }
+  else glColor3f(1, 1, 1);                                 { white }
 
-  procedure Vertex(I, J: Cardinal);
-  var
-    H: Single;
+  glVertex3f(
+    ScaleSize * X,
+    ScaleSize * Y,
+    ScaleHeight * H);
+end;
+
+{ Generic drawing of any TElevation, uses Height method }
+procedure DrawElevation(Elevation: TElevation);
+
+  procedure Vertex(const I, J: Single);
   begin
-    H := Elevation.GridHeight(I, J);
-
-    { Colors strategy from http://www.ii.uni.wroc.pl/~anl/dyd/PGK/pracownia.html }
-    if      (H < 0  )  then glColor3f(0,       0,         1) //blue
-    else if (H < 500)  then glColor3f(0,       H/500,     0) //->green
-    else if (H < 1000) then glColor3f(H/500-1, 1,         0) //->yellow
-    else if (H < 1500) then glColor3f(1,       H/500-2.0, 0) //->red
-    else glColor3f(1, 1, 1);                                 //white
-
-    glVertex3f(
-      ScaleSize * I / Elevation.GridSizeX,
-      ScaleSize * J / Elevation.GridSizeY,
-      ScaleHeight * H);
+    { TODO: * 1000 + 500 needed to hit interesting colors (otherwise
+      it's all black around 0. Make it nicer: detect min/max height,
+      adjust color range (and ScaleHeight, to see it) to it. }
+    ElevationVertex(I, J, Elevation.Height(I, J) * 1000 + 500);
   end;
 
 const
-  CoordStep = 10;
+  CountSteps = 100;
 var
   I, J: Cardinal;
+begin
+  for I := 1 to CountSteps - 1 do
+  begin
+    glBegin(GL_QUAD_STRIP);
+      for J := 0 to CountSteps - 1 do
+      begin
+        Vertex((I - 1) / CountSteps, J / CountSteps);
+        Vertex( I      / CountSteps, J / CountSteps);
+      end;
+    glEnd();
+  end;
+end;
+
+{ Specialized drawing for TElevationGrid, that displays only the
+  precise grid points. }
+procedure DrawGrid(Grid: TElevationGrid);
+
+  procedure Vertex(I, J: Cardinal);
+  begin
+    ElevationVertex(
+      I / Grid.GridSizeX,
+      J / Grid.GridSizeY,
+      Grid.GridHeight(I, J));
+  end;
+
+const
+  Step = 10;
+var
+  I, J: Cardinal;
+begin
+  I := Step;
+  while I < Grid.GridSizeX do
+  begin
+    glBegin(GL_QUAD_STRIP);
+      J := 0;
+      while J < Grid.GridSizeY do
+      begin
+        Vertex(I - Step, J);
+        Vertex(I       , J);
+        Inc(J, Step);
+      end;
+    glEnd();
+    Inc(I, Step);
+  end;
+end;
+
+procedure Draw(Glwin: TGLWindow);
+
 begin
 //  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   glEnable(GL_DEPTH_TEST);
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(Glw.Navigator.Matrix);
 
-  I := CoordStep;
-  while I < Elevation.GridSizeX do
-  begin
-    glBegin(GL_QUAD_STRIP);
-      J := 0;
-      while J < Elevation.GridSizeY do
-      begin
-        Vertex(I - CoordStep, J);
-        Vertex(I            , J);
-        Inc(J, CoordStep);
-      end;
-    glEnd();
-    Inc(I, CoordStep);
-  end;
+  if Elevation is TElevationGrid then
+    DrawGrid(TElevationGrid(Elevation)) else
+    DrawElevation(Elevation);
 end;
 
 procedure Resize(Glwin: TGLWindow);
 begin
-  ProjectionGLPerspective(30, Glwin.Width / Glwin.Height, 0.1, 100);
+  ProjectionGLPerspective(30, Glwin.Width / Glwin.Height, ScaleSize / 100, ScaleSize * 3);
 end;
 
 begin
   Parameters.CheckHigh(1);
 
-  Elevation := TElevationSRTM.CreateFromFile(Parameters[1]);
+//  Elevation := TElevationSRTM.CreateFromFile(Parameters[1]);
+  Elevation := TElevationKamScript.Create(Parameters[1]);
   try
-    Glw.Navigator := TWalkNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+    Glw.Navigator := TExamineNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+    Glw.ExamineNav.Init(Box3d(
+      Vector3Single(        0,         0, -ScaleHeight),
+      Vector3Single(ScaleSize, ScaleSize,  ScaleHeight)));
+
+    (*
     Glw.WalkNav.Init(Vector3Single(
       ScaleSize * 0.5,
       ScaleSize * 0.5,
-      ScaleHeight * Elevation.GridHeight(
-        Elevation.GridSizeX div 2,
-	Elevation.GridSizeY div 2)) { pos },
+      ScaleHeight * Elevation.Height(0.5, 0.5)) { pos },
       Vector3Single(0, 1, 0) { dir },
       Vector3Single(0, 0, 1) { up },
       Vector3Single(0, 0, 1), 0.0, 0.0 { unused, we don't use Gravity here });
+    *)
 
     Glw.OnResize := @Resize;
     Glw.InitLoop(ProgramName, @Draw);
