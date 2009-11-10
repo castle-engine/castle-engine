@@ -260,7 +260,8 @@ EXAMPLES_BASE_NAMES := \
   3dmodels.gl/examples/shadow_fields/precompute_shadow_field \
   3dmodels.gl/examples/shadow_fields/shadow_fields \
   3dmodels.gl/examples/dynamic_ambient_occlusion/dynamic_ambient_occlusion \
-  3dmodels.gl/examples/gl_primitive_performance
+  3dmodels.gl/examples/gl_primitive_performance \
+  3dmodels.gl/examples/terrain/terrain
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   audio/examples/test_al_source_allocator \
