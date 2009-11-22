@@ -1,4 +1,4 @@
-{ Generate table of primes for IntegerNoise in elevation.pas.
+{ Generate table of primes for IntegerNoise.
   Output Pascal code with $1 rows of primes table.
   In each row, each prime number will be randomly chosen from appropriate
   range (hardcoded in Ranges[] here).
