@@ -401,6 +401,9 @@ procedure MinMax(const x0, x1, x2: Single; out min, max: Single); overload;
   our version of CoTan. }
 function KamCoTan(const Value: Float): Float;
 
+{ Floor from Sqrt(Value). }
+function IntSqrt(const Value: Cardinal): Cardinal;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -793,6 +796,37 @@ var
 begin
   SinCos(Value, ASin, ACos);
   Result := Acos / ASin;
+end;
+
+function IntSqrt(const Value: Cardinal): Cardinal;
+{ See http://en.wikipedia.org/wiki/Integer_square_root.
+
+  This isn't nice impl, as it uses floating-point numbers to calculate
+  integer function... However, doing it on ints, doesn't make this
+  process terminate nicely. Hacks like in primes.cpp from
+  http://freespace.virgin.net/hugo.elias/models/m_perlin.htm
+  don't calculate floor sqrt properly (e.g. for 8 return 3).
+
+  So for now, calculate on floats. Autotests check it's Ok.
+
+  Actually, when calculating on floats, I can just use Trunc(Sqrt())...
+  So this is quite pointless exercise. }
+(*
+var
+  Old, New: Float;
+begin
+  if Value = 0 then Exit(0); { to not fail by division by zero }
+
+  New := Value;
+  repeat
+    Old := New;
+    New := (Old + Value / Old) / 2;
+  until Abs(Old - New) < 0.5;
+  Result := Trunc(New);
+end;
+*)
+begin
+  Result := Trunc(Sqrt(Value));
 end;
 
 {$endif read_implementation}

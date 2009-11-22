@@ -34,6 +34,7 @@ type
     procedure TestKambiOSError;
     procedure TestStrings;
     procedure TestOthers;
+    procedure TestIntSqrt;
   end;
 
 implementation
@@ -212,7 +213,7 @@ begin
 end;
 
 procedure TTestKambiUtils.TestReadln;
-var i: Integer;
+//var i: Integer;
 begin
 { for i := 1 to 3 do
   Writeln('You answered '+ BoolToStr[ReadlnYesNo('Answer defTrue ?', defTrue)]);
@@ -260,6 +261,27 @@ begin
  Assert(StringOfChar('s', 3) = 'sss');
  Assert(GeneralPower( 2.0, 2.0) = 4.0);
  Assert(GeneralPower(-2.0, 2.0) = 4.0);
+end;
+
+procedure TTestKambiUtils.TestIntSqrt;
+
+  procedure Test(const Value: Cardinal);
+  var
+    S: Cardinal;
+  begin
+    S := IntSqrt(Value);
+    Assert(Sqr(S) <= Value);
+    Assert(Sqr(S+1) > Value);
+  end;
+
+var
+  I: Cardinal;
+begin
+  for I := 0       to 100 do Test(I);
+  for I := 1000    to 1100 do Test(I);
+  for I := 10000   to 10100 do Test(I);
+  for I := 100000  to 100100 do Test(I);
+  for I := 1000000 to 1000100 do Test(I);
 end;
 
 initialization
