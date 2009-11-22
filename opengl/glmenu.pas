@@ -674,10 +674,46 @@ procedure ImageSliderInit;
       Result := ProgramDataPath + 'data' + PathDelim + 'menu_bg' + PathDelim;
   end;
 
+  { Compose RGB image of desired width (or very slightly larger),
+    by horizontally stretching base image.
+
+    When stretching, we take MiddleWidth pixels from the image as a pattern
+    that may be infinitely repeated in the middle, as needed to get
+    to DesiredWidth.
+
+    Remaining pixels (to the left / right of MiddleWidth pixels) are placed
+    at the left / right of resulting image. }
+  function ComposeSliderImage(Base: TRGBImage; const MiddleWidth: Cardinal;
+    const DesiredWidth: Cardinal): TRGBImage;
+  var
+    LeftWidth, RightWidth, MiddleCount, I: Cardinal;
+  begin
+    Assert(MiddleWidth <= Base.Width);
+    LeftWidth := (Base.Width - MiddleWidth) div 2;
+    RightWidth := Base.Width - MiddleWidth - LeftWidth;
+    MiddleCount := DivRoundUp(DesiredWidth - LeftWidth - RightWidth, MiddleWidth);
+    Result := TRGBImage.Create(LeftWidth + MiddleWidth * MiddleCount + RightWidth,
+      Base.Height);
+    Result.CopyFrom(Base, 0, 0, 0, 0, LeftWidth, Base.Height);
+    if MiddleCount <> 0 then
+      for I := 0 to MiddleCount do
+        Result.CopyFrom(Base, I * MiddleWidth + LeftWidth, 0,
+          LeftWidth, 0, MiddleWidth, Base.Height);
+    Result.CopyFrom(Base, Result.Width - RightWidth, 0,
+      Base.Width - RightWidth, 0, RightWidth, Base.Height);
+  end;
+
+var
+  ImageSliderBase: TRGBImage;
 begin
   if ImageSlider = nil then
-    ImageSlider := LoadImage(DoGetMenuImagesPath + 'menu_slider.png',
-      [TRGBImage], []);
+  begin
+    ImageSliderBase := LoadImage(DoGetMenuImagesPath + 'menu_slider.png',
+      [TRGBImage], []) as TRGBImage;
+    try
+      ImageSlider := ComposeSliderImage(ImageSliderBase, 1, 250);
+    finally FreeAndNil(ImageSliderBase) end;
+  end;
 
   if ImageSliderPosition = nil then
     ImageSliderPosition :=

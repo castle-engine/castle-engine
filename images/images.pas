@@ -651,9 +651,16 @@ type
 
     { These check that Image and Self have equal classes, and then
       copy Self to Image or Image to Self.
-      X and Y is each case are the position on the destinantion image.
+      X0 and Y0 is each case are the position on the destinantion image.
+
+      Optionally you can specify dimensions of rectangle from source image
+      to use (please note that they are assumed correct here; so you better
+      check them, or risk invalid memory reads).
+
       @groupBegin }
     procedure CopyFrom(Image: TImage; const X0, Y0: Cardinal);
+    procedure CopyFrom(Image: TImage; const X0, Y0: Cardinal;
+      const SourceX0, SourceY0, SourceWidth, SourceHeight: Cardinal);
     procedure CopyTo(Image: TImage; const X0, Y0: Cardinal);
     { @groupEnd }
 
@@ -2149,27 +2156,34 @@ begin
     0, 0, Image.Width, Image.Height);
 end;
 
-procedure TImage.CopyFrom(Image: TImage; const X0, Y0: Cardinal);
+procedure TImage.CopyFrom(Image: TImage; const X0, Y0: Cardinal;
+  const SourceX0, SourceY0, SourceWidth, SourceHeight: Cardinal);
 var
   Y: Integer;
   SelfPtr: Pointer;
   ImagePtr: Pointer;
-  SelfRowByteWidth, ImageRowByteWidth: Cardinal;
+  SelfRowByteWidth, ImageRowByteWidth, CopyRowByteWidth: Cardinal;
 begin
   if Image.ClassType <> ClassType then
     raise Exception.Create('Cannot copy pixels from one image to another:' +
       ' different image classes');
 
   SelfPtr := PixelPtr(X0, Y0);
-  ImagePtr := Image.RawPixels;
+  ImagePtr := Image.PixelPtr(SourceX0, SourceY0);
   SelfRowByteWidth := Self.Width * PixelSize;
   ImageRowByteWidth := Image.Width * Image.PixelSize;
-  for Y := 0 to Integer(Image.Height) - 1 do
+  CopyRowByteWidth := SourceWidth * Image.PixelSize;
+  for Y := 0 to Integer(SourceHeight) - 1 do
   begin
-    Move(ImagePtr^, SelfPtr^, ImageRowByteWidth);
+    Move(ImagePtr^, SelfPtr^, CopyRowByteWidth);
     PtrUInt(SelfPtr) := PtrUInt(SelfPtr) + SelfRowByteWidth;
     PtrUInt(ImagePtr) := PtrUInt(ImagePtr) + ImageRowByteWidth;
   end;
+end;
+
+procedure TImage.CopyFrom(Image: TImage; const X0, Y0: Cardinal);
+begin
+  CopyFrom(Image, X0, Y0, 0, 0, Image.Width, Image.Height);
 end;
 
 procedure TImage.CopyTo(Image: TImage; const X0, Y0: Cardinal);
