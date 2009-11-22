@@ -16,16 +16,12 @@
   This unit draws a menu in OpenGL,
   which should be suitable for games etc. "Normal" user programs
   may prefer to use the native menu bar, provided in each
-  TGLWindow instance.
+  TGLWindow instance. Although this still may be usable for displaying
+  things like sliders.
 
-  Two "quirks" that you should be aware of are:
-  @orderedList(
-    @item(Make sure you call GLMenuCloseGL when you ended using any menus
-      (otherwise you'll get memory leak).)
-    @item(Make sure GetMenuImagesPath is set properly and you have
-      appropriate menu images copied to appropriate directory,
-      if you want to use menu features that use these images.)
-  ) }
+  One important "quirk" that you should be aware of:
+  Make sure you call GLMenuCloseGL when you ended using any menus
+  (otherwise you'll get memory leak). }
 unit GLMenu;
 
 interface
