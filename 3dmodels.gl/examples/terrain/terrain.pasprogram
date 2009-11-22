@@ -27,6 +27,9 @@
      Sample files for Poland are on http://netgis.geo.uw.edu.pl/srtm/Poland/,
      for Europe http://netgis.geo.uw.edu.pl/srtm/Europe/.
 
+     You can run the program with command-line parameter to pass filename
+     of such .hgt file to load on start.
+
   2. You can also define terrain as an explicit function using KambiScript
      expression syntax, [http://vrmlengine.sourceforge.net/kambi_script.php].
      Try e.g. function like
@@ -34,15 +37,12 @@
      - (sin(x*10) + sin(x*20) / 2 + sin(x*40) / 4)  *
        (sin(y*10) + sin(y*20) / 2 + sin(y*40) / 4)
        (sum sinusoides of various frequencies and amplitudes).
-     TODO --- make command-line for this.
 
   3. You can also (and this was actually the primary reason for this program
      in the 1st place) generate random terrain.
      TODO.
 
   TODO: UI to
-  - load new terrain while prog is running
-  - switch between wireframe and solid
   - switch view terrain:
     1. current view - "Examine the [0..1, 0..1] range of the terrain"
     2. new new - "Walk over the infinite terrain":
@@ -56,10 +56,12 @@ program terrain;
 
 uses SysUtils, Classes, Boxes3d,
   KambiUtils, GLWindow, GLW_Navigated, GL, KambiGLUtils,
-  Navigation, VectorMath, KambiFilesUtils, Elevations;
+  Navigation, VectorMath, KambiFilesUtils, Elevations, GLWinMessages,
+  KambiStringUtils;
 
 var
   Elevation: TElevation;
+  Wireframe: boolean;
 
 const
   ScaleSize = 100.0;
@@ -142,16 +144,25 @@ begin
 end;
 
 procedure Draw(Glwin: TGLWindow);
-
 begin
-//  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  glEnable(GL_DEPTH_TEST);
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(Glw.Navigator.Matrix);
 
-  if Elevation is TElevationGrid then
-    DrawGrid(TElevationGrid(Elevation)) else
-    DrawElevation(Elevation);
+  if Wireframe then
+  begin
+    glPushAttrib(GL_POLYGON_BIT);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  end else
+  begin
+    glPushAttrib(GL_ENABLE_BIT);
+    glEnable(GL_DEPTH_TEST);
+  end;
+
+    if Elevation is TElevationGrid then
+      DrawGrid(TElevationGrid(Elevation)) else
+      DrawElevation(Elevation);
+
+  glPopAttrib;
 end;
 
 procedure Resize(Glwin: TGLWindow);
@@ -159,11 +170,83 @@ begin
   ProjectionGLPerspective(30, Glwin.Width / Glwin.Height, ScaleSize / 100, ScaleSize * 3);
 end;
 
+procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
+var
+  FileName: string;
+  Expression: string;
+  NewElevation: TElevation;
 begin
-  Parameters.CheckHigh(1);
+  case Item.IntData of
+    10: Wireframe := not Wireframe;
+    50: begin
+          FileName := '';
+          if Glwin.FileDialog('Open SRTM (.hgt) terrain file', FileName, true,
+            'All Files|*|' +
+            '*SRTM (*.hgt) terrain|*.hgt') then
+          begin
+            try
+              NewElevation := TElevationSRTM.CreateFromFile(FileName);
+            except
+              on E: Exception do
+              begin
+                MessageOk(Glwin, Format('Error when loading file "%s" as terrain: %s',
+                  [FileName, E.Message]));
+                Exit;
+              end;
+            end;
 
-//  Elevation := TElevationSRTM.CreateFromFile(Parameters[1]);
-  Elevation := TElevationKamScript.Create(Parameters[1]);
+            FreeAndNil(Elevation);
+            Elevation := NewElevation;
+          end;
+        end;
+    60: begin
+          Expression := '';
+          if MessageInputQuery(Glwin, 'Pass KambiScript function expression, using X and Y variables, and calculating height of the terrain at given point.' + nl + nl +
+            '(For example, try "sin(x*10) + sin(x*20)").', Expression, taLeft) then
+          begin
+            try
+              NewElevation := TElevationKamScript.Create(Expression);
+            except
+              on E: Exception do
+              begin
+                MessageOk(Glwin, Format('Error when interpreting expression: %s',
+                  [E.Message]));
+                Exit;
+              end;
+            end;
+
+            FreeAndNil(Elevation);
+            Elevation := NewElevation;
+          end;
+        end;
+    100: Glwin.Close;
+  end;
+  Glwin.PostRedisplay;
+end;
+
+function CreateMainMenu: TMenu;
+var
+  M: TMenu;
+begin
+  Result := TMenu.Create('Main menu');
+  M := TMenu.Create('_Program');
+    M.Append(TMenuItem.Create('Load terrain from SRTM (.hgt) file ...', 50, CtrlO));
+    M.Append(TMenuItem.Create('Define terrain by KambiScript expression ...', 60));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItemChecked.Create('_Wireframe', 10, 'w', Wireframe, true));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('_Exit', 100));
+    Result.Append(M);
+end;
+
+begin
+  Parameters.CheckHighAtMost(1);
+
+  if Parameters.High = 1 then
+    Elevation := TElevationSRTM.CreateFromFile(Parameters[1]) else
+    { some default elevation }
+    Elevation := TElevationKamScript.Create('sin(x*10) * sin(y*10)');
+
   try
     Glw.Navigator := TExamineNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
     Glw.ExamineNav.Init(Box3d(
@@ -179,6 +262,9 @@ begin
       Vector3Single(0, 0, 1) { up },
       Vector3Single(0, 0, 1), 0.0, 0.0 { unused, we don't use Gravity here });
     *)
+
+    Glw.MainMenu := CreateMainMenu;
+    Glw.OnMenuCommand := @MenuCommand;
 
     Glw.OnResize := @Resize;
     Glw.InitLoop(ProgramName, @Draw);
