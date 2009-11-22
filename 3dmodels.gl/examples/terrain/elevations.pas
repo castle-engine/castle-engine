@@ -84,6 +84,8 @@ type
   private
     FOctaves: Cardinal;
     FPersistence: Single;
+    FAmplitude: Single;
+    FFrequency: Single;
     FNoiseInterpolation: TNoiseInterpolation;
     FNoiseInterpolation2DMethod: TNoiseInterpolation2DMethod;
     procedure SetNoiseInterpolation(const Value: TNoiseInterpolation);
@@ -98,6 +100,14 @@ type
 
     { How amplitude changes, when frequency doubles. Default is 0.5. }
     property Persistence: Single read FPersistence write FPersistence default 0.5;
+
+    { Amplitude and frequency of the first noise octave.
+      Amplitude scales the height of the result, and Frequency scales
+      the size of the bumps.
+      @groupBegin }
+    property Amplitude: Single read FAmplitude write FAmplitude default 1.0;
+    property Frequency: Single read FFrequency write FFrequency default 1.0;
+    { @groupEnd }
 
     { How integer noise is interpolated to get smooth float noise.
 
@@ -221,22 +231,24 @@ begin
   inherited Create;
   FOctaves := 4;
   FPersistence := 0.5;
+  FAmplitude := 1.0;
+  FFrequency := 1.0;
   NoiseInterpolation := niCosine;
 end;
 
 function TElevationNoise.Height(const X, Y: Single): Single;
 var
-  Amplitude, Frequency: Single;
+  A, F: Single;
   I: Cardinal;
 begin
   Result := 0;
-  Amplitude := 1;
-  Frequency := 1;
+  A := Amplitude;
+  F := Frequency;
   for I := 1 to Octaves do
   begin
-    Result += FNoiseInterpolation2DMethod(X * Frequency, Y * Frequency, I) * Amplitude;
-    Frequency *= 2;
-    Amplitude *= Persistence;
+    Result += FNoiseInterpolation2DMethod(X * F, Y * F, I) * A;
+    F *= 2;
+    A *= Persistence;
   end;
 end;
 

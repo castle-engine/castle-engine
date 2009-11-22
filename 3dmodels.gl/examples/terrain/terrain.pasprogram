@@ -73,12 +73,11 @@
     events (but how well will it work for mouse dragging? some fake
     mouse down/ups will be needed?)
 
-  TODO: make sliders actually useful.
-  And visible only when elevation noise is used?
-  Add also controls for initial NoiseIndex (to choose different seed).
-  Add controls for shifting noise (and calculated kam script) terrain.
-  Allow octaves to be float? --- like blender does, just last eventual octave
-  in frac(octaves).
+  TODO: sliders:
+  - also controls for initial NoiseIndex (to choose different seed).
+  - controls for shifting noise (and calculated kam script) terrain.
+  - Allow octaves to be float? --- like blender does, just last eventual octave
+    in frac(octaves).
 
   TODO: add calculating and using normals.
 }
@@ -93,14 +92,24 @@ var
   Elevation: TElevation;
   Wireframe: boolean;
 
-  GLControls: TGLMenu;
-  OctavesSlider: TGLMenuIntegerSlider;
-  InitialAmplitudeSlider: TGLMenuFloatSlider;
-  InitialFrequencySlider: TGLMenuFloatSlider;
-
 const
   ScaleSize = 100.0;
   ScaleHeight = 0.01;
+
+type
+  TTerrainControls = class(TGLMenu)
+  public
+    constructor Create;
+
+    OctavesSlider: TGLMenuIntegerSlider;
+    AmplitudeSlider: TGLMenuFloatSlider;
+    FrequencySlider: TGLMenuFloatSlider;
+
+    procedure CurrentItemAccessoryValueChanged; override;
+  end;
+
+var
+  GLControls: TGLMenu;
 
 procedure ElevationVertex(const X, Y, H: Single);
 begin
@@ -180,9 +189,12 @@ end;
 
 procedure Draw2d(Draw2DData: Pointer);
 begin
-  glLoadIdentity;
-  glRasterPos2i(0, 0);
-  GLControls.Draw;
+  if Elevation is TElevationNoise then
+  begin
+    glLoadIdentity;
+    glRasterPos2i(0, 0);
+    GLControls.Draw;
+  end;
 end;
 
 procedure Draw(Glwin: TGLWindow);
@@ -219,22 +231,37 @@ begin
   GLControls.FixItemsAreas(Glwin.Width, Glwin.Height);
 end;
 
+constructor TTerrainControls.Create;
+begin
+  inherited;
+
+  OctavesSlider := TGLMenuIntegerSlider.Create(0, 20, 4);
+  AmplitudeSlider := TGLMenuFloatSlider.Create(0.5, 10.0, 1.0);
+  FrequencySlider := TGLMenuFloatSlider.Create(0.5, 10.0, 1.0);
+
+  Items.AddObject('Octaves', OctavesSlider);
+  Items.AddObject('Amplitude (scales height)', AmplitudeSlider);
+  Items.AddObject('Frequency (scales size)', FrequencySlider);
+  PositionRelativeScreenX := prLowerBorder;
+  PositionRelativeScreenY := prLowerBorder;
+  PositionRelativeMenuX := prLowerBorder;
+  PositionRelativeMenuY := prLowerBorder;
+  Position.Init(10.00, 10.00);
+end;
+
+procedure TTerrainControls.CurrentItemAccessoryValueChanged;
+begin
+  if not (Elevation is TElevationNoise) then Exit;
+  case CurrentItem of
+    0: (Elevation as TElevationNoise).Octaves := OctavesSlider.Value;
+    1: (Elevation as TElevationNoise).Amplitude := AmplitudeSlider.Value;
+    2: (Elevation as TElevationNoise).Frequency := FrequencySlider.Value;
+  end;
+end;
+
 procedure Init(Glwin: TGLWindow);
 begin
-  OctavesSlider := TGLMenuIntegerSlider.Create(0, 20, 4);
-  InitialAmplitudeSlider := TGLMenuFloatSlider.Create(0.5, 10.0, 1.0);
-  InitialFrequencySlider := TGLMenuFloatSlider.Create(0.5, 10.0, 1.0);
-
-  GLControls := TGLMenu.Create;
-  GLControls.Items.AddObject('Octaves', OctavesSlider);
-  GLControls.Items.AddObject('Initial amplitude (scales height)', InitialAmplitudeSlider);
-  GLControls.Items.AddObject('Initial frequency (scales size)', InitialFrequencySlider);
-  GLControls.PositionRelativeScreenX := prLowerBorder;
-  GLControls.PositionRelativeScreenY := prLowerBorder;
-  GLControls.PositionRelativeMenuX := prLowerBorder;
-  GLControls.PositionRelativeMenuY := prLowerBorder;
-  GLControls.Position.Init(10.00, 10.00);
-
+  GLControls := TTerrainControls.Create;
   { First GLControls.FixItemsAreas will be called from Resize. }
 end;
 
