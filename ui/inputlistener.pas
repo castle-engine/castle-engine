@@ -18,7 +18,9 @@ unit InputListener;
 
 interface
 
-uses Keys;
+{$define read_interface}
+
+uses Keys, SysUtils, KambiUtils, KambiClassUtils, Areas;
 
 type
   { An abstract handler of mouse/keyboard input.
@@ -28,7 +30,7 @@ type
     from something outside, like operating system, windowing library etc.)
     accept TInputListener classes, and pass to them inputs. }
   TInputListener = class
-  protected
+  public
     procedure KeyDown(Key: TKey; C: char); virtual;
 
     { Called when user moves the mouse.
@@ -46,10 +48,42 @@ type
     procedure MouseUp(const MouseX, MouseY: Single; Button: TMouseButton;
       const MousePressed: TMouseButtons); virtual;
 
-    procedure Idle(const CompSpeed: Single); virtual;
+    { Call this often, to respond to user actions and to perform
+      other tasks. E.g. for navigator: falling down due to gravity
+      in Walker mode, rotating model in Examine mode, and many more.
+
+      @param(CompSpeed Should be calculated like TFramesPerSecond.IdleSpeed,
+        and usually it's in fact just taken from TGLWindow.Fps.IdleSpeed.)
+
+      @param(KeysDown What keys are pressed currently ?
+        You pass here a pointer to a boolean table indicating
+        which keys are currently pressed. Or you can pass @nil
+        here if you don't know it. Just like for @link(KeyDown) method.)
+
+      @param(CharactersDown What character codes are pressed currently ?
+        Analogous to KeysDown, you can pass here a pointer or @nil.)
+
+      @param(MousePressed Which mouse buttons are currently pressed ?) }
+    procedure Idle(const CompSpeed: Single;
+      KeysDown: PKeysBooleans;
+      CharactersDown: PCharactersBooleans;
+      const MousePressed: TMouseButtons); virtual;
+
+    { Area occupied on the window.
+      Returns empty area in this class. }
+    function Area: TArea; virtual;
   end;
 
+  TObjectsListItem_1 = TInputListener;
+  {$I objectslist_1.inc}
+  TInputListenersList = TObjectsList_1;
+
+{$undef read_interface}
+
 implementation
+
+{$define read_implementation}
+{$I objectslist_1.inc}
 
 procedure TInputListener.KeyDown(Key: TKey; C: char);
 begin
@@ -70,8 +104,16 @@ procedure TInputListener.MouseUp(const MouseX, MouseY: Single; Button: TMouseBut
 begin
 end;
 
-procedure TInputListener.Idle(const CompSpeed: Single);
+procedure TInputListener.Idle(const CompSpeed: Single;
+  KeysDown: PKeysBooleans;
+  CharactersDown: PCharactersBooleans;
+  const MousePressed: TMouseButtons);
 begin
+end;
+
+function TInputListener.Area: TArea;
+begin
+  Result := EmptyArea;
 end;
 
 end.

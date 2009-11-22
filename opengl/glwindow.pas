@@ -591,7 +591,7 @@ uses
   {$ifdef GLWINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, KambiDynLib, {$endif}
   KambiUtils, KambiClassUtils, KambiGLUtils, Images, Keys, Navigation,
   RaysWindow, KambiStringUtils, KambiFilesUtils, KambiTimeUtils,
-  FileFilters;
+  FileFilters, InputListener;
 
 {$define read_interface}
 
@@ -2484,9 +2484,17 @@ type
     FUseNavigator: boolean;
     FNavigator: TNavigator;
     FCursorNonMouseLook: TGLWindowCursor;
+    FInputListeners: TInputListenersList;
+    FUseInputListeners: boolean;
     procedure SetCursorNonMouseLook(const Value: TGLWindowCursor);
     function ReallyUseNavigator: boolean;
     function ReallyUseMouseLook: boolean;
+
+    { Returns the input listener that should receive input events
+      (first one on InputListeners list under the mouse cursor),
+      or @nil if none (no listener under the mouse cursor,
+      or when UseInputListeners = @false). }
+    function InputListener: TInputListener;
   public
     constructor Create;
     destructor Destroy; override;
@@ -2520,6 +2528,7 @@ type
     procedure EventKeyDown(Key: TKey; C: char); override;
     procedure EventIdle; override;
     procedure EventMouseDown(Button: TMouseButton); override;
+    procedure EventMouseUp(Button: TMouseButton); override;
     procedure EventMouseMove(NewX, NewY: Integer); override;
     function AllowsProcessMessageSuspend: boolean; override;
 
@@ -2604,6 +2613,39 @@ type
     property CursorNonMouseLook: TGLWindowCursor
       read FCursorNonMouseLook write SetCursorNonMouseLook
       default gcDefault;
+
+    { Controls listening for user input (keyboard / mouse) to this window.
+
+      We pass our input to the top-most (that is, first on this list)
+      control under the current mouse position (we look at control's
+      Area for this). Only if UseInputListeners.
+
+      If no such control, we pass it to our navigator in this class.
+      If the navigator not set (or not interested in this event)
+      we pass it to inherited, which calls normal window callbacks
+      OnKeyDown etc.
+
+      All above applied to mouse / keyboard input. For idle "input"
+      we just call this on ever input listener (if UseInputListeners).
+
+      TODO: this is expected to be much improved in the future:
+      - pass event to the next control on the list under the mouse?
+        Thus allowing control behind to handle event.
+      - an option to ignore mouse position and always pass to given listener
+        (useful in castle, and generally when you only have one control
+        on screen, and no navigator)
+      - a way for listener to say if event is handled. Not handled =>
+        means we can pass it to the next control. This will allow key
+        shortcuts that are not interesting for control to be handled
+        by something else.
+      - an option to not allow listener "grab" events, i.e. even
+        if it says handled = true, we'll behave like handled = false ?
+        This is useful in controllable environment, e.g. in castle?
+        Hm, or not?
+    }
+    property InputListeners: TInputListenersList read FInputListeners;
+    property UseInputListeners: boolean
+      read FUseInputListeners write FUseInputListeners default true;
   end;
 
   TObjectsListItem_1 = TGLWindow;
@@ -2981,7 +3023,7 @@ procedure Resize2D(glwin: TGLWindow);
 
 implementation
 
-uses ParseParametersUnit, KambiLog, GLImages, GLVersionUnit
+uses ParseParametersUnit, KambiLog, GLImages, GLVersionUnit, Areas
   { using here GLWinModes/Messages makes recursive uses,
     but it's needed for FileDialog }
   {$ifdef GLWINDOW_GTK_ANY}, GLWinModes, EnumerateFiles {$endif}
@@ -4252,12 +4294,31 @@ begin
  inherited;
  UseNavigator := true;
  OwnsNavigator := true;
+ FInputListeners := TInputListenersList.Create;
+ FUseInputListeners := true;
 end;
 
 destructor TGLWindowNavigated.Destroy;
 begin
  if OwnsNavigator then Navigator.Free;
+ FreeAndNil(FInputListeners);
  inherited;
+end;
+
+function TGLWindowNavigated.InputListener: TInputListener;
+var
+  I: Integer;
+begin
+  if not UseInputListeners then Exit(nil);
+
+  for I := 0 to InputListeners.Count - 1 do
+  begin
+    Result := InputListeners.Items[I];
+    if PointInArea(MouseX, Height - MouseY, Result.Area) then
+      Exit;
+  end;
+
+  Result := nil;
 end;
 
 function TGLWindowNavigated.ReallyUseNavigator: boolean;
@@ -4271,22 +4332,79 @@ begin
 end;
 
 procedure TGLWindowNavigated.EventIdle;
+var
+  I: Integer;
+  ThisListener, L: TInputListener;
 begin
+  { Although we call Idle for all listeners (and navigators),
+    we will pass pressed keys/mouse buttons info only for the "focused"
+    listener (or navigator, if no listener focused).
+
+    This makes sense: if you want to check in Idle some pressed state,
+    and react to it, you do not want many listeners to react to your
+    keys. For example, when pressing key left over TGLMenu, you do not
+    want to let navigator to also capture this left key down. }
+  L := InputListener;
+
+  if UseInputListeners then
+  begin
+    for I := 0 to InputListeners.Count - 1 do
+    begin
+      ThisListener := InputListeners.Items[I];
+      if L = ThisListener then
+        ThisListener.Idle(Fps.IdleSpeed, @KeysDown, @CharactersDown, MousePressed) else
+        ThisListener.Idle(Fps.IdleSpeed, nil, nil, []);
+    end;
+  end;
+
   if ReallyUseNavigator then
-    Navigator.Idle(Fps.IdleSpeed, @KeysDown, @CharactersDown, MousePressed);
+  begin
+    if L = nil then
+      Navigator.Idle(Fps.IdleSpeed, @KeysDown, @CharactersDown, MousePressed) else
+      Navigator.Idle(Fps.IdleSpeed, nil, nil, []);
+  end;
+
   inherited;
 end;
 
 procedure TGLWindowNavigated.EventKeyDown(Key: TKey; C: char);
+var
+  L: TInputListener;
 begin
- if not (ReallyUseNavigator and Navigator.KeyDown(Key, c, @KeysDown)) then
-  inherited;
+  L := InputListener;
+  if L <> nil then begin L.KeyDown(Key, C); Exit; end;
+
+  if not (ReallyUseNavigator and Navigator.KeyDown(Key, c, @KeysDown)) then
+    inherited;
 end;
 
 procedure TGLWindowNavigated.EventMouseDown(Button: TMouseButton);
+var
+  L: TInputListener;
 begin
+  L := InputListener;
+  if L <> nil then
+  begin
+    L.MouseDown(MouseX, Height - MouseY, Button, MousePressed);
+    Exit;
+  end;
+
   if not (ReallyUseNavigator and Navigator.MouseDown(Button)) then
     inherited;
+end;
+
+procedure TGLWindowNavigated.EventMouseUp(Button: TMouseButton);
+var
+  L: TInputListener;
+begin
+  L := InputListener;
+  if L <> nil then
+  begin
+    L.MouseUp(MouseX, Height - MouseY, Button, MousePressed);
+    Exit;
+  end;
+
+  inherited;
 end;
 
 procedure TGLWindowNavigated.EventInit;
@@ -4392,7 +4510,15 @@ procedure TGLWindowNavigated.EventMouseMove(NewX, NewY: Integer);
 var
   MiddleScreenWidth: Integer;
   MiddleScreenHeight: Integer;
+  L: TInputListener;
 begin
+  L := InputListener;
+  if L <> nil then
+  begin
+    L.MouseMove(NewX, Height - NewY, MousePressed);
+    Exit;
+  end;
+
   if not (
     ReallyUseNavigator and
     (Navigator is TExamineNavigator) and

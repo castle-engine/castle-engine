@@ -350,22 +350,6 @@ type
 #) *)
     function MouseDown(Button: TMouseButton): boolean; virtual;
 
-    { Call this often, to respond to user actions and to perform
-      other tasks (falling down due to gravity in Walker mode,
-      rotating model in Examine mode, and many more).
-
-      @param(CompSpeed Should be calculated like TGLWindow.IdleSpeed,
-        and usually it's in fact just taken from Glwin.IdleSpeed.)
-
-      @param(KeysDown What keys are pressed currently ?
-        You pass here a pointer to a boolean table indicating
-        which keys are currently pressed. Or you can pass @nil
-        here if you don't know it. Just like for @link(KeyDown) method.)
-
-      @param(CharactersDown What character codes are pressed currently ?
-        Analogous to KeysDown, you can pass here a pointer or @nil.)
-
-      @param(MousePressed Which mouse buttons are currently pressed ?) }
     procedure Idle(const CompSpeed: Single;
       KeysDown: PKeysBooleans;
       CharactersDown: PCharactersBooleans;

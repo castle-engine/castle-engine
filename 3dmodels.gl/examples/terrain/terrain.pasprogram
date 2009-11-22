@@ -60,19 +60,6 @@
        and using the algorithm that renders infinite terrain with LOD.
        Optionally with sky displayed, just for effect.
 
-  TODO: current sliders usage of mouse and keys interacts strangely
-  with our normal navigator: Some keys are handled by both (up, down etc.).
-  Mouse presses and dragging are handled by both too.
-  - it would be needed to introduce the concept of focus,
-    to allow selecting and deselecting menu.
-    Or maybe just drop the idea of selected menu item for this?
-    Poor, but avoids problems with focus (it would not be intuitive
-    --- how to tell user when/how to make focus on the main navigator?).
-  - it would be needed to allow injecting menu somehow that it intercepts
-    all interesting events. Also, such that it intercepts mouse down / etc.
-    events (but how well will it work for mouse dragging? some fake
-    mouse down/ups will be needed?)
-
   TODO: sliders:
   - also controls for initial NoiseIndex (to choose different seed).
   - controls for shifting noise (and calculated kam script) terrain.
@@ -194,6 +181,11 @@ begin
     glLoadIdentity;
     glRasterPos2i(0, 0);
     GLControls.Draw;
+
+    { Since GLControls are drawn with "pulsating" current item,
+      we have to keep redrawing (like AutoRedisplay = true)
+      as long as they should be visible. }
+    Glw.PostRedisplay;
   end;
 end;
 
@@ -247,6 +239,8 @@ begin
   PositionRelativeMenuX := prLowerBorder;
   PositionRelativeMenuY := prLowerBorder;
   Position.Init(10.00, 10.00);
+
+  { First GLControls.FixItemsAreas will be called from Resize. }
 end;
 
 procedure TTerrainControls.CurrentItemAccessoryValueChanged;
@@ -257,45 +251,20 @@ begin
     1: (Elevation as TElevationNoise).Amplitude := AmplitudeSlider.Value;
     2: (Elevation as TElevationNoise).Frequency := FrequencySlider.Value;
   end;
+  Glw.PostRedisplay;
 end;
 
 procedure Init(Glwin: TGLWindow);
 begin
   GLControls := TTerrainControls.Create;
-  { First GLControls.FixItemsAreas will be called from Resize. }
+  Glw.InputListeners.Add(GLControls);
 end;
 
 procedure Close(Glwin: TGLWindow);
 begin
   FreeAndNil(GLControls);
+  Glw.InputListeners.Delete(GLControls);
   GLMenuCloseGL;
-end;
-
-procedure KeyDown(glwin: TGLWindow; key: TKey; c: char);
-begin
-  GLControls.KeyDown(Key, C);
-end;
-
-procedure MouseMove(Glwin: TGLWindow; NewX, NewY: Integer);
-begin
-  GLControls.MouseMove(NewX, Glwin.Height - NewY,  Glwin.MousePressed);
-end;
-
-procedure MouseDown(Glwin: TGLWindow; Button: TMouseButton);
-begin
-  GLControls.MouseDown(Glwin.MouseX, Glwin.Height - Glwin.MouseY, Button,
-    Glwin.MousePressed);
-end;
-
-procedure MouseUp(Glwin: TGLWindow; Button: TMouseButton);
-begin
-  GLControls.MouseUp(Glwin.MouseX, Glwin.Height - Glwin.MouseY, Button,
-    Glwin.MousePressed);
-end;
-
-procedure Idle(Glwin: TGLWindow);
-begin
-  GLControls.Idle(Glwin.Fps.IdleSpeed);
 end;
 
 procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
@@ -399,11 +368,6 @@ begin
     Glw.OnInit := @Init;
     Glw.OnClose := @Close;
     Glw.OnResize := @Resize;
-    Glw.OnKeyDown := @KeyDown;
-    Glw.OnMouseMove := @MouseMove;
-    Glw.OnMouseDown := @MouseDown;
-    Glw.OnMouseUp := @MouseUp;
-    Glw.OnIdle := @Idle;
     Glw.InitLoop(ProgramName, @Draw);
   finally FreeAndNil(Elevation) end;
 end.

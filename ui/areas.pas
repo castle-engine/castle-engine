@@ -62,6 +62,9 @@ type
     function FindArea(const X, Y: Single): integer;
   end;
 
+const
+  EmptyArea: TArea = (X0: 0; Y0: 0; Width: -1; Height: -1; UserData: nil);
+
 function Area(const X0, Y0, Width, Height: Single;
   const UserData: Pointer = nil): TArea;
 

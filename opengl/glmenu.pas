@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2008 Michalis Kamburelis.
+  Copyright 2006-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -9,6 +9,8 @@
   "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
 }
 
 { Menu displayed in OpenGL.
@@ -27,7 +29,7 @@ unit GLMenu;
 interface
 
 uses Classes, OpenGLBmpFonts, BFNT_BitstreamVeraSans_Unit, VectorMath, Areas,
-  GLWindow, GL, GLU, KambiGLUtils, Matrix, InputListener;
+  GLWindow, GL, GLU, KambiGLUtils, Matrix, InputListener, Keys;
 
 const
   DefaultGLMenuKeyNextItem = K_Down;
@@ -463,6 +465,9 @@ type
     property AllItemsArea: TArea read FAllItemsArea;
     property AccessoryAreas: TDynAreaArray read FAccessoryAreas;
 
+    { Area occupied by this control. The same as AllItemsArea here. }
+    function Area: TArea; override;
+
     procedure Draw; virtual;
 
     property KeyNextItem: TKey read FKeyNextItem write FKeyNextItem
@@ -485,7 +490,10 @@ type
       const MousePressed: TMouseButtons); override;
     procedure MouseUp(const MouseX, MouseY: Single; Button: TMouseButton;
       const MousePressed: TMouseButtons); override;
-    procedure Idle(const CompSpeed: Single); override;
+    procedure Idle(const CompSpeed: Single;
+      KeysDown: PKeysBooleans;
+      CharactersDown: PCharactersBooleans;
+      const MousePressed: TMouseButtons); override;
 
     { Called when user will select CurrentItem, either with mouse
       or with keyboard. }
@@ -1116,6 +1124,16 @@ end;
 const
   MarginBeforeAccessory = 20;
 
+{ Hack: alias MakeArea, to make it available inside TGLMenu
+  (inside TGLMenu we have Area method already, and Areas property,
+  so we cannot access normal Areas.Area function). }
+function MakeArea(const X0, Y0, Width, Height: Single;
+  const UserData: Pointer = nil): TArea;
+begin
+  Result := Area(X0, Y0, Width, Height, UserData);
+end;
+
+
 procedure TGLMenu.FixItemsAreas(const WindowWidth, WindowHeight: Cardinal);
 const
   AllItemsAreaMargin = 30;
@@ -1174,7 +1192,7 @@ begin
     if MaxAccessoryWidth <> 0.0 then
       WholeItemWidth := MaxItemWidth + MarginBeforeAccessory + MaxAccessoryWidth else
       WholeItemWidth := MenuFont.TextWidth(Items[I]);
-    Areas.AppendItem(Area(0, 0, WholeItemWidth,
+    Areas.AppendItem(MakeArea(0, 0, WholeItemWidth,
       MenuFont.Descend + MenuFont.RowHeight));
   end;
 
@@ -1377,6 +1395,8 @@ const
   BooleanToStr: array [boolean] of string=('false','true');
 
 begin
+  inherited;
+
   if Key = KeyPreviousItem then
     PreviousItem else
   if Key = KeyNextItem then
@@ -1436,6 +1456,8 @@ procedure TGLMenu.MouseMove(const NewX, NewY: Single;
 var
   NewItemIndex: Integer;
 begin
+  inherited;
+
   NewItemIndex := Areas.FindArea(NewX, NewY);
   if NewItemIndex <> -1 then
   begin
@@ -1461,6 +1483,8 @@ procedure TGLMenu.MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
 var
   NewItemIndex: Integer;
 begin
+  inherited;
+
   if (CurrentItem <> -1) and
      (Items.Objects[CurrentItem] <> nil) and
      (PointInArea(MouseX, MouseY, FAccessoryAreas.Items[CurrentItem])) and
@@ -1485,6 +1509,8 @@ end;
 procedure TGLMenu.MouseUp(const MouseX, MouseY: Single; Button: TMouseButton;
   const MousePressed: TMouseButtons);
 begin
+  inherited;
+
   { This is actually not needed, smart check for
     (MousePressed - [Button] = []) inside MouseDown handles everything,
     so we don't have to depend on MouseUp for ungrabbing.
@@ -1495,8 +1521,13 @@ begin
   { Nothing to do here for now. }
 end;
 
-procedure TGLMenu.Idle(const CompSpeed: Single);
+procedure TGLMenu.Idle(const CompSpeed: Single;
+  KeysDown: PKeysBooleans;
+  CharactersDown: PCharactersBooleans;
+  const MousePressed: TMouseButtons);
 begin
+  inherited;
+
   MenuAnimation += 0.5 * CompSpeed;
   MenuAnimation := Frac(MenuAnimation);
   SomethingChanged;
@@ -1533,6 +1564,11 @@ begin
   end;
 
   FDesignerMode := Value;
+end;
+
+function TGLMenu.Area: TArea;
+begin
+  Result := FAllItemsArea;
 end;
 
 end.
