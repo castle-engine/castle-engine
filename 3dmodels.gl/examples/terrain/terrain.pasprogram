@@ -62,6 +62,10 @@
   - controls for shifting noise (and calculated kam script) terrain.
 
   TODO: add calculating and using normals.
+
+  TODO: mark on ui that subdivision doesn't work on grid.
+  show subdivision slider also on kamscript terrain (in fact,
+  any but not grid), since it works there.
 }
 program terrain;
 
@@ -73,6 +77,7 @@ uses SysUtils, Classes, Boxes3d,
 var
   Elevation: TElevation;
   Wireframe: boolean;
+  Subdivision: Cardinal = 6;
 
 const
   ScaleSize = 100.0;
@@ -86,6 +91,7 @@ type
     OctavesSlider: TGLMenuFloatSlider;
     AmplitudeSlider: TGLMenuFloatSlider;
     FrequencySlider: TGLMenuFloatSlider;
+    SubdivisionSlider: TGLMenuIntegerSlider;
 
     procedure CurrentItemAccessoryValueChanged; override;
   end;
@@ -119,11 +125,10 @@ procedure DrawElevation(Elevation: TElevation);
     ElevationVertex(I, J, Elevation.Height(I, J) * 1000 + 500);
   end;
 
-const
-  CountSteps = 100;
 var
-  I, J: Cardinal;
+  I, J, CountSteps: Cardinal;
 begin
+  CountSteps := 1 shl Subdivision;
   for I := 1 to CountSteps - 1 do
   begin
     glBegin(GL_QUAD_STRIP);
@@ -240,10 +245,12 @@ begin
   OctavesSlider := TGLMenuFloatSlider.Create(0.0, 20.0, 4.0);
   AmplitudeSlider := TGLMenuFloatSlider.Create(0.5, 10.0, 1.0);
   FrequencySlider := TGLMenuFloatSlider.Create(0.5, 10.0, 1.0);
+  SubdivisionSlider := TGLMenuIntegerSlider.Create(4, 10, Subdivision);
 
   Items.AddObject('Octaves', OctavesSlider);
   Items.AddObject('Amplitude (scales height)', AmplitudeSlider);
   Items.AddObject('Frequency (scales size)', FrequencySlider);
+  Items.AddObject('Subdivision', SubdivisionSlider);
   PositionRelativeScreenX := prLowerBorder;
   PositionRelativeScreenY := prLowerBorder;
   PositionRelativeMenuX := prLowerBorder;
@@ -260,6 +267,7 @@ begin
     0: (Elevation as TElevationNoise).Octaves := OctavesSlider.Value;
     1: (Elevation as TElevationNoise).Amplitude := AmplitudeSlider.Value;
     2: (Elevation as TElevationNoise).Frequency := FrequencySlider.Value;
+    3: Subdivision := SubdivisionSlider.Value;
   end;
   Glw.PostRedisplay;
 end;
