@@ -624,28 +624,11 @@ var
   when you ended using GLMenu things. }
 procedure GLMenuCloseGL;
 
-type
-  TFilePathFunction = function: string;
-
-var
-  { This function will be used when loading any external files needed
-    by menu. It indicates the path from where to load certain image
-    files. It should return a path, terminated with final PathDelim.
-    Currently, it's used to search for files
-    @unorderedList(
-      @itemSpacing Compact
-      @item menu_slider.png
-      @item menu_slider_position.png
-    )
-
-    If it's not assigned, we'll use the path
-    @code(ProgramDataPath + 'data' + PathDelim + 'menu_bg' + PathDelim). }
-  GetMenuImagesPath: TFilePathFunction;
-
 implementation
 
 uses SysUtils, KambiUtils, Images, KambiFilesUtils, KambiClassUtils,
-  BFNT_BitstreamVeraSans_m10_Unit, KambiStringUtils, GLImages;
+  BFNT_BitstreamVeraSans_m10_Unit, KambiStringUtils, GLImages,
+  ImageSlider_Base, ImageSlider_Position;
 
 procedure SliderFontInit;
 begin
@@ -666,13 +649,6 @@ var
   GLList_ImageSliderPosition: TGLuint;
 
 procedure ImageSliderInit;
-
-  function DoGetMenuImagesPath: string;
-  begin
-    if Assigned(GetMenuImagesPath) then
-      Result := GetMenuImagesPath() else
-      Result := ProgramDataPath + 'data' + PathDelim + 'menu_bg' + PathDelim;
-  end;
 
   { Compose RGB image of desired width (or very slightly larger),
     by horizontally stretching base image.
@@ -703,22 +679,11 @@ procedure ImageSliderInit;
       Base.Width - RightWidth, 0, RightWidth, Base.Height);
   end;
 
-var
-  ImageSliderBase: TRGBImage;
 begin
   if ImageSlider = nil then
-  begin
-    ImageSliderBase := LoadImage(DoGetMenuImagesPath + 'menu_slider.png',
-      [TRGBImage], []) as TRGBImage;
-    try
-      ImageSlider := ComposeSliderImage(ImageSliderBase, 1, 250);
-    finally FreeAndNil(ImageSliderBase) end;
-  end;
+    ImageSlider := ComposeSliderImage(Slider_Base, 1, 250);
 
-  if ImageSliderPosition = nil then
-    ImageSliderPosition :=
-      LoadImage(DoGetMenuImagesPath + 'menu_slider_position.png',
-      [TRGBImage], []);
+  ImageSliderPosition := Slider_Position;
 
   if GLList_ImageSlider = 0 then
     GLList_ImageSlider := ImageDrawToDisplayList(ImageSlider);
@@ -734,7 +699,20 @@ begin
   glFreeDisplayList(GLList_ImageSlider);
   glFreeDisplayList(GLList_ImageSliderPosition);
   FreeAndNil(ImageSlider);
-  FreeAndNil(ImageSliderPosition);
+
+  { Do not free, this is a reference to Slider_Position (that will be freed at
+    unit ImageSlider_Position finalization.)
+
+    Note: I once tried to make here
+      if ImageSliderPosition <> Slider_Position then
+        FreeAndNil(ImageSliderPosition);
+    but this isn't so smart: GLMenuCloseGL may be called from various
+    finalizations, and then Slider_Position may be already freed and nil.
+    Then "ImageSliderPosition <> Slider_Position" = true,
+    but ImageSliderPosition is an invalid pointer.
+    More smart solutions (like ImageSliderPositionOwned: boolean)
+    are possible, but not needed for now since I control this. }
+  ImageSliderPosition := nil;
 end;
 
 { TGLMenuItemAccessory ------------------------------------------------------ }
