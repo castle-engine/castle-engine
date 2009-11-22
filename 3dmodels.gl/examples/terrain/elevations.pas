@@ -82,7 +82,7 @@ type
   }
   TElevationNoise = class(TElevation)
   private
-    FOctaves: Cardinal;
+    FOctaves: Single;
     FPersistence: Single;
     FAmplitude: Single;
     FFrequency: Single;
@@ -95,8 +95,12 @@ type
 
     { Number of noise functions to sum.
       This linearly affects the time for Height call, so don't make
-      it too much. Usually ~a few are Ok. }
-    property Octaves: Cardinal read FOctaves write FOctaves default 4;
+      it too much. Usually ~a few are Ok.
+
+      (The fact that it's a float is just a simple trick to allow smooth
+      transitions from x to x+1. In fact, it's executed like
+      Trunc(Octaves) * some noises + Frac(Octaves) * some last noise.) }
+    property Octaves: Single read FOctaves write FOctaves default 4.0;
 
     { How amplitude changes, when frequency doubles. Default is 0.5. }
     property Persistence: Single read FPersistence write FPersistence default 0.5;
@@ -229,7 +233,7 @@ end;
 constructor TElevationNoise.Create;
 begin
   inherited Create;
-  FOctaves := 4;
+  FOctaves := 4.0;
   FPersistence := 0.5;
   FAmplitude := 1.0;
   FFrequency := 1.0;
@@ -244,12 +248,13 @@ begin
   Result := 0;
   A := Amplitude;
   F := Frequency;
-  for I := 1 to Octaves do
+  for I := 1 to Trunc(Octaves) do
   begin
     Result += FNoiseInterpolation2DMethod(X * F, Y * F, I) * A;
     F *= 2;
     A *= Persistence;
   end;
+  Result += Frac(Octaves) * FNoiseInterpolation2DMethod(X * F, Y * F, Trunc(Octaves) + 1) * A;
 end;
 
 { TElevationGrid ------------------------------------------------------------- }

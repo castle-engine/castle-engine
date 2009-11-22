@@ -42,9 +42,6 @@
      in the 1st place) generate random terrain.
 
   TODO: UI to
-  - gen random terrain.
-    Control params:
-    - starting amplitude, freqeuency (these simply scale the terrain),
     - persistence (this is the interesting factor),
     - starting NoiseIndex (this allows us to "seed" the terrain, instead
       of getting just one and the same always).
@@ -63,8 +60,6 @@
   TODO: sliders:
   - also controls for initial NoiseIndex (to choose different seed).
   - controls for shifting noise (and calculated kam script) terrain.
-  - Allow octaves to be float? --- like blender does, just last eventual octave
-    in frac(octaves).
 
   TODO: add calculating and using normals.
 }
@@ -88,7 +83,7 @@ type
   public
     constructor Create;
 
-    OctavesSlider: TGLMenuIntegerSlider;
+    OctavesSlider: TGLMenuFloatSlider;
     AmplitudeSlider: TGLMenuFloatSlider;
     FrequencySlider: TGLMenuFloatSlider;
 
@@ -242,7 +237,7 @@ constructor TTerrainControls.Create;
 begin
   inherited;
 
-  OctavesSlider := TGLMenuIntegerSlider.Create(0, 20, 4);
+  OctavesSlider := TGLMenuFloatSlider.Create(0.0, 20.0, 4.0);
   AmplitudeSlider := TGLMenuFloatSlider.Create(0.5, 10.0, 1.0);
   FrequencySlider := TGLMenuFloatSlider.Create(0.5, 10.0, 1.0);
 
