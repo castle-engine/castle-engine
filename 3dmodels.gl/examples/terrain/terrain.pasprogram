@@ -40,9 +40,17 @@
 
   3. You can also (and this was actually the primary reason for this program
      in the 1st place) generate random terrain.
-     TODO.
 
   TODO: UI to
+  - gen random terrain.
+    Control params:
+    - starting amplitude, freqeuency (these simply scale the terrain),
+    - persistence (this is the interesting factor),
+    - starting NoiseIndex (this allows us to "seed" the terrain, instead
+      of getting just one and the same always).
+    - interpolation method.
+      TODO: impl some, of course.
+
   - switch view terrain:
     1. current view - "Examine the [0..1, 0..1] range of the terrain"
     2. new new - "Walk over the infinite terrain":
@@ -245,7 +253,8 @@ begin
   if Parameters.High = 1 then
     Elevation := TElevationSRTM.CreateFromFile(Parameters[1]) else
     { some default elevation }
-    Elevation := TElevationKamScript.Create('sin(x*10) * sin(y*10)');
+    Elevation := TElevationNoise.Create;
+//    TElevationKamScript.Create('sin(x*10) * sin(y*10)');
 
   try
     Glw.Navigator := TExamineNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
