@@ -96,7 +96,7 @@ type
   end;
 
 var
-  GLControls: TGLMenu;
+  GLControls: TTerrainControls;
 
 procedure ElevationVertex(const X, Y, H: Single);
 begin
@@ -335,6 +335,12 @@ begin
             SetElevation(NewElevation);
           end;
         end;
+    70: begin
+          SetElevation(TElevationNoise.Create);
+          (Elevation as TElevationNoise).Octaves := GLControls.OctavesSlider.Value;
+          (Elevation as TElevationNoise).Amplitude := GLControls.AmplitudeSlider.Value;
+          (Elevation as TElevationNoise).Frequency := GLControls.FrequencySlider.Value;
+        end;
     100: Glwin.Close;
   end;
   Glwin.PostRedisplay;
@@ -348,6 +354,7 @@ begin
   M := TMenu.Create('_Program');
     M.Append(TMenuItem.Create('Load terrain from SRTM (.hgt) file ...', 50, CtrlO));
     M.Append(TMenuItem.Create('Define terrain by KambiScript expression ...', 60));
+    M.Append(TMenuItem.Create('Generate random terrain', 70));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('_Wireframe', 10, 'w', Wireframe, true));
     M.Append(TMenuSeparator.Create);
