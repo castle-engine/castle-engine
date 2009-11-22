@@ -174,18 +174,33 @@ begin
   end;
 end;
 
+procedure SetElevation(Value: TElevation);
+var
+  GLControlsVisible: boolean;
+begin
+  if Elevation <> Value then
+  begin
+    FreeAndNil(Elevation);
+    Elevation := Value;
+    GLControlsVisible := Elevation is TElevationNoise;
+
+    { Since GLControls are drawn with "pulsating" current item,
+      we have to keep redrawing. }
+    Glw.AutoRedisplay := GLControlsVisible;
+
+    if GLControlsVisible then
+      Glw.InputListeners.AddIfNotExists(GLControls) else
+      Glw.InputListeners.Delete(GLControls);
+  end;
+end;
+
 procedure Draw2d(Draw2DData: Pointer);
 begin
-  if Elevation is TElevationNoise then
+  if Glw.InputListeners.IndexOf(GLControls) <> -1 then
   begin
     glLoadIdentity;
     glRasterPos2i(0, 0);
-    GLControls.Draw;
-
-    { Since GLControls are drawn with "pulsating" current item,
-      we have to keep redrawing (like AutoRedisplay = true)
-      as long as they should be visible. }
-    Glw.PostRedisplay;
+    GLControls.Draw(Glw.Focus = GLControls);
   end;
 end;
 
@@ -258,6 +273,12 @@ procedure Init(Glwin: TGLWindow);
 begin
   GLControls := TTerrainControls.Create;
   Glw.InputListeners.Add(GLControls);
+
+  if Parameters.High = 1 then
+    SetElevation(TElevationSRTM.CreateFromFile(Parameters[1])) else
+    { some default elevation }
+    SetElevation(TElevationNoise.Create);
+//    SetElevation(TElevationKamScript.Create('sin(x*10) * sin(y*10)'));
 end;
 
 procedure Close(Glwin: TGLWindow);
@@ -292,8 +313,7 @@ begin
               end;
             end;
 
-            FreeAndNil(Elevation);
-            Elevation := NewElevation;
+            SetElevation(NewElevation);
           end;
         end;
     60: begin
@@ -312,8 +332,7 @@ begin
               end;
             end;
 
-            FreeAndNil(Elevation);
-            Elevation := NewElevation;
+            SetElevation(NewElevation);
           end;
         end;
     100: Glwin.Close;
@@ -340,12 +359,6 @@ begin
   Glw.ParseParameters(StandardParseOptions);
   Parameters.CheckHighAtMost(1);
 
-  if Parameters.High = 1 then
-    Elevation := TElevationSRTM.CreateFromFile(Parameters[1]) else
-    { some default elevation }
-    Elevation := TElevationNoise.Create;
-//    TElevationKamScript.Create('sin(x*10) * sin(y*10)');
-
   try
     Glw.Navigator := TExamineNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
     Glw.ExamineNav.Init(Box3d(
@@ -356,7 +369,7 @@ begin
     Glw.WalkNav.Init(Vector3Single(
       ScaleSize * 0.5,
       ScaleSize * 0.5,
-      ScaleHeight * Elevation.Height(0.5, 0.5)) { pos },
+      ScaleHeight * ...notset.Height(0.5, 0.5)) { pos },
       Vector3Single(0, 1, 0) { dir },
       Vector3Single(0, 0, 1) { up },
       Vector3Single(0, 0, 1), 0.0, 0.0 { unused, we don't use Gravity here });

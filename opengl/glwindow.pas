@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2008 Michalis Kamburelis.
+  Copyright 2001-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -2489,12 +2489,6 @@ type
     procedure SetCursorNonMouseLook(const Value: TGLWindowCursor);
     function ReallyUseNavigator: boolean;
     function ReallyUseMouseLook: boolean;
-
-    { Returns the input listener that should receive input events
-      (first one on InputListeners list under the mouse cursor),
-      or @nil if none (no listener under the mouse cursor,
-      or when UseInputListeners = @false). }
-    function InputListener: TInputListener;
   public
     constructor Create;
     destructor Destroy; override;
@@ -2646,6 +2640,12 @@ type
     property InputListeners: TInputListenersList read FInputListeners;
     property UseInputListeners: boolean
       read FUseInputListeners write FUseInputListeners default true;
+
+    { Returns the input listener that should receive input events
+      or @nil if none. More precisely, this is the first on InputListeners
+      list under the mouse cursor. @nil is returned when there's
+      no listener under the mouse cursor, or when UseInputListeners = @false. }
+    function Focus: TInputListener;
   end;
 
   TObjectsListItem_1 = TGLWindow;
@@ -4305,7 +4305,7 @@ begin
  inherited;
 end;
 
-function TGLWindowNavigated.InputListener: TInputListener;
+function TGLWindowNavigated.Focus: TInputListener;
 var
   I: Integer;
 begin
@@ -4334,7 +4334,7 @@ end;
 procedure TGLWindowNavigated.EventIdle;
 var
   I: Integer;
-  ThisListener, L: TInputListener;
+  ThisListener, F: TInputListener;
 begin
   { Although we call Idle for all listeners (and navigators),
     we will pass pressed keys/mouse buttons info only for the "focused"
@@ -4344,14 +4344,14 @@ begin
     and react to it, you do not want many listeners to react to your
     keys. For example, when pressing key left over TGLMenu, you do not
     want to let navigator to also capture this left key down. }
-  L := InputListener;
+  F := Focus;
 
   if UseInputListeners then
   begin
     for I := 0 to InputListeners.Count - 1 do
     begin
       ThisListener := InputListeners.Items[I];
-      if L = ThisListener then
+      if F = ThisListener then
         ThisListener.Idle(Fps.IdleSpeed, @KeysDown, @CharactersDown, MousePressed) else
         ThisListener.Idle(Fps.IdleSpeed, nil, nil, []);
     end;
@@ -4359,7 +4359,7 @@ begin
 
   if ReallyUseNavigator then
   begin
-    if L = nil then
+    if F = nil then
       Navigator.Idle(Fps.IdleSpeed, @KeysDown, @CharactersDown, MousePressed) else
       Navigator.Idle(Fps.IdleSpeed, nil, nil, []);
   end;
@@ -4369,10 +4369,10 @@ end;
 
 procedure TGLWindowNavigated.EventKeyDown(Key: TKey; C: char);
 var
-  L: TInputListener;
+  F: TInputListener;
 begin
-  L := InputListener;
-  if L <> nil then begin L.KeyDown(Key, C); Exit; end;
+  F := Focus;
+  if F <> nil then begin F.KeyDown(Key, C); Exit; end;
 
   if not (ReallyUseNavigator and Navigator.KeyDown(Key, c, @KeysDown)) then
     inherited;
@@ -4380,12 +4380,12 @@ end;
 
 procedure TGLWindowNavigated.EventMouseDown(Button: TMouseButton);
 var
-  L: TInputListener;
+  F: TInputListener;
 begin
-  L := InputListener;
-  if L <> nil then
+  F := Focus;
+  if F <> nil then
   begin
-    L.MouseDown(MouseX, Height - MouseY, Button, MousePressed);
+    F.MouseDown(MouseX, Height - MouseY, Button, MousePressed);
     Exit;
   end;
 
@@ -4395,12 +4395,12 @@ end;
 
 procedure TGLWindowNavigated.EventMouseUp(Button: TMouseButton);
 var
-  L: TInputListener;
+  F: TInputListener;
 begin
-  L := InputListener;
-  if L <> nil then
+  F := Focus;
+  if F <> nil then
   begin
-    L.MouseUp(MouseX, Height - MouseY, Button, MousePressed);
+    F.MouseUp(MouseX, Height - MouseY, Button, MousePressed);
     Exit;
   end;
 
@@ -4510,12 +4510,12 @@ procedure TGLWindowNavigated.EventMouseMove(NewX, NewY: Integer);
 var
   MiddleScreenWidth: Integer;
   MiddleScreenHeight: Integer;
-  L: TInputListener;
+  F: TInputListener;
 begin
-  L := InputListener;
-  if L <> nil then
+  F := Focus;
+  if F <> nil then
   begin
-    L.MouseMove(NewX, Height - NewY, MousePressed);
+    F.MouseMove(NewX, Height - NewY, MousePressed);
     Exit;
   end;
 

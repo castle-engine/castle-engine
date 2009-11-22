@@ -87,7 +87,7 @@ interface
 
 uses Math, GL, GLU, GLExt,
   SysUtils, KambiUtils, VectorMath, Boxes3d, IntRects,
-  Images, Matrix;
+  Images, Matrix, Areas;
 
 {$define read_interface}
 {$I glext_packed_depth_stencil.inc}
@@ -774,6 +774,7 @@ procedure DrawGLBorderedRectangle(const x1, y1, x2, y2: TGLfloat;
 procedure DrawGLBorderedRectangle(const x1, y1, x2, y2: TGLfloat;
   const InsideCol, BorderCol: TVector4f; Stipple: PPolygonStipple); overload;
 procedure DrawGLRectBorder(const x1, y1, x2, y2: TGLfloat); overload;
+procedure DrawGLRectBorder(const Area: TArea); overload;
 
 { TIntRect versions take x1 := R[0, 0], y1 := R[0, 1],
   x2 := R[1, 0], y2 := R[1, 1] (NOT x2 := R[1, 0]-1, y2 := R[1, 1]-1, because usually
@@ -1800,6 +1801,11 @@ begin
  glBegin(GL_LINE_LOOP);
    glVertex2f(x1, y1); glVertex2f(x2, y1); glVertex2f(x2, y2); glVertex2f(x1, y2);
  glEnd;
+end;
+
+procedure DrawGLRectBorder(const Area: TArea);
+begin
+  DrawGLRectBorder(Area.X0, Area.Y0, Area.X0 + Area.Width, Area.Y0 + Area.Height);
 end;
 
 procedure DrawGLBorderedRectangle(const R: TIntRect;

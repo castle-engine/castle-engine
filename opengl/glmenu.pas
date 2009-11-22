@@ -323,7 +323,7 @@ type
     FKeySelectItem: TKey;
     FKeySliderDecrease: TKey;
     FKeySliderIncrease: TKey;
-    GLList_DrawFadeRect: TGLuint;
+    GLList_DrawFadeRect: array [boolean] of TGLuint;
     MenuAnimation: Single;
     FCurrentItemBorderColor1: TVector3Single;
     FCurrentItemBorderColor2: TVector3Single;
@@ -468,7 +468,7 @@ type
     { Area occupied by this control. The same as AllItemsArea here. }
     function Area: TArea; override;
 
-    procedure Draw; virtual;
+    procedure Draw(const Focused: boolean); virtual;
 
     property KeyNextItem: TKey read FKeyNextItem write FKeyNextItem
       default DefaultGLMenuKeyNextItem;
@@ -1113,7 +1113,8 @@ end;
 
 procedure TGLMenu.CloseGL;
 begin
-  glFreeDisplayList(GLList_DrawFadeRect);
+  glFreeDisplayList(GLList_DrawFadeRect[false]);
+  glFreeDisplayList(GLList_DrawFadeRect[true]);
 end;
 
 function TGLMenu.SpaceBetweenItems(const NextItemIndex: Cardinal): Cardinal;
@@ -1135,6 +1136,23 @@ end;
 
 
 procedure TGLMenu.FixItemsAreas(const WindowWidth, WindowHeight: Cardinal);
+
+  procedure MakeGLList_DrawFadeRect(var List: TGLuint; const Alpha: TGLfloat);
+  begin
+    if List = 0 then
+      List := glGenListsCheck(1, 'TGLMenu.FixItemsAreas');
+    glNewList(List, GL_COMPILE);
+    try
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glEnable(GL_BLEND);
+        glColor4f(0, 0, 0, Alpha);
+        glRectf(FAllItemsArea.X0, FAllItemsArea.Y0,
+          FAllItemsArea.X0 + FAllItemsArea.Width,
+          FAllItemsArea.Y0 + FAllItemsArea.Height);
+      glDisable(GL_BLEND);
+    finally glEndList end;
+  end;
+
 const
   AllItemsAreaMargin = 30;
 var
@@ -1262,22 +1280,11 @@ begin
   end;
 
   { Calculate GLList_DrawFadeRect }
-
-  if GLList_DrawFadeRect = 0 then
-    GLList_DrawFadeRect := glGenListsCheck(1, 'TGLMenu.FixItemsAreas');
-  glNewList(GLList_DrawFadeRect, GL_COMPILE);
-  try
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_BLEND);
-      glColor4f(0, 0, 0, 0.4);
-      glRectf(FAllItemsArea.X0, FAllItemsArea.Y0,
-        FAllItemsArea.X0 + FAllItemsArea.Width,
-        FAllItemsArea.Y0 + FAllItemsArea.Height);
-    glDisable(GL_BLEND);
-  finally glEndList end;
+  MakeGLList_DrawFadeRect(GLList_DrawFadeRect[false], 0.4);
+  MakeGLList_DrawFadeRect(GLList_DrawFadeRect[true], 0.7);
 end;
 
-procedure TGLMenu.Draw;
+procedure TGLMenu.Draw(const Focused: boolean);
 
   procedure DrawPositionRelativeLine;
   begin
@@ -1295,21 +1302,27 @@ var
   CurrentItemBorderColor: TVector3Single;
 begin
   if DrawBackgroundRectangle then
-    glCallList(GLList_DrawFadeRect);
+    glCallList(GLList_DrawFadeRect[Focused]);
+
+  { Calculate CurrentItemBorderColor }
+  if MenuAnimation <= 0.5 then
+    CurrentItemBorderColor := Lerp(
+      MapRange(MenuAnimation, 0, 0.5, 0, 1),
+      CurrentItemBorderColor1, CurrentItemBorderColor2) else
+    CurrentItemBorderColor := Lerp(
+      MapRange(MenuAnimation, 0.5, 1, 0, 1),
+      CurrentItemBorderColor2, CurrentItemBorderColor1);
+
+  if Focused then
+  begin
+    glColorv(CurrentItemBorderColor);
+    DrawGLRectBorder(FAllItemsArea);
+  end;
 
   for I := 0 to Items.Count - 1 do
   begin
     if I = CurrentItem then
     begin
-      { Calculate CurrentItemBorderColor }
-      if MenuAnimation <= 0.5 then
-        CurrentItemBorderColor := Lerp(
-          MapRange(MenuAnimation, 0, 0.5, 0, 1),
-          CurrentItemBorderColor1, CurrentItemBorderColor2) else
-        CurrentItemBorderColor := Lerp(
-          MapRange(MenuAnimation, 0.5, 1, 0, 1),
-          CurrentItemBorderColor2, CurrentItemBorderColor1);
-
       glColorv(CurrentItemBorderColor);
       DrawGLRectBorder(
         Areas.Items[I].X0 - CurrentItemBorderMargin,
