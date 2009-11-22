@@ -12,6 +12,7 @@
 }
 
 { Key constants used in GLWindow unit.
+  Also, TMouseButton type.
 
   Some properties of K_Xxx constants that are guaranteed:
 
@@ -71,6 +72,9 @@ type
 
   TCharactersBooleans = array [Char] of Boolean;
   PCharactersBooleans = ^TCharactersBooleans;
+
+  TMouseButton = (mbLeft, mbMiddle, mbRight);
+  TMouseButtons = set of TMouseButton;
 
 const
   { K_None is a very special value of type TKey. It means "no key",

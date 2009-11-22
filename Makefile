@@ -78,7 +78,7 @@
 # so it's not a big deal to also list them explicitly for UNITS_SUBDIRECTORIES.
 #
 UNITS_SUBDIRECTORIES := 3dgraph 3dmodels 3dmodels.gl audio base \
-  fonts images net opengl kambiscript
+  fonts images net opengl kambiscript ui
 
 .PHONY: all
 all: $(UNITS_SUBDIRECTORIES)
@@ -116,6 +116,9 @@ opengl: opengl/allkambiopenglunits.pas
 kambiscript: kambiscript/allkambiscriptunits.pas
 	$(COMPILE_ALL_DIR_UNITS)
 
+ui: ui/allkambiuiunits.pas
+	$(COMPILE_ALL_DIR_UNITS)
+
 # creating All*Units.pas files ----------------------------------------
 
 .PHONY: container_units clean_container_units
@@ -130,7 +133,8 @@ ALL_CONTAINER_UNITS := 3dgraph/allkambi3dgraphunits.pas \
   fonts/allkambifontsunits.pas \
   images/allkambiimagesunits.pas \
   opengl/allkambiopenglunits.pas \
-  kambiscript/allkambiscriptunits.pas
+  kambiscript/allkambiscriptunits.pas \
+  ui/allkambiuiunits.pas
 
 # This is a nice target to call before doing a distribution of my sources,
 # because I always want to distribute these All*Units.pas units.
@@ -188,6 +192,11 @@ opengl/allkambiopenglunits.pas:
 kambiscript/allkambiscriptunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
   (write-unit-all-units-in-dir \"kambiscript/\" \"AllKambiScriptUnits\") \
+  (save-buffer))"
+
+ui/allkambiuiunits.pas:
+	$(EMACS_BATCH) --eval="(progn \
+  (write-unit-all-units-in-dir \"ui/\" \"AllKambiUIUnits\") \
   (save-buffer))"
 
 # examples and tools -----------------------------------------------------------

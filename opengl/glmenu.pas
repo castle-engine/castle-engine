@@ -27,7 +27,7 @@ unit GLMenu;
 interface
 
 uses Classes, OpenGLBmpFonts, BFNT_BitstreamVeraSans_Unit, VectorMath, Areas,
-  GLWindow, GL, GLU, KambiGLUtils, Matrix;
+  GLWindow, GL, GLU, KambiGLUtils, Matrix, InputListener;
 
 const
   DefaultGLMenuKeyNextItem = K_Down;
@@ -305,7 +305,7 @@ type
     smaller y positions are considered lower.
     Stating it simpler: just make sure that your OpenGL projection is
     @code(ProjectionGLOrtho(0, Glwin.Width, 0, Glwin.Height);) }
-  TGLMenu = class
+  TGLMenu = class(TInputListener)
   private
     FItems: TStringList;
     FCurrentItem: Integer;
@@ -478,21 +478,14 @@ type
       read FKeySliderDecrease write FKeySliderDecrease
       default DefaultGLMenuKeySliderDecrease;
 
-    procedure KeyDown(Key: TKey; C: char);
-
-    { Call this when user moves the mouse.
-      NewX, NewY is in OpenGL 2d screen coordinates, so usually
-      (when you call this from TGLWindow.OnMouseMove) you will
-      have to flip the NewY like @code(Glwin.Height - NewY). }
+    procedure KeyDown(Key: TKey; C: char); override;
     procedure MouseMove(const NewX, NewY: Single;
-      const MousePressed: TMouseButtons);
-
+      const MousePressed: TMouseButtons); override;
     procedure MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
-      const MousePressed: TMouseButtons);
+      const MousePressed: TMouseButtons); override;
     procedure MouseUp(const MouseX, MouseY: Single; Button: TMouseButton;
-      const MousePressed: TMouseButtons);
-
-    procedure Idle(const CompSpeed: Single);
+      const MousePressed: TMouseButtons); override;
+    procedure Idle(const CompSpeed: Single); override;
 
     { Called when user will select CurrentItem, either with mouse
       or with keyboard. }

@@ -221,6 +221,39 @@ units are allowed to be used by units in specific group.
     @italic(Uses:) @code(base), @code(images),
       VRML parts also use @code(3models).)
 
+  @itemLabel @code(ui)
+  @item(
+    Abstract user interface classes. By "abstract" I mean that these
+    units do not define actual, visible "controls" and "windows".
+    This task is left up to units elsewhere,
+    for example OpenGL controls and windows are within opengl/ units.
+    Lazarus component in packages/components/ may also serve as a
+    "window" for our controls.
+
+    The ideas behind these classes:
+
+    @unorderedList(
+      @item("Windows" are tied to particular windowing library,
+        like Lazarus component or GLWindow.
+
+        Implementing "windows" class means handlign some generic
+        abstract classes like TInputListener. Window doesn't have to
+        care about each control type in particular. This means
+        that developing new controls is easy, you do all the work
+        by implementing descendant of appropriate class, and it can
+        be automatically handled properly by all windows.)
+
+      @item("Controls" are tied to particular rendering library,
+        in practice --- all current controls use OpenGL rendering.
+
+        The controls are @italic(not tied to the windowing library),
+        for example you can use our TGLMenu both inside GLWindow,
+        as well as inside Lazarus GL area component, etc.
+        Everywhere is fine, as long as you have OpenGL rendering context.)
+    )
+
+    @italic(Uses:) @code(base), @code(images).)
+
   @itemLabel @code(3dgraph)
   @item(
     Units dealing with basic 3d graphics.

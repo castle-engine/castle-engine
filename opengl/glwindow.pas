@@ -657,22 +657,23 @@ const
   K_Comma = Keys.K_Comma;
   K_Period = Keys.K_Period;
 
-{ --------------------------------------------------------------------- }
 
-{ @section(Export types and consts related to TMouseButton from
-  Navigation unit) }
+{ Also export types and consts related to TMouseButton from Navigation unit. }
 
 type
   { }
-  TMouseButton = Navigation.TMouseButton;
-  TMouseButtons = Navigation.TMouseButtons;
+  TMouseButton = Keys.TMouseButton;
+  TMouseButtons = Keys.TMouseButtons;
 
 const
-  mbLeft = Navigation.mbLeft;
-  mbMiddle = Navigation.mbMiddle;
-  mbRight = Navigation.mbRight;
+  mbLeft = Keys.mbLeft;
+  mbMiddle = Keys.mbMiddle;
+  mbRight = Keys.mbRight;
+
+{ --------------------------------------------------------------------- }
 
 const
+  { }
   GLWindowPositionCenter = -1000000;
   GLWindowDefaultSize = -1000000;
 

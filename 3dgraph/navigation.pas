@@ -19,10 +19,6 @@ interface
 
 uses SysUtils, VectorMath, KambiUtils, Keys, Boxes3d, Quaternions, Frustum;
 
-type
-  TMouseButton = (mbLeft, mbMiddle, mbRight);
-  TMouseButtons = set of TMouseButton;
-
 const
   DefaultFallingDownStartSpeed = 0.5;
   DefaultGrowingSpeed = 1.0;
