@@ -59,17 +59,44 @@
        optionally with fog (since terrain is infinite in this case),
        and using the algorithm that renders infinite terrain with LOD.
        Optionally with sky displayed, just for effect.
+
+  TODO: current sliders usage of mouse and keys interacts strangely
+  with our normal navigator: Some keys are handled by both (up, down etc.).
+  Mouse presses and dragging are handled by both too.
+  - it would be needed to introduce the concept of focus,
+    to allow selecting and deselecting menu.
+    Or maybe just drop the idea of selected menu item for this?
+    Poor, but avoids problems with focus (it would not be intuitive
+    --- how to tell user when/how to make focus on the main navigator?).
+  - it would be needed to allow injecting menu somehow that it intercepts
+    all interesting events. Also, such that it intercepts mouse down / etc.
+    events (but how well will it work for mouse dragging? some fake
+    mouse down/ups will be needed?)
+
+  TODO: make sliders actually useful.
+  And visible only when elevation noise is used?
+  Add also controls for initial NoiseIndex (to choose different seed).
+  Add controls for shifting noise (and calculated kam script) terrain.
+  Allow octaves to be float? --- like blender does, just last eventual octave
+  in frac(octaves).
+
+  TODO: add calculating and using normals.
 }
 program terrain;
 
 uses SysUtils, Classes, Boxes3d,
   KambiUtils, GLWindow, GLW_Navigated, GL, KambiGLUtils,
   Navigation, VectorMath, KambiFilesUtils, Elevations, GLWinMessages,
-  KambiStringUtils;
+  KambiStringUtils, GLMenu;
 
 var
   Elevation: TElevation;
   Wireframe: boolean;
+
+  GLControls: TGLMenu;
+  OctavesSlider: TGLMenuIntegerSlider;
+  InitialAmplitudeSlider: TGLMenuFloatSlider;
+  InitialFrequencySlider: TGLMenuFloatSlider;
 
 const
   ScaleSize = 100.0;
@@ -151,6 +178,13 @@ begin
   end;
 end;
 
+procedure Draw2d(Draw2DData: Pointer);
+begin
+  glLoadIdentity;
+  glRasterPos2i(0, 0);
+  GLControls.Draw;
+end;
+
 procedure Draw(Glwin: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
@@ -171,11 +205,70 @@ begin
       DrawElevation(Elevation);
 
   glPopAttrib;
+
+  glPushAttrib(GL_ENABLE_BIT);
+    glDisable(GL_LIGHTING);
+    glProjectionPushPopOrtho2D(@Draw2d, nil, 0, Glwin.Width, 0, Glwin.Height);
+  glPopAttrib;
 end;
 
 procedure Resize(Glwin: TGLWindow);
 begin
+  glViewport(0, 0, Glwin.Width, Glwin.Height);
   ProjectionGLPerspective(30, Glwin.Width / Glwin.Height, ScaleSize / 100, ScaleSize * 3);
+  GLControls.FixItemsAreas(Glwin.Width, Glwin.Height);
+end;
+
+procedure Init(Glwin: TGLWindow);
+begin
+  OctavesSlider := TGLMenuIntegerSlider.Create(0, 20, 4);
+  InitialAmplitudeSlider := TGLMenuFloatSlider.Create(0.5, 10.0, 1.0);
+  InitialFrequencySlider := TGLMenuFloatSlider.Create(0.5, 10.0, 1.0);
+
+  GLControls := TGLMenu.Create;
+  GLControls.Items.AddObject('Octaves', OctavesSlider);
+  GLControls.Items.AddObject('Initial amplitude (scales height)', InitialAmplitudeSlider);
+  GLControls.Items.AddObject('Initial frequency (scales size)', InitialFrequencySlider);
+  GLControls.PositionRelativeScreenX := prLowerBorder;
+  GLControls.PositionRelativeScreenY := prLowerBorder;
+  GLControls.PositionRelativeMenuX := prLowerBorder;
+  GLControls.PositionRelativeMenuY := prLowerBorder;
+  GLControls.Position.Init(10.00, 10.00);
+
+  { First GLControls.FixItemsAreas will be called from Resize. }
+end;
+
+procedure Close(Glwin: TGLWindow);
+begin
+  FreeAndNil(GLControls);
+  GLMenuCloseGL;
+end;
+
+procedure KeyDown(glwin: TGLWindow; key: TKey; c: char);
+begin
+  GLControls.KeyDown(Key, C);
+end;
+
+procedure MouseMove(Glwin: TGLWindow; NewX, NewY: Integer);
+begin
+  GLControls.MouseMove(NewX, Glwin.Height - NewY,  Glwin.MousePressed);
+end;
+
+procedure MouseDown(Glwin: TGLWindow; Button: TMouseButton);
+begin
+  GLControls.MouseDown(Glwin.MouseX, Glwin.Height - Glwin.MouseY, Button,
+    Glwin.MousePressed);
+end;
+
+procedure MouseUp(Glwin: TGLWindow; Button: TMouseButton);
+begin
+  GLControls.MouseUp(Glwin.MouseX, Glwin.Height - Glwin.MouseY, Button,
+    Glwin.MousePressed);
+end;
+
+procedure Idle(Glwin: TGLWindow);
+begin
+  GLControls.Idle(Glwin.Fps.IdleSpeed);
 end;
 
 procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
@@ -248,6 +341,7 @@ begin
 end;
 
 begin
+  Glw.ParseParameters(StandardParseOptions);
   Parameters.CheckHighAtMost(1);
 
   if Parameters.High = 1 then
@@ -275,7 +369,14 @@ begin
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;
 
+    Glw.OnInit := @Init;
+    Glw.OnClose := @Close;
     Glw.OnResize := @Resize;
+    Glw.OnKeyDown := @KeyDown;
+    Glw.OnMouseMove := @MouseMove;
+    Glw.OnMouseDown := @MouseDown;
+    Glw.OnMouseUp := @MouseUp;
+    Glw.OnIdle := @Idle;
     Glw.InitLoop(ProgramName, @Draw);
   finally FreeAndNil(Elevation) end;
 end.
