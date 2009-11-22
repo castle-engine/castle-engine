@@ -56,6 +56,8 @@
        optionally with fog (since terrain is infinite in this case),
        and using the algorithm that renders infinite terrain with LOD.
        Optionally with sky displayed, just for effect.
+  Multitexture elevation, set texture mixture based on height,
+  from GLSL shader.
 
   TODO: sliders:
   - also controls for initial NoiseIndex (to choose different seed).
