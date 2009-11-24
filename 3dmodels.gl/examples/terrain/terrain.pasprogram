@@ -283,17 +283,20 @@ begin
   GLControls := TTerrainControls.Create;
   Glw.InputListeners.Add(GLControls);
 
-  if Parameters.High = 1 then
-    SetElevation(TElevationSRTM.CreateFromFile(Parameters[1])) else
-    { some default elevation }
-    SetElevation(TElevationNoise.Create);
-//    SetElevation(TElevationKamScript.Create('sin(x*10) * sin(y*10)'));
+  if Elevation = nil then
+  begin
+    if Parameters.High = 1 then
+      SetElevation(TElevationSRTM.CreateFromFile(Parameters[1])) else
+      { some default elevation }
+      SetElevation(TElevationNoise.Create);
+  //    SetElevation(TElevationKamScript.Create('sin(x*10) * sin(y*10)'));
+  end;
 end;
 
 procedure Close(Glwin: TGLWindow);
 begin
-  FreeAndNil(GLControls);
   Glw.InputListeners.Delete(GLControls);
+  FreeAndNil(GLControls);
   GLMenuCloseGL;
 end;
 
