@@ -28,25 +28,67 @@ type
     it's KeyDown / MouseDown etc. methods. For example TGLMenu.
     Various UI "windows" (things that directly receive messages
     from something outside, like operating system, windowing library etc.)
-    accept TInputListener classes, and pass to them inputs. }
-  TInputListener = class
-  public
-    procedure KeyDown(Key: TKey; C: char); virtual;
+    accept TInputListener classes, and pass to them inputs.
 
-    { Called when user moves the mouse.
-      NewX, NewY is in OpenGL 2d screen coordinates, so usually
+    Various methods return boolean saying if input event is handled.
+    The idea is that not handled events are passed to the next
+    input listener suitable. Handled events are generally not processed more
+    --- otherwise the same event could be handled by more than one listener,
+    which is bad. Generally, return @true if anything (possibly) was done
+    (you changed any field value etc.) as a result of this, and only return
+    @false when you're absolutely sure that nothing was done by this control.
+
+    TODO:
+    - TGLMenu requires mouse coords (for mousedown, up, move)
+      in OpenGL 2d screen coordinates, so usually
       (when you call this from TGLWindow.OnMouseMove) you will
       have to flip the NewY like @code(Glwin.Height - NewY).
 
-      TODO: add ParentWindow, with abstract Width / Height,
-      and then you can pass here normal NewX / NewY in traditional window coords. }
-    procedure MouseMove(const NewX, NewY: Single;
-      const MousePressed: TMouseButtons); virtual;
+    - navigator want in normal coords. }
+  TInputListener = class
+  public
+    (*Handle key press event.
+      Returns @true if the key was somehow handled.
 
-    procedure MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
-      const MousePressed: TMouseButtons); virtual;
-    procedure MouseUp(const MouseX, MouseY: Single; Button: TMouseButton;
-      const MousePressed: TMouseButtons); virtual;
+      In this class this always returns @false, when implementing
+      in descendants you should override it like
+
+      @longCode(#
+  Result := inherited;
+  if Result then Exit;
+  { ... And do the job here.
+    In other words, the handling of keys in inherited
+    class should have a priority. }
+#)
+
+      @param(KeysDown You can pass here a boolean table indicating
+        which keys are pressed. You can pass @nil if you don't know this.
+
+        (Contents of table passed here will never be modified anyway.
+        This is a pointer only so that you can simply pass @nil here.)) *)
+    function KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean; virtual;
+
+    { Called when user moves the mouse.
+
+      Like for KeyDown and Idle, you can pass KeysDown as
+      @nil if you don't know this. }
+    function MouseMove(const OldX, OldY, NewX, NewY: Single;
+      const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean; virtual;
+
+    (*Handle mouse down event.
+
+      Just like KeyDown, this returns whether the event was handled.
+      Descendants should always override this like
+      @longCode(#
+  Result := inherited;
+  if Result then Exit;
+  { ... do the job here ... }
+#) *)
+    function MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
+      const MousePressed: TMouseButtons): boolean; virtual;
+
+    function MouseUp(const MouseX, MouseY: Single; Button: TMouseButton;
+      const MousePressed: TMouseButtons): boolean; virtual;
 
     { Call this often, to respond to user actions and to perform
       other tasks. E.g. for navigator: falling down due to gravity
@@ -85,23 +127,27 @@ implementation
 {$define read_implementation}
 {$I objectslist_1.inc}
 
-procedure TInputListener.KeyDown(Key: TKey; C: char);
+function TInputListener.KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean;
 begin
+  Result := false;
 end;
 
-procedure TInputListener.MouseMove(const NewX, NewY: Single;
-  const MousePressed: TMouseButtons);
+function TInputListener.MouseMove(const OldX, OldY, NewX, NewY: Single;
+  const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean;
 begin
+  Result := false;
 end;
 
-procedure TInputListener.MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
-  const MousePressed: TMouseButtons);
+function TInputListener.MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
+  const MousePressed: TMouseButtons): boolean;
 begin
+  Result := false;
 end;
 
-procedure TInputListener.MouseUp(const MouseX, MouseY: Single; Button: TMouseButton;
-  const MousePressed: TMouseButtons);
+function TInputListener.MouseUp(const MouseX, MouseY: Single; Button: TMouseButton;
+  const MousePressed: TMouseButtons): boolean;
 begin
+  Result := false;
 end;
 
 procedure TInputListener.Idle(const CompSpeed: Single;

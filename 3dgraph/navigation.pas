@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2008 Michalis Kamburelis.
+  Copyright 2003-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -9,6 +9,8 @@
   "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
 }
 
 { @abstract(@link(TNavigator) class and descendants, to navigate in 3D space.) }
@@ -17,7 +19,8 @@ unit Navigation;
 
 interface
 
-uses SysUtils, VectorMath, KambiUtils, Keys, Boxes3d, Quaternions, Frustum;
+uses SysUtils, VectorMath, KambiUtils, Keys, Boxes3d, Quaternions, Frustum,
+  InputListener;
 
 const
   DefaultFallingDownStartSpeed = 0.5;
@@ -246,7 +249,7 @@ type
 
     See @code(kambi_vrml_game_engine/opengl/examples/demo_matrix_navigation.pasprogram)
     example program in engine sources for simple demo how to use this class. }
-  TNavigator = class
+  TNavigator = class(TInputListener)
   private
     MatrixChangedSchedule: Cardinal;
     IsMatrixChangedScheduled: boolean;
@@ -317,43 +320,6 @@ type
       the 4th row and 4th column are all zero except the lowest right item
       which is 1.0. }
     function RotationMatrix: TMatrix4Single; virtual; abstract;
-
-    (*Handle key press event.
-      Returns @true if the key was somehow handled.
-
-      In this class this always returns @false, when implementing
-      in descendants you should override it like
-
-      @longCode(#
-  Result := inherited;
-  if Result then Exit;
-  { ... And do the job here.
-    In other words, the handling of keys in inherited
-    class should have a priority. }
-#)
-
-      @param(KeysDown You can pass here a boolean table indicating
-        which keys are pressed. You can pass @nil if you don't know this.
-
-        (Contents of table passed here will never be modified anyway.
-        This is a pointer only so that you can simply pass @nil here.)) *)
-    function KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean; virtual;
-
-    (*Handle mouse down event.
-
-      Just like KeyDown, this returns whether the event was handled.
-      Descendants should always override this like
-      @longCode(#
-  Result := inherited;
-  if Result then Exit;
-  { ... do the job here ... }
-#) *)
-    function MouseDown(Button: TMouseButton): boolean; virtual;
-
-    procedure Idle(const CompSpeed: Single;
-      KeysDown: PKeysBooleans;
-      CharactersDown: PCharactersBooleans;
-      const MousePressed: TMouseButtons); virtual; abstract;
 
     { If true, we will ignore all inputs passed to this class.
       So this navigator will not handle any key/mouse events.
@@ -465,13 +431,10 @@ type
       CharactersDown: PCharactersBooleans;
       const MousePressed: TMouseButtons); override;
     function KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean; override;
-    function MouseDown(Button: TMouseButton): boolean; override;
-
-    { Mose move event.
-
-      Like for KeyDown and Idle, you can pass @nil if you don't know this. }
-    function MouseMove(OldX, OldY, NewX, NewY: Integer;
-      const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean;
+    function MouseDown(const MouseX, MouseY: Single;
+      Button: TMouseButton; const MousePressed: TMouseButtons): boolean; override;
+    function MouseMove(const OldX, OldY, NewX, NewY: Single;
+      const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean; override;
 
     { Current camera properties ---------------------------------------------- }
 
@@ -1104,13 +1067,12 @@ type
       read FInvertVerticalMouseLook write FInvertVerticalMouseLook
       default false;
 
-    { Call this to actually make MouseLook work.
-      MouseXChange and MouseYChange are differences between current
-      and previous window coords
-      (like in TGLWindow.MouseX/MouseY, so 0,0 is top-left corner). }
-    procedure MouseMove(MouseXChange, MouseYChange: Integer);
+    { Call when mouse moves. Must be called to make MouseLook work. }
+    function MouseMove(const OldX, OldY, NewX, NewY: Single;
+      const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean; override;
 
-    function MouseDown(Button: TMouseButton): boolean; override;
+    function MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
+      const MousePressed: TMouseButtons): boolean; override;
 
     { Things related to gravity ---------------------------------------- }
 
@@ -1602,17 +1564,6 @@ begin
   FProjectionMatrix := IdentityMatrix4Single;
 end;
 
-function TNavigator.KeyDown(Key: TKey; C: char;
-  KeysDown: PKeysBooleans): boolean;
-begin
-  Result := false;
-end;
-
-function TNavigator.MouseDown(Button: TMouseButton): boolean;
-begin
-  Result := false;
-end;
-
 procedure TNavigator.BeginMatrixChangedSchedule;
 begin
   { IsMatrixChangedScheduled = false always when MatrixChangedSchedule = 0. }
@@ -1911,7 +1862,8 @@ begin
   Result := EventDown(false, Key, C, mbLeft);
 end;
 
-function TExamineNavigator.MouseDown(Button: TMouseButton): boolean;
+function TExamineNavigator.MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
+      const MousePressed: TMouseButtons): boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -1919,13 +1871,14 @@ begin
   Result := EventDown(true, K_None, #0, Button);
 end;
 
-function TExamineNavigator.MouseMove(OldX, OldY, NewX, NewY: Integer;
+function TExamineNavigator.MouseMove(const OldX, OldY, NewX, NewY: Single;
   const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean;
 var
   Size: Single;
   ModsDown: TModifierKeys;
 begin
-  Result := false;
+  Result := inherited;
+  if Result then Exit;
 
   { Shortcuts: I'll try to make them intelligent, which means
     "mostly matching shortcuts in other programs" (like Blender) and
@@ -3246,7 +3199,8 @@ begin
   end;
 end;
 
-function TWalkNavigator.MouseDown(Button: TMouseButton): boolean;
+function TWalkNavigator.MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
+      const MousePressed: TMouseButtons): boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -3405,8 +3359,20 @@ begin
   FIsFallingDown := false;
 end;
 
-procedure TWalkNavigator.MouseMove(MouseXChange, MouseYChange: Integer);
+function TWalkNavigator.MouseMove(const OldX, OldY, NewX, NewY: Single;
+  const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean;
+var
+  MouseXChange, MouseYChange: Single;
 begin
+  Result := inherited;
+  if Result then Exit;
+
+  { MouseXChange and MouseYChange are differences between current
+    and previous window coords
+    (like in TGLWindow.MouseX/MouseY, so 0,0 is top-left corner). }
+  MouseXChange := NewX - OldX;
+  MouseYChange := NewY - OldY;
+
   if MouseLook and (not IgnoreAllInputs) then
   begin
     if MouseXChange <> 0 then
@@ -3418,6 +3384,8 @@ begin
       RotateVertical(-MouseYChange * MouseLookVerticalSensitivity);
     end;
   end;
+
+  Result := true;
 end;
 
 procedure TWalkNavigator.GetCameraVectors(

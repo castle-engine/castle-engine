@@ -72,8 +72,8 @@ type
 
       You can use ParentMenu to call
       ParentMenu.CurrentItemAccessoryValueChanged. }
-    procedure KeyDown(Key: TKey; C: char;
-      ParentMenu: TGLMenu); virtual;
+    function KeyDown(Key: TKey; C: char;
+      ParentMenu: TGLMenu): boolean; virtual;
 
     { This will be called if user will click mouse when currently
       selected item has this TGLMenuItemAccessory.
@@ -94,8 +94,8 @@ type
 
       You can use ParentMenu to call
       ParentMenu.CurrentItemAccessoryValueChanged. }
-    procedure MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
-      const Area: TArea; ParentMenu: TGLMenu); virtual;
+    function MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
+      const Area: TArea; ParentMenu: TGLMenu): boolean; virtual;
 
     { This will be called if user will move mouse over the currently selected
       menu item and menu item will have this accessory.
@@ -191,11 +191,11 @@ type
 
     procedure Draw(const Area: TArea); override;
 
-    procedure KeyDown(Key: TKey; C: char;
-      ParentMenu: TGLMenu); override;
+    function KeyDown(Key: TKey; C: char;
+      ParentMenu: TGLMenu): boolean; override;
 
-    procedure MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
-      const Area: TArea; ParentMenu: TGLMenu); override;
+    function MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
+      const Area: TArea; ParentMenu: TGLMenu): boolean; override;
 
     procedure MouseMove(const NewX, NewY: Single;
       const MousePressed: TMouseButtons;
@@ -224,11 +224,11 @@ type
 
     procedure Draw(const Area: TArea); override;
 
-    procedure KeyDown(Key: TKey; C: char;
-      ParentMenu: TGLMenu); override;
+    function KeyDown(Key: TKey; C: char;
+      ParentMenu: TGLMenu): boolean; override;
 
-    procedure MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
-      const Area: TArea; ParentMenu: TGLMenu); override;
+    function MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
+      const Area: TArea; ParentMenu: TGLMenu): boolean; override;
 
     procedure MouseMove(const NewX, NewY: Single;
       const MousePressed: TMouseButtons;
@@ -483,13 +483,13 @@ type
       read FKeySliderDecrease write FKeySliderDecrease
       default DefaultGLMenuKeySliderDecrease;
 
-    procedure KeyDown(Key: TKey; C: char); override;
-    procedure MouseMove(const NewX, NewY: Single;
-      const MousePressed: TMouseButtons); override;
-    procedure MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
-      const MousePressed: TMouseButtons); override;
-    procedure MouseUp(const MouseX, MouseY: Single; Button: TMouseButton;
-      const MousePressed: TMouseButtons); override;
+    function KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean; override;
+    function MouseMove(const OldX, OldY, NewX, NewY: Single;
+      const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean; override;
+    function MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
+      const MousePressed: TMouseButtons): boolean; override;
+    function MouseUp(const MouseX, MouseY: Single; Button: TMouseButton;
+      const MousePressed: TMouseButtons): boolean; override;
     procedure Idle(const CompSpeed: Single;
       KeysDown: PKeysBooleans;
       CharactersDown: PCharactersBooleans;
@@ -714,17 +714,19 @@ end;
 
 { TGLMenuItemAccessory ------------------------------------------------------ }
 
-procedure TGLMenuItemAccessory.KeyDown(Key: TKey; C: char;
-  ParentMenu: TGLMenu);
+function TGLMenuItemAccessory.KeyDown(Key: TKey; C: char;
+  ParentMenu: TGLMenu): boolean;
 begin
   { Nothing to do in this class. }
+  Result := false;
 end;
 
-procedure TGLMenuItemAccessory.MouseDown(
+function TGLMenuItemAccessory.MouseDown(
   const MouseX, MouseY: Single; Button: TMouseButton;
-  const Area: TArea; ParentMenu: TGLMenu);
+  const Area: TArea; ParentMenu: TGLMenu): boolean;
 begin
   { Nothing to do in this class. }
+  Result := false;
 end;
 
 procedure TGLMenuItemAccessory.MouseMove(const NewX, NewY: Single;
@@ -879,11 +881,14 @@ begin
     DrawSliderText(Area, ValueToStr(Value));
 end;
 
-procedure TGLMenuFloatSlider.KeyDown(Key: TKey; C: char;
-  ParentMenu: TGLMenu);
+function TGLMenuFloatSlider.KeyDown(Key: TKey; C: char;
+  ParentMenu: TGLMenu): boolean;
 var
   ValueChange: Single;
 begin
+  Result := inherited;
+  if Result then Exit;
+
   { TODO: TGLMenuFloatSlider should rather get "smooth" changing of Value ? }
   if Key <> K_None then
   begin
@@ -900,24 +905,30 @@ begin
     begin
       FValue := Min(EndRange, Value + ValueChange);
       ParentMenu.CurrentItemAccessoryValueChanged;
+      Result := true;
     end else
     if Key = ParentMenu.KeySliderDecrease then
     begin
       FValue := Max(BeginRange, Value - ValueChange);
       ParentMenu.CurrentItemAccessoryValueChanged;
+      Result := true;
     end;
   end;
 end;
 
-procedure TGLMenuFloatSlider.MouseDown(
+function TGLMenuFloatSlider.MouseDown(
   const MouseX, MouseY: Single; Button: TMouseButton;
-  const Area: TArea; ParentMenu: TGLMenu);
+  const Area: TArea; ParentMenu: TGLMenu): boolean;
 begin
+  Result := inherited;
+  if Result then Exit;
+
   if Button = mbLeft then
   begin
     FValue := MapRange(XCoordToSliderPosition(MouseX, Area), 0, 1,
       BeginRange, EndRange);
     ParentMenu.CurrentItemAccessoryValueChanged;
+    Result := true;
   end;
 end;
 
@@ -959,11 +970,14 @@ begin
     DrawSliderText(Area, ValueToStr(Value));
 end;
 
-procedure TGLMenuIntegerSlider.KeyDown(Key: TKey; C: char;
-  ParentMenu: TGLMenu);
+function TGLMenuIntegerSlider.KeyDown(Key: TKey; C: char;
+  ParentMenu: TGLMenu): boolean;
 var
   ValueChange: Integer;
 begin
+  Result := inherited;
+  if Result then Exit;
+
   if Key <> K_None then
   begin
     ValueChange := 1;
@@ -976,11 +990,13 @@ begin
     begin
       FValue := Min(EndRange, Value + ValueChange);
       ParentMenu.CurrentItemAccessoryValueChanged;
+      Result := true;
     end else
     if Key = ParentMenu.KeySliderDecrease then
     begin
       FValue := Max(BeginRange, Value - ValueChange);
       ParentMenu.CurrentItemAccessoryValueChanged;
+      Result := true;
     end;
   end;
 end;
@@ -995,14 +1011,18 @@ begin
       BeginRange, EndRange)), BeginRange, EndRange);
 end;
 
-procedure TGLMenuIntegerSlider.MouseDown(
+function TGLMenuIntegerSlider.MouseDown(
   const MouseX, MouseY: Single; Button: TMouseButton;
-  const Area: TArea; ParentMenu: TGLMenu);
+  const Area: TArea; ParentMenu: TGLMenu): boolean;
 begin
+  Result := inherited;
+  if Result then Exit;
+
   if Button = mbLeft then
   begin
     FValue := XCoordToValue(MouseX, Area);
     ParentMenu.CurrentItemAccessoryValueChanged;
+    Result := true;
   end;
 end;
 
@@ -1348,13 +1368,14 @@ begin
     DrawPositionRelativeLine;
 end;
 
-procedure TGLMenu.KeyDown(Key: TKey; C: char);
+function TGLMenu.KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean;
 
-  procedure CurrentItemAccessoryKeyDown;
+  function CurrentItemAccessoryKeyDown: boolean;
   begin
+    Result := false;
     if Items.Objects[CurrentItem] <> nil then
     begin
-      TGLMenuItemAccessory(Items.Objects[CurrentItem]).KeyDown(
+      Result := TGLMenuItemAccessory(Items.Objects[CurrentItem]).KeyDown(
         Key, C, Self);
     end;
   end;
@@ -1408,49 +1429,63 @@ const
   BooleanToStr: array [boolean] of string=('false','true');
 
 begin
-  inherited;
+  Result := inherited;
+  if Result then Exit;
 
   if Key = KeyPreviousItem then
-    PreviousItem else
+  begin
+    PreviousItem;
+    Result := true;
+  end else
   if Key = KeyNextItem then
-    NextItem else
+  begin
+    NextItem;
+    Result := true;
+  end else
   if Key = KeySelectItem then
   begin
     CurrentItemAccessoryKeyDown;
     CurrentItemSelected;
+    Result := true;
   end else
-    CurrentItemAccessoryKeyDown;
+    Result := CurrentItemAccessoryKeyDown;
 
   if DesignerMode then
   begin
     case C of
       CtrlB:
-        DrawBackgroundRectangle := not DrawBackgroundRectangle;
-      'x': IncPositionRelative(FPositionRelativeScreenX);
-      'y': IncPositionRelative(FPositionRelativeScreenY);
-      CtrlX: IncPositionRelative(FPositionRelativeMenuX);
-      CtrlY: IncPositionRelative(FPositionRelativeMenuY);
+        begin
+          DrawBackgroundRectangle := not DrawBackgroundRectangle;
+          Result := true;
+        end;
+      'x': begin IncPositionRelative(FPositionRelativeScreenX); Result := true; end;
+      'y': begin IncPositionRelative(FPositionRelativeScreenY); Result := true; end;
+      CtrlX: begin IncPositionRelative(FPositionRelativeMenuX); Result := true; end;
+      CtrlY: begin IncPositionRelative(FPositionRelativeMenuY); Result := true; end;
       CtrlD:
-        InfoWrite(Format(
-          'Position.Init(%f, %f);' +nl+
-          'PositionRelativeScreenX := %s;' +nl+
-          'PositionRelativeScreenY := %s;' +nl+
-          'PositionRelativeMenuX := %s;' +nl+
-          'PositionRelativeMenuY := %s;' +nl+
-          'DrawBackgroundRectangle := %s;',
-          [ Position.Data[0],
-            Position.Data[1],
-            PositionRelativeName[PositionRelativeScreenX],
-            PositionRelativeName[PositionRelativeScreenY],
-            PositionRelativeName[PositionRelativeMenuX],
-            PositionRelativeName[PositionRelativeMenuY],
-            BooleanToStr[DrawBackgroundRectangle] ]));
+        begin
+          InfoWrite(Format(
+            'Position.Init(%f, %f);' +nl+
+            'PositionRelativeScreenX := %s;' +nl+
+            'PositionRelativeScreenY := %s;' +nl+
+            'PositionRelativeMenuX := %s;' +nl+
+            'PositionRelativeMenuY := %s;' +nl+
+            'DrawBackgroundRectangle := %s;',
+            [ Position.Data[0],
+              Position.Data[1],
+              PositionRelativeName[PositionRelativeScreenX],
+              PositionRelativeName[PositionRelativeScreenY],
+              PositionRelativeName[PositionRelativeMenuX],
+              PositionRelativeName[PositionRelativeMenuY],
+              BooleanToStr[DrawBackgroundRectangle] ]));
+          Result := true;
+        end;
     end;
   end;
 end;
 
-procedure TGLMenu.MouseMove(const NewX, NewY: Single;
-  const MousePressed: TMouseButtons);
+function TGLMenu.MouseMove(const OldX, OldY, NewX, NewY: Single;
+  const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean;
 
   procedure ChangePosition;
   var
@@ -1469,7 +1504,8 @@ procedure TGLMenu.MouseMove(const NewX, NewY: Single;
 var
   NewItemIndex: Integer;
 begin
-  inherited;
+  Result := inherited;
+  if Result then Exit;
 
   NewItemIndex := Areas.FindArea(NewX, NewY);
   if NewItemIndex <> -1 then
@@ -1489,14 +1525,17 @@ begin
 
   if DesignerMode then
     ChangePosition;
+
+  Result := true;
 end;
 
-procedure TGLMenu.MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
-  const MousePressed: TMouseButtons);
+function TGLMenu.MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
+  const MousePressed: TMouseButtons): boolean;
 var
   NewItemIndex: Integer;
 begin
-  inherited;
+  Result := inherited;
+  if Result then Exit;
 
   if (CurrentItem <> -1) and
      (Items.Objects[CurrentItem] <> nil) and
@@ -1506,6 +1545,7 @@ begin
     ItemAccessoryGrabbed := CurrentItem;
     TGLMenuItemAccessory(Items.Objects[CurrentItem]).MouseDown(
       MouseX, MouseY, Button, FAccessoryAreas.Items[CurrentItem], Self);
+    Result := true;
   end;
 
   if Button = mbLeft then
@@ -1515,14 +1555,16 @@ begin
     begin
       CurrentItem := NewItemIndex;
       CurrentItemSelected;
+      Result := true;
     end;
   end;
 end;
 
-procedure TGLMenu.MouseUp(const MouseX, MouseY: Single; Button: TMouseButton;
-  const MousePressed: TMouseButtons);
+function TGLMenu.MouseUp(const MouseX, MouseY: Single; Button: TMouseButton;
+  const MousePressed: TMouseButtons): boolean;
 begin
-  inherited;
+  Result := inherited;
+  if Result then Exit;
 
   { This is actually not needed, smart check for
     (MousePressed - [Button] = []) inside MouseDown handles everything,
@@ -1531,7 +1573,7 @@ begin
   if MousePressed = [] then
     ItemAccessoryGrabbed := -1;
 
-  { Nothing to do here for now. }
+  Result := true;
 end;
 
 procedure TGLMenu.Idle(const CompSpeed: Single;

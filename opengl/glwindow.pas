@@ -2610,28 +2610,24 @@ type
 
     { Controls listening for user input (keyboard / mouse) to this window.
 
-      We pass our input to the top-most (that is, first on this list)
-      control under the current mouse position (we look at control's
-      Area for this). Only if UseInputListeners.
+      If UseInputListeners, we pass our input to the top-most
+      (that is, first on this list) control under the current mouse position
+      (we look at control's Area for this). As long as the event is not handled,
+      we look for next controls (more below) under the mouse position.
 
-      If no such control, we pass it to our navigator in this class.
-      If the navigator not set (or not interested in this event)
-      we pass it to inherited, which calls normal window callbacks
-      OnKeyDown etc.
+      Only if no control handled the event, we pass it to our navigator
+      in this class (only if UseNavigator, and navigator is set).
+
+      Only if the event is still not handled, we pass it to inherited
+      EventXxx method, which calls normal window callbacks OnKeyDown etc.
 
       All above applied to mouse / keyboard input. For idle "input"
       we just call this on ever input listener (if UseInputListeners).
 
       TODO: this is expected to be much improved in the future:
-      - pass event to the next control on the list under the mouse?
-        Thus allowing control behind to handle event.
       - an option to ignore mouse position and always pass to given listener
         (useful in castle, and generally when you only have one control
         on screen, and no navigator)
-      - a way for listener to say if event is handled. Not handled =>
-        means we can pass it to the next control. This will allow key
-        shortcuts that are not interesting for control to be handled
-        by something else.
       - an option to not allow listener "grab" events, i.e. even
         if it says handled = true, we'll behave like handled = false ?
         This is useful in controllable environment, e.g. in castle?
@@ -2641,7 +2637,7 @@ type
     property UseInputListeners: boolean
       read FUseInputListeners write FUseInputListeners default true;
 
-    { Returns the input listener that should receive input events
+    { Returns the input listener that should receive input events first,
       or @nil if none. More precisely, this is the first on InputListeners
       list under the mouse cursor. @nil is returned when there's
       no listener under the mouse cursor, or when UseInputListeners = @false. }
@@ -4369,10 +4365,18 @@ end;
 
 procedure TGLWindowNavigated.EventKeyDown(Key: TKey; C: char);
 var
-  F: TInputListener;
+  L: TInputListener;
+  I: Integer;
 begin
-  F := Focus;
-  if F <> nil then begin F.KeyDown(Key, C); Exit; end;
+  if UseInputListeners then
+  begin
+    for I := 0 to InputListeners.Count - 1 do
+    begin
+      L := InputListeners.Items[I];
+      if PointInArea(MouseX, Height - MouseY, L.Area) then
+        if L.KeyDown(Key, C, @KeysDown) then Exit;
+    end;
+  end;
 
   if not (ReallyUseNavigator and Navigator.KeyDown(Key, c, @KeysDown)) then
     inherited;
@@ -4380,28 +4384,37 @@ end;
 
 procedure TGLWindowNavigated.EventMouseDown(Button: TMouseButton);
 var
-  F: TInputListener;
+  L: TInputListener;
+  I: Integer;
 begin
-  F := Focus;
-  if F <> nil then
+  if UseInputListeners then
   begin
-    F.MouseDown(MouseX, Height - MouseY, Button, MousePressed);
-    Exit;
+    for I := 0 to InputListeners.Count - 1 do
+    begin
+      L := InputListeners.Items[I];
+      if PointInArea(MouseX, Height - MouseY, L.Area) then
+        if L.MouseDown(MouseX, Height - MouseY, Button, MousePressed) then Exit;
+    end;
   end;
 
-  if not (ReallyUseNavigator and Navigator.MouseDown(Button)) then
+  if not (ReallyUseNavigator and
+    Navigator.MouseDown(MouseX, MouseY, Button, MousePressed)) then
     inherited;
 end;
 
 procedure TGLWindowNavigated.EventMouseUp(Button: TMouseButton);
 var
-  F: TInputListener;
+  L: TInputListener;
+  I: Integer;
 begin
-  F := Focus;
-  if F <> nil then
+  if UseInputListeners then
   begin
-    F.MouseUp(MouseX, Height - MouseY, Button, MousePressed);
-    Exit;
+    for I := 0 to InputListeners.Count - 1 do
+    begin
+      L := InputListeners.Items[I];
+      if PointInArea(MouseX, Height - MouseY, L.Area) then
+        if L.MouseUp(MouseX, Height - MouseY, Button, MousePressed) then Exit;
+    end;
   end;
 
   inherited;
@@ -4515,7 +4528,7 @@ begin
   F := Focus;
   if F <> nil then
   begin
-    F.MouseMove(NewX, Height - NewY, MousePressed);
+    F.MouseMove(MouseX, Height - MouseY, NewX, Height - NewY, MousePressed, @KeysDown);
     Exit;
   end;
 
@@ -4558,11 +4571,15 @@ begin
       The solution for both problems: you have to check that previous
       position, MouseX and MouseY, are indeed equal to
       MiddleScreenWidth and MiddleScreenHeight. This way we know that
-      this is good move, that qualifies to perform mouse move. }
+      this is good move, that qualifies to perform mouse move.
+
+      And inside, TWalkNavigator.MouseMove can calculate the difference
+      by subtracing new - old position, knowing that old = middle this
+      will always be Ok. }
     if (MouseX = MiddleScreenWidth) and
        (MouseY = MiddleScreenHeight) then
       TWalkNavigator(Navigator).MouseMove(
-        NewX - MiddleScreenWidth, NewY - MiddleScreenHeight);
+        MouseX, MouseY, NewX, NewY, MousePressed, @KeysDown);
 
     { I check the condition below to avoid calling SetMousePosition,
       OnMouseMove, SetMousePosition, OnMouseMove... in a loop.
