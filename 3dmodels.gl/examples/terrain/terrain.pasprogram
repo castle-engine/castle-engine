@@ -42,7 +42,6 @@
      in the 1st place) generate random terrain.
 
   TODO: UI to
-    - persistence (this is the interesting factor),
     - starting NoiseIndex (this allows us to "seed" the terrain, instead
       of getting just one and the same always).
     - interpolation method.
@@ -93,6 +92,8 @@ type
     OctavesSlider: TGLMenuFloatSlider;
     AmplitudeSlider: TGLMenuFloatSlider;
     FrequencySlider: TGLMenuFloatSlider;
+    SmoothnessSlider: TGLMenuFloatSlider;
+
     SubdivisionSlider: TGLMenuIntegerSlider;
 
     procedure CurrentItemAccessoryValueChanged; override;
@@ -247,12 +248,14 @@ begin
   OctavesSlider := TGLMenuFloatSlider.Create(0.0, 20.0, 4.0);
   AmplitudeSlider := TGLMenuFloatSlider.Create(0.5, 10.0, 1.0);
   FrequencySlider := TGLMenuFloatSlider.Create(0.5, 10.0, 1.0);
+  SmoothnessSlider := TGLMenuFloatSlider.Create(1.0, 10.0, 2.0);
   SubdivisionSlider := TGLMenuIntegerSlider.Create(4, 10, Subdivision);
 
   Items.AddObject('Octaves', OctavesSlider);
   Items.AddObject('Amplitude (scales height)', AmplitudeSlider);
   Items.AddObject('Frequency (scales size)', FrequencySlider);
-  Items.AddObject('Subdivision', SubdivisionSlider);
+  Items.AddObject('Smoothness', SmoothnessSlider);
+  Items.AddObject('Subdivision (render details)', SubdivisionSlider);
   PositionRelativeScreenX := prLowerBorder;
   PositionRelativeScreenY := prLowerBorder;
   PositionRelativeMenuX := prLowerBorder;
@@ -269,7 +272,8 @@ begin
     0: (Elevation as TElevationNoise).Octaves := OctavesSlider.Value;
     1: (Elevation as TElevationNoise).Amplitude := AmplitudeSlider.Value;
     2: (Elevation as TElevationNoise).Frequency := FrequencySlider.Value;
-    3: Subdivision := SubdivisionSlider.Value;
+    3: (Elevation as TElevationNoise).Smoothness := SmoothnessSlider.Value;
+    4: Subdivision := SubdivisionSlider.Value;
   end;
   Glw.PostRedisplay;
 end;
@@ -345,6 +349,7 @@ begin
           (Elevation as TElevationNoise).Octaves := GLControls.OctavesSlider.Value;
           (Elevation as TElevationNoise).Amplitude := GLControls.AmplitudeSlider.Value;
           (Elevation as TElevationNoise).Frequency := GLControls.FrequencySlider.Value;
+          (Elevation as TElevationNoise).Smoothness := GLControls.SmoothnessSlider.Value;
         end;
     100: Glwin.Close;
   end;

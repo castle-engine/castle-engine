@@ -83,7 +83,7 @@ type
   TElevationNoise = class(TElevation)
   private
     FOctaves: Single;
-    FPersistence: Single;
+    FSmoothness: Single;
     FAmplitude: Single;
     FFrequency: Single;
     FNoiseInterpolation: TNoiseInterpolation;
@@ -102,8 +102,27 @@ type
       Trunc(Octaves) * some noises + Frac(Octaves) * some last noise.) }
     property Octaves: Single read FOctaves write FOctaves default 4.0;
 
-    { How amplitude changes, when frequency doubles. Default is 0.5. }
-    property Persistence: Single read FPersistence write FPersistence default 0.5;
+    { How noise amplitude changes, when frequency doubles.
+      When we double frequency, amplitude is divided by this.
+      Smaller values <=> larger frequency noise
+      is more visible, so terrain is less smooth (more noisy).
+
+      This is elsewhere called fractal increment, fractal dimension parameter,
+      "H", spectral exponent (see e.g. Blender sources, Musgrave's dissertation).
+      Do not confuse this with "lacunarity" (how frequency changes in each octave),
+      that is simply hardcoded to 2.0 in our code currently.
+      In [http://freespace.virgin.net/hugo.elias/models/m_perlin.htm],
+      the inverse of this 1/Smoothness is called "Persistence".
+
+      I decided to call it "Smoothness", since this is the practical
+      intuitive meaning.
+
+      Value equal 1.0 means that amplitude doesn't change at all,
+      each noise frequency is visible the same, so in effect you will
+      just see a lot of noise. And values < 1.0 are really nonsense,
+      they make more frequency noise even more visible, which means that
+      the terrain is dominated by noise. }
+    property Smoothness: Single read FSmoothness write FSmoothness default 2.0;
 
     { Amplitude and frequency of the first noise octave.
       Amplitude scales the height of the result, and Frequency scales
@@ -234,7 +253,7 @@ constructor TElevationNoise.Create;
 begin
   inherited Create;
   FOctaves := 4.0;
-  FPersistence := 0.5;
+  FSmoothness := 2.0;
   FAmplitude := 1.0;
   FFrequency := 1.0;
   NoiseInterpolation := niCosine;
@@ -252,7 +271,7 @@ begin
   begin
     Result += FNoiseInterpolation2DMethod(X * F, Y * F, I) * A;
     F *= 2;
-    A *= Persistence;
+    A /= Smoothness;
   end;
   Result += Frac(Octaves) * FNoiseInterpolation2DMethod(X * F, Y * F, Trunc(Octaves) + 1) * A;
 end;
