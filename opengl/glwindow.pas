@@ -3019,7 +3019,7 @@ procedure Resize2D(glwin: TGLWindow);
 
 implementation
 
-uses ParseParametersUnit, KambiLog, GLImages, GLVersionUnit, Areas
+uses ParseParametersUnit, KambiLog, GLImages, GLVersionUnit
   { using here GLWinModes/Messages makes recursive uses,
     but it's needed for FileDialog }
   {$ifdef GLWINDOW_GTK_ANY}, GLWinModes, EnumerateFiles {$endif}
@@ -4310,7 +4310,7 @@ begin
   for I := 0 to InputListeners.Count - 1 do
   begin
     Result := InputListeners.Items[I];
-    if PointInArea(MouseX, MouseY, Result.Area) then
+    if Result.PositionInside(MouseX, MouseY) then
       Exit;
   end;
 
@@ -4373,7 +4373,7 @@ begin
     for I := 0 to InputListeners.Count - 1 do
     begin
       L := InputListeners.Items[I];
-      if PointInArea(MouseX, MouseY, L.Area) then
+      if L.PositionInside(MouseX, MouseY) then
         if L.KeyDown(Key, C, @KeysDown) then Exit;
     end;
   end;
@@ -4392,7 +4392,7 @@ begin
     for I := 0 to InputListeners.Count - 1 do
     begin
       L := InputListeners.Items[I];
-      if PointInArea(MouseX, MouseY, L.Area) then
+      if L.PositionInside(MouseX, MouseY) then
         if L.MouseDown(MouseX, MouseY, Button, MousePressed) then Exit;
     end;
   end;
@@ -4412,7 +4412,7 @@ begin
     for I := 0 to InputListeners.Count - 1 do
     begin
       L := InputListeners.Items[I];
-      if PointInArea(MouseX, MouseY, L.Area) then
+      if L.PositionInside(MouseX, MouseY) then
         if L.MouseUp(MouseX, MouseY, Button, MousePressed) then Exit;
     end;
   end;

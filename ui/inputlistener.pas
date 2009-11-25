@@ -20,7 +20,7 @@ interface
 
 {$define read_interface}
 
-uses Keys, SysUtils, KambiUtils, KambiClassUtils, Areas;
+uses Keys, SysUtils, KambiUtils, KambiClassUtils;
 
 type
   { An abstract handler of mouse/keyboard input.
@@ -34,16 +34,21 @@ type
     The idea is that not handled events are passed to the next
     input listener suitable. Handled events are generally not processed more
     --- otherwise the same event could be handled by more than one listener,
-    which is bad. Generally, return @true if anything (possibly) was done
-    (you changed any field value etc.) as a result of this, and only return
-    @false when you're absolutely sure that nothing was done by this control.
+    which is bad. Generally, return ExclusiveEvents if anything (possibly)
+    was done (you changed any field value etc.) as a result of this,
+    and only return @false when you're absolutely sure that nothing was done
+    by this control.
 
     All mouse coordinates passed here should be in usual window system
     coordinates, that is (0, 0) is left-top window corner.
     (Note that this is contrary to usual OpenGL 2D system,
     where (0, 0) is left-bottom window corner.) }
   TInputListener = class
+  private
+    FExclusiveEvents: boolean;
   public
+    constructor Create;
+
     (*Handle key press event.
       Returns @true if the key was somehow handled.
 
@@ -108,9 +113,19 @@ type
       CharactersDown: PCharactersBooleans;
       const MousePressed: TMouseButtons); virtual;
 
-    { Area occupied on the window.
-      Returns empty area in this class. }
-    function Area: TArea; virtual;
+    { Is given screenposition inside this control.
+      Returns always @false in this class. }
+    function PositionInside(const X, Y: Single): boolean; virtual;
+
+    { Should we disable further mouse / keys handling for events that
+      we already handled in this control. If @true, then our events will
+      return @true for mouse and key events handled.
+
+      This means that events will not be simultaneously handled by both this
+      control and some other (or navigator or normal window callbacks),
+      which is usually more sensible, but sometimes less functional. }
+    property ExclusiveEvents: boolean
+      read FExclusiveEvents write FExclusiveEvents default true;
   end;
 
   TObjectsListItem_1 = TInputListener;
@@ -123,6 +138,12 @@ implementation
 
 {$define read_implementation}
 {$I objectslist_1.inc}
+
+constructor TInputListener.Create;
+begin
+  inherited;
+  FExclusiveEvents := true;
+end;
 
 function TInputListener.KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean;
 begin
@@ -154,9 +175,9 @@ procedure TInputListener.Idle(const CompSpeed: Single;
 begin
 end;
 
-function TInputListener.Area: TArea;
+function TInputListener.PositionInside(const X, Y: Single): boolean;
 begin
-  Result := EmptyArea;
+  Result := false;
 end;
 
 end.

@@ -413,7 +413,6 @@ type
       AMouseButton: TMouseButton): boolean;
   private
     FMouseNavigation: boolean;
-    FInputsExclusive: boolean;
 
     procedure HomeNotNotify;
   public
@@ -521,17 +520,9 @@ type
     property MouseNavigation: boolean
       read FMouseNavigation write FMouseNavigation default true;
 
-    { Should we disable further mouse / keys handling for events that
-      we already handled in this navigator.
-      If @true, then our events will return @true
-      for mouse events handled (if MouseNavigation) and key press events
-      (only "home" event for now).
-
-      This means that events handled
-      by TExamineNavigator will not collide with events handled in your
-      window, which is a little more predictable, but less functional. }
-    property InputsExclusive: boolean
-      read FInputsExclusive write FInputsExclusive default false;
+    { TODO: for historical reasons, ExclusiveEvents is @false by default
+      for TExamineNavigator. }
+    property ExclusiveEvents default false;
 
     procedure GetCameraVectors(out Pos, Dir, Up: TVector3Single); override;
     function GetCameraPos: TVector3Single; override;
@@ -1618,7 +1609,7 @@ begin
   inherited;
 
   FMouseNavigation := true;
-  FInputsExclusive := false;
+  ExclusiveEvents := false;
 
   FModelBox := EmptyBox3d;
 
@@ -1841,12 +1832,12 @@ begin
   if Input_StopRotating.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
   begin
     StopRotating;
-    Result := InputsExclusive;
+    Result := ExclusiveEvents;
   end else
   if Input_Home.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
   begin
     Home;
-    Result := InputsExclusive;
+    Result := ExclusiveEvents;
   end else
     Result := false;
 end;
@@ -1946,7 +1937,7 @@ begin
       QuatFromAxisAngle(Vector3Single(1, 0, 0), (NewY - OldY) / 100),
       FRotations);
     MatrixChanged;
-    Result := InputsExclusive;
+    Result := ExclusiveEvents;
   end else
 
   { Moving uses box size, so requires non-empty box. }
@@ -1965,7 +1956,7 @@ begin
     Size := Box3dAvgSize(FModelBox);
     FMoveAmount[2] += Size * (NewY - OldY) / 200;
     MatrixChanged;
-    Result := InputsExclusive;
+    Result := ExclusiveEvents;
   end;
 
   { Moving left/right/down/up }
@@ -1977,7 +1968,7 @@ begin
     FMoveAmount[0] -= Size * (OldX - NewX) / 200;
     FMoveAmount[1] -= Size * (NewY - OldY) / 200;
     MatrixChanged;
-    Result := InputsExclusive;
+    Result := ExclusiveEvents;
   end;
 end;
 
@@ -3177,12 +3168,12 @@ begin
       ScheduleMatrixChanged;
     end else
       CameraUp := GravityUp;
-    Result := true;
+    Result := ExclusiveEvents;
   end else
   if Input_Jump.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
   begin
     Jump;
-    Result := true;
+    Result := ExclusiveEvents;
   end else
     Result := false;
 end;
@@ -3385,7 +3376,7 @@ begin
     end;
   end;
 
-  Result := true;
+  Result := ExclusiveEvents;
 end;
 
 procedure TWalkNavigator.GetCameraVectors(

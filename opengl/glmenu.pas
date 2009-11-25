@@ -468,9 +468,6 @@ type
     property AllItemsArea: TArea read FAllItemsArea;
     property AccessoryAreas: TDynAreaArray read FAccessoryAreas;
 
-    { Area occupied by this control. The same as AllItemsArea here. }
-    function Area: TArea; override;
-
     procedure Draw(const Focused: boolean); virtual;
 
     property KeyNextItem: TKey read FKeyNextItem write FKeyNextItem
@@ -497,6 +494,7 @@ type
       KeysDown: PKeysBooleans;
       CharactersDown: PCharactersBooleans;
       const MousePressed: TMouseButtons); override;
+    function PositionInside(const X, Y: Single): boolean; override;
 
     { Called when user will select CurrentItem, either with mouse
       or with keyboard. }
@@ -908,13 +906,13 @@ begin
     begin
       FValue := Min(EndRange, Value + ValueChange);
       ParentMenu.CurrentItemAccessoryValueChanged;
-      Result := true;
+      Result := ParentMenu.ExclusiveEvents;
     end else
     if Key = ParentMenu.KeySliderDecrease then
     begin
       FValue := Max(BeginRange, Value - ValueChange);
       ParentMenu.CurrentItemAccessoryValueChanged;
-      Result := true;
+      Result := ParentMenu.ExclusiveEvents
     end;
   end;
 end;
@@ -931,7 +929,7 @@ begin
     FValue := MapRange(XCoordToSliderPosition(MouseX, Area), 0, 1,
       BeginRange, EndRange);
     ParentMenu.CurrentItemAccessoryValueChanged;
-    Result := true;
+    Result := ParentMenu.ExclusiveEvents;
   end;
 end;
 
@@ -993,13 +991,13 @@ begin
     begin
       FValue := Min(EndRange, Value + ValueChange);
       ParentMenu.CurrentItemAccessoryValueChanged;
-      Result := true;
+      Result := ParentMenu.ExclusiveEvents;
     end else
     if Key = ParentMenu.KeySliderDecrease then
     begin
       FValue := Max(BeginRange, Value - ValueChange);
       ParentMenu.CurrentItemAccessoryValueChanged;
-      Result := true;
+      Result := ParentMenu.ExclusiveEvents;
     end;
   end;
 end;
@@ -1025,7 +1023,7 @@ begin
   begin
     FValue := XCoordToValue(MouseX, Area);
     ParentMenu.CurrentItemAccessoryValueChanged;
-    Result := true;
+    Result := ParentMenu.ExclusiveEvents;
   end;
 end;
 
@@ -1148,16 +1146,6 @@ end;
 const
   MarginBeforeAccessory = 20;
 
-{ Hack: alias MakeArea, to make it available inside TGLMenu
-  (inside TGLMenu we have Area method already, and Areas property,
-  so we cannot access normal Areas.Area function). }
-function MakeArea(const X0, Y0, Width, Height: Single;
-  const UserData: Pointer = nil): TArea;
-begin
-  Result := Area(X0, Y0, Width, Height, UserData);
-end;
-
-
 procedure TGLMenu.FixItemsAreas(const WindowWidth, WindowHeight: Cardinal);
 
   procedure MakeGLList_DrawFadeRect(var List: TGLuint; const Alpha: TGLfloat);
@@ -1233,7 +1221,7 @@ begin
     if MaxAccessoryWidth <> 0.0 then
       WholeItemWidth := MaxItemWidth + MarginBeforeAccessory + MaxAccessoryWidth else
       WholeItemWidth := MenuFont.TextWidth(Items[I]);
-    Areas.AppendItem(MakeArea(0, 0, WholeItemWidth,
+    Areas.AppendItem(Area(0, 0, WholeItemWidth,
       MenuFont.Descend + MenuFont.RowHeight));
   end;
 
@@ -1438,18 +1426,18 @@ begin
   if Key = KeyPreviousItem then
   begin
     PreviousItem;
-    Result := true;
+    Result := ExclusiveEvents;
   end else
   if Key = KeyNextItem then
   begin
     NextItem;
-    Result := true;
+    Result := ExclusiveEvents;
   end else
   if Key = KeySelectItem then
   begin
     CurrentItemAccessoryKeyDown;
     CurrentItemSelected;
-    Result := true;
+    Result := ExclusiveEvents;
   end else
     Result := CurrentItemAccessoryKeyDown;
 
@@ -1459,12 +1447,12 @@ begin
       CtrlB:
         begin
           DrawBackgroundRectangle := not DrawBackgroundRectangle;
-          Result := true;
+          Result := ExclusiveEvents;
         end;
-      'x': begin IncPositionRelative(FPositionRelativeScreenX); Result := true; end;
-      'y': begin IncPositionRelative(FPositionRelativeScreenY); Result := true; end;
-      CtrlX: begin IncPositionRelative(FPositionRelativeMenuX); Result := true; end;
-      CtrlY: begin IncPositionRelative(FPositionRelativeMenuY); Result := true; end;
+      'x': begin IncPositionRelative(FPositionRelativeScreenX); Result := ExclusiveEvents; end;
+      'y': begin IncPositionRelative(FPositionRelativeScreenY); Result := ExclusiveEvents; end;
+      CtrlX: begin IncPositionRelative(FPositionRelativeMenuX); Result := ExclusiveEvents; end;
+      CtrlY: begin IncPositionRelative(FPositionRelativeMenuY); Result := ExclusiveEvents; end;
       CtrlD:
         begin
           InfoWrite(Format(
@@ -1481,7 +1469,7 @@ begin
               PositionRelativeName[PositionRelativeMenuX],
               PositionRelativeName[PositionRelativeMenuY],
               BooleanToStr[DrawBackgroundRectangle] ]));
-          Result := true;
+          Result := ExclusiveEvents;
         end;
     end;
   end;
@@ -1529,7 +1517,7 @@ begin
   if DesignerMode then
     ChangePosition;
 
-  Result := true;
+  Result := ExclusiveEvents;
 end;
 
 function TGLMenu.MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
@@ -1553,7 +1541,7 @@ begin
     ItemAccessoryGrabbed := CurrentItem;
     TGLMenuItemAccessory(Items.Objects[CurrentItem]).MouseDown(
       MX, MY, Button, FAccessoryAreas.Items[CurrentItem], Self);
-    Result := true;
+    Result := ExclusiveEvents;
   end;
 
   if Button = mbLeft then
@@ -1563,7 +1551,7 @@ begin
     begin
       CurrentItem := NewItemIndex;
       CurrentItemSelected;
-      Result := true;
+      Result := ExclusiveEvents;
     end;
   end;
 end;
@@ -1581,7 +1569,7 @@ begin
   if MousePressed = [] then
     ItemAccessoryGrabbed := -1;
 
-  Result := true;
+  Result := ExclusiveEvents;
 end;
 
 procedure TGLMenu.Idle(const CompSpeed: Single;
@@ -1629,10 +1617,9 @@ begin
   FDesignerMode := Value;
 end;
 
-function TGLMenu.Area: TArea;
+function TGLMenu.PositionInside(const X, Y: Single): boolean;
 begin
-  Result := FAllItemsArea;
-  Result.Y0 := LastWindowHeight - Result.Y0 - Result.Height;
+  Result := PointInArea(X, LastWindowHeight - Y, FAllItemsArea);
 end;
 
 end.
