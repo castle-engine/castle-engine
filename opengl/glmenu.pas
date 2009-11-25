@@ -78,6 +78,9 @@ type
     { This will be called if user will click mouse when currently
       selected item has this TGLMenuItemAccessory.
 
+      MouseX, Y passed here are in coords where MouseY goes up from the bottom
+      to the top. (This is different than usual window system coords.)
+
       This will be called only if MouseX and MouseY will be within
       appropriate Area of this accessory. This Area is also
       passed here, so you can e.g. calculate mouse position
@@ -1533,24 +1536,29 @@ function TGLMenu.MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
   const MousePressed: TMouseButtons): boolean;
 var
   NewItemIndex: Integer;
+  MX, MY: Single;
 begin
   Result := inherited;
   if Result then Exit;
 
+  { For TGLMenu, we like to MouseY going higher from the bottom to the top. }
+  MX := MouseX;
+  MY := LastWindowHeight - MouseY;
+
   if (CurrentItem <> -1) and
      (Items.Objects[CurrentItem] <> nil) and
-     (PointInArea(MouseX, MouseY, FAccessoryAreas.Items[CurrentItem])) and
+     (PointInArea(MX, MY, FAccessoryAreas.Items[CurrentItem])) and
      (MousePressed - [Button] = []) then
   begin
     ItemAccessoryGrabbed := CurrentItem;
     TGLMenuItemAccessory(Items.Objects[CurrentItem]).MouseDown(
-      MouseX, MouseY, Button, FAccessoryAreas.Items[CurrentItem], Self);
+      MX, MY, Button, FAccessoryAreas.Items[CurrentItem], Self);
     Result := true;
   end;
 
   if Button = mbLeft then
   begin
-    NewItemIndex := Areas.FindArea(MouseX, MouseY);
+    NewItemIndex := Areas.FindArea(MX, MY);
     if NewItemIndex <> -1 then
     begin
       CurrentItem := NewItemIndex;
@@ -1624,6 +1632,7 @@ end;
 function TGLMenu.Area: TArea;
 begin
   Result := FAllItemsArea;
+  Result.Y0 := LastWindowHeight - Result.Y0 - Result.Height;
 end;
 
 end.

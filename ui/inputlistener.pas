@@ -38,13 +38,10 @@ type
     (you changed any field value etc.) as a result of this, and only return
     @false when you're absolutely sure that nothing was done by this control.
 
-    TODO:
-    - TGLMenu requires mouse coords (for mousedown, up, move)
-      in OpenGL 2d screen coordinates, so usually
-      (when you call this from TGLWindow.OnMouseMove) you will
-      have to flip the NewY like @code(Glwin.Height - NewY).
-
-    - navigator want in normal coords. }
+    All mouse coordinates passed here should be in usual window system
+    coordinates, that is (0, 0) is left-top window corner.
+    (Note that this is contrary to usual OpenGL 2D system,
+    where (0, 0) is left-bottom window corner.) }
   TInputListener = class
   public
     (*Handle key press event.

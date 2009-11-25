@@ -4310,7 +4310,7 @@ begin
   for I := 0 to InputListeners.Count - 1 do
   begin
     Result := InputListeners.Items[I];
-    if PointInArea(MouseX, Height - MouseY, Result.Area) then
+    if PointInArea(MouseX, MouseY, Result.Area) then
       Exit;
   end;
 
@@ -4373,7 +4373,7 @@ begin
     for I := 0 to InputListeners.Count - 1 do
     begin
       L := InputListeners.Items[I];
-      if PointInArea(MouseX, Height - MouseY, L.Area) then
+      if PointInArea(MouseX, MouseY, L.Area) then
         if L.KeyDown(Key, C, @KeysDown) then Exit;
     end;
   end;
@@ -4392,8 +4392,8 @@ begin
     for I := 0 to InputListeners.Count - 1 do
     begin
       L := InputListeners.Items[I];
-      if PointInArea(MouseX, Height - MouseY, L.Area) then
-        if L.MouseDown(MouseX, Height - MouseY, Button, MousePressed) then Exit;
+      if PointInArea(MouseX, MouseY, L.Area) then
+        if L.MouseDown(MouseX, MouseY, Button, MousePressed) then Exit;
     end;
   end;
 
@@ -4412,8 +4412,8 @@ begin
     for I := 0 to InputListeners.Count - 1 do
     begin
       L := InputListeners.Items[I];
-      if PointInArea(MouseX, Height - MouseY, L.Area) then
-        if L.MouseUp(MouseX, Height - MouseY, Button, MousePressed) then Exit;
+      if PointInArea(MouseX, MouseY, L.Area) then
+        if L.MouseUp(MouseX, MouseY, Button, MousePressed) then Exit;
     end;
   end;
 
@@ -4528,7 +4528,7 @@ begin
   F := Focus;
   if F <> nil then
   begin
-    F.MouseMove(MouseX, Height - MouseY, NewX, Height - NewY, MousePressed, @KeysDown);
+    F.MouseMove(MouseX, MouseY, NewX, NewY, MousePressed, @KeysDown);
     Exit;
   end;
 
