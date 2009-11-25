@@ -20,7 +20,7 @@ unit Navigation;
 interface
 
 uses SysUtils, VectorMath, KambiUtils, Keys, Boxes3d, Quaternions, Frustum,
-  InputListener;
+  UIControls;
 
 const
   DefaultFallingDownStartSpeed = 0.5;
@@ -249,7 +249,7 @@ type
 
     See @code(kambi_vrml_game_engine/opengl/examples/demo_matrix_navigation.pasprogram)
     example program in engine sources for simple demo how to use this class. }
-  TNavigator = class(TInputListener)
+  TNavigator = class(TUIControl)
   private
     MatrixChangedSchedule: Cardinal;
     IsMatrixChangedScheduled: boolean;

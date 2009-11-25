@@ -591,7 +591,7 @@ uses
   {$ifdef GLWINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, KambiDynLib, {$endif}
   KambiUtils, KambiClassUtils, KambiGLUtils, Images, Keys, Navigation,
   RaysWindow, KambiStringUtils, KambiFilesUtils, KambiTimeUtils,
-  FileFilters, InputListener;
+  FileFilters, UIControls;
 
 {$define read_interface}
 
@@ -2484,8 +2484,8 @@ type
     FUseNavigator: boolean;
     FNavigator: TNavigator;
     FCursorNonMouseLook: TGLWindowCursor;
-    FInputListeners: TInputListenersList;
-    FUseInputListeners: boolean;
+    FControls: TUIControlsList;
+    FUseControls: boolean;
     procedure SetCursorNonMouseLook(const Value: TGLWindowCursor);
     function ReallyUseNavigator: boolean;
     function ReallyUseMouseLook: boolean;
@@ -2610,7 +2610,7 @@ type
 
     { Controls listening for user input (keyboard / mouse) to this window.
 
-      If UseInputListeners, we pass our input to the top-most
+      If UseControls, we pass our input to the top-most
       (that is, first on this list) control under the current mouse position
       (we look at control's Area for this). As long as the event is not handled,
       we look for next controls (more below) under the mouse position.
@@ -2622,7 +2622,7 @@ type
       EventXxx method, which calls normal window callbacks OnKeyDown etc.
 
       All above applied to mouse / keyboard input. For idle "input"
-      we just call this on ever input listener (if UseInputListeners).
+      we just call this on every control (if UseControls).
 
       TODO: this is expected to be much improved in the future:
       - an option to ignore mouse position and always pass to given listener
@@ -2633,15 +2633,15 @@ type
         This is useful in controllable environment, e.g. in castle?
         Hm, or not?
     }
-    property InputListeners: TInputListenersList read FInputListeners;
-    property UseInputListeners: boolean
-      read FUseInputListeners write FUseInputListeners default true;
+    property Controls: TUIControlsList read FControls;
+    property UseControls: boolean
+      read FUseControls write FUseControls default true;
 
-    { Returns the input listener that should receive input events first,
-      or @nil if none. More precisely, this is the first on InputListeners
+    { Returns the control that should receive input events first,
+      or @nil if none. More precisely, this is the first on Controls
       list under the mouse cursor. @nil is returned when there's
-      no listener under the mouse cursor, or when UseInputListeners = @false. }
-    function Focus: TInputListener;
+      no listener under the mouse cursor, or when UseControls = @false. }
+    function Focus: TUIControl;
   end;
 
   TObjectsListItem_1 = TGLWindow;
@@ -4290,26 +4290,26 @@ begin
  inherited;
  UseNavigator := true;
  OwnsNavigator := true;
- FInputListeners := TInputListenersList.Create;
- FUseInputListeners := true;
+ FControls := TUIControlsList.Create;
+ FUseControls := true;
 end;
 
 destructor TGLWindowNavigated.Destroy;
 begin
  if OwnsNavigator then Navigator.Free;
- FreeAndNil(FInputListeners);
+ FreeAndNil(FControls);
  inherited;
 end;
 
-function TGLWindowNavigated.Focus: TInputListener;
+function TGLWindowNavigated.Focus: TUIControl;
 var
   I: Integer;
 begin
-  if not UseInputListeners then Exit(nil);
+  if not UseControls then Exit(nil);
 
-  for I := 0 to InputListeners.Count - 1 do
+  for I := 0 to Controls.Count - 1 do
   begin
-    Result := InputListeners.Items[I];
+    Result := Controls.Items[I];
     if Result.PositionInside(MouseX, MouseY) then
       Exit;
   end;
@@ -4330,7 +4330,7 @@ end;
 procedure TGLWindowNavigated.EventIdle;
 var
   I: Integer;
-  ThisListener, F: TInputListener;
+  ThisListener, F: TUIControl;
 begin
   { Although we call Idle for all listeners (and navigators),
     we will pass pressed keys/mouse buttons info only for the "focused"
@@ -4342,11 +4342,11 @@ begin
     want to let navigator to also capture this left key down. }
   F := Focus;
 
-  if UseInputListeners then
+  if UseControls then
   begin
-    for I := 0 to InputListeners.Count - 1 do
+    for I := 0 to Controls.Count - 1 do
     begin
-      ThisListener := InputListeners.Items[I];
+      ThisListener := Controls.Items[I];
       if F = ThisListener then
         ThisListener.Idle(Fps.IdleSpeed, @KeysDown, @CharactersDown, MousePressed) else
         ThisListener.Idle(Fps.IdleSpeed, nil, nil, []);
@@ -4365,14 +4365,14 @@ end;
 
 procedure TGLWindowNavigated.EventKeyDown(Key: TKey; C: char);
 var
-  L: TInputListener;
+  L: TUIControl;
   I: Integer;
 begin
-  if UseInputListeners then
+  if UseControls then
   begin
-    for I := 0 to InputListeners.Count - 1 do
+    for I := 0 to Controls.Count - 1 do
     begin
-      L := InputListeners.Items[I];
+      L := Controls.Items[I];
       if L.PositionInside(MouseX, MouseY) then
         if L.KeyDown(Key, C, @KeysDown) then Exit;
     end;
@@ -4384,14 +4384,14 @@ end;
 
 procedure TGLWindowNavigated.EventMouseDown(Button: TMouseButton);
 var
-  L: TInputListener;
+  L: TUIControl;
   I: Integer;
 begin
-  if UseInputListeners then
+  if UseControls then
   begin
-    for I := 0 to InputListeners.Count - 1 do
+    for I := 0 to Controls.Count - 1 do
     begin
-      L := InputListeners.Items[I];
+      L := Controls.Items[I];
       if L.PositionInside(MouseX, MouseY) then
         if L.MouseDown(MouseX, MouseY, Button, MousePressed) then Exit;
     end;
@@ -4404,14 +4404,14 @@ end;
 
 procedure TGLWindowNavigated.EventMouseUp(Button: TMouseButton);
 var
-  L: TInputListener;
+  L: TUIControl;
   I: Integer;
 begin
-  if UseInputListeners then
+  if UseControls then
   begin
-    for I := 0 to InputListeners.Count - 1 do
+    for I := 0 to Controls.Count - 1 do
     begin
-      L := InputListeners.Items[I];
+      L := Controls.Items[I];
       if L.PositionInside(MouseX, MouseY) then
         if L.MouseUp(MouseX, MouseY, Button, MousePressed) then Exit;
     end;
@@ -4523,7 +4523,7 @@ procedure TGLWindowNavigated.EventMouseMove(NewX, NewY: Integer);
 var
   MiddleScreenWidth: Integer;
   MiddleScreenHeight: Integer;
-  F: TInputListener;
+  F: TUIControl;
 begin
   F := Focus;
   if F <> nil then

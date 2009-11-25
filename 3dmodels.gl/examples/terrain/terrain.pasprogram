@@ -192,14 +192,14 @@ begin
     Glw.AutoRedisplay := GLControlsVisible;
 
     if GLControlsVisible then
-      Glw.InputListeners.AddIfNotExists(GLControls) else
-      Glw.InputListeners.Delete(GLControls);
+      Glw.Controls.AddIfNotExists(GLControls) else
+      Glw.Controls.Delete(GLControls);
   end;
 end;
 
 procedure Draw2d(Draw2DData: Pointer);
 begin
-  if Glw.InputListeners.IndexOf(GLControls) <> -1 then
+  if Glw.Controls.IndexOf(GLControls) <> -1 then
   begin
     glLoadIdentity;
     glRasterPos2i(0, 0);
@@ -281,7 +281,7 @@ end;
 procedure Init(Glwin: TGLWindow);
 begin
   GLControls := TTerrainControls.Create;
-  Glw.InputListeners.Add(GLControls);
+  Glw.Controls.Add(GLControls);
 
   if Elevation = nil then
   begin
@@ -295,7 +295,7 @@ end;
 
 procedure Close(Glwin: TGLWindow);
 begin
-  Glw.InputListeners.Delete(GLControls);
+  Glw.Controls.Delete(GLControls);
   FreeAndNil(GLControls);
   GLMenuCloseGL;
 end;

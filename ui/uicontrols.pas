@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ TInputListener class, a generic handler of mouse/keyboard input. }
-unit InputListener;
+{ User interface (2D) basic classes. }
+unit UIControls;
 
 interface
 
@@ -23,27 +23,29 @@ interface
 uses Keys, SysUtils, KambiUtils, KambiClassUtils;
 
 type
-  { An abstract handler of mouse/keyboard input.
-    Various UI "controls" descend from this, and override
-    it's KeyDown / MouseDown etc. methods. For example TGLMenu.
-    Various UI "windows" (things that directly receive messages
+  { Basic user interface control class. All controls derive from this class,
+    overriding chosen methods to react to some events.
+    Various user interface "windows" (things that directly receive messages
     from something outside, like operating system, windowing library etc.)
-    accept TInputListener classes, and pass to them inputs.
+    implement support for such controls.
+
+    Control may handle mouse/keyboard input, see KeyDown, MouseDown etc.
+    methods.
 
     Various methods return boolean saying if input event is handled.
     The idea is that not handled events are passed to the next
-    input listener suitable. Handled events are generally not processed more
+    control suitable. Handled events are generally not processed more
     --- otherwise the same event could be handled by more than one listener,
     which is bad. Generally, return ExclusiveEvents if anything (possibly)
     was done (you changed any field value etc.) as a result of this,
     and only return @false when you're absolutely sure that nothing was done
     by this control.
 
-    All mouse coordinates passed here should be in usual window system
-    coordinates, that is (0, 0) is left-top window corner.
+    All screen (mouse etc.) coordinates passed here should be in the usual
+    window system coordinates, that is (0, 0) is left-top window corner.
     (Note that this is contrary to usual OpenGL 2D system,
     where (0, 0) is left-bottom window corner.) }
-  TInputListener = class
+  TUIControl = class
   private
     FExclusiveEvents: boolean;
   public
@@ -128,9 +130,9 @@ type
       read FExclusiveEvents write FExclusiveEvents default true;
   end;
 
-  TObjectsListItem_1 = TInputListener;
+  TObjectsListItem_1 = TUIControl;
   {$I objectslist_1.inc}
-  TInputListenersList = TObjectsList_1;
+  TUIControlsList = TObjectsList_1;
 
 {$undef read_interface}
 
@@ -139,43 +141,43 @@ implementation
 {$define read_implementation}
 {$I objectslist_1.inc}
 
-constructor TInputListener.Create;
+constructor TUIControl.Create;
 begin
   inherited;
   FExclusiveEvents := true;
 end;
 
-function TInputListener.KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean;
+function TUIControl.KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean;
 begin
   Result := false;
 end;
 
-function TInputListener.MouseMove(const OldX, OldY, NewX, NewY: Single;
+function TUIControl.MouseMove(const OldX, OldY, NewX, NewY: Single;
   const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean;
 begin
   Result := false;
 end;
 
-function TInputListener.MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
+function TUIControl.MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
   const MousePressed: TMouseButtons): boolean;
 begin
   Result := false;
 end;
 
-function TInputListener.MouseUp(const MouseX, MouseY: Single; Button: TMouseButton;
+function TUIControl.MouseUp(const MouseX, MouseY: Single; Button: TMouseButton;
   const MousePressed: TMouseButtons): boolean;
 begin
   Result := false;
 end;
 
-procedure TInputListener.Idle(const CompSpeed: Single;
+procedure TUIControl.Idle(const CompSpeed: Single;
   KeysDown: PKeysBooleans;
   CharactersDown: PCharactersBooleans;
   const MousePressed: TMouseButtons);
 begin
 end;
 
-function TInputListener.PositionInside(const X, Y: Single): boolean;
+function TUIControl.PositionInside(const X, Y: Single): boolean;
 begin
   Result := false;
 end;

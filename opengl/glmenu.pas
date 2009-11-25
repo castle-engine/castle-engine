@@ -29,7 +29,7 @@ unit GLMenu;
 interface
 
 uses Classes, OpenGLBmpFonts, BFNT_BitstreamVeraSans_Unit, VectorMath, Areas,
-  GLWindow, GL, GLU, KambiGLUtils, Matrix, InputListener, Keys;
+  GLWindow, GL, GLU, KambiGLUtils, Matrix, UIControls, Keys;
 
 const
   DefaultGLMenuKeyNextItem = K_Down;
@@ -310,7 +310,7 @@ type
     smaller y positions are considered lower.
     Stating it simpler: just make sure that your OpenGL projection is
     @code(ProjectionGLOrtho(0, Glwin.Width, 0, Glwin.Height);) }
-  TGLMenu = class(TInputListener)
+  TGLMenu = class(TUIControl)
   private
     FItems: TStringList;
     FCurrentItem: Integer;

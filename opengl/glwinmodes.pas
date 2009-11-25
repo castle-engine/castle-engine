@@ -84,7 +84,7 @@ type
     oldFpsShowOnCaption: boolean;
     { TGLWindowNavigated attributes }
     oldUseNavigator: boolean;
-    OldUseInputListeners: boolean;
+    OldUseControls: boolean;
 
     { When adding new attributes to TGLWindow that should be saved/restored,
       you must remember to
@@ -124,14 +124,14 @@ procedure SetGLWindowState(glwin: TGLWindow; const State: TGLWindowState);
       pominiete Caption i MainMenu bedzie zostawione takie jakie jest,
       pominiete Cursor bedzie ustawione na gcDefault.
     Note that NewMainMenuEnabled will be set only if Glwin.MainMenu <> nil.
-    NewUseNavigatorAndInputListeners controls both
-      UseNavigator and UseInputListeners. }
+    NewUseNavigatorAndControls controls both
+      UseNavigator and UseControls. }
 procedure SetStandardGLWindowState(glwin: TGLWindow;
   NewDraw, NewCloseQuery, NewResize: TGLWindowFunc;
   NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
   NewMainMenuEnabled: boolean;
   NewSwapFullScreen_Key: TKey;
-  NewClose_charkey: char; NewFpsShowOnCaption, NewUseNavigatorAndInputListeners: boolean);
+  NewClose_charkey: char; NewFpsShowOnCaption, NewUseNavigatorAndControls: boolean);
 
 { SetStdNoCloseGLWindowState dziala jak SetStandardGLWindowState
   ale ustawia zawsze oldClose_charkey na #0 i NewCloseQuery
@@ -143,7 +143,7 @@ procedure SetStdNoCloseGLWindowState(glwin: TGLWindow;
   NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
   NewMainMenuEnabled: boolean;
   NewSwapFullScreen_Key: TKey;
-  NewFpsShowOnCaption, NewUseNavigatorAndInputListeners: boolean);
+  NewFpsShowOnCaption, NewUseNavigatorAndControls: boolean);
 
 { GL Mode ---------------------------------------------------------------- }
 
@@ -357,7 +357,7 @@ begin
  if glwin is TGLWindowNavigated then
  begin
   result.oldUseNavigator := TGLWindowNavigated(glwin).UseNavigator;
-  Result.OldUseInputListeners := TGLWindowNavigated(Glwin).UseInputListeners;
+  Result.OldUseControls := TGLWindowNavigated(Glwin).UseControls;
  end;
 end;
 
@@ -384,7 +384,7 @@ begin
  if glwin is TGLWindowNavigated then
  begin
   TGLWindowNavigated(glwin).UseNavigator := State.oldUseNavigator;
-  TGLWindowNavigated(Glwin).UseInputListeners := State.OldUseInputListeners;
+  TGLWindowNavigated(Glwin).UseControls := State.OldUseControls;
  end;
 end;
 
@@ -393,7 +393,7 @@ procedure SetStandardGLWindowState(glwin: TGLWindow;
   NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
   NewMainMenuEnabled: boolean;
   NewSwapFullScreen_Key: TKey;
-  NewClose_charkey: char; NewFpsShowOnCaption, NewUseNavigatorAndInputListeners: boolean);
+  NewClose_charkey: char; NewFpsShowOnCaption, NewUseNavigatorAndControls: boolean);
 begin
  Glwin.SetCallbacksState(DefaultCallbacksState);
  Glwin.OnDraw := NewDraw;
@@ -417,8 +417,8 @@ begin
 
  if glwin is TGLWindowNavigated then
  begin
-  TGLWindowNavigated(glwin).UseNavigator := NewUseNavigatorAndInputListeners;
-  TGLWindowNavigated(Glwin).UseInputListeners := NewUseNavigatorAndInputListeners;
+  TGLWindowNavigated(glwin).UseNavigator := NewUseNavigatorAndControls;
+  TGLWindowNavigated(Glwin).UseControls := NewUseNavigatorAndControls;
  end;
 end;
 
@@ -429,13 +429,13 @@ procedure SetStdNoCloseGLWindowState(glwin: TGLWindow;
   NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
   NewMainMenuEnabled: boolean;
   NewSwapFullScreen_Key: TKey;
-  NewFpsShowOnCaption, NewUseNavigatorAndInputListeners: boolean);
+  NewFpsShowOnCaption, NewUseNavigatorAndControls: boolean);
 begin
  SetStandardGLWindowState(glwin,
    NewDraw, {$ifdef FPC_OBJFPC} @ {$endif} CloseQuery_Ignore, NewResize,
    NewUserData, NewAutoRedisplay, NewFPSActive,
    NewMainMenuEnabled,
-   NewSwapFullScreen_Key, #0, NewFpsShowOnCaption, NewUseNavigatorAndInputListeners);
+   NewSwapFullScreen_Key, #0, NewFpsShowOnCaption, NewUseNavigatorAndControls);
 end;
 
 { GL Mode ---------------------------------------------------------------- }
