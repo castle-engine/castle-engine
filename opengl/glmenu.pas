@@ -1477,16 +1477,18 @@ end;
 
 function TGLMenu.MouseMove(const OldX, OldY, NewX, NewY: Single;
   const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean;
+var
+  MX, MY: Single;
 
   procedure ChangePosition;
   var
     NewPositionAbsolute: TVector2_Single;
   begin
-    NewPositionAbsolute.Init(NewX, NewY);
-    { I want Position set such that (NewX, NewY) are lower/left corner
+    NewPositionAbsolute.Init(MX, MY);
+    { I want Position set such that (MX, MY) are lower/left corner
       of menu area. I know that
         PositionAbsolute = Position + PositionScreenRelativeMove - PositionMenuRelativeMove;
-      (NewX, NewY) are new PositionAbsolute, so I can calculate from
+      (MX, MY) are new PositionAbsolute, so I can calculate from
       this new desired Position value. }
     Position := NewPositionAbsolute - PositionScreenRelativeMove + PositionMenuRelativeMove;
     FixItemsAreas(LastWindowWidth, LastWindowHeight);
@@ -1498,7 +1500,11 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  NewItemIndex := Areas.FindArea(NewX, NewY);
+  { For TGLMenu, we like MouseY going higher from the bottom to the top. }
+  MX := NewX;
+  MY := LastWindowHeight - NewY;
+
+  NewItemIndex := Areas.FindArea(MX, MY);
   if NewItemIndex <> -1 then
   begin
     if NewItemIndex <> CurrentItem then
@@ -1507,10 +1513,10 @@ begin
       then user just moves mouse within current item.
       So maybe we should call TGLMenuItemAccessory.MouseMove. }
     if (Items.Objects[CurrentItem] <> nil) and
-       (PointInArea(NewX, NewY, FAccessoryAreas.Items[CurrentItem])) and
+       (PointInArea(MX, MY, FAccessoryAreas.Items[CurrentItem])) and
        (ItemAccessoryGrabbed = CurrentItem) then
       TGLMenuItemAccessory(Items.Objects[CurrentItem]).MouseMove(
-        NewX, NewY, MousePressed,
+        MX, MY, MousePressed,
         FAccessoryAreas.Items[CurrentItem], Self);
   end;
 
@@ -1529,7 +1535,7 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  { For TGLMenu, we like to MouseY going higher from the bottom to the top. }
+  { For TGLMenu, we like MouseY going higher from the bottom to the top. }
   MX := MouseX;
   MY := LastWindowHeight - MouseY;
 
