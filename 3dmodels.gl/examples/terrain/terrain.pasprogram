@@ -192,7 +192,7 @@ begin
     Glw.AutoRedisplay := GLControlsVisible;
 
     if GLControlsVisible then
-      Glw.Controls.AddIfNotExists(GLControls) else
+      Glw.Controls.MakeSingle(TGLMenu, GLControls) else
       Glw.Controls.Delete(GLControls);
   end;
 end;

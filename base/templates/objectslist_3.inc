@@ -153,6 +153,31 @@
 
     procedure SetAll(Item: TObjectsListItem_3);
 
+    { Replace first found descendant of ReplaceClass with NewItem.
+      In case no descendant of ReplaceClass was found,
+      we'll we add NewItem to the list (depending on AddBeginning value:
+      at the beginning or at the end of the list).
+
+      If NewItem is @nil, this simply removes the first found
+      descendant of ReplaceClass.
+
+      The typical use scenario for this method is when NewItem is also
+      a descendant from ReplaceClass, and you always keep at most one
+      ReplaceClass descendant on the list.
+      For example, you have UI controls list (like
+      TGLWindow.Controls), and you want your NewItem to be the only instance
+      of TGLMenu class inside.
+      Moreover, in case order on the list is important (for example on
+      TGLWindow.Controls order corresponds to screen depth --- what control
+      is under / above each other), you want to place NewItem at the same
+      position as previous TGLMenu instance, if any. }
+    procedure MakeSingle(ReplaceClass: TClass; NewItem: TObjectsListItem_3;
+      AddBeginning: boolean = false);
+
+    { Delete first found descendant of RemoveClass.
+      Returns if some descendant was actually found. }
+    function Delete(RemoveClass: TClass): boolean; overload;
+
     { ------------------------------------------------------------
       rzeczy ktore robia gdzies Free obiektom na liscie }
 
@@ -506,6 +531,44 @@ var
 begin
   for I := 0 to Count - 1 do Items[I] := Item;
 {$endif}
+end;
+
+procedure TObjectsList_3.MakeSingle(ReplaceClass: TClass; NewItem: TObjectsListItem_3;
+  AddBeginning: boolean);
+var
+  I: Integer;
+begin
+  if NewItem = nil then
+  begin
+    Delete(ReplaceClass);
+    Exit;
+  end;
+
+  for I := 0 to Count - 1 do
+    if Arr^[I] is ReplaceClass then
+    begin
+      Arr^[I] := NewItem;
+      Exit;
+    end;
+
+  if AddBeginning then
+    Insert(0, NewItem) else
+    Insert(Count, NewItem);
+end;
+
+function TObjectsList_3.Delete(RemoveClass: TClass): boolean;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if Arr^[I] is RemoveClass then
+    begin
+      Delete(I);
+      Result := true;
+      Exit;
+    end;
+
+  Result := false;
 end;
 
 procedure TObjectsList_3.FreeAndNil(Index: integer);
