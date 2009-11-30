@@ -53,9 +53,7 @@
 
     @item(Simple wrappers for OS specific things, like
       for Libc or BaseUnix/Unix units under UNIX
-      (see also README.use_libc) or WinAPI under Windows.
-      See windows/kambiutils_os_specific.inc and
-      unix/kambiutils_os_specific.inc files.)
+      (see also README.use_libc) or WinAPI under Windows.)
 
     @item(Some others...)
   )
@@ -171,7 +169,8 @@ type
 {$I kambiutils_program_exit.inc}
 {$I kambiutils_params.inc}
 {$I kambiutils_bits.inc}
-{$I kambiutils_os_specific.inc}
+{$ifdef UNIX}      {$I kambiutils_os_specific_unix.inc}    {$endif}
+{$ifdef MSWINDOWS} {$I kambiutils_os_specific_windows.inc} {$endif}
 {$I kambiutils_math.inc}
 {$I kambiutils_filenames.inc}
 {$I kambiutils_os_error.inc}
@@ -198,7 +197,16 @@ uses KambiStringUtils, KambiFilesUtils;
 {$I kambiutils_bits.inc}
 {$I kambiutils_math.inc}
 {$I kambiutils_filenames.inc}
-{$I kambiutils_os_specific.inc}
+
+{ We cannot just have
+  windows/kambiutils_os_specific.inc and
+     unix/kambiutils_os_specific.inc (same filename on all platforms),
+  and depend on paths to choose proper one:
+  For Lazarus package this would prevent maintaining single .lpk file,
+  see ../packages/README. }
+{$ifdef UNIX}      {$I kambiutils_os_specific_unix.inc}    {$endif}
+{$ifdef MSWINDOWS} {$I kambiutils_os_specific_windows.inc} {$endif}
+
 {$I kambiutils_os_error.inc}
 {$I kambiutils_pointers.inc}
 {$I kambiutils_read_write.inc}
