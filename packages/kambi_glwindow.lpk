@@ -5,8 +5,8 @@
     <CompilerOptions>
       <Version Value="8"/>
       <SearchPaths>
-        <IncludeFiles Value="../../opengl/unix/;../../opengl/gtk/"/>
-        <OtherUnitFiles Value="../../opengl/;../../3dmodels.gl/"/>
+        <IncludeFiles Value="../opengl/unix/;../opengl/windows/;../opengl/gtk/"/>
+        <OtherUnitFiles Value="../opengl/;../3dmodels.gl/;../opengl/windows/"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
@@ -46,47 +46,66 @@
     </CompilerOptions>
     <Description Value="Kambi VRML game engine - GLWindow and units using it.
 This unit cannot be installed under Lazarus, it's only for being used in other programs. GLWindow unit initializes some things inside XWindows / WinAPI that may conflict with Lazarus reserving the same resources."/>
-    <Files Count="10">
+    <License Value="GNU GPL >= 2
+(or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)"/>
+    <Files Count="14">
       <Item1>
-        <Filename Value="../../3dmodels.gl/glwindowvrmlbrowser.pas"/>
+        <Filename Value="../3dmodels.gl/glwindowvrmlbrowser.pas"/>
         <UnitName Value="GLWindowVRMLBrowser"/>
       </Item1>
       <Item2>
-        <Filename Value="../../opengl/glmenu.pas"/>
+        <Filename Value="../opengl/glmenu.pas"/>
         <UnitName Value="GLMenu"/>
       </Item2>
       <Item3>
-        <Filename Value="../../opengl/glsoundmenu.pas"/>
+        <Filename Value="../opengl/glsoundmenu.pas"/>
         <UnitName Value="GLSoundMenu"/>
       </Item3>
       <Item4>
-        <Filename Value="../../opengl/glwindow.pas"/>
+        <Filename Value="../opengl/glwindow.pas"/>
         <UnitName Value="GLWindow"/>
       </Item4>
       <Item5>
-        <Filename Value="../../opengl/glwindowrecentmenu.pas"/>
+        <Filename Value="../opengl/glwindowrecentmenu.pas"/>
         <UnitName Value="GLWindowRecentMenu"/>
       </Item5>
       <Item6>
-        <Filename Value="../../opengl/glwininputs.pas"/>
+        <Filename Value="../opengl/glwininputs.pas"/>
         <UnitName Value="GLWinInputs"/>
       </Item6>
       <Item7>
-        <Filename Value="../../opengl/glwinmessages.pas"/>
+        <Filename Value="../opengl/glwinmessages.pas"/>
         <UnitName Value="GLWinMessages"/>
       </Item7>
       <Item8>
-        <Filename Value="../../opengl/glwinmodes.pas"/>
+        <Filename Value="../opengl/glwinmodes.pas"/>
         <UnitName Value="GLWinModes"/>
       </Item8>
       <Item9>
-        <Filename Value="../../opengl/progressgl.pas"/>
+        <Filename Value="../opengl/progressgl.pas"/>
         <UnitName Value="ProgressGL"/>
       </Item9>
       <Item10>
-        <Filename Value="../../opengl/timemessages.pas"/>
+        <Filename Value="../opengl/timemessages.pas"/>
         <UnitName Value="TimeMessages"/>
       </Item10>
+      <Item11>
+        <Filename Value="../opengl/windows/glwindow_winapi.inc"/>
+        <Type Value="Include"/>
+      </Item11>
+      <Item12>
+        <Filename Value="../opengl/windows/glwindowwinapimenu.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="GLWindowWinAPIMenu"/>
+      </Item12>
+      <Item13>
+        <Filename Value="../opengl/unix/glwindow_xf86vmode.inc"/>
+        <Type Value="Include"/>
+      </Item13>
+      <Item14>
+        <Filename Value="../opengl/unix/glwindow_xlib.inc"/>
+        <Type Value="Include"/>
+      </Item14>
     </Files>
     <RequiredPkgs Count="2">
       <Item1>

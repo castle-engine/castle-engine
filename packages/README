@@ -63,4 +63,34 @@ package --- that's OK.
 See ../3dmodels.gl/examples/lazarus_vrml_browser/
 for demo program using this package.
 
+------------------------------------------------------------------------------
+Development notes:
+
+How to cope with system-specific units and include files inside
+a single Lazarus package file?
+
+  (This concerns stuff inside */unix/, */windows/ subdirectories,
+  like base/unix|windows, opengl/unix|windows).
+
+  - Add all files, even the system-specific, to the package
+    (this way e.g. dependency checking for .compiled files will be Ok).
+    This also means that we have to add all paths,
+    both for unix/ and windows/, to the package.
+
+  - All include/units files must have unique names.
+
+    I used to have a hack like this: place file unix/xxx.inc
+    and windows/xxx.inc, and then using {$I xxx.inc}
+    I knew that the correct (for current platform) xxx.inc would be included.
+    This is not possible anymore --- both unix/ and windows/ will be
+    on the include path for all of the platforms,
+    so you cannot depend on include path to select the proper file.
+
+    Not a real problem, I used this hack only in one place actually...
+
+  - For units in platform-specific dirs, it's crucial to set
+    AddToUsesPkgSection Value="False". This means that they
+    will be compiled only when pulled by dependencies from other units,
+    and all will be Ok.
+
 Michalis
