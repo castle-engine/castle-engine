@@ -213,7 +213,7 @@ implementation
 uses Boxes3d, VRMLOpenGLRenderer, GL, GLU,
   KambiClassUtils, KambiUtils, SysUtils, Object3dAsVRML,
   KambiGLUtils, KambiFilesUtils, VRMLTriangle,
-  RaysWindow, BackgroundGL, Keys;
+  RaysWindow, BackgroundGL, KeysMouse;
 
 procedure Register;
 begin
