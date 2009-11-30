@@ -593,8 +593,8 @@
         <UnitName Value="areas"/>
       </Item138>
       <Item139>
-        <Filename Value="..\..\ui\inputlistener.pas"/>
-        <UnitName Value="inputlistener"/>
+        <Filename Value="..\..\ui\uicontrols.pas"/>
+        <UnitName Value="uicontrols"/>
       </Item139>
       <Item140>
         <Filename Value="..\..\ui\keys.pas"/>

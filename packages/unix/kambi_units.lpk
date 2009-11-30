@@ -659,8 +659,8 @@
         <UnitName Value="areas"/>
       </Item152>
       <Item153>
-        <Filename Value="../../ui/inputlistener.pas"/>
-        <UnitName Value="inputlistener"/>
+        <Filename Value="../../ui/uicontrols.pas"/>
+        <UnitName Value="uicontrols"/>
       </Item153>
       <Item154>
         <Filename Value="../../ui/keys.pas"/>
