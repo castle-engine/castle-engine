@@ -63,7 +63,6 @@ begin
     P.Targets.AddUnit('convexhullunit.pas');
     P.Targets.AddUnit('cubemap.pas');
     P.Targets.AddUnit('frustum.pas');
-    P.Targets.AddUnit('keys.pas');
     P.Targets.AddUnit('navigation.pas');
     P.Targets.AddUnit('polynomials.pas');
     P.Targets.AddUnit('quaternions.pas');
@@ -128,7 +127,6 @@ begin
     P.Targets.AddUnit('vorbisfile.pas');
 
     P.SourcePath.Add('base');
-    P.Targets.AddUnit('areas.pas');
     P.Targets.AddUnit('dataerrors.pas');
     P.Targets.AddUnit('enumeratefiles.pas');
     P.Targets.AddUnit('filefilters.pas');
@@ -242,6 +240,11 @@ begin
       P.Targets.AddUnit('glwindowwinapimenu.pas');
       P.Targets.AddUnit('openglwindowsfonts.pas');
     end;
+
+    P.SourcePath.Add('ui');
+    P.Targets.AddUnit('areas.pas');
+    P.Targets.AddUnit('keysmouse.pas');
+    P.Targets.AddUnit('uicontrols.pas');
 
     Run;
   end;

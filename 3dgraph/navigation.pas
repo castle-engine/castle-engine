@@ -19,7 +19,7 @@ unit Navigation;
 
 interface
 
-uses SysUtils, VectorMath, KambiUtils, Keys, Boxes3d, Quaternions, Frustum,
+uses SysUtils, VectorMath, KambiUtils, KeysMouse, Boxes3d, Quaternions, Frustum,
   UIControls;
 
 const

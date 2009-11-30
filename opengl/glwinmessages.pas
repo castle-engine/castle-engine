@@ -365,7 +365,7 @@ var
 implementation
 
 uses OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_m18_Unit, Images,
-  KambiClassUtils, SysUtils, GLWinModes, IntRects, Keys, KambiLog,
+  KambiClassUtils, SysUtils, GLWinModes, IntRects, KeysMouse, KambiLog,
   GLImages;
 
 const

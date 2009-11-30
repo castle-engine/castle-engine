@@ -18,7 +18,7 @@
 program animate_surface;
 
 uses Navigation, GLW_Navigated, Surfaces, GLWindow, GL, GLU, VectorMath,
-  KambiGLUtils, Curve, BezierCurve, Boxes3d, SysUtils, KambiUtils, Keys,
+  KambiGLUtils, Curve, BezierCurve, Boxes3d, SysUtils, KambiUtils, KeysMouse,
   KambiStringUtils, Math, GLWinMessages, KambiFilesUtils;
 
 var

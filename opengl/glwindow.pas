@@ -589,7 +589,7 @@ uses
   {$ifdef GLWINDOW_GTK_WITH_XLIB} X, Xlib, {$endif}
   {$ifdef GLWINDOW_GTK_1} Glib, Gdk, Gtk, GtkGLArea, {$endif}
   {$ifdef GLWINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, KambiDynLib, {$endif}
-  KambiUtils, KambiClassUtils, KambiGLUtils, Images, Keys, Navigation,
+  KambiUtils, KambiClassUtils, KambiGLUtils, Images, KeysMouse, Navigation,
   RaysWindow, KambiStringUtils, KambiFilesUtils, KambiTimeUtils,
   FileFilters, UIControls;
 
@@ -608,67 +608,67 @@ uses
 }
 
 type
-  TKey = Keys.TKey;
+  TKey = KeysMouse.TKey;
 const
-  K_None = Keys.K_None;
+  K_None = KeysMouse.K_None;
 
-  K_BackSpace = Keys.K_BackSpace;
-  K_Tab = Keys.K_Tab;
-  K_Enter = Keys.K_Enter;
+  K_BackSpace = KeysMouse.K_BackSpace;
+  K_Tab = KeysMouse.K_Tab;
+  K_Enter = KeysMouse.K_Enter;
 
-  K_Minus = Keys.K_Minus;
-  K_Shift = Keys.K_Shift;
-  K_Ctrl = Keys.K_Ctrl;
-  K_Alt = Keys.K_Alt;
-  K_Plus = Keys.K_Plus;
+  K_Minus = KeysMouse.K_Minus;
+  K_Shift = KeysMouse.K_Shift;
+  K_Ctrl = KeysMouse.K_Ctrl;
+  K_Alt = KeysMouse.K_Alt;
+  K_Plus = KeysMouse.K_Plus;
 
-  K_Escape = Keys.K_Escape;
-  K_Space = Keys.K_Space;
-  K_PageUp = Keys.K_PageUp;
-  K_PageDown = Keys.K_PageDown;
-  K_End = Keys.K_End;
-  K_Home = Keys.K_Home;
-  K_Left = Keys.K_Left;
-  K_Up = Keys.K_Up;
-  K_Right = Keys.K_Right;
-  K_Down = Keys.K_Down;
-  K_Insert = Keys.K_Insert;
-  K_Delete = Keys.K_Delete;
+  K_Escape = KeysMouse.K_Escape;
+  K_Space = KeysMouse.K_Space;
+  K_PageUp = KeysMouse.K_PageUp;
+  K_PageDown = KeysMouse.K_PageDown;
+  K_End = KeysMouse.K_End;
+  K_Home = KeysMouse.K_Home;
+  K_Left = KeysMouse.K_Left;
+  K_Up = KeysMouse.K_Up;
+  K_Right = KeysMouse.K_Right;
+  K_Down = KeysMouse.K_Down;
+  K_Insert = KeysMouse.K_Insert;
+  K_Delete = KeysMouse.K_Delete;
 
-  K_Numpad_Plus = Keys.K_Numpad_Plus;
-  K_Numpad_Minus = Keys.K_Numpad_Minus;
+  K_Numpad_Plus = KeysMouse.K_Numpad_Plus;
+  K_Numpad_Minus = KeysMouse.K_Numpad_Minus;
 
-  K_0 = Keys.K_0;  K_1 = Keys.K_1;  K_2 = Keys.K_2;  K_3 = Keys.K_3;
-  K_4 = Keys.K_4;  K_5 = Keys.K_5;  K_6 = Keys.K_6;  K_7 = Keys.K_7;
-  K_8 = Keys.K_8;  K_9 = Keys.K_9;
+  K_0 = KeysMouse.K_0;  K_1 = KeysMouse.K_1;  K_2 = KeysMouse.K_2;  K_3 = KeysMouse.K_3;
+  K_4 = KeysMouse.K_4;  K_5 = KeysMouse.K_5;  K_6 = KeysMouse.K_6;  K_7 = KeysMouse.K_7;
+  K_8 = KeysMouse.K_8;  K_9 = KeysMouse.K_9;
 
-  K_A = Keys.K_A;  K_B = Keys.K_B;  K_C = Keys.K_C;  K_D = Keys.K_D;
-  K_E = Keys.K_E;  K_F = Keys.K_F;  K_G = Keys.K_G;  K_H = Keys.K_H;
-  K_I = Keys.K_I;  K_J = Keys.K_J;  K_K = Keys.K_K;  K_L = Keys.K_L;
-  K_M = Keys.K_M;  K_N = Keys.K_N;  K_O = Keys.K_O;  K_P = Keys.K_P;
-  K_Q = Keys.K_Q;  K_R = Keys.K_R;  K_S = Keys.K_S;  K_T = Keys.K_T;
-  K_U = Keys.K_U;  K_V = Keys.K_V;  K_W = Keys.K_W;  K_X = Keys.K_X;
-  K_Y = Keys.K_Y;  K_Z = Keys.K_Z;
+  K_A = KeysMouse.K_A;  K_B = KeysMouse.K_B;  K_C = KeysMouse.K_C;  K_D = KeysMouse.K_D;
+  K_E = KeysMouse.K_E;  K_F = KeysMouse.K_F;  K_G = KeysMouse.K_G;  K_H = KeysMouse.K_H;
+  K_I = KeysMouse.K_I;  K_J = KeysMouse.K_J;  K_K = KeysMouse.K_K;  K_L = KeysMouse.K_L;
+  K_M = KeysMouse.K_M;  K_N = KeysMouse.K_N;  K_O = KeysMouse.K_O;  K_P = KeysMouse.K_P;
+  K_Q = KeysMouse.K_Q;  K_R = KeysMouse.K_R;  K_S = KeysMouse.K_S;  K_T = KeysMouse.K_T;
+  K_U = KeysMouse.K_U;  K_V = KeysMouse.K_V;  K_W = KeysMouse.K_W;  K_X = KeysMouse.K_X;
+  K_Y = KeysMouse.K_Y;  K_Z = KeysMouse.K_Z;
 
-  K_F1 = Keys.K_F1;  K_F2 = Keys.K_F2;  K_F3 = Keys.K_F3;  K_F4 = Keys.K_F4;
-  K_F5 = Keys.K_F5;  K_F6 = Keys.K_F6;  K_F7 = Keys.K_F7;  K_F8 = Keys.K_F8;
-  K_F9 = Keys.K_F9;  K_F10 = Keys.K_F10;  K_F11 = Keys.K_F11;  K_F12 = Keys.K_F12;
+  K_F1 = KeysMouse.K_F1;  K_F2 = KeysMouse.K_F2;  K_F3 = KeysMouse.K_F3;  K_F4 = KeysMouse.K_F4;
+  K_F5 = KeysMouse.K_F5;  K_F6 = KeysMouse.K_F6;  K_F7 = KeysMouse.K_F7;  K_F8 = KeysMouse.K_F8;
+  K_F9 = KeysMouse.K_F9;  K_F10 = KeysMouse.K_F10;  K_F11 = KeysMouse.K_F11;  K_F12 = KeysMouse.K_F12;
 
-  K_Comma = Keys.K_Comma;
-  K_Period = Keys.K_Period;
+  K_Comma = KeysMouse.K_Comma;
+  K_Period = KeysMouse.K_Period;
 
 
 { Also export types and consts related to TMouseButton from Navigation unit. }
 
 type
   { }
-  TMouseButton = Keys.TMouseButton;
-  TMouseButtons = Keys.TMouseButtons;
+  TMouseButton = KeysMouse.TMouseButton;
+  TMouseButtons = KeysMouse.TMouseButtons;
 
 const
-  mbLeft = Keys.mbLeft;
-  mbMiddle = Keys.mbMiddle;
-  mbRight = Keys.mbRight;
+  mbLeft = KeysMouse.mbLeft;
+  mbMiddle = KeysMouse.mbMiddle;
+  mbRight = KeysMouse.mbRight;
 
 { --------------------------------------------------------------------- }
 
@@ -2142,7 +2142,7 @@ type
       But still checking for keys on KeysDown, when possible, it adviced. }
     CharactersDown: TCharactersBooleans;
 
-    { The same thing as Keys.ModifiersDown(KeysDown). }
+    { The same thing as KeysMouse.ModifiersDown(KeysDown). }
     function ModifiersDown: TModifierKeys;
 
     { Fps -------------------------------------------------------------------- }
@@ -3355,7 +3355,7 @@ end;
 
 function TGLWindow.ModifiersDown: TModifierKeys;
 begin
- result := Keys.ModifiersDown(KeysDown);
+ result := KeysMouse.ModifiersDown(KeysDown);
 end;
 
 { wszystkie zdarzenia TGLWindow - opakowujace je procedury DoXxx ktore

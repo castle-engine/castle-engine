@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, OpenGLContext, Navigation, Controls, Forms,
-  VectorMath, Keys, KambiUtils, KambiTimeUtils, StdCtrls;
+  VectorMath, KeysMouse, KambiUtils, KambiTimeUtils, StdCtrls;
 
 type
   { This adds some comfortable things to TOpenGLControl.
@@ -123,7 +123,7 @@ type
     procedure Idle; virtual;
 
     KeysDown: TKeysBooleans;
-    MousePressed: Keys.TMouseButtons;
+    MousePressed: KeysMouse.TMouseButtons;
     procedure ReleaseAllKeysAndMouse;
 
     property MouseX: Integer read FMouseX;
@@ -385,13 +385,13 @@ end;
   is in the middle in my type)). }
 function LMouseButtonToMyMouseButton(
   const MouseButton: Controls.TMouseButton;
-  out MyMouseButton: Keys.TMouseButton): boolean;
+  out MyMouseButton: KeysMouse.TMouseButton): boolean;
 begin
   Result := true;
   case MouseButton of
-    Controls.mbLeft  : MyMouseButton := Keys.mbLeft;
-    Controls.mbRight : MyMouseButton := Keys.mbRight;
-    Controls.mbMiddle: MyMouseButton := Keys.mbMiddle;
+    Controls.mbLeft  : MyMouseButton := KeysMouse.mbLeft;
+    Controls.mbRight : MyMouseButton := KeysMouse.mbRight;
+    Controls.mbMiddle: MyMouseButton := KeysMouse.mbMiddle;
     else Result := false;
   end;
 end;
@@ -399,7 +399,7 @@ end;
 procedure TKamOpenGLControl.MouseDown(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: Keys.TMouseButton;
+  MyButton: KeysMouse.TMouseButton;
 begin
   inherited MouseDown(Button, Shift, X, Y);
 
@@ -417,7 +417,7 @@ end;
 procedure TKamOpenGLControl.MouseUp(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: Keys.TMouseButton;
+  MyButton: KeysMouse.TMouseButton;
 begin
   inherited MouseUp(Button, Shift, X, Y);
 

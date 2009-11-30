@@ -597,8 +597,8 @@
         <UnitName Value="uicontrols"/>
       </Item139>
       <Item140>
-        <Filename Value="..\..\ui\keys.pas"/>
-        <UnitName Value="Keys"/>
+        <Filename Value="..\..\ui\keysmouse.pas"/>
+        <UnitName Value="Keysmouse"/>
       </Item140>
     </Files>
     <Type Value="RunAndDesignTime"/>

@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2005 Michalis Kamburelis.
+  Copyright 2001-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -9,10 +9,11 @@
   "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
 }
 
-{ Key constants used in GLWindow unit.
-  Also, TMouseButton type.
+{ Basic key and mouse types and constants.
 
   Some properties of K_Xxx constants that are guaranteed:
 
@@ -35,7 +36,7 @@
   will be changed to be an enumerated type (not a simple Byte).
 }
 
-unit Keys;
+unit KeysMouse;
 
 { Design notes:
   Although this unit is made for cooperation with GLWindow unit,

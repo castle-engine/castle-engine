@@ -663,8 +663,8 @@
         <UnitName Value="uicontrols"/>
       </Item153>
       <Item154>
-        <Filename Value="../../ui/keys.pas"/>
-        <UnitName Value="Keys"/>
+        <Filename Value="../../ui/keysmouse.pas"/>
+        <UnitName Value="Keysmouse"/>
       </Item154>
     </Files>
     <Type Value="RunAndDesignTime"/>

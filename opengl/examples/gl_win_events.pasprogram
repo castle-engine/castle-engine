@@ -24,7 +24,7 @@ program gl_win_events;
 {$apptype GUI}
 
 uses SysUtils, KambiUtils, KambiGLUtils, GL, GLU, GLExt, TimeMessages, GLWindow,
-  GLW_demo, Keys, KambiStringUtils,
+  GLW_demo, KeysMouse, KambiStringUtils,
   OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_Bold_m15_Unit,
   Classes;
 

@@ -15,7 +15,7 @@ uses
   convexhullunit,
   cubemap,
   frustum,
-  keys,
+  keysmouse,
   navigation,
   polynomials,
   quaternions,

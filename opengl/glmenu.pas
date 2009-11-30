@@ -29,7 +29,7 @@ unit GLMenu;
 interface
 
 uses Classes, OpenGLBmpFonts, BFNT_BitstreamVeraSans_Unit, VectorMath, Areas,
-  GLWindow, GL, GLU, KambiGLUtils, Matrix, UIControls, Keys;
+  GLWindow, GL, GLU, KambiGLUtils, Matrix, UIControls, KeysMouse;
 
 const
   DefaultGLMenuKeyNextItem = K_Down;

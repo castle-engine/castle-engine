@@ -21,7 +21,7 @@ uses
   SysUtils, Classes, VectorMath, Boxes3d,
   VRMLFields, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLShape, VRMLTriangleOctree, ProgressUnit, KambiOctree, VRMLShapeOctree,
-  Keys, VRMLTime, Navigation, VRMLTriangle, Contnrs, VRMLHeadLight,
+  KeysMouse, VRMLTime, Navigation, VRMLTriangle, Contnrs, VRMLHeadLight,
   RenderStateUnit;
 
 {$define read_interface}

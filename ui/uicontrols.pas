@@ -20,7 +20,7 @@ interface
 
 {$define read_interface}
 
-uses Keys, SysUtils, KambiUtils, KambiClassUtils;
+uses KeysMouse, SysUtils, KambiUtils, KambiClassUtils;
 
 type
   { Basic user interface control class. All controls derive from this class,

@@ -12,7 +12,7 @@ interface
 uses
   areas,
   uicontrols,
-  keys
+  keysmouse
   ;
 
 implementation
