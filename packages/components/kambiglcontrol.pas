@@ -123,7 +123,7 @@ type
     procedure Idle; virtual;
 
     KeysDown: TKeysBooleans;
-    MousePressed: Navigation.TMouseButtons;
+    MousePressed: Keys.TMouseButtons;
     procedure ReleaseAllKeysAndMouse;
 
     property MouseX: Integer read FMouseX;
@@ -385,13 +385,13 @@ end;
   is in the middle in my type)). }
 function LMouseButtonToMyMouseButton(
   const MouseButton: Controls.TMouseButton;
-  out MyMouseButton: Navigation.TMouseButton): boolean;
+  out MyMouseButton: Keys.TMouseButton): boolean;
 begin
   Result := true;
   case MouseButton of
-    Controls.mbLeft  : MyMouseButton := Navigation.mbLeft;
-    Controls.mbRight : MyMouseButton := Navigation.mbRight;
-    Controls.mbMiddle: MyMouseButton := Navigation.mbMiddle;
+    Controls.mbLeft  : MyMouseButton := Keys.mbLeft;
+    Controls.mbRight : MyMouseButton := Keys.mbRight;
+    Controls.mbMiddle: MyMouseButton := Keys.mbMiddle;
     else Result := false;
   end;
 end;
@@ -399,7 +399,7 @@ end;
 procedure TKamOpenGLControl.MouseDown(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: Navigation.TMouseButton;
+  MyButton: Keys.TMouseButton;
 begin
   inherited MouseDown(Button, Shift, X, Y);
 
@@ -410,14 +410,14 @@ begin
   begin
     Include(MousePressed, MyButton);
     if ReallyUseNavigator then
-      Navigator.MouseDown(MyButton);
+      Navigator.MouseDown(MouseX, MouseY, MyButton, MousePressed);
   end;
 end;
 
 procedure TKamOpenGLControl.MouseUp(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: Navigation.TMouseButton;
+  MyButton: Keys.TMouseButton;
 begin
   inherited MouseUp(Button, Shift, X, Y);
 
