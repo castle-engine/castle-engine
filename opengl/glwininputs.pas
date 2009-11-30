@@ -171,7 +171,7 @@ begin
   Data.AnswerX0 := AnswerX0;
   Data.AnswerY0 := AnswerY0;
 
-  SetStdNoCloseGLWindowState(glwin, @DrawGL, nil, @Data, false,
+  TGLWindowState.SetStandardNoCloseState(glwin, @DrawGL, nil, @Data, false,
     false, false, K_None, false, false);
   glwin.OnKeyDown := @KeyDown;
 
@@ -223,7 +223,7 @@ begin
   Data.dlDrawImage := dlDrawImage;
   Data.KeyPressed := false;
 
-  SetStdNoCloseGLWindowState(glwin, @DrawGLAnyKey, nil, @Data,
+  TGLWindowState.SetStandardNoCloseState(glwin, @DrawGLAnyKey, nil, @Data,
     false, false, false, K_None, false, false);
   glwin.OnKeyDown := @KeyDownAnyKey;
 

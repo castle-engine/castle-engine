@@ -2243,7 +2243,7 @@ type
         the dialog is open. Callbacks of THIS object (EventXxx, OnXxx) will not be
         called. You should treat XxxDialog like
           TGLMode.Create(Self, ...)
-          SetStdNoCloseGLWindowState
+          TGLWindowState.SetStandardNoCloseState
           ....
           TGLMode.Free
       - How does these dialogs look like ?

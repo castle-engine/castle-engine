@@ -984,7 +984,7 @@ begin
 
  {3 faza :
    Ustawiamy wlasne wlasciwosci okienka, w szczegolnosci - wlasne callbacki. }
- SetStdNoCloseGLWindowState(glwin,
+ TGLWindowState.SetStandardNoCloseState(glwin,
    {$ifdef FPC_OBJFPC} @ {$endif} drawMessg,
    {$ifdef FPC_OBJFPC} @ {$endif} resizeMessg, nil, false,
    true, false, K_None, false, false);

@@ -64,7 +64,8 @@ uses SysUtils, GL, GLU, GLExt, GLWindow, KambiGLUtils, Images, GLWinMessages;
 
 type
   { }
-  TGLWindowState = record
+  TGLWindowState = class
+  private
     { TGLWindow attributes }
     oldCallbacks: TGLWindowCallbacks;
     oldCaption: string;
@@ -78,72 +79,75 @@ type
     oldMainMenuEnabled: boolean;
     OldCursor: TGLWindowCursor;
     OldCustomCursor: TRGBAlphaImage;
-    { TGLWindowDemo attributes }
+    { TGLWindowDemo attributes } { }
     oldSwapFullScreen_Key: TKey;
     oldClose_charkey: char;
     oldFpsShowOnCaption: boolean;
-    { TGLWindowNavigated attributes }
-    oldUseNavigator: boolean;
+    { TGLWindowNavigated attributes } { }
     OldUseControls: boolean;
 
     { When adding new attributes to TGLWindow that should be saved/restored,
       you must remember to
       1. expand this record with new fields
-      2. expand routines GetGLWindowState, SetGLWindowState and
-         SetStandardGLWindowState below. }
+      2. expand routines Get, Set and SetStandard below. } { }
+  public
+    { Constructor. Gets the state of given window (like GetState). }
+    constructor Create(Glwin: TGLWindow);
+
+    { GetState saves the TGLWindow state, SetState applies this state to the window
+      (the same or other).
+      Sejwuja / ustawiaja wszystkie wlasciwosci okienka TGLWindow
+      ktore moga sie zmieniac w czasie gdy okienko pozostaje not Closed.
+      Te wlasciwosci sa zapamietywane in our fields.
+      W ten sposob mozesz za pomoca Get/Set robic cos jak Push/Pop stanu
+      wlasciwosci TGLWindow, mozesz tez robic w ten sposob kopiowanie
+      wlasciwosci z jednego okienka do drugiego.
+
+      Notka: pamietaj ze tylko referencja wartosci MainMenu jest kopiowana.
+      Wiec 1. nie mozesz robic tak po prostu kopiowania wartosci MainMenu
+      z jednego okienka do drugiego (zeby jej pozniej dwa razy nie robic
+      Free), o ile jest ona <> nil.
+      2. Nie mozesz zmieniac zawartosci MainMenu w czasie TGLMode.Create/Free.
+      (chociaz mozesz podmieniac wartosc MainMenu na inna, pod warunkiem
+      ze obie sa <> nil). Wyjatkiem jest tutaj MainMenu.Enabled, ktore
+      jest tutaj zapamietywane specjalnie.
+
+      Note that Set first sets Glwin.MainMenu, and then,
+      if Glwin.MainMenu <> nil, sets Glwin.MainMenu.Enabled from saved state.
+
+      @groupBegin }
+    procedure GetState(Glwin: TGLWindow);
+    procedure SetState(Glwin: TGLWindow);
+    { @groupEnd }
+
+    { Ustawia wszystkie wlasciwosci ktore sa
+      zawarte w TGLWindowState. Ale pozwala w wygodniejszy sposob niz SetState
+      podac te wlasciwosci :
+        czesc wlasciwosci jest pobierana jako parametry,
+        czesc wlasciwosci jest pominieta -
+          pominiete callbacki beda ustawione na nil,
+          pominiete Caption i MainMenu bedzie zostawione takie jakie jest,
+          pominiete Cursor bedzie ustawione na gcDefault.
+        Note that NewMainMenuEnabled will be set only if Glwin.MainMenu <> nil. }
+    class procedure SetStandardState(Glwin: TGLWindow;
+      NewDraw, NewCloseQuery, NewResize: TGLWindowFunc;
+      NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
+      NewMainMenuEnabled: boolean;
+      NewSwapFullScreen_Key: TKey;
+      NewClose_charkey: char; NewFpsShowOnCaption, NewUseControls: boolean);
+
+    { Jak SetStandardState
+      ale ustawia zawsze oldClose_charkey na #0 i NewCloseQuery
+      na procedure bez zadnego kodu : begin end; W ten sposob uniemozliwia
+      userowi zamkniecie okienka metodami WindowManagera lub dawanymi przez
+      klase TGLWindowDemo. }
+    class procedure SetStandardNoCloseState(Glwin: TGLWindow;
+      NewDraw, NewResize: TGLWindowFunc;
+      NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
+      NewMainMenuEnabled: boolean;
+      NewSwapFullScreen_Key: TKey;
+      NewFpsShowOnCaption, NewUseControls: boolean);
   end;
-
-{ Get/Set sejwuja / ustawiaja wszystkie wlasciwosci okienka TGLWindow
-  ktore moga sie zmieniac w czasie gdy okienko pozostaje not Closed.
-  Te wlasciwosci sa zapamietywane w strukturze TGLWindowState.
-  W ten sposob mozesz za pomoca Get/Set robic cos jak Push/Pop stanu
-  wlasciwosci TGLWindow, mozesz tez robic w ten sposob kopiowanie
-  wlasciwosci z jednego okienka do drugiego.
-
-  Notka: pamietaj ze tylko referencja wartosci MainMenu jest kopiowana.
-  Wiec 1. nie mozesz robic tak po prostu kopiowania wartosci MainMenu
-  z jednego okienka do drugiego (zeby jej pozniej dwa razy nie robic
-  Free), o ile jest ona <> nil.
-  2. Nie mozesz zmieniac zawartosci MainMenu w czasie TGLMode.Create/Free.
-  (chociaz mozesz podmieniac wartosc MainMenu na inna, pod warunkiem
-  ze obie sa <> nil). Wyjatkiem jest tutaj MainMenu.Enabled, ktore
-  jest tutaj zapamietywane specjalnie.
-
-  Note that SetGLWindowState first sets Glwin.MainMenu, and then,
-  if Glwin.MainMenu <> nil, sets Glwin.MainMenu.Enabled from saved state.
-}
-function GetGLWindowState(glwin: TGLWindow): TGLWindowState;
-procedure SetGLWindowState(glwin: TGLWindow; const State: TGLWindowState);
-
-{ SetStandardGLWindowState ustawia wszystkie wlasciwosci ktore sa
-  zawarte w TGLWindowState. Ale pozwala w wygodniejszy sposob niz SetGLWindowState
-  podac te wlasciwosci :
-    czesc wlasciwosci jest pobierana jako parametry,
-    czesc wlasciwosci jest pominieta -
-      pominiete callbacki beda ustawione na nil,
-      pominiete Caption i MainMenu bedzie zostawione takie jakie jest,
-      pominiete Cursor bedzie ustawione na gcDefault.
-    Note that NewMainMenuEnabled will be set only if Glwin.MainMenu <> nil.
-    NewUseNavigatorAndControls controls both
-      UseNavigator and UseControls. }
-procedure SetStandardGLWindowState(glwin: TGLWindow;
-  NewDraw, NewCloseQuery, NewResize: TGLWindowFunc;
-  NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
-  NewMainMenuEnabled: boolean;
-  NewSwapFullScreen_Key: TKey;
-  NewClose_charkey: char; NewFpsShowOnCaption, NewUseNavigatorAndControls: boolean);
-
-{ SetStdNoCloseGLWindowState dziala jak SetStandardGLWindowState
-  ale ustawia zawsze oldClose_charkey na #0 i NewCloseQuery
-  na procedure bez zadnego kodu : begin end; W ten sposob uniemozliwia
-  userowi zamkniecie okienka metodami WindowManagera lub dawanymi przez
-  klase TGLWindowDemo. }
-procedure SetStdNoCloseGLWindowState(glwin: TGLWindow;
-  NewDraw, NewResize: TGLWindowFunc;
-  NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
-  NewMainMenuEnabled: boolean;
-  NewSwapFullScreen_Key: TKey;
-  NewFpsShowOnCaption, NewUseNavigatorAndControls: boolean);
 
 { GL Mode ---------------------------------------------------------------- }
 
@@ -281,7 +285,7 @@ type
     FPolygonStipple: PPolygonStipple;
   public
     { This mode on enter catches current screen (with Glwin.SaveScreen) then
-      calls SetStdNoCloseGLWindowState with such OnDraw and OnResize private
+      calls TGLWindowState.SetStandardNoCloseState with such OnDraw and OnResize private
       callbacks that
 
       @unorderedList(
@@ -332,110 +336,115 @@ implementation
 
 uses KambiUtils, GLImages;
 
-{ GLWindowState --------------------------------------------------------------- }
+{ TGLWindowState -------------------------------------------------------------- }
 
-function GetGLWindowState(glwin: TGLWindow): TGLWindowState;
+constructor TGLWindowState.Create(Glwin: TGLWindow);
 begin
- result.oldCallbacks := Glwin.GetCallbacksState;
- result.oldCaption := Glwin.Caption;
- result.oldUserdata := Glwin.Userdata;
- result.oldAutoRedisplay := Glwin.AutoRedisplay;
- result.oldFPSActive := Glwin.Fps.Active;
- result.oldMainMenu := Glwin.MainMenu;
- if Glwin.MainMenu <> nil then
-   result.oldMainMenuEnabled := Glwin.MainMenu.Enabled;
- Result.OldCursor := Glwin.Cursor;
- Result.OldCustomCursor := Glwin.CustomCursor;
-
- if glwin is TGLWindowDemo then
- begin
-  result.oldSwapFullScreen_Key := TGLWindowDemo(glwin).SwapFullScreen_Key;
-  result.oldClose_charkey := TGLWindowDemo(glwin).Close_charkey;
-  result.oldFpsShowOnCaption := TGLWindowDemo(glwin).FpsShowOnCaption;
- end;
-
- if glwin is TGLWindowNavigated then
- begin
-  result.oldUseNavigator := TGLWindowNavigated(glwin).UseNavigator;
-  Result.OldUseControls := TGLWindowNavigated(Glwin).UseControls;
- end;
+  inherited Create;
+  GetState(Glwin);
 end;
 
-procedure SetGLWindowState(glwin: TGLWindow; const State: TGLWindowState);
+procedure TGLWindowState.GetState(Glwin: TGLWindow);
 begin
- Glwin.SetCallbacksState(State.oldCallbacks);
- Glwin.Caption := State.oldCaption;
- Glwin.Userdata := State.oldUserdata;
- Glwin.AutoRedisplay := State.oldAutoRedisplay;
- Glwin.Fps.Active := State.oldFPSActive;
- Glwin.MainMenu := State.oldMainMenu;
- if Glwin.MainMenu <> nil then
-   Glwin.MainMenu.Enabled := State.OldMainMenuEnabled;
- Glwin.Cursor := State.OldCursor;
- Glwin.CustomCursor := State.OldCustomCursor;
+  oldCallbacks := Glwin.GetCallbacksState;
+  oldCaption := Glwin.Caption;
+  oldUserdata := Glwin.Userdata;
+  oldAutoRedisplay := Glwin.AutoRedisplay;
+  oldFPSActive := Glwin.Fps.Active;
+  oldMainMenu := Glwin.MainMenu;
+  if Glwin.MainMenu <> nil then
+    oldMainMenuEnabled := Glwin.MainMenu.Enabled;
+  OldCursor := Glwin.Cursor;
+  OldCustomCursor := Glwin.CustomCursor;
 
- if glwin is TGLWindowDemo then
- begin
-  TGLWindowDemo(glwin).SwapFullScreen_Key := State.oldSwapFullScreen_Key;
-  TGLWindowDemo(glwin).Close_charkey := State.oldClose_charkey;
-  TGLWindowDemo(glwin).FpsShowOnCaption := State.oldFpsShowOnCaption;
- end;
+  if glwin is TGLWindowDemo then
+  begin
+    oldSwapFullScreen_Key := TGLWindowDemo(glwin).SwapFullScreen_Key;
+    oldClose_charkey := TGLWindowDemo(glwin).Close_charkey;
+    oldFpsShowOnCaption := TGLWindowDemo(glwin).FpsShowOnCaption;
+  end;
 
- if glwin is TGLWindowNavigated then
- begin
-  TGLWindowNavigated(glwin).UseNavigator := State.oldUseNavigator;
-  TGLWindowNavigated(Glwin).UseControls := State.OldUseControls;
- end;
+  if glwin is TGLWindowNavigated then
+  begin
+    OldUseControls := TGLWindowNavigated(Glwin).UseControls;
+  end;
 end;
 
-procedure SetStandardGLWindowState(glwin: TGLWindow;
+procedure TGLWindowState.SetState(Glwin: TGLWindow);
+begin
+  Glwin.SetCallbacksState(oldCallbacks);
+  Glwin.Caption := oldCaption;
+  Glwin.Userdata := oldUserdata;
+  Glwin.AutoRedisplay := oldAutoRedisplay;
+  Glwin.Fps.Active := oldFPSActive;
+  Glwin.MainMenu := oldMainMenu;
+  if Glwin.MainMenu <> nil then
+    Glwin.MainMenu.Enabled := OldMainMenuEnabled;
+  Glwin.Cursor := OldCursor;
+  Glwin.CustomCursor := OldCustomCursor;
+
+  if glwin is TGLWindowDemo then
+  begin
+    TGLWindowDemo(glwin).SwapFullScreen_Key := oldSwapFullScreen_Key;
+    TGLWindowDemo(glwin).Close_charkey := oldClose_charkey;
+    TGLWindowDemo(glwin).FpsShowOnCaption := oldFpsShowOnCaption;
+  end;
+
+  if glwin is TGLWindowNavigated then
+  begin
+    TGLWindowNavigated(Glwin).UseControls := OldUseControls;
+  end;
+end;
+
+class procedure TGLWindowState.SetStandardState(glwin: TGLWindow;
   NewDraw, NewCloseQuery, NewResize: TGLWindowFunc;
   NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
   NewMainMenuEnabled: boolean;
   NewSwapFullScreen_Key: TKey;
-  NewClose_charkey: char; NewFpsShowOnCaption, NewUseNavigatorAndControls: boolean);
+  NewClose_charkey: char; NewFpsShowOnCaption, NewUseControls: boolean);
 begin
- Glwin.SetCallbacksState(DefaultCallbacksState);
- Glwin.OnDraw := NewDraw;
- Glwin.OnCloseQuery := NewCloseQuery;
- Glwin.OnResize := NewResize;
- {Glwin.Caption := leave current value}
- Glwin.Userdata := NewUserdata;
- Glwin.AutoRedisplay := NewAutoRedisplay;
- Glwin.Fps.Active := NewFPSActive;
- if Glwin.MainMenu <> nil then
-   Glwin.MainMenu.Enabled := NewMainMenuEnabled;
- {Glwin.MainMenu := leave current value}
- Glwin.Cursor := gcDefault;
+  Glwin.SetCallbacksState(DefaultCallbacksState);
+  Glwin.OnDraw := NewDraw;
+  Glwin.OnCloseQuery := NewCloseQuery;
+  Glwin.OnResize := NewResize;
+  {Glwin.Caption := leave current value}
+  Glwin.Userdata := NewUserdata;
+  Glwin.AutoRedisplay := NewAutoRedisplay;
+  Glwin.Fps.Active := NewFPSActive;
+  if Glwin.MainMenu <> nil then
+    Glwin.MainMenu.Enabled := NewMainMenuEnabled;
+  {Glwin.MainMenu := leave current value}
+  Glwin.Cursor := gcDefault;
 
- if glwin is TGLWindowDemo then
- begin
-  TGLWindowDemo(glwin).SwapFullScreen_Key := NewSwapFullScreen_Key;
-  TGLWindowDemo(glwin).Close_charkey := NewClose_charkey;
-  TGLWindowDemo(glwin).FpsShowOnCaption := NewFpsShowOnCaption;
- end;
+  if glwin is TGLWindowDemo then
+  begin
+    TGLWindowDemo(glwin).SwapFullScreen_Key := NewSwapFullScreen_Key;
+    TGLWindowDemo(glwin).Close_charkey := NewClose_charkey;
+    TGLWindowDemo(glwin).FpsShowOnCaption := NewFpsShowOnCaption;
+  end;
 
- if glwin is TGLWindowNavigated then
- begin
-  TGLWindowNavigated(glwin).UseNavigator := NewUseNavigatorAndControls;
-  TGLWindowNavigated(Glwin).UseControls := NewUseNavigatorAndControls;
- end;
+  if glwin is TGLWindowNavigated then
+  begin
+    TGLWindowNavigated(Glwin).UseControls := NewUseControls;
+  end;
 end;
 
-procedure CloseQuery_Ignore(glwin: TGLWindow); begin end;
+procedure CloseQuery_Ignore(glwin: TGLWindow);
+begin
+end;
 
-procedure SetStdNoCloseGLWindowState(glwin: TGLWindow;
+class procedure TGLWindowState.SetStandardNoCloseState(glwin: TGLWindow;
   NewDraw, NewResize: TGLWindowFunc;
   NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
   NewMainMenuEnabled: boolean;
   NewSwapFullScreen_Key: TKey;
-  NewFpsShowOnCaption, NewUseNavigatorAndControls: boolean);
+  NewFpsShowOnCaption, NewUseControls: boolean);
 begin
- SetStandardGLWindowState(glwin,
-   NewDraw, {$ifdef FPC_OBJFPC} @ {$endif} CloseQuery_Ignore, NewResize,
-   NewUserData, NewAutoRedisplay, NewFPSActive,
-   NewMainMenuEnabled,
-   NewSwapFullScreen_Key, #0, NewFpsShowOnCaption, NewUseNavigatorAndControls);
+  SetStandardState(glwin,
+    NewDraw, {$ifdef FPC_OBJFPC} @ {$endif} CloseQuery_Ignore, NewResize,
+    NewUserData, NewAutoRedisplay, NewFPSActive,
+    NewMainMenuEnabled,
+    NewSwapFullScreen_Key, #0, NewFpsShowOnCaption, NewUseControls);
 end;
 
 { GL Mode ---------------------------------------------------------------- }
@@ -474,7 +483,7 @@ begin
 
  Check(not Glwin.Closed, 'ModeGLEnter cannot be called on a closed GLWindow.');
 
- oldWinState := GetGLWindowState(glwin);
+ oldWinState := TGLWindowState.Create(glwin);
  oldWinWidth := Glwin.Width;
  oldWinHeight := Glwin.Height;
 
@@ -505,7 +514,8 @@ end;
 destructor TGLMode.Destroy;
 var btn: TMouseButton;
 begin
- SetGLWindowState(glwin, oldWinState);
+ oldWinState.SetState(glwin);
+ FreeAndNil(oldWinState);
 
  if FPushPopGLWinMessagesTheme then
    GLWinMessagesTheme := oldGLWinMessagesTheme;
@@ -619,7 +629,7 @@ begin
    (because we want that Glwin.FlushRedisplay calls original OnDraw). }
  Glwin.FlushRedisplay;
 
- SetStdNoCloseGLWindowState(AGLWindow,
+ TGLWindowState.SetStandardNoCloseState(AGLWindow,
    {$ifdef FPC_OBJFPC} @ {$endif} FrozenImageDraw,
    {$ifdef FPC_OBJFPC} @ {$endif} Resize2D,
    Self, false, AGLWindow.Fps.Active, false, K_None, false, false);

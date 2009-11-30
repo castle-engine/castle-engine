@@ -65,14 +65,14 @@ end;
   Not surprising --- we just destroyed the very resource that received focus...
 
   Menu recreate calls could happen when some KeyUp
-  message will cause e.g. SetStandardGLWindowState. For example,
+  message will cause e.g. TGLWindowState.SetStandardState. For example,
   this happens in view3dscene when KeyUp may produce message to KeySensor about
   key release, and this may produce ChangedAll on VRML scene, which produces
   ProgressGL run...
 
   MenuRecreateForbidden is not an ideal solution, menu should be eventually
   recreated at some later point, TODO... For now this works Ok,
-  as SetStandardGLWindowState only changes Enabled to false and later back
+  as TGLWindowState.SetStandardState only changes Enabled to false and later back
   to true, so actually recreating menu is not needed. }
 
 function signal_menu_item_select(AItem: PGtkItem;
