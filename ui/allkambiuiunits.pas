@@ -11,7 +11,7 @@ interface
 
 uses
   areas,
-  inputlistener,
+  uicontrols,
   keys
   ;
 

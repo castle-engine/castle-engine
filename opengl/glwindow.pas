@@ -132,7 +132,7 @@
   Using OOP approach (overriding EventXxx methods instead of registering OnXxx
   callbacks) you can not do such things so easily -- in general, you have
   to define something to turn off special EventXxx functionality
-  (like SetDemoOptions in TGLWindowDemo and UseNavigator in TGLWindowNavigator)
+  (like SetDemoOptions in TGLWindowDemo and UseControls in TGLWindowNavigated)
   and you have to turn them off/on when using GLWinModes
   (mentioned TGLWindowDemo and TGLWindowNavigator are already handled in
   GLWinModes). TODO: I shall do some virtual methods in TGLWindow
@@ -2438,9 +2438,10 @@ type
     constructor Create;
   end;
 
-  { This class has a @link(Navigator) property (TNavigator instance)
-    and handles some usual things related to using @link(TNavigator)
-    instance with TGLWindow window.
+  { OpenGL window with the @link(Navigator) property (TNavigator instance)
+    and @link(Controls) list. Passes events to the controls (including
+    to the navigator) and generally handles stuff for cooperating
+    with @link(Navigator).
 
     @orderedList(
       @item(
@@ -2452,7 +2453,7 @@ type
       @item(
         W metodach Event Idle/KeyPress, w AllowsProcessMessageSuspend
         zajmujemy sie wywolywaniem odpowiednich metod z Navigator, o ile
-        tylko Navigator <> nil i UseNavigator = true.
+        tylko Navigator <> nil.
         Oh, and we use Fps.IdleSpeed for navigator.)
       @item(
         Metoda PostRedisplayOnMatrixChanged nie jest tu nigdzie uzywana ale mozesz
@@ -2481,11 +2482,11 @@ type
   TGLWindowNavigated = class(TGLWindowDemo)
   private
     FOwnsNavigator: boolean;
-    FUseNavigator: boolean;
     FNavigator: TNavigator;
     FCursorNonMouseLook: TGLWindowCursor;
     FControls: TUIControlsList;
     FUseControls: boolean;
+    procedure SetNavigator(const Value: TNavigator);
     procedure SetCursorNonMouseLook(const Value: TGLWindowCursor);
     function ReallyUseNavigator: boolean;
     function ReallyUseMouseLook: boolean;
@@ -2493,18 +2494,21 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    { Navigator instance used. Initially it's nil. }
-    property Navigator: TNavigator
-      read FNavigator write FNavigator;
+    { Navigator instance used. Initially it's nil.
+
+      When assigning navigator instance we'll take care to make it
+      the one and only one TNavigator instance on Controls list.
+      Assigning here @nil removes it from Controls list.
+
+      For now, you should not add / remove TNavigator instances to
+      the Controls list directly. }
+    property Navigator: TNavigator read FNavigator write SetNavigator;
+
+    { Free and nil the current @link(Navigator). }
+    procedure NavigatorFreeAndNil;
 
     property OwnsNavigator: boolean
       read FOwnsNavigator write FOwnsNavigator default true;
-
-    { jezeli not UseNavigator albo Navigator = nil to to okienko bedzie sie
-      zachowywalo jakby wcale nie bylo TGLWindowNavigated. Wszystkie metody Event*
-      beda wywolywaly po prostu inherited; i nic wiecej nie beda robic }
-    property UseNavigator: boolean
-      read FUseNavigator write FUseNavigator default true;
 
     { These are shortcuts for writing
       TExamineNavigator(Navigator) and TWalkNavigator(Navigator).
@@ -2584,10 +2588,10 @@ type
       of the window.
 
       You should also call this after you changed Navigator's instance,
-      or UseNavigator, as these things also effectively change the
+      or UseControls, as these things also effectively change the
       actual state of "using mouse look". OTOH sometimes you don't
       have to call this --- e.g. if you push/pop mode states using
-      TGLMode and in the mode you set temporary UseNavigator = @false,
+      TGLMode and in the mode you set temporary UseControls = @false,
       then you don't have to call this, because TGLMode will push/pop
       @link(Cursor) state anyway. That's why I explicitly wrote above
       what this function does (sets @link(Cursor) and repositions
@@ -2616,7 +2620,7 @@ type
       we look for next controls (more below) under the mouse position.
 
       Only if no control handled the event, we pass it to our navigator
-      in this class (only if UseNavigator, and navigator is set).
+      in this class (if navigator is set).
 
       Only if the event is still not handled, we pass it to inherited
       EventXxx method, which calls normal window callbacks OnKeyDown etc.
@@ -2639,8 +2643,9 @@ type
 
     { Returns the control that should receive input events first,
       or @nil if none. More precisely, this is the first on Controls
-      list under the mouse cursor. @nil is returned when there's
-      no listener under the mouse cursor, or when UseControls = @false. }
+      list that is enabled and under the mouse cursor.
+      @nil is returned when there's no enabled control under the mouse cursor,
+      or when UseControls = @false. }
     function Focus: TUIControl;
   end;
 
@@ -4288,7 +4293,6 @@ end;
 constructor TGLWindowNavigated.Create;
 begin
  inherited;
- UseNavigator := true;
  OwnsNavigator := true;
  FControls := TUIControlsList.Create;
  FUseControls := true;
@@ -4299,6 +4303,30 @@ begin
  if OwnsNavigator then Navigator.Free;
  FreeAndNil(FControls);
  inherited;
+end;
+
+procedure TGLWindowNavigated.SetNavigator(const Value: TNavigator);
+begin
+  if FNavigator <> Value then
+  begin
+    FNavigator := Value;
+    { replace / add at the end of Controls current Navigator }
+    Controls.MakeSingle(TNavigator, Value);
+  end;
+end;
+
+procedure TGLWindowNavigated.NavigatorFreeAndNil;
+
+{ This method may be removed in the future,
+  when cleaner method for this will be available. For now, better use this.
+  Reasoning: do not make a mistake and free navigator before setting
+  it to nil. Setting to nil removes it from the list, by scanning
+  the list for TNavigator instance. At this point the instance is invalid,
+  so doing "Items[I] is TNavigator" will fail then. }
+
+begin
+  Controls.MakeSingle(TNavigator, nil);
+  FreeAndNil(FNavigator);
 end;
 
 function TGLWindowNavigated.Focus: TUIControl;
@@ -4319,7 +4347,7 @@ end;
 
 function TGLWindowNavigated.ReallyUseNavigator: boolean;
 begin
- result := UseNavigator and (Navigator <> nil);
+ result := Navigator <> nil;
 end;
 
 procedure TGLWindowNavigated.PostRedisplayOnMatrixChanged(ChangedNavigator: TNavigator);
@@ -4353,13 +4381,6 @@ begin
     end;
   end;
 
-  if ReallyUseNavigator then
-  begin
-    if F = nil then
-      Navigator.Idle(Fps.IdleSpeed, @KeysDown, @CharactersDown, MousePressed) else
-      Navigator.Idle(Fps.IdleSpeed, nil, nil, []);
-  end;
-
   inherited;
 end;
 
@@ -4378,8 +4399,7 @@ begin
     end;
   end;
 
-  if not (ReallyUseNavigator and Navigator.KeyDown(Key, c, @KeysDown)) then
-    inherited;
+  inherited;
 end;
 
 procedure TGLWindowNavigated.EventMouseDown(Button: TMouseButton);
@@ -4397,9 +4417,7 @@ begin
     end;
   end;
 
-  if not (ReallyUseNavigator and
-    Navigator.MouseDown(MouseX, MouseY, Button, MousePressed)) then
-    inherited;
+  inherited;
 end;
 
 procedure TGLWindowNavigated.EventMouseUp(Button: TMouseButton);
@@ -4524,71 +4542,73 @@ var
   MiddleScreenWidth: Integer;
   MiddleScreenHeight: Integer;
   F: TUIControl;
+  Handled: boolean;
 begin
-  F := Focus;
+  Handled := false;
+
+  F := Focus; { control in Focus is always Enabled, no need to check it }
   if F <> nil then
   begin
-    F.MouseMove(MouseX, MouseY, NewX, NewY, MousePressed, @KeysDown);
-    Exit;
+    { Handling MouseMove for TWalkNavigator mouse look is a special case,
+      we have to do some additional work here. }
+    if (F = Navigator) and ReallyUseMouseLook then
+    begin
+      MiddleScreenWidth := Width div 2;
+      MiddleScreenHeight := Height div 2;
+
+      { Note that SetMousePosition may (but doesn't have to)
+        generate OnMouseMove to destination position.
+        This can cause some problems:
+
+        1. Consider this:
+
+           - player moves mouse to MiddleX-10
+           - MouseMove is generated, I rotate camera by "-10" horizontally
+           - SetMousePosition sets mouse to the Middle,
+             but this time no MouseMove is generated
+           - player moved mouse to MiddleX+10. Although mouse was
+             positioned on Middle, TGLWindow thinks that the mouse
+             is still positioned on Middle-10, and I will get "+20" move
+             for player (while I should get only "+10")
+
+           Fine solution for this would be to always subtract
+           MiddleScreenWidth and MiddleScreenHeight below
+           (instead of previous values, MouseX and MouseY).
+           But this causes another problem:
+
+        2. What if player switches to another window, moves the mouse,
+           than goes alt+tab back to our window ? Next mouse move will
+           be stupid, because it's really *not* from the middle of the screen.
+
+        The solution for both problems: you have to check that previous
+        position, MouseX and MouseY, are indeed equal to
+        MiddleScreenWidth and MiddleScreenHeight. This way we know that
+        this is good move, that qualifies to perform mouse move.
+
+        And inside, TWalkNavigator.MouseMove can calculate the difference
+        by subtracing new - old position, knowing that old = middle this
+        will always be Ok. }
+      if (MouseX = MiddleScreenWidth) and
+         (MouseY = MiddleScreenHeight) then
+        Handled := TWalkNavigator(Navigator).MouseMove(
+          MouseX, MouseY, NewX, NewY, MousePressed, @KeysDown);
+
+      { I check the condition below to avoid calling SetMousePosition,
+        OnMouseMove, SetMousePosition, OnMouseMove... in a loop.
+        Not really likely (as messages will be queued, and some
+        SetMousePosition will finally just not generate OnMouseMove),
+        but I want to safeguard anyway. }
+      if (NewX <> MiddleScreenWidth) or (NewY <> MiddleScreenHeight) then
+        SetMousePosition(MiddleScreenWidth, MiddleScreenHeight);
+    end else
+    begin
+      Handled := F.MouseMove(MouseX, MouseY, NewX, NewY, MousePressed, @KeysDown);
+    end;
   end;
 
-  if not (
-    ReallyUseNavigator and
-    (Navigator is TExamineNavigator) and
-    TExamineNavigator(Navigator).MouseMove(
-      MouseX, MouseY, NewX, NewY, MousePressed, @KeysDown)) then
-    inherited;
+  if Handled then Exit;
 
-  if ReallyUseMouseLook then
-  begin
-    MiddleScreenWidth := Width div 2;
-    MiddleScreenHeight := Height div 2;
-
-    { Note that SetMousePosition may (but doesn't have to)
-      generate OnMouseMove to destination position.
-      This can cause some problems:
-
-      1. Consider this:
-
-         - player moves mouse to MiddleX-10
-         - MouseMove is generated, I rotate camera by "-10" horizontally
-         - SetMousePosition sets mouse to the Middle,
-           but this time no MouseMove is generated
-         - player moved mouse to MiddleX+10. Although mouse was
-           positioned on Middle, TGLWindow thinks that the mouse
-           is still positioned on Middle-10, and I will get "+20" move
-           for player (while I should get only "+10")
-
-         Fine solution for this would be to always subtract
-         MiddleScreenWidth and MiddleScreenHeight below
-         (instead of previous values, MouseX and MouseY).
-         But this causes another problem:
-
-      2. What if player switches to another window, moves the mouse,
-         than goes alt+tab back to our window ? Next mouse move will
-         be stupid, because it's really *not* from the middle of the screen.
-
-      The solution for both problems: you have to check that previous
-      position, MouseX and MouseY, are indeed equal to
-      MiddleScreenWidth and MiddleScreenHeight. This way we know that
-      this is good move, that qualifies to perform mouse move.
-
-      And inside, TWalkNavigator.MouseMove can calculate the difference
-      by subtracing new - old position, knowing that old = middle this
-      will always be Ok. }
-    if (MouseX = MiddleScreenWidth) and
-       (MouseY = MiddleScreenHeight) then
-      TWalkNavigator(Navigator).MouseMove(
-        MouseX, MouseY, NewX, NewY, MousePressed, @KeysDown);
-
-    { I check the condition below to avoid calling SetMousePosition,
-      OnMouseMove, SetMousePosition, OnMouseMove... in a loop.
-      Not really likely (as messages will be queued, and some
-      SetMousePosition will finally just not generate OnMouseMove),
-      but I want to safeguard anyway. }
-    if (NewX <> MiddleScreenWidth) or (NewY <> MiddleScreenHeight) then
-      SetMousePosition(MiddleScreenWidth, MiddleScreenHeight);
-  end;
+  inherited;
 end;
 
 { TGLWindowsList ------------------------------------------------------------ }

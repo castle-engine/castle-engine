@@ -137,7 +137,7 @@ begin
  {init our state}
  TGLWindowState.SetStandardNoCloseState(Window,
    {$ifdef FPC_OBJFPC} @ {$endif} DisplayProgress, nil, Progress, true,
-   Window.Fps.Active, false, K_None, false, false);
+   Window.Fps.Active, false, K_None, false, nil);
  ProgressFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
 
  Window.Cursor := gcWait;

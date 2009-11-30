@@ -987,7 +987,7 @@ begin
  TGLWindowState.SetStandardNoCloseState(glwin,
    {$ifdef FPC_OBJFPC} @ {$endif} drawMessg,
    {$ifdef FPC_OBJFPC} @ {$endif} resizeMessg, nil, false,
-   true, false, K_None, false, false);
+   true, false, K_None, false, nil);
  with glwin do begin
   OnMouseMove := @mouseMoveMessg;
   OnMouseDown := @mouseDownMessg;

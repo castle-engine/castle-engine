@@ -58,7 +58,8 @@ unit GLWinModes;
 
 interface
 
-uses SysUtils, GL, GLU, GLExt, GLWindow, KambiGLUtils, Images, GLWinMessages;
+uses SysUtils, GL, GLU, GLExt, GLWindow, KambiGLUtils, Images, GLWinMessages,
+  UIControls, Navigation;
 
 { GLWindowState --------------------------------------------------------- }
 
@@ -84,6 +85,8 @@ type
     oldClose_charkey: char;
     oldFpsShowOnCaption: boolean;
     { TGLWindowNavigated attributes } { }
+    OldControls: TUIControlsList;
+    OldNavigator: TNavigator;
     OldUseControls: boolean;
 
     { When adding new attributes to TGLWindow that should be saved/restored,
@@ -93,6 +96,7 @@ type
   public
     { Constructor. Gets the state of given window (like GetState). }
     constructor Create(Glwin: TGLWindow);
+    destructor Destroy; override;
 
     { GetState saves the TGLWindow state, SetState applies this state to the window
       (the same or other).
@@ -128,13 +132,18 @@ type
           pominiete callbacki beda ustawione na nil,
           pominiete Caption i MainMenu bedzie zostawione takie jakie jest,
           pominiete Cursor bedzie ustawione na gcDefault.
-        Note that NewMainMenuEnabled will be set only if Glwin.MainMenu <> nil. }
+        Note that NewMainMenuEnabled will be set only if Glwin.MainMenu <> nil.
+        new Controls value is either empty (when NewControl = nil)
+          or contains only one given control in NewControl.
+          If NewControl is a TNavigator, than it's also a new Navigator value.
+        new UseControls is always @true. }
     class procedure SetStandardState(Glwin: TGLWindow;
       NewDraw, NewCloseQuery, NewResize: TGLWindowFunc;
       NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
       NewMainMenuEnabled: boolean;
       NewSwapFullScreen_Key: TKey;
-      NewClose_charkey: char; NewFpsShowOnCaption, NewUseControls: boolean);
+      NewClose_charkey: char;
+      NewFpsShowOnCaption: boolean; NewControl: TUIControl);
 
     { Jak SetStandardState
       ale ustawia zawsze oldClose_charkey na #0 i NewCloseQuery
@@ -146,7 +155,7 @@ type
       NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
       NewMainMenuEnabled: boolean;
       NewSwapFullScreen_Key: TKey;
-      NewFpsShowOnCaption, NewUseControls: boolean);
+      NewFpsShowOnCaption: boolean; NewControl: TUIControl);
   end;
 
 { GL Mode ---------------------------------------------------------------- }
@@ -341,7 +350,14 @@ uses KambiUtils, GLImages;
 constructor TGLWindowState.Create(Glwin: TGLWindow);
 begin
   inherited Create;
+  OldControls := TUIControlsList.Create;
   GetState(Glwin);
+end;
+
+destructor TGLWindowState.Destroy;
+begin
+  FreeAndNil(OldControls);
+  inherited;
 end;
 
 procedure TGLWindowState.GetState(Glwin: TGLWindow);
@@ -366,6 +382,8 @@ begin
 
   if glwin is TGLWindowNavigated then
   begin
+    OldControls.Assign(TGLWindowNavigated(Glwin).Controls);
+    OldNavigator := TGLWindowNavigated(Glwin).Navigator;
     OldUseControls := TGLWindowNavigated(Glwin).UseControls;
   end;
 end;
@@ -392,6 +410,8 @@ begin
 
   if glwin is TGLWindowNavigated then
   begin
+    TGLWindowNavigated(Glwin).Controls.Assign(OldControls);
+    TGLWindowNavigated(Glwin).Navigator := OldNavigator;
     TGLWindowNavigated(Glwin).UseControls := OldUseControls;
   end;
 end;
@@ -401,7 +421,7 @@ class procedure TGLWindowState.SetStandardState(glwin: TGLWindow;
   NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
   NewMainMenuEnabled: boolean;
   NewSwapFullScreen_Key: TKey;
-  NewClose_charkey: char; NewFpsShowOnCaption, NewUseControls: boolean);
+  NewClose_charkey: char; NewFpsShowOnCaption: boolean; NewControl: TUIControl);
 begin
   Glwin.SetCallbacksState(DefaultCallbacksState);
   Glwin.OnDraw := NewDraw;
@@ -425,7 +445,15 @@ begin
 
   if glwin is TGLWindowNavigated then
   begin
-    TGLWindowNavigated(Glwin).UseControls := NewUseControls;
+    TGLWindowNavigated(Glwin).Controls.Clear;
+    if NewControl <> nil then
+    begin
+      if NewControl is TNavigator then
+        { setting Navigator also adds it to Controls already }
+        TGLWindowNavigated(Glwin).Navigator := TNavigator(NewControl) else
+        TGLWindowNavigated(Glwin).Controls.Add(NewControl);
+    end;
+    TGLWindowNavigated(Glwin).UseControls := true;
   end;
 end;
 
@@ -438,13 +466,13 @@ class procedure TGLWindowState.SetStandardNoCloseState(glwin: TGLWindow;
   NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
   NewMainMenuEnabled: boolean;
   NewSwapFullScreen_Key: TKey;
-  NewFpsShowOnCaption, NewUseControls: boolean);
+  NewFpsShowOnCaption: boolean; NewControl: TUIControl);
 begin
   SetStandardState(glwin,
     NewDraw, {$ifdef FPC_OBJFPC} @ {$endif} CloseQuery_Ignore, NewResize,
     NewUserData, NewAutoRedisplay, NewFPSActive,
     NewMainMenuEnabled,
-    NewSwapFullScreen_Key, #0, NewFpsShowOnCaption, NewUseControls);
+    NewSwapFullScreen_Key, #0, NewFpsShowOnCaption, NewControl);
 end;
 
 { GL Mode ---------------------------------------------------------------- }
@@ -632,7 +660,7 @@ begin
  TGLWindowState.SetStandardNoCloseState(AGLWindow,
    {$ifdef FPC_OBJFPC} @ {$endif} FrozenImageDraw,
    {$ifdef FPC_OBJFPC} @ {$endif} Resize2D,
-   Self, false, AGLWindow.Fps.Active, false, K_None, false, false);
+   Self, false, AGLWindow.Fps.Active, false, K_None, false, nil);
 
  { setup our 2d projection. We must do it before SaveScreen }
  Glwin.EventResize;

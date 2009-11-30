@@ -172,7 +172,7 @@ begin
   Data.AnswerY0 := AnswerY0;
 
   TGLWindowState.SetStandardNoCloseState(glwin, @DrawGL, nil, @Data, false,
-    false, false, K_None, false, false);
+    false, false, K_None, false, nil);
   glwin.OnKeyDown := @KeyDown;
 
   repeat glwm.ProcessMessage(true) until Data.Answered;
@@ -224,7 +224,7 @@ begin
   Data.KeyPressed := false;
 
   TGLWindowState.SetStandardNoCloseState(glwin, @DrawGLAnyKey, nil, @Data,
-    false, false, false, K_None, false, false);
+    false, false, false, K_None, false, nil);
   glwin.OnKeyDown := @KeyDownAnyKey;
 
   glRasterPos2i(RasterX, RasterY);

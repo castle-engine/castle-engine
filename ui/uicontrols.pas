@@ -115,7 +115,7 @@ type
       CharactersDown: PCharactersBooleans;
       const MousePressed: TMouseButtons); virtual;
 
-    { Is given screenposition inside this control.
+    { Is given position inside this control.
       Returns always @false in this class. }
     function PositionInside(const X, Y: Single): boolean; virtual;
 

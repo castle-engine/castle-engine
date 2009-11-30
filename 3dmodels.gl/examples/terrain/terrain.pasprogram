@@ -192,7 +192,7 @@ begin
     Glw.AutoRedisplay := GLControlsVisible;
 
     if GLControlsVisible then
-      Glw.Controls.MakeSingle(TGLMenu, GLControls) else
+      Glw.Controls.MakeSingle(TGLMenu, GLControls, true { before navigator }) else
       Glw.Controls.Delete(GLControls);
   end;
 end;
@@ -281,7 +281,7 @@ end;
 procedure Init(Glwin: TGLWindow);
 begin
   GLControls := TTerrainControls.Create;
-  Glw.Controls.Add(GLControls);
+  Glw.Controls.Insert(0, GLControls); { add at the beginning, before navigator }
 
   if Elevation = nil then
   begin

@@ -222,6 +222,11 @@ type
     implements typical navigation in the style of first-person shooter
     games.
 
+    As TUIControl, navigator should be placed as the last control
+    (below all), as it catches all the events (regardless of current
+    mouse position; navigator isn't drawn, so it's always in "focus"
+    if nothing else handled the event).
+
     Short guide how to use any descendant of this class in typical scenario:
 
     @orderedList(
@@ -366,6 +371,8 @@ type
       Returned Dir and Up must be orthogonal, do not have to be normalized. }
     procedure GetCameraVectors(out Pos, Dir, Up: TVector3Single); virtual; abstract;
     function GetCameraPos: TVector3Single; virtual; abstract;
+
+    function PositionInside(const X, Y: Single): boolean; override;
   end;
 
   TNavigatorClass = class of TNavigator;
@@ -1589,6 +1596,11 @@ procedure TNavigator.SetProjectionMatrix(const Value: TMatrix4Single);
 begin
   FProjectionMatrix := Value;
   RecalculateFrustum;
+end;
+
+function TNavigator.PositionInside(const X, Y: Single): boolean;
+begin
+  Result := true;
 end;
 
 { TExamineNavigator ------------------------------------------------------------ }
@@ -3374,9 +3386,9 @@ begin
         MouseYChange := -MouseYChange;
       RotateVertical(-MouseYChange * MouseLookVerticalSensitivity);
     end;
-  end;
 
-  Result := ExclusiveEvents;
+    Result := ExclusiveEvents;
+  end;
 end;
 
 procedure TWalkNavigator.GetCameraVectors(
