@@ -19,7 +19,7 @@ interface
 
 uses VectorMath, VRMLNodes, VRMLTriangle, Math, KambiUtils, Matrix;
 
-{ This returns VRML 2.0 material emissiveColor for lighting equation.
+{ Returns VRML 2.0 material emissiveColor for lighting equation.
   I.e. the @code(O_Ergb) part of lighting equation in
   VRML 2.0 spec section "4.14.4 Lighting equations".
 
@@ -35,7 +35,7 @@ uses VectorMath, VRMLNodes, VRMLTriangle, Math, KambiUtils, Matrix;
 function VRML97Emission(const IntersectNode: TVRMLTriangle;
   LightingCalculationOn: boolean): TVector3_Single;
 
-{ This returns VRML 2.0 light contribution to the specified
+{ Returns VRML 2.0 light contribution to the specified
   vertex color. In other words, this calculates the following
   equation part from VRML 2.0 spec section
   "4.14.4 Lighting equations" :
