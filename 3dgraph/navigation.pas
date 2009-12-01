@@ -20,7 +20,7 @@ unit Navigation;
 interface
 
 uses SysUtils, VectorMath, KambiUtils, KeysMouse, Boxes3d, Quaternions, Frustum,
-  UIControls;
+  UIControls, Classes;
 
 const
   DefaultFallingDownStartSpeed = 0.5;
@@ -256,6 +256,7 @@ type
     example program in engine sources for simple demo how to use this class. }
   TNavigator = class(TUIControl)
   private
+    FOnMatrixChanged: TNavigatorNotifyFunc;
     MatrixChangedSchedule: Cardinal;
     IsMatrixChangedScheduled: boolean;
     FIgnoreAllInputs: boolean;
@@ -298,6 +299,8 @@ type
     procedure ScheduleMatrixChanged;
     procedure EndMatrixChangedSchedule;
   public
+    constructor Create(AOwner: TComponent); override;
+
     { Event called always when @link(Matrix) changed. Actually, when any
       property (of this class or descendant) changed, for example even
       changes to TWalkNavigator.MoveHorizontalSpeed result in matrix changed
@@ -307,9 +310,8 @@ type
       Be careful when writing this callback, any change of navigator
       property may cause this, so be prepared to handle OnMatrixChanged
       at every time. }
-    OnMatrixChanged: TNavigatorNotifyFunc;
-    constructor Create(const AOnMatrixChanged: TNavigatorNotifyFunc);
-      virtual;
+    property OnMatrixChanged: TNavigatorNotifyFunc
+      read FOnMatrixChanged write FOnMatrixChanged;
 
     { Current camera matrix. You should multiply every 3D point of your
       scene by this matrix, which usually simply means that you should
@@ -423,8 +425,7 @@ type
 
     procedure HomeNotNotify;
   public
-    constructor Create(const AOnMatrixChanged: TNavigatorNotifyFunc);
-      override;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     function Matrix: TMatrix4Single; override;
@@ -657,8 +658,7 @@ type
     function RealCameraPreferredHeightNoHeadBobbing: Single;
     function RealCameraPreferredHeightMargin: Single;
   public
-    constructor Create(const AOnMatrixChanged: TNavigatorNotifyFunc);
-      override;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     procedure DoGetCameraHeight(
@@ -1554,11 +1554,9 @@ begin
   if Assigned(OnMatrixChanged) then OnMatrixChanged(Self);
 end;
 
-constructor TNavigator.Create(
-  const AOnMatrixChanged: TNavigatorNotifyFunc);
+constructor TNavigator.Create(AOwner: TComponent);
 begin
-  inherited Create;
-  OnMatrixChanged := AOnMatrixChanged;
+  inherited;
   FProjectionMatrix := IdentityMatrix4Single;
 end;
 
@@ -1605,8 +1603,7 @@ end;
 
 { TExamineNavigator ------------------------------------------------------------ }
 
-constructor TExamineNavigator.Create(
-  const AOnMatrixChanged: TNavigatorNotifyFunc);
+constructor TExamineNavigator.Create(AOwner: TComponent);
 type
   T3BoolKeys = array [0..2, boolean] of TKey;
 const
@@ -2008,8 +2005,7 @@ end;
 
 { TWalkNavigator ---------------------------------------------------------------- }
 
-constructor TWalkNavigator.Create(
-  const AOnMatrixChanged: TNavigatorNotifyFunc);
+constructor TWalkNavigator.Create(AOwner: TComponent);
 begin
   inherited;
   FInitialCameraPos := Vector3Single(0, 0, 0);  FCameraPos := InitialCameraPos;

@@ -20,7 +20,7 @@ interface
 
 {$define read_interface}
 
-uses KeysMouse, SysUtils, KambiUtils, KambiClassUtils;
+uses SysUtils, Classes, KeysMouse, KambiUtils, KambiClassUtils;
 
 type
   { Basic user interface control class. All controls derive from this class,
@@ -45,11 +45,11 @@ type
     window system coordinates, that is (0, 0) is left-top window corner.
     (Note that this is contrary to usual OpenGL 2D system,
     where (0, 0) is left-bottom window corner.) }
-  TUIControl = class
+  TUIControl = class(TComponent)
   private
     FExclusiveEvents: boolean;
   public
-    constructor Create;
+    constructor Create(AOwner: TComponent); override;
 
     (*Handle key press event.
       Returns @true if the key was somehow handled.
@@ -141,7 +141,7 @@ implementation
 {$define read_implementation}
 {$I objectslist_1.inc}
 
-constructor TUIControl.Create;
+constructor TUIControl.Create(AOwner: TComponent);
 begin
   inherited;
   FExclusiveEvents := true;

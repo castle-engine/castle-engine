@@ -349,7 +349,7 @@ type
     FPositionAbsolute,
       PositionScreenRelativeMove, PositionMenuRelativeMove: TVector2_Single;
   public
-    constructor Create;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
   public
@@ -1045,7 +1045,7 @@ end;
 
 { TGLMenu -------------------------------------------------------------------- }
 
-constructor TGLMenu.Create;
+constructor TGLMenu.Create(AOwner: TComponent);
 begin
   inherited;
   FItems := TStringList.Create;

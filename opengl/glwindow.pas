@@ -577,8 +577,7 @@ unit GLWindow;
 
 interface
 
-uses
-  SysUtils, Math, VectorMath, GL, GLU, GLExt,
+uses SysUtils, Classes, Math, VectorMath, GL, GLU, GLExt,
   {$ifdef GLWINDOW_GLUT} KambiGlut, {$endif}
   {$ifdef GLWINDOW_WINAPI} Windows, Rects,
     { In FPC < 2.2.2, CommDlg stuff was inside Windows unit. }
@@ -781,7 +780,7 @@ type
   {$I glwindow_implementation_specific.inc}
   {$undef read_interface_types}
 
-  TGLWindow = class
+  TGLWindow = class(TComponent)
 
   { Include GLWindow-implementation-specific parts of TGLWindow class.
     Note that in every included file I should specify the scope
@@ -2120,7 +2119,7 @@ type
     procedure SetCallbacksState(const Callbacks: TGLWindowCallbacks);
     { @groupend }
 
-    constructor Create;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
   public
@@ -2435,7 +2434,7 @@ type
       AClose_CharKey: char;
       AFpsShowOnCaption: boolean);
 
-    constructor Create;
+    constructor Create(AOwner: TComponent); override;
   end;
 
   { OpenGL window keeping a @link(Controls) list. This allows you to
@@ -2464,7 +2463,6 @@ type
     assuming you only call UpdateMouseLook when needed. }
   TGLWindowNavigated = class(TGLWindowDemo)
   private
-    FOwnsNavigator: boolean;
     FNavigator: TNavigator;
     FCursorNonMouseLook: TGLWindowCursor;
     FControls: TUIControlsList;
@@ -2474,7 +2472,7 @@ type
     function ReallyUseNavigator: boolean;
     function ReallyUseMouseLook: boolean;
   public
-    constructor Create;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     { Controls listening for user input (keyboard / mouse) to this window. }
@@ -2518,10 +2516,6 @@ type
 
     { Free and nil the current @link(Navigator). @deprecated }
     procedure NavigatorFreeAndNil;
-
-    { @deprecated }
-    property OwnsNavigator: boolean
-      read FOwnsNavigator write FOwnsNavigator default true;
 
     { These are shortcuts for writing
       TExamineNavigator(Navigator) and TWalkNavigator(Navigator).
@@ -3035,7 +3029,7 @@ end;
 { ----------------------------------------------------------------------------
   niezalezne od GLWINDOW_xxx rzeczy TGLWindow }
 
-constructor TGLWindow.Create;
+constructor TGLWindow.Create(AOwner: TComponent);
 begin
  inherited;
  OnInitList := TDynGLWindowFuncArray.Create;
@@ -4259,7 +4253,7 @@ begin
   end;
 end;
 
-constructor TGLWindowDemo.Create;
+constructor TGLWindowDemo.Create(AOwner: TComponent);
 begin
   inherited;
   Close_CharKey := CharEscape;
@@ -4270,17 +4264,15 @@ end;
 
 { TGLWindowNavigated ------------------------------------------------------------------ }
 
-constructor TGLWindowNavigated.Create;
+constructor TGLWindowNavigated.Create(AOwner: TComponent);
 begin
  inherited;
- OwnsNavigator := true;
  FControls := TUIControlsList.Create;
  FUseControls := true;
 end;
 
 destructor TGLWindowNavigated.Destroy;
 begin
- if OwnsNavigator then Navigator.Free;
  FreeAndNil(FControls);
  inherited;
 end;
