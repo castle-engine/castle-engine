@@ -16,7 +16,6 @@ D   backgroundbase.pas
 D   boxes3d.pas
 D   convexhullunit.pas
 D   frustum.pas
-D   keys.pas
 D   matrixnavigation.pas
 D   polynomials.pas
 D   rayswindow.pas
@@ -25,7 +24,7 @@ D   spheresampling.pas
 
   3dmodels/
 D   colladatovrml.pas
--   illummodels.pas
+|   illummodels.pas
 |   kambioctree.pas
 D   normalscalculator.pas
 D   object3dasvrml.pas
@@ -48,7 +47,7 @@ D   vrmlnodesdetailoptions.pas
 |   vrmlraytracer.pas
 D   vrmlshapestateoctree.pas
 D   vrmlscenewaypoints.pas
-|   vrmlshapestate.pas
+D   vrmlshape.pas
 -   vrmltriangleoctree.pas
 D   vrmlcamerautils.pas
 D   vrmlrendereroptimization.pas
@@ -72,7 +71,6 @@ D   alsourceallocator.pas
 D   gamesoundengine.pas
 
   base/
-D   areas.pas
 D   dataerrors.pas
 |   enumeratefiles.pas
 D   intrects.pas
@@ -128,7 +126,6 @@ D   glw_win.pas
 -   kambiglut.pas
 -   openglbmpfonts.pas
 -   openglfonts.pas
--   openglh.pas
 D   openglttfonts.pas
 D   progressgl.pas
 -   timemessages.pas
@@ -148,6 +145,11 @@ D   kambiscriptimages.pas
 D   kambiscriptparser.pas
 D   kambiscriptvectors.pas
 D   vrmlkambiscript.pas
+
+ ui/
+D   areas.pas
+D   keysmouse.pas
+D   uicontrols.pas
 
 ------------------------------------------------------------
 Units that are not intended to be processed by pasdoc:

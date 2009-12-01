@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2006,2008 Michalis Kamburelis.
+  Copyright 2003-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -206,21 +206,23 @@ type
       AGeometry: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
     destructor Destroy; override;
 
-    { Geometry to wskaznik na obiekt w RootNode }
     property Geometry: TVRMLGeometryNode read FGeometry;
 
-    { State is OWNED by this TVRMLShape class - I mean, we will do State.Free
-      in destructor }
+    { State of this shape.
+      This object is owned by TVRMLShape class --- we will do State.Free
+      in destructor. }
     property State: TVRMLGraphTraverseState read FState;
 
-    { specyfikacja co robia [Local]BoundingBox, VerticesCount i TrianglesCount -
-      patrz VRMLNodes.TVRMLGeometryNode }
+    { Calculate bounding box and vertices/triangles count,
+      see TVRMLGeometryNode methods.
+      @groupBegin }
     function LocalBoundingBox: TBox3d;
     function BoundingBox: TBox3d;
     function VerticesCount(OverTriangulate: boolean): Cardinal;
     function TrianglesCount(OverTriangulate: boolean): Cardinal;
+    { @groupEnd }
 
-    { This calculates bounding sphere basing on BoundingBox.
+    { Calculates bounding sphere based on BoundingBox.
       In the future this may be changed to use BoundingSphere method
       of @link(TVRMLGeometryNode), when I will implement it.
       For now, BoundingSphere is always worse approximation of bounding
@@ -230,11 +232,14 @@ type
       them versus bounding box.
 
       BoundingSphereRadiusSqr = 0 and BoundingSphereCenter is undefined
-      if Box is empty. }
+      if Box is empty.
+
+      @groupBegin }
     function BoundingSphereCenter: TVector3Single;
     function BoundingSphereRadiusSqr: Single;
+    { @groupEnd }
 
-    { This is exactly equivalent to getting
+    { Exactly equivalent to getting
       @link(BoundingSphereCenter) and @link(BoundingSphereRadiusSqr)
       and then using @link(TFrustum.SphereCollisionPossible).
 
@@ -245,7 +250,7 @@ type
     function FrustumBoundingSphereCollisionPossible(
       const Frustum: TFrustum): TFrustumCollisionPossible;
 
-    { This is exactly equivalent to getting
+    { Exactly equivalent to getting
       @link(BoundingSphereCenter) and @link(BoundingSphereRadiusSqr)
       and then using @link(TFrustum.SphereCollisionPossibleSimple).
 
