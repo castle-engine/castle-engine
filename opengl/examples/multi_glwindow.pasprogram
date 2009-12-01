@@ -34,10 +34,11 @@ program multi_glwindow;
 
 uses
   GL, GLU, GLExt, GLWindow, SysUtils, KambiUtils, OpenGLFonts, OpenGLTTFonts,
-  TTF_BitstreamVeraSans_Unit, KambiGLUtils, Keys;
+  TTF_BitstreamVeraSans_Unit, KambiGLUtils, KeysMouse;
 
 type
   TMyWindow = class(TGLWindowDemo)
+  public
     FontGL, FontGLLines: TGLOutlineFont_Abstract;
     RotX, RotY, RotZ, MoveX, MoveY, MoveZ :TGLfloat;
     OnlyLines: boolean;
@@ -167,7 +168,7 @@ var i: integer;
 begin
  for i := 0 to High(Windws) do
  begin
-  Windws[i] := TMyWindow.Create;
+  Windws[i] := TMyWindow.Create(nil);
 
   Windws[i].MoveZ := -10;
   Windws[i].Text := 'Window number '+IntToStr(i);

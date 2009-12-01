@@ -2505,7 +2505,8 @@ type
 
 @longCode(#
   // TXxxNavigator may be e.g. TExamineNavigator or TWalkNavigator
-  Glw.Navigator := TXxxNavigator.Create(Glw.PostRedisplayOnMatrixChanged);
+  Glw.Navigator := TXxxNavigator.Create(Glw);
+  Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
   Glw.Navigator.Init(...);
 #))
 

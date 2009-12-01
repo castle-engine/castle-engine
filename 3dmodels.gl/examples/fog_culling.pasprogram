@@ -175,7 +175,8 @@ begin
   Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
 
   { init Glw.Navigator }
-  Glw.Navigator := TWalkNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+  Glw.Navigator := TWalkNavigator.Create(Glw);
+  Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
   Glw.WalkNav.Init(CamPos,
     VectorAdjustToLength(CamDir, Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
     CamUp, GravityUp,

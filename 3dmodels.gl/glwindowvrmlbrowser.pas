@@ -19,8 +19,8 @@ unit GLWindowVRMLBrowser;
 
 interface
 
-uses VectorMath, GLWindow, VRMLNodes, VRMLGLScene, VRMLScene, Navigation,
-  VRMLGLHeadLight, ShadowVolumes, SceneManagerUnit;
+uses Classes, VectorMath, GLWindow, VRMLNodes, VRMLGLScene, VRMLScene,
+  Navigation, VRMLGLHeadLight, ShadowVolumes, SceneManagerUnit;
 
 type
   { A simple VRML browser in a window. This manages TVRMLGLScene and
@@ -115,7 +115,7 @@ type
       should move to scene manager. }
     procedure InitSceneManager;
   public
-    constructor Create;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     { Creates new @link(Scene), with new navigator and such. }
@@ -177,21 +177,18 @@ type
 implementation
 
 uses Boxes3d, VRMLOpenGLRenderer, GL, GLU,
-  KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
+  KambiClassUtils, KambiUtils, SysUtils, Object3dAsVRML,
   KambiGLUtils, KambiFilesUtils, VRMLTriangle,
   RaysWindow, BackgroundGL;
 
 { This uses OctreeCollisions, so either OctreeDynamicCollisions
   or OctreeCollidableTriangles, whichever is available. }
 
-constructor TGLWindowVRMLBrowser.Create;
+constructor TGLWindowVRMLBrowser.Create(AOwner: TComponent);
 begin
   inherited;
 
   SceneManager := TSceneManager.Create;
-
-  { we manage Navigator ourselves, this makes code more consequent to follow }
-  OwnsNavigator := false;
 
   Load(nil, true);
 end;
@@ -200,8 +197,7 @@ destructor TGLWindowVRMLBrowser.Destroy;
 begin
   FreeAndNil(SceneManager);
   FreeAndNil(FScene);
-  Navigator.Free;
-  Navigator := nil;
+  NavigatorFreeAndNil;
   inherited;
 end;
 
@@ -213,8 +209,7 @@ end;
 procedure TGLWindowVRMLBrowser.Load(ARootNode: TVRMLNode; const OwnsRootNode: boolean);
 begin
   FreeAndNil(FScene);
-  Navigator.Free;
-  Navigator := nil;
+  NavigatorFreeAndNil;
 
   FScene := TVRMLGLScene.Create(ARootNode, OwnsRootNode, roSeparateShapes);
 
@@ -223,7 +218,7 @@ begin
   Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
 
   { init Navigator }
-  Navigator := Scene.CreateNavigator;
+  Navigator := Scene.CreateNavigator(nil);
   Navigator.OnMatrixChanged := @MatrixChanged;
 
   if Navigator is TWalkNavigator then

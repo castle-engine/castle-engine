@@ -1233,31 +1233,27 @@ begin
     VrmlFileName := Parameters[1];
 
   { init Glw.Navigator }
-  Examiner := TExamineNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+  Examiner := TExamineNavigator.Create(Glw);
+  Examiner.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
   Examiner.Init(SceneBoundingBox);
 
-  Walker := TWalkNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+  Walker := TWalkNavigator.Create(Glw);
+  Walker.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
   Walker.Init(Vector3Single(0, 0, 10), Vector3Single(0, 0, -1),
     Vector3Single(0, 1, 0), Vector3Single(0, 1, 0),
     0.0, 0.0 { unused, we don't use Gravity here });
 
-  Glw.OwnsNavigator := false;
   Glw.Navigator := Examiner;
 
-  try
-    Glw.MainMenu := CreateMainMenu;
-    Glw.OnMenuCommand := @MenuCommand;
+  Glw.MainMenu := CreateMainMenu;
+  Glw.OnMenuCommand := @MenuCommand;
 
-    Glw.AutoRedisplay := true; { for easy Idle code }
-    Glw.OnInit := @InitGL;
-    Glw.OnClose := @CloseGL;
-    Glw.OnDraw := @Draw;
-    Glw.OnResize := @Resize;
-    Glw.OnIdle := @Idle;
+  Glw.AutoRedisplay := true; { for easy Idle code }
+  Glw.OnInit := @InitGL;
+  Glw.OnClose := @CloseGL;
+  Glw.OnDraw := @Draw;
+  Glw.OnResize := @Resize;
+  Glw.OnIdle := @Idle;
 
-    Glw.InitLoop;
-  finally
-    FreeAndNil(Walker);
-    FreeAndNil(Examiner);
-  end;
+  Glw.InitLoop;
 end.

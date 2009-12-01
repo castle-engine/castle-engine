@@ -130,7 +130,8 @@ begin
     {$endif}
 
     { init Glw.Navigator }
-    Glw.Navigator := TExamineNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+    Glw.Navigator := TExamineNavigator.Create(Glw);
+    Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
     Glw.ExamineNav.Init(Scene.BoundingBox);
     { set more interesting view by default }
     Glw.ExamineNav.Rotations := QuatFromAxisAngle(

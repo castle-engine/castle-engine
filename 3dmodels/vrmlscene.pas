@@ -1686,7 +1686,7 @@ type
 
       This also calls NavigatorBindToViewpoint at the end,
       so navigator is bound to current vewpoint. }
-    function CreateNavigator: TNavigator;
+    function CreateNavigator(AOwner: TComponent): TNavigator;
 
     { Update navigator when currently bound viewpoint changes.
       When no viewpoint is currently bound, we will go to standard (initial)
@@ -5327,7 +5327,7 @@ end;
 
 { navigator ------------------------------------------------------------------ }
 
-function TVRMLScene.CreateNavigator: TNavigator;
+function TVRMLScene.CreateNavigator(AOwner: TComponent): TNavigator;
 var
   NavigationNode: TNodeNavigationInfo;
   I: Integer;
@@ -5341,7 +5341,7 @@ begin
     for I := 0 to NavigationNode.FdType.Count - 1 do
       if NavigationNode.FdType.Items[I] = 'WALK' then
       begin
-        Result := TWalkNavigator.Create(nil);
+        Result := TWalkNavigator.Create(AOwner);
         TWalkNavigator(Result).PreferGravityUpForRotations := true;
         TWalkNavigator(Result).PreferGravityUpForMoving := true;
         TWalkNavigator(Result).Gravity := true;
@@ -5350,7 +5350,7 @@ begin
       end else
       if NavigationNode.FdType.Items[I] = 'FLY' then
       begin
-        Result := TWalkNavigator.Create(nil);
+        Result := TWalkNavigator.Create(AOwner);
         TWalkNavigator(Result).PreferGravityUpForRotations := true;
         TWalkNavigator(Result).PreferGravityUpForMoving := false;
         TWalkNavigator(Result).Gravity := false;
@@ -5359,7 +5359,7 @@ begin
       end else
       if NavigationNode.FdType.Items[I] = 'NONE' then
       begin
-        Result := TWalkNavigator.Create(nil);
+        Result := TWalkNavigator.Create(AOwner);
         TWalkNavigator(Result).PreferGravityUpForRotations := true;
         TWalkNavigator(Result).PreferGravityUpForMoving := true; { doesn't matter }
         TWalkNavigator(Result).Gravity := false;
@@ -5368,7 +5368,7 @@ begin
       end else
       if NavigationNode.FdType.Items[I] = 'EXAMINE' then
       begin
-        Result := TExamineNavigator.Create(nil);
+        Result := TExamineNavigator.Create(AOwner);
         Break;
       end else
       if NavigationNode.FdType.Items[I] = 'ANY' then
@@ -5380,7 +5380,7 @@ begin
 
   if Result = nil then
     { No recognized "type" found, so use default type EXAMINE. }
-    Result := TExamineNavigator.Create(nil);
+    Result := TExamineNavigator.Create(AOwner);
 
   { calculate CameraRadius }
   CameraRadius := 0;

@@ -87,7 +87,7 @@ const
 type
   TTerrainControls = class(TGLMenu)
   public
-    constructor Create;
+    constructor Create(AOwner: TComponent); override;
 
     OctavesSlider: TGLMenuFloatSlider;
     AmplitudeSlider: TGLMenuFloatSlider;
@@ -241,7 +241,7 @@ begin
   GLControls.FixItemsAreas(Glwin.Width, Glwin.Height);
 end;
 
-constructor TTerrainControls.Create;
+constructor TTerrainControls.Create(AOwner: TComponent);
 begin
   inherited;
 
@@ -280,7 +280,7 @@ end;
 
 procedure Init(Glwin: TGLWindow);
 begin
-  GLControls := TTerrainControls.Create;
+  GLControls := TTerrainControls.Create(nil);
   Glw.Controls.Insert(0, GLControls); { add at the beginning, before navigator }
 
   if Elevation = nil then
@@ -380,7 +380,8 @@ begin
   Parameters.CheckHighAtMost(1);
 
   try
-    Glw.Navigator := TExamineNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+    Glw.Navigator := TExamineNavigator.Create(Glw);
+    Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
     Glw.ExamineNav.Init(Box3d(
       Vector3Single(        0,         0, -ScaleHeight),
       Vector3Single(ScaleSize, ScaleSize,  ScaleHeight)));

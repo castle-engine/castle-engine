@@ -670,7 +670,8 @@ begin
         'and no direction', [L^.LightNode.NodeTypeName]);
 
     { init ShadowCasterNav }
-    ShadowCasterNav := TExamineNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+    ShadowCasterNav := TExamineNavigator.Create(Glw);
+    ShadowCasterNav.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
     ShadowCasterNav.ModelBox := ShadowCaster.BoundingBox;
 
     ShadowCasterNav.Inputs_Move[0, false].Key1 := K_A;
@@ -695,7 +696,8 @@ begin
     ShadowCasterNav.Input_ScaleSmaller.Character := #0;
 
     { init Glw.Navigator }
-    Glw.Navigator := TWalkNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+    Glw.Navigator := TWalkNavigator.Create(Glw);
+    Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
     Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
     VectorAdjustToLengthTo1st(CamDir, Box3dAvgSize(SceneBoundingBox)*0.02);
     Glw.WalkNav.Init(CamPos, CamDir, CamUp, GravityUp, 0.0, 0.0);
@@ -713,7 +715,6 @@ begin
     Glw.OnMouseMove := @MouseMove;
     Glw.InitLoop;
   finally
-    ShadowCasterNav.Free;
     Scene.Free;
     ShadowCaster.Free;
     LightSet.Free;

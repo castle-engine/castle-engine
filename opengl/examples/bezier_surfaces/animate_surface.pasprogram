@@ -176,7 +176,8 @@ begin
 end;
 
 begin
-  Glw.Navigator := TWalkNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+  Glw.Navigator := TWalkNavigator.Create(Glw);
+  Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
   Glw.WalkNav.PreferGravityUpForRotations := false;
   Glw.WalkNav.PreferGravityUpForMoving := false;
 

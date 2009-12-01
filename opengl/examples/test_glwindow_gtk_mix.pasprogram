@@ -103,7 +103,7 @@ begin
 end;
 
 begin
- glw := TMyGLWindow.Create;
+ glw := TMyGLWindow.Create(nil);
  try
   glw.Width := 600;
   glw.Height := 400;

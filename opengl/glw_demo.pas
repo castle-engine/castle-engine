@@ -10,7 +10,7 @@ var
 implementation
 
 initialization
- Glw := TGLWindowDemo.Create;
+ Glw := TGLWindowDemo.Create(nil);
 finalization
  FreeAndNil(Glw);
 end.

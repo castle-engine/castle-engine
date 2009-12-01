@@ -10,7 +10,7 @@ var
 implementation
 
 initialization
- Glw := TGLWindowNavigated.Create;
+ Glw := TGLWindowNavigated.Create(nil);
 finalization
  FreeAndNil(Glw);
 end.

@@ -126,7 +126,8 @@ begin
       'Box4Transform', true) as TNodeTransform_2;
 
     { init Glw.Navigator }
-    Glw.Navigator := TExamineNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+    Glw.Navigator := TExamineNavigator.Create(Glw);
+    Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
     Glw.ExamineNav.Init(Scene.BoundingBox);
 
     Glw.AutoRedisplay := true;

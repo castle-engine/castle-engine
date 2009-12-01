@@ -217,7 +217,8 @@ begin
       GravityUp);
 
     { init Glw.Navigator }
-    Glw.Navigator := TWalkNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+    Glw.Navigator := TWalkNavigator.Create(Glw);
+    Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
     Glw.WalkNav.Init(CamPos, VectorAdjustToLength(CamDir,
       Box3dAvgSize(Animation.Scenes[0].BoundingBox) * 0.01*0.4), CamUp,
       GravityUp, 0.0, 0.0);

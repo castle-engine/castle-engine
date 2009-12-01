@@ -1,5 +1,5 @@
 {
-  Copyright 2008 Michalis Kamburelis.
+  Copyright 2008-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -547,15 +547,15 @@ begin
 
     { initialize navigators }
 
-    NavigatorAll := SceneReceiver.CreateNavigator;
+    NavigatorAll := SceneReceiver.CreateNavigator(Glw);
     NavigatorAll.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
 
-    NavigatorCaster := TExamineNavigator.Create(
-      @Glw.PostRedisplayOnMatrixChanged);
+    NavigatorCaster := TExamineNavigator.Create(Glw);
+    NavigatorCaster.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
     NavigatorCaster.ModelBox := SceneCaster.BoundingBox;
 
-    NavigatorLocalLight := TExamineNavigator.Create(
-      @Glw.PostRedisplayOnMatrixChanged);
+    NavigatorLocalLight := TExamineNavigator.Create(Glw);
+    NavigatorLocalLight.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
     NavigatorLocalLight.ModelBox := SceneLocalLight.BoundingBox;
 
     BoxSum := Box3dSum(SceneCaster.BoundingBox, SceneReceiver.BoundingBox);
@@ -572,8 +572,8 @@ begin
     end;
     NavigatorLocalLight.MoveAmount := V;
 
-    NavigatorSFExplorer := TExamineNavigator.Create(
-      @Glw.PostRedisplayOnMatrixChanged);
+    NavigatorSFExplorer := TExamineNavigator.Create(Glw);
+    NavigatorSFExplorer.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
     { use SceneCaster.BoundingBox for light's box, this determines the speed
       of moving light source with mouse. }
     NavigatorSFExplorer.ModelBox := SceneCaster.BoundingBox;
@@ -590,8 +590,8 @@ begin
     end;
     NavigatorSFExplorer.MoveAmount := V;
 
-    NavigatorEnvLight := TExamineNavigator.Create(
-      @Glw.PostRedisplayOnMatrixChanged);
+    NavigatorEnvLight := TExamineNavigator.Create(Glw);
+    NavigatorEnvLight.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
     { use SceneCaster.BoundingBox for light's box, this determines the speed
       of moving light source with mouse. }
     NavigatorEnvLight.ModelBox := SceneCaster.BoundingBox;
@@ -608,7 +608,6 @@ begin
     end;
     NavigatorEnvLight.MoveAmount := V;
 
-    Glw.OwnsNavigator := false;
     NavigatorChanged;
 
     Glw.MainMenu := CreateMainMenu;
@@ -628,11 +627,6 @@ begin
     FreeAndNil(SceneCaster);
     FreeAndNil(SceneReceiver);
     FreeAndNil(SceneLocalLight);
-    FreeAndNil(NavigatorAll);
-    FreeAndNil(NavigatorCaster);
-    FreeAndNil(NavigatorLocalLight);
-    FreeAndNil(NavigatorSFExplorer);
-    FreeAndNil(NavigatorEnvLight);
     FreeAndNil(CasterOOF);
     FreeAndNil(LocalLightSRF);
   end;

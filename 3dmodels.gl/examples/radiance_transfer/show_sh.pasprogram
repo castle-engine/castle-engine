@@ -222,7 +222,8 @@ begin
     M.Append(TMenuItem.Create('_Next basis', 20, 'n'));
     Glw.MainMenu.Append(M);
 
-  Glw.Navigator := TExamineNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+  Glw.Navigator := TExamineNavigator.Create(Glw);
+  Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
   Glw.ExamineNav.Init(Box3d(Vector3Single(-1, -1, -1), Vector3Single(1, 1, 1)));
 
   Glw.OnInit := @Init;

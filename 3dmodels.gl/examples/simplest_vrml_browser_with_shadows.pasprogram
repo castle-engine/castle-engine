@@ -42,7 +42,7 @@ begin
   VRMLWarning := @VRMLWarning_Write;
   Progress.UserInterface := ProgressConsoleInterface;
 
-  BrowserWindow := TGLWindowVRMLBrowser.Create;
+  BrowserWindow := TGLWindowVRMLBrowser.Create(nil);
   try
     BrowserWindow.ShadowVolumesPossible := true;
     BrowserWindow.ShadowVolumes := true;

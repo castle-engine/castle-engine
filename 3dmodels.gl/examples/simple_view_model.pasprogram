@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2008 Michalis Kamburelis.
+  Copyright 2003-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -100,7 +100,8 @@ begin
       end;}
 
     { init Glw.Navigator }
-    Glw.Navigator := TWalkNavigator.Create(@Glw.PostRedisplayOnMatrixChanged);
+    Glw.Navigator := TWalkNavigator.Create(Glw);
+    Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
     Glw.WalkNav.Init(Box3dMiddle(scene.BoundingBox),
         VectorAdjustToLength(Vector3Single(1, 0, 0),
           Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),

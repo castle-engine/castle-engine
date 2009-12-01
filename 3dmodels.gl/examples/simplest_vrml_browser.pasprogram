@@ -49,7 +49,7 @@ begin
   VRMLWarning := @VRMLWarning_Write;
   Progress.UserInterface := ProgressConsoleInterface;
 
-  BrowserWindow := TGLWindowVRMLBrowser.Create;
+  BrowserWindow := TGLWindowVRMLBrowser.Create(nil);
   try
     BrowserWindow.Load(Parameters[1]);
 
