@@ -2438,47 +2438,30 @@ type
     constructor Create;
   end;
 
-  { OpenGL window with the @link(Navigator) property (TNavigator instance)
-    and @link(Controls) list. Passes events to the controls (including
-    to the navigator) and generally handles stuff for cooperating
-    with @link(Navigator).
+  { OpenGL window keeping a @link(Controls) list. This allows you to
+    trivially add to the window any TUIControl descendants.
 
-    @orderedList(
-      @item(
-        Po pierwsze, pole Navigator jest swobodne do odczytu i zapisu.
-        Mozesz w dowolnym momencie wymieniac uzywany tutaj Navigator.
-        Domyslnie Navigator = nil.
-        W Destroy klasy jezeli OwnsNavigator (domyslnie true) robimy
-        Navigator.Free.)
-      @item(
-        W metodach Event Idle/KeyPress, w AllowsProcessMessageSuspend
-        zajmujemy sie wywolywaniem odpowiednich metod z Navigator, o ile
-        tylko Navigator <> nil.
-        Oh, and we use Fps.IdleSpeed for navigator.)
-      @item(
-        Metoda PostRedisplayOnMatrixChanged nie jest tu nigdzie uzywana ale mozesz
-        ja podac jako TMatrixChangedFunc przy tworzeniu Navigatora. Wywoluje
-        ona po prostu PostRediplay. (Jezeli chcesz robic cos innego w reakcji
-        na MatrixChanged to naturalnie nie musisz uzywac
-        PostRedisplayOnMatrixChanged.))
-      @item(
-        This will also helps you use MouseLook feature of TWalkNavigator:
-        This will call MouseMove of Navigator with a suitable parameters,
-        and this gives you UpdateMouseLook method that you should use.
-        All that remains to you is to call UpdateMouseLook at appropriate times,
-        and mouse look will work.)
-    )
+    If UseControls, we pass our inputs (mouse / key events) to the top-most
+    (that is, first on this list) control under the current mouse position
+    (we check control's PositionInside method for this).
+    As long as the event is not handled,
+    we look for next controls under the mouse position.
+    Only if no control handled the event, we pass it to the inherited
+    EventXxx method, which calls normal window callbacks OnKeyDown etc.
 
-    Typical use of this class:
-    @orderedList(
-      @item(na poczatku programu
-@longCode(#
-  glw.Navigator := TMatrix<...>.Create(glw.PostRedisplayOnMatrixChanged);
-  glw.Navigator.Init(...);
-#))
-      @item(w OnDraw uzyj gdzies glMultMatrix/glLoadMatrix(glw.Navigator.Matrix))
-    )
-    And that's all. }
+    All above applied to mouse / keyboard input. For idle "input"
+    we just call this on every control (if UseControls).
+
+    TNavigator descendants have to be treated a little specially for now:
+    although they descend from TUIControl, you cannot add them directly
+    to the @link(Controls) list. Instead, you have to assign them
+    through the @link(Navigator) property
+    (this will also cause appropriate add / replace / replace on
+    the @link(Controls) list). The reason for this is that TNavigator
+    requires some specialized treatment in this class, for now.
+
+    This way MouseLook feature of TWalkNavigator is handled out of the box,
+    assuming you only call UpdateMouseLook when needed. }
   TGLWindowNavigated = class(TGLWindowDemo)
   private
     FOwnsNavigator: boolean;
@@ -2494,19 +2477,49 @@ type
     constructor Create;
     destructor Destroy; override;
 
+    { Controls listening for user input (keyboard / mouse) to this window. }
+    property Controls: TUIControlsList read FControls;
+
+    property UseControls: boolean
+      read FUseControls write FUseControls default true;
+
+    { Returns the control that should receive input events first,
+      or @nil if none. More precisely, this is the first on Controls
+      list that is enabled and under the mouse cursor.
+      @nil is returned when there's no enabled control under the mouse cursor,
+      or when UseControls = @false. }
+    function Focus: TUIControl;
+
     { Navigator instance used. Initially it's nil.
+      Set this to give user a method for navigating in 3D scene.
 
       When assigning navigator instance we'll take care to make it
       the one and only one TNavigator instance on Controls list.
       Assigning here @nil removes it from Controls list.
 
       For now, you should not add / remove TNavigator instances to
-      the Controls list directly. }
+      the Controls list directly.
+
+      Example use of this class TGLWindowNavigated just to get a Navigator:
+
+      @orderedList(
+        @item(At the beginning of your program, do
+
+@longCode(#
+  // TXxxNavigator may be e.g. TExamineNavigator or TWalkNavigator
+  Glw.Navigator := TXxxNavigator.Create(Glw.PostRedisplayOnMatrixChanged);
+  Glw.Navigator.Init(...);
+#))
+
+      @item(In OnDraw callback use glMultMatrix or glLoadMatrix
+        with Glw.Navigator.Matrix)
+    ) }
     property Navigator: TNavigator read FNavigator write SetNavigator;
 
-    { Free and nil the current @link(Navigator). }
+    { Free and nil the current @link(Navigator). @deprecated }
     procedure NavigatorFreeAndNil;
 
+    { @deprecated }
     property OwnsNavigator: boolean
       read FOwnsNavigator write FOwnsNavigator default true;
 
@@ -2520,6 +2533,9 @@ type
     function WalkNav: TWalkNavigator;
     { @groupEnd }
 
+    { Calls PostRediplay, suitable for callback of TNavigator.OnMatrixChanged.
+      This isn't used here anywhere, you can pass it as TNavigator.OnMatrixChanged
+      when creating TNavigator. }
     procedure PostRedisplayOnMatrixChanged(ChangedNavigator: TNavigator);
 
     procedure EventInit; override;
@@ -2611,42 +2627,6 @@ type
     property CursorNonMouseLook: TGLWindowCursor
       read FCursorNonMouseLook write SetCursorNonMouseLook
       default gcDefault;
-
-    { Controls listening for user input (keyboard / mouse) to this window.
-
-      If UseControls, we pass our input to the top-most
-      (that is, first on this list) control under the current mouse position
-      (we look at control's Area for this). As long as the event is not handled,
-      we look for next controls (more below) under the mouse position.
-
-      Only if no control handled the event, we pass it to our navigator
-      in this class (if navigator is set).
-
-      Only if the event is still not handled, we pass it to inherited
-      EventXxx method, which calls normal window callbacks OnKeyDown etc.
-
-      All above applied to mouse / keyboard input. For idle "input"
-      we just call this on every control (if UseControls).
-
-      TODO: this is expected to be much improved in the future:
-      - an option to ignore mouse position and always pass to given listener
-        (useful in castle, and generally when you only have one control
-        on screen, and no navigator)
-      - an option to not allow listener "grab" events, i.e. even
-        if it says handled = true, we'll behave like handled = false ?
-        This is useful in controllable environment, e.g. in castle?
-        Hm, or not?
-    }
-    property Controls: TUIControlsList read FControls;
-    property UseControls: boolean
-      read FUseControls write FUseControls default true;
-
-    { Returns the control that should receive input events first,
-      or @nil if none. More precisely, this is the first on Controls
-      list that is enabled and under the mouse cursor.
-      @nil is returned when there's no enabled control under the mouse cursor,
-      or when UseControls = @false. }
-    function Focus: TUIControl;
   end;
 
   TObjectsListItem_1 = TGLWindow;
