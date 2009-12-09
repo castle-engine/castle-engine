@@ -264,7 +264,7 @@ begin
   Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
 
   { init Navigator }
-  Navigator := Scene.CreateNavigator;
+  Navigator := Scene.CreateNavigator(nil);
   Navigator.OnMatrixChanged := @MatrixChanged;
 
   if Navigator is TWalkNavigator then
