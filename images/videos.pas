@@ -735,6 +735,7 @@ begin
     SameText(Ext, '.dvd') or
     SameText(Ext, '.ogg') or
     SameText(Ext, '.mov') or
+    SameText(Ext, '.flv') or
     SameText(Ext, '.swf');
 end;
 
