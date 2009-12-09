@@ -4058,7 +4058,7 @@ var
 begin
   OldChild := FChildren[i];
   FChildren.Delete(i);
-  OldChild.FParentNodes.Delete(Self);
+  OldChild.FParentNodes.Remove(Self);
   OldChild.FreeIfUnused;
 end;
 
@@ -4066,7 +4066,7 @@ function TVRMLNode.ExtractChild(I: Integer): TVRMLNode;
 begin
   Result := FChildren[i];
   FChildren.Delete(i);
-  Result.FParentNodes.Delete(Self);
+  Result.FParentNodes.Remove(Self);
 
   { RemoveChild now does
       OldChild.FreeIfUnused;
@@ -4088,7 +4088,7 @@ begin
     OldChild := FChildren[i];
     FChildren[I] := Value;
 
-    OldChild.FParentNodes.Delete(Self);
+    OldChild.FParentNodes.Remove(Self);
     OldChild.FreeIfUnused;
 
     Value.FParentNodes.Add(Self);
@@ -5061,7 +5061,7 @@ end;
 
 procedure TVRMLNode.RemoveParentField(Field: TVRMLField);
 begin
-  Check(FParentFields.Delete(Field), 'RemoveParentField: parent not found');
+  Check(FParentFields.Remove(Field) <> -1, 'RemoveParentField: parent not found');
   FreeIfUnused;
 end;
 
@@ -5986,7 +5986,7 @@ begin
 
   { Instead of calling Result.RemoveParentField(Self), which would possibly
     free Result, we manually call FParentFields.Delete. }
-  Result.FParentFields.Delete(Self);
+  Result.FParentFields.Remove(Self);
 
   Items.Delete(Index);
 end;

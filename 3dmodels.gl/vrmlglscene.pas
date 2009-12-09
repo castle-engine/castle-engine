@@ -1809,7 +1809,7 @@ begin
   { Note that this calls Renderer.Attributes, so use this before
     deinitializing Renderer. }
   if Renderer <> nil then
-    Attributes.FScenes.Delete(Self);
+    Attributes.FScenes.Remove(Self);
 
   if not FUsingProvidedRenderer then
   begin

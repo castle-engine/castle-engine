@@ -4626,7 +4626,7 @@ end;
 procedure TGLWindowsManager.ActiveRemove(glwin: TGLWindow;
   QuitWhenLastWindowClosed: boolean);
 begin
- if FActive.Delete(glwin) and
+ if (FActive.Remove(glwin) <> -1) and
     (ActiveCount = 0) and QuitWhenLastWindowClosed then Quit;
 end;
 

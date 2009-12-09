@@ -37,7 +37,6 @@
   private
     List: PArray_TObject;
     fCount,
-    { capacity = na ile obiektow naprawde jest zaalokowana pamiec }
     fCapacity: integer;
     function GetItem(i: integer): TObjectsListItem_2;
     procedure SetItem(i: integer; Item: TObjectsListItem_2);
@@ -65,16 +64,18 @@
     property Items[i: integer]: TObjectsListItem_2
       read GetItem write SetItem; default;
 
-    {ustawianie Counta : zmniejszanie oznacza kasowanie koncowych elementow,
-     zwiekszanie - dodawanie nil'i}
+    { How many items are on the list. You can also set this value:
+      shrinking count means that we remove ending items,
+      growing count means that we add @nil items. }
     property Count: Integer read fCount write SetCount;
 
     procedure IncCount;
     procedure DecCount;
 
-    { Shortcut for Count - 1. Yes, when Count = 0, High is -1. }
+    { Shortcut for Count - 1. Note that when Count = 0, High is -1. }
     function High: Integer;
 
+    { For how many items we have allocated memory. }
     property Capacity: integer read fCapacity write SetCapacity;
 
     { Shortcut for Items[0]. }
@@ -97,23 +98,20 @@
 
     { This assigns Source items references and count to our list.
       Note that Source.Capacity is not copied (Capacity is only
-      a performance-tuning setting anyway).
-
-      TODO: untested yet! }
+      a performance-tuning setting anyway). }
     procedure Assign(Source: TObjectsList_2);
 
     function Equals(SecondValue: TObjectsList_2): boolean;
 
-    { dodawanie ---------------------------------------- }
+    { Adding ----------------------------------------------------------------- }
 
     { }
     procedure Insert(Index: integer; Item: TObjectsListItem_2);
     procedure InsertArray(Index: integer; const A: array of TObjectsListItem_2);
     procedure InsertList(Index: integer; SecondList: TObjectsList_2);
 
-    { Add always adds at the end of the list.
-      In other words, AddXxx(...) is always just a shortcut for
-      InsertXxx(Count, ...). }
+    { Add an item at the end of the list.
+      Just a shortcut for Insert(Count, Item). }
     procedure Add(Item: TObjectsListItem_2);
 
     procedure AddIfNotExists(Item: TObjectsListItem_2);
@@ -121,50 +119,52 @@
     procedure AddArray(const A: array of TObjectsListItem_2);
     procedure AddList(SecondList: TObjectsList_2);
 
-    { szuka zaczynajac od StartIndex obiektu Item , zwraca -1 jesli
-      nie znalazl. }
+    { Search the list for given Item, starting from StartIndex (default is to
+      search whole list). Returns -1 if not found. }
     function IndexOf(Item: TObjectsListItem_2; StartIndex: integer = 0): integer;
 
-    { usuwanie ------------------------------------------------------------ }
+    { Deleting --------------------------------------------------------------- }
 
     { }
     procedure Delete(Index: integer); overload;
 
-    { Robi IndexOf i Delete(integer), jezeli znalazl. Zwraca czy znalazl
-      (czyli czy zrobil Delete(integer)). }
-    function Delete(Item: TObjectsListItem_2): boolean; overload;
+    { Search the list for given Item, and if found --- remove it.
+      Removes only the first instance.
+      Returns the index of removed item (-1 if not found). }
+    function Remove(Item: TObjectsListItem_2): Integer; overload;
 
-    { DeleteAll robi Delete(integer) dopoki IndexOf znajduje.
-      Zwraca ile elementow usunal (czyli o ile zmalalo Count). }
-    function DeleteAll(Item: TObjectsListItem_2): integer;
+    { Remove all found instances of given Item.
+      Returns how many instances were removed (that is, how much Count
+      was decreased). }
+    function RemoveAll(Item: TObjectsListItem_2): integer;
 
-    { dla kazdego obiektu na liscie kasuje wszystkie jego nastepujace duplikaty }
+    { For each item of the list, delete all it's duplicates. }
     procedure DeleteDuplicates;
 
     { Equivalent to doing Count := 0 }
     procedure Clear;
 
-    { przesuwanie, zmienianie }
+    { Exchange (swap places) two list items. }
     procedure Exchange(index1, index2: integer);
+
+    { Move one list item to another index. Items in between will be
+      appropriately shifted by one (to the left or right). }
     procedure Move(oldIndex, newIndex: integer);
 
-    { zamieni wszystkie wystapienia OldItem na NewItem }
+    { Replace all OldItem instances with NewItem. }
     procedure ReplaceAll(OldItem, NewItem: TObjectsListItem_2);
 
     procedure SetAll(Item: TObjectsListItem_2);
 
-    { ------------------------------------------------------------
-      rzeczy ktore robia gdzies Free obiektom na liscie }
+    { Freeing list (items) --------------------------------------------------- }
 
     { }
     procedure FreeAndNil(Index: integer);
 
-    { robi jakby Clear tyle ze wszystkim wyrzucanym obiektom robi najpierw .Free.
-      Jesli nie masz pewnosci - upewnij sie najpierw ze na liscie nie ma
-      duplikatow przez DeleteDuplicates }
+    { Clears list, freeing all list items first.
+      Beware: this assumes that there are no duplicates (and, obviously,
+      only valid existing object instances). If unsure, see DeleteDuplicates. }
     procedure FreeContents; override;
-
-    {procedure FreeWithContents; in _Abstract}
 
     constructor Create;
 
@@ -172,8 +172,8 @@
       This is just a shortcut for Create + AddArray(InitialItems). }
     constructor CreateFromArray(const InitialItems: array of TObjectsListItem_2);
 
-    { Similiar to CreateFromArray: shortcut for
-      Create + AddList(InitialItems) }
+    { Inits list contents with InitialItems.
+      Similiar to CreateFromArray: shortcut for Create + AddList(InitialItems). }
     constructor CreateFromList(InitialItems: TObjectsList_2);
 
     destructor Destroy; override;
@@ -414,15 +414,13 @@ begin
  if Count <= Capacity div 2 then Capacity := Count;
 end;
 
-function TObjectsList_2.Delete(Item: TObjectsListItem_2): boolean;
-var Index: Integer;
+function TObjectsList_2.Remove(Item: TObjectsListItem_2): Integer;
 begin
- Index := IndexOf(Item);
- Result := Index >= 0;
- if Result then Delete(Index);
+ Result := IndexOf(Item);
+ if Result <> -1 then Delete(Result);
 end;
 
-function TObjectsList_2.DeleteAll(Item: TObjectsListItem_2): integer;
+function TObjectsList_2.RemoveAll(Item: TObjectsListItem_2): integer;
 var i: integer;
 begin
  result := 0;

@@ -351,7 +351,7 @@
       it will not be changed (SelectedIndex can be left as -1). }
     procedure Add(Item: TMenuItemRadio);
 
-    procedure Delete(Item: TMenuItemRadio);
+    procedure Remove(Item: TMenuItemRadio);
 
     { This is the only currently Checked item.
 
@@ -686,7 +686,7 @@ end;
 destructor TMenuItemRadio.Destroy;
 begin
   if FGroup.Count > 1 then
-    FGroup.Delete(Self) else
+    FGroup.Remove(Self) else
     FreeAndNil(FGroup);
 
   inherited;
@@ -732,7 +732,7 @@ begin
   begin
     { Remove item from it's previous group }
     if Item.FGroup.Count > 1 then
-      Item.FGroup.Delete(Item) else
+      Item.FGroup.Remove(Item) else
       SysUtils.FreeAndNil(Item.FGroup);
 
     inherited Add(Item);
@@ -748,11 +748,11 @@ begin
   end;
 end;
 
-procedure TMenuItemRadioGroup.Delete(Item: TMenuItemRadio);
+procedure TMenuItemRadioGroup.Remove(Item: TMenuItemRadio);
 begin
   if Selected = Item then
     FSelected := nil;
-  inherited Delete(Item);
+  inherited Remove(Item);
   Item.FGroup := nil;
 end;
 

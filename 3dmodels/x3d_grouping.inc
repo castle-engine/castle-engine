@@ -440,7 +440,7 @@ begin
     This seems to be undefined case in VRML 97? }
 
   for I := 0 to MF.Count - 1 do
-    FdChildren.Items.Delete(MF.Items[I]);
+    FdChildren.Items.Remove(MF.Items[I]);
 end;
 
 constructor TNodeGroup_2.Create(const ANodeName: string; const AWWWBasePath: string);

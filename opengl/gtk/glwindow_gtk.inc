@@ -1264,7 +1264,7 @@ end;
 
 procedure TGLWindow.CloseImplDepend;
 begin
- Glwm.AutoRedisplayList.Delete(Self);
+ Glwm.AutoRedisplayList.Remove(Self);
 
  {$ifdef GLWINDOW_GTK_1}
  if FullScreen and FullScreenUsingOverrideRedirect then
