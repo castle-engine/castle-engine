@@ -4678,7 +4678,7 @@ begin
 
       FProcessEvents := Value;
 
-      RenderState.OnCameraChanged.DeleteFirstEqual(@CameraChanged);
+      RenderState.OnCameraChanged.Remove(@CameraChanged);
     end;
   end;
 end;

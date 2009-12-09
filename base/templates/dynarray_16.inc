@@ -220,21 +220,23 @@
     function Equal(const Arr: array of TDynArrayItem_16): boolean; overload;
     function Equal(const Arr: array of TDynArrayItem_16; ArrCount: Integer): boolean; overload;
 
-    { Returns -1 if not found }
+    { Search for given item, starting from StartIndex (default is to
+      search whole list). Returns -1 if not found. }
     function IndexOf(const Item: TDynArrayItem_16; StartIndex: Integer = 0): Integer;
 
-    { Returns -1 if not found, searches within
-      Items[BeginIndex] .. Items[EndIndex].
+    { Search for given item, returns -1 if not found.
+      Searches within array range Items[BeginIndex] .. Items[EndIndex].
       BeginIndex may be < 0 and EndIndex may be > High, it doesn't matter,
       the range will be "clamped" as it should. }
     function IndexInRange(const Item: TDynArrayItem_16;
       BeginIndex, EndIndex: Integer): Integer;
 
-    { Searches for and deletes first item equal to Value. }
-    procedure DeleteFirstEqual(const Value: TDynArrayItem_16);
+    { Searches for and deletes the first item equal to Value.
+      Returns the index of removed item (-1 if not found). }
+    function Remove(const Value: TDynArrayItem_16): Integer;
 
     { Searches for and deletes all items equal to Value. }
-    procedure DeleteAllEqual(const Value: TDynArrayItem_16);
+    procedure RemoveAll(const Value: TDynArrayItem_16);
 
     { If the Item is not already present in the array (checked like IndexOf)
       then add this item (like by AppendItem). }
@@ -243,7 +245,10 @@
     procedure DeleteDuplicates;
     {$endif}
 
-    { Just like Delete from Pascal's RTL on strings:
+    { Delete items from the array, starting from given the Index.
+      By default DelCount is 1, so it simply removes one item.
+
+      This can be used like Delete from Pascal's RTL on strings:
       deletes Count items starting from position Index.
       Length of array will be decreased by Count items,
       and the last items of array will be shifted to the left to take
@@ -254,7 +259,7 @@
       then nothing will be removed. And if DelCount items from
       Index would be larger than Count then DelCount will be corrected
       to be smaller. }
-    procedure Delete(Index, DelCount: integer);
+    procedure Delete(const Index: Integer; DelCount: Integer = 1);
 
     { Inserts Item at position Index into array.
       Index must be in range 0 .. Count (yes, we can @noAutoLink(insert)
@@ -495,16 +500,13 @@ begin
  Result := -1;
 end;
 
-procedure TDynArray_16.DeleteFirstEqual(const Value: TDynArrayItem_16);
-var
-  I: Integer;
+function TDynArray_16.Remove(const Value: TDynArrayItem_16): Integer;
 begin
-  I := IndexOf(Value);
-  if I <> -1 then
-    Delete(I, 1);
+  Result := IndexOf(Value);
+  if Result <> -1 then Delete(Result);
 end;
 
-procedure TDynArray_16.DeleteAllEqual(const Value: TDynArrayItem_16);
+procedure TDynArray_16.RemoveAll(const Value: TDynArrayItem_16);
 var
   I: Integer;
 begin
@@ -537,7 +539,7 @@ begin
     repeat
       Index := IndexOf(Items[I], Index);
       if Index = -1 then Break;
-      Delete(Index, 1);
+      Delete(Index);
     until false;
 
     Inc(I);
@@ -545,7 +547,7 @@ begin
 end;
 {$endif}
 
-procedure TDynArray_16.Delete(Index, DelCount: integer);
+procedure TDynArray_16.Delete(const Index: Integer; DelCount: Integer);
 var i: integer;
 begin
  { Make sure Index and DelCount are sensible first }

@@ -7596,12 +7596,12 @@ procedure TVRMLRoute.UnsetEnding(
   RemoveFromDestructionNotification: boolean);
 begin
   if (Event <> nil) and (not DestEnding) then
-    Event.OnReceive.DeleteFirstEqual(@EventReceive);
+    Event.OnReceive.Remove(@EventReceive);
 
   if Node <> nil then
   begin
     if RemoveFromDestructionNotification then
-      Node.DestructionNotifications.DeleteFirstEqual(@DestructionNotification);
+      Node.DestructionNotifications.Remove(@DestructionNotification);
     Node := nil;
   end;
 
@@ -8656,7 +8656,7 @@ end;
 
 destructor TNodeNameBinding.Destroy;
 begin
-  AnyNodeDestructionNotifications.DeleteFirstEqual(@DestructionNotification);
+  AnyNodeDestructionNotifications.Remove(@DestructionNotification);
   inherited;
 end;
 

@@ -2315,7 +2315,7 @@ begin
     begin
       if ExposedEventsLinked then
         FExposedEvents[true].OnReceive.AppendItem(@ExposedEventReceive) else
-        FExposedEvents[true].OnReceive.DeleteFirstEqual(@ExposedEventReceive);
+        FExposedEvents[true].OnReceive.Remove(@ExposedEventReceive);
     end;
   end;
 end;
@@ -2353,7 +2353,7 @@ begin
     end else
     begin
       if ExposedEventsLinked then
-        FExposedEvents[true].OnReceive.DeleteFirstEqual(@ExposedEventReceive);
+        FExposedEvents[true].OnReceive.Remove(@ExposedEventReceive);
 
       FreeAndNil(FExposedEvents[false]);
       FreeAndNil(FExposedEvents[true]);

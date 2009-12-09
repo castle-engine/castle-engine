@@ -2709,9 +2709,9 @@ begin
           UniformEvent := IDecls.Items[J].Event;
 
           if (UniformField <> nil) and UniformField.Exposed then
-            UniformField.ExposedEvents[false].OnReceive.DeleteFirstEqual(@EventReceiveGLSLUniform) else
+            UniformField.ExposedEvents[false].OnReceive.Remove(@EventReceiveGLSLUniform) else
           if (UniformEvent <> nil) and UniformEvent.InEvent then
-            UniformEvent.OnReceive.DeleteFirstEqual(@EventReceiveGLSLUniform);
+            UniformEvent.OnReceive.Remove(@EventReceiveGLSLUniform);
         end;
 
         FreeAndNil(GLSLProgramCache^.GLSLProgram);

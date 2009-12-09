@@ -931,7 +931,7 @@ begin
     Assert(A.IndexOf(@M1.Foo) = 0);
     Assert(A.IndexOf(@M2.Foo) = 1);
     Assert(A.IndexOf(@M3.Foo) = 2);
-    A.DeleteFirstEqual(@M2.Foo);
+    A.Remove(@M2.Foo);
     Assert(A.IndexOf(@M1.Foo) = 0);
     Assert(A.IndexOf(@M2.Foo) = -1);
     Assert(A.IndexOf(@M3.Foo) = 1);
