@@ -4639,7 +4639,8 @@ var
   I: Integer;
 begin
   F := GLWin.Focus;
-  for I := 0 to GLWin.Controls.Count - 1 do
+  { draw controls in "downto" order, back to front }
+  for I := GLWin.Controls.Count - 1 downto 0 do
   begin
     C := GLWin.Controls[I];
 
