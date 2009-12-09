@@ -2481,7 +2481,6 @@ type
     FUseControls: boolean;
     procedure SetNavigator(const Value: TNavigator);
     procedure SetCursorNonMouseLook(const Value: TGLWindowCursor);
-    function ReallyUseNavigator: boolean;
     function ReallyUseMouseLook: boolean;
     procedure ControlsVisibleChange(Sender: TObject);
   public
@@ -4362,11 +4361,6 @@ begin
   Result := nil;
 end;
 
-function TGLWindowNavigated.ReallyUseNavigator: boolean;
-begin
- result := Navigator <> nil;
-end;
-
 procedure TGLWindowNavigated.EventIdle;
 var
   I: Integer;
@@ -4533,9 +4527,7 @@ end;
 
 function TGLWindowNavigated.ReallyUseMouseLook: boolean;
 begin
-  Result := ReallyUseNavigator and
-    (Navigator is TWalkNavigator) and
-    TWalkNavigator(Navigator).MouseLook;
+  Result := (Navigator <> nil) and Navigator.MouseLook;
 end;
 
 procedure TGLWindowNavigated.SetCursorNonMouseLook(
@@ -4573,9 +4565,8 @@ begin
   F := Focus; { control in Focus is always Enabled, no need to check it }
   if F <> nil then
   begin
-    { Handling MouseMove for TWalkNavigator mouse look is a special case,
-      we have to do some additional work here. }
-    if (F = Navigator) and ReallyUseMouseLook then
+    { Handling mouse look = true requires special treatment here. }
+    if F.MouseLook then
     begin
       MiddleScreenWidth := Width div 2;
       MiddleScreenHeight := Height div 2;
@@ -4609,12 +4600,12 @@ begin
         MiddleScreenWidth and MiddleScreenHeight. This way we know that
         this is good move, that qualifies to perform mouse move.
 
-        And inside, TWalkNavigator.MouseMove can calculate the difference
+        And inside, F.MouseMove can calculate the difference
         by subtracing new - old position, knowing that old = middle this
         will always be Ok. }
       if (MouseX = MiddleScreenWidth) and
          (MouseY = MiddleScreenHeight) then
-        Handled := TWalkNavigator(Navigator).MouseMove(
+        Handled := F.MouseMove(
           MouseX, MouseY, NewX, NewY, MousePressed, @KeysDown);
 
       { I check the condition below to avoid calling SetMousePosition,

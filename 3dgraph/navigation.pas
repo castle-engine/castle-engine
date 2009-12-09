@@ -575,7 +575,6 @@ type
 
     FMinAngleRadFromGravityUp: Single;
 
-    FMouseLook: boolean;
     FMouseLookHorizontalSensitivity: Single;
     FMouseLookVerticalSensitivity: Single;
 
@@ -1005,23 +1004,6 @@ type
     property MinAngleRadFromGravityUp: Single
       read FMinAngleRadFromGravityUp write FMinAngleRadFromGravityUp
       default DefaultMinAngleRadFromGravityUp;
-
-    { If true, then player is able to rotate the view (horizontally
-      and vertically, equivalent to Input_LeftRot, Input_RightRot,
-      Input_UpRotate, Input_DownRotate) by moving the mouse.
-
-      You have to call MouseMove of this object to achieve this.
-      Also note that there are things that you have to take care
-      of yourself when enabling this property:
-      @unorderedList(
-        @item(After calling MouseMove you should reposition your mouse
-          at the middle of your window (or the screen), to avoid the situation
-          when mouse movement is blocked by screen borders.)
-        @item(You usually will want to hide the mouse cursor, as showing
-          it always bouncing at the middle of the window/screen
-          doesn't look sensible.)
-      ) }
-    property MouseLook: boolean read FMouseLook write FMouseLook default false;
 
     { These control mouse look sensitivity.
       They say how much angle change is produced by 1 pixel change

@@ -47,6 +47,7 @@ type
   private
     FExclusiveEvents: boolean;
     FOnVisibleChange: TNotifyEvent;
+    FMouseLook: boolean;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -154,6 +155,22 @@ type
 
       @seeAlso TGLWindow.AllowSuspendForInput }
     function AllowSuspendForInput: boolean; virtual;
+
+    { This indicates that control wants to use mouse look mode.
+      The window containing such control should then hide the
+      mouse cursor, and force mouse position to the middle of the window
+      (to avoid the situation when mouse movement is blocked by screen borders).
+      The idea is that your MouseMove is not interested in mouse
+      positions anymore (in fact, user cannot choose mouse position
+      since we hide the mouse from him), but we're interested in relative
+      mouse movements (whether user drags mouse up, down, left, right etc.).
+
+      Note that actually making the muse look useful requires some support
+      from the descendant. Although this property is available for all
+      TUIControl instances, in fact it makes sense to set it @true only for
+      specific classes. For now, only TWalkNavigator actually handles this
+      sensibly, doing usual "mouse look" navigation mode popular in FPS games. }
+    property MouseLook: boolean read FMouseLook write FMouseLook default false;
   end;
 
   TUIControlList = class(TKamObjectList)
