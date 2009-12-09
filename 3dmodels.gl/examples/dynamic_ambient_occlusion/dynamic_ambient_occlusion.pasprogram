@@ -986,7 +986,6 @@ begin
       (so gravity will make you fall down forever...) }
     if Glw.Navigator is TWalkNavigator then
       TWalkNavigator(Glw.Navigator).Gravity := false;
-    Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
 
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;

@@ -353,7 +353,6 @@ begin
 
     { init Glw.Navigator }
     Glw.Navigator := TExamineNavigator.Create(Glw);
-    Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
     Glw.ExamineNav.Init(Shape.BoundingBox);
 
     { to get quickier FPS update }

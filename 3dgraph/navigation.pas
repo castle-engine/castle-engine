@@ -41,7 +41,6 @@ const
 type
   { }
   TNavigator = class;
-  TNavigatorNotifyFunc = procedure (Navigator: TNavigator) of object;
 
   TInputShortcut = class;
   TInputShortcutChangedFunc = procedure (Shortcut: TInputShortcut) of object;
@@ -230,22 +229,17 @@ type
     Short guide how to use any descendant of this class in typical scenario:
 
     @orderedList(
-      @item(Create an instance of some class descendant from TNavigator,
-        supplying OnMatrixChanged callback (typicall a procedure that simply
-        does Glwin.PostRedisplay).)
+      @item(Create an instance of a class descendant from TNavigator.)
 
       @item(Define start properties of this class. Each TNavigator
         should have an @code(Init) method, these are designed to take
         a couple of the most critical configuration parameters.)
 
-      @item(Call navigator events when you receive them from the user.
-        For example, in your OnKeyDown callback, you want to call
-        @code(Navigator.KeyDown) passing the parameters of pressed key.
-        If your OnIdle callback you want to call @code(Navigator.Idle).
-
-        If you plan to use this with TGLWindow, then consider using
-        TGLWindowNavigated class, this will take care of passing events
-        to appropriate navigator calls.)
+      @item(Add this to the @link(TGLWindowNavigated.Controls) list or something
+        similar. This will automatically take care of passing
+        user input to navigator (KeyDown, MouseDown etc.),
+        calling Idle event, and also it will use our OnVisibleChange
+        event to redisplay the screen when navigator matrix will change.)
 
       @item(Call @code(glMultMatrix(Navigator.Matrix)) or
         @code(glLoadMatrix(Navigator.Matrix)) at the beginning of your
@@ -256,9 +250,8 @@ type
     example program in engine sources for simple demo how to use this class. }
   TNavigator = class(TUIControl)
   private
-    FOnMatrixChanged: TNavigatorNotifyFunc;
-    MatrixChangedSchedule: Cardinal;
-    IsMatrixChangedScheduled: boolean;
+    VisibleChangeSchedule: Cardinal;
+    IsVisibleChangeScheduled: boolean;
     FIgnoreAllInputs: boolean;
 
     { Private things related to frustum ---------------------------- }
@@ -271,47 +264,33 @@ type
   private
     FCameraRadius: Single;
   protected
-    { This is called always when @link(Matrix) changed.
-      Actually, when any
-      property (of this class or descendant) changed, for example even
-      changes to TWalkNavigator.MoveHorizontalSpeed result in matrix
-      changed event.
+    { Called always when some visible part of this control
+      changes. In the simplest case, this is used by the controls manager to
+      know when we need to redraw the control.
 
-      In this class this simply calls OnMatrixChanged (if assigned).
+      In case of the navigator class, we assume that changes
+      to the @link(TNavigator.Matrix), and other properties (for example even
+      changes to TWalkNavigator.MoveHorizontalSpeed), are "visible",
+      and they also result in this event. }
+    procedure VisibleChange; override;
 
-      It may also do some other internal things (e.g. recalculating
-      the frustum), so always call inherited when overriding this. }
-    procedure MatrixChanged; virtual;
+    { Mechanism to schedule VisibleChange calls.
 
-    { Mechanism to schedule MatrixChanged calls.
+      This mechanism allows to defer calling VisibleChange.
+      Idea: BeginVisibleChangeSchedule increases internal VisibleChangeSchedule
+      counter, EndVisibleChangeSchedule decreases it and calls
+      actual VisibleChange if counter is zero and some
+      ScheduleVisibleChange was called in between.
 
-      This mechanism allows to defer calling MatrixChanged.
-      Idea: BeginMatrixChangedSchedule increases internal MatrixChangedSchedule
-      counter, EndMatrixChangedSchedule decreases it and calls
-      actual MatrixChanged if counter is zero and some
-      ScheduleMatrixChanged was called in between.
-
-      When ScheduleMatrixChanged is called when counter is zero,
-      MatrixChanged is called immediately, so it's safe to always
-      use ScheduleMatrixChanged instead of direct MatrixChanged
+      When ScheduleVisibleChange is called when counter is zero,
+      VisibleChange is called immediately, so it's safe to always
+      use ScheduleVisibleChange instead of direct VisibleChange
       in this class. }
-    procedure BeginMatrixChangedSchedule;
-    procedure ScheduleMatrixChanged;
-    procedure EndMatrixChangedSchedule;
+    procedure BeginVisibleChangeSchedule;
+    procedure ScheduleVisibleChange;
+    procedure EndVisibleChangeSchedule;
   public
     constructor Create(AOwner: TComponent); override;
-
-    { Event called always when @link(Matrix) changed. Actually, when any
-      property (of this class or descendant) changed, for example even
-      changes to TWalkNavigator.MoveHorizontalSpeed result in matrix changed
-      event.
-
-      It may be @nil but usually you really want to react to matrix changes.
-      Be careful when writing this callback, any change of navigator
-      property may cause this, so be prepared to handle OnMatrixChanged
-      at every time. }
-    property OnMatrixChanged: TNavigatorNotifyFunc
-      read FOnMatrixChanged write FOnMatrixChanged;
 
     { Current camera matrix. You should multiply every 3D point of your
       scene by this matrix, which usually simply means that you should
@@ -1548,10 +1527,10 @@ end;
 
 { TNavigator ------------------------------------------------------------ }
 
-procedure TNavigator.MatrixChanged;
+procedure TNavigator.VisibleChange;
 begin
   RecalculateFrustum;
-  if Assigned(OnMatrixChanged) then OnMatrixChanged(Self);
+  inherited;
 end;
 
 constructor TNavigator.Create(AOwner: TComponent);
@@ -1560,28 +1539,28 @@ begin
   FProjectionMatrix := IdentityMatrix4Single;
 end;
 
-procedure TNavigator.BeginMatrixChangedSchedule;
+procedure TNavigator.BeginVisibleChangeSchedule;
 begin
-  { IsMatrixChangedScheduled = false always when MatrixChangedSchedule = 0. }
-  Assert((MatrixChangedSchedule <> 0) or (not IsMatrixChangedScheduled));
+  { IsVisibleChangeScheduled = false always when VisibleChangeSchedule = 0. }
+  Assert((VisibleChangeSchedule <> 0) or (not IsVisibleChangeScheduled));
 
-  Inc(MatrixChangedSchedule);
+  Inc(VisibleChangeSchedule);
 end;
 
-procedure TNavigator.ScheduleMatrixChanged;
+procedure TNavigator.ScheduleVisibleChange;
 begin
-  if MatrixChangedSchedule = 0 then
-    MatrixChanged else
-    IsMatrixChangedScheduled := true;
+  if VisibleChangeSchedule = 0 then
+    VisibleChange else
+    IsVisibleChangeScheduled := true;
 end;
 
-procedure TNavigator.EndMatrixChangedSchedule;
+procedure TNavigator.EndVisibleChangeSchedule;
 begin
-  Dec(MatrixChangedSchedule);
-  if (MatrixChangedSchedule = 0) and IsMatrixChangedScheduled then
+  Dec(VisibleChangeSchedule);
+  if (VisibleChangeSchedule = 0) and IsVisibleChangeScheduled then
   begin
-    MatrixChanged;
-    IsMatrixChangedScheduled := false;
+    VisibleChange;
+    IsVisibleChangeScheduled := false;
   end;
 end;
 
@@ -1623,9 +1602,9 @@ begin
   FModelBox := EmptyBox3d;
 
   { Set ScaleFactor, Rotations and other things to default values.
-    Don't notify here OnMatrixChanged, since we're just created
-    (so not calling OnMatrixChanged is safer solution, caller may
-    call OnMatrixChanged itself after creating our object). }
+    Don't notify here OnVisibleChange, since we're just created
+    (so not calling OnVisibleChange is safer solution, caller may
+    call OnVisibleChange itself after creating our object). }
   HomeNotNotify;
 
   for I := 0 to 2 do
@@ -1698,7 +1677,7 @@ begin
   ModsDown := ModifiersDown(KeysDown);
 
   { If given RotationsAnim component is zero, no need to change current Rotations.
-    What's more important, this avoids the need to call MatrixChanged,
+    What's more important, this avoids the need to call VisibleChange,
     so things like PostRedisplay will not be continously called when
     model doesn't rotate.
 
@@ -1725,7 +1704,7 @@ begin
 
     QuatLazyNormalizeTo1st(FRotations);
 
-    MatrixChanged;
+    VisibleChange;
   end;
 
   if IsEmptyBox3d(ModelBox) then
@@ -1769,20 +1748,20 @@ end;
 procedure TExamineNavigator.StopRotating;
 begin
   FRotationsAnim := ZeroVector3Single;
-  MatrixChanged;
+  VisibleChange;
 end;
 
 procedure TExamineNavigator.Rotate(coord: integer; const SpeedChange: Single);
 begin
   FRotationsAnim[coord] += SpeedChange;
-  MatrixChanged;
+  VisibleChange;
 end;
 
 procedure TExamineNavigator.Scale(const ScaleBy: Single);
-begin FScaleFactor *= ScaleBy; MatrixChanged; end;
+begin FScaleFactor *= ScaleBy; VisibleChange; end;
 
 procedure TExamineNavigator.Move(coord: integer; const MoveDistance: Single);
-begin FMoveAmount[coord] += MoveDistance; MatrixChanged; end;
+begin FMoveAmount[coord] += MoveDistance; VisibleChange; end;
 
 procedure TExamineNavigator.Init(const AModelBox: TBox3d; const ACameraRadius: Single);
 begin
@@ -1794,16 +1773,16 @@ end;
 { TExamineNavigator.Set* properties }
 
 procedure TExamineNavigator.SetRotationsAnim(const Value: TVector3Single);
-begin FRotationsAnim := Value; MatrixChanged; end;
+begin FRotationsAnim := Value; VisibleChange; end;
 
 procedure TExamineNavigator.SetRotations(const Value: TQuaternion);
-begin FRotations := Value; MatrixChanged; end;
+begin FRotations := Value; VisibleChange; end;
 
 procedure TExamineNavigator.SetScaleFactor(const Value: Single);
-begin FScaleFactor := Value; MatrixChanged; end;
+begin FScaleFactor := Value; VisibleChange; end;
 
 procedure TExamineNavigator.SetMoveAmount(const Value: TVector3Single);
-begin FMoveAmount := Value; MatrixChanged; end;
+begin FMoveAmount := Value; VisibleChange; end;
 
 procedure TExamineNavigator.HomeNotNotify;
 begin
@@ -1820,7 +1799,7 @@ end;
 procedure TExamineNavigator.Home;
 begin
   HomeNotNotify;
-  MatrixChanged;
+  VisibleChange;
 end;
 
 procedure TExamineNavigator.SetModelBox(const Value: TBox3d);
@@ -1829,7 +1808,7 @@ begin
   if IsEmptyBox3d(FModelBox) then
     FModelBoxMiddle := Vector3Single(0, 0, 0) { any dummy value } else
     FModelBoxMiddle := Box3dMiddle(FModelBox);
-  MatrixChanged;
+  VisibleChange;
 end;
 
 function TExamineNavigator.EventDown(MouseEvent: boolean; Key: TKey;
@@ -1945,7 +1924,7 @@ begin
     FRotations := QuatMultiply(
       QuatFromAxisAngle(Vector3Single(1, 0, 0), (NewY - OldY) / 100),
       FRotations);
-    MatrixChanged;
+    VisibleChange;
     Result := ExclusiveEvents;
   end else
 
@@ -1964,7 +1943,7 @@ begin
   begin
     Size := Box3dAvgSize(FModelBox);
     FMoveAmount[2] += Size * (NewY - OldY) / 200;
-    MatrixChanged;
+    VisibleChange;
     Result := ExclusiveEvents;
   end;
 
@@ -1976,7 +1955,7 @@ begin
     Size := Box3dAvgSize(FModelBox);
     FMoveAmount[0] -= Size * (OldX - NewX) / 200;
     FMoveAmount[1] -= Size * (NewY - OldY) / 200;
-    MatrixChanged;
+    VisibleChange;
     Result := ExclusiveEvents;
   end;
 end;
@@ -2201,7 +2180,7 @@ begin
  FCameraUp := RotatePointAroundAxisDeg(AngleDeg, CameraUp, Axis);
  FCameraDir := RotatePointAroundAxisDeg(AngleDeg, CameraDir, Axis);
 
- ScheduleMatrixChanged;
+ ScheduleVisibleChange;
 end;
 
 procedure TWalkNavigator.RotateAroundUp(const AngleDeg: Single);
@@ -2288,7 +2267,7 @@ begin
     DoRealRotate;
   end;
 
-  ScheduleMatrixChanged;
+  ScheduleVisibleChange;
 end;
 
 procedure TWalkNavigator.Idle(const CompSpeed: Single;
@@ -2304,7 +2283,7 @@ procedure TWalkNavigator.Idle(const CompSpeed: Single;
   begin
     Result := DoMoveAllowed(ProposedNewPos, NewPos, BecauseOfGravity);
     if Result then
-      { Note that setting CameraPos automatically calls ScheduleMatrixChanged }
+      { Note that setting CameraPos automatically calls ScheduleVisibleChange }
       CameraPos := NewPos;
   end;
 
@@ -2608,9 +2587,9 @@ var
             SqrFallingDownVectorLength). So why initing it again here ?
 
             Answer: Because Move above called MoveTo, that set CameraPos
-            that actually called ScheduleMatrixChanged that possibly
-            called OnMatrixChanged.
-            And OnMatrixChanged is used callback and user could do there
+            that actually called ScheduleVisibleChange that possibly
+            called OnVisibleChange.
+            And OnVisibleChange is used callback and user could do there
             things like
             - Changing FallingDownStartSpeed (but still it's unspecified
               whether we have to apply this change, right ?)
@@ -2711,7 +2690,7 @@ var
               Fde_CameraUpRotate := RandomPlusMinus *
                                     Fde_VerticalRotateDeviation * CompSpeed * 50;
 
-            ScheduleMatrixChanged;
+            ScheduleVisibleChange;
           end;
 
           { Note that when changing FFallingDownSpeed below I'm using CompSpeed * 50.
@@ -2753,7 +2732,7 @@ var
           Fde_CameraUpRotate := Min(Fde_CameraUpRotate + Change, 0.0) else
           Fde_CameraUpRotate := Max(Fde_CameraUpRotate - Change, 0.0);
 
-        ScheduleMatrixChanged;
+        ScheduleVisibleChange;
       end;
     end;
 
@@ -2980,9 +2959,9 @@ var
 
     CorrectCameraPreferredHeight;
 
-    { Why ScheduleMatrixChanged here? Reasoning the same as for
+    { Why ScheduleVisibleChange here? Reasoning the same as for
       MoveSpeedInc/Dec changes. }
-    ScheduleMatrixChanged;
+    ScheduleVisibleChange;
   end;
 
 var
@@ -2993,7 +2972,7 @@ begin
   HeadBobbingAlreadyDone := false;
   MoveHorizontalDone := false;
 
-  BeginMatrixChangedSchedule;
+  BeginVisibleChangeSchedule;
   try
     if not IgnoreAllInputs then
     begin
@@ -3038,7 +3017,7 @@ begin
           MoveVertical(-1);
 
         { zmiana szybkosci nie wplywa na Matrix (nie od razu). Ale wywolujemy
-          ScheduleMatrixChanged - zmienilismy swoje wlasciwosci, moze sa one np. gdzies
+          ScheduleVisibleChange - zmienilismy swoje wlasciwosci, moze sa one np. gdzies
           wypisywane w oknie na statusie i okno potrzebuje miec PostRedisplay po zmianie
           Move*Speed ?.
 
@@ -3055,14 +3034,14 @@ begin
         begin
           FMoveHorizontalSpeed *= Power(1.1, CompSpeed * 50);
           FMoveVerticalSpeed *= Power(1.1, CompSpeed * 50);
-          ScheduleMatrixChanged;
+          ScheduleVisibleChange;
         end;
 
         if Input_MoveSpeedDec.IsPressed(KeysDown, CharactersDown, MousePressed) then
         begin
           FMoveHorizontalSpeed /= Power(1.1, CompSpeed * 50);
           FMoveVerticalSpeed /= Power(1.1, CompSpeed * 50);
-          ScheduleMatrixChanged;
+          ScheduleVisibleChange;
         end;
       end else
       if ModsDown = [mkCtrl] then
@@ -3091,7 +3070,7 @@ begin
 
     GravityIdle;
   finally
-    EndMatrixChangedSchedule;
+    EndVisibleChangeSchedule;
   end;
 end;
 
@@ -3100,7 +3079,7 @@ begin
   { I don't set here CameraXxx properties, instead I actually directly set
     FCameraXxx fields. Reason:
 
-    1. Speed (this way it's enough to call ScheduleMatrixChanged only once).
+    1. Speed (this way it's enough to call ScheduleVisibleChange only once).
 
     2. Also remember that setting CameraDir and CameraUp properties is followed
        by adjustment of up vector (to be orthogonal to dir vector).
@@ -3114,7 +3093,7 @@ begin
   FCameraPos := InitialCameraPos;
   FCameraDir := InitialCameraDir;
   FCameraUp := InitialCameraUp;
-  ScheduleMatrixChanged;
+  ScheduleVisibleChange;
 end;
 
 procedure TWalkNavigator.Jump;
@@ -3173,7 +3152,7 @@ begin
 
       FCameraUp := GravityUp;
       FCameraDir := AnyPerpVector(FCameraUp);
-      ScheduleMatrixChanged;
+      ScheduleVisibleChange;
     end else
       CameraUp := GravityUp;
     Result := ExclusiveEvents;
@@ -3256,7 +3235,7 @@ begin
   if TransformCurrentCamera then
   begin
     { We change FCameraPos directly, not by SetCameraPos.
-      This is Ok, ScheduleMatrixChanged will be called anyway at the end. }
+      This is Ok, ScheduleVisibleChange will be called anyway at the end. }
     VectorAddTo1st(FCameraPos,
       VectorSubtract(AInitialCameraPos, FInitialCameraPos));
 
@@ -3273,7 +3252,7 @@ begin
       Orientation := QuatMultiply(NewInitialOrientation, Orientation);
 
       { Now that we have Orientation, transform it into new FCameraDir/Up.
-        Like with FCameraPos above, we set them directly, ScheduleMatrixChanged
+        Like with FCameraPos above, we set them directly, ScheduleVisibleChange
         will be done below anyway. }
       FCameraDir := QuatRotate(Orientation, StdVRMLCamDir);
       FCameraUp  := QuatRotate(Orientation, StdVRMLCamUp);
@@ -3284,7 +3263,7 @@ begin
   FInitialCameraDir := AInitialCameraDir;
   FInitialCameraUp  := AInitialCameraUp;
 
-  ScheduleMatrixChanged;
+  ScheduleVisibleChange;
 end;
 
 procedure TWalkNavigator.SetInitialCameraLookAt(const AInitialCameraPos,
@@ -3299,21 +3278,21 @@ end;
 procedure TWalkNavigator.SetCameraPos(const Value: TVector3Single);
 begin
   FCameraPos := Value;
-  ScheduleMatrixChanged;
+  ScheduleVisibleChange;
 end;
 
 procedure TWalkNavigator.SetCameraDir(const Value: TVector3Single);
 begin
   FCameraDir := Value;
   MakeVectorsOrthoOnTheirPlane(FCameraUp, FCameraDir);
-  ScheduleMatrixChanged;
+  ScheduleVisibleChange;
 end;
 
 procedure TWalkNavigator.SetCameraUp(const Value: TVector3Single);
 begin
   FCameraUp := Value;
   MakeVectorsOrthoOnTheirPlane(FCameraDir, FCameraUp);
-  ScheduleMatrixChanged;
+  ScheduleVisibleChange;
 end;
 
 procedure TWalkNavigator.CorrectCameraPreferredHeight;

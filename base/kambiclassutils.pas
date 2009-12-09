@@ -705,8 +705,9 @@ type
       If NewItem is @nil, this simply removes the first found
       descendant of ReplaceClass.
 
-      Returns the replaced (or removed) old item. Or @nil, if none was found
-      (or there was @nil inside the list).
+      Returns the replaced (or removed) old item. It is removed from
+      the list just like the Extract method, so it's never freed.
+      Or @nil, if none was found (or there was @nil inside the list).
 
       The typical use scenario for this method is when NewItem is also
       a descendant from ReplaceClass, and you always keep at most one
@@ -721,10 +722,14 @@ type
     function MakeSingle(ReplaceClass: TClass; NewItem: TObject;
       AddBeginning: boolean = false): TObject;
 
-    { Delete first found descendant of RemoveClass.
-      Returns the removed item. Or @nil, if none was found
+    { Extract (remove from the list, but never free) given item index.
+      This is similar TObjectList.Extract, except it takes an index. }
+    function Extract(Index: Integer): TObject; overload;
+
+    { Extract (remove from the list, but never free) first found descendant of
+      RemoveClass. Returns the removed item. Or @nil, if none was found
       (or there was @nil inside the list and it got removed). }
-    function Delete(RemoveClass: TClass): TObject; overload;
+    function Extract(RemoveClass: TClass): TObject; overload;
   end;
 
 implementation
@@ -1673,7 +1678,7 @@ var
 begin
   if NewItem = nil then
   begin
-    Result := Delete(ReplaceClass);
+    Result := Extract(ReplaceClass);
     Exit;
   end;
 
@@ -1682,6 +1687,8 @@ begin
     begin
       Result := TObject(List^[I]);
       TObject(List^[I]) := NewItem;
+      Notify(Result, lnExtracted);
+      Notify(NewItem, lnAdded);
       Exit;
     end;
 
@@ -1691,15 +1698,27 @@ begin
     Insert(Count, NewItem);
 end;
 
-function TKamObjectList.Delete(RemoveClass: TClass): TObject;
+function TKamObjectList.Extract(Index: Integer): TObject;
+begin
+  Result := TObject(List^[Index]);
+
+  { Set to nil and then delete by index. This is a hack to prevent
+    TList implementation from making any notification about Result
+    delete/extraction. }
+  TObject(List^[Index]) := nil;
+  Delete(Index);
+
+  if Assigned(Result) then Notify(Result, lnExtracted);
+end;
+
+function TKamObjectList.Extract(RemoveClass: TClass): TObject;
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
     if TObject(List^[I]) is RemoveClass then
     begin
-      Result := TObject(List^[I]);
-      Delete(I);
+      Result := Extract(I);
       Exit;
     end;
 

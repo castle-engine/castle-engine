@@ -284,7 +284,6 @@ begin
     Glw.OnMenuCommand := @MenuCommand;
 
     Glw.Navigator := Scene.CreateNavigator(Glw);
-    Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
 
     Glw.OnInit := @Init;
     Glw.OnClose := @Close;

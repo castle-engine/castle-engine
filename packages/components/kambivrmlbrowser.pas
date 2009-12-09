@@ -82,7 +82,7 @@ type
     (file @code(../../3dmodels.gl/glwindowvrmlbrowser.pas)). }
   TKamVRMLBrowser = class(TKamOpenGLControl)
   private
-    FOnNavigatorChanged: TNavigatorNotifyFunc;
+    FOnNavigatorChanged: TNotifyEvent;
     FScene: TVRMLGLScene;
 
     AngleOfViewX, AngleOfViewY: Single;
@@ -96,7 +96,7 @@ type
       out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
 
     procedure ScenePostRedisplay(Scene: TVRMLScene);
-    procedure MatrixChanged(ANavigator: TNavigator);
+    procedure VisibleChange(ANavigator: TObject);
     procedure BoundViewpointChanged(Scene: TVRMLScene);
     procedure BoundViewpointVectorsChanged(Scene: TVRMLScene);
     procedure GeometryChanged(Scene: TVRMLScene;
@@ -157,7 +157,7 @@ type
       OpenGL 2D projection, which has 0,0 in lower-left corner). }
     property IgnoreAreas: TDynAreaArray read FIgnoreAreas;
   published
-    property OnNavigatorChanged: TNavigatorNotifyFunc
+    property OnNavigatorChanged: TNotifyEvent
       read FOnNavigatorChanged write FOnNavigatorChanged;
 
     { Should we make shadow volumes possible?
@@ -265,7 +265,7 @@ begin
 
   { init Navigator }
   Navigator := Scene.CreateNavigator(nil);
-  Navigator.OnMatrixChanged := @MatrixChanged;
+  Navigator.OnVisibleChange := @VisibleChange;
 
   if Navigator is TWalkNavigator then
   begin
@@ -509,9 +509,9 @@ begin
   Invalidate;
 end;
 
-procedure TKamVRMLBrowser.MatrixChanged(ANavigator: TNavigator);
+procedure TKamVRMLBrowser.VisibleChange(ANavigator: TObject);
 begin
-  { Navigator.OnMatrixChanged callback is initialized in constructor
+  { Navigator.OnVisibleChange callback is initialized in constructor
     before Scene is initialized. So to be on the safest side, we check
     here Scene <> nil. }
 

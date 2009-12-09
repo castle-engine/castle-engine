@@ -1234,11 +1234,9 @@ begin
 
   { init Glw.Navigator }
   Examiner := TExamineNavigator.Create(Glw);
-  Examiner.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
   Examiner.Init(SceneBoundingBox);
 
   Walker := TWalkNavigator.Create(Glw);
-  Walker.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
   Walker.Init(Vector3Single(0, 0, 10), Vector3Single(0, 0, -1),
     Vector3Single(0, 1, 0), Vector3Single(0, 1, 0),
     0.0, 0.0 { unused, we don't use Gravity here });

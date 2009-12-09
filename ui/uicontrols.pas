@@ -46,6 +46,7 @@ type
   TUIControl = class(TComponent)
   private
     FExclusiveEvents: boolean;
+    FOnVisibleChange: TNotifyEvent;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -126,6 +127,24 @@ type
       which is usually more sensible, but sometimes less functional. }
     property ExclusiveEvents: boolean
       read FExclusiveEvents write FExclusiveEvents default true;
+
+    { Called always when some visible part of this control
+      changes. In the simplest case, this is used by the controls manager to
+      know when we need to redraw the control.
+
+      In this class this simply calls OnVisibleChange (if assigned). }
+    procedure VisibleChange; virtual;
+
+    { Called always when some visible part of this control
+      changes. In the simplest case, this is used by the controls manager to
+      know when we need to redraw the control.
+
+      Be careful when handling this event, various changes may cause this,
+      so be prepared to handle OnVisibleChange at every time.
+
+      @seealso VisibleChange }
+    property OnVisibleChange: TNotifyEvent
+      read FOnVisibleChange write FOnVisibleChange;
   end;
 
   TUIControlList = class(TKamObjectList)
@@ -177,6 +196,12 @@ end;
 function TUIControl.PositionInside(const X, Y: Single): boolean;
 begin
   Result := false;
+end;
+
+procedure TUIControl.VisibleChange;
+begin
+  if Assigned(OnVisibleChange) then
+    OnVisibleChange(Self);
 end;
 
 { TUIControlList ------------------------------------------------------------- }

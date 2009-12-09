@@ -93,7 +93,7 @@ type
       out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
 
     procedure ScenePostRedisplay(Scene: TVRMLScene);
-    procedure MatrixChanged(ANavigator: TNavigator);
+    procedure VisibleChange(ANavigator: TObject);
     procedure BoundViewpointChanged(Scene: TVRMLScene);
     procedure BoundViewpointVectorsChanged(Scene: TVRMLScene);
     procedure GeometryChanged(Scene: TVRMLScene;
@@ -219,7 +219,7 @@ begin
 
   { init Navigator }
   Navigator := Scene.CreateNavigator(nil);
-  Navigator.OnMatrixChanged := @MatrixChanged;
+  Navigator.OnVisibleChange := @VisibleChange;
 
   if Navigator is TWalkNavigator then
   begin
@@ -430,9 +430,9 @@ begin
   PostRedisplay;
 end;
 
-procedure TGLWindowVRMLBrowser.MatrixChanged(ANavigator: TNavigator);
+procedure TGLWindowVRMLBrowser.VisibleChange(ANavigator: TObject);
 begin
-  { Navigator.OnMatrixChanged callback is initialized in constructor
+  { Navigator.OnVisibleChange callback is initialized in constructor
     before Scene is initialized. So to be on the safest side, we check
     here Scene <> nil. }
 

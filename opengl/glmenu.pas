@@ -507,19 +507,13 @@ type
       Note that this will not be called when you just set
       Value of some property.
 
-      In this class this just calls SomethingChanged. }
+      In this class this just calls VisibleChange. }
     procedure CurrentItemAccessoryValueChanged; virtual;
 
     { Called when CurrentItem changed.
       But *not* when CurrentItem changed because of Items.Count changes.
-      In this class this just calls SomethingChanged. }
+      In this class this just calls VisibleChange. }
     procedure CurrentItemChanged; virtual;
-
-    { Called when various things changed.
-      E.g. color of current item changed.
-      CurrentItemChanged also calls this.
-      Or some TGLMenuItemAccessory may call this when some value changed. }
-    procedure SomethingChanged; virtual;
 
     { Default value is DefaultCurrentItemBorderColor1 }
     property CurrentItemBorderColor1: TVector3Single
@@ -1587,7 +1581,7 @@ begin
 
   MenuAnimation += 0.5 * CompSpeed;
   MenuAnimation := Frac(MenuAnimation);
-  SomethingChanged;
+  VisibleChange;
 end;
 
 procedure TGLMenu.CurrentItemSelected;
@@ -1597,17 +1591,12 @@ end;
 
 procedure TGLMenu.CurrentItemChanged;
 begin
-  SomethingChanged;
+  VisibleChange;
 end;
 
 procedure TGLMenu.CurrentItemAccessoryValueChanged;
 begin
-  SomethingChanged;
-end;
-
-procedure TGLMenu.SomethingChanged;
-begin
-  { Nothing to do in this class. }
+  VisibleChange;
 end;
 
 procedure TGLMenu.SetDesignerMode(const Value: boolean);

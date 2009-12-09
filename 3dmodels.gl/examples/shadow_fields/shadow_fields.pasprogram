@@ -548,14 +548,11 @@ begin
     { initialize navigators }
 
     NavigatorAll := SceneReceiver.CreateNavigator(Glw);
-    NavigatorAll.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
 
     NavigatorCaster := TExamineNavigator.Create(Glw);
-    NavigatorCaster.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
     NavigatorCaster.ModelBox := SceneCaster.BoundingBox;
 
     NavigatorLocalLight := TExamineNavigator.Create(Glw);
-    NavigatorLocalLight.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
     NavigatorLocalLight.ModelBox := SceneLocalLight.BoundingBox;
 
     BoxSum := Box3dSum(SceneCaster.BoundingBox, SceneReceiver.BoundingBox);
@@ -573,7 +570,6 @@ begin
     NavigatorLocalLight.MoveAmount := V;
 
     NavigatorSFExplorer := TExamineNavigator.Create(Glw);
-    NavigatorSFExplorer.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
     { use SceneCaster.BoundingBox for light's box, this determines the speed
       of moving light source with mouse. }
     NavigatorSFExplorer.ModelBox := SceneCaster.BoundingBox;
@@ -591,7 +587,6 @@ begin
     NavigatorSFExplorer.MoveAmount := V;
 
     NavigatorEnvLight := TExamineNavigator.Create(Glw);
-    NavigatorEnvLight.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
     { use SceneCaster.BoundingBox for light's box, this determines the speed
       of moving light source with mouse. }
     NavigatorEnvLight.ModelBox := SceneCaster.BoundingBox;

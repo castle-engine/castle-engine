@@ -2451,6 +2451,15 @@ type
     All above applied to mouse / keyboard input. For idle "input"
     we just call this on every control (if UseControls).
 
+    We also use OnVisibleChange event of our controls to make
+    PostRedisplay when something visible changed. If you want to use
+    OnVisibleChange for other purposes, you can reassign OnVisibleChange
+    yourself. This window will only change OnVisibleChange from nil
+    to it's own internal callback (when adding a control),
+    and from it's own internal callback to nil (when removing a control).
+    This means that if you assign OnVisibleChange callback to your own
+    method --- window will not touch it anymore.
+
     TNavigator descendants have to be treated a little specially for now:
     although they descend from TUIControl, you cannot add them directly
     to the @link(Controls) list. Instead, you have to assign them
@@ -2471,6 +2480,7 @@ type
     procedure SetCursorNonMouseLook(const Value: TGLWindowCursor);
     function ReallyUseNavigator: boolean;
     function ReallyUseMouseLook: boolean;
+    procedure ControlsVisibleChange(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -2506,7 +2516,6 @@ type
 @longCode(#
   // TXxxNavigator may be e.g. TExamineNavigator or TWalkNavigator
   Glw.Navigator := TXxxNavigator.Create(Glw);
-  Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
   Glw.Navigator.Init(...);
 #))
 
@@ -2527,11 +2536,6 @@ type
     function ExamineNav: TExamineNavigator;
     function WalkNav: TWalkNavigator;
     { @groupEnd }
-
-    { Calls PostRediplay, suitable for callback of TNavigator.OnMatrixChanged.
-      This isn't used here anywhere, you can pass it as TNavigator.OnMatrixChanged
-      when creating TNavigator. }
-    procedure PostRedisplayOnMatrixChanged(ChangedNavigator: TNavigator);
 
     procedure EventInit; override;
     procedure EventKeyDown(Key: TKey; C: char); override;
@@ -4263,12 +4267,49 @@ begin
   FFpsCaptionUpdateInterval := DefaultFpsCaptionUpdateInterval;
 end;
 
-{ TGLWindowNavigated ------------------------------------------------------------------ }
+{ TWindowUIControlList ----------------------------------------------------- }
+
+type
+  { TUIControlList descendant that takes care to call
+    Window.ControlsVisibleChange when any member of this list
+    calls OnVisibleChange. }
+  TWindowUIControlList = class(TUIControlList)
+  private
+    Window: TGLWindowNavigated;
+  public
+    constructor Create(const FreeObjects: boolean; const AWindow: TGLWindowNavigated);
+    procedure Notify(Ptr: Pointer; Action: TListNotification); override;
+  end;
+
+constructor TWindowUIControlList.Create(const FreeObjects: boolean;
+  const AWindow: TGLWindowNavigated);
+begin
+  inherited Create(FreeObjects);
+  Window := AWindow;
+end;
+
+procedure TWindowUIControlList.Notify(Ptr: Pointer; Action: TListNotification);
+var
+  C: TUIControl absolute Ptr;
+begin
+  C := TUIControl(Ptr);
+  case Action of
+    lnAdded:
+      if C.OnVisibleChange = nil then
+        C.OnVisibleChange := @Window.ControlsVisibleChange;
+    lnExtracted, lnDeleted:
+      if C.OnVisibleChange = @Window.ControlsVisibleChange then
+        C.OnVisibleChange := nil;
+    else raise EInternalError.Create('TWindowUIControlList.Notify action?');
+  end;
+end;
+
+{ TGLWindowNavigated --------------------------------------------------------- }
 
 constructor TGLWindowNavigated.Create(AOwner: TComponent);
 begin
  inherited;
- FControls := TUIControlList.Create(false);
+ FControls := TWindowUIControlList.Create(false, Self);
  FUseControls := true;
 end;
 
@@ -4321,11 +4362,6 @@ end;
 function TGLWindowNavigated.ReallyUseNavigator: boolean;
 begin
  result := Navigator <> nil;
-end;
-
-procedure TGLWindowNavigated.PostRedisplayOnMatrixChanged(ChangedNavigator: TNavigator);
-begin
- PostRedisplay;
 end;
 
 procedure TGLWindowNavigated.EventIdle;
@@ -4582,6 +4618,11 @@ begin
   if Handled then Exit;
 
   inherited;
+end;
+
+procedure TGLWindowNavigated.ControlsVisibleChange(Sender: TObject);
+begin
+  PostRedisplay;
 end;
 
 { TGLWindowsList ------------------------------------------------------------ }

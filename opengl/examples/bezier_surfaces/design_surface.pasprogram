@@ -439,13 +439,13 @@ end;
 
 type
   TDummy = class
-    procedure MatrixChanged(ChangedNavigator: TNavigator);
+    procedure VisibleChange(ChangedNavigator: TObject);
   end;
 
 var
   Dummy: TDummy;
 
-procedure TDummy.MatrixChanged(ChangedNavigator: TNavigator);
+procedure TDummy.VisibleChange(ChangedNavigator: TObject);
 begin
   Glw.PostRedisplay;
 
@@ -619,7 +619,7 @@ begin
   Glw.MainMenu := CreateMainMenu;
 
   Glw.Navigator := TExamineNavigator.Create(Glw);
-  Glw.Navigator.OnMatrixChanged := @Dummy.MatrixChanged;
+  Glw.Navigator.OnVisibleChange := @Dummy.VisibleChange;
   Glw.ExamineNav.Init(Box3d(Vector3Single(0, 0, -1),
                              Vector3Single(1, 1,  1)));
   { conflicts with our MouseDown / MouseMove }

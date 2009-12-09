@@ -187,10 +187,6 @@ begin
     Elevation := Value;
     GLControlsVisible := Elevation is TElevationNoise;
 
-    { Since GLControls are drawn with "pulsating" current item,
-      we have to keep redrawing. }
-    Glw.AutoRedisplay := GLControlsVisible;
-
     if GLControlsVisible then
       Glw.Controls.MakeSingle(TGLMenu, GLControls, true { before navigator }) else
       Glw.Controls.Remove(GLControls);
@@ -275,7 +271,7 @@ begin
     3: (Elevation as TElevationNoise).Smoothness := SmoothnessSlider.Value;
     4: Subdivision := SubdivisionSlider.Value;
   end;
-  Glw.PostRedisplay;
+  inherited;
 end;
 
 procedure Init(Glwin: TGLWindow);
@@ -381,7 +377,6 @@ begin
 
   try
     Glw.Navigator := TExamineNavigator.Create(Glw);
-    Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
     Glw.ExamineNav.Init(Box3d(
       Vector3Single(        0,         0, -ScaleHeight),
       Vector3Single(ScaleSize, ScaleSize,  ScaleHeight)));

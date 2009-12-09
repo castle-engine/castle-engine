@@ -102,9 +102,6 @@ type
     function WalkNav: TWalkNavigator;
     { @groupEnd }
 
-    procedure PostRedisplayOnMatrixChanged(
-      ChangedNavigator: TNavigator);
-
     { Calculate a ray picked by WindowX, WindowY position on the window.
       Use this only when Navigator <> nil.
 
@@ -259,12 +256,6 @@ procedure TKamOpenGLControl.DoGLContextClose;
 begin
   if Assigned(OnGLContextClose) then
     OnGLContextClose(Self);
-end;
-
-procedure TKamOpenGLControl.PostRedisplayOnMatrixChanged(
-  ChangedNavigator: TNavigator);
-begin
-  Invalidate;
 end;
 
 procedure TKamOpenGLControl.ReleaseAllKeysAndMouse;

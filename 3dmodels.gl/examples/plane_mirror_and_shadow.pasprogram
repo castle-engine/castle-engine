@@ -579,7 +579,6 @@ begin
 
     { init Glw.Navigator }
     Glw.Navigator := TExamineNavigator.Create(Glw);
-    Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
     Glw.ExamineNav.Init(Scene.BoundingBox);
 
     Glw.MainMenu := CreateMainMenu;

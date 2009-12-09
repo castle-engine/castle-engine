@@ -671,7 +671,6 @@ begin
 
     { init ShadowCasterNav }
     ShadowCasterNav := TExamineNavigator.Create(Glw);
-    ShadowCasterNav.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
     ShadowCasterNav.ModelBox := ShadowCaster.BoundingBox;
 
     ShadowCasterNav.Inputs_Move[0, false].Key1 := K_A;
@@ -697,7 +696,6 @@ begin
 
     { init Glw.Navigator }
     Glw.Navigator := TWalkNavigator.Create(Glw);
-    Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
     Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
     VectorAdjustToLengthTo1st(CamDir, Box3dAvgSize(SceneBoundingBox)*0.02);
     Glw.WalkNav.Init(CamPos, CamDir, CamUp, GravityUp, 0.0, 0.0);

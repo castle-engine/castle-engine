@@ -62,7 +62,6 @@ end;
 begin
   { init Glw.Navigator }
   Glw.Navigator := TExamineNavigator.Create(Glw);
-  Glw.Navigator.OnMatrixChanged := @Glw.PostRedisplayOnMatrixChanged;
   Glw.ExamineNav.Init(Box3d(
     Vector3Single(-1, -1, -1),
     Vector3Single( 1,  1,  1)));
