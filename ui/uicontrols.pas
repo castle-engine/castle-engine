@@ -18,9 +18,7 @@ unit UIControls;
 
 interface
 
-{$define read_interface}
-
-uses SysUtils, Classes, KeysMouse, KambiUtils, KambiClassUtils;
+uses SysUtils, Classes, KeysMouse, KambiUtils, KambiClassUtils, Contnrs;
 
 type
   { Basic user interface control class. All controls derive from this class,
@@ -130,16 +128,15 @@ type
       read FExclusiveEvents write FExclusiveEvents default true;
   end;
 
-  TObjectsListItem_1 = TUIControl;
-  {$I objectslist_1.inc}
-  TUIControlsList = TObjectsList_1;
-
-{$undef read_interface}
+  TUIControlList = class(TKamObjectList)
+  private
+    function GetItem(const I: Integer): TUIControl;
+    procedure SetItem(const I: Integer; const Item: TUIControl);
+  public
+    property Items[I: Integer]: TUIControl read GetItem write SetItem; default;
+  end;
 
 implementation
-
-{$define read_implementation}
-{$I objectslist_1.inc}
 
 constructor TUIControl.Create(AOwner: TComponent);
 begin
@@ -180,6 +177,18 @@ end;
 function TUIControl.PositionInside(const X, Y: Single): boolean;
 begin
   Result := false;
+end;
+
+{ TUIControlList ------------------------------------------------------------- }
+
+function TUIControlList.GetItem(const I: Integer): TUIControl;
+begin
+  Result := TUIControl(inherited Items[I]);
+end;
+
+procedure TUIControlList.SetItem(const I: Integer; const Item: TUIControl);
+begin
+  (inherited Items[I]) := Item;
 end;
 
 end.

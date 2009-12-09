@@ -692,6 +692,41 @@ type
     property Capacity: Integer read GetCapacity write SetCapacity;
   end;
 
+{ ---------------------------------------------------------------------------- }
+
+  { Extended TObjectList for Kambi engine. }
+  TKamObjectList = class(TObjectList)
+  public
+    { Replace first found descendant of ReplaceClass with NewItem.
+      In case no descendant of ReplaceClass was found,
+      we'll we add NewItem to the list (depending on AddBeginning value:
+      at the beginning or at the end of the list).
+
+      If NewItem is @nil, this simply removes the first found
+      descendant of ReplaceClass.
+
+      Returns the replaced (or removed) old item. Or @nil, if none was found
+      (or there was @nil inside the list).
+
+      The typical use scenario for this method is when NewItem is also
+      a descendant from ReplaceClass, and you always keep at most one
+      ReplaceClass descendant on the list.
+      For example, you have UI controls list (like
+      TGLWindow.Controls), and you want your NewItem to be the only instance
+      of TGLMenu class inside.
+      Moreover, in case order on the list is important (for example on
+      TGLWindow.Controls order corresponds to screen depth --- what control
+      is under / above each other), you want to place NewItem at the same
+      position as previous TGLMenu instance, if any. }
+    function MakeSingle(ReplaceClass: TClass; NewItem: TObject;
+      AddBeginning: boolean = false): TObject;
+
+    { Delete first found descendant of RemoveClass.
+      Returns the removed item. Or @nil, if none was found
+      (or there was @nil inside the list and it got removed). }
+    function Delete(RemoveClass: TClass): TObject; overload;
+  end;
+
 implementation
 
 uses
@@ -1627,6 +1662,48 @@ end;
 procedure TKamObjectQueue.SetCapacity(const Value: Integer);
 begin
   List.Capacity := Value;
+end;
+
+{ TKamObjectList ------------------------------------------------------------- }
+
+function TKamObjectList.MakeSingle(ReplaceClass: TClass; NewItem: TObject;
+  AddBeginning: boolean): TObject;
+var
+  I: Integer;
+begin
+  if NewItem = nil then
+  begin
+    Result := Delete(ReplaceClass);
+    Exit;
+  end;
+
+  for I := 0 to Count - 1 do
+    if TObject(List^[I]) is ReplaceClass then
+    begin
+      Result := TObject(List^[I]);
+      TObject(List^[I]) := NewItem;
+      Exit;
+    end;
+
+  Result := nil;
+  if AddBeginning then
+    Insert(0, NewItem) else
+    Insert(Count, NewItem);
+end;
+
+function TKamObjectList.Delete(RemoveClass: TClass): TObject;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if TObject(List^[I]) is RemoveClass then
+    begin
+      Result := TObject(List^[I]);
+      Delete(I);
+      Exit;
+    end;
+
+  Result := nil;
 end;
 
 initialization

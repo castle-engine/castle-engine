@@ -2465,7 +2465,7 @@ type
   private
     FNavigator: TNavigator;
     FCursorNonMouseLook: TGLWindowCursor;
-    FControls: TUIControlsList;
+    FControls: TUIControlList;
     FUseControls: boolean;
     procedure SetNavigator(const Value: TNavigator);
     procedure SetCursorNonMouseLook(const Value: TGLWindowCursor);
@@ -2476,7 +2476,7 @@ type
     destructor Destroy; override;
 
     { Controls listening for user input (keyboard / mouse) to this window. }
-    property Controls: TUIControlsList read FControls;
+    property Controls: TUIControlList read FControls;
 
     property UseControls: boolean
       read FUseControls write FUseControls default true;
@@ -4268,7 +4268,7 @@ end;
 constructor TGLWindowNavigated.Create(AOwner: TComponent);
 begin
  inherited;
- FControls := TUIControlsList.Create;
+ FControls := TUIControlList.Create(false);
  FUseControls := true;
 end;
 

@@ -153,35 +153,6 @@
 
     procedure SetAll(Item: TObjectsListItem_1);
 
-    { Replace first found descendant of ReplaceClass with NewItem.
-      In case no descendant of ReplaceClass was found,
-      we'll we add NewItem to the list (depending on AddBeginning value:
-      at the beginning or at the end of the list).
-
-      If NewItem is @nil, this simply removes the first found
-      descendant of ReplaceClass.
-
-      Returns the replaced (or removed) old item. Or @nil, if none was found
-      (or there was @nil inside the list).
-
-      The typical use scenario for this method is when NewItem is also
-      a descendant from ReplaceClass, and you always keep at most one
-      ReplaceClass descendant on the list.
-      For example, you have UI controls list (like
-      TGLWindow.Controls), and you want your NewItem to be the only instance
-      of TGLMenu class inside.
-      Moreover, in case order on the list is important (for example on
-      TGLWindow.Controls order corresponds to screen depth --- what control
-      is under / above each other), you want to place NewItem at the same
-      position as previous TGLMenu instance, if any. }
-    function MakeSingle(ReplaceClass: TClass; NewItem: TObjectsListItem_1;
-      AddBeginning: boolean = false): TObjectsListItem_1;
-
-    { Delete first found descendant of RemoveClass.
-      Returns the removed item. Or @nil, if none was found
-      (or there was @nil inside the list and it got removed). }
-    function Delete(RemoveClass: TClass): TObjectsListItem_1; overload;
-
     { ------------------------------------------------------------
       rzeczy ktore robia gdzies Free obiektom na liscie }
 
@@ -535,46 +506,6 @@ var
 begin
   for I := 0 to Count - 1 do Items[I] := Item;
 {$endif}
-end;
-
-function TObjectsList_1.MakeSingle(ReplaceClass: TClass; NewItem: TObjectsListItem_1;
-  AddBeginning: boolean): TObjectsListItem_1;
-var
-  I: Integer;
-begin
-  if NewItem = nil then
-  begin
-    Result := Delete(ReplaceClass);
-    Exit;
-  end;
-
-  for I := 0 to Count - 1 do
-    if Arr^[I] is ReplaceClass then
-    begin
-      Result := TObjectsListItem_1(Arr^[I]);
-      Arr^[I] := NewItem;
-      Exit;
-    end;
-
-  Result := nil;
-  if AddBeginning then
-    Insert(0, NewItem) else
-    Insert(Count, NewItem);
-end;
-
-function TObjectsList_1.Delete(RemoveClass: TClass): TObjectsListItem_1;
-var
-  I: Integer;
-begin
-  for I := 0 to Count - 1 do
-    if Arr^[I] is RemoveClass then
-    begin
-      Result := TObjectsListItem_1(Arr^[I]);
-      Delete(I);
-      Exit;
-    end;
-
-  Result := nil;
 end;
 
 procedure TObjectsList_1.FreeAndNil(Index: integer);

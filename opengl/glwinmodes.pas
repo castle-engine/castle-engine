@@ -85,7 +85,7 @@ type
     oldClose_charkey: char;
     oldFpsShowOnCaption: boolean;
     { TGLWindowNavigated attributes } { }
-    OldControls: TUIControlsList;
+    OldControls: TUIControlList;
     OldNavigator: TNavigator;
     OldUseControls: boolean;
 
@@ -350,7 +350,7 @@ uses KambiUtils, GLImages;
 constructor TGLWindowState.Create(Glwin: TGLWindow);
 begin
   inherited Create;
-  OldControls := TUIControlsList.Create;
+  OldControls := TUIControlList.Create(false);
   GetState(Glwin);
 end;
 

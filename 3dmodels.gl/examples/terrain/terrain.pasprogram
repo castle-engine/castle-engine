@@ -193,7 +193,7 @@ begin
 
     if GLControlsVisible then
       Glw.Controls.MakeSingle(TGLMenu, GLControls, true { before navigator }) else
-      Glw.Controls.Delete(GLControls);
+      Glw.Controls.Remove(GLControls);
   end;
 end;
 
@@ -295,7 +295,7 @@ end;
 
 procedure Close(Glwin: TGLWindow);
 begin
-  Glw.Controls.Delete(GLControls);
+  Glw.Controls.Remove(GLControls);
   FreeAndNil(GLControls);
   GLMenuCloseGL;
 end;
