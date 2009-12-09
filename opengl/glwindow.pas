@@ -2540,7 +2540,7 @@ type
     { @groupEnd }
 
     procedure EventInit; override;
-    procedure EventKeyDown(Key: TKey; C: char); override;
+    procedure EventKeyDown(Key: TKey; Ch: char); override;
     procedure EventIdle; override;
     procedure EventMouseDown(Button: TMouseButton); override;
     procedure EventMouseUp(Button: TMouseButton); override;
@@ -4391,18 +4391,18 @@ begin
   inherited;
 end;
 
-procedure TGLWindowNavigated.EventKeyDown(Key: TKey; C: char);
+procedure TGLWindowNavigated.EventKeyDown(Key: TKey; Ch: char);
 var
-  L: TUIControl;
+  C: TUIControl;
   I: Integer;
 begin
   if UseControls then
   begin
     for I := 0 to Controls.Count - 1 do
     begin
-      L := Controls.Items[I];
-      if L.PositionInside(MouseX, MouseY) then
-        if L.KeyDown(Key, C, @KeysDown) then Exit;
+      C := Controls.Items[I];
+      if C.PositionInside(MouseX, MouseY) then
+        if C.KeyDown(Key, Ch, @KeysDown) then Exit;
     end;
   end;
 
@@ -4411,16 +4411,16 @@ end;
 
 procedure TGLWindowNavigated.EventMouseDown(Button: TMouseButton);
 var
-  L: TUIControl;
+  C: TUIControl;
   I: Integer;
 begin
   if UseControls then
   begin
     for I := 0 to Controls.Count - 1 do
     begin
-      L := Controls.Items[I];
-      if L.PositionInside(MouseX, MouseY) then
-        if L.MouseDown(MouseX, MouseY, Button, MousePressed) then Exit;
+      C := Controls.Items[I];
+      if C.PositionInside(MouseX, MouseY) then
+        if C.MouseDown(MouseX, MouseY, Button, MousePressed) then Exit;
     end;
   end;
 
@@ -4429,16 +4429,16 @@ end;
 
 procedure TGLWindowNavigated.EventMouseUp(Button: TMouseButton);
 var
-  L: TUIControl;
+  C: TUIControl;
   I: Integer;
 begin
   if UseControls then
   begin
     for I := 0 to Controls.Count - 1 do
     begin
-      L := Controls.Items[I];
-      if L.PositionInside(MouseX, MouseY) then
-        if L.MouseUp(MouseX, MouseY, Button, MousePressed) then Exit;
+      C := Controls.Items[I];
+      if C.PositionInside(MouseX, MouseY) then
+        if C.MouseUp(MouseX, MouseY, Button, MousePressed) then Exit;
     end;
   end;
 
