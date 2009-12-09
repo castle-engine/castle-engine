@@ -37,7 +37,7 @@
         <PackageName Value="kambi_glwindow"/>
       </Item1>
       <Item2>
-        <PackageName Value="kambi_units"/>
+        <PackageName Value="kambi_base"/>
       </Item2>
     </RequiredPackages>
     <Units Count="3">

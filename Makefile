@@ -314,11 +314,11 @@ clean: cleanexamples
 	                   -iname '*.dcu' -or -iname '*.dpu' ')' \
 	     -print \
 	     | xargs rm -f
-	rm -Rf packages/unix/lib/ packages/unix/kambi_units.pas \
-	  packages/unix/kambi_glwindow.pas \
-	  packages/unix/kambi_glwindow_navigated.pas \
-	  packages/windows/lib/ packages/windows/kambi_units.pas \
-	  packages/components/lib/ packages/components/kambi_components.pas \
+	rm -Rf packages/lib/ \
+	  packages/kambi_base.pas \
+	  packages/kambi_glwindow.pas \
+	  packages/kambi_glwindow_navigated.pas \
+	  packages/kambi_components.pas \
 	  tests/test_kambi_units tests/test_kambi_units.exe
 	$(MAKE) -C doc/pasdoc/ clean
 

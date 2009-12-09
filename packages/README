@@ -38,10 +38,10 @@ Mini-FAQ about these packages:
 
   Usually, no. Unless you also install kambi_components package (see section below),
   in which case installing kambi_components will require installing also
-  kambi_units package.
+  kambi_base package.
 
   If you don't want kambi_components, then there's no point in installing
-  kambi_units package (kambi_units doesn't register any components etc.).
+  kambi_base package (kambi_base doesn't register any components etc.).
 
   For kambi_glwindow_* packages: you even *should not* install them in Lazarus.
   These packages use GLWindow unit, and merely using this unit
@@ -57,7 +57,7 @@ II. Package with components (components/kambi_components package):
 
 This is a "normal" Lazarus package, which means that it registers
 some Lazarus components (that use my units), and you're supposed to just
-install this package in Lazarus. This also automatically installs kambi_units
+install this package in Lazarus. This also automatically installs kambi_base
 package --- that's OK.
 
 See ../3dmodels.gl/examples/lazarus_vrml_browser/

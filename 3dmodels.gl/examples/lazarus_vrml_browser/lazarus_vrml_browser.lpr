@@ -8,7 +8,7 @@ uses
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
   Forms
-  { add your units here }, mainf, LazOpenGLContext, kambi_units,
+  { add your units here }, mainf, LazOpenGLContext, kambi_base,
   kambi_components, OpenGLInformation, vrmlconsolef;
 
 begin

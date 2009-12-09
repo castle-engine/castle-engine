@@ -30,7 +30,7 @@ uses
   TestSpaceFillingCurves,
   TestObjectsList,
   {$ifndef TEXT_RUNNER}
-  kambi_units,
+  kambi_base,
   {$endif}
   TestKambiStringUtils,
   TestKambiScript,

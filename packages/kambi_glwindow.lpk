@@ -111,7 +111,7 @@ This package cannot be installed under Lazarus, it's only for being used in othe
     </Files>
     <RequiredPkgs Count="2">
       <Item1>
-        <PackageName Value="kambi_units"/>
+        <PackageName Value="kambi_base"/>
       </Item1>
       <Item2>
         <PackageName Value="FCL"/>

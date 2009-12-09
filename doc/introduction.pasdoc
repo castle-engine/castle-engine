@@ -57,7 +57,7 @@ Here it is:
 @orderedList(
   @item(
     If you use Lazarus, the most comfortable way to use my units
-    in your programs is probably by using Lazarus kambi_units package,
+    in your programs is probably by using Lazarus kambi_base package,
     see @code(kambi_vrml_game_engine/packages/README) in sources.)
 
   @item(
