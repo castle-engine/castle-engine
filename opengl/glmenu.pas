@@ -495,6 +495,7 @@ type
       CharactersDown: PCharactersBooleans;
       const MousePressed: TMouseButtons); override;
     function PositionInside(const X, Y: Single): boolean; override;
+    function AllowSuspendForInput: boolean; override;
 
     { Called when user will select CurrentItem, either with mouse
       or with keyboard. }
@@ -1582,6 +1583,11 @@ begin
   MenuAnimation += 0.5 * CompSpeed;
   MenuAnimation := Frac(MenuAnimation);
   VisibleChange;
+end;
+
+function TGLMenu.AllowSuspendForInput: boolean;
+begin
+  Result := false;
 end;
 
 procedure TGLMenu.CurrentItemSelected;

@@ -416,6 +416,7 @@ type
       KeysDown: PKeysBooleans;
       CharactersDown: PCharactersBooleans;
       const MousePressed: TMouseButtons); override;
+    function AllowSuspendForInput: boolean; override;
     function KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean; override;
     function MouseDown(const MouseX, MouseY: Single;
       Button: TMouseButton; const MousePressed: TMouseButtons): boolean; override;
@@ -649,6 +650,7 @@ type
       KeysDown: PKeysBooleans;
       CharactersDown: PCharactersBooleans;
       const MousePressed: TMouseButtons); override;
+    function AllowSuspendForInput: boolean; override;
     function KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean; override;
 
     { This is used by @link(DoMoveAllowed), see there for description. }
@@ -1743,6 +1745,11 @@ begin
     if Input_ScaleSmaller.IsPressed(KeysDown, CharactersDown, MousePressed) then
       Scale(Power(1 / scale_change, CompSpeed));
   end;
+end;
+
+function TExamineNavigator.AllowSuspendForInput: boolean;
+begin
+  Result := false;
 end;
 
 procedure TExamineNavigator.StopRotating;
@@ -3123,6 +3130,11 @@ begin
 
   FIsJumping := true;
   FJumpHeight := 0.0;
+end;
+
+function TWalkNavigator.AllowSuspendForInput: boolean;
+begin
+  Result := false;
 end;
 
 function TWalkNavigator.EventDown(MouseEvent: boolean; Key: TKey;

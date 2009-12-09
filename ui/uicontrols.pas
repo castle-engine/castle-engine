@@ -145,6 +145,15 @@ type
       @seealso VisibleChange }
     property OnVisibleChange: TNotifyEvent
       read FOnVisibleChange write FOnVisibleChange;
+
+    { Allow window containing this control to suspend waiting for user input.
+      Typically you want to override this to return @false when you do
+      something in the overridden @link(Idle) method.
+
+      In this class, this simply returns always @true.
+
+      @seeAlso TGLWindow.AllowSuspendForInput }
+    function AllowSuspendForInput: boolean; virtual;
   end;
 
   TUIControlList = class(TKamObjectList)
@@ -202,6 +211,11 @@ procedure TUIControl.VisibleChange;
 begin
   if Assigned(OnVisibleChange) then
     OnVisibleChange(Self);
+end;
+
+function TUIControl.AllowSuspendForInput: boolean;
+begin
+  Result := true;
 end;
 
 { TUIControlList ------------------------------------------------------------- }

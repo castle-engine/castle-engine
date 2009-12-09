@@ -19,12 +19,12 @@ private
     narysuje COKOLWIEK; podobnie Windows, dlatego redisplayPosted jest w
     Init inicjowane na false. }
   redisplayPosted: boolean;
-  
+
   { w GLWindow_winsystem implementuje sie InitImplDepend ktore
     wywoluje swoja inicjalizacje a potem wywoluje InitWinSystemDepend
     ktore powinno byc zdefiniowane w GLWindow_xlib i _winapi. }
   procedure InitWinSystemDepend;
-  
+
   { FlushRedisplay2 works exactly like FlushRedisplay, but additionally
     it returns czy rzeczywiscie zaszlo odswiezenie (true)
     czy tez nie wykryto takiej potrzeby (nie bylo zaleglego PostRedisplay
@@ -38,17 +38,17 @@ private
   quitPosted: boolean;
 
   { This implements the same function as Result := ProcessMessage(AllowSuspend);
-    but additionally returns under WasAnyMessage was there any message 
+    but additionally returns under WasAnyMessage was there any message
     processed.
-    
+
     If AllowSuspend then always WasAnyMessage = true (but no, you should
-    not depend on it as long as possible; however, it's still private 
+    not depend on it as long as possible; however, it's still private
     inside GLWindow_winsystem so if you HAVE to you can depend on it).
     So value WasAnyMessage is really usable to you only when you pass
     AllowSuspend = false.
-    
+
     This ProcessMessage2 is useful to implement ProcessAllMessages.
-    ActuallyProcessMessage is implemented using ProcessMessage2 
+    ActuallyProcessMessage is implemented using ProcessMessage2
     (and simply ignoring WasAnyMessage). }
   function ProcessMessage2(AllowSuspend: boolean; var WasAnyMessage: boolean): boolean;
 {$endif read_tglwindowmanager_interface}
@@ -107,12 +107,12 @@ end;
 { TGLWindowsManager ---------------------------------------------------------- }
 
 function TGLWindowsManager.ProcessAllMessages: boolean;
-var WasAnyMessage: boolean; 
+var WasAnyMessage: boolean;
 begin
  repeat
   result := ProcessMessage2(false, WasAnyMessage);
   if (not result) or (not WasAnyMessage) then break;
- until false; 
+ until false;
 end;
 
 function TGLWindowsManager.ProcessMessage(AllowSuspend: boolean): boolean;
@@ -121,23 +121,23 @@ begin
  result := ProcessMessage2(AllowSuspend, dummy);
 end;
 
-function TGLWindowsManager.ProcessMessage2(AllowSuspend: boolean; 
+function TGLWindowsManager.ProcessMessage2(AllowSuspend: boolean;
   var WasAnyMessage: boolean): boolean;
 
   { CheckMessage sprawdza czy jest jakis message w naszej queue,
       jesli tak - laduje go do msg/event i wywoluje HandleEvent i zwraca true,
       jesli nie - zwraca false.
-    WaitMessage czeka az nasza kolejka bedzie niepusta i 
+    WaitMessage czeka az nasza kolejka bedzie niepusta i
       wtedy laduje message do msg/event i wywoluje HandleEvent.
-      W rezultacie WaitMessage ZAWSZE przetworzy jakiegos messaga - 
+      W rezultacie WaitMessage ZAWSZE przetworzy jakiegos messaga -
       dziala jak CheckMessage ktore uparlo sie zeby zwrocic true.
     NoMessageProcessed - wywolanie tej proc. oznacza ze w tym
       wywolaniu ProcessMessage CheckMessage zwrocilo false
-      i z jakichs zewnetrznych powodow nie mozemy wywolac WaitMessage. 
+      i z jakichs zewnetrznych powodow nie mozemy wywolac WaitMessage.
       Wobec tego nie przetworzylismy zadnego messaga - moze implementacja wymaga
       by cos zrobic w tej sytuacji ? (np. pod X-ami nalezy wowczas
-      zrobic XFlush). 
-      
+      zrobic XFlush).
+
     Pod X-ami robimy XFlush w NoMessageProcessed i jest implicit XFlush
       w WaitMessage wiec zawsze w wywolaniu ProcessMessage zrobimy jakos
       XFlush - co jest wazne.
@@ -150,20 +150,20 @@ function TGLWindowsManager.ProcessMessage2(AllowSuspend: boolean;
   {$ifdef GLWINDOW_XLIB}
   var glwin: TGLWindow;
       evtype: longint;
-  {$endif}    
+  {$endif}
   begin
    WasAnyMessage := true;
-   
+
    {$ifdef GLWINDOW_WINAPI}
    {tests: LogWrite(MessageDescr(msg));}
-   if msg.message = WM_QUIT then 
+   if msg.message = WM_QUIT then
     quitPosted := true else
    begin
     TranslateMessage(msg);
-    DispatchMessage(msg);    
+    DispatchMessage(msg);
    end;
    {$endif}
-   
+
    {$ifdef GLWINDOW_XLIB}
    evtype := event.{$ifdef DELPHI} xtype {$else} _type {$endif};
    case evtype of
@@ -171,7 +171,7 @@ function TGLWindowsManager.ProcessMessage2(AllowSuspend: boolean;
     else
     begin { zdarzenia ktore sa skierowane do konkretnego TGLWindow }
      { sprawdzamy czy okienko jest na liscie glwm.Active, przy okazji
-       zamieniajac windowXID na obiekt klasy TGLWindow. }    
+       zamieniajac windowXID na obiekt klasy TGLWindow. }
      glwin := glwm.ActiveWindowXID(event.xany. {$ifdef DELPHI} xwindow {$else} window {$endif});
      if glwin <> nil then
       case evtype of
@@ -185,14 +185,14 @@ function TGLWindowsManager.ProcessMessage2(AllowSuspend: boolean;
        MotionNotify: glwin.X_MotionNotify(event.xmotion); { XPointerMovedEvent }
        ConfigureNotify: glwin.X_ConfigureNotify(event.xconfigure); { XConfigureEvent }
        ClientMessage : { XClientMessageEvent - nie ma na to maski }
-	 if (event.xclient.data.l[0] = Integer(wmDeleteWindow)) then 
+	 if (event.xclient.data.l[0] = Integer(wmDeleteWindow)) then
           glwin.DoCloseQuery;
        ReparentNotify : glwin.parentwinXID := event.xreparent.parent;
-       FocusOut: glwin.X_FocusOut(event.xfocus); 
-      end;    
+       FocusOut: glwin.X_FocusOut(event.xfocus);
+      end;
     end;
-   end; 
-   {$endif} 
+   end;
+   {$endif}
   end;
 
   function CheckMessage: boolean;
@@ -208,15 +208,15 @@ function TGLWindowsManager.ProcessMessage2(AllowSuspend: boolean;
     HandleEvent else *)
     result := false;
    {$endif}
-   
-   {$ifdef GLWINDOW_XLIB}    
+
+   {$ifdef GLWINDOW_XLIB}
    result := true;
    if XBool(XCheckMaskEvent(XDisplay, AcceptedEventsMask, @event)) <> XBool_False then
     HandleEvent else
    if XBool(XCheckTypedEvent(XDisplay, ClientMessage, @event)) <> XBool_False then
     HandleEvent else
     result := false;
-   {$endif} 
+   {$endif}
   end;
 
   procedure WaitMessage;
@@ -230,8 +230,8 @@ function TGLWindowsManager.ProcessMessage2(AllowSuspend: boolean;
    HandleEvent;
   end;
 
-  procedure NoMessageProcessed; 
-  begin 
+  procedure NoMessageProcessed;
+  begin
    {$ifdef GLWINDOW_XLIB}
    XFlush(XDisplay)
    {$endif}
@@ -242,7 +242,7 @@ function TGLWindowsManager.ProcessMessage2(AllowSuspend: boolean;
   var i: integer;
   begin
    for i := 0 to ActiveCount-1 do
-    if not Active[i].AllowsProcessMessageSuspend then
+    if not Active[i].AllowSuspendForInput then
     begin
      result := true; exit
     end;
@@ -283,7 +283,7 @@ begin
          wiecej tak czesto co OnDraw.  }
     DoSelfIdle;
 
-    { redraw some windows; we do it only if our event queue is empty.      
+    { redraw some windows; we do it only if our event queue is empty.
       Przy okazji robimy DoIdle okien, majac nadzieje ze gromadzac
         blisko siebie callbacki tych samych okien zminimalizujemy koszty
         ciaglego zmieniania aktywnego kontekstu OpenGL'a.
@@ -305,24 +305,25 @@ begin
      Inc(i);
     end;
 
-    { jesli nie ma OnIdle (ani w glwm ani w zadnym z glwm.Active[]),
-      ani nie ma OnTimer (ani w glwm, ani w zadnym z glwm.Active[]),
-      nie ma zadnej potrzeby odmalowania sie ani nie
-      wystapilo glwm.Quit, to znaczy ze nie ma sensu konczyc ProcessMessage.
-      ProcessMessage, zgodnie z interfejsem, jakby mysli o tym jak jest wywolywane -
-      - a jest wywolywane w petli
-        while ProcessMessage do  ;
-      wobec czego jesli teraz zwrocimy true i wyjdziemy to bedziemy sie tak krecic w naszej
-      petli while az dostaniemy jakis message (skoro nie ma potrzeby redisplay ani OnIdle to
-      nic innego nie moze zmienic naszego stanu, prawda ?). Wobec tego, skoro mamy
-      juz czekac na jakikolwiek message, madrzej przeciez zrobic GetMessage/XNextMesage
-      i powiedziec systemowi operacyjnemu ze CZEKAMY I NIC POZA TYM NIE ROBIMY niz
-      wykonywac busy-waiting zuzywajac na nic-nie-robienie czas procesora.
-      W ten sposob system operacyjny wrzuca nasz proces do jakiejs kolejki
-      i nie marnuje na nas czasu procesora.
-      Efektywnosc mozna sprawdzic np. patrzac na zuzycie procesora w KDE Sys Guard
-      lub MonitorzeSystemu Windowsa.
-    }
+    { If we do not do anything in any idle/timer
+      (this is checked by SomeWindowDisallowsSuspend,
+      and additionally the Glwm callbacks OnIdle and OnTimer are checked
+      here explicitly), and there's no reason to redisplay and we're
+      not during quit process (started by Glwm.Quit),
+      => then there's no need to finish ProcessMessage.
+
+      ProcessMessage may assume in this case it works like
+        while ProcessMessage do ;
+      so returning with @true means that the next ProcessMessage will have
+      the same state (since no callbacks assigned etc., there's nothing
+      to change our state). And we'll do "busy waiting", wasting CPU cycles
+      on a loop that does nothing.
+
+      In this case it's much better to do blocking call for next input
+      event, by GetMessage / XNextMesage etc. This way we explicitly say
+      that we want to wait, doing nothing, and our process should be
+      suspended by OS until some event is received. Looking at any
+      system monitor, you'll see we do not use CPU then. }
     if AllowSuspend and not (Assigned(OnIdle) or Assigned(OnTimer) or
        SomeWindowDisallowsSuspend or wasAnyDrawing or QuitPosted) then
      WaitMessage else
@@ -346,14 +347,14 @@ end;
 procedure TGLWindowsManager.Loop;
 begin
   if ActiveCount = 0 then Exit;
-  
+
   QuitPosted := false;
   while ProcessMessage(true) do ;
 end;
 
 procedure TGLWindowsManager.QuitWhenNoWindowsActive;
 begin
- QuitPosted := true; 
+ QuitPosted := true;
 end;
 
 {$endif read_implementation}

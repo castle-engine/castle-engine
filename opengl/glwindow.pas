@@ -1211,26 +1211,29 @@ type
     procedure EventMouseMove(newX, newY: integer); virtual;
     procedure EventMouseDown(btn: TMouseButton); virtual;
     procedure EventMouseUp(btn: TMouseButton); virtual;
-    { UWAGA : jezeli pokrywasz EventIdle/Timer musisz prawdopodobnie takze pokryc
-      funkcje AllowsProcessMessageSuspend -- patrz do jej opisu. }
+    { Do something continously, all the time (idle) or in some time intervals
+      (timer). Note that when overriding these, you will usually also
+      want to override AllowSuspendForInput, to disallow suspending when
+      you want to keep receiving idle/timer calls.
+      @groupBegin }
     procedure EventIdle; virtual;
     procedure EventTimer; virtual;
+    { @groupEnd }
     procedure EventMenuCommand(Item: TMenuItem); virtual;
 
-    { w Glwm.ProcessMessage wykonywana jest bardzo wazna rzecz zaoszczedzajaca
-      cykle procesora : program ktory nie ma zadnego idle ani timer zarejestrowanego
-      ani nie zostalo wywolane Glwm.Quit ma prawo "zawisnac" na oczekiwanie
-      message'a od winsystemu.
+    { Is it allowed to suspend (for an indefinite amount of time) waiting
+      for user input.
 
-      Aby takie cos dzialalo musi byc sposob aby uzyskac od okna informacje
-      czy wykonuje ono cos w EventIdle / EventTimer. (no bo jezeli tak to nie wolno
-      nam robic takiego zawieszania sie).
-      W bazowej klasie TGLWindow EventIdle / EventTimer wywoluja tylko
-      OnIdle / OnTimer, w zwiazku z czym ta funkcja zwraca
-        not (Assigned(OnIdle) or Assigned(OnTimer))
-      ale to sie moze zmienic jesli pokryjesz EventIdle/ Timer i dorobisz tam
-      jakas funkcjonalnosc. }
-    function AllowsProcessMessageSuspend: boolean; virtual;
+      Allowing this is a good thing, as it means our process doesn't eat
+      your CPU when it simply waits, doing nothing, for user input.
+      On the other hand, you cannot allow this if you want to do some
+      things continously, regardless of user input.
+
+      In this class, this simply checks if OnIdle or OnTimer events
+      are assigned. If one of them is, we do not allow to suspend.
+      In descendants, you typically want to override this if there's
+      a chance you may do something in overridden EventIdle or EventTimer. }
+    function AllowSuspendForInput: boolean; virtual;
   public
     { ----------------------------------------------------------------------------
       rzeczy ktore mozesz inicjowac tylko przed wywolaniem Init. Potem sa juz
@@ -2428,7 +2431,7 @@ type
     procedure EventInit; override;
     procedure EventKeyDown(Key: TKey; c: char); override;
     procedure EventIdle; override;
-    function AllowsProcessMessageSuspend: boolean; override;
+    function AllowSuspendForInput: boolean; override;
 
     procedure SetDemoOptions(ASwapFullScreen_Key: TKey;
       AClose_CharKey: char;
@@ -2543,7 +2546,7 @@ type
     procedure EventMouseDown(Button: TMouseButton); override;
     procedure EventMouseUp(Button: TMouseButton); override;
     procedure EventMouseMove(NewX, NewY: Integer); override;
-    function AllowsProcessMessageSuspend: boolean; override;
+    function AllowSuspendForInput: boolean; override;
 
     { Calculate a ray picked by WindowX, WindowY position on the window.
       Use this only when Navigator <> nil.
@@ -3626,7 +3629,7 @@ procedure TGLWindow.EventTimer;                         const EventName = 'Timer
   {$endif}
 {$endif}
 
-function TGLWindow.AllowsProcessMessageSuspend: boolean;
+function TGLWindow.AllowSuspendForInput: boolean;
 begin
  result := not (Assigned(OnIdle) or Assigned(OnTimer));
 end;
@@ -4197,9 +4200,9 @@ begin
  end;
 end;
 
-function TGLWindowDemo.AllowsProcessMessageSuspend: boolean;
+function TGLWindowDemo.AllowSuspendForInput: boolean;
 begin
- result := (inherited AllowsProcessMessageSuspend) and (not FpsShowOnCaption)
+ result := (inherited AllowSuspendForInput) and (not FpsShowOnCaption);
 end;
 
 procedure TGLWindowDemo.EventInit;
@@ -4452,9 +4455,21 @@ begin
  inherited;
 end;
 
-function TGLWindowNavigated.AllowsProcessMessageSuspend: boolean;
+function TGLWindowNavigated.AllowSuspendForInput: boolean;
+var
+  I: Integer;
 begin
- if ReallyUseNavigator then result := false else result := inherited;
+  Result := inherited;
+  if not Result then Exit;
+
+  if UseControls then
+  begin
+    for I := 0 to Controls.Count - 1 do
+    begin
+      Result := Controls.Items[I].AllowSuspendForInput;
+      if not Result then Exit;
+    end;
+  end;
 end;
 
 function TGLWindowNavigated.ExamineNav: TExamineNavigator;
