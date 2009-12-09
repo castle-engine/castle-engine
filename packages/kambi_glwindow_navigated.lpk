@@ -2,6 +2,7 @@
 <CONFIG>
   <Package Version="3">
     <Name Value="kambi_glwindow_navigated"/>
+    <Author Value="Michalis Kamburelis"/>
     <CompilerOptions>
       <Version Value="8"/>
       <SearchPaths>
@@ -38,8 +39,11 @@
         <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
+    <Description Value="Kambi VRML game engine - TGLWindowNavigated instance.
+This package cannot be installed under Lazarus, it's only for being used in other programs. GLWindow unit initializes some things inside XWindows / WinAPI that may conflict with Lazarus reserving the same resources."/>
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)"/>
+    <Version Major="1"/>
     <Files Count="1">
       <Item1>
         <Filename Value="../opengl/glw_navigated.pas"/>
