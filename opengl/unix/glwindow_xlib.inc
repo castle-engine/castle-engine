@@ -135,7 +135,7 @@ begin
  try
    VisualAttr.AllowedCapacityOverflow := 20;
    if DoubleBuffer then
-     VisualAttr.AppendItem(GLX_DOUBLEBUFFER);
+     VisualAttr.Add(GLX_DOUBLEBUFFER);
    VisualAttr.AppendArray([
      GLX_RGBA,
      { Buffer sizes below are all in bits. }
@@ -174,7 +174,7 @@ begin
    end;
 
    { end of VisualAttr array }
-   VisualAttr.AppendItem(None);
+   VisualAttr.Add(None);
 
    viinfo := glXChooseVisual(Glwm.XDisplay, Glwm.XScreen, @VisualAttr.Items[0]);
  finally FreeAndNil(VisualAttr) end;

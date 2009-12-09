@@ -1039,13 +1039,13 @@ begin
       begin
         ShaderId := CreateShaderARB(S);
         glAttachObjectARB(ProgramId, ShaderId);
-        ShaderIds.AppendItem(ShaderId);
+        ShaderIds.Add(ShaderId);
       end;
     gsStandard:
       begin
         ShaderId := CreateShader(S);
         glAttachShader(ProgramId, ShaderId);
-        ShaderIds.AppendItem(ShaderId);
+        ShaderIds.Add(ShaderId);
       end;
   end;
 end;

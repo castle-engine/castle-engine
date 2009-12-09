@@ -416,7 +416,7 @@ begin
 
   FEventwrite := TVRMLEvent.Create(Self, 'write', TVRMLField, true);
   Events.Add(FEventwrite);
-  FEventwrite.OnReceive.AppendItem(@EventWriteReceive);
+  FEventwrite.OnReceive.Add(@EventWriteReceive);
 end;
 
 destructor TNodeLogger.Destroy;
@@ -566,7 +566,7 @@ begin
 
   FEventIn := TVRMLEvent.Create(Self, 'in', TVRMLField, true);
   Events.Add(FEventIn);
-  FEventIn.OnReceive.AppendItem(@EventInReceive);
+  FEventIn.OnReceive.Add(@EventInReceive);
 
   FEventOut := TVRMLEvent.Create(Self, 'out', TVRMLField, true);
   Events.Add(FEventOut);

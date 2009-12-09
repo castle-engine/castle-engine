@@ -229,14 +229,14 @@ begin
     Inc(C);
   end;
 
-  { Initialize Result first, before calling CachedTextures.AppendItem.
+  { Initialize Result first, before calling CachedTextures.Add.
     That's because in case LoadTextureImage raises exception,
     we don't want to add image to cache (because caller would have
     no way to call TextureImage_DecReference later). }
 
   Result := LoadTextureImage(FileName, DDS);
 
-  C := CachedTextures.AppendItem;
+  C := CachedTextures.Add;
   C^.References := 1;
   C^.FileName := FileName;
   C^.Image := Result;

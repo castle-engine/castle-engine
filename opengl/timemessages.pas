@@ -203,7 +203,7 @@ procedure TTimeMessagesManager.Show(s: TStrings);
     if Messages.Count = maxMessagesCount then Messages.Delete(0, 1);
     ms.Text := s[i];
     ms.Time := GetTickCount;
-    Messages.AppendItem(ms);
+    Messages.Add(ms);
    end;
   end;
 

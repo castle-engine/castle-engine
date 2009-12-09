@@ -7680,7 +7680,7 @@ begin
         DestinationEvent.Name, DestinationEvent.FieldClass.VRMLTypeName ]);
 
   if (Event <> nil) and (not DestEnding) then
-    Event.OnReceive.AppendItem(@EventReceive);
+    Event.OnReceive.Add(@EventReceive);
 end;
 
 procedure TVRMLRoute.SetEnding(const NodeName, FieldOrEventName: string;
@@ -7710,7 +7710,7 @@ begin
         PrototypeInstanceSourceNode. }
     end;
 
-    Node.DestructionNotifications.AppendItem(@DestructionNotification);
+    Node.DestructionNotifications.Add(@DestructionNotification);
 
     FieldOrEvent := Node.FieldOrEvent(FieldOrEventName);
     if FieldOrEvent = nil then
@@ -7756,7 +7756,7 @@ begin
 
   try
     Node := NewNode;
-    Node.DestructionNotifications.AppendItem(@DestructionNotification);
+    Node.DestructionNotifications.Add(@DestructionNotification);
 
     SetEndingInternal(Node, FieldOrEvent, Event, DestEnding);
   except
@@ -8180,8 +8180,8 @@ var
       Lexer.NextToken;
       Lexer.CheckTokenIs(vtInteger, 'X3D component level');
       Level := Lexer.TokenInteger;
-      (Result as TVRMLRootNode_2).X3DComponentNames.AppendItem(Name);
-      (Result as TVRMLRootNode_2).X3DComponentLevels.AppendItem(Level);
+      (Result as TVRMLRootNode_2).X3DComponentNames.Add(Name);
+      (Result as TVRMLRootNode_2).X3DComponentLevels.Add(Level);
 
       Lexer.NextToken;
     end;
@@ -8200,8 +8200,8 @@ var
       Lexer.NextToken;
       Lexer.CheckTokenIs(vtString, 'X3D meta value');
       Value := Lexer.TokenString;
-      (Result as TVRMLRootNode_2).X3DMetaKeys.AppendItem(Key);
-      (Result as TVRMLRootNode_2).X3DMetaValues.AppendItem(Value);
+      (Result as TVRMLRootNode_2).X3DMetaKeys.Add(Key);
+      (Result as TVRMLRootNode_2).X3DMetaValues.Add(Value);
 
       Lexer.NextToken;
     end;
@@ -8651,7 +8651,7 @@ end;
 constructor TNodeNameBinding.Create;
 begin
   inherited;
-  AnyNodeDestructionNotifications.AppendItem(@DestructionNotification);
+  AnyNodeDestructionNotifications.Add(@DestructionNotification);
 end;
 
 destructor TNodeNameBinding.Destroy;

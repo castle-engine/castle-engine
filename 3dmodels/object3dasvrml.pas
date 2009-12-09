@@ -794,7 +794,7 @@ begin
     for I := 0 to Md3.FramesCount - 1 do
     begin
       RootNodes.Add(LoadMD3FrameAsVRML(Md3, I, WWWBasePath));
-      Times.AppendItem(I / 30);
+      Times.Add(I / 30);
     end;
 
     ScenesPerTime := 30;
@@ -886,7 +886,7 @@ procedure LoadAsVRMLSequence(const FileName: string; AllowStdIn: boolean;
   procedure LoadSingle(Node: TVRMLNode);
   begin
     RootNodes.Add(Node);
-    Times.AppendItem(0); { One time value }
+    Times.Add(0); { One time value }
     ScenesPerTime := 1;      { doesn't matter }
     EqualityEpsilon := 0.0;  { doesn't matter }
     TimeLoop := false;      { doesn't matter }

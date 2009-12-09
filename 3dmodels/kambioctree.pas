@@ -558,10 +558,10 @@ begin
  if not IsLeaf then
  begin
   if FParentTree.ItemsInNonLeafNodes then
-   ItemsIndices.AppendItem(ItemIndex);
+   ItemsIndices.Add(ItemIndex);
   PutItemIntoSubNodes(ItemIndex)
  end else
-  ItemsIndices.AppendItem(ItemIndex);
+  ItemsIndices.Add(ItemIndex);
 end;
 
 constructor TOctreeNode.Create(const ABox: TBox3d; AParentTree: TOctree;

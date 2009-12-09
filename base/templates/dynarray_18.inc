@@ -182,11 +182,11 @@
     procedure SetLength(NewLength: Integer); override;
     {$endif}
 
-    { Increase length, adding new Item at the end. }
-    procedure AppendItem(const Item: TDynArrayItem_18); overload;
+    { Add new item at the end of the array. Increases length by 1. }
+    procedure Add(const Item: TDynArrayItem_18); overload;
 
-    { Increase length and return the pointer to new item at the end. }
-    function AppendItem: PDynArrayItem_18; overload;
+    { Increase the length by 1, and return the pointer to the new item at the end. }
+    function Add: PDynArrayItem_18; overload;
 
     procedure AppendArray(const NewItems: array of TDynArrayItem_18); overload;
     procedure AppendArray(const NewItems: array of TDynArrayItem_18; NewItemsAddCount: integer); overload;
@@ -239,7 +239,7 @@
     procedure RemoveAll(const Value: TDynArrayItem_18);
 
     { If the Item is not already present in the array (checked like IndexOf)
-      then add this item (like by AppendItem). }
+      then add this item (like by Add). }
     procedure AddIfNotExists(const Item: TDynArrayItem_18);
 
     procedure DeleteDuplicates;
@@ -361,13 +361,13 @@ begin
 end;
 {$endif}
 
-procedure TDynArray_18.AppendItem(const Item: TDynArrayItem_18);
+procedure TDynArray_18.Add(const Item: TDynArrayItem_18);
 begin
   IncLength;
   Items[Length-1] := Item;
 end;
 
-function TDynArray_18.AppendItem: PDynArrayItem_18;
+function TDynArray_18.Add: PDynArrayItem_18;
 begin
   IncLength;
   Result := @(Items[Length-1]);
@@ -525,7 +525,7 @@ var
 begin
   I := IndexOf(Item);
   if I = -1 then
-    AppendItem(Item);
+    Add(Item);
 end;
 
 procedure TDynArray_18.DeleteDuplicates;

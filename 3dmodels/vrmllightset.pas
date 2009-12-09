@@ -105,7 +105,7 @@ procedure TVRMLLightSet.AddToLights(
   Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 begin
-  Lights.AppendItem((Node as TVRMLLightNode).CreateActiveLight(StateStack.Top));
+  Lights.Add((Node as TVRMLLightNode).CreateActiveLight(StateStack.Top));
 end;
 
 procedure TVRMLLightSet.CalculateLights;

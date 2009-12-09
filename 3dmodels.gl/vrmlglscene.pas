@@ -3600,7 +3600,7 @@ var
           CCW outside). }
         if PlaneSide > 0 then
           SwapValues(TExtruded[0], TExtruded[2]);
-        TrianglesForDarkCap.AppendItem(TExtruded);
+        TrianglesForDarkCap.Add(TExtruded);
       end;
     end else
     begin
@@ -3623,8 +3623,8 @@ var
     begin
       { reverse T dir, we want to render caps CCW outside always }
       if PlaneSide < 0 then
-        TrianglesForLightCap.AppendItem(Triangle3Single(T[2], T[1], T[0])) else
-        TrianglesForLightCap.AppendItem(T);
+        TrianglesForLightCap.Add(Triangle3Single(T[2], T[1], T[0])) else
+        TrianglesForLightCap.Add(T);
     end;
   end;
 

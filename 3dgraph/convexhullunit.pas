@@ -84,7 +84,7 @@ var InResult:TDynBooleanArray;
   procedure MarkNext(i:Integer);
   begin
    InResult[i]:=true;
-   Result.AppendItem(i);
+   Result.Add(i);
   end;
 
 var MinY:Single;

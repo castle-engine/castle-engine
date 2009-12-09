@@ -477,7 +477,7 @@ begin
   FTimeDependentNodeHandler.OnCycleInterval := @CycleInterval;
 
   { TODO: for now, elapsedTime is simply passed to set_fraction event. }
-  EventelapsedTime.OnReceive.AppendItem(@EventElapsedTimeReceive);
+  EventelapsedTime.OnReceive.Add(@EventElapsedTimeReceive);
 end;
 
 destructor TNodeTimeSensor.Destroy;

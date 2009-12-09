@@ -799,7 +799,7 @@ begin
         Order, Knot, Weight, nil);
 
   { set LineSet.vertexCount (otherwise it's coord will be ignored) }
-  LS.FdVertexCount.Items.AppendItem(Tess);
+  LS.FdVertexCount.Items.Add(Tess);
 
   FreeAndNil(Knot);
 end;
@@ -932,7 +932,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
+  EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
 class function TNodeNurbsOrientationInterpolator.ClassNodeTypeName: string;
@@ -1368,7 +1368,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
+  EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
 class function TNodeNurbsPositionInterpolator_3.ClassNodeTypeName: string;
@@ -1543,7 +1543,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
+  EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
 class function TNodeNurbsSurfaceInterpolator.ClassNodeTypeName: string;

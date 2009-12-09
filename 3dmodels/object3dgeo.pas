@@ -72,7 +72,7 @@ var
   begin
     Read(F, ThisPolyCount);
 
-    CurrentFace := Faces.AppendItem;
+    CurrentFace := Faces.Add;
 
     { odczytaj "na pewniaka" pierwszy trojkat }
     for j := 0 to 2 do
@@ -87,7 +87,7 @@ var
       polygon.}
     for j := 3 to ThisPolyCount - 1 do
     begin
-      CurrentFace := Faces.AppendItem;
+      CurrentFace := Faces.Add;
 
       CurrentFace^[0] := FirstVert;
       CurrentFace^[1] := LastVert;

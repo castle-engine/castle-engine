@@ -778,13 +778,13 @@ var
 
           { for now, we just ignore indexes to other inputs }
           if CurrentInput = VerticesOffset then
-            IndexedFaceSet.FdCoordIndex.Items.AppendItem(Index);
+            IndexedFaceSet.FdCoordIndex.Items.Add(Index);
 
           Inc(CurrentInput);
           if CurrentInput = InputsCount then CurrentInput := 0;
         until false;
 
-        IndexedFaceSet.FdCoordIndex.Items.AppendItem(-1);
+        IndexedFaceSet.FdCoordIndex.Items.Add(-1);
       end;
 
     var
@@ -855,13 +855,13 @@ var
 
             { for now, we just ignore indexes to other inputs }
             if CurrentInput = VerticesOffset then
-              IndexedFaceSet.FdCoordIndex.Items.AppendItem(Index);
+              IndexedFaceSet.FdCoordIndex.Items.Add(Index);
 
             Inc(CurrentInput);
             if CurrentInput = InputsCount then CurrentInput := 0;
           end;
 
-          IndexedFaceSet.FdCoordIndex.Items.AppendItem(-1);
+          IndexedFaceSet.FdCoordIndex.Items.Add(-1);
         until false;
       end;
     end;
@@ -894,7 +894,7 @@ var
 
           { for now, we just ignore indexes to other inputs }
           if CurrentInput = VerticesOffset then
-            IndexedFaceSet.FdCoordIndex.Items.AppendItem(Index);
+            IndexedFaceSet.FdCoordIndex.Items.Add(Index);
 
           Inc(CurrentInput);
           if CurrentInput = InputsCount then
@@ -904,7 +904,7 @@ var
             if VertexNumber = 3 then
             begin
               VertexNumber := 0;
-              IndexedFaceSet.FdCoordIndex.Items.AppendItem(-1);
+              IndexedFaceSet.FdCoordIndex.Items.Add(-1);
             end;
           end;
         until false;

@@ -1885,7 +1885,7 @@ begin
     end;
   end;
 
-  { Initialize Result first, before calling TextureImageCaches.AppendItem.
+  { Initialize Result first, before calling TextureImageCaches.Add.
     That's because in case LoadGLTextureModulated raises exception,
     we don't want to add texture to cache (because caller would have
     no way to call TextureImage_DecReference later). }
@@ -1895,7 +1895,7 @@ begin
 
   TexParameterMaxAnisotropy(GL_TEXTURE_2D, TextureAnisotropy);
 
-  TextureCached := TextureImageCaches.AppendItem;
+  TextureCached := TextureImageCaches.Add;
   TextureCached^.FullUrl := TextureFullUrl;
   TextureCached^.InitialNode := TextureNode;
   TextureCached^.MinFilter := TextureMinFilter;
@@ -1989,7 +1989,7 @@ begin
     end;
   end;
 
-  { Initialize Result first, before calling TextureVideoCaches.AppendItem.
+  { Initialize Result first, before calling TextureVideoCaches.Add.
     That's because in case TGLVideo.Create raises exception,
     we don't want to add texture to cache (because caller would have
     no way to call TextureVideo_DecReference later). }
@@ -1997,7 +1997,7 @@ begin
     TextureVideo, TextureMinFilter, TextureMagFilter, TextureAnisotropy,
     TextureWrap, TextureColorModulator);
 
-  TextureCached := TextureVideoCaches.AppendItem;
+  TextureCached := TextureVideoCaches.Add;
   TextureCached^.FullUrl := TextureFullUrl;
   TextureCached^.InitialNode := TextureNode;
   TextureCached^.MinFilter := TextureMinFilter;
@@ -2099,7 +2099,7 @@ begin
 
   TexParameterMaxAnisotropy(GL_TEXTURE_CUBE_MAP_ARB, Anisotropy);
 
-  TextureCached := TextureCubeMapCaches.AppendItem;
+  TextureCached := TextureCubeMapCaches.Add;
   TextureCached^.InitialNode := Node;
   TextureCached^.MinFilter := MinFilter;
   TextureCached^.MagFilter := MagFilter;
@@ -2190,7 +2190,7 @@ begin
 
   TexParameterMaxAnisotropy(GL_TEXTURE_3D_EXT, Anisotropy);
 
-  TextureCached := Texture3DCaches.AppendItem;
+  TextureCached := Texture3DCaches.Add;
   TextureCached^.InitialNode := Node;
   TextureCached^.MinFilter := MinFilter;
   TextureCached^.MagFilter := MagFilter;
@@ -2302,7 +2302,7 @@ begin
   end else
     VRMLWarning(vwIgnorable, 'OpenGL doesn''t support ARB_shadow, we cannot set depth comparison for depth texture');
 
-  TextureCached := TextureDepthCaches.AppendItem;
+  TextureCached := TextureDepthCaches.Add;
   TextureCached^.InitialNode := Node;
   TextureCached^.References := 1;
   TextureCached^.GLName := Result;
@@ -2624,9 +2624,9 @@ function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
       { Allow future changing of this GLSL uniform variable,
         from VRML eventIn or exposedField }
       if (UniformField <> nil) and UniformField.Exposed then
-        UniformField.ExposedEvents[false].OnReceive.AppendItem(@EventReceiveGLSLUniform) else
+        UniformField.ExposedEvents[false].OnReceive.Add(@EventReceiveGLSLUniform) else
       if (UniformEvent <> nil) and UniformEvent.InEvent then
-        UniformEvent.OnReceive.AppendItem(@EventReceiveGLSLUniform);
+        UniformEvent.OnReceive.Add(@EventReceiveGLSLUniform);
     end;
   end;
 
@@ -2649,7 +2649,7 @@ begin
     end;
   end;
 
-  { Initialize Result first, before calling GLSLProgramCaches.AppendItem.
+  { Initialize Result first, before calling GLSLProgramCaches.Add.
     That's because in case of loading problems,
     we don't want to add program to cache (because caller would have
     no way to call GLSLProgram_DecReference later). }
@@ -2669,7 +2669,7 @@ begin
     raise;
   end;
 
-  GLSLProgramCache := GLSLProgramCaches.AppendItem;
+  GLSLProgramCache := GLSLProgramCaches.Add;
   GLSLProgramCache^.ProgramNode := ProgramNode;
   GLSLProgramCache^.References := 1;
   GLSLProgramCache^.GLSLProgram := Result;
@@ -2780,7 +2780,7 @@ procedure TVRMLOpenGLRendererContextCache.Shape_IncReference_New(
 var
   SSCache: PShapeCache;
 begin
-  SSCache := ShapeCaches.AppendItem;
+  SSCache := ShapeCaches.Add;
   SSCache^.Attributes := AAttributes;
   SSCache^.GeometryNode := AGeometryNode;
   SSCache^.State := AState;
@@ -2869,7 +2869,7 @@ procedure TVRMLOpenGLRendererContextCache.ShapeNoTransform_IncReference_New(
 var
   SSCache: PShapeCache;
 begin
-  SSCache := ShapeNoTransformCaches.AppendItem;
+  SSCache := ShapeNoTransformCaches.Add;
   SSCache^.Attributes := AAttributes;
   SSCache^.GeometryNode := AGeometryNode;
   SSCache^.State := AState;
@@ -2953,7 +2953,7 @@ procedure TVRMLOpenGLRendererContextCache.RenderBegin_IncReference_New(
 var
   RenderCache: PRenderBeginEndCache;
 begin
-  RenderCache := RenderBeginCaches.AppendItem;
+  RenderCache := RenderBeginCaches.Add;
   RenderCache^.Attributes := AAttributes;
   RenderCache^.FogNode := AFogNode;
   RenderCache^.FogDistanceScaling := AFogDistanceScaling;
@@ -3032,7 +3032,7 @@ procedure TVRMLOpenGLRendererContextCache.RenderEnd_IncReference_New(
 var
   RenderCache: PRenderBeginEndCache;
 begin
-  RenderCache := RenderEndCaches.AppendItem;
+  RenderCache := RenderEndCaches.Add;
   RenderCache^.Attributes := AAttributes;
   RenderCache^.FogNode := AFogNode;
   RenderCache^.FogDistanceScaling := AFogDistanceScaling;
@@ -4399,7 +4399,7 @@ begin
 
     if TexUnit = TextureTransformUnitsUsed then
       Inc(TextureTransformUnitsUsed) else
-      TextureTransformUnitsUsedMore.AppendItem(TexUnit);
+      TextureTransformUnitsUsedMore.Add(TexUnit);
   end;
 end;
 

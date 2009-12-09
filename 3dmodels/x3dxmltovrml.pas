@@ -198,7 +198,7 @@ const
                 we handle this as a single string (producing a warning). }
               VRMLWarning(vwSerious, 'Error when parsing MFString field "' + Field.Name + '" value, probably missing double quotes (treating as a single string): ' + E.Message);
               TMFString(Field).Items.Count := 0;
-              TMFString(Field).Items.AppendItem(Value);
+              TMFString(Field).Items.Add(Value);
             end else
               VRMLWarning(vwSerious, 'Error when parsing field "' + Field.Name + '" value: ' + E.Message);
           end;
@@ -290,7 +290,7 @@ const
           NodeFieldOrEvent := Node.FieldOrEvent(NodeField);
           if NodeFieldOrEvent <> nil then
           begin
-            NodeFieldOrEvent.IsClauseNames.AppendItem(ProtoField);
+            NodeFieldOrEvent.IsClauseNames.Add(ProtoField);
             NodeFieldOrEvent.PositionInParent := PositionInParent;
             Inc(PositionInParent);
           end else
@@ -947,8 +947,8 @@ const
             MetaContent := '';
             DOMGetAttribute(I.Current, 'name', MetaName);
             DOMGetAttribute(I.Current, 'content', MetaContent);
-            (Result as TVRMLRootNode_2).X3DMetaKeys.AppendItem(MetaName);
-            (Result as TVRMLRootNode_2).X3DMetaValues.AppendItem(MetaContent);
+            (Result as TVRMLRootNode_2).X3DMetaKeys.Add(MetaName);
+            (Result as TVRMLRootNode_2).X3DMetaValues.Add(MetaContent);
           end else
           if I.Current.TagName = 'component' then
           begin
@@ -956,8 +956,8 @@ const
             begin
               if not DOMGetIntegerAttribute(I.Current, 'level', ComponentLevel) then
                 ComponentLevel := 1;
-              (Result as TVRMLRootNode_2).X3DComponentNames.AppendItem(ComponentName);
-              (Result as TVRMLRootNode_2).X3DComponentLevels.AppendItem(ComponentLevel);
+              (Result as TVRMLRootNode_2).X3DComponentNames.Add(ComponentName);
+              (Result as TVRMLRootNode_2).X3DComponentLevels.Add(ComponentLevel);
             end else
               VRMLWarning(vwSerious, Format('X3D XML: <component> element without required "name" attribute',
                 [I.Current.TagName]));

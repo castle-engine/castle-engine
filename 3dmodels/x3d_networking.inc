@@ -398,11 +398,11 @@ begin
 
   FFdload := TSFBool.Create(Self, 'load', true);
   Fields.Add(FFdload);
-  Fdload.EventOut.OnReceive.AppendItem(@EventLoadReceive);
+  Fdload.EventOut.OnReceive.Add(@EventLoadReceive);
 
   FFdurl := TMFString.Create(Self, 'url', []);
   Fields.Add(FFdurl);
-  Fdurl.EventOut.OnReceive.AppendItem(@EventUrlReceive);
+  Fdurl.EventOut.OnReceive.Add(@EventUrlReceive);
   { X3D specification comment: [url or urn] }
 
   FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
@@ -572,11 +572,11 @@ begin
 
   FFdload := TSFBool.Create(Self, 'load', TRUE);
   Fields.Add(FFdload);
-  Fdload.EventOut.OnReceive.AppendItem(@EventLoadReceive);
+  Fdload.EventOut.OnReceive.Add(@EventLoadReceive);
 
   FFdurl := TMFString.Create(Self, 'url', []);
   Fields.Add(FFdurl);
-  Fdurl.EventOut.OnReceive.AppendItem(@EventUrlReceive);
+  Fdurl.EventOut.OnReceive.Add(@EventUrlReceive);
 
   FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', ZeroVector3Single);
   FFdbboxCenter.Exposed := false;

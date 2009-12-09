@@ -259,7 +259,7 @@ var
 
     ReadIndices(NextVertex, 2);
 
-    Faces.AppendItem(Face);
+    Faces.Add(Face);
 
     while SeekPos <= Length(Line) do
     begin
@@ -269,7 +269,7 @@ var
 
       ReadIndices(NextVertex, 2);
 
-      Faces.AppendItem(Face);
+      Faces.Add(Face);
     end;
   end;
 
@@ -433,10 +433,10 @@ begin
 
       { specialized token line parsing }
       case ArrayPosText(lineTok, ['v', 'vt', 'f', 'vn', 'g', 'mtllib', 'usemtl']) of
-        0: Verts.AppendItem(Vector3SingleFromStr(lineAfterMarker));
-        1: TexCoords.AppendItem(ReadTexCoordFromOBJLine(lineAfterMarker));
+        0: Verts.Add(Vector3SingleFromStr(lineAfterMarker));
+        1: TexCoords.Add(ReadTexCoordFromOBJLine(lineAfterMarker));
         2: ReadFacesFromOBJLine(lineAfterMarker, UsedMaterial);
-        3: Normals.AppendItem(Vector3SingleFromStr(lineAfterMarker));
+        3: Normals.Add(Vector3SingleFromStr(lineAfterMarker));
         4: {GroupName := LineAfterMarker};
         5: ReadMaterials(LineAfterMarker);
         6: begin

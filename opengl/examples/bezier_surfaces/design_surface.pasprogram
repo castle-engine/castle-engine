@@ -97,10 +97,10 @@ begin
     MyCurve := TRationalBezierCurve.Create(Surface.XBegin, Surface.XEnd);
     for J := 0 to CurveControlPointsCount - 1 do
     begin
-      MyCurve.ControlPoints.AppendItem(Vector3Single(
+      MyCurve.ControlPoints.Add(Vector3Single(
         J / (CurveControlPointsCount - 1),
         I / (CurvesCount - 1), 0));
-      MyCurve.Weights.AppendItem(1.0);
+      MyCurve.Weights.Add(1.0);
     end;
     MyCurve.UpdateControlPoints;
     Surface.Curves.Add(MyCurve);
@@ -130,8 +130,8 @@ begin
         for J := 0 to CurveControlPointsCount - 1 do
         begin
           Read(F, V[0], V[1], V[2]);
-          MyCurve.ControlPoints.AppendItem(V);
-          MyCurve.Weights.AppendItem(1.0);
+          MyCurve.ControlPoints.Add(V);
+          MyCurve.Weights.Add(1.0);
         end;
         Readln(F);
         MyCurve.UpdateControlPoints;

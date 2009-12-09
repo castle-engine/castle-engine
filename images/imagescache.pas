@@ -140,7 +140,7 @@ begin
     Inc(C);
   end;
 
-  { Initialize Result first, before calling CachedImages.AppendItem.
+  { Initialize Result first, before calling CachedImages.Add.
     That's because in case LoadImage raises exception,
     we don't want to add image to cache (because caller would have
     no way to call LoadImage_DecReference later). }
@@ -148,7 +148,7 @@ begin
   Result := LoadImage(FileName, [TRGBImage, TRGBAlphaImage,
     TGrayscaleImage, TGrayscaleAlphaImage], []);
 
-  C := CachedImages.AppendItem;
+  C := CachedImages.Add;
   C^.References := 1;
   C^.FileName := FileName;
   C^.Image := Result;

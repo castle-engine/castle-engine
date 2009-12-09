@@ -260,7 +260,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  Eventset_bind.OnReceive.AppendItem(@EventSet_BindReceive);
+  Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
 end;
 
 procedure TNodeX3DBackgroundNode.EventSet_BindReceive(
@@ -445,7 +445,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  Eventset_bind.OnReceive.AppendItem(@EventSet_BindReceive);
+  Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
 end;
 
 class function TNodeFog.ClassNodeTypeName: string;

@@ -447,7 +447,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
+  EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
 class function TNodeColorInterpolator.ClassNodeTypeName: string;
@@ -492,7 +492,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
+  EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
 class function TNodeCoordinateInterpolator.ClassNodeTypeName: string;
@@ -536,7 +536,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
+  EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
 class function TNodeCoordinateInterpolator2D.ClassNodeTypeName: string;
@@ -619,7 +619,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
+  EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
 class function TNodeNormalInterpolator.ClassNodeTypeName: string;
@@ -663,7 +663,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
+  EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
 class function TNodeOrientationInterpolator.ClassNodeTypeName: string;
@@ -714,7 +714,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
+  EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
 class function TNodePositionInterpolator.ClassNodeTypeName: string;
@@ -759,7 +759,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
+  EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
 class function TNodePositionInterpolator2D.ClassNodeTypeName: string;
@@ -802,7 +802,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
+  EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
 class function TNodeScalarInterpolator.ClassNodeTypeName: string;

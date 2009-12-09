@@ -2164,7 +2164,7 @@ begin
   if Lexer.TokenIsKeyword(vkIS) then
   begin
     Lexer.NextToken;
-    IsClauseNames.AppendItem(Lexer.TokenName);
+    IsClauseNames.Add(Lexer.TokenName);
     Lexer.NextToken;
   end;
 end;
@@ -2314,7 +2314,7 @@ begin
     if Exposed then
     begin
       if ExposedEventsLinked then
-        FExposedEvents[true].OnReceive.AppendItem(@ExposedEventReceive) else
+        FExposedEvents[true].OnReceive.Add(@ExposedEventReceive) else
         FExposedEvents[true].OnReceive.Remove(@ExposedEventReceive);
     end;
   end;
@@ -2349,7 +2349,7 @@ begin
         end;
 
       if ExposedEventsLinked then
-        FExposedEvents[true].OnReceive.AppendItem(@ExposedEventReceive);
+        FExposedEvents[true].OnReceive.Add(@ExposedEventReceive);
     end else
     begin
       if ExposedEventsLinked then
@@ -4293,7 +4293,7 @@ end;
 
 procedure TMF_CLASS.RawItemsAdd(Item: TVRMLSingleField);
 begin
- Items.AppendItem(TMF_CLASS_ITEM(Item).Value);
+ Items.Add(TMF_CLASS_ITEM(Item).Value);
 end;
 
 procedure TMF_CLASS.Assign(Source: TPersistent);

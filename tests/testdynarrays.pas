@@ -72,7 +72,7 @@ begin
    sarr[1] := 'foo bar xyz';
    sarr.Delete(0, 1);
    sarr.AppendArray(twoStrings);
-   sarr.AppendItem('trzy?');
+   sarr.Add('trzy?');
 
    Assert(not sarr.Equal(['foo bar xyz', '', '']));
    Assert(sarr.Equal(['foo bar xyz', '', '', 'raz', 'dwa', 'trzy?']));
@@ -82,7 +82,7 @@ begin
 
    sarr2 := TDynStringArray.Create;
    try
-    sarr2.AppendItem('blah');
+    sarr2.Add('blah');
     Assert(sarr2.Equal(['blah']));
     sarr2.Assign(sarr);
     Assert(sarr2.Equal(['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
@@ -97,7 +97,7 @@ begin
 
    {dodaj losowe stringi, sortuj, sprawdz}
    for j := 0 to 20 do
-    sarr.AppendItem( Chr(Random(256)) + Chr(Random(256)) + Chr(Random(256)) );
+    sarr.Add( Chr(Random(256)) + Chr(Random(256)) + Chr(Random(256)) );
    sarr.Sort(@IsSmallerString);
    for j := 0 to sarr.Count-2 do Assert(sarr[j] <= sarr[j+1]);
 
@@ -156,9 +156,9 @@ var
 begin
   vecs := TDynVector3SingleArray.Create;
   try
-    vecs.AppendItem(Vector3Single(1.0, 2.0, 3.0));
-    vecs.AppendItem(Vector3Single(4.0, 5.0, 6.0));
-    vecs.AppendItem(Vector3Single(1.0, 2.0, 3.0));
+    vecs.Add(Vector3Single(1.0, 2.0, 3.0));
+    vecs.Add(Vector3Single(4.0, 5.0, 6.0));
+    vecs.Add(Vector3Single(1.0, 2.0, 3.0));
     Assert(    VectorsPerfectlyEqual(vecs.Items[0], vecs.Items[2]));
     Assert(not VectorsPerfectlyEqual(vecs.Items[0], vecs.Items[1]));
     Assert(not VectorsPerfectlyEqual(vecs.Items[2], vecs.Items[1]));
@@ -172,13 +172,13 @@ begin
   V1 := TDynVector3SingleArray.Create;
   V2 := TDynVector3SingleArray.Create;
   try
-    V1.AppendItem(Vector3Single(1.0, 2.0, 3.0));
-    V1.AppendItem(Vector3Single(4.0, 5.0, 6.0));
-    V1.AppendItem(Vector3Single(7.0, 8.0, 9.0));
+    V1.Add(Vector3Single(1.0, 2.0, 3.0));
+    V1.Add(Vector3Single(4.0, 5.0, 6.0));
+    V1.Add(Vector3Single(7.0, 8.0, 9.0));
 
-    V2.AppendItem(Vector3Single(6.0, 6.0, 6.0));
+    V2.Add(Vector3Single(6.0, 6.0, 6.0));
     V2.AppendDynArray(V1);
-    V2.AppendItem(Vector3Single(6.0, 6.0, 6.0));
+    V2.Add(Vector3Single(6.0, 6.0, 6.0));
 
     Assert(VectorsPerfectlyEqual(V1.Items[0], V2.Items[1]));
     Assert(VectorsPerfectlyEqual(V1.Items[1], V2.Items[2]));
@@ -201,12 +201,12 @@ begin
   V2 := TDynVector3SingleArray.Create;
   V3 := TDynVector3SingleArray.Create;
   try
-    V1.AppendItem(Vector3Single(1.0, 2.0, 3.0));
-    V1.AppendItem(Vector3Single(4.0, 5.0, 6.0));
+    V1.Add(Vector3Single(1.0, 2.0, 3.0));
+    V1.Add(Vector3Single(4.0, 5.0, 6.0));
 
-    V2.AppendItem(Vector3Single(7.0, 8.0, 9.0));
-    V2.AppendItem(Vector3Single(11.0, 12.0, 13.0));
-    V2.AppendItem(Vector3Single(17.0, 18.0, 19.0));
+    V2.Add(Vector3Single(7.0, 8.0, 9.0));
+    V2.Add(Vector3Single(11.0, 12.0, 13.0));
+    V2.Add(Vector3Single(17.0, 18.0, 19.0));
 
     V3.AssignLerp(0.2, V1, V2, 0, 1, 2);
     Assert(V3.Count = 2);

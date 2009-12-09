@@ -255,7 +255,7 @@ type
         traverse. But, fortunately, State of TNodeDirectionalLight doesn't
         change inside (TNodeDirectionalLight doesn't do anything inside
         BeforeTraverse), so this is the same thing. }
-      State.VRML2ActiveLights.AppendItem(
+      State.VRML2ActiveLights.Add(
         TVRMLDirectionalLightNode(Child).CreateActiveLight(State)) else
     if Child is TNodeX3DPointingDeviceSensorNode then
     begin
@@ -370,11 +370,11 @@ begin
 
   FEventaddChildren := TVRMLEvent.Create(Self, 'addChildren', TMFNode, true);
   Events.Add(FEventaddChildren);
-  EventaddChildren.OnReceive.AppendItem(@EventAddChildrenReceive);
+  EventaddChildren.OnReceive.Add(@EventAddChildrenReceive);
 
   FEventremoveChildren := TVRMLEvent.Create(Self, 'removeChildren', TMFNode, true);
   Events.Add(FEventremoveChildren);
-  EventRemoveChildren.OnReceive.AppendItem(@EventRemoveChildrenReceive);
+  EventRemoveChildren.OnReceive.Add(@EventRemoveChildrenReceive);
 
   FFdchildren := TMFNode.Create(Self, 'children', INodeX3DChildNode);
   Fields.Add(FFdchildren);

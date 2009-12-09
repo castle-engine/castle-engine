@@ -986,7 +986,7 @@ begin
  try
   VisualAttr.AllowedCapacityOverflow := 20;
   if DoubleBuffer then
-    VisualAttr.AppendItem(GDK_GL_DOUBLEBUFFER);
+    VisualAttr.Add(GDK_GL_DOUBLEBUFFER);
   VisualAttr.AppendArray([
     GDK_GL_RGBA,
     { Note that sizes of buffers in VisualAttr must be given in bits
@@ -1024,7 +1024,7 @@ begin
   end;
 
   { end of VisualAttr list }
-  VisualAttr.AppendItem(GDK_GL_ATTRIB_LIST_NONE);
+  VisualAttr.Add(GDK_GL_ATTRIB_LIST_NONE);
 
   {$ifdef GLWINDOW_GTK_2}
 

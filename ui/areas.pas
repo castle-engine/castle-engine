@@ -55,7 +55,7 @@ type
 
       @italic(It returns the index of the @bold(last) area, that is:
       it searches from the end of the list.) This way the areas added
-      later by AppendItem method are treated as being on top of previous
+      later by Add method are treated as being on top of previous
       areas, which is more intuitive.
 
       Returns -1 if not found. }

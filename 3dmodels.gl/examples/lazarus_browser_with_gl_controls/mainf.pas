@@ -106,7 +106,7 @@ begin
     This depends on Browser.Width/Height, so it's safest to redo this in
     Browser.OnResize. }
   Browser.IgnoreAreas.Count := 0;
-  Browser.IgnoreAreas.AppendItem(AreaCorners(10, Browser.Height - 10,
+  Browser.IgnoreAreas.Add(AreaCorners(10, Browser.Height - 10,
     Browser.Width - 10, Browser.Height - 100));
 end;
 

@@ -155,9 +155,9 @@ begin
     while I.GetNext do
       if I.Current.TagName = 'item' then
       begin
-        Coord.AppendItem(DOMGetVector3Child(I.Current, 'position'));
-        Normal.AppendItem(DOMGetVector3Child(I.Current, 'normal'));
-        TexCoord.AppendItem(DOMGetVector2Child(I.Current, 'texCoord'));
+        Coord.Add(DOMGetVector3Child(I.Current, 'position'));
+        Normal.Add(DOMGetVector3Child(I.Current, 'normal'));
+        TexCoord.Add(DOMGetVector2Child(I.Current, 'texCoord'));
       end;
   finally FreeAndNil(I) end;
 
@@ -169,10 +169,10 @@ begin
     while I.GetNext do
       if I.Current.TagName = 'item' then
       begin
-        CoordIndex.AppendItem(DOMGetCardinalChild(I.Current, 'm_v0'));
-        CoordIndex.AppendItem(DOMGetCardinalChild(I.Current, 'm_v1'));
-        CoordIndex.AppendItem(DOMGetCardinalChild(I.Current, 'm_v2'));
-        CoordIndex.AppendItem(-1);
+        CoordIndex.Add(DOMGetCardinalChild(I.Current, 'm_v0'));
+        CoordIndex.Add(DOMGetCardinalChild(I.Current, 'm_v1'));
+        CoordIndex.Add(DOMGetCardinalChild(I.Current, 'm_v2'));
+        CoordIndex.Add(-1);
       end;
   finally FreeAndNil(I) end;
 end;
@@ -194,12 +194,12 @@ begin
     while I.GetNext do
       if I.Current.TagName = 'item' then
       begin
-        Coord.AppendItem(DOMGetVector3(I.Current));
-        CoordIndex.AppendItem(Coord.High);
+        Coord.Add(DOMGetVector3(I.Current));
+        CoordIndex.Add(Coord.High);
       end;
   finally FreeAndNil(I) end;
 
-  CoordIndex.AppendItem(-1);
+  CoordIndex.Add(-1);
 end;
 
 procedure ReadPortals(OutputGroup: TVRMLGroupingNode);

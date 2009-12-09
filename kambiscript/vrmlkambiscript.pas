@@ -508,7 +508,7 @@ procedure TKamScriptVRMLValuesList.Add(FieldOrEvent: TVRMLFieldOrEvent);
 begin
   inherited Add(VRMLKamScriptCreateValue(FieldOrEvent));
   FieldOrEvents.Add(FieldOrEvent);
-  FLastEventTimes.AppendItem(OldestVRMLTime);
+  FLastEventTimes.Add(OldestVRMLTime);
 end;
 
 procedure TKamScriptVRMLValuesList.BeforeExecute;

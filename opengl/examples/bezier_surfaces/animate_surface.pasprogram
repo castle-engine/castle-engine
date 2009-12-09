@@ -55,8 +55,8 @@ var
       for J := 0 to N - 1 do
       begin
         Read(F, V[0], V[1], V[2]);
-        MyCurve.ControlPoints.AppendItem(V);
-        MyCurve.Weights.AppendItem(1.0);
+        MyCurve.ControlPoints.Add(V);
+        MyCurve.Weights.Add(1.0);
       end;
       Readln(F);
       MyCurve.UpdateControlPoints;
@@ -106,10 +106,10 @@ begin
       MyCurve := TRationalBezierCurve.Create(C1.TBegin, C1.TEnd);
       for J := 0 to C1.ControlPoints.High do
       begin
-        MyCurve.ControlPoints.AppendItem(
+        MyCurve.ControlPoints.Add(
           Lerp(F, C1.ControlPoints.Items[J],
                   C2.ControlPoints.Items[J]));
-        MyCurve.Weights.AppendItem(1.0);
+        MyCurve.Weights.Add(1.0);
       end;
       MyCurve.UpdateControlPoints;
       Surface.Curves.Add(MyCurve);

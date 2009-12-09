@@ -2002,7 +2002,7 @@ begin
         VRMLWarning(vwSerious, 'The same GeneratedCubeMapTexture node is used (instanced) within at least two different VRML shapes. This is bad, as we don''t know from which shape should environment be captured');
     end else
     begin
-      GenTex := AppendItem;
+      GenTex := Add;
       GenTex^.TextureNode := Tex;
 
       if Tex is TNodeGeneratedCubeMapTexture then
@@ -2332,7 +2332,7 @@ begin
       EnumarateNodes call). }
 
     { Add lights to ChangedAll_TraversedLights }
-    ParentScene.ChangedAll_TraversedLights.AppendItem(
+    ParentScene.ChangedAll_TraversedLights.Add(
       (Node as TVRMLLightNode).CreateActiveLight(StateStack.Top));
   end else
 
@@ -2376,7 +2376,7 @@ begin
     Info := ParentScene.TransformNodesInfo.NodeInfo(Node);
     if Info = nil then
     begin
-      Info := ParentScene.TransformNodesInfo.AppendItem;
+      Info := ParentScene.TransformNodesInfo.Add;
       Info^.Node := Node;
       Info^.Occurences := 1;
     end else
@@ -2434,7 +2434,7 @@ procedure TVRMLScene.ChangedAll;
       SI := TVRMLShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
-          SI.Current.State.VRML2ActiveLights.AppendItem(L);
+          SI.Current.State.VRML2ActiveLights.Add(L);
       finally FreeAndNil(SI) end;
     end;
 
@@ -2451,7 +2451,7 @@ procedure TVRMLScene.ChangedAll;
       try
         while SI.GetNext do
           if Box3dSphereCollision(SI.Current.BoundingBox, Location, Radius) then
-            SI.Current.State.VRML2ActiveLights.AppendItem(L);
+            SI.Current.State.VRML2ActiveLights.Add(L);
       finally FreeAndNil(SI) end;
     end;
 
@@ -4134,7 +4134,7 @@ type
     const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
   begin
     if IsValidTriangle(Triangle) then
-      TriangleList.AppendItem(Triangle);
+      TriangleList.Add(Triangle);
   end;
 
 function TVRMLScene.CreateTrianglesList(OverTriangulate: boolean):
@@ -4324,7 +4324,7 @@ procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
             EdgePtr^.Triangles[1] := TriangleIndex;
 
             { Move edge to FManifoldEdges: it has 2 neighboring triangles now. }
-            FManifoldEdges.AppendItem(EdgePtr^);
+            FManifoldEdges.Add(EdgePtr^);
 
             { Remove this from EdgesSingle.
               Note that we delete from EdgesSingle fast, using assignment and
@@ -4341,7 +4341,7 @@ procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
       end;
 
       { New edge: add new item to EdgesSingle }
-      EdgePtr := EdgesSingle.AppendItem;
+      EdgePtr := EdgesSingle.Add;
       EdgePtr^.VertexIndex := VertexIndex;
       EdgePtr^.Triangles[0] := TriangleIndex;
       EdgePtr^.V0 := V0;
@@ -4573,7 +4573,7 @@ procedure TVRMLScene.TraverseForEvents(
 var
   PSI: PProximitySensorInstance;
 begin
-  PSI := ProximitySensorInstances.AppendItem;
+  PSI := ProximitySensorInstances.Add;
   PSI^.Node := Node as TNodeProximitySensor;
   PSI^.InvertedTransform := StateStack.Top.InvertedTransform;
   PSI^.IsActive := false; { IsActive = false initially }
@@ -4666,7 +4666,7 @@ begin
       CollectNodesForEvents;
       InitialProximitySensorsEvents;
 
-      RenderState.OnCameraChanged.AppendItem(@CameraChanged);
+      RenderState.OnCameraChanged.Add(@CameraChanged);
     end else
     begin
       UnregisterProcessEvents(RootNode);
@@ -5320,7 +5320,7 @@ procedure TVRMLScene.RegisterCompiledScript(const HandlerName: string;
 var
   HandlerInfo: PCompiledScriptHandlerInfo;
 begin
-  HandlerInfo := CompiledScriptHandlers.AppendItem;
+  HandlerInfo := CompiledScriptHandlers.Add;
   HandlerInfo^.Handler := Handler;
   HandlerInfo^.Name := HandlerName;
 end;

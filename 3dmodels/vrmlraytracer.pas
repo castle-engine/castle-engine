@@ -660,7 +660,7 @@ end;
 procedure TPathTracer.CollectLightItems(const Triangle: PVRMLTriangle);
 begin
   if IsLightSource(Triangle^) then
-    CollectedLightItems.AppendItem(Triangle);
+    CollectedLightItems.Add(Triangle);
 end;
 
 { Some notes about path tracer implementation :

@@ -139,7 +139,7 @@ var
    while i < CoordIndex.Count do
    begin
     thisFaceNum := faces.Length;
-    thisFace := faces.AppendItem;
+    thisFace := faces.Add;
 
     thisFace^.StartIndex := i;
     while (i < CoordIndex.Count) and (CoordIndex[i] >= 0) do
@@ -161,7 +161,7 @@ var
 
       if (CoordIndex[i] < Vertices.Count) and
          (VerticesFaces[CoordIndex[i]].IndexOf(thisFaceNum) = -1) then
-        VerticesFaces[CoordIndex[i]].AppendItem(thisFaceNum);
+        VerticesFaces[CoordIndex[i]].Add(thisFaceNum);
       Inc(i);
     end;
 
@@ -259,7 +259,7 @@ var
 
       for j := i+1 to thisVertexFaces.Count-1 do
        if (not handledFaces[j]) and FaceCanBeSmoothedWithFaces(j, smoothFaces) then
-        smoothFaces.AppendItem(j);
+        smoothFaces.Add(j);
 
       { zaznacz handled na true scianom ze smoothFaces i wylicz ich Normal }
       FillChar(Normal, SizeOf(Normal), 0);

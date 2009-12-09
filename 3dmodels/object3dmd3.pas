@@ -261,7 +261,7 @@ begin
     Stream.Position := SurfaceStart + Surface.OffsetTriangles;
     for I := 0 to Surface.NumTriangles - 1 do
     begin
-      Stream.ReadBuffer(Triangles.AppendItem^, SizeOf(TMd3Triangle));
+      Stream.ReadBuffer(Triangles.Add^, SizeOf(TMd3Triangle));
     end;
   end;
 

@@ -702,11 +702,11 @@ begin
 
   FEventset_colorIndex := TVRMLEvent.Create(Self, 'set_colorIndex', TMFInt32, true);
   Events.Add(FEventset_colorIndex);
-  Eventset_colorIndex.OnReceive.AppendItem(@EventSet_ColorIndexReceive);
+  Eventset_colorIndex.OnReceive.Add(@EventSet_ColorIndexReceive);
 
   FEventset_coordIndex := TVRMLEvent.Create(Self, 'set_coordIndex', TMFInt32, true);
   Events.Add(FEventset_coordIndex);
-  Eventset_coordIndex.OnReceive.AppendItem(@EventSet_CoordIndexReceive);
+  Eventset_coordIndex.OnReceive.Add(@EventSet_CoordIndexReceive);
 
   FFdattrib := TMFNode.Create(Self, 'attrib', [TNodeX3DVertexAttributeNode]);
   Fields.Add(FFdattrib);
@@ -807,7 +807,7 @@ begin
 
   FEventset_index := TVRMLEvent.Create(Self, 'set_index', TMFInt32, true);
   Events.Add(FEventset_index);
-  Eventset_index.OnReceive.AppendItem(@EventSet_IndexReceive);
+  Eventset_index.OnReceive.Add(@EventSet_IndexReceive);
 
   FFdindex := TMFInt32.Create(Self, 'index', []);
   FFdindex.Exposed := false;
@@ -854,7 +854,7 @@ begin
 
   FEventset_index := TVRMLEvent.Create(Self, 'set_index', TMFInt32, true);
   Events.Add(FEventset_index);
-  Eventset_index.OnReceive.AppendItem(@EventSet_IndexReceive);
+  Eventset_index.OnReceive.Add(@EventSet_IndexReceive);
 
   FFdindex := TMFInt32.Create(Self, 'index', []);
   FFdindex.Exposed := false;
@@ -901,7 +901,7 @@ begin
 
   FEventset_index := TVRMLEvent.Create(Self, 'set_index', TMFInt32, true);
   Events.Add(FEventset_index);
-  Eventset_index.OnReceive.AppendItem(@EventSet_IndexReceive);
+  Eventset_index.OnReceive.Add(@EventSet_IndexReceive);
 
   FFdindex := TMFInt32.Create(Self, 'index', []);
   FFdindex.Exposed := false;

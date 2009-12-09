@@ -1221,7 +1221,7 @@ begin
     if MaxAccessoryWidth <> 0.0 then
       WholeItemWidth := MaxItemWidth + MarginBeforeAccessory + MaxAccessoryWidth else
       WholeItemWidth := MenuFont.TextWidth(Items[I]);
-    Areas.AppendItem(Area(0, 0, WholeItemWidth,
+    Areas.Add(Area(0, 0, WholeItemWidth,
       MenuFont.Descend + MenuFont.RowHeight));
   end;
 

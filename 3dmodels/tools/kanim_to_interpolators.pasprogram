@@ -63,7 +63,7 @@ begin
         Coord := Anim.Scenes[I].RootNode.FindNodeByName(
           TNodeCoordinate, 'coord_MOD_Plane', false) as TNodeCoordinate;
         Interp.FdKeyValue.Items.AppendDynArray(Coord.FdPoint.Items);
-        Interp.FdKey.Items.AppendItem(I / (Anim.ScenesCount - 1));
+        Interp.FdKey.Items.Add(I / (Anim.ScenesCount - 1));
       end;
 
       SaveFile(Vrml, '../../../kambi_vrml_test_suite/x3d/water_reflections/water_converted.wrl');

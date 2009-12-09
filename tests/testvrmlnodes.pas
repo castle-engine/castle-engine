@@ -207,11 +207,11 @@ begin
   Count := 0;
   Lexer := TVRMLLexer.CreateFromFile(FileName);
   try
-    AppendItem(CurrentToken);
+    Add(CurrentToken);
     while Lexer.Token <> vtEnd do
     begin
       Lexer.NextToken;
-      AppendItem(CurrentToken);
+      Add(CurrentToken);
     end;
   finally FreeAndNil(Lexer); end;
 end;
@@ -925,9 +925,9 @@ begin
   M2 := TMyObject.Create;
   M3 := TMyObject.Create;
   try
-    A.AppendItem(@M1.Foo);
-    A.AppendItem(@M2.Foo);
-    A.AppendItem(@M3.Foo);
+    A.Add(@M1.Foo);
+    A.Add(@M2.Foo);
+    A.Add(@M3.Foo);
     Assert(A.IndexOf(@M1.Foo) = 0);
     Assert(A.IndexOf(@M2.Foo) = 1);
     Assert(A.IndexOf(@M3.Foo) = 2);

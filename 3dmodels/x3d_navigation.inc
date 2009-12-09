@@ -394,7 +394,7 @@ begin
   FFdcameraMatrixSendAlsoOnOffscreenRendering := TSFBool.Create(Self, 'cameraMatrixSendAlsoOnOffscreenRendering', false);
   Fields.Add(FFdcameraMatrixSendAlsoOnOffscreenRendering);
 
-  Eventset_bind.OnReceive.AppendItem(@EventSet_BindReceive);
+  Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
 end;
 
 procedure TVRMLViewpointNode.GetCameraVectors(
@@ -737,7 +737,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  Eventset_bind.OnReceive.AppendItem(@EventSet_BindReceive);
+  Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
 end;
 
 class function TNodeNavigationInfo.ClassNodeTypeName: string;

@@ -234,15 +234,15 @@ begin
 
   FEventnext := TVRMLEvent.Create(Self, 'next', TSFBool, true);
   Events.Add(FEventnext);
-  EventNext.OnReceive.AppendItem(@EventNextReceive);
+  EventNext.OnReceive.Add(@EventNextReceive);
 
   FEventprevious := TVRMLEvent.Create(Self, 'previous', TSFBool, true);
   Events.Add(FEventprevious);
-  EventPrevious.OnReceive.AppendItem(@EventPreviousReceive);
+  EventPrevious.OnReceive.Add(@EventPreviousReceive);
 
   FEventset_fraction := TVRMLEvent.Create(Self, 'set_fraction', TSFFloat, true);
   Events.Add(FEventset_fraction);
-  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
+  EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 
   FFdkey := TMFFloat.Create(Self, 'key', []);
   Fields.Add(FFdkey);
@@ -359,7 +359,7 @@ begin
 
   FEventset_boolean := TVRMLEvent.Create(Self, 'set_boolean', TSFBool, true);
   Events.Add(FEventset_boolean);
-  FEventset_boolean.OnReceive.AppendItem(@EventSet_BooleanReceive);
+  FEventset_boolean.OnReceive.Add(@EventSet_BooleanReceive);
 
   FEventinputFalse := TVRMLEvent.Create(Self, 'inputFalse', TSFBool, false);
   Events.Add(FEventinputFalse);
@@ -453,7 +453,7 @@ begin
 
   FEventset_boolean := TVRMLEvent.Create(Self, 'set_boolean', TSFBool, true);
   Events.Add(FEventset_boolean);
-  FEventset_boolean.OnReceive.AppendItem(@EventSet_BooleanReceive);
+  FEventset_boolean.OnReceive.Add(@EventSet_BooleanReceive);
 
   FFdtoggle := TSFBool.Create(Self, 'toggle', false);
   Fields.Add(FFdtoggle);
@@ -497,7 +497,7 @@ begin
 
   FEventset_triggerTime := TVRMLEvent.Create(Self, 'set_triggerTime', TSFTime, true);
   Events.Add(FEventset_triggerTime);
-  FEventset_triggerTime.OnReceive.AppendItem(@EventSet_triggerTimeReceive);
+  FEventset_triggerTime.OnReceive.Add(@EventSet_triggerTimeReceive);
 
   FEventtriggerTrue := TVRMLEvent.Create(Self, 'triggerTrue', TSFBool, false);
   Events.Add(FEventtriggerTrue);
@@ -580,7 +580,7 @@ begin
 
   FEventset_boolean := TVRMLEvent.Create(Self, 'set_boolean', TSFBool, true);
   Events.Add(FEventset_boolean);
-  FEventset_boolean.OnReceive.AppendItem(@EventSet_booleanReceive);
+  FEventset_boolean.OnReceive.Add(@EventSet_booleanReceive);
 
   { X3D specification mistakenly omitted default value for this field...
     I guess it's 0? }
@@ -626,7 +626,7 @@ begin
 
   FEventset_boolean := TVRMLEvent.Create(Self, 'set_boolean', TSFBool, true);
   Events.Add(FEventset_boolean);
-  FEventset_boolean.OnReceive.AppendItem(@EventSet_BooleanReceive);
+  FEventset_boolean.OnReceive.Add(@EventSet_BooleanReceive);
 
   FEventtriggerTime := TVRMLEvent.Create(Self, 'triggerTime', TSFTime, false);
   Events.Add(FEventtriggerTime);

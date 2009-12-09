@@ -481,7 +481,7 @@ end;
 procedure FileProc_AddToFileInfos(
   const FileInfo: TEnumeratedFileInfo; Data: Pointer);
 begin
- TDynEnumeratedFileInfoArray(Data).AppendItem(FileInfo);
+ TDynEnumeratedFileInfoArray(Data).Add(FileInfo);
 end;
 
 function EnumFiles(const Mask: string; attr: integer;

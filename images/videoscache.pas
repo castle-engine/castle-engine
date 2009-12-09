@@ -144,7 +144,7 @@ begin
     Inc(C);
   end;
 
-  { Initialize Result first, before calling CachedVideos.AppendItem.
+  { Initialize Result first, before calling CachedVideos.Add.
     That's because in case TVideo.LoadFromFile raises exception,
     we don't want to add video to cache (because caller would have
     no way to call Video_DecReference later). }
@@ -158,7 +158,7 @@ begin
     raise;
   end;
 
-  C := CachedVideos.AppendItem;
+  C := CachedVideos.Add;
   C^.References := 1;
   C^.FileName := FileName;
   C^.Video := Result;

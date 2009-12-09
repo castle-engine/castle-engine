@@ -167,8 +167,8 @@ begin
             'Frames within <animation> element must be specified in ' +
             'increasing time order');
 
-        ModelFileNames.AppendItem(FrameFileName);
-        Times.AppendItem(FrameTime);
+        ModelFileNames.Add(FrameFileName);
+        Times.Add(FrameTime);
       end;
 
     if ModelFileNames.Count = 0 then

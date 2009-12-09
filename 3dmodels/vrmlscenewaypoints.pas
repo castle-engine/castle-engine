@@ -328,7 +328,7 @@ procedure TSceneSectorsList.TraverseForSectors(
     if Items[SectorIndex] = nil then
       Items[SectorIndex] := TSceneSector.Create;
 
-    Items[SectorIndex].BoundingBoxes.AppendItem(SectorBoundingBox);
+    Items[SectorIndex].BoundingBoxes.Add(SectorBoundingBox);
 
     { Tests:
     Writeln('Sector ', SectorIndex, ': added box ',

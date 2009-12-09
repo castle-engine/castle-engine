@@ -1212,7 +1212,7 @@ begin
     ATimes := TDynSingleArray.Create;
     try
       RootNodes.Add(RootNode);
-      ATimes.AppendItem(0);
+      ATimes.Add(0);
       Load(RootNodes, AOwnsRootNode, ATimes, 1, 0.0);
     finally FreeAndNil(ATimes) end;
   finally FreeAndNil(RootNodes) end;

@@ -659,7 +659,7 @@ procedure ParseParameters(Options: POption_Array; OptionsCount: Integer; OptionP
 
    { add to SimpleShortOptions }
    for i := 1 to Length(ParamShortStr)-1 do
-    SimpleShortOptions.AppendItem( FindShortOption(ParamShortStr[i], s) );
+    SimpleShortOptions.Add( FindShortOption(ParamShortStr[i], s) );
 
    { evaluate result }
    result := FindShortOption(ParamShortStr[Length(ParamShortStr)], s);
@@ -776,7 +776,7 @@ procedure ParseNextParam(OptionNum: Integer; HasArgument: boolean;
 var ParsedArray: TDynParsedOptionArray absolute Data;
     LastItem: PParsedOption;
 begin
- LastItem := ParsedArray.AppendItem;
+ LastItem := ParsedArray.Add;
  LastItem^.OptionNum := OptionNum;
  LastItem^.HasArgument := HasArgument;
  LastItem^.Argument := Argument;

@@ -97,7 +97,7 @@ begin
 
   FFdurl := TMFString.Create(Self, 'url', []);
   Fields.Add(FFdurl);
-  Fdurl.EventOut.OnReceive.AppendItem(@EventUrlReceive);
+  Fdurl.EventOut.OnReceive.Add(@EventUrlReceive);
   { X3D specification comment: [URI] }
 
   DefaultContainerField := 'children';
@@ -418,11 +418,11 @@ begin
   inherited;
 
   if (IDecl.Event <> nil) and IDecl.Event.InEvent then
-    IDecl.Event.OnReceive.AppendItem(@IDeclEventReceive) else
+    IDecl.Event.OnReceive.Add(@IDeclEventReceive) else
   if (IDecl.Field <> nil) and IDecl.Field.Exposed then
     { We register for EventOut, to get IDeclEventReceive with new
       value of the event. }
-    IDecl.Field.EventOut.OnReceive.AppendItem(@IDeclEventReceive);
+    IDecl.Field.EventOut.OnReceive.Add(@IDeclEventReceive);
 end;
 
 procedure TNodeScript.IDeclEventReceive(

@@ -1094,7 +1094,7 @@ begin
   repeat
    Token := NextToken(s, SeekPos, TokenDelims);
    if Token = '' then break;
-   Result.AppendItem(Token);
+   Result.Add(Token);
   until false;
  except Result.Free; raise end;
 end;
@@ -1490,7 +1490,7 @@ begin
   if p > 0 then
    Delete(filemask, 1, p-1) else { delete name from filemask }
    filemask := '.'+filemask; { it means there was no name and dot in filemask. So prepend dot. }
-  Extensions.AppendItem(filemask);
+  Extensions.Add(filemask);
  until false;
 end;
 

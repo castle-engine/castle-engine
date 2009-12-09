@@ -534,7 +534,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
+  EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
 class function TNodeNurbsPositionInterpolator_2.ClassNodeTypeName: string;

@@ -507,7 +507,7 @@ begin
 
   FEventset_height := TVRMLEvent.Create(Self, 'set_height', TMFFloat, true);
   Events.Add(FEventset_height);
-  Eventset_height.OnReceive.AppendItem(@EventSet_HeightReceive);
+  Eventset_height.OnReceive.Add(@EventSet_HeightReceive);
 
   FFdattrib := TMFNode.Create(Self, 'attrib', [TNodeX3DVertexAttributeNode]);
   Fields.Add(FFdattrib);
@@ -628,19 +628,19 @@ begin
 
   FEventset_crossSection := TVRMLEvent.Create(Self, 'set_crossSection', TMFVec2f, true);
   Events.Add(FEventset_crossSection);
-  Eventset_crossSection.OnReceive.AppendItem(@EventSet_crossSectionReceive);
+  Eventset_crossSection.OnReceive.Add(@EventSet_crossSectionReceive);
 
   FEventset_orientation := TVRMLEvent.Create(Self, 'set_orientation', TMFRotation, true);
   Events.Add(FEventset_orientation);
-  Eventset_orientation.OnReceive.AppendItem(@EventSet_orientationReceive);
+  Eventset_orientation.OnReceive.Add(@EventSet_orientationReceive);
 
   FEventset_scale := TVRMLEvent.Create(Self, 'set_scale', TMFVec2f, true);
   Events.Add(FEventset_scale);
-  Eventset_scale.OnReceive.AppendItem(@EventSet_scaleReceive);
+  Eventset_scale.OnReceive.Add(@EventSet_scaleReceive);
 
   FEventset_spine := TVRMLEvent.Create(Self, 'set_spine', TMFVec3f, true);
   Events.Add(FEventset_spine);
-  Eventset_spine.OnReceive.AppendItem(@EventSet_spineReceive);
+  Eventset_spine.OnReceive.Add(@EventSet_spineReceive);
 
   FFdbeginCap := TSFBool.Create(Self, 'beginCap', true);
   FFdbeginCap.Exposed := false;
@@ -1020,19 +1020,19 @@ begin
 
   FEventset_colorIndex := TVRMLEvent.Create(Self, 'set_colorIndex', TMFInt32, true);
   Events.Add(FEventset_colorIndex);
-  Eventset_colorIndex.OnReceive.AppendItem(@EventSet_colorIndexReceive);
+  Eventset_colorIndex.OnReceive.Add(@EventSet_colorIndexReceive);
 
   FEventset_coordIndex := TVRMLEvent.Create(Self, 'set_coordIndex', TMFInt32, true);
   Events.Add(FEventset_coordIndex);
-  Eventset_coordIndex.OnReceive.AppendItem(@EventSet_coordIndexReceive);
+  Eventset_coordIndex.OnReceive.Add(@EventSet_coordIndexReceive);
 
   FEventset_normalIndex := TVRMLEvent.Create(Self, 'set_normalIndex', TMFInt32, true);
   Events.Add(FEventset_normalIndex);
-  Eventset_normalIndex.OnReceive.AppendItem(@EventSet_normalIndexReceive);
+  Eventset_normalIndex.OnReceive.Add(@EventSet_normalIndexReceive);
 
   FEventset_texCoordIndex := TVRMLEvent.Create(Self, 'set_texCoordIndex', TMFInt32, true);
   Events.Add(FEventset_texCoordIndex);
-  Eventset_texCoordIndex.OnReceive.AppendItem(@EventSet_texCoordIndexReceive);
+  Eventset_texCoordIndex.OnReceive.Add(@EventSet_texCoordIndexReceive);
 
   FFdcolorIndex := TMFInt32.Create(Self, 'colorIndex', []);
   FFdcolorIndex.Exposed := false;
