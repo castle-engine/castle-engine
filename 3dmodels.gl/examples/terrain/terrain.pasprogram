@@ -193,16 +193,6 @@ begin
   end;
 end;
 
-procedure Draw2d(Draw2DData: Pointer);
-begin
-  if Glw.Controls.IndexOf(GLControls) <> -1 then
-  begin
-    glLoadIdentity;
-    glRasterPos2i(0, 0);
-    GLControls.Draw(Glw.Focus = GLControls);
-  end;
-end;
-
 procedure Draw(Glwin: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
@@ -222,11 +212,6 @@ begin
       DrawGrid(TElevationGrid(Elevation)) else
       DrawElevation(Elevation);
 
-  glPopAttrib;
-
-  glPushAttrib(GL_ENABLE_BIT);
-    glDisable(GL_LIGHTING);
-    glProjectionPushPopOrtho2D(@Draw2d, nil, 0, Glwin.Width, 0, Glwin.Height);
   glPopAttrib;
 end;
 

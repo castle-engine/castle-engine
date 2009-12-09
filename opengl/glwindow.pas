@@ -2451,8 +2451,8 @@ type
     Only if no control handled the event, we pass it to the inherited
     EventXxx method, which calls normal window callbacks OnKeyDown etc.
 
-    All above applied to mouse / keyboard input. For idle "input"
-    we just call this on every control (if UseControls).
+    All above applied to mouse / keyboard input. We also call other
+    methods on every control (if UseControls), like TUIControl.Idle and TUIControl.Draw2D.
 
     We also use OnVisibleChange event of our controls to make
     PostRedisplay when something visible changed. If you want to use
@@ -2546,6 +2546,7 @@ type
     procedure EventMouseUp(Button: TMouseButton); override;
     procedure EventMouseMove(NewX, NewY: Integer); override;
     function AllowSuspendForInput: boolean; override;
+    procedure EventDraw; override;
 
     { Calculate a ray picked by WindowX, WindowY position on the window.
       Use this only when Navigator <> nil.
@@ -4629,6 +4630,68 @@ end;
 procedure TGLWindowNavigated.ControlsVisibleChange(Sender: TObject);
 begin
   PostRedisplay;
+end;
+
+procedure WindowDraw2D(GLWinPtr: Pointer);
+var
+  GLWin: TGLWindowNavigated absolute GLWinPtr;
+  C, F: TUIControl;
+  I: Integer;
+begin
+  F := GLWin.Focus;
+  for I := 0 to GLWin.Controls.Count - 1 do
+  begin
+    C := GLWin.Controls[I];
+
+    if C.IsDraw2D then
+    begin
+      { Set OpenGL state that may be changed carelessly, and has some
+        guanteed value, for Draw2d calls. }
+      glLoadIdentity;
+      glRasterPos2i(0, 0);
+      C.Draw2D(C = F);
+    end;
+  end;
+end;
+
+procedure TGLWindowNavigated.EventDraw;
+
+  { Does any control wants it's Draw2D called. If not, we can avoid
+    even changing projection to 2D. This also takes care of checking
+    UseControls --- if UseControls = @false, this always returns @false. }
+  function AnyDraw2D: boolean;
+  var
+    I: Integer;
+  begin
+    Result := false;
+    if UseControls then
+    begin
+      for I := 0 to Controls.Count - 1 do
+      begin
+        Result := Controls[I].IsDraw2D;
+        if Result then Break;
+      end;
+    end;
+  end;
+
+begin
+  inherited;
+
+  if AnyDraw2D then
+  begin
+    glPushAttrib(GL_ENABLE_BIT);
+      { Set and push/pop OpenGL state that is guaranteed for Draw2D calls,
+        but Draw2D cannot change it carelessly. }
+      glDisable(GL_LIGHTING);
+      glDisable(GL_DEPTH_TEST);
+      glDisable(GL_TEXTURE_2D);
+      if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+      if GL_EXT_texture3D        then glDisable(GL_TEXTURE_3D_EXT);
+
+      glProjectionPushPopOrtho2D(@WindowDraw2D, Self, 0, Width, 0, Height);
+
+    glPopAttrib;
+  end;
 end;
 
 { TGLWindowsList ------------------------------------------------------------ }

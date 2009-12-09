@@ -468,7 +468,8 @@ type
     property AllItemsArea: TArea read FAllItemsArea;
     property AccessoryAreas: TDynAreaArray read FAccessoryAreas;
 
-    procedure Draw(const Focused: boolean); virtual;
+    function IsDraw2D: boolean; override;
+    procedure Draw2D(const Focused: boolean); override;
 
     property KeyNextItem: TKey read FKeyNextItem write FKeyNextItem
       default DefaultGLMenuKeyNextItem;
@@ -1290,7 +1291,12 @@ begin
   MakeGLList_DrawFadeRect(GLList_DrawFadeRect[true], 0.7);
 end;
 
-procedure TGLMenu.Draw(const Focused: boolean);
+function TGLMenu.IsDraw2D: boolean;
+begin
+  Result := true;
+end;
+
+procedure TGLMenu.Draw2D(const Focused: boolean);
 
   procedure DrawPositionRelativeLine;
   begin

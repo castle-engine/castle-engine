@@ -171,6 +171,31 @@ type
       specific classes. For now, only TWalkNavigator actually handles this
       sensibly, doing usual "mouse look" navigation mode popular in FPS games. }
     property MouseLook: boolean read FMouseLook write FMouseLook default false;
+
+    { Draw 2D control. If you want your Draw2D called automatically by the
+      window, return @true from IsDraw2D and draw your control inside Draw2D.
+
+      Do's and don't's when implementing Draw2D:
+
+      @unorderedList(
+        @item(OpenGL projection is guaranteed to be set to standard 2D
+          projection, like by @code(gluOrtho2D(0, Glwin.Width, 0, Glwin.Height)).)
+
+        @item(The only OpenGL state you can change carelessly is the current
+          modelview matrix value and raster position. Every other change
+          should be wrapped in appropriate glPushAttrib / glPopAttrib.)
+
+        @item(You may be sure that at the beginning of Draw2D
+          the current matrix is modelview, and is identity, and raster position
+          is at (0, 0). Texturing, depth test, lighting are turned off.
+
+          If you require anything else, set this yourself.)
+      )
+
+      @groupBegin }
+    function IsDraw2D: boolean; virtual;
+    procedure Draw2D(const Focused: boolean); virtual;
+    { @groupEnd }
   end;
 
   TUIControlList = class(TKamObjectList)
@@ -233,6 +258,15 @@ end;
 function TUIControl.AllowSuspendForInput: boolean;
 begin
   Result := true;
+end;
+
+function TUIControl.IsDraw2D: boolean;
+begin
+  Result := false;
+end;
+
+procedure TUIControl.Draw2D(const Focused: boolean);
+begin
 end;
 
 { TUIControlList ------------------------------------------------------------- }
