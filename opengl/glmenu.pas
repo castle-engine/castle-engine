@@ -338,6 +338,7 @@ type
     { Item accessory that currently has "grabbed" the mouse.
       -1 if none. }
     ItemAccessoryGrabbed: Integer;
+    FDrawFocused: boolean;
     function GetCurrentItem: Integer;
     procedure SetCurrentItem(const Value: Integer);
   private
@@ -599,6 +600,11 @@ type
 
     property DesignerModeWindow: TGLWindow
       read FDesignerModeWindow write FDesignerModeWindow;
+
+    { Draw an indicator of being focused. Currently, this is a flashing
+      border around the menu area. Otherwise Draw2D ignores Focused parameter. }
+    property DrawFocused: boolean read FDrawFocused write FDrawFocused
+      default true;
   end;
 
 var
@@ -1067,6 +1073,7 @@ begin
 
   FRegularSpaceBetweenItems := DefaultRegularSpaceBetweenItems;
   FDrawBackgroundRectangle := true;
+  FDrawFocused := true;
 end;
 
 destructor TGLMenu.Destroy;
@@ -1325,7 +1332,7 @@ begin
       MapRange(MenuAnimation, 0.5, 1, 0, 1),
       CurrentItemBorderColor2, CurrentItemBorderColor1);
 
-  if Focused then
+  if Focused and DrawFocused then
   begin
     glColorv(CurrentItemBorderColor);
     DrawGLRectBorder(FAllItemsArea);

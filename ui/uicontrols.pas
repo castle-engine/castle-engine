@@ -181,14 +181,22 @@ type
         @item(OpenGL projection is guaranteed to be set to standard 2D
           projection, like by @code(gluOrtho2D(0, Glwin.Width, 0, Glwin.Height)).)
 
-        @item(The only OpenGL state you can change carelessly is the current
-          modelview matrix value and raster position. Every other change
-          should be wrapped in appropriate glPushAttrib / glPopAttrib.)
+        @item(The only OpenGL state you can change carelessly is:
+          @unorderedList(
+            @itemSpacing Compact
+            @item The modelview matrix value.
+            @item The raster position.
+            @item The color (glColor), material (glMaterial) values.
+          )
+          Every other change should be wrapped in appropriate glPushAttrib / glPopAttrib.)
 
-        @item(You may be sure that at the beginning of Draw2D
-          the current matrix is modelview, and is identity, and raster position
-          is at (0, 0). Texturing, depth test, lighting are turned off.
-
+        @item(Things that are guaranteed about OpenGL state when Draw2D is called:
+          @unorderedList(
+            @itemSpacing Compact
+            @item The current matrix is modelview, and it's value is identity.
+            @item The raster position is at (0, 0).
+            @item Texturing, depth test, lighting are turned off.
+          )
           If you require anything else, set this yourself.)
       )
 
