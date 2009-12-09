@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <CONFIG>
   <ProjectOptions>
-    <PathDelim Value="/"/>
     <Version Value="7"/>
     <General>
       <Flags>
@@ -9,7 +8,7 @@
       </Flags>
       <MainUnit Value="0"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="0"/>
+      <ActiveEditorIndexAtStart Value="2"/>
     </General>
     <PublishOptions>
       <Version Value="2"/>
@@ -50,8 +49,8 @@
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
-        <ComponentName Value="Main"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="Main"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="mainf"/>
         <CursorPos X="11" Y="135"/>
@@ -121,8 +120,8 @@
       </Unit9>
       <Unit10>
         <Filename Value="openglinformation.pas"/>
-        <ComponentName Value="OpenGLInformation"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="OpenGLInformation"/>
         <UnitName Value="OpenGLInformation"/>
         <CursorPos X="30" Y="36"/>
         <TopLine Value="18"/>
@@ -152,9 +151,11 @@
       <Unit14>
         <Filename Value="../../../base/kambidynlib.pas"/>
         <UnitName Value="KambiDynLib"/>
-        <CursorPos X="1" Y="221"/>
-        <TopLine Value="179"/>
+        <CursorPos X="56" Y="204"/>
+        <TopLine Value="194"/>
+        <EditorIndex Value="2"/>
         <UsageCount Value="11"/>
+        <Loaded Value="True"/>
       </Unit14>
       <Unit15>
         <Filename Value="../../../3dmodels/vrmlscene.pas"/>
@@ -172,9 +173,11 @@
       <Unit17>
         <Filename Value="../../../packages/components/kambivrmlbrowser.pas"/>
         <UnitName Value="KambiVRMLBrowser"/>
-        <CursorPos X="25" Y="28"/>
-        <TopLine Value="84"/>
+        <CursorPos X="42" Y="267"/>
+        <TopLine Value="253"/>
+        <EditorIndex Value="1"/>
         <UsageCount Value="12"/>
+        <Loaded Value="True"/>
       </Unit17>
       <Unit18>
         <Filename Value="../../../3dmodels/vrml97nodes.inc"/>
@@ -239,8 +242,8 @@
       </Unit26>
       <Unit27>
         <Filename Value="vrmlconsolef.pas"/>
-        <ComponentName Value="VrmlConsole"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="VrmlConsole"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="VrmlConsoleF"/>
         <CursorPos X="3" Y="50"/>
@@ -262,11 +265,19 @@
         <UsageCount Value="10"/>
       </Unit29>
     </Units>
-    <JumpHistory Count="1" HistoryIndex="0">
+    <JumpHistory Count="3" HistoryIndex="2">
       <Position1>
         <Filename Value="mainf.pas"/>
         <Caret Line="9" Column="55" TopLine="1"/>
       </Position1>
+      <Position2>
+        <Filename Value="../../../packages/components/kambivrmlbrowser.pas"/>
+        <Caret Line="28" Column="25" TopLine="28"/>
+      </Position2>
+      <Position3>
+        <Filename Value="../../../packages/components/kambivrmlbrowser.pas"/>
+        <Caret Line="267" Column="42" TopLine="253"/>
+      </Position3>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -308,7 +319,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="3">
+    <Exceptions Count="5">
       <Item1>
         <Name Value="ECodetoolError"/>
       </Item1>
@@ -318,6 +329,12 @@
       <Item3>
         <Name Value="BreakFirstViewpointFound"/>
       </Item3>
+      <Item4>
+        <Name Value="EDynLibError"/>
+      </Item4>
+      <Item5>
+        <Name Value="BreakTransformChangeSuccess"/>
+      </Item5>
     </Exceptions>
   </Debugging>
 </CONFIG>
