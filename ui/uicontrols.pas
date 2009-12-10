@@ -48,6 +48,17 @@ type
     FExclusiveEvents: boolean;
     FOnVisibleChange: TNotifyEvent;
     FMouseLook: boolean;
+    FWindowWidth, FWindowHeight: Cardinal;
+    FWindowSizeKnown: boolean;
+  protected
+    { Window size, as known by this control, undefined when
+      WindowSizeKnown = @false. This is simply collected at WindowResize
+      calls here.
+      @groupBegin }
+    property WindowWidth: Cardinal read FWindowWidth;
+    property WindowHeight: Cardinal read FWindowHeight;
+    property WindowSizeKnown: boolean read FWindowSizeKnown;
+    { @groupEnd }
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -204,6 +215,16 @@ type
     function IsDraw2D: boolean; virtual;
     procedure Draw2D(const Focused: boolean); virtual;
     { @groupEnd }
+
+    { Called always when containing window size changes.
+      Also, when the control is first inserted into the window controls list
+      (like @link(TGLWindowNavigated.Controls)), it will also receive
+      initial WindowResize event. So every member of of Controls list
+      knows window width / height.
+
+      In this class, this sets values of WindowWidth, WindowHeight, WindowSizeKnown
+      properties. }
+    procedure WindowResize(const AWindowWidth, AWindowHeight: Cardinal); virtual;
   end;
 
   TUIControlList = class(TKamObjectList)
@@ -275,6 +296,13 @@ end;
 
 procedure TUIControl.Draw2D(const Focused: boolean);
 begin
+end;
+
+procedure TUIControl.WindowResize(const AWindowWidth, AWindowHeight: Cardinal);
+begin
+  FWindowWidth := AWindowWidth;
+  FWindowHeight := AWindowHeight;
+  FWindowSizeKnown := true;
 end;
 
 { TUIControlList ------------------------------------------------------------- }

@@ -346,7 +346,6 @@ type
     FDesignerMode: boolean;
     procedure SetDesignerMode(const Value: boolean);
   private
-    LastWindowWidth, LastWindowHeight: Cardinal;
     FPositionAbsolute,
       PositionScreenRelativeMove, PositionMenuRelativeMove: TVector2_Single;
   public
@@ -438,7 +437,8 @@ type
       This will be also automatically called from destructor. }
     procedure CloseGL;
 
-    { You must call FixItemsAreas between last modification of
+    { Calculate final positions, sizes of menu items on the screen.
+      You must call FixItemsAreas between last modification of
       @unorderedList(
         @itemSpacing Compact
         @item Items
@@ -456,18 +456,29 @@ type
         @item KeyDown
         @item Idle
       )
-      You can call this only while OpenGL context is initialized. }
-    procedure FixItemsAreas(const WindowWidth, WindowHeight: Cardinal);
+      You can call this only while OpenGL context is initialized.
 
-    { These are initialized by FixItemsAreas.
+      WindowResize already calls FixItemsAreas, and window resize is already
+      called automatically by window (at the addition to Controls list,
+      or whenever window size changes). So in simplest cases (when you
+      fill @link(Items) etc. properties before adding TGLMenu to Controls)
+      you, in practice, do not have to call this explicitly. }
+    procedure FixItemsAreas;
+
+    procedure WindowResize(const AWindowWidth, AWindowHeight: Cardinal); override;
+
+    { Calculates menu items positions, sizes.
+      These are initialized by FixItemsAreas.
       They are absolutely read-only for the user of this class.
       You can use them to do some graphic effects, when you e.g.
       want to draw something on the screen that is somehow positioned
       relative to some menu item or to whole menu area.
-      Note that AllItemsArea includes also some outside margin. }
+      Note that AllItemsArea includes also some outside margin.
+      @groupBegin }
     property Areas: TDynAreaArray read FAreas;
     property AllItemsArea: TArea read FAllItemsArea;
     property AccessoryAreas: TDynAreaArray read FAccessoryAreas;
+    { @groupEnd }
 
     function IsDraw2D: boolean; override;
     procedure Draw2D(const Focused: boolean); override;
@@ -1149,7 +1160,7 @@ end;
 const
   MarginBeforeAccessory = 20;
 
-procedure TGLMenu.FixItemsAreas(const WindowWidth, WindowHeight: Cardinal);
+procedure TGLMenu.FixItemsAreas;
 
   procedure MakeGLList_DrawFadeRect(var List: TGLuint; const Alpha: TGLfloat);
   begin
@@ -1174,8 +1185,10 @@ var
   WholeItemWidth, MaxAccessoryWidth: Single;
   ItemsBelowHeight: Cardinal;
 begin
-  LastWindowWidth := WindowWidth;
-  LastWindowHeight := WindowHeight;
+  { If WindowResize not called yet, wait for FixItemsAreas call
+    from the first WindowResize. }
+  if not WindowSizeKnown then
+    Exit;
 
   MenuFontInit;
 
@@ -1298,6 +1311,12 @@ begin
   MakeGLList_DrawFadeRect(GLList_DrawFadeRect[true], 0.7);
 end;
 
+procedure TGLMenu.WindowResize(const AWindowWidth, AWindowHeight: Cardinal);
+begin
+  inherited;
+  FixItemsAreas;
+end;
+
 function TGLMenu.IsDraw2D: boolean;
 begin
   Result := true;
@@ -1411,13 +1430,13 @@ function TGLMenu.KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean;
 
     { Call FixItemsAreas only to set new
       PositionScreenRelativeMove - PositionMenuRelativeMove. }
-    FixItemsAreas(LastWindowWidth, LastWindowHeight);
+    FixItemsAreas;
 
     NewChange := PositionScreenRelativeMove - PositionMenuRelativeMove;
     Position := Position + OldChange - NewChange;
 
     { Call FixItemsAreas once again, since Position changed. }
-    FixItemsAreas(LastWindowWidth, LastWindowHeight);
+    FixItemsAreas;
   end;
 
 const
@@ -1499,7 +1518,7 @@ var
       (MX, MY) are new PositionAbsolute, so I can calculate from
       this new desired Position value. }
     Position := NewPositionAbsolute - PositionScreenRelativeMove + PositionMenuRelativeMove;
-    FixItemsAreas(LastWindowWidth, LastWindowHeight);
+    FixItemsAreas;
   end;
 
 var
@@ -1510,7 +1529,7 @@ begin
 
   { For TGLMenu, we like MouseY going higher from the bottom to the top. }
   MX := NewX;
-  MY := LastWindowHeight - NewY;
+  MY := WindowHeight - NewY;
 
   NewItemIndex := Areas.FindArea(MX, MY);
   if NewItemIndex <> -1 then
@@ -1545,7 +1564,7 @@ begin
 
   { For TGLMenu, we like MouseY going higher from the bottom to the top. }
   MX := MouseX;
-  MY := LastWindowHeight - MouseY;
+  MY := WindowHeight - MouseY;
 
   if (CurrentItem <> -1) and
      (Items.Objects[CurrentItem] <> nil) and
@@ -1633,7 +1652,7 @@ end;
 
 function TGLMenu.PositionInside(const X, Y: Single): boolean;
 begin
-  Result := PointInArea(X, LastWindowHeight - Y, FAllItemsArea);
+  Result := PointInArea(X, WindowHeight - Y, FAllItemsArea);
 end;
 
 end.

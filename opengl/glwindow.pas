@@ -2452,7 +2452,8 @@ type
     EventXxx method, which calls normal window callbacks OnKeyDown etc.
 
     All above applied to mouse / keyboard input. We also call other
-    methods on every control (if UseControls), like TUIControl.Idle and TUIControl.Draw2D.
+    methods on every control (if UseControls), like TUIControl.Idle,
+    TUIControl.Draw2D, TUIControl.WindowResize.
 
     We also use OnVisibleChange event of our controls to make
     PostRedisplay when something visible changed. If you want to use
@@ -2547,6 +2548,7 @@ type
     procedure EventMouseMove(NewX, NewY: Integer); override;
     function AllowSuspendForInput: boolean; override;
     procedure EventDraw; override;
+    procedure EventResize; override;
 
     { Calculate a ray picked by WindowX, WindowY position on the window.
       Use this only when Navigator <> nil.
@@ -4298,8 +4300,16 @@ begin
   C := TUIControl(Ptr);
   case Action of
     lnAdded:
-      if C.OnVisibleChange = nil then
-        C.OnVisibleChange := @Window.ControlsVisibleChange;
+      begin
+        if C.OnVisibleChange = nil then
+          C.OnVisibleChange := @Window.ControlsVisibleChange;
+        { Call initial WindowResize for control.
+          If window OpenGL context is not yet initialized, defer it to
+          the Init time, then our initial EventResize will be called
+          that will do WindowResize on every control. }
+        if not Window.Closed then
+          C.WindowResize(Window.Width, Window.Height);
+      end;
     lnExtracted, lnDeleted:
       if C.OnVisibleChange = @Window.ControlsVisibleChange then
         C.OnVisibleChange := nil;
@@ -4692,6 +4702,19 @@ begin
       glProjectionPushPopOrtho2D(@WindowDraw2D, Self, 0, Width, 0, Height);
 
     glPopAttrib;
+  end;
+end;
+
+procedure TGLWindowNavigated.EventResize;
+var
+  I: Integer;
+begin
+  inherited;
+
+  if UseControls then
+  begin
+    for I := 0 to Controls.Count - 1 do
+      Controls[I].WindowResize(Width, Height);
   end;
 end;
 

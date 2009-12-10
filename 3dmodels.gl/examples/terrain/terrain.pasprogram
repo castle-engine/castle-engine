@@ -219,7 +219,6 @@ procedure Resize(Glwin: TGLWindow);
 begin
   glViewport(0, 0, Glwin.Width, Glwin.Height);
   ProjectionGLPerspective(30, Glwin.Width / Glwin.Height, ScaleSize / 100, ScaleSize * 3);
-  GLControls.FixItemsAreas(Glwin.Width, Glwin.Height);
 end;
 
 constructor TTerrainControls.Create(AOwner: TComponent);
@@ -242,8 +241,6 @@ begin
   PositionRelativeMenuX := prLowerBorder;
   PositionRelativeMenuY := prLowerBorder;
   Position.Init(10.00, 10.00);
-
-  { First GLControls.FixItemsAreas will be called from Resize. }
 end;
 
 procedure TTerrainControls.CurrentItemAccessoryValueChanged;
