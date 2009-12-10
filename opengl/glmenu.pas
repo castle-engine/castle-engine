@@ -399,7 +399,7 @@ type
       always equal to Position :)
 
       This is read-only, is calculated by FixItemsAreas.
-      It's calculated anyway because out drawing code needs this.
+      It's calculated anyway because our drawing code needs this.
       You may find it useful if you want to draw something relative to menu
       position. }
     property PositionAbsolute: TVector2_Single
