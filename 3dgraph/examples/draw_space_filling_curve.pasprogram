@@ -101,7 +101,7 @@ begin
   if StepNum mod StepsToRedisplay = 0 then
   begin
     Glw.PostRedisplay;
-    Glwm.ProcessAllMessages;
+    Application.ProcessAllMessages;
     { Since we use GLW_Demo, user is able to close the window by
       pressing Escape. In this case we want to break the curve generation
       and end the program. }
@@ -168,6 +168,6 @@ begin
     glw.PostRedisplay;
     glw.OnCloseQuery := nil;
     glw.Close_CharKey := CharEscape;
-    glw.InitLoop;
+    glw.InitAndRun;
   finally FreeAndNil(CurveImage) end;
 end.

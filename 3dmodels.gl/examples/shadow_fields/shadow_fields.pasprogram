@@ -617,7 +617,7 @@ begin
 
     InitializeSHBasisMap;
 
-    Glw.InitLoop('shadow_fields', @Draw);
+    Glw.InitAndRun('shadow_fields', @Draw);
   finally
     FreeAndNil(SceneCaster);
     FreeAndNil(SceneReceiver);

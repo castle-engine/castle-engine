@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2007 Michalis Kamburelis.
+  Copyright 2001-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -9,9 +9,11 @@
   "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
 }
 
-{ This implements TGLWindowsManager video resizing with XF86VMode }
+{ This implements TGLApplication video resizing with XF86VMode }
 
 {$ifdef read_tglwindowmanager_interface}
 private
@@ -55,7 +57,7 @@ begin
    with c_private fields ? Manual is unclear to me... }
 end;
 
-function TGLWindowsManager.TryVideoChange: boolean;
+function TGLApplication.TryVideoChange: boolean;
 var
   {vidModeMajorVersion, vidModeMinorVersion: integer;}
   i, bestmode: integer;
@@ -125,7 +127,7 @@ begin
  finally XFree(modes) end;
 end;
 
-procedure TGLWindowsManager.VideoReset;
+procedure TGLApplication.VideoReset;
 begin
  if VideoModeChanged then
  begin
@@ -135,7 +137,7 @@ begin
  end;
 end;
 
-function TGLWindowsManager.ScreenWidth: integer;
+function TGLApplication.ScreenWidth: integer;
 begin
  InitializeXDisplay;
 
@@ -150,7 +152,7 @@ begin
   result := XDisplayWidth(XDisplay, XScreen);
 end;
 
-function TGLWindowsManager.ScreenHeight: integer;
+function TGLApplication.ScreenHeight: integer;
 begin
  InitializeXDisplay;
 

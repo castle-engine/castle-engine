@@ -73,18 +73,18 @@
       user answers the dialog box.
 
       This also means that this units is only able to work when GLWindow unit
-      implements Glwm.ProcessMessage routine. For now this means
+      implements Application.ProcessMessage routine. For now this means
       that GLWindow unit must not work on top of glut (GLWINDOW_GLUT
       must not be defined while compiling GLWindow), other GLWindow implementations
       are OK.)
 
     @item(
-      Be careful if you use Glwm callbacks, OnIdle / OnTimer.
+      Be careful if you use Application callbacks, OnIdle / OnTimer.
       They are tied to GL window manager, Glwn, not to any particular window,
       and so they continue to work even while we're inside MessageXxx procedure.
 
       While this can be useful, you should be careful when implementing these
-      Glwm callbacks. When they access some TGLWindow instance, it may be currently
+      Application callbacks. When they access some TGLWindow instance, it may be currently
       inside MessageXxx call.)
 
     @item(
@@ -351,7 +351,7 @@ var
     Note that all procedures in this unit are re-entrant (safe for recursive
     calls, and in threads), unless you modify this variable. When you modify
     this from one thread, be sure that you don't currently use it in some
-    MessageXxx (in other thread, or maybe you're in Glwm.OnIdle or such that
+    MessageXxx (in other thread, or maybe you're in Application.OnIdle or such that
     is called while other window is in MessageXxx). }
   GLWinMessagesTheme: TGLWinMessagesTheme;
 
@@ -1069,7 +1069,7 @@ begin
 
   {6 faza :
     Robimy wlasna petle, az do messageData.answered. }
-  repeat glwm.ProcessMessage(true) until messageData.answered;
+  repeat Application.ProcessMessage(true) until messageData.answered;
 
  { zwolnij zainicjowane messageData }
  finally

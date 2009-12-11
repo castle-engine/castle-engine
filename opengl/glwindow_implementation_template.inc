@@ -110,56 +110,56 @@ begin
   { TODO }
 end;
 
-{ TGLWindowsManager ---------------------------------------------------------- }
+{ TGLApplication ---------------------------------------------------------- }
 
 { Note: you can avoid implementing ProcessMessage and ProcessAllMessages
   if you don't define GLWINDOW_HAS_PROCESS_MESSAGE for your backend.
   But it's a good idea to try to implement them, as they allow some
   other features, like GLWinModes and GLWinMessages. }
 
-function TGLWindowsManager.ProcessMessage(AllowSuspend: boolean): boolean;
+function TGLApplication.ProcessMessage(AllowSuspend: boolean): boolean;
 begin
   { TODO }
 end;
 
-function TGLWindowsManager.ProcessAllMessages: boolean;
+function TGLApplication.ProcessAllMessages: boolean;
 begin
   { TODO }
 end;
 
-procedure TGLWindowsManager.Loop;
+procedure TGLApplication.Run;
 begin
   if ActiveCount = 0 then Exit;
 
   { TODO }
 end;
 
-procedure TGLWindowsManager.QuitWhenNoWindowsActive;
+procedure TGLApplication.QuitWhenNoWindowsActive;
 begin
   { TODO }
 end;
 
-procedure TGLWindowsManager.CreateImplDependent;
+procedure TGLApplication.CreateImplDependent;
 begin
   { TODO }
 end;
 
-procedure TGLWindowsManager.DestroyImplDependent;
+procedure TGLApplication.DestroyImplDependent;
 begin
   { TODO }
 end;
 
-function TGLWindowsManager.ScreenWidth: integer;
+function TGLApplication.ScreenWidth: integer;
 begin
   { TODO }
 end;
 
-function TGLWindowsManager.ScreenHeight: integer;
+function TGLApplication.ScreenHeight: integer;
 begin
   { TODO }
 end;
 
-function TGLWindowsManager.ImplementationName: string;
+function TGLApplication.ImplementationName: string;
 begin
   { TODO }
   Result := 'My Implementation';

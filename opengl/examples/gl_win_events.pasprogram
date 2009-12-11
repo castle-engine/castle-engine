@@ -176,7 +176,7 @@ begin
   Glw.OnMouseUp := @MouseUp;
 
   Glw.OnIdle := @Idle;
-  Glwm.TimerMilisec := 5000;
+  Application.TimerMilisec := 5000;
   Glw.OnTimer := @Timer;
 
   {testing:
@@ -195,5 +195,5 @@ begin
 
   //Glw.ResizeAllowed := raNotAllowed; // just for testing
 
-  Glw.InitLoop;
+  Glw.InitAndRun;
 end.

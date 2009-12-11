@@ -152,12 +152,12 @@ begin
  Window.PostRedisplay;
  Window.FlushRedisplay;
 
- glwm.ProcessMessage(false);
+ Application.ProcessMessage(false);
 end;
 
 procedure TProgressGLInterface.Update(Progress: TProgress);
 begin
- glwm.ProcessAllMessages;
+ Application.ProcessAllMessages;
 end;
 
 procedure TProgressGLInterface.Fini(Progress: TProgress);

@@ -191,7 +191,7 @@ begin
 
     Glw.AutoRedisplay := true;
 
-    Glw.InitLoop;
+    Glw.InitAndRun;
   finally
     FreeAndNil(Surface1);
     FreeAndNil(Surface2);

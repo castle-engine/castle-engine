@@ -637,6 +637,6 @@ begin
 
   SurfaceNew(4, 4);
   try
-    Glw.InitLoop;
+    Glw.InitAndRun;
   finally FreeAndNil(Surface) end;
 end.

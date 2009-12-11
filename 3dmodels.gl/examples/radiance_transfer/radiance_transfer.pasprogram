@@ -292,6 +292,6 @@ begin
 
     InitializeSHBasisMap;
 
-    Glw.InitLoop(ProgramName, @Draw);
+    Glw.InitAndRun(ProgramName, @Draw);
   finally Scene.Free end;
 end.

@@ -241,6 +241,6 @@ begin
       Animation.PrepareRender([tgAll], [prBoundingBox], true);
     finally Progress.Fini end;
 
-    Glwm.Loop;
+    Application.Run;
   finally Animation.Free end;
 end.

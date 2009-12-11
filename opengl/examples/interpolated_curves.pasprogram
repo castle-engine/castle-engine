@@ -438,7 +438,7 @@ begin
     Glw.OnClose := @CloseGL;
     Glw.OnResize := @Resize;
     Glw.OnDraw := @Draw;
-    Glw.InitLoop;
+    Glw.InitAndRun;
   finally
     FreeAndNil(PreciseCurve);
     FreeAndNil(ApproxCurve);

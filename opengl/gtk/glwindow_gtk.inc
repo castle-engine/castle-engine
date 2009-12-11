@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2008 Michalis Kamburelis.
+  Copyright 2004-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -9,6 +9,8 @@
   "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
 }
 
 {$ifdef GLWINDOW_GTK_2}
@@ -401,13 +403,13 @@ end;
 
 {$define SIGNAL_GLAREA_BEGIN:=
 begin
- with glwm.ActiveGLAreaGtk(AGLAreaGtk) do begin}
+ with Application.ActiveGLAreaGtk(AGLAreaGtk) do begin}
 {$define SIGNAL_GLAREA_END:=
  end; end}
 
 {$define SIGNAL_WINDOW_BEGIN:=
 begin
- with glwm.ActiveWindowGtk(AWindowGtk) do begin}
+ with Application.ActiveWindowGtk(AWindowGtk) do begin}
 {$define SIGNAL_WINDOW_END:=
  end; end}
 
@@ -732,21 +734,21 @@ const
     }
     GDK_LEFT_PTR, GDK_WATCH, GDK_XTERM, GDK_HAND2 );
 begin
-  if Glwm.Cursors[Cursor] = nil then
+  if Application.Cursors[Cursor] = nil then
   begin
-    { initialize Glwm.Cursors[Cursor] }
+    { initialize Application.Cursors[Cursor] }
     case Cursor of
       gcDefault:
-        { don't do anything, Glwm.Cursors[gcDefault] should be nil,
+        { don't do anything, Application.Cursors[gcDefault] should be nil,
           gdk_window_set_cursor will understand nil as "use parent"
           and that's exactly what we want for gcDefault. };
-      gcNone: Glwm.Cursors[Cursor] := CreateNoneCursor;
+      gcNone: Application.Cursors[Cursor] := CreateNoneCursor;
       gcCustom: { TODO: temporary, behave like gcDefault };
       else
       begin
-        Glwm.Cursors[Cursor] :=
+        Application.Cursors[Cursor] :=
           {$ifdef GLWINDOW_GTK_2}
-          gdk_cursor_new_for_display(Glwm.XDisplayGdk,
+          gdk_cursor_new_for_display(Application.XDisplayGdk,
           {$else}
           gdk_cursor_new(
           {$endif}
@@ -755,7 +757,7 @@ begin
     end;
   end;
 
-  gdk_window_set_cursor(GTK_WIDGET(GLAreaGtk)^.Window, Glwm.Cursors[Cursor]);
+  gdk_window_set_cursor(GTK_WIDGET(GLAreaGtk)^.Window, Application.Cursors[Cursor]);
 end;
 
 procedure TGLWindow.SetMousePosition(const NewMouseX, NewMouseY: Integer);
@@ -956,7 +958,7 @@ var
   GLAreaContainer: PGtkWidget;
 begin
  {$ifdef GLWINDOW_GTK_2}
- Glwm.InitializeXDisplay;
+ Application.InitializeXDisplay;
  {$endif}
 
  {$ifdef GLWINDOW_GTK_1}
@@ -969,8 +971,8 @@ begin
  WindowGtk := PGtkWindow(gtk_window_new(GTK_WINDOW_TOPLEVEL));
 
  if (GtkIconName <> '') and
-    Assigned(Glwm.gtk_window_set_icon_name) then
-   Glwm.gtk_window_set_icon_name(WindowGtk, PCharOrNil(GtkIconName));
+    Assigned(Application.gtk_window_set_icon_name) then
+   Application.gtk_window_set_icon_name(WindowGtk, PCharOrNil(GtkIconName));
  {$endif}
 
  gtk_window_set_title(GTK_WINDOW(WindowGtk), PChar(Caption));
@@ -1095,8 +1097,8 @@ begin
 
  { Add us to Active[] windows to ensure that all callbacks that are
    eventually called by procedures below will be able to use
-   glwm.ActiveGLAreaGtk and glwm.ActiveWindowGtk. }
- glwm.ActiveAdd(Self);
+   Application.ActiveGLAreaGtk and Application.ActiveWindowGtk. }
+ Application.ActiveAdd(Self);
 
  { setup window position from Left, Top }
  gtk_widget_set_uposition(GTK_WIDGET(WindowGtk), Left, Top);
@@ -1131,7 +1133,7 @@ begin
                  set_default_glarea_size
 
     If FullScreen, Width/Height here should be equal to
-    glwm.ScreenWidth/Height. But maybe later I will change this in TGLWindow.Init
+    Application.ScreenWidth/Height. But maybe later I will change this in TGLWindow.Init
     implementation, so I do not want to depend on this. }
 
   gtk_widget_set_usize(GTK_WIDGET(WindowGtk),
@@ -1147,14 +1149,14 @@ begin
       but it CAN be changed at runtime by user.
 
       Unfortunately, I can't express this with GTK_1, with GTK_1
-      I must say here glwm.ScreenWidth, glwm.ScreenHeight, otherwise
+      I must say here Application.ScreenWidth, Application.ScreenHeight, otherwise
       GTK_1 seems to just ignore gtk_window_set_default_size and
       opens fullscreen window with no decorations but
       with MinWidth, MinHeight size (instead of screen size). }
     {$ifdef GLWINDOW_GTK_2} MinWidth, MinHeight
-    {$else} glwm.ScreenWidth, glwm.ScreenHeight
+    {$else} Application.ScreenWidth, Application.ScreenHeight
     {$endif} );
-  gtk_window_set_default_size(WindowGtk, glwm.ScreenWidth, glwm.ScreenHeight);
+  gtk_window_set_default_size(WindowGtk, Application.ScreenWidth, Application.ScreenHeight);
 
   {$ifdef GLWINDOW_GTK_2}
   gtk_window_fullscreen(WindowGtk);
@@ -1192,7 +1194,7 @@ begin
  {$ifdef GLWINDOW_GTK_2}
  { Honour display (XScreenGdk is default screen on chosen display)
    chosen by user. }
- gtk_window_set_screen(WindowGtk, Glwm.XScreenGdk);
+ gtk_window_set_screen(WindowGtk, Application.XScreenGdk);
  {$endif}
 
  if WindowVisible then
@@ -1264,7 +1266,7 @@ end;
 
 procedure TGLWindow.CloseImplDepend;
 begin
- Glwm.AutoRedisplayList.Remove(Self);
+ Application.AutoRedisplayList.Remove(Self);
 
  {$ifdef GLWINDOW_GTK_1}
  if FullScreen and FullScreenUsingOverrideRedirect then
@@ -1393,7 +1395,7 @@ begin
     with what we do when using GtkFileChooser (that is implemented
     in a different place, and there GlobalIdleInstalled := false
     is actually needed for correct behavior). }
-  Glwm.GlobalIdleInstalled := false;
+  Application.GlobalIdleInstalled := false;
   try
 
     { enter glwin mode }
@@ -1404,10 +1406,10 @@ begin
     Mode := TGLModeFrozenScreen.Create(Self, 0, false, nil);
     try
       gtk_widget_show(GTK_WIDGET(ADialog));
-      while not Data.Answered do glwm.ProcessMessage(true);
+      while not Data.Answered do Application.ProcessMessage(true);
     finally Mode.Free end;
 
-  finally Glwm.GlobalIdleInstalled := true end;
+  finally Application.GlobalIdleInstalled := true end;
 
   Result := Data.Answer;
 end;
@@ -1476,8 +1478,8 @@ begin
 
   if not OpenDialog then
   begin
-    if Assigned(Glwm.gtk_file_chooser_set_do_overwrite_confirmation) then
-      Glwm.gtk_file_chooser_set_do_overwrite_confirmation(Dialog, LongBool(gtrue));
+    if Assigned(Application.gtk_file_chooser_set_do_overwrite_confirmation) then
+      Application.gtk_file_chooser_set_do_overwrite_confirmation(Dialog, LongBool(gtrue));
   end;
 
   { We don't want to simply call gtk_file_chooser_set_filename,
@@ -1550,7 +1552,7 @@ begin
     open dialog hangs strangely (you cannot see the entries in open dialog,
     and clicking on "file system" hangs etc.) without this
     GlobalIdleInstalled := false fix. }
-  Glwm.GlobalIdleInstalled := false;
+  Application.GlobalIdleInstalled := false;
   try
 
     Mode := TGLModeFrozenScreen.Create(Self, 0, false, nil);
@@ -1560,9 +1562,9 @@ begin
         buttons cause gtk_dialog_run to exit with indicated response,
         delete_event also causes normal exit with GTK_RESPONSE_DELETE_EVENT.
 
-        Inside it will do the same thing as a loop of our Glwm.ProcessMessages
-        (because we set up everything properly, such that our Glwm.ProcessMessages
-        just calls gtk_main_iteration, so GTK loop fully performs Glwm loop). }
+        Inside it will do the same thing as a loop of our Application.ProcessMessages
+        (because we set up everything properly, such that our Application.ProcessMessages
+        just calls gtk_main_iteration, so GTK loop fully performs Application loop). }
       Result := gtk_dialog_run(GTK_DIALOG(Dialog)) = GTK_RESPONSE_ACCEPT;
       if Result then
       begin
@@ -1573,7 +1575,7 @@ begin
       end;
     finally Mode.Free end;
 
-  finally Glwm.GlobalIdleInstalled := true end;
+  finally Application.GlobalIdleInstalled := true end;
 
   gtk_widget_destroy(GTK_WIDGET(Dialog));
 end;
@@ -1616,14 +1618,14 @@ begin
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
 end;
 
-{ TGLWindowsManager: global idle ------------------------------------------- }
+{ TGLApplication: global idle ------------------------------------------- }
 
 function GlobalIdle(data: gpointer):
   {$ifdef GLWINDOW_GTK_2} gboolean {$else} gint {$endif}; cdecl;
-{ This function simply calls glwm.DoSelfIdle and glwm.DoActiveWindowsIdle
-  and takes care of calling glwm.DoSelfTimer and glwm.DoActiveWindowsTimer. }
+{ This function simply calls Application.DoSelfIdle and Application.DoActiveWindowsIdle
+  and takes care of calling Application.DoSelfTimer and Application.DoActiveWindowsTimer. }
 begin
- with glwm do
+ with Application do
  begin
   DoSelfIdle;
   DoActiveWindowsIdle;
@@ -1638,7 +1640,7 @@ begin
  Result := {$ifndef GLWINDOW_GTK_2} gint {$endif} (true);
 end;
 
-procedure TGLWindowsManager.SetGlobalIdleInstalled(value: boolean);
+procedure TGLApplication.SetGlobalIdleInstalled(value: boolean);
 begin
  if FGlobalIdleInstalled <> value then
  begin
@@ -1682,9 +1684,9 @@ begin
  end;
 end;
 
-{ TGLWindowsManager ------------------------------------------- }
+{ TGLApplication ------------------------------------------- }
 
-function TGLWindowsManager.TryActiveWindowGtk(seekWindowGtk: PGtkWindow):
+function TGLApplication.TryActiveWindowGtk(seekWindowGtk: PGtkWindow):
   TGLWindow;
 var i: Integer;
 begin
@@ -1694,7 +1696,7 @@ begin
  Result := nil;
 end;
 
-function TGLWindowsManager.TryActiveGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TGLWindow;
+function TGLApplication.TryActiveGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TGLWindow;
 var i: Integer;
 begin
  for i := 0 to ActiveCount-1 do
@@ -1703,21 +1705,21 @@ begin
  Result := nil;
 end;
 
-function TGLWindowsManager.ActiveWindowGtk(seekWindowGtk: PGtkWindow): TGLWindow;
+function TGLApplication.ActiveWindowGtk(seekWindowGtk: PGtkWindow): TGLWindow;
 begin
  Result := TryActiveWindowGtk(seekWindowGtk);
  if Result = nil then raise EInternalError.Create(
    'No Active[] window with such WindowGtk found');
 end;
 
-function TGLWindowsManager.ActiveGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TGLWindow;
+function TGLApplication.ActiveGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TGLWindow;
 begin
  Result := TryActiveGLAreaGtk(seekGLAreaGtk);
  if Result = nil then raise EInternalError.Create(
    'No Active[] window with such GLAreaGtk found');
 end;
 
-procedure TGLWindowsManager.Loop;
+procedure TGLApplication.Run;
 begin
   if ActiveCount = 0 then Exit;
 
@@ -1725,7 +1727,7 @@ begin
   gtk_main();
 end;
 
-function TGLWindowsManager.ProcessAllMessages: boolean;
+function TGLApplication.ProcessAllMessages: boolean;
 begin
  { See comments at TGLWindow.DoDraw to understand this mess
    with AutoRedisplayAddToList here. }
@@ -1738,7 +1740,7 @@ begin
     always returns true (because it thinks that it should call GlobalIdle
     in a loop).
 
-    To make sure that glwm.DoSelfIdle and DoIdle of Active[] windows
+    To make sure that Application.DoSelfIdle and DoIdle of Active[] windows
     is executed we just manually execute at the end GlobalIdle. }
   GlobalIdleInstalled := false;
   try
@@ -1749,7 +1751,7 @@ begin
 
   finally GlobalIdleInstalled := true end;
 
-  { Without call below glwm.DoSelfIdle and DoIdle of Active[] windows
+  { Without call below Application.DoSelfIdle and DoIdle of Active[] windows
     would not be executed in any ProcessAllMessages.
     (It is possible that setting GlobalIdleInstalled := true; will also
     execute GlobalIdle as a side effect. But we must not depend on that.) }
@@ -1759,7 +1761,7 @@ begin
  if AutoRedisplayAddToList = 0 then AutoRedisplayList.PostRedisplay;
 end;
 
-function TGLWindowsManager.ProcessMessage(AllowSuspend: boolean): boolean;
+function TGLApplication.ProcessMessage(AllowSuspend: boolean): boolean;
 begin
   (* I would like to do here
     Result := not {$ifndef GLWINDOW_GTK_2} gboolean {$endif}
@@ -1768,7 +1770,7 @@ begin
     I.e. I want to use the result of gtk_main_iteration_do to return it.
     Unfortunately, it turns out that gtk_main_iteration_do always returns
     true if the program doesn't use gtk_main call at all
-    (i.e. does it's whole loop manually, by calling Glwm.ProcessMessage).
+    (i.e. does it's whole loop manually, by calling Application.ProcessMessage).
     This is confirmed by
     1. practice (just change impl of Loop to
          while ProcessMessage(true) do ;
@@ -1801,7 +1803,7 @@ begin
   Result := not QuitPosted;
 end;
 
-procedure TGLWindowsManager.QuitWhenNoWindowsActive;
+procedure TGLApplication.QuitWhenNoWindowsActive;
 begin
  if gtk_main_level() > 0 then gtk_main_quit();
 
@@ -1817,7 +1819,7 @@ begin
  QuitPosted := true;
 end;
 
-procedure TGLWindowsManager.CreateImplDependent;
+procedure TGLApplication.CreateImplDependent;
 begin
   gtk_init(@argc, @argv);
 
@@ -1855,7 +1857,7 @@ begin
 {$endif GLWINDOW_GTK_2}
 end;
 
-procedure TGLWindowsManager.DestroyImplDependent;
+procedure TGLApplication.DestroyImplDependent;
 var
   C: TGLWindowCursor;
 begin
@@ -1884,7 +1886,7 @@ end;
 { When GLWINDOW_USE_XF86VMODE, then glwindow_xf86vmode.inc
   will provide implementation for ScreenWidth and ScreenHeight. }
 {$ifndef GLWINDOW_USE_XF86VMODE}
-function TGLWindowsManager.ScreenWidth: integer;
+function TGLApplication.ScreenWidth: integer;
 begin
   {$ifdef GLWINDOW_GTK_2}
   InitializeXDisplay;
@@ -1894,7 +1896,7 @@ begin
   {$endif}
 end;
 
-function TGLWindowsManager.ScreenHeight: integer;
+function TGLApplication.ScreenHeight: integer;
 begin
   {$ifdef GLWINDOW_GTK_2}
   InitializeXDisplay;
@@ -1905,26 +1907,26 @@ begin
 end;
 {$endif GLWINDOW_USE_XF86VMODE}
 
-function TGLWindowsManager.ImplementationName: string;
+function TGLApplication.ImplementationName: string;
 begin
   Result := {$ifdef GLWINDOW_GTK_2} 'GTK+' {$else} 'GTK+ 1.x' {$endif};
 end;
 
 {$ifdef GLWINDOW_USE_XF86VMODE}
-function TGLWindowsManager.XDisplay: Xlib.PDisplay;
+function TGLApplication.XDisplay: Xlib.PDisplay;
 begin
   { TODO: should be synched with XDisplayName property }
   Result := gdk_x11_get_default_xdisplay();
 end;
 
-function TGLWindowsManager.XScreen: Integer;
+function TGLApplication.XScreen: Integer;
 begin
   Result := gdk_x11_get_default_screen();
 end;
 {$endif}
 
 {$ifdef GLWINDOW_GTK_2}
-procedure TGLWindowsManager.InitializeXDisplay;
+procedure TGLApplication.InitializeXDisplay;
 begin
   if not InitializeXDisplayDone then
   begin

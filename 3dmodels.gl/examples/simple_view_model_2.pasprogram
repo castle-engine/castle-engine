@@ -171,6 +171,6 @@ begin
     Glw.OnClose := @Close;
     Glw.OnResize := @Resize;
     Glw.OnBeforeDraw := @BeforeDraw;
-    Glw.InitLoop(ProgramName, @Draw);
+    Glw.InitAndRun(ProgramName, @Draw);
   finally Scene.Free end;
 end.

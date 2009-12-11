@@ -19,7 +19,7 @@
   This unit is a tool for creating functions like
   @link(GLWinMessages.MessageOK). Such functions want to temporarily
   replace TGLWindow callbacks with their own,
-  then call glwm.ProcessMessage method in a loop and then
+  then call Application.ProcessMessage method in a loop and then
   return, restoring GLWindow callbacks and OpenGL state back into
   the original state. This way you can implement functions that
   e.g. wait for some keypress, or wait until user inputs some
@@ -43,9 +43,9 @@
   Nasz pomysl ma duzo szersze zastosowanie, nie chodzi nam o okienka
   ale o cokolwiek zwiazanego z konstrukcja procedur ktore w "punkcie
   kulminacyjnym" wykonuja petle w rodzaju
-    while not <warunek-konca> do glwm.ProcessMessage;
+    while not <warunek-konca> do Application.ProcessMessage;
   lub
-    while (not <warunek-konca>) and glwm.ProcessMessage do ;
+    while (not <warunek-konca>) and Application.ProcessMessage do ;
   (druga wersja dopuszcza fakt ze user moze zamknac okienko w czasie trwania
   procedury; zazwyczaj procedury w rodzaju MessageOK beda blokowac mozliwosc
   zamkniecia programu na czas swojego dzialania
@@ -326,7 +326,7 @@ type
 @longcode(#
   Mode := TGLModeFrozenScreen.Create(glwin, 0);
   try
-   while <something> do glwm.ProcessMessage(...);
+   while <something> do Application.ProcessMessage(...);
   finally Mode.Free end;
 #)
 

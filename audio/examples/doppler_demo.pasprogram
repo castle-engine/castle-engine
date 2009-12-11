@@ -87,12 +87,12 @@ begin
     alListenerVector3f(AL_POSITION, ListenerPosition * ALDistanceScaling);
     alListenerOrientation(Vector3Single(0, 1, 0), Vector3Single(0, 0, 1));
 
-    Glwm.TimerMilisec := 1000;
+    Application.TimerMilisec := 1000;
     Glw.OnTimer := @Timer;
     Glw.OnDraw := @Draw;
     Glw.OnResize := @Resize2D;
     Glw.OnMouseMove := @MouseMove;
-    Glw.InitLoop;
+    Glw.InitAndRun;
 
     alSourceStop(Source);
     alDeleteSources(1, @Source);

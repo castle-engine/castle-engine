@@ -110,6 +110,6 @@ begin
   glw.OnInit := @Init;
   glw.OnClose := @Close;
   glw.OnResize := @Resize;
-  glw.InitLoop('GLWindow with some GTK widgets', @Draw);
+  glw.InitAndRun('GLWindow with some GTK widgets', @Draw);
  finally glw.Free end;
 end.

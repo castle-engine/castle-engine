@@ -55,6 +55,6 @@ begin
     BrowserWindow.Scene.ProcessEvents := true;
 
     BrowserWindow.InitOptionalMultiSamplingAndStencil(nil, @StencilOff);
-    Glwm.Loop;
+    Application.Run;
   finally BrowserWindow.Free end;
 end.

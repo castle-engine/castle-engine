@@ -315,7 +315,7 @@ begin
     Glw.OnIdle := @Idle;
     Glw.OnResize := @Resize2D;
 
-    Glw.InitLoop;
+    Glw.InitAndRun;
   finally
     FreeAndNil(Video);
     FreeAndNil(Cache);

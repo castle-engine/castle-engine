@@ -1253,5 +1253,5 @@ begin
   Glw.OnResize := @Resize;
   Glw.OnIdle := @Idle;
 
-  Glw.InitLoop;
+  Glw.InitAndRun;
 end.

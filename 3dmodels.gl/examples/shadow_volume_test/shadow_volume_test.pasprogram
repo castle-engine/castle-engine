@@ -711,7 +711,7 @@ begin
     Glw.OnIdle := @IdleGL;
     Glw.OnKeyDown := @KeyDown;
     Glw.OnMouseMove := @MouseMove;
-    Glw.InitLoop;
+    Glw.InitAndRun;
   finally
     Scene.Free;
     ShadowCaster.Free;

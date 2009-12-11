@@ -106,7 +106,7 @@ end;
      GLUTBEGIN_glutHwnd: longint;
  begin
   GLUTBEGIN_glutHwnd := glutGetWindow();
-  GLUTBEGIN_glwin := glwm.ActiveGlutWindow(GLUTBEGIN_glutHwnd);
+  GLUTBEGIN_glwin := Application.ActiveGlutWindow(GLUTBEGIN_glutHwnd);
   if GLUTBEGIN_glwin <> nil then
    with GLUTBEGIN_glwin do
    begin }
@@ -374,7 +374,7 @@ begin
    glutGet(GLUT_WINDOW_ACCUM_BLUE_SIZE), glutGet(GLUT_WINDOW_ACCUM_ALPHA_SIZE),
    glutGet(GLUT_WINDOW_NUM_SAMPLES));
 
- glwm.ActiveAdd(Self);
+ Application.ActiveAdd(Self);
  glutReshapeFunc(@reshapeByGlut);
  glutDisplayFunc(@displayByGlut);
  glutKeyboardFunc(@keyboardByGlut);
@@ -444,13 +444,13 @@ begin
  DoDraw;
 end;
 
-{ TGLWindowsManager na GLUTcie ------------------------------------------- }
+{ TGLApplication na GLUTcie ------------------------------------------- }
 
 procedure idleByGlut; cdecl;
 var k: TKey;
     i: integer;
 begin
- with glwm do
+ with Application do
  begin
   for i := 0 to ActiveCount-1 do
    with Active[i] do
@@ -472,19 +472,19 @@ begin
  end;
 end;
 
-procedure TGLWindowsManager.Loop;
+procedure TGLApplication.Run;
 begin
   if ActiveCount = 0 then Exit;
 
   glutMainLoop;
 end;
 
-procedure TGLWindowsManager.QuitWhenNoWindowsActive;
+procedure TGLApplication.QuitWhenNoWindowsActive;
 begin
  Halt;
 end;
 
-function TGLWindowsManager.ActiveGlutWindow(seekGlutHwnd: integer): TGLWindow;
+function TGLApplication.ActiveGlutWindow(seekGlutHwnd: integer): TGLWindow;
 var i: integer;
 begin
  for i := 0 to ActiveCount-1 do
@@ -493,23 +493,23 @@ begin
  result := nil;
 end;
 
-procedure TGLWindowsManager.CreateImplDependent;
+procedure TGLApplication.CreateImplDependent;
 begin
  glutPascalInit;
  glutIdleFunc(@idleByGlut);
 end;
 
-procedure TGLWindowsManager.DestroyImplDependent;
+procedure TGLApplication.DestroyImplDependent;
 begin
 end;
 
-function TGLWindowsManager.ScreenWidth: integer;
+function TGLApplication.ScreenWidth: integer;
 begin result := glutGet(GLUT_SCREEN_WIDTH) end;
 
-function TGLWindowsManager.ScreenHeight: integer;
+function TGLApplication.ScreenHeight: integer;
 begin result := glutGet(GLUT_SCREEN_HEIGHT) end;
 
-function TGLWindowsManager.ImplementationName: string;
+function TGLApplication.ImplementationName: string;
 begin
  Result := 'GLUT';
 end;

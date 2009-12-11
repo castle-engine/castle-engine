@@ -365,7 +365,7 @@ begin
 
     Glw.OnInit := @Init;
     Glw.OnResize := @Resize;
-    Glw.InitLoop(ProgramName, @Draw);
+    Glw.InitAndRun(ProgramName, @Draw);
   finally
     FreeAndNil(Scene);
     FreeAndNil(TrianglesCoordIndex);

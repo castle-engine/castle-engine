@@ -163,7 +163,7 @@ end;
 procedure MenuCommand(glwin: TGLWindow; Item: TMenuItem);
 begin
   case Item.IntData of
-    10: Glwm.Quit;
+    10: Application.Quit;
     100..100 + Ord(High(TOperation)):
       begin
         Operation := TOperation(Item.IntData - 100);
@@ -277,7 +277,7 @@ begin
     Source.Init;
     Freq.Init;
     Output.Init;
-    Glwm.Loop;
+    Application.Run;
   finally
     FreeAndNil(Fft);
 

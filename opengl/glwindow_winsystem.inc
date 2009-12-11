@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2005 Michalis Kamburelis.
+  Copyright 2001-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -9,6 +9,8 @@
   "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
 }
 
 { This is the common code for GLWINDOW_XLIB and GLWINDOW_WINAPI implementations. }
@@ -58,7 +60,7 @@ private
 { common things for winsystem GLWindow implementations.
   Uwagi :
    - zawsze musimy w jakis sposob sprawdzic czy okienko dla ktorego
-     dostalismy message jest aktualnie na liscie glwm.Active.
+     dostalismy message jest aktualnie na liscie Application.Active.
      Pamietajmy bowiem ze do naszej kolejki komunikatow mogly
      trafic message'y dla okienek ktore juz zamknelismy - typowym
      przykladem jest gdy zamykamy okienko w reakcji na jakies OnKeyDown.
@@ -104,9 +106,9 @@ begin
  FlushRedisplay2;
 end;
 
-{ TGLWindowsManager ---------------------------------------------------------- }
+{ TGLApplication ---------------------------------------------------------- }
 
-function TGLWindowsManager.ProcessAllMessages: boolean;
+function TGLApplication.ProcessAllMessages: boolean;
 var WasAnyMessage: boolean;
 begin
  repeat
@@ -115,13 +117,13 @@ begin
  until false;
 end;
 
-function TGLWindowsManager.ProcessMessage(AllowSuspend: boolean): boolean;
+function TGLApplication.ProcessMessage(AllowSuspend: boolean): boolean;
 var dummy: boolean;
 begin
  result := ProcessMessage2(AllowSuspend, dummy);
 end;
 
-function TGLWindowsManager.ProcessMessage2(AllowSuspend: boolean;
+function TGLApplication.ProcessMessage2(AllowSuspend: boolean;
   var WasAnyMessage: boolean): boolean;
 
   { CheckMessage sprawdza czy jest jakis message w naszej queue,
@@ -170,9 +172,9 @@ function TGLWindowsManager.ProcessMessage2(AllowSuspend: boolean;
     MappingNotify: XRefreshKeyboardMapping(@event);
     else
     begin { zdarzenia ktore sa skierowane do konkretnego TGLWindow }
-     { sprawdzamy czy okienko jest na liscie glwm.Active, przy okazji
+     { sprawdzamy czy okienko jest na liscie Application.Active, przy okazji
        zamieniajac windowXID na obiekt klasy TGLWindow. }
-     glwin := glwm.ActiveWindowXID(event.xany. {$ifdef DELPHI} xwindow {$else} window {$endif});
+     glwin := Application.ActiveWindowXID(event.xany. {$ifdef DELPHI} xwindow {$else} window {$endif});
      if glwin <> nil then
       case evtype of
        Expose: { XExposeEvent }
@@ -307,9 +309,9 @@ begin
 
     { If we do not do anything in any idle/timer
       (this is checked by SomeWindowDisallowsSuspend,
-      and additionally the Glwm callbacks OnIdle and OnTimer are checked
+      and additionally the Application callbacks OnIdle and OnTimer are checked
       here explicitly), and there's no reason to redisplay and we're
-      not during quit process (started by Glwm.Quit),
+      not during quit process (started by Application.Quit),
       => then there's no need to finish ProcessMessage.
 
       ProcessMessage may assume in this case it works like
@@ -344,7 +346,7 @@ begin
  end;
 end;
 
-procedure TGLWindowsManager.Loop;
+procedure TGLApplication.Run;
 begin
   if ActiveCount = 0 then Exit;
 
@@ -352,7 +354,7 @@ begin
   while ProcessMessage(true) do ;
 end;
 
-procedure TGLWindowsManager.QuitWhenNoWindowsActive;
+procedure TGLApplication.QuitWhenNoWindowsActive;
 begin
  QuitPosted := true;
 end;

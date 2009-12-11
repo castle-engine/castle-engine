@@ -1000,7 +1000,7 @@ begin
     Glw.OnClose := @Close;
     Glw.OnResize := @Resize;
     Glw.OnIdle := @Idle;
-    Glw.InitLoop(ProgramName, @Draw);
+    Glw.InitAndRun(ProgramName, @Draw);
   finally
     FreeAndNil(Scene);
     FreeAndNil(Elements);

@@ -221,5 +221,5 @@ begin
   Glw.OnClose := @CloseGL;
   Glw.OnDraw := @Draw;
   Glw.OnResize := @Resize;
-  Glw.InitLoop;
+  Glw.InitAndRun;
 end.

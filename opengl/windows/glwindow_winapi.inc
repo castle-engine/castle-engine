@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2008 Michalis Kamburelis.
+  Copyright 2001-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -9,6 +9,8 @@
   "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
 }
 
 {$ifdef read_tglwindow_interface}
@@ -195,13 +197,13 @@ begin
    ktore juz jest zamkniete (a moze nawet na obiekt ktory juz zostal
    zwolniony z pamieci !). Dlaczego tak jest, patrz komentarz na poczatku
    GLWindow_winsystem.inc. Wiec sprawdzamy tutaj czy glwin jest na liscie
-   glwm.Active .
+   Application.Active .
 
    Moreover, temporary windows created by CreateTemporaryWindow in
    SetPixelFormat_WGLChoose also get here (as they use our
-   Glwm.wndClassName). They don't set Get/SetWindowLongPtr, so Glwin here
+   Application.wndClassName). They don't set Get/SetWindowLongPtr, so Glwin here
    will be @nil in this case. }
- if glwm.FindWindow(glwin) >= 0 then
+ if Application.FindWindow(glwin) >= 0 then
   result := glwin.WindowProc(uMsg, wParm, lParm) else
   result := DefWindowProc(hWnd, uMsg, wParm, lParm);
 end;
@@ -343,7 +345,7 @@ begin
      if LoWord(wParm) = WA_INACTIVE then ReleaseAllKeysAndMouse;
   WM_ACTIVATEAPP:
     begin
-     glwm.appActive := longbool(wParm);
+     Application.appActive := longbool(wParm);
      {exit; <- allow DefWindowProc handle WM_ACTIVETAPP too,
       since you can't say "we surely handled everything that should be done in
       reaction for this message"}
@@ -437,10 +439,10 @@ begin
       { jezeli nie jestesmy Enabled to moze znaczyc tylko ze zostalo
         uruchomione okienko modalne blokujace nasze okienko (np. Windows.MessageBox).
         W takiej sytuacji nie mozemy polegac na mechanizmie ustawiania
-        redisplayPosted na true bo glwm.ProcessMessage moze nie dzialac
+        redisplayPosted na true bo Application.ProcessMessage moze nie dzialac
         (byc zawieszone, do czasu az wywolana gdziestam procedura MessageBox
         powroci). Innymi slowy, jestesmy w WindowProc ale nie na skutek wywolania
-        DispatchMessage z glwm.ProcessMessage - lecz Windowsowe okienko modalne
+        DispatchMessage z Application.ProcessMessage - lecz Windowsowe okienko modalne
         sztucznie udaje nasza petle komunikatow abysmy sie odmalowali, bo np.
         user przesuwa to okienko modalne nad naszym oknem.
         Musimy wiec w tym momencie przerysowac sie natychmiast. }
@@ -545,7 +547,7 @@ begin
           gcCustom: { TODO, for now behave like gcDefault };
           else
             begin
-              Windows.SetCursor(Glwm.CursorHandles[Cursor].Handle);
+              Windows.SetCursor(Application.CursorHandles[Cursor].Handle);
               Exit(1);
             end;
         end;
@@ -662,7 +664,7 @@ procedure TGLWindow.InitWinSystemDepend;
       try
         { create Temp_H_wnd }
         Temp_H_wnd := CreateWindowEx(WS_EX_APPWINDOW or WS_EX_WINDOWEDGE,
-          PChar(Glwm.wndClassName),
+          PChar(Application.wndClassName),
           PChar(FCaption + ' - temporary window for wgl'),
           WS_OVERLAPPEDWINDOW or WS_CLIPSIBLINGS or WS_CLIPCHILDREN,
           0, 0, 100, 100,
@@ -848,7 +850,7 @@ var
   WindowRect, ClientRect: TRect;
   H_Menu: HMenu;
 begin
- if ColorBits = 0 then ColorBits := Glwm.VideoColorBits;
+ if ColorBits = 0 then ColorBits := Application.VideoColorBits;
 
  { optionally hide mouse in FullScreem,
    set dwStyle and dwExStyle for our window }
@@ -870,8 +872,8 @@ begin
      drobna niewygoda dla usera. Jezeli spowoduje ze przycisk MAXIMIZE bedzie mimo ze
      nie powinno go byc to obwarowane checkami DoResize zignoruje nieprawidlowy rozmiar
      i juz. }
-   if (not between(glwm.ScreenWidth, minWidth, maxWidth)) or
-      (not between(glwm.ScreenHeight, minHeight, maxHeight)) then
+   if (not between(Application.ScreenWidth, minWidth, maxWidth)) or
+      (not between(Application.ScreenHeight, minHeight, maxHeight)) then
     dwStyle := WS_OVERLAPPED or WS_CAPTION or WS_SYSMENU or WS_MINIMIZEBOX or WS_THICKFRAME else
     dwStyle := WS_OVERLAPPEDWINDOW;
   end else
@@ -888,8 +890,8 @@ begin
 
    Note that when FullScreen = true there is no need to do this - the intention
    of FullScreen is that whole window (with menu) covers whole screen and
-   window has no frame. So WindowRect should be (0, 0, glwm.ScreenWidth,
-   glwm.ScreenHeight) and this is already set. I could write it like that:
+   window has no frame. So WindowRect should be (0, 0, Application.ScreenWidth,
+   Application.ScreenHeight) and this is already set. I could write it like that:
      AdjustWindowRectEx(WindowRect, dwStyle,
        (not FullScreen) and (MainMenu <> nil), dwExStyle);
    but it's more clear to just omit AdjustWindowRectEx call when FullScreen.
@@ -921,7 +923,7 @@ begin
 
  { main point : create the window }
  H_wnd := CreateWindowEx(dwExStyle,
-   PChar(glwm.wndClassName), PChar(fCaption),
+   PChar(Application.wndClassName), PChar(fCaption),
    dwStyle,
    windowRect.left, windowRect.top,
    windowRect.right-windowRect.left, windowRect.Bottom-windowRect.top,
@@ -970,10 +972,10 @@ begin
  { robimy ActiveAdd PRZED ShowWindow bo ShowWindow wywoluje WinProc
    z message'm kazacym nam sie odmalowac. Wiec zeby przetworzyc tego messaga
    (ktory powoduje po prostu PostRedisplay) nasze okienko musi byc
-   zarejestrowane w glwm.Active. Dlaczego nie zrobic po prostu PostRedisplay ?
+   zarejestrowane w Application.Active. Dlaczego nie zrobic po prostu PostRedisplay ?
    Tak jest porzadniej, no i w ten sposob wiem DLACZEGO to dziala, a nie tylko
    ze "dziala kiedy wywolamy PostRedisplay". }
- glwm.ActiveAdd(Self);
+ Application.ActiveAdd(Self);
 
  { On Windows, it seems I can't implement WindowVisible option.
    OpenGL context is just useless without ShowWindow(h_Wnd, SW_SHOW),
@@ -996,7 +998,7 @@ begin
    caused by our special dwStyle and dwStyleEx for FullScreen, probably
    by the lack of WS_OVERLAPPED in dwStyle). But we should check it here,
    because it's possible that the real Width/Height of the OpenGL window is now
-   NOT glwm.ScreenWidth/Height - that's because of MainMenu, it takes some space.
+   NOT Application.ScreenWidth/Height - that's because of MainMenu, it takes some space.
    So we check client rect size explicitly, with GetClientRect, and call DoResize
    (we don't care here about ResizeAllowed, DoResize will take care of averything). }
  if FullScreen then
@@ -1327,9 +1329,9 @@ begin
   Color := ColorRefToVector3Single(Struct.rgbResult);
 end;
 
-{ TGLWindowsManager ----------------------------------------------- }
+{ TGLApplication ----------------------------------------------- }
 
-procedure TGLWindowsManager.CreateImplDependent;
+procedure TGLApplication.CreateImplDependent;
 var
   WindowClass: TWndClass;
   C: TGLWindowCursor;
@@ -1378,18 +1380,18 @@ begin
  KambiOSCheck( RegisterClass(WindowClass) <> 0, 'RegisterClass');
 end;
 
-procedure TGLWindowsManager.DestroyImplDependent;
+procedure TGLApplication.DestroyImplDependent;
 begin
  KambiOSCheck( UnregisterClass(PChar(wndClassName), hInstance), 'UnregisterClass');
 end;
 
-procedure TGLWindowsManager.VideoReset;
+procedure TGLApplication.VideoReset;
 begin
  { switch back to the desktop mode }
  if DisplaySettingsChanged then ChangeDisplaySettings(nil, 0);
 end;
 
-function TGLWindowsManager.TryVideoChange: boolean;
+function TGLApplication.TryVideoChange: boolean;
 
 {$ifdef VER1_9_6}
 { This is to workaround a bug in FPC 1.9.6.
@@ -1489,7 +1491,7 @@ begin
  end;
 end;
 
-procedure TGLWindowsManager.SetAppActive(value: boolean);
+procedure TGLApplication.SetAppActive(value: boolean);
 begin
  { ponizej : gdy fappActive zmienia sie z true na false musimy
    wykonac ChangeDisplaySettings(nil, 0) bez wzgledu na to czy
@@ -1507,21 +1509,21 @@ begin
  fappActive := value;
 end;
 
-function TGLWindowsManager.ScreenWidth: integer;
+function TGLApplication.ScreenWidth: integer;
 begin
  if DisplaySettingsChanged and VideoResize then
   result := VideoResizeWidth else
   result := GetSystemMetrics(SM_CXSCREEN);
 end;
 
-function TGLWindowsManager.ScreenHeight: integer;
+function TGLApplication.ScreenHeight: integer;
 begin
  if DisplaySettingsChanged and VideoResize then
   result := VideoResizeHeight else
   result := GetSystemMetrics(SM_CYSCREEN);
 end;
 
-function TGLWindowsManager.ImplementationName: string;
+function TGLApplication.ImplementationName: string;
 begin
  Result := 'WinAPI';
 end;

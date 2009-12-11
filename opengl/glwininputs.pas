@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2007 Michalis Kamburelis.
+  Copyright 2003-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -9,6 +9,8 @@
   "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
 }
 
 { @abstract(Idea jest zapisanie tutaj funkcji ktore w jakis sposob beda czekaly az
@@ -47,7 +49,7 @@ interface
 uses GL, GLU, KambiGLUtils, GLWindow, GLWinModes, OpenGLFonts, KambiUtils, Images,
   KambiStringUtils;
 
-{ Dziala w petli (glwm.ProcessMessage) i wyswietla
+{ Dziala w petli (Application.ProcessMessage) i wyswietla
   zlapany obrazek (musisz podac ScreenX0, Y0 = taka pozycja rastera ze jest
   ona lewym dolnym rogiem ekranu) a na nim - wczytywany string
   (na pozycji glRasterPos2i(AnswerX0, AnswerY0)).
@@ -73,7 +75,7 @@ function Input(glwin: TGLWindow;
   - jezeli obrazek jest mniejszy niz glwin.Width/Height to robi glClear
     (GL_COLOR_BUFFER_BIT) aby wyczyscic kazdorazowo reszte okienka.
     Wiec aktualny kolor clear OpenGLa ma wtedy znaczenie.
-  - realizuje wewnatrz petle GLWindow glwm.ProcessMessage. W czasie
+  - realizuje wewnatrz petle GLWindow Application.ProcessMessage. W czasie
     wyswietlania obrazka user nie moze wyjsc z programu, closequery jest
     wylaczone itp. Jedyna co user moze zrobic to nacisnac dowolny klawisz.
 
@@ -175,7 +177,7 @@ begin
     false, false, K_None, false, nil);
   glwin.OnKeyDown := @KeyDown;
 
-  repeat glwm.ProcessMessage(true) until Data.Answered;
+  repeat Application.ProcessMessage(true) until Data.Answered;
 
   result := Data.Answer;
  finally SavedMode.Free end;
@@ -228,7 +230,7 @@ begin
   glwin.OnKeyDown := @KeyDownAnyKey;
 
   glRasterPos2i(RasterX, RasterY);
-  repeat glwm.ProcessMessage(true) until Data.KeyPressed;
+  repeat Application.ProcessMessage(true) until Data.KeyPressed;
  finally SavedMode.Free end;
 end;
 

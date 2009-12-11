@@ -75,5 +75,5 @@ begin
  glw.OnClose := @Close;
  glw.OnResize := @Resize;
  glw.DepthBufferBits := 0;
- glw.InitLoop('Font.BreakLines demo', @Draw);
+ glw.InitAndRun('Font.BreakLines demo', @Draw);
 end.

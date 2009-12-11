@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2007 Michalis Kamburelis.
+  Copyright 2001-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -9,6 +9,8 @@
   "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
 }
 
 {$ifdef read_tglwindow_interface}
@@ -70,8 +72,8 @@ private
   XCursors: array [TGLWindowCursor] of TCursor;
 public
   { XDisplayName uzywane przez wszystkie nastepne wywolania glwin.Init.
-    glwm nie jest przygotowany na zarzadzanie oknami na wielu displayach i
-    implementacja TGLWindow zaklada ze po zrobieniu Init Glwm.XDisplay bedzie
+    Application nie jest przygotowany na zarzadzanie oknami na wielu displayach i
+    implementacja TGLWindow zaklada ze po zrobieniu Init Application.XDisplay bedzie
     caly czas takie samo - wiec NIE ZMIENIAJ XDisplayName po zrobieniu jakiegos Init !
     XDisplayName bezposrednio po przypisaniu moze ulec zmianie - bo
     SetXDisplayName powoduje cos jak FXDisplayName := XDisplayName(FDiaplayName),
@@ -129,7 +131,7 @@ const
   AllPointerEventsMask = ButtonPressMask or ButtonReleaseMask or
     EnterWindowMask or LeaveWindowMask or PointerMotionMask;
 begin
- Glwm.InitializeXDisplay;
+ Application.InitializeXDisplay;
 
  VisualAttr := TDynLongIntArray.Create;
  try
@@ -153,7 +155,7 @@ begin
      if glXQueryExtensionsString <> nil then
      begin
        { Check GLX_ARB_multisample suported }
-       GlxExtensions := glXQueryExtensionsString(Glwm.XDisplay, Glwm.XScreen);
+       GlxExtensions := glXQueryExtensionsString(Application.XDisplay, Application.XScreen);
        if Log then
          WritelnLog('glX', 'glX extensions: ' + GlxExtensions);
        if glext_ExtensionSupported('GLX_ARB_multisample', GlxExtensions) then
@@ -176,18 +178,18 @@ begin
    { end of VisualAttr array }
    VisualAttr.Add(None);
 
-   viinfo := glXChooseVisual(Glwm.XDisplay, Glwm.XScreen, @VisualAttr.Items[0]);
+   viinfo := glXChooseVisual(Application.XDisplay, Application.XScreen, @VisualAttr.Items[0]);
  finally FreeAndNil(VisualAttr) end;
 
  if viinfo = nil then
   raise EGLContextNotPossible.CreateFmt(
     'glXChooseVisual: visual with requested attributes (%s) not found',
     [ RequestedBufferAttributes ]);
- {zawsze w tym miejscu bedzie Assert(Glwm.XScreen = viinfo.screen);}
+ {zawsze w tym miejscu bedzie Assert(Application.XScreen = viinfo.screen);}
 
- parentwinXID := XRootWindow(Glwm.XDisplay, Glwm.XScreen);
+ parentwinXID := XRootWindow(Application.XDisplay, Application.XScreen);
 
- colormap := XCreateColormap(Glwm.XDisplay, parentwinXID,
+ colormap := XCreateColormap(Application.XDisplay, parentwinXID,
                              viinfo^.visual, AllocNone);
   { bardziej speszial metoda brania Colormap jest w glxdino }
  attr.colormap := colormap;
@@ -201,7 +203,7 @@ begin
   AttrValueMask := AttrValueMask or CWOverrideRedirect;
  end;
 
- windowXID := XCreateWindow(Glwm.XDisplay, parentwinXID,
+ windowXID := XCreateWindow(Application.XDisplay, parentwinXID,
    left, top, width, height,
    0, viinfo^.depth, InputOutput, viinfo^.visual,
    AttrValueMask, @attr);
@@ -211,10 +213,10 @@ begin
    { XMapWindow must be called before doing all the "grab" operations.
      This also means that this whole piece of code cannot be done
      when WindowVisible = @false. }
-  XMapWindow(Glwm.XDisplay, windowXID);
-  check( XGrabKeyboard(Glwm.XDisplay, windowXID, XBool_True, GrabModeAsync, GrabModeAsync,
+  XMapWindow(Application.XDisplay, windowXID);
+  check( XGrabKeyboard(Application.XDisplay, windowXID, XBool_True, GrabModeAsync, GrabModeAsync,
      CurrentTime) = GrabSuccess, 'cannot grab the keyboard');
-  check( XGrabPointer(Glwm.XDisplay, windowXID, XBool_True,
+  check( XGrabPointer(Application.XDisplay, windowXID, XBool_True,
      AcceptedEventsMask and AllPointerEventsMask,
      GrabModeAsync, GrabModeAsync, windowXID, None, CurrentTime) = GrabSuccess,
      'cannot grab the pointer');
@@ -235,7 +237,7 @@ begin
  end else
  begin
   { only set window title and handle wm_delete_events if in windowed mode }
-  XSetWMProtocols(Glwm.XDisplay, windowXID, @glwm.wmDeleteWindow, 1);
+  XSetWMProtocols(Application.XDisplay, windowXID, @Application.wmDeleteWindow, 1);
 
   { ready sizeHints structure }
   sizeHints.x := left;
@@ -270,7 +272,7 @@ begin
 
   { use prepared WindTitleProp, Size/WM/ClassHints to give a lot of
     hints to WindowManager (that will hopefully honour them...) }
-  XSetWMProperties_Pascal(Glwm.XDisplay, windowXID, @WindTitleProp, @WindTitleProp,
+  XSetWMProperties_Pascal(Application.XDisplay, windowXID, @WindTitleProp, @WindTitleProp,
      @sizeHints, @WMHints, @ClassHint);
 
   { realease allocated memory for structs for XSetWMProperties }
@@ -279,14 +281,14 @@ begin
   StrDispose(ClassHint.res_class);
 
   if WindowVisible then
-    XMapWindow(Glwm.XDisplay, windowXID);
+    XMapWindow(Application.XDisplay, windowXID);
  end;
- glcontext := glXCreateContext(Glwm.XDisplay, viinfo, nil, true);
+ glcontext := glXCreateContext(Application.XDisplay, viinfo, nil, true);
  check( glcontext <> nil, 'could not create rendering context');
 
  UpdateCursor;
 
- glwm.ActiveAdd(Self);
+ Application.ActiveAdd(Self);
 
  MakeCurrent;
 end;
@@ -296,30 +298,30 @@ var dummy_event: TXEvent;
 begin
  if glcontext <> nil then
  begin
-  glXDestroyContext(Glwm.XDisplay, glcontext);
+  glXDestroyContext(Application.XDisplay, glcontext);
   glcontext := nil;
  end;
 
  if FFullscreen and WindowVisible then
  begin
-  XUnGrabPointer(Glwm.XDisplay, CurrentTime);
-  XUnGrabKeyboard(Glwm.XDisplay, CurrentTime);
+  XUnGrabPointer(Application.XDisplay, CurrentTime);
+  XUnGrabKeyboard(Application.XDisplay, CurrentTime);
  end;
 
  { czyscimy kolejke komunikatow dla tego okienka.
    To nie daje nam absolutnej gwarancji ze do naszej kolejki nie trafia
    nigdy komunikaty juz zamknietych okienek bo przeciez messsage queue
    jest wypelniana w innym procesie wiec my mozemy wyczyscic a tu
-   zaraz potem cos nam wpadnie. Wiec i tak w glwm.ProcessMessage
+   zaraz potem cos nam wpadnie. Wiec i tak w Application.ProcessMessage
    musimy sprawdzic czy dostalismy message dla istniejacego okienka.
    ALE ponizsze moze nam zaoszczedzic sporo czasu w ProcessMessage
    bo mimo wszystko zapewne zazwyczaj oczywsci kolejke z wiekszosci
    smieci dla tego okienka. }
  while XBool(XCheckWindowEvent(
-   Glwm.XDisplay, windowXID, Longint($FFFFFFFF), @dummy_event)) <> XBool_False do ;
+   Application.XDisplay, windowXID, Longint($FFFFFFFF), @dummy_event)) <> XBool_False do ;
 
- if windowXID <> None then begin XDestroyWindow(Glwm.XDisplay, windowXID); windowXID := None end;
- if colormap  <> None then begin XFreeColormap(Glwm.XDisplay, colormap);   colormap := None  end;
+ if windowXID <> None then begin XDestroyWindow(Application.XDisplay, windowXID); windowXID := None end;
+ if colormap  <> None then begin XFreeColormap(Application.XDisplay, colormap);   colormap := None  end;
  if viinfo    <> nil  then begin XFree(viinfo);                            viinfo := nil     end;
 end;
 
@@ -350,18 +352,18 @@ procedure TGLWindow.UpdateCursor;
     bm_no_data: array[0..7] of Byte = (0, 0, 0, 0, 0, 0, 0, 0);
   begin
     { Based on [http://www.linuxforums.org/forum/linux-programming-scripting/59012-xlib-hide-mouse-pointer.html] }
-    cmap := DefaultColormap(Glwm.XDisplay, DefaultScreen(Glwm.XDisplay));
-    XAllocNamedColor(Glwm.XDisplay, cmap, 'black', @black, @dummy);
+    cmap := DefaultColormap(Application.XDisplay, DefaultScreen(Application.XDisplay));
+    XAllocNamedColor(Application.XDisplay, cmap, 'black', @black, @dummy);
     try
-      bm_no := XCreateBitmapFromData(Glwm.XDisplay, WindowXID, @bm_no_data, 8, 8);
+      bm_no := XCreateBitmapFromData(Application.XDisplay, WindowXID, @bm_no_data, 8, 8);
       try
-        Result := XCreatePixmapCursor(Glwm.XDisplay, bm_no, bm_no, @black, @black, 0, 0);
+        Result := XCreatePixmapCursor(Application.XDisplay, bm_no, bm_no, @black, @black, 0, 0);
       finally
         if bm_no <> None then
-          XFreePixmap(Glwm.XDisplay, bm_no);
+          XFreePixmap(Application.XDisplay, bm_no);
       end;
     finally
-      XFreeColors(Glwm.XDisplay, cmap, @black.pixel, 1, 0);
+      XFreeColors(Application.XDisplay, cmap, @black.pixel, 1, 0);
     end;
   end;
 
@@ -372,33 +374,33 @@ begin
   { TODO: for now gcCustom is treated like gcDefault }
   if (Cursor = gcDefault) or (Cursor = gcCustom) then
   begin
-    XUndefineCursor(Glwm.XDisplay, WindowXID);
+    XUndefineCursor(Application.XDisplay, WindowXID);
   end else
   begin
-    if Glwm.XCursors[Cursor] = X.None then
+    if Application.XCursors[Cursor] = X.None then
     begin
       { initialize XCursors[Cursor] }
       if Cursor = gcNone then
-        Glwm.XCursors[Cursor] := CreateNoneCursor else
-        Glwm.XCursors[Cursor] := XCreateFontCursor(Glwm.XDisplay,
+        Application.XCursors[Cursor] := CreateNoneCursor else
+        Application.XCursors[Cursor] := XCreateFontCursor(Application.XDisplay,
           XCursorShapeFromMy[Cursor]);
     end;
 
-    XDefineCursor(Glwm.XDisplay, WindowXID, Glwm.XCursors[Cursor]);
+    XDefineCursor(Application.XDisplay, WindowXID, Application.XCursors[Cursor]);
   end;
 end;
 
 procedure TGLWindow.SetMousePosition(const NewMouseX, NewMouseY: Integer);
 begin
   Assert(not Closed);
-  XWarpPointer(Glwm.XDisplay, X.None, WindowXID,
+  XWarpPointer(Application.XDisplay, X.None, WindowXID,
     0, 0, 0, 0, NewMouseX, NewMouseY);
 end;
 
 procedure TGLWindow.MakeCurrent;
 begin
   Assert(not Closed);
-  Check( glXMakeCurrent(Glwm.XDisplay, windowXID, glcontext), 'glXMakeCurrent');
+  Check( glXMakeCurrent(Application.XDisplay, windowXID, glcontext), 'glXMakeCurrent');
 end;
 
 procedure TGLWindow.CreateImplDepend;
@@ -420,7 +422,7 @@ begin
     'not enough memory for XStringListToTextProperty');
 
   {uzyj WindTitleProp}
-  XSetTextProperty(Glwm.XDisplay, windowXID, @WindTitleProp, XInternAtom(Glwm.XDisplay, 'WM_NAME', XBool_True) );
+  XSetTextProperty(Application.XDisplay, windowXID, @WindTitleProp, XInternAtom(Application.XDisplay, 'WM_NAME', XBool_True) );
 
   {zwolnij WindTitleProp}
   XFree(WindTitleProp.value);
@@ -439,7 +441,7 @@ end;
 
 procedure TGLWindow.SwapBuffers;
 begin
- glXSwapBuffers(Glwm.XDisplay, windowXID);
+ glXSwapBuffers(Application.XDisplay, windowXID);
 end;
 
 procedure TGLWindow.X_KeyPress(const event: TXKeyEvent);
@@ -460,7 +462,7 @@ begin
   XK_Alt_L:     SetPrivateModifiersDown(mkAlt,   false, true);
   XK_Alt_R:     SetPrivateModifiersDown(mkAlt,   true,  true);
   else begin
-   Key := glwm.KeySymToKey(k);
+   Key := Application.KeySymToKey(k);
    if (Key <> K_None) or (CharKey <> #0) then DoKeyDown(Key, CharKey);
   end;
  end;
@@ -483,7 +485,7 @@ begin
   XK_Alt_L:     SetPrivateModifiersDown(mkAlt,   false, false);
   XK_Alt_R:     SetPrivateModifiersDown(mkAlt,   true,  false);
   else begin
-   Key := glwm.KeySymToKey(k);
+   Key := Application.KeySymToKey(k);
    if Key <> K_None then DoKeyUp(Key);
   end;
  end;
@@ -493,7 +495,7 @@ procedure TGLWindow.X_ConfigureNotify(const event: TXConfigureEvent);
 var dummy_win: TWindow;
 begin
  { event.x , event.y are realtive to out parent.
-   We always create our window giving XRootWindow(Glwm.XDisplay, Glwm.XScreen)
+   We always create our window giving XRootWindow(Application.XDisplay, Application.XScreen)
    as parent and we want our fLeft, fTop to be relitive to that
    window. BUT window managers may redirect our window and put
    it in some thick border, for example. Than this border is our parent
@@ -501,8 +503,8 @@ begin
    to be relative to XRootWindow(...) to be useful for future window
    creation !! So we translate coords from our parentwinXID to
    XRootWindow(...) }
- XTranslateCoordinates(Glwm.XDisplay,
-   parentwinXID, XRootWindow(Glwm.XDisplay, Glwm.XScreen),
+ XTranslateCoordinates(Application.XDisplay,
+   parentwinXID, XRootWindow(Application.XDisplay, Application.XScreen),
    {event.x, event.y,}0, 0, @fLeft, @fTop, @dummy_win);
 
    { TODO: chwilowo, po prostu left i top pod GLWINDOW_XLIB oznaczaja rog okienka
@@ -575,9 +577,9 @@ begin
  Color := NewColor;
 end;
 
-{ TGLWindowsManager ------------------------------------------------------- }
+{ TGLApplication ------------------------------------------------------- }
 
-function TGLWindowsManager.ActiveWindowXID(seekWindowXID: TWindow): TGLWindow;
+function TGLApplication.ActiveWindowXID(seekWindowXID: TWindow): TGLWindow;
 var i: integer;
 begin
  for i := 0 to ActiveCount-1 do
@@ -586,7 +588,7 @@ begin
  result := nil;
 end;
 
-procedure TGLWindowsManager.SetXDisplayName(const Value: string);
+procedure TGLApplication.SetXDisplayName(const Value: string);
 begin
  if XDisplay <> nil then XCloseDisplay(XDisplay);
 
@@ -607,7 +609,7 @@ begin
    So the check for XDisplay = nil will be done at window initialization. }
 end;
 
-function TGLWindowsManager.KeySymToKey(ksym: TKeySym): TKey;
+function TGLApplication.KeySymToKey(ksym: TKeySym): TKey;
 begin
  result := K_None;
  if ksym <> NoSymbol then
@@ -624,7 +626,7 @@ var
     nil as last 2 params }
   glXQueryExtension: function(dpy: PDisplay; errorb, event: Pointer): Boolean; cdecl;
 
-procedure TGLWindowsManager.InitializeXDisplay;
+procedure TGLApplication.InitializeXDisplay;
 begin
   if XDisplay = nil then
     raise ECheckFailed.Create('XOpenDisplay could not open display "' +
@@ -645,7 +647,7 @@ begin
   end;
 end;
 
-procedure TGLWindowsManager.CreateImplDependent;
+procedure TGLApplication.CreateImplDependent;
 const
   { Under Kylix, capital letters are XK_?  and lower are XK_l?.
     Under FPC,           ...     are XKc_?    ...    are XK_?. }
@@ -731,7 +733,7 @@ begin
   KeySym_To_TKey0[XK_backslash] := K_BackSlash;
 end;
 
-procedure TGLWindowsManager.DestroyImplDependent;
+procedure TGLApplication.DestroyImplDependent;
 var
   C: TGLWindowCursor;
 begin
@@ -748,7 +750,7 @@ begin
   end;
 end;
 
-function TGLWindowsManager.ImplementationName: string;
+function TGLApplication.ImplementationName: string;
 begin
  Result := 'Xlib';
 end;

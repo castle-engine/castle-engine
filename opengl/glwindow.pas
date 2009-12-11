@@ -15,8 +15,9 @@
 
 { @abstract(TGLWindow is a window with associated OpenGL context.)
 
-  @link(Glwm) object (instance of class @link(TGLWindowsManager))
-  is a manager of all active (that is, visible) @link(TGLWindow) windows.
+  @link(Application) object (instance of class @link(TGLApplication))
+  is a central manager of all active (that is, visible) @link(TGLWindow)
+  windows.
 
   Using this unit:
 
@@ -41,21 +42,21 @@
       and @link(TGLWindow.EventResize EventResize)
       (@link(TGLWindow.OnResize OnResize) callback).)
 
-    @item(Call @link(TGLWindowsManager.Loop Glwm.Loop).
+    @item(Call @link(TGLApplication.Run Application.Run).
       This will enter message loop that will call
       appropriate windows' callbacks at appropriate times
       (OnDraw, OnKeyDown, OnResize, OnIdle and many more).
-      There are also some Glwm callbacks, like
-      @link(TGLWindowsManager.OnIdle Glwm.OnIdle).
+      There are also some Application callbacks, like
+      @link(TGLApplication.OnIdle Application.OnIdle).
 
       For more advanced needs you can use something like
-        @longCode(#  while Glwm.ProcessMessage do <something>;#)
-      instead of Glwm.Loop.
+        @longCode(#  while Application.ProcessMessage do <something>;#)
+      instead of Application.Run.
 
-      You can also call @link(TGLWindow.InitLoop Glw.InitLoop),
-      this is just a shortcut for Glw.Init + Glwm.Loop.)
+      You can also call @link(TGLWindow.InitAndRun Glw.InitAndRun),
+      this is just a shortcut for Glw.Init + Application.Run.)
 
-    @item(Glwm.Loop ends when you call @link(TGLWindowsManager.Quit Glwm.Quit)
+    @item(Application.Run ends when you call @link(TGLApplication.Quit Application.Quit)
       or when you close last visible window using @link(TGLWindow.Close Close(true)).
 
       User is also allowed to close a window using WindowManager facilities
@@ -79,7 +80,7 @@
 
   begin
    Glw.OnResize := @Resize;
-   Glw.InitLoop('Simplest GLWindow example', @Draw);
+   Glw.InitAndRun('Simplest GLWindow example', @Draw);
   end.
 #)
 
@@ -115,7 +116,7 @@
     Glw := TMyWindow.Create;
     try
       Glw.Caption := 'Simplest GLWindow example using more OOP';
-      Glw.InitLoop;
+      Glw.InitAndRun;
     finally Glw.Free end;
   end.
 #)
@@ -142,7 +143,7 @@
 
   @unorderedList(
 
-    @item(TGLWindowsManager.ProcessMessage method.
+    @item(TGLApplication.ProcessMessage method.
       This allows you to reimplement
       event loop handling, which is crucial for implementing things
       like @link(MessageInputQuery) function that does modal GUI dialog box.)
@@ -166,7 +167,7 @@
       for an example how to use menu.)
 
     @item(Changing screen resolution and bit depth,
-      see TGLWindowsManager.VideoChange.
+      see TGLApplication.VideoChange.
 
       Also you can request various OpenGL buffers: color buffer with alpha
       channel (@link(TGLWindow.AlphaBits AlphaBits)),
@@ -297,9 +298,9 @@ unit GLWindow;
     Known problems:
     (they are specific to GLWINDOW_GLUT and will not be fixed.
     Just use other GLWINDOW_xxx backend if you don't want these problems):
-    - Lack of Glwm.ProcessMesssages (although freeglut allows me to fix it,
+    - Lack of Application.ProcessMesssages (although freeglut allows me to fix it,
       maybe I'll do it someday)
-    - Glwm.Loop does never return (because it must be implemented as a
+    - Application.Run does never return (because it must be implemented as a
       single call to glutMainLoop)
     - Key up / down (with K_xxx constants) are rather poorly simulated.
     - FlushRedisplay always redraws the window
@@ -376,12 +377,12 @@ unit GLWindow;
     module.
   - Call all TGLWindow.DoXxx functions at appropriate places from your
     implementation.
-    You can call all DoIdle and DoTimer for all Glwm.Active[] windows
-    using Glwm.DoActiveWindowsIdle/Timer (this will give usually inefficient
+    You can call all DoIdle and DoTimer for all Application.Active[] windows
+    using Application.DoActiveWindowsIdle/Timer (this will give usually inefficient
     but working implementation)
-  - Call TGLWindowsManager.DoSelfIdle and DoSelfTimer when appropriate.
+  - Call TGLApplication.DoSelfIdle and DoSelfTimer when appropriate.
     Remember that you can always assume that the ONLY existing instance of
-    TGLWindowsManager is Glwm.
+    TGLApplication is Application.
   Some important things that can be easily forgotten:
   - Remember that probably you will have to call ReleaseAllKeysAndMouse
     when user switches to another window or activates MainMenu.
@@ -838,7 +839,7 @@ type
 
     { Konkretne implementacje nie robia wlasnej wersji TGLWindow.Init,
       robia InitImplDepend -- tam sie inicjuja + musza wywolac
-      Glwm.ActiveAdd(Self) w dogodnej chwili.
+      Application.ActiveAdd(Self) w dogodnej chwili.
 
       Here's a list of properties that should be made "visible" to the user
       in InitImplDepend:
@@ -1001,11 +1002,11 @@ type
          take care of AutoRedisplay -
            if AutoRedisplay then
            begin
-            if Glwm.AutoRedisplayAddToList > 0 then
+            if Application.AutoRedisplayAddToList > 0 then
 
-              make sure that Glwm.AutoRedisplayList contains Self
-              (i.e. add Self to Glwm.AutoRedisplayList, unless
-              Glwm.AutoRedisplayList already contains Self)
+              make sure that Application.AutoRedisplayList contains Self
+              (i.e. add Self to Application.AutoRedisplayList, unless
+              Application.AutoRedisplayList already contains Self)
 
             else
               PostRedisplay;
@@ -1038,7 +1039,7 @@ type
            at appropriate places (e.g. in
            TGLWindowManager.Create/DestroyImplDependent)
            and
-             Glwm.AutoRedisplayList.Delete(Self);
+             Application.AutoRedisplayList.Delete(Self);
            in TGLWindow.CloseImplDepend (to make sure that destroyed windows
            are not a memebers of AutoRedisplayList).
 
@@ -1287,12 +1288,12 @@ type
     property DoubleBuffer: boolean read FDoubleBuffer write FDoubleBuffer default true;
 
     { ColorBits : sprobuje ustawic takie bits per pixel tylko dla danego okna.
-      Jesli ColorBits = 0 w czasie Init to uzyje Glwm.VideoColorBits
+      Jesli ColorBits = 0 w czasie Init to uzyje Application.VideoColorBits
       (chociaz one tez moga byc = 0; wtedy wezmie defaultowe ColorBits jakie
       da nam Windows). Tak czy siak, po zakonczeniu Init ColorBits powiedza
       nam jakie ColorBits otrzymalismy.
       Aby naprawde zmienic ColorBits z duza szansa uzywaj raczej
-      Glwm.VideoColorBits i Glwm.VideoChange.
+      Application.VideoColorBits i Application.VideoChange.
 
       TODO: uzywanie tej wlasciwosci jest deprecated. Jest ona non-cross-platform,
       interfejs nie czyni zadnych gwarancji ze rzeczywiscie dostaniemy
@@ -1798,22 +1799,22 @@ type
     { @groupEnd }
 
     { property OnIdle i OnTimer beda zachodzily dla wszystkich okien
-      w Glwm.Active[] w momencie gdy zajdzie zdarzenie obiektu Glwm -
+      w Application.Active[] w momencie gdy zajdzie zdarzenie obiektu Application -
       OnIdle lub OnTimer. Tzn. nie zrozumcie mnie zle - zadna kolejnosc
-      zdarzen OnIdli Glwm i roznych okien nie jest gwarantowana i beda
+      zdarzen OnIdli Application i roznych okien nie jest gwarantowana i beda
       nawet mogly sie przeplatac - ale poza tym OnIdle i OnTimer beda
       wywolywane wtedy gdy logika powiedzialaby ze moze byc wywolane
-      Glwm.OnIdle lub OnTimer, odpowiednio.
+      Application.OnIdle lub OnTimer, odpowiednio.
 
       Te zdarzenia sa tu przedstawione bo mimo ze OnIdle / OnTimer
       sa zdarzeniami niezwiazanymi z konkretnym okienkiem to jednak
       sa wykorzystywane najczesciej wlasnie aby iterowac po wszystkich /
-      niektorych okiekach wsrod Glwm.Active[] i cos w nich robic,
+      niektorych okiekach wsrod Application.Active[] i cos w nich robic,
       chociazby sprawdzac ich KeysDown[]. W tej sytuacji jest dobrym
       pomyslem aby robic te zdarzenia w callbacku specyficznym
-      dla danego obiektu a nie dla calego Glwm - w ten sposob ulozenie
+      dla danego obiektu a nie dla calego Application - w ten sposob ulozenie
       danych w obiektach odpowiada rzeczywistym celom do jakiego sa
-      uzywane - OnIdle Glwm powinno sie zajmowac tylko sprawami ogolnymi,
+      uzywane - OnIdle Application powinno sie zajmowac tylko sprawami ogolnymi,
       OnIdle w jakims konkretnym okienku - tylko sprawami tego okienka.
 
       Zachowanie takiej spojnosci nie jest oczywiscie wymagane ale
@@ -2018,7 +2019,7 @@ type
         @item(
           if this was the only open TGLWindow window
           and QuitWhenLastWindowClosed = true then
-          this calls Glwm.Quit.)
+          this calls Application.Quit.)
       )
 
       Note that often there's no need to call Close explicitly in your program,
@@ -2156,16 +2157,16 @@ type
       Fps.FrameTime and Fps.RealTime. }
     procedure FpsToCaption(const WindowTitle: string);
 
-    { InitLoop stuff --------------------------------------------------------- }
+    { InitAndRun stuff --------------------------------------------------------- }
 
     { Shortcut for Init (create and show the window with GL contex)
-      and Glwm.Loop (run the event loop). }
-    procedure InitLoop; overload;
+      and Application.Run (run the event loop). }
+    procedure InitAndRun; overload;
 
     { Shortcut for setting Caption, OnDraw,
       then calling Init (create and show the window with GL contex)
-      and Glwm.Loop (run the event loop). }
-    procedure InitLoop(const ACaption: string; AOnDraw: TDrawFunc); overload;
+      and Application.Run (run the event loop). }
+    procedure InitAndRun(const ACaption: string; AOnDraw: TDrawFunc); overload;
 
     { Parsing parameters ------------------------------------------------------- }
 
@@ -2187,7 +2188,7 @@ type
              VideoResize := true, VideResizeWidth/Height inicjuje i robi VideoChange)
 
         poDisplay
-          --display (set Glwm.XDisplayName)
+          --display (set Application.XDisplayName)
 
       Multiple options of the same kind are allowed, for example two options
       --fullscreen --geometry 100x100+0+0 are allowed. Each of them will
@@ -2241,7 +2242,7 @@ type
 
     { About all dialogs:
       - Behaviour of callbacks:
-        callbacks of Glwm and callbacks of other TGLWindow MAY be called while
+        callbacks of Application and callbacks of other TGLWindow MAY be called while
         the dialog is open. Callbacks of THIS object (EventXxx, OnXxx) will not be
         called. You should treat XxxDialog like
           TGLMode.Create(Self, ...)
@@ -2346,7 +2347,7 @@ type
         Automatycznie wlacza tez Fps.Active i co jakies kilkaset milisekund
         uaktualnia tytul okienka poprzez FpsToCaption. (Juz poprawione -
         to jest robione w EventIdle, dziala niezaleznie od OnTimer okienka, od
-        Glwm.OnTimer i Glwm.TimerMilisec.)
+        Application.OnTimer i Application.TimerMilisec.)
         (wykonuje to tylko jesli ustawisz FpsShowOnCaption = true).)
     )
 
@@ -2640,17 +2641,17 @@ type
     procedure PostRedisplay;
   end;
 
-  { The only instance of this class should be Glwm.
-    Don't create any other objects of class TGLWindowsManager, there's no
+  { The only instance of this class should be Application.
+    Don't create any other objects of class TGLApplication, there's no
     point in doing that.
     This object traces information about all visible instances of TGLWindow
     and implements message loop. It also handles some global tasks
     like managing the screen (changing current screen resolution and/or
     bit depth etc.) }
-  TGLWindowsManager = class
+  TGLApplication = class
 
   { Include GLWindow-implementation-specific parts of
-    TGLWindowsManager class. Rules and comments that apply here are
+    TGLApplication class. Rules and comments that apply here are
     the same as in analogous place at TGLWindow class,
     when read_tglwindow_interface is defined. }
 
@@ -2704,13 +2705,13 @@ type
       so this will be called only when ActiveCount = 0.
       So the only things you have to do here is:
       - make ProcessMessage to return false
-      - terminate Loop method, if it works (if Loop is implemented using
+      - terminate Run method, if it works (if Run is implemented using
         "while ProcessMessage do ;" then the first condition is all that is
         really needed)
 
-        Note: it is NOT guaranteed that we are inside Loop method
+        Note: it is NOT guaranteed that we are inside Run method
         when calling this function, i.e. it may be the case that noone ever
-        called Glwm.Loop (e.g. in @code(kambi_lines) game, where everything is done
+        called Application.Run (e.g. in @code(kambi_lines) game, where everything is done
         using while ProcessMessages do ...), but still it must be valid to call
         Quit and QuitWhenNoWindowsActive in such situation.
         Also it must be valid to call Quit and QuitWhenNoWindowsActive more
@@ -2734,7 +2735,7 @@ type
     { Something useful for some GLWindow implementations. This will implement
       (in a simple way) calling of DoSelfInit and DoActiveWindowsTimer.
 
-      Declare in TGLWindowsManager some variable like
+      Declare in TGLApplication some variable like
         LastDoTimerTime: TMilisecTime
       initialized to 0. Then just call very often (probably at the same time
       you're calling DoSelfIdle)
@@ -2780,7 +2781,7 @@ type
     { VideoReset przywraca domyslne ustawienia ekranu (tzn. nie robi
       nic jesli nigdy nie wywolales TryVideoChange z rezultatem true,
       wpp przywraca domyslne ustawienia). Jest wywolywane automatycznie w
-      Glwm.Destroy a wiec w finalization tego unitu (a wiec nie troszcz
+      Application.Destroy a wiec w finalization tego unitu (a wiec nie troszcz
       sie o finalizacje wywolania TryVideoChange). }
     procedure VideoReset;
 
@@ -2844,7 +2845,7 @@ type
       Aplikacja chcaca cos robiæ w oczekiwaniu na zajscie warunku BB
       powinna robia tak :
 
-      while not BB do Glwm.ProcessMessages;
+      while not BB do Application.ProcessMessages;
 
       W GLWindow, inaczej niz w jakims wiekszym systemie jak np. VCL czy WinAPI,
       programista ma prosta i pelna kontrole nad programem, wiêc mo¿na bez problemu
@@ -2857,7 +2858,7 @@ type
       nale¿aloby napisaæ pêtlê postaci
 
       while not BB do
-       if not Glwm.ProcessMessage then break;
+       if not Application.ProcessMessage then break;
 
       Co mozna zakladac lub nie o dzialaniu petli ProcessGLWinMessages ?
        - jezeli windManager zasypuje nam message'ami moze sie okazac
@@ -2882,7 +2883,7 @@ type
          pomiedzy kolejnymi wywolaniami foo() moze uplynac wiele czasu
          bezczynosci naszego programu.
        - robiac normalna petle programu w rodzaju
-         "while ProcessMessage(true) do ;" jak w TGLWindowManager.Loop
+         "while ProcessMessage(true) do ;" jak w TGLWindowManager.Run
          bedziesz podawal AllowSuspend = true, bo skoro jedynym sensem
          petli jest wykonywanie ProcessMessage to nie przeszkadza nam fakt
          ze ProcessMessage moze zawisnac.
@@ -2949,25 +2950,25 @@ type
     {$endif}
 
     { zamknij wszystkie okna TGLWindow, spraw by ProcessMessage zwracalo false i
-      w rezultacie spowoduj zakonczenie procedury Loop jesli dziala.
+      w rezultacie spowoduj zakonczenie procedury Run jesli dziala.
 
       Note specific to glut-based implementation (GLWINDOW_GLUT):
       with glut this method (after closing all Windows) calls Halt,
-      since this is the only way to exit from Glwm.Loop (that has to be
+      since this is the only way to exit from Application.Run (that has to be
       implemented as glutMainLoop). }
     procedure Quit;
 
-    { Do the event loop.
+    { Run the program using TGLWindow, by doing the event loop.
       Think of it as just a shortcut for "while ProcessMessage do ;".
 
       Note that this does nothing if ActiveCount is zero, that is there
       are no open windows. Besides the obvious reason (you didn't call
       TGLWindow.Init on any window...) this may also happen if you called
-      Close (or Glwm.Quit) from your window OnInit / OnResize callback.
+      Close (or Application.Quit) from your window OnInit / OnResize callback.
       In such case no event would probably reach
-      our program, and user would have no chance to quit, so Loop just refuses
+      our program, and user would have no chance to quit, so Run just refuses
       to work and exits immediately without any error. }
-    procedure Loop;
+    procedure Run;
 
     function ImplementationName: string;
 
@@ -2976,13 +2977,13 @@ type
   end;
 
 var
-  { One global instance of TGLWindowsManager.
+  { One global instance of TGLApplication.
 
     DON'T change value of this variable, don't Free this object !
     This will be handled in initialization / finalization of this module.
     Many things in this unit, also in TGLWindow class implementation,
     depend on having this variable present all the time. }
-  Glwm: TGLWindowsManager;
+  Application: TGLApplication;
 
 const
   DefaultCallbacksState: TGLWindowCallbacks =
@@ -3094,10 +3095,10 @@ begin
     it will be slightly smaller (menu bar takes some space).
   }
   if FFullscreen and
-    ((not between(Glwm.ScreenWidth, minWidth, maxWidth)) or
-     (not between(Glwm.ScreenHeight, minHeight, maxHeight)) or
+    ((not between(Application.ScreenWidth, minWidth, maxWidth)) or
+     (not between(Application.ScreenHeight, minHeight, maxHeight)) or
      ((ResizeAllowed = raNotAllowed) and
-       ((Glwm.ScreenWidth <> Width) or (Glwm.ScreenHeight <> Height)) )
+       ((Application.ScreenWidth <> Width) or (Application.ScreenHeight <> Height)) )
     ) then
    FFullscreen := false;
 
@@ -3105,18 +3106,18 @@ begin
   begin
    fleft := 0;
    ftop := 0;
-   fwidth := Glwm.ScreenWidth;
-   fheight := Glwm.ScreenHeight;
+   fwidth := Application.ScreenWidth;
+   fheight := Application.ScreenHeight;
   end else
   begin
-   if Width  = GLWindowDefaultSize then FWidth  := Glwm.ScreenWidth  * 4 div 5;
-   if Height = GLWindowDefaultSize then FHeight := Glwm.ScreenHeight * 4 div 5;
+   if Width  = GLWindowDefaultSize then FWidth  := Application.ScreenWidth  * 4 div 5;
+   if Height = GLWindowDefaultSize then FHeight := Application.ScreenHeight * 4 div 5;
 
    Clamp(fwidth, minWidth, maxWidth);
    Clamp(fheight, minHeight, maxHeight);
 
-   if left = GLWindowPositionCenter then fleft := (Glwm.ScreenWidth-width) div 2;
-   if top  = GLWindowPositionCenter then ftop := (Glwm.ScreenHeight-height) div 2;
+   if left = GLWindowPositionCenter then fleft := (Application.ScreenWidth-width) div 2;
+   if top  = GLWindowPositionCenter then ftop := (Application.ScreenHeight-height) div 2;
   end;
 
   { reset some window state variables }
@@ -3153,13 +3154,13 @@ begin
   { call first EventInit and EventResize. Zwroc uwage ze te DoResize i DoInit
     MUSZA byc wykonane na samym koncu procedury Init - jak juz wszystko inne
     zostalo wykonane. Wszystko po to ze juz w pierwszym OnInit lub OnResize
-    moze zostac wywolane Glwm.ProcessMessages np. w wyniku wywolania w OnInit
+    moze zostac wywolane Application.ProcessMessages np. w wyniku wywolania w OnInit
     GLWinMessages.MessageOk. }
   EventInitCalled := true;
   EventInit;
 
   { Check Closed here, in case OnInit closed the window
-    (by calling Glwm.Quit (that calls Close on all windows) or direct Close
+    (by calling Application.Quit (that calls Close on all windows) or direct Close
     on this window). Note that Close calls
     CloseImplDepend and generally has *immediate* effect --- that's why
     doing anything more with window now (like MakeCurrent) would be wrong. }
@@ -3269,7 +3270,7 @@ begin
     method raised an exception EGLContextNotPossible. Then this method, Close,
     is called, but Self is not on Active[] list. And this fact should not be
     reported as an error -- error is EGLContextNotPossible ! }
-  Glwm.ActiveRemove(Self, QuitWhenLastWindowClosed);
+  Application.ActiveRemove(Self, QuitWhenLastWindowClosed);
 
   { dopiero tutaj rzucamy wyjatek. Zawsze bedziemy probowac wykonac cala
     powyzsza procedure, w szczegolnosci cale CloseImplDepened,
@@ -3421,10 +3422,10 @@ begin
   if DoubleBuffer then SwapBuffers else glFlush;
   if AutoRedisplay then
   begin
-   if Glwm.AutoRedisplayAddToList > 0 then
+   if Application.AutoRedisplayAddToList > 0 then
    begin
-    if Glwm.AutoRedisplayList.IndexOf(Self) = -1 then
-     Glwm.AutoRedisplayList.Add(Self);
+    if Application.AutoRedisplayList.IndexOf(Self) = -1 then
+     Application.AutoRedisplayList.Add(Self);
    end else
     PostRedisplay;
   end;
@@ -3816,20 +3817,19 @@ begin
  end;
 end;
 
-{ -----------------------------------------------------------------------------
-  Init+Loop at once }
+{ InitAndRun ----------------------------------------------------------------- }
 
-procedure TGLWindow.InitLoop(const ACaption: string; AOnDraw: TDrawFunc);
+procedure TGLWindow.InitAndRun(const ACaption: string; AOnDraw: TDrawFunc);
 begin
  FCaption := ACaption;
  OnDraw := AOnDraw;
- InitLoop;
+ InitAndRun;
 end;
 
-procedure TGLWindow.InitLoop;
+procedure TGLWindow.InitAndRun;
 begin
  Init;
- Glwm.Loop;
+ Application.Run;
 end;
 
 { TGLWindow ParseParameters -------------------------------------------------- }
@@ -3933,10 +3933,10 @@ var ProcData: POptionProcData absolute Data;
     begin
      if xoffPlus then
       ProcData^.glwin.Left := parXoff else
-      ProcData^.glwin.Left := Glwm.ScreenWidth-parXoff-parWidth;
+      ProcData^.glwin.Left := Application.ScreenWidth-parXoff-parWidth;
      if yoffPlus then
       ProcData^.glwin.Top := parYoff else
-      ProcData^.glwin.Top := Glwm.ScreenHeight-parYoff-parHeight;
+      ProcData^.glwin.Top := Application.ScreenHeight-parYoff-parHeight;
     end;
 
    except
@@ -3966,10 +3966,10 @@ var ProcData: POptionProcData absolute Data;
     if p = 0 then
      raise EInvalidParams.Create(
        'Invalid --fullscreen-custom parameter - format is not WIDTHxHEIGHT');
-    Glwm.VideoResizeWidth := StrToInt(Copy(option, 1, p-1));
-    Glwm.VideoResizeHeight := StrToInt(SEnding(option, p+1));
-    Glwm.VideoResize := true;
-    Glwm.VideoChange(true);
+    Application.VideoResizeWidth := StrToInt(Copy(option, 1, p-1));
+    Application.VideoResizeHeight := StrToInt(SEnding(option, p+1));
+    Application.VideoResize := true;
+    Application.VideoChange(true);
    except
     on E: EConvertError do
      raise EInvalidParams.Create('Invalid --fullscreen-custom parameter : '+E.Message);
@@ -3991,13 +3991,13 @@ begin
   Include(ProcData^.SpecifiedOptions, poDisplay);
   case OptionNum of
     0: {$ifdef GLWINDOW_XLIB}
-       if Glwm.FActive.Count <> 0 then
+       if Application.FActive.Count <> 0 then
          WarningWrite(ProgramName + ': some windows are already open ' +
            'so --display option is ignored.') else
-         Glwm.XDisplayName := Argument;
+         Application.XDisplayName := Argument;
        {$else}
          {$ifdef GLWINDOW_GTK_2}
-         Glwm.XDisplayName := Argument;
+         Application.XDisplayName := Argument;
          {$else}
          WarningWrite(ProgramName + ': warning: --display option is ignored ' +
            'when we don''t use directly Xlib');
@@ -4191,8 +4191,8 @@ begin
  {ponizej udalo mi sie zaimplementowac cos jak timer, a jednak nie uzylem
   zadnego callbacka, w szczegolnosci OnTimer okienka ! A wiec sukces -
   ten timer moze sobie dzialac w sposob zupelnie przezroczysty dla okienka,
-  ktore moze swobodnie modyfikowac swoje OnTimer, Glwm.OnTimer,
-  Glwm.TimerMilisec. }
+  ktore moze swobodnie modyfikowac swoje OnTimer, Application.OnTimer,
+  Application.TimerMilisec. }
  if FpsShowOnCaption and
     ((lastFpsOutputTick = 0) or
      (TimeTickDiff(lastFpsOutputTick, GetTickCount) >= FpsCaptionUpdateInterval)) then
@@ -4727,10 +4727,10 @@ begin
 end;
 
 { --------------------------------------------------------------------------
-  Generic part of implementation of TGLWindowsManager,
+  Generic part of implementation of TGLApplication,
   that does not depend what GLWINDOW_xxx backend you want. }
 
-constructor TGLWindowsManager.Create;
+constructor TGLApplication.Create;
 begin
  inherited;
  FActive := TGLWindowsList.Create;
@@ -4738,7 +4738,7 @@ begin
  CreateImplDependent;
 end;
 
-destructor TGLWindowsManager.Destroy;
+destructor TGLApplication.Destroy;
 begin
  VideoReset;
  DestroyImplDependent;
@@ -4746,39 +4746,39 @@ begin
  inherited;
 end;
 
-function TGLWindowsManager.GetActive(Index: integer): TGLWindow;
+function TGLApplication.GetActive(Index: integer): TGLWindow;
 begin result := FActive[Index] end;
 
-function TGLWindowsManager.ActiveCount: integer;
+function TGLApplication.ActiveCount: integer;
 begin result := FActive.Count end;
 
-procedure TGLWindowsManager.ActiveAdd(glwin: TGLWindow);
+procedure TGLApplication.ActiveAdd(glwin: TGLWindow);
 begin
  FActive.Add(glwin);
 end;
 
-procedure TGLWindowsManager.ActiveRemove(glwin: TGLWindow;
+procedure TGLApplication.ActiveRemove(glwin: TGLWindow;
   QuitWhenLastWindowClosed: boolean);
 begin
  if (FActive.Remove(glwin) <> -1) and
     (ActiveCount = 0) and QuitWhenLastWindowClosed then Quit;
 end;
 
-function TGLWindowsManager.FindWindow(glwin: TGLWindow): integer;
+function TGLApplication.FindWindow(glwin: TGLWindow): integer;
 begin
  for result := 0 to ActiveCount-1 do
   if Active[result] = glwin then exit;
  result := -1;
 end;
 
-procedure TGLWindowsManager.Quit;
+procedure TGLApplication.Quit;
 var
   OldActiveCount: Integer;
 begin
   { We're calling here Close(false) so we will not cause infinite recursive
     Quit calls.
 
-    Remember that calling Close actually calls Glwm.ActiveRemove.
+    Remember that calling Close actually calls Application.ActiveRemove.
     In fact, it's guaranteed that calling Close on active (not closed)
     window will remove it from Active list (we even check it by assert,
     otherwise our "while" could never finish).
@@ -4796,29 +4796,29 @@ begin
   QuitWhenNoWindowsActive;
 end;
 
-procedure TGLWindowsManager.DoSelfIdle;
+procedure TGLApplication.DoSelfIdle;
 begin
  if Assigned(FOnIdle) then FOnIdle;
 end;
 
-procedure TGLWindowsManager.DoSelfTimer;
+procedure TGLApplication.DoSelfTimer;
 begin
  if Assigned(FOnTimer) then FOnTimer;
 end;
 
-procedure TGLWindowsManager.DoActiveWindowsIdle;
+procedure TGLApplication.DoActiveWindowsIdle;
 var i: integer;
 begin
  for i := 0 to ActiveCount-1 do Active[i].DoIdle;
 end;
 
-procedure TGLWindowsManager.DoActiveWindowsTimer;
+procedure TGLApplication.DoActiveWindowsTimer;
 var i: integer;
 begin
  for i := 0 to ActiveCount-1 do Active[i].DoTimer;
 end;
 
-procedure TGLWindowsManager.MaybeDoTimer(var ALastDoTimerTime: TMilisecTime);
+procedure TGLApplication.MaybeDoTimer(var ALastDoTimerTime: TMilisecTime);
 var Now: TMilisecTime;
 begin
  Now := GetTickCount;
@@ -4831,20 +4831,20 @@ begin
  end;
 end;
 
-{ TGLWindowsManager.Video* things ---------------------------------------- }
+{ TGLApplication.Video* things ---------------------------------------- }
 
 {$ifndef GLWINDOW_HAS_VIDEO_CHANGE}
-function TGLWindowsManager.TryVideoChange: boolean;
+function TGLApplication.TryVideoChange: boolean;
 begin
  Result := false;
 end;
 
-procedure TGLWindowsManager.VideoReset;
+procedure TGLApplication.VideoReset;
 begin
 end;
 {$endif not GLWINDOW_HAS_VIDEO_CHANGE}
 
-function TGLWindowsManager.VideoSettingsDescribe: string;
+function TGLApplication.VideoSettingsDescribe: string;
 begin
   Result := '';
   if VideoResize then
@@ -4858,7 +4858,7 @@ begin
     Result := '  No display settings change' + nl;
 end;
 
-procedure TGLWindowsManager.VideoChange(OnErrorWarnUserAndContinue: boolean);
+procedure TGLApplication.VideoChange(OnErrorWarnUserAndContinue: boolean);
 var s: string;
 begin
  if not TryVideoChange then
@@ -4887,9 +4887,9 @@ end;
 { init/fini --------------------------------------------------------------- }
 
 initialization
- Glwm := TGLWindowsManager.Create;
+ Application := TGLApplication.Create;
  GLWindowMenu_Init;
 finalization
  GLWindowMenu_Fini;
- FreeAndNil(Glwm);
+ FreeAndNil(Application);
 end.

@@ -316,5 +316,5 @@ begin
   Glw.OnDraw := @Draw;
 
   Glw.Init;
-  Glwm.Loop;
+  Application.Run;
 end.
