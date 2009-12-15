@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2008 Michalis Kamburelis.
+  Copyright 2003-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -1296,36 +1296,37 @@ function IsPointOnTrianglePlaneWithinTriangle(const P: TYPE_VECTOR3;
   to wystapi dzielenia przez zero; ale to nic, bo my w tym module w ogole
   nie dopuszczamy zdegenerowanych trojkatow).
 *)
-var s, t: TYPE_SCALAR;
-    w, u,v, ortho: TYPE_VECTOR3;
-    One: TYPE_SCALAR;
+var
+  S, T: TYPE_SCALAR;
+  W, U, V, Ortho: TYPE_VECTOR3;
+  One: TYPE_SCALAR;
 begin
- u := VectorSubtract(Tri[1], Tri[0]);
- v := VectorSubtract(Tri[2], Tri[0]);
- w := VectorSubtract(P, Tri[0]);
+  U := VectorSubtract(Tri[1], Tri[0]);
+  V := VectorSubtract(Tri[2], Tri[0]);
+  W := VectorSubtract(P, Tri[0]);
 
- One := 1+SCALAR_EQUALITY_EPSILON;
+  One := 1 + SCALAR_EQUALITY_EPSILON;
 
- ortho := VectorProduct(v, TriDir);
- s := VectorDotProduct(w, ortho) / VectorDotProduct(u, ortho);
- if (s < -SCALAR_EQUALITY_EPSILON) or
-    { As far as only correctness is concerned, check for s > One isn't needed
+  Ortho := VectorProduct(V, TriDir);
+  S := VectorDotProduct(W, Ortho) / VectorDotProduct(U, Ortho);
+  if (S < -SCALAR_EQUALITY_EPSILON) or
+    { As far as only correctness is concerned, check for S > One isn't needed
       here since we will check s+t <= One later anyway.
       But for the speed, it's better to make here a quick check
-      "s > One" and in many cases avoid the long calculation of T.
+      "S > One" and in many cases avoid the long calculation of T.
 
-      See /win/3dmodels/rayhunter-demos/raporty/2006-11-12/README:
+      See /mnt/fat/3dmodels/rayhunter-demos/raporty/2006-11-12/README:
       speed of this procedure has a significant impact
-      on the ray-tracer speed, so it's really good optimization. }
-    (s > One) then
-   Exit(false);
+      on the ray-tracer speed, so it's really a justified optimization. }
+     (S > One) then
+    Exit(false);
 
- ortho := VectorProduct(u, TriDir);
- t := VectorDotProduct(w, ortho) / VectorDotProduct(v, ortho);
- if t < -SCALAR_EQUALITY_EPSILON then
-   Exit(false);
+  Ortho := VectorProduct(U, TriDir);
+  T := VectorDotProduct(W, Ortho) / VectorDotProduct(V, Ortho);
+  if T < -SCALAR_EQUALITY_EPSILON then
+    Exit(false);
 
- result := s+t <= One;
+  result := S + T <= One;
 end;
 
 //function IsPointOnTrianglePlaneWithinTriangle(const P: TYPE_VECTOR3;
