@@ -136,7 +136,7 @@
     { Remove all found instances of given Item.
       Returns how many instances were removed (that is, how much Count
       was decreased). }
-    function RemoveAll(Item: TObjectsListItem_1): integer;
+    function RemoveAll(Item: TObjectsListItem_1): Cardinal;
 
     { For each item of the list, delete all it's duplicates. }
     procedure DeleteDuplicates;
@@ -420,17 +420,18 @@ begin
  if Result <> -1 then Delete(Result);
 end;
 
-function TObjectsList_1.RemoveAll(Item: TObjectsListItem_1): integer;
-var i: integer;
+function TObjectsList_1.RemoveAll(Item: TObjectsListItem_1): Cardinal;
+var
+  I: Integer;
 begin
- result := 0;
- i := 0;
- while i < Count do
- begin
-  if Items[i] = Item then
-   begin Delete(i); Inc(result) end else
-   Inc(i);
- end;
+  Result := 0;
+  I := 0;
+  while I < Count do
+  begin
+    if Items[I] = Item then
+      begin Delete(I); Inc(Result) end else
+      Inc(I);
+  end;
 end;
 
 procedure TObjectsList_1.DeleteDuplicates;
