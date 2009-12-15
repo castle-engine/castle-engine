@@ -730,6 +730,12 @@ type
       RemoveClass. Returns the removed item. Or @nil, if none was found
       (or there was @nil inside the list and it got removed). }
     function Extract(RemoveClass: TClass): TObject; overload;
+
+    { Delete (do not free) all found instances of the given Item.
+      Shifts all other pointers to the left.
+      Returns how many instances were removed (that is, how much Count
+      was decreased). }
+    function DeleteAll(Item: TObject): Cardinal;
   end;
 
 implementation
@@ -1729,6 +1735,20 @@ begin
     end;
 
   Result := nil;
+end;
+
+function TKamObjectList.DeleteAll(Item: TObject): Cardinal;
+var
+  I: Integer;
+begin
+  Result := 0;
+  I := 0;
+  while I < Count do
+  begin
+    if Items[I] = Item then
+      begin Delete(I); Inc(Result) end else
+      Inc(I);
+  end;
 end;
 
 initialization

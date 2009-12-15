@@ -1921,7 +1921,7 @@ type
       object. No code in this unit touches the value of this field. }
     UserData: Pointer; { = nil }
 
-    property Closed: boolean read FClosed;
+    property Closed: boolean read FClosed default true;
 
     (*Initialize window (create window with GL context, show window).
 
@@ -2485,11 +2485,18 @@ type
     procedure SetCursorNonMouseLook(const Value: TGLWindowCursor);
     function ReallyUseMouseLook: boolean;
     procedure ControlsVisibleChange(Sender: TObject);
+  protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    { Controls listening for user input (keyboard / mouse) to this window. }
+    { Controls listening for user input (keyboard / mouse) to this window.
+
+      Usually you explicitly add / delete controls to this list.
+      Also, freeing the control that is on this list (Navigator or not)
+      automatically removes it from this list (using the TComponent.Notification
+      mechanism). }
     property Controls: TUIControlList read FControls;
 
     property UseControls: boolean
@@ -2527,9 +2534,6 @@ type
         with Glw.Navigator.Matrix)
     ) }
     property Navigator: TNavigator read FNavigator write SetNavigator;
-
-    { Free and nil the current @link(Navigator). @deprecated }
-    procedure NavigatorFreeAndNil;
 
     { These are shortcuts for writing
       TExamineNavigator(Navigator) and TWalkNavigator(Navigator).
@@ -2648,7 +2652,7 @@ type
     and implements message loop. It also handles some global tasks
     like managing the screen (changing current screen resolution and/or
     bit depth etc.) }
-  TGLApplication = class
+  TGLApplication = class(TComponent)
 
   { Include GLWindow-implementation-specific parts of
     TGLApplication class. Rules and comments that apply here are
@@ -2972,7 +2976,7 @@ type
 
     function ImplementationName: string;
 
-    constructor Create;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   end;
 
@@ -4303,16 +4307,23 @@ begin
       begin
         if C.OnVisibleChange = nil then
           C.OnVisibleChange := @Window.ControlsVisibleChange;
+
         { Call initial WindowResize for control.
           If window OpenGL context is not yet initialized, defer it to
           the Init time, then our initial EventResize will be called
           that will do WindowResize on every control. }
         if not Window.Closed then
           C.WindowResize(Window.Width, Window.Height);
+
+        C.FreeNotification(Window);
       end;
     lnExtracted, lnDeleted:
-      if C.OnVisibleChange = @Window.ControlsVisibleChange then
-        C.OnVisibleChange := nil;
+      begin
+        if C.OnVisibleChange = @Window.ControlsVisibleChange then
+          C.OnVisibleChange := nil;
+
+        C.RemoveFreeNotification(Window);
+      end;
     else raise EInternalError.Create('TWindowUIControlList.Notify action?');
   end;
 end;
@@ -4342,18 +4353,19 @@ begin
   end;
 end;
 
-procedure TGLWindowNavigated.NavigatorFreeAndNil;
-
-{ This method may be removed in the future,
-  when cleaner method for this will be available. For now, better use this.
-  Reasoning: do not make a mistake and free navigator before setting
-  it to nil. Setting to nil removes it from the list, by scanning
-  the list for TNavigator instance. At this point the instance is invalid,
-  so doing "Items[I] is TNavigator" will fail then. }
-
+procedure TGLWindowNavigated.Notification(AComponent: TComponent; Operation: TOperation);
 begin
-  Controls.MakeSingle(TNavigator, nil);
-  FreeAndNil(FNavigator);
+  { We have to remove a reference to the object from Controls list.
+    This is crucial: TWindowUIControlList.Notify,
+    and some Controls.MakeSingle calls, assume that all objects on
+    the Controls list are always valid objects (no invalid references,
+    even for a short time). }
+  if (Operation = opRemove) and (AComponent is TUIControl) then
+  begin
+    Controls.DeleteAll(AComponent);
+    if AComponent = FNavigator then
+      FNavigator := nil;
+  end;
 end;
 
 function TGLWindowNavigated.Focus: TUIControl;
@@ -4730,7 +4742,7 @@ end;
   Generic part of implementation of TGLApplication,
   that does not depend what GLWINDOW_xxx backend you want. }
 
-constructor TGLApplication.Create;
+constructor TGLApplication.Create(AOwner: TComponent);
 begin
  inherited;
  FActive := TGLWindowsList.Create;
@@ -4887,9 +4899,12 @@ end;
 { init/fini --------------------------------------------------------------- }
 
 initialization
- Application := TGLApplication.Create;
  GLWindowMenu_Init;
+ Application := TGLApplication.Create(nil);
 finalization
- GLWindowMenu_Fini;
  FreeAndNil(Application);
+ { Order is important: GLWindowMenu_Fini frees MenuItems, which is needed
+   by TMenu destructor. And some TGLWindow instances may be freed
+   only by Application destructor (when they are owned by Application). }
+ GLWindowMenu_Fini;
 end.
