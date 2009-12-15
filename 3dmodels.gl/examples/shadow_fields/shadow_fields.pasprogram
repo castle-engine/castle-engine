@@ -42,11 +42,13 @@
 program shadow_fields;
 
 uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3d,
-  GLWindow, Glw_Navigated, VRMLGLScene, VRMLErrors, Navigation,
+  GLWindow, VRMLGLScene, VRMLErrors, Navigation,
   ShadowFields, KambiUtils, CubeMap, VRMLNodes,
   SphericalHarmonics, GLCubeMap, GLWinMessages, VRMLShape;
 
 var
+  Glw: TGLWindowNavigated;
+
   SceneCaster, SceneReceiver, SceneLocalLight: TVRMLGLScene;
   CasterOOF: TShadowField;
   LocalLightSRF: TShadowField;
@@ -523,6 +525,8 @@ var
   BoxSum: TBox3d;
   V: TVector3Single;
 begin
+  Glw := TGLWindowNavigated.Create(Application);
+
   Parameters.CheckHighAtMost(3);
 
   if Parameters.High >= 1 then

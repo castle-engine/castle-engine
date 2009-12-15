@@ -71,11 +71,12 @@
 program terrain;
 
 uses SysUtils, Classes, Boxes3d,
-  KambiUtils, GLWindow, GLW_Navigated, GL, KambiGLUtils,
+  KambiUtils, GLWindow, GL, KambiGLUtils,
   Navigation, VectorMath, KambiFilesUtils, Elevations, GLWinMessages,
   KambiStringUtils, GLMenu;
 
 var
+  Glw: TGLWindowNavigated;
   Elevation: TElevation;
   Wireframe: boolean;
   Subdivision: Cardinal = 6;
@@ -354,6 +355,8 @@ begin
 end;
 
 begin
+  Glw := TGLWindowNavigated.Create(Application);
+
   Glw.ParseParameters(StandardParseOptions);
   Parameters.CheckHighAtMost(1);
 

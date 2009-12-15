@@ -64,7 +64,7 @@ program shadow_volume_test;
 
 {$apptype CONSOLE}
 
-uses GLWindow, GLW_Navigated, GL, GLU, GLExt, KambiGLUtils, VRMLGLScene,
+uses GLWindow, GL, GLU, GLExt, KambiGLUtils, VRMLGLScene,
   VRMLNodes, Navigation, VRMLScene, Boxes3d, SysUtils,
   KambiUtils, VectorMath, VRMLLightSetGL, VRMLFields,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils, VRMLCameraUtils,
@@ -119,6 +119,8 @@ type
   );
 
 var
+  Glw: TGLWindowNavigated;
+
   Scene, ShadowCaster: TVRMLGLScene;
   ShadowCasterNav: TExamineNavigator;
   LightSet: TVRMLLightSetGL;
@@ -640,6 +642,8 @@ var
   ShadowCasterVrmlName: string;
   L: PActiveLight;
 begin
+  Glw := TGLWindowNavigated.Create(Application);
+
   try
     { parse params }
     Glw.ParseParameters(StandardParseOptions);

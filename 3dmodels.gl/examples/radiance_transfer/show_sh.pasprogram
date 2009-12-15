@@ -23,11 +23,13 @@
 program show_sh;
 
 uses VectorMath, Boxes3d, GL, GLWindow,
-  GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, KambiFilesUtils,
+  KambiClassUtils, KambiUtils, SysUtils, KambiFilesUtils,
   KambiGLUtils, Navigation, Math, SphereSampling, SphericalHarmonics,
   BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts;
 
 var
+  Glw: TGLWindowNavigated;
+
   LM: Cardinal = 0;
   Font: TGLBitmapFont;
 
@@ -216,6 +218,8 @@ end;
 var
   M: TMenu;
 begin
+  Glw := TGLWindowNavigated.Create(Application);
+
   Glw.MainMenu := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');
     M.Append(TMenuItem.Create('_Previous basis', 10, 'p'));

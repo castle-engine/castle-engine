@@ -20,7 +20,7 @@ program design_surface;
 
 {$apptype GUI}
 
-uses Navigation, GLW_Navigated, Surfaces, GLWindow, GL, GLU, VectorMath,
+uses Navigation, Surfaces, GLWindow, GL, GLU, VectorMath,
   KambiGLUtils, Curve, BezierCurve, Boxes3d, SysUtils, KambiUtils, KeysMouse,
   KambiStringUtils, Math, GLWinMessages, KambiFilesUtils,
   BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts;
@@ -29,6 +29,8 @@ type
   TShow = (shNone, shWire, shFill);
 
 var
+  Glw: TGLWindowNavigated;
+
   Surface: TSurface;
   CurrentCurve, CurrentPoint: Integer;
   SurfaceShow: TShow = shFill;
@@ -615,6 +617,8 @@ end;
 { main ----------------------------------------------------------------------- }
 
 begin
+  Glw := TGLWindowNavigated.Create(Application);
+
   Glw.OnMenuCommand := @MenuCommand;
   Glw.MainMenu := CreateMainMenu;
 

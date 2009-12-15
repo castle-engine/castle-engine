@@ -21,7 +21,7 @@
 program gl_primitive_performance;
 
 uses VectorMath, Boxes3d, VRMLNodes, GL, GLU, GLExt, GLWindow,
-  GLW_Navigated, KambiUtils, SysUtils, Classes, Object3dAsVRML,
+  KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, KambiFilesUtils, VRMLScene, Navigation,
   ProgressUnit, VRMLErrors, VRMLShape;
 
@@ -43,6 +43,7 @@ type
     );
 
 var
+  Glw: TGLWindowNavigated;
   Scene: TVRMLScene;
   Shape: TVRMLShape;
   Vertexes: TDynVector3SingleArray;
@@ -306,6 +307,8 @@ end;
 var
   ShapeNum: Integer;
 begin
+  Glw := TGLWindowNavigated.Create(Application);
+
   Parameters.CheckHighAtLeast(1);
   Parameters.CheckHighAtMost(2);
   try

@@ -65,11 +65,13 @@
 program demo_animation;
 
 uses Math, VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
-  GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
+  KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLScene, VRMLGLScene, Navigation, VRMLGLAnimation,
   KambiFilesUtils, ParseParametersUnit, ProgressGL, ProgressUnit, VRMLErrors;
 
 var
+  Glw: TGLWindowNavigated;
+
   Animation: TVRMLGLAnimation;
   AnimationTime: Float = 0.0;
 
@@ -190,6 +192,8 @@ const
 var
   CamPos, CamDir, CamUp, GravityUp: TVector3Single;
 begin
+  Glw := TGLWindowNavigated.Create(Application);
+
   Glw.ParseParameters(StandardParseOptions);
   ParseParameters(Options, @OptionProc, nil);
 

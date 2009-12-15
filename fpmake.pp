@@ -210,9 +210,6 @@ begin
     P.Targets.AddUnit('glshaders.pas');
     P.Targets.AddUnit('glsoundmenu.pas');
     P.Targets.AddUnit('glversionunit.pas');
-    P.Targets.AddUnit('glw_demo.pas');
-    P.Targets.AddUnit('glw_navigated.pas');
-    P.Targets.AddUnit('glw_win.pas');
     P.Targets.AddUnit('glwindow.pas');
     P.Targets.AddUnit('glwindowrecentmenu.pas');
     P.Targets.AddUnit('glwininputs.pas');

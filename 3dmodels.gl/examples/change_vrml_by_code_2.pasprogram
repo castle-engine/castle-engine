@@ -22,11 +22,12 @@
 program change_vrml_by_code_2;
 
 uses VectorMath, Boxes3d, VRMLNodes, GL, GLU, GLExt, GLWindow,
-  GLW_Navigated, KambiUtils, SysUtils, Object3dAsVRML,
+  KambiUtils, SysUtils, Object3dAsVRML,
   KambiGLUtils, VRMLGLScene, Navigation,
   KambiFilesUtils, VRMLErrors, Quaternions {$ifdef LOG} ,KambiLog {$endif};
 
 var
+  Glw: TGLWindowNavigated;
   Scene: TVRMLGLScene;
 
 procedure Draw(glwin: TGLWindow);
@@ -116,6 +117,8 @@ begin
 end;
 
 begin
+  Glw := TGLWindowNavigated.Create(Application);
+
   Parameters.CheckHigh(0);
   VRMLWarning := @VRMLWarning_Write;
 

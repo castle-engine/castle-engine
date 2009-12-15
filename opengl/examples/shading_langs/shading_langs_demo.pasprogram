@@ -20,7 +20,7 @@
 }
 program shading_langs_demo;
 
-uses GLWindow, GLW_Navigated, KambiGLUtils,
+uses GLWindow, KambiGLUtils,
   Navigation, Boxes3d, SysUtils, KambiUtils, VectorMath,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils,
   GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts,
@@ -32,6 +32,8 @@ const
     ( 8,  15,  3) );
 
 var
+  Glw: TGLWindowNavigated;
+
   Tex: array [0..1] of TGLuint;
 
   VertexProgram: TARBVertexProgram;
@@ -328,6 +330,8 @@ end;
 { main program --------------------------------------------------------------- }
 
 begin
+  Glw := TGLWindowNavigated.Create(Application);
+
   { parse params }
   Glw.ParseParameters(StandardParseOptions);
   Parameters.CheckHigh(0);

@@ -20,9 +20,11 @@
 
 program menu_test_alternative;
 
-uses GL, GLU, GLExt, GLWindow, GLW_Win;
+uses GL, GLU, GLExt, GLWindow;
 
-var FirstMainMenu, SecondMainMenu: TMenu;
+var 
+  Glw: TGLWindow;
+  FirstMainMenu, SecondMainMenu: TMenu;
 
 procedure Draw(glwin: TGLWindow);
 begin
@@ -40,6 +42,7 @@ end;
 
 var M: TMenu;
 begin
+ Glw := TGLWindow.Create(Application);
  try
   { init FirstMainMenu }
   FirstMainMenu := TMenu.Create('Main menu');

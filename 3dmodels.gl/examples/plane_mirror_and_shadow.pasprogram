@@ -51,11 +51,13 @@
 program plane_mirror_and_shadow;
 
 uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
-  GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
+  KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLScene, VRMLGLScene, Navigation,
   KambiFilesUtils, VRMLErrors, KambiStringUtils, KeysMouse;
 
 var
+  Glw: TGLWindowNavigated;
+
   Scene: TVRMLGLScene;
   SceneForShadow: TVRMLGLScene;
 
@@ -555,6 +557,8 @@ end;
 var
   RootNode: TVRMLNode;
 begin
+  Glw := TGLWindowNavigated.Create(Application);
+
   { parse parameters  }
   Glw.ParseParameters(StandardParseOptions);
   Parameters.CheckHighAtMost(1);

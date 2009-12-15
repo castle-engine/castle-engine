@@ -15,7 +15,7 @@
 
 { This is a simple demo of TMatrixExaminer class.
   As you can see, in the simplest case you just
-  - use GLW_Navigated unit
+  - use TGLWindowNavigated class
   - init Glw.Navigator at the beginning of your program
   - call glLoadMatrix(glw.Navigator.Matrix) at the beginning
     of your draw
@@ -30,8 +30,11 @@ program demo_matrix_navigation;
 {$apptype GUI}
 
 uses VectorMath, Boxes3d, GL, GLU, GLExt, GLWindow,
-  GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes,
+  KambiClassUtils, KambiUtils, SysUtils, Classes,
   KambiGLUtils, Navigation, KambiFilesUtils;
+
+var
+  Glw: TGLWindowNavigated;
 
 procedure Draw(glwin: TGLWindow);
 var
@@ -60,6 +63,8 @@ begin
 end;
 
 begin
+  Glw := TGLWindowNavigated.Create(Application);
+
   { init Glw.Navigator }
   Glw.Navigator := TExamineNavigator.Create(Glw);
   Glw.ExamineNav.Init(Box3d(

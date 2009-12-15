@@ -21,13 +21,15 @@ program simple_video_editor;
   info on stdout anyway. }
 {$apptype CONSOLE}
 
-uses KambiUtils, SysUtils, GLWindow, GLW_Demo, GL, GLU, GLExt, GLImages,
+uses KambiUtils, SysUtils, GLWindow, GL, GLU, GLExt, GLImages,
   ImagesCache, Videos, KambiStringUtils, GLWinMessages,
   BFNT_BitstreamVeraSansMono_Bold_m15_Unit, OpenGLBmpFonts,
   KambiGLUtils, VectorMath, Classes, ProgressUnit, ProgressGL,
   KambiTimeUtils;
 
 var
+  Glw: TGLWindowDemo;
+
   Video: TVideo;
   VideoFileName: string;
 
@@ -297,6 +299,8 @@ end;
 var
   Cache: TImagesCache;
 begin
+  Glw := TGLWindowDemo.Create(Application);
+
   try
     Cache := TImagesCache.Create;
     Video := TVideo.Create;

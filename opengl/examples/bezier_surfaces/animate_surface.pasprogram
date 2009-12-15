@@ -17,11 +17,12 @@
   Test on sample_data/*.animation files. }
 program animate_surface;
 
-uses Navigation, GLW_Navigated, Surfaces, GLWindow, GL, GLU, VectorMath,
+uses Navigation, Surfaces, GLWindow, GL, GLU, VectorMath,
   KambiGLUtils, Curve, BezierCurve, Boxes3d, SysUtils, KambiUtils, KeysMouse,
   KambiStringUtils, Math, GLWinMessages, KambiFilesUtils;
 
 var
+  Glw: TGLWindowNavigated;
   Surface1, Surface2: TSurface;
   SurfacePos, SurfaceDir, SurfaceUp: TVector3Single;
   F: TGLfloat = 0.0;
@@ -176,6 +177,8 @@ begin
 end;
 
 begin
+  Glw := TGLWindowNavigated.Create(Application);
+
   Glw.Navigator := TWalkNavigator.Create(Glw);
   Glw.WalkNav.PreferGravityUpForRotations := false;
   Glw.WalkNav.PreferGravityUpForMoving := false;

@@ -28,7 +28,7 @@
 
 program multi_texturing_demo;
 
-uses GLWindow, GLW_Navigated, GL, GLU, GLExt, KambiGLUtils,
+uses GLWindow, GL, GLU, GLExt, KambiGLUtils,
   Navigation, Boxes3d, SysUtils, KambiUtils, VectorMath,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils,
   GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts,
@@ -40,6 +40,7 @@ const
     ( 8,  3,  3) );
 
 var
+  Glw: TGLWindowNavigated;
   Tex: array [0..1] of TGLuint;
 
 { glw callbacks ------------------------------------------------------------ }
@@ -209,6 +210,8 @@ begin
 end;
 
 begin
+  Glw := TGLWindowNavigated.Create(Application);
+
   { parse params }
   Glw.ParseParameters(StandardParseOptions);
   Parameters.CheckHigh(0);

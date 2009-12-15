@@ -33,12 +33,14 @@
 program fog_culling;
 
 uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
-  GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
+  KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLScene, VRMLGLScene, Navigation,
   ProgressUnit, ProgressConsole, KambiFilesUtils, VRMLTriangleOctree,
   VRMLErrors;
 
 var
+  Glw: TGLWindowNavigated;
+
   Scene: TVRMLGLScene;
   { CameraRadius is needed for collision detection }
   CameraRadius: Single;
@@ -157,6 +159,8 @@ var
   //i: Integer;
   CamPos, CamDir, CamUp, GravityUp: TVector3Single;
 begin
+ Glw := TGLWindowNavigated.Create(Application);
+
  Parameters.CheckHigh(0);
  try
   VRMLWarning := @VRMLWarning_Write;

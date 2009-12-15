@@ -21,10 +21,11 @@
 
 program test_font_break;
 
-uses GLWindow, GLW_Demo, GL, GLU, GLExt, KambiGLUtils, OpenGLFonts, SysUtils, Classes,
+uses GLWindow, GL, GLU, GLExt, KambiGLUtils, OpenGLFonts, SysUtils, Classes,
   KambiUtils, OpenGLBmpFonts, BFNT_BitstreamVeraSans_Unit, VectorMath;
 
 var
+  Glw: TGLWindowDemo;
   Font: TGLBitmapFont_Abstract;
   BoxWidth: Integer;
 
@@ -71,6 +72,8 @@ begin
 end;
 
 begin
+ Glw := TGLWindowDemo.Create(Application);
+
  glw.OnInit := @Init;
  glw.OnClose := @Close;
  glw.OnResize := @Resize;

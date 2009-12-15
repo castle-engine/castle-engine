@@ -28,7 +28,7 @@
 
 program interpolated_curves;
 
-uses GL, GLU, GLWindow, GLW_Navigated, KambiGLUtils, SysUtils, VectorMath,
+uses GL, GLU, GLWindow, KambiGLUtils, SysUtils, VectorMath,
   Curve, Navigation, Boxes3d, KambiScript, GLWinMessages,
   KambiUtils, KambiScriptParser, KambiScriptCoreFunctions,
   BFNT_BitstreamVeraSansMono_m14_Unit,
@@ -37,6 +37,8 @@ uses GL, GLU, GLWindow, GLW_Navigated, KambiGLUtils, SysUtils, VectorMath,
 { global vars ------------------------------------------------------------ }
 
 var
+  Glw: TGLWindowNavigated;
+
   { For the whole lifetime of a program we can have two curves.
     Precise one (must be TMathExprCurve) and approximating one
     (must be TControlPointsCurve).
@@ -411,6 +413,8 @@ end;
 { main ------------------------------------------------------------ }
 
 begin
+  Glw := TGLWindowNavigated.Create(Application);
+
   try
     ApproxCurveClass := TLagrangeInterpolatedCurve;
 

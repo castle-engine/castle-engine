@@ -34,11 +34,13 @@ program draw_space_filling_curve;
 
 {$apptype GUI}
 
-uses SysUtils, GL, GLU, GLExt, GLWindow, GLW_Demo, KambiUtils, KambiGLUtils,
+uses SysUtils, GL, GLU, GLExt, GLWindow, KambiUtils, KambiGLUtils,
   Images, VectorMath, Math, SpaceFillingCurves, KambiStringUtils,
   GLImages;
 
-var CurveImage: TRGBImage;
+var
+  Glw: TGLWindowDemo;
+  CurveImage: TRGBImage;
 const
   CurveCol: TVector3Byte = (255, 255, 255);
   CurveImageBGCol: TVector3Byte = (0, 0, 0);
@@ -102,7 +104,7 @@ begin
   begin
     Glw.PostRedisplay;
     Application.ProcessAllMessages;
-    { Since we use GLW_Demo, user is able to close the window by
+    { Since we use TGLWindowDemo, user is able to close the window by
       pressing Escape. In this case we want to break the curve generation
       and end the program. }
     if Glw.Closed then
@@ -120,6 +122,8 @@ var
   { helper vars }
   StepsResolution, AllStepsCount: Cardinal;
 begin
+  Glw := TGLWindowDemo.Create(Application);
+
   { parse params }
   Parameters.CheckHighAtLeast(2);
   case ArrayPosStr(Parameters[1], ['peano', 'hilbert']) of

@@ -21,13 +21,14 @@
   http://vrmlengine.sourceforge.net/openal_notes.php }
 program doppler_demo;
 
-uses Matrix, VectorMath, GLWindow, GLW_Demo, GL, GLU, KambiGLUtils,
+uses Matrix, VectorMath, GLWindow, GL, GLU, KambiGLUtils,
   KambiOpenAL, ALUtils;
 
 const
   ALDistanceScaling = 0.02;
 
 var
+  Glw: TGLWindowDemo;
   PreviousSourcePosition, SourcePosition, ListenerPosition: TVector3_Single;
   Source: TALuint;
 
@@ -68,6 +69,8 @@ end;
 var
   Buffer: TALuint;
 begin
+  Glw := TGLWindowDemo.Create(Application);
+
   OpenALOptionsParse;
   BeginAL(false);
   try

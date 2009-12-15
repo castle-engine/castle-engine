@@ -28,7 +28,7 @@
 }
 program test_menu_change_from_keyup;
 
-uses VectorMath, GL, GLU, GLExt, GLWindow, GLW_Demo, KambiGLUtils,
+uses VectorMath, GL, GLU, GLExt, GLWindow, KambiGLUtils,
   ProgressUnit, ProgressGL, KambiTimeUtils;
 
 procedure Draw(glwin: TGLWindow);
@@ -55,8 +55,11 @@ begin
 end;
 
 var
+  Glw: TGLWindowDemo;
   M: TMenu;
 begin
+  Glw := TGLWindowDemo.Create(Application);
+
   { Create menu }
   Glw.MainMenu := TMenu.Create('Main menu');
   M := TMenu.Create('_File');

@@ -27,7 +27,7 @@
 program dynamic_ambient_occlusion;
 
 uses VectorMath, GL, GLU, GLExt, GLWindow,
-  GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
+  KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLScene, VRMLGLScene, Navigation,
   KambiFilesUtils, KambiStringUtils, VRMLErrors, GLShaders, VRMLShape,
   VRMLFields, Images, Boxes3d, GLImages, GLWinMessages, DataErrors,
@@ -37,6 +37,8 @@ type
   TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);
 
 var
+  Glw: TGLWindowNavigated;
+
   Scene: TVRMLGLScene;
   GLSLProgram: array [0..1] of TGLSLProgram;
   DrawType: TDrawType = dtPass2;
@@ -960,6 +962,8 @@ begin
 end;
 
 begin
+  Glw := TGLWindowNavigated.Create(Application);
+
   Elements := TDynAOElementArray.Create;
 
   Parameters.CheckHigh(1);

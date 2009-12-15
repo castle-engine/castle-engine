@@ -49,7 +49,7 @@
 }
 program bump_mapping;
 
-uses GLWindow, GLW_Navigated, GL, GLU, GLExt, KambiGLUtils,
+uses GLWindow, GL, GLU, GLExt, KambiGLUtils,
   Navigation, Boxes3d, SysUtils, KambiUtils, VectorMath,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils,
   GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, Images, KeysMouse,
@@ -68,6 +68,8 @@ type
   TBumpMethod = (bmEmboss, bmMultiTexDot, bmVRML);
 
 var
+  Glw: TGLWindowNavigated;
+
   { normal texture is for all methods, bumps in alpha for emboss only }
   NormalAndBumpTex: array [0..3] of TGLuint;
 
@@ -1225,6 +1227,8 @@ const
   end;
 
 begin
+  Glw := TGLWindowNavigated.Create(Application);
+
   { parse params }
   Glw.ParseParameters(StandardParseOptions);
   ParseParameters(Options, @OptionProc, nil);

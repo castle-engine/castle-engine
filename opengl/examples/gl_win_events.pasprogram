@@ -24,11 +24,12 @@ program gl_win_events;
 {$apptype GUI}
 
 uses SysUtils, KambiUtils, KambiGLUtils, GL, GLU, GLExt, TimeMessages, GLWindow,
-  GLW_demo, KeysMouse, KambiStringUtils,
+  KeysMouse, KambiStringUtils,
   OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_Bold_m15_Unit,
   Classes;
 
 var
+  Glw: TGLWindowDemo;
   TimeMsg: TTimeMessagesManager;
   Font: TGLBitmapFont;
 
@@ -160,6 +161,8 @@ end;
 var
   M: TMenu;
 begin
+  Glw := TGLWindowDemo.Create(Application);
+
   Glw.ParseParameters;
 
   Glw.OnInit := @Init;

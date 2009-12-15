@@ -23,10 +23,11 @@ program menu_test;
 
 {$apptype CONSOLE}
 
-uses VectorMath, GL, GLU, GLExt, GLWindow, GLW_Demo, KambiGLUtils,
+uses VectorMath, GL, GLU, GLExt, GLWindow, KambiGLUtils,
   GLWinMessages;
 
 var
+  Glw: TGLWindowDemo;
   { Some state variables that determine what will be drawn.
     Just to show that menu commands actually work... }
   CurrentColor: Integer = 0;
@@ -130,6 +131,8 @@ var
   Radio: TMenuItemRadio;
   RadioGroup: TMenuItemRadioGroup;
 begin
+ Glw := TGLWindowDemo.Create(Application);
+  
  { create menu }
  glw.MainMenu := TMenu.Create('Main menu');
  M := TMenu.Create('_File');

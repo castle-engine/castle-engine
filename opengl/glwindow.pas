@@ -22,10 +22,9 @@
   Using this unit:
 
   @orderedList(
-    @item(Declare and create @link(TGLWindow) instance.
-      Or simply use unit @link(GLW_Win) (or @link(GLW_Demo) or
-      @link(GLW_Navigated)), these units give you already initialized
-      instance of TGLWindow class in global variable Glw.)
+    @item(Declare and create @link(TGLWindow) instance. (Or a descendant
+      like @link(TGLWindowNavigated) or @link(TGLWindowDemo)).
+      By convention, I name it @code(Glw) in my programs.)
 
     @item(Assign Glw properties and callbacks like
       @link(TGLWindow.OnDraw OnDraw),
@@ -70,7 +69,10 @@
   So the simplest example of using this unit can look like this:
 
 @longcode(#
-  uses GLWindow, GLW_Win;
+  uses GLWindow;
+
+  var
+    Glw: TGLWindowDemo;
 
   procedure Draw(Glwin: TGLWindow);
   begin  ...  end;
@@ -79,6 +81,7 @@
   begin  ...  end;
 
   begin
+   Glw := TGLWindowDemo.Create(Application);
    Glw.OnResize := @Resize;
    Glw.InitAndRun('Simplest GLWindow example', @Draw);
   end.
@@ -4752,6 +4755,17 @@ end;
 
 destructor TGLApplication.Destroy;
 begin
+ { Close any windows possibly open now.
+   This is necessary --- after destroying Application there would be really
+   no way for them to close properly (that is, TGLWindow.CloseImplDepend
+   may, and usually will, fail with very strange errors when called
+   after freeing central Application). }
+ Quit;
+
+ { nil now the Application variable. For reasoning, see this units
+   finalization. }
+ Application := nil;
+
  VideoReset;
  DestroyImplDependent;
  FreeAndNil(FActive);
@@ -4794,7 +4808,7 @@ begin
     In fact, it's guaranteed that calling Close on active (not closed)
     window will remove it from Active list (we even check it by assert,
     otherwise our "while" could never finish).
-    o the number of active windows will drop during while
+    So the number of active windows will drop during while
     (that's why "for I := 0 to ActiveCount - 1 do ..." would be stupid
     code here, but "while ActiveCount > 0 ..." is Ok). }
 
@@ -4902,7 +4916,17 @@ initialization
  GLWindowMenu_Init;
  Application := TGLApplication.Create(nil);
 finalization
- FreeAndNil(Application);
+ { Instead of using FreeAndNil, just call Free.
+   In our constructor we take care of setting Application variable to @nil,
+   when it becomes really useless.
+
+   Otherwise FreeAndNil first nils, then frees Application, and we really
+   want to keep Application during first stage of TGLApplication destruction:
+   when calling Quit, which may close windows, which may use Application
+   variable in their Close or CloseImplDepend implementations. }
+ Application.Free;
+ Assert(Application = nil);
+
  { Order is important: GLWindowMenu_Fini frees MenuItems, which is needed
    by TMenu destructor. And some TGLWindow instances may be freed
    only by Application destructor (when they are owned by Application). }
