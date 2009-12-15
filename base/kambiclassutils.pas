@@ -1683,11 +1683,17 @@ begin
   end;
 
   for I := 0 to Count - 1 do
-    if TObject(List^[I]) is ReplaceClass then
+    if (TObject(List^[I]) <> nil) and
+       (TObject(List^[I]) is ReplaceClass) then
     begin
       Result := TObject(List^[I]);
       TObject(List^[I]) := NewItem;
+      { We're already sure Result <> nil here, because old TObject(List^[I])
+        had to be <> nil to enter this code. So no need for usual
+        check <> nil before Notify call. }
       Notify(Result, lnExtracted);
+      { We're similarly already sure NewItem <> nil here, because the case
+        of NewItem = nil is handled specially at the beginning of this method. }
       Notify(NewItem, lnAdded);
       Exit;
     end;
