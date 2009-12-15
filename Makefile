@@ -317,7 +317,6 @@ clean: cleanexamples
 	rm -Rf packages/lib/ \
 	  packages/kambi_base.pas \
 	  packages/kambi_glwindow.pas \
-	  packages/kambi_glwindow_navigated.pas \
 	  packages/kambi_components.pas \
 	  tests/test_kambi_units tests/test_kambi_units.exe
 	$(MAKE) -C doc/pasdoc/ clean

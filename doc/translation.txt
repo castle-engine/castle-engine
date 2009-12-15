@@ -114,14 +114,11 @@ D   windows/openglwindowsfonts.pas
 D   unix/xf86vmode.pas
 D   unix/xlibutils.pas
 D   curve.pas
-D   glw_demo.pas
 |   glwindow.pas
 D   glwindowrecentmenu.pas
 -   glwininputs.pas
 D   glwinmessages.pas
 -   glwinmodes.pas
-D   glw_navigated.pas
-D   glw_win.pas
 |   kambiglutils.pas
 -   kambiglut.pas
 -   openglbmpfonts.pas
