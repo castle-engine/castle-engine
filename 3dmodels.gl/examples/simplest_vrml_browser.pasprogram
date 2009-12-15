@@ -37,7 +37,7 @@ program simplest_vrml_browser;
 
 {$apptype CONSOLE}
 
-uses KambiUtils, GLWindowVRMLBrowser, ProgressUnit, ProgressConsole,
+uses KambiUtils, GLWindow, GLWindowVRMLBrowser, ProgressUnit, ProgressConsole,
   VRMLScene, VRMLErrors;
 
 var
@@ -49,15 +49,12 @@ begin
   VRMLWarning := @VRMLWarning_Write;
   Progress.UserInterface := ProgressConsoleInterface;
 
-  BrowserWindow := TGLWindowVRMLBrowser.Create(nil);
-  try
-    BrowserWindow.Load(Parameters[1]);
+  BrowserWindow := TGLWindowVRMLBrowser.Create(Application);
 
-    Writeln(BrowserWindow.Scene.Info(true, true, false));
+  BrowserWindow.Load(Parameters[1]);
+  Writeln(BrowserWindow.Scene.Info(true, true, false));
+  BrowserWindow.Scene.Spatial := [ssRendering, ssDynamicCollisions];
+  BrowserWindow.Scene.ProcessEvents := true;
 
-    BrowserWindow.Scene.Spatial := [ssRendering, ssDynamicCollisions];
-    BrowserWindow.Scene.ProcessEvents := true;
-
-    BrowserWindow.InitAndRun;
-  finally BrowserWindow.Free end;
+  BrowserWindow.InitAndRun;
 end.

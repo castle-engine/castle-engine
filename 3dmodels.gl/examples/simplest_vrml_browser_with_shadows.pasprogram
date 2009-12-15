@@ -42,19 +42,16 @@ begin
   VRMLWarning := @VRMLWarning_Write;
   Progress.UserInterface := ProgressConsoleInterface;
 
-  BrowserWindow := TGLWindowVRMLBrowser.Create(nil);
-  try
-    BrowserWindow.ShadowVolumesPossible := true;
-    BrowserWindow.ShadowVolumes := true;
+  BrowserWindow := TGLWindowVRMLBrowser.Create(Application);
 
-    BrowserWindow.Load(Parameters[1]);
+  BrowserWindow.ShadowVolumesPossible := true;
+  BrowserWindow.ShadowVolumes := true;
 
-    Writeln(BrowserWindow.Scene.Info(true, true, false));
+  BrowserWindow.Load(Parameters[1]);
+  Writeln(BrowserWindow.Scene.Info(true, true, false));
+  BrowserWindow.Scene.Spatial := [ssRendering, ssDynamicCollisions];
+  BrowserWindow.Scene.ProcessEvents := true;
 
-    BrowserWindow.Scene.Spatial := [ssRendering, ssDynamicCollisions];
-    BrowserWindow.Scene.ProcessEvents := true;
-
-    BrowserWindow.InitOptionalMultiSamplingAndStencil(nil, @StencilOff);
-    Application.Run;
-  finally BrowserWindow.Free end;
+  BrowserWindow.InitOptionalMultiSamplingAndStencil(nil, @StencilOff);
+  Application.Run;
 end.

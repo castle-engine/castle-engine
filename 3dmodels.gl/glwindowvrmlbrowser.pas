@@ -197,7 +197,7 @@ destructor TGLWindowVRMLBrowser.Destroy;
 begin
   FreeAndNil(SceneManager);
   FreeAndNil(FScene);
-  NavigatorFreeAndNil;
+  FreeAndNil(Navigator);
   inherited;
 end;
 
@@ -209,7 +209,7 @@ end;
 procedure TGLWindowVRMLBrowser.Load(ARootNode: TVRMLNode; const OwnsRootNode: boolean);
 begin
   FreeAndNil(FScene);
-  NavigatorFreeAndNil;
+  FreeAndNil(Navigator);
 
   FScene := TVRMLGLScene.Create(ARootNode, OwnsRootNode, roSeparateShapes);
 
