@@ -1,8 +1,8 @@
-In this directory you can find a couple of Lazarus packages that allow
+In this directory you can find Lazarus packages that allow
 to easily use Kambi VRML game engine in Lazarus programs.
 
 ----------------------------------------
-I. Packages without components:
+I. Packages without components (kambi_base, kambi_glwindow):
 
 Usage:
 
@@ -25,8 +25,8 @@ Mini-FAQ about these packages:
 
   No. Packages here are provided to easily compile and use the engine
   with Lazarus. But actually units in kambi_vrml_game_engine don't use
-  any Lazarus units (LCL) (besides Lazarus-specific components in components/
-  subdirectory).
+  any Lazarus units (LCL) (besides Lazarus-specific components in
+  ../src/components/ subdirectory).
 
   So all you actually need is bare FPC installation.
   Use kambi_vrml_game_engine/Makefile to compile all units and use compile.sh
@@ -53,14 +53,14 @@ Mini-FAQ about these packages:
   by other projects), never installed in Lazarus.
 
 ----------------------------------------
-II. Package with components (components/kambi_components package):
+II. Package with components (kambi_components):
 
 This is a "normal" Lazarus package, which means that it registers
 some Lazarus components (that use my units), and you're supposed to just
 install this package in Lazarus. This also automatically installs kambi_base
 package --- that's OK.
 
-See ../vrml/opengl/examples/lazarus_vrml_browser/
+See ../examples/vrml/lazarus_vrml_browser/
 for demo program using this package.
 
 ------------------------------------------------------------------------------

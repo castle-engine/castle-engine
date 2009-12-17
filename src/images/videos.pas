@@ -42,7 +42,7 @@ type
     playing...).
 
     See example program
-    @code(kambi_vrml_game_engine/opengl/examples/simple_video_image_viewer.pasprogram)
+    @code(kambi_vrml_game_engine/examples/glwindow/simple_video_image_viewer.pasprogram)
     in our engine for example of a simple movie player implemented on top
     of this class.
 

@@ -19,7 +19,7 @@
   This may be played by
   [http://vrmlengine.sourceforge.net/view3dscene.php] (although
   view3dscene can also play MD3 directly) or
-  kambi_vrml_game_engine/vrml/opengl/examples/demo_animation example.
+  kambi_vrml_game_engine/examples/vrml/demo_animation example.
 
   For MD3 file named xxx.md3, this will generate VRML files like
   xxx_0000.wrl, xxx_0001.wrl, xxx_0002.wrl etc. and the main file

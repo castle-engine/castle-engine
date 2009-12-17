@@ -286,9 +286,9 @@ assembly langs actually).
     view3dscene with shaders and bump mapping demos
   - glslcompiler --arb --linenumbers --vs vertshader.txt
     like
-    ./glslcompiler -n --fs ~/sources/vrmlengine/trunk/kambi_vrml_game_engine/opengl/examples/shading_langs/glsl_test_loop.fs
+    ./glslcompiler -n --fs ~/sources/vrmlengine/trunk/kambi_vrml_game_engine/examples/glwindow/shading_langs/glsl_test_loop.fs
     makes true loop! BGNLOOP;, ENDLOOP;
-    ./glslcompiler --fs ~/sources/vrmlengine/trunk/kambi_vrml_game_engine/opengl/examples/shading_langs/glsl_test_if.fs
+    ./glslcompiler --fs ~/sources/vrmlengine/trunk/kambi_vrml_game_engine/examples/glwindow/shading_langs/glsl_test_if.fs
     makes true "if" !
 
   NVidia specific GLSL notes:

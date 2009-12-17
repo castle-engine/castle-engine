@@ -246,7 +246,7 @@ type
         OnDraw callback.)
     )
 
-    See @code(kambi_vrml_game_engine/opengl/examples/demo_matrix_navigation.pasprogram)
+    See @code(kambi_vrml_game_engine/examples/glwindow/demo_matrix_navigation.pasprogram)
     example program in engine sources for simple demo how to use this class. }
   TNavigator = class(TUIControl)
   private
