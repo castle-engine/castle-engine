@@ -57,7 +57,7 @@ begin
     P.Email := 'michalis.kambi' + '@gmail.com'; { at least protect sources from spammers }
     P.Version := '1.7.0';
 
-    P.SourcePath.Add('3d');
+    P.SourcePath.Add('src' + PathDelim + '3d');
     P.Targets.AddUnit('backgroundbase.pas');
     P.Targets.AddUnit('boxes3d.pas');
     P.Targets.AddUnit('convexhullunit.pas');
@@ -80,11 +80,11 @@ begin
     P.Targets.AddUnit('sphericalharmonics.pas');
     P.Targets.AddUnit('triangulator.pas');
 
-    P.SourcePath.Add('3d' + PathDelim + 'opengl');
+    P.SourcePath.Add('src' + PathDelim + '3d' + PathDelim + 'opengl');
     P.Targets.AddUnit('backgroundgl.pas');
     P.Targets.AddUnit('object3dopengl.pas');
 
-    P.SourcePath.Add('vrml');
+    P.SourcePath.Add('src' + PathDelim + 'vrml');
     P.Targets.AddUnit('colladatovrml.pas');
     P.Targets.AddUnit('illummodels.pas');
     P.Targets.AddUnit('normalscalculator.pas');
@@ -110,14 +110,14 @@ begin
     P.Targets.AddUnit('vrmltriangleoctree.pas');
     P.Targets.AddUnit('x3dxmltovrml.pas');
 
-    P.SourcePath.Add('vrml' + PathDelim + 'opengl');
+    P.SourcePath.Add('src' + PathDelim + 'vrml' + PathDelim + 'opengl');
     P.Targets.AddUnit('vrmlglanimation.pas');
     P.Targets.AddUnit('vrmlglheadlight.pas');
     P.Targets.AddUnit('vrmlglscene.pas');
     P.Targets.AddUnit('vrmllightsetgl.pas');
     P.Targets.AddUnit('vrmlopenglrenderer.pas');
 
-    P.SourcePath.Add('audio');
+    P.SourcePath.Add('src' + PathDelim + 'audio');
     P.Targets.AddUnit('alsourceallocator.pas');
     P.Targets.AddUnit('alutils.pas');
     P.Targets.AddUnit('gamesoundengine.pas');
@@ -128,7 +128,7 @@ begin
     P.Targets.AddUnit('vorbisdecoder.pas');
     P.Targets.AddUnit('vorbisfile.pas');
 
-    P.SourcePath.Add('base');
+    P.SourcePath.Add('src' + PathDelim + 'base');
     P.Targets.AddUnit('dataerrors.pas');
     P.Targets.AddUnit('enumeratefiles.pas');
     P.Targets.AddUnit('filefilters.pas');
@@ -151,7 +151,7 @@ begin
     P.Targets.AddUnit('rects.pas');
     P.Targets.AddUnit('vectormath.pas');
 
-    P.SourcePath.Add('fonts');
+    P.SourcePath.Add('src' + PathDelim + 'fonts');
     P.Targets.AddUnit('bfnt_bitstreamverasans_m10_unit.pas');
     P.Targets.AddUnit('bfnt_bitstreamverasans_unit.pas');
     P.Targets.AddUnit('bfnt_bitstreamverasansmono_bold_m15_unit.pas');
@@ -173,12 +173,12 @@ begin
     P.Targets.AddUnit('ttfontstypes.pas');
     if Defaults.OS in AllWindowsOSes then
     begin
-      P.SourcePath.Add('fonts\windows');
+      P.SourcePath.Add('src' + PathDelim + 'fonts' + PathDelim + 'windows');
       P.Targets.AddUnit('windowsfonts.pas');
       P.Targets.AddUnit('winfontconvert.pas');
     end;
 
-    P.SourcePath.Add('glwindow');
+    P.SourcePath.Add('src' + PathDelim + 'glwindow');
     P.Targets.AddUnit('glsoundmenu.pas');
     P.Targets.AddUnit('glwindow.pas');
     P.Targets.AddUnit('glwindowrecentmenu.pas');
@@ -190,19 +190,19 @@ begin
     P.Targets.AddUnit('glwindowvrmlbrowser.pas');
     if Defaults.OS in AllUnixOSes then
     begin
-      P.SourcePath.Add('glwindow/unix');
+      P.SourcePath.Add('src' + PathDelim + 'glwindow' + PathDelim + 'unix');
       P.Targets.AddUnit('kambiglx.pas');
       P.Targets.AddUnit('kambixf86vmode.pas');
       P.Targets.AddUnit('xlibutils.pas');
     end;
     if Defaults.OS in AllWindowsOSes then
     begin
-      P.SourcePath.Add('glwindow\windows');
+      P.SourcePath.Add('src' + PathDelim + 'glwindow' + PathDelim + 'windows');
       P.Targets.AddUnit('glwindowwinapimenu.pas');
       P.Targets.AddUnit('openglwindowsfonts.pas');
     end;
 
-    P.SourcePath.Add('images');
+    P.SourcePath.Add('src' + PathDelim + 'images');
     P.Targets.AddUnit('images.pas');
     P.Targets.AddUnit('imagescache.pas');
     P.Targets.AddUnit('kambipasjpeg.pas');
@@ -213,7 +213,7 @@ begin
     P.Targets.AddUnit('videos.pas');
     P.Targets.AddUnit('videoscache.pas');
 
-    P.SourcePath.Add('kambiscript');
+    P.SourcePath.Add('src' + PathDelim + 'kambiscript');
     P.Targets.AddUnit('kambiscript.pas');
     P.Targets.AddUnit('kambiscriptarrays.pas');
     P.Targets.AddUnit('kambiscriptcorefunctions.pas');
@@ -223,10 +223,10 @@ begin
     P.Targets.AddUnit('kambiscriptvectors.pas');
     P.Targets.AddUnit('vrmlkambiscript.pas');
 
-    P.SourcePath.Add('net');
+    P.SourcePath.Add('src' + PathDelim + 'net');
     P.Targets.AddUnit('kambiurlutils.pas');
 
-    P.SourcePath.Add('opengl');
+    P.SourcePath.Add('src' + PathDelim + 'opengl');
     P.Targets.AddUnit('beziercurve.pas');
     P.Targets.AddUnit('curve.pas');
     P.Targets.AddUnit('glantialiasing.pas');
@@ -243,17 +243,17 @@ begin
     P.Targets.AddUnit('shadowvolumes.pas');
     if Defaults.OS in AllWindowsOSes then
     begin
-      P.SourcePath.Add('opengl\windows');
+      P.SourcePath.Add('src' + PathDelim + 'opengl' + PathDelim + 'windows');
       P.Targets.AddUnit('openglwindowsfonts.pas');
     end;
 
-    P.SourcePath.Add('ui');
+    P.SourcePath.Add('src' + PathDelim + 'ui');
     P.Targets.AddUnit('areas.pas');
     P.Targets.AddUnit('keysmouse.pas');
     P.Targets.AddUnit('uicontrols.pas');
     P.Targets.AddUnit('navigation.pas');
 
-    P.SourcePath.Add('ui' + PathDelim + 'opengl');
+    P.SourcePath.Add('src' + PathDelim + 'ui' + PathDelim + 'opengl');
     P.Targets.AddUnit('glmenu.pas');
     P.Targets.AddUnit('imageslider_base.pas');
     P.Targets.AddUnit('imageslider_position.pas');

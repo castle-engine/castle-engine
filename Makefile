@@ -89,43 +89,43 @@ all: $(UNITS_SUBDIRECTORIES)
 
 COMPILE_ALL_DIR_UNITS=fpc -dRELEASE @kambi.cfg $<
 
-3d: 3d/allkambi3dunits.pas
+3d: src/3d/allkambi3dunits.pas
 	$(COMPILE_ALL_DIR_UNITS)
 
-3d.opengl: 3d/opengl/allkambi3dglunits.pas
+3d.opengl: src/3d/opengl/allkambi3dglunits.pas
 	$(COMPILE_ALL_DIR_UNITS)
 
-vrml.opengl: vrml/opengl/allkambivrmlglunits.pas
+vrml.opengl: src/vrml/opengl/allkambivrmlglunits.pas
 	$(COMPILE_ALL_DIR_UNITS)
 
-vrml: vrml/allkambivrmlunits.pas
+vrml: src/vrml/allkambivrmlunits.pas
 	$(COMPILE_ALL_DIR_UNITS)
 
-audio: audio/allkambiaudiounits.pas
+audio: src/audio/allkambiaudiounits.pas
 	$(COMPILE_ALL_DIR_UNITS)
 
-base: base/allkambibaseunits.pas
+base: src/base/allkambibaseunits.pas
 	$(COMPILE_ALL_DIR_UNITS)
 
-fonts: fonts/allkambifontsunits.pas
+fonts: src/fonts/allkambifontsunits.pas
 	$(COMPILE_ALL_DIR_UNITS)
 
-images: images/allkambiimagesunits.pas
+images: src/images/allkambiimagesunits.pas
 	$(COMPILE_ALL_DIR_UNITS)
 
-opengl: opengl/allkambiopenglunits.pas
+opengl: src/opengl/allkambiopenglunits.pas
 	$(COMPILE_ALL_DIR_UNITS)
 
-kambiscript: kambiscript/allkambiscriptunits.pas
+kambiscript: src/kambiscript/allkambiscriptunits.pas
 	$(COMPILE_ALL_DIR_UNITS)
 
-ui: ui/allkambiuiunits.pas
+ui: src/ui/allkambiuiunits.pas
 	$(COMPILE_ALL_DIR_UNITS)
 
-ui.opengl: ui/opengl/allkambiuiglunits.pas
+ui.opengl: src/ui/opengl/allkambiuiglunits.pas
 	$(COMPILE_ALL_DIR_UNITS)
 
-glwindow: glwindow/allkambiglwindowunits.pas
+glwindow: src/glwindow/allkambiglwindowunits.pas
 	$(COMPILE_ALL_DIR_UNITS)
 
 # creating All*Units.pas files ----------------------------------------
@@ -134,19 +134,19 @@ glwindow: glwindow/allkambiglwindowunits.pas
 
 EMACS_BATCH := emacs -batch --eval="(require 'kambi-pascal-functions)"
 
-ALL_CONTAINER_UNITS := 3d/allkambi3dunits.pas \
-  3d/opengl/allkambi3dglunits.pas \
-  vrml/opengl/allkambivrmlglunits.pas \
-  vrml/allkambivrmlunits.pas \
-  audio/allkambiaudiounits.pas \
-  base/allkambibaseunits.pas \
-  fonts/allkambifontsunits.pas \
-  images/allkambiimagesunits.pas \
-  opengl/allkambiopenglunits.pas \
-  kambiscript/allkambiscriptunits.pas \
-  ui/allkambiuiunits.pas \
-  ui/opengl/allkambiuiglunits.pas \
-  glwindow/allkambiglwindowunits.pas
+ALL_CONTAINER_UNITS := src/3d/allkambi3dunits.pas \
+  src/3d/opengl/allkambi3dglunits.pas \
+  src/vrml/opengl/allkambivrmlglunits.pas \
+  src/vrml/allkambivrmlunits.pas \
+  src/audio/allkambiaudiounits.pas \
+  src/base/allkambibaseunits.pas \
+  src/fonts/allkambifontsunits.pas \
+  src/images/allkambiimagesunits.pas \
+  src/opengl/allkambiopenglunits.pas \
+  src/kambiscript/allkambiscriptunits.pas \
+  src/ui/allkambiuiunits.pas \
+  src/ui/opengl/allkambiuiglunits.pas \
+  src/glwindow/allkambiglwindowunits.pas
 
 # This is a nice target to call before doing a distribution of my sources,
 # because I always want to distribute these All*Units.pas units.
@@ -156,32 +156,32 @@ container_units: $(ALL_CONTAINER_UNITS)
 clean_container_units:
 	rm -f $(ALL_CONTAINER_UNITS)
 
-3d/allkambi3dunits.pas:
+src/3d/allkambi3dunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
   (write-unit-all-units-in-dir \"3d/\" \"AllKambi3dUnits\") \
   (save-buffer))"
 
-3d/opengl/allkambi3dglunits.pas:
+src/3d/opengl/allkambi3dglunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
   (write-unit-all-units-in-dir \"3d/opengl/\" \"AllKambi3dGLUnits\") \
   (save-buffer))"
 
-vrml/opengl/allkambivrmlglunits.pas:
+src/vrml/opengl/allkambivrmlglunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
   (write-unit-all-units-in-dir \"vrml/opengl/\" \"AllKambiVRMLGLUnits\") \
   (save-buffer))"
 
-vrml/allkambivrmlunits.pas:
+src/vrml/allkambivrmlunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
   (write-unit-all-units-in-dir \"vrml/\" \"AllKambiVRMLUnits\") \
   (save-buffer))"
 
-audio/allkambiaudiounits.pas:
+src/audio/allkambiaudiounits.pas:
 	$(EMACS_BATCH) --eval="(progn \
   (write-unit-all-units-in-dir \"audio/\" \"AllKambiAudioUnits\") \
   (save-buffer))"
 
-base/allkambibaseunits.pas:
+src/base/allkambibaseunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
   (write-unit-all-units-in-dir \"base/\" \"AllKambiBaseUnits\") \
   (kam-simple-replace-buffer \"kambixmlread,\" \"{ kambixmlread, --- kambixmlread will be compiled only if required by other units (as it's only for some FPC versions) }\") \
@@ -189,40 +189,40 @@ base/allkambibaseunits.pas:
 
 # FIXME: kam-simple-replace-buffer here is dirty hack to correct problems
 # with all-units-in-dir
-fonts/allkambifontsunits.pas:
+src/fonts/allkambifontsunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
   (write-unit-all-units-in-dir \"fonts/\" \"AllKambiFontsUnits\") \
   (kam-simple-replace-buffer \"ttfontstypes,\" \"ttfontstypes {\$$ifdef MSWINDOWS}, {\$$endif}\") \
   (save-buffer))"
 
-images/allkambiimagesunits.pas:
+src/images/allkambiimagesunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
   (write-unit-all-units-in-dir \"images/\" \"AllKambiImagesUnits\") \
   (kam-simple-replace-buffer \"imagesfftw,\" \"{ imagesfftw, --- imagesfftw is not compiled here for now, as it requires FPC > 2.2.x, and is not actually used by anything else from the engine }\") \
   (save-buffer))"
 
-opengl/allkambiopenglunits.pas:
+src/opengl/allkambiopenglunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
   (write-unit-all-units-in-dir \"opengl/\" \"AllKambiOpenGLUnits\") \
   (kam-simple-replace-buffer \"shadowvolumes,\" \"shadowvolumes {\$$ifdef MSWINDOWS}, {\$$endif}\") \
   (save-buffer))"
 
-kambiscript/allkambiscriptunits.pas:
+src/kambiscript/allkambiscriptunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
   (write-unit-all-units-in-dir \"kambiscript/\" \"AllKambiScriptUnits\") \
   (save-buffer))"
 
-ui/allkambiuiunits.pas:
+src/ui/allkambiuiunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
   (write-unit-all-units-in-dir \"ui/\" \"AllKambiUIUnits\") \
   (save-buffer))"
 
-ui/opengl/allkambiuiglunits.pas:
+src/ui/opengl/allkambiuiglunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
   (write-unit-all-units-in-dir \"ui/opengl/\" \"AllKambiUIGLUnits\") \
   (save-buffer))"
 
-glwindow/allkambiglwindowunits.pas:
+src/glwindow/allkambiglwindowunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
   (write-unit-all-units-in-dir \"glwindow/\" \"AllKambiGLWindowUnits\") \
   (save-buffer))"
@@ -242,73 +242,73 @@ glwindow/allkambiglwindowunits.pas:
 #    by VRML engine or any game for anything).
 
 EXAMPLES_BASE_NAMES := \
-  audio/examples/algets \
-  audio/examples/alplay \
-  audio/examples/doppler_demo \
-  audio/examples/efx_demo \
-  base/examples/demo_parseparameters \
-  base/examples/demo_textreader \
-  base/examples/test_platform_specific_utils \
-  kambiscript/examples/kambi_calc \
-  kambiscript/examples/image_make_by_script \
-  base/tools/svg_grayscale \
-  base/tools/stringoper \
-  images/examples/image_convert \
-  images/examples/dds_decompose \
-  images/examples/image_identify \
-  images/tools/image_to_pas \
-  images/tools/dds_remove_small_mipmaps \
-  glwindow/examples/gl_win_events \
-  glwindow/examples/menu_test_alternative \
-  glwindow/examples/menu_test \
-  glwindow/examples/test_glwindow_gtk_mix \
-  glwindow/examples/test_font_break \
-  glwindow/examples/multi_glwindow \
-  glwindow/examples/multi_texturing_demo \
-  glwindow/examples/shading_langs/shading_langs_demo \
-  glwindow/examples/demo_matrix_navigation \
-  glwindow/examples/fog_coord \
-  glwindow/examples/simple_video_editor \
-  glwindow/examples/test_menu_change_from_keyup \
-  glwindow/examples/bezier_surfaces/animate_surface \
-  glwindow/examples/bezier_surfaces/design_surface \
-  glwindow/examples/interpolated_curves \
-  3d/examples/draw_space_filling_curve \
-  vrml/examples/many2vrml \
-  vrml/examples/test_blender_exported_hierarchy \
-  vrml/tools/gen_light_map \
-  vrml/tools/md3tovrmlsequence \
-  vrml/tools/xmlportals_to_x3d \
-  vrml/opengl/examples/simple_view_model_2 \
-  vrml/opengl/examples/simple_view_model \
-  vrml/opengl/examples/demo_animation \
-  vrml/opengl/examples/fog_culling \
-  vrml/opengl/examples/shadow_volume_test/shadow_volume_test \
-  vrml/opengl/examples/bump_mapping/bump_mapping \
-  vrml/opengl/examples/radiance_transfer/radiance_transfer \
-  vrml/opengl/examples/radiance_transfer/precompute_radiance_transfer \
-  vrml/opengl/examples/radiance_transfer/show_sh \
-  vrml/opengl/examples/plane_mirror_and_shadow \
-  vrml/opengl/examples/change_vrml_by_code \
-  vrml/opengl/examples/change_vrml_by_code_2 \
-  vrml/opengl/examples/vrml_browser_script_compiled \
-  vrml/opengl/examples/simplest_vrml_browser \
-  vrml/opengl/examples/simplest_vrml_browser_with_shadows \
-  vrml/opengl/examples/shadow_fields/precompute_shadow_field \
-  vrml/opengl/examples/shadow_fields/shadow_fields \
-  vrml/opengl/examples/dynamic_ambient_occlusion/dynamic_ambient_occlusion \
-  vrml/opengl/examples/gl_primitive_performance \
-  vrml/opengl/examples/terrain/terrain
+  examples/audio/algets \
+  examples/audio/alplay \
+  examples/audio/doppler_demo \
+  examples/audio/efx_demo \
+  examples/base/demo_parseparameters \
+  examples/base/demo_textreader \
+  examples/base/test_platform_specific_utils \
+  examples/kambiscript/kambi_calc \
+  examples/kambiscript/image_make_by_script \
+  examples/base/svg_grayscale \
+  examples/base/stringoper \
+  examples/images/image_convert \
+  examples/images/dds_decompose \
+  examples/images/image_identify \
+  examples/images/image_to_pas \
+  examples/images/dds_remove_small_mipmaps \
+  examples/glwindow/gl_win_events \
+  examples/glwindow/menu_test_alternative \
+  examples/glwindow/menu_test \
+  examples/glwindow/test_glwindow_gtk_mix \
+  examples/glwindow/test_font_break \
+  examples/glwindow/multi_glwindow \
+  examples/glwindow/multi_texturing_demo \
+  examples/glwindow/shading_langs/shading_langs_demo \
+  examples/glwindow/demo_matrix_navigation \
+  examples/glwindow/fog_coord \
+  examples/glwindow/simple_video_editor \
+  examples/glwindow/test_menu_change_from_keyup \
+  examples/glwindow/bezier_surfaces/animate_surface \
+  examples/glwindow/bezier_surfaces/design_surface \
+  examples/glwindow/interpolated_curves \
+  examples/3d/draw_space_filling_curve \
+  examples/vrml/many2vrml \
+  examples/vrml/test_blender_exported_hierarchy \
+  examples/vrml/gen_light_map \
+  examples/vrml/md3tovrmlsequence \
+  examples/vrml/xmlportals_to_x3d \
+  examples/vrml/simple_view_model_2 \
+  examples/vrml/simple_view_model \
+  examples/vrml/demo_animation \
+  examples/vrml/fog_culling \
+  examples/vrml/shadow_volume_test/shadow_volume_test \
+  examples/vrml/bump_mapping/bump_mapping \
+  examples/vrml/radiance_transfer/radiance_transfer \
+  examples/vrml/radiance_transfer/precompute_radiance_transfer \
+  examples/vrml/radiance_transfer/show_sh \
+  examples/vrml/plane_mirror_and_shadow \
+  examples/vrml/change_vrml_by_code \
+  examples/vrml/change_vrml_by_code_2 \
+  examples/vrml/vrml_browser_script_compiled \
+  examples/vrml/simplest_vrml_browser \
+  examples/vrml/simplest_vrml_browser_with_shadows \
+  examples/vrml/shadow_fields/precompute_shadow_field \
+  examples/vrml/shadow_fields/shadow_fields \
+  examples/vrml/dynamic_ambient_occlusion/dynamic_ambient_occlusion \
+  examples/vrml/gl_primitive_performance \
+  examples/vrml/terrain/terrain
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
-  audio/examples/test_al_source_allocator \
-  vrml/opengl/examples/lazarus_vrml_browser/lazarus_vrml_browser \
-  vrml/opengl/examples/lazarus_browser_with_gl_controls/lazarus_browser_with_gl_controls
+  examples/audio/test_al_source_allocator \
+  examples/vrml/lazarus_vrml_browser/lazarus_vrml_browser \
+  examples/vrml/lazarus_browser_with_gl_controls/lazarus_browser_with_gl_controls
 
 EXAMPLES_WINDOWS_EXECUTABLES := $(addsuffix .exe,$(EXAMPLES_BASE_NAMES)) \
-  audio/examples/test_al_source_allocator.exe \
-  vrml/opengl/examples/lazarus_vrml_browser/lazarus_vrml_browser.exe \
-  vrml/opengl/examples/lazarus_browser_with_gl_controls/lazarus_browser_with_gl_controls.exe
+  examples/audio/test_al_source_allocator.exe \
+  examples/vrml/lazarus_vrml_browser/lazarus_vrml_browser.exe \
+  examples/vrml/lazarus_browser_with_gl_controls/lazarus_browser_with_gl_controls.exe
 
 .PHONY: examples
 examples:
