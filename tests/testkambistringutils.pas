@@ -24,7 +24,7 @@ uses
 type
   TTestKambiStringUtils= class(TTestCase)
   published
-    procedure TestIntToStrPoz;
+    procedure TestIntToStrBase;
     procedure TestDeFormat;
     procedure TestSReplacePercent;
     procedure TestIntToStr2;
@@ -38,7 +38,7 @@ implementation
 
 uses KambiUtils, KambiStringUtils;
 
-procedure TTestKambiStringUtils.TestIntToStrPoz;
+procedure TTestKambiStringUtils.TestIntToStrBase;
 var i: Integer;
     l: Integer;
     s1, s2: string;
@@ -142,7 +142,7 @@ begin
  begin
   Value := Integer(Random(10000)) - 10000 div 2;
   MinLength := Random(5);
-  Assert(IntToStrPoz(Value, 2, MinLength) = IntToStr2(Value, MinLength));
+  Assert(IntToStrBase(Value, 2, MinLength) = IntToStr2(Value, MinLength));
  end;
 end;
 
