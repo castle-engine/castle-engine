@@ -83,7 +83,7 @@
 
     { Send a value to event.
 
-      See the @link(Send(TVRMLField)) method.
+      See the @link(Send Send(TVRMLField, TVRMLTime)) method.
       These shortcuts just create temporary appropriate TVRMLField instance,
       and call Send(TVRMLField) method.
 

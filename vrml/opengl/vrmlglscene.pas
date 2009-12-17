@@ -1026,7 +1026,7 @@ type
       can see how many Shapes were rendered (i.e. send to OpenGL
       pipeline) versus all Shapes that were available
       (this is the number of shapes in @link(Shapes) tree that are
-      @link(TShape.Visible)).
+      @link(TVRMLShape.Visible Visible)).
 
       This way you can see how effective was frustum culling
       in @link(RenderFrustum)

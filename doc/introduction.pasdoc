@@ -213,7 +213,7 @@ units are allowed to be used by units in specific group.
 
     @italic(Uses:) @code(base).)
 
-  @itemLabel @code(kambiscript)
+  @itemLabel @code(@noAutoLink(kambiscript))
   @item(
     Parsing and executing expressions and programs in KambiScript language
     [http://vrmlengine.sourceforge.net/kambi_script.php].
@@ -287,7 +287,7 @@ units are allowed to be used by units in specific group.
 
     @italic(Uses:) @code(base), @code(images), @code(3d), @code(fonts).)
 
-  @itemLabel @code(glwindow)
+  @itemLabel @code(@noAutoLink(glwindow))
   @item(
     GLWindow unit, to easily create a window with OpenGL context.
     For people who know the @code(glut) library: well, GLWindow is "my glut",
@@ -324,7 +324,7 @@ units are allowed to be used by units in specific group.
     @italic(Subdirectory @code(opengl)) contains OpenGL-specific stuff,
     that uses also @code(opengl) units.
 
-    First of all, that's VRMLGLScene unit that provides
+    There's VRMLGLScene unit that provides
     the most final and complete class for dealing with static VRML models and
     displaying them in OpenGL. And there's VRMLGLAnimation, that
     provides the same thing, but for animations (actually using

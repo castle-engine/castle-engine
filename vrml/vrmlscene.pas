@@ -860,7 +860,7 @@ type
     { Number of active and visible (TVRMLShape.Visible) shapes in the
       @link(Shapes) tree.
 
-      @seealso ShapeActiveCount }
+      @seealso ShapesActiveCount }
     function ShapesActiveVisibleCount: Cardinal;
 
     { Calculate bounding box, number of triangls and vertexes of all
