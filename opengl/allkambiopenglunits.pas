@@ -15,15 +15,8 @@ uses
   glantialiasing,
   glcubemap,
   glimages,
-  glmenu,
   glshaders,
-  glsoundmenu,
   glversionunit,
-  glwindow,
-  glwindowrecentmenu,
-  glwininputs,
-  glwinmessages,
-  glwinmodes,
   imageslider_base,
   imageslider_position,
   kambiglut,
@@ -32,16 +25,8 @@ uses
   openglbmpfonts,
   openglfonts,
   openglttfonts,
-  progressgl,
-  shadowvolumes,
-  timemessages,
-  {$ifdef UNIX}
-  kambiglx,
-  kambixf86vmode,
-  xlibutils
-  {$endif UNIX}
+  shadowvolumes {$ifdef MSWINDOWS}, {$endif}
   {$ifdef MSWINDOWS}
-  glwindowwinapimenu,
   openglwindowsfonts
   {$endif MSWINDOWS}
   ;

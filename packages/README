@@ -43,13 +43,13 @@ Mini-FAQ about these packages:
   If you don't want kambi_components, then there's no point in installing
   kambi_base package (kambi_base doesn't register any components etc.).
 
-  For kambi_glwindow_* packages: you even *should not* install them in Lazarus.
-  These packages use GLWindow unit, and merely using this unit
-  will cause the program to initialize TGLWindowManager class --- this initiates
-  some talk with WindowManager, GTK toolkit, etc. You usually don't want your Lazarus
-  installation to do this.
+  For kambi_glwindow package: you even *should not* install it in Lazarus.
+  This package uses GLWindow unit, and merely using this unit
+  will cause the program to initialize TGLApplication instance,
+  which in turn initiates some talk with WindowManager, GTK toolkit, etc.
+  You usually don't want your Lazarus installation to do this.
 
-  So kambi_glwindow_* packages are supposed only to be used (that is, required
+  So kambi_glwindow package is supposed only to be "used" (that is, required
   by other projects), never installed in Lazarus.
 
 ----------------------------------------

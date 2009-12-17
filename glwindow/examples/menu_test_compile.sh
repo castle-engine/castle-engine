@@ -3,4 +3,4 @@ set -eu
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg opengl/examples/fog_coord.pasprogram
+fpc -dRELEASE @kambi.cfg glwindow/examples/menu_test.pasprogram

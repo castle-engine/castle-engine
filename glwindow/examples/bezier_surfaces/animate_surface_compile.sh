@@ -8,4 +8,4 @@ fi
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg opengl/examples/bezier_surfaces/animate_surface.pasprogram
+fpc -dRELEASE @kambi.cfg glwindow/examples/bezier_surfaces/animate_surface.pasprogram

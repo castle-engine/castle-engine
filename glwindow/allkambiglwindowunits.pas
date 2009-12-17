@@ -1,4 +1,4 @@
-unit AllKambi3dModelsGLUnits;
+unit AllKambiGLWindowUnits;
 
 { This is automatically generated unit, useful to compile all units
   in this directory (and OS-specific subdirectories like
@@ -10,14 +10,24 @@ unit AllKambi3dModelsGLUnits;
 interface
 
 uses
-  backgroundgl,
-  object3dopengl,
-  scenemanagerunit,
-  vrmlglanimation,
-  vrmlglheadlight,
-  vrmlglscene,
-  vrmllightsetgl,
-  vrmlopenglrenderer
+  glmenu,
+  glsoundmenu,
+  glwindow,
+  glwindowrecentmenu,
+  glwindowvrmlbrowser,
+  glwininputs,
+  glwinmessages,
+  glwinmodes,
+  progressgl,
+  timemessages,
+  {$ifdef UNIX}
+  kambiglx,
+  kambixf86vmode,
+  xlibutils
+  {$endif UNIX}
+  {$ifdef MSWINDOWS}
+  glwindowwinapimenu
+  {$endif MSWINDOWS}
   ;
 
 implementation

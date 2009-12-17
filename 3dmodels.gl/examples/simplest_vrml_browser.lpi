@@ -51,7 +51,7 @@
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="../../opengl/glwindow.pas"/>
+        <Filename Value="../../glwindow/glwindow.pas"/>
         <UnitName Value="GLWindow"/>
         <CursorPos X="6" Y="204"/>
         <TopLine Value="181"/>

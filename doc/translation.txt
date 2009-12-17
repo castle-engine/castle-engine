@@ -119,6 +119,19 @@ D   bmpfontstypes.pas
 D   font2pascalunit.pas
 -   ttfontstypes.pas
 
+  glwindow/
+D   unix/xf86vmode.pas
+D   unix/xlibutils.pas
+D   glmenu.pas
+D   glsoundmenu.pas
+|   glwindow.pas
+D   glwindowrecentmenu.pas
+-   glwininputs.pas
+D   glwinmessages.pas
+-   glwinmodes.pas
+D   progressgl.pas
+-   timemessages.pas
+
   images/
 D   dds.pas
 D   fftwutils.pas
@@ -137,31 +150,20 @@ D   videoscache.pas
   opengl/
 D   windows/glwindowwinapimenu.pas
 D   windows/openglwindowsfonts.pas
-D   unix/xf86vmode.pas
-D   unix/xlibutils.pas
 D   beziercurve.pas
 D   curve.pas
 D   glantialiasing.pas
 D   glcubemap.pas
 D   glimages.pas
-D   glmenu.pas
 D   glshaders.pas
-D   glsoundmenu.pas
 D   glversionunit.pas
-|   glwindow.pas
-D   glwindowrecentmenu.pas
--   glwininputs.pas
-D   glwinmessages.pas
--   glwinmodes.pas
 -   kambiglut.pas
 |   kambiglutils.pas
 D   normalizationcubemap.pas
 -   openglbmpfonts.pas
 -   openglfonts.pas
 D   openglttfonts.pas
-D   progressgl.pas
 D   shadowvolumes.pas
--   timemessages.pas
 
   kambiscript/
 D   kambiscript.pas

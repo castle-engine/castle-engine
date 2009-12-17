@@ -78,7 +78,7 @@
 # so it's not a big deal to also list them explicitly for UNITS_SUBDIRECTORIES.
 #
 UNITS_SUBDIRECTORIES := 3dgraph 3dmodels 3dmodels.gl audio base \
-  fonts images net opengl kambiscript ui
+  fonts images net opengl kambiscript ui glwindow
 
 .PHONY: all
 all: $(UNITS_SUBDIRECTORIES)
@@ -119,6 +119,9 @@ kambiscript: kambiscript/allkambiscriptunits.pas
 ui: ui/allkambiuiunits.pas
 	$(COMPILE_ALL_DIR_UNITS)
 
+glwindow: glwindow/allkambiglwindowunits.pas
+	$(COMPILE_ALL_DIR_UNITS)
+
 # creating All*Units.pas files ----------------------------------------
 
 .PHONY: container_units clean_container_units
@@ -134,7 +137,8 @@ ALL_CONTAINER_UNITS := 3dgraph/allkambi3dgraphunits.pas \
   images/allkambiimagesunits.pas \
   opengl/allkambiopenglunits.pas \
   kambiscript/allkambiscriptunits.pas \
-  ui/allkambiuiunits.pas
+  ui/allkambiuiunits.pas \
+  glwindow/allkambiglwindowunits.pas
 
 # This is a nice target to call before doing a distribution of my sources,
 # because I always want to distribute these All*Units.pas units.
@@ -187,6 +191,7 @@ images/allkambiimagesunits.pas:
 opengl/allkambiopenglunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
   (write-unit-all-units-in-dir \"opengl/\" \"AllKambiOpenGLUnits\") \
+  (kam-simple-replace-buffer \"shadowvolumes,\" \"shadowvolumes {\$$ifdef MSWINDOWS}, {\$$endif}\") \
   (save-buffer))"
 
 kambiscript/allkambiscriptunits.pas:
@@ -197,6 +202,11 @@ kambiscript/allkambiscriptunits.pas:
 ui/allkambiuiunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
   (write-unit-all-units-in-dir \"ui/\" \"AllKambiUIUnits\") \
+  (save-buffer))"
+
+glwindow/allkambiglwindowunits.pas:
+	$(EMACS_BATCH) --eval="(progn \
+  (write-unit-all-units-in-dir \"glwindow/\" \"AllKambiGLWindowUnits\") \
   (save-buffer))"
 
 # examples and tools -----------------------------------------------------------
@@ -230,21 +240,21 @@ EXAMPLES_BASE_NAMES := \
   images/examples/image_identify \
   images/tools/image_to_pas \
   images/tools/dds_remove_small_mipmaps \
-  opengl/examples/gl_win_events \
-  opengl/examples/menu_test_alternative \
-  opengl/examples/menu_test \
-  opengl/examples/test_glwindow_gtk_mix \
-  opengl/examples/test_font_break \
-  opengl/examples/multi_glwindow \
-  opengl/examples/multi_texturing_demo \
-  opengl/examples/shading_langs/shading_langs_demo \
-  opengl/examples/demo_matrix_navigation \
-  opengl/examples/fog_coord \
-  opengl/examples/simple_video_editor \
-  opengl/examples/test_menu_change_from_keyup \
-  opengl/examples/bezier_surfaces/animate_surface \
-  opengl/examples/bezier_surfaces/design_surface \
-  opengl/examples/interpolated_curves \
+  glwindow/examples/gl_win_events \
+  glwindow/examples/menu_test_alternative \
+  glwindow/examples/menu_test \
+  glwindow/examples/test_glwindow_gtk_mix \
+  glwindow/examples/test_font_break \
+  glwindow/examples/multi_glwindow \
+  glwindow/examples/multi_texturing_demo \
+  glwindow/examples/shading_langs/shading_langs_demo \
+  glwindow/examples/demo_matrix_navigation \
+  glwindow/examples/fog_coord \
+  glwindow/examples/simple_video_editor \
+  glwindow/examples/test_menu_change_from_keyup \
+  glwindow/examples/bezier_surfaces/animate_surface \
+  glwindow/examples/bezier_surfaces/design_surface \
+  glwindow/examples/interpolated_curves \
   3dgraph/examples/draw_space_filling_curve \
   3dmodels/examples/many2vrml \
   3dmodels/examples/test_blender_exported_hierarchy \
