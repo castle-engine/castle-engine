@@ -105,7 +105,7 @@
         <UsageCount Value="10"/>
       </Unit7>
       <Unit8>
-        <Filename Value="../../../3dgraph/matrixnavigation.pas"/>
+        <Filename Value="../../../3d/matrixnavigation.pas"/>
         <UnitName Value="MatrixNavigation"/>
         <CursorPos X="48" Y="12"/>
         <TopLine Value="1"/>
@@ -158,7 +158,7 @@
         <Loaded Value="True"/>
       </Unit14>
       <Unit15>
-        <Filename Value="../../../3dmodels/vrmlscene.pas"/>
+        <Filename Value="../../../vrml/vrmlscene.pas"/>
         <UnitName Value="VRMLScene"/>
         <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
@@ -180,7 +180,7 @@
         <Loaded Value="True"/>
       </Unit17>
       <Unit18>
-        <Filename Value="../../../3dmodels/vrml97nodes.inc"/>
+        <Filename Value="../../../vrml/vrml97nodes.inc"/>
         <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
         <UsageCount Value="10"/>
@@ -251,7 +251,7 @@
         <UsageCount Value="24"/>
       </Unit27>
       <Unit28>
-        <Filename Value="../../../3dmodels/vrmlerrors.pas"/>
+        <Filename Value="../../../vrml/vrmlerrors.pas"/>
         <UnitName Value="VRMLErrors"/>
         <CursorPos X="22" Y="32"/>
         <TopLine Value="17"/>

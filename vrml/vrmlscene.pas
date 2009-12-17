@@ -2980,7 +2980,7 @@ begin
     changes to nodes not in our graph. This is not done now,
     as in fact this check is not needed, and usually it wastes quite
     some time (for example, profile
-    ../3dmodels.gl/examples/change_vrml_by_code_2.pasprogram
+    ../vrml/opengl/examples/change_vrml_by_code_2.pasprogram
     when doing ChangedFields (not ChangedAll)).
 
     In most cases, when modifying graph by code, and always when

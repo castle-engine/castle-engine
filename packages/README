@@ -60,7 +60,7 @@ some Lazarus components (that use my units), and you're supposed to just
 install this package in Lazarus. This also automatically installs kambi_base
 package --- that's OK.
 
-See ../3dmodels.gl/examples/lazarus_vrml_browser/
+See ../vrml/opengl/examples/lazarus_vrml_browser/
 for demo program using this package.
 
 ------------------------------------------------------------------------------

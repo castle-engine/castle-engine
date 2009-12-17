@@ -15,7 +15,7 @@
 
   1. It always loads models/fog_culling_final.wrl VRML file.
      Be sure to run it with proper current directory
-     (units/3dmodels.gl/examples/).
+     (units/vrml/opengl/examples/).
 
   2. It handles Background node (because our models/fog_culling_final.wrl
      model uses it).

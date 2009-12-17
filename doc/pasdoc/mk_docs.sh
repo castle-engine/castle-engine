@@ -112,9 +112,10 @@ fi
 
 PASDOC_INCLUDE_DIRS="\
   --include base/templates/\
-  --include 3dgraph/\
-  --include 3dmodels/\
-  --include 3dmodels.gl/\
+  --include 3d/\
+  --include 3d/opengl/\
+  --include vrml/\
+  --include vrml/opengl/\
   --include audio/\
   --include base/\
   --include base/$TARGET_OS/\
@@ -123,8 +124,9 @@ PASDOC_INCLUDE_DIRS="\
   --include images/\
   --include opengl/\
   --include opengl/$TARGET_OS/\
-  --include opengl/gtk/\
-  --include opengl/gtk/gtkglext/\
+  --include glwindow/\
+  --include glwindow/$TARGET_OS/\
+  --include glwindow/gtk/\
   --include kambiscript/\
 "
 

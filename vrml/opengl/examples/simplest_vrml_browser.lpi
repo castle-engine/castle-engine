@@ -58,7 +58,7 @@
         <UsageCount Value="10"/>
       </Unit1>
       <Unit2>
-        <Filename Value="../../3dmodels/vrmlnodes.pas"/>
+        <Filename Value="../../vrml/vrmlnodes.pas"/>
         <UnitName Value="VRMLNodes"/>
         <CursorPos X="28" Y="4613"/>
         <TopLine Value="4602"/>

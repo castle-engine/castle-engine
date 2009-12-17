@@ -84,8 +84,8 @@ compressed file is very small.
 
 Source code: besides sources in this directory, take a look at
 the spherical harmonics and cube env map utilities in units
-  3dgraph/sphericalharmonics.pas,
-  3dgraph/cubemap.pas,
+  3d/sphericalharmonics.pas,
+  3d/cubemap.pas,
   opengl/glcubemap.pas
 Some of them were created directly for shadow_fields demo,
 some of them are shared by radiance_transfer demo.

@@ -256,15 +256,14 @@ units are allowed to be used by units in specific group.
         Everywhere is fine, as long as you have OpenGL rendering context.)
     )
 
-    @italic(Uses:) @code(base), @code(images), @code(3dgraph).)
+    @italic(Uses:) @code(base), @code(images), @code(3d).)
 
-  @itemLabel @code(3dgraph)
+  @itemLabel @code(3d)
   @item(
-    Units dealing with basic 3d graphics.
-    @italic(Not) dependent on OpenGL and @italic(not) doing anything
-    closely related to "processing 3d models".
-    These units make some base for units in @code(opengl) and @code(3dmodels)
-    groups. Operating on axis-aligned bounding boxes (Boxes3d),
+    3D graphics stuff, not VRML-specific.
+    This is the basis for VRML units in @code(vrml) directory.
+
+    Operating on axis-aligned bounding boxes (Boxes3d),
     loading skyboxes (BackgroundBase), navigation in 3D world
     (MatrixNavigation), ray-tracer helpers (SpaceFillingCurves and
     SphereSampling) etc.
@@ -272,7 +271,10 @@ units are allowed to be used by units in specific group.
     Note: VectorMath unit is considered by me as something more general and
     useful --- so it's in @code(base) group, not here.
 
-    @italic(Uses:) @code(base), @code(images).)
+    @italic(Uses:) @code(base), @code(images).
+
+    @italic(Subdirectory @code(opengl)) contains OpenGL-specific stuff,
+    that uses also @code(opengl) units.)
 
   @itemLabel @code(opengl)
   @item(
@@ -283,7 +285,7 @@ units are allowed to be used by units in specific group.
     (GLImages),
     helpers for shadows (ShadowVolumesHelper) and anti-aliasing (GLAntiAliasing).
 
-    @italic(Uses:) @code(base), @code(images), @code(3dgraph), @code(fonts).)
+    @italic(Uses:) @code(base), @code(images), @code(3d), @code(fonts).)
 
   @itemLabel @code(glwindow)
   @item(
@@ -297,17 +299,19 @@ units are allowed to be used by units in specific group.
     (ProgressGL), messages (GLWinMessages, TimeMessages, GLWinInputs).
 
     @italic(Uses:) These units can use almost any other units:
-      @code(base), @code(images), @code(3dgraph), @code(fonts),
-      @code(opengl), @code(3dmodels).
+    @code(base), @code(images), @code(3d), @code(fonts),
+    @code(opengl), @code(vrml).
 
     What is important is that no other engine units may depend on
     GLWindow units. So every OpenGL code outside @code(glwindow)
     directory is usable with OpenGL context initialized in any way,
     like with Lazarus OpenGL control.)
 
-  @itemLabel @code(3dmodels)
+  @itemLabel @code(vrml)
   @item(
-    Units to handle and process 3D models.
+    VRML rendering and processing. This is the core of our engine,
+    most highest-level classes to render 3D scene are here.
+
     VRML file reading, writing and processing (VRMLLexer, VRMLFields,
     VRMLNodes), building and using octree based on VRML model (VRMLOctree),
     ray-tracer based on VRML model (VRMLRayTracer),
@@ -315,22 +319,15 @@ units are allowed to be used by units in specific group.
     other 3d model formats reading (Object3dGEO, Object3ds, Object3dOBJ,
     ColladaToVRML), and converting to VRML (Object3dAsVRML).
 
-    These units do @italic(not) depend on OpenGL.
+    @italic(Uses:) @code(base), @code(images), @code(3d), @code(fonts).
 
-    @italic(Uses:) @code(base), @code(images), @code(3dgraph).)
-
-  @itemLabel @code(3dmodels/opengl)
-  @item(
-    OpenGL-specific handling of 3D models.
-    Basically these units use both @code(opengl)
-    and @code(3dmodels) groups.
+    @italic(Subdirectory @code(opengl)) contains OpenGL-specific stuff,
+    that uses also @code(opengl) units.
 
     First of all, that's VRMLGLScene unit that provides
     the most final and complete class for dealing with static VRML models and
     displaying them in OpenGL. And there's VRMLGLAnimation, that
     provides the same thing, but for animations (actually using
     VRMLGLScene underneath).
-
-    @italic(Uses:) @code(base), @code(images), @code(3dgraph), @code(fonts),
-      @code(opengl), @code(3dmodels).)
+  )
 )

@@ -57,32 +57,38 @@ begin
     P.Email := 'michalis.kambi' + '@gmail.com'; { at least protect sources from spammers }
     P.Version := '1.7.0';
 
-    P.SourcePath.Add('3dgraph');
+    P.SourcePath.Add('3d');
     P.Targets.AddUnit('backgroundbase.pas');
     P.Targets.AddUnit('boxes3d.pas');
     P.Targets.AddUnit('convexhullunit.pas');
     P.Targets.AddUnit('cubemap.pas');
     P.Targets.AddUnit('frustum.pas');
-    P.Targets.AddUnit('polynomials.pas');
-    P.Targets.AddUnit('quaternions.pas');
-    P.Targets.AddUnit('rayswindow.pas');
-    P.Targets.AddUnit('spacefillingcurves.pas');
-    P.Targets.AddUnit('spheresampling.pas');
-    P.Targets.AddUnit('sphericalharmonics.pas');
-
-    P.SourcePath.Add('3dmodels');
-    P.Targets.AddUnit('colladatovrml.pas');
-    P.Targets.AddUnit('illummodels.pas');
     P.Targets.AddUnit('kambioctree.pas');
-    P.Targets.AddUnit('normalscalculator.pas');
-    P.Targets.AddUnit('object3dasvrml.pas');
+    P.Targets.AddUnit('nurbs.pas');
     P.Targets.AddUnit('object3dgeo.pas');
     P.Targets.AddUnit('object3dmd3.pas');
     P.Targets.AddUnit('object3dobj.pas');
     P.Targets.AddUnit('object3ds.pas');
     P.Targets.AddUnit('object3dschunks.pas');
     P.Targets.AddUnit('object3dsmaterial.pas');
+    P.Targets.AddUnit('polynomials.pas');
+    P.Targets.AddUnit('quaternions.pas');
+    P.Targets.AddUnit('rayswindow.pas');
+    P.Targets.AddUnit('renderstateunit.pas');
+    P.Targets.AddUnit('spacefillingcurves.pas');
+    P.Targets.AddUnit('spheresampling.pas');
+    P.Targets.AddUnit('sphericalharmonics.pas');
     P.Targets.AddUnit('triangulator.pas');
+
+    P.SourcePath.Add('3d' + PathDelim + 'opengl');
+    P.Targets.AddUnit('backgroundgl.pas');
+    P.Targets.AddUnit('object3dopengl.pas');
+
+    P.SourcePath.Add('vrml');
+    P.Targets.AddUnit('colladatovrml.pas');
+    P.Targets.AddUnit('illummodels.pas');
+    P.Targets.AddUnit('normalscalculator.pas');
+    P.Targets.AddUnit('object3dasvrml.pas');
     P.Targets.AddUnit('vrmlanimation.pas');
     P.Targets.AddUnit('vrmlcamerautils.pas');
     P.Targets.AddUnit('vrmlerrors.pas');
@@ -104,10 +110,7 @@ begin
     P.Targets.AddUnit('vrmltriangleoctree.pas');
     P.Targets.AddUnit('x3dxmltovrml.pas');
 
-    P.SourcePath.Add('3dmodels' + PathDelim + 'opengl');
-    P.Targets.AddUnit('backgroundgl.pas');
-    P.Targets.AddUnit('glwindowvrmlbrowser.pas');
-    P.Targets.AddUnit('object3dopengl.pas');
+    P.SourcePath.Add('vrml' + PathDelim + 'opengl');
     P.Targets.AddUnit('vrmlglanimation.pas');
     P.Targets.AddUnit('vrmlglheadlight.pas');
     P.Targets.AddUnit('vrmlglscene.pas');
@@ -184,6 +187,7 @@ begin
     P.Targets.AddUnit('glwinmodes.pas');
     P.Targets.AddUnit('progressgl.pas');
     P.Targets.AddUnit('timemessages.pas');
+    P.Targets.AddUnit('glwindowvrmlbrowser.pas');
     if Defaults.OS in AllUnixOSes then
     begin
       P.SourcePath.Add('glwindow/unix');
