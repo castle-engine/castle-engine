@@ -8,7 +8,7 @@
       </Flags>
       <MainUnit Value="0"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="2"/>
+      <ActiveEditorIndexAtStart Value="0"/>
     </General>
     <PublishOptions>
       <Version Value="2"/>
@@ -153,9 +153,7 @@
         <UnitName Value="KambiDynLib"/>
         <CursorPos X="56" Y="204"/>
         <TopLine Value="194"/>
-        <EditorIndex Value="2"/>
         <UsageCount Value="11"/>
-        <Loaded Value="True"/>
       </Unit14>
       <Unit15>
         <Filename Value="../../../vrml/vrmlscene.pas"/>
@@ -175,9 +173,7 @@
         <UnitName Value="KambiVRMLBrowser"/>
         <CursorPos X="42" Y="267"/>
         <TopLine Value="253"/>
-        <EditorIndex Value="1"/>
         <UsageCount Value="12"/>
-        <Loaded Value="True"/>
       </Unit17>
       <Unit18>
         <Filename Value="../../../vrml/vrml97nodes.inc"/>
@@ -265,19 +261,11 @@
         <UsageCount Value="10"/>
       </Unit29>
     </Units>
-    <JumpHistory Count="3" HistoryIndex="2">
+    <JumpHistory Count="1" HistoryIndex="0">
       <Position1>
         <Filename Value="mainf.pas"/>
         <Caret Line="9" Column="55" TopLine="1"/>
       </Position1>
-      <Position2>
-        <Filename Value="../../../packages/components/kambivrmlbrowser.pas"/>
-        <Caret Line="28" Column="25" TopLine="28"/>
-      </Position2>
-      <Position3>
-        <Filename Value="../../../packages/components/kambivrmlbrowser.pas"/>
-        <Caret Line="267" Column="42" TopLine="253"/>
-      </Position3>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

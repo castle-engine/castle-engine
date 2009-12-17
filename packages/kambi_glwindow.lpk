@@ -6,8 +6,8 @@
     <CompilerOptions>
       <Version Value="8"/>
       <SearchPaths>
-        <IncludeFiles Value="../glwindow/unix/;../glwindow/windows/;../glwindow/gtk/"/>
-        <OtherUnitFiles Value="../glwindow/;../glwindow/windows/"/>
+        <IncludeFiles Value="../src/glwindow/unix/;../src/glwindow/windows/;../src/glwindow/gtk/"/>
+        <OtherUnitFiles Value="../src/glwindow/;../src/glwindow/windows/"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
@@ -52,70 +52,70 @@ This package cannot be installed under Lazarus, it's only for being used in othe
     <Version Major="1"/>
     <Files Count="16">
       <Item1>
-        <Filename Value="../glwindow/glwindowvrmlbrowser.pas"/>
+        <Filename Value="../src/glwindow/glwindowvrmlbrowser.pas"/>
         <UnitName Value="GLWindowVRMLBrowser"/>
       </Item1>
       <Item2>
-        <Filename Value="../glwindow/glsoundmenu.pas"/>
+        <Filename Value="../src/glwindow/glsoundmenu.pas"/>
         <UnitName Value="GLSoundMenu"/>
       </Item2>
       <Item3>
-        <Filename Value="../glwindow/glwindow.pas"/>
+        <Filename Value="../src/glwindow/glwindow.pas"/>
         <UnitName Value="GLWindow"/>
       </Item3>
       <Item4>
-        <Filename Value="../glwindow/glwindowrecentmenu.pas"/>
+        <Filename Value="../src/glwindow/glwindowrecentmenu.pas"/>
         <UnitName Value="GLWindowRecentMenu"/>
       </Item4>
       <Item5>
-        <Filename Value="../glwindow/glwininputs.pas"/>
+        <Filename Value="../src/glwindow/glwininputs.pas"/>
         <UnitName Value="GLWinInputs"/>
       </Item5>
       <Item6>
-        <Filename Value="../glwindow/glwinmessages.pas"/>
+        <Filename Value="../src/glwindow/glwinmessages.pas"/>
         <UnitName Value="GLWinMessages"/>
       </Item6>
       <Item7>
-        <Filename Value="../glwindow/glwinmodes.pas"/>
+        <Filename Value="../src/glwindow/glwinmodes.pas"/>
         <UnitName Value="GLWinModes"/>
       </Item7>
       <Item8>
-        <Filename Value="../glwindow/progressgl.pas"/>
+        <Filename Value="../src/glwindow/progressgl.pas"/>
         <UnitName Value="ProgressGL"/>
       </Item8>
       <Item9>
-        <Filename Value="../glwindow/timemessages.pas"/>
+        <Filename Value="../src/glwindow/timemessages.pas"/>
         <UnitName Value="TimeMessages"/>
       </Item9>
       <Item10>
-        <Filename Value="../glwindow/windows/glwindow_winapi.inc"/>
+        <Filename Value="../src/glwindow/windows/glwindow_winapi.inc"/>
         <Type Value="Include"/>
       </Item10>
       <Item11>
-        <Filename Value="../glwindow/windows/glwindowwinapimenu.pas"/>
+        <Filename Value="../src/glwindow/windows/glwindowwinapimenu.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="GLWindowWinAPIMenu"/>
       </Item11>
       <Item12>
-        <Filename Value="../glwindow/unix/glwindow_xf86vmode.inc"/>
+        <Filename Value="../src/glwindow/unix/glwindow_xf86vmode.inc"/>
         <Type Value="Include"/>
       </Item12>
       <Item13>
-        <Filename Value="../glwindow/unix/glwindow_xlib.inc"/>
+        <Filename Value="../src/glwindow/unix/glwindow_xlib.inc"/>
         <Type Value="Include"/>
       </Item13>
       <Item14>
-        <Filename Value="../glwindow/unix/kambiglx.pas"/>
+        <Filename Value="../src/glwindow/unix/kambiglx.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="KambiGLX"/>
       </Item14>
       <Item15>
-        <Filename Value="../glwindow/unix/kambixf86vmode.pas"/>
+        <Filename Value="../src/glwindow/unix/kambixf86vmode.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="KambiXF86VMode"/>
       </Item15>
       <Item16>
-        <Filename Value="../glwindow/unix/xlibutils.pas"/>
+        <Filename Value="../src/glwindow/unix/xlibutils.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="xlibutils"/>
       </Item16>

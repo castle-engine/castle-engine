@@ -6,7 +6,7 @@
     <CompilerOptions>
       <Version Value="8"/>
       <SearchPaths>
-        <OtherUnitFiles Value="components/"/>
+        <OtherUnitFiles Value="../src/components/"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
@@ -34,17 +34,17 @@
     <Version Major="1"/>
     <Files Count="3">
       <Item1>
-        <Filename Value="components/kambiglcontrol.pas"/>
+        <Filename Value="../src/components/kambiglcontrol.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="KambiGLControl"/>
       </Item1>
       <Item2>
-        <Filename Value="components/kambivrmlbrowser.pas"/>
+        <Filename Value="../src/components/kambivrmlbrowser.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="KambiVRMLBrowser"/>
       </Item2>
       <Item3>
-        <Filename Value="components/kambilclutils.pas"/>
+        <Filename Value="../src/components/kambilclutils.pas"/>
         <UnitName Value="KambiLCLUtils"/>
       </Item3>
     </Files>
