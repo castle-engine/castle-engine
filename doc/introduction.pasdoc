@@ -319,10 +319,10 @@ units are allowed to be used by units in specific group.
 
     @italic(Uses:) @code(base), @code(images), @code(3dgraph).)
 
-  @itemLabel @code(3dmodels.gl)
+  @itemLabel @code(3dmodels/opengl)
   @item(
-    Units handling 3D models and do something OpenGL-specific.
-    Basically this means that they use units in both @code(opengl)
+    OpenGL-specific handling of 3D models.
+    Basically these units use both @code(opengl)
     and @code(3dmodels) groups.
 
     First of all, that's VRMLGLScene unit that provides

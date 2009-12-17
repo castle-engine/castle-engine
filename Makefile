@@ -77,7 +77,7 @@
 # 2. Units subdirectories rules (see below) have to be listed explicitly anyway,
 # so it's not a big deal to also list them explicitly for UNITS_SUBDIRECTORIES.
 #
-UNITS_SUBDIRECTORIES := 3dgraph 3dmodels 3dmodels.gl audio base \
+UNITS_SUBDIRECTORIES := 3dgraph 3dmodels 3dmodels.opengl audio base \
   fonts images net opengl kambiscript ui glwindow
 
 .PHONY: all
@@ -92,7 +92,7 @@ COMPILE_ALL_DIR_UNITS=fpc -dRELEASE @kambi.cfg $<
 3dgraph: 3dgraph/allkambi3dgraphunits.pas
 	$(COMPILE_ALL_DIR_UNITS)
 
-3dmodels.gl: 3dmodels.gl/allkambi3dmodelsglunits.pas
+3dmodels.opengl: 3dmodels/opengl/allkambi3dmodelsglunits.pas
 	$(COMPILE_ALL_DIR_UNITS)
 
 3dmodels: 3dmodels/allkambi3dmodelsunits.pas
@@ -129,7 +129,7 @@ glwindow: glwindow/allkambiglwindowunits.pas
 EMACS_BATCH := emacs -batch --eval="(require 'kambi-pascal-functions)"
 
 ALL_CONTAINER_UNITS := 3dgraph/allkambi3dgraphunits.pas \
-  3dmodels.gl/allkambi3dmodelsglunits.pas \
+  3dmodels/opengl/allkambi3dmodelsglunits.pas \
   3dmodels/allkambi3dmodelsunits.pas \
   audio/allkambiaudiounits.pas \
   base/allkambibaseunits.pas \
@@ -153,9 +153,9 @@ clean_container_units:
   (write-unit-all-units-in-dir \"3dgraph/\" \"AllKambi3dGraphUnits\") \
   (save-buffer))"
 
-3dmodels.gl/allkambi3dmodelsglunits.pas:
+3dmodels/opengl/allkambi3dmodelsglunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
-  (write-unit-all-units-in-dir \"3dmodels.gl/\" \"AllKambi3dModelsGLUnits\") \
+  (write-unit-all-units-in-dir \"3dmodels/opengl/\" \"AllKambi3dModelsGLUnits\") \
   (save-buffer))"
 
 3dmodels/allkambi3dmodelsunits.pas:
@@ -261,36 +261,36 @@ EXAMPLES_BASE_NAMES := \
   3dmodels/tools/gen_light_map \
   3dmodels/tools/md3tovrmlsequence \
   3dmodels/tools/xmlportals_to_x3d \
-  3dmodels.gl/examples/simple_view_model_2 \
-  3dmodels.gl/examples/simple_view_model \
-  3dmodels.gl/examples/demo_animation \
-  3dmodels.gl/examples/fog_culling \
-  3dmodels.gl/examples/shadow_volume_test/shadow_volume_test \
-  3dmodels.gl/examples/bump_mapping/bump_mapping \
-  3dmodels.gl/examples/radiance_transfer/radiance_transfer \
-  3dmodels.gl/examples/radiance_transfer/precompute_radiance_transfer \
-  3dmodels.gl/examples/radiance_transfer/show_sh \
-  3dmodels.gl/examples/plane_mirror_and_shadow \
-  3dmodels.gl/examples/change_vrml_by_code \
-  3dmodels.gl/examples/change_vrml_by_code_2 \
-  3dmodels.gl/examples/vrml_browser_script_compiled \
-  3dmodels.gl/examples/simplest_vrml_browser \
-  3dmodels.gl/examples/simplest_vrml_browser_with_shadows \
-  3dmodels.gl/examples/shadow_fields/precompute_shadow_field \
-  3dmodels.gl/examples/shadow_fields/shadow_fields \
-  3dmodels.gl/examples/dynamic_ambient_occlusion/dynamic_ambient_occlusion \
-  3dmodels.gl/examples/gl_primitive_performance \
-  3dmodels.gl/examples/terrain/terrain
+  3dmodels/opengl/examples/simple_view_model_2 \
+  3dmodels/opengl/examples/simple_view_model \
+  3dmodels/opengl/examples/demo_animation \
+  3dmodels/opengl/examples/fog_culling \
+  3dmodels/opengl/examples/shadow_volume_test/shadow_volume_test \
+  3dmodels/opengl/examples/bump_mapping/bump_mapping \
+  3dmodels/opengl/examples/radiance_transfer/radiance_transfer \
+  3dmodels/opengl/examples/radiance_transfer/precompute_radiance_transfer \
+  3dmodels/opengl/examples/radiance_transfer/show_sh \
+  3dmodels/opengl/examples/plane_mirror_and_shadow \
+  3dmodels/opengl/examples/change_vrml_by_code \
+  3dmodels/opengl/examples/change_vrml_by_code_2 \
+  3dmodels/opengl/examples/vrml_browser_script_compiled \
+  3dmodels/opengl/examples/simplest_vrml_browser \
+  3dmodels/opengl/examples/simplest_vrml_browser_with_shadows \
+  3dmodels/opengl/examples/shadow_fields/precompute_shadow_field \
+  3dmodels/opengl/examples/shadow_fields/shadow_fields \
+  3dmodels/opengl/examples/dynamic_ambient_occlusion/dynamic_ambient_occlusion \
+  3dmodels/opengl/examples/gl_primitive_performance \
+  3dmodels/opengl/examples/terrain/terrain
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   audio/examples/test_al_source_allocator \
-  3dmodels.gl/examples/lazarus_vrml_browser/lazarus_vrml_browser \
-  3dmodels.gl/examples/lazarus_browser_with_gl_controls/lazarus_browser_with_gl_controls
+  3dmodels/opengl/examples/lazarus_vrml_browser/lazarus_vrml_browser \
+  3dmodels/opengl/examples/lazarus_browser_with_gl_controls/lazarus_browser_with_gl_controls
 
 EXAMPLES_WINDOWS_EXECUTABLES := $(addsuffix .exe,$(EXAMPLES_BASE_NAMES)) \
   audio/examples/test_al_source_allocator.exe \
-  3dmodels.gl/examples/lazarus_vrml_browser/lazarus_vrml_browser.exe \
-  3dmodels.gl/examples/lazarus_browser_with_gl_controls/lazarus_browser_with_gl_controls.exe
+  3dmodels/opengl/examples/lazarus_vrml_browser/lazarus_vrml_browser.exe \
+  3dmodels/opengl/examples/lazarus_browser_with_gl_controls/lazarus_browser_with_gl_controls.exe
 
 .PHONY: examples
 examples:

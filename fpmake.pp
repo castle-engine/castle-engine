@@ -11,7 +11,7 @@
 
 program fpmake;
 
-uses fpmkunit;
+uses SysUtils, fpmkunit;
 
 var
   P: TPackage;
@@ -105,7 +105,7 @@ begin
     P.Targets.AddUnit('vrmltriangleoctree.pas');
     P.Targets.AddUnit('x3dxmltovrml.pas');
 
-    P.SourcePath.Add('3dmodels.gl');
+    P.SourcePath.Add('3dmodels' + PathDelim + 'opengl');
     P.Targets.AddUnit('backgroundgl.pas');
     P.Targets.AddUnit('glwindowvrmlbrowser.pas');
     P.Targets.AddUnit('object3dopengl.pas');

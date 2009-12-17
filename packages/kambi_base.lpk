@@ -7,7 +7,7 @@
       <Version Value="8"/>
       <SearchPaths>
         <IncludeFiles Value="../base/;../base/templates/;../base/unix/;../base/windows/;../opengl/;../opengl/unix/;../opengl/windows/;../audio/;../kambiscript/"/>
-        <OtherUnitFiles Value="../base/;../3dgraph/;../3dmodels/;../3dmodels.gl/;../images/;../fonts/;../fonts/windows/;../opengl/;../opengl/unix/;../opengl/windows/;../audio/;../net/;../kambiscript/;../ui/"/>
+        <OtherUnitFiles Value="../base/;../3dgraph/;../3dmodels/;../3dmodels/opengl/;../images/;../fonts/;../fonts/windows/;../opengl/;../opengl/unix/;../opengl/windows/;../audio/;../net/;../kambiscript/;../ui/"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
@@ -103,79 +103,79 @@
         <UnitName Value="SphericalHarmonics"/>
       </Item13>
       <Item14>
-        <Filename Value="../3dmodels.gl/backgroundgl.pas"/>
+        <Filename Value="../3dmodels/opengl/backgroundgl.pas"/>
         <UnitName Value="BackgroundGL"/>
       </Item14>
       <Item15>
-        <Filename Value="../3dmodels.gl/glsl_bump_mapping.fs.inc"/>
+        <Filename Value="../3dmodels/opengl/glsl_bump_mapping.fs.inc"/>
         <Type Value="Include"/>
       </Item15>
       <Item16>
-        <Filename Value="../3dmodels.gl/glsl_bump_mapping.vs.inc"/>
+        <Filename Value="../3dmodels/opengl/glsl_bump_mapping.vs.inc"/>
         <Type Value="Include"/>
       </Item16>
       <Item17>
-        <Filename Value="../3dmodels.gl/glsl_parallax_bump_mapping.fs.inc"/>
+        <Filename Value="../3dmodels/opengl/glsl_parallax_bump_mapping.fs.inc"/>
         <Type Value="Include"/>
       </Item17>
       <Item18>
-        <Filename Value="../3dmodels.gl/glsl_parallax_bump_mapping.vs.inc"/>
+        <Filename Value="../3dmodels/opengl/glsl_parallax_bump_mapping.vs.inc"/>
         <Type Value="Include"/>
       </Item18>
       <Item19>
-        <Filename Value="../3dmodels.gl/object3dopengl.pas"/>
+        <Filename Value="../3dmodels/opengl/object3dopengl.pas"/>
         <UnitName Value="Object3dOpenGL"/>
       </Item19>
       <Item20>
-        <Filename Value="../3dmodels.gl/scenemanagerunit.pas"/>
+        <Filename Value="../3dmodels/opengl/scenemanagerunit.pas"/>
         <UnitName Value="SceneManagerUnit"/>
       </Item20>
       <Item21>
-        <Filename Value="../3dmodels.gl/vrmlbumpmappingrenderer.inc"/>
+        <Filename Value="../3dmodels/opengl/vrmlbumpmappingrenderer.inc"/>
         <Type Value="Include"/>
       </Item21>
       <Item22>
-        <Filename Value="../3dmodels.gl/vrmlglanimation.pas"/>
+        <Filename Value="../3dmodels/opengl/vrmlglanimation.pas"/>
         <UnitName Value="VRMLGLAnimation"/>
       </Item22>
       <Item23>
-        <Filename Value="../3dmodels.gl/vrmlglheadlight.pas"/>
+        <Filename Value="../3dmodels/opengl/vrmlglheadlight.pas"/>
         <UnitName Value="VRMLGLHeadLight"/>
       </Item23>
       <Item24>
-        <Filename Value="../3dmodels.gl/vrmlglscene.pas"/>
+        <Filename Value="../3dmodels/opengl/vrmlglscene.pas"/>
         <UnitName Value="VRMLGLScene"/>
       </Item24>
       <Item25>
-        <Filename Value="../3dmodels.gl/vrmllightsetgl.pas"/>
+        <Filename Value="../3dmodels/opengl/vrmllightsetgl.pas"/>
         <UnitName Value="VRMLLightSetGL"/>
       </Item25>
       <Item26>
-        <Filename Value="../3dmodels.gl/vrmlmeshrenderer.inc"/>
+        <Filename Value="../3dmodels/opengl/vrmlmeshrenderer.inc"/>
         <Type Value="Include"/>
       </Item26>
       <Item27>
-        <Filename Value="../3dmodels.gl/vrmlmeshrenderer_simple_nodes.inc"/>
+        <Filename Value="../3dmodels/opengl/vrmlmeshrenderer_simple_nodes.inc"/>
         <Type Value="Include"/>
       </Item27>
       <Item28>
-        <Filename Value="../3dmodels.gl/vrmlmeshrenderer_x3d_geometry2d.inc"/>
+        <Filename Value="../3dmodels/opengl/vrmlmeshrenderer_x3d_geometry2d.inc"/>
         <Type Value="Include"/>
       </Item28>
       <Item29>
-        <Filename Value="../3dmodels.gl/vrmlmeshrenderer_x3d_geometry3d.inc"/>
+        <Filename Value="../3dmodels/opengl/vrmlmeshrenderer_x3d_geometry3d.inc"/>
         <Type Value="Include"/>
       </Item29>
       <Item30>
-        <Filename Value="../3dmodels.gl/vrmlmeshrenderer_x3d_rendering.inc"/>
+        <Filename Value="../3dmodels/opengl/vrmlmeshrenderer_x3d_rendering.inc"/>
         <Type Value="Include"/>
       </Item30>
       <Item31>
-        <Filename Value="../3dmodels.gl/vrmlopenglrenderer.pas"/>
+        <Filename Value="../3dmodels/opengl/vrmlopenglrenderer.pas"/>
         <UnitName Value="VRMLOpenGLRenderer"/>
       </Item31>
       <Item32>
-        <Filename Value="../3dmodels.gl/vrmlopenglrenderer_render_materials.inc"/>
+        <Filename Value="../3dmodels/opengl/vrmlopenglrenderer_render_materials.inc"/>
         <Type Value="Include"/>
       </Item32>
       <Item33>
