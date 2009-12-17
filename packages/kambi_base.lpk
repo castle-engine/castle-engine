@@ -49,7 +49,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="164">
+    <Files Count="162">
       <Item1>
         <Filename Value="../3dgraph/backgroundbase.pas"/>
         <UnitName Value="BackgroundBase"/>
@@ -645,73 +645,62 @@
         <UnitName Value="GLImages"/>
       </Item148>
       <Item149>
-        <Filename Value="../opengl/glshaders.pas"/>
-        <UnitName Value="GLShaders"/>
+        <Filename Value="../opengl/glmenu.pas"/>
+        <UnitName Value="GLMenu"/>
       </Item149>
       <Item150>
-        <Filename Value="../opengl/glversionunit.pas"/>
-        <UnitName Value="GLVersionUnit"/>
+        <Filename Value="../opengl/glshaders.pas"/>
+        <UnitName Value="GLShaders"/>
       </Item150>
       <Item151>
-        <Filename Value="../opengl/kambiglutils.pas"/>
-        <UnitName Value="KambiGLUtils"/>
+        <Filename Value="../opengl/glversionunit.pas"/>
+        <UnitName Value="GLVersionUnit"/>
       </Item151>
       <Item152>
-        <Filename Value="../opengl/normalizationcubemap.pas"/>
-        <UnitName Value="NormalizationCubeMap"/>
+        <Filename Value="../opengl/kambiglutils.pas"/>
+        <UnitName Value="KambiGLUtils"/>
       </Item152>
       <Item153>
-        <Filename Value="../opengl/openglbmpfonts.pas"/>
-        <UnitName Value="OpenGLBmpFonts"/>
+        <Filename Value="../opengl/normalizationcubemap.pas"/>
+        <UnitName Value="NormalizationCubeMap"/>
       </Item153>
       <Item154>
-        <Filename Value="../opengl/openglfonts.pas"/>
-        <UnitName Value="OpenGLFonts"/>
+        <Filename Value="../opengl/openglbmpfonts.pas"/>
+        <UnitName Value="OpenGLBmpFonts"/>
       </Item154>
       <Item155>
-        <Filename Value="../opengl/openglttfonts.pas"/>
-        <UnitName Value="OpenGLTTFonts"/>
+        <Filename Value="../opengl/openglfonts.pas"/>
+        <UnitName Value="OpenGLFonts"/>
       </Item155>
       <Item156>
-        <Filename Value="../opengl/shadowvolumes.pas"/>
-        <UnitName Value="ShadowVolumes"/>
+        <Filename Value="../opengl/openglttfonts.pas"/>
+        <UnitName Value="OpenGLTTFonts"/>
       </Item156>
       <Item157>
-        <Filename Value="../opengl/unix/kambiglx.pas"/>
-        <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="KambiGLX"/>
+        <Filename Value="../opengl/shadowvolumes.pas"/>
+        <UnitName Value="ShadowVolumes"/>
       </Item157>
       <Item158>
-        <Filename Value="../opengl/unix/kambixf86vmode.pas"/>
-        <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="KambiXF86VMode"/>
-      </Item158>
-      <Item159>
-        <Filename Value="../opengl/unix/xlibutils.pas"/>
-        <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="XlibUtils"/>
-      </Item159>
-      <Item160>
         <Filename Value="../opengl/windows/openglwindowsfonts.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="OpenGLWindowsFonts"/>
-      </Item160>
-      <Item161>
+      </Item158>
+      <Item159>
         <Filename Value="../opengl/windows/openglwindowsfonts_implement.inc"/>
         <Type Value="Include"/>
-      </Item161>
-      <Item162>
+      </Item159>
+      <Item160>
         <Filename Value="../ui/areas.pas"/>
         <UnitName Value="Areas"/>
-      </Item162>
-      <Item163>
+      </Item160>
+      <Item161>
         <Filename Value="../ui/keysmouse.pas"/>
         <UnitName Value="KeysMouse"/>
-      </Item163>
-      <Item164>
+      </Item161>
+      <Item162>
         <Filename Value="../ui/uicontrols.pas"/>
         <UnitName Value="UIControls"/>
-      </Item164>
+      </Item162>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">
