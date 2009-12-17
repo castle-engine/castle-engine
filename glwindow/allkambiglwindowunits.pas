@@ -10,7 +10,6 @@ unit AllKambiGLWindowUnits;
 interface
 
 uses
-  glmenu,
   glsoundmenu,
   glwindow,
   glwindowrecentmenu,
@@ -18,6 +17,8 @@ uses
   glwininputs,
   glwinmessages,
   glwinmodes,
+  imageslider_base,
+  imageslider_position,
   progressgl,
   timemessages,
   {$ifdef UNIX}
