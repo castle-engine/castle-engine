@@ -6,8 +6,8 @@
     <CompilerOptions>
       <Version Value="8"/>
       <SearchPaths>
-        <IncludeFiles Value="../base/;../base/templates/;../base/unix/;../base/windows/;../opengl/;../opengl/unix/;../opengl/windows/;../audio/;../kambiscript/"/>
-        <OtherUnitFiles Value="../base/;../3dgraph/;../3dmodels/;../3dmodels/opengl/;../images/;../fonts/;../fonts/windows/;../opengl/;../opengl/unix/;../opengl/windows/;../audio/;../net/;../kambiscript/;../ui/"/>
+        <IncludeFiles Value="../base/;../base/templates/;../base/unix/;../base/windows/;../opengl/;../opengl/windows/;../audio/;../kambiscript/"/>
+        <OtherUnitFiles Value="../base/;../3dgraph/;../3dmodels/;../3dmodels/opengl/;../images/;../fonts/;../fonts/windows/;../opengl/;../opengl/windows/;../audio/;../net/;../kambiscript/;../ui/;../ui/opengl/"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
@@ -49,7 +49,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="162">
+    <Files Count="164">
       <Item1>
         <Filename Value="../3dgraph/backgroundbase.pas"/>
         <UnitName Value="BackgroundBase"/>
@@ -103,124 +103,124 @@
         <UnitName Value="SphericalHarmonics"/>
       </Item13>
       <Item14>
-        <Filename Value="../3dmodels/opengl/backgroundgl.pas"/>
-        <UnitName Value="BackgroundGL"/>
+        <Filename Value="../3dmodels/colladatovrml.pas"/>
+        <UnitName Value="ColladaToVRML"/>
       </Item14>
       <Item15>
-        <Filename Value="../3dmodels/opengl/glsl_bump_mapping.fs.inc"/>
-        <Type Value="Include"/>
+        <Filename Value="../3dmodels/illummodels.pas"/>
+        <UnitName Value="IllumModels"/>
       </Item15>
       <Item16>
-        <Filename Value="../3dmodels/opengl/glsl_bump_mapping.vs.inc"/>
-        <Type Value="Include"/>
+        <Filename Value="../3dmodels/kambioctree.pas"/>
+        <UnitName Value="KambiOctree"/>
       </Item16>
       <Item17>
-        <Filename Value="../3dmodels/opengl/glsl_parallax_bump_mapping.fs.inc"/>
-        <Type Value="Include"/>
+        <Filename Value="../3dmodels/normalscalculator.pas"/>
+        <UnitName Value="NormalsCalculator"/>
       </Item17>
       <Item18>
-        <Filename Value="../3dmodels/opengl/glsl_parallax_bump_mapping.vs.inc"/>
-        <Type Value="Include"/>
+        <Filename Value="../3dmodels/object3dasvrml.pas"/>
+        <UnitName Value="Object3dAsVRML"/>
       </Item18>
       <Item19>
-        <Filename Value="../3dmodels/opengl/object3dopengl.pas"/>
-        <UnitName Value="Object3dOpenGL"/>
+        <Filename Value="../3dmodels/object3dgeo.pas"/>
+        <UnitName Value="Object3dGEO"/>
       </Item19>
       <Item20>
-        <Filename Value="../3dmodels/opengl/scenemanagerunit.pas"/>
-        <UnitName Value="SceneManagerUnit"/>
+        <Filename Value="../3dmodels/object3dmd3.pas"/>
+        <UnitName Value="Object3dMD3"/>
       </Item20>
       <Item21>
-        <Filename Value="../3dmodels/opengl/vrmlbumpmappingrenderer.inc"/>
-        <Type Value="Include"/>
+        <Filename Value="../3dmodels/object3dobj.pas"/>
+        <UnitName Value="Object3dOBJ"/>
       </Item21>
       <Item22>
-        <Filename Value="../3dmodels/opengl/vrmlglanimation.pas"/>
-        <UnitName Value="VRMLGLAnimation"/>
+        <Filename Value="../3dmodels/object3ds.pas"/>
+        <UnitName Value="Object3ds"/>
       </Item22>
       <Item23>
-        <Filename Value="../3dmodels/opengl/vrmlglheadlight.pas"/>
-        <UnitName Value="VRMLGLHeadLight"/>
+        <Filename Value="../3dmodels/object3dschunks.pas"/>
+        <UnitName Value="Object3dsChunks"/>
       </Item23>
       <Item24>
-        <Filename Value="../3dmodels/opengl/vrmlglscene.pas"/>
-        <UnitName Value="VRMLGLScene"/>
+        <Filename Value="../3dmodels/object3dsmaterial.pas"/>
+        <UnitName Value="Object3dsMaterial"/>
       </Item24>
       <Item25>
-        <Filename Value="../3dmodels/opengl/vrmllightsetgl.pas"/>
-        <UnitName Value="VRMLLightSetGL"/>
+        <Filename Value="../3dmodels/opengl/backgroundgl.pas"/>
+        <UnitName Value="BackgroundGL"/>
       </Item25>
       <Item26>
-        <Filename Value="../3dmodels/opengl/vrmlmeshrenderer.inc"/>
+        <Filename Value="../3dmodels/opengl/glsl_bump_mapping.fs.inc"/>
         <Type Value="Include"/>
       </Item26>
       <Item27>
-        <Filename Value="../3dmodels/opengl/vrmlmeshrenderer_simple_nodes.inc"/>
+        <Filename Value="../3dmodels/opengl/glsl_bump_mapping.vs.inc"/>
         <Type Value="Include"/>
       </Item27>
       <Item28>
-        <Filename Value="../3dmodels/opengl/vrmlmeshrenderer_x3d_geometry2d.inc"/>
+        <Filename Value="../3dmodels/opengl/glsl_parallax_bump_mapping.fs.inc"/>
         <Type Value="Include"/>
       </Item28>
       <Item29>
-        <Filename Value="../3dmodels/opengl/vrmlmeshrenderer_x3d_geometry3d.inc"/>
+        <Filename Value="../3dmodels/opengl/glsl_parallax_bump_mapping.vs.inc"/>
         <Type Value="Include"/>
       </Item29>
       <Item30>
-        <Filename Value="../3dmodels/opengl/vrmlmeshrenderer_x3d_rendering.inc"/>
-        <Type Value="Include"/>
+        <Filename Value="../3dmodels/opengl/object3dopengl.pas"/>
+        <UnitName Value="Object3dOpenGL"/>
       </Item30>
       <Item31>
-        <Filename Value="../3dmodels/opengl/vrmlopenglrenderer.pas"/>
-        <UnitName Value="VRMLOpenGLRenderer"/>
+        <Filename Value="../3dmodels/opengl/scenemanagerunit.pas"/>
+        <UnitName Value="SceneManagerUnit"/>
       </Item31>
       <Item32>
-        <Filename Value="../3dmodels/opengl/vrmlopenglrenderer_render_materials.inc"/>
+        <Filename Value="../3dmodels/opengl/vrmlbumpmappingrenderer.inc"/>
         <Type Value="Include"/>
       </Item32>
       <Item33>
-        <Filename Value="../3dmodels/colladatovrml.pas"/>
-        <UnitName Value="ColladaToVRML"/>
+        <Filename Value="../3dmodels/opengl/vrmlglanimation.pas"/>
+        <UnitName Value="VRMLGLAnimation"/>
       </Item33>
       <Item34>
-        <Filename Value="../3dmodels/illummodels.pas"/>
-        <UnitName Value="IllumModels"/>
+        <Filename Value="../3dmodels/opengl/vrmlglheadlight.pas"/>
+        <UnitName Value="VRMLGLHeadLight"/>
       </Item34>
       <Item35>
-        <Filename Value="../3dmodels/kambioctree.pas"/>
-        <UnitName Value="KambiOctree"/>
+        <Filename Value="../3dmodels/opengl/vrmlglscene.pas"/>
+        <UnitName Value="VRMLGLScene"/>
       </Item35>
       <Item36>
-        <Filename Value="../3dmodels/normalscalculator.pas"/>
-        <UnitName Value="NormalsCalculator"/>
+        <Filename Value="../3dmodels/opengl/vrmllightsetgl.pas"/>
+        <UnitName Value="VRMLLightSetGL"/>
       </Item36>
       <Item37>
-        <Filename Value="../3dmodels/object3dasvrml.pas"/>
-        <UnitName Value="Object3dAsVRML"/>
+        <Filename Value="../3dmodels/opengl/vrmlmeshrenderer.inc"/>
+        <Type Value="Include"/>
       </Item37>
       <Item38>
-        <Filename Value="../3dmodels/object3dgeo.pas"/>
-        <UnitName Value="Object3dGEO"/>
+        <Filename Value="../3dmodels/opengl/vrmlmeshrenderer_simple_nodes.inc"/>
+        <Type Value="Include"/>
       </Item38>
       <Item39>
-        <Filename Value="../3dmodels/object3dmd3.pas"/>
-        <UnitName Value="Object3dMD3"/>
+        <Filename Value="../3dmodels/opengl/vrmlmeshrenderer_x3d_geometry2d.inc"/>
+        <Type Value="Include"/>
       </Item39>
       <Item40>
-        <Filename Value="../3dmodels/object3dobj.pas"/>
-        <UnitName Value="Object3dOBJ"/>
+        <Filename Value="../3dmodels/opengl/vrmlmeshrenderer_x3d_geometry3d.inc"/>
+        <Type Value="Include"/>
       </Item40>
       <Item41>
-        <Filename Value="../3dmodels/object3ds.pas"/>
-        <UnitName Value="Object3ds"/>
+        <Filename Value="../3dmodels/opengl/vrmlmeshrenderer_x3d_rendering.inc"/>
+        <Type Value="Include"/>
       </Item41>
       <Item42>
-        <Filename Value="../3dmodels/object3dschunks.pas"/>
-        <UnitName Value="Object3dsChunks"/>
+        <Filename Value="../3dmodels/opengl/vrmlopenglrenderer.pas"/>
+        <UnitName Value="VRMLOpenGLRenderer"/>
       </Item42>
       <Item43>
-        <Filename Value="../3dmodels/object3dsmaterial.pas"/>
-        <UnitName Value="Object3dsMaterial"/>
+        <Filename Value="../3dmodels/opengl/vrmlopenglrenderer_render_materials.inc"/>
+        <Type Value="Include"/>
       </Item43>
       <Item44>
         <Filename Value="../3dmodels/triangulator.pas"/>
@@ -645,62 +645,70 @@
         <UnitName Value="GLImages"/>
       </Item148>
       <Item149>
-        <Filename Value="../opengl/glmenu.pas"/>
-        <UnitName Value="GLMenu"/>
-      </Item149>
-      <Item150>
         <Filename Value="../opengl/glshaders.pas"/>
         <UnitName Value="GLShaders"/>
-      </Item150>
-      <Item151>
+      </Item149>
+      <Item150>
         <Filename Value="../opengl/glversionunit.pas"/>
         <UnitName Value="GLVersionUnit"/>
-      </Item151>
-      <Item152>
+      </Item150>
+      <Item151>
         <Filename Value="../opengl/kambiglutils.pas"/>
         <UnitName Value="KambiGLUtils"/>
-      </Item152>
-      <Item153>
+      </Item151>
+      <Item152>
         <Filename Value="../opengl/normalizationcubemap.pas"/>
         <UnitName Value="NormalizationCubeMap"/>
-      </Item153>
-      <Item154>
+      </Item152>
+      <Item153>
         <Filename Value="../opengl/openglbmpfonts.pas"/>
         <UnitName Value="OpenGLBmpFonts"/>
-      </Item154>
-      <Item155>
+      </Item153>
+      <Item154>
         <Filename Value="../opengl/openglfonts.pas"/>
         <UnitName Value="OpenGLFonts"/>
-      </Item155>
-      <Item156>
+      </Item154>
+      <Item155>
         <Filename Value="../opengl/openglttfonts.pas"/>
         <UnitName Value="OpenGLTTFonts"/>
-      </Item156>
-      <Item157>
+      </Item155>
+      <Item156>
         <Filename Value="../opengl/shadowvolumes.pas"/>
         <UnitName Value="ShadowVolumes"/>
-      </Item157>
-      <Item158>
+      </Item156>
+      <Item157>
         <Filename Value="../opengl/windows/openglwindowsfonts.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="OpenGLWindowsFonts"/>
-      </Item158>
-      <Item159>
+      </Item157>
+      <Item158>
         <Filename Value="../opengl/windows/openglwindowsfonts_implement.inc"/>
         <Type Value="Include"/>
-      </Item159>
-      <Item160>
+      </Item158>
+      <Item159>
         <Filename Value="../ui/areas.pas"/>
         <UnitName Value="Areas"/>
-      </Item160>
-      <Item161>
+      </Item159>
+      <Item160>
         <Filename Value="../ui/keysmouse.pas"/>
         <UnitName Value="KeysMouse"/>
+      </Item160>
+      <Item161>
+        <Filename Value="../ui/opengl/glmenu.pas"/>
+        <UnitName Value="GLMenu"/>
       </Item161>
       <Item162>
+        <Filename Value="../ui/opengl/imageslider_base.pas"/>
+        <UnitName Value="ImageSlider_base"/>
+      </Item162>
+      <Item163>
+        <Filename Value="../ui/opengl/imageslider_position.pas"/>
+        <UnitName Value="ImageSlider_position"/>
+      </Item163>
+      <Item164>
         <Filename Value="../ui/uicontrols.pas"/>
         <UnitName Value="UIControls"/>
-      </Item162>
+      </Item164>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">

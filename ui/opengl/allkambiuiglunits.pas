@@ -1,4 +1,4 @@
-unit AllKambiGLWindowUnits;
+unit AllKambiUIGLUnits;
 
 { This is automatically generated unit, useful to compile all units
   in this directory (and OS-specific subdirectories like
@@ -10,23 +10,9 @@ unit AllKambiGLWindowUnits;
 interface
 
 uses
-  glsoundmenu,
-  glwindow,
-  glwindowrecentmenu,
-  glwindowvrmlbrowser,
-  glwininputs,
-  glwinmessages,
-  glwinmodes,
-  progressgl,
-  timemessages,
-  {$ifdef UNIX}
-  kambiglx,
-  kambixf86vmode,
-  xlibutils
-  {$endif UNIX}
-  {$ifdef MSWINDOWS}
-  glwindowwinapimenu
-  {$endif MSWINDOWS}
+  glmenu,
+  imageslider_base,
+  imageslider_position
   ;
 
 implementation

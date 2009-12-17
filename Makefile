@@ -78,7 +78,7 @@
 # so it's not a big deal to also list them explicitly for UNITS_SUBDIRECTORIES.
 #
 UNITS_SUBDIRECTORIES := 3dgraph 3dmodels 3dmodels.opengl audio base \
-  fonts images net opengl kambiscript ui glwindow
+  fonts images net opengl kambiscript ui ui.opengl glwindow
 
 .PHONY: all
 all: $(UNITS_SUBDIRECTORIES)
@@ -119,6 +119,9 @@ kambiscript: kambiscript/allkambiscriptunits.pas
 ui: ui/allkambiuiunits.pas
 	$(COMPILE_ALL_DIR_UNITS)
 
+ui.opengl: ui/opengl/allkambiuiglunits.pas
+	$(COMPILE_ALL_DIR_UNITS)
+
 glwindow: glwindow/allkambiglwindowunits.pas
 	$(COMPILE_ALL_DIR_UNITS)
 
@@ -138,6 +141,7 @@ ALL_CONTAINER_UNITS := 3dgraph/allkambi3dgraphunits.pas \
   opengl/allkambiopenglunits.pas \
   kambiscript/allkambiscriptunits.pas \
   ui/allkambiuiunits.pas \
+  ui/opengl/allkambiuiglunits.pas \
   glwindow/allkambiglwindowunits.pas
 
 # This is a nice target to call before doing a distribution of my sources,
@@ -202,6 +206,11 @@ kambiscript/allkambiscriptunits.pas:
 ui/allkambiuiunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
   (write-unit-all-units-in-dir \"ui/\" \"AllKambiUIUnits\") \
+  (save-buffer))"
+
+ui/opengl/allkambiuiglunits.pas:
+	$(EMACS_BATCH) --eval="(progn \
+  (write-unit-all-units-in-dir \"ui/opengl/\" \"AllKambiUIGLUnits\") \
   (save-buffer))"
 
 glwindow/allkambiglwindowunits.pas:

@@ -50,7 +50,7 @@ This package cannot be installed under Lazarus, it's only for being used in othe
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="18">
+    <Files Count="16">
       <Item1>
         <Filename Value="../glwindow/glwindowvrmlbrowser.pas"/>
         <UnitName Value="GLWindowVRMLBrowser"/>
@@ -105,28 +105,20 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <Type Value="Include"/>
       </Item13>
       <Item14>
-        <Filename Value="../glwindow/imageslider_base.pas"/>
-        <UnitName Value="ImageSlider_base"/>
-      </Item14>
-      <Item15>
-        <Filename Value="../glwindow/imageslider_position.pas"/>
-        <UnitName Value="ImageSlider_position"/>
-      </Item15>
-      <Item16>
         <Filename Value="../glwindow/unix/kambiglx.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="KambiGLX"/>
-      </Item16>
-      <Item17>
+      </Item14>
+      <Item15>
         <Filename Value="../glwindow/unix/kambixf86vmode.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="KambiXF86VMode"/>
-      </Item17>
-      <Item18>
+      </Item15>
+      <Item16>
         <Filename Value="../glwindow/unix/xlibutils.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="xlibutils"/>
-      </Item18>
+      </Item16>
     </Files>
     <RequiredPkgs Count="2">
       <Item1>

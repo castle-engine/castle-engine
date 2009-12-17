@@ -15,7 +15,6 @@ uses
   glantialiasing,
   glcubemap,
   glimages,
-  glmenu,
   glshaders,
   glversionunit,
   kambiglut,
