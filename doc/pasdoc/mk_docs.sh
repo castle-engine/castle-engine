@@ -1,13 +1,13 @@
 #!/bin/bash
 set -eu
 
-# Generates docs for all units in kambi_vrml_game_engine.
+# Generates docs for all units in kambi_vrml_game_engine/src.
 # $1 is format (allowed values as for pasdoc's --format option),
 # docs will be placed in subdirectory $1 of current dir
 # so $1 means also subdirectory name.
 #
 # If you will not supply argument $2,
-# then documentation for almost every unit in kambi_vrml_game_engine
+# then documentation for almost every unit in kambi_vrml_game_engine/src
 # (without automatically generated fonts units
 # and without units that pasdoc can't correctly parse)
 # will be generated.
@@ -29,7 +29,7 @@ set -eu
 # Moreover pasdoc will be run with --define $TARGET_OS.
 TARGET_OS=unix
 
-VRMLENGINE_UNITS_PATH=../../
+VRMLENGINE_UNITS_PATH=../../src/
 
 # Autodetect if we're under Cygwin
 if uname | grep --quiet -i cygwin; then
@@ -89,13 +89,10 @@ if (( $# == 0 )); then
   # Don't generate docs for units created only for example programs.
   find .  \
     '(' -type d '(' -iname old -or \
-                    -iname private -or \
-                    -iname tests -or \
-                    -iname packages \
+                    -iname private \
                 ')' -prune ')' -or \
     '(' -type f -iname '*.pas' \
             -not '(' \
-              '(' -iwholename '*/examples/*.pas' ')' -or \
               '(' -iwholename '*/AllKambi*Units.pas' ')' -or \
               '(' -iwholename '*/opengl/x86_64/glext.pas' ')' -or \
               '(' -iwholename '*fonts/TTF_*.pas' ')' -or \
@@ -139,7 +136,7 @@ fi
 # We used to make introduction by glueing two files, that's the reason
 # for whole "$TMP_INTRODUCTION_FILENAME" mess. Right now, introduction.pasdoc
 # is simply the whole introduction used.
-cp -f doc/introduction.pasdoc "$TMP_INTRODUCTION_FILENAME"
+cp -f ../doc/introduction.pasdoc "$TMP_INTRODUCTION_FILENAME"
 
 pasdoc \
    --format "$PASDOC_FORMAT" \
@@ -152,7 +149,7 @@ pasdoc \
   --auto-abstract \
   --introduction="$TMP_INTRODUCTION_FILENAME" \
   --auto-link \
-  --auto-link-exclude=doc/pasdoc/auto_link_exclude.txt
+  --auto-link-exclude=../doc/pasdoc/auto_link_exclude.txt
 
   #doc/pasdoc/auto_link_exclude.txt
 
