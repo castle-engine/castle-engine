@@ -77,7 +77,7 @@
 # 2. Units subdirectories rules (see below) have to be listed explicitly anyway,
 # so it's not a big deal to also list them explicitly for UNITS_SUBDIRECTORIES.
 #
-UNITS_SUBDIRECTORIES := 3dgraph 3dmodels 3dmodels.opengl audio base \
+UNITS_SUBDIRECTORIES := 3dgraph 3dgraph.opengl 3dmodels 3dmodels.opengl audio base \
   fonts images net opengl kambiscript ui ui.opengl glwindow
 
 .PHONY: all
@@ -90,6 +90,9 @@ all: $(UNITS_SUBDIRECTORIES)
 COMPILE_ALL_DIR_UNITS=fpc -dRELEASE @kambi.cfg $<
 
 3dgraph: 3dgraph/allkambi3dgraphunits.pas
+	$(COMPILE_ALL_DIR_UNITS)
+
+3dgraph.opengl: 3dgraph/opengl/allkambi3dgraphglunits.pas
 	$(COMPILE_ALL_DIR_UNITS)
 
 3dmodels.opengl: 3dmodels/opengl/allkambi3dmodelsglunits.pas
@@ -132,6 +135,7 @@ glwindow: glwindow/allkambiglwindowunits.pas
 EMACS_BATCH := emacs -batch --eval="(require 'kambi-pascal-functions)"
 
 ALL_CONTAINER_UNITS := 3dgraph/allkambi3dgraphunits.pas \
+  3dgraph/opengl/allkambi3dgraphglunits.pas \
   3dmodels/opengl/allkambi3dmodelsglunits.pas \
   3dmodels/allkambi3dmodelsunits.pas \
   audio/allkambiaudiounits.pas \
@@ -155,6 +159,11 @@ clean_container_units:
 3dgraph/allkambi3dgraphunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
   (write-unit-all-units-in-dir \"3dgraph/\" \"AllKambi3dGraphUnits\") \
+  (save-buffer))"
+
+3dgraph/opengl/allkambi3dgraphglunits.pas:
+	$(EMACS_BATCH) --eval="(progn \
+  (write-unit-all-units-in-dir \"3dgraph/opengl/\" \"AllKambi3dGraphGLUnits\") \
   (save-buffer))"
 
 3dmodels/opengl/allkambi3dmodelsglunits.pas:

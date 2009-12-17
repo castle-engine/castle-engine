@@ -15,13 +15,22 @@ uses
   convexhullunit,
   cubemap,
   frustum,
+  kambioctree,
+  nurbs,
+  object3dgeo,
+  object3dmd3,
+  object3dobj,
+  object3ds,
+  object3dschunks,
+  object3dsmaterial,
   polynomials,
   quaternions,
   rayswindow,
   renderstateunit,
   spacefillingcurves,
   spheresampling,
-  sphericalharmonics
+  sphericalharmonics,
+  triangulator
   ;
 
 implementation

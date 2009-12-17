@@ -1,4 +1,4 @@
-unit AllKambi3dModelsGLUnits;
+unit AllKambi3dGraphGLUnits;
 
 { This is automatically generated unit, useful to compile all units
   in this directory (and OS-specific subdirectories like
@@ -10,12 +10,8 @@ unit AllKambi3dModelsGLUnits;
 interface
 
 uses
-  scenemanagerunit,
-  vrmlglanimation,
-  vrmlglheadlight,
-  vrmlglscene,
-  vrmllightsetgl,
-  vrmlopenglrenderer
+  backgroundgl,
+  object3dopengl
   ;
 
 implementation
