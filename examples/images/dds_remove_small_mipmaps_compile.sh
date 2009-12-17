@@ -8,4 +8,4 @@ fi
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg images/tools/dds_remove_small_mipmaps.pasprogram
+fpc -dRELEASE @kambi.cfg examples/images/dds_remove_small_mipmaps.pasprogram

@@ -276,9 +276,9 @@ EXAMPLES_BASE_NAMES := \
   examples/3d/draw_space_filling_curve \
   examples/vrml/many2vrml \
   examples/vrml/test_blender_exported_hierarchy \
-  examples/vrml/gen_light_map \
-  examples/vrml/md3tovrmlsequence \
-  examples/vrml/xmlportals_to_x3d \
+  examples/vrml/tools/gen_light_map \
+  examples/vrml/tools/md3tovrmlsequence \
+  examples/vrml/tools/xmlportals_to_x3d \
   examples/vrml/simple_view_model_2 \
   examples/vrml/simple_view_model \
   examples/vrml/demo_animation \

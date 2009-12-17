@@ -8,4 +8,4 @@ fi
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg images/examples/dds_decompose.pasprogram
+fpc -dRELEASE @kambi.cfg examples/images/dds_decompose.pasprogram

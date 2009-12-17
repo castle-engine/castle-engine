@@ -59,21 +59,21 @@
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
-        <Filename Value="..\..\..\packages\components\kambivrmlbrowser.pas"/>
+        <Filename Value="..\..\..\src\components\kambivrmlbrowser.pas"/>
         <UnitName Value="KambiVRMLBrowser"/>
         <CursorPos X="1" Y="377"/>
         <TopLine Value="349"/>
         <UsageCount Value="10"/>
       </Unit2>
       <Unit3>
-        <Filename Value="..\..\..\base\areas.pas"/>
+        <Filename Value="..\..\..\src\base\areas.pas"/>
         <UnitName Value="Areas"/>
         <CursorPos X="22" Y="123"/>
         <TopLine Value="103"/>
         <UsageCount Value="10"/>
       </Unit3>
       <Unit4>
-        <Filename Value="..\..\..\opengl\kambiglutils.pas"/>
+        <Filename Value="..\..\..\src\opengl\kambiglutils.pas"/>
         <UnitName Value="KambiGLUtils"/>
         <CursorPos X="1" Y="2095"/>
         <TopLine Value="2075"/>

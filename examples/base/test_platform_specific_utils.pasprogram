@@ -61,7 +61,7 @@ end;
 {$ifdef UNIX}
 procedure TestKamReadLink;
 const
-  ExampleSymLinkName = {$ifdef LINUX} '/boot/vmlinuz' {$endif}
+  ExampleSymLinkName = {$ifdef LINUX} '/cdrom' {$endif}
                        {$ifdef FREEBSD} '/home' {$endif}
                        {$ifdef DARWIN} '/etc' {$endif};
 begin

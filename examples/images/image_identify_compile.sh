@@ -8,4 +8,4 @@ fi
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg images/examples/image_identify.pasprogram
+fpc -dRELEASE @kambi.cfg examples/images/image_identify.pasprogram

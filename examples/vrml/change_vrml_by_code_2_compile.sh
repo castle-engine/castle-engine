@@ -3,9 +3,9 @@ set -eu
 
 # Hack to allow calling this script from it's dir.
 if [ -f change_vrml_by_code_2.pasprogram ]; then
-  cd ../../../
+  cd ../../
 fi
 
-# Call this from ../../../ (or just use `make examples').
+# Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg vrml/opengl/examples/change_vrml_by_code_2.pasprogram
+fpc -dRELEASE @kambi.cfg examples/vrml/change_vrml_by_code_2.pasprogram

@@ -8,4 +8,4 @@ fi
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg audio/examples/efx_demo.pasprogram
+fpc -dRELEASE @kambi.cfg examples/audio/efx_demo.pasprogram

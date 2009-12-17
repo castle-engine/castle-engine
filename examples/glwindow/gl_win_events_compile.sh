@@ -8,4 +8,4 @@ fi
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg glwindow/examples/gl_win_events.pasprogram
+fpc -dRELEASE @kambi.cfg examples/glwindow/gl_win_events.pasprogram

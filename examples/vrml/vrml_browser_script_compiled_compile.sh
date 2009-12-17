@@ -3,9 +3,9 @@ set -eu
 
 # Hack to allow calling this script from it's dir.
 if [ -f vrml_browser_script_compiled.pasprogram ]; then
-  cd ../../../
+  cd ../../
 fi
 
-# Call this from ../../../ (or just use `make examples').
+# Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg vrml/opengl/examples/vrml_browser_script_compiled.pasprogram
+fpc -dRELEASE @kambi.cfg examples/vrml/vrml_browser_script_compiled.pasprogram

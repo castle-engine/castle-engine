@@ -8,4 +8,4 @@ fi
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg glwindow/examples/multi_texturing_demo.pasprogram
+fpc -dRELEASE @kambi.cfg examples/glwindow/multi_texturing_demo.pasprogram

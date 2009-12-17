@@ -8,4 +8,4 @@ fi
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg base/tools/svg_grayscale.pasprogram
+fpc -dRELEASE @kambi.cfg examples/base/svg_grayscale.pasprogram

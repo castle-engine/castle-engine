@@ -8,4 +8,4 @@ fi
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE -dUSE_GL_GLU_UNITS @kambi.cfg glwindow/examples/shading_langs/shading_langs_demo.pasprogram
+fpc -dRELEASE -dUSE_GL_GLU_UNITS @kambi.cfg examples/glwindow/shading_langs/shading_langs_demo.pasprogram

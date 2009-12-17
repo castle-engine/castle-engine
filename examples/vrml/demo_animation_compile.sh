@@ -1,6 +1,6 @@
 #!/bin/bash
 set -eu
 
-# Call this from ../../../ (or just use `make examples').
+# Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg vrml/opengl/examples/demo_animation.pasprogram
+fpc -dRELEASE @kambi.cfg examples/vrml/demo_animation.pasprogram

@@ -8,4 +8,4 @@ fi
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg base/tools/stringoper.pasprogram
+fpc -dRELEASE @kambi.cfg examples/base/stringoper.pasprogram

@@ -3,9 +3,9 @@ set -eu
 
 # Hack to allow calling this script from it's dir.
 if [ -f fog_culling.pasprogram ]; then
-  cd ../../../
+  cd ../../
 fi
 
-# Call this from ../../../ (or just use `make examples').
+# Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg vrml/opengl/examples/fog_culling.pasprogram
+fpc -dRELEASE @kambi.cfg examples/vrml/fog_culling.pasprogram

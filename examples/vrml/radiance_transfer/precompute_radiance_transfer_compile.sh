@@ -3,9 +3,9 @@ set -eu
 
 # Hack to allow calling this script from it's dir.
 if [ -f precompute_radiance_transfer.pasprogram ]; then
-  cd ../../../../
+  cd ../../../
 fi
 
-# Call this from ../../../../ (or just use `make examples').
+# Call this from ../../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg vrml/opengl/examples/radiance_transfer/precompute_radiance_transfer.pasprogram
+fpc -dRELEASE @kambi.cfg examples/vrml/radiance_transfer/precompute_radiance_transfer.pasprogram

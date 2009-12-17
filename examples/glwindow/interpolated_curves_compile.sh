@@ -8,4 +8,4 @@ fi
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg glwindow/examples/interpolated_curves.pasprogram
+fpc -dRELEASE @kambi.cfg examples/glwindow/interpolated_curves.pasprogram

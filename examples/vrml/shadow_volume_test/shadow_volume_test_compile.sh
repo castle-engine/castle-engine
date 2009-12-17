@@ -3,10 +3,10 @@ set -eu
 
 # Hack to allow calling this script from it's dir.
 if [ -f shadow_volume_test.pasprogram ]; then
-  cd ../../../../
+  cd ../../../
 fi
 
-# Call this from ../../../../ (or just use `make examples').
+# Call this from ../../../ (or just use `make examples').
 
 fpc -dRELEASE @kambi.cfg \
-  vrml/opengl/examples/shadow_volume_test/shadow_volume_test.pasprogram
+  examples/vrml/shadow_volume_test/shadow_volume_test.pasprogram

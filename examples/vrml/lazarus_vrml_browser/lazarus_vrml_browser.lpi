@@ -60,7 +60,7 @@
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
-        <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
+        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
         <UnitName Value="KambiGLControl"/>
         <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
@@ -70,21 +70,21 @@
         </Bookmarks>
       </Unit2>
       <Unit3>
-        <Filename Value="../../../opengl/kambiglutils.pas"/>
+        <Filename Value="../../../src/opengl/kambiglutils.pas"/>
         <UnitName Value="KambiGLUtils"/>
         <CursorPos X="3" Y="286"/>
         <TopLine Value="272"/>
         <UsageCount Value="10"/>
       </Unit3>
       <Unit4>
-        <Filename Value="../../vrmlglscene.pas"/>
+        <Filename Value="../../../src/vrml/opengl/vrmlglscene.pas"/>
         <UnitName Value="VRMLGLScene"/>
         <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
         <UsageCount Value="10"/>
       </Unit4>
       <Unit5>
-        <Filename Value="../../vrmlopenglrenderer.pas"/>
+        <Filename Value="../../../src/vrml/opengl/vrmlopenglrenderer.pas"/>
         <UnitName Value="VRMLOpenGLRenderer"/>
         <CursorPos X="1" Y="1"/>
         <TopLine Value="393"/>
@@ -105,14 +105,14 @@
         <UsageCount Value="10"/>
       </Unit7>
       <Unit8>
-        <Filename Value="../../../3d/matrixnavigation.pas"/>
+        <Filename Value="../../../src/ui/navigation.pas"/>
         <UnitName Value="MatrixNavigation"/>
         <CursorPos X="48" Y="12"/>
         <TopLine Value="1"/>
         <UsageCount Value="10"/>
       </Unit8>
       <Unit9>
-        <Filename Value="../../../opengl/openglttfonts.pas"/>
+        <Filename Value="../../../src/opengl/openglttfonts.pas"/>
         <UnitName Value="OpenGLTTFonts"/>
         <CursorPos X="20" Y="28"/>
         <TopLine Value="172"/>
