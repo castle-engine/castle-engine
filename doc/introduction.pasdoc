@@ -246,6 +246,10 @@ units are allowed to be used by units in specific group.
       @item("Controls" are tied to particular rendering library,
         in practice --- all current controls use OpenGL rendering.
 
+	TODO: below is currently not @true, TGLMenu requires GLWindow unit,
+	although only for designer mode. The plan is to free TGLMenu
+	from this as soon as possible.
+
         The controls are @italic(not tied to the windowing library),
         for example you can use our TGLMenu both inside GLWindow,
         as well as inside Lazarus GL area component, etc.
@@ -272,15 +276,34 @@ units are allowed to be used by units in specific group.
 
   @itemLabel @code(opengl)
   @item(
-    Basic units that use OpenGL.
-    GLWindow unit (something like "my glut (with many many enhancements)"),
+    Basic OpenGL units. All the stuff here is usable in any OpenGL context,
+    e.g. both in Lazarus OpenGL control and in GLWindow.
     OpenGL fonts --- bitmap (OpenGLBmpFonts) and outline (OpenGLTTFonts),
     various OpenGL helpers (KambiGLUtils), handling OpenGL images and textures
-    (GLImages), progress bar display in OpenGL window (ProgressGL),
-    messages (GLWinMessages, TimeMessages, GLWinInputs),
+    (GLImages),
     helpers for shadows (ShadowVolumesHelper) and anti-aliasing (GLAntiAliasing).
 
     @italic(Uses:) @code(base), @code(images), @code(3dgraph), @code(fonts).)
+
+  @itemLabel @code(glwindow)
+  @item(
+    GLWindow unit, to easily create a window with OpenGL context.
+    For people who know the @code(glut) library: well, GLWindow is "my glut",
+    with nice ObjectPascal interface and countless improvements over
+    the simple glut.
+
+    This directory also contais various user-interface stuff usable only
+    together with GLWindow, like progress bar display in OpenGL window
+    (ProgressGL), messages (GLWinMessages, TimeMessages, GLWinInputs).
+
+    @italic(Uses:) These units can use almost any other units:
+      @code(base), @code(images), @code(3dgraph), @code(fonts),
+      @code(opengl), @code(3dmodels).
+
+    What is important is that no other engine units may depend on
+    GLWindow units. So every OpenGL code outside @code(glwindow)
+    directory is usable with OpenGL context initialized in any way,
+    like with Lazarus OpenGL control.)
 
   @itemLabel @code(3dmodels)
   @item(
