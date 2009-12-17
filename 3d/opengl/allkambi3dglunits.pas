@@ -10,7 +10,6 @@ unit AllKambi3dGLUnits;
 interface
 
 uses
-  allkambi3dgraphglunits,
   backgroundgl,
   object3dopengl
   ;
