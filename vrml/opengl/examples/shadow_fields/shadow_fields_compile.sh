@@ -8,4 +8,4 @@ fi
 
 # Call this from ../../../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg 3dmodels/opengl/examples/shadow_fields/shadow_fields.pasprogram
+fpc -dRELEASE @kambi.cfg vrml/opengl/examples/shadow_fields/shadow_fields.pasprogram

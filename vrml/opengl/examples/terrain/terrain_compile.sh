@@ -8,4 +8,4 @@ fi
 
 # Call this from ../../../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg 3dmodels/opengl/examples/terrain/terrain.pasprogram
+fpc -dRELEASE @kambi.cfg vrml/opengl/examples/terrain/terrain.pasprogram

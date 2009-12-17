@@ -9,4 +9,4 @@ fi
 # Call this from ../../../../ (or just use `make examples').
 
 fpc -dRELEASE @kambi.cfg \
-  3dmodels/opengl/examples/shadow_volume_test/shadow_volume_test.pasprogram
+  vrml/opengl/examples/shadow_volume_test/shadow_volume_test.pasprogram

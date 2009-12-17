@@ -8,4 +8,4 @@ fi
 
 # Call this from ../../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg 3dmodels/opengl/examples/gl_primitive_performance.pasprogram
+fpc -dRELEASE @kambi.cfg vrml/opengl/examples/gl_primitive_performance.pasprogram

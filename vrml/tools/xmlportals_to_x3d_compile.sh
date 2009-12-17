@@ -8,4 +8,4 @@ fi
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg 3dmodels/tools/xmlportals_to_x3d.pasprogram
+fpc -dRELEASE @kambi.cfg vrml/tools/xmlportals_to_x3d.pasprogram
