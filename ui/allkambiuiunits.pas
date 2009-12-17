@@ -11,8 +11,8 @@ interface
 
 uses
   areas,
-  uicontrols,
-  keysmouse
+  keysmouse,
+  uicontrols
   ;
 
 implementation

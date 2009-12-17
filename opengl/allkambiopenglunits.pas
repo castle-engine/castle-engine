@@ -24,6 +24,8 @@ uses
   glwininputs,
   glwinmessages,
   glwinmodes,
+  imageslider_base,
+  imageslider_position,
   kambiglut,
   kambiglutils,
   normalizationcubemap,

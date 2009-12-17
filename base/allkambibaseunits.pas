@@ -10,7 +10,6 @@ unit AllKambiBaseUnits;
 interface
 
 uses
-  areas,
   dataerrors,
   enumeratefiles,
   filefilters,

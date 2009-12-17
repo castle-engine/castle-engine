@@ -14,6 +14,7 @@ uses
   illummodels,
   kambioctree,
   normalscalculator,
+  nurbs,
   object3dasvrml,
   object3dgeo,
   object3dmd3,

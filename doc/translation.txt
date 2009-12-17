@@ -11,72 +11,93 @@ will be implemented).
 
 "-" means none of the above...
 
+"E" means "english done, pasdoc doesn't process it",
+    this is usually for translations of C bindings, no point in making
+    them perfect for pasdoc processing.
+
   3dgraph/
 D   backgroundbase.pas
 D   boxes3d.pas
 D   convexhullunit.pas
+D   cubemap.pas
 D   frustum.pas
-D   matrixnavigation.pas
+D   navigation.pas
 D   polynomials.pas
+D   quaternions.pas
 D   rayswindow.pas
+D   renderstateunit.pas
 |   spacefillingcurves.pas
 D   spheresampling.pas
+D   sphericalharmonics.pas
 
   3dmodels/
 D   colladatovrml.pas
 |   illummodels.pas
 |   kambioctree.pas
 D   normalscalculator.pas
+D   nurbs.pas
 D   object3dasvrml.pas
 D   object3dgeo.pas
 D   object3dmd3.pas
 D   object3dobj.pas
+-   object3ds.pas
 |   object3dschunks.pas
 |   object3dsmaterial.pas
--   object3ds.pas
 D   triangulator.pas
 D   vrmlanimation.pas
+D   vrmlcamerautils.pas
 D   vrmlerrors.pas
 D   vrmlfields.pas
-D   vrmlscene.pas
+D   vrmlgeometry.pas
+D   vrmlheadlight.pas
 D   vrmllexer.pas
 |   vrmllightmap.pas
 D   vrmllightset.pas
-D   vrmlnodesdetailoptions.pas
 -   vrmlnodes.pas
+D   vrmlnodesdetailoptions.pas
 |   vrmlraytracer.pas
-D   vrmlshapestateoctree.pas
+D   vrmlrendereroptimization.pas
+D   vrmlscene.pas
 D   vrmlscenewaypoints.pas
 D   vrmlshape.pas
+D   vrmlshapeoctree.pas
+D   vrmltime.pas
+|   vrmltriangle.pas
 -   vrmltriangleoctree.pas
-D   vrmlcamerautils.pas
-D   vrmlrendereroptimization.pas
 D   x3dxmltovrml.pas
-D   vrmlgeometry.pas
 
   3dmodels.gl/
 -   backgroundgl.pas
+D   glwindowvrmlbrowser.pas
 |   object3dopengl.pas
+D   scenemanagerunit.pas
+D   vrmlglanimation.pas
+D   vrmlglheadlight.pas
 D   vrmlglscene.pas
 |   vrmllightsetgl.pas
 -   vrmlopenglrenderer.pas
-D   vrmlglanimation.pas
-D   vrmlglheadlight.pas
 
   audio/
-D   alutils.pas
--   kambiopenal.pas
-D   soundwav.pas
 D   alsourceallocator.pas
+D   alutils.pas
+D   efx.pas
 D   gamesoundengine.pas
+E   kambiogg.pas
+-   kambiopenal.pas
+D   soundfile.pas
+E   vorbiscodec.pas
+D   vorbisdecoder.pas
+E   vorbisfile.pas
 
   base/
 D   dataerrors.pas
 |   enumeratefiles.pas
+D   filefilters.pas
 D   intrects.pas
 |   kambiclassutils.pas
 D   kambidynlib.pas
 |   kambifilesutils.pas
+D   kambiinterfaces.pas
 D   kambilog.pas
 |   kambistringutils.pas
 |   kambitimeutils.pas
@@ -99,12 +120,17 @@ D   font2pascalunit.pas
 -   ttfontstypes.pas
 
   images/
+D   dds.pas
+D   fftwutils.pas
 -   images.pas
-D   kambipasjpeg_error_mgrs.pas
+D   imagescache.pas
+D   imagesfftw.pas
 D   kambipasjpeg.pas
+D   kambipasjpeg_error_mgrs.pas
 D   kambipasjpeg_stream_mgrs.pas
 -   kambipng.pas
 D   kambipngutils.pas
+D   textureimages.pas
 D   videos.pas
 D   videoscache.pas
 
@@ -113,32 +139,36 @@ D   windows/glwindowwinapimenu.pas
 D   windows/openglwindowsfonts.pas
 D   unix/xf86vmode.pas
 D   unix/xlibutils.pas
+D   beziercurve.pas
 D   curve.pas
+D   glantialiasing.pas
+D   glcubemap.pas
+D   glimages.pas
+D   glmenu.pas
+D   glshaders.pas
+D   glsoundmenu.pas
+D   glversionunit.pas
 |   glwindow.pas
 D   glwindowrecentmenu.pas
 -   glwininputs.pas
 D   glwinmessages.pas
 -   glwinmodes.pas
-|   kambiglutils.pas
 -   kambiglut.pas
+|   kambiglutils.pas
+D   normalizationcubemap.pas
 -   openglbmpfonts.pas
 -   openglfonts.pas
 D   openglttfonts.pas
 D   progressgl.pas
+D   shadowvolumes.pas
 -   timemessages.pas
-D   glmenu.pas
-D   glsoundmenu.pas
-D   shadowvolumesutils.pas
-D   glimages.pas
-D   glshaders.pas
-D   glwindowfilefilters.pas
 
   kambiscript/
 D   kambiscript.pas
 D   kambiscriptarrays.pas
-D   kambiscriptlexer.pas
 D   kambiscriptcorefunctions.pas
 D   kambiscriptimages.pas
+D   kambiscriptlexer.pas
 D   kambiscriptparser.pas
 D   kambiscriptvectors.pas
 D   vrmlkambiscript.pas
