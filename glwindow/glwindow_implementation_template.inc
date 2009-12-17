@@ -94,7 +94,8 @@ end;
 
 procedure TGLWindow.SetMousePosition(const NewMouseX, NewMouseY: Integer);
 begin
-  { TODO }
+  if not Closed then
+    { TODO };
 end;
 
 { TGLWindow.*Dialog ---------------------------------------------------------- }

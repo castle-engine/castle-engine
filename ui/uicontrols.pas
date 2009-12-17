@@ -21,9 +21,16 @@ interface
 uses SysUtils, Classes, KeysMouse, KambiUtils, KambiClassUtils, Contnrs;
 
 type
+  { Basic user interface container. This may be a window
+    (like TGLWindowNavigated) or some Lazarus control (like TKamOpenGLControl
+    component). }
+  IUIContainer = interface
+    procedure SetMousePosition(const NewMouseX, NewMouseY: Integer);
+  end;
+
   { Basic user interface control class. All controls derive from this class,
     overriding chosen methods to react to some events.
-    Various user interface "windows" (things that directly receive messages
+    Various user interface containers (things that directly receive messages
     from something outside, like operating system, windowing library etc.)
     implement support for such controls.
 
@@ -48,16 +55,17 @@ type
     FExclusiveEvents: boolean;
     FOnVisibleChange: TNotifyEvent;
     FMouseLook: boolean;
-    FWindowWidth, FWindowHeight: Cardinal;
-    FWindowSizeKnown: boolean;
+    FContainerWidth, FContainerHeight: Cardinal;
+    FContainerSizeKnown: boolean;
+    FContainer: IUIContainer;
   protected
-    { Window size, as known by this control, undefined when
-      WindowSizeKnown = @false. This is simply collected at WindowResize
-      calls here.
+    { Container (window containing the control) size, as known by this control,
+      undefined when ContainerSizeKnown = @false. This is simply collected at
+      ContainerResize calls here.
       @groupBegin }
-    property WindowWidth: Cardinal read FWindowWidth;
-    property WindowHeight: Cardinal read FWindowHeight;
-    property WindowSizeKnown: boolean read FWindowSizeKnown;
+    property ContainerWidth: Cardinal read FContainerWidth;
+    property ContainerHeight: Cardinal read FContainerHeight;
+    property ContainerSizeKnown: boolean read FContainerSizeKnown;
     { @groupEnd }
   public
     constructor Create(AOwner: TComponent); override;
@@ -219,12 +227,23 @@ type
     { Called always when containing window size changes.
       Also, when the control is first inserted into the window controls list
       (like @link(TGLWindowNavigated.Controls)), it will also receive
-      initial WindowResize event. So every member of of Controls list
+      initial ContainerResize event. So every member of of Controls list
       knows window width / height.
 
-      In this class, this sets values of WindowWidth, WindowHeight, WindowSizeKnown
+      In this class, this sets values of ContainerWidth, ContainerHeight, ContainerSizeKnown
       properties. }
-    procedure WindowResize(const AWindowWidth, AWindowHeight: Cardinal); virtual;
+    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); virtual;
+
+    { Container of this control. When adding control to container's Controls
+      list (like TGLWindowNavigated.Controls) container will automatically
+      set itself here, an when removing from container this will be changed
+      back to @nil.
+
+      May be @nil if this control is not yet inserted into any container.
+      May also be @nil since not all containers have to implement
+      right now IUIContainer interface, it's not crucial for most controls
+      to work. }
+    property Container: IUIContainer read FContainer write FContainer;
   end;
 
   TUIControlList = class(TKamObjectList)
@@ -298,11 +317,11 @@ procedure TUIControl.Draw2D(const Focused: boolean);
 begin
 end;
 
-procedure TUIControl.WindowResize(const AWindowWidth, AWindowHeight: Cardinal);
+procedure TUIControl.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
 begin
-  FWindowWidth := AWindowWidth;
-  FWindowHeight := AWindowHeight;
-  FWindowSizeKnown := true;
+  FContainerWidth := AContainerWidth;
+  FContainerHeight := AContainerHeight;
+  FContainerSizeKnown := true;
 end;
 
 { TUIControlList ------------------------------------------------------------- }

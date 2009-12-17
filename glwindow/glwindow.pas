@@ -1329,18 +1329,19 @@ type
     property CustomCursor: TRGBAlphaImage read FCustomCursor
       write SetCustomCursor;
 
-    { This instructs window manager to place mouse at NewMouseX and NewMouseY
-      position. NewMouseX and NewMouseY are specified just like
-      MouseX and MouseY properties are given, so they are relative
-      to OpenGL area, and 0,0 is upper-top corner.
-      Note that the resulting position may be different than
-      MouseX and MouseY, e.g. if part of the window is offscreen then
-      window manager will probably refuse to move cursor offscreen.
+    { Place mouse cursor at NewMouseX and NewMouseY.
+      Position is specified relative to this window's upper-top corner
+      (more specifically, OpenGL area upper-top corner),
+      just like MouseX and MouseY properties.
 
-      This *may* generate normal OnMouseMove event, just as if the
+      Note that the actually set position may be different than requested,
+      for example if part of the window is offscreen then
+      window manager will probably refuse to move mouse cursor offscreen.
+
+      This @italic(may) generate normal OnMouseMove event, just as if the
       user moved the mouse. But it's also allowed to not do this.
 
-      Use this only when window is not closed. }
+      Ignored when window is closed. }
     procedure SetMousePosition(const NewMouseX, NewMouseY: Integer);
 
     { Naklada ograniczenia na to kiedy i jak Width i Height moga sie zmienic.
@@ -2478,7 +2479,7 @@ type
 
     This way MouseLook feature of TWalkNavigator is handled out of the box,
     assuming you only call UpdateMouseLook when needed. }
-  TGLWindowNavigated = class(TGLWindowDemo)
+  TGLWindowNavigated = class(TGLWindowDemo, IUIContainer)
   private
     FNavigator: TNavigator;
     FCursorNonMouseLook: TGLWindowCursor;
@@ -4282,9 +4283,8 @@ end;
 { TWindowUIControlList ----------------------------------------------------- }
 
 type
-  { TUIControlList descendant that takes care to call
-    Window.ControlsVisibleChange when any member of this list
-    calls OnVisibleChange. }
+  { TUIControlList descendant that takes care to react to list add/remove
+    notifications, doing appropriate operations with parent Window. }
   TWindowUIControlList = class(TUIControlList)
   private
     Window: TGLWindowNavigated;
@@ -4308,6 +4308,8 @@ begin
   case Action of
     lnAdded:
       begin
+        { Make sure Window.ControlsVisibleChange will be called
+          when a control calls OnVisibleChange. }
         if C.OnVisibleChange = nil then
           C.OnVisibleChange := @Window.ControlsVisibleChange;
 
@@ -4316,9 +4318,12 @@ begin
           the Init time, then our initial EventResize will be called
           that will do WindowResize on every control. }
         if not Window.Closed then
-          C.WindowResize(Window.Width, Window.Height);
+          C.ContainerResize(Window.Width, Window.Height);
 
+        { Resister Window to be notified of control destruction. }
         C.FreeNotification(Window);
+
+        C.Container := Window;
       end;
     lnExtracted, lnDeleted:
       begin
@@ -4326,6 +4331,8 @@ begin
           C.OnVisibleChange := nil;
 
         C.RemoveFreeNotification(Window);
+
+        C.Container := nil;
       end;
     else raise EInternalError.Create('TWindowUIControlList.Notify action?');
   end;
@@ -4729,7 +4736,7 @@ begin
   if UseControls then
   begin
     for I := 0 to Controls.Count - 1 do
-      Controls[I].WindowResize(Width, Height);
+      Controls[I].ContainerResize(Width, Height);
   end;
 end;
 

@@ -290,7 +290,8 @@ end;
 
 procedure TGLWindow.SetMousePosition(const NewMouseX, NewMouseY: Integer);
 begin
-  glutWarpPointer(NewMouseX, NewMouseY);
+  if not Closed then
+    glutWarpPointer(NewMouseX, NewMouseY);
 end;
 
 procedure TGLWindow.SwapBuffers;

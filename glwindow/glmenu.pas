@@ -17,9 +17,9 @@
 
   This unit draws a menu in OpenGL,
   which should be suitable for games etc. "Normal" user programs
-  may prefer to use the native menu bar, provided in each
-  TGLWindow instance. Although this still may be usable for displaying
-  things like sliders.
+  may prefer to use the native menu bar (for example TGLWindow.Menu,
+  or normal Lazarus form menu).
+  Although this still may be usable for displaying things like sliders.
 
   One important "quirk" that you should be aware of:
   Make sure you call GLMenuCloseGL when you ended using any menus
@@ -29,7 +29,7 @@ unit GLMenu;
 interface
 
 uses Classes, OpenGLBmpFonts, BFNT_BitstreamVeraSans_Unit, VectorMath, Areas,
-  GLWindow, GL, GLU, KambiGLUtils, Matrix, UIControls, KeysMouse;
+  GL, GLU, KambiGLUtils, Matrix, UIControls, KeysMouse;
 
 const
   DefaultGLMenuKeyNextItem = K_Down;
@@ -342,7 +342,6 @@ type
     function GetCurrentItem: Integer;
     procedure SetCurrentItem(const Value: Integer);
   private
-    FDesignerModeWindow: TGLWindow;
     FDesignerMode: boolean;
     procedure SetDesignerMode(const Value: boolean);
   private
@@ -458,14 +457,14 @@ type
       )
       You can call this only while OpenGL context is initialized.
 
-      WindowResize already calls FixItemsAreas, and window resize is already
+      ContainerResize already calls FixItemsAreas, and window resize is already
       called automatically by window (at the addition to Controls list,
       or whenever window size changes). So in simplest cases (when you
       fill @link(Items) etc. properties before adding TGLMenu to Controls)
       you, in practice, do not have to call this explicitly. }
     procedure FixItemsAreas;
 
-    procedure WindowResize(const AWindowWidth, AWindowHeight: Cardinal); override;
+    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
 
     { Calculates menu items positions, sizes.
       These are initialized by FixItemsAreas.
@@ -571,10 +570,14 @@ type
     { "Designer mode" is useful for a developer to visually design
       some properties of TGLMenu.
 
-      Note that you can set DesignerModeWindow before setting this
-      to @true, then we will set mouse position when entering DesignerMode
+      @link(Container) of this control will be aumatically used,
+      we will set mouse position when entering DesignerMode
       to match current menu position. This is usually desirable (otherwise
       slight mouse move will immediately change menu position).
+      To make it work, make sure @link(Container) is assigned
+      before setting DesignerMode to @true --- in other words,
+      make sure you add this control to something like TGLWindowNavigated.Controls
+      first, and only then set DesignedMode := @true.
       This works assuming that you always call our Draw with identity
       transform matrix (otherwise, this unit is not able to know how to
       calculate mouse position corresponding to given menu PositionAbsolute).
@@ -608,9 +611,6 @@ type
       ) }
     property DesignerMode: boolean
       read FDesignerMode write SetDesignerMode default false;
-
-    property DesignerModeWindow: TGLWindow
-      read FDesignerModeWindow write FDesignerModeWindow;
 
     { Draw an indicator of being focused. Currently, this is a flashing
       border around the menu area. Otherwise Draw2D ignores Focused parameter. }
@@ -1185,9 +1185,9 @@ var
   WholeItemWidth, MaxAccessoryWidth: Single;
   ItemsBelowHeight: Cardinal;
 begin
-  { If WindowResize not called yet, wait for FixItemsAreas call
-    from the first WindowResize. }
-  if not WindowSizeKnown then
+  { If ContainerResize not called yet, wait for FixItemsAreas call
+    from the first ContainerResize. }
+  if not ContainerSizeKnown then
     Exit;
 
   MenuFontInit;
@@ -1251,15 +1251,15 @@ begin
 
   case PositionRelativeScreenX of
     prLowerBorder : PositionScreenRelativeMove.Data[0] := 0;
-    prMiddle      : PositionScreenRelativeMove.Data[0] := WindowWidth div 2;
-    prHigherBorder: PositionScreenRelativeMove.Data[0] := WindowWidth;
+    prMiddle      : PositionScreenRelativeMove.Data[0] := ContainerWidth div 2;
+    prHigherBorder: PositionScreenRelativeMove.Data[0] := ContainerWidth;
     else raise EInternalError.Create('PositionRelative* = ?');
   end;
 
   case PositionRelativeScreenY of
     prLowerBorder : PositionScreenRelativeMove.Data[1] := 0;
-    prMiddle      : PositionScreenRelativeMove.Data[1] := WindowHeight div 2;
-    prHigherBorder: PositionScreenRelativeMove.Data[1] := WindowHeight;
+    prMiddle      : PositionScreenRelativeMove.Data[1] := ContainerHeight div 2;
+    prHigherBorder: PositionScreenRelativeMove.Data[1] := ContainerHeight;
     else raise EInternalError.Create('PositionRelative* = ?');
   end;
 
@@ -1311,7 +1311,7 @@ begin
   MakeGLList_DrawFadeRect(GLList_DrawFadeRect[true], 0.7);
 end;
 
-procedure TGLMenu.WindowResize(const AWindowWidth, AWindowHeight: Cardinal);
+procedure TGLMenu.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
 begin
   inherited;
   FixItemsAreas;
@@ -1529,7 +1529,7 @@ begin
 
   { For TGLMenu, we like MouseY going higher from the bottom to the top. }
   MX := NewX;
-  MY := WindowHeight - NewY;
+  MY := ContainerHeight - NewY;
 
   NewItemIndex := Areas.FindArea(MX, MY);
   if NewItemIndex <> -1 then
@@ -1564,7 +1564,7 @@ begin
 
   { For TGLMenu, we like MouseY going higher from the bottom to the top. }
   MX := MouseX;
-  MY := WindowHeight - MouseY;
+  MY := ContainerHeight - MouseY;
 
   if (CurrentItem <> -1) and
      (Items.Objects[CurrentItem] <> nil) and
@@ -1639,12 +1639,11 @@ end;
 
 procedure TGLMenu.SetDesignerMode(const Value: boolean);
 begin
-  if (not FDesignerMode) and Value and (DesignerModeWindow <> nil) then
+  if (not FDesignerMode) and Value and (Container <> nil) then
   begin
-    if not DesignerModeWindow.Closed then
-      DesignerModeWindow.SetMousePosition(
-        Round(PositionAbsolute.Data[0]),
-        DesignerModeWindow.Height - Round(PositionAbsolute.Data[1]));
+    Container.SetMousePosition(
+      Round(PositionAbsolute.Data[0]),
+      ContainerHeight - Round(PositionAbsolute.Data[1]));
   end;
 
   FDesignerMode := Value;
@@ -1652,7 +1651,7 @@ end;
 
 function TGLMenu.PositionInside(const X, Y: Single): boolean;
 begin
-  Result := PointInArea(X, WindowHeight - Y, FAllItemsArea);
+  Result := PointInArea(X, ContainerHeight - Y, FAllItemsArea);
 end;
 
 end.

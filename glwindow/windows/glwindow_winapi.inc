@@ -1037,8 +1037,8 @@ end;
 
 procedure TGLWindow.SetMousePosition(const NewMouseX, NewMouseY: Integer);
 begin
-  Assert(not Closed);
-  SetCursorPos(Left + NewMouseX, Top + NewMouseY);
+  if not Closed then
+    SetCursorPos(Left + NewMouseX, Top + NewMouseY);
 end;
 
 procedure TGLWindow.CloseImplDepend;

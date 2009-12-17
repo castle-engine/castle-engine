@@ -392,9 +392,9 @@ end;
 
 procedure TGLWindow.SetMousePosition(const NewMouseX, NewMouseY: Integer);
 begin
-  Assert(not Closed);
-  XWarpPointer(Application.XDisplay, X.None, WindowXID,
-    0, 0, 0, 0, NewMouseX, NewMouseY);
+  if not Closed then
+    XWarpPointer(Application.XDisplay, X.None, WindowXID,
+      0, 0, 0, 0, NewMouseX, NewMouseY);
 end;
 
 procedure TGLWindow.MakeCurrent;

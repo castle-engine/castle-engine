@@ -763,11 +763,12 @@ end;
 procedure TGLWindow.SetMousePosition(const NewMouseX, NewMouseY: Integer);
 begin
   {$ifdef GLWINDOW_GTK_WITH_XLIB}
-  XWarpPointer(
-    gdk_x11_drawable_get_xdisplay(GTK_WIDGET(GLAreaGtk)^.Window),
-    X.None,
-    gdk_x11_drawable_get_xid(GTK_WIDGET(GLAreaGtk)^.Window),
-    0, 0, 0, 0, NewMouseX, NewMouseY);
+  if not Closed then
+    XWarpPointer(
+      gdk_x11_drawable_get_xdisplay(GTK_WIDGET(GLAreaGtk)^.Window),
+      X.None,
+      gdk_x11_drawable_get_xid(GTK_WIDGET(GLAreaGtk)^.Window),
+      0, 0, 0, 0, NewMouseX, NewMouseY);
   {$else}
   raise Exception.Create('TODO: TGLWindow.SetMousePosition not implemented');
   {$endif}
