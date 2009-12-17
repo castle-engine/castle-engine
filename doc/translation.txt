@@ -99,8 +99,8 @@ D   kambidynlib.pas
 |   kambifilesutils.pas
 D   kambiinterfaces.pas
 D   kambilog.pas
-|   kambistringutils.pas
-|   kambitimeutils.pas
+D   kambistringutils.pas
+D   kambitimeutils.pas
 |   kambiutils.pas
 D   kambixmlcfg.pas
 D   kambixmlutils.pas

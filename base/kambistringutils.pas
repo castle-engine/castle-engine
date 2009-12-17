@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2006 Michalis Kamburelis.
+  Copyright 2000-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -9,15 +9,16 @@
   "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
 }
 
-{ Operations on strings.
+{ String utilities.
 
   Also some operations on chars and PChars.
   And various convertions strings<->numbers.
 
-  General comments:
-  For all procedures that have parameter like IgnoreCase:
+  General comments for all procedures that have parameter like IgnoreCase:
   @unorderedList(
     @item(
       If such parameter has some default value, this default value should be
@@ -95,8 +96,8 @@ function BreakLine(const s: string; MaxCol: integer;
 { Returns S with all chars in ExcludedChars deleted. }
 function SDeleteChars(const s: string; const excludedChars: TSetOfChars): string;
 
-{ SReplaceChars replaces all occurences of characters in FromChars with
-  new string / character. There are three overloaded versions:
+{ Replace all occurences of characters in FromChars with
+  the new string / character. There are three overloaded versions:
 
   @orderedList(
     @item(SReplaceChars(string, string, string) looks in S for characters within
@@ -118,14 +119,14 @@ function SReplaceChars(const s: string; FromChars: TSetOfChars; ToChar: char): s
 function SReplaceChars(const s: string; FromChar, ToChar: char): string; overload;
 { @groupEnd }
 
-{ This pads (fills from the left with character C) string S, until length
-  of S is at least Len.
+{ Pad (fill from the left with character C) string S, until length
+  of resulting string is at least Len.
 
   For example, @code(SPad('29', 4, '0')) gives '0029' }
 function SPad(const s: string; len: integer; c: char = ' '): string; overload;
 
-{ This pads (fills from the left)  with zeros string S, until length
-  of S is at least Len. It's actually just a shortcut for SPad
+{ Pad (fill from the left)  with zeros string S, until length
+  of resulting string is at least Len. It's actually just a shortcut for SPad
   with padding character set to '0'. }
 function SZeroPad(const s: string; len: integer): string;
 
@@ -165,7 +166,7 @@ function BackPos(const SubString: char; const S: string): Integer; overload;
   LastDelimiter. Returns 0 if not found. }
 function FirstDelimiter(const Delimiters, S: string): Integer;
 
-{ SEnding returns S contents starting from position P.
+{ Returns suffix of S starting from position P.
   Returns '' if P > length(S).
   Yes, this is simply equivalent to Copy(S, P, MaxInt). }
 function SEnding(const s: string; P: integer): string;
@@ -185,32 +186,36 @@ function SuffixRemove(const Suffix, S: string; IgnoreCase: boolean): string;
 { Appends to a string S DataSize bytes from Data. }
 procedure SAppendData(var s: string; const Data; DataSize: integer);
 
-{ SChar returns a pointer to S[CharNum], i.e. just @@S[CharNum],
+{ Return a pointer to S[CharNum], that is just @@S[CharNum],
   however SChar doesn't avoids any range checking. }
 function SChar(const s: string; CharNum: integer): PChar;
 
-{ SCharIs checks whether S[Index] = C, but also checks S length.
-  Return false if S is too short, or the chatacter differs. }
+{ Check whether S[Index] = C, also checking is Index within S length.
+  Return false if S is too short, or the chatacter differs.
+
+  @groupBegin }
 function SCharIs(const s: string; index: integer; c: char): boolean; overload;
 function SCharIs(const s: string; index: integer; const chars: TSetOfChars): boolean; overload;
+{ @groupEnd }
 
 { Replace typically unreadable characters in string S with #number notation.
   Useful for printing strings with some unprintable chars for
   debugging purposes. }
 function SReadableForm(const s: string): string;
 
-{ CopyPos returns s[StartPosition,....,EndPosition].
+{ Return S[StartPosition..EndPosition].
   This is similar to standard Copy procedure,
   but last parameter is EndPosition instead of Count, which is more comfortable
-  sometimes.
-
-  Similar for DeletePos, it's analogous to standard Delete but with EndPosition
-  parameter. }
+  sometimes. }
 function CopyPos(const s: string; StartPosition, EndPosition: integer): string;
+
+{ Delete from S range of characters [StartPosition..EndPosition].
+  Analogous to standard Delete but with EndPosition parameter (while
+  standard Delete takes Count). }
 procedure DeletePos(var S: string; StartPosition, EndPosition: Integer);
 
-(*NextToken is used to find next part in the string S separated by delimiters
-  TokenDelims. More precisely: NextToken searches S, starting from position
+(*Find next part in the string S separated by delimiters
+  TokenDelims. More precisely: search S, starting from position
   SeekPos, for the first character that is @italic(not in TokenDelims).
   Then, all subsequent characters that are not in TokenDelims are
   appended to the Result, until any character @italic(is in TokenDelims)
@@ -261,73 +266,111 @@ function NextTokenOnce(const s: string; SeekPos: integer = 1;
 function CreateTokens(const s: string;
   const TokenDelims: TSetOfChars = WhiteSpaces): TDynStringArray;
 
-{ NextTokenRestr to troche bardziej zaawansowane NextToken.
+{ Advanced version of NextToken, that avoids splitting string inside
+  pairs of "restricted" characters, like quotes.
 
-  Podobnie jak NextToken, kiedy NextTokenRestr napotka pierwszy znak not in
-  TokenDelims to bedzie czytac string az napotka cos in TokenDelims.
-  ALE znaki pomiedzy parami tych samych znakow w RestrAreas beda zawsze
-  traktowane jako not in TokenDelims !
+  Basically, just like NextToken, this finds the next part
+  in the string S separated by delimiters TokenDelims.
+  Looks for the first character not in TokenDelims
+  (starting from position SeekPos), and then reads the string up to
+  the character in TokenDelims.
+  @italic(But the characters surrounded by a pair of same characters
+  from RestrAreas are never treated like TokenDelims.)
 
-  Tym sposobem mozna np. powiedziec mu zeby odczytal nastepny token, gdzie
-  tokeny sa oddzielone spacjami, ale zeby ignorowal spacje pojawiajace sie
-  pomiedzy ' a ' lub pomiedzy " a ".
+  This way you can e.g. split a string by whitespaces,
+  but still request that whitespaces inside ' and ' or between " and "
+  be ignored (not split on them).
 
-  Np. jesli wszystkie parametry default beda mialy defaultowe wartosci, to moze
-  zwrocic taki token :
-    blabla = 'spacje miedzy apostrofami sa ignorowane'
-    hehe = 'po odczytaniu apostrofu czeka na dlugi apostrof, cudzyslow (") ignoruje'
-    kuku="jeszcze jeden string"
-    'jesli pierwszy napotkany znak na SeekPos in RestrictedAreas, tez to zauwazy'
-    oczywiscie_moze_tez_nie_napotkac_nigdzie_niczego_in_RestrAreas
-  ALE nie zwroci np. stringu
-    'start od apostrofu, koniec na cudzyslowu"
-  Przyklady pochodza wprost z rzeczy do ktorej uzywalem tej procedury : do parsowania
-    argumentow HTMLowych tagow. }
+  For example, with default values for TokenDelims and RestrAreas,
+  you can reliably split XML attributes like
+
+@preformatted(
+  <foo val1='value in single quotes'
+       val2="value in double quotes"
+       val3='value in single quotes, double quote inside (") ignored'
+       val4=value_without_the_quotes
+  />
+)
+
+  Parsing such string with NextTokenRestr will result in six tokens returned:
+  '<foo', then one token for each valX=..., then '/>'. }
 function NextTokenRestr(const s: string; var SeekPos: integer;
   const TokenDelims: TSetOfChars = WhiteSpaces;
   const RestrAreas: TSetOfChars = ['''','"']): string; overload;
 
-{ FindPos : mocno rozbudowana procedura Pos (kiedys pod nazwa PosX) .
-  Szuka SubTekst w Copy(Tekst, StartPosition, Dlugosc) i zwraca pozycje (wzgledem calego Tekstu,
-   nie wzgledem StartPosition). Pozycja w stringu pascalowym jest tradycyjnie liczna od 1.
-   Jesli soMatchCase w Opcje to szukanie jest case-sensitive (jesli nie jest, to
-     utozsamianie malych i duzych znakow uwzglednia locale-chars).
-   Jesli soWholeWord, to znalezione wystapienie SubTekstu w Tekst musi dodatkowo
-     byc otoczone znakami z WordBorders (albo koncem/poczatkiem calego stringa Tekst,
-     np. FindPos('a','ba a',2, 1,[soWholeWord]) zwroci 0 = nie znajdzie - znalezione
-       wystapienie 'a' nie jest otoczone wordBorders mimo ze znak nie bedacy WordBorderem
-       jest poza przeszukiwanym wycinkiem Tekstu)
-   Jesli soBackwards to szuka od tylu (co ma znaczenie bo FindPos zatrzymuje
-     sie i zwraca wynik pierwszego znalezionego wystapienia, wiec wartosc
-     soBackwards in Opcje okresla czy pierwszego od lewej czy od prawej).
-  Zwraca 0 jesli nie znalazl. }
-function FindPos(const SubTekst, Tekst: string; StartPosition, Dlugosc: integer;
-  opcje: TSearchOptions;
+{ Find substring SubText within Text. Returns 0 if not found.
+  Similar to a standard Pos function, with some improvements.
+
+  @param(StartPosition Starts searching for SubText starting from this position.
+    Note that the resulting position is still returned with respect
+    to the string beginning. Just like standard PosEx.)
+
+  @param(Count Looks only at Count characters from Text.
+    You can say that the search is done only within Copy(Text, StartPosition, Count).)
+
+  @param(Options Various searching options:
+
+    @unorderedList(
+      @item(soMatchCase: makes searching case-sensitive (by default,
+        case is ignored, taking locale into account).)
+
+      @item(soWholeWord: looks only for SubText occurences surrounded
+        by characters from WordBorders (or the beginning/end of Text).
+
+        Note that, while the beginning/end of Text is always treated like a word border,
+        but the mere beginning/end of the searching range (StartPosition, Count)
+        is not a word border.
+        For example FindPos('cat', 'foocat dog', 4, MaxInt, [soWholeWord])
+        will answer 0 (not found), because the only 'cat' occurence is not
+        surrounded by default word borders.)
+
+      @item(soBackwards: search from the end, that is return rightmost
+        found occurence.)
+    )
+  ) }
+function FindPos(const SubText, Text: string; StartPosition, Count: integer;
+  Options: TSearchOptions;
   const WordBorders: TSetOfChars = DefaultWordBorders): integer; overload;
 
-{ MatchingFind : sprawdza czy Copy(Text, MatchStart, MatchLength) jest prawidlowym
-  wystapieniem SubText, tzn. nie tylko sprawdza czy jest rowne SubText ale uwzglednia
-  tez flagi soMatchCase i soWholeWords w so. Przydatne jesli mamy tekst co do ktorego
-  chcemy sprawdzic czy jest prawidlowym wynikiem poprzedniego FindPos.
-  Uwaga : MatchingFind jest wygodne i uzyteczne do jednorazowaego wywolania.
-  Pamietaj ze realizowanie FindPos jako ciaglych wywolan MatchingFind jest strasznie
-  nieefektywne - np. jezeli soMatchCase nie jest ustawione to MatchingFind za kazdym
-  razem robiloby czesc stringa od nowa na upper a FindPos zrobi to tylko raz. }
+{ Check is given match (MatchStart, MatchLength) good result of
+  FindPos call for the same arguments.
+
+  In other words, this checks something more than just the equality of
+  Copy(Text, MatchStart, MatchLength) with SubText.
+  This precisely checks if FindPos(SubText, Text, Options, WordBorders)
+  would return given MatchStart (and MatchLength is equal to length
+  of SubText).
+  For example if soMatchCase in Options, then SubText is compared
+  case-sensitive. If soWholeWords in Options, then given match
+  must be surrounded by WordBorders in Text. And so on.
+
+  The typical usage for this is when you make an interactive text editor
+  application, and you have some text seleected, and you have to check
+  could this selection be done by previous FindPos successful search.
+
+  @groupBegin }
 function MatchingFind(const SubText, Text: string;
-  MatchStart, MatchLength: integer; so: TSearchOptions;
+  MatchStart, MatchLength: integer; Options: TSearchOptions;
   const WordBorders: TSetOfChars): boolean; overload;
 function MatchingFind(const SubText, Text: string;
   MatchStart, MatchLength: integer; matchCase, wholeWord: boolean;
   const WordBorders: TSetOfChars): boolean; overload;
+{ @groupEnd }
 
-{ FindWordPos - wykonuje FindPos(SubTekst, Tekst, 1, Length(Tekst),
-   [soWholeWord, soMatchCase], WordBorders). Slowem, wykonuje normalne Pos ale
-   znajduje tylko osobne slowa oddzielone WordBorders. Czyli robi FindPos ale
-   ze specjalnych funkcji realizuje tylko soWholeWords. }
-function FindWordPos(const SubTekst, Tekst: string;
+{ Find substring SubText within Text, requiring SubText to be surrounded
+  by WordBorders. Always case-sensitive. Returns 0 if not found.
+
+  This is equivalent to FindPos(SubText, Text, 1, Length(Text),
+  [soWholeWord, soMatchCase], WordBorders). The only difference
+  between standard Pos function is that this looks only for "words"
+  --- that is, occurences surrounded by WordBorders. }
+function FindWordPos(const SubText, Text: string;
   const WordBorders: TSetOfChars = DefaultWordBorders): integer; overload;
-{ GetWordAtPos : znajdzie slowo otaczajace pozycje 'pozycja' w 'Tekst'. }
-function GetWordAtPos(const tekst: string; pozycja: integer;
+
+{ Return word surrounding Position inside Text.
+  A "word" is determined by looking around Text[Position], as far as you
+  can, until the beginning/end of Text is found or character in WordBorders. }
+function GetWordAtPos(const Text: string; Position: integer;
   const WordBorders: TSetOfChars = DefaultWordBorders): string; overload;
 
 { Return rightmost RPart characters from S.
@@ -353,7 +396,7 @@ procedure StringToFile(const FileName, contents: string);
 type
   EDeformatError = class(Exception);
 
-{ DeFormat parses a string according to given format, returning the
+{ Parse a string according to the given format, returning the
   values corresponding to placeholders %x in format string.
 
   Format parameter is a sequence of white spaces, placeholders like %d or %f,
@@ -439,77 +482,105 @@ function TryDeFormat(Data: string; const Format: string;
   const IgnoreCase: boolean = true;
   const RelaxedWhitespaceChecking: boolean = true): integer; overload;
 
-{ FileFilter jest w postaci 'xxxx|name1.ext1;name2.ext2' albo
-  'name1.ext1;name2.ext2' gdzie xxxx to moze byc cokolwiek (nie zawierajace |),
-  podobnie nameX (nie moze zawierac tylko . i ;) i extX (nie moze zawierac . i ;)
-  i rozszerzen z nazwami moze byc dowolnie wiele.
-  W tablicy Extensions (ktora musi byc juz zainicjowanym obiektem) zwraca liste
-  stringow [.ext1,.ext2,.ext3 ... ].
-  Innymi slowy, wyciaga rozszrzenia z typowego filtra na pliki uzytego jako
-  OpenDialog.Filter. }
+{ Extract file extensions from a file filter usually specified
+  a TOpenDialog.Filter value.
+
+  More precisely: expects FileFilter to be in the form of
+  @code('xxxx|name1.ext1;name2.ext2'). Where "xxxx" is just about anything
+  (it is ignored), and in fact whole "xxxx|" (with bar) may be omitted.
+  The rest (after "|") is treated as a filename list, separated by semicolon ";".
+
+  As Extensions, we set an array of all extensions extracted from these
+  filenames. For example above, we would set Extensions to array
+  with two items: @code(['.ext1', '.ext2']). }
 procedure GetFileFilterExts(const FileFilter: string; var Extensions: TDynStringArray);
 
-{ FileFilter jest postaci 'filter_name', 'filter_name|exts',
-  'filter_name(exts)|exts', wszedzie pomiedzy moga wystepowac biale znaki.
-  Dla kazdej z tych postaci zwroci Trim(filter_name) (w ostatnim przypadku
-  sprawdzi czy oba wystapienia exts sa takie same zeby nie dac sie nabrac
-  na pulapke 'Pascal files (really!)|*.pas' -> zwroci 'Pascal files (really!)',
-  ale 'Pascal files (*.pas)|*.pas' -> zwroci 'Pascal files'.
-  exts w czesci prawej musza byc rozdzielane srednikami, w czesci lewej -
-  moga tez byc rozdzielane przecinkami. }
+{ Extract file filter name, from a file filter usually specified
+  a TOpenDialog.Filter value.
+
+  More precisely: if we do not see bar "|" character, then this is
+  the filter name. Otherwise, everything on the right of "|" is "extensions"
+  and everything on the left is "filter name".
+
+  Additionally, if filter name ends with extensions value in parenthesis,
+  they are removed. In other words, for 'Pascal files (*.pas)|*.pas',
+  this will return just 'Pascal files'. The '(*.pas)' was removed
+  from the filter name, because we detected this just repeats the extensions
+  on the right of "|". Extensions on the right of "|" must be separated by
+  semicolons, extensions within parenthesis on the left of "|" may
+  be separated by semicolons ";" or colons ",". }
 function GetFileFilterName(const FileFilter: string): string;
 
-{ szuka w FileFilter znaku '|' i zwraca wszystko co jest za nim (czyli taka
-  prymitywna podstawa do robienia tego co robi GetFileFilterExts).
-  Przy okazji - zauwaz ze wynika z tego ze napis bez znaku '|' uznajemy
-  za samo Name, bez zadnych Exts, a nie na odwrot. }
+{ Search in FileFilter for the bar character "|", and return everything
+  after it. This is a simple basis for GetFileFilterExts.
+
+  If no "|" found, we return an empty string (in other words,
+  file filter without "|" is treated as just a filter name, without
+  any extensions). }
 function GetFileFilterExtsStr(const FileFilter: string): string;
 
-{ SReplacePatterns : podobnie jak StringReplace, tyle ze mozna na raz
-  zamienic wiele OldPattern na NewPattern. (Tablice patterns i values musza
-  miec taka sama ilosc elementow. patterns[0] zostana zamienione na values[0] itd.
-  Pattern sa zamieniane od lewej, tzn, jezeli wystapienia dwoch patterns
-  zachodza na siebie zamieniona zostanie pattern zaczynajaca sie wczesniej.
-  Jezeli obie patterns zaczynaja sie w tym samym miejscu zostanie wybrana
-  ta o mniejszym indeksie w tablicy patterns[]).
+{ Replace all strings in Patterns with corresponding strings in Values.
+  This is similar to standard StringReplace, but this does many
+  replaces at once.
 
-  Ta funkcja unika pulapki ktora powstaje gdy jedna z values[] zawiera jedna
-  z patterns - ta funkcja nie zauwazy tego, zamienia tylko wystapienia w
-  oryginalnej tresci s. W przeciwienstwie do pozornie poprawnego kodu
-   result := s;
-   result := StringReplace(result, patterns[0], values[0], [rfReplaceAll]);
-   result := StringReplace(result, patterns[1], values[1], [rfReplaceAll]);
-   itd.
-  Powyzszy kod nie dziala tak jak moznaby tego oczekiwac gdy np. values[0]
-  zawiera wystapienie patterns[1].
-  Opcje NIE MOZE zawierac flagi soBackwards ! }
+  Patterns and Values arrays must have equal length.
+  Patterns[0] will be replaced with Values[0], Patterns[1] with Values[0] etc.
+  Patterns are scanned from left to right, that is if two pattern occurences
+  overlap --- we will detect the leftmost one. If both patterns start
+  at the same place (this means that one pattern is a prefix of the other),
+  we will choose the first pattern in Patterns table.
+
+  Using this avoids a common trap at repeated search-replace operations.
+  A naive implementation of doing many search-replace over the same string
+  is like
+
+@longCode(#
+  Result := S;
+  Result := StringReplace(Result, Patterns[0], Values[0], [rfReplaceAll]);
+  Result := StringReplace(Result, Patterns[1], Values[1], [rfReplaceAll]);
+  etc.
+#)
+
+  But the above fails badly when inserting some Values[] creates
+  an occurence of Pattern checked later. For example, when Values[0]
+  contains inside whole Patterns[1]. More exotic situations involve
+  when some Values[] glues with previous string contents to make
+  a pattern detected later. This means that you could replace the same
+  content many times, which is usually not what you want.
+
+  That's why you should instead use this function for such situations.
+
+  Options cannot contain soBackwards flag. }
 function SReplacePatterns(const s: string; const patterns, values: array of string; Options: TSearchOptions): string;
 
 function SCharsCount(const s: string; c: char): Cardinal; overload;
 function SCharsCount(const s: string; const Chars: TSetOfChars): Cardinal; overload;
 
-{ obcina z s wszystko za pierwszym znakiem '#' w stringu
-  (lacznie z tym '#'). Jezeli w s nie ma '#' to zwraca s.
-  Przydatne do odczytywania prostych plikow tekstowych z takimi komentarzami.
-  Dla plikow tekstowych o nieco bardziej zlozonym formacie - pamietaj
-  ze # moze byc np. czescia jakiegos stringa itp. i wtedy niekoniecznie
-  oznacza poczatek komentarza. }
+{ Remove from the string S everything after the first hash "#" character.
+  Removes also this very "#" character.
+
+  If string doesn't contain hash character, it's simply returned.
+
+  Useful for interpreting simple text files when you want to treat
+  things after "#" like a comment. }
 function STruncateHash(const s: string): string;
 
-{ Zamien s na takie cos zeby Format(SUnformattable(s), [...]) = s.
-  Innymi slowy spraw zeby procedura Format nie widziala zadnego znacznika
-  formatowania w stringu s - czyli mowiac wprost, podwoj znaki '%'. }
+{ Return the value to reproduce exactly string S by Format procedure.
+  Saying simply, this doubles the "%" characters inside the string.
+  The intension is to make such string that
+  @code(Format(SUnformattable(S), []) = S). In other words, "quote"
+  any suspicious "%" characters in S for Format. }
 function SUnformattable(const s: string): string;
 
-{ SAnsiCompare robi AnsiCompareStr lub AnsiCompareText, w zaleznosci od
-  IgnoreCase. Wiec porownuje stringi uzywajac current locale i moze
-  rozrozniac lub nie duze / male litery (przy czym jezeli ma nie rozrozniac
-  liter to current locale tez ma znaczenie, np. na polskim Windowsie
-  bedzie uznawal male i duze "a z ogonkiem" za to samo).
-  Zwraca <0 wtw. s1 < s2, =0 gdy s1 = s2 i >0 gdy s1 > s2. }
+{ Compare strings, taking into account current locale.
+  This simply does AnsiCompareStr or AnsiCompareText, depending on IgnoreCase.
+
+  Returns value < 0 when S1 < S2, returns 0 when S1 = S2 and value > 0
+  when S1 > S2. }
 function SAnsiCompare(const s1, s2: string; IgnoreCase: boolean): Integer;
 
-{ SAnsiSame does SAnsiCompare() = 0 }
+{ Check if strings are equal, taking into account current locale.
+  Shortcut for SAnsiCompare(S1, S2) = 0 }
 function SAnsiSame(const s1, s2: string; IgnoreCase: boolean): boolean;
 
 type
@@ -651,30 +722,46 @@ const
   BoolToStr: array[boolean] of string=('FALSE','TRUE');
   BoolToStrYesNo: array[boolean]of string = ('No','Yes');
 
-{ 0 konwertuje na '0' itd. Uzywaj tylko dla b = 0..9 }
+{ Convert digit (like number 0) to character (like '0').
+  Use only for arguments within 0..9 range. }
 function DigitAsChar(b: byte): char;
-{ c = '0' .. '9' konwertuje na 0..9 }
+
+{ Convert digit character (like '0') to a number (like 0).
+  Use only for characters in '0'...'9' range. }
 function DigitAsByte(c: char): byte;
 
-{ IntToStrZPad = jak IntToStr ale padduje od lewej zerami jesli trzeba }
+{ Convert integer to string, padding string with zeros if needed. }
 function IntToStrZPad(n: integer; minLength: integer): string;
-{ zamienia n na string w ukladzie poz-pozycyjnym. Poz nie moze byc wieksze
-  niz 'Z'-'A'+1+10 (zabrakloby nam wtedy symboli). }
-function IntToStrPoz(const n: Int64; poz: Byte): string; overload;
-function IntToStrPoz(      n: QWord; poz: Byte): string; overload;
-{ j.w., ale padded with zeros }
-function IntToStrPoz(const n: Int64; poz: Byte; minLength: Cardinal): string; overload;
-function IntToStrPoz(const n: QWord; poz: Byte; minLength: Cardinal): string; overload;
-{ Write n in binary.
-  MinLength means to left-pad with zeros if necessary.
-  You can supply a value for zero digit (default '0'), one digit (default '1')
-  and minus sign (default '-'). }
-function IntToStr2(n: Int64; minLength: Cardinal = 1): string; overload;
-function IntToStr2(n: Int64; MinLength: Cardinal;
-  ZeroDigit, OneDigit, MinusSign: char): string; overload;
-{ wypisuje n zapisana heksadecymalnie (w ukladnie 16-stkowym) }
+
+{ Convert integer to string, in base-Base (like base-16) numeral system.
+  For digits above '9', we will use upper letters 'A', 'B'...  etc.
+  That's also why Base cannot be larger than 'Z'-'A' + 1 + 10
+  (we would not have enough digits then).
+
+  Overloaded versions with MinLength pad result with zeros to have
+  at least MinLength.
+
+  @groupBegin }
+function IntToStrBase(const n: Int64; Base: Byte): string; overload;
+function IntToStrBase(      n: QWord; Base: Byte): string; overload;
+function IntToStrBase(const n: Int64; Base: Byte; minLength: Cardinal): string; overload;
+function IntToStrBase(const n: QWord; Base: Byte; minLength: Cardinal): string; overload;
+{ @groupEnd }
+
+{ Convert integer to binary (base-2 numeral system).
+  MinLength means to left-pad result with zeros if necessary. }
+function IntToStr2(n: Int64;
+  const MinLength: Cardinal = 1;
+  const ZeroDigit: char = '0';
+  const OneDigit: char = '1';
+  const MinusSign: char = '-'): string; overload;
+
+{ Convert integer to hexadecimal (base-16 numeral system).
+  @groupBegin }
 function IntToStr16(const n: Int64; const minLength: Cardinal = 1): string; overload;
 function IntToStr16(const n: QWord; const minLength: Cardinal = 1): string; overload;
+{ @groupEnd }
+
 function ToStr(const args: array of const): string;
 function VarRecToStr(const v: TVarRec): string;
 
@@ -687,13 +774,18 @@ function PointerToStr(Ptr: Pointer): string;
   separate thousands (only if ThousandSeparator <> #0). }
 function IntToStrThousandSep(const Value: Int64): string;
 
-{ zamienia ciag 0 i 1 (z ew. znakiem +/-) na liczbe; wyrzuca EConvertError w
-  razie bledu }
+{ Convert string representing binary number to an integer.
+  String must contain only '0', '1' (digits) and start with an optional sign
+  (+ or -).
+  @raises EConvertError On problems with conversion. }
 function Str2ToInt(const s: string): integer;
-{ Convert string in hexadecimal (0-9, a-z, A-Z are digits,
-  optional sign -/+ allowed) to Int64.
+
+{ Convert string with hexadecimal number to an integer.
+  String must contain only digits (0-9, a-z, A-Z), and with an optional
+  sign (+ or -).
   @raises EConvertError On problems with conversion. }
 function StrHexToInt(const s: string): Int64;
+
 function StrToFloatDef(const s: string; DefValue: Extended): Extended;
 
 { Convert a set to a string representation, in somewhat hacky way.
@@ -732,19 +824,20 @@ function PCharOrNil(const s: string): PChar;
 { some ASCII funcs / codes -------------------------------------------------- }
 
 const
-  CtrlA = Chr(Ord('a') - Ord('a') + 1); { = #1 }
-  CtrlB = Chr(Ord('b') - Ord('a') + 1); { = #2 }
-  CtrlC = Chr(Ord('c') - Ord('a') + 1); { ... etc. }
+  { }
+  CtrlA = Chr(Ord('a') - Ord('a') + 1); { = #1 } { }
+  CtrlB = Chr(Ord('b') - Ord('a') + 1); { = #2 } { }
+  CtrlC = Chr(Ord('c') - Ord('a') + 1); { ... etc. } { }
   CtrlD = Chr(Ord('d') - Ord('a') + 1);
   CtrlE = Chr(Ord('e') - Ord('a') + 1);
   CtrlF = Chr(Ord('f') - Ord('a') + 1);
   CtrlG = Chr(Ord('g') - Ord('a') + 1);
-  CtrlH = Chr(Ord('h') - Ord('a') + 1); { = CharBackspace }
-  CtrlI = Chr(Ord('i') - Ord('a') + 1); { = CharTab }
+  CtrlH = Chr(Ord('h') - Ord('a') + 1); { = CharBackspace } { }
+  CtrlI = Chr(Ord('i') - Ord('a') + 1); { = CharTab } { }
   CtrlJ = Chr(Ord('j') - Ord('a') + 1);
   CtrlK = Chr(Ord('k') - Ord('a') + 1);
   CtrlL = Chr(Ord('l') - Ord('a') + 1);
-  CtrlM = Chr(Ord('m') - Ord('a') + 1); { = CharEnter }
+  CtrlM = Chr(Ord('m') - Ord('a') + 1); { = CharEnter } { }
   CtrlN = Chr(Ord('n') - Ord('a') + 1);
   CtrlO = Chr(Ord('o') - Ord('a') + 1);
   CtrlP = Chr(Ord('p') - Ord('a') + 1);
@@ -757,7 +850,7 @@ const
   CtrlW = Chr(Ord('w') - Ord('a') + 1);
   CtrlX = Chr(Ord('x') - Ord('a') + 1);
   CtrlY = Chr(Ord('y') - Ord('a') + 1);
-  CtrlZ = Chr(Ord('z') - Ord('a') + 1); { = #26 }
+  CtrlZ = Chr(Ord('z') - Ord('a') + 1); { = #26 } { }
 
   CharBackSpace = #8;
   CharTab = #9;
@@ -1133,23 +1226,23 @@ begin
 end;
 {$WARNINGS ON}
 
-function FindPos(const subTekst, tekst: string; StartPosition, dlugosc: integer; opcje: TSearchOptions; const WordBorders: TSetOfChars): integer;
+function FindPos(const SubText, Text: string; StartPosition, Count: integer; Options: TSearchOptions; const WordBorders: TSetOfChars): integer;
 var S, SubS: string;
 
   function MatchingPos(i: integer): boolean;
-  { sprawdz czy i jest dobra pozycja wystapienia SubS w S.
-    Uwzglednij przy tym czy soWholeWord in opcje, zachowuj sie zawsze
-    jakby bylo soMatchCase in opcje. }
+  { sprawdz czy i jest dobra Position wystapienia SubS w S.
+    Uwzglednij przy tym czy soWholeWord in Options, zachowuj sie zawsze
+    jakby bylo soMatchCase in Options. }
   var realI: integer;
   begin
    result := false;
    if Copy(S, i, Length(SubS)) = SubS then
    begin
-    if soWholeWord in opcje then
+    if soWholeWord in Options then
     begin
      realI := i+StartPosition-1;
-     if ( (realI = 1) or (tekst[realI-1] in wordBorders) ) and
-        ( (realI+length(subS)-1 = length(tekst)) or (tekst[realI+length(subS)] in WordBorders) )
+     if ( (realI = 1) or (Text[realI-1] in wordBorders) ) and
+        ( (realI+length(subS)-1 = length(Text)) or (Text[realI+length(subS)] in WordBorders) )
      then result := true
     end else result := true;
    end;
@@ -1157,21 +1250,21 @@ var S, SubS: string;
 
 var i: integer;
 begin
- S := copy(tekst, StartPosition, dlugosc);
- SubS := SubTekst;
- if not (soMatchCase in opcje) then
+ S := copy(Text, StartPosition, Count);
+ SubS := SubText;
+ if not (soMatchCase in Options) then
  begin
   S := AnsiUpperCase(S);
   SubS := AnsiUpperCase(SubS);
  end;
  result := 0;
- if soBackwards in opcje then
+ if soBackwards in Options then
  begin
-  for i := dlugosc-Length(SubS)+1 downto 1 do
+  for i := Count-Length(SubS)+1 downto 1 do
    if MatchingPos(i) then begin result := i; break end;
  end else
  begin
-  for i := 1 to dlugosc-Length(SubS)+1 do
+  for i := 1 to Count-Length(SubS)+1 do
    if MatchingPos(i) then begin result := i; break end;
  end;
  if result > 0 then result := result+StartPosition-1;
@@ -1208,34 +1301,34 @@ begin
 end;
 
 function MatchingFind(const SubText, Text: string; MatchStart, MatchLength: integer;
-  so: TSearchOptions; const WordBorders: TSetOfChars): boolean;
+  Options: TSearchOptions; const WordBorders: TSetOfChars): boolean;
 begin
- result := MatchingFind(SubText, Text, MatchStart, MatchLength, soMatchCase
-   in so, soWholeWord in so, WordBorders);
+ result := MatchingFind(SubText, Text, MatchStart, MatchLength,
+   soMatchCase in Options, soWholeWord in Options, WordBorders);
 end;
 
-function FindWordPos(const SubTekst, Tekst: string; const WordBorders: TSetOfChars {DefaultWordBorders}): integer;
+function FindWordPos(const SubText, Text: string; const WordBorders: TSetOfChars {DefaultWordBorders}): integer;
 var i: integer;
 begin
- for i := 1 to Length(Tekst) - Length(subTekst) +1 do
-  if (Copy(Tekst, i, Length(SubTekst)) = SubTekst) and
-     ( (i = 1) or (Tekst[i-1] in WordBorders) ) and
-     ( (i+Length(SubTekst)-1 = Length(Tekst)) or (Tekst[i+Length(SubTekst)] in WordBorders) )
+ for i := 1 to Length(Text) - Length(SubText) +1 do
+  if (Copy(Text, i, Length(SubText)) = SubText) and
+     ( (i = 1) or (Text[i-1] in WordBorders) ) and
+     ( (i+Length(SubText)-1 = Length(Text)) or (Text[i+Length(SubText)] in WordBorders) )
     then begin result := i; exit end;
  result := 0;
 end;
 
-function GetWordAtPos(const tekst: string; pozycja: integer; const WordBorders: TSetOfChars): string;
-var pozStart, dlug, tekstLen: integer;
+function GetWordAtPos(const Text: string; Position: integer; const WordBorders: TSetOfChars): string;
+var pozStart, dlug, TextLen: integer;
 begin
- pozStart := pozycja;
+ pozStart := Position;
  dlug := 0;
- tekstLen := length(tekst);
- while (pozStart > 1) and (not (tekst[pozStart-1] in wordBorders)) do
+ TextLen := length(Text);
+ while (pozStart > 1) and (not (Text[pozStart-1] in wordBorders)) do
   begin Dec(pozStart); Inc(dlug); end;
- while (pozycja < tekstLen) and (not (tekst[pozycja] in wordBorders)) do
-  begin Inc(pozycja); Inc(dlug); end;
- result := copy(tekst, pozStart, dlug);
+ while (Position < TextLen) and (not (Text[Position] in wordBorders)) do
+  begin Inc(Position); Inc(dlug); end;
+ result := copy(Text, pozStart, dlug);
 end;
 
 function SRight(const s: string; const rpart: integer): string;
@@ -1838,10 +1931,10 @@ begin Result := byte(c)-byte('0') end;
 function IntToStrZPad(n: integer; minLength: integer): string;
 begin result := SZeroPad(IntToStr(n), minLength) end;
 
-function IntToStrPoz(n: QWord; poz: Byte): string;
+function IntToStrBase(n: QWord; Base: Byte): string;
 
   function TablZnakow(cyfra: Byte): char;
-  { result := symbol cyfry 'cyfra'. Zawsze cyfra < poz }
+  { result := symbol cyfry 'cyfra'. Zawsze cyfra < Base }
   begin
    if cyfra < 10 then
     result := DigitAsChar(cyfra) else
@@ -1849,48 +1942,51 @@ function IntToStrPoz(n: QWord; poz: Byte): string;
   end;
 
 begin
- {Nasze symbole to 0..9, 'A' ..'Z'. Mamy wiec 10+'Z'-'A'+1 symboli na poz cyfr. }
- Assert(poz < 10+Ord('Z')-Ord('A')+1, 'za duzy arg poz w IntToStrPoz');
+ {Nasze symbole to 0..9, 'A' ..'Z'. Mamy wiec 10+'Z'-'A'+1 symboli na Base cyfr. }
+ Assert(Base < 10+Ord('Z')-Ord('A')+1, 'too large Base in IntToStrBase');
  if n = 0 then result := '0' else
  begin
   result := '';
   while n <> 0 do
   begin
-   result := TablZnakow(n mod poz)+result;
-   n := n div poz;
+   result := TablZnakow(n mod Base)+result;
+   n := n div Base;
   end;
  end;
 end;
 
-function IntToStrPoz(const n: Int64; poz: Byte): string;
+function IntToStrBase(const n: Int64; Base: Byte): string;
 begin
   if N < 0 then
-    Result := '-' + IntToStrPoz(QWord(Abs(N)), Poz) else
-    Result := IntToStrPoz(QWord(N), Poz);
+    Result := '-' + IntToStrBase(QWord(Abs(N)), Base) else
+    Result := IntToStrBase(QWord(N), Base);
 end;
 
-function IntToStrPoz(const n: Int64; poz: Byte; minLength: Cardinal): string;
-{wywoluje IntToStrPoz, dodatkowo wypelniajac zerami z lewej, jesli trzeba}
+function IntToStrBase(const n: Int64; Base: Byte; minLength: Cardinal): string;
+{wywoluje IntToStrBase, dodatkowo wypelniajac zerami z lewej, jesli trzeba}
 begin
- result := IntToStrPoz(n, poz);
+ result := IntToStrBase(n, Base);
  if n < 0 then
   result := '-'+SZeroPad(SEnding(result, 2), minLength) else
   result := SZeroPad(result, minLength);
 end;
 
-function IntToStrPoz(const n: QWord; poz: Byte; minLength: Cardinal): string;
-{wywoluje IntToStrPoz, dodatkowo wypelniajac zerami z lewej, jesli trzeba}
+function IntToStrBase(const n: QWord; Base: Byte; minLength: Cardinal): string;
+{wywoluje IntToStrBase, dodatkowo wypelniajac zerami z lewej, jesli trzeba}
 begin
- result := IntToStrPoz(n, poz);
+ result := IntToStrBase(n, Base);
  result := SZeroPad(result, minLength);
 end;
 
-function IntToStr2(n: Int64; MinLength: Cardinal; ZeroDigit, OneDigit,
-  MinusSign: char): string;
+function IntToStr2(n: Int64;
+  const MinLength: Cardinal;
+  const ZeroDigit: char;
+  const OneDigit: char;
+  const MinusSign: char): string;
 var Negative: boolean;
     i: Integer;
 begin
- { Simple implementation : Result := IntToStrPoz(n, 2, minLength) }
+ { Simple implementation : Result := IntToStrBase(n, 2, minLength) }
 
  { Negative := n < 0, n := Abs(n) }
  Negative := n < 0;
@@ -1914,16 +2010,11 @@ begin
  if Negative then Result := MinusSign + Result;
 end;
 
-function IntToStr2(n: Int64; MinLength: Cardinal): string;
-begin
- Result := IntToStr2(n, MinLength, '0', '1', '-');
-end;
-
 function IntToStr16(const n: Int64; const minLength: Cardinal): string;
-begin result := IntToStrPoz(n, 16, minLength) end;
+begin result := IntToStrBase(n, 16, minLength) end;
 
 function IntToStr16(const n: QWord; const minLength: Cardinal): string;
-begin result := IntToStrPoz(n, 16, minLength) end;
+begin result := IntToStrBase(n, 16, minLength) end;
 
 function IntToStrThousandSep(const Value: Int64): string;
 
@@ -1990,7 +2081,7 @@ function Str2ToInt(const s: string): integer;
 var NextChar: integer;
 begin
  if s = '' then
-  raise EConvertError.Create('Argument StrBinToInt ma zerowa dlugosc.');
+  raise EConvertError.Create('Argument StrBinToInt ma zerowa length.');
  if s[1] = '-' then
  begin
   if Length(s) = 1 then

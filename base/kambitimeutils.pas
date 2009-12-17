@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2008 Michalis Kamburelis.
+  Copyright 2000-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -9,9 +9,11 @@
   "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
 }
 
-{ Things working with time }
+{ Time utilities. }
 unit KambiTimeUtils;
 
 {$I kambiconf.inc}
@@ -65,70 +67,69 @@ type
 const
   OldestTime = -MaxDouble;
 
-procedure Delay(MiliSec: Word); {nie robiac Process messages}
+{ Hang the program for the specified number of miliseconds. }
+procedure Delay(MiliSec: Word);
 
 type
   TMilisecTime = LongWord;
 
-{ zwraca czy secondTime jest pozniejsze o co najmniej timeDelay od firstTime.
-  first i second Time sa time'ami branymi z GetTickCount, tzn. czas jest w zakresie Dword
-  i moze sie przewinac. Tzn. kazdy czas jest rozumiany jako Later - natomiast
-  sprawdzane jest czy czas jest pozniejszy o timeDelay.
-  TimeTickSecond(x, x, 0) = true (czas x jest pozniejszy od x o 0 = true). }
+{ Check is SecondTime larger by at least TimeDelay than FirstTime.
+
+  Naive implementation of this would be @code(SecondTime - FirstTime >= TimeDelay).
+
+  FirstTime and SecondTime are milisecond times from some initial point.
+  For example, they may be taken from a function like GetTickCount.
+  Such time may "wrap" (TMilisecTime, just a LongWord, is limited).
+  This function checks these times intelligently, using the assumption that
+  the SecondTime is always "later" than the FirstTime, and only having to check
+  if it's later by at least TimeDelay.
+
+  Always TimeTickSecond(X, X, 0) = @true. that is, when both times
+  are actually equal, it's correctly "later by zero miliseconds". }
 function TimeTickSecondLater(firstTime, secondTime, timeDelay: TMilisecTime): boolean;
 
-{ zwraca roznice czasow secondTime-firstTime. Czasy sa brane z GetTickCount czyli
-  sa Dwordami i moga sie przewinac. }
+{ Difference in times between SecondTime and FirstTime.
+
+  Naive implementation would be just @code(SecondTime - FirstTime),
+  this function does a little better: takes into account that times may "wrap"
+  (see TimeTickSecondLater), and uses the assumption that
+  the SecondTime for sure "later", to calculate hopefully correct difference. }
 function TimeTickDiff(firstTime, secondTime: TMilisecTime): TMilisecTime;
 
-{ dodawanie i odejmowanie dwoch czasow. Zwroc uwage na brak precyzji :
-  czy TMilisecTime to punkt w czasie czy okres czasu ? Nie jest to
-  zdefiniowane, bo moze byc dowolnie. Mozesz dodac punkt czasu do okresu czasu
-  albo dwa okresy czasu, albo dwa punkty czasu i nawet jesli to ostatnie jest
-  bez sensu -  z punktu widzenia ponizszych funkcji nie istnieje rozroznienie
-  miedzy tymi operacjami.
-  Przy okazji mozna zauwazyc ze skoro wynik odejmowania tez jest TMilisecTime
-  to jesli odejmujesz dwa czasy od siebie na pewno otrzymasz wynik dodatni
-  (innymi slowy, jezeli chcesz odjac czas mniejszy od wiekszego to funkcja
-  ponizej zachowa sie jakby uznala ze czas sie musial "przewinac". }
+{ Simply add and subtract two TMilisecTime values.
+
+  These don't care if TMilisecTime is a point in time, or time interval.
+  They simply add / subtract values. It's your problem if adding / subtracting
+  them is sensible.
+
+  Range checking is ignored. In particular, this means that if you subtract
+  smaller value from larger value, the result will be like the time "wrapped"
+  in between (since TMilisecTime range is limited).
+
+  @groupBegin }
 function MilisecTimesAdd(t1, t2: TMilisecTime): TMilisecTime;
 function MilisecTimesSubtract(t1, t2: TMilisecTime): TMilisecTime;
+{ @groupEnd }
 
-{ czas od uruchomienia systemu w milisekundach (przewija sie co 49 dni) }
+{ Get current time, in miliseconds. Such time wraps after ~49 days.
+
+  Under Windows, this is just a WinAPI GetTickCount call, it's a time
+  since system start.
+
+  Under Unix, similar result is obtained by gettimeofday call,
+  and cutting off some digits. So under Unix it's not a time since system start,
+  but since some arbitrary point. }
 function GetTickCount: TMilisecTime;
  {$ifdef MSWINDOWS} stdcall; external KernelDLL name 'GetTickCount'; {$endif MSWINDOWS}
 
 const
   MinDateTime: TDateTime = MinDouble;
 
-{ zamien DateTime na "at" string czyli string w postaci "data at time".
-  Czesto uzywam takiego formatu. }
+{ Convert DateTime to string in the form "date at time". }
 function DateTimeToAtStr(DateTime: TDateTime): string;
 
 { ------------------------------------------------------------------------------
-  @section(Process Timer)
-
-  ProcessTimerEnd podaje czas jaki uplynal od ostatniego wywolania
-  ProcessTimer Begin w sekundach. (zawsze zrob tak zeby przed TimerEnd wystapilo
-  gdzies TimerBegin). Stara sie mierzyc czas jaki system spedzil TYLKO na tym
-  procesie wiec nie dokonuje faktycznego pomiaru czasu. Tzn. tak brzmi teoria -
-  pod windowsem nie ma takiej fajnej procedury clock() z Libc wiec uzywamy
-  prostego GetTickCount ktore de facto mierzy uplyw czasu rzeczywistego.
-  "Proc" jest skrotem od "Process".
-
-  Z definicji ProcessTimerBegin/End sa NON-REENTRANT. Aby skonstruowac je w obrebie
-  pojedynczego watku, a wiec aby pomiar byl reentrant, uzywaj
-  ProcessTimerNow : aby pobrac faktyczny stan timera
-  ProcessTimerDiff(a, b) : aby wykonac odejmowanie a-b (ProcessTimerDiff wykonuje
-     nie tylko a-b, np. pod Windowsem TimerDiff uwzglednia fakt ze GetTickCount
-     moze sie przewinac i o ile przewiniecie sie nie bylo zbyt duze zwraca i
-     tak dobry wynik. Ale mysl o ProcessTimerDiff(a, b) jako o a-b).
-  wynik ProcessTimerDiff jest przedzialem , w jednostkach TTimerResult. aby zamienic
-    go na sekundy podziel go przez ProcessTimersPerSec.
-
-  Jakiej rozdzielczosci uzywa timer ? No coz, zalezy od OSa i od implementacji.
-  Patrz stala ProcessTimersPerSec ponizej.
-}
+  @section(Process (CPU) Time measuring ) }
 
 type
   { }
@@ -137,12 +138,14 @@ type
     {$ifdef MSWINDOWS} DWord {$endif};
 
 const
+  { Resolution of process timer.
+    @seealso ProcessTimerNow }
   ProcessTimersPerSec
     {$ifdef UNIX}
       {$ifdef USE_LIBC}
         : function: clock_t = Libc.CLK_TCK
       {$else}
-        = { TODO: what is the frequency of FpTimes ?
+        = { What is the frequency of FpTimes ?
             sysconf (_SC_CLK_TCK) ?
             Or does sysconf exist only in Libc ? }
           { Values below were choosen experimentally for Linux and FreeBSD
@@ -159,10 +162,41 @@ const
     {$endif}
     {$ifdef MSWINDOWS} = 1000 { Using GetLastError } {$endif};
 
+{ Current value of process (CPU) timer.
+  This can be used to measure how much CPU time your process used.
+  Although note that on Windows there's no way to measure CPU time,
+  so this simply measures real time that passed. Only under Unix
+  this uses clock() call designed to actually measure CPU time.
+
+  You take two ProcessTimerNow values, subtract them with ProcessTimerDiff,
+  this is the time passed --- in resolution ProcessTimersPerSec.
+
+  For simple usage, see ProcessTimerBegin and ProcessTimerEnd. }
 function ProcessTimerNow: TProcessTimerResult;
+
+{ Subtract two process (CPU) timer results, obtained from ProcessTimerNow.
+
+  Although it may just subtract two values, it may also do something more.
+  For example, if timer resolution is only miliseconds, and it may wrap
+  (just like TMilisecTime), then we may subtract values intelligently,
+  taking into account that time could wrap (see TimeTickDiff). }
 function ProcessTimerDiff(a, b: TProcessTimerResult): TProcessTimerResult;
+
+{ Simple measure of process CPU time. Call ProcessTimerBegin at the beginning
+  of your calculation, call ProcessTimerEnd at the end. ProcessTimerEnd
+  returns a float number, with 1.0 being one second.
+
+  Note that using this is unsafe in libraries, not to mention multi-threaded
+  programs (it's not "reentrant") --- you risk that some other code
+  called ProcessTimerBegin, and your ProcessTimerEnd doesn't measure
+  what you think. So in general units, do not use this, use ProcessTimerNow
+  and ProcessTimerDiff instead. In final programs (when you have full control)
+  using these is comfortable and Ok.
+
+  @groupBegin }
 procedure ProcessTimerBegin;
 function ProcessTimerEnd: Double;
+{ @groupEnd }
 
 { -----------------------------------------------------------------------------
   @section(Timer) }
