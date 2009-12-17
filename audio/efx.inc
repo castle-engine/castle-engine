@@ -1,6 +1,7 @@
 { This contains translation of C header eax.h. }
 
 const
+  { }
   ALC_EXT_EFX_NAME = 'ALC_EXT_EFX';
 
 {*

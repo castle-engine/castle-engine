@@ -30,11 +30,13 @@ type
 var
   { Anti-aliasing level.
 
-    0 - none
-    1 - 2 samples, dont_care
-    2 - 2 samples, nicest (quincunx (5 taps) for NVidia)
-    3 - 4 samples, dont_care
-    4 and more - 4 samples, nicest (9 taps for NVidia)
+    @unorderedList(
+      @item 0 - none
+      @item 1 - 2 samples, dont_care
+      @item 2 - 2 samples, nicest (quincunx (5 taps) for NVidia)
+      @item 3 - 4 samples, dont_care
+      @item 4 and more - 4 samples, nicest (9 taps for NVidia)
+    )
   }
   AntiAliasing: TAntiAliasing = DefaultAntiAliasing;
 

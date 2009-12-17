@@ -15,7 +15,7 @@ const
  * appear farther down in this file.
  }
 
-{ AL EAXReverb effect parameters. }
+{ AL EAXReverb effect parameters. } { }
   AL_EAXREVERB_DENSITY                                = $0001;
   AL_EAXREVERB_DIFFUSION                              = $0002;
   AL_EAXREVERB_GAIN                                   = $0003;
@@ -40,7 +40,7 @@ const
   AL_EAXREVERB_ROOM_ROLLOFF_FACTOR                    = $0016;
   AL_EAXREVERB_DECAY_HFLIMIT                          = $0017;
 
-{ Effect type definitions to be used with AL_EFFECT_TYPE. }
+{ Effect type definitions to be used with AL_EFFECT_TYPE. } { }
   AL_EFFECT_EAXREVERB                                 = $8000;
 
 
@@ -51,7 +51,7 @@ const
 
 {*
  * AL reverb effect parameter ranges and defaults
- }
+ } { }
   AL_EAXREVERB_MIN_DENSITY                           = 0.0;
   AL_EAXREVERB_MAX_DENSITY                           = 1.0;
   AL_EAXREVERB_DEFAULT_DENSITY                       = 1.0;
