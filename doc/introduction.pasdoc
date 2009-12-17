@@ -256,7 +256,7 @@ units are allowed to be used by units in specific group.
         Everywhere is fine, as long as you have OpenGL rendering context.)
     )
 
-    @italic(Uses:) @code(base), @code(images).)
+    @italic(Uses:) @code(base), @code(images), @code(3dgraph).)
 
   @itemLabel @code(3dgraph)
   @item(

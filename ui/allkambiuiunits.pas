@@ -12,6 +12,7 @@ interface
 uses
   areas,
   keysmouse,
+  navigation,
   uicontrols
   ;
 

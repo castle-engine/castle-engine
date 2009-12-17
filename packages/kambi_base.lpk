@@ -71,7 +71,7 @@
         <UnitName Value="Frustum"/>
       </Item5>
       <Item6>
-        <Filename Value="../3dgraph/navigation.pas"/>
+        <Filename Value="../ui/navigation.pas"/>
         <UnitName Value="Navigation"/>
       </Item6>
       <Item7>

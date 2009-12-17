@@ -63,7 +63,6 @@ begin
     P.Targets.AddUnit('convexhullunit.pas');
     P.Targets.AddUnit('cubemap.pas');
     P.Targets.AddUnit('frustum.pas');
-    P.Targets.AddUnit('navigation.pas');
     P.Targets.AddUnit('polynomials.pas');
     P.Targets.AddUnit('quaternions.pas');
     P.Targets.AddUnit('rayswindow.pas');
@@ -177,7 +176,6 @@ begin
     end;
 
     P.SourcePath.Add('glwindow');
-    P.Targets.AddUnit('glmenu.pas');
     P.Targets.AddUnit('glsoundmenu.pas');
     P.Targets.AddUnit('glwindow.pas');
     P.Targets.AddUnit('glwindowrecentmenu.pas');
@@ -249,6 +247,12 @@ begin
     P.Targets.AddUnit('areas.pas');
     P.Targets.AddUnit('keysmouse.pas');
     P.Targets.AddUnit('uicontrols.pas');
+    P.Targets.AddUnit('navigation.pas');
+
+    P.SourcePath.Add('ui' + PathDelim + 'opengl');
+    P.Targets.AddUnit('glmenu.pas');
+    P.Targets.AddUnit('imageslider_base.pas');
+    P.Targets.AddUnit('imageslider_position.pas');
 
     Run;
   end;
