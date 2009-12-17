@@ -50,7 +50,7 @@ This package cannot be installed under Lazarus, it's only for being used in othe
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="14">
+    <Files Count="16">
       <Item1>
         <Filename Value="../glwindow/glwindowvrmlbrowser.pas"/>
         <UnitName Value="GLWindowVRMLBrowser"/>
@@ -108,6 +108,14 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <Filename Value="../glwindow/unix/glwindow_xlib.inc"/>
         <Type Value="Include"/>
       </Item14>
+      <Item15>
+        <Filename Value="../glwindow/imageslider_base.pas"/>
+        <UnitName Value="ImageSlider_base"/>
+      </Item15>
+      <Item16>
+        <Filename Value="../glwindow/imageslider_position.pas"/>
+        <UnitName Value="ImageSlider_position"/>
+      </Item16>
     </Files>
     <RequiredPkgs Count="2">
       <Item1>
