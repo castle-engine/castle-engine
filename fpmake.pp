@@ -176,6 +176,30 @@ begin
       P.Targets.AddUnit('winfontconvert.pas');
     end;
 
+    P.SourcePath.Add('glwindow');
+    P.Targets.AddUnit('glmenu.pas');
+    P.Targets.AddUnit('glsoundmenu.pas');
+    P.Targets.AddUnit('glwindow.pas');
+    P.Targets.AddUnit('glwindowrecentmenu.pas');
+    P.Targets.AddUnit('glwininputs.pas');
+    P.Targets.AddUnit('glwinmessages.pas');
+    P.Targets.AddUnit('glwinmodes.pas');
+    P.Targets.AddUnit('progressgl.pas');
+    P.Targets.AddUnit('timemessages.pas');
+    if Defaults.OS in AllUnixOSes then
+    begin
+      P.SourcePath.Add('glwindow/unix');
+      P.Targets.AddUnit('kambiglx.pas');
+      P.Targets.AddUnit('kambixf86vmode.pas');
+      P.Targets.AddUnit('xlibutils.pas');
+    end;
+    if Defaults.OS in AllWindowsOSes then
+    begin
+      P.SourcePath.Add('glwindow\windows');
+      P.Targets.AddUnit('glwindowwinapimenu.pas');
+      P.Targets.AddUnit('openglwindowsfonts.pas');
+    end;
+
     P.SourcePath.Add('images');
     P.Targets.AddUnit('images.pas');
     P.Targets.AddUnit('imagescache.pas');
@@ -206,35 +230,18 @@ begin
     P.Targets.AddUnit('glantialiasing.pas');
     P.Targets.AddUnit('glcubemap.pas');
     P.Targets.AddUnit('glimages.pas');
-    P.Targets.AddUnit('glmenu.pas');
     P.Targets.AddUnit('glshaders.pas');
-    P.Targets.AddUnit('glsoundmenu.pas');
     P.Targets.AddUnit('glversionunit.pas');
-    P.Targets.AddUnit('glwindow.pas');
-    P.Targets.AddUnit('glwindowrecentmenu.pas');
-    P.Targets.AddUnit('glwininputs.pas');
-    P.Targets.AddUnit('glwinmessages.pas');
-    P.Targets.AddUnit('glwinmodes.pas');
     P.Targets.AddUnit('kambiglut.pas');
     P.Targets.AddUnit('kambiglutils.pas');
     P.Targets.AddUnit('normalizationcubemap.pas');
     P.Targets.AddUnit('openglbmpfonts.pas');
     P.Targets.AddUnit('openglfonts.pas');
     P.Targets.AddUnit('openglttfonts.pas');
-    P.Targets.AddUnit('progressgl.pas');
     P.Targets.AddUnit('shadowvolumes.pas');
-    P.Targets.AddUnit('timemessages.pas');
-    if Defaults.OS in AllUnixOSes then
-    begin
-      P.SourcePath.Add('opengl/unix');
-      P.Targets.AddUnit('kambiglx.pas');
-      P.Targets.AddUnit('kambixf86vmode.pas');
-      P.Targets.AddUnit('xlibutils.pas');
-    end;
     if Defaults.OS in AllWindowsOSes then
     begin
       P.SourcePath.Add('opengl\windows');
-      P.Targets.AddUnit('glwindowwinapimenu.pas');
       P.Targets.AddUnit('openglwindowsfonts.pas');
     end;
 
