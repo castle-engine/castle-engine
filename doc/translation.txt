@@ -21,13 +21,7 @@ D   boxes3d.pas
 D   convexhullunit.pas
 D   cubemap.pas
 D   frustum.pas
-D   polynomials.pas
-D   quaternions.pas
-D   rayswindow.pas
-D   renderstateunit.pas
-|   spacefillingcurves.pas
-D   spheresampling.pas
-D   sphericalharmonics.pas
+|   kambioctree.pas
 D   nurbs.pas
 D   object3dgeo.pas
 D   object3dmd3.pas
@@ -35,8 +29,14 @@ D   object3dobj.pas
 -   object3ds.pas
 |   object3dschunks.pas
 |   object3dsmaterial.pas
+D   polynomials.pas
+D   quaternions.pas
+D   rayswindow.pas
+D   renderstateunit.pas
+|   spacefillingcurves.pas
+D   spheresampling.pas
+D   sphericalharmonics.pas
 D   triangulator.pas
-|   kambioctree.pas
 
   3d/opengl/
 -   backgroundgl.pas
@@ -125,12 +125,12 @@ D   unix/xlibutils.pas
 D   glsoundmenu.pas
 |   glwindow.pas
 D   glwindowrecentmenu.pas
+D   glwindowvrmlbrowser.pas
 -   glwininputs.pas
 D   glwinmessages.pas
 -   glwinmodes.pas
 D   progressgl.pas
 -   timemessages.pas
-D   glwindowvrmlbrowser.pas
 
   images/
 D   dds.pas
@@ -183,6 +183,8 @@ D   navigation.pas
 
  ui/opengl/
 D   glmenu.pas
+E   imageslider_base.pas
+E   imageslider_position.pas
 
 ------------------------------------------------------------
 Units that are not intended to be processed by pasdoc:
