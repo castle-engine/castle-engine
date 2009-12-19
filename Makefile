@@ -347,6 +347,8 @@ clean: cleanexamples
 	  packages/kambi_glwindow.pas \
 	  packages/kambi_components.pas \
 	  tests/test_kambi_units tests/test_kambi_units.exe
+# units/ is produced by fpmake
+	rm -Rf units/
 	$(MAKE) -C doc/pasdoc/ clean
 
 cleanmore: clean
