@@ -5,13 +5,13 @@ The core of "Kambi VRML game engine" (almost everything that can be found
 in this directory, kambi_vrml_game_engine) may be used on the terms of:
 
 1. GNU General Public License (version 2 or above, whichever you like),
-   see COPYING.gpl2 for GPL 2 text,
+   see COPYING.GPL2.txt for GPL 2 text,
    see http://www.gnu.org/copyleft/gpl.html for current version, FAQs etc.
 
 2. Or on a more permissive
    GNU Lesser General Public License (again version 2 or above, whichever you like),
    (also called "Library General Public License" in earlier versions),
-   see COPYING.lgpl2 for LGPL 2 text,
+   see COPYING.LGPL2.txt for LGPL 2 text,
    see http://www.gnu.org/copyleft/lesser.html for current version, FAQs etc.
 
    Please note that if you want to use LGPL:
