@@ -6,16 +6,16 @@ object Main: TMain
   ActiveControl = Browser
   AutoSize = True
   Caption = 'Main'
-  ClientHeight = 402
+  ClientHeight = 405
   ClientWidth = 676
   Menu = MainMenu1
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
-  ParentFont = False
-  LCLVersion = '0.9.26'
+  LCLVersion = '0.9.29'
   object PanelBottom: TPanel
+    Left = 0
     Height = 141
-    Top = 261
+    Top = 264
     Width = 676
     Align = alBottom
     ClientHeight = 141
@@ -28,20 +28,20 @@ object Main: TMain
       Width = 512
       Align = alLeft
       Caption = 'Camera'
-      ClientHeight = 118
+      ClientHeight = 120
       ClientWidth = 508
       TabOrder = 0
       object Label1: TLabel
         Left = 13
-        Height = 17
+        Height = 18
         Top = 7
-        Width = 62
+        Width = 61
         Caption = 'Position:'
         ParentColor = False
       end
       object Label2: TLabel
         Left = 13
-        Height = 17
+        Height = 18
         Top = 40
         Width = 68
         Caption = 'Direction:'
@@ -49,15 +49,15 @@ object Main: TMain
       end
       object Label3: TLabel
         Left = 13
-        Height = 17
+        Height = 18
         Top = 72
-        Width = 26
+        Width = 25
         Caption = 'Up:'
         ParentColor = False
       end
       object EditPositionX: TEdit
         Left = 93
-        Height = 23
+        Height = 27
         Top = 2
         Width = 80
         TabOrder = 0
@@ -65,7 +65,7 @@ object Main: TMain
       object EditPositionY: TEdit
         Tag = 1
         Left = 181
-        Height = 23
+        Height = 27
         Top = 2
         Width = 80
         TabOrder = 1
@@ -73,14 +73,14 @@ object Main: TMain
       object EditPositionZ: TEdit
         Tag = 2
         Left = 269
-        Height = 23
+        Height = 27
         Top = 2
         Width = 80
         TabOrder = 2
       end
       object EditDirectionX: TEdit
         Left = 93
-        Height = 23
+        Height = 27
         Top = 34
         Width = 80
         TabOrder = 3
@@ -88,7 +88,7 @@ object Main: TMain
       object EditDirectionY: TEdit
         Tag = 1
         Left = 181
-        Height = 23
+        Height = 27
         Top = 34
         Width = 80
         TabOrder = 4
@@ -96,14 +96,14 @@ object Main: TMain
       object EditDirectionZ: TEdit
         Tag = 2
         Left = 269
-        Height = 23
+        Height = 27
         Top = 34
         Width = 80
         TabOrder = 5
       end
       object EditUpX: TEdit
         Left = 93
-        Height = 23
+        Height = 27
         Top = 66
         Width = 80
         TabOrder = 6
@@ -111,7 +111,7 @@ object Main: TMain
       object EditUpY: TEdit
         Tag = 1
         Left = 181
-        Height = 23
+        Height = 27
         Top = 66
         Width = 80
         TabOrder = 7
@@ -119,16 +119,16 @@ object Main: TMain
       object EditUpZ: TEdit
         Tag = 2
         Left = 269
-        Height = 23
+        Height = 27
         Top = 64
         Width = 80
         TabOrder = 8
       end
       object ButtonChangeCamera: TButton
         Left = 365
-        Height = 38
+        Height = 37
         Top = 51
-        Width = 71
+        Width = 74
         AutoSize = True
         BorderSpacing.InnerBorder = 4
         Caption = 'Change'
@@ -138,7 +138,9 @@ object Main: TMain
     end
   end
   object Browser: TKamVRMLBrowser
-    Height = 261
+    Left = 0
+    Height = 264
+    Top = 0
     Width = 676
     Align = alClient
     OnNavigatorChanged = BrowserNavigatorChanged

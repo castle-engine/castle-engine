@@ -8,7 +8,7 @@
       </Flags>
       <MainUnit Value="0"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="0"/>
+      <ActiveEditorIndexAtStart Value="1"/>
     </General>
     <PublishOptions>
       <Version Value="2"/>
@@ -38,14 +38,14 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="30">
+    <Units Count="31">
       <Unit0>
         <Filename Value="lazarus_vrml_browser.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="lazarus_vrml_browser"/>
         <CursorPos X="53" Y="17"/>
         <TopLine Value="1"/>
-        <UsageCount Value="44"/>
+        <UsageCount Value="48"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
@@ -53,20 +53,20 @@
         <ComponentName Value="Main"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="11" Y="135"/>
-        <TopLine Value="112"/>
+        <CursorPos X="52" Y="9"/>
+        <TopLine Value="1"/>
         <EditorIndex Value="0"/>
-        <UsageCount Value="44"/>
+        <UsageCount Value="48"/>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="../../../src/components/kambiglcontrol.pas"/>
         <UnitName Value="KambiGLControl"/>
-        <CursorPos X="1" Y="1"/>
-        <TopLine Value="1"/>
-        <UsageCount Value="13"/>
+        <CursorPos X="1" Y="128"/>
+        <TopLine Value="111"/>
+        <UsageCount Value="15"/>
         <Bookmarks Count="1">
-          <Item0 X="5" Y="131" ID="1"/>
+          <Item0 X="5" Y="202" ID="1"/>
         </Bookmarks>
       </Unit2>
       <Unit3>
@@ -125,7 +125,7 @@
         <UnitName Value="OpenGLInformation"/>
         <CursorPos X="30" Y="36"/>
         <TopLine Value="18"/>
-        <UsageCount Value="32"/>
+        <UsageCount Value="36"/>
       </Unit10>
       <Unit11>
         <Filename Value="mainf.lfm"/>
@@ -244,7 +244,7 @@
         <UnitName Value="VrmlConsoleF"/>
         <CursorPos X="3" Y="50"/>
         <TopLine Value="11"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="28"/>
       </Unit27>
       <Unit28>
         <Filename Value="../../../vrml/vrmlerrors.pas"/>
@@ -260,12 +260,49 @@
         <TopLine Value="99"/>
         <UsageCount Value="10"/>
       </Unit29>
+      <Unit30>
+        <Filename Value="../../../src/components/kambivrmlbrowser.pas"/>
+        <UnitName Value="KambiVRMLBrowser"/>
+        <CursorPos X="33" Y="521"/>
+        <TopLine Value="504"/>
+        <EditorIndex Value="1"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit30>
     </Units>
-    <JumpHistory Count="1" HistoryIndex="0">
+    <JumpHistory Count="8" HistoryIndex="7">
       <Position1>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="9" Column="55" TopLine="1"/>
+        <Filename Value="../../../src/components/kambivrmlbrowser.pas"/>
+        <Caret Line="322" Column="11" TopLine="296"/>
       </Position1>
+      <Position2>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="9" Column="52" TopLine="1"/>
+      </Position2>
+      <Position3>
+        <Filename Value="../../../src/components/kambivrmlbrowser.pas"/>
+        <Caret Line="160" Column="22" TopLine="127"/>
+      </Position3>
+      <Position4>
+        <Filename Value="../../../src/components/kambivrmlbrowser.pas"/>
+        <Caret Line="520" Column="7" TopLine="505"/>
+      </Position4>
+      <Position5>
+        <Filename Value="../../../src/components/kambivrmlbrowser.pas"/>
+        <Caret Line="161" Column="27" TopLine="161"/>
+      </Position5>
+      <Position6>
+        <Filename Value="../../../src/components/kambivrmlbrowser.pas"/>
+        <Caret Line="157" Column="36" TopLine="150"/>
+      </Position6>
+      <Position7>
+        <Filename Value="../../../src/components/kambivrmlbrowser.pas"/>
+        <Caret Line="160" Column="32" TopLine="150"/>
+      </Position7>
+      <Position8>
+        <Filename Value="../../../src/components/kambivrmlbrowser.pas"/>
+        <Caret Line="161" Column="57" TopLine="150"/>
+      </Position8>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
