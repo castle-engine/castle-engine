@@ -1,3 +1,6 @@
+Applies to src/vrml/opengl/vrmlbumpmappingrenderer.inc and bump mapping
+shaders there:
+
 marge parallax and no parallax shader code in one file, use #defines
 fix gl_FrontFacing (it officially doesn't work on NVidia in FS, it also doesn't really work on some Radeons (on crypto this causes software GLSL, and in effect freezes the program...)). NVidia gives some suggestions for workarounds, see
   http://developer.download.nvidia.com/opengl/glsl/glsl_release_notes.pdf
