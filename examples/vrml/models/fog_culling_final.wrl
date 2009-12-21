@@ -28,5 +28,7 @@ Group {
   }
   Background { skyColor 0 1 0 }
 
+  NavigationInfo { type [ "FLY", "ANY" ] speed 10 }
+
   WWWInline { name "fog_culling.wrl" }
 }
