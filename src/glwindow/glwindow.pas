@@ -4281,27 +4281,27 @@ begin
   FFpsCaptionUpdateInterval := DefaultFpsCaptionUpdateInterval;
 end;
 
-{ TWindowUIControlList ----------------------------------------------------- }
+{ TControlledUIControlList ----------------------------------------------------- }
 
 type
   { TUIControlList descendant that takes care to react to list add/remove
-    notifications, doing appropriate operations with parent Window. }
-  TWindowUIControlList = class(TUIControlList)
+    notifications, doing appropriate operations with parent Container. }
+  TControlledUIControlList = class(TUIControlList)
   private
-    Window: TGLWindowNavigated;
+    Container: TGLWindowNavigated;
   public
-    constructor Create(const FreeObjects: boolean; const AWindow: TGLWindowNavigated);
+    constructor Create(const FreeObjects: boolean; const AContainer: TGLWindowNavigated);
     procedure Notify(Ptr: Pointer; Action: TListNotification); override;
   end;
 
-constructor TWindowUIControlList.Create(const FreeObjects: boolean;
-  const AWindow: TGLWindowNavigated);
+constructor TControlledUIControlList.Create(const FreeObjects: boolean;
+  const AContainer: TGLWindowNavigated);
 begin
   inherited Create(FreeObjects);
-  Window := AWindow;
+  Container := AContainer;
 end;
 
-procedure TWindowUIControlList.Notify(Ptr: Pointer; Action: TListNotification);
+procedure TControlledUIControlList.Notify(Ptr: Pointer; Action: TListNotification);
 var
   C: TUIControl absolute Ptr;
 begin
@@ -4309,33 +4309,33 @@ begin
   case Action of
     lnAdded:
       begin
-        { Make sure Window.ControlsVisibleChange will be called
+        { Make sure Container.ControlsVisibleChange will be called
           when a control calls OnVisibleChange. }
         if C.OnVisibleChange = nil then
-          C.OnVisibleChange := @Window.ControlsVisibleChange;
+          C.OnVisibleChange := @Container.ControlsVisibleChange;
 
-        { Call initial WindowResize for control.
+        { Call initial ContainerResize for control.
           If window OpenGL context is not yet initialized, defer it to
           the Init time, then our initial EventResize will be called
-          that will do WindowResize on every control. }
-        if not Window.Closed then
-          C.ContainerResize(Window.Width, Window.Height);
+          that will do ContainerResize on every control. }
+        if not Container.Closed then
+          C.ContainerResize(Container.Width, Container.Height);
 
-        { Resister Window to be notified of control destruction. }
-        C.FreeNotification(Window);
+        { Register Container to be notified of control destruction. }
+        C.FreeNotification(Container);
 
-        C.Container := Window;
+        C.Container := Container;
       end;
     lnExtracted, lnDeleted:
       begin
-        if C.OnVisibleChange = @Window.ControlsVisibleChange then
+        if C.OnVisibleChange = @Container.ControlsVisibleChange then
           C.OnVisibleChange := nil;
 
-        C.RemoveFreeNotification(Window);
+        C.RemoveFreeNotification(Container);
 
         C.Container := nil;
       end;
-    else raise EInternalError.Create('TWindowUIControlList.Notify action?');
+    else raise EInternalError.Create('TControlledUIControlList.Notify action?');
   end;
 end;
 
@@ -4344,7 +4344,7 @@ end;
 constructor TGLWindowNavigated.Create(AOwner: TComponent);
 begin
  inherited;
- FControls := TWindowUIControlList.Create(false, Self);
+ FControls := TControlledUIControlList.Create(false, Self);
  FUseControls := true;
 end;
 
@@ -4367,7 +4367,7 @@ end;
 procedure TGLWindowNavigated.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   { We have to remove a reference to the object from Controls list.
-    This is crucial: TWindowUIControlList.Notify,
+    This is crucial: TControlledUIControlList.Notify,
     and some Controls.MakeSingle calls, assume that all objects on
     the Controls list are always valid objects (no invalid references,
     even for a short time). }
