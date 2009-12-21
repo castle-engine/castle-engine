@@ -230,9 +230,6 @@ begin
 
   FIgnoreAreas := TDynAreaArray.Create;
 
-  { we manage Navigator ourselves, this makes code more consequent to follow }
-  OwnsNavigator := false;
-
   Load(nil, true);
 end;
 
