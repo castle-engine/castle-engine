@@ -4745,8 +4745,10 @@ procedure TGLWindowNavigated.EventClose;
 var
   I: Integer;
 begin
-  { call GLContextClose on controls before inherited (OnClose) }
-  if UseControls then
+  { call GLContextClose on controls before inherited (OnClose).
+    This may be called from Close, which may be called from TGLWindow destructor,
+    so prepare for Controls being possibly nil now. }
+  if UseControls and (Controls <> nil) then
   begin
     for I := 0 to Controls.Count - 1 do
       Controls[I].GLContextClose;
