@@ -1,6 +1,43 @@
-The central TODO file. There are also some TODOs scattered elsewhere, do "find -iname TODO*" to find them. In paricular, ../../www/TODO contains "next-release" stuff, usually has a list of blockers typically worked upon right before release.
+The central TODO file. There are also some TODOs scattered elsewhere,
+do "find -iname TODO*" to find them.
+In paricular, ../../www/TODO contains "next-release" stuff,
+usually has a list of blockers typically worked upon right before release.
 
 ------------------------------------------------------------------------------
+view3dscene 3.5 blockers:
+- finish X3D nurbs component up to level 2, update vrml_impl_status about it.
+  Remaining:
+    CoordinateDouble
+    NurbsTextureCoordinate
+    NurbsSet
+
+------------------------------------------------------------------------------
+For view3dscene 3.6:
+- implement more pointing device sensors
+- basic networking support
+(I want to have full coverage of X3D "Interactive" with 3.6 release),
+fix Victor Amat problems with touch sensor picking along the way.
+
+------------------------------------------------------------------------------
+For view3dscene 4.0:
+JavaScript, or Python/Lua?
+
+------------------------------------------------------------------------------
+Various ideas:
+
+- Maybe more improvements along the vrml_implementation_status.php division:
+  - #section_x3d_multitex_clarifications - move to "texturing" component page?
+  - NIST VRML tests move to separate?
+  - DDS support move to separate?
+
+- Joerg pointed out possible problem with quads for NurbsSurface*:
+
+  Ah, I understand now, and that's also why the problem is visible with
+  symmetric surfaces... Thanks, will do some testing, maybe eventually
+  I'll add a field to IndexedQuadSet like tesselateIntelligently:SFBool to
+  force tesselating quads into 2 tris by intelligently choosing a dividing
+  edge (to make it shortest). This would force correct look of all
+  IndexedQuadSet, including NurbsPatchSurface.
 
 - on kocury win 2000 prof with Geforce 5200, FBO config is never supported.
   While on Linux (32, 64) it's Ok.
@@ -28,3 +65,330 @@ The central TODO file. There are also some TODOs scattered elsewhere, do "find -
 
   For view3dscene 3.4, this will have to be enough.
 
+------------------------------------------------------------------------------
+Effects, techniques, passes:
+- victor amat
+  http://http.developer.nvidia.com/CgTutorial/cg_tutorial_appendix_c.html,
+- dane osowskiego i OGRE,
+- tak¿e http://http.developer.nvidia.com/GPUGems/gpugems_ch36.html chyba wszyscy o tym wspominaj±...
+
+------------------------------------------------------------------------------
+Occlusion culling (Ok for post 3.4):
+
+- make RenderState.StenilTest be used also to pause (not update visibility) in hierarch oq, it would be a waste of temporal conh to not pause there.
+
+- if tests show hierarchical is much better than UseOcclusionQuery,
+  old UseOcclusionQuery may be removed (and this may be renamed
+  to just UseOcclusionQuery). (Or keep old UseOcclusionQuery only
+  for seminar.)
+
+- make nicer interaction OctreeFrustumCulling (use it for frustum checks in
+  UseHierarchicalOcclusionQuery).
+  And with RenderFrustum_Frustum^, right now we just take it.
+
+- UseHierarchicalOcclusionQuery ignores blending for now.
+
+- this strange thing on bzwgen level, that always shown yellow block, although it should be normally visible afterwards. What's with it? Fixed now?
+  No, it still exists.
+
+- tree may be very very poor for shapes. E.g. atcs. This also makes hierarch culling perform badly.
+  Hmm, I see why the octree has a lot of duplication on regular_labirynth, although how to improve? Possibly some bottom-to-top scan that turns off octree planes where all children are the same?
+  For now, I can add dummy box to the regular_labirynth to force octree be correct.
+  For atcs, how to fix?
+
+- Various rendering targets, and "inshadow" for stencil, should just have a separate occlusion query state. This will allow to use oq for all situations, unlike current where oq is done normally only for non-shadowed with target = rtScreen.
+  See TODO in vrmlglscene.pas about this too.
+
+------------------------------------------------------------------------------
+SceneManager stuff (post 3.4):
+
+- Use SceneManager *everywhere*. Make it trivial, so that simple_view_scene and such can use it. With new requirements (RenderState, generated textures, shadow volumes), it simply makes no sense to directly render TVRMLGLScene anymore.
+
+- RenderState.Camera* is currently not initialized in various programs. This is supposed to be fixed by using SceneManager everywhere, that's why I didn't want to pollute code for now. When you don't use generated textures, RenderState.Camera* is only for Viewpoint events and WORLDSPACE* tex coord generation, which is simply not used by some programs. Below is extracted from
+  grep_pas_src . 'glLoadMatrix(.*navigator.matrix)'
+
+  ./lets_take_a_walk/lets_take_a_walk.pasprogram:324: glLoadMatrix(glw.Navigator.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/shadow_volume_test/shadow_volume_test.pasprogram:352:  glLoadMatrix(Glw.Navigator.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/plane_mirror_and_shadow.pasprogram:299:  glLoadMatrix(glw.Navigator.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/demo_animation.pasprogram:79:  glLoadMatrix(glw.Navigator.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/bump_mapping/bump_mapping.pasprogram:853:  glLoadMatrix(Glw.Navigator.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/fog_culling.pasprogram:88:  glLoadMatrix(glw.Navigator.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/change_vrml_by_code.pasprogram:61:  glLoadMatrix(glw.Navigator.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/dynamic_ambient_occlusion/dynamic_ambient_occlusion.pasprogram:618:  glLoadMatrix(glw.Navigator.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/simple_view_model.pasprogram:68:  glLoadMatrix(glw.Navigator.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/radiance_transfer/radiance_transfer.pasprogram:99:  glLoadMatrix(Glw.Navigator.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/radiance_transfer/show_sh.pasprogram:187:  glLoadMatrix(Glw.Navigator.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/change_vrml_by_code_2.pasprogram:42:  glLoadMatrix(glw.Navigator.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/gl_primitive_performance.pasprogram:66:  glLoadMatrix(glw.Navigator.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/simple_view_model_2.pasprogram:80:  glLoadMatrix(glw.Navigator.Matrix);
+  ./kambi_vrml_game_engine/opengl/examples/multi_texturing_demo.pasprogram:108:  glLoadMatrix(Glw.Navigator.Matrix);
+  ./kambi_vrml_game_engine/opengl/examples/bezier_surfaces/animate_surface.pasprogram:101:  glLoadMatrix(Glw.Navigator.Matrix);
+  ./kambi_vrml_game_engine/opengl/examples/bezier_surfaces/design_surface.pasprogram:207:  glLoadMatrix(Glw.Navigator.Matrix);
+  ./kambi_vrml_game_engine/opengl/examples/shading_langs/shading_langs_demo.pasprogram:143:  glLoadMatrix(Glw.Navigator.Matrix);
+  ./kambi_vrml_game_engine/opengl/examples/interpolated_curves.pasprogram:152:  glLoadMatrix(Glw.Navigator.Matrix);
+  ./kambi_vrml_game_engine/opengl/examples/demo_matrix_navigation.pasprogram:27:  - call glLoadMatrix(glw.Navigator.Matrix) at the beginning
+  ./kambi_vrml_game_engine/opengl/examples/demo_matrix_navigation.pasprogram:48:  glLoadMatrix(glw.Navigator.Matrix);
+
+  This will get automatically fixed when we extend and use SceneManager everywhere.
+
+- SceneManager should support TVRMLGLAnimation just like TVRMLGLScene, to fix some problems with view3dscene usage:
+  - SceneManager passes Scene.WalkProjectionNear, Scene.WalkProjectionFar, but for TVRMLGLAnimation typically only the first scene has these set properly. That's why TVRMLGLAnimation has own WalkProjectionNear, WalkProjectionFar.
+    Result: generated cube map textures combined with kanim animations will not work (they will use invalid near/far).
+  - We would like to use SceneManager.PrepareRender in view3dscene, but we can't: we want to make full TVRMLGLAnimation.PrepareRender (with progress bar possibly allowed) there.
+    For now, this is workarounded, we just ignore SceneManager.PrepareRender, duplicating some logic.
+
+- castlelevel.pas should be done by SceneManager instead.
+  Also, creatures and items should be part of SceneManager then too.
+  castlelevel.pas "TLevelObject" may actually be used a basic block for TSceneManager.
+
+------------------------------------------------------------------------------
+moved post 3.4:
+
+- multitex:
+  - fix for normal primitives: set all texture coords equal.
+
+Victor Amat list (overlapping with mine, so let's go with it):
+  - passing vertex attributes to shaders
+
+  - Note that to use it, you would also need to know the current screen
+    size, how about adding outputOnly events to X3DViewpointNode that return
+    screenWidth, screenHeight as SFInt32?
+
+    Hm, bs contact has "eventOut SFVec2f windowSize", although I don't know on wha node.
+    http://www.bitmanagement.com/documents/BS_Contact_VRML_june2006.pdf
+
+- Maybe you can solve this with an overloaded assignment operator between gboolean and boolean?
+  Good idea, try a patch ad submit.
+
+- Instead of ViewerChanged and IsLast..., it would be more natural and easier
+  to keep Navigator reference in TVRMLScene.
+  This could ease some integration between TVRMLScene, TVRMLGLScene and viewer.
+
+- There remains problem with EditableTransform behavior on shadow_map_test.x3dv:
+  Activate (click over) and press "e" over any shadow receiver.
+  This will cause change of transformation, but the bad one (because the light source is inside), so will cause ChangedAll.
+  This means that octree will be freed and we'll reset active sensor info by PointingDeviceClear.
+  This means that TouchSensor will not generate isActive := false, so script will hold isActive = true.
+  Further keypress "e" (without clicking any sensor!) will activate move on this sensor (since it's still considered "active" by the script).
+
+  This is a result of various problems:
+  - we do not have a queue of events, otherwise we could call proper SetPointingDeviceActive(false) and PointingDeviceMove(nil) for later. Although this would stil be risky --- there is a reason why we call PointingDeviceClear, to have a clear way without any possible complications and callbacks.
+  - calling ChangedAll when just the transform over the light changed is bad anyway. Octrees, in particular, do not have to be rebuild at all, so actually there should be no need for PointingDeviceClear at this point...
+
+TGLTextureStorage
+    (2D - just a single GLuint for GL_TEXTURE_2D,
+    video - TVideo, sequence of GLuint for GL_TEXTURE_2D,
+    cube - ...
+    3D - ...
+    depth)
+  TGLTextureNode can choose any TGLTextureStorage (maybe at runtime) as storage
+  Possibly helpful for DDS mipmaps/compression impl?
+  This would mean TGLTextureStorage is in GLImages, not only for VRMLOpenGLRenderer.
+
+- multitex:
+  - remaining MultiTexture.mode ("MODULATE*_ADD*"),
+  - MultiTexture.function field
+
+Because of caching AlphaChannelType inside renderer, and using Renderer.PreparedTextureAlphaChannelType for calculating UseBlending, this means that if the same tex filename occurs in various ImageTexture nodes, and in one case we force it to have alpha different the auto-detection says (e.g. using alphaChannel "FULL_RANGE" to force full range on texture without alpha channel), then all texture occurences have the same alpha channel treatment. (alphaChannel field doesn't work correctly).
+
+sk±d kreski na water w water_reflections_normalmap (both nvidia and radeon show this). Any relation to steep parallax mapping aliasing?
+
+Unify texture coord generation for primitives and other shapes.
+The idea is that I would like to
+- apply texture coords per-unit on primitives too (currently their coords don't work with multitexturing)
+- have texCoord that allows TextureCoordinateGeneration nodes for all primitives! (very useful when you want e.g. to make cube map mirror, or shadow maps, on primitives... currenly you're forced to make IndexedFaceSet representing box just for this.)
+
+ImageGLInternalFormat should use symbolic names, not numbers!
+(Check, since which OpenGL version?)
+
+Shadow maps implementation rest:
+- PROJECTION texture mapping disables displays lists, which seriously limits this technique... Fix. Use VBOs to make things fast even without disp lists. Move texture coord generation out of the display list.
+
+(I think I'll make some extentions to NavigationInfo to control the amount of head-bobbing; but I'm getting off-topic..).
+
+Dynamically changing camera radius may be implemented (along with decreasing camerapreferredheight, decrease cam radius?)
+
+OpenEXR notes:
+http://http.developer.nvidia.com/GPUGems/gpugems_ch26.html
+
+- why on cubemap_generated_recursive.x3dv the reflections between two cubes
+  have some pink color left when cube faces are exactly opposite each other?
+  See TODO in cubemap_generated_recursive.x3dv
+
+Zaimplementuj streaming dla OggVorbis.
+
+There are still some rough situations when camera "shakes" when going around the corners with wall-sliding on castle_hall. Seems wall-sliding is done, but with somewhat bad direction?
+
+- dyn ao:
+  - use float textures
+  - add to make easily usable from the engine?
+
+- when capturing screenshots/movies in batch mode, use FBO
+
+- add params to primitives to be able to change their texCoord, even creaseAngle
+  (it's stupid that right now I have to write PROTOs with IndexedFaceSet to make them, in the worst case engine should do this automatically)
+
+S3TC:
+- (minor) image_identify cannot display info about S3TC compressed images
+- (minor) glViewImage can open s3tc compressed images, but it cannot be the 1st image on command-line (since opengl context is not ready then yet, so no decompressor initialized)
+
+- Maybe make an option to make the GeneratedCubeMapTexture (and RenderedTexture?) grayscale? Useful since default tex mapping in VRML standard says that only grayscale should modulate, RGB should decal. And sometimes grayscale only modulated by tex color may look just better?
+  Hm, for RenderedTexture it's already in the spec: dimensions field has "components" number, default 4, but (I guess) may be 1,2,3 as well.
+------------------------------------------------------------------------------
+octree todos moved for after view3dscene 3.2:
+- remaining TODOs about octrees:
+  - vrmlshapeoctree.pas: we make box from sphere, and transform the box
+
+  - vrmlscene.pas:
+    There is still rebuilding with OctreeDynamicCollisions (it just happens
+    on much smaller sets). Implement actual updating.
+
+- also now the first octree update during CollisionCheck = false doesn't release the octree
+  hm, that's actually somewhat good, as previous approach with "first octree update releases octree" was a little confusing for users (although it was for efficiency)
+
+- some programs using currently okDynamicCollisions could be happy enough with okCollidableTriangles (malfunction, lets_take_a_walk, grep for rest). For now, keep using okDynamicCollisions, to compare speed eventually (okDynamicCollisions should be as well fast), maybe in the future drop to okCollidableTriangles?
+
+  hm, not necessarily, on castle ssDynamicCollisions is slightly faster, except at the end of "cages" level. profile this particular case?
+
+  finish castle testing and allow ssDynamicCollisions there for good?
+
+- can we somehow fix precalculated anims now too for collisions?
+  fix view3dscene docs then,
+
+- add fields to make object->object and object->avatar collisions work somehow.
+  (Right now, only avatar->object collisions are done.)
+
+------------------------------------------------------------------------------
+- Automatically detect when roSeparateShapeStates / ...NoTransform / roNone is suitable.
+  Actually, optimization should be per-shape choice now?
+  Except roSceneAsAWhole, that would override it?
+
+- TVRMLScene.Shapes tree, with switches/lods approach,
+  may be also used to efficiently implement layers now.
+
+- http://www.libpng.org/pub/png/pngvrml.html finish:
+  with RGB Textures Color Mode->GL_REPLACE
+  Still missing:
+  - on palette opaque: PNGs with grayscale palette are not detected as grayscale (so do not blend with mat color)
+  - on 8bit opaque: JPG is not detected as grayscale (can jpg be grayscale?)
+  - pallette translucent:
+    again not palette PNG detected as grayscale, so are not mixed with color
+    GIF with gray palette not detected properly, why fully transparent?
+  - 8bit translucent:
+    again JPG is not detected as grayscale (can jpg be grayscale?)
+    grayscale + transparent shade again fully transparent, don't know why?
+  - 16bit translucent:
+    again grayscale + transparent shade again fully transparent, don't know why?
+
+- Make TGLApplication TCustomApplication one day?
+------------------------------------------------------------------------------
+large TODOs:
+- First of all, I planned to make a new game at the beginning of next year, with draft title "human programming"
+
+- Plane mirror support in OpenGL for Material.mirror field (porting to
+general renderer the code from
+kambi_vrml_game_engine/examples/plane_mirror_and_shadow)
+
+- Simple networking (support for http:// and such in view3dscene)
+
+- Scripting in JavaScript (using spidermonkey after fixing
+http://delphi.mozdev.org/ for recent fpc)
+
+- And then physics engine and X3D rigid body component
+- And then particle engine
+------------------------------------------------------------------------------
+- shadows for VRML browsers finish:
+  - allow multiple lights. This requires
+    adding light contributions, so using blending --- this was problematic
+    when shadow receivers could use blending themselves. Now it'll
+    not be a problem.
+
+  - patch for laz to get StencilBits there. (notice de-panther)
+
+  - ForceZFarInfinity - implement it also for ortho there.
+
+  - VRML browser shadows don't actually do SV culling, since there's only one scene.
+    We should make SV culling on shape level too, settable by some option?
+    Hm, but not really possible with current impl --- we take all edges,
+    from the whole scene, so we lost the separation into triangles.
+    (OTOH, whole scene must be manifold, not necessarily one shape).
+------------------------------------------------------------------------------
+- prt: implement on shaders? this way roNone not needed, also special radianceTransfer field support not needed. Shaders vertex attrib nodes will have to be supported.
+       make this easily usable by VRML authors, that is make it's rendering more integrated and available also from e.g. view3dscene
+
+- x3d/light_transform_animated.x3dv fix, along with fix in vrmlscene.pas about lights there
+
+- remake quat unit on Matrix vectors (with overloaded operators would be fun)
+
+------------------------------------------------------------------------------
+Ah yes. So the CPU is used (it's not that mem is leaking). I looked at view3dscene, and yes it will constantly use CPU since it continously increases the time (for animations). The same happens with VRML browser components (based on LCL or TGLWindow, doesn't matter). Even if there's no time-dependent sensor active.
+
+I'll think about fixing this. It's not so easy --- without constantly working OnIdle, I'll have to update time in many places. Most importantly for scenes with existing but inactive time-dependent nodes (and this is the most common case for practical scenes), I'll have to predict when they can become active and set timer to then.
+
+Hm, not so difficult, but this is something for later. For now we will have to live with constant CPU use. In most non-trivial scenes, there's almost always some animation going on, so CPU power will be eaten anyway --- so, while this should be fixed for VRML browsers, it's not a problem for actual games (I think).
+
+------------------------------------------------------------------------------
+after view3dscene 3.0:
+
+For now, ProcessEvents is always @true when scenes count = 1 in view3dscene. Provide a way to turn it off? hm, implement when more sensors are avail. For now, you can pause the anim to turn off WorldTime... Maybe merge it? To also turn ProcessEvents off where applicable?
+
+display lists optimization may be wasted even without calling GeometryChanged
+often (for example, constantly changing material may force it),
+this has to be detected then inside TVRMLGLScene.
+When some shape is changed too often, switch to roNone for it.
+(When it's changed often but only with TransformOnly, switch to roSeparateShapesNoTransform for it!)
+
+fix extensions to all be gracefully declared by EXTERNPROTO, post to Joerg from white_dune
+
+implement carefully rest of TimeSensor from spec. Now we have X3DTimeDependentNode subset, enabled, time, and (with probably too simple implementation) set_fraction event.
+
+StringSensor.
+Make it possible then to load new image file in kambi_script_edit_texture.x3dv
+
+------------------------------------------------------------------------------
+MatrixTransform fix:
+
+Joerg:
+
+To decompose to translation / rotation / scaling / shearing you can use
+unmatrix.c from graphics gems.
+What is impossible, is to reconstruct Transform.center and
+Transform.scaleOrientation from a matrix 8-(
+
+Michalis:
+
+Agreed, it's possible (when matrix is reversible at all; but then even normal Transform node can be non-reversible with scaling to 0 in some dimension). I found the http://tog.acm.org/GraphicsGems/gemsii/unmatrix.c source, thanks, I'll try to understand it and plug into my engine. It'll be useful for some cases, when now I use dummy algorithms that can only extract scaling and split into rotation/translation rigid body transformation.
+
+------------------------------------------------------------------------------
+Things for much later:
+- some things, like InsidePrototype, should actually be now properties
+  of the whole stack (not state). This is good, even excellent --- smaller
+  state means less copying, and this is what we wanted.
+
+  Hm, but this means that copying target should be some descendant
+  of state (we want to have these InsidePrototype values in each copy).
+  Copy target is just a snapshot of stack state --- stack will be now
+  stack of states + some integers managing stack themselves.
+
+  Too unimportant for now... It would be a very small optimization of
+  memory and time. Most time spent on state copying is on dyn lights
+  and transforms copying, saving 3 * sizeof(int) wouldn't help much.
+  For now resigned.
+
+  Hmmmmm, OTOH, moving Inside* to the stack properties will avoid
+  making a changing the stack top item, thus preventing whole stack
+  copy-on-demand... could be a good thing, if copy-on-demand would be
+  done? (but it's not, right now, as was seen rather useless...).
+
+  Postponed / half resigned.
+
+- fix Intel Mesa crashes on domek,
+  generally run full test (including screenshots) on domek and fix everything.
+
+  For now all fixed on chantal with upstream mesa 7.2,
+  and most fixed on domek. Some remaining issues on domek remain,
+  see ~/sources/mesa/bug_arith_error.txt on domek,
+  postponed for later (let's see how they handle reported GL_POINT_BIT bug first).
+
+------------------------------------------------------------------------------
+- check does kambi_lines work on Windows in ii 107 now.
