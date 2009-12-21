@@ -432,9 +432,7 @@ type
     procedure PreviousItem;
     { @groupEnd }
 
-    { Release things associated with OpenGL context.
-      This will be also automatically called from destructor. }
-    procedure CloseGL;
+    procedure GLContextClose; override;
 
     { Calculate final positions, sizes of menu items on the screen.
       You must call FixItemsAreas between last modification of
@@ -1089,8 +1087,6 @@ end;
 
 destructor TGLMenu.Destroy;
 begin
-  CloseGL;
-
   StringList_FreeWithContentsAndNil(FItems);
 
   FreeAndNil(FAccessoryAreas);
@@ -1146,7 +1142,7 @@ begin
   end;
 end;
 
-procedure TGLMenu.CloseGL;
+procedure TGLMenu.GLContextClose;
 begin
   glFreeDisplayList(GLList_DrawFadeRect[false]);
   glFreeDisplayList(GLList_DrawFadeRect[true]);

@@ -2558,6 +2558,7 @@ type
     function AllowSuspendForInput: boolean; override;
     procedure EventDraw; override;
     procedure EventResize; override;
+    procedure EventClose; override;
 
     { Calculate a ray picked by WindowX, WindowY position on the window.
       Use this only when Navigator <> nil.
@@ -4738,6 +4739,20 @@ begin
     for I := 0 to Controls.Count - 1 do
       Controls[I].ContainerResize(Width, Height);
   end;
+end;
+
+procedure TGLWindowNavigated.EventClose;
+var
+  I: Integer;
+begin
+  { call GLContextClose on controls before inherited (OnClose) }
+  if UseControls then
+  begin
+    for I := 0 to Controls.Count - 1 do
+      Controls[I].GLContextClose;
+  end;
+
+  inherited;
 end;
 
 { TGLWindowsList ------------------------------------------------------------ }

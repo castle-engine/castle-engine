@@ -69,6 +69,7 @@ type
     { @groupEnd }
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
 
     (*Handle key press event.
       Returns @true if the key was somehow handled.
@@ -244,6 +245,11 @@ type
       right now IUIContainer interface, it's not crucial for most controls
       to work. }
     property Container: IUIContainer read FContainer write FContainer;
+
+    { Called when OpenGL context of the window is destroyed.
+      Control should clear here any resources that are tied to the GL context.
+      This will be also automatically called from destructor. }
+    procedure GLContextClose; virtual;
   end;
 
   TUIControlList = class(TKamObjectList)
@@ -260,6 +266,12 @@ constructor TUIControl.Create(AOwner: TComponent);
 begin
   inherited;
   FExclusiveEvents := true;
+end;
+
+destructor TUIControl.Destroy;
+begin
+  GLContextClose;
+  inherited;
 end;
 
 function TUIControl.KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean;
@@ -322,6 +334,10 @@ begin
   FContainerWidth := AContainerWidth;
   FContainerHeight := AContainerHeight;
   FContainerSizeKnown := true;
+end;
+
+procedure TUIControl.GLContextClose;
+begin
 end;
 
 { TUIControlList ------------------------------------------------------------- }
