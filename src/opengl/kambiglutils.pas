@@ -1042,10 +1042,10 @@ type
 
 { This calls glGenLists(range) and checks the result.
 
-  If the result is zero and range was <> 0, then the OpenGL
-  can't create any more display lists, and this function raises
-  EOpenGLNoMoreDisplayLists (showing Place, which should describe
-  where glGenListsCheck is called). }
+  @raises(EOpenGLNoMoreDisplayLists
+    When glGenLists(Range) returned zero for non-zero Range.
+    The exception's Message shows Place, which may describe
+    where this is called --- makes it easier to debug.) }
 function glGenListsCheck(range: TGLsizei; const Place: string): TGLuint;
 
 { If List <> 0 then it does glDeleteList on List and sets List to 0.
@@ -2586,8 +2586,7 @@ begin
   Result := glGenLists(range);
   if (Result = 0) and (range <> 0) then
     raise EOpenGLNoMoreDisplayLists.CreateFmt(
-      'No more OpenGL display lists available when trying to allocate new %d ' +
-      'display lists from "%s"', [range, Place]);
+      'No more OpenGL display lists available when trying to allocate new %d display lists from "%s". This may mean that GPU memory is full (low possibility, unless you used some ridiculous number of display lists), or that OpenGL context is not initialized yet', [range, Place]);
 end;
 
 procedure glFreeDisplayList(var list: TGLuint);
