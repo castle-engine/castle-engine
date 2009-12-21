@@ -65,6 +65,8 @@ Various ideas:
 
   For view3dscene 3.4, this will have to be enough.
 
+- fix vrmlengine for seamless avatars - or is it javascript lack?
+
 ------------------------------------------------------------------------------
 Effects, techniques, passes:
 - victor amat
