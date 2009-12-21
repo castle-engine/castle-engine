@@ -4343,15 +4343,15 @@ end;
 
 constructor TGLWindowNavigated.Create(AOwner: TComponent);
 begin
- inherited;
- FControls := TControlledUIControlList.Create(false, Self);
- FUseControls := true;
+  inherited;
+  FControls := TControlledUIControlList.Create(false, Self);
+  FUseControls := true;
 end;
 
 destructor TGLWindowNavigated.Destroy;
 begin
- FreeAndNil(FControls);
- inherited;
+  FreeAndNil(FControls);
+  inherited;
 end;
 
 procedure TGLWindowNavigated.SetNavigator(const Value: TNavigator);
