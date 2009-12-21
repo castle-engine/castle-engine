@@ -8,7 +8,7 @@
       </Flags>
       <MainUnit Value="0"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="1"/>
+      <ActiveEditorIndexAtStart Value="0"/>
     </General>
     <PublishOptions>
       <Version Value="2"/>
@@ -38,14 +38,14 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="31">
+    <Units Count="32">
       <Unit0>
         <Filename Value="lazarus_vrml_browser.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="lazarus_vrml_browser"/>
         <CursorPos X="53" Y="17"/>
         <TopLine Value="1"/>
-        <UsageCount Value="48"/>
+        <UsageCount Value="49"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
@@ -53,10 +53,10 @@
         <ComponentName Value="Main"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="52" Y="9"/>
-        <TopLine Value="1"/>
+        <CursorPos X="25" Y="201"/>
+        <TopLine Value="184"/>
         <EditorIndex Value="0"/>
-        <UsageCount Value="48"/>
+        <UsageCount Value="49"/>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
@@ -125,7 +125,7 @@
         <UnitName Value="OpenGLInformation"/>
         <CursorPos X="30" Y="36"/>
         <TopLine Value="18"/>
-        <UsageCount Value="36"/>
+        <UsageCount Value="37"/>
       </Unit10>
       <Unit11>
         <Filename Value="mainf.lfm"/>
@@ -244,7 +244,7 @@
         <UnitName Value="VrmlConsoleF"/>
         <CursorPos X="3" Y="50"/>
         <TopLine Value="11"/>
-        <UsageCount Value="28"/>
+        <UsageCount Value="29"/>
       </Unit27>
       <Unit28>
         <Filename Value="../../../vrml/vrmlerrors.pas"/>
@@ -265,12 +265,21 @@
         <UnitName Value="KambiVRMLBrowser"/>
         <CursorPos X="33" Y="521"/>
         <TopLine Value="504"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="2"/>
         <UsageCount Value="12"/>
         <Loaded Value="True"/>
       </Unit30>
+      <Unit31>
+        <Filename Value="../../../../../../../installed/lazarus/current/lcl/dialogs.pp"/>
+        <UnitName Value="Dialogs"/>
+        <CursorPos X="10" Y="495"/>
+        <TopLine Value="511"/>
+        <EditorIndex Value="1"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit31>
     </Units>
-    <JumpHistory Count="8" HistoryIndex="7">
+    <JumpHistory Count="13" HistoryIndex="12">
       <Position1>
         <Filename Value="../../../src/components/kambivrmlbrowser.pas"/>
         <Caret Line="322" Column="11" TopLine="296"/>
@@ -303,6 +312,26 @@
         <Filename Value="../../../src/components/kambivrmlbrowser.pas"/>
         <Caret Line="161" Column="57" TopLine="150"/>
       </Position8>
+      <Position9>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="204" Column="42" TopLine="190"/>
+      </Position9>
+      <Position10>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="218" Column="34" TopLine="190"/>
+      </Position10>
+      <Position11>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="200" Column="9" TopLine="183"/>
+      </Position11>
+      <Position12>
+        <Filename Value="../../../../../../../installed/lazarus/current/lcl/dialogs.pp"/>
+        <Caret Line="495" Column="64" TopLine="478"/>
+      </Position12>
+      <Position13>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="200" Column="10" TopLine="184"/>
+      </Position13>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

@@ -191,36 +191,39 @@ begin
     This way in case of exception in StrToFloat, previous
     Navigator properties remain OK. }
 
-  Browser.WalkNav.CameraPos := Pos;
-  Browser.WalkNav.CameraDir := Dir;
-  Browser.WalkNav.CameraUp := Up;
+  if Browser.Navigator is TWalkNavigator then
+  begin
+    Browser.WalkNav.CameraPos := Pos;
+    Browser.WalkNav.CameraDir := Dir;
+    Browser.WalkNav.CameraUp := Up;
+  end else
+    MessageDlg('Setting camera properties in EXAMINE navigation not implemented.',
+      mtError, [mbOk], 0);
 end;
 
 procedure TMain.BrowserNavigatorChanged(Navigator: TNavigator);
 var
-  Dir: TVector3Single;
+  Pos, Dir, Up: TVector3Single;
 begin
-  if Navigator is TWalkNavigator then
-  begin
-    { Browser.WalkNav is now the same thing as (Navigator as TWalkNavigator) }
-    EditPositionX.Text := FloatToNiceStr(Browser.WalkNav.CameraPos[0]);
-    EditPositionY.Text := FloatToNiceStr(Browser.WalkNav.CameraPos[1]);
-    EditPositionZ.Text := FloatToNiceStr(Browser.WalkNav.CameraPos[2]);
+  Navigator.GetCameraVectors(Pos, Dir, Up);
 
-    { Length of direction vector affects speed.
-      For simplicity, we don't show it to user here (it could have small
-      values, and would look like all "0.00" while in fact being non-zero).
-      Instead. we show the normalized dir. }
-    Dir := Normalized(Browser.WalkNav.CameraDir);
+  EditPositionX.Text := FloatToNiceStr(Pos[0]);
+  EditPositionY.Text := FloatToNiceStr(Pos[1]);
+  EditPositionZ.Text := FloatToNiceStr(Pos[2]);
 
-    EditDirectionX.Text := FloatToNiceStr(Dir[0]);
-    EditDirectionY.Text := FloatToNiceStr(Dir[1]);
-    EditDirectionZ.Text := FloatToNiceStr(Dir[2]);
+  { Length of direction vector affects speed.
+    For simplicity, we don't show it to user here (it could have small
+    values, and would look like all "0.00" while in fact being non-zero).
+    Instead. we show the normalized dir. }
+  Dir := Normalized(Dir);
 
-    EditUpX.Text := FloatToNiceStr(Browser.WalkNav.CameraUp[0]);
-    EditUpY.Text := FloatToNiceStr(Browser.WalkNav.CameraUp[1]);
-    EditUpZ.Text := FloatToNiceStr(Browser.WalkNav.CameraUp[2]);
-  end;
+  EditDirectionX.Text := FloatToNiceStr(Dir[0]);
+  EditDirectionY.Text := FloatToNiceStr(Dir[1]);
+  EditDirectionZ.Text := FloatToNiceStr(Dir[2]);
+
+  EditUpX.Text := FloatToNiceStr(Up[0]);
+  EditUpY.Text := FloatToNiceStr(Up[1]);
+  EditUpZ.Text := FloatToNiceStr(Up[2]);
 end;
 
 initialization
