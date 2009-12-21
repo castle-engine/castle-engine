@@ -48,6 +48,19 @@ type
       Shift:TShiftState; X,Y:Integer); override;
     procedure MouseMove(Shift: TShiftState; NewX, NewY: Integer); override;
 
+    { When overriding respective events (KeyDown, KeyUp etc.) you can omit
+      calling inherited (when you're sure you do want to call OnXxx event),
+      but you always must call at least this XxxRequired methods.
+      @groupBegin }
+    procedure KeyDownRequired(var Key: Word; Shift: TShiftState);
+    procedure KeyUpRequired(var Key: Word; Shift: TShiftState);
+    procedure MouseDownRequired(Button: Controls.TMouseButton;
+      Shift:TShiftState; X,Y:Integer);
+    procedure MouseUpRequired(Button: Controls.TMouseButton;
+      Shift:TShiftState; X,Y:Integer);
+    procedure MouseMoveRequired(Shift: TShiftState; NewX, NewY: Integer);
+    { @groupEnd }
+
     { In this class this just calls OnGLContextInit. }
     procedure DoGLContextInit; virtual;
 
@@ -323,12 +336,45 @@ begin
 end;
 
 procedure TKamOpenGLControlCore.KeyDown(var Key: Word; Shift: TShiftState);
+begin
+  inherited;
+  KeyDownRequired(Key, Shift);
+end;
+
+procedure TKamOpenGLControlCore.KeyUp(var Key: Word; Shift: TShiftState);
+begin
+  inherited;
+  KeyUpRequired(Key, Shift);
+end;
+
+procedure TKamOpenGLControlCore.MouseDown(Button: Controls.TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var
+  MyButton: KeysMouse.TMouseButton;
+begin
+  inherited;
+  MouseDownRequired(Button, Shift, X, Y);
+end;
+
+procedure TKamOpenGLControlCore.MouseUp(Button: Controls.TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  inherited;
+  MouseUpRequired(Button, Shift, X, Y);
+end;
+
+procedure TKamOpenGLControlCore.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
+begin
+  inherited;
+  MouseMoveRequired(Shift, NewX, NewY);
+end;
+
+procedure TKamOpenGLControlCore.KeyDownRequired(var Key: Word;
+  Shift: TShiftState);
 var
   MyKey: TKey;
   Ch: char;
 begin
-  inherited KeyDown(Key, Shift);
-
   LKeyToMyKey(Key, Shift, MyKey, Ch);
 
   { Tests: Writeln('Key down : ', KeyToStr(MyKey),
@@ -338,13 +384,11 @@ begin
     KeysDown[MyKey] := true;
 end;
 
-procedure TKamOpenGLControlCore.KeyUp(var Key: Word; Shift: TShiftState);
+procedure TKamOpenGLControlCore.KeyUpRequired(var Key: Word; Shift: TShiftState);
 var
   MyKey: TKey;
   Ch: char;
 begin
-  inherited KeyUp(Key, Shift);
-
   LKeyToMyKey(Key, Shift, MyKey, Ch);
 
   { Tests: Writeln('Key up : ', KeyToStr(MyKey),
@@ -354,42 +398,33 @@ begin
     KeysDown[MyKey] := false;
 end;
 
-procedure TKamOpenGLControlCore.MouseDown(Button: Controls.TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
+procedure TKamOpenGLControlCore.MouseDownRequired(
+  Button: Controls.TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   MyButton: KeysMouse.TMouseButton;
 begin
-  inherited MouseDown(Button, Shift, X, Y);
-
   FMouseX := X;
   FMouseY := Y;
 
   if LMouseButtonToMyMouseButton(Button, MyButton) then
-  begin
     Include(MousePressed, MyButton);
-  end;
 end;
 
-procedure TKamOpenGLControlCore.MouseUp(Button: Controls.TMouseButton;
+procedure TKamOpenGLControlCore.MouseUpRequired(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
   MyButton: KeysMouse.TMouseButton;
 begin
-  inherited MouseUp(Button, Shift, X, Y);
-
   FMouseX := X;
   FMouseY := Y;
 
   if LMouseButtonToMyMouseButton(Button, MyButton) then
-  begin
     Exclude(MousePressed, MyButton);
-  end;
 end;
 
-procedure TKamOpenGLControlCore.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
+procedure TKamOpenGLControlCore.MouseMoveRequired(Shift: TShiftState; NewX,
+  NewY: Integer);
 begin
-  inherited;
-
   FMouseX := NewX;
   FMouseY := NewY;
 end;
@@ -429,7 +464,7 @@ end;
 
 procedure TKamOpenGLControlCore.SetMousePosition(const NewMouseX, NewMouseY: Integer);
 begin
-  { TODO }
+  Mouse.CursorPos := ControlToScreen(Point(NewMouseX, NewMouseY));
 end;
 
 { TControlledUIControlList ----------------------------------------------------- }
@@ -590,12 +625,14 @@ begin
     begin
       C := Controls.Items[I];
       if C.PositionInside(MouseX, MouseY) then
-        if C.KeyDown(Key, Ch, @KeysDown) then begin Key := 0; Exit; end;
+        if C.KeyDown(Key, Ch, @KeysDown) then
+        begin
+          KeyDownRequired(Key, Shift);
+          Key := 0;
+          Exit;
+        end;
     end;
   end;
-
-  { TODO: do not block inherited so easily, so part of "inherited" must be
-    always done }
 
   inherited;
 end;
@@ -613,12 +650,13 @@ begin
     begin
       C := Controls.Items[I];
       if C.PositionInside(MouseX, MouseY) then
-        if C.MouseDown(MouseX, MouseY, MyButton, MousePressed) then Exit;
+        if C.MouseDown(MouseX, MouseY, MyButton, MousePressed) then
+        begin
+          MouseDownRequired(Button, Shift, X, Y);
+          Exit;
+        end;
     end;
   end;
-
-  { TODO: do not block inherited so easily, so part of "inherited" must be
-    always done }
 
   inherited;
 end;
@@ -636,12 +674,13 @@ begin
     begin
       C := Controls.Items[I];
       if C.PositionInside(MouseX, MouseY) then
-        if C.MouseUp(MouseX, MouseY, MyButton, MousePressed) then Exit;
+        if C.MouseUp(MouseX, MouseY, MyButton, MousePressed) then
+        begin
+          MouseUpRequired(Button, Shift, X, Y);
+          Exit;
+        end;
     end;
   end;
-
-  { TODO: do not block inherited so easily, so part of "inherited" must be
-    always done }
 
   inherited;
 end;
@@ -740,7 +779,11 @@ begin
     end;
   end;
 
-  if Handled then Exit;
+  if Handled then
+  begin
+    MouseMoveRequired(Shift, NewX, NewY);
+    Exit;
+  end;
 
   inherited;
 end;

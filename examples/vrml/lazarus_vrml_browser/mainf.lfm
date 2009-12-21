@@ -165,6 +165,16 @@ object Main: TMain
     end
     object MenuItemView: TMenuItem
       Caption = 'View'
+      object MenuMouseLookToggle: TMenuItem
+        AutoCheck = True
+        Caption = 'Mouse Look'
+        ShortCut = 16461
+        ShowAlwaysCheckable = True
+        OnClick = MenuMouseLookToggleClick
+      end
+      object MenuItem2: TMenuItem
+        Caption = '-'
+      end
       object MenuFocusGLControl: TMenuItem
         Caption = 'Switch focus to 3D area'
         OnClick = MenuFocusGLControlClick

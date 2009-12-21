@@ -7,7 +7,8 @@ usually has a list of blockers typically worked upon right before release.
 view3dscene 3.5 blockers:
 
 - test MouseLook from lazarus, should work now.
-- fix TODO about avoiding inherited from TKamOpenGLControl.
+  Somewhat works, but sluggish --- why?
+
 - Paint, OnDraw etc. --- some strange order was in TKamOpenGLControl, TKamVRMLBrowser?
 
 - finish X3D nurbs component up to level 2, update vrml_impl_status about it.

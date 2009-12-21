@@ -43,6 +43,8 @@ type
     OpenDialog1: TOpenDialog;
     PanelBottom: TPanel;
     Timer1: TTimer;
+    MenuItem2: TMenuItem;
+    MenuMouseLookToggle: TMenuItem;
     procedure BrowserNavigatorChanged(Navigator: TNavigator);
     procedure ButtonChangeCameraClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -53,6 +55,7 @@ type
     procedure MenuQuitClick(Sender: TObject);
     procedure MenuShowVrmlConsoleClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
+    procedure MenuMouseLookToggleClick(Sender: TObject);
   private
     SceneFileName: string;
     procedure OpenScene(const FileName: string);
@@ -123,6 +126,33 @@ end;
 procedure TMain.Timer1Timer(Sender: TObject);
 begin
   UpdateCaption; { to update FPS }
+end;
+
+procedure TMain.MenuMouseLookToggleClick(Sender: TObject);
+begin
+  { TODO: for this to really work Ok, for newly loaded scenes we should
+    also set their MouseLook and inputs, otherwise MouseLook and menu checked
+    values may get not synchronized. }
+
+  if Browser.Navigator is TWalkNavigator then
+  begin
+    Browser.WalkNav.MouseLook := (Sender as TMenuItem).Checked;
+    Browser.UpdateMouseLook;
+
+    if Browser.WalkNav.MouseLook then
+    begin
+      Browser.WalkNav.Input_LeftStrafe.AssignFromDefault(Browser.WalkNav.Input_LeftRot);
+      Browser.WalkNav.Input_RightStrafe.AssignFromDefault(Browser.WalkNav.Input_RightRot);
+      Browser.WalkNav.Input_LeftRot.AssignFromDefault(Browser.WalkNav.Input_LeftStrafe);
+      Browser.WalkNav.Input_RightRot.AssignFromDefault(Browser.WalkNav.Input_RightStrafe);
+    end else
+    begin
+      Browser.WalkNav.Input_LeftStrafe.MakeDefault;
+      Browser.WalkNav.Input_RightStrafe.MakeDefault;
+      Browser.WalkNav.Input_LeftRot.MakeDefault;
+      Browser.WalkNav.Input_RightRot.MakeDefault;
+    end;
+  end;
 end;
 
 procedure TMain.MenuAboutOpenGLClick(Sender: TObject);

@@ -398,13 +398,11 @@ procedure TKamVRMLBrowser.UpdateCursor;
   end;
 
 begin
-  { I want to keep assertion that CursorNonMouseLook = gcHand when
-    we're over or keeping active some pointing-device sensors.
-    (Since we don't use MouseLook with TKamGLControl for now, I just
-    directly change Cursor. }
+  { I want to keep assertion that CursorNonMouseLook = crHandPoint when
+    we're over or keeping active some pointing-device sensors. }
   if SensorsCount <> 0 then
-    Cursor := crHandPoint else
-    Cursor := crDefault;
+    CursorNonMouseLook := crHandPoint else
+    CursorNonMouseLook := crDefault;
 end;
 
 procedure TKamVRMLBrowser.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
