@@ -128,17 +128,6 @@ PASDOC_INCLUDE_DIRS="\
   --include kambiscript/\
 "
 
-# make full_introduction.pasdoc
-TMP_INTRODUCTION_FILENAME=/tmp/introduction.pasdoc
-if [ -n "$KAMBI_IS_CYGWIN" ]; then
-  TMP_INTRODUCTION_FILENAME="`cygpath --windows \"$TMP_INTRODUCTION_FILENAME\"`"
-fi
-
-# We used to make introduction by glueing two files, that's the reason
-# for whole "$TMP_INTRODUCTION_FILENAME" mess. Right now, introduction.pasdoc
-# is simply the whole introduction used.
-cp -f ../doc/introduction.pasdoc "$TMP_INTRODUCTION_FILENAME"
-
 pasdoc \
    --format "$PASDOC_FORMAT" \
   $PASDOC_INCLUDE_DIRS --output "$OUTPUT_PATH" \
@@ -148,7 +137,7 @@ pasdoc \
   --source "$TMP_PAS_LIST" \
   --cache-dir "$PASDOC_CACHE" \
   --auto-abstract \
-  --introduction="$TMP_INTRODUCTION_FILENAME" \
+  --introduction=../doc/pasdoc/introduction.pasdoc \
   --auto-link \
   --auto-link-exclude=../doc/pasdoc/auto_link_exclude.txt
 
