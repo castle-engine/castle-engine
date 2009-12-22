@@ -441,7 +441,7 @@ begin
   LKeyToMyKey(Key, Shift, MyKey, MyCharKey);
 
   if (MyKey <> K_None) or (MyCharKey <> #0) then
-    Scene.KeyDown(MyKey, MyCharKey, @KeysDown);
+    Scene.KeyDown(MyKey, MyCharKey);
 end;
 
 procedure TKamVRMLBrowser.KeyUp(var Key: Word; Shift: TShiftState);

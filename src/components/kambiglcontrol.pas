@@ -27,6 +27,8 @@ type
     FOnBeforeDraw: TNotifyEvent;
     FOnDraw: TNotifyEvent;
     FContextInitialized: boolean;
+    FPressed: TKeysPressed;
+    FMousePressed: KeysMouse.TMouseButtons;
 
     FOnGLContextInit: TNotifyEvent;
     FOnGLContextClose: TNotifyEvent;
@@ -79,8 +81,8 @@ type
 
     procedure Idle; virtual;
 
-    KeysDown: TKeysBooleans;
-    MousePressed: KeysMouse.TMouseButtons;
+    property Pressed: TKeysPressed read FPressed;
+    property MousePressed: KeysMouse.TMouseButtons read FMousePressed;
     procedure ReleaseAllKeysAndMouse;
 
     property MouseX: Integer read FMouseX;
@@ -250,6 +252,7 @@ constructor TKamOpenGLControlCore.Create(AOwner: TComponent);
 begin
   inherited;
   FFps := TFramesPerSecond.Create;
+  FPressed := TKeysPressed.Create;
 
   ApplicationProperties := TApplicationProperties.Create(Self);
   ApplicationProperties.OnIdle := @ApplicationPropertiesIdle;
@@ -257,6 +260,7 @@ end;
 
 destructor TKamOpenGLControlCore.Destroy;
 begin
+  FreeAndNil(FPressed);
   FreeAndNil(FFps);
   inherited;
 end;
@@ -331,8 +335,8 @@ end;
 
 procedure TKamOpenGLControlCore.ReleaseAllKeysAndMouse;
 begin
-  FillChar(KeysDown, SizeOf(KeysDown), 0);
-  MousePressed := [];
+  Pressed.Clear;
+  FMousePressed := [];
 end;
 
 procedure TKamOpenGLControlCore.KeyDown(var Key: Word; Shift: TShiftState);
@@ -375,11 +379,8 @@ var
 begin
   LKeyToMyKey(Key, Shift, MyKey, Ch);
 
-  { Tests: Writeln('Key down : ', KeyToStr(MyKey),
-    ' ', Ord(Ch), ' ', Ch); }
-
-  if MyKey <> K_None then
-    KeysDown[MyKey] := true;
+  if (MyKey <> K_None) or (Ch <> #0) then
+    Pressed.KeyDown(MyKey, Ch);
 end;
 
 procedure TKamOpenGLControlCore.KeyUpRequired(var Key: Word; Shift: TShiftState);
@@ -389,11 +390,8 @@ var
 begin
   LKeyToMyKey(Key, Shift, MyKey, Ch);
 
-  { Tests: Writeln('Key up : ', KeyToStr(MyKey),
-    ' ', Ord(Ch), ' ', Ch); }
-
   if MyKey <> K_None then
-    KeysDown[MyKey] := false;
+    Pressed.KeyUp(MyKey, Ch);
 end;
 
 procedure TKamOpenGLControlCore.MouseDownRequired(
@@ -405,7 +403,7 @@ begin
   FMouseY := Y;
 
   if LMouseButtonToMyMouseButton(Button, MyButton) then
-    Include(MousePressed, MyButton);
+    Include(FMousePressed, MyButton);
 end;
 
 procedure TKamOpenGLControlCore.MouseUpRequired(Button: Controls.TMouseButton;
@@ -417,7 +415,7 @@ begin
   FMouseY := Y;
 
   if LMouseButtonToMyMouseButton(Button, MyButton) then
-    Exclude(MousePressed, MyButton);
+    Exclude(FMousePressed, MyButton);
 end;
 
 procedure TKamOpenGLControlCore.MouseMoveRequired(Shift: TShiftState; NewX,
@@ -600,8 +598,8 @@ begin
     begin
       ThisListener := Controls.Items[I];
       if F = ThisListener then
-        ThisListener.Idle(Fps.IdleSpeed, @KeysDown, {TODO:@CharactersDown}nil, MousePressed) else
-        ThisListener.Idle(Fps.IdleSpeed, nil, nil, []);
+        ThisListener.Idle(Fps.IdleSpeed, Pressed, MousePressed) else
+        ThisListener.Idle(Fps.IdleSpeed, nil, []);
     end;
   end;
 
@@ -623,7 +621,7 @@ begin
     begin
       C := Controls.Items[I];
       if C.PositionInside(MouseX, MouseY) then
-        if C.KeyDown(Key, Ch, @KeysDown) then
+        if C.KeyDown(Key, Ch, Pressed) then
         begin
           KeyDownRequired(Key, Shift);
           Key := 0;
@@ -746,7 +744,7 @@ var
 begin
   F := Focus;
   if (F <> nil) and
-      F.MouseMove(MouseX, MouseY, NewX, NewY, MousePressed, @KeysDown) then
+      F.MouseMove(MouseX, MouseY, NewX, NewY, MousePressed, Pressed) then
   begin
     MouseMoveRequired(Shift, NewX, NewY);
     Exit;
