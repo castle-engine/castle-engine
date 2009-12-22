@@ -14,7 +14,7 @@
 }
 
 { Example program using GLWindow.
-  Displays many OnXxx events as they happen, shows KeysDown and CharactersDown.
+  Displays many OnXxx events as they happen, shows Pressed and Pressed.Characters.
   So it allows you to "see" how TGLWindow events happen.
 
   Also a demo of TimeMessages unit. }
@@ -78,7 +78,7 @@ begin
 
   S := '';
   for C := Low(C) to High(C) do
-    if Glwin.CharactersDown[C] then
+    if Glwin.Pressed.Characters[C] then
     begin
       if S <> '' then S += ', ';
       S += CharToNiceStr(C);
@@ -88,7 +88,7 @@ begin
 
   S := '';
   for Key := Low(Key) to High(Key) do
-    if Glwin.KeysDown[Key] then
+    if Glwin.Pressed[Key] then
     begin
       if S <> '' then S += ', ';
       S += KeyToStr(Key);

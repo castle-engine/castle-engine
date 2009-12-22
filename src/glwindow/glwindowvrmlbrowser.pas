@@ -374,7 +374,7 @@ end;
 procedure TGLWindowVRMLBrowser.EventKeyDown(Key: TKey; C: char);
 begin
   inherited;
-  Scene.KeyDown(Key, C, @KeysDown);
+  Scene.KeyDown(Key, C);
 end;
 
 procedure TGLWindowVRMLBrowser.EventKeyUp(Key: TKey; C: char);

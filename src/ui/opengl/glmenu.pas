@@ -493,16 +493,15 @@ type
       read FKeySliderDecrease write FKeySliderDecrease
       default DefaultGLMenuKeySliderDecrease;
 
-    function KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean; override;
+    function KeyDown(Key: TKey; C: char; Pressed: TKeysPressed): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer;
-      const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean; override;
+      const MousePressed: TMouseButtons; Pressed: TKeysPressed): boolean; override;
     function MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
       const MousePressed: TMouseButtons): boolean; override;
     function MouseUp(const MouseX, MouseY: Integer; Button: TMouseButton;
       const MousePressed: TMouseButtons): boolean; override;
     procedure Idle(const CompSpeed: Single;
-      KeysDown: PKeysBooleans;
-      CharactersDown: PCharactersBooleans;
+      Pressed: TKeysPressed;
       const MousePressed: TMouseButtons); override;
     function PositionInside(const X, Y: Integer): boolean; override;
     function AllowSuspendForInput: boolean; override;
@@ -1382,7 +1381,7 @@ begin
     DrawPositionRelativeLine;
 end;
 
-function TGLMenu.KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean;
+function TGLMenu.KeyDown(Key: TKey; C: char; Pressed: TKeysPressed): boolean;
 
   function CurrentItemAccessoryKeyDown: boolean;
   begin
@@ -1499,7 +1498,7 @@ begin
 end;
 
 function TGLMenu.MouseMove(const OldX, OldY, NewX, NewY: Integer;
-  const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean;
+  const MousePressed: TMouseButtons; Pressed: TKeysPressed): boolean;
 var
   MX, MY: Integer;
 
@@ -1602,8 +1601,7 @@ begin
 end;
 
 procedure TGLMenu.Idle(const CompSpeed: Single;
-  KeysDown: PKeysBooleans;
-  CharactersDown: PCharactersBooleans;
+  Pressed: TKeysPressed;
   const MousePressed: TMouseButtons);
 begin
   inherited;

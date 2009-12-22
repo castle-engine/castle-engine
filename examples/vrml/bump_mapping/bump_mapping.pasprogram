@@ -1062,14 +1062,14 @@ var
 begin
   LightPositionChanged := false;
 
-  if Glwin.KeysDown[K_A] then ChangeLightPosition(0, -1);
-  if Glwin.KeysDown[K_D] then ChangeLightPosition(0,  1);
-  if Glwin.KeysDown[K_S] then ChangeLightPosition(1, -1);
-  if Glwin.KeysDown[K_W] then ChangeLightPosition(1,  1);
+  if Glwin.Pressed[K_A] then ChangeLightPosition(0, -1);
+  if Glwin.Pressed[K_D] then ChangeLightPosition(0,  1);
+  if Glwin.Pressed[K_S] then ChangeLightPosition(1, -1);
+  if Glwin.Pressed[K_W] then ChangeLightPosition(1,  1);
 
-  if Glwin.KeysDown[K_Q] then
+  if Glwin.Pressed[K_Q] then
   begin
-    if mkShift in Glwin.ModifiersDown then
+    if mkShift in Glwin.Pressed.Modifiers then
       ChangeLightPosition(2,  1) else
       ChangeLightPosition(2, -1);
   end;
@@ -1077,14 +1077,14 @@ begin
   if LightPositionChanged and (Method = bmVRML) then
     Scene.BumpMappingLightPosition := LightPosition;
 
-  if Glwin.KeysDown[K_J] then XShift -= Glwin.Fps.IdleSpeed * 50 / 1000;
-  if Glwin.KeysDown[K_L] then XShift += Glwin.Fps.IdleSpeed * 50 / 1000;
-  if Glwin.KeysDown[K_K] then YShift -= Glwin.Fps.IdleSpeed * 50 / 1000;
-  if Glwin.KeysDown[K_I] then YShift += Glwin.Fps.IdleSpeed * 50 / 1000;
+  if Glwin.Pressed[K_J] then XShift -= Glwin.Fps.IdleSpeed * 50 / 1000;
+  if Glwin.Pressed[K_L] then XShift += Glwin.Fps.IdleSpeed * 50 / 1000;
+  if Glwin.Pressed[K_K] then YShift -= Glwin.Fps.IdleSpeed * 50 / 1000;
+  if Glwin.Pressed[K_I] then YShift += Glwin.Fps.IdleSpeed * 50 / 1000;
 
-  if Glwin.KeysDown[K_E] then
+  if Glwin.Pressed[K_E] then
   begin
-    if mkShift in Glwin.ModifiersDown then
+    if mkShift in Glwin.Pressed.Modifiers then
       EmbossScale -= Glwin.Fps.IdleSpeed * 50 / 10 else
       EmbossScale += Glwin.Fps.IdleSpeed * 50 / 10;
   end;

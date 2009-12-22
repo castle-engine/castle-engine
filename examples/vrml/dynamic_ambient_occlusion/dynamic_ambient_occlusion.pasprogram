@@ -805,12 +805,12 @@ end;
 
 procedure Idle(Glwin: TGLWindow);
 begin
-  if Glwin.CharactersDown['s'] then
+  if Glwin.Pressed.Characters['s'] then
   begin
     ShadowScale *= Power(1.1, Glwin.Fps.IdleSpeed * 20);
     Glwin.PostRedisplay;
   end;
-  if Glwin.CharactersDown['S'] then
+  if Glwin.Pressed.Characters['S'] then
   begin
     ShadowScale *= Power(1/1.1, Glwin.Fps.IdleSpeed * 20);
     Glwin.PostRedisplay;
@@ -879,7 +879,7 @@ end;
 
 procedure KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
 begin
-  Scene.KeyDown(Key, C, @Glwin.KeysDown);
+  Scene.KeyDown(Key, C);
 end;
 
 procedure KeyUp(Glwin: TGLWindow; Key: TKey; C: char);

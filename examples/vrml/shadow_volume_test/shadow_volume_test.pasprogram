@@ -201,7 +201,7 @@ procedure Draw(glwin: TGLWindow);
 
         Well, I warned that this is somewhat obscure feature, didn't I ? :) }
 
-      if Glwin.KeysDown[K_F12] then
+      if Glwin.Pressed[K_F12] then
       begin
         glColor4f(0, 0, 1, 0.3);
         ShadowCaster.RenderBorderEdges(ShadowCasterNav.Matrix);
@@ -493,19 +493,19 @@ begin
     FirstIdle := false;
   end;
 
-  ShadowCasterNav.Idle(glwin.Fps.IdleSpeed, @Glwin.KeysDown,
-    @Glwin.CharactersDown, Glwin.MousePressed);
+  ShadowCasterNav.Idle(glwin.Fps.IdleSpeed, Glwin.Pressed,
+    Glwin.MousePressed);
 end;
 
 procedure KeyDown(glwin: TGLWindow; key: TKey; c: char);
 begin
-  ShadowCasterNav.KeyDown(key, c, @Glwin.KeysDown);
+  ShadowCasterNav.KeyDown(key, c, Glwin.Pressed);
 end;
 
 procedure MouseMove(Glwin: TGLWindow; NewX, NewY: integer);
 begin
   ShadowCasterNav.MouseMove(Glwin.MouseX, Glwin.MouseY, NewX, NewY,
-    Glwin.MousePressed, @Glwin.KeysDown);
+    Glwin.MousePressed, Glwin.Pressed);
 end;
 
 { menu ----------------------------------------------------------------------- }

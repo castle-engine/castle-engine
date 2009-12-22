@@ -99,16 +99,16 @@ procedure TMyWindow.EventIdle;
 begin
  inherited;
 
- if KeysDown[K_X] then GLChange(RotX, B(mkShift in ModifiersDown)*0.6);
- if KeysDown[K_Y] then GLChange(RotY, B(mkShift in ModifiersDown)*0.6);
- if KeysDown[K_Z] then GLChange(RotZ, B(mkShift in ModifiersDown)*0.6);
+ if Pressed[K_X] then GLChange(RotX, B(mkShift in Pressed.Modifiers)*0.6);
+ if Pressed[K_Y] then GLChange(RotY, B(mkShift in Pressed.Modifiers)*0.6);
+ if Pressed[K_Z] then GLChange(RotZ, B(mkShift in Pressed.Modifiers)*0.6);
 
- if KeysDown[K_Left] then GLChange(MoveX, -0.1);
- if KeysDown[K_Right] then GLChange(MoveX, 0.1);
- if KeysDown[K_Down] then GLChange(MoveY, -0.1);
- if KeysDown[K_Up] then GLChange(MoveY, 0.1);
- if KeysDown[K_PageUp] then GLChange(MoveZ, 0.1);
- if KeysDown[K_PageDown] then GLChange(MoveZ, -0.1);
+ if Pressed[K_Left] then GLChange(MoveX, -0.1);
+ if Pressed[K_Right] then GLChange(MoveX, 0.1);
+ if Pressed[K_Down] then GLChange(MoveY, -0.1);
+ if Pressed[K_Up] then GLChange(MoveY, 0.1);
+ if Pressed[K_PageUp] then GLChange(MoveZ, 0.1);
+ if Pressed[K_PageDown] then GLChange(MoveZ, -0.1);
 
  if Rotating then
  begin

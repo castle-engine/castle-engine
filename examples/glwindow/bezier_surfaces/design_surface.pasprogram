@@ -299,12 +299,12 @@ procedure Idle(glwin: TGLWindow);
 begin
   if (CurrentCurve <> - 1) and (CurrentPoint <> -1) then
   begin
-    if Glwin.CharactersDown['8'] then Move(1, +1);
-    if Glwin.CharactersDown['2'] then Move(1, -1);
-    if Glwin.CharactersDown['4'] then Move(0, -1);
-    if Glwin.CharactersDown['6'] then Move(0, +1);
-    if Glwin.CharactersDown['9'] then Move(2, +1);
-    if Glwin.CharactersDown['3'] then Move(2, -1);
+    if Glwin.Pressed.Characters['8'] then Move(1, +1);
+    if Glwin.Pressed.Characters['2'] then Move(1, -1);
+    if Glwin.Pressed.Characters['4'] then Move(0, -1);
+    if Glwin.Pressed.Characters['6'] then Move(0, +1);
+    if Glwin.Pressed.Characters['9'] then Move(2, +1);
+    if Glwin.Pressed.Characters['3'] then Move(2, -1);
   end;
 end;
 

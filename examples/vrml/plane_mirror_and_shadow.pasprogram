@@ -451,21 +451,21 @@ procedure Idle(glwin: TGLWindow);
   end;
 
 begin
-  if Glwin.KeysDown[K_A] then ChangeLightPosition(0, -1);
-  if Glwin.KeysDown[K_D] then ChangeLightPosition(0,  1);
-  if Glwin.KeysDown[K_S] then ChangeLightPosition(1, -1);
-  if Glwin.KeysDown[K_W] then ChangeLightPosition(1,  1);
+  if Glwin.Pressed[K_A] then ChangeLightPosition(0, -1);
+  if Glwin.Pressed[K_D] then ChangeLightPosition(0,  1);
+  if Glwin.Pressed[K_S] then ChangeLightPosition(1, -1);
+  if Glwin.Pressed[K_W] then ChangeLightPosition(1,  1);
 
-  if Glwin.KeysDown[K_Q] then
+  if Glwin.Pressed[K_Q] then
   begin
-    if mkShift in Glwin.ModifiersDown then
+    if mkShift in Glwin.Pressed.Modifiers then
       ChangeLightPosition(2,  1) else
       ChangeLightPosition(2, -1);
   end;
 
-  if Glwin.KeysDown[K_P] then
+  if Glwin.Pressed[K_P] then
   begin
-    if mkShift in Glwin.ModifiersDown then
+    if mkShift in Glwin.Pressed.Modifiers then
       PlaneDistance -= Glwin.Fps.IdleSpeed * 5 else
       PlaneDistance += Glwin.Fps.IdleSpeed * 5;
   end;
