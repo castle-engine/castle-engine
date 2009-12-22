@@ -85,19 +85,16 @@ type
     class should have a priority. }
 #)
 
-      @param(KeysDown You can pass here a boolean table indicating
-        which keys are pressed. You can pass @nil if you don't know this.
-
-        (Contents of table passed here will never be modified anyway.
-        This is a pointer only so that you can simply pass @nil here.)) *)
-    function KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean; virtual;
+      @param(Pressed You can pass here information indicating
+        which keys are pressed. You can pass @nil if you don't know this.) *)
+    function KeyDown(Key: TKey; C: char; Pressed: TKeysPressed): boolean; virtual;
 
     { Called when user moves the mouse.
 
-      Like for KeyDown and Idle, you can pass KeysDown as
+      Like for KeyDown and Idle, you can pass Pressed as
       @nil if you don't know this. }
     function MouseMove(const OldX, OldY, NewX, NewY: Integer;
-      const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean; virtual;
+      const MousePressed: TMouseButtons; Pressed: TKeysPressed): boolean; virtual;
 
     (*Handle mouse down event.
 
@@ -121,18 +118,15 @@ type
       @param(CompSpeed Should be calculated like TFramesPerSecond.IdleSpeed,
         and usually it's in fact just taken from TGLWindow.Fps.IdleSpeed.)
 
-      @param(KeysDown What keys are pressed currently ?
-        You pass here a pointer to a boolean table indicating
-        which keys are currently pressed. Or you can pass @nil
+      @param(Pressed What keys are pressed currently ?
+        You pass here an instance of TKeysPressed (for example
+        from TGLWindow.Pressed, or TKamOpenGLControl.Pressed).
+        Or you can pass @nil
         here if you don't know it. Just like for @link(KeyDown) method.)
-
-      @param(CharactersDown What character codes are pressed currently ?
-        Analogous to KeysDown, you can pass here a pointer or @nil.)
 
       @param(MousePressed Which mouse buttons are currently pressed ?) }
     procedure Idle(const CompSpeed: Single;
-      KeysDown: PKeysBooleans;
-      CharactersDown: PCharactersBooleans;
+      Pressed: TKeysPressed;
       const MousePressed: TMouseButtons); virtual;
 
     { Is given position inside this control.
@@ -274,13 +268,13 @@ begin
   inherited;
 end;
 
-function TUIControl.KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean;
+function TUIControl.KeyDown(Key: TKey; C: char; Pressed: TKeysPressed): boolean;
 begin
   Result := false;
 end;
 
 function TUIControl.MouseMove(const OldX, OldY, NewX, NewY: Integer;
-  const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean;
+  const MousePressed: TMouseButtons; Pressed: TKeysPressed): boolean;
 begin
   Result := false;
 end;
@@ -298,9 +292,7 @@ begin
 end;
 
 procedure TUIControl.Idle(const CompSpeed: Single;
-  KeysDown: PKeysBooleans;
-  CharactersDown: PCharactersBooleans;
-  const MousePressed: TMouseButtons);
+  Pressed: TKeysPressed; const MousePressed: TMouseButtons);
 begin
 end;
 

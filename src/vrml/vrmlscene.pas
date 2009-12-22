@@ -1477,7 +1477,7 @@ type
       detected to still be part of our graph. }
     procedure UnregisterProcessEvents(Node: TVRMLNode);
 
-    procedure KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans);
+    procedure KeyDown(Key: TKey; C: char{; Pressed: TKeysPressed});
     procedure KeyUp(Key: TKey; C: char);
 
     { Call this to when pointing-device moves.
@@ -4704,7 +4704,7 @@ begin
   end;
 end;
 
-procedure TVRMLScene.KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans);
+procedure TVRMLScene.KeyDown(Key: TKey; C: char{; Pressed: TKeysPressed});
 var
   I: Integer;
   KeySensor: TNodeKeySensor;

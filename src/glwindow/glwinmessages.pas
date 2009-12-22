@@ -718,15 +718,15 @@ procedure IdleMessg(glwin: TGLWindow);
   function Faktor: Single;
   begin
    result := 200.0 * glwin.Fps.IdleSpeed;
-   if mkCtrl in Glwin.ModifiersDown then result *= 6;
+   if mkCtrl in Glwin.Pressed.Modifiers then result *= 6;
   end;
 
 var md: TMessageData;
 begin
  md := TMessageData(glwin.userdata);
  with glwin do begin
-  if KeysDown[K_up] then md.setFloatShiftY(glwin, md.floatShiftY - Faktor);
-  if KeysDown[K_down] then md.setFloatShiftY(glwin, md.floatShiftY + Faktor);
+  if Pressed[K_up] then md.setFloatShiftY(glwin, md.floatShiftY - Faktor);
+  if Pressed[K_down] then md.setFloatShiftY(glwin, md.floatShiftY + Faktor);
  end;
 end;
 
@@ -1175,7 +1175,7 @@ begin
  if (C = CharBackSpace) or (Key = K_BackSpace) then
  begin
    if md.SAdditional <> '' then
-     if mkCtrl in Glwin.ModifiersDown then
+     if mkCtrl in Glwin.Pressed.Modifiers then
        md.SetSAdditional(glwin, '') else
        md.SetSAdditional(glwin, Copy(md.SAdditional, 1,Length(md.SAdditional)-1));
  end else

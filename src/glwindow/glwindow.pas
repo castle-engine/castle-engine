@@ -151,8 +151,8 @@
       event loop handling, which is crucial for implementing things
       like @link(MessageInputQuery) function that does modal GUI dialog box.)
 
-    @item(TGLWindow.KeysDown to easily and reliably check which keys
-      are pressed. Also TGLWindow.CharactersDown.)
+    @item(TGLWindow.Pressed to easily and reliably check which keys
+      are pressed.)
 
     @item(Frames per second measuring, see @link(TGLWindow.Fps),)
 
@@ -906,7 +906,7 @@ type
 
     procedure CreateImplDepend;
 
-    { For all keys that are down (KeysDown[k]) call DoKeyUp(k).
+    { For all keys that are down (Pressed[k]) call DoKeyUp(k).
       For all mouse buttons that are down (mb in MousePressed) call DoMouseUp(mb).
       If GLWINDOW_USE_PRIVATE_MODIFIERS_DOWN is defined,
       this calls at the beginning SetPrivateModifiersDown(..., ..., false)
@@ -951,8 +951,7 @@ type
       you don't have to worry about these things when you use DoXxx methods
       (these things are fully handled by DoXxx methods):
       - updating state of MousePressed
-      - updating state of KeysDown
-      - updating state of CharactersDown
+      - updating state of Pressed (Pressed.Keys, Pressed.Characters etc.)
       - updating state of MouseX, MouseY
       - calling MakeCurrent before every EventXxx
       - flushing gl commands (and swapping gl buffers when DoubleBuffer'ing)
@@ -1052,9 +1051,6 @@ type
            ProcessAllMessages inside). }
     procedure DoDraw;
   private
-    PressedKeyToCharacter: array [TKey] of Char;
-    PressedCharacterToKey: array [Char] of TKey;
-
     { DoKeyDown/Up: pass here key that is pressed down or released up.
 
       Only DoKeyDown: pass also CharKey. Pass Key = K_None if this is not
@@ -1064,44 +1060,15 @@ type
 
       Only DoKeyUp: never pass Key = K_None.
 
-      If you call DoKeyUp while (not KeysDown[Key]) it will be ignored
+      If you call DoKeyUp while (not Pressed[Key]) it will be ignored
       (will not do any EventKeyUp etc. - just NOOP).
 
       This will
-         update KeysDown accordingly,
-         update ChatactersDown accordingly,
+         update Pressed (Pressed.Keys, Pressed.Characters, etc.) accordingly,
          DoKeyDown: may here call DoMenuCommand
            (and then it will NOT call MakeCurrent and EventKeyDown)
          MakeCurrent,
          EventKeyDown/Up.
-
-       Note that CharactersDown are updated on the basis that given
-       TKey corresponds to character. PressedKeyToCharacter and
-       PressedCharacterToKey arrays
-       store 1-1 mapping between pressed keys and pressed characters.
-       So at any given point, we consider that given character corresponds
-       to only one key. So CharactersDown may get fooled by user in some
-       complicated cases, that's acceptable (since unavoidable,
-       see CharactersDown comments). If a new key corresponding to already
-       pressed character is pressed, this new key replaces previous key
-       in the mapping.
-
-       PressedKeyToCharacter reverse each other, that is
-         PressedCharacterToKey[PressedKeyToCharacter[Key]] = Key and
-         PressedKeyToCharacter[PressedCharacterToKey[C]] = C
-       for all keys and characters, assuming that
-       PressedCharacterToKey[C] <> K_None and
-       PressedKeyToCharacter[Key] <> #0 (which indicate that no character
-       is pressed / no character is pressed corresponding to this key).
-
-       Storing correspondence means that if each KeyDown is paired by
-       KeyUp, then each pressed Character will also be released.
-       (Since each pressed Character *always* has a corresponding key
-       that activated it.)
-
-       PressedXxx arrays may seem complicated, but their programming
-       is trivial and they allow me to update CharactersDown array
-       quickly and reliably.
     }
     procedure DoKeyDown(key: TKey; CharKey: char);
     procedure DoKeyUp(key: TKey);
@@ -1166,6 +1133,7 @@ type
     FMultiSampling: Cardinal;
     FGtkIconName: string;
     FWindowVisible: boolean;
+    FPressed: TKeysPressed;
   public
 
     { EventXxx virtual methods -------------------------------------------------
@@ -1710,26 +1678,26 @@ type
       dostawali "udawane" KeyUp (udawane, bo user tak naprawde ani na chwile
       nie puscil klawisza) a pod niektorymi nie bedziemy dostawali KeyUp
       (bedziemy po prostu dostawali KeyDown(k) podczas gdy juz wczesniej
-      KeysDown[k] = true). Piszac program musisz byc gotow na obie mozliwosci.
+      Pressed[k] = true). Piszac program musisz byc gotow na obie mozliwosci.
       Podsumowujac : nie patrz na KeyDown(k) jako na "zdarzenie ktore zachodzi
-      gdy KeysDown[k] zmienia sie z false na true". To tak nie dziala.
-      Patrz raczej na to jako na zdarzenie po ktorym KeysDown[k] na pewno
+      gdy Pressed[k] zmienia sie z false na true". To tak nie dziala.
+      Patrz raczej na to jako na zdarzenie po ktorym Pressed[k] na pewno
       jest true. }
     property OnKeyDown: TKeyCharFunc read FOnKeyDown write FOnKeyDown;
 
     { Called when user releases a pressed key. I.e. it's called right after
-      KeysDown[Key] changed from true to false.
+      Pressed[Key] changed from true to false.
 
       Key is never K_None.
 
       C may be #0 is no representable character is released.
       When C is <> #0, we detected that some character is released.
-      This is connected with setting CharactersDown[C] from @true to @false.
+      This is connected with setting Characters[C] from @true to @false.
 
       Note that reporting characters for "key release" messages is not
       perfect, as various key combinations (sometimes more than one?) may lead
       to generating given character. We have some intelligent algorithm
-      for this, used to make CharactersDown table and to detect
+      for this, used to make Characters table and to detect
       this C for OnKeyUp callback. The idea is that a character is released
       when the key that initially caused the press of this character is
       also released.
@@ -1814,7 +1782,7 @@ type
       sa zdarzeniami niezwiazanymi z konkretnym okienkiem to jednak
       sa wykorzystywane najczesciej wlasnie aby iterowac po wszystkich /
       niektorych okiekach wsrod Application.Active[] i cos w nich robic,
-      chociazby sprawdzac ich KeysDown[]. W tej sytuacji jest dobrym
+      chociazby sprawdzac ich Pressed[]. W tej sytuacji jest dobrym
       pomyslem aby robic te zdarzenia w callbacku specyficznym
       dla danego obiektu a nie dla calego Application - w ten sposob ulozenie
       danych w obiektach odpowiada rzeczywistym celom do jakiego sa
@@ -2131,26 +2099,8 @@ type
     destructor Destroy; override;
 
   public
-
-    { KeysDown ------------------------------------------------------------ }
-
-    { You can check whether some key is pressed using this array.
-      Note that this array is read-only from outside of this class !
-      Always KeysDown[K_None] = false. }
-    KeysDown: TKeysBooleans;
-
-    { You can check whether some character is pressed using this array.
-      Note that this array is read-only from outside of this class !
-      Always CharactersDown[#0] = false.
-
-      Note that since a given character may be generated by various
-      key combinations, this doesn't work as reliably as KeysDown.
-      Although we do our best, and in practice this works Ok.
-      But still checking for keys on KeysDown, when possible, it adviced. }
-    CharactersDown: TCharactersBooleans;
-
-    { The same thing as KeysMouse.ModifiersDown(KeysDown). }
-    function ModifiersDown: TModifierKeys;
+    { Tracks which keys, characters, modifiers are pressed. }
+    property Pressed: TKeysPressed read FPressed;
 
     { Fps -------------------------------------------------------------------- }
 
@@ -2824,7 +2774,7 @@ type
       mimo ze mamy jakies message'y do obsluzenia).
 
       W szczegolnosci, to jest odpowiednie miejsce aby robic
-      badanie KeysDown[] klawiszy (chyba ze nasluch na OnKeyDown wystarcza),
+      badanie Pressed[] klawiszy (chyba ze nasluch na OnKeyDown wystarcza),
       robic animacje zmieniajac jakies zmienne i wywolywac PostRedisplay.
 
       Mozesz tez zmieniac wartosc tej  zmiennej w czasie dzialania programu
@@ -3068,9 +3018,8 @@ begin
  FCursor := gcDefault;
  FMultiSampling := 1;
  FWindowVisible := true;
-
  OwnsMainMenu := true;
-
+ FPressed := TKeysPressed.Create;
  FFps := TFramesPerSecond.Create;
 
  CreateImplDepend;
@@ -3083,7 +3032,7 @@ begin
  if OwnsMainMenu then FreeAndNil(FMainMenu);
 
  FreeAndNil(FFps);
-
+ FreeAndNil(FPressed);
  FreeAndNil(OnInitList);
  FreeAndNil(OnCloseList);
  inherited;
@@ -3130,10 +3079,7 @@ begin
   end;
 
   { reset some window state variables }
-  FillChar(KeysDown, SizeOf(KeysDown), 0);
-  FillChar(CharactersDown, SizeOf(CharactersDown), 0);
-  FillChar(PressedKeyToCharacter, SizeOf(PressedKeyToCharacter), 0);
-  FillChar(PressedCharacterToKey, SizeOf(PressedCharacterToKey), 0);
+  Pressed.Clear;
   fmousePressed := [];
   EventInitCalled := false;
 
@@ -3332,24 +3278,19 @@ begin
    directly when GLWINDOW_USE_PRIVATE_MODIFIERS_DOWN, instead we have to
    use SetPrivateModifiersDown(mkCtrl, ...).
    This is the only way to make values in PrivateModifiersDown[]
-   and KeysDown[] arrays consistent. }
+   and Pressed[] arrays consistent. }
  for mk := Low(mk) to High(mk) do
   for b := Low(b) to High(b) do
    SetPrivateModifiersDown(mk, b, false);
  {$endif GLWINDOW_USE_PRIVATE_MODIFIERS_DOWN}
 
- { Since we do DoKeyUp, this should also take care of CharactersDown. }
+ { Since we do DoKeyUp, this should also take care of Characters. }
 
  for k := Low(k) to High(k) do
-  if KeysDown[k] then DoKeyUp(k);
+  if Pressed[k] then DoKeyUp(k);
 
  for mb := Low(mb) to High(mb) do if mb in MousePressed then
   DoMouseUp(MouseX, MouseY, mb);
-end;
-
-function TGLWindow.ModifiersDown: TModifierKeys;
-begin
- result := KeysMouse.ModifiersDown(KeysDown);
 end;
 
 { wszystkie zdarzenia TGLWindow - opakowujace je procedury DoXxx ktore
@@ -3473,30 +3414,7 @@ procedure TGLWindow.DoKeyDown(Key: TKey; CharKey: char);
 
 var MatchingMI: TMenuItem;
 begin
- if Key <> K_None then KeysDown[Key] := true;
-
- if (Key <> K_None) and
-    (CharKey <> #0) and
-    (PressedKeyToCharacter[Key] = #0) then
- begin
-   { update CharactersDown and PressedXxx mapping arrays }
-   if PressedCharacterToKey[CharKey] = K_None then
-   begin
-     Assert(not CharactersDown[CharKey]);
-     CharactersDown[CharKey] := true;
-   end else
-   begin
-     { some key already recorded as generating this character }
-     Assert(CharactersDown[CharKey]);
-     Assert(PressedKeyToCharacter[PressedCharacterToKey[CharKey]] = CharKey);
-
-     PressedKeyToCharacter[PressedCharacterToKey[CharKey]] := #0;
-     PressedCharacterToKey[CharKey] := K_None;
-   end;
-
-   PressedKeyToCharacter[Key] := CharKey;
-   PressedCharacterToKey[CharKey] := Key;
- end;
+ Pressed.KeyDown(Key, CharKey);
 
  MatchingMI := SeekMatchingMenuItem;
  if (MainMenu <> nil) and
@@ -3516,22 +3434,11 @@ procedure TGLWindow.DoKeyUp(key: TKey);
 var
   C: char;
 begin
-  if KeysDown[Key] then
+  if Pressed[Key] then
   begin
     { K_None key is never pressed, DoKeyDown guarentees this }
     Assert(Key <> K_None);
-
-    C := PressedKeyToCharacter[Key];
-    if C <> #0 then
-    begin
-      { update CharactersDown and PressedXxx mapping arrays }
-      Assert(CharactersDown[C]);
-      CharactersDown[C] := false;
-      PressedCharacterToKey[C] := K_None;
-      PressedKeyToCharacter[Key] := #0;
-    end;
-
-    KeysDown[key] := false;
+    Pressed.KeyUp(Key, C);
     MakeCurrent;
     EventKeyUp(key, C);
   end;
@@ -4416,8 +4323,8 @@ begin
     begin
       ThisListener := Controls.Items[I];
       if F = ThisListener then
-        ThisListener.Idle(Fps.IdleSpeed, @KeysDown, @CharactersDown, MousePressed) else
-        ThisListener.Idle(Fps.IdleSpeed, nil, nil, []);
+        ThisListener.Idle(Fps.IdleSpeed, Pressed, MousePressed) else
+        ThisListener.Idle(Fps.IdleSpeed, nil, []);
     end;
   end;
 
@@ -4435,7 +4342,7 @@ begin
     begin
       C := Controls.Items[I];
       if C.PositionInside(MouseX, MouseY) then
-        if C.KeyDown(Key, Ch, @KeysDown) then Exit;
+        if C.KeyDown(Key, Ch, Pressed) then Exit;
     end;
   end;
 
@@ -4593,7 +4500,7 @@ var
 begin
   F := Focus;
   if (F <> nil) and
-      F.MouseMove(MouseX, MouseY, NewX, NewY, MousePressed, @KeysDown) then
+      F.MouseMove(MouseX, MouseY, NewX, NewY, MousePressed, Pressed) then
     Exit;
 
   inherited;

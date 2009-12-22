@@ -492,10 +492,10 @@ constructor TGLMode.Create(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
       if Button in Glwin.MousePressed then
         Glwin.EventMouseUp(Button);
     for Key := Low(Key) to High(Key) do
-      if Glwin.KeysDown[Key] then
+      if Glwin.Pressed[Key] then
         Glwin.EventKeyUp(Key, #0);
     for C := Low(C) to High(C) do
-      if Glwin.CharactersDown[C] then
+      if Glwin.Pressed.Characters[C] then
         Glwin.EventKeyUp(K_None, C);
   end;
 
