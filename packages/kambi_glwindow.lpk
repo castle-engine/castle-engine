@@ -64,8 +64,8 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <UnitName Value="GLWindow"/>
       </Item3>
       <Item4>
-        <Filename Value="../src/glwindow/glwindowrecentmenu.pas"/>
-        <UnitName Value="GLWindowRecentMenu"/>
+        <Filename Value="../src/glwindow/glwindowrecentfiles.pas"/>
+        <UnitName Value="GLWindowRecentFiles"/>
       </Item4>
       <Item5>
         <Filename Value="../src/glwindow/glwininputs.pas"/>

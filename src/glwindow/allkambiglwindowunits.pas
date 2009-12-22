@@ -12,7 +12,7 @@ interface
 uses
   glsoundmenu,
   glwindow,
-  glwindowrecentmenu,
+  glwindowrecentfiles,
   glwindowvrmlbrowser,
   glwininputs,
   glwinmessages,

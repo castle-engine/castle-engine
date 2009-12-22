@@ -109,6 +109,7 @@ D   kambizstream.pas
 -   parseparametersunit.pas
 D   progressconsole.pas
 |   progressunit.pas
+D   recentfiles.pas
 D   rects.pas
 |   vectormath.pas
 
@@ -124,7 +125,7 @@ D   unix/xf86vmode.pas
 D   unix/xlibutils.pas
 D   glsoundmenu.pas
 |   glwindow.pas
-D   glwindowrecentmenu.pas
+D   glwindowrecentfiles.pas
 D   glwindowvrmlbrowser.pas
 -   glwininputs.pas
 D   glwinmessages.pas

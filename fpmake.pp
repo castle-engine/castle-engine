@@ -148,6 +148,7 @@ begin
     P.Targets.AddUnit('parseparametersunit.pas');
     P.Targets.AddUnit('progressconsole.pas');
     P.Targets.AddUnit('progressunit.pas');
+    P.Targets.AddUnit('recentfiles.pas');
     P.Targets.AddUnit('rects.pas');
     P.Targets.AddUnit('vectormath.pas');
 
@@ -181,7 +182,7 @@ begin
     P.SourcePath.Add('src' + PathDelim + 'glwindow');
     P.Targets.AddUnit('glsoundmenu.pas');
     P.Targets.AddUnit('glwindow.pas');
-    P.Targets.AddUnit('glwindowrecentmenu.pas');
+    P.Targets.AddUnit('glwindowrecentfiles.pas');
     P.Targets.AddUnit('glwininputs.pas');
     P.Targets.AddUnit('glwinmessages.pas');
     P.Targets.AddUnit('glwinmodes.pas');

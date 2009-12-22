@@ -11,9 +11,9 @@
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
-{ Management of "recent files" menu for programs using GLWindow menu.
-  See TGLRecentMenu class. }
-unit GLWindowRecentMenu;
+{ Manage a list of recently opened files, and show a menu in TGLWindow.
+  See TGLRecentFiles class. }
+unit GLWindowRecentFiles;
 
 interface
 
@@ -21,7 +21,7 @@ uses Classes, GLWindow, RecentFiles;
 
 type
   { Manage a list of recently opened files, and show a menu in TGLWindow. }
-  TGLRecentMenu = class(TBaseRecentFiles)
+  TGLRecentFiles = class(TBaseRecentFiles)
   private
     FNextMenuItem: TMenuEntry;
     FirstSeparator: TMenuEntry;
@@ -97,9 +97,9 @@ begin
   Result := true;
 end;
 
-{ TGLRecentMenu -------------------------------------------------------------- }
+{ TGLRecentFiles -------------------------------------------------------------- }
 
-procedure TGLRecentMenu.MenuCreate;
+procedure TGLRecentFiles.MenuCreate;
 var
   I: Integer;
   ParentMenu: TMenu;
@@ -127,7 +127,7 @@ begin
   end;
 end;
 
-procedure TGLRecentMenu.MenuDestroy;
+procedure TGLRecentFiles.MenuDestroy;
 var
   ParentMenu: TMenu;
   Position: Cardinal;
@@ -156,7 +156,7 @@ begin
   inherited;
 end;
 
-procedure TGLRecentMenu.SetNextMenuItem(Value: TMenuEntry);
+procedure TGLRecentFiles.SetNextMenuItem(Value: TMenuEntry);
 begin
   if Value <> FNextMenuItem then
   begin
