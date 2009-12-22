@@ -232,6 +232,7 @@
       </Item45>
       <Item46>
         <Filename Value="../src/base/kambixmlcfg.pas"/>
+        <HasRegisterProc Value="True"/>
         <UnitName Value="KambiXMLCfg"/>
       </Item46>
       <Item47>

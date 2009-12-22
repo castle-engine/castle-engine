@@ -32,21 +32,26 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="3">
+    <Files Count="4">
       <Item1>
         <Filename Value="../src/components/kambiglcontrol.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="KambiGLControl"/>
       </Item1>
       <Item2>
+        <Filename Value="../src/components/kambilclutils.pas"/>
+        <UnitName Value="KambiLCLUtils"/>
+      </Item2>
+      <Item3>
         <Filename Value="../src/components/kambivrmlbrowser.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="KambiVRMLBrowser"/>
-      </Item2>
-      <Item3>
-        <Filename Value="../src/components/kambilclutils.pas"/>
-        <UnitName Value="KambiLCLUtils"/>
       </Item3>
+      <Item4>
+        <Filename Value="../src/components/lclrecentfiles.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="LCLRecentFiles"/>
+      </Item4>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="3">

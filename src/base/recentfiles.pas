@@ -30,7 +30,7 @@ type
 
     This is designed as a base class, usable on it's own, but also
     as a parent for classes that show this list inside a menu.
-    For Lazarus menu version, see TRecentFiles.
+    For Lazarus menu version, see TKamRecentFiles.
     For TGLWindow menu version, see TGLRecentFiles. }
   TBaseRecentFiles = class(TComponent)
   private

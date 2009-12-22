@@ -74,9 +74,16 @@ type
     function PathElement(const APath: string): TDOMElement;
   end;
 
+procedure Register;
+
 implementation
 
-uses SysUtils, KambiStringUtils;
+uses SysUtils, KambiStringUtils, Classes;
+
+procedure Register;
+begin
+  RegisterComponents('Kambi', [TKamXMLConfig]);
+end;
 
 { TKamXMLConfig -------------------------------------------------------------- }
 
