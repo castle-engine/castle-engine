@@ -8,7 +8,7 @@
       </Flags>
       <MainUnit Value="0"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="0"/>
+      <ActiveEditorIndexAtStart Value="1"/>
     </General>
     <PublishOptions>
       <Version Value="2"/>
@@ -45,7 +45,7 @@
         <UnitName Value="lazarus_vrml_browser"/>
         <CursorPos X="53" Y="17"/>
         <TopLine Value="1"/>
-        <UsageCount Value="51"/>
+        <UsageCount Value="52"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
@@ -53,21 +53,23 @@
         <ComponentName Value="Main"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="20" Y="7"/>
-        <TopLine Value="1"/>
+        <CursorPos X="56" Y="9"/>
+        <TopLine Value="9"/>
         <EditorIndex Value="0"/>
-        <UsageCount Value="51"/>
+        <UsageCount Value="52"/>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="../../../src/components/kambiglcontrol.pas"/>
         <UnitName Value="KambiGLControl"/>
-        <CursorPos X="42" Y="784"/>
-        <TopLine Value="853"/>
+        <CursorPos X="6" Y="348"/>
+        <TopLine Value="335"/>
+        <EditorIndex Value="1"/>
         <UsageCount Value="15"/>
         <Bookmarks Count="1">
           <Item0 X="5" Y="215" ID="1"/>
         </Bookmarks>
+        <Loaded Value="True"/>
       </Unit2>
       <Unit3>
         <Filename Value="../../../src/opengl/kambiglutils.pas"/>
@@ -125,7 +127,7 @@
         <UnitName Value="OpenGLInformation"/>
         <CursorPos X="30" Y="36"/>
         <TopLine Value="18"/>
-        <UsageCount Value="39"/>
+        <UsageCount Value="40"/>
       </Unit10>
       <Unit11>
         <Filename Value="mainf.lfm"/>
@@ -244,7 +246,7 @@
         <UnitName Value="VrmlConsoleF"/>
         <CursorPos X="3" Y="50"/>
         <TopLine Value="11"/>
-        <UsageCount Value="31"/>
+        <UsageCount Value="32"/>
       </Unit27>
       <Unit28>
         <Filename Value="../../../vrml/vrmlerrors.pas"/>
@@ -263,8 +265,8 @@
       <Unit30>
         <Filename Value="../../../src/components/kambivrmlbrowser.pas"/>
         <UnitName Value="KambiVRMLBrowser"/>
-        <CursorPos X="21" Y="21"/>
-        <TopLine Value="1"/>
+        <CursorPos X="30" Y="103"/>
+        <TopLine Value="404"/>
         <UsageCount Value="13"/>
       </Unit30>
       <Unit31>
@@ -275,7 +277,7 @@
         <UsageCount Value="11"/>
       </Unit31>
     </Units>
-    <JumpHistory Count="10" HistoryIndex="9">
+    <JumpHistory Count="12" HistoryIndex="11">
       <Position1>
         <Filename Value="mainf.pas"/>
         <Caret Line="200" Column="10" TopLine="184"/>
@@ -316,6 +318,14 @@
         <Filename Value="mainf.pas"/>
         <Caret Line="136" Column="3" TopLine="132"/>
       </Position10>
+      <Position11>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="9" Column="56" TopLine="1"/>
+      </Position11>
+      <Position12>
+        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
+        <Caret Line="754" Column="3" TopLine="754"/>
+      </Position12>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

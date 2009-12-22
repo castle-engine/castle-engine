@@ -149,9 +149,9 @@ object Main: TMain
     left = 40
     top = 136
     object MenuFile: TMenuItem
-      Caption = 'File'
+      Caption = '&File'
       object MenuOpen: TMenuItem
-        Caption = 'Open'
+        Caption = '&Open'
         ShortCut = 16463
         OnClick = MenuOpenClick
       end
@@ -159,15 +159,15 @@ object Main: TMain
         Caption = '-'
       end
       object MenuQuit: TMenuItem
-        Caption = 'Quit'
+        Caption = '&Quit'
         OnClick = MenuQuitClick
       end
     end
     object MenuItemView: TMenuItem
-      Caption = 'View'
+      Caption = '&View'
       object MenuMouseLookToggle: TMenuItem
         AutoCheck = True
-        Caption = 'Mouse Look'
+        Caption = 'Mouse &Look'
         ShortCut = 16461
         ShowAlwaysCheckable = True
         OnClick = MenuMouseLookToggleClick
@@ -176,7 +176,7 @@ object Main: TMain
         Caption = '-'
       end
       object MenuFocusGLControl: TMenuItem
-        Caption = 'Switch focus to 3D area'
+        Caption = 'Switch &focus to 3D area'
         OnClick = MenuFocusGLControlClick
       end
       object MenuItem1: TMenuItem
@@ -184,15 +184,15 @@ object Main: TMain
       end
       object MenuShowVrmlConsole: TMenuItem
         AutoCheck = True
-        Caption = 'Show VRML console'
+        Caption = 'Show VRML &console'
         ShowAlwaysCheckable = True
         OnClick = MenuShowVrmlConsoleClick
       end
     end
     object MenuHelp: TMenuItem
-      Caption = 'Help'
+      Caption = '&Help'
       object MenuAboutOpenGL: TMenuItem
-        Caption = 'OpenGL information'
+        Caption = '&OpenGL information'
         OnClick = MenuAboutOpenGLClick
       end
     end
