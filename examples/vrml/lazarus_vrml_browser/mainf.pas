@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs,
   OpenGLContext, Menus, VRMLGLScene, Navigation, KambiVRMLBrowser,
-  Buttons, ExtCtrls, StdCtrls;
+  LCLRecentFiles, KambiXMLCfg, Buttons, ExtCtrls, StdCtrls, RecentFiles;
 
 type
 
@@ -45,6 +45,8 @@ type
     Timer1: TTimer;
     MenuItem2: TMenuItem;
     MenuMouseLookToggle: TMenuItem;
+    Config: TKamXMLConfig;
+    RecentFiles: TKamRecentFiles;
     procedure BrowserNavigatorChanged(Navigator: TNavigator);
     procedure ButtonChangeCameraClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -56,6 +58,8 @@ type
     procedure MenuShowVrmlConsoleClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure MenuMouseLookToggleClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure RecentFilesOpenRecent(const FileName: string);
   private
     SceneFileName: string;
     procedure OpenScene(const FileName: string);
@@ -91,6 +95,8 @@ begin
     MenuShowVrmlConsole.Checked := true;
     VrmlConsole.Visible := MenuShowVrmlConsole.Checked;
   end;
+
+  RecentFiles.Add(FileName);
 end;
 
 procedure TMain.MenuOpenClick(Sender: TObject);
@@ -165,9 +171,21 @@ begin
   Browser.SetFocus;
 end;
 
+function MyGetApplicationName: string;
+begin
+  Result := 'lazarus_vrml_browser';
+end;
+
 procedure TMain.FormCreate(Sender: TObject);
 begin
   FileFiltersToOpenDialog(LoadAsVRML_FileFilters, OpenDialog1);
+
+  { load config settings, in particular recent files }
+  OnGetApplicationName := @MyGetApplicationName;
+  Config.FileName := UserConfigFile('.conf');
+  RecentFiles.LoadFromConfig(Config, 'recent_files');
+  RecentFiles.NextMenuItem := MenuSep1;
+
   Browser.Fps.Active := true;
 
   UpdateCaption;
@@ -185,6 +203,18 @@ begin
 
   if Parameters.High >= 1 then
     OpenScene(Parameters[1]);
+end;
+
+procedure TMain.FormDestroy(Sender: TObject);
+begin
+  { save config settings }
+  RecentFiles.SaveToConfig(Config, 'recent_files');
+  Config.Flush;
+end;
+
+procedure TMain.RecentFilesOpenRecent(const FileName: string);
+begin
+  OpenScene(FileName);
 end;
 
 procedure TMain.FormDeactivate(Sender: TObject);

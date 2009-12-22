@@ -11,6 +11,7 @@ object Main: TMain
   Menu = MainMenu1
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
+  OnDestroy = FormDestroy
   LCLVersion = '0.9.29'
   object PanelBottom: TPanel
     Left = 0
@@ -207,5 +208,16 @@ object Main: TMain
     OnTimer = Timer1Timer
     left = 43
     top = 73
+  end
+  object Config: TKamXMLConfig
+    StartEmpty = False
+    RootName = 'CONFIG'
+    left = 142
+    top = 132
+  end
+  object RecentFiles: TKamRecentFiles
+    OnOpenRecent = RecentFilesOpenRecent
+    left = 144
+    top = 203
   end
 end
