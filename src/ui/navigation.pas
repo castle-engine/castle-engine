@@ -353,7 +353,7 @@ type
     procedure GetCameraVectors(out Pos, Dir, Up: TVector3Single); virtual; abstract;
     function GetCameraPos: TVector3Single; virtual; abstract;
 
-    function PositionInside(const X, Y: Single): boolean; override;
+    function PositionInside(const X, Y: Integer): boolean; override;
   end;
 
   TNavigatorClass = class of TNavigator;
@@ -418,9 +418,9 @@ type
       const MousePressed: TMouseButtons); override;
     function AllowSuspendForInput: boolean; override;
     function KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean; override;
-    function MouseDown(const MouseX, MouseY: Single;
+    function MouseDown(const MouseX, MouseY: Integer;
       Button: TMouseButton; const MousePressed: TMouseButtons): boolean; override;
-    function MouseMove(const OldX, OldY, NewX, NewY: Single;
+    function MouseMove(const OldX, OldY, NewX, NewY: Integer;
       const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean; override;
 
     { Current camera properties ---------------------------------------------- }
@@ -1029,10 +1029,10 @@ type
       default false;
 
     { Call when mouse moves. Must be called to make MouseLook work. }
-    function MouseMove(const OldX, OldY, NewX, NewY: Single;
+    function MouseMove(const OldX, OldY, NewX, NewY: Integer;
       const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean; override;
 
-    function MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
+    function MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
       const MousePressed: TMouseButtons): boolean; override;
 
     { Things related to gravity ---------------------------------------- }
@@ -1559,7 +1559,7 @@ begin
   RecalculateFrustum;
 end;
 
-function TNavigator.PositionInside(const X, Y: Single): boolean;
+function TNavigator.PositionInside(const X, Y: Integer): boolean;
 begin
   Result := true;
 end;
@@ -1830,7 +1830,7 @@ begin
   Result := EventDown(false, Key, C, mbLeft);
 end;
 
-function TExamineNavigator.MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
+function TExamineNavigator.MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
       const MousePressed: TMouseButtons): boolean;
 begin
   Result := inherited;
@@ -1839,7 +1839,7 @@ begin
   Result := EventDown(true, K_None, #0, Button);
 end;
 
-function TExamineNavigator.MouseMove(const OldX, OldY, NewX, NewY: Single;
+function TExamineNavigator.MouseMove(const OldX, OldY, NewX, NewY: Integer;
   const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean;
 var
   Size: Single;
@@ -3171,7 +3171,7 @@ begin
   end;
 end;
 
-function TWalkNavigator.MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
+function TWalkNavigator.MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
       const MousePressed: TMouseButtons): boolean;
 begin
   Result := inherited;
@@ -3331,7 +3331,7 @@ begin
   FIsFallingDown := false;
 end;
 
-function TWalkNavigator.MouseMove(const OldX, OldY, NewX, NewY: Single;
+function TWalkNavigator.MouseMove(const OldX, OldY, NewX, NewY: Integer;
   const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean;
 var
   MouseXChange, MouseYChange: Single;
@@ -3347,7 +3347,7 @@ begin
     MiddleHeight := ContainerHeight div 2;
 
     { Note that SetMousePosition may (but doesn't have to)
-      generate OnMouseMove to destination position.
+      generate another MouseMove in the container to destination position.
       This can cause some problems:
 
       1. Consider this:
@@ -3375,7 +3375,7 @@ begin
       MiddleWidth and MiddleHeight. This way we know that
       this is good move, that qualifies to perform mouse move.
 
-      And inside, F.MouseMove can calculate the difference
+      And inside, we can calculate the difference
       by subtracing new - old position, knowing that old = middle this
       will always be Ok. }
     if (OldX = MiddleWidth) and
@@ -3400,9 +3400,9 @@ begin
     end;
 
     { I check the condition below to avoid calling SetMousePosition,
-      OnMouseMove, SetMousePosition, OnMouseMove... in a loop.
+      getting MouseMove event, SetMousePosition, getting MouseMove event... in a loop.
       Not really likely (as messages will be queued, and some
-      SetMousePosition will finally just not generate OnMouseMove),
+      SetMousePosition will finally just not generate event MouseMove),
       but I want to safeguard anyway. }
     if (NewX <> MiddleWidth) or (NewY <> MiddleHeight) then
       Container.SetMousePosition(MiddleWidth, MiddleHeight);

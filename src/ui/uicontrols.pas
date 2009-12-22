@@ -96,7 +96,7 @@ type
 
       Like for KeyDown and Idle, you can pass KeysDown as
       @nil if you don't know this. }
-    function MouseMove(const OldX, OldY, NewX, NewY: Single;
+    function MouseMove(const OldX, OldY, NewX, NewY: Integer;
       const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean; virtual;
 
     (*Handle mouse down event.
@@ -108,10 +108,10 @@ type
   if Result then Exit;
   { ... do the job here ... }
 #) *)
-    function MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
+    function MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
       const MousePressed: TMouseButtons): boolean; virtual;
 
-    function MouseUp(const MouseX, MouseY: Single; Button: TMouseButton;
+    function MouseUp(const MouseX, MouseY: Integer; Button: TMouseButton;
       const MousePressed: TMouseButtons): boolean; virtual;
 
     { Call this often, to respond to user actions and to perform
@@ -137,7 +137,7 @@ type
 
     { Is given position inside this control.
       Returns always @false in this class. }
-    function PositionInside(const X, Y: Single): boolean; virtual;
+    function PositionInside(const X, Y: Integer): boolean; virtual;
 
     { Should we disable further mouse / keys handling for events that
       we already handled in this control. If @true, then our events will
@@ -279,19 +279,19 @@ begin
   Result := false;
 end;
 
-function TUIControl.MouseMove(const OldX, OldY, NewX, NewY: Single;
+function TUIControl.MouseMove(const OldX, OldY, NewX, NewY: Integer;
   const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean;
 begin
   Result := false;
 end;
 
-function TUIControl.MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
+function TUIControl.MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
   const MousePressed: TMouseButtons): boolean;
 begin
   Result := false;
 end;
 
-function TUIControl.MouseUp(const MouseX, MouseY: Single; Button: TMouseButton;
+function TUIControl.MouseUp(const MouseX, MouseY: Integer; Button: TMouseButton;
   const MousePressed: TMouseButtons): boolean;
 begin
   Result := false;
@@ -304,7 +304,7 @@ procedure TUIControl.Idle(const CompSpeed: Single;
 begin
 end;
 
-function TUIControl.PositionInside(const X, Y: Single): boolean;
+function TUIControl.PositionInside(const X, Y: Integer): boolean;
 begin
   Result := false;
 end;

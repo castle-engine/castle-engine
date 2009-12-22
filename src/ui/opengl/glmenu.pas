@@ -97,7 +97,7 @@ type
 
       You can use ParentMenu to call
       ParentMenu.CurrentItemAccessoryValueChanged. }
-    function MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
+    function MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
       const Area: TArea; ParentMenu: TGLMenu): boolean; virtual;
 
     { This will be called if user will move mouse over the currently selected
@@ -107,7 +107,7 @@ type
       will be within appropriate Area of accessory.
       You can use ParentMenu to call
       ParentMenu.CurrentItemAccessoryValueChanged. }
-    procedure MouseMove(const NewX, NewY: Single;
+    procedure MouseMove(const NewX, NewY: Integer;
       const MousePressed: TMouseButtons;
       const Area: TArea; ParentMenu: TGLMenu); virtual;
   end;
@@ -197,10 +197,10 @@ type
     function KeyDown(Key: TKey; C: char;
       ParentMenu: TGLMenu): boolean; override;
 
-    function MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
+    function MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
       const Area: TArea; ParentMenu: TGLMenu): boolean; override;
 
-    procedure MouseMove(const NewX, NewY: Single;
+    procedure MouseMove(const NewX, NewY: Integer;
       const MousePressed: TMouseButtons;
       const Area: TArea; ParentMenu: TGLMenu); override;
 
@@ -230,10 +230,10 @@ type
     function KeyDown(Key: TKey; C: char;
       ParentMenu: TGLMenu): boolean; override;
 
-    function MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
+    function MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
       const Area: TArea; ParentMenu: TGLMenu): boolean; override;
 
-    procedure MouseMove(const NewX, NewY: Single;
+    procedure MouseMove(const NewX, NewY: Integer;
       const MousePressed: TMouseButtons;
       const Area: TArea; ParentMenu: TGLMenu); override;
 
@@ -494,17 +494,17 @@ type
       default DefaultGLMenuKeySliderDecrease;
 
     function KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean; override;
-    function MouseMove(const OldX, OldY, NewX, NewY: Single;
+    function MouseMove(const OldX, OldY, NewX, NewY: Integer;
       const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean; override;
-    function MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
+    function MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
       const MousePressed: TMouseButtons): boolean; override;
-    function MouseUp(const MouseX, MouseY: Single; Button: TMouseButton;
+    function MouseUp(const MouseX, MouseY: Integer; Button: TMouseButton;
       const MousePressed: TMouseButtons): boolean; override;
     procedure Idle(const CompSpeed: Single;
       KeysDown: PKeysBooleans;
       CharactersDown: PCharactersBooleans;
       const MousePressed: TMouseButtons); override;
-    function PositionInside(const X, Y: Single): boolean; override;
+    function PositionInside(const X, Y: Integer): boolean; override;
     function AllowSuspendForInput: boolean; override;
 
     { Called when user will select CurrentItem, either with mouse
@@ -734,14 +734,14 @@ begin
 end;
 
 function TGLMenuItemAccessory.MouseDown(
-  const MouseX, MouseY: Single; Button: TMouseButton;
+  const MouseX, MouseY: Integer; Button: TMouseButton;
   const Area: TArea; ParentMenu: TGLMenu): boolean;
 begin
   { Nothing to do in this class. }
   Result := false;
 end;
 
-procedure TGLMenuItemAccessory.MouseMove(const NewX, NewY: Single;
+procedure TGLMenuItemAccessory.MouseMove(const NewX, NewY: Integer;
   const MousePressed: TMouseButtons;
   const Area: TArea; ParentMenu: TGLMenu);
 begin
@@ -929,7 +929,7 @@ begin
 end;
 
 function TGLMenuFloatSlider.MouseDown(
-  const MouseX, MouseY: Single; Button: TMouseButton;
+  const MouseX, MouseY: Integer; Button: TMouseButton;
   const Area: TArea; ParentMenu: TGLMenu): boolean;
 begin
   Result := inherited;
@@ -944,7 +944,7 @@ begin
   end;
 end;
 
-procedure TGLMenuFloatSlider.MouseMove(const NewX, NewY: Single;
+procedure TGLMenuFloatSlider.MouseMove(const NewX, NewY: Integer;
   const MousePressed: TMouseButtons;
   const Area: TArea; ParentMenu: TGLMenu);
 begin
@@ -1024,7 +1024,7 @@ begin
 end;
 
 function TGLMenuIntegerSlider.MouseDown(
-  const MouseX, MouseY: Single; Button: TMouseButton;
+  const MouseX, MouseY: Integer; Button: TMouseButton;
   const Area: TArea; ParentMenu: TGLMenu): boolean;
 begin
   Result := inherited;
@@ -1038,7 +1038,7 @@ begin
   end;
 end;
 
-procedure TGLMenuIntegerSlider.MouseMove(const NewX, NewY: Single;
+procedure TGLMenuIntegerSlider.MouseMove(const NewX, NewY: Integer;
   const MousePressed: TMouseButtons;
   const Area: TArea; ParentMenu: TGLMenu);
 begin
@@ -1498,10 +1498,10 @@ begin
   end;
 end;
 
-function TGLMenu.MouseMove(const OldX, OldY, NewX, NewY: Single;
+function TGLMenu.MouseMove(const OldX, OldY, NewX, NewY: Integer;
   const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean;
 var
-  MX, MY: Single;
+  MX, MY: Integer;
 
   procedure ChangePosition;
   var
@@ -1549,11 +1549,11 @@ begin
   Result := ExclusiveEvents;
 end;
 
-function TGLMenu.MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
+function TGLMenu.MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
   const MousePressed: TMouseButtons): boolean;
 var
   NewItemIndex: Integer;
-  MX, MY: Single;
+  MX, MY: Integer;
 begin
   Result := inherited;
   if Result then Exit;
@@ -1585,7 +1585,7 @@ begin
   end;
 end;
 
-function TGLMenu.MouseUp(const MouseX, MouseY: Single; Button: TMouseButton;
+function TGLMenu.MouseUp(const MouseX, MouseY: Integer; Button: TMouseButton;
   const MousePressed: TMouseButtons): boolean;
 begin
   Result := inherited;
@@ -1645,7 +1645,7 @@ begin
   FDesignerMode := Value;
 end;
 
-function TGLMenu.PositionInside(const X, Y: Single): boolean;
+function TGLMenu.PositionInside(const X, Y: Integer): boolean;
 begin
   Result := PointInArea(X, ContainerHeight - Y, FAllItemsArea);
 end;
