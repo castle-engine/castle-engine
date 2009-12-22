@@ -79,7 +79,7 @@ type
 
     If you're looking for GLWindow descendants that does basically the same
     (easy VRML browser), you want to check out TGLWindowVRMLBrowser
-    (file @code(../../glwindow/glwindowvrmlbrowser.pas)). }
+    (file @code(../glwindow/glwindowvrmlbrowser.pas)). }
   TKamVRMLBrowser = class(TKamOpenGLControl)
   private
     FOnNavigatorChanged: TNotifyEvent;
