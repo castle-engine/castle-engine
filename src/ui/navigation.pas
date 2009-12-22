@@ -3335,28 +3335,77 @@ function TWalkNavigator.MouseMove(const OldX, OldY, NewX, NewY: Single;
   const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean;
 var
   MouseXChange, MouseYChange: Single;
+  MiddleWidth: Integer;
+  MiddleHeight: Integer;
 begin
   Result := inherited;
   if Result then Exit;
 
-  { MouseXChange and MouseYChange are differences between current
-    and previous window coords
-    (like in TGLWindow.MouseX/MouseY, so 0,0 is top-left corner). }
-  MouseXChange := NewX - OldX;
-  MouseYChange := NewY - OldY;
-
-  if MouseLook and (not IgnoreAllInputs) then
+  if MouseLook and (not IgnoreAllInputs) and ContainerSizeKnown then
   begin
-    if MouseXChange <> 0 then
-      RotateHorizontal(-MouseXChange * MouseLookHorizontalSensitivity);
-    if MouseYChange <> 0 then
+    MiddleWidth := ContainerWidth div 2;
+    MiddleHeight := ContainerHeight div 2;
+
+    { Note that SetMousePosition may (but doesn't have to)
+      generate OnMouseMove to destination position.
+      This can cause some problems:
+
+      1. Consider this:
+
+         - player moves mouse to MiddleX-10
+         - MouseMove is generated, I rotate camera by "-10" horizontally
+         - SetMousePosition sets mouse to the Middle,
+           but this time no MouseMove is generated
+         - player moved mouse to MiddleX+10. Although mouse was
+           positioned on Middle, TGLWindow thinks that the mouse
+           is still positioned on Middle-10, and I will get "+20" move
+           for player (while I should get only "+10")
+
+         Fine solution for this would be to always subtract
+         MiddleWidth and MiddleHeight below
+         (instead of previous values, OldX and OldY).
+         But this causes another problem:
+
+      2. What if player switches to another window, moves the mouse,
+         than goes alt+tab back to our window ? Next mouse move will
+         be stupid, because it's really *not* from the middle of the screen.
+
+      The solution for both problems: you have to check that previous
+      position, OldX and OldY, are indeed equal to
+      MiddleWidth and MiddleHeight. This way we know that
+      this is good move, that qualifies to perform mouse move.
+
+      And inside, F.MouseMove can calculate the difference
+      by subtracing new - old position, knowing that old = middle this
+      will always be Ok. }
+    if (OldX = MiddleWidth) and
+       (OldY = MiddleHeight) then
     begin
-      if InvertVerticalMouseLook then
-        MouseYChange := -MouseYChange;
-      RotateVertical(-MouseYChange * MouseLookVerticalSensitivity);
+      { MouseXChange and MouseYChange are differences between current
+        and previous window coords
+        (like in TGLWindow.MouseX/MouseY, so 0,0 is top-left corner). }
+      MouseXChange := NewX - OldX;
+      MouseYChange := NewY - OldY;
+
+      if MouseXChange <> 0 then
+        RotateHorizontal(-MouseXChange * MouseLookHorizontalSensitivity);
+      if MouseYChange <> 0 then
+      begin
+        if InvertVerticalMouseLook then
+          MouseYChange := -MouseYChange;
+        RotateVertical(-MouseYChange * MouseLookVerticalSensitivity);
+      end;
+
+      Result := ExclusiveEvents;
     end;
 
-    Result := ExclusiveEvents;
+    { I check the condition below to avoid calling SetMousePosition,
+      OnMouseMove, SetMousePosition, OnMouseMove... in a loop.
+      Not really likely (as messages will be queued, and some
+      SetMousePosition will finally just not generate OnMouseMove),
+      but I want to safeguard anyway. }
+    if (NewX <> MiddleWidth) or (NewY <> MiddleHeight) then
+      Container.SetMousePosition(MiddleWidth, MiddleHeight);
   end;
 end;
 

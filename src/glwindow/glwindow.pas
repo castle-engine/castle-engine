@@ -4589,73 +4589,12 @@ end;
 
 procedure TGLWindowNavigated.EventMouseMove(NewX, NewY: Integer);
 var
-  MiddleScreenWidth: Integer;
-  MiddleScreenHeight: Integer;
   F: TUIControl;
-  Handled: boolean;
 begin
-  Handled := false;
-
-  F := Focus; { control in Focus is always Enabled, no need to check it }
-  if F <> nil then
-  begin
-    { Handling mouse look = true requires special treatment here. }
-    if F.MouseLook then
-    begin
-      MiddleScreenWidth := Width div 2;
-      MiddleScreenHeight := Height div 2;
-
-      { Note that SetMousePosition may (but doesn't have to)
-        generate OnMouseMove to destination position.
-        This can cause some problems:
-
-        1. Consider this:
-
-           - player moves mouse to MiddleX-10
-           - MouseMove is generated, I rotate camera by "-10" horizontally
-           - SetMousePosition sets mouse to the Middle,
-             but this time no MouseMove is generated
-           - player moved mouse to MiddleX+10. Although mouse was
-             positioned on Middle, TGLWindow thinks that the mouse
-             is still positioned on Middle-10, and I will get "+20" move
-             for player (while I should get only "+10")
-
-           Fine solution for this would be to always subtract
-           MiddleScreenWidth and MiddleScreenHeight below
-           (instead of previous values, MouseX and MouseY).
-           But this causes another problem:
-
-        2. What if player switches to another window, moves the mouse,
-           than goes alt+tab back to our window ? Next mouse move will
-           be stupid, because it's really *not* from the middle of the screen.
-
-        The solution for both problems: you have to check that previous
-        position, MouseX and MouseY, are indeed equal to
-        MiddleScreenWidth and MiddleScreenHeight. This way we know that
-        this is good move, that qualifies to perform mouse move.
-
-        And inside, F.MouseMove can calculate the difference
-        by subtracing new - old position, knowing that old = middle this
-        will always be Ok. }
-      if (MouseX = MiddleScreenWidth) and
-         (MouseY = MiddleScreenHeight) then
-        Handled := F.MouseMove(
-          MouseX, MouseY, NewX, NewY, MousePressed, @KeysDown);
-
-      { I check the condition below to avoid calling SetMousePosition,
-        OnMouseMove, SetMousePosition, OnMouseMove... in a loop.
-        Not really likely (as messages will be queued, and some
-        SetMousePosition will finally just not generate OnMouseMove),
-        but I want to safeguard anyway. }
-      if (NewX <> MiddleScreenWidth) or (NewY <> MiddleScreenHeight) then
-        SetMousePosition(MiddleScreenWidth, MiddleScreenHeight);
-    end else
-    begin
-      Handled := F.MouseMove(MouseX, MouseY, NewX, NewY, MousePressed, @KeysDown);
-    end;
-  end;
-
-  if Handled then Exit;
+  F := Focus;
+  if (F <> nil) and
+      F.MouseMove(MouseX, MouseY, NewX, NewY, MousePressed, @KeysDown) then
+    Exit;
 
   inherited;
 end;

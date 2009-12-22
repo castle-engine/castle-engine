@@ -349,8 +349,6 @@ end;
 
 procedure TKamOpenGLControlCore.MouseDown(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
-var
-  MyButton: KeysMouse.TMouseButton;
 begin
   inherited;
   MouseDownRequired(Button, Shift, X, Y);
@@ -744,42 +742,11 @@ end;
 
 procedure TKamOpenGLControl.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
 var
-  MiddleScreenWidth: Integer;
-  MiddleScreenHeight: Integer;
   F: TUIControl;
-  Handled: boolean;
 begin
-  Handled := false;
-
-  F := Focus; { control in Focus is always Enabled, no need to check it }
-  if F <> nil then
-  begin
-    { Handling mouse look = true requires special treatment here. }
-    if F.MouseLook then
-    begin
-      MiddleScreenWidth := Width div 2;
-      MiddleScreenHeight := Height div 2;
-
-      { Reasoning of  this check: see TKamOpenGLControl analogous comments. }
-      if (MouseX = MiddleScreenWidth) and
-         (MouseY = MiddleScreenHeight) then
-        Handled := F.MouseMove(
-          MouseX, MouseY, NewX, NewY, MousePressed, @KeysDown);
-
-      { I check the condition below to avoid calling SetMousePosition,
-        OnMouseMove, SetMousePosition, OnMouseMove... in a loop.
-        Not really likely (as messages will be queued, and some
-        SetMousePosition will finally just not generate OnMouseMove),
-        but I want to safeguard anyway. }
-      if (NewX <> MiddleScreenWidth) or (NewY <> MiddleScreenHeight) then
-        SetMousePosition(MiddleScreenWidth, MiddleScreenHeight);
-    end else
-    begin
-      Handled := F.MouseMove(MouseX, MouseY, NewX, NewY, MousePressed, @KeysDown);
-    end;
-  end;
-
-  if Handled then
+  F := Focus;
+  if (F <> nil) and
+      F.MouseMove(MouseX, MouseY, NewX, NewY, MousePressed, @KeysDown) then
   begin
     MouseMoveRequired(Shift, NewX, NewY);
     Exit;
