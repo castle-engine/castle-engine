@@ -17,32 +17,24 @@ unit GLWindowRecentMenu;
 
 interface
 
-uses Classes, GLWindow, KambiXMLCfg;
-
-const
-  DefaultMaxCount = 5;
+uses Classes, GLWindow, RecentFiles;
 
 type
-  TOnOpenRecent = procedure (const FileName: string) of object;
-
-  { Management of "recent files" menu for programs using GLWindow menu. }
-  TGLRecentMenu = class
+  { Manage a list of recently opened files, and show a menu in TGLWindow. }
+  TGLRecentMenu = class(TBaseRecentFiles)
   private
-    FileNames: TStringList;
     FNextMenuItem: TMenuEntry;
     FirstSeparator: TMenuEntry;
-    FOnOpenRecent: TOnOpenRecent;
-    procedure MenuInit;
-    { Note that MenuDone doesn't read FileNames list at all, it only
-      depends on FirstSeparator value. }
-    procedure MenuDone;
     procedure SetNextMenuItem(Value: TMenuEntry);
-  private
-    FMaxCount: Cardinal;
-  public
-    constructor Create;
-    destructor Destroy; override;
+  protected
+    procedure MenuCreate; override;
 
+    { Destroy the menu. Internal (do not call this directly, it's only called
+      by parent class).
+      Note that it doesn't read FileNames list at all, it only
+      depends on FirstSeparator value. }
+    procedure MenuDestroy; override;
+  public
     { This determines the placement of "recent files" list inside your menu.
 
       If this is not @nil then each update to the recent files
@@ -59,26 +51,6 @@ type
       That's consistent with other GNOME programs, and this is what we usually
       try to follow. }
     property NextMenuItem: TMenuEntry read FNextMenuItem write SetNextMenuItem;
-
-    { Adds as the most recent file FileName.
-
-      If MaybeStdIn, then we treat FileName = '-' specially:
-      it's ignored. Use this if your program interprets '-' as "load file
-      from standard input", such files should not be added to recent files menu.
-
-      Note that you want to place here only absolute filenames,
-      so this will always ExpandFileName to make sure FileName is absolute. }
-    procedure Add(const FileName: string; const MaybeStdIn: boolean = true);
-
-    property OnOpenRecent: TOnOpenRecent read FOnOpenRecent write FOnOpenRecent;
-
-    property MaxCount: Cardinal read FMaxCount write FMaxCount
-      default DefaultMaxCount;
-
-    { These load and save recently opened files list to/from the TKamXMLConfig file.
-      Path should not contain final "/" --- it will be added automatically. }
-    procedure LoadFromConfig(ConfigFile: TKamXMLConfig; const Path: string);
-    procedure SaveToConfig(ConfigFile: TKamXMLConfig; const Path: string);
   end;
 
 implementation
@@ -127,26 +99,15 @@ end;
 
 { TGLRecentMenu -------------------------------------------------------------- }
 
-constructor TGLRecentMenu.Create;
-begin
-  inherited;
-  FileNames := TStringList.Create;
-  FMaxCount := DefaultMaxCount;
-end;
-
-destructor TGLRecentMenu.Destroy;
-begin
-  FreeAndNil(FileNames);
-  inherited;
-end;
-
-procedure TGLRecentMenu.MenuInit;
+procedure TGLRecentMenu.MenuCreate;
 var
   I: Integer;
   ParentMenu: TMenu;
   Position: Cardinal;
   MenuRecentOpen: TMenuRecentItem;
 begin
+  inherited;
+
   { Add recent files menu }
   if (NextMenuItem <> nil) and (NextMenuItem.ParentMenu <> nil) and
     { When FileNames.Count = 0 then we don't want to add anything,
@@ -166,7 +127,7 @@ begin
   end;
 end;
 
-procedure TGLRecentMenu.MenuDone;
+procedure TGLRecentMenu.MenuDestroy;
 var
   ParentMenu: TMenu;
   Position: Cardinal;
@@ -191,71 +152,18 @@ begin
       ParentMenu.EntryDelete(Position);
     until (ParentMenu.Entries[Position] = NextMenuItem);
   end;
+
+  inherited;
 end;
 
 procedure TGLRecentMenu.SetNextMenuItem(Value: TMenuEntry);
 begin
   if Value <> FNextMenuItem then
   begin
-    MenuDone;
+    MenuDestroy;
     FNextMenuItem := Value;
-    MenuInit;
+    MenuCreate;
   end;
-end;
-
-procedure TGLRecentMenu.Add(const FileName: string; const MaybeStdIn: boolean);
-var
-  F: string;
-  Index: Integer;
-begin
-  if MaybeStdIn and (Filename = '-') then Exit;
-
-  F := ExpandFileName(FileName);
-
-  { We calculate Index, because if user opens a file already on the "recent files"
-    list then we want to just move this filename to the top. }
-  Index := FileNames.IndexOf(F);
-
-  if Index = 0 then
-    Exit { user reopens last opened file, nothing to do };
-
-  if Index <> -1 then
-    { Just move Index to the beginning }
-    FileNames.Exchange(Index, 0) else
-  begin
-    FileNames.Insert(0, F);
-    Strings_Trim(FileNames, MaxCount);
-  end;
-
-  MenuDone;
-  MenuInit;
-end;
-
-procedure TGLRecentMenu.LoadFromConfig(ConfigFile: TKamXMLConfig; const Path: string);
-var
-  I, C: Integer;
-  S: string;
-begin
-  FileNames.Clear;
-  C := ConfigFile.GetValue(Path + '/count', 0);
-  for I := 0 to C - 1 do
-  begin
-    S := ConfigFile.GetValue(Path + '/item' + IntToStr(I) + '/filename', '');
-    if S <> '' then
-      FileNames.Append(S);
-  end;
-
-  MenuDone;
-  MenuInit;
-end;
-
-procedure TGLRecentMenu.SaveToConfig(ConfigFile: TKamXMLConfig; const Path: string);
-var
-  I: Integer;
-begin
-  ConfigFile.SetDeleteValue(Path + '/count', FileNames.Count, 0);
-  for I := 0 to FileNames.Count - 1 do
-    ConfigFile.SetDeleteValue(Path + '/item' + IntToStr(I) + '/filename', FileNames[I], '');
 end;
 
 end.
