@@ -39,11 +39,6 @@ TODO:
 
 - Ctrl+O key shortcut doesn't work when standing on TEdit boxes
 
-- Only on Windows: I had to write
-  GLControlResize(GLControl) instead of GLControl.Resize
-  in TMain.OpenScene. Investigate, submit Lazarus bug.
-  Fixed now?
-
 - GLControl.ReleaseAllKeysAndMouse should be called when
   user expands the menu with mouse. How to catch this?
 

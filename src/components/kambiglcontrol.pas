@@ -1,3 +1,19 @@
+{
+  Copyright 2008-2009 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ TKamOpenGLControl component, OpenGL control with various useful extensions. }
 unit KambiGLControl;
 
 {$mode objfpc}{$H+}
@@ -112,7 +128,12 @@ type
     procedure MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer); virtual;
     { @groupEnd }
 
-    { In this class this just calls OnGLContextInit. }
+    { In this class this just calls OnGLContextInit.
+
+      Note that always after initializing OpenGL context, we also call
+      Resize (OnResize event). And we call Invalidate
+      (so at the first opportunity, Paint (with OnPaint,
+      DoDraw (OnDraw), DoBeforeDraw (OnBeforeDraw), will also get called). }
     procedure DoGLContextInit; virtual;
 
     { In this class this just calls OnGLContextClose. }
@@ -248,35 +269,12 @@ type
 
     procedure Idle; override;
 
-    { Controls listening for user input (keyboard / mouse) to this window.
-
-      Usually you explicitly add / delete controls to this list.
-      Also, freeing the control that is on this list (Navigator or not)
-      automatically removes it from this list (using the TComponent.Notification
-      mechanism). }
-    property Controls: TUIControlList read FControls;
-
-    property UseControls: boolean
-      read FUseControls write FUseControls default true;
-
     { Returns the control that should receive input events first,
       or @nil if none. More precisely, this is the first on Controls
       list that is enabled and under the mouse cursor.
       @nil is returned when there's no enabled control under the mouse cursor,
       or when UseControls = @false. }
     function Focus: TUIControl;
-
-    { Navigator instance used. Initially it's nil.
-      Set this to give user a method for navigating in 3D scene.
-
-      When assigning navigator instance we'll take care to make it
-      the one and only one TNavigator instance on Controls list.
-      Assigning here @nil removes it from Controls list.
-
-      For now, you should not add / remove TNavigator instances to
-      the Controls list directly. }
-    property Navigator: TNavigator
-      read FNavigator write SetNavigator;
 
     { These are shortcuts for writing
       TExamineNavigator(Navigator) and TWalkNavigator(Navigator).
@@ -289,6 +287,28 @@ type
     { @groupEnd }
 
     procedure UpdateMouseLook;
+
+    { Controls listening for user input (keyboard / mouse) to this window.
+
+      Usually you explicitly add / delete controls to this list.
+      Also, freeing the control that is on this list (Navigator or not)
+      automatically removes it from this list (using the TComponent.Notification
+      mechanism). }
+    property Controls: TUIControlList read FControls;
+  published
+    { Navigator instance used. Initially it's nil.
+      Set this to give user a method for navigating in 3D scene.
+
+      When assigning navigator instance we'll take care to make it
+      the one and only one TNavigator instance on Controls list.
+      Assigning here @nil removes it from Controls list.
+
+      For now, you should not add / remove TNavigator instances to
+      the Controls list directly. }
+    property Navigator: TNavigator read FNavigator write SetNavigator;
+
+    property UseControls: boolean
+      read FUseControls write FUseControls default true;
 
     property CursorNonMouseLook: TCursor
       read FCursorNonMouseLook write SetCursorNonMouseLook
@@ -390,6 +410,14 @@ begin
   begin
     FContextInitialized := true;
     DoGLContextInit;
+
+    { Resize; }
+    { TODO: why it's not enough to call Resize; here?
+      Long time ago, observed on Windows, later also on GTK 2.
+      Reproducible e.g. with simple_3d_navigator Lazarus demo. }
+    if Assigned(OnResize) then OnResize(Self);
+
+    Invalidate;
   end;
 end;
 

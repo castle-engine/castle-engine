@@ -333,9 +333,6 @@ begin
     SV := TShadowVolumes.Create;
     SV.InitGLContext;
   end;
-
-  { Manually call Resize now, to set projection. }
-  Resize;
 end;
 
 procedure TKamVRMLBrowser.DoGLContextClose;
