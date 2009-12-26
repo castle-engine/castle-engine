@@ -36,6 +36,8 @@ private
   FXDisplayName: string;
   FXDisplay: PDisplay;
   FXScreen: Integer;
+  InitializeXDisplayDone: boolean;
+  XCursors: array [TGLWindowCursor] of TCursor;
 
   { uzywamy tego aby wylapac quit message. Inicjowane w SetXDisplayName }
   wmDeleteWindow: TAtom;
@@ -54,8 +56,6 @@ private
   function ActiveWindowXID(seekWindowXID: TWindow): TGLWindow;
   procedure SetXDisplayName(const Value: string);
 
-  InitializeXDisplayDone: boolean;
-
   { Check XDisplay. Call this once you're sure that XDisplay is set to
     value desired by used now.
 
@@ -68,8 +68,6 @@ private
     So you should call this when you know that last SetXDisplayName was
     called --- good choice is before initializing your window. }
   procedure InitializeXDisplay;
-
-  XCursors: array [TGLWindowCursor] of TCursor;
 public
   { XDisplayName uzywane przez wszystkie nastepne wywolania glwin.Init.
     Application nie jest przygotowany na zarzadzanie oknami na wielu displayach i

@@ -88,14 +88,14 @@ const
 type
   TTerrainControls = class(TGLMenu)
   public
-    constructor Create(AOwner: TComponent); override;
-
     OctavesSlider: TGLMenuFloatSlider;
     AmplitudeSlider: TGLMenuFloatSlider;
     FrequencySlider: TGLMenuFloatSlider;
     SmoothnessSlider: TGLMenuFloatSlider;
 
     SubdivisionSlider: TGLMenuIntegerSlider;
+
+    constructor Create(AOwner: TComponent); override;
 
     procedure CurrentItemAccessoryValueChanged; override;
   end;
