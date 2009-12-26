@@ -33,6 +33,12 @@ type
 
     property MouseX: Integer read GetMouseX;
     property MouseY: Integer read GetMouseY;
+
+    function GetWidth: Integer;
+    function GetHeight: Integer;
+
+    property Width: Integer read GetWidth;
+    property Height: Integer read GetHeight;
   end;
 
   { Basic user interface control class. All controls derive from this class,

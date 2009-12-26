@@ -593,7 +593,7 @@ uses SysUtils, Classes, Math, VectorMath, GL, GLU, GLExt,
   {$ifdef GLWINDOW_GTK_1} Glib, Gdk, Gtk, GtkGLArea, {$endif}
   {$ifdef GLWINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, KambiDynLib, {$endif}
   KambiUtils, KambiClassUtils, KambiGLUtils, Images, KeysMouse, Navigation,
-  RaysWindow, KambiStringUtils, KambiFilesUtils, KambiTimeUtils,
+  KambiStringUtils, KambiFilesUtils, KambiTimeUtils,
   FileFilters, UIControls;
 
 {$define read_interface}
@@ -1136,9 +1136,12 @@ type
     FPressed: TKeysPressed;
 
     { For IUIContainer interface. Private, since when you have a class
-      instance, you just use MouseX, MouseY properties. }
+      instance, you just use class properties (that read directly from a field,
+      without the overhead of a function call). }
     function GetMouseX: Integer;
     function GetMouseY: Integer;
+    function GetWidth: Integer;
+    function GetHeight: Integer;
   public
 
     { EventXxx virtual methods -------------------------------------------------
@@ -2528,54 +2531,6 @@ type
     procedure EventDraw; override;
     procedure EventResize; override;
     procedure EventClose; override;
-
-    { Calculate a ray picked by WindowX, WindowY position on the window.
-      Use this only when Navigator <> nil.
-
-      ViewAngleDegX, ViewAngleDegY are your camera view angles.
-
-      WindowX, WindowY are given in the same style as MouseX, MouseY:
-      WindowX = 0 is left, WindowY = 0 is top.
-
-      This uses @link(PrimaryRay) call. }
-    procedure Ray(const WindowX, WindowY: Integer;
-      const ViewAngleDegX, ViewAngleDegY: Single;
-      out Ray0, RayVector: TVector3Single);
-
-    { Calculate a ray corresponding to current Navigator
-      settings and MouseX, MouseY position on the screen.
-
-      This is actually just a shortcut for @link(Ray),
-      passing MouseX, MouseY as WindowX, WindowY. }
-    procedure MousePickedRay(
-      const ViewAngleDegX, ViewAngleDegY: Single;
-      out Ray0, RayVector: TVector3Single);
-
-    { Calculate a ray picked by WindowX, WindowY position on the window,
-      assuming current camera is recorded in Nav.
-
-      ViewAngleDegX, ViewAngleDegY are your camera view angles.
-
-      WindowX, WindowY are given in the same style as MouseX, MouseY:
-      WindowX = 0 is left, WindowY = 0 is top.
-
-      This uses @link(PrimaryRay) call. }
-    procedure RayFromCustomNavigator(
-      Nav: TNavigator;
-      const WindowX, WindowY: Integer;
-      const ViewAngleDegX, ViewAngleDegY: Single;
-      out Ray0, RayVector: TVector3Single);
-
-    { Calculate a ray picked on current mouse position on the window,
-      assuming current camera is recorded in Nav.
-
-      ViewAngleDegX, ViewAngleDegY are your camera view angles.
-
-      This uses @link(PrimaryRay) call. }
-    procedure MousePickedRayFromCustomNavigator(
-      Nav: TNavigator;
-      const ViewAngleDegX, ViewAngleDegY: Single;
-      out Ray0, RayVector: TVector3Single);
 
     { If you use Navigator of class TWalkNavigator with this window
       and you want to use it's MouseLook feature then
@@ -4104,6 +4059,16 @@ begin
   Result := FMouseY;
 end;
 
+function TGLWindow.GetWidth: Integer;
+begin
+  Result := FWidth;
+end;
+
+function TGLWindow.GetHeight: Integer;
+begin
+  Result := FHeight;
+end;
+
 { TGLWindowDemo ---------------------------------------------------------------- }
 
 procedure TGLWindowDemo.SwapFullScreen;
@@ -4453,49 +4418,6 @@ begin
     {$ifdef DEBUG} Navigator as TWalkNavigator
     {$else} TWalkNavigator(Navigator)
     {$endif};
-end;
-
-procedure TGLUIWindow.RayFromCustomNavigator(
-  Nav: TNavigator;
-  const WindowX, WindowY: Integer;
-  const ViewAngleDegX, ViewAngleDegY: Single;
-  out Ray0, RayVector: TVector3Single);
-var
-  Pos, Dir, Up: TVector3Single;
-begin
-  Nav.GetCameraVectors(Pos, Dir, Up);
-  Ray0 := Pos;
-  RayVector := PrimaryRay(WindowX, Height - WindowY,
-    Width, Height,
-    Pos, Dir, Up,
-    ViewAngleDegX, ViewAngleDegY);
-end;
-
-procedure TGLUIWindow.MousePickedRayFromCustomNavigator(
-  Nav: TNavigator;
-  const ViewAngleDegX, ViewAngleDegY: Single;
-  out Ray0, RayVector: TVector3Single);
-begin
-  RayFromCustomNavigator(
-    Nav, MouseX, MouseY, ViewAngleDegX, ViewAngleDegY, Ray0, RayVector);
-end;
-
-procedure TGLUIWindow.Ray(const WindowX, WindowY: Integer;
-  const ViewAngleDegX, ViewAngleDegY: Single;
-  out Ray0, RayVector: TVector3Single);
-begin
-  RayFromCustomNavigator(
-    Navigator,
-    WindowX, WindowY, ViewAngleDegX, ViewAngleDegY, Ray0, RayVector);
-end;
-
-procedure TGLUIWindow.MousePickedRay(
-  const ViewAngleDegX, ViewAngleDegY: Single;
-  out Ray0, RayVector: TVector3Single);
-begin
-  MousePickedRayFromCustomNavigator(
-    Navigator,
-    ViewAngleDegX, ViewAngleDegY, Ray0, RayVector);
 end;
 
 function TGLUIWindow.ReallyUseMouseLook: boolean;

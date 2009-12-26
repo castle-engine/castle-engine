@@ -20,7 +20,7 @@ unit Navigation;
 interface
 
 uses SysUtils, VectorMath, KambiUtils, KeysMouse, Boxes3d, Quaternions, Frustum,
-  UIControls, Classes;
+  UIControls, Classes, RaysWindow;
 
 const
   DefaultFallingDownStartSpeed = 0.5;
@@ -347,6 +347,43 @@ type
     function GetCameraPos: TVector3Single; virtual; abstract;
 
     function PositionInside(const X, Y: Integer): boolean; override;
+
+    { Calculate a 3D ray picked by the WindowX, WindowY position on the window.
+      Uses current Container, which means that you have to add this navigator
+      to TGLUIWindow.Controls or TKamOpenGLControl.Controls before
+      using this method.
+
+      ViewAngleDegX, ViewAngleDegY are your camera view angles.
+
+      WindowX, WindowY are given in the same style as MouseX, MouseY:
+      WindowX = 0 is left, WindowY = 0 is top. }
+    procedure Ray(const WindowX, WindowY: Integer;
+      const ViewAngleDegX, ViewAngleDegY: Single;
+      out Ray0, RayVector: TVector3Single);
+
+    { Calculate a ray picked by current mouse position on the window.
+      Uses current Container (both to get it's size and to get current
+      mouse position), which means that you have to add this navigator
+      to TGLUIWindow.Controls or TKamOpenGLControl.Controls before
+      using this method. }
+    procedure MouseRay(
+      const ViewAngleDegX, ViewAngleDegY: Single;
+      out Ray0, RayVector: TVector3Single);
+
+    { Calculate a ray picked by WindowX, WindowY position on the window,
+      assuming current container (window) is recorded in AContainer.
+
+      ViewAngleDegX, ViewAngleDegY are your camera view angles.
+
+      WindowX, WindowY are given in the same style as MouseX, MouseY:
+      WindowX = 0 is left, WindowY = 0 is top.
+
+      This uses @link(PrimaryRay) call. }
+    procedure RayFromCustomContainer(
+      AContainer: IUIContainer;
+      const WindowX, WindowY: Integer;
+      const ViewAngleDegX, ViewAngleDegY: Single;
+      out Ray0, RayVector: TVector3Single);
   end;
 
   TNavigatorClass = class of TNavigator;
@@ -1553,6 +1590,38 @@ end;
 function TNavigator.PositionInside(const X, Y: Integer): boolean;
 begin
   Result := true;
+end;
+
+procedure TNavigator.Ray(const WindowX, WindowY: Integer;
+  const ViewAngleDegX, ViewAngleDegY: Single;
+  out Ray0, RayVector: TVector3Single);
+begin
+  RayFromCustomContainer(Container,
+    WindowX, WindowY, ViewAngleDegX, ViewAngleDegY, Ray0, RayVector);
+end;
+
+procedure TNavigator.MouseRay(
+  const ViewAngleDegX, ViewAngleDegY: Single;
+  out Ray0, RayVector: TVector3Single);
+begin
+  RayFromCustomContainer(Container,
+    Container.MouseX, Container.MouseY, ViewAngleDegX, ViewAngleDegY, Ray0, RayVector);
+end;
+
+procedure TNavigator.RayFromCustomContainer(
+  AContainer: IUIContainer;
+  const WindowX, WindowY: Integer;
+  const ViewAngleDegX, ViewAngleDegY: Single;
+  out Ray0, RayVector: TVector3Single);
+var
+  Pos, Dir, Up: TVector3Single;
+begin
+  GetCameraVectors(Pos, Dir, Up);
+  Ray0 := Pos;
+  RayVector := PrimaryRay(WindowX, AContainer.Height - WindowY,
+    AContainer.Width, AContainer.Height,
+    Pos, Dir, Up,
+    ViewAngleDegX, ViewAngleDegY);
 end;
 
 { TExamineNavigator ------------------------------------------------------------ }

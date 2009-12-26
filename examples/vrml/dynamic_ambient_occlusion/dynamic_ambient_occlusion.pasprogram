@@ -860,7 +860,7 @@ begin
   if (Glw.Navigator is TWalkNavigator) and
      (Scene.OctreeCollisions <> nil) then
   begin
-    Glw.Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, Ray0, RayVector);
+    Glw.Navigator.Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, Ray0, RayVector);
 
     Item := Scene.OctreeCollisions.RayCollision(
       OverPoint, Ray0, RayVector, true, nil, false, nil);

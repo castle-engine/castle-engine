@@ -360,7 +360,7 @@ begin
 
   if (Scene.OctreeCollisions <> nil) then
   begin
-    Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, Ray0, RayVector);
+    Navigator.Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, Ray0, RayVector);
 
     Item := Scene.OctreeCollisions.RayCollision(
       OverPoint, Ray0, RayVector, true, nil, false, nil);
