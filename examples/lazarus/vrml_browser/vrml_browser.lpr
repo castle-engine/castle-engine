@@ -1,4 +1,4 @@
-program view3dscene_mini_by_lazarus;
+program vrml_browser;
 
 {$mode objfpc}{$H+}
 

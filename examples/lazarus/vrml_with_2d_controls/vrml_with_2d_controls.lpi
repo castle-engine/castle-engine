@@ -39,9 +39,9 @@
     </RequiredPackages>
     <Units Count="5">
       <Unit0>
-        <Filename Value="lazarus_browser_with_gl_controls.lpr"/>
+        <Filename Value="vrml_with_2d_controls.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="lazarus_browser_with_gl_controls"/>
+        <UnitName Value="vrml_with_2d_controls"/>
         <CursorPos X="39" Y="10"/>
         <TopLine Value="1"/>
         <UsageCount Value="26"/>

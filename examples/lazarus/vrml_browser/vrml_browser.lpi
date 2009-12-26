@@ -40,9 +40,9 @@
     </RequiredPackages>
     <Units Count="39">
       <Unit0>
-        <Filename Value="lazarus_vrml_browser.lpr"/>
+        <Filename Value="vrml_browser.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="lazarus_vrml_browser"/>
+        <UnitName Value="vrml_browser"/>
         <CursorPos X="53" Y="17"/>
         <TopLine Value="1"/>
         <UsageCount Value="68"/>
