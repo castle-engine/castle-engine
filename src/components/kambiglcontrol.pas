@@ -37,6 +37,11 @@ type
 
     ApplicationProperties: TApplicationProperties;
     procedure ApplicationPropertiesIdle(Sender: TObject; var Done: Boolean);
+
+    { For IUIContainer interface. Private, since when you have a class
+      instance, you just use MouseX, MouseY properties. }
+    function GetMouseX: Integer;
+    function GetMouseY: Integer;
   protected
     procedure DestroyHandle; override;
     procedure DoExit; override;
@@ -461,6 +466,16 @@ end;
 procedure TKamOpenGLControlCore.SetMousePosition(const NewMouseX, NewMouseY: Integer);
 begin
   Mouse.CursorPos := ControlToScreen(Point(NewMouseX, NewMouseY));
+end;
+
+function TKamOpenGLControlCore.GetMouseX: Integer;
+begin
+  Result := FMouseX;
+end;
+
+function TKamOpenGLControlCore.GetMouseY: Integer;
+begin
+  Result := FMouseY;
 end;
 
 { TControlledUIControlList ----------------------------------------------------- }

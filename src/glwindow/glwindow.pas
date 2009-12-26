@@ -1134,6 +1134,11 @@ type
     FGtkIconName: string;
     FWindowVisible: boolean;
     FPressed: TKeysPressed;
+
+    { For IUIContainer interface. Private, since when you have a class
+      instance, you just use MouseX, MouseY properties. }
+    function GetMouseX: Integer;
+    function GetMouseY: Integer;
   public
 
     { EventXxx virtual methods -------------------------------------------------
@@ -1870,20 +1875,34 @@ type
       wywolaniem odpowiedniego EventDown / Up. }
     property MousePressed: TMouseButtons read FMousePressed;
 
-    { MouseX, MouseY : pozycja ostatniego zdarzenia myszy we wspolrzednych okna :
-      lewy-gorny rog drawing area to (0, 0) a
-      prawy-dolny to (glwin.width-1, glwin.height-1) (a wiec y jest odwrotne
-       niz typowa perspektywa Ortho2D ustawiana OpenGL'owi).
-      Jednak ze wzgledu na mouse-capture (patrz komentarz przy OnMouseDown)
-       mouseX, mouseY moga wybiegac poza ten obszar, nawet na wartosci ujemne !
-      Poniewaz wsrod zdarzen myszy jest tez EventMouseMove wiec spokojnie
-       mozesz to traktowac jako aktualna pozycje myszy. Jedyne miejsce w ktorym
-       znaczenie mouseX, mouseY sie zmienia to wnetrze EventMouseMove a wiec
-       i OnMouseMove : masz wtedy parametry newX, newY ktore okreslaja aktualna
-       pozycje myszy a mouseX, mouseY staja sie POPRZEDNIA zarejestrowana pozycja
-       myszy (tzn. nie uwzgledniono jeszcze newX, newY). }
+    { Mouse position. This is the mouse position relative to this window,
+      more precisely relative to the OpenGL control of this window.
+
+      Left-top corner is (0, 0), and right-bottom is (Width - 1, Height - 1).
+      This is consistent with most window libraries (GTK, LCL etc.).
+      Plese note that Y coordinate is reversed with respect to the typical OpenGL
+      Ortho2D projection, if needed you'll have to adjust it (by using
+      @code(Height - MouseY)).
+
+      Note that we have mouse capturing (when user presses and holds
+      the mouse button, all the following mouse events are reported to this
+      window, even when user moves the mouse outside of the window).
+      This is typical of all window libraries (GTK, LCL etc.).
+      This implicates that mouse positions are sometimes tracked also
+      when mouse is outside the window, which means that mouse position
+      may be outside the rectangle (0, 0) - (Width - 1, Height - 1),
+      so it may even be negative.
+
+      In all situations the MouseX, MouseY is the latest known mouse position.
+      The only exception is within EventMouseMove (and so, also in OnMouseMove
+      callback): MouseX, MouseY is then the previous known mouse position,
+      while new mouse position is provided as NewX, NewY arguments to
+      EventMouseMove (and OnMouseMove).
+
+      @groupBegin }
     property MouseX: integer read FMouseX;
     property MouseY: integer read FMouseY;
+    { @groupEnd }
 
     { -------------------------------------------------------------------------
       General things to manage this window }
@@ -4073,6 +4092,16 @@ begin
       'but at last %d samples for multisampling is required',
       [ ProviderName, ProvidedMultiSampling, MultiSampling ]);
  end;
+end;
+
+function TGLWindow.GetMouseX: Integer;
+begin
+  Result := FMouseX;
+end;
+
+function TGLWindow.GetMouseY: Integer;
+begin
+  Result := FMouseY;
 end;
 
 { TGLWindowDemo ---------------------------------------------------------------- }

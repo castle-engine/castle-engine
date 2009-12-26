@@ -25,7 +25,14 @@ type
     (like TGLUIWindow) or some Lazarus control (like TKamOpenGLControl
     component). }
   IUIContainer = interface
+  ['{0F0BA87D-95C3-4520-B9F9-CDF30015FDB3}']
     procedure SetMousePosition(const NewMouseX, NewMouseY: Integer);
+
+    function GetMouseX: Integer;
+    function GetMouseY: Integer;
+
+    property MouseX: Integer read GetMouseX;
+    property MouseY: Integer read GetMouseY;
   end;
 
   { Basic user interface control class. All controls derive from this class,
