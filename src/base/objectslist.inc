@@ -27,6 +27,9 @@
   (they must occur in one "type" section).
 }
 
+{ Needed for TOBJECT_HAS_EQUALS }
+{$I kambiconf.inc}
+
 {$ifdef read_interface}
 
   { }
@@ -101,7 +104,7 @@
       a performance-tuning setting anyway). }
     procedure Assign(Source: TObjectsList);
 
-    function Equals(SecondValue: TObjectsList): boolean;
+    function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
 
     { Adding ----------------------------------------------------------------- }
 
@@ -312,11 +315,13 @@ begin
   System.Move(Source.List^, List^, Count * SizeOf(Pointer));
 end;
 
-function TObjectsList.Equals(SecondValue: TObjectsList): boolean;
+function TObjectsList.Equals(SecondValue: TObject): boolean;
 begin
   Result :=
-    (Count = SecondValue.Count) and
-    CompareMem(SecondValue.List, List, Count * SizeOf(Pointer));
+    (SecondValue <> nil) and
+    (SecondValue is TObjectsList) and
+    (Count = TObjectsList(SecondValue).Count) and
+    CompareMem(TObjectsList(SecondValue).List, List, Count * SizeOf(Pointer));
 end;
 
 procedure TObjectsList.NeededCapacityForOneMore;

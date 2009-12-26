@@ -143,6 +143,13 @@
   {$ifndef USE_KAMBI_XMLREAD}
     {$define KambiXMLRead := XMLRead}
   {$endif}
+
+  {$define TOBJECT_HAS_EQUALS}
+  {$ifdef VER2_0}   {$undef TOBJECT_HAS_EQUALS} {$endif}
+  {$ifdef VER2_2_0} {$undef TOBJECT_HAS_EQUALS} {$endif}
+  {$ifdef VER2_2_2} {$undef TOBJECT_HAS_EQUALS} {$endif}
+  {$ifdef VER2_2_4} {$undef TOBJECT_HAS_EQUALS} {$endif}
+  {$ifdef VER2_4_0} {$undef TOBJECT_HAS_EQUALS} {$endif}
 {$endif}
 
 {$endif not KambiConf_ALREADY_INCLUDED}

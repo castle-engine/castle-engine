@@ -231,7 +231,7 @@ type
     destructor Destroy; override;
 
     procedure Assign(Source: TPersistent); override;
-    function Equals(SecondValue: TPersistent): boolean; override;
+    function Equals(SecondValue: TObject): boolean; override;
 
     { Correctly render partially transparent objects.
 
@@ -4945,7 +4945,7 @@ begin
     inherited;
 end;
 
-function TVRMLSceneRenderingAttributes.Equals(SecondValue: TPersistent): boolean;
+function TVRMLSceneRenderingAttributes.Equals(SecondValue: TObject): boolean;
 begin
   Result := (inherited Equals(SecondValue)) and
     (SecondValue is TVRMLSceneRenderingAttributes) and

@@ -389,7 +389,7 @@ type
   public
     { -1 jesli nie ma }
     function IndexOfLightNode(LightNode: TVRMLLightNode): integer;
-    function Equals(SecondValue: TDynActiveLightArray): boolean;
+    function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
   end;
   TArray_ActiveLight = TInfiniteArray_1;
   PArray_ActiveLight = PInfiniteArray_1;
@@ -532,7 +532,7 @@ type
       The idea is that two states are equal if, when applied to the same
       VRML node, they "mean" the same thing, i.e. produce the same shape,
       behavior etc. }
-    function Equals(SecondValue: TVRMLGraphTraverseState): boolean;
+    function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
 
     { This is like @link(Equals) but it ignores some fields that are
       ignored when rendering using
@@ -3673,7 +3673,7 @@ begin
  result := -1;
 end;
 
-function TDynActiveLightArray.Equals(SecondValue: TDynActiveLightArray): boolean;
+function TDynActiveLightArray.Equals(SecondValue: TObject): boolean;
 
   function ActiveLightEquals(const L1, L2: TActiveLight): boolean;
   begin
@@ -3687,10 +3687,13 @@ function TDynActiveLightArray.Equals(SecondValue: TDynActiveLightArray): boolean
 var
   I: Integer;
 begin
-  Result := SecondValue.Count = Count;
+  Result :=
+    (SecondValue <> nil) and
+    (SecondValue is TDynActiveLightArray) and
+    (TDynActiveLightArray(SecondValue).Count = Count);
   if Result then
     for I := 0 to High do
-      if not ActiveLightEquals(Items[I], SecondValue.Items[I]) then
+      if not ActiveLightEquals(Items[I], TDynActiveLightArray(SecondValue).Items[I]) then
         Exit(false);
 end;
 
@@ -3799,10 +3802,11 @@ begin
   InvertedTransform := Source.InvertedTransform;
 end;
 
-function TVRMLGraphTraverseState.Equals(SecondValue: TVRMLGraphTraverseState):
+function TVRMLGraphTraverseState.Equals(SecondValue: TObject):
   boolean;
 var
   I: Integer;
+  SV: TVRMLGraphTraverseState;
 begin
   { InsideInline, InsidePrototype, InsideIgnoreCollision, InsideInvisible,
     PointingDeviceSensors
@@ -3812,19 +3816,27 @@ begin
     and improved later. }
 
   Result :=
-    VRML1ActiveLights.Equals(SecondValue.VRML1ActiveLights) and
-    VRML2ActiveLights.Equals(SecondValue.VRML2ActiveLights) and
+    (SecondValue <> nil) and
+    (SecondValue is TVRMLGraphTraverseState);
+
+  if not Result then Exit;
+
+  SV := TVRMLGraphTraverseState(SecondValue);
+
+  Result :=
+    VRML1ActiveLights.Equals(SV.VRML1ActiveLights) and
+    VRML2ActiveLights.Equals(SV.VRML2ActiveLights) and
     { no need to compare InvertedTransform, it should be equal when normal
       Transform is equal. }
-    MatricesPerfectlyEqual(Transform, SecondValue.Transform) and
-    (AverageScaleTransform = SecondValue.AverageScaleTransform) and
-    MatricesPerfectlyEqual(TextureTransform, SecondValue.TextureTransform) and
-    (ParentShape = SecondValue.ParentShape);
+    MatricesPerfectlyEqual(Transform, SV.Transform) and
+    (AverageScaleTransform = SV.AverageScaleTransform) and
+    MatricesPerfectlyEqual(TextureTransform, SV.TextureTransform) and
+    (ParentShape = SV.ParentShape);
 
   if Result then
   begin
     for I := 0 to HighTraverseStateLastNodes do
-      if SecondValue.LastNodes.Nodes[I] <> LastNodes.Nodes[I] then
+      if SV.LastNodes.Nodes[I] <> LastNodes.Nodes[I] then
         Exit(false);
   end;
 end;

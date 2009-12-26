@@ -446,7 +446,7 @@ type
       future values (like TSFFloat.MustBeNonnegative).
     }
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Double): boolean; virtual;
+      const EqualityEpsilon: Double): boolean; virtual; reintroduce;
 
     { Compare value of this field, with other field, fast.
 

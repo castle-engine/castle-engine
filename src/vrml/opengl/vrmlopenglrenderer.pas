@@ -521,7 +521,7 @@ type
 
     procedure Assign(Source: TPersistent); override;
 
-    function Equals(SecondValue: TPersistent): boolean; virtual;
+    function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$else} virtual; {$endif}
 
     { tuz przed narysowaniem KAZDEGO vertexa bedzie wywolywana ta procedura.
       (to znaczy TUZ przed glVertex, juz po ustaleniu koloru (glColor),
@@ -3102,9 +3102,11 @@ begin
     inherited;
 end;
 
-function TVRMLRenderingAttributes.Equals(SecondValue: TPersistent): boolean;
+function TVRMLRenderingAttributes.Equals(SecondValue: TObject): boolean;
 begin
-  Result := (SecondValue is TVRMLRenderingAttributes) and
+  Result :=
+    (SecondValue <> nil) and
+    (SecondValue is TVRMLRenderingAttributes) and
     (TVRMLRenderingAttributes(SecondValue).OnBeforeGLVertex = OnBeforeGLVertex) and
     (TVRMLRenderingAttributes(SecondValue).OnRadianceTransfer = OnRadianceTransfer) and
     (TVRMLRenderingAttributes(SecondValue).OnVertexColor = OnVertexColor) and
