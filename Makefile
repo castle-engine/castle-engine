@@ -360,6 +360,22 @@ cleanmore: clean
 
 cleanall: cleanmore clean_container_units
 
+# Clean compiled versions of GLWindow unit.
+# Makes sure that unit GLWindow will be *always* *rebuild* in next compilation.
+#
+# This is useful, since GLWindow unit may be compiled with various
+# back-ends (e.g. under Unices two most useful back-ends
+# are XLIB and GTK). To make sure that compilation of some program
+# will produce exactly what you need, it's useful to force rebuild of GLWindow.
+#
+# Of course this means that compilation time will suffer a little,
+# since GLWindow unit will be possibly rebuild without any real need.
+clean-glwindow:
+	rm -f src/glwindow/glwindow.o \
+	      src/glwindow/glwindow.ppu \
+	      src/glwindow/GLWindow.o \
+	      src/glwindow/GLWindow.ppu
+
 # ----------------------------------------
 # Set SVN tag.
 
