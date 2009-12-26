@@ -8,6 +8,13 @@ uses
   Classes, SysUtils, OpenGLContext, Navigation, Controls, Forms,
   VectorMath, KeysMouse, KambiUtils, KambiTimeUtils, StdCtrls, UIControls;
 
+const
+  { Default value for TKamOpenGLControlCore.AggressiveUpdateGap }
+  DefaultAggressiveUpdateGap = 2;
+
+  { Default value for TKamOpenGLControlCore.AggressiveUpdate }
+  DefaultAggressiveUpdate = false;
+
 type
   { OpenGL control, with a couple of extensions for Kambi VRML game engine.
     You will usually prefer to use TKamOpenGLControl instead of directly this
@@ -15,6 +22,11 @@ type
     @link(TKamOpenGLControl.Navigator), @link(TKamOpenGLControl.Controls).
 
     Provides OnGLContextInit and OnGLContextClose events.
+
+    Provides comfortable Idle method. And a special AggressiveUpdate hack
+    to be able to continously update (call Idle and Draw) even when the window
+    system clogs us with events (this typically happens when user moves the mouse
+    and we use TNavigator.MouseLook).
 
     Also, this automatically calls LoadAllExtensions
     when GL context is initialized. This will initialize all extensions
@@ -30,6 +42,11 @@ type
     FPressed: TKeysPressed;
     FMousePressed: KeysMouse.TMouseButtons;
 
+    FAggressiveUpdate: boolean;
+    FAggressiveUpdateGap: Cardinal;
+    AggressiveUpdateGapCounter: Cardinal;
+    Invalidated: boolean; { tracked only when AggressiveUpdate }
+
     FOnGLContextInit: TNotifyEvent;
     FOnGLContextClose: TNotifyEvent;
 
@@ -37,6 +54,8 @@ type
 
     ApplicationProperties: TApplicationProperties;
     procedure ApplicationPropertiesIdle(Sender: TObject; var Done: Boolean);
+
+    procedure AggressiveUpdateTick;
 
     { For IUIContainer interface. Private, since when you have a class
       instance, you just use class properties (that read directly from a field,
@@ -106,6 +125,7 @@ type
     destructor Destroy; override;
 
     function MakeCurrent(SaveOldToStack: boolean = false): boolean; override;
+    procedure Invalidate; override;
 
     procedure Idle; virtual;
 
@@ -143,8 +163,48 @@ type
     property OnGLContextClose: TNotifyEvent
       read FOnGLContextClose write FOnGLContextClose;
 
-     property OnBeforeDraw: TNotifyEvent read FOnBeforeDraw write FOnBeforeDraw;
-     property OnDraw: TNotifyEvent read FOnDraw write FOnDraw;
+    property OnBeforeDraw: TNotifyEvent read FOnBeforeDraw write FOnBeforeDraw;
+    property OnDraw: TNotifyEvent read FOnDraw write FOnDraw;
+
+    { Force Idle and Paint (if invalidated) events to happen continously.
+
+      You almost always want this to happen. Without this, when user "clogs"
+      the GTK / WinAPI / Qt etc. event queue, Lazarus (LCL) doesn't continously
+      fire the "Idle" events (used to update various state of our 3D world)
+      and repaint events. This is somewhat tolerable for normal UI programs,
+      that really "do" something only in response to user actions.
+      But typical games / 3D simulations must try to update animations and
+      repaint at a constant rate. Which means that we want "Idle" to be fired
+      continously (not really only when application stays "idle"),
+      and we want redraw to happen when needed (you signal the need to redraw
+      by Invalidate call).
+
+      The most visible usage of this is when using Navigator.MouseLook.
+      Walking with mouse look typically produces a continous stream
+      of mouse move events, usually interspersed with key down events
+      (since you usually press forward / back / strafe keys at the same
+      time when looking around with mouse). Without AggressiveUpdate,
+      this really works badly.
+
+      So what does it do? We do not have the tools to hack Lazarus
+      event control from the outside --- existing Application methods
+      allow us to process a single "batch" of events, but this is too much
+      (for example, may be ~ 100 GTK messages, see
+      TGtkWidgetSet.AppProcessMessages in lazarus/trunk/lcl/interfaces/gtk/gtkwidgetset.inc).
+      So instead we hack from the inside: from time to time
+      (more precisely, at every AggressiveUpdateGap message),
+      when receving key or mouse events (KeyDown, MouseDown, MouseMove etc.),
+      we'll call the Idle, and (if pending Invalidate call) Paint methods.
+
+      Do not set too small, like 0, or you'll override the system
+      (TODO: a better method of control, like timeout, would be useful).
+
+      @groupBegin }
+    property AggressiveUpdate: boolean
+      read FAggressiveUpdate write FAggressiveUpdate default DefaultAggressiveUpdate;
+    property AggressiveUpdateGap: Cardinal
+      read FAggressiveUpdateGap write FAggressiveUpdateGap default DefaultAggressiveUpdateGap;
+    { @groupEnd }
   end;
 
   { OpenGL control, with extensions for Kambi VRML game engine, including
@@ -269,6 +329,11 @@ begin
   FFps := TFramesPerSecond.Create;
   FPressed := TKeysPressed.Create;
 
+  FAggressiveUpdate := DefaultAggressiveUpdate;
+  FAggressiveUpdateGap := DefaultAggressiveUpdateGap;
+  AggressiveUpdateGapCounter := 0;
+  Invalidated := false;
+
   ApplicationProperties := TApplicationProperties.Create(Self);
   ApplicationProperties.OnIdle := @ApplicationPropertiesIdle;
 end;
@@ -324,6 +389,12 @@ begin
   end;
 end;
 
+procedure TKamOpenGLControlCore.Invalidate;
+begin
+  if AggressiveUpdate then Invalidated := true;
+  inherited;
+end;
+
 procedure TKamOpenGLControlCore.DestroyHandle;
 begin
   if ContextInitialized then
@@ -352,6 +423,20 @@ procedure TKamOpenGLControlCore.ReleaseAllKeysAndMouse;
 begin
   Pressed.Clear;
   FMousePressed := [];
+end;
+
+procedure TKamOpenGLControlCore.AggressiveUpdateTick;
+begin
+  if AggressiveUpdate then
+  begin
+    if AggressiveUpdateGapCounter = 0 then
+    begin
+      AggressiveUpdateGapCounter := AggressiveUpdateGap;
+      Idle;
+      if Invalidated then Paint;
+    end else
+      Dec(AggressiveUpdateGapCounter);
+  end;
 end;
 
 procedure TKamOpenGLControlCore.KeyDownEvent(var Key: Word; Shift: TShiftState);
@@ -423,6 +508,8 @@ begin
 
   if (MyKey <> K_None) or (Ch <> #0) then
     Pressed.KeyDown(MyKey, Ch);
+
+  AggressiveUpdateTick;
 end;
 
 procedure TKamOpenGLControlCore.KeyUpRequired(var Key: Word; Shift: TShiftState);
@@ -434,6 +521,8 @@ begin
 
   if MyKey <> K_None then
     Pressed.KeyUp(MyKey, Ch);
+
+  AggressiveUpdateTick;
 end;
 
 procedure TKamOpenGLControlCore.MouseDownRequired(
@@ -446,6 +535,8 @@ begin
 
   if LMouseButtonToMyMouseButton(Button, MyButton) then
     Include(FMousePressed, MyButton);
+
+  AggressiveUpdateTick;
 end;
 
 procedure TKamOpenGLControlCore.MouseUpRequired(Button: Controls.TMouseButton;
@@ -458,6 +549,8 @@ begin
 
   if LMouseButtonToMyMouseButton(Button, MyButton) then
     Exclude(FMousePressed, MyButton);
+
+  AggressiveUpdateTick;
 end;
 
 procedure TKamOpenGLControlCore.MouseMoveRequired(Shift: TShiftState; NewX,
@@ -465,6 +558,8 @@ procedure TKamOpenGLControlCore.MouseMoveRequired(Shift: TShiftState; NewX,
 begin
   FMouseX := NewX;
   FMouseY := NewY;
+
+  AggressiveUpdateTick;
 end;
 
 procedure TKamOpenGLControlCore.Idle;
@@ -498,6 +593,7 @@ begin
     DoDraw;
     SwapBuffers;
   finally Fps._RenderEnd end;
+  Invalidated := false; { used only when AggressiveUpdate }
 end;
 
 procedure TKamOpenGLControlCore.SetMousePosition(const NewMouseX, NewMouseY: Integer);
