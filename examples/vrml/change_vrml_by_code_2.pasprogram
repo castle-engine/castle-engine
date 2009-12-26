@@ -27,7 +27,7 @@ uses VectorMath, Boxes3d, VRMLNodes, GL, GLU, GLExt, GLWindow,
   KambiFilesUtils, VRMLErrors, Quaternions {$ifdef LOG} ,KambiLog {$endif};
 
 var
-  Glw: TGLWindowNavigated;
+  Glw: TGLUIWindow;
   Scene: TVRMLGLScene;
 
 procedure Draw(glwin: TGLWindow);
@@ -117,7 +117,7 @@ begin
 end;
 
 begin
-  Glw := TGLWindowNavigated.Create(Application);
+  Glw := TGLUIWindow.Create(Application);
 
   Parameters.CheckHigh(0);
   VRMLWarning := @VRMLWarning_Write;

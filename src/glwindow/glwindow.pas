@@ -23,7 +23,7 @@
 
   @orderedList(
     @item(Declare and create @link(TGLWindow) instance. (Or a descendant
-      like @link(TGLWindowNavigated) or @link(TGLWindowDemo)).
+      like @link(TGLUIWindow) or @link(TGLWindowDemo)).
       By convention, I name it @code(Glw) in my programs.)
 
     @item(Assign Glw properties and callbacks like
@@ -136,7 +136,7 @@
   Using OOP approach (overriding EventXxx methods instead of registering OnXxx
   callbacks) you can not do such things so easily -- in general, you have
   to define something to turn off special EventXxx functionality
-  (like SetDemoOptions in TGLWindowDemo and UseControls in TGLWindowNavigated)
+  (like SetDemoOptions in TGLWindowDemo and UseControls in TGLUIWindow)
   and you have to turn them off/on when using GLWinModes
   (mentioned TGLWindowDemo and TGLWindowNavigator are already handled in
   GLWinModes). TODO: I shall do some virtual methods in TGLWindow
@@ -2429,7 +2429,7 @@ type
 
     This way MouseLook feature of TWalkNavigator is handled out of the box,
     assuming you only call UpdateMouseLook when needed. }
-  TGLWindowNavigated = class(TGLWindowDemo, IUIContainer)
+  TGLUIWindow = class(TGLWindowDemo, IUIContainer)
   private
     FNavigator: TNavigator;
     FCursorNonMouseLook: TGLWindowCursor;
@@ -2473,7 +2473,7 @@ type
       For now, you should not add / remove TNavigator instances to
       the Controls list directly.
 
-      Example use of this class TGLWindowNavigated just to get a Navigator:
+      Example use of this class TGLUIWindow just to get a Navigator:
 
       @orderedList(
         @item(At the beginning of your program, do
@@ -2592,6 +2592,9 @@ type
       read FCursorNonMouseLook write SetCursorNonMouseLook
       default gcDefault;
   end;
+
+  { Depracted name for TGLUIWindow. @deprecated }
+  TGLWindowNavigated = TGLUIWindow;
 
   TObjectsListItem_1 = TGLWindow;
   {$I objectslist_1.inc}
@@ -4195,14 +4198,14 @@ type
     notifications, doing appropriate operations with parent Container. }
   TControlledUIControlList = class(TUIControlList)
   private
-    Container: TGLWindowNavigated;
+    Container: TGLUIWindow;
   public
-    constructor Create(const FreeObjects: boolean; const AContainer: TGLWindowNavigated);
+    constructor Create(const FreeObjects: boolean; const AContainer: TGLUIWindow);
     procedure Notify(Ptr: Pointer; Action: TListNotification); override;
   end;
 
 constructor TControlledUIControlList.Create(const FreeObjects: boolean;
-  const AContainer: TGLWindowNavigated);
+  const AContainer: TGLUIWindow);
 begin
   inherited Create(FreeObjects);
   Container := AContainer;
@@ -4246,22 +4249,22 @@ begin
   end;
 end;
 
-{ TGLWindowNavigated --------------------------------------------------------- }
+{ TGLUIWindow --------------------------------------------------------- }
 
-constructor TGLWindowNavigated.Create(AOwner: TComponent);
+constructor TGLUIWindow.Create(AOwner: TComponent);
 begin
   inherited;
   FControls := TControlledUIControlList.Create(false, Self);
   FUseControls := true;
 end;
 
-destructor TGLWindowNavigated.Destroy;
+destructor TGLUIWindow.Destroy;
 begin
   FreeAndNil(FControls);
   inherited;
 end;
 
-procedure TGLWindowNavigated.SetNavigator(const Value: TNavigator);
+procedure TGLUIWindow.SetNavigator(const Value: TNavigator);
 begin
   if FNavigator <> Value then
   begin
@@ -4271,7 +4274,7 @@ begin
   end;
 end;
 
-procedure TGLWindowNavigated.Notification(AComponent: TComponent; Operation: TOperation);
+procedure TGLUIWindow.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   { We have to remove a reference to the object from Controls list.
     This is crucial: TControlledUIControlList.Notify,
@@ -4286,7 +4289,7 @@ begin
   end;
 end;
 
-function TGLWindowNavigated.Focus: TUIControl;
+function TGLUIWindow.Focus: TUIControl;
 var
   I: Integer;
 begin
@@ -4302,7 +4305,7 @@ begin
   Result := nil;
 end;
 
-procedure TGLWindowNavigated.EventIdle;
+procedure TGLUIWindow.EventIdle;
 var
   I: Integer;
   ThisListener, F: TUIControl;
@@ -4331,7 +4334,7 @@ begin
   inherited;
 end;
 
-procedure TGLWindowNavigated.EventKeyDown(Key: TKey; Ch: char);
+procedure TGLUIWindow.EventKeyDown(Key: TKey; Ch: char);
 var
   C: TUIControl;
   I: Integer;
@@ -4349,7 +4352,7 @@ begin
   inherited;
 end;
 
-procedure TGLWindowNavigated.EventMouseDown(Button: TMouseButton);
+procedure TGLUIWindow.EventMouseDown(Button: TMouseButton);
 var
   C: TUIControl;
   I: Integer;
@@ -4367,7 +4370,7 @@ begin
   inherited;
 end;
 
-procedure TGLWindowNavigated.EventMouseUp(Button: TMouseButton);
+procedure TGLUIWindow.EventMouseUp(Button: TMouseButton);
 var
   C: TUIControl;
   I: Integer;
@@ -4385,12 +4388,12 @@ begin
   inherited;
 end;
 
-procedure TGLWindowNavigated.EventInit;
+procedure TGLUIWindow.EventInit;
 begin
  inherited;
 end;
 
-function TGLWindowNavigated.AllowSuspendForInput: boolean;
+function TGLUIWindow.AllowSuspendForInput: boolean;
 var
   I: Integer;
 begin
@@ -4407,7 +4410,7 @@ begin
   end;
 end;
 
-function TGLWindowNavigated.ExamineNav: TExamineNavigator;
+function TGLUIWindow.ExamineNav: TExamineNavigator;
 begin
   Result :=
     {$ifdef DEBUG} Navigator as TExamineNavigator
@@ -4415,7 +4418,7 @@ begin
     {$endif};
 end;
 
-function TGLWindowNavigated.WalkNav: TWalkNavigator;
+function TGLUIWindow.WalkNav: TWalkNavigator;
 begin
   Result :=
     {$ifdef DEBUG} Navigator as TWalkNavigator
@@ -4423,7 +4426,7 @@ begin
     {$endif};
 end;
 
-procedure TGLWindowNavigated.RayFromCustomNavigator(
+procedure TGLUIWindow.RayFromCustomNavigator(
   Nav: TNavigator;
   const WindowX, WindowY: Integer;
   const ViewAngleDegX, ViewAngleDegY: Single;
@@ -4439,7 +4442,7 @@ begin
     ViewAngleDegX, ViewAngleDegY);
 end;
 
-procedure TGLWindowNavigated.MousePickedRayFromCustomNavigator(
+procedure TGLUIWindow.MousePickedRayFromCustomNavigator(
   Nav: TNavigator;
   const ViewAngleDegX, ViewAngleDegY: Single;
   out Ray0, RayVector: TVector3Single);
@@ -4448,7 +4451,7 @@ begin
     Nav, MouseX, MouseY, ViewAngleDegX, ViewAngleDegY, Ray0, RayVector);
 end;
 
-procedure TGLWindowNavigated.Ray(const WindowX, WindowY: Integer;
+procedure TGLUIWindow.Ray(const WindowX, WindowY: Integer;
   const ViewAngleDegX, ViewAngleDegY: Single;
   out Ray0, RayVector: TVector3Single);
 begin
@@ -4457,7 +4460,7 @@ begin
     WindowX, WindowY, ViewAngleDegX, ViewAngleDegY, Ray0, RayVector);
 end;
 
-procedure TGLWindowNavigated.MousePickedRay(
+procedure TGLUIWindow.MousePickedRay(
   const ViewAngleDegX, ViewAngleDegY: Single;
   out Ray0, RayVector: TVector3Single);
 begin
@@ -4466,12 +4469,12 @@ begin
     ViewAngleDegX, ViewAngleDegY, Ray0, RayVector);
 end;
 
-function TGLWindowNavigated.ReallyUseMouseLook: boolean;
+function TGLUIWindow.ReallyUseMouseLook: boolean;
 begin
   Result := (Navigator <> nil) and Navigator.MouseLook;
 end;
 
-procedure TGLWindowNavigated.SetCursorNonMouseLook(
+procedure TGLUIWindow.SetCursorNonMouseLook(
   const Value: TGLWindowCursor);
 begin
   if Value <> FCursorNonMouseLook then
@@ -4482,7 +4485,7 @@ begin
   end;
 end;
 
-procedure TGLWindowNavigated.UpdateMouseLook;
+procedure TGLUIWindow.UpdateMouseLook;
 var
   ML: boolean;
 begin
@@ -4494,7 +4497,7 @@ begin
     SetMousePosition(Width div 2, Height div 2);
 end;
 
-procedure TGLWindowNavigated.EventMouseMove(NewX, NewY: Integer);
+procedure TGLUIWindow.EventMouseMove(NewX, NewY: Integer);
 var
   F: TUIControl;
 begin
@@ -4506,14 +4509,14 @@ begin
   inherited;
 end;
 
-procedure TGLWindowNavigated.ControlsVisibleChange(Sender: TObject);
+procedure TGLUIWindow.ControlsVisibleChange(Sender: TObject);
 begin
   PostRedisplay;
 end;
 
 procedure WindowDraw2D(GLWinPtr: Pointer);
 var
-  GLWin: TGLWindowNavigated absolute GLWinPtr;
+  GLWin: TGLUIWindow absolute GLWinPtr;
   C, F: TUIControl;
   I: Integer;
 begin
@@ -4534,7 +4537,7 @@ begin
   end;
 end;
 
-procedure TGLWindowNavigated.EventDraw;
+procedure TGLUIWindow.EventDraw;
 
   { Does any control wants it's Draw2D called. If not, we can avoid
     even changing projection to 2D. This also takes care of checking
@@ -4574,7 +4577,7 @@ begin
   end;
 end;
 
-procedure TGLWindowNavigated.EventResize;
+procedure TGLUIWindow.EventResize;
 var
   I: Integer;
 begin
@@ -4587,7 +4590,7 @@ begin
   end;
 end;
 
-procedure TGLWindowNavigated.EventClose;
+procedure TGLUIWindow.EventClose;
 var
   I: Integer;
 begin

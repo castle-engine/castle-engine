@@ -573,7 +573,7 @@ type
       slight mouse move will immediately change menu position).
       To make it work, make sure @link(Container) is assigned
       before setting DesignerMode to @true --- in other words,
-      make sure you add this control to something like TGLWindowNavigated.Controls
+      make sure you add this control to something like TGLUIWindow.Controls
       first, and only then set DesignedMode := @true.
       This works assuming that you always call our Draw with identity
       transform matrix (otherwise, this unit is not able to know how to

@@ -228,7 +228,7 @@ type
         should have an @code(Init) method, these are designed to take
         a couple of the most critical configuration parameters.)
 
-      @item(Add this to the @link(TGLWindowNavigated.Controls) list or something
+      @item(Add this to the @link(TGLUIWindow.Controls) list or something
         similar. This will automatically take care of passing
         user input to navigator (KeyDown, MouseDown etc.),
         calling Idle event, and also it will use our OnVisibleChange

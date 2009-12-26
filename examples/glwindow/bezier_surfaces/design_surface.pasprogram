@@ -29,7 +29,7 @@ type
   TShow = (shNone, shWire, shFill);
 
 var
-  Glw: TGLWindowNavigated;
+  Glw: TGLUIWindow;
 
   Surface: TSurface;
   CurrentCurve, CurrentPoint: Integer;
@@ -617,7 +617,7 @@ end;
 { main ----------------------------------------------------------------------- }
 
 begin
-  Glw := TGLWindowNavigated.Create(Application);
+  Glw := TGLUIWindow.Create(Application);
 
   Glw.OnMenuCommand := @MenuCommand;
   Glw.MainMenu := CreateMainMenu;

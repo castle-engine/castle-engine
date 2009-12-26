@@ -47,7 +47,7 @@ uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3d,
   SphericalHarmonics, GLCubeMap, GLWinMessages, VRMLShape;
 
 var
-  Glw: TGLWindowNavigated;
+  Glw: TGLUIWindow;
 
   SceneCaster, SceneReceiver, SceneLocalLight: TVRMLGLScene;
   CasterOOF: TShadowField;
@@ -525,7 +525,7 @@ var
   BoxSum: TBox3d;
   V: TVector3Single;
 begin
-  Glw := TGLWindowNavigated.Create(Application);
+  Glw := TGLUIWindow.Create(Application);
 
   Parameters.CheckHighAtMost(3);
 

@@ -22,7 +22,7 @@ uses SysUtils, Classes, KeysMouse, KambiUtils, KambiClassUtils, Contnrs;
 
 type
   { Basic user interface container. This may be a window
-    (like TGLWindowNavigated) or some Lazarus control (like TKamOpenGLControl
+    (like TGLUIWindow) or some Lazarus control (like TKamOpenGLControl
     component). }
   IUIContainer = interface
     procedure SetMousePosition(const NewMouseX, NewMouseY: Integer);
@@ -221,7 +221,7 @@ type
 
     { Called always when containing window size changes.
       Also, when the control is first inserted into the window controls list
-      (like @link(TGLWindowNavigated.Controls)), it will also receive
+      (like @link(TGLUIWindow.Controls)), it will also receive
       initial ContainerResize event. So every member of of Controls list
       knows window width / height.
 
@@ -230,7 +230,7 @@ type
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); virtual;
 
     { Container of this control. When adding control to container's Controls
-      list (like TGLWindowNavigated.Controls) container will automatically
+      list (like TGLUIWindow.Controls) container will automatically
       set itself here, an when removing from container this will be changed
       back to @nil.
 

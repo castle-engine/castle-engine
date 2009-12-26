@@ -68,7 +68,7 @@ type
   TBumpMethod = (bmEmboss, bmMultiTexDot, bmVRML);
 
 var
-  Glw: TGLWindowNavigated;
+  Glw: TGLUIWindow;
 
   { normal texture is for all methods, bumps in alpha for emboss only }
   NormalAndBumpTex: array [0..3] of TGLuint;
@@ -1227,7 +1227,7 @@ const
   end;
 
 begin
-  Glw := TGLWindowNavigated.Create(Application);
+  Glw := TGLUIWindow.Create(Application);
 
   { parse params }
   Glw.ParseParameters(StandardParseOptions);

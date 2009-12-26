@@ -43,7 +43,7 @@ type
     );
 
 var
-  Glw: TGLWindowNavigated;
+  Glw: TGLUIWindow;
   Scene: TVRMLScene;
   Shape: TVRMLShape;
   Vertexes: TDynVector3SingleArray;
@@ -307,7 +307,7 @@ end;
 var
   ShapeNum: Integer;
 begin
-  Glw := TGLWindowNavigated.Create(Application);
+  Glw := TGLUIWindow.Create(Application);
 
   Parameters.CheckHighAtLeast(1);
   Parameters.CheckHighAtMost(2);

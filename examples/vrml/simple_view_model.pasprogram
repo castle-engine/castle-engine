@@ -25,7 +25,7 @@
   of @link(TWalkNavigator) class or view3dscene documentation
   (look for "keys available in Walk navigation method").
 
-  Thanks to using TGLWindowNavigated class, that descends
+  Thanks to using TGLUIWindow class, that descends
   from TGLWindowDemo, this program automatically handles keys Escape (Quit)
   and F11 (Swap fullscreen) and displays FPS on window's Caption.
 
@@ -52,7 +52,7 @@ uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindo
   KambiFilesUtils, VRMLErrors;
 
 var
-  Glw: TGLWindowNavigated;
+  Glw: TGLUIWindow;
 
   Scene: TVRMLGLScene;
 
@@ -83,7 +83,7 @@ begin
 end;
 
 begin
-  Glw := TGLWindowNavigated.Create(Application);
+  Glw := TGLUIWindow.Create(Application);
 
   Parameters.CheckHigh(1);
   try

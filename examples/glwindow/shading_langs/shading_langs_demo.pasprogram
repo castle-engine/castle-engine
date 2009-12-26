@@ -32,7 +32,7 @@ const
     ( 8,  15,  3) );
 
 var
-  Glw: TGLWindowNavigated;
+  Glw: TGLUIWindow;
 
   Tex: array [0..1] of TGLuint;
 
@@ -330,7 +330,7 @@ end;
 { main program --------------------------------------------------------------- }
 
 begin
-  Glw := TGLWindowNavigated.Create(Application);
+  Glw := TGLUIWindow.Create(Application);
 
   { parse params }
   Glw.ParseParameters(StandardParseOptions);

@@ -76,7 +76,7 @@ uses SysUtils, Classes, Boxes3d,
   KambiStringUtils, GLMenu;
 
 var
-  Glw: TGLWindowNavigated;
+  Glw: TGLUIWindow;
   Elevation: TElevation;
   Wireframe: boolean;
   Subdivision: Cardinal = 6;
@@ -355,7 +355,7 @@ begin
 end;
 
 begin
-  Glw := TGLWindowNavigated.Create(Application);
+  Glw := TGLUIWindow.Create(Application);
 
   Glw.ParseParameters(StandardParseOptions);
   Parameters.CheckHighAtMost(1);

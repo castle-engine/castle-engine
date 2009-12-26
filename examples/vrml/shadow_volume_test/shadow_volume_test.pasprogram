@@ -119,7 +119,7 @@ type
   );
 
 var
-  Glw: TGLWindowNavigated;
+  Glw: TGLUIWindow;
 
   Scene, ShadowCaster: TVRMLGLScene;
   ShadowCasterNav: TExamineNavigator;
@@ -642,7 +642,7 @@ var
   ShadowCasterVrmlName: string;
   L: PActiveLight;
 begin
-  Glw := TGLWindowNavigated.Create(Application);
+  Glw := TGLUIWindow.Create(Application);
 
   try
     { parse params }

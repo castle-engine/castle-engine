@@ -35,7 +35,7 @@ type
   TViewMode = (vmNormal, vmSimpleOcclusion, vmFull);
 
 var
-  Glw: TGLWindowNavigated;
+  Glw: TGLUIWindow;
   Scene: TVRMLGLScene;
   ViewMode: TViewMode = vmFull;
   UseLighting: boolean = true;
@@ -264,7 +264,7 @@ begin
 end;
 
 begin
-  Glw := TGLWindowNavigated.Create(Application);
+  Glw := TGLUIWindow.Create(Application);
 
   Parameters.CheckHigh(1);
   try

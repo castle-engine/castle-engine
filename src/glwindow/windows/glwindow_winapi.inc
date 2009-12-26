@@ -400,13 +400,13 @@ begin
            and read by MouseX, MouseY properties would be slightly different.
            And there are real cases when this is extremely important that they use
            exactly the same coordinate systems --- see e.g. mouse look handling in
-           TGLWindowNavigated.EventMouseMove.
+           TGLUIWindow.EventMouseMove.
 
         So what's the problem ? Well, if the window is not FullScreen, Left and Top
         as recorded in lParm are exactly what I want. But when FullScreen, Left and Top
         are always 0, 0 --- which means that they don't take menu bar height into
         account. The effect: mouse look + menu bar + fullscreen mode don't work
-        (i.e. user is unable to do mouse look, TGLWindowNavigated.EventMouseMove always
+        (i.e. user is unable to do mouse look, TGLUIWindow.EventMouseMove always
         ignores it). Tested on view3dscene.
 
         So I workaround this by adding CYMENU. This is not perfect, as this assumes

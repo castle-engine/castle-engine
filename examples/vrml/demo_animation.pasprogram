@@ -70,7 +70,7 @@ uses Math, VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, G
   KambiFilesUtils, ParseParametersUnit, ProgressGL, ProgressUnit, VRMLErrors;
 
 var
-  Glw: TGLWindowNavigated;
+  Glw: TGLUIWindow;
 
   Animation: TVRMLGLAnimation;
   AnimationTime: Float = 0.0;
@@ -192,7 +192,7 @@ const
 var
   CamPos, CamDir, CamUp, GravityUp: TVector3Single;
 begin
-  Glw := TGLWindowNavigated.Create(Application);
+  Glw := TGLUIWindow.Create(Application);
 
   Glw.ParseParameters(StandardParseOptions);
   ParseParameters(Options, @OptionProc, nil);

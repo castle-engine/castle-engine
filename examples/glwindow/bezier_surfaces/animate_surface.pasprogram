@@ -22,7 +22,7 @@ uses Navigation, Surfaces, GLWindow, GL, GLU, VectorMath,
   KambiStringUtils, Math, GLWinMessages, KambiFilesUtils;
 
 var
-  Glw: TGLWindowNavigated;
+  Glw: TGLUIWindow;
   Surface1, Surface2: TSurface;
   SurfacePos, SurfaceDir, SurfaceUp: TVector3Single;
   F: TGLfloat = 0.0;
@@ -177,7 +177,7 @@ begin
 end;
 
 begin
-  Glw := TGLWindowNavigated.Create(Application);
+  Glw := TGLUIWindow.Create(Application);
 
   Glw.Navigator := TWalkNavigator.Create(Glw);
   Glw.WalkNav.PreferGravityUpForRotations := false;

@@ -37,7 +37,7 @@ uses GL, GLU, GLWindow, KambiGLUtils, SysUtils, VectorMath,
 { global vars ------------------------------------------------------------ }
 
 var
-  Glw: TGLWindowNavigated;
+  Glw: TGLUIWindow;
 
   { For the whole lifetime of a program we can have two curves.
     Precise one (must be TMathExprCurve) and approximating one
@@ -413,7 +413,7 @@ end;
 { main ------------------------------------------------------------ }
 
 begin
-  Glw := TGLWindowNavigated.Create(Application);
+  Glw := TGLUIWindow.Create(Application);
 
   try
     ApproxCurveClass := TLagrangeInterpolatedCurve;

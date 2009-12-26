@@ -84,7 +84,7 @@ type
     oldSwapFullScreen_Key: TKey;
     oldClose_charkey: char;
     oldFpsShowOnCaption: boolean;
-    { TGLWindowNavigated attributes } { }
+    { TGLUIWindow attributes } { }
     OldControls: TUIControlList;
     OldNavigator: TNavigator;
     OldUseControls: boolean;
@@ -380,11 +380,11 @@ begin
     oldFpsShowOnCaption := TGLWindowDemo(glwin).FpsShowOnCaption;
   end;
 
-  if glwin is TGLWindowNavigated then
+  if glwin is TGLUIWindow then
   begin
-    OldControls.Assign(TGLWindowNavigated(Glwin).Controls);
-    OldNavigator := TGLWindowNavigated(Glwin).Navigator;
-    OldUseControls := TGLWindowNavigated(Glwin).UseControls;
+    OldControls.Assign(TGLUIWindow(Glwin).Controls);
+    OldNavigator := TGLUIWindow(Glwin).Navigator;
+    OldUseControls := TGLUIWindow(Glwin).UseControls;
   end;
 end;
 
@@ -408,11 +408,11 @@ begin
     TGLWindowDemo(glwin).FpsShowOnCaption := oldFpsShowOnCaption;
   end;
 
-  if glwin is TGLWindowNavigated then
+  if glwin is TGLUIWindow then
   begin
-    TGLWindowNavigated(Glwin).Controls.Assign(OldControls);
-    TGLWindowNavigated(Glwin).Navigator := OldNavigator;
-    TGLWindowNavigated(Glwin).UseControls := OldUseControls;
+    TGLUIWindow(Glwin).Controls.Assign(OldControls);
+    TGLUIWindow(Glwin).Navigator := OldNavigator;
+    TGLUIWindow(Glwin).UseControls := OldUseControls;
   end;
 end;
 
@@ -443,17 +443,17 @@ begin
     TGLWindowDemo(glwin).FpsShowOnCaption := NewFpsShowOnCaption;
   end;
 
-  if glwin is TGLWindowNavigated then
+  if glwin is TGLUIWindow then
   begin
-    TGLWindowNavigated(Glwin).Controls.Clear;
+    TGLUIWindow(Glwin).Controls.Clear;
     if NewControl <> nil then
     begin
       if NewControl is TNavigator then
         { setting Navigator also adds it to Controls already }
-        TGLWindowNavigated(Glwin).Navigator := TNavigator(NewControl) else
-        TGLWindowNavigated(Glwin).Controls.Add(NewControl);
+        TGLUIWindow(Glwin).Navigator := TNavigator(NewControl) else
+        TGLUIWindow(Glwin).Controls.Add(NewControl);
     end;
-    TGLWindowNavigated(Glwin).UseControls := true;
+    TGLUIWindow(Glwin).UseControls := true;
   end;
 end;
 

@@ -80,7 +80,7 @@ type
     If you're looking for Lazarus component that does basically the same
     (easy VRML browser), you want to check out TKamVRMLBrowser
     (file @code(../packages/components/kambivrmlbrowser.pas)). }
-  TGLWindowVRMLBrowser = class(TGLWindowNavigated)
+  TGLWindowVRMLBrowser = class(TGLUIWindow)
   private
     FScene: TVRMLGLScene;
 

@@ -56,7 +56,7 @@ uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindo
   KambiFilesUtils, VRMLErrors, KambiStringUtils, KeysMouse;
 
 var
-  Glw: TGLWindowNavigated;
+  Glw: TGLUIWindow;
 
   Scene: TVRMLGLScene;
   SceneForShadow: TVRMLGLScene;
@@ -557,7 +557,7 @@ end;
 var
   RootNode: TVRMLNode;
 begin
-  Glw := TGLWindowNavigated.Create(Application);
+  Glw := TGLUIWindow.Create(Application);
 
   { parse parameters  }
   Glw.ParseParameters(StandardParseOptions);

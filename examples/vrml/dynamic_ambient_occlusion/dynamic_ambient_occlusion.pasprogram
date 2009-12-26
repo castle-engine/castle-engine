@@ -37,7 +37,7 @@ type
   TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);
 
 var
-  Glw: TGLWindowNavigated;
+  Glw: TGLUIWindow;
 
   Scene: TVRMLGLScene;
   GLSLProgram: array [0..1] of TGLSLProgram;
@@ -962,7 +962,7 @@ begin
 end;
 
 begin
-  Glw := TGLWindowNavigated.Create(Application);
+  Glw := TGLUIWindow.Create(Application);
 
   Elements := TDynAOElementArray.Create;
 

@@ -28,7 +28,7 @@ uses VectorMath, Boxes3d, GL, GLWindow,
   BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts;
 
 var
-  Glw: TGLWindowNavigated;
+  Glw: TGLUIWindow;
 
   LM: Cardinal = 0;
   Font: TGLBitmapFont;
@@ -218,7 +218,7 @@ end;
 var
   M: TMenu;
 begin
-  Glw := TGLWindowNavigated.Create(Application);
+  Glw := TGLUIWindow.Create(Application);
 
   Glw.MainMenu := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');

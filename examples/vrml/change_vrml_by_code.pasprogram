@@ -46,7 +46,7 @@ uses VectorMath, Boxes3d, VRMLNodes, GL, GLU, GLExt, GLWindow,
   KambiFilesUtils, VRMLErrors;
 
 var
-  Glw: TGLWindowNavigated;
+  Glw: TGLUIWindow;
 
   Scene: TVRMLGLScene;
 
@@ -114,7 +114,7 @@ begin
 end;
 
 begin
-  Glw := TGLWindowNavigated.Create(Application);
+  Glw := TGLUIWindow.Create(Application);
 
   Parameters.CheckHigh(0);
   VRMLWarning := @VRMLWarning_Write;

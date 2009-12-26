@@ -58,7 +58,7 @@ uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindo
   VRMLErrors;
 
 var
-  Glw: TGLWindowNavigated;
+  Glw: TGLUIWindow;
   Scene: TVRMLGLScene;
   { CameraRadius is needed for collision detection }
   CameraRadius: Single;
@@ -125,7 +125,7 @@ var
   //i: Integer;
   CamPos, CamDir, CamUp, GravityUp: TVector3Single;
 begin
-  Glw := TGLWindowNavigated.Create(Application);
+  Glw := TGLUIWindow.Create(Application);
 
   Parameters.CheckHigh(1);
   try
