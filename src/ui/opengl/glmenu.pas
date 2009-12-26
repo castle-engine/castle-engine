@@ -632,11 +632,18 @@ var
   when you ended using GLMenu things. }
 procedure GLMenuCloseGL;
 
+procedure Register;
+
 implementation
 
 uses SysUtils, KambiUtils, Images, KambiFilesUtils, KambiClassUtils,
   BFNT_BitstreamVeraSans_m10_Unit, KambiStringUtils, GLImages,
   ImageSlider_Base, ImageSlider_Position;
+
+procedure Register;
+begin
+  RegisterComponents('Kambi', [TGLMenu]);
+end;
 
 procedure SliderFontInit;
 begin

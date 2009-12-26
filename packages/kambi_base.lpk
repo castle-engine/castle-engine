@@ -528,10 +528,12 @@
       </Item118>
       <Item119>
         <Filename Value="../src/ui/navigation.pas"/>
+        <HasRegisterProc Value="True"/>
         <UnitName Value="Navigation"/>
       </Item119>
       <Item120>
         <Filename Value="../src/ui/opengl/glmenu.pas"/>
+        <HasRegisterProc Value="True"/>
         <UnitName Value="GLMenu"/>
       </Item120>
       <Item121>

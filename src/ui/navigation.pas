@@ -1351,9 +1351,16 @@ procedure CorrectCameraPreferredHeight(var CameraPreferredHeight: Single;
 const
   MouseButtonStr: array [TMouseButton] of string = ('left', 'middle', 'right');
 
+procedure Register;
+
 implementation
 
 uses Math, KambiStringUtils, VRMLCameraUtils;
+
+procedure Register;
+begin
+  RegisterComponents('Kambi', [TExamineNavigator, TWalkNavigator]);
+end;
 
 { Define this to have Input_RightRot/LeftRot (right / left arrow keys by default)
   work in "single step" mode (single press => one rotation by 5 degrees)
