@@ -14,8 +14,6 @@ view3dscene 3.5 blockers:
   This would make mouse look working more independent from proper
   SetMousePosition.
 
-- Paint, OnDraw etc. --- some strange order was in TKamOpenGLControl, TKamVRMLBrowser?
-
 - finish X3D nurbs component up to level 2, update vrml_impl_status about it.
   Remaining:
     CoordinateDouble
