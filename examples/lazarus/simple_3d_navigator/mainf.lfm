@@ -1,0 +1,28 @@
+object MainForm: TMainForm
+  Left = 298
+  Height = 399
+  Top = 115
+  Width = 550
+  ActiveControl = GLControl
+  Caption = 'MainForm'
+  ClientHeight = 399
+  ClientWidth = 550
+  OnCreate = FormCreate
+  LCLVersion = '0.9.29'
+  object GLControl: TKamOpenGLControl
+    Left = 10
+    Height = 379
+    Top = 10
+    Width = 530
+    Align = alClient
+    BorderSpacing.Around = 10
+    OnResize = GLControlResize
+    OnGLContextInit = GLControlGLContextInit
+    OnDraw = GLControlDraw
+    Navigator = Navigator
+  end
+  object Navigator: TExamineNavigator
+    left = 54
+    top = 93
+  end
+end
