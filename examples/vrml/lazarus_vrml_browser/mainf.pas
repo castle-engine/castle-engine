@@ -47,6 +47,7 @@ type
     MenuMouseLookToggle: TMenuItem;
     Config: TKamXMLConfig;
     RecentFiles: TKamRecentFiles;
+    MenuAggressiveUpdateToggle: TMenuItem;
     procedure BrowserNavigatorChanged(Navigator: TNavigator);
     procedure ButtonChangeCameraClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -60,6 +61,7 @@ type
     procedure MenuMouseLookToggleClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure RecentFilesOpenRecent(const FileName: string);
+    procedure MenuAggressiveUpdateToggleClick(Sender: TObject);
   private
     SceneFileName: string;
     procedure OpenScene(const FileName: string);
@@ -215,6 +217,11 @@ end;
 procedure TMain.RecentFilesOpenRecent(const FileName: string);
 begin
   OpenScene(FileName);
+end;
+
+procedure TMain.MenuAggressiveUpdateToggleClick(Sender: TObject);
+begin
+  Browser.AggressiveUpdate := (Sender as TMenuItem).Checked;
 end;
 
 procedure TMain.FormDeactivate(Sender: TObject);

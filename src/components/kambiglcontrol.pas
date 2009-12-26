@@ -9,8 +9,10 @@ uses
   VectorMath, KeysMouse, KambiUtils, KambiTimeUtils, StdCtrls, UIControls;
 
 const
-  { Default value for TKamOpenGLControlCore.AggressiveUpdateGap }
-  DefaultAggressiveUpdateGap = 2;
+  { Default value for TKamOpenGLControlCore.AggressiveUpdateGap.
+    "1000 div 60" means that we strike for 60 frames per second,
+    although this is gross approximation (no guarantees, of course). }
+  DefaultAggressiveUpdateGap = 1000 div 60;
 
   { Default value for TKamOpenGLControlCore.AggressiveUpdate }
   DefaultAggressiveUpdate = false;
@@ -43,8 +45,8 @@ type
     FMousePressed: KeysMouse.TMouseButtons;
 
     FAggressiveUpdate: boolean;
-    FAggressiveUpdateGap: Cardinal;
-    AggressiveUpdateGapCounter: Cardinal;
+    FAggressiveUpdateGap: TMilisecTime;
+    LastAggressiveUpdateTime: TMilisecTime; { tracked only when AggressiveUpdate }
     Invalidated: boolean; { tracked only when AggressiveUpdate }
 
     FOnGLContextInit: TNotifyEvent;
@@ -192,17 +194,19 @@ type
       (for example, may be ~ 100 GTK messages, see
       TGtkWidgetSet.AppProcessMessages in lazarus/trunk/lcl/interfaces/gtk/gtkwidgetset.inc).
       So instead we hack from the inside: from time to time
-      (more precisely, at every AggressiveUpdateGap message),
+      (more precisely, after AggressiveUpdateGap miliseconds since last Idle),
       when receving key or mouse events (KeyDown, MouseDown, MouseMove etc.),
       we'll call the Idle, and (if pending Invalidate call) Paint methods.
 
-      Do not set too small, like 0, or you'll override the system
-      (TODO: a better method of control, like timeout, would be useful).
+      Do not set too small, like 0, or you'll overload the system
+      (you will see smooth animation and rendering, but there will be latency
+      with respect to handling input, e.g. mouse move will be processed with
+      a small delay).
 
       @groupBegin }
     property AggressiveUpdate: boolean
       read FAggressiveUpdate write FAggressiveUpdate default DefaultAggressiveUpdate;
-    property AggressiveUpdateGap: Cardinal
+    property AggressiveUpdateGap: TMilisecTime
       read FAggressiveUpdateGap write FAggressiveUpdateGap default DefaultAggressiveUpdateGap;
     { @groupEnd }
   end;
@@ -331,7 +335,7 @@ begin
 
   FAggressiveUpdate := DefaultAggressiveUpdate;
   FAggressiveUpdateGap := DefaultAggressiveUpdateGap;
-  AggressiveUpdateGapCounter := 0;
+  LastAggressiveUpdateTime := 0;
   Invalidated := false;
 
   ApplicationProperties := TApplicationProperties.Create(Self);
@@ -391,7 +395,7 @@ end;
 
 procedure TKamOpenGLControlCore.Invalidate;
 begin
-  if AggressiveUpdate then Invalidated := true;
+  Invalidated := true; { will be actually used only when AggressiveUpdate }
   inherited;
 end;
 
@@ -426,16 +430,18 @@ begin
 end;
 
 procedure TKamOpenGLControlCore.AggressiveUpdateTick;
+var
+  TimeNow: TMilisecTime;
 begin
   if AggressiveUpdate then
   begin
-    if AggressiveUpdateGapCounter = 0 then
+    TimeNow := GetTickCount;
+    if TimeTickSecondLater(LastAggressiveUpdateTime, TimeNow, AggressiveUpdateGap) then
     begin
-      AggressiveUpdateGapCounter := AggressiveUpdateGap;
       Idle;
       if Invalidated then Paint;
-    end else
-      Dec(AggressiveUpdateGapCounter);
+      LastAggressiveUpdateTime := TimeNow;
+    end;
   end;
 end;
 

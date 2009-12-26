@@ -173,6 +173,12 @@ object Main: TMain
         ShowAlwaysCheckable = True
         OnClick = MenuMouseLookToggleClick
       end
+      object MenuAggressiveUpdateToggle: TMenuItem
+        AutoCheck = True
+        Caption = '&Aggressive Update (use when Mouse Look seems to stutter)'
+        ShowAlwaysCheckable = True
+        OnClick = MenuAggressiveUpdateToggleClick
+      end
       object MenuItem2: TMenuItem
         Caption = '-'
       end
