@@ -122,13 +122,13 @@ type
     procedure DoDraw; override;
     procedure DoGLContextInit; override;
     procedure DoGLContextClose; override;
-    procedure MouseDown(Button: Controls.TMouseButton;
+    procedure MouseDownEvent(Button: Controls.TMouseButton;
       Shift:TShiftState; X,Y:Integer); override;
-    procedure MouseUp(Button: Controls.TMouseButton;
+    procedure MouseUpEvent(Button: Controls.TMouseButton;
       Shift:TShiftState; X,Y:Integer); override;
-    procedure MouseMove(Shift: TShiftState; NewX, NewY: Integer); override;
-    procedure KeyDown(var Key: Word; Shift: TShiftState); override;
-    procedure KeyUp(var Key: Word; Shift: TShiftState); override;
+    procedure MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer); override;
+    procedure KeyDownEvent(var Key: Word; Shift: TShiftState); override;
+    procedure KeyUpEvent(var Key: Word; Shift: TShiftState); override;
   public
     constructor Create(AOwner :TComponent); override;
     destructor Destroy; override;
@@ -370,7 +370,7 @@ const
     method named "Controls". }
   ContolsMBLeft = Controls.mbLeft;
 
-procedure TKamVRMLBrowser.MouseDown(Button: Controls.TMouseButton;
+procedure TKamVRMLBrowser.MouseDownEvent(Button: Controls.TMouseButton;
   Shift:TShiftState; X,Y:Integer);
 begin
   inherited;
@@ -378,7 +378,7 @@ begin
     Scene.PointingDeviceActive := true;
 end;
 
-procedure TKamVRMLBrowser.MouseUp(Button: Controls.TMouseButton;
+procedure TKamVRMLBrowser.MouseUpEvent(Button: Controls.TMouseButton;
   Shift:TShiftState; X,Y:Integer);
 begin
   inherited;
@@ -405,7 +405,7 @@ begin
     CursorNonMouseLook := crDefault;
 end;
 
-procedure TKamVRMLBrowser.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
+procedure TKamVRMLBrowser.MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer);
 var
   Ray0, RayVector: TVector3Single;
   OverPoint: TVector3Single;
@@ -431,7 +431,7 @@ begin
   end;
 end;
 
-procedure TKamVRMLBrowser.KeyDown(var Key: Word; Shift: TShiftState);
+procedure TKamVRMLBrowser.KeyDownEvent(var Key: Word; Shift: TShiftState);
 var
   MyKey: TKey;
   MyCharKey: char;
@@ -444,7 +444,7 @@ begin
     Scene.KeyDown(MyKey, MyCharKey);
 end;
 
-procedure TKamVRMLBrowser.KeyUp(var Key: Word; Shift: TShiftState);
+procedure TKamVRMLBrowser.KeyUpEvent(var Key: Word; Shift: TShiftState);
 var
   MyKey: TKey;
   MyCharKey: char;
