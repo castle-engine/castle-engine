@@ -129,7 +129,7 @@ begin
   if SceneFileName <> '' then
     S := ExtractFileName(SceneFileName) else
     S := 'No Scene';
-  S += ' - lazarus_vrml_browser' +
+  S += ' - vrml_browser' +
     Format(' - FPS : %f (real : %f)', [Browser.Fps.FrameTime, Browser.Fps.RealTime]);
   Caption := S;
 end;
@@ -188,7 +188,7 @@ end;
 
 function MyGetApplicationName: string;
 begin
-  Result := 'lazarus_vrml_browser';
+  Result := 'vrml_browser';
 end;
 
 procedure TMain.FormCreate(Sender: TObject);
