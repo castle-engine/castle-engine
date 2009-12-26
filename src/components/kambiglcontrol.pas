@@ -39,9 +39,12 @@ type
     procedure ApplicationPropertiesIdle(Sender: TObject; var Done: Boolean);
 
     { For IUIContainer interface. Private, since when you have a class
-      instance, you just use MouseX, MouseY properties. }
+      instance, you just use class properties (that read directly from a field,
+      without the overhead of a function call). }
     function GetMouseX: Integer;
     function GetMouseY: Integer;
+    function GetWidth: Integer;
+    function GetHeight: Integer;
   protected
     procedure DestroyHandle; override;
     procedure DoExit; override;
@@ -201,19 +204,6 @@ type
     function WalkNav: TWalkNavigator;
     { @groupEnd }
 
-    { Calculate a ray picked by WindowX, WindowY position on the window.
-      Use this only when Navigator <> nil.
-
-      ViewAngleDegX, ViewAngleDegY are your camera view angles.
-
-      WindowX, WindowY are given in the same style as MouseX, MouseY:
-      WindowX = 0 is left, WindowY = 0 is top.
-
-      This uses @link(PrimaryRay) call. }
-    procedure Ray(const WindowX, WindowY: Integer;
-      const ViewAngleDegX, ViewAngleDegY: Single;
-      out Ray0, RayVector: TVector3Single);
-
     procedure UpdateMouseLook;
 
     property CursorNonMouseLook: TCursor
@@ -244,7 +234,7 @@ procedure Register;
 
 implementation
 
-uses LCLType, RaysWindow, GL, GLU, GLExt, KambiGLUtils, KambiStringUtils;
+uses LCLType, GL, GLU, GLExt, KambiGLUtils, KambiStringUtils;
 
 procedure Register;
 begin
@@ -476,6 +466,16 @@ end;
 function TKamOpenGLControlCore.GetMouseY: Integer;
 begin
   Result := FMouseY;
+end;
+
+function TKamOpenGLControlCore.GetWidth: Integer;
+begin
+  Result := Width;
+end;
+
+function TKamOpenGLControlCore.GetHeight: Integer;
+begin
+  Result := Height;
 end;
 
 { TControlledUIControlList ----------------------------------------------------- }
@@ -710,19 +710,6 @@ begin
     {$ifdef DEBUG} Navigator as TWalkNavigator
     {$else} TWalkNavigator(Navigator)
     {$endif};
-end;
-
-procedure TKamOpenGLControl.Ray(const WindowX, WindowY: Integer;
-  const ViewAngleDegX, ViewAngleDegY: Single;
-  out Ray0, RayVector: TVector3Single);
-var
-  Dir, Up: TVector3Single;
-begin
-  Navigator.GetCameraVectors(Ray0, Dir, Up);
-  RayVector := PrimaryRay(WindowX, Height - WindowY,
-    Width, Height,
-    Ray0, Dir, Up,
-    ViewAngleDegX, ViewAngleDegY);
 end;
 
 function TKamOpenGLControl.ReallyUseMouseLook: boolean;
