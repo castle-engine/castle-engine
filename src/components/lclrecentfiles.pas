@@ -59,7 +59,7 @@ procedure Register;
 
 implementation
 
-uses SysUtils, Classes;
+uses SysUtils, Classes, KambiLCLUtils;
 
 procedure Register;
 begin
@@ -94,7 +94,7 @@ begin
   if Number = 10 then
     S := '1&0' else
     S := IntToStr(Number);
-  S += '. ' + {TODO:SQuoteMenuEntryCaption}(ExtractFileName(FileName));
+  S += '. ' + SQuoteLCLCaption(ExtractFileName(FileName));
 
   inherited Create(AOwner);
 

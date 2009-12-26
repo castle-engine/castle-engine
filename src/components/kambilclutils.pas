@@ -27,9 +27,13 @@ procedure FileFiltersToOpenDialog(const FileFilters: string;
 procedure FileFiltersToOpenDialog(FFList: TFileFiltersList;
   OpenDialog: TOpenDialog);
 
+{ Make each '&' inside string '&&', this way the string will not contain
+  special '&x' sequences when used as a TMenuItem.Caption and such. }
+function SQuoteLCLCaption(const S: string): string;
+
 implementation
 
-uses KambiClassUtils;
+uses SysUtils, KambiClassUtils;
 
 procedure FileFiltersToOpenDialog(const FileFilters: string;
   OpenDialog: TOpenDialog);
@@ -69,6 +73,11 @@ begin
   OpenDialog.Filter := LCLFilter;
   { LCL FilterIndex counts from 1. }
   OpenDialog.FilterIndex := FFList.DefaultFilter + 1;
+end;
+
+function SQuoteLCLCaption(const S: string): string;
+begin
+  Result := StringReplace(S, '&', '&&', [rfReplaceAll]);
 end;
 
 end.
