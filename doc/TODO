@@ -12,6 +12,33 @@ view3dscene 3.5 blockers:
     NurbsSet
 
 ------------------------------------------------------------------------------
+Better Lazarus integration:
+(Some before view3dscene 3.5, some probably for later.)
+
+- move laz vrml browser, audio demo?, lazarus 2d controls to special examples/lazarus/ subdir.
+
+- Make TKamOpenGLControl.Controls list settable from the IDE,
+  to allow visually adding new TUIControls there.
+
+  At designtime, warn on error: do not put > 1 navigator in Controls list,
+  while it works it's usually nonsense.
+
+- Make sure most useful props of navigators, TGLMenu are settable (published) from Lazarus.
+  For TExamineNavigator: somehow allow ModelBox: TBox3d?
+  For navigators generally, what Init method takes should be settable.
+
+- make icons for our components.
+  Same style navigators (black with dotted lines):
+    Walking man icon for TWalkNavigator,
+    Rotated box for TExamineNavigator.
+  Same style areas:
+    TKamOpenGLControl
+    TKamVRMLBrowser (maybe use the same image, with just a text "OpenGL" or "GL"
+      on one, "VRML" on other)
+  Needed ideas for TGLMenu.
+  For TKamXMLConfig use some slightly modified icon of TXMLConfig, since this is almost the same?
+  For TKamRecentFiles use some slightly modified icon of TMainMenu or TPopupMenu.
+------------------------------------------------------------------------------
 For view3dscene 3.6:
 - implement more pointing device sensors
 - basic networking support
@@ -391,6 +418,9 @@ Things for much later:
   and most fixed on domek. Some remaining issues on domek remain,
   see ~/sources/mesa/bug_arith_error.txt on domek,
   postponed for later (let's see how they handle reported GL_POINT_BIT bug first).
+
+- make doc without protected stuff?
+  Decide when really nice docs are made.
 
 ------------------------------------------------------------------------------
 - check does kambi_lines work on Windows in ii 107 now.
