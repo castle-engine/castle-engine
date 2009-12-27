@@ -146,16 +146,6 @@ type
       Returns always @false in this class. }
     function PositionInside(const X, Y: Integer): boolean; virtual;
 
-    { Should we disable further mouse / keys handling for events that
-      we already handled in this control. If @true, then our events will
-      return @true for mouse and key events handled.
-
-      This means that events will not be simultaneously handled by both this
-      control and some other (or navigator or normal window callbacks),
-      which is usually more sensible, but sometimes less functional. }
-    property ExclusiveEvents: boolean
-      read FExclusiveEvents write FExclusiveEvents default true;
-
     { Called always when some visible part of this control
       changes. In the simplest case, this is used by the controls manager to
       know when we need to redraw the control.
@@ -253,10 +243,28 @@ type
       to work. }
     property Container: IUIContainer read FContainer write FContainer;
 
+    { Called when OpenGL context of the container is created.
+      Also called when the control is added to the already existing context.
+
+      In other words, this is the moment when you can initialize
+      OpenGL resources, like display lists, VBOs, OpenGL texture names, etc. }
+    procedure GLContextInit; virtual;
+
     { Called when OpenGL context of the window is destroyed.
-      Control should clear here any resources that are tied to the GL context.
-      This will be also automatically called from destructor. }
+      This will be also automatically called from destructor.
+
+      Control should clear here any resources that are tied to the GL context. }
     procedure GLContextClose; virtual;
+  published
+    { Should we disable further mouse / keys handling for events that
+      we already handled in this control. If @true, then our events will
+      return @true for mouse and key events handled.
+
+      This means that events will not be simultaneously handled by both this
+      control and some other (or navigator or normal window callbacks),
+      which is usually more sensible, but sometimes less functional. }
+    property ExclusiveEvents: boolean
+      read FExclusiveEvents write FExclusiveEvents default true;
   end;
 
   TUIControlList = class(TKamObjectList)
@@ -339,6 +347,10 @@ begin
   FContainerWidth := AContainerWidth;
   FContainerHeight := AContainerHeight;
   FContainerSizeKnown := true;
+end;
+
+procedure TUIControl.GLContextInit;
+begin
 end;
 
 procedure TUIControl.GLContextClose;

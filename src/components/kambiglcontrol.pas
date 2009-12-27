@@ -260,6 +260,7 @@ type
     procedure MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer); override;
     procedure DoDraw; override;
     procedure Resize; override;
+    procedure DoGLContextInit; override;
     procedure DoGLContextClose; override;
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -411,7 +412,7 @@ begin
     FContextInitialized := true;
     DoGLContextInit;
 
-    { Resize; }
+    Resize;
     { TODO: why it's not enough to call Resize; here?
       Long time ago, observed on Windows, later also on GTK 2.
       Reproducible e.g. with simple_3d_navigator Lazarus demo. }
@@ -688,20 +689,26 @@ begin
         if C.OnVisibleChange = nil then
           C.OnVisibleChange := @Container.ControlsVisibleChange;
 
+        { Register Container to be notified of control destruction. }
+        C.FreeNotification(Container);
+
+        C.Container := Container;
+
         { Call initial ContainerResize for control.
           If Container OpenGL context is not yet initialized, defer it to
           the Init time, then our initial EventResize will be called
           that will do ContainerResize on every control. }
         if Container.ContextInitialized then
+        begin
+          C.GLContextInit;
           C.ContainerResize(Container.Width, Container.Height);
-
-        { Register Container to be notified of control destruction. }
-        C.FreeNotification(Container);
-
-        C.Container := Container;
+        end;
       end;
     lnExtracted, lnDeleted:
       begin
+        if Container.ContextInitialized then
+          C.GLContextClose;
+
         if C.OnVisibleChange = @Container.ControlsVisibleChange then
           C.OnVisibleChange := nil;
 
@@ -1003,11 +1010,26 @@ begin
   end;
 end;
 
+procedure TKamOpenGLControl.DoGLContextInit;
+var
+  I: Integer;
+begin
+  inherited;
+
+  { call GLContextInit on controls after inherited (OnGLContextInit). }
+  if UseControls then
+  begin
+    for I := 0 to Controls.Count - 1 do
+      Controls[I].GLContextInit;
+  end;
+end;
+
+
 procedure TKamOpenGLControl.DoGLContextClose;
 var
   I: Integer;
 begin
-  { call GLContextClose on controls before inherited (OnClose).
+  { call GLContextClose on controls before inherited (OnGLContextClose).
     This may be called from Close, which may be called from TGLWindow destructor,
     so prepare for Controls being possibly nil now. }
   if UseControls and (Controls <> nil) then

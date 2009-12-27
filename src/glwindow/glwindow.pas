@@ -4218,20 +4218,26 @@ begin
         if C.OnVisibleChange = nil then
           C.OnVisibleChange := @Container.ControlsVisibleChange;
 
-        { Call initial ContainerResize for control.
-          If window OpenGL context is not yet initialized, defer it to
-          the Init time, then our initial EventResize will be called
-          that will do ContainerResize on every control. }
-        if not Container.Closed then
-          C.ContainerResize(Container.Width, Container.Height);
-
         { Register Container to be notified of control destruction. }
         C.FreeNotification(Container);
 
         C.Container := Container;
+
+        if not Container.Closed then
+        begin
+          C.GLContextInit;
+          { Call initial ContainerResize for control.
+            If window OpenGL context is not yet initialized, defer it to
+            the Init time, then our initial EventResize will be called
+            that will do ContainerResize on every control. }
+          C.ContainerResize(Container.Width, Container.Height);
+        end;
       end;
     lnExtracted, lnDeleted:
       begin
+        if not Container.Closed then
+          C.GLContextClose;
+
         if C.OnVisibleChange = @Container.ControlsVisibleChange then
           C.OnVisibleChange := nil;
 
@@ -4383,8 +4389,17 @@ begin
 end;
 
 procedure TGLUIWindow.EventInit;
+var
+  I: Integer;
 begin
- inherited;
+  inherited;
+
+  { call GLContextInit on controls after inherited (OnInit). }
+  if UseControls then
+  begin
+    for I := 0 to Controls.Count - 1 do
+      Controls[I].GLContextInit;
+  end;
 end;
 
 function TGLUIWindow.AllowSuspendForInput: boolean;
