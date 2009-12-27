@@ -37,14 +37,14 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="5">
+    <Units Count="8">
       <Unit0>
         <Filename Value="vrml_with_2d_controls.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="vrml_with_2d_controls"/>
         <CursorPos X="39" Y="10"/>
         <TopLine Value="1"/>
-        <UsageCount Value="26"/>
+        <UsageCount Value="30"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
@@ -52,17 +52,17 @@
         <ComponentName Value="Form1"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MainF"/>
-        <CursorPos X="13" Y="9"/>
-        <TopLine Value="9"/>
+        <CursorPos X="3" Y="108"/>
+        <TopLine Value="84"/>
         <EditorIndex Value="0"/>
-        <UsageCount Value="26"/>
+        <UsageCount Value="30"/>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="..\..\..\src\components\kambivrmlbrowser.pas"/>
         <UnitName Value="KambiVRMLBrowser"/>
-        <CursorPos X="1" Y="377"/>
-        <TopLine Value="349"/>
+        <CursorPos X="21" Y="21"/>
+        <TopLine Value="1"/>
         <UsageCount Value="10"/>
       </Unit2>
       <Unit3>
@@ -79,98 +79,153 @@
         <TopLine Value="2075"/>
         <UsageCount Value="10"/>
       </Unit4>
+      <Unit5>
+        <Filename Value="..\..\..\src\components\kambiglcontrol.pas"/>
+        <UnitName Value="KambiGLControl"/>
+        <CursorPos X="28" Y="1013"/>
+        <TopLine Value="996"/>
+        <UsageCount Value="10"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="..\..\..\src\ui\uicontrols.pas"/>
+        <UnitName Value="UIControls"/>
+        <CursorPos X="59" Y="147"/>
+        <TopLine Value="119"/>
+        <UsageCount Value="10"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="..\..\..\src\opengl\openglfonts.pas"/>
+        <UnitName Value="OpenGLFonts"/>
+        <CursorPos X="1" Y="230"/>
+        <TopLine Value="213"/>
+        <UsageCount Value="10"/>
+      </Unit7>
     </Units>
-    <JumpHistory Count="21" HistoryIndex="20">
+    <JumpHistory Count="27" HistoryIndex="26">
       <Position1>
         <Filename Value="mainf.pas"/>
-        <Caret Line="19" Column="8" TopLine="1"/>
+        <Caret Line="79" Column="30" TopLine="56"/>
       </Position1>
       <Position2>
         <Filename Value="mainf.pas"/>
-        <Caret Line="29" Column="16" TopLine="4"/>
+        <Caret Line="82" Column="30" TopLine="56"/>
       </Position2>
       <Position3>
         <Filename Value="mainf.pas"/>
-        <Caret Line="36" Column="92" TopLine="6"/>
+        <Caret Line="84" Column="25" TopLine="56"/>
       </Position3>
       <Position4>
         <Filename Value="mainf.pas"/>
-        <Caret Line="18" Column="5" TopLine="5"/>
+        <Caret Line="98" Column="66" TopLine="81"/>
       </Position4>
       <Position5>
         <Filename Value="mainf.pas"/>
-        <Caret Line="47" Column="29" TopLine="15"/>
+        <Caret Line="101" Column="30" TopLine="81"/>
       </Position5>
       <Position6>
         <Filename Value="mainf.pas"/>
-        <Caret Line="30" Column="45" TopLine="23"/>
+        <Caret Line="108" Column="22" TopLine="81"/>
       </Position6>
       <Position7>
         <Filename Value="mainf.pas"/>
-        <Caret Line="18" Column="54" TopLine="17"/>
+        <Caret Line="9" Column="14" TopLine="1"/>
       </Position7>
       <Position8>
         <Filename Value="mainf.pas"/>
-        <Caret Line="24" Column="74" TopLine="16"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position8>
       <Position9>
         <Filename Value="mainf.pas"/>
-        <Caret Line="53" Column="9" TopLine="20"/>
+        <Caret Line="46" Column="1" TopLine="31"/>
       </Position9>
       <Position10>
         <Filename Value="mainf.pas"/>
-        <Caret Line="71" Column="16" TopLine="34"/>
+        <Caret Line="129" Column="20" TopLine="111"/>
       </Position10>
       <Position11>
         <Filename Value="mainf.pas"/>
-        <Caret Line="59" Column="18" TopLine="50"/>
+        <Caret Line="40" Column="44" TopLine="37"/>
       </Position11>
       <Position12>
         <Filename Value="mainf.pas"/>
-        <Caret Line="9" Column="36" TopLine="1"/>
+        <Caret Line="81" Column="47" TopLine="67"/>
       </Position12>
       <Position13>
         <Filename Value="mainf.pas"/>
-        <Caret Line="61" Column="20" TopLine="38"/>
+        <Caret Line="39" Column="3" TopLine="39"/>
       </Position13>
       <Position14>
         <Filename Value="mainf.pas"/>
-        <Caret Line="9" Column="16" TopLine="4"/>
+        <Caret Line="9" Column="44" TopLine="6"/>
       </Position14>
       <Position15>
         <Filename Value="mainf.pas"/>
-        <Caret Line="48" Column="49" TopLine="37"/>
+        <Caret Line="48" Column="73" TopLine="32"/>
       </Position15>
       <Position16>
         <Filename Value="mainf.pas"/>
-        <Caret Line="20" Column="46" TopLine="19"/>
+        <Caret Line="34" Column="58" TopLine="31"/>
       </Position16>
       <Position17>
         <Filename Value="mainf.pas"/>
-        <Caret Line="18" Column="5" TopLine="17"/>
+        <Caret Line="1" Column="2" TopLine="1"/>
       </Position17>
       <Position18>
         <Filename Value="mainf.pas"/>
-        <Caret Line="93" Column="17" TopLine="54"/>
+        <Caret Line="96" Column="11" TopLine="79"/>
       </Position18>
       <Position19>
         <Filename Value="mainf.pas"/>
-        <Caret Line="21" Column="46" TopLine="20"/>
+        <Caret Line="58" Column="1" TopLine="58"/>
       </Position19>
       <Position20>
         <Filename Value="mainf.pas"/>
-        <Caret Line="109" Column="1" TopLine="75"/>
+        <Caret Line="51" Column="29" TopLine="29"/>
       </Position20>
       <Position21>
         <Filename Value="mainf.pas"/>
-        <Caret Line="9" Column="13" TopLine="1"/>
+        <Caret Line="8" Column="31" TopLine="1"/>
       </Position21>
+      <Position22>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="9" Column="31" TopLine="1"/>
+      </Position22>
+      <Position23>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="45" Column="36" TopLine="33"/>
+      </Position23>
+      <Position24>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="74" Column="9" TopLine="57"/>
+      </Position24>
+      <Position25>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="87" Column="1" TopLine="83"/>
+      </Position25>
+      <Position26>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="139" Column="3" TopLine="105"/>
+      </Position26>
+      <Position27>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="93" Column="13" TopLine="67"/>
+      </Position27>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="8"/>
     <PathDelim Value="\"/>
+    <Parsing>
+      <SyntaxOptions>
+        <IncludeAssertionCode Value="True"/>
+        <CStyleMacros Value="True"/>
+        <UseAnsiStrings Value="True"/>
+      </SyntaxOptions>
+    </Parsing>
     <Linking>
+      <Debugging>
+        <UseHeaptrc Value="True"/>
+      </Debugging>
       <Options>
         <Win32>
           <GraphicApplication Value="True"/>
