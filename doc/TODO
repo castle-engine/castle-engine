@@ -15,8 +15,6 @@ view3dscene 3.5 blockers:
 Better Lazarus integration:
 (Some before view3dscene 3.5, some probably for later.)
 
-- move laz vrml browser, audio demo?, lazarus 2d controls to special examples/lazarus/ subdir.
-
 - Make TKamOpenGLControl.Controls list settable from the IDE,
   to allow visually adding new TUIControls there.
 
