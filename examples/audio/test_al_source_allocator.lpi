@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
 <CONFIG>
   <ProjectOptions>
-    <PathDelim Value="/"/>
-    <Version Value="6"/>
+    <Version Value="7"/>
     <General>
       <Flags>
         <AlwaysBuild Value="False"/>
+        <LRSInOutputDirectory Value="False"/>
       </Flags>
       <MainUnit Value="0"/>
-      <IconPath Value="./"/>
       <TargetFileExt Value=""/>
+      <ActiveEditorIndexAtStart Value="0"/>
     </General>
     <PublishOptions>
       <Version Value="2"/>
@@ -38,17 +38,20 @@
         <UnitName Value="test_al_source_allocator"/>
         <CursorPos X="1" Y="10"/>
         <TopLine Value="1"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="25"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
-        <ComponentName Value="Main"/>
         <IsPartOfProject Value="True"/>
-        <ResourceFilename Value="mainf.lrs"/>
+        <ComponentName Value="Main"/>
+        <ResourceBaseClass Value="Form"/>
         <UnitName Value="mainf"/>
         <CursorPos X="7" Y="117"/>
-        <TopLine Value="93"/>
-        <UsageCount Value="24"/>
+        <TopLine Value="94"/>
+        <EditorIndex Value="0"/>
+        <UsageCount Value="25"/>
+        <Loaded Value="True"/>
+        <SyntaxHighlighter Value="Delphi"/>
       </Unit1>
       <Unit2>
         <Filename Value="../alsourceallocator.pas"/>
