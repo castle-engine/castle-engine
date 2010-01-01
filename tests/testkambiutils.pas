@@ -35,6 +35,7 @@ type
     procedure TestStrings;
     procedure TestOthers;
     procedure TestIntSqrt;
+    procedure TestDivMod;
   end;
 
 implementation
@@ -282,6 +283,29 @@ begin
   for I := 10000   to 10100 do Test(I);
   for I := 100000  to 100100 do Test(I);
   for I := 1000000 to 1000100 do Test(I);
+end;
+
+procedure TTestKambiUtils.TestDivMod;
+
+  procedure OneTest(const Divident: Integer; const Divisor: Word;
+    const CorrectDivResult, CorrectModResult: SmallInt);
+  var
+    DivResult: SmallInt;
+    ModResult: SmallInt;
+  begin
+    KamDivMod(Divident, Divisor, DivResult, ModResult);
+    Assert(DivResult = CorrectDivResult);
+    Assert(ModResult = CorrectModResult);
+
+    DivResult := Divident div Divisor;
+    ModResult := Divident mod Divisor;
+    Assert(DivResult = CorrectDivResult);
+    Assert(ModResult = CorrectModResult);
+  end;
+
+begin
+  OneTest(-39, 20, -1, -19);
+  OneTest(-9, 5, -1, -4);
 end;
 
 initialization

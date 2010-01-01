@@ -365,7 +365,7 @@ function SmallFactorial(n: Integer): Int64;
 
   This fixes lack of DivMod with negative Remainder (for FPC at least
   older than 2.2.4, see fpc-devel thread "Math.DivMod results should be signed"
-  on 2006-03-21).
+  on 2006-03-21, http://www.mail-archive.com/fpc-devel@lists.freepascal.org/msg04565.html).
 
   And workarounds faulty DivMod behavior with FPC 2.4.0,
   see http://bugs.freepascal.org/view.php?id=15453 }
