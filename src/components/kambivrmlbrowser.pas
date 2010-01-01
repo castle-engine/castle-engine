@@ -365,16 +365,24 @@ end;
 
 procedure TKamVRMLBrowser.MouseDownEvent(Button: Controls.TMouseButton;
   Shift:TShiftState; X,Y:Integer);
+var
+  MyButton: KeysMouse.TMouseButton;
 begin
   inherited;
-  Scene.MouseDown(MouseX, MouseY, Button, MousePressed);
+
+  if LMouseButtonToMyMouseButton(Button, MyButton) then
+    Scene.MouseDown(MouseX, MouseY, MyButton, MousePressed);
 end;
 
 procedure TKamVRMLBrowser.MouseUpEvent(Button: Controls.TMouseButton;
   Shift:TShiftState; X,Y:Integer);
+var
+  MyButton: KeysMouse.TMouseButton;
 begin
   inherited;
-  Scene.MouseUp(MouseX, MouseY, Button, MousePressed);
+
+  if LMouseButtonToMyMouseButton(Button, MyButton) then
+    Scene.MouseUp(MouseX, MouseY, MyButton, MousePressed);
 end;
 
 procedure TKamVRMLBrowser.UpdateCursor(Sender: TObject);
@@ -414,7 +422,7 @@ begin
   LKeyToMyKey(Key, Shift, MyKey, MyCharKey);
 
   if (MyKey <> K_None) or (MyCharKey <> #0) then
-    Scene.KeyDown(MyKey, MyCharKey);
+    Scene.KeyDown(MyKey, MyCharKey, Pressed);
 end;
 
 procedure TKamVRMLBrowser.KeyUpEvent(var Key: Word; Shift: TShiftState);
@@ -427,7 +435,7 @@ begin
   LKeyToMyKey(Key, Shift, MyKey, MyCharKey);
 
   if (MyKey <> K_None) or (MyCharKey <> #0) then
-    Scene.KeyUp(Key, MyCharKey);
+    Scene.KeyUp(Key, MyCharKey, Pressed);
 end;
 
 function TKamVRMLBrowser.MoveAllowed(ANavigator: TWalkNavigator;
