@@ -516,7 +516,7 @@ function CombinePaths(BasePath, RelPath: string): string;
 
 implementation
 
-uses KambiStringUtils, KambiDynLib;
+uses KambiStringUtils, KambiDynLib, KambiLog;
 
 var
   { inicjowane w initialization i pozniej stale.
@@ -711,15 +711,34 @@ begin
    {$ifdef UNIX}  UserConfigPath_Other('') + '.' + ProposedFileName {$endif};
 end;
 
+var
+  ProgramDataPathIsCache: boolean = false;
+  ProgramDataPathCache: string;
+
 function ProgramDataPath: string;
 begin
- Result := ProgramDataPath_Other(
-   {$ifdef UNIX}  ProgramBaseName {$endif}
-   {$ifdef MSWINDOWS} '' {$endif},
-   {$ifdef MSWINDOWS} ExtractFilePath(ExeName) {$endif}
-   { Avoid using ExeName under UNIXes }
-   {$ifdef UNIX} '' {$endif}
-   );
+  { Cache results of ProgramDataPath. This has two reasons:
+    1. ProgramDataPath_Other on Unix makes three DirectoryExists calls,
+       so it's not too fast,
+    2. the main reason is that it would be strange if ProgramDataPath results
+       suddenly changed in the middle of the program (e.g. because user just
+       made appropriate symlink or such). }
+
+  if not ProgramDataPathIsCache then
+  begin
+    ProgramDataPathCache := ProgramDataPath_Other(
+      {$ifdef UNIX}  ProgramBaseName {$endif}
+      {$ifdef MSWINDOWS} '' {$endif},
+      {$ifdef MSWINDOWS} ExtractFilePath(ExeName) {$endif}
+      { Avoid using ExeName under UNIXes }
+      {$ifdef UNIX} '' {$endif}
+      );
+    if Log then
+      WritelnLog('Path', Format('Program data path detected as "%s"', [ProgramDataPathCache]));
+    ProgramDataPathIsCache := true;
+  end;
+
+  Result := ProgramDataPathCache;
 end;
 
 function ProgramDataPath_Other(
