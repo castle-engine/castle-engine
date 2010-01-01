@@ -320,15 +320,15 @@ end;
 procedure TGLWindowVRMLBrowser.EventMouseDown(Btn: TMouseButton);
 begin
   inherited;
-  if Btn = mbLeft then
-    Scene.PointingDeviceActive := true;
+  { TODO: this should be done automatically by adding Scene to Controls. }
+  Scene.MouseDown(MouseX, MouseY, Btn, MousePressed);
 end;
 
 procedure TGLWindowVRMLBrowser.EventMouseUp(Btn: TMouseButton);
 begin
   inherited;
-  if Btn = mbLeft then
-    Scene.PointingDeviceActive := false;
+  { TODO: this should be done automatically by adding Scene to Controls. }
+  Scene.MouseUp(MouseX, MouseY, Btn, MousePressed);
 end;
 
 procedure TGLWindowVRMLBrowser.UpdateCursor;
@@ -351,36 +351,29 @@ begin
 end;
 
 procedure TGLWindowVRMLBrowser.EventMouseMove(NewX, NewY: Integer);
-var
-  Ray0, RayVector: TVector3Single;
-  OverPoint: TVector3Single;
-  Item: PVRMLTriangle;
 begin
   inherited;
 
-  if (Scene.OctreeCollisions <> nil) then
-  begin
-    Navigator.Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, Ray0, RayVector);
+  { TODO: this should be done automatically by adding Scene to Controls.
+    How / from where to call UpdateCursor then?
+    How to pass Navigator to it?
+    How to pass AngleOfViewX, AngleOfViewY? }
+  Scene.MouseMove(Navigator, AngleOfViewX, AngleOfViewY,
+    MouseX, MouseY, NewX, NewY, MousePressed, Pressed);
 
-    Item := Scene.OctreeCollisions.RayCollision(
-      OverPoint, Ray0, RayVector, true, nil, false, nil);
-
-    Scene.PointingDeviceMove(OverPoint, Item);
-
-    UpdateCursor;
-  end;
+  UpdateCursor;
 end;
 
 procedure TGLWindowVRMLBrowser.EventKeyDown(Key: TKey; C: char);
 begin
   inherited;
-  Scene.KeyDown(Key, C);
+  Scene.KeyDown(Key, C, Pressed);
 end;
 
 procedure TGLWindowVRMLBrowser.EventKeyUp(Key: TKey; C: char);
 begin
   inherited;
-  Scene.KeyUp(Key, C);
+  Scene.KeyUp(Key, C, Pressed);
 end;
 
 function TGLWindowVRMLBrowser.MoveAllowed(ANavigator: TWalkNavigator;

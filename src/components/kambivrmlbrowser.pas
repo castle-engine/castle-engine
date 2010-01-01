@@ -362,25 +362,18 @@ begin
     Width, Height, AngleOfViewX, AngleOfViewY, ShadowVolumesPossible);
 end;
 
-const
-  { Cannot access Controls.mbLeft within TKamVRMLBrowser, as we have there
-    method named "Controls". }
-  ContolsMBLeft = Controls.mbLeft;
-
 procedure TKamVRMLBrowser.MouseDownEvent(Button: Controls.TMouseButton;
   Shift:TShiftState; X,Y:Integer);
 begin
   inherited;
-  if Button = ContolsMBLeft then
-    Scene.PointingDeviceActive := true;
+  Scene.MouseDown(MouseX, MouseY, Button, MousePressed);
 end;
 
 procedure TKamVRMLBrowser.MouseUpEvent(Button: Controls.TMouseButton;
   Shift:TShiftState; X,Y:Integer);
 begin
   inherited;
-  if Button = ContolsMBLeft then
-    Scene.PointingDeviceActive := false;
+  Scene.MouseUp(MouseX, MouseY, Button, MousePressed);
 end;
 
 procedure TKamVRMLBrowser.UpdateCursor;
@@ -403,29 +396,13 @@ begin
 end;
 
 procedure TKamVRMLBrowser.MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer);
-var
-  Ray0, RayVector: TVector3Single;
-  OverPoint: TVector3Single;
-  Item: PVRMLTriangle;
 begin
   inherited;
 
-  if Scene.OctreeCollisions <> nil then
-  begin
-    if IgnoreAreas.FindArea(NewX, NewY) = -1 then
-    begin
-      Navigator.Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, Ray0, RayVector);
+  Scene.MouseMove(Navigator, AngleOfViewX, AngleOfViewY,
+    MouseX, MouseY, NewX, NewY, MousePressed, Pressed);
 
-      Item := Scene.OctreeCollisions.RayCollision(
-        OverPoint, Ray0, RayVector, true, nil, false, nil);
-
-      Scene.PointingDeviceMove(OverPoint, Item);
-    end else
-    begin
-      Scene.PointingDeviceMove(ZeroVector3Single, nil);
-    end;
-    UpdateCursor;
-  end;
+  UpdateCursor;
 end;
 
 procedure TKamVRMLBrowser.KeyDownEvent(var Key: Word; Shift: TShiftState);

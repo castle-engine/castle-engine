@@ -2523,6 +2523,7 @@ type
 
     procedure EventInit; override;
     procedure EventKeyDown(Key: TKey; Ch: char); override;
+    procedure EventKeyUp(Key: TKey; Ch: char); override;
     procedure EventIdle; override;
     procedure EventMouseDown(Button: TMouseButton); override;
     procedure EventMouseUp(Button: TMouseButton); override;
@@ -4346,6 +4347,24 @@ begin
       C := Controls.Items[I];
       if C.PositionInside(MouseX, MouseY) then
         if C.KeyDown(Key, Ch, Pressed) then Exit;
+    end;
+  end;
+
+  inherited;
+end;
+
+procedure TGLUIWindow.EventKeyUp(Key: TKey; Ch: char);
+var
+  C: TUIControl;
+  I: Integer;
+begin
+  if UseControls then
+  begin
+    for I := 0 to Controls.Count - 1 do
+    begin
+      C := Controls.Items[I];
+      if C.PositionInside(MouseX, MouseY) then
+        if C.KeyUp(Key, Ch, Pressed) then Exit;
     end;
   end;
 

@@ -84,7 +84,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    (*Handle key press event.
+    (*Handle key press / release event.
       Returns @true if the key was somehow handled.
 
       In this class this always returns @false, when implementing
@@ -99,8 +99,13 @@ type
 #)
 
       @param(Pressed You can pass here information indicating
-        which keys are pressed. You can pass @nil if you don't know this.) *)
+        which keys are currently pressed.
+        You can pass @nil if you don't know this.)
+
+      @groupBegin *)
     function KeyDown(Key: TKey; C: char; Pressed: TKeysPressed): boolean; virtual;
+    function KeyUp(Key: TKey; C: char; Pressed: TKeysPressed): boolean; virtual;
+    { @groupEnd }
 
     { Called when user moves the mouse.
 
@@ -290,6 +295,11 @@ begin
 end;
 
 function TUIControl.KeyDown(Key: TKey; C: char; Pressed: TKeysPressed): boolean;
+begin
+  Result := false;
+end;
+
+function TUIControl.KeyUp(Key: TKey; C: char; Pressed: TKeysPressed): boolean;
 begin
   Result := false;
 end;

@@ -825,25 +825,15 @@ end;
 
 procedure MouseDown(Glwin: TGLWindow; btn: TMouseButton);
 begin
-  { In Examiner mode, mouse clicks start dragging, so don't do
-    anything here (not even a warning about SOnlyInWalker,
-    since it would only interfere with navigation). }
-
-  if (Glw.Navigator is TWalkNavigator) and (btn = mbLeft) then
-    Scene.PointingDeviceActive := true;
+  Scene.MouseDown(Glwin.MouseX, Glwin.MouseY, Btn, Glwin.MousePressed);
 end;
 
 procedure MouseUp(Glwin: TGLWindow; btn: TMouseButton);
 begin
-  if (Glw.Navigator is TWalkNavigator) and (btn = mbLeft) then
-    Scene.PointingDeviceActive := false;
+  Scene.MouseUp(Glwin.MouseX, Glwin.MouseY, Btn, Glwin.MousePressed);
 end;
 
 procedure MouseMove(Glwin: TGLWindow; NewX, NewY: Integer);
-var
-  Ray0, RayVector: TVector3Single;
-  OverPoint: TVector3Single;
-  Item: PVRMLTriangle;
 
   function SensorsCount: Cardinal;
   begin
@@ -857,34 +847,27 @@ var
 var
   NewSensorsCount: Cardinal;
 begin
-  if (Glw.Navigator is TWalkNavigator) and
-     (Scene.OctreeCollisions <> nil) then
-  begin
-    Glw.Navigator.Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, Ray0, RayVector);
+  Scene.MouseMove(Glw.Navigator,
+    AngleOfViewX, AngleOfViewY,
+    Glwin.MouseX, Glwin.MouseY, NewX, NewY, Glwin.MousePressed, Glw.Pressed);
 
-    Item := Scene.OctreeCollisions.RayCollision(
-      OverPoint, Ray0, RayVector, true, nil, false, nil);
+  NewSensorsCount := SensorsCount;
 
-    Scene.PointingDeviceMove(OverPoint, Item);
-
-    NewSensorsCount := SensorsCount;
-
-    { I want to keep assertion that Glwin.CursorNonMouseLook = gcHand when
-      we're over or keeping active some pointing-device sensors. }
-    if NewSensorsCount <> 0 then
-      Glw.CursorNonMouseLook := gcHand else
-      Glw.CursorNonMouseLook := gcDefault;
-  end;
+  { I want to keep assertion that Glwin.CursorNonMouseLook = gcHand when
+    we're over or keeping active some pointing-device sensors. }
+  if NewSensorsCount <> 0 then
+    Glw.CursorNonMouseLook := gcHand else
+    Glw.CursorNonMouseLook := gcDefault;
 end;
 
 procedure KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
 begin
-  Scene.KeyDown(Key, C);
+  Scene.KeyDown(Key, C, Glwin.Pressed);
 end;
 
 procedure KeyUp(Glwin: TGLWindow; Key: TKey; C: char);
 begin
-  Scene.KeyUp(Key, C);
+  Scene.KeyUp(Key, C, Glwin.Pressed);
 end;
 
 { menu ----------------------------------------------------------------------- }

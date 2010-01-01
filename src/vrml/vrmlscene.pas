@@ -22,7 +22,7 @@ uses
   VRMLFields, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLShape, VRMLTriangleOctree, ProgressUnit, KambiOctree, VRMLShapeOctree,
   KeysMouse, VRMLTime, Navigation, VRMLTriangle, Contnrs, VRMLHeadLight,
-  RenderStateUnit;
+  RenderStateUnit, UIControls;
 
 {$define read_interface}
 
@@ -519,7 +519,7 @@ type
 
     Also, VRML2ActiveLights are magically updated for all states in
     @link(Shapes) tree. This is crucial for lights rendering in VRML >= 2.0. }
-  TVRMLScene = class
+  TVRMLScene = class(TUIControl)
   private
     FOwnsRootNode: boolean;
     FShapes: TVRMLShapeTree;
@@ -1477,8 +1477,8 @@ type
       detected to still be part of our graph. }
     procedure UnregisterProcessEvents(Node: TVRMLNode);
 
-    procedure KeyDown(Key: TKey; C: char);
-    procedure KeyUp(Key: TKey; C: char);
+    function KeyDown(Key: TKey; C: char; Pressed: TKeysPressed): boolean; override;
+    function KeyUp(Key: TKey; C: char; Pressed: TKeysPressed): boolean; override;
 
     { Call this to when pointing-device moves.
       This may generate the continously-generated events like
@@ -1537,6 +1537,28 @@ type
     property PointingDeviceActive: boolean
       read FPointingDeviceActive
       write SetPointingDeviceActive default false;
+
+    { Call mouse down / up / move to have PointiDeviceXxx stuff automatically
+      handled.
+
+      To make mouse move actually working (so that VRML touch sensors work Ok),
+      make sure you have non-nil OctreeCollisions (e.g. include
+      ssDynamicCollisions in @link(Spatial)).
+
+      Always pass a Navigator instance that is inside some container,
+      i.e. on TGLUIWindow.Controls or TKamOpenGLControl.Controls list.
+
+      @groupBegin }
+    function MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
+      const MousePressed: TMouseButtons): boolean; override;
+    function MouseUp(const MouseX, MouseY: Integer; Button: TMouseButton;
+      const MousePressed: TMouseButtons): boolean; override;
+    function MouseMove(Navigator: TNavigator;
+      const AngleOfViewX, AngleOfViewY: Single;
+      const OldX, OldY, NewX, NewY: Integer;
+      const MousePressed: TMouseButtons; Pressed: TKeysPressed): boolean; {TODO:override;}
+      reintroduce;
+    { @groupEnd }
 
     { These change world time, see WorldTime.
       It is crucial that you call this continously to have some VRML
@@ -2037,7 +2059,7 @@ end;
 
 constructor TVRMLScene.Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
 begin
- inherited Create;
+ inherited Create(nil); { TODO: make TVRMLScene constructor like TComponent, use separate Load() mehod afterwards. }
  FRootNode := ARootNode;
  FOwnsRootNode := AOwnsRootNode;
 
@@ -4704,12 +4726,15 @@ begin
   end;
 end;
 
-procedure TVRMLScene.KeyDown(Key: TKey; C: char);
+function TVRMLScene.KeyDown(Key: TKey; C: char; Pressed: TKeysPressed): boolean;
 var
   I: Integer;
   KeySensor: TNodeKeySensor;
   ActionKey: Integer;
 begin
+  Result := inherited;
+  if Result then Exit;
+
   if ProcessEvents then
   begin
     Inc(FWorldTime.PlusTicks);
@@ -4720,6 +4745,7 @@ begin
         KeySensor := KeySensorNodes.Items[I] as TNodeKeySensor;
         if KeySensor.FdEnabled.Value then
         begin
+          Result := true;
           KeySensor.EventIsActive.Send(true, WorldTime);
           if KeyToActionKey(Key, ActionKey) then
             KeySensor.EventActionKeyPress.Send(ActionKey, WorldTime);
@@ -4736,12 +4762,15 @@ begin
   end;
 end;
 
-procedure TVRMLScene.KeyUp(Key: TKey; C: char);
+function TVRMLScene.KeyUp(Key: TKey; C: char; Pressed: TKeysPressed): boolean;
 var
   I: Integer;
   KeySensor: TNodeKeySensor;
   ActionKey: Integer;
 begin
+  Result := inherited;
+  if Result then Exit;
+
   if ProcessEvents then
   begin
     Inc(FWorldTime.PlusTicks);
@@ -4752,6 +4781,7 @@ begin
         KeySensor := KeySensorNodes.Items[I] as TNodeKeySensor;
         if KeySensor.FdEnabled.Value then
         begin
+          Result := true;
           KeySensor.EventIsActive.Send(false, WorldTime);
           if KeyToActionKey(Key, ActionKey) then
             KeySensor.EventActionKeyRelease.Send(ActionKey, WorldTime);
@@ -5024,6 +5054,58 @@ begin
   if PointingDeviceOverItem <> nil then
     Result := PointingDeviceOverItem^.State.PointingDeviceSensors else
     Result := nil;
+end;
+
+function TVRMLScene.MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
+  const MousePressed: TMouseButtons): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if Button = mbLeft then
+  begin
+    PointingDeviceActive := true;
+    Result := true;
+  end;
+end;
+
+function TVRMLScene.MouseUp(const MouseX, MouseY: Integer; Button: TMouseButton;
+  const MousePressed: TMouseButtons): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if Button = mbLeft then
+  begin
+    PointingDeviceActive := false;
+    Result := true;
+  end;
+end;
+
+function TVRMLScene.MouseMove(Navigator: TNavigator;
+  const AngleOfViewX, AngleOfViewY: Single;
+  const OldX, OldY, NewX, NewY: Integer;
+  const MousePressed: TMouseButtons; Pressed: TKeysPressed): boolean;
+var
+  Ray0, RayVector: TVector3Single;
+  OverPoint: TVector3Single;
+  Item: PVRMLTriangle;
+begin
+{TODO:
+  Result := inherited;} Result := false;
+  if Result then Exit;
+
+  if OctreeCollisions <> nil then
+  begin
+    Navigator.Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, Ray0, RayVector);
+
+    Item := OctreeCollisions.RayCollision(
+      OverPoint, Ray0, RayVector, true, nil, false, nil);
+
+    PointingDeviceMove(OverPoint, Item);
+
+    Result := true;
+  end;
 end;
 
 { WorldTime stuff ------------------------------------------------------------ }

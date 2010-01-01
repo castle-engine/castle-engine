@@ -253,6 +253,7 @@ type
     procedure ControlsVisibleChange(Sender: TObject);
   protected
     procedure KeyDownEvent(var Key: Word; Shift: TShiftState); override;
+    procedure KeyUpEvent(var Key: Word; Shift: TShiftState); override;
     procedure MouseDownEvent(Button: Controls.TMouseButton;
       Shift:TShiftState; X,Y:Integer); override;
     procedure MouseUpEvent(Button: Controls.TMouseButton;
@@ -821,6 +822,32 @@ begin
       C := Controls.Items[I];
       if C.PositionInside(MouseX, MouseY) then
         if C.KeyDown(Key, Ch, Pressed) then
+        begin
+          Key := 0;
+          Exit;
+        end;
+    end;
+  end;
+
+  inherited;
+end;
+
+procedure TKamOpenGLControl.KeyUpEvent(var Key: Word; Shift: TShiftState);
+var
+  MyKey: TKey;
+  Ch: char;
+  C: TUIControl;
+  I: Integer;
+begin
+  LKeyToMyKey(Key, Shift, MyKey, Ch);
+
+  if (MyKey <> K_None) or (Ch <> #0) and UseControls then
+  begin
+    for I := 0 to Controls.Count - 1 do
+    begin
+      C := Controls.Items[I];
+      if C.PositionInside(MouseX, MouseY) then
+        if C.KeyUp(Key, Ch, Pressed) then
         begin
           Key := 0;
           Exit;
