@@ -85,7 +85,6 @@ type
   protected
     procedure DestroyHandle; override;
     procedure DoExit; override;
-    procedure Paint; override;
 
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyUp(var Key: Word; Shift: TShiftState); override;
@@ -149,6 +148,7 @@ type
 
     function MakeCurrent(SaveOldToStack: boolean = false): boolean; override;
     procedure Invalidate; override;
+    procedure Paint; override;
 
     procedure Idle; virtual;
 
