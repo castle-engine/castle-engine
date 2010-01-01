@@ -362,7 +362,13 @@ function ArcCot(x: Float): Float;
 function SmallFactorial(n: Integer): Int64;
 
 { Better DivMod version, in case Dividend may be < 0.
-  See fpc-devel thread "Math.DivMod results should be signed" on 2006-03-21. }
+
+  This fixes lack of DivMod with negative Remainder (for FPC at least
+  older than 2.2.4, see fpc-devel thread "Math.DivMod results should be signed"
+  on 2006-03-21).
+
+  And workarounds faulty DivMod behavior with FPC 2.4.0,
+  see http://bugs.freepascal.org/view.php?id=15453 }
 procedure KamDivMod(Dividend: Integer; Divisor: Word;
   out Result, Remainder: SmallInt);
 
@@ -704,11 +710,32 @@ end;
 
 procedure KamDivMod(Dividend: Integer; Divisor: Word;
   out Result, Remainder: SmallInt);
+{$ifdef VER2_4_0}
+{ Workaround http://bugs.freepascal.org/view.php?id=15453.
+  DivMod overload with SmallInt params already exist in Math unit,
+  so this is not our concern. }
+begin
+  if Dividend < 0 then
+  begin
+    { Use DivMod with >=0 dividend }
+    DivMod(-Dividend, Divisor, Result, Remainder);
+    { The documented behavior of Pascal's div/mod operators and DivMod
+      on negative dividends is to return Result closer to zero and
+      a negative Remainder. Which means that we can just negate both
+      Result and Remainder, and all it's Ok. }
+    Result := -Result;
+    Remainder := -Remainder;
+  end else
+    DivMod(Dividend, Divisor, Result, Remainder);
+{$else}
+{ Workaround lack of DivMod overload with signed (SmallInt) params.
+  This is needed only for old FPC (at least older than 2.2.4). }
 var
   UnsignedResult: Word absolute Result;
   UnsignedRemainder: Word absolute Remainder;
 begin
   DivMod(Dividend, Divisor, UnsignedResult, UnsignedRemainder);
+{$endif}
 end;
 
 procedure DivUnsignedMod(Dividend: Integer; Divisor: Word;
