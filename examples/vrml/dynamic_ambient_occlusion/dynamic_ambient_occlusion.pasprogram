@@ -649,17 +649,19 @@ end;
 
 type
   THelper = class
-    procedure VertexColor(var Color: TVector3Single;
+    class procedure VertexColor(var Color: TVector3Single;
       Shape: TVRMLShape; const VertexPosition: TVector3Single;
       VertexIndex: Integer);
 
-    procedure SceneGeometryChanged(Scene: TVRMLScene;
+    class procedure SceneGeometryChanged(Scene: TVRMLScene;
       const SomeLocalGeometryChanged: boolean);
 
-    procedure ScenePostRedisplay(Scene: TVRMLScene);
+    class procedure ScenePostRedisplay(Scene: TVRMLScene);
+
+    class procedure UpdateCursor(Sender: TObject);
   end;
 
-procedure THelper.VertexColor(var Color: TVector3Single;
+class procedure THelper.VertexColor(var Color: TVector3Single;
   Shape: TVRMLShape; const VertexPosition: TVector3Single;
   VertexIndex: Integer);
 var
@@ -690,7 +692,7 @@ begin
   end;
 end;
 
-procedure THelper.SceneGeometryChanged(Scene: TVRMLScene;
+class procedure THelper.SceneGeometryChanged(Scene: TVRMLScene;
   const SomeLocalGeometryChanged: boolean);
 var
   OldElementsTexSize, OldElementsCount: Cardinal;
@@ -708,7 +710,7 @@ begin
   end;
 end;
 
-procedure THelper.ScenePostRedisplay(Scene: TVRMLScene);
+class procedure THelper.ScenePostRedisplay(Scene: TVRMLScene);
 begin
   Glw.PostRedisplay;
 end;
@@ -833,7 +835,7 @@ begin
   Scene.MouseUp(Glwin.MouseX, Glwin.MouseY, Btn, Glwin.MousePressed);
 end;
 
-procedure MouseMove(Glwin: TGLWindow; NewX, NewY: Integer);
+class procedure THelper.UpdateCursor(Sender: TObject);
 
   function SensorsCount: Cardinal;
   begin
@@ -847,10 +849,6 @@ procedure MouseMove(Glwin: TGLWindow; NewX, NewY: Integer);
 var
   NewSensorsCount: Cardinal;
 begin
-  Scene.MouseMove(Glw.Navigator,
-    AngleOfViewX, AngleOfViewY,
-    Glwin.MouseX, Glwin.MouseY, NewX, NewY, Glwin.MousePressed, Glw.Pressed);
-
   NewSensorsCount := SensorsCount;
 
   { I want to keep assertion that Glwin.CursorNonMouseLook = gcHand when
@@ -858,6 +856,13 @@ begin
   if NewSensorsCount <> 0 then
     Glw.CursorNonMouseLook := gcHand else
     Glw.CursorNonMouseLook := gcDefault;
+end;
+
+procedure MouseMove(Glwin: TGLWindow; NewX, NewY: Integer);
+begin
+  Scene.MouseMove(Glw.Navigator,
+    AngleOfViewX, AngleOfViewY,
+    Glwin.MouseX, Glwin.MouseY, NewX, NewY, Glwin.MousePressed, Glw.Pressed);
 end;
 
 procedure KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
@@ -964,6 +969,7 @@ begin
     Scene.ResetWorldTimeAtLoad;
     Scene.OnPostRedisplay := @THelper(nil).ScenePostRedisplay;
     Scene.OnGeometryChanged := @THelper(nil).SceneGeometryChanged;
+    Scene.OnPointingDeviceSensorsChange := @THelper(nil).UpdateCursor;
     Scene.ProcessEvents := true;
 
     { init Glw.Navigator }

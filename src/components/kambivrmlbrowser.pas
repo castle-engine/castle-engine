@@ -102,7 +102,7 @@ type
     procedure GeometryChanged(Scene: TVRMLScene;
       const SomeLocalGeometryChanged: boolean);
 
-    procedure UpdateCursor;
+    procedure UpdateCursor(Sender: TObject);
   private
     FShadowVolumesPossible: boolean;
     procedure SetShadowVolumesPossible(const Value: boolean);
@@ -277,6 +277,7 @@ begin
   Scene.OnBoundViewpointVectorsChanged := @BoundViewpointVectorsChanged;
   Scene.ViewpointStack.OnBoundChanged := @BoundViewpointChanged;
   Scene.OnGeometryChanged := @GeometryChanged;
+  Scene.OnPointingDeviceSensorsChange := @UpdateCursor;
 
   InitSceneManager;
 
@@ -376,7 +377,7 @@ begin
   Scene.MouseUp(MouseX, MouseY, Button, MousePressed);
 end;
 
-procedure TKamVRMLBrowser.UpdateCursor;
+procedure TKamVRMLBrowser.UpdateCursor(Sender: TObject);
 
   function SensorsCount: Cardinal;
   begin
@@ -401,8 +402,6 @@ begin
 
   Scene.MouseMove(Navigator, AngleOfViewX, AngleOfViewY,
     MouseX, MouseY, NewX, NewY, MousePressed, Pressed);
-
-  UpdateCursor;
 end;
 
 procedure TKamVRMLBrowser.KeyDownEvent(var Key: Word; Shift: TShiftState);
@@ -508,8 +507,9 @@ procedure TKamVRMLBrowser.GeometryChanged(Scene: TVRMLScene;
   const SomeLocalGeometryChanged: boolean);
 begin
   { Scene.GeometryChanged possibly cleared pointing device info by
-    PointingDeviceClear. This means that cursor must be updated. }
-  UpdateCursor;
+    PointingDeviceClear. This means that cursor must be updated.
+    TODO: call this automatically by Scene? }
+  UpdateCursor(Scene);
 end;
 
 procedure TKamVRMLBrowser.SetShadowVolumesPossible(const Value: boolean);

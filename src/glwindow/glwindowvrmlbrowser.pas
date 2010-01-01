@@ -99,7 +99,7 @@ type
     procedure GeometryChanged(Scene: TVRMLScene;
       const SomeLocalGeometryChanged: boolean);
 
-    procedure UpdateCursor;
+    procedure UpdateCursor(Sender: TObject);
   private
     FShadowVolumesPossible: boolean;
     procedure SetShadowVolumesPossible(const Value: boolean);
@@ -234,6 +234,7 @@ begin
   Scene.OnBoundViewpointVectorsChanged := @BoundViewpointVectorsChanged;
   Scene.ViewpointStack.OnBoundChanged := @BoundViewpointChanged;
   Scene.OnGeometryChanged := @GeometryChanged;
+  Scene.OnPointingDeviceSensorsChange := @UpdateCursor;
 
   InitSceneManager;
 
@@ -331,7 +332,7 @@ begin
   Scene.MouseUp(MouseX, MouseY, Btn, MousePressed);
 end;
 
-procedure TGLWindowVRMLBrowser.UpdateCursor;
+procedure TGLWindowVRMLBrowser.UpdateCursor(Sender: TObject);
 
   function SensorsCount: Cardinal;
   begin
@@ -355,13 +356,10 @@ begin
   inherited;
 
   { TODO: this should be done automatically by adding Scene to Controls.
-    How / from where to call UpdateCursor then?
     How to pass Navigator to it?
     How to pass AngleOfViewX, AngleOfViewY? }
   Scene.MouseMove(Navigator, AngleOfViewX, AngleOfViewY,
     MouseX, MouseY, NewX, NewY, MousePressed, Pressed);
-
-  UpdateCursor;
 end;
 
 procedure TGLWindowVRMLBrowser.EventKeyDown(Key: TKey; C: char);
@@ -450,8 +448,9 @@ procedure TGLWindowVRMLBrowser.GeometryChanged(Scene: TVRMLScene;
   const SomeLocalGeometryChanged: boolean);
 begin
   { Scene.GeometryChanged possibly cleared pointing device info by
-    PointingDeviceClear. This means that cursor must be updated. }
-  UpdateCursor;
+    PointingDeviceClear. This means that cursor must be updated.
+    TODO: call this automatically by Scene? }
+  UpdateCursor(Scene);
 end;
 
 procedure TGLWindowVRMLBrowser.SetShadowVolumesPossible(const Value: boolean);

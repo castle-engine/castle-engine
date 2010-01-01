@@ -524,6 +524,7 @@ type
     FOwnsRootNode: boolean;
     FShapes: TVRMLShapeTree;
     FRootNode: TVRMLNode;
+    FOnPointingDeviceSensorsChange: TNotifyEvent;
 
     { This always holds pointers to all TVRMLShapeTreeLOD instances in Shapes
       tree. }
@@ -835,6 +836,12 @@ type
       (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight; virtual;
   protected
     GeneratedTextures: TDynGeneratedTextureArray;
+
+    { Called after PointingDeviceSensors list (possibly) changed,
+      or when PointingDeviceActiveSensor (possibly) changed.
+      In this class, DoPointingDeviceSensorsChange just calls
+      OnPointingDeviceSensorsChange. }
+    procedure DoPointingDeviceSensorsChange; virtual;
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
     constructor Create(const SceneFileName: string);
@@ -1537,6 +1544,13 @@ type
     property PointingDeviceActive: boolean
       read FPointingDeviceActive
       write SetPointingDeviceActive default false;
+
+    { Event called after PointingDeviceSensors list (possibly) changed,
+      or when PointingDeviceActiveSensor (possibly) changed.
+      @seeAlso DoPointingDeviceSensorsChange }
+    property OnPointingDeviceSensorsChange: TNotifyEvent
+      read FOnPointingDeviceSensorsChange
+      write FOnPointingDeviceSensorsChange;
 
     { Call mouse down / up / move to have PointiDeviceXxx stuff automatically
       handled.
@@ -4956,7 +4970,15 @@ begin
     finally
       EndChangesSchedule;
     end;
+
+    DoPointingDeviceSensorsChange;
   end;
+end;
+
+procedure TVRMLScene.DoPointingDeviceSensorsChange;
+begin
+  if Assigned(OnPointingDeviceSensorsChange) then
+    OnPointingDeviceSensorsChange(Self);
 end;
 
 procedure TVRMLScene.PointingDeviceClear;
