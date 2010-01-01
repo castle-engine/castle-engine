@@ -131,8 +131,9 @@ function GetTempPath: string;
   They may also be based on existence on some files/directories.
   E.g. ProgramDataPath under UNIXes checks
   "HomePath + '.' + ProgramBaseName + '.data/'" for existence,
-  and if it does not exist it assumes that program was installed
-  system-wide and returns "/usr/local/share/ + ProgramBaseName".
+  and if it does not exist it checks system-wide
+  "/usr/local/share/ + ProgramBaseName", and only as a last resort
+  assumes current directory.
 
   Because from time to time there arises a need to ask from one
   program about "what would be a result of Xxx function if it would
@@ -212,24 +213,46 @@ function UserConfigFile_FromProposed_Other(
   internal implementation notes that shouldn't be exposed...
   But in case of this function, they must be exposed, since
   user and programmer must know how this function works
-  (and usually it should be described in documentation of a program).
+  (and usually it should be described in documentation of a program).)
 
   Under Windows : returns ExtractFilePath(ExeName).
 
-  Under UNIXes: returns HomePath +'.' +ProgramBaseName+'.data/'
-  if such directory exists, else returns
-  '/usr/local/share/' +ProgramBaseName+ '/'.
+  Under UNIXes:  tries these three locations, in order:
 
-  Note that HomePath +'.' +ProgramBaseName +'.data/'
-  is checked first, this allows user to override system-wide
-  installation of my program with his own installation.
-  E.g. consider the situation when an old version of my program
-  is installed system-wide in /usr/local/share/my_program/,
-  but some user (with no access to root account) wants to
-  install a newer version of it for himself. Now he can do it,
-  because ~/.my_program.data/ is checked 1st, system-wide
-  /usr/local/share/my_program/ is used only if ~/.my_program.data/
-  does not exist. }
+  @orderedList(
+    @item(@code(HomePath +'.' +ProgramBaseName+'.data/').
+      If such directory exists, it is returned.
+
+      This is checked first, to allow local user to always override system-wide
+      installation of my program with his own installation.
+      E.g. consider the situation when an old version of my program
+      is installed system-wide in /usr/local/share/my_program/,
+      but some user (with no access to root account) wants to
+      install a newer version of it for himself. Now he can do it,
+      because ~/.my_program.data/ is checked 1st, system-wide
+      /usr/local/share/my_program/ is used only if ~/.my_program.data/
+      does not exist.)
+
+    @item(@code('/usr/local/share/' +ProgramBaseName+ '/').
+      If such directory exists, it is returned.
+
+      This is suitable for system-wide installations without package manager.)
+
+    @item(@code('/usr/local/' +ProgramBaseName+ '/').
+      If such directory exists, it is returned.
+
+      This is suitable for system-wide installations with package manager.)
+
+    @item(As a last resort, we return the current directory.
+      This always exists, and is an easy way for users to run my game
+      without making any symlinks.
+
+      Although conceptually this should be checked first (even before
+      @code(HomePath +'.' +ProgramBaseName+'.data/')), as it's
+      @italic("most local"), but we can't: current directory always
+      exists. To remedy this, we would need to know some filename inside
+      this directory that is required to exist. Maybe for later.)
+  ) }
 function ProgramDataPath: string;
 
 { Under Windows WindowsExeNamePath must be
@@ -707,9 +730,16 @@ begin
 {$endif}
 {$ifdef UNIX}
 begin
- Result := HomePath +'.' +UnixProgramBaseName +'.data/';
- if not DirectoryExists(Result) then
+  Result := HomePath +'.' +UnixProgramBaseName +'.data/';
+  if DirectoryExists(Result) then Exit;
+
   Result := '/usr/local/share/' +UnixProgramBaseName +'/';
+  if DirectoryExists(Result) then Exit;
+
+  Result := '/usr/share/' +UnixProgramBaseName +'/';
+  if DirectoryExists(Result) then Exit;
+
+  Result := InclPathDelim(GetCurrentDir);
 {$endif}
 end;
 
