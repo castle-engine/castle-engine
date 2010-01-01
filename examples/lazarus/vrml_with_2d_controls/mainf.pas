@@ -57,6 +57,7 @@ function TClickableRect.MouseDown(const MouseX, MouseY: Integer; Button: KeysMou
   const MousePressed: KeysMouse.TMouseButtons): boolean;
 begin
   ShowMessage('Clicked yellow rect !');
+  Result := true;
 end;
 
 function TClickableRect.IsDraw2D: boolean;

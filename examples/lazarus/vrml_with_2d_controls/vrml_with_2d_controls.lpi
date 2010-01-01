@@ -52,8 +52,8 @@
         <ComponentName Value="Form1"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MainF"/>
-        <CursorPos X="3" Y="108"/>
-        <TopLine Value="84"/>
+        <CursorPos X="18" Y="60"/>
+        <TopLine Value="46"/>
         <EditorIndex Value="0"/>
         <UsageCount Value="30"/>
         <Loaded Value="True"/>
@@ -101,7 +101,7 @@
         <UsageCount Value="10"/>
       </Unit7>
     </Units>
-    <JumpHistory Count="27" HistoryIndex="26">
+    <JumpHistory Count="28" HistoryIndex="27">
       <Position1>
         <Filename Value="mainf.pas"/>
         <Caret Line="79" Column="30" TopLine="56"/>
@@ -210,6 +210,10 @@
         <Filename Value="mainf.pas"/>
         <Caret Line="93" Column="13" TopLine="67"/>
       </Position27>
+      <Position28>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="108" Column="3" TopLine="85"/>
+      </Position28>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
