@@ -325,6 +325,12 @@ const
   { missing from FPC's gdktypes.pp (present in
     /usr/include/gtk-1.2/gdk/gdktypes.h) }
   GDK_CURRENT_TIME = 0;
+
+  { Not used in GTK 1, but we use these even for some GTK 1 helpers. }
+  GTK_RESPONSE_NONE = -1;
+  GTK_RESPONSE_REJECT = -2;
+  GTK_RESPONSE_ACCEPT = -3;
+  GTK_RESPONSE_DELETE_EVENT = -4;
 {$endif}
 
 { Converts GDK keysym (from gdkkeysyms.pp, or gdk/gdkkeysym.h) to
@@ -1471,11 +1477,11 @@ var
   Data: TDialogData;
   Mode: TGLModeFrozenScreen;
 begin
-  g_signal_connect(GTK_OBJECT(ADialog),
+  gtk_signal_connect(GTK_OBJECT(ADialog),
     'response',    GTK_SIGNAL_FUNC(@signal_dialog_response),     @Data);
-  g_signal_connect(GTK_OBJECT(ADialog),
+  gtk_signal_connect(GTK_OBJECT(ADialog),
     'unmap',       GTK_SIGNAL_FUNC(@signal_dialog_unmap),        @Data);
-  g_signal_connect(GTK_OBJECT(ADialog),
+  gtk_signal_connect(GTK_OBJECT(ADialog),
     'delete_event',GTK_SIGNAL_FUNC(@signal_dialog_delete_event), @Data);
 
   { gtk_dialog_run contains here also safeguards against destroying
