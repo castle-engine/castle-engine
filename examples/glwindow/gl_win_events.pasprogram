@@ -26,7 +26,7 @@ program gl_win_events;
 uses SysUtils, KambiUtils, KambiGLUtils, GL, GLU, GLExt, TimeMessages, GLWindow,
   KeysMouse, KambiStringUtils,
   OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_Bold_m15_Unit,
-  Classes;
+  Classes, GLWinMessages;
 
 var
   Glw: TGLWindowDemo;
@@ -100,6 +100,7 @@ end;
 procedure Idle(glwin: TGLWindow);
 begin
   TimeMsg.Idle;
+  if Glwin.Pressed[K_F12] then MessageOk(Glwin, 'F12 key pressed. This is just a test that MessageOk works even from callbacks like OnIdle.', taLeft);
 end;
 
 procedure Timer(glwin: TGLWindow);
