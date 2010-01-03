@@ -37,6 +37,8 @@
 
 {$ifdef read_tglwindow_interface}
 private
+  RedisplayPosted: boolean;
+
   WindowGtk: PGtkWindow;
   GLAreaGtk: PGtkGLArea;
 
@@ -489,6 +491,7 @@ SIGNAL_GLAREA_BEGIN
       Writeln('Have Expose event with Event.Count = ', Event.Count);
  }
 
+ RedisplayPosted := false;
  DoDraw;
 
  { This is needed, GlobalIdleFromDraw must be called even if you continuously
@@ -838,19 +841,33 @@ end;
 
 procedure TGLWindow.PostRedisplay;
 begin
- if not Closed then gtk_widget_queue_draw(GTK_WIDGET(GLAreaGtk));
+  { We track RedisplayPosted ourselves *and* we allow GTK to track it
+    by gtk_widget_queue_draw. This makes some things simple,
+    e.g. FlushRedisplay. }
+
+  if not Closed then gtk_widget_queue_draw(GTK_WIDGET(GLAreaGtk));
+
+  RedisplayPosted := true;
 end;
 
 procedure TGLWindow.FlushRedisplay;
 begin
- {$ifdef GLWINDOW_GTK_2}
- gdk_window_process_updates(GTK_WIDGET(WindowGtk)^.Window, g_true);
- {$else}
- { I don't know how to implement it efficiently under GTK 1.x
-   -- maybe it's not possible ?
-   So I'm simply always calling DoDraw here. }
- DoDraw;
- {$endif}
+  if RedisplayPosted then
+  begin
+    RedisplayPosted := false;
+    DoDraw;
+  end;
+
+  { Without our own RedisplayPosted tracking:
+
+    - under GTK 2 this would be easy:
+      gdk_window_process_updates(GTK_WIDGET(WindowGtk)^.Window, g_true);
+
+    - but under GTK 1 this isn't possible AFAIK, I would have to just
+      always call DoDraw here (which is valid but non-optimal behavior
+      of FlushRedisplay)
+
+  }
 end;
 
 procedure TGLWindow.SetCaption(const Value: string);
@@ -997,6 +1014,8 @@ var
   VisualAttr: TDynLongIntArray;
   GLAreaContainer: PGtkWidget;
 begin
+ RedisplayPosted := false; { reset to default value }
+
  {$ifdef GLWINDOW_GTK_2}
  Application.InitializeXDisplay;
  {$endif}
@@ -1663,7 +1682,43 @@ end;
   2. taking care of redraw }
 function GlobalIdle(data: gpointer):
   {$ifdef GLWINDOW_GTK_2} gboolean {$else} gint {$endif}; cdecl;
+
+  { If some window has RedisplayPosted = @true, redraw it.
+
+    Note: We are also using normal GTK mechanism for redraws also
+    (that is, gtk_widget_queue_draw for posting and handling signal "expose"
+    to call DoDraw). However, we cannot depend on it: looks like with newer
+    GTK's gtk_widget_queue_draw gets ignored when called from within
+    expose signal, which must be honored in our TGLWindow.
+
+    For example, right now GlobalIdleFromDraw is also called from
+    "expose" signal. If a program calls MessageOk from TGLWindow.OnIdle
+    (like "malfunction" game when you crashed the ship), this message
+    will not be drawn. (But note that the problem exists even when
+    GlobalIdleFromDraw would not be called from "expose" signal.
+    For example, let some program call MessageOk from OnDraw.)
+
+    That's why this mechanism is needed. Our GlobalIdle priority is less
+    important (that is, higher number) than GTK redraw (see SetGlobalIdleInstalled),
+    so GTK already had a chance to handle this redraw. If it failed to handle,
+    we have to handle it here. }
+  procedure GlobalFlushRedisplay;
+  var
+    I: Integer;
+    Glwin: TGLWindow;
+  begin
+    I := 0;
+    while I < Application.ActiveCount do
+    begin
+      Glwin := Application.Active[I];
+      Glwin.FlushRedisplay;
+      if Glwin.Closed then Continue {don't Inc(I)};
+      Inc(I);
+    end;
+  end;
+
 begin
+  GlobalFlushRedisplay;
   GlobalIdleFromDraw;
 
   { Returning g_false here means to remove this idle function.
@@ -1935,6 +1990,7 @@ begin
   gtk_file_chooser_get_do_overwrite_confirmation := nil;
   gtk_file_chooser_set_do_overwrite_confirmation := nil;
   gtk_window_set_icon_name := nil;
+  gtk_window_set_default_icon_name := nil;
 {$endif GLWINDOW_GTK_2}
 end;
 
