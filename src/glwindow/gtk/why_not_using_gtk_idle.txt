@@ -1,0 +1,171 @@
+This documents some history about GTK GLWindow backend.
+My initial approach was to use GTK/glib's mechanism for stuff like
+PostRedisplay and Idle, more precisely:
+
+- PostRedisplay was doing
+  if not Closed then gtk_widget_queue_draw(GTK_WIDGET(GLAreaGtk));
+
+- FlushRedisplay was doing
+  gdk_window_process_updates(GTK_WIDGET(WindowGtk)^.Window, g_true);
+
+- signal_expose_event was calling DoDraw.
+
+- GtkIdle (now called Application.ProcessUpdates)
+  was registered as GTK's idle function,
+  by gtk_idle_add_priority. GtkIdle was responsible for doing our
+  idle / timer events (Application.OnIdle/Timer, TGLWindow.OnIdle/Timer).
+
+  At the beginning, it was registered with priority
+  GTK_PRIORITY_REDRAW, then G_PRIORITY_HIGH_IDLE.
+
+But, multiple reasons later, after many code rearrangements,
+I dropped these ideas. Now I just implement redrawing and handling idle
+by my own methods, called outside of GTK loop processing functions.
+
+Some reasoning:
+
+------------------------------------------------------------------------------
+
+About idle priority:
+
+    We would like to set it to GTK_PRIORITY_REDRAW (this is
+    G_PRIORITY_HIGH_IDLE + 20, smaller than G_PRIORITY_DEFAULT_IDLE,
+    which means it's more important). That's because our idle events
+    (Application.OnIdle, TGLWindow.OnIdle etc.)
+    must be constantly called, even when AutoRedisplay = true
+    (i.e. when we always have some redraw pending), and with
+    ~approximately the same frequency as draw events.
+
+    The default priority of gtk_idle_add, which is G_PRIORITY_DEFAULT_IDLE,
+    would make our idle events (Application.OnIdle etc.) never called
+    when AutoRedisplay = true.
+
+    Unfortunately, with GTK 2 (GTK 1 didn't have this problem),
+    GTK_PRIORITY_REDRAW causes a problem: after switching to alternative menu,
+    key shortcuts to menu items do not work.
+    I don't know what's the exact reason of this, I guess that I'm just
+    blocking some other internal gtk idles and so I'm causing some
+    mysterious problems.
+
+    Simple test case with some comments is in
+    ../../../examples/glwindow/menu_test_alternative.pasprogram
+    (and also gtk/tests/test_changing_menu/test_changing_menu.pasprogram
+    on michalis.ii SVN, temporarily private (too obscure...)).
+
+    G_PRIORITY_DEFAULT_IDLE doesn't have this problem, but it's leaving
+    us with the first problem: Application.OnIdle will not be called
+    continously if we redraw continously (like when AutoRedisplay = true).
+     - Old solution: call GlwindowsIdleAndTimer manually
+       after calling DoDraw in signal_expose_event.
+     - Later solution: we just do not depend on GTK's expose events
+       and gtk_widget_queue_draw for the job. We track RedisplayPosted
+       ourselves, and realize it from our GtkIdle.
+
+------------------------------------------------------------------------------
+
+Sometimes we had to temporarily uninstall GtkIdle from GTK.
+
+Reasoning in TGLApplication.ProcessAllMessages:
+
+    GtkIdleInstalled must be temporarily turned off.
+    That's because when GtkIdleInstalled = true gtk_events_pending()
+    always returns true (because it thinks that it should call GtkIdle
+    in a loop).
+
+Reasoning in TGLWindow.FileDialog when using GtkFileChooser:
+
+    Temporarily set GtkIdleInstalled to false.
+    Reason? Just like for ProcessAllMessages: when
+    GtkIdleInstalled = true then gtk_events_pending()
+    always returns true (because it thinks that it should call GtkIdle
+    in a loop).
+
+    In this case, gtk_events_pending may be called inside gtk_dialog_run.
+    This seems to be the case for GTK starting from 2.14: on Ubuntu 8.10
+    open dialog hangs strangely (you cannot see the entries in open dialog,
+    and clicking on "file system" hangs etc.) without this
+    GtkIdleInstalled := false fix.
+
+This was done by this code:
+
+  GtkIdleHandle: guint;
+  FGtkIdleInstalled: boolean;
+  procedure SetGtkIdleInstalled(value: boolean);
+  { This controls whether GtkIdle is installed (i.e. registered to gtk).
+    It is initialized to true in CreateImplDepend, finalized to false
+    in DestroyImplDepend and for the most part stays as true.
+    BUT it must be temporarily disabled in ProcessAllMesages. }
+  property GtkIdleInstalled: boolean
+    read FGtkIdleInstalled write SetGtkIdleInstalled;
+
+procedure TGLApplication.SetGtkIdleInstalled(value: boolean);
+begin
+ if FGtkIdleInstalled <> value then
+ begin
+  FGtkIdleInstalled := value;
+  if FGtkIdleInstalled then
+  begin
+   GtkIdleHandle := gtk_idle_add_priority(G_PRIORITY_DEFAULT_IDLE,
+     @GtkIdle, nil);
+  end else
+  begin
+   gtk_idle_remove(GtkIdleHandle);
+  end;
+ end;
+end;
+
+------------------------------------------------------------------------------
+
+About using signal_expose_event:
+
+    Looks like we cannot call here DoDraw, or any other callback.
+    Reason: with newer GTK / glib (Debian gtk 2.18.3-1 and glib 2.22.3-1)
+    signal "expose" is never delivered when another "expose" signal
+    already works.
+
+    (More info about this GTK change:
+
+        I didn't found exact evidence for this,
+        I suspect it's related to
+        http://library.gnome.org/devel/gtk/2.18/gtk-migrating-ClientSideWindows.html,
+        there's a text
+
+        "One change that can cause problems for some applications is that
+        GDK is more aggressive about optimizing away expose events.
+        Code that does more than just repainting exposed areas in
+        response to expose events may be affected by this.
+        "
+
+        If interested in digging more, probably looking at usage of
+        G_SIGNAL_NO_RECURSE (for GSignalFlags) in newer GTK src could
+        get something.
+    )
+
+    Which means that any event that could cause recursive
+    event loop will not work correctly, i.e. will not get expose events
+    from GTK. For example, calling GLWinMessages.MessageOk from OnDraw
+    will fail badly --- during modal message window will not receive
+    expose events when window is moved, resized etc.
+
+    So just PostRedisplay. Nearest GtkIdle will handle redraw.
+
+This also means that we do whole PostRedisplay tracking ourselves,
+by RedisplayPosted boolean. No point in using gtk_widget_queue_draw /
+gdk_window_process_updates if they don't behave like we expect.
+
+------------------------------------------------------------------------------
+
+Eventually, the final problem that broke the straw: it seems
+that expose signal cannot be generated when we're inside GTK's registered
+idle event.
+
+    This concerns even the expose events that should be passed
+    to us from obscuring + showing the window again. Strangely, expose
+    after resizing the window still gets generated. But generally they don't work...
+
+    This means that making MessageOk from OnDraw, or OnIdle, still doesn't
+    work as expected...
+
+Bottom line: it's not reliable to call any TGLWindow events (that could
+always call MessageOk and enter loop that will require more expose events
+to run properly) from GTK's signal expose *or* GTK's registered idle.
