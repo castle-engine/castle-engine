@@ -575,6 +575,17 @@ begin
  Color := NewColor;
 end;
 
+procedure TGLWindow.MessageOK(const S: string; const MessageType: TGLWindowMessageType);
+begin
+  GLWinMessages.MessageOK(Self, S);
+end;
+
+function TGLWindow.MessageYesNo(const S: string;
+  const MessageType: TGLWindowMessageType): boolean;
+begin
+  Result := GLWinMessages.MessageYesNo(Self, S);
+end;
+
 { TGLApplication ------------------------------------------------------- }
 
 function TGLApplication.ActiveWindowXID(seekWindowXID: TWindow): TGLWindow;

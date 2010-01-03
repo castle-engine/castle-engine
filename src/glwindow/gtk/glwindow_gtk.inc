@@ -105,13 +105,6 @@ private
 
   procedure UpdateCursor;
 public
-  { Simple "OK" dialog box. }
-  procedure MessageOK(const S: string; const MessageType: TGLWindowMessageType);
-
-  { Simple yes/no question dialog box. }
-  function MessageYesNo(const S: string;
-    const MessageType: TGLWindowMessageType = mtQuestion): boolean;
-
   { Change this only when Closed.
     This is the width of border of main GtkWindow that will be created
     in Init, set with gtk_container_set_border_width. }
@@ -826,7 +819,7 @@ begin
       gdk_x11_drawable_get_xid(GTK_WIDGET(GLAreaGtk)^.Window),
       0, 0, 0, 0, NewMouseX, NewMouseY);
   {$else}
-  raise Exception.Create('TODO: TGLWindow.SetMousePosition not implemented');
+  raise Exception.Create('TGLWindow.SetMousePosition not implemented with GTK 1');
   {$endif}
 end;
 
@@ -1687,6 +1680,7 @@ begin
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
 end;
 
+{$ifdef GLWINDOW_GTK_2}
 const
   MessageTypeToGtk: array [TGLWindowMessageType] of TGtkMessageType =
   ( GTK_MESSAGE_INFO,
@@ -1694,8 +1688,10 @@ const
     GTK_MESSAGE_QUESTION,
     GTK_MESSAGE_ERROR,
     { GTK_MESSAGE_OTHER, missing from FPC bindings } TGtkMessageType(4) );
+{$endif GLWINDOW_GTK_2}
 
 procedure TGLWindow.MessageOK(const S: string; const MessageType: TGLWindowMessageType);
+{$ifdef GLWINDOW_GTK_2}
 var
   Dialog: PGtkMessageDialog;
 begin
@@ -1704,9 +1700,14 @@ begin
   try
     GtkDialogRun(GTK_DIALOG(Dialog));
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
+{$else}
+begin
+  raise Exception.Create('TGLWindow.MessageOK not implemented with GTK 1');
+{$endif}
 end;
 
 function TGLWindow.MessageYesNo(const S: string; const MessageType: TGLWindowMessageType): boolean;
+{$ifdef GLWINDOW_GTK_2}
 var
   Dialog: PGtkMessageDialog;
 begin
@@ -1715,6 +1716,11 @@ begin
   try
     Result := GtkDialogRun(GTK_DIALOG(Dialog)) = GTK_RESPONSE_YES;
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
+{$else}
+begin
+  Result := false;
+  raise Exception.Create('TGLWindow.MessageYesNo not implemented with GTK 1');
+{$endif}
 end;
 
 { TGLApplication ------------------------------------------------------------- }

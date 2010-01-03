@@ -1,5 +1,5 @@
 {
-  Copyright 2004,2008 Michalis Kamburelis.
+  Copyright 2004,2008-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -110,6 +110,18 @@ function TGLWindow.ColorDialog(var Color: TVector3Single): boolean;
 begin
   { TODO }
 end;
+
+procedure TGLWindow.MessageOK(const S: string; const MessageType: TGLWindowMessageType);
+begin
+  { TODO }
+end;
+
+function TGLWindow.MessageYesNo(const S: string;
+  const MessageType: TGLWindowMessageType): boolean;
+begin
+  { TODO }
+end;
+
 
 { TGLApplication ---------------------------------------------------------- }
 

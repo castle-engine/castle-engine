@@ -214,13 +214,16 @@ unit GLWindow;
 
   GLWINDOW_GTK_1 and GLWINDOW_GTK_2
     GLWINDOW_GTK_1 is based on GTK 1.x (>= 1.2) using GtkGLArea widget.
-    Made around beginning of march 2004.
+    Made around beginning of march 2004. Historically the first,
+    it is now by all means superseded by GTK 2 version.
+    Saying it clearly: @bold(do not use GTK_1, use GTK_2 instead).
 
     GLWINDOW_GTK_2 is based on GTK 2.x, using GtkGLExt extension.
     Made 2005-02.
 
     MainMenu is implemented as a nice-looking GTK menu bar.
     Dialog windows implemented using GTK dialog windows.
+    Generally, has a nice native look of GTK application.
 
     Implementations on top of GTK should work under any OS where GTK works.
     Currently both GTK_1 and GTK_2 are tested under Linux, FreeBSD and Windows.
@@ -249,6 +252,10 @@ unit GLWindow;
       is displayed.
     - File filters are not implemented. This is fixed in GTK_2 by
       using newer GtkFileChooser.
+    - TGLWindow.Message*, TGLWindow.SetMousePosition are not implemented
+      with GTK 1 backend (raise "not implemented" exceptions).
+      They probably could be implemented, but (since GTK 1 is obsolete now)
+      I didn't feel the need.
 
     GLWINDOW_GTK_2:
     This is now stable and tested and is much better than GTK_1.
@@ -271,8 +278,10 @@ unit GLWindow;
 
   GLWINDOW_WINAPI
     Based on Windows API.
+
     MainMenu is implemented as WinAPI menu bar. So it looks nice.
     Dialog windows are implemented as common Windows dialog boxes.
+    Has a nice native look on Windows.
 
   GLWINDOW_XLIB
     Based on XLib units. No X toolkit is used.
@@ -286,6 +295,25 @@ unit GLWindow;
 
     Dialog boxes are implemented using GLWinMessages.MessageXxx.
     So they are not very comfortable to user, but they work.
+
+    On Unix platforms, whether you should use GLWINDOW_GTK_2 or
+    this GLWINDOW_XLIB depends on your program.
+
+    - For utility programs, usually GLWINDOW_GTK_2.
+      You want the menu bar and native (GTK-themed) look of dialog boxes.
+
+    - For fullscreen games, usually GLWINDOW_XLIB.
+      You usually do not use the menu bar in fullscreen games,
+      and do not want popup dialog boxes. Instead you draw everything
+      inside your OpenGL context, which makes your game look the same
+      regardless of the platform and GUI can be styled to your game theme.
+      For example, menu may be done by TGLMenu, and dialog boxes
+      by GLWinMessages.
+
+      As a bonus, XLIB allows you to change screen resolution when
+      starting the game, which may be useful. And has one dependency less
+      (GTK is commonly installed, but gtkglext is not, and GLWINDOW_GTK_2
+      requires gtkglext).
 
   GLWINDOW_GLUT
     Based on glut library. There's little use of implementing
@@ -2182,7 +2210,7 @@ type
     { About all dialogs:
       - Behaviour of callbacks:
         callbacks of Application and callbacks of other TGLWindow MAY be called while
-        the dialog is open. Callbacks of THIS object (EventXxx, OnXxx) will not be
+        the dialog is open. Callbacks of THIS object (OnXxx) will not be
         called. You should treat XxxDialog like
           TGLMode.Create(Self, ...)
           TGLWindowState.SetStandardNoCloseState
@@ -2191,7 +2219,8 @@ type
       - How does these dialogs look like ?
         Under GTK and WinAPI implementations we use native dialogs of these.
         Under Xlib implementation we simply fallback on
-        GLWinMessages.MessageInputQuery. Under glut this is not implemented.
+        GLWinMessages.Message*.
+        Under glut this is not implemented.
     }
 
     { Title is some dialog title.
@@ -2245,6 +2274,13 @@ type
     function ColorDialog(var Color: TVector3Single): boolean;
     function ColorDialog(var Color: TVector3Byte): boolean;
     { @groupEnd }
+
+    { Simple "OK" dialog box. }
+    procedure MessageOK(const S: string; const MessageType: TGLWindowMessageType);
+
+    { Simple yes/no question dialog box. }
+    function MessageYesNo(const S: string;
+      const MessageType: TGLWindowMessageType = mtQuestion): boolean;
 
     {$endif not GLWINDOW_GLUT}
   end;
@@ -3620,7 +3656,6 @@ begin
     Result := FileDialog(Title, FileName, OpenDialog, FFList);
   finally FreeWithContentsAndNil(FFList) end;
 end;
-{$endif}
 
 function TGLWindow.ColorDialog(var Color: TVector3Byte): boolean;
 var
@@ -3633,6 +3668,7 @@ begin
   if Result then
     Color := Vector3Byte(ColorSingle);
 end;
+{$endif}
 
 { ----------------------------------------------------------------------------
   Get/Set callbacks State }

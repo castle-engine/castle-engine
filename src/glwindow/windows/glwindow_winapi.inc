@@ -1329,6 +1329,33 @@ begin
   Color := ColorRefToVector3Single(Struct.rgbResult);
 end;
 
+const
+  MessageTypeToWin: array [TGLWindowMessageType] of TGtkMessageType =
+  ( MB_ICONINFORMATION,
+    MB_ICONWARNING,
+    MB_ICONQUESTION,
+    MB_ICONERROR,
+    0 );
+
+procedure TGLWindow.MessageOK(const S: string; const MessageType: TGLWindowMessageType);
+begin
+  MessageBox(H_Wnd, PChar(S), nil,
+    MB_OK or MessageTypeToWin[MessageType] or
+    { MB_APPLMODAL is actually the default. MB_TASKMODAL would also be suitable
+      probably, as we always pass non-nil H_Wnd. }
+    MB_APPLMODAL);
+end;
+
+function TGLWindow.MessageYesNo(const S: string;
+  const MessageType: TGLWindowMessageType): boolean;
+begin
+  Result := MessageBox(H_Wnd, PChar(S), nil,
+    MB_YESNO or MessageTypeToWin[MessageType] or
+    { MB_APPLMODAL is actually the default. MB_TASKMODAL would also be suitable
+      probably, as we always pass non-nil H_Wnd. }
+    MB_APPLMODAL) = IDYES;
+end;
+
 { TGLApplication ----------------------------------------------- }
 
 procedure TGLApplication.CreateImplDependent;
