@@ -228,6 +228,38 @@ public
 
 {$ifdef read_implementation}
 
+{ gboolean type stuff.
+
+  Remember that under FPC >= 2.4.0 Pascal's "true" is $FFFFFFFF,
+  not equal to GTK's "true" (equal to int 1). Some GTK routines treat
+  $FFFFFFFF as true (since it's <> 0), but some not.
+  For example, passing "true" instead of "LongBool(gtrue)"
+  to gtk_widget_set_gl_capability (as "direct" parameter)
+  causes troubles, gtkglext understood Pascal's "true" as false
+  and returned indirect OpenGL contexts.
+  See http://lists.freepascal.org/lists/fpc-devel/2009-April/016668.html
+
+  That's why you need to use Glib's constants, not Pascal's false/true.
+
+  Also, GTK's unit constants gfalse/gtrue are ints, while gboolean is LongBool,
+  so they are not assigment-compatible. So use our g_false/g_true
+  (with underscore) for best results. }
+const
+  g_true = LongBool(gtrue);
+  g_false = LongBool(gfalse);
+
+function PasToGbool(const B: boolean): gboolean;
+const
+  T: array [boolean] of GBoolean = (g_false, g_true);
+begin
+  Result := T[B];
+end;
+
+function GboolToPas(const B: gboolean): boolean;
+begin
+  Result := B <> g_false;
+end;
+
 {$ifndef GLWINDOW_GTK_2} {$I gtk_1_keysyms.inc} {$endif}
 {$I glwindow_gtk_menu.inc}
 
@@ -459,7 +491,7 @@ SIGNAL_GLAREA_BEGIN
    do this differently (by setting GlobalIdle's priority == redraw priority). }
  GlobalIdle(nil);
 
- Result := true;
+ Result := g_true;
 SIGNAL_GLAREA_END;
 
 function signal_window_configure_event(AWindowGtk: PGtkWindow;
@@ -478,7 +510,7 @@ SIGNAL_WINDOW_BEGIN
  Left := LeftGtk;
  Top := TopGtk;
  { for the sake of gtk, I can't tell that I "handled" this in any way }
- Result := false;
+ Result := g_false;
 SIGNAL_WINDOW_END;
 
 function signal_glarea_configure_event(AGLAreaGtk: PGtkGLArea;
@@ -496,14 +528,14 @@ function signal_glarea_configure_event(AGLAreaGtk: PGtkGLArea;
 SIGNAL_GLAREA_BEGIN
  DoResize(Event^.Width, Event^.Height, false);
  { for the sake of gtk, I can't tell that I "handled" this in any way }
- Result := false;
+ Result := g_false;
 SIGNAL_GLAREA_END;
 
 function signal_delete_event(AWindowGtk: PGtkWindow; Event: PGdkEventKey;
   data: gpointer): gboolean; cdecl;
 SIGNAL_WINDOW_BEGIN
  DoCloseQuery;
- Result := true;
+ Result := g_true;
 SIGNAL_WINDOW_END;
 
 function signal_key_press_event(AWindowGtk: PGtkWindow; Event: PGdkEventKey;
@@ -561,7 +593,7 @@ SIGNAL_WINDOW_BEGIN
    I'm also setting Result := false in signal_key_release_event,
    to be consequent.
  }
- Result := false;
+ Result := g_false;
 SIGNAL_WINDOW_END;
 
 function signal_key_release_event(AWindowGtk: PGtkWindow; Event: PGdkEventKey;
@@ -583,7 +615,7 @@ SIGNAL_WINDOW_BEGIN
 
  { Why false, not true ? See comments at the end of
    signal_key_press_event. }
- Result := false;
+ Result := g_false;
 SIGNAL_WINDOW_END;
 
 function signal_button_press_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventButton;
@@ -601,10 +633,11 @@ function signal_button_release_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventBut
   data: gpointer): gboolean; cdecl;
 var mb: TMouseButton;
 SIGNAL_GLAREA_BEGIN
- Result := (Event^.{$ifdef GLWINDOW_GTK_2} _type {$else} TheType {$endif}
+ Result := PasToGbool(
+   (Event^.{$ifdef GLWINDOW_GTK_2} _type {$else} TheType {$endif}
    = GDK_BUTTON_RELEASE) and
-   ButtonNumberToMouseButton(Event^.button, mb);
- if Result then
+   ButtonNumberToMouseButton(Event^.button, mb));
+ if GboolToPas(Result) then
   DoMouseUp(Round(Event^.x), Round(Event^.y), mb);
 SIGNAL_GLAREA_END;
 
@@ -612,7 +645,7 @@ function signal_motion_notify_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventMoti
   data: gpointer): gboolean; cdecl;
 SIGNAL_GLAREA_BEGIN
  DoMouseMove(Round(Event^.x), Round(Event^.y));
- Result := true;
+ Result := g_true;
 SIGNAL_GLAREA_END;
 
 procedure signal_menu_item_activate(AMenuItemGtk: PGtkMenuItem;
@@ -683,7 +716,7 @@ function signal_window_focus_out_event(AWindowGtk: PGtkWindow;
 SIGNAL_WINDOW_BEGIN
   ReleaseAllKeysAndMouse;
   { for the sake of gtk, I can't tell that I "handled" this in any way }
-  Result := false;
+  Result := g_false;
 SIGNAL_WINDOW_END;
 
 { TGLWindow ------------------------------------------------------------ }
@@ -805,7 +838,7 @@ end;
 procedure TGLWindow.FlushRedisplay;
 begin
  {$ifdef GLWINDOW_GTK_2}
- gdk_window_process_updates(GTK_WIDGET(WindowGtk)^.Window, LongBool(gtrue));
+ gdk_window_process_updates(GTK_WIDGET(WindowGtk)^.Window, g_true);
  {$else}
  { I don't know how to implement it efficiently under GTK 1.x
    -- maybe it's not possible ?
@@ -1038,11 +1071,8 @@ begin
    ContextNotPossible;
 
   GLAreaGtk := gtk_drawing_area_new;
-  if not gtk_widget_set_gl_capability(GLAreaGtk, GLConfig, nil,
-    { Use LongBool(gtrue), not just true, to workaround
-      http://lists.freepascal.org/lists/fpc-devel/2009-April/016668.html }
-    LongBool(gtrue),
-    GDK_GL_RGBA_TYPE) then
+  if not GboolToPas(gtk_widget_set_gl_capability(GLAreaGtk, GLConfig, nil,
+    g_true, GDK_GL_RGBA_TYPE)) then
    ContextNotPossible;
 
   {$else}
@@ -1111,7 +1141,7 @@ begin
   window_accel_group := gtk_accel_group_new;
   gtk_window_add_accel_group(GTK_WINDOW(WindowGtk), window_accel_group);
 
-  window_vbox := PGtkVBox(gtk_vbox_new(false, VBoxSpacing));
+  window_vbox := PGtkVBox(gtk_vbox_new(g_false, VBoxSpacing));
   gtk_widget_show(GTK_WIDGET(window_vbox));
   init_window_menu_bar;
   gtk_box_pack_end_defaults(PGtkBox(window_vbox), GLAreaContainer);
@@ -1180,7 +1210,7 @@ begin
     switching fullscreen using Ctrl+F from my programs but using
     window manager specific functions, like Alt+BackSpace on my metacity
     configuration). }
-  gtk_window_set_resizable(WindowGtk, false);
+  gtk_window_set_resizable(WindowGtk, g_false);
 
   {$endif}
  end else
@@ -1366,7 +1396,7 @@ begin
  signal_dialog_cancel_clicked(nil, Data);
  { don't allow to call gtk_widget_destroy, we will call it ourselves
    in FileDialog/ColorDialog. }
- Result := true;
+ Result := g_true;
 end;
 
 function TGLWindow.RunGtkDialog(ADialog: PGtkWindow;
@@ -1384,7 +1414,7 @@ begin
   gtk_signal_connect(GTK_OBJECT(Data.Dialog),
     'delete_event', GTK_SIGNAL_FUNC(@signal_dialog_delete_event),   @Data);
 
-  gtk_window_set_modal(ADialog, LongBool(gtrue));
+  gtk_window_set_modal(ADialog, g_true);
   gtk_window_set_transient_for(ADialog, WindowGtk);
 
   { prepare Data }
@@ -1480,7 +1510,7 @@ begin
   if not OpenDialog then
   begin
     if Assigned(Application.gtk_file_chooser_set_do_overwrite_confirmation) then
-      Application.gtk_file_chooser_set_do_overwrite_confirmation(Dialog, LongBool(gtrue));
+      Application.gtk_file_chooser_set_do_overwrite_confirmation(Dialog, g_true);
   end;
 
   { We don't want to simply call gtk_file_chooser_set_filename,
@@ -1638,7 +1668,7 @@ begin
 
  { Returning false here means to remove this idle function.
    So I always return true here. }
- Result := {$ifndef GLWINDOW_GTK_2} gint {$endif} (true);
+ Result := g_true;
 end;
 
 procedure TGLApplication.SetGlobalIdleInstalled(value: boolean);
@@ -1747,8 +1777,9 @@ begin
   try
 
    while gtk_events_pending() <> 0 do
-    Result := not {$ifndef GLWINDOW_GTK_2} gboolean {$endif}
-      (gtk_main_iteration());
+    Result := not GBoolToPas(
+      {$ifndef GLWINDOW_GTK_2} gboolean {$endif}
+      (gtk_main_iteration()));
 
   finally GlobalIdleInstalled := true end;
 
@@ -1765,8 +1796,7 @@ end;
 function TGLApplication.ProcessMessage(AllowSuspend: boolean): boolean;
 begin
   (* I would like to do here
-    Result := not {$ifndef GLWINDOW_GTK_2} gboolean {$endif}
-      (gtk_main_iteration_do(AllowSuspend))
+    Result := not GBoolToPas(gtk_main_iteration_do(AllowSuspend))
 
     I.e. I want to use the result of gtk_main_iteration_do to return it.
     Unfortunately, it turns out that gtk_main_iteration_do always returns

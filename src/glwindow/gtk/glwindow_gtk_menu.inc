@@ -43,7 +43,7 @@ begin
     Dec(Glwin.MenuRecreateForbidden);
   end;
 
-  Result := false;
+  Result := g_false;
 end;
 
 { This is the only event I found that can be used in GTK 2 to
@@ -87,7 +87,7 @@ begin
     Dec(Glwin.MenuRecreateForbidden);
   end;
 
-  Result := false;
+  Result := g_false;
 end;
 
 { Block signal_menu_item_activate on this menu item.
@@ -283,7 +283,7 @@ procedure TGLWindow.init_window_menu_bar;
          PChar(TMenuItem(Entry).Caption)));
        gtk_check_menu_item_set_active(PGtkCheckMenuItem(Result),
          TMenuItemChecked(Entry).Checked);
-       gtk_check_menu_item_set_show_toggle(PGtkCheckMenuItem(Result), LongBool(gtrue));
+       gtk_check_menu_item_set_show_toggle(PGtkCheckMenuItem(Result), g_true);
 
        { To implement TMenuItemRadio I use normal GTK check menu items
          and just make them look like radio items.
@@ -376,5 +376,5 @@ procedure TGLWindow.init_window_menu_bar;
 begin
  window_menu_bar := get_main_menu;
  gtk_box_pack_start(PGtkBox(window_vbox), GTK_WIDGET(window_menu_bar),
-   false, false, 0);
+   g_false, g_false, 0);
 end;
