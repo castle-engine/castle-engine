@@ -246,17 +246,6 @@ function TGLApplication.ProcessMessage2(AllowSuspend: boolean;
     {$endif}
   end;
 
-  function SomeWindowDisallowsSuspend: boolean;
-  { czy istnieje jakies okienko ktore cos robi w DoIdle lub DoTimer ?  }
-  var
-    i: integer;
-  begin
-    for i := 0 to ActiveCount-1 do
-      if not Active[i].AllowSuspendForInput then
-        Exit(true);
-    Result := false;
-  end;
-
 var
   WasAnyDrawing: boolean;
   I: integer;
@@ -315,10 +304,9 @@ begin
         end;
 
         { If we do not do anything in any idle/timer
-          (this is checked by SomeWindowDisallowsSuspend,
-          and additionally the Application callbacks OnIdle and OnTimer are checked
-          here explicitly), and there's no reason to redisplay and we're
-          not during quit process (started by Application.Quit),
+          (this is checked by AllowSuspendForInput),
+          and there's no reason to redisplay,
+          and we're not during quit process (started by Application.Quit),
           => then there's no need to finish ProcessMessage.
 
           ProcessMessage may assume in this case it works like
@@ -333,8 +321,8 @@ begin
           that we want to wait, doing nothing, and our process should be
           suspended by OS until some event is received. Looking at any
           system monitor, you'll see we do not use CPU then. }
-        if AllowSuspend and not (Assigned(OnIdle) or Assigned(OnTimer) or
-           SomeWindowDisallowsSuspend or WasAnyDrawing or QuitPosted) then
+        if AllowSuspend and Application.AllowSuspendForInput and
+           not (WasAnyDrawing or QuitPosted) then
           WaitMessage else
           NoMessageProcessed;
       end;

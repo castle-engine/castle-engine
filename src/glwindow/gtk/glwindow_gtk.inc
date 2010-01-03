@@ -1763,6 +1763,9 @@ begin
      just like I do for X11 or WinAPI GLWindow implementations.
      And the result of gtk_main_iteration_do call should be ignored. *)
 
+  AllowSuspend := AllowSuspend and Application.AllowSuspendForInput and
+    not ({WasAnyDrawing or }QuitPosted);
+
   gtk_main_iteration_do(AllowSuspend);
   Result := not QuitPosted;
 

@@ -2632,6 +2632,11 @@ type
       at the appropriate times. It will use and update LastDoTimerTime,
       you shouldn't read or write LastDoTimerTime yourself. }
     procedure MaybeDoTimer(var ALastDoTimerTime: TMilisecTime);
+
+    { Just like TGLWindow.AllowSuspendForInput, except this is for
+      the whole Application. Returns @true only if all active (open)
+      windows allow it, and we do not have OnIdle and OnTimer. }
+    function AllowSuspendForInput: boolean;
   public
     { jesli VideoResize to zmieni rozmiar ekranu na VideoResizeWidth /
       VideoResizeHeight wywolaniem VideoChange; wpp. ustawi defaultowy
@@ -4663,6 +4668,20 @@ begin
   DoSelfTimer;
   DoActiveWindowsTimer;
  end;
+end;
+
+function TGLApplication.AllowSuspendForInput: boolean;
+var
+  I: Integer;
+begin
+  Result := not (Assigned(OnIdle) or Assigned(OnTimer));
+  if not Result then Exit;
+
+  for I := 0 to ActiveCount - 1 do
+  begin
+    Result := Active[I].AllowSuspendForInput;
+    if not Result then Exit;
+  end;
 end;
 
 { TGLApplication.Video* things ---------------------------------------- }
