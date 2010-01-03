@@ -1774,17 +1774,25 @@ begin
      just like I do for X11 or WinAPI GLWindow implementations.
      And the result of gtk_main_iteration_do call should be ignored. *)
 
-  AllowSuspend := AllowSuspend and Application.AllowSuspendForInput and
-    (not SomeRedisplayPosted) and (not QuitPosted);
-
-  gtk_main_iteration_do(AllowSuspend);
   Result := not QuitPosted;
 
-  if Result then
+  { Only allow yourself a ProcessUpdates call when no events are pending.
+    This is done regardless of AllowSuspend mechanism.
+
+    This follows glwindow_winsystem.inc approach, and works very good
+    to prevent doing Idle / Draw when we're clogged with events
+    (typically happens when walking with mouse look, then we're clogged
+    with mouse move events). }
+  if Result and (gtk_events_pending() = 0) then
   begin
     ProcessUpdates;
     Result := not QuitPosted;
   end;
+
+  AllowSuspend := AllowSuspend and Application.AllowSuspendForInput and
+    (not SomeRedisplayPosted) and (not QuitPosted);
+
+  gtk_main_iteration_do(AllowSuspend);
 end;
 
 procedure TGLApplication.QuitWhenNoWindowsActive;
