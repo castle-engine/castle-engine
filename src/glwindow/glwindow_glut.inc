@@ -317,10 +317,10 @@ procedure TGLWindow.UpdateGlutModifiers;
   begin
    if NewVal then
    begin
-    if not KeysDown[key] then GlutDoKeyDown(key, #0);
+    if not Pressed[key] then GlutDoKeyDown(key, #0);
    end else
    begin
-    if KeysDown[key] then DoKeyUp(key)
+    if Pressed[key] then DoKeyUp(key)
    end;
   end;
 
@@ -457,7 +457,7 @@ begin
    with Active[i] do
    begin
     for k := Low(TKey) to High(TKey) do
-     if KeysDown[k] then
+     if Pressed[k] then
      begin
       Dec(keysTimeout[k]);
       if keysTimeout[k] = 0 then DoKeyUp(k);
