@@ -21,7 +21,6 @@ private
   { InCloseImplDepend = true means we are currently inside CloseImplDepend call.
     Useful -- see at WM_ACTIVATE. }
   InCloseImplDepend: boolean;
-  function WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT;
 
   VK_LeftBracket_Exists,
   VK_RightBracket_Exists,
@@ -38,6 +37,8 @@ private
   VK_BackQuote,
   VK_BackSlash: Byte;
 
+  function WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT;
+
   { convert virtual key code (VK_xxx) to TKey. Returns K_None if no conversion
     available. }
   function VirtualKeyToKey(VirtualKey: Byte): TKey;
@@ -48,10 +49,6 @@ private
   { czy robic ChangeDisplaySettings(nil, 0) przy Destroy ? }
   DisplaySettingsChanged: boolean;
   wndClassName: string;
-
-  fappActive: boolean;
-  procedure SetAppActive(value: boolean);
-  property appActive: boolean read fappActive write SetAppActive;
 
   { A private array, initialized in CreateImplDependent.
     NameForLoadCursor are actually constant, taken from Windows unit,
@@ -67,6 +64,10 @@ private
     NameForLoadCursor: LPCTSTR;
     Handle: HCURSOR;
   end;
+
+  fappActive: boolean;
+  procedure SetAppActive(value: boolean);
+  property appActive: boolean read fappActive write SetAppActive;
 {$endif read_tglwindowmanager_interface}
 
 {$ifdef read_implementation}
@@ -1330,7 +1331,7 @@ begin
 end;
 
 const
-  MessageTypeToWin: array [TGLWindowMessageType] of TGtkMessageType =
+  MessageTypeToWin: array [TGLWindowMessageType] of LongWord =
   ( MB_ICONINFORMATION,
     MB_ICONWARNING,
     MB_ICONQUESTION,
