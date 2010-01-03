@@ -1338,9 +1338,20 @@ const
     MB_ICONERROR,
     0 );
 
+  MessageTypeToCaption: array [TGLWindowMessageType] of string =
+  ( 'Information',
+    'Warning',
+    'Question',
+    'Error',
+    'Information');
+
 procedure TGLWindow.MessageOK(const S: string; const MessageType: TGLWindowMessageType);
 begin
-  MessageBox(H_Wnd, PChar(S), nil,
+  MessageBox(H_Wnd, PChar(S),
+    { Always pass meaningfull caption. Passing nil here causes Windows to
+      always display localized "Error" on caption, which looks nonsensible
+      on boxes with warnings or questions. }
+    PChar(MessageTypeToCaption[MessageType]),
     MB_OK or MessageTypeToWin[MessageType] or
     { MB_APPLMODAL is actually the default. MB_TASKMODAL would also be suitable
       probably, as we always pass non-nil H_Wnd. }
@@ -1350,7 +1361,8 @@ end;
 function TGLWindow.MessageYesNo(const S: string;
   const MessageType: TGLWindowMessageType): boolean;
 begin
-  Result := MessageBox(H_Wnd, PChar(S), nil,
+  Result := MessageBox(H_Wnd, PChar(S),
+    PChar(MessageTypeToCaption[MessageType]),
     MB_YESNO or MessageTypeToWin[MessageType] or
     { MB_APPLMODAL is actually the default. MB_TASKMODAL would also be suitable
       probably, as we always pass non-nil H_Wnd. }
