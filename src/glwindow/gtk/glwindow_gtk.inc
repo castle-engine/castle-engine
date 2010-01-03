@@ -1845,7 +1845,7 @@ begin
  if gtk_main_level() > 0 then gtk_main_quit();
 
  { QuitPosted is needed, gtk_main_quit is not enough --- see
-   comments in ProcessMessage impl.
+   comments in ProcessMessage implementation.
 
    Actually, we call gtk_main_quit
    only to exit from gtk_main --- if we would not use gtk_main
@@ -1875,7 +1875,7 @@ begin
 
   { These are available only in GTK 2.8.
     We want to cooperate even with GTK 2.6 (in Mac OS X fink stable),
-    so we have to laod them dynamically. }
+    so we have to load them dynamically. }
   gtk_file_chooser_get_do_overwrite_confirmation := nil;
   gtk_file_chooser_set_do_overwrite_confirmation := nil;
   gtk_window_set_icon_name := nil;
