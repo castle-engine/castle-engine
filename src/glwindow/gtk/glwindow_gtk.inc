@@ -105,6 +105,12 @@ private
 
   procedure UpdateCursor;
 public
+  { Simple "OK" dialog box. }
+  procedure MessageOK(const S: string; const MessageType: TGLWindowMessageType);
+
+  { Simple yes/no question dialog box. }
+  function MessageYesNo(const S: string;
+    const MessageType: TGLWindowMessageType = mtQuestion): boolean;
 
   { Change this only when Closed.
     This is the width of border of main GtkWindow that will be created
@@ -1678,6 +1684,36 @@ begin
       gtk_color_selection_get_color(PGtkColorSelection(Dialog^.colorsel), @GtkColor);
       for i := 0 to 2 do Color[i] := GtkColor[i];
     end;
+  finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
+end;
+
+const
+  MessageTypeToGtk: array [TGLWindowMessageType] of TGtkMessageType =
+  ( GTK_MESSAGE_INFO,
+    GTK_MESSAGE_WARNING,
+    GTK_MESSAGE_QUESTION,
+    GTK_MESSAGE_ERROR,
+    { GTK_MESSAGE_OTHER, missing from FPC bindings } TGtkMessageType(4) );
+
+procedure TGLWindow.MessageOK(const S: string; const MessageType: TGLWindowMessageType);
+var
+  Dialog: PGtkMessageDialog;
+begin
+  Dialog := PGtkMessageDialog(gtk_message_dialog_new(
+    WindowGtk, 0, MessageTypeToGtk[MessageType], GTK_BUTTONS_OK, PChar(S)));
+  try
+    GtkDialogRun(GTK_DIALOG(Dialog));
+  finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
+end;
+
+function TGLWindow.MessageYesNo(const S: string; const MessageType: TGLWindowMessageType): boolean;
+var
+  Dialog: PGtkMessageDialog;
+begin
+  Dialog := PGtkMessageDialog(gtk_message_dialog_new(
+    WindowGtk, 0, MessageTypeToGtk[MessageType], GTK_BUTTONS_YES_NO, PChar(S)));
+  try
+    Result := GtkDialogRun(GTK_DIALOG(Dialog)) = GTK_RESPONSE_YES;
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
 end;
 

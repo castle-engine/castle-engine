@@ -715,6 +715,9 @@ type
 
   {$I glwindowmenu.inc}
 
+  { Type of message box, for TGLWindow.MessageOK and TGLWindow.MessageYesNo. }
+  TGLWindowMessageType = (mtInfo, mtWarning, mtQuestion, mtError, mtOther);
+
   TIdleFunc = procedure;
   TGLWindowFunc = procedure(Glwin: TGLWindow);
   TDrawFunc = TGLWindowFunc;
