@@ -614,30 +614,31 @@ function signal_button_press_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventButto
   data: gpointer): gboolean; cdecl;
 var mb: TMouseButton;
 SIGNAL_GLAREA_BEGIN
- Result := (Event^.{$ifdef GLWINDOW_GTK_2} _type {$else} TheType {$endif}
-   = GDK_BUTTON_PRESS) and
-   ButtonNumberToMouseButton(Event^.button, mb);
- if Result then
-  DoMouseDown(Round(Event^.x), Round(Event^.y), mb);
+  Result := PasToGbool(
+    (Event^.{$ifdef GLWINDOW_GTK_2} _type {$else} TheType {$endif}
+    = GDK_BUTTON_PRESS) and
+    ButtonNumberToMouseButton(Event^.button, mb));
+  if GboolToPas(Result) then
+    DoMouseDown(Round(Event^.x), Round(Event^.y), mb);
 SIGNAL_GLAREA_END;
 
 function signal_button_release_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventButton;
   data: gpointer): gboolean; cdecl;
 var mb: TMouseButton;
 SIGNAL_GLAREA_BEGIN
- Result := PasToGbool(
-   (Event^.{$ifdef GLWINDOW_GTK_2} _type {$else} TheType {$endif}
-   = GDK_BUTTON_RELEASE) and
-   ButtonNumberToMouseButton(Event^.button, mb));
- if GboolToPas(Result) then
-  DoMouseUp(Round(Event^.x), Round(Event^.y), mb);
+  Result := PasToGbool(
+    (Event^.{$ifdef GLWINDOW_GTK_2} _type {$else} TheType {$endif}
+    = GDK_BUTTON_RELEASE) and
+    ButtonNumberToMouseButton(Event^.button, mb));
+  if GboolToPas(Result) then
+    DoMouseUp(Round(Event^.x), Round(Event^.y), mb);
 SIGNAL_GLAREA_END;
 
 function signal_motion_notify_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventMotion;
   data: gpointer): gboolean; cdecl;
 SIGNAL_GLAREA_BEGIN
- DoMouseMove(Round(Event^.x), Round(Event^.y));
- Result := g_true;
+  DoMouseMove(Round(Event^.x), Round(Event^.y));
+  Result := g_true;
 SIGNAL_GLAREA_END;
 
 procedure signal_menu_item_activate(AMenuItemGtk: PGtkMenuItem;
@@ -648,7 +649,7 @@ procedure signal_menu_item_activate(AMenuItemGtk: PGtkMenuItem;
   function gtk_check_menu_item_get_active(
     check_menu_item: PGtkCheckMenuItem): gboolean;
   begin
-   Result := active(PGtkCheckMenuItem(check_menu_item)^) <> 0;
+    Result := active(PGtkCheckMenuItem(check_menu_item)^) <> 0;
   end;
   {$endif}
 
