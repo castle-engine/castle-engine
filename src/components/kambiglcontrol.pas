@@ -215,7 +215,7 @@ type
       (for example, may be ~ 100 GTK messages, see
       TGtkWidgetSet.AppProcessMessages in lazarus/trunk/lcl/interfaces/gtk/gtkwidgetset.inc).
       So instead we hack from the inside: from time to time
-      (more precisely, after AggressiveUpdateGap miliseconds since last Idle),
+      (more precisely, after AggressiveUpdateGap miliseconds since last Idle + Paint end),
       when receving key or mouse events (KeyDown, MouseDown, MouseMove etc.),
       we'll call the Idle, and (if pending Invalidate call) Paint methods.
 
@@ -460,17 +460,30 @@ begin
 end;
 
 procedure TKamOpenGLControlCore.AggressiveUpdateTick;
-var
-  TimeNow: TMilisecTime;
 begin
   if AggressiveUpdate then
   begin
-    TimeNow := GetTickCount;
-    if TimeTickSecondLater(LastAggressiveUpdateTime, TimeNow, AggressiveUpdateGap) then
+    if TimeTickSecondLater(LastAggressiveUpdateTime, GetTickCount, AggressiveUpdateGap) then
     begin
       Idle;
       if Invalidated then Paint;
-      LastAggressiveUpdateTime := TimeNow;
+
+      { We have to resist the temptation of optimizing below by reusing previous
+        GetTickCount result here for speed. This could make our aggressive
+        update overloading the event loop with repaints.
+        Imagine that Idle + Paint would take > AggressiveUpdateGap
+        (quite possible, if your scene is complex and you're constantly
+        repainting, e.g. observed with mouse look walking + rotating on
+        cubemap_with_dynamic_world.x3d). Then we would effectively repeat
+        Idle + Paint in every event (like, on every MouseMove), making
+        "lag" between painting and actualy processed events.
+
+        True, this "overloading" is always possible with AggressiveUpdate
+        anyway (by definition AggressiveUpdate does something non-optimal
+        with events). But at least this way, AggressiveUpdateGap provides
+        some working security against this overloading. }
+
+      LastAggressiveUpdateTime := GetTickCount;
     end;
   end;
 end;
