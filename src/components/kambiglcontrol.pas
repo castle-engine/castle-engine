@@ -27,7 +27,8 @@ uses
 const
   { Default value for TKamOpenGLControlCore.AggressiveUpdateGap.
     "1000 div 60" means that we strike for 60 frames per second,
-    although this is gross approximation (no guarantees, of course). }
+    although this is gross approximation (no guarantees, of course;
+    especially if your Idle / Draw take a long time). }
   DefaultAggressiveUpdateGap = 1000 div 60;
 
   { Default value for TKamOpenGLControlCore.AggressiveUpdate }
