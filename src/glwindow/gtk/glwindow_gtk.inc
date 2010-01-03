@@ -1670,8 +1670,8 @@ begin
   MaybeDoTimer(LastDoTimerTime);
  end;
 
- { Returning false here means to remove this idle function.
-   So I always return true here. }
+ { Returning g_false here means to remove this idle function.
+   So I always return g_true here. }
  Result := {$ifdef GLWINDOW_GTK_2} g_true {$else} gtrue {$endif};
 end;
 
