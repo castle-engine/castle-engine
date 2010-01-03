@@ -169,3 +169,57 @@ idle event.
 Bottom line: it's not reliable to call any TGLWindow events (that could
 always call MessageOk and enter loop that will require more expose events
 to run properly) from GTK's signal expose *or* GTK's registered idle.
+
+------------------------------------------------------------------------------
+
+Also, using GTK's signal expose was forcing us to use elaborate
+AutoRedisplayAddToList hack. Reasoning and code below:
+
+    DoDraw took care of AutoRedisplay:
+    if AutoRedisplay then
+    begin
+     if Application.AutoRedisplayAddToList > 0 then
+
+       make sure that Application.AutoRedisplayList contains Self
+       (i.e. add Self to Application.AutoRedisplayList, unless
+       Application.AutoRedisplayList already contains Self)
+
+     else
+       PostRedisplay;
+
+    So specific GLWindow implementations need not to worry about
+    AutoRedisplay. They only have to implement PostRedisplay.
+
+    Also, some implementations (currently this concerns gtk
+    implementations) should disallow doing PostRedisplay caused
+    by AutoRedisplay = true when they are inside ProcessAllMessages
+    (since it can, in some situations, as with GTK bindings,
+    mean that ProcessAllMessages would hang forever, since
+    there would be always pending message to redisplay the window).
+    Such implementations want to do
+
+      if AutoRedisplayAddToList = 0 then AutoRedisplayList.Clear;
+      Inc(AutoRedisplayAddToList);
+
+    at the beginning and then
+
+      Dec(AutoRedisplayAddToList);
+      if AutoRedisplayAddToList = 0 then AutoRedisplayList.PostRedisplay;
+
+    at the end, see glwindow_gtk.inc ProcessAllMessages implementation
+    for example (with proper try...finally clause around).
+    Also such backends should do
+      AutoRedisplayList := TGLWindowsList.Create;
+    and
+      FreeAndNil(AutoRedisplayList);
+    at appropriate places (e.g. in
+    TGLWindowManager.Create/DestroyImplDependent)
+    and
+      Application.AutoRedisplayList.Delete(Self);
+    in TGLWindow.CloseImplDepend (to make sure that destroyed windows
+    are not a memebers of AutoRedisplayList).
+
+    Note that AutoRedisplayAddToList is an integer (not a simple boolean)
+    to be safe in case someone calls ProcessAllMessages recursively
+    (e.g. call ProcessAllMessages that calls OnMouseDown that calls
+    ProcessAllMessages inside). }

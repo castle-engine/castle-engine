@@ -462,8 +462,8 @@ SIGNAL_GLAREA_BEGIN
     We will redraw ourselves next time, when the event queue will not contain
     any more expose events.
 
-    But: when AutoRedisplay := true (on some similiar situation is present,
-    i.e. we're constantly doing PostRedisplay) it is not so safe to do this
+    But: when AutoRedisplay := true (or a similiar situation,
+    we're constantly doing PostRedisplay) it is not so safe to do this
     because it is possible then that EVERY event will have Event^.Count > 0.
     I.e. we may not process expose events fast enough, and there always
     will be some expose event in queue when another expose event arrives,
@@ -1301,8 +1301,6 @@ end;
 
 procedure TGLWindow.CloseImplDepend;
 begin
- Application.AutoRedisplayList.Remove(Self);
-
  {$ifdef GLWINDOW_GTK_1}
  if FullScreen and FullScreenUsingOverrideRedirect then
   gdk_keyboard_ungrab(GDK_CURRENT_TIME);
@@ -1719,58 +1717,50 @@ end;
 
 function TGLApplication.ProcessAllMessages: boolean;
 begin
- { See comments at TGLWindow.DoDraw to understand this mess
-   with AutoRedisplayAddToList here. }
- if AutoRedisplayAddToList = 0 then AutoRedisplayList.Clear;
- Inc(AutoRedisplayAddToList);
- try
+  { Basically, call gtk_main_iteration (equivalent to
+    gtk_main_iteration_do with parameter blocking = always true),
+    only while gtk_events_pending (so we know it will not actually block).
 
-   while gtk_events_pending() <> 0 do
-    Result := not GBoolToPas(
-      {$ifndef GLWINDOW_GTK_2} gboolean {$endif}
-      (gtk_main_iteration()));
+    Moreover, call ProcessUpdates in the middle.
 
-   ProcessUpdates;
+    Summing it up, just call ProcessMessage(true) while gtk_events_pending. }
 
- finally Dec(AutoRedisplayAddToList) end;
- if AutoRedisplayAddToList = 0 then AutoRedisplayList.PostRedisplay;
+  Result := not QuitPosted;
+
+  while Result and (gtk_events_pending() <> 0) do
+  begin
+    Result := ProcessMessage(true);
+  end;
 end;
 
 function TGLApplication.ProcessMessage(AllowSuspend: boolean): boolean;
 begin
-  (* I would like to do here
-    Result := not GBoolToPas(gtk_main_iteration_do(AllowSuspend))
+  (* Note that gtk_main_iteration_do result is not useful to us.
+     That is, we can't just call here
 
-    I.e. I want to use the result of gtk_main_iteration_do to return it.
-    Unfortunately, it turns out that gtk_main_iteration_do always returns
-    true if the program doesn't use gtk_main call at all
-    (i.e. does it's whole loop manually, by calling Application.ProcessMessage).
-    This is confirmed by
-    1. practice (just change impl of Loop to
-         while ProcessMessage(true) do ;
-       instead of relaying on gtk_main
-    2. gtk source code:
-         gint
-         gtk_main_iteration_do (gboolean blocking)
-         {
-           GDK_THREADS_LEAVE ();
-           g_main_iteration (blocking);
-           GDK_THREADS_ENTER ();
+       Result := not GBoolToPas(gtk_main_iteration_do(AllowSuspend))
+
+     because gtk_main_iteration_do always returns true if the program
+     doesn't use gtk_main call at all (i.e. does it's whole loop manually,
+     by calling Application.ProcessMessage).
+
+     Confirmed by a look at gtk source code
+     (http://git.gnome.org/browse/gtk+/tree/gtk/gtkmain.c?h=gtk-2-18),
+     gtk_main_iteration_do ends like this:
 
            if (main_loops)
              return !g_main_is_running (main_loops->data);
            else
              return TRUE;
-         }
 
 
-       and note that main_loops is set only by gtk_main.
-       So a program that doesn't call gtk_main at all has
-       main_loops = nil always.
+     and note that main_loops is set only by gtk_main.
+     So a program that doesn't call gtk_main at all has
+     main_loops = nil always.
 
-    This means that I should trace the QuitPosted value myself,
-    just like I do for X11 or WinAPI GLWindow implementations.
-    And the result of gtk_main_iteration_do call should be ignored. *)
+     This means that I should trace the QuitPosted value myself,
+     just like I do for X11 or WinAPI GLWindow implementations.
+     And the result of gtk_main_iteration_do call should be ignored. *)
 
   gtk_main_iteration_do(AllowSuspend);
   Result := not QuitPosted;
@@ -1806,8 +1796,6 @@ begin
   gtk_gl_init(@argc, @argv);
   {$endif}
 
-  AutoRedisplayList := TGLWindowsList.Create;
-
   QuitPosted := false;
 
 {$ifdef GLWINDOW_GTK_2}
@@ -1837,8 +1825,6 @@ procedure TGLApplication.DestroyImplDependent;
 var
   C: TGLWindowCursor;
 begin
-  FreeAndNil(AutoRedisplayList);
-
   { unref cursors allocated in Cursors array }
   for C := Low(C) to High(C) do
     if Cursors[C] <> nil then

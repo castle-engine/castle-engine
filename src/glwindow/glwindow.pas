@@ -1003,54 +1003,12 @@ type
          EventDraw (inside Fps._RenderBegin/End)
          flush gl command pipeline (and swap gl buffers if DoubleBuffer)
 
-         take care of AutoRedisplay -
-           if AutoRedisplay then
-           begin
-            if Application.AutoRedisplayAddToList > 0 then
+      - Take care of AutoRedisplay, like
 
-              make sure that Application.AutoRedisplayList contains Self
-              (i.e. add Self to Application.AutoRedisplayList, unless
-              Application.AutoRedisplayList already contains Self)
+          @code(if AutoRedisplay then PostRedisplay;)
 
-            else
-              PostRedisplay;
-
-           So specific GLWindow implementations need not to worry about
-           AutoRedisplay. They only have to implement PostRedisplay.
-
-           Also, some implementations (currently this concerns gtk
-           implementations) should disallow doing PostRedisplay caused
-           by AutoRedisplay = true when they are inside ProcessAllMessages
-           (since it can, in some situations, as with GTK bindings,
-           mean that ProcessAllMessages would hang forever, since
-           there would be always pending message to redisplay the window).
-           Such implementations want to do
-
-             if AutoRedisplayAddToList = 0 then AutoRedisplayList.Clear;
-             Inc(AutoRedisplayAddToList);
-
-           at the beginning and then
-
-             Dec(AutoRedisplayAddToList);
-             if AutoRedisplayAddToList = 0 then AutoRedisplayList.PostRedisplay;
-
-           at the end, see glwindow_gtk.inc ProcessAllMessages implementation
-           for example (with proper try...finally clause around).
-           Also such backends should do
-             AutoRedisplayList := TGLWindowsList.Create;
-           and
-             FreeAndNil(AutoRedisplayList);
-           at appropriate places (e.g. in
-           TGLWindowManager.Create/DestroyImplDependent)
-           and
-             Application.AutoRedisplayList.Delete(Self);
-           in TGLWindow.CloseImplDepend (to make sure that destroyed windows
-           are not a memebers of AutoRedisplayList).
-
-           Note that AutoRedisplayAddToList is an integer (not a simple boolean)
-           to be safe in case someone calls ProcessAllMessages recursively
-           (e.g. call ProcessAllMessages that calls OnMouseDown that calls
-           ProcessAllMessages inside). }
+        So specific GLWindow implementations need not to worry about
+        AutoRedisplay. They only have to implement PostRedisplay. }
     procedure DoDraw;
   private
     { DoKeyDown/Up: pass here key that is pressed down or released up.
@@ -2599,15 +2557,6 @@ type
   {$undef read_tglwindowmanager_interface}
 
   private
-    { AutoRedisplayAddToList is 0 and
-      AutoRedisplayList is nil
-      initially and these properties are never changed in generic glwindow
-      implementation (i.e. in this file, glwindow.pas).
-      They are used by TGLWindow.DoDraw. See there for comments why
-      some GLWindow backends may need to modify these properties. }
-    AutoRedisplayAddToList: Cardinal;
-    AutoRedisplayList: TGLWindowsList;
-  private
     FOnIdle :TIdleFunc;
     FOnTimer :TProcedure;
     FTimerMilisec :Cardinal;
@@ -3350,15 +3299,7 @@ begin
   if Closed then exit;
 
   if DoubleBuffer then SwapBuffers else glFlush;
-  if AutoRedisplay then
-  begin
-   if Application.AutoRedisplayAddToList > 0 then
-   begin
-    if Application.AutoRedisplayList.IndexOf(Self) = -1 then
-     Application.AutoRedisplayList.Add(Self);
-   end else
-    PostRedisplay;
-  end;
+  if AutoRedisplay then PostRedisplay;
  finally Fps._RenderEnd end;
 
  {$ifdef GLWINDOW_CHECK_GL_ERRORS_AFTER_DRAW} CheckGLErrors; {$endif}
