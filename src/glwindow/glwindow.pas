@@ -411,8 +411,8 @@ unit GLWindow;
   mouse move for now), you'll need to define also GLWINDOW_LOG_EVENTS_ALL
   (relevant only if GLWINDOW_EVENTS_LOG).
 }
-{$define GLWINDOW_EVENTS_LOG}
-{$define GLWINDOW_EVENTS_LOG_ALL}
+{ $define GLWINDOW_EVENTS_LOG}
+{ $define GLWINDOW_EVENTS_LOG_ALL}
 {$ifndef GLWINDOW_EVENTS_LOG}
   {$undef GLWINDOW_EVENTS_LOG_ALL}
 {$endif}
