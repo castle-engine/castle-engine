@@ -1735,6 +1735,17 @@ begin
 end;
 
 function TGLApplication.ProcessMessage(AllowSuspend: boolean): boolean;
+
+  function SomeRedisplayPosted: boolean;
+  var
+    I: Integer;
+  begin
+    for I := 0 to ActiveCount - 1 do
+      if Active[I].RedisplayPosted then Exit(true);
+
+    Result := false;
+  end;
+
 begin
   (* Note that gtk_main_iteration_do result is not useful to us.
      That is, we can't just call here
@@ -1764,7 +1775,7 @@ begin
      And the result of gtk_main_iteration_do call should be ignored. *)
 
   AllowSuspend := AllowSuspend and Application.AllowSuspendForInput and
-    not ({WasAnyDrawing or }QuitPosted);
+    (not SomeRedisplayPosted) and (not QuitPosted);
 
   gtk_main_iteration_do(AllowSuspend);
   Result := not QuitPosted;
