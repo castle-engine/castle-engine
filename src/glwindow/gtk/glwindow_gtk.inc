@@ -245,6 +245,10 @@ public
   so they are not assigment-compatible. So use our g_false/g_true
   (with underscore) for best results. }
 const
+  {$ifdef GLWINDOW_GTK_1}
+  gtrue = 1;
+  gfalse = 0;
+  {$endif}
   g_true = LongBool(gtrue);
   g_false = LongBool(gfalse);
 
@@ -1668,7 +1672,7 @@ begin
 
  { Returning false here means to remove this idle function.
    So I always return true here. }
- Result := g_true;
+ Result := {$ifdef GLWINDOW_GTK_2} g_true {$else} gtrue {$endif};
 end;
 
 procedure TGLApplication.SetGlobalIdleInstalled(value: boolean);
