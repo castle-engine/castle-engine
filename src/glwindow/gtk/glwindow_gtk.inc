@@ -1774,7 +1774,7 @@ begin
      just like I do for X11 or WinAPI GLWindow implementations.
      And the result of gtk_main_iteration_do call should be ignored. *)
 
-  Result := not QuitPosted;
+  if QuitPosted then Exit(false);
 
   { Only allow yourself a ProcessUpdates call when no events are pending.
     This is done regardless of AllowSuspend mechanism.
@@ -1786,13 +1786,16 @@ begin
   if Result and (gtk_events_pending() = 0) then
   begin
     ProcessUpdates;
-    Result := not QuitPosted;
+    if QuitPosted then Exit(false);
   end;
 
+  { Once we had below condition "and (not QuitPosted)",
+    but it's pointless, we know QuitPosted is false now. }
   AllowSuspend := AllowSuspend and Application.AllowSuspendForInput and
-    (not SomeRedisplayPosted) and (not QuitPosted);
+    (not SomeRedisplayPosted);
 
   gtk_main_iteration_do(AllowSuspend);
+  Result := not QuitPosted;
 end;
 
 procedure TGLApplication.QuitWhenNoWindowsActive;
