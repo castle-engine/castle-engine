@@ -449,6 +449,8 @@ begin
 {$define SIGNAL_WINDOW_END:=
  end; end}
 
+procedure GlobalIdleFromDraw; forward;
+
 function GlobalIdle(data: gpointer):
   {$ifdef GLWINDOW_GTK_2} gboolean {$else} gint {$endif}; cdecl; forward;
 
@@ -489,11 +491,11 @@ SIGNAL_GLAREA_BEGIN
 
  DoDraw;
 
- { This is needed, GlobalIdle must be called even if you continuously
+ { This is needed, GlobalIdleFromDraw must be called even if you continuously
    call PostRedisplay (of just have AutoRedisplay := true).
    See comments at SetGlobalIdleInstalled to know why I can't
    do this differently (by setting GlobalIdle's priority == redraw priority). }
- GlobalIdle(nil);
+ GlobalIdleFromDraw;
 
  Result := g_true;
 SIGNAL_GLAREA_END;
@@ -1527,7 +1529,7 @@ begin
 
   if FileName = '' then
   begin
-    { We explicitly allow FileName in the interface of FileDialog,
+    { We explicitly allow FileName = '' in the interface of FileDialog,
       it's equal to FileName = GetCurrentDir (with PathDelim at the end) }
     gtk_file_chooser_set_current_folder(Dialog, PChar(GetCurrentDir));
   end else
@@ -1655,24 +1657,38 @@ end;
 
 { TGLApplication: global idle ------------------------------------------- }
 
+{ GTK (actually glib) idle event.
+  We use it for two tasks currently:
+  1. calling idle and times events of Application and all our windows
+  2. taking care of redraw }
 function GlobalIdle(data: gpointer):
   {$ifdef GLWINDOW_GTK_2} gboolean {$else} gint {$endif}; cdecl;
-{ This function simply calls Application.DoSelfIdle and Application.DoActiveWindowsIdle
-  and takes care of calling Application.DoSelfTimer and Application.DoActiveWindowsTimer. }
 begin
- with Application do
- begin
-  DoSelfIdle;
-  DoActiveWindowsIdle;
+  GlobalIdleFromDraw;
 
-  { For simplicity, we're implementing here our own timer mechanism,
-    without using gtk timers. }
-  MaybeDoTimer(LastDoTimerTime);
- end;
+  { Returning g_false here means to remove this idle function.
+    So I always return g_true here. }
+  Result := {$ifdef GLWINDOW_GTK_2} g_true {$else} gtrue {$endif};
+end;
 
- { Returning g_false here means to remove this idle function.
-   So I always return g_true here. }
- Result := {$ifdef GLWINDOW_GTK_2} g_true {$else} gtrue {$endif};
+{ Call idle and timer events of Application and all windows.
+
+  Idle events are called by by Application.DoSelfIdle and
+  Application.DoActiveWindowsIdle.
+
+  Timer events are called by MaybeDoTimer, that in turn will call
+  (when needed) Application.DoSelfTimer and Application.DoActiveWindowsTimer. }
+procedure GlobalIdleFromDraw;
+begin
+  with Application do
+  begin
+    DoSelfIdle;
+    DoActiveWindowsIdle;
+
+    { For simplicity, we're implementing here our own timer mechanism,
+      without using gtk timers. }
+    MaybeDoTimer(LastDoTimerTime);
+  end;
 end;
 
 procedure TGLApplication.SetGlobalIdleInstalled(value: boolean);
@@ -1682,18 +1698,22 @@ begin
   FGlobalIdleInstalled := value;
   if FGlobalIdleInstalled then
   begin
-   { Notes for GTK_1:
-     This is important: priority of Idles must be the same as the priority of
-     redraws. That's because OnIdle must be constantly called, even when
-     AutoRedisplay = true (i.e. when we always have some redraw pending).
-     The default low priority of gtk_idle_add would make OnIdle call impossible
-     while AutoRedisplay = true.
-     So GTK_PRIORITY_REDRAW is needed.
+   { About idle priority:
 
-     Notes for GTK_2:
-     While idle with priority GTK_PRIORITY_REDRAW works perfectly
-     with GTK_1, it does cause problems with GTK_2 :
-     After switching to alternative menu,
+     We would like to set it to GTK_PRIORITY_REDRAW (this is
+     G_PRIORITY_HIGH_IDLE + 20, smaller than G_PRIORITY_DEFAULT_IDLE,
+     which means it's more important). That's because our idle events
+     (Application.OnIdle, TGLWindow.OnIdle etc.)
+     must be constantly called, even when AutoRedisplay = true
+     (i.e. when we always have some redraw pending), and with
+     ~approximately the same frequency as draw events.
+
+     The default priority of gtk_idle_add, which is G_PRIORITY_DEFAULT_IDLE,
+     would make our idle events (Application.OnIdle etc.) never called
+     when AutoRedisplay = true.
+
+     Unfortunately, with GTK 2 (GTK 1 didn't have this problem),
+     GTK_PRIORITY_REDRAW causes a problem: after switching to alternative menu,
      key shortcuts to menu items do not work.
      I don't know what's the exact reason of this, I guess that I'm just
      blocking some other internal gtk idles and so I'm causing some
@@ -1704,16 +1724,14 @@ begin
      (and also gtk/tests/test_changing_menu/test_changing_menu.pasprogram
      on michalis.ii SVN, temporarily private (too obscure...)).
 
-     Experiments show that giving priority G_PRIORITY_DEFAULT_IDLE is OK.
-
-     What to do with the problem
-     "OnIdle must be constantly called, even when AutoRedisplay = true" ?
-     Well, this is simple: I'm just calling GlobalIdle(nil) manually
+     G_PRIORITY_DEFAULT_IDLE doesn't have this problem, but it's leaving
+     us with the first problem: Application.OnIdle will not be called
+     continously if we redraw continously (like when AutoRedisplay = true).
+     Our current solution: call GlobalIdleFromDraw manually
      after calling DoDraw in signal_expose_event.
    }
-   GlobalIdleHandle :=
-     gtk_idle_add_priority(G_PRIORITY_DEFAULT_IDLE,
-       {$ifdef FPC_OBJFPC} @ {$endif} GlobalIdle, nil);
+   GlobalIdleHandle := gtk_idle_add_priority(G_PRIORITY_DEFAULT_IDLE,
+     @GlobalIdle, nil);
   end else
   begin
    gtk_idle_remove(GlobalIdleHandle);
