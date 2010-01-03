@@ -138,21 +138,21 @@ protected
 
 {$ifdef read_tglwindowmanager_interface}
 private
-  { used in GlobalIdle }
+  { used in GtkIdle }
   LastDoTimerTime: TMilisecTime;
 
   QuitPosted: boolean;
 
-  { used in SetGlobalIdleInstalled }
-  GlobalIdleHandle: guint;
-  FGlobalIdleInstalled: boolean;
-  procedure SetGlobalIdleInstalled(value: boolean);
-  { This controls whether GlobalIdle is installed (i.e. registered to gtk).
+  { used in SetGtkIdleInstalled }
+  GtkIdleHandle: guint;
+  FGtkIdleInstalled: boolean;
+  procedure SetGtkIdleInstalled(value: boolean);
+  { This controls whether GtkIdle is installed (i.e. registered to gtk).
     It is initialized to true in CreateImplDepend, finalized to false
     in DestroyImplDepend and for the most part stays as true.
     BUT it must be temporarily disabled in ProcessAllMesages. }
-  property GlobalIdleInstalled: boolean
-    read FGlobalIdleInstalled write SetGlobalIdleInstalled;
+  property GtkIdleInstalled: boolean
+    read FGtkIdleInstalled write SetGtkIdleInstalled;
 
   { Find in Active[] window with WindowGtk = given seekWindowGtk.
     Return nil if no such window is found. }
@@ -451,10 +451,7 @@ begin
 {$define SIGNAL_WINDOW_END:=
  end; end}
 
-procedure GlobalIdleFromDraw; forward;
-
-function GlobalIdle(data: gpointer):
-  {$ifdef GLWINDOW_GTK_2} gboolean {$else} gint {$endif}; cdecl; forward;
+procedure GlwindowsIdleAndTimer; forward;
 
 function signal_expose_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventExpose;
   data: gpointer): gboolean; cdecl;
@@ -494,11 +491,11 @@ SIGNAL_GLAREA_BEGIN
  RedisplayPosted := false;
  DoDraw;
 
- { This is needed, GlobalIdleFromDraw must be called even if you continuously
+ { This is needed, GlwindowsIdleAndTimer must be called even if you continuously
    call PostRedisplay (of just have AutoRedisplay := true).
-   See comments at SetGlobalIdleInstalled to know why I can't
-   do this differently (by setting GlobalIdle's priority == redraw priority). }
- GlobalIdleFromDraw;
+   See comments at SetGtkIdleInstalled to know why I can't
+   do this differently (by setting GtkIdle's priority == redraw priority). }
+ GlwindowsIdleAndTimer;
 
  Result := g_true;
 SIGNAL_GLAREA_END;
@@ -1445,13 +1442,13 @@ begin
   { prepare Data }
   Data.Answered := false;
 
-  { Temporarily set GlobalIdleInstalled to false.
+  { Temporarily set GtkIdleInstalled to false.
 
     This disables our OnIdle, OnTimer callbacks for dialog time, consistent
     with what we do when using GtkFileChooser (that is implemented
-    in a different place, and there GlobalIdleInstalled := false
+    in a different place, and there GtkIdleInstalled := false
     is actually needed for correct behavior). }
-  Application.GlobalIdleInstalled := false;
+  Application.GtkIdleInstalled := false;
   try
 
     { enter glwin mode }
@@ -1465,7 +1462,7 @@ begin
       while not Data.Answered do Application.ProcessMessage(true);
     finally Mode.Free end;
 
-  finally Application.GlobalIdleInstalled := true end;
+  finally Application.GtkIdleInstalled := true end;
 
   Result := Data.Answer;
 end;
@@ -1597,18 +1594,18 @@ begin
     end;
   end;
 
-  { Temporarily set GlobalIdleInstalled to false.
+  { Temporarily set GtkIdleInstalled to false.
     Reason? Just like for ProcessAllMessages: when
-    GlobalIdleInstalled = true then gtk_events_pending()
-    always returns true (because it thinks that it should call GlobalIdle
+    GtkIdleInstalled = true then gtk_events_pending()
+    always returns true (because it thinks that it should call GtkIdle
     in a loop).
 
     In this case, gtk_events_pending may be called inside gtk_dialog_run.
     This seems to be the case for GTK starting from 2.14: on Ubuntu 8.10
     open dialog hangs strangely (you cannot see the entries in open dialog,
     and clicking on "file system" hangs etc.) without this
-    GlobalIdleInstalled := false fix. }
-  Application.GlobalIdleInstalled := false;
+    GtkIdleInstalled := false fix. }
+  Application.GtkIdleInstalled := false;
   try
 
     Mode := TGLModeFrozenScreen.Create(Self, 0, false, nil);
@@ -1631,7 +1628,7 @@ begin
       end;
     finally Mode.Free end;
 
-  finally Application.GlobalIdleInstalled := true end;
+  finally Application.GtkIdleInstalled := true end;
 
   gtk_widget_destroy(GTK_WIDGET(Dialog));
 end;
@@ -1674,13 +1671,13 @@ begin
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
 end;
 
-{ TGLApplication: global idle ------------------------------------------- }
+{ TGLApplication: idle stuff ------------------------------------------- }
 
 { GTK (actually glib) idle event.
   We use it for two tasks currently:
   1. calling idle and times events of Application and all our windows
   2. taking care of redraw }
-function GlobalIdle(data: gpointer):
+function GtkIdle(data: gpointer):
   {$ifdef GLWINDOW_GTK_2} gboolean {$else} gint {$endif}; cdecl;
 
   { If some window has RedisplayPosted = @true, redraw it.
@@ -1691,18 +1688,18 @@ function GlobalIdle(data: gpointer):
     GTK's gtk_widget_queue_draw gets ignored when called from within
     expose signal, which must be honored in our TGLWindow.
 
-    For example, right now GlobalIdleFromDraw is also called from
+    For example, right now GlwindowsIdleAndTimer is also called from
     "expose" signal. If a program calls MessageOk from TGLWindow.OnIdle
     (like "malfunction" game when you crashed the ship), this message
     will not be drawn. (But note that the problem exists even when
-    GlobalIdleFromDraw would not be called from "expose" signal.
+    GlwindowsIdleAndTimer would not be called from "expose" signal.
     For example, let some program call MessageOk from OnDraw.)
 
-    That's why this mechanism is needed. Our GlobalIdle priority is less
-    important (that is, higher number) than GTK redraw (see SetGlobalIdleInstalled),
+    That's why this mechanism is needed. Our GtkIdle priority is less
+    important (that is, higher number) than GTK redraw (see SetGtkIdleInstalled),
     so GTK already had a chance to handle this redraw. If it failed to handle,
     we have to handle it here. }
-  procedure GlobalFlushRedisplay;
+  procedure GlwindowsFlushRedisplay;
   var
     I: Integer;
     Glwin: TGLWindow;
@@ -1718,8 +1715,8 @@ function GlobalIdle(data: gpointer):
   end;
 
 begin
-  GlobalFlushRedisplay;
-  GlobalIdleFromDraw;
+  GlwindowsFlushRedisplay;
+  GlwindowsIdleAndTimer;
 
   { Returning g_false here means to remove this idle function.
     So I always return g_true here. }
@@ -1733,7 +1730,7 @@ end;
 
   Timer events are called by MaybeDoTimer, that in turn will call
   (when needed) Application.DoSelfTimer and Application.DoActiveWindowsTimer. }
-procedure GlobalIdleFromDraw;
+procedure GlwindowsIdleAndTimer;
 begin
   with Application do
   begin
@@ -1746,12 +1743,12 @@ begin
   end;
 end;
 
-procedure TGLApplication.SetGlobalIdleInstalled(value: boolean);
+procedure TGLApplication.SetGtkIdleInstalled(value: boolean);
 begin
- if FGlobalIdleInstalled <> value then
+ if FGtkIdleInstalled <> value then
  begin
-  FGlobalIdleInstalled := value;
-  if FGlobalIdleInstalled then
+  FGtkIdleInstalled := value;
+  if FGtkIdleInstalled then
   begin
    { About idle priority:
 
@@ -1782,14 +1779,14 @@ begin
      G_PRIORITY_DEFAULT_IDLE doesn't have this problem, but it's leaving
      us with the first problem: Application.OnIdle will not be called
      continously if we redraw continously (like when AutoRedisplay = true).
-     Our current solution: call GlobalIdleFromDraw manually
+     Our current solution: call GlwindowsIdleAndTimer manually
      after calling DoDraw in signal_expose_event.
    }
-   GlobalIdleHandle := gtk_idle_add_priority(G_PRIORITY_DEFAULT_IDLE,
-     @GlobalIdle, nil);
+   GtkIdleHandle := gtk_idle_add_priority(G_PRIORITY_DEFAULT_IDLE,
+     @GtkIdle, nil);
   end else
   begin
-   gtk_idle_remove(GlobalIdleHandle);
+   gtk_idle_remove(GtkIdleHandle);
   end;
  end;
 end;
@@ -1845,14 +1842,14 @@ begin
  Inc(AutoRedisplayAddToList);
  try
 
-  { GlobalIdleInstalled must be temporarily turned off.
-    That's because when GlobalIdleInstalled = true gtk_events_pending()
-    always returns true (because it thinks that it should call GlobalIdle
+  { GtkIdleInstalled must be temporarily turned off.
+    That's because when GtkIdleInstalled = true gtk_events_pending()
+    always returns true (because it thinks that it should call GtkIdle
     in a loop).
 
     To make sure that Application.DoSelfIdle and DoIdle of Active[] windows
-    is executed we just manually execute at the end GlobalIdle. }
-  GlobalIdleInstalled := false;
+    is executed we just manually execute at the end GtkIdle. }
+  GtkIdleInstalled := false;
   try
 
    while gtk_events_pending() <> 0 do
@@ -1860,13 +1857,13 @@ begin
       {$ifndef GLWINDOW_GTK_2} gboolean {$endif}
       (gtk_main_iteration()));
 
-  finally GlobalIdleInstalled := true end;
+  finally GtkIdleInstalled := true end;
 
   { Without call below Application.DoSelfIdle and DoIdle of Active[] windows
     would not be executed in any ProcessAllMessages.
-    (It is possible that setting GlobalIdleInstalled := true; will also
-    execute GlobalIdle as a side effect. But we must not depend on that.) }
-  GlobalIdle(nil);
+    (It is possible that setting GtkIdleInstalled := true; will also
+    execute GtkIdle as a side effect. But we must not depend on that.) }
+  GtkIdle(nil);
 
  finally Dec(AutoRedisplayAddToList) end;
  if AutoRedisplayAddToList = 0 then AutoRedisplayList.PostRedisplay;
@@ -1939,8 +1936,8 @@ begin
 
   AutoRedisplayList := TGLWindowsList.Create;
 
-  FGlobalIdleInstalled := false;
-  GlobalIdleInstalled := true;
+  FGtkIdleInstalled := false;
+  GtkIdleInstalled := true;
 
   QuitPosted := false;
 
@@ -1971,7 +1968,7 @@ procedure TGLApplication.DestroyImplDependent;
 var
   C: TGLWindowCursor;
 begin
-  GlobalIdleInstalled := false;
+  GtkIdleInstalled := false;
 
   FreeAndNil(AutoRedisplayList);
 
