@@ -258,9 +258,9 @@ function TGLApplication.ProcessMessage2(AllowSuspend: boolean;
   end;
 
 var
-  wasAnyDrawing: boolean;
-  i: integer;
-  glwin: TGLWindow;
+  WasAnyDrawing: boolean;
+  I: integer;
+  Glwin: TGLWindow;
 begin
   WasAnyMessage := false;
   try
@@ -284,7 +284,7 @@ begin
              musimy umiescic wywolanie OnIdle tutaj - tuz przed wywolywaniem
              samych OnDraw'ow.
            - gdybysmy wywolywali OnIdle dopiero do ponizszych drawach
-             jezeli not wasAnyDrawing to z kolei zdarzenia OnDraw
+             jezeli not WasAnyDrawing to z kolei zdarzenia OnDraw
              (ktore np. same sobie juz wywoluja PostRedisplay) moglyby
              hamowac wywolywanie zdarzen OnIdle.
              A tego nie chcemy - patrz komentarze w interfejsie,
@@ -300,18 +300,18 @@ begin
             ze Closed moze zostac wywolane na oknie w kazdym callbacku, takze w OnIdle
             i OnDraw. A Close usuwa to okno z listy Active[], dlatego kopiujemy sobie
             na poczatku Active[i] do glwin. }
-        wasAnyDrawing := false;
-        i := 0;
-        while i < ActiveCount do
+        WasAnyDrawing := false;
+        I := 0;
+        while I < ActiveCount do
         begin
-          glwin := Active[i];
-          glwin.DoIdle;
-          if glwin.Closed then Continue {don't Inc(i)};
+          Glwin := Active[I];
+          Glwin.DoIdle;
+          if Glwin.Closed then Continue {don't Inc(I)};
           { Kolejnosc w OR ponizej MA ZNACZENIE : zawsze chemy wywolac
-            FlushRedisplay2, nawet jesli wasAnyDrawing juz jest = true }
-          wasAnyDrawing := glwin.FlushRedisplay2 or wasAnyDrawing;
-          if glwin.Closed then Continue {don't Inc(i)};
-          Inc(i);
+            FlushRedisplay2, nawet jesli WasAnyDrawing juz jest = true }
+          WasAnyDrawing := Glwin.FlushRedisplay2 or WasAnyDrawing;
+          if Glwin.Closed then Continue {don't Inc(I)};
+          Inc(I);
         end;
 
         { If we do not do anything in any idle/timer
@@ -334,7 +334,7 @@ begin
           suspended by OS until some event is received. Looking at any
           system monitor, you'll see we do not use CPU then. }
         if AllowSuspend and not (Assigned(OnIdle) or Assigned(OnTimer) or
-           SomeWindowDisallowsSuspend or wasAnyDrawing or QuitPosted) then
+           SomeWindowDisallowsSuspend or WasAnyDrawing or QuitPosted) then
           WaitMessage else
           NoMessageProcessed;
       end;
