@@ -1700,7 +1700,9 @@ begin
      mysterious problems.
 
      Simple test case with some comments is in
-     gtk.testy/test_changing_menu/test_changing_menu.pasprogram.
+     ../../../examples/glwindow/menu_test_alternative.pasprogram
+     (and also gtk/tests/test_changing_menu/test_changing_menu.pasprogram
+     on michalis.ii SVN, temporarily private (too obscure...)).
 
      Experiments show that giving priority G_PRIORITY_DEFAULT_IDLE is OK.
 
