@@ -72,13 +72,31 @@ private
     has no meaning. }
   procedure init_window_menu_bar;
 
-  { ADialog will be made modal and transient for us.
-    Then we will wait (while in TModeGLFrozenImage) for
-    clicking on ok_button (this will make us exit with true)
-    or cancel_button or by delete_event (these will make us exit with
-    false). }
-  function RunGtkDialog(ADialog: PGtkWindow;
+  { Run ADialog as a modal window.
+    ADialog will be made modal (and "transient" for us in the GtkWindow variant).
+
+    Then we will wait (while in TModeGLFrozenImage) for dialog to finish.
+    PGtkDialog version just returns gint response, like gtk_dialog_run
+    --- possible values like gtk_dialog_run, depending on dialog buttons.
+    PGtkWindow version returns @true if closed by Ok button,
+    otherwise (when closed by Cancel button, or "delete" event) returns @false.
+
+    Overloaded version with PGtkDialog is a close analogy of
+    gtk_dialog_run. In fact, it was written looking at implementation
+    of gtk_dialog_run (http://git.gnome.org/browse/gtk+/tree/gtk/gtkdialog.c?h=gtk-2-18),
+    although it's also very similar (even shares some internal helper data)
+    with the GtkWindow variant.
+
+    Never use GTK's gtk_dialog_run! (Reason: We have to run event loop by our
+    Application.ProcessMessage, not by GTK's g_main_loop_run,
+    to properly run Application.ProcessUpdates, to properly redraw /
+    receive idle etc.)
+
+    @groupBegin }
+  function GtkDialogRun(ADialog: PGtkWindow;
     ok_button, cancel_button: PGtkWidget): boolean;
+  function GtkDialogRun(ADialog: PGtkDialog): gint;
+  { @groupEnd }
 private
   FBorderWidth: Cardinal;
 
@@ -1370,51 +1388,62 @@ end;
 { TGLWindow.*Dialog --------------------------------------------------- }
 
 type
-  { Data type for RunGtkDialog.
+  { Data type for GtkDialogRun (both variants).
     PDialogData will be passed as a 2nd argument to signals
     (and 3rd argument to events) associated with dialog boxes. }
   TDialogData = record
     Answered: boolean; { = false }
-    Answer: boolean;
-    Dialog: PGtkWindow;
+    Answer: gint;
   end;
   PDialogData = ^TDialogData;
 
 procedure signal_dialog_ok_clicked(AWidget: PGtkWidget; Data: PDialogData); cdecl;
 begin
- Data^.Answered := true;
- Data^.Answer := true;
+  Data^.Answered := true;
+  Data^.Answer := GTK_RESPONSE_ACCEPT;
 end;
 
 procedure signal_dialog_cancel_clicked(AWidget: PGtkWidget;
   Data: PDialogData); cdecl;
 begin
- Data^.Answered := true;
- Data^.Answer := false;
+  Data^.Answered := true;
+  Data^.Answer := GTK_RESPONSE_REJECT;
 end;
 
-function signal_dialog_delete_event(AWidget: PGtkWidget; Event: PGdkEventKey;
+function signal_dialog_delete_event(AWidget: PGtkWidget; Event: PGdkEventAny;
   Data: PDialogData): gboolean; cdecl;
 begin
- signal_dialog_cancel_clicked(nil, Data);
- { don't allow to call gtk_widget_destroy, we will call it ourselves
-   in FileDialog/ColorDialog. }
- Result := g_true;
+  Data^.Answered := true;
+  Data^.Answer := GTK_RESPONSE_DELETE_EVENT;
+  { don't allow to call gtk_widget_destroy, we will call it ourselves
+    in FileDialog/ColorDialog. }
+  Result := g_true;
 end;
 
-function TGLWindow.RunGtkDialog(ADialog: PGtkWindow;
+procedure signal_dialog_unmap(ADialog: PGtkDialog; Data: PDialogData); cdecl;
+begin
+  Data^.Answered := true;
+  Data^.Answer := GTK_RESPONSE_NONE;
+end;
+
+procedure signal_dialog_response(ADialog: PGtkDialog; ResponseId: GInt;
+  Data: PDialogData); cdecl;
+begin
+  Data^.Answered := true;
+  Data^.Answer := ResponseId;
+end;
+
+function TGLWindow.GtkDialogRun(ADialog: PGtkWindow;
   ok_button, cancel_button: PGtkWidget): boolean;
 var
   Data: TDialogData;
   Mode: TGLModeFrozenScreen;
 begin
- Data.Dialog := ADialog;
-
   gtk_signal_connect(GTK_OBJECT(ok_button),
     'clicked',      GTK_SIGNAL_FUNC(@signal_dialog_ok_clicked),     @Data);
   gtk_signal_connect(GTK_OBJECT(cancel_button),
     'clicked',      GTK_SIGNAL_FUNC(@signal_dialog_cancel_clicked), @Data);
-  gtk_signal_connect(GTK_OBJECT(Data.Dialog),
+  gtk_signal_connect(GTK_OBJECT(ADialog),
     'delete_event', GTK_SIGNAL_FUNC(@signal_dialog_delete_event),   @Data);
 
   gtk_window_set_modal(ADialog, g_true);
@@ -1428,6 +1457,36 @@ begin
     temporary disabled. But then I added lines with "gtk_window_set_modal"
     and "gtk_window_set_transient_for" above and it's no longer necessary.
     So I don't use it. }
+  Mode := TGLModeFrozenScreen.Create(Self, 0, false, nil);
+  try
+    gtk_widget_show(GTK_WIDGET(ADialog));
+    while not Data.Answered do Application.ProcessMessage(true);
+  finally Mode.Free end;
+
+  Result := Data.Answer = GTK_RESPONSE_ACCEPT;
+end;
+
+function TGLWindow.GtkDialogRun(ADialog: PGtkDialog): gint;
+var
+  Data: TDialogData;
+  Mode: TGLModeFrozenScreen;
+begin
+  g_signal_connect(GTK_OBJECT(ADialog),
+    'response',    GTK_SIGNAL_FUNC(@signal_dialog_response),     @Data);
+  g_signal_connect(GTK_OBJECT(ADialog),
+    'unmap',       GTK_SIGNAL_FUNC(@signal_dialog_unmap),        @Data);
+  g_signal_connect(GTK_OBJECT(ADialog),
+    'delete_event',GTK_SIGNAL_FUNC(@signal_dialog_delete_event), @Data);
+
+  { gtk_dialog_run contains here also safeguards against destroying
+    the dialog when it runs, by using g_object_ref/unref around and
+    registering signal on destroy of ADialog. We do not need this,
+    nothing can destroy the dialog AFAIK. }
+
+  gtk_window_set_modal(GTK_WINDOW(ADialog), g_true);
+
+  Data.Answered := false;
+
   Mode := TGLModeFrozenScreen.Create(Self, 0, false, nil);
   try
     gtk_widget_show(GTK_WIDGET(ADialog));
@@ -1475,7 +1534,6 @@ var
   OkButtonText: PChar;
   Dialog: PGtkFileChooserDialog;
   CFileName: PChar;
-  Mode: TGLModeFrozenScreen;
   SearchResult: Integer;
   SearchRecord: TSearchRec;
   ExpandedFileName, Dir: string;
@@ -1564,26 +1622,17 @@ begin
     end;
   end;
 
+  { The Dialog is set to modal, it's shown,
+    buttons cause exit with proper response. }
+  Result := GtkDialogRun(GTK_DIALOG(Dialog)) = GTK_RESPONSE_ACCEPT;
 
-  Mode := TGLModeFrozenScreen.Create(Self, 0, false, nil);
-  try
-    { gtk_dialog_run does everything (that in GtkFileSelection version
-      we had to do manually): the dialog is set to modal, it's shown,
-      buttons cause gtk_dialog_run to exit with indicated response,
-      delete_event also causes normal exit with GTK_RESPONSE_DELETE_EVENT.
-
-      Inside it will do the same thing as a loop of our Application.ProcessMessages
-      (because we set up everything properly, such that our Application.ProcessMessages
-      just calls gtk_main_iteration, so GTK loop fully performs Application loop). }
-    Result := gtk_dialog_run(GTK_DIALOG(Dialog)) = GTK_RESPONSE_ACCEPT;
-    if Result then
-    begin
-      CFileName := gtk_file_chooser_get_filename(Dialog);
-      { This copies string contents, so we can later free CFileName pointer. }
-      FileName := CFileName;
-      g_free(CFileName);
-    end;
-  finally Mode.Free end;
+  if Result then
+  begin
+    CFileName := gtk_file_chooser_get_filename(Dialog);
+    { This copies string contents, so we can later free CFileName pointer. }
+    FileName := CFileName;
+    g_free(CFileName);
+  end;
 
   gtk_widget_destroy(GTK_WIDGET(Dialog));
 end;
@@ -1596,7 +1645,7 @@ begin
   Dialog := PGtkFileSelection(gtk_file_selection_new(PChar(Title)));
   try
     gtk_file_selection_set_filename(Dialog, PChar(FileName));
-    Result := RunGtkDialog(PGtkWindow(Dialog),
+    Result := GtkDialogRun(PGtkWindow(Dialog),
       Dialog^.ok_button, Dialog^.cancel_button);
     if Result then
       FileName := gtk_file_selection_get_filename(Dialog);
@@ -1615,7 +1664,7 @@ begin
     for i := 0 to 2 do GtkColor[i] := Color[i];
     gtk_color_selection_set_color(PGtkColorSelection(Dialog^.colorsel), @GtkColor);
 
-    Result := RunGtkDialog(PGtkWindow(Dialog),
+    Result := GtkDialogRun(PGtkWindow(Dialog),
       Dialog^.ok_button, Dialog^.cancel_button);
 
     if Result then
