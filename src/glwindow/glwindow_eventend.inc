@@ -1,4 +1,4 @@
-{$ifdef GLWINDOW_LOG}
+{$ifdef GLWINDOW_EVENTS_LOG}
 
 if Log then
   WritelnLog('TGLWindow event', eventname+' end'
