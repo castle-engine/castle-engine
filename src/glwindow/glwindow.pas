@@ -3508,6 +3508,7 @@ procedure TGLWindow.SaveScreen(const fname: string);
 begin
  if DoubleBuffer then
  begin
+  EventBeforeDraw;
   EventDraw;
   SaveScreen_noflush(fname, GL_BACK);
  end else
@@ -3521,6 +3522,7 @@ function TGLWindow.SaveScreen: TRGBImage;
 begin
  if DoubleBuffer then
  begin
+  EventBeforeDraw;
   EventDraw;
   Result := SaveScreen_noflush(GL_BACK);
  end else
@@ -3534,6 +3536,7 @@ function TGLWindow.SaveAlignedScreen(out RealScreenWidth: Cardinal): TRGBImage;
 begin
   if DoubleBuffer then
   begin
+    EventBeforeDraw;
     EventDraw;
     Result := SaveAlignedScreen_noflush(GL_BACK, RealScreenWidth);
   end else
@@ -3550,6 +3553,7 @@ var
 begin
   if DoubleBuffer then
   begin
+    EventBeforeDraw;
     EventDraw;
     ReadBuffer := GL_BACK;
   end else
@@ -3565,6 +3569,7 @@ function TGLWindow.SaveScreen_ToDisplayList: TGLuint;
 begin
  if DoubleBuffer then
  begin
+  EventBeforeDraw;
   EventDraw;
   Result := SaveScreenWhole_ToDisplayList_noflush(GL_BACK);
  end else
@@ -3581,6 +3586,7 @@ var
 begin
   if DoubleBuffer then
   begin
+    EventBeforeDraw;
     EventDraw;
     ReadBuffer := GL_BACK;
   end else

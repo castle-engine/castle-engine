@@ -979,7 +979,10 @@ begin
    see comments at GLImage.SaveScreen_noflush to know why
    (in short: we DON'T want to use front buffer to save screen). }
  if glwin.DoubleBuffer then
-  glwin.EventDraw else
+ begin
+  glwin.EventBeforeDraw;
+  glwin.EventDraw;
+ end else
   glwin.FlushRedisplay;
 
  {3 faza :
