@@ -145,12 +145,13 @@ type
     procedure MakeClear;
 
     { Given a set of currently pressed keys and mouse buttons,
-      decide whether this input is currently pressed.
-
-      You can pass @nil as Pressed, then it will be assumed
-      that no keys are currently pressed. }
+      decide whether this input is currently pressed. }
     function IsPressed(Pressed: TKeysPressed;
       const MousePressed: TMouseButtons): boolean;
+
+    { Looking at Container's currently pressed keys and mouse buttons,
+      decide whether this input is currently pressed. }
+    function IsPressed(Container: IUIContainer): boolean;
 
     { Check does given Key or ACharacter correspond to this input shortcut.
       If Key = K_None and ACharacter = #0, result is always @false. }
@@ -443,14 +444,12 @@ type
 
     function RotationMatrix: TMatrix4Single; override;
     procedure Idle(const CompSpeed: Single;
-      Pressed: TKeysPressed;
-      const MousePressed: TMouseButtons); override;
+      const HandleMouseAndKeys: boolean;
+      var LetOthersHandleMouseAndKeys: boolean); override;
     function AllowSuspendForInput: boolean; override;
-    function KeyDown(Key: TKey; C: char; Pressed: TKeysPressed): boolean; override;
-    function MouseDown(const MouseX, MouseY: Integer;
-      Button: TMouseButton; const MousePressed: TMouseButtons): boolean; override;
-    function MouseMove(const OldX, OldY, NewX, NewY: Integer;
-      const MousePressed: TMouseButtons; Pressed: TKeysPressed): boolean; override;
+    function KeyDown(Key: TKey; C: char): boolean; override;
+    function MouseDown(const Button: TMouseButton): boolean; override;
+    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
 
     { Current camera properties ---------------------------------------------- }
 
@@ -675,10 +674,10 @@ type
     function Matrix: TMatrix4Single; override;
     function RotationMatrix: TMatrix4Single; override;
     procedure Idle(const CompSpeed: Single;
-      Pressed: TKeysPressed;
-      const MousePressed: TMouseButtons); override;
+      const HandleMouseAndKeys: boolean;
+      var LetOthersHandleMouseAndKeys: boolean); override;
     function AllowSuspendForInput: boolean; override;
-    function KeyDown(Key: TKey; C: char; Pressed: TKeysPressed): boolean; override;
+    function KeyDown(Key: TKey; C: char): boolean; override;
 
     { This is used by @link(DoMoveAllowed), see there for description. }
     property OnMoveAllowed: TMoveAllowedFunc read FOnMoveAllowed write FOnMoveAllowed;
@@ -1057,11 +1056,9 @@ type
       default false;
 
     { Call when mouse moves. Must be called to make MouseLook work. }
-    function MouseMove(const OldX, OldY, NewX, NewY: Integer;
-      const MousePressed: TMouseButtons; Pressed: TKeysPressed): boolean; override;
+    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
 
-    function MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
-      const MousePressed: TMouseButtons): boolean; override;
+    function MouseDown(const Button: TMouseButton): boolean; override;
 
     { Things related to gravity ---------------------------------------- }
 
@@ -1453,6 +1450,11 @@ begin
     ( MouseButtonUse and (MouseButton in MousePressed) );
 end;
 
+function TInputShortcut.IsPressed(Container: IUIContainer): boolean;
+begin
+  Result := IsPressed(Container.Pressed, Container.MousePressed);
+end;
+
 function TInputShortcut.IsKey(Key: TKey; ACharacter: Char): boolean;
 begin
   Result :=
@@ -1717,15 +1719,13 @@ begin
 end;
 
 procedure TExamineNavigator.Idle(const CompSpeed: Single;
-  Pressed: TKeysPressed;
-  const MousePressed: TMouseButtons);
+  const HandleMouseAndKeys: boolean;
+  var LetOthersHandleMouseAndKeys: boolean);
 var i: integer;
     move_change, rot_speed_change, scale_change: Single;
     ModsDown: TModifierKeys;
     RotChange: Single;
 begin
-  ModsDown := ModifiersDown(Pressed);
-
   { If given RotationsAnim component is zero, no need to change current Rotations.
     What's more important, this avoids the need to call VisibleChange,
     so things like PostRedisplay will not be continously called when
@@ -1765,15 +1765,17 @@ begin
   { we will apply CompSpeed to scale_change later }
   scale_change := 1.5;
 
-  if not IgnoreAllInputs then
+  if HandleMouseAndKeys and not IgnoreAllInputs then
   begin
+    ModsDown := ModifiersDown(Container.Pressed);
+
     if ModsDown = [mkCtrl] then
     begin
       for i := 0 to 2 do
       begin
-        if Inputs_Move[i, true ].IsPressed(Pressed, MousePressed) then
+        if Inputs_Move[i, true ].IsPressed(Container) then
           Move(i, +move_change);
-        if Inputs_Move[i, false].IsPressed(Pressed, MousePressed) then
+        if Inputs_Move[i, false].IsPressed(Container) then
           Move(i, -move_change);
       end;
     end else
@@ -1781,16 +1783,16 @@ begin
     begin
       for i := 0 to 2 do
       begin
-        if Inputs_Rotate[i, true ].IsPressed(Pressed, MousePressed) then
+        if Inputs_Rotate[i, true ].IsPressed(Container) then
           Rotate(i, +rot_speed_change);
-        if Inputs_Rotate[i, false].IsPressed(Pressed, MousePressed) then
+        if Inputs_Rotate[i, false].IsPressed(Container) then
           Rotate(i, -rot_speed_change);
       end;
     end;
 
-    if Input_ScaleLarger.IsPressed(Pressed, MousePressed) then
+    if Input_ScaleLarger.IsPressed(Container) then
       Scale(Power(scale_change, CompSpeed));
-    if Input_ScaleSmaller.IsPressed(Pressed, MousePressed) then
+    if Input_ScaleSmaller.IsPressed(Container) then
       Scale(Power(1 / scale_change, CompSpeed));
   end;
 end;
@@ -1885,19 +1887,17 @@ begin
     Result := false;
 end;
 
-function TExamineNavigator.KeyDown(Key: TKey; C: char;
-  Pressed: TKeysPressed): boolean;
+function TExamineNavigator.KeyDown(Key: TKey; C: char): boolean;
 begin
   Result := inherited;
   if Result then Exit;
 
-  if ModifiersDown(Pressed) <> [] then Exit;
+  if ModifiersDown(Container.Pressed) <> [] then Exit;
 
   Result := EventDown(false, Key, C, mbLeft);
 end;
 
-function TExamineNavigator.MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
-  const MousePressed: TMouseButtons): boolean;
+function TExamineNavigator.MouseDown(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -1905,8 +1905,7 @@ begin
   Result := EventDown(true, K_None, #0, Button);
 end;
 
-function TExamineNavigator.MouseMove(const OldX, OldY, NewX, NewY: Integer;
-  const MousePressed: TMouseButtons; Pressed: TKeysPressed): boolean;
+function TExamineNavigator.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
 var
   Size: Single;
   ModsDown: TModifierKeys;
@@ -1963,15 +1962,15 @@ begin
 
   { Optimization, since MouseMove occurs very often: when nothing pressed,
     or should be ignored, do nothing. }
-  if (MousePressed = []) or
+  if (Container.MousePressed = []) or
      (not MouseNavigation) or
      IgnoreAllInputs then
     Exit;
 
-  ModsDown := ModifiersDown(Pressed) * [mkShift, mkCtrl];
+  ModsDown := ModifiersDown(Container.Pressed) * [mkShift, mkCtrl];
 
   { Rotating }
-  if (mbLeft in MousePressed) and (ModsDown = []) then
+  if (mbLeft in Container.MousePressed) and (ModsDown = []) then
   begin
     FRotations := QuatMultiply(
       QuatFromAxisAngle(Vector3Single(0, 1, 0), (NewX - OldX) / 100),
@@ -1993,8 +1992,8 @@ begin
 
   { Moving closer/further }
   if (not IsEmptyBox3d(FModelBox)) and
-     ( ( (mbRight in MousePressed) and (ModsDown = []) ) or
-       ( (mbLeft in MousePressed) and (ModsDown = [mkCtrl]) ) ) then
+     ( ( (mbRight in Container.MousePressed) and (ModsDown = []) ) or
+       ( (mbLeft in Container.MousePressed) and (ModsDown = [mkCtrl]) ) ) then
   begin
     Size := Box3dAvgSize(FModelBox);
     FMoveAmount[2] += Size * (NewY - OldY) / 200;
@@ -2004,8 +2003,8 @@ begin
 
   { Moving left/right/down/up }
   if (not IsEmptyBox3d(FModelBox)) and
-     ( ( (mbMiddle in MousePressed) and (ModsDown = []) ) or
-       ( (mbLeft in MousePressed) and (ModsDown = [mkShift]) ) ) then
+     ( ( (mbMiddle in Container.MousePressed) and (ModsDown = []) ) or
+       ( (mbLeft in Container.MousePressed) and (ModsDown = [mkShift]) ) ) then
   begin
     Size := Box3dAvgSize(FModelBox);
     FMoveAmount[0] -= Size * (OldX - NewX) / 200;
@@ -2326,8 +2325,8 @@ begin
 end;
 
 procedure TWalkNavigator.Idle(const CompSpeed: Single;
-  Pressed: TKeysPressed;
-  const MousePressed: TMouseButtons);
+  const HandleMouseAndKeys: boolean;
+  var LetOthersHandleMouseAndKeys: boolean);
 
   { Like Move, but you pass here final ProposedNewPos }
   function MoveTo(const ProposedNewPos: TVector3Single;
@@ -2437,15 +2436,15 @@ var
     szybkosc obracania sie = 1.0 }
   begin
     {$ifndef SINGLE_STEP_ROTATION}
-    if Input_RightRot.IsPressed(Pressed, MousePressed) then
+    if Input_RightRot.IsPressed(Container) then
       RotateHorizontal(-RotationHorizontalSpeed * CompSpeed * 50 * SpeedScale);
-    if Input_LeftRot.IsPressed(Pressed, MousePressed) then
+    if Input_LeftRot.IsPressed(Container) then
       RotateHorizontal(+RotationHorizontalSpeed * CompSpeed * 50 * SpeedScale);
     {$endif not SINGLE_STEP_ROTATION}
 
-    if Input_UpRotate.IsPressed(Pressed, MousePressed) then
+    if Input_UpRotate.IsPressed(Container) then
       RotateVertical(+RotationVerticalSpeed * CompSpeed * 50 * SpeedScale);
-    if Input_DownRotate.IsPressed(Pressed, MousePressed) then
+    if Input_DownRotate.IsPressed(Container) then
       RotateVertical(-RotationVerticalSpeed * CompSpeed * 50 * SpeedScale);
   end;
 
@@ -3021,35 +3020,35 @@ var
 var
   ModsDown: TModifierKeys;
 begin
-  ModsDown := ModifiersDown(Pressed);
+  ModsDown := ModifiersDown(Container.Pressed);
 
   HeadBobbingAlreadyDone := false;
   MoveHorizontalDone := false;
 
   BeginVisibleChangeSchedule;
   try
-    if not IgnoreAllInputs then
+    if HandleMouseAndKeys and not IgnoreAllInputs then
     begin
-      FIsCrouching := Input_Crouch.IsPressed(Pressed, MousePressed);
+      FIsCrouching := Input_Crouch.IsPressed(Container);
 
       if (not CheckModsDown) or
          (ModsDown - [mkShift] = []) then
       begin
         CheckRotates(1.0);
 
-        if Input_Forward.IsPressed(Pressed, MousePressed) then
+        if Input_Forward.IsPressed(Container) then
           MoveHorizontal;
-        if Input_Backward.IsPressed(Pressed, MousePressed) then
+        if Input_Backward.IsPressed(Container) then
           MoveHorizontal(-1);
 
-        if Input_RightStrafe.IsPressed(Pressed, MousePressed) then
+        if Input_RightStrafe.IsPressed(Container) then
         begin
           RotateHorizontalForStrafeMove(-90);
           MoveHorizontal;
           RotateHorizontalForStrafeMove(90);
         end;
 
-        if Input_LeftStrafe.IsPressed(Pressed, MousePressed) then
+        if Input_LeftStrafe.IsPressed(Container) then
         begin
           RotateHorizontalForStrafeMove(90);
           MoveHorizontal;
@@ -3065,9 +3064,9 @@ begin
           along the GravityUp. (Also later note: RotateVertical is now bounded by
           MinAngleRadFromGravityUp). }
 
-        if Input_UpMove.IsPressed(Pressed, MousePressed) then
+        if Input_UpMove.IsPressed(Container) then
           MoveVertical( 1);
-        if Input_DownMove.IsPressed(Pressed, MousePressed) then
+        if Input_DownMove.IsPressed(Container) then
           MoveVertical(-1);
 
         { zmiana szybkosci nie wplywa na Matrix (nie od razu). Ale wywolujemy
@@ -3084,14 +3083,14 @@ begin
           So F is FMoveHorizontalSpeed * Power(1.1, CompSpeed * 50)
           Easy!
         }
-        if Input_MoveSpeedInc.IsPressed(Pressed, MousePressed) then
+        if Input_MoveSpeedInc.IsPressed(Container) then
         begin
           FMoveHorizontalSpeed *= Power(1.1, CompSpeed * 50);
           FMoveVerticalSpeed *= Power(1.1, CompSpeed * 50);
           ScheduleVisibleChange;
         end;
 
-        if Input_MoveSpeedDec.IsPressed(Pressed, MousePressed) then
+        if Input_MoveSpeedDec.IsPressed(Container) then
         begin
           FMoveHorizontalSpeed /= Power(1.1, CompSpeed * 50);
           FMoveVerticalSpeed /= Power(1.1, CompSpeed * 50);
@@ -3108,9 +3107,9 @@ begin
           together. }
         if ModsDown = [mkCtrl] then
         begin
-          if Input_IncreaseCameraPreferredHeight.IsPressed(Pressed, MousePressed) then
+          if Input_IncreaseCameraPreferredHeight.IsPressed(Container) then
             ChangeCameraPreferredHeight(+1);
-          if Input_DecreaseCameraPreferredHeight.IsPressed(Pressed, MousePressed) then
+          if Input_DecreaseCameraPreferredHeight.IsPressed(Container) then
             ChangeCameraPreferredHeight(-1);
         end;
       end;
@@ -3224,20 +3223,19 @@ begin
     Result := false;
 end;
 
-function TWalkNavigator.KeyDown(Key: TKey; C: char; Pressed: TKeysPressed): boolean;
+function TWalkNavigator.KeyDown(Key: TKey; C: char): boolean;
 begin
   Result := inherited;
   if Result then Exit;
 
   if (not CheckModsDown) or
-     (ModifiersDown(Pressed) - [mkShift] = []) then
+     (ModifiersDown(Container.Pressed) - [mkShift] = []) then
   begin
     Result := EventDown(false, Key, C, mbLeft);
   end;
 end;
 
-function TWalkNavigator.MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
-      const MousePressed: TMouseButtons): boolean;
+function TWalkNavigator.MouseDown(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -3396,8 +3394,7 @@ begin
   FIsFallingDown := false;
 end;
 
-function TWalkNavigator.MouseMove(const OldX, OldY, NewX, NewY: Integer;
-  const MousePressed: TMouseButtons; Pressed: TKeysPressed): boolean;
+function TWalkNavigator.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
 var
   MouseXChange, MouseYChange: Single;
   MiddleWidth: Integer;

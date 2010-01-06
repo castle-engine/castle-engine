@@ -39,6 +39,15 @@ type
 
     property Width: Integer read GetWidth;
     property Height: Integer read GetHeight;
+
+    function GetMousePressed: TMouseButtons;
+    function GetPressed: TKeysPressed;
+
+    { Mouse buttons currently pressed. }
+    property MousePressed: TMouseButtons read GetMousePressed;
+
+    { Keys currently pressed. }
+    property Pressed: TKeysPressed read GetPressed;
   end;
 
   { Basic user interface control class. All controls derive from this class,
@@ -61,7 +70,7 @@ type
 
     All screen (mouse etc.) coordinates passed here should be in the usual
     window system coordinates, that is (0, 0) is left-top window corner.
-    (Note that this is contrary to usual OpenGL 2D system,
+    (Note that this is contrary to the usual OpenGL 2D system,
     where (0, 0) is left-bottom window corner.) }
   TUIControl = class(TComponent)
   private
@@ -84,8 +93,8 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    (*Handle key press / release event.
-      Returns @true if the key was somehow handled.
+    (*Handle key events.
+      Return @true if the key event was somehow handled.
 
       In this class this always returns @false, when implementing
       in descendants you should override it like
@@ -98,54 +107,69 @@ type
     class should have a priority. }
 #)
 
-      @param(Pressed You can pass here information indicating
-        which keys are currently pressed.
-        You can pass @nil if you don't know this.)
-
       @groupBegin *)
-    function KeyDown(Key: TKey; C: char; Pressed: TKeysPressed): boolean; virtual;
-    function KeyUp(Key: TKey; C: char; Pressed: TKeysPressed): boolean; virtual;
+    function KeyDown(Key: TKey; C: char): boolean; virtual;
+    function KeyUp(Key: TKey; C: char): boolean; virtual;
     { @groupEnd }
 
-    { Called when user moves the mouse.
+    { Handle mouse events.
+      @groupBegin }
+    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; virtual;
+    function MouseDown(const Button: TMouseButton): boolean; virtual;
+    function MouseUp(const Button: TMouseButton): boolean; virtual;
+    { @groupEnd }
 
-      Like for KeyDown and Idle, you can pass Pressed as
-      @nil if you don't know this. }
-    function MouseMove(const OldX, OldY, NewX, NewY: Integer;
-      const MousePressed: TMouseButtons; Pressed: TKeysPressed): boolean; virtual;
-
-    (*Handle mouse down event.
-
-      Just like KeyDown, this returns whether the event was handled.
-      Descendants should always override this like
-      @longCode(#
-  Result := inherited;
-  if Result then Exit;
-  { ... do the job here ... }
-#) *)
-    function MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
-      const MousePressed: TMouseButtons): boolean; virtual;
-
-    function MouseUp(const MouseX, MouseY: Integer; Button: TMouseButton;
-      const MousePressed: TMouseButtons): boolean; virtual;
-
-    { Call this often, to respond to user actions and to perform
-      other tasks. E.g. for navigator: falling down due to gravity
+    { Control may do here anything that must be continously repeated.
+      This is called often by the container.
+      E.g. navigator handles here falling down due to gravity
       in Walker mode, rotating model in Examine mode, and many more.
 
       @param(CompSpeed Should be calculated like TFramesPerSecond.IdleSpeed,
         and usually it's in fact just taken from TGLWindow.Fps.IdleSpeed.)
 
-      @param(Pressed What keys are pressed currently ?
-        You pass here an instance of TKeysPressed (for example
-        from TGLWindow.Pressed, or TKamOpenGLControl.Pressed).
-        Or you can pass @nil
-        here if you don't know it. Just like for @link(KeyDown) method.)
+      HandleMouseAndKeys says if this control can
+      handle currently pressed keys and mouse buttons.
+      Only if it is @true, the control can look at Container.Pressed
+      and Container.MousePressed. HandleMouseAndKeys will be passed as @true
+      only to the controls under the mouse, and only if previous
+      controls under the mouse did not set LetOthersHandleMouseAndKeys = @false.
 
-      @param(MousePressed Which mouse buttons are currently pressed ?) }
+      Also (only when HandleMouseAndKeys = @true) the control can
+      set LetOthersHandleMouseAndKeys. In fact, it's by default
+      set to @false. This reflects the fact that "normal" UI controls,
+      that actually take screen space implied by PositionInside,
+      want to block controls underneath from handling keys/mouse.
+      For example, when pressing key "left" over TGLMenu, you do not
+      want to let the Navigator to also capture this left key down.
+
+      @italic(More reasoning behind HandleMouseAndKeys:)
+
+      Note that the "Idle" events are called
+      differently that other mouse and key events.
+
+      Mouse and key events
+      return whether the event was somehow "handled", and the container
+      passes them only to the controls under the mouse (decided by
+      PositionInside). And as soon as some control says it "handled"
+      the event, other controls (even if under the mouse) will not
+      receive the event.
+
+      This approach is not suitable for idle events. Some controls
+      need to do the idle job all the time,
+      regardless of whether the control is under the mouse and regardless
+      of what other controls already did. So all controls receive
+      Idle calls.
+
+      So the "handled" status is passed through HandleMouseAndKeys
+      and controlled by LetOthersHandleMouseAndKeys.
+      If a control is not under the mouse, it will receive HandleMouseAndKeys
+      = @false, and LetOthersHandleMouseAndKeys return value is ignored.
+      If a control is under the mouse, it will receive HandleMouseAndKeys
+      = @true and has the power to disallow mouse/key handling for all other
+      controls by LetOthersHandleMouseAndKeys. }
     procedure Idle(const CompSpeed: Single;
-      Pressed: TKeysPressed;
-      const MousePressed: TMouseButtons); virtual;
+      const HandleMouseAndKeys: boolean;
+      var LetOthersHandleMouseAndKeys: boolean); virtual;
 
     { Is given position inside this control.
       Returns always @false in this class. }
@@ -294,36 +318,34 @@ begin
   inherited;
 end;
 
-function TUIControl.KeyDown(Key: TKey; C: char; Pressed: TKeysPressed): boolean;
+function TUIControl.KeyDown(Key: TKey; C: char): boolean;
 begin
   Result := false;
 end;
 
-function TUIControl.KeyUp(Key: TKey; C: char; Pressed: TKeysPressed): boolean;
+function TUIControl.KeyUp(Key: TKey; C: char): boolean;
 begin
   Result := false;
 end;
 
-function TUIControl.MouseMove(const OldX, OldY, NewX, NewY: Integer;
-  const MousePressed: TMouseButtons; Pressed: TKeysPressed): boolean;
+function TUIControl.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
 begin
   Result := false;
 end;
 
-function TUIControl.MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
-  const MousePressed: TMouseButtons): boolean;
+function TUIControl.MouseDown(const Button: TMouseButton): boolean;
 begin
   Result := false;
 end;
 
-function TUIControl.MouseUp(const MouseX, MouseY: Integer; Button: TMouseButton;
-  const MousePressed: TMouseButtons): boolean;
+function TUIControl.MouseUp(const Button: TMouseButton): boolean;
 begin
   Result := false;
 end;
 
 procedure TUIControl.Idle(const CompSpeed: Single;
-  Pressed: TKeysPressed; const MousePressed: TMouseButtons);
+  const HandleMouseAndKeys: boolean;
+  var LetOthersHandleMouseAndKeys: boolean);
 begin
 end;
 

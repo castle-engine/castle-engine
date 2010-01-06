@@ -128,11 +128,6 @@ type
     procedure EventClose; override;
     procedure EventIdle; override;
     procedure EventResize; override;
-    procedure EventMouseDown(Btn: TMouseButton); override;
-    procedure EventMouseUp(Btn: TMouseButton); override;
-    procedure EventMouseMove(NewX, NewY: Integer); override;
-    procedure EventKeyDown(Key: TKey; C: char); override;
-    procedure EventKeyUp(Key: TKey; C: char); override;
 
     { Should we make shadow volumes possible?
 
@@ -245,6 +240,10 @@ begin
   Scene.Attributes.UseLights := true;
   Scene.Attributes.FirstGLFreeLight := 1;
 
+  { Add Scene to Controls, making it receive all TUIControl treatment,
+    like events etc. }
+  Controls.Insert(0, Scene);
+
   if not Closed then
   begin
     EventResize;
@@ -296,6 +295,7 @@ procedure TGLWindowVRMLBrowser.EventClose;
 begin
   { This may be called in case of some exceptions, so we better we prepared
     for Scene = nil case. }
+  { TODO: this should be done automatically by adding Scene to Controls. }
   if Scene <> nil then
     Scene.CloseGL;
 
@@ -319,20 +319,6 @@ begin
     Width, Height, ShadowVolumesPossible);
 end;
 
-procedure TGLWindowVRMLBrowser.EventMouseDown(Btn: TMouseButton);
-begin
-  inherited;
-  { TODO: this should be done automatically by adding Scene to Controls. }
-  Scene.MouseDown(MouseX, MouseY, Btn, MousePressed);
-end;
-
-procedure TGLWindowVRMLBrowser.EventMouseUp(Btn: TMouseButton);
-begin
-  inherited;
-  { TODO: this should be done automatically by adding Scene to Controls. }
-  Scene.MouseUp(MouseX, MouseY, Btn, MousePressed);
-end;
-
 procedure TGLWindowVRMLBrowser.UpdateCursor(Sender: TObject);
 
   function SensorsCount: Cardinal;
@@ -350,26 +336,6 @@ begin
   if SensorsCount <> 0 then
     CursorNonMouseLook := gcHand else
     CursorNonMouseLook := gcDefault;
-end;
-
-procedure TGLWindowVRMLBrowser.EventMouseMove(NewX, NewY: Integer);
-begin
-  inherited;
-
-  { TODO: this should be done automatically by adding Scene to Controls. }
-  Scene.MouseMove(MouseX, MouseY, NewX, NewY, MousePressed, Pressed);
-end;
-
-procedure TGLWindowVRMLBrowser.EventKeyDown(Key: TKey; C: char);
-begin
-  inherited;
-  Scene.KeyDown(Key, C, Pressed);
-end;
-
-procedure TGLWindowVRMLBrowser.EventKeyUp(Key: TKey; C: char);
-begin
-  inherited;
-  Scene.KeyUp(Key, C, Pressed);
 end;
 
 function TGLWindowVRMLBrowser.MoveAllowed(ANavigator: TWalkNavigator;

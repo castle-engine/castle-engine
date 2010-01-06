@@ -493,16 +493,13 @@ type
       read FKeySliderDecrease write FKeySliderDecrease
       default DefaultGLMenuKeySliderDecrease;
 
-    function KeyDown(Key: TKey; C: char; Pressed: TKeysPressed): boolean; override;
-    function MouseMove(const OldX, OldY, NewX, NewY: Integer;
-      const MousePressed: TMouseButtons; Pressed: TKeysPressed): boolean; override;
-    function MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
-      const MousePressed: TMouseButtons): boolean; override;
-    function MouseUp(const MouseX, MouseY: Integer; Button: TMouseButton;
-      const MousePressed: TMouseButtons): boolean; override;
+    function KeyDown(Key: TKey; C: char): boolean; override;
+    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
+    function MouseDown(const Button: TMouseButton): boolean; override;
+    function MouseUp(const Button: TMouseButton): boolean; override;
     procedure Idle(const CompSpeed: Single;
-      Pressed: TKeysPressed;
-      const MousePressed: TMouseButtons); override;
+      const HandleMouseAndKeys: boolean;
+      var LetOthersHandleMouseAndKeys: boolean); override;
     function PositionInside(const X, Y: Integer): boolean; override;
     function AllowSuspendForInput: boolean; override;
 
@@ -1388,7 +1385,7 @@ begin
     DrawPositionRelativeLine;
 end;
 
-function TGLMenu.KeyDown(Key: TKey; C: char; Pressed: TKeysPressed): boolean;
+function TGLMenu.KeyDown(Key: TKey; C: char): boolean;
 
   function CurrentItemAccessoryKeyDown: boolean;
   begin
@@ -1504,8 +1501,7 @@ begin
   end;
 end;
 
-function TGLMenu.MouseMove(const OldX, OldY, NewX, NewY: Integer;
-  const MousePressed: TMouseButtons; Pressed: TKeysPressed): boolean;
+function TGLMenu.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
 var
   MX, MY: Integer;
 
@@ -1545,7 +1541,7 @@ begin
        (PointInArea(MX, MY, FAccessoryAreas.Items[CurrentItem])) and
        (ItemAccessoryGrabbed = CurrentItem) then
       TGLMenuItemAccessory(Items.Objects[CurrentItem]).MouseMove(
-        MX, MY, MousePressed,
+        MX, MY, Container.MousePressed,
         FAccessoryAreas.Items[CurrentItem], Self);
   end;
 
@@ -1555,8 +1551,7 @@ begin
   Result := ExclusiveEvents;
 end;
 
-function TGLMenu.MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
-  const MousePressed: TMouseButtons): boolean;
+function TGLMenu.MouseDown(const Button: TMouseButton): boolean;
 var
   NewItemIndex: Integer;
   MX, MY: Integer;
@@ -1565,13 +1560,13 @@ begin
   if Result then Exit;
 
   { For TGLMenu, we like MouseY going higher from the bottom to the top. }
-  MX := MouseX;
-  MY := ContainerHeight - MouseY;
+  MX := Container.MouseX;
+  MY := ContainerHeight - Container.MouseY;
 
   if (CurrentItem <> -1) and
      (Items.Objects[CurrentItem] <> nil) and
      (PointInArea(MX, MY, FAccessoryAreas.Items[CurrentItem])) and
-     (MousePressed - [Button] = []) then
+     (Container.MousePressed - [Button] = []) then
   begin
     ItemAccessoryGrabbed := CurrentItem;
     TGLMenuItemAccessory(Items.Objects[CurrentItem]).MouseDown(
@@ -1591,8 +1586,7 @@ begin
   end;
 end;
 
-function TGLMenu.MouseUp(const MouseX, MouseY: Integer; Button: TMouseButton;
-  const MousePressed: TMouseButtons): boolean;
+function TGLMenu.MouseUp(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -1601,15 +1595,15 @@ begin
     (MousePressed - [Button] = []) inside MouseDown handles everything,
     so we don't have to depend on MouseUp for ungrabbing.
     But I do it here, just "to keep my state as current as possible". }
-  if MousePressed = [] then
+  if Container.MousePressed = [] then
     ItemAccessoryGrabbed := -1;
 
   Result := ExclusiveEvents;
 end;
 
 procedure TGLMenu.Idle(const CompSpeed: Single;
-  Pressed: TKeysPressed;
-  const MousePressed: TMouseButtons);
+  const HandleMouseAndKeys: boolean;
+  var LetOthersHandleMouseAndKeys: boolean);
 begin
   inherited;
 

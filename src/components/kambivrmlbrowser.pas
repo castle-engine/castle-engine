@@ -120,13 +120,6 @@ type
     procedure DoDraw; override;
     procedure DoGLContextInit; override;
     procedure DoGLContextClose; override;
-    procedure MouseDownEvent(Button: Controls.TMouseButton;
-      Shift:TShiftState; X,Y:Integer); override;
-    procedure MouseUpEvent(Button: Controls.TMouseButton;
-      Shift:TShiftState; X,Y:Integer); override;
-    procedure MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer); override;
-    procedure KeyDownEvent(var Key: Word; Shift: TShiftState); override;
-    procedure KeyUpEvent(var Key: Word; Shift: TShiftState); override;
   public
     constructor Create(AOwner :TComponent); override;
     destructor Destroy; override;
@@ -288,6 +281,10 @@ begin
   Scene.Attributes.UseLights := true;
   Scene.Attributes.FirstGLFreeLight := 1;
 
+  { Add Scene to Controls, making it receive all TUIControl treatment,
+    like events etc. }
+  Controls.Insert(0, Scene);
+
   if ContextInitialized then
   begin
     Resize;
@@ -362,28 +359,6 @@ begin
     Width, Height, ShadowVolumesPossible);
 end;
 
-procedure TKamVRMLBrowser.MouseDownEvent(Button: Controls.TMouseButton;
-  Shift:TShiftState; X,Y:Integer);
-var
-  MyButton: KeysMouse.TMouseButton;
-begin
-  inherited;
-
-  if LMouseButtonToMyMouseButton(Button, MyButton) then
-    Scene.MouseDown(MouseX, MouseY, MyButton, MousePressed);
-end;
-
-procedure TKamVRMLBrowser.MouseUpEvent(Button: Controls.TMouseButton;
-  Shift:TShiftState; X,Y:Integer);
-var
-  MyButton: KeysMouse.TMouseButton;
-begin
-  inherited;
-
-  if LMouseButtonToMyMouseButton(Button, MyButton) then
-    Scene.MouseUp(MouseX, MouseY, MyButton, MousePressed);
-end;
-
 procedure TKamVRMLBrowser.UpdateCursor(Sender: TObject);
 
   function SensorsCount: Cardinal;
@@ -401,38 +376,6 @@ begin
   if SensorsCount <> 0 then
     CursorNonMouseLook := crHandPoint else
     CursorNonMouseLook := crDefault;
-end;
-
-procedure TKamVRMLBrowser.MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer);
-begin
-  inherited;
-  Scene.MouseMove(MouseX, MouseY, NewX, NewY, MousePressed, Pressed);
-end;
-
-procedure TKamVRMLBrowser.KeyDownEvent(var Key: Word; Shift: TShiftState);
-var
-  MyKey: TKey;
-  MyCharKey: char;
-begin
-  inherited;
-
-  LKeyToMyKey(Key, Shift, MyKey, MyCharKey);
-
-  if (MyKey <> K_None) or (MyCharKey <> #0) then
-    Scene.KeyDown(MyKey, MyCharKey, Pressed);
-end;
-
-procedure TKamVRMLBrowser.KeyUpEvent(var Key: Word; Shift: TShiftState);
-var
-  MyKey: TKey;
-  MyCharKey: char;
-begin
-  inherited;
-
-  LKeyToMyKey(Key, Shift, MyKey, MyCharKey);
-
-  if (MyKey <> K_None) or (MyCharKey <> #0) then
-    Scene.KeyUp(Key, MyCharKey, Pressed);
 end;
 
 function TKamVRMLBrowser.MoveAllowed(ANavigator: TWalkNavigator;

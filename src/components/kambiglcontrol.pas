@@ -83,6 +83,8 @@ type
     function GetMouseY: Integer;
     function GetWidth: Integer;
     function GetHeight: Integer;
+    function GetMousePressed: TMouseButtons;
+    function GetPressed: TKeysPressed;
   protected
     procedure DestroyHandle; override;
     procedure DoExit; override;
@@ -671,6 +673,16 @@ begin
   Result := Height;
 end;
 
+function TKamOpenGLControlCore.GetMousePressed: TMouseButtons;
+begin
+  Result := FMousePressed;
+end;
+
+function TKamOpenGLControlCore.GetPressed: TKeysPressed;
+begin
+  Result := FPressed;
+end;
+
 { TControlledUIControlList ----------------------------------------------------- }
 
 type
@@ -794,26 +806,30 @@ end;
 procedure TKamOpenGLControl.Idle;
 var
   I: Integer;
-  ThisListener, F: TUIControl;
+  C: TUIControl;
+  HandleMouseAndKeys: boolean;
+  Dummy: boolean;
 begin
-  { Although we call Idle for all listeners (and navigators),
-    we will pass pressed keys/mouse buttons info only for the "focused"
-    listener (or navigator, if no listener focused).
-
-    This makes sense: if you want to check in Idle some pressed state,
-    and react to it, you do not want many listeners to react to your
-    keys. For example, when pressing key left over TGLMenu, you do not
-    want to let navigator to also capture this left key down. }
-  F := Focus;
-
   if UseControls then
   begin
+    { Although we call Idle for all the controls, we look
+      at PositionInside and track HandleMouseAndKeys values.
+      See TUIControl.Idle for explanation. }
+
+    HandleMouseAndKeys := true;
+
     for I := 0 to Controls.Count - 1 do
     begin
-      ThisListener := Controls.Items[I];
-      if F = ThisListener then
-        ThisListener.Idle(Fps.IdleSpeed, Pressed, MousePressed) else
-        ThisListener.Idle(Fps.IdleSpeed, nil, []);
+      C := Controls.Items[I];
+      if HandleMouseAndKeys and C.PositionInside(MouseX, MouseY) then
+      begin
+        HandleMouseAndKeys := false;
+        C.Idle(Fps.IdleSpeed, true, HandleMouseAndKeys);
+      end else
+      begin
+        Dummy := false;
+        C.Idle(Fps.IdleSpeed, false, Dummy);
+      end;
     end;
   end;
 
@@ -835,7 +851,7 @@ begin
     begin
       C := Controls.Items[I];
       if C.PositionInside(MouseX, MouseY) then
-        if C.KeyDown(Key, Ch, Pressed) then
+        if C.KeyDown(Key, Ch) then
         begin
           Key := 0;
           Exit;
@@ -861,7 +877,7 @@ begin
     begin
       C := Controls.Items[I];
       if C.PositionInside(MouseX, MouseY) then
-        if C.KeyUp(Key, Ch, Pressed) then
+        if C.KeyUp(Key, Ch) then
         begin
           Key := 0;
           Exit;
@@ -885,7 +901,7 @@ begin
     begin
       C := Controls.Items[I];
       if C.PositionInside(MouseX, MouseY) then
-        if C.MouseDown(MouseX, MouseY, MyButton, MousePressed) then
+        if C.MouseDown(MyButton) then
           Exit;
     end;
   end;
@@ -906,7 +922,7 @@ begin
     begin
       C := Controls.Items[I];
       if C.PositionInside(MouseX, MouseY) then
-        if C.MouseUp(MouseX, MouseY, MyButton, MousePressed) then
+        if C.MouseUp(MyButton) then
           Exit;
     end;
   end;
@@ -960,12 +976,18 @@ end;
 
 procedure TKamOpenGLControl.MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer);
 var
-  F: TUIControl;
+  C: TUIControl;
+  I: Integer;
 begin
-  F := Focus;
-  if (F <> nil) and
-      F.MouseMove(MouseX, MouseY, NewX, NewY, MousePressed, Pressed) then
-    Exit;
+  if UseControls then
+  begin
+    for I := 0 to Controls.Count - 1 do
+    begin
+      C := Controls.Items[I];
+      if C.PositionInside(MouseX, MouseY) then
+        if C.MouseMove(MouseX, MouseY, NewX, NewY) then Exit;
+    end;
+  end;
 
   inherited;
 end;

@@ -513,7 +513,7 @@ type
     E.g. methods LocalBoundingBox, BoundingBox, VerticesCount, TrianglesCount
     cache their results so after the first call to @link(TrianglesCount)
     next calls to the same method will return instantly (assuming
-    that scene did not changed much). And the @link(Shapes) tree
+    that scene did not change much). And the @link(Shapes) tree
     is the main trick for various processing of the scene, most importantly
     it's the main trick to write a flexible OpenGL renderer of the VRML scene.
 
@@ -1487,8 +1487,8 @@ type
       detected to still be part of our graph. }
     procedure UnregisterProcessEvents(Node: TVRMLNode);
 
-    function KeyDown(Key: TKey; C: char; Pressed: TKeysPressed): boolean; override;
-    function KeyUp(Key: TKey; C: char; Pressed: TKeysPressed): boolean; override;
+    function KeyDown(Key: TKey; C: char): boolean; override;
+    function KeyUp(Key: TKey; C: char): boolean; override;
 
     { Call this to when pointing-device moves.
       This may generate the continously-generated events like
@@ -1564,13 +1564,17 @@ type
 
 
       @groupBegin }
-    function MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
-      const MousePressed: TMouseButtons): boolean; override;
-    function MouseUp(const MouseX, MouseY: Integer; Button: TMouseButton;
-      const MousePressed: TMouseButtons): boolean; override;
-    function MouseMove(const OldX, OldY, NewX, NewY: Integer;
-      const MousePressed: TMouseButtons; Pressed: TKeysPressed): boolean; override;
+    function MouseDown(const Button: TMouseButton): boolean; override;
+    function MouseUp(const Button: TMouseButton): boolean; override;
+    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
     { @groupEnd }
+
+    procedure Idle(const CompSpeed: Single;
+      const HandleMouseAndKeys: boolean;
+      var LetOthersHandleMouseAndKeys: boolean); override;
+
+    { Overridden in TVRMLScene to catch events regardless of mouse position. }
+    function PositionInside(const X, Y: Integer): boolean; override;
 
     { Navigator (camera) in this scene. May be @nil if not known / not used.
 
@@ -4762,7 +4766,7 @@ begin
   end;
 end;
 
-function TVRMLScene.KeyDown(Key: TKey; C: char; Pressed: TKeysPressed): boolean;
+function TVRMLScene.KeyDown(Key: TKey; C: char): boolean;
 var
   I: Integer;
   KeySensor: TNodeKeySensor;
@@ -4781,7 +4785,9 @@ begin
         KeySensor := KeySensorNodes.Items[I] as TNodeKeySensor;
         if KeySensor.FdEnabled.Value then
         begin
-          Result := true;
+          { Do not treat it as handled (returning ExclusiveEvents),
+            this would disable too much (like Navigator usually under Scene on Controls).
+          Result := false; }
           KeySensor.EventIsActive.Send(true, WorldTime);
           if KeyToActionKey(Key, ActionKey) then
             KeySensor.EventActionKeyPress.Send(ActionKey, WorldTime);
@@ -4798,7 +4804,7 @@ begin
   end;
 end;
 
-function TVRMLScene.KeyUp(Key: TKey; C: char; Pressed: TKeysPressed): boolean;
+function TVRMLScene.KeyUp(Key: TKey; C: char): boolean;
 var
   I: Integer;
   KeySensor: TNodeKeySensor;
@@ -4817,7 +4823,9 @@ begin
         KeySensor := KeySensorNodes.Items[I] as TNodeKeySensor;
         if KeySensor.FdEnabled.Value then
         begin
-          Result := true;
+          { Do not treat it as handled (returning ExclusiveEvents),
+            this would disable too much (like Navigator usually under Scene on Controls).
+          Result := false; }
           KeySensor.EventIsActive.Send(false, WorldTime);
           if KeyToActionKey(Key, ActionKey) then
             KeySensor.EventActionKeyRelease.Send(ActionKey, WorldTime);
@@ -5100,8 +5108,7 @@ begin
     Result := nil;
 end;
 
-function TVRMLScene.MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
-  const MousePressed: TMouseButtons): boolean;
+function TVRMLScene.MouseDown(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -5109,12 +5116,13 @@ begin
   if Button = mbLeft then
   begin
     PointingDeviceActive := true;
-    Result := true;
+    { Do not treat it as handled (returning ExclusiveEvents),
+      this would disable too much (like Navigator usually under Scene on Controls).
+    Result := false; }
   end;
 end;
 
-function TVRMLScene.MouseUp(const MouseX, MouseY: Integer; Button: TMouseButton;
-  const MousePressed: TMouseButtons): boolean;
+function TVRMLScene.MouseUp(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -5122,12 +5130,13 @@ begin
   if Button = mbLeft then
   begin
     PointingDeviceActive := false;
-    Result := true;
+    { Do not treat it as handled (returning ExclusiveEvents),
+      this would disable too much (like Navigator usually under Scene on Controls).
+    Result := false; }
   end;
 end;
 
-function TVRMLScene.MouseMove(const OldX, OldY, NewX, NewY: Integer;
-  const MousePressed: TMouseButtons; Pressed: TKeysPressed): boolean;
+function TVRMLScene.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
 var
   Ray0, RayVector: TVector3Single;
   OverPoint: TVector3Single;
@@ -5145,8 +5154,25 @@ begin
 
     PointingDeviceMove(OverPoint, Item);
 
-    Result := true;
+    { Do not treat it as handled (returning ExclusiveEvents),
+      this would disable too much (like Navigator usually under Scene on Controls).
+    Result := false; }
   end;
+end;
+
+procedure TVRMLScene.Idle(const CompSpeed: Single;
+  const HandleMouseAndKeys: boolean;
+  var LetOthersHandleMouseAndKeys: boolean);
+begin
+  inherited;
+  { Even if mouse is over the scene, still allow others (like a Navigator
+    underneath) to always handle mouse and keys in their Idle. }
+  LetOthersHandleMouseAndKeys := true;
+end;
+
+function TVRMLScene.PositionInside(const X, Y: Integer): boolean;
+begin
+  Result := true;
 end;
 
 { WorldTime stuff ------------------------------------------------------------ }
