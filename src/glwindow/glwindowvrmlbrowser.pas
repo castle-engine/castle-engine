@@ -293,12 +293,6 @@ end;
 
 procedure TGLWindowVRMLBrowser.EventClose;
 begin
-  { This may be called in case of some exceptions, so we better we prepared
-    for Scene = nil case. }
-  { TODO: this should be done automatically by adding Scene to Controls. }
-  if Scene <> nil then
-    Scene.GLContextClose;
-
   FreeAndNil(SV);
 
   inherited;

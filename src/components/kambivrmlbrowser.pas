@@ -334,12 +334,6 @@ end;
 
 procedure TKamVRMLBrowser.DoGLContextClose;
 begin
-  { This may be called by inherited destructor, when our own destructor
-    already destroyed Scene. (Testcase: open form with this component
-    in Lazarus, then close Lazarus). So we secure against it. }
-  if Scene <> nil then
-    Scene.GLContextClose;
-
   FreeAndNil(SV);
 
   inherited;

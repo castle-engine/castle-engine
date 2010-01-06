@@ -786,11 +786,6 @@ end;
 
 procedure Close(Glwin: TGLWindow);
 begin
-  { Scene may be @nil e.g. if Draw raised an exception, then we will
-    free scene before the window will get closed. }
-  if Scene <> nil then
-    Scene.GLContextClose;
-
   FreeAndNil(GLSLProgram[0]);
   FreeAndNil(GLSLProgram[1]);
 end;
