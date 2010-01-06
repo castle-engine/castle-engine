@@ -4966,6 +4966,8 @@ begin
         end;
 
         FPointingDeviceOverItem := OverItem;
+
+        DoPointingDeviceSensorsChange;
       end;
 
       { Handle hitXxx_changed events }
@@ -5000,8 +5002,6 @@ begin
     finally
       EndChangesSchedule;
     end;
-
-    DoPointingDeviceSensorsChange;
   end;
 end;
 
@@ -5065,14 +5065,21 @@ begin
             if (ToActivate is TNodeX3DPointingDeviceSensorNode) and
                (TNodeX3DPointingDeviceSensorNode(ToActivate).FdEnabled.Value) then
             begin
-              FPointingDeviceActiveSensor :=
-                TNodeX3DPointingDeviceSensorNode(ToActivate);
-              PointingDeviceActiveSensor.EventIsActive.Send(true, WorldTime);
+              { Send isActive = true and make DoPointingDeviceSensorsChange
+                only if FPointingDeviceActiveSensor changes. }
+              if FPointingDeviceActiveSensor <> ToActivate then
+              begin
+                FPointingDeviceActiveSensor :=
+                  TNodeX3DPointingDeviceSensorNode(ToActivate);
+                PointingDeviceActiveSensor.EventIsActive.Send(true, WorldTime);
+                DoPointingDeviceSensorsChange;
+              end;
               Break;
             end else
             if ToActivate is TNodeAnchor then
             begin
               AnchorActivate(TNodeAnchor(ToActivate));
+              DoPointingDeviceSensorsChange;
               Break;
             end;
           end;
@@ -5093,6 +5100,7 @@ begin
               EventTouchTime.Send(WorldTime.Seconds, WorldTime);
           end;
           FPointingDeviceActiveSensor := nil;
+          DoPointingDeviceSensorsChange;
         end;
       end;
     finally
