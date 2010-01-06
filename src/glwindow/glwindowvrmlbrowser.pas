@@ -307,12 +307,14 @@ end;
 procedure TGLWindowVRMLBrowser.EventIdle;
 begin
   inherited;
+  { TODO: this should be done automatically by adding Scene to Controls. }
   Scene.IncreaseWorldTime(Fps.IdleSpeed);
 end;
 
 procedure TGLWindowVRMLBrowser.EventResize;
 begin
   inherited;
+  { TODO: MAYBE this should be done automatically by adding Scene to Controls. }
   Scene.GLProjection(Navigator, Scene.BoundingBox,
     Width, Height, ShadowVolumesPossible);
 end;
