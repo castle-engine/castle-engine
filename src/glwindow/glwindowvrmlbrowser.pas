@@ -218,6 +218,7 @@ begin
   { init Navigator }
   Navigator := Scene.CreateNavigator(nil);
   Navigator.OnVisibleChange := @VisibleChange;
+  Scene.Navigator := Navigator;
 
   if Navigator is TWalkNavigator then
   begin
@@ -354,7 +355,6 @@ begin
   inherited;
 
   { TODO: this should be done automatically by adding Scene to Controls. }
-  Scene.Navigator := Navigator; { TODO: move this elsewhere }
   Scene.MouseMove(MouseX, MouseY, NewX, NewY, MousePressed, Pressed);
 end;
 

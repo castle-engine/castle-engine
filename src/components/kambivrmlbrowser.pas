@@ -85,8 +85,6 @@ type
     FOnNavigatorChanged: TNotifyEvent;
     FScene: TVRMLGLScene;
 
-    AngleOfViewX, AngleOfViewY: Single;
-
     FIgnoreAreas: TDynAreaArray;
 
     function MoveAllowed(ANavigator: TWalkNavigator;
@@ -263,6 +261,7 @@ begin
   { init Navigator }
   Navigator := Scene.CreateNavigator(nil);
   Navigator.OnVisibleChange := @VisibleChange;
+  Scene.Navigator := Navigator;
 
   if Navigator is TWalkNavigator then
   begin
@@ -360,7 +359,7 @@ begin
   inherited;
   if not MakeCurrent then Exit;
   Scene.GLProjection(Navigator, Scene.BoundingBox,
-    Width, Height, AngleOfViewX, AngleOfViewY, ShadowVolumesPossible);
+    Width, Height, ShadowVolumesPossible);
 end;
 
 procedure TKamVRMLBrowser.MouseDownEvent(Button: Controls.TMouseButton;
@@ -407,9 +406,7 @@ end;
 procedure TKamVRMLBrowser.MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer);
 begin
   inherited;
-
-  Scene.MouseMove(Navigator, AngleOfViewX, AngleOfViewY,
-    MouseX, MouseY, NewX, NewY, MousePressed, Pressed);
+  Scene.MouseMove(MouseX, MouseY, NewX, NewY, MousePressed, Pressed);
 end;
 
 procedure TKamVRMLBrowser.KeyDownEvent(var Key: Word; Shift: TShiftState);

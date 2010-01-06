@@ -98,6 +98,8 @@ type
     procedure SetAngleOfViewX(const Value: Single);
     function GetAngleOfViewY: Single;
     procedure SetAngleOfViewY(const Value: Single);
+    function GetNavigator: TNavigator;
+    procedure SetNavigator(const Value: TNavigator);
 
     function InfoBoundingBoxSum: string;
   private
@@ -509,6 +511,16 @@ type
     property AngleOfViewX: Single read GetAngleOfViewX write SetAngleOfViewX;
     property AngleOfViewY: Single read GetAngleOfViewY write SetAngleOfViewY;
     { @groupEnd }
+
+    { Common Navigator, for all scenes of this animation.
+      See TVRMLScene.Navigator.
+
+      Reading this reads FirstScene.Navigator,
+      and setting this sets the Navigator for all scenes within this animation.
+      In other words, if you use only this,
+      then all the scenes of your animation will always have equal
+      Navigator values. }
+    property Navigator: TNavigator read GetNavigator write SetNavigator;
 
     { Optimization of the animation. See TVRMLGLScene.Optimization.
 
@@ -1617,6 +1629,19 @@ begin
 
   for I := 0 to FScenes.High do
     FScenes[I].AngleOfViewY := Value;
+end;
+
+function TVRMLGLAnimation.GetNavigator: TNavigator;
+begin
+  Result := FirstScene.Navigator;
+end;
+
+procedure TVRMLGLAnimation.SetNavigator(const Value: TNavigator);
+var
+  I: Integer;
+begin
+  for I := 0 to FScenes.High do
+    FScenes[I].Navigator := Value;
 end;
 
 procedure TVRMLGLAnimation.SetOptimization(const Value: TGLRendererOptimization);
