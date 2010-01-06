@@ -817,20 +817,6 @@ begin
     Scene.IncreaseWorldTime(Glwin.Fps.IdleSpeed);
 end;
 
-{ passing events to scene sensors (to make scene interactive)
-  TODO: I could just use TGLWindowVRMLBrowser instead...
-  ---------------------------------------------------------------------------- }
-
-procedure MouseDown(Glwin: TGLWindow; btn: TMouseButton);
-begin
-  Scene.MouseDown(Glwin.MouseX, Glwin.MouseY, Btn, Glwin.MousePressed);
-end;
-
-procedure MouseUp(Glwin: TGLWindow; btn: TMouseButton);
-begin
-  Scene.MouseUp(Glwin.MouseX, Glwin.MouseY, Btn, Glwin.MousePressed);
-end;
-
 class procedure THelper.UpdateCursor(Sender: TObject);
 
   function SensorsCount: Cardinal;
@@ -852,21 +838,6 @@ begin
   if NewSensorsCount <> 0 then
     Glw.CursorNonMouseLook := gcHand else
     Glw.CursorNonMouseLook := gcDefault;
-end;
-
-procedure MouseMove(Glwin: TGLWindow; NewX, NewY: Integer);
-begin
-  Scene.MouseMove(Glwin.MouseX, Glwin.MouseY, NewX, NewY, Glwin.MousePressed, Glw.Pressed);
-end;
-
-procedure KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
-begin
-  Scene.KeyDown(Key, C, Glwin.Pressed);
-end;
-
-procedure KeyUp(Glwin: TGLWindow; Key: TKey; C: char);
-begin
-  Scene.KeyUp(Key, C, Glwin.Pressed);
 end;
 
 { menu ----------------------------------------------------------------------- }
@@ -975,14 +946,10 @@ begin
     if Glw.Navigator is TWalkNavigator then
       TWalkNavigator(Glw.Navigator).Gravity := false;
 
+    Glw.Controls.Insert(0, Scene);
+
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;
-
-    Glw.OnKeyDown := @KeyDown;
-    Glw.OnKeyUp := @KeyUp;
-    Glw.OnMouseDown := @MouseDown;
-    Glw.OnMouseUp := @MouseUp;
-    Glw.OnMouseMove := @MouseMove;
 
     Glw.OnInit := @Init;
     Glw.OnClose := @Close;
