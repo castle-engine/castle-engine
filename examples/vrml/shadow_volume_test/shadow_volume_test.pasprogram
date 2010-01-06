@@ -443,9 +443,9 @@ end;
 
 procedure CloseGL(glwin: TGLWindow);
 begin
-  Scene.CloseGL;
-  ShadowCaster.CloseGL;
-  LightSet.CloseGL;
+  Scene.GLContextClose;
+  ShadowCaster.GLContextClose;
+  LightSet.GLContextClose;
 
   FreeAndNil(Font);
 
@@ -482,6 +482,8 @@ begin
 end;
 
 procedure IdleGL(glwin: TGLWindow);
+var
+  Dummy: boolean;
 begin
   if FirstIdle then
   begin
@@ -493,19 +495,18 @@ begin
     FirstIdle := false;
   end;
 
-  ShadowCasterNav.Idle(glwin.Fps.IdleSpeed, Glwin.Pressed,
-    Glwin.MousePressed);
+  Dummy := false;
+  ShadowCasterNav.Idle(glwin.Fps.IdleSpeed, true, Dummy);
 end;
 
 procedure KeyDown(glwin: TGLWindow; key: TKey; c: char);
 begin
-  ShadowCasterNav.KeyDown(key, c, Glwin.Pressed);
+  ShadowCasterNav.KeyDown(key, c);
 end;
 
 procedure MouseMove(Glwin: TGLWindow; NewX, NewY: integer);
 begin
-  ShadowCasterNav.MouseMove(Glwin.MouseX, Glwin.MouseY, NewX, NewY,
-    Glwin.MousePressed, Glwin.Pressed);
+  ShadowCasterNav.MouseMove(Glwin.MouseX, Glwin.MouseY, NewX, NewY);
 end;
 
 { menu ----------------------------------------------------------------------- }
@@ -697,6 +698,10 @@ begin
     ShadowCasterNav.Input_ScaleLarger.Character := #0;
     ShadowCasterNav.Input_ScaleSmaller.Key1 := K_4;
     ShadowCasterNav.Input_ScaleSmaller.Character := #0;
+
+    { Assign Container directly, to allow KeyDown / Idle / etc. get
+      Container.Pressed etc. properties. }
+    ShadowCasterNav.Container := Glw;
 
     { init Glw.Navigator }
     Glw.Navigator := TWalkNavigator.Create(Glw);

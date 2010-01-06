@@ -120,15 +120,13 @@ end;
 
 procedure Close(Glwin: TGLWindow);
 begin
-  Scene.CloseGL;
+  Scene.GLContextClose;
 end;
 
 procedure Resize(Glwin: TGLWindow);
-var
-  AngleOfViewX, AngleOfViewY: Single;
 begin
   Scene.GLProjection(Glw.Navigator, Scene.BoundingBox,
-    Glwin.Width, Glwin.Height, AngleOfViewX, AngleOfViewY);
+    Glwin.Width, Glwin.Height);
 end;
 
 type

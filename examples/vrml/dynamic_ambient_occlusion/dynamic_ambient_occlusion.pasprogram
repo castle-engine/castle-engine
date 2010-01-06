@@ -789,7 +789,7 @@ begin
   { Scene may be @nil e.g. if Draw raised an exception, then we will
     free scene before the window will get closed. }
   if Scene <> nil then
-    Scene.CloseGL;
+    Scene.GLContextClose;
 
   FreeAndNil(GLSLProgram[0]);
   FreeAndNil(GLSLProgram[1]);

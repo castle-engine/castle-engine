@@ -297,7 +297,7 @@ begin
     for Scene = nil case. }
   { TODO: this should be done automatically by adding Scene to Controls. }
   if Scene <> nil then
-    Scene.CloseGL;
+    Scene.GLContextClose;
 
   FreeAndNil(SV);
 

@@ -97,7 +97,7 @@ end;
 
 procedure Close(glwin: TGLWindow);
 begin
-  Animation.CloseGL;
+  Animation.GLContextClose;
 end;
 
 procedure Resize(glwin: TGLWindow);

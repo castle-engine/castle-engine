@@ -342,9 +342,9 @@ type
     procedure FreeResources(Resources: TVRMLSceneFreeResources);
 
     { Close anything associated with current OpenGL context in this class.
-      This calls CloseGL on every Scenes[], and additionally may close
+      This calls GLContextClose on every Scenes[], and additionally may close
       some other internal things here. }
-    procedure CloseGL;
+    procedure GLContextClose; override;
 
     { Just a shortcut for TimeEnd - TimeBegin. }
     function TimeDuration: Single;
@@ -1339,7 +1339,7 @@ begin
   { This is called from destructor, so this must always check whether
     things are <> nil before trying to free them. }
 
-  CloseGL;
+  GLContextClose;
 
   if FScenes <> nil then
   begin
@@ -1424,12 +1424,12 @@ begin
     FScenes[I].FreeResources(Resources);
 end;
 
-procedure TVRMLGLAnimation.CloseGL;
+procedure TVRMLGLAnimation.GLContextClose;
 { Note that this is called from destructor, so we must be extra careful
   here and check is everything <> nil before freeing it. }
 begin
   if FScenes <> nil then
-    FScenes.CloseGL;
+    FScenes.GLContextClose;
 
   if Renderer <> nil then
     Renderer.UnprepareAll;

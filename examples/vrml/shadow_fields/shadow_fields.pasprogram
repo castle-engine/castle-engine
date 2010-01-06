@@ -226,17 +226,15 @@ end;
 
 procedure Close(Glwin: TGLWindow);
 begin
-  SceneCaster.CloseGL;
-  SceneReceiver.CloseGL;
-  SceneLocalLight.CloseGL;
+  SceneCaster.GLContextClose;
+  SceneReceiver.GLContextClose;
+  SceneLocalLight.GLContextClose;
 end;
 
 procedure Resize(Glwin: TGLWindow);
-var
-  AngleOfViewX, AngleOfViewY: Single;
 begin
   SceneReceiver.GLProjection(Glw.Navigator, SceneReceiver.BoundingBox,
-    Glwin.Width, Glwin.Height, AngleOfViewX, AngleOfViewY);
+    Glwin.Width, Glwin.Height);
 end;
 
 type

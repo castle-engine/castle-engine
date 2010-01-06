@@ -681,14 +681,14 @@ type
   public
     { Constructor. Doesn't require OpenGL context,
       and doesn't initialize the framebuffer.
-      You'll have to use InitGL before actually making Render. }
+      You'll have to use GLContextInit before actually making Render. }
     constructor Create(const AWidth, AHeight: Cardinal);
 
     destructor Destroy; override;
 
     { Width and height must correspond to texture initialized width / height.
       You cannot change them when OpenGL stuff is already initialized
-      (after InitGL and before CloseGL or destructor).
+      (after GLContextInit and before GLContextClose or destructor).
       @groupBegin }
     property Width: Cardinal read FWidth write FWidth;
     property Height: Cardinal read FHeight write FHeight;
@@ -697,10 +697,10 @@ type
     { Texture associated with rendered color buffer of rendered image.
 
       We currently require this texture to be set to valid texture (not 0)
-      before InitGL. Also, if you later change it,
+      before GLContextInit. Also, if you later change it,
       be careful to assign here other textures of only the same size and format.
       This allows us to call glCheckFramebufferStatusEXT (and eventually
-      fallback to non-stencil version) right at InitGL call, and no need
+      fallback to non-stencil version) right at GLContextInit call, and no need
       to repeat it (e.g. at each RenderBegin).
 
       Changed by SetTexture. }
@@ -743,7 +743,7 @@ type
       If framebuffer is used, we will not use color buffer anywhere
       in this case.
 
-      This must be set before InitGL, cannot be changed later.
+      This must be set before GLContextInit, cannot be changed later.
 
       Possibly, in the future this will be more flexible, to allow
       attaching both color and/or depth textures. For now, this simple
@@ -770,8 +770,8 @@ type
 
     { Initialize OpenGL stuff (framebuffer).
 
-      When OpenGL stuff is initialized (from InitGL until
-      CloseGL or destruction) this class is tied to the current OpenGL context.
+      When OpenGL stuff is initialized (from GLContextInit until
+      GLContextClose or destruction) this class is tied to the current OpenGL context.
 
       @raises(EFramebufferSizeTooLow When required @link(Width) x @link(Height)
         is larger than maximum renderbuffer (single buffer within framebuffer)
@@ -782,11 +782,11 @@ type
         it means a programmer error. Or "unsupported" result
         of glCheckFramebufferStatusEXT (that is possible regardless of programmer)
         we have a nice fallback to non-FBO implementation.) }
-    procedure InitGL;
+    procedure GLContextInit;
 
     { Release all OpenGL stuff (if anything initialized).
       This is also automatically called in destructor. }
-    procedure CloseGL;
+    procedure GLContextClose;
 
     { Begin rendering into the texture. Commands following this will
       render to the texture image.
@@ -2001,7 +2001,7 @@ end;
 
 destructor TGLRenderToTexture.Destroy;
 begin
-  CloseGL;
+  GLContextClose;
   inherited;
 end;
 
@@ -2024,7 +2024,7 @@ begin
   end;
 end;
 
-procedure TGLRenderToTexture.InitGL;
+procedure TGLRenderToTexture.GLContextInit;
 
   function FramebufferStatusToString(const Status: TGLenum): string;
   begin
@@ -2057,7 +2057,7 @@ var
   Status: TGLenum;
   DepthBufferFormat: TGLenum;
 begin
-  Assert(not FInitializedGL, 'You cannot call TGLRenderToTexture.InitGL on already OpenGL-initialized instance. Call CloseGL first if this is really what you want.');
+  Assert(not FInitializedGL, 'You cannot call TGLRenderToTexture.GLContextInit on already OpenGL-initialized instance. Call GLContextClose first if this is really what you want.');
 
   if GL_EXT_framebuffer_object then
   begin
@@ -2115,7 +2115,7 @@ begin
       GL_FRAMEBUFFER_COMPLETE_EXT: { cool, continue };
       GL_FRAMEBUFFER_UNSUPPORTED_EXT:
         begin
-          CloseGL;
+          GLContextClose;
           DataWarning('Unsupported framebuffer configuration, will fallback to glCopyTexSubImage2D approach');
         end;
       else
@@ -2137,7 +2137,7 @@ begin
   FInitializedGL := true;
 end;
 
-procedure TGLRenderToTexture.CloseGL;
+procedure TGLRenderToTexture.GLContextClose;
 
   procedure FreeRenderbuffer(var Buf: TGLuint);
   begin

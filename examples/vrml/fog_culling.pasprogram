@@ -105,7 +105,7 @@ end;
 
 procedure Close(glwin: TGLWindow);
 begin
- Scene.CloseGL;
+ Scene.GLContextClose;
 end;
 
 procedure KeyDown(glwin: TGLWindow; Key: TKey; c: char);

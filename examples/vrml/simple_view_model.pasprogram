@@ -71,7 +71,7 @@ end;
 
 procedure Close(Glwin: TGLWindow);
 begin
-  Scene.CloseGL;
+  Scene.GLContextClose;
 end;
 
 procedure Resize(Glwin: TGLWindow);

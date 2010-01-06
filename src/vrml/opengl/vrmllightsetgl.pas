@@ -184,12 +184,12 @@ type
    this object will init Lights to conatin Light1 and Light2 (NOT Light3).
 
    OpenGL contexts : between first RenderLights (when GL display list
-   is calculated for the first time) to the next CloseGL (called automatically
+   is calculated for the first time) to the next GLContextClose (called automatically
    by destructor and CalculateLights and sometimes by setting some properties)
    this object must be used in the same GL context.
    So usually you will find most comfortable to use this object like
    TVRMLGLScene: create and destroy it in the main program and
-   call CloseGL in the OnClose TGLWindow event (this behaviour ensures that
+   call GLContextClose in the OnClose TGLWindow event (this behaviour ensures that
    Switch-Fullscreen-On/Off in TGLWindowDemo will work correctly).
 *)
 type
@@ -200,7 +200,7 @@ type
 
     { This is like GLLightNum2, but it's not -1.
       Initialized by CalculateRealGLLightNum2.
-      Deinitialized in CloseGL (by setting this to invalid value = -1). }
+      Deinitialized in GLContextClose (by setting this to invalid value = -1). }
     RealGLLightNum2: Integer;
     procedure CalculateRealGLLightNum2;
   private
@@ -209,8 +209,8 @@ type
     procedure SetGLLightNum2(Value: Integer);
     procedure SetColorModulatorSingle(Value: TColorModulatorSingleFunc);
   public
-    { recalculate Lights property (based on RootNode) and CloseGL
-      (CloseGL must be called by this routine: if Lights changed then
+    { recalculate Lights property (based on RootNode) and GLContextClose
+      (GLContextClose must be called by this routine: if Lights changed then
       we have to regenerate display list for Render).  }
     procedure CalculateLights; override;
 
@@ -263,9 +263,9 @@ type
       this object there. You can also destroy current context and
       then free this object.
 
-      Calling CloseGL when there is no connection between this object and
+      Calling GLContextClose when there is no connection between this object and
       gl context (e.g. calling it twice in a row) is a valid NOP. }
-    procedure CloseGL;
+    procedure GLContextClose;
 
     { wartosci GLLightNum1, GLLightNum2 sa tak wazne ze wolalem nie ustawiac
       ich w konstruktorze na jakies defaultowe wartosci tylko wymagac od ciebie
@@ -273,7 +273,7 @@ type
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
       AGLLightNum1, AGLLightNum2: Integer);
 
-    { calls CloseGL }
+    { calls GLContextClose }
     destructor Destroy; override;
   end;
 
@@ -579,7 +579,7 @@ begin
   if FGLLightNum1 <> Value then
   begin
     FGLLightNum1 := Value;
-    CloseGL;
+    GLContextClose;
   end;
 end;
 
@@ -588,7 +588,7 @@ begin
   if FGLLightNum2 <> Value then
   begin
     FGLLightNum2 := Value;
-    CloseGL;
+    GLContextClose;
   end;
 end;
 
@@ -599,13 +599,13 @@ begin
   begin
     {$ifndef FPC_OBJFPC} @ {$endif} FColorModulatorSingle :=
     {$ifndef FPC_OBJFPC} @ {$endif} Value;
-    CloseGL;
+    GLContextClose;
   end;
 end;
 
 procedure TVRMLLightSetGL.CalculateLights;
 begin
-  CloseGL;
+  GLContextClose;
   inherited;
 end;
 
@@ -676,7 +676,7 @@ begin
   end;
 end;
 
-procedure TVRMLLightSetGL.CloseGL;
+procedure TVRMLLightSetGL.GLContextClose;
 begin
   glFreeDisplayList(dlRenderLights);
   RealGLLightNum2 := -1;
@@ -693,7 +693,7 @@ end;
 
 destructor TVRMLLightSetGL.Destroy;
 begin
-  CloseGL;
+  GLContextClose;
   inherited;
 end;
 

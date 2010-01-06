@@ -422,8 +422,8 @@ end;
 
 procedure Close(Glwin: TGLWindow);
 begin
-  Scene.CloseGL;
-  SceneForShadow.CloseGL;
+  Scene.GLContextClose;
+  SceneForShadow.GLContextClose;
 end;
 
 procedure Resize(Glwin: TGLWindow);

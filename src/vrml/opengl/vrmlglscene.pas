@@ -522,11 +522,11 @@ type
 
     Connection with particular OpenGL context: from the 1st call
     of [Prepare]Render or Background methods to the next call of
-    CloseGL method or the destructor. Everything between
+    GLContextClose method or the destructor. Everything between
     must be called within the @italic(same OpenGL context active).
     In particular: remember that if you called Render method
     at least once, you @bold(must) destroy this object or at least call
-    it's CloseGL method @bold(before) releasing OpenGL context (that was
+    it's GLContextClose method @bold(before) releasing OpenGL context (that was
     active during Render). }
   TVRMLGLScene = class(TVRMLScene)
   private
@@ -827,13 +827,13 @@ type
     destructor Destroy; override;
 
     { Destroy any associations of this object with current OpenGL context.
-      For example, releaseany allocated texture or display list names.
+      For example, release any allocated texture or display list names.
 
       Generally speaking, destroys everything that is allocated by
       PrepareRender([...], []) call. It's harmless to call this
       method when there are already no associations with current OpenGL context.
       This is called automatically from the destructor. }
-    procedure CloseGL;
+    procedure GLContextClose; override;
 
     { This prepares some internal things in this class, making sure that
       appropriate methods execute as fast as possible.
@@ -1279,13 +1279,13 @@ type
 
       The results of this function are internally cached. Cache is invalidated
       on such situations as change in RootNode scene, changes to
-      BackgroundSkySphereRadius, CloseGL, Attributes.ColorModulatorSingle/Byte.
+      BackgroundSkySphereRadius, GLContextClose, Attributes.ColorModulatorSingle/Byte.
 
       PrepareBackground (and PrepareRender(true, ...)) automatically validate this
       cache.
 
       Remember that this cache is connected with the current OpenGL context.
-      So you HAVE to call CloseGL to disconnent this object from
+      So you HAVE to call GLContextClose to disconnent this object from
       current OpenGL context after you used this function. }
     function Background: TBackgroundGL;
 
@@ -1432,8 +1432,8 @@ type
     procedure FBackgroundInvalidate;
     procedure CloseGLRenderer;
   public
-    { Just call CloseGL on all items. }
-    procedure CloseGL;
+    { Just call GLContextClose on all items. }
+    procedure GLContextClose;
 
     { Just call ViewChangedSuddenly on all items. }
     procedure ViewChangedSuddenly;
@@ -1798,7 +1798,7 @@ end;
 
 destructor TVRMLGLScene.Destroy;
 begin
-  CloseGL;
+  GLContextClose;
 
   { Note that this calls Renderer.Attributes, so use this before
     deinitializing Renderer. }
@@ -1963,7 +1963,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLScene.CloseGL;
+procedure TVRMLGLScene.GLContextClose;
 begin
   CloseGLRenderer;
   FBackgroundInvalidate;
@@ -3372,7 +3372,7 @@ begin
     Note that we do this before calling inherited "ChangedAll",
     as inherited will actually destroy and rebuild Shapes tree
     (clearing per-shape information about referenced display lists etc.). }
-  CloseGL;
+  GLContextClose;
 
   inherited;
 
@@ -5239,7 +5239,7 @@ end;
 
 { TVRMLGLScenesList ------------------------------------------------------ }
 
-procedure TVRMLGLScenesList.CloseGL;
+procedure TVRMLGLScenesList.GLContextClose;
 { This may be called from various destructors,
   so we are extra careful here and check Items[I] <> nil. }
 var
@@ -5247,7 +5247,7 @@ var
 begin
  for I := 0 to Count - 1 do
    if Items[I] <> nil then
-     Items[I].CloseGL;
+     Items[I].GLContextClose;
 end;
 
 procedure TVRMLGLScenesList.FBackgroundInvalidate;

@@ -338,7 +338,7 @@ begin
     already destroyed Scene. (Testcase: open form with this component
     in Lazarus, then close Lazarus). So we secure against it. }
   if Scene <> nil then
-    Scene.CloseGL;
+    Scene.GLContextClose;
 
   FreeAndNil(SV);
 

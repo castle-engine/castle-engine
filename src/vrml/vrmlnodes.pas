@@ -2557,7 +2557,7 @@ type
       @item(
         Unknown node that doesn't have the "fields" field. It CAN be parsed
         by simply looking for matching "}". Such node will use default
-        Render, Init/CloseGL and BoundingBox method implementations -
+        BoundingBox method implementation ---
         wiec w praktyce taki node nie bedzie robil zadnego renderingu i mial
         BoundingBox = EmptyBox3d.
         Uwaga - *AllowedChildren bedzie = false.)
