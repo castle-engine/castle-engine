@@ -44,8 +44,7 @@ type
   private
     GLFont: TGLBitmapFont_Abstract;
   public
-    function MouseDown(const MouseX, MouseY: Integer; Button: KeysMouse.TMouseButton;
-      const MousePressed: KeysMouse.TMouseButtons): boolean; override;
+    function MouseDown(const Button: KeysMouse.TMouseButton): boolean; override;
     function IsDraw2D: boolean; override;
     procedure Draw2D(const Focused: boolean); override;
     function PositionInside(const X, Y: Integer): boolean; override;
@@ -53,8 +52,7 @@ type
     procedure GLContextClose; override;
   end;
 
-function TClickableRect.MouseDown(const MouseX, MouseY: Integer; Button: KeysMouse.TMouseButton;
-  const MousePressed: KeysMouse.TMouseButtons): boolean;
+function TClickableRect.MouseDown(const Button: KeysMouse.TMouseButton): boolean;
 begin
   ShowMessage('Clicked yellow rect !');
   Result := true;
