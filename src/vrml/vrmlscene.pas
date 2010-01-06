@@ -525,6 +525,9 @@ type
     FShapes: TVRMLShapeTree;
     FRootNode: TVRMLNode;
     FOnPointingDeviceSensorsChange: TNotifyEvent;
+    FNavigator: TNavigator;
+    FAngleOfViewX: Single;
+    FAngleOfViewY: Single;
 
     { This always holds pointers to all TVRMLShapeTreeLOD instances in Shapes
       tree. }
@@ -1559,19 +1562,38 @@ type
       make sure you have non-nil OctreeCollisions (e.g. include
       ssDynamicCollisions in @link(Spatial)).
 
-      Always pass a Navigator instance that is inside some container,
-      i.e. on TGLUIWindow.Controls or TKamOpenGLControl.Controls list.
 
       @groupBegin }
     function MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
       const MousePressed: TMouseButtons): boolean; override;
     function MouseUp(const MouseX, MouseY: Integer; Button: TMouseButton;
       const MousePressed: TMouseButtons): boolean; override;
-    function MouseMove(Navigator: TNavigator;
-      const AngleOfViewX, AngleOfViewY: Single;
-      const OldX, OldY, NewX, NewY: Integer;
-      const MousePressed: TMouseButtons; Pressed: TKeysPressed): boolean; {TODO:override;}
-      reintroduce;
+    function MouseMove(const OldX, OldY, NewX, NewY: Integer;
+      const MousePressed: TMouseButtons; Pressed: TKeysPressed): boolean; override;
+    { @groupEnd }
+
+    { Navigator (camera) in this scene. May be @nil if not known / not used.
+
+      Your navigator must be inside some container
+      (i.e. on TGLUIWindow.Controls or TKamOpenGLControl.Controls list),
+      at least at the time of Mouse* methods call
+      (that is, when container passed mouse events to this scene).
+
+      This is for now used only with Mouse* methods, to convert mouse position
+      (MouseX, MouseY) to a picked ray in 3D space. }
+    property Navigator: TNavigator read FNavigator write FNavigator;
+
+    { Camera angles of view, in degrees.
+      Automatically set by every TVRMLGLScene.GLProjection call.
+      But you can also change them manually, if you need more control
+      for some reason.
+
+      These are for now used only with Mouse* methods, to convert mouse position
+      (MouseX, MouseY) to a picked ray in 3D space.
+
+      @groupBegin }
+    property AngleOfViewX: Single read FAngleOfViewX write FAngleOfViewX;
+    property AngleOfViewY: Single read FAngleOfViewY write FAngleOfViewY;
     { @groupEnd }
 
     { These change world time, see WorldTime.
@@ -1686,7 +1708,7 @@ type
         You should add here prVisibleSceneNonGeometry if player has a headlight.
         You should add here prVisibleSceneGeometry if player has a rendered
         avatar.) }
-    procedure ViewerChanged(Navigator: TNavigator;
+    procedure ViewerChanged(ANavigator: TNavigator;
       const Changes: TPostRedisplayChanges);
 
     { List of handlers for VRML Script node with "compiled:" protocol.
@@ -5104,17 +5126,14 @@ begin
   end;
 end;
 
-function TVRMLScene.MouseMove(Navigator: TNavigator;
-  const AngleOfViewX, AngleOfViewY: Single;
-  const OldX, OldY, NewX, NewY: Integer;
+function TVRMLScene.MouseMove(const OldX, OldY, NewX, NewY: Integer;
   const MousePressed: TMouseButtons; Pressed: TKeysPressed): boolean;
 var
   Ray0, RayVector: TVector3Single;
   OverPoint: TVector3Single;
   Item: PVRMLTriangle;
 begin
-{TODO:
-  Result := inherited;} Result := false;
+  Result := inherited;
   if Result then Exit;
 
   if OctreeCollisions <> nil then
@@ -5392,12 +5411,12 @@ begin
   end;
 end;
 
-procedure TVRMLScene.ViewerChanged(Navigator: TNavigator;
+procedure TVRMLScene.ViewerChanged(ANavigator: TNavigator;
   const Changes: TPostRedisplayChanges);
 var
   I: Integer;
 begin
-  Navigator.GetCameraVectors(
+  ANavigator.GetCameraVectors(
     FLastViewerPosition, FLastViewerDirection, FLastViewerUp);
   FIsLastViewer := true;
 

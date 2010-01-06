@@ -84,8 +84,6 @@ type
   private
     FScene: TVRMLGLScene;
 
-    AngleOfViewX, AngleOfViewY: Single;
-
     function MoveAllowed(ANavigator: TWalkNavigator;
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean;
@@ -315,7 +313,7 @@ procedure TGLWindowVRMLBrowser.EventResize;
 begin
   inherited;
   Scene.GLProjection(Navigator, Scene.BoundingBox,
-    Width, Height, AngleOfViewX, AngleOfViewY, ShadowVolumesPossible);
+    Width, Height, ShadowVolumesPossible);
 end;
 
 procedure TGLWindowVRMLBrowser.EventMouseDown(Btn: TMouseButton);
@@ -355,11 +353,9 @@ procedure TGLWindowVRMLBrowser.EventMouseMove(NewX, NewY: Integer);
 begin
   inherited;
 
-  { TODO: this should be done automatically by adding Scene to Controls.
-    How to pass Navigator to it?
-    How to pass AngleOfViewX, AngleOfViewY? }
-  Scene.MouseMove(Navigator, AngleOfViewX, AngleOfViewY,
-    MouseX, MouseY, NewX, NewY, MousePressed, Pressed);
+  { TODO: this should be done automatically by adding Scene to Controls. }
+  Scene.Navigator := Navigator; { TODO: move this elsewhere }
+  Scene.MouseMove(MouseX, MouseY, NewX, NewY, MousePressed, Pressed);
 end;
 
 procedure TGLWindowVRMLBrowser.EventKeyDown(Key: TKey; C: char);

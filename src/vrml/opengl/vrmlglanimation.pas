@@ -94,6 +94,10 @@ type
 
     function GetBackgroundSkySphereRadius: Single;
     procedure SetBackgroundSkySphereRadius(const Value: Single);
+    function GetAngleOfViewX: Single;
+    procedure SetAngleOfViewX(const Value: Single);
+    function GetAngleOfViewY: Single;
+    procedure SetAngleOfViewY(const Value: Single);
 
     function InfoBoundingBoxSum: string;
   private
@@ -492,6 +496,20 @@ type
       read GetBackgroundSkySphereRadius
       write SetBackgroundSkySphereRadius;
 
+    { Common camera angle of view, for all scenes of this animation.
+      See TVRMLScene.AngleOfViewX and TVRMLScene.AngleOfViewY.
+
+      Reading these reads FirstScene.AngleOfViewX/Y values,
+      and setting these sets the value for all scenes within this animation.
+      In other words, if you use only this (and our GLProjection),
+      then all the scenes of your animation will always have equal
+      AngleOfViewX/Y values.
+
+      @groupBegin }
+    property AngleOfViewX: Single read GetAngleOfViewX write SetAngleOfViewX;
+    property AngleOfViewY: Single read GetAngleOfViewY write SetAngleOfViewY;
+    { @groupEnd }
+
     { Optimization of the animation. See TVRMLGLScene.Optimization.
 
       When animation is @link(Loaded), this is equal to
@@ -514,15 +532,19 @@ type
     { Set OpenGL projection, based on currently
       bound Viewpoint, NavigationInfo (using FirstScene) and used navigator.
 
-      Sets BackgroundSkySphereRadius for this whole precalculated animation
-      (that's why it's better to use this when you deal with TVRMLGLAnimation,
-      as opposed to directly calling TVRMLGLScene.GLProjection).
+      You should use this instead of directly calling Scenes[0].GLProjection,
+      because this takes care to update our WalkProjectionNear,
+      WalkProjectionFar, BackgroundSkySphereRadius, AngleOfViewX,
+      AngleOfViewY properties. Moreover, last three of these properties
+      are also set as values for all the other scenes in an animation.
+      That is, we take care to keep BackgroundSkySphereRadius and
+      AngleOfView* @italic(equal for all scenes of this animation,
+      and the TVRMLGLAnimation itself).
 
       @seealso TVRMLGLScene.GLProjection }
     procedure GLProjection(Nav: TNavigator;
       const Box: TBox3d;
       const WindowWidth, WindowHeight: Cardinal;
-      out AngleOfViewX, AngleOfViewY: Single;
       const ForceZFarInfinity: boolean = false);
 
     property WalkProjectionNear: Single read FWalkProjectionNear;
@@ -1555,8 +1577,46 @@ procedure TVRMLGLAnimation.SetBackgroundSkySphereRadius(const Value: Single);
 var
   I: Integer;
 begin
+  { Note: GLProjection implementation depends on the fact that we always
+    assing here Value to all scenes, without checking is new
+    Value <> old GetBackgroundSkySphereRadius. }
+
   for I := 0 to FScenes.High do
     FScenes[I].BackgroundSkySphereRadius := Value;
+end;
+
+function TVRMLGLAnimation.GetAngleOfViewX: Single;
+begin
+  Result := FirstScene.AngleOfViewX;
+end;
+
+procedure TVRMLGLAnimation.SetAngleOfViewX(const Value: Single);
+var
+  I: Integer;
+begin
+  { Note: GLProjection implementation depends on the fact that we always
+    assing here Value to all scenes, without checking is new
+    Value <> old GetAngleOfViewX. }
+
+  for I := 0 to FScenes.High do
+    FScenes[I].AngleOfViewX := Value;
+end;
+
+function TVRMLGLAnimation.GetAngleOfViewY: Single;
+begin
+  Result := FirstScene.AngleOfViewY;
+end;
+
+procedure TVRMLGLAnimation.SetAngleOfViewY(const Value: Single);
+var
+  I: Integer;
+begin
+  { Note: GLProjection implementation depends on the fact that we always
+    assing here Value to all scenes, without checking is new
+    Value <> old GetAngleOfViewY. }
+
+  for I := 0 to FScenes.High do
+    FScenes[I].AngleOfViewY := Value;
 end;
 
 procedure TVRMLGLAnimation.SetOptimization(const Value: TGLRendererOptimization);
@@ -1608,15 +1668,15 @@ end;
 procedure TVRMLGLAnimation.GLProjection(Nav: TNavigator;
   const Box: TBox3d;
   const WindowWidth, WindowHeight: Cardinal;
-  out AngleOfViewX, AngleOfViewY: Single;
   const ForceZFarInfinity: boolean);
-var
-  NewBackgroundSkySphereRadius: Single;
 begin
-  FirstScene.GLProjectionCore(Nav, Box, WindowWidth, WindowHeight,
-    AngleOfViewX, AngleOfViewY, ForceZFarInfinity,
-    NewBackgroundSkySphereRadius);
-  BackgroundSkySphereRadius := NewBackgroundSkySphereRadius;
+  FirstScene.GLProjection(Nav, Box, WindowWidth, WindowHeight,
+    ForceZFarInfinity);
+
+  { Setting these will also update their values in all scenes. }
+  BackgroundSkySphereRadius := FirstScene.BackgroundSkySphereRadius;
+  AngleOfViewX := FirstScene.AngleOfViewX;
+  AngleOfViewY := FirstScene.AngleOfViewY;
 
   FWalkProjectionNear := FirstScene.WalkProjectionNear;
   FWalkProjectionFar  := FirstScene.WalkProjectionFar ;

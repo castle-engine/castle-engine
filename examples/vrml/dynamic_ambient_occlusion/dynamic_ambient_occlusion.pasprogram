@@ -795,14 +795,10 @@ begin
   FreeAndNil(GLSLProgram[1]);
 end;
 
-var
-  AngleOfViewX, AngleOfViewY: Single;
-
 procedure Resize(Glwin: TGLWindow);
 begin
   glViewport(0, 0, glwin.Width, glwin.Height);
-  Scene.GLProjection(Glw.Navigator, Scene.BoundingBox,
-    Glwin.Width, Glwin.Height, AngleOfViewX, AngleOfViewY);
+  Scene.GLProjection(Glw.Navigator, Scene.BoundingBox, Glwin.Width, Glwin.Height);
 end;
 
 procedure Idle(Glwin: TGLWindow);
@@ -860,9 +856,7 @@ end;
 
 procedure MouseMove(Glwin: TGLWindow; NewX, NewY: Integer);
 begin
-  Scene.MouseMove(Glw.Navigator,
-    AngleOfViewX, AngleOfViewY,
-    Glwin.MouseX, Glwin.MouseY, NewX, NewY, Glwin.MousePressed, Glw.Pressed);
+  Scene.MouseMove(Glwin.MouseX, Glwin.MouseY, NewX, NewY, Glwin.MousePressed, Glw.Pressed);
 end;
 
 procedure KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
@@ -974,6 +968,7 @@ begin
 
     { init Glw.Navigator }
     Glw.Navigator := Scene.CreateNavigator(Glw);
+    Scene.Navigator := Glw.Navigator;
     { Even if VRML navigation info suggests using gravity, turn it off,
       simply because this demo doesn't do collision detection for now
       (so gravity will make you fall down forever...) }

@@ -1384,27 +1384,18 @@ type
       Takes into account Viewpoint type (perspective/orthogonal),
       NavigationInfo.visibilityLimit, Viewpoint.fieldOfView.
 
-      Also takes care of setting Nav.ProjectionMatrix and
-      BackgroundSkySphereRadius.
+      Also takes care of setting Nav.ProjectionMatrix, and setting
+      our properties BackgroundSkySphereRadius,
+      AngleOfViewX, AngleOfViewY.
 
       Box is the expected bounding box of the whole scene. Usually,
       it should be just Scene.BoundingBox, but it may be something larger,
       e.g. TVRMLGLAnimation.BoundingBoxSum if this scene is part of
-      a precalculated animation.
-
-      By the way, calculates AngleOfViewX, AngleOfViewY (in degrees). }
+      a precalculated animation. }
     procedure GLProjection(Nav: TNavigator;
       const Box: TBox3d;
       const WindowWidth, WindowHeight: Cardinal;
-      out AngleOfViewX, AngleOfViewY: Single;
       const ForceZFarInfinity: boolean = false);
-
-    procedure GLProjectionCore(Nav: TNavigator;
-      const Box: TBox3d;
-      const WindowWidth, WindowHeight: Cardinal;
-      out AngleOfViewX, AngleOfViewY: Single;
-      const ForceZFarInfinity: boolean;
-      out NewBackgroundSkySphereRadius: Single);
 
     { Every GLProjection call calculates it.
 
@@ -1412,9 +1403,12 @@ type
       (although GLProjection may use some other values for other modes
       (like Examine), it will always calculate values for Walk mode anyway.)
 
-      WalkProjectionFar may be ZFarInfinity. }
+      WalkProjectionFar may be ZFarInfinity.
+
+      @groupBegin }
     property WalkProjectionNear: Single read FWalkProjectionNear;
     property WalkProjectionFar : Single read FWalkProjectionFar ;
+    { @groupEnd }
 
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
@@ -4631,23 +4625,7 @@ end;
 procedure TVRMLGLScene.GLProjection(Nav: TNavigator;
   const Box: TBox3d;
   const WindowWidth, WindowHeight: Cardinal;
-  out AngleOfViewX, AngleOfViewY: Single;
   const ForceZFarInfinity: boolean);
-var
-  NewBackgroundSkySphereRadius: Single;
-begin
-  GLProjectionCore(Nav, Box, WindowWidth, WindowHeight,
-    AngleOfViewX, AngleOfViewY, ForceZFarInfinity,
-    NewBackgroundSkySphereRadius);
-  BackgroundSkySphereRadius := NewBackgroundSkySphereRadius;
-end;
-
-procedure TVRMLGLScene.GLProjectionCore(Nav: TNavigator;
-  const Box: TBox3d;
-  const WindowWidth, WindowHeight: Cardinal;
-  out AngleOfViewX, AngleOfViewY: Single;
-  const ForceZFarInfinity: boolean;
-  out NewBackgroundSkySphereRadius: Single);
 
   procedure UpdateNavigatorProjectionMatrix;
   var
@@ -4773,9 +4751,9 @@ begin
     CameraKind := ViewpointNode.CameraKind else
     CameraKind := ckPerspective;
 
-  { Calculate NewBackgroundSkySphereRadius here,
+  { Calculate BackgroundSkySphereRadius here,
     using WalkProjectionFar that is *not* ZFarInfinity }
-  NewBackgroundSkySphereRadius :=
+  BackgroundSkySphereRadius :=
     TBackgroundGL.NearFarToSkySphereRadius(
       WalkProjectionNear, WalkProjectionFar);
 
