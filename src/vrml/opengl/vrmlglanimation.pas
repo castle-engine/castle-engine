@@ -17,7 +17,7 @@ unit VRMLGLAnimation;
 interface
 
 uses SysUtils, VRMLNodes, VRMLOpenGLRenderer, VRMLScene, VRMLGLScene,
-  KambiUtils, Boxes3d, KambiClassUtils, VRMLAnimation, Navigation;
+  KambiUtils, Boxes3d, KambiClassUtils, VRMLAnimation, KeysMouse, Navigation;
 
 {$define read_interface}
 
@@ -150,7 +150,7 @@ type
       const EqualityEpsilon: Single);
   public
     { Constructor. }
-    constructor Create(ACache: TVRMLOpenGLRendererContextCache = nil);
+    constructor Create(ACache: TVRMLOpenGLRendererContextCache = nil); reintroduce;
 
     destructor Destroy; override;
 
@@ -563,6 +563,31 @@ type
     property WalkProjectionFar : Single read FWalkProjectionFar ;
 
     procedure ViewChangedSuddenly;
+
+    { Handling key and mouse events, overriding TUIControl methods.
+
+      We pass key and mouse events only if there's exactly one scene
+      (ScenesCount = 1), as there's no sensible way of activating
+      VRML events when TVRMLGLAnimation contains more than one scene.
+      (Precalculated animation of this class, and interactive
+      animation by TVRMLScene.ProcessEvents do not mix sensibly.)
+
+      So when ScenesCount = 1, we simply pass key and mouse events to
+      the only Scene[0]. Be sure to turn on @code(Scene[0].ProcessEvents := true)
+      if you want to make actual use of it.
+
+      @groupBegin }
+    function KeyDown(Key: TKey; C: char): boolean; override;
+    function KeyUp(Key: TKey; C: char): boolean; override;
+    function MouseDown(const Button: TMouseButton): boolean; override;
+    function MouseUp(const Button: TMouseButton): boolean; override;
+    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
+    { @groupEnd }
+
+    procedure Idle(const CompSpeed: Single;
+      const HandleMouseAndKeys: boolean;
+      var LetOthersHandleMouseAndKeys: boolean); override;
+    function PositionInside(const X, Y: Integer): boolean; override;
   end;
 
   TObjectsListItem_1 = TVRMLGLAnimation;
@@ -633,7 +658,7 @@ end;
 
 constructor TVRMLGLAnimation.Create(ACache: TVRMLOpenGLRendererContextCache);
 begin
-  inherited Create;
+  inherited Create(nil);
   Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, ACache);
   FOptimization := roSeparateShapesNoTransform;
 end;
@@ -1713,6 +1738,56 @@ var
 begin
   for I := 0 to FScenes.High do
     FScenes[I].ViewChangedSuddenly;
+end;
+
+function TVRMLGLAnimation.KeyDown(Key: TKey; C: char): boolean;
+begin
+  if ScenesCount = 1 then
+    Result := Scenes[0].KeyDown(Key, C) else
+    Result := false;
+end;
+
+function TVRMLGLAnimation.KeyUp(Key: TKey; C: char): boolean;
+begin
+  if ScenesCount = 1 then
+    Result := Scenes[0].KeyUp(Key, C) else
+    Result := false;
+end;
+
+function TVRMLGLAnimation.MouseDown(const Button: TMouseButton): boolean;
+begin
+  if ScenesCount = 1 then
+    Result := Scenes[0].MouseDown(Button) else
+    Result := false;
+end;
+
+function TVRMLGLAnimation.MouseUp(const Button: TMouseButton): boolean;
+begin
+  if ScenesCount = 1 then
+    Result := Scenes[0].MouseUp(Button) else
+    Result := false;
+end;
+
+function TVRMLGLAnimation.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
+begin
+  if ScenesCount = 1 then
+    Result := Scenes[0].MouseMove(OldX, OldY, NewX, NewY) else
+    Result := false;
+end;
+
+procedure TVRMLGLAnimation.Idle(const CompSpeed: Single;
+  const HandleMouseAndKeys: boolean;
+  var LetOthersHandleMouseAndKeys: boolean);
+begin
+  inherited;
+  { Even if mouse is over the scene, still allow others (like a Navigator
+    underneath) to always handle mouse and keys in their Idle. }
+  LetOthersHandleMouseAndKeys := true;
+end;
+
+function TVRMLGLAnimation.PositionInside(const X, Y: Integer): boolean;
+begin
+  Result := true;
 end;
 
 end.

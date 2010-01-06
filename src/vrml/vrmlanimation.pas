@@ -5,13 +5,13 @@ unit VRMLAnimation;
 
 interface
 
-uses KambiUtils, DOM, VRMLRendererOptimization;
+uses KambiUtils, DOM, VRMLRendererOptimization, UIControls;
 
 type
   { The non-OpenGL basis of our precalculated animation,
     see TVRMLGLAnimation for a descendant of this that you
     most probably want to use. }
-  TVRMLAnimation = class
+  TVRMLAnimation = class(TUIControl)
   public
     { Load animation data from a given FileName to a set of variables.
 
