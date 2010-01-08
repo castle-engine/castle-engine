@@ -560,9 +560,6 @@ unit GLWindow;
   - ReleaseAllKeysAndMouse - call this when user switches to another window
     or activates a menu
 
-  only Xlib :
-  - ColorDialog test
-
   only GLWINDOW_GTK_1/2:
   - in InitImplDepend implement
     MaxWidth/Height (Maybe these properties should be removed ?
@@ -598,7 +595,6 @@ unit GLWindow;
     functions for different timeouts.
   - add to multi_glwindow testing call to FileDialog and ColorDialog
     to test
-  - virtual TGLWindow.TurnOffEventsSpecials ?
 
   menu things:
   - The method of updating menu (always rebuild menu in MainMenuChanged)
