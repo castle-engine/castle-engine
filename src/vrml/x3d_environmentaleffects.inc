@@ -275,7 +275,7 @@ begin
     { Background is something visible, so we must actually redisplay
       for user to see the new scene. This is not done by Set_Bind method
       automatically, as this is specific to Background node. }
-    Scene.PostRedisplay([prVisibleSceneNonGeometry]);
+    Scene.VisibleSceneChange([prVisibleSceneNonGeometry]);
   end;
 end;
 
@@ -488,7 +488,7 @@ begin
     { Fog is something visible, so we must actually redisplay
       for user to see the new scene. This is not done by Set_Bind method
       automatically, as this is specific to Fog node. }
-    Scene.PostRedisplay([prVisibleSceneNonGeometry]);
+    Scene.VisibleSceneChange([prVisibleSceneNonGeometry]);
   end;
 end;
 

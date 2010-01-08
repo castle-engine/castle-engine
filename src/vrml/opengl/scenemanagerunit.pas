@@ -142,7 +142,7 @@ type
       You may want to use it when calling Scene.ViewerChanges.
 
       Implementation in this class is correlated with RenderHeadlight. }
-    function ViewerToChanges: TPostRedisplayChanges; virtual;
+    function ViewerToChanges: TVisibleSceneChanges; virtual;
   end;
 
 implementation
@@ -193,7 +193,7 @@ begin
     RenderState.Target = rtScreen, Navigator);
 end;
 
-function TSceneManager.ViewerToChanges: TPostRedisplayChanges;
+function TSceneManager.ViewerToChanges: TVisibleSceneChanges;
 begin
   if Scene.Headlight <> nil then
     Result := [prVisibleSceneNonGeometry] else

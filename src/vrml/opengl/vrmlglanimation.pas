@@ -679,6 +679,7 @@ type
       AParentAnimation: TVRMLGLAnimation);
     property ParentAnimation: TVRMLGLAnimation read FParentAnimation;
     procedure DoGeometryChanged; override;
+    procedure VisibleChange; override;
   end;
 
 constructor TVRMLGLAnimationScene.CreateForAnimation(
@@ -700,6 +701,12 @@ procedure TVRMLGLAnimationScene.DoGeometryChanged;
 begin
   inherited;
   ParentAnimation.ValidBoundingBoxSum := false;
+end;
+
+procedure TVRMLGLAnimationScene.VisibleChange;
+begin
+  inherited;
+  ParentAnimation.VisibleChange;
 end;
 
 { EModelsStructureDifferent -------------------------------------------------- }

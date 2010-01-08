@@ -93,7 +93,6 @@ type
     procedure GetCameraHeight(ANavigator: TWalkNavigator;
       out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
 
-    procedure ScenePostRedisplay(Scene: TVRMLScene);
     procedure VisibleChange(ANavigator: TObject);
     procedure BoundViewpointChanged(Scene: TVRMLScene);
     procedure BoundViewpointVectorsChanged(Scene: TVRMLScene);
@@ -264,7 +263,6 @@ begin
   { prepare for events procesing (although we let the decision whether
     to turn ProcessEvent := true to the caller). }
   Scene.ResetWorldTimeAtLoad;
-  Scene.OnPostRedisplay := @ScenePostRedisplay;
   Scene.OnBoundViewpointVectorsChanged := @BoundViewpointVectorsChanged;
   Scene.ViewpointStack.OnBoundChanged := @BoundViewpointChanged;
   Scene.OnGeometryChanged := @GeometryChanged;
@@ -405,11 +403,6 @@ begin
     IsAboveTheGround := true;
     SqrHeightAboveTheGround := Sqr(ANavigator.CameraPreferredHeight);
   end;
-end;
-
-procedure TKamVRMLBrowser.ScenePostRedisplay(Scene: TVRMLScene);
-begin
-  Invalidate;
 end;
 
 procedure TKamVRMLBrowser.VisibleChange(ANavigator: TObject);

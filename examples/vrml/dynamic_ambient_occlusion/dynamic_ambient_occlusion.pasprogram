@@ -654,8 +654,6 @@ type
     class procedure SceneGeometryChanged(Scene: TVRMLScene;
       const SomeLocalGeometryChanged: boolean);
 
-    class procedure ScenePostRedisplay(Scene: TVRMLScene);
-
     class procedure UpdateCursor(Sender: TObject);
   end;
 
@@ -706,11 +704,6 @@ begin
   begin
     Writeln('TODO: animation changed elements count / texture size. Shaders need to reinitialiazed.');
   end;
-end;
-
-class procedure THelper.ScenePostRedisplay(Scene: TVRMLScene);
-begin
-  Glw.PostRedisplay;
 end;
 
 procedure Init(Glwin: TGLWindow);
@@ -923,7 +916,6 @@ begin
     { start Scene animation }
     Scene.Spatial := [ssRendering, ssDynamicCollisions];
     Scene.ResetWorldTimeAtLoad;
-    Scene.OnPostRedisplay := @THelper(nil).ScenePostRedisplay;
     Scene.OnGeometryChanged := @THelper(nil).SceneGeometryChanged;
     Scene.OnPointingDeviceSensorsChange := @THelper(nil).UpdateCursor;
     Scene.ProcessEvents := true;

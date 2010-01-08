@@ -463,7 +463,7 @@ type
     property OpaqueCount: Cardinal read FOpaqueCount;
   end;
 
-  TPostRedisplayChange = (
+  TVisibleSceneChange = (
     { Something visible in the scene geometry changed.
       "Geometry" means that this is applicable only to actual 3D shape
       changes. (Think about "does depth buffer from some point in space
@@ -476,7 +476,7 @@ type
     prVisibleSceneNonGeometry,
     { Viewer (the settings passed to ViewerChanged) changed. }
     prViewer);
-  TPostRedisplayChanges = set of TPostRedisplayChange;
+  TVisibleSceneChanges = set of TVisibleSceneChange;
 
   { VRML scene, a final class to handle VRML models
     (with the exception of rendering, which is delegated to descendants,
@@ -594,7 +594,6 @@ type
     procedure FreeResources_UnloadBackgroundImage(Node: TVRMLNode);
   private
     FOnGeometryChanged: TVRMLSceneGeometryChanged;
-    FOnPostRedisplay: TVRMLSceneNotification;
     FOnViewpointsChanged: TVRMLSceneNotification;
     FOnBoundViewpointVectorsChanged: TVRMLSceneNotification;
 
@@ -971,10 +970,6 @@ type
     property OnGeometryChanged: TVRMLSceneGeometryChanged
       read FOnGeometryChanged write FOnGeometryChanged;
 
-    { Notification when anything changed needing redisplay. }
-    property OnPostRedisplay: TVRMLSceneNotification
-      read FOnPostRedisplay write FOnPostRedisplay;
-
     { Notification when the list of viewpoints in the scene possibly
       changed.
 
@@ -1003,21 +998,22 @@ type
 
     { Something visible changed.
 
-      In this class, just calls OnPostRedisplay, if assigned.
+      In this class, just calls VisibleChange, that calls OnVisibleChange
+      if assigned.
 
       Changes is a set describing what changes occured that caused this
       redisplay. It can be [], meaning "something else", we'll
-      still make OnPostRedisplay then. See TPostRedisplayChange
+      still make OnVisibleChange then. See TVisibleSceneChange
       docs for possible values. It must specify all parts that possibly
       changed.
 
-      When you want to initialize OnPostRedisplay from your own code,
+      When you want to call OnVisibleChange from your own code,
       and there's a chance that Changes <> [],
-      it's important that you call this (not directly call OnPostRedisplay).
+      it's important that you call this (not directly call OnVisibleChange).
       That's because descendant TVRMLGLScene does important updates for
       generated textures (potentially instructing them to regenerate
       next frame) when Changes <> []. }
-    procedure PostRedisplay(const Changes: TPostRedisplayChanges); virtual;
+    procedure VisibleSceneChange(const Changes: TVisibleSceneChanges); virtual;
 
     { Call OnGeometryChanged, if assigned. }
     procedure DoGeometryChanged; virtual;
@@ -1629,7 +1625,7 @@ type
       If a change of WorldTime will produce some visible change in VRML model
       (for example, MovieTexture will change, or TimeSensor change will be
       routed by interpolator to coordinates of some visible node) this
-      will be notified by usual method, that is OnPostRedisplay.
+      will be notified by usual method, that is OnVisibleChange.
 
       @groupBegin }
     procedure SetWorldTime(const NewValue: TKamTime);
@@ -1709,7 +1705,7 @@ type
     { Call when viewer position/dir/up changed, to update things depending
       on viewer settings. This includes sensors like ProximitySensor,
       LOD nodes, camera settings for next RenderedTexture update and more.
-      It automatically does proper PostRedisplay / OnPostRedisplay.
+      It automatically does proper VisibleSceneChange (VisibleChange, OnVisibleChange).
 
       @param(Changes describes changes to the scene caused by viewer change.
         This is needed if some geometry / light follows the player.
@@ -1720,7 +1716,7 @@ type
         You should add here prVisibleSceneGeometry if player has a rendered
         avatar.) }
     procedure ViewerChanged(ANavigator: TNavigator;
-      const Changes: TPostRedisplayChanges);
+      const Changes: TVisibleSceneChanges);
 
     { List of handlers for VRML Script node with "compiled:" protocol.
       This is read-only, change this only by RegisterCompiledScript. }
@@ -2617,7 +2613,7 @@ begin
   ScheduledGeometryChangedAll := true;
   ScheduleGeometryChanged;
 
-  PostRedisplay([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
+  VisibleSceneChange([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
   DoViewpointsChanged;
 end;
 
@@ -2638,7 +2634,7 @@ begin
   Shape.Changed(PossiblyLocalGeometryChanged);
 
   if not InactiveOnly then
-    PostRedisplay([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
+    VisibleSceneChange([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
 end;
 
 type
@@ -2852,7 +2848,7 @@ begin
         destroy display lists and such when rendering next time.
       }
       if Inactive = 0 then
-        ParentScene.PostRedisplay([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
+        ParentScene.VisibleSceneChange([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
     end else
     if Node is TNodeNavigationInfo then
     begin
@@ -3104,7 +3100,7 @@ begin
       { Do nothing here, as TVRMLOpenGLRenderer registers and takes care
         to update shaders' uniform variables. We don't have to do
         anything here, no need to rebuild/recalculate anything.
-        The only thing that needs to be called is redisplay, by PostRedisplay
+        The only thing that needs to be called is redisplay, by VisibleSceneChange
         at the end of ChangedFields. }
     end else
     if Node is TNodeCoordinate then
@@ -3297,7 +3293,7 @@ begin
           end;
 
           if not TransformChangeHelper.AnythingChanged then
-            { No need to even PostRedisplay at the end. }
+            { No need to even VisibleSceneChange at the end. }
             Exit;
         finally
           FreeAndNil(TransformChangeHelper);
@@ -3334,14 +3330,14 @@ begin
     if Node is TNodeMovieTexture then
     begin
       ChangedTimeDependentNode(TNodeMovieTexture(Node).TimeDependentNodeHandler);
-      { No need to do PostRedisplay.
+      { No need to do VisibleSceneChange.
         Redisplay will be done by next IncreaseWorldTime run, if active now. }
       Exit;
     end else
     if Node is TNodeTimeSensor then
     begin
       ChangedTimeDependentNode(TNodeTimeSensor(Node).TimeDependentNodeHandler);
-      { PostRedisplay not needed --- this is only a sensor, it's state
+      { VisibleSceneChange not needed --- this is only a sensor, it's state
         is not directly visible. }
       Exit;
     end else
@@ -3435,20 +3431,20 @@ begin
       { For generated textures nodes "update" fields:
         changes will be handled automatically
         at next UpdateGeneratedTextures call.
-        So just make PostRedisplay and nothing else is needed.
+        So just make VisibleSceneChange and nothing else is needed.
 
-        Note we pass Changes = [] to PostRedisplay.
+        Note we pass Changes = [] to VisibleSceneChange.
         That's logical --- only the change of "update" doesn't visibly
         change anything on the scene. This means that if you change "update"
         to "ALWAYS", but no visible change was registered since last update
         of the texture, the texture will not be actually immediately
         regenerated --- correct optimization!
 
-        For other fields, even PostRedisplay isn't needed. }
+        For other fields, even VisibleSceneChange isn't needed. }
 
       if (Field = nil) or
          (Field = TNodeGeneratedCubeMapTexture(Node).FdUpdate) then
-        PostRedisplay([]);
+        VisibleSceneChange([]);
       Exit;
     end else
     if Node is TNodeRenderedTexture then
@@ -3458,9 +3454,9 @@ begin
          (Field = TNodeRenderedTexture(Node).FdViewpoint) or
          (Field = TNodeRenderedTexture(Node).FdDepthMap) then
         { Call with prVisibleSceneGeometry, to regenerate even if UpdateNeeded = false }
-        PostRedisplay([prVisibleSceneGeometry]) else
+        VisibleSceneChange([prVisibleSceneGeometry]) else
       if (Field = TNodeRenderedTexture(Node).FdUpdate) then
-        PostRedisplay([]);
+        VisibleSceneChange([]);
       Exit;
     end else
     if Node is TNodeGeneratedShadowMap then
@@ -3470,9 +3466,9 @@ begin
          (Field = TNodeGeneratedShadowMap(Node).FdBias) or
          (Field = TNodeGeneratedShadowMap(Node).FdLight) then
         { Call with prVisibleSceneGeometry, to regenerate even if UpdateNeeded = false }
-        PostRedisplay([prVisibleSceneGeometry]) else
+        VisibleSceneChange([prVisibleSceneGeometry]) else
       if (Field = TNodeGeneratedShadowMap(Node).FdUpdate) then
-        PostRedisplay([]);
+        VisibleSceneChange([]);
       Exit;
     end else
     begin
@@ -3487,7 +3483,7 @@ begin
       Exit;
     end;
 
-    PostRedisplay([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
+    VisibleSceneChange([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
   finally EndChangesSchedule end;
 end;
 
@@ -3562,10 +3558,9 @@ begin
     CalculateMainLightForShadowsPosition;
 end;
 
-procedure TVRMLScene.PostRedisplay(const Changes: TPostRedisplayChanges);
+procedure TVRMLScene.VisibleSceneChange(const Changes: TVisibleSceneChanges);
 begin
-  if Assigned(OnPostRedisplay) then
-    OnPostRedisplay(Self);
+  VisibleChange;
 end;
 
 procedure TVRMLScene.DoGeometryChanged;
@@ -5219,7 +5214,7 @@ begin
         other nodes only by events, and this will change EventChanged
         to catch it). }
       if SomethingChanged then
-        PostRedisplay([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
+        VisibleSceneChange([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
 
       for I := 0 to TimeSensorNodes.Count - 1 do
         (TimeSensorNodes.Items[I] as TNodeTimeSensor).
@@ -5475,7 +5470,7 @@ begin
 end;
 
 procedure TVRMLScene.ViewerChanged(ANavigator: TNavigator;
-  const Changes: TPostRedisplayChanges);
+  const Changes: TVisibleSceneChanges);
 var
   I: Integer;
 begin
@@ -5496,7 +5491,7 @@ begin
     end;
   finally EndChangesSchedule end;
 
-  PostRedisplay(Changes + [prViewer]);
+  VisibleSceneChange(Changes + [prViewer]);
 end;
 
 { compiled scripts ----------------------------------------------------------- }

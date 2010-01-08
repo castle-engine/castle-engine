@@ -1418,7 +1418,7 @@ type
 
     procedure ViewChangedSuddenly; override;
 
-    procedure PostRedisplay(const Changes: TPostRedisplayChanges); override;
+    procedure VisibleSceneChange(const Changes: TVisibleSceneChanges); override;
   end;
 
   TObjectsListItem_1 = TVRMLGLScene;
@@ -4847,13 +4847,13 @@ begin
   end;
 end;
 
-procedure TVRMLGLScene.PostRedisplay(const Changes: TPostRedisplayChanges);
+procedure TVRMLGLScene.VisibleSceneChange(const Changes: TVisibleSceneChanges);
 var
   I: Integer;
 begin
-  { set UpdateNeeded := true before calling inherited (with OnPostRedisplay
-    callback), because inside OnPostRedisplay callback we'll actually
-    initialize regenerating the textures. }
+  { set UpdateNeeded := true before calling inherited (with VisibleChange
+    and OnVisibleChange callback), because inside OnVisibleChange callback
+    we'll actually initialize regenerating the textures. }
   if Changes <> [] then
   begin
     for I := 0 to GeneratedTextures.Count - 1 do

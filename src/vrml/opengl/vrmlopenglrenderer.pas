@@ -2514,12 +2514,12 @@ begin
         about changes to ParentEventsProcessor, we can also get here
         by eventIn invocation (which doesn't trigger
         ParentEventsProcessor.ChangedFields, since it doesn't change a field...).
-        So we should explicitly do PostRedisplay here, to make sure
+        So we should explicitly do VisibleSceneChange here, to make sure
         it gets called when uniform changed. }
 
       EventsProcessor := GLSLProgramCache^.ProgramNode.ParentEventsProcessor;
       if EventsProcessor <> nil then
-        (EventsProcessor as TVRMLScene).PostRedisplay([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
+        (EventsProcessor as TVRMLScene).VisibleSceneChange([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
 
       Exit;
     end;
