@@ -490,8 +490,10 @@ type
       @link(Rotations) will be automatically modified by @link(Idle).
 
       So often you only need to set ModelBox, once,
-      and everything else will work smoothly. }
-    property ModelBox: TBox3d read FModelBox write SetModelBox; { = EmptyBox3d }
+      and everything else will work smoothly.
+
+      Initially this is EmptyBox3d. }
+    property ModelBox: TBox3d read FModelBox write SetModelBox;
 
     { Initializes most important properties of this class:
       ModelBox, and MoveAmount. MoveAmount is set such that
