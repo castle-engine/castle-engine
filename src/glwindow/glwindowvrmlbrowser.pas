@@ -90,7 +90,7 @@ type
     procedure GetCameraHeight(ANavigator: TWalkNavigator;
       out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
 
-    procedure VisibleChange(ANavigator: TObject);
+    procedure NavigatorVisibleChange(ANavigator: TObject);
     procedure BoundViewpointChanged(Scene: TVRMLScene);
     procedure BoundViewpointVectorsChanged(Scene: TVRMLScene);
     procedure GeometryChanged(Scene: TVRMLScene;
@@ -210,7 +210,7 @@ begin
 
   { init Navigator }
   Navigator := Scene.CreateNavigator(nil);
-  Navigator.OnVisibleChange := @VisibleChange;
+  Navigator.OnVisibleChange := @NavigatorVisibleChange;
   Scene.Navigator := Navigator;
 
   if Navigator is TWalkNavigator then
@@ -364,7 +364,7 @@ begin
   end;
 end;
 
-procedure TGLWindowVRMLBrowser.VisibleChange(ANavigator: TObject);
+procedure TGLWindowVRMLBrowser.NavigatorVisibleChange(ANavigator: TObject);
 begin
   { Navigator.OnVisibleChange callback is initialized in constructor
     before Scene is initialized. So to be on the safest side, we check
