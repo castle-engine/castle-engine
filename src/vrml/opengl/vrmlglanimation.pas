@@ -17,7 +17,8 @@ unit VRMLGLAnimation;
 interface
 
 uses SysUtils, VRMLNodes, VRMLOpenGLRenderer, VRMLScene, VRMLGLScene,
-  KambiUtils, Boxes3d, KambiClassUtils, VRMLAnimation, KeysMouse, Navigation;
+  KambiUtils, Boxes3d, KambiClassUtils, VRMLAnimation, KeysMouse, Navigation,
+  KambiTimeUtils;
 
 {$define read_interface}
 
@@ -88,6 +89,10 @@ type
     FTimeBackwards: boolean;
     FOwnsFirstRootNode: boolean;
     FLoaded: boolean;
+    FTimePlaying: boolean;
+    FTimePlayingSpeed: Single;
+    FWorldTimeAtLoad: TKamTime;
+    FWorldTime: TKamTime;
 
     ValidBoundingBoxSum: boolean;
     FBoundingBoxSum: TBox3d;
@@ -362,8 +367,8 @@ type
     property TimeEnd: Single read FTimeEnd;
     { @groupEnd }
 
-    { This will return appropriate scene from @link(Scenes) based on given
-      Time. If Time is between given TimeBegin and TimeEnd,
+    { Appropriate scene from @link(Scenes) based on given Time.
+      If Time is between given TimeBegin and TimeEnd,
       then this will be appropriate scene in the middle.
 
       For Time outside the range TimeBegin .. TimeEnd
@@ -408,6 +413,11 @@ type
       )
     }
     function SceneFromTime(const Time: Single): TVRMLGLScene;
+
+    { Appropriate scene from @link(Scenes) based on given WorldTime.
+      This is just a shortcut for SceneFromTime(WorldTime),
+      useful if you track animation time in our WorldTime property. }
+    function CurrentScene: TVRMLGLScene;
 
     { See SceneFromTime for description what this property does. }
     property TimeLoop: boolean read FTimeLoop write FTimeLoop default true;
@@ -588,6 +598,57 @@ type
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
     function PositionInside(const X, Y: Integer): boolean; override;
+
+    { Initial world time, set by the ResetWorldTimeAtLoad call.
+      This can be useful for showing user
+      time like "WorldTime: LoadTime + %f" on status bar.
+
+      0 means that starting WorldTime was TimeBegin of the animation
+      (0.0 in case of normal VRML files, usually 0.0 in case of Kanim).
+      Note that even when TimeBegin <> 0 (for Kanim), we still set
+      WorldTimeAtLoad to 0, this is nicer to show to user.
+
+      Other value means that we used current real time as time origin,
+      following VRML/X3D specification.
+      See also [http://vrmlengine.sourceforge.net/vrml_time_origin_considered_uncomfortable.php] }
+    property WorldTimeAtLoad: TKamTime read FWorldTimeAtLoad;
+
+    { Current time of the animation. Although you do not have to use it:
+      you can always acccess any point in time of the animtion by SceneFromTime.
+      But sometimes tracking the current time here is most natural
+      and comfortable.
+
+      When we have exactly one scene in Scenes, our methods (ResetWorldTime,
+      ResetWorldTimeAtLoad and Idle) will synchronize Scenes[0].WorldTime
+      always to the same value as our own WorldTime.
+      This makes time-dependent nodes (like TimeSensor,
+      MovieTexture etc.) inside this scene work Ok. }
+    property WorldTime: TKamTime read FWorldTime;
+
+    { Set WorldTime to initial value after loading a world. }
+    procedure ResetWorldTimeAtLoad(const ForceTimeOrigin: boolean = false);
+
+    { Set WorldTime to arbitrary value. }
+    procedure ResetWorldTime(const NewValue: TKamTime);
+  published
+    { Is the animation time playing, and how fast.
+
+      For exact meaning of our TimePlaying, TimePlayingSpeed, see
+      TVRMLScene.TimePlaying, TVRMLScene.TimePlayingSpeed.
+      Like in TVRMLScene, these are realized by our @link(Idle) method,
+      so WorldTime is automatically increased in @link(Idle) which is called
+      automatically if you added this to some TGLUIWindow.Controls or
+      TKamOpenGLControl.Controls.
+
+      Note that Scenes[0].TimePlaying, Scenes[0].TimePlayingSpeed do not matter
+      when you're operating on the TVRMLGLAnimation level.
+      They will not affect our WorldTime, or even Scenes[0].WorldTime,
+      and they will not be synchronized with our values.
+
+      @groupBegin }
+    property TimePlaying: boolean read FTimePlaying write FTimePlaying default true;
+    property TimePlayingSpeed: Single read FTimePlayingSpeed write FTimePlayingSpeed default 1.0;
+    { @groupEnd }
   end;
 
   TObjectsListItem_1 = TVRMLGLAnimation;
@@ -599,7 +660,7 @@ type
 implementation
 
 uses Math, VectorMath, VRMLFields,
-  ProgressUnit, Object3dAsVRML, KambiLog;
+  ProgressUnit, Object3dAsVRML, KambiLog, DateUtils;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -661,6 +722,8 @@ begin
   inherited Create(nil);
   Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, ACache);
   FOptimization := roSeparateShapesNoTransform;
+  FTimePlaying := true;
+  FTimePlayingSpeed := 1.0;
 end;
 
 destructor TVRMLGLAnimation.Destroy;
@@ -1775,14 +1838,90 @@ begin
     Result := false;
 end;
 
+procedure TVRMLGLAnimation.ResetWorldTimeAtLoad(const ForceTimeOrigin: boolean = false);
+
+  function TimeOriginAtLoad: boolean;
+  var
+    N: TNodeNavigationInfo;
+  begin
+    Result := false;
+
+    if Loaded then
+    begin
+      N := Scenes[0].NavigationInfoStack.Top as TNodeNavigationInfo;
+      if (N <> nil) and
+         (N is TNodeKambiNavigationInfo) then
+        Result := TNodeKambiNavigationInfo(N).FdTimeOriginAtLoad.Value;
+    end;
+  end;
+
+begin
+  if (ScenesCount > 1) or ForceTimeOrigin or TimeOriginAtLoad then
+  begin
+    FWorldTimeAtLoad := 0.0;
+    ResetWorldTime(TimeBegin);
+  end else
+  begin
+    FWorldTimeAtLoad := DateTimeToUnix(Now);
+    ResetWorldTime(WorldTimeAtLoad);
+  end;
+end;
+
+procedure TVRMLGLAnimation.ResetWorldTime(const NewValue: TKamTime);
+begin
+  FWorldTime := NewValue;
+
+  { Ignored when SceneAnimation.ScenesCount <> 1, as scenes' ProcessEvents
+    is always false then and WorldTime wouldn't have much sense anyway. }
+  if ScenesCount = 1 then
+    Scenes[0].ResetWorldTime(NewValue);
+end;
+
 procedure TVRMLGLAnimation.Idle(const CompSpeed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
+var
+  OldWorldTime: TKamTime;
 begin
   inherited;
+
+  { Ignore Idle calls when CompSpeed is precisely zero
+    (this may happen, and is good, see TGLWindow.IgnoreNextIdleSpeed).
+    In this case, time increase will be zero so the whole code
+    will not do anything anyway. }
+
+  if TimePlaying and (CompSpeed <> 0) then
+  begin
+    OldWorldTime := FWorldTime;
+    FWorldTime += TimePlayingSpeed * CompSpeed;
+
+    { When ScenesCount = 1, it's sensible for single scene to receive
+      events, to increase it's time. Note that TVRMLScene.SetWorldTime
+      will signal when redisplay will be needed (something visible changed),
+      we don't have to worry about it.
+
+      We call Scenes[0].SetWorldTime direcly, instead of calling Scenes[0].Idle.
+      This way we do not have to worry to set scene's initial time, TimePlaying,
+      TimePlayingSpeed to our values. }
+    if ScenesCount = 1 then
+      Scenes[0].SetWorldTime(WorldTime);
+
+    { Call VisibleChange only if the displayed animation frame actually changed.
+      This way, we avoid wasting CPU cycles if the loaded scene is actually
+      still, or if the animation stopped running. }
+    if (SceneFromTime(OldWorldTime) <>
+        SceneFromTime(WorldTime)) then
+      VisibleChange;
+  end;
+
   { Even if mouse is over the scene, still allow others (like a Navigator
     underneath) to always handle mouse and keys in their Idle. }
   LetOthersHandleMouseAndKeys := true;
+end;
+
+function TVRMLGLAnimation.CurrentScene: TVRMLGLScene;
+begin
+  Result := SceneFromTime(WorldTime);
 end;
 
 function TVRMLGLAnimation.PositionInside(const X, Y: Integer): boolean;
