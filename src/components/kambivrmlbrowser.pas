@@ -131,7 +131,6 @@ type
     property Scene: TVRMLGLScene read FScene;
 
     procedure Resize; override;
-    procedure Idle; override;
 
     { Mouse movement and clicks within areas here will be ignored by VRML browser.
       That is, they will be treated like mouse was outside of VRML browser.
@@ -337,12 +336,6 @@ begin
   FreeAndNil(SV);
 
   inherited;
-end;
-
-procedure TKamVRMLBrowser.Idle;
-begin
-  inherited;
-  Scene.IncreaseWorldTime(Fps.IdleSpeed);
 end;
 
 procedure TKamVRMLBrowser.Resize;

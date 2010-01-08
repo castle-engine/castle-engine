@@ -528,6 +528,8 @@ type
     FNavigator: TNavigator;
     FAngleOfViewX: Single;
     FAngleOfViewY: Single;
+    FTimePlaying: boolean;
+    FTimePlayingSpeed: Single;
 
     { This always holds pointers to all TVRMLShapeTreeLOD instances in Shapes
       tree. }
@@ -1605,6 +1607,11 @@ type
       time-dependent features working, like TimeSensor and MovieTexture.
       See WorldTime for details what is affected by this.
 
+      This is automatically taken care of if you added this scene
+      to TGLUIWindow.Controls or TKamOpenGLControl.Controls.
+      Then our @link(Idle) takes care of doing the job,
+      according to TimePlaying and TimePlayingSpeed.
+
       This causes time to be passed to appropriate time-dependent nodes,
       events will be called etc.
 
@@ -1831,6 +1838,17 @@ type
       better to resign from occlusion query for the very next frame.
       This method will do exactly that. }
     procedure ViewChangedSuddenly; virtual;
+  published
+    { When TimePlaying is @true, the time of our 3D world will keep playing.
+      More precisely, our @link(Idle) will take care of increasing WorldTime.
+      Our @link(Idle) is usually automatically called (if you added this
+      scene to TGLUIWindow.Controls or TKamOpenGLControl.Controls)
+      so you don't have to do anything to make this work. }
+    property TimePlaying: boolean read FTimePlaying write FTimePlaying default true;
+
+    { Controls the time speed (if TimePlaying is @true):
+      1.0 means that 1 second  of real time equals to 1 unit of world time. }
+    property TimePlayingSpeed: Single read FTimePlayingSpeed write FTimePlayingSpeed default 1.0;
   end;
 
 {$undef read_interface}
@@ -2117,6 +2135,9 @@ begin
  FCompiledScriptHandlers := TDynCompiledScriptHandlerInfoArray.Create;
  TransformNodesInfo := TDynTransformNodeInfoArray.Create;
  GeneratedTextures := TDynGeneratedTextureArray.Create;
+
+ FTimePlaying := true;
+ FTimePlayingSpeed := 1.0;
 
  ScheduleChangedAll;
 end;
@@ -5168,16 +5189,6 @@ begin
   end;
 end;
 
-procedure TVRMLScene.Idle(const CompSpeed: Single;
-  const HandleMouseAndKeys: boolean;
-  var LetOthersHandleMouseAndKeys: boolean);
-begin
-  inherited;
-  { Even if mouse is over the scene, still allow others (like a Navigator
-    underneath) to always handle mouse and keys in their Idle. }
-  LetOthersHandleMouseAndKeys := true;
-end;
-
 function TVRMLScene.PositionInside(const X, Y: Integer): boolean;
 begin
   Result := true;
@@ -5277,6 +5288,24 @@ begin
     WorldTimeAtLoad := 0.0 else
     WorldTimeAtLoad := DateTimeToUnix(Now);
   ResetWorldTime(WorldTimeAtLoad);
+end;
+
+procedure TVRMLScene.Idle(const CompSpeed: Single;
+  const HandleMouseAndKeys: boolean;
+  var LetOthersHandleMouseAndKeys: boolean);
+begin
+  inherited;
+
+  { Ignore Idle calls when CompSpeed is precisely zero
+    (this may happen, and is correct, see TGLWindow.IgnoreNextIdleSpeed).
+    In this case, time increase will be zero so the whole code
+    will not do anything anyway. }
+  if TimePlaying and (CompSpeed <> 0) then
+    IncreaseWorldTime(TimePlayingSpeed * CompSpeed);
+
+  { Even if mouse is over the scene, still allow others (like a Navigator
+    underneath) to always handle mouse and keys in their Idle. }
+  LetOthersHandleMouseAndKeys := true;
 end;
 
 { geometry changes schedule -------------------------------------------------- }

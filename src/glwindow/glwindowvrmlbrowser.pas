@@ -126,7 +126,6 @@ type
     procedure EventDraw; override;
     procedure EventInit; override;
     procedure EventClose; override;
-    procedure EventIdle; override;
     procedure EventResize; override;
 
     { Should we make shadow volumes possible?
@@ -296,13 +295,6 @@ begin
   FreeAndNil(SV);
 
   inherited;
-end;
-
-procedure TGLWindowVRMLBrowser.EventIdle;
-begin
-  inherited;
-  { TODO: this should be done automatically by adding Scene to Controls. }
-  Scene.IncreaseWorldTime(Fps.IdleSpeed);
 end;
 
 procedure TGLWindowVRMLBrowser.EventResize;

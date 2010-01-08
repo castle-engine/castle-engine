@@ -49,8 +49,6 @@ var
     more "dramatic". }
   ShadowScale: Single = 1 / (1 * Pi);
 
-  AnimationPlaying: boolean = true;
-
 { Storing and calculating "elements" for algorithm --------------------------- }
 
 type
@@ -808,8 +806,6 @@ begin
     ShadowScale *= Power(1/1.1, Glwin.Fps.IdleSpeed * 20);
     Glwin.PostRedisplay;
   end;
-  if AnimationPlaying then
-    Scene.IncreaseWorldTime(Glwin.Fps.IdleSpeed);
 end;
 
 class procedure THelper.UpdateCursor(Sender: TObject);
@@ -867,7 +863,7 @@ begin
 
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create(
-      'Animation _Playing / Paused', 150, CtrlP, AnimationPlaying, true));
+      'Animation _Playing / Paused', 150, CtrlP, Scene.TimePlaying, true));
 
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 200));
@@ -900,7 +896,7 @@ begin
     103: begin DrawType := dtPass1; UpdateSceneAttribs; end;
     104: begin DrawType := dtPass2; UpdateSceneAttribs; end;
 
-    150: AnimationPlaying := not AnimationPlaying;
+    150: Scene.TimePlaying := not Scene.TimePlaying;
 
     200: Glwin.Close;
     else Exit;
