@@ -1737,7 +1737,7 @@ type
       and we will create navigator corresponding to default NavigationInfo
       values (this is following VRML spec), so it will have type = EXAMINE.
 
-      Sets also @link(TNavigator.CameraRadius).
+      Sets always suitable @link(TNavigator.CameraRadius).
 
       This initializes many TWalkNavigator properties, if this is determined
       to be proper result class:
@@ -5573,7 +5573,7 @@ begin
   if CameraRadius <= 0 then
     CameraRadius := Box3dAvgSize(BoundingBox, 1.0) * 0.005;
 
-  TNavigator(Result).CameraRadius := CameraRadius;
+  Result.CameraRadius := CameraRadius;
 
   if Result is TWalkNavigator then
   begin

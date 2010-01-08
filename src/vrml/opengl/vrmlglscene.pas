@@ -1384,8 +1384,10 @@ type
       Takes into account Viewpoint type (perspective/orthogonal),
       NavigationInfo.visibilityLimit, Viewpoint.fieldOfView.
 
-      Also takes care of setting Nav.ProjectionMatrix, and setting
-      our properties BackgroundSkySphereRadius,
+      Takes care of updating Nav.ProjectionMatrix.
+      Requires Nav.CameraRadius to be already properly set.
+
+      Also takes care of setting our properties BackgroundSkySphereRadius,
       AngleOfViewX, AngleOfViewY.
 
       Box is the expected bounding box of the whole scene. Usually,
