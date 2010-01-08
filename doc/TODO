@@ -20,10 +20,13 @@ Better Lazarus integration:
 
   At designtime, warn on error: do not put > 1 navigator in Controls list,
   while it works it's usually nonsense.
+  Or not: shadow_volume_test shows that it's possible to have two navigators,
+  and things work smoothly. You just have to assign non-conflicting keys.
 
 - Make sure most useful props of navigators, TGLMenu are settable (published) from Lazarus.
   For TExamineNavigator: somehow allow ModelBox: TBox3d?
   For navigators generally, what Init method takes should be settable.
+  For navigators generally, Input_Xxx properties.
 
 - make icons for our components.
   Same style navigators (black with dotted lines):

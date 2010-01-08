@@ -123,6 +123,7 @@ var
 
   Scene, ShadowCaster: TVRMLGLScene;
   ShadowCasterNav: TExamineNavigator;
+  SceneNav: TWalkNavigator;
   LightSet: TVRMLLightSetGL;
 
   { MainLightPosition[3] = 0 means it's directional. }
@@ -167,7 +168,7 @@ procedure Draw(glwin: TGLWindow);
   procedure RenderFrontShadowQuads;
   begin
     ShadowTests.RenderFrontShadowQuads(ShadowCaster,
-      MainLightPosition, Glw.WalkNav.CameraPos, ShadowCasterNav.Matrix);
+      MainLightPosition, SceneNav.CameraPos, ShadowCasterNav.Matrix);
   end;
 
   procedure RenderBackShadowQuads;
@@ -344,9 +345,9 @@ procedure Draw(glwin: TGLWindow);
 
 begin
   glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT);
-  glLoadMatrix(Glw.Navigator.Matrix);
+  glLoadMatrix(SceneNav.Matrix);
 
-  SV.InitFrustumAndLight(Glw.WalkNav.Frustum, MainLightPosition);
+  SV.InitFrustumAndLight(SceneNav.Frustum, MainLightPosition);
 
   SV.InitSceneDontSetupStencil(
     Box3dTransform(ShadowCaster.BoundingBox, ShadowCasterNav.Matrix));
@@ -407,7 +408,7 @@ procedure ResizeGL(glwin: TGLWindow);
     ProjectionMatrix: TMatrix4f;
   begin
     glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
-    Glw.WalkNav.ProjectionMatrix := ProjectionMatrix;
+    SceneNav.ProjectionMatrix := ProjectionMatrix;
   end;
 
 begin
@@ -482,8 +483,6 @@ begin
 end;
 
 procedure IdleGL(glwin: TGLWindow);
-var
-  Dummy: boolean;
 begin
   if FirstIdle then
   begin
@@ -494,19 +493,6 @@ begin
     ShowManifoldStatistics;
     FirstIdle := false;
   end;
-
-  Dummy := false;
-  ShadowCasterNav.Idle(glwin.Fps.IdleSpeed, true, Dummy);
-end;
-
-procedure KeyDown(glwin: TGLWindow; key: TKey; c: char);
-begin
-  ShadowCasterNav.KeyDown(key, c);
-end;
-
-procedure MouseMove(Glwin: TGLWindow; NewX, NewY: integer);
-begin
-  ShadowCasterNav.MouseMove(Glwin.MouseX, Glwin.MouseY, NewX, NewY);
 end;
 
 { menu ----------------------------------------------------------------------- }
@@ -519,7 +505,7 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
   begin
     CameraViewpointForWholeScene(SceneBoundingBox, 2,
       CameraPos, CameraDir, CameraUp, GravityUp);
-    Glw.WalkNav.Init(CameraPos, CameraDir, CameraUp, GravityUp, 0.0, 0.0);
+    SceneNav.Init(CameraPos, CameraDir, CameraUp, GravityUp, 0.0, 0.0);
   end;
 
 var
@@ -539,10 +525,10 @@ begin
     10, 11:
       begin
         Writeln(MakeVRMLCameraStr(MenuItem.IntData - 9,
-          Glw.WalkNav.CameraPos,
-          Glw.WalkNav.CameraDir,
-          Glw.WalkNav.CameraUp,
-          Glw.WalkNav.GravityUp));
+          SceneNav.CameraPos,
+          SceneNav.CameraDir,
+          SceneNav.CameraUp,
+          SceneNav.GravityUp));
       end;
     20:
       begin
@@ -699,15 +685,15 @@ begin
     ShadowCasterNav.Input_ScaleSmaller.Key1 := K_4;
     ShadowCasterNav.Input_ScaleSmaller.Character := #0;
 
-    { Assign Container directly, to allow KeyDown / Idle / etc. get
-      Container.Pressed etc. properties. }
-    ShadowCasterNav.Container := Glw;
-
-    { init Glw.Navigator }
-    Glw.Navigator := TWalkNavigator.Create(Glw);
+    { init SceneNav }
+    SceneNav := TWalkNavigator.Create(Glw);
     Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
     VectorAdjustToLengthTo1st(CamDir, Box3dAvgSize(SceneBoundingBox)*0.02);
-    Glw.WalkNav.Init(CamPos, CamDir, CamUp, GravityUp, 0.0, 0.0);
+    SceneNav.Init(CamPos, CamDir, CamUp, GravityUp, 0.0, 0.0);
+
+    { use both navigators simultaneously }
+    Glw.Controls.Add(SceneNav);
+    Glw.Controls.Add(ShadowCasterNav);
 
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;
@@ -718,8 +704,6 @@ begin
     Glw.OnDraw := @Draw;
     Glw.OnResize := @ResizeGL;
     Glw.OnIdle := @IdleGL;
-    Glw.OnKeyDown := @KeyDown;
-    Glw.OnMouseMove := @MouseMove;
     Glw.InitAndRun;
   finally
     Scene.Free;

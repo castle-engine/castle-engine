@@ -2418,36 +2418,32 @@ type
     trivially add to the window any TUIControl descendants.
 
     If UseControls, we pass our inputs (mouse / key events) to the top-most
-    (that is, first on this list) control under the current mouse position
+    (that is, first on the @link(Controls) list) control under the current mouse position
     (we check control's PositionInside method for this).
     As long as the event is not handled,
     we look for next controls under the mouse position.
     Only if no control handled the event, we pass it to the inherited
     EventXxx method, which calls normal window callbacks OnKeyDown etc.
 
-    All above applied to mouse / keyboard input. We also call other
-    methods on every control (if UseControls), like TUIControl.Idle,
-    TUIControl.Draw2D, TUIControl.WindowResize.
+    We also call other methods on every control (if UseControls),
+    like TUIControl.Idle, TUIControl.Draw2D, TUIControl.WindowResize.
 
-    We also use OnVisibleChange event of our controls to make
+    We use OnVisibleChange event of our controls to make
     PostRedisplay when something visible changed. If you want to use
     OnVisibleChange for other purposes, you can reassign OnVisibleChange
-    yourself. This window will only change OnVisibleChange from nil
+    yourself. This window will only change OnVisibleChange from @nil
     to it's own internal callback (when adding a control),
-    and from it's own internal callback to nil (when removing a control).
+    and from it's own internal callback to @nil (when removing a control).
     This means that if you assign OnVisibleChange callback to your own
     method --- window will not touch it anymore.
 
-    TNavigator descendants have to be treated a little specially for now:
-    although they descend from TUIControl, you cannot add them directly
-    to the @link(Controls) list. Instead, you have to assign them
-    through the @link(Navigator) property
-    (this will also cause appropriate add / replace / replace on
-    the @link(Controls) list). The reason for this is that TNavigator
-    requires some specialized treatment in this class, for now.
-
-    This way MouseLook feature of TWalkNavigator is handled out of the box,
-    assuming you only call UpdateMouseLook when needed. }
+    TNavigator descendants can be treated like any other TUIControl,
+    that is you can add them directly to the @link(Controls) list.
+    But, if you use only one navigator (most common situation),
+    you can also assign it to the @link(Navigator) property
+    (this will cause appropriate add / replace / remove on
+    the @link(Controls) list). The special treatment of a single Navigator
+    is required mostly for UpdateMouseLook proper work. }
   TGLUIWindow = class(TGLWindowDemo, IUIContainer)
   private
     FNavigator: TNavigator;
@@ -2489,9 +2485,6 @@ type
       the one and only one TNavigator instance on Controls list.
       Assigning here @nil removes it from Controls list.
 
-      For now, you should not add / remove TNavigator instances to
-      the Controls list directly.
-
       Example use of this class TGLUIWindow just to get a Navigator:
 
       @orderedList(
@@ -2508,10 +2501,13 @@ type
     ) }
     property Navigator: TNavigator read FNavigator write SetNavigator;
 
-    { These are shortcuts for writing
-      TExamineNavigator(Navigator) and TWalkNavigator(Navigator).
-      In DEBUG version they use operator "as" but in RELEASE
-      version they use direct type-casts for speed.
+    { Shortcuts for reading @link(Navigator) property and casting
+      it to TExamineNavigator or TWalkNavigator.
+
+      When compiled with -dDEBUG they use safe "as" operator,
+      otherwise (like when compiled with  -dRELEASE) they use direct
+      type-casts for speed. In other words: make sure you only use
+      them if your navigator is of the appropriate class.
 
       @groupBegin }
     function ExamineNav: TExamineNavigator;
