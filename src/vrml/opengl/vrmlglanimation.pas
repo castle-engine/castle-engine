@@ -16,7 +16,7 @@ unit VRMLGLAnimation;
 
 interface
 
-uses SysUtils, VRMLNodes, VRMLOpenGLRenderer, VRMLScene, VRMLGLScene,
+uses SysUtils, Classes, VRMLNodes, VRMLOpenGLRenderer, VRMLScene, VRMLGLScene,
   KambiUtils, Boxes3d, KambiClassUtils, VRMLAnimation, KeysMouse, Navigation,
   KambiTimeUtils;
 
@@ -154,8 +154,11 @@ type
       ScenesPerTime: Cardinal;
       const EqualityEpsilon: Single);
   public
-    { Constructor. }
-    constructor Create(ACache: TVRMLOpenGLRendererContextCache = nil); reintroduce;
+    constructor Create(AOwner: TComponent); override;
+
+    { Constructor that allows you to pass your own Cache instance. }
+    constructor CreateCustomCache(AOwner: TComponent;
+      ACache: TVRMLOpenGLRendererContextCache);
 
     destructor Destroy; override;
 
@@ -655,6 +658,8 @@ type
   {$I objectslist_1.inc}
   TVRMLGLAnimationsList = TObjectsList_1;
 
+procedure Register;
+
 {$undef read_interface}
 
 implementation
@@ -664,6 +669,11 @@ uses Math, VectorMath, VRMLFields,
 
 {$define read_implementation}
 {$I objectslist_1.inc}
+
+procedure Register;
+begin
+  RegisterComponents('Kambi', [TVRMLGLAnimation]);
+end;
 
 { TVRMLGLAnimationScene ------------------------------------------------------ }
 
@@ -724,13 +734,36 @@ end;
 
 { TVRMLGLAnimation ------------------------------------------------------------ }
 
-constructor TVRMLGLAnimation.Create(ACache: TVRMLOpenGLRendererContextCache);
+{ About Create and CreateCustomCache relationship:
+
+  Note that Create cannot call CreateCustomCache and depend that
+  CreateCustomCache calls "inherited Create". This wouldn't be nice
+  for descendants: If some TVRMLGLAnimation descendant would override "Create"
+  to do his initialization, and we would create this descendant by
+  CreateCustomCache --- we would miss executing descendant's constructor code.
+
+  So only our Create may call "inherited Create".
+
+  CreateCustomCache should always call just "Create" (virtual).
+  To do this (since CreateCustomCache must initialize Renderer)
+  we initialize Renderer in CreateCustomCache, and in Create check
+  Renderer = nil before setting default renderer. }
+
+constructor TVRMLGLAnimation.Create(AOwner: TComponent);
 begin
-  inherited Create(nil);
-  Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, ACache);
+  inherited Create(AOwner);
+  if Renderer = nil then
+    Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, nil);
   FOptimization := roSeparateShapesNoTransform;
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;
+end;
+
+constructor TVRMLGLAnimation.CreateCustomCache(AOwner: TComponent;
+  ACache: TVRMLOpenGLRendererContextCache);
+begin
+  Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, ACache);
+  Create(AOwner);
 end;
 
 destructor TVRMLGLAnimation.Destroy;

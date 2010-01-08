@@ -200,7 +200,7 @@ begin
   try
     VRMLWarning := @VRMLWarning_Write;
 
-    Animation := TVRMLGLAnimation.Create;
+    Animation := TVRMLGLAnimation.Create(nil);
     if Parameters.High = 1 then
     begin
       { 1st method: *.kanim file }

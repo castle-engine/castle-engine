@@ -48,7 +48,7 @@ var
   Coord: TNodeCoordinate;
   I: Integer;
 begin
-  Anim := TVRMLGLAnimation.Create;
+  Anim := TVRMLGLAnimation.Create(nil);
   try
     Anim.LoadFromFile('../../../kambi_vrml_test_suite/x3d/water_reflections/water.kanim');
     Vrml := Anim.Scenes[0].RootNode.DeepCopy;
