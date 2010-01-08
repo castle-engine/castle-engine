@@ -26,16 +26,19 @@
   2. Rendering with frustum culling
   - scene is loaded with Optimization roSeparateShapes instead of roSceneAsAWhole
   - initializing Glw.Navigator.ProjectionMatrix (this is needed to get
-    Glw.Navigator.Frustum)
+    Glw.Navigator.Frustum) is already done by Scene.GLProjection
   - using Glw.Navigator.Frustum and OctreeRendering to render the scene,
     see line "Scene.RenderFrustum"
 
   3. Tries to get default camera settings from VRML file
   - see Scene.GetPerspectiveViewpoint call
 
-  (Note that in general, we could avoid Scene.GetPerspectiveViewpoint and
-  Glw.WalkNav.Init calls and do this simpler by
-    Glw.Navigator := Scene.CreateNavigator(CameraRadius);
+  (Note that we could avoid here doing manually
+  - Scene.GetPerspectiveViewpoint and
+  - Glw.WalkNav.Init
+  - calculating Glw.Navigator.CameraRadius
+  and do it all easier by calling
+    Glw.Navigator := Scene.CreateNavigator;
   However, CreateNavigator may initialize Examine navigation.
   (depends on NavigationInfo node inside VRML model;
   if not existing (or is not a VRML model, like 3DS)
@@ -60,8 +63,6 @@ uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindo
 var
   Glw: TGLUIWindow;
   Scene: TVRMLGLScene;
-  { CameraRadius is needed for collision detection }
-  CameraRadius: Single;
 
 procedure BeforeDraw(Glwin: TGLWindow);
 begin
@@ -87,22 +88,10 @@ begin
 end;
 
 procedure Resize(Glwin: TGLWindow);
-
-  procedure UpdateNavigatorProjectionMatrix;
-  var
-    ProjectionMatrix: TMatrix4f;
-  begin
-    glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
-    Glw.Navigator.ProjectionMatrix := ProjectionMatrix;
-  end;
-
 begin
-  glViewport(0, 0, glwin.Width, glwin.Height);
-  ProjectionGLPerspective(45.0, glwin.Width/glwin.Height,
-    CameraRadius * 0.6,
-    Box3dMaxSize(Scene.BoundingBox) * 3.0);
-
-  UpdateNavigatorProjectionMatrix;
+  { This sets OpenGL projection, also updating Glw.Navigator.ProjectionMatrix }
+  Scene.GLProjection(Glw.Navigator, Scene.BoundingBox,
+    Glwin.Width, Glwin.Height);
 end;
 
 type
@@ -117,7 +106,7 @@ class function THelperObj.MoveAllowed(Navigator: TWalkNavigator;
   const BecauseOfGravity: boolean): boolean;
 begin
   Result := Scene.OctreeCollisions.MoveAllowed(
-    Navigator.CameraPos, ProposedNewPos, NewPos, CameraRadius,
+    Navigator.CameraPos, ProposedNewPos, NewPos, Navigator.CameraRadius,
     BecauseOfGravity, Scene.BoundingBox, Navigator.GravityUp);
 end;
 
@@ -162,8 +151,8 @@ begin
 
     { init collision detection }
     if IsEmptyBox3d(Scene.BoundingBox) then
-     CameraRadius := 1.0 { any non-zero dummy value } else
-     CameraRadius := Box3dAvgSize(Scene.BoundingBox) * 0.01;
+      Glw.Navigator.CameraRadius := 1.0 { any non-zero dummy value } else
+      Glw.Navigator.CameraRadius := Box3dAvgSize(Scene.BoundingBox) * 0.01;
     Glw.WalkNav.OnMoveAllowed := @THelperObj(nil).MoveAllowed;
 
     { allow the scene to use it's own lights }

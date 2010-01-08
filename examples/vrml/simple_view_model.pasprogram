@@ -76,10 +76,8 @@ end;
 
 procedure Resize(Glwin: TGLWindow);
 begin
-  glViewport(0, 0, glwin.Width, glwin.Height);
-  ProjectionGLPerspective(45.0, glwin.Width/glwin.Height,
-    Box3dMaxSize(Scene.BoundingBox) * 0.05,
-    Box3dMaxSize(Scene.BoundingBox) * 3.0);
+  Scene.GLProjection(Glw.Navigator, Scene.BoundingBox,
+    Glwin.Width, Glwin.Height);
 end;
 
 begin
@@ -109,6 +107,10 @@ begin
           Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
         Vector3Single(0, 1, 0),
         Vector3Single(0, 1, 0), 0.0, 0.0);
+
+    if IsEmptyBox3d(Scene.BoundingBox) then
+      Glw.Navigator.CameraRadius := 1.0 { any non-zero dummy value } else
+      Glw.Navigator.CameraRadius := Box3dAvgSize(Scene.BoundingBox) * 0.01;
 
     Glw.OnInit := @Init;
     Glw.OnClose := @Close;
