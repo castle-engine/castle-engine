@@ -847,6 +847,7 @@ type
       OnPointingDeviceSensorsChange. }
     procedure DoPointingDeviceSensorsChange; virtual;
   public
+    constructor Create(AOwner: TComponent); override;
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
     constructor Create(const SceneFileName: string);
     destructor Destroy; override;
@@ -2111,11 +2112,15 @@ end;
 
 { TVRMLScene ----------------------------------------------------------- }
 
-constructor TVRMLScene.Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
+constructor TVRMLScene.Create(AOwner: TComponent);
 begin
- inherited Create(nil); { TODO: make TVRMLScene constructor like TComponent, use separate Load() mehod afterwards. }
- FRootNode := ARootNode;
- FOwnsRootNode := AOwnsRootNode;
+ inherited Create(AOwner);
+
+ { Leave FRootNode, FOwnsRootNode as they were.
+   If coming from Create(ARootNode, AOwnsRootNode),
+   we'll have them set to whatever caller wanted.
+   Otherwise, default FRootNode is nil, which is Ok,
+   and FOwnsRootNode = is false, which doesn't matter (since FRootNode is nil). }
 
  FTriangleOctreeLimits := DefTriangleOctreeLimits;
  FShapeOctreeLimits := DefShapeOctreeLimits;
@@ -2136,6 +2141,18 @@ begin
  FTimePlayingSpeed := 1.0;
 
  ScheduleChangedAll;
+end;
+
+constructor TVRMLScene.Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
+begin
+  { Set FRootNode, FOwnsRootNode first.
+    This way ScheduleChangedAll in Create will already take care of initializing
+    it properly. }
+
+  FRootNode := ARootNode;
+  FOwnsRootNode := AOwnsRootNode;
+
+  Create(nil);
 end;
 
 constructor TVRMLScene.Create(const SceneFileName: string);
