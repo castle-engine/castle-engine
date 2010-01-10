@@ -2114,33 +2114,33 @@ end;
 
 constructor TVRMLScene.Create(AOwner: TComponent);
 begin
- inherited Create(AOwner);
+  inherited Create(AOwner);
 
- { Leave FRootNode, FOwnsRootNode as they were.
-   If coming from Create(ARootNode, AOwnsRootNode),
-   we'll have them set to whatever caller wanted.
-   Otherwise, default FRootNode is nil, which is Ok,
-   and FOwnsRootNode = is false, which doesn't matter (since FRootNode is nil). }
+  { Leave FRootNode, FOwnsRootNode as they were.
+    If coming from Create(ARootNode, AOwnsRootNode),
+    we'll have them set to whatever caller wanted.
+    Otherwise, default FRootNode is nil, which is Ok,
+    and FOwnsRootNode = is false, which doesn't matter (since FRootNode is nil). }
 
- FTriangleOctreeLimits := DefTriangleOctreeLimits;
- FShapeOctreeLimits := DefShapeOctreeLimits;
+  FTriangleOctreeLimits := DefTriangleOctreeLimits;
+  FShapeOctreeLimits := DefShapeOctreeLimits;
 
- FShapes := TVRMLShapeTreeGroup.Create(Self);
- ShapeLODs := TObjectList.Create(false);
+  FShapes := TVRMLShapeTreeGroup.Create(Self);
+  ShapeLODs := TObjectList.Create(false);
 
- FBackgroundStack := TVRMLBindableStack.Create(Self);
- FFogStack := TVRMLBindableStack.Create(Self);
- FNavigationInfoStack := TVRMLBindableStack.Create(Self);
- FViewpointStack := TVRMLViewpointStack.Create(Self);
+  FBackgroundStack := TVRMLBindableStack.Create(Self);
+  FFogStack := TVRMLBindableStack.Create(Self);
+  FNavigationInfoStack := TVRMLBindableStack.Create(Self);
+  FViewpointStack := TVRMLViewpointStack.Create(Self);
 
- FCompiledScriptHandlers := TDynCompiledScriptHandlerInfoArray.Create;
- TransformNodesInfo := TDynTransformNodeInfoArray.Create;
- GeneratedTextures := TDynGeneratedTextureArray.Create;
+  FCompiledScriptHandlers := TDynCompiledScriptHandlerInfoArray.Create;
+  TransformNodesInfo := TDynTransformNodeInfoArray.Create;
+  GeneratedTextures := TDynGeneratedTextureArray.Create;
 
- FTimePlaying := true;
- FTimePlayingSpeed := 1.0;
+  FTimePlaying := true;
+  FTimePlayingSpeed := 1.0;
 
- ScheduleChangedAll;
+  ScheduleChangedAll;
 end;
 
 constructor TVRMLScene.Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
@@ -2168,33 +2168,33 @@ begin
 
   HeadlightInitialized := false;
 
- { free FTrianglesList* variables }
- InvalidateTrianglesList(false);
- InvalidateTrianglesList(true);
- InvalidateTrianglesListShadowCasters;
+  { free FTrianglesList* variables }
+  InvalidateTrianglesList(false);
+  InvalidateTrianglesList(true);
+  InvalidateTrianglesListShadowCasters;
 
- { frees FManifoldEdges, FBorderEdges if needed }
- InvalidateManifoldAndBorderEdges;
+  { frees FManifoldEdges, FBorderEdges if needed }
+  InvalidateManifoldAndBorderEdges;
 
- FreeAndNil(GeneratedTextures);
- FreeAndNil(TransformNodesInfo);
- FreeAndNil(FCompiledScriptHandlers);
+  FreeAndNil(GeneratedTextures);
+  FreeAndNil(TransformNodesInfo);
+  FreeAndNil(FCompiledScriptHandlers);
 
- FreeAndNil(FBackgroundStack);
- FreeAndNil(FFogStack);
- FreeAndNil(FNavigationInfoStack);
- FreeAndNil(FViewpointStack);
+  FreeAndNil(FBackgroundStack);
+  FreeAndNil(FFogStack);
+  FreeAndNil(FNavigationInfoStack);
+  FreeAndNil(FViewpointStack);
 
- FreeAndNil(FShapes);
- FreeAndNil(ShapeLODs);
+  FreeAndNil(FShapes);
+  FreeAndNil(ShapeLODs);
 
- FreeAndNil(FOctreeRendering);
- FreeAndNil(FOctreeDynamicCollisions);
- FreeAndNil(FOctreeVisibleTriangles);
- FreeAndNil(FOctreeCollidableTriangles);
+  FreeAndNil(FOctreeRendering);
+  FreeAndNil(FOctreeDynamicCollisions);
+  FreeAndNil(FOctreeVisibleTriangles);
+  FreeAndNil(FOctreeCollidableTriangles);
 
- if OwnsRootNode then FreeAndNil(FRootNode);
- inherited;
+  if OwnsRootNode then FreeAndNil(FRootNode);
+  inherited;
 end;
 
 function TVRMLScene.ShapesActiveCount: Cardinal;
@@ -2261,34 +2261,34 @@ PRECALC_VALUE_RETURN
 
 function TVRMLScene.VerticesCount(OverTriangulate: boolean): Cardinal;
 begin
- {$define PRECALC_VALUE_CALCULATE := CalculateVerticesCount(OverTriangulate)}
- if OverTriangulate then
- begin
-  {$define PRECALC_VALUE_ENUM := fvVerticesCountOver}
-  {$define PRECALC_VALUE := FVerticesCountOver}
-  PRECALC_VALUE_RETURN
- end else
- begin
-  {$define PRECALC_VALUE_ENUM := fvVerticesCountNotOver}
-  {$define PRECALC_VALUE := FVerticesCountNotOver}
-  PRECALC_VALUE_RETURN
- end;
+  {$define PRECALC_VALUE_CALCULATE := CalculateVerticesCount(OverTriangulate)}
+  if OverTriangulate then
+  begin
+    {$define PRECALC_VALUE_ENUM := fvVerticesCountOver}
+    {$define PRECALC_VALUE := FVerticesCountOver}
+    PRECALC_VALUE_RETURN
+  end else
+  begin
+    {$define PRECALC_VALUE_ENUM := fvVerticesCountNotOver}
+    {$define PRECALC_VALUE := FVerticesCountNotOver}
+    PRECALC_VALUE_RETURN
+  end;
 end;
 
 function TVRMLScene.TrianglesCount(OverTriangulate: boolean): Cardinal;
 begin
- {$define PRECALC_VALUE_CALCULATE := CalculateTrianglesCount(OverTriangulate)}
- if OverTriangulate then
- begin
-  {$define PRECALC_VALUE_ENUM := fvTrianglesCountOver}
-  {$define PRECALC_VALUE := FTrianglesCountOver}
-  PRECALC_VALUE_RETURN
- end else
- begin
-  {$define PRECALC_VALUE_ENUM := fvTrianglesCountNotOver}
-  {$define PRECALC_VALUE := FTrianglesCountNotOver}
-  PRECALC_VALUE_RETURN
- end;
+  {$define PRECALC_VALUE_CALCULATE := CalculateTrianglesCount(OverTriangulate)}
+  if OverTriangulate then
+  begin
+    {$define PRECALC_VALUE_ENUM := fvTrianglesCountOver}
+    {$define PRECALC_VALUE := FTrianglesCountOver}
+    PRECALC_VALUE_RETURN
+  end else
+  begin
+    {$define PRECALC_VALUE_ENUM := fvTrianglesCountNotOver}
+    {$define PRECALC_VALUE := FTrianglesCountNotOver}
+    PRECALC_VALUE_RETURN
+  end;
 end;
 
 function TVRMLScene.CreateShape(AGeometry: TVRMLGeometryNode;
