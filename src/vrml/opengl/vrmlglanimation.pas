@@ -703,7 +703,8 @@ begin
     So ParentAnimation must be set even before inherited constructor. }
   FParentAnimation := AParentAnimation;
 
-  inherited CreateProvidedRenderer(ARootNode, AOwnsRootNode, AProvidedRenderer);
+  inherited CreateProvidedRenderer(nil, AProvidedRenderer);
+  Load(ARootNode, AOwnsRootNode);
   Optimization := AOptimization;
 end;
 
@@ -1327,8 +1328,10 @@ var
 begin
   LoadFromVRMLEvents_ScenesPerTime := ScenesPerTime;
   LoadFromVRMLEvents_TimeBegin := ATimeBegin;
-  LoadFromVRMLEvents_Scene := TVRMLScene.Create(RootNode, AOwnsRootNode);
+  LoadFromVRMLEvents_Scene := TVRMLScene.Create(nil);
   try
+    LoadFromVRMLEvents_Scene.Load(RootNode, AOwnsRootNode);
+
     Count := Max(1, Round((ATimeEnd - ATimeBegin) * ScenesPerTime));
 
     LoadFromVRMLEvents_Scene.ProcessEvents := true;

@@ -574,13 +574,15 @@ begin
     { use box, just to show anything }
     RootNode := ParseVRMLFileFromString('#VRML V1.0 ascii' + LineEnding +  'Cube { }', '');
 
-  Scene := TVRMLGLScene.Create(RootNode, true);
+  Scene := TVRMLGLScene.Create(nil);
   try
+    Scene.Load(RootNode, true);
     Scene.Optimization := roSceneAsAWhole;
 
     { init SceneForShadow.
       It doesn't own RootNode, and always has RootNode = Scene.RootNode }
-    SceneForShadow := TVRMLGLScene.Create(RootNode, false);
+    SceneForShadow := TVRMLGLScene.Create(nil);
+    SceneForShadow.Load(RootNode, false);
     SceneForShadow.Optimization := roSceneAsAWhole;
     SceneForShadow.Attributes.PureGeometry := true;
 

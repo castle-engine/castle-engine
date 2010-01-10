@@ -848,8 +848,20 @@ type
     procedure DoPointingDeviceSensorsChange; virtual;
   public
     constructor Create(AOwner: TComponent); override;
-    constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
-    constructor Create(const SceneFileName: string);
+
+    procedure Load(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
+
+    { Load the 3D model from given FileName.
+
+      Model is loaded by LoadAsVRML, so this supports all
+      3D model formats that LoadAsVRML handles
+      (VRML, X3D, Wavefront OBJ, 3DS, Collada and more).
+
+      @param(AllowStdIn If AllowStdIn and FileName = '-' then we will load
+        a file from StdInStream (using GetCurrentDir as WWWBasePath).
+        Currently, this forces the file to be VRML/X3D.) }
+    procedure Load(const FileName: string; AllowStdIn: boolean = false);
+
     destructor Destroy; override;
 
     { Simple (usually very flat) tree of shapes within this VRML scene.
@@ -1121,7 +1133,7 @@ type
     property RootNode: TVRMLNode read FRootNode write FRootNode;
 
     { If @true, RootNode will be freed by destructor of this class. }
-    property OwnsRootNode: boolean read FOwnsRootNode write FOwnsRootNode;
+    property OwnsRootNode: boolean read FOwnsRootNode write FOwnsRootNode default true;
 
     { The dynamic octree containing all visible shapes.
       It's useful for "frustum culling", it will be automatically
@@ -2116,11 +2128,8 @@ constructor TVRMLScene.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  { Leave FRootNode, FOwnsRootNode as they were.
-    If coming from Create(ARootNode, AOwnsRootNode),
-    we'll have them set to whatever caller wanted.
-    Otherwise, default FRootNode is nil, which is Ok,
-    and FOwnsRootNode = is false, which doesn't matter (since FRootNode is nil). }
+  FRootNode := nil;
+  FOwnsRootNode := true;
 
   FTriangleOctreeLimits := DefTriangleOctreeLimits;
   FShapeOctreeLimits := DefShapeOctreeLimits;
@@ -2140,24 +2149,12 @@ begin
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;
 
-  ScheduleChangedAll;
-end;
-
-constructor TVRMLScene.Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
-begin
-  { Set FRootNode, FOwnsRootNode first.
-    This way ScheduleChangedAll in Create will already take care of initializing
-    it properly. }
-
-  FRootNode := ARootNode;
-  FOwnsRootNode := AOwnsRootNode;
-
-  Create(nil);
-end;
-
-constructor TVRMLScene.Create(const SceneFileName: string);
-begin
-  Create(LoadAsVRML(SceneFileName, false), true);
+  { We could call here ScheduleChangedAll (or directly ChangedAll),
+    but there should be no need. FRootNode remains nil,
+    and our current state should be equal to what ScheduleChangedAll
+    would set. This is (potentially) a small time saving,
+    as ScheduleChangedAll does a lot of calls (although probably is fast
+    anyway when RootNode = nil). }
 end;
 
 destructor TVRMLScene.Destroy;
@@ -2195,6 +2192,21 @@ begin
 
   if OwnsRootNode then FreeAndNil(FRootNode);
   inherited;
+end;
+
+procedure TVRMLScene.Load(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
+begin
+  PointingDeviceClear;
+  if OwnsRootNode then FreeAndNil(FRootNode);
+
+  RootNode := ARootNode;
+  OwnsRootNode := AOwnsRootNode;
+  ScheduleChangedAll;
+end;
+
+procedure TVRMLScene.Load(const FileName: string; AllowStdIn: boolean);
+begin
+  Load(LoadAsVRML(FileName, AllowStdIn), true);
 end;
 
 function TVRMLScene.ShapesActiveCount: Cardinal;
@@ -5061,13 +5073,7 @@ procedure TVRMLScene.SetPointingDeviceActive(const Value: boolean);
     if Anchor.LoadAnchor(NewRootNode, NewViewpoint, RootNode) then
     begin
       if NewRootNode <> nil then
-      begin
-        PointingDeviceClear;
-        if OwnsRootNode then FreeAndNil(FRootNode);
-        RootNode := NewRootNode;
-        OwnsRootNode := true;
-        ScheduleChangedAll;
-      end;
+        Load(NewRootNode, true);
       if NewViewpoint <> nil then
         NewViewpoint.EventSet_Bind.Send(true, WorldTime);
     end;

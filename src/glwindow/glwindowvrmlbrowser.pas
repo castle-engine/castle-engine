@@ -202,7 +202,8 @@ begin
   FreeAndNil(FScene);
   Navigator.Free;
 
-  FScene := TVRMLGLScene.Create(ARootNode, OwnsRootNode);
+  FScene := TVRMLGLScene.Create(nil);
+  FScene.Load(ARootNode, OwnsRootNode);
 
   { initialize octrees titles }
   Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
@@ -298,7 +299,16 @@ end;
 procedure TGLWindowVRMLBrowser.EventResize;
 begin
   inherited;
-  { TODO: MAYBE this should be done automatically by adding Scene to Controls. }
+  { TODO: MAYBE this should be done automatically by adding Scene to Controls.
+
+    Hm, rather not, as obviously only one scene should do it.
+    Introducing property like SetupProjection seems clumsy.
+    SceneManager will have chosen scene for projection,
+    and SceneManager as TUIControl will automatically call this,
+    but not the scene itself.
+
+    This also allows to keep ShadowVolumesPossible value in SceneManager.
+  }
   Scene.GLProjection(Navigator, Scene.BoundingBox,
     Width, Height, ShadowVolumesPossible);
 end;

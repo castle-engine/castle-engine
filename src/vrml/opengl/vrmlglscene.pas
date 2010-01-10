@@ -610,11 +610,6 @@ type
 
     FUsingProvidedRenderer: boolean;
 
-    procedure CommonCreate(
-      ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-      AUsingProvidedRenderer: boolean;
-      ARenderer: TVRMLOpenGLRenderer);
-
     { When using any optimization except roNone you can put
       Renderer.RenderBegin and Renderer.RenderEnd calls inside
       display lists too.
@@ -782,24 +777,13 @@ type
     function CreateHeadLightInstance
       (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight; override;
   public
-    constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-      ACache: TVRMLOpenGLRendererContextCache = nil); overload;
+    constructor Create(AOwner: TComponent); override;
 
-    { The most comfortable constructor, loads the 3D model from given
-      SceneFileName.
-
-      Scene is loaded by LoadAsVRML(SceneFileName, false),
-      so it supports all 3D model formats LoadAsVRML handles
-      (VRML, X3D, Wavefront OBJ, 3DS, Collada and more).
-      2nd parameter (AllowStdin) is @false to LoadAsVRML,
-      so special filename "-" is not recognized as "standard input"
-      --- this is the safer default, in case your program wants
-      to use stdin for something else. }
-    constructor Create(const SceneFileName: string;
-      ACache: TVRMLOpenGLRendererContextCache = nil); overload;
+    constructor CreateCustomCache(AOwner: TComponent;
+      ACache: TVRMLOpenGLRendererContextCache);
 
     { A very special constructor, that forces this class to use
-      provided AProvidedRenderer.
+      provided AProvidedRenderer. AProvidedRenderer must be <> @nil.
 
       Note that this renderer must be created with AttributesClass
       = TVRMLSceneRenderingAttributes.
@@ -817,8 +801,7 @@ type
       information about textures and images loaded into OpenGL.
       And this is crucial for TVRMLGLAnimation, otherwise animation with
       100 scenes would load the same texture to OpenGL 100 times. }
-    constructor CreateProvidedRenderer(
-      ARootNode: TVRMLNode; AOwnsRootNode: boolean;
+    constructor CreateProvidedRenderer(AOwner: TComponent;
       AProvidedRenderer: TVRMLOpenGLRenderer);
 
     destructor Destroy; override;
@@ -1738,32 +1721,34 @@ end;
 
 { TVRMLGLScene ------------------------------------------------------------ }
 
-procedure TVRMLGLScene.CommonCreate(
-  ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-  AUsingProvidedRenderer: boolean;
-  ARenderer: TVRMLOpenGLRenderer);
+constructor TVRMLGLScene.Create(AOwner: TComponent);
 begin
-  { inherited Create calls virtual ChangedAll:
-    - that is overriden in this class and uses SSSX_DisplayLists,
-      RenderFrustumOctree_Visible, UseBlending, Optimization.
-    - also, in the base TVRMLScene class, it may bind new viewpoint
-      which may call ViewChangedSuddenly which is overridden here
-      and uses Attributes.
+  { inherited Create *may* call some virtual things overriden here
+    (although right now it doesn't):
+    - may call ChangedAll that is overriden in this class and uses
+      SSSX_DisplayLists, RenderFrustumOctree_Visible, UseBlending, Optimization.
+    - it may bind new viewpoint which may call ViewChangedSuddenly
+      which is overridden here and uses Attributes.
     That's why I have to initialize them *before* "inherited Create" }
 
   FOptimization := DefaultOptimization;
   OptimizationCreate;
 
-  FUsingProvidedRenderer := AUsingProvidedRenderer;
+  { If Renderer already assigned, then we came here from
+    CreateProvidedRenderer or CreateCustomCache. }
+  if Renderer = nil then
+  begin
+    FUsingProvidedRenderer := false;
+    Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, nil);
+  end;
 
-  Renderer := ARenderer;
   Assert(Renderer.Attributes is TVRMLSceneRenderingAttributes);
 
   { Note that this calls Renderer.Attributes, so use this after
     initializing Renderer. }
   Attributes.FScenes.Add(Self);
 
-  inherited Create(ARootNode, AOwnsRootNode);
+  inherited Create(AOwner);
 
   FBackgroundSkySphereRadius := 1.0;
   FBackgroundValid := false;
@@ -1777,25 +1762,22 @@ begin
    OctreeFrustumCulling := fcBox; { set through property setter }
 end;
 
-constructor TVRMLGLScene.Create(
-  ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-  ACache: TVRMLOpenGLRendererContextCache);
+constructor TVRMLGLScene.CreateCustomCache(
+  AOwner: TComponent; ACache: TVRMLOpenGLRendererContextCache);
 begin
-  CommonCreate(ARootNode, AOwnsRootNode, false,
-    TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, ACache));
+  FUsingProvidedRenderer := false;
+  Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, ACache);
+
+  Create(AOwner);
 end;
 
 constructor TVRMLGLScene.CreateProvidedRenderer(
-  ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-  AProvidedRenderer: TVRMLOpenGLRenderer);
+  AOwner: TComponent; AProvidedRenderer: TVRMLOpenGLRenderer);
 begin
-  CommonCreate(ARootNode, AOwnsRootNode, true, AProvidedRenderer);
-end;
+  FUsingProvidedRenderer := true;
+  Renderer := AProvidedRenderer;
 
-constructor TVRMLGLScene.Create(const SceneFileName: string;
-  ACache: TVRMLOpenGLRendererContextCache);
-begin
-  Create(LoadAsVRML(SceneFileName, false), true, ACache);
+  Create(AOwner);
 end;
 
 destructor TVRMLGLScene.Destroy;

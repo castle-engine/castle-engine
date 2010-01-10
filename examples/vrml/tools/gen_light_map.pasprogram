@@ -68,7 +68,8 @@ begin
 
   { evaluate Scene and LightSet (from the same RootNode) }
   Write('Loading scene... ');
-  Scene := TVRMLScene.Create(ParseVRMLFile(SceneFileName, true), true);
+  Scene := TVRMLScene.Create(nil);
+  Scene.Load(SceneFileName, true);
   LightSet := TVRMLLightSet.Create(Scene.RootNode, false);
   Writeln('done.');
   if LightSet.Lights.Count = 0 then

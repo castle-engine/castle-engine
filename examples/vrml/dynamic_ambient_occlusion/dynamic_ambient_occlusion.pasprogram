@@ -908,7 +908,8 @@ begin
     VRMLWarning := @VRMLWarning_Write;
     DataWarning := @DataWarning_Write;
 
-    Scene := TVRMLGLScene.Create(Parameters[1]);
+    Scene := TVRMLGLScene.Create(nil);
+    Scene.Load(Parameters[1]);
     Scene.Optimization := roNone;
     UpdateSceneAttribs;
 

@@ -314,7 +314,8 @@ begin
   try
     VRMLWarning := @VRMLWarning_Write;
 
-    Scene := TVRMLScene.Create(Parameters[1]);
+    Scene := TVRMLScene.Create(nil);
+    Scene.Load(Parameters[1]);
 
     if Parameters.High >= 2 then
       ShapeNum := StrToInt(Parameters[2]) else

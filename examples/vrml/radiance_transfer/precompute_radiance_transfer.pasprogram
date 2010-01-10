@@ -207,8 +207,9 @@ begin
 
   Progress.UserInterface := ProgressConsoleInterface;
 
-  Scene := TVRMLScene.Create(LoadAsVRML(Parameters[1]), true);
+  Scene := TVRMLScene.Create(nil);
   try
+    Scene.Load(Parameters[1]);
     Scene.TriangleOctreeProgressTitle := 'Building octree';
     Scene.Spatial := [ssVisibleTriangles];
 

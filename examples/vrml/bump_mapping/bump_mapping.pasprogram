@@ -188,7 +188,8 @@ procedure LoadSceneCore(const FileName: string);
 begin
   FreeAndNil(Scene);
 
-  Scene := TVRMLGLScene.Create(FileName);
+  Scene := TVRMLGLScene.Create(nil);
+  Scene.Load(FileName);
 
   { It would be better to match Scene.Optimization with
     *current* BumpMappingMaximum, not with High(TBumpMappingMethod).
