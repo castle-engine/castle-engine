@@ -590,6 +590,7 @@
       </Item133>
       <Item134>
         <Filename Value="../src/vrml/opengl/vrmlglanimation.pas"/>
+        <HasRegisterProc Value="True"/>
         <UnitName Value="VRMLGLAnimation"/>
       </Item134>
       <Item135>
@@ -598,6 +599,7 @@
       </Item135>
       <Item136>
         <Filename Value="../src/vrml/opengl/vrmlglscene.pas"/>
+        <HasRegisterProc Value="True"/>
         <UnitName Value="VRMLGLScene"/>
       </Item136>
       <Item137>
