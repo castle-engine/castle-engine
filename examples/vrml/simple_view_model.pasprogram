@@ -13,30 +13,26 @@
   ----------------------------------------------------------------------------
 }
 
-{ This an example how to write the simplest VRML, 3DS and OBJ viewer
-  using my units. (for a current list of supported 3d models' formats,
-  see view3dscene documentation)
+{ An example how to write the simplest 3D model viewer
+  using Kambi VRML engine.
 
   It loads a model from a filename given as command-line parameter.
+  Supports all known model formats (VRML, X3D, Collada etc.,
+  for a full list of supported formats see view3dscene documentation).
 
-  It allows user to walk in the scene using keys Up/Down (forward/back),
-  Right/Left (rotate), PageUp/PageDown (raise/bow your head) etc.
-  -- for a complete list of keys available see documentation
-  of @link(TWalkNavigator) class or view3dscene documentation
-  (look for "keys available in Walk navigation method").
+  It allows user to walk/examine the scene, see view3dscene documentation
+  for keys/mouse controls available,
+  [http://vrmlengine.sourceforge.net/view3dscene.php#section_keys].
 
   Thanks to using TGLUIWindow class, that descends
   from TGLWindowDemo, this program automatically handles keys Escape (Quit)
   and F11 (Swap fullscreen) and displays FPS on window's Caption.
 
-  Note that this example exposes some shortcomings that are not fixed here
-  for the sake of simplicity of this example.
-  They are all fixed in a more sophisticated version of this example
-  in file simple_view_model_2.pasprogram.
-  - In this program starting camera position is *not* read from file.
-    Camera always starts positioned at the middle of 3d model,
-    looking in (1, 0, 0) direction with up vector (0, 1, 0).
+  For the sake of simplicity, this example takes some shortcuts
+  (that are fixed in the simple_view_model_2.pasprogram):
   - Collision detection is *not* done.
+    We even turn off gravity (because it would make viewer fall down infinitely,
+    since without collision detection you sink through the floor.)
   - Scene is rendered without frustum culling, since we do not pass
     current frustum to Scene.Render.
   - If you will load large VRML scene, then right after program start
@@ -53,7 +49,6 @@ uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindo
 
 var
   Glw: TGLUIWindow;
-
   Scene: TVRMLGLScene;
 
 procedure Draw(Glwin: TGLWindow);
@@ -84,34 +79,18 @@ begin
   Glw := TGLUIWindow.Create(Application);
 
   Parameters.CheckHigh(1);
-  try
-    VRMLWarning := @VRMLWarning_Write;
 
-    Scene := TVRMLGLScene.Create(nil);
+  VRMLWarning := @VRMLWarning_Write;
+  Scene := TVRMLGLScene.Create(nil);
+  try
     Scene.Load(Parameters[1]);
 
     Writeln(Scene.Info(true, true, false));
 
-    { Uncomment this to get some info about scene nodes:
-    for i := 0 to Scene.Shapes.Count-1 do
-      with Scene.Shapes[i] do
-      begin
-       Writeln(Format('Shape name ''%10s'' (''%20s'') : LocalBBox = %50s, BBox = %50s',
-         [Geometry.NodeName, Geometry.NodeTypeName,
-          Box3dToNiceStr(LocalBoundingBox), Box3dToNiceStr(BoundingBox)]));
-      end;}
-
-    { init Glw.Navigator }
-    Glw.Navigator := TWalkNavigator.Create(Glw);
-    Glw.WalkNav.Init(Box3dMiddle(scene.BoundingBox),
-        VectorAdjustToLength(Vector3Single(1, 0, 0),
-          Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
-        Vector3Single(0, 1, 0),
-        Vector3Single(0, 1, 0), 0.0, 0.0);
-
-    if IsEmptyBox3d(Scene.BoundingBox) then
-      Glw.Navigator.CameraRadius := 1.0 { any non-zero dummy value } else
-      Glw.Navigator.CameraRadius := Box3dAvgSize(Scene.BoundingBox) * 0.01;
+    { init navigator }
+    Glw.Navigator := Scene.CreateNavigator(Glw);
+    if Glw.Navigator is TWalkNavigator then
+      (Glw.Navigator as TWalkNavigator).Gravity := false;
 
     Glw.OnInit := @Init;
     Glw.OnClose := @Close;
