@@ -537,9 +537,14 @@ begin
   try
     VRMLWarning := @VRMLWarning_Write;
 
-    SceneCaster := TVRMLGLScene.Create(ShadowCasterFileName, roSceneAsAWhole);
-    SceneReceiver := TVRMLGLScene.Create(ShadowReceiverFileName, roNone);
-    SceneLocalLight := TVRMLGLScene.Create(LocalLightFileName, roSceneAsAWhole);
+    SceneCaster := TVRMLGLScene.Create(ShadowCasterFileName);
+    SceneCaster.Optimization := roSceneAsAWhole;
+
+    SceneReceiver := TVRMLGLScene.Create(ShadowReceiverFileName);
+    SceneReceiver.Optimization := roNone;
+
+    SceneLocalLight := TVRMLGLScene.Create(LocalLightFileName);
+    SceneLocalLight.Optimization := roSceneAsAWhole;
 
     CasterOOF := TShadowField.Create;
     CasterOOF.LoadFromFile(ChangeFileExt(ShadowCasterFileName, ShadowFieldExt));

@@ -202,7 +202,7 @@ begin
   FreeAndNil(FScene);
   Navigator.Free;
 
-  FScene := TVRMLGLScene.Create(ARootNode, OwnsRootNode, roSeparateShapes);
+  FScene := TVRMLGLScene.Create(ARootNode, OwnsRootNode);
 
   { initialize octrees titles }
   Scene.TriangleOctreeProgressTitle := 'Building triangle octree';

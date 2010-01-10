@@ -185,22 +185,20 @@ begin
 end;
 
 procedure LoadSceneCore(const FileName: string);
-var
-  SceneOptimization: TGLRendererOptimization;
 begin
   FreeAndNil(Scene);
 
-  { It would be better to match Scene.Optimization with
-    *current* BumpMappingMaximum, not with
-    High(TBumpMappingMethod). Can be done now, since Scene.Optimization
-    is settable during lifetime of Scene. }
+  Scene := TVRMLGLScene.Create(FileName);
 
+  { It would be better to match Scene.Optimization with
+    *current* BumpMappingMaximum, not with High(TBumpMappingMethod).
+    Scene.Optimizationis settable during lifetime of Scene, so this
+    is possible. }
   if TVRMLOpenGLRenderer.GLContextBumpMappingMethod(
     0, -1, High(TBumpMappingMethod), true, true, false) in
     [bmNone] + bmGLSLAll then
-    SceneOptimization := roSeparateShapes else
-    SceneOptimization := roNone;
-  Scene := TVRMLGLScene.Create(FileName, SceneOptimization);
+    Scene.Optimization := roSeparateShapes else
+    Scene.Optimization := roNone;
 
   { make octree for fast RenderFrustum }
   Progress.UserInterface := ProgressNullInterface;

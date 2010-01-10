@@ -37,8 +37,8 @@
     Camera always starts positioned at the middle of 3d model,
     looking in (1, 0, 0) direction with up vector (0, 1, 0).
   - Collision detection is *not* done.
-  - Also, scene is rendered using roSceneAsAWhole optimization.
-    No frustum culling, or anything like that.
+  - Scene is rendered without frustum culling, since we do not pass
+    current frustum to Scene.Render.
   - If you will load large VRML scene, then right after program start
     you may notice for a very short time that your camera moves too fast.
   - Scene lights (written in VRML file) are not used.
@@ -87,7 +87,7 @@ begin
   try
     VRMLWarning := @VRMLWarning_Write;
 
-    Scene := TVRMLGLScene.Create(Parameters[1], roSceneAsAWhole);
+    Scene := TVRMLGLScene.Create(Parameters[1]);
 
     Writeln(Scene.Info(true, true, false));
 

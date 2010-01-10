@@ -70,6 +70,7 @@ const
 
   DefaultWireframeWidth = 3.0;
   DefaultWireframeColor: TVector3Single = (0, 0, 0);
+  DefaultOptimization = roSeparateShapes;
 
 type
   TVRMLGLShape = class;
@@ -611,7 +612,6 @@ type
 
     procedure CommonCreate(
       ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-      AOptimization: TGLRendererOptimization;
       AUsingProvidedRenderer: boolean;
       ARenderer: TVRMLOpenGLRenderer);
 
@@ -783,7 +783,6 @@ type
       (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight; override;
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-      AOptimization: TGLRendererOptimization;
       ACache: TVRMLOpenGLRendererContextCache = nil); overload;
 
     { The most comfortable constructor, loads the 3D model from given
@@ -797,7 +796,6 @@ type
       --- this is the safer default, in case your program wants
       to use stdin for something else. }
     constructor Create(const SceneFileName: string;
-      AOptimization: TGLRendererOptimization;
       ACache: TVRMLOpenGLRendererContextCache = nil); overload;
 
     { A very special constructor, that forces this class to use
@@ -821,7 +819,6 @@ type
       100 scenes would load the same texture to OpenGL 100 times. }
     constructor CreateProvidedRenderer(
       ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-      AOptimization: TGLRendererOptimization;
       AProvidedRenderer: TVRMLOpenGLRenderer);
 
     destructor Destroy; override;
@@ -1094,7 +1091,7 @@ type
       and new resources will have to be created at next Render or
       PrepareRender call. So don't change it e.g. every rendering frame. }
     property Optimization: TGLRendererOptimization
-      read FOptimization write SetOptimization;
+      read FOptimization write SetOptimization default DefaultOptimization;
 
     procedure ChangedAll; override;
     procedure ChangedShapeFields(Shape: TVRMLShape;
@@ -1461,6 +1458,8 @@ type
   PArray_Triangle4Single = PInfiniteArray_1;
   TDynTriangle4SingleArray = TDynArray_1;
 
+procedure Register;
+
 {$undef read_interface}
 
 implementation
@@ -1471,6 +1470,11 @@ uses VRMLErrors, GLVersionUnit, GLImages, Images, KambiLog,
 {$define read_implementation}
 {$I objectslist_1.inc}
 {$I dynarray_1.inc}
+
+procedure Register;
+begin
+  RegisterComponents('Kambi', [TVRMLGLScene]);
+end;
 
 { TVRMLGLShape --------------------------------------------------------------- }
 
@@ -1736,7 +1740,6 @@ end;
 
 procedure TVRMLGLScene.CommonCreate(
   ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-  AOptimization: TGLRendererOptimization;
   AUsingProvidedRenderer: boolean;
   ARenderer: TVRMLOpenGLRenderer);
 begin
@@ -1748,7 +1751,7 @@ begin
       and uses Attributes.
     That's why I have to initialize them *before* "inherited Create" }
 
-  FOptimization := AOptimization;
+  FOptimization := DefaultOptimization;
   OptimizationCreate;
 
   FUsingProvidedRenderer := AUsingProvidedRenderer;
@@ -1776,26 +1779,23 @@ end;
 
 constructor TVRMLGLScene.Create(
   ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-  AOptimization: TGLRendererOptimization;
   ACache: TVRMLOpenGLRendererContextCache);
 begin
-  CommonCreate(ARootNode, AOwnsRootNode, AOptimization, false,
+  CommonCreate(ARootNode, AOwnsRootNode, false,
     TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, ACache));
 end;
 
 constructor TVRMLGLScene.CreateProvidedRenderer(
   ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-  AOptimization: TGLRendererOptimization;
   AProvidedRenderer: TVRMLOpenGLRenderer);
 begin
-  CommonCreate(ARootNode, AOwnsRootNode, AOptimization, true, AProvidedRenderer);
+  CommonCreate(ARootNode, AOwnsRootNode, true, AProvidedRenderer);
 end;
 
 constructor TVRMLGLScene.Create(const SceneFileName: string;
-  AOptimization: TGLRendererOptimization;
   ACache: TVRMLOpenGLRendererContextCache);
 begin
-  Create(LoadAsVRML(SceneFileName, false), true, AOptimization, ACache);
+  Create(LoadAsVRML(SceneFileName, false), true, ACache);
 end;
 
 destructor TVRMLGLScene.Destroy;

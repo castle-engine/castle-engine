@@ -703,8 +703,8 @@ begin
     So ParentAnimation must be set even before inherited constructor. }
   FParentAnimation := AParentAnimation;
 
-  inherited CreateProvidedRenderer(ARootNode, AOwnsRootNode, AOptimization,
-    AProvidedRenderer);
+  inherited CreateProvidedRenderer(ARootNode, AOwnsRootNode, AProvidedRenderer);
+  Optimization := AOptimization;
 end;
 
 procedure TVRMLGLAnimationScene.DoGeometryChanged;

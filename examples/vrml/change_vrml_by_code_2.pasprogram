@@ -125,8 +125,10 @@ begin
   { We use a lot of boxes, so make their rendering fastest. }
   Detail_RectDivisions := 0;
 
-  Scene := TVRMLGLScene.Create(CreateVrmlGraph, true, roSeparateShapesNoTransform);
+  Scene := TVRMLGLScene.Create(CreateVrmlGraph, true);
   try
+    Scene.Optimization := roSeparateShapesNoTransform;
+
     {$ifdef LOG}
     InitializeLog('1.0');
     Scene.LogChanges := true;

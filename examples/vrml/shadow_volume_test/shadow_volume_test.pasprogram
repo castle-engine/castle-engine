@@ -643,10 +643,12 @@ begin
     VRMLWarning := @VRMLWarning_Write;
     LightSet := TVRMLLightSetGL.Create(
       ParseVRMLFile(LightSetVrmlName, false), true, 0, -1);
-    Scene := TVRMLGLScene.Create(SceneVrmlName, roSceneAsAWhole);
+    Scene := TVRMLGLScene.Create(SceneVrmlName);
+    Scene.Optimization := roSceneAsAWhole;
     Scene.Attributes.UseLights := true;
     Scene.Attributes.FirstGLFreeLight := 1;
-    ShadowCaster := TVRMLGLScene.Create(ShadowCasterVrmlName, roSceneAsAWhole);
+    ShadowCaster := TVRMLGLScene.Create(ShadowCasterVrmlName);
+    ShadowCaster.Optimization := roSceneAsAWhole;
     SceneBoundingBox := Box3dSum(Scene.BoundingBox,
       ShadowCaster.BoundingBox);
 

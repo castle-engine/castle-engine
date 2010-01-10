@@ -119,8 +119,7 @@ begin
   Parameters.CheckHigh(0);
   VRMLWarning := @VRMLWarning_Write;
 
-  Scene := TVRMLGLScene.Create('models' + PathDelim + 'boxes.x3dv',
-    roSeparateShapes);
+  Scene := TVRMLGLScene.Create('models' + PathDelim + 'boxes.x3dv');
   try
     TransformBox2 := Scene.RootNode.FindNodeByName(TNodeTransform_2,
       'Box2Transform', true) as TNodeTransform_2;

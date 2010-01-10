@@ -24,10 +24,12 @@
   - doing collision detection using OctreeCollisions, see MoveAllowed procedure
 
   2. Rendering with frustum culling
-  - scene is loaded with Optimization roSeparateShapes instead of roSceneAsAWhole
+  - scene is loaded with Optimization roSeparateShapes (this is
+    the default actually)
   - initializing Glw.Navigator.ProjectionMatrix (this is needed to get
     Glw.Navigator.Frustum) is already done by Scene.GLProjection
-  - using Glw.Navigator.Frustum and OctreeRendering to render the scene,
+  - using Glw.Navigator.Frustum and OctreeRendering
+    (ssRendering in Scene.Spatial) to render the scene,
     see line "Scene.RenderFrustum"
 
   3. Tries to get default camera settings from VRML file
@@ -120,8 +122,7 @@ begin
   try
     VRMLWarning := @VRMLWarning_Write;
 
-    Scene := TVRMLGLScene.Create(Parameters[1],
-      {roSceneAsAWhole} roSeparateShapes);
+    Scene := TVRMLGLScene.Create(Parameters[1]);
 
     Writeln(Scene.Info(true, true, false));
 

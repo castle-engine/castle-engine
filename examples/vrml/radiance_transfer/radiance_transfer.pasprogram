@@ -268,7 +268,8 @@ begin
   try
     VRMLWarning := @VRMLWarning_Write;
 
-    Scene := TVRMLGLScene.Create(Parameters[1], roNone);
+    Scene := TVRMLGLScene.Create(Parameters[1]);
+    Scene.Optimization := roNone;
 
     if IsEmptyBox3d(Scene.BoundingBox) then
     begin

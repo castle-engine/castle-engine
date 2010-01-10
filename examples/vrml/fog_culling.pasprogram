@@ -166,7 +166,7 @@ begin
   VRMLWarning := @VRMLWarning_Write;
 
   Scene := TVRMLGLScene.Create(
-    'models' + PathDelim + 'fog_culling_final.wrl', roSeparateShapes);
+    'models' + PathDelim + 'fog_culling_final.wrl');
 
   Writeln(Scene.Info(true, true, false));
 
