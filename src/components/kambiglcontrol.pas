@@ -306,10 +306,7 @@ type
 
       When assigning navigator instance we'll take care to make it
       the one and only one TNavigator instance on Controls list.
-      Assigning here @nil removes it from Controls list.
-
-      For now, you should not add / remove TNavigator instances to
-      the Controls list directly. }
+      Assigning here @nil removes it from Controls list. }
     property Navigator: TNavigator read FNavigator write SetNavigator;
 
     property UseControls: boolean
