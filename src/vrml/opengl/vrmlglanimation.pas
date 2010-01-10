@@ -96,6 +96,8 @@ type
 
     ValidBoundingBoxSum: boolean;
     FBoundingBoxSum: TBox3d;
+    FOptimization: TGLRendererOptimization;
+    FNavigator: TNavigator;
 
     function GetBackgroundSkySphereRadius: Single;
     procedure SetBackgroundSkySphereRadius(const Value: Single);
@@ -103,13 +105,10 @@ type
     procedure SetAngleOfViewX(const Value: Single);
     function GetAngleOfViewY: Single;
     procedure SetAngleOfViewY(const Value: Single);
-    function GetNavigator: TNavigator;
     procedure SetNavigator(const Value: TNavigator);
+    procedure SetOptimization(const Value: TGLRendererOptimization);
 
     function InfoBoundingBoxSum: string;
-  private
-    FOptimization: TGLRendererOptimization;
-    procedure SetOptimization(const Value: TGLRendererOptimization);
   private
     FWalkProjectionNear: Single;
     FWalkProjectionFar : Single;
@@ -627,12 +626,11 @@ type
     { Common Navigator, for all scenes of this animation.
       See TVRMLScene.Navigator.
 
-      Reading this reads FirstScene.Navigator,
-      and setting this sets the Navigator for all scenes within this animation.
+      Setting this sets the Navigator for all scenes within this animation.
       In other words, if you use only this,
       then all the scenes of your animation will always have equal
       Navigator values. }
-    property Navigator: TNavigator read GetNavigator write SetNavigator;
+    property Navigator: TNavigator read FNavigator write SetNavigator;
 
     { Optimization of the animation. See TVRMLGLScene.Optimization.
 
@@ -684,7 +682,6 @@ type
   public
     constructor CreateForAnimation(
       ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-      AOptimization: TGLRendererOptimization;
       AProvidedRenderer: TVRMLOpenGLRenderer;
       AParentAnimation: TVRMLGLAnimation);
     property ParentAnimation: TVRMLGLAnimation read FParentAnimation;
@@ -694,18 +691,20 @@ type
 
 constructor TVRMLGLAnimationScene.CreateForAnimation(
   ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-  AOptimization: TGLRendererOptimization;
   AProvidedRenderer: TVRMLOpenGLRenderer;
   AParentAnimation: TVRMLGLAnimation);
 begin
   { ParentAnimation is used by DoGeometryChanged, which is virtual and
-    called by ChangedAll, which is called by inherited constructor...
+    *may* called by ChangedAll, which *may* called by inherited constructor...
     So ParentAnimation must be set even before inherited constructor. }
   FParentAnimation := AParentAnimation;
 
   inherited CreateProvidedRenderer(nil, AProvidedRenderer);
+
+  Optimization := FParentAnimation.Optimization;
+  Navigator := FParentAnimation.Navigator;
+
   Load(ARootNode, AOwnsRootNode);
-  Optimization := AOptimization;
 end;
 
 procedure TVRMLGLAnimationScene.DoGeometryChanged;
@@ -756,6 +755,7 @@ begin
   if Renderer = nil then
     Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, nil);
   FOptimization := roSeparateShapesNoTransform;
+  FTimeLoop := true;
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;
 end;
@@ -1169,7 +1169,7 @@ procedure TVRMLGLAnimation.LoadCore(
     OwnsRootNode: boolean): TVRMLGLAnimationScene;
   begin
     Result := TVRMLGLAnimationScene.CreateForAnimation(
-      Node, OwnsRootNode, Optimization, Renderer, Self);
+      Node, OwnsRootNode, Renderer, Self);
   end;
 
 var
@@ -1762,17 +1762,23 @@ begin
     FScenes[I].AngleOfViewY := Value;
 end;
 
-function TVRMLGLAnimation.GetNavigator: TNavigator;
-begin
-  Result := FirstScene.Navigator;
-end;
-
 procedure TVRMLGLAnimation.SetNavigator(const Value: TNavigator);
 var
   I: Integer;
 begin
-  for I := 0 to FScenes.High do
-    FScenes[I].Navigator := Value;
+  { We use our own FNavigator field (that is, not implementing
+    GetNavigator as Result := FirstScene.Navigator), to make Navigator
+    property work even when the animation is currently not loaded. }
+
+  if Value <> FNavigator then
+  begin
+    FNavigator := Value;
+    if FScenes <> nil then
+    begin
+      for I := 0 to FScenes.High do
+        FScenes[I].Navigator := Value;
+    end;
+  end;
 end;
 
 procedure TVRMLGLAnimation.SetOptimization(const Value: TGLRendererOptimization);
@@ -1842,8 +1848,11 @@ procedure TVRMLGLAnimation.ViewChangedSuddenly;
 var
   I: Integer;
 begin
-  for I := 0 to FScenes.High do
-    FScenes[I].ViewChangedSuddenly;
+  if FScenes <> nil then
+  begin
+    for I := 0 to FScenes.High do
+      FScenes[I].ViewChangedSuddenly;
+  end;
 end;
 
 function TVRMLGLAnimation.KeyDown(Key: TKey; C: char): boolean;
