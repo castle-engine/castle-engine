@@ -422,13 +422,6 @@ type
       useful if you track animation time in our WorldTime property. }
     function CurrentScene: TVRMLGLScene;
 
-    { See SceneFromTime for description what this property does. }
-    property TimeLoop: boolean read FTimeLoop write FTimeLoop default true;
-
-    { See SceneFromTime for description what this property does. }
-    property TimeBackwards: boolean
-      read FTimeBackwards write FTimeBackwards default false;
-
     { Attributes controlling rendering.
       See TVRMLSceneRenderingAttributes and TVRMLRenderingAttributes
       for documentation of properties.
@@ -524,35 +517,6 @@ type
     property AngleOfViewX: Single read GetAngleOfViewX write SetAngleOfViewX;
     property AngleOfViewY: Single read GetAngleOfViewY write SetAngleOfViewY;
     { @groupEnd }
-
-    { Common Navigator, for all scenes of this animation.
-      See TVRMLScene.Navigator.
-
-      Reading this reads FirstScene.Navigator,
-      and setting this sets the Navigator for all scenes within this animation.
-      In other words, if you use only this,
-      then all the scenes of your animation will always have equal
-      Navigator values. }
-    property Navigator: TNavigator read GetNavigator write SetNavigator;
-
-    { Optimization of the animation. See TVRMLGLScene.Optimization.
-
-      When animation is @link(Loaded), this is equal to
-      TVRMLGLScene.Optimization of all loaded scenes.
-      That is, all loaded scenes should have the same Optimization, always.
-
-      You can access this even when animation is not @link(Loaded).
-      Note that changing this when animation is @link(Loaded) may be
-      a costly operation, see TVRMLGLScene.Optimization. So don't do it
-      e.g. every frame. And when loading, it's best to set Optimization
-      as desired @italic(before) calling @link(Load) for fasters loading.
-
-      Note that this class should generally use roSeparateShapesNoTransform
-      or roSeparateShapes for Optimization, to conserve memory
-      in some common cases. See docs at TGLRendererOptimization type. }
-    property Optimization: TGLRendererOptimization
-      read FOptimization write SetOptimization
-      default roSeparateShapesNoTransform;
 
     { Set OpenGL projection, based on currently
       bound Viewpoint, NavigationInfo (using FirstScene) and used navigator.
@@ -652,6 +616,42 @@ type
     property TimePlaying: boolean read FTimePlaying write FTimePlaying default true;
     property TimePlayingSpeed: Single read FTimePlayingSpeed write FTimePlayingSpeed default 1.0;
     { @groupEnd }
+
+    { See SceneFromTime for description what this property does. }
+    property TimeLoop: boolean read FTimeLoop write FTimeLoop default true;
+
+    { See SceneFromTime for description what this property does. }
+    property TimeBackwards: boolean
+      read FTimeBackwards write FTimeBackwards default false;
+
+    { Common Navigator, for all scenes of this animation.
+      See TVRMLScene.Navigator.
+
+      Reading this reads FirstScene.Navigator,
+      and setting this sets the Navigator for all scenes within this animation.
+      In other words, if you use only this,
+      then all the scenes of your animation will always have equal
+      Navigator values. }
+    property Navigator: TNavigator read GetNavigator write SetNavigator;
+
+    { Optimization of the animation. See TVRMLGLScene.Optimization.
+
+      When animation is @link(Loaded), this is equal to
+      TVRMLGLScene.Optimization of all loaded scenes.
+      That is, all loaded scenes should have the same Optimization, always.
+
+      You can access this even when animation is not @link(Loaded).
+      Note that changing this when animation is @link(Loaded) may be
+      a costly operation, see TVRMLGLScene.Optimization. So don't do it
+      e.g. every frame. And when loading, it's best to set Optimization
+      as desired @italic(before) calling @link(Load) for fasters loading.
+
+      Note that this class should generally use roSeparateShapesNoTransform
+      or roSeparateShapes for Optimization, to conserve memory
+      in some common cases. See docs at TGLRendererOptimization type. }
+    property Optimization: TGLRendererOptimization
+      read FOptimization write SetOptimization
+      default roSeparateShapesNoTransform;
   end;
 
   TObjectsListItem_1 = TVRMLGLAnimation;

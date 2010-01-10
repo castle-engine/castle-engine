@@ -976,31 +976,6 @@ type
       TransparentGroup: TTransparentGroup;
       LightRenderEvent: TVRMLLightRenderEvent = nil);
 
-    { Fine-tune performance of RenderFrustum when
-      OctreeRendering is @italic(not) available.
-
-      RenderFrustum tests each Shape for collision with given Frustum
-      before rendering this Shape. It can use Shape.BoundingBox
-      or Shape.BoundingSphere or both.
-      See TFrustumCulling.
-
-      Shape.BoundingBox is (in a current implementation) always
-      a better approximation of shape geometry than Shape.BoundingSphere.
-      So advantage of using Shape.BoundingBox is that more Shapes
-      may be eliminated. Advantage of using Shape.BoundingSphere
-      is that checking for collision Frustum<->Sphere is faster,
-      so you don't waste so much time on testing for collisions between
-      frustum and Shape. }
-    property FrustumCulling: TFrustumCulling
-      read FFrustumCulling write SetFrustumCulling default fcBox;
-
-    { Fine-tune performance of RenderFrustum when
-      OctreeRendering @italic(is available).
-
-      See TFrustumCulling. }
-    property OctreeFrustumCulling: TFrustumCulling
-      read FOctreeFrustumCulling write SetOctreeFrustumCulling default fcBox;
-
     { LastRender_ properties provide you read-only statistics
       about what happened during last render. For now you
       can see how many Shapes were rendered (i.e. send to OpenGL
@@ -1055,26 +1030,6 @@ type
       you to make a first pass rendering the scene all shadowed. }
     class procedure LightRenderInShadow(const Light: TActiveLight;
       var LightOn: boolean);
-
-    { Optimization method used to render this model.
-
-      This is the only way how you can control internal behavior of this
-      class with regards to OpenGL display lists. You have to decide
-      which method is best, based on expected usage of this model:
-      Are you going to (often) change the model structure at runtime?
-      Is user going to see the scene usually as a whole, or only small
-      part of it (more precisely, is frustum culling sensible in this case)?
-
-      See VRMLRendererOptimization.TGLRendererOptimization
-      for discussion about various values you can set here.
-
-      You can change this property at run-time (that is, after this
-      object is created) but be warned that such change is of course costly
-      operation. Previous optimization resources must be freed,
-      and new resources will have to be created at next Render or
-      PrepareRender call. So don't change it e.g. every rendering frame. }
-    property Optimization: TGLRendererOptimization
-      read FOptimization write SetOptimization default DefaultOptimization;
 
     procedure ChangedAll; override;
     procedure ChangedShapeFields(Shape: TVRMLShape;
@@ -1401,6 +1356,51 @@ type
     procedure ViewChangedSuddenly; override;
 
     procedure VisibleSceneChange(const Changes: TVisibleSceneChanges); override;
+  published
+    { Fine-tune performance of RenderFrustum when
+      OctreeRendering is @italic(not) available.
+
+      RenderFrustum tests each Shape for collision with given Frustum
+      before rendering this Shape. It can use Shape.BoundingBox
+      or Shape.BoundingSphere or both.
+      See TFrustumCulling.
+
+      Shape.BoundingBox is (in a current implementation) always
+      a better approximation of shape geometry than Shape.BoundingSphere.
+      So advantage of using Shape.BoundingBox is that more Shapes
+      may be eliminated. Advantage of using Shape.BoundingSphere
+      is that checking for collision Frustum<->Sphere is faster,
+      so you don't waste so much time on testing for collisions between
+      frustum and Shape. }
+    property FrustumCulling: TFrustumCulling
+      read FFrustumCulling write SetFrustumCulling default fcBox;
+
+    { Fine-tune performance of RenderFrustum when
+      OctreeRendering @italic(is available).
+
+      See TFrustumCulling. }
+    property OctreeFrustumCulling: TFrustumCulling
+      read FOctreeFrustumCulling write SetOctreeFrustumCulling default fcBox;
+
+    { Optimization method used to render this model.
+
+      This is the only way how you can control internal behavior of this
+      class with regards to OpenGL display lists. You have to decide
+      which method is best, based on expected usage of this model:
+      Are you going to (often) change the model structure at runtime?
+      Is user going to see the scene usually as a whole, or only small
+      part of it (more precisely, is frustum culling sensible in this case)?
+
+      See VRMLRendererOptimization.TGLRendererOptimization
+      for discussion about various values you can set here.
+
+      You can change this property at run-time (that is, after this
+      object is created) but be warned that such change is of course costly
+      operation. Previous optimization resources must be freed,
+      and new resources will have to be created at next Render or
+      PrepareRender call. So don't change it e.g. every rendering frame. }
+    property Optimization: TGLRendererOptimization
+      read FOptimization write SetOptimization default DefaultOptimization;  
   end;
 
   TObjectsListItem_1 = TVRMLGLScene;

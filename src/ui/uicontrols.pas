@@ -284,7 +284,13 @@ type
 
       Control should clear here any resources that are tied to the GL context. }
     procedure GLContextClose; virtual;
-  published
+
+    { Design note: ExclusiveEvents is not published now, as it's too "obscure"
+      (for normal usage you don't want to deal with it). Also, it's confusing
+      on TVRMLScene, the name suggests it relates to ProcessEvents (VRML events,
+      totally not related to this property that is concerned with handling
+      TUIControl events.) }
+
     { Should we disable further mouse / keys handling for events that
       we already handled in this control. If @true, then our events will
       return @true for mouse and key events handled.

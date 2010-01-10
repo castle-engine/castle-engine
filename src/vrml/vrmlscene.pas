@@ -1224,25 +1224,6 @@ type
       this available. }
     function OctreeCollisions: TVRMLBaseTrianglesOctree;
 
-    { Which spatial structures (octrees, for now) should be created and managed.
-
-      You should set this, based on your expected usage of octrees.
-      See TVRMLSceneSpatialStructure for possible values.
-      For usual dynamic scenes rendered with OpenGL,
-      you want this to be [ssRendering, ssDynamicCollisions].
-
-      Before setting any value <> [] you may want to adjust
-      TriangleOctreeLimits, ShapeOctreeLimits.
-      These properties fine-tune how the octrees will be generated
-      (although default values should be Ok for typical cases).
-
-      Default value of this property is [], which means that
-      no octrees will be created. This has to be the default value,
-      to 1. get you chance to change TriangleOctreeLimits and such
-      before creating octree 2. otherwise, scenes that not require
-      collision detection would unnecessarily create octrees at construction. }
-    property Spatial: TVRMLSceneSpatialStructures read FSpatial write SetSpatial;
-
     { Properties of created triangle octrees.
       See VRMLTriangleOctree unit comments for description.
 
@@ -1452,26 +1433,6 @@ type
       See TVRMLSceneFreeResources documentation. }
     procedure FreeResources(Resources: TVRMLSceneFreeResources);
 
-    { Should the VRML event mechanism work.
-
-      If @true, then we will implement whole VRML event mechanism here,
-      as expected from a VRML browser. Events will be send and received
-      through routes, time dependent nodes (X3DTimeDependentNode,
-      like TimeSensor) will be activated and updated from WorldTime time
-      property, KeyDown, KeyUp and other methods will activate
-      key/mouse sensor nodes, scripts will be initialized and work, etc.
-
-      Appropriate ChangedXxx, like ChangedAll, will be automatically called
-      when necessary.
-
-      In other words, this makes the scene fully animated and interacting
-      with the user (provided you will call KeyDown etc. methods when
-      necessary).
-
-      If @false, this all doesn't work, which makes the scene static. }
-    property ProcessEvents: boolean
-      read FProcessEvents write SetProcessEvents default false;
-
     { Internally unregister a node from our events processing.
 
       @italic(You almost never need to call this method) --- this
@@ -1590,17 +1551,6 @@ type
 
     { Overridden in TVRMLScene to catch events regardless of mouse position. }
     function PositionInside(const X, Y: Integer): boolean; override;
-
-    { Navigator (camera) in this scene. May be @nil if not known / not used.
-
-      Your navigator must be inside some container
-      (i.e. on TGLUIWindow.Controls or TKamOpenGLControl.Controls list),
-      at least at the time of Mouse* methods call
-      (that is, when container passed mouse events to this scene).
-
-      This is for now used only with Mouse* methods, to convert mouse position
-      (MouseX, MouseY) to a picked ray in 3D space. }
-    property Navigator: TNavigator read FNavigator write FNavigator;
 
     { Camera angles of view, in degrees.
       Automatically set by every TVRMLGLScene.GLProjection call.
@@ -1862,6 +1812,56 @@ type
     { Controls the time speed (if TimePlaying is @true):
       1.0 means that 1 second  of real time equals to 1 unit of world time. }
     property TimePlayingSpeed: Single read FTimePlayingSpeed write FTimePlayingSpeed default 1.0;
+
+    { Which spatial structures (octrees, for now) should be created and managed.
+
+      You should set this, based on your expected usage of octrees.
+      See TVRMLSceneSpatialStructure for possible values.
+      For usual dynamic scenes rendered with OpenGL,
+      you want this to be [ssRendering, ssDynamicCollisions].
+
+      Before setting any value <> [] you may want to adjust
+      TriangleOctreeLimits, ShapeOctreeLimits.
+      These properties fine-tune how the octrees will be generated
+      (although default values should be Ok for typical cases).
+
+      Default value of this property is [], which means that
+      no octrees will be created. This has to be the default value,
+      to 1. get you chance to change TriangleOctreeLimits and such
+      before creating octree 2. otherwise, scenes that not require
+      collision detection would unnecessarily create octrees at construction. }
+    property Spatial: TVRMLSceneSpatialStructures read FSpatial write SetSpatial;
+
+    { Should the VRML event mechanism work.
+
+      If @true, then we will implement whole VRML event mechanism here,
+      as expected from a VRML browser. Events will be send and received
+      through routes, time dependent nodes (X3DTimeDependentNode,
+      like TimeSensor) will be activated and updated from WorldTime time
+      property, KeyDown, KeyUp and other methods will activate
+      key/mouse sensor nodes, scripts will be initialized and work, etc.
+
+      Appropriate ChangedXxx, like ChangedAll, will be automatically called
+      when necessary.
+
+      In other words, this makes the scene fully animated and interacting
+      with the user (provided you will call KeyDown etc. methods when
+      necessary).
+
+      If @false, this all doesn't work, which makes the scene static. }
+    property ProcessEvents: boolean
+      read FProcessEvents write SetProcessEvents default false;
+
+    { Navigator (camera) in this scene. May be @nil if not known / not used.
+
+      Your navigator must be inside some container
+      (i.e. on TGLUIWindow.Controls or TKamOpenGLControl.Controls list),
+      at least at the time of Mouse* methods call
+      (that is, when container passed mouse events to this scene).
+
+      This is for now used only with Mouse* methods, to convert mouse position
+      (MouseX, MouseY) to a picked ray in 3D space. }
+    property Navigator: TNavigator read FNavigator write FNavigator;
 
     { Currently loaded scene filename. Set this to load a 3D scene
       from the given file, this can load from any known 3D format
