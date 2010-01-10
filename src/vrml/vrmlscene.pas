@@ -530,6 +530,7 @@ type
     FAngleOfViewY: Single;
     FTimePlaying: boolean;
     FTimePlayingSpeed: Single;
+    FFileName: string;
 
     { This always holds pointers to all TVRMLShapeTreeLOD instances in Shapes
       tree. }
@@ -537,6 +538,8 @@ type
     { Recalculate and update LODTree.Level (if viewer position known).
       Also sends level_changed when needed. }
     procedure UpdateLODLevel(LODTree: TVRMLShapeTreeLOD);
+
+    procedure SetFileName(const AValue: string);
   private
     TransformNodesInfo: TDynTransformNodeInfoArray;
 
@@ -851,16 +854,17 @@ type
 
     procedure Load(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
 
-    { Load the 3D model from given FileName.
+    { Load the 3D model from given AFileName.
 
       Model is loaded by LoadAsVRML, so this supports all
       3D model formats that LoadAsVRML handles
       (VRML, X3D, Wavefront OBJ, 3DS, Collada and more).
 
-      @param(AllowStdIn If AllowStdIn and FileName = '-' then we will load
-        a file from StdInStream (using GetCurrentDir as WWWBasePath).
-        Currently, this forces the file to be VRML/X3D.) }
-    procedure Load(const FileName: string; AllowStdIn: boolean = false);
+      @param(AllowStdIn If AllowStdIn and AFileName = '-' then we will load
+        a file from standard input (StdInStream), using GetCurrentDir
+        as WWWBasePath (to resolve relative URLs from the file).
+        Currently, this limits the file to be VRML/X3D.) }
+    procedure Load(const AFileName: string; AllowStdIn: boolean = false);
 
     destructor Destroy; override;
 
@@ -1858,6 +1862,21 @@ type
     { Controls the time speed (if TimePlaying is @true):
       1.0 means that 1 second  of real time equals to 1 unit of world time. }
     property TimePlayingSpeed: Single read FTimePlayingSpeed write FTimePlayingSpeed default 1.0;
+
+    { Currently loaded scene filename. Set this to load a 3D scene
+      from the given file, this can load from any known 3D format
+      (VRML, X3D, Collada, 3ds, Wavefront, etc.).
+
+      Works just like the @link(Load) method (the overloaded version
+      that takes @code(AFileName: string) parameter). And, in fact, using
+      directly the @link(Load) method will also change this FileName property.
+
+      The only difference of @code(Scene.FileName := 'blah.x3d') vs
+      @code(Scene.Load('blah.x3d')) is that setting the filename will
+      @italic(not) reload the scene if you set it to the same value.
+      That is, @code(Scene.FileName := Scene.FileName;) will not reload
+      the scene (you have to use explicit @link(Load) for this.). }
+    property FileName: string read FFileName write SetFileName;
   end;
 
 {$undef read_interface}
@@ -2204,9 +2223,20 @@ begin
   ScheduleChangedAll;
 end;
 
-procedure TVRMLScene.Load(const FileName: string; AllowStdIn: boolean);
+procedure TVRMLScene.Load(const AFileName: string; AllowStdIn: boolean);
 begin
-  Load(LoadAsVRML(FileName, AllowStdIn), true);
+  { Note that if LoadAsVRML fails, we will not change the RootNode,
+    so currently loaded scene will remain valid. }
+
+  Load(LoadAsVRML(AFileName, AllowStdIn), true);
+
+  FFileName := AFileName;
+end;
+
+procedure TVRMLScene.SetFileName(const AValue: string);
+begin
+  if AValue <> FFileName then
+    Load(AValue);
 end;
 
 function TVRMLScene.ShapesActiveCount: Cardinal;
