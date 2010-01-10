@@ -1699,10 +1699,17 @@ type
     { Create and initialize TNavigator instance based on currently
       bound NavigationInfo and Viewpoint node.
 
-      Bound NavigationInfo node is just
+      Bound NavigationInfo node is taken from
       NavigationInfoStack.Top. If no NavigationInfo is bound, this is @nil,
       and we will create navigator corresponding to default NavigationInfo
       values (this is following VRML spec), so it will have type = EXAMINE.
+
+      You can pass ForceNavigationType = 'EXAMINE', 'WALK', 'FLY', 'NONE' etc.
+      (see X3D specification about NavigationInfo node, type field,
+      on [http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/Part01/components/navigation.html#NavigationInfo],
+      although not all values are handled by our engine now).
+      This way we will ignore what NavigationInfo.type information
+      inside the scene says.
 
       Sets always suitable @link(TNavigator.CameraRadius).
 
@@ -1718,7 +1725,8 @@ type
 
       This also calls NavigatorBindToViewpoint at the end,
       so navigator is bound to current vewpoint. }
-    function CreateNavigator(AOwner: TComponent): TNavigator;
+    function CreateNavigator(AOwner: TComponent;
+      const ForceNavigationType: string = ''): TNavigator;
 
     { Update navigator when currently bound viewpoint changes.
       When no viewpoint is currently bound, we will go to standard (initial)
@@ -5561,56 +5569,72 @@ end;
 
 { navigator ------------------------------------------------------------------ }
 
-function TVRMLScene.CreateNavigator(AOwner: TComponent): TNavigator;
+function TVRMLScene.CreateNavigator(AOwner: TComponent;
+  const ForceNavigationType: string = ''): TNavigator;
+
+  { Create TNavigator instance, looking at NavigationType
+    (treating it like NavigationInfo.type value).
+    Returns @nil if NavigationType unknown (or 'ANY'). }
+  function DoCreate(const NavigationType: string): TNavigator;
+  begin
+    Result := nil;
+    if NavigationType = 'WALK' then
+    begin
+      Result := TWalkNavigator.Create(AOwner);
+      TWalkNavigator(Result).PreferGravityUpForRotations := true;
+      TWalkNavigator(Result).PreferGravityUpForMoving := true;
+      TWalkNavigator(Result).Gravity := true;
+      TWalkNavigator(Result).IgnoreAllInputs := false;
+    end else
+    if NavigationType = 'FLY' then
+    begin
+      Result := TWalkNavigator.Create(AOwner);
+      TWalkNavigator(Result).PreferGravityUpForRotations := true;
+      TWalkNavigator(Result).PreferGravityUpForMoving := false;
+      TWalkNavigator(Result).Gravity := false;
+      TWalkNavigator(Result).IgnoreAllInputs := false;
+    end else
+    if NavigationType = 'NONE' then
+    begin
+      Result := TWalkNavigator.Create(AOwner);
+      TWalkNavigator(Result).PreferGravityUpForRotations := true;
+      TWalkNavigator(Result).PreferGravityUpForMoving := true; { doesn't matter }
+      TWalkNavigator(Result).Gravity := false;
+      TWalkNavigator(Result).IgnoreAllInputs := true;
+    end else
+    if NavigationType = 'EXAMINE' then
+    begin
+      Result := TExamineNavigator.Create(AOwner);
+    end else
+    if NavigationType = 'ANY' then
+    begin
+      { Do nothing, also do not report this NavigationInfo.type as unknown. }
+    end else
+      VRMLWarning(vwSerious, Format('Unknown NavigationInfo.type "%s"',
+        [NavigationType]));
+  end;
+
 var
   NavigationNode: TNodeNavigationInfo;
   I: Integer;
   CameraPreferredHeight, CameraRadius: Single;
 begin
+  Result := nil;
   NavigationNode := NavigationInfoStack.Top as TNodeNavigationInfo;
 
-  Result := nil;
+  if ForceNavigationType <> '' then
+    Result := DoCreate(ForceNavigationType);
 
-  if NavigationNode <> nil then
-    for I := 0 to NavigationNode.FdType.Count - 1 do
-      if NavigationNode.FdType.Items[I] = 'WALK' then
+  if Result = nil then
+  begin
+    if NavigationNode <> nil then
+      for I := 0 to NavigationNode.FdType.Count - 1 do
       begin
-        Result := TWalkNavigator.Create(AOwner);
-        TWalkNavigator(Result).PreferGravityUpForRotations := true;
-        TWalkNavigator(Result).PreferGravityUpForMoving := true;
-        TWalkNavigator(Result).Gravity := true;
-        TWalkNavigator(Result).IgnoreAllInputs := false;
-        Break;
-      end else
-      if NavigationNode.FdType.Items[I] = 'FLY' then
-      begin
-        Result := TWalkNavigator.Create(AOwner);
-        TWalkNavigator(Result).PreferGravityUpForRotations := true;
-        TWalkNavigator(Result).PreferGravityUpForMoving := false;
-        TWalkNavigator(Result).Gravity := false;
-        TWalkNavigator(Result).IgnoreAllInputs := false;
-        Break;
-      end else
-      if NavigationNode.FdType.Items[I] = 'NONE' then
-      begin
-        Result := TWalkNavigator.Create(AOwner);
-        TWalkNavigator(Result).PreferGravityUpForRotations := true;
-        TWalkNavigator(Result).PreferGravityUpForMoving := true; { doesn't matter }
-        TWalkNavigator(Result).Gravity := false;
-        TWalkNavigator(Result).IgnoreAllInputs := true;
-        Break;
-      end else
-      if NavigationNode.FdType.Items[I] = 'EXAMINE' then
-      begin
-        Result := TExamineNavigator.Create(AOwner);
-        Break;
-      end else
-      if NavigationNode.FdType.Items[I] = 'ANY' then
-      begin
-        { Do nothing, also do not report this NavigationInfo.type as unknown. }
-      end else
-        VRMLWarning(vwSerious, Format('Unknown NavigationInfo.type "%s"',
-          [NavigationNode.FdType.Items[I]]));
+        Result := DoCreate(NavigationNode.FdType.Items[I]);
+        if Result <> nil then
+          Break;
+      end;
+  end;
 
   if Result = nil then
     { No recognized "type" found, so use default type EXAMINE. }
@@ -5628,11 +5652,8 @@ begin
 
   Result.CameraRadius := CameraRadius;
 
-  if Result is TWalkNavigator then
+  if (Result is TWalkNavigator) and (NavigationNode <> nil) then
   begin
-    { For NavigationNode = nil, always Examine is created. }
-    Assert(NavigationNode <> nil);
-
     { calculate CameraPreferredHeight }
     if NavigationNode.FdAvatarSize.Count >= 2 then
       CameraPreferredHeight := NavigationNode.FdAvatarSize.Items[1] else
