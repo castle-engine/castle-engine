@@ -23,10 +23,18 @@ Better Lazarus integration:
   Or not: shadow_volume_test shows that it's possible to have two cameras,
   and things work smoothly. You just have to assign non-conflicting keys.
 
-- Make sure most useful props of cameras, TGLMenu are settable (published) from Lazarus.
-  For TExamineCamera: somehow allow ModelBox: TBox3d?
+- Make sure most useful props of our controls are settable:
+
+  For TGLMenu, browse and decide which ones (Items?).
+
+  TVRMLScene.CompiledScriptHandlers (will require some designer to settable from IDE)
+  TVRMLGLAnimation.FileName, implement similar to TVRMLScene.FileName.
+
   For cameras generally, what Init method takes should be settable.
   For cameras generally, Input_Xxx properties.
+  TWalkNavigator: CameraInitialPos/Dir/Up (how are settable from IDE?)
+  TExamineNavigator: ModelBox (how are settable from IDE?)
+  Gravity, CameraRadius, CameraPreferredHeight, OnMoveAllowed, OnGetCameraHeight?
 
 - make icons for our components.
   Same style cameras (black with dotted lines):
@@ -39,6 +47,8 @@ Better Lazarus integration:
   Needed ideas for TGLMenu.
   For TKamXMLConfig use some slightly modified icon of TXMLConfig, since this is almost the same?
   For TKamRecentFiles use some slightly modified icon of TMainMenu or TPopupMenu.
+
+* TVRMLScene (no GL) on a Lazarus palette? Confusing with TVRMLGLScene, but is also useful.
 ------------------------------------------------------------------------------
 For view3dscene 3.6:
 - implement more pointing device sensors
@@ -52,6 +62,8 @@ JavaScript, or Python/Lua?
 
 ------------------------------------------------------------------------------
 Various ideas:
+
+* Future: TAnyCamera in the future (when I'll figure out how to switch cam pos/dir/up to examine props), with Examine, Walk, None variants.
 
 - Maybe more improvements along the vrml_implementation_status.php division:
   - #section_x3d_multitex_clarifications - move to "texturing" component page?
