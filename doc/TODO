@@ -18,26 +18,10 @@ Better Lazarus integration:
 * Rename CameraPos/Dir/Up to normal Position, Direction, Up. Follows GLScene
   and good naming practices (since we're breaking things anyway :) ).
 
-* Let RenderState use some Camera reference, maybe make TSimpleCamera to avoid
-  overloading it with full camera props for temporary camera settings?
-
 * TShadowVolumes better:
   - as TUIControl, to receive GLContextInit/Close?
   - Or just hide TShadowVolumes inside SceneManager?
   Goal: remove TShadowVolumes from glwindowvrmlbrowser/kambivrmlbrowser.
-
-* TVRMLGLAnimation props make more persistent:
-
-  The fact that TimeLoop, TimeBackwards, Optimization get changed by file load
-  is confusing and bad, setting this from Lazarus makes currently little use.
-  We also had view3dscene UI problem because of this.
-  Maybe make it changing only if Load() gets argument like LoadTimeAndOptimization?
-
-* castle: make main level scene added to Controls, check receives time events (timesensor, movietexture), and mouse/key clicks (use some touchsensor).
-
-* Use TVRMLGLAnimation/TVRMLGLScene on Glw.Controls in more programs:
-  castle? simple_view_model? They all should now be able to trivially add Scene to Controls to make it interactive?
-  Hm, not yet fully (integration with camera is still not so trivial.)
 
 * TSceneManager fitting into controls:
 
@@ -77,6 +61,22 @@ Better Lazarus integration:
   Suggests TSceneManager.Camera field, that automatically ties
   scene/animation<->camera stuff. And MainScene, that will be used
   for VRML/X3D bindable nodes for the scene (NavigationInfo, Viewpoint etc.).
+
+* Let RenderState use some Camera reference, maybe make TSimpleCamera to avoid
+  overloading it with full camera props for temporary camera settings?
+
+* TVRMLGLAnimation props make more persistent:
+
+  The fact that TimeLoop, TimeBackwards, Optimization get changed by file load
+  is confusing and bad, setting this from Lazarus makes currently little use.
+  We also had view3dscene UI problem because of this.
+  Maybe make it changing only if Load() gets argument like LoadTimeAndOptimization?
+
+* castle: make main level scene added to Controls, check receives time events (timesensor, movietexture), and mouse/key clicks (use some touchsensor).
+
+* Use TVRMLGLAnimation/TVRMLGLScene on Glw.Controls in more programs:
+  castle? simple_view_model? They all should now be able to trivially add Scene to Controls to make it interactive?
+  Hm, not yet fully (integration with camera is still not so trivial.)
 
 * Make a news item about all improvements, started in www/TODO,
   maybe make a few screenshots how to easily use it from Lazarus?
