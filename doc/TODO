@@ -15,9 +15,6 @@ view3dscene 3.5 blockers:
 Better Lazarus integration:
 (Some before view3dscene 3.5, some probably for later.)
 
-* Rename CameraPos/Dir/Up to normal Position, Direction, Up. Follows GLScene
-  and good naming practices (since we're breaking things anyway :) ).
-
 * TShadowVolumes better:
   - as TUIControl, to receive GLContextInit/Close?
   - Or just hide TShadowVolumes inside SceneManager?
