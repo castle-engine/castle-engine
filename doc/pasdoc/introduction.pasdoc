@@ -223,38 +223,45 @@ units are allowed to be used by units in specific group.
 
   @itemLabel @code(ui)
   @item(
-    Abstract user interface classes. By "abstract" I mean that these
-    units do not define actual, visible "controls" and "windows".
-    This task is left up to units elsewhere,
-    for example OpenGL controls and windows are within opengl/ units.
-    Lazarus component in packages/components/ may also serve as a
-    "window" for our controls.
+    User interface of the engine.
 
-    The ideas behind these classes:
+    First of all, unit UIControls with basic control class
+    TUIControl and basic container interface IUIContainer.
+
+    Concepts:
 
     @unorderedList(
-      @item("Windows" are tied to particular windowing library,
-        like Lazarus component or GLWindow.
+      @item("Containers" are tied to a particular windowing library.
+        We have two containers right now:
 
-        Implementing "windows" class means handlign some generic
-        abstract classes like TInputListener. Window doesn't have to
-        care about each control type in particular. This means
-        that developing new controls is easy, you do all the work
-        by implementing descendant of appropriate class, and it can
-        be automatically handled properly by all windows.)
+	@orderedList(
+	  @itemSpacing Compact
+	  @item A window, by our TGLWindow class (see @code(glwindow) directory).
+	  @item A Lazarus component, by our TKamOpenGLControl class (see @code(components) directory).
+	)
 
-      @item("Controls" are tied to particular rendering library,
-        in practice --- all current controls use OpenGL rendering.
+	The main task of a "container" is to handle a list of controls
+	(instances of TUIControl class). For our two current containers
+	this list is TGLWindow.Controls and TKamOpenGLControl.Controls.
+	Container doesn't care about particular control types,
+	it just handles generic TUIControl classes, passing to them
+	key, mouse events and much more.)
 
-	TODO: below is currently not @true, TGLMenu requires GLWindow unit,
-	although only for designer mode. The plan is to free TGLMenu
-	from this as soon as possible.
+      @item("Controls" may be tied to a particular rendering library,
+        in practice --- all current controls are invisible
+	(like a camera) or use OpenGL rendering.
 
         The controls are @italic(not tied to the windowing library),
         for example you can use our TGLMenu both inside GLWindow,
         as well as inside Lazarus GL area component, etc.
         Everywhere is fine, as long as you have OpenGL rendering context.)
     )
+
+    We have a camera control in @link(Cameras) unit,
+    and OpenGL controls (like TGLMenu) in @code(ui/opengl/) subdirectory.
+    Also our VRML scene (TVRMLGLScene) and animation (TVRMLGLAnimation),
+    and our scene manager (TSceneManager, TODO),
+    are controls.
 
     @italic(Uses:) @code(base), @code(images), @code(3d).)
 
@@ -264,8 +271,8 @@ units are allowed to be used by units in specific group.
     This is the basis for VRML units in @code(vrml) directory.
 
     Operating on axis-aligned bounding boxes (Boxes3d),
-    loading skyboxes (BackgroundBase), navigation in 3D world
-    (MatrixNavigation), ray-tracer helpers (SpaceFillingCurves and
+    loading skyboxes (BackgroundBase),
+    ray-tracer helpers (SpaceFillingCurves and
     SphereSampling) etc.
 
     Note: VectorMath unit is considered by me as something more general and

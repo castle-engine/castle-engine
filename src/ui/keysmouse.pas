@@ -42,11 +42,10 @@ unit KeysMouse;
   Was extracted from GLWindow unit to a separate unit,
   that @italic(doesn't depend on GLWindow unit).
 
-  Advantage: we can keep this unit in @code(3d) group,
-  i.e. units that don't depend on OpenGL. This means that also
-  unit Navigation (that must use unit Keys) can stay in this group.
-  This is good, because it makes important unit Navigation more
-  generally-usable.
+  Advantage: we can keep this unit independent from OpenGL.
+  This means that also Cameras unit (that must use unit KeysMouse)
+  can stay independent from OpenGL. Which is good, makes
+  Cameras unit more generally-usable.
 
   Disadvantage: because this unit doesn't depend on GLWindow unit,
   it doesn't know what implementation of GLWindow unit

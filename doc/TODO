@@ -156,8 +156,8 @@ SceneManager stuff (post 3.4):
   ./kambi_vrml_game_engine/opengl/examples/bezier_surfaces/design_surface.pasprogram:207:  glLoadMatrix(Glw.Camera.Matrix);
   ./kambi_vrml_game_engine/opengl/examples/shading_langs/shading_langs_demo.pasprogram:143:  glLoadMatrix(Glw.Camera.Matrix);
   ./kambi_vrml_game_engine/opengl/examples/interpolated_curves.pasprogram:152:  glLoadMatrix(Glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/opengl/examples/demo_matrix_navigation.pasprogram:27:  - call glLoadMatrix(glw.Camera.Matrix) at the beginning
-  ./kambi_vrml_game_engine/opengl/examples/demo_matrix_navigation.pasprogram:48:  glLoadMatrix(glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/opengl/examples/demo_camera.pasprogram:27:  - call glLoadMatrix(glw.Camera.Matrix) at the beginning
+  ./kambi_vrml_game_engine/opengl/examples/demo_camera.pasprogram:48:  glLoadMatrix(glw.Camera.Matrix);
 
   This will get automatically fixed when we extend and use SceneManager everywhere.
 

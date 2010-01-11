@@ -22,7 +22,7 @@ interface
 
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs,
-  OpenGLContext, Menus, VRMLGLScene, Navigation, KambiVRMLBrowser,
+  OpenGLContext, Menus, VRMLGLScene, Cameras, KambiVRMLBrowser,
   LCLRecentFiles, KambiXMLCfg, Buttons, ExtCtrls, StdCtrls, RecentFiles;
 
 type

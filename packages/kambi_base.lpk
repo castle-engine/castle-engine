@@ -527,9 +527,9 @@
         <UnitName Value="KeysMouse"/>
       </Item118>
       <Item119>
-        <Filename Value="../src/ui/navigation.pas"/>
+        <Filename Value="../src/ui/cameras.pas"/>
         <HasRegisterProc Value="True"/>
-        <UnitName Value="Navigation"/>
+        <UnitName Value="Cameras"/>
       </Item119>
       <Item120>
         <Filename Value="../src/ui/opengl/glmenu.pas"/>

@@ -107,8 +107,8 @@
         <UsageCount Value="9"/>
       </Unit7>
       <Unit8>
-        <Filename Value="../../../src/ui/navigation.pas"/>
-        <UnitName Value="Navigation"/>
+        <Filename Value="../../../src/ui/cameras.pas"/>
+        <UnitName Value="Cameras"/>
         <CursorPos X="1" Y="1906"/>
         <TopLine Value="1889"/>
         <UsageCount Value="9"/>
