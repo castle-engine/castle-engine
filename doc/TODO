@@ -15,6 +15,81 @@ view3dscene 3.5 blockers:
 Better Lazarus integration:
 (Some before view3dscene 3.5, some probably for later.)
 
+* Remove ExamineNav, WalkNav. Not only names are now outdated (should
+  be ExamineCamera, WalkCamera), but also they were confusing?
+
+* Rename CameraPos/Dir/Up to normal Position, Direction, Up. Follows GLScene
+  and good naming practices (since we're breaking things anyway :) ).
+
+* Let RenderState use some Camera reference, maybe make TSimpleCamera to avoid
+  overloading it with full camera props for temporary camera settings?
+
+* demo_animation.pasprogram modernize - use CreateCamera, GLProjection
+  Also fog_culling.
+  Hm, grep for GetPerspectiveViewpoint, GetViewpoint?
+
+* TShadowVolumes better:
+  - as TUIControl, to receive GLContextInit/Close?
+  - Or just hide TShadowVolumes inside SceneManager?
+  Goal: remove TShadowVolumes from glwindowvrmlbrowser/kambivrmlbrowser.
+
+* TVRMLGLAnimation props make more persistent:
+
+  The fact that TimeLoop, TimeBackwards, Optimization get changed by file load
+  is confusing and bad, setting this from Lazarus makes currently little use.
+  We also had view3dscene UI problem because of this.
+  Maybe make it changing only if Load() gets argument like LoadTimeAndOptimization?
+
+* castle: make main level scene added to Controls, check receives time events (timesensor, movietexture), and mouse/key clicks (use some touchsensor).
+
+* Use TVRMLGLAnimation/TVRMLGLScene on Glw.Controls in more programs:
+  castle? simple_view_model? They all should now be able to trivially add Scene to Controls to make it interactive?
+  Hm, not yet fully (integration with navigator is still not so trivial.)
+
+* TSceneManager fitting into controls:
+
+  * Should resolve:
+
+    Make TVRMLScene.Resize set projection, if SetupProjection = true
+    (default true)?
+
+    No, but make such a thing for TSceneManager.
+    Obviously only one scene should do it.
+    Introducing property like SetupProjection seems clumsy.
+    SceneManager will have chosen scene for projection,
+    and SceneManager as TUIControl will automatically call this,
+    but not the scene itself.
+
+    This also allows to keep ShadowVolumesPossible value in SceneManager.
+
+  * Use TVRMLScene.Navigator property more, setting this should give more instant integration of navigator with the scene.
+    For example, remake CreateNavigator, ViewerChanged, NavigatorSetViewpoint, GLProjection etc.
+
+    Also, maybe automatically bind navigator collision-detection callbacks to use our octree?
+
+    Hm, this last point is definitely the job for TSceneManager, not TVRML[GL]Scene/Animation, as in the future we would like to have some T3DControl that is just a "translated" other T3DControl, like TVRMLScene/Animation. Following castle's approach to level objects.
+    So Navigator 3d coords and scene/animation 3d coords may not live in the same 3d space.
+    Maybe this is an argument to remove Navigator altogether from TVRMLScene/Animation? Only TSceneManager should know Navigator, as a central navigator for 3d scene.
+
+  * Make TSceneManager a TUIControl also.
+
+  * At the end: we'll have to decide should TVRMLGLScene / TVRMLGLAnimation remain as TUIControl,
+    or should we force user to using TSceneManager always?
+
+* Make a news item about all improvements, started in www/TODO,
+  maybe make a few screenshots how to easily use it from Lazarus?
+
+* Lazarus: make the control painted at design-time?
+
+* make sure on vrml_browser_2d_controls mouse is properly catched before TouchSensor.
+  Make some property like Mouse: on each 2d control, to allow e.g. change mouse over yellow clickable rect on vrml_browser_2d_controls?
+
+* Scene.GeometryChanged possibly cleared pointing device info by
+  PointingDeviceClear. This means that cursor must be updated.
+  TODO: call this automatically by Scene?
+
+  Fix in glwindowvrmlbrowser, kambivrmlbrowser.
+
 - Make TKamOpenGLControl.Controls list settable from the IDE,
   to allow visually adding new TUIControls there.
 
@@ -49,6 +124,19 @@ Better Lazarus integration:
   For TKamRecentFiles use some slightly modified icon of TMainMenu or TPopupMenu.
 
 * TVRMLScene (no GL) on a Lazarus palette? Confusing with TVRMLGLScene, but is also useful.
+
+* Remove Camera property entirely from TGLUIWindow/TKamOpenGLComponent?
+  Usually Scene.Camera is comfortable now.
+
+  Hm, no? Resign?
+  1. Scene.Camera future is uncertain. It may be removed,
+     in favor of only SceneManager.Camera. Wait for transition until this
+     is decided, to avoid rewriting a lot of code (Glw.Camera -> Scene.Camera)
+     just to rewrite it again (Scene.Camera -> SceneManager.Camera).
+  2. Wait for removal until Controls list is settable from the Lazarus IDE.
+     Otherwise, right now Camera is settable from IDE, Controls not,
+     so 1 advantage of Camera property.
+  3. Seems comfortable and not confusing. Leave it be?
 ------------------------------------------------------------------------------
 For view3dscene 3.6:
 - implement more pointing device sensors
