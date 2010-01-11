@@ -1,5 +1,5 @@
 {
-  Copyright 2007 Michalis Kamburelis.
+  Copyright 2007-2009 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -9,6 +9,8 @@
   "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
 }
 
 { Bump mapping demo. Methods:
@@ -50,7 +52,7 @@
 program bump_mapping;
 
 uses GLWindow, GL, GLU, GLExt, KambiGLUtils,
-  Navigation, Boxes3d, SysUtils, KambiUtils, VectorMath,
+  Cameras, Boxes3d, SysUtils, KambiUtils, VectorMath,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils,
   GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, Images, KeysMouse,
   NormalizationCubeMap, GLImages, GLVersionUnit,
@@ -83,8 +85,8 @@ var
 
   RotatingColumn: Single;
 
-  Examiner: TExamineNavigator;
-  Walker: TWalkNavigator;
+  Examiner: TExamineCamera;
+  Walker: TWalkCamera;
 
   Scene: TVRMLGLScene;
 
@@ -840,11 +842,11 @@ begin
 
   if (Method = bmVRML) and (Scene.Background <> nil) then
   begin
-    glLoadMatrix(Glw.Navigator.RotationMatrix);
+    glLoadMatrix(Glw.Camera.RotationMatrix);
     Scene.Background.Render;
   end;
 
-  glLoadMatrix(Glw.Navigator.Matrix);
+  glLoadMatrix(Glw.Camera.Matrix);
 
   if (Method = bmEmboss) and
     (glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) < 3) then
@@ -872,8 +874,8 @@ begin
       so I change it back to default GL value. }
     glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.2, 0.2, 0.2, 1.0));
 
-    if Glw.Navigator = Walker then
-      Scene.RenderFrustum(Glw.WalkNav.Frustum, tgAll) else
+    if Glw.Camera = Walker then
+      Scene.RenderFrustum(Walker.Frustum, tgAll) else
       Scene.Render(nil, tgAll);
   end else
   begin
@@ -917,7 +919,7 @@ end;
 
 procedure Resize(glwin: TGLWindow);
 
-  procedure UpdateNavigatorProjectionMatrix;
+  procedure UpdateCameraProjectionMatrix;
   var
     ProjectionMatrix: TMatrix4f;
   begin
@@ -938,8 +940,8 @@ begin
     TBackgroundGL.NearFarToSkySphereRadius(
       ProjectionNear, ProjectionFar);
 
-  { In case I use walker navigator. }
-  UpdateNavigatorProjectionMatrix;
+  { In case I use walker camera. }
+  UpdateCameraProjectionMatrix;
 end;
 
 var
@@ -1104,11 +1106,11 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
       PrepareForVRMLScene;
   end;
 
-  procedure NextNavigator;
+  procedure NextCamera;
   begin
-    if Glw.Navigator = Examiner then
-      Glw.Navigator := Walker else
-      Glw.Navigator := Examiner;
+    if Glw.Camera = Examiner then
+      Glw.Camera := Walker else
+      Glw.Camera := Examiner;
   end;
 
 var
@@ -1117,7 +1119,7 @@ var
 begin
   case MenuItem.IntData of
     50: NextBumpMappingMethod;
-    60: NextNavigator;
+    60: NextCamera;
     100: Glwin.SaveScreenDialog(FNameAutoInc(Parameters[0] + '_screen_%d.png'));
     200: Glwin.Close;
     300: ShiftByHand := not ShiftByHand;
@@ -1235,16 +1237,16 @@ begin
   if Parameters.High >= 1 then
     VrmlFileName := Parameters[1];
 
-  { init Glw.Navigator }
-  Examiner := TExamineNavigator.Create(Glw);
+  { init Glw.Camera }
+  Examiner := TExamineCamera.Create(Glw);
   Examiner.Init(SceneBoundingBox);
 
-  Walker := TWalkNavigator.Create(Glw);
+  Walker := TWalkCamera.Create(Glw);
   Walker.Init(Vector3Single(0, 0, 10), Vector3Single(0, 0, -1),
     Vector3Single(0, 1, 0), Vector3Single(0, 1, 0),
     0.0, 0.0 { unused, we don't use Gravity here });
 
-  Glw.Navigator := Examiner;
+  Glw.Camera := Examiner;
 
   Glw.MainMenu := CreateMainMenu;
   Glw.OnMenuCommand := @MenuCommand;

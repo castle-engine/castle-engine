@@ -695,12 +695,12 @@
 
   TNodeOrthographicCamera = class(TVRMLCameraNode_1)
     class function ClassNodeTypeName: string; override;
-    class function CameraKind: TVRMLCameraKind; override;
+    class function ProjectionType: TProjectionType; override;
   end;
 
   TNodePerspectiveCamera = class(TVRMLCameraNode_1)
     class function ClassNodeTypeName: string; override;
-    class function CameraKind: TVRMLCameraKind; override;
+    class function ProjectionType: TProjectionType; override;
   end;
 
   TNodeDirectionalLight_1 = class(TVRMLDirectionalLightNode)
@@ -2110,9 +2110,9 @@ begin
   result := 'OrthographicCamera';
 end;
 
-class function TNodeOrthographicCamera.CameraKind: TVRMLCameraKind;
+class function TNodeOrthographicCamera.ProjectionType: TProjectionType;
 begin
-  result := ckOrthographic;
+  result := ptOrthographic;
 end;
 
 class function TNodePerspectiveCamera.ClassNodeTypeName: string;
@@ -2120,9 +2120,9 @@ begin
   result := 'PerspectiveCamera';
 end;
 
-class function TNodePerspectiveCamera.CameraKind: TVRMLCameraKind;
+class function TNodePerspectiveCamera.ProjectionType: TProjectionType;
 begin
-  result := ckPerspective;
+  result := ptPerspective;
 end;
 
 constructor TNodeDirectionalLight_1.Create(const ANodeName: string;

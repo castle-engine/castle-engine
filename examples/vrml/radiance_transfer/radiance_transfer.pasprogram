@@ -27,7 +27,7 @@ program radiance_transfer;
 
 uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
-  KambiGLUtils, VRMLScene, VRMLGLScene, Navigation, KeysMouse,
+  KambiGLUtils, VRMLScene, VRMLGLScene, Cameras, KeysMouse,
   KambiFilesUtils, VRMLErrors, SphericalHarmonics, Math, Images, GLImages,
   SphereSampling, CubeMap, GLCubeMap;
 
@@ -90,7 +90,7 @@ end;
 procedure Draw(Glwin: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(Glw.Navigator.Matrix);
+  glLoadMatrix(Glw.Camera.Matrix);
 
   if not IsEmptyBox3d(Scene.BoundingBox) then
   begin
@@ -125,7 +125,7 @@ end;
 
 procedure Resize(Glwin: TGLWindow);
 begin
-  Scene.GLProjection(Glw.Navigator, Scene.BoundingBox,
+  Scene.GLProjection(Glw.Camera, Scene.BoundingBox,
     Glwin.Width, Glwin.Height);
 end;
 
@@ -286,7 +286,7 @@ begin
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;
 
-    Glw.Navigator := Scene.CreateNavigator(Glw);
+    Glw.Camera := Scene.CreateCamera(Glw);
 
     Glw.OnInit := @Init;
     Glw.OnClose := @Close;

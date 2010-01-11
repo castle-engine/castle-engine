@@ -18,7 +18,7 @@ unit SceneManagerUnit;
 
 interface
 
-uses VectorMath, VRMLGLScene, VRMLScene, Navigation,
+uses VectorMath, VRMLGLScene, VRMLScene, Cameras,
   VRMLGLHeadLight, ShadowVolumes, GL, GLCubeMap;
 
 type
@@ -55,7 +55,7 @@ type
       @item(clearing the screen,)
       @item(rendering the background of the scene (from main Scene),)
       @item(rendering the headlight (from the properties of main Scene),)
-      @item(rendering the scene from camera given by Navigator,)
+      @item(rendering the scene from given Camera,)
       @item(and making multiple passes for shadow volumes and generated textures.)
     )
 
@@ -67,7 +67,7 @@ type
   TSceneManager = class
   private
     FScene: TVRMLGLScene;
-    FNavigator: TNavigator;
+    FCamera: TCamera;
 
     FShadowVolumesPossible: boolean;
     FShadowVolumes: boolean;
@@ -107,7 +107,7 @@ type
     procedure RenderFromView3D; virtual;
   public
     property Scene: TVRMLGLScene read FScene write FScene;
-    property Navigator: TNavigator read FNavigator write FNavigator;
+    property Camera: TCamera read FCamera write FCamera;
 
     property ShadowVolumesPossible: boolean read FShadowVolumesPossible write FShadowVolumesPossible;
     property ShadowVolumes: boolean read FShadowVolumes write FShadowVolumes;
@@ -167,7 +167,7 @@ begin
   { RenderState.Camera* must be already set,
     since PrepareRender may do some operations on texture gen modes
     in WORLDSPACE*. }
-  RenderState.CameraFromNavigator(Navigator);
+  RenderState.CameraFromCameraObject(Camera);
 
   Scene.PrepareRender(TG, Options);
 end;
@@ -190,7 +190,7 @@ end;
 procedure TSceneManager.RenderHeadLight;
 begin
   TVRMLGLHeadlight.RenderOrDisable(Scene.Headlight, 0,
-    RenderState.Target = rtScreen, Navigator);
+    RenderState.Target = rtScreen, Camera);
 end;
 
 function TSceneManager.ViewerToChanges: TVisibleSceneChanges;
@@ -266,7 +266,7 @@ begin
     ViewportWidth, ViewportHeight);
 
   RenderState.Target := rtScreen;
-  RenderState.CameraFromNavigator(Navigator);
+  RenderState.CameraFromCameraObject(Camera);
   RenderFromView;
 end;
 

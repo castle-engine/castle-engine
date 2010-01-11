@@ -42,7 +42,7 @@
 program shadow_fields;
 
 uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3d,
-  GLWindow, VRMLGLScene, VRMLErrors, Navigation,
+  GLWindow, VRMLGLScene, VRMLErrors, Cameras,
   ShadowFields, KambiUtils, CubeMap, VRMLNodes,
   SphericalHarmonics, GLCubeMap, GLWinMessages, VRMLShape;
 
@@ -74,20 +74,20 @@ type
 var
   Navigator: TNavigatorType = ntAll;
   NavigatorRadio: array [TNavigatorType] of TMenuItemRadio;
-  NavigatorAll: TNavigator;
-  NavigatorCaster: TExamineNavigator;
-  NavigatorLocalLight: TExamineNavigator;
-  NavigatorSFExplorer: TExamineNavigator;
-  NavigatorEnvLight: TExamineNavigator;
+  NavigatorAll: TCamera;
+  NavigatorCaster: TExamineCamera;
+  NavigatorLocalLight: TExamineCamera;
+  NavigatorSFExplorer: TExamineCamera;
+  NavigatorEnvLight: TExamineCamera;
 
 procedure NavigatorChanged;
 begin
   case Navigator of
-    ntAll       : Glw.Navigator := NavigatorAll;
-    ntCaster    : Glw.Navigator := NavigatorCaster;
-    ntLocalLight: Glw.Navigator := NavigatorLocalLight;
-    ntSFExplorer: Glw.Navigator := NavigatorSFExplorer;
-    ntEnvLight  : Glw.Navigator := NavigatorEnvLight;
+    ntAll       : Glw.Camera := NavigatorAll;
+    ntCaster    : Glw.Camera := NavigatorCaster;
+    ntLocalLight: Glw.Camera := NavigatorLocalLight;
+    ntSFExplorer: Glw.Camera := NavigatorSFExplorer;
+    ntEnvLight  : Glw.Camera := NavigatorEnvLight;
     else raise EInternalError.Create('Navigator?');
   end;
   if NavigatorRadio[Navigator] <> nil then
@@ -233,7 +233,7 @@ end;
 
 procedure Resize(Glwin: TGLWindow);
 begin
-  SceneReceiver.GLProjection(Glw.Navigator, SceneReceiver.BoundingBox,
+  SceneReceiver.GLProjection(Glw.Camera, SceneReceiver.BoundingBox,
     Glwin.Width, Glwin.Height);
 end;
 
@@ -557,12 +557,12 @@ begin
 
     { initialize navigators }
 
-    NavigatorAll := SceneReceiver.CreateNavigator(Glw);
+    NavigatorAll := SceneReceiver.CreateCamera(Glw);
 
-    NavigatorCaster := TExamineNavigator.Create(Glw);
+    NavigatorCaster := TExamineCamera.Create(Glw);
     NavigatorCaster.ModelBox := SceneCaster.BoundingBox;
 
-    NavigatorLocalLight := TExamineNavigator.Create(Glw);
+    NavigatorLocalLight := TExamineCamera.Create(Glw);
     NavigatorLocalLight.ModelBox := SceneLocalLight.BoundingBox;
 
     BoxSum := Box3dSum(SceneCaster.BoundingBox, SceneReceiver.BoundingBox);
@@ -579,7 +579,7 @@ begin
     end;
     NavigatorLocalLight.MoveAmount := V;
 
-    NavigatorSFExplorer := TExamineNavigator.Create(Glw);
+    NavigatorSFExplorer := TExamineCamera.Create(Glw);
     { use SceneCaster.BoundingBox for light's box, this determines the speed
       of moving light source with mouse. }
     NavigatorSFExplorer.ModelBox := SceneCaster.BoundingBox;
@@ -596,7 +596,7 @@ begin
     end;
     NavigatorSFExplorer.MoveAmount := V;
 
-    NavigatorEnvLight := TExamineNavigator.Create(Glw);
+    NavigatorEnvLight := TExamineCamera.Create(Glw);
     { use SceneCaster.BoundingBox for light's box, this determines the speed
       of moving light source with mouse. }
     NavigatorEnvLight.ModelBox := SceneCaster.BoundingBox;

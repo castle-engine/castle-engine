@@ -23,7 +23,7 @@ uses
   SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLScene, VRMLOpenGLRenderer, GL, GLU, GLExt, BackgroundGL, KambiGLUtils,
   VRMLShapeOctree, VRMLHeadLight, VRMLGLHeadLight, VRMLRendererOptimization,
-  ShadowVolumes, Navigation, VRMLFields, VRMLLightSetGL, VRMLShape, Frustum,
+  ShadowVolumes, Cameras, VRMLFields, VRMLLightSetGL, VRMLShape, Frustum,
   GLCubeMap;
 
 {$define read_interface}
@@ -1315,12 +1315,12 @@ type
       read GetBumpMappingLightDiffuseColor write SetBumpMappingLightDiffuseColor;
 
     { Set OpenGL projection, based on currently
-      bound Viewpoint, NavigationInfo and used navigator.
+      bound Viewpoint, NavigationInfo and used camera.
       Takes into account Viewpoint type (perspective/orthogonal),
       NavigationInfo.visibilityLimit, Viewpoint.fieldOfView.
 
-      Takes care of updating Nav.ProjectionMatrix.
-      Requires Nav.CameraRadius to be already properly set.
+      Takes care of updating ACamera.ProjectionMatrix.
+      Requires ACamera.CameraRadius to be already properly set.
 
       Also takes care of setting our properties BackgroundSkySphereRadius,
       AngleOfViewX, AngleOfViewY.
@@ -1329,7 +1329,7 @@ type
       it should be just Scene.BoundingBox, but it may be something larger,
       e.g. TVRMLGLAnimation.BoundingBoxSum if this scene is part of
       a precalculated animation. }
-    procedure GLProjection(Nav: TNavigator;
+    procedure GLProjection(ACamera: TCamera;
       const Box: TBox3d;
       const WindowWidth, WindowHeight: Cardinal;
       const ForceZFarInfinity: boolean = false);
@@ -1400,7 +1400,7 @@ type
       and new resources will have to be created at next Render or
       PrepareRender call. So don't change it e.g. every rendering frame. }
     property Optimization: TGLRendererOptimization
-      read FOptimization write SetOptimization default DefaultOptimization;  
+      read FOptimization write SetOptimization default DefaultOptimization;
   end;
 
   TObjectsListItem_1 = TVRMLGLScene;
@@ -4606,17 +4606,17 @@ begin
   Renderer.BumpMappingLightDiffuseColor := Value;
 end;
 
-procedure TVRMLGLScene.GLProjection(Nav: TNavigator;
+procedure TVRMLGLScene.GLProjection(ACamera: TCamera;
   const Box: TBox3d;
   const WindowWidth, WindowHeight: Cardinal;
   const ForceZFarInfinity: boolean);
 
-  procedure UpdateNavigatorProjectionMatrix;
+  procedure UpdateCameraProjectionMatrix;
   var
     ProjectionMatrix: TMatrix4f;
   begin
     glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
-    Nav.ProjectionMatrix := ProjectionMatrix;
+    ACamera.ProjectionMatrix := ProjectionMatrix;
   end;
 
 var
@@ -4676,7 +4676,7 @@ var
   end;
 
 var
-  CameraKind: TVRMLCameraKind;
+  ProjectionType: TProjectionType;
 begin
   glViewport(0, 0, WindowWidth, WindowHeight);
 
@@ -4701,7 +4701,7 @@ begin
       FdVisibilityLimit.Value else
     VisibilityLimit := 0;
 
-  FWalkProjectionNear := Nav.CameraRadius * 0.6;
+  FWalkProjectionNear := ACamera.CameraRadius * 0.6;
 
   if VisibilityLimit <> 0.0 then
     FWalkProjectionFar := VisibilityLimit else
@@ -4726,14 +4726,14 @@ begin
     With such small near in Examine mode we would often see z-buffer errors,
     e.g. see kings_head.wrl. }
 
-  if (Nav is TExamineNavigator) and
+  if (ACamera is TExamineCamera) and
      (not IsEmptyBox3d(Box)) then
     ZNear := Box3dAvgSize(Box) * 0.1 else
     ZNear := WalkProjectionNear;
 
   if ViewpointNode <> nil then
-    CameraKind := ViewpointNode.CameraKind else
-    CameraKind := ckPerspective;
+    ProjectionType := ViewpointNode.ProjectionType else
+    ProjectionType := ptPerspective;
 
   { Calculate BackgroundSkySphereRadius here,
     using WalkProjectionFar that is *not* ZFarInfinity }
@@ -4741,13 +4741,13 @@ begin
     TBackgroundGL.NearFarToSkySphereRadius(
       WalkProjectionNear, WalkProjectionFar);
 
-  case CameraKind of
-    ckPerspective: DoPerspective;
-    ckOrthographic: DoOrthographic;
-    else EInternalError.Create('TVRMLGLScene.GLProjectionCore-CameraKind?');
+  case ProjectionType of
+    ptPerspective: DoPerspective;
+    ptOrthographic: DoOrthographic;
+    else EInternalError.Create('TVRMLGLScene.GLProjectionCore-ProjectionType?');
   end;
 
-  UpdateNavigatorProjectionMatrix;
+  UpdateCameraProjectionMatrix;
 end;
 
 function TVRMLGLScene.CreateHeadLightInstance

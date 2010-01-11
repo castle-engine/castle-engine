@@ -13,7 +13,7 @@
 
 {$ifdef read_interface}
   { }
-  TVRMLCameraKind = (ckOrthographic, ckPerspective);
+  TProjectionType = (ptOrthographic, ptPerspective);
 
   { A common class for both VRML 1.0 camera nodes and VRML >= 2.0 viewpoints
     nodes. }
@@ -59,7 +59,7 @@
       override this and expose their position field correctly. }
     function Position: TSFVec3f; virtual; abstract;
 
-    class function CameraKind: TVRMLCameraKind; virtual; abstract;
+    class function ProjectionType: TProjectionType; virtual; abstract;
 
     { Calculate camera properties in the form of 3 vectors
       (position + direction + up) based on current field values of
@@ -289,7 +289,7 @@
     public property Fdposition: TSFVec3f read FFdposition;
 
     function Position: TSFVec3f; override;
-    class function CameraKind: TVRMLCameraKind; override;
+    class function ProjectionType: TProjectionType; override;
   end;
 
   TNodeViewpoint = class(TNodeX3DViewpointNode)
@@ -307,7 +307,7 @@
     public property Fdposition: TSFVec3f read FFdposition;
 
     function Position: TSFVec3f; override;
-    class function CameraKind: TVRMLCameraKind; override;
+    class function ProjectionType: TProjectionType; override;
 
     { This calculates proper angle of view for typical rectangular
       display, based on given fieldOfView field value.
@@ -809,9 +809,9 @@ begin
   Result := FdPosition;
 end;
 
-class function TNodeOrthoViewpoint.CameraKind: TVRMLCameraKind;
+class function TNodeOrthoViewpoint.ProjectionType: TProjectionType;
 begin
-  Result := ckOrthographic;
+  Result := ptOrthographic;
 end;
 
 constructor TNodeViewpoint.Create(const ANodeName: string;
@@ -856,9 +856,9 @@ begin
   Result := FdPosition;
 end;
 
-class function TNodeViewpoint.CameraKind: TVRMLCameraKind;
+class function TNodeViewpoint.ProjectionType: TProjectionType;
 begin
-  Result := ckPerspective;
+  Result := ptPerspective;
 end;
 
 function TNodeViewpoint.AngleOfView(

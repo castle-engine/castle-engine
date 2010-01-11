@@ -66,7 +66,7 @@ program demo_animation;
 
 uses Math, VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
-  KambiGLUtils, VRMLScene, VRMLGLScene, Navigation, VRMLGLAnimation,
+  KambiGLUtils, VRMLScene, VRMLGLScene, Cameras, VRMLGLAnimation,
   KambiFilesUtils, ParseParametersUnit, ProgressGL, ProgressUnit, VRMLErrors;
 
 var
@@ -78,7 +78,7 @@ var
 procedure Draw(glwin: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(glw.Navigator.Matrix);
+  glLoadMatrix(glw.Camera.Matrix);
 
   Animation.SceneFromTime(AnimationTime).Render(nil, tgAll);
 end;
@@ -220,8 +220,8 @@ begin
     Animation.Scenes[0].GetPerspectiveViewpoint(CamPos, CamDir, CamUp,
       GravityUp);
 
-    { init Glw.Navigator }
-    Glw.Navigator := TWalkNavigator.Create(Glw);
+    { init Glw.Camera }
+    Glw.Camera := TWalkCamera.Create(Glw);
     Glw.WalkNav.Init(CamPos, VectorAdjustToLength(CamDir,
       Box3dAvgSize(Animation.Scenes[0].BoundingBox) * 0.01*0.4), CamUp,
       GravityUp, 0.0, 0.0);

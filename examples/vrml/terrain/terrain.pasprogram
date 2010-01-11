@@ -72,7 +72,7 @@ program terrain;
 
 uses SysUtils, Classes, Boxes3d,
   KambiUtils, GLWindow, GL, KambiGLUtils,
-  Navigation, VectorMath, KambiFilesUtils, Elevations, GLWinMessages,
+  Cameras, VectorMath, KambiFilesUtils, Elevations, GLWinMessages,
   KambiStringUtils, GLMenu;
 
 var
@@ -189,7 +189,7 @@ begin
     GLControlsVisible := Elevation is TElevationNoise;
 
     if GLControlsVisible then
-      Glw.Controls.MakeSingle(TGLMenu, GLControls, true { before navigator }) else
+      Glw.Controls.MakeSingle(TGLMenu, GLControls, true { before camera }) else
       Glw.Controls.Remove(GLControls);
   end;
 end;
@@ -197,7 +197,7 @@ end;
 procedure Draw(Glwin: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(Glw.Navigator.Matrix);
+  glLoadMatrix(Glw.Camera.Matrix);
 
   if Wireframe then
   begin
@@ -260,7 +260,7 @@ end;
 procedure Init(Glwin: TGLWindow);
 begin
   GLControls := TTerrainControls.Create(nil);
-  Glw.Controls.Insert(0, GLControls); { add at the beginning, before navigator }
+  Glw.Controls.Insert(0, GLControls); { add at the beginning, before camera }
 
   if Elevation = nil then
   begin
@@ -361,7 +361,7 @@ begin
   Parameters.CheckHighAtMost(1);
 
   try
-    Glw.Navigator := TExamineNavigator.Create(Glw);
+    Glw.Camera := TExamineCamera.Create(Glw);
     Glw.ExamineNav.Init(Box3d(
       Vector3Single(        0,         0, -ScaleHeight),
       Vector3Single(ScaleSize, ScaleSize,  ScaleHeight)));

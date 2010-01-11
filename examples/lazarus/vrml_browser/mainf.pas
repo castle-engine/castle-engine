@@ -61,7 +61,7 @@ type
     Config: TKamXMLConfig;
     RecentFiles: TKamRecentFiles;
     MenuAggressiveUpdateToggle: TMenuItem;
-    procedure BrowserNavigatorChanged(Navigator: TNavigator);
+    procedure BrowserCameraChanged(Camera: TCamera);
     procedure ButtonChangeCameraClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
@@ -155,7 +155,7 @@ begin
     also set their MouseLook and inputs, otherwise MouseLook and menu checked
     values may get not synchronized. }
 
-  if Browser.Navigator is TWalkNavigator then
+  if Browser.Camera is TWalkCamera then
   begin
     Browser.WalkNav.MouseLook := (Sender as TMenuItem).Checked;
     Browser.UpdateMouseLook;
@@ -267,11 +267,11 @@ begin
     length. }
   VectorAdjustToLengthTo1st(Dir, VectorLen(Browser.WalkNav.CameraDir));
 
-  { First convert all to float. Then set Navigator properties.
+  { First convert all to float. Then set Camera properties.
     This way in case of exception in StrToFloat, previous
-    Navigator properties remain OK. }
+    Camera properties remain OK. }
 
-  if Browser.Navigator is TWalkNavigator then
+  if Browser.Camera is TWalkCamera then
   begin
     Browser.WalkNav.CameraPos := Pos;
     Browser.WalkNav.CameraDir := Dir;
@@ -281,11 +281,11 @@ begin
       mtError, [mbOk], 0);
 end;
 
-procedure TMain.BrowserNavigatorChanged(Navigator: TNavigator);
+procedure TMain.BrowserCameraChanged(Camera: TCamera);
 var
   Pos, Dir, Up: TVector3Single;
 begin
-  Navigator.GetCameraVectors(Pos, Dir, Up);
+  Camera.GetCameraVectors(Pos, Dir, Up);
 
   EditPositionX.Text := FloatToNiceStr(Pos[0]);
   EditPositionY.Text := FloatToNiceStr(Pos[1]);

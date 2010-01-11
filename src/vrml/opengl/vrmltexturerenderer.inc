@@ -1667,16 +1667,16 @@ var
     end;
 
   var
-    CameraKind: TVRMLCameraKind;
+    ProjectionType: TProjectionType;
   begin
     if Viewpoint <> nil then
-      CameraKind := Viewpoint.CameraKind else
-      CameraKind := ckPerspective;
+      ProjectionType := Viewpoint.ProjectionType else
+      ProjectionType := ptPerspective;
 
-    case CameraKind of
-      ckPerspective: DoPerspective;
-      ckOrthographic: DoOrthographic;
-      else EInternalError.Create('TGLRenderedTextureNode.Update-CameraKind?');
+    case ProjectionType of
+      ptPerspective: DoPerspective;
+      ptOrthographic: DoOrthographic;
+      else EInternalError.Create('TGLRenderedTextureNode.Update-ProjectionType?');
     end;
   end;
 

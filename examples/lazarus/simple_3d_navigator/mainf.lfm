@@ -19,9 +19,9 @@ object MainForm: TMainForm
     OnResize = GLControlResize
     OnGLContextInit = GLControlGLContextInit
     OnDraw = GLControlDraw
-    Navigator = Navigator
+    Camera = Camera
   end
-  object Navigator: TExamineNavigator
+  object Camera: TExamineCamera
     left = 54
     top = 93
   end

@@ -180,7 +180,7 @@ D   vrmlkambiscript.pas
 D   areas.pas
 D   keysmouse.pas
 D   uicontrols.pas
-D   navigation.pas
+D   cameras.pas
 
  ui/opengl/
 D   glmenu.pas

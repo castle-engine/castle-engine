@@ -260,7 +260,7 @@ uses SysUtils, VectorMath, KambiUtils;
     (jak np. --cam-pos dla view3dscene) zostawia w spokoju. W ten sposob
     parsowanie parametrow mozna rozbic wykonujac je w kilku zupelnie roznych
     miejscach, np. view3dscene parsuje parametry w czterech miejscach :
-    najpierw w TGLWindow.ParseParameters, potem wywoluje MultiNavigatorParseParameters
+    najpierw w TGLWindow.ParseParameters, potem wywoluje CamerasParseParameters
     i LightsKindParseParameters (wszystkie te trzy funkcje uzywaja ParseParameters
     z ParseOnlyKnownLongOptions = true), potem samo wywoluje ParseParameters
     z ParseOnlyKnownLongOptions = false (a wiec dopiero na samym koncu

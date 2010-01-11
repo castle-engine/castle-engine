@@ -22,7 +22,7 @@ program gl_primitive_performance;
 
 uses VectorMath, Boxes3d, VRMLNodes, GL, GLU, GLExt, GLWindow,
   KambiUtils, SysUtils, Classes, Object3dAsVRML,
-  KambiGLUtils, KambiFilesUtils, VRMLScene, Navigation,
+  KambiGLUtils, KambiFilesUtils, VRMLScene, Cameras,
   ProgressUnit, VRMLErrors, VRMLShape;
 
 type
@@ -59,7 +59,7 @@ var
   I: Integer;
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(glw.Navigator.Matrix);
+  glLoadMatrix(glw.Camera.Matrix);
   glMultMatrix(Shape.State.Transform);
 
   { render scene }
@@ -355,8 +355,8 @@ begin
     Writeln('CoordIndex count: ', CoordIndex.Count);
     Writeln('Triangles count: ', Shape.TrianglesCount(false), ' (made: ', TrianglesCoordIndex.Count div 3, ')');
 
-    { init Glw.Navigator }
-    Glw.Navigator := TExamineNavigator.Create(Glw);
+    { init Glw.Camera }
+    Glw.Camera := TExamineCamera.Create(Glw);
     Glw.ExamineNav.Init(Shape.BoundingBox);
 
     { to get quickier FPS update }

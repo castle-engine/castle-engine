@@ -29,7 +29,7 @@
 program interpolated_curves;
 
 uses GL, GLU, GLWindow, KambiGLUtils, SysUtils, VectorMath,
-  Curve, Navigation, Boxes3d, KambiScript, GLWinMessages,
+  Curve, Cameras, Boxes3d, KambiScript, GLWinMessages,
   KambiUtils, KambiScriptParser, KambiScriptCoreFunctions,
   BFNT_BitstreamVeraSansMono_m14_Unit,
   OpenGLBmpFonts, Classes, KambiStringUtils;
@@ -151,7 +151,7 @@ end;
 procedure Draw(Glwin: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT);
-  glLoadMatrix(Glw.Navigator.Matrix);
+  glLoadMatrix(Glw.Camera.Matrix);
   if PreciseCurveVisible then
   begin
     glColorv(White3Single);
@@ -426,8 +426,8 @@ begin
     Glw.OnMenuCommand := @MenuCommand;
     Glw.MainMenu := CreateMainMenu;
 
-    { init Glw.Navigator }
-    Glw.Navigator := TExamineNavigator.Create(Glw);
+    { init Glw.Camera }
+    Glw.Camera := TExamineCamera.Create(Glw);
     { Glw.ExamineNav.Init will be called in SetPreciseCurve }
 
     { init PreciseCurve }

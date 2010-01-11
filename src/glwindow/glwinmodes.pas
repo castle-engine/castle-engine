@@ -59,7 +59,7 @@ unit GLWinModes;
 interface
 
 uses SysUtils, GL, GLU, GLExt, GLWindow, KambiGLUtils, Images, GLWinMessages,
-  UIControls, Navigation;
+  UIControls, Cameras;
 
 { GLWindowState --------------------------------------------------------- }
 
@@ -86,7 +86,7 @@ type
     oldFpsShowOnCaption: boolean;
     { TGLUIWindow attributes } { }
     OldControls: TUIControlList;
-    OldNavigator: TNavigator;
+    OldCamera: TCamera;
     OldUseControls: boolean;
 
     { When adding new attributes to TGLWindow that should be saved/restored,
@@ -135,7 +135,7 @@ type
         Note that NewMainMenuEnabled will be set only if Glwin.MainMenu <> nil.
         new Controls value is either empty (when NewControl = nil)
           or contains only one given control in NewControl.
-          If NewControl is a TNavigator, than it's also a new Navigator value.
+          If NewControl is a TCamera, than it's also a new Camera value.
         new UseControls is always @true. }
     class procedure SetStandardState(Glwin: TGLWindow;
       NewDraw, NewCloseQuery, NewResize: TGLWindowFunc;
@@ -383,7 +383,7 @@ begin
   if glwin is TGLUIWindow then
   begin
     OldControls.Assign(TGLUIWindow(Glwin).Controls);
-    OldNavigator := TGLUIWindow(Glwin).Navigator;
+    OldCamera := TGLUIWindow(Glwin).Camera;
     OldUseControls := TGLUIWindow(Glwin).UseControls;
   end;
 end;
@@ -411,7 +411,7 @@ begin
   if glwin is TGLUIWindow then
   begin
     TGLUIWindow(Glwin).Controls.Assign(OldControls);
-    TGLUIWindow(Glwin).Navigator := OldNavigator;
+    TGLUIWindow(Glwin).Camera := OldCamera;
     TGLUIWindow(Glwin).UseControls := OldUseControls;
   end;
 end;
@@ -448,9 +448,9 @@ begin
     TGLUIWindow(Glwin).Controls.Clear;
     if NewControl <> nil then
     begin
-      if NewControl is TNavigator then
-        { setting Navigator also adds it to Controls already }
-        TGLUIWindow(Glwin).Navigator := TNavigator(NewControl) else
+      if NewControl is TCamera then
+        { setting Camera also adds it to Controls already }
+        TGLUIWindow(Glwin).Camera := TCamera(NewControl) else
         TGLUIWindow(Glwin).Controls.Add(NewControl);
     end;
     TGLUIWindow(Glwin).UseControls := true;

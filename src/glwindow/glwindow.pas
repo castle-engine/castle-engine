@@ -138,7 +138,7 @@
   to define something to turn off special EventXxx functionality
   (like SetDemoOptions in TGLWindowDemo and UseControls in TGLUIWindow)
   and you have to turn them off/on when using GLWinModes
-  (mentioned TGLWindowDemo and TGLWindowNavigator are already handled in
+  (mentioned TGLWindowDemo and TGLUIWindow are already handled in
   GLWinModes). TODO: I shall do some virtual methods in TGLWindow
   to make this easy.
 
@@ -618,7 +618,7 @@ uses SysUtils, Classes, Math, VectorMath, GL, GLU, GLExt,
   {$ifdef GLWINDOW_GTK_WITH_XLIB} X, Xlib, {$endif}
   {$ifdef GLWINDOW_GTK_1} Glib, Gdk, Gtk, GtkGLArea, {$endif}
   {$ifdef GLWINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, KambiDynLib, {$endif}
-  KambiUtils, KambiClassUtils, KambiGLUtils, Images, KeysMouse, Navigation,
+  KambiUtils, KambiClassUtils, KambiGLUtils, Images, KeysMouse, Cameras,
   KambiStringUtils, KambiFilesUtils, KambiTimeUtils,
   FileFilters, UIControls;
 
@@ -687,7 +687,7 @@ const
   K_Period = KeysMouse.K_Period;
 
 
-{ Also export types and consts related to TMouseButton from Navigation unit. }
+{ Also export types and consts related to mouse from KeysMouse unit. }
 
 type
   { }
@@ -2437,20 +2437,20 @@ type
     This means that if you assign OnVisibleChange callback to your own
     method --- window will not touch it anymore.
 
-    TNavigator descendants can be treated like any other TUIControl,
+    TCamera descendants can be treated like any other TUIControl,
     that is you can add them directly to the @link(Controls) list.
-    But, if you use only one navigator (most common situation),
-    you can also assign it to the @link(Navigator) property
+    But, if you use only one camera (most common situation),
+    you can also assign it to the @link(Camera) property
     (this will cause appropriate add / replace / remove on
-    the @link(Controls) list). The special treatment of a single Navigator
+    the @link(Controls) list). The special treatment of a single Camera
     is required mostly for UpdateMouseLook proper work. }
   TGLUIWindow = class(TGLWindowDemo, IUIContainer)
   private
-    FNavigator: TNavigator;
+    FCamera: TCamera;
     FCursorNonMouseLook: TGLWindowCursor;
     FControls: TUIControlList;
     FUseControls: boolean;
-    procedure SetNavigator(const Value: TNavigator);
+    procedure SetCamera(const Value: TCamera);
     procedure SetCursorNonMouseLook(const Value: TGLWindowCursor);
     function ReallyUseMouseLook: boolean;
     procedure ControlsVisibleChange(Sender: TObject);
@@ -2463,7 +2463,7 @@ type
     { Controls listening for user input (keyboard / mouse) to this window.
 
       Usually you explicitly add / delete controls to this list.
-      Also, freeing the control that is on this list (Navigator or not)
+      Also, freeing the control that is on this list (Camera or not)
       automatically removes it from this list (using the TComponent.Notification
       mechanism). }
     property Controls: TUIControlList read FControls;
@@ -2478,40 +2478,40 @@ type
       or when UseControls = @false. }
     function Focus: TUIControl;
 
-    { Navigator instance used. Initially it's nil.
+    { Camera instance used. Initially it's nil.
       Set this to give user a method for navigating in 3D scene.
 
-      When assigning navigator instance we'll take care to make it
-      the one and only one TNavigator instance on Controls list.
+      When assigning camera instance we'll take care to make it
+      the one and only one TCamera instance on Controls list.
       Assigning here @nil removes it from Controls list.
 
-      Example use of this class TGLUIWindow just to get a Navigator:
+      Example use of this class TGLUIWindow just to get a Camera:
 
       @orderedList(
         @item(At the beginning of your program, do
 
 @longCode(#
-  // TXxxNavigator may be e.g. TExamineNavigator or TWalkNavigator
-  Glw.Navigator := TXxxNavigator.Create(Glw);
-  Glw.Navigator.Init(...);
+  // TXxxCamera may be e.g. TExamineCamera or TWalkCamera
+  Glw.Camera := TXxxCamera.Create(Glw);
+  Glw.Camera.Init(...);
 #))
 
       @item(In OnDraw callback use glMultMatrix or glLoadMatrix
-        with Glw.Navigator.Matrix)
+        with Glw.Camera.Matrix)
     ) }
-    property Navigator: TNavigator read FNavigator write SetNavigator;
+    property Camera: TCamera read FCamera write SetCamera;
 
-    { Shortcuts for reading @link(Navigator) property and casting
-      it to TExamineNavigator or TWalkNavigator.
+    { Shortcuts for reading @link(Camera) property and casting
+      it to TExamineCamera or TWalkCamera.
 
       When compiled with -dDEBUG they use safe "as" operator,
       otherwise (like when compiled with  -dRELEASE) they use direct
       type-casts for speed. In other words: make sure you only use
-      them if your navigator is of the appropriate class.
+      them if your camera is of the appropriate class.
 
       @groupBegin }
-    function ExamineNav: TExamineNavigator;
-    function WalkNav: TWalkNavigator;
+    function ExamineNav: TExamineCamera;
+    function WalkNav: TWalkCamera;
     { @groupEnd }
 
     procedure EventInit; override;
@@ -2526,16 +2526,16 @@ type
     procedure EventResize; override;
     procedure EventClose; override;
 
-    { If you use Navigator of class TWalkNavigator with this window
+    { If you use Camera of class TWalkCamera with this window
       and you want to use it's MouseLook feature then
-      you should call this after you changed Navigator.MouseLook value.
+      you should call this after you changed Camera.MouseLook value.
 
       This sets @link(Cursor) (to gcNone or CursorNonMouseLook, based on
-      whether mouse look is used now, that is Navigator.MouseLook is @true)
+      whether mouse look is used now, that is Camera.MouseLook is @true)
       and, if mouse look is used, repositions mouse cursor at the middle
       of the window.
 
-      You should also call this after you changed Navigator's instance,
+      You should also call this after you changed Camera's instance,
       or UseControls, as these things also effectively change the
       actual state of "using mouse look". OTOH sometimes you don't
       have to call this --- e.g. if you push/pop mode states using
@@ -4269,13 +4269,13 @@ begin
   inherited;
 end;
 
-procedure TGLUIWindow.SetNavigator(const Value: TNavigator);
+procedure TGLUIWindow.SetCamera(const Value: TCamera);
 begin
-  if FNavigator <> Value then
+  if FCamera <> Value then
   begin
-    FNavigator := Value;
-    { replace / add at the end of Controls current Navigator }
-    Controls.MakeSingle(TNavigator, Value);
+    FCamera := Value;
+    { replace / add at the end of Controls current Camera }
+    Controls.MakeSingle(TCamera, Value);
   end;
 end;
 
@@ -4289,8 +4289,8 @@ begin
   if (Operation = opRemove) and (AComponent is TUIControl) then
   begin
     Controls.DeleteAll(AComponent);
-    if AComponent = FNavigator then
-      FNavigator := nil;
+    if AComponent = FCamera then
+      FCamera := nil;
   end;
 end;
 
@@ -4446,25 +4446,25 @@ begin
   end;
 end;
 
-function TGLUIWindow.ExamineNav: TExamineNavigator;
+function TGLUIWindow.ExamineNav: TExamineCamera;
 begin
   Result :=
-    {$ifdef DEBUG} Navigator as TExamineNavigator
-    {$else} TExamineNavigator(Navigator)
+    {$ifdef DEBUG} Camera as TExamineCamera
+    {$else} TExamineCamera(Camera)
     {$endif};
 end;
 
-function TGLUIWindow.WalkNav: TWalkNavigator;
+function TGLUIWindow.WalkNav: TWalkCamera;
 begin
   Result :=
-    {$ifdef DEBUG} Navigator as TWalkNavigator
-    {$else} TWalkNavigator(Navigator)
+    {$ifdef DEBUG} Camera as TWalkCamera
+    {$else} TWalkCamera(Camera)
     {$endif};
 end;
 
 function TGLUIWindow.ReallyUseMouseLook: boolean;
 begin
-  Result := (Navigator <> nil) and Navigator.MouseLook;
+  Result := (Camera <> nil) and Camera.MouseLook;
 end;
 
 procedure TGLUIWindow.SetCursorNonMouseLook(

@@ -11,7 +11,7 @@ uses
 type
   TMainForm = class(TForm)
     GLControl: TKamOpenGLControl;
-    Navigator: TExamineNavigator;
+    Camera: TExamineCamera;
     procedure GLControlDraw(Sender: TObject);
     procedure GLControlResize(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -31,7 +31,7 @@ uses VectorMath, Boxes3D, GL, GLU, KambiGLUtils;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
-  Navigator.Init(Box3d(
+  Camera.Init(Box3d(
     Vector3Single(-1, -1, -1),
     Vector3Single( 1,  1,  1)));
 end;
@@ -52,7 +52,7 @@ end;
 procedure TMainForm.GLControlDraw(Sender: TObject);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(Navigator.Matrix);
+  glLoadMatrix(Camera.Matrix);
 
   DrawGLBox(-1, -1, -1, 1, 1, 1, 0, 0, 0, true, false);
 end;

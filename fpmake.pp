@@ -252,7 +252,7 @@ begin
     P.Targets.AddUnit('areas.pas');
     P.Targets.AddUnit('keysmouse.pas');
     P.Targets.AddUnit('uicontrols.pas');
-    P.Targets.AddUnit('navigation.pas');
+    P.Targets.AddUnit('cameras.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'ui' + PathDelim + 'opengl');
     P.Targets.AddUnit('glmenu.pas');

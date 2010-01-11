@@ -16,7 +16,7 @@ unit VRMLGLHeadLight;
 
 interface
 
-uses VectorMath, VRMLNodes, VRMLHeadlight, Navigation;
+uses VectorMath, VRMLNodes, VRMLHeadlight, Cameras;
 
 type
   { VRML headlight rendered by OpenGL. }
@@ -46,9 +46,9 @@ type
 
       If CallEnabled then it will also call glEnable(GL_LIGHT_GLLightNumber).
 
-      Overloaded version with Navigator simply uses Navigator.GetCameraVectors
+      Overloaded version with camera simply uses Camera.GetCameraVectors
       to get HeadlightPosition, HeadlightDirection.
-      When HeadlightFromCurrentView = @true, Navigator doesn't matter
+      When HeadlightFromCurrentView = @true, Camera doesn't matter
       (may be @nil).
 
       @groupBegin }
@@ -58,7 +58,7 @@ type
 
     procedure Render(GLLightNumber: Cardinal; CallEnabled: boolean;
       const HeadlightFromCurrentView: boolean;
-      Navigator: TNavigator);
+      Camera: TCamera);
     { @groupEnd }
 
     { This is like Light.Render(GLLightNumber, true, ...), but will call
@@ -77,7 +77,7 @@ type
     class procedure RenderOrDisable(Light: TVRMLGLHeadlight;
       GLLightNumber: Cardinal;
       const HeadlightFromCurrentView: boolean;
-      Navigator: TNavigator);
+      Camera: TCamera);
     { @groupEnd }
   end;
 
@@ -151,11 +151,11 @@ end;
 
 procedure TVRMLGLHeadLight.Render(GLLightNumber: Cardinal; CallEnabled: boolean;
   const HeadlightFromCurrentView: boolean;
-  Navigator: TNavigator);
+  Camera: TCamera);
 var
   Pos, Dir, Up: TVector3Single;
 begin
-  Navigator.GetCameraVectors(Pos, Dir, Up);
+  Camera.GetCameraVectors(Pos, Dir, Up);
   Render(GLLightNumber, CallEnabled, HeadlightFromCurrentView, Pos, Dir);
 end;
 
@@ -173,11 +173,11 @@ end;
 class procedure TVRMLGLHeadLight.RenderOrDisable(Light: TVRMLGLHeadlight;
   GLLightNumber: Cardinal;
   const HeadlightFromCurrentView: boolean;
-  Navigator: TNavigator);
+  Camera: TCamera);
 var
   Pos, Dir, Up: TVector3Single;
 begin
-  Navigator.GetCameraVectors(Pos, Dir, Up);
+  Camera.GetCameraVectors(Pos, Dir, Up);
   RenderOrDisable(Light, GLLightNumber, HeadlightFromCurrentView, Pos, Dir);
 end;
 

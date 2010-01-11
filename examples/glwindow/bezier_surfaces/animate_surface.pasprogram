@@ -17,7 +17,7 @@
   Test on sample_data/*.animation files. }
 program animate_surface;
 
-uses Navigation, Surfaces, GLWindow, GL, GLU, VectorMath,
+uses Cameras, Surfaces, GLWindow, GL, GLU, VectorMath,
   KambiGLUtils, Curve, BezierCurve, Boxes3d, SysUtils, KambiUtils, KeysMouse,
   KambiStringUtils, Math, GLWinMessages, KambiFilesUtils;
 
@@ -31,7 +31,7 @@ var
 procedure CameraHome;
 begin
   Glw.WalkNav.Init(Box3d(Vector3Single(0, 0, -1),
-                           Vector3Single(1, 1,  1)), 0.0);
+                         Vector3Single(1, 1,  1)), 0.0);
 end;
 
 procedure CameraScene;
@@ -92,7 +92,7 @@ var
   C1, C2, MyCurve: TRationalBezierCurve;
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(Glw.Navigator.Matrix);
+  glLoadMatrix(Glw.Camera.Matrix);
 
   glColorv(White3Single);
 
@@ -179,7 +179,7 @@ end;
 begin
   Glw := TGLUIWindow.Create(Application);
 
-  Glw.Navigator := TWalkNavigator.Create(Glw);
+  Glw.Camera := TWalkCamera.Create(Glw);
   Glw.WalkNav.PreferGravityUpForRotations := false;
   Glw.WalkNav.PreferGravityUpForMoving := false;
 

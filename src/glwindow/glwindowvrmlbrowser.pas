@@ -20,19 +20,19 @@ unit GLWindowVRMLBrowser;
 interface
 
 uses Classes, VectorMath, GLWindow, VRMLNodes, VRMLGLScene, VRMLScene,
-  Navigation, VRMLGLHeadLight, ShadowVolumes, SceneManagerUnit;
+  Cameras, VRMLGLHeadLight, ShadowVolumes, SceneManagerUnit;
 
 type
   { A simple VRML browser in a window. This manages TVRMLGLScene and
-    navigator (automatically adjusted to NavigationInfo.type).
+    camera (automatically adjusted to NavigationInfo.type).
     Octress are also automatically used (you only have to set Scene.Spatial
     to anything <> [], like typical [ssRendering, ssDynamicCollisions]).
     You simply call @link(Load) method and all is done.
 
     This class tries to be a thin (not really "opaque")
-    wrapper around Scene / Navigator objects. Which means that
+    wrapper around Scene / Camera objects. Which means that
     you can access many functionality by directly accessing
-    Scene or Navigator objects methods/properties.
+    Scene or Camera objects methods/properties.
     In particular you're permitted to access and call:
 
     @unorderedList(
@@ -65,14 +65,14 @@ type
     Some important things that you @italic(cannot) mess with:
 
     @unorderedList(
-      @item(Don't create/free Scene, Navigator and such objects yourself.
+      @item(Don't create/free Scene, Camera and such objects yourself.
         This class manages them, they are always non-nil.)
     )
 
     This is very simple to use, but note that for more advanced uses
     you're not really expected to extend this class. Instead, you can
     implement something more suitable for you using your own
-    TVRMLGLScene and navigator management.
+    TVRMLGLScene and camera management.
     In other words, remember that this class just provides
     a simple "glue" between the key components of our engine.
     For specialized cases, more complex scenarios may be needed.
@@ -84,13 +84,13 @@ type
   private
     FScene: TVRMLGLScene;
 
-    function MoveAllowed(ANavigator: TWalkNavigator;
+    function MoveAllowed(ACamera: TWalkCamera;
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean;
-    procedure GetCameraHeight(ANavigator: TWalkNavigator;
+    procedure GetCameraHeight(ACamera: TWalkCamera;
       out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
 
-    procedure NavigatorVisibleChange(ANavigator: TObject);
+    procedure CameraVisibleChange(ACamera: TObject);
     procedure BoundViewpointChanged(Scene: TVRMLScene);
     procedure BoundViewpointVectorsChanged(Scene: TVRMLScene);
     procedure GeometryChanged(Scene: TVRMLScene;
@@ -115,7 +115,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    { Creates new @link(Scene), with new navigator and such. }
+    { Creates new @link(Scene), with new camera and such. }
     procedure Load(const SceneFileName: string);
     procedure Load(ARootNode: TVRMLNode; const OwnsRootNode: boolean);
 
@@ -188,7 +188,7 @@ destructor TGLWindowVRMLBrowser.Destroy;
 begin
   FreeAndNil(SceneManager);
   FreeAndNil(FScene);
-  Navigator.Free;
+  Camera.Free;
   inherited;
 end;
 
@@ -200,7 +200,7 @@ end;
 procedure TGLWindowVRMLBrowser.Load(ARootNode: TVRMLNode; const OwnsRootNode: boolean);
 begin
   FreeAndNil(FScene);
-  Navigator.Free;
+  Camera.Free;
 
   FScene := TVRMLGLScene.Create(nil);
   FScene.Load(ARootNode, OwnsRootNode);
@@ -209,12 +209,12 @@ begin
   Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
   Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
 
-  { init Navigator }
-  Navigator := Scene.CreateNavigator(nil);
-  Navigator.OnVisibleChange := @NavigatorVisibleChange;
-  Scene.Navigator := Navigator;
+  { init Camera }
+  Camera := Scene.CreateCamera(nil);
+  Camera.OnVisibleChange := @CameraVisibleChange;
+  Scene.Camera := Camera;
 
-  if Navigator is TWalkNavigator then
+  if Camera is TWalkCamera then
   begin
     WalkNav.OnMoveAllowed := @MoveAllowed;
     WalkNav.OnGetCameraHeight := @GetCameraHeight;
@@ -232,7 +232,7 @@ begin
 
   { Call initial ViewerChanged (this allows ProximitySensors to work
     as soon as ProcessEvent becomes true). }
-  Scene.ViewerChanged(Navigator, SceneManager.ViewerToChanges);
+  Scene.ViewerChanged(Camera, SceneManager.ViewerToChanges);
 
   { allow the scene to use it's own lights }
   Scene.Attributes.UseLights := true;
@@ -252,7 +252,7 @@ end;
 procedure TGLWindowVRMLBrowser.InitSceneManager;
 begin
   SceneManager.Scene := Scene;
-  SceneManager.Navigator := Navigator;
+  SceneManager.Camera := Camera;
   SceneManager.ShadowVolumesPossible := ShadowVolumesPossible;
   SceneManager.ShadowVolumes := ShadowVolumes;
   SceneManager.ShadowVolumesDraw := ShadowVolumesDraw;
@@ -309,7 +309,7 @@ begin
 
     This also allows to keep ShadowVolumesPossible value in SceneManager.
   }
-  Scene.GLProjection(Navigator, Scene.BoundingBox,
+  Scene.GLProjection(Camera, Scene.BoundingBox,
     Width, Height, ShadowVolumesPossible);
 end;
 
@@ -332,14 +332,14 @@ begin
     CursorNonMouseLook := gcDefault;
 end;
 
-function TGLWindowVRMLBrowser.MoveAllowed(ANavigator: TWalkNavigator;
+function TGLWindowVRMLBrowser.MoveAllowed(ACamera: TWalkCamera;
   const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const BecauseOfGravity: boolean): boolean;
 begin
   if Scene.OctreeCollisions <> nil then
   begin
     Result := Scene.OctreeCollisions.MoveAllowed(
-      ANavigator.CameraPos, ProposedNewPos, NewPos, ANavigator.CameraRadius);
+      ACamera.CameraPos, ProposedNewPos, NewPos, ACamera.CameraRadius);
   end else
   begin
     Result := true;
@@ -349,10 +349,10 @@ begin
   { Don't let user to fall outside of the box because of gravity. }
   if Result and BecauseOfGravity then
     Result := SimpleKeepAboveMinPlane(NewPos, Scene.BoundingBox,
-      ANavigator.GravityUp);
+      ACamera.GravityUp);
 end;
 
-procedure TGLWindowVRMLBrowser.GetCameraHeight(ANavigator: TWalkNavigator;
+procedure TGLWindowVRMLBrowser.GetCameraHeight(ACamera: TWalkCamera;
   out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
 var
   GroundItem: PVRMLTriangle;
@@ -360,8 +360,8 @@ begin
   if Scene.OctreeCollisions <> nil then
   begin
     Scene.OctreeCollisions.GetCameraHeight(
-      ANavigator.CameraPos,
-      ANavigator.GravityUp,
+      ACamera.CameraPos,
+      ACamera.GravityUp,
       IsAboveTheGround, SqrHeightAboveTheGround, GroundItem,
       nil, nil);
   end else
@@ -370,31 +370,31 @@ begin
       cause falling down. So return values pretending we're standing
       still on the ground. }
     IsAboveTheGround := true;
-    SqrHeightAboveTheGround := Sqr(ANavigator.CameraPreferredHeight);
+    SqrHeightAboveTheGround := Sqr(ACamera.CameraPreferredHeight);
   end;
 end;
 
-procedure TGLWindowVRMLBrowser.NavigatorVisibleChange(ANavigator: TObject);
+procedure TGLWindowVRMLBrowser.CameraVisibleChange(ACamera: TObject);
 begin
-  { Navigator.OnVisibleChange callback is initialized in constructor
+  { Camera.OnVisibleChange callback is initialized in constructor
     before Scene is initialized. So to be on the safest side, we check
     here Scene <> nil. }
 
   if Scene <> nil then
   begin
     InitSceneManager;
-    Scene.ViewerChanged(Navigator, SceneManager.ViewerToChanges);
+    Scene.ViewerChanged(Camera, SceneManager.ViewerToChanges);
   end;
 end;
 
 procedure TGLWindowVRMLBrowser.BoundViewpointChanged(Scene: TVRMLScene);
 begin
-  Scene.NavigatorBindToViewpoint(Navigator, false);
+  Scene.CameraBindToViewpoint(Camera, false);
 end;
 
 procedure TGLWindowVRMLBrowser.BoundViewpointVectorsChanged(Scene: TVRMLScene);
 begin
-  Scene.NavigatorBindToViewpoint(Navigator, true);
+  Scene.CameraBindToViewpoint(Camera, true);
 end;
 
 procedure TGLWindowVRMLBrowser.GeometryChanged(Scene: TVRMLScene;

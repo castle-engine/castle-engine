@@ -568,8 +568,8 @@ type
       surface, or to allow player to walk through some "fake wall"
       and discover secret room in game etc.).
 
-      @seealso(TWalkNavigator.DoMoveAllowed
-        TWalkNavigator.DoMoveAllowed is some place
+      @seealso(TWalkCamera.DoMoveAllowed
+        TWalkCamera.DoMoveAllowed is some place
         where you can use this function) }
     function MoveAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
@@ -615,7 +615,7 @@ type
 
       KeepAboveMinPlane is specifically useful for handling moves because
       of gravity. Typically, you can pass KeepAboveMinPlane = BecauseOfGravity
-      (where BecauseOfGravity comes from callback like Navigation.TMoveAllowedFunc),
+      (where BecauseOfGravity comes from callback like Cameras.TMoveAllowedFunc),
       MinPlaneBox = your animation box, MinPlaneDirection = gravity up vector.
       This way, we will not allow player to fall below the lowest plane
       when gravity works --- this is good sometimes, otherwise the player
@@ -624,8 +624,8 @@ type
       TriangleToIgnore and TrianglesToIgnoreFunc meaning
       is just like for RayCollision.
 
-      @seealso(TWalkNavigator.DoMoveAllowed
-        TWalkNavigator.DoMoveAllowed is some place
+      @seealso(TWalkCamera.DoMoveAllowed
+        TWalkCamera.DoMoveAllowed is some place
         where you can use this function)
 
       @groupBegin }
@@ -649,7 +649,7 @@ type
 
     { For given camera position and up vector, calculate camera height
       above the ground. This is comfortable for cooperation with
-      TWalkNavigator.OnGetCameraHeight.
+      TWalkCamera.OnGetCameraHeight.
 
       This simply checks collision of a ray from
       CameraPos in direction -GravityUp, and sets IsAboveTheGround

@@ -34,7 +34,7 @@ program fog_culling;
 
 uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
-  KambiGLUtils, VRMLScene, VRMLGLScene, Navigation,
+  KambiGLUtils, VRMLScene, VRMLGLScene, Cameras,
   ProgressUnit, ProgressConsole, KambiFilesUtils, VRMLTriangleOctree,
   VRMLErrors;
 
@@ -74,13 +74,13 @@ procedure Draw(glwin: TGLWindow);
 begin
   if Scene.Background <> nil then
   begin
-    glLoadMatrix(Glw.Navigator.RotationMatrix);
+    glLoadMatrix(Glw.Camera.RotationMatrix);
     Scene.Background.Render;
     glClear(GL_DEPTH_BUFFER_BIT);
   end else
     glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
 
-  glLoadMatrix(glw.Navigator.Matrix);
+  glLoadMatrix(glw.Camera.Matrix);
 
   if Scene.Attributes.UseFog then
     Scene.Render(@TFogVisibilityTester(nil).Test, tgAll) else
@@ -122,7 +122,7 @@ end;
 
 procedure Resize(glwin: TGLWindow);
 
-  procedure UpdateNavigatorProjectionMatrix;
+  procedure UpdateCameraProjectionMatrix;
   var
     ProjectionMatrix: TMatrix4f;
   begin
@@ -136,23 +136,23 @@ begin
    CameraRadius * 0.6,
    Box3dMaxSize(Scene.BoundingBox) * 3.0);
 
- UpdateNavigatorProjectionMatrix;
+ UpdateCameraProjectionMatrix;
 end;
 
 type
   TDummy = class
-    class function MoveAllowed(Navigator: TWalkNavigator;
+    class function MoveAllowed(Camera: TWalkCamera;
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean;
   end;
 
-class function TDummy.MoveAllowed(Navigator: TWalkNavigator;
+class function TDummy.MoveAllowed(Camera: TWalkCamera;
   const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const BecauseOfGravity: boolean): boolean;
 begin
  Result := Scene.OctreeCollisions.MoveAllowed(
-   Navigator.CameraPos, ProposedNewPos, NewPos, CameraRadius,
-   BecauseOfGravity, Scene.BoundingBox, Navigator.GravityUp);
+   Camera.CameraPos, ProposedNewPos, NewPos, CameraRadius,
+   BecauseOfGravity, Scene.BoundingBox, Camera.GravityUp);
 end;
 
 var
@@ -178,8 +178,8 @@ begin
 
   Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
 
-  { init Glw.Navigator }
-  Glw.Navigator := TWalkNavigator.Create(Glw);
+  { init Glw.Camera }
+  Glw.Camera := TWalkCamera.Create(Glw);
   Glw.WalkNav.Init(CamPos,
     VectorAdjustToLength(CamDir, Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
     CamUp, GravityUp,

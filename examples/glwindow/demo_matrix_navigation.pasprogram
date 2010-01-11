@@ -16,8 +16,8 @@
 { This is a simple demo of TMatrixExaminer class.
   As you can see, in the simplest case you just
   - use TGLUIWindow class
-  - init Glw.Navigator at the beginning of your program
-  - call glLoadMatrix(glw.Navigator.Matrix) at the beginning
+  - init Glw.Camera at the beginning of your program
+  - call glLoadMatrix(glw.Camera.Matrix) at the beginning
     of your draw
 
   And user instantly gets the ability to move and rotate the object
@@ -31,7 +31,7 @@ program demo_matrix_navigation;
 
 uses VectorMath, Boxes3d, GL, GLU, GLExt, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes,
-  KambiGLUtils, Navigation, KambiFilesUtils;
+  KambiGLUtils, Cameras, KambiFilesUtils;
 
 var
   Glw: TGLUIWindow;
@@ -41,7 +41,7 @@ var
   q: PGLUQuadric;
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(glw.Navigator.Matrix);
+  glLoadMatrix(glw.Camera.Matrix);
 
   q := NewGLUQuadric(false, GLU_SMOOTH, GLU_OUTSIDE, GLU_FILL);
   try
@@ -65,8 +65,8 @@ end;
 begin
   Glw := TGLUIWindow.Create(Application);
 
-  { init Glw.Navigator }
-  Glw.Navigator := TExamineNavigator.Create(Glw);
+  { init Glw.Camera }
+  Glw.Camera := TExamineCamera.Create(Glw);
   Glw.ExamineNav.Init(Box3d(
     Vector3Single(-1, -1, -1),
     Vector3Single( 1,  1,  1)));

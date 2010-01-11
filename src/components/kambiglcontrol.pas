@@ -21,7 +21,7 @@ unit KambiGLControl;
 interface
 
 uses
-  Classes, SysUtils, OpenGLContext, Navigation, Controls, Forms,
+  Classes, SysUtils, OpenGLContext, Cameras, Controls, Forms,
   VectorMath, KeysMouse, KambiUtils, KambiTimeUtils, StdCtrls, UIControls;
 
 const
@@ -38,14 +38,14 @@ type
   { OpenGL control, with a couple of extensions for Kambi VRML game engine.
     You will usually prefer to use TKamOpenGLControl instead of directly this
     class, TKamOpenGLControl adds some very useful features like
-    @link(TKamOpenGLControl.Navigator), @link(TKamOpenGLControl.Controls).
+    @link(TKamOpenGLControl.Camera), @link(TKamOpenGLControl.Controls).
 
     Provides OnGLContextInit and OnGLContextClose events.
 
     Provides comfortable Idle method. And a special AggressiveUpdate hack
     to be able to continously update (call Idle and Draw) even when the window
     system clogs us with events (this typically happens when user moves the mouse
-    and we use TNavigator.MouseLook).
+    and we use TCamera.MouseLook).
 
     Also, this automatically calls LoadAllExtensions
     when GL context is initialized. This will initialize all extensions
@@ -205,7 +205,7 @@ type
       and we want redraw to happen when needed (you signal the need to redraw
       by Invalidate call).
 
-      The most visible usage of this is when using Navigator.MouseLook.
+      The most visible usage of this is when using Camera.MouseLook.
       Walking with mouse look typically produces a continous stream
       of mouse move events, usually interspersed with key down events
       (since you usually press forward / back / strafe keys at the same
@@ -236,10 +236,10 @@ type
   end;
 
   { OpenGL control, with extensions for Kambi VRML game engine, including
-    @link(Controls) and @link(Navigator) properties.
+    @link(Controls) and @link(Camera) properties.
 
     Keeps a @link(Controls) list, so you can easily add TUIControl instances
-    to this window (like navigators (TExamineNavigator, TWalkNavigator),
+    to this window (like cameras (TExamineCamera, TWalkCamera),
     TGLMenu and more). We will pass events to these controls, draw them etc.,
     everything only if UseControls = @true. See TKamOpenGLControl for more
     detailed documentation how @link(Controls) are treated. }
@@ -248,10 +248,10 @@ type
     FControls: TUIControlList;
     FCursorNonMouseLook: TCursor;
     FUseControls: boolean;
-    FNavigator: TNavigator;
+    FCamera: TCamera;
 
     procedure SetCursorNonMouseLook(const Value: TCursor);
-    procedure SetNavigator(const Value: TNavigator);
+    procedure SetCamera(const Value: TCamera);
     function ReallyUseMouseLook: boolean;
     procedure ControlsVisibleChange(Sender: TObject);
   protected
@@ -282,13 +282,13 @@ type
     function Focus: TUIControl;
 
     { These are shortcuts for writing
-      TExamineNavigator(Navigator) and TWalkNavigator(Navigator).
+      TExamineCamera(Camera) and TWalkCamera(Camera).
       In DEBUG version they use operator "as" but in RELEASE
       version they use direct type-casts for speed.
 
       @groupBegin }
-    function ExamineNav: TExamineNavigator;
-    function WalkNav: TWalkNavigator;
+    function ExamineNav: TExamineCamera;
+    function WalkNav: TWalkCamera;
     { @groupEnd }
 
     procedure UpdateMouseLook;
@@ -296,18 +296,18 @@ type
     { Controls listening for user input (keyboard / mouse) to this window.
 
       Usually you explicitly add / delete controls to this list.
-      Also, freeing the control that is on this list (Navigator or not)
+      Also, freeing the control that is on this list (Camera or not)
       automatically removes it from this list (using the TComponent.Notification
       mechanism). }
     property Controls: TUIControlList read FControls;
   published
-    { Navigator instance used. Initially it's nil.
+    { Camera instance used. Initially it's nil.
       Set this to give user a method for navigating in 3D scene.
 
-      When assigning navigator instance we'll take care to make it
-      the one and only one TNavigator instance on Controls list.
+      When assigning camera instance we'll take care to make it
+      the one and only one TCamera instance on Controls list.
       Assigning here @nil removes it from Controls list. }
-    property Navigator: TNavigator read FNavigator write SetNavigator;
+    property Camera: TCamera read FCamera write SetCamera;
 
     property UseControls: boolean
       read FUseControls write FUseControls default true;
@@ -416,7 +416,7 @@ begin
     Resize;
     { TODO: why it's not enough to call Resize; here?
       Long time ago, observed on Windows, later also on GTK 2.
-      Reproducible e.g. with simple_3d_navigator Lazarus demo. }
+      Reproducible e.g. with simple_3d_camera Lazarus demo. }
     if Assigned(OnResize) then OnResize(Self);
 
     Invalidate;
@@ -759,13 +759,13 @@ begin
   inherited;
 end;
 
-procedure TKamOpenGLControl.SetNavigator(const Value: TNavigator);
+procedure TKamOpenGLControl.SetCamera(const Value: TCamera);
 begin
-  if FNavigator <> Value then
+  if FCamera <> Value then
   begin
-    FNavigator := Value;
-    { replace / add at the end of Controls current Navigator }
-    Controls.MakeSingle(TNavigator, Value);
+    FCamera := Value;
+    { replace / add at the end of Controls current Camera }
+    Controls.MakeSingle(TCamera, Value);
   end;
 end;
 
@@ -779,8 +779,8 @@ begin
   if (Operation = opRemove) and (AComponent is TUIControl) then
   begin
     Controls.DeleteAll(AComponent);
-    if AComponent = FNavigator then
-      FNavigator := nil;
+    if AComponent = FCamera then
+      FCamera := nil;
   end;
 end;
 
@@ -927,25 +927,25 @@ begin
   inherited;
 end;
 
-function TKamOpenGLControl.ExamineNav: TExamineNavigator;
+function TKamOpenGLControl.ExamineNav: TExamineCamera;
 begin
   Result :=
-    {$ifdef DEBUG} Navigator as TExamineNavigator
-    {$else} TExamineNavigator(Navigator)
+    {$ifdef DEBUG} Camera as TExamineCamera
+    {$else} TExamineCamera(Camera)
     {$endif};
 end;
 
-function TKamOpenGLControl.WalkNav: TWalkNavigator;
+function TKamOpenGLControl.WalkNav: TWalkCamera;
 begin
   Result :=
-    {$ifdef DEBUG} Navigator as TWalkNavigator
-    {$else} TWalkNavigator(Navigator)
+    {$ifdef DEBUG} Camera as TWalkCamera
+    {$else} TWalkCamera(Camera)
     {$endif};
 end;
 
 function TKamOpenGLControl.ReallyUseMouseLook: boolean;
 begin
-  Result := (Navigator <> nil) and Navigator.MouseLook;
+  Result := (Camera <> nil) and Camera.MouseLook;
 end;
 
 procedure TKamOpenGLControl.SetCursorNonMouseLook(

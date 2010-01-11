@@ -28,7 +28,7 @@ program dynamic_ambient_occlusion;
 
 uses VectorMath, GL, GLU, GLExt, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
-  KambiGLUtils, VRMLScene, VRMLGLScene, Navigation,
+  KambiGLUtils, VRMLScene, VRMLGLScene, Cameras,
   KambiFilesUtils, KambiStringUtils, VRMLErrors, GLShaders, VRMLShape,
   VRMLFields, Images, Boxes3d, GLImages, GLWinMessages, DataErrors,
   GLVersionUnit, Math, VRMLTriangle;
@@ -608,7 +608,7 @@ var
   ElementsIntensityTex: TGrayscaleImage;
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(glw.Navigator.Matrix);
+  glLoadMatrix(glw.Camera.Matrix);
 
   case DrawType of
     dtNormalGL:
@@ -784,7 +784,7 @@ end;
 procedure Resize(Glwin: TGLWindow);
 begin
   glViewport(0, 0, glwin.Width, glwin.Height);
-  Scene.GLProjection(Glw.Navigator, Scene.BoundingBox, Glwin.Width, Glwin.Height);
+  Scene.GLProjection(Glw.Camera, Scene.BoundingBox, Glwin.Width, Glwin.Height);
 end;
 
 procedure Idle(Glwin: TGLWindow);
@@ -922,14 +922,14 @@ begin
     Scene.OnPointingDeviceSensorsChange := @THelper(nil).UpdateCursor;
     Scene.ProcessEvents := true;
 
-    { init Glw.Navigator }
-    Glw.Navigator := Scene.CreateNavigator(Glw);
-    Scene.Navigator := Glw.Navigator;
+    { init Glw.Camera }
+    Glw.Camera := Scene.CreateCamera(Glw);
+    Scene.Camera := Glw.Camera;
     { Even if VRML navigation info suggests using gravity, turn it off,
       simply because this demo doesn't do collision detection for now
       (so gravity will make you fall down forever...) }
-    if Glw.Navigator is TWalkNavigator then
-      TWalkNavigator(Glw.Navigator).Gravity := false;
+    if Glw.Camera is TWalkCamera then
+      TWalkCamera(Glw.Camera).Gravity := false;
 
     Glw.Controls.Insert(0, Scene);
 

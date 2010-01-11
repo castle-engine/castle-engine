@@ -28,22 +28,22 @@
   (- This is the default actually:
     scene is loaded with Optimization roSeparateShapes.)
   (- This is already done by Scene.GLProjection:
-    updating Glw.Navigator.ProjectionMatrix.)
-  - using Glw.Navigator.Frustum and OctreeRendering
+    updating Glw.Camera.ProjectionMatrix.)
+  - using Glw.Camera.Frustum and OctreeRendering
     (ssRendering in Scene.Spatial) to render the scene,
     see line "Scene.RenderFrustum"
 
-  3. This also shows how you can force created navigator to be of 'WALK'
-     type. This causes the result of Scene.CreateNavigator to always
-     have the TWalkNavigator class.
+  3. This also shows how you can force created camera to be of 'WALK'
+     type. This causes the result of Scene.CreateCamera to always
+     have the TWalkCamera class.
      This turns gravity on and makes camera behave FPS-like.
 
      Also, just for demo, we set the initial position / direction explicitly
      by code (instead of relying on Viewpoint node in VRML/X3D).
 
-     Note that even more involved scenarios of creating Navigator are
-     possible, you could create some TNavigator descendant yourself
-     (without Scene.CreateNavigator help) or even do not use navigator at all.
+     Note that even more involved scenarios of creating Camera are
+     possible, you could create some TCamera descendant yourself
+     (without Scene.CreateCamera help).
 
   4. Makes FPS timings right after starting the program correct:
   - uses Glw.OnBeforeDraw and Scene.PrepareRender(false)
@@ -56,7 +56,7 @@ program simple_view_model_2;
 
 uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
-  KambiGLUtils, VRMLScene, VRMLGLScene, Navigation,
+  KambiGLUtils, VRMLScene, VRMLGLScene, Cameras,
   ProgressUnit, ProgressConsole, KambiFilesUtils, VRMLTriangleOctree,
   VRMLErrors, VRMLTriangle;
 
@@ -72,8 +72,8 @@ end;
 procedure Draw(Glwin: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(glw.Navigator.Matrix);
-  Scene.RenderFrustum(Glw.Navigator.Frustum, tgAll);
+  glLoadMatrix(glw.Camera.Matrix);
+  Scene.RenderFrustum(Glw.Camera.Frustum, tgAll);
 end;
 
 procedure Init(Glwin: TGLWindow);
@@ -89,45 +89,45 @@ end;
 
 procedure Resize(Glwin: TGLWindow);
 begin
-  { This sets OpenGL projection, also updating Glw.Navigator.ProjectionMatrix,
-    which is important for having correct Glw.Navigator.Frustum. }
-  Scene.GLProjection(Glw.Navigator, Scene.BoundingBox,
+  { This sets OpenGL projection, also updating Glw.Camera.ProjectionMatrix,
+    which is important for having correct Glw.Camera.Frustum. }
+  Scene.GLProjection(Glw.Camera, Scene.BoundingBox,
     Glwin.Width, Glwin.Height);
 end;
 
 type
   THelperObj = class
-    class function MoveAllowed(Navigator: TWalkNavigator;
+    class function MoveAllowed(Camera: TWalkCamera;
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean;
 
-    class procedure GetCameraHeight(Navigator: TWalkNavigator;
+    class procedure GetCameraHeight(Camera: TWalkCamera;
       out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
   end;
 
-class function THelperObj.MoveAllowed(Navigator: TWalkNavigator;
+class function THelperObj.MoveAllowed(Camera: TWalkCamera;
   const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const BecauseOfGravity: boolean): boolean;
 begin
   Result := Scene.OctreeCollisions.MoveAllowed(
-    Navigator.CameraPos, ProposedNewPos, NewPos, Navigator.CameraRadius,
-    BecauseOfGravity, Scene.BoundingBox, Navigator.GravityUp);
+    Camera.CameraPos, ProposedNewPos, NewPos, Camera.CameraRadius,
+    BecauseOfGravity, Scene.BoundingBox, Camera.GravityUp);
 end;
 
-class procedure THelperObj.GetCameraHeight(Navigator: TWalkNavigator;
+class procedure THelperObj.GetCameraHeight(Camera: TWalkCamera;
   out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
 var
   GroundItem: PVRMLTriangle;
 begin
   Scene.OctreeCollisions.GetCameraHeight(
-    Navigator.CameraPos,
-    Navigator.GravityUp,
+    Camera.CameraPos,
+    Camera.GravityUp,
     IsAboveTheGround, SqrHeightAboveTheGround, GroundItem,
     nil, nil);
 end;
 
 var
-  Nav: TWalkNavigator;
+  Camera: TWalkCamera;
 begin
   Glw := TGLUIWindow.Create(Application);
 
@@ -146,17 +146,17 @@ begin
     Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
     Scene.Spatial := [ssRendering, ssDynamicCollisions];
 
-    { init navigator }
-    Nav := Scene.CreateNavigator(Glw, 'WALK') as TWalkNavigator;
-    Nav.SetInitialCameraLookDir(
+    { init camera }
+    Camera := Scene.CreateCamera(Glw, 'WALK') as TWalkCamera;
+    Camera.SetInitialCameraLookDir(
       Box3dMiddle(scene.BoundingBox),
       VectorAdjustToLength(Vector3Single(1, 0, 0),
         Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
       Vector3Single(0, 1, 0), false);
-    Nav.Home;
-    Nav.OnMoveAllowed     := @THelperObj(nil).MoveAllowed;
-    Nav.OnGetCameraHeight := @THelperObj(nil).GetCameraHeight;
-    Glw.Navigator := Nav;
+    Camera.Home;
+    Camera.OnMoveAllowed     := @THelperObj(nil).MoveAllowed;
+    Camera.OnGetCameraHeight := @THelperObj(nil).GetCameraHeight;
+    Glw.Camera := Camera;
 
     { allow the scene to use it's own lights }
     Scene.Attributes.UseLights := true;

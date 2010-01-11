@@ -18,20 +18,20 @@ Better Lazarus integration:
 - Make TKamOpenGLControl.Controls list settable from the IDE,
   to allow visually adding new TUIControls there.
 
-  At designtime, warn on error: do not put > 1 navigator in Controls list,
+  At designtime, warn on error: do not put > 1 camera in Controls list,
   while it works it's usually nonsense.
-  Or not: shadow_volume_test shows that it's possible to have two navigators,
+  Or not: shadow_volume_test shows that it's possible to have two cameras,
   and things work smoothly. You just have to assign non-conflicting keys.
 
-- Make sure most useful props of navigators, TGLMenu are settable (published) from Lazarus.
-  For TExamineNavigator: somehow allow ModelBox: TBox3d?
-  For navigators generally, what Init method takes should be settable.
-  For navigators generally, Input_Xxx properties.
+- Make sure most useful props of cameras, TGLMenu are settable (published) from Lazarus.
+  For TExamineCamera: somehow allow ModelBox: TBox3d?
+  For cameras generally, what Init method takes should be settable.
+  For cameras generally, Input_Xxx properties.
 
 - make icons for our components.
-  Same style navigators (black with dotted lines):
-    Walking man icon for TWalkNavigator,
-    Rotated box for TExamineNavigator.
+  Same style cameras (black with dotted lines):
+    Walking man icon for TWalkCamera,
+    Rotated box for TExamineCamera.
   Same style areas:
     TKamOpenGLControl
     TKamVRMLBrowser (maybe use the same image, with just a text "OpenGL" or "GL"
@@ -135,29 +135,29 @@ SceneManager stuff (post 3.4):
 - Use SceneManager *everywhere*. Make it trivial, so that simple_view_scene and such can use it. With new requirements (RenderState, generated textures, shadow volumes), it simply makes no sense to directly render TVRMLGLScene anymore.
 
 - RenderState.Camera* is currently not initialized in various programs. This is supposed to be fixed by using SceneManager everywhere, that's why I didn't want to pollute code for now. When you don't use generated textures, RenderState.Camera* is only for Viewpoint events and WORLDSPACE* tex coord generation, which is simply not used by some programs. Below is extracted from
-  grep_pas_src . 'glLoadMatrix(.*navigator.matrix)'
+  grep_pas_src . 'glLoadMatrix(.*camera.matrix)'
 
-  ./lets_take_a_walk/lets_take_a_walk.pasprogram:324: glLoadMatrix(glw.Navigator.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/shadow_volume_test/shadow_volume_test.pasprogram:352:  glLoadMatrix(Glw.Navigator.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/plane_mirror_and_shadow.pasprogram:299:  glLoadMatrix(glw.Navigator.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/demo_animation.pasprogram:79:  glLoadMatrix(glw.Navigator.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/bump_mapping/bump_mapping.pasprogram:853:  glLoadMatrix(Glw.Navigator.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/fog_culling.pasprogram:88:  glLoadMatrix(glw.Navigator.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/change_vrml_by_code.pasprogram:61:  glLoadMatrix(glw.Navigator.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/dynamic_ambient_occlusion/dynamic_ambient_occlusion.pasprogram:618:  glLoadMatrix(glw.Navigator.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/simple_view_model.pasprogram:68:  glLoadMatrix(glw.Navigator.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/radiance_transfer/radiance_transfer.pasprogram:99:  glLoadMatrix(Glw.Navigator.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/radiance_transfer/show_sh.pasprogram:187:  glLoadMatrix(Glw.Navigator.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/change_vrml_by_code_2.pasprogram:42:  glLoadMatrix(glw.Navigator.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/gl_primitive_performance.pasprogram:66:  glLoadMatrix(glw.Navigator.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/simple_view_model_2.pasprogram:80:  glLoadMatrix(glw.Navigator.Matrix);
-  ./kambi_vrml_game_engine/opengl/examples/multi_texturing_demo.pasprogram:108:  glLoadMatrix(Glw.Navigator.Matrix);
-  ./kambi_vrml_game_engine/opengl/examples/bezier_surfaces/animate_surface.pasprogram:101:  glLoadMatrix(Glw.Navigator.Matrix);
-  ./kambi_vrml_game_engine/opengl/examples/bezier_surfaces/design_surface.pasprogram:207:  glLoadMatrix(Glw.Navigator.Matrix);
-  ./kambi_vrml_game_engine/opengl/examples/shading_langs/shading_langs_demo.pasprogram:143:  glLoadMatrix(Glw.Navigator.Matrix);
-  ./kambi_vrml_game_engine/opengl/examples/interpolated_curves.pasprogram:152:  glLoadMatrix(Glw.Navigator.Matrix);
-  ./kambi_vrml_game_engine/opengl/examples/demo_matrix_navigation.pasprogram:27:  - call glLoadMatrix(glw.Navigator.Matrix) at the beginning
-  ./kambi_vrml_game_engine/opengl/examples/demo_matrix_navigation.pasprogram:48:  glLoadMatrix(glw.Navigator.Matrix);
+  ./lets_take_a_walk/lets_take_a_walk.pasprogram:324: glLoadMatrix(glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/shadow_volume_test/shadow_volume_test.pasprogram:352:  glLoadMatrix(Glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/plane_mirror_and_shadow.pasprogram:299:  glLoadMatrix(glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/demo_animation.pasprogram:79:  glLoadMatrix(glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/bump_mapping/bump_mapping.pasprogram:853:  glLoadMatrix(Glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/fog_culling.pasprogram:88:  glLoadMatrix(glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/change_vrml_by_code.pasprogram:61:  glLoadMatrix(glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/dynamic_ambient_occlusion/dynamic_ambient_occlusion.pasprogram:618:  glLoadMatrix(glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/simple_view_model.pasprogram:68:  glLoadMatrix(glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/radiance_transfer/radiance_transfer.pasprogram:99:  glLoadMatrix(Glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/radiance_transfer/show_sh.pasprogram:187:  glLoadMatrix(Glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/change_vrml_by_code_2.pasprogram:42:  glLoadMatrix(glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/gl_primitive_performance.pasprogram:66:  glLoadMatrix(glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/simple_view_model_2.pasprogram:80:  glLoadMatrix(glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/opengl/examples/multi_texturing_demo.pasprogram:108:  glLoadMatrix(Glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/opengl/examples/bezier_surfaces/animate_surface.pasprogram:101:  glLoadMatrix(Glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/opengl/examples/bezier_surfaces/design_surface.pasprogram:207:  glLoadMatrix(Glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/opengl/examples/shading_langs/shading_langs_demo.pasprogram:143:  glLoadMatrix(Glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/opengl/examples/interpolated_curves.pasprogram:152:  glLoadMatrix(Glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/opengl/examples/demo_matrix_navigation.pasprogram:27:  - call glLoadMatrix(glw.Camera.Matrix) at the beginning
+  ./kambi_vrml_game_engine/opengl/examples/demo_matrix_navigation.pasprogram:48:  glLoadMatrix(glw.Camera.Matrix);
 
   This will get automatically fixed when we extend and use SceneManager everywhere.
 
@@ -191,7 +191,7 @@ Victor Amat list (overlapping with mine, so let's go with it):
   Good idea, try a patch ad submit.
 
 - Instead of ViewerChanged and IsLast..., it would be more natural and easier
-  to keep Navigator reference in TVRMLScene.
+  to keep Camera reference in TVRMLScene.
   This could ease some integration between TVRMLScene, TVRMLGLScene and viewer.
 
 - There remains problem with EditableTransform behavior on shadow_map_test.x3dv:

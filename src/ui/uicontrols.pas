@@ -121,7 +121,7 @@ type
 
     { Control may do here anything that must be continously repeated.
       This is called often by the container.
-      E.g. navigator handles here falling down due to gravity
+      E.g. camera handles here falling down due to gravity
       in Walker mode, rotating model in Examine mode, and many more.
 
       @param(CompSpeed Should be calculated like TFramesPerSecond.IdleSpeed,
@@ -140,7 +140,7 @@ type
       that actually take screen space implied by PositionInside,
       want to block controls underneath from handling keys/mouse.
       For example, when pressing key "left" over TGLMenu, you do not
-      want to let the Navigator to also capture this left key down.
+      want to let the Camera to also capture this left key down.
 
       @italic(More reasoning behind HandleMouseAndKeys:)
 
@@ -214,7 +214,7 @@ type
       Note that actually making the muse look useful requires some support
       from the descendant. Although this property is available for all
       TUIControl instances, in fact it makes sense to set it @true only for
-      specific classes. For now, only TWalkNavigator actually handles this
+      specific classes. For now, only TWalkCamera actually handles this
       sensibly, doing usual "mouse look" navigation mode popular in FPS games. }
     property MouseLook: boolean read FMouseLook write FMouseLook default false;
 
@@ -296,7 +296,7 @@ type
       return @true for mouse and key events handled.
 
       This means that events will not be simultaneously handled by both this
-      control and some other (or navigator or normal window callbacks),
+      control and some other (or camera or normal window callbacks),
       which is usually more sensible, but sometimes less functional. }
     property ExclusiveEvents: boolean
       read FExclusiveEvents write FExclusiveEvents default true;

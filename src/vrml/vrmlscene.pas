@@ -21,7 +21,7 @@ uses
   SysUtils, Classes, VectorMath, Boxes3d,
   VRMLFields, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLShape, VRMLTriangleOctree, ProgressUnit, KambiOctree, VRMLShapeOctree,
-  KeysMouse, VRMLTime, Navigation, VRMLTriangle, Contnrs, VRMLHeadLight,
+  KeysMouse, VRMLTime, Cameras, VRMLTriangle, Contnrs, VRMLHeadLight,
   RenderStateUnit, UIControls;
 
 {$define read_interface}
@@ -525,7 +525,7 @@ type
     FShapes: TVRMLShapeTree;
     FRootNode: TVRMLNode;
     FOnPointingDeviceSensorsChange: TNotifyEvent;
-    FNavigator: TNavigator;
+    FCamera: TCamera;
     FAngleOfViewX: Single;
     FAngleOfViewY: Single;
     FTimePlaying: boolean;
@@ -577,7 +577,7 @@ type
 
     function GetViewpointCore(
       const OnlyPerspective: boolean;
-      out CamKind: TVRMLCameraKind;
+      out ProjectionType: TProjectionType;
       out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
       const ViewpointDescription: string):
       TVRMLViewpointNode;
@@ -1308,7 +1308,7 @@ type
 
       @groupBegin }
     function GetViewpoint(
-      out CamKind: TVRMLCameraKind;
+      out ProjectionType: TProjectionType;
       out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
       const ViewpointDescription: string = ''):
       TVRMLViewpointNode;
@@ -1682,7 +1682,7 @@ type
         You should add here prVisibleSceneNonGeometry if player has a headlight.
         You should add here prVisibleSceneGeometry if player has a rendered
         avatar.) }
-    procedure ViewerChanged(ANavigator: TNavigator;
+    procedure ViewerChanged(ACamera: TCamera;
       const Changes: TVisibleSceneChanges);
 
     { List of handlers for VRML Script node with "compiled:" protocol.
@@ -1696,12 +1696,12 @@ type
     procedure RegisterCompiledScript(const HandlerName: string;
       Handler: TCompiledScriptHandler);
 
-    { Create and initialize TNavigator instance based on currently
+    { Create and initialize TCamera instance based on currently
       bound NavigationInfo and Viewpoint node.
 
       Bound NavigationInfo node is taken from
       NavigationInfoStack.Top. If no NavigationInfo is bound, this is @nil,
-      and we will create navigator corresponding to default NavigationInfo
+      and we will create camera corresponding to default NavigationInfo
       values (this is following VRML spec), so it will have type = EXAMINE.
 
       You can pass ForceNavigationType = 'EXAMINE', 'WALK', 'FLY', 'NONE' etc.
@@ -1711,34 +1711,34 @@ type
       This way we will ignore what NavigationInfo.type information
       inside the scene says.
 
-      Sets always suitable @link(TNavigator.CameraRadius).
+      Sets always suitable @link(TCamera.CameraRadius).
 
-      This initializes many TWalkNavigator properties, if this is determined
+      This initializes many TWalkCamera properties, if this is determined
       to be proper result class:
       @unorderedList(
-        @item(TWalkNavigator.Gravity,)
-        @item(TWalkNavigator.PreferGravityUpForRotations,)
-        @item(TWalkNavigator.PreferGravityUpForMoving,)
-        @item(TWalkNavigator.IgnoreAllInputs,)
-        @item(TWalkNavigator.CameraPreferredHeight.)
+        @item(TWalkCamera.Gravity,)
+        @item(TWalkCamera.PreferGravityUpForRotations,)
+        @item(TWalkCamera.PreferGravityUpForMoving,)
+        @item(TWalkCamera.IgnoreAllInputs,)
+        @item(TWalkCamera.CameraPreferredHeight.)
       )
 
-      This also calls NavigatorBindToViewpoint at the end,
-      so navigator is bound to current vewpoint. }
-    function CreateNavigator(AOwner: TComponent;
-      const ForceNavigationType: string = ''): TNavigator;
+      This also calls CameraBindToViewpoint at the end,
+      so camera is bound to current vewpoint. }
+    function CreateCamera(AOwner: TComponent;
+      const ForceNavigationType: string = ''): TCamera;
 
-    { Update navigator when currently bound viewpoint changes.
+    { Update camera when currently bound viewpoint changes.
       When no viewpoint is currently bound, we will go to standard (initial)
       VRML viewpoint position.
 
-      This moves the navigator to starting point of the viewpoint,
-      updating navigator's initial and current vectors
+      This moves the camera to starting point of the viewpoint,
+      updating camera's initial and current vectors
       ([Initial]CameraPos, [Initial]CameraDir, [Initial]CameraUp, GravityUp).
 
       Currently bound NavigationInfo.speed is also taken into account here.
-      Navigator's MoveHorizontalSpeed and MoveVerticalSpeed are updated. }
-    procedure NavigatorBindToViewpoint(Nav: TNavigator;
+      Camera's MoveHorizontalSpeed and MoveVerticalSpeed are updated. }
+    procedure CameraBindToViewpoint(ACamera: TCamera;
       const OnlyViewpointVectorsChanged: boolean);
 
     { Detect position/direction of the main light that produces shadows.
@@ -1860,16 +1860,16 @@ type
     property ProcessEvents: boolean
       read FProcessEvents write SetProcessEvents default false;
 
-    { Navigator (camera) in this scene. May be @nil if not known / not used.
+    { Camera in this scene. May be @nil if not known / not used.
 
-      Your navigator must be inside some container
+      Your camera must be inside some container
       (i.e. on TGLUIWindow.Controls or TKamOpenGLControl.Controls list),
       at least at the time of Mouse* methods call
       (that is, when container passed mouse events to this scene).
 
       This is for now used only with Mouse* methods, to convert mouse position
       (MouseX, MouseY) to a picked ray in 3D space. }
-    property Navigator: TNavigator read FNavigator write FNavigator;
+    property Camera: TCamera read FCamera write FCamera;
 
     { Currently loaded scene filename. Set this to load a 3D scene
       from the given file, this can load from any known 3D format
@@ -4135,7 +4135,7 @@ type
   begin
     V := Node as TVRMLViewpointNode;
     if ( (not OnlyPerspective) or
-         (V.CameraKind = ckPerspective) ) and
+         (V.ProjectionType = ptPerspective) ) and
        ( (ViewpointDescription = '') or
          ( (Node is TNodeX3DViewpointNode) and
            (TNodeX3DViewpointNode(Node).FdDescription.Value = ViewpointDescription) ) ) then
@@ -4147,7 +4147,7 @@ type
 
 function TVRMLScene.GetViewpointCore(
   const OnlyPerspective: boolean;
-  out CamKind: TVRMLCameraKind;
+  out ProjectionType: TProjectionType;
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
   const ViewpointDescription: string): TVRMLViewpointNode;
 var
@@ -4176,7 +4176,7 @@ begin
   if Result <> nil then
   begin
     Result.GetCameraVectors(CamPos, CamDir, CamUp, GravityUp);
-    CamKind := Result.CameraKind;
+    ProjectionType := Result.ProjectionType;
   end else
   begin
     { use default camera settings }
@@ -4184,16 +4184,16 @@ begin
     CamDir := StdVRMLCamDir;
     CamUp := StdVRMLCamUp;
     GravityUp := StdVRMLGravityUp;
-    CamKind := ckPerspective;
+    ProjectionType := ptPerspective;
   end;
 end;
 
 function TVRMLScene.GetViewpoint(
-  out CamKind: TVRMLCameraKind;
+  out ProjectionType: TProjectionType;
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
   const ViewpointDescription: string): TVRMLViewpointNode;
 begin
-  Result := GetViewpointCore(false, CamKind, CamPos, CamDir, CamUp, GravityUp,
+  Result := GetViewpointCore(false, ProjectionType, CamPos, CamDir, CamUp, GravityUp,
     ViewpointDescription);
 end;
 
@@ -4201,11 +4201,11 @@ function TVRMLScene.GetPerspectiveViewpoint(
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
   const ViewpointDescription: string): TVRMLViewpointNode;
 var
-  CamKind: TVRMLCameraKind;
+  ProjectionType: TProjectionType;
 begin
-  Result := GetViewpointCore(true, CamKind, CamPos, CamDir, CamUp, GravityUp,
+  Result := GetViewpointCore(true, ProjectionType, CamPos, CamDir, CamUp, GravityUp,
     ViewpointDescription);
-  Assert(CamKind = ckPerspective);
+  Assert(ProjectionType = ptPerspective);
 end;
 
 { fog ---------------------------------------------------------------------- }
@@ -4869,7 +4869,7 @@ begin
         if KeySensor.FdEnabled.Value then
         begin
           { Do not treat it as handled (returning ExclusiveEvents),
-            this would disable too much (like Navigator usually under Scene on Controls).
+            this would disable too much (like Camera usually under Scene on Controls).
           Result := false; }
           KeySensor.EventIsActive.Send(true, WorldTime);
           if KeyToActionKey(Key, ActionKey) then
@@ -4907,7 +4907,7 @@ begin
         if KeySensor.FdEnabled.Value then
         begin
           { Do not treat it as handled (returning ExclusiveEvents),
-            this would disable too much (like Navigator usually under Scene on Controls).
+            this would disable too much (like Camera usually under Scene on Controls).
           Result := false; }
           KeySensor.EventIsActive.Send(false, WorldTime);
           if KeyToActionKey(Key, ActionKey) then
@@ -5202,7 +5202,7 @@ begin
   begin
     PointingDeviceActive := true;
     { Do not treat it as handled (returning ExclusiveEvents),
-      this would disable too much (like Navigator usually under Scene on Controls).
+      this would disable too much (like Camera usually under Scene on Controls).
     Result := false; }
   end;
 end;
@@ -5216,7 +5216,7 @@ begin
   begin
     PointingDeviceActive := false;
     { Do not treat it as handled (returning ExclusiveEvents),
-      this would disable too much (like Navigator usually under Scene on Controls).
+      this would disable too much (like Camera usually under Scene on Controls).
     Result := false; }
   end;
 end;
@@ -5232,7 +5232,7 @@ begin
 
   if OctreeCollisions <> nil then
   begin
-    Navigator.Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, Ray0, RayVector);
+    Camera.Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, Ray0, RayVector);
 
     Item := OctreeCollisions.RayCollision(
       OverPoint, Ray0, RayVector, true, nil, false, nil);
@@ -5240,7 +5240,7 @@ begin
     PointingDeviceMove(OverPoint, Item);
 
     { Do not treat it as handled (returning ExclusiveEvents),
-      this would disable too much (like Navigator usually under Scene on Controls).
+      this would disable too much (like Camera usually under Scene on Controls).
     Result := false; }
   end;
 end;
@@ -5359,7 +5359,7 @@ begin
   if TimePlaying and (CompSpeed <> 0) then
     IncreaseWorldTime(TimePlayingSpeed * CompSpeed);
 
-  { Even if mouse is over the scene, still allow others (like a Navigator
+  { Even if mouse is over the scene, still allow others (like a Camera
     underneath) to always handle mouse and keys in their Idle. }
   LetOthersHandleMouseAndKeys := true;
 end;
@@ -5530,12 +5530,12 @@ begin
   end;
 end;
 
-procedure TVRMLScene.ViewerChanged(ANavigator: TNavigator;
+procedure TVRMLScene.ViewerChanged(ACamera: TCamera;
   const Changes: TVisibleSceneChanges);
 var
   I: Integer;
 begin
-  ANavigator.GetCameraVectors(
+  ACamera.GetCameraVectors(
     FLastViewerPosition, FLastViewerDirection, FLastViewerUp);
   FIsLastViewer := true;
 
@@ -5567,44 +5567,44 @@ begin
   HandlerInfo^.Name := HandlerName;
 end;
 
-{ navigator ------------------------------------------------------------------ }
+{ camera ------------------------------------------------------------------ }
 
-function TVRMLScene.CreateNavigator(AOwner: TComponent;
-  const ForceNavigationType: string = ''): TNavigator;
+function TVRMLScene.CreateCamera(AOwner: TComponent;
+  const ForceNavigationType: string = ''): TCamera;
 
-  { Create TNavigator instance, looking at NavigationType
+  { Create TCamera instance, looking at NavigationType
     (treating it like NavigationInfo.type value).
     Returns @nil if NavigationType unknown (or 'ANY'). }
-  function DoCreate(const NavigationType: string): TNavigator;
+  function DoCreate(const NavigationType: string): TCamera;
   begin
     Result := nil;
     if NavigationType = 'WALK' then
     begin
-      Result := TWalkNavigator.Create(AOwner);
-      TWalkNavigator(Result).PreferGravityUpForRotations := true;
-      TWalkNavigator(Result).PreferGravityUpForMoving := true;
-      TWalkNavigator(Result).Gravity := true;
-      TWalkNavigator(Result).IgnoreAllInputs := false;
+      Result := TWalkCamera.Create(AOwner);
+      TWalkCamera(Result).PreferGravityUpForRotations := true;
+      TWalkCamera(Result).PreferGravityUpForMoving := true;
+      TWalkCamera(Result).Gravity := true;
+      TWalkCamera(Result).IgnoreAllInputs := false;
     end else
     if NavigationType = 'FLY' then
     begin
-      Result := TWalkNavigator.Create(AOwner);
-      TWalkNavigator(Result).PreferGravityUpForRotations := true;
-      TWalkNavigator(Result).PreferGravityUpForMoving := false;
-      TWalkNavigator(Result).Gravity := false;
-      TWalkNavigator(Result).IgnoreAllInputs := false;
+      Result := TWalkCamera.Create(AOwner);
+      TWalkCamera(Result).PreferGravityUpForRotations := true;
+      TWalkCamera(Result).PreferGravityUpForMoving := false;
+      TWalkCamera(Result).Gravity := false;
+      TWalkCamera(Result).IgnoreAllInputs := false;
     end else
     if NavigationType = 'NONE' then
     begin
-      Result := TWalkNavigator.Create(AOwner);
-      TWalkNavigator(Result).PreferGravityUpForRotations := true;
-      TWalkNavigator(Result).PreferGravityUpForMoving := true; { doesn't matter }
-      TWalkNavigator(Result).Gravity := false;
-      TWalkNavigator(Result).IgnoreAllInputs := true;
+      Result := TWalkCamera.Create(AOwner);
+      TWalkCamera(Result).PreferGravityUpForRotations := true;
+      TWalkCamera(Result).PreferGravityUpForMoving := true; { doesn't matter }
+      TWalkCamera(Result).Gravity := false;
+      TWalkCamera(Result).IgnoreAllInputs := true;
     end else
     if NavigationType = 'EXAMINE' then
     begin
-      Result := TExamineNavigator.Create(AOwner);
+      Result := TExamineCamera.Create(AOwner);
     end else
     if NavigationType = 'ANY' then
     begin
@@ -5638,7 +5638,7 @@ begin
 
   if Result = nil then
     { No recognized "type" found, so use default type EXAMINE. }
-    Result := TExamineNavigator.Create(AOwner);
+    Result := TExamineCamera.Create(AOwner);
 
   { calculate CameraRadius }
   CameraRadius := 0;
@@ -5652,7 +5652,7 @@ begin
 
   Result.CameraRadius := CameraRadius;
 
-  if (Result is TWalkNavigator) and (NavigationNode <> nil) then
+  if (Result is TWalkCamera) and (NavigationNode <> nil) then
   begin
     { calculate CameraPreferredHeight }
     if NavigationNode.FdAvatarSize.Count >= 2 then
@@ -5663,18 +5663,18 @@ begin
         adds a limit to CameraPreferredHeight, around CameraRadius * 2. }
       CameraPreferredHeight := CameraRadius * 4;
 
-    TWalkNavigator(Result).CameraPreferredHeight := CameraPreferredHeight;
-    TWalkNavigator(Result).CorrectCameraPreferredHeight;
+    TWalkCamera(Result).CameraPreferredHeight := CameraPreferredHeight;
+    TWalkCamera(Result).CorrectCameraPreferredHeight;
   end else
-  if Result is TExamineNavigator then
+  if Result is TExamineCamera then
   begin
-    TExamineNavigator(Result).Init(BoundingBox, CameraRadius);
+    TExamineCamera(Result).Init(BoundingBox, CameraRadius);
   end;
 
-  NavigatorBindToViewpoint(Result, false);
+  CameraBindToViewpoint(Result, false);
 end;
 
-procedure TVRMLScene.NavigatorBindToViewpoint(Nav: TNavigator;
+procedure TVRMLScene.CameraBindToViewpoint(ACamera: TCamera;
   const OnlyViewpointVectorsChanged: boolean);
 var
   CameraPos: TVector3Single;
@@ -5682,13 +5682,13 @@ var
   CameraUp: TVector3Single;
   GravityUp: TVector3Single;
   NavigationNode: TNodeNavigationInfo;
-  WalkNav: TWalkNavigator;
+  WalkCamera: TWalkCamera;
 begin
-  { Currently we can set viewpoint only to TWalkNavigator.
+  { Currently we can set viewpoint only to TWalkCamera.
     This is supposed to be fixed one day (as currently VRML author
-    has no control over ExamineNavigator). }
-  if not (Nav is TWalkNavigator) then Exit;
-  WalkNav := TWalkNavigator(Nav);
+    has no control over ExamineCamera). }
+  if not (ACamera is TWalkCamera) then Exit;
+  WalkCamera := TWalkCamera(ACamera);
 
   if ViewpointStack.Top <> nil then
   begin
@@ -5713,9 +5713,9 @@ begin
       speed that should "feel sensible". We base it on CameraRadius.
       CameraRadius in turn was calculated based on
       Box3dAvgSize(SceneAnimation.BoundingBoxSum). }
-    VectorAdjustToLengthTo1st(CameraDir, Nav.CameraRadius * 0.4);
-    WalkNav.MoveHorizontalSpeed := 1;
-    WalkNav.MoveVerticalSpeed := 1;
+    VectorAdjustToLengthTo1st(CameraDir, ACamera.CameraRadius * 0.4);
+    WalkCamera.MoveHorizontalSpeed := 1;
+    WalkCamera.MoveVerticalSpeed := 1;
   end else
   if NavigationNode.FdSpeed.Value = 0 then
   begin
@@ -5730,27 +5730,27 @@ begin
       MoveHorizontal/VerticalSpeed to something different than zero
       (otherwise, user would be stuck with speed = 0). }
     NormalizeTo1st(CameraDir);
-    WalkNav.MoveHorizontalSpeed := 0;
-    WalkNav.MoveVerticalSpeed := 0;
+    WalkCamera.MoveHorizontalSpeed := 0;
+    WalkCamera.MoveVerticalSpeed := 0;
   end else
   begin
     VectorAdjustToLengthTo1st(CameraDir, NavigationNode.FdSpeed.Value / 50.0);
-    WalkNav.MoveHorizontalSpeed := 1;
-    WalkNav.MoveVerticalSpeed := 1;
+    WalkCamera.MoveHorizontalSpeed := 1;
+    WalkCamera.MoveVerticalSpeed := 1;
   end;
 
   { If OnlyViewpointVectorsChanged, then we will move relative to
     initial camera changes. Else, we will jump to new initial camera vectors.
 
-    Below, we do some work normally done by TWalkNavigator.Init.
-    But we know we already have CameraPreferredHeight set (by CreateNavigator),
+    Below, we do some work normally done by TWalkCamera.Init.
+    But we know we already have CameraPreferredHeight set (by CreateCamera),
     and we take into account OnlyViewpointVectorsChanged case. }
 
-  WalkNav.SetInitialCameraLookDir(CameraPos, CameraDir, CameraUp,
+  WalkCamera.SetInitialCameraLookDir(CameraPos, CameraDir, CameraUp,
     OnlyViewpointVectorsChanged);
-  WalkNav.GravityUp := GravityUp;
+  WalkCamera.GravityUp := GravityUp;
   if not OnlyViewpointVectorsChanged then
-    WalkNav.Home;
+    WalkCamera.Home;
 end;
 
 { misc ----------------------------------------------------------------------- }

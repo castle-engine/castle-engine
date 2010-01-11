@@ -51,7 +51,7 @@
   Or just run one of the shadow_volume_test_xxx.sh scripts
   that use already prepared test VRML models from subdirectory models/.
 
-  You can navigate over the scene like usual (arrows keys,
+  You can navigate in the scene like usual (arrows keys,
   PageUp/PageDown, Insert/Delete, +/- to change move speed etc. ---
   for full documentation see view3dscene key docs for Walk mode).
   You can also manipulate shadow caster (to see that the shadows
@@ -65,7 +65,7 @@ program shadow_volume_test;
 {$apptype CONSOLE}
 
 uses GLWindow, GL, GLU, GLExt, KambiGLUtils, VRMLGLScene,
-  VRMLNodes, Navigation, VRMLScene, Boxes3d, SysUtils,
+  VRMLNodes, Cameras, VRMLScene, Boxes3d, SysUtils,
   KambiUtils, VectorMath, VRMLLightSetGL, VRMLFields,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils, VRMLCameraUtils,
   ShadowTests, GLWinMessages, VRMLErrors, ShadowVolumes,
@@ -122,8 +122,8 @@ var
   Glw: TGLUIWindow;
 
   Scene, ShadowCaster: TVRMLGLScene;
-  ShadowCasterNav: TExamineNavigator;
-  SceneNav: TWalkNavigator;
+  ShadowCasterNav: TExamineCamera;
+  SceneNav: TWalkCamera;
   LightSet: TVRMLLightSetGL;
 
   { MainLightPosition[3] = 0 means it's directional. }
@@ -403,7 +403,7 @@ end;
 
 procedure ResizeGL(glwin: TGLWindow);
 
-  procedure UpdateNavigatorProjectionMatrix;
+  procedure UpdateCameraProjectionMatrix;
   var
     ProjectionMatrix: TMatrix4f;
   begin
@@ -421,7 +421,7 @@ begin
     { For z-fail, we use far projection plane in infinity. }
     ZFarInfinity
     { Box3dAvgSize(SceneBoundingBox)*20.0 });
-  UpdateNavigatorProjectionMatrix;
+  UpdateCameraProjectionMatrix;
 end;
 
 procedure InitGL(glwin: TGLWindow);
@@ -665,7 +665,7 @@ begin
         'and no direction', [L^.LightNode.NodeTypeName]);
 
     { init ShadowCasterNav }
-    ShadowCasterNav := TExamineNavigator.Create(Glw);
+    ShadowCasterNav := TExamineCamera.Create(Glw);
     ShadowCasterNav.ModelBox := ShadowCaster.BoundingBox;
 
     ShadowCasterNav.Inputs_Move[0, false].Key1 := K_A;
@@ -690,12 +690,12 @@ begin
     ShadowCasterNav.Input_ScaleSmaller.Character := #0;
 
     { init SceneNav }
-    SceneNav := TWalkNavigator.Create(Glw);
+    SceneNav := TWalkCamera.Create(Glw);
     Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
     VectorAdjustToLengthTo1st(CamDir, Box3dAvgSize(SceneBoundingBox)*0.02);
     SceneNav.Init(CamPos, CamDir, CamUp, GravityUp, 0.0, 0.0);
 
-    { use both navigators simultaneously }
+    { use both cameras simultaneously }
     Glw.Controls.Add(SceneNav);
     Glw.Controls.Add(ShadowCasterNav);
 

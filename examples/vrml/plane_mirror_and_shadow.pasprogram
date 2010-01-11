@@ -52,7 +52,7 @@ program plane_mirror_and_shadow;
 
 uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
-  KambiGLUtils, VRMLScene, VRMLGLScene, Navigation,
+  KambiGLUtils, VRMLScene, VRMLGLScene, Cameras,
   KambiFilesUtils, VRMLErrors, KambiStringUtils, KeysMouse;
 
 var
@@ -291,7 +291,7 @@ var
 
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_STENCIL_BUFFER_BIT);
-  glLoadMatrix(glw.Navigator.Matrix);
+  glLoadMatrix(glw.Camera.Matrix);
 
   glLightv(GL_LIGHT0, GL_POSITION, LightPosition);
 
@@ -497,7 +497,7 @@ begin
           SceneFileName := S;
           { refresh projection matrix, since Scene.BoundingBox changed }
           Glwin.EventResize;
-          { reinit navigator, since Scene.BoundingBox changed }
+          { reinit camera, since Scene.BoundingBox changed }
           Glw.ExamineNav.Init(Scene.BoundingBox);
         end;
       end;
@@ -586,8 +586,8 @@ begin
     SceneForShadow.Optimization := roSceneAsAWhole;
     SceneForShadow.Attributes.PureGeometry := true;
 
-    { init Glw.Navigator }
-    Glw.Navigator := TExamineNavigator.Create(Glw);
+    { init Glw.Camera }
+    Glw.Camera := TExamineCamera.Create(Glw);
     Glw.ExamineNav.Init(Scene.BoundingBox);
 
     Glw.MainMenu := CreateMainMenu;

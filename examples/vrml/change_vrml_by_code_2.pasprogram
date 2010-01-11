@@ -23,7 +23,7 @@ program change_vrml_by_code_2;
 
 uses VectorMath, Boxes3d, VRMLNodes, GL, GLU, GLExt, GLWindow,
   KambiUtils, SysUtils, Object3dAsVRML,
-  KambiGLUtils, VRMLGLScene, Navigation,
+  KambiGLUtils, VRMLGLScene, Cameras,
   KambiFilesUtils, VRMLErrors, Quaternions {$ifdef LOG} ,KambiLog {$endif};
 
 var
@@ -33,7 +33,7 @@ var
 procedure Draw(glwin: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(glw.Navigator.Matrix);
+  glLoadMatrix(glw.Camera.Matrix);
   Scene.Render(nil, tgAll);
 end;
 
@@ -135,8 +135,8 @@ begin
     Scene.LogChanges := true;
     {$endif}
 
-    { init Glw.Navigator }
-    Glw.Navigator := TExamineNavigator.Create(Glw);
+    { init Glw.Camera }
+    Glw.Camera := TExamineCamera.Create(Glw);
     Glw.ExamineNav.Init(Scene.BoundingBox);
     { set more interesting view by default }
     Glw.ExamineNav.Rotations := QuatFromAxisAngle(

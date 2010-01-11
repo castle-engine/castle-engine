@@ -24,7 +24,7 @@ program show_sh;
 
 uses VectorMath, Boxes3d, GL, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, KambiFilesUtils,
-  KambiGLUtils, Navigation, Math, SphereSampling, SphericalHarmonics,
+  KambiGLUtils, Cameras, Math, SphereSampling, SphericalHarmonics,
   BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts;
 
 var
@@ -179,7 +179,7 @@ begin
   MaxSHValue := -MaxFloat;
 
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(Glw.Navigator.Matrix);
+  glLoadMatrix(Glw.Camera.Matrix);
   RenderSphere;
 
   glPushAttrib(GL_ENABLE_BIT);
@@ -226,7 +226,7 @@ begin
     M.Append(TMenuItem.Create('_Next basis', 20, 'n'));
     Glw.MainMenu.Append(M);
 
-  Glw.Navigator := TExamineNavigator.Create(Glw);
+  Glw.Camera := TExamineCamera.Create(Glw);
   Glw.ExamineNav.Init(Box3d(Vector3Single(-1, -1, -1), Vector3Single(1, 1, 1)));
 
   Glw.OnInit := @Init;

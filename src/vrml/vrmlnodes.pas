@@ -3340,7 +3340,7 @@ procedure TraverseState_FreeAndNilNodes(var StateNodes: TTraverseStateLastNodes)
 procedure VRMLNodesList_FreeWithNonParentedContentsAndNil(var List: TVRMLNodesList);
 
 const
-  VRMLCameraKindToStr: array[TVRMLCameraKind]of string =
+  ProjectionTypeToStr: array [TProjectionType] of string =
   ('Orthographic', 'Perspective');
 
 const

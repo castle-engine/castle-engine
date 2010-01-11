@@ -17,7 +17,7 @@ unit VRMLGLAnimation;
 interface
 
 uses SysUtils, Classes, VRMLNodes, VRMLOpenGLRenderer, VRMLScene, VRMLGLScene,
-  KambiUtils, Boxes3d, KambiClassUtils, VRMLAnimation, KeysMouse, Navigation,
+  KambiUtils, Boxes3d, KambiClassUtils, VRMLAnimation, KeysMouse, Cameras,
   KambiTimeUtils;
 
 {$define read_interface}
@@ -97,7 +97,7 @@ type
     ValidBoundingBoxSum: boolean;
     FBoundingBoxSum: TBox3d;
     FOptimization: TGLRendererOptimization;
-    FNavigator: TNavigator;
+    FCamera: TCamera;
 
     function GetBackgroundSkySphereRadius: Single;
     procedure SetBackgroundSkySphereRadius(const Value: Single);
@@ -105,7 +105,7 @@ type
     procedure SetAngleOfViewX(const Value: Single);
     function GetAngleOfViewY: Single;
     procedure SetAngleOfViewY(const Value: Single);
-    procedure SetNavigator(const Value: TNavigator);
+    procedure SetCamera(const Value: TCamera);
     procedure SetOptimization(const Value: TGLRendererOptimization);
 
     function InfoBoundingBoxSum: string;
@@ -518,7 +518,7 @@ type
     { @groupEnd }
 
     { Set OpenGL projection, based on currently
-      bound Viewpoint, NavigationInfo (using FirstScene) and used navigator.
+      bound Viewpoint, NavigationInfo (using FirstScene) and used camera.
 
       You should use this instead of directly calling Scenes[0].GLProjection,
       because this takes care to update our WalkProjectionNear,
@@ -530,7 +530,7 @@ type
       and the TVRMLGLAnimation itself).
 
       @seealso TVRMLGLScene.GLProjection }
-    procedure GLProjection(Nav: TNavigator;
+    procedure GLProjection(ACamera: TCamera;
       const Box: TBox3d;
       const WindowWidth, WindowHeight: Cardinal;
       const ForceZFarInfinity: boolean = false);
@@ -623,14 +623,14 @@ type
     property TimeBackwards: boolean
       read FTimeBackwards write FTimeBackwards default false;
 
-    { Common Navigator, for all scenes of this animation.
-      See TVRMLScene.Navigator.
+    { Common Camera, for all scenes of this animation.
+      See TVRMLScene.Camera.
 
-      Setting this sets the Navigator for all scenes within this animation.
+      Setting this sets the Camera for all scenes within this animation.
       In other words, if you use only this,
       then all the scenes of your animation will always have equal
-      Navigator values. }
-    property Navigator: TNavigator read FNavigator write SetNavigator;
+      Camera values. }
+    property Camera: TCamera read FCamera write SetCamera;
 
     { Optimization of the animation. See TVRMLGLScene.Optimization.
 
@@ -702,7 +702,7 @@ begin
   inherited CreateProvidedRenderer(nil, AProvidedRenderer);
 
   Optimization := FParentAnimation.Optimization;
-  Navigator := FParentAnimation.Navigator;
+  Camera := FParentAnimation.Camera;
 
   Load(ARootNode, AOwnsRootNode);
 end;
@@ -1762,21 +1762,21 @@ begin
     FScenes[I].AngleOfViewY := Value;
 end;
 
-procedure TVRMLGLAnimation.SetNavigator(const Value: TNavigator);
+procedure TVRMLGLAnimation.SetCamera(const Value: TCamera);
 var
   I: Integer;
 begin
-  { We use our own FNavigator field (that is, not implementing
-    GetNavigator as Result := FirstScene.Navigator), to make Navigator
+  { We use our own FCamera field (that is, not implementing
+    GetCamera as Result := FirstScene.Camera), to make Camera
     property work even when the animation is currently not loaded. }
 
-  if Value <> FNavigator then
+  if Value <> FCamera then
   begin
-    FNavigator := Value;
+    FCamera := Value;
     if FScenes <> nil then
     begin
       for I := 0 to FScenes.High do
-        FScenes[I].Navigator := Value;
+        FScenes[I].Camera := Value;
     end;
   end;
 end;
@@ -1827,12 +1827,12 @@ begin
   end;
 end;
 
-procedure TVRMLGLAnimation.GLProjection(Nav: TNavigator;
+procedure TVRMLGLAnimation.GLProjection(ACamera: TCamera;
   const Box: TBox3d;
   const WindowWidth, WindowHeight: Cardinal;
   const ForceZFarInfinity: boolean);
 begin
-  FirstScene.GLProjection(Nav, Box, WindowWidth, WindowHeight,
+  FirstScene.GLProjection(ACamera, Box, WindowWidth, WindowHeight,
     ForceZFarInfinity);
 
   { Setting these will also update their values in all scenes. }
@@ -1966,7 +1966,7 @@ begin
       VisibleChange;
   end;
 
-  { Even if mouse is over the scene, still allow others (like a Navigator
+  { Even if mouse is over the scene, still allow others (like a Camera
     underneath) to always handle mouse and keys in their Idle. }
   LetOthersHandleMouseAndKeys := true;
 end;

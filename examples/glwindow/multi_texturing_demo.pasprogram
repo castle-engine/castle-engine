@@ -29,7 +29,7 @@
 program multi_texturing_demo;
 
 uses GLWindow, GL, GLU, GLExt, KambiGLUtils,
-  Navigation, Boxes3d, SysUtils, KambiUtils, VectorMath,
+  Cameras, Boxes3d, SysUtils, KambiUtils, VectorMath,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils,
   GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts,
   GLImages;
@@ -99,7 +99,7 @@ procedure Draw(glwin: TGLWindow);
 
 begin
   glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT);
-  glLoadMatrix(Glw.Navigator.Matrix);
+  glLoadMatrix(Glw.Camera.Matrix);
 
   glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(1, 1, 0, 1));
   glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(1, 1, 0, 1));
@@ -164,13 +164,12 @@ end;
 
 procedure Resize(glwin: TGLWindow);
 
-  procedure UpdateNavigatorProjectionMatrix;
+  procedure UpdateCameraProjectionMatrix;
   var
     ProjectionMatrix: TMatrix4f;
   begin
     glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
-    if Glw.Navigator is TWalkNavigator then
-      Glw.WalkNav.ProjectionMatrix := ProjectionMatrix;
+    Glw.Camera.ProjectionMatrix := ProjectionMatrix;
   end;
 
 begin
@@ -179,8 +178,8 @@ begin
     Box3dAvgSize(SceneBoundingBox) * 0.05,
     Box3dAvgSize(SceneBoundingBox) * 20.0);
 
-  { In case I'll use walker navigator at some time. }
-  UpdateNavigatorProjectionMatrix;
+  { In case I'll use walker camera at some time. }
+  UpdateCameraProjectionMatrix;
 end;
 
 procedure InitGL(glwin: TGLWindow);
@@ -216,8 +215,8 @@ begin
   Glw.ParseParameters(StandardParseOptions);
   Parameters.CheckHigh(0);
 
-  { init Glw.Navigator }
-  Glw.Navigator := TExamineNavigator.Create(Glw);
+  { init Glw.Camera }
+  Glw.Camera := TExamineCamera.Create(Glw);
   Glw.ExamineNav.Init(SceneBoundingBox);
 
   Glw.OnInit := @InitGL;

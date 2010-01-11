@@ -144,7 +144,7 @@ object Main: TMain
     Top = 0
     Width = 676
     Align = alClient
-    OnNavigatorChanged = BrowserNavigatorChanged
+    OnCameraChanged = BrowserCameraChanged
   end
   object MainMenu1: TMainMenu
     left = 40
