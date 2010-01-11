@@ -71,7 +71,7 @@ begin
     P.Targets.AddUnit('object3ds.pas');
     P.Targets.AddUnit('object3dschunks.pas');
     P.Targets.AddUnit('object3dsmaterial.pas');
-    P.Targets.AddUnit('polynomials.pas');
+    P.Targets.AddUnit('kambipolynomials.pas');
     P.Targets.AddUnit('quaternions.pas');
     P.Targets.AddUnit('rayswindow.pas');
     P.Targets.AddUnit('renderstateunit.pas');

@@ -107,8 +107,8 @@
         <UnitName Value="Object3dOpenGL"/>
       </Item14>
       <Item15>
-        <Filename Value="../src/3d/polynomials.pas"/>
-        <UnitName Value="Polynomials"/>
+        <Filename Value="../src/3d/kambipolynomials.pas"/>
+        <UnitName Value="KambiPolynomials"/>
       </Item15>
       <Item16>
         <Filename Value="../src/3d/quaternions.pas"/>

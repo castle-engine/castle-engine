@@ -17,7 +17,7 @@ unit Curve;
 
 interface
 
-uses VectorMath, Boxes3d, KambiUtils, KambiScript, Polynomials,
+uses VectorMath, Boxes3d, KambiUtils, KambiScript, KambiPolynomials,
   KambiClassUtils;
 
 {$define read_interface}

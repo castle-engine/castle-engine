@@ -23,7 +23,7 @@ uses
   object3ds,
   object3dschunks,
   object3dsmaterial,
-  polynomials,
+  kambipolynomials,
   quaternions,
   rayswindow,
   renderstateunit,

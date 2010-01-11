@@ -14,7 +14,7 @@
 { @abstract(Some polynomials handling.
   Currently useful only for @link(Curve) unit.) }
 
-unit Polynomials;
+unit KambiPolynomials;
 
 interface
 
