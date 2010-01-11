@@ -1,4 +1,4 @@
-program simple_3d_navigator;
+program camera;
 
 {$mode objfpc}{$H+}
 
@@ -10,10 +10,10 @@ uses
   Forms, mainf, LResources, kambi_components, kambi_base
   { you can add units after this };
 
-{$IFDEF WINDOWS}{$R simple_3d_navigator.rc}{$ENDIF}
+{$IFDEF WINDOWS}{$R camera.rc}{$ENDIF}
 
 begin
-  {$I simple_3d_navigator.lrs}
+  {$I camera.lrs}
   Application.Initialize;
   Application.CreateForm(TMainForm, MainForm);
   Application.Run;

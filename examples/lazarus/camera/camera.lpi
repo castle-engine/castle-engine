@@ -41,9 +41,9 @@
     </RequiredPackages>
     <Units Count="3">
       <Unit0>
-        <Filename Value="simple_3d_navigator.lpr"/>
+        <Filename Value="camera.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="simple_3d_navigator"/>
+        <UnitName Value="camera"/>
         <UsageCount Value="20"/>
       </Unit0>
       <Unit1>
@@ -102,7 +102,7 @@
   <CompilerOptions>
     <Version Value="8"/>
     <Target>
-      <Filename Value="simple_3d_navigator"/>
+      <Filename Value="camera"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)/"/>
