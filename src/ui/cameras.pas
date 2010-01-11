@@ -3443,7 +3443,11 @@ begin
 
       And inside, we can calculate the difference
       by subtracing new - old position, knowing that old = middle this
-      will always be Ok. }
+      will always be Ok.
+
+      Later: see TGLWindow.UpdateMouseLook implementation notes,
+      we actually depend on the fact that MouseLook checks and works
+      only if mouse position is at the middle. }
     if (OldX = MiddleWidth) and
        (OldY = MiddleHeight) then
     begin

@@ -158,7 +158,6 @@ begin
   if Browser.Camera is TWalkCamera then
   begin
     Browser.WalkNav.MouseLook := (Sender as TMenuItem).Checked;
-    Browser.UpdateMouseLook;
 
     if Browser.WalkNav.MouseLook then
     begin

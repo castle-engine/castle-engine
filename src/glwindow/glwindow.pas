@@ -2442,18 +2442,19 @@ type
     But, if you use only one camera (most common situation),
     you can also assign it to the @link(Camera) property
     (this will cause appropriate add / replace / remove on
-    the @link(Controls) list). The special treatment of a single Camera
-    is required mostly for UpdateMouseLook proper work. }
+    the @link(Controls) list). }
   TGLUIWindow = class(TGLWindowDemo, IUIContainer)
   private
     FCamera: TCamera;
     FCursorNonMouseLook: TGLWindowCursor;
     FControls: TUIControlList;
     FUseControls: boolean;
+    FMouseLookActive: boolean;
     procedure SetCamera(const Value: TCamera);
     procedure SetCursorNonMouseLook(const Value: TGLWindowCursor);
-    function ReallyUseMouseLook: boolean;
     procedure ControlsVisibleChange(Sender: TObject);
+    procedure SetUseControls(const Value: boolean);
+    procedure UpdateMouseLook;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -2469,7 +2470,7 @@ type
     property Controls: TUIControlList read FControls;
 
     property UseControls: boolean
-      read FUseControls write FUseControls default true;
+      read FUseControls write SetUseControls default true;
 
     { Returns the control that should receive input events first,
       or @nil if none. More precisely, this is the first on Controls
@@ -2526,26 +2527,7 @@ type
     procedure EventResize; override;
     procedure EventClose; override;
 
-    { If you use Camera of class TWalkCamera with this window
-      and you want to use it's MouseLook feature then
-      you should call this after you changed Camera.MouseLook value.
-
-      This sets @link(Cursor) (to gcNone or CursorNonMouseLook, based on
-      whether mouse look is used now, that is Camera.MouseLook is @true)
-      and, if mouse look is used, repositions mouse cursor at the middle
-      of the window.
-
-      You should also call this after you changed Camera's instance,
-      or UseControls, as these things also effectively change the
-      actual state of "using mouse look". OTOH sometimes you don't
-      have to call this --- e.g. if you push/pop mode states using
-      TGLMode and in the mode you set temporary UseControls = @false,
-      then you don't have to call this, because TGLMode will push/pop
-      @link(Cursor) state anyway. That's why I explicitly wrote above
-      what this function does (sets @link(Cursor) and repositions
-      the mouse) --- so that you can figure out where exactly
-      you have to use it. }
-    procedure UpdateMouseLook;
+    property MouseLookActive: boolean read FMouseLookActive;
 
     { Cursor when not using mouse look.
       Useful if you sometimes use mouse look and you want your cursor
@@ -4252,6 +4234,8 @@ begin
       end;
     else raise EInternalError.Create('TControlledUIControlList.Notify action?');
   end;
+
+  Container.UpdateMouseLook;
 end;
 
 { TGLUIWindow --------------------------------------------------------- }
@@ -4462,32 +4446,76 @@ begin
     {$endif};
 end;
 
-function TGLUIWindow.ReallyUseMouseLook: boolean;
-begin
-  Result := (Camera <> nil) and Camera.MouseLook;
-end;
-
 procedure TGLUIWindow.SetCursorNonMouseLook(
   const Value: TGLWindowCursor);
 begin
   if Value <> FCursorNonMouseLook then
   begin
     FCursorNonMouseLook := Value;
-    if not ReallyUseMouseLook then
+    if not MouseLookActive then
       Cursor := CursorNonMouseLook;
   end;
 end;
 
-procedure TGLUIWindow.UpdateMouseLook;
-var
-  ML: boolean;
+procedure TGLUIWindow.SetUseControls(const Value: boolean);
 begin
-  ML := ReallyUseMouseLook;
-  if ML then
+  if Value <> UseControls then
+  begin
+    FUseControls := Value;
+    UpdateMouseLook;
+  end;
+end;
+
+procedure TGLUIWindow.UpdateMouseLook;
+
+  procedure CalculateMouseLookActive;
+  var
+    I: Integer;
+  begin
+    FMouseLookActive := false;
+    if UseControls then
+      for I := 0 to Controls.Count - 1 do
+        if Controls[I].MouseLook then
+        begin
+          FMouseLookActive := true;
+          Break;
+        end;
+  end;
+
+begin
+  CalculateMouseLookActive;
+
+  if MouseLookActive then
     Cursor := gcNone else
     Cursor := CursorNonMouseLook;
-  if ML then
-    SetMousePosition(Width div 2, Height div 2);
+
+  { Initially I was doing here
+
+      if MouseLookActive then
+        SetMousePosition(Width div 2, Height div 2);
+
+    but this bites us when we're doing UpdateMouseLook automatically,
+    because often MouseLookActive is true for a very short time.
+
+    For example, consider castle, where MouseLook is usually true
+    during the game, but it's off in game menu (TGLMenu) and start screen.
+    So when you're in the game, and choose "End game", game menu
+    closes (immediately bringing back MouseLook = true by TGLMode.Destroy
+    restoring everything), but game mode immediately closes and goes
+    back to start screen. Effect: mouse cursor is forced to the middle
+    of the screen, without any apparent (for user) reason.
+
+    While we could argue that this is an error of the "castle" game
+    (as, in fact, mouse look was temporarily true) but fixing this
+    in "castle" would be a major pain.
+    (And making UpdateMouseLook automatic was, after all,
+    to make things work smoothly without any painful bookkeeping.)
+
+    So it's not a comfortable behavior to reset mouse position to screen
+    middle too aggressively. So don't do it. This requires the MouseMove
+    handler to only work when initial mouse position is at the screen middle,
+    otherwise initial mouse look would generate large move.
+    But in fact TWalkCamera.MouseMove already does this, so it's all Ok. }
 end;
 
 procedure TGLUIWindow.EventMouseMove(NewX, NewY: Integer);

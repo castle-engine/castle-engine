@@ -48,6 +48,19 @@ type
 
     { Keys currently pressed. }
     property Pressed: TKeysPressed read GetPressed;
+
+    { Called by controls within this container when some MouseLook status
+      changes. This is called by a IUIContainer interface, that's why
+      it can remain as private method of actual container class.
+
+      This causes recalculation of MouseLookActive (that simply looks
+      at all Controls it sets MouseLookActive := any control has MouseLook),
+      and some necessary work when MouseLookActive changes.
+
+      When UseControls change or when you add / remove some control
+      from the Controls list this will also be automatically called
+      (since MouseLookActive may change then). }
+    procedure UpdateMouseLook;
   end;
 
   { Basic user interface control class. All controls derive from this class,
@@ -80,6 +93,7 @@ type
     FContainerWidth, FContainerHeight: Cardinal;
     FContainerSizeKnown: boolean;
     FContainer: IUIContainer;
+    procedure SetMouseLook(const Value: boolean);
   protected
     { Container (window containing the control) size, as known by this control,
       undefined when ContainerSizeKnown = @false. This is simply collected at
@@ -216,7 +230,7 @@ type
       TUIControl instances, in fact it makes sense to set it @true only for
       specific classes. For now, only TWalkCamera actually handles this
       sensibly, doing usual "mouse look" navigation mode popular in FPS games. }
-    property MouseLook: boolean read FMouseLook write FMouseLook default false;
+    property MouseLook: boolean read FMouseLook write SetMouseLook default false;
 
     { Draw 2D control. If you want your Draw2D called automatically by the
       window, return @true from IsDraw2D and draw your control inside Draw2D.
@@ -393,6 +407,15 @@ end;
 
 procedure TUIControl.GLContextClose;
 begin
+end;
+
+procedure TUIControl.SetMouseLook(const Value: boolean);
+begin
+  if FMouseLook <> Value then
+  begin
+    FMouseLook := Value;
+    if Container <> nil then Container.UpdateMouseLook;
+  end;
 end;
 
 { TUIControlList ------------------------------------------------------------- }

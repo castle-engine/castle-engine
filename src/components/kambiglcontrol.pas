@@ -45,7 +45,7 @@ type
     Provides comfortable Idle method. And a special AggressiveUpdate hack
     to be able to continously update (call Idle and Draw) even when the window
     system clogs us with events (this typically happens when user moves the mouse
-    and we use TCamera.MouseLook).
+    and we use TWalkCamera.MouseLook).
 
     Also, this automatically calls LoadAllExtensions
     when GL context is initialized. This will initialize all extensions
@@ -249,11 +249,13 @@ type
     FCursorNonMouseLook: TCursor;
     FUseControls: boolean;
     FCamera: TCamera;
+    FMouseLookActive: boolean;
 
     procedure SetCursorNonMouseLook(const Value: TCursor);
     procedure SetCamera(const Value: TCamera);
-    function ReallyUseMouseLook: boolean;
     procedure ControlsVisibleChange(Sender: TObject);
+    procedure SetUseControls(const Value: boolean);
+    procedure UpdateMouseLook;
   protected
     procedure KeyDownEvent(var Key: Word; Shift: TShiftState); override;
     procedure KeyUpEvent(var Key: Word; Shift: TShiftState); override;
@@ -291,8 +293,6 @@ type
     function WalkNav: TWalkCamera;
     { @groupEnd }
 
-    procedure UpdateMouseLook;
-
     { Controls listening for user input (keyboard / mouse) to this window.
 
       Usually you explicitly add / delete controls to this list.
@@ -310,7 +310,9 @@ type
     property Camera: TCamera read FCamera write SetCamera;
 
     property UseControls: boolean
-      read FUseControls write FUseControls default true;
+      read FUseControls write SetUseControls default true;
+
+    property MouseLookActive: boolean read FMouseLookActive;
 
     property CursorNonMouseLook: TCursor
       read FCursorNonMouseLook write SetCursorNonMouseLook
@@ -742,6 +744,8 @@ begin
       end;
     else raise EInternalError.Create('TControlledUIControlList.Notify action?');
   end;
+
+  Container.UpdateMouseLook;
 end;
 
 { TKamOpenGLControl --------------------------------------------------------- }
@@ -943,32 +947,39 @@ begin
     {$endif};
 end;
 
-function TKamOpenGLControl.ReallyUseMouseLook: boolean;
-begin
-  Result := (Camera <> nil) and Camera.MouseLook;
-end;
-
 procedure TKamOpenGLControl.SetCursorNonMouseLook(
   const Value: TCursor);
 begin
   if Value <> FCursorNonMouseLook then
   begin
     FCursorNonMouseLook := Value;
-    if not ReallyUseMouseLook then
+    if not MouseLookActive then
       Cursor := CursorNonMouseLook;
   end;
 end;
 
 procedure TKamOpenGLControl.UpdateMouseLook;
-var
-  ML: boolean;
+
+  procedure CalculateMouseLookActive;
+  var
+    I: Integer;
+  begin
+    FMouseLookActive := false;
+    if UseControls then
+      for I := 0 to Controls.Count - 1 do
+        if Controls[I].MouseLook then
+        begin
+          FMouseLookActive := true;
+          Break;
+        end;
+  end;
+
 begin
-  ML := ReallyUseMouseLook;
-  if ML then
+  CalculateMouseLookActive;
+
+  if MouseLookActive then
     Cursor := crNone else
     Cursor := CursorNonMouseLook;
-  if ML then
-    SetMousePosition(Width div 2, Height div 2);
 end;
 
 procedure TKamOpenGLControl.MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer);
@@ -1099,6 +1110,15 @@ begin
   end;
 
   inherited;
+end;
+
+procedure TKamOpenGLControl.SetUseControls(const Value: boolean);
+begin
+  if Value <> UseControls then
+  begin
+    FUseControls := Value;
+    UpdateMouseLook;
+  end;
 end;
 
 { global routines ------------------------------------------------------------ }
