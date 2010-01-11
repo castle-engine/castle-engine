@@ -13,19 +13,18 @@
   ----------------------------------------------------------------------------
 }
 
-{ This is a simple demo of TMatrixExaminer class.
+{ This is a simple demo of TExamineCamera class.
   As you can see, in the simplest case you just
   - use TGLUIWindow class
   - init Glw.Camera at the beginning of your program
-  - call glLoadMatrix(glw.Camera.Matrix) at the beginning
-    of your draw
+  - call glLoadMatrix(glw.Camera.Matrix) at the beginning of your Draw.
 
   And user instantly gets the ability to move and rotate the object
-  by arrow keys etc. (see view3dscene keys is "Examine" mode:
+  by arrow keys, mouse etc. (see view3dscene keys is "Examine" mode:
   [http://vrmlengine.sourceforge.net/view3dscene.php]).
 }
 
-program demo_matrix_navigation;
+program demo_camera;
 
 {$apptype GUI}
 
@@ -37,16 +36,11 @@ var
   Glw: TGLUIWindow;
 
 procedure Draw(glwin: TGLWindow);
-var
-  q: PGLUQuadric;
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(glw.Camera.Matrix);
 
-  q := NewGLUQuadric(false, GLU_SMOOTH, GLU_OUTSIDE, GLU_FILL);
-  try
-    gluSphere(q, 1, 10, 10);
-  finally gluDeleteQuadric(q) end;
+  DrawGLBox(-1, -1, -1, 1, 1, 1, 0, 0, 0, true, false);
 end;
 
 procedure Init(glwin: TGLWindow);
