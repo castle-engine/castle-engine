@@ -30,13 +30,13 @@ var
 
 procedure CameraHome;
 begin
-  Glw.WalkNav.Init(Box3d(Vector3Single(0, 0, -1),
+  (Glw.Camera As TWalkCamera).Init(Box3d(Vector3Single(0, 0, -1),
                          Vector3Single(1, 1,  1)), 0.0);
 end;
 
 procedure CameraScene;
 begin
-  Glw.WalkNav.Init(SurfacePos, SurfaceDir, SurfaceUp, SurfaceUp, 0.0, 0.0);
+  (Glw.Camera As TWalkCamera).Init(SurfacePos, SurfaceDir, SurfaceUp, SurfaceUp, 0.0, 0.0);
 end;
 
 procedure SurfacesLoad(const FileName: string);
@@ -161,15 +161,15 @@ begin
   case C of
     'c': begin
            Writeln(Format('%f %f %f   %f %f %f   %f %f %f',
-             [ Glw.WalkNav.CameraPos[0],
-               Glw.WalkNav.CameraPos[1],
-               Glw.WalkNav.CameraPos[2],
-               Glw.WalkNav.CameraDir[0],
-               Glw.WalkNav.CameraDir[1],
-               Glw.WalkNav.CameraDir[2],
-               Glw.WalkNav.CameraUp[0],
-               Glw.WalkNav.CameraUp[1],
-               Glw.WalkNav.CameraUp[2] ]));
+             [ (Glw.Camera As TWalkCamera).CameraPos[0],
+               (Glw.Camera As TWalkCamera).CameraPos[1],
+               (Glw.Camera As TWalkCamera).CameraPos[2],
+               (Glw.Camera As TWalkCamera).CameraDir[0],
+               (Glw.Camera As TWalkCamera).CameraDir[1],
+               (Glw.Camera As TWalkCamera).CameraDir[2],
+               (Glw.Camera As TWalkCamera).CameraUp[0],
+               (Glw.Camera As TWalkCamera).CameraUp[1],
+               (Glw.Camera As TWalkCamera).CameraUp[2] ]));
          end;
     'h': CameraHome;
     's': CameraScene;
@@ -180,8 +180,8 @@ begin
   Glw := TGLUIWindow.Create(Application);
 
   Glw.Camera := TWalkCamera.Create(Glw);
-  Glw.WalkNav.PreferGravityUpForRotations := false;
-  Glw.WalkNav.PreferGravityUpForMoving := false;
+  (Glw.Camera As TWalkCamera).PreferGravityUpForRotations := false;
+  (Glw.Camera As TWalkCamera).PreferGravityUpForMoving := false;
 
   Parameters.CheckHigh(1);
   SurfacesLoad(Parameters[1]);

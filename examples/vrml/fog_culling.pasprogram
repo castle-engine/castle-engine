@@ -65,7 +65,7 @@ begin
     If there is no collision than we don't have to render given Shape. }
   Result := PointsDistanceSqr(
     Shape.BoundingSphereCenter,
-    Glw.WalkNav.CameraPos) <=
+    (Glw.Camera As TWalkCamera).CameraPos) <=
       Sqr(Scene.FogNode.FdVisibilityRange.Value * Scene.FogDistanceScaling +
         Sqrt(Shape.BoundingSphereRadiusSqr));
 end;
@@ -84,7 +84,7 @@ begin
 
   if Scene.Attributes.UseFog then
     Scene.Render(@TFogVisibilityTester(nil).Test, tgAll) else
-    Scene.RenderFrustum(Glw.WalkNav.Frustum, tgAll);
+    Scene.RenderFrustum(Glw.Camera.Frustum, tgAll);
 
   Writeln(Format('Rendered Shapes: %d / %d',
     [ Scene.LastRender_RenderedShapesCount,
@@ -127,7 +127,7 @@ procedure Resize(glwin: TGLWindow);
     ProjectionMatrix: TMatrix4f;
   begin
    glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
-   Glw.WalkNav.ProjectionMatrix := ProjectionMatrix;
+   Glw.Camera.ProjectionMatrix := ProjectionMatrix;
   end;
 
 begin
@@ -180,7 +180,7 @@ begin
 
   { init Glw.Camera }
   Glw.Camera := TWalkCamera.Create(Glw);
-  Glw.WalkNav.Init(CamPos,
+  (Glw.Camera As TWalkCamera).Init(CamPos,
     VectorAdjustToLength(CamDir, Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
     CamUp, GravityUp,
     0.0, 0.0 { unused, we don't use Gravity here });
@@ -189,7 +189,7 @@ begin
   if IsEmptyBox3d(Scene.BoundingBox) then
    CameraRadius := 1.0 { any non-zero dummy value } else
    CameraRadius := Box3dAvgSize(Scene.BoundingBox) * 0.01;
-  Glw.WalkNav.OnMoveAllowed := @TDummy(nil).MoveAllowed;
+  (Glw.Camera As TWalkCamera).OnMoveAllowed := @TDummy(nil).MoveAllowed;
 
   { allow the scene to use it's own lights }
   Scene.Attributes.UseLights := true;

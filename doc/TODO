@@ -15,9 +15,6 @@ view3dscene 3.5 blockers:
 Better Lazarus integration:
 (Some before view3dscene 3.5, some probably for later.)
 
-* Remove ExamineNav, WalkNav. Not only names are now outdated (should
-  be ExamineCamera, WalkCamera), but also they were confusing?
-
 * Rename CameraPos/Dir/Up to normal Position, Direction, Up. Follows GLScene
   and good naming practices (since we're breaking things anyway :) ).
 
@@ -44,7 +41,7 @@ Better Lazarus integration:
 
 * Use TVRMLGLAnimation/TVRMLGLScene on Glw.Controls in more programs:
   castle? simple_view_model? They all should now be able to trivially add Scene to Controls to make it interactive?
-  Hm, not yet fully (integration with navigator is still not so trivial.)
+  Hm, not yet fully (integration with camera is still not so trivial.)
 
 * TSceneManager fitting into controls:
 
@@ -62,14 +59,14 @@ Better Lazarus integration:
 
     This also allows to keep ShadowVolumesPossible value in SceneManager.
 
-  * Use TVRMLScene.Navigator property more, setting this should give more instant integration of navigator with the scene.
-    For example, remake CreateNavigator, ViewerChanged, NavigatorSetViewpoint, GLProjection etc.
+  * Use TVRMLScene.Camera property more, setting this should give more instant integration of camera with the scene.
+    For example, remake CreateCamera, ViewerChanged, CameraSetViewpoint, GLProjection etc.
 
-    Also, maybe automatically bind navigator collision-detection callbacks to use our octree?
+    Also, maybe automatically bind camera collision-detection callbacks to use our octree?
 
     Hm, this last point is definitely the job for TSceneManager, not TVRML[GL]Scene/Animation, as in the future we would like to have some T3DControl that is just a "translated" other T3DControl, like TVRMLScene/Animation. Following castle's approach to level objects.
-    So Navigator 3d coords and scene/animation 3d coords may not live in the same 3d space.
-    Maybe this is an argument to remove Navigator altogether from TVRMLScene/Animation? Only TSceneManager should know Navigator, as a central navigator for 3d scene.
+    So Camera 3d coords and scene/animation 3d coords may not live in the same 3d space.
+    Maybe this is an argument to remove Camera altogether from TVRMLScene/Animation? Only TSceneManager should know Camera, as a central camera for 3d scene.
 
   * Make TSceneManager a TUIControl also.
 
@@ -107,8 +104,8 @@ Better Lazarus integration:
 
   For cameras generally, what Init method takes should be settable.
   For cameras generally, Input_Xxx properties.
-  TWalkNavigator: CameraInitialPos/Dir/Up (how are settable from IDE?)
-  TExamineNavigator: ModelBox (how are settable from IDE?)
+  TWalkCamera: CameraInitialPos/Dir/Up (how are settable from IDE?)
+  TExamineCamera: ModelBox (how are settable from IDE?)
   Gravity, CameraRadius, CameraPreferredHeight, OnMoveAllowed, OnGetCameraHeight?
 
 - make icons for our components.

@@ -216,8 +216,8 @@ begin
 
   if Camera is TWalkCamera then
   begin
-    WalkNav.OnMoveAllowed := @MoveAllowed;
-    WalkNav.OnGetCameraHeight := @GetCameraHeight;
+    (Camera as TWalkCamera).OnMoveAllowed := @MoveAllowed;
+    (Camera as TWalkCamera).OnGetCameraHeight := @GetCameraHeight;
   end;
 
   { prepare for events procesing (although we let the decision whether

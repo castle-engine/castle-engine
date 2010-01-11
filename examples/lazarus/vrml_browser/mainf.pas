@@ -150,6 +150,8 @@ begin
 end;
 
 procedure TMain.MenuMouseLookToggleClick(Sender: TObject);
+var
+  Walk: TWalkCamera;
 begin
   { TODO: for this to really work Ok, for newly loaded scenes we should
     also set their MouseLook and inputs, otherwise MouseLook and menu checked
@@ -157,20 +159,21 @@ begin
 
   if Browser.Camera is TWalkCamera then
   begin
-    Browser.WalkNav.MouseLook := (Sender as TMenuItem).Checked;
+    Walk := TWalkCamera(Browser.Camera);
+    Walk.MouseLook := (Sender as TMenuItem).Checked;
 
-    if Browser.WalkNav.MouseLook then
+    if Walk.MouseLook then
     begin
-      Browser.WalkNav.Input_LeftStrafe.AssignFromDefault(Browser.WalkNav.Input_LeftRot);
-      Browser.WalkNav.Input_RightStrafe.AssignFromDefault(Browser.WalkNav.Input_RightRot);
-      Browser.WalkNav.Input_LeftRot.AssignFromDefault(Browser.WalkNav.Input_LeftStrafe);
-      Browser.WalkNav.Input_RightRot.AssignFromDefault(Browser.WalkNav.Input_RightStrafe);
+      Walk.Input_LeftStrafe.AssignFromDefault(Walk.Input_LeftRot);
+      Walk.Input_RightStrafe.AssignFromDefault(Walk.Input_RightRot);
+      Walk.Input_LeftRot.AssignFromDefault(Walk.Input_LeftStrafe);
+      Walk.Input_RightRot.AssignFromDefault(Walk.Input_RightStrafe);
     end else
     begin
-      Browser.WalkNav.Input_LeftStrafe.MakeDefault;
-      Browser.WalkNav.Input_RightStrafe.MakeDefault;
-      Browser.WalkNav.Input_LeftRot.MakeDefault;
-      Browser.WalkNav.Input_RightRot.MakeDefault;
+      Walk.Input_LeftStrafe.MakeDefault;
+      Walk.Input_RightStrafe.MakeDefault;
+      Walk.Input_LeftRot.MakeDefault;
+      Walk.Input_RightRot.MakeDefault;
     end;
   end;
 end;
@@ -244,6 +247,7 @@ end;
 procedure TMain.ButtonChangeCameraClick(Sender: TObject);
 var
   Pos, Dir, Up: TVector3Single;
+  Walk: TWalkCamera;
 begin
   Pos := Vector3Single(
     StrToFloat(EditPositionX.Text),
@@ -260,21 +264,23 @@ begin
     StrToFloat(EditUpY.Text),
     StrToFloat(EditUpZ.Text));
 
-  { Length of direction vector affects speed.
-    For simplicity, we don't allow user to change this here
-    (although keys +/- do this in Walk mode), we keep previous CameraDir
-    length. }
-  VectorAdjustToLengthTo1st(Dir, VectorLen(Browser.WalkNav.CameraDir));
-
   { First convert all to float. Then set Camera properties.
     This way in case of exception in StrToFloat, previous
     Camera properties remain OK. }
 
   if Browser.Camera is TWalkCamera then
   begin
-    Browser.WalkNav.CameraPos := Pos;
-    Browser.WalkNav.CameraDir := Dir;
-    Browser.WalkNav.CameraUp := Up;
+    Walk := TWalkCamera(Browser.Camera);
+
+    { Length of direction vector affects speed.
+      For simplicity, we don't allow user to change this here
+      (although keys +/- do this in Walk mode), we keep previous CameraDir
+      length. }
+    VectorAdjustToLengthTo1st(Dir, VectorLen(Walk.CameraDir));
+
+    Walk.CameraPos := Pos;
+    Walk.CameraDir := Dir;
+    Walk.CameraUp := Up;
   end else
     MessageDlg('Setting camera properties in EXAMINE navigation not implemented.',
       mtError, [mbOk], 0);

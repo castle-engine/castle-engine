@@ -90,7 +90,7 @@ procedure SetApproxCurve; forward;
   Creates new PreciseCurve,
   does SetApproxCurve,
   then (because PreciseCurve.BoundingBox changed)
-    updates Glw.ExamineNav.Init and does Glw.EventResize.
+    updates Glw.Camera.Init and does Glw.EventResize.
 
   Glw.PostRedisplay;
 
@@ -106,7 +106,7 @@ begin
     NewXFunction, NewYFunction, NewZFunction, TVariable);
   SetApproxCurve;
 
-  Glw.ExamineNav.Init(PreciseCurve.BoundingBox);
+  (Glw.Camera as TExamineCamera).Init(PreciseCurve.BoundingBox);
   Glw.EventResize;
 
   Glw.PostRedisplay;
@@ -428,7 +428,7 @@ begin
 
     { init Glw.Camera }
     Glw.Camera := TExamineCamera.Create(Glw);
-    { Glw.ExamineNav.Init will be called in SetPreciseCurve }
+    { (Glw.Camera as TExamineCamera).Init will be called in SetPreciseCurve }
 
     { init PreciseCurve }
     SetPreciseCurve(

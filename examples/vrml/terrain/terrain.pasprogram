@@ -362,12 +362,12 @@ begin
 
   try
     Glw.Camera := TExamineCamera.Create(Glw);
-    Glw.ExamineNav.Init(Box3d(
+    (Glw.Camera as TExamineCamera).Init(Box3d(
       Vector3Single(        0,         0, -ScaleHeight),
       Vector3Single(ScaleSize, ScaleSize,  ScaleHeight)));
 
     (*
-    Glw.WalkNav.Init(Vector3Single(
+    (Glw.Camera As TWalkCamera).Init(Vector3Single(
       ScaleSize * 0.5,
       ScaleSize * 0.5,
       ScaleHeight * ...notset.Height(0.5, 0.5)) { pos },

@@ -498,7 +498,7 @@ begin
           { refresh projection matrix, since Scene.BoundingBox changed }
           Glwin.EventResize;
           { reinit camera, since Scene.BoundingBox changed }
-          Glw.ExamineNav.Init(Scene.BoundingBox);
+          (Glw.Camera as TExamineCamera).Init(Scene.BoundingBox);
         end;
       end;
     12: Glwin.Close;
@@ -588,7 +588,7 @@ begin
 
     { init Glw.Camera }
     Glw.Camera := TExamineCamera.Create(Glw);
-    Glw.ExamineNav.Init(Scene.BoundingBox);
+    (Glw.Camera as TExamineCamera).Init(Scene.BoundingBox);
 
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;

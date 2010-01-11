@@ -137,9 +137,9 @@ begin
 
     { init Glw.Camera }
     Glw.Camera := TExamineCamera.Create(Glw);
-    Glw.ExamineNav.Init(Scene.BoundingBox);
+    (Glw.Camera as TExamineCamera).Init(Scene.BoundingBox);
     { set more interesting view by default }
-    Glw.ExamineNav.Rotations := QuatFromAxisAngle(
+    (Glw.Camera as TExamineCamera).Rotations := QuatFromAxisAngle(
       Normalized(Vector3Single(1, 1, 0)), Pi/4);
 
     Glw.AutoRedisplay := true;

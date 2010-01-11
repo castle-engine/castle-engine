@@ -624,11 +624,11 @@ begin
 
   Glw.Camera := TExamineCamera.Create(Glw);
   Glw.Camera.OnVisibleChange := @Dummy.VisibleChange;
-  Glw.ExamineNav.Init(Box3d(Vector3Single(0, 0, -1),
+  (Glw.Camera as TExamineCamera).Init(Box3d(Vector3Single(0, 0, -1),
                              Vector3Single(1, 1,  1)));
   { conflicts with our MouseDown / MouseMove }
-  Glw.ExamineNav.MouseNavigation := false;
-  Glw.ExamineNav.Input_StopRotating.MouseButtonUse := false;
+  (Glw.Camera as TExamineCamera).MouseNavigation := false;
+  (Glw.Camera as TExamineCamera).Input_StopRotating.MouseButtonUse := false;
 
   Glw.OnInit := @Init;
   Glw.OnClose := @Close;

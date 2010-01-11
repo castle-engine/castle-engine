@@ -217,7 +217,7 @@ begin
 
   { init Glw.Camera }
   Glw.Camera := TExamineCamera.Create(Glw);
-  Glw.ExamineNav.Init(SceneBoundingBox);
+  (Glw.Camera as TExamineCamera).Init(SceneBoundingBox);
 
   Glw.OnInit := @InitGL;
   Glw.OnClose := @CloseGL;

@@ -227,7 +227,9 @@ begin
     Glw.MainMenu.Append(M);
 
   Glw.Camera := TExamineCamera.Create(Glw);
-  Glw.ExamineNav.Init(Box3d(Vector3Single(-1, -1, -1), Vector3Single(1, 1, 1)));
+  (Glw.Camera as TExamineCamera).Init(Box3d(
+    Vector3Single(-1, -1, -1),
+    Vector3Single(1, 1, 1)));
 
   Glw.OnInit := @Init;
   Glw.OnClose := @Close;

@@ -222,7 +222,7 @@ begin
 
     { init Glw.Camera }
     Glw.Camera := TWalkCamera.Create(Glw);
-    Glw.WalkNav.Init(CamPos, VectorAdjustToLength(CamDir,
+    (Glw.Camera As TWalkCamera).Init(CamPos, VectorAdjustToLength(CamDir,
       Box3dAvgSize(Animation.Scenes[0].BoundingBox) * 0.01*0.4), CamUp,
       GravityUp, 0.0, 0.0);
 

@@ -57,7 +57,8 @@ interface
 
 {$define read_interface}
 
-uses SysUtils, KambiUtils, KambiOpenAL, Classes, SoundFile, ParseParametersUnit;
+uses SysUtils, KambiUtils, KambiOpenAL, Classes, SoundFile, ParseParametersUnit,
+  Cameras;
 
 { ---------------------------------------------------------------------------- }
 { @section(OpenAL devices) }
@@ -381,6 +382,9 @@ procedure alSourceVector3f(SourceName: TALuint; Param: TALenum; const Value: TAL
 procedure alListenerVector3f(Param: TALenum; const Value: TALVector3f);
 procedure alListenerOrientation(const Dir, Up: TALVector3f); overload;
 procedure alListenerOrientation(const Orient: TALTwoVectors3f); overload;
+
+{ Set OpenAL listener position and orientation from currrent Camera properties. }
+procedure alListenerFromCamera(Camera: TCamera);
 
 { @groupEnd }
 
@@ -965,6 +969,18 @@ end;
 procedure alListenerOrientation(const Orient: TALTwoVectors3f);
 begin
  alListenerfv(AL_ORIENTATION, @Orient);
+end;
+
+procedure alListenerFromCamera(Camera: TCamera);
+var
+  Pos: TVector3Single;
+  { By using Orientation vector, instead of two separate Dir, Up we save
+    some time. }
+  Orientation: TALTwoVectors3f;
+begin
+  Camera.GetCameraVectors(Pos, Orientation[0], Orientation[1]);
+  alListenerVector3f(AL_POSITION, Pos);
+  alListenerfv(AL_ORIENTATION, @Orientation);
 end;
 
 { --------------------------------------------------------------------------

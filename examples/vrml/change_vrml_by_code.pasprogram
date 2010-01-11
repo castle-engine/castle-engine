@@ -131,7 +131,7 @@ begin
 
     { init Glw.Camera }
     Glw.Camera := TExamineCamera.Create(Glw);
-    Glw.ExamineNav.Init(Scene.BoundingBox);
+    (Glw.Camera as TExamineCamera).Init(Scene.BoundingBox);
 
     Glw.AutoRedisplay := true;
 

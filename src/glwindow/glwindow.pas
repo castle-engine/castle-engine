@@ -2502,19 +2502,6 @@ type
     ) }
     property Camera: TCamera read FCamera write SetCamera;
 
-    { Shortcuts for reading @link(Camera) property and casting
-      it to TExamineCamera or TWalkCamera.
-
-      When compiled with -dDEBUG they use safe "as" operator,
-      otherwise (like when compiled with  -dRELEASE) they use direct
-      type-casts for speed. In other words: make sure you only use
-      them if your camera is of the appropriate class.
-
-      @groupBegin }
-    function ExamineNav: TExamineCamera;
-    function WalkNav: TWalkCamera;
-    { @groupEnd }
-
     procedure EventInit; override;
     procedure EventKeyDown(Key: TKey; Ch: char); override;
     procedure EventKeyUp(Key: TKey; Ch: char); override;
@@ -4428,22 +4415,6 @@ begin
       if not Result then Exit;
     end;
   end;
-end;
-
-function TGLUIWindow.ExamineNav: TExamineCamera;
-begin
-  Result :=
-    {$ifdef DEBUG} Camera as TExamineCamera
-    {$else} TExamineCamera(Camera)
-    {$endif};
-end;
-
-function TGLUIWindow.WalkNav: TWalkCamera;
-begin
-  Result :=
-    {$ifdef DEBUG} Camera as TWalkCamera
-    {$else} TWalkCamera(Camera)
-    {$endif};
 end;
 
 procedure TGLUIWindow.SetCursorNonMouseLook(

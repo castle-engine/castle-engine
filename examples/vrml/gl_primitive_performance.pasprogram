@@ -357,7 +357,7 @@ begin
 
     { init Glw.Camera }
     Glw.Camera := TExamineCamera.Create(Glw);
-    Glw.ExamineNav.Init(Shape.BoundingBox);
+    (Glw.Camera as TExamineCamera).Init(Shape.BoundingBox);
 
     { to get quickier FPS update }
     Glw.Fps.SecondsToAutoReset := 2;

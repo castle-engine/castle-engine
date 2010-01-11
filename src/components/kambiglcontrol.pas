@@ -283,16 +283,6 @@ type
       or when UseControls = @false. }
     function Focus: TUIControl;
 
-    { These are shortcuts for writing
-      TExamineCamera(Camera) and TWalkCamera(Camera).
-      In DEBUG version they use operator "as" but in RELEASE
-      version they use direct type-casts for speed.
-
-      @groupBegin }
-    function ExamineNav: TExamineCamera;
-    function WalkNav: TWalkCamera;
-    { @groupEnd }
-
     { Controls listening for user input (keyboard / mouse) to this window.
 
       Usually you explicitly add / delete controls to this list.
@@ -929,22 +919,6 @@ begin
   end;
 
   inherited;
-end;
-
-function TKamOpenGLControl.ExamineNav: TExamineCamera;
-begin
-  Result :=
-    {$ifdef DEBUG} Camera as TExamineCamera
-    {$else} TExamineCamera(Camera)
-    {$endif};
-end;
-
-function TKamOpenGLControl.WalkNav: TWalkCamera;
-begin
-  Result :=
-    {$ifdef DEBUG} Camera as TWalkCamera
-    {$else} TWalkCamera(Camera)
-    {$endif};
 end;
 
 procedure TKamOpenGLControl.SetCursorNonMouseLook(
