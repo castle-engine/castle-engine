@@ -4222,7 +4222,12 @@ begin
     else raise EInternalError.Create('TControlledUIControlList.Notify action?');
   end;
 
-  Container.UpdateMouseLook;
+  { This notification may get called during FreeAndNil(FControls)
+    in TGLUIWindow.Destroy. Then FControls is already nil, and we're
+    getting remove notification for all items (as FreeAndNil first sets
+    object to nil). Testcase: lets_take_a_walk exit. }
+  if Container.FControls <> nil then
+    Container.UpdateMouseLook;
 end;
 
 { TGLUIWindow --------------------------------------------------------- }

@@ -735,7 +735,8 @@ begin
     else raise EInternalError.Create('TControlledUIControlList.Notify action?');
   end;
 
-  Container.UpdateMouseLook;
+  if Container.FControls <> nil then
+    Container.UpdateMouseLook;
 end;
 
 { TKamOpenGLControl --------------------------------------------------------- }
