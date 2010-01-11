@@ -40,10 +40,7 @@ uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindo
 
 var
   Glw: TGLUIWindow;
-
   Scene: TVRMLGLScene;
-  { CameraRadius is needed for collision detection }
-  CameraRadius: Single;
 
 procedure BeforeDraw(glwin: TGLWindow);
 begin
@@ -121,22 +118,8 @@ begin
 end;
 
 procedure Resize(glwin: TGLWindow);
-
-  procedure UpdateCameraProjectionMatrix;
-  var
-    ProjectionMatrix: TMatrix4f;
-  begin
-   glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
-   Glw.Camera.ProjectionMatrix := ProjectionMatrix;
-  end;
-
 begin
- glViewport(0, 0, glwin.Width, glwin.Height);
- ProjectionGLPerspective(45.0, glwin.Width/glwin.Height,
-   CameraRadius * 0.6,
-   Box3dMaxSize(Scene.BoundingBox) * 3.0);
-
- UpdateCameraProjectionMatrix;
+  Scene.GLProjection(Glw.Camera, Scene.BoundingBox, Glwin.Width, Glwin.Height);
 end;
 
 type
@@ -151,13 +134,10 @@ class function TDummy.MoveAllowed(Camera: TWalkCamera;
   const BecauseOfGravity: boolean): boolean;
 begin
  Result := Scene.OctreeCollisions.MoveAllowed(
-   Camera.CameraPos, ProposedNewPos, NewPos, CameraRadius,
+   Camera.CameraPos, ProposedNewPos, NewPos, Camera.CameraRadius,
    BecauseOfGravity, Scene.BoundingBox, Camera.GravityUp);
 end;
 
-var
-  //i: Integer;
-  CamPos, CamDir, CamUp, GravityUp: TVector3Single;
 begin
  Glw := TGLUIWindow.Create(Application);
 
@@ -176,19 +156,8 @@ begin
   Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
 
-  Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
-
   { init Glw.Camera }
-  Glw.Camera := TWalkCamera.Create(Glw);
-  (Glw.Camera As TWalkCamera).Init(CamPos,
-    VectorAdjustToLength(CamDir, Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
-    CamUp, GravityUp,
-    0.0, 0.0 { unused, we don't use Gravity here });
-
-  { init collision detection }
-  if IsEmptyBox3d(Scene.BoundingBox) then
-   CameraRadius := 1.0 { any non-zero dummy value } else
-   CameraRadius := Box3dAvgSize(Scene.BoundingBox) * 0.01;
+  Glw.Camera := Scene.CreateCamera(Glw, 'FLY') as TWalkCamera;
   (Glw.Camera As TWalkCamera).OnMoveAllowed := @TDummy(nil).MoveAllowed;
 
   { allow the scene to use it's own lights }

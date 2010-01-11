@@ -21,10 +21,6 @@ Better Lazarus integration:
 * Let RenderState use some Camera reference, maybe make TSimpleCamera to avoid
   overloading it with full camera props for temporary camera settings?
 
-* demo_animation.pasprogram modernize - use CreateCamera, GLProjection
-  Also fog_culling.
-  Hm, grep for GetPerspectiveViewpoint, GetViewpoint?
-
 * TShadowVolumes better:
   - as TUIControl, to receive GLContextInit/Close?
   - Or just hide TShadowVolumes inside SceneManager?
@@ -72,6 +68,15 @@ Better Lazarus integration:
 
   * At the end: we'll have to decide should TVRMLGLScene / TVRMLGLAnimation remain as TUIControl,
     or should we force user to using TSceneManager always?
+
+  * Hm, also CreateCamera should be in TSceneManager?
+    To take as bounding box (for examine navigator) sum of bboxes?
+    E.g. currently demo_animation on jagged_animation starts with bbox
+    for raptor, without capturing bbox for whole anim (BoundingBoxSum).
+
+  Suggests TSceneManager.Camera field, that automatically ties
+  scene/animation<->camera stuff. And MainScene, that will be used
+  for VRML/X3D bindable nodes for the scene (NavigationInfo, Viewpoint etc.).
 
 * Make a news item about all improvements, started in www/TODO,
   maybe make a few screenshots how to easily use it from Lazarus?

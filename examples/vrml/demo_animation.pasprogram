@@ -102,10 +102,8 @@ end;
 
 procedure Resize(glwin: TGLWindow);
 begin
-  glViewport(0, 0, glwin.Width, glwin.Height);
-  ProjectionGLPerspective(45.0, glwin.Width/glwin.Height,
-    Box3dMaxSize(Animation.Scenes[0].BoundingBox) * 0.05,
-    Box3dMaxSize(Animation.Scenes[0].BoundingBox) * 10.0);
+  Animation.GLProjection(Glw.Camera, Animation.BoundingBoxSum,
+    Glwin.Width, Glwin.Height);
 end;
 
 procedure KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
@@ -189,8 +187,6 @@ const
     end;
   end;
 
-var
-  CamPos, CamDir, CamUp, GravityUp: TVector3Single;
 begin
   Glw := TGLUIWindow.Create(Application);
 
@@ -216,15 +212,8 @@ begin
     if WasParam_AnimTimeBackwards then
       Animation.TimeBackwards := Param_AnimTimeBackwards;
 
-    { get camera from 1st scene in Animation }
-    Animation.Scenes[0].GetPerspectiveViewpoint(CamPos, CamDir, CamUp,
-      GravityUp);
-
     { init Glw.Camera }
-    Glw.Camera := TWalkCamera.Create(Glw);
-    (Glw.Camera As TWalkCamera).Init(CamPos, VectorAdjustToLength(CamDir,
-      Box3dAvgSize(Animation.Scenes[0].BoundingBox) * 0.01*0.4), CamUp,
-      GravityUp, 0.0, 0.0);
+    Glw.Camera := Animation.Scenes[0].CreateCamera(Glw);
 
     ProgressGLInterface.Window := Glw;
     Progress.UserInterface := ProgressGLInterface;

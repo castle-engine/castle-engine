@@ -623,7 +623,6 @@ end;
 { main ----------------------------------------------------------------------- }
 
 var
-  CamPos, CamDir, CamUp, GravityUp: TVector3Single;
   LightSetVrmlName: string;
   SceneVrmlName: string;
   ShadowCasterVrmlName: string;
@@ -690,10 +689,8 @@ begin
     ShadowCasterNav.Input_ScaleSmaller.Character := #0;
 
     { init SceneNav }
-    SceneNav := TWalkCamera.Create(Glw);
-    Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
-    VectorAdjustToLengthTo1st(CamDir, Box3dAvgSize(SceneBoundingBox)*0.02);
-    SceneNav.Init(CamPos, CamDir, CamUp, GravityUp, 0.0, 0.0);
+    SceneNav := Scene.CreateCamera(Glw, 'FLY') as TWalkCamera;
+    SceneNav.MoveHorizontalSpeed := 10;
 
     { use both cameras simultaneously }
     Glw.Controls.Add(SceneNav);
