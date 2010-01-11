@@ -161,15 +161,15 @@ begin
   case C of
     'c': begin
            Writeln(Format('%f %f %f   %f %f %f   %f %f %f',
-             [ (Glw.Camera As TWalkCamera).CameraPos[0],
-               (Glw.Camera As TWalkCamera).CameraPos[1],
-               (Glw.Camera As TWalkCamera).CameraPos[2],
-               (Glw.Camera As TWalkCamera).CameraDir[0],
-               (Glw.Camera As TWalkCamera).CameraDir[1],
-               (Glw.Camera As TWalkCamera).CameraDir[2],
-               (Glw.Camera As TWalkCamera).CameraUp[0],
-               (Glw.Camera As TWalkCamera).CameraUp[1],
-               (Glw.Camera As TWalkCamera).CameraUp[2] ]));
+             [ (Glw.Camera As TWalkCamera).Position[0],
+               (Glw.Camera As TWalkCamera).Position[1],
+               (Glw.Camera As TWalkCamera).Position[2],
+               (Glw.Camera As TWalkCamera).Direction[0],
+               (Glw.Camera As TWalkCamera).Direction[1],
+               (Glw.Camera As TWalkCamera).Direction[2],
+               (Glw.Camera As TWalkCamera).Up[0],
+               (Glw.Camera As TWalkCamera).Up[1],
+               (Glw.Camera As TWalkCamera).Up[2] ]));
          end;
     'h': CameraHome;
     's': CameraScene;

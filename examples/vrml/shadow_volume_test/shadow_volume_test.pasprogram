@@ -168,7 +168,7 @@ procedure Draw(glwin: TGLWindow);
   procedure RenderFrontShadowQuads;
   begin
     ShadowTests.RenderFrontShadowQuads(ShadowCaster,
-      MainLightPosition, SceneNav.CameraPos, ShadowCasterNav.Matrix);
+      MainLightPosition, SceneNav.Position, ShadowCasterNav.Matrix);
   end;
 
   procedure RenderBackShadowQuads;
@@ -501,11 +501,11 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
 
   procedure SetViewpointForWholeScene;
   var
-    CameraPos, CameraDir, CameraUp, GravityUp: TVector3Single;
+    Position, Direction, Up, GravityUp: TVector3Single;
   begin
     CameraViewpointForWholeScene(SceneBoundingBox, 2,
-      CameraPos, CameraDir, CameraUp, GravityUp);
-    SceneNav.Init(CameraPos, CameraDir, CameraUp, GravityUp, 0.0, 0.0);
+      Position, Direction, Up, GravityUp);
+    SceneNav.Init(Position, Direction, Up, GravityUp, 0.0, 0.0);
   end;
 
 var
@@ -525,9 +525,9 @@ begin
     10, 11:
       begin
         Writeln(MakeVRMLCameraStr(MenuItem.IntData - 9,
-          SceneNav.CameraPos,
-          SceneNav.CameraDir,
-          SceneNav.CameraUp,
+          SceneNav.Position,
+          SceneNav.Direction,
+          SceneNav.Up,
           SceneNav.GravityUp));
       end;
     20:

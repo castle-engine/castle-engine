@@ -329,7 +329,7 @@ begin
   if Scene.OctreeCollisions <> nil then
   begin
     Result := Scene.OctreeCollisions.MoveAllowed(
-      ACamera.CameraPos, ProposedNewPos, NewPos, ACamera.CameraRadius);
+      ACamera.Position, ProposedNewPos, NewPos, ACamera.CameraRadius);
   end else
   begin
     Result := true;
@@ -350,7 +350,7 @@ begin
   if Scene.OctreeCollisions <> nil then
   begin
     Scene.OctreeCollisions.GetCameraHeight(
-      ACamera.CameraPos,
+      ACamera.Position,
       ACamera.GravityUp,
       IsAboveTheGround, SqrHeightAboveTheGround, GroundItem,
       nil, nil);

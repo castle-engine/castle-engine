@@ -274,13 +274,13 @@ begin
 
     { Length of direction vector affects speed.
       For simplicity, we don't allow user to change this here
-      (although keys +/- do this in Walk mode), we keep previous CameraDir
+      (although keys +/- do this in Walk mode), we keep previous Direction
       length. }
-    VectorAdjustToLengthTo1st(Dir, VectorLen(Walk.CameraDir));
+    VectorAdjustToLengthTo1st(Dir, VectorLen(Walk.Direction));
 
-    Walk.CameraPos := Pos;
-    Walk.CameraDir := Dir;
-    Walk.CameraUp := Up;
+    Walk.Position  := Pos;
+    Walk.Direction := Dir;
+    Walk.Up        := Up;
   end else
     MessageDlg('Setting camera properties in EXAMINE navigation not implemented.',
       mtError, [mbOk], 0);

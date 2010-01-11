@@ -65,3 +65,6 @@ zero
 Frame
 Color
 Screen
+direction
+up
+camera

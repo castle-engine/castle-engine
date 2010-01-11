@@ -45,20 +45,20 @@ const
   { @groupEnd }
 
 { Calculate sensible camera configuration to see whole scene
-  in the Box. WantedCameraUp may be only 1 (+Y) or 2 (+Z) now. }
+  in the Box. WantedUp may be only 1 (+Y) or 2 (+Z) now. }
 procedure CameraViewpointForWholeScene(const Box: TBox3d;
-  const WantedCameraUp: Integer;
-  out CameraPos, CameraDir, CameraUp, GravityUp: TVector3Single);
+  const WantedUp: Integer;
+  out Position, Direction, Up, GravityUp: TVector3Single);
 
 { Constructs string with VRML node defining camera with given
   properties. }
 function MakeVRMLCameraStr(Version: TVRMLCameraVersion;
-  const CameraPos, CameraDir, CameraUp, GravityUp: TVector3Single): string;
+  const Position, Direction, Up, GravityUp: TVector3Single): string;
 
 { Constructs TVRMLNode defining camera with given properties. }
 function MakeVRMLCameraNode(Version: TVRMLCameraVersion;
   const WWWBasePath: string;
-  const CameraPos, CameraDir, CameraUp, GravityUp: TVector3Single): TVRMLNode;
+  const Position, Direction, Up, GravityUp: TVector3Single): TVRMLNode;
 
 { Convert camera direction and up vectors into VRML "orientation" vector.
 
@@ -179,32 +179,32 @@ begin
 end;
 
 procedure CameraViewpointForWholeScene(const Box: TBox3d;
-  const WantedCameraUp: Integer;
-  out CameraPos, CameraDir, CameraUp, GravityUp: TVector3Single);
+  const WantedUp: Integer;
+  out Position, Direction, Up, GravityUp: TVector3Single);
 var
   AvgSize: Single;
 begin
   if IsEmptyBox3d(Box) then
   begin
-    CameraPos := StdVRMLCamPos[1];
-    CameraDir := StdVRMLCamDir;
-    CameraUp := StdVRMLCamUp;
+    Position  := StdVRMLCamPos[1];
+    Direction := StdVRMLCamDir;
+    Up        := StdVRMLCamUp;
   end else
   begin
     AvgSize := Box3dAvgSize(Box);
-    CameraPos[0] := Box[0, 0] - AvgSize;
-    CameraPos[1] := (Box[0, 1] + Box[1, 1]) / 2;
-    CameraPos[2] := (Box[0, 2] + Box[1, 2]) / 2;
-    CameraDir := UnitVector3Single[0];
-    CameraUp := UnitVector3Single[WantedCameraUp];
+    Position[0] := Box[0, 0] - AvgSize;
+    Position[1] := (Box[0, 1] + Box[1, 1]) / 2;
+    Position[2] := (Box[0, 2] + Box[1, 2]) / 2;
+    Direction := UnitVector3Single[0];
+    Up := UnitVector3Single[WantedUp];
   end;
 
   { Nothing more intelligent to do with GravityUp is possible... }
-  GravityUp := CameraUp;
+  GravityUp := Up;
 end;
 
 function MakeVRMLCameraStr(Version: TVRMLCameraVersion;
-  const CameraPos, CameraDir, CameraUp, GravityUp: TVector3Single): string;
+  const Position, Direction, Up, GravityUp: TVector3Single): string;
 const
   UntransformedViewpoint: array [TVRMLCameraVersion] of string = (
     'PerspectiveCamera {' +nl+
@@ -246,8 +246,8 @@ begin
     '# direction %s' +nl+
     '# up %s' +nl+
     '# gravityUp %s' + nl,
-    [ VectorToRawStr(CameraDir),
-      VectorToRawStr(CameraUp),
+    [ VectorToRawStr(Direction),
+      VectorToRawStr(Up),
       VectorToRawStr(GravityUp) ]);
 
   RotationVectorForGravity := VectorProduct(StdVRMLGravityUp, GravityUp);
@@ -258,8 +258,8 @@ begin
     Result := Result +
       Format(
         UntransformedViewpoint[Version],
-        [ VectorToRawStr(CameraPos),
-          VectorToRawStr( CamDirUp2Orient(CameraDir, CameraUp) ) ]);
+        [ VectorToRawStr(Position),
+          VectorToRawStr( CamDirUp2Orient(Direction, Up) ) ]);
   end else
   begin
     { Then we must transform Viewpoint node, in such way that
@@ -269,28 +269,28 @@ begin
     Result := Result +
       Format(
         TransformedViewpoint[Version],
-        [ VectorToRawStr(CameraPos),
+        [ VectorToRawStr(Position),
           VectorToRawStr(RotationVectorForGravity),
           FloatToRawStr(AngleForGravity),
           { I want
             1. standard VRML dir/up vectors
             2. rotated by orientation
             3. rotated around RotationVectorForGravity
-            will give MatrixWalker.CameraDir/Up.
+            will give MatrixWalker.Direction/Up.
             CamDirUp2Orient will calculate the orientation needed to
             achieve given up/dir vectors. So I have to pass there
-            MatrixWalker.CameraDir/Up *already rotated negatively
+            MatrixWalker.Direction/Up *already rotated negatively
             around RotationVectorForGravity*. }
           VectorToRawStr( CamDirUp2Orient(
-            RotatePointAroundAxisRad(-AngleForGravity, CameraDir, RotationVectorForGravity),
-            RotatePointAroundAxisRad(-AngleForGravity, CameraUp , RotationVectorForGravity)
+            RotatePointAroundAxisRad(-AngleForGravity, Direction, RotationVectorForGravity),
+            RotatePointAroundAxisRad(-AngleForGravity, Up       , RotationVectorForGravity)
             )) ]);
   end;
 end;
 
 function MakeVRMLCameraNode(Version: TVRMLCameraVersion;
   const WWWBasePath: string;
-  const CameraPos, CameraDir, CameraUp, GravityUp: TVector3Single): TVRMLNode;
+  const Position, Direction, Up, GravityUp: TVector3Single): TVRMLNode;
 var
   RotationVectorForGravity: TVector3Single;
   AngleForGravity: Single;
@@ -310,8 +310,8 @@ begin
       2: ViewpointNode := TNodeViewpoint.Create('', '');
       else raise EInternalError.Create('MakeVRMLCameraNode Version incorrect');
     end;
-    ViewpointNode.Position.Value := CameraPos;
-    ViewpointNode.FdOrientation.Value := CamDirUp2Orient(CameraDir, CameraUp);
+    ViewpointNode.Position.Value := Position;
+    ViewpointNode.FdOrientation.Value := CamDirUp2Orient(Direction, Up);
     Result := ViewpointNode;
   end else
   begin
@@ -324,18 +324,18 @@ begin
       1. standard VRML dir/up vectors
       2. rotated by orientation
       3. rotated around RotationVectorForGravity
-      will give MatrixWalker.CameraDir/Up.
+      will give MatrixWalker.Direction/Up.
       CamDirUp2Orient will calculate the orientation needed to
       achieve given up/dir vectors. So I have to pass there
-      MatrixWalker.CameraDir/Up *already rotated negatively
+      MatrixWalker.Direction/Up *already rotated negatively
       around RotationVectorForGravity*. }
     Orientation := CamDirUp2Orient(
-      RotatePointAroundAxisRad(-AngleForGravity, CameraDir, RotationVectorForGravity),
-      RotatePointAroundAxisRad(-AngleForGravity, CameraUp , RotationVectorForGravity));
+      RotatePointAroundAxisRad(-AngleForGravity, Direction, RotationVectorForGravity),
+      RotatePointAroundAxisRad(-AngleForGravity, Up       , RotationVectorForGravity));
     case Version of
       1: begin
            Transform_1 := TNodeTransform_1.Create('', '');
-           Transform_1.FdTranslation.Value := CameraPos;
+           Transform_1.FdTranslation.Value := Position;
            Transform_1.FdRotation.Value := Rotation;
 
            ViewpointNode := TNodePerspectiveCamera.Create('', '');
@@ -351,7 +351,7 @@ begin
 
       2: begin
            Transform_2 := TNodeTransform_2.Create('', '');
-           Transform_2.FdTranslation.Value := CameraPos;
+           Transform_2.FdTranslation.Value := Position;
            Transform_2.FdRotation.Value := Rotation;
 
            ViewpointNode := TNodeViewpoint.Create('', '');

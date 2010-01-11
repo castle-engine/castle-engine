@@ -62,7 +62,7 @@ begin
     If there is no collision than we don't have to render given Shape. }
   Result := PointsDistanceSqr(
     Shape.BoundingSphereCenter,
-    (Glw.Camera As TWalkCamera).CameraPos) <=
+    (Glw.Camera As TWalkCamera).Position) <=
       Sqr(Scene.FogNode.FdVisibilityRange.Value * Scene.FogDistanceScaling +
         Sqrt(Shape.BoundingSphereRadiusSqr));
 end;
@@ -134,7 +134,7 @@ class function TDummy.MoveAllowed(Camera: TWalkCamera;
   const BecauseOfGravity: boolean): boolean;
 begin
  Result := Scene.OctreeCollisions.MoveAllowed(
-   Camera.CameraPos, ProposedNewPos, NewPos, Camera.CameraRadius,
+   Camera.Position, ProposedNewPos, NewPos, Camera.CameraRadius,
    BecauseOfGravity, Scene.BoundingBox, Camera.GravityUp);
 end;
 

@@ -43,7 +43,7 @@ type
   3. (not to mention that this renders all edges, not just silhouette edges) }
 
 { RenderFrontShadowQuads
-  renders only quads front facing CameraPos,
+  renders only quads front facing Position,
   RenderBackShadowQuads renders the rest of the quads.
 
   Uses TrianglesListShadowCasters (so you may prefer to prepare it
@@ -68,7 +68,7 @@ type
 procedure RenderFrontShadowQuads(
   Scene: TVRMLGLScene;
   const LightPos: TVector4Single;
-  const CameraPos: TVector3Single;
+  const Position: TVector3Single;
   const TrianglesTransform: TMatrix4Single;
   SavedShadowQuads: TDynQuad4SingleArray); overload;
 
@@ -79,7 +79,7 @@ procedure RenderBackShadowQuads(
 procedure RenderFrontShadowQuads(
   Scene: TVRMLGLScene;
   const LightPos: TVector4Single;
-  const CameraPos: TVector3Single;
+  const Position: TVector3Single;
   const TrianglesTransform: TMatrix4Single); overload;
 
 procedure RenderBackShadowQuads(Scene: TVRMLGLScene); overload;
@@ -125,7 +125,7 @@ end;
 
 procedure RenderFrontShadowQuads(Scene: TVRMLGLScene;
   const LightPos: TVector4Single;
-  const CameraPos: TVector3Single;
+  const Position: TVector3Single;
   const TrianglesTransform: TMatrix4Single;
   SavedShadowQuads: TDynQuad4SingleArray);
 
@@ -136,7 +136,7 @@ procedure RenderFrontShadowQuads(Scene: TVRMLGLScene;
   { Let SQ = shadow quad constructed by extending P0 and P1 by lines
     from LightPos. POther is given here as a reference of the "inside"
     part of triangle: let P = plane formed by P0, P1 and LightPos,
-    if CameraPos is on the same side of plane P as POther then
+    if Position is on the same side of plane P as POther then
     SQ is back-facing, else SQ is front-facing.
     Let SQFront:="is SQ front facing".
     If SQFront = Front then this procedure renders SQ, else is does not. }
@@ -221,9 +221,9 @@ begin
       SQPlanes[1] := TrianglePlane(T1, T2, LightPos3);
       SQPlanes[2] := TrianglePlane(T2, T0, LightPos3);
 
-      SQFronts[0] := not PointsSamePlaneSides(T2, CameraPos, SQPlanes[0]);
-      SQFronts[1] := not PointsSamePlaneSides(T0, CameraPos, SQPlanes[1]);
-      SQFronts[2] := not PointsSamePlaneSides(T1, CameraPos, SQPlanes[2]);
+      SQFronts[0] := not PointsSamePlaneSides(T2, Position, SQPlanes[0]);
+      SQFronts[1] := not PointsSamePlaneSides(T0, Position, SQPlanes[1]);
+      SQFronts[2] := not PointsSamePlaneSides(T1, Position, SQPlanes[2]);
 
       if LightPos[3] <> 0 then
       begin
@@ -280,10 +280,10 @@ var
 procedure RenderFrontShadowQuads(
   Scene: TVRMLGLScene;
   const LightPos: TVector4Single;
-  const CameraPos: TVector3Single;
+  const Position: TVector3Single;
   const TrianglesTransform: TMatrix4Single);
 begin
-  RenderFrontShadowQuads(Scene, LightPos, CameraPos, TrianglesTransform,
+  RenderFrontShadowQuads(Scene, LightPos, Position, TrianglesTransform,
     DefaultSavedShadowQuads);
 end;
 

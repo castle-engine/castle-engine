@@ -110,7 +110,7 @@ class function THelperObj.MoveAllowed(Camera: TWalkCamera;
   const BecauseOfGravity: boolean): boolean;
 begin
   Result := Scene.OctreeCollisions.MoveAllowed(
-    Camera.CameraPos, ProposedNewPos, NewPos, Camera.CameraRadius,
+    Camera.Position, ProposedNewPos, NewPos, Camera.CameraRadius,
     BecauseOfGravity, Scene.BoundingBox, Camera.GravityUp);
 end;
 
@@ -120,7 +120,7 @@ var
   GroundItem: PVRMLTriangle;
 begin
   Scene.OctreeCollisions.GetCameraHeight(
-    Camera.CameraPos,
+    Camera.Position,
     Camera.GravityUp,
     IsAboveTheGround, SqrHeightAboveTheGround, GroundItem,
     nil, nil);

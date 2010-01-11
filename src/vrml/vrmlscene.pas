@@ -1734,7 +1734,7 @@ type
 
       This moves the camera to starting point of the viewpoint,
       updating camera's initial and current vectors
-      ([Initial]CameraPos, [Initial]CameraDir, [Initial]CameraUp, GravityUp).
+      ([Initial]Position, [Initial]Direction, [Initial]Up, GravityUp).
 
       Currently bound NavigationInfo.speed is also taken into account here.
       Camera's MoveHorizontalSpeed and MoveVerticalSpeed are updated. }
@@ -5677,9 +5677,9 @@ end;
 procedure TVRMLScene.CameraBindToViewpoint(ACamera: TCamera;
   const OnlyViewpointVectorsChanged: boolean);
 var
-  CameraPos: TVector3Single;
-  CameraDir: TVector3Single;
-  CameraUp: TVector3Single;
+  Position: TVector3Single;
+  Direction: TVector3Single;
+  Up: TVector3Single;
   GravityUp: TVector3Single;
   NavigationNode: TNodeNavigationInfo;
   WalkCamera: TWalkCamera;
@@ -5693,18 +5693,18 @@ begin
   if ViewpointStack.Top <> nil then
   begin
     (ViewpointStack.Top as TVRMLViewpointNode).GetCameraVectors(
-      CameraPos, CameraDir, CameraUp, GravityUp);
+      Position, Direction, Up, GravityUp);
   end else
   begin
-    CameraPos := StdVRMLCamPos[1];
-    CameraDir := StdVRMLCamDir;
-    CameraUp := StdVRMLCamUp;
+    Position := StdVRMLCamPos[1];
+    Direction := StdVRMLCamDir;
+    Up := StdVRMLCamUp;
     GravityUp := StdVRMLGravityUp;
   end;
 
   NavigationNode := NavigationInfoStack.Top as TNodeNavigationInfo;
 
-  { Change CameraDir length, to adjust speed.
+  { Change Direction length, to adjust speed.
     Also set MoveHorizontal/VerticalSpeed. }
 
   if NavigationNode = nil then
@@ -5713,7 +5713,7 @@ begin
       speed that should "feel sensible". We base it on CameraRadius.
       CameraRadius in turn was calculated based on
       Box3dAvgSize(SceneAnimation.BoundingBoxSum). }
-    VectorAdjustToLengthTo1st(CameraDir, ACamera.CameraRadius * 0.4);
+    VectorAdjustToLengthTo1st(Direction, ACamera.CameraRadius * 0.4);
     WalkCamera.MoveHorizontalSpeed := 1;
     WalkCamera.MoveVerticalSpeed := 1;
   end else
@@ -5721,20 +5721,20 @@ begin
   begin
     { Then user is not allowed to move at all.
 
-      CameraDir must be non-zero (we normalize it just to satisfy
-      requirement that "length of CameraDir doesn't matter" here,
+      Direction must be non-zero (we normalize it just to satisfy
+      requirement that "length of Direction doesn't matter" here,
       in case user will later increase move speed by menu anyway.
 
       So we do this is by setting MoveHorizontal/VerticalSpeed to zero.
       This is also the reason why other SetViewpointCore must change
       MoveHorizontal/VerticalSpeed to something different than zero
       (otherwise, user would be stuck with speed = 0). }
-    NormalizeTo1st(CameraDir);
+    NormalizeTo1st(Direction);
     WalkCamera.MoveHorizontalSpeed := 0;
     WalkCamera.MoveVerticalSpeed := 0;
   end else
   begin
-    VectorAdjustToLengthTo1st(CameraDir, NavigationNode.FdSpeed.Value / 50.0);
+    VectorAdjustToLengthTo1st(Direction, NavigationNode.FdSpeed.Value / 50.0);
     WalkCamera.MoveHorizontalSpeed := 1;
     WalkCamera.MoveVerticalSpeed := 1;
   end;
@@ -5746,7 +5746,7 @@ begin
     But we know we already have CameraPreferredHeight set (by CreateCamera),
     and we take into account OnlyViewpointVectorsChanged case. }
 
-  WalkCamera.SetInitialCameraLookDir(CameraPos, CameraDir, CameraUp,
+  WalkCamera.SetInitialCameraLookDir(Position, Direction, Up,
     OnlyViewpointVectorsChanged);
   WalkCamera.GravityUp := GravityUp;
   if not OnlyViewpointVectorsChanged then

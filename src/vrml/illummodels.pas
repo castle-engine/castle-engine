@@ -83,7 +83,7 @@ function VRML97LightContribution(const Light: TActiveLight;
   to PointPlaneNormal, mamy zadane Light w tej scenie i chcemy
   policzyc lokalny wplyw swiatla na punkt. Zeby uscislic :
   w przeciwienstwie do VRML97LightContribution NIE MAMY
-  - CameraPos w scenie (ani zadnego CameraDir/Up)
+  - Position w scenie (ani zadnego Direction/Up)
   - materialu z ktorego wykonany jest material.
 
   Mamy wiec wyjatkowa sytuacje. Mimo to, korzystajac z rownan oswietlenia,
@@ -131,7 +131,7 @@ function VRML97FogType(FogNode: TNodeFog): TVRMLFogType;
     See @link(TVRMLScene.FogDistanceScaling).) }
 procedure VRML97FogTo1st(
   var Color: TVector3_Single;
-  const CameraPos, VertexPos: TVector3_Single;
+  const Position, VertexPos: TVector3_Single;
   FogNode: TNodeFog; const FogDistanceScaling: Single; FogType: Integer);
 
 implementation
@@ -195,7 +195,7 @@ begin
 end;
 
 procedure VRML97FogTo1st(var Color: TVector3_Single;
-  const CameraPos, VertexPos: TVector3_Single;
+  const Position, VertexPos: TVector3_Single;
   FogNode: TNodeFog; const FogDistanceScaling: Single; FogType: Integer);
 var
   FogVisibilityRangeScaled: Single;
@@ -252,7 +252,7 @@ begin
         ApplyDistance(Distance);
     end else
     begin
-      DistanceSqr := PointsDistanceSqr(CameraPos, VertexPos);
+      DistanceSqr := PointsDistanceSqr(Position, VertexPos);
 
       if DistanceSqr >= Sqr(FogVisibilityRangeScaled - SingleEqualityEpsilon) then
         Color := FogNode.FdColor.Value else
