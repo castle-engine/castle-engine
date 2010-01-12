@@ -173,7 +173,7 @@ begin
   SceneManager.Scene.Load(ARootNode, OwnsRootNode);
 
   { initialize octrees titles }
-  SceneManager.Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
+  Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
   Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
 
   { init Camera }
