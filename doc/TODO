@@ -78,12 +78,6 @@ Better Lazarus integration:
 * make sure on vrml_browser_2d_controls mouse is properly catched before TouchSensor.
   Make some property like Mouse: on each 2d control, to allow e.g. change mouse over yellow clickable rect on vrml_browser_2d_controls?
 
-* Scene.GeometryChanged possibly cleared pointing device info by
-  PointingDeviceClear. This means that cursor must be updated.
-  TODO: call this automatically by Scene?
-
-  Fix in glwindowvrmlbrowser, kambivrmlbrowser.
-
 - Make TKamOpenGLControl.Controls list settable from the IDE,
   to allow visually adding new TUIControls there.
 

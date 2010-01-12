@@ -94,8 +94,6 @@ type
     procedure CameraVisibleChange(ACamera: TObject);
     procedure BoundViewpointChanged(Scene: TVRMLScene);
     procedure BoundViewpointVectorsChanged(Scene: TVRMLScene);
-    procedure GeometryChanged(Scene: TVRMLScene;
-      const SomeLocalGeometryChanged: boolean);
 
     procedure UpdateCursor(Sender: TObject);
   private
@@ -245,7 +243,6 @@ begin
   Scene.ResetWorldTimeAtLoad;
   Scene.OnBoundViewpointVectorsChanged := @BoundViewpointVectorsChanged;
   Scene.ViewpointStack.OnBoundChanged := @BoundViewpointChanged;
-  Scene.OnGeometryChanged := @GeometryChanged;
   Scene.OnPointingDeviceSensorsChange := @UpdateCursor;
 
   InitSceneManager;
@@ -395,15 +392,6 @@ end;
 procedure TKamVRMLBrowser.BoundViewpointVectorsChanged(Scene: TVRMLScene);
 begin
   Scene.CameraBindToViewpoint(Camera, true);
-end;
-
-procedure TKamVRMLBrowser.GeometryChanged(Scene: TVRMLScene;
-  const SomeLocalGeometryChanged: boolean);
-begin
-  { Scene.GeometryChanged possibly cleared pointing device info by
-    PointingDeviceClear. This means that cursor must be updated.
-    TODO: call this automatically by Scene? }
-  UpdateCursor(Scene);
 end;
 
 procedure TKamVRMLBrowser.SetShadowVolumesPossible(const Value: boolean);

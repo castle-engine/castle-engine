@@ -1515,7 +1515,10 @@ type
       first, causing even more events.
 
       So this method clears any references to saved OverItem and
-      PointingDeviceActiveSensor, without calling any events. }
+      PointingDeviceActiveSensor, without calling any VRML/X3D events.
+      Note that this still calls DoPointingDeviceSensorsChange
+      (making OnPointingDeviceSensorsChange event), if PointingDeviceActiveSensor /
+      PointingDeviceSensors possibly changed. }
     procedure PointingDeviceClear;
 
     { Change this to indicate whether pointing device is currently active
@@ -5095,10 +5098,19 @@ begin
 end;
 
 procedure TVRMLScene.PointingDeviceClear;
+var
+  SensorsChanged: boolean;
 begin
+  SensorsChanged :=
+    (FPointingDeviceOverItem <> nil) or
+    (FPointingDeviceActiveSensor <> nil);
+
   FPointingDeviceOverItem := nil;
   FPointingDeviceActive := false;
   FPointingDeviceActiveSensor := nil;
+
+  if SensorsChanged then
+    DoPointingDeviceSensorsChange;
 end;
 
 procedure TVRMLScene.SetPointingDeviceActive(const Value: boolean);
