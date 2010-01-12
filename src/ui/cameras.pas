@@ -2380,7 +2380,7 @@ var
   { Multiply must be +1 or -1 }
   procedure MoveHorizontal(const Multiply: Integer = 1);
   var
-    Direction: TVector3Single;
+    Dir: TVector3Single;
   var
     AJumpMultiply: Single;
   begin
@@ -2398,10 +2398,10 @@ var
     MoveHorizontalDone := true;
 
     if PreferGravityUpForMoving then
-      Direction := DirectionInGravityPlane else
-      Direction := Direction;
+      Dir := DirectionInGravityPlane else
+      Dir := Direction;
 
-    Move(VectorScale(Direction,
+    Move(VectorScale(Dir,
       MoveHorizontalSpeed * CompSpeed * 50 * Multiply * AJumpMultiply), false);
   end;
 
