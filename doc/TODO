@@ -40,8 +40,6 @@ Better Lazarus integration:
     So Camera 3d coords and scene/animation 3d coords may not live in the same 3d space.
     Maybe this is an argument to remove Camera altogether from TVRMLScene/Animation? Only TSceneManager should know Camera, as a central camera for 3d scene.
 
-  * Make TSceneManager a TUIControl also.
-
   * At the end: we'll have to decide should TVRMLGLScene / TVRMLGLAnimation remain as TUIControl,
     or should we force user to using TSceneManager always?
 
@@ -50,9 +48,26 @@ Better Lazarus integration:
     E.g. currently demo_animation on jagged_animation starts with bbox
     for raptor, without capturing bbox for whole anim (BoundingBoxSum).
 
-  Suggests TSceneManager.Camera field, that automatically ties
-  scene/animation<->camera stuff. And MainScene, that will be used
-  for VRML/X3D bindable nodes for the scene (NavigationInfo, Viewpoint etc.).
+  * TSceneManager.Camera should automatically tie
+    scene/animation<->camera stuff. And MainScene, that will be used
+    for VRML/X3D bindable nodes for the scene (NavigationInfo, Viewpoint etc.)
+    and setting projection.
+
+    TVRMLScene/Animation Camera should be removed now.
+    As well as most stuff in TVRMLScene/Animation dealing with Camera,
+    this can be better moved to TSceneManager.
+
+  * Make TVRMLScene/TVRMLAnimation descend from T3DScene (or T3DObject? T3DItem? T3DBaseItem?).
+    Make it in SceneManagerUnit.
+
+    Then unit SceneManager may be moved to ui/, should not have much more
+    deps.
+
+    And TGLUIWindow/TKamOpenGLControl may create and automatically add
+    SceneManager to Controls. This should simplify a lot of stuff,
+    especially since in new engine (almost) everything will use
+    SceneManager. Also, since SceneManager will set MainScene.GLProjection in
+    ContainerRersize, there can be only one SceneManager used at one time.
 
 * Let RenderState use some Camera reference, maybe make TSimpleCamera to avoid
   overloading it with full camera props for temporary camera settings?
