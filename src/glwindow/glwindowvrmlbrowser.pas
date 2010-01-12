@@ -82,7 +82,7 @@ type
     (file @code(../packages/components/kambivrmlbrowser.pas)). }
   TGLWindowVRMLBrowser = class(TGLUIWindow)
   private
-    FScene: TVRMLGLScene;
+    SceneManager: TSceneManager;
 
     function MoveAllowed(ACamera: TWalkCamera;
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
@@ -95,35 +95,28 @@ type
     procedure BoundViewpointVectorsChanged(Scene: TVRMLScene);
 
     procedure UpdateCursor(Sender: TObject);
-  private
-    FShadowVolumesPossible: boolean;
-    procedure SetShadowVolumesPossible(const Value: boolean);
-  private
-    FShadowVolumes: boolean;
-    FShadowVolumesDraw: boolean;
 
-    SceneManager: TSceneManager;
-    { Set all SceneManager properties. This is a temporary solution,
-      in the future initializing SceneManager properties should be integrated
-      with this unit, and generally most of this unit's functionality
-      should move to scene manager. }
-    procedure InitSceneManager;
+    function GetShadowVolumes: boolean;
+    function GetShadowVolumesDraw: boolean;
+    function GetShadowVolumesPossible: boolean;
+    procedure SetShadowVolumes(const Value: boolean);
+    procedure SetShadowVolumesDraw(const Value: boolean);
+    procedure SetShadowVolumesPossible(const Value: boolean);
   public
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
 
     { Creates new @link(Scene), with new camera and such. }
     procedure Load(const SceneFileName: string);
     procedure Load(ARootNode: TVRMLNode; const OwnsRootNode: boolean);
 
-    property Scene: TVRMLGLScene read FScene;
+    function Scene: TVRMLGLScene;
 
     procedure EventBeforeDraw; override;
     procedure EventDraw; override;
     procedure EventInit; override;
     procedure EventResize; override;
 
-    { Should we make shadow volumes possible?
+    { Should we make shadow volumes possible.
 
       This can be changed only when the context is not initialized,
       that is only when the window is currently closed.
@@ -133,32 +126,15 @@ type
       Note that the shadows will not be actually rendered until you also
       set ShadowVolumes := true. }
     property ShadowVolumesPossible: boolean
-      read FShadowVolumesPossible write SetShadowVolumesPossible default false;
+      read GetShadowVolumesPossible write SetShadowVolumesPossible default false;
 
-    { Should we render with shadow volumes?
-      You can change this at any time, to switch rendering shadows on/off.
-
-      This works only if ShadowVolumesPossible is @true.
-
-      Note that the shadow volumes algorithm makes some requirements
-      about the 3D model: it must be 2-manifold, that is have a correctly
-      closed volume. Otherwise, rendering results may be bad. You can check
-      Scene.BorderEdges.Count before using this: BorderEdges.Count = 0 means
-      that model is Ok, correct manifold.
-
-      For shadows to be actually used you still need a light source
-      marked as the main shadows light (kambiShadows = kambiShadowsMain = TRUE),
-      see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows]. }
+    { See TSceneManager.ShadowVolumes. }
     property ShadowVolumes: boolean
-      read FShadowVolumes write FShadowVolumes default false;
+      read GetShadowVolumes write SetShadowVolumes default false;
 
-    { Actually draw the shadow volumes to the color buffer, for debugging.
-      If shadows are rendered (see ShadowVolumesPossible and ShadowVolumes),
-      you can use this to actually see shadow volumes, for debug / demo
-      purposes. Shadow volumes will be rendered on top of the scene,
-      as yellow blended polygons. }
+    { See TSceneManager.ShadowVolumesDraw. }
     property ShadowVolumesDraw: boolean
-      read FShadowVolumesDraw write FShadowVolumesDraw default false;
+      read GetShadowVolumesDraw write SetShadowVolumesDraw default false;
   end;
 
 implementation
@@ -175,18 +151,10 @@ constructor TGLWindowVRMLBrowser.Create(AOwner: TComponent);
 begin
   inherited;
 
-  SceneManager := TSceneManager.Create(nil);
+  SceneManager := TSceneManager.Create(Self);
   Controls.Add(SceneManager);
 
   Load(nil, true);
-end;
-
-destructor TGLWindowVRMLBrowser.Destroy;
-begin
-  FreeAndNil(SceneManager);
-  FreeAndNil(FScene);
-  Camera.Free;
-  inherited;
 end;
 
 procedure TGLWindowVRMLBrowser.Load(const SceneFileName: string);
@@ -196,20 +164,23 @@ end;
 
 procedure TGLWindowVRMLBrowser.Load(ARootNode: TVRMLNode; const OwnsRootNode: boolean);
 begin
-  FreeAndNil(FScene);
+  { destroy Scene and Camera, we will recreate them }
+  SceneManager.Scene.Free;
+  SceneManager.Scene := nil;
   Camera.Free;
 
-  FScene := TVRMLGLScene.Create(nil);
-  FScene.Load(ARootNode, OwnsRootNode);
+  SceneManager.Scene := TVRMLGLScene.Create(Self);
+  SceneManager.Scene.Load(ARootNode, OwnsRootNode);
 
   { initialize octrees titles }
-  Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
+  SceneManager.Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
   Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
 
   { init Camera }
-  Camera := Scene.CreateCamera(nil);
+  Camera := Scene.CreateCamera(Self);
   Camera.OnVisibleChange := @CameraVisibleChange;
   Scene.Camera := Camera;
+  SceneManager.Camera := Camera;
 
   if Camera is TWalkCamera then
   begin
@@ -223,8 +194,6 @@ begin
   Scene.OnBoundViewpointVectorsChanged := @BoundViewpointVectorsChanged;
   Scene.ViewpointStack.OnBoundChanged := @BoundViewpointChanged;
   Scene.OnPointingDeviceSensorsChange := @UpdateCursor;
-
-  InitSceneManager;
 
   { Call initial ViewerChanged (this allows ProximitySensors to work
     as soon as ProcessEvent becomes true). }
@@ -245,29 +214,19 @@ begin
   end;
 end;
 
-procedure TGLWindowVRMLBrowser.InitSceneManager;
+function TGLWindowVRMLBrowser.Scene: TVRMLGLScene;
 begin
-  SceneManager.Scene := Scene;
-  SceneManager.Camera := Camera;
-  SceneManager.ShadowVolumesPossible := ShadowVolumesPossible;
-  SceneManager.ShadowVolumes := ShadowVolumes;
-  SceneManager.ShadowVolumesDraw := ShadowVolumesDraw;
-  SceneManager.ViewportX := 0;
-  SceneManager.ViewportY := 0;
-  SceneManager.ViewportWidth := Width;
-  SceneManager.ViewportHeight := Height;
+  Result := SceneManager.Scene;
 end;
 
 procedure TGLWindowVRMLBrowser.EventBeforeDraw;
 begin
-  InitSceneManager;
   SceneManager.PrepareRender;
   inherited;
 end;
 
 procedure TGLWindowVRMLBrowser.EventDraw;
 begin
-  InitSceneManager;
   SceneManager.Render;
   inherited;
 end;
@@ -353,10 +312,7 @@ begin
     here Scene <> nil. }
 
   if Scene <> nil then
-  begin
-    InitSceneManager;
     Scene.ViewerChanged(Camera, SceneManager.ViewerToChanges);
-  end;
 end;
 
 procedure TGLWindowVRMLBrowser.BoundViewpointChanged(Scene: TVRMLScene);
@@ -369,13 +325,38 @@ begin
   Scene.CameraBindToViewpoint(Camera, true);
 end;
 
+function TGLWindowVRMLBrowser.GetShadowVolumes: boolean;
+begin
+  Result := SceneManager.ShadowVolumes;
+end;
+
+procedure TGLWindowVRMLBrowser.SetShadowVolumes(const Value: boolean);
+begin
+  SceneManager.ShadowVolumes := Value;
+end;
+
+function TGLWindowVRMLBrowser.GetShadowVolumesDraw: boolean;
+begin
+  Result := SceneManager.ShadowVolumesDraw;
+end;
+
+procedure TGLWindowVRMLBrowser.SetShadowVolumesDraw(const Value: boolean);
+begin
+  SceneManager.ShadowVolumesDraw := Value;
+end;
+
+function TGLWindowVRMLBrowser.GetShadowVolumesPossible: boolean;
+begin
+  Result := SceneManager.ShadowVolumesPossible;
+end;
+
 procedure TGLWindowVRMLBrowser.SetShadowVolumesPossible(const Value: boolean);
 begin
   if not Closed then
     raise Exception.Create('You can''t change ShadowVolumesPossible ' +
       'while the context is already initialized');
-  FShadowVolumesPossible := Value;
-  if ShadowVolumesPossible then
+  SceneManager.ShadowVolumesPossible := Value;
+  if SceneManager.ShadowVolumesPossible then
     StencilBufferBits := 8 else
     StencilBufferBits := 0;
 end;

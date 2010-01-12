@@ -79,11 +79,6 @@ type
     FShadowVolumesDraw: boolean;
     SV: TShadowVolumes;
 
-    FViewportX: TGLint;
-    FViewportY: TGLint;
-    FViewportWidth: TGLsizei;
-    FViewportHeight: TGLsizei;
-
     FBackgroundWireframe: boolean;
   protected
     { Render one pass, from current (in RenderState) camera view,
@@ -117,14 +112,33 @@ type
     property Scene: TVRMLGLScene read FScene write FScene;
     property Camera: TCamera read FCamera write FCamera;
 
+    { Should we make shadow volumes possible.
+      This should indicate if OpenGL context was (possibly) initialized
+      with stencil buffer. }
     property ShadowVolumesPossible: boolean read FShadowVolumesPossible write FShadowVolumesPossible;
-    property ShadowVolumes: boolean read FShadowVolumes write FShadowVolumes;
-    property ShadowVolumesDraw: boolean read FShadowVolumesDraw write FShadowVolumesDraw;
 
-    property ViewportX: TGLint read FViewportX write FViewportX;
-    property ViewportY: TGLint read FViewportY write FViewportY;
-    property ViewportWidth: TGLsizei read FViewportWidth write FViewportWidth;
-    property ViewportHeight: TGLsizei read FViewportHeight write FViewportHeight;
+    { Should we render with shadow volumes.
+      You can change this at any time, to switch rendering shadows on/off.
+
+      This works only if ShadowVolumesPossible is @true.
+
+      Note that the shadow volumes algorithm makes some requirements
+      about the 3D model: it must be 2-manifold, that is have a correctly
+      closed volume. Otherwise, rendering results may be bad. You can check
+      Scene.BorderEdges.Count before using this: BorderEdges.Count = 0 means
+      that model is Ok, correct manifold.
+
+      For shadows to be actually used you still need a light source
+      marked as the main shadows light (kambiShadows = kambiShadowsMain = TRUE),
+      see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows]. }
+    property ShadowVolumes: boolean read FShadowVolumes write FShadowVolumes;
+
+    { Actually draw the shadow volumes to the color buffer, for debugging.
+      If shadows are rendered (see ShadowVolumesPossible and ShadowVolumes),
+      you can use this to actually see shadow volumes, for debug / demo
+      purposes. Shadow volumes will be rendered on top of the scene,
+      as yellow blended polygons. }
+    property ShadowVolumesDraw: boolean read FShadowVolumesDraw write FShadowVolumesDraw;
 
     { If yes then the scene background will be rendered wireframe,
       over the background filled with glClearColor.
@@ -160,7 +174,9 @@ procedure TSceneManager.GLContextInit;
 begin
   inherited;
 
-  {if ShadowVolumesPossible then} { or just do it always? It's harmless after all }
+  { We actually need to do it only if ShadowVolumesPossible.
+    But we can as well do it always, it's harmless (just checks some GL
+    extensions). (Otherwise we'd have to handle SetShadowVolumesPossible.) }
   SV := TShadowVolumes.Create;
   SV.InitGLContext;
 end;
@@ -283,10 +299,15 @@ end;
 
 procedure TSceneManager.Render;
 begin
+  { This assertion can break only if you misuse UseControls property, setting it
+    to false (disallowing ContainerResize), and then trying to use Render. }
+  Assert(ContainerSizeKnown, 'SceneManager did not receive ContainerResize event yet, cannnot Render');
+
   Scene.UpdateGeneratedTextures(@RenderFromView,
     Scene.WalkProjectionNear, Scene.WalkProjectionFar,
-    ViewportX, ViewportY,
-    ViewportWidth, ViewportHeight);
+    { For now assume viewport fills the whole container,
+      see ../../../doc/TODO.scene_manager_viewport }
+    0, 0, ContainerWidth, ContainerHeight);
 
   RenderState.Target := rtScreen;
   RenderState.CameraFromCameraObject(Camera);

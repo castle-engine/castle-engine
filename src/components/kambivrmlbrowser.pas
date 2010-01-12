@@ -82,8 +82,8 @@ type
     (file @code(../glwindow/glwindowvrmlbrowser.pas)). }
   TKamVRMLBrowser = class(TKamOpenGLControl)
   private
+    SceneManager: TSceneManager;
     FOnCameraChanged: TNotifyEvent;
-    FScene: TVRMLGLScene;
 
     function MoveAllowed(ACamera: TWalkCamera;
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
@@ -96,39 +96,32 @@ type
     procedure BoundViewpointVectorsChanged(Scene: TVRMLScene);
 
     procedure UpdateCursor(Sender: TObject);
-  private
-    FShadowVolumesPossible: boolean;
-    procedure SetShadowVolumesPossible(const Value: boolean);
-  private
-    FShadowVolumes: boolean;
-    FShadowVolumesDraw: boolean;
 
-    SceneManager: TSceneManager;
-    { Set all SceneManager properties. This is a temporary solution,
-      in the future initializing SceneManager properties should be integrated
-      with this unit, and generally most of this unit's functionality
-      should move to scene manager. }
-    procedure InitSceneManager;
+    function GetShadowVolumes: boolean;
+    function GetShadowVolumesDraw: boolean;
+    function GetShadowVolumesPossible: boolean;
+    procedure SetShadowVolumes(const Value: boolean);
+    procedure SetShadowVolumesDraw(const Value: boolean);
+    procedure SetShadowVolumesPossible(const Value: boolean);
   protected
     procedure DoBeforeDraw; override;
     procedure DoDraw; override;
     procedure DoGLContextInit; override;
   public
     constructor Create(AOwner :TComponent); override;
-    destructor Destroy; override;
 
     { Creates new @link(Scene), with new camera and such. }
     procedure Load(const SceneFileName: string);
     procedure Load(ARootNode: TVRMLNode; const OwnsRootNode: boolean);
 
-    property Scene: TVRMLGLScene read FScene;
+    function Scene: TVRMLGLScene;
 
     procedure Resize; override;
   published
     property OnCameraChanged: TNotifyEvent
       read FOnCameraChanged write FOnCameraChanged;
 
-    { Should we make shadow volumes possible?
+    { Should we make shadow volumes possible.
 
       This can be changed only when the context is not initialized,
       that is only when the window is currently closed.
@@ -138,32 +131,15 @@ type
       Note that the shadows will not be actually rendered until you also
       set ShadowVolumes := true. }
     property ShadowVolumesPossible: boolean
-      read FShadowVolumesPossible write SetShadowVolumesPossible default false;
+      read GetShadowVolumesPossible write SetShadowVolumesPossible default false;
 
-    { Should we render with shadow volumes?
-      You can change this at any time, to switch rendering shadows on/off.
-
-      This works only if ShadowVolumesPossible is @true.
-
-      Note that the shadow volumes algorithm makes some requirements
-      about the 3D model: it must be 2-manifold, that is have a correctly
-      closed volume. Otherwise, rendering results may be bad. You can check
-      Scene.BorderEdges.Count before using this: BorderEdges.Count = 0 means
-      that model is Ok, correct manifold.
-
-      For shadows to be actually used you still need a light source
-      marked as the main shadows light (kambiShadows = kambiShadowsMain = TRUE),
-      see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows]. }
+    { See TSceneManager.ShadowVolumes. }
     property ShadowVolumes: boolean
-      read FShadowVolumes write FShadowVolumes default false;
+      read GetShadowVolumes write SetShadowVolumes default false;
 
-    { Actually draw the shadow volumes to the color buffer, for debugging.
-      If shadows are rendered (see ShadowVolumesPossible and ShadowVolumes),
-      you can use this to actually see shadow volumes, for debug / demo
-      purposes. Shadow volumes will be rendered on top of the scene,
-      as yellow blended polygons. }
+    { See TSceneManager.ShadowVolumesDraw. }
     property ShadowVolumesDraw: boolean
-      read FShadowVolumesDraw write FShadowVolumesDraw default false;
+      read GetShadowVolumesDraw write SetShadowVolumesDraw default false;
   end;
 
 procedure Register;
@@ -194,19 +170,10 @@ constructor TKamVRMLBrowser.Create(AOwner :TComponent);
 begin
   inherited;
 
-  SceneManager := TSceneManager.Create(nil);
+  SceneManager := TSceneManager.Create(Self);
   Controls.Add(SceneManager);
 
   Load(nil, true);
-end;
-
-destructor TKamVRMLBrowser.Destroy;
-begin
-  FreeAndNil(SceneManager);
-  FreeAndNil(FScene);
-  Camera.Free;
-  Camera := nil;
-  inherited;
 end;
 
 procedure TKamVRMLBrowser.Load(const SceneFileName: string);
@@ -216,21 +183,23 @@ end;
 
 procedure TKamVRMLBrowser.Load(ARootNode: TVRMLNode; const OwnsRootNode: boolean);
 begin
-  FreeAndNil(FScene);
+  { destroy Scene and Camera, we will recreate them }
+  SceneManager.Scene.Free;
+  SceneManager.Scene := nil;
   Camera.Free;
-  Camera := nil;
 
-  FScene := TVRMLGLScene.Create(nil);
-  FScene.Load(ARootNode, OwnsRootNode);
+  SceneManager.Scene := TVRMLGLScene.Create(Self);
+  SceneManager.Scene.Load(ARootNode, OwnsRootNode);
 
   { initialize octrees titles }
   Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
   Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
 
   { init Camera }
-  Camera := Scene.CreateCamera(nil);
+  Camera := Scene.CreateCamera(Self);
   Camera.OnVisibleChange := @CameraVisibleChange;
   Scene.Camera := Camera;
+  SceneManager.Camera := Camera;
 
   if Camera is TWalkCamera then
   begin
@@ -244,8 +213,6 @@ begin
   Scene.OnBoundViewpointVectorsChanged := @BoundViewpointVectorsChanged;
   Scene.ViewpointStack.OnBoundChanged := @BoundViewpointChanged;
   Scene.OnPointingDeviceSensorsChange := @UpdateCursor;
-
-  InitSceneManager;
 
   { Call initial ViewerChanged (this allows ProximitySensors to work
     as soon as ProcessEvent becomes true). }
@@ -266,29 +233,19 @@ begin
   end;
 end;
 
-procedure TKamVRMLBrowser.InitSceneManager;
+function TKamVRMLBrowser.Scene: TVRMLGLScene;
 begin
-  SceneManager.Scene := Scene;
-  SceneManager.Camera := Camera;
-  SceneManager.ShadowVolumesPossible := ShadowVolumesPossible;
-  SceneManager.ShadowVolumes := ShadowVolumes;
-  SceneManager.ShadowVolumesDraw := ShadowVolumesDraw;
-  SceneManager.ViewportX := 0;
-  SceneManager.ViewportY := 0;
-  SceneManager.ViewportWidth := Width;
-  SceneManager.ViewportHeight := Height;
+  Result := SceneManager.Scene;
 end;
 
 procedure TKamVRMLBrowser.DoBeforeDraw;
 begin
-  InitSceneManager;
   SceneManager.PrepareRender;
   inherited;
 end;
 
 procedure TKamVRMLBrowser.DoDraw;
 begin
-  InitSceneManager;
   SceneManager.Render;
   inherited;
 end;
@@ -376,7 +333,6 @@ begin
 
   if Scene <> nil then
   begin
-    InitSceneManager;
     Scene.ViewerChanged(Camera, SceneManager.ViewerToChanges);
   end;
 
@@ -394,12 +350,37 @@ begin
   Scene.CameraBindToViewpoint(Camera, true);
 end;
 
+function TKamVRMLBrowser.GetShadowVolumes: boolean;
+begin
+  Result := SceneManager.ShadowVolumes;
+end;
+
+procedure TKamVRMLBrowser.SetShadowVolumes(const Value: boolean);
+begin
+  SceneManager.ShadowVolumes := Value;
+end;
+
+function TKamVRMLBrowser.GetShadowVolumesDraw: boolean;
+begin
+  Result := SceneManager.ShadowVolumesDraw;
+end;
+
+procedure TKamVRMLBrowser.SetShadowVolumesDraw(const Value: boolean);
+begin
+  SceneManager.ShadowVolumesDraw := Value;
+end;
+
+function TKamVRMLBrowser.GetShadowVolumesPossible: boolean;
+begin
+  Result := SceneManager.ShadowVolumesPossible;
+end;
+
 procedure TKamVRMLBrowser.SetShadowVolumesPossible(const Value: boolean);
 begin
   if ContextInitialized then
     raise Exception.Create('You can''t change ShadowVolumesPossible ' +
       'while the context is already initialized');
-  FShadowVolumesPossible := Value;
+  SceneManager.ShadowVolumesPossible := Value;
 
   { TODO: hmm, there's no way to request stencil buffer from TOpenGLControl?
     Looking in the sources, for GTK always at least 1-bit stencil buffer is
@@ -407,7 +388,7 @@ begin
     There's no way to workaround it, this must be fixed in OpenGLContext
     for TKamVRMLBrowser to work reliably. }
 
-{  if ShadowVolumesPossible then
+{  if SceneManager.ShadowVolumesPossible then
     StencilBufferBits := 8 else
     StencilBufferBits := 0;}
 end;

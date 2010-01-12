@@ -1,0 +1,33 @@
+  private
+    FViewportX: TGLint;
+    FViewportY: TGLint;
+    FViewportWidth: TGLsizei;
+    FViewportHeight: TGLsizei;
+  published
+    { Viewport dimensions where the 3D world will be drawn.
+
+      This isn't fully usable now, for now only serving for
+      Scene.UpdateGeneratedTextures to restore original viewport settings,
+      while some other stuff (notably, GLProjection) assumes that the 3D content
+      simply takes the whole screen. That's why it's in private section now.
+
+      It's initialized to cover the whole container (0, 0) to
+      (Container.Width, Container.Height) in each ContainerResize event.
+
+    property ViewportX: TGLint read FViewportX write FViewportX;
+    property ViewportY: TGLint read FViewportY write FViewportY;
+    property ViewportWidth: TGLsizei read FViewportWidth write FViewportWidth;
+    property ViewportHeight: TGLsizei read FViewportHeight write FViewportHeight;
+
+TODO: the plan is to restore these properties, and even make them published, in TSceneManager.
+Also, ViewportAutoResize: boolean (default true) should be published, to (dis)allow
+updating this in each ContainerResize event.
+Also, GLProjection and TSceneManager.Render (when it calls Scene.UpdateGeneratedTextures)
+should use this.
+
+The goal is to allow split-screen rendering and such tricks trivial,
+just set ViewportAutoResize = false and set remaining Viewport* however you want.
+
+For now, if you need this functionality, you cannot use TSceneManager (you have to do
+the equivalent job of managing TVRMLGLScene and such manually), and you cannot use
+GLProjection.
