@@ -19,7 +19,7 @@ unit SceneManagerUnit;
 interface
 
 uses VectorMath, VRMLGLScene, VRMLScene, Cameras,
-  VRMLGLHeadLight, ShadowVolumes, GL, GLCubeMap;
+  VRMLGLHeadLight, ShadowVolumes, GL, GLCubeMap, UIControls;
 
 type
   { Scene manager that knows about all 3D things inside your world.
@@ -63,8 +63,13 @@ type
     scenes. Much like TVRMLGLAnimation does now for scene items.
     Except that we would like to eliminate these TVRMLGLAnimation methods,
     everything should use SceneManager then.
+
+    This is a TUIControl descendant, which means it's adviced usage
+    is to add this to TGLUIWindow.Controls or TKamOpenGLControl.Controls.
+    TODO: This will pass TUIControl events to all the scenes inside.
+    (for now, it does not, and scene should be added independently to Controls.)
   }
-  TSceneManager = class
+  TSceneManager = class(TUIControl)
   private
     FScene: TVRMLGLScene;
     FCamera: TCamera;
@@ -72,7 +77,7 @@ type
     FShadowVolumesPossible: boolean;
     FShadowVolumes: boolean;
     FShadowVolumesDraw: boolean;
-    FSV: TShadowVolumes;
+    SV: TShadowVolumes;
 
     FViewportX: TGLint;
     FViewportY: TGLint;
@@ -106,13 +111,15 @@ type
       matrix) is done and all that remains is to pass to OpenGL actual 3D world. }
     procedure RenderFromView3D; virtual;
   public
+    procedure GLContextInit; override;
+    procedure GLContextClose; override;
+
     property Scene: TVRMLGLScene read FScene write FScene;
     property Camera: TCamera read FCamera write FCamera;
 
     property ShadowVolumesPossible: boolean read FShadowVolumesPossible write FShadowVolumesPossible;
     property ShadowVolumes: boolean read FShadowVolumes write FShadowVolumes;
     property ShadowVolumesDraw: boolean read FShadowVolumesDraw write FShadowVolumesDraw;
-    property SV: TShadowVolumes read FSV write FSV;
 
     property ViewportX: TGLint read FViewportX write FViewportX;
     property ViewportY: TGLint read FViewportY write FViewportY;
@@ -147,7 +154,23 @@ type
 
 implementation
 
-uses RenderStateUnit, KambiGLUtils;
+uses SysUtils, RenderStateUnit, KambiGLUtils;
+
+procedure TSceneManager.GLContextInit;
+begin
+  inherited;
+
+  {if ShadowVolumesPossible then} { or just do it always? It's harmless after all }
+  SV := TShadowVolumes.Create;
+  SV.InitGLContext;
+end;
+
+procedure TSceneManager.GLContextClose;
+begin
+  FreeAndNil(SV);
+
+  inherited;
+end;
 
 procedure TSceneManager.PrepareRender;
 var

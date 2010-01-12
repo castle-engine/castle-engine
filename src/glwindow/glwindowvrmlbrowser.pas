@@ -20,7 +20,7 @@ unit GLWindowVRMLBrowser;
 interface
 
 uses Classes, VectorMath, GLWindow, VRMLNodes, VRMLGLScene, VRMLScene,
-  Cameras, VRMLGLHeadLight, ShadowVolumes, SceneManagerUnit;
+  Cameras, VRMLGLHeadLight, SceneManagerUnit;
 
 type
   { A simple VRML browser in a window. This manages TVRMLGLScene and
@@ -103,7 +103,6 @@ type
   private
     FShadowVolumes: boolean;
     FShadowVolumesDraw: boolean;
-    SV: TShadowVolumes;
 
     SceneManager: TSceneManager;
     { Set all SceneManager properties. This is a temporary solution,
@@ -124,7 +123,6 @@ type
     procedure EventBeforeDraw; override;
     procedure EventDraw; override;
     procedure EventInit; override;
-    procedure EventClose; override;
     procedure EventResize; override;
 
     { Should we make shadow volumes possible?
@@ -179,7 +177,8 @@ constructor TGLWindowVRMLBrowser.Create(AOwner: TComponent);
 begin
   inherited;
 
-  SceneManager := TSceneManager.Create;
+  SceneManager := TSceneManager.Create(nil);
+  Controls.Add(SceneManager);
 
   Load(nil, true);
 end;
@@ -256,7 +255,6 @@ begin
   SceneManager.ShadowVolumesPossible := ShadowVolumesPossible;
   SceneManager.ShadowVolumes := ShadowVolumes;
   SceneManager.ShadowVolumesDraw := ShadowVolumesDraw;
-  SceneManager.SV := SV;
   SceneManager.ViewportX := 0;
   SceneManager.ViewportY := 0;
   SceneManager.ViewportWidth := Width;
@@ -281,19 +279,6 @@ procedure TGLWindowVRMLBrowser.EventInit;
 begin
   inherited;
   glEnable(GL_LIGHTING);
-
-  if ShadowVolumesPossible then
-  begin
-    SV := TShadowVolumes.Create;
-    SV.InitGLContext;
-  end;
-end;
-
-procedure TGLWindowVRMLBrowser.EventClose;
-begin
-  FreeAndNil(SV);
-
-  inherited;
 end;
 
 procedure TGLWindowVRMLBrowser.EventResize;

@@ -15,11 +15,6 @@ view3dscene 3.5 blockers:
 Better Lazarus integration:
 (Some before view3dscene 3.5, some probably for later.)
 
-* TShadowVolumes better:
-  - as TUIControl, to receive GLContextInit/Close?
-  - Or just hide TShadowVolumes inside SceneManager?
-  Goal: remove TShadowVolumes from glwindowvrmlbrowser/kambivrmlbrowser.
-
 * TSceneManager fitting into controls:
 
   * Should resolve:

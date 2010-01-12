@@ -20,7 +20,7 @@ interface
 
 uses Classes, KambiGLControl, VectorMath, Controls,
   VRMLNodes, VRMLGLScene, VRMLScene, Cameras, VRMLGLHeadlight, Areas,
-  ShadowVolumes, SceneManagerUnit;
+  SceneManagerUnit;
 
 type
   { A simple VRML browser as a Lazarus component. This manages TVRMLGLScene,
@@ -106,7 +106,6 @@ type
   private
     FShadowVolumes: boolean;
     FShadowVolumesDraw: boolean;
-    SV: TShadowVolumes;
 
     SceneManager: TSceneManager;
     { Set all SceneManager properties. This is a temporary solution,
@@ -118,7 +117,6 @@ type
     procedure DoBeforeDraw; override;
     procedure DoDraw; override;
     procedure DoGLContextInit; override;
-    procedure DoGLContextClose; override;
   public
     constructor Create(AOwner :TComponent); override;
     destructor Destroy; override;
@@ -215,7 +213,8 @@ constructor TKamVRMLBrowser.Create(AOwner :TComponent);
 begin
   inherited;
 
-  SceneManager := TSceneManager.Create;
+  SceneManager := TSceneManager.Create(nil);
+  Controls.Add(SceneManager);
 
   FIgnoreAreas := TDynAreaArray.Create;
 
@@ -297,7 +296,6 @@ begin
   SceneManager.ShadowVolumesPossible := ShadowVolumesPossible;
   SceneManager.ShadowVolumes := ShadowVolumes;
   SceneManager.ShadowVolumesDraw := ShadowVolumesDraw;
-  SceneManager.SV := SV;
   SceneManager.ViewportX := 0;
   SceneManager.ViewportY := 0;
   SceneManager.ViewportWidth := Width;
@@ -322,19 +320,6 @@ procedure TKamVRMLBrowser.DoGLContextInit;
 begin
   inherited;
   glEnable(GL_LIGHTING);
-
-  if ShadowVolumesPossible then
-  begin
-    SV := TShadowVolumes.Create;
-    SV.InitGLContext;
-  end;
-end;
-
-procedure TKamVRMLBrowser.DoGLContextClose;
-begin
-  FreeAndNil(SV);
-
-  inherited;
 end;
 
 procedure TKamVRMLBrowser.Resize;
