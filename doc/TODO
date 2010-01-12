@@ -86,6 +86,10 @@ Better Lazarus integration:
   Or not: shadow_volume_test shows that it's possible to have two cameras,
   and things work smoothly. You just have to assign non-conflicting keys.
 
+- Make UseControls not published? Or even make them private --- they are not used
+  after all, and can be dangerous (ContainerResize not called before trying to
+  do rendering etc.)
+
 - Make sure most useful props of our controls are settable:
 
   For TGLMenu, browse and decide which ones (Items?).
