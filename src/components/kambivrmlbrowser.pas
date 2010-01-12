@@ -85,8 +85,6 @@ type
     FOnCameraChanged: TNotifyEvent;
     FScene: TVRMLGLScene;
 
-    FIgnoreAreas: TDynAreaArray;
-
     function MoveAllowed(ACamera: TWalkCamera;
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean;
@@ -128,21 +126,6 @@ type
     property Scene: TVRMLGLScene read FScene;
 
     procedure Resize; override;
-
-    { Mouse movement and clicks within areas here will be ignored by VRML browser.
-      That is, they will be treated like mouse was outside of VRML browser.
-
-      This is useful if you drawn some 2D controls in your OnDraw,
-      and you want to handle clicks on them yourself (with OnClick or such).
-      Thanks to IgnoreAreas, VRML browser will not intercept those clicks
-      (not send them to some VRML TouchSensors etc.), mouse cursor will
-      also remain normal within these areas (regardless of whether mouse
-      is over some sensor).
-
-      Note that their coords are in screen coordinates, just like MouseX,
-      MouseY. This means that 0,0 is the upper-left corner (unlike typical
-      OpenGL 2D projection, which has 0,0 in lower-left corner). }
-    property IgnoreAreas: TDynAreaArray read FIgnoreAreas;
   published
     property OnCameraChanged: TNotifyEvent
       read FOnCameraChanged write FOnCameraChanged;
@@ -216,8 +199,6 @@ begin
   SceneManager := TSceneManager.Create(nil);
   Controls.Add(SceneManager);
 
-  FIgnoreAreas := TDynAreaArray.Create;
-
   Load(nil, true);
 end;
 
@@ -227,7 +208,6 @@ begin
   FreeAndNil(FScene);
   Camera.Free;
   Camera := nil;
-  FreeAndNil(FIgnoreAreas);
   inherited;
 end;
 
