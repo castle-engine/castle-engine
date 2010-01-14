@@ -16,13 +16,10 @@ unit ShadowVolumes;
 
 interface
 
-uses VectorMath, Boxes3d, GL, GLU, GLExt, KambiGLUtils, Frustum;
+uses VectorMath, Boxes3d, GL, GLU, GLExt, KambiGLUtils, Frustum, Base3D;
 
 type
   TStencilSetupKind = (ssFrontAndBack, ssFront, ssBack);
-
-  TTransparentGroup = (tgTransparent, tgOpaque, tgAll);
-  TTransparentGroups = set of TTransparentGroup;
 
   TSVRenderTransparentGroupProc =
     procedure (TransparentGroup: TTransparentGroup) of object;
@@ -38,7 +35,7 @@ type
 
     For general usage tutorial of this class,
     see [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.shadows.html] }
-  TShadowVolumes = class
+  TShadowVolumes = class(TBaseShadowVolumes)
   private
     FrustumAndLightPlanes: array [0..5] of TVector4Single;
     FrustumAndLightPlanesCount: Cardinal;

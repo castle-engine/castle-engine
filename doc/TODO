@@ -15,12 +15,6 @@ view3dscene 3.5 blockers:
 Better Lazarus integration:
 (Some before view3dscene 3.5, some probably for later.)
 
-* Base3D depends on OpenGL, because of ShadowVolumes.
-
-  Also, Render and RenderShadowVolumes is obviously only non-abstract in gl
-  (TVRMLGLScene). This makes TVRMLScene instantiation cause warnings.
-  And even rayhunter will depend on OpenGL, which is bad.
-
 * TSceneManager fitting into controls:
 
   * Should resolve:

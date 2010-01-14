@@ -18,7 +18,7 @@ interface
 
 uses SysUtils, Classes, VRMLNodes, VRMLOpenGLRenderer, VRMLScene, VRMLGLScene,
   KambiUtils, Boxes3d, KambiClassUtils, VRMLAnimation, KeysMouse, Cameras,
-  KambiTimeUtils, Frustum, ShadowVolumes, VectorMath;
+  KambiTimeUtils, Frustum, VectorMath, Base3D;
 
 {$define read_interface}
 
@@ -600,7 +600,7 @@ type
     procedure Render(const Frustum: TFrustum;
       TransparentGroup: TTransparentGroup); override;
     procedure RenderShadowVolume(
-      ShadowVolumes: TShadowVolumes;
+      ShadowVolumes: TBaseShadowVolumes;
       const ParentTransformIsIdentity: boolean;
       const ParentTransform: TMatrix4Single); override;
   published
@@ -1994,7 +1994,7 @@ begin
 end;
 
 procedure TVRMLGLAnimation.RenderShadowVolume(
-  ShadowVolumes: TShadowVolumes;
+  ShadowVolumes: TBaseShadowVolumes;
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
 begin

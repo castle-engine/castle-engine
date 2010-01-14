@@ -24,7 +24,7 @@ uses
   VRMLScene, VRMLOpenGLRenderer, GL, GLU, GLExt, BackgroundGL, KambiGLUtils,
   VRMLShapeOctree, VRMLHeadLight, VRMLGLHeadLight, VRMLRendererOptimization,
   ShadowVolumes, Cameras, VRMLFields, VRMLLightSetGL, VRMLShape, Frustum,
-  GLCubeMap;
+  GLCubeMap, Base3D;
 
 {$define read_interface}
 
@@ -439,13 +439,13 @@ type
   end;
 
 type
-  TTransparentGroup = ShadowVolumes.TTransparentGroup;
-  TTransparentGroups = ShadowVolumes.TTransparentGroups;
+  TTransparentGroup = Base3D.TTransparentGroup;
+  TTransparentGroups = Base3D.TTransparentGroups;
 
 const
-  tgTransparent = ShadowVolumes.tgTransparent;
-  tgOpaque = ShadowVolumes.tgOpaque;
-  tgAll = ShadowVolumes.tgAll;
+  tgTransparent = Base3D.tgTransparent;
+  tgOpaque = Base3D.tgOpaque;
+  tgAll = Base3D.tgAll;
 
 type
   { Various things that TVRMLGLScene.PrepareRender may prepare. }
@@ -1158,7 +1158,7 @@ type
       const AllowSilhouetteOptimization: boolean);
 
     procedure RenderShadowVolume(
-      ShadowVolumes: TShadowVolumes;
+      ShadowVolumes: TBaseShadowVolumes;
       const ParentTransformIsIdentity: boolean;
       const ParentTransform: TMatrix4Single); override;
     { @groupEnd }
@@ -4228,11 +4228,11 @@ begin
 end;
 
 procedure TVRMLGLScene.RenderShadowVolume(
-  ShadowVolumes: TShadowVolumes;
+  ShadowVolumes: TBaseShadowVolumes;
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
 begin
-  RenderShadowVolume(ShadowVolumes,
+  RenderShadowVolume(ShadowVolumes as TShadowVolumes,
     ParentTransformIsIdentity, ParentTransform, true);
 end;
 

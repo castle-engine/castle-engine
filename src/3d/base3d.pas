@@ -18,9 +18,16 @@ unit Base3D;
 
 interface
 
-uses Classes, VectorMath, Frustum, Boxes3D, UIControls, ShadowVolumes;
+uses Classes, VectorMath, Frustum, Boxes3D, UIControls;
 
 type
+  TTransparentGroup = (tgTransparent, tgOpaque, tgAll);
+  TTransparentGroups = set of TTransparentGroup;
+
+  { Shadow volumes helper, not depending on OpenGL. }
+  TBaseShadowVolumes = class
+  end;
+
   { Base 3D object, that can be managed by TSceneManager.
     All 3D objects should descend from this, this way we can easily
     insert them into TSceneManager. }
@@ -64,7 +71,7 @@ type
 
       This is done only if @link(Exists). }
     procedure Render(const Frustum: TFrustum;
-      TransparentGroup: TTransparentGroup); virtual; abstract;
+      TransparentGroup: TTransparentGroup); virtual;
 
     property CastsShadow: boolean read FCastsShadow write FCastsShadow
       default true;
@@ -93,9 +100,9 @@ type
 
       This is done only if @link(Exists) and @link(CastsShadow). }
     procedure RenderShadowVolume(
-      ShadowVolumes: TShadowVolumes;
+      ShadowVolumes: TBaseShadowVolumes;
       const ParentTransformIsIdentity: boolean;
-      const ParentTransform: TMatrix4Single); virtual; abstract;
+      const ParentTransform: TMatrix4Single); virtual;
   end;
 
 implementation
@@ -106,6 +113,18 @@ begin
   FCastsShadow := true;
   FExists := true;
   FCollides := true;
+end;
+
+procedure TBase3D.Render(const Frustum: TFrustum;
+  TransparentGroup: TTransparentGroup);
+begin
+end;
+
+procedure TBase3D.RenderShadowVolume(
+  ShadowVolumes: TBaseShadowVolumes;
+  const ParentTransformIsIdentity: boolean;
+  const ParentTransform: TMatrix4Single);
+begin
 end;
 
 end.
