@@ -58,22 +58,25 @@ Better Lazarus integration:
     As well as most stuff in TVRMLScene/Animation dealing with Camera,
     this can be better moved to TSceneManager.
 
-  * Make TVRMLScene/TVRMLAnimation descend from TBase3D.
-    Make it in SceneManagerUnit.
+  * Should TSceneManager be free from VRML specifics?
 
-    Then unit SceneManager may be moved to ui/, should not have much more
-    deps.
+    - Yes-> Can be moved to 3d/ or ui/.
 
-    And TGLUIWindow/TKamOpenGLControl may create and automatically add
-    SceneManager to Controls. This should simplify a lot of stuff,
-    especially since in new engine (almost) everything will use
-    SceneManager. Also, since SceneManager will set MainScene.GLProjection in
-    ContainerRersize, there can be only one SceneManager used at one time.
+      And TGLUIWindow/TKamOpenGLControl may create and automatically add
+      SceneManager to Controls. This should simplify a lot of stuff,
+      especially since in new engine (almost) everything will use
+      SceneManager. Also, since SceneManager will set MainScene.GLProjection in
+      ContainerRersize, there can be only one SceneManager used at one time.
 
-    Hm, no, TSceneManager.MainScene must point to VRML-enabled:TVRMLScene.
-    Maybe make TVRMLSceneManager? General TSceneManager should not be dependent
-    on VRML? Hm, or not: if I'll design TBase3D intelligently, maybe there
-    will not be need for any TVRMLGLSCene-specific stuff in TSceneManager.
+    - Counterargument: TSceneManager.MainScene must point to VRML-enabled:TVRMLScene.
+
+      Unless we make TVRMLSceneManager? Then general TSceneManager
+      will not be dependent on VRML.
+      Or design TBase3D intelligently, maybe there
+      will not be need for any TVRMLGLSCene-specific stuff in current TSceneManager.
+
+      Overall, this is quite a large rearrangement for TSceneManager,
+      just to avoid dependencies...
 
   * TSceneManager: how to pass all TUIControl events to scene(s) inside?
     Maybe implement events passing in a class like TUIControlsList.
@@ -84,10 +87,7 @@ Better Lazarus integration:
       This is uncomfortable: e.g. how to make PositionInside etc.?
       Maybe replace it by TBase3D, not related to TUIControl, but does it solve all troubles?
 
-  * Moving castlelevel objects -> TBase3D:
-    - remember TBase3D takes into account Exists, Collides, CastsShadow.
-
-    Implement Exists, Collides, CastsShadow in TSceneManager.
+  * Other TSceneManager TODOs in file.
 
 * TVRMLScene gets CreateCamera with box --- use this in TSceneManager.
 

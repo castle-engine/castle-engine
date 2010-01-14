@@ -1,5 +1,5 @@
 {
-  Copyright 2008 Michalis Kamburelis.
+  Copyright 2008-2010 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -164,13 +164,15 @@ end;
 
 procedure TGLWindowVRMLBrowser.Load(ARootNode: TVRMLNode; const OwnsRootNode: boolean);
 begin
-  { destroy Scene and Camera, we will recreate them }
-  SceneManager.Scene.Free;
-  SceneManager.Scene := nil;
+  { destroy MainScene and Camera, we will recreate them }
+  SceneManager.MainScene.Free;
+  SceneManager.MainScene := nil;
+  SceneManager.Items.List.Clear;
   Camera.Free;
 
-  SceneManager.Scene := TVRMLGLScene.Create(Self);
-  SceneManager.Scene.Load(ARootNode, OwnsRootNode);
+  SceneManager.MainScene := TVRMLGLScene.Create(Self);
+  SceneManager.MainScene.Load(ARootNode, OwnsRootNode);
+  SceneManager.Items.List.Add(SceneManager.MainScene);
 
   { initialize octrees titles }
   Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
@@ -216,7 +218,7 @@ end;
 
 function TGLWindowVRMLBrowser.Scene: TVRMLGLScene;
 begin
-  Result := SceneManager.Scene;
+  Result := SceneManager.MainScene;
 end;
 
 procedure TGLWindowVRMLBrowser.EventBeforeDraw;

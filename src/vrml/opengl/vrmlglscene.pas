@@ -441,20 +441,20 @@ type
 type
   TTransparentGroup = Base3D.TTransparentGroup;
   TTransparentGroups = Base3D.TTransparentGroups;
+  TPrepareRenderOption = Base3D.TPrepareRenderOption;
+  TPrepareRenderOptions = Base3D.TPrepareRenderOptions;
 
 const
   tgTransparent = Base3D.tgTransparent;
   tgOpaque = Base3D.tgOpaque;
   tgAll = Base3D.tgAll;
 
-type
-  { Various things that TVRMLGLScene.PrepareRender may prepare. }
-  TPrepareRenderOption = (prBackground, prBoundingBox,
-    prTrianglesListNotOverTriangulate,
-    prTrianglesListOverTriangulate,
-    prTrianglesListShadowCasters,
-    prManifoldAndBorderEdges);
-  TPrepareRenderOptions = set of TPrepareRenderOption;
+  prBackground = Base3D.prBackground;
+  prBoundingBox = Base3D.prBoundingBox;
+  prTrianglesListNotOverTriangulate = Base3D.prTrianglesListNotOverTriangulate;
+  prTrianglesListOverTriangulate = Base3D.prTrianglesListOverTriangulate;
+  prTrianglesListShadowCasters = Base3D.prTrianglesListShadowCasters;
+  prManifoldAndBorderEdges = Base3D.prManifoldAndBorderEdges;
 
 type
   { Possible checks done while frustum culling.
@@ -815,47 +815,9 @@ type
       This is called automatically from the destructor. }
     procedure GLContextClose; override;
 
-    { This prepares some internal things in this class, making sure that
-      appropriate methods execute as fast as possible.
-      In most cases, it's not strictly required to call this method
-      --- most things will be prepared "as needed" anyway.
-      But this means that some calls may sometimes take a long time,
-      e.g. the first Render call will take a long time because it may
-      have to prepare display lists that will be reused in next Render calls.
-      This may cause a strange behavior of the program: rendering of the
-      first frame takes unusually long time (which confuses user, and
-      also makes things like TGLWindow.DrawSpeed strange for a short
-      time). So calling this procedure may be desirable.
-      You may want to show to user that "now we're preparing
-      the VRML scene --- please wait".
-
-      This method ties this object to current OpenGL context.
-      But it doesn't change any OpenGL state or buffers contents
-      (at most, it allocates some texture and display list names).
-
-      @param(TransparentGroups specifies for what TransparentGroup value
-        it should prepare rendering resources. The idea is that
-        you're often interested in rendering only with tgAll, or
-        only with [tgTransparent, tgOpaque] --- so it would be a waste of
-        resources and time to prepare for every possible TransparentGroup value.
-
-        However, note that for Optimizations <> roSceneAsAWhole
-        preparing for every possible TransparentGroup value
-        is actually not harmful. There's no additional use of resources,
-        as the sum of [tgTransparent, tgOpaque] uses
-        the same resources as [tgAll]. In other words,
-        there's no difference in resource (and time) used between
-        preparing for [tgTransparent, tgOpaque], [tgAll] or
-        [tgTransparent, tgOpaque, tgAll] --- they'll all prepare the same
-        things.)
-
-      @param(Options says what additional features (besides rendering)
-        should be prepared to execute fast. See TPrepareRenderOption,
-        the names should be self-explanatory (they refer to appropriate
-        methods of this class).) }
     procedure PrepareRender(
       TransparentGroups: TTransparentGroups;
-      Options: TPrepareRenderOptions);
+      Options: TPrepareRenderOptions); override;
 
     { Renders this VRML scene for OpenGL.
       This is probably the most important function in this class,
@@ -977,7 +939,8 @@ type
       LightRenderEvent: TVRMLLightRenderEvent = nil);
 
     procedure Render(const Frustum: TFrustum;
-      TransparentGroup: TTransparentGroup); override;
+      TransparentGroup: TTransparentGroup;
+      InShadow: boolean); override;
 
     { LastRender_ properties provide you read-only statistics
       about what happened during last render. For now you
@@ -3192,10 +3155,12 @@ var
   SI: TVRMLShapeTreeIterator;
   TG: TTransparentGroup;
 begin
+  inherited;
+
   CheckFogChanged;
 
   case Optimization of
-      roNone: Common_PrepareAllShapes;
+    roNone: Common_PrepareAllShapes;
 
     roSceneAsAWhole:
       begin
@@ -3234,21 +3199,6 @@ begin
 
   if prBackground in Options then
     PrepareBackground;
-
-  if prBoundingBox in Options then
-    BoundingBox { ignore the result };
-
-  if prTrianglesListNotOverTriangulate in Options then
-    TrianglesList(false);
-
-  if prTrianglesListOverTriangulate in Options then
-    TrianglesList(true);
-
-  if prTrianglesListShadowCasters in Options then
-    TrianglesListShadowCasters;
-
-  if prManifoldAndBorderEdges in Options then
-    ManifoldEdges;
 end;
 
 procedure TVRMLGLScene.Render(
@@ -4232,8 +4182,9 @@ procedure TVRMLGLScene.RenderShadowVolume(
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
 begin
-  RenderShadowVolume(ShadowVolumes as TShadowVolumes,
-    ParentTransformIsIdentity, ParentTransform, true);
+  if Exists and CastsShadow then
+    RenderShadowVolume(ShadowVolumes as TShadowVolumes,
+      ParentTransformIsIdentity, ParentTransform, true);
 end;
 
 procedure TVRMLGLScene.RenderSilhouetteEdges(
@@ -4479,9 +4430,15 @@ begin
 end;
 
 procedure TVRMLGLScene.Render(const Frustum: TFrustum;
-  TransparentGroup: TTransparentGroup);
+  TransparentGroup: TTransparentGroup;
+  InShadow: boolean);
 begin
-  RenderFrustum(Frustum, TransparentGroup, nil);
+  if Exists then
+  begin
+    if InShadow then
+      RenderFrustum(Frustum, TransparentGroup, @LightRenderInShadow) else
+      RenderFrustum(Frustum, TransparentGroup, nil);
+  end;
 end;
 
 { Background-related things ---------------------------------------- }

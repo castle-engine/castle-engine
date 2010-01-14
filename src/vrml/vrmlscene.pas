@@ -1821,6 +1821,10 @@ type
       better to resign from occlusion query for the very next frame.
       This method will do exactly that. }
     procedure ViewChangedSuddenly; virtual;
+
+    procedure PrepareRender(
+      TransparentGroups: TTransparentGroups;
+      Options: TPrepareRenderOptions); override;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Idle) will take care of increasing WorldTime.
@@ -2319,7 +2323,13 @@ function TVRMLScene.BoundingBox: TBox3d;
 {$define PRECALC_VALUE_ENUM := fvBoundingBox}
 {$define PRECALC_VALUE := FBoundingBox}
 {$define PRECALC_VALUE_CALCULATE := CalculateBoundingBox}
-PRECALC_VALUE_RETURN
+begin
+  if Exists then
+  begin
+    PRECALC_VALUE_RETURN
+  end else
+    Result := EmptyBox3d;
+end;
 
 function TVRMLScene.VerticesCount(OverTriangulate: boolean): Cardinal;
 begin
@@ -5946,6 +5956,28 @@ begin
       end;
     finally EndChangesSchedule end;
   end;
+end;
+
+procedure TVRMLScene.PrepareRender(
+  TransparentGroups: TTransparentGroups;
+  Options: TPrepareRenderOptions);
+begin
+  inherited;
+
+  if prBoundingBox in Options then
+    BoundingBox { ignore the result };
+
+  if prTrianglesListNotOverTriangulate in Options then
+    TrianglesList(false);
+
+  if prTrianglesListOverTriangulate in Options then
+    TrianglesList(true);
+
+  if prTrianglesListShadowCasters in Options then
+    TrianglesListShadowCasters;
+
+  if prManifoldAndBorderEdges in Options then
+    ManifoldEdges;
 end;
 
 end.

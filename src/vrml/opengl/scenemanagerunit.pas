@@ -18,7 +18,7 @@ unit SceneManagerUnit;
 
 interface
 
-uses VectorMath, VRMLGLScene, VRMLScene, Cameras,
+uses Classes, VectorMath, VRMLGLScene, VRMLScene, Cameras,
   VRMLGLHeadLight, ShadowVolumes, GL, GLCubeMap, UIControls, Base3D;
 
 type
@@ -37,15 +37,12 @@ type
     taking care of doing multiple rendering passes for particular features.
     Naturally, it also serves as container for all your visible 3D scenes.
 
-    Idea is to make here TScene, that will be the ancestor of both
-    TVRMLScene (and so also TVRMLGLScene) and TVRMLAnimation (and so
-    also TVRMLAnimation), and allows to add other objects of your own
-    that don't fit for whatever reason inside normal TVRMLGLScene/Animation.
-    Scene manager will maintain a list (later maybe a hierarchical tree?)
-    of TScene objects.
-
-    TODO: for now this simply works with only a single TVRMLGLScene instance.
-    So it just simplifies rendering of a single TVRMLGLScene.
+    @link(Items) property keeps a tree of TBase3D objects.
+    All our 3D objects, like TVRMLScene (and so also TVRMLGLScene)
+    and TVRMLAnimation (and so also TVRMLGLAnimation) descend from
+    TBase3D, and you can add them to the scene manager.
+    And naturally you can implement your own TBase3D descendants,
+    representing any 3D (possibly dynamic, animated and even interactive) object.
 
     TSceneManager.Render can assume that it's the *only* manager rendering
     to the screen (although you can safely render more 3D geometry *after*
@@ -59,6 +56,8 @@ type
       @item(and making multiple passes for shadow volumes and generated textures.)
     )
 
+    For some of these features, you'll have to set the @link(MainScene) property.
+
     TODO: this should also provide "wrapper" methods around all owned
     scenes. Much like TVRMLGLAnimation does now for scene items.
     Except that we would like to eliminate these TVRMLGLAnimation methods,
@@ -67,12 +66,13 @@ type
     This is a TUIControl descendant, which means it's adviced usage
     is to add this to TGLUIWindow.Controls or TKamOpenGLControl.Controls.
     TODO: This will pass TUIControl events to all the scenes inside.
-    (for now, it does not, and scene should be added independently to Controls.)
+    (for now, it does not, and scenes should be added independently to Controls.)
   }
   TSceneManager = class(TUIControl)
   private
     FScene: TVRMLGLScene;
     FCamera: TCamera;
+    FItems: TBase3DList;
 
     FShadowVolumesPossible: boolean;
     FShadowVolumes: boolean;
@@ -106,10 +106,40 @@ type
       matrix) is done and all that remains is to pass to OpenGL actual 3D world. }
     procedure RenderFromView3D; virtual;
   public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
     procedure GLContextInit; override;
     procedure GLContextClose; override;
 
-    property Scene: TVRMLGLScene read FScene write FScene;
+    { Tree of 3D objects within your world. This is the place where you should
+      add your scenes to have them handled by scene manager.
+      You may also set your main TVRMLGLScene (if you have any) as MainScene.
+
+      TBase3DList is also TBase3D instance, so yes --- this may be a tree
+      of TBase3D, not only a flat list. }
+    property Items: TBase3DList read FItems;
+
+    { The main scene of your 3D world. It's not necessary to set this
+      (after all, your world doesn't even need to have any TVRMLGLScene
+      instance). It may be, but doesn't have to be, also added to
+      our @link(Items).
+
+      When set, this is used for a couple of things:
+
+      @unorderedList(
+        @item Decides what headlight is used (by TVRMLGLScene.Headlight).
+        @item Decides what background is rendered (by TVRMLGLScene.Background).
+        @item(Decides if, and where, the main light casting shadows is
+          (see TVRMLGLScene.MainLightForShadowsExists, TVRMLGLScene.MainLightForShadows).)
+        @item Sets OpenGL projection for the scene (TODO: not yet).
+      )
+
+      The above stuff is only sensible when done once per scene manager,
+      that's why we need MainScene property to indicate this.
+      (We cannot just use every 3D object from @link(Items) for this.) }
+    property MainScene: TVRMLGLScene read FScene write FScene;
+
     property Camera: TCamera read FCamera write FCamera;
 
     { Should we make shadow volumes possible.
@@ -170,6 +200,17 @@ implementation
 
 uses SysUtils, RenderStateUnit, KambiGLUtils;
 
+constructor TSceneManager.Create(AOwner: TComponent);
+begin
+  inherited;
+  FItems := TBase3DList.Create(Self);
+end;
+
+destructor TSceneManager.Destroy;
+begin
+  inherited;
+end;
+
 procedure TSceneManager.GLContextInit;
 begin
   inherited;
@@ -196,7 +237,8 @@ begin
   Options := [prBackground, prBoundingBox];
   if ShadowVolumesPossible and
      ShadowVolumes and
-     Scene.MainLightForShadowsExists then
+     (MainScene <> nil) and
+     MainScene.MainLightForShadowsExists then
     Options := Options + prShadowVolume;
 
   TG := [tgAll];
@@ -208,30 +250,39 @@ begin
     in WORLDSPACE*. }
   RenderState.CameraFromCameraObject(Camera);
 
-  Scene.PrepareRender(TG, Options);
+  Items.PrepareRender(TG, Options);
 end;
 
 procedure TSceneManager.RenderScene(InShadow: boolean; TransparentGroup: TTransparentGroup);
 begin
-  if InShadow then
-    Scene.RenderFrustum(RenderState.CameraFrustum, TransparentGroup, @Scene.LightRenderInShadow) else
-    Scene.RenderFrustum(RenderState.CameraFrustum, TransparentGroup, nil);
+  Items.Render(RenderState.CameraFrustum, TransparentGroup, InShadow);
 end;
 
 procedure TSceneManager.RenderShadowVolumes;
 begin
-  Scene.RenderShadowVolume(SV, true, IdentityMatrix4Single);
+  Items.RenderShadowVolume(SV, true, IdentityMatrix4Single);
 end;
 
 procedure TSceneManager.RenderHeadLight;
+var
+  H: TVRMLGLHeadlight;
 begin
-  TVRMLGLHeadlight.RenderOrDisable(Scene.Headlight, 0,
-    RenderState.Target = rtScreen, Camera);
+  if MainScene <> nil then
+    H := MainScene.Headlight { this may still return @nil if no headlight } else
+    H := nil;
+
+  TVRMLGLHeadlight.RenderOrDisable(H, 0, RenderState.Target = rtScreen, Camera);
 end;
 
 function TSceneManager.ViewerToChanges: TVisibleSceneChanges;
+var
+  H: TVRMLGLHeadlight;
 begin
-  if Scene.Headlight <> nil then
+  if MainScene <> nil then
+    H := MainScene.Headlight { this may still return @nil if no headlight } else
+    H := nil;
+
+  if H <> nil then
     Result := [prVisibleSceneNonGeometry] else
     Result := [];
 end;
@@ -252,8 +303,9 @@ procedure TSceneManager.RenderFromView3D;
 begin
   if ShadowVolumesPossible and
      ShadowVolumes and
-     Scene.MainLightForShadowsExists then
-    RenderWithShadows(Scene.MainLightForShadows) else
+     (MainScene <> nil) and
+     MainScene.MainLightForShadowsExists then
+    RenderWithShadows(MainScene.MainLightForShadows) else
     RenderNoShadows;
 end;
 
@@ -263,7 +315,8 @@ var
 begin
   ClearBuffers := GL_DEPTH_BUFFER_BIT;
 
-  if Scene.Background <> nil then
+  if (MainScene <> nil) and
+     (MainScene.Background <> nil) then
   begin
     glLoadMatrix(RenderState.CameraRotationMatrix);
 
@@ -273,16 +326,17 @@ begin
       glClear(GL_COLOR_BUFFER_BIT);
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
       try
-        Scene.Background.Render;
+        MainScene.Background.Render;
       finally glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); end;
     end else
-      Scene.Background.Render;
+      MainScene.Background.Render;
   end else
     ClearBuffers := ClearBuffers or GL_COLOR_BUFFER_BIT;
 
   if ShadowVolumesPossible and
      ShadowVolumes and
-     Scene.MainLightForShadowsExists then
+     (MainScene <> nil) and
+     MainScene.MainLightForShadowsExists then
     ClearBuffers := ClearBuffers or GL_STENCIL_BUFFER_BIT;
 
   glClear(ClearBuffers);
@@ -300,8 +354,10 @@ begin
     to false (disallowing ContainerResize), and then trying to use Render. }
   Assert(ContainerSizeKnown, 'SceneManager did not receive ContainerResize event yet, cannnot Render');
 
-  Scene.UpdateGeneratedTextures(@RenderFromView,
-    Scene.WalkProjectionNear, Scene.WalkProjectionFar,
+  { TODO: do UpdateGeneratedTextures for all Items }
+
+  MainScene.UpdateGeneratedTextures(@RenderFromView,
+    MainScene.WalkProjectionNear, MainScene.WalkProjectionFar,
     { For now assume viewport fills the whole container,
       see ../../../doc/TODO.scene_manager_viewport }
     0, 0, ContainerWidth, ContainerHeight);

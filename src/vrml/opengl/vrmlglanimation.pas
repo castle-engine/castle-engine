@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2008 Michalis Kamburelis.
+  Copyright 2006-2010 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -9,6 +9,8 @@
   "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
 }
 
 { TVRMLGLAnimation class. }
@@ -335,6 +337,10 @@ type
       Options: TPrepareRenderOptions;
       ProgressStep: boolean);
 
+    procedure PrepareRender(
+      TransparentGroups: TTransparentGroups;
+      Options: TPrepareRenderOptions); override;
+
     { This calls FreeResources for all scenes, it's useful if you know
       that you will not need some allocated resources anymore and you
       want to conserve memory use.
@@ -598,7 +604,8 @@ type
     procedure ResetWorldTime(const NewValue: TKamTime);
 
     procedure Render(const Frustum: TFrustum;
-      TransparentGroup: TTransparentGroup); override;
+      TransparentGroup: TTransparentGroup;
+      InShadow: boolean); override;
     procedure RenderShadowVolume(
       ShadowVolumes: TBaseShadowVolumes;
       const ParentTransformIsIdentity: boolean;
@@ -1528,6 +1535,13 @@ begin
   end;
 end;
 
+procedure TVRMLGLAnimation.PrepareRender(
+  TransparentGroups: TTransparentGroups;
+  Options: TPrepareRenderOptions);
+begin
+  PrepareRender(TransparentGroups, Options, false);
+end;
+
 procedure TVRMLGLAnimation.FreeResources(Resources: TVRMLSceneFreeResources);
 var
   I: Integer;
@@ -1658,9 +1672,13 @@ function TVRMLGLAnimation.BoundingBox: TBox3d;
   end;
 
 begin
-  if not ValidBoundingBox then
-    ValidateBoundingBox;
-  Result := FBoundingBox;
+  if Exists then
+  begin
+    if not ValidBoundingBox then
+      ValidateBoundingBox;
+    Result := FBoundingBox;
+  end else
+    Result := EmptyBox3D;
 end;
 
 procedure TVRMLGLAnimation.ChangedAll;
@@ -1988,9 +2006,10 @@ begin
 end;
 
 procedure TVRMLGLAnimation.Render(const Frustum: TFrustum;
-  TransparentGroup: TTransparentGroup);
+  TransparentGroup: TTransparentGroup; InShadow: boolean);
 begin
-  CurrentScene.RenderFrustum(Frustum, TransparentGroup);
+  if Exists then
+    CurrentScene.Render(Frustum, TransparentGroup, InShadow);
 end;
 
 procedure TVRMLGLAnimation.RenderShadowVolume(
@@ -1998,8 +2017,9 @@ procedure TVRMLGLAnimation.RenderShadowVolume(
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
 begin
-  CurrentScene.RenderShadowVolume(ShadowVolumes,
-    ParentTransformIsIdentity, ParentTransform);
+  if Exists and CastsShadow then
+    CurrentScene.RenderShadowVolume(ShadowVolumes,
+      ParentTransformIsIdentity, ParentTransform);
 end;
 
 end.
