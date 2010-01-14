@@ -94,8 +94,8 @@ type
     FWorldTimeAtLoad: TKamTime;
     FWorldTime: TKamTime;
 
-    ValidBoundingBoxSum: boolean;
-    FBoundingBoxSum: TBox3d;
+    ValidBoundingBox: boolean;
+    FBoundingBox: TBox3d;
     FOptimization: TGLRendererOptimization;
     FCamera: TCamera;
 
@@ -108,7 +108,7 @@ type
     procedure SetCamera(const Value: TCamera);
     procedure SetOptimization(const Value: TGLRendererOptimization);
 
-    function InfoBoundingBoxSum: string;
+    function InfoBoundingBox: string;
   private
     FWalkProjectionNear: Single;
     FWalkProjectionFar : Single;
@@ -462,7 +462,7 @@ type
       very fast. But you have to call ChangedAll when you changed something
       inside Scenes[] using some direct Scenes[].RootNode operations,
       to force recalculation of this box. }
-    function BoundingBoxSum: TBox3d;
+    function BoundingBox: TBox3d; override;
 
     { Call this when you changed something
       inside Scenes[] using some direct Scenes[].RootNode operations.
@@ -710,7 +710,7 @@ end;
 procedure TVRMLGLAnimationScene.DoGeometryChanged;
 begin
   inherited;
-  ParentAnimation.ValidBoundingBoxSum := false;
+  ParentAnimation.ValidBoundingBox := false;
 end;
 
 procedure TVRMLGLAnimationScene.VisibleChange;
@@ -1469,7 +1469,7 @@ begin
     FreeAndNil(FScenes);
   end;
 
-  ValidBoundingBoxSum := false;
+  ValidBoundingBox := false;
 
   FLoaded := false;
 end;
@@ -1639,22 +1639,22 @@ begin
     FScenes[I].ShareManifoldAndBorderEdges(ManifoldShared, BorderShared);
 end;
 
-function TVRMLGLAnimation.BoundingBoxSum: TBox3d;
+function TVRMLGLAnimation.BoundingBox: TBox3d;
 
-  procedure ValidateBoundingBoxSum;
+  procedure ValidateBoundingBox;
   var
     I: Integer;
   begin
-    FBoundingBoxSum := FScenes[0].BoundingBox;
+    FBoundingBox := FScenes[0].BoundingBox;
     for I := 1 to FScenes.High do
-      Box3dSumTo1st(FBoundingBoxSum, FScenes[I].BoundingBox);
-    ValidBoundingBoxSum := true;
+      Box3dSumTo1st(FBoundingBox, FScenes[I].BoundingBox);
+    ValidBoundingBox := true;
   end;
 
 begin
-  if not ValidBoundingBoxSum then
-    ValidateBoundingBoxSum;
-  Result := FBoundingBoxSum;
+  if not ValidBoundingBox then
+    ValidateBoundingBox;
+  Result := FBoundingBox;
 end;
 
 procedure TVRMLGLAnimation.ChangedAll;
@@ -1663,14 +1663,14 @@ var
 begin
   for I := 0 to FScenes.High do
     FScenes[I].ChangedAll;
-  ValidBoundingBoxSum := false;
+  ValidBoundingBox := false;
 end;
 
-function TVRMLGLAnimation.InfoBoundingBoxSum: string;
+function TVRMLGLAnimation.InfoBoundingBox: string;
 var
   BBox: TBox3d;
 begin
-  BBox := BoundingBoxSum;
+  BBox := BoundingBox;
   Result := 'Bounding box (of the whole animation) : ' + Box3dToNiceStr(BBox);
   if not IsEmptyBox3d(BBox) then
   begin
@@ -1696,7 +1696,7 @@ begin
     if Result <> '' then Result += NL;
     { We do not call FirstScene.InfoBoundingBox here, instead we want
       to get full bounding box of the animation. }
-    Result += InfoBoundingBoxSum;
+    Result += InfoBoundingBox;
   end;
 
   if AManifoldAndBorderEdges then

@@ -22,7 +22,7 @@ uses
   VRMLFields, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLShape, VRMLTriangleOctree, ProgressUnit, KambiOctree, VRMLShapeOctree,
   KeysMouse, VRMLTime, Cameras, VRMLTriangle, Contnrs, VRMLHeadLight,
-  RenderStateUnit, UIControls;
+  RenderStateUnit, UIControls, Base3D;
 
 {$define read_interface}
 
@@ -519,7 +519,7 @@ type
 
     Also, VRML2ActiveLights are magically updated for all states in
     @link(Shapes) tree. This is crucial for lights rendering in VRML >= 2.0. }
-  TVRMLScene = class(TUIControl)
+  TVRMLScene = class(TBase3D)
   private
     FOwnsRootNode: boolean;
     FShapes: TVRMLShapeTree;
@@ -897,7 +897,7 @@ type
       VRMLNodes.TNodeGenaralShape methods. Here, we just sum results
       of TNodeGenaralShape methods for all shapes.
       @groupBegin }
-    function BoundingBox: TBox3d;
+    function BoundingBox: TBox3d; override;
     function VerticesCount(OverTriangulate: boolean): Cardinal;
     function TrianglesCount(OverTriangulate: boolean): Cardinal;
     { @groupEnd }
@@ -5724,7 +5724,7 @@ begin
     { Since we don't have NavigationNode.speed, we just calculate some
       speed that should "feel sensible". We base it on CameraRadius.
       CameraRadius in turn was calculated based on
-      Box3dAvgSize(SceneAnimation.BoundingBoxSum). }
+      Box3dAvgSize(SceneAnimation.BoundingBox). }
     VectorAdjustToLengthTo1st(Direction, ACamera.CameraRadius * 0.4);
     WalkCamera.MoveHorizontalSpeed := 1;
     WalkCamera.MoveVerticalSpeed := 1;

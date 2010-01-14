@@ -1327,7 +1327,7 @@ type
 
       Box is the expected bounding box of the whole scene. Usually,
       it should be just Scene.BoundingBox, but it may be something larger,
-      e.g. TVRMLGLAnimation.BoundingBoxSum if this scene is part of
+      e.g. TVRMLGLAnimation.BoundingBox if this scene is part of
       a precalculated animation. }
     procedure GLProjection(ACamera: TCamera;
       const Box: TBox3d;

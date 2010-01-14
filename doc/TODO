@@ -57,7 +57,7 @@ Better Lazarus integration:
     As well as most stuff in TVRMLScene/Animation dealing with Camera,
     this can be better moved to TSceneManager.
 
-  * Make TVRMLScene/TVRMLAnimation descend from T3DScene (or T3DObject? T3DItem? T3DBaseItem?).
+  * Make TVRMLScene/TVRMLAnimation descend from TBase3D.
     Make it in SceneManagerUnit.
 
     Then unit SceneManager may be moved to ui/, should not have much more
@@ -69,6 +69,11 @@ Better Lazarus integration:
     SceneManager. Also, since SceneManager will set MainScene.GLProjection in
     ContainerRersize, there can be only one SceneManager used at one time.
 
+    Hm, no, TSceneManager.MainScene must point to VRML-enabled:TVRMLScene.
+    Maybe make TVRMLSceneManager? General TSceneManager should not be dependent
+    on VRML? Hm, or not: if I'll design TBase3D intelligently, maybe there
+    will not be need for any TVRMLGLSCene-specific stuff in TSceneManager.
+
   * TSceneManager: how to pass all TUIControl events to scene(s) inside?
     Maybe implement events passing in a class like TUIControlsList.
     This would make TUIControlsList a valid TUIControl itself. TSceneManager could contain Scenes: list for them.
@@ -76,7 +81,7 @@ Better Lazarus integration:
     - How/when to pass GLContextInit/Close? Also list notification?
     - Also, this means we decide to keep scene/animation TUIControl.
       This is uncomfortable: e.g. how to make PositionInside etc.?
-      Maybe replace it by T3DControl, not related to TUIControl, but does it solve all troubles?
+      Maybe replace it by TBase3D, not related to TUIControl, but does it solve all troubles?
 
 * Let RenderState use some Camera reference, maybe make TSimpleCamera to avoid
   overloading it with full camera props for temporary camera settings?

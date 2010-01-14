@@ -102,7 +102,7 @@ end;
 
 procedure Resize(glwin: TGLWindow);
 begin
-  Animation.GLProjection(Glw.Camera, Animation.BoundingBoxSum,
+  Animation.GLProjection(Glw.Camera, Animation.BoundingBox,
     Glwin.Width, Glwin.Height);
 end;
 
