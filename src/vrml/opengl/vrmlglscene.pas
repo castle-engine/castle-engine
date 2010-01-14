@@ -1017,7 +1017,12 @@ type
       This is useful if you use multi-pass rendering (e.g. render
       a scene few times for shadow volumes, calling Render a few times)
       and you want LastRender_ statistics to represent the total
-      work e.g. done for this frame. }
+      work e.g. done for this frame.
+
+      Note that this is automatically done at the beginning of @link(Render),
+      RenderFrustum with TransparentGroup = tgTransparent.
+      So rendering with tgTransparent always sums to the rendered shapes.
+      This reflects typical usage. }
     procedure LastRender_SumNext;
 
     { Turn off lights that are not supposed to light in the shadow.
@@ -1325,10 +1330,9 @@ type
       Also takes care of setting our properties BackgroundSkySphereRadius,
       AngleOfViewX, AngleOfViewY.
 
-      Box is the expected bounding box of the whole scene. Usually,
-      it should be just Scene.BoundingBox, but it may be something larger,
-      e.g. TVRMLGLAnimation.BoundingBox if this scene is part of
-      a precalculated animation. }
+      Box is the expected bounding box of the whole 3D scene.
+      Usually, it should be just Scene.BoundingBox, but it may be something
+      larger, if this scene is part of a larger world. }
     procedure GLProjection(ACamera: TCamera;
       const Box: TBox3d;
       const WindowWidth, WindowHeight: Cardinal;
@@ -2609,6 +2613,9 @@ var
   BlendingSourceFactorSet, BlendingDestinationFactorSet: TGLEnum;
   I: Integer;
 begin
+  if TransparentGroup = tgTransparent then
+    LastRender_SumNext;
+
   if FLastRender_SumNext then
     FLastRender_SumNext := false else
   begin

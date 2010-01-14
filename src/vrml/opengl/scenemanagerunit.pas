@@ -213,9 +213,6 @@ end;
 
 procedure TSceneManager.RenderScene(InShadow: boolean; TransparentGroup: TTransparentGroup);
 begin
-  if TransparentGroup = tgTransparent then
-    Scene.LastRender_SumNext;
-
   if InShadow then
     Scene.RenderFrustum(RenderState.CameraFrustum, TransparentGroup, @Scene.LightRenderInShadow) else
     Scene.RenderFrustum(RenderState.CameraFrustum, TransparentGroup, nil);
