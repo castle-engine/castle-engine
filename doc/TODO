@@ -15,6 +15,10 @@ view3dscene 3.5 blockers:
 Better Lazarus integration:
 (Some before view3dscene 3.5, some probably for later.)
 
+* view3dscene should add SceneAnimation, not just AScene, to TSceneManager.Items.
+  This should also take care of doing PrepareRender on SceneAnimation,
+  we'll have to figure out a way to allow progress bar there.
+
 * TSceneManager fitting into controls:
 
   * Should resolve:
