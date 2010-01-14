@@ -976,6 +976,9 @@ type
       TransparentGroup: TTransparentGroup;
       LightRenderEvent: TVRMLLightRenderEvent = nil);
 
+    procedure Render(const Frustum: TFrustum;
+      TransparentGroup: TTransparentGroup); override;
+
     { LastRender_ properties provide you read-only statistics
       about what happened during last render. For now you
       can see how many Shapes were rendered (i.e. send to OpenGL
@@ -1092,7 +1095,7 @@ type
       back facing triangles with respect to LightPos, so "LightPos" and
       "scene transformed by Transform" must be in the same coordinate system.
       (That's why explicit Transform parameter is needed, you can't get away
-      with simply doing glPush/PopMatrix and glMultMatrix around RenderShadowVolume
+      with simply doing glPush/PopMatrix and glMultMatrix around RenderShadowVolumeCore
       call.) If TransformIsIdentity then Transform value is ignored and
       everything works like Transform = identity matrix (and is a little
       faster in this special case).
@@ -1122,7 +1125,7 @@ type
 
       All the commands passed to OpenGL by this methods are:
       glBegin, sequence of glVertex, then glEnd. }
-    procedure RenderShadowVolume(
+    procedure RenderShadowVolumeCore(
       const LightPos: TVector4Single;
       const TransformIsIdentity: boolean;
       const Transform: TMatrix4Single;
@@ -1130,20 +1133,35 @@ type
       const DarkCap: boolean;
       const AllowSilhouetteOptimization: boolean = true);
 
-    procedure RenderShadowVolume(
+    procedure RenderShadowVolumeCore(
       ShadowVolumes: TShadowVolumes;
       const TransformIsIdentity: boolean;
       const Transform: TMatrix4Single;
       const AllowSilhouetteOptimization: boolean = true);
 
-    { A shortcut for ShadowVolumes.InitScene and then RenderShadowVolume.
-      It will calculate current bounding box using Transform, TransformIsIdentity
-      and BoundingBox method. }
-    procedure InitAndRenderShadowVolume(
+    { Render shadow volume (sides and caps) of this scene, for shadow volume
+      algorithm. This is a convenience  shortcut for
+      ShadowVolumes.InitScene and then RenderShadowVolumeCore.
+      It will calculate current bounding box using Transform,
+      TransformIsIdentity and BoundingBox method.
+
+      Overloaded version without AllowSilhouetteOptimization
+      just uses AllowSilhouetteOptimization = @true, which is the most
+      sensible in almost all cases. See RenderShadowVolumeCore for detailed
+      explanation what AllowSilhouetteOptimization does.
+
+      @groupBegin }
+    procedure RenderShadowVolume(
       ShadowVolumes: TShadowVolumes;
       const TransformIsIdentity: boolean;
       const Transform: TMatrix4Single;
-      const AllowSilhouetteOptimization: boolean = true);
+      const AllowSilhouetteOptimization: boolean);
+
+    procedure RenderShadowVolume(
+      ShadowVolumes: TShadowVolumes;
+      const ParentTransformIsIdentity: boolean;
+      const ParentTransform: TMatrix4Single); override;
+    { @groupEnd }
 
     { Render silhouette edges.
       Silhouette is determined from the ObserverPos.
@@ -1428,6 +1446,7 @@ type
 const
   { Options to pass to TVRMLGLScene.PrepareRender to make
     sure that next call to TVRMLGLScene.RenderShadowVolume
+    (and TVRMLGLScene.RenderShadowVolumeCore etc.)
     is as fast as possible.
 
     For now this actually could be equal to prManifoldEdges
@@ -4159,7 +4178,7 @@ begin
   finally FreeAndNil(TrianglesPlaneSide) end;
 end;
 
-procedure TVRMLGLScene.RenderShadowVolume(
+procedure TVRMLGLScene.RenderShadowVolumeCore(
   const LightPos: TVector4Single;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
@@ -4173,7 +4192,7 @@ begin
       LightPos, TransformIsIdentity, Transform, LightCap, DarkCap);
 end;
 
-procedure TVRMLGLScene.RenderShadowVolume(
+procedure TVRMLGLScene.RenderShadowVolumeCore(
   ShadowVolumes: TShadowVolumes;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
@@ -4181,7 +4200,7 @@ procedure TVRMLGLScene.RenderShadowVolume(
 begin
   if ShadowVolumes.SceneShadowPossiblyVisible then
   begin
-    RenderShadowVolume(ShadowVolumes.LightPosition,
+    RenderShadowVolumeCore(ShadowVolumes.LightPosition,
       TransformIsIdentity, Transform,
       ShadowVolumes.ZFailAndLightCap,
       ShadowVolumes.ZFail,
@@ -4189,7 +4208,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLScene.InitAndRenderShadowVolume(
+procedure TVRMLGLScene.RenderShadowVolume(
   ShadowVolumes: TShadowVolumes;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
@@ -4204,8 +4223,17 @@ begin
 
   ShadowVolumes.InitScene(Box);
 
-  RenderShadowVolume(ShadowVolumes, TransformIsIdentity, Transform,
+  RenderShadowVolumeCore(ShadowVolumes, TransformIsIdentity, Transform,
     AllowSilhouetteOptimization);
+end;
+
+procedure TVRMLGLScene.RenderShadowVolume(
+  ShadowVolumes: TShadowVolumes;
+  const ParentTransformIsIdentity: boolean;
+  const ParentTransform: TMatrix4Single);
+begin
+  RenderShadowVolume(ShadowVolumes,
+    ParentTransformIsIdentity, ParentTransform, true);
 end;
 
 procedure TVRMLGLScene.RenderSilhouetteEdges(
@@ -4448,6 +4476,12 @@ begin
      ( CollidesForSure or
        OctreeFrustumCullingFunc(Shape) ) then
     Shape.RenderFrustumOctree_Visible := true;
+end;
+
+procedure TVRMLGLScene.Render(const Frustum: TFrustum;
+  TransparentGroup: TTransparentGroup);
+begin
+  RenderFrustum(Frustum, TransparentGroup, nil);
 end;
 
 { Background-related things ---------------------------------------- }

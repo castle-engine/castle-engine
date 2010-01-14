@@ -15,6 +15,12 @@ view3dscene 3.5 blockers:
 Better Lazarus integration:
 (Some before view3dscene 3.5, some probably for later.)
 
+* Base3D depends on OpenGL, because of ShadowVolumes.
+
+  Also, Render and RenderShadowVolumes is obviously only non-abstract in gl
+  (TVRMLGLScene). This makes TVRMLScene instantiation cause warnings.
+  And even rayhunter will depend on OpenGL, which is bad.
+
 * TSceneManager fitting into controls:
 
   * Should resolve:
@@ -82,6 +88,13 @@ Better Lazarus integration:
     - Also, this means we decide to keep scene/animation TUIControl.
       This is uncomfortable: e.g. how to make PositionInside etc.?
       Maybe replace it by TBase3D, not related to TUIControl, but does it solve all troubles?
+
+  * Moving castlelevel objects -> TBase3D:
+    - remember TBase3D takes into account Exists, Collides, CastsShadow.
+    
+    Implement Exists, Collides, CastsShadow in TSceneManager.
+
+* TVRMLScene gets CreateCamera with box --- use this in TSceneManager.
 
 * Let RenderState use some Camera reference, maybe make TSimpleCamera to avoid
   overloading it with full camera props for temporary camera settings?

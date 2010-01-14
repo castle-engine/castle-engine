@@ -178,7 +178,7 @@ procedure Draw(glwin: TGLWindow);
 
   procedure RenderAllShadowQuadsAndCaps;
   begin
-    ShadowCaster.RenderShadowVolume(SV, false, ShadowCasterNav.Matrix,
+    ShadowCaster.RenderShadowVolumeCore(SV, false, ShadowCasterNav.Matrix,
       AllowSilhouetteOptimization);
   end;
 

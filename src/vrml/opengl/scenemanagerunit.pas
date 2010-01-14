@@ -220,7 +220,7 @@ end;
 
 procedure TSceneManager.RenderShadowVolumes;
 begin
-  Scene.InitAndRenderShadowVolume(SV, true, IdentityMatrix4Single);
+  Scene.RenderShadowVolume(SV, true, IdentityMatrix4Single);
 end;
 
 procedure TSceneManager.RenderHeadLight;

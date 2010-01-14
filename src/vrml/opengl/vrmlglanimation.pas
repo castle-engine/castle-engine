@@ -18,7 +18,7 @@ interface
 
 uses SysUtils, Classes, VRMLNodes, VRMLOpenGLRenderer, VRMLScene, VRMLGLScene,
   KambiUtils, Boxes3d, KambiClassUtils, VRMLAnimation, KeysMouse, Cameras,
-  KambiTimeUtils;
+  KambiTimeUtils, Frustum, ShadowVolumes, VectorMath;
 
 {$define read_interface}
 
@@ -596,6 +596,13 @@ type
 
     { Set WorldTime to arbitrary value. }
     procedure ResetWorldTime(const NewValue: TKamTime);
+
+    procedure Render(const Frustum: TFrustum;
+      TransparentGroup: TTransparentGroup); override;
+    procedure RenderShadowVolume(
+      ShadowVolumes: TShadowVolumes;
+      const ParentTransformIsIdentity: boolean;
+      const ParentTransform: TMatrix4Single); override;
   published
     { Is the animation time playing, and how fast.
 
@@ -662,8 +669,7 @@ procedure Register;
 
 implementation
 
-uses Math, VectorMath, VRMLFields,
-  ProgressUnit, Object3dAsVRML, KambiLog, DateUtils;
+uses Math, VRMLFields, ProgressUnit, Object3dAsVRML, KambiLog, DateUtils;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -1979,6 +1985,21 @@ end;
 function TVRMLGLAnimation.PositionInside(const X, Y: Integer): boolean;
 begin
   Result := true;
+end;
+
+procedure TVRMLGLAnimation.Render(const Frustum: TFrustum;
+  TransparentGroup: TTransparentGroup);
+begin
+  CurrentScene.RenderFrustum(Frustum, TransparentGroup);
+end;
+
+procedure TVRMLGLAnimation.RenderShadowVolume(
+  ShadowVolumes: TShadowVolumes;
+  const ParentTransformIsIdentity: boolean;
+  const ParentTransform: TMatrix4Single);
+begin
+  CurrentScene.RenderShadowVolume(ShadowVolumes,
+    ParentTransformIsIdentity, ParentTransform);
 end;
 
 end.

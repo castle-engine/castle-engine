@@ -1727,7 +1727,16 @@ type
       )
 
       This also calls CameraBindToViewpoint at the end,
-      so camera is bound to current vewpoint. }
+      so camera is bound to current vewpoint.
+
+      Box is the expected bounding box of the whole 3D scene.
+      Usually, it should be just Scene.BoundingBox, but it may be something
+      larger, if this scene is part of a larger world. }
+    function CreateCamera(AOwner: TComponent;
+      const Box: TBox3d;
+      const ForceNavigationType: string = ''): TCamera;
+
+    { @deprecated }
     function CreateCamera(AOwner: TComponent;
       const ForceNavigationType: string = ''): TCamera;
 
@@ -5582,6 +5591,7 @@ end;
 { camera ------------------------------------------------------------------ }
 
 function TVRMLScene.CreateCamera(AOwner: TComponent;
+  const Box: TBox3d;
   const ForceNavigationType: string = ''): TCamera;
 
   { Create TCamera instance, looking at NavigationType
@@ -5658,9 +5668,9 @@ begin
      (NavigationNode.FdAvatarSize.Count >= 1) then
     CameraRadius := NavigationNode.FdAvatarSize.Items[0];
   { if avatarSize doesn't specify CameraRadius, or specifies invalid <= 0,
-    calculate something suitable based on Scene.BoundingBox. }
+    calculate something suitable based on Scene.Box. }
   if CameraRadius <= 0 then
-    CameraRadius := Box3dAvgSize(BoundingBox, 1.0) * 0.005;
+    CameraRadius := Box3dAvgSize(Box, 1.0) * 0.005;
 
   Result.CameraRadius := CameraRadius;
 
@@ -5680,10 +5690,16 @@ begin
   end else
   if Result is TExamineCamera then
   begin
-    TExamineCamera(Result).Init(BoundingBox, CameraRadius);
+    TExamineCamera(Result).Init(Box, CameraRadius);
   end;
 
   CameraBindToViewpoint(Result, false);
+end;
+
+function TVRMLScene.CreateCamera(AOwner: TComponent;
+  const ForceNavigationType: string = ''): TCamera;
+begin
+  Result := CreateCamera(AOwner, BoundingBox, ForceNavigationType);
 end;
 
 procedure TVRMLScene.CameraBindToViewpoint(ACamera: TCamera;

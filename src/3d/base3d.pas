@@ -18,14 +18,28 @@ unit Base3D;
 
 interface
 
-uses Boxes3D, UIControls, ShadowVolumes;
+uses Classes, VectorMath, Frustum, Boxes3D, UIControls, ShadowVolumes;
 
 type
   { Base 3D object, that can be managed by TSceneManager.
     All 3D objects should descend from this, this way we can easily
     insert them into TSceneManager. }
   TBase3D = class(TUIControl)
+  private
+    FCastsShadow: boolean;
+    FExists: boolean;
+    FCollides: boolean;
   public
+    constructor Create(AOwner: TComponent); override;
+
+    { @noAutoLinkHere }
+    property Exists: boolean read FExists write FExists default true;
+
+    { @noAutoLinkHere
+      Note that if not @link(Exists) then this doesn't matter
+      (not existing objects never participate in collision detection). }
+    property Collides: boolean read FCollides write FCollides default true;
+
     { Bounding box of the 3D object.
 
       Should take into account both collidable and visible objects.
@@ -39,8 +53,59 @@ type
       Although all currently implemeted descendants (TVRMLScene, TVRMLAnimation,
       more) guarantee it's never too small. }
     function BoundingBox: TBox3d; virtual; abstract;
+
+    { Render given object.
+
+      It can be optimized to not
+      render the object if it's not inside the Frustum.
+
+      TransparentGroup may indicate that only opaque or only transparent
+      parts should be rendered, just like for TVRMLGLScene.Render comments.
+
+      This is done only if @link(Exists). }
+    procedure Render(const Frustum: TFrustum;
+      TransparentGroup: TTransparentGroup); virtual; abstract;
+
+    property CastsShadow: boolean read FCastsShadow write FCastsShadow
+      default true;
+
+    { Render shadow quads for all the things rendered by @link(Render).
+      Does nothing if not CastsShadow.
+      It does shadow volumes culling inside  (so ShadowVolumes should
+      have FrustumCullingInit already initialized).
+
+      ParentTransform and ParentTransformIsIdentity describe the transformation
+      of this object in the 3D world.
+      TBase3D objects may be organized in a hierarchy when
+      parent transforms it's children. When ParentTransformIsIdentity,
+      ParentTransform must be IdentityMatrix4Single (it's not guaranteed
+      that when ParentTransformIsIdentity = @true, Transform value will be
+      ignored !).
+
+      @italic(Implementation note:) In @link(Render), it is usually possible
+      to implement ParentTransform* by glPush/PopMatrix and Frustum.Move tricks.
+      But RenderShadowVolume needs actual transformation explicitly:
+      ShadowMaybeVisible needs actual box position in world coordinates,
+      so bounding box has to be transformed by ParentTransform.
+      And TVRMLGLScene.RenderShadowVolumeCore needs explicit ParentTransform
+      to correctly detect front/back sides (for silhouette edges and
+      volume capping).
+
+      This is done only if @link(Exists) and @link(CastsShadow). }
+    procedure RenderShadowVolume(
+      ShadowVolumes: TShadowVolumes;
+      const ParentTransformIsIdentity: boolean;
+      const ParentTransform: TMatrix4Single); virtual; abstract;
   end;
 
 implementation
+
+constructor TBase3D.Create(AOwner: TComponent);
+begin
+  inherited;
+  FCastsShadow := true;
+  FExists := true;
+  FCollides := true;
+end;
 
 end.
