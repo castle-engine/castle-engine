@@ -42,6 +42,7 @@ Better Lazarus integration:
 
   * At the end: we'll have to decide should TVRMLGLScene / TVRMLGLAnimation remain as TUIControl,
     or should we force user to using TSceneManager always?
+    That is, should TBase3D descend from TUIControl, or be independent from it?
 
   * Hm, also CreateCamera should be in TSceneManager?
     To take as bounding box (for examine navigator) sum of bboxes?
@@ -85,7 +86,7 @@ Better Lazarus integration:
 
   * Moving castlelevel objects -> TBase3D:
     - remember TBase3D takes into account Exists, Collides, CastsShadow.
-    
+
     Implement Exists, Collides, CastsShadow in TSceneManager.
 
 * TVRMLScene gets CreateCamera with box --- use this in TSceneManager.
