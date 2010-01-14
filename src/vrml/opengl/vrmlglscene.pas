@@ -923,14 +923,14 @@ type
           Note that while rendering just everything with tgAll is simple,
           but it has some important disadvantages if your OnDraw does
           not consist of only one call to Render. E.g. instead of simple
-@longCode(
+@longCode(#
   Scene.Render(nil, tgAll);
-)
+#)
           you have
-@longCode(
+@longCode(#
   Scene1.Render(nil, tgAll);
   Scene2.Render(nil, tgAll);
-)
+#)
           The code above it not good if both scenes contain some
           opaque and some transparent objects.
           You should always render all opaque objects before
@@ -938,13 +938,13 @@ type
           if Scene1 has some of them.
 
           So that's when TransparentGroups come to use: you can write
-@longCode(
+@longCode(#
   Scene1.Render(nil, tgOpaque);
   Scene2.Render(nil, tgOpaque);
 
   Scene1.Render(nil, tgTransparent);
   Scene2.Render(nil, tgTransparent);
-)
+#)
           Note that when Attributes.Blending is @false then everything
           is always opaque, so tgOpaque renders everything and tgTransparent
           renders nothing.
