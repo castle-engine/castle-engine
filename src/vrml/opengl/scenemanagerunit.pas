@@ -70,7 +70,7 @@ type
   }
   TSceneManager = class(TUIControl)
   private
-    FScene: TVRMLGLScene;
+    FMainScene: TVRMLGLScene;
     FCamera: TCamera;
     FItems: TBase3DList;
 
@@ -80,6 +80,12 @@ type
     SV: TShadowVolumes;
 
     FBackgroundWireframe: boolean;
+
+    ApplyProjectionNeeded: boolean;
+
+    procedure SetMainScene(const Value: TVRMLGLScene);
+    procedure SetCamera(const Value: TCamera);
+    procedure SetShadowVolumesPossible(const Value: boolean);
   protected
     { Render one pass, from current (in RenderState) camera view,
       for specific lights setup, for given TransparentGroup. }
@@ -105,6 +111,18 @@ type
       when everything (clearing, background, headlight, loading camera
       matrix) is done and all that remains is to pass to OpenGL actual 3D world. }
     procedure RenderFromView3D; virtual;
+
+    { Sets OpenGL projection matrix, based on MainScene's currently
+      bound Viewpoint, NavigationInfo and used camera.
+
+      Takes care of updating Camera.ProjectionMatrix.
+
+      This is automatically called at the beginning of our Render method,
+      if it's needed (after MainScene or Container sizes or some other
+      stuff changed).
+
+      @seealso TVRMLGLScene.GLProjection }
+    procedure ApplyProjection; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -132,20 +150,20 @@ type
         @item Decides what background is rendered (by TVRMLGLScene.Background).
         @item(Decides if, and where, the main light casting shadows is
           (see TVRMLGLScene.MainLightForShadowsExists, TVRMLGLScene.MainLightForShadows).)
-        @item Sets OpenGL projection for the scene (TODO: not yet).
+        @item Sets OpenGL projection for the scene, see ApplyProjection.
       )
 
       The above stuff is only sensible when done once per scene manager,
       that's why we need MainScene property to indicate this.
       (We cannot just use every 3D object from @link(Items) for this.) }
-    property MainScene: TVRMLGLScene read FScene write FScene;
+    property MainScene: TVRMLGLScene read FMainScene write SetMainScene;
 
-    property Camera: TCamera read FCamera write FCamera;
+    property Camera: TCamera read FCamera write SetCamera;
 
     { Should we make shadow volumes possible.
       This should indicate if OpenGL context was (possibly) initialized
       with stencil buffer. }
-    property ShadowVolumesPossible: boolean read FShadowVolumesPossible write FShadowVolumesPossible;
+    property ShadowVolumesPossible: boolean read FShadowVolumesPossible write SetShadowVolumesPossible;
 
     { Should we render with shadow volumes.
       You can change this at any time, to switch rendering shadows on/off.
@@ -194,6 +212,8 @@ type
 
       Implementation in this class is correlated with RenderHeadlight. }
     function ViewerToChanges: TVisibleSceneChanges; virtual;
+
+    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
   end;
 
 implementation
@@ -227,6 +247,46 @@ begin
   FreeAndNil(SV);
 
   inherited;
+end;
+
+procedure TSceneManager.ApplyProjection;
+begin
+  if MainScene <> nil then
+    MainScene.GLProjection(Camera, Items.BoundingBox,
+      ContainerWidth, ContainerHeight, ShadowVolumesPossible);
+end;
+
+procedure TSceneManager.SetMainScene(const Value: TVRMLGLScene);
+begin
+  if FMainScene <> Value then
+  begin
+    FMainScene := Value;
+    ApplyProjectionNeeded := true;
+  end;
+end;
+
+procedure TSceneManager.SetCamera(const Value: TCamera);
+begin
+  if FCamera <> Value then
+  begin
+    FCamera := Value;
+    ApplyProjectionNeeded := true;
+  end;
+end;
+
+procedure TSceneManager.SetShadowVolumesPossible(const Value: boolean);
+begin
+  if FShadowVolumesPossible <> Value then
+  begin
+    FShadowVolumesPossible := Value;
+    ApplyProjectionNeeded := true;
+  end;
+end;
+
+procedure TSceneManager.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
+begin
+  inherited;
+  ApplyProjectionNeeded := true;
 end;
 
 procedure TSceneManager.PrepareRender;
@@ -351,8 +411,17 @@ end;
 procedure TSceneManager.Render;
 begin
   { This assertion can break only if you misuse UseControls property, setting it
-    to false (disallowing ContainerResize), and then trying to use Render. }
+    to false (disallowing ContainerResize), and then trying to use Render.
+
+    We need to know container size now, for UpdateGeneratedTextures lower
+    and for ApplyProjection. }
   Assert(ContainerSizeKnown, 'SceneManager did not receive ContainerResize event yet, cannnot Render');
+
+  if ApplyProjectionNeeded then
+  begin
+    ApplyProjectionNeeded := false;
+    ApplyProjection;
+  end;
 
   { TODO: do UpdateGeneratedTextures for all Items }
 

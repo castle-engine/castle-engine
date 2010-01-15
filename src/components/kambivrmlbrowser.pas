@@ -115,8 +115,6 @@ type
     procedure Load(ARootNode: TVRMLNode; const OwnsRootNode: boolean);
 
     function Scene: TVRMLGLScene;
-
-    procedure Resize; override;
   published
     property OnCameraChanged: TNotifyEvent
       read FOnCameraChanged write FOnCameraChanged;
@@ -227,12 +225,6 @@ begin
   { Add Scene to Controls, making it receive all TUIControl treatment,
     like events etc. }
   Controls.Insert(0, Scene);
-
-  if ContextInitialized then
-  begin
-    Resize;
-    Invalidate;
-  end;
 end;
 
 function TKamVRMLBrowser.Scene: TVRMLGLScene;
@@ -256,14 +248,6 @@ procedure TKamVRMLBrowser.DoGLContextInit;
 begin
   inherited;
   glEnable(GL_LIGHTING);
-end;
-
-procedure TKamVRMLBrowser.Resize;
-begin
-  inherited;
-  if not MakeCurrent then Exit;
-  Scene.GLProjection(Camera, Scene.BoundingBox,
-    Width, Height, ShadowVolumesPossible);
 end;
 
 procedure TKamVRMLBrowser.UpdateCursor(Sender: TObject);

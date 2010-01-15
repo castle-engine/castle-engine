@@ -114,7 +114,6 @@ type
     procedure EventBeforeDraw; override;
     procedure EventDraw; override;
     procedure EventInit; override;
-    procedure EventResize; override;
 
     { Should we make shadow volumes possible.
 
@@ -208,12 +207,6 @@ begin
   { Add Scene to Controls, making it receive all TUIControl treatment,
     like events etc. }
   Controls.Insert(0, Scene);
-
-  if not Closed then
-  begin
-    EventResize;
-    PostRedisplay;
-  end;
 end;
 
 function TGLWindowVRMLBrowser.Scene: TVRMLGLScene;
@@ -237,13 +230,6 @@ procedure TGLWindowVRMLBrowser.EventInit;
 begin
   inherited;
   glEnable(GL_LIGHTING);
-end;
-
-procedure TGLWindowVRMLBrowser.EventResize;
-begin
-  inherited;
-  Scene.GLProjection(Camera, Scene.BoundingBox,
-    Width, Height, ShadowVolumesPossible);
 end;
 
 procedure TGLWindowVRMLBrowser.UpdateCursor(Sender: TObject);

@@ -1049,7 +1049,9 @@ var
 begin
   inherited;
 
-  if ContextInitialized and UseControls then
+  { Call MakeCurrent here, to make sure UIControls always get
+    ContainerResize with good GL context. }
+  if ContextInitialized and UseControls and MakeCurrent then
   begin
     for I := 0 to Controls.Count - 1 do
       Controls[I].ContainerResize(Width, Height);

@@ -21,20 +21,6 @@ Better Lazarus integration:
 
 * TSceneManager fitting into controls:
 
-  * Should resolve:
-
-    Make TVRMLScene.Resize set projection, if SetupProjection = true
-    (default true)?
-
-    No, but make such a thing for TSceneManager.
-    Obviously only one scene should do it.
-    Introducing property like SetupProjection seems clumsy.
-    SceneManager will have chosen scene for projection,
-    and SceneManager as TUIControl will automatically call this,
-    but not the scene itself.
-
-    This also allows to keep ShadowVolumesPossible value in SceneManager.
-
   * Use TVRMLScene.Camera property more, setting this should give more instant integration of camera with the scene.
     For example, remake CreateCamera, ViewerChanged, CameraSetViewpoint, GLProjection etc.
 
@@ -92,6 +78,9 @@ Better Lazarus integration:
       Maybe replace it by TBase3D, not related to TUIControl, but does it solve all troubles?
 
   * Other TSceneManager TODOs in file.
+
+  * Maybe remove some wrapper stuff from TVRMLGLAnimation?
+    E.g. TVRMLGLAnimation.GLProjection should be gone now?
 
 * TVRMLScene gets CreateCamera with box --- use this in TSceneManager.
 
