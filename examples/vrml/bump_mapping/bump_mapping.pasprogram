@@ -56,10 +56,11 @@ uses GLWindow, GL, GLU, GLExt, KambiGLUtils,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils,
   GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, Images, KeysMouse,
   NormalizationCubeMap, GLImages, GLVersionUnit,
-  ParseParametersUnit, KambiLog,
+  ParseParametersUnit, KambiLog, RaysWindow,
   { VRML-related units: }
   VRMLScene, VRMLGLScene, Object3dAsVRML, ProgressUnit, BackgroundGL,
-  VRMLOpenGLRenderer, VRMLRendererOptimization;
+  VRMLOpenGLRenderer, VRMLRendererOptimization, SceneManagerUnit,
+  RenderStateUnit;
 
 const
   SceneBoundingBox: TBox3d =
@@ -186,63 +187,6 @@ begin
     VectorSubtract(LightPositionObjectSpace, Vertex));
 end;
 
-procedure LoadSceneCore(const FileName: string);
-begin
-  FreeAndNil(Scene);
-
-  Scene := TVRMLGLScene.Create(nil);
-  Scene.Load(FileName);
-
-  { It would be better to match Scene.Optimization with
-    *current* BumpMappingMaximum, not with High(TBumpMappingMethod).
-    Scene.Optimizationis settable during lifetime of Scene, so this
-    is possible. }
-  if TVRMLOpenGLRenderer.GLContextBumpMappingMethod(
-    0, -1, High(TBumpMappingMethod), true, true, false) in
-    [bmNone] + bmGLSLAll then
-    Scene.Optimization := roSeparateShapes else
-    Scene.Optimization := roNone;
-
-  { make octree for fast RenderFrustum }
-  Progress.UserInterface := ProgressNullInterface;
-  Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
-  Scene.Spatial := [ssRendering];
-
-  Scene.Attributes.BumpMappingMaximum := BumpMappingMaximum;
-end;
-
-{ Some preparations for bmVRML, to make it look better.
-  LightPosition more suitable.
-  Walker position initialized from Scene viewport. }
-procedure PrepareForVRMLScene;
-var
-  CamPos, CamDir, CamUp, GravityUp: TVector3Single;
-begin
-  LightPosition := Vector3Single(3, 3, 5);
-
-  { When bmVRML, these two should always be equal }
-  Scene.BumpMappingLightPosition := LightPosition;
-
-  Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
-  Walker.Init(CamPos,
-    VectorAdjustToLength(CamDir, Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
-    CamUp, GravityUp,
-    0.0, 0.0 { unused, we don't use Gravity here });
-end;
-
-procedure LoadScene(const FileName: string);
-begin
-  LoadSceneCore(FileName);
-
-  { to reinit Scene.BackgroundSkySphereRadius }
-  Glw.EventResize;
-
-  { if Method not bmVRML, then this will be done anyway when user will switch
-    to bmVRML method. }
-  if Method = bmVRML then
-    PrepareForVRMLScene;
-end;
-
 { ----------------------------------------------------------------------------
   Various TTexCoordVertexProc implementations.
   They should set texture coord(s), and call glVertex(Vertex).
@@ -310,7 +254,7 @@ begin
   glVertexv(Vertex);
 end;
 
-{ glw callbacks ------------------------------------------------------------ }
+{ scene manager ------------------------------------------------------------ }
 
 procedure DisableTextures;
 begin
@@ -330,7 +274,16 @@ begin
   glActiveTextureARB(GL_TEXTURE0_ARB);
 end;
 
-procedure Draw(glwin: TGLWindow);
+type
+  TMySceneManager = class(TSceneManager)
+    procedure RenderFromView; override;
+    procedure ApplyProjection; override;
+  end;
+
+var
+  SceneManager: TMySceneManager;
+
+procedure TMySceneManager.RenderFromView;
 var
   ModelInvertedTrasformation: TMatrix4Single;
 
@@ -799,42 +752,6 @@ var
     end;
   end;
 
-  procedure RenderStatus;
-  var
-    S: string;
-  const
-    MethodNames: array [TBumpMethod] of string =
-    ('emboss', 'dot3 by multitexturing', 'built in VRML');
-  begin
-    glPushAttrib(GL_ENABLE_BIT);
-      glDisable(GL_DEPTH_TEST);
-      glDisable(GL_LIGHTING);
-      DisableTextures;
-
-      glColorv(Yellow3Single);
-
-      S := //Format('FPS : %f (real : %f)' +nl, [Glw.FpsFrameTime, Glw.FpsRealTime]);
-        '' { fps on caption };
-      S += 'Method: ' + MethodNames[Method] + nl;
-      if ShiftByHand then
-        S += Format('Shift: %f %f' +nl, [XShift, YShift]) else
-        S += 'Shift automatic from tangent space light position' + nl;
-      S += Format('Dot3 normalized first (for quick visual compare): %s',
-        [BoolToStr[NormalizedDot3First]]) +nl;
-      S += Format('Emboss scale: %f', [EmbossScale]) + nl;
-      S += Format('Emboss alpha multiply by blending: %s',
-        [BoolToStr[EmbossAlphaMultiplyByBlending]]) + nl;
-      S += Format('VRML maximum bump mapping method allowed: %s',
-        [BumpMappingMethodNames[BumpMappingMaximum]]) + nl;
-      S += Format('VRML auto-detected best bump mapping method: %s',
-        [BumpMappingMethodNames[Scene.BumpMappingMethod]]) + nl;
-      S += Format('VRML optimization used: %s',
-        [RendererOptimizationNames[Scene.Optimization]]) + nl;
-
-      Font.Projection2DPrintStrings(5, 5, S);
-    glPopAttrib;
-  end;
-
 begin
   glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT);
 
@@ -842,11 +759,11 @@ begin
 
   if (Method = bmVRML) and (Scene.Background <> nil) then
   begin
-    glLoadMatrix(Glw.Camera.RotationMatrix);
+    glLoadMatrix(RenderState.CameraRotationMatrix);
     Scene.Background.Render;
   end;
 
-  glLoadMatrix(Glw.Camera.Matrix);
+  glLoadMatrix(RenderState.CameraMatrix);
 
   if (Method = bmEmboss) and
     (glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) < 3) then
@@ -874,7 +791,7 @@ begin
       so I change it back to default GL value. }
     glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.2, 0.2, 0.2, 1.0));
 
-    Scene.RenderFrustum(Glw.Camera.Frustum, tgAll);
+    Scene.RenderFrustum(RenderState.CameraFrustum, tgAll);
   end else
   begin
     glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.5, 0.5, 0.5, 1.0));
@@ -911,11 +828,9 @@ begin
       "production" programs. }
     DisableTextures;
   end;
-
-  RenderStatus;
 end;
 
-procedure Resize(glwin: TGLWindow);
+procedure TMySceneManager.ApplyProjection;
 
   procedure UpdateCameraProjectionMatrix;
   var
@@ -926,21 +841,133 @@ procedure Resize(glwin: TGLWindow);
     Examiner.ProjectionMatrix := ProjectionMatrix;
   end;
 
-var
-  ProjectionNear, ProjectionFar: Single;
 begin
-  glViewport(0, 0, glwin.Width, glwin.Height);
-  ProjectionNear := Box3dAvgSize(SceneBoundingBox) * 0.05;
-  ProjectionFar := Box3dAvgSize(SceneBoundingBox) * 20.0;
-  ProjectionGLPerspective(30, Glwin.Width / Glwin.Height,
-    ProjectionNear, ProjectionFar);
+  glViewport(0, 0, ContainerWidth, ContainerHeight);
+
+  { Assign arbitrary walk projection and angle of view values.
+    We do not want to let inherited ApplyProjection to use MainScene
+    for this, as MainScene is not always assigned, we have our own geometry
+    for Method <> bmVRML. }
+
+  FWalkProjectionNear := Box3dAvgSize(SceneBoundingBox) * 0.05;
+  FWalkProjectionFar  := Box3dAvgSize(SceneBoundingBox) * 20.0;
+  FAngleOfViewY := 30.0;
+  FAngleOfViewX := AdjustViewAngleDegToAspectRatio(
+    AngleOfViewY, ContainerWidth / ContainerHeight);
+
+  ProjectionGLPerspective(AngleOfViewY, ContainerWidth / ContainerHeight,
+    WalkProjectionNear, WalkProjectionFar);
 
   Scene.BackgroundSkySphereRadius :=
     TBackgroundGL.NearFarToSkySphereRadius(
-      ProjectionNear, ProjectionFar);
+      WalkProjectionNear, WalkProjectionFar);
 
   { In case I use walker camera. }
   UpdateCameraProjectionMatrix;
+end;
+
+{ vrml scene loading --------------------------------------------------------- }
+
+procedure LoadSceneCore(const FileName: string);
+begin
+  FreeAndNil(Scene);
+
+  Scene := TVRMLGLScene.Create(nil);
+  if Method = bmVRML then
+    SceneManager.Items.List.Add(Scene); { readd Scene to SceneManager }
+
+  Scene.Load(FileName);
+
+  { It would be better to match Scene.Optimization with
+    *current* BumpMappingMaximum, not with High(TBumpMappingMethod).
+    Scene.Optimization is settable during lifetime of Scene, so this
+    is possible. }
+  if TVRMLOpenGLRenderer.GLContextBumpMappingMethod(
+    0, -1, High(TBumpMappingMethod), true, true, false) in
+    [bmNone] + bmGLSLAll then
+    Scene.Optimization := roSeparateShapes else
+    Scene.Optimization := roNone;
+
+  { make octree for fast RenderFrustum }
+  Progress.UserInterface := ProgressNullInterface;
+  Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
+  Scene.Spatial := [ssRendering];
+
+  Scene.Attributes.BumpMappingMaximum := BumpMappingMaximum;
+
+  Scene.ProcessEvents := true;
+end;
+
+{ Some preparations for bmVRML, to make it look better.
+  LightPosition more suitable.
+  Walker position initialized from Scene viewport. }
+procedure PrepareForVRMLScene;
+var
+  CamPos, CamDir, CamUp, GravityUp: TVector3Single;
+begin
+  LightPosition := Vector3Single(3, 3, 5);
+
+  { When bmVRML, these two should always be equal }
+  Scene.BumpMappingLightPosition := LightPosition;
+
+  { reinit both cameras }
+
+  Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
+  Walker.Init(CamPos,
+    VectorAdjustToLength(CamDir, Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
+    CamUp, GravityUp,
+    0.0, 0.0 { unused, we don't use Gravity here });
+
+  Examiner.Init(Scene.BoundingBox);
+end;
+
+procedure LoadScene(const FileName: string);
+begin
+  LoadSceneCore(FileName);
+
+  { if Method not bmVRML, then this will be done anyway when user will switch
+    to bmVRML method. }
+  if Method = bmVRML then
+    PrepareForVRMLScene;
+end;
+
+{ glw callbacks -------------------------------------------------------------- }
+
+{ Draw is used now only to draw 2D status text over the scene. }
+procedure Draw(glwin: TGLWindow);
+var
+  S: string;
+const
+  MethodNames: array [TBumpMethod] of string =
+  ('emboss', 'dot3 by multitexturing', 'built in VRML');
+begin
+  glPushAttrib(GL_ENABLE_BIT);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
+    DisableTextures;
+
+    glColorv(Yellow3Single);
+
+    S := //Format('FPS : %f (real : %f)' +nl, [Glw.FpsFrameTime, Glw.FpsRealTime]);
+      '' { fps on caption };
+    S += 'Method: ' + MethodNames[Method] + nl;
+    if ShiftByHand then
+      S += Format('Shift: %f %f' +nl, [XShift, YShift]) else
+      S += 'Shift automatic from tangent space light position' + nl;
+    S += Format('Dot3 normalized first (for quick visual compare): %s',
+      [BoolToStr[NormalizedDot3First]]) +nl;
+    S += Format('Emboss scale: %f', [EmbossScale]) + nl;
+    S += Format('Emboss alpha multiply by blending: %s',
+      [BoolToStr[EmbossAlphaMultiplyByBlending]]) + nl;
+    S += Format('VRML maximum bump mapping method allowed: %s',
+      [BumpMappingMethodNames[BumpMappingMaximum]]) + nl;
+    S += Format('VRML auto-detected best bump mapping method: %s',
+      [BumpMappingMethodNames[Scene.BumpMappingMethod]]) + nl;
+    S += Format('VRML optimization used: %s',
+      [RendererOptimizationNames[Scene.Optimization]]) + nl;
+
+    Font.Projection2DPrintStrings(5, 5, S);
+  glPopAttrib;
 end;
 
 var
@@ -1098,11 +1125,24 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
 
   procedure NextBumpMappingMethod;
   begin
+    if Method = bmVRML then
+    begin
+      SceneManager.Items.List.Remove(Scene);
+      SceneManager.MainScene := nil;
+    end;
+
     if Method = High(Method) then
       Method := Low(Method) else
       Method := Succ(Method);
     if Method = bmVRML then
       PrepareForVRMLScene;
+
+    { if, and only if, Method = bmVRML, then SceneManager contains our Scene. }
+    if Method = bmVRML then
+    begin
+      SceneManager.Items.List.Add(Scene);
+      SceneManager.MainScene := Scene;
+    end;
   end;
 
   procedure NextCamera;
@@ -1110,6 +1150,7 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
     if Glw.Camera = Examiner then
       Glw.Camera := Walker else
       Glw.Camera := Examiner;
+    SceneManager.Camera := Glw.Camera; { always keep SceneManager.Camera = Glw.Camera }
   end;
 
 var
@@ -1245,7 +1286,11 @@ begin
     Vector3Single(0, 1, 0), Vector3Single(0, 1, 0),
     0.0, 0.0 { unused, we don't use Gravity here });
 
+  SceneManager := TMySceneManager.Create(Glw);
+  Glw.Controls.Add(SceneManager);
+
   Glw.Camera := Examiner;
+  SceneManager.Camera := Glw.Camera; { always keep SceneManager.Camera = Glw.Camera }
 
   Glw.MainMenu := CreateMainMenu;
   Glw.OnMenuCommand := @MenuCommand;
@@ -1254,7 +1299,6 @@ begin
   Glw.OnInit := @InitGL;
   Glw.OnClose := @CloseGL;
   Glw.OnDraw := @Draw;
-  Glw.OnResize := @Resize;
   Glw.OnIdle := @Idle;
 
   Glw.InitAndRun;

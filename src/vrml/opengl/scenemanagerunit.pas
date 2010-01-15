@@ -75,11 +75,6 @@ type
     FCamera: TCamera;
     FItems: TBase3DList;
 
-    FAngleOfViewX: Single;
-    FAngleOfViewY: Single;
-    FWalkProjectionNear: Single;
-    FWalkProjectionFar : Single;
-
     FShadowVolumesPossible: boolean;
     FShadowVolumes: boolean;
     FShadowVolumesDraw: boolean;
@@ -95,6 +90,12 @@ type
 
     procedure ItemsVisibleChange(Sender: TObject);
   protected
+    { These variables are writeable from overridden ApplyProjection. }
+    FAngleOfViewX: Single;
+    FAngleOfViewY: Single;
+    FWalkProjectionNear: Single;
+    FWalkProjectionFar : Single;
+
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
     { Render one pass, from current (in RenderState) camera view,
@@ -579,11 +580,14 @@ begin
 
   { TODO: do UpdateGeneratedTextures for all Items }
 
-  MainScene.UpdateGeneratedTextures(@RenderFromView,
-    WalkProjectionNear, WalkProjectionFar,
-    { For now assume viewport fills the whole container,
-      see ../../../doc/TODO.scene_manager_viewport }
-    0, 0, ContainerWidth, ContainerHeight);
+  if MainScene <> nil then
+  begin
+    MainScene.UpdateGeneratedTextures(@RenderFromView,
+      WalkProjectionNear, WalkProjectionFar,
+      { For now assume viewport fills the whole container,
+        see ../../../doc/TODO.scene_manager_viewport }
+      0, 0, ContainerWidth, ContainerHeight);
+  end;
 
   RenderState.Target := rtScreen;
   RenderState.CameraFromCameraObject(Camera);
