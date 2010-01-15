@@ -862,7 +862,6 @@ begin
     TBackgroundGL.NearFarToSkySphereRadius(
       WalkProjectionNear, WalkProjectionFar);
 
-  { In case I use walker camera. }
   UpdateCameraProjectionMatrix;
 end;
 
