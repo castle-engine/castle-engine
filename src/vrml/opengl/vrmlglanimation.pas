@@ -19,7 +19,7 @@ unit VRMLGLAnimation;
 interface
 
 uses SysUtils, Classes, VRMLNodes, VRMLOpenGLRenderer, VRMLScene, VRMLGLScene,
-  KambiUtils, Boxes3d, KambiClassUtils, VRMLAnimation, KeysMouse, Cameras,
+  KambiUtils, Boxes3d, KambiClassUtils, VRMLAnimation, KeysMouse,
   KambiTimeUtils, Frustum, VectorMath, Base3D;
 
 {$define read_interface}
