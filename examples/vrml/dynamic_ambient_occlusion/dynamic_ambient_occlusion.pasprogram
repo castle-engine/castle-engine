@@ -31,7 +31,7 @@ uses VectorMath, GL, GLU, GLExt, GLWindow,
   KambiGLUtils, VRMLScene, VRMLGLScene, Cameras,
   KambiFilesUtils, KambiStringUtils, VRMLErrors, GLShaders, VRMLShape,
   VRMLFields, Images, Boxes3d, GLImages, GLWinMessages, DataErrors,
-  GLVersionUnit, Math, VRMLTriangle;
+  GLVersionUnit, Math, VRMLTriangle, SceneManagerUnit;
 
 type
   TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);
@@ -367,7 +367,11 @@ begin
     We have min/max in Scene.BoundingBox. }
   PositionScale := Box3dSizes(Scene.BoundingBox);
   for I := 0 to 2 do
+  begin
+    if PositionScale[I] = 0 then
+      PositionScale[I] := 1;
     PositionShift[I] := Scene.BoundingBox[0][I] / PositionScale[I];
+  end;
 
   Writeln('To squeeze area into texture we use area_scale = ', AreaScale:1:10);
   Writeln('To squeeze positions into texture we use scale = ',
@@ -451,7 +455,15 @@ var
   FullRenderShapeInfo: PShapeInfo;
   FullRenderIntensityTex: TGrayscaleImage;
 
-procedure Draw(Glwin: TGLWindow);
+type
+  TMySceneManager = class(TSceneManager)
+    procedure RenderFromView3D; override;
+  end;
+
+var
+  SceneManager: TMySceneManager;
+
+procedure TMySceneManager.RenderFromView3D;
 
   { If ElementsIntensityTex = nil,
     then all element discs will have the same glMaterial.
@@ -567,7 +579,7 @@ procedure Draw(Glwin: TGLWindow);
     glMatrixMode(GL_PROJECTION);
     glPushMatrix;
       glLoadIdentity;
-      gluOrtho2D(0, Glwin.Width, 0, Glwin.Height);
+      gluOrtho2D(0, Glw.Width, 0, Glw.Height);
       glMatrixMode(GL_MODELVIEW);
 
       glPushMatrix;
@@ -607,9 +619,6 @@ procedure Draw(Glwin: TGLWindow);
 var
   ElementsIntensityTex: TGrayscaleImage;
 begin
-  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(glw.Camera.Matrix);
-
   case DrawType of
     dtNormalGL:
       begin
@@ -717,7 +726,7 @@ begin
   if (Elements.Count = 0) or
      IsEmptyBox3d(Scene.BoundingBox) then
   begin
-    Glwin.OnDraw := nil;
+    Glw.Controls.Remove(SceneManager); { do not try to render }
     MessageOk(Glwin, 'No elements, or empty bounding box --- we cannot do dyn ambient occlusion. Exiting.', taLeft);
     Glwin.Close;
     Exit;
@@ -730,7 +739,7 @@ begin
 
   if GLSLProgram[0].Support = gsNone then
   begin
-    Glwin.OnDraw := nil;
+    Glw.Controls.Remove(SceneManager); { do not try to render }
     MessageOk(Glwin, 'Sorry, GLSL shaders not supported on your graphic card. Exiting.', taLeft);
     Glwin.Close;
     Exit;
@@ -779,12 +788,6 @@ procedure Close(Glwin: TGLWindow);
 begin
   FreeAndNil(GLSLProgram[0]);
   FreeAndNil(GLSLProgram[1]);
-end;
-
-procedure Resize(Glwin: TGLWindow);
-begin
-  glViewport(0, 0, glwin.Width, glwin.Height);
-  Scene.GLProjection(Glw.Camera, Scene.BoundingBox, Glwin.Width, Glwin.Height);
 end;
 
 procedure Idle(Glwin: TGLWindow);
@@ -908,7 +911,7 @@ begin
     VRMLWarning := @VRMLWarning_Write;
     DataWarning := @DataWarning_Write;
 
-    Scene := TVRMLGLScene.Create(nil);
+    Scene := TVRMLGLScene.Create(Glw);
     Scene.Load(Parameters[1]);
     Scene.Optimization := roNone;
     UpdateSceneAttribs;
@@ -917,32 +920,34 @@ begin
 
     { start Scene animation }
     Scene.Spatial := [ssRendering, ssDynamicCollisions];
-    Scene.ResetWorldTimeAtLoad;
     Scene.OnGeometryChanged := @THelper(nil).SceneGeometryChanged;
     Scene.OnPointingDeviceSensorsChange := @THelper(nil).UpdateCursor;
     Scene.ProcessEvents := true;
 
     { init Glw.Camera }
     Glw.Camera := Scene.CreateCamera(Glw);
-    Scene.Camera := Glw.Camera;
     { Even if VRML navigation info suggests using gravity, turn it off,
       simply because this demo doesn't do collision detection for now
       (so gravity will make you fall down forever...) }
     if Glw.Camera is TWalkCamera then
       TWalkCamera(Glw.Camera).Gravity := false;
 
-    Glw.Controls.Insert(0, Scene);
+    { init SceneManager, with a BaseScene and Camera inside }
+    SceneManager := TMySceneManager.Create(Glw);
+    Glw.Controls.Add(SceneManager);
+    SceneManager.MainScene := Scene;
+    SceneManager.Items.List.Add(Scene);
+    SceneManager.Camera := Glw.Camera;
 
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;
 
     Glw.OnInit := @Init;
     Glw.OnClose := @Close;
-    Glw.OnResize := @Resize;
     Glw.OnIdle := @Idle;
-    Glw.InitAndRun(ProgramName, @Draw);
+    Glw.InitAndRun;
   finally
-    FreeAndNil(Scene);
+    FreeAndNil(SceneManager);
     FreeAndNil(Elements);
     FreeAndNil(ElementsPositionAreaTex);
     FreeAndNil(ElementsNormalTex);
