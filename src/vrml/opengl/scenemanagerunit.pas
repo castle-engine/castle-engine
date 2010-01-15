@@ -141,90 +141,6 @@ type
     procedure GLContextInit; override;
     procedure GLContextClose; override;
 
-    { Tree of 3D objects within your world. This is the place where you should
-      add your scenes to have them handled by scene manager.
-      You may also set your main TVRMLGLScene (if you have any) as MainScene.
-
-      TBase3DList is also TBase3D instance, so yes --- this may be a tree
-      of TBase3D, not only a flat list. }
-    property Items: TBase3DList read FItems;
-
-    { The main scene of your 3D world. It's not necessary to set this
-      (after all, your world doesn't even need to have any TVRMLGLScene
-      instance). It may be, but doesn't have to be, also added to
-      our @link(Items).
-
-      When set, this is used for a couple of things:
-
-      @unorderedList(
-        @item Decides what headlight is used (by TVRMLGLScene.Headlight).
-        @item Decides what background is rendered (by TVRMLGLScene.Background).
-        @item(Decides if, and where, the main light casting shadows is
-          (see TVRMLGLScene.MainLightForShadowsExists, TVRMLGLScene.MainLightForShadows).)
-        @item Sets OpenGL projection for the scene, see ApplyProjection.
-      )
-
-      The above stuff is only sensible when done once per scene manager,
-      that's why we need MainScene property to indicate this.
-      (We cannot just use every 3D object from @link(Items) for this.)
-
-      Freeing MainScene will automatically set this to @nil. }
-    property MainScene: TVRMLGLScene read FMainScene write SetMainScene;
-
-    { Camera used to render. Cannot be @nil when rendering.
-
-      Your camera must be inside some container
-      (i.e. on TGLUIWindow.Controls or TKamOpenGLControl.Controls list),
-      at least at the time of MouseMove methods call
-      (that is, when container passed mouse events to this scene).
-
-      Freeing Camera will automatically set this to @nil. }
-    property Camera: TCamera read FCamera write SetCamera;
-
-    { Should we make shadow volumes possible.
-      This should indicate if OpenGL context was (possibly) initialized
-      with stencil buffer. }
-    property ShadowVolumesPossible: boolean read FShadowVolumesPossible write SetShadowVolumesPossible;
-
-    { Should we render with shadow volumes.
-      You can change this at any time, to switch rendering shadows on/off.
-
-      This works only if ShadowVolumesPossible is @true.
-
-      Note that the shadow volumes algorithm makes some requirements
-      about the 3D model: it must be 2-manifold, that is have a correctly
-      closed volume. Otherwise, rendering results may be bad. You can check
-      Scene.BorderEdges.Count before using this: BorderEdges.Count = 0 means
-      that model is Ok, correct manifold.
-
-      For shadows to be actually used you still need a light source
-      marked as the main shadows light (kambiShadows = kambiShadowsMain = TRUE),
-      see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows]. }
-    property ShadowVolumes: boolean read FShadowVolumes write FShadowVolumes;
-
-    { Actually draw the shadow volumes to the color buffer, for debugging.
-      If shadows are rendered (see ShadowVolumesPossible and ShadowVolumes),
-      you can use this to actually see shadow volumes, for debug / demo
-      purposes. Shadow volumes will be rendered on top of the scene,
-      as yellow blended polygons. }
-    property ShadowVolumesDraw: boolean read FShadowVolumesDraw write FShadowVolumesDraw;
-
-    { If yes then the scene background will be rendered wireframe,
-      over the background filled with glClearColor.
-
-      There's a catch here: this works only if the background is actually
-      internally rendered as a geometry. If the background is rendered
-      by clearing the screen (this is an optimized case of sky color
-      being just one simple color, and no textures),
-      then it will just cover the screen as normal, like without wireframe.
-      This is uncertain situation anyway (what should the wireframe
-      look like in this case anyway?), so I don't consider it a bug.
-
-      Useful especially for debugging when you want to see how your background
-      geometry looks like. }
-    property BackgroundWireframe: boolean
-      read FBackgroundWireframe write FBackgroundWireframe default false;
-
     { Prepare rendering resources, to make next @link(Render) call execute fast.
 
       If DisplayProgressTitle <> '', we will display progress bar during
@@ -279,17 +195,112 @@ type
     property WalkProjectionNear: Single read FWalkProjectionNear;
     property WalkProjectionFar : Single read FWalkProjectionFar ;
     { @groupEnd }
+  published
+    { Tree of 3D objects within your world. This is the place where you should
+      add your scenes to have them handled by scene manager.
+      You may also set your main TVRMLGLScene (if you have any) as MainScene.
+
+      TBase3DList is also TBase3D instance, so yes --- this may be a tree
+      of TBase3D, not only a flat list. }
+    property Items: TBase3DList read FItems;
+
+    { The main scene of your 3D world. It's not necessary to set this
+      (after all, your world doesn't even need to have any TVRMLGLScene
+      instance). It may be, but doesn't have to be, also added to
+      our @link(Items).
+
+      When set, this is used for a couple of things:
+
+      @unorderedList(
+        @item Decides what headlight is used (by TVRMLGLScene.Headlight).
+        @item Decides what background is rendered (by TVRMLGLScene.Background).
+        @item(Decides if, and where, the main light casting shadows is
+          (see TVRMLGLScene.MainLightForShadowsExists, TVRMLGLScene.MainLightForShadows).)
+        @item Sets OpenGL projection for the scene, see ApplyProjection.
+      )
+
+      The above stuff is only sensible when done once per scene manager,
+      that's why we need MainScene property to indicate this.
+      (We cannot just use every 3D object from @link(Items) for this.)
+
+      Freeing MainScene will automatically set this to @nil. }
+    property MainScene: TVRMLGLScene read FMainScene write SetMainScene;
+
+    { Camera used to render. Cannot be @nil when rendering.
+
+      Your camera must be inside some container
+      (i.e. on TGLUIWindow.Controls or TKamOpenGLControl.Controls list),
+      at least at the time of MouseMove methods call
+      (that is, when container passed mouse events to this scene).
+
+      Freeing Camera will automatically set this to @nil. }
+    property Camera: TCamera read FCamera write SetCamera;
+
+    { Should we make shadow volumes possible.
+      This should indicate if OpenGL context was (possibly) initialized
+      with stencil buffer. }
+    property ShadowVolumesPossible: boolean read FShadowVolumesPossible write SetShadowVolumesPossible default false;
+
+    { Should we render with shadow volumes.
+      You can change this at any time, to switch rendering shadows on/off.
+
+      This works only if ShadowVolumesPossible is @true.
+
+      Note that the shadow volumes algorithm makes some requirements
+      about the 3D model: it must be 2-manifold, that is have a correctly
+      closed volume. Otherwise, rendering results may be bad. You can check
+      Scene.BorderEdges.Count before using this: BorderEdges.Count = 0 means
+      that model is Ok, correct manifold.
+
+      For shadows to be actually used you still need a light source
+      marked as the main shadows light (kambiShadows = kambiShadowsMain = TRUE),
+      see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows]. }
+    property ShadowVolumes: boolean read FShadowVolumes write FShadowVolumes default false;
+
+    { Actually draw the shadow volumes to the color buffer, for debugging.
+      If shadows are rendered (see ShadowVolumesPossible and ShadowVolumes),
+      you can use this to actually see shadow volumes, for debug / demo
+      purposes. Shadow volumes will be rendered on top of the scene,
+      as yellow blended polygons. }
+    property ShadowVolumesDraw: boolean read FShadowVolumesDraw write FShadowVolumesDraw default false;
+
+    { If yes then the scene background will be rendered wireframe,
+      over the background filled with glClearColor.
+
+      There's a catch here: this works only if the background is actually
+      internally rendered as a geometry. If the background is rendered
+      by clearing the screen (this is an optimized case of sky color
+      being just one simple color, and no textures),
+      then it will just cover the screen as normal, like without wireframe.
+      This is uncertain situation anyway (what should the wireframe
+      look like in this case anyway?), so I don't consider it a bug.
+
+      Useful especially for debugging when you want to see how your background
+      geometry looks like. }
+    property BackgroundWireframe: boolean
+      read FBackgroundWireframe write FBackgroundWireframe default false;
   end;
+
+procedure Register;
 
 implementation
 
 uses SysUtils, RenderStateUnit, KambiGLUtils, ProgressUnit;
+
+procedure Register;
+begin
+  RegisterComponents('Kambi', [TSceneManager]);
+end;
 
 constructor TSceneManager.Create(AOwner: TComponent);
 begin
   inherited;
   FItems := TBase3DList.Create(Self);
   FItems.OnVisibleChange := @ItemsVisibleChange;
+  { Items is displayed and streamed with TSceneManager
+    (and in the future this should allow design Items.List by IDE),
+    so set some sensible Name. }
+  FItems.Name := 'Items';
 end;
 
 destructor TSceneManager.Destroy;

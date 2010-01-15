@@ -75,40 +75,40 @@
         <UnitName Value="KambiOctree"/>
       </Item6>
       <Item7>
-        <Filename Value="../src/3d/object3dgeo.pas"/>
-        <UnitName Value="Object3dGEO"/>
-      </Item7>
-      <Item8>
-        <Filename Value="../src/3d/object3dmd3.pas"/>
-        <UnitName Value="Object3dMD3"/>
-      </Item8>
-      <Item9>
-        <Filename Value="../src/3d/object3dobj.pas"/>
-        <UnitName Value="Object3dOBJ"/>
-      </Item9>
-      <Item10>
-        <Filename Value="../src/3d/object3ds.pas"/>
-        <UnitName Value="Object3ds"/>
-      </Item10>
-      <Item11>
-        <Filename Value="../src/3d/object3dschunks.pas"/>
-        <UnitName Value="Object3dsChunks"/>
-      </Item11>
-      <Item12>
-        <Filename Value="../src/3d/object3dsmaterial.pas"/>
-        <UnitName Value="Object3dsMaterial"/>
-      </Item12>
-      <Item13>
-        <Filename Value="../src/3d/opengl/backgroundgl.pas"/>
-        <UnitName Value="BackgroundGL"/>
-      </Item13>
-      <Item14>
-        <Filename Value="../src/3d/opengl/object3dopengl.pas"/>
-        <UnitName Value="Object3dOpenGL"/>
-      </Item14>
-      <Item15>
         <Filename Value="../src/3d/kambipolynomials.pas"/>
         <UnitName Value="KambiPolynomials"/>
+      </Item7>
+      <Item8>
+        <Filename Value="../src/3d/object3dgeo.pas"/>
+        <UnitName Value="Object3dGEO"/>
+      </Item8>
+      <Item9>
+        <Filename Value="../src/3d/object3dmd3.pas"/>
+        <UnitName Value="Object3dMD3"/>
+      </Item9>
+      <Item10>
+        <Filename Value="../src/3d/object3dobj.pas"/>
+        <UnitName Value="Object3dOBJ"/>
+      </Item10>
+      <Item11>
+        <Filename Value="../src/3d/object3ds.pas"/>
+        <UnitName Value="Object3ds"/>
+      </Item11>
+      <Item12>
+        <Filename Value="../src/3d/object3dschunks.pas"/>
+        <UnitName Value="Object3dsChunks"/>
+      </Item12>
+      <Item13>
+        <Filename Value="../src/3d/object3dsmaterial.pas"/>
+        <UnitName Value="Object3dsMaterial"/>
+      </Item13>
+      <Item14>
+        <Filename Value="../src/3d/opengl/backgroundgl.pas"/>
+        <UnitName Value="BackgroundGL"/>
+      </Item14>
+      <Item15>
+        <Filename Value="../src/3d/opengl/object3dopengl.pas"/>
+        <UnitName Value="Object3dOpenGL"/>
       </Item15>
       <Item16>
         <Filename Value="../src/3d/quaternions.pas"/>
@@ -523,13 +523,13 @@
         <UnitName Value="Areas"/>
       </Item117>
       <Item118>
-        <Filename Value="../src/ui/keysmouse.pas"/>
-        <UnitName Value="KeysMouse"/>
-      </Item118>
-      <Item119>
         <Filename Value="../src/ui/cameras.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="Cameras"/>
+      </Item118>
+      <Item119>
+        <Filename Value="../src/ui/keysmouse.pas"/>
+        <UnitName Value="KeysMouse"/>
       </Item119>
       <Item120>
         <Filename Value="../src/ui/opengl/glmenu.pas"/>
@@ -582,6 +582,7 @@
       </Item131>
       <Item132>
         <Filename Value="../src/vrml/opengl/scenemanagerunit.pas"/>
+        <HasRegisterProc Value="True"/>
         <UnitName Value="SceneManagerUnit"/>
       </Item132>
       <Item133>

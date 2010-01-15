@@ -993,13 +993,13 @@ begin
   begin
     C := GLWin.Controls[I];
 
-    if C.IsDraw2D then
+    if C.DrawStyle = ds2D then
     begin
       { Set OpenGL state that may be changed carelessly, and has some
         guanteed value, for Draw2d calls. }
       glLoadIdentity;
       glRasterPos2i(0, 0);
-      C.Draw2D(C = F);
+      C.Draw(C = F);
     end;
   end;
 end;
