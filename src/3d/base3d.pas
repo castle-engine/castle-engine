@@ -142,8 +142,8 @@ type
       But it doesn't change any OpenGL state or buffers contents
       (at most, it allocates some texture and display list names).
 
-      @param(TransparentGroups specifies for what TransparentGroup value
-        it should prepare rendering resources. The idea is that
+      @param(TransparentGroups For what TransparentGroup value
+        we should prepare rendering resources. The idea is that
         you're often interested in rendering only with tgAll, or
         only with [tgTransparent, tgOpaque] --- so it would be a waste of
         resources and time to prepare for every possible TransparentGroup value.
@@ -160,13 +160,23 @@ type
         [tgTransparent, tgOpaque, tgAll] --- they'll all prepare the same
         things.)
 
-      @param(Options says what additional features (besides rendering)
+      @param(Options What additional features (besides rendering)
         should be prepared to execute fast. See TPrepareRenderOption,
         the names should be self-explanatory (they refer to appropriate
-        methods of TBase3D, TVRMLScene or TVRMLGLScene).) }
+        methods of TBase3D, TVRMLScene or TVRMLGLScene).)
+
+      @param(ProgressStep Says that we should make Progress.Step calls
+        (exactly PrepareRenderSteps times) during preparation.
+        Useful to show progress bar to the user during long preparation.)  }
     procedure PrepareRender(
       TransparentGroups: TTransparentGroups;
-      Options: TPrepareRenderOptions); virtual;
+      Options: TPrepareRenderOptions;
+      ProgressStep: boolean); virtual;
+
+    { How many times PrepareRender will call Progress.Step.
+      Useful only if you want to pass ProgressStep = @true to PrepareRender.
+      In the base class TBase3D this just returns 0.  }
+    function PrepareRenderSteps: Cardinal; virtual;
 
     { Key and mouse events. Return @true if you handled them.
       See also TUIControl analogous events.
@@ -254,7 +264,9 @@ type
       const ParentTransform: TMatrix4Single); override;
     procedure PrepareRender(
       TransparentGroups: TTransparentGroups;
-      Options: TPrepareRenderOptions); override;
+      Options: TPrepareRenderOptions;
+      ProgressStep: boolean); override;
+    function PrepareRenderSteps: Cardinal; override;
     function KeyDown(Key: TKey; C: char): boolean; override;
     function KeyUp(Key: TKey; C: char): boolean; override;
     function MouseDown(const Button: TMouseButton): boolean; override;
@@ -299,10 +311,14 @@ procedure TBase3D.RenderShadowVolume(
 begin
 end;
 
-procedure TBase3D.PrepareRender(
-  TransparentGroups: TTransparentGroups;
-  Options: TPrepareRenderOptions);
+procedure TBase3D.PrepareRender(TransparentGroups: TTransparentGroups;
+  Options: TPrepareRenderOptions; ProgressStep: boolean);
 begin
+end;
+
+function TBase3D.PrepareRenderSteps: Cardinal;
+begin
+  Result := 0;
 end;
 
 function TBase3D.KeyDown(Key: TKey; C: char): boolean;
@@ -441,15 +457,23 @@ begin
         ParentTransformIsIdentity, ParentTransform);
 end;
 
-procedure TBase3DList.PrepareRender(
-  TransparentGroups: TTransparentGroups;
-  Options: TPrepareRenderOptions);
+procedure TBase3DList.PrepareRender(TransparentGroups: TTransparentGroups;
+  Options: TPrepareRenderOptions; ProgressStep: boolean);
 var
   I: Integer;
 begin
   inherited;
   for I := 0 to List.Count - 1 do
-    List[I].PrepareRender(TransparentGroups, Options);
+    List[I].PrepareRender(TransparentGroups, Options, ProgressStep);
+end;
+
+function TBase3DList.PrepareRenderSteps: Cardinal;
+var
+  I: Integer;
+begin
+  Result := inherited;
+  for I := 0 to List.Count - 1 do
+    Result += List[I].PrepareRenderSteps;
 end;
 
 function TBase3DList.KeyDown(Key: TKey; C: char): boolean;

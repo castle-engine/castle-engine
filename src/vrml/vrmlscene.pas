@@ -1803,7 +1803,8 @@ type
 
     procedure PrepareRender(
       TransparentGroups: TTransparentGroups;
-      Options: TPrepareRenderOptions); override;
+      Options: TPrepareRenderOptions;
+      ProgressStep: boolean); override;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Idle) will take care of increasing WorldTime.
@@ -5914,7 +5915,8 @@ end;
 
 procedure TVRMLScene.PrepareRender(
   TransparentGroups: TTransparentGroups;
-  Options: TPrepareRenderOptions);
+  Options: TPrepareRenderOptions;
+  ProgressStep: boolean);
 begin
   inherited;
 

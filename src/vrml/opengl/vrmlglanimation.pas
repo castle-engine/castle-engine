@@ -303,25 +303,23 @@ type
     { Just a shortcut for Scenes[ScenesCount - 1]. }
     function LastScene: TVRMLGLScene;
 
-    { Prepare all scenes for rendering. This just calls
+    { Prepare all scenes for rendering. Basically, this calls
       PrepareRender(...) for all Scenes.
 
-      If ProgressStep then it will additionally call Progress.Step after
-      preparing each scene (it will call it ScenesCount times).
+      There's also a special memory (and prepare time) optimization used
+      for prManifoldAndBorderEdges: we use the fact that animation scenes are
+      "structurally equal", and so prepare and share one manifold edges
+      information for all scenes.
 
-      If prManifoldAndBorderEdges is included, then actually a special memory
-      (and prepare time) optimization will be used: only the first scene will
-      have actually prepared prManifoldAndBorderEdges. The other scenes will
-      just share the same ManifoldEdges and BorderEdges instances, by
-      TVRMLScene.ShareManifoldAndBorderEdges method. }
+      ProgressStep = @true is especially useful with this: we'll call
+      Progress.Step then after preparing each scene.
+      For portability, always check PrepareRenderSteps, but for now this
+      is just always equal ScenesCount. }
     procedure PrepareRender(
       TransparentGroups: TTransparentGroups;
       Options: TPrepareRenderOptions;
-      ProgressStep: boolean);
-
-    procedure PrepareRender(
-      TransparentGroups: TTransparentGroups;
-      Options: TPrepareRenderOptions); override;
+      ProgressStep: boolean); override;
+    function PrepareRenderSteps: Cardinal; override;
 
     { This calls FreeResources for all scenes, it's useful if you know
       that you will not need some allocated resources anymore and you
@@ -1408,8 +1406,10 @@ begin
     if I <> 0 then
       Exclude(SceneOptions, prManifoldAndBorderEdges);
 
-    FScenes[I].PrepareRender(TransparentGroups, SceneOptions);
+    FScenes[I].PrepareRender(TransparentGroups, SceneOptions, false);
 
+    { TODO: this isn't so simple, since not all scenes have to structurally
+      equal anymore. }
     if (prManifoldAndBorderEdges in Options) and (I <> 0) then
       FScenes[I].ShareManifoldAndBorderEdges(
         FScenes[0].ManifoldEdges, FScenes[0].BorderEdges);
@@ -1419,11 +1419,9 @@ begin
   end;
 end;
 
-procedure TVRMLGLAnimation.PrepareRender(
-  TransparentGroups: TTransparentGroups;
-  Options: TPrepareRenderOptions);
+function TVRMLGLAnimation.PrepareRenderSteps: Cardinal;
 begin
-  PrepareRender(TransparentGroups, Options, false);
+  Result := ScenesCount;
 end;
 
 procedure TVRMLGLAnimation.FreeResources(Resources: TVRMLSceneFreeResources);

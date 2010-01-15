@@ -812,9 +812,8 @@ type
       This is called automatically from the destructor. }
     procedure GLContextClose; override;
 
-    procedure PrepareRender(
-      TransparentGroups: TTransparentGroups;
-      Options: TPrepareRenderOptions); override;
+    procedure PrepareRender(TransparentGroups: TTransparentGroups;
+      Options: TPrepareRenderOptions; ProgressStep: boolean); override;
 
     { Renders this VRML scene for OpenGL.
       This is probably the most important function in this class,
@@ -3033,9 +3032,8 @@ begin
   end;
 end;
 
-procedure TVRMLGLScene.PrepareRender(
-  TransparentGroups: TTransparentGroups;
-  Options: TPrepareRenderOptions);
+procedure TVRMLGLScene.PrepareRender(TransparentGroups: TTransparentGroups;
+  Options: TPrepareRenderOptions; ProgressStep: boolean);
 
   procedure Common_PrepareShape(Shape: TVRMLGLShape);
 
@@ -3258,7 +3256,7 @@ begin
     It's much simpler to just call PrepareRender at the beginning.
     Things like SSSNT_RenderShape, SSS_RenderShape may simply assume
     that shape is for sure already prepared. }
-  PrepareRender([TransparentGroup], []);
+  PrepareRender([TransparentGroup], [], false);
 
   case Attributes.WireframeEffect of
     weNormal: RenderNormal;

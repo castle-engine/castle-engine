@@ -225,7 +225,14 @@ type
     property BackgroundWireframe: boolean
       read FBackgroundWireframe write FBackgroundWireframe default false;
 
-    procedure PrepareRender;
+    { Prepare rendering resources, to make next @link(Render) call execute fast.
+
+      If DisplayProgressTitle <> '', we will display progress bar during
+      loading. This is especially useful for long precalculated animations
+      (TVRMLGLAnimation with a lot of ScenesCount), they show nice
+      linearly increasing progress bar. }
+    procedure PrepareRender(const DisplayProgressTitle: string = '');
+
     procedure Render;
 
     { What changes happen when viewer camera changes.
@@ -274,7 +281,7 @@ type
 
 implementation
 
-uses SysUtils, RenderStateUnit, KambiGLUtils;
+uses SysUtils, RenderStateUnit, KambiGLUtils, ProgressUnit;
 
 constructor TSceneManager.Create(AOwner: TComponent);
 begin
@@ -395,7 +402,7 @@ begin
   ApplyProjectionNeeded := true;
 end;
 
-procedure TSceneManager.PrepareRender;
+procedure TSceneManager.PrepareRender(const DisplayProgressTitle: string);
 var
   Options: TPrepareRenderOptions;
   TG: TTransparentGroups;
@@ -429,7 +436,14 @@ begin
     in WORLDSPACE*. }
   RenderState.CameraFromCameraObject(Camera);
 
-  Items.PrepareRender(TG, Options);
+  if DisplayProgressTitle <> '' then
+  begin
+    Progress.Init(Items.PrepareRenderSteps, DisplayProgressTitle, true);
+    try
+      Items.PrepareRender(TG, Options, true);
+    finally Progress.Fini end;
+  end else
+    Items.PrepareRender(TG, Options, false);
 end;
 
 procedure TSceneManager.RenderScene(InShadow: boolean; TransparentGroup: TTransparentGroup);
