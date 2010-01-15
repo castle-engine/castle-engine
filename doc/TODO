@@ -32,32 +32,21 @@ Better Lazarus integration:
 
   Mention this (maybe with demo screenshot?) on last_update in www/TODO
 
-- Remove BackgroundSkySphereRadius, WalkProjection*,
-  Camera from TVRMLGLAnimation
-
-  Also, remove Camera from TVRMLScene.
-
-  Later, remove also BackgroundSkySphereRadius, WalkProjection*,
-  from TVRML[GL]Scene.
-  These all should be only for TSceneManager.
-
-* view3dscene: should use SceneManager.PrepareRender.
-  we'll have to figure out a way to allow progress bar there.
-  Later also make SceneManager.PrepareRender/Render automatic.
+* make SceneManager.PrepareRender/Render automatic.
+  Simplifies view3dscene, vrml browser components.
 
 * TSceneManager fitting into controls:
 
-  * Use TVRMLScene.Camera property more, setting this should give more instant integration of camera with the scene.
-    For example, remake CreateCamera, ViewerChanged, CameraSetViewpoint, GLProjection etc.
+  * Use TSceneManager.Camera property more, setting this should give more instant integration of camera with the scene.
 
     Also, maybe automatically bind camera collision-detection callbacks to use our octree?
 
-    Hm, this last point is definitely the job for TSceneManager, not TVRML[GL]Scene/Animation, as in the future we would like to have some T3DControl that is just a "translated" other T3DControl, like TVRMLScene/Animation. Following castle's approach to level objects.
+    Definitely the job for TSceneManager, as in the future we would like to have some TBase3D that is just a "translated" other TBase3D. Following castle's approach to level objects.
     So Camera 3d coords and scene/animation 3d coords may not live in the same 3d space.
-    Maybe this is an argument to remove Camera altogether from TVRMLScene/Animation? Only TSceneManager should know Camera, as a central camera for 3d scene.
 
   * Hm, also CreateCamera should be in TSceneManager?
     To take as bounding box (for examine navigator) sum of bboxes?
+    TVRMLScene gets CreateCamera with box --- use this in TSceneManager.
 
   * TSceneManager.Camera should automatically tie
     scene/animation<->camera stuff. And MainScene, that will be used
@@ -92,8 +81,6 @@ Better Lazarus integration:
 
   * Maybe remove some more wrapper stuff from TVRMLGLAnimation?
     (like TVRMLGLAnimation.GLProjection is gone now)
-
-* TVRMLScene gets CreateCamera with box --- use this in TSceneManager.
 
 * Let RenderState use some Camera reference, maybe make TSimpleCamera to avoid
   overloading it with full camera props for temporary camera settings?
