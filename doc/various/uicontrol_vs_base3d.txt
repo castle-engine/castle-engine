@@ -14,6 +14,11 @@ as they require handling notification when stuff is added to the list.
 Hm, although we needed notification anyway after all, so it may be
 possible to implement GLContextInit one day.
 
+For now, TBase3D.GLContextInit is not needed, as TBase3D.PrepareRender
+server the purpose better: since 3D objects may have long initialization,
+explicit PrepareRender (or implicit at nearest Render) is better
+than always hanging at GLContextInit.
+
 Also, for TBase3D, it would be a little unclean to have a reference
 to containing list or scenemanager (although maybe one day it will be
 needed anyway).

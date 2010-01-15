@@ -28,28 +28,22 @@ Better Lazarus integration:
     when resing control the scene managers are resized to occupy appropriate
     screen corner. Make sure to use something mith generatedcubemap,
     to test that getting back viewport is Ok.
+  - TSceneManager.PositionInside could use Viewport*, if not ViewportAutoResize.
 
   Mention this (maybe with demo screenshot?) on last_update in www/TODO
 
-- Remove BackgroundSkySphereRadius, AngleOfView*, WalkProjection*,
+- Remove BackgroundSkySphereRadius, WalkProjection*,
   Camera from TVRMLGLAnimation
 
-  Also, remove Camera from TVRMLScene. Make TSceneManager call
-  MouseMove with ray in 3D space for all it's Items. TVRML[GL]Scene
-  should ignore MouseMove. (And later, when TBase3D will not be TUIControl
-  anymore, there just won't be any MouseMove with window x,y.)
+  Also, remove Camera from TVRMLScene.
 
-  Depends on: solve how TSceneManager calls Items callbacks.
-  Do not require scene/sceneanimation to be on Controls list.
-  Later: forbid it, by making TBase3D incompatible with TUIControl.
-
-  Later, remove also BackgroundSkySphereRadius, AngleOfView*, WalkProjection*,
+  Later, remove also BackgroundSkySphereRadius, WalkProjection*,
   from TVRML[GL]Scene.
   These all should be only for TSceneManager.
 
-* view3dscene should add SceneAnimation, not just AScene, to TSceneManager.Items.
-  This should also take care of doing PrepareRender on SceneAnimation,
+* view3dscene: should use SceneManager.PrepareRender.
   we'll have to figure out a way to allow progress bar there.
+  Later also make SceneManager.PrepareRender/Render automatic.
 
 * TSceneManager fitting into controls:
 
@@ -61,10 +55,6 @@ Better Lazarus integration:
     Hm, this last point is definitely the job for TSceneManager, not TVRML[GL]Scene/Animation, as in the future we would like to have some T3DControl that is just a "translated" other T3DControl, like TVRMLScene/Animation. Following castle's approach to level objects.
     So Camera 3d coords and scene/animation 3d coords may not live in the same 3d space.
     Maybe this is an argument to remove Camera altogether from TVRMLScene/Animation? Only TSceneManager should know Camera, as a central camera for 3d scene.
-
-  * At the end: we'll have to decide should TVRMLGLScene / TVRMLGLAnimation remain as TUIControl,
-    or should we force user to using TSceneManager always?
-    That is, should TBase3D descend from TUIControl, or be independent from it?
 
   * Hm, also CreateCamera should be in TSceneManager?
     To take as bounding box (for examine navigator) sum of bboxes?
@@ -98,19 +88,10 @@ Better Lazarus integration:
       Overall, this is quite a large rearrangement for TSceneManager,
       just to avoid dependencies...
 
-  * TSceneManager: how to pass all TUIControl events to scene(s) inside?
-    Maybe implement events passing in a class like TUIControlsList.
-    This would make TUIControlsList a valid TUIControl itself. TSceneManager could contain Scenes: list for them.
-    - Disadv: TGLWindow / TKamOpenGLControl depend now that they create their own TUIControlsList descendant.
-    - How/when to pass GLContextInit/Close? Also list notification?
-    - Also, this means we decide to keep scene/animation TUIControl.
-      This is uncomfortable: e.g. how to make PositionInside etc.?
-      Maybe replace it by TBase3D, not related to TUIControl, but does it solve all troubles?
-
   * Other TSceneManager TODOs in file.
 
-  * Maybe remove some wrapper stuff from TVRMLGLAnimation?
-    E.g. TVRMLGLAnimation.GLProjection should be gone now?
+  * Maybe remove some more wrapper stuff from TVRMLGLAnimation?
+    (like TVRMLGLAnimation.GLProjection is gone now)
 
 * TVRMLScene gets CreateCamera with box --- use this in TSceneManager.
 
