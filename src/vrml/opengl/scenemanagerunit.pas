@@ -401,15 +401,28 @@ var
   TG: TTransparentGroups;
 begin
   Options := [prBackground, prBoundingBox];
+  TG := [tgAll];
+
   if ShadowVolumesPossible and
      ShadowVolumes and
      (MainScene <> nil) and
      MainScene.MainLightForShadowsExists then
+  begin
     Options := Options + prShadowVolume;
-
-  TG := [tgAll];
-  if ShadowVolumesPossible then
     TG := TG + [tgOpaque, tgTransparent];
+  end;
+
+  { Apply projection now, as TVRMLGLScene.GLProjection calculates
+    BackgroundSkySphereRadius, which is used by MainScene.Background.
+    Otherwise our preparations of "prBackground" here would be useless,
+    as BackgroundSkySphereRadius will change later, and MainScene.Background
+    will have to be recreated. }
+  Assert(ContainerSizeKnown, 'SceneManager did not receive ContainerResize event yet, cannnot PrepareRender');
+  if ApplyProjectionNeeded then
+  begin
+    ApplyProjectionNeeded := false;
+    ApplyProjection;
+  end;
 
   { RenderState.Camera* must be already set,
     since PrepareRender may do some operations on texture gen modes

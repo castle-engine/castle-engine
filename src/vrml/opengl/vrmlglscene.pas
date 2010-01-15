@@ -4464,6 +4464,10 @@ begin
   if (BackgroundStack.Top <> nil) and
      (BackgroundStack.Top is TNodeBackground) then
   begin
+    if Log then
+      WritelnLog('Background', Format('OpenGL background recreated, with radius %f',
+        [BackgroundSkySphereRadius]));
+
     BgNode := TNodeBackground(BackgroundStack.Top);
     BgTransform := BgNode.Transform;
 
