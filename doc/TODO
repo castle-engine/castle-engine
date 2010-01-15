@@ -36,8 +36,6 @@ Better Lazarus integration:
 
   * Hm, also CreateCamera should be in TSceneManager?
     To take as bounding box (for examine navigator) sum of bboxes?
-    E.g. currently demo_animation on jagged_animation starts with bbox
-    for raptor, without capturing bbox for whole anim (BoundingBoxSum).
 
   * TSceneManager.Camera should automatically tie
     scene/animation<->camera stuff. And MainScene, that will be used

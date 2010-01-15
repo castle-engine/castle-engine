@@ -73,26 +73,20 @@ var
   Glw: TGLUIWindow;
 
   Animation: TVRMLGLAnimation;
-  AnimationTime: Float = 0.0;
 
 procedure Draw(glwin: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(glw.Camera.Matrix);
 
-  Animation.SceneFromTime(AnimationTime).Render(nil, tgAll);
-end;
-
-procedure Idle(glwin: TGLWindow);
-begin
-  AnimationTime += glwin.Fps.IdleSpeed;
+  Animation.Render(Glw.Camera.Frustum, tgAll, false);
 end;
 
 procedure Init(glwin: TGLWindow);
 begin
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
-  AnimationTime := Animation.TimeBegin;
+  Animation.ResetWorldTimeAtLoad;
 end;
 
 procedure Close(glwin: TGLWindow);
@@ -109,7 +103,7 @@ end;
 procedure KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
 begin
   if C = ' ' then
-    AnimationTime := 0.0;
+    Animation.ResetWorldTime(0.0);
 end;
 
 procedure LoadAnimationFromCommandLine(Animation: TVRMLGLAnimation);
@@ -197,6 +191,8 @@ begin
     VRMLWarning := @VRMLWarning_Write;
 
     Animation := TVRMLGLAnimation.Create(nil);
+    Glw.Controls.Insert(0, Animation);
+
     if Parameters.High = 1 then
     begin
       { 1st method: *.kanim file }
@@ -213,7 +209,7 @@ begin
       Animation.TimeBackwards := Param_AnimTimeBackwards;
 
     { init Glw.Camera }
-    Glw.Camera := Animation.Scenes[0].CreateCamera(Glw);
+    Glw.Camera := Animation.Scenes[0].CreateCamera(Glw, Animation.BoundingBox);
 
     ProgressGLInterface.Window := Glw;
     Progress.UserInterface := ProgressGLInterface;
@@ -222,7 +218,6 @@ begin
     Glw.OnInit := @Init;
     Glw.OnClose := @Close;
     Glw.OnResize := @Resize;
-    Glw.OnIdle := @Idle;
     Glw.OnKeyDown := @KeyDown;
     Glw.Caption := ProgramName;
     Glw.OnDraw := @Draw;
