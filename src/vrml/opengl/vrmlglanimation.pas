@@ -325,7 +325,7 @@ type
       that you will not need some allocated resources anymore and you
       want to conserve memory use.
 
-      See TVRMLSceneFreeResource documentation for a description of what
+      See TVRMLScene.FreeResource documentation for a description of what
       are possible resources to free.
 
       Note in case you pass frRootNode: the first scene has OwnsRootNode
@@ -422,25 +422,6 @@ type
       is not loaded (e.g. before calling Load / LoadFromFile).
       Also, Attributes are preserved between various animations loaded. }
     function Attributes: TVRMLSceneRenderingAttributes;
-
-    { This simply returns FirstScene.ManifoldEdges.
-      Since all scenes in the animation must have exactly the same
-      structure, we know that this ManifoldEdges is actually good
-      for all scenes within this animation. }
-    function ManifoldEdges: TDynManifoldEdgeArray;
-
-    { This simply returns FirstScene.BorderEdges.
-      Like ManifoldEdges: all scenes in the animation must have exactly the same
-      structure, we know that this BorderEdges is actually good
-      for all scenes within this animation. }
-    function BorderEdges: TDynBorderEdgeArray;
-
-    { Calls ShareManifoldAndBoderEdges on all scenes within this
-      animation. This is useful if you already have ManifoldEdges and BorderEdges,
-      and you somehow know that it's good also for this scene. }
-    procedure ShareManifoldAndBorderEdges(
-      ManifoldShared: TDynManifoldEdgeArray;
-      BorderShared: TDynBorderEdgeArray);
 
     { The sum of bounding boxes of all animation frames.
 
@@ -1519,26 +1500,6 @@ end;
 function TVRMLGLAnimation.Attributes: TVRMLSceneRenderingAttributes;
 begin
   Result := TVRMLSceneRenderingAttributes(Renderer.Attributes);
-end;
-
-function TVRMLGLAnimation.ManifoldEdges: TDynManifoldEdgeArray;
-begin
-  Result := FirstScene.ManifoldEdges;
-end;
-
-function TVRMLGLAnimation.BorderEdges: TDynBorderEdgeArray;
-begin
-  Result := FirstScene.BorderEdges;
-end;
-
-procedure TVRMLGLAnimation.ShareManifoldAndBorderEdges(
-  ManifoldShared: TDynManifoldEdgeArray;
-  BorderShared: TDynBorderEdgeArray);
-var
-  I: Integer;
-begin
-  for I := 0 to FScenes.High do
-    FScenes[I].ShareManifoldAndBorderEdges(ManifoldShared, BorderShared);
 end;
 
 function TVRMLGLAnimation.BoundingBox: TBox3d;

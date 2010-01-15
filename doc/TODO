@@ -32,9 +32,6 @@ Better Lazarus integration:
 
   Mention this (maybe with demo screenshot?) on last_update in www/TODO
 
-* make SceneManager.PrepareRender/Render automatic.
-  Simplifies view3dscene, vrml browser components.
-
 * TSceneManager fitting into controls:
 
   * Use TSceneManager.Camera property more, setting this should give more instant integration of camera with the scene.
@@ -78,9 +75,6 @@ Better Lazarus integration:
       just to avoid dependencies...
 
   * Other TSceneManager TODOs in file.
-
-  * Maybe remove some more wrapper stuff from TVRMLGLAnimation?
-    (like TVRMLGLAnimation.GLProjection is gone now)
 
 * Let RenderState use some Camera reference, maybe make TSimpleCamera to avoid
   overloading it with full camera props for temporary camera settings?
@@ -283,12 +277,6 @@ SceneManager stuff (post 3.4):
   ./kambi_vrml_game_engine/opengl/examples/demo_camera.pasprogram:48:  glLoadMatrix(glw.Camera.Matrix);
 
   This will get automatically fixed when we extend and use SceneManager everywhere.
-
-- SceneManager should support TVRMLGLAnimation just like TVRMLGLScene, to fix some problems with view3dscene usage:
-  - SceneManager passes Scene.WalkProjectionNear, Scene.WalkProjectionFar, but for TVRMLGLAnimation typically only the first scene has these set properly. That's why TVRMLGLAnimation has own WalkProjectionNear, WalkProjectionFar.
-    Result: generated cube map textures combined with kanim animations will not work (they will use invalid near/far).
-  - We would like to use SceneManager.PrepareRender in view3dscene, but we can't: we want to make full TVRMLGLAnimation.PrepareRender (with progress bar possibly allowed) there.
-    For now, this is workarounded, we just ignore SceneManager.PrepareRender, duplicating some logic.
 
 - castlelevel.pas should be done by SceneManager instead.
   Also, creatures and items should be part of SceneManager then too.
