@@ -4594,6 +4594,14 @@ procedure TGLUIWindow.EventDraw;
 var
   AnythingWants2D: boolean;
 begin
+  { TODO: we want to move "inherited" (OnDraw) to the end of this
+    (Lazarus gl control already does this), but we cannot yet: castle's
+    menu drawing depends OnDraw is before Controls (under the menu).
+    This will be fixed in castle (and possibly rift needs such fix too?)
+    when migrating them to scene manager, for now keep inherited at
+    the beginning. }
+  inherited;
+
   Draw3D(AnythingWants2D);
 
   if AnythingWants2D then
@@ -4614,7 +4622,7 @@ begin
 
   { inherited (OnDraw callback) after drawing Controls, to allow OnDraw
     to draw over our content. }
-  inherited;
+  { inherited; TODO -- see above }
 end;
 
 procedure TGLUIWindow.EventResize;
