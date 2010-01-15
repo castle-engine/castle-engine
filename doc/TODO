@@ -15,6 +15,38 @@ view3dscene 3.5 blockers:
 Better Lazarus integration:
 (Some before view3dscene 3.5, some probably for later.)
 
+* Making Viewport*, see TODO.scene_manager_viewport, should be trivial now!
+  - GLProjection should take x, y as well as width, height
+  - Like on TODO.scene_manager_viewport, we'll need ViewportAutoResize default true
+  - use it in tscenemanager
+  - also, in tscenemanager, add property AlwaysApplyProjection, default false,
+    use "AlwaysApplyProjection and ApplyProjectionNeeded" in render,
+  - make laz demo, with 4 scene managers, each having other corner of window,
+    maybe 2 left share the same scene and 2 right share the same scene,
+    but from different views (only in one view is scene set as MainScene,
+    in others it's just added to the tree, this should work without problems),
+    when resing control the scene managers are resized to occupy appropriate
+    screen corner. Make sure to use something mith generatedcubemap,
+    to test that getting back viewport is Ok.
+
+  Mention this (maybe with demo screenshot?) on last_update in www/TODO
+
+- Remove BackgroundSkySphereRadius, AngleOfView*, WalkProjection*,
+  Camera from TVRMLGLAnimation
+
+  Also, remove Camera from TVRMLScene. Make TSceneManager call
+  MouseMove with ray in 3D space for all it's Items. TVRML[GL]Scene
+  should ignore MouseMove. (And later, when TBase3D will not be TUIControl
+  anymore, there just won't be any MouseMove with window x,y.)
+
+  Depends on: solve how TSceneManager calls Items callbacks.
+  Do not require scene/sceneanimation to be on Controls list.
+  Later: forbid it, by making TBase3D incompatible with TUIControl.
+
+  Later, remove also BackgroundSkySphereRadius, AngleOfView*, WalkProjection*,
+  from TVRML[GL]Scene.
+  These all should be only for TSceneManager.
+
 * view3dscene should add SceneAnimation, not just AScene, to TSceneManager.Items.
   This should also take care of doing PrepareRender on SceneAnimation,
   we'll have to figure out a way to allow progress bar there.
