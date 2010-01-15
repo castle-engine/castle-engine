@@ -52,7 +52,7 @@
   You can navigate in the scene using the standard arrow keys, escape exits.
   (for full list of supported keys --- see view3dscene documentation,
   [http://vrmlengine.sourceforge.net/view3dscene.php],
-  at Walk navigation method).
+  at Examine / Walk navigation method).
   Space key restarts the animation (definitely useful if you passed
   --no-loop option).
 
@@ -67,37 +67,18 @@ program demo_animation;
 uses Math, VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLScene, VRMLGLScene, Cameras, VRMLGLAnimation,
-  KambiFilesUtils, ParseParametersUnit, ProgressGL, ProgressUnit, VRMLErrors;
+  KambiFilesUtils, ParseParametersUnit, ProgressGL, ProgressUnit, VRMLErrors,
+  SceneManagerUnit;
 
 var
   Glw: TGLUIWindow;
-
+  SceneManager: TSceneManager;
   Animation: TVRMLGLAnimation;
-
-procedure Draw(glwin: TGLWindow);
-begin
-  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(glw.Camera.Matrix);
-
-  Animation.Render(Glw.Camera.Frustum, tgAll, false);
-end;
 
 procedure Init(glwin: TGLWindow);
 begin
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
-  Animation.ResetWorldTimeAtLoad;
-end;
-
-procedure Close(glwin: TGLWindow);
-begin
-  Animation.GLContextClose;
-end;
-
-procedure Resize(glwin: TGLWindow);
-begin
-  Animation.GLProjection(Glw.Camera, Animation.BoundingBox,
-    Glwin.Width, Glwin.Height);
 end;
 
 procedure KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
@@ -191,7 +172,6 @@ begin
     VRMLWarning := @VRMLWarning_Write;
 
     Animation := TVRMLGLAnimation.Create(nil);
-    Glw.Controls.Insert(0, Animation);
 
     if Parameters.High = 1 then
     begin
@@ -211,16 +191,20 @@ begin
     { init Glw.Camera }
     Glw.Camera := Animation.Scenes[0].CreateCamera(Glw, Animation.BoundingBox);
 
+    { init SceneManager, with the Animation and the Camera inside }
+    SceneManager := TSceneManager.Create(Glw);
+    Glw.Controls.Add(SceneManager);
+    SceneManager.MainScene := Animation.FirstScene;
+    SceneManager.Items.List.Add(Animation);
+    SceneManager.Camera := Glw.Camera;
+
     ProgressGLInterface.Window := Glw;
     Progress.UserInterface := ProgressGLInterface;
 
     Glw.AutoRedisplay := true;
     Glw.OnInit := @Init;
-    Glw.OnClose := @Close;
-    Glw.OnResize := @Resize;
     Glw.OnKeyDown := @KeyDown;
     Glw.Caption := ProgramName;
-    Glw.OnDraw := @Draw;
 
     Glw.Init;
 
