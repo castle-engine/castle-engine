@@ -195,7 +195,7 @@ begin
 
     if Parameters.High = 1 then
     begin
-      { 1st method: *.kanim file }
+      { 1st method: load a file }
       Animation.LoadFromFile(Parameters[1]);
     end else
     begin

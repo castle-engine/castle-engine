@@ -25,11 +25,6 @@ uses SysUtils, Classes, VRMLNodes, VRMLOpenGLRenderer, VRMLScene, VRMLGLScene,
 {$define read_interface}
 
 type
-  TAnimationChangeLoadParametersFunc = procedure (
-    var ScenesPerTime: Cardinal;
-    var Optimization: TGLRendererOptimization;
-    var EqualityEpsilon: Single) of object;
-
   TGetRootNodeWithTime = procedure (const Index: Cardinal;
     out RootNode: TVRMLNode; out Time: Single) of object;
 
@@ -267,31 +262,29 @@ type
 
     { This loads TVRMLGLAnimation by loading it's parameters
       (models to use, times to use etc.) from given file.
-      File format is described on
-      [http://vrmlengine.sourceforge.net/kanim_format.php].
+
+      Various file formats are possible, everything that can be handled by
+      LoadAsVRMLSequence, in particular simple 3D model files, MD3,
+      kanim (described on
+      [http://vrmlengine.sourceforge.net/kanim_format.php]).
 
       This changes Optimization, TimeLoop and such,
-      based on their values in Kanim file.
+      based on their values in the file.
 
-      You can change some of the loaded parameters by providing ChangeLoadParameters
-      callback (you can provide @nil, if you don't want to change them).
-      ChangeLoadParameters callback is the only way to change some animation rendering
-      parameters, like ScenesPerTime --- after LoadFromFile finished,
-      animation is fully loaded and
-      these parameters cannot be changed anymore.
-      (Optimization may be changed after loading, but still it's more efficient
-      to change it before loading.)
+      If you need more control over loading, for example you want to
+      change some parameters at loading (for example, ScenesPerTime
+      and EqualityEpsilon of kanim files), you should use
+      more flexible (and less comfortable to use)
+      LoadFromFileToVars class procedure (specialized for kanim files)
+      or LoadAsVRMLSequence (if you want to handle any files).
 
-      If you need more control than simple ChangeLoadParameters callback,
-      you should use something more flexible (and less comfortable to use)
-      like LoadFromFileToVars class procedure.
-
-      Note that you can always change TimeLoop and TimeBackwards --- since these
+      Note that you can always change TimeLoop and TimeBackwards after
+      loading back to your desired values --- since these
       properties are writeable at any time.
 
       @link(Loaded) property changes to @true after calling this. }
     procedure LoadFromFile(const FileName: string;
-      ChangeLoadParameters: TAnimationChangeLoadParametersFunc = nil);
+      const AllowStdIn: boolean = false);
 
     { This releases all resources allocared by Load (or LoadFromFile).
       @link(Loaded) property changes to @false after calling this.
@@ -1397,55 +1390,25 @@ begin
 end;
 
 procedure TVRMLGLAnimation.LoadFromFile(const FileName: string;
-  ChangeLoadParameters: TAnimationChangeLoadParametersFunc);
+  const AllowStdIn: boolean);
 var
-  { Vars from LoadFromFileToVars }
-  ModelFileNames: TDynStringArray;
   Times: TDynSingleArray;
+  RootNodes: TVRMLNodesList;
   ScenesPerTime: Cardinal;
   EqualityEpsilon: Single;
   ATimeLoop, ATimeBackwards: boolean;
-
-  RootNodes: TVRMLNodesList;
-  I, J: Integer;
 begin
-  ModelFileNames := nil;
-  Times := nil;
-  RootNodes := nil;
-
+  Times := TDynSingleArray.Create;
+  RootNodes := TVRMLNodesList.Create;
   try
-    ModelFileNames := TDynStringArray.Create;
-    Times := TDynSingleArray.Create;
-
-    LoadFromFileToVars(FileName, ModelFileNames, Times,
-      ScenesPerTime, FOptimization, EqualityEpsilon, ATimeLoop, ATimeBackwards);
-
-    if Assigned(ChangeLoadParameters) then
-      { Since the scene is not loaded now, FOptimization can just be changed
-        directly. So we simply pass it as "var" param to ChangeLoadParameters. }
-      ChangeLoadParameters(ScenesPerTime, FOptimization, EqualityEpsilon);
-
-    Assert(ModelFileNames.Length = Times.Length);
-    Assert(ModelFileNames.Length >= 1);
-
-    RootNodes := TVRMLNodesList.Create;
-    RootNodes.Count := ModelFileNames.Count;
-
-    for I := 0 to ModelFileNames.High do
-    try
-      RootNodes[I] := LoadAsVRML(ModelFileNames[I]);
-    except
-      for J := 0 to I - 1 do
-        RootNodes.FreeAndNil(J);
-      raise;
-    end;
+    LoadAsVRMLSequence(FileName, AllowStdIn,
+      RootNodes, Times, ScenesPerTime, FOptimization, EqualityEpsilon,
+      ATimeLoop, ATimeBackwards);
 
     Load(RootNodes, true, Times, ScenesPerTime, EqualityEpsilon);
     TimeLoop := ATimeLoop;
     TimeBackwards := ATimeBackwards;
-
   finally
-    FreeAndNil(ModelFileNames);
     FreeAndNil(Times);
     FreeAndNil(RootNodes);
   end;
