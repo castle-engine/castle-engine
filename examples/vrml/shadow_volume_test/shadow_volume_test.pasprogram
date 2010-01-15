@@ -72,7 +72,7 @@ uses GLWindow, GL, GLU, GLExt, KambiGLUtils, VRMLGLScene,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils, VRMLCameraUtils,
   ShadowTests, GLWinMessages, VRMLErrors, ShadowVolumes,
   BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, SceneManagerUnit,
-  RaysWindow, UIControls;
+  RaysWindow, UIControls, RenderStateUnit;
 
 type
   { Shadow implementations. Roughly ordered from the worse to the best. }
@@ -180,7 +180,15 @@ procedure TMySceneManager.RenderFromView;
   procedure RenderFrontShadowQuads;
   begin
     ShadowTests.RenderFrontShadowQuads(ShadowCaster,
-      MainLightPosition, SceneNav.Position, ShadowCasterNav.Matrix);
+      MainLightPosition,
+      { TODO: this should be something like RenderState.CameraPosition
+        to be fully correct, not just SceneNav.Position.
+        Reason: for rendering generated textures, since we're part
+        of scene manager now.
+        For now, RenderState doesn't have CameraPosition available,
+        and I'm too lazy to add it only for this testing code. }
+      SceneNav.Position,
+      ShadowCasterNav.Matrix);
   end;
 
   procedure RenderBackShadowQuads;
@@ -357,9 +365,9 @@ procedure TMySceneManager.RenderFromView;
 
 begin
   glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT);
-  glLoadMatrix(SceneNav.Matrix);
+  glLoadMatrix(RenderState.CameraMatrix);
 
-  SV.InitFrustumAndLight(SceneNav.Frustum, MainLightPosition);
+  SV.InitFrustumAndLight(RenderState.CameraFrustum, MainLightPosition);
 
   SV.InitSceneDontSetupStencil(
     Box3dTransform(ShadowCaster.BoundingBox, ShadowCasterNav.Matrix));
