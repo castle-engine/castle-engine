@@ -44,7 +44,7 @@ var
 
 procedure BeforeDraw(glwin: TGLWindow);
 begin
- Scene.PrepareRender([tgAll], [prBoundingBox]);
+ Scene.PrepareRender([tgAll], [prBoundingBox], false);
 end;
 
 type

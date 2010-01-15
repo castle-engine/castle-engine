@@ -438,8 +438,8 @@ begin
   SV := TShadowVolumes.Create;
   SV.InitGLContext;
 
-  Scene.PrepareRender([tgAll], [prBoundingBox]);
-  ShadowCaster.PrepareRender([tgAll], [prBoundingBox] + prShadowVolume);
+  Scene.PrepareRender([tgAll], [prBoundingBox], false);
+  ShadowCaster.PrepareRender([tgAll], [prBoundingBox] + prShadowVolume, false);
 end;
 
 procedure CloseGL(glwin: TGLWindow);

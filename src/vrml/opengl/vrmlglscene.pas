@@ -1315,6 +1315,15 @@ type
       const ForceZFarInfinity: boolean;
       out AngleOfViewX, AngleOfViewY, WalkProjectionNear, WalkProjectionFar: Single);
 
+    { GLProjection version when you're not interested in resulting
+      AngleOfView*, WalkProjection* values. Should not be used ---
+      this is only a temporary proc for compatibility, to compile old examples.
+      @deprecated }
+    procedure GLProjection(ACamera: TCamera;
+      const Box: TBox3d;
+      const WindowWidth, WindowHeight: Cardinal;
+      const ForceZFarInfinity: boolean = false);
+
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
@@ -4588,6 +4597,17 @@ end;
 procedure TVRMLGLScene.SetBumpMappingLightDiffuseColor(const Value: TVector4Single);
 begin
   Renderer.BumpMappingLightDiffuseColor := Value;
+end;
+
+procedure TVRMLGLScene.GLProjection(ACamera: TCamera;
+  const Box: TBox3d;
+  const WindowWidth, WindowHeight: Cardinal;
+  const ForceZFarInfinity: boolean);
+var
+  AngleOfViewX, AngleOfViewY, WalkProjectionNear, WalkProjectionFar: Single;
+begin
+  GLProjection(ACamera, Box, WindowWidth, WindowHeight, ForceZFarInfinity,
+    AngleOfViewX, AngleOfViewY, WalkProjectionNear, WalkProjectionFar);
 end;
 
 procedure TVRMLGLScene.GLProjection(ACamera: TCamera;
