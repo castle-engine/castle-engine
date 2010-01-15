@@ -19,7 +19,7 @@ unit Base3D;
 interface
 
 uses Classes, VectorMath, Frustum, Boxes3D, UIControls, Contnrs,
-  KambiClassUtils;
+  KambiClassUtils, KeysMouse;
 
 type
   { Various things that TBase3D.PrepareRender may prepare. }
@@ -39,14 +39,16 @@ type
 
   { Base 3D object, that can be managed by TSceneManager.
     All 3D objects should descend from this, this way we can easily
-    insert them into TSceneManager. }
-  TBase3D = class(TUIControl)
+    insert them into the TSceneManager. }
+  TBase3D = class(TComponent)
   private
     FCastsShadow: boolean;
     FExists: boolean;
     FCollides: boolean;
+    FOnVisibleChange: TNotifyEvent;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
 
     { @noAutoLinkHere }
     property Exists: boolean read FExists write FExists default true;
@@ -165,7 +167,50 @@ type
     procedure PrepareRender(
       TransparentGroups: TTransparentGroups;
       Options: TPrepareRenderOptions); virtual;
+
+    { Key and mouse events. Return @true if you handled them.
+      See also TUIControl analogous events.
+      Note that our MouseMove gets 3D ray corresponding to mouse
+      position on the screen (this is the ray for "picking" 3D objects
+      pointed by the mouse).
+
+      @groupBegin }
+    function KeyDown(Key: TKey; C: char): boolean; virtual;
+    function KeyUp(Key: TKey; C: char): boolean; virtual;
+    function MouseDown(const Button: TMouseButton): boolean; virtual;
+    function MouseUp(const Button: TMouseButton): boolean; virtual;
+    function MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean; virtual;
+    { @groupEnd }
+
+    { Idle event, for continously repeated tasks. }
+    procedure Idle(const CompSpeed: Single); virtual;
+
+    { Called always when some visible part of this control
+      changes. In the simplest case, this is used by the controls manager to
+      know when we need to redraw the control.
+
+      In this class this simply calls OnVisibleChange (if assigned). }
+    procedure VisibleChange; virtual;
+
+    { Called always when some visible part of this control
+      changes. In the simplest case, this is used by the controls manager to
+      know when we need to redraw the control.
+
+      Be careful when handling this event, various changes may cause this,
+      so be prepared to handle OnVisibleChange at every time.
+
+      @seealso VisibleChange }
+    property OnVisibleChange: TNotifyEvent
+      read FOnVisibleChange write FOnVisibleChange;
+
+    { Called when OpenGL context of the window is destroyed.
+      This will be also automatically called from destructor.
+
+      Control should clear here any resources that are tied to the GL context. }
+    procedure GLContextClose; virtual;
   end;
+
+  TBase3DList = class;
 
   { List of base 3D objects (TBase3D instances).
 
@@ -175,10 +220,15 @@ type
     this class. }
   TBase3DListCore = class(TKamObjectList)
   private
+    FOwner: TBase3DList;
+
     function GetItem(const I: Integer): TBase3D;
     procedure SetItem(const I: Integer; const Item: TBase3D);
   public
+    constructor Create(const FreeObjects: boolean; const AOwner: TBase3DList);
+    procedure Notify(Ptr: Pointer; Action: TListNotification); override;
     property Items[I: Integer]: TBase3D read GetItem write SetItem; default;
+    property Owner: TBase3DList read FOwner;
   end;
 
   { List of base 3D objects (TBase3D instances).
@@ -188,6 +238,9 @@ type
   TBase3DList = class(TBase3D)
   private
     FList: TBase3DListCore;
+    procedure ListVisibleChange(Sender: TObject);
+  protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -202,13 +255,22 @@ type
     procedure PrepareRender(
       TransparentGroups: TTransparentGroups;
       Options: TPrepareRenderOptions); override;
+    function KeyDown(Key: TKey; C: char): boolean; override;
+    function KeyUp(Key: TKey; C: char): boolean; override;
+    function MouseDown(const Button: TMouseButton): boolean; override;
+    function MouseUp(const Button: TMouseButton): boolean; override;
+    function MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
+    procedure Idle(const CompSpeed: Single); override;
+    procedure GLContextClose; override;
   published
+    { 3D objects inside.
+      Freeing these items automatically removes them from this list. }
     property List: TBase3DListCore read FList;
   end;
 
 implementation
 
-uses SysUtils;
+uses SysUtils, KambiUtils;
 
 constructor TBase3D.Create(AOwner: TComponent);
 begin
@@ -216,6 +278,12 @@ begin
   FCastsShadow := true;
   FExists := true;
   FCollides := true;
+end;
+
+destructor TBase3D.Destroy;
+begin
+  GLContextClose;
+  inherited;
 end;
 
 procedure TBase3D.Render(const Frustum: TFrustum;
@@ -237,7 +305,82 @@ procedure TBase3D.PrepareRender(
 begin
 end;
 
+function TBase3D.KeyDown(Key: TKey; C: char): boolean;
+begin
+  Result := false;
+end;
+
+function TBase3D.KeyUp(Key: TKey; C: char): boolean;
+begin
+  Result := false;
+end;
+
+function TBase3D.MouseDown(const Button: TMouseButton): boolean;
+begin
+  Result := false;
+end;
+
+function TBase3D.MouseUp(const Button: TMouseButton): boolean;
+begin
+  Result := false;
+end;
+
+function TBase3D.MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean;
+begin
+  Result := false;
+end;
+
+procedure TBase3D.Idle(const CompSpeed: Single);
+begin
+end;
+
+procedure TBase3D.VisibleChange;
+begin
+  if Assigned(OnVisibleChange) then
+    OnVisibleChange(Self);
+end;
+
+procedure TBase3D.GLContextClose;
+begin
+end;
+
 { TBase3DListCore ------------------------------------------------------------ }
+
+constructor TBase3DListCore.Create(const FreeObjects: boolean; const AOwner: TBase3DList);
+begin
+  inherited Create(FreeObjects);
+  FOwner := AOwner;
+end;
+
+procedure TBase3DListCore.Notify(Ptr: Pointer; Action: TListNotification);
+var
+  B: TBase3D;
+begin
+  inherited;
+
+  B := TBase3D(Ptr);
+
+  case Action of
+    lnAdded:
+      begin
+        { Make sure Owner.ListVisibleChange will be called
+          when an item calls OnVisibleChange. }
+        if B.OnVisibleChange = nil then
+          B.OnVisibleChange := @Owner.ListVisibleChange;
+
+        { Register Owner to be notified of item destruction. }
+        B.FreeNotification(Owner);
+      end;
+    lnExtracted, lnDeleted:
+      begin
+        if B.OnVisibleChange = @Owner.ListVisibleChange then
+          B.OnVisibleChange := nil;
+
+        B.RemoveFreeNotification(Owner);
+      end;
+    else raise EInternalError.Create('TBase3DListCore.Notify action?');
+  end;
+end;
 
 function TBase3DListCore.GetItem(const I: Integer): TBase3D;
 begin
@@ -254,7 +397,7 @@ end;
 constructor TBase3DList.Create(AOwner: TComponent);
 begin
   inherited;
-  FList := TBase3DListCore.Create(false);
+  FList := TBase3DListCore.Create(false, Self);
 end;
 
 destructor TBase3DList.Destroy;
@@ -307,6 +450,107 @@ begin
   inherited;
   for I := 0 to List.Count - 1 do
     List[I].PrepareRender(TransparentGroups, Options);
+end;
+
+function TBase3DList.KeyDown(Key: TKey; C: char): boolean;
+var
+  I: Integer;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  for I := 0 to List.Count - 1 do
+    if List[I].KeyDown(Key, C) then Exit(true);
+end;
+
+function TBase3DList.KeyUp(Key: TKey; C: char): boolean;
+var
+  I: Integer;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  for I := 0 to List.Count - 1 do
+    if List[I].KeyUp(Key, C) then Exit(true);
+end;
+
+function TBase3DList.MouseDown(const Button: TMouseButton): boolean;
+var
+  I: Integer;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  for I := 0 to List.Count - 1 do
+    if List[I].MouseDown(Button) then Exit(true);
+end;
+
+function TBase3DList.MouseUp(const Button: TMouseButton): boolean;
+var
+  I: Integer;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  for I := 0 to List.Count - 1 do
+    if List[I].MouseUp(Button) then Exit(true);
+end;
+
+function TBase3DList.MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean;
+var
+  I: Integer;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  for I := 0 to List.Count - 1 do
+    if List[I].MouseMove(RayOrigin, RayDirection) then Exit(true);
+end;
+
+procedure TBase3DList.Idle(const CompSpeed: Single);
+var
+  I: Integer;
+begin
+  inherited;
+
+  for I := 0 to List.Count - 1 do
+    List[I].Idle(CompSpeed);
+end;
+
+procedure TBase3DList.ListVisibleChange(Sender: TObject);
+begin
+  { when an Item calls OnVisibleChange, we'll call our own OnVisibleChange,
+    to pass it up the tree (eventually, to the scenemanager, that will
+    pass it by TUIControl similar OnVisibleChange mechanism to the container). }
+  VisibleChange;
+end;
+
+procedure TBase3DList.GLContextClose;
+var
+  I: Integer;
+begin
+  { this is called from inherited destrudtor, so check <> nil carefully }
+  if FList <> nil then
+  begin
+    for I := 0 to List.Count - 1 do
+      List[I].GLContextClose;
+  end;
+
+  inherited;
+end;
+
+procedure TBase3DList.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+
+  { We have to remove a reference to the object from the List.
+    This is crucial: TBase3DListCore.Notify,
+    and e.g. GLContextClose call, assume that all objects on
+    the List are always valid objects (no invalid references,
+    even for a short time). }
+
+  if (Operation = opRemove) and (AComponent is TBase3D) then
+    List.DeleteAll(AComponent);
 end;
 
 end.

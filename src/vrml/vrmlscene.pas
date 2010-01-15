@@ -526,8 +526,6 @@ type
     FRootNode: TVRMLNode;
     FOnPointingDeviceSensorsChange: TNotifyEvent;
     FCamera: TCamera;
-    FAngleOfViewX: Single;
-    FAngleOfViewY: Single;
     FTimePlaying: boolean;
     FTimePlayingSpeed: Single;
     FFileName: string;
@@ -1545,28 +1543,10 @@ type
       @groupBegin }
     function MouseDown(const Button: TMouseButton): boolean; override;
     function MouseUp(const Button: TMouseButton): boolean; override;
-    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
+    function MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
     { @groupEnd }
 
-    procedure Idle(const CompSpeed: Single;
-      const HandleMouseAndKeys: boolean;
-      var LetOthersHandleMouseAndKeys: boolean); override;
-
-    { Overridden in TVRMLScene to catch events regardless of mouse position. }
-    function PositionInside(const X, Y: Integer): boolean; override;
-
-    { Camera angles of view, in degrees.
-      Automatically set by every TVRMLGLScene.GLProjection call.
-      But you can also change them manually, if you need more control
-      for some reason.
-
-      These are for now used only with Mouse* methods, to convert mouse position
-      (MouseX, MouseY) to a picked ray in 3D space.
-
-      @groupBegin }
-    property AngleOfViewX: Single read FAngleOfViewX write FAngleOfViewX;
-    property AngleOfViewY: Single read FAngleOfViewY write FAngleOfViewY;
-    { @groupEnd }
+    procedure Idle(const CompSpeed: Single); override;
 
     { These change world time, see WorldTime.
       It is crucial that you call this continously to have some VRML
@@ -5252,9 +5232,8 @@ begin
   end;
 end;
 
-function TVRMLScene.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
+function TVRMLScene.MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean;
 var
-  Ray0, RayVector: TVector3Single;
   OverPoint: TVector3Single;
   Item: PVRMLTriangle;
 begin
@@ -5263,10 +5242,8 @@ begin
 
   if OctreeCollisions <> nil then
   begin
-    Camera.Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, Ray0, RayVector);
-
     Item := OctreeCollisions.RayCollision(
-      OverPoint, Ray0, RayVector, true, nil, false, nil);
+      OverPoint, RayOrigin, RayDirection, true, nil, false, nil);
 
     PointingDeviceMove(OverPoint, Item);
 
@@ -5274,11 +5251,6 @@ begin
       this would disable too much (like Camera usually under Scene on Controls).
     Result := false; }
   end;
-end;
-
-function TVRMLScene.PositionInside(const X, Y: Integer): boolean;
-begin
-  Result := true;
 end;
 
 { WorldTime stuff ------------------------------------------------------------ }
@@ -5377,9 +5349,7 @@ begin
   ResetWorldTime(WorldTimeAtLoad);
 end;
 
-procedure TVRMLScene.Idle(const CompSpeed: Single;
-  const HandleMouseAndKeys: boolean;
-  var LetOthersHandleMouseAndKeys: boolean);
+procedure TVRMLScene.Idle(const CompSpeed: Single);
 begin
   inherited;
 
@@ -5389,10 +5359,6 @@ begin
     will not do anything anyway. }
   if TimePlaying and (CompSpeed <> 0) then
     IncreaseWorldTime(TimePlayingSpeed * CompSpeed);
-
-  { Even if mouse is over the scene, still allow others (like a Camera
-    underneath) to always handle mouse and keys in their Idle. }
-  LetOthersHandleMouseAndKeys := true;
 end;
 
 { geometry changes schedule -------------------------------------------------- }

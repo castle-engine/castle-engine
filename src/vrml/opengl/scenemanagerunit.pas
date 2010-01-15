@@ -19,7 +19,8 @@ unit SceneManagerUnit;
 interface
 
 uses Classes, VectorMath, VRMLGLScene, VRMLScene, Cameras,
-  VRMLGLHeadLight, ShadowVolumes, GL, GLCubeMap, UIControls, Base3D;
+  VRMLGLHeadLight, ShadowVolumes, GL, GLCubeMap, UIControls, Base3D,
+  KeysMouse;
 
 type
   { Scene manager that knows about all 3D things inside your world.
@@ -74,6 +75,9 @@ type
     FCamera: TCamera;
     FItems: TBase3DList;
 
+    FAngleOfViewX: Single;
+    FAngleOfViewY: Single;
+
     FShadowVolumesPossible: boolean;
     FShadowVolumes: boolean;
     FShadowVolumesDraw: boolean;
@@ -86,7 +90,11 @@ type
     procedure SetMainScene(const Value: TVRMLGLScene);
     procedure SetCamera(const Value: TCamera);
     procedure SetShadowVolumesPossible(const Value: boolean);
+
+    procedure ItemsVisibleChange(Sender: TObject);
   protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+
     { Render one pass, from current (in RenderState) camera view,
       for specific lights setup, for given TransparentGroup. }
     procedure RenderScene(InShadow: boolean; TransparentGroup: TTransparentGroup); virtual;
@@ -115,7 +123,8 @@ type
     { Sets OpenGL projection matrix, based on MainScene's currently
       bound Viewpoint, NavigationInfo and used camera.
 
-      Takes care of updating Camera.ProjectionMatrix.
+      Takes care of updating Camera.ProjectionMatrix,
+      AngleOfViewX, AngleOfViewY.
 
       This is automatically called at the beginning of our Render method,
       if it's needed (after MainScene or Container sizes or some other
@@ -155,9 +164,13 @@ type
 
       The above stuff is only sensible when done once per scene manager,
       that's why we need MainScene property to indicate this.
-      (We cannot just use every 3D object from @link(Items) for this.) }
+      (We cannot just use every 3D object from @link(Items) for this.)
+
+      Freeing MainScene will automatically set this to @nil. }
     property MainScene: TVRMLGLScene read FMainScene write SetMainScene;
 
+    { Camera used to render.
+      Freeing Camera will automatically set this to @nil. }
     property Camera: TCamera read FCamera write SetCamera;
 
     { Should we make shadow volumes possible.
@@ -214,6 +227,27 @@ type
     function ViewerToChanges: TVisibleSceneChanges; virtual;
 
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
+
+    function KeyDown(Key: TKey; C: char): boolean; override;
+    function KeyUp(Key: TKey; C: char): boolean; override;
+    function MouseDown(const Button: TMouseButton): boolean; override;
+    function MouseUp(const Button: TMouseButton): boolean; override;
+    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
+
+    procedure Idle(const CompSpeed: Single;
+      const HandleMouseAndKeys: boolean;
+      var LetOthersHandleMouseAndKeys: boolean); override;
+
+    { Overridden in TSceneManager to catch events regardless of mouse position. }
+    function PositionInside(const X, Y: Integer): boolean; override;
+
+    { Camera angles of view, in degrees.
+      Set by every ApplyProjection call.
+
+      @groupBegin }
+    property AngleOfViewX: Single read FAngleOfViewX write FAngleOfViewX;
+    property AngleOfViewY: Single read FAngleOfViewY write FAngleOfViewY;
+    { @groupEnd }
   end;
 
 implementation
@@ -224,11 +258,23 @@ constructor TSceneManager.Create(AOwner: TComponent);
 begin
   inherited;
   FItems := TBase3DList.Create(Self);
+  FItems.OnVisibleChange := @ItemsVisibleChange;
 end;
 
 destructor TSceneManager.Destroy;
 begin
+  if FMainScene <> nil then
+    FMainScene.RemoveFreeNotification(Self);
+
+  if FCamera <> nil then
+    FCamera.RemoveFreeNotification(Self);
+
   inherited;
+end;
+
+procedure TSceneManager.ItemsVisibleChange(Sender: TObject);
+begin
+  VisibleChange;
 end;
 
 procedure TSceneManager.GLContextInit;
@@ -244,6 +290,8 @@ end;
 
 procedure TSceneManager.GLContextClose;
 begin
+  Items.GLContextClose;
+
   FreeAndNil(SV);
 
   inherited;
@@ -253,14 +301,22 @@ procedure TSceneManager.ApplyProjection;
 begin
   if MainScene <> nil then
     MainScene.GLProjection(Camera, Items.BoundingBox,
-      ContainerWidth, ContainerHeight, ShadowVolumesPossible);
+      ContainerWidth, ContainerHeight, ShadowVolumesPossible,
+      FAngleOfViewX, FAngleOfViewY);
 end;
 
 procedure TSceneManager.SetMainScene(const Value: TVRMLGLScene);
 begin
   if FMainScene <> Value then
   begin
+    if FMainScene <> nil then
+      FMainScene.RemoveFreeNotification(Self);
+
     FMainScene := Value;
+
+    if FMainScene <> nil then
+      FMainScene.FreeNotification(Self);
+
     ApplyProjectionNeeded := true;
   end;
 end;
@@ -269,8 +325,32 @@ procedure TSceneManager.SetCamera(const Value: TCamera);
 begin
   if FCamera <> Value then
   begin
+    if FCamera <> nil then
+      FCamera.RemoveFreeNotification(Self);
+
     FCamera := Value;
+
+    if FCamera <> nil then
+      FCamera.FreeNotification(Self);
+
     ApplyProjectionNeeded := true;
+  end;
+end;
+
+procedure TSceneManager.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+
+  if Operation = opRemove then
+  begin
+    if AComponent = FCamera then
+      FCamera := nil;
+
+    if AComponent = FMainScene then
+      FMainScene := nil;
+
+    { Maybe ApplyProjectionNeeded := true, for both FCamera and FMainScene
+      clearing ? But ApplyProjection will simply fail now when Camera = nil. }
   end;
 end;
 
@@ -434,6 +514,67 @@ begin
   RenderState.Target := rtScreen;
   RenderState.CameraFromCameraObject(Camera);
   RenderFromView;
+end;
+
+function TSceneManager.KeyDown(Key: TKey; C: char): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  Result := Items.KeyDown(Key, C);
+end;
+
+function TSceneManager.KeyUp(Key: TKey; C: char): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  Result := Items.KeyUp(Key, C);
+end;
+
+function TSceneManager.MouseDown(const Button: TMouseButton): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  Result := Items.MouseDown(Button);
+end;
+
+function TSceneManager.MouseUp(const Button: TMouseButton): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  Result := Items.MouseUp(Button);
+end;
+
+function TSceneManager.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
+var
+  RayOrigin, RayDirection: TVector3Single;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  Camera.Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, RayOrigin, RayDirection);
+  Result := Items.MouseMove(RayOrigin, RayDirection);
+end;
+
+procedure TSceneManager.Idle(const CompSpeed: Single;
+  const HandleMouseAndKeys: boolean;
+  var LetOthersHandleMouseAndKeys: boolean);
+begin
+  inherited;
+
+  Items.Idle(CompSpeed);
+
+  { Even if mouse is over the scene, still allow others (like a Camera
+    underneath) to always handle mouse and keys in their Idle. }
+  LetOthersHandleMouseAndKeys := true;
+end;
+
+function TSceneManager.PositionInside(const X, Y: Integer): boolean;
+begin
+  Result := true;
 end;
 
 end.

@@ -221,10 +221,6 @@ begin
   { allow the scene to use it's own lights }
   Scene.Attributes.UseLights := true;
   Scene.Attributes.FirstGLFreeLight := 1;
-
-  { Add Scene to Controls, making it receive all TUIControl treatment,
-    like events etc. }
-  Controls.Insert(0, Scene);
 end;
 
 function TKamVRMLBrowser.Scene: TVRMLGLScene;

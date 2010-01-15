@@ -1308,8 +1308,7 @@ type
       Takes care of updating ACamera.ProjectionMatrix.
       Requires ACamera.CameraRadius to be already properly set.
 
-      Also takes care of setting our properties BackgroundSkySphereRadius,
-      AngleOfViewX, AngleOfViewY.
+      Also takes care of setting our property BackgroundSkySphereRadius.
 
       Box is the expected bounding box of the whole 3D scene.
       Usually, it should be just Scene.BoundingBox, but it may be something
@@ -1317,7 +1316,8 @@ type
     procedure GLProjection(ACamera: TCamera;
       const Box: TBox3d;
       const WindowWidth, WindowHeight: Cardinal;
-      const ForceZFarInfinity: boolean = false);
+      const ForceZFarInfinity: boolean;
+      out AngleOfViewX, AngleOfViewY: Single);
 
     { Every GLProjection call calculates it.
 
@@ -4607,7 +4607,8 @@ end;
 procedure TVRMLGLScene.GLProjection(ACamera: TCamera;
   const Box: TBox3d;
   const WindowWidth, WindowHeight: Cardinal;
-  const ForceZFarInfinity: boolean);
+  const ForceZFarInfinity: boolean;
+  out AngleOfViewX, AngleOfViewY: Single);
 
   procedure UpdateCameraProjectionMatrix;
   var

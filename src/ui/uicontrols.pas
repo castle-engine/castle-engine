@@ -322,6 +322,8 @@ type
     procedure SetItem(const I: Integer; const Item: TUIControl);
   public
     property Items[I: Integer]: TUIControl read GetItem write SetItem; default;
+    procedure Add(Item: TUIControl);
+    procedure Insert(Index: Integer; Item: TUIControl);
   end;
 
 implementation
@@ -428,6 +430,16 @@ end;
 procedure TUIControlList.SetItem(const I: Integer; const Item: TUIControl);
 begin
   (inherited Items[I]) := Item;
+end;
+
+procedure TUIControlList.Add(Item: TUIControl);
+begin
+  inherited Add(Item);
+end;
+
+procedure TUIControlList.Insert(Index: Integer; Item: TUIControl);
+begin
+  inherited Insert(Index, Item);
 end;
 
 end.

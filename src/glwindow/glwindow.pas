@@ -4183,6 +4183,8 @@ procedure TControlledUIControlList.Notify(Ptr: Pointer; Action: TListNotificatio
 var
   C: TUIControl absolute Ptr;
 begin
+  inherited;
+
   C := TUIControl(Ptr);
   case Action of
     lnAdded:

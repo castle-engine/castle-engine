@@ -98,10 +98,6 @@ type
 
     function GetBackgroundSkySphereRadius: Single;
     procedure SetBackgroundSkySphereRadius(const Value: Single);
-    function GetAngleOfViewX: Single;
-    procedure SetAngleOfViewX(const Value: Single);
-    function GetAngleOfViewY: Single;
-    procedure SetAngleOfViewY(const Value: Single);
     procedure SetCamera(const Value: TCamera);
     procedure SetOptimization(const Value: TGLRendererOptimization);
 
@@ -502,38 +498,6 @@ type
       read GetBackgroundSkySphereRadius
       write SetBackgroundSkySphereRadius;
 
-    { Common camera angle of view, for all scenes of this animation.
-      See TVRMLScene.AngleOfViewX and TVRMLScene.AngleOfViewY.
-
-      Reading these reads FirstScene.AngleOfViewX/Y values,
-      and setting these sets the value for all scenes within this animation.
-      In other words, if you use only this (and our GLProjection),
-      then all the scenes of your animation will always have equal
-      AngleOfViewX/Y values.
-
-      @groupBegin }
-    property AngleOfViewX: Single read GetAngleOfViewX write SetAngleOfViewX;
-    property AngleOfViewY: Single read GetAngleOfViewY write SetAngleOfViewY;
-    { @groupEnd }
-
-    { Set OpenGL projection, based on currently
-      bound Viewpoint, NavigationInfo (using FirstScene) and used camera.
-
-      You should use this instead of directly calling Scenes[0].GLProjection,
-      because this takes care to update our WalkProjectionNear,
-      WalkProjectionFar, BackgroundSkySphereRadius, AngleOfViewX,
-      AngleOfViewY properties. Moreover, last three of these properties
-      are also set as values for all the other scenes in an animation.
-      That is, we take care to keep BackgroundSkySphereRadius and
-      AngleOfView* @italic(equal for all scenes of this animation,
-      and the TVRMLGLAnimation itself).
-
-      @seealso TVRMLGLScene.GLProjection }
-    procedure GLProjection(ACamera: TCamera;
-      const Box: TBox3d;
-      const WindowWidth, WindowHeight: Cardinal;
-      const ForceZFarInfinity: boolean = false);
-
     property WalkProjectionNear: Single read FWalkProjectionNear;
     property WalkProjectionFar : Single read FWalkProjectionFar ;
 
@@ -556,13 +520,10 @@ type
     function KeyUp(Key: TKey; C: char): boolean; override;
     function MouseDown(const Button: TMouseButton): boolean; override;
     function MouseUp(const Button: TMouseButton): boolean; override;
-    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
+    function MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
     { @groupEnd }
 
-    procedure Idle(const CompSpeed: Single;
-      const HandleMouseAndKeys: boolean;
-      var LetOthersHandleMouseAndKeys: boolean); override;
-    function PositionInside(const X, Y: Integer): boolean; override;
+    procedure Idle(const CompSpeed: Single); override;
 
     { Initial world time, set by the ResetWorldTimeAtLoad call.
       This can be useful for showing user
@@ -1715,40 +1676,6 @@ begin
     FScenes[I].BackgroundSkySphereRadius := Value;
 end;
 
-function TVRMLGLAnimation.GetAngleOfViewX: Single;
-begin
-  Result := FirstScene.AngleOfViewX;
-end;
-
-procedure TVRMLGLAnimation.SetAngleOfViewX(const Value: Single);
-var
-  I: Integer;
-begin
-  { Note: GLProjection implementation depends on the fact that we always
-    assing here Value to all scenes, without checking is new
-    Value <> old GetAngleOfViewX. }
-
-  for I := 0 to FScenes.High do
-    FScenes[I].AngleOfViewX := Value;
-end;
-
-function TVRMLGLAnimation.GetAngleOfViewY: Single;
-begin
-  Result := FirstScene.AngleOfViewY;
-end;
-
-procedure TVRMLGLAnimation.SetAngleOfViewY(const Value: Single);
-var
-  I: Integer;
-begin
-  { Note: GLProjection implementation depends on the fact that we always
-    assing here Value to all scenes, without checking is new
-    Value <> old GetAngleOfViewY. }
-
-  for I := 0 to FScenes.High do
-    FScenes[I].AngleOfViewY := Value;
-end;
-
 procedure TVRMLGLAnimation.SetCamera(const Value: TCamera);
 var
   I: Integer;
@@ -1814,23 +1741,6 @@ begin
   end;
 end;
 
-procedure TVRMLGLAnimation.GLProjection(ACamera: TCamera;
-  const Box: TBox3d;
-  const WindowWidth, WindowHeight: Cardinal;
-  const ForceZFarInfinity: boolean);
-begin
-  FirstScene.GLProjection(ACamera, Box, WindowWidth, WindowHeight,
-    ForceZFarInfinity);
-
-  { Setting these will also update their values in all scenes. }
-  BackgroundSkySphereRadius := FirstScene.BackgroundSkySphereRadius;
-  AngleOfViewX := FirstScene.AngleOfViewX;
-  AngleOfViewY := FirstScene.AngleOfViewY;
-
-  FWalkProjectionNear := FirstScene.WalkProjectionNear;
-  FWalkProjectionFar  := FirstScene.WalkProjectionFar ;
-end;
-
 procedure TVRMLGLAnimation.ViewChangedSuddenly;
 var
   I: Integer;
@@ -1870,10 +1780,10 @@ begin
     Result := false;
 end;
 
-function TVRMLGLAnimation.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
+function TVRMLGLAnimation.MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean;
 begin
   if ScenesCount = 1 then
-    Result := Scenes[0].MouseMove(OldX, OldY, NewX, NewY) else
+    Result := Scenes[0].MouseMove(RayOrigin, RayDirection) else
     Result := false;
 end;
 
@@ -1916,9 +1826,7 @@ begin
     Scenes[0].ResetWorldTime(NewValue);
 end;
 
-procedure TVRMLGLAnimation.Idle(const CompSpeed: Single;
-  const HandleMouseAndKeys: boolean;
-  var LetOthersHandleMouseAndKeys: boolean);
+procedure TVRMLGLAnimation.Idle(const CompSpeed: Single);
 var
   OldWorldTime: TKamTime;
 begin
@@ -1952,20 +1860,11 @@ begin
         SceneFromTime(WorldTime)) then
       VisibleChange;
   end;
-
-  { Even if mouse is over the scene, still allow others (like a Camera
-    underneath) to always handle mouse and keys in their Idle. }
-  LetOthersHandleMouseAndKeys := true;
 end;
 
 function TVRMLGLAnimation.CurrentScene: TVRMLGLScene;
 begin
   Result := SceneFromTime(WorldTime);
-end;
-
-function TVRMLGLAnimation.PositionInside(const X, Y: Integer): boolean;
-begin
-  Result := true;
 end;
 
 procedure TVRMLGLAnimation.Render(const Frustum: TFrustum;
