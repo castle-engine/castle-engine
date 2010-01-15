@@ -56,11 +56,11 @@ uses GLWindow, GL, GLU, GLExt, KambiGLUtils,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils,
   GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, Images, KeysMouse,
   NormalizationCubeMap, GLImages, GLVersionUnit,
-  ParseParametersUnit, KambiLog, RaysWindow, UIControls, Classes,
+  ParseParametersUnit, KambiLog, RaysWindow, UIControls, Classes, DataErrors,
   { VRML-related units: }
   VRMLScene, VRMLGLScene, Object3dAsVRML, ProgressUnit, BackgroundGL,
   VRMLOpenGLRenderer, VRMLRendererOptimization, SceneManagerUnit,
-  RenderStateUnit;
+  RenderStateUnit, VRMLErrors;
 
 const
   SceneBoundingBox: TBox3d =
@@ -891,7 +891,8 @@ begin
   { make octree for fast RenderFrustum }
   Progress.UserInterface := ProgressNullInterface;
   Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
-  Scene.Spatial := [ssRendering];
+  Scene.Spatial := [ssRendering { add here ssDynamicCollisions
+    if you want more features, like mouse picking of objects }];
 
   Scene.Attributes.BumpMappingMaximum := BumpMappingMaximum;
 
@@ -1293,6 +1294,9 @@ const
 
 begin
   Glw := TGLUIWindow.Create(Application);
+
+  VRMLWarning := @VRMLWarning_Write;
+  DataWarning := @DataWarning_Write;
 
   { parse params }
   Glw.ParseParameters(StandardParseOptions);
