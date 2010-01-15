@@ -1000,6 +1000,7 @@ type
 
     procedure ChangedAll; override;
     procedure ChangedShapeFields(Shape: TVRMLShape;
+      Node: TVRMLNode; FieldOrEvent: TVRMLFieldOrEvent; Field: TVRMLField;
       const TransformOnly, InactiveOnly, TextureImageChanged, PossiblyLocalGeometryChanged: boolean); override;
 
     { Render shadow volume (sides and caps) of this scene, for shadow volume
@@ -3337,6 +3338,7 @@ begin
 end;
 
 procedure TVRMLGLScene.ChangedShapeFields(Shape: TVRMLShape;
+  Node: TVRMLNode; FieldOrEvent: TVRMLFieldOrEvent; Field: TVRMLField;
   const TransformOnly, InactiveOnly, TextureImageChanged, PossiblyLocalGeometryChanged: boolean);
 var
   TG: TTransparentGroup;
@@ -3385,6 +3387,17 @@ begin
   begin
     Renderer.Unprepare(Shape.State.Texture);
     TVRMLGLShape(Shape).PreparedForRenderer := false;
+    TVRMLGLShape(Shape).PreparedUseBlending := false;
+  end;
+
+  { When Material.transparency changes, recalculate UseBlending. }
+  if ((Node is TNodeMaterial_2) and
+      ((Field = nil) or
+       (Field = TNodeMaterial_2(Node).FdTransparency))) or
+     ((Node is TNodeMaterial_1) and
+      ((Field = nil) or
+       (Field = TNodeMaterial_1(Node).FdTransparency))) then
+  begin
     TVRMLGLShape(Shape).PreparedUseBlending := false;
   end;
 end;
