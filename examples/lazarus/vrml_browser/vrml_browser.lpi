@@ -8,7 +8,7 @@
       </Flags>
       <MainUnit Value="0"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="2"/>
+      <ActiveEditorIndexAtStart Value="0"/>
     </General>
     <PublishOptions>
       <Version Value="2"/>
@@ -64,12 +64,10 @@
         <UnitName Value="KambiGLControl"/>
         <CursorPos X="67" Y="474"/>
         <TopLine Value="452"/>
-        <EditorIndex Value="1"/>
         <UsageCount Value="18"/>
         <Bookmarks Count="1">
           <Item0 X="5" Y="230" ID="1"/>
         </Bookmarks>
-        <Loaded Value="True"/>
       </Unit2>
       <Unit3>
         <Filename Value="../../../src/opengl/kambiglutils.pas"/>
@@ -267,9 +265,7 @@
         <UnitName Value="KambiVRMLBrowser"/>
         <CursorPos X="1" Y="87"/>
         <TopLine Value="55"/>
-        <EditorIndex Value="2"/>
         <UsageCount Value="16"/>
-        <Loaded Value="True"/>
       </Unit30>
       <Unit31>
         <Filename Value="../../../../../../../installed/lazarus/current/lcl/dialogs.pp"/>
@@ -324,128 +320,14 @@
         <UnitName Value="KambiTimeUtils"/>
         <CursorPos X="29" Y="89"/>
         <TopLine Value="74"/>
-        <EditorIndex Value="3"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
       </Unit38>
     </Units>
-    <JumpHistory Count="29" HistoryIndex="28">
+    <JumpHistory Count="1" HistoryIndex="0">
       <Position1>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="334" Column="15" TopLine="315"/>
-      </Position1>
-      <Position2>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="528" Column="62" TopLine="509"/>
-      </Position2>
-      <Position3>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="538" Column="1" TopLine="517"/>
-      </Position3>
-      <Position4>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="1" Column="21" TopLine="1"/>
-      </Position4>
-      <Position5>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="35" Column="29" TopLine="4"/>
-      </Position5>
-      <Position6>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="284" Column="26" TopLine="270"/>
-      </Position6>
-      <Position7>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="332" Column="22" TopLine="315"/>
-      </Position7>
-      <Position8>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="9" Column="42" TopLine="1"/>
-      </Position8>
-      <Position9>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="205" Column="45" TopLine="173"/>
-      </Position9>
-      <Position10>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="207" Column="22" TopLine="185"/>
-      </Position10>
-      <Position11>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="208" Column="83" TopLine="185"/>
-      </Position11>
-      <Position12>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="335" Column="1" TopLine="317"/>
-      </Position12>
-      <Position13>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="336" Column="15" TopLine="317"/>
-      </Position13>
-      <Position14>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="562" Column="3" TopLine="538"/>
-      </Position14>
-      <Position15>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="564" Column="11" TopLine="538"/>
-      </Position15>
-      <Position16>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="47" Column="16" TopLine="14"/>
-      </Position16>
-      <Position17>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="336" Column="14" TopLine="319"/>
-      </Position17>
-      <Position18>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="47" Column="29" TopLine="13"/>
-      </Position18>
-      <Position19>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="336" Column="27" TopLine="319"/>
-      </Position19>
-      <Position20>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="353" Column="1" TopLine="336"/>
-      </Position20>
-      <Position21>
         <Filename Value="mainf.pas"/>
         <Caret Line="223" Column="51" TopLine="213"/>
-      </Position21>
-      <Position22>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="218" Column="89" TopLine="185"/>
-      </Position22>
-      <Position23>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="230" Column="33" TopLine="213"/>
-      </Position23>
-      <Position24>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="231" Column="94" TopLine="213"/>
-      </Position24>
-      <Position25>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="359" Column="53" TopLine="342"/>
-      </Position25>
-      <Position26>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="469" Column="7" TopLine="452"/>
-      </Position26>
-      <Position27>
-        <Filename Value="../../../src/components/kambivrmlbrowser.pas"/>
-        <Caret Line="23" Column="35" TopLine="9"/>
-      </Position27>
-      <Position28>
-        <Filename Value="../../../src/components/kambivrmlbrowser.pas"/>
-        <Caret Line="411" Column="62" TopLine="378"/>
-      </Position28>
-      <Position29>
-        <Filename Value="../../../src/components/kambivrmlbrowser.pas"/>
-        <Caret Line="412" Column="19" TopLine="395"/>
-      </Position29>
+      </Position1>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

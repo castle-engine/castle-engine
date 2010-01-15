@@ -53,7 +53,7 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MainF"/>
         <CursorPos X="18" Y="150"/>
-        <TopLine Value="116"/>
+        <TopLine Value="113"/>
         <EditorIndex Value="0"/>
         <UsageCount Value="30"/>
         <Loaded Value="True"/>

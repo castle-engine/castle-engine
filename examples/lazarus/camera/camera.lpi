@@ -7,7 +7,7 @@
       <TargetFileExt Value=""/>
       <Icon Value="0"/>
       <UseXPManifest Value="True"/>
-      <ActiveEditorIndexAtStart Value="0"/>
+      <ActiveEditorIndexAtStart Value="1"/>
     </General>
     <VersionInfo>
       <ProjectVersion Value=""/>
@@ -39,7 +39,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="3">
+    <Units Count="4">
       <Unit0>
         <Filename Value="camera.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -53,7 +53,7 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="mainf"/>
         <CursorPos X="47" Y="43"/>
-        <TopLine Value="30"/>
+        <TopLine Value="27"/>
         <EditorIndex Value="0"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
@@ -63,12 +63,21 @@
         <UnitName Value="KambiGLUtils"/>
         <CursorPos X="20" Y="917"/>
         <TopLine Value="883"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="2"/>
         <UsageCount Value="10"/>
         <Loaded Value="True"/>
       </Unit2>
+      <Unit3>
+        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
+        <UnitName Value="KambiGLControl"/>
+        <CursorPos X="26" Y="996"/>
+        <TopLine Value="979"/>
+        <EditorIndex Value="1"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit3>
     </Units>
-    <JumpHistory Count="7" HistoryIndex="6">
+    <JumpHistory Count="9" HistoryIndex="8">
       <Position1>
         <Filename Value="mainf.pas"/>
         <Caret Line="33" Column="31" TopLine="11"/>
@@ -97,6 +106,14 @@
         <Filename Value="mainf.pas"/>
         <Caret Line="24" Column="41" TopLine="23"/>
       </Position7>
+      <Position8>
+        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position8>
+      <Position9>
+        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
+        <Caret Line="1002" Column="13" TopLine="978"/>
+      </Position9>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
