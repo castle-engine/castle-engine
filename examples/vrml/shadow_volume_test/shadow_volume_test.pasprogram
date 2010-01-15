@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2007 Michalis Kamburelis.
+  Copyright 2003-2010 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -9,6 +9,8 @@
   "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
 }
 
 { A program to demonstrate and test shadows by shadow volumes algorithm.
@@ -69,7 +71,8 @@ uses GLWindow, GL, GLU, GLExt, KambiGLUtils, VRMLGLScene,
   KambiUtils, VectorMath, VRMLLightSetGL, VRMLFields,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils, VRMLCameraUtils,
   ShadowTests, GLWinMessages, VRMLErrors, ShadowVolumes,
-  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts;
+  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, SceneManagerUnit,
+  RaysWindow, UIControls;
 
 type
   { Shadow implementations. Roughly ordered from the worse to the best. }
@@ -149,9 +152,18 @@ var
 
   Font: TGLBitmapFont;
 
-{ glw callbacks ------------------------------------------------------------ }
+{ scene manager ------------------------------------------------------------ }
 
-procedure Draw(glwin: TGLWindow);
+type
+  TMySceneManager = class(TSceneManager)
+    procedure RenderFromView; override;
+    procedure ApplyProjection; override;
+  end;
+
+var
+  SceneManager: TMySceneManager;
+
+procedure TMySceneManager.RenderFromView;
 
   procedure RenderEverything;
   begin
@@ -202,7 +214,7 @@ procedure Draw(glwin: TGLWindow);
 
         Well, I warned that this is somewhat obscure feature, didn't I ? :) }
 
-      if Glwin.Pressed[K_F12] then
+      if Glw.Pressed[K_F12] then
       begin
         glColor4f(0, 0, 1, 0.3);
         ShadowCaster.RenderBorderEdges(ShadowCasterNav.Matrix);
@@ -234,7 +246,7 @@ procedure Draw(glwin: TGLWindow);
       ShadowsImplementationRadioGroup.Selected :=
         ShadowsImplementationRadio[ShadowsImplementation];
 
-      MessageOK(Glwin, 'Stencil two-sided approach not available ' +
+      MessageOK(Glw, 'Stencil two-sided approach not available ' +
         '(requires OpenGL >= 2.0 for glStencilOpSeparate or some extension ' +
         'on older OpenGLs). Falling back to ' +
         'GLCullFace2Passes implementation', taMiddle);
@@ -379,29 +391,9 @@ begin
 
   if IsRenderEdgesForShadows then
     DoRenderEdgesForShadows;
-
-  if IsRenderStatus then
-  begin
-    glPushAttrib(GL_ENABLE_BIT);
-      glDisable(GL_DEPTH_TEST);
-      glDisable(GL_LIGHTING);
-      glColorv(Yellow3Single);
-      Font.Projection2DPrintStrings(5, 5, Format(
-        'FPS : %f (real : %f)' +nl+
-        'Shadow possibly visible (sv culling): %s' + nl+
-        'Z-fail required: %s' + nl+
-        'Z-fail and light cap required: %s' + nl+
-        'INCR/DECR_WRAP available: %s',
-        [ Glw.Fps.FrameTime, Glw.Fps.RealTime,
-          BoolToStr[SV.SceneShadowPossiblyVisible],
-          BoolToStr[SV.ZFail],
-          BoolToStr[SV.ZFailAndLightCap],
-          BoolToStr[SV.WrapAvailable]]));
-    glPopAttrib;
-  end;
 end;
 
-procedure ResizeGL(glwin: TGLWindow);
+procedure TMySceneManager.ApplyProjection;
 
   procedure UpdateCameraProjectionMatrix;
   var
@@ -412,17 +404,57 @@ procedure ResizeGL(glwin: TGLWindow);
   end;
 
 begin
-  glViewport(0, 0, glwin.Width, glwin.Height);
-  ProjectionGLPerspective(30, glwin.Width/glwin.Height,
-    Box3dAvgSize(SceneBoundingBox)*0.05,
-    { TODO: switch to using NV_depth_clamp where possible.
-      Enable this for good when shadow culling for infinite frustum will work...
-      otherwise, right now, we lose a little time for this, even in z-pass. }
-    { For z-fail, we use far projection plane in infinity. }
-    ZFarInfinity
-    { Box3dAvgSize(SceneBoundingBox)*20.0 });
+  glViewport(0, 0, ContainerWidth, ContainerHeight);
+
+  FWalkProjectionNear := Box3dAvgSize(SceneBoundingBox) * 0.05;
+  { TODO: switch to using NV_depth_clamp where possible.
+    Enable this for good when shadow culling for infinite frustum will work...
+    otherwise, right now, we lose a little time for this, even in z-pass. }
+  { For z-fail, we use far projection plane in infinity. }
+  FWalkProjectionFar  := ZFarInfinity;
+
+  FAngleOfViewY := 30.0;
+  FAngleOfViewX := AdjustViewAngleDegToAspectRatio(
+    AngleOfViewY, ContainerWidth / ContainerHeight);
+
+  ProjectionGLPerspective(AngleOfViewY, ContainerWidth / ContainerHeight,
+    WalkProjectionNear, WalkProjectionFar);
   UpdateCameraProjectionMatrix;
 end;
+
+{ status text ---------------------------------------------------------------- }
+
+type
+  TStatusText = class(TUIControl)
+    function DrawStyle: TUIControlDrawStyle; override;
+    procedure Draw(const Focused: boolean); override;
+  end;
+
+function TStatusText.DrawStyle: TUIControlDrawStyle;
+begin
+  Result := ds2D;
+end;
+
+procedure TStatusText.Draw(const Focused: boolean);
+begin
+  if IsRenderStatus then
+  begin
+    glPushAttrib(GL_ENABLE_BIT);
+      glDisable(GL_DEPTH_TEST);
+      glDisable(GL_LIGHTING);
+      glColorv(Yellow3Single);
+      Font.PrintStrings(
+        [ Format('FPS : %f (real : %f)', [Glw.Fps.FrameTime, Glw.Fps.RealTime]),
+          Format('Shadow possibly visible (sv culling): %s', [BoolToStr[SV.SceneShadowPossiblyVisible]]),
+          Format('Z-fail required: %s', [BoolToStr[SV.ZFail]]),
+          Format('Z-fail and light cap required: %s', [BoolToStr[SV.ZFailAndLightCap]]),
+          Format('INCR/DECR_WRAP available: %s', [BoolToStr[SV.WrapAvailable]]) ],
+        0, 5, 5);
+    glPopAttrib;
+  end;
+end;
+
+{ glw callbacks ------------------------------------------------------------ }
 
 procedure InitGL(glwin: TGLWindow);
 begin
@@ -696,14 +728,21 @@ begin
     Glw.Controls.Add(SceneNav);
     Glw.Controls.Add(ShadowCasterNav);
 
+    Glw.Controls.Add(TStatusText.Create(Glw));
+
+    { init SceneManager, with a Scene and SceneNav inside }
+    SceneManager := TMySceneManager.Create(Glw);
+    Glw.Controls.Add(SceneManager);
+    SceneManager.MainScene := Scene;
+    SceneManager.Items.List.Add(Scene);
+    SceneManager.Camera := SceneNav;
+
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;
     Glw.AutoRedisplay := true;
     Glw.StencilBufferBits := 8;
     Glw.OnInit := @InitGL;
     Glw.OnClose := @CloseGL;
-    Glw.OnDraw := @Draw;
-    Glw.OnResize := @ResizeGL;
     Glw.OnIdle := @IdleGL;
     Glw.InitAndRun;
   finally
