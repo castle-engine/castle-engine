@@ -1829,6 +1829,16 @@ begin
   begin
     Result := ProcessMessage(true);
   end;
+
+  if Result then
+  begin
+    { We know now gtk_events_pending() = 0. So call ProcessUpdates now
+      (otherwise ProcessAllMessages would never do ProcessUpdates,
+      since we call ProcessMessage only when gtk_events_pending() <> 0,
+      which then avoids ProcessUpdates.) }
+    ProcessUpdates;
+    Result := not QuitPosted;
+  end;
 end;
 
 function TGLApplication.ProcessMessage(AllowSuspend: boolean): boolean;
