@@ -525,7 +525,6 @@ type
     FShapes: TVRMLShapeTree;
     FRootNode: TVRMLNode;
     FOnPointingDeviceSensorsChange: TNotifyEvent;
-    FCamera: TCamera;
     FTimePlaying: boolean;
     FTimePlayingSpeed: Single;
     FFileName: string;
@@ -1855,17 +1854,6 @@ type
       If @false, this all doesn't work, which makes the scene static. }
     property ProcessEvents: boolean
       read FProcessEvents write SetProcessEvents default false;
-
-    { Camera in this scene. May be @nil if not known / not used.
-
-      Your camera must be inside some container
-      (i.e. on TGLUIWindow.Controls or TKamOpenGLControl.Controls list),
-      at least at the time of Mouse* methods call
-      (that is, when container passed mouse events to this scene).
-
-      This is for now used only with Mouse* methods, to convert mouse position
-      (MouseX, MouseY) to a picked ray in 3D space. }
-    property Camera: TCamera read FCamera write FCamera;
 
     { Currently loaded scene filename. Set this to load a 3D scene
       from the given file, this can load from any known 3D format

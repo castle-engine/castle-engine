@@ -198,7 +198,6 @@ begin
   { init Camera }
   Camera := Scene.CreateCamera(Self);
   Camera.OnVisibleChange := @CameraVisibleChange;
-  Scene.Camera := Camera;
   SceneManager.Camera := Camera;
 
   if Camera is TWalkCamera then

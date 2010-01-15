@@ -171,7 +171,13 @@ type
       Freeing MainScene will automatically set this to @nil. }
     property MainScene: TVRMLGLScene read FMainScene write SetMainScene;
 
-    { Camera used to render.
+    { Camera used to render. Cannot be @nil when rendering.
+
+      Your camera must be inside some container
+      (i.e. on TGLUIWindow.Controls or TKamOpenGLControl.Controls list),
+      at least at the time of MouseMove methods call
+      (that is, when container passed mouse events to this scene).
+
       Freeing Camera will automatically set this to @nil. }
     property Camera: TCamera read FCamera write SetCamera;
 
