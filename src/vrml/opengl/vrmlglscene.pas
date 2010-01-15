@@ -641,9 +641,6 @@ type
     PreparedFogDistanceScaling: Single;
     procedure CheckFogChanged;
   private
-    FWalkProjectionNear: Single;
-    FWalkProjectionFar : Single;
-
     { Used by UpdateGeneratedTextures, to prevent rendering the shape
       for which reflection texture is generated. (This wouldn't cause
       recursive loop in our engine, but still it's bad --- rendering
@@ -1317,20 +1314,7 @@ type
       const Box: TBox3d;
       const WindowWidth, WindowHeight: Cardinal;
       const ForceZFarInfinity: boolean;
-      out AngleOfViewX, AngleOfViewY: Single);
-
-    { Every GLProjection call calculates it.
-
-      This is the best projection near/far for Walk mode
-      (although GLProjection may use some other values for other modes
-      (like Examine), it will always calculate values for Walk mode anyway.)
-
-      WalkProjectionFar may be ZFarInfinity.
-
-      @groupBegin }
-    property WalkProjectionNear: Single read FWalkProjectionNear;
-    property WalkProjectionFar : Single read FWalkProjectionFar ;
-    { @groupEnd }
+      out AngleOfViewX, AngleOfViewY, WalkProjectionNear, WalkProjectionFar: Single);
 
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
@@ -4608,7 +4592,7 @@ procedure TVRMLGLScene.GLProjection(ACamera: TCamera;
   const Box: TBox3d;
   const WindowWidth, WindowHeight: Cardinal;
   const ForceZFarInfinity: boolean;
-  out AngleOfViewX, AngleOfViewY: Single);
+  out AngleOfViewX, AngleOfViewY, WalkProjectionNear, WalkProjectionFar: Single);
 
   procedure UpdateCameraProjectionMatrix;
   var
@@ -4629,7 +4613,7 @@ var
     { Only perspective projection supports z far in infinity.
       So apply ForceZFarInfinity only in perspective projection. }
     if ForceZFarInfinity then
-      FWalkProjectionFar := ZFarInfinity;
+      WalkProjectionFar := ZFarInfinity;
 
     ProjectionGLPerspective(AngleOfViewY, WindowWidth / WindowHeight,
       ZNear, WalkProjectionFar);
@@ -4700,17 +4684,17 @@ begin
       FdVisibilityLimit.Value else
     VisibilityLimit := 0;
 
-  FWalkProjectionNear := ACamera.CameraRadius * 0.6;
+  WalkProjectionNear := ACamera.CameraRadius * 0.6;
 
   if VisibilityLimit <> 0.0 then
-    FWalkProjectionFar := VisibilityLimit else
+    WalkProjectionFar := VisibilityLimit else
   begin
     if IsEmptyBox3d(Box) then
       { When IsEmptyBox3d, Result is not simply "any dummy value".
         It must be appropriately larger than WalkProjectionNear
         to provide sufficient space for rendering Background node. }
-      FWalkProjectionFar := FWalkProjectionNear * 10 else
-      FWalkProjectionFar := Box3dAvgSize(Box) * 20.0;
+      WalkProjectionFar := WalkProjectionNear * 10 else
+      WalkProjectionFar := Box3dAvgSize(Box) * 20.0;
   end;
 
   { To minimize depth buffer errors we want to make ZNear/ZFar dependent

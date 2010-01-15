@@ -94,18 +94,11 @@ type
     ValidBoundingBox: boolean;
     FBoundingBox: TBox3d;
     FOptimization: TGLRendererOptimization;
-    FCamera: TCamera;
 
-    function GetBackgroundSkySphereRadius: Single;
-    procedure SetBackgroundSkySphereRadius(const Value: Single);
-    procedure SetCamera(const Value: TCamera);
     procedure SetOptimization(const Value: TGLRendererOptimization);
 
     function InfoBoundingBox: string;
   private
-    FWalkProjectionNear: Single;
-    FWalkProjectionFar : Single;
-
     { Helpers for Load implementation. }
     Load_RootNodes: TVRMLNodesList;
     Load_Times: TDynSingleArray;
@@ -480,29 +473,6 @@ type
       must be equal, since strings cannot be interpolated. }
     procedure WritelnInfoNodes;
 
-    { Common BackgroundSkySphereRadius of all scenes,
-      see TVRMLGLScene.BackgroundSkySphereRadius.
-
-      This reads simply FirstScene.BackgroundSkySphereRadius
-      and sets BackgroundSkySphereRadius for all scenes.
-      So when reading this, it only makes sense if you always
-      set all BackgroundSkySphereRadius to all (e.g. you set only
-      by this property).
-
-      Note that there is doesn't really exist a requirement that all
-      animation frames have the same BackgroundSkySphereRadius...
-      But it's most common. In fact, it all depends on your needs, see
-      TVRMLGLScene.BackgroundSkySphereRadius used by
-      TVRMLGLScene.Background. }
-    property BackgroundSkySphereRadius: Single
-      read GetBackgroundSkySphereRadius
-      write SetBackgroundSkySphereRadius;
-
-    property WalkProjectionNear: Single read FWalkProjectionNear;
-    property WalkProjectionFar : Single read FWalkProjectionFar ;
-
-    procedure ViewChangedSuddenly;
-
     { Handling key and mouse events, overriding TUIControl methods.
 
       We pass key and mouse events only if there's exactly one scene
@@ -591,15 +561,6 @@ type
     property TimeBackwards: boolean
       read FTimeBackwards write FTimeBackwards default false;
 
-    { Common Camera, for all scenes of this animation.
-      See TVRMLScene.Camera.
-
-      Setting this sets the Camera for all scenes within this animation.
-      In other words, if you use only this,
-      then all the scenes of your animation will always have equal
-      Camera values. }
-    property Camera: TCamera read FCamera write SetCamera;
-
     { Optimization of the animation. See TVRMLGLScene.Optimization.
 
       When animation is @link(Loaded), this is equal to
@@ -669,7 +630,6 @@ begin
   inherited CreateProvidedRenderer(nil, AProvidedRenderer);
 
   Optimization := FParentAnimation.Optimization;
-  Camera := FParentAnimation.Camera;
 
   Load(ARootNode, AOwnsRootNode);
 end;
@@ -1659,42 +1619,6 @@ begin
   FirstScene.WritelnInfoNodes;
 end;
 
-function TVRMLGLAnimation.GetBackgroundSkySphereRadius: Single;
-begin
-  Result := FirstScene.BackgroundSkySphereRadius;
-end;
-
-procedure TVRMLGLAnimation.SetBackgroundSkySphereRadius(const Value: Single);
-var
-  I: Integer;
-begin
-  { Note: GLProjection implementation depends on the fact that we always
-    assing here Value to all scenes, without checking is new
-    Value <> old GetBackgroundSkySphereRadius. }
-
-  for I := 0 to FScenes.High do
-    FScenes[I].BackgroundSkySphereRadius := Value;
-end;
-
-procedure TVRMLGLAnimation.SetCamera(const Value: TCamera);
-var
-  I: Integer;
-begin
-  { We use our own FCamera field (that is, not implementing
-    GetCamera as Result := FirstScene.Camera), to make Camera
-    property work even when the animation is currently not loaded. }
-
-  if Value <> FCamera then
-  begin
-    FCamera := Value;
-    if FScenes <> nil then
-    begin
-      for I := 0 to FScenes.High do
-        FScenes[I].Camera := Value;
-    end;
-  end;
-end;
-
 procedure TVRMLGLAnimation.SetOptimization(const Value: TGLRendererOptimization);
 var
   I: Integer;
@@ -1738,17 +1662,6 @@ begin
           Break;
       end;
     end;
-  end;
-end;
-
-procedure TVRMLGLAnimation.ViewChangedSuddenly;
-var
-  I: Integer;
-begin
-  if FScenes <> nil then
-  begin
-    for I := 0 to FScenes.High do
-      FScenes[I].ViewChangedSuddenly;
   end;
 end;
 

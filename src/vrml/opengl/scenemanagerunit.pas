@@ -77,6 +77,8 @@ type
 
     FAngleOfViewX: Single;
     FAngleOfViewY: Single;
+    FWalkProjectionNear: Single;
+    FWalkProjectionFar : Single;
 
     FShadowVolumesPossible: boolean;
     FShadowVolumes: boolean;
@@ -124,7 +126,7 @@ type
       bound Viewpoint, NavigationInfo and used camera.
 
       Takes care of updating Camera.ProjectionMatrix,
-      AngleOfViewX, AngleOfViewY.
+      AngleOfViewX, AngleOfViewY, WalkProjectionNear, WalkProjectionFar.
 
       This is automatically called at the beginning of our Render method,
       if it's needed (after MainScene or Container sizes or some other
@@ -248,6 +250,20 @@ type
     property AngleOfViewX: Single read FAngleOfViewX write FAngleOfViewX;
     property AngleOfViewY: Single read FAngleOfViewY write FAngleOfViewY;
     { @groupEnd }
+
+    { Projection near/far values, for Walk navigation.
+      ApplyProjection calculates it.
+
+      This is the best projection near/far for Walk mode
+      (although GLProjection may use some other values for other modes
+      (like Examine), it will always calculate values for Walk mode anyway.)
+
+      WalkProjectionFar may be ZFarInfinity.
+
+      @groupBegin }
+    property WalkProjectionNear: Single read FWalkProjectionNear;
+    property WalkProjectionFar : Single read FWalkProjectionFar ;
+    { @groupEnd }
   end;
 
 implementation
@@ -302,7 +318,7 @@ begin
   if MainScene <> nil then
     MainScene.GLProjection(Camera, Items.BoundingBox,
       ContainerWidth, ContainerHeight, ShadowVolumesPossible,
-      FAngleOfViewX, FAngleOfViewY);
+      FAngleOfViewX, FAngleOfViewY, FWalkProjectionNear, FWalkProjectionFar);
 end;
 
 procedure TSceneManager.SetMainScene(const Value: TVRMLGLScene);
@@ -332,6 +348,10 @@ begin
 
     if FCamera <> nil then
       FCamera.FreeNotification(Self);
+
+    { Changing camera changes also the view rapidly. }
+    if MainScene <> nil then
+      MainScene.ViewChangedSuddenly;
 
     ApplyProjectionNeeded := true;
   end;
@@ -506,7 +526,7 @@ begin
   { TODO: do UpdateGeneratedTextures for all Items }
 
   MainScene.UpdateGeneratedTextures(@RenderFromView,
-    MainScene.WalkProjectionNear, MainScene.WalkProjectionFar,
+    WalkProjectionNear, WalkProjectionFar,
     { For now assume viewport fills the whole container,
       see ../../../doc/TODO.scene_manager_viewport }
     0, 0, ContainerWidth, ContainerHeight);
