@@ -477,8 +477,8 @@ type
     property AccessoryAreas: TDynAreaArray read FAccessoryAreas;
     { @groupEnd }
 
-    function IsDraw2D: boolean; override;
-    procedure Draw2D(const Focused: boolean); override;
+    function DrawStyle: TUIControlDrawStyle; override;
+    procedure Draw(const Focused: boolean); override;
 
     property KeyNextItem: TKey read FKeyNextItem write FKeyNextItem
       default DefaultGLMenuKeyNextItem;
@@ -607,7 +607,7 @@ type
       read FDesignerMode write SetDesignerMode default false;
 
     { Draw an indicator of being focused. Currently, this is a flashing
-      border around the menu area. Otherwise Draw2D ignores Focused parameter. }
+      border around the menu area. Otherwise @link(Draw) ignores Focused parameter. }
     property DrawFocused: boolean read FDrawFocused write FDrawFocused
       default true;
   end;
@@ -1316,12 +1316,12 @@ begin
   FixItemsAreas;
 end;
 
-function TGLMenu.IsDraw2D: boolean;
+function TGLMenu.DrawStyle: TUIControlDrawStyle;
 begin
-  Result := true;
+  Result := ds2D;
 end;
 
-procedure TGLMenu.Draw2D(const Focused: boolean);
+procedure TGLMenu.Draw(const Focused: boolean);
 
   procedure DrawPositionRelativeLine;
   begin

@@ -233,7 +233,9 @@ type
       linearly increasing progress bar. }
     procedure PrepareRender(const DisplayProgressTitle: string = '');
 
-    procedure Render;
+    procedure BeforeDraw; override;
+    procedure Draw(const Focused: boolean); override;
+    function DrawStyle: TUIControlDrawStyle; override;
 
     { What changes happen when viewer camera changes.
       You may want to use it when calling Scene.ViewerChanges.
@@ -446,6 +448,12 @@ begin
     Items.PrepareRender(TG, Options, false);
 end;
 
+procedure TSceneManager.BeforeDraw;
+begin
+  inherited;
+  PrepareRender;
+end;
+
 procedure TSceneManager.RenderScene(InShadow: boolean; TransparentGroup: TTransparentGroup);
 begin
   Items.Render(RenderState.CameraFrustum, TransparentGroup, InShadow);
@@ -541,8 +549,10 @@ begin
   RenderFromView3D;
 end;
 
-procedure TSceneManager.Render;
+procedure TSceneManager.Draw(const Focused: boolean);
 begin
+  inherited;
+
   { This assertion can break only if you misuse UseControls property, setting it
     to false (disallowing ContainerResize), and then trying to use Render.
 
@@ -567,6 +577,11 @@ begin
   RenderState.Target := rtScreen;
   RenderState.CameraFromCameraObject(Camera);
   RenderFromView;
+end;
+
+function TSceneManager.DrawStyle: TUIControlDrawStyle;
+begin
+  Result := ds3D;
 end;
 
 function TSceneManager.KeyDown(Key: TKey; C: char): boolean;

@@ -2510,6 +2510,7 @@ type
     procedure EventMouseUp(Button: TMouseButton); override;
     procedure EventMouseMove(NewX, NewY: Integer); override;
     function AllowSuspendForInput: boolean; override;
+    procedure EventBeforeDraw; override;
     procedure EventDraw; override;
     procedure EventResize; override;
     procedure EventClose; override;
@@ -4519,6 +4520,19 @@ begin
   PostRedisplay;
 end;
 
+procedure TGLUIWindow.EventBeforeDraw;
+var
+  I: Integer;
+begin
+  inherited;
+
+  if UseControls then
+  begin
+    for I := 0 to Controls.Count - 1 do
+      Controls[I].BeforeDraw;
+  end;
+end;
+
 procedure WindowDraw2D(GLWinPtr: Pointer);
 var
   GLWin: TGLUIWindow absolute GLWinPtr;
@@ -4531,45 +4545,62 @@ begin
   begin
     C := GLWin.Controls[I];
 
-    if C.IsDraw2D then
+    if C.DrawStyle = ds2D then
     begin
       { Set OpenGL state that may be changed carelessly, and has some
         guanteed value, for Draw2d calls. }
       glLoadIdentity;
       glRasterPos2i(0, 0);
-      C.Draw2D(C = F);
+      C.Draw(C = F);
     end;
   end;
 end;
 
 procedure TGLUIWindow.EventDraw;
 
-  { Does any control wants it's Draw2D called. If not, we can avoid
-    even changing projection to 2D. This also takes care of checking
-    UseControls --- if UseControls = @false, this always returns @false. }
-  function AnyDraw2D: boolean;
+  { Call Draw for all controls having DrawStyle = ds3D.
+
+    Also (since we call DrawStyle for everything anyway)
+    calculates AnythingWants2D = if any control returned DrawStyle = ds2D.
+    If not, you can later avoid even changing projection to 2D.
+    This also takes care of checking  UseControls ---
+    if UseControls = @false, AnythingWants2D is always also @false. }
+  procedure Draw3D(out AnythingWants2D: boolean);
   var
     I: Integer;
+    C, F: TUIControl;
   begin
-    Result := false;
+    AnythingWants2D := false;
     if UseControls then
     begin
+      F := Focus;
       for I := 0 to Controls.Count - 1 do
       begin
-        Result := Controls[I].IsDraw2D;
-        if Result then Break;
+        C := Controls[I];
+        case C.DrawStyle of
+          ds2D: AnythingWants2D := true;
+          ds3D:
+            begin
+              { Set OpenGL state that may be changed carelessly, and has some
+                guanteed value, for TUIControl.Draw calls. }
+              glLoadIdentity;
+              C.Draw(C = F);
+            end;
+        end;
       end;
     end;
   end;
 
+var
+  AnythingWants2D: boolean;
 begin
-  inherited;
+  Draw3D(AnythingWants2D);
 
-  if AnyDraw2D then
+  if AnythingWants2D then
   begin
     glPushAttrib(GL_ENABLE_BIT);
       { Set and push/pop OpenGL state that is guaranteed for Draw2D calls,
-        but Draw2D cannot change it carelessly. }
+        but TUIControl.Draw cannot change it carelessly. }
       glDisable(GL_LIGHTING);
       glDisable(GL_DEPTH_TEST);
       glDisable(GL_TEXTURE_2D);
@@ -4580,6 +4611,10 @@ begin
 
     glPopAttrib;
   end;
+
+  { inherited (OnDraw callback) after drawing Controls, to allow OnDraw
+    to draw over our content. }
+  inherited;
 end;
 
 procedure TGLUIWindow.EventResize;

@@ -104,8 +104,6 @@ type
     procedure SetShadowVolumesDraw(const Value: boolean);
     procedure SetShadowVolumesPossible(const Value: boolean);
   protected
-    procedure DoBeforeDraw; override;
-    procedure DoDraw; override;
     procedure DoGLContextInit; override;
   public
     constructor Create(AOwner :TComponent); override;
@@ -225,18 +223,6 @@ end;
 function TKamVRMLBrowser.Scene: TVRMLGLScene;
 begin
   Result := SceneManager.MainScene;
-end;
-
-procedure TKamVRMLBrowser.DoBeforeDraw;
-begin
-  SceneManager.PrepareRender;
-  inherited;
-end;
-
-procedure TKamVRMLBrowser.DoDraw;
-begin
-  SceneManager.Render;
-  inherited;
 end;
 
 procedure TKamVRMLBrowser.DoGLContextInit;

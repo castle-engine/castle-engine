@@ -63,6 +63,10 @@ type
     procedure UpdateMouseLook;
   end;
 
+  { In what projection TUIControl.Draw will be called.
+    See TUIControl.Draw, TUIControl.DrawStyle. }
+  TUIControlDrawStyle = (dsNone, ds2D, ds3D);
+
   { Basic user interface control class. All controls derive from this class,
     overriding chosen methods to react to some events.
     Various user interface containers (things that directly receive messages
@@ -232,14 +236,25 @@ type
       sensibly, doing usual "mouse look" navigation mode popular in FPS games. }
     property MouseLook: boolean read FMouseLook write SetMouseLook default false;
 
-    { Draw 2D control. If you want your Draw2D called automatically by the
-      window, return @true from IsDraw2D and draw your control inside Draw2D.
+    { Prepare your resources, right before drawing. }
+    procedure BeforeDraw; virtual;
 
-      Do's and don't's when implementing Draw2D:
+    { Draw a control. If you want your Draw called automatically by the
+      window, return something <> dsNone from DrawStyle,
+      and draw your control inside Draw.
+
+      Do's and don't's when implementing Draw:
 
       @unorderedList(
-        @item(OpenGL projection is guaranteed to be set to standard 2D
-          projection, like by @code(gluOrtho2D(0, Glwin.Width, 0, Glwin.Height)).)
+        @item(All controls with DrawStyle = ds3D are drawn first,
+          with projection that you set yourself. Usually you should
+          use TSceneManager, which sets projection automatically for you
+          to something suitable, see TSceneManager.ApplyProjection and
+          TVRMLGLScene.GLProjection.
+
+          Then al controls with DrawStyle = ds2D are drawn.
+          For them, OpenGL projection is guaranteed to be set to standard 2D
+          projection, like by @code(gluOrtho2D(0, Container.Width, 0, Container.Height)).)
 
         @item(The only OpenGL state you can change carelessly is:
           @unorderedList(
@@ -250,19 +265,19 @@ type
           )
           Every other change should be wrapped in appropriate glPushAttrib / glPopAttrib.)
 
-        @item(Things that are guaranteed about OpenGL state when Draw2D is called:
+        @item(Things that are guaranteed about OpenGL state when Draw is called:
           @unorderedList(
             @itemSpacing Compact
             @item The current matrix is modelview, and it's value is identity.
-            @item The raster position is at (0, 0).
-            @item Texturing, depth test, lighting are turned off.
+            @item Only for DrawStyle = ds2D: the raster position is at (0, 0).
+            @item Only for DrawStyle = ds2D: Texturing, depth test, lighting are turned off.
           )
           If you require anything else, set this yourself.)
       )
 
       @groupBegin }
-    function IsDraw2D: boolean; virtual;
-    procedure Draw2D(const Focused: boolean); virtual;
+    function DrawStyle: TUIControlDrawStyle; virtual;
+    procedure Draw(const Focused: boolean); virtual;
     { @groupEnd }
 
     { Called always when containing window size changes.
@@ -387,12 +402,16 @@ begin
   Result := true;
 end;
 
-function TUIControl.IsDraw2D: boolean;
+function TUIControl.DrawStyle: TUIControlDrawStyle;
 begin
-  Result := false;
+  Result := dsNone;
 end;
 
-procedure TUIControl.Draw2D(const Focused: boolean);
+procedure TUIControl.BeforeDraw;
+begin
+end;
+
+procedure TUIControl.Draw(const Focused: boolean);
 begin
 end;
 

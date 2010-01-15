@@ -20,10 +20,10 @@ type
     ClickableRect: TUIControl;
   public
     { public declarations }
-  end; 
+  end;
 
 var
-  Form1: TForm1; 
+  Form1: TForm1;
 
 implementation
 
@@ -45,8 +45,8 @@ type
     GLFont: TGLBitmapFont_Abstract;
   public
     function MouseDown(const Button: KeysMouse.TMouseButton): boolean; override;
-    function IsDraw2D: boolean; override;
-    procedure Draw2D(const Focused: boolean); override;
+    function DrawStyle: TUIControlDrawStyle; override;
+    procedure Draw(const Focused: boolean); override;
     function PositionInside(const X, Y: Integer): boolean; override;
     procedure GLContextInit; override;
     procedure GLContextClose; override;
@@ -58,12 +58,12 @@ begin
   Result := true;
 end;
 
-function TClickableRect.IsDraw2D: boolean;
+function TClickableRect.DrawStyle: TUIControlDrawStyle;
 begin
-  Result := true;
+  Result := ds2D;
 end;
 
-procedure TClickableRect.Draw2D(const Focused: boolean);
+procedure TClickableRect.Draw(const Focused: boolean);
 begin
   glColor3f(1, 1, 0);
   glRectf(10, 10, ContainerWidth - 10, 100);

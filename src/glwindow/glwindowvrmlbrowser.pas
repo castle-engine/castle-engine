@@ -111,8 +111,6 @@ type
 
     function Scene: TVRMLGLScene;
 
-    procedure EventBeforeDraw; override;
-    procedure EventDraw; override;
     procedure EventInit; override;
 
     { Should we make shadow volumes possible.
@@ -207,18 +205,6 @@ end;
 function TGLWindowVRMLBrowser.Scene: TVRMLGLScene;
 begin
   Result := SceneManager.MainScene;
-end;
-
-procedure TGLWindowVRMLBrowser.EventBeforeDraw;
-begin
-  SceneManager.PrepareRender;
-  inherited;
-end;
-
-procedure TGLWindowVRMLBrowser.EventDraw;
-begin
-  SceneManager.Render;
-  inherited;
 end;
 
 procedure TGLWindowVRMLBrowser.EventInit;
