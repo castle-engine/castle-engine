@@ -321,6 +321,8 @@ unit VRMLOpenGLRenderer;
   {$endif}
 {$endif}
 
+{$I kambiconf.inc}
+
 interface
 
 uses
