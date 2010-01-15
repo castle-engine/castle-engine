@@ -56,7 +56,7 @@ uses GLWindow, GL, GLU, GLExt, KambiGLUtils,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils,
   GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, Images, KeysMouse,
   NormalizationCubeMap, GLImages, GLVersionUnit,
-  ParseParametersUnit, KambiLog, RaysWindow,
+  ParseParametersUnit, KambiLog, RaysWindow, UIControls, Classes,
   { VRML-related units: }
   VRMLScene, VRMLGLScene, Object3dAsVRML, ProgressUnit, BackgroundGL,
   VRMLOpenGLRenderer, VRMLRendererOptimization, SceneManagerUnit,
@@ -939,12 +939,22 @@ begin
     PrepareForVRMLScene;
 end;
 
-{ glw callbacks -------------------------------------------------------------- }
+{ status text ---------------------------------------------------------------- }
 
-{ Draw is used now only to draw 2D status text over the scene. }
-procedure Draw(glwin: TGLWindow);
+type
+  TStatusText = class(TUIControl)
+    function DrawStyle: TUIControlDrawStyle; override;
+    procedure Draw(const Focused: boolean); override;
+  end;
+
+function TStatusText.DrawStyle: TUIControlDrawStyle;
+begin
+  Result := ds2D;
+end;
+
+procedure TStatusText.Draw(const Focused: boolean);
 var
-  S: string;
+  S: TStrings;
 const
   MethodNames: array [TBumpMethod] of string =
   ('emboss', 'dot3 by multitexturing', 'built in VRML');
@@ -956,27 +966,33 @@ begin
 
     glColorv(Yellow3Single);
 
-    S := //Format('FPS : %f (real : %f)' +nl, [Glw.FpsFrameTime, Glw.FpsRealTime]);
-      '' { fps on caption };
-    S += 'Method: ' + MethodNames[Method] + nl;
-    if ShiftByHand then
-      S += Format('Shift: %f %f' +nl, [XShift, YShift]) else
-      S += 'Shift automatic from tangent space light position' + nl;
-    S += Format('Dot3 normalized first (for quick visual compare): %s',
-      [BoolToStr[NormalizedDot3First]]) +nl;
-    S += Format('Emboss scale: %f', [EmbossScale]) + nl;
-    S += Format('Emboss alpha multiply by blending: %s',
-      [BoolToStr[EmbossAlphaMultiplyByBlending]]) + nl;
-    S += Format('VRML maximum bump mapping method allowed: %s',
-      [BumpMappingMethodNames[BumpMappingMaximum]]) + nl;
-    S += Format('VRML auto-detected best bump mapping method: %s',
-      [BumpMappingMethodNames[Scene.BumpMappingMethod]]) + nl;
-    S += Format('VRML optimization used: %s',
-      [RendererOptimizationNames[Scene.Optimization]]) + nl;
+    S := TStringList.Create;
 
-    Font.Projection2DPrintStrings(5, 5, S);
+    { fps is on caption already }
+    { S.Append(Format('FPS : %f (real : %f)' +nl, [Glw.FpsFrameTime, Glw.FpsRealTime])); }
+    S.Append('Method: ' + MethodNames[Method]);
+    if ShiftByHand then
+      S.Append(Format('Shift: %f %f', [XShift, YShift])) else
+      S.Append('Shift automatic from tangent space light position');
+    S.Append(Format('Dot3 normalized first (for quick visual compare): %s',
+      [BoolToStr[NormalizedDot3First]]));
+    S.Append(Format('Emboss scale: %f', [EmbossScale]));
+    S.Append(Format('Emboss alpha multiply by blending: %s',
+      [BoolToStr[EmbossAlphaMultiplyByBlending]]));
+    S.Append(Format('VRML maximum bump mapping method allowed: %s',
+      [BumpMappingMethodNames[BumpMappingMaximum]]));
+    S.Append(Format('VRML auto-detected best bump mapping method: %s',
+      [BumpMappingMethodNames[Scene.BumpMappingMethod]]));
+    S.Append(Format('VRML optimization used: %s',
+      [RendererOptimizationNames[Scene.Optimization]]));
+
+    Font.PrintStrings(S, 0, 5, 5);
+
+    FreeAndNil(S);
   glPopAttrib;
 end;
+
+{ glw callbacks -------------------------------------------------------------- }
 
 var
   VrmlFileName: string = 'vrmldata/levels/fountain/fountain_final.wrl';
@@ -1300,13 +1316,14 @@ begin
   Glw.Camera := Examiner;
   SceneManager.Camera := Glw.Camera; { always keep SceneManager.Camera = Glw.Camera }
 
+  Glw.Controls.Add(TStatusText.Create(Glw));
+
   Glw.MainMenu := CreateMainMenu;
   Glw.OnMenuCommand := @MenuCommand;
 
   Glw.AutoRedisplay := true; { for easy Idle code }
   Glw.OnInit := @InitGL;
   Glw.OnClose := @CloseGL;
-  Glw.OnDraw := @Draw;
   Glw.OnIdle := @Idle;
 
   Glw.InitAndRun;
