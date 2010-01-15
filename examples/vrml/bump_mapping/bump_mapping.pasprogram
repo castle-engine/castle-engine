@@ -907,6 +907,14 @@ var
 begin
   LightPosition := Vector3Single(3, 3, 5);
 
+  { Eh, don't use code below, light looks better at preset position,
+    at least with fountain VRML level. }
+  {if not IsEmptyBox3d(Scene.BoundingBox) then
+  begin
+    LightPosition := Box3dMiddle(Scene.BoundingBox);
+    LightPosition[2] := Scene.BoundingBox[1][2];
+  end;}
+
   { When bmVRML, these two should always be equal }
   Scene.BumpMappingLightPosition := LightPosition;
 
