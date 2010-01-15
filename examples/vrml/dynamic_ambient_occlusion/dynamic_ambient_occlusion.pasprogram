@@ -932,7 +932,7 @@ begin
     if Glw.Camera is TWalkCamera then
       TWalkCamera(Glw.Camera).Gravity := false;
 
-    { init SceneManager, with a BaseScene and Camera inside }
+    { init SceneManager, with a Scene and Camera inside }
     SceneManager := TMySceneManager.Create(Glw);
     Glw.Controls.Add(SceneManager);
     SceneManager.MainScene := Scene;
