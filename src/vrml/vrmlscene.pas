@@ -849,7 +849,14 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    procedure Load(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
+    { Load new 3D model (from VRML node tree).
+      This replaces RootNode with new value.
+
+      If AResetWorldTime, we will also do ResetWorldTimeAtLoad,
+      changing WorldTime --- this is usually what you want when you
+      really load a new world. }
+    procedure Load(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
+      const AResetWorldTime: boolean = true);
 
     { Load the 3D model from given AFileName.
 
@@ -861,7 +868,8 @@ type
         a file from standard input (StdInStream), using GetCurrentDir
         as WWWBasePath (to resolve relative URLs from the file).
         Currently, this limits the file to be VRML/X3D.) }
-    procedure Load(const AFileName: string; AllowStdIn: boolean = false);
+    procedure Load(const AFileName: string; AllowStdIn: boolean = false;
+      const AResetWorldTime: boolean = true);
 
     destructor Destroy; override;
 
@@ -2206,7 +2214,8 @@ begin
   inherited;
 end;
 
-procedure TVRMLScene.Load(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
+procedure TVRMLScene.Load(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
+  const AResetWorldTime: boolean);
 begin
   PointingDeviceClear;
   if OwnsRootNode then FreeAndNil(FRootNode);
@@ -2214,14 +2223,18 @@ begin
   RootNode := ARootNode;
   OwnsRootNode := AOwnsRootNode;
   ScheduleChangedAll;
+
+  if AResetWorldTime then
+    ResetWorldTimeAtLoad;
 end;
 
-procedure TVRMLScene.Load(const AFileName: string; AllowStdIn: boolean);
+procedure TVRMLScene.Load(const AFileName: string; AllowStdIn: boolean;
+  const AResetWorldTime: boolean);
 begin
   { Note that if LoadAsVRML fails, we will not change the RootNode,
     so currently loaded scene will remain valid. }
 
-  Load(LoadAsVRML(AFileName, AllowStdIn), true);
+  Load(LoadAsVRML(AFileName, AllowStdIn), true, AResetWorldTime);
 
   FFileName := AFileName;
 end;
@@ -5111,7 +5124,7 @@ procedure TVRMLScene.SetPointingDeviceActive(const Value: boolean);
     if Anchor.LoadAnchor(NewRootNode, NewViewpoint, RootNode) then
     begin
       if NewRootNode <> nil then
-        Load(NewRootNode, true);
+        Load(NewRootNode, true, { do not reset WorldTime } false);
       if NewViewpoint <> nil then
         NewViewpoint.EventSet_Bind.Send(true, WorldTime);
     end;

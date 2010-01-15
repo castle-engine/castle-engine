@@ -188,7 +188,6 @@ begin
 
   { prepare for events procesing (although we let the decision whether
     to turn ProcessEvent := true to the caller). }
-  Scene.ResetWorldTimeAtLoad;
   Scene.OnBoundViewpointVectorsChanged := @BoundViewpointVectorsChanged;
   Scene.ViewpointStack.OnBoundChanged := @BoundViewpointChanged;
   Scene.OnPointingDeviceSensorsChange := @UpdateCursor;
