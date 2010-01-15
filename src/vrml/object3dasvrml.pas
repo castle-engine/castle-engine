@@ -131,7 +131,7 @@ const
 { Load various model formats as animation expressed by VRML sequence.
 
   For model formats that cannot express animations (like GEO or Wavefront OBJ)
-  or that express animations in a single VRML file (like VRML > 2.0)
+  or that express animations in a single VRML file (like VRML >= 2.0)
   this just loads them like LoadAsVRML, adding exactly one item
   to RootNodes.
   This guarantees that this function handles @italic(at least)
