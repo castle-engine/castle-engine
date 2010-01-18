@@ -21,8 +21,6 @@ Better Lazarus integration:
   No bad side-effects?
 
 make Items.List protected, at least for test, and add Add/Insert/Remove wrappers?
-move viewpoint_field... to x3d/
-move transform_view.. to view.._transform.
 
 * Making Viewport*, see TODO.scene_manager_viewport, should be trivial now!
   - GLProjection should take x, y as well as width, height
