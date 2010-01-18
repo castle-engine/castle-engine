@@ -1815,14 +1815,14 @@ type
       Options: TPrepareRenderOptions;
       ProgressStep: boolean); override;
 
-    function MoveAllowed(
-      const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-      const CameraRadius: Single;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
     procedure GetCameraHeight(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc;
       out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
       out GroundItem: PVRMLTriangle); override;
+    function MoveAllowed(
+      const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const CameraRadius: Single;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
     function MoveAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
       const CameraRadius: Single;

@@ -519,6 +519,10 @@ type
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc;
       out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
       out GroundItem: PVRMLTriangle); override;
+    function MoveAllowed(
+      const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const CameraRadius: Single;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
     function MoveAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
       const CameraRadius: Single;
@@ -1841,6 +1845,32 @@ begin
     MakeScene(FirstScene);
     if CollisionUseLastScene then
       MakeScene(LastScene);
+  end;
+end;
+
+function TVRMLGLAnimation.MoveAllowed(
+  const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+  const CameraRadius: Single;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+begin
+  if Exists and Collides then
+  begin
+    Result := FirstScene.MoveAllowed(OldPos, ProposedNewPos, NewPos,
+      CameraRadius, TrianglesToIgnoreFunc);
+
+    { Call MoveAllowed on FirstScene, on the LastScene use only
+      MoveAllowedSimple (no wall sliding).
+      Reason: see TBase3DList.MoveAllowed implementation. }
+
+    if Result and CollisionUseLastScene then
+    begin
+      Result := LastScene.MoveAllowedSimple(OldPos, NewPos,
+        CameraRadius, TrianglesToIgnoreFunc);
+    end;
+  end else
+  begin
+    Result := true;
+    NewPos := ProposedNewPos;
   end;
 end;
 

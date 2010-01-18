@@ -720,29 +720,11 @@ function TSceneManager.CameraMoveAllowed(ACamera: TWalkCamera;
   const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const BecauseOfGravity: boolean): boolean;
 begin
-  { There is unfortunately no way to implement this by calling MoveAllowed
-    on all children Items, as various MoveAllowed could modify NewPos
-    making it colliding with other items. So we have to use simple
-    MoveAllowedSimple on most items, and call "real" MoveAllowed
-    (with wall sliding) only for the MainScene.
-
-    This means that only MainScene collisions provide wall sliding.
-    Collisions with other 3D objects will simply block player. }
-
-  if MainScene <> nil then
-    Result := MainScene.MoveAllowed(ACamera.Position, ProposedNewPos, NewPos,
-      ACamera.CameraRadius, @CollisionIgnoreItem) else
-  begin
-    Result := true;
-    NewPos := ProposedNewPos;
-  end;
+  Result := Items.MoveAllowed(ACamera.Position, ProposedNewPos, NewPos,
+    ACamera.CameraRadius, @CollisionIgnoreItem);
 
   if Result then
   begin
-    {TODO:test, and make MoveAllowedSimple with MainScene to ignore}
-    {Result := Items.MoveAllowedSimple(ACamera, NewPos,
-      ACamera.CameraRadius, nil, @CollisionIgnoreItem);}
-
     { TODO: allow here specification of other box, like LevelBox for castle level. }
 
     { Don't let user to fall outside of the box because of gravity. }

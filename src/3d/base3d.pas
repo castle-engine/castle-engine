@@ -224,11 +224,14 @@ type
       out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
       out GroundItem: PVRMLTriangle); virtual;
 
+    function MoveAllowed(
+      const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const CameraRadius: Single;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; virtual;
     function MoveAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
       const CameraRadius: Single;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; virtual;
-
     function MoveBoxAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
       const ProposedNewBox: TBox3d;
@@ -236,10 +239,8 @@ type
 
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; virtual;
-
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; virtual;
-
     function BoxCollision(const Box: TBox3d;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; virtual;
   end;
@@ -302,6 +303,10 @@ type
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc;
       out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
       out GroundItem: PVRMLTriangle); override;
+    function MoveAllowed(
+      const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const CameraRadius: Single;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
     function MoveAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
       const CameraRadius: Single;
@@ -413,6 +418,15 @@ begin
     things should better be predictable). }
   SqrHeightAboveTheGround := 0;
   GroundItem := nil;
+end;
+
+function TBase3D.MoveAllowed(
+  const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+  const CameraRadius: Single;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+begin
+  Result := true;
+  NewPos := ProposedNewPos;
 end;
 
 function TBase3D.MoveAllowedSimple(
@@ -692,6 +706,45 @@ begin
         GroundItem := GroundItemThis;
       end;
     end;
+end;
+
+function TBase3DList.MoveAllowed(
+  const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+  const CameraRadius: Single;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+var
+  I: Integer;
+begin
+  if Exists and Collides and (List.Count <> 0) then
+  begin
+    { We call MoveAllowed only one time, on the first scene.
+      This means that only first scene collisions provide wall sliding.
+      Collisions with other 3D objects will simply block the player.
+
+      Otherwise, various MoveAllowed could modify NewPos
+      making it colliding with other items, already checked. This would
+      be wrong. So MoveAllowed is used only once, and for the others
+      we use simple MoveAllowedSimple.
+
+      TODO: this could be improved, to call MoveAllowed on the first scene
+      where the simple move is not allowed. This would make it more general,
+      although also slower. Is there any way to make it as fast and
+      more general? }
+    Result := List[0].MoveAllowed(OldPos, ProposedNewPos, NewPos,
+      CameraRadius, TrianglesToIgnoreFunc);
+    if not Result then Exit;
+
+    for I := 1 to List.Count - 1 do
+    begin
+      Result := List[I].MoveAllowedSimple(OldPos, NewPos,
+        CameraRadius, TrianglesToIgnoreFunc);
+      if not Result then Exit;
+    end;
+  end else
+  begin
+    Result := true;
+    NewPos := ProposedNewPos;
+  end;
 end;
 
 function TBase3DList.MoveAllowedSimple(
