@@ -73,7 +73,7 @@ program terrain;
 uses SysUtils, Classes, Boxes3d,
   KambiUtils, GLWindow, GL, KambiGLUtils,
   Cameras, VectorMath, KambiFilesUtils, Elevations, GLWinMessages,
-  KambiStringUtils, GLMenu;
+  KambiStringUtils, GLMenu, UIControls;
 
 var
   Glw: TGLUIWindow;
@@ -382,6 +382,7 @@ begin
     Glw.OnInit := @Init;
     Glw.OnClose := @Close;
     Glw.OnResize := @Resize;
+    Glw.OnDrawStyle := ds3D;
     Glw.InitAndRun(ProgramName, @Draw);
   finally FreeAndNil(Elevation) end;
 end.

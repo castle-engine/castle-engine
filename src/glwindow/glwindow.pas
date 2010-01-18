@@ -2450,6 +2450,7 @@ type
     FControls: TUIControlList;
     FUseControls: boolean;
     FMouseLookActive: boolean;
+    FOnDrawStyle: TUIControlDrawStyle;
     procedure SetCamera(const Value: TCamera);
     procedure SetCursorNonMouseLook(const Value: TGLWindowCursor);
     procedure ControlsVisibleChange(Sender: TObject);
@@ -2501,6 +2502,49 @@ type
         with Glw.Camera.Matrix)
     ) }
     property Camera: TCamera read FCamera write SetCamera;
+
+    { How OnDraw callback fits within various Draw methods of our
+      @link(Controls).
+
+      @unorderedList(
+        @item(dsNone means that OnDraw is called at the end,
+          after all our @link(Controls) are drawn.
+
+          OpenGL projection matrix is not modified (so projection
+          is whatever you set yourself, by EventResize, OnResize,
+          or whatever TSceneManager set for you).
+
+          Note that the interpretation of dsNone is different than for
+          TUIControl.DrawStyle: for TUIControl.DrawStyle, dsNone
+          means "do not draw". For OnDrawStyle property,
+          dsNone means "draw at the end without any tricks".
+
+          This is suitable if you want to draw something over other
+          controls, and you want to set projection yourself (or use
+          the current projection, whatever it is).)
+
+        @item(ds2D means that OnDraw is also called at the end,
+          after all our @link(Controls) are drawn. But this time
+          we're called within 2D orthographic projection,
+          the same as set for TUIControl.DrawStyle = ds2D.
+
+          This is suitable if you want to draw 2D contents,
+          and our simple 2D orthographic projection suits you.)
+
+        @item(ds3D means that OnDraw is called after all other
+          @link(Controls) with ds3D draw style, but before any 2D
+          controls.
+
+          OpenGL projection matrix is not modified (so projection
+          is whatever you set yourself, by EventResize, OnResize,
+          or whatever TSceneManager set for you).
+
+          This is suitable if you want to draw something 3D,
+          that may be later covered by 2D controls.)
+      )
+    }
+    property OnDrawStyle: TUIControlDrawStyle
+      read FOnDrawStyle write FOnDrawStyle default dsNone;
 
     procedure EventInit; override;
     procedure EventKeyDown(Key: TKey; Ch: char); override;
@@ -4240,6 +4284,7 @@ begin
   inherited;
   FControls := TControlledUIControlList.Create(false, Self);
   FUseControls := true;
+  FOnDrawStyle := dsNone;
 end;
 
 destructor TGLUIWindow.Destroy;
@@ -4533,47 +4578,24 @@ begin
   end;
 end;
 
-procedure WindowDraw2D(GLWinPtr: Pointer);
-var
-  GLWin: TGLUIWindow absolute GLWinPtr;
-  C, F: TUIControl;
-  I: Integer;
-begin
-  F := GLWin.Focus;
-  { draw controls in "downto" order, back to front }
-  for I := GLWin.Controls.Count - 1 downto 0 do
-  begin
-    C := GLWin.Controls[I];
-
-    if C.DrawStyle = ds2D then
-    begin
-      { Set OpenGL state that may be changed carelessly, and has some
-        guanteed value, for Draw2d calls. }
-      glLoadIdentity;
-      glRasterPos2i(0, 0);
-      C.Draw(C = F);
-    end;
-  end;
-end;
-
 procedure TGLUIWindow.EventDraw;
+var
+  Focused: TUIControl;
 
   { Call Draw for all controls having DrawStyle = ds3D.
 
     Also (since we call DrawStyle for everything anyway)
     calculates AnythingWants2D = if any control returned DrawStyle = ds2D.
-    If not, you can later avoid even changing projection to 2D.
-    This also takes care of checking  UseControls ---
-    if UseControls = @false, AnythingWants2D is always also @false. }
+    If not, you can later avoid even changing projection to 2D. }
   procedure Draw3D(out AnythingWants2D: boolean);
   var
     I: Integer;
-    C, F: TUIControl;
+    C: TUIControl;
   begin
     AnythingWants2D := false;
+
     if UseControls then
     begin
-      F := Focus;
       for I := 0 to Controls.Count - 1 do
       begin
         C := Controls[I];
@@ -4584,27 +4606,26 @@ procedure TGLUIWindow.EventDraw;
               { Set OpenGL state that may be changed carelessly, and has some
                 guanteed value, for TUIControl.Draw calls. }
               glLoadIdentity;
-              C.Draw(C = F);
+              C.Draw(C = Focused);
             end;
         end;
       end;
     end;
+
+    case OnDrawStyle of
+      ds2D: AnythingWants2D := true;
+      ds3D:
+        begin
+          glLoadIdentity;
+          inherited EventDraw;
+        end;
+    end;
   end;
 
-var
-  AnythingWants2D: boolean;
-begin
-  { TODO: we want to move "inherited" (OnDraw) to the end of this
-    (Lazarus gl control already does this), but we cannot yet: castle's
-    menu drawing depends OnDraw is before Controls (under the menu).
-    This will be fixed in castle (and possibly rift needs such fix too?)
-    when migrating them to scene manager, for now keep inherited at
-    the beginning. }
-  inherited;
-
-  Draw3D(AnythingWants2D);
-
-  if AnythingWants2D then
+  procedure Draw2D;
+  var
+    C: TUIControl;
+    I: Integer;
   begin
     glPushAttrib(GL_ENABLE_BIT);
       { Set and push/pop OpenGL state that is guaranteed for Draw2D calls,
@@ -4615,14 +4636,58 @@ begin
       if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
       if GL_EXT_texture3D        then glDisable(GL_TEXTURE_3D_EXT);
 
-      glProjectionPushPopOrtho2D(@WindowDraw2D, Self, 0, Width, 0, Height);
+      glMatrixMode(GL_PROJECTION);
+      glPushMatrix;
+      glLoadIdentity;
+      gluOrtho2D(0, Width, 0, Height);
+      glMatrixMode(GL_MODELVIEW);
+      try
 
+        if UseControls then
+        begin
+          { draw controls in "downto" order, back to front }
+          for I := Controls.Count - 1 downto 0 do
+          begin
+            C := Controls[I];
+
+            if C.DrawStyle = ds2D then
+            begin
+              { Set OpenGL state that may be changed carelessly, and has some
+                guanteed value, for Draw2d calls. }
+              glLoadIdentity;
+              glRasterPos2i(0, 0);
+              C.Draw(C = Focused);
+            end;
+          end;
+        end;
+
+        if OnDrawStyle = ds2D then
+        begin
+          glLoadIdentity;
+          glRasterPos2i(0, 0);
+          inherited EventDraw;
+        end;
+
+      finally
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix;
+        glMatrixMode(GL_MODELVIEW);
+      end;
     glPopAttrib;
   end;
 
-  { inherited (OnDraw callback) after drawing Controls, to allow OnDraw
-    to draw over our content. }
-  { inherited; TODO -- see above }
+var
+  AnythingWants2D: boolean;
+begin
+  Focused := Focus;
+
+  Draw3D(AnythingWants2D);
+
+  if AnythingWants2D then
+    Draw2D;
+
+  if OnDrawStyle = dsNone then
+    inherited;
 end;
 
 procedure TGLUIWindow.EventResize;
