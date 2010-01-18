@@ -195,7 +195,7 @@ begin
     SceneManager := TSceneManager.Create(Glw);
     Glw.Controls.Add(SceneManager);
     SceneManager.MainScene := Animation.FirstScene;
-    SceneManager.Items.List.Add(Animation);
+    SceneManager.Items.Add(Animation);
     SceneManager.Camera := Glw.Camera;
 
     ProgressGLInterface.Window := Glw;

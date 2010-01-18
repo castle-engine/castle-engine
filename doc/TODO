@@ -20,8 +20,6 @@ Better Lazarus integration:
   that works only if *current* camera is WalkCamera.
   No bad side-effects?
 
-make Items.List protected, at least for test, and add Add/Insert/Remove wrappers?
-
 * Making Viewport*, see TODO.scene_manager_viewport, should be trivial now!
   - GLProjection should take x, y as well as width, height
   - Like on TODO.scene_manager_viewport, we'll need ViewportAutoResize default true

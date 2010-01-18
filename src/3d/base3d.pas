@@ -280,6 +280,14 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
+    { Add and remove items to the @link(List).
+      @groupBegin }
+    procedure Add(const Item: TBase3D);
+    procedure Insert(const Index: Integer; const Item: TBase3D);
+    procedure Remove(const Item: TBase3D);
+    procedure Clear;
+    { @groupEnd }
+
     function BoundingBox: TBox3d; override;
     procedure Render(const Frustum: TFrustum;
       TransparentGroup: TTransparentGroup; InShadow: boolean); override;
@@ -523,6 +531,26 @@ destructor TBase3DList.Destroy;
 begin
   FreeAndNil(FList);
   inherited;
+end;
+
+procedure TBase3DList.Add(const Item: TBase3D);
+begin
+  List.Add(Item);
+end;
+
+procedure TBase3DList.Insert(const Index: Integer; const Item: TBase3D);
+begin
+  List.Insert(Index, Item);
+end;
+
+procedure TBase3DList.Remove(const Item: TBase3D);
+begin
+  List.Remove(Item);
+end;
+
+procedure TBase3DList.Clear;
+begin
+  List.Clear;
 end;
 
 function TBase3DList.BoundingBox: TBox3d;

@@ -154,12 +154,12 @@ begin
   { destroy MainScene and Camera, we will recreate them }
   SceneManager.MainScene.Free;
   SceneManager.MainScene := nil;
-  SceneManager.Items.List.Clear;
+  SceneManager.Items.Clear;
   Camera.Free;
 
   SceneManager.MainScene := TVRMLGLScene.Create(Self);
   SceneManager.MainScene.Load(ARootNode, OwnsRootNode);
-  SceneManager.Items.List.Add(SceneManager.MainScene);
+  SceneManager.Items.Add(SceneManager.MainScene);
 
   { initialize octrees titles }
   Scene.TriangleOctreeProgressTitle := 'Building triangle octree';

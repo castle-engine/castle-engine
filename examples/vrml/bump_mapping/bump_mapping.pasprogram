@@ -873,7 +873,7 @@ begin
 
   Scene := TVRMLGLScene.Create(nil);
   if Method = bmVRML then
-    SceneManager.Items.List.Add(Scene); { readd Scene to SceneManager }
+    SceneManager.Items.Add(Scene); { readd Scene to SceneManager }
 
   Scene.Load(FileName);
 
@@ -1151,7 +1151,7 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
   begin
     if Method = bmVRML then
     begin
-      SceneManager.Items.List.Remove(Scene);
+      SceneManager.Items.Remove(Scene);
       SceneManager.MainScene := nil;
     end;
 
@@ -1164,7 +1164,7 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
     { if, and only if, Method = bmVRML, then SceneManager contains our Scene. }
     if Method = bmVRML then
     begin
-      SceneManager.Items.List.Add(Scene);
+      SceneManager.Items.Add(Scene);
       SceneManager.MainScene := Scene;
     end;
   end;

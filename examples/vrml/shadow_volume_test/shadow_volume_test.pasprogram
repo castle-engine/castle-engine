@@ -742,7 +742,7 @@ begin
     SceneManager := TMySceneManager.Create(Glw);
     Glw.Controls.Add(SceneManager);
     SceneManager.MainScene := Scene;
-    SceneManager.Items.List.Add(Scene);
+    SceneManager.Items.Add(Scene);
     SceneManager.Camera := SceneNav;
 
     Glw.MainMenu := CreateMainMenu;
