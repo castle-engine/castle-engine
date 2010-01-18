@@ -1003,7 +1003,7 @@ end;
 
 procedure TKamOpenGLControl.DoDraw;
 var
-  Focused: TUIControl;
+  FocusedControl: TUIControl;
 
   { Call Draw for all controls having DrawStyle = ds3D.
 
@@ -1029,7 +1029,7 @@ var
               { Set OpenGL state that may be changed carelessly, and has some
                 guanteed value, for TUIControl.Draw calls. }
               glLoadIdentity;
-              C.Draw(C = Focused);
+              C.Draw(C = FocusedControl);
             end;
         end;
       end;
@@ -1079,7 +1079,7 @@ var
                 guanteed value, for Draw2d calls. }
               glLoadIdentity;
               glRasterPos2i(0, 0);
-              C.Draw(C = Focused);
+              C.Draw(C = FocusedControl);
             end;
           end;
         end;
@@ -1102,7 +1102,7 @@ var
 var
   AnythingWants2D: boolean;
 begin
-  Focused := Focus;
+  FocusedControl := Focus;
 
   Draw3D(AnythingWants2D);
 

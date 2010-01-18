@@ -77,6 +77,7 @@ type
     FBackgroundWireframe: boolean;
 
     ApplyProjectionNeeded: boolean;
+    FOnCameraChanged: TNotifyEvent;
 
     procedure SetMainScene(const Value: TVRMLGLScene);
     procedure SetCamera(const Value: TCamera);
@@ -243,12 +244,14 @@ type
       at least at the time of MouseMove methods call
       (that is, when container passed mouse events to this scene).
 
-      We will "hijack" Camera events: OnVisibleChange, OnMoveAllowed,
-      OnGetCameraHeight, handling them in a proper way.
-      Note that Camera.OnVisibleChange will cause our own
-      TSceneManager.VisibleChange, so you will not miss it.
-
-      Freeing Camera will automatically set this to @nil. }
+      Scene manager will "hijack" some Camera events:
+      OnVisibleChange, OnMoveAllowed, OnGetCameraHeight. Scene manager
+      will handle them in a proper way. Fear not, Camera.OnVisibleChange
+      will still cause our own TSceneManager.VisibleChange,
+      so your window will be properly repainted if scene manager is on the
+      Controls list (and it should be). Also, each camera change
+      (Camera.OnVisibleChange) will be reported to OnCameraChanged,
+      so you can catch it there. }
     property Camera: TCamera read FCamera write SetCamera;
 
     { Should we make shadow volumes possible.
@@ -294,6 +297,10 @@ type
       geometry looks like. }
     property BackgroundWireframe: boolean
       read FBackgroundWireframe write FBackgroundWireframe default false;
+
+    { Called on any camera change. Exactly when TCamera generates it's
+      OnVisibleChange event. }
+    property OnCameraChanged: TNotifyEvent read FOnCameraChanged write FOnCameraChanged;
   end;
 
 procedure Register;
@@ -702,6 +709,9 @@ begin
       So this way MainScene.ViewerChanged will also cause our VisibleChange. }
     MainScene.ViewerChanged(Camera, ViewerToChanges) else
     VisibleChange;
+
+  if Assigned(OnCameraChanged) then
+    OnCameraChanged(ACamera);
 end;
 
 function TSceneManager.CollisionIgnoreItem(const Octree: TVRMLBaseTrianglesOctree;

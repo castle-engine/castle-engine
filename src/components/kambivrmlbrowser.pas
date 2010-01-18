@@ -83,7 +83,6 @@ type
   TKamVRMLBrowser = class(TKamOpenGLControl)
   private
     SceneManager: TSceneManager;
-    FOnCameraChanged: TNotifyEvent;
 
     procedure BoundViewpointChanged(Scene: TVRMLScene);
     procedure BoundViewpointVectorsChanged(Scene: TVRMLScene);
@@ -93,9 +92,11 @@ type
     function GetShadowVolumes: boolean;
     function GetShadowVolumesDraw: boolean;
     function GetShadowVolumesPossible: boolean;
+    function GetOnCameraChanged: TNotifyEvent;
     procedure SetShadowVolumes(const Value: boolean);
     procedure SetShadowVolumesDraw(const Value: boolean);
     procedure SetShadowVolumesPossible(const Value: boolean);
+    procedure SetOnCameraChanged(const Value: TNotifyEvent);
   protected
     procedure DoGLContextInit; override;
   public
@@ -108,7 +109,7 @@ type
     function Scene: TVRMLGLScene;
   published
     property OnCameraChanged: TNotifyEvent
-      read FOnCameraChanged write FOnCameraChanged;
+      read GetOnCameraChanged write SetOnCameraChanged;
 
     { Should we make shadow volumes possible.
 
@@ -235,20 +236,6 @@ begin
     CursorNonMouseLook := crDefault;
 end;
 
-{ TODO:
-    When octree is not available, we actually don't want gravity to
-    cause falling down. So return values pretending we're standing
-    still on the ground.
-  IsAboveTheGround := true;
-  SqrHeightAboveTheGround := Sqr(ACamera.CameraPreferredHeight);
-}
-
-{ TODO: from CameraVisibleChange:
-
-  if Assigned(OnCameraChanged) then
-    OnCameraChanged(ACamera);
-}
-
 procedure TKamVRMLBrowser.BoundViewpointChanged(Scene: TVRMLScene);
 begin
   Scene.CameraBindToViewpoint(Camera, false);
@@ -300,6 +287,16 @@ begin
 {  if SceneManager.ShadowVolumesPossible then
     StencilBufferBits := 8 else
     StencilBufferBits := 0;}
+end;
+
+function TKamVRMLBrowser.GetOnCameraChanged: TNotifyEvent;
+begin
+  Result := SceneManager.OnCameraChanged;
+end;
+
+procedure TKamVRMLBrowser.SetOnCameraChanged(const Value: TNotifyEvent);
+begin
+  SceneManager.OnCameraChanged := Value;
 end;
 
 end.

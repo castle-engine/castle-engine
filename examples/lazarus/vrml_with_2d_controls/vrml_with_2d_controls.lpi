@@ -9,7 +9,7 @@
       </Flags>
       <MainUnit Value="0"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="0"/>
+      <ActiveEditorIndexAtStart Value="1"/>
     </General>
     <VersionInfo>
       <ProjectVersion Value=""/>
@@ -37,7 +37,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="8">
+    <Units Count="9">
       <Unit0>
         <Filename Value="vrml_with_2d_controls.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -82,9 +82,11 @@
       <Unit5>
         <Filename Value="..\..\..\src\components\kambiglcontrol.pas"/>
         <UnitName Value="KambiGLControl"/>
-        <CursorPos X="28" Y="1013"/>
-        <TopLine Value="996"/>
+        <CursorPos X="17" Y="1105"/>
+        <TopLine Value="1088"/>
+        <EditorIndex Value="1"/>
         <UsageCount Value="10"/>
+        <Loaded Value="True"/>
       </Unit5>
       <Unit6>
         <Filename Value="..\..\..\src\ui\uicontrols.pas"/>
@@ -100,120 +102,135 @@
         <TopLine Value="213"/>
         <UsageCount Value="10"/>
       </Unit7>
+      <Unit8>
+        <Filename Value="..\..\..\..\..\..\..\installed\lazarus\current\lcl\controls.pp"/>
+        <UnitName Value="Controls"/>
+        <CursorPos X="14" Y="1932"/>
+        <TopLine Value="1915"/>
+        <UsageCount Value="10"/>
+      </Unit8>
     </Units>
-    <JumpHistory Count="28" HistoryIndex="27">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="mainf.pas"/>
-        <Caret Line="79" Column="30" TopLine="56"/>
+        <Caret Line="84" Column="25" TopLine="56"/>
       </Position1>
       <Position2>
         <Filename Value="mainf.pas"/>
-        <Caret Line="82" Column="30" TopLine="56"/>
+        <Caret Line="98" Column="66" TopLine="81"/>
       </Position2>
       <Position3>
         <Filename Value="mainf.pas"/>
-        <Caret Line="84" Column="25" TopLine="56"/>
+        <Caret Line="101" Column="30" TopLine="81"/>
       </Position3>
       <Position4>
         <Filename Value="mainf.pas"/>
-        <Caret Line="98" Column="66" TopLine="81"/>
+        <Caret Line="108" Column="22" TopLine="81"/>
       </Position4>
       <Position5>
         <Filename Value="mainf.pas"/>
-        <Caret Line="101" Column="30" TopLine="81"/>
+        <Caret Line="9" Column="14" TopLine="1"/>
       </Position5>
       <Position6>
         <Filename Value="mainf.pas"/>
-        <Caret Line="108" Column="22" TopLine="81"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position6>
       <Position7>
         <Filename Value="mainf.pas"/>
-        <Caret Line="9" Column="14" TopLine="1"/>
+        <Caret Line="46" Column="1" TopLine="31"/>
       </Position7>
       <Position8>
         <Filename Value="mainf.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Caret Line="129" Column="20" TopLine="111"/>
       </Position8>
       <Position9>
         <Filename Value="mainf.pas"/>
-        <Caret Line="46" Column="1" TopLine="31"/>
+        <Caret Line="40" Column="44" TopLine="37"/>
       </Position9>
       <Position10>
         <Filename Value="mainf.pas"/>
-        <Caret Line="129" Column="20" TopLine="111"/>
+        <Caret Line="81" Column="47" TopLine="67"/>
       </Position10>
       <Position11>
         <Filename Value="mainf.pas"/>
-        <Caret Line="40" Column="44" TopLine="37"/>
+        <Caret Line="39" Column="3" TopLine="39"/>
       </Position11>
       <Position12>
         <Filename Value="mainf.pas"/>
-        <Caret Line="81" Column="47" TopLine="67"/>
+        <Caret Line="9" Column="44" TopLine="6"/>
       </Position12>
       <Position13>
         <Filename Value="mainf.pas"/>
-        <Caret Line="39" Column="3" TopLine="39"/>
+        <Caret Line="48" Column="73" TopLine="32"/>
       </Position13>
       <Position14>
         <Filename Value="mainf.pas"/>
-        <Caret Line="9" Column="44" TopLine="6"/>
+        <Caret Line="34" Column="58" TopLine="31"/>
       </Position14>
       <Position15>
         <Filename Value="mainf.pas"/>
-        <Caret Line="48" Column="73" TopLine="32"/>
+        <Caret Line="1" Column="2" TopLine="1"/>
       </Position15>
       <Position16>
         <Filename Value="mainf.pas"/>
-        <Caret Line="34" Column="58" TopLine="31"/>
+        <Caret Line="96" Column="11" TopLine="79"/>
       </Position16>
       <Position17>
         <Filename Value="mainf.pas"/>
-        <Caret Line="1" Column="2" TopLine="1"/>
+        <Caret Line="58" Column="1" TopLine="58"/>
       </Position17>
       <Position18>
         <Filename Value="mainf.pas"/>
-        <Caret Line="96" Column="11" TopLine="79"/>
+        <Caret Line="51" Column="29" TopLine="29"/>
       </Position18>
       <Position19>
         <Filename Value="mainf.pas"/>
-        <Caret Line="58" Column="1" TopLine="58"/>
+        <Caret Line="8" Column="31" TopLine="1"/>
       </Position19>
       <Position20>
         <Filename Value="mainf.pas"/>
-        <Caret Line="51" Column="29" TopLine="29"/>
+        <Caret Line="9" Column="31" TopLine="1"/>
       </Position20>
       <Position21>
         <Filename Value="mainf.pas"/>
-        <Caret Line="8" Column="31" TopLine="1"/>
+        <Caret Line="45" Column="36" TopLine="33"/>
       </Position21>
       <Position22>
         <Filename Value="mainf.pas"/>
-        <Caret Line="9" Column="31" TopLine="1"/>
+        <Caret Line="74" Column="9" TopLine="57"/>
       </Position22>
       <Position23>
         <Filename Value="mainf.pas"/>
-        <Caret Line="45" Column="36" TopLine="33"/>
+        <Caret Line="87" Column="1" TopLine="83"/>
       </Position23>
       <Position24>
         <Filename Value="mainf.pas"/>
-        <Caret Line="74" Column="9" TopLine="57"/>
+        <Caret Line="139" Column="3" TopLine="105"/>
       </Position24>
       <Position25>
         <Filename Value="mainf.pas"/>
-        <Caret Line="87" Column="1" TopLine="83"/>
+        <Caret Line="93" Column="13" TopLine="67"/>
       </Position25>
       <Position26>
         <Filename Value="mainf.pas"/>
-        <Caret Line="139" Column="3" TopLine="105"/>
+        <Caret Line="108" Column="3" TopLine="85"/>
       </Position26>
       <Position27>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="93" Column="13" TopLine="67"/>
+        <Filename Value="..\..\..\src\components\kambiglcontrol.pas"/>
+        <Caret Line="1013" Column="28" TopLine="996"/>
       </Position27>
       <Position28>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="108" Column="3" TopLine="85"/>
+        <Filename Value="..\..\..\src\components\kambiglcontrol.pas"/>
+        <Caret Line="1006" Column="7" TopLine="988"/>
       </Position28>
+      <Position29>
+        <Filename Value="..\..\..\src\components\kambiglcontrol.pas"/>
+        <Caret Line="1032" Column="40" TopLine="998"/>
+      </Position29>
+      <Position30>
+        <Filename Value="..\..\..\src\components\kambiglcontrol.pas"/>
+        <Caret Line="1082" Column="40" TopLine="1065"/>
+      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

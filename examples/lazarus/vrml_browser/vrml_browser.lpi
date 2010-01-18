@@ -38,14 +38,14 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="39">
+    <Units Count="40">
       <Unit0>
         <Filename Value="vrml_browser.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="vrml_browser"/>
         <CursorPos X="53" Y="17"/>
         <TopLine Value="1"/>
-        <UsageCount Value="68"/>
+        <UsageCount Value="70"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
@@ -53,10 +53,10 @@
         <ComponentName Value="Main"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="22" Y="224"/>
+        <CursorPos X="7" Y="221"/>
         <TopLine Value="210"/>
         <EditorIndex Value="0"/>
-        <UsageCount Value="68"/>
+        <UsageCount Value="70"/>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
@@ -125,7 +125,7 @@
         <UnitName Value="OpenGLInformation"/>
         <CursorPos X="30" Y="36"/>
         <TopLine Value="18"/>
-        <UsageCount Value="56"/>
+        <UsageCount Value="58"/>
       </Unit10>
       <Unit11>
         <Filename Value="mainf.lfm"/>
@@ -244,7 +244,7 @@
         <UnitName Value="VrmlConsoleF"/>
         <CursorPos X="3" Y="50"/>
         <TopLine Value="11"/>
-        <UsageCount Value="48"/>
+        <UsageCount Value="50"/>
       </Unit27>
       <Unit28>
         <Filename Value="../../../vrml/vrmlerrors.pas"/>
@@ -322,12 +322,23 @@
         <TopLine Value="74"/>
         <UsageCount Value="10"/>
       </Unit38>
+      <Unit39>
+        <Filename Value="../../../src/vrml/vrmlscene.pas"/>
+        <UnitName Value="VRMLScene"/>
+        <CursorPos X="33" Y="3015"/>
+        <TopLine Value="3007"/>
+        <UsageCount Value="10"/>
+      </Unit39>
     </Units>
-    <JumpHistory Count="1" HistoryIndex="0">
+    <JumpHistory Count="2" HistoryIndex="1">
       <Position1>
         <Filename Value="mainf.pas"/>
         <Caret Line="223" Column="51" TopLine="213"/>
       </Position1>
+      <Position2>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="224" Column="22" TopLine="210"/>
+      </Position2>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
