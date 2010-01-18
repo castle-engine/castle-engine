@@ -578,6 +578,8 @@ type
     FRotationHorizontalSpeed, FRotationVerticalSpeed: Single;
     FPreferGravityUpForRotations: boolean;
     FPreferGravityUpForMoving: boolean;
+    FLastIsAboveTheGround: boolean;
+    FLastSqrHeightAboveTheGround: Single;
 
     procedure SetPosition(const Value: TVector3Single);
     procedure SetDirection(const Value: TVector3Single);
@@ -1342,6 +1344,19 @@ type
 
     procedure GetCameraVectors(out APos, ADir, AUp: TVector3Single); override;
     function GetPosition: TVector3Single; override;
+
+    { Last known information about whether camera is over the ground.
+      These values are gathered by every DoGetCameraHeight
+      (OnGetCameraHeight) call.
+
+      Note that these are updated only when DoGetCameraHeight
+      (OnGetCameraHeight) are continously called, which in practice means:
+      only when @link(Gravity) is @true.
+
+      @groupBegin }
+    property LastIsAboveTheGround: boolean read FLastIsAboveTheGround;
+    property LastSqrHeightAboveTheGround: Single read FLastSqrHeightAboveTheGround;
+    { @groupEnd }
   end;
 
 { See TWalkCamera.CorrectCameraPreferredHeight.
@@ -2153,6 +2168,9 @@ begin
   IsAboveTheGround := false;
   if Assigned(OnGetCameraHeight) then
     OnGetCameraHeight(Self, IsAboveTheGround, SqrHeightAboveTheGround);
+
+  FLastIsAboveTheGround := IsAboveTheGround;
+  FLastSqrHeightAboveTheGround := SqrHeightAboveTheGround;
 end;
 
 function TWalkCamera.UseHeadBobbing: boolean;
