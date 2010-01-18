@@ -92,6 +92,10 @@ type
     procedure CameraGetHeight(ACamera: TWalkCamera;
       out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
     procedure CameraVisibleChange(ACamera: TObject);
+
+    { scene callbacks }
+    procedure SceneBoundViewpointChanged(Scene: TVRMLScene);
+    procedure SceneBoundViewpointVectorsChanged(Scene: TVRMLScene);
   protected
     { These variables are writeable from overridden ApplyProjection. }
     FAngleOfViewX: Single;
@@ -228,6 +232,16 @@ type
         @item(Decides if, and where, the main light casting shadows is
           (see TVRMLGLScene.MainLightForShadowsExists, TVRMLGLScene.MainLightForShadows).)
         @item Sets OpenGL projection for the scene, see ApplyProjection.
+
+        @item(Synchronizes our @link(Camera) with VRML/X3D viewpoints.
+          This means that @link(Camera) will be updated when VRML/X3D events
+          change current Viewpoint, for example you can animate the camera
+          by animating viewpoint (or it's transformation) or bind camera
+          to a viewpoint.
+
+          Note that scene manager "hijacks" Scene events
+          OnBoundViewpointVectorsChanged and  ViewpointStack.OnBoundChanged
+          for this purpose.)
       )
 
       The above stuff is only sensible when done once per scene manager,
@@ -374,12 +388,20 @@ begin
   if FMainScene <> Value then
   begin
     if FMainScene <> nil then
+    begin
       FMainScene.RemoveFreeNotification(Self);
+      FMainScene.OnBoundViewpointVectorsChanged := nil;
+      FMainScene.ViewpointStack.OnBoundChanged := nil;
+    end;
 
     FMainScene := Value;
 
     if FMainScene <> nil then
+    begin
       FMainScene.FreeNotification(Self);
+      FMainScene.OnBoundViewpointVectorsChanged := @SceneBoundViewpointVectorsChanged;
+      FMainScene.ViewpointStack.OnBoundChanged := @SceneBoundViewpointChanged;
+    end;
 
     ApplyProjectionNeeded := true;
   end;
@@ -746,6 +768,18 @@ begin
   Items.GetCameraHeight(ACamera.Position, ACamera.GravityUp,
     @CollisionIgnoreItem,
     IsAboveTheGround, SqrHeightAboveTheGround, GroundItem);
+end;
+
+procedure TSceneManager.SceneBoundViewpointChanged(Scene: TVRMLScene);
+begin
+  if Camera <> nil then
+    Scene.CameraBindToViewpoint(Camera, false);
+end;
+
+procedure TSceneManager.SceneBoundViewpointVectorsChanged(Scene: TVRMLScene);
+begin
+  if Camera <> nil then
+    Scene.CameraBindToViewpoint(Camera, true);
 end;
 
 end.

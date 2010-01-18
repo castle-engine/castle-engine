@@ -36,11 +36,6 @@ Better Lazarus integration:
 
   * Use TSceneManager.Camera property more, setting this should give more instant integration of camera with the scene.
 
-    Also, maybe automatically bind camera collision-detection callbacks to use our octree?
-
-    Definitely the job for TSceneManager, as in the future we would like to have some TBase3D that is just a "translated" other TBase3D. Following castle's approach to level objects.
-    So Camera 3d coords and scene/animation 3d coords may not live in the same 3d space.
-
   * Hm, also CreateCamera should be in TSceneManager?
     To take as bounding box (for examine navigator) sum of bboxes?
     TVRMLScene gets CreateCamera with box --- use this in TSceneManager.

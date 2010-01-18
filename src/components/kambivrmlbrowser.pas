@@ -84,9 +84,6 @@ type
   private
     SceneManager: TSceneManager;
 
-    procedure BoundViewpointChanged(Scene: TVRMLScene);
-    procedure BoundViewpointVectorsChanged(Scene: TVRMLScene);
-
     procedure UpdateCursor(Sender: TObject);
 
     function GetShadowVolumes: boolean;
@@ -193,8 +190,6 @@ begin
 
   { prepare for events procesing (although we let the decision whether
     to turn ProcessEvent := true to the caller). }
-  Scene.OnBoundViewpointVectorsChanged := @BoundViewpointVectorsChanged;
-  Scene.ViewpointStack.OnBoundChanged := @BoundViewpointChanged;
   Scene.OnPointingDeviceSensorsChange := @UpdateCursor;
 
   { Call initial ViewerChanged (this allows ProximitySensors to work
@@ -234,16 +229,6 @@ begin
   if SensorsCount <> 0 then
     CursorNonMouseLook := crHandPoint else
     CursorNonMouseLook := crDefault;
-end;
-
-procedure TKamVRMLBrowser.BoundViewpointChanged(Scene: TVRMLScene);
-begin
-  Scene.CameraBindToViewpoint(Camera, false);
-end;
-
-procedure TKamVRMLBrowser.BoundViewpointVectorsChanged(Scene: TVRMLScene);
-begin
-  Scene.CameraBindToViewpoint(Camera, true);
 end;
 
 function TKamVRMLBrowser.GetShadowVolumes: boolean;
