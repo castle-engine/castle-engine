@@ -59,15 +59,9 @@ type
 
     For some of these features, you'll have to set the @link(MainScene) property.
 
-    TODO: this should also provide "wrapper" methods around all owned
-    scenes. Much like TVRMLGLAnimation does now for scene items.
-    Except that we would like to eliminate these TVRMLGLAnimation methods,
-    everything should use SceneManager then.
-
     This is a TUIControl descendant, which means it's adviced usage
     is to add this to TGLUIWindow.Controls or TKamOpenGLControl.Controls.
-    TODO: This will pass TUIControl events to all the scenes inside.
-    (for now, it does not, and scenes should be added independently to Controls.)
+    This passes relevant TUIControl events to all the TBase3D objects inside.
   }
   TSceneManager = class(TUIControl)
   private
