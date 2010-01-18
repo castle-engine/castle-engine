@@ -78,6 +78,7 @@ type
 
     ApplyProjectionNeeded: boolean;
     FOnCameraChanged: TNotifyEvent;
+    FOnBoundViewpointChanged: TNotifyEvent;
 
     procedure SetMainScene(const Value: TVRMLGLScene);
     procedure SetCamera(const Value: TCamera);
@@ -240,8 +241,9 @@ type
           to a viewpoint.
 
           Note that scene manager "hijacks" Scene events
-          OnBoundViewpointVectorsChanged and  ViewpointStack.OnBoundChanged
-          for this purpose.)
+          OnBoundViewpointVectorsChanged and ViewpointStack.OnBoundChanged
+          for this purpose. If you want to know when viewpoint changes,
+          you can use scene manager's event OnBoundViewpointChanged.)
       )
 
       The above stuff is only sensible when done once per scene manager,
@@ -315,6 +317,10 @@ type
     { Called on any camera change. Exactly when TCamera generates it's
       OnVisibleChange event. }
     property OnCameraChanged: TNotifyEvent read FOnCameraChanged write FOnCameraChanged;
+
+    { Called when bound Viewpoint node changes. This is called exactly when
+      TVRMLScene.ViewpointStack.OnBoundChanged is called. }
+    property OnBoundViewpointChanged: TNotifyEvent read FOnBoundViewpointChanged write FOnBoundViewpointChanged;
   end;
 
 procedure Register;
@@ -774,6 +780,12 @@ procedure TSceneManager.SceneBoundViewpointChanged(Scene: TVRMLScene);
 begin
   if Camera <> nil then
     Scene.CameraBindToViewpoint(Camera, false);
+
+  { bound Viewpoint.fieldOfView changed, so update projection }
+  ApplyProjectionNeeded := true;
+
+  if Assigned(OnBoundViewpointChanged) then
+    OnBoundViewpointChanged(Self);
 end;
 
 procedure TSceneManager.SceneBoundViewpointVectorsChanged(Scene: TVRMLScene);
