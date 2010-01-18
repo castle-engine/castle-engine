@@ -85,13 +85,6 @@ type
     SceneManager: TSceneManager;
     FOnCameraChanged: TNotifyEvent;
 
-    function MoveAllowed(ACamera: TWalkCamera;
-      const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-      const BecauseOfGravity: boolean): boolean;
-    procedure GetCameraHeight(ACamera: TWalkCamera;
-      out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
-
-    procedure CameraVisibleChange(ACamera: TObject);
     procedure BoundViewpointChanged(Scene: TVRMLScene);
     procedure BoundViewpointVectorsChanged(Scene: TVRMLScene);
 
@@ -195,14 +188,7 @@ begin
 
   { init Camera }
   Camera := Scene.CreateCamera(Self);
-  Camera.OnVisibleChange := @CameraVisibleChange;
   SceneManager.Camera := Camera;
-
-  if Camera is TWalkCamera then
-  begin
-    (Camera as TWalkCamera).OnMoveAllowed := @MoveAllowed;
-    (Camera as TWalkCamera).OnGetCameraHeight := @GetCameraHeight;
-  end;
 
   { prepare for events procesing (although we let the decision whether
     to turn ProcessEvent := true to the caller). }
@@ -249,62 +235,19 @@ begin
     CursorNonMouseLook := crDefault;
 end;
 
-function TKamVRMLBrowser.MoveAllowed(ACamera: TWalkCamera;
-  const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-  const BecauseOfGravity: boolean): boolean;
-begin
-  if Scene.OctreeCollisions <> nil then
-  begin
-    Result := Scene.OctreeCollisions.MoveAllowed(
-      ACamera.Position, ProposedNewPos, NewPos, ACamera.CameraRadius);
-  end else
-  begin
-    Result := true;
-    NewPos := ProposedNewPos;
-  end;
+{ TODO:
+    When octree is not available, we actually don't want gravity to
+    cause falling down. So return values pretending we're standing
+    still on the ground.
+  IsAboveTheGround := true;
+  SqrHeightAboveTheGround := Sqr(ACamera.CameraPreferredHeight);
+}
 
-  { Don't let user to fall outside of the box because of gravity. }
-  if Result and BecauseOfGravity then
-    Result := SimpleKeepAboveMinPlane(NewPos, Scene.BoundingBox,
-      ACamera.GravityUp);
-end;
-
-procedure TKamVRMLBrowser.GetCameraHeight(ACamera: TWalkCamera;
-  out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
-var
-  GroundItem: PVRMLTriangle;
-begin
-  if Scene.OctreeCollisions <> nil then
-  begin
-    Scene.OctreeCollisions.GetCameraHeight(
-      ACamera.Position,
-      ACamera.GravityUp,
-      IsAboveTheGround, SqrHeightAboveTheGround, GroundItem,
-      nil, nil);
-  end else
-  begin
-    { When octree is not available, we actually don't want gravity to
-      cause falling down. So return values pretending we're standing
-      still on the ground. }
-    IsAboveTheGround := true;
-    SqrHeightAboveTheGround := Sqr(ACamera.CameraPreferredHeight);
-  end;
-end;
-
-procedure TKamVRMLBrowser.CameraVisibleChange(ACamera: TObject);
-begin
-  { Camera.OnVisibleChange callback is initialized in constructor
-    before Scene is initialized. So to be on the safest side, we check
-    here Scene <> nil. }
-
-  if Scene <> nil then
-  begin
-    Scene.ViewerChanged(Camera, SceneManager.ViewerToChanges);
-  end;
+{ TODO: from CameraVisibleChange:
 
   if Assigned(OnCameraChanged) then
     OnCameraChanged(ACamera);
-end;
+}
 
 procedure TKamVRMLBrowser.BoundViewpointChanged(Scene: TVRMLScene);
 begin

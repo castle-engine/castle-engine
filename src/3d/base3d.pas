@@ -19,7 +19,7 @@ unit Base3D;
 interface
 
 uses Classes, VectorMath, Frustum, Boxes3D, UIControls, Contnrs,
-  KambiClassUtils, KeysMouse;
+  KambiClassUtils, KeysMouse, VRMLTriangle;
 
 type
   { Various things that TBase3D.PrepareRender may prepare. }
@@ -218,6 +218,30 @@ type
 
       Control should clear here any resources that are tied to the GL context. }
     procedure GLContextClose; virtual;
+
+    procedure GetCameraHeight(const Position, GravityUp: TVector3Single;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc;
+      out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
+      out GroundItem: PVRMLTriangle); virtual;
+
+    function MoveAllowedSimple(
+      const OldPos, ProposedNewPos: TVector3Single;
+      const CameraRadius: Single;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; virtual;
+
+    function MoveBoxAllowedSimple(
+      const OldPos, ProposedNewPos: TVector3Single;
+      const ProposedNewBox: TBox3d;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; virtual;
+
+    function SegmentCollision(const Pos1, Pos2: TVector3Single;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; virtual;
+
+    function SphereCollision(const Pos: TVector3Single; const Radius: Single;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; virtual;
+
+    function BoxCollision(const Box: TBox3d;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; virtual;
   end;
 
   TBase3DList = class;
@@ -274,6 +298,24 @@ type
     function MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
     procedure Idle(const CompSpeed: Single); override;
     procedure GLContextClose; override;
+    procedure GetCameraHeight(const Position, GravityUp: TVector3Single;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc;
+      out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
+      out GroundItem: PVRMLTriangle); override;
+    function MoveAllowedSimple(
+      const OldPos, ProposedNewPos: TVector3Single;
+      const CameraRadius: Single;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+    function MoveBoxAllowedSimple(
+      const OldPos, ProposedNewPos: TVector3Single;
+      const ProposedNewBox: TBox3d;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+    function SegmentCollision(const Pos1, Pos2: TVector3Single;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+    function SphereCollision(const Pos: TVector3Single; const Radius: Single;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+    function BoxCollision(const Box: TBox3d;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
   published
     { 3D objects inside.
       Freeing these items automatically removes them from this list. }
@@ -358,6 +400,53 @@ end;
 
 procedure TBase3D.GLContextClose;
 begin
+end;
+
+procedure TBase3D.GetCameraHeight(const Position, GravityUp: TVector3Single;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc;
+  out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
+  out GroundItem: PVRMLTriangle);
+begin
+  IsAboveTheGround := false;
+  { HeightAboveTheGround and GroundItem are undefined when
+    IsAboveTheGround = false, but let's set them anyway (to ease debugging,
+    things should better be predictable). }
+  SqrHeightAboveTheGround := 0;
+  GroundItem := nil;
+end;
+
+function TBase3D.MoveAllowedSimple(
+  const OldPos, ProposedNewPos: TVector3Single;
+  const CameraRadius: Single;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+begin
+  Result := true;
+end;
+
+function TBase3D.MoveBoxAllowedSimple(
+  const OldPos, ProposedNewPos: TVector3Single;
+  const ProposedNewBox: TBox3d;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+begin
+  Result := true;
+end;
+
+function TBase3D.SegmentCollision(const Pos1, Pos2: TVector3Single;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+begin
+  Result := false;
+end;
+
+function TBase3D.SphereCollision(const Pos: TVector3Single; const Radius: Single;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+begin
+  Result := false;
+end;
+
+function TBase3D.BoxCollision(const Box: TBox3d;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+begin
+  Result := false;
 end;
 
 { TBase3DListCore ------------------------------------------------------------ }
@@ -576,5 +665,133 @@ begin
   if (Operation = opRemove) and (AComponent is TBase3D) then
     List.DeleteAll(AComponent);
 end;
+
+procedure TBase3DList.GetCameraHeight(const Position, GravityUp: TVector3Single;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc;
+  out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
+  out GroundItem: PVRMLTriangle);
+var
+  I: Integer;
+  IsAboveThis: boolean;
+  SqrHeightAboveThis: Single;
+  GroundItemThis: PVRMLTriangle;
+begin
+  inherited;
+
+  if Exists and Collides then
+    for I := 0 to List.Count - 1 do
+    begin
+      List[I].GetCameraHeight(Position, GravityUp, TrianglesToIgnoreFunc,
+        IsAboveThis, SqrHeightAboveThis, GroundItemThis);
+
+      if IsAboveThis and
+        ((not IsAboveTheGround) or (SqrHeightAboveThis < SqrHeightAboveTheGround)) then
+      begin
+        IsAboveTheGround := true;
+        SqrHeightAboveTheGround := SqrHeightAboveThis;
+        GroundItem := GroundItemThis;
+      end;
+    end;
+end;
+
+function TBase3DList.MoveAllowedSimple(
+  const OldPos, ProposedNewPos: TVector3Single;
+  const CameraRadius: Single;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+var
+  I: Integer;
+begin
+  Result := true;
+
+  if Exists and Collides then
+    for I := 0 to List.Count - 1 do
+    begin
+      Result := List[I].MoveAllowedSimple(OldPos, ProposedNewPos,
+        CameraRadius, TrianglesToIgnoreFunc);
+      if not Result then Exit;
+    end;
+end;
+
+function TBase3DList.MoveBoxAllowedSimple(
+  const OldPos, ProposedNewPos: TVector3Single;
+  const ProposedNewBox: TBox3d;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+var
+  I: Integer;
+begin
+  Result := true;
+
+  if Exists and Collides then
+    for I := 0 to List.Count - 1 do
+    begin
+      Result := List[I].MoveBoxAllowedSimple(OldPos, ProposedNewPos,
+        ProposedNewBox, TrianglesToIgnoreFunc);
+      if not Result then Exit;
+    end;
+end;
+
+function TBase3DList.SegmentCollision(const Pos1, Pos2: TVector3Single;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+var
+  I: Integer;
+begin
+  Result := false;
+
+  if Exists and Collides then
+    for I := 0 to List.Count - 1 do
+    begin
+      Result := List[I].SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc);
+      if Result then Exit;
+    end;
+end;
+
+function TBase3DList.SphereCollision(const Pos: TVector3Single; const Radius: Single;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+var
+  I: Integer;
+begin
+  Result := false;
+
+  if Exists and Collides then
+    for I := 0 to List.Count - 1 do
+    begin
+      Result := List[I].SphereCollision(Pos, Radius, TrianglesToIgnoreFunc);
+      if Result then Exit;
+    end;
+end;
+
+function TBase3DList.BoxCollision(const Box: TBox3d;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+var
+  I: Integer;
+begin
+  Result := false;
+
+  if Exists and Collides then
+    for I := 0 to List.Count - 1 do
+    begin
+      Result := List[I].BoxCollision(Box, TrianglesToIgnoreFunc);
+      if Result then Exit;
+    end;
+end;
+
+(*
+function TBase3DList.RayCollision(
+  out IntersectionDistance: Single;
+  const Ray0, RayVector: TVector3Single;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): TCollisionInfo;
+var
+  Index: Integer;
+begin
+  if Exists and Collides then
+  begin
+    Result := List.RayCollision(IntersectionDistance, Index, Ray0, RayVector,
+      TrianglesToIgnoreFunc);
+    if Result <> nil then
+      Result.Hierarchy.Insert(0, Self);
+  end else
+    Result := nil;
+end;
+*)
 
 end.

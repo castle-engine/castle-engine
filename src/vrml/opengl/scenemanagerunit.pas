@@ -20,7 +20,7 @@ interface
 
 uses Classes, VectorMath, VRMLGLScene, VRMLScene, Cameras,
   VRMLGLHeadLight, ShadowVolumes, GL, GLCubeMap, UIControls, Base3D,
-  KeysMouse;
+  KeysMouse, VRMLTriangle;
 
 type
   { Scene manager that knows about all 3D things inside your world.
@@ -89,12 +89,27 @@ type
     procedure SetShadowVolumesPossible(const Value: boolean);
 
     procedure ItemsVisibleChange(Sender: TObject);
+
+    { camera callbacks }
+    function CameraMoveAllowed(ACamera: TWalkCamera;
+      const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const BecauseOfGravity: boolean): boolean;
+    procedure CameraGetHeight(ACamera: TWalkCamera;
+      out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
+    procedure CameraVisibleChange(ACamera: TObject);
   protected
     { These variables are writeable from overridden ApplyProjection. }
     FAngleOfViewX: Single;
     FAngleOfViewY: Single;
     FWalkProjectionNear: Single;
     FWalkProjectionFar : Single;
+
+    { Triangles to ignore by all collision detection in scene manager.
+      The default implementation in this class resturns always @false,
+      so nothing is ignored. You can override it e.g. to ignore your "water"
+      material, when you want player to dive under the water. }
+    function CollisionIgnoreItem(const Octree: TVRMLBaseTrianglesOctree;
+      const Triangle: PVRMLTriangle): boolean; virtual;
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -234,6 +249,11 @@ type
       at least at the time of MouseMove methods call
       (that is, when container passed mouse events to this scene).
 
+      We will "hijack" Camera events: OnVisibleChange, OnMoveAllowed,
+      OnGetCameraHeight, handling them in a proper way.
+      Note that Camera.OnVisibleChange will cause our own
+      TSceneManager.VisibleChange, so you will not miss it.
+
       Freeing Camera will automatically set this to @nil. }
     property Camera: TCamera read FCamera write SetCamera;
 
@@ -369,12 +389,31 @@ begin
   if FCamera <> Value then
   begin
     if FCamera <> nil then
+    begin
       FCamera.RemoveFreeNotification(Self);
+      FCamera.OnVisibleChange := nil;
+      if FCamera is TWalkCamera then
+      begin
+        TWalkCamera(FCamera).OnMoveAllowed := nil;
+        TWalkCamera(FCamera).OnGetCameraHeight := nil;
+      end;
+    end;
 
     FCamera := Value;
 
     if FCamera <> nil then
+    begin
       FCamera.FreeNotification(Self);
+      { Unconditionally change FCamera.OnVisibleChange callback,
+        to override TGLUIWindow / TKamOpenGLControl that also try
+        to "hijack" this camera's event. }
+      FCamera.OnVisibleChange := @CameraVisibleChange;
+      if FCamera is TWalkCamera then
+      begin
+        TWalkCamera(FCamera).OnMoveAllowed := @CameraMoveAllowed;
+        TWalkCamera(FCamera).OnGetCameraHeight := @CameraGetHeight;
+      end;
+    end;
 
     { Changing camera changes also the view rapidly. }
     if MainScene <> nil then
@@ -658,6 +697,69 @@ end;
 function TSceneManager.PositionInside(const X, Y: Integer): boolean;
 begin
   Result := true;
+end;
+
+procedure TSceneManager.CameraVisibleChange(ACamera: TObject);
+begin
+  if MainScene <> nil then
+    { MainScene.ViewerChanged will cause MainScene.[On]VisibleChange,
+      that (assuming here that MainScene is also on Items) will cause
+      ItemsVisibleChange that will cause our own VisibleChange.
+      So this way MainScene.ViewerChanged will also cause our VisibleChange. }
+    MainScene.ViewerChanged(Camera, ViewerToChanges) else
+    VisibleChange;
+end;
+
+function TSceneManager.CollisionIgnoreItem(const Octree: TVRMLBaseTrianglesOctree;
+  const Triangle: PVRMLTriangle): boolean;
+begin
+  Result := false;
+end;
+
+function TSceneManager.CameraMoveAllowed(ACamera: TWalkCamera;
+  const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+  const BecauseOfGravity: boolean): boolean;
+begin
+  { There is unfortunately no way to implement this by calling MoveAllowed
+    on all children Items, as various MoveAllowed could modify NewPos
+    making it colliding with other items. So we have to use simple
+    MoveAllowedSimple on most items, and call "real" MoveAllowed
+    (with wall sliding) only for the MainScene.
+
+    This means that only MainScene collisions provide wall sliding.
+    Collisions with other 3D objects will simply block player. }
+
+  if MainScene <> nil then
+    Result := MainScene.MoveAllowed(ACamera.Position, ProposedNewPos, NewPos,
+      ACamera.CameraRadius, @CollisionIgnoreItem) else
+  begin
+    Result := true;
+    NewPos := ProposedNewPos;
+  end;
+
+  if Result then
+  begin
+    {TODO:test, and make MoveAllowedSimple with MainScene to ignore}
+    {Result := Items.MoveAllowedSimple(ACamera, NewPos,
+      ACamera.CameraRadius, nil, @CollisionIgnoreItem);}
+
+    { TODO: allow here specification of other box, like LevelBox for castle level. }
+
+    { Don't let user to fall outside of the box because of gravity. }
+    if Result and BecauseOfGravity then
+      Result := SimpleKeepAboveMinPlane(NewPos, Items.BoundingBox,
+        ACamera.GravityUp);
+  end;
+end;
+
+procedure TSceneManager.CameraGetHeight(ACamera: TWalkCamera;
+  out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
+var
+  GroundItem: PVRMLTriangle;
+begin
+  Items.GetCameraHeight(ACamera.Position, ACamera.GravityUp,
+    @CollisionIgnoreItem,
+    IsAboveTheGround, SqrHeightAboveTheGround, GroundItem);
 end;
 
 end.

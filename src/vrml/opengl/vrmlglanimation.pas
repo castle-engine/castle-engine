@@ -20,7 +20,7 @@ interface
 
 uses SysUtils, Classes, VRMLNodes, VRMLOpenGLRenderer, VRMLScene, VRMLGLScene,
   KambiUtils, Boxes3d, KambiClassUtils, VRMLAnimation, KeysMouse,
-  KambiTimeUtils, Frustum, VectorMath, Base3D;
+  KambiTimeUtils, Frustum, VectorMath, Base3D, VRMLTriangle;
 
 {$define read_interface}
 
@@ -94,6 +94,7 @@ type
     ValidBoundingBox: boolean;
     FBoundingBox: TBox3d;
     FOptimization: TGLRendererOptimization;
+    FCollisionUseLastScene: boolean;
 
     procedure SetOptimization(const Value: TGLRendererOptimization);
 
@@ -513,6 +514,25 @@ type
       ShadowVolumes: TBaseShadowVolumes;
       const ParentTransformIsIdentity: boolean;
       const ParentTransform: TMatrix4Single); override;
+
+    procedure GetCameraHeight(const Position, GravityUp: TVector3Single;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc;
+      out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
+      out GroundItem: PVRMLTriangle); override;
+    function MoveAllowedSimple(
+      const OldPos, ProposedNewPos: TVector3Single;
+      const CameraRadius: Single;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+    function MoveBoxAllowedSimple(
+      const OldPos, ProposedNewPos: TVector3Single;
+      const ProposedNewBox: TBox3d;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+    function SegmentCollision(const Pos1, Pos2: TVector3Single;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+    function SphereCollision(const Pos: TVector3Single; const Radius: Single;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+    function BoxCollision(const Box: TBox3d;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
   published
     { Is the animation time playing, and how fast.
 
@@ -558,6 +578,38 @@ type
     property Optimization: TGLRendererOptimization
       read FOptimization write SetOptimization
       default roSeparateShapesNoTransform;
+
+    { Should collision checking check also last animation frame.
+
+      Regardless of this value, we always check collision with the
+      first animation frame (FirstScene), of course only when
+      FirstScene.OctreeCollisions is initialized, and only if
+      @link(Collides) and @link(Exists).
+
+      When CollisionUseLastScene is @true, we will also check collision
+      with the last animation frame's octree, i.e. LastScene.OctreeCollisions.
+      (Of course, only if it's initialized, e.g. by adding
+      ssDynamicCollisions to the LastScene.Spatial property.)
+      So when CollisionUseLastScene, collision checking sees the animation
+      as a sum of first and last frames geometry.
+      CollisionUseLastScene
+      is useful if the object is moving, but the move is very slight,
+      so that the sum of first and last scenes geometry is good enough
+      approximation of the whole geometry at any point of the animation.
+
+      Although it seems like a totally dumb way to check for collisions,
+      it's suitable for many purposes (see e.g. uses on "castle hall" level),
+      it's simple and not memory-consuming, and you don't have to take
+      any action when animation frame changes (because WorldTime changes
+      don't change the colliding geometry, so the animation is static from
+      the point of view of collision checking routines).
+
+      TODO: In the future other collision methods may be available.
+      First of all, checking with sum of all bounding boxes, or with particular
+      scene time box, should be available. }
+    property CollisionUseLastScene: boolean
+      read FCollisionUseLastScene
+      write FCollisionUseLastScene default false;
   end;
 
   TObjectsListItem_1 = TVRMLGLAnimation;
@@ -1755,5 +1807,139 @@ begin
     CurrentScene.RenderShadowVolume(ShadowVolumes,
       ParentTransformIsIdentity, ParentTransform);
 end;
+
+procedure TVRMLGLAnimation.GetCameraHeight(
+  const Position, GravityUp: TVector3Single;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc;
+  out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
+  out GroundItem: PVRMLTriangle);
+
+  procedure MakeScene(Scene: TVRMLScene);
+  var
+    IsAboveThis: boolean;
+    SqrHeightAboveThis: Single;
+    GroundItemThis: PVRMLTriangle;
+  begin
+    Scene.GetCameraHeight(
+      Position, GravityUp, TrianglesToIgnoreFunc,
+      IsAboveThis, SqrHeightAboveThis, GroundItemThis);
+
+    if IsAboveThis and
+      ((not IsAboveTheGround) or (SqrHeightAboveThis < SqrHeightAboveTheGround)) then
+    begin
+      IsAboveTheGround := true;
+      SqrHeightAboveTheGround := SqrHeightAboveThis;
+      GroundItem := GroundItemThis;
+    end;
+  end;
+
+begin
+  inherited;
+
+  if Exists and Collides then
+  begin
+    MakeScene(FirstScene);
+    if CollisionUseLastScene then
+      MakeScene(LastScene);
+  end;
+end;
+
+function TVRMLGLAnimation.MoveAllowedSimple(
+  const OldPos, ProposedNewPos: TVector3Single;
+  const CameraRadius: Single;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+begin
+  Result := (not Exists) or (not Collides) or
+    (FirstScene.MoveAllowedSimple(
+       OldPos, ProposedNewPos,
+       CameraRadius, TrianglesToIgnoreFunc) and
+       ( (not CollisionUseLastScene) or
+         LastScene.MoveAllowedSimple(
+           OldPos, ProposedNewPos,
+           CameraRadius, TrianglesToIgnoreFunc) ));
+end;
+
+function TVRMLGLAnimation.MoveBoxAllowedSimple(
+  const OldPos, ProposedNewPos: TVector3Single;
+  const ProposedNewBox: TBox3d;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+begin
+  Result := (not Exists) or (not Collides) or
+    (FirstScene.MoveBoxAllowedSimple(OldPos, ProposedNewPos, ProposedNewBox,
+       TrianglesToIgnoreFunc) and
+       ( (not CollisionUseLastScene) or
+         LastScene.MoveBoxAllowedSimple(OldPos, ProposedNewPos, ProposedNewBox,
+           TrianglesToIgnoreFunc) ));
+end;
+
+function TVRMLGLAnimation.SegmentCollision(const Pos1, Pos2: TVector3Single;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+begin
+  Result := Exists and Collides and
+    ( FirstScene.SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc) or
+      (CollisionUseLastScene and
+        (LastScene.SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc)))
+    );
+end;
+
+function TVRMLGLAnimation.SphereCollision(
+  const Pos: TVector3Single; const Radius: Single;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+begin
+  Result := Exists and Collides and
+    ( FirstScene.SphereCollision(Pos, Radius, TrianglesToIgnoreFunc) or
+      (CollisionUseLastScene and
+        (LastScene.SphereCollision(Pos, Radius, TrianglesToIgnoreFunc)))
+    );
+end;
+
+function TVRMLGLAnimation.BoxCollision(
+  const Box: TBox3d;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+begin
+  Result := Exists and Collides and
+    ( FirstScene.BoxCollision(Box, TrianglesToIgnoreFunc) or
+      (CollisionUseLastScene and
+        (LastScene.BoxCollision(Box, TrianglesToIgnoreFunc)))
+    );
+end;
+
+(*
+function TVRMLGLAnimation.RayCollision(
+  out IntersectionDistance: Single;
+  const Ray0, RayVector: TVector3Single;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): TCollisionInfo;
+var
+  Triangle: PVRMLTriangle;
+  Octree: TVRMLBaseTrianglesOctree;
+begin
+  Result := nil;
+  if Exists and Collides then
+  begin
+    Octree := FirstScene.OctreeCollisions;
+    Triangle := Octree.RayCollision(IntersectionDistance,
+      Ray0, RayVector, false, nil, false, TrianglesToIgnoreFunc);
+    if Triangle <> nil then
+    begin
+      Result := TCollisionInfo.Create;
+      Result.Triangle := Triangle;
+      Result.Hierarchy.Add(Self);
+    end else
+    if CollisionUseLastScene then
+    begin
+      { try the same thing on LastScene }
+      Octree := LastScene.OctreeCollisions;
+      Triangle := Octree.RayCollision(IntersectionDistance,
+        Ray0, RayVector, false, nil, false, TrianglesToIgnoreFunc);
+      if Triangle <> nil then
+      begin
+        Result := TCollisionInfo.Create;
+        Result.Triangle := Triangle;
+        Result.Hierarchy.Add(Self);
+      end
+    end;
+  end;
+end;
+*)
 
 end.
