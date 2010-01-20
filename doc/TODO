@@ -15,6 +15,62 @@ view3dscene 3.5 blockers:
 Better Lazarus integration:
 (Some before view3dscene 3.5, some probably for later.)
 
+* remaining stuff for integration:
+  1. lighting:
+
+  Scene.Attributes.UseLights := true;
+  Scene.Attributes.FirstGLFreeLight := 1;
+
+  and
+
+  procedure TGLWindowVRMLBrowser.EventInit;
+  begin
+    inherited;
+    glEnable(GL_LIGHTING);
+  end;
+
+  in vrml components should not be needed.
+  Just turn lighting on by default? It's quite silly to keep it off by default,
+  every scene wants it on...
+  Attributes.UseLights to enable lighting within rendering.
+
+  2. cursor automatic, maybe also remove CursorNonMouseLook props --
+  these are clumsy.
+
+  Add TUIControl.Cursor property, with a subset of TGLWindowCursor values.
+
+  When to update? On each mousemove (when walking controls calling MouseMove),
+  also when some TUIControl.Cursor value changes.
+
+  Say about preset prorities: crHide has highest priority,
+  crDefault (default Cursor value) lowest.
+
+  When TSceneManager updates? Hm, TSceneManager should behave like TGLUIWindow:
+  set it's own Cursor in each MouseMove, or when some TBase3D.CursorChanged.
+
+  3. Eliminate the need for this, it's really hacky:
+
+  { Call initial ViewerChanged (this allows ProximitySensors to work
+    as soon as ProcessEvent becomes true). }
+  Scene.ViewerChanged(Camera, SceneManager.ViewerToChanges);
+
+  Do it in SetCamera, and SetMainScene, and that's it? I mean, when camera changes later,
+  we get CameraVisibleChange that causes Scene.ViewerChanged correctly,
+  so everything should work just perfect?
+  Test.
+
+  4. *Maybe* some automatic Camera generation (if Camera = nil and
+  we want it, create camera by MainScene.CreateCamera(..., Items.BoundingBox,...)).
+  But when exactly?
+
+  and when to add Camera to Controls? (if at all needed;
+  if not, then TCamera should not descend from TUIControl, and
+  scene manager should take care to pass events to TCamera. Doable probably,
+  but is this needed? Hm, could be sensible with connection to scene manager
+  Viewport* features, as camera mouse events should be catched only on
+  appropriate viewport.
+   ...).
+
 * view3dscene were changing WalkCamera on viewpoint changes,
   while scene manager passes to TVRMLScene.CameraBindToViewpoint
   that works only if *current* camera is WalkCamera.
