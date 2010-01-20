@@ -110,6 +110,7 @@
     procedure Send(const Value: TMatrix3Double; const Time: TVRMLTime);
     procedure Send(const Value: TMatrix4Double; const Time: TVRMLTime);
 
+    procedure SendArray(const Value: array of string; const Time: TVRMLTime);
     procedure SendArray(const Value: array of TVector2Single; const Time: TVRMLTime);
     procedure SendArray(const Value: array of TVector3Single; const Time: TVRMLTime);
     procedure SendArray(const Value: array of TVector4Single; const Time: TVRMLTime);
@@ -370,6 +371,16 @@ var
   Field: TVRMLField;
 begin
   Field := TSFMatrix4d.Create(ParentNode, Name, Value);
+  try
+    Send(Field, Time);
+  finally FreeAndNil(Field) end;
+end;
+
+procedure TVRMLEvent.SendArray(const Value: array of string; const Time: TVRMLTime);
+var
+  Field: TVRMLField;
+begin
+  Field := TMFString.Create(ParentNode, Name, Value);
   try
     Send(Field, Time);
   finally FreeAndNil(Field) end;
