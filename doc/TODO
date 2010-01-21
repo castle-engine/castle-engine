@@ -80,6 +80,9 @@ Better Lazarus integration:
       SceneManager. Also, since SceneManager will set MainScene.GLProjection in
       ContainerRersize, there can be only one SceneManager used at one time.
 
+      Hm, but some programs want their own SceneManager descendant.
+      So some SceneManagerChange(...) would be needed then anyway.
+
     - Counterargument: TSceneManager.MainScene must point to VRML-enabled:TVRMLScene.
 
       Unless we make TVRMLSceneManager? Then general TSceneManager
