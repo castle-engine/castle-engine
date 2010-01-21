@@ -75,12 +75,6 @@ var
   SceneManager: TSceneManager;
   Animation: TVRMLGLAnimation;
 
-procedure Init(glwin: TGLWindow);
-begin
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
-end;
-
 procedure KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
 begin
   if C = ' ' then
@@ -202,7 +196,6 @@ begin
     Progress.UserInterface := ProgressGLInterface;
 
     Glw.AutoRedisplay := true;
-    Glw.OnInit := @Init;
     Glw.OnKeyDown := @KeyDown;
     Glw.Caption := ProgramName;
 
