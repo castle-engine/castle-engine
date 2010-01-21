@@ -63,7 +63,6 @@ var
   LightIntensity: Single = 50;
 
   UseShadowFields: boolean = true;
-  UseLighting: boolean = true;
   UseSH: boolean = true;
   UseInterpolation: TSFInterpolation = siTrilinear;
   UseEnvLight: boolean = false;
@@ -177,7 +176,6 @@ begin
     glViewport(0, 0, Glwin.Width, Glwin.Height);
   end;
 
-  if UseLighting then glEnable(GL_LIGHTING);
   SceneReceiver.Render(nil, tgAll);
 
   glEnable(GL_LIGHTING); { shadow caster is always lit }
@@ -445,7 +443,8 @@ begin
     AddInterpolationMenu('Interpolation bilinear (4 map points)', siBilinear);
     AddInterpolationMenu('Interpolation trlinear', siTrilinear);
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItemChecked.Create('Apply OpenGL _Lighting', 110, UseLighting, true));
+    M.Append(TMenuItemChecked.Create('Apply OpenGL _Lighting', 110,
+      SceneReceiver.Attributes.Lighting, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 200));
     Result.Append(M);
@@ -490,7 +489,7 @@ begin
         UseShadowFieldsChanged;
       end;
 
-    110: UseLighting := not UseLighting;
+    110: with SceneReceiver.Attributes do Lighting := not Lighting;
     120: UseSH := not UseSH;
     130: UseEnvLight := not UseEnvLight;
 

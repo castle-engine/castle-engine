@@ -37,7 +37,6 @@ var
   Glw: TGLUIWindow;
   Scene: TVRMLGLScene;
   ViewMode: TViewMode = vmFull;
-  UseLighting: boolean = true;
   LightRadius: Single;
   LightPos: TVector3Single;
 
@@ -102,9 +101,7 @@ begin
     glViewport(0, 0, Glwin.Width, Glwin.Height);
   end;
 
-  if UseLighting then glEnable(GL_LIGHTING);
   Scene.Render(nil, tgAll);
-  if UseLighting then glDisable(GL_LIGHTING);
 
   DrawLight(false);
 end;
@@ -171,7 +168,7 @@ begin
     10: ViewMode := vmNormal;
     11: ViewMode := vmSimpleOcclusion;
     12: ViewMode := vmFull;
-    20: UseLighting := not UseLighting;
+    20: with Scene.Attributes do Lighting := not Lighting;
     100: Glwin.SaveScreenDialog(FNameAutoInc(ProgramName + '_screen_%d.png'));
     200: Glwin.Close;
     else Exit;
@@ -252,7 +249,7 @@ begin
     M.Append(Radio);
 
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItemChecked.Create('Apply OpenGL _Lighting', 20, UseLighting, true));
+    M.Append(TMenuItemChecked.Create('Apply OpenGL _Lighting', 20, Scene.Attributes.Lighting, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Save Screen ...', 100, K_F5));
     M.Append(TMenuSeparator.Create);
