@@ -76,6 +76,35 @@ type
   TMouseButton = (mbLeft, mbMiddle, mbRight);
   TMouseButtons = set of TMouseButton;
 
+  { Look of the mouse cursor.
+    Used for various properties:
+    TUIControl.Cursor, TBase3D.Cursor, TGLWindow.Cursor.
+
+    mcDefault, mcNone, mcCustom have somewhat special meanings.
+    The rest are some cursor images will well-defined meanings for the user,
+    their exact look may depend on current window manager theme etc.  }
+  TMouseCursor = (
+    { Leave cursor as default, decided by a window manager. }
+    mcDefault,
+    { Make cursor invisible. }
+    mcNone,
+    { Use a custom cursor image in TGLWindow.CustomCursor.
+
+      In normal circumstances, this should not be used for
+      TUIControl.Cursor, TBase3D.Cursor and others, as they have no way
+      to set TGLWindow.CustomCursor. }
+    mcCustom,
+    { Standard arrow, indicates, well, that user can point / click something. }
+    mcStandard,
+    { Indicates the program is busy and user should wait. }
+    mcWait,
+    { Text cursor, indicates that there's text under the cursor,
+      which usually means that it can be selected,
+      or that user can click to set focus to the text area. }
+    mcText,
+    { Indicates something active is under cursor, usually for links. }
+    mcHand);
+
 const
   { K_None is a very special value of type TKey. It means "no key",
     and is generally useful in similar situations when "nil" value

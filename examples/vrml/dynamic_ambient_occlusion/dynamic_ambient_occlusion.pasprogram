@@ -820,11 +820,11 @@ var
 begin
   NewSensorsCount := SensorsCount;
 
-  { I want to keep assertion that Glwin.CursorNonMouseLook = gcHand when
+  { I want to keep assertion that Glwin.CursorNonMouseLook = mcHand when
     we're over or keeping active some pointing-device sensors. }
   if NewSensorsCount <> 0 then
-    Glw.CursorNonMouseLook := gcHand else
-    Glw.CursorNonMouseLook := gcDefault;
+    Glw.CursorNonMouseLook := mcHand else
+    Glw.CursorNonMouseLook := mcDefault;
 end;
 
 { menu ----------------------------------------------------------------------- }

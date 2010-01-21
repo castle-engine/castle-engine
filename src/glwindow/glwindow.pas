@@ -353,7 +353,7 @@ unit GLWindow;
       Analogous for DepthBufferBits, AlphaBits, AccumBufferBits.
     - Menu mnemonics are not implemented.
       They are simply removed when Caption is displayed.
-    - CustomCursor is not implemented. Cursor = gcCursor is treated like gcDefault.
+    - CustomCursor is not implemented. Cursor = gcCursor is treated like mcDefault.
 
   GLWINDOW_TEMPLATE
     This is a special dummy implementation, useful only as an example for programmers
@@ -787,28 +787,6 @@ type
 
   EGLContextNotPossible = class(Exception);
 
-  { Values for TGLWindow.Cursor.
-
-    gcDefault, gcNone, gcCustom have somewhat special meanings.
-    The rest are some cursor images will well-defined meanings for the user,
-    their exact look may depend on current window manager theme etc.  }
-  TGLWindowCursor = (
-    { Leave cursor as default, decided by a window manager. }
-    gcDefault,
-    { Make cursor invisible. }
-    gcNone,
-    { Use custom cursor image in TGLWindow.CustomCursor. }
-    gcCustom,
-    { Standard arrow, indicates, well, that user can point / click something. }
-    gcStandard,
-    { Indicates the program is busy and user should wait. }
-    gcWait,
-    { Text cursor, indicates that there's text under the cursor, which commonly means
-      that it can be selectec, or that user can click to gain focus to text box. }
-    gcText,
-    { Indicates something active is under cursor, usually for links. }
-    gcHand);
-
   {$define read_interface_types}
   {$I glwindow_implementation_specific.inc}
   {$undef read_interface_types}
@@ -850,8 +828,8 @@ type
     FMouseX, FMouseY: integer;
     FColorBits: integer;
   private
-    FCursor: TGLWindowCursor;
-    procedure SetCursor(const Value: TGLWindowCursor);
+    FCursor: TMouseCursor;
+    procedure SetCursor(const Value: TMouseCursor);
   private
     FCustomCursor: TRGBAlphaImage;
     procedure SetCustomCursor(const Value: TRGBAlphaImage);
@@ -1273,23 +1251,23 @@ type
       read FColorBits write FColorBits default 0;
 
     { Sets mouse cursor appearance over this window.
-      See TGLWindowCursor for a list of possible values and their meanings.
+      See TMouseCursor for a list of possible values and their meanings.
 
-      TODO: for now, gcCustom is not handled anywhere. }
-    property Cursor: TGLWindowCursor read FCursor write SetCursor default gcDefault;
+      TODO: for now, mcCustom is not handled anywhere. }
+    property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
 
-    { Image for cursor, used only when @link(Cursor) = gcCustom.
+    { Image for cursor, used only when @link(Cursor) = mcCustom.
       We will try hard to use any cursor image as appropriate, but on some platforms
       cursor size may be limited (16 x 16 seems standard for GTK) and cursor
       may be forced to monochrome.
 
       Note that you still own the TRGBAlphaImage instance passed here --- you're
-      responsible for freeing it etc. If this is @nil, and @link(Cursor) = gcCustom,
-      then it will be treated like @link(Cursor) = gcDefault. (I don't raise error
+      responsible for freeing it etc. If this is @nil, and @link(Cursor) = mcCustom,
+      then it will be treated like @link(Cursor) = mcDefault. (I don't raise error
       in such case, as that would make changing both Cursor and CustomCursor values
       unnecessarily tricky for the programmer.)
 
-      TODO: for now, this is not implemented. @link(Cursor) ignores gcCustom value,
+      TODO: for now, this is not implemented. @link(Cursor) ignores mcCustom value,
       under every GLWindow implementation... sorry, CustomCursor is only a plan. }
     property CustomCursor: TRGBAlphaImage read FCustomCursor
       write SetCustomCursor;
@@ -2446,13 +2424,13 @@ type
   TGLUIWindow = class(TGLWindowDemo, IUIContainer)
   private
     FCamera: TCamera;
-    FCursorNonMouseLook: TGLWindowCursor;
+    FCursorNonMouseLook: TMouseCursor;
     FControls: TUIControlList;
     FUseControls: boolean;
     FMouseLookActive: boolean;
     FOnDrawStyle: TUIControlDrawStyle;
     procedure SetCamera(const Value: TCamera);
-    procedure SetCursorNonMouseLook(const Value: TGLWindowCursor);
+    procedure SetCursorNonMouseLook(const Value: TMouseCursor);
     procedure ControlsVisibleChange(Sender: TObject);
     procedure SetUseControls(const Value: boolean);
     procedure UpdateMouseLook;
@@ -2570,9 +2548,9 @@ type
       TGLWindow.Cursor, thus changing cursor.
       When mouse look is in use, TGLWindow.Cursor
       will remain hidden. }
-    property CursorNonMouseLook: TGLWindowCursor
+    property CursorNonMouseLook: TMouseCursor
       read FCursorNonMouseLook write SetCursorNonMouseLook
-      default gcDefault;
+      default mcDefault;
   end;
 
   { Depracted name for TGLUIWindow. @deprecated }
@@ -2996,7 +2974,7 @@ begin
  minWidth := 100;  maxWidth := 4000;
  minHeight := 100; maxHeight := 4000;
  DepthBufferBits := DefaultDepthBufferBits;
- FCursor := gcDefault;
+ FCursor := mcDefault;
  FMultiSampling := 1;
  FWindowVisible := true;
  OwnsMainMenu := true;
@@ -4471,7 +4449,7 @@ begin
 end;
 
 procedure TGLUIWindow.SetCursorNonMouseLook(
-  const Value: TGLWindowCursor);
+  const Value: TMouseCursor);
 begin
   if Value <> FCursorNonMouseLook then
   begin
@@ -4510,7 +4488,7 @@ begin
   CalculateMouseLookActive;
 
   if MouseLookActive then
-    Cursor := gcNone else
+    Cursor := mcNone else
     Cursor := CursorNonMouseLook;
 
   { Initially I was doing here

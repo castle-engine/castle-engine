@@ -37,7 +37,7 @@ private
   FXDisplay: PDisplay;
   FXScreen: Integer;
   InitializeXDisplayDone: boolean;
-  XCursors: array [TGLWindowCursor] of TCursor;
+  XCursors: array [TMouseCursor] of TCursor;
 
   { uzywamy tego aby wylapac quit message. Inicjowane w SetXDisplayName }
   wmDeleteWindow: TAtom;
@@ -323,7 +323,7 @@ begin
  if viinfo    <> nil  then begin XFree(viinfo);                            viinfo := nil     end;
 end;
 
-procedure TGLWindow.SetCursor(const Value: TGLWindowCursor);
+procedure TGLWindow.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin
@@ -366,11 +366,11 @@ procedure TGLWindow.UpdateCursor;
   end;
 
 const
-  XCursorShapeFromMy: array [gcStandard .. High(TGLWindowCursor)] of LongWord =
+  XCursorShapeFromMy: array [gcStandard .. High(TMouseCursor)] of LongWord =
   ( XC_left_ptr, XC_watch, XC_xterm, XC_hand2 );
 begin
-  { TODO: for now gcCustom is treated like gcDefault }
-  if (Cursor = gcDefault) or (Cursor = gcCustom) then
+  { TODO: for now mcCustom is treated like mcDefault }
+  if (Cursor = mcDefault) or (Cursor = mcCustom) then
   begin
     XUndefineCursor(Application.XDisplay, WindowXID);
   end else
@@ -378,7 +378,7 @@ begin
     if Application.XCursors[Cursor] = X.None then
     begin
       { initialize XCursors[Cursor] }
-      if Cursor = gcNone then
+      if Cursor = mcNone then
         Application.XCursors[Cursor] := CreateNoneCursor else
         Application.XCursors[Cursor] := XCreateFontCursor(Application.XDisplay,
           XCursorShapeFromMy[Cursor]);
@@ -744,7 +744,7 @@ end;
 
 procedure TGLApplication.DestroyImplDependent;
 var
-  C: TGLWindowCursor;
+  C: TMouseCursor;
 begin
   if XDisplay <> nil then
   begin

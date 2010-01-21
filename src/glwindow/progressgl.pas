@@ -140,7 +140,7 @@ begin
    Window.Fps.Active, false, K_None, false, nil);
  ProgressFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
 
- Window.Cursor := gcWait;
+ Window.Cursor := mcWait;
 
  glDisable(GL_TEXTURE_2D);
  glDisable(GL_LIGHTING);

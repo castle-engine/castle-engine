@@ -78,7 +78,7 @@ type
       So that you can change MainMenu.Enabled without changing MainMenu
       and SetGLWindowState will restore this. }
     oldMainMenuEnabled: boolean;
-    OldCursor: TGLWindowCursor;
+    OldCursor: TMouseCursor;
     OldCustomCursor: TRGBAlphaImage;
     { TGLWindowDemo attributes } { }
     oldSwapFullScreen_Key: TKey;
@@ -131,7 +131,7 @@ type
         czesc wlasciwosci jest pominieta -
           pominiete callbacki beda ustawione na nil,
           pominiete Caption i MainMenu bedzie zostawione takie jakie jest,
-          pominiete Cursor bedzie ustawione na gcDefault.
+          pominiete Cursor bedzie ustawione na mcDefault.
         Note that NewMainMenuEnabled will be set only if Glwin.MainMenu <> nil.
         new Controls value is either empty (when NewControl = nil)
           or contains only one given control in NewControl.
@@ -434,7 +434,7 @@ begin
   if Glwin.MainMenu <> nil then
     Glwin.MainMenu.Enabled := NewMainMenuEnabled;
   {Glwin.MainMenu := leave current value}
-  Glwin.Cursor := gcDefault;
+  Glwin.Cursor := mcDefault;
 
   if glwin is TGLWindowDemo then
   begin

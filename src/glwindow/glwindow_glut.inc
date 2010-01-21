@@ -258,7 +258,7 @@ end;
 { ------------------------------------------------------------------------------
   procedury obslugujace TGLWindow poprzez GLUTa }
 
-procedure TGLWindow.SetCursor(const Value: TGLWindowCursor);
+procedure TGLWindow.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin
@@ -278,12 +278,12 @@ end;
 procedure TGLWindow.UpdateCursor;
 begin
   case Cursor of
-    { CustomCursor cannot be handled in glut, so gcCustom is treated just like gcDefault }
-    gcDefault, gcCustom: glutSetCursor(GLUT_CURSOR_INHERIT);
-    gcNone: glutSetCursor(GLUT_CURSOR_NONE);
-    gcStandard: glutSetCursor(GLUT_CURSOR_RIGHT_ARROW);
-    gcWait: glutSetCursor(GLUT_CURSOR_WAIT);
-    gcText: glutSetCursor(GLUT_CURSOR_TEXT);
+    { CustomCursor cannot be handled in glut, so mcCustom is treated just like mcDefault }
+    mcDefault, mcCustom: glutSetCursor(GLUT_CURSOR_INHERIT);
+    mcNone: glutSetCursor(GLUT_CURSOR_NONE);
+    mcStandard: glutSetCursor(GLUT_CURSOR_RIGHT_ARROW);
+    mcWait: glutSetCursor(GLUT_CURSOR_WAIT);
+    mcText: glutSetCursor(GLUT_CURSOR_TEXT);
     else raise EInternalError.Create('glwindow_glut.inc TGLWindow.UpdateCursor: unknown Cursor');
   end;
 end;

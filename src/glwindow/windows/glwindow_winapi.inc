@@ -57,10 +57,10 @@ private
     use predefined HCURSOR values and so is fast. SetCursor is guaranteed
     by WinAPI to return fast if called with already used cursor.
 
-    For gcDefault, and gcCustom, values in this array are undefined.
-    For gcNone, CursorHandle is 0 (this is what SetCursor always accepts
+    For mcDefault, and mcCustom, values in this array are undefined.
+    For mcNone, CursorHandle is 0 (this is what SetCursor always accepts
     as invisible cursor). }
-  CursorHandles: array [TGLWindowCursor] of record
+  CursorHandles: array [TMouseCursor] of record
     NameForLoadCursor: LPCTSTR;
     Handle: HCURSOR;
   end;
@@ -541,11 +541,11 @@ begin
       { Falling back on DefWindowProc means that it will install
         our window class cursor (or parent cursor) if in client area,
         or just do the right thing if outside client area.
-        So it's suitable when wParm <> h_Wnd or we want gcDefault. }
+        So it's suitable when wParm <> h_Wnd or we want mcDefault. }
       if wParm = h_Wnd then
         case Cursor of
-          gcDefault: { Fallback on DefWindowProc };
-          gcCustom: { TODO, for now behave like gcDefault };
+          mcDefault: { Fallback on DefWindowProc };
+          mcCustom: { TODO, for now behave like mcDefault };
           else
             begin
               Windows.SetCursor(Application.CursorHandles[Cursor].Handle);
@@ -1009,7 +1009,7 @@ begin
  end;
 end;
 
-procedure TGLWindow.SetCursor(const Value: TGLWindowCursor);
+procedure TGLWindow.SetCursor(const Value: TMouseCursor);
 var
   Point: Windows.TPoint;
 begin
@@ -1374,22 +1374,22 @@ end;
 procedure TGLApplication.CreateImplDependent;
 var
   WindowClass: TWndClass;
-  C: TGLWindowCursor;
+  C: TMouseCursor;
 begin
   appActive := true;
 
   { initialize NameForLoadCursor for CursorHandles }
-  CursorHandles[gcStandard].NameForLoadCursor := IDC_ARROW;
-  CursorHandles[gcWait].NameForLoadCursor := IDC_WAIT;
-  CursorHandles[gcText].NameForLoadCursor := IDC_IBEAM;
-  CursorHandles[gcHand].NameForLoadCursor := IDC_HAND;
+  CursorHandles[mcStandard].NameForLoadCursor := IDC_ARROW;
+  CursorHandles[mcWait].NameForLoadCursor := IDC_WAIT;
+  CursorHandles[mcText].NameForLoadCursor := IDC_IBEAM;
+  CursorHandles[mcHand].NameForLoadCursor := IDC_HAND;
 
   { initialize Handle for CursorHandles }
 
-  CursorHandles[gcNone].Handle := 0;
+  CursorHandles[mcNone].Handle := 0;
 
   for C := Low(C) to High(C) do
-    if not (C in [gcDefault, gcNone, gcCustom]) then
+    if not (C in [mcDefault, mcNone, mcCustom]) then
       CursorHandles[C].Handle := LoadCursor(0, CursorHandles[C].NameForLoadCursor);
 
  { create window class (WindowClass) }

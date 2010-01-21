@@ -71,7 +71,7 @@ begin
   { TODO }
 end;
 
-procedure TGLWindow.SetCursor(const Value: TGLWindowCursor);
+procedure TGLWindow.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin

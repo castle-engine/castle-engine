@@ -181,7 +181,7 @@ private
   procedure ProcessUpdates;
 private
   { Used by SetCursor, each item may be nil if not initialized. }
-  Cursors: array [TGLWindowCursor] of PGdkCursor;
+  Cursors: array [TMouseCursor] of PGdkCursor;
 
   {$ifdef GLWINDOW_GTK_2}
   FXDisplayName: string;
@@ -737,7 +737,7 @@ SIGNAL_WINDOW_END;
 
 { TGLWindow ------------------------------------------------------------ }
 
-procedure TGLWindow.SetCursor(const Value: TGLWindowCursor);
+procedure TGLWindow.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin
@@ -771,7 +771,7 @@ procedure TGLWindow.UpdateCursor;
   end;
 
 const
-  GdkCursorTypeFromMy: array [gcStandard .. High(TGLWindowCursor)] of
+  GdkCursorTypeFromMy: array [gcStandard .. High(TMouseCursor)] of
     TGdkCursorType =
   ( { I think that GDK_ARROW was traditionally standard under XWindows
       (right-top arrow), but then gtk changed standard to much more standard
@@ -787,12 +787,12 @@ begin
   begin
     { initialize Application.Cursors[Cursor] }
     case Cursor of
-      gcDefault:
-        { don't do anything, Application.Cursors[gcDefault] should be nil,
+      mcDefault:
+        { don't do anything, Application.Cursors[mcDefault] should be nil,
           gdk_window_set_cursor will understand nil as "use parent"
-          and that's exactly what we want for gcDefault. };
-      gcNone: Application.Cursors[Cursor] := CreateNoneCursor;
-      gcCustom: { TODO: temporary, behave like gcDefault };
+          and that's exactly what we want for mcDefault. };
+      mcNone: Application.Cursors[Cursor] := CreateNoneCursor;
+      mcCustom: { TODO: temporary, behave like mcDefault };
       else
       begin
         Application.Cursors[Cursor] :=
@@ -1956,7 +1956,7 @@ end;
 
 procedure TGLApplication.DestroyImplDependent;
 var
-  C: TGLWindowCursor;
+  C: TMouseCursor;
 begin
   { unref cursors allocated in Cursors array }
   for C := Low(C) to High(C) do

@@ -112,9 +112,9 @@ procedure KeyDown(glwin: TGLWindow; key: TKey; c: char);
 begin
   { Tes
   case C of
-    'n': Glwin.Cursor := gcNone;
-    'd': Glwin.Cursor := gcDefault;
-    'w': Glwin.Cursor := gcWait;
+    'n': Glwin.Cursor := mcNone;
+    'd': Glwin.Cursor := mcDefault;
+    'w': Glwin.Cursor := mcWait;
     '1': Glwin.SetMousePosition(0          , 0);
     '2': Glwin.SetMousePosition(Glwin.Width, 0);
     '3': Glwin.SetMousePosition(Glwin.Width, Glwin.Height);

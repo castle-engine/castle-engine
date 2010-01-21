@@ -189,11 +189,11 @@ procedure TGLWindowVRMLBrowser.UpdateCursor(Sender: TObject);
   end;
 
 begin
-  { I want to keep assertion that CursorNonMouseLook = gcHand when
+  { I want to keep assertion that CursorNonMouseLook = mcHand when
     we're over or keeping active some pointing-device sensors. }
   if SensorsCount <> 0 then
-    CursorNonMouseLook := gcHand else
-    CursorNonMouseLook := gcDefault;
+    CursorNonMouseLook := mcHand else
+    CursorNonMouseLook := mcDefault;
 end;
 
 function TGLWindowVRMLBrowser.GetShadowVolumes: boolean;
