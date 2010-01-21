@@ -189,10 +189,6 @@ begin
   { prepare for events procesing (although we let the decision whether
     to turn ProcessEvent := true to the caller). }
   Scene.OnPointingDeviceSensorsChange := @UpdateCursor;
-
-  { Call initial ViewerChanged (this allows ProximitySensors to work
-    as soon as ProcessEvent becomes true). }
-  Scene.ViewerChanged(Camera, SceneManager.ViewerToChanges);
 end;
 
 function TKamVRMLBrowser.Scene: TVRMLGLScene;

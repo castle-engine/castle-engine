@@ -407,6 +407,11 @@ begin
       FMainScene.FreeNotification(Self);
       FMainScene.OnBoundViewpointVectorsChanged := @SceneBoundViewpointVectorsChanged;
       FMainScene.ViewpointStack.OnBoundChanged := @SceneBoundViewpointChanged;
+
+      { Call initial ViewerChanged (this allows ProximitySensors to work
+        as soon as ProcessEvents becomes true). }
+      if Camera <> nil then
+        MainScene.ViewerChanged(Camera, ViewerToChanges);
     end;
 
     ApplyProjectionNeeded := true;
@@ -442,6 +447,11 @@ begin
         TWalkCamera(FCamera).OnMoveAllowed := @CameraMoveAllowed;
         TWalkCamera(FCamera).OnGetCameraHeight := @CameraGetHeight;
       end;
+
+      { Call initial ViewerChanged (this allows ProximitySensors to work
+        as soon as ProcessEvents becomes true). }
+      if MainScene <> nil then
+        MainScene.ViewerChanged(Camera, ViewerToChanges);
     end;
 
     { Changing camera changes also the view rapidly. }
