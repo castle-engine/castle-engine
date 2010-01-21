@@ -32,7 +32,7 @@ unit TimeMessages;
 
 interface
 
-uses GL, GLU, GLExt, GLWindow, Classes, SysUtils, KambiUtils, KambiGLUtils,
+uses GL, GLU, GLWindow, Classes, SysUtils, KambiUtils, KambiGLUtils,
   OpenGLBmpFonts, OpenGLFonts, KambiTimeUtils, VectorMath;
 
 {$define read_interface}

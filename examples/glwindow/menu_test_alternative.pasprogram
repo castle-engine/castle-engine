@@ -20,7 +20,7 @@
 
 program menu_test_alternative;
 
-uses GL, GLU, GLExt, GLWindow;
+uses GL, GLU, GLWindow;
 
 var 
   Glw: TGLWindow;

@@ -18,7 +18,7 @@ unit GLCubeMap;
 
 interface
 
-uses VectorMath, CubeMap, Images, Frustum, DDS, GL, GLU, KambiGLUtils,
+uses VectorMath, CubeMap, Images, DDS, GL, GLU, KambiGLUtils,
   RenderStateUnit, GLImages;
 
 type

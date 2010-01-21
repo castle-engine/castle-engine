@@ -37,7 +37,7 @@
 program precompute_shadow_field;
 
 uses SysUtils, ProgressUnit, ProgressConsole, KambiUtils,
-  VRMLScene, Object3dAsVRML, ShadowFields, KambiTimeUtils, VectorMath,
+  VRMLScene, ShadowFields, KambiTimeUtils, VectorMath,
   CubeMap, Boxes3d, SphericalHarmonics, ParseParametersUnit;
 
 var

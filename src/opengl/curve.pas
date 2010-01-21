@@ -280,7 +280,7 @@ type
 
 implementation
 
-uses SysUtils, GL, GLU, GLExt, ConvexHullUnit, KambiGLUtils;
+uses SysUtils, GL, GLU, ConvexHullUnit, KambiGLUtils;
 
 {$define read_implementation}
 {$I objectslist_1.inc}

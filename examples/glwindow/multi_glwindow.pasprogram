@@ -33,7 +33,7 @@ program multi_glwindow;
 {$apptype GUI}
 
 uses
-  GL, GLU, GLExt, GLWindow, SysUtils, KambiUtils, OpenGLFonts, OpenGLTTFonts,
+  GL, GLU, GLWindow, SysUtils, KambiUtils, OpenGLFonts, OpenGLTTFonts,
   TTF_BitstreamVeraSans_Unit, KambiGLUtils, KeysMouse;
 
 type

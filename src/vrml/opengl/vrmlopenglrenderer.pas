@@ -328,8 +328,8 @@ interface
 uses
   Classes, SysUtils, KambiUtils, VectorMath, GL, GLU, GLExt,
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3d, OpenGLTTFonts, Images,
-  OpenGLFonts, KambiGLUtils, VRMLLightSetGL, TTFontsTypes,
-  VRMLErrors, VideosCache, GLShaders, GLImages, Videos, VRMLTime, VRMLShape,
+  KambiGLUtils, VRMLLightSetGL, TTFontsTypes,
+  VRMLErrors, GLShaders, GLImages, Videos, VRMLTime, VRMLShape,
   GLCubeMap, TextureImages, KambiClassUtils, DDS;
 
 {$define read_interface}
@@ -1684,8 +1684,7 @@ implementation
 
 uses Math, Triangulator, NormalizationCubeMap,
   KambiStringUtils, GLVersionUnit, KambiLog,
-  VRMLGeometry, VRMLScene, Frustum, RenderStateUnit, VRMLCameraUtils,
-  RaysWindow;
+  VRMLScene, RenderStateUnit, VRMLCameraUtils, RaysWindow;
 
 {$define read_implementation}
 {$I dynarray_2.inc}

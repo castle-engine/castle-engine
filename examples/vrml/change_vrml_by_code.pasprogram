@@ -40,9 +40,8 @@
 
 program change_vrml_by_code;
 
-uses VectorMath, Boxes3d, VRMLNodes, GL, GLU, GLExt, GLWindow,
-  KambiUtils, SysUtils, Object3dAsVRML,
-  KambiGLUtils, VRMLGLScene, Cameras, SceneManagerUnit,
+uses VectorMath, VRMLNodes, GL, GLU, GLWindow,
+  KambiUtils, SysUtils, KambiGLUtils, VRMLGLScene, Cameras, SceneManagerUnit,
   KambiFilesUtils, VRMLErrors;
 
 var

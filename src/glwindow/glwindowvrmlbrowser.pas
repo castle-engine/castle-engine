@@ -19,8 +19,8 @@ unit GLWindowVRMLBrowser;
 
 interface
 
-uses Classes, VectorMath, GLWindow, VRMLNodes, VRMLGLScene, VRMLScene,
-  Cameras, VRMLGLHeadLight, SceneManagerUnit;
+uses Classes, VectorMath, GLWindow, VRMLNodes, VRMLGLScene,
+  Cameras, SceneManagerUnit;
 
 type
   { A simple VRML browser in a window. This manages TVRMLGLScene and
@@ -122,10 +122,9 @@ type
 
 implementation
 
-uses Boxes3d, VRMLOpenGLRenderer, GL, GLU,
+uses VRMLOpenGLRenderer, GL, GLU,
   KambiClassUtils, KambiUtils, SysUtils, Object3dAsVRML,
-  KambiGLUtils, KambiFilesUtils, VRMLTriangle,
-  RaysWindow, BackgroundGL, KeysMouse;
+  KambiGLUtils, KambiFilesUtils;
 
 { This uses OctreeCollisions, so either OctreeDynamicCollisions
   or OctreeCollidableTriangles, whichever is available. }

@@ -18,7 +18,7 @@ unit UIControls;
 
 interface
 
-uses SysUtils, Classes, KeysMouse, KambiUtils, KambiClassUtils, Contnrs;
+uses SysUtils, Classes, KeysMouse, KambiUtils, KambiClassUtils;
 
 type
   { Basic user interface container. This may be a window

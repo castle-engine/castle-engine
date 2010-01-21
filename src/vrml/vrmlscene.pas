@@ -22,7 +22,7 @@ uses
   VRMLFields, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLShape, VRMLTriangleOctree, ProgressUnit, KambiOctree, VRMLShapeOctree,
   KeysMouse, VRMLTime, Cameras, VRMLTriangle, Contnrs, VRMLHeadLight,
-  RenderStateUnit, UIControls, Base3D;
+  RenderStateUnit, Base3D;
 
 {$define read_interface}
 

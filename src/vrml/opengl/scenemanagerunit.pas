@@ -19,7 +19,7 @@ unit SceneManagerUnit;
 interface
 
 uses Classes, VectorMath, VRMLGLScene, VRMLScene, Cameras,
-  VRMLGLHeadLight, ShadowVolumes, GL, GLCubeMap, UIControls, Base3D,
+  VRMLGLHeadLight, ShadowVolumes, GL, UIControls, Base3D,
   KeysMouse, VRMLTriangle;
 
 type

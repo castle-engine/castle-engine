@@ -1427,8 +1427,8 @@ procedure Register;
 
 implementation
 
-uses VRMLErrors, GLVersionUnit, GLImages, Images, KambiLog,
-  Object3dAsVRML, Math, RaysWindow, KambiStringUtils, Contnrs, RenderStateUnit;
+uses VRMLErrors, GLVersionUnit, Images, KambiLog,
+  Math, RaysWindow, KambiStringUtils, RenderStateUnit;
 
 {$define read_implementation}
 {$I objectslist_1.inc}

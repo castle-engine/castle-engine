@@ -50,7 +50,7 @@ unit VRMLTriangleOctree;
 
 interface
 
-uses VectorMath, SysUtils, KambiUtils, VRMLNodes, Boxes3d, Math,
+uses VectorMath, SysUtils, KambiUtils, VRMLNodes, Boxes3d,
   KambiOctree, VRMLTriangle;
 
 {$define read_interface}

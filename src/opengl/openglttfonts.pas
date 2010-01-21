@@ -20,7 +20,7 @@ unit OpenGLTTFonts;
 
 interface
 
-uses OpenGLFonts, GL, GLU, GLExt, TTFontsTypes, SysUtils, KambiGLUtils, KambiStringUtils;
+uses OpenGLFonts, GL, GLU, TTFontsTypes, SysUtils, KambiGLUtils, KambiStringUtils;
 
 const
   SimpleAsciiCharacters = [#32 .. #126];

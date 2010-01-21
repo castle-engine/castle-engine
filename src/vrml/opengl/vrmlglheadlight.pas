@@ -83,7 +83,7 @@ type
 
 implementation
 
-uses GL, GLU, GLExt, KambiGLUtils, SysUtils, Math;
+uses GL, GLU, KambiGLUtils, SysUtils, Math;
 
 procedure TVRMLGLHeadLight.Render(GLLightNumber: Cardinal; CallEnabled: boolean;
   const HeadlightFromCurrentView: boolean;

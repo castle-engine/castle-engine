@@ -18,8 +18,8 @@
 program animate_surface;
 
 uses Cameras, Surfaces, GLWindow, GL, GLU, VectorMath,
-  KambiGLUtils, Curve, BezierCurve, Boxes3d, SysUtils, KambiUtils, KeysMouse,
-  KambiStringUtils, Math, GLWinMessages, KambiFilesUtils;
+  KambiGLUtils, BezierCurve, Boxes3d, SysUtils, KambiUtils, KeysMouse,
+  KambiStringUtils, GLWinMessages, KambiFilesUtils;
 
 var
   Glw: TGLUIWindow;

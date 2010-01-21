@@ -51,11 +51,10 @@
 
 program simple_view_model_2;
 
-uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
-  KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
+uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLWindow,
+  KambiClassUtils, KambiUtils, SysUtils, Classes,
   KambiGLUtils, VRMLScene, VRMLGLScene, Cameras,
-  ProgressUnit, ProgressConsole, KambiFilesUtils, VRMLTriangleOctree,
-  VRMLErrors, VRMLTriangle;
+  ProgressUnit, ProgressConsole, KambiFilesUtils, VRMLErrors, VRMLTriangle;
 
 var
   Glw: TGLUIWindow;

@@ -41,10 +41,9 @@
 
 program simple_view_model;
 
-uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
-  KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
-  KambiGLUtils, VRMLScene, VRMLGLScene, Cameras,
-  KambiFilesUtils, VRMLErrors;
+uses VectorMath, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLWindow,
+  KambiClassUtils, KambiUtils, SysUtils, Classes,
+  KambiGLUtils, VRMLGLScene, Cameras, KambiFilesUtils, VRMLErrors;
 
 var
   Glw: TGLUIWindow;

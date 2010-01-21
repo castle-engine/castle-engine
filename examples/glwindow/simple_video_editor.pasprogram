@@ -21,7 +21,7 @@ program simple_video_editor;
   info on stdout anyway. }
 {$apptype CONSOLE}
 
-uses KambiUtils, SysUtils, GLWindow, GL, GLU, GLExt, GLImages,
+uses KambiUtils, SysUtils, GLWindow, GL, GLU, GLImages,
   ImagesCache, Videos, KambiStringUtils, GLWinMessages,
   BFNT_BitstreamVeraSansMono_Bold_m15_Unit, OpenGLBmpFonts,
   KambiGLUtils, VectorMath, Classes, ProgressUnit, ProgressGL,

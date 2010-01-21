@@ -64,7 +64,7 @@ unit Object3dAsVRML;
 
 interface
 
-uses VectorMath, SysUtils, VRMLNodes, VRMLFields, Boxes3d, Object3dMD3,
+uses VectorMath, SysUtils, VRMLNodes, Object3dMD3,
   KambiUtils, VRMLRendererOptimization, Classes;
 
 function LoadGEOAsVRML(const filename: string): TVRMLNode;

@@ -18,7 +18,7 @@ unit Base3D;
 
 interface
 
-uses Classes, VectorMath, Frustum, Boxes3D, UIControls, Contnrs,
+uses Classes, VectorMath, Frustum, Boxes3D,
   KambiClassUtils, KeysMouse, VRMLTriangle;
 
 type

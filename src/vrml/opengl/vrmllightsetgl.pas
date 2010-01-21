@@ -33,7 +33,7 @@ unit VRMLLightSetGL;
 
 interface
 
-uses VectorMath, GL, GLU, GLExt, KambiGLUtils, VRMLNodes, VRMLLightSet;
+uses VectorMath, GL, GLU, KambiGLUtils, VRMLNodes, VRMLLightSet;
 
 type
   { Allows you to modify light's properties (currently, only the "on" state)

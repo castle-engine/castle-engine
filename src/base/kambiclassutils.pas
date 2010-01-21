@@ -742,7 +742,7 @@ implementation
 
 uses
   {$ifdef UNIX}
-    {$ifdef USE_LIBC} Libc {$else} BaseUnix, Unix {$endif}
+    {$ifdef USE_LIBC} Libc {$else} Unix {$endif}
   {$endif}
   {$ifdef MSWINDOWS} Windows {$endif}
   , StrUtils, KambiFilesUtils;

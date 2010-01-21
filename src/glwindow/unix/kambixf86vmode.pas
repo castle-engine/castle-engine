@@ -61,7 +61,7 @@ unit KambiXF86VMode;
 
 interface
 
-uses Xlib, X, XUtil;
+uses Xlib, X;
 
 {$linklib Xxf86vm}
 {$define vmdecl := cdecl; external}

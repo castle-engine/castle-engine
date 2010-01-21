@@ -19,8 +19,7 @@ unit KambiVRMLBrowser;
 interface
 
 uses Classes, KambiGLControl, VectorMath, Controls,
-  VRMLNodes, VRMLGLScene, VRMLScene, Cameras, VRMLGLHeadlight, Areas,
-  SceneManagerUnit;
+  VRMLNodes, VRMLGLScene, Cameras, SceneManagerUnit;
 
 type
   { A simple VRML browser as a Lazarus component. This manages TVRMLGLScene,
@@ -137,10 +136,9 @@ implementation
 { This uses OctreeCollisions, so either OctreeDynamicCollisions
   or OctreeCollidableTriangles, whichever is available. }
 
-uses Boxes3d, VRMLOpenGLRenderer, GL, GLU,
+uses VRMLOpenGLRenderer, GL, GLU,
   KambiClassUtils, KambiUtils, SysUtils, Object3dAsVRML,
-  KambiGLUtils, KambiFilesUtils, VRMLTriangle,
-  RaysWindow, BackgroundGL, KeysMouse;
+  KambiGLUtils, KambiFilesUtils;
 
 procedure Register;
 begin

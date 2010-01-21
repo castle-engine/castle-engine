@@ -67,7 +67,7 @@ program shadow_volume_test;
 {$apptype CONSOLE}
 
 uses GLWindow, GL, GLU, GLExt, KambiGLUtils, VRMLGLScene,
-  VRMLNodes, Cameras, VRMLScene, Boxes3d, SysUtils,
+  VRMLNodes, Cameras, Boxes3d, SysUtils,
   KambiUtils, VectorMath, VRMLLightSetGL, VRMLFields,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils, VRMLCameraUtils,
   ShadowTests, GLWinMessages, VRMLErrors, ShadowVolumes,

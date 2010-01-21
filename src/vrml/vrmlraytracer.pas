@@ -308,7 +308,7 @@ type
 
 implementation
 
-uses SysUtils, Math, Boxes3d, IllumModels, SphereSampling;
+uses SysUtils, IllumModels, SphereSampling;
 
 {$I vectormathinlines.inc}
 

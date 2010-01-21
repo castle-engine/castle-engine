@@ -47,7 +47,7 @@ unit OpenGLFonts;
 
 interface
 
-uses Classes, GL, GLU, GLExt, SysUtils, KambiGLUtils;
+uses Classes, GL, GLU, SysUtils, KambiGLUtils;
 
 type
   TGLBitmapFont_Abstract = class

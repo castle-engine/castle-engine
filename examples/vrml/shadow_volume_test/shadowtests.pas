@@ -89,7 +89,7 @@ procedure RenderBackShadowQuads(Scene: TVRMLGLScene); overload;
 
 implementation
 
-uses SysUtils, KambiGLUtils, GL, GLU, GLExt;
+uses SysUtils, KambiGLUtils, GL, GLU;
 
 {$define read_implementation}
 {$I dynarray_1.inc}

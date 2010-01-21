@@ -28,7 +28,7 @@ program demo_camera;
 
 {$apptype GUI}
 
-uses VectorMath, Boxes3d, GL, GLU, GLExt, GLWindow,
+uses VectorMath, Boxes3d, GL, GLU, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes,
   KambiGLUtils, Cameras, KambiFilesUtils;
 

@@ -57,7 +57,7 @@
 
 program precompute_radiance_transfer;
 
-uses SysUtils, KambiUtils, VectorMath, VRMLScene, VRMLNodes, Object3dAsVRML,
+uses SysUtils, KambiUtils, VectorMath, VRMLScene, VRMLNodes,
   SphereSampling, ProgressUnit, ProgressConsole,
   SphericalHarmonics, ParseParametersUnit, KambiTimeUtils, VRMLShape;
 

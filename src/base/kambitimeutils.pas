@@ -27,7 +27,7 @@ uses
   {$ifdef UNIX}
     {$ifdef USE_LIBC} Libc, {$else} BaseUnix, Unix, Dl, {$endif}
   {$endif}
-  SysUtils, KambiUtils, Math;
+  SysUtils, Math;
 
 type
   { Time in seconds. This is used throughout my engine to represent time

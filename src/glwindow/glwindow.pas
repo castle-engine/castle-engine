@@ -607,7 +607,7 @@ unit GLWindow;
 
 interface
 
-uses SysUtils, Classes, Math, VectorMath, GL, GLU, GLExt,
+uses SysUtils, Classes, VectorMath, GL, GLU, GLExt,
   {$ifdef GLWINDOW_GLUT} KambiGlut, {$endif}
   {$ifdef GLWINDOW_WINAPI} Windows, Rects,
     { In FPC < 2.2.2, CommDlg stuff was inside Windows unit. }

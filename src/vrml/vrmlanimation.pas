@@ -5,7 +5,7 @@ unit VRMLAnimation;
 
 interface
 
-uses KambiUtils, DOM, VRMLRendererOptimization, UIControls, Base3D;
+uses KambiUtils, DOM, VRMLRendererOptimization, Base3D;
 
 type
   { The non-OpenGL basis of our precalculated animation,

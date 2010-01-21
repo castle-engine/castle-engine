@@ -64,9 +64,9 @@
 
 program demo_animation;
 
-uses Math, VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
+uses VectorMath, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
-  KambiGLUtils, VRMLScene, VRMLGLScene, Cameras, VRMLGLAnimation,
+  KambiGLUtils, VRMLGLScene, Cameras, VRMLGLAnimation,
   KambiFilesUtils, ParseParametersUnit, ProgressGL, ProgressUnit, VRMLErrors,
   SceneManagerUnit;
 

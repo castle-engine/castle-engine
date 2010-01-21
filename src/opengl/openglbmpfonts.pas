@@ -28,7 +28,7 @@ unit OpenGLBmpFonts;
 
 interface
 
-uses BmpFontsTypes, OpenGLFonts, GL, GLU, GLExt, KambiGLUtils;
+uses BmpFontsTypes, OpenGLFonts, GL, GLU, KambiGLUtils;
 
 type
   TGLBitmapFont = class(TGLBitmapFont_Abstract)

@@ -516,7 +516,7 @@ function CombinePaths(BasePath, RelPath: string): string;
 
 implementation
 
-uses KambiStringUtils, KambiDynLib, KambiLog;
+uses KambiStringUtils, {$ifdef MSWINDOWS} KambiDynLib, {$endif} KambiLog;
 
 var
   { inicjowane w initialization i pozniej stale.
