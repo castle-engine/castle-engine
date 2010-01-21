@@ -719,8 +719,6 @@ const
 var
   ShaderString: string;
 begin
-  glEnable(GL_LIGHT0);
-
   if (Elements.Count = 0) or
      IsEmptyBox3d(Scene.BoundingBox) then
   begin
@@ -889,6 +887,7 @@ begin
     Scene := TVRMLGLScene.Create(Glw);
     Scene.Load(Parameters[1]);
     Scene.Optimization := roNone;
+    Scene.Attributes.Lighting := false;
     UpdateSceneAttribs;
 
     CalculateElements;
