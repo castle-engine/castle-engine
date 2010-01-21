@@ -85,6 +85,7 @@ type
     procedure SetShadowVolumesPossible(const Value: boolean);
 
     procedure ItemsVisibleChange(Sender: TObject);
+    procedure ItemsCursorChange(Sender: TObject);
 
     { camera callbacks }
     function CameraMoveAllowed(ACamera: TWalkCamera;
@@ -339,6 +340,7 @@ begin
   inherited;
   FItems := TBase3DList.Create(Self);
   FItems.OnVisibleChange := @ItemsVisibleChange;
+  FItems.OnCursorChange := @ItemsCursorChange;
   { Items is displayed and streamed with TSceneManager
     (and in the future this should allow design Items.List by IDE),
     so set some sensible Name. }
@@ -718,6 +720,21 @@ begin
 
   Camera.Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, RayOrigin, RayDirection);
   Result := Items.MouseMove(RayOrigin, RayDirection);
+
+  { update the cursor, since scene under the cursor possibly changed. }
+  ItemsCursorChange(Self);
+end;
+
+procedure TSceneManager.ItemsCursorChange(Sender: TObject);
+begin
+  if MainScene <> nil then
+    Cursor := MainScene.Cursor else
+    Cursor := mcDefault;
+
+  { TODO: how to account for other Items?
+    (this UpdateCursor is already called for all Items.OnCursorChange.
+    I just don't know yet how to handle them.)
+    Topmost 3d object should determine the cursor, right? }
 end;
 
 procedure TSceneManager.Idle(const CompSpeed: Single;

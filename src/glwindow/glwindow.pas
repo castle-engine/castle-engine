@@ -2424,16 +2424,13 @@ type
   TGLUIWindow = class(TGLWindowDemo, IUIContainer)
   private
     FCamera: TCamera;
-    FCursorNonMouseLook: TMouseCursor;
     FControls: TUIControlList;
     FUseControls: boolean;
-    FMouseLookActive: boolean;
     FOnDrawStyle: TUIControlDrawStyle;
     procedure SetCamera(const Value: TCamera);
-    procedure SetCursorNonMouseLook(const Value: TMouseCursor);
     procedure ControlsVisibleChange(Sender: TObject);
     procedure SetUseControls(const Value: boolean);
-    procedure UpdateMouseLook;
+    procedure UpdateMouseCursor;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -2536,21 +2533,6 @@ type
     procedure EventDraw; override;
     procedure EventResize; override;
     procedure EventClose; override;
-
-    property MouseLookActive: boolean read FMouseLookActive;
-
-    { Cursor when not using mouse look.
-      Useful if you sometimes use mouse look and you want your cursor
-      hidden while mouse look,
-      but controlled by this property otherwise.
-
-      When mouse look is not in use, this will be equal to actual
-      TGLWindow.Cursor, thus changing cursor.
-      When mouse look is in use, TGLWindow.Cursor
-      will remain hidden. }
-    property CursorNonMouseLook: TMouseCursor
-      read FCursorNonMouseLook write SetCursorNonMouseLook
-      default mcDefault;
   end;
 
   { Depracted name for TGLUIWindow. @deprecated }
@@ -4252,7 +4234,7 @@ begin
     getting remove notification for all items (as FreeAndNil first sets
     object to nil). Testcase: lets_take_a_walk exit. }
   if Container.FControls <> nil then
-    Container.UpdateMouseLook;
+    Container.UpdateMouseCursor;
 end;
 
 { TGLUIWindow --------------------------------------------------------- }
@@ -4448,50 +4430,78 @@ begin
   end;
 end;
 
-procedure TGLUIWindow.SetCursorNonMouseLook(
-  const Value: TMouseCursor);
-begin
-  if Value <> FCursorNonMouseLook then
-  begin
-    FCursorNonMouseLook := Value;
-    if not MouseLookActive then
-      Cursor := CursorNonMouseLook;
-  end;
-end;
-
 procedure TGLUIWindow.SetUseControls(const Value: boolean);
 begin
   if Value <> UseControls then
   begin
     FUseControls := Value;
-    UpdateMouseLook;
+    UpdateMouseCursor;
   end;
 end;
 
-procedure TGLUIWindow.UpdateMouseLook;
+procedure TGLUIWindow.UpdateMouseCursor;
 
-  procedure CalculateMouseLookActive;
+  function CalculateMouseCursor: TMouseCursor;
   var
     I: Integer;
+    NonCameraCursorSet: boolean;
+    C: TUIControl;
   begin
-    FMouseLookActive := false;
+    Result := mcDefault;
+
+    {
+    F := Focus;
+    if F <> nil then
+      Result := F.Cursor else
+
+    Above says that only the focused control (first control with
+    PositionInside) sets Result. This is nice and promised
+    in TUIControl.Cursor docs.
+
+    However, this makes troubles with the camera wanting to set
+    - mcNone because of mouse look (this is then unconditionally,
+      even if (like in view3dscene) something else (like SceneManager)
+      is first on controls (and so has focus) and maybe even has cursor
+      <> mcNone (like mcHand when over a touch sensor)).
+    - mcDefault because of mouse look (this then says to ignore camera
+      cursor, even if it's in focus (before e.g. scene manager on controls))
+
+    So instead we have this hack below that specially treats
+    cameras: mcNone of camera takes priority, and mcDefault of camera
+    makes camera cursor ignored.
+    }
+
     if UseControls then
+    begin
+      NonCameraCursorSet := false;
       for I := 0 to Controls.Count - 1 do
-        if Controls[I].MouseLook then
+      begin
+        C := Controls.Items[I];
+        if C.PositionInside(MouseX, MouseY) then
         begin
-          FMouseLookActive := true;
-          Break;
+          if C is TCamera then
+          begin
+            if C.Cursor = mcNone then
+              { unconditionally return mcNone if any camera has mcNone }
+              Exit(mcNone);
+              { else ignore: ignore cameras (do not treat as focused)
+                with other Cursor values. }
+          end else
+          if not NonCameraCursorSet then
+          begin
+            Result := C.Cursor;
+            NonCameraCursorSet := true;
+          end;
         end;
+      end;
+    end;
   end;
 
 begin
-  CalculateMouseLookActive;
+  Cursor := CalculateMouseCursor;
+end;
 
-  if MouseLookActive then
-    Cursor := mcNone else
-    Cursor := CursorNonMouseLook;
-
-  { Initially I was doing here
+  { Initially I was doing here UpdateMouseLook, and within UpdateMouseLook:
 
       if MouseLookActive then
         SetMousePosition(Width div 2, Height div 2);
@@ -4518,13 +4528,14 @@ begin
     handler to only work when initial mouse position is at the screen middle,
     otherwise initial mouse look would generate large move.
     But in fact TWalkCamera.MouseMove already does this, so it's all Ok. }
-end;
 
 procedure TGLUIWindow.EventMouseMove(NewX, NewY: Integer);
 var
   C: TUIControl;
   I: Integer;
 begin
+  UpdateMouseCursor;
+
   if UseControls then
   begin
     for I := 0 to Controls.Count - 1 do

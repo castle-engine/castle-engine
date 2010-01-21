@@ -573,18 +573,18 @@ type
     FPosition, FDirection, FUp,
     FInitialPosition, FInitialDirection, FInitialUp: TVector3Single;
     FGravityUp: TVector3Single;
-
     FMoveHorizontalSpeed, FMoveVerticalSpeed: Single;
     FRotationHorizontalSpeed, FRotationVerticalSpeed: Single;
     FPreferGravityUpForRotations: boolean;
     FPreferGravityUpForMoving: boolean;
     FLastIsAboveTheGround: boolean;
     FLastSqrHeightAboveTheGround: Single;
+    FMouseLook: boolean;
 
     procedure SetPosition(const Value: TVector3Single);
     procedure SetDirection(const Value: TVector3Single);
     procedure SetUp(const Value: TVector3Single);
-
+    procedure SetMouseLook(const Value: boolean);
   private
     FInput_Forward: TInputShortcut;
     FInput_Backward: TInputShortcut;
@@ -1037,6 +1037,13 @@ type
     property MinAngleRadFromGravityUp: Single
       read FMinAngleRadFromGravityUp write FMinAngleRadFromGravityUp
       default DefaultMinAngleRadFromGravityUp;
+
+    { Use mouse look to navigate (rotate the camera).
+
+      This also makes mouse cursor of Container hidden, and forces
+      mouse position to the middle of the window
+      (to avoid the situation when mouse movement is blocked by screen borders). }
+    property MouseLook: boolean read FMouseLook write SetMouseLook default false;
 
     { These control mouse look sensitivity.
       They say how much angle change is produced by 1 pixel change
@@ -3414,6 +3421,17 @@ procedure TWalkCamera.CancelFallingDown;
 begin
   { Fortunately implementation of this is brutally simple right now. }
   FIsFallingDown := false;
+end;
+
+procedure TWalkCamera.SetMouseLook(const Value: boolean);
+begin
+  if FMouseLook <> Value then
+  begin
+    FMouseLook := Value;
+    if FMouseLook then
+      Cursor := mcNone else
+      Cursor := mcDefault;
+  end;
 end;
 
 function TWalkCamera.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;

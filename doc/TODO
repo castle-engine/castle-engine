@@ -16,20 +16,6 @@ Better Lazarus integration:
 (Some before view3dscene 3.5, some probably for later.)
 
 * remaining stuff for integration:
-  2. cursor automatic, maybe also remove CursorNonMouseLook props --
-  these are clumsy.
-
-  Add TUIControl.Cursor property, with a subset of TGLWindowCursor values.
-
-  When to update? On each mousemove (when walking controls calling MouseMove),
-  also when some TUIControl.Cursor value changes.
-
-  Say about preset prorities: crHide has highest priority,
-  crDefault (default Cursor value) lowest.
-
-  When TSceneManager updates? Hm, TSceneManager should behave like TGLUIWindow:
-  set it's own Cursor in each MouseMove, or when some TBase3D.CursorChanged.
-
   4. *Maybe* some automatic Camera generation (if Camera = nil and
   we want it, create camera by MainScene.CreateCamera(..., Items.BoundingBox,...)).
   But when exactly?
@@ -41,6 +27,17 @@ Better Lazarus integration:
   Viewport* features, as camera mouse events should be catched only on
   appropriate viewport.
    ...).
+
+* Cursor stuff:
+  * CalculateMouseCursor is unclean: special (and undocumented on TUIControl.Cursor)
+    treatment of TCamera.Cursor results.
+  * What to do with cursors of 3D scenes hierarchy?
+    See notes in scenemanager.ItemsCursorChange: currently just takes MainScene.Cursor.
+    See notes in TBase3D.ListCursorChange (similar for TVRMLGLAnimation): maybe set upper-level cursor?
+
+    Maybe always do some sort of mouse picking in scenemanager, over all scenes,
+    to choose closest one (and use it for new cursor) in MouseMove?
+    Also, save the closest one, for next UpdateCursor?
 
 * view3dscene were changing WalkCamera on viewpoint changes,
   while scene manager passes to TVRMLScene.CameraBindToViewpoint

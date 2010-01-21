@@ -46,6 +46,12 @@ type
     FExists: boolean;
     FCollides: boolean;
     FOnVisibleChange: TNotifyEvent;
+    FCursor: TMouseCursor;
+    FOnCursorChange: TNotifyEvent;
+    procedure SetCursor(const Value: TMouseCursor);
+  protected
+    { In TBase3D class, just calls OnCursorChange event. }
+    procedure CursorChange; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -202,9 +208,10 @@ type
       In this class this simply calls OnVisibleChange (if assigned). }
     procedure VisibleChange; virtual;
 
-    { Called always when some visible part of this control
-      changes. In the simplest case, this is used by the controls manager to
-      know when we need to redraw the control.
+    { Called when some visible part of this control changes.
+      This is usually used by the scene manager
+      (to know when we need to redraw the control),
+      so don't use it in your own programs directly.
 
       Be careful when handling this event, various changes may cause this,
       so be prepared to handle OnVisibleChange at every time.
@@ -212,6 +219,16 @@ type
       @seealso VisibleChange }
     property OnVisibleChange: TNotifyEvent
       read FOnVisibleChange write FOnVisibleChange;
+
+    { Mouse cursor over this object. }
+    property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
+
+    { Called when the @link(Cursor) of this control changes.
+      This is usually used by the scene manager
+      (to know when we need to redraw the control),
+      so don't use it in your own programs directly. }
+    property OnCursorChange: TNotifyEvent
+      read FOnCursorChange write FOnCursorChange;
 
     { Called when OpenGL context of the window is destroyed.
       This will be also automatically called from destructor.
@@ -274,6 +291,7 @@ type
   private
     FList: TBase3DListCore;
     procedure ListVisibleChange(Sender: TObject);
+    procedure ListCursorChange(Sender: TObject);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -345,6 +363,7 @@ begin
   FCastsShadow := true;
   FExists := true;
   FCollides := true;
+  FCursor := mcDefault;
 end;
 
 destructor TBase3D.Destroy;
@@ -409,6 +428,20 @@ procedure TBase3D.VisibleChange;
 begin
   if Assigned(OnVisibleChange) then
     OnVisibleChange(Self);
+end;
+
+procedure TBase3D.SetCursor(const Value: TMouseCursor);
+begin
+  if FCursor <> Value then
+  begin
+    FCursor := Value;
+    CursorChange;
+  end;
+end;
+
+procedure TBase3D.CursorChange;
+begin
+  if Assigned(OnCursorChange) then OnCursorChange(Self);
 end;
 
 procedure TBase3D.GLContextClose;
@@ -494,6 +527,8 @@ begin
           when an item calls OnVisibleChange. }
         if B.OnVisibleChange = nil then
           B.OnVisibleChange := @Owner.ListVisibleChange;
+        if B.OnCursorChange = nil then
+          B.OnCursorChange := @Owner.ListCursorChange;
 
         { Register Owner to be notified of item destruction. }
         B.FreeNotification(Owner);
@@ -502,11 +537,20 @@ begin
       begin
         if B.OnVisibleChange = @Owner.ListVisibleChange then
           B.OnVisibleChange := nil;
+        if B.OnCursorChange = @Owner.ListCursorChange then
+          B.OnCursorChange := nil;
 
         B.RemoveFreeNotification(Owner);
       end;
     else raise EInternalError.Create('TBase3DListCore.Notify action?');
   end;
+
+  { This notification may get called during FreeAndNil(FList)
+    in TBase3DList.Destroy. Then FList is already nil (as FreeAndNil
+    first sets object to nil), and Owner.ListCursorChange
+    may not be ready for this. }
+  if Owner.FList <> nil then
+    Owner.ListCursorChange(nil);
 end;
 
 function TBase3DListCore.GetItem(const I: Integer): TBase3D;
@@ -678,6 +722,19 @@ begin
     to pass it up the tree (eventually, to the scenemanager, that will
     pass it by TUIControl similar OnVisibleChange mechanism to the container). }
   VisibleChange;
+end;
+
+procedure TBase3DList.ListCursorChange(Sender: TObject);
+begin
+  { when an Item calls OnCursorChange, we'll call our own OnCursorChange,
+    to pass it up the tree (eventually, to the scenemanager, that will
+    pass it by TUIControl similar OnCursorChange mechanism to the container). }
+
+  { Hm, we could alternatively set our own Cursor := property,
+    instead of directly calling CursorChange. SceneManager could
+    then just use Items.Cursor as it's own Cursor value. }
+
+  CursorChange;
 end;
 
 procedure TBase3DList.GLContextClose;

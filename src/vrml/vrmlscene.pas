@@ -844,7 +844,8 @@ type
 
     { Called after PointingDeviceSensors list (possibly) changed,
       or when PointingDeviceActiveSensor (possibly) changed.
-      In this class, DoPointingDeviceSensorsChange just calls
+
+      In this class, DoPointingDeviceSensorsChange updates Cursor and calls
       OnPointingDeviceSensorsChange. }
     procedure DoPointingDeviceSensorsChange; virtual;
   public
@@ -5134,6 +5135,14 @@ end;
 
 procedure TVRMLScene.DoPointingDeviceSensorsChange;
 begin
+  { I want to keep assertion that Cursor = mcHand when
+    we're over or keeping active some pointing-device sensors. }
+  if ((PointingDeviceSensors <> nil) and
+      (PointingDeviceSensors.EnabledCount <> 0)) or
+     (PointingDeviceActiveSensor <> nil) then
+    Cursor := mcHand else
+    Cursor := mcDefault;
+
   if Assigned(OnPointingDeviceSensorsChange) then
     OnPointingDeviceSensorsChange(Self);
 end;

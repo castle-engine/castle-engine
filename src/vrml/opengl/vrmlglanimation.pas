@@ -650,6 +650,7 @@ type
     property ParentAnimation: TVRMLGLAnimation read FParentAnimation;
     procedure DoGeometryChanged; override;
     procedure VisibleChange; override;
+    procedure CursorChange; override;
   end;
 
 constructor TVRMLGLAnimationScene.CreateForAnimation(
@@ -679,6 +680,12 @@ procedure TVRMLGLAnimationScene.VisibleChange;
 begin
   inherited;
   ParentAnimation.VisibleChange;
+end;
+
+procedure TVRMLGLAnimationScene.CursorChange;
+begin
+  inherited;
+  ParentAnimation.CursorChange;
 end;
 
 { EModelsStructureDifferent -------------------------------------------------- }

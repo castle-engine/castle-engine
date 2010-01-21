@@ -49,18 +49,18 @@ type
     { Keys currently pressed. }
     property Pressed: TKeysPressed read GetPressed;
 
-    { Called by controls within this container when some MouseLook status
+    { Called by controls within this container when some TUIControl.Cursor
       changes. This is called by a IUIContainer interface, that's why
       it can remain as private method of actual container class.
 
-      This causes recalculation of MouseLookActive (that simply looks
-      at all Controls it sets MouseLookActive := any control has MouseLook),
-      and some necessary work when MouseLookActive changes.
+      This recalculates the final cursor of container, looking at
+      Container's UseControls and Cursor property of focused control.
 
-      When UseControls change or when you add / remove some control
-      from the Controls list this will also be automatically called
-      (since MouseLookActive may change then). }
-    procedure UpdateMouseLook;
+      When UseControls change, or when you add / remove some control
+      from the Controls list, or when you move mouse (focused changes)
+      this will also be automatically called
+      (since final container cursor may also change then). }
+    procedure UpdateMouseCursor;
   end;
 
   { In what projection TUIControl.Draw will be called.
@@ -93,11 +93,12 @@ type
   private
     FExclusiveEvents: boolean;
     FOnVisibleChange: TNotifyEvent;
-    FMouseLook: boolean;
     FContainerWidth, FContainerHeight: Cardinal;
     FContainerSizeKnown: boolean;
     FContainer: IUIContainer;
-    procedure SetMouseLook(const Value: boolean);
+    FCursor: TMouseCursor;
+    FOnCursorChange: TNotifyEvent;
+    procedure SetCursor(const Value: TMouseCursor);
   protected
     { Container (window containing the control) size, as known by this control,
       undefined when ContainerSizeKnown = @false. This is simply collected at
@@ -220,22 +221,6 @@ type
       @seeAlso TGLWindow.AllowSuspendForInput }
     function AllowSuspendForInput: boolean; virtual;
 
-    { This indicates that control wants to use mouse look mode.
-      The window containing such control should then hide the
-      mouse cursor, and force mouse position to the middle of the window
-      (to avoid the situation when mouse movement is blocked by screen borders).
-      The idea is that your MouseMove is not interested in mouse
-      positions anymore (in fact, user cannot choose mouse position
-      since we hide the mouse from him), but we're interested in relative
-      mouse movements (whether user drags mouse up, down, left, right etc.).
-
-      Note that actually making the muse look useful requires some support
-      from the descendant. Although this property is available for all
-      TUIControl instances, in fact it makes sense to set it @true only for
-      specific classes. For now, only TWalkCamera actually handles this
-      sensibly, doing usual "mouse look" navigation mode popular in FPS games. }
-    property MouseLook: boolean read FMouseLook write SetMouseLook default false;
-
     { Prepare your resources, right before drawing. }
     procedure BeforeDraw; virtual;
 
@@ -329,6 +314,17 @@ type
       which is usually more sensible, but sometimes less functional. }
     property ExclusiveEvents: boolean
       read FExclusiveEvents write FExclusiveEvents default true;
+
+    { Mouse cursor over this control.
+      When user moves mouse over the Container, the currently focused
+      (topmost under the cursor) control determines the mouse cursor look. }
+    property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
+
+    { Event called when the @link(Cursor) property changes.
+      This event is, in normal circumstances, used by the Container,
+      so you should not use it in your own programs. }
+    property OnCursorChange: TNotifyEvent
+      read FOnCursorChange write FOnCursorChange;
   end;
 
   TUIControlList = class(TKamObjectList)
@@ -347,6 +343,7 @@ constructor TUIControl.Create(AOwner: TComponent);
 begin
   inherited;
   FExclusiveEvents := true;
+  FCursor := mcDefault;
 end;
 
 destructor TUIControl.Destroy;
@@ -430,12 +427,12 @@ procedure TUIControl.GLContextClose;
 begin
 end;
 
-procedure TUIControl.SetMouseLook(const Value: boolean);
+procedure TUIControl.SetCursor(const Value: TMouseCursor);
 begin
-  if FMouseLook <> Value then
+  if Value <> FCursor then
   begin
-    FMouseLook := Value;
-    if Container <> nil then Container.UpdateMouseLook;
+    FCursor := Value;
+    if Container <> nil then Container.UpdateMouseCursor;
   end;
 end;
 
