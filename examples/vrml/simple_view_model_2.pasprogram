@@ -47,9 +47,6 @@
 
   4. Makes FPS timings right after starting the program correct:
   - uses Glw.OnBeforeDraw and Scene.PrepareRender
-
-  5. Allows the scene to use it's own lights:
-  - see Scene.Attributes.UseLights line
 }
 
 program simple_view_model_2;
@@ -78,8 +75,7 @@ end;
 
 procedure Init(Glwin: TGLWindow);
 begin
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
+  glEnable(GL_LIGHT0); { headlight }
 end;
 
 procedure Close(Glwin: TGLWindow);
@@ -157,10 +153,6 @@ begin
     Camera.OnMoveAllowed     := @THelperObj(nil).MoveAllowed;
     Camera.OnGetCameraHeight := @THelperObj(nil).GetCameraHeight;
     Glw.Camera := Camera;
-
-    { allow the scene to use it's own lights }
-    Scene.Attributes.UseLights := true;
-    Scene.Attributes.FirstGLFreeLight := 1;
 
     Glw.OnInit := @Init;
     Glw.OnClose := @Close;

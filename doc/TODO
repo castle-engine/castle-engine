@@ -16,24 +16,6 @@ Better Lazarus integration:
 (Some before view3dscene 3.5, some probably for later.)
 
 * remaining stuff for integration:
-  1. lighting:
-
-  Scene.Attributes.UseLights := true;
-  Scene.Attributes.FirstGLFreeLight := 1;
-
-  and
-
-  procedure TGLWindowVRMLBrowser.EventInit;
-  begin
-    inherited;
-    glEnable(GL_LIGHTING);
-  end;
-
-  in vrml components should not be needed.
-  Just turn lighting on by default? It's quite silly to keep it off by default,
-  every scene wants it on...
-  Attributes.UseLights to enable lighting within rendering.
-
   2. cursor automatic, maybe also remove CursorNonMouseLook props --
   these are clumsy.
 

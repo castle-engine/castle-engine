@@ -37,7 +37,6 @@
     current frustum to Scene.Render.
   - If you will load large VRML scene, then right after program start
     you may notice for a very short time that your camera moves too fast.
-  - Scene lights (written in VRML file) are not used.
 }
 
 program simple_view_model;
@@ -60,8 +59,7 @@ end;
 
 procedure Init(Glwin: TGLWindow);
 begin
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
+  glEnable(GL_LIGHT0); { headlight }
 end;
 
 procedure Close(Glwin: TGLWindow);

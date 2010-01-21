@@ -685,8 +685,6 @@ begin
     Scene := TVRMLGLScene.Create(nil);
     Scene.Load(SceneVrmlName);
     Scene.Optimization := roSceneAsAWhole;
-    Scene.Attributes.UseLights := true;
-    Scene.Attributes.FirstGLFreeLight := 1;
     ShadowCaster := TVRMLGLScene.Create(nil);
     ShadowCaster.Load(ShadowCasterVrmlName);
     ShadowCaster.Optimization := roSceneAsAWhole;
