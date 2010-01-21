@@ -42,38 +42,13 @@ program change_vrml_by_code;
 
 uses VectorMath, Boxes3d, VRMLNodes, GL, GLU, GLExt, GLWindow,
   KambiUtils, SysUtils, Object3dAsVRML,
-  KambiGLUtils, VRMLGLScene, Cameras,
+  KambiGLUtils, VRMLGLScene, Cameras, SceneManagerUnit,
   KambiFilesUtils, VRMLErrors;
 
 var
   Glw: TGLUIWindow;
-
+  SceneManager: TSceneManager;
   Scene: TVRMLGLScene;
-
-procedure Draw(glwin: TGLWindow);
-begin
-  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(glw.Camera.Matrix);
-  Scene.Render(nil, tgAll);
-end;
-
-procedure Init(glwin: TGLWindow);
-begin
-  glEnable(GL_LIGHT0);
-end;
-
-procedure Close(glwin: TGLWindow);
-begin
-  Scene.GLContextClose;
-end;
-
-procedure Resize(glwin: TGLWindow);
-begin
-  glViewport(0, 0, glwin.Width, glwin.Height);
-  ProjectionGLPerspective(45.0, glwin.Width/glwin.Height,
-    Box3dMaxSize(Scene.BoundingBox) * 0.05,
-    Box3dMaxSize(Scene.BoundingBox) * 3.0);
-end;
 
 var
   TransformBox2: TNodeTransform_2;
@@ -82,11 +57,9 @@ var
 
 procedure Idle(glwin: TGLWindow);
 begin
-  { We didn't turn Scene.ProcessEvents = true, so actually
-    we don't have to "feed" time changes to Scene.IncreaseWorldTime.
-    But we want to keep track of current time anyway (for calculating rotations
-    below), so it's natural to just use Scene.WorldTime property for this. }
-  Scene.IncreaseWorldTime(Glwin.Fps.IdleSpeed);
+  { We want to keep track of current time here (for calculating rotations
+    below). It's most natural to just use Scene.WorldTime property for this.
+    (Scene.WorldTime is already incremented for us by SceneManager.) }
 
   { Note that in this simple example you could avoid calling ChangedXxx by using
       TransformBox2.FdRotation.EventIn.Send(Vector4Single(1, 0, 0, Scene.WorldTime));
@@ -132,12 +105,14 @@ begin
     Glw.Camera := TExamineCamera.Create(Glw);
     (Glw.Camera as TExamineCamera).Init(Scene.BoundingBox);
 
-    Glw.AutoRedisplay := true;
+    { make SceneManager with our Scene and Glw.Camera }
+    SceneManager := TSceneManager.Create(Glw);
+    Glw.Controls.Add(SceneManager);
+    SceneManager.MainScene := Scene;
+    SceneManager.Items.Add(Scene);
+    SceneManager.Camera := Glw.Camera;
 
-    Glw.OnInit := @Init;
-    Glw.OnClose := @Close;
-    Glw.OnResize := @Resize;
     Glw.OnIdle := @Idle;
-    Glw.InitAndRun(ProgramName, @Draw);
+    Glw.InitAndRun;
   finally Scene.Free end;
 end.
