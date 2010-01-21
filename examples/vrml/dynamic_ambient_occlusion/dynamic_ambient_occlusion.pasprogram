@@ -27,11 +27,11 @@
 program dynamic_ambient_occlusion;
 
 uses VectorMath, GL, GLU, GLExt, GLWindow,
-  KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
+  KambiClassUtils, KambiUtils, SysUtils, Classes,
   KambiGLUtils, VRMLScene, VRMLGLScene, Cameras,
   KambiFilesUtils, KambiStringUtils, VRMLErrors, GLShaders, VRMLShape,
   VRMLFields, Images, Boxes3d, GLImages, GLWinMessages, DataErrors,
-  GLVersionUnit, Math, VRMLTriangle, SceneManagerUnit, KeysMouse;
+  GLVersionUnit, Math, VRMLTriangle, SceneManagerUnit;
 
 type
   TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);
@@ -662,8 +662,6 @@ type
 
     class procedure SceneGeometryChanged(Scene: TVRMLScene;
       const SomeLocalGeometryChanged: boolean);
-
-    class procedure UpdateCursor(Sender: TObject);
   end;
 
 class procedure THelper.VertexColor(var Color: TVector3Single;
@@ -804,29 +802,6 @@ begin
   end;
 end;
 
-class procedure THelper.UpdateCursor(Sender: TObject);
-
-  function SensorsCount: Cardinal;
-  begin
-    if Scene.PointingDeviceSensors <> nil then
-      Result := Scene.PointingDeviceSensors.EnabledCount else
-      Result := 0;
-    if Scene.PointingDeviceActiveSensor <> nil then
-      Inc(Result);
-  end;
-
-var
-  NewSensorsCount: Cardinal;
-begin
-  NewSensorsCount := SensorsCount;
-
-  { I want to keep assertion that Glwin.CursorNonMouseLook = mcHand when
-    we're over or keeping active some pointing-device sensors. }
-  if NewSensorsCount <> 0 then
-    Glw.CursorNonMouseLook := mcHand else
-    Glw.CursorNonMouseLook := mcDefault;
-end;
-
 { menu ----------------------------------------------------------------------- }
 
 function CreateMainMenu: TMenu;
@@ -921,7 +896,6 @@ begin
     { start Scene animation }
     Scene.Spatial := [ssRendering, ssDynamicCollisions];
     Scene.OnGeometryChanged := @THelper(nil).SceneGeometryChanged;
-    Scene.OnPointingDeviceSensorsChange := @THelper(nil).UpdateCursor;
     Scene.ProcessEvents := true;
 
     { init Glw.Camera }
