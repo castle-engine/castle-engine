@@ -66,20 +66,9 @@ Better Lazarus integration:
 
 * TSceneManager fitting into controls:
 
-  * Use TSceneManager.Camera property more, setting this should give more instant integration of camera with the scene.
-
   * Hm, also CreateCamera should be in TSceneManager?
     To take as bounding box (for examine navigator) sum of bboxes?
     TVRMLScene gets CreateCamera with box --- use this in TSceneManager.
-
-  * TSceneManager.Camera should automatically tie
-    scene/animation<->camera stuff. And MainScene, that will be used
-    for VRML/X3D bindable nodes for the scene (NavigationInfo, Viewpoint etc.)
-    and setting projection.
-
-    TVRMLScene/Animation Camera should be removed now.
-    As well as most stuff in TVRMLScene/Animation dealing with Camera,
-    this can be better moved to TSceneManager.
 
   * Should TSceneManager be free from VRML specifics?
 
@@ -115,9 +104,8 @@ Better Lazarus integration:
 
 * castle: make main level scene added to Controls, check receives time events (timesensor, movietexture), and mouse/key clicks (use some touchsensor).
 
-* Use TVRMLGLAnimation/TVRMLGLScene on Glw.Controls in more programs:
-  castle? simple_view_model? They all should now be able to trivially add Scene to Controls to make it interactive?
-  Hm, not yet fully (integration with camera is still not so trivial.)
+* Use SceneManager (and Camera on Glw.Controls) in castle.
+  TLevelObject should migrate to TBase3D.
 
 * Make a news item about all improvements, started in www/TODO,
   maybe make a few screenshots how to easily use it from Lazarus?
