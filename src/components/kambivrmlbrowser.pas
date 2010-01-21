@@ -84,8 +84,6 @@ type
   private
     SceneManager: TSceneManager;
 
-    procedure UpdateCursor(Sender: TObject);
-
     function GetShadowVolumes: boolean;
     function GetShadowVolumesDraw: boolean;
     function GetShadowVolumesPossible: boolean;
@@ -185,34 +183,11 @@ begin
   { init Camera }
   Camera := Scene.CreateCamera(Self);
   SceneManager.Camera := Camera;
-
-  { prepare for events procesing (although we let the decision whether
-    to turn ProcessEvent := true to the caller). }
-  Scene.OnPointingDeviceSensorsChange := @UpdateCursor;
 end;
 
 function TKamVRMLBrowser.Scene: TVRMLGLScene;
 begin
   Result := SceneManager.MainScene;
-end;
-
-procedure TKamVRMLBrowser.UpdateCursor(Sender: TObject);
-
-  function SensorsCount: Cardinal;
-  begin
-    if Scene.PointingDeviceSensors <> nil then
-      Result := Scene.PointingDeviceSensors.EnabledCount else
-      Result := 0;
-    if Scene.PointingDeviceActiveSensor <> nil then
-      Inc(Result);
-  end;
-
-begin
-  { I want to keep assertion that CursorNonMouseLook = crHandPoint when
-    we're over or keeping active some pointing-device sensors. }
-  if SensorsCount <> 0 then
-    CursorNonMouseLook := crHandPoint else
-    CursorNonMouseLook := crDefault;
 end;
 
 function TKamVRMLBrowser.GetShadowVolumes: boolean;

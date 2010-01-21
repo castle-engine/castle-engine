@@ -112,9 +112,6 @@ Better Lazarus integration:
 
 * Lazarus: make the control painted at design-time?
 
-* make sure on vrml_browser_2d_controls mouse is properly catched before TouchSensor.
-  Make some property like Mouse: on each 2d control, to allow e.g. change mouse over yellow clickable rect on vrml_browser_2d_controls?
-
 - Make TKamOpenGLControl.Controls list settable from the IDE,
   to allow visually adding new TUIControls there.
 

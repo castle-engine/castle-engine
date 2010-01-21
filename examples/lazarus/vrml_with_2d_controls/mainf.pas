@@ -84,6 +84,7 @@ procedure TClickableRect.GLContextInit;
 begin
   inherited;
   GLFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
+  Cursor := mcHand;
 end;
 
 procedure TClickableRect.GLContextClose;
@@ -100,7 +101,9 @@ begin
   VRMLWarning := @VRMLWarning_Ignore;
   Browser.Load(
      '../../../../kambi_vrml_test_suite/vrml_2/castle_with_lights_and_camera.wrl'
-    {'../../../../kambi_vrml_test_suite/x3d/touch_sensor_tests.x3dv'});
+     //'../../../../kambi_vrml_test_suite/x3d/touch_sensor_tests.x3dv'
+     //'../../../../kambi_vrml_test_suite/x3d/anchor_test.x3dv'
+     );
   Browser.Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Browser.Scene.ProcessEvents := true;
 

@@ -205,7 +205,7 @@ type
       and we want redraw to happen when needed (you signal the need to redraw
       by Invalidate call).
 
-      The most visible usage of this is when using Camera.MouseLook.
+      The most visible usage of this is when using TWalkCamera.MouseLook.
       Walking with mouse look typically produces a continous stream
       of mouse move events, usually interspersed with key down events
       (since you usually press forward / back / strafe keys at the same
@@ -246,16 +246,13 @@ type
   TKamOpenGLControl = class(TKamOpenGLControlCore, IUIContainer)
   private
     FControls: TUIControlList;
-    FCursorNonMouseLook: TCursor;
     FUseControls: boolean;
     FCamera: TCamera;
-    FMouseLookActive: boolean;
     FOnDrawStyle: TUIControlDrawStyle;
-    procedure SetCursorNonMouseLook(const Value: TCursor);
     procedure SetCamera(const Value: TCamera);
     procedure ControlsVisibleChange(Sender: TObject);
     procedure SetUseControls(const Value: boolean);
-    procedure UpdateMouseLook;
+    procedure UpdateMouseCursor;
   protected
     procedure KeyDownEvent(var Key: Word; Shift: TShiftState); override;
     procedure KeyUpEvent(var Key: Word; Shift: TShiftState); override;
@@ -302,12 +299,6 @@ type
 
     property UseControls: boolean
       read FUseControls write SetUseControls default true;
-
-    property MouseLookActive: boolean read FMouseLookActive;
-
-    property CursorNonMouseLook: TCursor
-      read FCursorNonMouseLook write SetCursorNonMouseLook
-      default crDefault;
 
     { How OnDraw callback fits within various Draw methods of our
       @link(Controls).
@@ -743,7 +734,7 @@ begin
   end;
 
   if Container.FControls <> nil then
-    Container.UpdateMouseLook;
+    Container.UpdateMouseCursor;
 end;
 
 { TKamOpenGLControl --------------------------------------------------------- }
@@ -930,39 +921,79 @@ begin
   inherited;
 end;
 
-procedure TKamOpenGLControl.SetCursorNonMouseLook(
-  const Value: TCursor);
-begin
-  if Value <> FCursorNonMouseLook then
-  begin
-    FCursorNonMouseLook := Value;
-    if not MouseLookActive then
-      Cursor := CursorNonMouseLook;
-  end;
-end;
+procedure TKamOpenGLControl.UpdateMouseCursor;
 
-procedure TKamOpenGLControl.UpdateMouseLook;
-
-  procedure CalculateMouseLookActive;
+  function CalculateMouseCursor: TMouseCursor;
   var
     I: Integer;
+    NonCameraCursorSet: boolean;
+    C: TUIControl;
   begin
-    FMouseLookActive := false;
+    Result := mcDefault;
+
+    {
+    F := Focus;
+    if F <> nil then
+      Result := F.Cursor else
+
+    Above says that only the focused control (first control with
+    PositionInside) sets Result. This is nice and promised
+    in TUIControl.Cursor docs.
+
+    However, this makes troubles with the camera wanting to set
+    - mcNone because of mouse look (this is then unconditionally,
+      even if (like in view3dscene) something else (like SceneManager)
+      is first on controls (and so has focus) and maybe even has cursor
+      <> mcNone (like mcHand when over a touch sensor)).
+    - mcDefault because of mouse look (this then says to ignore camera
+      cursor, even if it's in focus (before e.g. scene manager on controls))
+
+    So instead we have this hack below that specially treats
+    cameras: mcNone of camera takes priority, and mcDefault of camera
+    makes camera cursor ignored.
+    }
+
     if UseControls then
+    begin
+      NonCameraCursorSet := false;
       for I := 0 to Controls.Count - 1 do
-        if Controls[I].MouseLook then
+      begin
+        C := Controls.Items[I];
+        if C.PositionInside(MouseX, MouseY) then
         begin
-          FMouseLookActive := true;
-          Break;
+          if C is TCamera then
+          begin
+            if C.Cursor = mcNone then
+              { unconditionally return mcNone if any camera has mcNone }
+              Exit(mcNone);
+              { else ignore: ignore cameras (do not treat as focused)
+                with other Cursor values. }
+          end else
+          if not NonCameraCursorSet then
+          begin
+            Result := C.Cursor;
+            NonCameraCursorSet := true;
+          end;
         end;
+      end;
+    end;
   end;
 
-begin
-  CalculateMouseLookActive;
+const
+  MyCursorToLazCursor: array [TMouseCursor] of TCursor =
+  ( crDefault, crNone, crDefault { mcCustom treat like mcDefault },
+    crArrow, crHourGlass, crIBeam, crHandPoint );
 
-  if MouseLookActive then
-    Cursor := crNone else
-    Cursor := CursorNonMouseLook;
+var
+  NewCursor: TCursor;
+begin
+  NewCursor := MyCursorToLazCursor[CalculateMouseCursor];
+  { check explicitly "Cursor <> NewCursor" --- we will call UpdateMouseCursor
+    very often (in each mouse move), and we don't want to depend on Lazarus
+    optimizing "Cursor := Cursor" to avoid some potentially expensive window
+    manager call. }
+  if Cursor <> NewCursor then
+    Cursor := NewCursor;
 end;
 
 procedure TKamOpenGLControl.MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer);
@@ -970,6 +1001,8 @@ var
   C: TUIControl;
   I: Integer;
 begin
+  UpdateMouseCursor;
+
   if UseControls then
   begin
     for I := 0 to Controls.Count - 1 do
@@ -1164,7 +1197,7 @@ begin
   if Value <> UseControls then
   begin
     FUseControls := Value;
-    UpdateMouseLook;
+    UpdateMouseCursor;
   end;
 end;
 
