@@ -450,6 +450,7 @@ type
 
 const
   DefaultBumpMappingMaximum = bmNone;
+  DefaultFirstGLFreeLight = 1;
 
 type
   { These are various properties that control rendering done
@@ -468,7 +469,8 @@ type
     FSmoothShading: boolean;
     FColorModulatorSingle: TColorModulatorSingleFunc;
     FColorModulatorByte: TColorModulatorByteFunc;
-    FUseLights: boolean;
+    FLighting: boolean;
+    FUseSceneLights: boolean;
     FFirstGLFreeLight: Cardinal;
     FLastGLFreeLight: integer;
     FControlMaterials: boolean;
@@ -499,7 +501,8 @@ type
     procedure SetSmoothShading(const Value: boolean); virtual;
     procedure SetColorModulatorSingle(const Value: TColorModulatorSingleFunc); virtual;
     procedure SetColorModulatorByte(const Value: TColorModulatorByteFunc); virtual;
-    procedure SetUseLights(const Value: boolean); virtual;
+    procedure SetLighting(const Value: boolean); virtual;
+    procedure SetUseSceneLights(const Value: boolean); virtual;
     procedure SetFirstGLFreeLight(const Value: Cardinal); virtual;
     procedure SetLastGLFreeLight(const Value: integer); virtual;
     procedure SetControlMaterials(const Value: boolean); virtual;
@@ -621,16 +624,41 @@ type
     function ColorModulated(const Color: TVector3Single): TVector3Single; overload;
     function ColorModulated(const Color: TVector3Byte): TVector3Byte; overload;
 
-    { UseLights mowi zeby oswietlac shape'y swiatlami w node'ach VRMLa.
-      Wykorzysta do tego swiatla OpenGL'a od FirstGLFreeLight .. LastGLFreeLight.
-      Gdy LastGLFreeLight = -1 to zostanie uzyte glGet(GL_MAX_LIGHT)-1
-      (czyli wszystkie swiatla powyzej First beda potraktowane jako wolne. }
-    property UseLights: boolean
-      read FUseLights write SetUseLights default false;
+    { When Lighting is @true, we will enable OpenGL lighting when rendering.
+      Note that this is @true by default, since it's wanted almost always.
+
+      When Lighting is @false, we do not enable OpenGL lighting,
+      but you can still manually enable OpenGL lighting yourself. }
+    property Lighting: boolean
+      read FLighting write SetLighting default true;
+
+    { When UseSceneLights, we will setup VRML/X3D lights as OpenGL
+      lights during rendering.
+
+      VRML/X3D lights are loaded into OpenGL lights using the range of
+      FirstGLFreeLight ... LastGLFreeLight. LastGLFreeLight = -1 means
+      "the last possible OpenGL light", that is glGet(GL_MAX_LIGHT)-1.
+      Note that by default we treat all lights except the 0th (typically
+      useful for making headlight) as "free to use" for VRML lights.
+
+      This is independent from the @link(Lighting) property (which merely
+      says whether we will turn OpenGL lighting on at all).
+
+      You can always use your own OpenGL lights to light our 3D model
+      (we always render 3D geometry normals and materials, regardless
+      of @link(Lighting) and @link(UseSceneLights) values.)
+      You can use your own lights instead of scene lights (set UseSceneLights
+      to @false), or in addition to scene lights (leave UseSceneLights
+      as @true and adjust FirstGLFreeLight / LastGLFreeLight).
+
+      @groupBegin }
+    property UseSceneLights: boolean
+      read FUseSceneLights write SetUseSceneLights default true;
     property FirstGLFreeLight: Cardinal
-      read FFirstGLFreeLight write SetFirstGLFreeLight default 0;
+      read FFirstGLFreeLight write SetFirstGLFreeLight default DefaultFirstGLFreeLight;
     property LastGLFreeLight: integer
       read FLastGLFreeLight write SetLastGLFreeLight default -1;
+    { @groupEnd }
 
     { If this is @true, then our engine takes care of applying appropriate
       materials and colors on your model.
@@ -772,8 +800,8 @@ type
     property GLSLShaders: boolean read FGLSLShaders write SetGLSLShaders
       default true;
 
-    { Use this to render pure geometry, without any colors, materials, etc.
-      If this is @true, only pure geometry will be rendered.
+    { Use this to render pure geometry, without any colors, materials,
+      lights, etc. If this is @true, only pure geometry will be rendered.
       This means that the rendering of the model will be equivalent to
       calling only @code(glBegin(...)), then @code(glVertex(...)),
       then @code(glEnd). Actually, some additional calls may be done
@@ -3088,7 +3116,8 @@ begin
     SmoothShading := TVRMLRenderingAttributes(Source).SmoothShading;
     ColorModulatorSingle := TVRMLRenderingAttributes(Source).ColorModulatorSingle;
     ColorModulatorByte := TVRMLRenderingAttributes(Source).ColorModulatorByte;
-    UseLights := TVRMLRenderingAttributes(Source).UseLights;
+    Lighting := TVRMLRenderingAttributes(Source).Lighting;
+    UseSceneLights := TVRMLRenderingAttributes(Source).UseSceneLights;
     FirstGLFreeLight := TVRMLRenderingAttributes(Source).FirstGLFreeLight;
     LastGLFreeLight := TVRMLRenderingAttributes(Source).LastGLFreeLight;
     ControlMaterials := TVRMLRenderingAttributes(Source).ControlMaterials;
@@ -3115,7 +3144,8 @@ begin
     (TVRMLRenderingAttributes(SecondValue).SmoothShading = SmoothShading) and
     (TVRMLRenderingAttributes(SecondValue).ColorModulatorSingle = ColorModulatorSingle) and
     (TVRMLRenderingAttributes(SecondValue).ColorModulatorByte = ColorModulatorByte) and
-    (TVRMLRenderingAttributes(SecondValue).UseLights = UseLights) and
+    (TVRMLRenderingAttributes(SecondValue).Lighting = Lighting) and
+    (TVRMLRenderingAttributes(SecondValue).UseSceneLights = UseSceneLights) and
     (TVRMLRenderingAttributes(SecondValue).FirstGLFreeLight = FirstGLFreeLight) and
     (TVRMLRenderingAttributes(SecondValue).LastGLFreeLight = LastGLFreeLight) and
     (TVRMLRenderingAttributes(SecondValue).ControlMaterials = ControlMaterials) and
@@ -3134,8 +3164,9 @@ begin
   inherited;
 
   FSmoothShading := true;
-  FUseLights := false;
-  FFirstGLFreeLight := 0;
+  FLighting := true;
+  FUseSceneLights := true;
+  FFirstGLFreeLight := DefaultFirstGLFreeLight;
   FLastGLFreeLight := -1;
   FFirstGLFreeTexture := 0;
   FLastGLFreeTexture := -1;
@@ -3187,9 +3218,14 @@ begin
   FColorModulatorByte := Value;
 end;
 
-procedure TVRMLRenderingAttributes.SetUseLights(const Value: boolean);
+procedure TVRMLRenderingAttributes.SetLighting(const Value: boolean);
 begin
-  FUseLights := Value;
+  FLighting := Value;
+end;
+
+procedure TVRMLRenderingAttributes.SetUseSceneLights(const Value: boolean);
+begin
+  FUseSceneLights := Value;
 end;
 
 procedure TVRMLRenderingAttributes.SetFirstGLFreeLight(const Value: Cardinal);
@@ -3825,7 +3861,10 @@ begin
     glShadeModel(GL_SMOOTH) else
     glShadeModel(GL_FLAT);
 
-   if Attributes.UseLights then
+   if Attributes.Lighting then
+     glEnable(GL_LIGHTING);
+
+   if Attributes.UseSceneLights then
      for i := Attributes.FirstGLFreeLight to LastGLFreeLight do
        glDisable(GL_LIGHT0+i);
 
@@ -3865,13 +3904,13 @@ procedure TVRMLOpenGLRenderer.RenderShapeLights(
 begin
   glMatrixMode(GL_MODELVIEW);
 
-  { Render lights in given State, if Attributes.UseLights.
+  { Render lights in given State, if Attributes.UseSceneLights.
 
     This is done in RenderShapeLights, before RenderShapeBegin,
     in particular before loading State.Transform --- this is good,
     as the lights positions/directions are in world coordinates. }
 
-  if Attributes.UseLights then
+  if Attributes.UseSceneLights then
     LightsRenderer.Render(State.CurrentActiveLights);
 
     { Without LightsRenderer, we would do it like this:

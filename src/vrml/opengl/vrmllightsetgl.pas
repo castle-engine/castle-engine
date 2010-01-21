@@ -512,7 +512,9 @@ begin
   FLightRenderEvent := ALightRenderEvent;
 
   LightsKnown := false;
-  SetLength(LightsDone, GLLightNum2 - GLLightNum1 + 1);
+  { avoid range error when GLLightNum2 < GLLightNum1 }
+  if GLLightNum2 >= GLLightNum1 then
+    SetLength(LightsDone, GLLightNum2 - GLLightNum1 + 1);
 end;
 
 procedure TVRMLGLLightsCachingRenderer.Render(Lights: TDynActiveLightArray);

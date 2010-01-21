@@ -94,8 +94,6 @@ type
     procedure SetShadowVolumesDraw(const Value: boolean);
     procedure SetShadowVolumesPossible(const Value: boolean);
     procedure SetOnCameraChanged(const Value: TNotifyEvent);
-  protected
-    procedure DoGLContextInit; override;
   public
     constructor Create(AOwner :TComponent); override;
 
@@ -195,21 +193,11 @@ begin
   { Call initial ViewerChanged (this allows ProximitySensors to work
     as soon as ProcessEvent becomes true). }
   Scene.ViewerChanged(Camera, SceneManager.ViewerToChanges);
-
-  { allow the scene to use it's own lights }
-  Scene.Attributes.UseLights := true;
-  Scene.Attributes.FirstGLFreeLight := 1;
 end;
 
 function TKamVRMLBrowser.Scene: TVRMLGLScene;
 begin
   Result := SceneManager.MainScene;
-end;
-
-procedure TKamVRMLBrowser.DoGLContextInit;
-begin
-  inherited;
-  glEnable(GL_LIGHTING);
 end;
 
 procedure TKamVRMLBrowser.UpdateCursor(Sender: TObject);

@@ -101,8 +101,6 @@ type
 
     function Scene: TVRMLGLScene;
 
-    procedure EventInit; override;
-
     { Should we make shadow volumes possible.
 
       This can be changed only when the context is not initialized,
@@ -176,21 +174,11 @@ begin
   { Call initial ViewerChanged (this allows ProximitySensors to work
     as soon as ProcessEvent becomes true). }
   Scene.ViewerChanged(Camera, SceneManager.ViewerToChanges);
-
-  { allow the scene to use it's own lights }
-  Scene.Attributes.UseLights := true;
-  Scene.Attributes.FirstGLFreeLight := 1;
 end;
 
 function TGLWindowVRMLBrowser.Scene: TVRMLGLScene;
 begin
   Result := SceneManager.MainScene;
-end;
-
-procedure TGLWindowVRMLBrowser.EventInit;
-begin
-  inherited;
-  glEnable(GL_LIGHTING);
 end;
 
 procedure TGLWindowVRMLBrowser.UpdateCursor(Sender: TObject);

@@ -114,7 +114,7 @@ type
         @item(If not PureGeometry, then lines are colored
           and potentially lighted and textured just like their corresponding
           triangles would be colored. So you can control lighting using
-          OpenGL GL_LIGHTING setting and UseLights attribute, and you
+          Lighting, UseSceneLights etc. attributes, and you
           can control texturing by ControlTextures/EnableTextures attribute.)
       ) }
     weWireframeOnly,
@@ -203,7 +203,8 @@ type
     procedure SetSmoothShading(const Value: boolean); override;
     procedure SetColorModulatorSingle(const Value: TColorModulatorSingleFunc); override;
     procedure SetColorModulatorByte(const Value: TColorModulatorByteFunc); override;
-    procedure SetUseLights(const Value: boolean); override;
+    procedure SetLighting(const Value: boolean); override;
+    procedure SetUseSceneLights(const Value: boolean); override;
     procedure SetFirstGLFreeLight(const Value: Cardinal); override;
     procedure SetLastGLFreeLight(const Value: integer); override;
     procedure SetControlMaterials(const Value: boolean); override;
@@ -5072,9 +5073,18 @@ begin
   end;
 end;
 
-procedure TVRMLSceneRenderingAttributes.SetUseLights(const Value: boolean);
+procedure TVRMLSceneRenderingAttributes.SetLighting(const Value: boolean);
 begin
-  if UseLights <> Value then
+  if Lighting <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
+
+procedure TVRMLSceneRenderingAttributes.SetUseSceneLights(const Value: boolean);
+begin
+  if UseSceneLights <> Value then
   begin
     FScenes.CloseGLRenderer;
     inherited;
