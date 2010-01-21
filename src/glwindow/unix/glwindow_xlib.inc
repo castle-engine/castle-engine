@@ -366,7 +366,7 @@ procedure TGLWindow.UpdateCursor;
   end;
 
 const
-  XCursorShapeFromMy: array [gcStandard .. High(TMouseCursor)] of LongWord =
+  XCursorShapeFromMy: array [mcStandard .. High(TMouseCursor)] of LongWord =
   ( XC_left_ptr, XC_watch, XC_xterm, XC_hand2 );
 begin
   { TODO: for now mcCustom is treated like mcDefault }

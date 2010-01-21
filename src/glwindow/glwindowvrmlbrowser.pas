@@ -127,7 +127,7 @@ implementation
 uses Boxes3d, VRMLOpenGLRenderer, GL, GLU,
   KambiClassUtils, KambiUtils, SysUtils, Object3dAsVRML,
   KambiGLUtils, KambiFilesUtils, VRMLTriangle,
-  RaysWindow, BackgroundGL;
+  RaysWindow, BackgroundGL, KeysMouse;
 
 { This uses OctreeCollisions, so either OctreeDynamicCollisions
   or OctreeCollidableTriangles, whichever is available. }

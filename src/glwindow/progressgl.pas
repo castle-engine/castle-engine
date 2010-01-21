@@ -80,7 +80,7 @@ var
 
 implementation
 
-uses SysUtils, KambiUtils,  BFNT_BitstreamVeraSans_Unit, Images;
+uses SysUtils, KambiUtils,  BFNT_BitstreamVeraSans_Unit, Images, KeysMouse;
 
 { display proc. --------------------------------------------------------------}
 

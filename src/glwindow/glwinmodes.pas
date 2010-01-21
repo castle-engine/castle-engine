@@ -59,7 +59,7 @@ unit GLWinModes;
 interface
 
 uses SysUtils, GL, GLU, GLExt, GLWindow, KambiGLUtils, Images, GLWinMessages,
-  UIControls, Cameras;
+  UIControls, Cameras, KeysMouse;
 
 { GLWindowState --------------------------------------------------------- }
 

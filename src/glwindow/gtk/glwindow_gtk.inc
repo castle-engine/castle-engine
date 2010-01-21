@@ -771,7 +771,7 @@ procedure TGLWindow.UpdateCursor;
   end;
 
 const
-  GdkCursorTypeFromMy: array [gcStandard .. High(TMouseCursor)] of
+  GdkCursorTypeFromMy: array [mcStandard .. High(TMouseCursor)] of
     TGdkCursorType =
   ( { I think that GDK_ARROW was traditionally standard under XWindows
       (right-top arrow), but then gtk changed standard to much more standard

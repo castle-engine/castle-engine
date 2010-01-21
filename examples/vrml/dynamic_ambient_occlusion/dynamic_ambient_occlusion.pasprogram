@@ -31,7 +31,7 @@ uses VectorMath, GL, GLU, GLExt, GLWindow,
   KambiGLUtils, VRMLScene, VRMLGLScene, Cameras,
   KambiFilesUtils, KambiStringUtils, VRMLErrors, GLShaders, VRMLShape,
   VRMLFields, Images, Boxes3d, GLImages, GLWinMessages, DataErrors,
-  GLVersionUnit, Math, VRMLTriangle, SceneManagerUnit;
+  GLVersionUnit, Math, VRMLTriangle, SceneManagerUnit, KeysMouse;
 
 type
   TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);
