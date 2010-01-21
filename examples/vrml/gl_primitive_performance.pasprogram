@@ -21,7 +21,7 @@
 program gl_primitive_performance;
 
 uses VectorMath, Boxes3d, VRMLNodes, GL, GLU, GLExt, GLWindow,
-  KambiUtils, SysUtils, Classes, Object3dAsVRML,
+  KambiUtils, SysUtils, Classes,
   KambiGLUtils, KambiFilesUtils, VRMLScene, Cameras,
   ProgressUnit, VRMLErrors, VRMLShape;
 
