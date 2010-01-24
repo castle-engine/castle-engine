@@ -19,69 +19,23 @@ unit KambiVRMLBrowser;
 interface
 
 uses Classes, KambiGLControl, VectorMath, Controls,
-  VRMLNodes, VRMLGLScene, Cameras, KambiSceneManager;
+  VRMLNodes, VRMLGLScene, KambiSceneManager;
 
 type
-  { A simple VRML browser as a Lazarus component. This manages TVRMLGLScene,
-    camera (automatically adjusted to NavigationInfo.type).
-    Octress are also automatically used (you only have to set Scene.Spatial
-    to anything <> [], like typical [ssRendering, ssDynamicCollisions]).
-    You simply call @link(Load) method and all is done.
+  { A simple VRML browser as a Lazarus component. This creates the scene manager
+    for you, and gives you an ultra-simple @link(Load) method to
+    load 3D model from file.
 
-    This class tries to be a thin (not really "opaque")
-    wrapper around Scene / Camera objects. Which means that
-    you can access many functionality by directly accessing
-    Scene or Camera objects methods/properties.
-    In particular you're permitted to access and call:
-
-    @unorderedList(
-      @item(@link(TVRMLScene.ProcessEvents Scene.ProcessEvents))
-      @item(@link(TVRMLScene.Spatial Scene.Spatial),
-        and other octree properties)
-      @item(@link(TVRMLScene.RegisterCompiledScript Scene.RegisterCompiledScript))
-      @item(@link(TVRMLScene.LogChanges Scene.LogChanges))
-      @item(Changing VRML graph:
-
-        You can freely change @link(TVRMLScene.RootNode Scene.RootNode)
-        contents, provided that you call appropriate Scene.ChangedXxx method.
-
-        You can also freely call events on the VRML nodes.
-
-        You can access BackgroundStack and other stacks.)
-
-      @item(Automatically managed Scene properties, like
-        @link(TVRMLScene.BoundingBox Scene.BoundingBox),
-        @link(TVRMLScene.TrianglesList Scene.TrianglesList),
-        @link(TVRMLScene.ManifoldEdges Scene.ManifoldEdges),
-        @link(TVRMLScene.ManifoldEdges Scene.BorderEdges)
-        are also free to use.)
-
-      @item(You can change @link(TVRMLGLScene.Optimization
-        Scene.Optimization). You can also change rendering attributes
-        by @link(TVRMLGLScene.Attributes Scene.Attributes).)
-    )
-
-    Some important things that you @italic(cannot) mess with:
-
-    @unorderedList(
-      @item(Don't create/free Scene, Camera and such objects yourself.
-        This class manages them, they are always non-nil.)
-    )
-
-    This is very simple to use, but note that for more advanced uses
-    you're not really expected to extend this class. Instead, you can
-    implement something more suitable for you using your own
-    TVRMLGLScene and camera management.
-    In other words, remember that this class just provides
-    a simple "glue" between the key components of our engine.
-    For specialized cases, more complex scenarios may be needed.
+    You can directly access the SceneManager. You can also directly
+    access the loaded scene: this is available in @link(Scene) property,
+    it's always the same thing as SceneManager.MainScene.
 
     If you're looking for GLWindow descendants that does basically the same
     (easy VRML browser), you want to check out TGLWindowVRMLBrowser
     (file @code(../glwindow/glwindowvrmlbrowser.pas)). }
   TKamVRMLBrowser = class(TKamOpenGLControl)
   private
-    SceneManager: TKamSceneManager;
+    FSceneManager: TKamSceneManager;
 
     function GetShadowVolumes: boolean;
     function GetShadowVolumesDraw: boolean;
@@ -99,6 +53,7 @@ type
     procedure Load(ARootNode: TVRMLNode; const OwnsRootNode: boolean);
 
     function Scene: TVRMLGLScene;
+    property SceneManager: TKamSceneManager read FSceneManager;
   published
     property OnCameraChanged: TNotifyEvent
       read GetOnCameraChanged write SetOnCameraChanged;
@@ -128,17 +83,7 @@ procedure Register;
 
 implementation
 
-{ The implementation is very very similar to GLWindowVRMLBrowser implementation.
-  In fact, some code parts are even identical... A work to move more
-  logic to TVRMLScene (which could be used then by both this unit and
-  GLWindowVRMLBrowser, without any code duplication) is ongoing. }
-
-{ This uses OctreeCollisions, so either OctreeDynamicCollisions
-  or OctreeCollidableTriangles, whichever is available. }
-
-uses VRMLOpenGLRenderer, GL, GLU,
-  KambiClassUtils, KambiUtils, SysUtils, Object3dAsVRML,
-  KambiGLUtils, KambiFilesUtils;
+uses SysUtils, Object3dAsVRML;
 
 procedure Register;
 begin
@@ -151,7 +96,7 @@ constructor TKamVRMLBrowser.Create(AOwner :TComponent);
 begin
   inherited;
 
-  SceneManager := TKamSceneManager.Create(Self);
+  FSceneManager := TKamSceneManager.Create(Self);
   Controls.Add(SceneManager);
 
   Load(nil, true);
