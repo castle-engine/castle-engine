@@ -5695,7 +5695,7 @@ begin
      (NavigationNode.FdAvatarSize.Count >= 1) then
     CameraRadius := NavigationNode.FdAvatarSize.Items[0];
   { if avatarSize doesn't specify CameraRadius, or specifies invalid <= 0,
-    calculate something suitable based on Scene.Box. }
+    calculate something suitable based on Box. }
   if CameraRadius <= 0 then
     CameraRadius := Box3dAvgSize(Box, 1.0) * 0.005;
 
