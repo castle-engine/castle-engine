@@ -279,8 +279,8 @@ EXAMPLES_BASE_NAMES := \
   examples/vrml/tools/gen_light_map \
   examples/vrml/tools/md3tovrmlsequence \
   examples/vrml/tools/xmlportals_to_x3d \
-  examples/vrml/simple_view_model_2 \
-  examples/vrml/simple_view_model \
+  examples/vrml/direct_vrmlglscene_test_1 \
+  examples/vrml/direct_vrmlglscene_test_2 \
   examples/vrml/demo_animation \
   examples/vrml/fog_culling \
   examples/vrml/shadow_volume_test/shadow_volume_test \

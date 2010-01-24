@@ -268,7 +268,7 @@ Occlusion culling (Ok for post 3.4):
 ------------------------------------------------------------------------------
 SceneManager stuff (post 3.4):
 
-- Use SceneManager *everywhere*. Make it trivial, so that simple_view_scene and such can use it. With new requirements (RenderState, generated textures, shadow volumes), it simply makes no sense to directly render TVRMLGLScene anymore.
+- Use SceneManager *everywhere*.
 
 - RenderState.Camera* is currently not initialized in various programs. This is supposed to be fixed by using SceneManager everywhere, that's why I didn't want to pollute code for now. When you don't use generated textures, RenderState.Camera* is only for Viewpoint events and WORLDSPACE* tex coord generation, which is simply not used by some programs. Below is extracted from
   grep_pas_src . 'glLoadMatrix(.*camera.matrix)'
