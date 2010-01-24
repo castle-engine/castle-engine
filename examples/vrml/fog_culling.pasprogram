@@ -11,11 +11,10 @@
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
-{ This is based on simple_view_model_2.pasprogram, with some changes:
+{ Demo of fog culling.
 
   1. It always loads models/fog_culling_final.wrl VRML file.
-     Be sure to run it with proper current directory
-     (units/vrml/opengl/examples/).
+     Be sure to run it with proper current directory (examples/vrml/).
 
   2. It handles Background node (because our models/fog_culling_final.wrl
      model uses it).
