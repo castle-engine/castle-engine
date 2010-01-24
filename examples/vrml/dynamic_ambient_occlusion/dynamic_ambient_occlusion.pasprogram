@@ -31,7 +31,7 @@ uses VectorMath, GL, GLU, GLExt, GLWindow,
   KambiGLUtils, VRMLScene, VRMLGLScene,
   KambiFilesUtils, KambiStringUtils, VRMLErrors, GLShaders, VRMLShape,
   VRMLFields, Images, Boxes3d, GLImages, GLWinMessages, DataErrors,
-  GLVersionUnit, Math, VRMLTriangle, SceneManagerUnit;
+  GLVersionUnit, Math, VRMLTriangle, KambiSceneManager;
 
 type
   TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);
@@ -456,7 +456,7 @@ var
   FullRenderIntensityTex: TGrayscaleImage;
 
 type
-  TMySceneManager = class(TSceneManager)
+  TMySceneManager = class(TKamSceneManager)
     procedure RenderFromView3D; override;
   end;
 

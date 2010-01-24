@@ -10,7 +10,7 @@ unit AllKambiVRMLGLUnits;
 interface
 
 uses
-  scenemanagerunit,
+  kambiscenemanager,
   vrmlglanimation,
   vrmlglheadlight,
   vrmlglscene,

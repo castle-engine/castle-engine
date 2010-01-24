@@ -2487,7 +2487,7 @@ type
 
           OpenGL projection matrix is not modified (so projection
           is whatever you set yourself, by EventResize, OnResize,
-          or whatever TSceneManager set for you).
+          or whatever TKamSceneManager set for you).
 
           Note that the interpretation of dsNone is different than for
           TUIControl.DrawStyle: for TUIControl.DrawStyle, dsNone
@@ -2512,7 +2512,7 @@ type
 
           OpenGL projection matrix is not modified (so projection
           is whatever you set yourself, by EventResize, OnResize,
-          or whatever TSceneManager set for you).
+          or whatever TKamSceneManager set for you).
 
           This is suitable if you want to draw something 3D,
           that may be later covered by 2D controls.)

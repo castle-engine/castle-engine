@@ -19,7 +19,7 @@ unit KambiVRMLBrowser;
 interface
 
 uses Classes, KambiGLControl, VectorMath, Controls,
-  VRMLNodes, VRMLGLScene, Cameras, SceneManagerUnit;
+  VRMLNodes, VRMLGLScene, Cameras, KambiSceneManager;
 
 type
   { A simple VRML browser as a Lazarus component. This manages TVRMLGLScene,
@@ -81,7 +81,7 @@ type
     (file @code(../glwindow/glwindowvrmlbrowser.pas)). }
   TKamVRMLBrowser = class(TKamOpenGLControl)
   private
-    SceneManager: TSceneManager;
+    SceneManager: TKamSceneManager;
 
     function GetShadowVolumes: boolean;
     function GetShadowVolumesDraw: boolean;
@@ -115,11 +115,11 @@ type
     property ShadowVolumesPossible: boolean
       read GetShadowVolumesPossible write SetShadowVolumesPossible default false;
 
-    { See TSceneManager.ShadowVolumes. }
+    { See TKamSceneManager.ShadowVolumes. }
     property ShadowVolumes: boolean
       read GetShadowVolumes write SetShadowVolumes default false;
 
-    { See TSceneManager.ShadowVolumesDraw. }
+    { See TKamSceneManager.ShadowVolumesDraw. }
     property ShadowVolumesDraw: boolean
       read GetShadowVolumesDraw write SetShadowVolumesDraw default false;
   end;
@@ -151,7 +151,7 @@ constructor TKamVRMLBrowser.Create(AOwner :TComponent);
 begin
   inherited;
 
-  SceneManager := TSceneManager.Create(Self);
+  SceneManager := TKamSceneManager.Create(Self);
   Controls.Add(SceneManager);
 
   Load(nil, true);

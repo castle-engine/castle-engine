@@ -581,9 +581,9 @@
         <Type Value="Include"/>
       </Item131>
       <Item132>
-        <Filename Value="../src/vrml/opengl/scenemanagerunit.pas"/>
+        <Filename Value="../src/vrml/opengl/kambiscenemanager.pas"/>
         <HasRegisterProc Value="True"/>
-        <UnitName Value="SceneManagerUnit"/>
+        <UnitName Value="KambiSceneManager"/>
       </Item132>
       <Item133>
         <Filename Value="../src/vrml/opengl/vrmlbumpmappingrenderer.inc"/>

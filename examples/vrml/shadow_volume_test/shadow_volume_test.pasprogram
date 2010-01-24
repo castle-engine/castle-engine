@@ -71,7 +71,7 @@ uses GLWindow, GL, GLU, GLExt, KambiGLUtils, VRMLGLScene,
   KambiUtils, VectorMath, VRMLLightSetGL, VRMLFields,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils, VRMLCameraUtils,
   ShadowTests, GLWinMessages, VRMLErrors, ShadowVolumes,
-  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, SceneManagerUnit,
+  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, KambiSceneManager,
   RaysWindow, UIControls, RenderStateUnit;
 
 type
@@ -155,7 +155,7 @@ var
 { scene manager ------------------------------------------------------------ }
 
 type
-  TMySceneManager = class(TSceneManager)
+  TMySceneManager = class(TKamSceneManager)
     procedure RenderFromView; override;
     procedure ApplyProjection; override;
   end;

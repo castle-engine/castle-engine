@@ -59,7 +59,7 @@ uses GLWindow, GL, GLU, GLExt, KambiGLUtils,
   ParseParametersUnit, KambiLog, RaysWindow, UIControls, Classes, DataErrors,
   { VRML-related units: }
   VRMLScene, VRMLGLScene, Object3dAsVRML, ProgressUnit, BackgroundGL,
-  VRMLOpenGLRenderer, VRMLRendererOptimization, SceneManagerUnit,
+  VRMLOpenGLRenderer, VRMLRendererOptimization, KambiSceneManager,
   RenderStateUnit, VRMLErrors;
 
 const
@@ -275,7 +275,7 @@ begin
 end;
 
 type
-  TMySceneManager = class(TSceneManager)
+  TMySceneManager = class(TKamSceneManager)
     procedure RenderFromView; override;
     procedure ApplyProjection; override;
   end;

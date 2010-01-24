@@ -37,9 +37,9 @@ type
   TBaseShadowVolumes = class
   end;
 
-  { Base 3D object, that can be managed by TSceneManager.
+  { Base 3D object, that can be managed by TKamSceneManager.
     All 3D objects should descend from this, this way we can easily
-    insert them into the TSceneManager. }
+    insert them into the TKamSceneManager. }
   TBase3D = class(TComponent)
   private
     FCastsShadow: boolean;

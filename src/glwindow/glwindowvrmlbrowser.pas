@@ -20,7 +20,7 @@ unit GLWindowVRMLBrowser;
 interface
 
 uses Classes, VectorMath, GLWindow, VRMLNodes, VRMLGLScene,
-  Cameras, SceneManagerUnit;
+  Cameras, KambiSceneManager;
 
 type
   { A simple VRML browser in a window. This manages TVRMLGLScene and
@@ -82,7 +82,7 @@ type
     (file @code(../packages/components/kambivrmlbrowser.pas)). }
   TGLWindowVRMLBrowser = class(TGLUIWindow)
   private
-    SceneManager: TSceneManager;
+    SceneManager: TKamSceneManager;
 
     function GetShadowVolumes: boolean;
     function GetShadowVolumesDraw: boolean;
@@ -111,11 +111,11 @@ type
     property ShadowVolumesPossible: boolean
       read GetShadowVolumesPossible write SetShadowVolumesPossible default false;
 
-    { See TSceneManager.ShadowVolumes. }
+    { See TKamSceneManager.ShadowVolumes. }
     property ShadowVolumes: boolean
       read GetShadowVolumes write SetShadowVolumes default false;
 
-    { See TSceneManager.ShadowVolumesDraw. }
+    { See TKamSceneManager.ShadowVolumesDraw. }
     property ShadowVolumesDraw: boolean
       read GetShadowVolumesDraw write SetShadowVolumesDraw default false;
   end;
@@ -133,7 +133,7 @@ constructor TGLWindowVRMLBrowser.Create(AOwner: TComponent);
 begin
   inherited;
 
-  SceneManager := TSceneManager.Create(Self);
+  SceneManager := TKamSceneManager.Create(Self);
   Controls.Add(SceneManager);
 
   Load(nil, true);

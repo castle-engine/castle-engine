@@ -70,7 +70,7 @@ D   vrmltime.pas
 D   x3dxmltovrml.pas
 
   vrml/opengl/
-D   scenemanagerunit.pas
+D   kambiscenemanager.pas
 D   vrmlglanimation.pas
 D   vrmlglheadlight.pas
 D   vrmlglscene.pas

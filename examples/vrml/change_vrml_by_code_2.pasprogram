@@ -22,12 +22,12 @@
 program change_vrml_by_code_2;
 
 uses VectorMath, VRMLNodes, GL, GLU, GLWindow,
-  KambiUtils, SysUtils, KambiGLUtils, VRMLGLScene, Cameras, SceneManagerUnit,
+  KambiUtils, SysUtils, KambiGLUtils, VRMLGLScene, Cameras, KambiSceneManager,
   KambiFilesUtils, VRMLErrors, Quaternions {$ifdef LOG} ,KambiLog {$endif};
 
 var
   Glw: TGLUIWindow;
-  SceneManager: TSceneManager;
+  SceneManager: TKamSceneManager;
   Scene: TVRMLGLScene;
 
 const
@@ -108,7 +108,7 @@ begin
     {$endif}
 
     { make SceneManager with our Scene }
-    SceneManager := TSceneManager.Create(Glw);
+    SceneManager := TKamSceneManager.Create(Glw);
     Glw.Controls.Add(SceneManager);
     SceneManager.MainScene := Scene;
     SceneManager.Items.Add(Scene);

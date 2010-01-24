@@ -111,6 +111,7 @@ begin
     P.Targets.AddUnit('x3dxmltovrml.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'vrml' + PathDelim + 'opengl');
+    P.Targets.AddUnit('kambiscenemanager.pas');
     P.Targets.AddUnit('vrmlglanimation.pas');
     P.Targets.AddUnit('vrmlglheadlight.pas');
     P.Targets.AddUnit('vrmlglscene.pas');

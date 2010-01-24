@@ -234,8 +234,8 @@ type
       @unorderedList(
         @item(All controls with DrawStyle = ds3D are drawn first,
           with projection that you set yourself. Usually you should
-          use TSceneManager, which sets projection automatically for you
-          to something suitable, see TSceneManager.ApplyProjection and
+          use TKamSceneManager, which sets projection automatically for you
+          to something suitable, see TKamSceneManager.ApplyProjection and
           TVRMLGLScene.GLProjection.
 
           Then al controls with DrawStyle = ds2D are drawn.
