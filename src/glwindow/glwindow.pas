@@ -4314,11 +4314,11 @@ begin
       C := Controls.Items[I];
       if HandleMouseAndKeys and C.PositionInside(MouseX, MouseY) then
       begin
-        HandleMouseAndKeys := false;
+        HandleMouseAndKeys := not C.ExclusiveEvents;
         C.Idle(Fps.IdleSpeed, true, HandleMouseAndKeys);
       end else
       begin
-        Dummy := false;
+        Dummy := not C.ExclusiveEvents;
         C.Idle(Fps.IdleSpeed, false, Dummy);
       end;
     end;

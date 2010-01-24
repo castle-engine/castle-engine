@@ -710,11 +710,13 @@ begin
     { init SceneNav }
     SceneNav := Scene.CreateCamera(Glw, 'FLY') as TWalkCamera;
     SceneNav.MoveHorizontalSpeed := 10;
+    SceneNav.ExclusiveEvents := false; { default for now, but just to be safe... }
     SceneManager.Camera := SceneNav;
 
     { init ShadowCasterNav }
     ShadowCasterNav := TExamineCamera.Create(Glw);
     ShadowCasterNav.ModelBox := ShadowCaster.BoundingBox;
+    ShadowCasterNav.ExclusiveEvents := false; { default for now, but just to be safe... }
 
     ShadowCasterNav.Inputs_Move[0, false].Key1 := K_A;
     ShadowCasterNav.Inputs_Move[0, true ].Key1 := K_D;

@@ -853,13 +853,22 @@ procedure TKamSceneManager.Idle(const CompSpeed: Single;
 begin
   inherited;
 
+  { As for LetOthersHandleMouseAndKeys: let Camera decide it.
+    By default, camera has ExclusiveEvents = false and will let
+    LetOthersHandleMouseAndKeys remain = true, that's Ok.
+
+    Our Items do not have HandleMouseAndKeys or LetOthersHandleMouseAndKeys
+    stuff, as it would not be controllable for them: 3D objects do not
+    have strict front-to-back order, so we would not know in what order
+    call their Idle methods, so we have to let many Items handle keys anyway.
+    So, it's consistent to just treat 3D objects as "cannot definitely
+    mark keys/mouse as handled". Besides, currently 3D objects do not
+    get Pressed information at all. }
+
+  LetOthersHandleMouseAndKeys := not Camera.ExclusiveEvents;
   Camera.Idle(CompSpeed, HandleMouseAndKeys, LetOthersHandleMouseAndKeys);
 
   Items.Idle(CompSpeed);
-
-  { Leave LetOthersHandleMouseAndKeys as false (caller of TUIControl.Idle
-    set it to false). Camera.Idle left it as false,
-    and camera indeed handled some keys/mouse. }
 end;
 
 function TKamSceneManager.AllowSuspendForInput: boolean;

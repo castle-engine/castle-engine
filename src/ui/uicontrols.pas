@@ -156,8 +156,9 @@ type
 
       Also (only when HandleMouseAndKeys = @true) the control can
       set LetOthersHandleMouseAndKeys. In fact, it's by default
-      set to @false. This reflects the fact that "normal" UI controls,
-      that actually take screen space implied by PositionInside,
+      set to @code(not ExclusiveEvents), which (since ExclusiveEvents by default
+      is @true) usually means @false. This reflects the fact that "normal"
+      UI controls, that actually take screen space implied by PositionInside,
       want to block controls underneath from handling keys/mouse.
       For example, when pressing key "left" over TGLMenu, you do not
       want to let the Camera to also capture this left key down.
