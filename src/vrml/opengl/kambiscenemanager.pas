@@ -372,6 +372,7 @@ end;
 constructor TKamSceneManager.Create(AOwner: TComponent);
 begin
   inherited;
+
   FItems := TBase3DList.Create(Self);
   FItems.OnVisibleChange := @ItemsVisibleChange;
   FItems.OnCursorChange := @ItemsAndCameraCursorChange;
@@ -379,6 +380,8 @@ begin
     (and in the future this should allow design Items.List by IDE),
     so set some sensible Name. }
   FItems.Name := 'Items';
+
+  FCameraBox := EmptyBox3D;
 end;
 
 destructor TKamSceneManager.Destroy;
