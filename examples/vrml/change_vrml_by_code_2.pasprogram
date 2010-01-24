@@ -107,19 +107,18 @@ begin
     Scene.LogChanges := true;
     {$endif}
 
-    { init Glw.Camera }
-    Glw.Camera := TExamineCamera.Create(Glw);
-    (Glw.Camera as TExamineCamera).Init(Scene.BoundingBox);
-    { set more interesting view by default }
-    (Glw.Camera as TExamineCamera).Rotations := QuatFromAxisAngle(
-      Normalized(Vector3Single(1, 1, 0)), Pi/4);
-
-    { make SceneManager with our Scene and Glw.Camera }
+    { make SceneManager with our Scene }
     SceneManager := TSceneManager.Create(Glw);
     Glw.Controls.Add(SceneManager);
     SceneManager.MainScene := Scene;
     SceneManager.Items.Add(Scene);
-    SceneManager.Camera := Glw.Camera;
+
+    { init SceneManager.Camera }
+    SceneManager.Camera := TExamineCamera.Create(Glw);
+    (SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox);
+    { set more interesting view by default }
+    (SceneManager.Camera as TExamineCamera).Rotations := QuatFromAxisAngle(
+      Normalized(Vector3Single(1, 1, 0)), Pi/4);
 
     Glw.OnIdle := @Idle;
     Glw.InitAndRun;

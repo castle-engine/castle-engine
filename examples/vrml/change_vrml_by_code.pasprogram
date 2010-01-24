@@ -100,16 +100,15 @@ begin
     TransformBox4 := Scene.RootNode.FindNodeByName(TNodeTransform_2,
       'Box4Transform', true) as TNodeTransform_2;
 
-    { init Glw.Camera }
-    Glw.Camera := TExamineCamera.Create(Glw);
-    (Glw.Camera as TExamineCamera).Init(Scene.BoundingBox);
-
-    { make SceneManager with our Scene and Glw.Camera }
+    { init SceneManager with our Scene }
     SceneManager := TSceneManager.Create(Glw);
     Glw.Controls.Add(SceneManager);
     SceneManager.MainScene := Scene;
     SceneManager.Items.Add(Scene);
-    SceneManager.Camera := Glw.Camera;
+
+    { init SceneManager.Camera }
+    SceneManager.Camera := TExamineCamera.Create(Glw);
+    (SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox);
 
     Glw.OnIdle := @Idle;
     Glw.InitAndRun;

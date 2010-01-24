@@ -29,8 +29,6 @@ Better Lazarus integration:
    ...).
 
 * Cursor stuff:
-  * CalculateMouseCursor is unclean: special (and undocumented on TUIControl.Cursor)
-    treatment of TCamera.Cursor results.
   * What to do with cursors of 3D scenes hierarchy?
     See notes in scenemanager.ItemsCursorChange: currently just takes MainScene.Cursor.
     See notes in TBase3D.ListCursorChange (similar for TVRMLGLAnimation): maybe set upper-level cursor?

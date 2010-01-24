@@ -701,6 +701,17 @@ begin
         'light node "%s" cannot be used to cast shadows, it has no position ' +
         'and no direction', [L^.LightNode.NodeTypeName]);
 
+    { init SceneManager, with a Scene inside }
+    SceneManager := TMySceneManager.Create(Glw);
+    Glw.Controls.Add(SceneManager);
+    SceneManager.MainScene := Scene;
+    SceneManager.Items.Add(Scene);
+
+    { init SceneNav }
+    SceneNav := Scene.CreateCamera(Glw, 'FLY') as TWalkCamera;
+    SceneNav.MoveHorizontalSpeed := 10;
+    SceneManager.Camera := SceneNav;
+
     { init ShadowCasterNav }
     ShadowCasterNav := TExamineCamera.Create(Glw);
     ShadowCasterNav.ModelBox := ShadowCaster.BoundingBox;
@@ -726,22 +737,9 @@ begin
     ShadowCasterNav.Input_ScaleSmaller.Key1 := K_4;
     ShadowCasterNav.Input_ScaleSmaller.Character := #0;
 
-    { init SceneNav }
-    SceneNav := Scene.CreateCamera(Glw, 'FLY') as TWalkCamera;
-    SceneNav.MoveHorizontalSpeed := 10;
-
-    { use both cameras simultaneously }
-    Glw.Controls.Add(SceneNav);
-    Glw.Controls.Add(ShadowCasterNav);
+    Glw.Controls.Add(ShadowCasterNav); { use ShadowCasterNav as a 2nd camera }
 
     Glw.Controls.Add(TStatusText.Create(Glw));
-
-    { init SceneManager, with a Scene and SceneNav inside }
-    SceneManager := TMySceneManager.Create(Glw);
-    Glw.Controls.Add(SceneManager);
-    SceneManager.MainScene := Scene;
-    SceneManager.Items.Add(Scene);
-    SceneManager.Camera := SceneNav;
 
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;

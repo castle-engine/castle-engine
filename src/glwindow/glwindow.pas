@@ -4443,58 +4443,12 @@ procedure TGLUIWindow.UpdateMouseCursor;
 
   function CalculateMouseCursor: TMouseCursor;
   var
-    I: Integer;
-    NonCameraCursorSet: boolean;
-    C: TUIControl;
+    F: TUIControl;
   begin
-    Result := mcDefault;
-
-    {
     F := Focus;
     if F <> nil then
       Result := F.Cursor else
-
-    Above says that only the focused control (first control with
-    PositionInside) sets Result. This is nice and promised
-    in TUIControl.Cursor docs.
-
-    However, this makes troubles with the camera wanting to set
-    - mcNone because of mouse look (this is then unconditionally,
-      even if (like in view3dscene) something else (like SceneManager)
-      is first on controls (and so has focus) and maybe even has cursor
-      <> mcNone (like mcHand when over a touch sensor)).
-    - mcDefault because of mouse look (this then says to ignore camera
-      cursor, even if it's in focus (before e.g. scene manager on controls))
-
-    So instead we have this hack below that specially treats
-    cameras: mcNone of camera takes priority, and mcDefault of camera
-    makes camera cursor ignored.
-    }
-
-    if UseControls then
-    begin
-      NonCameraCursorSet := false;
-      for I := 0 to Controls.Count - 1 do
-      begin
-        C := Controls.Items[I];
-        if C.PositionInside(MouseX, MouseY) then
-        begin
-          if C is TCamera then
-          begin
-            if C.Cursor = mcNone then
-              { unconditionally return mcNone if any camera has mcNone }
-              Exit(mcNone);
-              { else ignore: ignore cameras (do not treat as focused)
-                with other Cursor values. }
-          end else
-          if not NonCameraCursorSet then
-          begin
-            Result := C.Cursor;
-            NonCameraCursorSet := true;
-          end;
-        end;
-      end;
-    end;
+      Result := mcDefault;
   end;
 
 begin

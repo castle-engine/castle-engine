@@ -85,7 +85,7 @@ type
     procedure SetShadowVolumesPossible(const Value: boolean);
 
     procedure ItemsVisibleChange(Sender: TObject);
-    procedure ItemsCursorChange(Sender: TObject);
+    procedure ItemsAndCameraCursorChange(Sender: TObject);
 
     { camera callbacks }
     function CameraMoveAllowed(ACamera: TWalkCamera;
@@ -104,6 +104,8 @@ type
     FAngleOfViewY: Single;
     FWalkProjectionNear: Single;
     FWalkProjectionFar : Single;
+
+    procedure SetContainer(const Value: IUIContainer); override;
 
     { Triangles to ignore by all collision detection in scene manager.
       The default implementation in this class resturns always @false,
@@ -187,6 +189,7 @@ type
     procedure Idle(const CompSpeed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
+    function AllowSuspendForInput: boolean; override;
 
     { Overridden in TSceneManager to catch events regardless of mouse position. }
     function PositionInside(const X, Y: Integer): boolean; override;
@@ -218,13 +221,16 @@ type
       You may also set your main TVRMLGLScene (if you have any) as MainScene.
 
       TBase3DList is also TBase3D instance, so yes --- this may be a tree
-      of TBase3D, not only a flat list. }
+      of TBase3D, not only a flat list.
+
+      Note that scene manager "hijacks" TBase3D callbacks OnCursorChange and
+      OnVisibleChange. }
     property Items: TBase3DList read FItems;
 
     { The main scene of your 3D world. It's not necessary to set this
-      (after all, your world doesn't even need to have any TVRMLGLScene
-      instance). It may be, but doesn't have to be, also added to
-      our @link(Items).
+      (after all, your 3D world doesn't even need to have any TVRMLGLScene
+      instance). This @italic(must be) also added to our @link(Items)
+      (otherwise things will work strangely).
 
       When set, this is used for a couple of things:
 
@@ -241,7 +247,7 @@ type
           by animating viewpoint (or it's transformation) or bind camera
           to a viewpoint.
 
-          Note that scene manager "hijacks" Scene events
+          Note that scene manager "hijacks" some Scene events:
           OnBoundViewpointVectorsChanged and ViewpointStack.OnBoundChanged
           for this purpose. If you want to know when viewpoint changes,
           you can use scene manager's event OnBoundViewpointChanged.)
@@ -256,19 +262,21 @@ type
 
     { Camera used to render. Cannot be @nil when rendering.
 
-      Your camera must be inside some container
-      (i.e. on TGLUIWindow.Controls or TKamOpenGLControl.Controls list),
-      at least at the time of MouseMove methods call
-      (that is, when container passed mouse events to this scene).
+      This camera @italic(should not) be inside some other container
+      (like on TGLUIWindow.Controls or TKamOpenGLControl.Controls list).
+      Scene manager will handle passing events to the camera on it's own,
+      we will also pass our own Container to Camera.Container.
+      This is desired, this way events are correctly passed
+      and interpreted before passing them to 3D objects.
+      And this way we avoid the question whether camera should be before
+      or after the scene manager on the Controls list (as there's really
+      no perfect ordering for them).
 
       Scene manager will "hijack" some Camera events:
-      OnVisibleChange, OnMoveAllowed, OnGetCameraHeight. Scene manager
-      will handle them in a proper way. Fear not, Camera.OnVisibleChange
-      will still cause our own TSceneManager.VisibleChange,
-      so your window will be properly repainted if scene manager is on the
-      Controls list (and it should be). Also, each camera change
-      (Camera.OnVisibleChange) will be reported to OnCameraChanged,
-      so you can catch it there. }
+      OnVisibleChange, OnMoveAllowed, OnGetCameraHeight, OnCursorChange.
+      Scene manager will handle them in a proper way.
+
+      @seealso OnCameraChanged }
     property Camera: TCamera read FCamera write SetCamera;
 
     { Should we make shadow volumes possible.
@@ -340,7 +348,7 @@ begin
   inherited;
   FItems := TBase3DList.Create(Self);
   FItems.OnVisibleChange := @ItemsVisibleChange;
-  FItems.OnCursorChange := @ItemsCursorChange;
+  FItems.OnCursorChange := @ItemsAndCameraCursorChange;
   { Items is displayed and streamed with TSceneManager
     (and in the future this should allow design Items.List by IDE),
     so set some sensible Name. }
@@ -428,11 +436,14 @@ begin
     begin
       FCamera.RemoveFreeNotification(Self);
       FCamera.OnVisibleChange := nil;
+      FCamera.OnCursorChange := nil;
       if FCamera is TWalkCamera then
       begin
         TWalkCamera(FCamera).OnMoveAllowed := nil;
         TWalkCamera(FCamera).OnGetCameraHeight := nil;
       end;
+
+      FCamera.Container := nil;
     end;
 
     FCamera := Value;
@@ -444,11 +455,16 @@ begin
         to override TGLUIWindow / TKamOpenGLControl that also try
         to "hijack" this camera's event. }
       FCamera.OnVisibleChange := @CameraVisibleChange;
+      FCamera.OnCursorChange := @ItemsAndCameraCursorChange;
       if FCamera is TWalkCamera then
       begin
         TWalkCamera(FCamera).OnMoveAllowed := @CameraMoveAllowed;
         TWalkCamera(FCamera).OnGetCameraHeight := @CameraGetHeight;
       end;
+
+      FCamera.Container := Container;
+      if ContainerSizeKnown then
+        FCamera.ContainerResize(ContainerWidth, ContainerHeight);
 
       { Call initial ViewerChanged (this allows ProximitySensors to work
         as soon as ProcessEvents becomes true). }
@@ -462,6 +478,15 @@ begin
 
     ApplyProjectionNeeded := true;
   end;
+end;
+
+procedure TSceneManager.SetContainer(const Value: IUIContainer);
+begin
+  inherited;
+
+  { Keep Camera.Container always the same as our Container }
+  if Camera <> nil then
+    Camera.Container := Container;
 end;
 
 procedure TSceneManager.Notification(AComponent: TComponent; Operation: TOperation);
@@ -494,6 +519,11 @@ procedure TSceneManager.ContainerResize(const AContainerWidth, AContainerHeight:
 begin
   inherited;
   ApplyProjectionNeeded := true;
+
+  if Camera <> nil then
+  begin
+    Camera.ContainerResize(AContainerWidth, AContainerHeight);
+  end;
 end;
 
 procedure TSceneManager.PrepareRender(const DisplayProgressTitle: string);
@@ -684,12 +714,18 @@ begin
   Result := inherited;
   if Result then Exit;
 
+  Result := Camera.KeyDown(Key, C);
+  if Result then Exit;
+
   Result := Items.KeyDown(Key, C);
 end;
 
 function TSceneManager.KeyUp(Key: TKey; C: char): boolean;
 begin
   Result := inherited;
+  if Result then Exit;
+
+  Result := Camera.KeyUp(Key, C);
   if Result then Exit;
 
   Result := Items.KeyUp(Key, C);
@@ -700,12 +736,18 @@ begin
   Result := inherited;
   if Result then Exit;
 
+  Result := Camera.MouseDown(Button);
+  if Result then Exit;
+
   Result := Items.MouseDown(Button);
 end;
 
 function TSceneManager.MouseUp(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
+  if Result then Exit;
+
+  Result := Camera.MouseUp(Button);
   if Result then Exit;
 
   Result := Items.MouseUp(Button);
@@ -716,17 +758,32 @@ var
   RayOrigin, RayDirection: TVector3Single;
 begin
   Result := inherited;
-  if Result then Exit;
-
-  Camera.Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, RayOrigin, RayDirection);
-  Result := Items.MouseMove(RayOrigin, RayDirection);
+  if not Result then
+  begin
+    Result := Camera.MouseMove(OldX, OldY, NewX, NewY);
+    if not Result then
+    begin
+      Camera.Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, RayOrigin, RayDirection);
+      Result := Items.MouseMove(RayOrigin, RayDirection);
+    end;
+  end;
 
   { update the cursor, since scene under the cursor possibly changed. }
-  ItemsCursorChange(Self);
+  ItemsAndCameraCursorChange(Self);
 end;
 
-procedure TSceneManager.ItemsCursorChange(Sender: TObject);
+procedure TSceneManager.ItemsAndCameraCursorChange(Sender: TObject);
 begin
+  { We have to treat Camera.Cursor specially:
+    - mcNone because of mouse look means result in unconditionally mcNone.
+      Other Items.Cursor, MainScene.Cursor etc. is ignored then.
+    - otherwise, Camera.Cursor is ignored, show 3D objects cursor. }
+  if (Camera <> nil) and (Camera.Cursor = mcNone) then
+  begin
+    Cursor := mcNone;
+    Exit;
+  end;
+
   if MainScene <> nil then
     Cursor := MainScene.Cursor else
     Cursor := mcDefault;
@@ -743,11 +800,18 @@ procedure TSceneManager.Idle(const CompSpeed: Single;
 begin
   inherited;
 
+  Camera.Idle(CompSpeed, HandleMouseAndKeys, LetOthersHandleMouseAndKeys);
+
   Items.Idle(CompSpeed);
 
-  { Even if mouse is over the scene, still allow others (like a Camera
-    underneath) to always handle mouse and keys in their Idle. }
-  LetOthersHandleMouseAndKeys := true;
+  { Leave LetOthersHandleMouseAndKeys as false (caller of TUIControl.Idle
+    set it to false). Camera.Idle left it as false,
+    and camera indeed handled some keys/mouse. }
+end;
+
+function TSceneManager.AllowSuspendForInput: boolean;
+begin
+  Result := Camera.AllowSuspendForInput;
 end;
 
 function TSceneManager.PositionInside(const X, Y: Integer): boolean;

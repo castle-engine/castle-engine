@@ -28,7 +28,7 @@ program dynamic_ambient_occlusion;
 
 uses VectorMath, GL, GLU, GLExt, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes,
-  KambiGLUtils, VRMLScene, VRMLGLScene, Cameras,
+  KambiGLUtils, VRMLScene, VRMLGLScene,
   KambiFilesUtils, KambiStringUtils, VRMLErrors, GLShaders, VRMLShape,
   VRMLFields, Images, Boxes3d, GLImages, GLWinMessages, DataErrors,
   GLVersionUnit, Math, VRMLTriangle, SceneManagerUnit;
@@ -897,20 +897,14 @@ begin
     Scene.OnGeometryChanged := @THelper(nil).SceneGeometryChanged;
     Scene.ProcessEvents := true;
 
-    { init Glw.Camera }
-    Glw.Camera := Scene.CreateCamera(Glw);
-    { Even if VRML navigation info suggests using gravity, turn it off,
-      simply because this demo doesn't do collision detection for now
-      (so gravity will make you fall down forever...) }
-    if Glw.Camera is TWalkCamera then
-      TWalkCamera(Glw.Camera).Gravity := false;
-
-    { init SceneManager, with a Scene and Camera inside }
+    { init SceneManager, with a Scene inside }
     SceneManager := TMySceneManager.Create(Glw);
     Glw.Controls.Add(SceneManager);
     SceneManager.MainScene := Scene;
     SceneManager.Items.Add(Scene);
-    SceneManager.Camera := Glw.Camera;
+
+    { init SceneManager.Camera }
+    SceneManager.Camera := Scene.CreateCamera(Glw);
 
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;

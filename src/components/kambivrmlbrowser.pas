@@ -168,7 +168,7 @@ begin
   SceneManager.MainScene.Free;
   SceneManager.MainScene := nil;
   SceneManager.Items.Clear;
-  Camera.Free;
+  SceneManager.Camera.Free;
 
   SceneManager.MainScene := TVRMLGLScene.Create(Self);
   SceneManager.MainScene.Load(ARootNode, OwnsRootNode);
@@ -178,9 +178,8 @@ begin
   Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
   Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
 
-  { init Camera }
-  Camera := Scene.CreateCamera(Self);
-  SceneManager.Camera := Camera;
+  { init SceneManager.Camera }
+  SceneManager.Camera := Scene.CreateCamera(Self);
 end;
 
 function TKamVRMLBrowser.Scene: TVRMLGLScene;

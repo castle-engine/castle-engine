@@ -108,6 +108,7 @@ type
     property ContainerHeight: Cardinal read FContainerHeight;
     property ContainerSizeKnown: boolean read FContainerSizeKnown;
     { @groupEnd }
+    procedure SetContainer(const Value: IUIContainer); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -284,7 +285,7 @@ type
       May also be @nil since not all containers have to implement
       right now IUIContainer interface, it's not crucial for most controls
       to work. }
-    property Container: IUIContainer read FContainer write FContainer;
+    property Container: IUIContainer read FContainer write SetContainer;
 
     { Called when OpenGL context of the container is created.
       Also called when the control is added to the already existing context.
@@ -433,7 +434,13 @@ begin
   begin
     FCursor := Value;
     if Container <> nil then Container.UpdateMouseCursor;
+    if Assigned(OnCursorChange) then OnCursorChange(Self);
   end;
+end;
+
+procedure TUIControl.SetContainer(const Value: IUIContainer);
+begin
+  FContainer := Value;
 end;
 
 { TUIControlList ------------------------------------------------------------- }
