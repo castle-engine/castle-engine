@@ -903,9 +903,6 @@ begin
     SceneManager.MainScene := Scene;
     SceneManager.Items.Add(Scene);
 
-    { init SceneManager.Camera }
-    SceneManager.Camera := Scene.CreateCamera(Glw);
-
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;
 

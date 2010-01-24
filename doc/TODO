@@ -15,18 +15,38 @@ view3dscene 3.5 blockers:
 Better Lazarus integration:
 (Some before view3dscene 3.5, some probably for later.)
 
-* remaining stuff for integration:
-  4. *Maybe* some automatic Camera generation (if Camera = nil and
-  we want it, create camera by MainScene.CreateCamera(..., Items.BoundingBox,...)).
-  But when exactly?
+* Camera: since no longer have to be added to Controls, remove TGLUIWindow.Camera now.
 
-  and when to add Camera to Controls? (if at all needed;
-  if not, then TCamera should not descend from TUIControl, and
-  scene manager should take care to pass events to TCamera. Doable probably,
-  but is this needed? Hm, could be sensible with connection to scene manager
-  Viewport* features, as camera mouse events should be catched only on
-  appropriate viewport.
-   ...).
+  Resolves:
+  Remove Camera property entirely from TGLUIWindow/TKamOpenGLComponent?
+  Usually SceneManager.Camera is comfortable now.
+
+  Hm, no? Resign?
+  1. Scene.Camera future is uncertain. It may be removed,
+     in favor of only SceneManager.Camera. Wait for transition until this
+     is decided, to avoid rewriting a lot of code (Glw.Camera -> Scene.Camera)
+     just to rewrite it again (Scene.Camera -> SceneManager.Camera).
+
+     Later resolution: SceneManager.Camera ready, no longer Scene.Camera,
+     this is stable.
+
+  2. Wait for removal until Controls list is settable from the Lazarus IDE.
+     Otherwise, right now Camera is settable from IDE, Controls not,
+     so 1 advantage of Camera property.
+
+     Later resolution: SceneManager.Camera could be settable from IDE now.
+
+  3. Seems comfortable and not confusing. Leave it be?
+
+     Later resolution: confusing, since Camera should only be on one
+     of SceneManager or Controls, not both (then Idle etc. may work too fast.
+
+  Actually, since having Camera on controls makes problems (because
+  of hacky PositionInside, as Camera is invisible), maybe even
+  TCamera from being TUIControl? Make TCamera separate class?
+
+  Maybe make some common class, like TInputListener, for TUIControl,
+  TCamera, TBase3D.
 
 * Cursor stuff:
   * What to do with cursors of 3D scenes hierarchy?
@@ -60,10 +80,6 @@ Better Lazarus integration:
   Mention this (maybe with demo screenshot?) on last_update in www/TODO
 
 * TSceneManager fitting into controls:
-
-  * Hm, also CreateCamera should be in TSceneManager?
-    To take as bounding box (for examine navigator) sum of bboxes?
-    TVRMLScene gets CreateCamera with box --- use this in TSceneManager.
 
   * Should TSceneManager be free from VRML specifics?
 
@@ -148,19 +164,6 @@ Better Lazarus integration:
   For TKamRecentFiles use some slightly modified icon of TMainMenu or TPopupMenu.
 
 * TVRMLScene (no GL) on a Lazarus palette? Confusing with TVRMLGLScene, but is also useful.
-
-* Remove Camera property entirely from TGLUIWindow/TKamOpenGLComponent?
-  Usually Scene.Camera is comfortable now.
-
-  Hm, no? Resign?
-  1. Scene.Camera future is uncertain. It may be removed,
-     in favor of only SceneManager.Camera. Wait for transition until this
-     is decided, to avoid rewriting a lot of code (Glw.Camera -> Scene.Camera)
-     just to rewrite it again (Scene.Camera -> SceneManager.Camera).
-  2. Wait for removal until Controls list is settable from the Lazarus IDE.
-     Otherwise, right now Camera is settable from IDE, Controls not,
-     so 1 advantage of Camera property.
-  3. Seems comfortable and not confusing. Leave it be?
 ------------------------------------------------------------------------------
 For view3dscene 3.6:
 - implement more pointing device sensors

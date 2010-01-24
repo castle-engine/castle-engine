@@ -159,9 +159,6 @@ begin
   { initialize octrees titles }
   Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
   Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
-
-  { init SceneManager.Camera }
-  SceneManager.Camera := Scene.CreateCamera(Self);
 end;
 
 function TGLWindowVRMLBrowser.Scene: TVRMLGLScene;

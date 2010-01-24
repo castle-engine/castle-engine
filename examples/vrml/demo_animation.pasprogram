@@ -188,9 +188,6 @@ begin
     SceneManager.MainScene := Animation.FirstScene;
     SceneManager.Items.Add(Animation);
 
-    { init SceneManager.Camera }
-    SceneManager.Camera := Animation.Scenes[0].CreateCamera(Glw, Animation.BoundingBox);
-
     ProgressGLInterface.Window := Glw;
     Progress.UserInterface := ProgressGLInterface;
 

@@ -260,7 +260,14 @@ type
       Freeing MainScene will automatically set this to @nil. }
     property MainScene: TVRMLGLScene read FMainScene write SetMainScene;
 
-    { Camera used to render. Cannot be @nil when rendering.
+    { Camera used to render.
+
+      Cannot be @nil when rendering. If you don't assign anything here,
+      we'll create a default camera object at the nearest ApplyProjection
+      call (this is the first moment when we really must have some camera).
+      This default camera will be created by MainScene.CreateCamera
+      (so it will follow your VRML/X3D scene Viewpoint, NavigationInfo and such),
+      or (if MainScene not assigned) it will be just a simple TExamineCamera.
 
       This camera @italic(should not) be inside some other container
       (like on TGLUIWindow.Controls or TKamOpenGLControl.Controls list).
@@ -336,7 +343,7 @@ procedure Register;
 
 implementation
 
-uses SysUtils, RenderStateUnit, KambiGLUtils, ProgressUnit;
+uses SysUtils, RenderStateUnit, KambiGLUtils, ProgressUnit, Boxes3D;
 
 procedure Register;
 begin
@@ -358,10 +365,34 @@ end;
 destructor TKamSceneManager.Destroy;
 begin
   if FMainScene <> nil then
+  begin
     FMainScene.RemoveFreeNotification(Self);
+    FMainScene := nil;
+  end;
 
   if FCamera <> nil then
+  begin
     FCamera.RemoveFreeNotification(Self);
+
+    { Yes, this setting FCamera to nil is needed, it's not just paranoia.
+
+      Consider e.g. when our Camera is owned by Self
+      (e.g. because it was created in ApplyProjection by CreateDefaultCamera).
+      This means that this camera will be freed in "inherited" destructor call
+      below. Since we just did FCamera.RemoveFreeNotification, we would have
+      no way to set FCamera to nil, and FCamera would then remain as invalid
+      pointer.
+
+      And when SceneManager is freed it sends a free notification
+      (this is also done in "inherited" destructor) to TGLUIWindow instance,
+      which causes removing us from TGLUIWindow.Controls list,
+      which causes SetContainer(nil) call that tries to access Camera.
+
+      This scenario would cause segfault, as FCamera pointer is invalid
+      as this time. }
+
+    FCamera := nil;
+  end;
 
   inherited;
 end;
@@ -392,7 +423,25 @@ begin
 end;
 
 procedure TKamSceneManager.ApplyProjection;
+
+  function CreateDefaultCamera(AOwner: TComponent): TCamera;
+  var
+    Box: TBox3d;
+  begin
+    Box := Items.BoundingBox;
+    if MainScene <> nil then
+      Result := MainScene.CreateCamera(AOwner, Box) else
+    begin
+      Result := TExamineCamera.Create(AOwner);
+      (Result as TExamineCamera).Init(Box,
+        { CameraRadius = } Box3dAvgSize(Box, 1.0) * 0.005);
+    end;
+  end;
+
 begin
+  if Camera = nil then
+    Camera := CreateDefaultCamera(Self);
+
   if MainScene <> nil then
     MainScene.GLProjection(Camera, Items.BoundingBox,
       ContainerWidth, ContainerHeight, ShadowVolumesPossible,
@@ -496,13 +545,17 @@ begin
   if Operation = opRemove then
   begin
     if AComponent = FCamera then
+    begin
       FCamera := nil;
+      { Need ApplyProjection, to create new default camera before rendering. }
+      ApplyProjectionNeeded := true;
+    end;
 
     if AComponent = FMainScene then
       FMainScene := nil;
 
-    { Maybe ApplyProjectionNeeded := true, for both FCamera and FMainScene
-      clearing ? But ApplyProjection will simply fail now when Camera = nil. }
+    { Maybe ApplyProjectionNeeded := true also for MainScene cleaning?
+      But ApplyProjection doesn't set projection now, when MainScene is @nil. }
   end;
 end;
 
