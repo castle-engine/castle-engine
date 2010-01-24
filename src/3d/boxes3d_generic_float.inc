@@ -2,7 +2,7 @@
   TVector3GenericFloat etc. types, instead of normal Single/Double,
   TVector3Single/TVector3Double. }
 
-function IsCenteredBox3dPlaneCollision(
+function IsCenteredBox3DPlaneCollision(
   const BoxHalfSize: TVector3GenericFloat;
   const Plane: TVector4GenericFloat): boolean;
 { Implementation of this is based on
@@ -21,7 +21,7 @@ function IsCenteredBox3dPlaneCollision(
 
 { **************** About precision: *********************
 
-  Tests (see ../tests/testboxes3d.pas, TTestBoxes3d.TestIsBox3dTriangleCollisionEpsilonsSingle)
+  Tests (see ../tests/testboxes3d.pas, TTestBoxes3d.TestIsBox3DTriangleCollisionEpsilonsSingle)
   show that this calculation should really be done on at least Double precision.
   The values for these tests were taken from debugging behavior on
   castle.wrl test VRML model, so yes, these errors produce real errors
@@ -35,7 +35,7 @@ function IsCenteredBox3dPlaneCollision(
   You can test on VRML models like malfunction/trunk/vrmls/wawoz.wrl:
   view3dscene (when compiled with -dDEBUG) with fail loading
   (Assert(AddedSomewhere) will trigger) with too small epsilon. }
-{$define EqualityEpsilon := Box3dPlaneCollisionEqualityEpsilon}
+{$define EqualityEpsilon := Box3DPlaneCollisionEqualityEpsilon}
 
 var
   I: Integer;

@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2008 Michalis Kamburelis.
+  Copyright 2003-2010 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Type TBox3d and many operations on it. }
-unit Boxes3d;
+{ Type TBox3D and many operations on it. }
+unit Boxes3D;
 
 interface
 
@@ -37,57 +37,57 @@ type
   Box[0, 1] <= Box[1, 1] and
   Box[0, 2] <= Box[1, 2]
 )
-    The only exception is the special value EmptyBox3d. }
-  TBox3d     = array [0..1   ] of TVector3Single;
-  TBox3dBool = array [boolean] of TVector3Single;
-  PBox3d = ^TBox3d;
+    The only exception is the special value EmptyBox3D. }
+  TBox3D     = array [0..1   ] of TVector3Single;
+  TBox3DBool = array [boolean] of TVector3Single;
+  PBox3D = ^TBox3D;
 
   TObjectBBox = class
   public
-    function BoundingBox: TBox3d; virtual; abstract;
+    function BoundingBox: TBox3D; virtual; abstract;
   end;
 
-  EBox3dEmpty = class(Exception);
+  EBox3DEmpty = class(Exception);
 
 const
-  { Special value for TBox3d meaning "bounding box doesn't exist".
+  { Special value for TBox3D meaning "bounding box doesn't exist".
     This is used when the object has no points, so bounding box
     doesn't exist. }
-  EmptyBox3d: TBox3d = ((0, 0, 0), (-1, -1, -1));
+  EmptyBox3D: TBox3D = ((0, 0, 0), (-1, -1, -1));
 
 { Check is box empty.
-  You can think of this function as "compare Box with EmptyBox3d".
+  You can think of this function as "compare Box with EmptyBox3D".
 
   But actually it works a little faster, by utilizing the assumption
-  that EmptyBox3d is the only allowed value that breaks
+  that EmptyBox3D is the only allowed value that breaks
   @code(Box[0, 0] <= Box[1, 0]) rule. }
-function IsEmptyBox3d(const Box: TBox3d): boolean;
+function IsEmptyBox3D(const Box: TBox3D): boolean;
 
-function Box3d(const p0, p1: TVector3Single): TBox3d;
-function Box3dOrderUp(const p0, p1: TVector3Single): TBox3d;
+function Box3D(const p0, p1: TVector3Single): TBox3D;
+function Box3DOrderUp(const p0, p1: TVector3Single): TBox3D;
 
 { These functions calculate the middle point, average size, max size
   and particular sizes of given bounding box.
 
-  @raises(EBox3dEmpty If the Box is empty.)
+  @raises(EBox3DEmpty If the Box is empty.)
 
   @groupBegin }
-function Box3dMiddle(const Box: TBox3d): TVector3Single;
-function Box3dAvgSize(const Box: TBox3d): Single;
-function Box3dMaxSize(const box: TBox3d): Single;
-function Box3dMinSize(const box: TBox3d): Single;
-function Box3dSizeX(const box: TBox3d): Single;
-function Box3dSizeY(const box: TBox3d): Single;
-function Box3dSizeZ(const box: TBox3d): Single;
+function Box3DMiddle(const Box: TBox3D): TVector3Single;
+function Box3DAvgSize(const Box: TBox3D): Single;
+function Box3DMaxSize(const box: TBox3D): Single;
+function Box3DMinSize(const box: TBox3D): Single;
+function Box3DSizeX(const box: TBox3D): Single;
+function Box3DSizeY(const box: TBox3D): Single;
+function Box3DSizeZ(const box: TBox3D): Single;
 { @groupEnd }
 
-{ Calculate average size of TBox3d, or return EmptyBoxSize is box empty. }
-function Box3dAvgSize(const Box: TBox3d; const EmptyBoxSize: Single): Single;
+{ Calculate average size of TBox3D, or return EmptyBoxSize is box empty. }
+function Box3DAvgSize(const Box: TBox3D; const EmptyBoxSize: Single): Single;
 
-{ Calculate maximum size of TBox3d, or return EmptyBoxSize is box empty. }
-function Box3dMaxSize(const box: TBox3d; const EmptyBoxSize: Single): Single;
+{ Calculate maximum size of TBox3D, or return EmptyBoxSize is box empty. }
+function Box3DMaxSize(const box: TBox3D; const EmptyBoxSize: Single): Single;
 
-function Box3dArea(const box: TBox3d; const EmptyBoxArea: Single): Single;
+function Box3DArea(const box: TBox3D; const EmptyBoxArea: Single): Single;
 
 { This decreases Box[0, 0], Box[0, 1], Box[0, 2] by Expand
    and increases Box[1, 0], Box[1, 1], Box[1, 2] by Expand.
@@ -96,7 +96,7 @@ function Box3dArea(const box: TBox3d; const EmptyBoxArea: Single): Single;
   Box must not be empty.
   Note that Expand may be negative, but then you must be sure
   that it doesn't make Box empty. }
-procedure BoxExpandTo1st(var Box: TBox3d; const Expand: Single); overload;
+procedure BoxExpandTo1st(var Box: TBox3D; const Expand: Single); overload;
 
 { This decreases Box[0] by Expand, and increases Box[1] by Expand.
   So you get Box with all sizes increased by 2 * Expand.
@@ -104,27 +104,27 @@ procedure BoxExpandTo1st(var Box: TBox3d; const Expand: Single); overload;
   Box must not be empty.
   Note that Expand may be negative, but then you must be sure
   that it doesn't make Box empty. }
-procedure BoxExpandTo1st(var box: TBox3d; const Expand: TVector3Single); overload;
+procedure BoxExpandTo1st(var box: TBox3D; const Expand: TVector3Single); overload;
 
-function BoxExpand(var Box: TBox3d; const Expand: Single): TBox3d; overload;
-function BoxExpand(var box: TBox3d; const Expand: TVector3Single): TBox3d; overload;
+function BoxExpand(var Box: TBox3D; const Expand: Single): TBox3D; overload;
+function BoxExpand(var box: TBox3D; const Expand: TVector3Single): TBox3D; overload;
 
 { Check is the point inside the box.
   Always false if Box is empty (obviously, no point is inside an empty box).
 
   @groupBegin }
-function Box3dPointInside(const pt: TVector3Single; const box: TBox3d): boolean; overload;
-function Box3dPointInside(const pt: TVector3Double; const box: TBox3d): boolean; overload;
+function Box3DPointInside(const pt: TVector3Single; const box: TBox3D): boolean; overload;
+function Box3DPointInside(const pt: TVector3Double; const box: TBox3D): boolean; overload;
 { @groupEnd }
 
-function Box3dCubeAroundPoint(const pt: TVector3Single; CubeSize: Single): TBox3d;
+function Box3DCubeAroundPoint(const pt: TVector3Single; CubeSize: Single): TBox3D;
 
 type
   TGetIndexFromIndexNumFunc = function (indexNum: integer): integer of object;
 
 { Calculate bounding box of a set of 3D points.
   This calculates the smallest possible box enclosing all given points.
-  For VertsCount = 0 this returns EmptyBox3d.
+  For VertsCount = 0 this returns EmptyBox3D.
 
   Overloaded version with Transform parameter transforms each point
   by given matrix.
@@ -136,13 +136,13 @@ type
 
   @groupBegin }
 function CalculateBoundingBox(
-  Verts: PVector3Single; VertsCount: Cardinal; VertsStride: Cardinal): TBox3d; overload;
+  Verts: PVector3Single; VertsCount: Cardinal; VertsStride: Cardinal): TBox3D; overload;
 function CalculateBoundingBox(
   Verts: PVector3Single; VertsCount: Cardinal; VertsStride: Cardinal;
-  const Transform: TMatrix4Single): TBox3d; overload;
+  const Transform: TMatrix4Single): TBox3D; overload;
 function CalculateBoundingBox(
   GetVertex: TGetVertexFromIndexFunc;
-  VertsCount: integer): TBox3d; overload;
+  VertsCount: integer): TBox3D; overload;
 { @groupEnd }
 
 { Calculate bounding box of a set of indexed 3D points.
@@ -164,32 +164,32 @@ function CalculateBoundingBox(
 function CalculateBoundingBoxFromIndices(
   GetVertIndex: TGetIndexFromIndexNumFunc;
   VertsIndicesCount: integer;
-  GetVertex: TGetVertexFromIndexFunc): TBox3d; overload;
+  GetVertex: TGetVertexFromIndexFunc): TBox3D; overload;
 function CalculateBoundingBoxFromIndices(
   GetVertIndex: TGetIndexFromIndexNumFunc;
   VertsIndicesCount: integer;
   GetVertex: TGetVertexFromIndexFunc;
-  const Transform: TMatrix4Single): TBox3d; overload;
+  const Transform: TMatrix4Single): TBox3D; overload;
 { @groupEnd }
 
-{ Sum two TBox3d values. This calculates the smallest box that encloses
+{ Sum two TBox3D values. This calculates the smallest box that encloses
   both Box1 and Box2.
 
-  Box3dSumTo1st places the result of calculation back in Box1 argument.
+  Box3DSumTo1st places the result of calculation back in Box1 argument.
 
   @groupBegin }
-function Box3dSum(const box1, box2: TBox3d): TBox3d;
-procedure Box3dSumTo1st(var box1: TBox3d; const box2: TBox3d); overload;
+function Box3DSum(const box1, box2: TBox3D): TBox3D;
+procedure Box3DSumTo1st(var box1: TBox3D; const box2: TBox3D); overload;
 { @groupEnd }
 
 { This enlarges Box1 so that it contains given Point. }
-procedure Box3dSumTo1st(var box1: TBox3d; const Point: TVector3Single); overload;
+procedure Box3DSumTo1st(var box1: TBox3D; const Point: TVector3Single); overload;
 
 { Three box sizes. }
-function Box3dSizes(const box: TBox3d): TVector3Single;
+function Box3DSizes(const box: TBox3D): TVector3Single;
 
 { Calculates eight corners of the box, placing them in AllPoints^[0..7]. }
-procedure Box3dGetAllPoints(allpoints: PVector3Single; const box: TBox3d);
+procedure Box3DGetAllPoints(allpoints: PVector3Single; const box: TBox3D);
 
 { Transform the Box by given matrix.
   Since this is still an axis-aligned box, rotating etc. of the box
@@ -204,24 +204,24 @@ procedure Box3dGetAllPoints(allpoints: PVector3Single; const box: TBox3d);
   transform some point to a direction (vector with 4th component
   equal zero). In this case we just cannot interpret the result as a 3D point,
   so we also cannot interpret the final result as a box.) }
-function Box3dTransform(const Box: TBox3d;
-  const Matrix: TMatrix4Single): TBox3d;
+function Box3DTransform(const Box: TBox3D;
+  const Matrix: TMatrix4Single): TBox3D;
 
 { Move Box. Does nothing if Box is empty. }
-function Box3dTranslate(const Box: TBox3d;
-  const Translation: TVector3Single): TBox3d;
+function Box3DTranslate(const Box: TBox3D;
+  const Translation: TVector3Single): TBox3D;
 
 { Move Box, by -Translation. Does nothing if Box is empty. }
-function Box3dAntiTranslate(const Box: TBox3d;
-  const Translation: TVector3Single): TBox3d;
+function Box3DAntiTranslate(const Box: TBox3D;
+  const Translation: TVector3Single): TBox3D;
 
-function Box3dToNiceStr(const box: TBox3d): string;
-function Box3dToRawStr(const box: TBox3d): string;
+function Box3DToNiceStr(const box: TBox3D): string;
+function Box3DToRawStr(const box: TBox3D): string;
 
-procedure Box3dClamp(var point: TVector3Single; const box: TBox3d); overload;
-procedure Box3dClamp(var point: TVector3Double; const box: TBox3d); overload;
+procedure Box3DClamp(var point: TVector3Single; const box: TBox3D); overload;
+procedure Box3DClamp(var point: TVector3Double; const box: TBox3D); overload;
 
-function TriangleBoundingBox(const T: TTriangle3Single): TBox3d;
+function TriangleBoundingBox(const T: TTriangle3Single): TBox3D;
 
 { TryBoxRayClosestIntersection calculates intersection between the
   ray (returns closest intersection to Ray0) and the box.
@@ -239,13 +239,13 @@ function TriangleBoundingBox(const T: TTriangle3Single): TBox3d;
 function TryBoxRayClosestIntersection(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
-  const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean; overload;
+  const Box: TBox3D; const Ray0, RayVector: TVector3Single): boolean; overload;
 function TryBoxRayClosestIntersection(
   out Intersection: TVector3Single;
-  const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean; overload;
+  const Box: TBox3D; const Ray0, RayVector: TVector3Single): boolean; overload;
 function TryBoxRayClosestIntersection(
   out IntersectionDistance: Single;
-  const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean; overload;
+  const Box: TBox3D; const Ray0, RayVector: TVector3Single): boolean; overload;
 { @groupEnd }
 
 { TryBoxRayEntrance calculates intersection between the
@@ -259,23 +259,23 @@ function TryBoxRayClosestIntersection(
   @groupBegin }
 function TryBoxRayEntrance(
   out Entrance: TVector3Single; out EntranceDistance: Single;
-  const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean; overload;
+  const Box: TBox3D; const Ray0, RayVector: TVector3Single): boolean; overload;
 function TryBoxRayEntrance(
   out Entrance: TVector3Single;
-  const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean; overload;
+  const Box: TBox3D; const Ray0, RayVector: TVector3Single): boolean; overload;
 { @groupEnd }
 
-function IsBox3dSegmentCollision(
-  const Box: TBox3d;
+function IsBox3DSegmentCollision(
+  const Box: TBox3D;
   const Segment1, Segment2: TVector3Single): boolean;
 
 var
-  { Special equality epsilon used by IsCenteredBox3dPlaneCollision
-    and IsBox3dPlaneCollision. For implementation reasons, they always
+  { Special equality epsilon used by IsCenteredBox3DPlaneCollision
+    and IsBox3DPlaneCollision. For implementation reasons, they always
     use Double precision (even when called with arguments with Single precision),
     and still have to use epsilon slightly larger than usual
     VectorMath.DoubleEqualityEpsilon. }
-  Box3dPlaneCollisionEqualityEpsilon: Double = 1e-5;
+  Box3DPlaneCollisionEqualityEpsilon: Double = 1e-5;
 
 { Tests for collision between box3d centered around (0, 0, 0)
   and a plane.
@@ -286,10 +286,10 @@ var
   becomes a point).
 
   @groupBegin }
-function IsCenteredBox3dPlaneCollision(
+function IsCenteredBox3DPlaneCollision(
   const BoxHalfSize: TVector3Single;
   const Plane: TVector4Single): boolean; overload;
-function IsCenteredBox3dPlaneCollision(
+function IsCenteredBox3DPlaneCollision(
   const BoxHalfSize: TVector3Double;
   const Plane: TVector4Double): boolean; overload;
 { @groupEnd }
@@ -298,7 +298,7 @@ type
   { State of collision between a plane and some other object.
 
     pcNone occurs only when the "other object" is empty
-    (IsEmptyBox3d, in case of box).
+    (IsEmptyBox3D, in case of box).
     Other values mean that the other object is not empty.
 
     pcOutside means that the whole object is on the side of the plane pointed
@@ -315,70 +315,70 @@ type
     plane equation, will yield = 0. }
   TPlaneCollision = (pcIntersecting, pcOutside, pcInside, pcNone);
 
-{ Collision between axis-aligned box (TBox3d) and 3D plane.
+{ Collision between axis-aligned box (TBox3D) and 3D plane.
   Returns detailed result as TPlaneCollision. }
-function Box3dPlaneCollision(const Box: TBox3d;
+function Box3DPlaneCollision(const Box: TBox3D;
   const Plane: TVector4Single): TPlaneCollision;
 
-{ Check is axis-aligned box (TBox3d) fully inside/outside the plane.
+{ Check is axis-aligned box (TBox3D) fully inside/outside the plane.
 
   Inside/outside are defined as for TPlaneCollision:
   Outside is where plane direction (normal) points.
   Inside is where the @italic(inverted) plane direction (normal) points.
 
-  They work exactly like Box3dPlaneCollision, except they returns @true
-  when box is inside/outside (when Box3dPlaneCollision returned pcInside/pcOutside),
+  They work exactly like Box3DPlaneCollision, except they returns @true
+  when box is inside/outside (when Box3DPlaneCollision returned pcInside/pcOutside),
   and @false otherwise.
 
-  For example Box3dPlaneCollisionInside doesn't differentiate between case
+  For example Box3DPlaneCollisionInside doesn't differentiate between case
   when box is empty, of partially intersects the plane, and is on the outside.
   But it works (very slightly) faster.
 
   @groupBegin }
-function Box3dPlaneCollisionInside(const Box: TBox3d;
+function Box3DPlaneCollisionInside(const Box: TBox3D;
   const Plane: TVector4Single): boolean;
-function Box3dPlaneCollisionOutside(const Box: TBox3d;
+function Box3DPlaneCollisionOutside(const Box: TBox3D;
   const Plane: TVector4Single): boolean;
 { @groupEnd }
 
-function IsBox3dTriangleCollision(
-  const Box: TBox3d;
+function IsBox3DTriangleCollision(
+  const Box: TBox3D;
   const Triangle: TTriangle3Single): boolean;
 
 { Smallest possible sphere completely enclosing given Box.
   When Box is empty we return SphereRadiusSqr = 0 and undefined SphereCenter. }
-procedure BoundingSphereFromBox3d(const Box3d: TBox3d;
+procedure BoundingSphereFromBox3D(const Box3D: TBox3D;
   var SphereCenter: TVector3Single; var SphereRadiusSqr: Single);
 
 { Smallest possible box enclosing a sphere with Center, Radius. }
-function BoundingBox3dFromSphere(const Center: TVector3Single;
-  const Radius: Single): TBox3d;
+function BoundingBox3DFromSphere(const Center: TVector3Single;
+  const Radius: Single): TBox3D;
 
-function Boxes3dCollision(const Box1, Box2: TBox3d): boolean;
+function Boxes3DCollision(const Box1, Box2: TBox3D): boolean;
 
-{ This is just like Boxes3dCollision, but it takes into account only
+{ This is just like Boxes3DCollision, but it takes into account only
   XY plane. I.e. it works like Box1 and Box2 are infinitely large in the
   Z coordinate. Or, in other words, this actually checks collision
   of 2D rectangles obtained by projecting both boxes on plane XY. }
-function Boxes3dXYCollision(const Box1, Box2: TBox3d): boolean;
+function Boxes3DXYCollision(const Box1, Box2: TBox3D): boolean;
 
 { This calculates maximum Sqr(distance) of 8 box points to the (0, 0, 0)
   point. This can be useful when you want to get bounding sphere,
   centered in (0, 0, 0), around this Box. }
-function Box3dSqrRadius(const Box: TBox3d): Single;
+function Box3DSqrRadius(const Box: TBox3D): Single;
 
-{ Just like Box3dSqrRadius, but this returns correct value
+{ Just like Box3DSqrRadius, but this returns correct value
   (not it's Sqr). Speed note: you pay here one Sqrt operation. }
-function Box3dRadius(const Box: TBox3d): Single;
+function Box3DRadius(const Box: TBox3D): Single;
 
 { This is like projecting Box on XY plane (that is, we just ignore Z
   coords of Box points here), and then calculates maximum Sqr(distance)
   in plane XY of 4 Box corners to point (0, 0). }
-function Box3dXYSqrRadius(const Box: TBox3d): Single;
+function Box3DXYSqrRadius(const Box: TBox3D): Single;
 
-{ Just like Box3dXYSqrRadius, but this returns correct value
+{ Just like Box3DXYSqrRadius, but this returns correct value
   (not it's Sqr). Speed note: you pay here one Sqrt operation. }
-function Box3dXYRadius(const Box: TBox3d): Single;
+function Box3DXYRadius(const Box: TBox3D): Single;
 
 { Check for collision betweeb box and sphere, fast @italic(but not
   entirely correct).
@@ -393,13 +393,13 @@ function Box3dXYRadius(const Box: TBox3d): Single;
   --- in games, if you know that the SphereRadius is going to be
   relatively small compared to the Box, this may be perfectly
   acceptable. And it's fast. }
-function Box3dSphereSimpleCollision(const Box: TBox3d;
+function Box3DSphereSimpleCollision(const Box: TBox3D;
   const SphereCenter: TVector3Single; const SphereRadius: Single): boolean;
 
 { Check for box <-> sphere collision.
-  This is a little slower than Box3dSphereSimpleCollision, although still
+  This is a little slower than Box3DSphereSimpleCollision, although still
   damn fast, and it's a precise check. }
-function Box3dSphereCollision(const Box: TBox3d;
+function Box3DSphereCollision(const Box: TBox3D;
   const SphereCenter: TVector3Single; const SphereRadius: Single): boolean;
 
 { Calculate a plane in 3D space with direction = given Direction, moved
@@ -410,8 +410,8 @@ function Box3dSphereCollision(const Box: TBox3d;
   a plane intersecting the Box[1] (maximum) point, with slope = (1, 1, 1).
   The resulting plane always intersects at least one of the 8 corners of the box.
 
-  @raises(EBox3dEmpty If the Box is empty.) }
-function Box3dMaximumPlane(const Box: TBox3d;
+  @raises(EBox3DEmpty If the Box is empty.) }
+function Box3DMaximumPlane(const Box: TBox3D;
   const Direction: TVector3Single): TVector4Single;
 
 { Calculate a plane in 3D space with direction = given Direction, moved
@@ -422,18 +422,18 @@ function Box3dMaximumPlane(const Box: TBox3d;
   a plane intersecting the Box[0] (minimum) point, with slope = (1, 1, 1).
   The resulting plane always intersects at least one of the 8 corners of the box.
 
-  @raises(EBox3dEmpty If the Box is empty.) }
-function Box3dMinimumPlane(const Box: TBox3d;
+  @raises(EBox3DEmpty If the Box is empty.) }
+function Box3DMinimumPlane(const Box: TBox3D;
   const Direction: TVector3Single): TVector4Single;
 
 type
-  TDynArrayItem_1 = TBox3d;
-  PDynArrayItem_1 = PBox3d;
+  TDynArrayItem_1 = TBox3D;
+  PDynArrayItem_1 = PBox3D;
   {$define DYNARRAY_1_IS_STRUCT}
   {$I dynarray_1.inc}
-  TArray_Box3d = TInfiniteArray_1;
-  PArray_Box3d = PInfiniteArray_1;
-  TDynBox3dArray = TDynArray_1;
+  TArray_Box3D = TInfiniteArray_1;
+  PArray_Box3D = PInfiniteArray_1;
+  TDynBox3DArray = TDynArray_1;
 
 {$undef read_interface}
 
@@ -442,31 +442,31 @@ implementation
 {$define read_implementation}
 {$I dynarray_1.inc}
 
-function IsEmptyBox3d(const Box: TBox3d): boolean;
+function IsEmptyBox3D(const Box: TBox3D): boolean;
 begin
  result := Box[0, 0] > Box[1, 0];
 end;
 
-function Box3d(const p0, p1: TVector3Single): TBox3d;
+function Box3D(const p0, p1: TVector3Single): TBox3D;
 begin
  result[0] := p0;
  result[1] := p1;
 end;
 
-function Box3dOrderUp(const p0, p1: TVector3Single): TBox3d;
+function Box3DOrderUp(const p0, p1: TVector3Single): TBox3D;
 begin
  OrderUp(p0[0], p1[0], result[0, 0], result[1, 0]);
  OrderUp(p0[1], p1[1], result[0, 1], result[1, 1]);
  OrderUp(p0[2], p1[2], result[0, 2], result[1, 2]);
 end;
 
-procedure CheckNonEmpty(const B: TBox3d);
+procedure CheckNonEmpty(const B: TBox3D);
 begin
-  if IsEmptyBox3d(B) then
-    raise EBox3dEmpty.Create('Empty box 3d: no middle point, no sizes etc.');
+  if IsEmptyBox3D(B) then
+    raise EBox3DEmpty.Create('Empty box 3d: no middle point, no sizes etc.');
 end;
 
-function Box3dMiddle(const Box: TBox3d): TVector3Single;
+function Box3DMiddle(const Box: TBox3D): TVector3Single;
 begin
  CheckNonEmpty(Box);
  {petla for i := 0 to 2 rozwinieta aby zyskac tycityci na czasie}
@@ -475,26 +475,26 @@ begin
  result[2] := (Box[0, 2]+Box[1, 2])/2;
 end;
 
-function Box3dAvgSize(const Box: TBox3d): Single;
+function Box3DAvgSize(const Box: TBox3D): Single;
 begin
  CheckNonEmpty(Box);
- {korzystamy z faktu ze Box3d ma wierzcholki uporzadkowane
+ {korzystamy z faktu ze Box3D ma wierzcholki uporzadkowane
   i w zwiazku z tym w roznicach ponizej nie musimy robic abs() }
  result := ((Box[1, 0]-Box[0, 0]) +
             (Box[1, 1]-Box[0, 1]) +
             (Box[1, 2]-Box[0, 2]))/3;
 end;
 
-function Box3dAvgSize(const Box: TBox3d; const EmptyBoxSize: Single): Single;
+function Box3DAvgSize(const Box: TBox3D; const EmptyBoxSize: Single): Single;
 begin
-  if IsEmptyBox3d(Box) then
+  if IsEmptyBox3D(Box) then
     Result := EmptyBoxSize else
     Result := ((Box[1, 0]-Box[0, 0]) +
                (Box[1, 1]-Box[0, 1]) +
                (Box[1, 2]-Box[0, 2]))/3;
 end;
 
-function Box3dMaxSize(const box: TBox3d): Single;
+function Box3DMaxSize(const box: TBox3D): Single;
 begin
   CheckNonEmpty(Box);
   Result := Max(
@@ -503,9 +503,9 @@ begin
      Box[1, 2] - Box[0, 2]);
 end;
 
-function Box3dMaxSize(const box: TBox3d; const EmptyBoxSize: Single): Single;
+function Box3DMaxSize(const box: TBox3D; const EmptyBoxSize: Single): Single;
 begin
-  if IsEmptyBox3d(Box) then
+  if IsEmptyBox3D(Box) then
     Result := EmptyBoxSize else
     Result := Max(
       Box[1, 0] - Box[0, 0],
@@ -513,11 +513,11 @@ begin
       Box[1, 2] - Box[0, 2]);
 end;
 
-function Box3dArea(const box: TBox3d; const EmptyBoxArea: Single): Single;
+function Box3DArea(const box: TBox3D; const EmptyBoxArea: Single): Single;
 var
   A, B, C: Single;
 begin
-  if IsEmptyBox3d(Box) then
+  if IsEmptyBox3D(Box) then
     Result := EmptyBoxArea else
   begin
     A := Box[1, 0] - Box[0, 0];
@@ -527,7 +527,7 @@ begin
   end;
 end;
 
-function Box3dMinSize(const box: TBox3d): Single;
+function Box3DMinSize(const box: TBox3D): Single;
 begin
  CheckNonEmpty(Box);
 
@@ -539,36 +539,36 @@ begin
  { Another version is below (but this is slower without any benefit...)
 
    var sizes: TVector3Single;
-     sizes := Box3dSizes(box);
+     sizes := Box3DSizes(box);
      result := sizes[MaxVectorCoord(sizes)];
  }
 end;
 
-function Box3dSizeX(const box: TBox3d): Single;
+function Box3DSizeX(const box: TBox3D): Single;
 begin
   CheckNonEmpty(Box);
   Result := Box[1, 0] - Box[0, 0];
 end;
 
-function Box3dSizeY(const box: TBox3d): Single;
+function Box3DSizeY(const box: TBox3D): Single;
 begin
   CheckNonEmpty(Box);
   Result := Box[1, 1] - Box[0, 1];
 end;
 
-function Box3dSizeZ(const box: TBox3d): Single;
+function Box3DSizeZ(const box: TBox3D): Single;
 begin
   CheckNonEmpty(Box);
   Result := Box[1, 2] - Box[0, 2];
 end;
 
-function Box3dCubeAroundPoint(const pt: TVector3Single; cubeSize: Single): TBox3d;
+function Box3DCubeAroundPoint(const pt: TVector3Single; cubeSize: Single): TBox3D;
 begin
  result[0] := VectorSubtract(pt, Vector3Single(-cubeSize, -cubeSize, -cubeSize));
  result[1] := VectorAdd(pt, Vector3Single(cubeSize, cubeSize, cubeSize));
 end;
 
-procedure BoxExpandTo1st(var Box: TBox3d; const Expand: Single);
+procedure BoxExpandTo1st(var Box: TBox3D; const Expand: Single);
 begin
  Box[0, 0] -= Expand;
  Box[0, 1] -= Expand;
@@ -579,7 +579,7 @@ begin
  Box[1, 2] += Expand;
 end;
 
-procedure BoxExpandTo1st(var box: TBox3d; const Expand: TVector3Single);
+procedure BoxExpandTo1st(var box: TBox3D; const Expand: TVector3Single);
 begin
  Box[0, 0] -= Expand[0];
  Box[0, 1] -= Expand[1];
@@ -590,7 +590,7 @@ begin
  Box[1, 2] += Expand[2];
 end;
 
-function BoxExpand(var Box: TBox3d; const Expand: Single): TBox3d;
+function BoxExpand(var Box: TBox3D; const Expand: Single): TBox3D;
 begin
   Result[0, 0] := Box[0, 0] - Expand;
   Result[0, 1] := Box[0, 1] - Expand;
@@ -601,7 +601,7 @@ begin
   Result[1, 2] := Box[1, 2] + Expand;
 end;
 
-function BoxExpand(var box: TBox3d; const Expand: TVector3Single): TBox3d;
+function BoxExpand(var box: TBox3D; const Expand: TVector3Single): TBox3D;
 begin
   Result[0, 0] := Box[0, 0] - Expand[0];
   Result[0, 1] := Box[0, 1] - Expand[1];
@@ -612,19 +612,19 @@ begin
   Result[1, 2] := Box[1, 2] + Expand[2];
 end;
 
-{$define Box3dPointInside_IMPLEMENT:=
+{$define Box3DPointInside_IMPLEMENT:=
 begin
- if IsEmptyBox3d(box) then exit(false);
+ if IsEmptyBox3D(box) then exit(false);
  result := Between(pt[0], box[0, 0], box[1, 0]) and
            Between(pt[1], box[0, 1], box[1, 1]) and
            Between(pt[2], box[0, 2], box[1, 2]);
 end;}
 
-function Box3dPointInside(const pt: TVector3Single; const box: TBox3d): boolean;
-Box3dPointInside_IMPLEMENT
+function Box3DPointInside(const pt: TVector3Single; const box: TBox3D): boolean;
+Box3DPointInside_IMPLEMENT
 
-function Box3dPointInside(const pt: TVector3Double; const box: TBox3d): boolean;
-Box3dPointInside_IMPLEMENT
+function Box3DPointInside(const pt: TVector3Double; const box: TBox3D): boolean;
+Box3DPointInside_IMPLEMENT
 
 { MinSingleTo1st i MaxSingleTo1st will be useful for CalculateBoundingBox }
 type
@@ -642,7 +642,7 @@ end;
 
 function CalculateBoundingBox(
   GetVertex: TGetVertexFromIndexFunc;
-  VertsCount: integer): TBox3d;
+  VertsCount: integer): TBox3D;
 
 { TODO: sprawdzic - czy jest realny sens w implementowaniu tu
   algorytmu MinMax ktory znajduje min i max jednoczesnie w czasie
@@ -660,7 +660,7 @@ function CalculateBoundingBox(
 begin
  if VertsCount = 0 then
  begin
-  result := EmptyBox3d;
+  result := EmptyBox3D;
   exit
  end;
 
@@ -694,7 +694,7 @@ type
   end;
 
 function CalculateBoundingBox(
-  Verts: PVector3Single; VertsCount: Cardinal; VertsStride: Cardinal): TBox3d;
+  Verts: PVector3Single; VertsCount: Cardinal; VertsStride: Cardinal): TBox3D;
 var Calculator: TBBox_Calculator;
 begin
  if VertsStride = 0 then VertsStride := SizeOf(TVector3Single);
@@ -709,7 +709,7 @@ end;
 
 function CalculateBoundingBox(
   Verts: PVector3Single; VertsCount: Cardinal; VertsStride: Cardinal;
-  const Transform: TMatrix4Single): TBox3d;
+  const Transform: TMatrix4Single): TBox3D;
 var Calculator: TBBox_Calculator;
 begin
  if VertsStride = 0 then VertsStride := SizeOf(TVector3Single);
@@ -726,10 +726,10 @@ end;
 function CalculateBoundingBoxFromIndices(
   GetVertIndex: TGetIndexFromIndexNumFunc;
   VertsIndicesCount: integer;
-  GetVertex: TGetVertexFromIndexFunc): TBox3d;
+  GetVertex: TGetVertexFromIndexFunc): TBox3D;
 var
   { pozycja pierwszego nieujemnego indexu.
-    Zwracamy EmptyBox3d wtw. gdy firstIndex nie istnieje }
+    Zwracamy EmptyBox3D wtw. gdy firstIndex nie istnieje }
   FirstIndexNum: integer;
 
   IndexNum, Index: integer;
@@ -742,7 +742,7 @@ begin
 
  if firstIndexNum = VertsIndicesCount then {firstIndex not found ?}
  begin
-  result := EmptyBox3d;
+  result := EmptyBox3D;
   exit;
  end;
 
@@ -792,7 +792,7 @@ function CalculateBoundingBoxFromIndices(
   GetVertIndex: TGetIndexFromIndexNumFunc;
   VertsIndicesCount: integer;
   GetVertex: TGetVertexFromIndexFunc;
-  const Transform: TMatrix4Single): TBox3d;
+  const Transform: TMatrix4Single): TBox3D;
 var Calculator: TVertTransform_Calculator;
 begin
  Calculator := TVertTransform_Calculator.Create;
@@ -806,11 +806,11 @@ begin
  finally Calculator.Free end;
 end;
 
-function Box3dSum(const box1, box2: TBox3d): TBox3d;
+function Box3DSum(const box1, box2: TBox3D): TBox3D;
 begin
-  if IsEmptyBox3d(box1) then
+  if IsEmptyBox3D(box1) then
     Result := box2 else
-  if IsEmptyBox3d(box2) then
+  if IsEmptyBox3D(box2) then
     Result := box1 else
   begin
     result[0, 0] := min(box1[0, 0], box2[0, 0]);
@@ -822,11 +822,11 @@ begin
   end;
 end;
 
-procedure Box3dSumTo1st(var box1: TBox3d; const box2: TBox3d);
+procedure Box3DSumTo1st(var box1: TBox3D; const box2: TBox3D);
 begin
-  if IsEmptyBox3d(box2) then
+  if IsEmptyBox3D(box2) then
     Exit else
-  if IsEmptyBox3d(box1) then
+  if IsEmptyBox3D(box1) then
     box1 := box2 else
   begin
     MinTo1st(box1[0, 0], box2[0, 0]);
@@ -838,9 +838,9 @@ begin
   end;
 end;
 
-procedure Box3dSumTo1st(var Box1: TBox3d; const Point: TVector3Single);
+procedure Box3DSumTo1st(var Box1: TBox3D; const Point: TVector3Single);
 begin
-  if IsEmptyBox3d(Box1) then
+  if IsEmptyBox3D(Box1) then
   begin
     Box1[0] := Point;
     Box1[1] := Point;
@@ -855,7 +855,7 @@ begin
   end;
 end;
 
-function Box3dSizes(const Box: TBox3d): TVector3Single;
+function Box3DSizes(const Box: TBox3D): TVector3Single;
 begin
   CheckNonEmpty(Box);
   Result[0] := Box[1, 0] - Box[0, 0];
@@ -863,7 +863,7 @@ begin
   Result[2] := Box[1, 2] - Box[0, 2];
 end;
 
-procedure Box3dGetAllPoints(allpoints: PVector3Single; const box: TBox3d);
+procedure Box3DGetAllPoints(allpoints: PVector3Single; const box: TBox3D);
 const
   {zapisy dwojkowe liczb od 0 do 7 czyli wszystkie kombinacje 0 i 1-nek
    na 3 pozycjach.}
@@ -876,15 +876,15 @@ begin
    PArray_Vector3Single(allpoints)^[i][j] := box[kombinacje[i, j], j];
 end;
 
-function Box3dTransform(const Box: TBox3d;
-  const Matrix: TMatrix4Single): TBox3d;
+function Box3DTransform(const Box: TBox3D;
+  const Matrix: TMatrix4Single): TBox3D;
 
-  function Slower(const Box: TBox3d; const Matrix: TMatrix4Single): TBox3d;
+  function Slower(const Box: TBox3D; const Matrix: TMatrix4Single): TBox3D;
   var
     BoxPoints: array [0..7] of TVector3Single;
     i: integer;
   begin
-    Box3dGetAllPoints(@boxpoints, Box);
+    Box3DGetAllPoints(@boxpoints, Box);
     for i := 0 to 7 do boxpoints[i] := MatrixMultPoint(Matrix, boxpoints[i]);
 
     { Non-optimized version:
@@ -910,7 +910,7 @@ function Box3dTransform(const Box: TBox3d;
     end;
   end;
 
-  function Faster(const Box: TBox3d; const Matrix: TMatrix4Single): TBox3d;
+  function Faster(const Box: TBox3D; const Matrix: TMatrix4Single): TBox3D;
   { Reasoning why this works Ok: look at Slower approach, and imagine
     how each of the 8 points is multiplied by the same matrix.
     Each of the 8 points is
@@ -968,8 +968,8 @@ function Box3dTransform(const Box: TBox3d;
   end;
 
 begin
-  if IsEmptyBox3d(Box) then
-    Exit(EmptyBox3d);
+  if IsEmptyBox3D(Box) then
+    Exit(EmptyBox3D);
 
   if (Matrix[0][3] = 0) and
      (Matrix[1][3] = 0) and
@@ -979,38 +979,38 @@ begin
     Result := Slower(Box, Matrix);
 end;
 
-function Box3dTranslate(const Box: TBox3d;
-  const Translation: TVector3Single): TBox3d;
+function Box3DTranslate(const Box: TBox3D;
+  const Translation: TVector3Single): TBox3D;
 begin
-  if not IsEmptyBox3d(Box) then
+  if not IsEmptyBox3D(Box) then
   begin
     Result[0] := VectorAdd(Box[0], Translation);
     Result[1] := VectorAdd(Box[1], Translation);
   end else
-    Result := EmptyBox3d;
+    Result := EmptyBox3D;
 end;
 
-function Box3dAntiTranslate(const Box: TBox3d;
-  const Translation: TVector3Single): TBox3d;
+function Box3DAntiTranslate(const Box: TBox3D;
+  const Translation: TVector3Single): TBox3D;
 begin
-  if not IsEmptyBox3d(Box) then
+  if not IsEmptyBox3D(Box) then
   begin
     Result[0] := VectorSubtract(Box[0], Translation);
     Result[1] := VectorSubtract(Box[1], Translation);
   end else
-    Result := EmptyBox3d;
+    Result := EmptyBox3D;
 end;
 
-function Box3dToNiceStr(const box: TBox3d): string;
+function Box3DToNiceStr(const box: TBox3D): string;
 begin
- if IsEmptyBox3d(box) then
+ if IsEmptyBox3D(box) then
   result := 'EMPTY' else
   result := VectorToNiceStr(box[0])+' - '+VectorToNiceStr(box[1]);
 end;
 
-function Box3dToRawStr(const box: TBox3d): string;
+function Box3DToRawStr(const box: TBox3D): string;
 begin
- if IsEmptyBox3d(box) then
+ if IsEmptyBox3D(box) then
   result := 'EMPTY' else
   result := VectorToRawStr(box[0])+' - '+VectorToRawStr(box[1]);
 end;
@@ -1025,10 +1025,10 @@ end;
    end;
   end;}
 
-procedure Box3dClamp(var point: TVector3Single; const box: TBox3d); CLAMP_IMPLEMENTATION
-procedure Box3dClamp(var point: TVector3Double; const box: TBox3d); CLAMP_IMPLEMENTATION
+procedure Box3DClamp(var point: TVector3Single; const box: TBox3D); CLAMP_IMPLEMENTATION
+procedure Box3DClamp(var point: TVector3Double; const box: TBox3D); CLAMP_IMPLEMENTATION
 
-function TriangleBoundingBox(const T: TTriangle3Single): TBox3d;
+function TriangleBoundingBox(const T: TTriangle3Single): TBox3D;
 begin
   MinMax(T[0][0], T[1][0], T[2][0], Result[0][0], Result[1][0]);
   MinMax(T[0][1], T[1][1], T[2][1], Result[0][1], Result[1][1]);
@@ -1038,7 +1038,7 @@ end;
 function TryBoxRayClosestIntersection(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
-  const Box: TBox3d;
+  const Box: TBox3D;
   const Ray0, RayVector: TVector3Single): boolean;
 var
   IntrProposed: boolean absolute result;
@@ -1091,7 +1091,7 @@ end;
 
 function TryBoxRayClosestIntersection(
   out Intersection: TVector3Single;
-  const Box: TBox3d;
+  const Box: TBox3D;
   const Ray0, RayVector: TVector3Single): boolean;
 var
   IntersectionDistance: Single;
@@ -1102,7 +1102,7 @@ end;
 
 function TryBoxRayClosestIntersection(
   out IntersectionDistance: Single;
-  const Box: TBox3d;
+  const Box: TBox3D;
   const Ray0, RayVector: TVector3Single): boolean;
 var
   Intersection: TVector3Single;
@@ -1113,9 +1113,9 @@ end;
 
 function TryBoxRayEntrance(
   out Entrance: TVector3Single; out EntranceDistance: Single;
-  const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean;
+  const Box: TBox3D; const Ray0, RayVector: TVector3Single): boolean;
 begin
-  if Box3dPointInside(Ray0, Box) then
+  if Box3DPointInside(Ray0, Box) then
   begin
     Entrance := Ray0;
     EntranceDistance := 0;
@@ -1127,9 +1127,9 @@ end;
 
 function TryBoxRayEntrance(
   out Entrance: TVector3Single;
-  const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean;
+  const Box: TBox3D; const Ray0, RayVector: TVector3Single): boolean;
 begin
-  if Box3dPointInside(Ray0, Box) then
+  if Box3DPointInside(Ray0, Box) then
   begin
     Entrance := Ray0;
     result := true;
@@ -1138,8 +1138,8 @@ begin
       Entrance, Box, Ray0, RayVector);
 end;
 
-function IsBox3dSegmentCollision(
-  const Box: TBox3d;
+function IsBox3DSegmentCollision(
+  const Box: TBox3D;
   const Segment1, Segment2: TVector3Single): boolean;
 
   function IsCollisionWithBoxPlane(const PlaneConstCoord: integer;
@@ -1185,9 +1185,9 @@ begin
   Result := false;
 end;
 
-function Box3dPlaneCollision(const Box: TBox3d;
+function Box3DPlaneCollision(const Box: TBox3D;
   const Plane: TVector4Single): TPlaneCollision;
-{ This generalizes the idea from IsCenteredBox3dPlaneCollision
+{ This generalizes the idea from IsCenteredBox3DPlaneCollision
   in boxes3d_generic_float.inc.
   It's also explained in
   Akenine-Moller, Haines "Real-Time Rendering" (2nd ed), 13.9 (page 586)
@@ -1196,9 +1196,9 @@ var
   I: Integer;
   VMin, VMax: TVector3Single;
   B: boolean;
-  BoxBool: TBox3dBool absolute Box;
+  BoxBool: TBox3DBool absolute Box;
 begin
-  if IsEmptyBox3d(Box) then
+  if IsEmptyBox3D(Box) then
     Exit(pcNone);
 
   for I := 0 to 2 do
@@ -1236,9 +1236,9 @@ begin
   Result := pcIntersecting;
 end;
 
-function Box3dPlaneCollisionInside(const Box: TBox3d;
+function Box3DPlaneCollisionInside(const Box: TBox3D;
   const Plane: TVector4Single): boolean;
-{ Based on Box3dPlaneCollision, except now we need only VMax point.
+{ Based on Box3DPlaneCollision, except now we need only VMax point.
 
   Actually, we don't even store VMax. Instead, we calculate to
   PlaneResult the equation
@@ -1249,9 +1249,9 @@ function Box3dPlaneCollisionInside(const Box: TBox3d;
     Plane[3]
 }
 var
-  BoxBool: TBox3dBool absolute Box;
+  BoxBool: TBox3DBool absolute Box;
 begin
-  if IsEmptyBox3d(Box) then
+  if IsEmptyBox3D(Box) then
     Exit(false);
 
   Result :=
@@ -1261,12 +1261,12 @@ begin
     Plane[3] < 0;
 end;
 
-function Box3dPlaneCollisionOutside(const Box: TBox3d;
+function Box3DPlaneCollisionOutside(const Box: TBox3D;
   const Plane: TVector4Single): boolean;
 var
-  BoxBool: TBox3dBool absolute Box;
+  BoxBool: TBox3DBool absolute Box;
 begin
-  if IsEmptyBox3d(Box) then
+  if IsEmptyBox3D(Box) then
     Exit(false);
 
   Result :=
@@ -1286,8 +1286,8 @@ end;
 {$define TVector4GenericFloat := TVector4Double}
 {$I boxes3d_generic_float.inc}
 
-function IsBox3dTriangleCollision(
-  const Box: TBox3d;
+function IsBox3DTriangleCollision(
+  const Box: TBox3D;
   const Triangle: TTriangle3Single): boolean;
 
 { Implementation of this is based on
@@ -1305,8 +1305,8 @@ function IsBox3dTriangleCollision(
      this gives 3x3=9 more tests
 }
 
-{ The same comments about precision as for IsCenteredBox3dPlaneCollision apply also here. }
-{$define EqualityEpsilon := Box3dPlaneCollisionEqualityEpsilon}
+{ The same comments about precision as for IsCenteredBox3DPlaneCollision apply also here. }
+{$define EqualityEpsilon := Box3DPlaneCollisionEqualityEpsilon}
 
 var
   TriangleMoved: TTriangle3Double;
@@ -1396,7 +1396,7 @@ var
   Plane: TVector4Double;
   PlaneDir: TVector3Double absolute Plane;
 begin
-  if IsEmptyBox3d(Box) then
+  if IsEmptyBox3D(Box) then
     Exit(false);
 
   { calculate BoxCenter and BoxHalfSize }
@@ -1465,7 +1465,7 @@ begin
     compute plane equation of triangle: normal*x+d=0 }
   PlaneDir := VectorProduct(TriangleEdges[0], TriangleEdges[1]);
   Plane[3] := -VectorDotProduct(PlaneDir, TriangleMoved[0]);
-  if not IsCenteredBox3dPlaneCollision(BoxHalfSize, Plane) then
+  if not IsCenteredBox3DPlaneCollision(BoxHalfSize, Plane) then
     Exit(false);
 
   Result := true; { box and triangle overlaps }
@@ -1473,21 +1473,21 @@ end;
 
 {$undef EqualityEpsilon}
 
-procedure BoundingSphereFromBox3d(const Box3d: TBox3d;
+procedure BoundingSphereFromBox3D(const Box3D: TBox3D;
   var SphereCenter: TVector3Single; var SphereRadiusSqr: Single);
 begin
- if IsEmptyBox3d(Box3d) then
+ if IsEmptyBox3D(Box3D) then
  begin
   SphereRadiusSqr := 0;
  end else
  begin
-  SphereCenter := Box3dMiddle(Box3d);
-  SphereRadiusSqr := PointsDistanceSqr(SphereCenter, Box3d[0]);
+  SphereCenter := Box3DMiddle(Box3D);
+  SphereRadiusSqr := PointsDistanceSqr(SphereCenter, Box3D[0]);
  end;
 end;
 
-function BoundingBox3dFromSphere(const Center: TVector3Single;
-  const Radius: Single): TBox3d;
+function BoundingBox3DFromSphere(const Center: TVector3Single;
+  const Radius: Single): TBox3D;
 begin
   Result[0] := Center;
   Result[0][0] -= Radius;
@@ -1500,26 +1500,26 @@ begin
   Result[1][2] += Radius;
 end;
 
-function Boxes3dCollision(const Box1, Box2: TBox3d): boolean;
+function Boxes3DCollision(const Box1, Box2: TBox3D): boolean;
 begin
   Result :=
-    (not IsEmptyBox3d(Box1)) and
-    (not IsEmptyBox3d(Box2)) and
+    (not IsEmptyBox3D(Box1)) and
+    (not IsEmptyBox3D(Box2)) and
     (not ((Box1[1, 0] < Box2[0, 0]) or (Box2[1, 0] < Box1[0, 0]))) and
     (not ((Box1[1, 1] < Box2[0, 1]) or (Box2[1, 1] < Box1[0, 1]))) and
     (not ((Box1[1, 2] < Box2[0, 2]) or (Box2[1, 2] < Box1[0, 2])));
 end;
 
-function Boxes3dXYCollision(const Box1, Box2: TBox3d): boolean;
+function Boxes3DXYCollision(const Box1, Box2: TBox3D): boolean;
 begin
   Result :=
-    (not IsEmptyBox3d(Box1)) and
-    (not IsEmptyBox3d(Box2)) and
+    (not IsEmptyBox3D(Box1)) and
+    (not IsEmptyBox3D(Box2)) and
     (not ((Box1[1, 0] < Box2[0, 0]) or (Box2[1, 0] < Box1[0, 0]))) and
     (not ((Box1[1, 1] < Box2[0, 1]) or (Box2[1, 1] < Box1[0, 1])));
 end;
 
-function Box3dSqrRadius(const Box: TBox3d): Single;
+function Box3DSqrRadius(const Box: TBox3D): Single;
 begin
   Result := Max(
     Max(Max(VectorLenSqr(Vector3Single(Box[0, 0], Box[0, 1], Box[0, 2])),
@@ -1532,12 +1532,12 @@ begin
             VectorLenSqr(Vector3Single(Box[0, 0], Box[1, 1], Box[1, 2])))));
 end;
 
-function Box3dRadius(const Box: TBox3d): Single;
+function Box3DRadius(const Box: TBox3D): Single;
 begin
-  Result := Sqrt(Box3dSqrRadius(Box));
+  Result := Sqrt(Box3DSqrRadius(Box));
 end;
 
-function Box3dXYSqrRadius(const Box: TBox3d): Single;
+function Box3DXYSqrRadius(const Box: TBox3D): Single;
 begin
   Result := Max(
     Max(VectorLenSqr(Vector2Single(Box[0, 0], Box[0, 1])),
@@ -1546,15 +1546,15 @@ begin
         VectorLenSqr(Vector2Single(Box[0, 0], Box[1, 1]))));
 end;
 
-function Box3dXYRadius(const Box: TBox3d): Single;
+function Box3DXYRadius(const Box: TBox3D): Single;
 begin
-  Result := Sqrt(Box3dXYSqrRadius(Box));
+  Result := Sqrt(Box3DXYSqrRadius(Box));
 end;
 
-function Box3dSphereSimpleCollision(const Box: TBox3d;
+function Box3DSphereSimpleCollision(const Box: TBox3D;
   const SphereCenter: TVector3Single; const SphereRadius: Single): boolean;
 begin
-  Result := (not IsEmptyBox3d(Box)) and
+  Result := (not IsEmptyBox3D(Box)) and
     (SphereCenter[0] >= Box[0][0] - SphereRadius) and
     (SphereCenter[0] <= Box[1][0] + SphereRadius) and
     (SphereCenter[1] >= Box[0][1] - SphereRadius) and
@@ -1563,7 +1563,7 @@ begin
     (SphereCenter[2] <= Box[1][2] + SphereRadius);
 end;
 
-function Box3dSphereCollision(const Box: TBox3d;
+function Box3DSphereCollision(const Box: TBox3D;
   const SphereCenter: TVector3Single; const SphereRadius: Single): boolean;
 { This great and simple algorithm  was invented by Arvo, I read about
   it in "Real-Time Rendering" by Moller and Haines.
@@ -1581,7 +1581,7 @@ function Box3dSphereCollision(const Box: TBox3d;
 var
   D: Single;
 begin
-  if IsEmptyBox3d(Box) then Exit(false);
+  if IsEmptyBox3D(Box) then Exit(false);
 
   D := 0;
 
@@ -1591,7 +1591,7 @@ begin
     4 multiplications.
 
     Ok, that's damn fast, but still a little slower than
-    Box3dSphereSimpleCollision (that has 1 up to 6 comparisons and additions). }
+    Box3DSphereSimpleCollision (that has 1 up to 6 comparisons and additions). }
 
   if SphereCenter[0] < Box[0][0] then D += Sqr(SphereCenter[0] - Box[0][0]) else
   if SphereCenter[0] > Box[1][0] then D += Sqr(SphereCenter[0] - Box[1][0]);
@@ -1605,10 +1605,10 @@ begin
   Result := D <= Sqr(SphereRadius);
 end;
 
-function Box3dMaximumPlane(const Box: TBox3d;
+function Box3DMaximumPlane(const Box: TBox3D;
   const Direction: TVector3Single): TVector4Single;
 var
-  BoxBool: TBox3dBool absolute Box;
+  BoxBool: TBox3DBool absolute Box;
   ResultDir: TVector3Single absolute Result;
 begin
   CheckNonEmpty(Box);
@@ -1638,10 +1638,10 @@ begin
                   BoxBool[Direction[2] >= 0][2] * Result[2]);
 end;
 
-function Box3dMinimumPlane(const Box: TBox3d;
+function Box3DMinimumPlane(const Box: TBox3D;
   const Direction: TVector3Single): TVector4Single;
 var
-  BoxBool: TBox3dBool absolute Box;
+  BoxBool: TBox3DBool absolute Box;
   ResultDir: TVector3Single absolute Result;
 begin
   CheckNonEmpty(Box);
