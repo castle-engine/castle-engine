@@ -13,9 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Demo of using SceneManager. Shows various (often unrelated) simple uses
-  of SceneManager and 3D (VRML and others) models.
-  See also simplest_vrml_browser.pasprogram.
+{ Demo of using SceneManager. Shows how you can add many 3D objects to
+  SceneManager.Items tree. For simpler usage,
+  see simplest_vrml_browser.pasprogram first.
 
   This reads a couple of 3D files from ../../../kambi_vrml_test_suite/
   directory, thus assuming you have
@@ -30,14 +30,18 @@ program scene_manager_demos;
 
 {$apptype CONSOLE}
 
-uses KambiUtils, GLWindow, ProgressUnit, ProgressGL,
-  VRMLScene, VRMLGLScene, VRMLErrors, KambiSceneManager, VRMLGLAnimation;
+uses KambiUtils, GLWindow, ProgressUnit, ProgressGL, VectorMath, Base3D,
+  VRMLScene, VRMLGLScene, VRMLErrors, KambiSceneManager, VRMLGLAnimation,
+  VRMLNodes;
 
 var
   Window: TGLUIWindow;
   SceneManager: TKamSceneManager;
   Scene, Scene2: TVRMLGLScene;
   Animation: TVRMLGLAnimation;
+  Translation: TTranslated3D;
+  TranslatedItems: TBase3DList;
+  Scene2Transform: TNodeTransform_2;
 begin
   Window := TGLUIWindow.Create(Application);
 
@@ -49,7 +53,9 @@ begin
 
   { initialize first Scene }
   Scene := TVRMLGLScene.Create(SceneManager);
-  Scene.Load('../../../kambi_vrml_test_suite/vrml_2/castle_with_lights_and_camera.wrl');
+//  Scene.Load('../../../kambi_vrml_test_suite/vrml_2/castle_with_lights_and_camera.wrl');
+//  Scene.Load('../../../kambi_vrml_test_suite/x3d/touch_sensor_tests.x3dv');
+  Scene.Load('models/castle_y_up.x3dv');
   { This makes scene octrees, allowing collision detection in (possibly)
     dynamic scene (ssDynamicCollisions) and frustum culling
     optimization when rendering (ssRendering). }
@@ -69,19 +75,51 @@ begin
     from Viewpoint VRML/X3D node inside the MainScene. }
   SceneManager.MainScene := Scene;
 
-  { initialize and add a 2nd scene, just because we can }
+  { To have some more fun with SceneManager, let's add more 3D objects to it.
+    Let's suppose we want to have SceneManager.Items to be a tree:
+
+    SceneManager.Items
+    |- Scene
+    |- Translation
+       |- TranslatedItems
+          |- Scene2
+          |- Animation
+  }
+
+  { initialize Translation }
+  Translation := TTranslated3D.Create(SceneManager);
+  Translation.Translation := Vector3Single(5, 3, 60);
+  SceneManager.Items.Add(Translation);
+
+  { initialize TranslatedItems list }
+  TranslatedItems := TBase3DList.Create(SceneManager);
+  Translation.Child := TranslatedItems;
+
+  { initialize a 2nd scene, just because we can }
   Scene2 := TVRMLGLScene.Create(SceneManager);
-  Scene2.Load('../../../kambi_vrml_test_suite/x3d/IkeaTable.x3dv');
+//  Scene2.Load('../../../kambi_vrml_test_suite/x3d/inline_url_change.x3dv');
+//  Scene2.Load('../../../kambi_vrml_test_suite/x3d/touch_sensor_tests.x3dv');
+//  Scene2.Load('../../../kambi_vrml_test_suite/x3d/anchor_test.x3dv');
+//  Scene2.Load('../../../kambi_vrml_test_suite/x3d/kambi_extensions/kambi_script_ball_game.x3dv');
+  Scene2.Load('../../../kambi_vrml_test_suite/x3d/kambi_extensions/kambi_script_particles.x3dv');
   Scene2.Spatial := [ssRendering, ssDynamicCollisions];
   Scene2.ProcessEvents := true;
-  { render this as wireframe }
-  Scene2.Attributes.WireframeEffect := weWireframeOnly;
-  SceneManager.Items.Add(Scene2);
+{  Scene2.Attributes.WireframeEffect := weWireframeOnly;} { render this as wireframe }
+  TranslatedItems.Add(Scene2);
 
-  { initialize Animation, and add it to SceneManager }
+  { let's now show that you can process 3D model graph after loading:
+    let's add a rotation inside VRML model in Scene2 }
+  Scene2Transform := TNodeTransform_2.Create('', '');
+  Scene2Transform.FdRotation.Axis := Vector3Single(1, 0, 0);
+  Scene2Transform.FdRotation.RotationRad := -Pi/2;
+  Scene2Transform.FdChildren.AddItem(Scene2.RootNode);
+  Scene2.RootNode := Scene2Transform;
+  Scene2.ChangedAll; { notify Scene2 that RootNode contents changed }
+
+  { initialize Animation }
   Animation := TVRMLGLAnimation.Create(SceneManager);
-  Animation.LoadFromFile('../../../kambi_vrml_test_suite/kanim/rotate.kanim');
-  SceneManager.Items.Add(Animation);
+  Animation.LoadFromFile('../../../kambi_vrml_test_suite/kanim/raptor.kanim');
+  TranslatedItems.Add(Animation);
 
   Window.InitAndRun;
 end.

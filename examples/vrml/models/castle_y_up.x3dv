@@ -1,0 +1,32 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+# The same old boring "castle" model, but with up vector in +Y
+# (this makes it matching some other models with +Y up,
+# comfortable for scene_manager_demos).
+
+NavigationInfo {
+  type "WALK"
+  speed 20
+  avatarSize [ 0.5 4 ]
+}
+
+Transform {
+  rotation 1 0 0 -1.57
+  children [
+    # Camera settings "encoded" in the VRML declaration below :
+    # direction 0 0.7006844878196716 3.0627891334233937E-008
+    # up 0 -8.7422776573475858E-008 1
+    # gravityUp 0 -4.3711388286737929E-008 1
+    Transform {
+      translation 0.004618315026164 -94.837326049804688 6.3310680389404297
+      rotation 1 0 -0 1.5707963705062866
+      children Viewpoint {
+        position 0 0 0 # camera position is expressed by translation
+        orientation 0 0 1 0
+      }
+    }
+
+    Inline { url "../../../../kambi_vrml_test_suite/vrml_2/castle_with_lights_and_camera.wrl" }
+  ]
+}
