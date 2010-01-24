@@ -141,17 +141,20 @@ pasdoc \
   --auto-link \
   --auto-link-exclude=../doc/pasdoc/auto_link_exclude.txt
 
-  #doc/pasdoc/auto_link_exclude.txt
+#  \
+# --graphviz-classes --link-gv-classes jpg \
+# --graphviz-uses    --link-gv-uses    jpg
 
 # --verbosity=3
-#
-#     --graphviz-classes --link-gv-classes jpg \
-#     --graphviz-uses    --link-gv-uses    jpg
-#
-#    --language pl.iso-8859-2
 
-# dot -Tjpg -oGVClasses.jpg GVClasses.dot
-# dot -Tjpg -oGVUses.jpg GVUses.dot
+# Classes graph is too large, dot answers with
+#   dot: width (135399 >= 32768) is too large.
+# and then segfaults.
+#dot -Tjpg -o"$OUTPUT_PATH"GVClasses.jpg "$OUTPUT_PATH"GVClasses.dot
+
+# Units graph is possible, but still very large for human eye
+# and so practically useless for us now...
+#dot -Tjpg -o"$OUTPUT_PATH"GVUses.jpg    "$OUTPUT_PATH"GVUses.dot
 
 # clean after ourselves
 rm -f "$TMP_PAS_LIST"
