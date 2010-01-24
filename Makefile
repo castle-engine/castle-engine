@@ -298,7 +298,8 @@ EXAMPLES_BASE_NAMES := \
   examples/vrml/shadow_fields/shadow_fields \
   examples/vrml/dynamic_ambient_occlusion/dynamic_ambient_occlusion \
   examples/vrml/gl_primitive_performance \
-  examples/vrml/terrain/terrain
+  examples/vrml/terrain/terrain \
+  examples/vrml/scene_manager_demos
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   examples/audio/test_al_source_allocator \

@@ -1,0 +1,87 @@
+{
+  Copyright 2010 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Demo of using SceneManager. Shows various (often unrelated) simple uses
+  of SceneManager and 3D (VRML and others) models.
+  See also simplest_vrml_browser.pasprogram.
+
+  This reads a couple of 3D files from ../../../kambi_vrml_test_suite/
+  directory, thus assuming you have
+  [http://vrmlengine.sourceforge.net/kambi_vrml_test_suite.php]
+  downladed and unpacked such that directories "kambi_vrml_test_suite"
+  and "kambi_vrml_game_engine".
+
+  That said, do not hesitate to just replace filenames of 3D models
+  here with own models, and generally experiment freely with this program :)
+}
+program scene_manager_demos;
+
+{$apptype CONSOLE}
+
+uses KambiUtils, GLWindow, ProgressUnit, ProgressGL,
+  VRMLScene, VRMLGLScene, VRMLErrors, KambiSceneManager, VRMLGLAnimation;
+
+var
+  Window: TGLUIWindow;
+  SceneManager: TKamSceneManager;
+  Scene, Scene2: TVRMLGLScene;
+  Animation: TVRMLGLAnimation;
+begin
+  Window := TGLUIWindow.Create(Application);
+
+  VRMLWarning := @VRMLWarning_Write;
+
+  { initialize SceneManager }
+  SceneManager := TKamSceneManager.Create(Window);
+  Window.Controls.Add(SceneManager);
+
+  { initialize first Scene }
+  Scene := TVRMLGLScene.Create(SceneManager);
+  Scene.Load('../../../kambi_vrml_test_suite/vrml_2/castle_with_lights_and_camera.wrl');
+  { This makes scene octrees, allowing collision detection in (possibly)
+    dynamic scene (ssDynamicCollisions) and frustum culling
+    optimization when rendering (ssRendering). }
+  Scene.Spatial := [ssRendering, ssDynamicCollisions];
+  { This makes our 3D scene interactive, reacting to key and mouse
+    presses, processing VRML/X3D script nodes etc. }
+  Scene.ProcessEvents := true;
+
+  { add Scene to SceneManager }
+  { Add your scene to SceneManager.Items. This is essential,
+    it makes the scene actually rendered, animated etc. }
+  SceneManager.Items.Add(Scene);
+  { Set the scene as SceneManager.MainScene. This is optional
+    (you do have to set SceneManager.MainScene), but usually desired.
+    MainScene is used in various moments when we need a single designated 3D
+    object to do some task. For example, default camera location is taken
+    from Viewpoint VRML/X3D node inside the MainScene. }
+  SceneManager.MainScene := Scene;
+
+  { initialize and add a 2nd scene, just because we can }
+  Scene2 := TVRMLGLScene.Create(SceneManager);
+  Scene2.Load('../../../kambi_vrml_test_suite/x3d/IkeaTable.x3dv');
+  Scene2.Spatial := [ssRendering, ssDynamicCollisions];
+  Scene2.ProcessEvents := true;
+  { render this as wireframe }
+  Scene2.Attributes.WireframeEffect := weWireframeOnly;
+  SceneManager.Items.Add(Scene2);
+
+  { initialize Animation, and add it to SceneManager }
+  Animation := TVRMLGLAnimation.Create(SceneManager);
+  Animation.LoadFromFile('../../../kambi_vrml_test_suite/kanim/rotate.kanim');
+  SceneManager.Items.Add(Animation);
+
+  Window.InitAndRun;
+end.

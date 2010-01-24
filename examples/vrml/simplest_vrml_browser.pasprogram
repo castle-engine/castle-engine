@@ -1,5 +1,5 @@
 {
-  Copyright 2008 Michalis Kamburelis.
+  Copyright 2008-2010 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -26,11 +26,29 @@
 
   This program is a minimal VRML browser, passing all user interactions
   to the Scene (so that they can be processed by VRML events).
-  If you're looking for more low-level access, TGLWindowVRMLBrowser
-  may be too simple and not provide you all the flexibility.
-  In this case, you can use TVRMLGLScene directly,
-  see simple_view_model.pasprogram and simple_view_model_2.pasprogram
-  examples.
+
+  To extend this into your own game:
+
+  1. Look at all the window methods and callbacks of TGLWindow,
+     which is an ancestor of TGLUIWindow, which is an ancestor of
+     TGLWindowVRMLBrowser (that you have inside BrowserWindow variable).
+     For example: assigning your own handlers for BrowserWindow.OnKeyDown
+     or BrowserWindow.OnIdle is often useful.
+
+  2. Look at TKamSceneManager methods and properties (you have TKamSceneManager
+     instance inside BrowserWindow.SceneManager variable of this program).
+
+  3. Look at TVRMLGLScene (and it's parent, TVRMLScene) methods and properties
+     (you have TVRMLGLScene instance inside BrowserWindow.Scene
+     variable of this program; the same thing is also available in
+     BrowserWindow.SceneManager.MainScene).
+
+  4. Finally, often it's more comfortable to just create your own
+     TKamSceneManager and TVRMLGLScene instances explicitly, using TGLUIWindow
+     (instead of TGLWindowVRMLBrowser). This way you get a little more control
+     and understanding of our scene manager, which is really the core
+     of our engine since version 2.0. It's quite easy, see
+     scene_manager_demos.pasprogram example.
 }
 
 program simplest_vrml_browser;
