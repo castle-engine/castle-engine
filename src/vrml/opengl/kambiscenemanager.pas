@@ -785,8 +785,11 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  Result := Camera.KeyDown(Key, C);
-  if Result then Exit;
+  if Camera <> nil then
+  begin
+    Result := Camera.KeyDown(Key, C);
+    if Result then Exit;
+  end;
 
   Result := Items.KeyDown(Key, C);
 end;
@@ -796,8 +799,11 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  Result := Camera.KeyUp(Key, C);
-  if Result then Exit;
+  if Camera <> nil then
+  begin
+    Result := Camera.KeyUp(Key, C);
+    if Result then Exit;
+  end;
 
   Result := Items.KeyUp(Key, C);
 end;
@@ -807,8 +813,11 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  Result := Camera.MouseDown(Button);
-  if Result then Exit;
+  if Camera <> nil then
+  begin
+    Result := Camera.MouseDown(Button);
+    if Result then Exit;
+  end;
 
   Result := Items.MouseDown(Button);
 end;
@@ -818,8 +827,11 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  Result := Camera.MouseUp(Button);
-  if Result then Exit;
+  if Camera <> nil then
+  begin
+    Result := Camera.MouseUp(Button);
+    if Result then Exit;
+  end;
 
   Result := Items.MouseUp(Button);
 end;
@@ -829,7 +841,7 @@ var
   RayOrigin, RayDirection: TVector3Single;
 begin
   Result := inherited;
-  if not Result then
+  if (not Result) and (Camera <> nil) then
   begin
     Result := Camera.MouseMove(OldX, OldY, NewX, NewY);
     if not Result then
@@ -883,15 +895,19 @@ begin
     mark keys/mouse as handled". Besides, currently 3D objects do not
     get Pressed information at all. }
 
-  LetOthersHandleMouseAndKeys := not Camera.ExclusiveEvents;
-  Camera.Idle(CompSpeed, HandleMouseAndKeys, LetOthersHandleMouseAndKeys);
+  if Camera <> nil then
+  begin
+    LetOthersHandleMouseAndKeys := not Camera.ExclusiveEvents;
+    Camera.Idle(CompSpeed, HandleMouseAndKeys, LetOthersHandleMouseAndKeys);
+  end else
+    LetOthersHandleMouseAndKeys := true;
 
   Items.Idle(CompSpeed);
 end;
 
 function TKamSceneManager.AllowSuspendForInput: boolean;
 begin
-  Result := Camera.AllowSuspendForInput;
+  Result := (Camera = nil) or Camera.AllowSuspendForInput;
 end;
 
 function TKamSceneManager.PositionInside(const X, Y: Integer): boolean;
