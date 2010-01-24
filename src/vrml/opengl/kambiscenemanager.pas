@@ -20,7 +20,7 @@ interface
 
 uses Classes, VectorMath, VRMLGLScene, VRMLScene, Cameras,
   VRMLGLHeadLight, ShadowVolumes, GL, UIControls, Base3D,
-  KeysMouse, VRMLTriangle;
+  KeysMouse, VRMLTriangle, Boxes3D;
 
 type
   { Scene manager that knows about all 3D things inside your world.
@@ -79,6 +79,7 @@ type
     ApplyProjectionNeeded: boolean;
     FOnCameraChanged: TNotifyEvent;
     FOnBoundViewpointChanged: TNotifyEvent;
+    FCameraBox: TBox3D;
 
     procedure SetMainScene(const Value: TVRMLGLScene);
     procedure SetCamera(const Value: TCamera);
@@ -215,6 +216,26 @@ type
     property WalkProjectionNear: Single read FWalkProjectionNear;
     property WalkProjectionFar : Single read FWalkProjectionFar ;
     { @groupEnd }
+
+    { Create default TCamera suitable for navigating in this scene.
+      This is automatically used to initialize @link(Camera) property
+      when @link(Camera) is @nil at ApplyProjection call.
+
+      The implementation in base TKamSceneManager uses MainScene.CreateCamera
+      (so it will follow your VRML/X3D scene Viewpoint, NavigationInfo and such).
+      If MainScene is not assigned, we will just create a simple
+      TExamineCamera. }
+    function CreateDefaultCamera(AOwner: TComponent): TCamera; virtual;
+
+    { If non-empty, then camera position will be limited to this box.
+
+      When this property specifies an EmptyBox3D (the default value),
+      camera position is limited to not fall because of gravity
+      below minimal 3D world plane. That is, viewer can freely move
+      around in 3D world, he/she only cannot fall below "minimal plane"
+      when falling is caused by the gravity. "Minimal plane" is derived from
+      GravityUp and Items.BoundingBox. }
+    property CameraBox: TBox3D read FCameraBox write FCameraBox;
   published
     { Tree of 3D objects within your world. This is the place where you should
       add your scenes to have them handled by scene manager.
@@ -265,9 +286,7 @@ type
       Cannot be @nil when rendering. If you don't assign anything here,
       we'll create a default camera object at the nearest ApplyProjection
       call (this is the first moment when we really must have some camera).
-      This default camera will be created by MainScene.CreateCamera
-      (so it will follow your VRML/X3D scene Viewpoint, NavigationInfo and such),
-      or (if MainScene not assigned) it will be just a simple TExamineCamera.
+      This default camera will be created by CreateDefaultCamera.
 
       This camera @italic(should not) be inside some other container
       (like on TGLUIWindow.Controls or TKamOpenGLControl.Controls list).
@@ -343,7 +362,7 @@ procedure Register;
 
 implementation
 
-uses SysUtils, RenderStateUnit, KambiGLUtils, ProgressUnit, Boxes3D;
+uses SysUtils, RenderStateUnit, KambiGLUtils, ProgressUnit;
 
 procedure Register;
 begin
@@ -422,22 +441,21 @@ begin
   inherited;
 end;
 
-procedure TKamSceneManager.ApplyProjection;
-
-  function CreateDefaultCamera(AOwner: TComponent): TCamera;
-  var
-    Box: TBox3d;
+function TKamSceneManager.CreateDefaultCamera(AOwner: TComponent): TCamera;
+var
+  Box: TBox3d;
+begin
+  Box := Items.BoundingBox;
+  if MainScene <> nil then
+    Result := MainScene.CreateCamera(AOwner, Box) else
   begin
-    Box := Items.BoundingBox;
-    if MainScene <> nil then
-      Result := MainScene.CreateCamera(AOwner, Box) else
-    begin
-      Result := TExamineCamera.Create(AOwner);
-      (Result as TExamineCamera).Init(Box,
-        { CameraRadius = } Box3dAvgSize(Box, 1.0) * 0.005);
-    end;
+    Result := TExamineCamera.Create(AOwner);
+    (Result as TExamineCamera).Init(Box,
+      { CameraRadius = } Box3dAvgSize(Box, 1.0) * 0.005);
   end;
+end;
 
+procedure TKamSceneManager.ApplyProjection;
 begin
   if Camera = nil then
     Camera := CreateDefaultCamera(Self);
@@ -910,12 +928,14 @@ begin
 
   if Result then
   begin
-    { TODO: allow here specification of other box, like LevelBox for castle level. }
-
-    { Don't let user to fall outside of the box because of gravity. }
-    if Result and BecauseOfGravity then
-      Result := SimpleKeepAboveMinPlane(NewPos, Items.BoundingBox,
-        ACamera.GravityUp);
+    if IsEmptyBox3D(FCameraBox) then
+    begin
+      { Don't let user to fall outside of the box because of gravity. }
+      if BecauseOfGravity then
+        Result := SimpleKeepAboveMinPlane(NewPos, Items.BoundingBox,
+          ACamera.GravityUp);
+    end else
+      Result := Box3DPointInside(NewPos, FCameraBox);
   end;
 end;
 
