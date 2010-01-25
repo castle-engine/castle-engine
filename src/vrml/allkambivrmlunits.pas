@@ -10,6 +10,7 @@ unit AllKambiVRMLUnits;
 interface
 
 uses
+  base3d,
   colladatovrml,
   illummodels,
   normalscalculator,

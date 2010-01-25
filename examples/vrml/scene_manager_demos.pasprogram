@@ -32,7 +32,7 @@ program scene_manager_demos;
 
 uses KambiUtils, GLWindow, ProgressUnit, ProgressGL, VectorMath, Base3D,
   VRMLScene, VRMLGLScene, VRMLErrors, KambiSceneManager, VRMLGLAnimation,
-  VRMLNodes;
+  VRMLNodes, GLBase3D;
 
 var
   Window: TGLUIWindow;
@@ -119,6 +119,7 @@ begin
   { initialize Animation }
   Animation := TVRMLGLAnimation.Create(SceneManager);
   Animation.LoadFromFile('../../../kambi_vrml_test_suite/kanim/raptor.kanim');
+  Animation.FirstScene.Spatial := [ssRendering, ssDynamicCollisions];
   TranslatedItems.Add(Animation);
 
   Window.InitAndRun;

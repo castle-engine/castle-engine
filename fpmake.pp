@@ -85,6 +85,7 @@ begin
     P.Targets.AddUnit('object3dopengl.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'vrml');
+    P.Targets.AddUnit('base3d.pas');
     P.Targets.AddUnit('colladatovrml.pas');
     P.Targets.AddUnit('illummodels.pas');
     P.Targets.AddUnit('normalscalculator.pas');
@@ -111,6 +112,7 @@ begin
     P.Targets.AddUnit('x3dxmltovrml.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'vrml' + PathDelim + 'opengl');
+    P.Targets.AddUnit('glbase3d.pas');
     P.Targets.AddUnit('kambiscenemanager.pas');
     P.Targets.AddUnit('vrmlglanimation.pas');
     P.Targets.AddUnit('vrmlglheadlight.pas');
