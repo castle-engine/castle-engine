@@ -15,12 +15,6 @@ view3dscene 3.5 blockers:
 Better Lazarus integration:
 (Some before view3dscene 3.5, some probably for later.)
 
-* Our last TCustomTranslated3D makes impl of Base3d dependent on GL, KambiGLUtils.
-  Hm, any real reason to not just move Base3D to vrml/opengl/?
-  scenemanager is already there?
-
-  This would also allow removing that dump TShadowVolumesBase class.
-
 * Camera: since no longer have to be added to Controls, remove TGLUIWindow.Camera now.
 
   Resolves:
@@ -126,6 +120,11 @@ Better Lazarus integration:
 
 * Use SceneManager (and Camera on Glw.Controls) in castle.
   TLevelObject should migrate to TBase3D.
+  tlevelobjectstatic to tvrmlglscene,
+  tlevelobjectanimation to tvrmlglanimation,
+  tlevelobjectsum to tbase3dlist,
+  tlevelmovingobject to TCustomTranslated3D,
+  rest may stay implemented (e.g. in castle3d.pas?)
 
 * Make a news item about all improvements, started in www/TODO,
   maybe make a few screenshots how to easily use it from Lazarus?
