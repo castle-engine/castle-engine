@@ -77,7 +77,7 @@ Better Lazarus integration:
     to test that getting back viewport is Ok.
   - TSceneManager.PositionInside could use Viewport*, if not ViewportAutoResize.
 
-  Mention this (maybe with demo screenshot?) on last_update in www/TODO
+  Make a news item about this, with demo screenshot, on changes_log.
 
 * TSceneManager fitting into controls:
 
@@ -126,8 +126,7 @@ Better Lazarus integration:
   tlevelmovingobject to TCustomTranslated3D,
   rest may stay implemented (e.g. in castle3d.pas?)
 
-* Make a news item about all improvements, started in www/TODO,
-  maybe make a few screenshots how to easily use it from Lazarus?
+* Maybe make a news item and a few screenshots how to easily use it from Lazarus?
 
 * Lazarus: make the control painted at design-time?
 
