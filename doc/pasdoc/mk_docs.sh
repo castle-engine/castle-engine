@@ -145,6 +145,9 @@ pasdoc \
 # --graphviz-classes --link-gv-classes jpg \
 # --graphviz-uses    --link-gv-uses    jpg
 
+# Useful to find new items for auto_link_exclude.txt:
+# grep for "Automatically linked identifier", remove duplicates,
+# and see which ones shouldn't be autolinked.
 # --verbosity=3
 
 # Classes graph is too large, dot answers with
