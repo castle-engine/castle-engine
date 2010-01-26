@@ -30,16 +30,18 @@ latex2rtf/docs.rtf: latex2rtf/docs.tex
 latex/docs.tex:
 	./mk_docs.sh latex
 
+TEX_BATCH_OPTS := --file-line-error-style -interaction=nonstopmode
+
 latex/docs.dvi: latex/docs.tex
-	-cd latex; latex-batch docs.tex
-	-cd latex; latex-batch docs.tex
+	-cd latex; latex $(TEX_BATCH_OPTS) docs.tex
+	-cd latex; latex $(TEX_BATCH_OPTS) docs.tex
 
 # At the end of pdf generating, we clean useless junk
 # (because it's quite large, and I may want to upload latex/
 # dir to WWW page of my units)
 latex/docs.pdf: latex/docs.tex
-	-cd latex; pdflatex-batch docs.tex
-	-cd latex; pdflatex-batch docs.tex
+	-cd latex; pdflatex $(TEX_BATCH_OPTS) docs.tex
+	-cd latex; pdflatex $(TEX_BATCH_OPTS) docs.tex
 	rm -f latex/docs.aux \
 	      latex/docs.log \
 	      latex/docs.out \
