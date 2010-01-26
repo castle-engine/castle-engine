@@ -791,6 +791,8 @@ type
   {$I glwindow_implementation_specific.inc}
   {$undef read_interface_types}
 
+  { Window with an OpenGL context.
+    See GLWindow unit description for more info and examples of use. }
   TGLWindow = class(TComponent)
 
   { Include GLWindow-implementation-specific parts of TGLWindow class.

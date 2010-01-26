@@ -244,8 +244,8 @@ type
       TBase3DList is also TBase3D instance, so yes --- this may be a tree
       of TBase3D, not only a flat list.
 
-      Note that scene manager "hijacks" TBase3D callbacks OnCursorChange and
-      OnVisibleChange. }
+      Note that scene manager "hijacks" TBase3D callbacks TBase3D.OnCursorChange and
+      TBase3D.OnVisibleChange. }
     property Items: TBase3DList read FItems;
 
     { The main scene of your 3D world. It's not necessary to set this
@@ -269,7 +269,7 @@ type
           to a viewpoint.
 
           Note that scene manager "hijacks" some Scene events:
-          OnBoundViewpointVectorsChanged and ViewpointStack.OnBoundChanged
+          TVRMLScene.OnBoundViewpointVectorsChanged and TVRMLScene.ViewpointStack.OnBoundChanged
           for this purpose. If you want to know when viewpoint changes,
           you can use scene manager's event OnBoundViewpointChanged.)
       )
@@ -299,7 +299,8 @@ type
       no perfect ordering for them).
 
       Scene manager will "hijack" some Camera events:
-      OnVisibleChange, OnMoveAllowed, OnGetCameraHeight, OnCursorChange.
+      TCamera.OnVisibleChange, TWalkCamera.OnMoveAllowed,
+      TWalkCamera.OnGetCameraHeight, TCamera.OnCursorChange.
       Scene manager will handle them in a proper way.
 
       @seealso OnCameraChanged }
