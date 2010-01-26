@@ -654,14 +654,14 @@ procedure ParseParameters(Options: POption_Array; OptionsCount: Integer; OptionP
   var ParamShortStr: string;
       i: Integer;
   begin
-   { evaluate ParamShortStr, HasArgument, Argument }
+   { calculate ParamShortStr, HasArgument, Argument }
    SplitLongParameter(s, ParamShortStr, HasArgument, Argument, 1);
 
    { add to SimpleShortOptions }
    for i := 1 to Length(ParamShortStr)-1 do
     SimpleShortOptions.Add( FindShortOption(ParamShortStr[i], s) );
 
-   { evaluate result }
+   { calculate result }
    result := FindShortOption(ParamShortStr[Length(ParamShortStr)], s);
   end;
 
@@ -685,7 +685,7 @@ begin
 
    Assert(SimpleShortOptions.Length = 0);
 
-   { evaluate OptionNum; Ustaw je na numer w Params jezeli Parameters[i] to opcja
+   { calculate OptionNum; Ustaw je na numer w Params jezeli Parameters[i] to opcja
      (w tym przypadku musisz tez ustalic OptionName), wpp. (jesli to nie opcja
      i mozemy ja pominac) ustal OptionNum na -1.
 

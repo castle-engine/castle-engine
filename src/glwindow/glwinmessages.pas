@@ -544,7 +544,7 @@ begin
  glViewport(0, 0, glwin.Width, glwin.Height);
  ProjectionGLOrtho(0, glwin.Width, 0, glwin.Height);
 
- { evaluate BreakWidth. We must here always subtract
+ { calculate BreakWidth. We must here always subtract
    DrawMessg_ScrollBarWholeWidth to be on the safe side, because we don't know
    yet is md.ScrollBarVisible. }
  BreakWidth := max(0, glwin.Width -DrawMessg_BoxMargin*2
@@ -555,9 +555,9 @@ begin
 
  with md do
  begin
-  { evaluate MaxLineWidth and AllScrolledLinesCount }
+  { calculate MaxLineWidth and AllScrolledLinesCount }
 
-  { evaluate Broken_MessgText }
+  { calculate Broken_MessgText }
   Broken_MessgText.Clear;
   font.BreakLines(MessgText, Broken_MessgText,  BreakWidth);
   MaxLineWidth := font.MaxTextWidth(Broken_MessgText);
@@ -565,7 +565,7 @@ begin
 
   if ClosingInfo <> '' then
   begin
-   { evaluate Broken_ClosingInfo }
+   { calculate Broken_ClosingInfo }
    Broken_ClosingInfo.Clear;
    Font.BreakLines(ClosingInfo, Broken_ClosingInfo, BreakWidth);
    MaxLineWidth := max(MaxLineWidth, font.MaxTextWidth(Broken_ClosingInfo));
@@ -573,7 +573,7 @@ begin
 
   if DrawAdditional then
   begin
-   { evaluate Broken_SAdditional }
+   { calculate Broken_SAdditional }
    Broken_SAdditional.Clear;
    Font.BreakLines(SAdditional, Broken_SAdditional, BreakWidth);
    { It's our intention that if DrawAdditional then *always*
@@ -594,7 +594,7 @@ begin
     - DrawMessg_WindMargin * 2
     - ClosingInfoBoxHeight;
 
-  { evaluate VisibleScrolledLinesCount, ScrollBarVisible }
+  { calculate VisibleScrolledLinesCount, ScrollBarVisible }
 
   VisibleScrolledLinesCount := Clamped(WindowScrolledHeight div Font.RowHeight,
     0, AllScrolledLinesCount);

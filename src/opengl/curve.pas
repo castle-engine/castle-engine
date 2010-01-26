@@ -230,8 +230,8 @@ type
     TLagrangeInterpolatedCurve, only this time interpolation is done
     differently.
 
-    Whether it's Closed depends on the value returned by Closed
-    (it may depend on ControlPoints, i.e. it will be reevaluated in
+    Whether it's Closed depends on the value returned by @link(Closed)
+    (it may depend on ControlPoints, i.e. it will be recalculated in
     UpdateControlPoints). }
   TNaturalCubicSplineCurve_Abstract = class(TInterpolatedCurve)
   protected
@@ -513,7 +513,7 @@ var i, j: Integer;
 begin
  inherited;
 
- { evaluate SplineX.
+ { calculate SplineX.
    Spline[0] and Spline[1] and Spline[2] will share the same reference to X.
    Only Spline[2] will own SplineX. (Spline[2] will be always Freed as the
    last one, so it's safest to set OwnsX in Spline[2]) }
@@ -524,7 +524,7 @@ begin
  begin
   FreeAndNil(Spline[i]);
 
-  { evaluate SplineY }
+  { calculate SplineY }
   SplineY := TDynFloatArray.Create(ControlPoints.Count);
   for j := 0 to ControlPoints.Count-1 do SplineY[j] := ControlPoints.Items[j, i];
 

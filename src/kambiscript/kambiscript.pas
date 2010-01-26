@@ -585,7 +585,7 @@ type
       instructions, like "if" and "while", as normal functions
       inside KambiScript. For example, "if" will have
       GreedyArgumentsCalculation = 1, so the first argument (condition)
-      will be evaluated, but the execution of 2nd or 3rd argument
+      will be calculated, but the execution of 2nd or 3rd argument
       ("then" code or "else" code) will be left to the handler. }
     class function GreedyArgumentsCalculation: Integer; virtual;
 

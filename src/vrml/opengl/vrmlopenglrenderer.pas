@@ -3699,7 +3699,7 @@ procedure TVRMLOpenGLRenderer.RenderBegin(FogNode: TNodeFog;
    if (FogNode = nil) or (FogNode.FdVisibilityRange.Value = 0.0) then
     begin glDisable(GL_FOG); Exit end;
 
-   { evaluate FogType, check if it's >= 0 }
+   { calculate FogType, check if it's >= 0 }
    FogType := ArrayPosStr(FogNode.FdFogType.Value, ['LINEAR', 'EXPONENTIAL']);
    if FogType = -1 then
    begin

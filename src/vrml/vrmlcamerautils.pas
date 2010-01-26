@@ -142,12 +142,12 @@ begin
  NormalizeTo1st(CamDir);
  NormalizeTo1st(CamUp);
 
- { evaluate Rot1Quat }
+ { calculate Rot1Quat }
  Rot1Axis := Normalized( VectorProduct(StdVRMLCamDir, CamDir) );
  Rot1CosAngle := VectorDotProduct(StdVRMLCamDir, CamDir);
  Rot1Quat := QuatFromAxisAngleCos(Rot1Axis, Rot1CosAngle);
 
- { evaluate Rot2Quat }
+ { calculate Rot2Quat }
  StdCamUpAfterRot1 := QuatRotate(Rot1Quat, StdVRMLCamUp);
  { wiemy ze Rot2Axis to CamDir lub -CamDir. Wyznaczamy je jednak w tak
    prosty sposob bo nie przychodzi mi teraz do glowy inny sposob jak rozpoznac
@@ -157,7 +157,7 @@ begin
  Rot2CosAngle := VectorDotProduct(StdCamUpAfterRot1, CamUp);
  Rot2Quat := QuatFromAxisAngleCos(Rot2Axis, Rot2CosAngle);
 
- { evaluate Result = zlozenie Rot1 i Rot2 (tak, kolejnosc mnozenia QQMul musi
+ { calculate Result = zlozenie Rot1 i Rot2 (tak, kolejnosc mnozenia QQMul musi
    byc odwrotna) }
  Result := QuatMultiply(Rot2Quat, Rot1Quat);
 end;

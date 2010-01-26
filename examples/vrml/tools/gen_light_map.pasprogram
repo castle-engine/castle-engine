@@ -65,7 +65,7 @@ begin
   Image := ImageClassBestForSavingToFormat(OutImageFilename).
     Create(ImageSizeX, ImageSizeY);
 
-  { evaluate Scene and LightSet (from the same RootNode) }
+  { calculate Scene and LightSet (from the same RootNode) }
   Write('Loading scene... ');
   Scene := TVRMLScene.Create(nil);
   Scene.Load(SceneFileName, true);
@@ -74,7 +74,7 @@ begin
   if LightSet.Lights.Count = 0 then
    Writeln('WARNING: scene has no lights defined (everything will be black)');
 
-  { evaluate SceneOctree }
+  { calculate SceneOctree }
   Progress.UserInterface := ProgressConsoleInterface;
   Scene.TriangleOctreeProgressTitle := 'Building octree';
   Scene.Spatial := [ssVisibleTriangles];

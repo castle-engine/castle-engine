@@ -437,7 +437,7 @@ procedure TPeanoCurve.GeneratePixels(APixels: PArray_Vector2Cardinal);
 var StepData: TStepData;
     MaxSize, Power3Level, Level: Cardinal;
 begin
- { evaluate Level, pomagajac sobie MaxSize i Power3Level }
+ { calculate Level, pomagajac sobie MaxSize i Power3Level }
  MaxSize := Max(SizeX, SizeY);
  Level := 0;
  Power3Level := 1; { = zawsze 3^Level }

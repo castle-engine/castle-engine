@@ -683,7 +683,7 @@ begin
       { Once I had an idea to do an optimization to code below.
         For now, every recursive call to EnumerateCollidingOctreeItems
         potentially results in a call to FrustumBox3dCollisionPossible.
-        But inside this call, the same points are often evaluated
+        But inside this call, the same points are often calculated
         versus the same Frustum many times
         (because 8 points, on 8 edges of my Box, are shared by 2 children;
          bacause 6 points, on 6 faces of my Box, are shared by 4 children;
@@ -691,14 +691,14 @@ begin
         Also note that Box[0] point of my Box is the same as Box[0] point
         of my [false, false, false] child and
         Box[1] point of my Box is the same as Box[1] point of my
-        [true, true, true] child. So these points need not be evaluated
+        [true, true, true] child. So these points need not be calculated
         versus the frustum ever again.
 
         1) So first I tried to implement passing the calculations of
            points versus frustum down the recursive calls.
            I.e. EnumerateCollidingOctreeItems gets from it's caller
            8 * 6 boolean results for it's 8 corner point.
-           Then before recursive calls below it evaluates
+           Then before recursive calls below it calculates
            8 + 6 + 1 points versus frustum and passes them down
            to children. This way instead of evaluating
            8 points versus frustum in each call (for all nodes, leaves or not),

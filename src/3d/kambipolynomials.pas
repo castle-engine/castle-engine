@@ -145,14 +145,14 @@ begin
   q := TDynFloatArray.Create(n);
   if Periodic then s := TDynFloatArray.Create(n);
 
-  { evaluate u[0], q[0], s[0] }
+  { calculate u[0], q[0], s[0] }
   u[0] := 0;
   q[0] := 0;
   if Periodic then s[0] := 1;
 
   for k := 1 to n - 1 do
   begin
-   { evaluate u[k], q[k], s[k] }
+   { calculate u[k], q[k], s[k] }
 
    hk := X[k] - X[k-1];
    { delta[k] = h[k] / (h[k] + h[k+1])
@@ -236,7 +236,7 @@ var k, KMin, KMax, KMiddle: Cardinal;
 begin
  Clamp(x, MinX, MaxX);
 
- { evaluate k: W ktorym przedziale x[k-1]..x[k] jest argument ?
+ { calculate k: W ktorym przedziale x[k-1]..x[k] jest argument ?
    TODO: nalezoloby pomyslec o wykorzystaniu faktu
    ze czesto wiadomo iz wezly x[i] sa rownoodlegle. }
  KMin := 1;

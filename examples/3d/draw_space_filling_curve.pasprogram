@@ -152,7 +152,7 @@ begin
   try
     CurveImage.Clear(Vector4Byte(CurveImageBGCol, 0));
 
-    { evaluate StepsToRedisplay i StepSize pomagajac sobie StepsResolution i
+    { calculate StepsToRedisplay i StepSize pomagajac sobie StepsResolution i
       AllStepsCount }
     if DoPeano then
       StepsResolution := NatNatPower(3, Level) else

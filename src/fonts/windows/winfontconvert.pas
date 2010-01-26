@@ -304,7 +304,7 @@ begin
        end;
     end;
 
-  { evaluate Result^.Info.PolygonsCount/ItemsCount }
+  { calculate Result^.Info.PolygonsCount/ItemsCount }
   ResultInfo.ItemsCount := ResultItems.Count;
   ResultInfo.PolygonsCount := 0;
   for i := 0 to ResultItems.High do

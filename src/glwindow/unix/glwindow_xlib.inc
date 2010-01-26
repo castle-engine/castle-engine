@@ -447,7 +447,7 @@ var k: TKeySym;
     CharKey: char;
     Key: TKey;
 begin
- { evaluate k, CharKey }
+ { calculate k, CharKey }
  if XLookupString(@event, @CharKey, 1, @k, nil) = 0 then
   CharKey := #0;
 
@@ -471,7 +471,7 @@ var k: TKeySym;
     CharKey: char;
     Key: TKey;
 begin
- { evaluate k, CharKey }
+ { calculate k, CharKey }
  XLookupString(@event, @CharKey, 1, @k, nil);
 
  { maybe do DoKeyUp }

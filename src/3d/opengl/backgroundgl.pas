@@ -432,7 +432,7 @@ begin
      to nie ma sensu sie w ogole przejmowac sky i ground, tekstury je zaslonia. }
    if (TexturedSides <> BGAllSides) or SomeTexturesWithAlpha then
    begin
-    { evaluate GroundHighestAngle, will be usable to optimize rendering sky.
+    { calculate GroundHighestAngle, will be usable to optimize rendering sky.
       GroundHighestAngle is measured in sky convention (0 = zenith, Pi = nadir).
       If there is no sky I simply set GroundHighestAngle to sthg > Pi. }
     if GroundAngleCount <> 0 then

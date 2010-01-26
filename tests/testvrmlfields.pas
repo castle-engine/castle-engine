@@ -169,12 +169,12 @@ procedure TTestVRMLFields.TestVRMLFields;
    NormalizeTo1st(CamDir);
    NormalizeTo1st(CamUp);
 
-   { evaluate Rot1Quat }
+   { calculate Rot1Quat }
    Rot1Axis := Normalized( VectorProduct(StdVRMLCamDir, CamDir) );
    Rot1CosAngle := VectorDotProduct(StdVRMLCamDir, CamDir);
    Rot1Quat := AxisAngleCos_To_Quaternion(Rot1Axis, Rot1CosAngle);
 
-   { evaluate Rot2Quat }
+   { calculate Rot2Quat }
    StdCamUpAfterRot1 := Quaternion_Rotate(Rot1Quat, StdVRMLCamUp);
    { wiemy ze Rot2Axis to CamDir lub -CamDir. Wyznaczamy je jednak w tak
      prosty sposob bo nie przychodzi mi teraz do glowy inny sposob jak rozpoznac
@@ -184,7 +184,7 @@ procedure TTestVRMLFields.TestVRMLFields;
    Rot2CosAngle := VectorDotProduct(StdCamUpAfterRot1, CamUp);
    Rot2Quat := AxisAngleCos_To_Quaternion(Rot2Axis, Rot2CosAngle);
 
-   { evaluate OrientQuat = zlozenie Rot1 i Rot2 (tak, kolejnosc mnozenia QQMul musi
+   { calculate OrientQuat = zlozenie Rot1 i Rot2 (tak, kolejnosc mnozenia QQMul musi
      byc odwrotna) }
    OrientQuat := QQMul(Rot2Quat, Rot1Quat);
 

@@ -335,7 +335,7 @@ end;
 procedure TGLWindow.InitImplDepend;
 var GlutDispMode: LongWord;
 begin
- { evaluate GlutDispMode, call glutInitDisplayMode(GlutDispMode) }
+ { calculate GlutDispMode, call glutInitDisplayMode(GlutDispMode) }
  GlutDispMode := GLUT_RGB;
  if DoubleBuffer then
   GlutDispMode := GlutDispMode or GLUT_DOUBLE else

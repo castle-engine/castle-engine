@@ -917,7 +917,7 @@ begin
  if not FullScreen then
   AdjustWindowRectEx(WindowRect, dwStyle, MainMenu <> nil, dwExStyle);
 
- { evaluate H_Menu }
+ { calculate H_Menu }
  if MainMenu <> nil then
   H_Menu := WindowsMenuFromGLWindowMenu(MainMenu, true) else
   H_Menu := 0;

@@ -792,7 +792,7 @@ function TVRMLLexer.NextToken: TVRMLToken;
        Potem sa juz tylko cyfry, odczytujemy je do RestOfToken.
        (note: you can't write "Stream.ReadChar(Stream) + Stream.ReadUpto(NoDigits)"
        because it is undefined in what order S1+S2
-       will be evaluated. See console.testy/test_string_plus) }
+       will be calculated. See console.testy/test_string_plus) }
      CharAfterEInt := Stream.ReadChar;
      if CharAfterEInt = -1 then
        raise EVRMLLexerError.Create(Self,
