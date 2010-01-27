@@ -1,5 +1,5 @@
 {
-  Copyright 2009 Michalis Kamburelis.
+  Copyright 2009-2010 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -45,7 +45,7 @@ type
     And naturally you can implement your own TBase3D descendants,
     representing any 3D (possibly dynamic, animated and even interactive) object.
 
-    TKamSceneManager.Render can assume that it's the *only* manager rendering
+    TKamSceneManager.Render can assume that it's the @italic(only) manager rendering
     to the screen (although you can safely render more 3D geometry *after*
     calling TKamSceneManager.Render). So it's Render method takes care of
 
