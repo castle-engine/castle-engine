@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2008 Michalis Kamburelis.
+  Copyright 2003-2010 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -9,48 +9,49 @@
   "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
 }
 
-{ Demo of fog culling.
+{ Demo of fog culling. When rendering with fog turned "on" (the default),
+  we do not render objects outside of the fog visibility radius.
+  This can make a hude speedup if you have dense fog and exterior-like level
+  (where frustum culing leaves too many shapes visible).
 
-  1. It always loads models/fog_culling_final.wrl VRML file.
-     Be sure to run it with proper current directory (examples/vrml/).
+  This always loads models/fog_culling_final.wrl VRML file.
+  Be sure to run it with proper current directory (examples/vrml/).
+  It's a crafted scene, with some green and dense fog and a lot of
+  spheres scattered around. Fog culling will work best on it.
 
-  2. It handles Background node (because our models/fog_culling_final.wrl
-     model uses it).
-
-  3. It handles some keys:
-     'f' key turns fog on/off
-     F5 makes a screenshot
-
-  4. And finally, the most important thing: when rendering with fog on,
-     we cull to fog visibilityRange. Objects outside of fog
-     visibilityRange are not rendered at all. This allows us to render
-     very quickly when fog is on.
+  Handles keys:
+    'f' turns fog on/off
+    F5 makes a screenshot
 }
 
 program fog_culling;
 
-uses VectorMath, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLWindow,
-  KambiClassUtils, KambiUtils, SysUtils, Classes,
-  KambiGLUtils, VRMLScene, VRMLGLScene, Cameras,
-  ProgressUnit, ProgressConsole, KambiFilesUtils, VRMLErrors;
+uses VectorMath, GL, GLU, GLWindow,
+  KambiClassUtils, KambiUtils, SysUtils, Classes, Cameras,
+  KambiGLUtils, VRMLScene, VRMLGLScene,
+  ProgressUnit, ProgressConsole, KambiFilesUtils, VRMLErrors,
+  KambiSceneManager;
 
 var
   Glw: TGLUIWindow;
   Scene: TVRMLGLScene;
 
-procedure BeforeDraw(glwin: TGLWindow);
-begin
- Scene.PrepareRender([tgAll], [prBoundingBox], false);
-end;
-
 type
-  TFogVisibilityTester = class
-    class function Test(Shape: TVRMLGLShape): boolean;
+  TMySceneManager = class(TKamSceneManager)
+  private
+    function TestFogVisibility(Shape: TVRMLGLShape): boolean;
+  protected
+    procedure RenderScene(InShadow: boolean; TransparentGroup: TTransparentGroup); override;
   end;
 
-class function TFogVisibilityTester.Test(Shape: TVRMLGLShape): boolean;
+var
+  SceneManager: TMySceneManager;
+
+function TMySceneManager.TestFogVisibility(Shape: TVRMLGLShape): boolean;
 begin
   { Test for collision between two spheres.
     1st is the bounding sphere of Shape.
@@ -60,26 +61,16 @@ begin
     If there is no collision than we don't have to render given Shape. }
   Result := PointsDistanceSqr(
     Shape.BoundingSphereCenter,
-    (Glw.Camera As TWalkCamera).Position) <=
+    (Camera as TWalkCamera).Position) <=
       Sqr(Scene.FogNode.FdVisibilityRange.Value * Scene.FogDistanceScaling +
         Sqrt(Shape.BoundingSphereRadiusSqr));
 end;
 
-procedure Draw(glwin: TGLWindow);
+procedure TMySceneManager.RenderScene(InShadow: boolean; TransparentGroup: TTransparentGroup);
 begin
-  if Scene.Background <> nil then
-  begin
-    glLoadMatrix(Glw.Camera.RotationMatrix);
-    Scene.Background.Render;
-    glClear(GL_DEPTH_BUFFER_BIT);
-  end else
-    glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-
-  glLoadMatrix(glw.Camera.Matrix);
-
   if Scene.Attributes.UseFog then
-    Scene.Render(@TFogVisibilityTester(nil).Test, tgAll) else
-    Scene.RenderFrustum(Glw.Camera.Frustum, tgAll);
+    Scene.Render(@TestFogVisibility, TransparentGroup) else
+    inherited;
 
   Writeln(Format('Rendered Shapes: %d / %d',
     [ Scene.LastRender_RenderedShapesCount,
@@ -88,18 +79,11 @@ end;
 
 procedure Init(glwin: TGLWindow);
 begin
- glEnable(GL_LIGHT0); { headlight }
-
- { We use quite large triangles for fog_culling level demo wall.
-   This means that fog must be correctly rendered,
-   with perspective correction hint, otherwise ugly artifacts
-   will be visible. }
- glHint(GL_FOG_HINT, GL_NICEST);
-end;
-
-procedure Close(glwin: TGLWindow);
-begin
- Scene.GLContextClose;
+  { We use quite large triangles for fog_culling level demo wall.
+    This means that fog must be correctly rendered,
+    with perspective correction hint, otherwise ugly artifacts
+    will be visible. }
+  glHint(GL_FOG_HINT, GL_NICEST);
 end;
 
 procedure KeyDown(glwin: TGLWindow; Key: TKey; c: char);
@@ -114,36 +98,19 @@ begin
   end;
 end;
 
-procedure Resize(glwin: TGLWindow);
 begin
-  Scene.GLProjection(Glw.Camera, Scene.BoundingBox, Glwin.Width, Glwin.Height);
-end;
+  Parameters.CheckHigh(0);
 
-type
-  TDummy = class
-    class function MoveAllowed(Camera: TWalkCamera;
-      const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-      const BecauseOfGravity: boolean): boolean;
-  end;
+  Glw := TGLUIWindow.Create(Application);
 
-class function TDummy.MoveAllowed(Camera: TWalkCamera;
-  const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-  const BecauseOfGravity: boolean): boolean;
-begin
- Result := Scene.OctreeCollisions.MoveAllowed(
-   Camera.Position, ProposedNewPos, NewPos, Camera.CameraRadius,
-   BecauseOfGravity, Scene.BoundingBox, Camera.GravityUp);
-end;
+  SceneManager := TMySceneManager.Create(Application);
+  Glw.Controls.Add(SceneManager);
 
-begin
- Glw := TGLUIWindow.Create(Application);
-
- Parameters.CheckHigh(0);
- try
+  Scene := TVRMLGLScene.Create(Application);
   VRMLWarning := @VRMLWarning_Write;
-
-  Scene := TVRMLGLScene.Create(nil);
   Scene.Load('models' + PathDelim + 'fog_culling_final.wrl');
+  SceneManager.MainScene := Scene;
+  SceneManager.Items.Add(Scene);
 
   Writeln(Scene.Info(true, true, false));
 
@@ -153,15 +120,7 @@ begin
   Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
 
-  { init Glw.Camera }
-  Glw.Camera := Scene.CreateCamera(Glw, 'FLY') as TWalkCamera;
-  (Glw.Camera As TWalkCamera).OnMoveAllowed := @TDummy(nil).MoveAllowed;
-
   Glw.OnInit := @Init;
-  Glw.OnClose := @Close;
-  Glw.OnResize := @Resize;
-  Glw.OnBeforeDraw := @BeforeDraw;
   Glw.OnKeyDown := @KeyDown;
-  Glw.InitAndRun(ProgramName, @Draw);
- finally Scene.Free end;
+  Glw.InitAndRun;
 end.
