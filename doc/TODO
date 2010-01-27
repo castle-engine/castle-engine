@@ -12,10 +12,9 @@ view3dscene 3.5 blockers:
     NurbsSet
 
 ------------------------------------------------------------------------------
-Better Lazarus integration:
-(Some before view3dscene 3.5, some probably for later.)
-
 * Camera: since no longer have to be added to Controls, remove TGLUIWindow.Camera now.
+
+  Depends on: port all example programs to SceneManager first.
 
   Resolves:
   Remove Camera property entirely from TGLUIWindow/TKamOpenGLComponent?
@@ -43,10 +42,11 @@ Better Lazarus integration:
 
   Actually, since having Camera on controls makes problems (because
   of hacky PositionInside, as Camera is invisible), maybe even
-  TCamera from being TUIControl? Make TCamera separate class?
+  remove TCamera from being TUIControl? Make TCamera separate class?
 
   Maybe make some common class, like TInputListener, for TUIControl,
-  TCamera, TBase3D.
+  TCamera, TBase3D. Or at least for TUIControl, TCamera.
+  Maybe TInvisibleUIControl, or TCustomUIControl?
 
 * Cursor stuff:
   * What to do with cursors of 3D scenes hierarchy?
@@ -74,32 +74,49 @@ Better Lazarus integration:
 
   Make a news item about this, with demo screenshot, on changes_log.
 
-* TSceneManager fitting into controls:
+* Should TSceneManager be free from VRML specifics?
 
-  * Should TSceneManager be free from VRML specifics?
+  - Yes-> Can be moved to 3d/ or ui/.
 
-    - Yes-> Can be moved to 3d/ or ui/.
+    Advantage: TGLUIWindow/TKamOpenGLControl could then create
+    and automatically add SceneManager to Controls.
+    This would simplify some stuff, since in new engine (almost)
+    everything will use SceneManager.
+    Also, since SceneManager will set MainScene.GLProjection in
+    ContainerResize, there can be only one SceneManager used at one time.
 
-      And TGLUIWindow/TKamOpenGLControl may create and automatically add
-      SceneManager to Controls. This should simplify a lot of stuff,
-      especially since in new engine (almost) everything will use
-      SceneManager. Also, since SceneManager will set MainScene.GLProjection in
-      ContainerRersize, there can be only one SceneManager used at one time.
+  - Counterargument for auto-initialization of SceneManager:
 
-      Hm, but some programs want their own SceneManager descendant.
-      So some SceneManagerChange(...) would be needed then anyway.
+    - Some programs want their own TKamSceneManager descendant.
+    - Some programs may have > 1 SceneManager, if they will have
+      non-default viewports, and both 3d worlds will be separate.
 
-    - Counterargument: TSceneManager.MainScene must point to VRML-enabled:TVRMLScene.
+    So it's not true that there's always 1 instance of TKamSceneManager.
 
-      Unless we make TVRMLSceneManager? Then general TSceneManager
-      will not be dependent on VRML.
-      Or design TBase3D intelligently, maybe there
-      will not be need for any TVRMLGLSCene-specific stuff in current TSceneManager.
+    Although this doesn't rule out the possibility to create SceneManager
+    by default? We could always create default scenemanager on demand
+    (when first calling SceneManager?), and allow to change it anyway
+    by assigning to TGLUIWindow.SceneManager property.
 
-      Overall, this is quite a large rearrangement for TSceneManager,
-      just to avoid dependencies...
+    But this is unclean, making unclear what happens with Controls?
+    This has the same conceptual problem as with TGLUIWindow.Camera?
 
-  * Other TSceneManager TODOs in file.
+  - Counterargument: TSceneManager.MainScene must point to
+    VRML-enabled:TVRMLScene.
+
+    Unless we make TVRMLSceneManager? Then general TSceneManager
+    will not be dependent on VRML.
+    Or design TBase3D intelligently, maybe there
+    will not be need for any TVRMLGLSCene-specific stuff in current
+    TSceneManager.
+
+  Overall, this is quite a large rearrangement for TSceneManager,
+  just to avoid dependencies... Moreover, note that for now Base3D
+  is also dependent on VRML (since it uses VRMLTriangle types, to filter
+  out items for collision detection etc.). This would have to be resolved
+  first.
+
+* TSceneManager: UpdateGeneratedTextures for all, see TODO in file.
 
 * Let RenderState use some Camera reference, maybe make TSimpleCamera to avoid
   overloading it with full camera props for temporary camera settings?
