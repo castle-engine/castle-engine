@@ -12,6 +12,37 @@ view3dscene 3.5 blockers:
     NurbsSet
 
 ------------------------------------------------------------------------------
+Scene manager / controls / better Lazarus integration:
+
+(blockers before 2.0 release) ------------------------------------------------
+
+- Use SceneManager *everywhere*.
+
+- RenderState.Camera* is currently not initialized in various programs. This is supposed to be fixed by using SceneManager everywhere, that's why I didn't want to pollute code for now. When you don't use generated textures, RenderState.Camera* is only for Viewpoint events and WORLDSPACE* tex coord generation, which is simply not used by some programs. Below is extracted from
+  grep_pas_src . 'glLoadMatrix(.*camera.matrix)'
+
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/plane_mirror_and_shadow.pasprogram:299:  glLoadMatrix(glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/demo_animation.pasprogram:79:  glLoadMatrix(glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/bump_mapping/bump_mapping.pasprogram:853:  glLoadMatrix(Glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/fog_culling.pasprogram:88:  glLoadMatrix(glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/change_vrml_by_code.pasprogram:61:  glLoadMatrix(glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/dynamic_ambient_occlusion/dynamic_ambient_occlusion.pasprogram:618:  glLoadMatrix(glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/simple_view_model.pasprogram:68:  glLoadMatrix(glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/radiance_transfer/radiance_transfer.pasprogram:99:  glLoadMatrix(Glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/radiance_transfer/show_sh.pasprogram:187:  glLoadMatrix(Glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/change_vrml_by_code_2.pasprogram:42:  glLoadMatrix(glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/gl_primitive_performance.pasprogram:66:  glLoadMatrix(glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/3dmodels.gl/examples/simple_view_model_2.pasprogram:80:  glLoadMatrix(glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/opengl/examples/multi_texturing_demo.pasprogram:108:  glLoadMatrix(Glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/opengl/examples/bezier_surfaces/animate_surface.pasprogram:101:  glLoadMatrix(Glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/opengl/examples/bezier_surfaces/design_surface.pasprogram:207:  glLoadMatrix(Glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/opengl/examples/shading_langs/shading_langs_demo.pasprogram:143:  glLoadMatrix(Glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/opengl/examples/interpolated_curves.pasprogram:152:  glLoadMatrix(Glw.Camera.Matrix);
+  ./kambi_vrml_game_engine/opengl/examples/demo_camera.pasprogram:27:  - call glLoadMatrix(glw.Camera.Matrix) at the beginning
+  ./kambi_vrml_game_engine/opengl/examples/demo_camera.pasprogram:48:  glLoadMatrix(glw.Camera.Matrix);
+
+  This will get automatically fixed when we extend and use SceneManager everywhere.
+
 * Camera: since no longer have to be added to Controls, remove TGLUIWindow.Camera now.
 
   Depends on: port all example programs to SceneManager first.
@@ -48,15 +79,6 @@ view3dscene 3.5 blockers:
   TCamera, TBase3D. Or at least for TUIControl, TCamera.
   Maybe TInvisibleUIControl, or TCustomUIControl?
 
-* Cursor stuff:
-  * What to do with cursors of 3D scenes hierarchy?
-    See notes in scenemanager.ItemsCursorChange: currently just takes MainScene.Cursor.
-    See notes in TBase3D.ListCursorChange (similar for TVRMLGLAnimation): maybe set upper-level cursor?
-
-    Maybe always do some sort of mouse picking in scenemanager, over all scenes,
-    to choose closest one (and use it for new cursor) in MouseMove?
-    Also, save the closest one, for next UpdateCursor?
-
 * Making Viewport*, see TODO.scene_manager_viewport, should be trivial now!
   - GLProjection should take x, y as well as width, height
   - Like on TODO.scene_manager_viewport, we'll need ViewportAutoResize default true
@@ -73,6 +95,44 @@ view3dscene 3.5 blockers:
   - TSceneManager.PositionInside could use Viewport*, if not ViewportAutoResize.
 
   Make a news item about this, with demo screenshot, on changes_log.
+
+* TSceneManager: UpdateGeneratedTextures for all, see TODO in file.
+
+* TVRMLGLAnimation props make more persistent:
+
+  The fact that TimeLoop, TimeBackwards, Optimization get changed by file load
+  is confusing and bad, setting this from Lazarus makes currently little use.
+  We also had view3dscene UI problem because of this.
+  Maybe make it changing only if Load() gets argument like LoadTimeAndOptimization?
+
+* castle: make main level scene added to Controls, check receives time events (timesensor, movietexture), and mouse/key clicks (use some touchsensor).
+
+* Use SceneManager (and Camera on Glw.Controls) in castle.
+  TLevelObject should migrate to TBase3D.
+  tlevelobjectstatic to tvrmlglscene,
+  tlevelobjectanimation to tvrmlglanimation,
+  tlevelobjectsum to tbase3dlist,
+  tlevelmovingobject to TCustomTranslated3D,
+  rest may stay implemented (e.g. in castle3d.pas?)
+
+- Make UseControls not published? Or even make them private --- they are not used
+  after all, and can be dangerous (ContainerResize not called before trying to
+  do rendering etc.)
+
+(not blockers before 2.0 release) --------------------------------------------
+
+* Cursor stuff:
+  * What to do with cursors of 3D scenes hierarchy?
+    See notes in scenemanager.ItemsCursorChange: currently just takes MainScene.Cursor.
+    See notes in TBase3D.ListCursorChange (similar for TVRMLGLAnimation): maybe set upper-level cursor?
+
+    Maybe always do some sort of mouse picking in scenemanager, over all scenes,
+    to choose closest one (and use it for new cursor) in MouseMove?
+    Also, save the closest one, for next UpdateCursor?
+
+- castle: besides level (MainScene, and level objects as additional stuff),
+  it would be most perfect if castle creatures / items would be part of
+  SceneManager too.
 
 * Should TSceneManager be free from VRML specifics?
 
@@ -116,31 +176,12 @@ view3dscene 3.5 blockers:
   out items for collision detection etc.). This would have to be resolved
   first.
 
-* TSceneManager: UpdateGeneratedTextures for all, see TODO in file.
-
 * Let RenderState use some Camera reference, maybe make TSimpleCamera to avoid
   overloading it with full camera props for temporary camera settings?
 
-* TVRMLGLAnimation props make more persistent:
-
-  The fact that TimeLoop, TimeBackwards, Optimization get changed by file load
-  is confusing and bad, setting this from Lazarus makes currently little use.
-  We also had view3dscene UI problem because of this.
-  Maybe make it changing only if Load() gets argument like LoadTimeAndOptimization?
-
-* castle: make main level scene added to Controls, check receives time events (timesensor, movietexture), and mouse/key clicks (use some touchsensor).
-
-* Use SceneManager (and Camera on Glw.Controls) in castle.
-  TLevelObject should migrate to TBase3D.
-  tlevelobjectstatic to tvrmlglscene,
-  tlevelobjectanimation to tvrmlglanimation,
-  tlevelobjectsum to tbase3dlist,
-  tlevelmovingobject to TCustomTranslated3D,
-  rest may stay implemented (e.g. in castle3d.pas?)
+* Lazarus: make the control painted at design-time?
 
 * Maybe make a news item and a few screenshots how to easily use it from Lazarus?
-
-* Lazarus: make the control painted at design-time?
 
 - Make TKamOpenGLControl.Controls list settable from the IDE,
   to allow visually adding new TUIControls there.
@@ -149,10 +190,6 @@ view3dscene 3.5 blockers:
   while it works it's usually nonsense.
   Or not: shadow_volume_test shows that it's possible to have two cameras,
   and things work smoothly. You just have to assign non-conflicting keys.
-
-- Make UseControls not published? Or even make them private --- they are not used
-  after all, and can be dangerous (ContainerResize not called before trying to
-  do rendering etc.)
 
 - Make sure most useful props of our controls are settable:
 
@@ -280,42 +317,6 @@ Occlusion culling (Ok for post 3.4):
 
 - Various rendering targets, and "inshadow" for stencil, should just have a separate occlusion query state. This will allow to use oq for all situations, unlike current where oq is done normally only for non-shadowed with target = rtScreen.
   See TODO in vrmlglscene.pas about this too.
-
-------------------------------------------------------------------------------
-SceneManager stuff (post 3.4):
-
-- Use SceneManager *everywhere*.
-
-- RenderState.Camera* is currently not initialized in various programs. This is supposed to be fixed by using SceneManager everywhere, that's why I didn't want to pollute code for now. When you don't use generated textures, RenderState.Camera* is only for Viewpoint events and WORLDSPACE* tex coord generation, which is simply not used by some programs. Below is extracted from
-  grep_pas_src . 'glLoadMatrix(.*camera.matrix)'
-
-  ./lets_take_a_walk/lets_take_a_walk.pasprogram:324: glLoadMatrix(glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/shadow_volume_test/shadow_volume_test.pasprogram:352:  glLoadMatrix(Glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/plane_mirror_and_shadow.pasprogram:299:  glLoadMatrix(glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/demo_animation.pasprogram:79:  glLoadMatrix(glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/bump_mapping/bump_mapping.pasprogram:853:  glLoadMatrix(Glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/fog_culling.pasprogram:88:  glLoadMatrix(glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/change_vrml_by_code.pasprogram:61:  glLoadMatrix(glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/dynamic_ambient_occlusion/dynamic_ambient_occlusion.pasprogram:618:  glLoadMatrix(glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/simple_view_model.pasprogram:68:  glLoadMatrix(glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/radiance_transfer/radiance_transfer.pasprogram:99:  glLoadMatrix(Glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/radiance_transfer/show_sh.pasprogram:187:  glLoadMatrix(Glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/change_vrml_by_code_2.pasprogram:42:  glLoadMatrix(glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/gl_primitive_performance.pasprogram:66:  glLoadMatrix(glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/simple_view_model_2.pasprogram:80:  glLoadMatrix(glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/opengl/examples/multi_texturing_demo.pasprogram:108:  glLoadMatrix(Glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/opengl/examples/bezier_surfaces/animate_surface.pasprogram:101:  glLoadMatrix(Glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/opengl/examples/bezier_surfaces/design_surface.pasprogram:207:  glLoadMatrix(Glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/opengl/examples/shading_langs/shading_langs_demo.pasprogram:143:  glLoadMatrix(Glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/opengl/examples/interpolated_curves.pasprogram:152:  glLoadMatrix(Glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/opengl/examples/demo_camera.pasprogram:27:  - call glLoadMatrix(glw.Camera.Matrix) at the beginning
-  ./kambi_vrml_game_engine/opengl/examples/demo_camera.pasprogram:48:  glLoadMatrix(glw.Camera.Matrix);
-
-  This will get automatically fixed when we extend and use SceneManager everywhere.
-
-- castlelevel.pas should be done by SceneManager instead.
-  Also, creatures and items should be part of SceneManager then too.
-  castlelevel.pas "TLevelObject" may actually be used a basic block for TSceneManager.
 
 ------------------------------------------------------------------------------
 moved post 3.4:
