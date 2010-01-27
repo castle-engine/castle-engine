@@ -276,14 +276,14 @@ end;
 
 type
   TMySceneManager = class(TKamSceneManager)
-    procedure RenderFromView; override;
+    procedure RenderFromViewEverything; override;
     procedure ApplyProjection; override;
   end;
 
 var
   SceneManager: TMySceneManager;
 
-procedure TMySceneManager.RenderFromView;
+procedure TMySceneManager.RenderFromViewEverything;
 var
   ModelInvertedTrasformation: TMatrix4Single;
 
@@ -1171,10 +1171,9 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
 
   procedure NextCamera;
   begin
-    if Glw.Camera = Examiner then
-      Glw.Camera := Walker else
-      Glw.Camera := Examiner;
-    SceneManager.Camera := Glw.Camera; { always keep SceneManager.Camera = Glw.Camera }
+    if SceneManager.Camera = Examiner then
+      SceneManager.Camera := Walker else
+      SceneManager.Camera := Examiner;
   end;
 
 var
@@ -1304,7 +1303,7 @@ begin
   if Parameters.High >= 1 then
     VrmlFileName := Parameters[1];
 
-  { init Glw.Camera }
+  { init cameras }
   Examiner := TExamineCamera.Create(Glw);
   Examiner.Init(SceneBoundingBox);
 
@@ -1315,9 +1314,7 @@ begin
 
   SceneManager := TMySceneManager.Create(Glw);
   Glw.Controls.Add(SceneManager);
-
-  Glw.Camera := Examiner;
-  SceneManager.Camera := Glw.Camera; { always keep SceneManager.Camera = Glw.Camera }
+  SceneManager.Camera := Examiner;
 
   Glw.Controls.Add(TStatusText.Create(Glw));
 

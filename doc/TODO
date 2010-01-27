@@ -21,25 +21,20 @@ Scene manager / controls / better Lazarus integration:
 - RenderState.Camera* is currently not initialized in various programs. This is supposed to be fixed by using SceneManager everywhere, that's why I didn't want to pollute code for now. When you don't use generated textures, RenderState.Camera* is only for Viewpoint events and WORLDSPACE* tex coord generation, which is simply not used by some programs. Below is extracted from
   grep_pas_src . 'glLoadMatrix(.*camera.matrix)'
 
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/plane_mirror_and_shadow.pasprogram:299:  glLoadMatrix(glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/demo_animation.pasprogram:79:  glLoadMatrix(glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/bump_mapping/bump_mapping.pasprogram:853:  glLoadMatrix(Glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/fog_culling.pasprogram:88:  glLoadMatrix(glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/change_vrml_by_code.pasprogram:61:  glLoadMatrix(glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/dynamic_ambient_occlusion/dynamic_ambient_occlusion.pasprogram:618:  glLoadMatrix(glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/simple_view_model.pasprogram:68:  glLoadMatrix(glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/radiance_transfer/radiance_transfer.pasprogram:99:  glLoadMatrix(Glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/radiance_transfer/show_sh.pasprogram:187:  glLoadMatrix(Glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/change_vrml_by_code_2.pasprogram:42:  glLoadMatrix(glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/gl_primitive_performance.pasprogram:66:  glLoadMatrix(glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/3dmodels.gl/examples/simple_view_model_2.pasprogram:80:  glLoadMatrix(glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/opengl/examples/multi_texturing_demo.pasprogram:108:  glLoadMatrix(Glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/opengl/examples/bezier_surfaces/animate_surface.pasprogram:101:  glLoadMatrix(Glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/opengl/examples/bezier_surfaces/design_surface.pasprogram:207:  glLoadMatrix(Glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/opengl/examples/shading_langs/shading_langs_demo.pasprogram:143:  glLoadMatrix(Glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/opengl/examples/interpolated_curves.pasprogram:152:  glLoadMatrix(Glw.Camera.Matrix);
-  ./kambi_vrml_game_engine/opengl/examples/demo_camera.pasprogram:27:  - call glLoadMatrix(glw.Camera.Matrix) at the beginning
-  ./kambi_vrml_game_engine/opengl/examples/demo_camera.pasprogram:48:  glLoadMatrix(glw.Camera.Matrix);
+  ../examples/vrml/plane_mirror_and_shadow.pasprogram:299:  glLoadMatrix(glw.Camera.Matrix);
+  ../examples/vrml/radiance_transfer/radiance_transfer.pasprogram:99:  glLoadMatrix(Glw.Camera.Matrix);
+  ../examples/vrml/radiance_transfer/show_sh.pasprogram:187:  glLoadMatrix(Glw.Camera.Matrix);
+  ../examples/vrml/gl_primitive_performance.pasprogram:66:  glLoadMatrix(glw.Camera.Matrix);
+  ../examples/glwindow/multi_texturing_demo.pasprogram:108:  glLoadMatrix(Glw.Camera.Matrix);
+  ../examples/glwindow/bezier_surfaces/animate_surface.pasprogram:101:  glLoadMatrix(Glw.Camera.Matrix);
+  ../examples/glwindow/bezier_surfaces/design_surface.pasprogram:207:  glLoadMatrix(Glw.Camera.Matrix);
+  ../examples/glwindow/shading_langs/shading_langs_demo.pasprogram:143:  glLoadMatrix(Glw.Camera.Matrix);
+  ../examples/glwindow/interpolated_curves.pasprogram:152:  glLoadMatrix(Glw.Camera.Matrix);
+  ../examples/glwindow/demo_camera.pasprogram:27:  - call glLoadMatrix(glw.Camera.Matrix) at the beginning
+  ../examples/glwindow/demo_camera.pasprogram:48:  glLoadMatrix(glw.Camera.Matrix);
+  
+  for non-vrml scenes, assigning OnRender3D may be the simplest way to use
+  scenemanager.
 
   This will get automatically fixed when we extend and use SceneManager everywhere.
 

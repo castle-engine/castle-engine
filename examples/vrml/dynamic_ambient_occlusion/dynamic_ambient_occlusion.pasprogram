@@ -448,7 +448,7 @@ begin
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 end;
 
-{ GLWindow callbacks --------------------------------------------------------- }
+{ ---------------------------------------------------------------------------- }
 
 var
   FullRenderShape: TVRMLShape;
@@ -712,6 +712,8 @@ begin
     Writeln('TODO: animation changed elements count / texture size. Shaders need to reinitialiazed.');
   end;
 end;
+
+{ GLWindow callbacks --------------------------------------------------------- }
 
 procedure Init(Glwin: TGLWindow);
 const

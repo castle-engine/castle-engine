@@ -23,6 +23,11 @@ uses Classes, VectorMath, VRMLGLScene, VRMLScene, Cameras,
   KeysMouse, VRMLTriangle, Boxes3D;
 
 type
+  TKamSceneManager = class;
+
+  TRender3DEvent = procedure (SceneManager: TKamSceneManager;
+    InShadow: boolean; TransparentGroup: TTransparentGroup) of object;
+
   { Scene manager that knows about all 3D things inside your world.
 
     Single scenes/models (like TVRMLGLScene or TVRMLGLAnimation instances)
@@ -80,6 +85,7 @@ type
     FOnCameraChanged: TNotifyEvent;
     FOnBoundViewpointChanged: TNotifyEvent;
     FCameraBox: TBox3D;
+    FOnRender3D: TRender3DEvent;
 
     procedure SetMainScene(const Value: TVRMLGLScene);
     procedure SetCamera(const Value: TCamera);
@@ -117,19 +123,24 @@ type
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
-    { Render one pass, from current (in RenderState) camera view,
-      for specific lights setup, for given TransparentGroup. }
-    procedure RenderScene(InShadow: boolean; TransparentGroup: TTransparentGroup); virtual;
+    { Render one pass, from current (saved in RenderState) camera view,
+      for specific lights setup, for given TransparentGroup.
+
+      If you want to add something 3D to your scene during rendering,
+      this is the simplest method to override. (Or you can use OnRender3D
+      event, which is called at the end of this method.)
+      Just pass to OpenGL your 3D geometry here. }
+    procedure Render3D(InShadow: boolean; TransparentGroup: TTransparentGroup); virtual;
 
     procedure RenderShadowVolumes; virtual;
 
     { Render everything from current (in RenderState) camera view.
-      RenderState.Target says to where we generate image.
-      Takes care of making many passes for shadow volumes,
-      but doesn't take care of updating generated textures. }
-    procedure RenderFromView; virtual;
+      Current RenderState.Target says to where we generate the image.
+      Takes method must take care of making many rendering passes
+      for shadow volumes, but doesn't take care of updating generated textures. }
+    procedure RenderFromViewEverything; virtual;
 
-    { Render the headlight. Called by RenderFromView, when camera matrix
+    { Render the headlight. Called by RenderFromViewEverything, when camera matrix
       is set. Should enable or disable OpenGL GL_LIGHT0 for headlight.
 
       Implementation in this class uses headlight defined
@@ -137,7 +148,7 @@ type
       nodes. }
     procedure RenderHeadLight; virtual;
 
-    { Render the 3D part of scene. Called by RenderFromView at the end,
+    { Render the 3D part of scene. Called by RenderFromViewEverything at the end,
       when everything (clearing, background, headlight, loading camera
       matrix) is done and all that remains is to pass to OpenGL actual 3D world. }
     procedure RenderFromView3D; virtual;
@@ -357,6 +368,9 @@ type
     { Called when bound Viewpoint node changes. This is called exactly when
       TVRMLScene.ViewpointStack.OnBoundChanged is called. }
     property OnBoundViewpointChanged: TNotifyEvent read FOnBoundViewpointChanged write FOnBoundViewpointChanged;
+
+    { See Render3D method. }
+    property OnRender3D: TRender3DEvent read FOnRender3D write FOnRender3D;
   end;
 
 procedure Register;
@@ -651,9 +665,11 @@ begin
   PrepareRender;
 end;
 
-procedure TKamSceneManager.RenderScene(InShadow: boolean; TransparentGroup: TTransparentGroup);
+procedure TKamSceneManager.Render3D(InShadow: boolean; TransparentGroup: TTransparentGroup);
 begin
   Items.Render(RenderState.CameraFrustum, TransparentGroup, InShadow);
+  if Assigned(OnRender3D) then
+    OnRender3D(Self, InShadow, TransparentGroup);
 end;
 
 procedure TKamSceneManager.RenderShadowVolumes;
@@ -689,13 +705,13 @@ procedure TKamSceneManager.RenderFromView3D;
 
   procedure RenderNoShadows;
   begin
-    RenderScene(false, tgAll);
+    Render3D(false, tgAll);
   end;
 
   procedure RenderWithShadows(const MainLightPosition: TVector4Single);
   begin
     SV.InitFrustumAndLight(RenderState.CameraFrustum, MainLightPosition);
-    SV.Render(nil, @RenderScene, @RenderShadowVolumes, ShadowVolumesDraw);
+    SV.Render(nil, @Render3D, @RenderShadowVolumes, ShadowVolumesDraw);
   end;
 
 begin
@@ -707,7 +723,7 @@ begin
     RenderNoShadows;
 end;
 
-procedure TKamSceneManager.RenderFromView;
+procedure TKamSceneManager.RenderFromViewEverything;
 var
   ClearBuffers: TGLbitfield;
 begin
@@ -767,7 +783,7 @@ begin
 
   if MainScene <> nil then
   begin
-    MainScene.UpdateGeneratedTextures(@RenderFromView,
+    MainScene.UpdateGeneratedTextures(@RenderFromViewEverything,
       WalkProjectionNear, WalkProjectionFar,
       { For now assume viewport fills the whole container,
         see ../../../doc/TODO.scene_manager_viewport }
@@ -776,7 +792,7 @@ begin
 
   RenderState.Target := rtScreen;
   RenderState.CameraFromCameraObject(Camera);
-  RenderFromView;
+  RenderFromViewEverything;
 end;
 
 function TKamSceneManager.DrawStyle: TUIControlDrawStyle;
