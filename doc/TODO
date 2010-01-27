@@ -57,11 +57,6 @@ Better Lazarus integration:
     to choose closest one (and use it for new cursor) in MouseMove?
     Also, save the closest one, for next UpdateCursor?
 
-* view3dscene were changing WalkCamera on viewpoint changes,
-  while scene manager passes to TVRMLScene.CameraBindToViewpoint
-  that works only if *current* camera is WalkCamera.
-  No bad side-effects?
-
 * Making Viewport*, see TODO.scene_manager_viewport, should be trivial now!
   - GLProjection should take x, y as well as width, height
   - Like on TODO.scene_manager_viewport, we'll need ViewportAutoResize default true
