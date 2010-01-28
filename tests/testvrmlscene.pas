@@ -25,8 +25,9 @@ procedure TTestVRMLScene.TestBorderManifoldEdges;
 var
   Scene: TVRMLScene;
 begin
-  Scene := TVRMLScene.Create(LoadAsVRML('model_manifold.wrl'), true);
+  Scene := TVRMLScene.Create(nil);
   try
+    Scene.Load('model_manifold.wrl');
     Assert(Scene.BorderEdges.Count = 0);
   finally FreeAndNil(Scene) end;
 end;
@@ -97,8 +98,9 @@ procedure TTestVRMLScene.TestIterator;
     OnlyActive: boolean;
     I: Integer;
   begin
-    Scene := TVRMLScene.Create(LoadAsVRML(FileName), true);
+    Scene := TVRMLScene.Create(nil);
     try
+      Scene.Load(FileName);
       for OnlyActive := false to true do
       begin
         { Compare the simple iterator implementation (that just calls

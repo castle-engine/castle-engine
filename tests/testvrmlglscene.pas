@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2005 Michalis Kamburelis.
+  Copyright 2004-2010 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -9,8 +9,11 @@
   "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
 }
 
+{ }
 unit TestVRMLGLScene;
 
 interface
@@ -32,7 +35,7 @@ procedure TTestVRMLGLScene.TestVRMLGLScene;
 
   procedure EmptySceneAsserts(EmptyScene: TVRMLGLScene);
   var
-    CamKind: TVRMLCameraKind;
+    CamProjection: TProjectionType;
     CamPos, CamDir, CamUp, GravityUp: TVector3Single;
   begin
    Assert(EmptyScene.VerticesCount(false) = 0);
@@ -44,7 +47,7 @@ procedure TTestVRMLGLScene.TestVRMLGLScene;
 
    Assert(EmptyScene.ShapesActiveCount = 0);
 
-   Assert(EmptyScene.GetViewpoint(CamKind, CamPos, CamDir, CamUp, GravityUp) = nil);
+   Assert(EmptyScene.GetViewpoint(CamProjection, CamPos, CamDir, CamUp, GravityUp) = nil);
 
    Assert(EmptyScene.FogNode = nil);
 
@@ -53,16 +56,16 @@ procedure TTestVRMLGLScene.TestVRMLGLScene;
 
 var EmptyScene: TVRMLGLScene;
 begin
- EmptyScene := TVRMLGLScene.Create(nil, true, roSceneAsAWhole);
+ EmptyScene := TVRMLGLScene.Create(nil);
  try
   EmptySceneAsserts(EmptyScene);
   EmptyScene.ChangedAll;
   EmptySceneAsserts(EmptyScene);
  finally FreeAndNil(EmptyScene) end;
 
- EmptyScene := TVRMLGLScene.Create(TNodeGroup_1.Create('', ''), true,
-   roSceneAsAWhole);
+ EmptyScene := TVRMLGLScene.Create(nil);
  try
+  EmptyScene.Load(TNodeGroup_1.Create('', ''), true);
   EmptySceneAsserts(EmptyScene);
   EmptyScene.ChangedAll;
   EmptySceneAsserts(EmptyScene);
