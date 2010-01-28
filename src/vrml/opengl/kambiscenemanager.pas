@@ -154,7 +154,11 @@ type
     procedure RenderFromView3D; virtual;
 
     { Sets OpenGL projection matrix, based on MainScene's currently
-      bound Viewpoint, NavigationInfo and used camera.
+      bound Viewpoint, NavigationInfo and used @link(Camera).
+      Used @link(Camera), if not assigned, is automatically created here,
+      see @link(Camera) and CreateDefaultCamera.
+      If MainScene is not assigned, we use some default sensible perspective
+      projection.
 
       Takes care of updating Camera.ProjectionMatrix,
       AngleOfViewX, AngleOfViewY, WalkProjectionNear, WalkProjectionFar.
@@ -271,7 +275,7 @@ type
         @item Decides what background is rendered (by TVRMLGLScene.Background).
         @item(Decides if, and where, the main light casting shadows is
           (see TVRMLGLScene.MainLightForShadowsExists, TVRMLGLScene.MainLightForShadows).)
-        @item Sets OpenGL projection for the scene, see ApplyProjection.
+        @item Determines OpenGL projection for the scene, see ApplyProjection.
 
         @item(Synchronizes our @link(Camera) with VRML/X3D viewpoints.
           This means that @link(Camera) will be updated when VRML/X3D events
@@ -474,14 +478,34 @@ begin
 end;
 
 procedure TKamSceneManager.ApplyProjection;
+var
+  Box: TBox3D;
+
+  procedure DefaultGLProjection;
+  var
+    ProjectionMatrix: TMatrix4f;
+  begin
+    glViewport(0, 0, ContainerWidth, ContainerHeight);
+    ProjectionGLPerspective(45.0, ContainerWidth / ContainerHeight,
+      Box3dAvgSize(Box, 1.0) * 0.01,
+      Box3dMaxSize(Box, 1.0) * 10.0);
+
+    { update Camera.ProjectionMatrix }
+    glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
+    Camera.ProjectionMatrix := ProjectionMatrix;
+  end;
+
 begin
   if Camera = nil then
     Camera := CreateDefaultCamera(Self);
 
+  Box := Items.BoundingBox;
+
   if MainScene <> nil then
-    MainScene.GLProjection(Camera, Items.BoundingBox,
+    MainScene.GLProjection(Camera, Box,
       ContainerWidth, ContainerHeight, ShadowVolumesPossible,
-      FAngleOfViewX, FAngleOfViewY, FWalkProjectionNear, FWalkProjectionFar);
+      FAngleOfViewX, FAngleOfViewY, FWalkProjectionNear, FWalkProjectionFar) else
+    DefaultGLProjection;
 end;
 
 procedure TKamSceneManager.SetMainScene(const Value: TVRMLGLScene);
