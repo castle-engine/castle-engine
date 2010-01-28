@@ -24,16 +24,17 @@ type
   public
     { This sets properties of GL_LIGHT_GLLightNumber to render given light.
 
-      Note that this requires that current matrix is modelview.
-      Matrix @italic(may) be reset to identity by this procedure.
+      This requires that current OpenGL matrix is modelview.
+      This always preserves current matrix value (doing push/pops if necessary).
 
       If HeadlightFromCurrentView = @true, then we assume
       that headlight should be done from current view. This is the usual
-      meaning of "headlight". In this case,
-      matrix contents don't matter --- so e.g. it doesn't matter if
+      meaning of "headlight". In this case, current OpenGL matrix
+      value doesn't matter --- so e.g. it doesn't matter if
       you call this before or after loading camera matrix.
       (Internally, we'll just set matrix to identity and use lighting
-      position like (0, 0, 0), since it's Ok to do this then.)
+      position like (0, 0, 0), since it's Ok to do this then.
+      Of course, we'll push/pop matrix to preserve your current value.)
       Values of HeadlightPosition, HeadlightDirection also don't matter in these cases.
 
       If HeadlightFromCurrentView = @false, then we assume that
@@ -41,8 +42,6 @@ type
       The modelview matrix should contain in this case the current view
       (camera) matrix. This allows you to simulate "headlight" shining
       from other place than current OpenGL view.
-
-      This always preserves current matrix value (doing push/pops if necessary).
 
       If CallEnabled then it will also call glEnable(GL_LIGHT_GLLightNumber).
 
