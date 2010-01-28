@@ -26,8 +26,8 @@
 program radiance_transfer;
 
 uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLWindow,
-  KambiClassUtils, KambiUtils, SysUtils, Classes,
-  KambiGLUtils, VRMLGLScene, Cameras, KeysMouse,
+  KambiClassUtils, KambiUtils, SysUtils, Classes, RenderStateUnit,
+  KambiGLUtils, VRMLGLScene, Cameras, KeysMouse, KambiSceneManager,
   KambiFilesUtils, VRMLErrors, SphericalHarmonics, Math, Images, GLCubeMap;
 
 type
@@ -85,10 +85,18 @@ begin
   glPopMatrix;
 end;
 
-procedure Draw(Glwin: TGLWindow);
+type
+  TMySceneManager = class(TKamSceneManager)
+    procedure RenderFromViewEverything; override;
+  end;
+
+procedure TMySceneManager.RenderFromViewEverything;
+{ It would be cleaner to override Draw (and move SHVectorGLCapture there)
+  and Render3D (and move DrawLight there). But then, our debugging view
+  of SHVectorGLCapture (under 3d model) would not be visible. }
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(Glw.Camera.Matrix);
+  glLoadMatrix(RenderState.CameraMatrix);
 
   if not IsEmptyBox3d(Scene.BoundingBox) then
   begin
@@ -98,7 +106,7 @@ begin
 
     SHVectorGLCapture(LightSHBasis, Box3dMiddle(Scene.BoundingBox),
       @DrawLight, 100, 100, LightIntensityScale);
-    glViewport(0, 0, Glwin.Width, Glwin.Height);
+    glViewport(0, 0, ContainerWidth, ContainerHeight);
   end;
 
   Scene.Render(nil, tgAll);
@@ -106,23 +114,15 @@ begin
   DrawLight(false);
 end;
 
+var
+  SceneManager: TMySceneManager;
+
 procedure UpdateViewMode; forward;
 
 procedure Init(Glwin: TGLWindow);
 begin
   glEnable(GL_LIGHT0);
   UpdateViewMode;
-end;
-
-procedure Close(Glwin: TGLWindow);
-begin
-  Scene.GLContextClose;
-end;
-
-procedure Resize(Glwin: TGLWindow);
-begin
-  Scene.GLProjection(Glw.Camera, Scene.BoundingBox,
-    Glwin.Width, Glwin.Height);
 end;
 
 type
@@ -261,36 +261,36 @@ begin
   Glw := TGLUIWindow.Create(Application);
 
   Parameters.CheckHigh(1);
-  try
-    VRMLWarning := @VRMLWarning_Write;
 
-    Scene := TVRMLGLScene.Create(nil);
-    Scene.Load(Parameters[1]);
-    Scene.Optimization := roNone;
+  Scene := TVRMLGLScene.Create(Application);
+  VRMLWarning := @VRMLWarning_Write;
+  Scene.Load(Parameters[1]);
+  Scene.Optimization := roNone;
 
-    if IsEmptyBox3d(Scene.BoundingBox) then
-    begin
-      LightRadius := 1;
-      LightPos := Vector3Single(2, 0, 0);
-    end else
-    begin
-      LightRadius := Box3dAvgSize(Scene.BoundingBox);
-      LightPos := Box3dMiddle(Scene.BoundingBox);
-      LightPos[0] += Scene.BoundingBox[1][0] - Scene.BoundingBox[0][0] + LightRadius;
-    end;
+  if IsEmptyBox3d(Scene.BoundingBox) then
+  begin
+    LightRadius := 1;
+    LightPos := Vector3Single(2, 0, 0);
+  end else
+  begin
+    LightRadius := Box3dAvgSize(Scene.BoundingBox);
+    LightPos := Box3dMiddle(Scene.BoundingBox);
+    LightPos[0] += Scene.BoundingBox[1][0] - Scene.BoundingBox[0][0] + LightRadius;
+  end;
 
-    Glw.MainMenu := CreateMainMenu;
-    Glw.OnMenuCommand := @MenuCommand;
+  SceneManager := TMySceneManager.Create(Application);
+  SceneManager.Items.Add(Scene);
+  SceneManager.MainScene := Scene;
 
-    Glw.Camera := Scene.CreateCamera(Glw);
+  Glw.MainMenu := CreateMainMenu;
+  Glw.OnMenuCommand := @MenuCommand;
 
-    Glw.OnInit := @Init;
-    Glw.OnClose := @Close;
-    Glw.OnResize := @Resize;
-    Glw.OnIdle := @Idle;
+  Glw.Controls.Add(SceneManager);
 
-    InitializeSHBasisMap;
+  Glw.OnInit := @Init;
+  Glw.OnIdle := @Idle;
 
-    Glw.InitAndRun(ProgramName, @Draw);
-  finally Scene.Free end;
+  InitializeSHBasisMap;
+
+  Glw.InitAndRun;
 end.
