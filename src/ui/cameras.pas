@@ -477,7 +477,7 @@ type
       Actually, @link(Init) method does the above for you. }
     property MoveAmount: TVector3Single read FMoveAmount write SetMoveAmount;
 
-    { How the mode is scaled. Scaling is done around MoveAmount added to
+    { How the model is scaled. Scaling is done around MoveAmount added to
       the middle of ModelBox. @italic(May never be zero (or too near zero).) }
     property ScaleFactor: Single
       read FScaleFactor write SetScaleFactor default 1;
