@@ -38,7 +38,6 @@ Scene manager / controls / better Lazarus integration:
   grep_pas_src . 'glLoadMatrix(.*camera.matrix)'
 
   ../examples/vrml/radiance_transfer/radiance_transfer.pasprogram:99:  glLoadMatrix(Glw.Camera.Matrix);
-  ../examples/vrml/radiance_transfer/show_sh.pasprogram:187:  glLoadMatrix(Glw.Camera.Matrix);
   ../examples/vrml/gl_primitive_performance.pasprogram:66:  glLoadMatrix(glw.Camera.Matrix);
   ../examples/glwindow/multi_texturing_demo.pasprogram:108:  glLoadMatrix(Glw.Camera.Matrix);
   ../examples/glwindow/bezier_surfaces/animate_surface.pasprogram:101:  glLoadMatrix(Glw.Camera.Matrix);

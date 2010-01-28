@@ -17,15 +17,15 @@
   Single SH function is shown on a sphere, yellow indicates positive values,
   blue negative values.
 
-  Navigate with mouse of keyboard (like view3dscene in Examine mode).
+  Navigate with mouse or keyboard (like view3dscene in Examine mode).
 }
 
 program show_sh;
 
-uses VectorMath, Boxes3d, GL, GLWindow,
+uses VectorMath, Boxes3d, GL, GLWindow, Base3D, UIControls,
   KambiClassUtils, KambiUtils, SysUtils, KambiFilesUtils,
   KambiGLUtils, Cameras, Math, SphereSampling, SphericalHarmonics,
-  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts;
+  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, KambiSceneManager;
 
 var
   Glw: TGLUIWindow;
@@ -35,7 +35,7 @@ var
 
   MinSHValue, MaxSHValue: Float;
 
-procedure Draw2d(Data: Pointer);
+procedure Draw2D(Glwin: TGLWindow);
 var
   L: Cardinal;
   M: Integer;
@@ -48,7 +48,17 @@ begin
     [LM, L, M, MinSHValue, MaxSHValue]));
 end;
 
-procedure Draw(Glwin: TGLWindow);
+type
+  TMySceneManager = class(TKamSceneManager)
+  protected
+    procedure Render3D(InShadow: boolean; TransparentGroup: TTransparentGroup); override;
+    procedure ApplyProjection; override;
+  end;
+
+var
+  SceneManager: TMySceneManager;
+
+procedure TMySceneManager.Render3D(InShadow: boolean; TransparentGroup: TTransparentGroup);
 
   { This was brutally copied from vrmlnodes_triangulating.inc
     (Sphere_LocalTriangulate), then adjusted. See there for comments. }
@@ -175,17 +185,19 @@ end;}
   end;
 
 begin
-  MinSHValue :=  MaxFloat;
-  MaxSHValue := -MaxFloat;
+  inherited;
+  if TransparentGroup in [tgAll, tgOpaque] then
+  begin
+    MinSHValue :=  MaxFloat;
+    MaxSHValue := -MaxFloat;
+    RenderSphere;
+  end;
+end;
 
-  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(Glw.Camera.Matrix);
-  RenderSphere;
-
-  glPushAttrib(GL_ENABLE_BIT);
-    glDisable(GL_DEPTH_TEST);
-    glProjectionPushPopOrtho2D(@Draw2d, nil, 0, Glwin.Width, 0, Glwin.Height);
-  glPopAttrib;
+procedure TMySceneManager.ApplyProjection;
+begin
+  glViewport(0, 0, ContainerWidth, ContainerHeight);
+  ProjectionGLPerspective(45.0, ContainerWidth/ContainerHeight, 0.01, 10);
 end;
 
 procedure Init(Glwin: TGLWindow);
@@ -197,12 +209,6 @@ end;
 procedure Close(Glwin: TGLWindow);
 begin
   FreeAndNil(Font);
-end;
-
-procedure Resize(Glwin: TGLWindow);
-begin
-  glViewport(0, 0, Glwin.Width, Glwin.Height);
-  ProjectionGLPerspective(45.0, Glwin.Width/Glwin.Height, 0.01, 10);
 end;
 
 procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
@@ -220,20 +226,23 @@ var
 begin
   Glw := TGLUIWindow.Create(Application);
 
+  SceneManager := TMySceneManager.Create(Application);
+  Glw.Controls.Add(SceneManager);
+
   Glw.MainMenu := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');
     M.Append(TMenuItem.Create('_Previous basis', 10, 'p'));
     M.Append(TMenuItem.Create('_Next basis', 20, 'n'));
     Glw.MainMenu.Append(M);
 
-  Glw.Camera := TExamineCamera.Create(Glw);
-  (Glw.Camera as TExamineCamera).Init(Box3d(
+  SceneManager.Camera := TExamineCamera.Create(Glw);
+  (SceneManager.Camera as TExamineCamera).Init(Box3d(
     Vector3Single(-1, -1, -1),
     Vector3Single(1, 1, 1)));
 
   Glw.OnInit := @Init;
   Glw.OnClose := @Close;
-  Glw.OnResize := @Resize;
   Glw.OnMenuCommand := @MenuCommand;
-  Glw.InitAndRun(ProgramName, @Draw);
+  Glw.OnDrawStyle := ds2D;
+  Glw.InitAndRun(ProgramName, @Draw2D);
 end.
