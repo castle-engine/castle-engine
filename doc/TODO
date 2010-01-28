@@ -16,6 +16,22 @@ Scene manager / controls / better Lazarus integration:
 
 (blockers before 2.0 release) ------------------------------------------------
 
+- TVRMLGLLightSet - hm, it would be useful to eliminate need to use this
+  e.g. in castle. Can SceneManager help us here? Ideally, a way to allow
+  all the vrml scenes to mix their OpenGL lights could be great?
+
+  Hm, not really, not yet.
+  We would like to easily allow VRML lights (with global=TRUE,
+  this will be following VRML idea) to be shared, but this requires dynamic
+  OpenGL light allocation (not governed by Scene.Attributes.First/Last).
+  But this means not storing lights in display lists (as VRML lights may
+  always change) and this means dropping optimizations (only roNone,
+  roSeparateShapesNoTransform may be left), which generally waits for
+  remaking rendering to full VBO.
+
+  For now we would have to just allow MainScene to take all the lights and leave
+  them set for other scenes. Hm, actually sensible...
+
 - Use SceneManager *everywhere*.
 
 - RenderState.Camera* is currently not initialized in various programs. This is supposed to be fixed by using SceneManager everywhere, that's why I didn't want to pollute code for now. When you don't use generated textures, RenderState.Camera* is only for Viewpoint events and WORLDSPACE* tex coord generation, which is simply not used by some programs. Below is extracted from
@@ -32,7 +48,7 @@ Scene manager / controls / better Lazarus integration:
   ../examples/glwindow/interpolated_curves.pasprogram:152:  glLoadMatrix(Glw.Camera.Matrix);
   ../examples/glwindow/demo_camera.pasprogram:27:  - call glLoadMatrix(glw.Camera.Matrix) at the beginning
   ../examples/glwindow/demo_camera.pasprogram:48:  glLoadMatrix(glw.Camera.Matrix);
-  
+
   for non-vrml scenes, assigning OnRender3D may be the simplest way to use
   scenemanager.
 
