@@ -52,8 +52,8 @@ program plane_mirror_and_shadow;
 
 uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
-  KambiGLUtils, VRMLGLScene, Cameras,
-  KambiFilesUtils, VRMLErrors, KambiStringUtils, KeysMouse;
+  KambiGLUtils, VRMLGLScene, Cameras, RenderStateUnit,
+  KambiFilesUtils, VRMLErrors, KambiStringUtils, KeysMouse, KambiSceneManager;
 
 var
   Glw: TGLUIWindow;
@@ -103,7 +103,31 @@ begin
   Result[3] := ValueLast;
 end;
 
-procedure Draw(Glwin: TGLWindow);
+type
+  { Our specialized scene manager.
+    This isn't too clean, this program doesn't play nicely with our scene
+    manager.
+
+    - We override RenderFromViewEverything, without calling inherited,
+      to basically override the whole rendering work:
+      - we'll clear gl buffers ourselves,
+      - load camera matrix ourselves,
+      - and we do not need scene manager's automatic headlight handling
+        (in RenderHeadLight, normally called by RenderFromViewEverything)
+        at all (in fact, we don't want it, we use GL_LIGHT0 for own purposes.
+
+    - We also override ApplyProjection to do our own work.
+
+    - We also do not add Scene or SceneForShadow currently for scene manager:
+      no point right now.
+
+    SceneManager is here mostly used to keep Camera. }
+  TMySceneManager = class(TKamSceneManager)
+  public
+    procedure RenderFromViewEverything; override;
+  end;
+
+procedure TMySceneManager.RenderFromViewEverything;
 
   function PlaneProjectedShadowMatrix(
     const Plane: TVector4Single;
@@ -291,7 +315,7 @@ var
 
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_STENCIL_BUFFER_BIT);
-  glLoadMatrix(glw.Camera.Matrix);
+  glLoadMatrix(RenderState.CameraMatrix);
 
   glLightv(GL_LIGHT0, GL_POSITION, LightPosition);
 
@@ -405,6 +429,9 @@ begin
   end;
 end;
 
+var
+  SceneManager: TKamSceneManager;
+
 procedure Init(Glwin: TGLWindow);
 begin
   glEnable(GL_LIGHTING);
@@ -498,7 +525,7 @@ begin
           { refresh projection matrix, since Scene.BoundingBox changed }
           Glwin.EventResize;
           { reinit camera, since Scene.BoundingBox changed }
-          (Glw.Camera as TExamineCamera).Init(Scene.BoundingBox);
+          (SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox);
         end;
       end;
     12: Glwin.Close;
@@ -566,6 +593,9 @@ begin
     SceneFileName := Parameters[1] else
     SceneFileName := '';
 
+  SceneManager := TMySceneManager.Create(Application);
+  Glw.Controls.Add(SceneManager);
+
   VRMLWarning := @VRMLWarning_Write;
 
   { calculate RootNode }
@@ -586,9 +616,9 @@ begin
     SceneForShadow.Optimization := roSceneAsAWhole;
     SceneForShadow.Attributes.PureGeometry := true;
 
-    { init Glw.Camera }
-    Glw.Camera := TExamineCamera.Create(Glw);
-    (Glw.Camera as TExamineCamera).Init(Scene.BoundingBox);
+    { init SceneManager.Camera }
+    SceneManager.Camera := TExamineCamera.Create(Glw);
+    (SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox);
 
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;
@@ -601,7 +631,7 @@ begin
     Glw.OnClose := @Close;
     Glw.OnResize := @Resize;
     Glw.OnIdle := @Idle;
-    Glw.InitAndRun(ProgramName, @Draw);
+    Glw.InitAndRun;
   finally
     FreeAndNil(SceneForShadow);
     FreeAndNil(Scene);
