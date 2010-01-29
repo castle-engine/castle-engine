@@ -16,6 +16,9 @@ Scene manager / controls / better Lazarus integration:
 
 (blockers before 2.0 release) ------------------------------------------------
 
+- Render3D / OnRender3D have different InShadow / TransparentGroup order
+  than TBase3D.Render, confusing.
+
 - TVRMLGLLightSet - hm, it would be useful to eliminate need to use this
   e.g. in castle. Can SceneManager help us here? Ideally, a way to allow
   all the vrml scenes to mix their OpenGL lights could be great?
@@ -40,14 +43,24 @@ Scene manager / controls / better Lazarus integration:
 - RenderState.Camera* is currently not initialized in various programs. This is supposed to be fixed by using SceneManager everywhere, that's why I didn't want to pollute code for now. When you don't use generated textures, RenderState.Camera* is only for Viewpoint events and WORLDSPACE* tex coord generation, which is simply not used by some programs. Below is extracted from
   grep_pas_src . 'glLoadMatrix(.*camera.matrix)'
 
-  ../examples/glwindow/bezier_surfaces/animate_surface.pasprogram:101:  glLoadMatrix(Glw.Camera.Matrix);
-  ../examples/glwindow/bezier_surfaces/design_surface.pasprogram:207:  glLoadMatrix(Glw.Camera.Matrix);
-  ../examples/glwindow/interpolated_curves.pasprogram:152:  glLoadMatrix(Glw.Camera.Matrix);
+  castle:
+    ../../castle/source/castleplay.pas:472:  glLoadMatrix(Glw.Camera.Matrix);
+    ../../castle/source/castlebackgroundlevel.pas:159:      glLoadMatrix(BackgroundCamera.Matrix);
+  rift:
+    ../../rift/riftplay.pas:141:  glLoadMatrix(SceneCamera.Matrix);
+    ../../rift/riftinspectcreatures.pas:74:  glLoadMatrix(Glw.Camera.Matrix);
+  pure OpenGL demos (no VRML code), possibly let them use Glw.Camera?
+    For direct_vrmlglscene_xxx, it's even by design (this shows that without
+    scenemanager you can also work):
+    ../examples/vrml/direct_vrmlglscene_test_1.pasprogram:58:  glLoadMatrix(glw.Camera.Matrix);
+    ../examples/vrml/direct_vrmlglscene_test_2.pasprogram:76:  glLoadMatrix(glw.Camera.Matrix);
+    ../examples/vrml/terrain/terrain.pasprogram:200:  glLoadMatrix(Glw.Camera.Matrix);
+    ../examples/glwindow/bezier_surfaces/animate_surface.pasprogram:95:  glLoadMatrix(Glw.Camera.Matrix);
+    ../examples/glwindow/bezier_surfaces/design_surface.pasprogram:202:  glLoadMatrix(Glw.Camera.Matrix);
 
   for non-vrml scenes, assigning OnRender3D may be the simplest way to use
-  scenemanager.
-
-  This will get automatically fixed when we extend and use SceneManager everywhere.
+  scenemanager. Hm, or not really? We should also create our own camera,
+  and override ApplyProjection, since only we know our bounding box.
 
 * Camera: since no longer have to be added to Controls, remove TGLUIWindow.Camera now.
 

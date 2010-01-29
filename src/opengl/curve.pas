@@ -17,8 +17,8 @@ unit Curve;
 
 interface
 
-uses VectorMath, Boxes3d, KambiUtils, KambiScript, KambiPolynomials,
-  KambiClassUtils;
+uses VectorMath, Boxes3D, KambiUtils, KambiScript, KambiPolynomials,
+  KambiClassUtils, Base3D, Frustum;
 
 {$define read_interface}
 
@@ -28,10 +28,18 @@ type
       @itemSpacing compact
       @item can be seen as a set of points Point(t) for t in [TBegin, TEnd]
       @item more or less "fits" inside his BoundingBox
-    ) }
-  TCurve = class
+    )
+
+      Note for BoundingBox method: Curve should fit inside this BoundingBox.
+      For now, this does not have to be a "perfect fit", it may be smaller than
+      it should be and it may be larger than it could be.
+      This should be treated as something like a "good hint".
+      (Maybe at some time I'll make this conditions more rigorous).
+  }
+  TCurve = class(TBase3D)
   private
     FTBegin, FTEnd: Float;
+    FDefaultSegments: Cardinal;
   public
     { TBegin/End determine the valid range of t.
       Must be TBegin <= TEnd.
@@ -62,14 +70,15 @@ type
       ) }
     procedure Render(Segments: Cardinal);
 
-    { Curve should fit inside this BoundingBox.
-      For now, this does not have to be a "perfect fit", it may be smaller than
-      it should be and it may be larger than it could be.
-      This should be treated as something like a "good hint".
-      (Maybe at some time I'll make this conditions more rigorous) }
-    function BoundingBox: TBox3d; virtual; abstract;
+    { Default number of segments, used when rendering by TBase3D interface
+      (that is, @code(Render(Frustum, TransparentGroup...)) method.) }
+    property DefaultSegments: Cardinal
+      read FDefaultSegments write FDefaultSegments default 10;
 
-    constructor Create(const ATBegin, ATEnd: Float);
+    procedure Render(const Frustum: TFrustum;
+      TransparentGroup: TTransparentGroup; InShadow: boolean); override;
+
+    constructor Create(const ATBegin, ATEnd: Float); reintroduce;
   end;
 
   TObjectsListItem_2 = TCurve;
@@ -301,11 +310,19 @@ begin
  glEnd;
 end;
 
+procedure TCurve.Render(const Frustum: TFrustum;
+  TransparentGroup: TTransparentGroup; InShadow: boolean);
+begin
+  if TransparentGroup in [tgAll, tgOpaque] then
+    Render(DefaultSegments);
+end;
+
 constructor TCurve.Create(const ATBegin, ATEnd: Float);
 begin
- inherited Create;
+ inherited Create(nil);
  FTBegin := ATBegin;
  FTEnd := ATEnd;
+ FDefaultSegments := 10;
 end;
 
 { TKamScriptCurve ------------------------------------------------------------ }
