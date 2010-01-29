@@ -45,7 +45,6 @@ Scene manager / controls / better Lazarus integration:
     ../../castle/source/castlebackgroundlevel.pas:159:      glLoadMatrix(BackgroundCamera.Matrix);
   rift:
     ../../rift/riftplay.pas:141:  glLoadMatrix(SceneCamera.Matrix);
-    ../../rift/riftinspectcreatures.pas:74:  glLoadMatrix(Glw.Camera.Matrix);
   pure OpenGL demos (no VRML code), possibly let them use Glw.Camera?
     For direct_vrmlglscene_xxx, it's even by design (this shows that without
     scenemanager you can also work):
