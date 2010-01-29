@@ -88,6 +88,7 @@ type
     OldControls: TUIControlList;
     OldCamera: TCamera;
     OldUseControls: boolean;
+    OldOnDrawStyle: TUIControlDrawStyle;
 
     { When adding new attributes to TGLWindow that should be saved/restored,
       you must remember to
@@ -136,7 +137,8 @@ type
         new Controls value is either empty (when NewControl = nil)
           or contains only one given control in NewControl.
           If NewControl is a TCamera, than it's also a new Camera value.
-        new UseControls is always @true. }
+        new UseControls is always @true.
+        new OnDraw is always dsNone. }
     class procedure SetStandardState(Glwin: TGLWindow;
       NewDraw, NewCloseQuery, NewResize: TGLWindowFunc;
       NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
@@ -385,6 +387,7 @@ begin
     OldControls.Assign(TGLUIWindow(Glwin).Controls);
     OldCamera := TGLUIWindow(Glwin).Camera;
     OldUseControls := TGLUIWindow(Glwin).UseControls;
+    OldOnDrawStyle := TGLUIWindow(Glwin).OnDrawStyle;
   end;
 end;
 
@@ -413,6 +416,7 @@ begin
     TGLUIWindow(Glwin).Controls.Assign(OldControls);
     TGLUIWindow(Glwin).Camera := OldCamera;
     TGLUIWindow(Glwin).UseControls := OldUseControls;
+    TGLUIWindow(Glwin).OnDrawStyle := OldOnDrawStyle;
   end;
 end;
 
@@ -454,6 +458,7 @@ begin
         TGLUIWindow(Glwin).Controls.Add(NewControl);
     end;
     TGLUIWindow(Glwin).UseControls := true;
+    TGLUIWindow(Glwin).OnDrawStyle := dsNone;
   end;
 end;
 
