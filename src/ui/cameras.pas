@@ -194,16 +194,9 @@ type
   { Handle user navigation in 3D scene.
     You control camera parameters and provide user input
     to this class by various methods and properties.
-    You can investigate the current camera setting by many methods,
-    the most important is the @link(Matrix) method that
-    generates a simple 4x4 matrix.
-
-    In the most common case, when using this
-    with OpenGL program, you can simply load this matrix like
-    @code(glLoadMatrix(Camera.Matrix);) at the beginning of your
-    Display, Draw etc. function. In other words,
-    @code(glLoadMatrix(Camera.Matrix);) is a drop-in replacement
-    for calls like @code(gluLookAt) that setup a camera.
+    You can investigate the current camera configuration by many methods,
+    the most final is the @link(Matrix) method that
+    generates a simple 4x4 camera matrix.
 
     This class is not tied to any OpenGL specifics, any VRML specifics,
     and GLWindow etc. --- this class is fully flexible and may be used
@@ -216,32 +209,19 @@ type
     implements typical navigation in the style of first-person shooter
     games.
 
-    As TUIControl, camera should be placed as the last control
-    (below all), as it catches all the events (regardless of current
-    mouse position; camera isn't drawn, so it's always in "focus"
-    if nothing else handled the event).
+    The most comfortable way to use a camera is with a scene manager
+    (TKamSceneManager). You can create your camera instance,
+    call it's @code(Init) method (this is initializes most important properties),
+    and assign it to TKamSceneManager.Camera property.
+    This way SceneManager will pass all necessary window events to the camera,
+    and when drawing SceneManager will load camera matrix like
+    @code(glLoadMatrix(Camera.Matrix);).
+    In fact, if you do not assign anything to TKamSceneManager.Camera property,
+    then the default camera will be created for you. So @italic(when
+    using TKamSceneManager, you do not have to do anything to use a camera)
+    --- default camera will be created and automatically used for you.
 
-    Short guide how to use any descendant of this class in typical scenario:
-
-    @orderedList(
-      @item(Create an instance of a class descendant from TCamera.)
-
-      @item(Define start properties of this class. Each TCamera
-        should have an @code(Init) method, these are designed to take
-        a couple of the most critical configuration parameters.)
-
-      @item(Add this to the @link(TGLUIWindow.Controls) list or something
-        similar. This will automatically take care of passing
-        user input to camera (KeyDown, MouseDown etc.),
-        calling Idle event, and also it will use our OnVisibleChange
-        event to redisplay the screen when camera matrix will change.)
-
-      @item(Call @code(glMultMatrix(Camera.Matrix)) or
-        @code(glLoadMatrix(Camera.Matrix)) at the beginning of your
-        OnDraw callback.)
-    )
-
-    See @code(kambi_vrml_game_engine/examples/glwindow/demo_matrix_navigation.pasprogram)
+    See @code(kambi_vrml_game_engine/examples/glwindow/demo_camera.pasprogram)
     example program in engine sources for simple demo how to use this class. }
   TCamera = class(TUIControl)
   private
