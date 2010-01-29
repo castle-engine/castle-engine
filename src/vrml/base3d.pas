@@ -89,7 +89,7 @@ type
       to make it a little too small (nothing bad will happen).
       Although all currently implemeted descendants (TVRMLScene, TVRMLAnimation,
       more) guarantee it's never too small. }
-    function BoundingBox: TBox3d; virtual; abstract;
+    function BoundingBox: TBox3D; virtual; abstract;
 
     { Render given object. This is done only if @link(Exists).
 
