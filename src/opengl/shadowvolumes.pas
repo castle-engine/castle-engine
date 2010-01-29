@@ -24,7 +24,7 @@ type
   TSVRenderTransparentGroupProc =
     procedure (TransparentGroup: TTransparentGroup) of object;
   TSVRenderShadowReceiversProc =
-    procedure (InShadow: boolean; TransparentGroup: TTransparentGroup) of object;
+    procedure (TransparentGroup: TTransparentGroup; InShadow: boolean) of object;
   TSVRenderProc = procedure of object;
 
   { This class performs various initialization and calculations related
@@ -667,7 +667,7 @@ begin
   if Assigned(RenderNeverShadowed) then
     RenderNeverShadowed(tgOpaque);
 
-  RenderShadowReceivers(true, tgOpaque);
+  RenderShadowReceivers(tgOpaque, true);
 
   glEnable(GL_STENCIL_TEST);
     { Note that stencil buffer is set to all 0 now. }
@@ -774,7 +774,7 @@ begin
     glStencilFunc(GL_EQUAL, 0, StencilShadowBits);
     glEnable(GL_STENCIL_TEST);
       Inc(RenderState.StencilTest);
-      RenderShadowReceivers(false, tgOpaque);
+      RenderShadowReceivers(tgOpaque, false);
       Dec(RenderState.StencilTest);
     glDisable(GL_STENCIL_TEST);
   glPopAttrib();
@@ -795,7 +795,7 @@ begin
     Count := OldCount;
   end;
 
-  RenderShadowReceivers(false, tgTransparent);
+  RenderShadowReceivers(tgTransparent, false);
 
   if Assigned(RenderNeverShadowed) then
     RenderNeverShadowed(tgTransparent);

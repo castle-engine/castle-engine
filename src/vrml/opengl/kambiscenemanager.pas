@@ -26,7 +26,7 @@ type
   TKamSceneManager = class;
 
   TRender3DEvent = procedure (SceneManager: TKamSceneManager;
-    InShadow: boolean; TransparentGroup: TTransparentGroup) of object;
+    TransparentGroup: TTransparentGroup; InShadow: boolean) of object;
 
   { Scene manager that knows about all 3D things inside your world.
 
@@ -130,7 +130,7 @@ type
       this is the simplest method to override. (Or you can use OnRender3D
       event, which is called at the end of this method.)
       Just pass to OpenGL your 3D geometry here. }
-    procedure Render3D(InShadow: boolean; TransparentGroup: TTransparentGroup); virtual;
+    procedure Render3D(TransparentGroup: TTransparentGroup; InShadow: boolean); virtual;
 
     procedure RenderShadowVolumes; virtual;
 
@@ -691,11 +691,11 @@ begin
   PrepareRender;
 end;
 
-procedure TKamSceneManager.Render3D(InShadow: boolean; TransparentGroup: TTransparentGroup);
+procedure TKamSceneManager.Render3D(TransparentGroup: TTransparentGroup; InShadow: boolean);
 begin
   Items.Render(RenderState.CameraFrustum, TransparentGroup, InShadow);
   if Assigned(OnRender3D) then
-    OnRender3D(Self, InShadow, TransparentGroup);
+    OnRender3D(Self, TransparentGroup, InShadow);
 end;
 
 procedure TKamSceneManager.RenderShadowVolumes;
@@ -731,7 +731,7 @@ procedure TKamSceneManager.RenderFromView3D;
 
   procedure RenderNoShadows;
   begin
-    Render3D(false, tgAll);
+    Render3D(tgAll, false);
   end;
 
   procedure RenderWithShadows(const MainLightPosition: TVector4Single);

@@ -16,9 +16,6 @@ Scene manager / controls / better Lazarus integration:
 
 (blockers before 2.0 release) ------------------------------------------------
 
-- Render3D / OnRender3D have different InShadow / TransparentGroup order
-  than TBase3D.Render, confusing.
-
 - TVRMLGLLightSet - hm, it would be useful to eliminate need to use this
   e.g. in castle. Can SceneManager help us here? Ideally, a way to allow
   all the vrml scenes to mix their OpenGL lights could be great?

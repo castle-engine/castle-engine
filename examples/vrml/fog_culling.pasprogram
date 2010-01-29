@@ -45,7 +45,7 @@ type
   private
     function TestFogVisibility(Shape: TVRMLGLShape): boolean;
   protected
-    procedure Render3D(InShadow: boolean; TransparentGroup: TTransparentGroup); override;
+    procedure Render3D(TransparentGroup: TTransparentGroup; InShadow: boolean); override;
   end;
 
 var
@@ -66,7 +66,7 @@ begin
         Sqrt(Shape.BoundingSphereRadiusSqr));
 end;
 
-procedure TMySceneManager.Render3D(InShadow: boolean; TransparentGroup: TTransparentGroup);
+procedure TMySceneManager.Render3D(TransparentGroup: TTransparentGroup; InShadow: boolean);
 begin
   if Scene.Attributes.UseFog then
     Scene.Render(@TestFogVisibility, TransparentGroup) else
