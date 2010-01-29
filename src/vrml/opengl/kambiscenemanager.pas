@@ -140,12 +140,14 @@ type
       for shadow volumes, but doesn't take care of updating generated textures. }
     procedure RenderFromViewEverything; virtual;
 
-    { Render the headlight. Called by RenderFromViewEverything, when camera matrix
-      is set. Should enable or disable OpenGL GL_LIGHT0 for headlight.
+    { Render the headlight. Called by RenderFromViewEverything,
+      when camera matrix is set.
+      Should enable or disable OpenGL GL_LIGHT0 for headlight.
 
       Implementation in this class uses headlight defined
-      in the Scene, following NavigationInfo.headlight and KambiHeadlight
-      nodes. }
+      in the MainScene, following NavigationInfo.headlight and KambiHeadlight
+      nodes. If MainScene is not assigned, this does nothing (doesn't touch
+      GL_LIGHT0). }
     procedure RenderHeadLight; virtual;
 
     { Render the 3D part of scene. Called by RenderFromViewEverything at the end,
@@ -702,14 +704,14 @@ begin
 end;
 
 procedure TKamSceneManager.RenderHeadLight;
-var
-  H: TVRMLGLHeadlight;
 begin
   if MainScene <> nil then
-    H := MainScene.Headlight { this may still return @nil if no headlight } else
-    H := nil;
+  begin
+    TVRMLGLHeadlight.RenderOrDisable(MainScene.Headlight,
+      0, RenderState.Target = rtScreen, Camera);
+  end;
 
-  TVRMLGLHeadlight.RenderOrDisable(H, 0, RenderState.Target = rtScreen, Camera);
+  { if MainScene = nil, do not control GL_LIGHT0 here. }
 end;
 
 function TKamSceneManager.ViewerToChanges: TVisibleSceneChanges;
