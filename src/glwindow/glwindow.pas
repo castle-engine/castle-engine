@@ -2419,10 +2419,10 @@ type
 
     TCamera descendants can be treated like any other TUIControl,
     that is you can add them directly to the @link(Controls) list.
-    But, if you use only one camera (most common situation),
-    you can also assign it to the @link(Camera) property
-    (this will cause appropriate add / replace / remove on
-    the @link(Controls) list). }
+    Note that usually, when using TKamSceneManager, you should only
+    assign camera to TKamSceneManager.Camera, so most programs
+    @italic(should not) add their TCamera intances directly to the
+    Controls list. }
   TGLUIWindow = class(TGLWindowDemo, IUIContainer)
   private
     FCamera: TCamera;
