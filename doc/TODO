@@ -16,28 +16,28 @@ Scene manager / controls / better Lazarus integration:
 
 (blockers before 2.0 release) ------------------------------------------------
 
-- TVRMLGLLightSet - hm, it would be useful to eliminate need to use this
-  e.g. in castle. Can SceneManager help us here? Ideally, a way to allow
-  all the vrml scenes to mix their OpenGL lights could be great?
+* castle: make main level scene added to Controls, check receives time events (timesensor, movietexture), and mouse/key clicks (use some touchsensor).
 
-  Hm, not really, not yet.
-  We would like to easily allow VRML lights (with global=TRUE,
-  this will be following VRML idea) to be shared, but this requires dynamic
-  OpenGL light allocation (not governed by Scene.Attributes.First/Last).
-  But this means not storing lights in display lists (as VRML lights may
-  always change) and this means dropping optimizations (only roNone,
-  roSeparateShapesNoTransform may be left), which generally waits for
-  remaking rendering to full VBO.
-
-  For now we would have to just allow MainScene to take all the lights and leave
-  them set for other scenes. Hm, actually sensible...
-
-- Use SceneManager *everywhere*.
+* Use SceneManager (and Camera on Glw.Controls) in castle.
+  TLevelObject should migrate to TBase3D.
+  tlevelobjectstatic to tvrmlglscene,
+  tlevelobjectanimation to tvrmlglanimation,
+  tlevelobjectsum to tbase3dlist,
+  tlevelmovingobject to TCustomTranslated3D,
+  rest may stay implemented (e.g. in castle3d.pas?)
 
 - TKamSceneManager.RenderFromView3D : RenderNoShadows should split rendering
-  to all tgOpaque + then all tgTransparent
+  to all tgOpaque + then all tgTransparent.
+  Do this while porting to castle?
 
-- RenderState.Camera* is currently not initialized in various programs. This is supposed to be fixed by using SceneManager everywhere, that's why I didn't want to pollute code for now. When you don't use generated textures, RenderState.Camera* is only for Viewpoint events and WORLDSPACE* tex coord generation, which is simply not used by some programs. Below is extracted from
+- Use SceneManager *everywhere*:
+
+  RenderState.Camera* is currently not initialized in various programs.
+  This is supposed to be fixed by using SceneManager everywhere,
+  that's why I didn't want to pollute code for now.
+  When you don't use generated textures, RenderState.Camera* is only for
+  Viewpoint events and WORLDSPACE* tex coord generation,
+  which is simply not used by some programs. Below is extracted from
   grep_pas_src . 'glLoadMatrix(.*camera.matrix)'
 
   castle:
@@ -59,15 +59,21 @@ Scene manager / controls / better Lazarus integration:
   scenemanager. Hm, or not really? We should also create our own camera,
   and override ApplyProjection, since only we know our bounding box.
 
-* Camera: since no longer have to be added to Controls, remove TGLUIWindow.Camera now.
+  Hm, for some of the remaining examples, it could be simpler to just let
+  them use default Camera, no point in forcing SceneManager?
+
+* Camera: since no longer have to be added to Controls,
+  remove TGLUIWindow.Camera now.
 
   Depends on: port all example programs to SceneManager first.
+  In particular, port castle, and for the rest of remaining --- either
+  make their own Camera variable, or also port to SceneManager.
 
   Resolves:
   Remove Camera property entirely from TGLUIWindow/TKamOpenGLComponent?
   Usually SceneManager.Camera is comfortable now.
 
-  Hm, no? Resign?
+  Old notes: Hm, no? Resign?
   1. Scene.Camera future is uncertain. It may be removed,
      in favor of only SceneManager.Camera. Wait for transition until this
      is decided, to avoid rewriting a lot of code (Glw.Camera -> Scene.Camera)
@@ -121,21 +127,27 @@ Scene manager / controls / better Lazarus integration:
   We also had view3dscene UI problem because of this.
   Maybe make it changing only if Load() gets argument like LoadTimeAndOptimization?
 
-* castle: make main level scene added to Controls, check receives time events (timesensor, movietexture), and mouse/key clicks (use some touchsensor).
-
-* Use SceneManager (and Camera on Glw.Controls) in castle.
-  TLevelObject should migrate to TBase3D.
-  tlevelobjectstatic to tvrmlglscene,
-  tlevelobjectanimation to tvrmlglanimation,
-  tlevelobjectsum to tbase3dlist,
-  tlevelmovingobject to TCustomTranslated3D,
-  rest may stay implemented (e.g. in castle3d.pas?)
-
 - Make UseControls not published? Or even make them private --- they are not used
   after all, and can be dangerous (ContainerResize not called before trying to
   do rendering etc.)
 
 (not blockers before 2.0 release) --------------------------------------------
+
+- TVRMLGLLightSet - hm, it would be useful to eliminate need to use this
+  e.g. in castle. Can SceneManager help us here? Ideally, a way to allow
+  all the vrml scenes to mix their OpenGL lights could be great?
+
+  Hm, not really, not yet.
+  We would like to easily allow VRML lights (with global=TRUE,
+  this will be following VRML idea) to be shared, but this requires dynamic
+  OpenGL light allocation (not governed by Scene.Attributes.First/Last).
+  But this means not storing lights in display lists (as VRML lights may
+  always change) and this means dropping optimizations (only roNone,
+  roSeparateShapesNoTransform may be left), which generally waits for
+  remaking rendering to full VBO.
+
+  For now we would have to just allow MainScene to take all the lights and leave
+  them set for other scenes. Hm, actually sensible...
 
 * Cursor stuff:
   * What to do with cursors of 3D scenes hierarchy?
