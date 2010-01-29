@@ -7,7 +7,7 @@
       <TargetFileExt Value=""/>
       <Icon Value="0"/>
       <UseXPManifest Value="True"/>
-      <ActiveEditorIndexAtStart Value="1"/>
+      <ActiveEditorIndexAtStart Value="0"/>
     </General>
     <VersionInfo>
       <ProjectVersion Value=""/>
@@ -52,8 +52,8 @@
         <ComponentName Value="MainForm"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="47" Y="43"/>
-        <TopLine Value="27"/>
+        <CursorPos X="1" Y="16"/>
+        <TopLine Value="1"/>
         <EditorIndex Value="0"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
@@ -63,21 +63,17 @@
         <UnitName Value="KambiGLUtils"/>
         <CursorPos X="20" Y="917"/>
         <TopLine Value="883"/>
-        <EditorIndex Value="2"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
       </Unit2>
       <Unit3>
         <Filename Value="../../../src/components/kambiglcontrol.pas"/>
         <UnitName Value="KambiGLControl"/>
         <CursorPos X="26" Y="996"/>
         <TopLine Value="979"/>
-        <EditorIndex Value="1"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
       </Unit3>
     </Units>
-    <JumpHistory Count="9" HistoryIndex="8">
+    <JumpHistory Count="13" HistoryIndex="12">
       <Position1>
         <Filename Value="mainf.pas"/>
         <Caret Line="33" Column="31" TopLine="11"/>
@@ -107,13 +103,29 @@
         <Caret Line="24" Column="41" TopLine="23"/>
       </Position7>
       <Position8>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="43" Column="13" TopLine="37"/>
       </Position8>
       <Position9>
-        <Filename Value="../../../src/components/kambiglcontrol.pas"/>
-        <Caret Line="1002" Column="13" TopLine="978"/>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="75" Column="1" TopLine="41"/>
       </Position9>
+      <Position10>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="30" Column="6" TopLine="18"/>
+      </Position10>
+      <Position11>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="52" Column="1" TopLine="36"/>
+      </Position11>
+      <Position12>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="30" Column="18" TopLine="23"/>
+      </Position12>
+      <Position13>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="65" Column="3" TopLine="41"/>
+      </Position13>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

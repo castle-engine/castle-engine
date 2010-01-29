@@ -13,59 +13,78 @@
   ----------------------------------------------------------------------------
 }
 
-{ This is a simple demo of TExamineCamera class.
-  As you can see, in the simplest case you just
-  - use TGLUIWindow class
-  - init Glw.Camera at the beginning of your program
-  - call glLoadMatrix(glw.Camera.Matrix) at the beginning of your Draw.
+{ Simple demo that can you can create SceneManager.Camera instance yourself.
 
-  And user instantly gets the ability to move and rotate the object
+  As you can see, in the simplest case you just
+  - use TGLUIWindow class, adding SceneManager to Glw.Controls
+  - init SceneManager.Camera at the beginning of your program
+    (actually, we could left it not initialized,
+    it would be automatically initialized to a default camera by scene manager,
+    see TKamSceneManager.CreateDefaultCamera.)
+
+  And that's it. User gets the ability to move and rotate the object
   by arrow keys, mouse etc. (see view3dscene keys is "Examine" mode:
-  [http://vrmlengine.sourceforge.net/view3dscene.php]).
+  [http://vrmlengine.sourceforge.net/view3dscene.php]),
+  because SceneManager passes relevant window events to camera.
+  Also everything 3D is rendered with this camera,
+  because SceneManager loads Camera.Matrix to OpenGL modelview matrix.
 }
 
 program demo_camera;
 
 {$apptype GUI}
 
-uses VectorMath, Boxes3d, GL, GLU, GLWindow,
-  KambiClassUtils, KambiUtils, SysUtils, Classes,
-  KambiGLUtils, Cameras, KambiFilesUtils;
+uses VectorMath, Boxes3D, GL, GLU, GLWindow, Frustum,
+  KambiClassUtils, KambiUtils, SysUtils, Classes, Base3D,
+  KambiGLUtils, Cameras, KambiFilesUtils, KambiSceneManager;
+
+type
+  TCube = class(TBase3D)
+  public
+    procedure Render(const Frustum: TFrustum;
+      TransparentGroup: TTransparentGroup; InShadow: boolean); override;
+    function BoundingBox: TBox3D; override;
+  end;
+
+procedure TCube.Render(const Frustum: TFrustum;
+  TransparentGroup: TTransparentGroup; InShadow: boolean);
+begin
+  if TransparentGroup in [tgAll, tgOpaque] then
+  begin
+    glPushAttrib(GL_ENABLE_BIT);
+      glEnable(GL_LIGHTING);
+      glEnable(GL_LIGHT0);
+      glEnable(GL_DEPTH_TEST);
+      DrawGLBox(-1, -1, -1, 1, 1, 1, 0, 0, 0, true, false);
+    glPopAttrib;
+  end;
+end;
+
+function TCube.BoundingBox: TBox3D;
+begin
+  Result := Box3D(
+    Vector3Single(-1, -1, -1),
+    Vector3Single( 1,  1,  1));
+end;
 
 var
   Glw: TGLUIWindow;
-
-procedure Draw(glwin: TGLWindow);
-begin
-  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(glw.Camera.Matrix);
-
-  DrawGLBox(-1, -1, -1, 1, 1, 1, 0, 0, 0, true, false);
-end;
-
-procedure Init(glwin: TGLWindow);
-begin
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
-  glEnable(GL_DEPTH_TEST);
-end;
-
-procedure Resize(glwin: TGLWindow);
-begin
-  glViewport(0, 0, glwin.Width, glwin.Height);
-  ProjectionGLPerspective(45.0, glwin.Width/glwin.Height, 0.1, 100);
-end;
-
+  SceneManager: TKamSceneManager;
+  Cube: TCube;
 begin
   Glw := TGLUIWindow.Create(Application);
 
-  { init Glw.Camera }
-  Glw.Camera := TExamineCamera.Create(Glw);
-  (Glw.Camera as TExamineCamera).Init(Box3d(
+  SceneManager := TKamSceneManager.Create(Application);
+  Glw.Controls.Add(SceneManager);
+
+  Cube := TCube.Create(Application);
+  SceneManager.Items.Add(Cube);
+
+  { init SceneManager.Camera }
+  SceneManager.Camera := TExamineCamera.Create(Application);
+  (SceneManager.Camera as TExamineCamera).Init(Box3d(
     Vector3Single(-1, -1, -1),
     Vector3Single( 1,  1,  1)));
 
-  Glw.OnInit := @Init;
-  Glw.OnResize := @Resize;
-  Glw.InitAndRun(ProgramName, @Draw);
+  Glw.InitAndRun;
 end.

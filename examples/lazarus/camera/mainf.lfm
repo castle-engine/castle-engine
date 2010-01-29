@@ -16,13 +16,14 @@ object MainForm: TMainForm
     Width = 530
     Align = alClient
     BorderSpacing.Around = 10
-    OnResize = GLControlResize
-    OnGLContextInit = GLControlGLContextInit
-    OnDraw = GLControlDraw
-    Camera = Camera
   end
   object Camera: TExamineCamera
     left = 54
     top = 93
+  end
+  object SceneManager: TKamSceneManager
+    Camera = Camera
+    left = 139
+    top = 71
   end
 end
