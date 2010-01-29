@@ -21,27 +21,28 @@
 program shading_langs_demo;
 
 uses GLWindow, KambiGLUtils,
-  Cameras, Boxes3d, SysUtils, KambiUtils, VectorMath,
-  KambiClassUtils, KambiFilesUtils, KambiStringUtils,
-  GLWinMessages, GLImages, GL, GLU, GLExt, GLShaders;
-
-const
-  SceneBoundingBox: TBox3d =
-  ( (-8, -3, -3),
-    ( 8,  15,  3) );
+  Base3D, Frustum, KambiSceneManager, Boxes3D, SysUtils, KambiUtils, VectorMath,
+  KambiStringUtils, GLImages, GL, GLU, GLExt, GLShaders;
 
 var
-  Glw: TGLUIWindow;
-
   Tex: array [0..1] of TGLuint;
 
   VertexProgram: TARBVertexProgram;
   FragmentProgram: TARBFragmentProgram;
   GLSLProgram: TGLSLProgram;
 
-{ glw callbacks ------------------------------------------------------------ }
+{ geometry ------------------------------------------------------------------- }
 
-procedure Draw(glwin: TGLWindow);
+type
+  TMyGeometry = class(TBase3D)
+  public
+    procedure Render(const Frustum: TFrustum;
+      TransparentGroup: TTransparentGroup; InShadow: boolean); override;
+    function BoundingBox: TBox3D; override;
+  end;
+
+procedure TMyGeometry.Render(const Frustum: TFrustum;
+  TransparentGroup: TTransparentGroup; InShadow: boolean);
 
   { Draw cube using really old-fashioned approach (no vertex arrays,
     just specify by hand 6 quads, 4 vertexes and tex coords each). }
@@ -129,12 +130,13 @@ procedure Draw(glwin: TGLWindow);
   end;
 
 begin
-  glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT);
+  if not (TransparentGroup in [tgAll, tgOpaque]) then Exit;
 
-  glLoadIdentity;
-  glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(0, 0, 1));
-
-  glLoadMatrix(Glw.Camera.Matrix);
+  { headlight }
+  glPushMatrix;
+    glLoadIdentity;
+    glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(0, 0, 1));
+  glPopMatrix;
 
   glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(1, 1, 0, 1));
   glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(1, 1, 0, 1));
@@ -179,31 +181,22 @@ begin
   end;
 end;
 
-procedure Resize(glwin: TGLWindow);
-
-  procedure UpdateCameraProjectionMatrix;
-  var
-    ProjectionMatrix: TMatrix4f;
-  begin
-    glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
-    Glw.Camera.ProjectionMatrix := ProjectionMatrix;
-  end;
-
+function TMyGeometry.BoundingBox: TBox3D;
+const
+  SceneBoundingBox: TBox3d =
+  ( (-8, -3, -3),
+    ( 8,  15,  3) );
 begin
-  glViewport(0, 0, glwin.Width, glwin.Height);
-  ProjectionGLPerspective(30, Glwin.Width / Glwin.Height,
-    Box3dAvgSize(SceneBoundingBox) * 0.05,
-    Box3dAvgSize(SceneBoundingBox) * 20.0);
-
-  { In case I'll use walker camera at some time. }
-  UpdateCameraProjectionMatrix;
+  Result := SceneBoundingBox;
 end;
+
+{ glw callbacks -------------------------------------------------------------- }
 
 procedure InitGL(glwin: TGLWindow);
 
   function LoadTexture(const FileName: string): TGLuint;
   const
-    Wrap: TTextureWrap2D = (GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);  
+    Wrap: TTextureWrap2D = (GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
   begin
     Result := LoadGLTexture(FileName, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, Wrap);
   end;
@@ -327,23 +320,24 @@ end;
 
 { main program --------------------------------------------------------------- }
 
+var
+  Glw: TGLUIWindow;
+  SceneManager: TKamSceneManager;
 begin
   Glw := TGLUIWindow.Create(Application);
+
+  SceneManager := TKamSceneManager.Create(Application);
+  Glw.Controls.Add(SceneManager);
+  SceneManager.Items.Add(TMyGeometry.Create(Application));
 
   { parse params }
   Glw.ParseParameters(StandardParseOptions);
   Parameters.CheckHigh(0);
-
-  { init Glw.Camera }
-  Glw.Camera := TExamineCamera.Create(Glw);
-  (Glw.Camera as TExamineCamera).Init(SceneBoundingBox);
 
   Glw.MainMenu := CreateMainMenu;
   Glw.OnMenuCommand := @MenuCommand;
 
   Glw.OnInit := @InitGL;
   Glw.OnClose := @CloseGL;
-  Glw.OnDraw := @Draw;
-  Glw.OnResize := @Resize;
   Glw.InitAndRun;
 end.

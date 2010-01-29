@@ -40,10 +40,8 @@ Scene manager / controls / better Lazarus integration:
 - RenderState.Camera* is currently not initialized in various programs. This is supposed to be fixed by using SceneManager everywhere, that's why I didn't want to pollute code for now. When you don't use generated textures, RenderState.Camera* is only for Viewpoint events and WORLDSPACE* tex coord generation, which is simply not used by some programs. Below is extracted from
   grep_pas_src . 'glLoadMatrix(.*camera.matrix)'
 
-  ../examples/glwindow/multi_texturing_demo.pasprogram:108:  glLoadMatrix(Glw.Camera.Matrix);
   ../examples/glwindow/bezier_surfaces/animate_surface.pasprogram:101:  glLoadMatrix(Glw.Camera.Matrix);
   ../examples/glwindow/bezier_surfaces/design_surface.pasprogram:207:  glLoadMatrix(Glw.Camera.Matrix);
-  ../examples/glwindow/shading_langs/shading_langs_demo.pasprogram:143:  glLoadMatrix(Glw.Camera.Matrix);
   ../examples/glwindow/interpolated_curves.pasprogram:152:  glLoadMatrix(Glw.Camera.Matrix);
 
   for non-vrml scenes, assigning OnRender3D may be the simplest way to use
