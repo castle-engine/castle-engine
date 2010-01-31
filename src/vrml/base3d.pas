@@ -301,7 +301,12 @@ type
 
     { Check collision with a ray, building a T3DCollision result.
       Returns a collision as T3DCollision instance, or @nil if no collision.
-      Caller is responsible for freeing the returned T3DCollision instance. }
+      Caller is responsible for freeing the returned T3DCollision instance.
+
+      This always returns the first collision with the 3D world, that is
+      the one with smallest IntersectionDistance. For example, when
+      implemented in TBase3DList, this checks collisions for all list items,
+      and chooses the closest one. }
     function RayCollision(
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
@@ -311,6 +316,9 @@ type
   TBase3DList = class;
 
   { List of base 3D objects (TBase3D instances).
+    This allows you to group many 3D objects, and treat them as one TBase3D
+    descendant (for example, to translate many 3D objects by a single
+    TCustomTranslated3D.Child).
 
     This inherits from TObjectsList, getting many
     features like TList notification mechanism (useful in some situations).
