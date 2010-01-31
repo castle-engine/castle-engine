@@ -85,6 +85,10 @@ type
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3d;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+    function RayCollision(
+      out IntersectionDistance: Single;
+      const Ray0, RayVector: TVector3Single;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): T3DCollision; override;
   published
     { Translated 3D object. }
     property Child: TBase3D read FChild write SetChild;
@@ -390,11 +394,10 @@ begin
   end;
 end;
 
-(*
 function TCustomTranslated3D.RayCollision(
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): TCollisionInfo;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): T3DCollision;
 var
   T: TVector3Single;
 begin
@@ -413,7 +416,6 @@ begin
       Result.Hierarchy.Insert(0, Self);
   end;
 end;
-*)
 
 procedure TCustomTranslated3D.SetChild(const Value: TBase3D);
 begin

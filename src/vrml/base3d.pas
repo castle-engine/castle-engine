@@ -37,6 +37,33 @@ type
   TBaseShadowVolumes = class
   end;
 
+  TBase3DListCore = class;
+
+  { Represents a collision with a 3D objects (TBase3D descendants) tree. }
+  T3DCollision = class
+  public
+    constructor Create;
+    destructor Destroy; override;
+  public
+    { The path in the 3D objects tree leading from the root to the
+      final colliding 3D object.
+
+      For example, if your 3D tree is a list, and within
+      this list is another list, and within this another list is your final
+      colliding object (for example, some TVRMLGLScene instance),
+      then Hierarchy will contain three items (in order: 1st list, 2nd list,
+      TVRMLGLScene instance).
+
+      For TBase3D.RayCollision and overrides, Hierarchy is never empty.
+      TODO: for now, this is also returned by castle's level, when Hierarchy
+      may be empty (meaning that Level.Scene itself collided).  }
+    Hierarchy: TBase3DListCore;
+
+    { The triangle that collides. This triangle is always a part of the last
+      item on @link(Hierarchy) list. }
+    Triangle: PVRMLTriangle;
+  end;
+
   { Base 3D object, that can be managed by TKamSceneManager.
     All 3D objects should descend from this, this way we can easily
     insert them into the TKamSceneManager. }
@@ -273,6 +300,14 @@ type
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; virtual;
     function BoxCollision(const Box: TBox3d;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; virtual;
+
+    { Check collision with a ray, building a T3DCollision result.
+      Returns a collision as T3DCollision instance, or @nil if no collision.
+      Caller is responsible for freeing the returned T3DCollision instance. }
+    function RayCollision(
+      out IntersectionDistance: Single;
+      const Ray0, RayVector: TVector3Single;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): T3DCollision; virtual;
   end;
 
   TBase3DList = class;
@@ -293,6 +328,9 @@ type
     constructor Create(const FreeObjects: boolean; const AOwner: TBase3DList);
     procedure Notify(Ptr: Pointer; Action: TListNotification); override;
     property Items[I: Integer]: TBase3D read GetItem write SetItem; default;
+
+    { TBase3DList instance that owns this list.
+      May be @nil, for example when this list is used by T3DCollision. }
     property Owner: TBase3DList read FOwner;
   end;
 
@@ -360,6 +398,10 @@ type
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3d;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+    function RayCollision(
+      out IntersectionDistance: Single;
+      const Ray0, RayVector: TVector3Single;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): T3DCollision; override;
   published
     { 3D objects inside.
       Freeing these items automatically removes them from this list. }
@@ -369,6 +411,21 @@ type
 implementation
 
 uses SysUtils, KambiUtils, GL, KambiGLUtils;
+
+{ T3DCollision ------------------------------------------------------------- }
+
+constructor T3DCollision.Create;
+begin
+  inherited;
+  Hierarchy := TBase3DListCore.Create(false, nil);
+end;
+
+destructor T3DCollision.Destroy;
+begin
+  FreeAndNil(Hierarchy);
+end;
+
+{ TBase3D -------------------------------------------------------------------- }
 
 constructor TBase3D.Create(AOwner: TComponent);
 begin
@@ -517,6 +574,14 @@ begin
   Result := false;
 end;
 
+function TBase3D.RayCollision(
+  out IntersectionDistance: Single;
+  const Ray0, RayVector: TVector3Single;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): T3DCollision;
+begin
+  Result := nil;
+end;
+
 { TBase3DListCore ------------------------------------------------------------ }
 
 constructor TBase3DListCore.Create(const FreeObjects: boolean; const AOwner: TBase3DList);
@@ -531,39 +596,42 @@ var
 begin
   inherited;
 
-  B := TBase3D(Ptr);
+  if Owner <> nil then
+  begin
+    B := TBase3D(Ptr);
 
-  case Action of
-    lnAdded:
-      begin
-        { Make sure Owner.ListVisibleChange will be called
-          when an item calls OnVisibleChange. }
-        if B.OnVisibleChange = nil then
-          B.OnVisibleChange := @Owner.ListVisibleChange;
-        if B.OnCursorChange = nil then
-          B.OnCursorChange := @Owner.ListCursorChange;
+    case Action of
+      lnAdded:
+        begin
+          { Make sure Owner.ListVisibleChange will be called
+            when an item calls OnVisibleChange. }
+          if B.OnVisibleChange = nil then
+            B.OnVisibleChange := @Owner.ListVisibleChange;
+          if B.OnCursorChange = nil then
+            B.OnCursorChange := @Owner.ListCursorChange;
 
-        { Register Owner to be notified of item destruction. }
-        B.FreeNotification(Owner);
-      end;
-    lnExtracted, lnDeleted:
-      begin
-        if B.OnVisibleChange = @Owner.ListVisibleChange then
-          B.OnVisibleChange := nil;
-        if B.OnCursorChange = @Owner.ListCursorChange then
-          B.OnCursorChange := nil;
+          { Register Owner to be notified of item destruction. }
+          B.FreeNotification(Owner);
+        end;
+      lnExtracted, lnDeleted:
+        begin
+          if B.OnVisibleChange = @Owner.ListVisibleChange then
+            B.OnVisibleChange := nil;
+          if B.OnCursorChange = @Owner.ListCursorChange then
+            B.OnCursorChange := nil;
 
-        B.RemoveFreeNotification(Owner);
-      end;
-    else raise EInternalError.Create('TBase3DListCore.Notify action?');
+          B.RemoveFreeNotification(Owner);
+        end;
+      else raise EInternalError.Create('TBase3DListCore.Notify action?');
+    end;
+
+    { This notification may get called during FreeAndNil(FList)
+      in TBase3DList.Destroy. Then FList is already nil (as FreeAndNil
+      first sets object to nil), and Owner.ListCursorChange
+      may not be ready for this. }
+    if Owner.FList <> nil then
+      Owner.ListCursorChange(nil);
   end;
-
-  { This notification may get called during FreeAndNil(FList)
-    in TBase3DList.Destroy. Then FList is already nil (as FreeAndNil
-    first sets object to nil), and Owner.ListCursorChange
-    may not be ready for this. }
-  if Owner.FList <> nil then
-    Owner.ListCursorChange(nil);
 end;
 
 function TBase3DListCore.GetItem(const I: Integer): TBase3D;
@@ -926,23 +994,39 @@ begin
     end;
 end;
 
-(*
 function TBase3DList.RayCollision(
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): TCollisionInfo;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): T3DCollision;
 var
-  Index: Integer;
+  I: Integer;
+  ThisIntersectionDistance: Single;
+  ThisCollision: T3DCollision;
 begin
+  Result := nil;
+  IntersectionDistance := 0; { Only to silence compiler warning }
+
   if Exists and Collides then
   begin
-    Result := List.RayCollision(IntersectionDistance, Index, Ray0, RayVector,
-      TrianglesToIgnoreFunc);
+    for I := 0 to List.Count - 1 do
+    begin
+      ThisCollision := List[I].RayCollision(
+        ThisIntersectionDistance, Ray0, RayVector, nil);
+      if ThisCollision <> nil then
+      begin
+        if (Result = nil) or (ThisIntersectionDistance < IntersectionDistance) then
+        begin
+          IntersectionDistance := ThisIntersectionDistance;
+          SysUtils.FreeAndNil(Result);
+          Result := ThisCollision;
+        end else
+          SysUtils.FreeAndNil(ThisCollision);
+      end;
+    end;
+
     if Result <> nil then
       Result.Hierarchy.Insert(0, Self);
-  end else
-    Result := nil;
+  end;
 end;
-*)
 
 end.

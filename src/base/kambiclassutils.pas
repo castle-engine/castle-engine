@@ -736,6 +736,9 @@ type
       Returns how many instances were removed (that is, how much Count
       was decreased). }
     function DeleteAll(Item: TObject): Cardinal;
+
+    function IsFirst(Value: TObject): boolean;
+    function IsLast(Value: TObject): boolean;
   end;
 
 implementation
@@ -1749,6 +1752,16 @@ begin
       begin Delete(I); Inc(Result) end else
       Inc(I);
   end;
+end;
+
+function TKamObjectList.IsFirst(Value: TObject): boolean;
+begin
+  Result := (Count > 0) and (Items[0] = Value);
+end;
+
+function TKamObjectList.IsLast(Value: TObject): boolean;
+begin
+  Result := (Count > 0) and (Items[Count - 1] = Value);
 end;
 
 initialization
