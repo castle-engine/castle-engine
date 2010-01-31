@@ -54,9 +54,7 @@ type
       then Hierarchy will contain three items (in order: 1st list, 2nd list,
       TVRMLGLScene instance).
 
-      For TBase3D.RayCollision and overrides, Hierarchy is never empty.
-      TODO: for now, this is also returned by castle's level, when Hierarchy
-      may be empty (meaning that Level.Scene itself collided).  }
+      For TBase3D.RayCollision and overrides, Hierarchy is never empty. }
     Hierarchy: TBase3DListCore;
 
     { The triangle that collides. This triangle is always a part of the last
