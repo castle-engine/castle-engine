@@ -1006,8 +1006,8 @@ function TBase3DList.RayCollision(
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): T3DCollision;
 var
   I: Integer;
-  ThisIntersectionDistance: Single;
-  ThisCollision: T3DCollision;
+  NewIntersectionDistance: Single;
+  NewResult: T3DCollision;
 begin
   Result := nil;
   IntersectionDistance := 0; { Only to silence compiler warning }
@@ -1016,17 +1016,17 @@ begin
   begin
     for I := 0 to List.Count - 1 do
     begin
-      ThisCollision := List[I].RayCollision(
-        ThisIntersectionDistance, Ray0, RayVector, nil);
-      if ThisCollision <> nil then
+      NewResult := List[I].RayCollision(
+        NewIntersectionDistance, Ray0, RayVector, nil);
+      if NewResult <> nil then
       begin
-        if (Result = nil) or (ThisIntersectionDistance < IntersectionDistance) then
+        if (Result = nil) or (NewIntersectionDistance < IntersectionDistance) then
         begin
-          IntersectionDistance := ThisIntersectionDistance;
+          IntersectionDistance := NewIntersectionDistance;
           SysUtils.FreeAndNil(Result);
-          Result := ThisCollision;
+          Result := NewResult;
         end else
-          SysUtils.FreeAndNil(ThisCollision);
+          FreeAndNil(NewResult);
       end;
     end;
 

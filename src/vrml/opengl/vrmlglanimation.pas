@@ -537,6 +537,10 @@ type
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3d;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+    function RayCollision(
+      out IntersectionDistance: Single;
+      const Ray0, RayVector: TVector3Single;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): T3DCollision; override;
   published
     { Is the animation time playing, and how fast.
 
@@ -1941,42 +1945,43 @@ begin
     );
 end;
 
-(*
 function TVRMLGLAnimation.RayCollision(
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): TCollisionInfo;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): T3DCollision;
 var
-  Triangle: PVRMLTriangle;
-  Octree: TVRMLBaseTrianglesOctree;
+  NewIntersectionDistance: Single;
+  NewResult: T3DCollision;
 begin
   Result := nil;
+  IntersectionDistance := 0; { Only to silence compiler warning }
+
   if Exists and Collides then
   begin
-    Octree := FirstScene.OctreeCollisions;
-    Triangle := Octree.RayCollision(IntersectionDistance,
-      Ray0, RayVector, false, nil, false, TrianglesToIgnoreFunc);
-    if Triangle <> nil then
-    begin
-      Result := TCollisionInfo.Create;
-      Result.Triangle := Triangle;
-      Result.Hierarchy.Add(Self);
-    end else
+    Result := FirstScene.RayCollision(IntersectionDistance,
+      Ray0, RayVector, TrianglesToIgnoreFunc);
+
     if CollisionUseLastScene then
     begin
       { try the same thing on LastScene }
-      Octree := LastScene.OctreeCollisions;
-      Triangle := Octree.RayCollision(IntersectionDistance,
-        Ray0, RayVector, false, nil, false, TrianglesToIgnoreFunc);
-      if Triangle <> nil then
+      NewResult := LastScene.RayCollision(NewIntersectionDistance,
+        Ray0, RayVector, TrianglesToIgnoreFunc);
+
+      if NewResult <> nil then
       begin
-        Result := TCollisionInfo.Create;
-        Result.Triangle := Triangle;
-        Result.Hierarchy.Add(Self);
-      end
+        if (Result = nil) or (NewIntersectionDistance < IntersectionDistance) then
+        begin
+          IntersectionDistance := NewIntersectionDistance;
+          SysUtils.FreeAndNil(Result);
+          Result := NewResult;
+        end else
+          FreeAndNil(NewResult);
+      end;
     end;
+
+    if Result <> nil then
+      Result.Hierarchy.Insert(0, Self);
   end;
 end;
-*)
 
 end.

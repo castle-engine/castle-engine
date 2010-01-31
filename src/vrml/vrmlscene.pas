@@ -1839,6 +1839,10 @@ type
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3d;
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+    function RayCollision(
+      out IntersectionDistance: Single;
+      const Ray0, RayVector: TVector3Single;
+      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): T3DCollision; override;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Idle) will take care of increasing WorldTime.
@@ -6085,29 +6089,26 @@ begin
       Box,  nil, TrianglesToIgnoreFunc);
 end;
 
-(*
 function TVRMLScene.RayCollision(
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): TCollisionInfo;
+  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): T3DCollision;
 var
   Triangle: PVRMLTriangle;
 begin
   Result := nil;
-  if Exists and Collides then
+  if Exists and Collides and (OctreeCollisions <> nil) then
   begin
-    Triangle := Scene.OctreeCollisions.RayCollision(
-      IntersectionDistance,
-      Ray0, RayVector,
+    Triangle := OctreeCollisions.RayCollision(
+      IntersectionDistance, Ray0, RayVector,
       false, nil, false, TrianglesToIgnoreFunc);
     if Triangle <> nil then
     begin
-      Result := TCollisionInfo.Create;
+      Result := T3DCollision.Create;
       Result.Triangle := Triangle;
       Result.Hierarchy.Add(Self);
     end;
   end;
 end;
-*)
 
 end.
