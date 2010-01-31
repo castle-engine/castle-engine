@@ -28,20 +28,12 @@ end;
 
 * make BeforeIdle, and global WorldTime, available in SceneManager?
 
-* TLevelObjectSum owned it's items
-  also TLevelMovingObject owned MovingObject
-
 * rename TBase3D to just T3D? Name "base" is getting tiresome.
 
 * castle: make main level scene added to Controls, check receives time events (timesensor, movietexture), and mouse/key clicks (use some touchsensor).
 
 * Use SceneManager (and Camera on Glw.Controls) in castle.
-  TLevelObject should migrate to TBase3D.
-  tlevelobjectstatic to tvrmlglscene,
-  tlevelobjectanimation to tvrmlglanimation,
-  tlevelobjectsum to tbase3dlist,
-  tlevelmovingobject to TCustomTranslated3D,
-  rest may stay implemented (e.g. in castle3d.pas?)
+  Rest of level objects may stay implemented in castlelevel?
 
 - TKamSceneManager.RenderFromView3D : RenderNoShadows should split rendering
   to all tgOpaque + then all tgTransparent.
