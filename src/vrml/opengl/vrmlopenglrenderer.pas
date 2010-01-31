@@ -4549,7 +4549,7 @@ var
     begin
       if TextureNode.ParentEventsProcessor <> nil then
         SavedHandler.FdUpdate.EventIn.Send('NONE',
-          (TextureNode.ParentEventsProcessor as TVRMLScene).WorldTime) else
+          (TextureNode.ParentEventsProcessor as TVRMLScene).Time) else
         SavedHandler.FdUpdate.Value := 'NONE';
     end;
 

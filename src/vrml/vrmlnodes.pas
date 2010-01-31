@@ -1814,7 +1814,7 @@ type
       Note: While it is possble and perfectly fine to have
       the same VRML node included in more than one TVRMLScene instance,
       only one of such scenes may have ProcessEvents = @true. Otherwise,
-      some things could get unsynchronized, like WorldTime that is
+      some things could get unsynchronized, like TVRMLScene.Time that is
       also recorded in TVRMLRoute to avoid loops.
       So a node may inside at most one TVRMLScene with events processing
       at the same time. So this simple property is enough (no need to
@@ -3136,7 +3136,7 @@ type
       say that only one event per ROUTE per timestamp is allowed.
 
       Use ResetLastEventTime when you really want to reset this memory.
-      In practice, this should be used only by TVRMLScene.ResetWorldTime
+      In practice, this should be used only by TVRMLScene.ResetTime
       implementation. }
     procedure ResetLastEventTime;
 

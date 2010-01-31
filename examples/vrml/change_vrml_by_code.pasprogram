@@ -33,7 +33,7 @@
   Of course, in case of trivial animation in this program, we could
   also express it directly in VRML/X3D and just load the scene,
   setting Scene.ProcessEvents := true and then constantly calling
-  Scene.IncreaseWorldTime. This would make the scene "animate itself",
+  Scene.IncreaseTime. This would make the scene "animate itself",
   without the need for any Pascal code to do this. But, for example sake,
   we animate it by code.
 }
@@ -57,11 +57,11 @@ var
 procedure Idle(glwin: TGLWindow);
 begin
   { We want to keep track of current time here (for calculating rotations
-    below). It's most natural to just use Scene.WorldTime property for this.
-    (Scene.WorldTime is already incremented for us by SceneManager.) }
+    below). It's most natural to just use Scene.Time property for this.
+    (Scene.Time is already incremented for us by SceneManager.) }
 
   { Note that in this simple example you could avoid calling ChangedXxx by using
-      TransformBox2.FdRotation.EventIn.Send(Vector4Single(1, 0, 0, Scene.WorldTime));
+      TransformBox2.FdRotation.EventIn.Send(Vector4Single(1, 0, 0, Scene.Time));
     That is, changing field's value by event automatically calls appropriate
     ChangedField method.
 
@@ -74,13 +74,13 @@ begin
        just call ChangedFields(Node, nil) once after changing many fields
        of given node. }
 
-  TransformBox2.FdRotation.RotationRad := Scene.WorldTime.Seconds;
+  TransformBox2.FdRotation.RotationRad := Scene.Time.Seconds;
   Scene.ChangedField(TransformBox2.FdRotation);
 
-  TransformBox3.FdRotation.RotationRad := Scene.WorldTime.Seconds * 2;
+  TransformBox3.FdRotation.RotationRad := Scene.Time.Seconds * 2;
   Scene.ChangedField(TransformBox3.FdRotation);
 
-  TransformBox4.FdRotation.RotationRad := Scene.WorldTime.Seconds * 4;
+  TransformBox4.FdRotation.RotationRad := Scene.Time.Seconds * 4;
   Scene.ChangedField(TransformBox4.FdRotation);
 end;
 

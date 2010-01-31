@@ -139,7 +139,7 @@ procedure TNodeX3DScriptNode.ExecuteScript(const FunctionName: string;
       if HandlerInfos.Items[I].Name = HandlerName then
       begin
         HandlerInfos.Items[I].Handler(ReceivedValue,
-          TVRMLScene(ParentEventsProcessor).WorldTime);
+          TVRMLScene(ParentEventsProcessor).Time);
         Break;
       end;
   end;
@@ -176,7 +176,7 @@ begin
           end else
             ParameterValue := nil;
           ParameterTime := TKamScriptFloat.Create(true,
-            TVRMLScene(ParentEventsProcessor).WorldTime.Seconds);
+            TVRMLScene(ParentEventsProcessor).Time.Seconds);
           try
             KambiScriptVariables.BeforeExecute;
             try

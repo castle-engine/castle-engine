@@ -661,7 +661,7 @@ begin
       try
         ChildrenToSend.AddItem(NewNode);
         EventChildren.Send(ChildrenToSend,
-          (ParentEventsProcessor as TVRMLScene).WorldTime);
+          (ParentEventsProcessor as TVRMLScene).Time);
       finally FreeAndNil(ChildrenToSend) end;
     end;
   end;

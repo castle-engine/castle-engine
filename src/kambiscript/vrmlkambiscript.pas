@@ -311,7 +311,7 @@ procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
     if Result then
     begin
       Time := TVRMLScene(TVRMLNode(FieldOrEvent.ParentNode).
-        ParentEventsProcessor).WorldTime;
+        ParentEventsProcessor).Time;
     end;
   end;
 

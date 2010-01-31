@@ -280,7 +280,7 @@ var
         So the lacks of current Text rendering implementation
         make this somewhat simple :) }
 
-      Time := (Geometry.ParentEventsProcessor as TVRMLScene).WorldTime;
+      Time := (Geometry.ParentEventsProcessor as TVRMLScene).Time;
 
       FinalRowHeight := CurrentFont.RowHeight * Spacing * YScale;
 

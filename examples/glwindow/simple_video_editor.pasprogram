@@ -33,7 +33,7 @@ var
   Video: TVideo;
   VideoFileName: string;
 
-  WorldTime: TKamTime;
+  Time: TKamTime;
   TimePlaying: boolean = true;
 
   StatusFont: TGLBitmapFont;
@@ -55,7 +55,7 @@ const
     glTranslatef(5, 5, 0);
     Strs := TStringList.Create;
     try
-      S := Format('World time: %f', [WorldTime]);
+      S := Format('Video time: %f', [Time]);
       if not TimePlaying then
         S += ' (paused)';
       Strs.Append(S);
@@ -82,7 +82,7 @@ begin
   glRasterPos2i(0, 0);
   if Video.Loaded then
   begin
-    ImageDraw(Video.ImageFromTime(WorldTime));
+    ImageDraw(Video.ImageFromTime(Time));
 
     { draw time of the video bar }
     glColorv(Black4Single);
@@ -90,7 +90,7 @@ begin
     glColorv(Vector4Single(0.5, 0.5, 0.5, 1));
     glRectf(TimeBarMargin, Glwin.Height - TimeBarHeight + TimeBarMargin,
       MapRange(
-        Video.IndexFromTime(WorldTime),
+        Video.IndexFromTime(Time),
         0, Video.Count - 1,
         TimeBarMargin, Glwin.Width - TimeBarMargin),
       Glwin.Height - TimeBarMargin);
@@ -102,7 +102,7 @@ end;
 procedure Idle(Glwin: TGLWindow);
 begin
   if TimePlaying then
-    WorldTime += Glwin.Fps.IdleSpeed;
+    Time += Glwin.Fps.IdleSpeed;
 end;
 
 procedure LoadVideo(const NewVideoFileName: string);
@@ -110,7 +110,7 @@ begin
   try
     Video.LoadFromFile(NewVideoFileName);
     VideoFileName := NewVideoFileName;
-    WorldTime := 0;
+    Time := 0;
     MenuEdit.Enabled := Video.Loaded;
     MenuRevert.Enabled := Video.Loaded;
     MenuSave.Enabled := Video.Loaded;
@@ -175,7 +175,7 @@ begin
       end;
     20: Glwin.Close;
     110: TimePlaying := not TimePlaying;
-    120: WorldTime := 0;
+    120: Time := 0;
     130: Video.TimeLoop := not Video.TimeLoop;
     140: Video.TimeBackwards := not Video.TimeBackwards;
 

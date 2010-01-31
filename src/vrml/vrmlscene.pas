@@ -614,10 +614,10 @@ type
     procedure ScriptsInitialize(Node: TVRMLNode);
     procedure ScriptsDeInitialize(Node: TVRMLNode);
   private
-    FWorldTime: TVRMLTime;
+    FTime: TVRMLTime;
 
-    { Internal procedure that handles WorldTime changes. }
-    procedure InternalSetWorldTime(
+    { Internal procedure that handles Time changes. }
+    procedure InternalSetTime(
       const NewValue: TVRMLTime; const TimeIncrease: TKamTime);
 
     procedure ResetLastEventTime(Node: TVRMLNode);
@@ -854,11 +854,11 @@ type
     { Load new 3D model (from VRML node tree).
       This replaces RootNode with new value.
 
-      If AResetWorldTime, we will also do ResetWorldTimeAtLoad,
-      changing WorldTime --- this is usually what you want when you
+      If AResetTime, we will also do ResetTimeAtLoad,
+      changing @link(Time) --- this is usually what you want when you
       really load a new world. }
     procedure Load(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-      const AResetWorldTime: boolean = true);
+      const AResetTime: boolean = true);
 
     { Load the 3D model from given AFileName.
 
@@ -871,7 +871,7 @@ type
         as WWWBasePath (to resolve relative URLs from the file).
         Currently, this limits the file to be VRML/X3D.) }
     procedure Load(const AFileName: string; AllowStdIn: boolean = false;
-      const AResetWorldTime: boolean = true);
+      const AResetTime: boolean = true);
 
     destructor Destroy; override;
 
@@ -1557,10 +1557,10 @@ type
 
     procedure Idle(const CompSpeed: Single); override;
 
-    { These change world time, see WorldTime.
+    { These change current scene time, setting @link(Time).
       It is crucial that you call this continously to have some VRML
       time-dependent features working, like TimeSensor and MovieTexture.
-      See WorldTime for details what is affected by this.
+      See @link(Time) for details what is affected by this.
 
       This is automatically taken care of if you added this scene
       to TGLUIWindow.Controls or TKamOpenGLControl.Controls.
@@ -1570,55 +1570,55 @@ type
       This causes time to be passed to appropriate time-dependent nodes,
       events will be called etc.
 
-      SetWorldTime and IncreaseWorldTime do exactly the same, the difference is
-      only that for IncreaseWorldTime you specify increase in the time
-      (that is, NewTime = WorldTime + TimeIncrease). Use whichever version
+      SetTime and IncreaseTime do exactly the same, the difference is
+      only that for IncreaseTime you specify increase in the time
+      (that is, NewTime = @link(Time) + TimeIncrease). Use whichever version
       is more handy.
 
       Following X3D specification, time should only grow. So NewValue should
-      be > WorldTime (or TimeIncrease > 0).
+      be > @link(Time) (or TimeIncrease > 0).
       Otherwise we ignore this call.
-      For resetting the time (when you don't necessarily want to grow WorldTime)
-      see ResetWorldTime.
+      For resetting the time (when you don't necessarily want to grow @link(Time))
+      see ResetTime.
 
-      If a change of WorldTime will produce some visible change in VRML model
+      If a change of Time will produce some visible change in VRML model
       (for example, MovieTexture will change, or TimeSensor change will be
       routed by interpolator to coordinates of some visible node) this
       will be notified by usual method, that is OnVisibleChange.
 
       @groupBegin }
-    procedure SetWorldTime(const NewValue: TKamTime);
-    procedure IncreaseWorldTime(const TimeIncrease: TKamTime);
+    procedure SetTime(const NewValue: TKamTime);
+    procedure IncreaseTime(const TimeIncrease: TKamTime);
     { @groupEnd }
 
-    { This is the world time, that is passed to time-dependent nodes.
+    { This is the scene time, that is passed to time-dependent nodes.
       See X3D specification "Time" component about time-dependent nodes.
       In short, this "drives" the time passed to TimeSensor, MovieTexture
-      and AudioClip. See SetWorldTime for changing this.
+      and AudioClip. See SetTime for changing this.
 
       Default value is 0.0 (zero). }
-    property WorldTime: TVRMLTime read FWorldTime;
+    property Time: TVRMLTime read FTime;
 
-    { Set WorldTime to arbitrary value.
+    { Set @link(Time) to arbitrary value.
 
       You should only use this when you loaded new VRML model.
 
-      Unlike SetWorldTime and IncreaseWorldTime, this doesn't require that
-      WorldTime grows. It still does some time-dependent events work,
+      Unlike SetTime and IncreaseTime, this doesn't require that
+      @link(Time) grows. It still does some time-dependent events work,
       although some time-dependent nodes may be just unconditionally reset
       by this to starting value (as they keep local time, and so require
       TimeIncrease notion, without it we can only reset them).
 
       @groupBegin }
-    procedure ResetWorldTime(const NewValue: TKamTime);
+    procedure ResetTime(const NewValue: TKamTime);
     { @groupEnd }
 
-    { Set WorldTime to initial value after loading a world.
+    { Set @link(Time) to suitable initial value after loading a world.
 
       This honours VRML specification about VRML time origin,
       and our extension
       [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_time_origin_at_load]. }
-    procedure ResetWorldTimeAtLoad;
+    procedure ResetTimeAtLoad;
 
     { Binding stack of X3DBackgroundNode nodes.
       All descend from TNodeX3DBackgroundNode class. }
@@ -1845,7 +1845,7 @@ type
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): T3DCollision; override;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
-      More precisely, our @link(Idle) will take care of increasing WorldTime.
+      More precisely, our @link(Idle) will take care of increasing @link(Time).
       Our @link(Idle) is usually automatically called (if you added this
       scene to TGLUIWindow.Controls or TKamOpenGLControl.Controls)
       so you don't have to do anything to make this work. }
@@ -1879,7 +1879,7 @@ type
       If @true, then we will implement whole VRML event mechanism here,
       as expected from a VRML browser. Events will be send and received
       through routes, time dependent nodes (X3DTimeDependentNode,
-      like TimeSensor) will be activated and updated from WorldTime time
+      like TimeSensor) will be activated and updated from @link(Time) time
       property, KeyDown, KeyUp and other methods will activate
       key/mouse sensor nodes, scripts will be initialized and work, etc.
 
@@ -1940,8 +1940,8 @@ procedure TVRMLBindableStack.SendIsBound(Node: TNodeX3DBindableNode;
 begin
   if Node <> nil then
   begin
-    Node.EventIsBound.Send(Value, ParentScene.WorldTime);
-    Node.EventBindTime.Send(ParentScene.WorldTime.Seconds, ParentScene.WorldTime);
+    Node.EventIsBound.Send(Value, ParentScene.Time);
+    Node.EventBindTime.Send(ParentScene.Time.Seconds, ParentScene.Time);
   end;
 end;
 
@@ -2245,7 +2245,7 @@ begin
 end;
 
 procedure TVRMLScene.Load(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-  const AResetWorldTime: boolean);
+  const AResetTime: boolean);
 begin
   PointingDeviceClear;
   if OwnsRootNode then FreeAndNil(FRootNode);
@@ -2254,17 +2254,17 @@ begin
   OwnsRootNode := AOwnsRootNode;
   ScheduleChangedAll;
 
-  if AResetWorldTime then
-    ResetWorldTimeAtLoad;
+  if AResetTime then
+    ResetTimeAtLoad;
 end;
 
 procedure TVRMLScene.Load(const AFileName: string; AllowStdIn: boolean;
-  const AResetWorldTime: boolean);
+  const AResetTime: boolean);
 begin
   { Note that if LoadAsVRML fails, we will not change the RootNode,
     so currently loaded scene will remain valid. }
 
-  Load(LoadAsVRML(AFileName, AllowStdIn), true, AResetWorldTime);
+  Load(LoadAsVRML(AFileName, AllowStdIn), true, AResetTime);
 
   FFileName := AFileName;
 end;
@@ -2582,7 +2582,7 @@ begin
        (LODTree.Children.Count <> 0) then
     begin
       LODTree.WasLevel_ChangedSend := true;
-      LODTree.LODNode.EventLevel_Changed.Send(LongInt(NewLevel), WorldTime);
+      LODTree.LODNode.EventLevel_Changed.Send(LongInt(NewLevel), Time);
     end;
 
     if OldLevel <> NewLevel then
@@ -3041,17 +3041,17 @@ var
     DummySomethingChanged: boolean;
   begin
     { Although (de)activation of time-dependent nodes will be also catched
-      by the nearest IncreaseWorldTime run, it's good to explicitly
-      call SetWorldTime to catch it here.
+      by the nearest IncreaseTime run, it's good to explicitly
+      call SetTime to catch it here.
 
       Reason: if cycleInterval is very small, and not looping, then
       we could "miss" the fact that node should be activated (if it
-      was inactive, and next IncreaseWorldTime will happen after
+      was inactive, and next IncreaseTime will happen after
       cycleInterval time already passed).
 
       Code below will make sure that no matter how small cycleInterval,
-      no matter how seldom IncreaseWorldTime occur, the node will get
-      activated when doing something like startTime := WorldTime. }
+      no matter how seldom IncreaseTime occur, the node will get
+      activated when doing something like startTime := Time. }
 
     if (Field = nil) or
        (Field = Handler.FdPauseTime) or
@@ -3059,7 +3059,7 @@ var
        (Field = Handler.FdstartTime) or
        (Field = Handler.FdstopTime) then
     begin
-      Handler.SetWorldTime(WorldTime, WorldTime, 0, DummySomethingChanged);
+      Handler.SetTime(Time, Time, 0, DummySomethingChanged);
 
       { DummySomethingChanged is simply ignored here (we do not have to report
         changes anywhere). }
@@ -3446,7 +3446,7 @@ begin
     begin
       ChangedTimeDependentNode(TNodeMovieTexture(Node).TimeDependentNodeHandler);
       { No need to do VisibleSceneChange.
-        Redisplay will be done by next IncreaseWorldTime run, if active now. }
+        Redisplay will be done by next IncreaseTime run, if active now. }
       Exit;
     end else
     if Node is TNodeTimeSensor then
@@ -4739,7 +4739,7 @@ end;
 
   - for time-dependent nodes (TimeSensor, MovieTexture etc.),
     duplicates would cause time to be then incremented many times
-    during single SetWorldTime, so their local time would grow too fast.
+    during single SetTime, so their local time would grow too fast.
 
   - for other sensors, events would be passed twice.
 }
@@ -4834,7 +4834,7 @@ procedure TVRMLScene.SetProcessEvents(const Value: boolean);
   var
     I: Integer;
   begin
-    Inc(FWorldTime.PlusTicks);
+    Inc(FTime.PlusTicks);
     BeginChangesSchedule;
     try
       if IsLastViewer then
@@ -4909,7 +4909,7 @@ begin
 
   if ProcessEvents then
   begin
-    Inc(FWorldTime.PlusTicks);
+    Inc(FTime.PlusTicks);
     BeginChangesSchedule;
     try
       for I := 0 to KeySensorNodes.Count - 1 do
@@ -4920,15 +4920,15 @@ begin
           { Do not treat it as handled (returning ExclusiveEvents),
             this would disable too much (like Camera usually under Scene on Controls).
           Result := false; }
-          KeySensor.EventIsActive.Send(true, WorldTime);
+          KeySensor.EventIsActive.Send(true, Time);
           if KeyToActionKey(Key, ActionKey) then
-            KeySensor.EventActionKeyPress.Send(ActionKey, WorldTime);
+            KeySensor.EventActionKeyPress.Send(ActionKey, Time);
           if C <> #0 then
-            KeySensor.EventKeyPress.Send(C, WorldTime);
+            KeySensor.EventKeyPress.Send(C, Time);
           case Key of
-            K_Alt: KeySensor.EventAltKey.Send(true, WorldTime);
-            K_Ctrl: KeySensor.EventControlKey.Send(true, WorldTime);
-            K_Shift: KeySensor.EventShiftKey.Send(true, WorldTime);
+            K_Alt: KeySensor.EventAltKey.Send(true, Time);
+            K_Ctrl: KeySensor.EventControlKey.Send(true, Time);
+            K_Shift: KeySensor.EventShiftKey.Send(true, Time);
           end;
         end;
       end;
@@ -4947,7 +4947,7 @@ begin
 
   if ProcessEvents then
   begin
-    Inc(FWorldTime.PlusTicks);
+    Inc(FTime.PlusTicks);
     BeginChangesSchedule;
     try
       for I := 0 to KeySensorNodes.Count - 1 do
@@ -4958,15 +4958,15 @@ begin
           { Do not treat it as handled (returning ExclusiveEvents),
             this would disable too much (like Camera usually under Scene on Controls).
           Result := false; }
-          KeySensor.EventIsActive.Send(false, WorldTime);
+          KeySensor.EventIsActive.Send(false, Time);
           if KeyToActionKey(Key, ActionKey) then
-            KeySensor.EventActionKeyRelease.Send(ActionKey, WorldTime);
+            KeySensor.EventActionKeyRelease.Send(ActionKey, Time);
           if C <> #0 then
-            KeySensor.EventKeyRelease.Send(C, WorldTime);
+            KeySensor.EventKeyRelease.Send(C, Time);
           case Key of
-            K_Alt: KeySensor.EventAltKey.Send(false, WorldTime);
-            K_Ctrl: KeySensor.EventControlKey.Send(false, WorldTime);
-            K_Shift: KeySensor.EventShiftKey.Send(false, WorldTime);
+            K_Alt: KeySensor.EventAltKey.Send(false, Time);
+            K_Ctrl: KeySensor.EventControlKey.Send(false, Time);
+            K_Shift: KeySensor.EventShiftKey.Send(false, Time);
           end;
         end;
       end;
@@ -4987,7 +4987,7 @@ var
 begin
   if ProcessEvents then
   begin
-    Inc(FWorldTime.PlusTicks);
+    Inc(FTime.PlusTicks);
     { Note that using Begin/EndChangesSchedule is not only for efficiency
       here. It's also sometimes needed to keep the code correct: note
       that ChangedAll changes everything, including State pointers.
@@ -5022,7 +5022,7 @@ begin
 
             if OldIsOver <> NewIsOver then
             begin
-              PointingDeviceActiveSensor.EventIsOver.Send(NewIsOver, WorldTime);
+              PointingDeviceActiveSensor.EventIsOver.Send(NewIsOver, Time);
             end;
           end;
         end else
@@ -5060,7 +5060,7 @@ begin
             begin
               if (OldSensors[I] is TNodeX3DPointingDeviceSensorNode) and
                 TNodeX3DPointingDeviceSensorNode(OldSensors[I]).FdEnabled.Value then
-                TNodeX3DPointingDeviceSensorNode(OldSensors[I]).EventIsOver.Send(false, WorldTime);
+                TNodeX3DPointingDeviceSensorNode(OldSensors[I]).EventIsOver.Send(false, Time);
             end;
 
           for I := 0 to NewSensors.Count - 1 do
@@ -5068,7 +5068,7 @@ begin
             begin
               if (NewSensors[I] is TNodeX3DPointingDeviceSensorNode) and
                 TNodeX3DPointingDeviceSensorNode(NewSensors[I]).FdEnabled.Value then
-                TNodeX3DPointingDeviceSensorNode(NewSensors[I]).EventIsOver.Send(true, WorldTime);
+                TNodeX3DPointingDeviceSensorNode(NewSensors[I]).EventIsOver.Send(true, Time);
             end;
         end else
         if PointingDeviceOverItem <> nil then
@@ -5081,7 +5081,7 @@ begin
           for I := 0 to OldSensors.Count - 1 do
             if (OldSensors[I] is TNodeX3DPointingDeviceSensorNode) and
               TNodeX3DPointingDeviceSensorNode(OldSensors[I]).FdEnabled.Value then
-              TNodeX3DPointingDeviceSensorNode(OldSensors[I]).EventIsOver.Send(false, WorldTime);
+              TNodeX3DPointingDeviceSensorNode(OldSensors[I]).EventIsOver.Send(false, Time);
         end else
         begin
           Assert(OverItem <> nil);
@@ -5094,7 +5094,7 @@ begin
           for I := 0 to NewSensors.Count - 1 do
             if (NewSensors[I] is TNodeX3DPointingDeviceSensorNode) and
               TNodeX3DPointingDeviceSensorNode(NewSensors[I]).FdEnabled.Value then
-              TNodeX3DPointingDeviceSensorNode(NewSensors[I]).EventIsOver.Send(true, WorldTime);
+              TNodeX3DPointingDeviceSensorNode(NewSensors[I]).EventIsOver.Send(true, Time);
         end;
 
         FPointingDeviceOverItem := OverItem;
@@ -5117,12 +5117,12 @@ begin
               TouchSensor.EventHitPoint_Changed.Send(
                 { hitPoint_changed event wants a point in local coords,
                   we can get this by InverseTransform. }
-                MatrixMultPoint(OverItem^.State.InvertedTransform, OverPoint), WorldTime);
+                MatrixMultPoint(OverItem^.State.InvertedTransform, OverPoint), Time);
 
               { The best normal I can generate for now is flat normal
                 for the hit triangle. }
               TouchSensor.EventHitNormal_Changed.Send(
-                OverItem^.World.Normal, WorldTime);
+                OverItem^.World.Normal, Time);
 
               { TODO: hitTexCoord_changed generation should also be done
                 here, but honestly I just cannot do this with current
@@ -5177,9 +5177,9 @@ procedure TVRMLScene.SetPointingDeviceActive(const Value: boolean);
     if Anchor.LoadAnchor(NewRootNode, NewViewpoint, RootNode) then
     begin
       if NewRootNode <> nil then
-        Load(NewRootNode, true, { do not reset WorldTime } false);
+        Load(NewRootNode, true, { do not reset Time } false);
       if NewViewpoint <> nil then
-        NewViewpoint.EventSet_Bind.Send(true, WorldTime);
+        NewViewpoint.EventSet_Bind.Send(true, Time);
     end;
   end;
 
@@ -5190,7 +5190,7 @@ var
 begin
   if ProcessEvents and (FPointingDeviceActive <> Value) then
   begin
-    Inc(FWorldTime.PlusTicks);
+    Inc(FTime.PlusTicks);
     BeginChangesSchedule;
     try
       FPointingDeviceActive := Value;
@@ -5214,7 +5214,7 @@ begin
               begin
                 FPointingDeviceActiveSensor :=
                   TNodeX3DPointingDeviceSensorNode(ToActivate);
-                PointingDeviceActiveSensor.EventIsActive.Send(true, WorldTime);
+                PointingDeviceActiveSensor.EventIsActive.Send(true, Time);
                 DoPointingDeviceSensorsChange;
               end;
               Break;
@@ -5232,7 +5232,7 @@ begin
         { Deactivate PointingDeviceActiveSensor (if any) }
         if PointingDeviceActiveSensor <> nil then
         begin
-          PointingDeviceActiveSensor.EventIsActive.Send(false, WorldTime);
+          PointingDeviceActiveSensor.EventIsActive.Send(false, Time);
           { If we're still over the sensor, generate touchTime for TouchSensor }
           if (PointingDeviceOverItem <> nil) and
              (PointingDeviceOverItem^.State.PointingDeviceSensors.
@@ -5240,7 +5240,7 @@ begin
              (PointingDeviceActiveSensor is TNodeTouchSensor) then
           begin
             TNodeTouchSensor(PointingDeviceActiveSensor).
-              EventTouchTime.Send(WorldTime.Seconds, WorldTime);
+              EventTouchTime.Send(Time.Seconds, Time);
           end;
           FPointingDeviceActiveSensor := nil;
           DoPointingDeviceSensorsChange;
@@ -5308,9 +5308,9 @@ begin
   end;
 end;
 
-{ WorldTime stuff ------------------------------------------------------------ }
+{ Time stuff ------------------------------------------------------------ }
 
-procedure TVRMLScene.InternalSetWorldTime(
+procedure TVRMLScene.InternalSetTime(
   const NewValue: TVRMLTime; const TimeIncrease: TKamTime);
 var
   SomethingChanged: boolean;
@@ -5324,8 +5324,8 @@ begin
 
       for I := 0 to MovieTextureNodes.Count - 1 do
         (MovieTextureNodes.Items[I] as TNodeMovieTexture).
-          TimeDependentNodeHandler.SetWorldTime(
-            WorldTime, NewValue, TimeIncrease, SomethingChanged);
+          TimeDependentNodeHandler.SetTime(
+            Time, NewValue, TimeIncrease, SomethingChanged);
 
       { If SomethingChanged on MovieTexture nodes, then we have to redisplay.
         Note that this is not needed for other time-dependent nodes
@@ -5337,36 +5337,36 @@ begin
 
       for I := 0 to TimeSensorNodes.Count - 1 do
         (TimeSensorNodes.Items[I] as TNodeTimeSensor).
-          TimeDependentNodeHandler.SetWorldTime(
-            WorldTime, NewValue, TimeIncrease, SomethingChanged);
+          TimeDependentNodeHandler.SetTime(
+            Time, NewValue, TimeIncrease, SomethingChanged);
     finally
       EndChangesSchedule;
     end;
   end;
 
-  FWorldTime := NewValue;
+  FTime := NewValue;
 end;
 
-procedure TVRMLScene.SetWorldTime(const NewValue: TKamTime);
+procedure TVRMLScene.SetTime(const NewValue: TKamTime);
 var
   TimeIncrease: TKamTime;
   NewCompleteValue: TVRMLTime;
 begin
   NewCompleteValue.Seconds := NewValue;
   NewCompleteValue.PlusTicks := 0;
-  TimeIncrease := NewValue - FWorldTime.Seconds;
+  TimeIncrease := NewValue - FTime.Seconds;
   if TimeIncrease > 0 then
-    InternalSetWorldTime(NewCompleteValue, TimeIncrease);
+    InternalSetTime(NewCompleteValue, TimeIncrease);
 end;
 
-procedure TVRMLScene.IncreaseWorldTime(const TimeIncrease: TKamTime);
+procedure TVRMLScene.IncreaseTime(const TimeIncrease: TKamTime);
 var
   NewCompleteValue: TVRMLTime;
 begin
-  NewCompleteValue.Seconds := FWorldTime.Seconds + TimeIncrease;
+  NewCompleteValue.Seconds := FTime.Seconds + TimeIncrease;
   NewCompleteValue.PlusTicks := 0;
   if TimeIncrease > 0 then
-    InternalSetWorldTime(NewCompleteValue, TimeIncrease);
+    InternalSetTime(NewCompleteValue, TimeIncrease);
 end;
 
 procedure TVRMLScene.ResetLastEventTime(Node: TVRMLNode);
@@ -5379,7 +5379,7 @@ begin
     TNodeX3DScriptNode(Node).ResetLastEventTimes;
 end;
 
-procedure TVRMLScene.ResetWorldTime(const NewValue: TKamTime);
+procedure TVRMLScene.ResetTime(const NewValue: TKamTime);
 var
   NewCompleteValue: TVRMLTime;
 begin
@@ -5388,20 +5388,20 @@ begin
 
   NewCompleteValue.Seconds := NewValue;
   NewCompleteValue.PlusTicks := 0;
-  InternalSetWorldTime(NewCompleteValue, 0);
+  InternalSetTime(NewCompleteValue, 0);
 end;
 
-procedure TVRMLScene.ResetWorldTimeAtLoad;
+procedure TVRMLScene.ResetTimeAtLoad;
 var
-  WorldTimeAtLoad: TKamTime;
+  TimeAtLoad: TKamTime;
 begin
   if (NavigationInfoStack.Top <> nil) and
      (NavigationInfoStack.Top is TNodeKambiNavigationInfo) and
      TNodeKambiNavigationInfo(NavigationInfoStack.Top).FdTimeOriginAtLoad.Value
     then
-    WorldTimeAtLoad := 0.0 else
-    WorldTimeAtLoad := DateTimeToUnix(Now);
-  ResetWorldTime(WorldTimeAtLoad);
+    TimeAtLoad := 0.0 else
+    TimeAtLoad := DateTimeToUnix(Now);
+  ResetTime(TimeAtLoad);
 end;
 
 procedure TVRMLScene.Idle(const CompSpeed: Single);
@@ -5413,7 +5413,7 @@ begin
     In this case, time increase will be zero so the whole code
     will not do anything anyway. }
   if TimePlaying and (CompSpeed <> 0) then
-    IncreaseWorldTime(TimePlayingSpeed * CompSpeed);
+    IncreaseTime(TimePlayingSpeed * CompSpeed);
 end;
 
 { geometry changes schedule -------------------------------------------------- }
@@ -5552,10 +5552,10 @@ begin
       if NewIsActive <> PSI.IsActive then
       begin
         PSI.IsActive := NewIsActive;
-        Node.EventIsActive.Send(NewIsActive, WorldTime);
+        Node.EventIsActive.Send(NewIsActive, Time);
         if NewIsActive then
-          Node.EventEnterTime.Send(WorldTime.Seconds, WorldTime) else
-          Node.EventExitTime.Send(WorldTime.Seconds, WorldTime);
+          Node.EventEnterTime.Send(Time.Seconds, Time) else
+          Node.EventExitTime.Send(Time.Seconds, Time);
       end;
 
       { Call position_changed, orientation_changed, even if this is just
@@ -5566,13 +5566,13 @@ begin
 
       if NewIsActive then
       begin
-        Node.EventPosition_Changed.Send(Position, WorldTime);
+        Node.EventPosition_Changed.Send(Position, Time);
         if Node.EventOrientation_Changed.SendNeeded then
         begin
           Direction := MatrixMultDirection(PSI.InvertedTransform, LastViewerDirection);
           Up        := MatrixMultDirection(PSI.InvertedTransform, LastViewerUp);
           Node.EventOrientation_Changed.Send(
-            CamDirUp2Orient(Direction, Up), WorldTime);
+            CamDirUp2Orient(Direction, Up), Time);
         end;
         { TODO: centerOfRotation_changed }
       end;
@@ -5598,7 +5598,7 @@ begin
 
     if ProcessEvents then
     begin
-      Inc(FWorldTime.PlusTicks);
+      Inc(FTime.PlusTicks);
       for I := 0 to ProximitySensorInstances.Count - 1 do
         ProximitySensorUpdate(ProximitySensorInstances.Items[I]);
     end;
@@ -5963,24 +5963,24 @@ begin
 
     BeginChangesSchedule;
     try
-      Inc(FWorldTime.PlusTicks);
+      Inc(FTime.PlusTicks);
 
       if V.EventCameraMatrix.SendNeeded then
-        V.EventCameraMatrix.Send(RenderState.CameraMatrix, WorldTime);
+        V.EventCameraMatrix.Send(RenderState.CameraMatrix, Time);
 
       if V.EventCameraInverseMatrix.SendNeeded then
       begin
         RenderState.CameraInverseMatrixNeeded;
-        V.EventCameraInverseMatrix.Send(RenderState.CameraInverseMatrix, WorldTime);
+        V.EventCameraInverseMatrix.Send(RenderState.CameraInverseMatrix, Time);
       end;
 
       if V.EventCameraRotationMatrix.SendNeeded then
-        V.EventCameraRotationMatrix.Send(RenderState.CameraRotationMatrix3, WorldTime);
+        V.EventCameraRotationMatrix.Send(RenderState.CameraRotationMatrix3, Time);
 
       if V.EventCameraRotationInverseMatrix.SendNeeded then
       begin
         RenderState.CameraRotationInverseMatrixNeeded;
-        V.EventCameraRotationInverseMatrix.Send(RenderState.CameraRotationInverseMatrix3, WorldTime);
+        V.EventCameraRotationInverseMatrix.Send(RenderState.CameraRotationInverseMatrix3, Time);
       end;
     finally EndChangesSchedule end;
   end;

@@ -78,7 +78,7 @@ var
 procedure KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
 begin
   if C = ' ' then
-    Animation.ResetWorldTime(0.0);
+    Animation.ResetTime(0.0);
 end;
 
 procedure LoadAnimationFromCommandLine(Animation: TVRMLGLAnimation);

@@ -88,8 +88,8 @@ type
     FLoaded: boolean;
     FTimePlaying: boolean;
     FTimePlayingSpeed: Single;
-    FWorldTimeAtLoad: TKamTime;
-    FWorldTime: TKamTime;
+    FTimeAtLoad: TKamTime;
+    FTime: TKamTime;
 
     ValidBoundingBox: boolean;
     FBoundingBox: TBox3d;
@@ -403,9 +403,9 @@ type
     }
     function SceneFromTime(const Time: Single): TVRMLGLScene;
 
-    { Appropriate scene from @link(Scenes) based on given WorldTime.
-      This is just a shortcut for SceneFromTime(WorldTime),
-      useful if you track animation time in our WorldTime property. }
+    { Appropriate scene from @link(Scenes) based on current @link(Time).
+      This is just a shortcut for SceneFromTime(@link(Time)),
+      useful if you track animation time in our @link(Time) property. }
     function CurrentScene: TVRMLGLScene;
 
     { Attributes controlling rendering.
@@ -475,37 +475,37 @@ type
 
     procedure Idle(const CompSpeed: Single); override;
 
-    { Initial world time, set by the ResetWorldTimeAtLoad call.
+    { Initial world time, set by the ResetTimeAtLoad call.
       This can be useful for showing user
-      time like "WorldTime: LoadTime + %f" on status bar.
+      time like @code("Animation Time: LoadTime + %f") on status bar.
 
-      0 means that starting WorldTime was TimeBegin of the animation
+      0 means that starting @link(Time) was TimeBegin of the animation
       (0.0 in case of normal VRML files, usually 0.0 in case of Kanim).
       Note that even when TimeBegin <> 0 (for Kanim), we still set
-      WorldTimeAtLoad to 0, this is nicer to show to user.
+      TimeAtLoad to 0, this is nicer to show to user.
 
       Other value means that we used current real time as time origin,
       following VRML/X3D specification.
       See also [http://vrmlengine.sourceforge.net/vrml_time_origin_considered_uncomfortable.php] }
-    property WorldTimeAtLoad: TKamTime read FWorldTimeAtLoad;
+    property TimeAtLoad: TKamTime read FTimeAtLoad;
 
     { Current time of the animation. Although you do not have to use it:
       you can always acccess any point in time of the animtion by SceneFromTime.
       But sometimes tracking the current time here is most natural
       and comfortable.
 
-      When we have exactly one scene in Scenes, our methods (ResetWorldTime,
-      ResetWorldTimeAtLoad and Idle) will synchronize Scenes[0].WorldTime
-      always to the same value as our own WorldTime.
+      When we have exactly one scene in Scenes, our methods (ResetTime,
+      ResetTimeAtLoad and Idle) will synchronize Scenes[0].Time
+      always to the same value as our own @link(Time).
       This makes time-dependent nodes (like TimeSensor,
       MovieTexture etc.) inside this scene work Ok. }
-    property WorldTime: TKamTime read FWorldTime;
+    property Time: TKamTime read FTime;
 
-    { Set WorldTime to initial value after loading a world. }
-    procedure ResetWorldTimeAtLoad(const ForceTimeOrigin: boolean = false);
+    { Set @link(Time) to initial value after loading a world. }
+    procedure ResetTimeAtLoad(const ForceTimeOrigin: boolean = false);
 
-    { Set WorldTime to arbitrary value. }
-    procedure ResetWorldTime(const NewValue: TKamTime);
+    { Set @link(Time) to arbitrary value. }
+    procedure ResetTime(const NewValue: TKamTime);
 
     procedure Render(const Frustum: TFrustum;
       TransparentGroup: TTransparentGroup;
@@ -547,13 +547,13 @@ type
       For exact meaning of our TimePlaying, TimePlayingSpeed, see
       TVRMLScene.TimePlaying, TVRMLScene.TimePlayingSpeed.
       Like in TVRMLScene, these are realized by our @link(Idle) method,
-      so WorldTime is automatically increased in @link(Idle) which is called
+      so Time is automatically increased in @link(Idle) which is called
       automatically if you added this to some TGLUIWindow.Controls or
       TKamOpenGLControl.Controls.
 
       Note that Scenes[0].TimePlaying, Scenes[0].TimePlayingSpeed do not matter
       when you're operating on the TVRMLGLAnimation level.
-      They will not affect our WorldTime, or even Scenes[0].WorldTime,
+      They will not affect our @link(Time), or even Scenes[0].Time,
       and they will not be synchronized with our values.
 
       @groupBegin }
@@ -608,7 +608,7 @@ type
       Although it seems like a totally dumb way to check for collisions,
       it's suitable for many purposes (see e.g. uses on "castle hall" level),
       it's simple and not memory-consuming, and you don't have to take
-      any action when animation frame changes (because WorldTime changes
+      any action when animation frame changes (because @link(Time) changes
       don't change the colliding geometry, so the animation is static from
       the point of view of collision checking routines).
 
@@ -1275,8 +1275,8 @@ begin
     Time += Index / LoadFromVRMLEvents_ScenesPerTime;
 
   if Index = 0 then
-    LoadFromVRMLEvents_Scene.ResetWorldTime(Time) else
-    LoadFromVRMLEvents_Scene.SetWorldTime(Time);
+    LoadFromVRMLEvents_Scene.ResetTime(Time) else
+    LoadFromVRMLEvents_Scene.SetTime(Time);
 
   RootNode := LoadFromVRMLEvents_Scene.RootNode.DeepCopy;
 end;
@@ -1726,7 +1726,7 @@ begin
     Result := false;
 end;
 
-procedure TVRMLGLAnimation.ResetWorldTimeAtLoad(const ForceTimeOrigin: boolean = false);
+procedure TVRMLGLAnimation.ResetTimeAtLoad(const ForceTimeOrigin: boolean = false);
 
   function TimeOriginAtLoad: boolean;
   var
@@ -1746,28 +1746,28 @@ procedure TVRMLGLAnimation.ResetWorldTimeAtLoad(const ForceTimeOrigin: boolean =
 begin
   if (ScenesCount > 1) or ForceTimeOrigin or TimeOriginAtLoad then
   begin
-    FWorldTimeAtLoad := 0.0;
-    ResetWorldTime(TimeBegin);
+    FTimeAtLoad := 0.0;
+    ResetTime(TimeBegin);
   end else
   begin
-    FWorldTimeAtLoad := DateTimeToUnix(Now);
-    ResetWorldTime(WorldTimeAtLoad);
+    FTimeAtLoad := DateTimeToUnix(Now);
+    ResetTime(TimeAtLoad);
   end;
 end;
 
-procedure TVRMLGLAnimation.ResetWorldTime(const NewValue: TKamTime);
+procedure TVRMLGLAnimation.ResetTime(const NewValue: TKamTime);
 begin
-  FWorldTime := NewValue;
+  FTime := NewValue;
 
   { Ignored when SceneAnimation.ScenesCount <> 1, as scenes' ProcessEvents
-    is always false then and WorldTime wouldn't have much sense anyway. }
+    is always false then and Time wouldn't have much sense anyway. }
   if ScenesCount = 1 then
-    Scenes[0].ResetWorldTime(NewValue);
+    Scenes[0].ResetTime(NewValue);
 end;
 
 procedure TVRMLGLAnimation.Idle(const CompSpeed: Single);
 var
-  OldWorldTime: TKamTime;
+  OldTime: TKamTime;
 begin
   inherited;
 
@@ -1778,32 +1778,32 @@ begin
 
   if TimePlaying and (CompSpeed <> 0) then
   begin
-    OldWorldTime := FWorldTime;
-    FWorldTime += TimePlayingSpeed * CompSpeed;
+    OldTime := FTime;
+    FTime += TimePlayingSpeed * CompSpeed;
 
     { When ScenesCount = 1, it's sensible for single scene to receive
-      events, to increase it's time. Note that TVRMLScene.SetWorldTime
+      events, to increase it's time. Note that TVRMLScene.SetTime
       will signal when redisplay will be needed (something visible changed),
       we don't have to worry about it.
 
-      We call Scenes[0].SetWorldTime direcly, instead of calling Scenes[0].Idle.
+      We call Scenes[0].SetTime direcly, instead of calling Scenes[0].Idle.
       This way we do not have to worry to set scene's initial time, TimePlaying,
       TimePlayingSpeed to our values. }
     if ScenesCount = 1 then
-      Scenes[0].SetWorldTime(WorldTime);
+      Scenes[0].SetTime(Time);
 
     { Call VisibleChange only if the displayed animation frame actually changed.
       This way, we avoid wasting CPU cycles if the loaded scene is actually
       still, or if the animation stopped running. }
-    if (SceneFromTime(OldWorldTime) <>
-        SceneFromTime(WorldTime)) then
+    if (SceneFromTime(OldTime) <>
+        SceneFromTime(Time)) then
       VisibleChange;
   end;
 end;
 
 function TVRMLGLAnimation.CurrentScene: TVRMLGLScene;
 begin
-  Result := SceneFromTime(WorldTime);
+  Result := SceneFromTime(Time);
 end;
 
 procedure TVRMLGLAnimation.Render(const Frustum: TFrustum;

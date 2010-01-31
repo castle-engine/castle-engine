@@ -42,15 +42,15 @@ var
   I, J: Integer;
 begin
   { We want to keep track of current time here (for calculating
-    below). It's most natural to just use Scene.WorldTime property for this.
-    (Scene.WorldTime is already incremented for us by SceneManager.) }
+    below). It's most natural to just use Scene.Time property for this.
+    (Scene.Time is already incremented for us by SceneManager.) }
 
   for I := 0 to XCount - 1 do
     for J := 0 to YCount - 1 do
     begin
       Transform[I, J].FdTranslation.Value[2] := 2 *
-        Sin(I / 2  + Scene.WorldTime.Seconds) *
-        Cos(J / 2 + Scene.WorldTime.Seconds);
+        Sin(I / 2  + Scene.Time.Seconds) *
+        Cos(J / 2 + Scene.Time.Seconds);
       //Scene.ChangedField(Transform[I, J].FdTranslation);
     end;
 

@@ -1042,7 +1042,7 @@ begin
       FDuration := FTextureVideo.TimeDuration;
       if ParentEventsProcessor <> nil then
         EventDuration_Changed.Send(FDuration,
-          (ParentEventsProcessor as TVRMLScene).WorldTime);
+          (ParentEventsProcessor as TVRMLScene).Time);
       Break;
     except
       on E: Exception do

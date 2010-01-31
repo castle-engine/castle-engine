@@ -86,7 +86,7 @@
 
       Their setting causes appropriate events to be generated
       (with Time = CurrentTime, so be sure to update it before changing
-      these properties. SetWorldTime automatically does this for you.).
+      these properties. SetTime automatically does this for you.).
 
       @groupBegin }
     property IsActive: boolean read FIsActive write SetIsActive;
@@ -113,10 +113,10 @@
       implements time-dependent nodes operations.
 
       OldValue, NewValue and TimeIncrease must match, as produced
-      by TVRMLScene.SetWorldTime and friends.
+      by TVRMLScene.SetTime and friends.
 
       TimeIncrease = 0.0 here means "TimeIncrease is unknown",
-      this can happen only when were called by ResetWorldTime
+      this can happen only when were called by ResetTime
       or when updating state from TVRMLScene.ChangedFields.
       In other circumstances, TimeIncrease must be > 0.
 
@@ -127,7 +127,7 @@
       @param(SomethingChanged May only be set to @true (this method never
         sets this to @false), when some state of time-dependent node
         changed.) }
-    procedure SetWorldTime(const OldValue, NewValue: TVRMLTime;
+    procedure SetTime(const OldValue, NewValue: TVRMLTime;
       const TimeIncrease: TKamTime;
       var SomethingChanged: boolean);
   end;
@@ -241,7 +241,7 @@ begin
   Result := OnCycleInterval();
 end;
 
-procedure TTimeDependentNodeHandler.SetWorldTime(
+procedure TTimeDependentNodeHandler.SetTime(
   const OldValue, NewValue: TVRMLTime;
   const TimeIncrease: TKamTime;
   var SomethingChanged: boolean);
@@ -308,7 +308,7 @@ begin
     Only at the end of this method we will actually set the properties,
     causing events (if their values changed). }
 
-  { For ResetWorldTime, set time-dependent node properties to default
+  { For ResetTime, set time-dependent node properties to default
     (like after TNodeTimeHandler creation) at the beginning. }
   if TimeIncrease = 0 then
   begin
@@ -337,7 +337,7 @@ begin
       NewIsActive := true;
       NewIsPaused := false;
       NewElapsedTime := 0;
-      { Do not advance by TimeIncrease (time from last WorldTime),
+      { Do not advance by TimeIncrease (time from last Time),
         advance only by the time passed since startTime. }
       IncreaseElapsedTime(NewValue.Seconds - FdStartTime.Value, true);
       SomethingChanged := true;
@@ -419,7 +419,7 @@ begin
   { This will be true in most usual situations, but in some complicated
     setups sending isActive/isPaused/elapsedTime (and sending elapsedTime
     causes sending other events for TimeSensor) may cause sending another
-    event to the same node, thus calling SetWorldTime recursively,
+    event to the same node, thus calling SetTime recursively,
     and changing values at the end. Example: rrtankticks when often
     clicking on firing the cannon. So these assertions do not have to be
     true in complicated scenes.

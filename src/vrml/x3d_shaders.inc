@@ -212,14 +212,14 @@ procedure TNodeX3DShaderNode.EventIsSelectedSend(const Value: boolean);
 begin
   if ParentEventsProcessor <> nil then
     EventIsSelected.Send(Value,
-      (ParentEventsProcessor as TVRMLScene).WorldTime);
+      (ParentEventsProcessor as TVRMLScene).Time);
 end;
 
 procedure TNodeX3DShaderNode.EventIsValidSend(const Value: boolean);
 begin
   if ParentEventsProcessor <> nil then
     EventIsValid.Send(Value,
-      (ParentEventsProcessor as TVRMLScene).WorldTime);
+      (ParentEventsProcessor as TVRMLScene).Time);
 end;
 
 constructor TNodeX3DVertexAttributeNode.Create(const ANodeName: string;

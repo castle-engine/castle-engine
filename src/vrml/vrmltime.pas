@@ -44,8 +44,8 @@ type
         pass through one route. This mechanism allows to avoid loops in routes.)
 
       @item(Now note that when using TVRMLScene, Seconds is increased by
-        TVRMLScene.IncreaseWorldTime. TVRMLScene doesn't require how often
-        should IncreaseWorldTime be called, in particular you can call multiple
+        TVRMLScene.IncreaseTime. TVRMLScene doesn't require how often
+        should IncreaseTime be called, in particular you can call multiple
         times TVRMLScene.KeyDown, TVRMLScene.KeyUp, TVRMLScene.PointingDeviceMove
         without continously updating time. You can even not update time at all,
         and still call TVRMLScene.KeyDown and such.
@@ -56,7 +56,7 @@ type
         and such.)
 
       @item(The potential problem here is that when you call
-        TVRMLScene.KeyDown twice, without the TVRMLScene.IncreaseWorldTime
+        TVRMLScene.KeyDown twice, without the TVRMLScene.IncreaseTime
         in between, then the second KeyDown event will have "clogged" routes.
         Events send from the second KeyDown may be blocked on routes,
         since they will be detected as occuring within the same timestamp,
