@@ -21,18 +21,6 @@ Scene manager / controls / better Lazarus integration:
 
 (blockers before 2.0 release) ------------------------------------------------
 
-{ TODO: how to make BeforeIdle recursive? Need for our own TLevelObjectSum,
-  after all? }
-procedure TLevelObjectSum.BeforeIdle(const NewAnimationTime: TKamTime);
-var
-  I: Integer;
-begin
-  for I := 0 to List.Count - 1 do
-    List[I].BeforeIdle(NewAnimationTime);
-end;
-
-* make BeforeIdle, and global WorldTime, available in SceneManager?
-
 * rename TBase3D to just T3D? Name "base" is getting tiresome.
 
 * castle: make main level scene added to Controls, check receives time events (timesensor, movietexture), and mouse/key clicks (use some touchsensor).
