@@ -11,6 +11,11 @@ view3dscene 3.5 blockers:
     NurbsTextureCoordinate
     NurbsSet
 
+- castle: same plane walls on doom e1m1 level:
+  - at the first door
+  - right when opening the secret (lighter) door
+  (exist also in srcs before TLevelObject - T3D transition, so this isn't any bug from this.)
+
 ------------------------------------------------------------------------------
 Scene manager / controls / better Lazarus integration:
 
