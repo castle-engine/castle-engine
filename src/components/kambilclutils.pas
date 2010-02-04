@@ -19,13 +19,18 @@ interface
 uses FileFilters, Dialogs;
 
 { Convert file filters (encoded as for TFileFiltersList.AddFiltersFromString)
-  into LCL OpenDialog.Filter, OpenDialog.FilterIndex. }
+  into LCL OpenDialog.Filter, OpenDialog.FilterIndex.
+
+  @groupBegin }
 procedure FileFiltersToOpenDialog(const FileFilters: string;
   OpenDialog: TOpenDialog);
+procedure FileFiltersToOpenDialog(const FileFilters: string;
+  out LCLFilter: string; out FilterIndex: Integer);
+{ @groupEnd }
 
 { Convert file filters into LCL OpenDialog.Filter, OpenDialog.FilterIndex. }
 procedure FileFiltersToOpenDialog(FFList: TFileFiltersList;
-  OpenDialog: TOpenDialog);
+  out LCLFilter: string; out LCLFilterIndex: Integer);
 
 { Make each '&' inside string '&&', this way the string will not contain
   special '&x' sequences when used as a TMenuItem.Caption and such. }
@@ -38,21 +43,31 @@ uses SysUtils, KambiClassUtils;
 procedure FileFiltersToOpenDialog(const FileFilters: string;
   OpenDialog: TOpenDialog);
 var
+  LCLFilter: string;
+  FilterIndex: Integer;
+begin
+  FileFiltersToOpenDialog(FileFilters, LCLFilter, FilterIndex);
+  OpenDialog.Filter := LCLFilter;
+  OpenDialog.FilterIndex := FilterIndex;
+end;
+
+procedure FileFiltersToOpenDialog(const FileFilters: string;
+  out LCLFilter: string; out FilterIndex: Integer);
+var
   FFList: TFileFiltersList;
 begin
   FFList := TFileFiltersList.Create;
   try
     FFList.AddFiltersFromString(FileFilters);
-    FileFiltersToOpenDialog(FFList, OpenDialog);
+    FileFiltersToOpenDialog(FFList, LCLFilter, FilterIndex);
   finally FreeWithContentsAndNil(FFList) end;
 end;
 
 procedure FileFiltersToOpenDialog(FFList: TFileFiltersList;
-  OpenDialog: TOpenDialog);
+  out LCLFilter: string; out LCLFilterIndex: Integer);
 var
   Filter: TFileFilter;
   I, J: Integer;
-  LCLFilter: string;
 begin
   LCLFilter := '';
 
@@ -70,9 +85,8 @@ begin
     LCLFilter += '|';
   end;
 
-  OpenDialog.Filter := LCLFilter;
   { LCL FilterIndex counts from 1. }
-  OpenDialog.FilterIndex := FFList.DefaultFilter + 1;
+  LCLFilterIndex := FFList.DefaultFilter + 1;
 end;
 
 function SQuoteLCLCaption(const S: string): string;

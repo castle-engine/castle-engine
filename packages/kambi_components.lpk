@@ -32,7 +32,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="4">
+    <Files Count="5">
       <Item1>
         <Filename Value="../src/components/kambiglcontrol.pas"/>
         <HasRegisterProc Value="True"/>
@@ -43,28 +43,36 @@
         <UnitName Value="KambiLCLUtils"/>
       </Item2>
       <Item3>
+        <Filename Value="../src/components/kambipropedits.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="KambiPropEdits"/>
+      </Item3>
+      <Item4>
         <Filename Value="../src/components/kambivrmlbrowser.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="KambiVRMLBrowser"/>
-      </Item3>
-      <Item4>
+      </Item4>
+      <Item5>
         <Filename Value="../src/components/lclrecentfiles.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="LCLRecentFiles"/>
-      </Item4>
+      </Item5>
     </Files>
     <Type Value="RunAndDesignTime"/>
-    <RequiredPkgs Count="3">
+    <RequiredPkgs Count="4">
       <Item1>
-        <PackageName Value="LazOpenGLContext"/>
+        <PackageName Value="IDEIntf"/>
       </Item1>
       <Item2>
-        <PackageName Value="kambi_base"/>
+        <PackageName Value="LazOpenGLContext"/>
       </Item2>
       <Item3>
+        <PackageName Value="kambi_base"/>
+      </Item3>
+      <Item4>
         <PackageName Value="FCL"/>
         <MinVersion Major="1" Valid="True"/>
-      </Item3>
+      </Item4>
     </RequiredPkgs>
     <UsageOptions>
       <UnitPath Value="$(PkgOutDir)/"/>

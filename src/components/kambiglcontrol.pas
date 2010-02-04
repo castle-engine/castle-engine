@@ -291,6 +291,13 @@ type
       or when UseControls = @false. }
     function Focus: TUIControl;
 
+  published
+    { How OnDraw callback fits within various Draw methods of our
+      @link(Controls).
+      See TGLUIWindow.OnDrawStyle for full description. }
+    property OnDrawStyle: TUIControlDrawStyle
+      read FOnDrawStyle write FOnDrawStyle default dsNone;
+
     { Controls listening for user input (keyboard / mouse) to this window.
 
       Usually you explicitly add / delete controls to this list.
@@ -298,12 +305,6 @@ type
       automatically removes it from this list (using the TComponent.Notification
       mechanism). }
     property Controls: TUIControlList read FControls;
-  published
-    { How OnDraw callback fits within various Draw methods of our
-      @link(Controls).
-      See TGLUIWindow.OnDrawStyle for full description. }
-    property OnDrawStyle: TUIControlDrawStyle
-      read FOnDrawStyle write FOnDrawStyle default dsNone;
   end;
 
 { Convert Key (Lazarus key code) to my TKey.
