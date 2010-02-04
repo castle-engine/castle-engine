@@ -16,6 +16,15 @@ view3dscene 3.5 blockers:
   - right when opening the secret (lighter) door
   (exist also in srcs before TLevelObject - T3D transition, so this isn't any bug from this.)
 
+  - the fact that mouse is not immediately hidden when entering the game
+    with mouse look is visible... Damn.
+
+    Also when mouse is outside the game
+    window (in windowed mode), you have to mouse over the window to make
+    the mouse catched and mouse look working.
+
+    Rethink the mouse look update code?
+
 ------------------------------------------------------------------------------
 Scene manager / controls / better Lazarus integration:
 
@@ -24,6 +33,8 @@ Scene manager / controls / better Lazarus integration:
 Remaining castle's unclean stuff:
 
 - make scene/camera correctly paused when entering game menu.
+
+- change to new level from debug menu (maybe normal too?) makes segfault
 
 - There were some problems with creature behavior, 1st creature stood
   still on tower / fountain level? Maybe some Idle over creatures
