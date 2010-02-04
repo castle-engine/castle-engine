@@ -367,6 +367,17 @@ type
     property Items[I: Integer]: TUIControl read GetItem write SetItem; default;
     procedure Add(Item: TUIControl);
     procedure Insert(Index: Integer; Item: TUIControl);
+
+    { BeginDisableContextInitClose disables sending
+      TUIControl.GLContextInit and TUIControl.GLContextClose to all the controls
+      on the list. EndDisableContextInitClose ends this.
+      They work by increasing / decreasing the TUIControl.DisableContextInitClose
+      for all the items on the list.
+
+      @groupBegin }
+    procedure BeginDisableContextInitClose;
+    procedure EndDisableContextInitClose;
+    { @groupEnd }
   end;
 
 implementation
@@ -494,6 +505,24 @@ end;
 procedure TUIControlList.Insert(Index: Integer; Item: TUIControl);
 begin
   inherited Insert(Index, Item);
+end;
+
+procedure TUIControlList.BeginDisableContextInitClose;
+var
+  I: Integer;
+begin
+ for I := 0 to Count - 1 do
+   with Items[I] do
+     DisableContextInitClose := DisableContextInitClose + 1;
+end;
+
+procedure TUIControlList.EndDisableContextInitClose;
+var
+  I: Integer;
+begin
+ for I := 0 to Count - 1 do
+   with Items[I] do
+     DisableContextInitClose := DisableContextInitClose - 1;
 end;
 
 end.

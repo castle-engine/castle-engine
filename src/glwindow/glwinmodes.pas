@@ -495,8 +495,6 @@ constructor TGLMode.Create(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
         Glwin.EventKeyUp(K_None, C);
   end;
 
-var
-  I: Integer;
 begin
  inherited Create;
 
@@ -545,9 +543,7 @@ begin
      and at destruction when restoring.) }
 
    DisabledContextInitClose := true;
-   for I := 0 to TGLUIWindow(AGLWindow).Controls.Count - 1 do
-     with TGLUIWindow(AGLWindow).Controls[I] do
-       DisableContextInitClose := DisableContextInitClose + 1;
+   TGLUIWindow(AGLWindow).Controls.BeginDisableContextInitClose;
  end;
 end;
 
@@ -564,17 +560,12 @@ end;
 destructor TGLMode.Destroy;
 var
   btn: TMouseButton;
-  I: Integer;
 begin
  oldWinState.SetState(glwin);
  FreeAndNil(oldWinState);
 
  if DisabledContextInitClose then
- begin
-   for I := 0 to TGLUIWindow(Glwin).Controls.Count - 1 do
-     with TGLUIWindow(Glwin).Controls[I] do
-       DisableContextInitClose := DisableContextInitClose - 1;
- end;
+   TGLUIWindow(Glwin).Controls.EndDisableContextInitClose;
 
  if FPushPopGLWinMessagesTheme then
    GLWinMessagesTheme := oldGLWinMessagesTheme;
