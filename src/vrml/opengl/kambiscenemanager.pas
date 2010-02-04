@@ -85,6 +85,7 @@ type
     FOnBoundViewpointChanged: TNotifyEvent;
     FCameraBox: TBox3D;
     FOnRender3D: TRender3DEvent;
+    FShadowVolumeRenderer: TGLShadowVolumeRenderer;
 
     procedure SetMainScene(const Value: TVRMLGLScene);
     procedure SetCamera(const Value: TCamera);
@@ -137,10 +138,10 @@ type
     procedure RenderNeverShadowed(TransparentGroup: TTransparentGroup); virtual;
 
     { Render shadow quads for all the things rendered by @link(Render).
-      GLShadowVolumeRenderer passed here are already initialized with
-      TGLShadowVolumeRenderer.InitFrustumAndLight, so you can do shadow volumes
-      culling. }
-    procedure RenderShadowVolume(ShadowVolumeRenderer: TGLShadowVolumeRenderer); virtual;
+      You can use here ShadowVolumeRenderer instance, which is guaranteed
+      to be initialized with TGLShadowVolumeRenderer.InitFrustumAndLight,
+      so you can do shadow volumes culling. }
+    procedure RenderShadowVolume; virtual;
 
     { Render everything from current (in RenderState) camera view.
       Current RenderState.Target says to where we generate the image.
@@ -196,9 +197,6 @@ type
     function MainLightForShadows(
       out AMainLightPosition: TVector4Single): boolean; virtual;
   public
-    { TODO: temp public, for castle }
-    SV: TGLShadowVolumeRenderer;
-
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -280,6 +278,16 @@ type
       when falling is caused by the gravity. "Minimal plane" is derived from
       GravityUp and Items.BoundingBox. }
     property CameraBox: TBox3D read FCameraBox write FCameraBox;
+
+    { Renderer of shadow volumes. You can use this to optimize rendering
+      of your shadow quads in RenderShadowVolume, and you can control
+      it's statistics (TGLShadowVolumeRenderer.Count and related properties).
+
+      This is internally initialized by scene manager. It's @nil when
+      OpenGL context is not yet initialized (or scene manager is not
+      added to @code(Controls) list yet). }
+    property ShadowVolumeRenderer: TGLShadowVolumeRenderer
+      read FShadowVolumeRenderer;
   published
     { Tree of 3D objects within your world. This is the place where you should
       add your scenes to have them handled by scene manager.
@@ -485,10 +493,10 @@ begin
   { We actually need to do it only if ShadowVolumesPossible.
     But we can as well do it always, it's harmless (just checks some GL
     extensions). (Otherwise we'd have to handle SetShadowVolumesPossible.) }
-  if SV = nil then
+  if ShadowVolumeRenderer = nil then
   begin
-    SV := TGLShadowVolumeRenderer.Create;
-    SV.InitGLContext;
+    FShadowVolumeRenderer := TGLShadowVolumeRenderer.Create;
+    ShadowVolumeRenderer.InitGLContext;
   end;
 end;
 
@@ -496,7 +504,7 @@ procedure TKamSceneManager.GLContextClose;
 begin
   Items.GLContextClose;
 
-  FreeAndNil(SV);
+  FreeAndNil(FShadowVolumeRenderer);
 
   inherited;
 end;
@@ -749,7 +757,7 @@ begin
     OnRender3D(Self, TransparentGroup, InShadow);
 end;
 
-procedure TKamSceneManager.RenderShadowVolume(ShadowVolumeRenderer: TGLShadowVolumeRenderer);
+procedure TKamSceneManager.RenderShadowVolume;
 begin
   Items.RenderShadowVolume(ShadowVolumeRenderer, true, IdentityMatrix4Single);
 end;
@@ -803,8 +811,8 @@ procedure TKamSceneManager.RenderFromView3D;
 
   procedure RenderWithShadows(const MainLightPosition: TVector4Single);
   begin
-    SV.InitFrustumAndLight(RenderState.CameraFrustum, MainLightPosition);
-    SV.Render(@RenderNeverShadowed, @Render3D, @RenderShadowVolume, ShadowVolumesDraw);
+    ShadowVolumeRenderer.InitFrustumAndLight(RenderState.CameraFrustum, MainLightPosition);
+    ShadowVolumeRenderer.Render(@RenderNeverShadowed, @Render3D, @RenderShadowVolume, ShadowVolumesDraw);
   end;
 
 var

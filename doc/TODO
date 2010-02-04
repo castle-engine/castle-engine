@@ -23,9 +23,6 @@ Scene manager / controls / better Lazarus integration:
 
 Remaining castle's unclean stuff:
 
-+    { TODO: temp public, for castle }
-+    SV: TShadowVolumes;
-
 - Fix controls menu from game - pass undercontrols, test, see if fade rect works ok
 - There were some problems with creature behavior, 1st creature stood
   still on tower / fountain level? Maybe some Idle over creatures
