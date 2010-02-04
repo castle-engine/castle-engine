@@ -343,27 +343,31 @@ begin
  end;
 end;
 
-{$define PRINT_STRINGS_IMPLEMENTATION:=
-var i: integer;
-begin
- for i := 0 to PRINT_STRINGS_STRS_HIGH do
- begin
-  glRasterPos2i(RasterX0,
-    (PRINT_STRINGS_STRS_HIGH-i)*(RowHeight + BonusVerticalSpace) + RasterY0);
-  PrintAndMove(strs[i]);
- end;
-end;
-}
-
 procedure TGLBitmapFont_Abstract.PrintStrings(const strs: array of string;
   BonusVerticalSpace: TGLint; RasterX0, RasterY0: integer);
-{$define PRINT_STRINGS_STRS_HIGH := High(strs) }
-PRINT_STRINGS_IMPLEMENTATION
+var
+  I, H: integer;
+begin
+  H := High(strs);
+  for i := 0 to High(strs) do
+  begin
+    glRasterPos2i(RasterX0, (H-i) * (RowHeight + BonusVerticalSpace) + RasterY0);
+    PrintAndMove(strs[i]);
+  end;
+end;
 
 procedure TGLBitmapFont_Abstract.PrintStrings(strs: TStrings;
   BonusVerticalSpace: TGLint; RasterX0, RasterY0: integer);
-{$define PRINT_STRINGS_STRS_HIGH:= (strs.Count-1) }
-PRINT_STRINGS_IMPLEMENTATION
+var
+  I, H: integer;
+begin
+  H := strs.Count-1;
+  for i := 0 to H do
+  begin
+    glRasterPos2i(RasterX0, (H-i) * (RowHeight + BonusVerticalSpace) + RasterY0);
+    PrintAndMove(strs[i]);
+  end;
+end;
 
 procedure TGLBitmapFont_Abstract.PrintStrings(const strs: array of string;
   BonusVerticalSpace: TGLint);
