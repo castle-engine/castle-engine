@@ -128,16 +128,15 @@ begin
  Check(Window <> nil,
    'TProgressGLInterface: You must assign Window before doing Init');
 
- SavedMode := TGLMode.Create(Window,
-   GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT, false);
-
  {catch screen}
  list_drawProgressBG := Window.SaveScreen_ToDisplayList;
 
- {init our state}
- TGLWindowState.SetStandardState(Window,
+ SavedMode := TGLMode.CreateReset(Window,
+   GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT, false,
    {$ifdef FPC_OBJFPC} @ {$endif} DisplayProgress, nil,
    {$ifdef FPC_OBJFPC} @ {$endif} NoClose, Window.Fps.Active);
+
+ {init our state}
  Window.UserData := Progress;
  Window.AutoRedisplay := true;
  ProgressFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);

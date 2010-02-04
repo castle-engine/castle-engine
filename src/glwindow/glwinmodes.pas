@@ -274,8 +274,18 @@ type
     constructor Create(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
       APushPopGLWinMessagesTheme: boolean);
 
-{    constructor CreateAndReset(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
-      APushPopGLWinMessagesTheme: boolean}
+    { Create mode (saving current window state) and then reset window state.
+      This is a shortcut for @link(Create) followed by
+      @link(TGLWindowState.SetStandardState), see there for explanation
+      of parameters.
+
+      This also performs important optimization to avoid closing / reinitializing
+      window TGLUIWindow.Controls OpenGL resources,
+      see TGLUIWindow.DisableControlsInitClose. }
+    constructor CreateReset(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
+      APushPopGLWinMessagesTheme: boolean;
+      NewDraw, NewResize, NewCloseQuery: TGLWindowFunc;
+      NewFPSActive: boolean);
 
     destructor Destroy; override;
 
@@ -523,6 +533,16 @@ begin
  SavePixelStoreUnpack(oldPixelStoreUnpack);
 
  Glwin.PostRedisplay;
+end;
+
+constructor TGLMode.CreateReset(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
+  APushPopGLWinMessagesTheme: boolean;
+  NewDraw, NewResize, NewCloseQuery: TGLWindowFunc;
+  NewFPSActive: boolean);
+begin
+  Create(AGLWindow, AttribsToPush, APushPopGLWinMessagesTheme);
+  TGLWindowState.SetStandardState(AGLWindow,
+    NewDraw, NewResize, NewCloseQuery, NewFPSActive);
 end;
 
 destructor TGLMode.Destroy;

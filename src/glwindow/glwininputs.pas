@@ -155,11 +155,10 @@ function Input(glwin: TGLWindow;
   MaxLength: Integer {$ifdef DEFPARS} = 0{$endif};
   const AnswerAllowedChars: TSetOfChars {$ifdef DEFPARS} = AllChars{$endif}
   ): string;
-var SavedMode: TGLMode;
-    Data: TGLWinInputData;
+var
+  SavedMode: TGLMode;
+  Data: TGLWinInputData;
 begin
- SavedMode := TGLMode.Create(glwin, 0, false);
- try
   if FlushGLWindow then glwin.FlushRedisplay;
   Data.dlBGImage := SaveScreenWhole_ToDisplayList_noflush(ReadBuffer);
   Data.Answer := AnswerDefault;
@@ -173,16 +172,17 @@ begin
   Data.AnswerX0 := AnswerX0;
   Data.AnswerY0 := AnswerY0;
 
-  TGLWindowState.SetStandardState(glwin,
+  SavedMode := TGLMode.CreateReset(glwin, 0, false,
     {$ifdef FPC_OBJFPC} @ {$endif} DrawGL, nil,
     {$ifdef FPC_OBJFPC} @ {$endif} NoClose, false);
-  Glwin.UserData := @Data;
-  Glwin.OnKeyDown := @KeyDown;
+  try
+    Glwin.UserData := @Data;
+    Glwin.OnKeyDown := @KeyDown;
 
-  repeat Application.ProcessMessage(true) until Data.Answered;
+    repeat Application.ProcessMessage(true) until Data.Answered;
 
-  result := Data.Answer;
- finally SavedMode.Free end;
+    result := Data.Answer;
+  finally SavedMode.Free end;
 end;
 
 { gl window callbacks for GLWinInputAnyKey ------------------------------------ }
@@ -218,7 +218,9 @@ var
   Data: TInputAnyKeyData;
   savedMode: TGLMode;
 begin
- SavedMode := TGLMode.Create(glwin, GL_COLOR_BUFFER_BIT, false);
+ SavedMode := TGLMode.CreateReset(glwin, GL_COLOR_BUFFER_BIT, false,
+   {$ifdef FPC_OBJFPC} @ {$endif} DrawGLAnyKey, nil,
+   {$ifdef FPC_OBJFPC} @ {$endif} NoClose, false);
  try
   glDisable(GL_ALPHA_TEST);
 
@@ -227,9 +229,6 @@ begin
   Data.dlDrawImage := dlDrawImage;
   Data.KeyPressed := false;
 
-  TGLWindowState.SetStandardState(glwin,
-    {$ifdef FPC_OBJFPC} @ {$endif} DrawGLAnyKey, nil,
-    {$ifdef FPC_OBJFPC} @ {$endif} NoClose, false);
   Glwin.UserData := @Data;
   Glwin.OnKeyDown := @KeyDownAnyKey;
 

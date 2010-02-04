@@ -955,21 +955,6 @@ begin
     WritelnLogMultiline('GLWinMessage', TextList.Text);
 
  {1 faza :
-   Sejwujemy sobie wszystkie wlasciwosci okienka glwin ktore chcemy zmienic.
-   Kiedy juz skonczymy bedziemy chcieli je odtworzyc. }
- SavedMode := TGLMode.Create(glwin,
-   GL_PIXEL_MODE_BIT or GL_SCISSOR_BIT or GL_ENABLE_BIT or
-   GL_LINE_BIT or GL_POLYGON_STIPPLE_BIT or GL_TRANSFORM_BIT or
-   GL_COLOR_BUFFER_BIT, false);
-
- { FakeMouseDown must be @false.
-   Otherwise closing dialog box with MouseDown will then cause MouseDown
-   when SavedMode is restored. This is bad, because then the mouse click
-   that closes dialog box could also do something else.
-   Actually, FakeMouseDown is @false by default, so this call is not needed. }
- SavedMode.FakeMouseDown := false;
-
- {2 faza :
    FlushRedisplay; W ten sposob po zainstalowaniu naszych callbackow
    i ustawieniu wlasciwosci okienka robimy normalne SaveScreen_noflush
    (a nie chcielibysmy robic wtedy z flushem bo zainstalowalismy juz
@@ -985,12 +970,27 @@ begin
  end else
   glwin.FlushRedisplay;
 
- {3 faza :
+ {2 faza :
+   Sejwujemy sobie wszystkie wlasciwosci okienka glwin ktore chcemy zmienic.
+   Kiedy juz skonczymy bedziemy chcieli je odtworzyc. }
+ SavedMode := TGLMode.CreateReset(glwin,
+   GL_PIXEL_MODE_BIT or GL_SCISSOR_BIT or GL_ENABLE_BIT or
+   GL_LINE_BIT or GL_POLYGON_STIPPLE_BIT or GL_TRANSFORM_BIT or
+   GL_COLOR_BUFFER_BIT, false,
+
+ {3 faza zarazem:
    Ustawiamy wlasne wlasciwosci okienka, w szczegolnosci - wlasne callbacki. }
- TGLWindowState.SetStandardState(glwin,
    {$ifdef FPC_OBJFPC} @ {$endif} drawMessg,
    {$ifdef FPC_OBJFPC} @ {$endif} resizeMessg,
    {$ifdef FPC_OBJFPC} @ {$endif} NoClose, true);
+
+ { FakeMouseDown must be @false.
+   Otherwise closing dialog box with MouseDown will then cause MouseDown
+   when SavedMode is restored. This is bad, because then the mouse click
+   that closes dialog box could also do something else.
+   Actually, FakeMouseDown is @false by default, so this call is not needed. }
+ SavedMode.FakeMouseDown := false;
+
  with glwin do begin
   OnMouseMove := @mouseMoveMessg;
   OnMouseDown := @mouseDownMessg;
