@@ -85,7 +85,7 @@ type
     oldFpsShowOnCaption: boolean;
     { TGLUIWindow attributes } { }
     OldControls: TUIControlList;
-    OldUseControls: boolean;
+    { protected now: OldUseControls: boolean; } { }
     OldOnDrawStyle: TUIControlDrawStyle;
 
     { When adding new attributes to TGLWindow that should be saved/restored,
@@ -144,7 +144,6 @@ type
         @item(TGLWindowDemo.FpsShowOnCaption will be reset to false.)
 
         @item(TGLUIWindow.Controls is set to empty.)
-        @item(TGLUIWindow.UseControls is reset to @true.)
       )
 
       If you're looking for a suitable callback to pass as NewCloseQuery
@@ -402,7 +401,7 @@ begin
   if glwin is TGLUIWindow then
   begin
     OldControls.Assign(TGLUIWindow(Glwin).Controls);
-    OldUseControls := TGLUIWindow(Glwin).UseControls;
+    { protected now OldUseControls := TGLUIWindow(Glwin).UseControls; }
     OldOnDrawStyle := TGLUIWindow(Glwin).OnDrawStyle;
   end;
 end;
@@ -430,7 +429,7 @@ begin
   if glwin is TGLUIWindow then
   begin
     TGLUIWindow(Glwin).Controls.Assign(OldControls);
-    TGLUIWindow(Glwin).UseControls := OldUseControls;
+    { protected now TGLUIWindow(Glwin).UseControls := OldUseControls; }
     TGLUIWindow(Glwin).OnDrawStyle := OldOnDrawStyle;
   end;
 end;
@@ -462,7 +461,7 @@ begin
   if glwin is TGLUIWindow then
   begin
     TGLUIWindow(Glwin).Controls.Clear;
-    TGLUIWindow(Glwin).UseControls := true;
+    { protected now TGLUIWindow(Glwin).UseControls := true; }
     TGLUIWindow(Glwin).OnDrawStyle := dsNone;
   end;
 end;
