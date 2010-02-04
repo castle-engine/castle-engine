@@ -519,7 +519,7 @@ type
 
     Also, VRML2ActiveLights are magically updated for all states in
     @link(Shapes) tree. This is crucial for lights rendering in VRML >= 2.0. }
-  TVRMLScene = class(TBase3D)
+  TVRMLScene = class(T3D)
   private
     FOwnsRootNode: boolean;
     FShapes: TVRMLShapeTree;

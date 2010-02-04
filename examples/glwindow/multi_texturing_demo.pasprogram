@@ -38,7 +38,7 @@ var
 { geometry  ------------------------------------------------------------------ }
 
 type
-  TMyGeometry = class(TBase3D)
+  TMyGeometry = class(T3D)
   public
     procedure Render(const Frustum: TFrustum;
       TransparentGroup: TTransparentGroup; InShadow: boolean); override;

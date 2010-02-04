@@ -39,7 +39,7 @@ uses VectorMath, Boxes3D, GL, GLU, GLWindow, Frustum,
   KambiGLUtils, Cameras, KambiFilesUtils, KambiSceneManager;
 
 type
-  TCube = class(TBase3D)
+  TCube = class(T3D)
   public
     procedure Render(const Frustum: TFrustum;
       TransparentGroup: TTransparentGroup; InShadow: boolean); override;

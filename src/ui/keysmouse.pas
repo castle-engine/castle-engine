@@ -78,7 +78,7 @@ type
 
   { Look of the mouse cursor.
     Used for various properties:
-    TUIControl.Cursor, TBase3D.Cursor, TGLWindow.Cursor.
+    TUIControl.Cursor, T3D.Cursor, TGLWindow.Cursor.
 
     mcDefault, mcNone, mcCustom have somewhat special meanings.
     The rest are some cursor images will well-defined meanings for the user,
@@ -91,7 +91,7 @@ type
     { Use a custom cursor image in TGLWindow.CustomCursor.
 
       In normal circumstances, this should not be used for
-      TUIControl.Cursor, TBase3D.Cursor and others, as they have no way
+      TUIControl.Cursor, T3D.Cursor and others, as they have no way
       to set TGLWindow.CustomCursor. }
     mcCustom,
     { Standard arrow, indicates, well, that user can point / click something. }

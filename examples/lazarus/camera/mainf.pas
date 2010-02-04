@@ -28,7 +28,7 @@ implementation
 uses VectorMath, Boxes3D, GL, KambiGLUtils, Base3D, Frustum;
 
 type
-  TCube = class(TBase3D)
+  TCube = class(T3D)
   public
     procedure Render(const Frustum: TFrustum;
       TransparentGroup: TTransparentGroup; InShadow: boolean); override;

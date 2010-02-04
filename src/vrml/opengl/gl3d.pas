@@ -14,31 +14,31 @@
 }
 
 { Base 3D objects depending on OpenGL.
-  For now, TCustomTranslated3D (that uses OpenGL matrix push/translate/pop
+  For now, T3DCustomTranslated (that uses OpenGL matrix push/translate/pop
   during rendering). }
-unit GLBase3D;
+unit GL3D;
 
 interface
 
 uses Classes, VectorMath, Boxes3D, KeysMouse, Frustum, Base3D, VRMLTriangle;
 
 type
-  { Translates other TBase3D object.
+  { Translates other T3D object.
 
-    Since "other TBase3D object" may be any TBase3D descendant (including
-    TBase3DList, TVRMLGLScene, TVRMLGLAnimation), you can use this
+    Since "other T3D object" may be any T3D descendant (including
+    T3DList, TVRMLGLScene, TVRMLGLAnimation), you can use this
     to translate a group of any 3D objects.
 
     It has a GetTranslation function (that must be actually defined
     in a descendant) that always says how this object is translated from
     it's original position. All methods (that render, query collisions etc.)
     take into account this GetTranslation. }
-  TCustomTranslated3D = class(TBase3D)
+  T3DCustomTranslated = class(T3D)
   private
-    FChild: TBase3D;
+    FChild: T3D;
     procedure ChildVisibleChange(Sender: TObject);
     procedure ChildCursorChange(Sender: TObject);
-    procedure SetChild(const Value: TBase3D);
+    procedure SetChild(const Value: T3D);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -91,13 +91,13 @@ type
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): T3DCollision; override;
   published
     { Translated 3D object. }
-    property Child: TBase3D read FChild write SetChild;
+    property Child: T3D read FChild write SetChild;
   end;
 
-  { Translates other TBase3D object.
-    This simplifies the TCustomTranslated3D, giving you simple
+  { Translates other T3D object.
+    This simplifies the T3DCustomTranslated, giving you simple
     @link(Translation) property to move your child 3D object. }
-  TTranslated3D = class(TCustomTranslated3D)
+  T3DTranslated = class(T3DCustomTranslated)
   private
     FTranslation: TVector3Single;
   public
@@ -109,16 +109,16 @@ implementation
 
 uses GL, KambiGLUtils;
 
-{ TCustomTranslated3D -------------------------------------------------------- }
+{ T3DCustomTranslated -------------------------------------------------------- }
 
-function TCustomTranslated3D.BoundingBox: TBox3D;
+function T3DCustomTranslated.BoundingBox: TBox3D;
 begin
   if Exists and Collides and (Child <> nil) then
     Result := Box3DTranslate(Child.BoundingBox, GetTranslation) else
     Result := EmptyBox3D;
 end;
 
-procedure TCustomTranslated3D.Render(const Frustum: TFrustum;
+procedure T3DCustomTranslated.Render(const Frustum: TFrustum;
   TransparentGroup: TTransparentGroup; InShadow: boolean);
 var
   T: TVector3Single;
@@ -149,7 +149,7 @@ begin
   end;
 end;
 
-procedure TCustomTranslated3D.RenderShadowVolume(
+procedure T3DCustomTranslated.RenderShadowVolume(
   ShadowVolumes: TBaseShadowVolumes;
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
@@ -175,7 +175,7 @@ begin
   end;
 end;
 
-procedure TCustomTranslated3D.PrepareRender(TransparentGroups: TTransparentGroups;
+procedure T3DCustomTranslated.PrepareRender(TransparentGroups: TTransparentGroups;
   Options: TPrepareRenderOptions; ProgressStep: boolean);
 begin
   inherited;
@@ -183,14 +183,14 @@ begin
     Child.PrepareRender(TransparentGroups, Options, ProgressStep);
 end;
 
-function TCustomTranslated3D.PrepareRenderSteps: Cardinal;
+function T3DCustomTranslated.PrepareRenderSteps: Cardinal;
 begin
   Result := inherited;
   if Child <> nil then
     Result += Child.PrepareRenderSteps;
 end;
 
-function TCustomTranslated3D.KeyDown(Key: TKey; C: char): boolean;
+function T3DCustomTranslated.KeyDown(Key: TKey; C: char): boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -199,7 +199,7 @@ begin
     Result := Child.KeyDown(Key, C);
 end;
 
-function TCustomTranslated3D.KeyUp(Key: TKey; C: char): boolean;
+function T3DCustomTranslated.KeyUp(Key: TKey; C: char): boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -208,7 +208,7 @@ begin
     Result := Child.KeyUp(Key, C);
 end;
 
-function TCustomTranslated3D.MouseDown(const Button: TMouseButton): boolean;
+function T3DCustomTranslated.MouseDown(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -217,7 +217,7 @@ begin
     Result := Child.MouseDown(Button);
 end;
 
-function TCustomTranslated3D.MouseUp(const Button: TMouseButton): boolean;
+function T3DCustomTranslated.MouseUp(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -226,7 +226,7 @@ begin
     Result := Child.MouseUp(Button);
 end;
 
-function TCustomTranslated3D.MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean;
+function T3DCustomTranslated.MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -235,21 +235,21 @@ begin
     Result := Child.MouseMove(VectorSubtract(RayOrigin, GetTranslation), RayDirection);
 end;
 
-procedure TCustomTranslated3D.Idle(const CompSpeed: Single);
+procedure T3DCustomTranslated.Idle(const CompSpeed: Single);
 begin
   inherited;
   if Child <> nil then
     Child.Idle(CompSpeed);
 end;
 
-procedure TCustomTranslated3D.GLContextClose;
+procedure T3DCustomTranslated.GLContextClose;
 begin
   if Child <> nil then
     Child.GLContextClose;
   inherited;
 end;
 
-procedure TCustomTranslated3D.GetCameraHeight(const Position, GravityUp: TVector3Single;
+procedure T3DCustomTranslated.GetCameraHeight(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc;
   out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
   out GroundItem: PVRMLTriangle);
@@ -267,7 +267,7 @@ begin
   end;
 end;
 
-function TCustomTranslated3D.MoveAllowed(
+function T3DCustomTranslated.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const CameraRadius: Single;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
@@ -289,7 +289,7 @@ begin
   end;
 end;
 
-function TCustomTranslated3D.MoveAllowedSimple(
+function T3DCustomTranslated.MoveAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const CameraRadius: Single;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
@@ -313,7 +313,7 @@ begin
   end;
 end;
 
-function TCustomTranslated3D.MoveBoxAllowedSimple(
+function T3DCustomTranslated.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const ProposedNewBox: TBox3D;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
@@ -340,7 +340,7 @@ begin
   end;
 end;
 
-function TCustomTranslated3D.SegmentCollision(const Pos1, Pos2: TVector3Single;
+function T3DCustomTranslated.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
 var
   T: TVector3Single;
@@ -348,7 +348,7 @@ begin
   Result := Exists and Collides and (Child <> nil);
   if Result then
   begin
-    { We use the same trick as in TCustomTranslated3D.MoveAllowedSimple to
+    { We use the same trick as in T3DCustomTranslated.MoveAllowedSimple to
       use Child.SegmentCollsion with Translation. }
 
     T := GetTranslation;
@@ -358,7 +358,7 @@ begin
   end;
 end;
 
-function TCustomTranslated3D.SphereCollision(
+function T3DCustomTranslated.SphereCollision(
   const Pos: TVector3Single; const Radius: Single;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
 var
@@ -367,7 +367,7 @@ begin
   Result := Exists and Collides and (Child <> nil);
   if Result then
   begin
-    { We use the same trick as in TCustomTranslated3D.MoveAllowedSimple to
+    { We use the same trick as in T3DCustomTranslated.MoveAllowedSimple to
       use Child.SphereCollsion with Translation. }
 
     T := GetTranslation;
@@ -376,7 +376,7 @@ begin
   end;
 end;
 
-function TCustomTranslated3D.BoxCollision(
+function T3DCustomTranslated.BoxCollision(
   const Box: TBox3D;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
 var
@@ -385,7 +385,7 @@ begin
   Result := Exists and Collides and (Child <> nil);
   if Result then
   begin
-    { We use the same trick as in TCustomTranslated3D.MoveAllowedSimple to
+    { We use the same trick as in T3DCustomTranslated.MoveAllowedSimple to
       use Child.BoxCollsion with Translation. }
 
     T := GetTranslation;
@@ -394,7 +394,7 @@ begin
   end;
 end;
 
-function TCustomTranslated3D.RayCollision(
+function T3DCustomTranslated.RayCollision(
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): T3DCollision;
@@ -404,7 +404,7 @@ begin
   Result := nil;
   if Exists and Collides and (Child <> nil) then
   begin
-    { We use the same trick as in TCustomTranslated3D.MoveAllowedSimple to
+    { We use the same trick as in T3DCustomTranslated.MoveAllowedSimple to
       use Child.RayCollsion with Translation. }
 
     T := GetTranslation;
@@ -417,7 +417,7 @@ begin
   end;
 end;
 
-procedure TCustomTranslated3D.SetChild(const Value: TBase3D);
+procedure T3DCustomTranslated.SetChild(const Value: T3D);
 begin
   if FChild <> Value then
   begin
@@ -445,26 +445,26 @@ begin
   end;
 end;
 
-procedure TCustomTranslated3D.ChildVisibleChange(Sender: TObject);
+procedure T3DCustomTranslated.ChildVisibleChange(Sender: TObject);
 begin
   VisibleChange;
 end;
 
-procedure TCustomTranslated3D.ChildCursorChange(Sender: TObject);
+procedure T3DCustomTranslated.ChildCursorChange(Sender: TObject);
 begin
   CursorChange;
 end;
 
-procedure TCustomTranslated3D.Notification(AComponent: TComponent; Operation: TOperation);
+procedure T3DCustomTranslated.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   inherited;
   if (Operation = opRemove) and (AComponent = FChild) then
     FChild := nil;
 end;
 
-{ TTranslated3D -------------------------------------------------------------- }
+{ T3DTranslated -------------------------------------------------------------- }
 
-function TTranslated3D.GetTranslation: TVector3Single;
+function T3DTranslated.GetTranslation: TVector3Single;
 begin
   Result := FTranslation;
 end;

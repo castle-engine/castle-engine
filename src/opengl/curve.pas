@@ -36,7 +36,7 @@ type
       This should be treated as something like a "good hint".
       (Maybe at some time I'll make this conditions more rigorous).
   }
-  TCurve = class(TBase3D)
+  TCurve = class(T3D)
   private
     FTBegin, FTEnd: Float;
     FDefaultSegments: Cardinal;
@@ -70,7 +70,7 @@ type
       ) }
     procedure Render(Segments: Cardinal);
 
-    { Default number of segments, used when rendering by TBase3D interface
+    { Default number of segments, used when rendering by T3D interface
       (that is, @code(Render(Frustum, TransparentGroup...)) method.) }
     property DefaultSegments: Cardinal
       read FDefaultSegments write FDefaultSegments default 10;

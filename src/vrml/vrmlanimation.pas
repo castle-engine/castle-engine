@@ -11,7 +11,7 @@ type
   { The non-OpenGL basis of our precalculated animation,
     see TVRMLGLAnimation for a descendant of this that you
     most probably want to use. }
-  TVRMLAnimation = class(TBase3D)
+  TVRMLAnimation = class(T3D)
   public
     { Load animation data from a given FileName to a set of variables.
 

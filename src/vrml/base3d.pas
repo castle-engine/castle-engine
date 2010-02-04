@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Base 3D object (TBase3D). }
+{ Base 3D object (T3D). }
 unit Base3D;
 
 interface
@@ -22,7 +22,7 @@ uses Classes, VectorMath, Frustum, Boxes3D,
   KambiClassUtils, KeysMouse, VRMLTriangle;
 
 type
-  { Various things that TBase3D.PrepareRender may prepare. }
+  { Various things that T3D.PrepareRender may prepare. }
   TPrepareRenderOption = (prBackground, prBoundingBox,
     prTrianglesListNotOverTriangulate,
     prTrianglesListOverTriangulate,
@@ -37,9 +37,9 @@ type
   TBaseShadowVolumes = class
   end;
 
-  TBase3DListCore = class;
+  T3DListCore = class;
 
-  { Represents a collision with a 3D objects (TBase3D descendants) tree. }
+  { Represents a collision with a 3D objects (T3D descendants) tree. }
   T3DCollision = class
   public
     constructor Create;
@@ -54,8 +54,8 @@ type
       then Hierarchy will contain three items (in order: 1st list, 2nd list,
       TVRMLGLScene instance).
 
-      For TBase3D.RayCollision and overrides, Hierarchy is never empty. }
-    Hierarchy: TBase3DListCore;
+      For T3D.RayCollision and overrides, Hierarchy is never empty. }
+    Hierarchy: T3DListCore;
 
     { The triangle that collides. This triangle is always a part of the last
       item on @link(Hierarchy) list. }
@@ -65,7 +65,7 @@ type
   { Base 3D object, that can be managed by TKamSceneManager.
     All 3D objects should descend from this, this way we can easily
     insert them into the TKamSceneManager. }
-  TBase3D = class(TComponent)
+  T3D = class(TComponent)
   private
     FCastsShadow: boolean;
     FExists: boolean;
@@ -75,7 +75,7 @@ type
     FOnCursorChange: TNotifyEvent;
     procedure SetCursor(const Value: TMouseCursor);
   protected
-    { In TBase3D class, just calls OnCursorChange event. }
+    { In T3D class, just calls OnCursorChange event. }
     procedure CursorChange; virtual;
   public
     constructor Create(AOwner: TComponent); override;
@@ -146,7 +146,7 @@ type
 
       ParentTransform and ParentTransformIsIdentity describe the transformation
       of this object in the 3D world.
-      TBase3D objects may be organized in a hierarchy when
+      T3D objects may be organized in a hierarchy when
       parent transforms it's children. When ParentTransformIsIdentity,
       ParentTransform must be IdentityMatrix4Single (it's not guaranteed
       that when ParentTransformIsIdentity = @true, Transform value will be
@@ -207,7 +207,7 @@ type
       @param(Options What additional features (besides rendering)
         should be prepared to execute fast. See TPrepareRenderOption,
         the names should be self-explanatory (they refer to appropriate
-        methods of TBase3D, TVRMLScene or TVRMLGLScene).)
+        methods of T3D, TVRMLScene or TVRMLGLScene).)
 
       @param(ProgressStep Says that we should make Progress.Step calls
         (exactly PrepareRenderSteps times) during preparation.
@@ -219,7 +219,7 @@ type
 
     { How many times PrepareRender will call Progress.Step.
       Useful only if you want to pass ProgressStep = @true to PrepareRender.
-      In the base class TBase3D this just returns 0.  }
+      In the base class T3D this just returns 0.  }
     function PrepareRenderSteps: Cardinal; virtual;
 
     { Key and mouse events. Return @true if you handled them.
@@ -305,7 +305,7 @@ type
 
       This always returns the first collision with the 3D world, that is
       the one with smallest IntersectionDistance. For example, when
-      implemented in TBase3DList, this checks collisions for all list items,
+      implemented in T3DList, this checks collisions for all list items,
       and chooses the closest one. }
     function RayCollision(
       out IntersectionDistance: Single;
@@ -313,40 +313,40 @@ type
       const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): T3DCollision; virtual;
   end;
 
-  TBase3DList = class;
+  T3DList = class;
 
-  { List of base 3D objects (TBase3D instances).
-    This allows you to group many 3D objects, and treat them as one TBase3D
+  { List of base 3D objects (T3D instances).
+    This allows you to group many 3D objects, and treat them as one T3D
     descendant (for example, to translate many 3D objects by a single
-    TCustomTranslated3D.Child).
+    T3DCustomTranslated.Child).
 
     This inherits from TObjectsList, getting many
     features like TList notification mechanism (useful in some situations).
-    Usually you want to use TBase3DList instead, which is a wrapper around
+    Usually you want to use T3DList instead, which is a wrapper around
     this class. }
-  TBase3DListCore = class(TKamObjectList)
+  T3DListCore = class(TKamObjectList)
   private
-    FOwner: TBase3DList;
+    FOwner: T3DList;
 
-    function GetItem(const I: Integer): TBase3D;
-    procedure SetItem(const I: Integer; const Item: TBase3D);
+    function GetItem(const I: Integer): T3D;
+    procedure SetItem(const I: Integer; const Item: T3D);
   public
-    constructor Create(const FreeObjects: boolean; const AOwner: TBase3DList);
+    constructor Create(const FreeObjects: boolean; const AOwner: T3DList);
     procedure Notify(Ptr: Pointer; Action: TListNotification); override;
-    property Items[I: Integer]: TBase3D read GetItem write SetItem; default;
+    property Items[I: Integer]: T3D read GetItem write SetItem; default;
 
-    { TBase3DList instance that owns this list.
+    { T3DList instance that owns this list.
       May be @nil, for example when this list is used by T3DCollision. }
-    property Owner: TBase3DList read FOwner;
+    property Owner: T3DList read FOwner;
   end;
 
-  { List of base 3D objects (TBase3D instances).
+  { List of base 3D objects (T3D instances).
 
-    This inherits from TBase3D class, so this list is itself a 3D object:
+    This inherits from T3D class, so this list is itself a 3D object:
     it's a sum of all it's children 3D objects. }
-  TBase3DList = class(TBase3D)
+  T3DList = class(T3D)
   private
-    FList: TBase3DListCore;
+    FList: T3DListCore;
     procedure ListVisibleChange(Sender: TObject);
     procedure ListCursorChange(Sender: TObject);
   protected
@@ -357,9 +357,9 @@ type
 
     { Add and remove items to the @link(List).
       @groupBegin }
-    procedure Add(const Item: TBase3D);
-    procedure Insert(const Index: Integer; const Item: TBase3D);
-    procedure Remove(const Item: TBase3D);
+    procedure Add(const Item: T3D);
+    procedure Insert(const Index: Integer; const Item: T3D);
+    procedure Remove(const Item: T3D);
     procedure Clear;
     { @groupEnd }
 
@@ -411,7 +411,7 @@ type
   published
     { 3D objects inside.
       Freeing these items automatically removes them from this list. }
-    property List: TBase3DListCore read FList;
+    property List: T3DListCore read FList;
   end;
 
 implementation
@@ -423,7 +423,7 @@ uses SysUtils, KambiUtils, GL, KambiGLUtils;
 constructor T3DCollision.Create;
 begin
   inherited;
-  Hierarchy := TBase3DListCore.Create(false, nil);
+  Hierarchy := T3DListCore.Create(false, nil);
 end;
 
 destructor T3DCollision.Destroy;
@@ -431,9 +431,9 @@ begin
   FreeAndNil(Hierarchy);
 end;
 
-{ TBase3D -------------------------------------------------------------------- }
+{ T3D -------------------------------------------------------------------- }
 
-constructor TBase3D.Create(AOwner: TComponent);
+constructor T3D.Create(AOwner: TComponent);
 begin
   inherited;
   FCastsShadow := true;
@@ -442,71 +442,71 @@ begin
   FCursor := mcDefault;
 end;
 
-destructor TBase3D.Destroy;
+destructor T3D.Destroy;
 begin
   GLContextClose;
   inherited;
 end;
 
-procedure TBase3D.Render(const Frustum: TFrustum;
+procedure T3D.Render(const Frustum: TFrustum;
   TransparentGroup: TTransparentGroup;
   InShadow: boolean);
 begin
 end;
 
-procedure TBase3D.RenderShadowVolume(
+procedure T3D.RenderShadowVolume(
   ShadowVolumes: TBaseShadowVolumes;
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
 begin
 end;
 
-procedure TBase3D.PrepareRender(TransparentGroups: TTransparentGroups;
+procedure T3D.PrepareRender(TransparentGroups: TTransparentGroups;
   Options: TPrepareRenderOptions; ProgressStep: boolean);
 begin
 end;
 
-function TBase3D.PrepareRenderSteps: Cardinal;
+function T3D.PrepareRenderSteps: Cardinal;
 begin
   Result := 0;
 end;
 
-function TBase3D.KeyDown(Key: TKey; C: char): boolean;
+function T3D.KeyDown(Key: TKey; C: char): boolean;
 begin
   Result := false;
 end;
 
-function TBase3D.KeyUp(Key: TKey; C: char): boolean;
+function T3D.KeyUp(Key: TKey; C: char): boolean;
 begin
   Result := false;
 end;
 
-function TBase3D.MouseDown(const Button: TMouseButton): boolean;
+function T3D.MouseDown(const Button: TMouseButton): boolean;
 begin
   Result := false;
 end;
 
-function TBase3D.MouseUp(const Button: TMouseButton): boolean;
+function T3D.MouseUp(const Button: TMouseButton): boolean;
 begin
   Result := false;
 end;
 
-function TBase3D.MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean;
+function T3D.MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean;
 begin
   Result := false;
 end;
 
-procedure TBase3D.Idle(const CompSpeed: Single);
+procedure T3D.Idle(const CompSpeed: Single);
 begin
 end;
 
-procedure TBase3D.VisibleChange;
+procedure T3D.VisibleChange;
 begin
   if Assigned(OnVisibleChange) then
     OnVisibleChange(Self);
 end;
 
-procedure TBase3D.SetCursor(const Value: TMouseCursor);
+procedure T3D.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin
@@ -515,16 +515,16 @@ begin
   end;
 end;
 
-procedure TBase3D.CursorChange;
+procedure T3D.CursorChange;
 begin
   if Assigned(OnCursorChange) then OnCursorChange(Self);
 end;
 
-procedure TBase3D.GLContextClose;
+procedure T3D.GLContextClose;
 begin
 end;
 
-procedure TBase3D.GetCameraHeight(const Position, GravityUp: TVector3Single;
+procedure T3D.GetCameraHeight(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc;
   out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
   out GroundItem: PVRMLTriangle);
@@ -537,7 +537,7 @@ begin
   GroundItem := nil;
 end;
 
-function TBase3D.MoveAllowed(
+function T3D.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const CameraRadius: Single;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
@@ -546,7 +546,7 @@ begin
   NewPos := ProposedNewPos;
 end;
 
-function TBase3D.MoveAllowedSimple(
+function T3D.MoveAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const CameraRadius: Single;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
@@ -554,7 +554,7 @@ begin
   Result := true;
 end;
 
-function TBase3D.MoveBoxAllowedSimple(
+function T3D.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const ProposedNewBox: TBox3d;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
@@ -562,25 +562,25 @@ begin
   Result := true;
 end;
 
-function TBase3D.SegmentCollision(const Pos1, Pos2: TVector3Single;
+function T3D.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
 begin
   Result := false;
 end;
 
-function TBase3D.SphereCollision(const Pos: TVector3Single; const Radius: Single;
+function T3D.SphereCollision(const Pos: TVector3Single; const Radius: Single;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
 begin
   Result := false;
 end;
 
-function TBase3D.BoxCollision(const Box: TBox3d;
+function T3D.BoxCollision(const Box: TBox3d;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
 begin
   Result := false;
 end;
 
-function TBase3D.RayCollision(
+function T3D.RayCollision(
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): T3DCollision;
@@ -588,23 +588,23 @@ begin
   Result := nil;
 end;
 
-{ TBase3DListCore ------------------------------------------------------------ }
+{ T3DListCore ------------------------------------------------------------ }
 
-constructor TBase3DListCore.Create(const FreeObjects: boolean; const AOwner: TBase3DList);
+constructor T3DListCore.Create(const FreeObjects: boolean; const AOwner: T3DList);
 begin
   inherited Create(FreeObjects);
   FOwner := AOwner;
 end;
 
-procedure TBase3DListCore.Notify(Ptr: Pointer; Action: TListNotification);
+procedure T3DListCore.Notify(Ptr: Pointer; Action: TListNotification);
 var
-  B: TBase3D;
+  B: T3D;
 begin
   inherited;
 
   if Owner <> nil then
   begin
-    B := TBase3D(Ptr);
+    B := T3D(Ptr);
 
     case Action of
       lnAdded:
@@ -628,11 +628,11 @@ begin
 
           B.RemoveFreeNotification(Owner);
         end;
-      else raise EInternalError.Create('TBase3DListCore.Notify action?');
+      else raise EInternalError.Create('T3DListCore.Notify action?');
     end;
 
     { This notification may get called during FreeAndNil(FList)
-      in TBase3DList.Destroy. Then FList is already nil (as FreeAndNil
+      in T3DList.Destroy. Then FList is already nil (as FreeAndNil
       first sets object to nil), and Owner.ListCursorChange
       may not be ready for this. }
     if Owner.FList <> nil then
@@ -640,51 +640,51 @@ begin
   end;
 end;
 
-function TBase3DListCore.GetItem(const I: Integer): TBase3D;
+function T3DListCore.GetItem(const I: Integer): T3D;
 begin
-  Result := TBase3D(inherited Items[I]);
+  Result := T3D(inherited Items[I]);
 end;
 
-procedure TBase3DListCore.SetItem(const I: Integer; const Item: TBase3D);
+procedure T3DListCore.SetItem(const I: Integer; const Item: T3D);
 begin
   (inherited Items[I]) := Item;
 end;
 
-{ TBase3DList ---------------------------------------------------------------- }
+{ T3DList ---------------------------------------------------------------- }
 
-constructor TBase3DList.Create(AOwner: TComponent);
+constructor T3DList.Create(AOwner: TComponent);
 begin
   inherited;
-  FList := TBase3DListCore.Create(false, Self);
+  FList := T3DListCore.Create(false, Self);
 end;
 
-destructor TBase3DList.Destroy;
+destructor T3DList.Destroy;
 begin
   FreeAndNil(FList);
   inherited;
 end;
 
-procedure TBase3DList.Add(const Item: TBase3D);
+procedure T3DList.Add(const Item: T3D);
 begin
   List.Add(Item);
 end;
 
-procedure TBase3DList.Insert(const Index: Integer; const Item: TBase3D);
+procedure T3DList.Insert(const Index: Integer; const Item: T3D);
 begin
   List.Insert(Index, Item);
 end;
 
-procedure TBase3DList.Remove(const Item: TBase3D);
+procedure T3DList.Remove(const Item: T3D);
 begin
   List.Remove(Item);
 end;
 
-procedure TBase3DList.Clear;
+procedure T3DList.Clear;
 begin
   List.Clear;
 end;
 
-function TBase3DList.BoundingBox: TBox3d;
+function T3DList.BoundingBox: TBox3d;
 var
   I: Integer;
 begin
@@ -694,7 +694,7 @@ begin
       Box3dSumTo1st(Result, List[I].BoundingBox);
 end;
 
-procedure TBase3DList.Render(const Frustum: TFrustum;
+procedure T3DList.Render(const Frustum: TFrustum;
   TransparentGroup: TTransparentGroup; InShadow: boolean);
 var
   I: Integer;
@@ -705,7 +705,7 @@ begin
       List[I].Render(Frustum, TransparentGroup, InShadow);
 end;
 
-procedure TBase3DList.RenderShadowVolume(
+procedure T3DList.RenderShadowVolume(
   ShadowVolumes: TBaseShadowVolumes;
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
@@ -719,7 +719,7 @@ begin
         ParentTransformIsIdentity, ParentTransform);
 end;
 
-procedure TBase3DList.PrepareRender(TransparentGroups: TTransparentGroups;
+procedure T3DList.PrepareRender(TransparentGroups: TTransparentGroups;
   Options: TPrepareRenderOptions; ProgressStep: boolean);
 var
   I: Integer;
@@ -729,7 +729,7 @@ begin
     List[I].PrepareRender(TransparentGroups, Options, ProgressStep);
 end;
 
-function TBase3DList.PrepareRenderSteps: Cardinal;
+function T3DList.PrepareRenderSteps: Cardinal;
 var
   I: Integer;
 begin
@@ -738,7 +738,7 @@ begin
     Result += List[I].PrepareRenderSteps;
 end;
 
-function TBase3DList.KeyDown(Key: TKey; C: char): boolean;
+function T3DList.KeyDown(Key: TKey; C: char): boolean;
 var
   I: Integer;
 begin
@@ -749,7 +749,7 @@ begin
     if List[I].KeyDown(Key, C) then Exit(true);
 end;
 
-function TBase3DList.KeyUp(Key: TKey; C: char): boolean;
+function T3DList.KeyUp(Key: TKey; C: char): boolean;
 var
   I: Integer;
 begin
@@ -760,7 +760,7 @@ begin
     if List[I].KeyUp(Key, C) then Exit(true);
 end;
 
-function TBase3DList.MouseDown(const Button: TMouseButton): boolean;
+function T3DList.MouseDown(const Button: TMouseButton): boolean;
 var
   I: Integer;
 begin
@@ -771,7 +771,7 @@ begin
     if List[I].MouseDown(Button) then Exit(true);
 end;
 
-function TBase3DList.MouseUp(const Button: TMouseButton): boolean;
+function T3DList.MouseUp(const Button: TMouseButton): boolean;
 var
   I: Integer;
 begin
@@ -782,7 +782,7 @@ begin
     if List[I].MouseUp(Button) then Exit(true);
 end;
 
-function TBase3DList.MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean;
+function T3DList.MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean;
 var
   I: Integer;
 begin
@@ -793,7 +793,7 @@ begin
     if List[I].MouseMove(RayOrigin, RayDirection) then Exit(true);
 end;
 
-procedure TBase3DList.Idle(const CompSpeed: Single);
+procedure T3DList.Idle(const CompSpeed: Single);
 var
   I: Integer;
 begin
@@ -803,7 +803,7 @@ begin
     List[I].Idle(CompSpeed);
 end;
 
-procedure TBase3DList.ListVisibleChange(Sender: TObject);
+procedure T3DList.ListVisibleChange(Sender: TObject);
 begin
   { when an Item calls OnVisibleChange, we'll call our own OnVisibleChange,
     to pass it up the tree (eventually, to the scenemanager, that will
@@ -811,7 +811,7 @@ begin
   VisibleChange;
 end;
 
-procedure TBase3DList.ListCursorChange(Sender: TObject);
+procedure T3DList.ListCursorChange(Sender: TObject);
 begin
   { when an Item calls OnCursorChange, we'll call our own OnCursorChange,
     to pass it up the tree (eventually, to the scenemanager, that will
@@ -824,7 +824,7 @@ begin
   CursorChange;
 end;
 
-procedure TBase3DList.GLContextClose;
+procedure T3DList.GLContextClose;
 var
   I: Integer;
 begin
@@ -838,21 +838,21 @@ begin
   inherited;
 end;
 
-procedure TBase3DList.Notification(AComponent: TComponent; Operation: TOperation);
+procedure T3DList.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   inherited;
 
   { We have to remove a reference to the object from the List.
-    This is crucial: TBase3DListCore.Notify,
+    This is crucial: T3DListCore.Notify,
     and e.g. GLContextClose call, assume that all objects on
     the List are always valid objects (no invalid references,
     even for a short time). }
 
-  if (Operation = opRemove) and (AComponent is TBase3D) then
+  if (Operation = opRemove) and (AComponent is T3D) then
     List.DeleteAll(AComponent);
 end;
 
-procedure TBase3DList.GetCameraHeight(const Position, GravityUp: TVector3Single;
+procedure T3DList.GetCameraHeight(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc;
   out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
   out GroundItem: PVRMLTriangle);
@@ -880,7 +880,7 @@ begin
     end;
 end;
 
-function TBase3DList.MoveAllowed(
+function T3DList.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const CameraRadius: Single;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
@@ -919,7 +919,7 @@ begin
   end;
 end;
 
-function TBase3DList.MoveAllowedSimple(
+function T3DList.MoveAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const CameraRadius: Single;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
@@ -937,7 +937,7 @@ begin
     end;
 end;
 
-function TBase3DList.MoveBoxAllowedSimple(
+function T3DList.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const ProposedNewBox: TBox3d;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
@@ -955,7 +955,7 @@ begin
     end;
 end;
 
-function TBase3DList.SegmentCollision(const Pos1, Pos2: TVector3Single;
+function T3DList.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
 var
   I: Integer;
@@ -970,7 +970,7 @@ begin
     end;
 end;
 
-function TBase3DList.SphereCollision(const Pos: TVector3Single; const Radius: Single;
+function T3DList.SphereCollision(const Pos: TVector3Single; const Radius: Single;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
 var
   I: Integer;
@@ -985,7 +985,7 @@ begin
     end;
 end;
 
-function TBase3DList.BoxCollision(const Box: TBox3d;
+function T3DList.BoxCollision(const Box: TBox3d;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
 var
   I: Integer;
@@ -1000,7 +1000,7 @@ begin
     end;
 end;
 
-function TBase3DList.RayCollision(
+function T3DList.RayCollision(
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
   const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): T3DCollision;

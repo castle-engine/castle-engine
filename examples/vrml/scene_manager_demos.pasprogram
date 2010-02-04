@@ -32,15 +32,15 @@ program scene_manager_demos;
 
 uses KambiUtils, GLWindow, ProgressUnit, ProgressGL, VectorMath, Base3D,
   VRMLScene, VRMLGLScene, VRMLErrors, KambiSceneManager, VRMLGLAnimation,
-  VRMLNodes, GLBase3D;
+  VRMLNodes, GL3D;
 
 var
   Window: TGLUIWindow;
   SceneManager: TKamSceneManager;
   Scene, Scene2: TVRMLGLScene;
   Animation: TVRMLGLAnimation;
-  Translation: TTranslated3D;
-  TranslatedItems: TBase3DList;
+  Translation: T3DTranslated;
+  TranslatedItems: T3DList;
   Scene2Transform: TNodeTransform_2;
 begin
   Window := TGLUIWindow.Create(Application);
@@ -87,12 +87,12 @@ begin
   }
 
   { initialize Translation }
-  Translation := TTranslated3D.Create(SceneManager);
+  Translation := T3DTranslated.Create(SceneManager);
   Translation.Translation := Vector3Single(5, 3, 60);
   SceneManager.Items.Add(Translation);
 
   { initialize TranslatedItems list }
-  TranslatedItems := TBase3DList.Create(SceneManager);
+  TranslatedItems := T3DList.Create(SceneManager);
   Translation.Child := TranslatedItems;
 
   { initialize a 2nd scene, just because we can }

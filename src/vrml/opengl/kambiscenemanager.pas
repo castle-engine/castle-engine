@@ -43,11 +43,11 @@ type
     taking care of doing multiple rendering passes for particular features.
     Naturally, it also serves as container for all your visible 3D scenes.
 
-    @link(Items) property keeps a tree of TBase3D objects.
+    @link(Items) property keeps a tree of T3D objects.
     All our 3D objects, like TVRMLScene (and so also TVRMLGLScene)
     and TVRMLAnimation (and so also TVRMLGLAnimation) descend from
-    TBase3D, and you can add them to the scene manager.
-    And naturally you can implement your own TBase3D descendants,
+    T3D, and you can add them to the scene manager.
+    And naturally you can implement your own T3D descendants,
     representing any 3D (possibly dynamic, animated and even interactive) object.
 
     TKamSceneManager.Render can assume that it's the @italic(only) manager rendering
@@ -66,13 +66,13 @@ type
 
     This is a TUIControl descendant, which means it's adviced usage
     is to add this to TGLUIWindow.Controls or TKamOpenGLControl.Controls.
-    This passes relevant TUIControl events to all the TBase3D objects inside.
+    This passes relevant TUIControl events to all the T3D objects inside.
   }
   TKamSceneManager = class(TUIControl)
   private
     FMainScene: TVRMLGLScene;
     FCamera: TCamera;
-    FItems: TBase3DList;
+    FItems: T3DList;
 
     FShadowVolumesPossible: boolean;
     FShadowVolumes: boolean;
@@ -258,12 +258,12 @@ type
       add your scenes to have them handled by scene manager.
       You may also set your main TVRMLGLScene (if you have any) as MainScene.
 
-      TBase3DList is also TBase3D instance, so yes --- this may be a tree
-      of TBase3D, not only a flat list.
+      T3DList is also T3D instance, so yes --- this may be a tree
+      of T3D, not only a flat list.
 
-      Note that scene manager "hijacks" TBase3D callbacks TBase3D.OnCursorChange and
-      TBase3D.OnVisibleChange. }
-    property Items: TBase3DList read FItems;
+      Note that scene manager "hijacks" T3D callbacks T3D.OnCursorChange and
+      T3D.OnVisibleChange. }
+    property Items: T3DList read FItems;
 
     { The main scene of your 3D world. It's not necessary to set this
       (after all, your 3D world doesn't even need to have any TVRMLGLScene
@@ -394,7 +394,7 @@ constructor TKamSceneManager.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FItems := TBase3DList.Create(Self);
+  FItems := T3DList.Create(Self);
   FItems.OnVisibleChange := @ItemsVisibleChange;
   FItems.OnCursorChange := @ItemsAndCameraCursorChange;
   { Items is displayed and streamed with TKamSceneManager

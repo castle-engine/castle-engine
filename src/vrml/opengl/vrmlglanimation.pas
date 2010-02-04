@@ -1871,7 +1871,7 @@ begin
 
     { Call MoveAllowed on FirstScene, on the LastScene use only
       MoveAllowedSimple (no wall sliding).
-      Reason: see TBase3DList.MoveAllowed implementation. }
+      Reason: see T3DList.MoveAllowed implementation. }
 
     if Result and CollisionUseLastScene then
     begin
