@@ -23,16 +23,6 @@ Scene manager / controls / better Lazarus integration:
 
 Remaining castle's unclean stuff:
 
-+    { TODO: temp public }
-+    procedure RenderFromViewEverything; override;
-
-+  GLContextInit; { TODO }
- end;
-
- destructor TLevel.Destroy;
- begin
-+  GLContextClose; { TODO }
-
 +  { TODO: temp public }
 +  ShowDebugInfo: boolean;
 
