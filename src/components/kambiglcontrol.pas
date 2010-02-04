@@ -240,9 +240,7 @@ type
 
     Keeps a @link(Controls) list, so you can easily add TUIControl instances
     to this window (like TGLMenu, TKamSceneManager and more).
-    We will pass events to these controls, draw them etc.,
-    everything only if UseControls = @true. See TKamOpenGLControl for more
-    detailed documentation how @link(Controls) are treated. }
+    We will pass events to these controls, draw them etc. }
   TKamOpenGLControl = class(TKamOpenGLControlCore, IUIContainer)
   private
     FControls: TUIControlList;
@@ -266,6 +264,20 @@ type
     procedure DoGLContextClose; override;
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+
+    { Enable @link(Controls) list processing.
+
+      @italic(Messing with this is very dangerous), that's why it's
+      visibility is only protected (although could be even pubilshed, technically).
+      This makes all controls miss all their events, including some critical
+      notification events like TUIControl.GLContextInit, TUIControl.GLContextClose,
+      TUIControl.ContainerResize.
+
+      You can reliably only turn this off temporarily, when you know that
+      no events (or at least no meaningful events, like resize or control
+      add/remove) will reach the window during this time. }
+    property UseControls: boolean
+      read FUseControls write SetUseControls default true;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -287,9 +299,6 @@ type
       mechanism). }
     property Controls: TUIControlList read FControls;
   published
-    property UseControls: boolean
-      read FUseControls write SetUseControls default true;
-
     { How OnDraw callback fits within various Draw methods of our
       @link(Controls).
       See TGLUIWindow.OnDrawStyle for full description. }

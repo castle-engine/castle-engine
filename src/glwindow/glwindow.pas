@@ -2396,7 +2396,7 @@ type
   { OpenGL window keeping a @link(Controls) list. This allows you to
     trivially add to the window any TUIControl descendants.
 
-    If UseControls, we pass our inputs (mouse / key events) to the top-most
+    We pass our inputs (mouse / key events) to the top-most
     (that is, first on the @link(Controls) list) control under the current mouse position
     (we check control's PositionInside method for this).
     As long as the event is not handled,
@@ -2404,7 +2404,7 @@ type
     Only if no control handled the event, we pass it to the inherited
     EventXxx method, which calls normal window callbacks OnKeyDown etc.
 
-    We also call other methods on every control (if UseControls),
+    We also call other methods on every control,
     like TUIControl.Idle, TUIControl.Draw2D, TUIControl.WindowResize.
 
     We use OnVisibleChange event of our controls to make
@@ -2432,6 +2432,20 @@ type
     procedure UpdateMouseCursor;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+
+    { Enable @link(Controls) list processing.
+
+      @italic(Messing with this is very dangerous), that's why it's
+      visibility is only protected (although could be even pubilshed, technically).
+      This makes all controls miss all their events, including some critical
+      notification events like TUIControl.GLContextInit, TUIControl.GLContextClose,
+      TUIControl.ContainerResize.
+
+      You can reliably only turn this off temporarily, when you know that
+      no events (or at least no meaningful events, like resize or control
+      add/remove) will reach the window during this time. }
+    property UseControls: boolean
+      read FUseControls write SetUseControls default true;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -2443,9 +2457,6 @@ type
       automatically removes it from this list (using the TComponent.Notification
       mechanism). }
     property Controls: TUIControlList read FControls;
-
-    property UseControls: boolean
-      read FUseControls write SetUseControls default true;
 
     { Returns the control that should receive input events first,
       or @nil if none. More precisely, this is the first on Controls

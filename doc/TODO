@@ -60,10 +60,6 @@ Scene manager / controls / better Lazarus integration:
   We also had view3dscene UI problem because of this.
   Maybe make it changing only if Load() gets argument like LoadTimeAndOptimization?
 
-- Make UseControls not published? Or even make them private --- they are not used
-  after all, and can be dangerous (ContainerResize not called before trying to
-  do rendering etc.)
-
 (not blockers before 2.0 release) --------------------------------------------
 
 - Should we allow placing TCamera directly on TGLUIWindow / TKamOpenGLControls?
