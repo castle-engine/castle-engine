@@ -132,6 +132,9 @@ type
       Just pass to OpenGL your 3D geometry here. }
     procedure Render3D(TransparentGroup: TTransparentGroup; InShadow: boolean); virtual;
 
+    { Render shadow quads for all the things rendered by @link(Render).
+      It does shadow volumes culling inside (so SV should
+      have InitFrustumAndLight already done). }
     procedure RenderShadowVolumes; virtual;
 
     { Render everything from current (in RenderState) camera view.
