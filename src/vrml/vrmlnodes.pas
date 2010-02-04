@@ -3986,7 +3986,10 @@ destructor TVRMLNode.Destroy;
 var
   I: Integer;
 begin
-  AnyNodeDestructionNotifications.ExecuteAll(Self);
+  { This whole unit, including AnyNodeDestructionNotifications,
+    may be already finalized when calling this. }
+  if AnyNodeDestructionNotifications <> nil then
+    AnyNodeDestructionNotifications.ExecuteAll(Self);
 
   if DestructionNotifications <> nil then
   begin

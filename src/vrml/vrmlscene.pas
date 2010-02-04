@@ -4877,7 +4877,10 @@ begin
 
       FProcessEvents := Value;
 
-      RenderState.OnCameraChanged.Remove(@CameraChanged);
+      { ProcessEvents := false may get called from destructor,
+        after RenderStateUnit finalization }
+      if RenderState <> nil then
+        RenderState.OnCameraChanged.Remove(@CameraChanged);
     end;
   end;
 end;
