@@ -56,7 +56,7 @@
       </Item1>
       <Item2>
         <Filename Value="../src/3d/boxes3d.pas"/>
-        <UnitName Value="Boxes3d"/>
+        <UnitName Value="Boxes3D"/>
       </Item2>
       <Item3>
         <Filename Value="../src/3d/convexhullunit.pas"/>
@@ -506,8 +506,8 @@
         <UnitName Value="OpenGLTTFonts"/>
       </Item113>
       <Item114>
-        <Filename Value="../src/opengl/shadowvolumes.pas"/>
-        <UnitName Value="ShadowVolumes"/>
+        <Filename Value="../src/opengl/glshadowvolumerenderer.pas"/>
+        <UnitName Value="GLShadowVolumeRenderer"/>
       </Item114>
       <Item115>
         <Filename Value="../src/opengl/windows/openglwindowsfonts.pas"/>
