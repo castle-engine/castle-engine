@@ -125,39 +125,40 @@ type
     procedure SetState(Glwin: TGLWindow);
     { @groupEnd }
 
-    { Ustawia wszystkie wlasciwosci ktore sa
-      zawarte w TGLWindowState. Ale pozwala w wygodniejszy sposob niz SetState
-      podac te wlasciwosci :
-        czesc wlasciwosci jest pobierana jako parametry,
-        czesc wlasciwosci jest pominieta -
-          pominiete callbacki beda ustawione na nil,
-          pominiete Caption i MainMenu bedzie zostawione takie jakie jest,
-          pominiete Cursor bedzie ustawione na mcDefault,
-          new UserData is always @nil,
-          new AutoRedisplay is always @false.
-        Note that NewMainMenuEnabled will be set only if Glwin.MainMenu <> nil.
-        new Controls value is empty,
-        new UseControls is always @true.
-        new OnDraw is always dsNone. }
+    { Resets all window properties (that are get / set by TGLWindowState).
+      For most properties, we simply reset them to some sensible default
+      values. For some most common properties, we take their value
+      explicitly by parameter.
+
+      Window properties resetted:
+
+      @unorderedList(
+        @item(All missing callbacks (OnXxx) are set to @nil.)
+        @item(TGLWindow.Caption and TGLWindow.MainMenu are left as they were.)
+        @item(TGLWindow.Cursor is reset to mcDefault.)
+        @item(TGLWindow.UserData is reset to @nil.)
+        @item(TGLWindow.AutoRedisplay is reset to @false.)
+        @item(TGLWindow.OnDrawStyle is reset to dsNone.)
+        @item(TGLWindow.MainMenu.Enabled will be reset to @false (only if MainMenu <> nil).)
+
+        @item(TGLWindowDemo.SwapFullScreen_Key will be reset to K_None.)
+        @item(TGLWindowDemo.Close_charkey will be reset to #0.)
+        @item(TGLWindowDemo.FpsShowOnCaption will be reset to false.)
+
+        @item(TGLUIWindow.Controls is set to empty.)
+        @item(TGLUIWindow.UseControls is reset to @true.)
+      ) }
     class procedure SetStandardState(Glwin: TGLWindow;
       NewDraw, NewCloseQuery, NewResize: TGLWindowFunc;
-      NewFPSActive: boolean;
-      NewMainMenuEnabled: boolean;
-      NewSwapFullScreen_Key: TKey;
-      NewClose_charkey: char;
-      NewFpsShowOnCaption: boolean);
+      NewFPSActive: boolean);
 
-    { Jak SetStandardState
-      ale ustawia zawsze oldClose_charkey na #0 i NewCloseQuery
-      na procedure bez zadnego kodu : begin end; W ten sposob uniemozliwia
-      userowi zamkniecie okienka metodami WindowManagera lub dawanymi przez
-      klase TGLWindowDemo. }
+    { Resets all window properties, just like SetStandardState.
+      But this sets new TGLWindow.OnCloseQuery to a special empty callback,
+      thus disabling the possibility to close the window by window manager
+      (usually using "close" button in some window corner or Alt+F4). }
     class procedure SetStandardNoCloseState(Glwin: TGLWindow;
       NewDraw, NewResize: TGLWindowFunc;
-      NewFPSActive: boolean;
-      NewMainMenuEnabled: boolean;
-      NewSwapFullScreen_Key: TKey;
-      NewFpsShowOnCaption: boolean);
+      NewFPSActive: boolean);
   end;
 
 { GL Mode ---------------------------------------------------------------- }
@@ -425,10 +426,7 @@ end;
 
 class procedure TGLWindowState.SetStandardState(glwin: TGLWindow;
   NewDraw, NewCloseQuery, NewResize: TGLWindowFunc;
-  NewFPSActive: boolean;
-  NewMainMenuEnabled: boolean;
-  NewSwapFullScreen_Key: TKey;
-  NewClose_charkey: char; NewFpsShowOnCaption: boolean);
+  NewFPSActive: boolean);
 begin
   Glwin.SetCallbacksState(DefaultCallbacksState);
   Glwin.OnDraw := NewDraw;
@@ -439,15 +437,15 @@ begin
   Glwin.AutoRedisplay := false;
   Glwin.Fps.Active := NewFPSActive;
   if Glwin.MainMenu <> nil then
-    Glwin.MainMenu.Enabled := NewMainMenuEnabled;
+    Glwin.MainMenu.Enabled := false;
   {Glwin.MainMenu := leave current value}
   Glwin.Cursor := mcDefault;
 
   if glwin is TGLWindowDemo then
   begin
-    TGLWindowDemo(glwin).SwapFullScreen_Key := NewSwapFullScreen_Key;
-    TGLWindowDemo(glwin).Close_charkey := NewClose_charkey;
-    TGLWindowDemo(glwin).FpsShowOnCaption := NewFpsShowOnCaption;
+    TGLWindowDemo(glwin).SwapFullScreen_Key := K_None;
+    TGLWindowDemo(glwin).Close_charkey := #0;
+    TGLWindowDemo(glwin).FpsShowOnCaption := false;
   end;
 
   if glwin is TGLUIWindow then
@@ -465,16 +463,11 @@ end;
 
 class procedure TGLWindowState.SetStandardNoCloseState(glwin: TGLWindow;
   NewDraw, NewResize: TGLWindowFunc;
-  NewFPSActive: boolean;
-  NewMainMenuEnabled: boolean;
-  NewSwapFullScreen_Key: TKey;
-  NewFpsShowOnCaption: boolean);
+  NewFPSActive: boolean);
 begin
   SetStandardState(glwin,
     NewDraw, {$ifdef FPC_OBJFPC} @ {$endif} CloseQuery_Ignore, NewResize,
-    NewFPSActive,
-    NewMainMenuEnabled,
-    NewSwapFullScreen_Key, #0, NewFpsShowOnCaption);
+    NewFPSActive);
 end;
 
 { GL Mode ---------------------------------------------------------------- }
@@ -662,7 +655,7 @@ begin
  TGLWindowState.SetStandardNoCloseState(AGLWindow,
    {$ifdef FPC_OBJFPC} @ {$endif} FrozenImageDraw,
    {$ifdef FPC_OBJFPC} @ {$endif} Resize2D,
-   AGLWindow.Fps.Active, false, K_None, false);
+   AGLWindow.Fps.Active);
  AGLWindow.UserData := Self;
 
  { setup our 2d projection. We must do it before SaveScreen }
