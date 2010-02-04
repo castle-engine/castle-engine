@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2008 Michalis Kamburelis.
+  Copyright 2003-2010 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -51,7 +51,7 @@ unit VRMLTriangleOctree;
 interface
 
 uses VectorMath, SysUtils, KambiUtils, VRMLNodes, Boxes3d,
-  KambiOctree, VRMLTriangle;
+  KambiOctree, VRMLTriangle, Base3D;
 
 {$define read_interface}
 
@@ -75,11 +75,11 @@ type
     function CommonSphereLeaf(const pos: TVector3Single;
       const Radius: Single;
       const TriangleToIgnore: PVRMLTriangle;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; override;
 
     function CommonBoxLeaf(const ABox: TBox3d;
       const TriangleToIgnore: PVRMLTriangle;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; override;
 
     function CommonSegmentLeaf(
       out Intersection: TVector3Single;
@@ -89,7 +89,7 @@ type
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; override;
 
     function CommonRayLeaf(
       out Intersection: TVector3Single;
@@ -99,7 +99,7 @@ type
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; override;
   private
     function GetItems(ItemIndex: integer): PVRMLTriangle;
   public
@@ -113,20 +113,20 @@ type
     function SphereCollision(const pos: TVector3Single;
       const Radius: Single;
       const TriangleToIgnore: PVRMLTriangle;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; override;
 
     function IsSphereCollision(const pos: TVector3Single;
       const Radius: Single;
       const TriangleToIgnore: PVRMLTriangle;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
 
     function BoxCollision(const ABox: TBox3d;
       const TriangleToIgnore: PVRMLTriangle;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; override;
 
     function IsBoxCollision(const ABox: TBox3d;
       const TriangleToIgnore: PVRMLTriangle;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
 
     function SegmentCollision(
       out Intersection: TVector3Single;
@@ -136,14 +136,14 @@ type
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; override;
 
     function IsSegmentCollision(
       const pos1, pos2: TVector3Single;
       const Tag: TMailboxTag;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
 
     function RayCollision(
       out Intersection: TVector3Single;
@@ -153,14 +153,14 @@ type
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; override;
 
     function IsRayCollision(
       const Ray0, RayVector: TVector3Single;
       const Tag: TMailboxTag;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
   end;
 
 { TVRMLTriangleOctree ------------------------------------------------------------ }
@@ -323,7 +323,7 @@ end;
 function TTriangleOctreeNode.SphereCollision(const pos: TVector3Single;
   const Radius: Single;
   const TriangleToIgnore: PVRMLTriangle;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 begin
   Result := CommonSphere(pos, Radius, TriangleToIgnore, TrianglesToIgnoreFunc);
 end;
@@ -331,7 +331,7 @@ end;
 function TTriangleOctreeNode.CommonSphereLeaf(const pos: TVector3Single;
   const Radius: Single;
   const TriangleToIgnore: PVRMLTriangle;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 var
   i: integer;
 begin
@@ -352,7 +352,7 @@ end;
 function TTriangleOctreeNode.IsSphereCollision(const pos: TVector3Single;
   const Radius: Single;
   const TriangleToIgnore: PVRMLTriangle;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := SphereCollision(pos, Radius, TriangleToIgnore,
     TrianglesToIgnoreFunc) <> nil;
@@ -360,14 +360,14 @@ end;
 
 function TTriangleOctreeNode.BoxCollision(const ABox: TBox3d;
   const TriangleToIgnore: PVRMLTriangle;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 begin
   Result := CommonBox(ABox, TriangleToIgnore, TrianglesToIgnoreFunc);
 end;
 
 function TTriangleOctreeNode.CommonBoxLeaf(const ABox: TBox3d;
   const TriangleToIgnore: PVRMLTriangle;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 var
   i: integer;
 begin
@@ -386,7 +386,7 @@ end;
 
 function TTriangleOctreeNode.IsBoxCollision(const ABox: TBox3d;
   const TriangleToIgnore: PVRMLTriangle;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := BoxCollision(ABox, TriangleToIgnore, TrianglesToIgnoreFunc) <> nil;
 end;
@@ -399,7 +399,7 @@ function TTriangleOctreeNode.SegmentCollision(
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 begin
   Result := CommonSegment(
     Intersection, IntersectionDistance, Pos1, Pos2,
@@ -416,7 +416,7 @@ function TTriangleOctreeNode.CommonSegmentLeaf(
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 {$define SEGMENT_COLLISION}
 {$I vrmltriangleoctree_raysegmentcollisions.inc}
 {$undef SEGMENT_COLLISION}
@@ -426,7 +426,7 @@ function TTriangleOctreeNode.IsSegmentCollision(
   const Tag: TMailboxTag;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   { We just ignore returned Intersection, IntersectionDistance }
   Intersection: TVector3Single;
@@ -446,7 +446,7 @@ function TTriangleOctreeNode.RayCollision(
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 begin
   Result := CommonRay(
     Intersection, IntersectionDistance, Ray0, RayVector,
@@ -463,7 +463,7 @@ function TTriangleOctreeNode.CommonRayLeaf(
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 {$I vrmltriangleoctree_raysegmentcollisions.inc}
 
 function TTriangleOctreeNode.IsRayCollision(
@@ -471,7 +471,7 @@ function TTriangleOctreeNode.IsRayCollision(
   const Tag: TMailboxTag;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   { We just ignore returned Intersection, IntersectionDistance }
   Intersection: TVector3Single;

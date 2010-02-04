@@ -18,10 +18,80 @@ unit Base3D;
 
 interface
 
-uses Classes, VectorMath, Frustum, Boxes3D,
-  KambiClassUtils, KeysMouse, VRMLTriangle;
+uses Classes, VectorMath, Frustum, Boxes3D, KambiClassUtils, KeysMouse;
 
 type
+  { Triangle expessed in particular coordinate system, for T3DTriangle. }
+  T3DTriangleGeometry = record
+    Triangle: TTriangle3Single;
+
+    { Area of the triangle. In other words, just a precalculated for you
+      TriangleArea(Triangle). }
+    Area: Single;
+
+    case Integer of
+      0: ({ This is a calculated TriangleNormPlane(Triangle),
+            that is a 3D plane containing our Triangle, with normalized
+            direction vector. }
+          Plane: TVector4Single;);
+      1: (Normal: TVector3Single;);
+  end;
+
+  { 3D triangle.
+
+    This object should always be initialized by @link(Init),
+    and updated only by it's methods (never modify fields of
+    this object directly).
+
+    I use old-style Pascal "object" to define this,
+    since this makes it a little more efficient. This doesn't need
+    any virtual methods or such, so (at least for now) it's easier
+    and more memory-efficient to keep this as an old-style object.
+    And memory efficiency is somewhat important here, since large
+    scenes may easily have milions of triangles, and each triangle
+    results in one TVRMLTriangle (descendant of T3DTriangle) instance. }
+  T3DTriangle = object
+  public
+    { Initialize new triangle. Given ATriangle must satisfy IsValidTriangle. }
+    constructor Init(const ATriangle: TTriangle3Single);
+
+  public
+    { Geometry of this item.
+      We need two geometry descriptions:
+
+      @unorderedList(
+
+        @item(Local is based on initial Triangle, given when constructing
+          this T3DTriangle. It's constant for this T3DTriangle. It's used
+          by octree collision routines, that is things like
+          TVRMLBaseTrianglesOctree.SphereCollision, TVRMLBaseTrianglesOctree.RayCollision
+          and such expect parameters in the same coord space.
+
+          This may be local coord space of this shape (this is used
+          by TVRMLShape.OctreeTriangles) or world coord space
+          (this is used by TVRMLScene.OctreeTriangles).)
+
+        @item(World is the geometry of Local transformed to be in world
+          coordinates. Initially, World is just a copy of Local.
+
+          If Local already contains world-space geometry, then World
+          can just remain constant, and so is always Local copy.
+
+          If Local ontains local shape-space geometry, then World
+          will have to be updated by TVRMLTriangle.UpdateWorld whenever some octree item's
+          geometry will be needed in world coords. This will have to be
+          done e.g. by TVRMLBaseTrianglesOctree.XxxCollision for each returned item.)
+      ) }
+    Loc, World: T3DTriangleGeometry;
+  end;
+  P3DTriangle = ^T3DTriangle;
+
+  { Return for given Triangle do we want to ignore collisions with it.
+    For now, Sender is always TVRMLTriangleOctree. }
+  T3DTriangleIgnoreFunc = function (
+    const Sender: TObject;
+    const Triangle: P3DTriangle): boolean of object;
+
   { Various things that T3D.PrepareRender may prepare. }
   TPrepareRenderOption = (prBackground, prBoundingBox,
     prTrianglesListNotOverTriangulate,
@@ -59,7 +129,7 @@ type
 
     { The triangle that collides. This triangle is always a part of the last
       item on @link(Hierarchy) list. }
-    Triangle: PVRMLTriangle;
+    Triangle: P3DTriangle;
   end;
 
   { Base 3D object, that can be managed by TKamSceneManager.
@@ -275,29 +345,29 @@ type
     procedure GLContextClose; virtual;
 
     procedure GetCameraHeight(const Position, GravityUp: TVector3Single;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
-      out GroundItem: PVRMLTriangle); virtual;
+      out GroundItem: P3DTriangle); virtual;
 
     function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const CameraRadius: Single;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
     function MoveAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
       const CameraRadius: Single;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
     function MoveBoxAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
       const ProposedNewBox: TBox3d;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
 
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
     function BoxCollision(const Box: TBox3d;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
 
     { Check collision with a ray, building a T3DCollision result.
       Returns a collision as T3DCollision instance, or @nil if no collision.
@@ -310,7 +380,7 @@ type
     function RayCollision(
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): T3DCollision; virtual;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; virtual;
   end;
 
   T3DList = class;
@@ -383,31 +453,31 @@ type
     procedure Idle(const CompSpeed: Single); override;
     procedure GLContextClose; override;
     procedure GetCameraHeight(const Position, GravityUp: TVector3Single;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
-      out GroundItem: PVRMLTriangle); override;
+      out GroundItem: P3DTriangle); override;
     function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const CameraRadius: Single;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function MoveAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
       const CameraRadius: Single;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function MoveBoxAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
       const ProposedNewBox: TBox3d;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3d;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function RayCollision(
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): T3DCollision; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
   published
     { 3D objects inside.
       Freeing these items automatically removes them from this list. }
@@ -417,6 +487,17 @@ type
 implementation
 
 uses SysUtils, KambiUtils, GL, KambiGLUtils;
+
+{ T3DTriangle  --------------------------------------------------------------- }
+
+constructor T3DTriangle.Init(const ATriangle: TTriangle3Single);
+begin
+  Loc.Triangle := ATriangle;
+  Loc.Plane := TriangleNormPlane(ATriangle);
+  Loc.Area := TriangleArea(ATriangle);
+
+  World := Loc;
+end;
 
 { T3DCollision ------------------------------------------------------------- }
 
@@ -525,9 +606,9 @@ begin
 end;
 
 procedure T3D.GetCameraHeight(const Position, GravityUp: TVector3Single;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
-  out GroundItem: PVRMLTriangle);
+  out GroundItem: P3DTriangle);
 begin
   IsAboveTheGround := false;
   { HeightAboveTheGround and GroundItem are undefined when
@@ -540,7 +621,7 @@ end;
 function T3D.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const CameraRadius: Single;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := true;
   NewPos := ProposedNewPos;
@@ -549,7 +630,7 @@ end;
 function T3D.MoveAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const CameraRadius: Single;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := true;
 end;
@@ -557,25 +638,25 @@ end;
 function T3D.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const ProposedNewBox: TBox3d;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := true;
 end;
 
 function T3D.SegmentCollision(const Pos1, Pos2: TVector3Single;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := false;
 end;
 
 function T3D.SphereCollision(const Pos: TVector3Single; const Radius: Single;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := false;
 end;
 
 function T3D.BoxCollision(const Box: TBox3d;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := false;
 end;
@@ -583,7 +664,7 @@ end;
 function T3D.RayCollision(
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): T3DCollision;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
 begin
   Result := nil;
 end;
@@ -853,14 +934,14 @@ begin
 end;
 
 procedure T3DList.GetCameraHeight(const Position, GravityUp: TVector3Single;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
-  out GroundItem: PVRMLTriangle);
+  out GroundItem: P3DTriangle);
 var
   I: Integer;
   IsAboveThis: boolean;
   SqrHeightAboveThis: Single;
-  GroundItemThis: PVRMLTriangle;
+  GroundItemThis: P3DTriangle;
 begin
   inherited;
 
@@ -883,7 +964,7 @@ end;
 function T3DList.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const CameraRadius: Single;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   I: Integer;
 begin
@@ -922,7 +1003,7 @@ end;
 function T3DList.MoveAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const CameraRadius: Single;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   I: Integer;
 begin
@@ -940,7 +1021,7 @@ end;
 function T3DList.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const ProposedNewBox: TBox3d;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   I: Integer;
 begin
@@ -956,7 +1037,7 @@ begin
 end;
 
 function T3DList.SegmentCollision(const Pos1, Pos2: TVector3Single;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   I: Integer;
 begin
@@ -971,7 +1052,7 @@ begin
 end;
 
 function T3DList.SphereCollision(const Pos: TVector3Single; const Radius: Single;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   I: Integer;
 begin
@@ -986,7 +1067,7 @@ begin
 end;
 
 function T3DList.BoxCollision(const Box: TBox3d;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   I: Integer;
 begin
@@ -1003,7 +1084,7 @@ end;
 function T3DList.RayCollision(
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): T3DCollision;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
 var
   I: Integer;
   NewIntersectionDistance: Single;

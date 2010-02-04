@@ -111,8 +111,8 @@ type
       The default implementation in this class resturns always @false,
       so nothing is ignored. You can override it e.g. to ignore your "water"
       material, when you want player to dive under the water. }
-    function CollisionIgnoreItem(const Octree: TVRMLBaseTrianglesOctree;
-      const Triangle: PVRMLTriangle): boolean; virtual;
+    function CollisionIgnoreItem(const Sender: TObject;
+      const Triangle: P3DTriangle): boolean; virtual;
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -1111,8 +1111,8 @@ begin
     OnCameraChanged(ACamera);
 end;
 
-function TKamSceneManager.CollisionIgnoreItem(const Octree: TVRMLBaseTrianglesOctree;
-  const Triangle: PVRMLTriangle): boolean;
+function TKamSceneManager.CollisionIgnoreItem(const Sender: TObject;
+  const Triangle: P3DTriangle): boolean;
 begin
   Result := false;
 end;

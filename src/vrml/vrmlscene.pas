@@ -1814,31 +1814,31 @@ type
       ProgressStep: boolean); override;
 
     procedure GetCameraHeight(const Position, GravityUp: TVector3Single;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
-      out GroundItem: PVRMLTriangle); override;
+      out GroundItem: P3DTriangle); override;
     function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const CameraRadius: Single;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function MoveAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
       const CameraRadius: Single;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function MoveBoxAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
       const ProposedNewBox: TBox3d;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3d;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function RayCollision(
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): T3DCollision; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Idle) will take care of increasing @link(Time).
@@ -6017,15 +6017,15 @@ begin
 end;
 
 procedure TVRMLScene.GetCameraHeight(const Position, GravityUp: TVector3Single;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
-  out GroundItem: PVRMLTriangle);
+  out GroundItem: P3DTriangle);
 begin
   if Exists and Collides and (OctreeCollisions <> nil) then
   begin
     OctreeCollisions.GetCameraHeight(
       Position, GravityUp,
-      IsAboveTheGround, SqrHeightAboveTheGround, GroundItem,
+      IsAboveTheGround, SqrHeightAboveTheGround, PVRMLTriangle(GroundItem),
       nil, TrianglesToIgnoreFunc);
   end else
     inherited;
@@ -6034,7 +6034,7 @@ end;
 function TVRMLScene.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const CameraRadius: Single;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   if Exists and Collides and (OctreeCollisions <> nil) then
   begin
@@ -6051,7 +6051,7 @@ end;
 function TVRMLScene.MoveAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const CameraRadius: Single;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := (not Exists) or (not Collides) or (OctreeCollisions = nil) or
     OctreeCollisions.MoveAllowedSimple(
@@ -6062,7 +6062,7 @@ end;
 function TVRMLScene.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const ProposedNewBox: TBox3d;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := (not Exists) or (not Collides) or (OctreeCollisions = nil) or
     OctreeCollisions.MoveBoxAllowedSimple(
@@ -6071,7 +6071,7 @@ begin
 end;
 
 function TVRMLScene.SegmentCollision(const Pos1, Pos2: TVector3Single;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := Exists and Collides and (OctreeCollisions <> nil) and
     OctreeCollisions.IsSegmentCollision(
@@ -6081,7 +6081,7 @@ end;
 
 function TVRMLScene.SphereCollision(
   const Pos: TVector3Single; const Radius: Single;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := Exists and Collides and (OctreeCollisions <> nil) and
     OctreeCollisions.IsSphereCollision(
@@ -6089,7 +6089,7 @@ begin
 end;
 
 function TVRMLScene.BoxCollision(const Box: TBox3d;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := Exists and Collides and (OctreeCollisions <> nil) and
     OctreeCollisions.IsBoxCollision(
@@ -6099,7 +6099,7 @@ end;
 function TVRMLScene.RayCollision(
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): T3DCollision;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
 var
   Triangle: PVRMLTriangle;
 begin

@@ -22,7 +22,7 @@ unit VRMLShape;
 
 interface
 
-uses SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils,
+uses SysUtils, Classes, VectorMath, Base3D, Boxes3D, VRMLNodes, KambiClassUtils,
   KambiUtils, VRMLTriangleOctree, Frustum, KambiOctree, VRMLTriangle;
 
 {$define read_interface}
@@ -381,7 +381,7 @@ type
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 
     { Equivalent to using OctreeTriangles.SegmentCollision, except this
       wil use the mailbox. }
@@ -393,7 +393,7 @@ type
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 
     { Create normals suitable for this shape.
 
@@ -1005,7 +1005,7 @@ function TVRMLShape.RayCollision(
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 begin
   {$ifdef SHAPE_OCTREE_USE_MAILBOX}
   if MailboxSavedTag = Tag then
@@ -1046,7 +1046,7 @@ function TVRMLShape.SegmentCollision(
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: TVRMLTriangleIgnoreFunc): PVRMLTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 begin
   {$ifdef SHAPE_OCTREE_USE_MAILBOX}
   if MailboxSavedTag = Tag then
