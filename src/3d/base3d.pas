@@ -511,7 +511,7 @@ const
 
 implementation
 
-uses SysUtils, KambiUtils, GL, KambiGLUtils;
+uses SysUtils, KambiUtils;
 
 { T3DTriangle  --------------------------------------------------------------- }
 
