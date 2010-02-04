@@ -485,8 +485,11 @@ begin
   { We actually need to do it only if ShadowVolumesPossible.
     But we can as well do it always, it's harmless (just checks some GL
     extensions). (Otherwise we'd have to handle SetShadowVolumesPossible.) }
-  SV := TShadowVolumes.Create;
-  SV.InitGLContext;
+  if SV = nil then
+  begin
+    SV := TShadowVolumes.Create;
+    SV.InitGLContext;
+  end;
 end;
 
 procedure TKamSceneManager.GLContextClose;
