@@ -32,8 +32,6 @@ Scene manager / controls / better Lazarus integration:
 
 Remaining castle's unclean stuff:
 
-- make scene/camera correctly paused when entering game menu.
-
 - change to new level from debug menu (maybe normal too?) makes segfault
 
 - There were some problems with creature behavior, 1st creature stood
