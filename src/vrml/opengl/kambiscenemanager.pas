@@ -131,6 +131,11 @@ type
       Just pass to OpenGL your 3D geometry here. }
     procedure Render3D(TransparentGroup: TTransparentGroup; InShadow: boolean); virtual;
 
+    { Render 3D items that are never in shadows (are not shadow receivers).
+      This will always be called once with tgOpaque, and once with tgTransparent
+      argument, from RenderFromView. }
+    procedure RenderNeverShadowed(TransparentGroup: TTransparentGroup); virtual;
+
     { Render shadow quads for all the things rendered by @link(Render).
       ShadowVolumes passed here are already initialized with
       TShadowVolumes.InitFrustumAndLight, so you can do shadow volumes
@@ -189,7 +194,7 @@ type
       @seealso TVRMLLightSet.MainLightForShadows
       @seealso TVRMLScene.MainLightForShadows }
     function MainLightForShadows(
-      out AMainLightPosition: TVector4Single): boolean;
+      out AMainLightPosition: TVector4Single): boolean; virtual;
   public
     { TODO: temp public, for castle }
     SV: TShadowVolumes;
@@ -770,17 +775,30 @@ begin
     Result := [];
 end;
 
+procedure TKamSceneManager.RenderNeverShadowed(TransparentGroup: TTransparentGroup);
+begin
+  { Nothing to do in this class }
+end;
+
 procedure TKamSceneManager.RenderFromView3D;
 
   procedure RenderNoShadows;
   begin
+    { We must first render all non-transparent objects,
+      then all transparent objects. Otherwise transparent objects
+      (that must be rendered without updating depth buffer) could get brutally
+      covered by non-transparent objects (that are in fact further away from
+      the camera). }
+
+    RenderNeverShadowed(tgOpaque);
     Render3D(tgAll, false);
+    RenderNeverShadowed(tgTransparent);
   end;
 
   procedure RenderWithShadows(const MainLightPosition: TVector4Single);
   begin
     SV.InitFrustumAndLight(RenderState.CameraFrustum, MainLightPosition);
-    SV.Render(nil, @Render3D, @RenderShadowVolume, ShadowVolumesDraw);
+    SV.Render(@RenderNeverShadowed, @Render3D, @RenderShadowVolume, ShadowVolumesDraw);
   end;
 
 var
