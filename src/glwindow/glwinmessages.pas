@@ -987,8 +987,9 @@ begin
 
  {3 faza :
    Ustawiamy wlasne wlasciwosci okienka, w szczegolnosci - wlasne callbacki. }
- TGLWindowState.SetStandardNoCloseState(glwin,
+ TGLWindowState.SetStandardState(glwin,
    {$ifdef FPC_OBJFPC} @ {$endif} drawMessg,
+   {$ifdef FPC_OBJFPC} @ {$endif} NoClose,
    {$ifdef FPC_OBJFPC} @ {$endif} resizeMessg, true);
  with glwin do begin
   OnMouseMove := @mouseMoveMessg;

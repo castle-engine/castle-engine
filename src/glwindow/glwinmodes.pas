@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2009 Michalis Kamburelis.
+  Copyright 2003-2010 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -147,17 +147,15 @@ type
 
         @item(TGLUIWindow.Controls is set to empty.)
         @item(TGLUIWindow.UseControls is reset to @true.)
-      ) }
+      )
+
+      If you're looking for a suitable callback to pass as NewCloseQuery
+      (new TGLWindow.OnCloseQuery), @@NoClose may be suitable:
+      it's an empty callback, thus using it disables the possibility
+      to close the window by window manager
+      (usually using "close" button in some window corner or Alt+F4). }
     class procedure SetStandardState(Glwin: TGLWindow;
       NewDraw, NewCloseQuery, NewResize: TGLWindowFunc;
-      NewFPSActive: boolean);
-
-    { Resets all window properties, just like SetStandardState.
-      But this sets new TGLWindow.OnCloseQuery to a special empty callback,
-      thus disabling the possibility to close the window by window manager
-      (usually using "close" button in some window corner or Alt+F4). }
-    class procedure SetStandardNoCloseState(Glwin: TGLWindow;
-      NewDraw, NewResize: TGLWindowFunc;
       NewFPSActive: boolean);
   end;
 
@@ -300,8 +298,8 @@ type
     FPolygonStipple: PPolygonStipple;
   public
     { This mode on enter catches current screen (with Glwin.SaveScreen) then
-      calls TGLWindowState.SetStandardNoCloseState with such OnDraw and OnResize private
-      callbacks that
+      calls TGLWindowState.SetStandardState with such OnDraw and OnResize
+      private callbacks that set:
 
       @unorderedList(
         @item(
@@ -346,6 +344,12 @@ type
 
     destructor Destroy; override;
   end;
+
+{ Empty TGLWindow callback. Handy for TGLWindow.OnCloseQuery:
+  it's an empty callback, thus using it disables the possibility
+  to close the window by window manager
+  (usually using "close" button in some window corner or Alt+F4). }
+procedure NoClose(glwin: TGLWindow);
 
 implementation
 
@@ -455,19 +459,6 @@ begin
     TGLUIWindow(Glwin).UseControls := true;
     TGLUIWindow(Glwin).OnDrawStyle := dsNone;
   end;
-end;
-
-procedure CloseQuery_Ignore(glwin: TGLWindow);
-begin
-end;
-
-class procedure TGLWindowState.SetStandardNoCloseState(glwin: TGLWindow;
-  NewDraw, NewResize: TGLWindowFunc;
-  NewFPSActive: boolean);
-begin
-  SetStandardState(glwin,
-    NewDraw, {$ifdef FPC_OBJFPC} @ {$endif} CloseQuery_Ignore, NewResize,
-    NewFPSActive);
 end;
 
 { GL Mode ---------------------------------------------------------------- }
@@ -652,8 +643,9 @@ begin
    (because we want that Glwin.FlushRedisplay calls original OnDraw). }
  Glwin.FlushRedisplay;
 
- TGLWindowState.SetStandardNoCloseState(AGLWindow,
+ TGLWindowState.SetStandardState(AGLWindow,
    {$ifdef FPC_OBJFPC} @ {$endif} FrozenImageDraw,
+   {$ifdef FPC_OBJFPC} @ {$endif} NoClose,
    {$ifdef FPC_OBJFPC} @ {$endif} Resize2D,
    AGLWindow.Fps.Active);
  AGLWindow.UserData := Self;
@@ -670,6 +662,12 @@ begin
  inherited;
  { it's a little safer to call this after inherited }
  glFreeDisplayList(dlScreenImage);
+end;
+
+{ routines ------------------------------------------------------------------- }
+
+procedure NoClose(glwin: TGLWindow);
+begin
 end;
 
 end.
