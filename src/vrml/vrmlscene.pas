@@ -4234,10 +4234,10 @@ begin
   end else
   begin
     { use default camera settings }
-    CamPos := StdVRMLCamPos[1];
-    CamDir := StdVRMLCamDir;
-    CamUp := StdVRMLCamUp;
-    GravityUp := StdVRMLGravityUp;
+    CamPos := DefaultVRMLCameraPosition[1];
+    CamDir := DefaultVRMLCameraDirection;
+    CamUp := DefaultVRMLCameraUp;
+    GravityUp := DefaultVRMLGravityUp;
     ProjectionType := ptPerspective;
   end;
 end;
@@ -5766,10 +5766,10 @@ begin
       Position, Direction, Up, GravityUp);
   end else
   begin
-    Position := StdVRMLCamPos[1];
-    Direction := StdVRMLCamDir;
-    Up := StdVRMLCamUp;
-    GravityUp := StdVRMLGravityUp;
+    Position := DefaultVRMLCameraPosition[1];
+    Direction := DefaultVRMLCameraDirection;
+    Up := DefaultVRMLCameraUp;
+    GravityUp := DefaultVRMLGravityUp;
   end;
 
   if OnlyViewpointVectorsChanged then

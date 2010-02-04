@@ -1698,9 +1698,9 @@ var
       begin
         { If all else fails (no viewpoint node bound, not known current
           camera seetings) use defaults. }
-        Pos := StdVRMLCamPos[2];
-        Dir := StdVRMLCamDir;
-        Up  := StdVRMLCamUp;
+        Pos := DefaultVRMLCameraPosition[2];
+        Dir := DefaultVRMLCameraDirection;
+        Up  := DefaultVRMLCameraUp;
       end;
     end;
 

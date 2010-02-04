@@ -376,7 +376,7 @@ begin
   FFdup := TMFVec3f.Create(Self, 'up', []);
   Fields.Add(FFdup);
 
-  FFdgravityUp := TSFVec3f.Create(Self, 'gravityUp', StdVRMLGravityUp);
+  FFdgravityUp := TSFVec3f.Create(Self, 'gravityUp', DefaultVRMLGravityUp);
   Fields.Add(FFdgravityUp);
 
   FEventCameraMatrix := TVRMLEvent.Create(Self, 'cameraMatrix', TSFMatrix4f, false);
@@ -408,10 +408,10 @@ begin
     if ZeroVector(CamDir) then
     begin
       VRMLWarning(vwSerious, 'Viewpoint "direction" must not be zero, assuming defaults');
-      CamDir := FdOrientation.RotatedPoint( StdVRMLCamDir );
+      CamDir := FdOrientation.RotatedPoint( DefaultVRMLCameraDirection );
     end;
   end else
-    CamDir := FdOrientation.RotatedPoint( StdVRMLCamDir );
+    CamDir := FdOrientation.RotatedPoint( DefaultVRMLCameraDirection );
 
   if FdUp.Items.Length > 0 then
   begin
@@ -419,17 +419,17 @@ begin
     if ZeroVector(CamUp) then
     begin
       VRMLWarning(vwSerious, 'Viewpoint "up" must not be zero, assuming defaults');
-      CamUp := FdOrientation.RotatedPoint( StdVRMLCamUp );
+      CamUp := FdOrientation.RotatedPoint( DefaultVRMLCameraUp );
     end;
   end else
-    CamUp := FdOrientation.RotatedPoint( StdVRMLCamUp );
+    CamUp := FdOrientation.RotatedPoint( DefaultVRMLCameraUp );
 
   GravityUp := FdGravityUp.Value;
   if ZeroVector(GravityUp) then
-    GravityUp := StdVRMLGravityUp;
+    GravityUp := DefaultVRMLGravityUp;
 
   { Niestety, macierz ponizej moze cos skalowac wiec nawet jesli powyzej
-    uzylismy FdOrientation.RotatedPoint( StdVRMLCamDir/Up ) i wiemy ze CamDir/Up
+    uzylismy FdOrientation.RotatedPoint( DefaultVRMLCameraDirection/Up ) i wiemy ze CamDir/Up
     jest znormalizowane - to i tak musimy je tutaj znormalizowac.
     TODO: byloby dobrze uzyc tutaj czegos jak MatrixMultDirectionNoScale }
   CamPos    := MatrixMultPoint(Transform, CamPos);

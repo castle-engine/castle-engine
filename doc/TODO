@@ -30,6 +30,12 @@ Scene manager / controls / better Lazarus integration:
 
 (blockers before 2.0 release) ------------------------------------------------
 
+* why at some point recompilation of cameras.pas caused
+  recompilation of vrmlscene, vrmltriangle?
+  some bad dependency remains?
+
+  got it, fix and check some others.
+
 * castle: make MainScene.ProcessEvents := true,
   check receives time events (timesensor, movietexture),
   and mouse/key clicks (use some touchsensor, keysensor),

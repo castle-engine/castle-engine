@@ -170,12 +170,12 @@ procedure TTestVRMLFields.TestVRMLFields;
    NormalizeTo1st(CamUp);
 
    { calculate Rot1Quat }
-   Rot1Axis := Normalized( VectorProduct(StdVRMLCamDir, CamDir) );
-   Rot1CosAngle := VectorDotProduct(StdVRMLCamDir, CamDir);
+   Rot1Axis := Normalized( VectorProduct(DefaultVRMLCameraDirection, CamDir) );
+   Rot1CosAngle := VectorDotProduct(DefaultVRMLCameraDirection, CamDir);
    Rot1Quat := AxisAngleCos_To_Quaternion(Rot1Axis, Rot1CosAngle);
 
    { calculate Rot2Quat }
-   StdCamUpAfterRot1 := Quaternion_Rotate(Rot1Quat, StdVRMLCamUp);
+   StdCamUpAfterRot1 := Quaternion_Rotate(Rot1Quat, DefaultVRMLCameraUp);
    { wiemy ze Rot2Axis to CamDir lub -CamDir. Wyznaczamy je jednak w tak
      prosty sposob bo nie przychodzi mi teraz do glowy inny sposob jak rozpoznac
      czy powinnismy tu wziac CamDir czy -CamDir (chodzi o to zeby pozniej obrot

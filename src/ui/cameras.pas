@@ -1362,11 +1362,53 @@ procedure CorrectCameraPreferredHeight(var CameraPreferredHeight: Single;
 const
   MouseButtonStr: array [TMouseButton] of string = ('left', 'middle', 'right');
 
+  { Default camera direction and up vectors, used to define the meaning
+    of "camera orientation" for CamDirUp2Orient routines.
+    These match VRML/X3D default camera values.
+    @groupBegin }
+  DefaultCameraDirection: TVector3Single = (0, 0, -1);
+  DefaultCameraUp: TVector3Single = (0, 1, 0);
+  { @groupEnd }
+
+{ Convert camera direction and up vectors into VRML "orientation" vector.
+
+  Orientation expresses CamDir and CamUp as 4-item vector
+  (SFRotation). First three items are the Axis (normalized) and the
+  4th is the Angle (in radians). Meaning: if you rotate the standard
+  direction and up (see DefaultCameraDirection, DefaultCameraUp) around Axis
+  by the Angle, then you get CamDir and CamUp.
+
+  Given here CamDir and CamUp must be orthogonal and non-zero.
+  Their lengths are not relevant (that is, you don't need to normalize them
+  before passing here).
+
+  @groupBegin }
+function CamDirUp2Orient(const CamDir, CamUp: TVector3Single): TVector4Single;
+procedure CamDirUp2Orient(const CamDir, CamUp: TVector3Single;
+  out OrientAxis: TVector3Single; out OrientRadAngle: Single);
+{ @groupEnd }
+
+{ Convert camera direction and up vectors into "rotation quaternion" of
+  VRML "orientation".
+
+  VRML orientation expresses camera direction and up as a rotation.
+  This means that you should rotate the standard
+  direction and up (see DefaultCameraDirection, DefaultCameraUp) by this rotation
+  to get CamDir and CamUp.
+
+  Given here CamDir and CamUp must be orthogonal and non-zero.
+  Their lengths are not relevant (that is, you don't need to normalize them
+  before passing here).
+
+  @groupBegin }
+function CamDirUp2OrientQuat(CamDir, CamUp: TVector3Single): TQuaternion;
+{ @groupEnd }
+
 procedure Register;
 
 implementation
 
-uses Math, KambiStringUtils, VRMLCameraUtils;
+uses Math, KambiStringUtils;
 
 procedure Register;
 begin
@@ -3312,8 +3354,8 @@ begin
       { Now that we have Orientation, transform it into new FDirection/Up.
         Like with FPosition above, we set them directly, ScheduleVisibleChange
         will be done below anyway. }
-      FDirection := QuatRotate(Orientation, StdVRMLCamDir);
-      FUp        := QuatRotate(Orientation, StdVRMLCamUp);
+      FDirection := QuatRotate(Orientation, DefaultCameraDirection);
+      FUp        := QuatRotate(Orientation, DefaultCameraUp);
     end;
   end;
 
@@ -3520,6 +3562,86 @@ begin
 
   if CameraPreferredHeight < NewCameraPreferredHeight then
     CameraPreferredHeight := NewCameraPreferredHeight;
+end;
+
+function CamDirUp2OrientQuat(CamDir, CamUp: TVector3Single): TQuaternion;
+
+{ Poczatkowo byl tutaj kod based on Stephen Chenney's ANSI C code orient.c.
+  Byl w nim bledzik (patrz testUnits.Test_VRMLFields - TestOrints[4])
+  i nawet teraz nie wiem jaki bo ostatecznie zrozumialem sama idee tamtego kodu
+  i zapisalem tutaj rzeczy po swojemu, i ku mojej radosci nie mam tego bledu.
+
+  Pomysl na ta funkcje: mamy CamDir i CamUp. Zeby je zamienic na
+  orientation VRMLa, czyli axis i angle obrotu standardowego dir
+  (0, 0, -1) i standardowego up (0, 1, 0), wyobrazamy sobie jaka transformacje
+  musielibysmy zrobic standardowym dir/up zeby zamienic je na nasze CamDir/Up.
+  1) najpierw bierzemy wektor prostop. do standardowego dir i CamDir.
+     Obracamy sie wokol niego zeby standardowe dir nalozylo sie na CamDir.
+  2) Teraz obracamy sie wokol CamDir tak zeby standardowe up (ktore juz
+     zostalo obrocone przez transformacje pierwsza) nalozylo sie na CamUp.
+     Mozemy to zrobic bo CamDir i CamUp sa prostopadle i maja dlugosc 1,
+     podobnie jak standardowe dir i up.
+  Zlozenie tych dwoch transformacji to jest nasza szukana transformacja.
+
+  Jedyny problem jaki pozostaje to czym jest transformacja ? Jezeli mowimy
+  o macierzy to jest prosto, macierze dwoch obrotow umiemy skonstruowac
+  i wymnozyc ale na koncu dostajemy macierz. A chcemy miec axis+angle.
+  A wiec quaternion.
+  Moznaby to zrobic inaczej (np. wyciagnac z matrix quaternion lub
+  wyciagajac z matrix katy eulera i konwertujac je na quaternion)
+  ale najwygodniej jest skorzystac tutaj z mozliwosci mnozenia kwaternionow:
+  przemnoz quaterniony obrotu q*p a orztymasz quaternion ktory za pomoca
+  jednego obrotu wyraza zlozenie dwoch obrotow, p i q (najpierw p, potem q).
+  To jest wlasnie idea z kodu Stephen Chenney's "orient.c".
+}
+
+  function QuatFromAxisAngleCos(const Axis: TVector3Single;
+    const AngleRadCos: Single): TQuaternion;
+  begin
+    Result := QuatFromAxisAngle(Axis, ArcCos(Clamped(AngleRadCos, -1.0, 1.0)));
+  end;
+
+var Rot1Axis, Rot2Axis, StdCamUpAfterRot1: TVector3Single;
+    Rot1Quat, Rot2Quat: TQuaternion;
+    Rot1CosAngle, Rot2CosAngle: Single;
+begin
+ NormalizeTo1st(CamDir);
+ NormalizeTo1st(CamUp);
+
+ { calculate Rot1Quat }
+ Rot1Axis := Normalized( VectorProduct(DefaultCameraDirection, CamDir) );
+ Rot1CosAngle := VectorDotProduct(DefaultCameraDirection, CamDir);
+ Rot1Quat := QuatFromAxisAngleCos(Rot1Axis, Rot1CosAngle);
+
+ { calculate Rot2Quat }
+ StdCamUpAfterRot1 := QuatRotate(Rot1Quat, DefaultCameraUp);
+ { wiemy ze Rot2Axis to CamDir lub -CamDir. Wyznaczamy je jednak w tak
+   prosty sposob bo nie przychodzi mi teraz do glowy inny sposob jak rozpoznac
+   czy powinnismy tu wziac CamDir czy -CamDir (chodzi o to zeby pozniej obrot
+   o Rot2CosAngle byl w dobra strone) }
+ Rot2Axis := Normalized( VectorProduct(StdCamUpAfterRot1, CamUp) );
+ Rot2CosAngle := VectorDotProduct(StdCamUpAfterRot1, CamUp);
+ Rot2Quat := QuatFromAxisAngleCos(Rot2Axis, Rot2CosAngle);
+
+ { calculate Result = zlozenie Rot1 i Rot2 (tak, kolejnosc mnozenia QQMul musi
+   byc odwrotna) }
+ Result := QuatMultiply(Rot2Quat, Rot1Quat);
+end;
+
+procedure CamDirUp2Orient(const CamDir, CamUp: TVector3Single;
+  out OrientAxis: TVector3Single; out OrientRadAngle: Single);
+begin
+  { Call CamDirUp2OrientQuat,
+    and extract the axis and angle from the quaternion. }
+  QuatToAxisAngle(CamDirUp2OrientQuat(CamDir, CamUp), OrientAxis, OrientRadAngle);
+end;
+
+function CamDirUp2Orient(const CamDir, CamUp: TVector3Single): TVector4Single;
+var OrientAxis: TVector3Single;
+    OrientAngle: Single;
+begin
+ CamDirUp2Orient(CamDir, CamUp, OrientAxis, OrientAngle);
+ result := Vector4Single(OrientAxis, OrientAngle);
 end;
 
 end.

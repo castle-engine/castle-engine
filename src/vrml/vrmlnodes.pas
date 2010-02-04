@@ -3539,7 +3539,7 @@ uses
   Math, Triangulator, Object3dAsVRML, KambiZStream, VRMLCameraUtils,
   KambiStringUtils, KambiFilesUtils, RaysWindow, StrUtils, KambiURLUtils,
   VRMLGeometry, KambiLog, VRMLScene, KambiScriptParser, Base64,
-  {$ifdef KAMBI_HAS_NURBS} NURBS, {$endif} Matrix, Quaternions;
+  {$ifdef KAMBI_HAS_NURBS} NURBS, {$endif} Matrix, Quaternions, Cameras;
 
 {$define read_implementation}
 
