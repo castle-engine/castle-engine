@@ -88,6 +88,8 @@ type
     FOnRender3D: TRender3DEvent;
     FShadowVolumeRenderer: TGLShadowVolumeRenderer;
 
+    FMouseRayHit: T3DCollision;
+
     procedure SetMainScene(const Value: TVRMLGLScene);
     procedure SetCamera(const Value: TCamera);
     procedure SetShadowVolumesPossible(const Value: boolean);
@@ -292,6 +294,10 @@ type
       added to @code(Controls) list yet). }
     property ShadowVolumeRenderer: TGLShadowVolumeRenderer
       read FShadowVolumeRenderer;
+
+    { Current 3D objects under the mouse cursor.
+      Updated in every mouse move. }
+    property MouseRayHit: T3DCollision read FMouseRayHit;
   published
     { Tree of 3D objects within your world. This is the place where you should
       add your scenes to have them handled by scene manager.
@@ -488,6 +494,8 @@ end;
 
 destructor TKamSceneManager.Destroy;
 begin
+  FreeAndNil(FMouseRayHit);
+
   if FMainScene <> nil then
   begin
     { unregister self from MainScene callbacs }
@@ -1016,6 +1024,7 @@ end;
 function TKamSceneManager.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
 var
   RayOrigin, RayDirection: TVector3Single;
+  Dummy: Single;
 begin
   Result := inherited;
   if (not Result) and (not Paused) and (Camera <> nil) then
@@ -1024,7 +1033,18 @@ begin
     if not Result then
     begin
       Camera.Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, RayOrigin, RayDirection);
-      Result := Items.MouseMove(RayOrigin, RayDirection);
+
+      { We call here Items.RayCollision ourselves, to update FMouseRay
+        (useful to e.g. update Cusdor based on it). To Items MouseMove
+        we can also pass this FMouseRay, so that they know collision
+        result already. }
+
+      FreeAndNil(FMouseRayHit);
+      FMouseRayHit := Items.RayCollision(Dummy, RayOrigin, RayDirection,
+        { Do not use CollisionIgnoreItem here,
+          as this is not camera<->3d world collision? } nil);
+
+      Items.MouseMove(RayOrigin, RayDirection, FMouseRayHit);
     end;
   end;
 
@@ -1044,14 +1064,14 @@ begin
     Exit;
   end;
 
-  if MainScene <> nil then
-    Cursor := MainScene.Cursor else
-    Cursor := mcDefault;
+  { We show mouse cursor from top-most 3D object.
+    This is sensible, if multiple 3D scenes obscure each other at the same
+    pixel --- the one "on the top" (visible by the player at that pixel)
+    determines the mouse cursor. }
 
-  { TODO: how to account for other Items?
-    (this UpdateCursor is already called for all Items.OnCursorChange.
-    I just don't know yet how to handle them.)
-    Topmost 3d object should determine the cursor, right? }
+  if MouseRayHit <> nil then
+    Cursor := MouseRayHit.Hierarchy.Last.Cursor else
+    Cursor := mcDefault;
 end;
 
 procedure TKamSceneManager.Idle(const CompSpeed: Single;

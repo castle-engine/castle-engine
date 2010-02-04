@@ -127,6 +127,9 @@ type
       This is never an empty list. }
     Hierarchy: T3DListCore;
 
+    { The 3D point of collision. }
+    Point: TVector3Single;
+
     { The triangle that collides. This triangle is always a part of the last
       item on @link(Hierarchy) list. }
     Triangle: P3DTriangle;
@@ -303,7 +306,8 @@ type
     function KeyUp(Key: TKey; C: char): boolean; virtual;
     function MouseDown(const Button: TMouseButton): boolean; virtual;
     function MouseUp(const Button: TMouseButton): boolean; virtual;
-    function MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean; virtual;
+    function MouseMove(const RayOrigin, RayDirection: TVector3Single;
+      RayHit: T3DCollision): boolean; virtual;
     { @groupEnd }
 
     { Idle event, for continously repeated tasks. }
@@ -427,6 +431,9 @@ type
     procedure Notify(Ptr: Pointer; Action: TListNotification); override;
     property Items[I: Integer]: T3D read GetItem write SetItem; default;
 
+    function First: T3D;
+    function Last: T3D;
+
     { T3DList instance that owns this list.
       May be @nil, for example when this list is used by T3DCollision. }
     property Owner: T3DList read FOwner;
@@ -471,7 +478,8 @@ type
     function KeyUp(Key: TKey; C: char): boolean; override;
     function MouseDown(const Button: TMouseButton): boolean; override;
     function MouseUp(const Button: TMouseButton): boolean; override;
-    function MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
+    function MouseMove(const RayOrigin, RayDirection: TVector3Single;
+      RayHit: T3DCollision): boolean; override;
     procedure Idle(const CompSpeed: Single); override;
     procedure GLContextClose; override;
     procedure GetHeightAbove(const Position, GravityUp: TVector3Single;
@@ -597,7 +605,8 @@ begin
   Result := false;
 end;
 
-function T3D.MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean;
+function T3D.MouseMove(const RayOrigin, RayDirection: TVector3Single;
+  RayHit: T3DCollision): boolean;
 begin
   Result := false;
 end;
@@ -753,6 +762,16 @@ begin
   (inherited Items[I]) := Item;
 end;
 
+function T3DListCore.First: T3D;
+begin
+  Result := (inherited First) as T3D;
+end;
+
+function T3DListCore.Last: T3D;
+begin
+  Result := (inherited Last) as T3D;
+end;
+
 { T3DList ---------------------------------------------------------------- }
 
 constructor T3DList.Create(AOwner: TComponent);
@@ -885,7 +904,8 @@ begin
     if List[I].MouseUp(Button) then Exit(true);
 end;
 
-function T3DList.MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean;
+function T3DList.MouseMove(const RayOrigin, RayDirection: TVector3Single;
+  RayHit: T3DCollision): boolean;
 var
   I: Integer;
 begin
@@ -893,7 +913,7 @@ begin
   if Result then Exit;
 
   for I := 0 to List.Count - 1 do
-    if List[I].MouseMove(RayOrigin, RayDirection) then Exit(true);
+    if List[I].MouseMove(RayOrigin, RayDirection, RayHit) then Exit(true);
 end;
 
 procedure T3DList.Idle(const CompSpeed: Single);
@@ -920,9 +940,17 @@ begin
     to pass it up the tree (eventually, to the scenemanager, that will
     pass it by TUIControl similar OnCursorChange mechanism to the container). }
 
-  { Hm, we could alternatively set our own Cursor := property,
-    instead of directly calling CursorChange. SceneManager could
-    then just use Items.Cursor as it's own Cursor value. }
+  { Open question: alternatively, instead of directly sending CursorChange,
+    we could update our own cursor (thus indirectly (possibly) generating
+    OnCursorChange), and let scene manager to take cursor from
+    MouseRayHit.Hierarchy.First.Cursor.
+
+    Right now, scene manager takes cursor from MouseRayHit.Hierarchy.Last.Cursor,
+    and pretty much ignores Cursor value of 3d stuff along
+    the MouseRayHit.Hierarchy path.
+
+    This is undecided yet, I currently don't see any compelling reason
+    for one or the other behavior. }
 
   CursorChange;
 end;

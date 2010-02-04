@@ -62,6 +62,20 @@ Scene manager / controls / better Lazarus integration:
 
 (not blockers before 2.0 release) --------------------------------------------
 
+- some more free notifications could be useful:
+  - FreeAndNil(FMouseRayHit) when it's triangle is destroyed (e.g. octree rebuild)
+    or any 3d object along the path is removed from the Items hierarchy
+    (not necessarily destroyed!).
+
+    For now, this isn't a problem, because
+    1. nothing uses FMouseRayHit.Triangle afterwards
+       (only TVRMLScene.MouseMove uses it, but this is immediately after
+       RayCollision was done).
+    2. nothing removes any 3D objects from the scene manager after some
+       game started.
+
+  - TWalkCamera.AboveGround should be freed when triangle is destroyed.
+
 - Should we allow placing TCamera directly on TGLUIWindow / TKamOpenGLControls?
   IOW, should TCamera remain TUIControl descendant?
 
@@ -122,17 +136,6 @@ Scene manager / controls / better Lazarus integration:
 
   For now we would have to just allow MainScene to take all the lights and leave
   them set for other scenes. Hm, actually sensible...
-
-* Cursor stuff:
-  * What to do with cursors of 3D scenes hierarchy?
-    See notes in scenemanager.ItemsCursorChange: currently just takes MainScene.Cursor.
-    See notes in TBase3D.ListCursorChange (similar for TVRMLGLAnimation): maybe set upper-level cursor?
-
-    Maybe always do some sort of mouse picking in scenemanager, over all scenes,
-    to choose closest one (and use it for new cursor) in MouseMove?
-    Also, save the closest one, for next UpdateCursor?
-
-    Items.RayCollision should be esp. useful here.
 
 - castle: besides level (MainScene, and level objects as additional stuff),
   it would be most perfect if castle creatures / items would be part of

@@ -470,7 +470,8 @@ type
     function KeyUp(Key: TKey; C: char): boolean; override;
     function MouseDown(const Button: TMouseButton): boolean; override;
     function MouseUp(const Button: TMouseButton): boolean; override;
-    function MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
+    function MouseMove(const RayOrigin, RayDirection: TVector3Single;
+      RayHit: T3DCollision): boolean; override;
     { @groupEnd }
 
     procedure Idle(const CompSpeed: Single); override;
@@ -689,6 +690,10 @@ end;
 procedure TVRMLGLAnimationScene.CursorChange;
 begin
   inherited;
+
+  { Maybe in the future we will update here our own cursor, for now: no need.
+    See T3DList.ListCursorChange implementation comments. }
+
   ParentAnimation.CursorChange;
 end;
 
@@ -1721,10 +1726,11 @@ begin
     Result := false;
 end;
 
-function TVRMLGLAnimation.MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean;
+function TVRMLGLAnimation.MouseMove(const RayOrigin, RayDirection: TVector3Single;
+  RayHit: T3DCollision): boolean;
 begin
   if ScenesCount = 1 then
-    Result := Scenes[0].MouseMove(RayOrigin, RayDirection) else
+    Result := Scenes[0].MouseMove(RayOrigin, RayDirection, RayHit) else
     Result := false;
 end;
 

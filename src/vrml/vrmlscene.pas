@@ -1551,7 +1551,8 @@ type
       @groupBegin }
     function MouseDown(const Button: TMouseButton): boolean; override;
     function MouseUp(const Button: TMouseButton): boolean; override;
-    function MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
+    function MouseMove(const RayOrigin, RayDirection: TVector3Single;
+      RayHit: T3DCollision): boolean; override;
     { @groupEnd }
 
     procedure Idle(const CompSpeed: Single); override;
@@ -5295,20 +5296,15 @@ begin
   end;
 end;
 
-function TVRMLScene.MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean;
-var
-  OverPoint: TVector3Single;
-  Item: PVRMLTriangle;
+function TVRMLScene.MouseMove(const RayOrigin, RayDirection: TVector3Single;
+  RayHit: T3DCollision): boolean;
 begin
   Result := inherited;
   if Result then Exit;
 
-  if OctreeCollisions <> nil then
+  if (RayHit <> nil) and RayHit.Hierarchy.IsLast(Self) then
   begin
-    Item := OctreeCollisions.RayCollision(
-      OverPoint, RayOrigin, RayDirection, true, nil, false, nil);
-
-    PointingDeviceMove(OverPoint, Item);
+    PointingDeviceMove(RayHit.Point, PVRMLTriangle(RayHit.Triangle));
 
     { Do not treat it as handled (returning ExclusiveEvents),
       this would disable too much (like Camera usually under Scene on Controls).
@@ -6105,17 +6101,19 @@ function TVRMLScene.RayCollision(
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
 var
   Triangle: PVRMLTriangle;
+  Intersection: TVector3Single;
 begin
   Result := nil;
   if Exists and Collides and (OctreeCollisions <> nil) then
   begin
     Triangle := OctreeCollisions.RayCollision(
-      IntersectionDistance, Ray0, RayVector,
+      Intersection, IntersectionDistance, Ray0, RayVector,
       false, nil, false, TrianglesToIgnoreFunc);
     if Triangle <> nil then
     begin
       Result := T3DCollision.Create;
       Result.Triangle := Triangle;
+      Result.Point := Intersection;
       Result.Hierarchy.Add(Self);
     end;
   end;

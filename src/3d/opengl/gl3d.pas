@@ -60,7 +60,8 @@ type
     function KeyUp(Key: TKey; C: char): boolean; override;
     function MouseDown(const Button: TMouseButton): boolean; override;
     function MouseUp(const Button: TMouseButton): boolean; override;
-    function MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
+    function MouseMove(const RayOrigin, RayDirection: TVector3Single;
+      RayHit: T3DCollision): boolean; override;
     procedure Idle(const CompSpeed: Single); override;
     procedure GLContextClose; override;
     procedure GetHeightAbove(const Position, GravityUp: TVector3Single;
@@ -226,13 +227,15 @@ begin
     Result := Child.MouseUp(Button);
 end;
 
-function T3DCustomTranslated.MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean;
+function T3DCustomTranslated.MouseMove(const RayOrigin, RayDirection: TVector3Single;
+  RayHit: T3DCollision): boolean;
 begin
   Result := inherited;
   if Result then Exit;
 
   if Child <> nil then
-    Result := Child.MouseMove(VectorSubtract(RayOrigin, GetTranslation), RayDirection);
+    Result := Child.MouseMove(VectorSubtract(RayOrigin, GetTranslation),
+      RayDirection, RayHit);
 end;
 
 procedure T3DCustomTranslated.Idle(const CompSpeed: Single);
