@@ -20,7 +20,7 @@ interface
 
 uses Classes, VectorMath, VRMLGLScene, VRMLScene, Cameras,
   VRMLGLHeadLight, ShadowVolumes, GL, UIControls, Base3D,
-  KeysMouse, VRMLTriangle, Boxes3D;
+  KeysMouse, VRMLTriangle, Boxes3D, BackgroundGL;
 
 type
   TKamSceneManager = class;
@@ -56,9 +56,9 @@ type
 
     @unorderedList(
       @item(clearing the screen,)
-      @item(rendering the background of the scene (from main Scene),)
-      @item(rendering the headlight (from the properties of main Scene),)
-      @item(rendering the scene from given Camera,)
+      @item(rendering the background of the scene,)
+      @item(rendering the headlight,)
+      @item(rendering the scene from given camera,)
       @item(and making multiple passes for shadow volumes and generated textures.)
     )
 
@@ -174,10 +174,17 @@ type
 
       @seealso TVRMLGLScene.GLProjection }
     procedure ApplyProjection; virtual;
+
+    { The background used during rendering.
+      @nil if no background should be rendered.
+
+      The default implementation in this class does what is usually
+      most natural: return MainScene.Background, if MainScene assigned. }
+    function Background: TBackgroundGL; virtual;
   public
     { TODO: temp public, for castle }
     SV: TShadowVolumes;
-  
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -280,7 +287,11 @@ type
 
       @unorderedList(
         @item Decides what headlight is used (by TVRMLGLScene.Headlight).
-        @item Decides what background is rendered (by TVRMLGLScene.Background).
+
+        @item(Decides what background is rendered.
+          Althuogh you can override this by overriding @link(Background)
+          method.)
+
         @item(Decides if, and where, the main light casting shadows is
           (see TVRMLGLScene.MainLightForShadowsExists, TVRMLGLScene.MainLightForShadows).)
         @item Determines OpenGL projection for the scene, see ApplyProjection.
@@ -514,6 +525,13 @@ begin
       ContainerWidth, ContainerHeight, ShadowVolumesPossible,
       FAngleOfViewX, FAngleOfViewY, FWalkProjectionNear, FWalkProjectionFar) else
     DefaultGLProjection;
+end;
+
+function TKamSceneManager.Background: TBackgroundGL;
+begin
+  if MainScene <> nil then
+    Result := MainScene.Background else
+    Result := nil;
 end;
 
 procedure TKamSceneManager.SetMainScene(const Value: TVRMLGLScene);
@@ -758,11 +776,12 @@ end;
 procedure TKamSceneManager.RenderFromViewEverything;
 var
   ClearBuffers: TGLbitfield;
+  UsedBackground: TBackgroundGL;
 begin
   ClearBuffers := GL_DEPTH_BUFFER_BIT;
 
-  if (MainScene <> nil) and
-     (MainScene.Background <> nil) then
+  UsedBackground := Background;
+  if UsedBackground <> nil then
   begin
     glLoadMatrix(RenderState.CameraRotationMatrix);
 
@@ -772,10 +791,10 @@ begin
       glClear(GL_COLOR_BUFFER_BIT);
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
       try
-        MainScene.Background.Render;
+        UsedBackground.Render;
       finally glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); end;
     end else
-      MainScene.Background.Render;
+      UsedBackground.Render;
   end else
     ClearBuffers := ClearBuffers or GL_COLOR_BUFFER_BIT;
 
