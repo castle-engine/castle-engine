@@ -173,9 +173,10 @@ begin
   Data.AnswerX0 := AnswerX0;
   Data.AnswerY0 := AnswerY0;
 
-  TGLWindowState.SetStandardNoCloseState(glwin, @DrawGL, nil, @Data, false,
-    false, false, K_None, false, nil);
-  glwin.OnKeyDown := @KeyDown;
+  TGLWindowState.SetStandardNoCloseState(glwin, @DrawGL, nil,
+    false, false, K_None, false);
+  Glwin.UserData := @Data;
+  Glwin.OnKeyDown := @KeyDown;
 
   repeat Application.ProcessMessage(true) until Data.Answered;
 
@@ -225,9 +226,10 @@ begin
   Data.dlDrawImage := dlDrawImage;
   Data.KeyPressed := false;
 
-  TGLWindowState.SetStandardNoCloseState(glwin, @DrawGLAnyKey, nil, @Data,
-    false, false, false, K_None, false, nil);
-  glwin.OnKeyDown := @KeyDownAnyKey;
+  TGLWindowState.SetStandardNoCloseState(glwin, @DrawGLAnyKey, nil,
+    false, false, K_None, false);
+  Glwin.UserData := @Data;
+  Glwin.OnKeyDown := @KeyDownAnyKey;
 
   glRasterPos2i(RasterX, RasterY);
   repeat Application.ProcessMessage(true) until Data.KeyPressed;

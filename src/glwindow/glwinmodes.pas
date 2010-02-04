@@ -132,20 +132,20 @@ type
         czesc wlasciwosci jest pominieta -
           pominiete callbacki beda ustawione na nil,
           pominiete Caption i MainMenu bedzie zostawione takie jakie jest,
-          pominiete Cursor bedzie ustawione na mcDefault.
+          pominiete Cursor bedzie ustawione na mcDefault,
+          new UserData is always @nil,
+          new AutoRedisplay is always @false.
         Note that NewMainMenuEnabled will be set only if Glwin.MainMenu <> nil.
-        new Controls value is either empty (when NewControl = nil)
-          or contains only one given control in NewControl.
-          If NewControl is a TCamera, than it's also a new Camera value.
+        new Controls value is empty,
         new UseControls is always @true.
         new OnDraw is always dsNone. }
     class procedure SetStandardState(Glwin: TGLWindow;
       NewDraw, NewCloseQuery, NewResize: TGLWindowFunc;
-      NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
+      NewFPSActive: boolean;
       NewMainMenuEnabled: boolean;
       NewSwapFullScreen_Key: TKey;
       NewClose_charkey: char;
-      NewFpsShowOnCaption: boolean; NewControl: TUIControl);
+      NewFpsShowOnCaption: boolean);
 
     { Jak SetStandardState
       ale ustawia zawsze oldClose_charkey na #0 i NewCloseQuery
@@ -154,10 +154,10 @@ type
       klase TGLWindowDemo. }
     class procedure SetStandardNoCloseState(Glwin: TGLWindow;
       NewDraw, NewResize: TGLWindowFunc;
-      NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
+      NewFPSActive: boolean;
       NewMainMenuEnabled: boolean;
       NewSwapFullScreen_Key: TKey;
-      NewFpsShowOnCaption: boolean; NewControl: TUIControl);
+      NewFpsShowOnCaption: boolean);
   end;
 
 { GL Mode ---------------------------------------------------------------- }
@@ -274,6 +274,9 @@ type
       ) }
     constructor Create(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
       APushPopGLWinMessagesTheme: boolean);
+
+{    constructor CreateAndReset(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
+      APushPopGLWinMessagesTheme: boolean}
 
     destructor Destroy; override;
 
@@ -422,18 +425,18 @@ end;
 
 class procedure TGLWindowState.SetStandardState(glwin: TGLWindow;
   NewDraw, NewCloseQuery, NewResize: TGLWindowFunc;
-  NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
+  NewFPSActive: boolean;
   NewMainMenuEnabled: boolean;
   NewSwapFullScreen_Key: TKey;
-  NewClose_charkey: char; NewFpsShowOnCaption: boolean; NewControl: TUIControl);
+  NewClose_charkey: char; NewFpsShowOnCaption: boolean);
 begin
   Glwin.SetCallbacksState(DefaultCallbacksState);
   Glwin.OnDraw := NewDraw;
   Glwin.OnCloseQuery := NewCloseQuery;
   Glwin.OnResize := NewResize;
   {Glwin.Caption := leave current value}
-  Glwin.Userdata := NewUserdata;
-  Glwin.AutoRedisplay := NewAutoRedisplay;
+  Glwin.Userdata := nil;
+  Glwin.AutoRedisplay := false;
   Glwin.Fps.Active := NewFPSActive;
   if Glwin.MainMenu <> nil then
     Glwin.MainMenu.Enabled := NewMainMenuEnabled;
@@ -449,14 +452,8 @@ begin
 
   if glwin is TGLUIWindow then
   begin
+    TGLUIWindow(Glwin).Camera := nil;
     TGLUIWindow(Glwin).Controls.Clear;
-    if NewControl <> nil then
-    begin
-      if NewControl is TCamera then
-        { setting Camera also adds it to Controls already }
-        TGLUIWindow(Glwin).Camera := TCamera(NewControl) else
-        TGLUIWindow(Glwin).Controls.Add(NewControl);
-    end;
     TGLUIWindow(Glwin).UseControls := true;
     TGLUIWindow(Glwin).OnDrawStyle := dsNone;
   end;
@@ -468,16 +465,16 @@ end;
 
 class procedure TGLWindowState.SetStandardNoCloseState(glwin: TGLWindow;
   NewDraw, NewResize: TGLWindowFunc;
-  NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
+  NewFPSActive: boolean;
   NewMainMenuEnabled: boolean;
   NewSwapFullScreen_Key: TKey;
-  NewFpsShowOnCaption: boolean; NewControl: TUIControl);
+  NewFpsShowOnCaption: boolean);
 begin
   SetStandardState(glwin,
     NewDraw, {$ifdef FPC_OBJFPC} @ {$endif} CloseQuery_Ignore, NewResize,
-    NewUserData, NewAutoRedisplay, NewFPSActive,
+    NewFPSActive,
     NewMainMenuEnabled,
-    NewSwapFullScreen_Key, #0, NewFpsShowOnCaption, NewControl);
+    NewSwapFullScreen_Key, #0, NewFpsShowOnCaption);
 end;
 
 { GL Mode ---------------------------------------------------------------- }
@@ -665,7 +662,8 @@ begin
  TGLWindowState.SetStandardNoCloseState(AGLWindow,
    {$ifdef FPC_OBJFPC} @ {$endif} FrozenImageDraw,
    {$ifdef FPC_OBJFPC} @ {$endif} Resize2D,
-   Self, false, AGLWindow.Fps.Active, false, K_None, false, nil);
+   AGLWindow.Fps.Active, false, K_None, false);
+ AGLWindow.UserData := Self;
 
  { setup our 2d projection. We must do it before SaveScreen }
  Glwin.EventResize;
