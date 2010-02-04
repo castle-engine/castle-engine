@@ -100,8 +100,8 @@ const
   it just doesn't return DDS object instance).
 
   @groupBegin }
-function LoadTextureImage(const FileName: string; out DDS: TDDSImage): TEncodedImage;
-function LoadTextureImage(const FileName: string): TEncodedImage;
+function LoadTextureImage(const FileName: string; out DDS: TDDSImage): TEncodedImage; overload;
+function LoadTextureImage(const FileName: string): TEncodedImage; overload;
 { @groupEnd }
 
 type
@@ -140,11 +140,11 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function TextureImage_IncReference(const FileName: string; out DDS: TDDSImage): TEncodedImage;
-    function TextureImage_IncReference(const FileName: string): TEncodedImage;
+    function TextureImage_IncReference(const FileName: string; out DDS: TDDSImage): TEncodedImage; overload;
+    function TextureImage_IncReference(const FileName: string): TEncodedImage; overload;
 
-    procedure TextureImage_DecReference(var Image: TEncodedImage; var DDS: TDDSImage);
-    procedure TextureImage_DecReference(var Image: TEncodedImage);
+    procedure TextureImage_DecReference(var Image: TEncodedImage; var DDS: TDDSImage); overload;
+    procedure TextureImage_DecReference(var Image: TEncodedImage); overload;
   end;
 
 {$undef read_interface}

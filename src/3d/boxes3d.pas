@@ -73,8 +73,8 @@ function Box3DOrderUp(const p0, p1: TVector3Single): TBox3D;
 
   @groupBegin }
 function Box3DMiddle(const Box: TBox3D): TVector3Single;
-function Box3DAvgSize(const Box: TBox3D): Single;
-function Box3DMaxSize(const box: TBox3D): Single;
+function Box3DAvgSize(const Box: TBox3D): Single; overload;
+function Box3DMaxSize(const box: TBox3D): Single; overload;
 function Box3DMinSize(const box: TBox3D): Single;
 function Box3DSizeX(const box: TBox3D): Single;
 function Box3DSizeY(const box: TBox3D): Single;
@@ -82,10 +82,10 @@ function Box3DSizeZ(const box: TBox3D): Single;
 { @groupEnd }
 
 { Calculate average size of TBox3D, or return EmptyBoxSize is box empty. }
-function Box3DAvgSize(const Box: TBox3D; const EmptyBoxSize: Single): Single;
+function Box3DAvgSize(const Box: TBox3D; const EmptyBoxSize: Single): Single; overload;
 
 { Calculate maximum size of TBox3D, or return EmptyBoxSize is box empty. }
-function Box3DMaxSize(const box: TBox3D; const EmptyBoxSize: Single): Single;
+function Box3DMaxSize(const box: TBox3D; const EmptyBoxSize: Single): Single; overload;
 
 function Box3DArea(const box: TBox3D; const EmptyBoxArea: Single): Single;
 

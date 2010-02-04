@@ -144,11 +144,11 @@
       outside world.
 
       Unfortunately for Delphi, we cannot do this AFAIK (overloading is always
-      cross-class). Under FPC thankfully we can. }
+      cross-class). Under FPC ObjFpc thankfully we can. }
     { }
 
-    constructor Create; {$ifdef DELPHI} overload; {$endif}
-    constructor Create(InitialLength: Integer); {$ifdef DELPHI} overload; {$endif}
+    constructor Create; {$ifndef FPC_OBJFPC} overload; {$endif}
+    constructor Create(InitialLength: Integer); {$ifndef FPC_OBJFPC} overload; {$endif}
     constructor CreateCopy(Source: TDynArray_10);
 
     { This is a comfortable Items property, that allows you to both read and

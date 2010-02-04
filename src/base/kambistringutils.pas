@@ -680,9 +680,9 @@ function SPercentReplace(const InitialFormat: string;
 
   @groupBegin }
 function FormatIndexedName(const NamePattern: string;
-  const Index: Integer; out ReplacementsDone: Cardinal): string;
+  const Index: Integer; out ReplacementsDone: Cardinal): string; overload;
 function FormatIndexedName(const NamePattern: string;
-  const Index: Integer): string;
+  const Index: Integer): string; overload;
 { @groupEnd }
 
 function AnsiUpperCaseChar(C: char): char;

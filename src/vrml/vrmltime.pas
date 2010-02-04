@@ -78,10 +78,12 @@ type
 const
   OldestVRMLTime: TVRMLTime = (Seconds: OldestTime; PlusTicks: 0);
 
+{$ifdef FPC_OBJFPC}
 operator >  (const Time1: TVRMLTime; const Time2: TVRMLTime): boolean;
 operator >= (const Time1: TVRMLTime; const Time2: TVRMLTime): boolean;
 operator <  (const Time1: TVRMLTime; const Time2: TVRMLTime): boolean;
 operator <= (const Time1: TVRMLTime; const Time2: TVRMLTime): boolean;
+{$endif FPC_OBJFPC}
 
 {$define read_interface}
 
@@ -99,6 +101,7 @@ implementation
 {$define read_implementation}
 {$I dynarray_1.inc}
 
+{$ifdef FPC_OBJFPC}
 operator >  (const Time1: TVRMLTime; const Time2: TVRMLTime): boolean;
 begin
   Result := (Time1.Seconds > Time2.Seconds) or
@@ -126,5 +129,6 @@ begin
     ( (Time1.Seconds = Time2.Seconds) and
       (Time1.PlusTicks <= Time2.PlusTicks) );
 end;
+{$endif FPC_OBJFPC}
 
 end.

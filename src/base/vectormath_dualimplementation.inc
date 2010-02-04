@@ -66,6 +66,7 @@ begin
   Result := (V[0] + V[1] + V[2]) / 3;
 end;
 
+{$ifdef FPC_OBJFPC}
 operator := (const V: TYPE_VECTOR2_OBJECT): TYPE_VECTOR2;
 begin
   Result := V.Data;
@@ -95,6 +96,7 @@ operator := (const V: TYPE_VECTOR4): TYPE_VECTOR4_OBJECT;
 begin
   Result.Data := V;
 end;
+{$endif FPC_OBJFPC}
 
 procedure NormalizeTo1st(var V: TYPE_VECTOR3);
 var len: TYPE_SCALAR;
@@ -236,6 +238,7 @@ begin
   NormalizeTo1st(result);
 end;
 
+{$ifdef HAS_MATRIX_UNIT}
 function Vector_Get_Normalized(const V: TYPE_VECTOR3_OBJECT): TYPE_VECTOR3_OBJECT;
 begin
   Result.Data := V.Data;
@@ -246,6 +249,7 @@ procedure Vector_Normalize(var V: TYPE_VECTOR3_OBJECT);
 begin
   NormalizeTo1st(V.Data);
 end;
+{$endif HAS_MATRIX_UNIT}
 
 function RotatePointAroundAxisDeg(angleDeg: TYPE_SCALAR; const pt: TYPE_VECTOR3;
   const axisVec: TYPE_VECTOR3): TYPE_VECTOR3;
@@ -1921,7 +1925,7 @@ begin
 end;
 }
 
-{$ifdef FPC}
+{$ifdef HAS_MATRIX_UNIT}
 { We're happily using FPC's Matrix unit to trivially implement
   matrix determinant and inverse. }
 
@@ -1983,7 +1987,7 @@ begin
   MM.Data := M;
   Result := MM.Inverse(Determinant).Data;
 end;
-{$endif}
+{$endif HAS_MATRIX_UNIT}
 
 function MatrixRow(const m: TYPE_MATRIX2; const Row: Integer): TYPE_VECTOR2;
 begin

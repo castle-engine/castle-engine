@@ -242,29 +242,29 @@ uses SysUtils, KambiUtils {$ifdef HAS_MATRIX_UNIT}, Matrix{$endif};
 {$define read_interface}
 
 {$ifndef HAS_MATRIX_UNIT}
-type    Tvector2_single_data=array[0..1] of single;
-        Tvector2_double_data=array[0..1] of double;
-        Tvector2_extended_data=array[0..1] of extended;
+type    Tvector2_single_data   =array[0..1] of single;
+        Tvector2_double_data   =array[0..1] of double;
+        Tvector2_extended_data =array[0..1] of extended;
 
-        Tvector3_single_data=array[0..2] of single;
-        Tvector3_double_data=array[0..2] of double;
-        Tvector3_extended_data=array[0..2] of extended;
+        Tvector3_single_data   =array[0..2] of single;
+        Tvector3_double_data   =array[0..2] of double;
+        Tvector3_extended_data =array[0..2] of extended;
 
-        Tvector4_single_data=array[0..3] of single;
-        Tvector4_double_data=array[0..3] of double;
-        Tvector4_extended_data=array[0..3] of extended;
+        Tvector4_single_data   =array[0..3] of single;
+        Tvector4_double_data   =array[0..3] of double;
+        Tvector4_extended_data =array[0..3] of extended;
 
-        Tmatrix2_single_data=array[0..1,0..1] of single;
-        Tmatrix2_double_data=array[0..1,0..1] of double;
-        Tmatrix2_extended_data=array[0..1,0..1] of extended;
+        Tmatrix2_single_data   =array[0..1] of Tvector2_single_data;
+        Tmatrix2_double_data   =array[0..1] of Tvector2_double_data;
+        Tmatrix2_extended_data =array[0..1] of Tvector2_extended_data;
 
-        Tmatrix3_single_data=array[0..2,0..2] of single;
-        Tmatrix3_double_data=array[0..2,0..2] of double;
-        Tmatrix3_extended_data=array[0..2,0..2] of extended;
+        Tmatrix3_single_data   =array[0..2] of Tvector3_single_data;
+        Tmatrix3_double_data   =array[0..2] of Tvector3_double_data;
+        Tmatrix3_extended_data =array[0..2] of Tvector3_extended_data;
 
-        Tmatrix4_single_data=array[0..3,0..3] of single;
-        Tmatrix4_double_data=array[0..3,0..3] of double;
-        Tmatrix4_extended_data=array[0..3,0..3] of extended;
+        Tmatrix4_single_data   =array[0..3] of Tvector4_single_data;
+        Tmatrix4_double_data   =array[0..3] of Tvector4_double_data;
+        Tmatrix4_extended_data =array[0..3] of Tvector4_extended_data;
 {$endif}
 
 {$ifdef HAS_MATRIX_UNIT}
@@ -711,8 +711,8 @@ function Zero(const f1, EqEpsilon: Extended): boolean; overload;
 function Vector2Cardinal(const x, y: Cardinal): TVector2Cardinal;
 function Vector2Integer(const x, y: Integer): TVector2Integer;
 
-function Vector2Single(const x, y: Single): TVector2Single;
-function Vector2Single(const V: TVector2Double): TVector2Single;
+function Vector2Single(const x, y: Single): TVector2Single; overload;
+function Vector2Single(const V: TVector2Double): TVector2Single; overload;
 
 function Vector2Double(const x, y: Double): TVector2Double;
 
@@ -768,7 +768,6 @@ function Vector3DoubleFromStr(const s: string): TVector3Double;
 function Vector3ExtendedFromStr(const s: string): TVector3Extended;
 function Vector4SingleFromStr(const s: string): TVector4Single;
 
-{$ifndef DELPHI}
 { Convert between single and double precision matrices.
   @groupBegin }
 function Matrix2Double(const M: TMatrix2Single): TMatrix2Double;
@@ -778,9 +777,8 @@ function Matrix3Single(const M: TMatrix3Double): TMatrix3Single;
 function Matrix4Double(const M: TMatrix4Single): TMatrix4Double;
 function Matrix4Single(const M: TMatrix4Double): TMatrix4Single;
 { @groupEnd }
-{$endif not DELPHI}
 
-{$ifdef FPC}
+{$ifdef FPC_OBJFPC}
 { Overload := operator to allow convertion between
   Matrix unit objects and this unit's arrays easy. }
 operator := (const V: TVector2_Single): TVector2Single;
@@ -865,11 +863,13 @@ procedure NormalizeTo1st(var v: TVector3Double); overload;
 function Normalized(const v: TVector3Single): TVector3Single; overload;
 function Normalized(const v: TVector3Double): TVector3Double; overload;
 
+{$ifdef HAS_MATRIX_UNIT}
 function Vector_Get_Normalized(const V: TVector3_Single): TVector3_Single; overload;
 function Vector_Get_Normalized(const V: TVector3_Double): TVector3_Double; overload;
 
 procedure Vector_Normalize(var V: TVector3_Single); overload;
 procedure Vector_Normalize(var V: TVector3_Double); overload;
+{$endif HAS_MATRIX_UNIT}
 
 { This normalizes Plane by scaling all *four* coordinates of Plane
   so that length of plane vector (taken from 1st *three* coordinates)
@@ -1128,8 +1128,8 @@ function MaxVectorCoord(const v: TVector4Double): integer; overload;
 function MaxAbsVectorCoord(const v: TVector3Single): integer; overload;
 function MaxAbsVectorCoord(const v: TVector3Double): integer; overload;
 
-procedure SortAbsVectorCoord(const v: TVector3Single; out Max, Middle, Min: Integer);
-procedure SortAbsVectorCoord(const v: TVector3Double; out Max, Middle, Min: Integer);
+procedure SortAbsVectorCoord(const v: TVector3Single; out Max, Middle, Min: Integer); overload;
+procedure SortAbsVectorCoord(const v: TVector3Double; out Max, Middle, Min: Integer); overload;
 
 { PlaneDirInDirection - taka banalna procedurka - dla zadanego
   Plane (albo jako PlaneDir albo jako czworka Plane, ale to bez znaczenia
@@ -1174,8 +1174,8 @@ type
 { Intersection of two 2D lines.
   @raises ELinesParallel if lines parallel
   @groupBegin }
-function Lines2DIntersection(const Line0, Line1: TVector3Single): TVector2Single;
-function Lines2DIntersection(const Line0, Line1: TVector3Double): TVector2Double;
+function Lines2DIntersection(const Line0, Line1: TVector3Single): TVector2Single; overload;
+function Lines2DIntersection(const Line0, Line1: TVector3Double): TVector2Double; overload;
 { @groupEnd }
 
 { This takes three plane equations (these planes MUST have exactly
@@ -1709,11 +1709,11 @@ function TryTriangleRayCollision(var Intersection: TVector3Double; var T: Double
 function IndexedPolygonNormal(
   Indices: PArray_Longint; IndicesCount: integer;
   Verts: PArray_Vector3Single; const VertsCount: Integer;
-  const ResultForIncorrectPoly: TVector3Single): TVector3Single;
+  const ResultForIncorrectPoly: TVector3Single): TVector3Single; overload;
 function IndexedPolygonNormal(
   Indices: PArray_Longint; IndicesCount: integer;
   Verts: PVector3Single; const VertsCount: Integer; const VertsStride: PtrUInt;
-  const ResultForIncorrectPoly: TVector3Single): TVector3Single;
+  const ResultForIncorrectPoly: TVector3Single): TVector3Single; overload;
 { @groupEnd }
 
 { Surface area of indexed convex polygon.
@@ -1726,10 +1726,10 @@ function IndexedPolygonNormal(
   @groupBegin }
 function IndexedConvexPolygonArea(
   Indices: PArray_Longint; IndicesCount: integer;
-  Verts: PArray_Vector3Single; const VertsCount: Integer): Single;
+  Verts: PArray_Vector3Single; const VertsCount: Integer): Single; overload;
 function IndexedConvexPolygonArea(
   Indices: PArray_Longint; IndicesCount: integer;
-  Verts: PVector3Single; const VertsCount: Integer; const VertsStride: PtrUInt): Single;
+  Verts: PVector3Single; const VertsCount: Integer; const VertsStride: PtrUInt): Single; overload;
 { @groupEnd }
 
 { dla zadanego polygonu 2d, ktory nie musi byc convex i moze byc kawalkami
@@ -1795,35 +1795,35 @@ function TriangleToRawStr(const t: TTriangle3Double): string; overload;
 
 { troche matematyki na macierzach ----------------------------------------------- }
 
-function MatrixAdd(const m1, m2: TMatrix3Single): TMatrix3Single;
-function MatrixAdd(const m1, m2: TMatrix4Single): TMatrix4Single;
-function MatrixAdd(const m1, m2: TMatrix3Double): TMatrix3Double;
-function MatrixAdd(const m1, m2: TMatrix4Double): TMatrix4Double;
+function MatrixAdd(const m1, m2: TMatrix3Single): TMatrix3Single; overload;
+function MatrixAdd(const m1, m2: TMatrix4Single): TMatrix4Single; overload;
+function MatrixAdd(const m1, m2: TMatrix3Double): TMatrix3Double; overload;
+function MatrixAdd(const m1, m2: TMatrix4Double): TMatrix4Double; overload;
 
-procedure MatrixAddTo1st(var m1: TMatrix3Single; const m2: TMatrix3Single);
-procedure MatrixAddTo1st(var m1: TMatrix4Single; const m2: TMatrix4Single);
-procedure MatrixAddTo1st(var m1: TMatrix3Double; const m2: TMatrix3Double);
-procedure MatrixAddTo1st(var m1: TMatrix4Double; const m2: TMatrix4Double);
+procedure MatrixAddTo1st(var m1: TMatrix3Single; const m2: TMatrix3Single); overload;
+procedure MatrixAddTo1st(var m1: TMatrix4Single; const m2: TMatrix4Single); overload;
+procedure MatrixAddTo1st(var m1: TMatrix3Double; const m2: TMatrix3Double); overload;
+procedure MatrixAddTo1st(var m1: TMatrix4Double; const m2: TMatrix4Double); overload;
 
-function MatrixSubtract(const m1, m2: TMatrix3Single): TMatrix3Single;
-function MatrixSubtract(const m1, m2: TMatrix4Single): TMatrix4Single;
-function MatrixSubtract(const m1, m2: TMatrix3Double): TMatrix3Double;
-function MatrixSubtract(const m1, m2: TMatrix4Double): TMatrix4Double;
+function MatrixSubtract(const m1, m2: TMatrix3Single): TMatrix3Single; overload;
+function MatrixSubtract(const m1, m2: TMatrix4Single): TMatrix4Single; overload;
+function MatrixSubtract(const m1, m2: TMatrix3Double): TMatrix3Double; overload;
+function MatrixSubtract(const m1, m2: TMatrix4Double): TMatrix4Double; overload;
 
-procedure MatrixSubtractTo1st(var m1: TMatrix3Single; const m2: TMatrix3Single);
-procedure MatrixSubtractTo1st(var m1: TMatrix4Single; const m2: TMatrix4Single);
-procedure MatrixSubtractTo1st(var m1: TMatrix3Double; const m2: TMatrix3Double);
-procedure MatrixSubtractTo1st(var m1: TMatrix4Double; const m2: TMatrix4Double);
+procedure MatrixSubtractTo1st(var m1: TMatrix3Single; const m2: TMatrix3Single); overload;
+procedure MatrixSubtractTo1st(var m1: TMatrix4Single; const m2: TMatrix4Single); overload;
+procedure MatrixSubtractTo1st(var m1: TMatrix3Double; const m2: TMatrix3Double); overload;
+procedure MatrixSubtractTo1st(var m1: TMatrix4Double; const m2: TMatrix4Double); overload;
 
-function MatrixNegate(const m1: TMatrix3Single): TMatrix3Single;
-function MatrixNegate(const m1: TMatrix4Single): TMatrix4Single;
-function MatrixNegate(const m1: TMatrix3Double): TMatrix3Double;
-function MatrixNegate(const m1: TMatrix4Double): TMatrix4Double;
+function MatrixNegate(const m1: TMatrix3Single): TMatrix3Single; overload;
+function MatrixNegate(const m1: TMatrix4Single): TMatrix4Single; overload;
+function MatrixNegate(const m1: TMatrix3Double): TMatrix3Double; overload;
+function MatrixNegate(const m1: TMatrix4Double): TMatrix4Double; overload;
 
-function MatrixMultScalar(const m: TMatrix3Single; const s: Single): TMatrix3Single;
-function MatrixMultScalar(const m: TMatrix4Single; const s: Single): TMatrix4Single;
-function MatrixMultScalar(const m: TMatrix3Double; const s: Double): TMatrix3Double;
-function MatrixMultScalar(const m: TMatrix4Double; const s: Double): TMatrix4Double;
+function MatrixMultScalar(const m: TMatrix3Single; const s: Single): TMatrix3Single; overload;
+function MatrixMultScalar(const m: TMatrix4Single; const s: Single): TMatrix4Single; overload;
+function MatrixMultScalar(const m: TMatrix3Double; const s: Double): TMatrix3Double; overload;
+function MatrixMultScalar(const m: TMatrix4Double; const s: Double): TMatrix4Double; overload;
 
 type
   ETransformedResultInvalid = class(EVectorMathInvalidOp);
@@ -1841,8 +1841,8 @@ type
   equal zero). In this case we just cannot interpret the result as a 3D point.)
 
   @groupBegin }
-function MatrixMultPoint(const m: TMatrix4Single; const pt: TVector3Single): TVector3Single;
-function MatrixMultPoint(const m: TMatrix4Double; const pt: TVector3Double): TVector3Double;
+function MatrixMultPoint(const m: TMatrix4Single; const pt: TVector3Single): TVector3Single; overload;
+function MatrixMultPoint(const m: TMatrix4Double; const pt: TVector3Double): TVector3Double; overload;
 { @groupEnd }
 
 { Transform a 3D direction with 4x4 matrix.
@@ -1857,9 +1857,9 @@ function MatrixMultPoint(const m: TMatrix4Double; const pt: TVector3Double): TVe
 
   @groupBegin }
 function MatrixMultDirection(const m: TMatrix4Single;
-  const Dir: TVector3Single): TVector3Single;
+  const Dir: TVector3Single): TVector3Single; overload;
 function MatrixMultDirection(const m: TMatrix4Double;
-  const Dir: TVector3Double): TVector3Double;
+  const Dir: TVector3Double): TVector3Double; overload;
 { @groupEnd }
 
 function MatrixMultVector(const m: TMatrix3Single; const v: TVector3Single): TVector3Single; overload;
@@ -1867,10 +1867,10 @@ function MatrixMultVector(const m: TMatrix4Single; const v: TVector4Single): TVe
 function MatrixMultVector(const m: TMatrix3Double; const v: TVector3Double): TVector3Double; overload;
 function MatrixMultVector(const m: TMatrix4Double; const v: TVector4Double): TVector4Double; overload;
 
-function MatrixMult(const m1, m2: TMatrix3Single): TMatrix3Single;
-function MatrixMult(const m1, m2: TMatrix4Single): TMatrix4Single;
-function MatrixMult(const m1, m2: TMatrix3Double): TMatrix3Double;
-function MatrixMult(const m1, m2: TMatrix4Double): TMatrix4Double;
+function MatrixMult(const m1, m2: TMatrix3Single): TMatrix3Single; overload;
+function MatrixMult(const m1, m2: TMatrix4Single): TMatrix4Single; overload;
+function MatrixMult(const m1, m2: TMatrix3Double): TMatrix3Double; overload;
+function MatrixMult(const m1, m2: TMatrix4Double): TMatrix4Double; overload;
 
 function MatrixRow(const m: TMatrix2Single; const Row: Integer): TVector2Single; overload;
 function MatrixRow(const m: TMatrix3Single; const Row: Integer): TVector3Single; overload;
@@ -1879,13 +1879,13 @@ function MatrixRow(const m: TMatrix2Double; const Row: Integer): TVector2Double;
 function MatrixRow(const m: TMatrix3Double; const Row: Integer): TVector3Double; overload;
 function MatrixRow(const m: TMatrix4Double; const Row: Integer): TVector4Double; overload;
 
-{$ifdef FPC}
-function MatrixDeterminant(const M: TMatrix2Single): Single;
-function MatrixDeterminant(const M: TMatrix2Double): Double;
-function MatrixDeterminant(const M: TMatrix3Single): Single;
-function MatrixDeterminant(const M: TMatrix3Double): Double;
-function MatrixDeterminant(const M: TMatrix4Single): Single;
-function MatrixDeterminant(const M: TMatrix4Double): Double;
+{$ifdef HAS_MATRIX_UNIT}
+function MatrixDeterminant(const M: TMatrix2Single): Single; overload;
+function MatrixDeterminant(const M: TMatrix2Double): Double; overload;
+function MatrixDeterminant(const M: TMatrix3Single): Single; overload;
+function MatrixDeterminant(const M: TMatrix3Double): Double; overload;
+function MatrixDeterminant(const M: TMatrix4Single): Single; overload;
+function MatrixDeterminant(const M: TMatrix4Double): Double; overload;
 
 { Inverse the matrix.
 
@@ -1893,12 +1893,12 @@ function MatrixDeterminant(const M: TMatrix4Double): Double;
   from this float division if the matrix is not reversible.
 
   @groupBegin }
-function MatrixInverse(const M: TMatrix2Single; const Determinant: Single): TMatrix2Single;
-function MatrixInverse(const M: TMatrix2Double; const Determinant: Double): TMatrix2Double;
-function MatrixInverse(const M: TMatrix3Single; const Determinant: Single): TMatrix3Single;
-function MatrixInverse(const M: TMatrix3Double; const Determinant: Double): TMatrix3Double;
-function MatrixInverse(const M: TMatrix4Single; const Determinant: Single): TMatrix4Single;
-function MatrixInverse(const M: TMatrix4Double; const Determinant: Double): TMatrix4Double;
+function MatrixInverse(const M: TMatrix2Single; const Determinant: Single): TMatrix2Single; overload;
+function MatrixInverse(const M: TMatrix2Double; const Determinant: Double): TMatrix2Double; overload;
+function MatrixInverse(const M: TMatrix3Single; const Determinant: Single): TMatrix3Single; overload;
+function MatrixInverse(const M: TMatrix3Double; const Determinant: Double): TMatrix3Double; overload;
+function MatrixInverse(const M: TMatrix4Single; const Determinant: Single): TMatrix4Single; overload;
+function MatrixInverse(const M: TMatrix4Double; const Determinant: Double): TMatrix4Double; overload;
 { @groupEnd }
 
 { Inverse the matrix, trying harder (but possibly slower).
@@ -1919,14 +1919,14 @@ function MatrixInverse(const M: TMatrix4Double; const Determinant: Double): TMat
   (even on Single precision, although safer in Double precision).
 
   @groupBegin }
-function TryMatrixInverse(const M: TMatrix2Single; out MInverse: TMatrix2Single): boolean;
-function TryMatrixInverse(const M: TMatrix2Double; out MInverse: TMatrix2Double): boolean;
-function TryMatrixInverse(const M: TMatrix3Single; out MInverse: TMatrix3Single): boolean;
-function TryMatrixInverse(const M: TMatrix3Double; out MInverse: TMatrix3Double): boolean;
-function TryMatrixInverse(const M: TMatrix4Single; out MInverse: TMatrix4Single): boolean;
-function TryMatrixInverse(const M: TMatrix4Double; out MInverse: TMatrix4Double): boolean;
+function TryMatrixInverse(const M: TMatrix2Single; out MInverse: TMatrix2Single): boolean; overload;
+function TryMatrixInverse(const M: TMatrix2Double; out MInverse: TMatrix2Double): boolean; overload;
+function TryMatrixInverse(const M: TMatrix3Single; out MInverse: TMatrix3Single): boolean; overload;
+function TryMatrixInverse(const M: TMatrix3Double; out MInverse: TMatrix3Double): boolean; overload;
+function TryMatrixInverse(const M: TMatrix4Single; out MInverse: TMatrix4Single): boolean; overload;
+function TryMatrixInverse(const M: TMatrix4Double; out MInverse: TMatrix4Double): boolean; overload;
 { @groupEnd }
-{$endif FPC}
+{$endif HAS_MATRIX_UNIT}
 
 { pomnoz wektor przez transpozycje tego samego wektora,
   czyli np. dla wektorow 3-elementowych otrzymamy macierz 3x3. }
@@ -1994,10 +1994,10 @@ procedure ScalingMatrices(const ScaleFactor: TVector3Single;
   InvertedMatrixIdentityIfNotExists: boolean;
   out Matrix, InvertedMatrix: TMatrix4Single);
 
-function RotationMatrixRad(const AngleRad: Single; const Axis: TVector3Single): TMatrix4Single;
-function RotationMatrixDeg(const AngleDeg: Single; const Axis: TVector3Single): TMatrix4Single;
-function RotationMatrixRad(const AngleRad: Single; const AxisX, AxisY, AxisZ: Single): TMatrix4Single;
-function RotationMatrixDeg(const AngleDeg: Single; const AxisX, AxisY, AxisZ: Single): TMatrix4Single;
+function RotationMatrixRad(const AngleRad: Single; const Axis: TVector3Single): TMatrix4Single; overload;
+function RotationMatrixDeg(const AngleDeg: Single; const Axis: TVector3Single): TMatrix4Single; overload;
+function RotationMatrixRad(const AngleRad: Single; const AxisX, AxisY, AxisZ: Single): TMatrix4Single; overload;
+function RotationMatrixDeg(const AngleDeg: Single; const AxisX, AxisY, AxisZ: Single): TMatrix4Single; overload;
 
 procedure RotationMatricesRad(const AngleRad: Single; const Axis: TVector3Single;
   out Matrix, InvertedMatrix: TMatrix4Single);
@@ -2031,10 +2031,10 @@ function PerspectiveProjMatrixRad(const fovyRad, aspect, zNear, zFar: Single): T
   inverse, then after MultMatricesTranslation this will still hold.
 
   @groupBegin }
-procedure MultMatrixTranslation(var M: TMatrix4Single; const Transl: TVector3Single);
-procedure MultMatrixTranslation(var M: TMatrix4Double; const Transl: TVector3Double);
-procedure MultMatricesTranslation(var M, MInvert: TMatrix4Single; const Transl: TVector3Single);
-procedure MultMatricesTranslation(var M, MInvert: TMatrix4Double; const Transl: TVector3Double);
+procedure MultMatrixTranslation(var M: TMatrix4Single; const Transl: TVector3Single); overload;
+procedure MultMatrixTranslation(var M: TMatrix4Double; const Transl: TVector3Double); overload;
+procedure MultMatricesTranslation(var M, MInvert: TMatrix4Single; const Transl: TVector3Single); overload;
+procedure MultMatricesTranslation(var M, MInvert: TMatrix4Double; const Transl: TVector3Double); overload;
 { @groupEnd }
 
 function MatrixDet4x4(const mat: TMatrix4Single): Single;
@@ -3566,6 +3566,7 @@ begin
  result := a * d - b * c;
 end;
 
+{$ifdef HAS_MATRIX_UNIT}
 function TryMatrixInverse(const M: TMatrix2Single; out MInverse: TMatrix2Single): boolean;
 var
   D: Double;
@@ -3640,6 +3641,7 @@ begin
   if Result then
     MInverse := MatrixInverse(M, D);
 end;
+{$endif HAS_MATRIX_UNIT}
 {$endif not DELPHI}
 
 { Grayscale ------------------------------------------------------------------ }
