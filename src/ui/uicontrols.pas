@@ -98,6 +98,7 @@ type
     FContainer: IUIContainer;
     FCursor: TMouseCursor;
     FOnCursorChange: TNotifyEvent;
+    FDisableContextInitClose: Cardinal;
     procedure SetCursor(const Value: TMouseCursor);
   protected
     { Container (window containing the control) size, as known by this control,
@@ -288,18 +289,47 @@ type
       to work. }
     property Container: IUIContainer read FContainer write SetContainer;
 
-    { Called when OpenGL context of the container is created.
-      Also called when the control is added to the already existing context.
+    { Initialize your OpenGL resources.
 
+      This is called when OpenGL context of the container is created.
+      Also called when the control is added to the already existing context.
       In other words, this is the moment when you can initialize
       OpenGL resources, like display lists, VBOs, OpenGL texture names, etc. }
     procedure GLContextInit; virtual;
 
-    { Called when OpenGL context of the window is destroyed.
-      This will be also automatically called from destructor.
+    { Destroy your OpenGL resources.
 
-      Control should clear here any resources that are tied to the GL context. }
+      Called when OpenGL context of the container is destroyed.
+      Also called when controls is removed from the container
+      @code(Controls) list. Also called from the destructor.
+
+      You should release here any resources that are tied to the
+      OpenGL context. In particular, the ones created in GLContextInit. }
     procedure GLContextClose; virtual;
+
+    { When non-zero, container will not call GLContextInit and
+      GLContextClose (when control is added/removed to/from the
+      @code(Controls) list).
+
+      This is useful, although should be used with much caution:
+      you're expected to call controls GLContextInit /
+      GLContextClose on your own when this is non-zero. Example usage is
+      when the same control is often added/removed to/from the @code(Controls)
+      list, and the window (with it's OpenGL context) stays open for a longer
+      time. In such case, default (when DisableContextInitClose = 0) behavior
+      will often release (only to be forced to reinitialize again) OpenGL
+      resources of the control. Some controls have large OpenGL
+      resources (for example TVRMLGLScene keeps display lists, textures etc.,
+      and TVRMLGLAnimation keeps all the scenes) --- so constantly
+      reinitializing them may eat a noticeable time.
+
+      By using non-zero DisableContextInitClose you can disable this behavior.
+
+      In particular, TGLMode uses this trick, to avoid releasing and
+      reinitializing OpenGL resources for controls only temporarily
+      removed from the @link(TGLUIWindow.Controls) list. }
+    property DisableContextInitClose: Cardinal
+      read FDisableContextInitClose write FDisableContextInitClose;
 
     { Design note: ExclusiveEvents is not published now, as it's too "obscure"
       (for normal usage you don't want to deal with it). Also, it's confusing

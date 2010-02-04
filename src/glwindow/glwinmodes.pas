@@ -178,6 +178,7 @@ type
     FRestoreProjectionMatrix: boolean;
     FRestoreModelviewMatrix: boolean;
     FRestoreTextureMatrix: boolean;
+    DisabledContextInitClose: boolean;
   public
     { Enter / Exit mode:
 
@@ -270,18 +271,18 @@ type
         @item(
           We call IgnoreNextIdleSpeed at the end, when closing our mode,
           see TGLWindow.IgnoreNextIdleSpeed for comments why this is needed.)
-      ) }
+      )
+
+      This also performs important optimization to avoid closing / reinitializing
+      window TGLUIWindow.Controls OpenGL resources,
+      see TUIControl.DisableContextInitClose. }
     constructor Create(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
       APushPopGLWinMessagesTheme: boolean);
 
     { Create mode (saving current window state) and then reset window state.
       This is a shortcut for @link(Create) followed by
       @link(TGLWindowState.SetStandardState), see there for explanation
-      of parameters.
-
-      This also performs important optimization to avoid closing / reinitializing
-      window TGLUIWindow.Controls OpenGL resources,
-      see TGLUIWindow.DisableControlsInitClose. }
+      of parameters. }
     constructor CreateReset(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
       APushPopGLWinMessagesTheme: boolean;
       NewDraw, NewResize, NewCloseQuery: TGLWindowFunc;
@@ -495,6 +496,8 @@ constructor TGLMode.Create(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
         Glwin.EventKeyUp(K_None, C);
   end;
 
+var
+  I: Integer;
 begin
  inherited Create;
 
@@ -533,6 +536,20 @@ begin
  SavePixelStoreUnpack(oldPixelStoreUnpack);
 
  Glwin.PostRedisplay;
+
+ if AGLWindow is TGLUIWindow then
+ begin
+   { We know that at destruction these controls will be restored to
+     the window's Controls list. So there's no point calling any
+     GLContextInit / Close on these controls (that could happen
+     e.g. when doing SetStandardState / CreateReset, that clear Controls,
+     and at destruction when restoring.) }
+
+   DisabledContextInitClose := true;
+   for I := 0 to TGLUIWindow(AGLWindow).Controls.Count - 1 do
+     with TGLUIWindow(AGLWindow).Controls[I] do
+       DisableContextInitClose := DisableContextInitClose + 1;
+ end;
 end;
 
 constructor TGLMode.CreateReset(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
@@ -546,10 +563,19 @@ begin
 end;
 
 destructor TGLMode.Destroy;
-var btn: TMouseButton;
+var
+  btn: TMouseButton;
+  I: Integer;
 begin
  oldWinState.SetState(glwin);
  FreeAndNil(oldWinState);
+
+ if DisabledContextInitClose then
+ begin
+   for I := 0 to TGLUIWindow(Glwin).Controls.Count - 1 do
+     with TGLUIWindow(Glwin).Controls[I] do
+       DisableContextInitClose := DisableContextInitClose - 1;
+ end;
 
  if FPushPopGLWinMessagesTheme then
    GLWinMessagesTheme := oldGLWinMessagesTheme;

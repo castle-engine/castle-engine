@@ -2191,7 +2191,7 @@ type
         the dialog is open. Callbacks of THIS object (OnXxx) will not be
         called. You should treat XxxDialog like
           TGLMode.Create(Self, ...)
-          TGLWindowState.SetStandardNoCloseState
+          TGLWindowState.SetStandardState
           ....
           TGLMode.Free
       - How does these dialogs look like ?
@@ -4208,7 +4208,8 @@ begin
 
         if not Container.Closed then
         begin
-          C.GLContextInit;
+          if C.DisableContextInitClose = 0 then
+            C.GLContextInit;
           { Call initial ContainerResize for control.
             If window OpenGL context is not yet initialized, defer it to
             the Init time, then our initial EventResize will be called
@@ -4218,7 +4219,8 @@ begin
       end;
     lnExtracted, lnDeleted:
       begin
-        if not Container.Closed then
+        if (not Container.Closed) and
+           (C.DisableContextInitClose = 0) then
           C.GLContextClose;
 
         if C.OnVisibleChange = @Container.ControlsVisibleChange then
