@@ -326,7 +326,6 @@ type
     FKeySelectItem: TKey;
     FKeySliderDecrease: TKey;
     FKeySliderIncrease: TKey;
-    GLList_DrawFadeRect: array [boolean] of TGLuint;
     MenuAnimation: Single;
     FCurrentItemBorderColor1: TVector3Single;
     FCurrentItemBorderColor2: TVector3Single;
@@ -1147,8 +1146,6 @@ end;
 
 procedure TGLMenu.GLContextClose;
 begin
-  glFreeDisplayList(GLList_DrawFadeRect[false]);
-  glFreeDisplayList(GLList_DrawFadeRect[true]);
 end;
 
 function TGLMenu.SpaceBetweenItems(const NextItemIndex: Cardinal): Cardinal;
@@ -1160,23 +1157,6 @@ const
   MarginBeforeAccessory = 20;
 
 procedure TGLMenu.FixItemsAreas;
-
-  procedure MakeGLList_DrawFadeRect(var List: TGLuint; const Alpha: TGLfloat);
-  begin
-    if List = 0 then
-      List := glGenListsCheck(1, 'TGLMenu.FixItemsAreas');
-    glNewList(List, GL_COMPILE);
-    try
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      glEnable(GL_BLEND);
-        glColor4f(0, 0, 0, Alpha);
-        glRectf(FAllItemsArea.X0, FAllItemsArea.Y0,
-          FAllItemsArea.X0 + FAllItemsArea.Width,
-          FAllItemsArea.Y0 + FAllItemsArea.Height);
-      glDisable(GL_BLEND);
-    finally glEndList end;
-  end;
-
 const
   AllItemsAreaMargin = 30;
 var
@@ -1304,10 +1284,6 @@ begin
     FAccessoryAreas.Items[I].Y0 := Areas.Items[I].Y0;
     FAccessoryAreas.Items[I].Height := Areas.Items[I].Height;
   end;
-
-  { Calculate GLList_DrawFadeRect }
-  MakeGLList_DrawFadeRect(GLList_DrawFadeRect[false], 0.4);
-  MakeGLList_DrawFadeRect(GLList_DrawFadeRect[true], 0.7);
 end;
 
 procedure TGLMenu.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
@@ -1334,12 +1310,21 @@ procedure TGLMenu.Draw(const Focused: boolean);
 
 const
   CurrentItemBorderMargin = 5;
+  BackgroundAlpha: array [boolean { focused }] of TGLfloat = (0.4, 0.7);
 var
   I: Integer;
   CurrentItemBorderColor: TVector3Single;
 begin
   if DrawBackgroundRectangle then
-    glCallList(GLList_DrawFadeRect[Focused]);
+  begin
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+      glColor4f(0, 0, 0, BackgroundAlpha[Focused]);
+      glRectf(FAllItemsArea.X0, FAllItemsArea.Y0,
+        FAllItemsArea.X0 + FAllItemsArea.Width,
+        FAllItemsArea.Y0 + FAllItemsArea.Height);
+    glDisable(GL_BLEND);
+  end;
 
   { Calculate CurrentItemBorderColor }
   if MenuAnimation <= 0.5 then
