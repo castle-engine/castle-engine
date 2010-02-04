@@ -515,10 +515,10 @@ type
       const ParentTransformIsIdentity: boolean;
       const ParentTransform: TMatrix4Single); override;
 
-    procedure GetCameraHeight(const Position, GravityUp: TVector3Single;
+    procedure GetHeightAbove(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
-      out GroundItem: P3DTriangle); override;
+      out IsAbove: boolean; out AboveHeight: Single;
+      out AboveGround: P3DTriangle); override;
     function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const CameraRadius: Single;
@@ -1823,28 +1823,27 @@ begin
       ParentTransformIsIdentity, ParentTransform);
 end;
 
-procedure TVRMLGLAnimation.GetCameraHeight(
+procedure TVRMLGLAnimation.GetHeightAbove(
   const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
-  out GroundItem: P3DTriangle);
+  out IsAbove: boolean; out AboveHeight: Single;
+  out AboveGround: P3DTriangle);
 
   procedure MakeScene(Scene: TVRMLScene);
   var
-    IsAboveThis: boolean;
-    SqrHeightAboveThis: Single;
-    GroundItemThis: PVRMLTriangle;
+    NewIsAbove: boolean;
+    NewAboveHeight: Single;
+    NewAboveGround: PVRMLTriangle;
   begin
-    Scene.GetCameraHeight(
+    Scene.GetHeightAbove(
       Position, GravityUp, TrianglesToIgnoreFunc,
-      IsAboveThis, SqrHeightAboveThis, GroundItemThis);
+      NewIsAbove, NewAboveHeight, NewAboveGround);
 
-    if IsAboveThis and
-      ((not IsAboveTheGround) or (SqrHeightAboveThis < SqrHeightAboveTheGround)) then
+    if NewAboveHeight < AboveHeight then
     begin
-      IsAboveTheGround := true;
-      SqrHeightAboveTheGround := SqrHeightAboveThis;
-      GroundItem := GroundItemThis;
+      IsAbove := NewIsAbove;
+      AboveHeight := NewAboveHeight;
+      AboveGround := NewAboveGround;
     end;
   end;
 

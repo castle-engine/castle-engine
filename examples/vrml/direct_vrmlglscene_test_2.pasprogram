@@ -27,7 +27,7 @@
   1. Collision detection
   - constructing octrees, by "Scene.Spatial := ..."
   - doing collision detection using OctreeCollisions, see MoveAllowed
-    and GetCameraHeight methods
+    and GetHeightAbove methods
 
   2. Rendering with frustum culling
   (- This is the default actually:
@@ -58,7 +58,7 @@ program direct_vrmlglscene_test_2;
 
 uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes,
-  KambiGLUtils, VRMLScene, VRMLGLScene, Cameras,
+  KambiGLUtils, VRMLScene, VRMLGLScene, Cameras, Base3D,
   ProgressUnit, ProgressConsole, KambiFilesUtils, VRMLErrors, VRMLTriangle;
 
 var
@@ -101,8 +101,8 @@ type
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean;
 
-    class procedure GetCameraHeight(Camera: TWalkCamera;
-      out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
+    class procedure GetHeightAbove(Camera: TWalkCamera;
+      out IsAbove: boolean; out AboveHeight: Single; out AboveGround: P3DTriangle);
   end;
 
 class function THelperObj.MoveAllowed(Camera: TWalkCamera;
@@ -114,16 +114,12 @@ begin
     BecauseOfGravity, Scene.BoundingBox, Camera.GravityUp);
 end;
 
-class procedure THelperObj.GetCameraHeight(Camera: TWalkCamera;
-  out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
-var
-  GroundItem: PVRMLTriangle;
+class procedure THelperObj.GetHeightAbove(Camera: TWalkCamera;
+  out IsAbove: boolean; out AboveHeight: Single; out AboveGround: P3DTriangle);
 begin
-  Scene.OctreeCollisions.GetCameraHeight(
-    Camera.Position,
-    Camera.GravityUp,
-    IsAboveTheGround, SqrHeightAboveTheGround, GroundItem,
-    nil, nil);
+  Scene.OctreeCollisions.GetHeightAbove(
+    Camera.Position, Camera.GravityUp,
+    IsAbove, AboveHeight, PVRMLTriangle(AboveGround), nil, nil);
 end;
 
 var
@@ -154,8 +150,8 @@ begin
         Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
       Vector3Single(0, 1, 0), false);
     Camera.Home;
-    Camera.OnMoveAllowed     := @THelperObj(nil).MoveAllowed;
-    Camera.OnGetCameraHeight := @THelperObj(nil).GetCameraHeight;
+    Camera.OnMoveAllowed    := @THelperObj(nil).MoveAllowed;
+    Camera.OnGetHeightAbove := @THelperObj(nil).GetHeightAbove;
     Glw.Camera := Camera;
 
     Glw.OnInit := @Init;

@@ -196,7 +196,8 @@ type
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean; virtual;
     procedure CameraGetHeight(ACamera: TWalkCamera;
-      out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single); virtual;
+      out IsAbove: boolean; out AboveHeight: Single;
+      out AboveGround: P3DTriangle); virtual;
     procedure CameraVisibleChange(ACamera: TObject); virtual;
     { @groupEnd }
   public
@@ -361,7 +362,7 @@ type
 
       Scene manager will "hijack" some Camera events:
       TCamera.OnVisibleChange, TWalkCamera.OnMoveAllowed,
-      TWalkCamera.OnGetCameraHeight, TCamera.OnCursorChange.
+      TWalkCamera.OnGetHeightAbove, TCamera.OnCursorChange.
       Scene manager will handle them in a proper way.
 
       @seealso OnCameraChanged }
@@ -504,7 +505,7 @@ begin
     if FCamera is TWalkCamera then
     begin
       TWalkCamera(FCamera).OnMoveAllowed := nil;
-      TWalkCamera(FCamera).OnGetCameraHeight := nil;
+      TWalkCamera(FCamera).OnGetHeightAbove := nil;
     end;
 
     FCamera.Container := nil;
@@ -663,7 +664,7 @@ begin
       if FCamera is TWalkCamera then
       begin
         TWalkCamera(FCamera).OnMoveAllowed := nil;
-        TWalkCamera(FCamera).OnGetCameraHeight := nil;
+        TWalkCamera(FCamera).OnGetHeightAbove := nil;
       end;
 
       FCamera.Container := nil;
@@ -682,7 +683,7 @@ begin
       if FCamera is TWalkCamera then
       begin
         TWalkCamera(FCamera).OnMoveAllowed := @CameraMoveAllowed;
-        TWalkCamera(FCamera).OnGetCameraHeight := @CameraGetHeight;
+        TWalkCamera(FCamera).OnGetHeightAbove := @CameraGetHeight;
       end;
 
       FCamera.Container := Container;
@@ -1138,13 +1139,12 @@ begin
 end;
 
 procedure TKamSceneManager.CameraGetHeight(ACamera: TWalkCamera;
-  out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
-var
-  GroundItem: PVRMLTriangle;
+  out IsAbove: boolean; out AboveHeight: Single;
+  out AboveGround: P3DTriangle);
 begin
-  Items.GetCameraHeight(ACamera.Position, ACamera.GravityUp,
+  Items.GetHeightAbove(ACamera.Position, ACamera.GravityUp,
     @CollisionIgnoreItem,
-    IsAboveTheGround, SqrHeightAboveTheGround, GroundItem);
+    IsAbove, AboveHeight, AboveGround);
 end;
 
 procedure TKamSceneManager.SceneBoundViewpointChanged(Scene: TVRMLScene);

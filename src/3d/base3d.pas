@@ -18,7 +18,7 @@ unit Base3D;
 
 interface
 
-uses Classes, VectorMath, Frustum, Boxes3D, KambiClassUtils, KeysMouse;
+uses Classes, Math, VectorMath, Frustum, Boxes3D, KambiClassUtils, KeysMouse;
 
 type
   { Triangle expessed in particular coordinate system, for T3DTriangle. }
@@ -344,10 +344,32 @@ type
       Control should clear here any resources that are tied to the GL context. }
     procedure GLContextClose; virtual;
 
-    procedure GetCameraHeight(const Position, GravityUp: TVector3Single;
+    { Check height of a point (like a player camera) above the ground.
+      This checks ray collision, from Position along the negated GravityUp vector.
+      Measures distance to the nearest scene item (called "ground" here).
+
+      @param(IsAbove Says if the 3D scene is hit.
+        @false means that player floats above an empty space.
+        That is, if you turn gravity on, the player will fall down forever,
+        as far as this 3D scene is concerned.)
+
+      @param(AboveHeight Height above the ground. Must be MaxSingle
+        if IsAbove was set to @false (this guarantee simplifies some code).)
+
+      @param(AboveGround Pointer to P3DTriangle representing the ground.
+        Must be @nil if IsAbove was set to @false.
+        @bold(May) be @nil even if IsAbove was set to @true (not all 3D
+        objects may be able to generate P3DTriangle information about collision).
+
+        This may be useful for example to make a footsteps sound dependent
+        on texture of the ground.
+        Or to decrease player life points for walking on hot lava.
+        See "castle" for examples.)
+    }
+    procedure GetHeightAbove(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
-      out GroundItem: P3DTriangle); virtual;
+      out IsAbove: boolean; out AboveHeight: Single;
+      out AboveGround: P3DTriangle); virtual;
 
     function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
@@ -452,10 +474,10 @@ type
     function MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
     procedure Idle(const CompSpeed: Single); override;
     procedure GLContextClose; override;
-    procedure GetCameraHeight(const Position, GravityUp: TVector3Single;
+    procedure GetHeightAbove(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
-      out GroundItem: P3DTriangle); override;
+      out IsAbove: boolean; out AboveHeight: Single;
+      out AboveGround: P3DTriangle); override;
     function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const CameraRadius: Single;
@@ -483,6 +505,9 @@ type
       Freeing these items automatically removes them from this list. }
     property List: T3DListCore read FList;
   end;
+
+const
+  MaxSingle = Math.MaxSingle;
 
 implementation
 
@@ -605,17 +630,14 @@ procedure T3D.GLContextClose;
 begin
 end;
 
-procedure T3D.GetCameraHeight(const Position, GravityUp: TVector3Single;
+procedure T3D.GetHeightAbove(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
-  out GroundItem: P3DTriangle);
+  out IsAbove: boolean; out AboveHeight: Single;
+  out AboveGround: P3DTriangle);
 begin
-  IsAboveTheGround := false;
-  { HeightAboveTheGround and GroundItem are undefined when
-    IsAboveTheGround = false, but let's set them anyway (to ease debugging,
-    things should better be predictable). }
-  SqrHeightAboveTheGround := 0;
-  GroundItem := nil;
+  IsAbove := false;
+  AboveHeight := MaxSingle;
+  AboveGround := nil;
 end;
 
 function T3D.MoveAllowed(
@@ -933,30 +955,29 @@ begin
     List.DeleteAll(AComponent);
 end;
 
-procedure T3DList.GetCameraHeight(const Position, GravityUp: TVector3Single;
+procedure T3DList.GetHeightAbove(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
-  out GroundItem: P3DTriangle);
+  out IsAbove: boolean; out AboveHeight: Single;
+  out AboveGround: P3DTriangle);
 var
   I: Integer;
-  IsAboveThis: boolean;
-  SqrHeightAboveThis: Single;
-  GroundItemThis: P3DTriangle;
+  NewIsAbove: boolean;
+  NewAboveHeight: Single;
+  NewAboveGround: P3DTriangle;
 begin
   inherited;
 
   if Exists and Collides then
     for I := 0 to List.Count - 1 do
     begin
-      List[I].GetCameraHeight(Position, GravityUp, TrianglesToIgnoreFunc,
-        IsAboveThis, SqrHeightAboveThis, GroundItemThis);
+      List[I].GetHeightAbove(Position, GravityUp, TrianglesToIgnoreFunc,
+        NewIsAbove, NewAboveHeight, NewAboveGround);
 
-      if IsAboveThis and
-        ((not IsAboveTheGround) or (SqrHeightAboveThis < SqrHeightAboveTheGround)) then
+      if NewAboveHeight < AboveHeight then
       begin
-        IsAboveTheGround := true;
-        SqrHeightAboveTheGround := SqrHeightAboveThis;
-        GroundItem := GroundItemThis;
+        IsAbove := NewIsAbove;
+        AboveHeight := NewAboveHeight;
+        AboveGround := NewAboveGround;
       end;
     end;
 end;

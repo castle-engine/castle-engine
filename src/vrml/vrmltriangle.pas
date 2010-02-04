@@ -604,37 +604,29 @@ type
 
     { For given camera position and up vector, calculate camera height
       above the ground. This is comfortable for cooperation with
-      TWalkCamera.OnGetCameraHeight.
+      TWalkCamera.OnGetHeightAbove.
 
       This simply checks collision of a ray from
-      Position in direction -GravityUp, and sets IsAboveTheGround
-      and SqrHeightAboveTheGround as needed.
-
-      Also GroundItemIndex is set to index of octree item immediately
-      below the camera (if IsAboveTheGround). This can be handy to detect
-      e.g. that player walks on hot lava and he should be wounded,
-      or that he walks on concrete/grass ground (to set his footsteps
-      sound accordingly). If IsAboveTheGround then for sure GroundItem
-      <> nil.
+      Position in direction -GravityUp, and sets IsAbove,
+      AboveHeight and AboveGround as needed. See TBase3D.GetHeightAbove
+      for specification.
 
       TriangleToIgnore and TrianglesToIgnoreFunc meaning
       is just like for RayCollision. }
-    procedure GetCameraHeight(
+    procedure GetHeightAbove(
       const Position, GravityUp: TVector3Single;
-      out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
-      out GroundItem: PVRMLTriangle;
+      out IsAbove: boolean; out AboveHeight: Single;
+      out AboveGround: PVRMLTriangle;
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc);
 
-    { This is just like GetCameraHeight, but it assumes that
-      GravityUp = (0, 0, 1) and it returns the actual
-      HeightAboveTheGround (not it's square). Thanks to the fact that
-      calculating HeightAboveTheGround doesn't require costly Sqrt operation
-      in case of such simple GravityUp. }
-    procedure GetCameraHeightZ(
+    { This is just like GetHeightAbove, but it assumes that
+      GravityUp = (0, 0, 1). This is faster than GetHeightAbove,
+      since calculating AboveHeight doesn't require now costly Sqrt operation. }
+    procedure GetHeightAboveZ(
       const Position: TVector3Single;
-      out IsAboveTheGround: boolean; out HeightAboveTheGround: Single;
-      out GroundItem: PVRMLTriangle;
+      out IsAbove: boolean; out AboveHeight: Single;
+      out AboveGround: PVRMLTriangle;
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc);
 
@@ -1135,7 +1127,7 @@ begin
     TrianglesToIgnoreFunc);
 end;
 
-{ MoveAllowed / GetCameraHeight methods -------------------------------------- }
+{ MoveAllowed / GetHeightAbove methods -------------------------------------- }
 
 function SimpleKeepAboveMinPlane(
   const NewPos: TVector3Single;
@@ -1447,27 +1439,28 @@ begin
     Result := SimpleKeepAboveMinPlane(NewPos, MinPlaneBox, MinPlaneDirection);
 end;
 
-procedure TVRMLBaseTrianglesOctree.GetCameraHeight(
+procedure TVRMLBaseTrianglesOctree.GetHeightAbove(
   const Position, GravityUp: TVector3Single;
-  out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
-  out GroundItem: PVRMLTriangle;
+  out IsAbove: boolean; out AboveHeight: Single;
+  out AboveGround: PVRMLTriangle;
   const TriangleToIgnore: PVRMLTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc);
 var
   GroundIntersection: TVector3Single;
 begin
-  GroundItem := RayCollision(GroundIntersection,
+  AboveGround := RayCollision(GroundIntersection,
     Position, VectorNegate(GravityUp), true,
     TriangleToIgnore, false, TrianglesToIgnoreFunc);
-  IsAboveTheGround := GroundItem <> nil;
-  if IsAboveTheGround then
-    SqrHeightAboveTheGround := PointsDistanceSqr(Position, GroundIntersection);
+  IsAbove := AboveGround <> nil;
+  if IsAbove then
+    AboveHeight := PointsDistance(Position, GroundIntersection) else
+    AboveHeight := MaxSingle;
 end;
 
-procedure TVRMLBaseTrianglesOctree.GetCameraHeightZ(
+procedure TVRMLBaseTrianglesOctree.GetHeightAboveZ(
   const Position: TVector3Single;
-  out IsAboveTheGround: boolean; out HeightAboveTheGround: Single;
-  out GroundItem: PVRMLTriangle;
+  out IsAbove: boolean; out AboveHeight: Single;
+  out AboveGround: PVRMLTriangle;
   const TriangleToIgnore: PVRMLTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc);
 const
@@ -1475,13 +1468,14 @@ const
 var
   GroundIntersection: TVector3Single;
 begin
-  GroundItem := RayCollision(GroundIntersection,
+  AboveGround := RayCollision(GroundIntersection,
     Position, RayDir, true,
     TriangleToIgnore, false, TrianglesToIgnoreFunc);
-  IsAboveTheGround := GroundItem <> nil;
-  if IsAboveTheGround then
-    { Calculation of HeightAboveTheGround uses the fact that RayDir is so simple. }
-    HeightAboveTheGround := Position[2] - GroundIntersection[2];
+  IsAbove := AboveGround <> nil;
+  if IsAbove then
+    { Calculation of AboveHeight uses the fact that RayDir is so simple. }
+    AboveHeight := Position[2] - GroundIntersection[2] else
+    AboveHeight := MaxSingle;
 end;
 
 { Other TVRMLBaseTrianglesOctree utils ----------------------------------------------- }
@@ -1548,7 +1542,7 @@ function TVRMLOctreeIgnoreForShadowRaysAndOneItem.IgnoreItem(
   const Sender: TObject;
   const Triangle: P3DTriangle): boolean;
 begin
-  Result := (Triangle = P3DTriangle(OneItem)) or 
+  Result := (Triangle = P3DTriangle(OneItem)) or
     PVRMLTriangle(Triangle)^.IgnoreForShadowRays;
 end;
 

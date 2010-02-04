@@ -21,7 +21,7 @@ unit Cameras;
 interface
 
 uses SysUtils, VectorMath, KambiUtils, KeysMouse, Boxes3d, Quaternions, Frustum,
-  UIControls, Classes, RaysWindow;
+  UIControls, Classes, RaysWindow, Base3D;
 
 const
   DefaultFallingDownStartSpeed = 0.5;
@@ -317,7 +317,7 @@ type
       Note that camera instance by itself doesn't need CameraRadius information
       desperately, as it doesn't perform collision detection directly
       (Walk camera delegates these to callbacks
-      TWalkCamera.OnGetCameraHeight, TWalkCamera.OnMoveAllowed,
+      TWalkCamera.OnGetHeightAbove, TWalkCamera.OnMoveAllowed,
       so you could store CameraRadius elsewhere if you would really want.).
       Still, camera class is usually a comfortable place to store this. }
     property CameraRadius: Single
@@ -541,8 +541,9 @@ type
   TFalledDownNotifyFunc = procedure (Camera: TWalkCamera;
     const FallenHeight: Single) of object;
 
-  TGetCameraHeight = procedure (Camera: TWalkCamera;
-    out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single)
+  TGetHeightAbove = procedure (Camera: TWalkCamera;
+    out IsAbove: boolean; out AboveHeight: Single;
+    out AboveGround: P3DTriangle)
     of object;
 
   { Navigation by walking (first-person-shooter-like moving) in 3D scene.
@@ -557,8 +558,9 @@ type
     FRotationHorizontalSpeed, FRotationVerticalSpeed: Single;
     FPreferGravityUpForRotations: boolean;
     FPreferGravityUpForMoving: boolean;
-    FLastIsAboveTheGround: boolean;
-    FLastSqrHeightAboveTheGround: Single;
+    FIsAbove: boolean;
+    FAboveHeight: Single;
+    FAboveGround: P3DTriangle;
     FMouseLook: boolean;
 
     procedure SetPosition(const Value: TVector3Single);
@@ -614,7 +616,7 @@ type
     FFallingDownSpeed: Single;
     FFallingDownSpeedIncrease: Single;
     FGravity: boolean;
-    FOnGetCameraHeight: TGetCameraHeight;
+    FOnGetHeightAbove: TGetHeightAbove;
     FGrowingSpeed: Single;
     { This is used by FallingDownEffect to temporary modify Matrix result
       by rotating Up around Direction. In degress. }
@@ -654,8 +656,8 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure DoGetCameraHeight(
-      out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single); virtual;
+    { Call OnGetHeightAbove callback, updating IsAbove, AboveHeight, AboveGround. }
+    procedure UpdateHeightAbove; virtual;
 
     function Matrix: TMatrix4Single; override;
     function RotationMatrix: TMatrix4Single; override;
@@ -1061,7 +1063,7 @@ type
 
       Summary of things done by gravity:
       @unorderedList(
-        @item(It uses OnGetCameraHeight to get camera height above the ground.)
+        @item(It uses OnGetHeightAbove to get camera height above the ground.)
         @item(It allows player to jump. See Input_Jump, IsJumping, MaxJumpHeight,
           JumpSpeedMultiply.)
         @item(It allows player to crouch. See Input_Crouch, CrouchHeight.)
@@ -1078,7 +1080,7 @@ type
       While there are many properties allowing you to control
       gravity behavior, most of them have initial values that should be
       sensible in all cases. The only things that you really want to take
-      care of are: OnGetCameraHeight and CameraPreferredHeight.
+      care of are: OnGetHeightAbove and CameraPreferredHeight.
       Everything else should basically work auto-magically.
 
       Note that Gravity setting is independent from
@@ -1095,7 +1097,7 @@ type
       This must always be >= 0.
       You should set this to something greater than zero to get sensible
       behavior of some things related to @link(Gravity),
-      and also you should set OnGetCameraHeight.
+      and also you should set OnGetHeightAbove.
 
       See CorrectCameraPreferredHeight for important property
       of CameraPreferredHeight that you should keep. }
@@ -1127,7 +1129,7 @@ type
       would not allow it). Note that this class doesn't keep value
       of your CameraRadius, because collision detection
       is (by design) never done by this class --- it's always
-      delegated to OnGetCameraHeight and OnMoveAllowed.
+      delegated to OnGetHeightAbove and OnMoveAllowed.
       Also, it's not exactly forced @italic(how) you should force this
       condition to hold. Sometimes the good solution is to adjust
       CameraRadius, not to adjust CameraPreferredHeight.
@@ -1138,23 +1140,20 @@ type
       CameraPreferredHeight as it is. }
     procedure CorrectCameraPreferredHeight;
 
-    { Assign here the callback (or override DoGetCameraHeight)
+    { Assign here the callback (or override UpdateHeightAbove)
       to say what is the current height of camera above the ground.
       This should be calculated like collision of ray from @link(Position)
       in direction -GravityUp with the scene.
+      See TBase3D.OnGetHeightAbove for specification what returned parameters
+      mean.
 
-      This event returns IsAboveTheGround: bolean (set to @false
-      to indicate that the ray doesn't hit the scene at all,
-      so the camera is not above the ground at all) and
-      SqrHeightAboveTheGround (meaningfull only if IsAboveTheGround;
-      this is the Sqr(height of camera above the ground)).
-
-      Implementation of DoGetCameraHeight in this class
-      initializes IsAboveTheGround to @false and then calls
-      OnGetCameraHeight, if assigned. }
-    property OnGetCameraHeight: TGetCameraHeight
-      read FOnGetCameraHeight
-      write FOnGetCameraHeight;
+      Implementation of UpdateHeightAbove in this class
+      calls OnGetHeightAbove, if assigned. (If not assigned,
+      we assume no collision: IsAbove = @false, AboveHeight = MaxSingle,
+      AboveGround = @nil). }
+    property OnGetHeightAbove: TGetHeightAbove
+      read FOnGetHeightAbove
+      write FOnGetHeightAbove;
 
     { This is called when camera was falling down for some time,
       and suddenly stopped (this means that camera "hit the ground").
@@ -1204,7 +1203,7 @@ type
       the opinion that "camera is not falling down right now".
 
       Of course, if in the nearest Idle we will find out (using
-      GetCameraHeight) that camera is too high above the ground,
+      GetHeightAbove) that camera is too high above the ground,
       then we will start falling down again, setting IsFallingDown
       back to true. (but then we will start falling down from the beginning,
       starting at given @link(Position) and with initial falling down speed).
@@ -1333,16 +1332,25 @@ type
     function GetPosition: TVector3Single; override;
 
     { Last known information about whether camera is over the ground.
-      These values are gathered by every DoGetCameraHeight
-      (OnGetCameraHeight) call.
+      Updated by every UpdateHeightAbove call, using
+      OnGetHeightAbove callback.
 
-      Note that these are updated only when DoGetCameraHeight
-      (OnGetCameraHeight) are continously called, which in practice means:
+      Note that these are updated only when UpdateHeightAbove
+      is continously called, which in practice means:
       only when @link(Gravity) is @true.
 
+      Note that we do not (and, currently, cannot) track here if
+      AboveGround pointer will be eventually released (which may happen
+      if you release your 3D scene, or rebuild scene causing octree rebuild).
+      This is not a problem for camera class, since we do not use this
+      pointer for anything. But if you use this pointer,
+      then you may want to take care to eventually set it @nil when
+      your octree or such is released.
+
       @groupBegin }
-    property LastIsAboveTheGround: boolean read FLastIsAboveTheGround;
-    property LastSqrHeightAboveTheGround: Single read FLastSqrHeightAboveTheGround;
+    property IsAbove: boolean read FIsAbove;
+    property AboveHeight: Single read FAboveHeight;
+    property AboveGround: P3DTriangle read FAboveGround write FAboveGround;
     { @groupEnd }
   end;
 
@@ -2149,15 +2157,15 @@ begin
  end;
 end;
 
-procedure TWalkCamera.DoGetCameraHeight(
-  out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
+procedure TWalkCamera.UpdateHeightAbove;
 begin
-  IsAboveTheGround := false;
-  if Assigned(OnGetCameraHeight) then
-    OnGetCameraHeight(Self, IsAboveTheGround, SqrHeightAboveTheGround);
-
-  FLastIsAboveTheGround := IsAboveTheGround;
-  FLastSqrHeightAboveTheGround := SqrHeightAboveTheGround;
+  if Assigned(OnGetHeightAbove) then
+    OnGetHeightAbove(Self, FIsAbove, FAboveHeight, FAboveGround) else
+  begin
+    FIsAbove := false;
+    FAboveHeight := MaxSingle;
+    FAboveGround := nil;
+  end;
 end;
 
 function TWalkCamera.UseHeadBobbing: boolean;
@@ -2460,9 +2468,6 @@ var
   { Things related to gravity --- jumping, taking into account
     falling down and keeping RealCameraPreferredHeight above the ground. }
   procedure GravityIdle;
-  var
-    IsAboveTheGround: boolean;
-    SqrHeightAboveTheGround: Single;
 
     function TryJump: boolean;
     var
@@ -2513,10 +2518,7 @@ var
     var
       GrowingVectorLength: Single;
     begin
-      Result :=
-        IsAboveTheGround and
-        (SqrHeightAboveTheGround <
-          Sqr(RealCameraPreferredHeight - RealCameraPreferredHeightMargin));
+      Result := AboveHeight < RealCameraPreferredHeight - RealCameraPreferredHeightMargin;
 
       if Result then
       begin
@@ -2526,7 +2528,7 @@ var
         GrowingVectorLength := Min(
           { TODO --- use CameraPreferredHeight here ? }
           VectorLen(Direction) * GrowingSpeed * CompSpeed * 50,
-          RealCameraPreferredHeight - Sqrt(SqrHeightAboveTheGround));
+          RealCameraPreferredHeight - AboveHeight);
 
         Move(VectorAdjustToLength(GravityUp, GrowingVectorLength), true);
 
@@ -2556,18 +2558,18 @@ var
       Fde_HorizontalRotateDeviation = 0.3;
     var
       PositionBefore: TVector3Single;
-      SqrFallingDownVectorLength: Single;
+      FallingDownVectorLength: Single;
     begin
       Result := false;
 
       { Note that if we got here, then TryGrow returned false,
-        which means that (assuming OnGetCameraHeight is correctly assigned)
+        which means that (assuming OnGetHeightAbove is correctly assigned)
         we are not above the ground, or
-          SqrHeightAboveTheGround >=
-            Sqr(RealCameraPreferredHeight - RealCameraPreferredHeightMargin)
-        However we check here for something stronger:
-          SqrHeightAboveTheGround >
-            Sqr(RealCameraPreferredHeight + RealCameraPreferredHeightMargin)
+          AboveHeight >=
+            RealCameraPreferredHeight - RealCameraPreferredHeightMargin
+        However we require something stronger to continue:
+          AboveHeight >
+            RealCameraPreferredHeight + RealCameraPreferredHeightMargin
 
         This is important, because this way we avoid the unpleasant
         "bouncing" effect when in one Idle we decide that camera
@@ -2577,9 +2579,8 @@ var
         at RealCameraPreferredHeight -- which means that after TryGrow,
         in next Idle TryGrow should not cause growing and TryFallingDown
         should not cause falling down. }
-      if IsAboveTheGround and
-         (SqrHeightAboveTheGround <=
-           Sqr(RealCameraPreferredHeight + RealCameraPreferredHeightMargin)) then
+      if AboveHeight <=
+           RealCameraPreferredHeight + RealCameraPreferredHeightMargin then
       begin
         FIsFallingDown := false;
         Exit;
@@ -2595,19 +2596,19 @@ var
       { try to fall down }
       PositionBefore := Position;
 
-      { calculate SqrFallingDownVectorLength.
+      { calculate FallingDownVectorLength.
 
-        Note that we make sure that SqrFallingDownVectorLength is no longer
-        than SqrHeightAboveTheGround --- this way we avoid the problem
+        Note that we make sure that FallingDownVectorLength is no longer
+        than AboveHeight --- this way we avoid the problem
         that when FFallingDownSpeed would get very big,
         we couldn't fall down any more (while in fact we should then fall down
         very quickly).
 
         Actually, we even do more. We make sure that
         FallingDownVectorLength is no longer than
-        (HeightAboveTheGround - RealCameraPreferredHeight).
+        (AboveHeight - RealCameraPreferredHeight).
         Initially I wanted to do here
-          MinTo1st(SqrFallingDownVectorLength, SqrHeightAboveTheGround);
+          MinTo1st(FallingDownVectorLength, AboveHeight);
         i.e. to allow camera to fall below RealCameraPreferredHeight.
 
         But this didn't work like it should. Why ?
@@ -2627,15 +2628,12 @@ var
 
         This means that I should limit myself to not fall down
         below RealCameraPreferredHeight. And that's what I'm doing. }
-      SqrFallingDownVectorLength :=
-        VectorLenSqr(Direction) * Sqr(FFallingDownSpeed * CompSpeed * 50);
-      if IsAboveTheGround then
-        MinTo1st(SqrFallingDownVectorLength,
-          Sqr(Sqrt(SqrHeightAboveTheGround) - RealCameraPreferredHeight));
+      FallingDownVectorLength :=
+        VectorLen(Direction) * FFallingDownSpeed * CompSpeed * 50;
+      MinTo1st(FallingDownVectorLength, AboveHeight - RealCameraPreferredHeight);
 
       if Move(VectorScale(GravityUp,
-         - Sqrt(SqrFallingDownVectorLength /
-             VectorLenSqr(GravityUp))), true) and
+         - FallingDownVectorLength / VectorLen(GravityUp)), true) and
         (not VectorsPerfectlyEqual(Position, PositionBefore)) then
       begin
         if not IsFallingDown then
@@ -2646,7 +2644,7 @@ var
               if not FIsFallingDown then
                 FFallingDownSpeed := FallingDownStartSpeed;
             to init FFallingDownSpeed (I had to do it to calculate
-            SqrFallingDownVectorLength). So why initing it again here ?
+            FallingDownVectorLength). So why initing it again here ?
 
             Answer: Because Move above called MoveTo, that set Position
             that actually called ScheduleVisibleChange that possibly
@@ -2667,8 +2665,7 @@ var
 
         Result := true;
 
-        if IsAboveTheGround and
-          (SqrHeightAboveTheGround < Sqr(RealCameraPreferredHeight * 1.1)) then
+        if AboveHeight < RealCameraPreferredHeight * 1.1 then
         begin
           { This check is needed, otherwise when you're walking down even from
             the most slight hill then you get
@@ -2890,14 +2887,14 @@ var
 
     function GetIsOnTheGround: boolean;
     var
-      MinHeightAboveTheGround, MaxHeightAboveTheGround, H: Single;
+      MinAboveHeight, MaxAboveHeight, H: Single;
     begin
       H := RealCameraPreferredHeightNoHeadBobbing;
-      MinHeightAboveTheGround := (H - H * HeadBobbing) * 0.99;
-      MaxHeightAboveTheGround := (H + H * HeadBobbing) * 1.01;
-      Result := IsAboveTheGround and
-        (Sqr(MinHeightAboveTheGround) <= SqrHeightAboveTheGround) and
-        (SqrHeightAboveTheGround <= Sqr(MaxHeightAboveTheGround));
+      MinAboveHeight := (H - H * HeadBobbing) * 0.99;
+      MaxAboveHeight := (H + H * HeadBobbing) * 1.01;
+      Result := IsAbove and
+        (MinAboveHeight <= AboveHeight) and
+        (AboveHeight <= MaxAboveHeight);
     end;
 
   var
@@ -2907,8 +2904,8 @@ var
 
     if Gravity then
     begin
-      { calculate IsAboveTheGround, SqrHeightAboveTheGround }
-      DoGetCameraHeight(IsAboveTheGround, SqrHeightAboveTheGround);
+      { calculate IsAbove, AboveHeight }
+      UpdateHeightAbove;
 
       FIsOnTheGround := GetIsOnTheGround;
       FIsWalkingOnTheGround := MoveHorizontalDone and FIsOnTheGround;
@@ -3159,9 +3156,6 @@ begin
 end;
 
 procedure TWalkCamera.Jump;
-var
-  IsAboveTheGround: boolean;
-  SqrHeightAboveTheGround: Single;
 begin
   if IsJumping or IsFallingDown or (not Gravity) then Exit;
 
@@ -3175,12 +3169,10 @@ begin
     is to check whether player really has some ground beneath his feet
     to be able to jump. }
 
-  { calculate IsAboveTheGround, SqrHeightAboveTheGround }
-  DoGetCameraHeight(IsAboveTheGround, SqrHeightAboveTheGround);
+  { calculate IsAbove, AboveHeight }
+  UpdateHeightAbove;
 
-  if (not IsAboveTheGround) or
-     (SqrHeightAboveTheGround >
-        Sqr(RealCameraPreferredHeight + RealCameraPreferredHeightMargin)) then
+  if AboveHeight > RealCameraPreferredHeight + RealCameraPreferredHeightMargin then
     Exit;
 
   FIsJumping := true;

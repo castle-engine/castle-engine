@@ -63,10 +63,10 @@ type
     function MouseMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
     procedure Idle(const CompSpeed: Single); override;
     procedure GLContextClose; override;
-    procedure GetCameraHeight(const Position, GravityUp: TVector3Single;
+    procedure GetHeightAbove(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
-      out GroundItem: P3DTriangle); override;
+      out IsAbove: boolean; out AboveHeight: Single;
+      out AboveGround: P3DTriangle); override;
     function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const CameraRadius: Single;
@@ -249,10 +249,10 @@ begin
   inherited;
 end;
 
-procedure T3DCustomTranslated.GetCameraHeight(const Position, GravityUp: TVector3Single;
+procedure T3DCustomTranslated.GetHeightAbove(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
-  out GroundItem: P3DTriangle);
+  out IsAbove: boolean; out AboveHeight: Single;
+  out AboveGround: P3DTriangle);
 var
   T: TVector3Single;
 begin
@@ -261,9 +261,9 @@ begin
   begin
     T := GetTranslation;
 
-    Child.GetCameraHeight(
+    Child.GetHeightAbove(
       VectorSubtract(Position, T), GravityUp, TrianglesToIgnoreFunc,
-      IsAboveTheGround, SqrHeightAboveTheGround, GroundItem);
+      IsAbove, AboveHeight, AboveGround);
   end;
 end;
 

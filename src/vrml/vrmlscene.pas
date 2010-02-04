@@ -1813,10 +1813,10 @@ type
       Options: TPrepareRenderOptions;
       ProgressStep: boolean); override;
 
-    procedure GetCameraHeight(const Position, GravityUp: TVector3Single;
+    procedure GetHeightAbove(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
-      out GroundItem: P3DTriangle); override;
+      out IsAbove: boolean; out AboveHeight: Single;
+      out AboveGround: P3DTriangle); override;
     function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const CameraRadius: Single;
@@ -6016,16 +6016,16 @@ begin
     ManifoldEdges;
 end;
 
-procedure TVRMLScene.GetCameraHeight(const Position, GravityUp: TVector3Single;
+procedure TVRMLScene.GetHeightAbove(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
-  out GroundItem: P3DTriangle);
+  out IsAbove: boolean; out AboveHeight: Single;
+  out AboveGround: P3DTriangle);
 begin
   if Exists and Collides and (OctreeCollisions <> nil) then
   begin
-    OctreeCollisions.GetCameraHeight(
+    OctreeCollisions.GetHeightAbove(
       Position, GravityUp,
-      IsAboveTheGround, SqrHeightAboveTheGround, PVRMLTriangle(GroundItem),
+      IsAbove, AboveHeight, PVRMLTriangle(AboveGround),
       nil, TrianglesToIgnoreFunc);
   end else
     inherited;
