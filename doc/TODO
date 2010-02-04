@@ -40,7 +40,7 @@ Remaining castle's unclean stuff:
 +    SV: TShadowVolumes;
 
 Also, remove backgrounddraw/idle callbacks.
-- Fix controls menu
+- Fix controls menu from game - pass undercontrols, test, see if fade rect works ok
 - Fix game working
 - There were some problems with creature behavior, 1st creature stood
   still on tower / fountain level? Maybe some Idle over creatures
