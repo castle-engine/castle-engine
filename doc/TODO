@@ -71,8 +71,11 @@ Scene manager / controls / better Lazarus integration:
     1. nothing uses FMouseRayHit.Triangle afterwards
        (only TVRMLScene.MouseMove uses it, but this is immediately after
        RayCollision was done).
-    2. nothing removes any 3D objects from the scene manager after some
-       game started.
+    2. Some stuff 3D objects are removed from the scene manager at the end
+       (try e.g. mouse over touch sensor in touch_sensor_test in view3dscene,
+       then ctrl+w). We know we only use ItemsAndCameraCursorChange,
+       we just track free notification of FMouseRayHit3D.
+       (instead of all on MouseRayHit.Hierarchy.)
 
   - TWalkCamera.AboveGround should be freed when triangle is destroyed.
 

@@ -90,6 +90,8 @@ type
 
     FMouseRayHit: T3DCollision;
 
+    FMouseRayHit3D: T3D;
+
     procedure SetMainScene(const Value: TVRMLGLScene);
     procedure SetCamera(const Value: TCamera);
     procedure SetShadowVolumesPossible(const Value: boolean);
@@ -100,6 +102,9 @@ type
     { scene callbacks }
     procedure SceneBoundViewpointChanged(Scene: TVRMLScene);
     procedure SceneBoundViewpointVectorsChanged(Scene: TVRMLScene);
+
+    procedure SetMouseRayHit3D(const Value: T3D);
+    property MouseRayHit3D: T3D read FMouseRayHit3D write SetMouseRayHit3D;
   protected
     { These variables are writeable from overridden ApplyProjection. }
     FAngleOfViewX: Single;
@@ -540,6 +545,12 @@ begin
     FCamera := nil;
   end;
 
+  if FMouseRayHit3D <> nil then
+  begin
+    FMouseRayHit3D.RemoveFreeNotification(Self);
+    FMouseRayHit3D := nil;
+  end;
+
   inherited;
 end;
 
@@ -660,6 +671,24 @@ begin
   end;
 end;
 
+procedure TKamSceneManager.SetMouseRayHit3D(const Value: T3D);
+begin
+  if FMouseRayHit3D <> Value then
+  begin
+    { Always keep FreeNotification on FMouseRayHit3D.
+      When it's destroyed, our MouseRayHit must be freed too,
+      it cannot be used it subsequent ItemsAndCameraCursorChange. }
+
+    if FMouseRayHit3D <> nil then
+      FMouseRayHit3D.RemoveFreeNotification(Self);
+
+    FMouseRayHit3D := Value;
+
+    if FMouseRayHit3D <> nil then
+      FMouseRayHit3D.FreeNotification(Self);
+  end;
+end;
+
 procedure TKamSceneManager.SetCamera(const Value: TCamera);
 begin
   if FCamera <> Value then
@@ -736,6 +765,14 @@ begin
 
     if AComponent = FMainScene then
       FMainScene := nil;
+
+    if AComponent = FMouseRayHit3D then
+    begin
+      FMouseRayHit3D := nil;
+      { When FMouseRayHit3D is destroyed, our MouseRayHit must be freed too,
+        it cannot be used it subsequent ItemsAndCameraCursorChange. }
+      FreeAndNil(FMouseRayHit);
+    end;
 
     { Maybe ApplyProjectionNeeded := true also for MainScene cleaning?
       But ApplyProjection doesn't set projection now, when MainScene is @nil. }
@@ -1044,6 +1081,11 @@ begin
         { Do not use CollisionIgnoreItem here,
           as this is not camera<->3d world collision? } nil);
 
+      { calculate MouseRayHitScene }
+      if MouseRayHit <> nil then
+        MouseRayHit3D := MouseRayHit.Hierarchy.Last else
+        MouseRayHit3D := nil;
+
       Items.MouseMove(RayOrigin, RayDirection, FMouseRayHit);
     end;
   end;
@@ -1069,8 +1111,10 @@ begin
     pixel --- the one "on the top" (visible by the player at that pixel)
     determines the mouse cursor. }
 
-  if MouseRayHit <> nil then
-    Cursor := MouseRayHit.Hierarchy.Last.Cursor else
+  if MouseRayHit3D <> nil then
+  begin
+    Cursor := MouseRayHit3D.Cursor;
+  end else
     Cursor := mcDefault;
 end;
 
