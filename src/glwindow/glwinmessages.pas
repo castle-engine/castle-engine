@@ -989,8 +989,8 @@ begin
    Ustawiamy wlasne wlasciwosci okienka, w szczegolnosci - wlasne callbacki. }
  TGLWindowState.SetStandardState(glwin,
    {$ifdef FPC_OBJFPC} @ {$endif} drawMessg,
-   {$ifdef FPC_OBJFPC} @ {$endif} NoClose,
-   {$ifdef FPC_OBJFPC} @ {$endif} resizeMessg, true);
+   {$ifdef FPC_OBJFPC} @ {$endif} resizeMessg,
+   {$ifdef FPC_OBJFPC} @ {$endif} NoClose, true);
  with glwin do begin
   OnMouseMove := @mouseMoveMessg;
   OnMouseDown := @mouseDownMessg;

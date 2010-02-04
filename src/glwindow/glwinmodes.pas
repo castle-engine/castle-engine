@@ -155,7 +155,7 @@ type
       to close the window by window manager
       (usually using "close" button in some window corner or Alt+F4). }
     class procedure SetStandardState(Glwin: TGLWindow;
-      NewDraw, NewCloseQuery, NewResize: TGLWindowFunc;
+      NewDraw, NewResize, NewCloseQuery: TGLWindowFunc;
       NewFPSActive: boolean);
   end;
 
@@ -429,13 +429,13 @@ begin
 end;
 
 class procedure TGLWindowState.SetStandardState(glwin: TGLWindow;
-  NewDraw, NewCloseQuery, NewResize: TGLWindowFunc;
+  NewDraw, NewResize, NewCloseQuery: TGLWindowFunc;
   NewFPSActive: boolean);
 begin
   Glwin.SetCallbacksState(DefaultCallbacksState);
   Glwin.OnDraw := NewDraw;
-  Glwin.OnCloseQuery := NewCloseQuery;
   Glwin.OnResize := NewResize;
+  Glwin.OnCloseQuery := NewCloseQuery;
   {Glwin.Caption := leave current value}
   Glwin.Userdata := nil;
   Glwin.AutoRedisplay := false;
@@ -645,8 +645,8 @@ begin
 
  TGLWindowState.SetStandardState(AGLWindow,
    {$ifdef FPC_OBJFPC} @ {$endif} FrozenImageDraw,
-   {$ifdef FPC_OBJFPC} @ {$endif} NoClose,
    {$ifdef FPC_OBJFPC} @ {$endif} Resize2D,
+   {$ifdef FPC_OBJFPC} @ {$endif} NoClose,
    AGLWindow.Fps.Active);
  AGLWindow.UserData := Self;
 

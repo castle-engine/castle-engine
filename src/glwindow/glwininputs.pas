@@ -174,8 +174,8 @@ begin
   Data.AnswerY0 := AnswerY0;
 
   TGLWindowState.SetStandardState(glwin,
-    {$ifdef FPC_OBJFPC} @ {$endif} DrawGL,
-    {$ifdef FPC_OBJFPC} @ {$endif} NoClose, nil, false);
+    {$ifdef FPC_OBJFPC} @ {$endif} DrawGL, nil,
+    {$ifdef FPC_OBJFPC} @ {$endif} NoClose, false);
   Glwin.UserData := @Data;
   Glwin.OnKeyDown := @KeyDown;
 
@@ -228,8 +228,8 @@ begin
   Data.KeyPressed := false;
 
   TGLWindowState.SetStandardState(glwin,
-    {$ifdef FPC_OBJFPC} @ {$endif} DrawGLAnyKey,
-    {$ifdef FPC_OBJFPC} @ {$endif} NoClose, nil, false);
+    {$ifdef FPC_OBJFPC} @ {$endif} DrawGLAnyKey, nil,
+    {$ifdef FPC_OBJFPC} @ {$endif} NoClose, false);
   Glwin.UserData := @Data;
   Glwin.OnKeyDown := @KeyDownAnyKey;
 
