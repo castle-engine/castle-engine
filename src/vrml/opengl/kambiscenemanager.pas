@@ -94,14 +94,6 @@ type
     procedure ItemsVisibleChange(Sender: TObject);
     procedure ItemsAndCameraCursorChange(Sender: TObject);
 
-    { camera callbacks }
-    function CameraMoveAllowed(ACamera: TWalkCamera;
-      const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-      const BecauseOfGravity: boolean): boolean;
-    procedure CameraGetHeight(ACamera: TWalkCamera;
-      out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
-    procedure CameraVisibleChange(ACamera: TObject);
-
     { scene callbacks }
     procedure SceneBoundViewpointChanged(Scene: TVRMLScene);
     procedure SceneBoundViewpointVectorsChanged(Scene: TVRMLScene);
@@ -196,6 +188,16 @@ type
       @seealso TVRMLScene.MainLightForShadows }
     function MainLightForShadows(
       out AMainLightPosition: TVector4Single): boolean; virtual;
+
+    { Handle camera events.
+      @groupBegin }
+    function CameraMoveAllowed(ACamera: TWalkCamera;
+      const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const BecauseOfGravity: boolean): boolean; virtual;
+    procedure CameraGetHeight(ACamera: TWalkCamera;
+      out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single); virtual;
+    procedure CameraVisibleChange(ACamera: TObject); virtual;
+    { @groupEnd }
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -450,12 +452,26 @@ destructor TKamSceneManager.Destroy;
 begin
   if FMainScene <> nil then
   begin
+    { unregister self from MainScene callbacs }
+    FMainScene.OnBoundViewpointVectorsChanged := nil;
+    FMainScene.ViewpointStack.OnBoundChanged := nil;
     FMainScene.RemoveFreeNotification(Self);
     FMainScene := nil;
   end;
 
   if FCamera <> nil then
   begin
+    { unregister self from Camera callbacs }
+    FCamera.OnVisibleChange := nil;
+    FCamera.OnCursorChange := nil;
+    if FCamera is TWalkCamera then
+    begin
+      TWalkCamera(FCamera).OnMoveAllowed := nil;
+      TWalkCamera(FCamera).OnGetCameraHeight := nil;
+    end;
+
+    FCamera.Container := nil;
+
     FCamera.RemoveFreeNotification(Self);
 
     { Yes, this setting FCamera to nil is needed, it's not just paranoia.
