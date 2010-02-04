@@ -19,7 +19,7 @@ unit KambiSceneManager;
 interface
 
 uses Classes, VectorMath, VRMLGLScene, VRMLScene, Cameras,
-  VRMLGLHeadLight, ShadowVolumes, GL, UIControls, Base3D,
+  VRMLGLHeadLight, GLShadowVolumeRenderer, GL, UIControls, Base3D,
   KeysMouse, VRMLTriangle, Boxes3D, BackgroundGL;
 
 type
@@ -137,10 +137,10 @@ type
     procedure RenderNeverShadowed(TransparentGroup: TTransparentGroup); virtual;
 
     { Render shadow quads for all the things rendered by @link(Render).
-      ShadowVolumes passed here are already initialized with
-      TShadowVolumes.InitFrustumAndLight, so you can do shadow volumes
+      GLShadowVolumeRenderer passed here are already initialized with
+      TGLShadowVolumeRenderer.InitFrustumAndLight, so you can do shadow volumes
       culling. }
-    procedure RenderShadowVolume(ShadowVolumes: TShadowVolumes); virtual;
+    procedure RenderShadowVolume(ShadowVolumeRenderer: TGLShadowVolumeRenderer); virtual;
 
     { Render everything from current (in RenderState) camera view.
       Current RenderState.Target says to where we generate the image.
@@ -197,7 +197,7 @@ type
       out AMainLightPosition: TVector4Single): boolean; virtual;
   public
     { TODO: temp public, for castle }
-    SV: TShadowVolumes;
+    SV: TGLShadowVolumeRenderer;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -487,7 +487,7 @@ begin
     extensions). (Otherwise we'd have to handle SetShadowVolumesPossible.) }
   if SV = nil then
   begin
-    SV := TShadowVolumes.Create;
+    SV := TGLShadowVolumeRenderer.Create;
     SV.InitGLContext;
   end;
 end;
@@ -749,9 +749,9 @@ begin
     OnRender3D(Self, TransparentGroup, InShadow);
 end;
 
-procedure TKamSceneManager.RenderShadowVolume(ShadowVolumes: TShadowVolumes);
+procedure TKamSceneManager.RenderShadowVolume(ShadowVolumeRenderer: TGLShadowVolumeRenderer);
 begin
-  Items.RenderShadowVolume(ShadowVolumes, true, IdentityMatrix4Single);
+  Items.RenderShadowVolume(ShadowVolumeRenderer, true, IdentityMatrix4Single);
 end;
 
 procedure TKamSceneManager.RenderHeadLight;

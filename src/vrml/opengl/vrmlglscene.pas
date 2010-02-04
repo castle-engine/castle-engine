@@ -23,7 +23,7 @@ uses
   SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLScene, VRMLOpenGLRenderer, GL, GLU, GLExt, BackgroundGL, KambiGLUtils,
   VRMLShapeOctree, VRMLHeadLight, VRMLGLHeadLight, VRMLRendererOptimization,
-  ShadowVolumes, Cameras, VRMLFields, VRMLLightSetGL, VRMLShape, Frustum,
+  GLShadowVolumeRenderer, Cameras, VRMLFields, VRMLLightSetGL, VRMLShape, Frustum,
   GLCubeMap, Base3D;
 
 {$define read_interface}
@@ -1075,9 +1075,9 @@ type
       the caster is inside camera frustum). For directional lights, DarkCap is
       ignored, since the volume is always closed by a single point in infinity.
 
-      For ShadowVolumes version, LightPos, LightCap and DarkCap
-      are already available in ShadowVolumes properties (set by
-      ShadowVolumes.InitFrustumAndLight and ShadowVolumes.InitScene
+      For ShadowVolumeRenderer version, LightPos, LightCap and DarkCap
+      are already available in ShadowVolumeRenderer properties (set by
+      ShadowVolumeRenderer.InitFrustumAndLight and ShadowVolumeRenderer.InitScene
       calls).
 
       Faces (both shadow quads and caps) are rendered such that
@@ -1095,14 +1095,14 @@ type
       const AllowSilhouetteOptimization: boolean = true);
 
     procedure RenderShadowVolumeCore(
-      ShadowVolumes: TShadowVolumes;
+      ShadowVolumeRenderer: TGLShadowVolumeRenderer;
       const TransformIsIdentity: boolean;
       const Transform: TMatrix4Single;
       const AllowSilhouetteOptimization: boolean = true);
 
     { Render shadow volume (sides and caps) of this scene, for shadow volume
       algorithm. This is a convenience  shortcut for
-      ShadowVolumes.InitScene and then RenderShadowVolumeCore.
+      ShadowVolumeRenderer.InitScene and then RenderShadowVolumeCore.
       It will calculate current bounding box using Transform,
       TransformIsIdentity and BoundingBox method.
 
@@ -1113,13 +1113,13 @@ type
 
       @groupBegin }
     procedure RenderShadowVolume(
-      ShadowVolumes: TShadowVolumes;
+      ShadowVolumeRenderer: TGLShadowVolumeRenderer;
       const TransformIsIdentity: boolean;
       const Transform: TMatrix4Single;
       const AllowSilhouetteOptimization: boolean);
 
     procedure RenderShadowVolume(
-      ShadowVolumes: TBaseShadowVolumes;
+      ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
       const ParentTransform: TMatrix4Single); override;
     { @groupEnd }
@@ -3908,7 +3908,7 @@ var
       - There's no way to handle transparent
         objects (that are not recorded in depth buffer) as shadow receivers.
         Rendering them twice with blending would result in wrong blending
-        modes applied anyway. So TShadowVolumes.Render renders them
+        modes applied anyway. So TGLShadowVolumeRenderer.Render renders them
         at the end, as last pass.
 
         This means that "glDepthFunc(GL_NEVER) for DarkCap" is still
@@ -4148,23 +4148,23 @@ begin
 end;
 
 procedure TVRMLGLScene.RenderShadowVolumeCore(
-  ShadowVolumes: TShadowVolumes;
+  ShadowVolumeRenderer: TGLShadowVolumeRenderer;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
   const AllowSilhouetteOptimization: boolean);
 begin
-  if ShadowVolumes.SceneShadowPossiblyVisible then
+  if ShadowVolumeRenderer.SceneShadowPossiblyVisible then
   begin
-    RenderShadowVolumeCore(ShadowVolumes.LightPosition,
+    RenderShadowVolumeCore(ShadowVolumeRenderer.LightPosition,
       TransformIsIdentity, Transform,
-      ShadowVolumes.ZFailAndLightCap,
-      ShadowVolumes.ZFail,
+      ShadowVolumeRenderer.ZFailAndLightCap,
+      ShadowVolumeRenderer.ZFail,
       AllowSilhouetteOptimization);
   end;
 end;
 
 procedure TVRMLGLScene.RenderShadowVolume(
-  ShadowVolumes: TShadowVolumes;
+  ShadowVolumeRenderer: TGLShadowVolumeRenderer;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
   const AllowSilhouetteOptimization: boolean);
@@ -4176,19 +4176,19 @@ begin
   if not TransformIsIdentity then
     Box := Box3dTransform(Box, Transform);
 
-  ShadowVolumes.InitScene(Box);
+  ShadowVolumeRenderer.InitScene(Box);
 
-  RenderShadowVolumeCore(ShadowVolumes, TransformIsIdentity, Transform,
+  RenderShadowVolumeCore(ShadowVolumeRenderer, TransformIsIdentity, Transform,
     AllowSilhouetteOptimization);
 end;
 
 procedure TVRMLGLScene.RenderShadowVolume(
-  ShadowVolumes: TBaseShadowVolumes;
+  ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
 begin
   if Exists and CastsShadow then
-    RenderShadowVolume(ShadowVolumes as TShadowVolumes,
+    RenderShadowVolume(ShadowVolumeRenderer as TGLShadowVolumeRenderer,
       ParentTransformIsIdentity, ParentTransform, true);
 end;
 

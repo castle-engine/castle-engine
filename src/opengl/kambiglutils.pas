@@ -335,7 +335,7 @@ var
 
   Note that it would be an error to check only whether entry points
   are non-nil, I should always check version string too. For example
-  see @code(glStencilOpSeparate := nil) in TShadowVolumesHelper.InitGLContext
+  see @code(glStencilOpSeparate := nil) in TGLShadowVolumeRenderer.InitGLContext
   fix, on Mesa 6.x and NVidia legacy 96xx on Linux this is non-nil
   (i.e. entry point exists in GL library), but doesn't work
   (I didn't use GLExt back then, but OpenGLh).

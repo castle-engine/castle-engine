@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2008 Michalis Kamburelis.
+  Copyright 2007-2010 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -9,10 +9,12 @@
   "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
 }
 
-{ TShadowVolumes class. }
-unit ShadowVolumes;
+{ TGLShadowVolumeRenderer: rendering shadow volumes in OpenGL. }
+unit GLShadowVolumeRenderer;
 
 interface
 
@@ -21,23 +23,24 @@ uses VectorMath, Boxes3d, GL, GLU, GLExt, KambiGLUtils, Frustum, Base3D;
 type
   TStencilSetupKind = (ssFrontAndBack, ssFront, ssBack);
 
-  TShadowVolumes = class;
+  TGLShadowVolumeRenderer = class;
 
   TSVRenderTransparentGroupProc =
     procedure (TransparentGroup: TTransparentGroup) of object;
   TSVRenderShadowReceiversProc =
     procedure (TransparentGroup: TTransparentGroup; InShadow: boolean) of object;
-  TSVRenderProc = procedure (ShadowVolumes: TShadowVolumes) of object;
+  TSVRenderProc = procedure (ShadowVolumeRenderer: TGLShadowVolumeRenderer) of object;
 
-  { This class performs various initialization and calculations related
-    to shadow volume rendering. It provides everything, except it doesn't
-    actually render the 3D models of their shadow volumes (actual rendering
-    is provided by things like TVRMLGLScene.Render and
-    TVRMLGLScene.RenderShadowVolume).
+  { Shadow volume rendering in OpenGL.
+    This class provides various utilities related to shadow volume rendering.
+    It provides everything, except it doesn't
+    actually render the 3D models or their shadow volumes (actual rendering
+    is provided by T3D descendants, like
+    TVRMLGLScene.Render and TVRMLGLScene.RenderShadowVolume).
 
     For general usage tutorial of this class,
     see [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.shadows.html] }
-  TShadowVolumes = class(TBaseShadowVolumes)
+  TGLShadowVolumeRenderer = class(TBaseShadowVolumeRenderer)
   private
     FrustumAndLightPlanes: array [0..5] of TVector4Single;
     FrustumAndLightPlanesCount: Cardinal;
@@ -246,7 +249,7 @@ implementation
 uses SysUtils, KambiUtils, KambiStringUtils, KambiLog, GLVersionUnit,
   RenderStateUnit;
 
-procedure TShadowVolumes.InitGLContext;
+procedure TGLShadowVolumeRenderer.InitGLContext;
 begin
   { calcualte WrapAvailable, StencilOpIncrWrap, StencilOpDecrWrap }
   FWrapAvailable := (GLVersion.Major >= 2) or GL_EXT_stencil_wrap;
@@ -293,7 +296,7 @@ begin
               BoolToStr[StencilTwoSided] ]));
 end;
 
-procedure TShadowVolumes.InitFrustumAndLight(
+procedure TGLShadowVolumeRenderer.InitFrustumAndLight(
   const Frustum: TFrustum;
   const ALightPosition: TVector4Single);
 
@@ -357,13 +360,13 @@ begin
   FCountZFailAndLightCap := 0;
 end;
 
-procedure TShadowVolumes.InitScene(const SceneBox: TBox3d);
+procedure TGLShadowVolumeRenderer.InitScene(const SceneBox: TBox3d);
 begin
   InitSceneDontSetupStencil(SceneBox);
   InitSceneOnlySetupStencil;
 end;
 
-procedure TShadowVolumes.InitSceneDontSetupStencil(const SceneBox: TBox3d);
+procedure TGLShadowVolumeRenderer.InitSceneDontSetupStencil(const SceneBox: TBox3d);
 
   function CalculateShadowPossiblyVisible(const SceneBox: TBox3d): boolean;
   var
@@ -540,7 +543,7 @@ begin
   UpdateCount;
 end;
 
-procedure TShadowVolumes.UpdateCount;
+procedure TGLShadowVolumeRenderer.UpdateCount;
 begin
   { update counters }
   if Count then
@@ -561,7 +564,7 @@ begin
   end;
 end;
 
-procedure TShadowVolumes.InitSceneOnlySetupStencil;
+procedure TGLShadowVolumeRenderer.InitSceneOnlySetupStencil;
 
   procedure ActuallySetStencilConfiguration;
 
@@ -629,7 +632,7 @@ begin
   end;
 end;
 
-procedure TShadowVolumes.InitSceneAlwaysVisible;
+procedure TGLShadowVolumeRenderer.InitSceneAlwaysVisible;
 begin
   FSceneShadowPossiblyVisible := true;
   FZFail := true;
@@ -638,7 +641,7 @@ begin
   InitSceneOnlySetupStencil;
 end;
 
-procedure TShadowVolumes.Render(
+procedure TGLShadowVolumeRenderer.Render(
   const RenderNeverShadowed: TSVRenderTransparentGroupProc;
   const RenderShadowReceivers: TSVRenderShadowReceiversProc;
   const RenderShadowVolumes: TSVRenderProc;

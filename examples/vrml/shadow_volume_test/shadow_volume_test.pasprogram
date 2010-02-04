@@ -70,7 +70,7 @@ uses GLWindow, GL, GLU, GLExt, KambiGLUtils, VRMLGLScene,
   VRMLNodes, Cameras, Boxes3d, SysUtils,
   KambiUtils, VectorMath, VRMLLightSetGL, VRMLFields,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils, VRMLCameraUtils,
-  ShadowTests, GLWinMessages, VRMLErrors, ShadowVolumes,
+  ShadowTests, GLWinMessages, VRMLErrors, GLShadowVolumeRenderer,
   BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, KambiSceneManager,
   RaysWindow, UIControls, RenderStateUnit;
 
@@ -148,7 +148,7 @@ var
   ShadowsImplementationRadio:
     array [TShadowsImplementation] of TMenuItemRadio;
 
-  SV: TShadowVolumes;
+  SV: TGLShadowVolumeRenderer;
 
   Font: TGLBitmapFont;
 
@@ -475,7 +475,7 @@ begin
 
   Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
 
-  SV := TShadowVolumes.Create;
+  SV := TGLShadowVolumeRenderer.Create;
   SV.InitGLContext;
 
   Scene.PrepareRender([tgAll], [prBoundingBox], false);

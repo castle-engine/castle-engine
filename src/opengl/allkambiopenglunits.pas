@@ -23,7 +23,7 @@ uses
   openglbmpfonts,
   openglfonts,
   openglttfonts,
-  shadowvolumes {$ifdef MSWINDOWS}, {$endif}
+  glshadowvolumerenderer {$ifdef MSWINDOWS}, {$endif}
   {$ifdef MSWINDOWS}
   openglwindowsfonts
   {$endif MSWINDOWS}

@@ -34,7 +34,7 @@ type
   TTransparentGroups = set of TTransparentGroup;
 
   { Shadow volumes helper, not depending on OpenGL. }
-  TBaseShadowVolumes = class
+  TBaseShadowVolumeRenderer = class
   end;
 
   T3DListCore = class;
@@ -141,7 +141,7 @@ type
     { Render shadow quads for all the things rendered by @link(Render).
       This is done only if @link(Exists) and @link(CastsShadow).
 
-      It does shadow volumes culling inside (so ShadowVolumes should
+      It does shadow volumes culling inside (so ShadowVolumeRenderer should
       have FrustumCullingInit already initialized).
 
       ParentTransform and ParentTransformIsIdentity describe the transformation
@@ -161,7 +161,7 @@ type
       to correctly detect front/back sides (for silhouette edges and
       volume capping). }
     procedure RenderShadowVolume(
-      ShadowVolumes: TBaseShadowVolumes;
+      ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
       const ParentTransform: TMatrix4Single); virtual;
 
@@ -367,7 +367,7 @@ type
     procedure Render(const Frustum: TFrustum;
       TransparentGroup: TTransparentGroup; InShadow: boolean); override;
     procedure RenderShadowVolume(
-      ShadowVolumes: TBaseShadowVolumes;
+      ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
       const ParentTransform: TMatrix4Single); override;
     procedure PrepareRender(
@@ -455,7 +455,7 @@ begin
 end;
 
 procedure T3D.RenderShadowVolume(
-  ShadowVolumes: TBaseShadowVolumes;
+  ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
 begin
@@ -706,7 +706,7 @@ begin
 end;
 
 procedure T3DList.RenderShadowVolume(
-  ShadowVolumes: TBaseShadowVolumes;
+  ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
 var
@@ -715,7 +715,7 @@ begin
   inherited;
   if Exists and CastsShadow then
     for I := 0 to List.Count - 1 do
-      List[I].RenderShadowVolume(ShadowVolumes,
+      List[I].RenderShadowVolume(ShadowVolumeRenderer,
         ParentTransformIsIdentity, ParentTransform);
 end;
 

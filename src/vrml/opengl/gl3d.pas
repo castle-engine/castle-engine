@@ -48,7 +48,7 @@ type
     procedure Render(const Frustum: TFrustum;
       TransparentGroup: TTransparentGroup; InShadow: boolean); override;
     procedure RenderShadowVolume(
-      ShadowVolumes: TBaseShadowVolumes;
+      ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
       const ParentTransform: TMatrix4Single); override;
     procedure PrepareRender(
@@ -150,7 +150,7 @@ begin
 end;
 
 procedure T3DCustomTranslated.RenderShadowVolume(
-  ShadowVolumes: TBaseShadowVolumes;
+  ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
 var
@@ -168,9 +168,9 @@ begin
       In this case we can avoid matrix multiplication. }
 
     if ZeroVector(T) then
-      Child.RenderShadowVolume(ShadowVolumes,
+      Child.RenderShadowVolume(ShadowVolumeRenderer,
         ParentTransformIsIdentity, ParentTransform) else
-      Child.RenderShadowVolume(ShadowVolumes,
+      Child.RenderShadowVolume(ShadowVolumeRenderer,
         false, MatrixMult(TranslationMatrix(T), ParentTransform));
   end;
 end;

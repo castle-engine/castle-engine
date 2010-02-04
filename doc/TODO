@@ -23,9 +23,6 @@ Scene manager / controls / better Lazarus integration:
 
 Remaining castle's unclean stuff:
 
-+  { TODO: temp public }
-+  ShowDebugInfo: boolean;
-
 +    { TODO: temp public, for castle }
 +    SV: TShadowVolumes;
 

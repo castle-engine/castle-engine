@@ -244,7 +244,7 @@ begin
     P.Targets.AddUnit('openglbmpfonts.pas');
     P.Targets.AddUnit('openglfonts.pas');
     P.Targets.AddUnit('openglttfonts.pas');
-    P.Targets.AddUnit('shadowvolumes.pas');
+    P.Targets.AddUnit('glshadowvolumerenderer.pas');
     if Defaults.OS in AllWindowsOSes then
     begin
       P.SourcePath.Add('src' + PathDelim + 'opengl' + PathDelim + 'windows');

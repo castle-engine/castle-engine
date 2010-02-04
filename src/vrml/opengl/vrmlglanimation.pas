@@ -511,7 +511,7 @@ type
       TransparentGroup: TTransparentGroup;
       InShadow: boolean); override;
     procedure RenderShadowVolume(
-      ShadowVolumes: TBaseShadowVolumes;
+      ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
       const ParentTransform: TMatrix4Single); override;
 
@@ -1814,12 +1814,12 @@ begin
 end;
 
 procedure TVRMLGLAnimation.RenderShadowVolume(
-  ShadowVolumes: TBaseShadowVolumes;
+  ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
 begin
   if Exists and CastsShadow then
-    CurrentScene.RenderShadowVolume(ShadowVolumes,
+    CurrentScene.RenderShadowVolume(ShadowVolumeRenderer,
       ParentTransformIsIdentity, ParentTransform);
 end;
 
