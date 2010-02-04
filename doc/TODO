@@ -23,7 +23,8 @@ Scene manager / controls / better Lazarus integration:
 
 Remaining castle's unclean stuff:
 
-- Fix controls menu from game - pass undercontrols, test, see if fade rect works ok
+- make scene/camera correctly paused when entering game menu.
+
 - There were some problems with creature behavior, 1st creature stood
   still on tower / fountain level? Maybe some Idle over creatures
   not done / done badly?
@@ -31,7 +32,6 @@ Remaining castle's unclean stuff:
 * castle: make MainScene.ProcessEvents := true,
   check receives time events (timesensor, movietexture),
   and mouse/key clicks (use some touchsensor, keysensor),
-  make it correctly paused when entering game menu.
 
 - TKamSceneManager.RenderFromView3D : RenderNoShadows should split rendering
   to all tgOpaque + then all tgTransparent.
