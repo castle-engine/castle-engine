@@ -281,8 +281,6 @@
 
 unit VRMLOpenGLRenderer;
 
-{$I openglmac.inc}
-
 { When you define USE_VRML_NODES_TRIANGULATION, an alternative
   rendering method will be used. Each node will be triangulated
   using TVRMLGeometryNode.LocalTriangulate and then this triangle
@@ -1695,8 +1693,6 @@ uses Math, Triangulator, NormalizationCubeMap,
 {$I dynarray_9.inc}
 {$I dynarray_11.inc}
 {$I dynarray_13.inc}
-
-{$I openglmac.inc}
 
 {$I vrmlmeshrenderer.inc}
 {$I vrmlmeshrenderer_x3d_rendering.inc}

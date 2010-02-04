@@ -128,8 +128,6 @@
 }
 unit GLImages;
 
-{$I openglmac.inc}
-
 interface
 
 uses GL, GLU, GLExt, SysUtils, Images, VectorMath, KambiGLUtils, Videos, DDS;

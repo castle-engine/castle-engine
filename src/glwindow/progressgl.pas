@@ -34,7 +34,6 @@
 unit ProgressGL;
 
 {$I kambiconf.inc}
-{$I openglmac.inc}
 
 interface
 

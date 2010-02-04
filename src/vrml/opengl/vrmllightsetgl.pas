@@ -29,8 +29,6 @@
 
 unit VRMLLightSetGL;
 
-{$I openglmac.inc}
-
 interface
 
 uses VectorMath, GL, GLU, KambiGLUtils, VRMLNodes, VRMLLightSet;

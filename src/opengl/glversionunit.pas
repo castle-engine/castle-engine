@@ -24,8 +24,6 @@
 }
 unit GLVersionUnit;
 
-{$include openglmac.inc}
-
 interface
 
 type

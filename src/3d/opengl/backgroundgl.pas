@@ -69,7 +69,6 @@
 unit BackgroundGL;
 
 {$I kambiconf.inc}
-{$I openglmac.inc}
 
 interface
 

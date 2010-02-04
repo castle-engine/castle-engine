@@ -43,8 +43,6 @@
 
 unit OpenGLFonts;
 
-{$I openglmac.inc}
-
 interface
 
 uses Classes, GL, GLU, SysUtils, KambiGLUtils;

@@ -54,7 +54,6 @@
 unit GLWinModes;
 
 {$I kambiconf.inc}
-{$I openglmac.inc}
 
 interface
 

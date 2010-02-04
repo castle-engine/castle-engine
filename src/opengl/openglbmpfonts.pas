@@ -24,8 +24,6 @@
 
 unit OpenGLBmpFonts;
 
-{$I openglmac.inc}
-
 interface
 
 uses BmpFontsTypes, OpenGLFonts, GL, GLU, KambiGLUtils;

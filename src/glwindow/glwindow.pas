@@ -197,7 +197,6 @@
 unit GLWindow;
 
 {$I kambiconf.inc}
-{$I openglmac.inc}
 
 { Choose GLWindow implementation ------------------------------------------ }
 

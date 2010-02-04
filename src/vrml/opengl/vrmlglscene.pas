@@ -15,8 +15,6 @@
 
 unit VRMLGLScene;
 
-{$I openglmac.inc}
-
 interface
 
 uses

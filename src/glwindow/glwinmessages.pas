@@ -112,7 +112,6 @@ unit GLWinMessages;
 }
 
 {$I kambiconf.inc}
-{$I openglmac.inc}
 
 interface
 
