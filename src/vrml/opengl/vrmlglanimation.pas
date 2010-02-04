@@ -1447,6 +1447,8 @@ var
   I: Integer;
   SceneOptions: TPrepareRenderOptions;
 begin
+  if not Loaded then Exit;
+
   for I := 0 to FScenes.High do
   begin
     { For I <> 0, we don't want to pass prManifoldAndBorderEdges to scenes. }
@@ -1582,7 +1584,7 @@ function TVRMLGLAnimation.BoundingBox: TBox3d;
   end;
 
 begin
-  if Exists then
+  if Loaded and Exists then
   begin
     if not ValidBoundingBox then
       ValidateBoundingBox;
@@ -1776,7 +1778,7 @@ begin
     In this case, time increase will be zero so the whole code
     will not do anything anyway. }
 
-  if TimePlaying and (CompSpeed <> 0) then
+  if Loaded and TimePlaying and (CompSpeed <> 0) then
   begin
     OldTime := FTime;
     FTime += TimePlayingSpeed * CompSpeed;
@@ -1809,7 +1811,7 @@ end;
 procedure TVRMLGLAnimation.Render(const Frustum: TFrustum;
   TransparentGroup: TTransparentGroup; InShadow: boolean);
 begin
-  if Exists then
+  if Loaded and Exists then
     CurrentScene.Render(Frustum, TransparentGroup, InShadow);
 end;
 
@@ -1818,7 +1820,7 @@ procedure TVRMLGLAnimation.RenderShadowVolume(
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
 begin
-  if Exists and CastsShadow then
+  if Loaded and Exists and CastsShadow then
     CurrentScene.RenderShadowVolume(ShadowVolumeRenderer,
       ParentTransformIsIdentity, ParentTransform);
 end;
@@ -1850,7 +1852,7 @@ procedure TVRMLGLAnimation.GetHeightAbove(
 begin
   inherited;
 
-  if Exists and Collides then
+  if Loaded and Exists and Collides then
   begin
     MakeScene(FirstScene);
     if CollisionUseLastScene then
@@ -1863,7 +1865,7 @@ function TVRMLGLAnimation.MoveAllowed(
   const CameraRadius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  if Exists and Collides then
+  if Loaded and Exists and Collides then
   begin
     Result := FirstScene.MoveAllowed(OldPos, ProposedNewPos, NewPos,
       CameraRadius, TrianglesToIgnoreFunc);
@@ -1889,7 +1891,7 @@ function TVRMLGLAnimation.MoveAllowedSimple(
   const CameraRadius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := (not Exists) or (not Collides) or
+  Result := (not Loaded) or (not Exists) or (not Collides) or
     (FirstScene.MoveAllowedSimple(
        OldPos, ProposedNewPos,
        CameraRadius, TrianglesToIgnoreFunc) and
@@ -1904,7 +1906,7 @@ function TVRMLGLAnimation.MoveBoxAllowedSimple(
   const ProposedNewBox: TBox3d;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := (not Exists) or (not Collides) or
+  Result := (not Loaded) or (not Exists) or (not Collides) or
     (FirstScene.MoveBoxAllowedSimple(OldPos, ProposedNewPos, ProposedNewBox,
        TrianglesToIgnoreFunc) and
        ( (not CollisionUseLastScene) or
@@ -1915,7 +1917,7 @@ end;
 function TVRMLGLAnimation.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := Exists and Collides and
+  Result := Loaded and Exists and Collides and
     ( FirstScene.SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc) or
       (CollisionUseLastScene and
         (LastScene.SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc)))
@@ -1926,7 +1928,7 @@ function TVRMLGLAnimation.SphereCollision(
   const Pos: TVector3Single; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := Exists and Collides and
+  Result := Loaded and Exists and Collides and
     ( FirstScene.SphereCollision(Pos, Radius, TrianglesToIgnoreFunc) or
       (CollisionUseLastScene and
         (LastScene.SphereCollision(Pos, Radius, TrianglesToIgnoreFunc)))
@@ -1937,7 +1939,7 @@ function TVRMLGLAnimation.BoxCollision(
   const Box: TBox3d;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := Exists and Collides and
+  Result := Loaded and Exists and Collides and
     ( FirstScene.BoxCollision(Box, TrianglesToIgnoreFunc) or
       (CollisionUseLastScene and
         (LastScene.BoxCollision(Box, TrianglesToIgnoreFunc)))
@@ -1955,7 +1957,7 @@ begin
   Result := nil;
   IntersectionDistance := 0; { Only to silence compiler warning }
 
-  if Exists and Collides then
+  if Loaded and Exists and Collides then
   begin
     Result := FirstScene.RayCollision(IntersectionDistance,
       Ray0, RayVector, TrianglesToIgnoreFunc);
