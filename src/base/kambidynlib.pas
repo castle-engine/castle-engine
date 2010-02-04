@@ -32,7 +32,7 @@ const
   { Invalid TDynLibHandle value (meaning : LoadLibrary failed) }
   InvalidDynLibHandle: TDynLibHandle = 0;
 {$else}
-  { Workaround for FPC bug [http://www.freepascal.org/bugs/showrec.php3?ID=4583] }
+  { Workaround for FPC bug [http://bugs.freepascal.org/view.php?id=6489] }
 {$define InvalidDynLibHandle := DynLibs.NilHandle}
 {$endif}
 
