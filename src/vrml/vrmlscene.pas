@@ -543,8 +543,7 @@ type
     ChangedAll_TraversedLights: TDynActiveLightArray;
 
     FBoundingBox: TBox3d;
-    FVerticesCountNotOver, FVerticesCountOver,
-    FTrianglesCountNotOver, FTrianglesCountOver: Cardinal;
+    FVerticesCount, FTrianglesCount: array [boolean] of Cardinal;
     Validities: TVRMLSceneValidities;
     function CalculateBoundingBox: TBox3d;
     function CalculateVerticesCount(OverTriangulate: boolean): Cardinal;
@@ -1915,7 +1914,6 @@ uses VRMLCameraUtils, KambiStringUtils, KambiLog, VRMLErrors, DateUtils,
   Object3dAsVRML;
 
 {$define read_implementation}
-{$I macprecalcvaluereturn.inc}
 {$I dynarray_1.inc}
 {$I dynarray_2.inc}
 {$I dynarray_3.inc}
@@ -2329,47 +2327,57 @@ begin
 end;
 
 function TVRMLScene.BoundingBox: TBox3d;
-{$define PRECALC_VALUE_ENUM := fvBoundingBox}
-{$define PRECALC_VALUE := FBoundingBox}
-{$define PRECALC_VALUE_CALCULATE := CalculateBoundingBox}
 begin
   if Exists then
   begin
-    PRECALC_VALUE_RETURN
+    if not (fvBoundingBox in Validities) then
+    begin
+      FBoundingBox := CalculateBoundingBox;
+      Include(Validities, fvBoundingBox);
+    end;
+    Result := FBoundingBox;
   end else
     Result := EmptyBox3d;
 end;
 
 function TVRMLScene.VerticesCount(OverTriangulate: boolean): Cardinal;
 begin
-  {$define PRECALC_VALUE_CALCULATE := CalculateVerticesCount(OverTriangulate)}
   if OverTriangulate then
   begin
-    {$define PRECALC_VALUE_ENUM := fvVerticesCountOver}
-    {$define PRECALC_VALUE := FVerticesCountOver}
-    PRECALC_VALUE_RETURN
+    if not (fvVerticesCountOver in Validities) then
+    begin
+      FVerticesCount[OverTriangulate] := CalculateVerticesCount(OverTriangulate);
+      Include(Validities, fvVerticesCountOver);
+    end;
   end else
   begin
-    {$define PRECALC_VALUE_ENUM := fvVerticesCountNotOver}
-    {$define PRECALC_VALUE := FVerticesCountNotOver}
-    PRECALC_VALUE_RETURN
+    if not (fvVerticesCountNotOver in Validities) then
+    begin
+      FVerticesCount[OverTriangulate] := CalculateVerticesCount(OverTriangulate);
+      Include(Validities, fvVerticesCountNotOver);
+    end;
   end;
+  Result := FVerticesCount[OverTriangulate];
 end;
 
 function TVRMLScene.TrianglesCount(OverTriangulate: boolean): Cardinal;
 begin
-  {$define PRECALC_VALUE_CALCULATE := CalculateTrianglesCount(OverTriangulate)}
   if OverTriangulate then
   begin
-    {$define PRECALC_VALUE_ENUM := fvTrianglesCountOver}
-    {$define PRECALC_VALUE := FTrianglesCountOver}
-    PRECALC_VALUE_RETURN
+    if not (fvTrianglesCountOver in Validities) then
+    begin
+      FTrianglesCount[OverTriangulate] := CalculateTrianglesCount(OverTriangulate);
+      Include(Validities, fvTrianglesCountOver);
+    end;
   end else
   begin
-    {$define PRECALC_VALUE_ENUM := fvTrianglesCountNotOver}
-    {$define PRECALC_VALUE := FTrianglesCountNotOver}
-    PRECALC_VALUE_RETURN
+    if not (fvTrianglesCountNotOver in Validities) then
+    begin
+      FTrianglesCount[OverTriangulate] := CalculateTrianglesCount(OverTriangulate);
+      Include(Validities, fvTrianglesCountNotOver);
+    end;
   end;
+  Result := FTrianglesCount[OverTriangulate];
 end;
 
 function TVRMLScene.CreateShape(AGeometry: TVRMLGeometryNode;

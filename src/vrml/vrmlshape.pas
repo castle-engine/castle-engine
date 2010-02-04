@@ -151,8 +151,7 @@ type
   private
     FLocalBoundingBox: TBox3d;
     FBoundingBox: TBox3d;
-    FVerticesCountNotOver, FVerticesCountOver,
-    FTrianglesCountNotOver, FTrianglesCountOver: Cardinal;
+    FVerticesCount, FTrianglesCount: array [boolean] of Cardinal;
     Validities: TVRMLShapeValidities;
     FGeometry: TVRMLGeometryNode;
     FState: TVRMLGraphTraverseState;
@@ -617,7 +616,6 @@ uses ProgressUnit, VRMLScene, VRMLErrors, NormalsCalculator, KambiLog,
 {$define read_implementation}
 {$I objectslist_1.inc}
 {$I objectslist_2.inc}
-{$I macprecalcvaluereturn.inc}
 
 { TVRMLShapeTree ------------------------------------------------------------ }
 
@@ -725,47 +723,63 @@ begin
 end;
 
 function TVRMLShape.LocalBoundingBox: TBox3d;
-{$define PRECALC_VALUE_ENUM := svLocalBBox}
-{$define PRECALC_VALUE := FLocalBoundingBox}
-{$define PRECALC_VALUE_CALCULATE := Geometry.LocalBoundingBox(State)}
-PRECALC_VALUE_RETURN
+begin
+  if not (svLocalBBox in Validities) then
+  begin
+    FLocalBoundingBox := Geometry.LocalBoundingBox(State);
+    Include(Validities, svLocalBBox);
+  end;
+  Result := FLocalBoundingBox;
+end;
 
 function TVRMLShape.BoundingBox: TBox3d;
-{$define PRECALC_VALUE_ENUM := svBBox}
-{$define PRECALC_VALUE := FBoundingBox}
-{$define PRECALC_VALUE_CALCULATE := Geometry.BoundingBox(State)}
-PRECALC_VALUE_RETURN
+begin
+  if not (svBBox in Validities) then
+  begin
+    FBoundingBox := Geometry.BoundingBox(State);
+    Include(Validities, svBBox);
+  end;
+  Result := FBoundingBox;
+end;
 
 function TVRMLShape.VerticesCount(OverTriangulate: boolean): Cardinal;
 begin
- {$define PRECALC_VALUE_CALCULATE := Geometry.VerticesCount(State,OverTriangulate)}
- if OverTriangulate then
- begin
-  {$define PRECALC_VALUE_ENUM := svVerticesCountNotOver}
-  {$define PRECALC_VALUE := FVerticesCountNotOver}
-  PRECALC_VALUE_RETURN
- end else
- begin
-  {$define PRECALC_VALUE_ENUM := svVerticesCountOver}
-  {$define PRECALC_VALUE := FVerticesCountOver}
-  PRECALC_VALUE_RETURN
- end;
+  if OverTriangulate then
+  begin
+    if not (svVerticesCountOver in Validities) then
+    begin
+      FVerticesCount[OverTriangulate] := Geometry.VerticesCount(State, OverTriangulate);
+      Include(Validities, svVerticesCountOver);
+    end;
+  end else
+  begin
+    if not (svVerticesCountNotOver in Validities) then
+    begin
+      FVerticesCount[OverTriangulate] := Geometry.VerticesCount(State, OverTriangulate);
+      Include(Validities, svVerticesCountNotOver);
+    end;
+  end;
+  Result := FVerticesCount[OverTriangulate];
 end;
 
 function TVRMLShape.TrianglesCount(OverTriangulate: boolean): Cardinal;
 begin
- {$define PRECALC_VALUE_CALCULATE := Geometry.TrianglesCount(State,OverTriangulate)}
- if OverTriangulate then
- begin
-  {$define PRECALC_VALUE_ENUM := svTrianglesCountNotOver}
-  {$define PRECALC_VALUE := FTrianglesCountNotOver}
-  PRECALC_VALUE_RETURN
- end else
- begin
-  {$define PRECALC_VALUE_ENUM := svTrianglesCountOver}
-  {$define PRECALC_VALUE := FTrianglesCountOver}
-  PRECALC_VALUE_RETURN
- end;
+  if OverTriangulate then
+  begin
+    if not (svTrianglesCountOver in Validities) then
+    begin
+      FTrianglesCount[OverTriangulate] := Geometry.TrianglesCount(State, OverTriangulate);
+      Include(Validities, svTrianglesCountOver);
+    end;
+  end else
+  begin
+    if not (svTrianglesCountNotOver in Validities) then
+    begin
+      FTrianglesCount[OverTriangulate] := Geometry.TrianglesCount(State, OverTriangulate);
+      Include(Validities, svTrianglesCountNotOver);
+    end;
+  end;
+  Result := FTrianglesCount[OverTriangulate];
 end;
 
 procedure TVRMLShape.Changed(PossiblyLocalGeometryChanged: boolean);
