@@ -34,6 +34,16 @@ Scene manager / controls / better Lazarus integration:
   check receives time events (timesensor, movietexture),
   and mouse/key clicks (use some touchsensor, keysensor),
 
+  make sure that "interact" key (not mouse down/up)
+  govern scene pointingdeviceactive := false/true;
+  TVRMLScene will need some "input" instance (like cameras) instead of blindly
+  looking at mouse mbLeft button,
+  castle's LoadScene and TLevel.Create will set scene's this input
+  (and will update it when player changes inputs, just like player's
+  inputs are updated).
+
+  Make sure this input is always blocked for MenuBackground.
+
 * Making Viewport*, see TODO.scene_manager_viewport, should be trivial now!
   - GLProjection should take x, y as well as width, height
   - Like on TODO.scene_manager_viewport, we'll need ViewportAutoResize default true
