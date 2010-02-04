@@ -791,6 +791,9 @@ procedure TKamSceneManager.RenderFromView3D;
       the camera). }
 
     RenderNeverShadowed(tgOpaque);
+    { TODO:
+    Render3D(tgOpaque, false);
+    Render3D(tgTransparent, false); }
     Render3D(tgAll, false);
     RenderNeverShadowed(tgTransparent);
   end;
