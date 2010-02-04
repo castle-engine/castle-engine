@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2008 Michalis Kamburelis.
+  Copyright 2003-2010 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -14,7 +14,7 @@
 }
 
 { VRML triangles (TVRMLTriangle) and abstract class for octrees
-  that resolve collision to triangles (TVRMLBaseTrianglesOctree). }
+  that resolve collision to VRML triangles (TVRMLBaseTrianglesOctree). }
 unit VRMLTriangle;
 
 {$I vrmloctreeconf.inc}
@@ -33,7 +33,8 @@ type
   TCollisionCount = Int64;
   TMailboxTag = Int64;
 
-  TVRMLTriangleGeometry = record
+  { Triangle expessed in particular coordinate system, for T3DTriangle. }
+  T3DTriangleGeometry = record
     Triangle: TTriangle3Single;
 
     { Area of the triangle. In other words, just a precalculated for you
@@ -48,9 +49,7 @@ type
       1: (Normal: TVector3Single;);
   end;
 
-  { Triangle of VRML model. This is the most basic item for our
-    collision detection routines, returned by octrees descending from
-    TVRMLBaseTrianglesOctree.
+  { 3D triangle.
 
     This object should always be initialized by @link(Init),
     and updated only by it's methods (never modify fields of
@@ -62,13 +61,12 @@ type
     and more memory-efficient to keep this as an old-style object.
     And memory efficiency is somewhat important here, since large
     scenes may easily have milions of triangles, and each triangle
-    results in one TVRMLTriangle instance. }
-  TVRMLTriangle = object
+    results in one TVRMLTriangle (descendant of T3DTriangle) instance. }
+  T3DTriangle = object
   public
-    { Initialize new TVRMLTriangle. Given Triangle must satisfy IsValidTriangle. }
-    constructor Init(const ATriangle: TTriangle3Single;
-      AState: TVRMLGraphTraverseState; AGeometry: TVRMLGeometryNode;
-      const AMatNum, AFaceCoordIndexBegin, AFaceCoordIndexEnd: integer);
+    { Initialize new triangle. Given ATriangle must satisfy IsValidTriangle. }
+    constructor Init(const ATriangle: TTriangle3Single);
+
   public
     { Geometry of this item.
       We need two geometry descriptions:
@@ -76,7 +74,7 @@ type
       @unorderedList(
 
         @item(Local is based on initial Triangle, given when constructing
-          this TVRMLTriangle. It's constant for this TVRMLTriangle. It's used
+          this T3DTriangle. It's constant for this T3DTriangle. It's used
           by octree collision routines, that is things like
           TVRMLBaseTrianglesOctree.SphereCollision, TVRMLBaseTrianglesOctree.RayCollision
           and such expect parameters in the same coord space.
@@ -92,11 +90,25 @@ type
           can just remain constant, and so is always Local copy.
 
           If Local ontains local shape-space geometry, then World
-          will have to be updated by UpdateWorld whenever some octree item's
+          will have to be updated by TVRMLTriangle.UpdateWorld whenever some octree item's
           geometry will be needed in world coords. This will have to be
           done e.g. by TVRMLBaseTrianglesOctree.XxxCollision for each returned item.)
       ) }
-    Loc, World: TVRMLTriangleGeometry;
+    Loc, World: T3DTriangleGeometry;
+  end;
+  P3DTriangle = ^T3DTriangle;
+
+  { Triangle of VRML model. This is the most basic item for our
+    VRML collision detection routines, returned by octrees descending from
+    TVRMLBaseTrianglesOctree. }
+  TVRMLTriangle = object(T3DTriangle)
+  public
+    { Initialize new triangle of VRML model.
+      Given ATriangle must satisfy IsValidTriangle. }
+    constructor Init(const ATriangle: TTriangle3Single;
+      AState: TVRMLGraphTraverseState; AGeometry: TVRMLGeometryNode;
+      const AMatNum, AFaceCoordIndexBegin, AFaceCoordIndexEnd: integer);
+
     procedure UpdateWorld;
   public
     State: TVRMLGraphTraverseState;
@@ -783,17 +795,24 @@ uses KambiStringUtils;
 
 {$I kambioctreemacros.inc}
 
-{ TVRMLTriangle  ------------------------------------------------------------ }
+{ T3DTriangle  --------------------------------------------------------------- }
 
-constructor TVRMLTriangle.Init(const ATriangle: TTriangle3Single;
-  AState: TVRMLGraphTraverseState; AGeometry: TVRMLGeometryNode;
-  const AMatNum, AFaceCoordIndexBegin, AFaceCoordIndexEnd: Integer);
+constructor T3DTriangle.Init(const ATriangle: TTriangle3Single);
 begin
   Loc.Triangle := ATriangle;
   Loc.Plane := TriangleNormPlane(ATriangle);
   Loc.Area := TriangleArea(ATriangle);
 
   World := Loc;
+end;
+
+{ TVRMLTriangle  ------------------------------------------------------------- }
+
+constructor TVRMLTriangle.Init(const ATriangle: TTriangle3Single;
+  AState: TVRMLGraphTraverseState; AGeometry: TVRMLGeometryNode;
+  const AMatNum, AFaceCoordIndexBegin, AFaceCoordIndexEnd: Integer);
+begin
+  inherited Init(ATriangle);
 
   State := AState;
   Geometry := AGeometry;
