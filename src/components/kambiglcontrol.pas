@@ -1006,7 +1006,8 @@ var
 
     if UseControls then
     begin
-      for I := 0 to Controls.Count - 1 do
+      { draw controls in "downto" order, back to front }
+      for I := Controls.Count - 1 downto 0 do
       begin
         C := Controls[I];
         case C.DrawStyle of
