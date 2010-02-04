@@ -30,7 +30,10 @@ Scene manager / controls / better Lazarus integration:
 
 (blockers before 2.0 release) ------------------------------------------------
 
-Remaining castle's unclean stuff:
+- castle regression remaining:
+  loading menus (try e.g. switching espace or debug menu on gate level) takes
+  some time --- more trouble with GLContextInit/Close?
+  hm, only with creatures loaded?
 
 * castle: make MainScene.ProcessEvents := true,
   check receives time events (timesensor, movietexture),
