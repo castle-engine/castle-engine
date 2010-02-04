@@ -77,6 +77,7 @@ uses SysUtils, Classes, Boxes3d,
 
 var
   Glw: TGLUIWindow;
+  Camera: TCamera;
   Elevation: TElevation;
   Wireframe: boolean;
   Subdivision: Cardinal = 6;
@@ -197,7 +198,7 @@ end;
 procedure Draw(Glwin: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(Glw.Camera.Matrix);
+  glLoadMatrix(Camera.Matrix);
 
   if Wireframe then
   begin
@@ -361,13 +362,14 @@ begin
   Parameters.CheckHighAtMost(1);
 
   try
-    Glw.Camera := TExamineCamera.Create(Glw);
-    (Glw.Camera as TExamineCamera).Init(Box3d(
+    Camera := TExamineCamera.Create(Glw);
+    Glw.Controls.Add(Camera);
+    (Camera as TExamineCamera).Init(Box3d(
       Vector3Single(        0,         0, -ScaleHeight),
       Vector3Single(ScaleSize, ScaleSize,  ScaleHeight)));
 
     (*
-    (Glw.Camera As TWalkCamera).Init(Vector3Single(
+    (Camera as TWalkCamera).Init(Vector3Single(
       ScaleSize * 0.5,
       ScaleSize * 0.5,
       ScaleHeight * ...notset.Height(0.5, 0.5)) { pos },

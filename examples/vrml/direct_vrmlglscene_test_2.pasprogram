@@ -33,8 +33,8 @@
   (- This is the default actually:
     scene is loaded with Optimization roSeparateShapes.)
   (- This is already done by Scene.GLProjection:
-    updating Glw.Camera.ProjectionMatrix.)
-  - using Glw.Camera.Frustum and OctreeRendering
+    updating Camera.ProjectionMatrix.)
+  - using Camera.Frustum and OctreeRendering
     (ssRendering in Scene.Spatial) to render the scene,
     see line "Scene.RenderFrustum"
 
@@ -64,6 +64,7 @@ uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLWindow,
 var
   Glw: TGLUIWindow;
   Scene: TVRMLGLScene;
+  Camera: TWalkCamera;
 
 procedure BeforeDraw(Glwin: TGLWindow);
 begin
@@ -73,8 +74,8 @@ end;
 procedure Draw(Glwin: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(glw.Camera.Matrix);
-  Scene.RenderFrustum(Glw.Camera.Frustum, tgAll);
+  glLoadMatrix(Camera.Matrix);
+  Scene.RenderFrustum(Camera.Frustum, tgAll);
 end;
 
 procedure Init(Glwin: TGLWindow);
@@ -89,9 +90,9 @@ end;
 
 procedure Resize(Glwin: TGLWindow);
 begin
-  { This sets OpenGL projection, also updating Glw.Camera.ProjectionMatrix,
-    which is important for having correct Glw.Camera.Frustum. }
-  Scene.GLProjection(Glw.Camera, Scene.BoundingBox,
+  { This sets OpenGL projection, also updating Camera.ProjectionMatrix,
+    which is important for having correct Camera.Frustum. }
+  Scene.GLProjection(Camera, Scene.BoundingBox,
     Glwin.Width, Glwin.Height);
 end;
 
@@ -122,8 +123,6 @@ begin
     IsAbove, AboveHeight, PVRMLTriangle(AboveGround), nil, nil);
 end;
 
-var
-  Camera: TWalkCamera;
 begin
   Glw := TGLUIWindow.Create(Application);
 
@@ -152,7 +151,7 @@ begin
     Camera.Home;
     Camera.OnMoveAllowed    := @THelperObj(nil).MoveAllowed;
     Camera.OnGetHeightAbove := @THelperObj(nil).GetHeightAbove;
-    Glw.Camera := Camera;
+    Glw.Controls.Add(Camera);
 
     Glw.OnInit := @Init;
     Glw.OnClose := @Close;

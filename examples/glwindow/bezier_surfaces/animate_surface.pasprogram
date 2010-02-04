@@ -23,6 +23,7 @@ uses Cameras, Surfaces, GLWindow, GL, GLU, VectorMath,
 
 var
   Glw: TGLUIWindow;
+  Camera: TWalkCamera;
   Surface1, Surface2: TSurface;
   SurfacePos, SurfaceDir, SurfaceUp: TVector3Single;
   F: TGLfloat = 0.0;
@@ -30,13 +31,13 @@ var
 
 procedure CameraHome;
 begin
-  (Glw.Camera As TWalkCamera).Init(Box3d(Vector3Single(0, 0, -1),
-                         Vector3Single(1, 1,  1)), 0.0);
+  Camera.Init(Box3d(Vector3Single(0, 0, -1),
+                    Vector3Single(1, 1,  1)), 0.0);
 end;
 
 procedure CameraScene;
 begin
-  (Glw.Camera As TWalkCamera).Init(SurfacePos, SurfaceDir, SurfaceUp, SurfaceUp, 0.0, 0.0);
+  Camera.Init(SurfacePos, SurfaceDir, SurfaceUp, SurfaceUp, 0.0, 0.0);
 end;
 
 procedure SurfacesLoad(const FileName: string);
@@ -92,7 +93,7 @@ var
   C1, C2, MyCurve: TRationalBezierCurve;
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(Glw.Camera.Matrix);
+  glLoadMatrix(Camera.Matrix);
 
   glColorv(White3Single);
 
@@ -161,15 +162,15 @@ begin
   case C of
     'c': begin
            Writeln(Format('%f %f %f   %f %f %f   %f %f %f',
-             [ (Glw.Camera As TWalkCamera).Position[0],
-               (Glw.Camera As TWalkCamera).Position[1],
-               (Glw.Camera As TWalkCamera).Position[2],
-               (Glw.Camera As TWalkCamera).Direction[0],
-               (Glw.Camera As TWalkCamera).Direction[1],
-               (Glw.Camera As TWalkCamera).Direction[2],
-               (Glw.Camera As TWalkCamera).Up[0],
-               (Glw.Camera As TWalkCamera).Up[1],
-               (Glw.Camera As TWalkCamera).Up[2] ]));
+             [ Camera.Position[0],
+               Camera.Position[1],
+               Camera.Position[2],
+               Camera.Direction[0],
+               Camera.Direction[1],
+               Camera.Direction[2],
+               Camera.Up[0],
+               Camera.Up[1],
+               Camera.Up[2] ]));
          end;
     'h': CameraHome;
     's': CameraScene;
@@ -179,9 +180,10 @@ end;
 begin
   Glw := TGLUIWindow.Create(Application);
 
-  Glw.Camera := TWalkCamera.Create(Glw);
-  (Glw.Camera As TWalkCamera).PreferGravityUpForRotations := false;
-  (Glw.Camera As TWalkCamera).PreferGravityUpForMoving := false;
+  Camera := TWalkCamera.Create(Glw);
+  Camera.PreferGravityUpForRotations := false;
+  Camera.PreferGravityUpForMoving := false;
+  Glw.Controls.Add(Camera);
 
   Parameters.CheckHigh(1);
   SurfacesLoad(Parameters[1]);

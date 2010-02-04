@@ -30,6 +30,7 @@ type
 
 var
   Glw: TGLUIWindow;
+  Camera: TExamineCamera;
 
   Surface: TSurface;
   CurrentCurve, CurrentPoint: Integer;
@@ -199,7 +200,7 @@ end;
 procedure Draw(glwin: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(Glw.Camera.Matrix);
+  glLoadMatrix(Camera.Matrix);
 
   case SurfaceShow of
     shNone: ;
@@ -332,7 +333,7 @@ procedure MouseDown(Glwin: TGLWindow; Btn: TMouseButton);
     WinX, WinY: TGLdouble;
   begin
     { Prepare for a series of gluProject calls. }
-    ModelMatrix := T16dArray(Matrix4Double(Glw.Camera.Matrix));
+    ModelMatrix := T16dArray(Matrix4Double(Camera.Matrix));
     glGetDoublev(GL_PROJECTION_MATRIX, @ProjMatrix);
     glGetIntegerv(GL_VIEWPORT, @Viewport);
 
@@ -402,7 +403,7 @@ var
 begin
   if Dragging then
   begin
-    ModelMatrix := T16dArray(Matrix4Double(Glw.Camera.Matrix));
+    ModelMatrix := T16dArray(Matrix4Double(Camera.Matrix));
     glGetDoublev(GL_PROJECTION_MATRIX, @ProjMatrix);
     glGetIntegerv(GL_VIEWPORT, @Viewport);
 
@@ -423,7 +424,7 @@ begin
       How ? gluProject does just that.
 
       (My first idea was just to calculate
-      WinZ := MatrixMultPoint(Glw.Camera.Matrix,
+      WinZ := MatrixMultPoint(Camera.Matrix,
         ControlPoints(CurrentCurve).Items[CurrentPoint])[2];
       but that's bad: WinZ value for gluUnProject is not the actual
       distance from the camera. It's expressed in the 0..1 range of
@@ -622,13 +623,14 @@ begin
   Glw.OnMenuCommand := @MenuCommand;
   Glw.MainMenu := CreateMainMenu;
 
-  Glw.Camera := TExamineCamera.Create(Glw);
-  Glw.Camera.OnVisibleChange := @Dummy.VisibleChange;
-  (Glw.Camera as TExamineCamera).Init(Box3d(Vector3Single(0, 0, -1),
-                             Vector3Single(1, 1,  1)));
+  Camera := TExamineCamera.Create(Glw);
+  Camera.OnVisibleChange := @Dummy.VisibleChange;
+  Camera.Init(Box3d(Vector3Single(0, 0, -1),
+                    Vector3Single(1, 1,  1)));
   { conflicts with our MouseDown / MouseMove }
-  (Glw.Camera as TExamineCamera).MouseNavigation := false;
-  (Glw.Camera as TExamineCamera).Input_StopRotating.MouseButtonUse := false;
+  Camera.MouseNavigation := false;
+  Camera.Input_StopRotating.MouseButtonUse := false;
+  Glw.Controls.Add(Camera);
 
   Glw.OnInit := @Init;
   Glw.OnClose := @Close;

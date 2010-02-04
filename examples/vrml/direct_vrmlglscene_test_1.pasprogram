@@ -23,8 +23,8 @@
   Supports all known model formats (VRML, X3D, Collada etc.,
   for a full list of supported formats see view3dscene documentation).
 
-  It allows user to walk/examine the scene, see view3dscene documentation
-  for keys/mouse controls available,
+  It allows user to walk/examine the scene by a Camera,
+  see view3dscene documentation for keys/mouse controls available,
   [http://vrmlengine.sourceforge.net/view3dscene.php#section_keys].
 
   Thanks to using TGLUIWindow class, that descends
@@ -51,11 +51,12 @@ uses VectorMath, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLWindow,
 var
   Glw: TGLUIWindow;
   Scene: TVRMLGLScene;
+  Camera: TCamera;
 
 procedure Draw(Glwin: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(glw.Camera.Matrix);
+  glLoadMatrix(Camera.Matrix);
   Scene.Render(nil, tgAll);
 end;
 
@@ -71,7 +72,7 @@ end;
 
 procedure Resize(Glwin: TGLWindow);
 begin
-  Scene.GLProjection(Glw.Camera, Scene.BoundingBox,
+  Scene.GLProjection(Camera, Scene.BoundingBox,
     Glwin.Width, Glwin.Height);
 end;
 
@@ -88,9 +89,10 @@ begin
     Writeln(Scene.Info(true, true, false));
 
     { init camera }
-    Glw.Camera := Scene.CreateCamera(Glw);
-    if Glw.Camera is TWalkCamera then
-      (Glw.Camera as TWalkCamera).Gravity := false;
+    Camera := Scene.CreateCamera(Glw);
+    if Camera is TWalkCamera then
+      (Camera as TWalkCamera).Gravity := false;
+    Glw.Controls.Add(Camera);
 
     Glw.OnInit := @Init;
     Glw.OnClose := @Close;
