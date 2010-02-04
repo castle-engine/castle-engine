@@ -133,9 +133,10 @@ type
     procedure Render3D(TransparentGroup: TTransparentGroup; InShadow: boolean); virtual;
 
     { Render shadow quads for all the things rendered by @link(Render).
-      It does shadow volumes culling inside (so SV should
-      have InitFrustumAndLight already done). }
-    procedure RenderShadowVolumes; virtual;
+      ShadowVolumes passed here are already initialized with
+      TShadowVolumes.InitFrustumAndLight, so you can do shadow volumes
+      culling. }
+    procedure RenderShadowVolume(ShadowVolumes: TShadowVolumes); virtual;
 
     { Render everything from current (in RenderState) camera view.
       Current RenderState.Target says to where we generate the image.
@@ -701,9 +702,9 @@ begin
     OnRender3D(Self, TransparentGroup, InShadow);
 end;
 
-procedure TKamSceneManager.RenderShadowVolumes;
+procedure TKamSceneManager.RenderShadowVolume(ShadowVolumes: TShadowVolumes);
 begin
-  Items.RenderShadowVolume(SV, true, IdentityMatrix4Single);
+  Items.RenderShadowVolume(ShadowVolumes, true, IdentityMatrix4Single);
 end;
 
 procedure TKamSceneManager.RenderHeadLight;
@@ -740,7 +741,7 @@ procedure TKamSceneManager.RenderFromView3D;
   procedure RenderWithShadows(const MainLightPosition: TVector4Single);
   begin
     SV.InitFrustumAndLight(RenderState.CameraFrustum, MainLightPosition);
-    SV.Render(nil, @Render3D, @RenderShadowVolumes, ShadowVolumesDraw);
+    SV.Render(nil, @Render3D, @RenderShadowVolume, ShadowVolumesDraw);
   end;
 
 begin

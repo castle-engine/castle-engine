@@ -21,11 +21,13 @@ uses VectorMath, Boxes3d, GL, GLU, GLExt, KambiGLUtils, Frustum, Base3D;
 type
   TStencilSetupKind = (ssFrontAndBack, ssFront, ssBack);
 
+  TShadowVolumes = class;
+
   TSVRenderTransparentGroupProc =
     procedure (TransparentGroup: TTransparentGroup) of object;
   TSVRenderShadowReceiversProc =
     procedure (TransparentGroup: TTransparentGroup; InShadow: boolean) of object;
-  TSVRenderProc = procedure of object;
+  TSVRenderProc = procedure (ShadowVolumes: TShadowVolumes) of object;
 
   { This class performs various initialization and calculations related
     to shadow volume rendering. It provides everything, except it doesn't
@@ -684,7 +686,7 @@ begin
         if StencilTwoSided then
         begin
           StencilSetupKind := ssFrontAndBack;
-          RenderShadowVolumes;
+          RenderShadowVolumes(Self);
         end else
         begin
           glEnable(GL_CULL_FACE);
@@ -692,14 +694,14 @@ begin
           { Render front facing shadow shadow volume faces. }
           StencilSetupKind := ssFront;
           glCullFace(GL_BACK);
-          RenderShadowVolumes;
+          RenderShadowVolumes(Self);
 
           { Render back facing shadow shadow volume faces. }
           StencilSetupKind := ssBack;
           OldCount := Count;
           Count := false;
           glCullFace(GL_FRONT);
-          RenderShadowVolumes;
+          RenderShadowVolumes(Self);
           Count := OldCount;
         end;
 
@@ -790,7 +792,7 @@ begin
       glDepthMask(GL_FALSE);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       glEnable(GL_BLEND);
-      RenderShadowVolumes;
+      RenderShadowVolumes(Self);
     glPopAttrib;
     Count := OldCount;
   end;
