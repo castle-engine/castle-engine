@@ -21,7 +21,7 @@ unit KambiGLControl;
 interface
 
 uses
-  Classes, SysUtils, OpenGLContext, Cameras, Controls, Forms,
+  Classes, SysUtils, OpenGLContext, Controls, Forms,
   VectorMath, KeysMouse, KambiUtils, KambiTimeUtils, StdCtrls, UIControls;
 
 const
@@ -38,7 +38,7 @@ type
   { OpenGL control, with a couple of extensions for Kambi VRML game engine.
     You will usually prefer to use TKamOpenGLControl instead of directly this
     class, TKamOpenGLControl adds some very useful features like
-    @link(TKamOpenGLControl.Camera), @link(TKamOpenGLControl.Controls).
+    @link(TKamOpenGLControl.Controls).
 
     Provides OnGLContextInit and OnGLContextClose events.
 
@@ -236,20 +236,18 @@ type
   end;
 
   { OpenGL control, with extensions for Kambi VRML game engine, including
-    @link(Controls) and @link(Camera) properties.
+    @link(Controls) list for TUIControl instances.
 
     Keeps a @link(Controls) list, so you can easily add TUIControl instances
-    to this window (like cameras (TExamineCamera, TWalkCamera),
-    TGLMenu and more). We will pass events to these controls, draw them etc.,
+    to this window (like TGLMenu, TKamSceneManager and more).
+    We will pass events to these controls, draw them etc.,
     everything only if UseControls = @true. See TKamOpenGLControl for more
     detailed documentation how @link(Controls) are treated. }
   TKamOpenGLControl = class(TKamOpenGLControlCore, IUIContainer)
   private
     FControls: TUIControlList;
     FUseControls: boolean;
-    FCamera: TCamera;
     FOnDrawStyle: TUIControlDrawStyle;
-    procedure SetCamera(const Value: TCamera);
     procedure ControlsVisibleChange(Sender: TObject);
     procedure SetUseControls(const Value: boolean);
     procedure UpdateMouseCursor;
@@ -284,19 +282,11 @@ type
     { Controls listening for user input (keyboard / mouse) to this window.
 
       Usually you explicitly add / delete controls to this list.
-      Also, freeing the control that is on this list (Camera or not)
+      Also, freeing the control that is on this list
       automatically removes it from this list (using the TComponent.Notification
       mechanism). }
     property Controls: TUIControlList read FControls;
   published
-    { Camera instance used. Initially it's nil.
-      Set this to give user a method for navigating in 3D scene.
-
-      When assigning camera instance we'll take care to make it
-      the one and only one TCamera instance on Controls list.
-      Assigning here @nil removes it from Controls list. }
-    property Camera: TCamera read FCamera write SetCamera;
-
     property UseControls: boolean
       read FUseControls write SetUseControls default true;
 
@@ -753,16 +743,6 @@ begin
   inherited;
 end;
 
-procedure TKamOpenGLControl.SetCamera(const Value: TCamera);
-begin
-  if FCamera <> Value then
-  begin
-    FCamera := Value;
-    { replace / add at the end of Controls current Camera }
-    Controls.MakeSingle(TCamera, Value);
-  end;
-end;
-
 procedure TKamOpenGLControl.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   { We have to remove a reference to the object from Controls list.
@@ -771,11 +751,7 @@ begin
     the Controls list are always valid objects (no invalid references,
     even for a short time). }
   if (Operation = opRemove) and (AComponent is TUIControl) then
-  begin
     Controls.DeleteAll(AComponent);
-    if AComponent = FCamera then
-      FCamera := nil;
-  end;
 end;
 
 function TKamOpenGLControl.Focus: TUIControl;

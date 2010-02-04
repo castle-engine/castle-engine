@@ -617,7 +617,7 @@ uses SysUtils, Classes, VectorMath, GL, GLU, GLExt,
   {$ifdef GLWINDOW_GTK_WITH_XLIB} X, Xlib, {$endif}
   {$ifdef GLWINDOW_GTK_1} Glib, Gdk, Gtk, GtkGLArea, {$endif}
   {$ifdef GLWINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, KambiDynLib, {$endif}
-  KambiUtils, KambiClassUtils, KambiGLUtils, Images, KeysMouse, Cameras,
+  KambiUtils, KambiClassUtils, KambiGLUtils, Images, KeysMouse,
   KambiStringUtils, KambiFilesUtils, KambiTimeUtils,
   FileFilters, UIControls;
 
@@ -2424,11 +2424,9 @@ type
     Controls list. }
   TGLUIWindow = class(TGLWindowDemo, IUIContainer)
   private
-    FCamera: TCamera;
     FControls: TUIControlList;
     FUseControls: boolean;
     FOnDrawStyle: TUIControlDrawStyle;
-    procedure SetCamera(const Value: TCamera);
     procedure ControlsVisibleChange(Sender: TObject);
     procedure SetUseControls(const Value: boolean);
     procedure UpdateMouseCursor;
@@ -2441,7 +2439,7 @@ type
     { Controls listening for user input (keyboard / mouse) to this window.
 
       Usually you explicitly add / delete controls to this list.
-      Also, freeing the control that is on this list (Camera or not)
+      Also, freeing the control that is on this list
       automatically removes it from this list (using the TComponent.Notification
       mechanism). }
     property Controls: TUIControlList read FControls;
@@ -2455,29 +2453,6 @@ type
       @nil is returned when there's no enabled control under the mouse cursor,
       or when UseControls = @false. }
     function Focus: TUIControl;
-
-    { Camera instance used. Initially it's nil.
-      Set this to give user a method for navigating in 3D scene.
-
-      When assigning camera instance we'll take care to make it
-      the one and only one TCamera instance on Controls list.
-      Assigning here @nil removes it from Controls list.
-
-      Example use of this class TGLUIWindow just to get a Camera:
-
-      @orderedList(
-        @item(At the beginning of your program, do
-
-@longCode(#
-  // TXxxCamera may be e.g. TExamineCamera or TWalkCamera
-  Glw.Camera := TXxxCamera.Create(Glw);
-  Glw.Camera.Init(...);
-#))
-
-      @item(In OnDraw callback use glMultMatrix or glLoadMatrix
-        with Glw.Camera.Matrix)
-    ) }
-    property Camera: TCamera read FCamera write SetCamera;
 
     { How OnDraw callback fits within various Draw methods of our
       @link(Controls).
@@ -4256,16 +4231,6 @@ begin
   inherited;
 end;
 
-procedure TGLUIWindow.SetCamera(const Value: TCamera);
-begin
-  if FCamera <> Value then
-  begin
-    FCamera := Value;
-    { replace / add at the end of Controls current Camera }
-    Controls.MakeSingle(TCamera, Value);
-  end;
-end;
-
 procedure TGLUIWindow.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   { We have to remove a reference to the object from Controls list.
@@ -4274,11 +4239,7 @@ begin
     the Controls list are always valid objects (no invalid references,
     even for a short time). }
   if (Operation = opRemove) and (AComponent is TUIControl) then
-  begin
     Controls.DeleteAll(AComponent);
-    if AComponent = FCamera then
-      FCamera := nil;
-  end;
 end;
 
 function TGLUIWindow.Focus: TUIControl;

@@ -58,7 +58,7 @@ unit GLWinModes;
 interface
 
 uses SysUtils, GL, GLU, GLExt, GLWindow, KambiGLUtils, Images, GLWinMessages,
-  UIControls, Cameras, KeysMouse;
+  UIControls, KeysMouse;
 
 { GLWindowState --------------------------------------------------------- }
 
@@ -85,7 +85,6 @@ type
     oldFpsShowOnCaption: boolean;
     { TGLUIWindow attributes } { }
     OldControls: TUIControlList;
-    OldCamera: TCamera;
     OldUseControls: boolean;
     OldOnDrawStyle: TUIControlDrawStyle;
 
@@ -403,7 +402,6 @@ begin
   if glwin is TGLUIWindow then
   begin
     OldControls.Assign(TGLUIWindow(Glwin).Controls);
-    OldCamera := TGLUIWindow(Glwin).Camera;
     OldUseControls := TGLUIWindow(Glwin).UseControls;
     OldOnDrawStyle := TGLUIWindow(Glwin).OnDrawStyle;
   end;
@@ -432,7 +430,6 @@ begin
   if glwin is TGLUIWindow then
   begin
     TGLUIWindow(Glwin).Controls.Assign(OldControls);
-    TGLUIWindow(Glwin).Camera := OldCamera;
     TGLUIWindow(Glwin).UseControls := OldUseControls;
     TGLUIWindow(Glwin).OnDrawStyle := OldOnDrawStyle;
   end;
@@ -464,7 +461,6 @@ begin
 
   if glwin is TGLUIWindow then
   begin
-    TGLUIWindow(Glwin).Camera := nil;
     TGLUIWindow(Glwin).Controls.Clear;
     TGLUIWindow(Glwin).UseControls := true;
     TGLUIWindow(Glwin).OnDrawStyle := dsNone;

@@ -38,73 +38,6 @@ Scene manager / controls / better Lazarus integration:
   to all tgOpaque + then all tgTransparent.
   Do this while porting to castle?
 
-- Use SceneManager *everywhere*:
-
-  RenderState.Camera* is currently not initialized in various programs.
-  This is supposed to be fixed by using SceneManager everywhere,
-  that's why I didn't want to pollute code for now.
-  When you don't use generated textures, RenderState.Camera* is only for
-  Viewpoint events and WORLDSPACE* tex coord generation,
-  which is simply not used by some programs. Below is extracted from
-  grep_pas_src . 'glLoadMatrix(.*camera.matrix)'
-
-  rift:
-    ../../rift/riftplay.pas:141:  glLoadMatrix(SceneCamera.Matrix);
-  pure OpenGL demos (no VRML code), possibly let them use Glw.Camera?
-    For direct_vrmlglscene_xxx, it's even by design (this shows that without
-    scenemanager you can also work):
-    ../examples/vrml/direct_vrmlglscene_test_1.pasprogram:58:  glLoadMatrix(glw.Camera.Matrix);
-    ../examples/vrml/direct_vrmlglscene_test_2.pasprogram:76:  glLoadMatrix(glw.Camera.Matrix);
-    ../examples/vrml/terrain/terrain.pasprogram:200:  glLoadMatrix(Glw.Camera.Matrix);
-    ../examples/glwindow/bezier_surfaces/animate_surface.pasprogram:95:  glLoadMatrix(Glw.Camera.Matrix);
-    ../examples/glwindow/bezier_surfaces/design_surface.pasprogram:202:  glLoadMatrix(Glw.Camera.Matrix);
-
-  for non-vrml scenes, assigning OnRender3D may be the simplest way to use
-  scenemanager. Hm, or not really? We should also create our own camera,
-  and override ApplyProjection, since only we know our bounding box.
-
-  Hm, for some of the remaining examples, it could be simpler to just let
-  them use default Camera, no point in forcing SceneManager?
-
-* Camera: since no longer have to be added to Controls,
-  remove TGLUIWindow.Camera now.
-
-  Depends on: port all example programs to SceneManager first.
-  In particular, port castle, and for the rest of remaining --- either
-  make their own Camera variable, or also port to SceneManager.
-
-  Resolves:
-  Remove Camera property entirely from TGLUIWindow/TKamOpenGLComponent?
-  Usually SceneManager.Camera is comfortable now.
-
-  Old notes: Hm, no? Resign?
-  1. Scene.Camera future is uncertain. It may be removed,
-     in favor of only SceneManager.Camera. Wait for transition until this
-     is decided, to avoid rewriting a lot of code (Glw.Camera -> Scene.Camera)
-     just to rewrite it again (Scene.Camera -> SceneManager.Camera).
-
-     Later resolution: SceneManager.Camera ready, no longer Scene.Camera,
-     this is stable.
-
-  2. Wait for removal until Controls list is settable from the Lazarus IDE.
-     Otherwise, right now Camera is settable from IDE, Controls not,
-     so 1 advantage of Camera property.
-
-     Later resolution: SceneManager.Camera could be settable from IDE now.
-
-  3. Seems comfortable and not confusing. Leave it be?
-
-     Later resolution: confusing, since Camera should only be on one
-     of SceneManager or Controls, not both (then Idle etc. may work too fast.
-
-  Actually, since having Camera on controls makes problems (because
-  of hacky PositionInside, as Camera is invisible), maybe even
-  remove TCamera from being TUIControl? Make TCamera separate class?
-
-  Maybe make some common class, like TInputListener, for TUIControl,
-  TCamera, TBase3D. Or at least for TUIControl, TCamera.
-  Maybe TInvisibleUIControl, or TCustomUIControl?
-
 * Making Viewport*, see TODO.scene_manager_viewport, should be trivial now!
   - GLProjection should take x, y as well as width, height
   - Like on TODO.scene_manager_viewport, we'll need ViewportAutoResize default true
@@ -137,6 +70,51 @@ Scene manager / controls / better Lazarus integration:
 
 (not blockers before 2.0 release) --------------------------------------------
 
+- Should we allow placing TCamera directly on TGLUIWindow / TKamOpenGLControls?
+  IOW, should TCamera remain TUIControl descendant?
+
+  Yes: because in 99% you want to use TKamSceneManager.Camera.
+  - The scene manager offers instant integration of view with camera
+    (with viewpoints, proximity sensors, glLoadMatrix(Camera.Matrix)
+    is automatically done for you, and RenderState.Camera* are updated correctly).
+  - You should not place camera on both TKamSceneManager.Camera and
+    some Glw.Controls (Idle and some other events would get twice, making
+    weird things --- at least 2x faster rotations for Examine).
+    Being able to do it currently may be confusing.
+  - Also, camera PositionInside is the poor hack with returning always @true.
+    For scene manager, we will nicely improve this with TKamViewport,
+    that will take defined space and pass events to it's camera.
+    For pure TCamera on Glw.Controls, this will not be done.
+
+  No: despite all above, we have remaining some camera uses in engine
+  examples where scene manager really adds nothing. Yes, scene manager
+  is fantastic and simplified 99% of examples...
+  but there's no point forcing it for remaining 1%,
+  where it really doesn't add anything?
+
+  This concerns stuff without VRML/X3D at all (so the lack of proximity,
+  render state integration etc. doesn't matter there, and
+  glLoadMatrix(Camera.Matrix) may as well be done directly).
+
+  Below is extracted from
+  grep_pas_src . 'glLoadMatrix(.*camera.matrix)'
+
+  rift:
+    ../../rift/riftplay.pas:141:  glLoadMatrix(SceneCamera.Matrix);
+  pure OpenGL demos (no VRML code), possibly let them use Glw.Camera?
+    For direct_vrmlglscene_xxx, it's even by design (this shows that without
+    scenemanager you can also work):
+    ../examples/vrml/direct_vrmlglscene_test_1.pasprogram:58:  glLoadMatrix(Camera.Matrix);
+    ../examples/vrml/direct_vrmlglscene_test_2.pasprogram:76:  glLoadMatrix(Camera.Matrix);
+    ../examples/vrml/terrain/terrain.pasprogram:200:  glLoadMatrix(Camera.Matrix);
+    ../examples/glwindow/bezier_surfaces/animate_surface.pasprogram:95:  glLoadMatrix(Camera.Matrix);
+    ../examples/glwindow/bezier_surfaces/design_surface.pasprogram:202:  glLoadMatrix(Camera.Matrix);
+
+  If TCamera removed from TUIControl, maybe make some common class,
+  like TInputListener, for TUIControl, TCamera, TBase3D.
+  Or at least for TUIControl, TCamera.
+  Maybe TInvisibleUIControl, or TCustomUIControl?
+
 - TVRMLGLLightSet - hm, it would be useful to eliminate need to use this
   e.g. in castle. Can SceneManager help us here? Ideally, a way to allow
   all the vrml scenes to mix their OpenGL lights could be great?
@@ -161,6 +139,8 @@ Scene manager / controls / better Lazarus integration:
     Maybe always do some sort of mouse picking in scenemanager, over all scenes,
     to choose closest one (and use it for new cursor) in MouseMove?
     Also, save the closest one, for next UpdateCursor?
+
+    Items.RayCollision should be esp. useful here.
 
 - castle: besides level (MainScene, and level objects as additional stuff),
   it would be most perfect if castle creatures / items would be part of
