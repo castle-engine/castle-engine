@@ -5656,6 +5656,12 @@ function TVRMLScene.CreateCamera(AOwner: TComponent;
     begin
       Result := TExamineCamera.Create(AOwner);
     end else
+    if NavigationType = 'LOOKAT' then
+    begin
+      if NavigationType = 'LOOKAT' then
+        VRMLWarning(vwIgnorable, 'TODO: Navigation type "LOOKAT" is not yet supported, treating like "EXAMINE"');
+      Result := TExamineCamera.Create(AOwner);
+    end else
     if NavigationType = 'ANY' then
     begin
       { Do nothing, also do not report this NavigationInfo.type as unknown. }
