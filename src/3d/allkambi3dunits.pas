@@ -10,6 +10,7 @@ unit AllKambi3dUnits;
 interface
 
 uses
+  base3d,
   backgroundbase,
   boxes3d,
   convexhullunit,

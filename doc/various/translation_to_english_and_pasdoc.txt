@@ -17,6 +17,7 @@ will be implemented).
 
   3d/
 D   backgroundbase.pas
+D   base3d.pas
 D   boxes3d.pas
 D   convexhullunit.pas
 D   cubemap.pas
@@ -40,6 +41,7 @@ D   triangulator.pas
 
   3d/opengl/
 -   backgroundgl.pas
+D   gl3d.pas
 |   object3dopengl.pas
 
   vrml/

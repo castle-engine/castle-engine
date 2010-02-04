@@ -11,6 +11,7 @@ interface
 
 uses
   backgroundgl,
+  gl3d,
   object3dopengl
   ;
 
