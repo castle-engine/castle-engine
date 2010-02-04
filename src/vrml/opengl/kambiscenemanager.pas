@@ -761,14 +761,16 @@ var
   MainLightPosition: TVector4Single; { ignored }
 begin
   Options := [prBackground, prBoundingBox];
-  TG := [tgAll];
+  { We never call tgAll from scene manager. Even for non-shadowed rendering
+    (one pass), we still may have many Items, so we always call all tgOpaque
+    before all tgTransparent. }
+  TG := [tgOpaque, tgTransparent];
 
   if ShadowVolumesPossible and
      ShadowVolumes and
      MainLightForShadows(MainLightPosition) then
   begin
     Options := Options + prShadowVolume;
-    TG := TG + [tgOpaque, tgTransparent];
   end;
 
   { Apply projection now, as TVRMLGLScene.GLProjection calculates
@@ -856,10 +858,8 @@ procedure TKamSceneManager.RenderFromView3D;
       the camera). }
 
     RenderNeverShadowed(tgOpaque);
-    { TODO:
     Render3D(tgOpaque, false);
-    Render3D(tgTransparent, false); }
-    Render3D(tgAll, false);
+    Render3D(tgTransparent, false);
     RenderNeverShadowed(tgTransparent);
   end;
 

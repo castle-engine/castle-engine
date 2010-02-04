@@ -34,10 +34,6 @@ Scene manager / controls / better Lazarus integration:
   check receives time events (timesensor, movietexture),
   and mouse/key clicks (use some touchsensor, keysensor),
 
-- TKamSceneManager.RenderFromView3D : RenderNoShadows should split rendering
-  to all tgOpaque + then all tgTransparent.
-  Do this while porting to castle?
-
 * Making Viewport*, see TODO.scene_manager_viewport, should be trivial now!
   - GLProjection should take x, y as well as width, height
   - Like on TODO.scene_manager_viewport, we'll need ViewportAutoResize default true
