@@ -387,11 +387,19 @@ const
     '"{"', '"}"', '"["', '"]"', '"("', '")"', '"|"', '","', '"."', '":"',
     'float', 'integer', 'string', 'end of stream');
 
-{$I macarraypos.inc}
-{$define ARRAY_POS_FUNCTION_NAME := ArrayPosVRMLKeywords}
-{$define ARRAY_POS_ARRAY_NAME := VRMLKeywords}
-{$define ARRAY_POS_INDEX_TYPE := TVRMLKeyword}
-IMPLEMENT_ARRAY_POS
+function ArrayPosVRMLKeywords(const s: string; var Index: TVRMLKeyword): boolean;
+var
+  I: TVRMLKeyword;
+begin
+  for I := Low(VRMLKeywords) to High(VRMLKeywords) do
+    if VRMLKeywords[I] = s then
+    begin
+      Index := I;
+      Result := true;
+      Exit;
+    end;
+  Result := false;
+end;
 
 { TVRMLLexer ------------------------------------------------------------- }
 

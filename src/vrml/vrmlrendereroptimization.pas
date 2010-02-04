@@ -195,11 +195,21 @@ implementation
 
 uses SysUtils, ParseParametersUnit, KambiUtils;
 
-  {$define ARRAY_POS_FUNCTION_NAME := RendererOptimizationFromName}
-  {$define ARRAY_POS_ARRAY_NAME := RendererOptimizationNames}
-  {$define ARRAY_POS_INDEX_TYPE := TGLRendererOptimization}
-  {$I macarraypos.inc}
-  IMPLEMENT_ARRAY_POS_CASE_CHECKED
+function RendererOptimizationFromName(const s: string; IgnoreCase: boolean): TGLRendererOptimization;
+begin
+  if IgnoreCase then
+  begin
+    for Result := Low(RendererOptimizationNames) to High(RendererOptimizationNames) do
+      if AnsiSameText(RendererOptimizationNames[Result], s) then
+        Exit;
+  end else
+  begin
+    for Result := Low(RendererOptimizationNames) to High(RendererOptimizationNames) do
+      if RendererOptimizationNames[Result] = s then
+        Exit;
+  end;
+  raise Exception.Create('"'+s+'" does not match any of the allowed values');
+end;
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
