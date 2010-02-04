@@ -77,7 +77,6 @@ type
     FShadowVolumesPossible: boolean;
     FShadowVolumes: boolean;
     FShadowVolumesDraw: boolean;
-    SV: TShadowVolumes;
 
     FBackgroundWireframe: boolean;
 
@@ -176,6 +175,9 @@ type
       @seealso TVRMLGLScene.GLProjection }
     procedure ApplyProjection; virtual;
   public
+    { TODO: temp public, for castle }
+    SV: TShadowVolumes;
+  
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
