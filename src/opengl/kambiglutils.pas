@@ -96,7 +96,7 @@ uses Math, GL, GLU, GLExt,
 { @section(Utils needed only when using GL, GLU, GLExt bindings.
   Not needed when using OpenGLh binding.) }
 
-{$ifdef USE_GL_GLU_UNITS}
+{$ifndef USE_OLD_OPENGLH}
 type
   { Types with leading "T" }
   TGLenum     = GLenum;
@@ -1130,7 +1130,7 @@ uses KambiFilesUtils, KambiStringUtils, GLVersionUnit, GLShaders, GLImages,
 
 {$I glext_packed_depth_stencil.inc}
 
-{$ifdef USE_GL_GLU_UNITS}
+{$ifndef USE_OLD_OPENGLH}
 {$I opengltypes.inc}
 
 procedure LoadAllExtensions;
@@ -1830,17 +1830,17 @@ end;
 function UnProjectGL(winx, winy, winz :TGLdouble): TVector3d;
 var
   modelMatrix, projMatrix:
-    {$ifndef USE_GL_GLU_UNITS} TMatrix4d {$else} T16dArray {$endif};
+    {$ifdef USE_OLD_OPENGLH} TMatrix4d {$else} T16dArray {$endif};
   viewport:
-    {$ifndef USE_GL_GLU_UNITS} TVector4i {$else} TViewPortArray {$endif};
+    {$ifdef USE_OLD_OPENGLH} TVector4i {$else} TViewPortArray {$endif};
 begin
  glGetDoublev(GL_MODELVIEW_MATRIX, @modelMatrix);
  glGetDoublev(GL_PROJECTION_MATRIX, @projMatrix);
  glGetIntegerv(GL_VIEWPORT, @viewport);
  Check( gluUnProject(winx, winy, winz,
-   {$ifndef USE_GL_GLU_UNITS} @ {$endif} modelMatrix,
-   {$ifndef USE_GL_GLU_UNITS} @ {$endif} projMatrix,
-   {$ifndef USE_GL_GLU_UNITS} @ {$endif} viewport,
+   {$ifdef USE_OLD_OPENGLH} @ {$endif} modelMatrix,
+   {$ifdef USE_OLD_OPENGLH} @ {$endif} projMatrix,
+   {$ifdef USE_OLD_OPENGLH} @ {$endif} viewport,
    @result[0], @result[1], @result[2]) = GL_TRUE, 'gluUnProject');
 end;
 
@@ -1928,7 +1928,7 @@ begin
  result := gluNewQuadric();
  Check(result <> nil, 'gluNewQuadric');
  gluQuadricCallback(result, GLU_ERROR,
-   {$ifdef USE_GL_GLU_UNITS} TCallBack {$endif} (@ReportGLError));
+   {$ifndef USE_OLD_OPENGLH} TCallBack {$endif} (@ReportGLError));
  gluQuadricTexture(result, Ord(texture));
  gluQuadricNormals(result, normals);
  gluQuadricOrientation(result, orientation);

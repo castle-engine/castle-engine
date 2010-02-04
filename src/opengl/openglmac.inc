@@ -1,12 +1,4 @@
-{ some OpenGL Macros }
-
-{ Define this to automatically use GL, GLU, GLExt FPC units everywhere
-  instead of my OpenGLh unit. }
-{$define USE_GL_GLU_UNITS}
-
-{$ifdef USE_GL_GLU_UNITS}
-  {$define OpenGLh := gl, glu, glext}
-{$endif}
+{ Some OpenGL defines. }
 
 {$ifdef MSWINDOWS}
   {$define OPENGL_CALL := stdcall;}

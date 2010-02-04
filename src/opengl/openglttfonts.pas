@@ -278,9 +278,9 @@ var i, poz,
              zadnej trwalosci ! }
            AddVertex(vertices^, Vector3d(x, y, polZ) );
            gluTessVertex(tobj,
-             {$ifdef USE_GL_GLU_UNITS} T3dArray ( {$endif}
+             {$ifndef USE_OLD_OPENGLH} T3dArray ( {$endif}
              LastAdded(vertices^)
-             {$ifdef USE_GL_GLU_UNITS} ^) {$endif}
+             {$ifndef USE_OLD_OPENGLH} ^) {$endif}
              , LastAdded(vertices^) );
           end;
           Inc(poz);
