@@ -181,6 +181,15 @@ type
       The default implementation in this class does what is usually
       most natural: return MainScene.Background, if MainScene assigned. }
     function Background: TBackgroundGL; virtual;
+
+    { Detect position/direction of the main light that produces shadows.
+      The default implementation in this class looks at
+      MainScene.MainLightForShadows.
+
+      @seealso TVRMLLightSet.MainLightForShadows
+      @seealso TVRMLScene.MainLightForShadows }
+    function MainLightForShadows(
+      out AMainLightPosition: TVector4Single): boolean;
   public
     { TODO: temp public, for castle }
     SV: TShadowVolumes;
@@ -292,8 +301,10 @@ type
           Althuogh you can override this by overriding @link(Background)
           method.)
 
-        @item(Decides if, and where, the main light casting shadows is
-          (see TVRMLGLScene.MainLightForShadowsExists, TVRMLGLScene.MainLightForShadows).)
+        @item(Decides if, and where, the main light casting shadows is.
+          Although you can override this by overriding @link(MainLightForShadows)
+          method.)
+
         @item Determines OpenGL projection for the scene, see ApplyProjection.
 
         @item(Synchronizes our @link(Camera) with VRML/X3D viewpoints.
@@ -534,6 +545,14 @@ begin
     Result := nil;
 end;
 
+function TKamSceneManager.MainLightForShadows(
+  out AMainLightPosition: TVector4Single): boolean;
+begin
+  if MainScene <> nil then
+    Result := MainScene.MainLightForShadows(AMainLightPosition) else
+    Result := false;
+end;
+
 procedure TKamSceneManager.SetMainScene(const Value: TVRMLGLScene);
 begin
   if FMainScene <> Value then
@@ -669,14 +688,14 @@ procedure TKamSceneManager.PrepareRender(const DisplayProgressTitle: string);
 var
   Options: TPrepareRenderOptions;
   TG: TTransparentGroups;
+  MainLightPosition: TVector4Single; { ignored }
 begin
   Options := [prBackground, prBoundingBox];
   TG := [tgAll];
 
   if ShadowVolumesPossible and
      ShadowVolumes and
-     (MainScene <> nil) and
-     MainScene.MainLightForShadowsExists then
+     MainLightForShadows(MainLightPosition) then
   begin
     Options := Options + prShadowVolume;
     TG := TG + [tgOpaque, tgTransparent];
@@ -764,12 +783,13 @@ procedure TKamSceneManager.RenderFromView3D;
     SV.Render(nil, @Render3D, @RenderShadowVolume, ShadowVolumesDraw);
   end;
 
+var
+  MainLightPosition: TVector4Single;
 begin
   if ShadowVolumesPossible and
      ShadowVolumes and
-     (MainScene <> nil) and
-     MainScene.MainLightForShadowsExists then
-    RenderWithShadows(MainScene.MainLightForShadows) else
+     MainLightForShadows(MainLightPosition) then
+    RenderWithShadows(MainLightPosition) else
     RenderNoShadows;
 end;
 
@@ -777,6 +797,7 @@ procedure TKamSceneManager.RenderFromViewEverything;
 var
   ClearBuffers: TGLbitfield;
   UsedBackground: TBackgroundGL;
+  MainLightPosition: TVector4Single; { ignored }
 begin
   ClearBuffers := GL_DEPTH_BUFFER_BIT;
 
@@ -800,8 +821,7 @@ begin
 
   if ShadowVolumesPossible and
      ShadowVolumes and
-     (MainScene <> nil) and
-     MainScene.MainLightForShadowsExists then
+     MainLightForShadows(MainLightPosition) then
     ClearBuffers := ClearBuffers or GL_STENCIL_BUFFER_BIT;
 
   glClear(ClearBuffers);

@@ -1752,19 +1752,16 @@ type
       [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows]
       for more info.
       If no light with kambiShadows = kambiShadowsMain = TRUE
-      is present then MainLightForShadowsExists returns @false,
-      and you cannot call MainLightForShadows (since it
-      cannot be calculated).
+      is present then this function returns @false,
+      since AMainLightPosition cannot be calculated.
 
-      MainLightPosition[3] is always set to 1
+      AMainLightPosition[3] is always set to 1
       (positional light) or 0 (indicates that this is a directional light).
 
       @seealso TVRMLLightSet.MainLightForShadows
-
-      @groupBegin }
-    function MainLightForShadowsExists: boolean;
-    function MainLightForShadows: TVector4Single;
-    { @groupEnd }
+      @seealso TKamSceneManager.MainLightForShadows }
+    function MainLightForShadows(
+      out AMainLightPosition: TVector4Single): boolean;
 
     { Creates a headlight, using (if present) KambiHeadLight node defined
       in this VRML file. You're responsible for freeing this node.
@@ -5877,17 +5874,13 @@ begin
   end;
 end;
 
-function TVRMLScene.MainLightForShadows: TVector4Single;
-begin
-  ValidateMainLightForShadows;
-  Assert(MainLightForShadowsExists, 'MainLightForShadows position is available only when MainLightForShadowsExists');
-  Result := FMainLightForShadows;
-end;
-
-function TVRMLScene.MainLightForShadowsExists: boolean;
+function TVRMLScene.MainLightForShadows(
+  out AMainLightPosition: TVector4Single): boolean;
 begin
   ValidateMainLightForShadows;
   Result := FMainLightForShadowsExists;
+  if Result then
+    AMainLightPosition := FMainLightForShadows;
 end;
 
 function TVRMLScene.CreateHeadLightInstance

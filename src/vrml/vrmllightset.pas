@@ -72,7 +72,8 @@ type
       AMainLightPosition[3] is always set to 1
       (positional light) or 0 (indicates that this is a directional light).
 
-      @seealso TVRMLScene.MainLightForShadows }
+      @seealso TVRMLScene.MainLightForShadows
+      @seealso TKamSceneManager.MainLightForShadows }
     function MainLightForShadows(
       out AMainLightPosition: TVector4Single): boolean;
   end;
