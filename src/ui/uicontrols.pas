@@ -367,7 +367,6 @@ type
     property Items[I: Integer]: TUIControl read GetItem write SetItem; default;
     procedure Add(Item: TUIControl);
     procedure Insert(Index: Integer; Item: TUIControl);
-    procedure AddArray(const A: array of TUIControl);
   end;
 
 implementation
@@ -495,13 +494,6 @@ end;
 procedure TUIControlList.Insert(Index: Integer; Item: TUIControl);
 begin
   inherited Insert(Index, Item);
-end;
-
-procedure TUIControlList.AddArray(const A: array of TUIControl);
-var
-  I: Integer;
-begin
-  for I := 0 to High(A) do Add(A[I]);
 end;
 
 end.

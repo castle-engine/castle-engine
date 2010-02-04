@@ -697,6 +697,20 @@ type
   { Extended TObjectList for Kambi engine. }
   TKamObjectList = class(TObjectList)
   public
+    { Create and fill with the contents of given array.
+
+      Since in ObjectPascal you can create open array parameter on the fly,
+      this constructor is often comfortable to use, for example you can
+      write @code(List := TKamObjectList.Create(..., [Item1, Item2]);). }
+    constructor CreateFromArray(const FreeObjects: boolean;
+      const AItems: array of TObject);
+
+    { Add contents of given array to the list. }
+    procedure AddArray(const A: array of TObject);
+
+    { Add contents of other TObjectList instance to the list. }
+    procedure AddList(AList: TObjectList);
+
     { Replace first found descendant of ReplaceClass with NewItem.
       In case no descendant of ReplaceClass was found,
       we'll we add NewItem to the list (depending on AddBeginning value:
@@ -1679,6 +1693,35 @@ begin
 end;
 
 { TKamObjectList ------------------------------------------------------------- }
+
+constructor TKamObjectList.CreateFromArray(const FreeObjects: boolean;
+  const AItems: array of TObject);
+begin
+  Create(FreeObjects);
+  AddArray(AItems);
+end;
+
+procedure TKamObjectList.AddArray(const A: array of TObject);
+var
+  I: Integer;
+begin
+  Capacity := Capacity + High(A) + 1;
+  for I := 0 to High(A) do
+    Add(A[I]);
+end;
+
+procedure TKamObjectList.AddList(AList: TObjectList);
+var
+  I: Integer;
+begin
+  inherited AddList(AList);
+
+  { workaround http://bugs.freepascal.org/view.php?id=15655 }
+  { make lnAdded notifications }
+  for I := 0 to AList.Count - 1 do
+    if AList[I] <> nil then
+      Notify(AList[I], lnAdded);
+end;
 
 function TKamObjectList.MakeSingle(ReplaceClass: TClass; NewItem: TObject;
   AddBeginning: boolean): TObject;
