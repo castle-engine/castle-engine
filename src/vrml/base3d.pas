@@ -54,7 +54,7 @@ type
       then Hierarchy will contain three items (in order: 1st list, 2nd list,
       TVRMLGLScene instance).
 
-      For T3D.RayCollision and overrides, Hierarchy is never empty. }
+      This is never an empty list. }
     Hierarchy: T3DListCore;
 
     { The triangle that collides. This triangle is always a part of the last
