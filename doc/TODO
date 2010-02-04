@@ -21,6 +21,31 @@ Scene manager / controls / better Lazarus integration:
 
 (blockers before 2.0 release) ------------------------------------------------
 
+Remaining castle's unclean stuff:
+
++    { TODO: temp public }
++    procedure RenderFromViewEverything; override;
+
++  GLContextInit; { TODO }
+ end;
+
+ destructor TLevel.Destroy;
+ begin
++  GLContextClose; { TODO }
+
++  { TODO: temp public }
++  ShowDebugInfo: boolean;
+
++    { TODO: temp public, for castle }
++    SV: TShadowVolumes;
+
+Also, remove backgrounddraw/idle callbacks.
+- Fix controls menu
+- Fix game working
+- There were some problems with creature behavior, 1st creature stood
+  still on tower / fountain level? Maybe some Idle over creatures
+  not done / done badly?
+
 * castle: make main level scene added to Controls, check receives time events (timesensor, movietexture), and mouse/key clicks (use some touchsensor).
 
 * Use SceneManager (and Camera on Glw.Controls) in castle.
