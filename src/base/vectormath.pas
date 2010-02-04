@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2009 Michalis Kamburelis.
+  Copyright 2003-2010 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -2221,6 +2221,8 @@ function ColorBlueStripByte(const Color: TVector3Byte): TVector3Byte;
 
 {$endif FPC}
 
+{$I vectormath_operators.inc}
+
 {$undef read_interface}
 
 implementation
@@ -2239,6 +2241,8 @@ uses Math, KambiStringUtils;
 {$I dynarray_10.inc}
 {$I dynarray_11.inc}
 {$I dynarray_12.inc}
+
+{$I vectormath_operators.inc}
 
 { TDynVector3SingleArray ----------------------------------------------------- }
 
