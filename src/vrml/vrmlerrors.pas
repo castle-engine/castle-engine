@@ -87,7 +87,7 @@ var
 
 implementation
 
-uses KambiUtils, KambiFilesUtils;
+uses KambiUtils, KambiFilesUtils, KambiLog;
 
 procedure VRMLWarning_Write(
   const WarningType: TVRMLWarningType; const s: string);
@@ -99,7 +99,10 @@ procedure VRMLWarning_RaiseErrorIfSerious(
   const WarningType: TVRMLWarningType; const s: string);
 begin
   if WarningType = vwSerious then
-    raise EVRMLError.Create(s);
+    raise EVRMLError.Create(s) else
+  { non-serious warnings are printed to log }
+  if Log then
+    WritelnLog('VRML warning', S);
 end;
 
 procedure VRMLWarning_RaiseError(
