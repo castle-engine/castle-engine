@@ -28,6 +28,7 @@ uses SysUtils, KambiPng;
 
 type
   ELibPngNotAvailable = class(Exception);
+  EPngTransformError = class(Exception);
 
 { Return the version of used libpng library
   (taken by querying png_access_version_number).
@@ -174,7 +175,10 @@ begin
   { grayscale-non-8-bit -> 8bit grayscale }
   if BitDepth < 8 then
   begin
-    png_set_gray_1_2_4_to_8(png_ptr);
+    if Assigned(png_set_expand_gray_1_2_4_to_8) then
+      png_set_expand_gray_1_2_4_to_8(png_ptr) else
+      raise EPngTransformError.Create('Your png library doesn''t have png_set_expand_gray_1_2_4_to_8, needed to handle this image');
+
     BitDepth := 8;
   end;
 
@@ -201,7 +205,9 @@ begin
   begin
     if BitDepth < 8 then
     begin
-      png_set_gray_1_2_4_to_8(png_ptr);
+      if Assigned(png_set_expand_gray_1_2_4_to_8) then
+        png_set_expand_gray_1_2_4_to_8(png_ptr) else
+        raise EPngTransformError.Create('Your png library doesn''t have png_set_expand_gray_1_2_4_to_8, needed to handle this image');
       BitDepth := 8;
     end;
 
