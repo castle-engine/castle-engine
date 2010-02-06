@@ -72,6 +72,30 @@ Scene manager / controls / better Lazarus integration:
 
 (not blockers before 2.0 release) --------------------------------------------
 
+- Make XML .x3d format, loaded to any T3D (list, translated, anim, scene...)
+  Make Load3D, loading this.
+  Rename Object3dAsVRML to load3d unit.
+  Hmm, not really --- Load3D will be only for OpenGL, as it will create
+    already TVRMLGLScene / TVRMLGLAnimation etc.
+
+- maybe T3DCustomTranslated derive from T3DList, and call "inherited" instead of relying on Child.
+
+- animating Background in kanim doesn't work out of the box,
+  since TKamSceneManager looks at MainScene.Background by default.
+  Concerns kambi_vrml_test_suite/kanim/background_color_animation.kanim,
+  probably also kambi_vrml_test_suite/kanim/slow_background_animation.kanim
+  (but didn't get to finishing loading slow_background_animation.kanim),
+  viewed e.g. in view3dscene (but probably everywhere with scene manager).
+
+  Overriding Background is possible, this works:
+
+    if (Items.List.Count <> 0) and
+       (Items.List[0] is TVRMLGLAnimation) then
+      Result := TVRMLGLAnimation(Items.List[0]).CurrentScene.Background else
+
+  Make this better? Or just ignore? Animating Background by kanim
+  wasn't ever really a good idea.
+
 - some more free notifications could be useful:
   - FreeAndNil(FMouseRayHit) when it's triangle is destroyed (e.g. octree rebuild)
     or any 3d object along the path is removed from the Items hierarchy
@@ -210,6 +234,10 @@ Scene manager / controls / better Lazarus integration:
   while it works it's usually nonsense.
   Or not: shadow_volume_test shows that it's possible to have two cameras,
   and things work smoothly. You just have to assign non-conflicting keys.
+
+  Started in kambipropsedit. Need to figure out and debug how to
+  correctly deal with TListPropertyEditor, or eventually write your
+  own property editor for this.
 
 - Make sure most useful props of our controls are settable:
 
