@@ -393,6 +393,9 @@ end;
 initialization
  Progress := TProgress.Create;
  ProgressNullInterface := TProgressNullInterface.Create;
+ { initialize Progress.UserInterface to null interface,
+   this way Progress.Init etc. may be always safely called }
+ Progress.UserInterface := ProgressNullInterface;
 finalization
  FreeAndNil(Progress);
  FreeAndNil(ProgressNullInterface);
