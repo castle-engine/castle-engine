@@ -2685,8 +2685,10 @@ begin
 end;
 
 procedure TVRMLSimpleMultField.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
-var i: integer;
-    WriteIndentNextTime: boolean;
+var
+  i: integer;
+  WriteIndentNextTime: boolean;
+  IndentMultiValueFields: boolean;
 begin
   { The general "for I := ..." code below can handle correctly any RawItems.Count
     value. But for aesthetics, i.e. more clear output for humans,
@@ -2699,7 +2701,12 @@ begin
         SaveProperties.Writeln('[');
         SaveProperties.IncIndent;
 
-        WriteIndentNextTime := true;
+        { For really long fields, writing indentation before each item
+          can cost a significant disk space. So do not indent when
+          there are many items. }
+        IndentMultiValueFields := RawItems.Count <= 10;
+
+        WriteIndentNextTime := IndentMultiValueFields;
         for i := 0 to RawItems.Count-1 do
         begin
           if WriteIndentNextTime then SaveProperties.WriteIndent('');
@@ -2708,7 +2715,7 @@ begin
             no matter what's SaveToStreamDoNewLineAfterRawItem }
           if (i = RawItems.Count - 1) or
              SaveToStreamDoNewLineAfterRawItem(i) then
-            begin SaveProperties.Writeln; WriteIndentNextTime := true end else
+            begin SaveProperties.Writeln; WriteIndentNextTime := IndentMultiValueFields end else
             begin SaveProperties.Write(' '); WriteIndentNextTime := false; end;
         end;
 
