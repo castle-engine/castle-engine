@@ -86,6 +86,18 @@
   { Interface common for all TVRMLRootNode_* versions. }
   IVRMLRootNode = interface(IVRMLNode)
   ['{3BBD44B0-792A-4715-BA62-352A76756D59}']
+    function GetSaveAsRootNode: boolean;
+    procedure SetSaveAsRootNode(const Value: boolean);
+
+    { Should SaveToStream take care to nicely save us, treating as
+      a root node of whole VRML file or prototype.
+
+      If this node isn't a root node, you should set this to @false
+      (or saving this node may generate dumb contents).
+      Although, generally, you should avoid using the TVRMLRootNode_*
+      class at all for non-root nodes. }
+    property SaveAsRootNode: boolean read GetSaveAsRootNode write SetSaveAsRootNode
+      default true;
   end;
 
   { A Group node that is added when VRML >= 2.0 file contains more
@@ -105,15 +117,25 @@
     FX3DComponentLevels: TDynLongIntArray;
     FX3DMetaKeys: TDynStringArray;
     FX3DMetaValues: TDynStringArray;
+    FSaveAsRootNode: boolean;
+
+    { To satisfy interface IVRMLRootNode }
+    function GetSaveAsRootNode: boolean;
+    procedure SetSaveAsRootNode(const Value: boolean);
   protected
     function DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     destructor Destroy; override;
 
-    (*Save TVRMLRootNode_* contents to stream.
+    { See IVRMLRootNode.SaveAsRootNode. }
+    property SaveAsRootNode: boolean read FSaveAsRootNode write FSaveAsRootNode
+      default true;
 
-      TVRMLRootNode_* is saved to stream in a special way, so that actually
+    (*Save TVRMLRootNode_* contents to the stream.
+
+      If SaveAsRootNode then TVRMLRootNode_* is saved to the stream
+      in a special way, so that actually
       only it's contents are written, without surrounding { } braces.
       This way, when saving, we "undo" the artificial wrapping in
       TVRMLRootNode_* that was done by ParseVRMLStatements and ParseVRMLFile. *)
@@ -492,6 +514,17 @@ begin
   FX3DComponentLevels := TDynLongIntArray.Create;
   FX3DMetaKeys := TDynStringArray.Create;
   FX3DMetaValues := TDynStringArray.Create;
+  FSaveAsRootNode := true;
+end;
+
+function TVRMLRootNode_2.GetSaveAsRootNode: boolean;
+begin
+  Result := FSaveAsRootNode;
+end;
+
+procedure TVRMLRootNode_2.SetSaveAsRootNode(const Value: boolean);
+begin
+  FSaveAsRootNode := Value;
 end;
 
 destructor TVRMLRootNode_2.Destroy;
@@ -508,25 +541,29 @@ var
   I: integer;
   FileItems: TVRMLFileItemsList;
 begin
-  { Special things for TVRMLRootNode_2 saving:
-    NodeName is ignored (should be '').
-    Only field "children" is used, and in a special way (we write it's
-    nodes, without writing field name "children [" "]").
-    Other fields are ignored (should never have any meaning). }
+  if SaveAsRootNode then
+  begin
+    { Special things for TVRMLRootNode_2 saving:
+      NodeName is ignored (should be '').
+      Only field "children" is used, and in a special way (we write it's
+      nodes, without writing field name "children [" "]").
+      Other fields are ignored (should never have any meaning). }
 
-  FileItems := TVRMLFileItemsList.Create;
-  try
-    for I := 0 to Prototypes.Count - 1 do
-      FileItems.Add(Prototypes[I]);
+    FileItems := TVRMLFileItemsList.Create;
+    try
+      for I := 0 to Prototypes.Count - 1 do
+        FileItems.Add(Prototypes[I]);
 
-    for i := 0 to FdChildren.Count - 1 do
-      FileItems.Add(FdChildren.Items[I]);
+      for i := 0 to FdChildren.Count - 1 do
+        FileItems.Add(FdChildren.Items[I]);
 
-    for I := 0 to Routes.Count - 1 do
-      FileItems.Add(Routes[I]);
+      for I := 0 to Routes.Count - 1 do
+        FileItems.Add(Routes[I]);
 
-    FileItems.SaveToStream(SaveProperties);
-  finally FreeAndNil(FileItems) end;
+      FileItems.SaveToStream(SaveProperties);
+    finally FreeAndNil(FileItems) end;
+  end else
+    inherited;
 end;
 
 function TVRMLRootNode_2.SuggestedVRMLVersion(

@@ -779,12 +779,23 @@
     FForceVersion: boolean;
     FForceVersionMajor: Integer;
     FForceVersionMinor: Integer;
+    FSaveAsRootNode: boolean;
+
+    { To satisfy interface IVRMLRootNode }
+    function GetSaveAsRootNode: boolean;
+    procedure SetSaveAsRootNode(const Value: boolean);
   protected
     function DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; override;
   public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
+    { See IVRMLRootNode.SaveAsRootNode. }
+    property SaveAsRootNode: boolean read FSaveAsRootNode write FSaveAsRootNode
+      default true;
+
     (*Save TVRMLRootNode_* contents to stream.
 
-      TVRMLRootNode_* is saved to stream in a special way, so that actually
+      If SaveAsRootNode then TVRMLRootNode_* is saved to stream in a special way, so that actually
       only it's contents are written, without surrounding { } braces.
       This way, when saving, we "undo" the artificial wrapping in
       TVRMLRootNode_* that was done by ParseVRMLStatements and ParseVRMLFile. *)
@@ -2266,28 +2277,49 @@ begin
     true, 1, 0, 1000);
 end;
 
+constructor TVRMLRootNode_1.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+  FSaveAsRootNode := true;
+end;
+
+function TVRMLRootNode_1.GetSaveAsRootNode: boolean;
+begin
+  Result := FSaveAsRootNode;
+end;
+
+procedure TVRMLRootNode_1.SetSaveAsRootNode(const Value: boolean);
+begin
+  FSaveAsRootNode := Value;
+end;
+
 procedure TVRMLRootNode_1.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
 var
   I: integer;
   FileItems: TVRMLFileItemsList;
 begin
-  { Special things for TVRMLRootNode_1 saving:
-    NodeName is ignored (should be '').
-    Fields are ignored (should never have any meaning). }
+  if SaveAsRootNode then
+  begin
+    { Special things for TVRMLRootNode_1 saving:
+      NodeName is ignored (should be '').
+      Fields are ignored (should never have any meaning). }
 
-  FileItems := TVRMLFileItemsList.Create;
-  try
-    for I := 0 to Prototypes.Count - 1 do
-      FileItems.Add(Prototypes[I]);
+    FileItems := TVRMLFileItemsList.Create;
+    try
+      for I := 0 to Prototypes.Count - 1 do
+        FileItems.Add(Prototypes[I]);
 
-    for i := 0 to ChildrenCount - 1 do
-      FileItems.Add(Children[i]);
+      for i := 0 to ChildrenCount - 1 do
+        FileItems.Add(Children[i]);
 
-    for I := 0 to Routes.Count - 1 do
-      FileItems.Add(Routes[I]);
+      for I := 0 to Routes.Count - 1 do
+        FileItems.Add(Routes[I]);
 
-    FileItems.SaveToStream(SaveProperties);
-  finally FreeAndNil(FileItems) end;
+      FileItems.SaveToStream(SaveProperties);
+    finally FreeAndNil(FileItems) end;
+  end else
+    inherited;
 end;
 
 function TVRMLRootNode_1.DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;
@@ -2493,6 +2525,21 @@ begin
 end;
 
 procedure TNodeWWWInline.LoadInlined(CanReload: boolean);
+
+  { The Inlined contents are usually TVRMLRootNode_*,
+    but they should not be saved as such. Although usually this doesn't
+    get saved (since we do not save inline contents), but it may happen
+    if you copy VRML nodes around, e.g. "expanding" inlines like
+    castle-process-3d-model.
+
+    Doing this inside local procedure to limit lifetime of IVRMLRootNode,
+    to secure against http://bugs.freepascal.org/view.php?id=10374 }
+  procedure InlinedIsNotRootNode;
+  begin
+    if Supports(FInlined, IVRMLRootNode) then
+      (FInlined as IVRMLRootNode).SaveAsRootNode := false;
+  end;
+
 var
   FullUrl: string;
 begin
@@ -2519,7 +2566,10 @@ begin
   end;
 
   if FInlined <> nil then
+  begin
+    InlinedIsNotRootNode;
     AddChild(FInlined);
+  end;
 
   { Whether or not we successfully got FInlined <> nil, we always set
     Loaded to true here. This way we will not try to reload this inline
