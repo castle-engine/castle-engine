@@ -111,6 +111,7 @@
       If "url" didn't contain anything useful, Loaded is still set to @true,
       to avoid constantly trying to reload. }
     Loaded: boolean;
+    FInlined: TVRMLNode;
   protected
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
@@ -171,6 +172,7 @@
       If "url" didn't contain anything useful, Loaded is still set to @true,
       to avoid constantly trying to reload. }
     Loaded: boolean;
+    FInlined: TVRMLNode;
   protected
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
