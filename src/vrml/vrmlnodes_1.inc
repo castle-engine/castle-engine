@@ -930,6 +930,13 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
 
     class function ChildrenSaveToStream: boolean; override;
+
+    { The inlined VRML content (loaded from inlined url).
+      @nil if not yet loaded, or no loading was successful.
+
+      This is also kept in VRML 1.0 children as Children[0],
+      but for future it's better to not depend on that. }
+    property Inlined: TVRMLNode read FInlined;
   end;
 {$endif read_interface}
 
@@ -2468,6 +2475,8 @@ begin
 
   fParsingAllowedChildren := false;
   fAllowedChildren := true;
+
+  FInlined := nil;
 end;
 
 class function TNodeWWWInline.ClassNodeTypeName: string;
@@ -2478,10 +2487,13 @@ end;
 procedure TNodeWWWInline.UnLoadInlined;
 begin
   RemoveAllChildren;
+  FInlined := nil;
   Loaded := false;
 end;
 
 procedure TNodeWWWInline.LoadInlined(CanReload: boolean);
+var
+  FullUrl: string;
 begin
   if Loaded then
   begin
@@ -2489,9 +2501,29 @@ begin
   end;
 
   Assert(not Loaded);
+  Assert(FInlined = nil);
   Assert(ChildrenCount = 0);
 
-  AddChild(LoadAsVRML(PathFromWWWBasePath(FdName.Value), false));
+  FInlined := nil;
+
+  FullUrl := PathFromWWWBasePath(FdName.Value);
+  try
+    FInlined := LoadAsVRML(FullUrl, false);
+  except
+    on E: Exception do
+      { Careful here, as VRMLWarning may also raise exception. }
+      VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
+        ' occured when trying to load '+
+        'inline file from URL "' + FullUrl + ' : ' + E.Message);
+  end;
+
+  if FInlined <> nil then
+    AddChild(FInlined);
+
+  { Whether or not we successfully got FInlined <> nil, we always set
+    Loaded to true here. This way we will not try to reload this inline
+    at next BeforeTraverse (this would be bad, as we already did
+    VRMLWarning in case loading failed and such). }
   Loaded := true;
 end;
 
@@ -2506,6 +2538,9 @@ begin
   { Since inherited copied our Children, we should also set "Loaded"
     field to the same value. }
   (Result as TNodeWWWInline).Loaded := Loaded;
+  if Inlined <> nil then
+    (Result as TNodeWWWInline).FInlined :=
+      (Result as TNodeWWWInline).Children[0];
 end;
 
 procedure TNodeWWWInline.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);

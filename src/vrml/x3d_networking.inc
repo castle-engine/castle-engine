@@ -147,6 +147,13 @@
     { Call this to indicate that you loaded the inline contents directly,
       by using AddChild yourself. }
     procedure LoadedInlineDirectly;
+
+    { The inlined VRML content (loaded from inlined url).
+      @nil if not yet loaded, or no loading was successful.
+
+      This is also kept in VRML 1.0 children as Children[0],
+      but for future it's better to not depend on that. }
+    property Inlined: TVRMLNode read FInlined;
   end;
 
   { InlineLoadControl VRML 97 node. It's not part of X3D, X3D normal "Inline"
@@ -200,6 +207,13 @@
     { Call this to indicate that you loaded the inline contents directly,
       by using AddChild yourself. }
     procedure LoadedInlineDirectly;
+
+    { The inlined VRML content (loaded from inlined url).
+      @nil if not yet loaded, or no loading was successful.
+
+      This is also kept in VRML 1.0 children as Children[0],
+      but for future it's better to not depend on that. }
+    property Inlined: TVRMLNode read FInlined;
   end;
 
   TNodeLoadSensor = class(TNodeX3DNetworkSensorNode)
@@ -420,6 +434,8 @@ begin
   { To allow inlined children (they are loaded as VRML 1.0 style children) }
   FParsingAllowedChildren := false;
   FAllowedChildren := true;
+
+  FInlined := nil;
 end;
 
 class function TNodeInline.ClassNodeTypeName: string;
@@ -446,6 +462,7 @@ end;
 procedure TNodeInline.UnLoadInlined;
 begin
   RemoveAllChildren;
+  FInlined := nil;
   Loaded := false;
 end;
 
@@ -453,7 +470,6 @@ procedure TNodeInline.LoadInlined(CanReload: boolean);
 var
   I: Integer;
   FullUrl: string;
-  NewNode: TVRMLNode;
 begin
   if Loaded then
   begin
@@ -461,35 +477,35 @@ begin
   end;
 
   Assert(not Loaded);
+  Assert(FInlined = nil);
   Assert(ChildrenCount = 0);
 
   if not FdLoad.Value then Exit;
 
-  NewNode := nil;
+  FInlined := nil;
 
   for I := 0 to FdUrl.Items.Count - 1 do
   begin
     FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
     try
-      NewNode := LoadAsVRML(PathFromWWWBasePath(FullUrl), false);
+      FInlined := LoadAsVRML(FullUrl, false);
       Break;
     except
       on E: Exception do
-        { pamietajmy ze VRMLWarning moze spowodowac rzucenie wyjatku
-          (chociaz nie musi) }
+        { Careful here, as VRMLWarning may also raise exception. }
         VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
           ' occured when trying to load '+
           'inline file from URL "' + FullUrl + ' : ' + E.Message);
     end;
   end;
 
-  if NewNode <> nil then
+  if FInlined <> nil then
   begin
-    AddChild(NewNode);
+    AddChild(FInlined);
     AfterLoadInlined;
   end;
 
-  { Whether or not we successfully got NewNode <> nil, we always set
+  { Whether or not we successfully got FInlined <> nil, we always set
     Loaded to true here. This way we will not try to reload this inline
     at next BeforeTraverse (this would be bad, as we already did
     VRMLWarning in case loading failed and such). }
@@ -507,6 +523,9 @@ begin
   { Since inherited copied our Children, we should also set "Loaded"
     field to the same value. }
   (Result as TNodeInline).Loaded := Loaded;
+  if Inlined <> nil then
+    (Result as TNodeInline).FInlined :=
+      (Result as TNodeInline).Children[0];
 end;
 
 procedure TNodeInline.AfterLoadInlined;
@@ -591,6 +610,8 @@ begin
 
   FParsingAllowedChildren := false;
   FAllowedChildren := true;
+
+  FInlined := nil;
 end;
 
 class function TNodeInlineLoadControl.ClassNodeTypeName: string;
@@ -607,6 +628,7 @@ end;
 procedure TNodeInlineLoadControl.UnLoadInlined;
 begin
   RemoveAllChildren;
+  FInlined := nil;
   Loaded := false;
 end;
 
@@ -614,7 +636,6 @@ procedure TNodeInlineLoadControl.LoadInlined(CanReload: boolean);
 var
   I: Integer;
   FullUrl: string;
-  NewNode: TVRMLNode;
   ChildrenToSend: TMFNode;
 begin
   { TODO: InlineLoadControl should load it's contents to
@@ -630,43 +651,43 @@ begin
   end;
 
   Assert(not Loaded);
+  Assert(FInlined = nil);
   Assert(ChildrenCount = 0);
 
   if not FdLoad.Value then Exit;
 
-  NewNode := nil;
+  FInlined := nil;
 
   for I := 0 to FdUrl.Items.Count - 1 do
   begin
     FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
     try
-      NewNode := LoadAsVRML(PathFromWWWBasePath(FullUrl), false);
+      FInlined := LoadAsVRML(FullUrl, false);
       Break;
     except
       on E: Exception do
-        { pamietajmy ze VRMLWarning moze spowodowac rzucenie wyjatku
-          (chociaz nie musi) }
+        { Careful here, as VRMLWarning may also raise exception. }
         VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
           ' occured when trying to load '+
           'inline file from URL "' + FullUrl + ' : ' + E.Message);
     end;
   end;
 
-  if NewNode <> nil then
+  if FInlined <> nil then
   begin
-    AddChild(NewNode);
+    AddChild(FInlined);
     if EventChildren.SendNeeded and (ParentEventsProcessor <> nil) then
     begin
       ChildrenToSend := TMFNode.CreateUndefined(Self, EventChildren.Name);
       try
-        ChildrenToSend.AddItem(NewNode);
+        ChildrenToSend.AddItem(FInlined);
         EventChildren.Send(ChildrenToSend,
           (ParentEventsProcessor as TVRMLScene).Time);
       finally FreeAndNil(ChildrenToSend) end;
     end;
   end;
 
-  { Whether or not we successfully got NewNode <> nil, we always set
+  { Whether or not we successfully got FInlined <> nil, we always set
     Loaded to true here. This way we will not try to reload this inline
     at next BeforeTraverse (this would be bad, as we already did
     VRMLWarning in case loading failed and such). }
@@ -684,6 +705,9 @@ begin
   { Since inherited copied our Children, we should also set "Loaded"
     field to the same value. }
   (Result as TNodeInlineLoadControl).Loaded := Loaded;
+  if Inlined <> nil then
+    (Result as TNodeInlineLoadControl).FInlined :=
+      (Result as TNodeInlineLoadControl).Children[0];
 end;
 
 procedure TNodeInlineLoadControl.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
