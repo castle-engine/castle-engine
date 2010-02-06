@@ -823,11 +823,6 @@ procedure TVRMLGLAnimation.LoadCore(
     begin
       TNodeInline(Model1).LoadInlined(false);
       TNodeInline(Model2).LoadInlined(false);
-    end else
-    if Model1 is TNodeInlineLoadControl then
-    begin
-      TNodeInlineLoadControl(Model1).LoadInlined(false);
-      TNodeInlineLoadControl(Model2).LoadInlined(false);
     end;
     {$else}
     if Supports(Model1, IVRMLInlineNode) and
@@ -913,8 +908,7 @@ procedure TVRMLGLAnimation.LoadCore(
 
         if not (
            ( (Model1 is TNodeWWWInline)         and (Model1.Fields[I].Name = 'name') ) or
-           ( (Model2 is TNodeInline)            and (Model1.Fields[I].Name = 'url') ) or
-           ( (Model1 is TNodeInlineLoadControl) and (Model1.Fields[I].Name = 'url') ) or
+           ( (Model1 is TNodeInline)            and (Model1.Fields[I].Name = 'url') ) or
            Model1.Fields[I].Equals(Model2.Fields[I], EqualityEpsilon)
            ) then
           raise EModelsStructureDifferent.CreateFmt(
@@ -1092,10 +1086,6 @@ procedure TVRMLGLAnimation.LoadCore(
         TNodeWWWInline(Result).LoadedInlineDirectly;
       end else
       if Result is TNodeInline then
-      begin
-        TNodeInline(Result).LoadedInlineDirectly;
-      end else
-      if Result is TNodeInlineLoadControl then
       begin
         TNodeInline(Result).LoadedInlineDirectly;
       end;
