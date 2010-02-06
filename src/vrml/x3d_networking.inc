@@ -491,17 +491,24 @@ end;
 procedure TNodeInline.LoadedInlineDirectly;
 begin
   Loaded := true;
+  if ChildrenCount <> 0 then
+    FInlined := Children[0] else
+    FInlined := nil;
 end;
 
 function TNodeInline.DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;
+var
+  ResultI: TNodeInline;
 begin
   Result := inherited DeepCopyCore(CopyState);
+  ResultI := Result as TNodeInline;
+
   { Since inherited copied our Children, we should also set "Loaded"
-    field to the same value. }
-  (Result as TNodeInline).Loaded := Loaded;
-  if Inlined <> nil then
-    (Result as TNodeInline).FInlined :=
-      (Result as TNodeInline).Children[0];
+    and "Inlined" field to the same value. }
+  ResultI.Loaded := Loaded;
+  if ResultI.ChildrenCount <> 0 then
+    ResultI.FInlined := ResultI.Children[0] else
+    ResultI.FInlined := nil;
 end;
 
 procedure TNodeInline.AfterLoadInlined;
