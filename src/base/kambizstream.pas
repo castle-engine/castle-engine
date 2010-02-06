@@ -154,7 +154,10 @@ begin
         P := OutBuf;
         Inc(OutBytes, 256);
         ReallocMem(OutBuf,OutBytes);
-        strm.next_out := PByte(PtrUInt(OutBuf) + (PtrUInt(strm.next_out) - PtrUInt(P)));
+        { Kambi: this crazy typecasting to PtrUInt (both partial and final
+          results) apparently needed to get rid of warnings about convertions. }
+        strm.next_out := PByte(PtrUInt(
+          PtrUInt(OutBuf) + (PtrUInt(strm.next_out) - PtrUInt(P))));
         strm.avail_out := 256;
       end;
     finally
@@ -199,7 +202,10 @@ begin
         P := OutBuf;
         Inc(OutBytes, BufInc);
         ReallocMem(OutBuf, OutBytes);
-        strm.next_out := PByte(PtrUInt(OutBuf) + (PtrUInt(strm.next_out) - PtrUInt(P)));
+        { Kambi: this crazy typecasting to PtrUInt (both partial and final
+          results) apparently needed to get rid of warnings about convertions. }
+        strm.next_out := PByte(PtrUInt(
+          PtrUInt(OutBuf) + (PtrUInt(strm.next_out) - PtrUInt(P))));
         strm.avail_out := BufInc;
       end;
     finally
