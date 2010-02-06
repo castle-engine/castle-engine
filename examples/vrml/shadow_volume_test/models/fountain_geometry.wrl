@@ -32,4 +32,4 @@ Transform {
   }
 }
 
-WWWInline { name "../../../../../castle/data/levels/fountain/fountain_final.wrl" }
+WWWInline { name "../../bump_mapping/vrmldata/levels/fountain/fountain_final.wrl" }
