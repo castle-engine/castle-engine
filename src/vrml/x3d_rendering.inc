@@ -722,6 +722,7 @@ begin
 
   FFdcolorIndex := TMFInt32.Create(Self, 'colorIndex', []);
   FFdcolorIndex.Exposed := false;
+  FFdcolorIndex.SaveToStreamLineUptoNegative := true;
   Fields.Add(FFdcolorIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
@@ -731,6 +732,7 @@ begin
 
   FFdcoordIndex := TMFInt32.Create(Self, 'coordIndex', []);
   FFdcoordIndex.Exposed := false;
+  FFdcoordIndex.SaveToStreamLineUptoNegative := true;
   Fields.Add(FFdcoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
 end;
