@@ -4659,9 +4659,7 @@ var
     MaxSize: Single;
     Left, Right, Bottom, Top: Single;
   begin
-    if IsEmptyBox3d(Box) then
-      MaxSize := 1.0 { any dummy value } else
-      MaxSize := Box3dMaxSize(Box);
+    MaxSize := Box3dMaxSize(Box, { any dummy value } 1.0);
 
     { default left / right / bottom / top, when not OrthoViewpoint }
     Left   := -MaxSize / 2;
