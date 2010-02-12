@@ -965,7 +965,7 @@ procedure TNodeNurbsOrientationInterpolator.EventSet_FractionReceive(
 var
   ControlPoint: TDynVector3SingleArray;
   Knot: TDynDoubleArray;
-  Tangent: TVector3_Single;
+  Tangent: TVector3Single;
   Orientation: TVector4Single;
 begin
   if not EventValue_Changed.SendNeeded then Exit;
@@ -1113,7 +1113,7 @@ var
   UIncrease, VIncrease: Double;
   UKnot, VKnot: TDynDoubleArray;
   ResultTexCoord: TDynVector2SingleArray;
-  Normal: TVector3_Single;
+  Normal: TVector3Single;
 begin
   if ControlPoint.Count = 0 then Exit;
 
@@ -1216,8 +1216,8 @@ begin
           Weight,
           @Normal);
       if Ccw then
-        ResultNormal.Items[I + J * UTess] := Normal.Data else
-        ResultNormal.Items[I + J * UTess] := (-Normal).Data;
+        ResultNormal.Items[I + J * UTess] := Normal else
+        ResultNormal.Items[I + J * UTess] := -Normal;
     end;
 
   { For now, don't use normal values --- they are nonsense at the edges
@@ -1575,7 +1575,7 @@ procedure TNodeNurbsSurfaceInterpolator.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   ControlPoint: TDynVector3SingleArray;
-  OutputNormal: TVector3_Single;
+  OutputNormal: TVector3Single;
   OutputPosition: TVector3Single;
   UKnot, VKnot: TDynDoubleArray;
 begin

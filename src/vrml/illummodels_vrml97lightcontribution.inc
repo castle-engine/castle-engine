@@ -9,11 +9,11 @@ var Spot: Single;
     LightNode: TVRMLLightNode;
     PosLightNode: TVRMLPositionalLightNode absolute LightNode;
 
-    Factors: TVector3_Single;
+    Factors: TVector3Single;
     { kierunek od Intersection do zrodla swiatla, normalized }
-    LightDirNorm: TVector3_Single;
+    LightDirNorm: TVector3Single;
     { wektor normalny do powierzchni (skierowany w strone Light) }
-    Normal: TVector3_Single;
+    Normal: TVector3Single;
 
     {$ifndef CAMERA_INDEP}
     M1: TNodeMaterial_1;
@@ -21,12 +21,12 @@ var Spot: Single;
 
     { srednia z wektora do viewera i LightDirNorm, potrzebna do liczenia
       odbicia Specular }
-    ViewerAndLightHalfway: TVector3_Single;
+    ViewerAndLightHalfway: TVector3Single;
 
     MaterialAmbientIntensity: Single;
-    MaterialAmbientColor: TVector3_Single;
-    MaterialDiffuseColor: TVector3_Single;
-    MaterialSpecularColor: TVector3_Single;
+    MaterialAmbientColor: TVector3Single;
+    MaterialDiffuseColor: TVector3Single;
+    MaterialSpecularColor: TVector3Single;
     MaterialShininessExp: Single;
 
     {$define Point := Intersection}
@@ -102,7 +102,7 @@ begin
 
  if (not LightNode.FdOn.Value) then
  begin
-   Result.Init_Zero;
+   Result := ZeroVector3Single;
    Exit;
  end;
 
@@ -120,7 +120,7 @@ begin
 
  { LightDirNorm is called "L" in the equation in VRML spec }
  if LightNode is TVRMLPositionalLightNode then
-  LightDirNorm := Vector_Get_Normalized(Light.TransfLocation - Point) else
+  LightDirNorm := Normalized(Light.TransfLocation - Point) else
   LightDirNorm := -Light.TransfNormDirection;
  { wektory Normal i LightDirNorm musza wychodzic z tej samej strony
    powierzchni TriNormPlaneSingle (musimy przeciez zrobic cos co w OpenGLu
@@ -137,8 +137,8 @@ begin
    cosinusa jako prostego dot product; jak zwykle, nalezy pamietac
    ze suma dwoch wektorow dlugosci 1 niekoniecznie (rzadko) jest wektorem
    dlugosci 2 (wiec skalowanie przez 1/2 nie rozwiazaloby tu problemu)) }
- ViewerAndLightHalfway := Vector_Get_Normalized(
-   Vector_Get_Normalized(CamPosition - Point) + LightDirNorm);
+ ViewerAndLightHalfway := Normalized(
+   Normalized(CamPosition - Point) + LightDirNorm);
  {$endif}
 
  { oblicz Spot - dla SpotLight okresla on jak bardzo punkt jest w spocie,
@@ -164,10 +164,10 @@ begin
      is (0.2, 0.2, 0.2), so results should match for VRML 1.0 and 2.0
      for default situations. }
  {$ifdef CAMERA_INDEP}
- Factors.Init_Zero;
+ Factors := ZeroVector3Single;
  {$else}
  if LightNode.FdAmbientIntensity.Value < 0 then
-   Factors.Init_Zero else
+   Factors := ZeroVector3Single else
  if M1 <> nil then
    Factors := (MaterialDiffuseColor * MaterialAmbientColor) *
      LightNode.FdAmbientIntensity.Value else

@@ -21,7 +21,7 @@
   http://vrmlengine.sourceforge.net/openal_notes.php }
 program doppler_demo;
 
-uses Matrix, VectorMath, GLWindow, GL, GLU, KambiGLUtils,
+uses VectorMath, GLWindow, GL, GLU, KambiGLUtils,
   KambiOpenAL, ALUtils;
 
 const
@@ -29,7 +29,7 @@ const
 
 var
   Glw: TGLWindowDemo;
-  PreviousSourcePosition, SourcePosition, ListenerPosition: TVector3_Single;
+  PreviousSourcePosition, SourcePosition, ListenerPosition: TVector3Single;
   Source: TALuint;
 
 procedure Draw(Glwin: TGLWindow);
@@ -81,12 +81,12 @@ begin
     alCreateSources(1, @Source);
     alSourcei(Source, AL_BUFFER, Buffer);
     alSourcei(Source, AL_LOOPING, AL_TRUE);
-    SourcePosition.Init(200, 300, 0);
+    SourcePosition := Vector3Single(200, 300, 0);
     PreviousSourcePosition := SourcePosition;
     alSourceVector3f(Source, AL_POSITION, SourcePosition * ALDistanceScaling);
     alSourcePlay(Source);
 
-    ListenerPosition.Init(300, 300, 0);
+    ListenerPosition := Vector3Single(300, 300, 0);
     alListenerVector3f(AL_POSITION, ListenerPosition * ALDistanceScaling);
     alListenerOrientation(Vector3Single(0, 1, 0), Vector3Single(0, 0, 1));
 

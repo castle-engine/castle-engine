@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2006 Michalis Kamburelis.
+  Copyright 2003-2010 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -9,6 +9,8 @@
   "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
 }
 
 { @abstract(Illumination models, BRDF equations.)
@@ -17,7 +19,7 @@ unit IllumModels;
 
 interface
 
-uses VectorMath, VRMLNodes, VRMLTriangle, Math, KambiUtils, Matrix;
+uses VectorMath, VRMLNodes, VRMLTriangle, Math, KambiUtils;
 
 { Returns VRML 2.0 material emissiveColor for lighting equation.
   I.e. the @code(O_Ergb) part of lighting equation in
@@ -33,7 +35,7 @@ uses VectorMath, VRMLNodes, VRMLTriangle, Math, KambiUtils, Matrix;
   Using emissiveColor in such case would almost always
   give a completely black, useles image. }
 function VRML97Emission(const IntersectNode: TVRMLTriangle;
-  LightingCalculationOn: boolean): TVector3_Single;
+  LightingCalculationOn: boolean): TVector3Single;
 
 { Returns VRML 2.0 light contribution to the specified
   vertex color. In other words, this calculates the following
@@ -74,8 +76,8 @@ function VRML97Emission(const IntersectNode: TVRMLTriangle;
   kolory i ten nadrzedny kod musi robic clamp - o ile chce, np. raytracer
   zapisujacy kolory do rgbe nie musi nigdzie robic clamp). }
 function VRML97LightContribution(const Light: TActiveLight;
-  const Intersection: TVector3_Single; const IntersectNode: TVRMLTriangle;
-  const CamPosition: TVector3_Single): TVector3_Single;
+  const Intersection: TVector3Single; const IntersectNode: TVRMLTriangle;
+  const CamPosition: TVector3Single): TVector3Single;
 
 { Bardzo specjalna wersja VRML97LightContribution, stworzona na potrzeby
   VRMLLightMap. Idea jest taka ze mamy punkt (Point) w scenie,
@@ -96,7 +98,7 @@ function VRML97LightContribution(const Light: TActiveLight;
   kamery (i mozemy go wykonac dla kazdego punktu sceny, nie tylko tych
   ktore leza na jakichs plaszczyznach sceny). To jest wlasnie ta funkcja. }
 function VRML97LightContribution_CameraIndependent(const Light: TActiveLight;
-  const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3_Single): TVector3_Single;
+  const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single): TVector3Single;
 
 type
   TVRMLFogType = type Integer;
@@ -130,8 +132,8 @@ function VRML97FogType(FogNode: TNodeFog): TVRMLFogType;
   @param(FogDistanceScaling, taken from Fog node transformation.
     See @link(TVRMLScene.FogDistanceScaling).) }
 procedure VRML97FogTo1st(
-  var Color: TVector3_Single;
-  const Position, VertexPos: TVector3_Single;
+  var Color: TVector3Single;
+  const Position, VertexPos: TVector3Single;
   FogNode: TNodeFog; const FogDistanceScaling: Single; FogType: Integer);
 
 implementation
@@ -141,7 +143,7 @@ uses VRMLErrors;
 {$I VectorMathInlines.inc}
 
 function VRML97Emission(const IntersectNode: TVRMLTriangle;
-  LightingCalculationOn: boolean): TVector3_Single;
+  LightingCalculationOn: boolean): TVector3Single;
 var
   M1: TNodeMaterial_1;
   M2: TNodeMaterial_2;
@@ -158,9 +160,9 @@ begin
     begin
       if LightingCalculationOn then
         { Default VRML 2.0 Material.emissiveColor }
-        Result.Init_Zero else
+        Result := ZeroVector3Single else
         { Default VRML 2.0 Material.diffuseColor }
-        Result.Init(0.8, 0.8, 0.8);
+        Result := Vector3Single(0.8, 0.8, 0.8);
     end;
   end else
   begin
@@ -172,13 +174,13 @@ begin
 end;
 
 function VRML97LightContribution(const Light: TActiveLight;
-  const Intersection: TVector3_Single; const IntersectNode: TVRMLTriangle;
-  const CamPosition: TVector3_Single): TVector3_Single;
+  const Intersection: TVector3Single; const IntersectNode: TVRMLTriangle;
+  const CamPosition: TVector3Single): TVector3Single;
 {$I illummodels_vrml97lightcontribution.inc}
 
 function VRML97LightContribution_CameraIndependent(const Light: TActiveLight;
-  const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3_Single)
-  :TVector3_Single;
+  const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single)
+  :TVector3Single;
 {$define CAMERA_INDEP}
 {$I illummodels_vrml97lightcontribution.inc}
 {$undef CAMERA_INDEP}
@@ -194,8 +196,8 @@ begin
     VRMLWarning(vwSerious, 'Unknown fog type '''+FogNode.FdFogType.Value+'''');
 end;
 
-procedure VRML97FogTo1st(var Color: TVector3_Single;
-  const Position, VertexPos: TVector3_Single;
+procedure VRML97FogTo1st(var Color: TVector3Single;
+  const Position, VertexPos: TVector3Single;
   FogNode: TNodeFog; const FogDistanceScaling: Single; FogType: Integer);
 var
   FogVisibilityRangeScaled: Single;

@@ -30,7 +30,7 @@ unit NURBS;
 
 interface
 
-uses SysUtils, KambiUtils, VectorMath, Matrix;
+uses SysUtils, KambiUtils, VectorMath;
 
 { Calculate the actual tessellation, that is the number of tessellation
   points. This follows X3D spec for "an implementation subdividing
@@ -64,12 +64,12 @@ function NurbsCurvePoint(const Points: PVector3Single;
   const PointsCount: Cardinal; const U: Single;
   const Order: Cardinal;
   Knot, Weight: TDynDoubleArray;
-  Tangent: PVector3_Single): TVector3_Single;
+  Tangent: PVector3Single): TVector3Single;
 function NurbsCurvePoint(const Points: TDynVector3SingleArray;
   const U: Single;
   const Order: Cardinal;
   Knot, Weight: TDynDoubleArray;
-  Tangent: PVector3_Single): TVector3_Single;
+  Tangent: PVector3Single): TVector3Single;
 { @groupEnd }
 
 { Return point on NURBS surface.
@@ -94,7 +94,7 @@ function NurbsSurfacePoint(const Points: TDynVector3SingleArray;
   const U, V: Single;
   const UOrder, VOrder: Cardinal;
   UKnot, VKnot, Weight: TDynDoubleArray;
-  Normal: PVector3_Single): TVector3_Single;
+  Normal: PVector3Single): TVector3Single;
 
 type
   { Naming notes: what precisely is called a "uniform" knot vector seems
@@ -231,14 +231,14 @@ function NurbsCurvePoint(const Points: PVector3Single;
   const PointsCount: Cardinal; const U: Single;
   const Order: Cardinal;
   Knot, Weight: TDynDoubleArray;
-  Tangent: PVector3_Single): TVector3_Single;
+  Tangent: PVector3Single): TVector3Single;
 var
   i: Integer;
   w, duw: Single;
   span: LongInt;
   basis, deriv: TDynDoubleArray;
   UseWeight: boolean;
-  du: TVector3_Single;
+  du: TVector3Single;
   index: Cardinal;
 begin
   UseWeight := Cardinal(Weight.Count) = PointsCount;
@@ -250,8 +250,8 @@ begin
 
   basisFuns(span, u, order, Knot, basis, deriv);
 
-  Result.Init_Zero;
-  du.Init_Zero;
+  Result := ZeroVector3Single;
+  du := ZeroVector3Single;
 
   w := 0.0;
   duw := 0.0;
@@ -277,7 +277,7 @@ begin
   if Tangent <> nil then
   begin
     Tangent^ := (du - Result * duw) / w;
-    Vector_Normalize(Tangent^);
+    NormalizeTo1st(Tangent^);
   end;
 
   FreeAndNil(basis);
@@ -288,7 +288,7 @@ function NurbsCurvePoint(const Points: TDynVector3SingleArray;
   const U: Single;
   const Order: Cardinal;
   Knot, Weight: TDynDoubleArray;
-  Tangent: PVector3_Single): TVector3_Single;
+  Tangent: PVector3Single): TVector3Single;
 begin
   Result := NurbsCurvePoint(Points.Items, Points.Count, U, Order, Knot, Weight,
     Tangent);
@@ -299,16 +299,16 @@ function NurbsSurfacePoint(const Points: TDynVector3SingleArray;
   const U, V: Single;
   const UOrder, VOrder: Cardinal;
   UKnot, VKnot, Weight: TDynDoubleArray;
-  Normal: PVector3_Single): TVector3_Single;
+  Normal: PVector3Single): TVector3Single;
 var
   uBasis, vBasis, uDeriv, vDeriv: TDynDoubleArray;
   uSpan, vSpan: LongInt;
   I, J: LongInt;
   uBase, vBase, index: Cardinal;
-  du, dv, un, vn: TVector3_Single;
+  du, dv, un, vn: TVector3Single;
   w, duw, dvw: Single;
   gain, dugain, dvgain: Single;
-  P: TVector3_Single;
+  P: TVector3Single;
   UseWeight: boolean;
 begin
   UseWeight := Weight.Count = Points.Count;
@@ -328,9 +328,9 @@ begin
   vBase := vSpan-vOrder+1;
 
   index := vBase*uDimension + uBase;
-  Result.Init_Zero;
-  du.Init_Zero;
-  dv.Init_Zero;
+  Result := ZeroVector3Single;
+  du := ZeroVector3Single;
+  dv := ZeroVector3Single;
 
   w := 0.0;
   duw := 0.0;
@@ -373,7 +373,7 @@ begin
     un := (du - Result * duw) / w;
     vn := (dv - Result * dvw) / w;
     normal^ := un >< vn;
-    Vector_Normalize(normal^);
+    NormalizeTo1st(normal^);
   end;
 
   FreeAndNil(uBasis);

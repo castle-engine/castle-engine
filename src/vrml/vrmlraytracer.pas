@@ -34,7 +34,7 @@ unit VRMLRayTracer;
 interface
 
 uses VectorMath, Images, RaysWindow, KambiUtils,
-  VRMLTriangle, VRMLTriangleOctree, VRMLNodes, SpaceFillingCurves, Matrix;
+  VRMLTriangle, VRMLTriangleOctree, VRMLNodes, SpaceFillingCurves;
 
 type
   TPixelsMadeNotifierFunc = procedure(PixelsMadeCount: Cardinal; Data: Pointer);
@@ -118,12 +118,12 @@ type
     { Parametry CamPosition, CamDirection, CamUp naturalnie ustawiaja kamere
       w scenie. Tak jak zwykle, jezeli CamUp i CamDirection nie sa prostopadle
       to poprawiany jest CamUp aby byc prostopadly (a NIE camDirection). }
-    CamPosition, CamDirection, CamUp: TVector3_Single;
+    CamPosition, CamDirection, CamUp: TVector3Single;
 
     { ViewAngleDegX i ViewAngleDegY to rozpietosc obiektywu w stopniach. }
     ViewAngleDegX, ViewAngleDegY: Single;
 
-    SceneBGColor: TVector3_Single;
+    SceneBGColor: TVector3Single;
 
     { PixelsMadeNotifier, jezeli <> nil, to bedzie wywolywane po zapisaniu
       kazdego pixla w Image. W ten sposob bedzie mozna wyswietlac obrazek
@@ -312,16 +312,6 @@ uses SysUtils, IllumModels, SphereSampling;
 
 {$I vectormathinlines.inc}
 
-{ TODO: Note that we use in the implementation of this unit
-  TVector*_* objects from FPC Matrix unit, while in the interface
-  this unit (and many others) use TVector* arrays from VectorMath unit.
-
-  VectorMath unit defines handy assignment operators that allow
-  FPC to automagically convert between TVector*_* objects
-  and TVector* arrays, so this is mostly unnoticeable in the syntax now.
-  But be aware of this.
-}
-
 { RayVector calculations ----------------------------------------------------- }
 
 { Calculate the transmitted ray created by hitting a ray
@@ -330,19 +320,19 @@ uses SysUtils, IllumModels, SphereSampling;
   - transmitted into the material with angle of refraction EtaTo
   - hit occurs on the plane with normal vector (i.e. normalized) PlaneNormal }
 function TryTransmittedRayVector(
-  out TransmittedRayVector: TVector3_Single;
-  const NormRayVector: TVector3_Single;
-  const PlaneNormal: TVector4_Single;
+  out TransmittedRayVector: TVector3Single;
+  const NormRayVector: TVector3Single;
+  const PlaneNormal: TVector4Single;
   const EtaFrom, EtaTo: Single): boolean;
 { Written based on Foley, page 627 }
 var
   EtaTransmission, RayIDotNormal, ToBeSqrRooted: Single;
-  RayI: TVector3_Single;
+  RayI: TVector3Single;
   { This is the Normal pointing in the direction from where the RayVector came
     (i.e. in the opposite of RayVector,
     i.e. -RayVector (note the "-") and Normal must point to the same side
     of plane with PlaneNormal) }
-  Normal: TVector3_Single;
+  Normal: TVector3Single;
 begin
   Normal := PlaneDirNotInDirection(PlaneNormal, NormRayVector);
   RayI := -NormRayVector;
@@ -366,10 +356,10 @@ end;
 { Calculate the perfect reflected vector.
   Arguments NormRayVector and PlaneNormal like for TryTransmittedRayVector. }
 function ReflectedRayVector(
-  const NormRayVector: TVector3_Single;
-  const PlaneNormal: TVector4_Single): TVector3_Single;
+  const NormRayVector: TVector3Single;
+  const PlaneNormal: TVector4Single): TVector3Single;
 var
-  Normal, NormNegatedRayVector: TVector3_Single;
+  Normal, NormNegatedRayVector: TVector3Single;
 begin
   { Calculate Normal like in TryTransmittedRayVector. }
   Normal := PlaneDirNotInDirection(PlaneNormal, NormRayVector);
@@ -390,17 +380,17 @@ var
   { Traces the ray with given Depth.
     Returns @false if the ray didn't hit anything, otherwise
     returns @true and sets Color. }
-  function Trace(const Ray0, RayVector: TVector3_Single; const Depth: Cardinal;
+  function Trace(const Ray0, RayVector: TVector3Single; const Depth: Cardinal;
     const TriangleToIgnore: PVRMLTriangle; IgnoreMarginAtStart: boolean):
-    TVector3_Single;
+    TVector3Single;
   var
-    Intersection: TVector3_Single;
+    Intersection: TVector3Single;
     IntersectNode: PVRMLTriangle;
     MaterialMirror, MaterialTransparency: Single;
 
     procedure ModifyColorByTransmittedRay;
     var
-      TransmittedColor, TransmittedRayVec: TVector3_Single;
+      TransmittedColor, TransmittedRayVec: TVector3Single;
       EtaFrom, EtaTo: Single;
     const
       EtaConst = 1.3;
@@ -420,7 +410,7 @@ var
           begin EtaFrom := EtaConst; EtaTo := 1 end;
 
         if TryTransmittedRayVector(
-          TransmittedRayVec, Vector_Get_Normalized(RayVector),
+          TransmittedRayVec, Normalized(RayVector),
           IntersectNode^.World.Plane, EtaFrom, EtaTo) then
         begin
           TransmittedColor := Trace(Intersection, TransmittedRayVec,
@@ -433,11 +423,11 @@ var
 
     procedure ModifyColorByReflectedRay;
     var
-      ReflRayVector, ReflColor: TVector3_Single;
+      ReflRayVector, ReflColor: TVector3Single;
     begin
       if MaterialMirror > 0 then
       begin
-        ReflRayVector := ReflectedRayVector(Vector_Get_Normalized(RayVector),
+        ReflRayVector := ReflectedRayVector(Normalized(RayVector),
           IntersectNode^.World.Plane);
         ReflColor := Trace(Intersection, ReflRayVector, Depth - 1,
           IntersectNode, true);
@@ -476,7 +466,7 @@ var
     M2: TNodeMaterial_2;
     ActiveLights: TDynActiveLightArray;
   begin
-    IntersectNode := Octree.RayCollision(Intersection.Data,
+    IntersectNode := Octree.RayCollision(Intersection,
       Ray0, RayVector, true,
       TriangleToIgnore, IgnoreMarginAtStart, nil);
     if IntersectNode = nil then Exit(SceneBGColor);
@@ -750,9 +740,9 @@ const
   LightEmissionArea = 1/30;
 
   function IsLightShadowed(const Item: PVRMLTriangle;
-    const ItemPoint: TVector3_Single;
+    const ItemPoint: TVector3Single;
     const LightSourceIndiceIndex: Integer;
-    LightSourcePoint: TVector3_Single): boolean;
+    LightSourcePoint: TVector3Single): boolean;
   { ta funkcja liczy shadow ray (a w zasadzie segment). Zwraca true jezeli
     pomiedzy punktem ItemPoint a LightSourcePoint jest jakis element
     o transparency = 1. Wpp. zwraca false.
@@ -802,25 +792,25 @@ const
     finally OctreeIgnorer.Free end;
   end;
 
-  function Trace(const Ray0, RayVector: TVector3_Single;
+  function Trace(const Ray0, RayVector: TVector3Single;
     const Depth: Integer; const TriangleToIgnore: PVRMLTriangle;
     const IgnoreMarginAtStart: boolean; const TraceOnlyIndirect: boolean)
-    : TVector3_Single;
+    : TVector3Single;
   { sledzi promien z zadana glebokoscia. Zwraca Black (0, 0, 0) jesli
     promien w nic nie trafia, wpp. zwraca wyliczony kolor. }
   var
-    Intersection: TVector3_Single;
+    Intersection: TVector3Single;
     IntersectNode: PVRMLTriangle;
     MaterialInfo: TVRMLMaterialInfo; { = IntersectNode.MaterialInfo }
-    IntersectNormalInRay0Dir: TVector3_Single;
+    IntersectNormalInRay0Dir: TVector3Single;
 
-    function TraceNonEmissivePart: TVector3_Single;
+    function TraceNonEmissivePart: TVector3Single;
 
       function TryCalculateTransmittedSpecularRayVector(
-        var TracedDir: TVector3_Single;
+        var TracedDir: TVector3Single;
         var PdfValue: Single): boolean;
       var
-        TransmittedRayVector: TVector3_Single;
+        TransmittedRayVector: TVector3Single;
         EtaFrom, EtaTo: Single;
       const
         EtaConst = 1.3; { TODO: tu tez uzywam EtaConst, jak w Classic }
@@ -830,7 +820,7 @@ const
           begin EtaFrom := EtaConst; EtaTo := 1 end;
 
         Result := TryTransmittedRayVector(TransmittedRayVector,
-          Vector_Get_Normalized(RayVector),
+          Normalized(RayVector),
           IntersectNode^.World.Plane, EtaFrom, EtaTo);
         if Result then
           TracedDir := PhiThetaToXYZ(
@@ -840,7 +830,7 @@ const
             TransmittedRayVector);
       end;
 
-      function DirectIllumination: TVector3_Single;
+      function DirectIllumination: TVector3Single;
       { ta funkcja liczy DirectIllumination dla naszego Intersection.
         Implementacja : uzywamy sformulowania (101) z GlobalIllumCompendium :
 
@@ -875,11 +865,11 @@ const
       var
         LightSource: PVRMLTriangle;
         LightSourceIndiceIndex: Integer; { indeks do LightIndices[] }
-        SampleLightPoint: TVector3_Single;
-        DirectColor, LightDirNorm, NegatedLightDirNorm: TVector3_Single;
+        SampleLightPoint: TVector3Single;
+        DirectColor, LightDirNorm, NegatedLightDirNorm: TVector3Single;
         i: integer;
       begin
-        Result.Init_Zero;
+        Result := ZeroVector3Single;
 
         { trzeba ustrzec sie tu przed LightsItems.Count = 0 (zeby moc pozniej
           spokojnie robic Random(LightsItems.Count) i przed
@@ -922,7 +912,7 @@ const
           DirectColor *= MaterialInfo.DiffuseColor;
 
           { calculate LightDirNorm (znormalizowane), NegatedLightDirNorm }
-          Vector_Normalize(LightDirNorm);
+          NormalizeTo1st(LightDirNorm);
           NegatedLightDirNorm := -LightDirNorm;
 
           { Wymnoz DirectColor
@@ -976,15 +966,15 @@ const
       { kolory Transmittive/Reflective Diffuse/Specular }
       TColorKind = (ckRS, ckRD, ckTS, ckTD);
     var
-      Colors: array[TColorKind]of TVector3_Single;
+      Colors: array[TColorKind]of TVector3Single;
       Weights: array[TColorKind]of Single;
       WeightsSum: Single;
       RandomCK: Single;
       PdfValue: Single;
-      TracedCol, TracedDir: TVector3_Single;
+      TracedCol, TracedDir: TVector3Single;
       ck: TColorKind;
     begin
-      Result.Init_Zero;
+      Result := ZeroVector3Single;
       { caly result jaki tu wyliczymy dostaniemy dzieki wygranej w rosyjskiej
         ruletce jezeli Depth <= 0. (Trzeba o tym pamietac i pozniej podzielic
         przez RROulContinue.) }
@@ -1020,9 +1010,9 @@ const
         WeightsSum := 0;
         for ck := Low(ck) to High(ck) do
         begin
-          Weights[ck] := Colors[ck].Data[0] +
-                         Colors[ck].Data[1] +
-                         Colors[ck].Data[2];
+          Weights[ck] := Colors[ck][0] +
+                         Colors[ck][1] +
+                         Colors[ck][2];
           WeightsSum += Weights[ck];
         end;
 
@@ -1066,7 +1056,7 @@ const
                     RandomUnitHemispherePointDensityCosThetaExp(
                       Round(MaterialInfo.ReflSpecularExp),
                       PdfValue),
-                    ReflectedRayVector(Vector_Get_Normalized(RayVector),
+                    ReflectedRayVector(Normalized(RayVector),
                       IntersectNode^.World.Plane));
           end;
 
@@ -1096,15 +1086,15 @@ const
 
   var
     i: Integer;
-    NonEmissiveColor: TVector3_Single;
+    NonEmissiveColor: TVector3Single;
   begin
-    IntersectNode := Octree.RayCollision(Intersection.Data, Ray0, RayVector, true,
+    IntersectNode := Octree.RayCollision(Intersection, Ray0, RayVector, true,
       TriangleToIgnore, IgnoreMarginAtStart, nil);
     if IntersectNode = nil then Exit(SceneBGColor);
 
     if TraceOnlyIndirect and IsLightSource(IntersectNode^) then
     begin
-      Result.Init_Zero;
+      Result := ZeroVector3Single;
       Exit;
     end;
 
@@ -1129,7 +1119,7 @@ const
             nie rozgaleziamy sie na wiele promieni. }
         if MinDepth = Depth then
         begin
-          NonEmissiveColor.Init_Zero;
+          NonEmissiveColor := ZeroVector3Single;
           for i := 0 to NonPrimarySamplesCount-1 do
             NonEmissiveColor += TraceNonEmissivePart;
           NonEmissiveColor *= 1 / NonPrimarySamplesCount;
@@ -1146,7 +1136,7 @@ var
 
   procedure DoPixel(const x, y: Cardinal);
   var
-    PixColor, PrimaryRayVector: TVector3_Single;
+    PixColor, PrimaryRayVector: TVector3Single;
     SampleNum: Integer;
   begin
     { generuj pixel x, y. calculate PixColor }
@@ -1160,7 +1150,7 @@ var
         nil, false, false);
     end else
     begin
-      PixColor.Init_Zero;
+      PixColor := ZeroVector3Single;
       for SampleNum := 0 to PrimarySamplesCount - 1 do
       begin
         PrimaryRayVector := RaysWindow.PrimaryRay(

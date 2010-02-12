@@ -20,7 +20,7 @@ unit RaysWindow;
 
 interface
 
-uses VectorMath, Matrix;
+uses VectorMath;
 
 { Given one viewing angle of the camera (FirstViewAngleDeg) and
   aspect ratio of your window sizes (SecondToFirstRatio),
@@ -53,7 +53,7 @@ type
   TRaysWindow = class
   private
     FWindowZ, FWindowWidth, FWindowHeight: Single;
-    FCamPosition, FCamDirection, FCamUp: TVector3_Single;
+    FCamPosition, FCamDirection, FCamUp: TVector3Single;
     FViewAngleDegX, FViewAngleDegY: Single;
   public
     property WindowZ: Single read FWindowZ;
@@ -66,15 +66,15 @@ type
       orthogonal to CamDriection.
 
       @groupBegin }
-    property CamPosition: TVector3_Single read FCamPosition;
-    property CamDirection: TVector3_Single read FCamDirection;
-    property CamUp: TVector3_Single read FCamUp;
+    property CamPosition: TVector3Single read FCamPosition;
+    property CamDirection: TVector3Single read FCamDirection;
+    property CamUp: TVector3Single read FCamUp;
 
     property ViewAngleDegX: Single read FViewAngleDegX;
     property ViewAngleDegY: Single read FViewAngleDegY;
     { @groupEnd }
 
-    constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3_Single;
+    constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3Single;
       AViewAngleDegX, AViewAngleDegY: Single);
 
     { Calculate direction of the primary ray cast from CamPosition,
@@ -89,7 +89,7 @@ type
       useful for multisampling (taking many samples within the pixel,
       like (X, Y) = (PixX + Random - 0.5, PixY + Random - 0.5)). }
     function PrimaryRay(const x, y: Single;
-      const ScreenWidth, ScreenHeight: Integer): TVector3_Single;
+      const ScreenWidth, ScreenHeight: Integer): TVector3Single;
   end;
 
 { Calculate direction of the primary ray cast from CamPosition,
@@ -102,8 +102,8 @@ type
   For things like picking interactively objects with mouse this is usually
   fast enough (camera will change anyway on each move). }
 function PrimaryRay(const x, y: Single; const ScreenWidth, ScreenHeight: Integer;
-  const CamPosition, CamDirection, CamUp: TVector3_Single;
-  const ViewAngleDegX, ViewAngleDegY: Single): TVector3_Single;
+  const CamPosition, CamDirection, CamUp: TVector3Single;
+  const ViewAngleDegX, ViewAngleDegY: Single): TVector3Single;
 
 implementation
 
@@ -144,7 +144,7 @@ end;
 { TRaysWindow ------------------------------------------------------------ }
 
 constructor TRaysWindow.Create(
-  const ACamPosition, ACamDirection, ACamUp: TVector3_Single;
+  const ACamPosition, ACamDirection, ACamUp: TVector3Single;
   AViewAngleDegX, AViewAngleDegY: Single);
 const
   WindowDistance = 1;  { dowolna stala > 0, moze kiedys na cos sie przyda }
@@ -158,7 +158,7 @@ begin
  FViewAngleDegY := AViewAngleDegY;
 
  { popraw CamUp }
- MakeVectorsOrthoOnTheirPlane(FCamUp.Data, FCamDirection);
+ MakeVectorsOrthoOnTheirPlane(FCamUp, FCamDirection);
 
  { oblicz rzutnie pomijajac Cam* i przyjmujac ze kamera jest
    w punkcie (0, 0, 0) skierowana w (0, 0, -1) i ma up w (0, 1, 0) }
@@ -171,12 +171,12 @@ begin
 end;
 
 function TRaysWindow.PrimaryRay(const x, y: Single;
-  const ScreenWidth, ScreenHeight: Integer): TVector3_Single;
+  const ScreenWidth, ScreenHeight: Integer): TVector3Single;
 begin
  { wyznacz kierunek promienia pierwotnego.
    X z zakresu 0..ScreenWidth-1 ma dawac promienie dokladnie przez srodek
    pixela na rzutni, analogicznie Y. }
- result.Init(
+ result := Vector3Single(
    MapRange(x+0.5, 0, ScreenWidth , -WindowWidth /2, WindowWidth /2),
    MapRange(y+0.5, 0, ScreenHeight, -WindowHeight/2, WindowHeight/2),
    WindowZ);
@@ -194,8 +194,8 @@ begin
 end;
 
 function PrimaryRay(const x, y: Single; const ScreenWidth, ScreenHeight: Integer;
-  const CamPosition, CamDirection, CamUp: TVector3_Single;
-  const ViewAngleDegX, ViewAngleDegY: Single): TVector3_Single;
+  const CamPosition, CamDirection, CamUp: TVector3Single;
+  const ViewAngleDegX, ViewAngleDegY: Single): TVector3Single;
 var RaysWindow: TRaysWindow;
 begin
  RaysWindow := TRaysWindow.Create(CamPosition, CamDirection, CamUp,
