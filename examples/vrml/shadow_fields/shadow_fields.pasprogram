@@ -73,6 +73,8 @@ type
 var
   Navigator: TNavigatorType = ntAll;
   NavigatorRadio: array [TNavigatorType] of TMenuItemRadio;
+  { TCamera instance corresponding to current Navigator value }
+  NavigatorCurrent: TCamera;
   NavigatorAll: TCamera;
   NavigatorCaster: TExamineCamera;
   NavigatorLocalLight: TExamineCamera;
@@ -82,13 +84,14 @@ var
 procedure NavigatorChanged;
 begin
   case Navigator of
-    ntAll       : Glw.Camera := NavigatorAll;
-    ntCaster    : Glw.Camera := NavigatorCaster;
-    ntLocalLight: Glw.Camera := NavigatorLocalLight;
-    ntSFExplorer: Glw.Camera := NavigatorSFExplorer;
-    ntEnvLight  : Glw.Camera := NavigatorEnvLight;
+    ntAll       : NavigatorCurrent := NavigatorAll;
+    ntCaster    : NavigatorCurrent := NavigatorCaster;
+    ntLocalLight: NavigatorCurrent := NavigatorLocalLight;
+    ntSFExplorer: NavigatorCurrent := NavigatorSFExplorer;
+    ntEnvLight  : NavigatorCurrent := NavigatorEnvLight;
     else raise EInternalError.Create('Navigator?');
   end;
+  Glw.Controls.MakeSingle(TCamera, NavigatorCurrent);
   if NavigatorRadio[Navigator] <> nil then
     NavigatorRadio[Navigator].Checked := true;
 end;
@@ -231,7 +234,7 @@ end;
 
 procedure Resize(Glwin: TGLWindow);
 begin
-  SceneReceiver.GLProjection(Glw.Camera, SceneReceiver.BoundingBox,
+  SceneReceiver.GLProjection(NavigatorCurrent, SceneReceiver.BoundingBox,
     Glwin.Width, Glwin.Height);
 end;
 
