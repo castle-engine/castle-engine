@@ -8,7 +8,7 @@
       </Flags>
       <MainUnit Value="0"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="0"/>
+      <ActiveEditorIndexAtStart Value="1"/>
     </General>
     <PublishOptions>
       <Version Value="2"/>
@@ -38,7 +38,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="40">
+    <Units Count="41">
       <Unit0>
         <Filename Value="vrml_browser.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -53,8 +53,8 @@
         <ComponentName Value="Main"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="7" Y="221"/>
-        <TopLine Value="210"/>
+        <CursorPos X="39" Y="273"/>
+        <TopLine Value="252"/>
         <EditorIndex Value="0"/>
         <UsageCount Value="70"/>
         <Loaded Value="True"/>
@@ -263,9 +263,11 @@
       <Unit30>
         <Filename Value="../../../src/components/kambivrmlbrowser.pas"/>
         <UnitName Value="KambiVRMLBrowser"/>
-        <CursorPos X="1" Y="87"/>
-        <TopLine Value="55"/>
+        <CursorPos X="61" Y="21"/>
+        <TopLine Value="5"/>
+        <EditorIndex Value="1"/>
         <UsageCount Value="16"/>
+        <Loaded Value="True"/>
       </Unit30>
       <Unit31>
         <Filename Value="../../../../../../../installed/lazarus/current/lcl/dialogs.pp"/>
@@ -329,8 +331,17 @@
         <TopLine Value="3007"/>
         <UsageCount Value="10"/>
       </Unit39>
+      <Unit40>
+        <Filename Value="../../../src/vrml/opengl/kambiscenemanager.pas"/>
+        <UnitName Value="KambiSceneManager"/>
+        <CursorPos X="29" Y="273"/>
+        <TopLine Value="264"/>
+        <EditorIndex Value="2"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit40>
     </Units>
-    <JumpHistory Count="2" HistoryIndex="1">
+    <JumpHistory Count="11" HistoryIndex="10">
       <Position1>
         <Filename Value="mainf.pas"/>
         <Caret Line="223" Column="51" TopLine="213"/>
@@ -339,6 +350,42 @@
         <Filename Value="mainf.pas"/>
         <Caret Line="224" Column="22" TopLine="210"/>
       </Position2>
+      <Position3>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="221" Column="7" TopLine="210"/>
+      </Position3>
+      <Position4>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="160" Column="14" TopLine="143"/>
+      </Position4>
+      <Position5>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="25" Column="51" TopLine="5"/>
+      </Position5>
+      <Position6>
+        <Filename Value="../../../src/components/kambivrmlbrowser.pas"/>
+        <Caret Line="22" Column="38" TopLine="1"/>
+      </Position6>
+      <Position7>
+        <Filename Value="../../../src/vrml/opengl/kambiscenemanager.pas"/>
+        <Caret Line="121" Column="44" TopLine="103"/>
+      </Position7>
+      <Position8>
+        <Filename Value="../../../src/vrml/opengl/kambiscenemanager.pas"/>
+        <Caret Line="170" Column="44" TopLine="153"/>
+      </Position8>
+      <Position9>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="268" Column="20" TopLine="252"/>
+      </Position9>
+      <Position10>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="271" Column="20" TopLine="252"/>
+      </Position10>
+      <Position11>
+        <Filename Value="../../../src/components/kambivrmlbrowser.pas"/>
+        <Caret Line="127" Column="3" TopLine="116"/>
+      </Position11>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

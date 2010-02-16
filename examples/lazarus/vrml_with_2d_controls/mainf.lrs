@@ -1,0 +1,9 @@
+LazarusResources.Add('TForm1','FORMDATA',[
+  'TPF0'#6'TForm1'#5'Form1'#4'Left'#3'l'#1#6'Height'#3#214#1#3'Top'#3#152#0#5'W'
+  +'idth'#3'v'#2#13'ActiveControl'#7#7'Browser'#7'Caption'#6#5'Form1'#12'Client'
+  +'Height'#3#214#1#11'ClientWidth'#3'v'#2#8'OnCreate'#7#10'FormCreate'#8'Posit'
+  +'ion'#7#15'poDesktopCenter'#10'LCLVersion'#6#6'0.9.29'#0#15'TKamVRMLBrowser'
+  +#7'Browser'#4'Left'#2#0#6'Height'#3#214#1#3'Top'#2#0#5'Width'#3'v'#2#5'Align'
+  +#7#8'alClient'#15'OnGLContextInit'#7#20'BrowserGLContextInit'#16'OnGLContext'
+  +'Close'#7#21'BrowserGLContextClose'#6'OnDraw'#7#11'BrowserDraw'#0#0#0
+]);
