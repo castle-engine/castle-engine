@@ -18,7 +18,7 @@ unit KambiVRMLBrowser;
 
 interface
 
-uses Classes, KambiGLControl, VectorMath, Controls,
+uses Classes, KambiGLControl, VectorMath, Controls, Cameras,
   VRMLNodes, VRMLGLScene, KambiSceneManager;
 
 type
@@ -53,6 +53,7 @@ type
     procedure Load(ARootNode: TVRMLNode; const OwnsRootNode: boolean);
 
     function Scene: TVRMLGLScene;
+    function Camera: TCamera;
     property SceneManager: TKamSceneManager read FSceneManager;
   published
     property OnCameraChanged: TNotifyEvent
@@ -122,11 +123,19 @@ begin
   { initialize octrees titles }
   Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
   Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
+
+  { just to make our Camera always non-nil }
+  SceneManager.Camera := SceneManager.CreateDefaultCamera(SceneManager);
 end;
 
 function TKamVRMLBrowser.Scene: TVRMLGLScene;
 begin
   Result := SceneManager.MainScene;
+end;
+
+function TKamVRMLBrowser.Camera: TCamera;
+begin
+  Result := SceneManager.Camera;
 end;
 
 function TKamVRMLBrowser.GetShadowVolumes: boolean;
