@@ -501,55 +501,34 @@ destructor TKamSceneManager.Destroy;
 begin
   FreeAndNil(FMouseRayHit);
 
-  if FMainScene <> nil then
-  begin
-    { unregister self from MainScene callbacs }
-    FMainScene.OnBoundViewpointVectorsChanged := nil;
-    FMainScene.ViewpointStack.OnBoundChanged := nil;
-    FMainScene.RemoveFreeNotification(Self);
-    FMainScene := nil;
-  end;
+  { unregister self from MainScene callbacs,
+    make MainScene.RemoveFreeNotification(Self)... this is all
+    done by SetMainScene(nil) already. }
+  MainScene := nil;
 
-  if FCamera <> nil then
-  begin
-    { unregister self from Camera callbacs }
-    FCamera.OnVisibleChange := nil;
-    FCamera.OnCursorChange := nil;
-    if FCamera is TWalkCamera then
-    begin
-      TWalkCamera(FCamera).OnMoveAllowed := nil;
-      TWalkCamera(FCamera).OnGetHeightAbove := nil;
-    end;
+  { unregister self from Camera callbacs, etc.
 
-    FCamera.Container := nil;
+    This includes setting FCamera to nil.
+    Yes, this setting FCamera to nil is needed, it's not just paranoia.
 
-    FCamera.RemoveFreeNotification(Self);
+    Consider e.g. when our Camera is owned by Self
+    (e.g. because it was created in ApplyProjection by CreateDefaultCamera).
+    This means that this camera will be freed in "inherited" destructor call
+    below. Since we just did FCamera.RemoveFreeNotification, we would have
+    no way to set FCamera to nil, and FCamera would then remain as invalid
+    pointer.
 
-    { Yes, this setting FCamera to nil is needed, it's not just paranoia.
+    And when SceneManager is freed it sends a free notification
+    (this is also done in "inherited" destructor) to TGLUIWindow instance,
+    which causes removing us from TGLUIWindow.Controls list,
+    which causes SetContainer(nil) call that tries to access Camera.
 
-      Consider e.g. when our Camera is owned by Self
-      (e.g. because it was created in ApplyProjection by CreateDefaultCamera).
-      This means that this camera will be freed in "inherited" destructor call
-      below. Since we just did FCamera.RemoveFreeNotification, we would have
-      no way to set FCamera to nil, and FCamera would then remain as invalid
-      pointer.
+    This scenario would cause segfault, as FCamera pointer is invalid
+    at this time. }
+  Camera := nil;
 
-      And when SceneManager is freed it sends a free notification
-      (this is also done in "inherited" destructor) to TGLUIWindow instance,
-      which causes removing us from TGLUIWindow.Controls list,
-      which causes SetContainer(nil) call that tries to access Camera.
-
-      This scenario would cause segfault, as FCamera pointer is invalid
-      as this time. }
-
-    FCamera := nil;
-  end;
-
-  if FMouseRayHit3D <> nil then
-  begin
-    FMouseRayHit3D.RemoveFreeNotification(Self);
-    FMouseRayHit3D := nil;
-  end;
+  { unregister free notification from MouseRayHit3D }
+  MouseRayHit3D := nil;
 
   inherited;
 end;
@@ -650,7 +629,10 @@ begin
     begin
       FMainScene.RemoveFreeNotification(Self);
       FMainScene.OnBoundViewpointVectorsChanged := nil;
-      FMainScene.ViewpointStack.OnBoundChanged := nil;
+      { this SetMainScene happen from MainScene destruction notification,
+        when ViewpointStack is already freed. }
+      if FMainScene.ViewpointStack <> nil then
+        FMainScene.ViewpointStack.OnBoundChanged := nil;
     end;
 
     FMainScene := Value;
@@ -676,8 +658,8 @@ begin
   if FMouseRayHit3D <> Value then
   begin
     { Always keep FreeNotification on FMouseRayHit3D.
-      When it's destroyed, our MouseRayHit must be freed too,
-      it cannot be used it subsequent ItemsAndCameraCursorChange. }
+      When it's destroyed, our FMouseRayHit3D must be freed too,
+      it cannot be used in subsequent ItemsAndCameraCursorChange. }
 
     if FMouseRayHit3D <> nil then
       FMouseRayHit3D.RemoveFreeNotification(Self);
@@ -756,19 +738,20 @@ begin
 
   if Operation = opRemove then
   begin
+    { set to nil by methods (like SetCamera, SetMainScene), to clean nicely }
     if AComponent = FCamera then
     begin
-      FCamera := nil;
+      Camera := nil;
       { Need ApplyProjection, to create new default camera before rendering. }
       ApplyProjectionNeeded := true;
     end;
 
     if AComponent = FMainScene then
-      FMainScene := nil;
+      MainScene := nil;
 
     if AComponent = FMouseRayHit3D then
     begin
-      FMouseRayHit3D := nil;
+      MouseRayHit3D := nil;
       { When FMouseRayHit3D is destroyed, our MouseRayHit must be freed too,
         it cannot be used it subsequent ItemsAndCameraCursorChange. }
       FreeAndNil(FMouseRayHit);
