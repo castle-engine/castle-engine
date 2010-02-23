@@ -627,7 +627,9 @@ begin
   begin
     if FMainScene <> nil then
     begin
-      FMainScene.RemoveFreeNotification(Self);
+      { When FMainScene = FMouseRayHit3D, leave free notification for FMouseRayHit3D }
+      if FMainScene <> FMouseRayHit3D then
+        FMainScene.RemoveFreeNotification(Self);
       FMainScene.OnBoundViewpointVectorsChanged := nil;
       { this SetMainScene happen from MainScene destruction notification,
         when ViewpointStack is already freed. }
@@ -662,7 +664,11 @@ begin
       it cannot be used in subsequent ItemsAndCameraCursorChange. }
 
     if FMouseRayHit3D <> nil then
-      FMouseRayHit3D.RemoveFreeNotification(Self);
+    begin
+      { When FMainScene = FMouseRayHit3D, leave free notification for FMouseRayHit3D }
+      if FMainScene <> FMouseRayHit3D then
+        FMouseRayHit3D.RemoveFreeNotification(Self);
+    end;
 
     FMouseRayHit3D := Value;
 
