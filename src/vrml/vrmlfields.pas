@@ -2033,7 +2033,7 @@ procedure DecodeImageColor(const Pixel: LongInt; var RGBA: TVector4Byte);
 
 implementation
 
-uses Math, VRMLErrors, VRMLNodes, VRMLScene;
+uses Math, VRMLErrors, VRMLNodes;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -2295,10 +2295,9 @@ begin
     { Tests:
     if not ValuePossiblyChanged then
       writeln('ignored field ', Name, ' change, since values the same'); }
-    if (ParNode.ParentEventsProcessor <> nil) and
+    if (ParNode.EventsProcessor <> nil) and
        ValuePossiblyChanged then
-      (ParNode.ParentEventsProcessor as TVRMLScene).
-        ChangedFields(ParNode, Event);
+      ParNode.EventsProcessor.ChangedFields(ParNode, Event);
   end;
 end;
 

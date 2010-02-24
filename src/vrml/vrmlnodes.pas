@@ -269,7 +269,7 @@ interface
 
 uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
   VRMLFields, Boxes3d, Images, TTFontsTypes, BackgroundBase, VRMLErrors,
-  Videos, VRMLTime,
+  Videos, VRMLTime, Base3D,
   KambiScript, VRMLKambiScript, KambiOctree, DDS, TextureImages;
 
 {$define read_interface}
@@ -316,6 +316,7 @@ type
   TVRMLTextureNode = class;
   TNodeBlendMode = class;
   TNodeX3DTextureNode = class;
+  TVRMLEventsProcessor = class;
 
   TVRMLNodeClass = class of TVRMLNode;
 
@@ -802,7 +803,7 @@ type
     FCDataExists: boolean;
     FCData: string;
     FDestructionNotifications: TDynNodeDestructionNotificationArray;
-    FParentEventsProcessor: TObject;
+    FEventsProcessor: TVRMLEventsProcessor;
   protected
     { Does actual DeepCopy work. You can override this to copy some
       more properties for descendants. }
@@ -1639,7 +1640,7 @@ type
 
       Doesn't copy things which are dependent on container hierarchy.
       (So copying them would be more dangerous than useful.)
-      This means: DestructionNotifications, ParentEventsProcessor, ParentNodes,
+      This means: DestructionNotifications, EventsProcessor, ParentNodes,
       ParentFields. ParentNodes and ParentFields will be set for children
       anyway (to appropriate copies).
 
@@ -1806,10 +1807,9 @@ type
 
     { Events processing object for this node, or @nil if none.
 
-      Currently this must always be an instance of TVRMLScene class
-      (although it cannot be declared as such, since TVRMLScene is not known
-      in this unit). It must have ProcessEvents = @true while it's set
-      as ParentEventsProcessor.
+      Currently this can be only an instance of TVRMLScene class.
+      TVRMLScene.ProcessEvents is always @true while it's set
+      as EventsProcessor.
 
       Note: While it is possble and perfectly fine to have
       the same VRML node included in more than one TVRMLScene instance,
@@ -1821,8 +1821,8 @@ type
       change it to something like TVRMLScenesList). This is also the reason
       why this shouldn't be treated as a "parent TVRMLScene" for arbritrary
       purposes, it's only for events processing things! }
-    property ParentEventsProcessor: TObject
-      read FParentEventsProcessor write FParentEventsProcessor;
+    property EventsProcessor: TVRMLEventsProcessor
+      read FEventsProcessor write FEventsProcessor;
 
     { This will be always called by VRML parsers after adding new item
       to our InterfaceDeclarations.
@@ -2491,7 +2491,7 @@ type
       It simply doesn't do any loading when load = @false.
 
       Note that this doesn't perform setting the "load" field,
-      or sending any notifications to ParentEventsProcessor
+      or sending any notifications to EventsProcessor
       about "load" field. It's the caller's job to keep loaded state
       synchronized with "load" field value.
 
@@ -3160,6 +3160,8 @@ type
   {$I objectslist_5.inc}
   TVRMLRoutesList = class(TObjectsList_5);
 
+{$I vrmlnodes_eventsprocessor.inc}
+
 { TraverseStateLastNodesClasses ---------------------------------------------- }
 
 const
@@ -3538,7 +3540,7 @@ uses
 
   Math, Triangulator, Object3dAsVRML, KambiZStream, VRMLCameraUtils,
   KambiStringUtils, KambiFilesUtils, RaysWindow, StrUtils, KambiURLUtils,
-  VRMLGeometry, KambiLog, VRMLScene, KambiScriptParser, Base64,
+  VRMLGeometry, KambiLog, KambiScriptParser, Base64,
   {$ifdef KAMBI_HAS_NURBS} NURBS, {$endif} Quaternions, Cameras;
 
 {$define read_implementation}

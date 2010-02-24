@@ -265,17 +265,14 @@ end;
 
 procedure TNodeX3DBackgroundNode.EventSet_BindReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
-var
-  Scene: TVRMLScene;
 begin
-  if ParentEventsProcessor <> nil then
+  if EventsProcessor <> nil then
   begin
-    Scene := ParentEventsProcessor as TVRMLScene;
-    Scene.BackgroundStack.Set_Bind(Self, (Value as TSFBool).Value);
+    EventsProcessor.GetBackgroundStack.Set_Bind(Self, (Value as TSFBool).Value);
     { Background is something visible, so we must actually redisplay
       for user to see the new scene. This is not done by Set_Bind method
       automatically, as this is specific to Background node. }
-    Scene.VisibleSceneChange([prVisibleSceneNonGeometry]);
+    EventsProcessor.VisibleSceneChange([prVisibleSceneNonGeometry]);
   end;
 end;
 
@@ -478,17 +475,14 @@ end;
 
 procedure TNodeFog.EventSet_BindReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
-var
-  Scene: TVRMLScene;
 begin
-  if ParentEventsProcessor <> nil then
+  if EventsProcessor <> nil then
   begin
-    Scene := ParentEventsProcessor as TVRMLScene;
-    Scene.FogStack.Set_Bind(Self, (Value as TSFBool).Value);
+    EventsProcessor.GetFogStack.Set_Bind(Self, (Value as TSFBool).Value);
     { Fog is something visible, so we must actually redisplay
       for user to see the new scene. This is not done by Set_Bind method
       automatically, as this is specific to Fog node. }
-    Scene.VisibleSceneChange([prVisibleSceneNonGeometry]);
+    EventsProcessor.VisibleSceneChange([prVisibleSceneNonGeometry]);
   end;
 end;
 

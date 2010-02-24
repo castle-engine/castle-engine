@@ -444,9 +444,9 @@ end;
 procedure TVRMLViewpointNode.EventSet_BindReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
-  if ParentEventsProcessor <> nil then
-    (ParentEventsProcessor as TVRMLScene).
-      ViewpointStack.Set_Bind(Self, (Value as TSFBool).Value);
+  if EventsProcessor <> nil then
+    EventsProcessor.
+      GetViewpointStack.Set_Bind(Self, (Value as TSFBool).Value);
 end;
 
 constructor TNodeX3DViewpointNode.Create(const ANodeName: string;
@@ -764,9 +764,9 @@ end;
 procedure TNodeNavigationInfo.EventSet_BindReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
-  if ParentEventsProcessor <> nil then
-    (ParentEventsProcessor as TVRMLScene).
-      NavigationInfoStack.Set_Bind(Self, (Value as TSFBool).Value);
+  if EventsProcessor <> nil then
+    EventsProcessor.
+      GetNavigationInfoStack.Set_Bind(Self, (Value as TSFBool).Value);
 end;
 
 constructor TNodeOrthoViewpoint.Create(const ANodeName: string;

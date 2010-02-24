@@ -245,7 +245,7 @@ type
     This keeps a stack of TNodeX3DBindableNode, with comfortable routines
     to examine top and push/pop from top. The stack is actually stored
     as a list, with the last item being the top one. }
-  TVRMLBindableStack = class(TVRMLNodesList)
+  TVRMLBindableStack = class(TVRMLBindableStackBasic)
   private
     FParentScene: TVRMLScene;
     { A useful utility: if the Node is not @nil, send isBound = Value and
@@ -302,7 +302,7 @@ type
 
     { Handle set_bind event send to given Node.
       This always generates appropriate events. }
-    procedure Set_Bind(Node: TNodeX3DBindableNode; const Value: boolean);
+    procedure Set_Bind(Node: TNodeX3DBindableNode; const Value: boolean); override;
 
     { Notification when the currently bound node, that is
       @link(Top), changed.
@@ -463,21 +463,6 @@ type
     property OpaqueCount: Cardinal read FOpaqueCount;
   end;
 
-  TVisibleSceneChange = (
-    { Something visible in the scene geometry changed.
-      "Geometry" means that this is applicable only to actual 3D shape
-      changes. (Think about "does depth buffer from some point in space
-      changes" --- this is actually why we have separate prVisibleSceneGeometry
-      and prVisibleSceneNonGeometry for now, as GeneratedShadowMap
-      does need to be updated only on geometry changes.) So it's not applicable
-      when only light conditions, materials, textures and such change. }
-    prVisibleSceneGeometry,
-    { Something visible,  but not geometry, in the scene changed. }
-    prVisibleSceneNonGeometry,
-    { Viewer (the settings passed to ViewerChanged) changed. }
-    prViewer);
-  TVisibleSceneChanges = set of TVisibleSceneChange;
-
   { VRML scene, a final class to handle VRML models
     (with the exception of rendering, which is delegated to descendants,
     like TVRMLGLScene for OpenGL).
@@ -519,7 +504,7 @@ type
 
     Also, VRML2ActiveLights are magically updated for all states in
     @link(Shapes) tree. This is crucial for lights rendering in VRML >= 2.0. }
-  TVRMLScene = class(T3D)
+  TVRMLScene = class(TVRMLEventsProcessor)
   private
     FOwnsRootNode: boolean;
     FShapes: TVRMLShapeTree;
@@ -847,6 +832,8 @@ type
       In this class, DoPointingDeviceSensorsChange updates Cursor and calls
       OnPointingDeviceSensorsChange. }
     procedure DoPointingDeviceSensorsChange; virtual;
+
+    procedure ExecuteCompiledScript(const HandlerName: string; ReceivedValue: TVRMLField); override;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -956,7 +943,7 @@ type
       from one of State.LastNodes[]. So we really handle all cases here,
       and passing any node is fine here, and we'll try to intelligently
       detect what this change implicates for this VRML scene. }
-    procedure ChangedFields(Node: TVRMLNode; FieldOrEvent: TVRMLFieldOrEvent);
+    procedure ChangedFields(Node: TVRMLNode; FieldOrEvent: TVRMLFieldOrEvent); override;
 
     { Notify scene that you changed only the value of given field.
 
@@ -1036,7 +1023,7 @@ type
       That's because descendant TVRMLGLScene does important updates for
       generated textures (potentially instructing them to regenerate
       next frame) when Changes <> []. }
-    procedure VisibleSceneChange(const Changes: TVisibleSceneChanges); virtual;
+    procedure VisibleSceneChange(const Changes: TVisibleSceneChanges); override;
 
     { Call OnGeometryChanged, if assigned. }
     procedure DoGeometryChanged; virtual;
@@ -1598,6 +1585,7 @@ type
 
       Default value is 0.0 (zero). }
     property Time: TVRMLTime read FTime;
+    function GetTime: TVRMLTime; override;
 
     { Set @link(Time) to arbitrary value.
 
@@ -1637,6 +1625,11 @@ type
       TNodeX3DViewpointNode, so VRML 1.0 camera nodes are also included in
       this stack.) }
     property ViewpointStack: TVRMLViewpointStack read FViewpointStack;
+
+    function GetViewpointStack: TVRMLBindableStackBasic; override;
+    function GetNavigationInfoStack: TVRMLBindableStackBasic; override;
+    function GetBackgroundStack: TVRMLBindableStackBasic; override;
+    function GetFogStack: TVRMLBindableStackBasic; override;
 
     { If true, and also KambiLog.Log is true, then we will log
       ChangedFields and ChangedAll occurences. Useful only for debugging
@@ -4752,7 +4745,7 @@ end;
 
 procedure TVRMLScene.CollectNodeForEvents(Node: TVRMLNode);
 begin
-  Node.ParentEventsProcessor := Self;
+  Node.EventsProcessor := Self;
 
   if Node is TNodeKeySensor then
     KeySensorNodes.AddIfNotExists(Node) else
@@ -4798,7 +4791,7 @@ begin
   try
     { We have to initialize scripts only after all other initialization
       is done, in particular after CollectNodeForEvents was called
-      for all and set their ParentEventsProcessor. Reason: scripts
+      for all and set their EventsProcessor. Reason: scripts
       initialize() methods may already cause some events, that should
       notify us appropriately.
 
@@ -4809,7 +4802,7 @@ end;
 
 procedure TVRMLScene.UnCollectForEvents(Node: TVRMLNode);
 begin
-  Node.ParentEventsProcessor := nil;
+  Node.EventsProcessor := nil;
 end;
 
 procedure TVRMLScene.ScriptsDeInitialize(Node: TVRMLNode);
@@ -5314,6 +5307,11 @@ end;
 
 { Time stuff ------------------------------------------------------------ }
 
+function TVRMLScene.GetTime: TVRMLTime;
+begin
+  Result := FTime;
+end;
+
 procedure TVRMLScene.InternalSetTime(
   const NewValue: TVRMLTime; const TimeIncrease: TKamTime);
 var
@@ -5623,6 +5621,19 @@ begin
   HandlerInfo^.Name := HandlerName;
 end;
 
+procedure TVRMLScene.ExecuteCompiledScript(const HandlerName: string;
+  ReceivedValue: TVRMLField);
+var
+  I: Integer;
+begin
+  for I := 0 to CompiledScriptHandlers.Count - 1 do
+    if CompiledScriptHandlers.Items[I].Name = HandlerName then
+    begin
+      CompiledScriptHandlers.Items[I].Handler(ReceivedValue, Time);
+      Break;
+    end;
+end;
+
 { camera ------------------------------------------------------------------ }
 
 function TVRMLScene.CreateCamera(AOwner: TComponent;
@@ -5830,6 +5841,26 @@ begin
 end;
 
 { misc ----------------------------------------------------------------------- }
+
+function TVRMLScene.GetViewpointStack: TVRMLBindableStackBasic;
+begin
+  Result := FViewpointStack;
+end;
+
+function TVRMLScene.GetNavigationInfoStack: TVRMLBindableStackBasic;
+begin
+  Result := FNavigationInfoStack;
+end;
+
+function TVRMLScene.GetBackgroundStack: TVRMLBindableStackBasic;
+begin
+  Result := FBackgroundStack;
+end;
+
+function TVRMLScene.GetFogStack: TVRMLBindableStackBasic;
+begin
+  Result := FFogStack;
+end;
 
 type
   BreakMainLightForShadows = class(TCodeBreaker);

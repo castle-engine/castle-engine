@@ -1682,7 +1682,7 @@ implementation
 
 uses Math, Triangulator, NormalizationCubeMap,
   KambiStringUtils, GLVersionUnit, KambiLog,
-  VRMLScene, RenderStateUnit, VRMLCameraUtils, RaysWindow;
+  RenderStateUnit, VRMLCameraUtils, RaysWindow;
 
 {$define read_implementation}
 {$I dynarray_2.inc}
@@ -2515,7 +2515,7 @@ var
   I: Integer;
   UniformName: string;
   GLSLProgramCache: PGLSLProgramCache;
-  EventsProcessor: TObject;
+  EventsProcessor: TVRMLEventsProcessor;
 begin
   if Event.ParentExposedField = nil then
     UniformName := Event.Name else
@@ -2536,15 +2536,15 @@ begin
       SetUniformFromField(GLSLProgramCache^.GLSLProgram, UniformName, Value);
 
       { Although ExposedEvents implementation already sends notification
-        about changes to ParentEventsProcessor, we can also get here
+        about changes to EventsProcessor, we can also get here
         by eventIn invocation (which doesn't trigger
-        ParentEventsProcessor.ChangedFields, since it doesn't change a field...).
+        EventsProcessor.ChangedFields, since it doesn't change a field...).
         So we should explicitly do VisibleSceneChange here, to make sure
         it gets called when uniform changed. }
 
-      EventsProcessor := GLSLProgramCache^.ProgramNode.ParentEventsProcessor;
+      EventsProcessor := GLSLProgramCache^.ProgramNode.EventsProcessor;
       if EventsProcessor <> nil then
-        (EventsProcessor as TVRMLScene).VisibleSceneChange([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
+        EventsProcessor.VisibleSceneChange([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
 
       Exit;
     end;
@@ -4543,9 +4543,9 @@ var
     { If update = 'NEXT_FRAME_ONLY', change it to 'NONE' now }
     if UpdateIndex = 1 then
     begin
-      if TextureNode.ParentEventsProcessor <> nil then
+      if TextureNode.EventsProcessor <> nil then
         SavedHandler.FdUpdate.EventIn.Send('NONE',
-          (TextureNode.ParentEventsProcessor as TVRMLScene).Time) else
+          TextureNode.EventsProcessor.GetTime) else
         SavedHandler.FdUpdate.Value := 'NONE';
     end;
 

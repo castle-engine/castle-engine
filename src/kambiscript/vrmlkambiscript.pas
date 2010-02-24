@@ -93,7 +93,7 @@ procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
 
 implementation
 
-uses SysUtils, VRMLNodes, VRMLScene, VRMLErrors, KambiLog, KambiScriptVectors,
+uses SysUtils, VRMLNodes, VRMLErrors, KambiLog, KambiScriptVectors,
   VectorMath, KambiScriptImages, KambiScriptArrays;
 
 {$define read_implementation}
@@ -299,19 +299,17 @@ procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
     { In practice, this should always return true, as script is
       run only when ProcessEvents := true, script node always has
       ParentNode assigned, and when ProcessEvents = true then
-      ParentEventsProcessor is also assigned.
+      EventsProcessor is also assigned.
       But we secure here, and work like this wasn't required.
 
       This way you could use scripting even without ProcessEvents
       (just to set initializeOnly). Useless, but possible. }
 
     Result := (FieldOrEvent.ParentNode <> nil) and
-      (TVRMLNode(FieldOrEvent.ParentNode).ParentEventsProcessor <> nil) and
-      (TVRMLNode(FieldOrEvent.ParentNode).ParentEventsProcessor is TVRMLScene);
+      (TVRMLNode(FieldOrEvent.ParentNode).EventsProcessor <> nil);
     if Result then
     begin
-      Time := TVRMLScene(TVRMLNode(FieldOrEvent.ParentNode).
-        ParentEventsProcessor).Time;
+      Time := TVRMLNode(FieldOrEvent.ParentNode).EventsProcessor.GetTime;
     end;
   end;
 

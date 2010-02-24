@@ -30,11 +30,11 @@
     public property EventisValid: TVRMLEvent read FEventisValid;
 
     { Just a shortcut for EventIsSelected.Send,
-      using current ParentEventsProcessor. }
+      using current EventsProcessor. }
     procedure EventIsSelectedSend(const Value: boolean);
 
     { Just a shortcut for EventIsValid.Send,
-      using current ParentEventsProcessor. }
+      using current EventsProcessor. }
     procedure EventIsValidSend(const Value: boolean);
 
     private FFdlanguage: TSFString;
@@ -210,16 +210,14 @@ end;
 
 procedure TNodeX3DShaderNode.EventIsSelectedSend(const Value: boolean);
 begin
-  if ParentEventsProcessor <> nil then
-    EventIsSelected.Send(Value,
-      (ParentEventsProcessor as TVRMLScene).Time);
+  if EventsProcessor <> nil then
+    EventIsSelected.Send(Value, EventsProcessor.GetTime);
 end;
 
 procedure TNodeX3DShaderNode.EventIsValidSend(const Value: boolean);
 begin
-  if ParentEventsProcessor <> nil then
-    EventIsValid.Send(Value,
-      (ParentEventsProcessor as TVRMLScene).Time);
+  if EventsProcessor <> nil then
+    EventIsValid.Send(Value, EventsProcessor.GetTime);
 end;
 
 constructor TNodeX3DVertexAttributeNode.Create(const ANodeName: string;

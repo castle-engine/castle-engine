@@ -268,7 +268,7 @@ var
     I: Integer;
   begin
     if (EventOrigin <> nil) and
-       (Geometry.ParentEventsProcessor <> nil) then
+       (Geometry.EventsProcessor <> nil) then
     begin
       { This is all simple, since we ignore topToBottom, leftToRight.
         Also, we don't honour the rule that the upper line of the text
@@ -280,7 +280,7 @@ var
         So the lacks of current Text rendering implementation
         make this somewhat simple :) }
 
-      Time := (Geometry.ParentEventsProcessor as TVRMLScene).Time;
+      Time := Geometry.EventsProcessor.GetTime;
 
       FinalRowHeight := CurrentFont.RowHeight * Spacing * YScale;
 

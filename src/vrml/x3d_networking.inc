@@ -361,10 +361,10 @@ begin
     whether exposed event handler was already done or not (depends
     on the of calbacks on OnReceive list).
 
-    Even better, I know that notification to ParentEventsProcessor
+    Even better, I know that notification to EventsProcessor
     (from exposed eventIn handler)
     is done *after* running our eventOut handler.
-    This means that ParentEventsProcessor will be notified about
+    This means that EventsProcessor will be notified about
     changes *after* EventLoadReceive or EventUrlReceive changed the nodes
     to load/unload, so TVRMLScene.ChangedAll will be called with
     the *new* graph state, so it will properly update everything to
@@ -587,13 +587,12 @@ begin
     For now it's not really important (user doesn't see
     where it's loaded), but it will be later for scripts. }
 
-  if EventChildren.SendNeeded and (ParentEventsProcessor <> nil) then
+  if EventChildren.SendNeeded and (EventsProcessor <> nil) then
   begin
     ChildrenToSend := TMFNode.CreateUndefined(Self, EventChildren.Name);
     try
       ChildrenToSend.AddItem(FInlined);
-      EventChildren.Send(ChildrenToSend,
-        (ParentEventsProcessor as TVRMLScene).Time);
+      EventChildren.Send(ChildrenToSend, EventsProcessor.GetTime);
     finally FreeAndNil(ChildrenToSend) end;
   end;
 end;

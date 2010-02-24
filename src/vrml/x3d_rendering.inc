@@ -790,16 +790,16 @@ procedure TNodeIndexedLineSet_2.EventSet_ColorIndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdColorIndex.Assign(Value);
-  if ParentEventsProcessor <> nil then
-    (ParentEventsProcessor as TVRMLScene).ChangedFields(Self, FdColorIndex);
+  if EventsProcessor <> nil then
+    EventsProcessor.ChangedFields(Self, FdColorIndex);
 end;
 
 procedure TNodeIndexedLineSet_2.EventSet_CoordIndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdCoordIndex.Assign(Value);
-  if ParentEventsProcessor <> nil then
-    (ParentEventsProcessor as TVRMLScene).ChangedFields(Self, FdCoordIndex);
+  if EventsProcessor <> nil then
+    EventsProcessor.ChangedFields(Self, FdCoordIndex);
 end;
 
 constructor TNodeIndexedTriangleFanSet.Create(const ANodeName: string;
@@ -845,8 +845,8 @@ procedure TNodeIndexedTriangleFanSet.EventSet_IndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdIndex.Assign(Value);
-  if ParentEventsProcessor <> nil then
-    (ParentEventsProcessor as TVRMLScene).ChangedFields(Self, FdIndex);
+  if EventsProcessor <> nil then
+    EventsProcessor.ChangedFields(Self, FdIndex);
 end;
 
 constructor TNodeIndexedTriangleSet.Create(const ANodeName: string;
@@ -892,8 +892,8 @@ procedure TNodeIndexedTriangleSet.EventSet_IndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdIndex.Assign(Value);
-  if ParentEventsProcessor <> nil then
-    (ParentEventsProcessor as TVRMLScene).ChangedFields(Self, FdIndex);
+  if EventsProcessor <> nil then
+    EventsProcessor.ChangedFields(Self, FdIndex);
 end;
 
 constructor TNodeIndexedTriangleStripSet.Create(const ANodeName: string;
@@ -939,8 +939,8 @@ procedure TNodeIndexedTriangleStripSet.EventSet_IndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdIndex.Assign(Value);
-  if ParentEventsProcessor <> nil then
-    (ParentEventsProcessor as TVRMLScene).ChangedFields(Self, FdIndex);
+  if EventsProcessor <> nil then
+    EventsProcessor.ChangedFields(Self, FdIndex);
 end;
 
 constructor TNodeLineSet.Create(const ANodeName: string;

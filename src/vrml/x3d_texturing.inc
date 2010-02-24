@@ -1040,9 +1040,8 @@ begin
       WasCacheUsed := true;
       FTextureUsedFullUrl := FullUrl;
       FDuration := FTextureVideo.TimeDuration;
-      if ParentEventsProcessor <> nil then
-        EventDuration_Changed.Send(FDuration,
-          (ParentEventsProcessor as TVRMLScene).Time);
+      if EventsProcessor <> nil then
+        EventDuration_Changed.Send(FDuration, EventsProcessor.GetTime);
       Break;
     except
       on E: Exception do

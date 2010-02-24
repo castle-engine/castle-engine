@@ -128,29 +128,12 @@ end;
 
 procedure TNodeX3DScriptNode.ExecuteScript(const FunctionName: string;
   ReceivedValue: TVRMLField);
-
-  procedure ExecuteCompiledHandler(const HandlerName: string);
-  var
-    I: Integer;
-    HandlerInfos: TDynCompiledScriptHandlerInfoArray;
-  begin
-    HandlerInfos := TVRMLScene(ParentEventsProcessor).CompiledScriptHandlers;
-    for I := 0 to HandlerInfos.Count - 1 do
-      if HandlerInfos.Items[I].Name = HandlerName then
-      begin
-        HandlerInfos.Items[I].Handler(ReceivedValue,
-          TVRMLScene(ParentEventsProcessor).Time);
-        Break;
-      end;
-  end;
-
 var
   I: Integer;
   ParameterValue, ParameterTime: TKamScriptValue;
 begin
   if Initialized and
-     (ParentEventsProcessor <> nil) and
-     (ParentEventsProcessor is TVRMLScene) then
+     (EventsProcessor <> nil) then
   begin
     if Log then
       WritelnLog('VRML Script', 'Executing "' + FunctionName + '"');
@@ -160,11 +143,11 @@ begin
         begin
           I := CompiledScriptContents.IndexOfName(FunctionName);
           if I <> -1 then
-            ExecuteCompiledHandler(CompiledScriptContents.ValueFromIndex[I]) else
+            EventsProcessor.ExecuteCompiledScript(CompiledScriptContents.ValueFromIndex[I], ReceivedValue) else
           if CompiledScriptContents.IndexOf(FunctionName) <> -1 then
             { If FunctionName exists, without any value, then just execute
               the handler of the same name. }
-            ExecuteCompiledHandler(FunctionName);
+            EventsProcessor.ExecuteCompiledScript(FunctionName, ReceivedValue);
         end;
       stKambiScript:
         begin
@@ -176,7 +159,7 @@ begin
           end else
             ParameterValue := nil;
           ParameterTime := TKamScriptFloat.Create(true,
-            TVRMLScene(ParentEventsProcessor).Time.Seconds);
+            EventsProcessor.GetTime.Seconds);
           try
             KambiScriptVariables.BeforeExecute;
             try

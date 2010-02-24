@@ -18,7 +18,7 @@ unit KambiSceneManager;
 
 interface
 
-uses Classes, VectorMath, VRMLGLScene, VRMLScene, Cameras,
+uses Classes, VectorMath, VRMLNodes, VRMLGLScene, VRMLScene, Cameras,
   VRMLGLHeadLight, GLShadowVolumeRenderer, GL, UIControls, Base3D,
   KeysMouse, VRMLTriangle, Boxes3D, BackgroundGL;
 
