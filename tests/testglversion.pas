@@ -1,6 +1,6 @@
 { -*- compile-command: "./compile_console.sh" -*- }
 {
-  Copyright 2008 Michalis Kamburelis.
+  Copyright 2008-2010 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -10,6 +10,8 @@
   "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
 }
 
 unit TestGLVersion;

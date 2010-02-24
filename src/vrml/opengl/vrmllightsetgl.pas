@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2006,2008 Michalis Kamburelis.
+  Copyright 2003-2010 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 

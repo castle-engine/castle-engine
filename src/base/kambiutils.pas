@@ -1,5 +1,5 @@
 {
-  Copyright 1999-2009 Michalis Kamburelis.
+  Copyright 1999-2010 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -9,6 +9,8 @@
   "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
 }
 
 { @abstract(Kambi (Michalis Kamburelis) various basic utilities.)
