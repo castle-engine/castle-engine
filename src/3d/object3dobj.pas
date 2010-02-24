@@ -27,7 +27,7 @@ unit Object3DOBJ;
 
 interface
 
-uses VectorMath, KambiUtils, Classes, KambiClassUtils, SysUtils, Boxes3D;
+uses VectorMath, KambiUtils, Classes, KambiClassUtils, SysUtils, Boxes3D, Base3D;
 
 {$define read_interface}
 
@@ -71,7 +71,7 @@ type
   TDynWavefrontFaceArray = TDynArray_1;
 
   { 3D model in OBJ file format. }
-  TObject3DOBJ = class(TObjectBBox)
+  TObject3DOBJ = class(T3D)
   private
     FVerts: TDynVector3SingleArray;
     FTexCoords: TDynVector2SingleArray;
@@ -80,7 +80,7 @@ type
     FBoundingBox: TBox3D;
     FMaterials: TWavefrontMaterialsList;
   public
-    constructor Create(const fname: string);
+    constructor Create(const fname: string); reintroduce;
     destructor Destroy; override;
 
     { @groupBegin
@@ -410,7 +410,7 @@ var
   //GroupName: string;
   UsedMaterial: TWavefrontMaterial;
 begin
-  inherited Create;
+  inherited Create(nil);
 
   BasePath := ExtractFilePath(ExpandFileName(FName));
 

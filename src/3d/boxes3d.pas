@@ -42,11 +42,6 @@ type
   TBox3DBool = array [boolean] of TVector3Single;
   PBox3D = ^TBox3D;
 
-  TObjectBBox = class
-  public
-    function BoundingBox: TBox3D; virtual; abstract;
-  end;
-
   EBox3DEmpty = class(Exception);
 
 const

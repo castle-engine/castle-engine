@@ -61,7 +61,7 @@ unit Object3Ds;
 interface
 
 uses KambiUtils, Classes, KambiClassUtils, SysUtils, Object3DsMaterial,
-  Object3DsChunks, Boxes3D, VectorMath;
+  Object3DsChunks, Boxes3D, VectorMath, Base3D;
 
 {$define read_interface}
 
@@ -200,7 +200,7 @@ type
   {$I objectslist_3.inc}
   TLight3dsList = TObjectsList_3;
 
-  TScene3ds = class(TObjectBBox)
+  TScene3ds = class(T3D)
   private
     FBoundingBox: TBox3D;
   public
@@ -213,8 +213,8 @@ type
     Materials: TMaterial3dsList;
     {Wersja Autodeska uzyta do stworzenia tego 3ds'a}
     Version: LongWord;
-    constructor Create(Stream: TStream); overload;
-    constructor Create(const filename: string); overload;
+    constructor Create(Stream: TStream); reintroduce; overload;
+    constructor Create(const filename: string); reintroduce; overload;
     destructor Destroy; override;
 
     function SumTrimeshesVertsCount: Cardinal;
@@ -564,7 +564,7 @@ var hmain, hsubmain, hsubObjMesh: TChunkHeader;
     hsubmainEnd, hsubObjMeshEnd: Int64;
     Object3Ds: TObject3Ds;
 begin
- inherited Create;
+ inherited Create(nil);
 
  Trimeshes := TTrimesh3dsList.Create;
  Cameras := TCamera3dsList.Create;
