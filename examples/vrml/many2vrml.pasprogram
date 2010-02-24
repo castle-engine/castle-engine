@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ This is an example how to use units VRMLNodes and Object3dAsVRML
+{ This is an example how to use units VRMLNodes and Object3DAsVRML
   to write a simple converter from 3DS, OBJ and GEO to VRML 1.0.
   This program reads a model from filename given as parameter
   ('-' means stdin), and outputs model as VRML 1.0 to stdout.
@@ -36,7 +36,7 @@
 
 program many2vrml;
 
-uses SysUtils, KambiUtils, KambiClassUtils, VRMLNodes, Object3dAsVRML;
+uses SysUtils, KambiUtils, KambiClassUtils, VRMLNodes, Object3DAsVRML;
 
 var Node: TVRMLNode;
 begin

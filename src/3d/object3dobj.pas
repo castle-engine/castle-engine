@@ -23,7 +23,7 @@
   and [http://www.fileformat.info/format/material/].
   Texture filename is also read from material file. }
 
-unit Object3dOBJ;
+unit Object3DOBJ;
 
 interface
 
@@ -71,7 +71,7 @@ type
   TDynWavefrontFaceArray = TDynArray_1;
 
   { 3D model in OBJ file format. }
-  TObject3dOBJ = class(TObjectBBox)
+  TObject3DOBJ = class(TObjectBBox)
   private
     FVerts: TDynVector3SingleArray;
     FTexCoords: TDynVector2SingleArray;
@@ -154,9 +154,9 @@ begin
   Result := nil;
 end;
 
-{ TObject3dOBJ --------------------------------------------------------------- }
+{ TObject3DOBJ --------------------------------------------------------------- }
 
-constructor TObject3dOBJ.Create(const fname: string);
+constructor TObject3DOBJ.Create(const fname: string);
 var
   BasePath: string;
 
@@ -458,7 +458,7 @@ begin
     PVector3Single(Verts.Items), Verts.Count, SizeOf(TVector3Single));
 end;
 
-destructor TObject3dOBJ.Destroy;
+destructor TObject3DOBJ.Destroy;
 begin
   FreeAndNil(FVerts);
   FreeAndNil(FTexCoords);
@@ -468,7 +468,7 @@ begin
   inherited;
 end;
 
-function TObject3dOBJ.BoundingBox: TBox3D;
+function TObject3DOBJ.BoundingBox: TBox3D;
 begin
   Result := FBoundingBox;
 end;

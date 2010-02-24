@@ -13,11 +13,11 @@
 
 { @abstract(Classes to handle material information in 3DS files.) }
 
-unit Object3dsMaterial;
+unit Object3DsMaterial;
 
 interface
 
-uses VectorMath, KambiUtils, Classes, KambiClassUtils, SysUtils, Object3dsChunks;
+uses VectorMath, KambiUtils, Classes, KambiClassUtils, SysUtils, Object3DsChunks;
   
 {$define read_interface}
 

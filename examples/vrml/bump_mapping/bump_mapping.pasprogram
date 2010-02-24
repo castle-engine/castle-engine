@@ -58,7 +58,7 @@ uses GLWindow, GL, GLU, GLExt, KambiGLUtils,
   NormalizationCubeMap, GLImages, GLVersionUnit,
   ParseParametersUnit, KambiLog, RaysWindow, UIControls, Classes, DataErrors,
   { VRML-related units: }
-  VRMLScene, VRMLGLScene, Object3dAsVRML, ProgressUnit, BackgroundGL,
+  VRMLScene, VRMLGLScene, Object3DAsVRML, ProgressUnit, BackgroundGL,
   VRMLOpenGLRenderer, VRMLRendererOptimization, KambiSceneManager,
   RenderStateUnit, VRMLErrors;
 

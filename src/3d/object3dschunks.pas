@@ -13,7 +13,7 @@
 
 { @abstract(Low-level helpers and constants for reading 3DS files.) }
 
-unit Object3dsChunks;
+unit Object3DsChunks;
 
 interface
 

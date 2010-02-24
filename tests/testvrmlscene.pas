@@ -18,7 +18,7 @@ type
 
 implementation
 
-uses VRMLNodes, VRMLScene, Object3dAsVRML, VectorMath, VRMLShape,
+uses VRMLNodes, VRMLScene, Object3DAsVRML, VectorMath, VRMLShape,
   KambiTimeUtils, KambiStringUtils;
 
 procedure TTestVRMLScene.TestBorderManifoldEdges;

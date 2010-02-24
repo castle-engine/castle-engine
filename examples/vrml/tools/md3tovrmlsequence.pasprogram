@@ -27,10 +27,10 @@
 program md3tovrmlsequence;
 
 uses SysUtils, KambiUtils, KambiFilesUtils,
-  VRMLNodes, Object3dMD3, Object3dAsVRML;
+  VRMLNodes, Object3DMD3, Object3DAsVRML;
 
 var
-  Md3: TObject3dMD3;
+  Md3: TObject3DMD3;
   WWWBasePath: string;
   FileName, OutputFileName, KAnimFileName: string;
   Node: TVRMLNode;
@@ -41,7 +41,7 @@ begin
   FileName := Parameters[1];
 
   WWWBasePath := ExtractFilePath(ExpandFilename(FileName));
-  Md3 := TObject3dMD3.Create(FileName);
+  Md3 := TObject3DMD3.Create(FileName);
   try
 
     { begin kanim file }

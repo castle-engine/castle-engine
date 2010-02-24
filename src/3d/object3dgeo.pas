@@ -11,7 +11,7 @@
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
-{ @abstract(@link(TObject3dGEO) class to read 3d object description from
+{ @abstract(@link(TObject3DGEO) class to read 3d object description from
   GEO files.)
 
   This originally supported only the GEO files for PGK assignment on
@@ -22,7 +22,7 @@
   format, at least to handle geometry exported by Blender exporter.
 }
 
-unit Object3dGEO;
+unit Object3DGEO;
 
 interface
 
@@ -31,7 +31,7 @@ uses VectorMath, KambiUtils, Classes, KambiClassUtils, SysUtils, Boxes3D;
 type
   { Simple reader of GEO files.
     Note that contents of Verts and Faces are read-only for user of this unit. }
-  TObject3dGEO = class(TObjectBBox)
+  TObject3DGEO = class(TObjectBBox)
   private
     FBoundingBox: TBox3D;
   public
@@ -47,9 +47,9 @@ implementation
 
 uses KambiFilesUtils, KambiStringUtils;
 
-{ TObject3dGEO ---------------------------------------------------------------- }
+{ TObject3DGEO ---------------------------------------------------------------- }
 
-constructor TObject3dGEO.Create(const fname: string);
+constructor TObject3DGEO.Create(const fname: string);
 type
   TGEOFormatFlavor = (gfOld, gfMeshColorFaces, gfMeshColorVerts);
 var
@@ -166,14 +166,14 @@ begin
    PVector3Single(Verts.Items), Verts.Count, SizeOf(TVector3Single));
 end;
 
-destructor TObject3dGEO.Destroy;
+destructor TObject3DGEO.Destroy;
 begin
  Verts.Free;
  Faces.Free;
  inherited;
 end;
 
-function TObject3dGEO.BoundingBox: TBox3D;
+function TObject3DGEO.BoundingBox: TBox3D;
 begin
   result := FBoundingBox
 end;

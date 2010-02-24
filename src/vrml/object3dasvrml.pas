@@ -60,11 +60,11 @@
       if it's really important format.)
   )
 }
-unit Object3dAsVRML;
+unit Object3DAsVRML;
 
 interface
 
-uses VectorMath, SysUtils, VRMLNodes, Object3dMD3,
+uses VectorMath, SysUtils, VRMLNodes, Object3DMD3,
   KambiUtils, VRMLRendererOptimization, Classes;
 
 function LoadGEOAsVRML(const filename: string): TVRMLNode;
@@ -79,7 +79,7 @@ function LoadMD3AsVRML(const FileName: string): TVRMLNode;
   @param Md3 is the MD3 file to use.
   @param FrameNumber is the frame number to load, must be < Md3.Count.
   @param WWBasePath is WWBasePath value to set in resulting VRML nodes. }
-function LoadMD3FrameAsVRML(Md3: TObject3dMD3; FrameNumber: Cardinal;
+function LoadMD3FrameAsVRML(Md3: TObject3DMD3; FrameNumber: Cardinal;
   const WWWBasePath: string): TVRMLNode;
 
 { This is much like LoadAsVRMLSequence, but it only handles MD3 files.
@@ -188,7 +188,7 @@ const
 
 implementation
 
-uses Object3dGEO, Object3ds, Object3dOBJ, VRMLCameraUtils,
+uses Object3DGEO, Object3Ds, Object3DOBJ, VRMLCameraUtils,
   KambiStringUtils, VRMLAnimation, ColladaToVRML,
   X3DXmlToVRML;
 
@@ -216,14 +216,14 @@ begin  result := 'File_' + ToVRMLName(filename)  end;
 { Load* ---------------------------------------------------------------------- }
 
 function LoadGEOAsVRML(const filename: string): TVRMLNode;
-var geo: TObject3dGEO;
+var geo: TObject3DGEO;
     verts: TNodeCoordinate3;
     faces: TNodeIndexedFaceSet_1;
     i: integer;
     WWWBasePath: string;
 begin
  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
- geo := TObject3dGEO.Create(filename);
+ geo := TObject3DGEO.Create(filename);
  try
   result := TNodeGroup_1.Create(FileNameToVRMLName(filename), WWWBasePath);
   try
@@ -261,7 +261,7 @@ const
   end;
 
 var
-  obj: TObject3dOBJ;
+  obj: TObject3DOBJ;
   verts: TNodeCoordinate3;
   faces: TNodeIndexedFaceSet_1;
   texcoords: TNodeTextureCoordinate2;
@@ -278,7 +278,7 @@ var
   FacesSeparator: TNodeSeparator;
 begin
  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
- obj := TObject3dOBJ.Create(filename);
+ obj := TObject3DOBJ.Create(filename);
  try
   result := TNodeGroup_1.Create(''
     { I used to put here FileNameToVRMLName(filename), but
@@ -665,7 +665,7 @@ begin
  finally obj3ds.Free end;
 end;
 
-function LoadMD3FrameAsVRML(Md3: TObject3dMD3; FrameNumber: Cardinal;
+function LoadMD3FrameAsVRML(Md3: TObject3DMD3; FrameNumber: Cardinal;
   const WWWBasePath: string): TVRMLNode;
 
   function MakeCoordinates(Vertexes: TDynMd3VertexArray;
@@ -764,11 +764,11 @@ end;
 
 function LoadMD3AsVRML(const FileName: string): TVRMLNode;
 var
-  Md3: TObject3dMD3;
+  Md3: TObject3DMD3;
   WWWBasePath: string;
 begin
   WWWBasePath := ExtractFilePath(ExpandFilename(FileName));
-  Md3 := TObject3dMD3.Create(FileName);
+  Md3 := TObject3DMD3.Create(FileName);
   try
     Result := LoadMD3FrameAsVRML(Md3, 0, WWWBasePath);
   finally FreeAndNil(Md3) end;
@@ -783,12 +783,12 @@ procedure LoadMD3AsVRMLSequence(
   out EqualityEpsilon: Single;
   out TimeLoop, TimeBackwards: boolean);
 var
-  Md3: TObject3dMD3;
+  Md3: TObject3DMD3;
   WWWBasePath: string;
   I: Integer;
 begin
   WWWBasePath := ExtractFilePath(ExpandFilename(FileName));
-  Md3 := TObject3dMD3.Create(FileName);
+  Md3 := TObject3DMD3.Create(FileName);
   try
     { handle each MD3 frame }
     for I := 0 to Md3.FramesCount - 1 do

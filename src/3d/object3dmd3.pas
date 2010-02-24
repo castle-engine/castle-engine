@@ -11,8 +11,8 @@
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
-{ TObject3dMD3 class. }
-unit Object3dMD3;
+{ TObject3DMD3 class. }
+unit Object3DMD3;
 
 interface
 
@@ -71,8 +71,8 @@ type
     Triangles: TDynMd3TriangleArray;
 
     { Frames within this surface.
-      This is always the same as the TObject3dMD3.FramesCount of enclosing
-      TObject3dMD3 instance (yes, this assumption is checked when loading
+      This is always the same as the TObject3DMD3.FramesCount of enclosing
+      TObject3DMD3 instance (yes, this assumption is checked when loading
       MD3, as it must be @true for any valid MD3 file). }
     FramesCount: Cardinal;
 
@@ -88,7 +88,7 @@ type
   TMd3SurfacesList = TObjectsList_1;
 
   { MD3 (Quake3 engine model format) reader. }
-  TObject3dMD3 = class
+  TObject3DMD3 = class
   public
     { Reads MD3 from a file.
 
@@ -291,9 +291,9 @@ begin
   Stream.Position := SurfaceStart + Surface.OffsetEnd;
 end;
 
-{ TObject3dMD3 --------------------------------------------------------------- }
+{ TObject3DMD3 --------------------------------------------------------------- }
 
-constructor TObject3dMD3.Create(const FileName: string);
+constructor TObject3DMD3.Create(const FileName: string);
 var
   Stream: TStream;
   ATextureFileName: string;
@@ -307,7 +307,7 @@ begin
   finally Stream.Free end;
 end;
 
-constructor TObject3dMD3.Create(Stream: TStream; const ATextureFileName: string);
+constructor TObject3DMD3.Create(Stream: TStream; const ATextureFileName: string);
 var
   Header: TMd3Header;
   Frame: TMd3Frame;
@@ -368,13 +368,13 @@ begin
   end;
 end;
 
-destructor TObject3dMD3.Destroy;
+destructor TObject3DMD3.Destroy;
 begin
   FreeWithContentsAndNil(Surfaces);
   inherited;
 end;
 
-class function TObject3dMD3.ReadSkinFile(const Md3FileName: string;
+class function TObject3DMD3.ReadSkinFile(const Md3FileName: string;
   out ATextureFileName: string): boolean;
 var
   SkinFile: TextFile;

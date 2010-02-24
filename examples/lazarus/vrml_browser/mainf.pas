@@ -89,7 +89,7 @@ var
 implementation
 
 uses LCLType, VectorMath, Boxes3D, VRMLNodes, VRMLOpenGLRenderer,
-  GL, GLU, GLExt, KambiClassUtils, KambiUtils, Object3dAsVRML,
+  GL, GLU, GLExt, KambiClassUtils, KambiUtils, Object3DAsVRML,
   KambiGLUtils, VRMLScene, KambiFilesUtils,
   OpenGLInformation, KambiLCLUtils, VrmlConsoleF, VRMLErrors;
 

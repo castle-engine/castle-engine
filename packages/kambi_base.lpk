@@ -80,27 +80,27 @@
       </Item7>
       <Item8>
         <Filename Value="../src/3d/object3dgeo.pas"/>
-        <UnitName Value="Object3dGEO"/>
+        <UnitName Value="Object3DGEO"/>
       </Item8>
       <Item9>
         <Filename Value="../src/3d/object3dmd3.pas"/>
-        <UnitName Value="Object3dMD3"/>
+        <UnitName Value="Object3DMD3"/>
       </Item9>
       <Item10>
         <Filename Value="../src/3d/object3dobj.pas"/>
-        <UnitName Value="Object3dOBJ"/>
+        <UnitName Value="Object3DOBJ"/>
       </Item10>
       <Item11>
         <Filename Value="../src/3d/object3ds.pas"/>
-        <UnitName Value="Object3ds"/>
+        <UnitName Value="Object3Ds"/>
       </Item11>
       <Item12>
         <Filename Value="../src/3d/object3dschunks.pas"/>
-        <UnitName Value="Object3dsChunks"/>
+        <UnitName Value="Object3DsChunks"/>
       </Item12>
       <Item13>
         <Filename Value="../src/3d/object3dsmaterial.pas"/>
-        <UnitName Value="Object3dsMaterial"/>
+        <UnitName Value="Object3DsMaterial"/>
       </Item13>
       <Item14>
         <Filename Value="../src/3d/opengl/backgroundgl.pas"/>
@@ -108,7 +108,7 @@
       </Item14>
       <Item15>
         <Filename Value="../src/3d/opengl/object3dopengl.pas"/>
-        <UnitName Value="Object3dOpenGL"/>
+        <UnitName Value="Object3DOpenGL"/>
       </Item15>
       <Item16>
         <Filename Value="../src/3d/quaternions.pas"/>
@@ -562,7 +562,7 @@
       </Item126>
       <Item127>
         <Filename Value="../src/vrml/object3dasvrml.pas"/>
-        <UnitName Value="Object3dAsVRML"/>
+        <UnitName Value="Object3DAsVRML"/>
       </Item127>
       <Item128>
         <Filename Value="../src/vrml/opengl/glsl_bump_mapping.fs.inc"/>

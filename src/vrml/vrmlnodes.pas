@@ -170,7 +170,7 @@
 
     @item(
       no i mozemy w ten sposob latwo wykorzystac nasz kod VRMLa do pisania
-      konwerterow innych formatow na VRMLa. Uzywajac modulu Object3dAsVRML
+      konwerterow innych formatow na VRMLa. Uzywajac modulu Object3DAsVRML
       i tutejszego SaveToVRMLFile mamy sliczny konwerter 3ds, obj, geo -> VRML.)
   )
 
@@ -1158,7 +1158,7 @@ type
 
       WWWBasePath is set in constructor, and eventually adjusted by
       various parsing/converting routines (TVRMLNode.Parse, but also
-      potentially other things from Object3dAsVRML).
+      potentially other things from Object3DAsVRML).
       This way we could, if only we would like to, resolve nodes
       like Inline or ImageTexture immediately after parsing them. }
     property WWWBasePath: string read FWWWBasePath write FWWWBasePath;
@@ -3538,7 +3538,7 @@ uses
   TTF_BitstreamVeraSerif_Italic_Unit,
   TTF_BitstreamVeraSerif_Bold_Italic_Unit,
 
-  Math, Triangulator, Object3dAsVRML, KambiZStream, VRMLCameraUtils,
+  Math, Triangulator, Object3DAsVRML, KambiZStream, VRMLCameraUtils,
   KambiStringUtils, KambiFilesUtils, RaysWindow, StrUtils, KambiURLUtils,
   VRMLGeometry, KambiLog, KambiScriptParser, Base64,
   {$ifdef KAMBI_HAS_NURBS} NURBS, {$endif} Quaternions, Cameras;

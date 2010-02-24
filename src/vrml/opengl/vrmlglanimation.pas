@@ -631,7 +631,7 @@ procedure Register;
 
 implementation
 
-uses Math, VRMLFields, ProgressUnit, Object3dAsVRML, KambiLog, DateUtils;
+uses Math, VRMLFields, ProgressUnit, Object3DAsVRML, KambiLog, DateUtils;
 
 {$define read_implementation}
 {$I objectslist_1.inc}

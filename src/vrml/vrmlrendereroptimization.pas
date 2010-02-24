@@ -1,7 +1,7 @@
 { TGLRendererOptimization type.
 
   While this is needed by TVRMLGLScene, it has to be defined in this unit,
-  in non-opengl units category, because it's also used by Object3dAsVRML
+  in non-opengl units category, because it's also used by Object3DAsVRML
   and VRML animations reader. }
 unit VRMLRendererOptimization;
 

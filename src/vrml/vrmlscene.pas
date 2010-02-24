@@ -1905,7 +1905,7 @@ type
 implementation
 
 uses VRMLCameraUtils, KambiStringUtils, KambiLog, VRMLErrors, DateUtils,
-  Object3dAsVRML;
+  Object3DAsVRML;
 
 {$define read_implementation}
 {$I dynarray_1.inc}

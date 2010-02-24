@@ -25,7 +25,7 @@
   swiatel. Wszystkie te trzy obiekty odpowiadaja chunkowi
   OBJBLOCK ktory zawiera jeden z trzech chunkow (odpowiednio) TRIMESH,
   CAMERA lub LIGHT. Wszystkie te trzy klasy wywodza sie z klasy
-  TObject3ds ktora reprezentuje dowolny chunk OBJBLOCK i ktora
+  TObject3Ds ktora reprezentuje dowolny chunk OBJBLOCK i ktora
   tym samym obejmuje rzeczy ktore sa wspolne dla trimeshow, kamer i
   swiatel.
 
@@ -36,19 +36,19 @@
   (or some earlier version of this, I don't remember...).
 }
 
-unit Object3ds;
+unit Object3Ds;
 
 {TODO
 - properties that are read from 3ds but not used anywhere (not in
-  Object3dOpenGL nor in Object3dAsVRML) because their exact
+  Object3DOpenGL nor in Object3DAsVRML) because their exact
   interpretation is not known for me:
     TCamera3ds.CamLens
     TMaterialMap3ds.U/VOffset (I don't know wheteher use it before of after
       U/VScale, again I need some test 3ds scenes to check that)
     TMaterial3ds.TextureMap2
     TMaterial3ds.ShininessStrenth, TransparencyFalloff, ReflectBlur
-- TFace3ds.Wrap interpretation is known but it is not used by Object3dOpenGL
-  nor Object3dAsVRML (because
+- TFace3ds.Wrap interpretation is known but it is not used by Object3DOpenGL
+  nor Object3DAsVRML (because
   1. implementing it requires some mess in code
      since this Wrap is the property of _each face_ (instead of _each texture_,
      which would be simpler to map to OpenGL and VRML)
@@ -60,8 +60,8 @@ unit Object3ds;
 
 interface
 
-uses KambiUtils, Classes, KambiClassUtils, SysUtils, Object3dsMaterial,
-  Object3dsChunks, Boxes3D, VectorMath;
+uses KambiUtils, Classes, KambiClassUtils, SysUtils, Object3DsMaterial,
+  Object3DsChunks, Boxes3D, VectorMath;
 
 {$define read_interface}
 
@@ -72,7 +72,7 @@ type
     trimesh, camera or light source.)
 
     Jej nieabstrakcyjni potomkowie to TCamera3ds, TLight3ds i najwazniejszy
-    TTrimesh3ds. Uzywaj funkcji CreateObject3ds aby odczytac ze strumienia
+    TTrimesh3ds. Uzywaj funkcji CreateObject3Ds aby odczytac ze strumienia
     chunk OBJBLOCK i rozpoznac automatycznie jaki z trzech wymienionych rodzai
     on opisuje i stworzyc egzemplarz odpowiedniej nieabstrakcyjnej klasy.
     Nigdy nie konstruuj obiektow dokladnie tej klasy !
@@ -84,7 +84,7 @@ type
 
     Kamery i swiatla beda mialy EmptyBoundingBox (podobnie jak Trimeshe
     bez zadnych vertexow; moga takie byc). }
-  TObject3ds = class
+  TObject3Ds = class
   private
     FName: string;
     FScene: TScene3ds;
@@ -97,7 +97,7 @@ type
       Stream: TStream; ObjectEndPos: Int64); virtual;
   end;
 
-  TObject3dsClass = class of TObject3ds;
+  TObject3DsClass = class of TObject3Ds;
 
   TFace3ds = record
     VertsIndices: TVector3Cardinal;
@@ -126,7 +126,7 @@ type
 
   { @abstract(This class wraps OBJBLOCK chunk of 3DS file with VERTLIST subchunk.
     Putting it simpler, this represents a set of triangles.) }
-  TTrimesh3ds = class(TObject3ds)
+  TTrimesh3ds = class(TObject3Ds)
   private
     FVertsCount, FFacesCount: Word;
     FHasTexCoords: boolean;
@@ -156,7 +156,7 @@ type
     property BoundingBox: TBox3D read FBoundingBox;
   end;
 
-  TCamera3ds = class(TObject3ds)
+  TCamera3ds = class(TObject3Ds)
   private
     FCamPos, FCamTarget: TVector3Single;
     FCamBank, FCamLens: Single;
@@ -180,7 +180,7 @@ type
     function CamUp: TVector3Single;
   end;
 
-  TLight3ds = class(TObject3ds)
+  TLight3ds = class(TObject3Ds)
   public
     Pos: TVector3Single;
     Col: TVector3Single;
@@ -229,8 +229,8 @@ type
     function BoundingBox: TBox3D; override;
   end;
 
-function CreateObject3ds(AScene: Tscene3ds; Stream: TStream;
-  ObjectEndPos: Int64): TObject3ds;
+function CreateObject3Ds(AScene: Tscene3ds; Stream: TStream;
+  ObjectEndPos: Int64): TObject3Ds;
 
 {$undef read_interface}
 
@@ -251,9 +251,9 @@ const
     ma byc clamped czy repeated. Chwilowo unused. }
   FACEFLAG_WRAP: array[0..1]of Word = ($8, $10);
 
-{ TObject3ds ----------------------------------------------------------------- }
+{ TObject3Ds ----------------------------------------------------------------- }
 
-constructor TObject3ds.Create(const AName: string; AScene: TScene3ds;
+constructor TObject3Ds.Create(const AName: string; AScene: TScene3ds;
   Stream: TStream; ObjectEndPos: Int64);
 { don't ever call directly this constructor - we can get here
   only by  "inherited" call from Descendant's constructor }
@@ -263,8 +263,8 @@ begin
  FScene := AScene;
 end;
 
-function CreateObject3ds(AScene: TScene3ds; Stream: TStream; ObjectEndPos: Int64): TObject3ds;
-var ObjClass: TObject3dsClass;
+function CreateObject3Ds(AScene: TScene3ds; Stream: TStream; ObjectEndPos: Int64): TObject3Ds;
+var ObjClass: TObject3DsClass;
     ObjName: string;
     ObjBeginPos: Int64;
     h: TChunkHeader;
@@ -562,7 +562,7 @@ constructor TScene3ds.Create(Stream: TStream);
 
 var hmain, hsubmain, hsubObjMesh: TChunkHeader;
     hsubmainEnd, hsubObjMeshEnd: Int64;
-    Object3ds: TObject3ds;
+    Object3Ds: TObject3Ds;
 begin
  inherited Create;
 
@@ -589,12 +589,12 @@ begin
        case hsubObjMesh.id of
         CHUNK_OBJBLOCK:
           begin
-           Object3ds := CreateObject3ds(Self, Stream, hsubObjMeshEnd);
-           if Object3ds is TTrimesh3ds then
-            Trimeshes.Add(TTrimesh3ds(Object3ds)) else
-           if Object3ds is TCamera3ds then
-            Cameras.Add(TCamera3ds(Object3ds)) else
-            Lights.Add(Object3ds as TLight3ds);
+           Object3Ds := CreateObject3Ds(Self, Stream, hsubObjMeshEnd);
+           if Object3Ds is TTrimesh3ds then
+            Trimeshes.Add(TTrimesh3ds(Object3Ds)) else
+           if Object3Ds is TCamera3ds then
+            Cameras.Add(TCamera3ds(Object3Ds)) else
+            Lights.Add(Object3Ds as TLight3ds);
           end;
         CHUNK_MATERIAL: Materials.ReadMaterial(Stream, hsubObjMeshEnd);
         else Stream.Position := hsubObjMeshEnd;

@@ -77,7 +77,7 @@ type
 
 implementation
 
-uses SysUtils, Object3dAsVRML;
+uses SysUtils, Object3DAsVRML;
 
 constructor TGLWindowVRMLBrowser.Create(AOwner: TComponent);
 begin

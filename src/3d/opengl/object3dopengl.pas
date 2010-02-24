@@ -26,13 +26,13 @@
   over rendering OBJ, GEO and 3DS models using VRML renderer.
 }
 
-unit Object3dOpenGL;
+unit Object3DOpenGL;
 
 interface
 
-uses VectorMath, Object3dGEO, Object3dOBJ, Object3ds;
+uses VectorMath, Object3DGEO, Object3DOBJ, Object3Ds;
 
-procedure RenderGEO(geo: TObject3dGEO);
+procedure RenderGEO(geo: TObject3DGEO);
 
 { Render OBJ model.
 
@@ -46,7 +46,7 @@ procedure RenderGEO(geo: TObject3dGEO);
   --- nie odczytujemy z .obj zadnych danych na temat tekstury.
 
   Zawsze generowane sa normale flat. }
-procedure RenderOBJ(obj: TObject3dOBJ; useTexture2d: boolean);
+procedure RenderOBJ(obj: TObject3DOBJ; useTexture2d: boolean);
 
 { Render 3DS model.
 
@@ -57,10 +57,10 @@ procedure Render3DS(scene: TScene3ds; useTexture2d: boolean);
 
 implementation
 
-uses SysUtils, KambiUtils, GL, GLU, GLExt, KambiGLUtils, Object3dsMaterial, Images,
+uses SysUtils, KambiUtils, GL, GLU, GLExt, KambiGLUtils, Object3DsMaterial, Images,
   GLImages, TextureImages;
 
-procedure RenderGEO(geo: TObject3dGEO);
+procedure RenderGEO(geo: TObject3DGEO);
 { Renderujemy w naturalny sposor uzywajac vertex arrays. }
 var i: integer;
 begin
@@ -84,7 +84,7 @@ begin
  end;
 end;
 
-procedure RenderOBJ(obj: TObject3dOBJ; useTexture2d: boolean);
+procedure RenderOBJ(obj: TObject3DOBJ; useTexture2d: boolean);
 var i, j: integer;
 begin
  with obj do begin

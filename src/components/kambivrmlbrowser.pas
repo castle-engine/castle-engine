@@ -84,7 +84,7 @@ procedure Register;
 
 implementation
 
-uses SysUtils, Object3dAsVRML;
+uses SysUtils, Object3DAsVRML;
 
 procedure Register;
 begin
