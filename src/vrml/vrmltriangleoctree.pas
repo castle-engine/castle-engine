@@ -226,8 +226,6 @@ implementation
 
 {$define read_implementation}
 
-{$I kambioctreemacros.inc}
-
 { TTriangleOctreeNode -------------------------------------------------------------- }
 
 procedure TTriangleOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);

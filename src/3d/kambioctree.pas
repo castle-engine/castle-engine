@@ -470,8 +470,6 @@ implementation
 
 uses KambiStringUtils;
 
-{$I kambioctreemacros.inc}
-
 { TOctreeNode ------------------------------------------------------------ }
 
 procedure TOctreeNode.CreateTreeSubNodes(AsLeaves: boolean);
@@ -606,20 +604,19 @@ begin
  inherited;
 end;
 
-{$define SubnodeWithPoint_IMPLEMENT:=
-begin
- result[0] := P[0] >= MiddlePoint[0];
- result[1] := P[1] >= MiddlePoint[1];
- result[2] := P[2] >= MiddlePoint[2];
-end;}
-
 function TOctreeNode.SubnodeWithPoint(const P: TVector3Single): TOctreeSubnodeIndex;
-SubnodeWithPoint_IMPLEMENT
+begin
+  result[0] := P[0] >= MiddlePoint[0];
+  result[1] := P[1] >= MiddlePoint[1];
+  result[2] := P[2] >= MiddlePoint[2];
+end;
 
 function TOctreeNode.SubnodeWithPoint(const P: TVector3Double): TOctreeSubnodeIndex;
-SubnodeWithPoint_IMPLEMENT
-
-{$undef SubnodeWithPoint_IMPLEMENT}
+begin
+  result[0] := P[0] >= MiddlePoint[0];
+  result[1] := P[1] >= MiddlePoint[1];
+  result[2] := P[2] >= MiddlePoint[2];
+end;
 
 procedure TOctreeNode.SubnodesWithBox(const ABox: TBox3D;
   out SubnodeLow, SubnodeHigh: TOctreeSubnodeIndex);
