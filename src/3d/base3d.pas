@@ -1147,7 +1147,7 @@ begin
     for I := 0 to List.Count - 1 do
     begin
       NewResult := List[I].RayCollision(
-        NewIntersectionDistance, Ray0, RayVector, nil);
+        NewIntersectionDistance, Ray0, RayVector, TrianglesToIgnoreFunc);
       if NewResult <> nil then
       begin
         if (Result = nil) or (NewIntersectionDistance < IntersectionDistance) then
