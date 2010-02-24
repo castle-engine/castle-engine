@@ -1431,12 +1431,6 @@ type
 
     { ----------------------------------------------------------------- }
 
-    {$ifdef USE_VRML_NODES_TRIANGULATION}
-    procedure DrawTriangle(const Tri: TTriangle3Single;
-      State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
-      const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
-    {$endif}
-
     { Inited in RenderBegin, according to our FogNode.
       If not UseFog then it's always false. }
     FogVolumetric: boolean;
@@ -1448,6 +1442,12 @@ type
 
     FCache: TVRMLOpenGLRendererContextCache;
     OwnsCache: boolean;
+
+    {$ifdef USE_VRML_NODES_TRIANGULATION}
+    procedure DrawTriangle(const Tri: TTriangle3Single;
+      State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
+      const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+    {$endif}
 
     { If ARB_multitexturing available, this sets currently active texture unit.
       TextureUnit is newly active unit, this is added to GL_TEXTURE0_ARB
