@@ -18,7 +18,7 @@ unit GLShadowVolumeRenderer;
 
 interface
 
-uses VectorMath, Boxes3d, GL, GLU, GLExt, KambiGLUtils, Frustum, Base3D;
+uses VectorMath, Boxes3D, GL, GLU, GLExt, KambiGLUtils, Frustum, Base3D;
 
 type
   TStencilSetupKind = (ssFrontAndBack, ssFront, ssBack);
@@ -135,7 +135,7 @@ type
 
       The above optimization works OK if you do not change StencilOp configuration
       yourself during SV rendering. }
-    procedure InitScene(const SceneBox: TBox3d);
+    procedure InitScene(const SceneBox: TBox3D);
 
     { You can split InitScene call into these two calls,
       first InitSceneDontSetupStencil and then InitSceneOnlySetupStencil.
@@ -147,7 +147,7 @@ type
       to set stencil configuration for this object.
 
       @groupBegin }
-    procedure InitSceneDontSetupStencil(const SceneBox: TBox3d);
+    procedure InitSceneDontSetupStencil(const SceneBox: TBox3D);
     procedure InitSceneOnlySetupStencil;
     { @groupEnd }
 
@@ -360,15 +360,15 @@ begin
   FCountZFailAndLightCap := 0;
 end;
 
-procedure TGLShadowVolumeRenderer.InitScene(const SceneBox: TBox3d);
+procedure TGLShadowVolumeRenderer.InitScene(const SceneBox: TBox3D);
 begin
   InitSceneDontSetupStencil(SceneBox);
   InitSceneOnlySetupStencil;
 end;
 
-procedure TGLShadowVolumeRenderer.InitSceneDontSetupStencil(const SceneBox: TBox3d);
+procedure TGLShadowVolumeRenderer.InitSceneDontSetupStencil(const SceneBox: TBox3D);
 
-  function CalculateShadowPossiblyVisible(const SceneBox: TBox3d): boolean;
+  function CalculateShadowPossiblyVisible(const SceneBox: TBox3D): boolean;
   var
     I: Integer;
 
@@ -538,7 +538,7 @@ begin
   FZFail := FSceneShadowPossiblyVisible and CalculateZFail;
 
   FZFailAndLightCap := ZFail and
-    FFrustum.Box3dCollisionPossibleSimple(SceneBox);
+    FFrustum.Box3DCollisionPossibleSimple(SceneBox);
 
   UpdateCount;
 end;

@@ -20,7 +20,7 @@ unit VRMLSceneWaypoints;
 
 interface
 
-uses SysUtils, KambiUtils, KambiClassUtils, VectorMath, Boxes3d, VRMLNodes;
+uses SysUtils, KambiUtils, KambiClassUtils, VectorMath, Boxes3D, VRMLNodes;
 
 {$define read_interface}
 
@@ -66,14 +66,14 @@ type
 
   TSceneSector = class
   private
-    FBoundingBoxes: TDynBox3dArray;
+    FBoundingBoxes: TDynBox3DArray;
     FVisibleSectors: TDynBooleanArray;
     FWaypoints: TSceneWaypointsList;
   public
     constructor Create;
     destructor Destroy; override;
 
-    property BoundingBoxes: TDynBox3dArray read FBoundingBoxes;
+    property BoundingBoxes: TDynBox3DArray read FBoundingBoxes;
 
     { Returns whether Point is inside the sector.
       Implementation in TSceneSector just returns if Point is inside
@@ -222,7 +222,7 @@ procedure TSceneWaypointsList.TraverseForWaypoints(
       WaypointIndex := StrToInt(WaypointNodeName) else
       WaypointIndex := StrToInt(Copy(WaypointNodeName, 1, IgnoredBegin - 1));
 
-    WaypointPosition := Box3dMiddle(Geometry.BoundingBox(StateStack.Top));
+    WaypointPosition := Box3DMiddle(Geometry.BoundingBox(StateStack.Top));
 
     Count := Max(Count, WaypointIndex + 1);
     if Items[WaypointIndex] <> nil then
@@ -266,7 +266,7 @@ end;
 constructor TSceneSector.Create;
 begin
   inherited Create;
-  FBoundingBoxes := TDynBox3dArray.Create;
+  FBoundingBoxes := TDynBox3DArray.Create;
   FVisibleSectors := TDynBooleanArray.Create;
   FWaypoints := TSceneWaypointsList.Create;
 end;
@@ -286,7 +286,7 @@ begin
   { This could be implemented as IsPointInsideMargin(Point, 0),
     but is not (for speed). }
   for I := 0 to BoundingBoxes.High do
-    if Box3dPointInside(Point, BoundingBoxes.Items[I]) then
+    if Box3DPointInside(Point, BoundingBoxes.Items[I]) then
       Exit(true);
   Result := false;
 end;
@@ -297,7 +297,7 @@ var
   I: Integer;
 begin
   for I := 0 to BoundingBoxes.High do
-    if Box3dPointInside(Point,
+    if Box3DPointInside(Point,
       BoxExpand(BoundingBoxes.Items[I], SectorsBoxesMargin)) then
       Exit(true);
   Result := false;
@@ -314,7 +314,7 @@ procedure TSceneSectorsList.TraverseForSectors(
   procedure AddSectorBoundingBox(const SectorNodeName: string);
   var
     IgnoredBegin, SectorIndex: Integer;
-    SectorBoundingBox: TBox3d;
+    SectorBoundingBox: TBox3D;
   begin
     { Calculate SectorIndex }
     IgnoredBegin := Pos('_', SectorNodeName);
@@ -332,7 +332,7 @@ procedure TSceneSectorsList.TraverseForSectors(
 
     { Tests:
     Writeln('Sector ', SectorIndex, ': added box ',
-      Box3dToNiceStr(SectorBoundingBox)); }
+      Box3DToNiceStr(SectorBoundingBox)); }
   end;
 
 const

@@ -86,7 +86,7 @@ unit KambiGLUtils;
 interface
 
 uses Math, GL, GLU, GLExt,
-  SysUtils, KambiUtils, VectorMath, Boxes3d, IntRects,
+  SysUtils, KambiUtils, VectorMath, Boxes3D, IntRects,
   Images, Matrix, Areas;
 
 {$define read_interface}
@@ -896,10 +896,10 @@ procedure DrawGLPlaneSpecialTex(x1, y1, x2, y2: TGLfloat; constValue: TGLfloat;
   MakeTextureCoords: boolean;
   texX1, texY1, texX2, texY2: TGLfloat; order_ST_XYZ: boolean);
 
-{ Rysuje Box3d. Starsze wersje pobieraja szesc parametrow zamiast jednego TBox3d,
+{ Rysuje Box3D. Starsze wersje pobieraja szesc parametrow zamiast jednego TBox3D,
   w ich przypadku nie musi byc x1 <= x2, y1 <= y2 itd. (x1, y1, z1) i (x2, y2, z2)
   musza tylko okreslac dwa przeciwlegle punkty prostopadloscianu (beda
-  konwertowane Box3dOrderUp).
+  konwertowane Box3DOrderUp).
 
   Sciany sa rysowane przy pomocy DrawGLPlane i moga byc tam rozkladane na
   wieksza ilosc malych trojkatow (zeby cieniowanie Gourauda lepiej sie
@@ -911,7 +911,7 @@ procedure DrawGLPlaneSpecialTex(x1, y1, x2, y2: TGLfloat; constValue: TGLfloat;
   tam.
 
   Texture coordinates are generated if MakeTextureCoords. }
-procedure DrawGLBox(const Box: TBox3d; DetailX, DetailY, DetailZ: integer; ccwOutside: boolean; MakeTextureCoords: boolean); overload;
+procedure DrawGLBox(const Box: TBox3D; DetailX, DetailY, DetailZ: integer; ccwOutside: boolean; MakeTextureCoords: boolean); overload;
 procedure DrawGLBox(const x1, y1, z1, x2, y2, z2: TGLfloat; DetailX, DetailY, DetailZ: integer; ccwOutside: boolean; MakeTextureCoords: boolean); overload;
 
 (*
@@ -923,7 +923,7 @@ procedure DrawGLBox(const x1, y1, z1, x2, y2, z2: TGLfloat; DetailX, DetailY, De
 
   Unfortunately, current implementation is not correct because of
   Radeon bug. To see the bug, just use DrawGLBoxWire(Box, 0, 0, 0, true)
-  as an implementation for glDrawBox3dWire. Then rotate the DrawGLBoxWire
+  as an implementation for glDrawBox3DWire. Then rotate the DrawGLBoxWire
   (e.g. view3dscene draws scene bounding box using this routine).
   You'll see that at some angles of view, Radeon draws a strange
   diagonal lines inside GL_QUAD_STRIPs... obviously they draw
@@ -931,14 +931,14 @@ procedure DrawGLBox(const x1, y1, z1, x2, y2, z2: TGLfloat; DetailX, DetailY, De
   do glEdgeFlag(GL_FALSE) where they should.
 
   NVidia drivers on NVidia cards work correctly. }
-procedure DrawGLBoxWire(const Box: TBox3d; DetailX, DetailY, DetailZ: integer; ccwOutside: boolean); overload;
+procedure DrawGLBoxWire(const Box: TBox3D; DetailX, DetailY, DetailZ: integer; ccwOutside: boolean); overload;
 procedure DrawGLBoxWire(const x1, y1, z1, x2, y2, z2: TGLfloat; DetailX, DetailY, DetailZ: integer; ccwOutside: boolean); overload;
 *)
 
-{ glDrawBox3dWire draws a simple lines around this TBox3d.
+{ glDrawBox3DWire draws a simple lines around this TBox3D.
   It doesn't generate any texture coords or normal vectors
   --- it only draws 8 lines. }
-procedure glDrawBox3dWire(const Box: TBox3d);
+procedure glDrawBox3DWire(const Box: TBox3D);
 
 { Simplest drawing of Box into OpenGL, just as a six planes.
   Nothing is generated besides vertexes position --- no normal vectors,
@@ -947,13 +947,13 @@ procedure glDrawBox3dWire(const Box: TBox3d);
 
   You @bold(must enable GL_VERTEX_ARRAY before using this).
   (It's not done automatically, as it's much faster to do it once
-  for many glDrawBox3dSimple calls. Example --- bzwgen city view behind
+  for many glDrawBox3DSimple calls. Example --- bzwgen city view behind
   building 1, with occlusion query used: FPC 150 vs 110 when
   GL_VERTEX_ARRAY is activated once in OcclusionBoxStateBegin, not here.
   Tested on fglrx on Radeon X1600 (chantal).)
 
   It can be safely placed in a display list. }
-procedure glDrawBox3dSimple(const Box: TBox3d);
+procedure glDrawBox3DSimple(const Box: TBox3D);
 
 { rysuje trojkat o zadanych wierzcholkach i wspolrzednych tekstury,
     generuje tez normal jako Normalized(p2-p1, p2-p3) a wiec normal
@@ -2069,7 +2069,7 @@ begin
  end;
 end;
 
-procedure DrawGLBox(const Box: TBox3d; DetailX, DetailY, DetailZ: integer;
+procedure DrawGLBox(const Box: TBox3D; DetailX, DetailY, DetailZ: integer;
   ccwOutside: boolean; MakeTextureCoords: boolean);
 begin
  DrawGLPlane(Box[0, 1], Box[0, 2], Box[1, 1], Box[1, 2], Box[0, 0], 0, DetailY, DetailZ, not ccwOutside, MakeTextureCoords);
@@ -2086,12 +2086,12 @@ procedure DrawGLBox(const x1, y1, z1, x2, y2, z2: TGLfloat;
   DetailX, DetailY, DetailZ: integer; ccwOutside: boolean;
   MakeTextureCoords: boolean);
 begin
- DrawGLBox(Box3dOrderUp(Vector3Single(x1, y1, z1), Vector3Single(x2, y2, z2)),
+ DrawGLBox(Box3DOrderUp(Vector3Single(x1, y1, z1), Vector3Single(x2, y2, z2)),
    DetailX, DetailY, DetailZ, ccwOutside, MakeTextureCoords);
 end;
 
 (*
-procedure DrawGLBoxWire(const Box: TBox3d; DetailX, DetailY, DetailZ: integer;
+procedure DrawGLBoxWire(const Box: TBox3D; DetailX, DetailY, DetailZ: integer;
   ccwOutside: boolean);
 begin
   glPushAttrib(GL_POLYGON_BIT);
@@ -2103,12 +2103,12 @@ end;
 procedure DrawGLBoxWire(const x1, y1, z1, x2, y2, z2: TGLfloat;
   DetailX, DetailY, DetailZ: integer; ccwOutside: boolean);
 begin
- DrawGLBoxWire(Box3dOrderUp(Vector3Single(x1, y1, z1), Vector3Single(x2, y2, z2)),
+ DrawGLBoxWire(Box3DOrderUp(Vector3Single(x1, y1, z1), Vector3Single(x2, y2, z2)),
    DetailX, DetailY, DetailZ, ccwOutside);
 end;
 *)
 
-procedure glDrawBox3dWire(const Box: TBox3d);
+procedure glDrawBox3DWire(const Box: TBox3D);
 
   { BoxVertex(0..3, 0) are the four vertexes of front face,
     BoxVertex(0..3, 1) are the four vertexes of back face
@@ -2144,7 +2144,7 @@ begin
   glEnd;
 end;
 
-procedure glDrawBox3dSimple(const Box: TBox3d);
+procedure glDrawBox3DSimple(const Box: TBox3D);
 var
   Verts: array [0..7] of TVector3Single;
 const
@@ -2158,7 +2158,7 @@ const
     0, 4, 5, 1
   );
 begin
-  if IsEmptyBox3d(Box) then Exit;
+  if IsEmptyBox3D(Box) then Exit;
 
   { Verts index in octal notation indicates which of 8 vertexes it is. }
   Verts[0] := Box[0];

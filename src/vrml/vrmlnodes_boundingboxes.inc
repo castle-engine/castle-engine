@@ -66,7 +66,7 @@ end;
 
 function IndexedCoords_BoundingBox(Geometry: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState;
-  Coord: TMFVec3f; CoordIndex: TMFLong): TBox3d;
+  Coord: TMFVec3f; CoordIndex: TMFLong): TBox3D;
 var
   Calculator: TGI_BBox_Calculator;
 begin
@@ -82,13 +82,13 @@ begin
       {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexFromIndex,
       State.Transform);
     if not Calculator.WasSomeValidIndex then
-      Result := EmptyBox3d;
+      Result := EmptyBox3D;
   finally Calculator.Free end;
 end;
 
 function IndexedCoords_LocalBoundingBox(Geometry: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState;
-  Coord: TMFVec3f; CoordIndex: TMFLong): TBox3d;
+  Coord: TMFVec3f; CoordIndex: TMFLong): TBox3D;
 var
   Calculator: TGI_BBox_Calculator;
 begin
@@ -103,19 +103,19 @@ begin
       CoordIndex.Count,
       {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexFromIndex);
     if not Calculator.WasSomeValidIndex then
-      Result := EmptyBox3d;
+      Result := EmptyBox3D;
   finally Calculator.Free end;
 end;
 
 function Coords_BoundingBox(State: TVRMLGraphTraverseState;
-  Coord: TMFVec3f): TBox3d;
+  Coord: TMFVec3f): TBox3D;
 begin
   Result := CalculateBoundingBox(PVector3Single(Coord.Items.ItemsArray),
     Coord.Items.Count, 0, State.Transform);
 end;
 
 function Coords_LocalBoundingBox(State: TVRMLGraphTraverseState;
-  Coord: TMFVec3f): TBox3d;
+  Coord: TMFVec3f): TBox3D;
 begin
   Result := CalculateBoundingBox(PVector3Single(Coord.Items.ItemsArray),
     Coord.Items.Count, 0);
@@ -123,7 +123,7 @@ end;
 
 { TVRMLGeometryNode --------------------------------------------------------- }
 
-function TVRMLGeometryNode.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TVRMLGeometryNode.BoundingBox(State: TVRMLGraphTraverseState): TBox3D;
 var
   C: TMFVec3f;
   P: TVRMLGeometryNode;
@@ -136,7 +136,7 @@ begin
         Result := IndexedCoords_BoundingBox(Self, State, C, CoordIndex) else
         Result := Coords_BoundingBox(State, C);
     end else
-      Result := EmptyBox3d;
+      Result := EmptyBox3D;
   end else
   begin
     P := Proxy;
@@ -146,11 +146,11 @@ begin
         Result := P.BoundingBox(State);
       finally FreeAndNil(P) end;
     end else
-      Result := Box3dTransform(LocalBoundingBox(State), State.Transform);
+      Result := Box3DTransform(LocalBoundingBox(State), State.Transform);
   end;
 end;
 
-function TVRMLGeometryNode.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TVRMLGeometryNode.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
 var
   NewState: TVRMLGraphTraverseState;
   C: TMFVec3f;
@@ -164,7 +164,7 @@ begin
         Result := IndexedCoords_LocalBoundingBox(Self, State, C, CoordIndex) else
         Result := Coords_LocalBoundingBox(State, C);
     end else
-      Result := EmptyBox3d;
+      Result := EmptyBox3D;
   end else
   begin
     P := Proxy;
@@ -191,7 +191,7 @@ function Text_LocalBoundingBox(State: TVRMLGraphTraverseState;
   const Justify: TVRMLFontJustify;
   const TTFont: PTrueTypeFont;
   const Strings: TDynStringArray;
-  const Depth: Single): TBox3d;
+  const Depth: Single): TBox3D;
 var
   DescendScaled, yscale, XScale, maxRowWidth, minx, miny, maxx, maxy: Single;
   I: integer;
@@ -224,7 +224,7 @@ begin
   Result[1][2] := -Depth;
 end;
 
-function TNodeAsciiText_1.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TNodeAsciiText_1.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Text_LocalBoundingBox(State,
     State.LastNodes.FontStyle.FdSize.Value,
@@ -235,7 +235,7 @@ begin
     0);
 end;
 
-function TNodeText.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TNodeText.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
 var
   Size, Spacing: Single;
   Justify: TVRMLFontJustify;
@@ -259,7 +259,7 @@ begin
     Size, Spacing, Justify, TTFont, FdString.Items, 0);
 end;
 
-function TNodeText3D.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TNodeText3D.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
 var
   Size, Spacing: Single;
   Justify: TVRMLFontJustify;
@@ -285,7 +285,7 @@ end;
 
 function Cone_BoundingBox(State: TVRMLGraphTraverseState;
   const BottomRadius, Height: Single;
-  const Sides, Bottom: boolean): TBox3d;
+  const Sides, Bottom: boolean): TBox3D;
 var points: array[0..4]of TVector3Single;
     firstPoint: integer;
 begin
@@ -302,21 +302,21 @@ begin
   firstPoint := 0 else
  if Bottom then
   firstPoint := 1 { nie uwzgledniaj pierwszego punktu = szczytu stozka } else
-  begin result := EmptyBox3d; exit end;
+  begin result := EmptyBox3D; exit end;
 
  result := CalculateBoundingBox(
    @points[firstPoint],
    High(points)+1-firstPoint, 0, State.Transform);
 end;
 
-function TNodeCone_1.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TNodeCone_1.BoundingBox(State: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Cone_BoundingBox(State,
     FdBottomRadius.Value, FdHeight.Value,
     FdParts.Flags[CONE_PARTS_SIDES], FdParts.Flags[CONE_PARTS_BOTTOM]);
 end;
 
-function TNodeCone_2.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TNodeCone_2.BoundingBox(State: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Cone_BoundingBox(State,
     FdBottomRadius.Value, FdHeight.Value,
@@ -325,19 +325,19 @@ end;
 
 function Box_LocalBoundingBox(
   const SizeX, SizeY, SizeZ: Single;
-  State: TVRMLGraphTraverseState): TBox3d;
+  State: TVRMLGraphTraverseState): TBox3D;
 begin
   result[0] := Vector3Single(-SizeX/2, -SizeY/2, -SizeZ/2);
   result[1] := Vector3Single( SizeX/2,  SizeY/2,  SizeZ/2);
 end;
 
-function TNodeCube_1.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TNodeCube_1.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Box_LocalBoundingBox(
     FdWidth.Value, FdHeight.Value, FdDepth.Value, State);
 end;
 
-function TNodeBox.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TNodeBox.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Box_LocalBoundingBox(
     FdSize.Value[0], FdSize.Value[1], FdSize.Value[2], State);
@@ -345,7 +345,7 @@ end;
 
 function Cylinder_LocalBoundingBox(State: TVRMLGraphTraverseState;
   const Height, Radius: Single;
-  const Bottom, Side, Top: boolean): TBox3d;
+  const Bottom, Side, Top: boolean): TBox3D;
 var points: array[0..3]of TVector3Single;
 begin
  {points 0 = bottom start, 1 = bottom end}
@@ -356,15 +356,15 @@ begin
  points[3] := Vector3Single(+Radius,  Height/2, +Radius);
 
  if Side or (Top and Bottom) then
-  result := Box3d(points[0], points[3]) else
+  result := Box3D(points[0], points[3]) else
  if Top then
-  result := Box3d(points[2], points[3]) else
+  result := Box3D(points[2], points[3]) else
  if Bottom then
-  result := Box3d(points[0], points[1]) else
-  result := EmptyBox3d;
+  result := Box3D(points[0], points[1]) else
+  result := EmptyBox3D;
 end;
 
-function TNodeCylinder_1.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TNodeCylinder_1.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Cylinder_LocalBoundingBox(State,
     FdHeight.Value, FdRadius.Value,
@@ -373,26 +373,26 @@ begin
     FdParts.Flags[CYLINDER_PARTS_TOP]);
 end;
 
-function TNodeCylinder_2.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TNodeCylinder_2.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Cylinder_LocalBoundingBox(State,
     FdHeight.Value, FdRadius.Value,
     FdBottom.Value, FdSide.Value, FdTop.Value);
 end;
 
-function Sphere_LocalBoundingBox(const Radius: Single): TBox3d;
+function Sphere_LocalBoundingBox(const Radius: Single): TBox3D;
 begin
-  Result := Box3d(
+  Result := Box3D(
     Vector3Single(-Radius, -Radius, -Radius),
     Vector3Single(+Radius, +Radius, +Radius) );
 end;
 
-function TNodeSphere_1.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TNodeSphere_1.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Sphere_LocalBoundingBox(FdRadius.Value);
 end;
 
-function TNodeSphere_2.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TNodeSphere_2.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Sphere_LocalBoundingBox(FdRadius.Value);
 end;
@@ -400,12 +400,12 @@ end;
 { TNodeElevationGrid --------------------------------------------------------- }
 
 function TNodeElevationGrid.LocalBoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
+  State: TVRMLGraphTraverseState): TBox3D;
 var
   Y: Single;
   I: Integer;
 begin
-  Result := EmptyBox3d;
+  Result := EmptyBox3D;
   if IsNotEmpty then
   begin
     Result[0, 0] := 0;
@@ -429,7 +429,7 @@ end;
 { TNodeExtrusion --------------------------------------------------------- }
 
 function TNodeExtrusion.LocalBoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
+  State: TVRMLGraphTraverseState): TBox3D;
 var
   I, J: Integer;
   E: TVRMLExtrusion;
@@ -437,7 +437,7 @@ var
   Transform: TMatrix4Single;
   Point2d: PVector2Single;
 begin
-  Result := EmptyBox3d;
+  Result := EmptyBox3D;
 
   E := TVRMLExtrusion.Create;
   try
@@ -448,7 +448,7 @@ begin
       for J := 0 to FdCrossSection.Count - 1 do
       begin
         Point2d := @FdCrossSection.Items.Items[J];
-        Box3dSumTo1st(Result, MatrixMultPoint(Transform,
+        Box3DSumTo1st(Result, MatrixMultPoint(Transform,
           Vector3Single(Point2d^[0], 0, Point2d^[1])));
       end;
     end;
@@ -456,7 +456,7 @@ begin
 end;
 
 function TNodeExtrusion.BoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
+  State: TVRMLGraphTraverseState): TBox3D;
 var
   I, J: Integer;
   E: TVRMLExtrusion;
@@ -464,7 +464,7 @@ var
   Transform: TMatrix4Single;
   Point2d: PVector2Single;
 begin
-  Result := EmptyBox3d;
+  Result := EmptyBox3D;
 
   E := TVRMLExtrusion.Create;
   try
@@ -475,7 +475,7 @@ begin
       for J := 0 to FdCrossSection.Count - 1 do
       begin
         Point2d := @FdCrossSection.Items.Items[J];
-        Box3dSumTo1st(Result,
+        Box3DSumTo1st(Result,
           MatrixMultPoint(State.Transform,
             MatrixMultPoint(Transform,
               Vector3Single(Point2d^[0], 0, Point2d^[1]))));
@@ -486,19 +486,19 @@ end;
 
 { ---------------------------------------------------------------------------- }
 
-function TNodeRectangle2D.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TNodeRectangle2D.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
 begin
   Result[0] := Vector3Single(-FdSize.Value[0] / 2, -FdSize.Value[1] / 2, 0);
   Result[1] := Vector3Single( FdSize.Value[1] / 2,  FdSize.Value[1] / 2, 0);
 end;
 
-function TNodePlane.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TNodePlane.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
 begin
   Result[0] := Vector3Single(-FdSize.Value[0] / 2, -FdSize.Value[1] / 2, 0);
   Result[1] := Vector3Single( FdSize.Value[1] / 2,  FdSize.Value[1] / 2, 0);
 end;
 
-function TNodeCircle2D.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TNodeCircle2D.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
 begin
   Result[0] := Vector3Single(-FdRadius.Value, -FdRadius.Value, 0);
   Result[1] := Vector3Single( FdRadius.Value,  FdRadius.Value, 0);

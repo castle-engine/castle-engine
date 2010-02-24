@@ -25,7 +25,7 @@
 
   When using GL, GLU, GLExt units, this is included from KambiGLUtils.
 
-  Notabene pozwolilo mi to na przeniesienie modulu Boxes3d takze do
+  Notabene pozwolilo mi to na przeniesienie modulu Boxes3D takze do
   modulow niezaleznych od OpenGLa.
 
   Sa w tym pliku problemy z eleganckim zapisaniem wszystkiego:

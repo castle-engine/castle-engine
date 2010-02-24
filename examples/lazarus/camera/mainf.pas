@@ -62,7 +62,7 @@ begin
 
   SceneManager.Items.Add(TCube.Create(Self));
 
-  Camera.Init(Box3d(
+  Camera.Init(Box3D(
     Vector3Single(-1, -1, -1),
     Vector3Single( 1,  1,  1)));
 end;

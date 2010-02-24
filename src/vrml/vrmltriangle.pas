@@ -21,7 +21,7 @@ unit VRMLTriangle;
 
 interface
 
-uses VectorMath, SysUtils, KambiUtils, VRMLNodes, Base3D, Boxes3d,
+uses VectorMath, SysUtils, KambiUtils, VRMLNodes, Base3D, Boxes3D,
   KambiOctree;
 
 {$define read_interface}
@@ -166,11 +166,11 @@ type
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; virtual; abstract;
 
-    function CommonBox(const ABox: TBox3d;
+    function CommonBox(const ABox: TBox3D;
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 
-    function CommonBoxLeaf(const ABox: TBox3d;
+    function CommonBoxLeaf(const ABox: TBox3D;
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; virtual; abstract;
 
@@ -248,11 +248,11 @@ type
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual; abstract;
 
-    function BoxCollision(const ABox: TBox3d;
+    function BoxCollision(const ABox: TBox3D;
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; virtual; abstract;
 
-    function IsBoxCollision(const ABox: TBox3d;
+    function IsBoxCollision(const ABox: TBox3D;
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual; abstract;
 
@@ -334,7 +334,7 @@ type
 
       SphereCollision checks for collision with a sphere.
 
-      BoxCollision checks for collision with a box (axis-aligned, TBox3d type).
+      BoxCollision checks for collision with a box (axis-aligned, TBox3D type).
 
       RayCollision checks for collision with a ray.
 
@@ -462,11 +462,11 @@ type
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 
-    function BoxCollision(const ABox: TBox3d;
+    function BoxCollision(const ABox: TBox3D;
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 
-    function IsBoxCollision(const ABox: TBox3d;
+    function IsBoxCollision(const ABox: TBox3D;
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 
@@ -533,10 +533,10 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc = nil): boolean;
 
     { This is like @link(MoveAllowedSimple), but it checks for collision
-      around ProposedNewPos using TBox3d instead of a sphere. }
+      around ProposedNewPos using TBox3D instead of a sphere. }
     function MoveBoxAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
-      const ProposedNewBox: TBox3d;
+      const ProposedNewBox: TBox3D;
       const TriangleToIgnore: PVRMLTriangle = nil;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc = nil): boolean;
 
@@ -564,7 +564,7 @@ type
       the resulting position is above (or exactly on) the @italic(minimal plane).
       Minimal plane in calculated as minimal plane intersecting
       MinPlaneBox pointed at direction MinPlaneDirection (see
-      Box3dMinimumPlane for more precise definition).
+      Box3DMinimumPlane for more precise definition).
       When MinPlaneBox is empty and KeepAboveMinPlane, then
       we will not allow any move.
 
@@ -589,7 +589,7 @@ type
       out NewPos: TVector3Single;
       const CameraRadius: Single;
       const KeepAboveMinPlane: boolean;
-      const MinPlaneBox: TBox3d;
+      const MinPlaneBox: TBox3D;
       const MinPlaneDirection: TVector3Single;
       const TriangleToIgnore: PVRMLTriangle = nil;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc = nil): boolean;
@@ -714,7 +714,7 @@ type
   Sometimes it's useful to call this separately. }
 function SimpleKeepAboveMinPlane(
   const NewPos: TVector3Single;
-  const MinPlaneBox: TBox3d;
+  const MinPlaneBox: TBox3D;
   const MinPlaneDirection: TVector3Single): boolean;
 
 {$undef read_interface}
@@ -921,7 +921,7 @@ begin
   end;
 end;
 
-function TVRMLBaseTrianglesOctreeNode.CommonBox(const ABox: TBox3d;
+function TVRMLBaseTrianglesOctreeNode.CommonBox(const ABox: TBox3D;
   const TriangleToIgnore: PVRMLTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 
@@ -1050,7 +1050,7 @@ begin
     Pos, Radius, TriangleToIgnore, TrianglesToIgnoreFunc);
 end;
 
-function TVRMLBaseTrianglesOctree.BoxCollision(const ABox: TBox3d;
+function TVRMLBaseTrianglesOctree.BoxCollision(const ABox: TBox3D;
   const TriangleToIgnore: PVRMLTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 begin
@@ -1058,7 +1058,7 @@ begin
     ABox, TriangleToIgnore, TrianglesToIgnoreFunc);
 end;
 
-function TVRMLBaseTrianglesOctree.IsBoxCollision(const ABox: TBox3d;
+function TVRMLBaseTrianglesOctree.IsBoxCollision(const ABox: TBox3D;
   const TriangleToIgnore: PVRMLTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
@@ -1131,12 +1131,12 @@ end;
 
 function SimpleKeepAboveMinPlane(
   const NewPos: TVector3Single;
-  const MinPlaneBox: TBox3d;
+  const MinPlaneBox: TBox3D;
   const MinPlaneDirection: TVector3Single): boolean;
 var
   GravityPlane: TVector4Single;
 begin
-  if IsEmptyBox3d(MinPlaneBox) then
+  if IsEmptyBox3D(MinPlaneBox) then
     Result := false else
   begin
     { TODO: instead of setting Result to false, this should
@@ -1146,7 +1146,7 @@ begin
 
       Doesn't seem to matter in practice, it's not noticeable. }
 
-    GravityPlane := Box3dMinimumPlane(MinPlaneBox, MinPlaneDirection);
+    GravityPlane := Box3DMinimumPlane(MinPlaneBox, MinPlaneDirection);
     Result := GravityPlane[0] * NewPos[0] +
               GravityPlane[1] * NewPos[1] +
               GravityPlane[2] * NewPos[2] +
@@ -1169,7 +1169,7 @@ end;
 
 function TVRMLBaseTrianglesOctree.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
-  const ProposedNewBox: TBox3d;
+  const ProposedNewBox: TBox3D;
   const TriangleToIgnore: PVRMLTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
@@ -1428,7 +1428,7 @@ function TVRMLBaseTrianglesOctree.MoveAllowed(
   out NewPos: TVector3Single;
   const CameraRadius: Single;
   const KeepAboveMinPlane: boolean;
-  const MinPlaneBox: TBox3d;
+  const MinPlaneBox: TBox3D;
   const MinPlaneDirection: TVector3Single;
   const TriangleToIgnore: PVRMLTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -1514,17 +1514,17 @@ begin
 
     Od pozycji LightedPoint odejmujemy wydluzone Direction swiatla.
 
-    3 * Box3dMaxSize(Octree.TreeRoot.Box) na pewno jest odlegloscia
+    3 * Box3DMaxSize(Octree.TreeRoot.Box) na pewno jest odlegloscia
     ktora sprawi ze LightPos bedzie poza Octree.TreeRoot.Box
     (bo gdyby nawet Octree.TreeRoot.Box byl szescianem to jego przekatna
-    ma dlugosc tylko Sqrt(2) * Sqrt(2) * Box3dMaxSize(Octree.TreeRoot.Box)
-    (= 2 * Box3dMaxSize(Octree.TreeRoot.Box))
+    ma dlugosc tylko Sqrt(2) * Sqrt(2) * Box3DMaxSize(Octree.TreeRoot.Box)
+    (= 2 * Box3DMaxSize(Octree.TreeRoot.Box))
     W ten sposob otrzymujemy punkt ktory na pewno lezy POZA TreeRoot.Box
     i jezeli nic nie zaslania drogi od Point do tego punktu to
     znaczy ze swiatlo oswietla Intersection. }
   LightPos := VectorSubtract(LightedPoint,
     VectorAdjustToLength(Light.TransfNormDirection,
-      3 * Box3dMaxSize(InternalTreeRoot.Box) ) ) else
+      3 * Box3DMaxSize(InternalTreeRoot.Box) ) ) else
   LightPos := Light.TransfLocation;
 
  Result := (VectorsSamePlaneDirections(

@@ -563,7 +563,7 @@ end;
 
 function TKamSceneManager.CreateDefaultCamera(AOwner: TComponent): TCamera;
 var
-  Box: TBox3d;
+  Box: TBox3D;
 begin
   Box := Items.BoundingBox;
   if MainScene <> nil then
@@ -571,7 +571,7 @@ begin
   begin
     Result := TExamineCamera.Create(AOwner);
     (Result as TExamineCamera).Init(Box,
-      { CameraRadius = } Box3dAvgSize(Box, 1.0) * 0.005);
+      { CameraRadius = } Box3DAvgSize(Box, 1.0) * 0.005);
   end;
 end;
 
@@ -585,8 +585,8 @@ var
   begin
     glViewport(0, 0, ContainerWidth, ContainerHeight);
     ProjectionGLPerspective(45.0, ContainerWidth / ContainerHeight,
-      Box3dAvgSize(Box, 1.0) * 0.01,
-      Box3dMaxSize(Box, 1.0) * 10.0);
+      Box3DAvgSize(Box, 1.0) * 0.01,
+      Box3DMaxSize(Box, 1.0) * 10.0);
 
     { update Camera.ProjectionMatrix }
     glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);

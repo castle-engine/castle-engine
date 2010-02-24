@@ -41,7 +41,7 @@
 
 program shadow_fields;
 
-uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3d,
+uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3D,
   GLWindow, VRMLGLScene, VRMLErrors, Cameras,
   ShadowFields, KambiUtils, CubeMap, VRMLNodes,
   SphericalHarmonics, GLCubeMap, GLWinMessages, VRMLShape;
@@ -167,13 +167,13 @@ begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(NavigatorAll.Matrix);
 
-  if UseEnvLight and (not IsEmptyBox3d(SceneReceiver.BoundingBox)) then
+  if UseEnvLight and (not IsEmptyBox3D(SceneReceiver.BoundingBox)) then
   begin
     { SHVectorGLCapture wil draw maps, get them,
       and calculate EnvLightSHVector describing the light contribution
       (this will be used then by SceneReceiver.Render, during VertexColor). }
 
-    SHVectorGLCapture(EnvLightSHVector, Box3dMiddle(SceneReceiver.BoundingBox),
+    SHVectorGLCapture(EnvLightSHVector, Box3DMiddle(SceneReceiver.BoundingBox),
       @DrawEnvLight, 50, 50, 1 { no ScaleColor ---
         we will apply light intensity at VertexColor });
     glViewport(0, 0, Glwin.Width, Glwin.Height);
@@ -522,7 +522,7 @@ var
   ShadowReceiverFileName: string = 'models/plane.wrl';
   LocalLightFileName: string = 'models/sphere.wrl';
 
-  BoxSum: TBox3d;
+  BoxSum: TBox3D;
   V: TVector3Single;
 begin
   Glw := TGLUIWindow.Create(Application);
@@ -567,16 +567,16 @@ begin
     NavigatorLocalLight := TExamineCamera.Create(Glw);
     NavigatorLocalLight.ModelBox := SceneLocalLight.BoundingBox;
 
-    BoxSum := Box3dSum(SceneCaster.BoundingBox, SceneReceiver.BoundingBox);
+    BoxSum := Box3DSum(SceneCaster.BoundingBox, SceneReceiver.BoundingBox);
 
     { calculate starting local light position,
       and set this as NavigatorLocalLight.MoveAmount }
-    if IsEmptyBox3d(BoxSum) then
+    if IsEmptyBox3D(BoxSum) then
     begin
       V := Vector3Single(0, 0, 1);
     end else
     begin
-      V := Box3dMiddle(BoxSum);
+      V := Box3DMiddle(BoxSum);
       V[0] := BoxSum[0][0];
     end;
     NavigatorLocalLight.MoveAmount := V;
@@ -588,12 +588,12 @@ begin
 
     { calculate starting sf explorer position,
       and set this as NavigatorSFExplorer.MoveAmount }
-    if IsEmptyBox3d(BoxSum) then
+    if IsEmptyBox3D(BoxSum) then
     begin
       V := Vector3Single(0, 0, 1);
     end else
     begin
-      V := Box3dMiddle(BoxSum);
+      V := Box3DMiddle(BoxSum);
       V[0] := BoxSum[1][0];
     end;
     NavigatorSFExplorer.MoveAmount := V;
@@ -605,12 +605,12 @@ begin
 
     { calculate starting env light position,
       and set this as NavigatorEnvLight.MoveAmount }
-    if IsEmptyBox3d(BoxSum) then
+    if IsEmptyBox3D(BoxSum) then
     begin
       V := Vector3Single(0, 0, 1);
     end else
     begin
-      V := Box3dMiddle(BoxSum);
+      V := Box3DMiddle(BoxSum);
       V[1] := BoxSum[0][1];
     end;
     NavigatorEnvLight.MoveAmount := V;

@@ -116,7 +116,7 @@
     public property FdzSpacing: TSFDouble read FFdzSpacing;
 
     { Geometry node not implemented } { }
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;

@@ -61,7 +61,7 @@ unit Object3ds;
 interface
 
 uses KambiUtils, Classes, KambiClassUtils, SysUtils, Object3dsMaterial,
-  Object3dsChunks, Boxes3d, VectorMath;
+  Object3dsChunks, Boxes3D, VectorMath;
 
 {$define read_interface}
 
@@ -130,7 +130,7 @@ type
   private
     FVertsCount, FFacesCount: Word;
     FHasTexCoords: boolean;
-    FBoundingBox: TBox3d;
+    FBoundingBox: TBox3D;
   public
     { Verts i Faces read-only from outside }
     Verts: PArray_Vertex3ds;
@@ -153,7 +153,7 @@ type
       Stream: TStream; ObjectEndPos: Int64); override;
     destructor Destroy; override;
 
-    property BoundingBox: TBox3d read FBoundingBox;
+    property BoundingBox: TBox3D read FBoundingBox;
   end;
 
   TCamera3ds = class(TObject3ds)
@@ -202,7 +202,7 @@ type
 
   TScene3ds = class(TObjectBBox)
   private
-    FBoundingBox: TBox3d;
+    FBoundingBox: TBox3D;
   public
     {Trimeshes objects on this list are created and destroyed by TScene3ds
      object - so Trimeshes property is read-only from outside of this class !
@@ -226,7 +226,7 @@ type
       wpp. zwraca IdentityMatrix. }
     function TryCameraMatrix(CamNumber: integer): TMatrix4Single;
 
-    function BoundingBox: TBox3d; override;
+    function BoundingBox: TBox3D; override;
   end;
 
 function CreateObject3ds(AScene: Tscene3ds; Stream: TStream;
@@ -555,9 +555,9 @@ constructor TScene3ds.Create(Stream: TStream);
   var i: integer;
   begin
    {calculate bounding box as a sum of BoundingBoxes of all trimeshes}
-   fBoundingBox := EmptyBox3d;
+   fBoundingBox := EmptyBox3D;
    for i := 0 to Trimeshes.Count-1 do
-    Box3dSumTo1st(fBoundingBox, Trimeshes[i].BoundingBox);
+    Box3DSumTo1st(fBoundingBox, Trimeshes[i].BoundingBox);
   end;
 
 var hmain, hsubmain, hsubObjMesh: TChunkHeader;
@@ -674,8 +674,8 @@ begin
     Trimeshes[i].VertsCount, ' vertices, ',Trimeshes[i].FacesCount, ' triangles');
  Writeln('All trimeshes sum : ',SumTrimeshesVertsCount, ' vertices, ',
    SumTrimeshesFacesCount, ' triangles');
- Writeln('Bounding box : ',Box3dToNiceStr(BoundingBox),
-   ', average size : ',Format('%f', [Box3dAvgSize(BoundingBox)]) );
+ Writeln('Bounding box : ',Box3DToNiceStr(BoundingBox),
+   ', average size : ',Format('%f', [Box3DAvgSize(BoundingBox)]) );
 end;
 
 function TScene3ds.TryCameraMatrix(CamNumber: integer): TMatrix4Single;
@@ -685,7 +685,7 @@ begin
   result := IdentityMatrix4Single;
 end;
 
-function TScene3ds.BoundingBox: TBox3d;
+function TScene3ds.BoundingBox: TBox3D;
 begin result := FBoundingBox end;
 
 end.

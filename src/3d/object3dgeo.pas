@@ -26,21 +26,21 @@ unit Object3dGEO;
 
 interface
 
-uses VectorMath, KambiUtils, Classes, KambiClassUtils, SysUtils, Boxes3d;
+uses VectorMath, KambiUtils, Classes, KambiClassUtils, SysUtils, Boxes3D;
 
 type
   { Simple reader of GEO files.
     Note that contents of Verts and Faces are read-only for user of this unit. }
   TObject3dGEO = class(TObjectBBox)
   private
-    FBoundingBox: TBox3d;
+    FBoundingBox: TBox3D;
   public
     Verts: TDynVector3SingleArray;
     Faces: TDynVector3CardinalArray;
 
     constructor Create(const fname: string);
     destructor Destroy; override;
-    function BoundingBox: TBox3d; override;
+    function BoundingBox: TBox3D; override;
   end;
 
 implementation
@@ -173,7 +173,7 @@ begin
  inherited;
 end;
 
-function TObject3dGEO.BoundingBox: TBox3d;
+function TObject3dGEO.BoundingBox: TBox3D;
 begin
   result := FBoundingBox
 end;

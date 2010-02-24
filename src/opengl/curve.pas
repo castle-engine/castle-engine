@@ -91,7 +91,7 @@ type
   protected
     FTVariable: TKamScriptFloat;
     FXFunction, FYFunction, FZFunction: TKamScriptExpression;
-    FBoundingBox: TBox3d;
+    FBoundingBox: TBox3D;
   public
     function Point(const t: Float): TVector3Single; override;
 
@@ -110,7 +110,7 @@ type
       a BoundingBox of Point(i, SegmentsForBoundingBox)
       for i in [0 .. SegmentsForBoundingBox].
       Subclasses may override this to calculate something more accurate. }
-    function BoundingBox: TBox3d; override;
+    function BoundingBox: TBox3D; override;
 
     { XFunction, YFunction, ZFunction references are copied here,
       and will be freed in destructor (so don't Free them yourself). }
@@ -128,7 +128,7 @@ type
     values of T (argument for Point function) and ControlPoints. }
   TControlPointsCurve = class(TCurve)
   private
-    FBoundingBox: TBox3d;
+    FBoundingBox: TBox3D;
   protected
     { Using these function you can control how Convex Hull (for RenderConvexHull)
       is calculated: CreateConvexHullPoints should return points that must be
@@ -154,7 +154,7 @@ type
     { This class provides implementation for BoundingBox: it is simply
       a BoundingBox of ControlPoints. Subclasses may (but don't have to)
       override this to calculate better (more accurate) BoundingBox. }
-    function BoundingBox: TBox3d; override;
+    function BoundingBox: TBox3D; override;
 
     { Always after changing ControlPoints and before calling Point,
       BoundingBox (and anything that calls them, e.g. Render calls Point)
@@ -338,7 +338,7 @@ begin
    VectorToNiceStr(Result), ')');}
 end;
 
-function TKamScriptCurve.BoundingBox: TBox3d;
+function TKamScriptCurve.BoundingBox: TBox3D;
 begin
  Result := FBoundingBox;
 end;
@@ -389,7 +389,7 @@ begin
  glEnd;
 end;
 
-function TControlPointsCurve.BoundingBox: TBox3d;
+function TControlPointsCurve.BoundingBox: TBox3D;
 begin
  Result := FBoundingBox;
 end;
@@ -433,7 +433,7 @@ begin
  ControlPoints := TDynVector3SingleArray.Create;
  { DON'T call UpdateControlPoints from here - UpdateControlPoints is virtual !
    So we set FBoundingBox by hand. }
- FBoundingBox := EmptyBox3d;
+ FBoundingBox := EmptyBox3D;
 end;
 
 constructor TControlPointsCurve.CreateDivideKamScriptCurve(

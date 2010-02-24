@@ -183,7 +183,7 @@ end;
 
 function TMyGeometry.BoundingBox: TBox3D;
 const
-  SceneBoundingBox: TBox3d =
+  SceneBoundingBox: TBox3D =
   ( (-8, -3, -3),
     ( 8,  15,  3) );
 begin

@@ -385,14 +385,14 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
     function MoveBoxAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
-      const ProposedNewBox: TBox3d;
+      const ProposedNewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
 
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
-    function BoxCollision(const Box: TBox3d;
+    function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
 
     { Check collision with a ray, building a T3DCollision result.
@@ -462,7 +462,7 @@ type
     procedure Clear;
     { @groupEnd }
 
-    function BoundingBox: TBox3d; override;
+    function BoundingBox: TBox3D; override;
     procedure Render(const Frustum: TFrustum;
       TransparentGroup: TTransparentGroup; InShadow: boolean); override;
     procedure RenderShadowVolume(
@@ -496,13 +496,13 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function MoveBoxAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
-      const ProposedNewBox: TBox3d;
+      const ProposedNewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function BoxCollision(const Box: TBox3d;
+    function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function RayCollision(
       out IntersectionDistance: Single;
@@ -668,7 +668,7 @@ end;
 
 function T3D.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
-  const ProposedNewBox: TBox3d;
+  const ProposedNewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := true;
@@ -686,7 +686,7 @@ begin
   Result := false;
 end;
 
-function T3D.BoxCollision(const Box: TBox3d;
+function T3D.BoxCollision(const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := false;
@@ -806,14 +806,14 @@ begin
   List.Clear;
 end;
 
-function T3DList.BoundingBox: TBox3d;
+function T3DList.BoundingBox: TBox3D;
 var
   I: Integer;
 begin
   Result := EmptyBox3D;
   if Exists then
     for I := 0 to List.Count - 1 do
-      Box3dSumTo1st(Result, List[I].BoundingBox);
+      Box3DSumTo1st(Result, List[I].BoundingBox);
 end;
 
 procedure T3DList.Render(const Frustum: TFrustum;
@@ -1069,7 +1069,7 @@ end;
 
 function T3DList.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
-  const ProposedNewBox: TBox3d;
+  const ProposedNewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   I: Integer;
@@ -1115,7 +1115,7 @@ begin
     end;
 end;
 
-function T3DList.BoxCollision(const Box: TBox3d;
+function T3DList.BoxCollision(const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   I: Integer;

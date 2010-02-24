@@ -29,7 +29,7 @@ type
 
 implementation
 
-uses VRMLNodes, VRMLScene, VRMLGLScene, Boxes3d, VectorMath;
+uses VRMLNodes, VRMLScene, VRMLGLScene, Boxes3D, VectorMath;
 
 procedure TTestVRMLGLScene.TestVRMLGLScene;
 
@@ -43,7 +43,7 @@ procedure TTestVRMLGLScene.TestVRMLGLScene;
    Assert(EmptyScene.TrianglesCount(false) = 0);
    Assert(EmptyScene.TrianglesCount(true) = 0);
 
-   Assert(IsEmptyBox3d(EmptyScene.BoundingBox));
+   Assert(IsEmptyBox3D(EmptyScene.BoundingBox));
 
    Assert(EmptyScene.ShapesActiveCount = 0);
 

@@ -30,7 +30,7 @@ uses VectorMath, GL, GLU, GLExt, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes,
   KambiGLUtils, VRMLScene, VRMLGLScene,
   KambiFilesUtils, KambiStringUtils, VRMLErrors, GLShaders, VRMLShape,
-  VRMLFields, Images, Boxes3d, GLImages, GLWinMessages, DataErrors,
+  VRMLFields, Images, Boxes3D, GLImages, GLWinMessages, DataErrors,
   GLVersionUnit, Math, VRMLTriangle, KambiSceneManager;
 
 type
@@ -365,7 +365,7 @@ begin
 
   { calculate PositionScale, PositionShift.
     We have min/max in Scene.BoundingBox. }
-  PositionScale := Box3dSizes(Scene.BoundingBox);
+  PositionScale := Box3DSizes(Scene.BoundingBox);
   for I := 0 to 2 do
   begin
     if PositionScale[I] = 0 then
@@ -377,7 +377,7 @@ begin
   Writeln('To squeeze positions into texture we use scale = ',
     VectorToNiceStr(PositionScale), ' and shift ',
     VectorToNiceStr(PositionShift), ' (bbox is ',
-    Box3dToNiceStr(Scene.BoundingBox), ')');
+    Box3DToNiceStr(Scene.BoundingBox), ')');
 
   { initialize textures }
   FreeAndNil(ElementsPositionAreaTex);
@@ -722,7 +722,7 @@ var
   ShaderString: string;
 begin
   if (Elements.Count = 0) or
-     IsEmptyBox3d(Scene.BoundingBox) then
+     IsEmptyBox3D(Scene.BoundingBox) then
   begin
     Glw.Controls.Remove(SceneManager); { do not try to render }
     MessageOk(Glwin, 'No elements, or empty bounding box --- we cannot do dyn ambient occlusion. Exiting.', taLeft);

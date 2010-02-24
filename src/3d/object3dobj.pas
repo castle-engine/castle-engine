@@ -27,7 +27,7 @@ unit Object3dOBJ;
 
 interface
 
-uses VectorMath, KambiUtils, Classes, KambiClassUtils, SysUtils, Boxes3d;
+uses VectorMath, KambiUtils, Classes, KambiClassUtils, SysUtils, Boxes3D;
 
 {$define read_interface}
 
@@ -77,7 +77,7 @@ type
     FTexCoords: TDynVector2SingleArray;
     FNormals: TDynVector3SingleArray;
     FFaces: TDynWavefrontFaceArray;
-    FBoundingBox: TBox3d;
+    FBoundingBox: TBox3D;
     FMaterials: TWavefrontMaterialsList;
   public
     constructor Create(const fname: string);
@@ -97,7 +97,7 @@ type
 
     property Materials: TWavefrontMaterialsList read FMaterials;
 
-    function BoundingBox: TBox3d; override;
+    function BoundingBox: TBox3D; override;
   end;
 
   EInvalidOBJFile = class(Exception);
@@ -468,7 +468,7 @@ begin
   inherited;
 end;
 
-function TObject3dOBJ.BoundingBox: TBox3d;
+function TObject3dOBJ.BoundingBox: TBox3D;
 begin
   Result := FBoundingBox;
 end;

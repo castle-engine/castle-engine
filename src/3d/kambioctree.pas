@@ -53,7 +53,7 @@ type
   TMyOctree = class(TOctree)
   public
     constructor Create(AMaxDepth, ALeafCapacity: Integer;
-      const ARootBox: TBox3d);
+      const ARootBox: TBox3D);
     function TreeRoot: TMyOctreeNode;
   end;
 
@@ -71,7 +71,7 @@ begin
 end;
 
 constructor TMyOctree.Create(AMaxDepth, ALeafCapacity: Integer;
-  const ARootBox: TBox3d);
+  const ARootBox: TBox3D);
 begin
  inherited Create(AMaxDepth, ALeafCapacity, ARootBox,
    TMyOctreeNode);
@@ -88,7 +88,7 @@ unit KambiOctree;
 
 interface
 
-uses SysUtils, VectorMath, Boxes3d, KambiUtils, Frustum, Contnrs;
+uses SysUtils, VectorMath, Boxes3D, KambiUtils, Frustum, Contnrs;
 
 type
   { }
@@ -105,7 +105,7 @@ type
   TOctreeNode = class
   private
     { read-only after the object is created }
-    FBox: TBox3d;
+    FBox: TBox3D;
     FMiddlePoint: TVector3Single;
     FDepth: Integer;
     FParentTree: TOctree;
@@ -216,7 +216,7 @@ type
       with such MiddlePoint will yield better hierarchical division
       of your scene.
 
-      Special case: when IsEmptyBox3d(Box), then value of MiddlePoint
+      Special case: when IsEmptyBox3D(Box), then value of MiddlePoint
       is undefined.  }
     property MiddlePoint: TVector3Single read fMiddlePoint;
 
@@ -229,9 +229,9 @@ type
       te wystajace czesci uwzglednialo. Tylko te kawalki trojkatow ktore beda
       sie miescily w Box maja gwarantowana poprawna obsluge.
 
-      Special case: when IsEmptyBox3d(Box), then MiddlePoint has undefined
+      Special case: when IsEmptyBox3D(Box), then MiddlePoint has undefined
       value and IsLeaf *must be true*. }
-    property Box: TBox3d read fBox;
+    property Box: TBox3D read fBox;
 
     { BoundingSphereCenter and BoundingSphereRadius are simply calculated
       as the smallest possible sphere enclosing Box.
@@ -250,7 +250,7 @@ type
     { This calculates MiddlePoint as middle of ABox,
       or as (0, 0, 0) if ABox is empty.
       Then it simply calls @link(CreateBase) }
-    constructor Create(const ABox: TBox3d; AParentTree: TOctree;
+    constructor Create(const ABox: TBox3D; AParentTree: TOctree;
       AParentNode: TOctreeNode;
       ADepth: integer; AsLeaf: boolean);
 
@@ -260,7 +260,7 @@ type
       must be able to construct new instances of class
       using class reference (given by Self.ClassType in CreateTreeSubNodes
       or OctreeNodeFinalClass in TOctree.Create). }
-    constructor CreateBase(const ABox: TBox3d; AParentTree: TOctree;
+    constructor CreateBase(const ABox: TBox3D; AParentTree: TOctree;
       AParentNode: TOctreeNode;
       ADepth: integer; AsLeaf: boolean;
       const AMiddlePoint: TVector3Single); virtual;
@@ -277,7 +277,7 @@ type
     function SubnodeWithPoint(const P: TVector3Single):
       TOctreeSubnodeIndex; overload;
 
-    procedure SubnodesWithBox(const ABox: TBox3d;
+    procedure SubnodesWithBox(const ABox: TBox3D;
       out SubnodeLow, SubnodeHigh: TOctreeSubnodeIndex);
 
     { Simple check for frustum collision. }
@@ -395,10 +395,10 @@ type
       read FOctreeNodeFinalClass;
 
     constructor Create(AMaxDepth, ALeafCapacity: integer;
-      const ARootBox: TBox3d; AOctreeNodeFinalClass: TOctreeNodeClass;
+      const ARootBox: TBox3D; AOctreeNodeFinalClass: TOctreeNodeClass;
       AItemsInNonLeafNodes: boolean);
     constructor Create(const Limits: TOctreeLimits;
-      const ARootBox: TBox3d; AOctreeNodeFinalClass: TOctreeNodeClass;
+      const ARootBox: TBox3D; AOctreeNodeFinalClass: TOctreeNodeClass;
       AItemsInNonLeafNodes: boolean);
     destructor Destroy; override;
 
@@ -477,7 +477,7 @@ uses KambiStringUtils;
 procedure TOctreeNode.CreateTreeSubNodes(AsLeaves: boolean);
 var b: TOctreeSubnodeIndex;
     b_0, b_1, b_2: boolean;
-    SubBox: TBox3d;
+    SubBox: TBox3D;
     i: integer;
 begin
  for b_0 := Low(boolean) to High(boolean) do
@@ -564,30 +564,30 @@ begin
   ItemsIndices.Add(ItemIndex);
 end;
 
-constructor TOctreeNode.Create(const ABox: TBox3d; AParentTree: TOctree;
+constructor TOctreeNode.Create(const ABox: TBox3D; AParentTree: TOctree;
   AParentNode: TOctreeNode;
   ADepth: integer; AsLeaf: boolean);
 var AMiddlePoint: TVector3Single;
 begin
- if IsEmptyBox3d(ABox) then
+ if IsEmptyBox3D(ABox) then
  begin
   Check(AsLeaf, 'TOctreeNode.Create error: attempt to create non-leaf'
     +' node with empty bounding box');
   AMiddlePoint := Vector3Single(0, 0, 0);
  end else
-  AMiddlePoint := Box3dMiddle(ABox);
+  AMiddlePoint := Box3DMiddle(ABox);
 
  CreateBase(ABox, AParentTree, AParentNode, ADepth, AsLeaf, AMiddlePoint);
 end;
 
-constructor TOctreeNode.CreateBase(const ABox: TBox3d;
+constructor TOctreeNode.CreateBase(const ABox: TBox3D;
   AParentTree: TOctree; AParentNode: TOctreeNode;
   ADepth: integer; AsLeaf: boolean; const AMiddlePoint: TVector3Single);
 begin
  inherited Create;
 
  FBox := ABox;
- BoundingSphereFromBox3d(Box, FBoundingSphereCenter, FBoundingSphereRadiusSqr);
+ BoundingSphereFromBox3D(Box, FBoundingSphereCenter, FBoundingSphereRadiusSqr);
  FMiddlePoint := AMiddlePoint;
 
  FParentTree := AParentTree;
@@ -621,7 +621,7 @@ SubnodeWithPoint_IMPLEMENT
 
 {$undef SubnodeWithPoint_IMPLEMENT}
 
-procedure TOctreeNode.SubnodesWithBox(const ABox: TBox3d;
+procedure TOctreeNode.SubnodesWithBox(const ABox: TBox3D;
   out SubnodeLow, SubnodeHigh: TOctreeSubnodeIndex);
 var i: Integer;
 begin
@@ -657,7 +657,7 @@ begin
    it's much faster than checking for collision versus box,
    which can be clearly seen comparing implementations of
    Frustum.SphereCollisionPossible and
-   FrustumBox3dCollisionPossible.
+   FrustumBox3DCollisionPossible.
 
    Disadvantage: bounding sphere is worse description of
    octree node's geometry (i.e. it's simply always larger then
@@ -674,7 +674,7 @@ begin
  if Frustum.SphereCollisionPossibleSimple(
       BoundingSphereCenter, BoundingSphereRadiusSqr) then
  begin
-  case Frustum.Box3dCollisionPossible(Box) of
+  case Frustum.Box3DCollisionPossible(Box) of
    fcNoCollision: ;
    fcSomeCollisionPossible:
      if IsLeaf then
@@ -682,7 +682,7 @@ begin
      begin
       { Once I had an idea to do an optimization to code below.
         For now, every recursive call to EnumerateCollidingOctreeItems
-        potentially results in a call to FrustumBox3dCollisionPossible.
+        potentially results in a call to FrustumBox3DCollisionPossible.
         But inside this call, the same points are often calculated
         versus the same Frustum many times
         (because 8 points, on 8 edges of my Box, are shared by 2 children;
@@ -746,7 +746,7 @@ begin
   Result :=
     Frustum.SphereCollisionPossibleSimple(
       BoundingSphereCenter, BoundingSphereRadiusSqr) and
-    Frustum.Box3dCollisionPossibleSimple(Box);
+    Frustum.Box3DCollisionPossibleSimple(Box);
 end;
 
 procedure TOctreeNode.PushChildrenFrontToBack(List: TOrderedList;
@@ -816,7 +816,7 @@ end;
 { TOctree ------------------------------------------------------------ }
 
 constructor TOctree.Create(AMaxDepth, ALeafCapacity: integer;
-  const ARootBox: TBox3d; AOctreeNodeFinalClass: TOctreeNodeClass;
+  const ARootBox: TBox3D; AOctreeNodeFinalClass: TOctreeNodeClass;
   AItemsInNonLeafNodes: boolean);
 begin
  inherited Create;
@@ -828,7 +828,7 @@ begin
 end;
 
 constructor TOctree.Create(const Limits: TOctreeLimits;
-  const ARootBox: TBox3d; AOctreeNodeFinalClass: TOctreeNodeClass;
+  const ARootBox: TBox3D; AOctreeNodeFinalClass: TOctreeNodeClass;
   AItemsInNonLeafNodes: boolean);
 begin
   Create(Limits.MaxDepth, Limits.LeafCapacity,

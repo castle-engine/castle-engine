@@ -325,7 +325,7 @@ interface
 
 uses
   Classes, SysUtils, KambiUtils, VectorMath, GL, GLU, GLExt,
-  VRMLFields, VRMLNodes, VRMLLexer, Boxes3d, OpenGLTTFonts, Images,
+  VRMLFields, VRMLNodes, VRMLLexer, Boxes3D, OpenGLTTFonts, Images,
   KambiGLUtils, VRMLLightSetGL, TTFontsTypes,
   VRMLErrors, GLShaders, GLImages, Videos, VRMLTime, VRMLShape,
   GLCubeMap, TextureImages, KambiClassUtils, DDS;
@@ -4558,7 +4558,7 @@ var
   begin
     { Shape.BoundingBox must be non-empty, otherwise we don't know from what
       3D point to capture environment. }
-    if IsEmptyBox3d(Shape.BoundingBox) then Exit;
+    if IsEmptyBox3D(Shape.BoundingBox) then Exit;
 
     if CheckUpdate(TexNode.GeneratedTextureHandler) then
     begin
@@ -4567,7 +4567,7 @@ var
       begin
         GLNode.Update(Render, ProjectionNear, ProjectionFar,
           NeedsRestoreViewport,
-          Box3dMiddle(Shape.BoundingBox));
+          Box3DMiddle(Shape.BoundingBox));
 
         PostUpdate;
 

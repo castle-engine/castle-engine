@@ -56,7 +56,7 @@
 
 program direct_vrmlglscene_test_2;
 
-uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLWindow,
+uses VectorMath, Boxes3D, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes,
   KambiGLUtils, VRMLScene, VRMLGLScene, Cameras, Base3D,
   ProgressUnit, ProgressConsole, KambiFilesUtils, VRMLErrors, VRMLTriangle;
@@ -144,9 +144,9 @@ begin
     { init camera }
     Camera := Scene.CreateCamera(Glw, 'WALK') as TWalkCamera;
     Camera.SetInitialCameraLookDir(
-      Box3dMiddle(scene.BoundingBox),
+      Box3DMiddle(scene.BoundingBox),
       VectorAdjustToLength(Vector3Single(1, 0, 0),
-        Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
+        Box3DAvgSize(Scene.BoundingBox) * 0.01*0.4),
       Vector3Single(0, 1, 0), false);
     Camera.Home;
     Camera.OnMoveAllowed    := @THelperObj(nil).MoveAllowed;

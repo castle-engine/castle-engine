@@ -268,7 +268,7 @@ unit VRMLNodes;
 interface
 
 uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
-  VRMLFields, Boxes3d, Images, TTFontsTypes, BackgroundBase, VRMLErrors,
+  VRMLFields, Boxes3D, Images, TTFontsTypes, BackgroundBase, VRMLErrors,
   Videos, VRMLTime, Base3D,
   KambiScript, VRMLKambiScript, KambiOctree, DDS, TextureImages;
 
@@ -2271,8 +2271,8 @@ type
       )
 
       @groupBegin }
-    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; virtual;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; virtual;
+    function BoundingBox(State: TVRMLGraphTraverseState): TBox3D; virtual;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; virtual;
     { @groupEnd }
 
     { Calculate vertex and triangles count of this node.
@@ -2559,7 +2559,7 @@ type
         by simply looking for matching "}". Such node will use default
         BoundingBox method implementation ---
         wiec w praktyce taki node nie bedzie robil zadnego renderingu i mial
-        BoundingBox = EmptyBox3d.
+        BoundingBox = EmptyBox3D.
         Uwaga - *AllowedChildren bedzie = false.)
 
       @item(
@@ -3546,9 +3546,9 @@ uses
 {$define read_implementation}
 
 {$define GeometryNotImplemented :=
-  function TGeometryNotImplemented.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+  function TGeometryNotImplemented.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
   begin
-    Result := EmptyBox3d;
+    Result := EmptyBox3D;
   end;
 
   function TGeometryNotImplemented.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;

@@ -20,7 +20,7 @@ unit Cameras;
 
 interface
 
-uses SysUtils, VectorMath, KambiUtils, KeysMouse, Boxes3d, Quaternions, Frustum,
+uses SysUtils, VectorMath, KambiUtils, KeysMouse, Boxes3D, Quaternions, Frustum,
   UIControls, Classes, RaysWindow, Base3D;
 
 const
@@ -395,12 +395,12 @@ type
       the whole exercise useless. }
     FRotationsAnim: TVector3Single;
     FScaleFactor: Single;
-    FModelBox: TBox3d;
+    FModelBox: TBox3D;
     procedure SetRotationsAnim(const Value: TVector3Single);
     procedure SetRotations(const Value: TQuaternion);
     procedure SetScaleFactor(const Value: Single);
     procedure SetMoveAmount(const Value: TVector3Single);
-    procedure SetModelBox(const Value: TBox3d);
+    procedure SetModelBox(const Value: TBox3D);
   private
     FInputs_Move: T3BoolInputs;
     FInputs_Rotate: T3BoolInputs;
@@ -474,8 +474,8 @@ type
       So often you only need to set ModelBox, once,
       and everything else will work smoothly.
 
-      Initially this is EmptyBox3d. }
-    property ModelBox: TBox3d read FModelBox write SetModelBox;
+      Initially this is EmptyBox3D. }
+    property ModelBox: TBox3D read FModelBox write SetModelBox;
 
     { Initializes most important properties of this class:
       ModelBox, and MoveAmount. MoveAmount is set such that
@@ -485,7 +485,7 @@ type
 
       In other words, this is just a shortcut to setting ModelBox
       and then calling @link(Home). }
-    procedure Init(const AModelBox: TBox3d; const ACameraRadius: Single = 0);
+    procedure Init(const AModelBox: TBox3D; const ACameraRadius: Single = 0);
     procedure Home;
 
     { Methods performing navigation.
@@ -1000,7 +1000,7 @@ type
       sets current CameraXxx properties to InitialCameraXxx.
       Sets GravityUp to the same thing as InitialUp.
       Sets also CameraPreferredHeight to make it behave "sensibly". }
-    procedure Init(const box: TBox3d; const ACameraRadius: Single); overload;
+    procedure Init(const box: TBox3D; const ACameraRadius: Single); overload;
 
     procedure Home;
 
@@ -1708,7 +1708,7 @@ begin
   FMouseNavigation := true;
   ExclusiveEvents := false;
 
-  FModelBox := EmptyBox3d;
+  FModelBox := EmptyBox3D;
 
   { Set ScaleFactor, Rotations and other things to default values.
     Don't notify here OnVisibleChange, since we're just created
@@ -1813,9 +1813,9 @@ begin
     VisibleChange;
   end;
 
-  if IsEmptyBox3d(ModelBox) then
+  if IsEmptyBox3D(ModelBox) then
     move_change := CompSpeed else
-    move_change := Box3dAvgSize(ModelBox) * CompSpeed;
+    move_change := Box3DAvgSize(ModelBox) * CompSpeed;
   rot_speed_change := 5 * CompSpeed;
 
   { we will apply CompSpeed to scale_change later }
@@ -1876,7 +1876,7 @@ begin FScaleFactor *= ScaleBy; VisibleChange; end;
 procedure TExamineCamera.Move(coord: integer; const MoveDistance: Single);
 begin FMoveAmount[coord] += MoveDistance; VisibleChange; end;
 
-procedure TExamineCamera.Init(const AModelBox: TBox3d; const ACameraRadius: Single);
+procedure TExamineCamera.Init(const AModelBox: TBox3D; const ACameraRadius: Single);
 begin
  ModelBox := AModelBox;
  CameraRadius := ACameraRadius;
@@ -1899,11 +1899,11 @@ begin FMoveAmount := Value; VisibleChange; end;
 
 procedure TExamineCamera.HomeNotNotify;
 begin
-  if IsEmptyBox3d(FModelBox) then
+  if IsEmptyBox3D(FModelBox) then
     FMoveAmount := Vector3Single(0, 0, 0) { any dummy value } else
     FMoveAmount := VectorAdd(
       VectorNegate(FModelBoxMiddle),
-      Vector3Single(0, 0, -Box3dAvgSize(FModelBox)*2));
+      Vector3Single(0, 0, -Box3DAvgSize(FModelBox)*2));
   FRotations := QuatIdentityRot;
   FRotationsAnim := ZeroVector3Single;
   FScaleFactor := 1.0;
@@ -1915,12 +1915,12 @@ begin
   VisibleChange;
 end;
 
-procedure TExamineCamera.SetModelBox(const Value: TBox3d);
+procedure TExamineCamera.SetModelBox(const Value: TBox3D);
 begin
   FModelBox := Value;
-  if IsEmptyBox3d(FModelBox) then
+  if IsEmptyBox3D(FModelBox) then
     FModelBoxMiddle := Vector3Single(0, 0, 0) { any dummy value } else
-    FModelBoxMiddle := Box3dMiddle(FModelBox);
+    FModelBoxMiddle := Box3DMiddle(FModelBox);
   VisibleChange;
 end;
 
@@ -2047,22 +2047,22 @@ begin
     meaning of mbLeft but they don't change the meaning of mbRight / Middle ? }
 
   { Moving closer/further }
-  if (not IsEmptyBox3d(FModelBox)) and
+  if (not IsEmptyBox3D(FModelBox)) and
      ( ( (mbRight in Container.MousePressed) and (ModsDown = []) ) or
        ( (mbLeft in Container.MousePressed) and (ModsDown = [mkCtrl]) ) ) then
   begin
-    Size := Box3dAvgSize(FModelBox);
+    Size := Box3DAvgSize(FModelBox);
     FMoveAmount[2] += Size * (NewY - OldY) / 200;
     VisibleChange;
     Result := ExclusiveEvents;
   end;
 
   { Moving left/right/down/up }
-  if (not IsEmptyBox3d(FModelBox)) and
+  if (not IsEmptyBox3D(FModelBox)) and
      ( ( (mbMiddle in Container.MousePressed) and (ModsDown = []) ) or
        ( (mbLeft in Container.MousePressed) and (ModsDown = [mkShift]) ) ) then
   begin
-    Size := Box3dAvgSize(FModelBox);
+    Size := Box3DAvgSize(FModelBox);
     FMoveAmount[0] -= Size * (OldX - NewX) / 200;
     FMoveAmount[1] -= Size * (NewY - OldY) / 200;
     VisibleChange;
@@ -3301,18 +3301,18 @@ begin
   Home;
 end;
 
-procedure TWalkCamera.Init(const Box: TBox3d; const ACameraRadius: Single);
+procedure TWalkCamera.Init(const Box: TBox3D; const ACameraRadius: Single);
 var Pos: TVector3Single;
     AvgSize: Single;
 begin
- if IsEmptyBox3d(Box) then
+ if IsEmptyBox3D(Box) then
   Init(Vector3Single(0, 0, 0),
        Vector3Single(0, 0, -1),
        Vector3Single(0, 1, 0),
        Vector3Single(0, 1, 0) { GravityUp is the same as InitialUp },
        0.0 { whatever }, ACameraRadius) else
  begin
-  AvgSize := Box3dAvgSize(Box);
+  AvgSize := Box3DAvgSize(Box);
   Pos[0] := Box[0, 0]-AvgSize;
   Pos[1] := (Box[0, 1]+Box[1, 1])/2;
   Pos[2] := (Box[0, 2]+Box[1, 2])/2;

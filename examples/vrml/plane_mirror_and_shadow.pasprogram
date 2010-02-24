@@ -50,7 +50,7 @@
 }
 program plane_mirror_and_shadow;
 
-uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
+uses VectorMath, Boxes3D, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLGLScene, Cameras, RenderStateUnit,
   KambiFilesUtils, VRMLErrors, KambiStringUtils, KeysMouse, KambiSceneManager;
@@ -296,7 +296,7 @@ var
   end;
 
 var
-  Box: TBox3d;
+  Box: TBox3D;
   BoxMaxSize: Single;
 
   procedure DrawFloor;
@@ -331,7 +331,7 @@ begin
   glPopAttrib;
 
   Box := Scene.BoundingBox;
-  if not IsEmptyBox3d(Box) then
+  if not IsEmptyBox3D(Box) then
   begin
     { Render normal Scene }
     glPushMatrix();
@@ -339,7 +339,7 @@ begin
       Scene.Render(nil, tgAll);
     glPopMatrix();
 
-    BoxMaxSize := Box3dMaxSize(Box);
+    BoxMaxSize := Box3DMaxSize(Box);
 
     { set stencil to 1 where plane is drawn }
     if UseStencil then
@@ -432,13 +432,13 @@ end;
 
 procedure TMySceneManager.ApplyProjection;
 var
-  Box: TBox3d;
+  Box: TBox3D;
   BoxMaxSize: Single;
 begin
   glViewport(0, 0, ContainerWidth, ContainerHeight);
 
   Box := Scene.BoundingBox;
-  BoxMaxSize := Box3dMaxSize(Box, { whatever, arbitrary number } 2);
+  BoxMaxSize := Box3DMaxSize(Box, { whatever, arbitrary number } 2);
 
   ProjectionGLPerspective(45.0, ContainerWidth / ContainerHeight,
     BoxMaxSize * 0.01, BoxMaxSize * 10.0);

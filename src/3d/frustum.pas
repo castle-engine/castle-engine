@@ -20,7 +20,7 @@ unit Frustum;
 
 interface
 
-uses VectorMath, Boxes3d;
+uses VectorMath, Boxes3D;
 
 type
   { Order of planes of TFrustum.
@@ -170,7 +170,7 @@ type
       or only part of sphere may be inside frustum.
 
       Note that it's guaranteed that if the whole sphere
-      (or the whole box in case of Box3dCollisionPossible)
+      (or the whole box in case of Box3DCollisionPossible)
       is inside the frustum that fcInsideFrustum will be returned,
       not fcSomeCollisionPossible.
 
@@ -190,7 +190,7 @@ type
       were found at
       [http://www.flipcode.com/articles/article_frustumculling.shtml].
 
-      @seealso TFrustum.Box3dCollisionPossible
+      @seealso TFrustum.Box3DCollisionPossible
     }
     function SphereCollisionPossible(
       const SphereCenter: TVector3Single; const SphereRadiusSqr: Single):
@@ -211,18 +211,18 @@ type
 
     { This is equivalent to @link(SphereCollisionPossible),
       but here it takes a box instead of a sphere. }
-    function Box3dCollisionPossible(
-      const Box: TBox3d): TFrustumCollisionPossible;
+    function Box3DCollisionPossible(
+      const Box: TBox3D): TFrustumCollisionPossible;
 
-    { This is like @link(Box3dCollisionPossible)
-      but it returns true when Box3dCollisionPossible
+    { This is like @link(Box3DCollisionPossible)
+      but it returns true when Box3DCollisionPossible
       would return fcSomeCollisionPossible or fcInsideFrustum.
-      Otherwise (when Box3dCollisionPossible would return
+      Otherwise (when Box3DCollisionPossible would return
       fcNoCollision) this returns false.
 
       So this returns less detailed result, but is a little faster. }
-    function Box3dCollisionPossibleSimple(
-      const Box: TBox3d): boolean;
+    function Box3DCollisionPossibleSimple(
+      const Box: TBox3D): boolean;
 
     function Move(const M: TVector3Single): TFrustum;
     procedure MoveTo1st(const M: TVector3Single);
@@ -504,8 +504,8 @@ begin
   Result := true;
 end;
 
-function TFrustum.Box3dCollisionPossible(
-  const Box: TBox3d): TFrustumCollisionPossible;
+function TFrustum.Box3DCollisionPossible(
+  const Box: TBox3D): TFrustumCollisionPossible;
 
 { Note: I tried to optimize this function,
   since it's crucial for TOctree.EnumerateCollidingOctreeItems,
@@ -539,7 +539,7 @@ begin
   begin
     { Don't be confused by names below: pcOutside means that box
       is where Planes[fp] normal points, which means *inside* the frustum... }
-    case Box3dPlaneCollision(Box, Planes[fp]) of
+    case Box3DPlaneCollision(Box, Planes[fp]) of
       pcInside: Exit(fcNoCollision);
       pcOutside: Inc(InsidePlanesCount);
     end;
@@ -550,11 +550,11 @@ begin
     Result := fcSomeCollisionPossible;
 end;
 
-function TFrustum.Box3dCollisionPossibleSimple(
-  const Box: TBox3d): boolean;
+function TFrustum.Box3DCollisionPossibleSimple(
+  const Box: TBox3D): boolean;
 
 { Implementation is obviously based on
-  TFrustum.Box3dCollisionPossible above, see there for more comments. }
+  TFrustum.Box3DCollisionPossible above, see there for more comments. }
 
 var
   fp: TFrustumPlane;
@@ -571,7 +571,7 @@ begin
     { Again, don't be confused by name "Inside" below: pcInside
       means that box is where Planes[fp] inverted normal points,
       which means *outside* the frustum... }
-    if Box3dPlaneCollisionInside(Box, Planes[fp]) then
+    if Box3DPlaneCollisionInside(Box, Planes[fp]) then
       Exit(false);
 
   Result := true;

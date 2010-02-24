@@ -31,7 +31,7 @@
     public property FdstartAngle: TSFFloat read FFdstartAngle;
 
     { Geometry node not implemented } { }
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
@@ -61,7 +61,7 @@
     public property FdstartAngle: TSFFloat read FFdstartAngle;
 
     { Geometry node not implemented } { }
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
@@ -78,7 +78,7 @@
     private FFdradius: TSFFloat;
     public property Fdradius: TSFFloat read FFdradius;
 
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
@@ -102,7 +102,7 @@
     public property Fdsolid: TSFBool read FFdsolid;
 
     { Geometry node not implemented } { }
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
@@ -126,7 +126,7 @@
     public property FdlineSegments: TMFVec2f read FFdlineSegments;
 
     { Geometry node not implemented } { }
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
@@ -144,7 +144,7 @@
     public property Fdpoint: TMFVec2f read FFdpoint;
 
     { Geometry node not implemented } { }
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
@@ -164,7 +164,7 @@
     private FFdsolid: TSFBool;
     public property Fdsolid: TSFBool read FFdsolid;
 
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
@@ -185,7 +185,7 @@
     public property Fdsolid: TSFBool read FFdsolid;
 
     { Geometry node not implemented } { }
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;

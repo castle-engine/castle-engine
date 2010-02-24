@@ -22,7 +22,7 @@
 
 program show_sh;
 
-uses VectorMath, Boxes3d, GL, GLWindow, Base3D, UIControls,
+uses VectorMath, Boxes3D, GL, GLWindow, Base3D, UIControls,
   KambiClassUtils, KambiUtils, SysUtils, KambiFilesUtils,
   KambiGLUtils, Cameras, Math, SphereSampling, SphericalHarmonics,
   BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, KambiSceneManager;
@@ -236,7 +236,7 @@ begin
     Glw.MainMenu.Append(M);
 
   SceneManager.Camera := TExamineCamera.Create(Glw);
-  (SceneManager.Camera as TExamineCamera).Init(Box3d(
+  (SceneManager.Camera as TExamineCamera).Init(Box3D(
     Vector3Single(-1, -1, -1),
     Vector3Single(1, 1, 1)));
 

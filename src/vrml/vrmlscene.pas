@@ -18,7 +18,7 @@ unit VRMLScene;
 interface
 
 uses
-  SysUtils, Classes, VectorMath, Boxes3d,
+  SysUtils, Classes, VectorMath, Boxes3D,
   VRMLFields, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLShape, VRMLTriangleOctree, ProgressUnit, KambiOctree, VRMLShapeOctree,
   KeysMouse, VRMLTime, Cameras, VRMLTriangle, Contnrs, VRMLHeadLight,
@@ -527,10 +527,10 @@ type
 
     ChangedAll_TraversedLights: TDynActiveLightArray;
 
-    FBoundingBox: TBox3d;
+    FBoundingBox: TBox3D;
     FVerticesCount, FTrianglesCount: array [boolean] of Cardinal;
     Validities: TVRMLSceneValidities;
-    function CalculateBoundingBox: TBox3d;
+    function CalculateBoundingBox: TBox3D;
     function CalculateVerticesCount(OverTriangulate: boolean): Cardinal;
     function CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
   private
@@ -890,7 +890,7 @@ type
       VRMLNodes.TNodeGenaralShape methods. Here, we just sum results
       of TNodeGenaralShape methods for all shapes.
       @groupBegin }
-    function BoundingBox: TBox3d; override;
+    function BoundingBox: TBox3D; override;
     function VerticesCount(OverTriangulate: boolean): Cardinal;
     function TrianglesCount(OverTriangulate: boolean): Cardinal;
     { @groupEnd }
@@ -1105,7 +1105,7 @@ type
       possible to set it to nil. And when When RootNode = nil everything
       should work -- you can query such scene (with RootNode = nil)
       for Vertices/TrianglesCount (answer will be 0),
-      for BoundingBox (answer will be EmptyBox3d),
+      for BoundingBox (answer will be EmptyBox3D),
       you can render such scene (nothing will be rendered) etc.
       Scene RootNode = nil will act quite like a Scene with
       e.g. no TVRMLGeometryNode nodes.
@@ -1715,7 +1715,7 @@ type
       Usually, it should be just Scene.BoundingBox, but it may be something
       larger, if this scene is part of a larger world. }
     function CreateCamera(AOwner: TComponent;
-      const Box: TBox3d;
+      const Box: TBox3D;
       const ForceNavigationType: string = ''): TCamera;
 
     { @deprecated }
@@ -1821,13 +1821,13 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function MoveBoxAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
-      const ProposedNewBox: TBox3d;
+      const ProposedNewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function BoxCollision(const Box: TBox3d;
+    function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function RayCollision(
       out IntersectionDistance: Single;
@@ -2284,15 +2284,15 @@ begin
   Result := FShapesActiveVisibleCount;
 end;
 
-function TVRMLScene.CalculateBoundingBox: TBox3d;
+function TVRMLScene.CalculateBoundingBox: TBox3D;
 var
   SI: TVRMLShapeTreeIterator;
 begin
-  Result := EmptyBox3d;
+  Result := EmptyBox3D;
   SI := TVRMLShapeTreeIterator.Create(Shapes, true);
   try
     while SI.GetNext do
-      Box3dSumTo1st(Result, SI.Current.BoundingBox);
+      Box3DSumTo1st(Result, SI.Current.BoundingBox);
   finally FreeAndNil(SI) end;
 end;
 
@@ -2320,7 +2320,7 @@ begin
   finally FreeAndNil(SI) end;
 end;
 
-function TVRMLScene.BoundingBox: TBox3d;
+function TVRMLScene.BoundingBox: TBox3D;
 begin
   if Exists then
   begin
@@ -2331,7 +2331,7 @@ begin
     end;
     Result := FBoundingBox;
   end else
-    Result := EmptyBox3d;
+    Result := EmptyBox3D;
 end;
 
 function TVRMLScene.VerticesCount(OverTriangulate: boolean): Cardinal;
@@ -2629,7 +2629,7 @@ procedure TVRMLScene.ChangedAll;
       SI := TVRMLShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
-          if Box3dSphereCollision(SI.Current.BoundingBox, Location, Radius) then
+          if Box3DSphereCollision(SI.Current.BoundingBox, Location, Radius) then
             SI.Current.State.VRML2ActiveLights.Add(L);
       finally FreeAndNil(SI) end;
     end;
@@ -3854,13 +3854,13 @@ end;
 
 function TVRMLScene.InfoBoundingBox: string;
 var
-  BBox: TBox3d;
+  BBox: TBox3D;
 begin
   BBox := BoundingBox;
-  Result := 'Bounding box : ' + Box3dToNiceStr(BBox);
-  if not IsEmptyBox3d(BBox) then
+  Result := 'Bounding box : ' + Box3DToNiceStr(BBox);
+  if not IsEmptyBox3D(BBox) then
   begin
-    Result += ', average size : ' + FloatToNiceStr(Box3dAvgSize(BBox));
+    Result += ', average size : ' + FloatToNiceStr(Box3DAvgSize(BBox));
   end;
   Result += NL;
 end;
@@ -5637,7 +5637,7 @@ end;
 { camera ------------------------------------------------------------------ }
 
 function TVRMLScene.CreateCamera(AOwner: TComponent;
-  const Box: TBox3d;
+  const Box: TBox3D;
   const ForceNavigationType: string = ''): TCamera;
 
   { Create TCamera instance, looking at NavigationType
@@ -5722,7 +5722,7 @@ begin
   { if avatarSize doesn't specify CameraRadius, or specifies invalid <= 0,
     calculate something suitable based on Box. }
   if CameraRadius <= 0 then
-    CameraRadius := Box3dAvgSize(Box, 1.0) * 0.005;
+    CameraRadius := Box3DAvgSize(Box, 1.0) * 0.005;
 
   Result.CameraRadius := CameraRadius;
 
@@ -5798,7 +5798,7 @@ begin
       { Since we don't have NavigationNode.speed, we just calculate some
         speed that should "feel sensible". We base it on CameraRadius.
         CameraRadius in turn was calculated based on
-        Box3dAvgSize(SceneAnimation.BoundingBox). }
+        Box3DAvgSize(SceneAnimation.BoundingBox). }
       VectorAdjustToLengthTo1st(Direction, ACamera.CameraRadius * 0.4);
       WalkCamera.MoveHorizontalSpeed := 1;
       WalkCamera.MoveVerticalSpeed := 1;
@@ -6091,7 +6091,7 @@ end;
 
 function TVRMLScene.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
-  const ProposedNewBox: TBox3d;
+  const ProposedNewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := (not Exists) or (not Collides) or (OctreeCollisions = nil) or
@@ -6118,7 +6118,7 @@ begin
       Pos, Radius,  nil, TrianglesToIgnoreFunc);
 end;
 
-function TVRMLScene.BoxCollision(const Box: TBox3d;
+function TVRMLScene.BoxCollision(const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := Exists and Collides and (OctreeCollisions <> nil) and

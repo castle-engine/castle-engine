@@ -70,7 +70,7 @@
 }
 program terrain;
 
-uses SysUtils, Classes, Boxes3d,
+uses SysUtils, Classes, Boxes3D,
   KambiUtils, GLWindow, GL, KambiGLUtils,
   Cameras, VectorMath, KambiFilesUtils, Elevations, GLWinMessages,
   KambiStringUtils, GLMenu, UIControls;
@@ -364,7 +364,7 @@ begin
   try
     Camera := TExamineCamera.Create(Glw);
     Glw.Controls.Add(Camera);
-    (Camera as TExamineCamera).Init(Box3d(
+    (Camera as TExamineCamera).Init(Box3D(
       Vector3Single(        0,         0, -ScaleHeight),
       Vector3Single(ScaleSize, ScaleSize,  ScaleHeight)));
 

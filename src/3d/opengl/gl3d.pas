@@ -44,7 +44,7 @@ type
   public
     function GetTranslation: TVector3Single; virtual; abstract;
 
-    function BoundingBox: TBox3d; override;
+    function BoundingBox: TBox3D; override;
     procedure Render(const Frustum: TFrustum;
       TransparentGroup: TTransparentGroup; InShadow: boolean); override;
     procedure RenderShadowVolume(
@@ -78,13 +78,13 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function MoveBoxAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
-      const ProposedNewBox: TBox3d;
+      const ProposedNewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function BoxCollision(const Box: TBox3d;
+    function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function RayCollision(
       out IntersectionDistance: Single;

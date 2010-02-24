@@ -27,7 +27,7 @@
     private FFdsolid: TSFBool;
     public property Fdsolid: TSFBool read FFdsolid;
 
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
@@ -59,7 +59,7 @@
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
 
-    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function BoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
@@ -94,7 +94,7 @@
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
 
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
@@ -171,7 +171,7 @@
       specifies Color node. Otherwise returns @nil. }
     function Color: TMFVec3f;
 
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
@@ -255,8 +255,8 @@
 
     function Proxy: TVRMLGeometryNode; override;
 
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
+    function BoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
@@ -343,7 +343,7 @@
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
 
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;

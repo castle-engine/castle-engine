@@ -1201,7 +1201,7 @@ var
 
   procedure AutoTextureCoordinates;
   var
-    LocalBBox: TBox3d;
+    LocalBBox: TBox3D;
     LocalBBoxSize: TVector3Single;
 
     { Setup and enable glTexGen to make automatic 2D texture coords
@@ -1253,7 +1253,7 @@ var
       SCoord is the coord where LocalBBoxSize is largest,
       TCoord is the second-to-largest (and if some sizes are equal,
       then X is more important than Y than Z). }
-    LocalBBoxSize := Box3dSizes(LocalBBox);
+    LocalBBoxSize := Box3DSizes(LocalBBox);
     SCoord := MaxVectorCoord(LocalBBoxSize);
     RestOf3dCoords(SCoord, C1, C2);
     if LocalBboxSize[C1] >= LocalBBoxSize[C2] then

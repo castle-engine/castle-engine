@@ -71,7 +71,7 @@ type
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 
-    function LocalBoxCollision(const ABox: TBox3d;
+    function LocalBoxCollision(const ABox: TBox3D;
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 
@@ -102,7 +102,7 @@ type
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; override;
 
-    function CommonBoxLeaf(const ABox: TBox3d;
+    function CommonBoxLeaf(const ABox: TBox3D;
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; override;
 
@@ -139,11 +139,11 @@ type
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
 
-    function BoxCollision(const ABox: TBox3d;
+    function BoxCollision(const ABox: TBox3D;
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; override;
 
-    function IsBoxCollision(const ABox: TBox3d;
+    function IsBoxCollision(const ABox: TBox3D;
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
 
@@ -196,7 +196,7 @@ type
       const LeavesCount, ItemsCount, NonLeafNodesCount: Int64): string; override;
   public
     constructor Create(const ALimits: TOctreeLimits;
-      const ARootBox: TBox3d; AShapesList: TVRMLShapesList;
+      const ARootBox: TBox3D; AShapesList: TVRMLShapesList;
       AOwnsShapesList: boolean);
 
     destructor Destroy; override;
@@ -255,7 +255,7 @@ function TVRMLShapeOctreeNode.CommonSphereLeaf(const Pos: TVector3Single;
 var
   I: Integer;
   Shape: TVRMLShape;
-  LocalBox: TBox3d;
+  LocalBox: TBox3D;
 begin
   { TODO: this is bad, as 1. we take box around the sphere,
     and 2. we transform this box, making larger box.
@@ -265,7 +265,7 @@ begin
   begin
     Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
     try
-      LocalBox := Box3dTransform(BoundingBox3dFromSphere(Pos, Radius),
+      LocalBox := Box3DTransform(BoundingBox3DFromSphere(Pos, Radius),
         Shape.State.InvertedTransform);
       Result := Shape.OctreeTriangles.BoxCollision(
         LocalBox, TriangleToIgnore, TrianglesToIgnoreFunc);
@@ -304,13 +304,13 @@ begin
     TrianglesToIgnoreFunc) <> nil;
 end;
 
-function TVRMLShapeOctreeNode.CommonBoxLeaf(const ABox: TBox3d;
+function TVRMLShapeOctreeNode.CommonBoxLeaf(const ABox: TBox3D;
   const TriangleToIgnore: PVRMLTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 var
   I: Integer;
   Shape: TVRMLShape;
-  LocalBox: TBox3d;
+  LocalBox: TBox3D;
 begin
   { TODO: this is bad, as we transform this box, making larger box.
     This means that collision is done vs something larger than it should be. }
@@ -319,7 +319,7 @@ begin
   begin
     Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
     try
-      LocalBox := Box3dTransform(ABox,
+      LocalBox := Box3DTransform(ABox,
         Shape.State.InvertedTransform);
       Result := Shape.OctreeTriangles.BoxCollision(
         LocalBox, TriangleToIgnore, TrianglesToIgnoreFunc);
@@ -330,14 +330,14 @@ begin
   end;
 end;
 
-function TVRMLShapeOctreeNode.LocalBoxCollision(const ABox: TBox3d;
+function TVRMLShapeOctreeNode.LocalBoxCollision(const ABox: TBox3D;
   const TriangleToIgnore: PVRMLTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 begin
   Result := CommonBox(ABox, TriangleToIgnore, TrianglesToIgnoreFunc);
 end;
 
-function TVRMLShapeOctreeNode.BoxCollision(const ABox: TBox3d;
+function TVRMLShapeOctreeNode.BoxCollision(const ABox: TBox3D;
   const TriangleToIgnore: PVRMLTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 begin
@@ -347,7 +347,7 @@ begin
     Result^.UpdateWorld;
 end;
 
-function TVRMLShapeOctreeNode.IsBoxCollision(const ABox: TBox3d;
+function TVRMLShapeOctreeNode.IsBoxCollision(const ABox: TBox3D;
   const TriangleToIgnore: PVRMLTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
@@ -468,7 +468,7 @@ begin
     But it turns out that CommonRay/Segment (for non-leaf  nodes) code
     requires the returned intersection to be in correct (global, for this
     octree) coordinates --- see it's
-    Box3dPointInsideTolerant(Intersection, SubNode.Box) test.
+    Box3DPointInsideTolerant(Intersection, SubNode.Box) test.
     So Intersection must be transformed back already in CommonSegmentLeaf. }
   if Result <> nil then
     Result^.UpdateWorld;
@@ -606,7 +606,7 @@ begin
     But it turns out that CommonRay/Segment (for non-leaf  nodes) code
     requires the returned intersection to be in correct (global, for this
     octree) coordinates --- see it's
-    Box3dPointInsideTolerant(Intersection, SubNode.Box) test.
+    Box3DPointInsideTolerant(Intersection, SubNode.Box) test.
     So Intersection must be transformed back already in CommonSegmentLeaf. }
   if Result <> nil then
     Result^.UpdateWorld;
@@ -633,7 +633,7 @@ end;
 { TVRMLShapeOctree ------------------------------------------ }
 
 constructor TVRMLShapeOctree.Create(const ALimits: TOctreeLimits;
-  const ARootBox: TBox3d; AShapesList: TVRMLShapesList;
+  const ARootBox: TBox3D; AShapesList: TVRMLShapesList;
   AOwnsShapesList: boolean);
 begin
   inherited Create(ALimits, ARootBox, TVRMLShapeOctreeNode, true);

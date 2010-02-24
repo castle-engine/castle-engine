@@ -19,7 +19,7 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testutils, testregistry,
-  VectorMath, Boxes3d, Frustum;
+  VectorMath, Boxes3D, Frustum;
 
 type
   TTestFrustum = class(TTestCase)
@@ -27,8 +27,8 @@ type
     procedure AssertFrustumSphereCollisionPossible(const Frustum: TFrustum;
       const SphereCenter: TVector3Single; const SphereRadiusSqt: Single;
       const GoodResult: TFrustumCollisionPossible);
-    procedure AssertFrustumBox3dCollisionPossible(const Frustum: TFrustum;
-      const Box3d: TBox3d; const GoodResult: TFrustumCollisionPossible);
+    procedure AssertFrustumBox3DCollisionPossible(const Frustum: TFrustum;
+      const Box3D: TBox3D; const GoodResult: TFrustumCollisionPossible);
   published
     procedure TestFrustum;
     procedure TestInfiniteFrustum;
@@ -70,7 +70,7 @@ begin
       RandomNonZeroVector(1)));
 end;
 
-function RandomBox: TBox3d;
+function RandomBox: TBox3D;
 begin
   Result[0][0] := Random * 20 - 10;
   Result[0][1] := Random * 20 - 10;
@@ -96,12 +96,12 @@ begin
      SphereRadiusSqt) = (GoodResult <> fcNoCollision) );
 end;
 
-procedure TTestFrustum.AssertFrustumBox3dCollisionPossible(const Frustum: TFrustum;
-  const Box3d: TBox3d; const GoodResult: TFrustumCollisionPossible);
+procedure TTestFrustum.AssertFrustumBox3DCollisionPossible(const Frustum: TFrustum;
+  const Box3D: TBox3D; const GoodResult: TFrustumCollisionPossible);
 begin
- Assert( Frustum.Box3dCollisionPossible(Box3d) = GoodResult);
+ Assert( Frustum.Box3DCollisionPossible(Box3D) = GoodResult);
 
- Assert( Frustum.Box3dCollisionPossibleSimple(Box3d) =
+ Assert( Frustum.Box3DCollisionPossibleSimple(Box3D) =
    (GoodResult <> fcNoCollision) );
 end;
 
@@ -132,14 +132,14 @@ begin
  AssertFrustumSphereCollisionPossible(Frustum, Vector3Single(20, 10, 10), 1,
    fcSomeCollisionPossible);
 
- AssertFrustumBox3dCollisionPossible(Frustum,
-   Box3d(Vector3Single(-1, -1, -1), Vector3Single(9, 9, 9)),
+ AssertFrustumBox3DCollisionPossible(Frustum,
+   Box3D(Vector3Single(-1, -1, -1), Vector3Single(9, 9, 9)),
    fcNoCollision);
- AssertFrustumBox3dCollisionPossible(Frustum,
-   Box3d(Vector3Single(50, 10, 10), Vector3Single(51, 11, 11)),
+ AssertFrustumBox3DCollisionPossible(Frustum,
+   Box3D(Vector3Single(50, 10, 10), Vector3Single(51, 11, 11)),
    fcInsideFrustum);
- AssertFrustumBox3dCollisionPossible(Frustum,
-   Box3d(Vector3Single(19, 10, 10), Vector3Single(21, 11, 11)),
+ AssertFrustumBox3DCollisionPossible(Frustum,
+   Box3D(Vector3Single(19, 10, 10), Vector3Single(21, 11, 11)),
    fcSomeCollisionPossible);
 end;
 
@@ -168,17 +168,17 @@ begin
 end;
 
 procedure TTestFrustum.TestCompareWithUnoptimizedPlaneCollision;
-{ Compare current Box3dCollisionPossible implementation with older
-  implementation that didn't use smart Box3dPlaneCollision,
+{ Compare current Box3DCollisionPossible implementation with older
+  implementation that didn't use smart Box3DPlaneCollision,
   instead was testing all 8 corners of bounding box.
   This compares results (should be equal) and speed (hopefully, new
   implementation is much faster!).
 }
 { $define WRITELN_TESTS}
 
-  function OldFrustumBox3dCollisionPossible(
+  function OldFrustumBox3DCollisionPossible(
     const Frustum: TFrustum;
-    const Box: TBox3d): TFrustumCollisionPossible;
+    const Box: TBox3D): TFrustumCollisionPossible;
 
   { Note: I tried to optimize this function,
     since it's crucial for TOctree.EnumerateCollidingOctreeItems,
@@ -187,7 +187,7 @@ procedure TTestFrustum.TestCompareWithUnoptimizedPlaneCollision;
 
   var
     fp: TFrustumPlane;
-    FrustumMultiplyBox: TBox3d;
+    FrustumMultiplyBox: TBox3D;
 
     function CheckOutsideCorner(const XIndex, YIndex, ZIndex: Cardinal): boolean;
     begin
@@ -280,16 +280,16 @@ procedure TTestFrustum.TestCompareWithUnoptimizedPlaneCollision;
     end;
   end;
 
-  function OldFrustumBox3dCollisionPossibleSimple(
+  function OldFrustumBox3DCollisionPossibleSimple(
     const Frustum: TFrustum;
-    const Box: TBox3d): boolean;
+    const Box: TBox3D): boolean;
 
   { Implementation is obviously based on
-    FrustumBox3dCollisionPossible above, see there for more comments. }
+    FrustumBox3DCollisionPossible above, see there for more comments. }
 
   var
     fp: TFrustumPlane;
-    FrustumMultiplyBox: TBox3d;
+    FrustumMultiplyBox: TBox3D;
 
     function CheckOutsideCorner(const XIndex, YIndex, ZIndex: Cardinal): boolean;
     begin
@@ -346,7 +346,7 @@ const
 var
   TestCases: array of record
     Frustum: TFrustum;
-    Box: TBox3d;
+    Box: TBox3D;
     Result1: TFrustumCollisionPossible;
     Result2: boolean;
   end;
@@ -366,40 +366,40 @@ begin
   for I := 0 to Tests - 1 do
     with TestCases[I] do
     begin
-      Result1 := OldFrustumBox3dCollisionPossible(Frustum, Box);
+      Result1 := OldFrustumBox3DCollisionPossible(Frustum, Box);
     end;
   {$ifdef WRITELN_TESTS}
-  Writeln('Old TFrustum.Box3dCollisionPossible: ', ProcessTimerEnd);
+  Writeln('Old TFrustum.Box3DCollisionPossible: ', ProcessTimerEnd);
   {$endif}
 
   {$ifdef WRITELN_TESTS} ProcessTimerBegin; {$endif}
   for I := 0 to Tests - 1 do
     with TestCases[I] do
     begin
-      Assert(Result1 = Frustum.Box3dCollisionPossible(Box));
+      Assert(Result1 = Frustum.Box3DCollisionPossible(Box));
     end;
   {$ifdef WRITELN_TESTS}
-  Writeln('New TFrustum.Box3dCollisionPossible: ', ProcessTimerEnd);
+  Writeln('New TFrustum.Box3DCollisionPossible: ', ProcessTimerEnd);
   {$endif}
 
   {$ifdef WRITELN_TESTS} ProcessTimerBegin; {$endif}
   for I := 0 to Tests - 1 do
     with TestCases[I] do
     begin
-      Result2 := OldFrustumBox3dCollisionPossibleSimple(Frustum, Box);
+      Result2 := OldFrustumBox3DCollisionPossibleSimple(Frustum, Box);
     end;
   {$ifdef WRITELN_TESTS}
-  Writeln('Old TFrustum.Box3dCollisionPossibleSimple: ', ProcessTimerEnd);
+  Writeln('Old TFrustum.Box3DCollisionPossibleSimple: ', ProcessTimerEnd);
   {$endif}
 
   {$ifdef WRITELN_TESTS} ProcessTimerBegin; {$endif}
   for I := 0 to Tests - 1 do
     with TestCases[I] do
     begin
-      Assert(Result2 = Frustum.Box3dCollisionPossibleSimple(Box));
+      Assert(Result2 = Frustum.Box3DCollisionPossibleSimple(Box));
     end;
   {$ifdef WRITELN_TESTS}
-  Writeln('New TFrustum.Box3dCollisionPossibleSimple: ', ProcessTimerEnd);
+  Writeln('New TFrustum.Box3DCollisionPossibleSimple: ', ProcessTimerEnd);
   {$endif}
 
   {$ifdef WRITELN_TESTS}

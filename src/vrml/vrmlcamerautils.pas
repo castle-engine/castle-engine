@@ -20,7 +20,7 @@ unit VRMLCameraUtils;
 
 interface
 
-uses Math, KambiUtils, VectorMath, Boxes3d, VRMLNodes, Quaternions;
+uses Math, KambiUtils, VectorMath, Boxes3D, VRMLNodes, Quaternions;
 
 type
   { VRML major version for VRMLCameraUtils: either VRML 1.0 or 2.0.
@@ -48,7 +48,7 @@ const
 
 { Calculate sensible camera configuration to see whole scene
   in the Box. WantedUp may be only 1 (+Y) or 2 (+Z) now. }
-procedure CameraViewpointForWholeScene(const Box: TBox3d;
+procedure CameraViewpointForWholeScene(const Box: TBox3D;
   const WantedUp: Integer;
   out Position, Direction, Up, GravityUp: TVector3Single);
 
@@ -66,20 +66,20 @@ implementation
 
 uses SysUtils, Cameras;
 
-procedure CameraViewpointForWholeScene(const Box: TBox3d;
+procedure CameraViewpointForWholeScene(const Box: TBox3D;
   const WantedUp: Integer;
   out Position, Direction, Up, GravityUp: TVector3Single);
 var
   AvgSize: Single;
 begin
-  if IsEmptyBox3d(Box) then
+  if IsEmptyBox3D(Box) then
   begin
     Position  := DefaultVRMLCameraPosition[1];
     Direction := DefaultVRMLCameraDirection;
     Up        := DefaultVRMLCameraUp;
   end else
   begin
-    AvgSize := Box3dAvgSize(Box);
+    AvgSize := Box3DAvgSize(Box);
     Position[0] := Box[0, 0] - AvgSize;
     Position[1] := (Box[0, 1] + Box[1, 1]) / 2;
     Position[2] := (Box[0, 2] + Box[1, 2]) / 2;

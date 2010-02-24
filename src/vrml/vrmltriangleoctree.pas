@@ -50,7 +50,7 @@ unit VRMLTriangleOctree;
 
 interface
 
-uses VectorMath, SysUtils, KambiUtils, VRMLNodes, Boxes3d,
+uses VectorMath, SysUtils, KambiUtils, VRMLNodes, Boxes3D,
   KambiOctree, VRMLTriangle, Base3D;
 
 {$define read_interface}
@@ -77,7 +77,7 @@ type
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; override;
 
-    function CommonBoxLeaf(const ABox: TBox3d;
+    function CommonBoxLeaf(const ABox: TBox3D;
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; override;
 
@@ -120,11 +120,11 @@ type
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
 
-    function BoxCollision(const ABox: TBox3d;
+    function BoxCollision(const ABox: TBox3D;
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; override;
 
-    function IsBoxCollision(const ABox: TBox3d;
+    function IsBoxCollision(const ABox: TBox3D;
       const TriangleToIgnore: PVRMLTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
 
@@ -170,8 +170,8 @@ type
     function StatisticsBonus(
       const LeavesCount, ItemsCount, NonLeafNodesCount: Int64): string; override;
   public
-    constructor Create(const ARootBox: TBox3d); overload;
-    constructor Create(const ALimits: TOctreeLimits; const ARootBox: TBox3d); overload;
+    constructor Create(const ARootBox: TBox3D); overload;
+    constructor Create(const ALimits: TOctreeLimits; const ARootBox: TBox3D); overload;
     destructor Destroy; override;
   public
     { tu beda zgromadzone wszystkie Triangles jakie mamy w drzewie.
@@ -243,7 +243,7 @@ var
 
   procedure SecondTestAndAdd(SubNode: TOctreeNode);
   begin
-    if IsBox3dTriangleCollision(SubNode.Box, Triangle^) then
+    if IsBox3DTriangleCollision(SubNode.Box, Triangle^) then
     begin
       SubNode.AddItem(ItemIndex);
       AddedSomewhere := true;
@@ -261,7 +261,7 @@ begin
   { First prototype of this just run SecondTestAndAdd 8 times, without
     initial SubnodesWithBox checking. It turns out that it's faster
     to do SubnodesWithBox first, this way we eliminate many calls
-    to IsBox3dTriangleCollision.
+    to IsBox3DTriangleCollision.
 
     Tests on http://www.web3d.org/x3d/content/examples/Basic/HumanoidAnimation/BoxMan.wrl :
     Around 6.20 / 2.41 =~ 2.5 faster.
@@ -279,20 +279,20 @@ begin
   if not AddedSomewhere then
   begin
     { This should not happen. But it happens, and unfortunately
-      it seems unavoidable: IsBox3dTriangleCollision tries hard
+      it seems unavoidable: IsBox3DTriangleCollision tries hard
       to detect that there's no collision. Even with really large
-      epsilons inside IsBox3dTriangleCollision,
+      epsilons inside IsBox3DTriangleCollision,
       it often detects no collision, while in fact triangle
       lies on the boundary of SubNode.Box.
 
-      I tried to make epsilons inside IsBox3dTriangleCollision larger,
+      I tried to make epsilons inside IsBox3DTriangleCollision larger,
       use better calculation (on doubles instead of singles),
       and all of this helped... for some time. For some scenes.
       Sooner or later, I was always able to find another scene,
       so specific that requires even larger epsilon inside
-      IsBox3dTriangleCollision... This is unacceptable of course.
+      IsBox3DTriangleCollision... This is unacceptable of course.
 
-      So I detect the cases when IsBox3dTriangleCollision works
+      So I detect the cases when IsBox3DTriangleCollision works
       badly, and use more "lazy" approach in this case (that may
       result in inserting the triangle into more nodes than
       necessary --- but that's not a problem (such triangle
@@ -358,14 +358,14 @@ begin
     TrianglesToIgnoreFunc) <> nil;
 end;
 
-function TTriangleOctreeNode.BoxCollision(const ABox: TBox3d;
+function TTriangleOctreeNode.BoxCollision(const ABox: TBox3D;
   const TriangleToIgnore: PVRMLTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 begin
   Result := CommonBox(ABox, TriangleToIgnore, TrianglesToIgnoreFunc);
 end;
 
-function TTriangleOctreeNode.CommonBoxLeaf(const ABox: TBox3d;
+function TTriangleOctreeNode.CommonBoxLeaf(const ABox: TBox3D;
   const TriangleToIgnore: PVRMLTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 var
@@ -375,7 +375,7 @@ begin
   begin
     Inc(ParentTree.DirectCollisionTestsCounter);
     Result := Items[i];
-    if IsBox3dTriangleCollision(ABox, Result^.Loc.Triangle) and
+    if IsBox3DTriangleCollision(ABox, Result^.Loc.Triangle) and
       (TriangleToIgnore <> Result) and
       ( (not Assigned(TrianglesToIgnoreFunc)) or
         (not TrianglesToIgnoreFunc(ParentTree, Result)) ) then
@@ -384,7 +384,7 @@ begin
   Exit(nil);
 end;
 
-function TTriangleOctreeNode.IsBoxCollision(const ABox: TBox3d;
+function TTriangleOctreeNode.IsBoxCollision(const ABox: TBox3D;
   const TriangleToIgnore: PVRMLTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
@@ -486,13 +486,13 @@ end;
 
 { TVRMLTriangleOctree -------------------------------------------------------- }
 
-constructor TVRMLTriangleOctree.Create(const ARootBox: TBox3d);
+constructor TVRMLTriangleOctree.Create(const ARootBox: TBox3D);
 begin
  Create(DefTriangleOctreeLimits, ARootBox);
 end;
 
 constructor TVRMLTriangleOctree.Create(const ALimits: TOctreeLimits;
-  const ARootBox: TBox3d);
+  const ARootBox: TBox3D);
 begin
  inherited Create (ALimits, ARootBox, TTriangleOctreeNode, false);
  Triangles := TDynVRMLTriangleArray.Create;

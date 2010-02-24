@@ -67,7 +67,7 @@ program shadow_volume_test;
 {$apptype CONSOLE}
 
 uses GLWindow, GL, GLU, GLExt, KambiGLUtils, VRMLGLScene,
-  VRMLNodes, Cameras, Boxes3d, SysUtils,
+  VRMLNodes, Cameras, Boxes3D, SysUtils,
   KambiUtils, VectorMath, VRMLLightSetGL, VRMLFields,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils, VRMLCameraUtils,
   ShadowTests, GLWinMessages, VRMLErrors, GLShadowVolumeRenderer,
@@ -135,7 +135,7 @@ var
   { This is sum of bounding boxes of scene and
     untransformed shadow caster. This is used as an approximate
     box where our the world is. }
-  SceneBoundingBox: TBox3d;
+  SceneBoundingBox: TBox3D;
 
   ShowShadowQuads: boolean = false;
   IsRenderEdgesForShadows: boolean = false;
@@ -370,7 +370,7 @@ begin
   SV.InitFrustumAndLight(RenderState.CameraFrustum, MainLightPosition);
 
   SV.InitSceneDontSetupStencil(
-    Box3dTransform(ShadowCaster.BoundingBox, ShadowCasterNav.Matrix));
+    Box3DTransform(ShadowCaster.BoundingBox, ShadowCasterNav.Matrix));
 
   if (ShadowsImplementation = siNone) or (not SV.SceneShadowPossiblyVisible) then
   begin
@@ -414,7 +414,7 @@ procedure TMySceneManager.ApplyProjection;
 begin
   glViewport(0, 0, ContainerWidth, ContainerHeight);
 
-  FWalkProjectionNear := Box3dAvgSize(SceneBoundingBox) * 0.05;
+  FWalkProjectionNear := Box3DAvgSize(SceneBoundingBox) * 0.05;
   { TODO: switch to using NV_depth_clamp where possible.
     Enable this for good when shadow culling for infinite frustum will work...
     otherwise, right now, we lose a little time for this, even in z-pass. }
@@ -688,7 +688,7 @@ begin
     ShadowCaster := TVRMLGLScene.Create(nil);
     ShadowCaster.Load(ShadowCasterVrmlName);
     ShadowCaster.Optimization := roSceneAsAWhole;
-    SceneBoundingBox := Box3dSum(Scene.BoundingBox,
+    SceneBoundingBox := Box3DSum(Scene.BoundingBox,
       ShadowCaster.BoundingBox);
 
     { calculate MainLightPosition }

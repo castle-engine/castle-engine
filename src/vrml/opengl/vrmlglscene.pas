@@ -18,7 +18,7 @@ unit VRMLGLScene;
 interface
 
 uses
-  SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils, KambiUtils,
+  SysUtils, Classes, VectorMath, Boxes3D, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLScene, VRMLOpenGLRenderer, GL, GLU, GLExt, BackgroundGL, KambiGLUtils,
   VRMLShapeOctree, VRMLHeadLight, VRMLGLHeadLight, VRMLRendererOptimization,
   GLShadowVolumeRenderer, Cameras, VRMLFields, VRMLLightSetGL, VRMLShape, Frustum,
@@ -1310,7 +1310,7 @@ type
       Usually, it should be just Scene.BoundingBox, but it may be something
       larger, if this scene is part of a larger world. }
     procedure GLProjection(ACamera: TCamera;
-      const Box: TBox3d;
+      const Box: TBox3D;
       const WindowWidth, WindowHeight: Cardinal;
       const ForceZFarInfinity: boolean;
       out AngleOfViewX, AngleOfViewY, WalkProjectionNear, WalkProjectionFar: Single);
@@ -1320,7 +1320,7 @@ type
       this is only a temporary proc for compatibility, to compile old examples.
       @deprecated }
     procedure GLProjection(ACamera: TCamera;
-      const Box: TBox3d;
+      const Box: TBox3D;
       const WindowWidth, WindowHeight: Cardinal;
       const ForceZFarInfinity: boolean = false);
 
@@ -2248,7 +2248,7 @@ var
               we render only bbox. }
 
             OcclusionBoxStateBegin;
-            glDrawBox3dSimple(Shape.BoundingBox);
+            glDrawBox3DSimple(Shape.BoundingBox);
             Inc(FLastRender_BoxesOcclusionQueriedCount);
           end;
 
@@ -2402,7 +2402,7 @@ var
     var
       I: Integer;
       Shape: TVRMLGLShape;
-      Box: TBox3d;
+      Box: TBox3D;
     begin
       OcclusionBoxStateBegin;
 
@@ -2417,7 +2417,7 @@ var
           shapes quialified as visible. (See e.g. bzwgen city view behind
           building 1 when trying to walk towards the city center.)
           Unfortunately, this produces really a lot of boxes, so the
-          overhead of drawing glDrawBox3dSimple becomes large then.
+          overhead of drawing glDrawBox3DSimple becomes large then.
 
         - Compromise: calculate tight bounding box here, and use it.
           Works best: number of both visible shapes and cull boxes
@@ -2425,16 +2425,16 @@ var
 
         Note that we can render here boxes of only non-rendered shapes,
         that's Ok and may actually speed up. }
-      Box := EmptyBox3d;
+      Box := EmptyBox3D;
 
       for I := 0 to Node.ItemsIndices.Count - 1 do
       begin
         Shape := TVRMLGLShape(OctreeRendering.ShapesList[Node.ItemsIndices.Items[I]]);
         if Shape.RenderedFrameId <> FrameId then
-          Box3dSumTo1st(Box, Shape.BoundingBox);
+          Box3DSumTo1st(Box, Shape.BoundingBox);
       end;
 
-      glDrawBox3dSimple(Box);
+      glDrawBox3DSimple(Box);
       Inc(FLastRender_BoxesOcclusionQueriedCount);
     end;
 
@@ -2562,7 +2562,7 @@ var
                     RenderLeafNodeVolume(Node) else
                   begin
                     OcclusionBoxStateBegin;
-                    glDrawBox3dSimple(Node.Box);
+                    glDrawBox3DSimple(Node.Box);
                     Inc(FLastRender_BoxesOcclusionQueriedCount);
                   end;
                 glEndQueryARB(GL_SAMPLES_PASSED_ARB);
@@ -4167,12 +4167,12 @@ procedure TVRMLGLScene.RenderShadowVolume(
   const Transform: TMatrix4Single;
   const AllowSilhouetteOptimization: boolean);
 var
-  Box: TBox3d;
+  Box: TBox3D;
 begin
   { calculate Box }
   Box := BoundingBox;
   if not TransformIsIdentity then
-    Box := Box3dTransform(Box, Transform);
+    Box := Box3DTransform(Box, Transform);
 
   ShadowVolumeRenderer.InitScene(Box);
 
@@ -4330,7 +4330,7 @@ end;
 
 function TVRMLGLScene.FrustumCulling_Box(Shape: TVRMLGLShape): boolean;
 begin
-  Result := RenderFrustum_Frustum^.Box3dCollisionPossibleSimple(
+  Result := RenderFrustum_Frustum^.Box3DCollisionPossibleSimple(
     Shape.BoundingBox);
 end;
 
@@ -4339,7 +4339,7 @@ begin
   Result :=
     Shape.FrustumBoundingSphereCollisionPossibleSimple(
       RenderFrustum_Frustum^) and
-    RenderFrustum_Frustum^.Box3dCollisionPossibleSimple(
+    RenderFrustum_Frustum^.Box3DCollisionPossibleSimple(
       Shape.BoundingBox);
 end;
 
@@ -4612,7 +4612,7 @@ begin
 end;
 
 procedure TVRMLGLScene.GLProjection(ACamera: TCamera;
-  const Box: TBox3d;
+  const Box: TBox3D;
   const WindowWidth, WindowHeight: Cardinal;
   const ForceZFarInfinity: boolean);
 var
@@ -4623,7 +4623,7 @@ begin
 end;
 
 procedure TVRMLGLScene.GLProjection(ACamera: TCamera;
-  const Box: TBox3d;
+  const Box: TBox3D;
   const WindowWidth, WindowHeight: Cardinal;
   const ForceZFarInfinity: boolean;
   out AngleOfViewX, AngleOfViewY, WalkProjectionNear, WalkProjectionFar: Single);
@@ -4659,7 +4659,7 @@ var
     MaxSize: Single;
     Left, Right, Bottom, Top: Single;
   begin
-    MaxSize := Box3dMaxSize(Box, { any dummy value } 1.0);
+    MaxSize := Box3DMaxSize(Box, { any dummy value } 1.0);
 
     { default left / right / bottom / top, when not OrthoViewpoint }
     Left   := -MaxSize / 2;
@@ -4721,12 +4721,12 @@ begin
   if VisibilityLimit <> 0.0 then
     WalkProjectionFar := VisibilityLimit else
   begin
-    if IsEmptyBox3d(Box) then
-      { When IsEmptyBox3d, Result is not simply "any dummy value".
+    if IsEmptyBox3D(Box) then
+      { When IsEmptyBox3D, Result is not simply "any dummy value".
         It must be appropriately larger than WalkProjectionNear
         to provide sufficient space for rendering Background node. }
       WalkProjectionFar := WalkProjectionNear * 10 else
-      WalkProjectionFar := Box3dAvgSize(Box) * 20.0;
+      WalkProjectionFar := Box3DAvgSize(Box) * 20.0;
   end;
 
   { To minimize depth buffer errors we want to make ZNear/ZFar dependent
@@ -4734,16 +4734,16 @@ begin
 
     In Examiner mode we can use larger ZNear, since we do not have to make
     it < CameraRadius. Larger ZNear allows depth buffer to have better
-    precision. ZNear is then "Box3dAvgSize(Box) * 0.1", while
+    precision. ZNear is then "Box3DAvgSize(Box) * 0.1", while
     in far mode it's "CameraRadius * 0.6" which means
-    "Box3dAvgSize(BoundingBox) * 0.01 * 0.6 = Box3dAvgSize(BoundingBox) * 0.006"
+    "Box3DAvgSize(BoundingBox) * 0.01 * 0.6 = Box3DAvgSize(BoundingBox) * 0.006"
     if CameraRadius is auto-calculated, about 20 times smaller.
     With such small near in Examine mode we would often see z-buffer errors,
     e.g. see kings_head.wrl. }
 
   if (ACamera is TExamineCamera) and
-     (not IsEmptyBox3d(Box)) then
-    ZNear := Box3dAvgSize(Box) * 0.1 else
+     (not IsEmptyBox3D(Box)) then
+    ZNear := Box3DAvgSize(Box) * 0.1 else
     ZNear := WalkProjectionNear;
 
   if ViewpointNode <> nil then

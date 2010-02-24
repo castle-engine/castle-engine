@@ -11,7 +11,7 @@
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
-unit TestBoxes3d;
+unit TestBoxes3D;
 
 interface
 
@@ -19,98 +19,98 @@ uses
   Classes, SysUtils, fpcunit, testutils, testregistry;
 
 type
-  TTestBoxes3d = class(TTestCase)
+  TTestBoxes3D = class(TTestCase)
   published
-    procedure TestIsCenteredBox3dPlaneCollision;
-    procedure TestBox3dPlaneCollision;
-    procedure TestIsBox3dTriangleCollision;
-    procedure TestIsBox3dTriangleCollisionEpsilons;
-    procedure TestBox3dTransform;
-    procedure TestBox3dMaximumPlane;
-    procedure TestBox3dMinimumPlane;
+    procedure TestIsCenteredBox3DPlaneCollision;
+    procedure TestBox3DPlaneCollision;
+    procedure TestIsBox3DTriangleCollision;
+    procedure TestIsBox3DTriangleCollisionEpsilons;
+    procedure TestBox3DTransform;
+    procedure TestBox3DMaximumPlane;
+    procedure TestBox3DMinimumPlane;
   end;
 
 implementation
 
-uses VectorMath, KambiUtils, Boxes3d, KambiStringUtils, KambiTimeUtils,
+uses VectorMath, KambiUtils, Boxes3D, KambiStringUtils, KambiTimeUtils,
   TestVectorMath;
 
-procedure TTestBoxes3d.TestIsCenteredBox3dPlaneCollision;
+procedure TTestBoxes3D.TestIsCenteredBox3DPlaneCollision;
 begin
   { box 10, 1, 1 with a plane that crosses 0,0,0 point always collides }
-  Assert(IsCenteredBox3dPlaneCollision(
+  Assert(IsCenteredBox3DPlaneCollision(
     Vector3Single(10, 1, 1), Vector4Single(0, 0, 1, 0)));
-  Assert(IsCenteredBox3dPlaneCollision(
+  Assert(IsCenteredBox3DPlaneCollision(
     Vector3Single(10, 1, 1), Vector4Single(0, 1, 0, 0)));
-  Assert(IsCenteredBox3dPlaneCollision(
+  Assert(IsCenteredBox3DPlaneCollision(
     Vector3Single(10, 1, 1), Vector4Single(1, 0, 0, 0)));
-  Assert(IsCenteredBox3dPlaneCollision(
+  Assert(IsCenteredBox3DPlaneCollision(
     Vector3Single(10, 1, 1), Vector4Single(123, 456, 789, 0)));
 
-  Assert(not IsCenteredBox3dPlaneCollision(
+  Assert(not IsCenteredBox3DPlaneCollision(
     Vector3Single(10, 1, 1), Vector4Single(0, 0, -1, 5)));
-  Assert(not IsCenteredBox3dPlaneCollision(
+  Assert(not IsCenteredBox3DPlaneCollision(
     Vector3Single(10, 1, 1), Vector4Single(0, -1, 0, 5)));
-  Assert(IsCenteredBox3dPlaneCollision(
+  Assert(IsCenteredBox3DPlaneCollision(
     Vector3Single(10, 1, 1), Vector4Single(-1, 0, 0, 5)));
 end;
 
-procedure TTestBoxes3d.TestBox3dPlaneCollision;
+procedure TTestBoxes3D.TestBox3DPlaneCollision;
 
-  procedure AssertBox3dPlaneCollision(const Box: TBox3d;
+  procedure AssertBox3DPlaneCollision(const Box: TBox3D;
     const Plane: TVector4Single; CollisionResult: TPlaneCollision);
   begin
-    Assert(Box3dPlaneCollision(Box, Plane) = CollisionResult);
-    { Check by the way Box3dPlaneCollisionInside, Box3dPlaneCollisionOutside }
-    Assert(Box3dPlaneCollisionInside(Box, Plane) = (CollisionResult = pcInside));
-    Assert(Box3dPlaneCollisionOutside(Box, Plane) = (CollisionResult = pcOutside));
+    Assert(Box3DPlaneCollision(Box, Plane) = CollisionResult);
+    { Check by the way Box3DPlaneCollisionInside, Box3DPlaneCollisionOutside }
+    Assert(Box3DPlaneCollisionInside(Box, Plane) = (CollisionResult = pcInside));
+    Assert(Box3DPlaneCollisionOutside(Box, Plane) = (CollisionResult = pcOutside));
   end;
 
 var
-  Box: TBox3d;
+  Box: TBox3D;
   Plane: TVector4Single;
 begin
   Box[0] := Vector3Single(-10, -1, -1);
   Box[1] := Vector3Single( 10,  1,  1);
 
   { box 10, 1, 1 with a plane that crosses 0,0,0 point always collides }
-  AssertBox3dPlaneCollision(
+  AssertBox3DPlaneCollision(
     Box, Vector4Single(0, 0, 1, 0), pcIntersecting);
-  AssertBox3dPlaneCollision(
+  AssertBox3DPlaneCollision(
     Box, Vector4Single(0, 1, 0, 0), pcIntersecting);
-  AssertBox3dPlaneCollision(
+  AssertBox3DPlaneCollision(
     Box, Vector4Single(1, 0, 0, 0), pcIntersecting);
-  AssertBox3dPlaneCollision(
+  AssertBox3DPlaneCollision(
     Box, Vector4Single(123, 456, 789, 0), pcIntersecting);
 
   { test inside/outside difference }
-  AssertBox3dPlaneCollision(
-    Box3d(Vector3Single(-1, -1, 10),
+  AssertBox3DPlaneCollision(
+    Box3D(Vector3Single(-1, -1, 10),
           Vector3Single( 1,  1, 20)),
     Vector4Single(0, 0, 1, 0), pcOutside);
-  AssertBox3dPlaneCollision(
-    Box3d(Vector3Single(-1, -1, -20),
+  AssertBox3DPlaneCollision(
+    Box3D(Vector3Single(-1, -1, -20),
           Vector3Single( 1,  1, -10)),
     Vector4Single(0, 0, 1, 0), pcInside);
 
   { basic test for pcNone }
-  AssertBox3dPlaneCollision(EmptyBox3d,
+  AssertBox3DPlaneCollision(EmptyBox3D,
     Vector4Single(0, 0, 1, 0), pcNone);
 
-  AssertBox3dPlaneCollision(
+  AssertBox3DPlaneCollision(
     Box, Vector4Single(0, 0, -1, 5), pcOutside);
-  AssertBox3dPlaneCollision(
+  AssertBox3DPlaneCollision(
     Box, Vector4Single(0, -1, 0, 5), pcOutside);
-  AssertBox3dPlaneCollision(
+  AssertBox3DPlaneCollision(
     Box, Vector4Single(-1, 0, 0, 5), pcIntersecting);
 
-  Box := Box3dTranslate(Box, Vector3Single(0, 1000, 0));
+  Box := Box3DTranslate(Box, Vector3Single(0, 1000, 0));
 
-  AssertBox3dPlaneCollision(
+  AssertBox3DPlaneCollision(
     Box, Vector4Single(0, 0, 1, 0), pcIntersecting);
-  AssertBox3dPlaneCollision(
+  AssertBox3DPlaneCollision(
     Box, Vector4Single(0, 1, 0, 0), pcOutside);
-  AssertBox3dPlaneCollision(
+  AssertBox3DPlaneCollision(
     Box, Vector4Single(1, 0, 0, 0), pcIntersecting);
 
   Plane[0] := 0;
@@ -123,16 +123,16 @@ begin
   Box[1][0] :=  1.283623352E+02;
   Box[1][1] :=  3.240192413E+00;
   Box[1][2] :=  3.100979996E+01;
-  AssertBox3dPlaneCollision(Box, Plane, pcIntersecting);
+  AssertBox3DPlaneCollision(Box, Plane, pcIntersecting);
 end;
 
-procedure TTestBoxes3d.TestIsBox3dTriangleCollision;
+procedure TTestBoxes3D.TestIsBox3DTriangleCollision;
 
   procedure RandomTrianglesTest(
     const XRandomness, YRandomness, ZRandomness: Integer);
   var
     Triangle: TTriangle3Single;
-    Box: TBox3d;
+    Box: TBox3D;
     V0, V1, V2: TVector3Single;
     I: Integer;
   begin
@@ -146,7 +146,7 @@ procedure TTestBoxes3d.TestIsBox3dTriangleCollision;
         Triangle[1] := Vector3Single(12 + Random(8) * XRandomness, 12 + Random(8) * YRandomness, 12 + Random(8) * ZRandomness);
         Triangle[2] := Vector3Single(12 + Random(8) * XRandomness, 12 + Random(8) * YRandomness, 12 + Random(8) * ZRandomness);
       until IsValidTriangle(Triangle);
-      Assert(IsBox3dTriangleCollision(Box, Triangle));
+      Assert(IsBox3DTriangleCollision(Box, Triangle));
     end;
 
     { random triangle completely outside the box (but chosen to collide) }
@@ -163,12 +163,12 @@ procedure TTestBoxes3d.TestIsBox3dTriangleCollision;
         Triangle[2] := VectorAdd(Vector3Single(15, 15, 15), V2);
       until IsValidTriangle(Triangle);
 
-      Assert(IsBox3dTriangleCollision(Box, Triangle));
+      Assert(IsBox3DTriangleCollision(Box, Triangle));
 
       VectorAddTo1st(Triangle[0], Vector3Single(100, 100, 100));
       VectorAddTo1st(Triangle[1], Vector3Single(100, 100, 100));
       VectorAddTo1st(Triangle[2], Vector3Single(100, 100, 100));
-      Assert(not IsBox3dTriangleCollision(Box, Triangle));
+      Assert(not IsBox3DTriangleCollision(Box, Triangle));
     end;
 
     { random triangle with 1 point inside the box, other 2 outside }
@@ -184,18 +184,18 @@ procedure TTestBoxes3d.TestIsBox3dTriangleCollision;
         Triangle[2] := Vector3Single(15, 15, 15);
       until IsValidTriangle(Triangle);
 
-      Assert(IsBox3dTriangleCollision(Box, Triangle));
+      Assert(IsBox3DTriangleCollision(Box, Triangle));
 
       VectorAddTo1st(Triangle[0], Vector3Single(100, 100, 100));
       VectorAddTo1st(Triangle[1], Vector3Single(100, 100, 100));
       VectorAddTo1st(Triangle[2], Vector3Single(100, 100, 100));
-      Assert(not IsBox3dTriangleCollision(Box, Triangle));
+      Assert(not IsBox3DTriangleCollision(Box, Triangle));
     end;
   end;
 
 var
   Triangle: TTriangle3Single;
-  Box: TBox3d;
+  Box: TBox3D;
 begin
   Triangle[0] := Vector3Single(0, 0, 0);
   Triangle[1] := Vector3Single(10, 0, 0);
@@ -203,13 +203,13 @@ begin
   Box[0] := Vector3Single(-10, -1, -1);
   Box[1] := Vector3Single( 10,  1,  1);
 
-  Assert(IsBox3dTriangleCollision(Box, Triangle));
+  Assert(IsBox3DTriangleCollision(Box, Triangle));
 
-  Box := Box3dTranslate(Box, Vector3Single(0, 0, 0.5));
-  Assert(IsBox3dTriangleCollision(Box, Triangle));
+  Box := Box3DTranslate(Box, Vector3Single(0, 0, 0.5));
+  Assert(IsBox3DTriangleCollision(Box, Triangle));
 
-  Box := Box3dTranslate(Box, Vector3Single(0, 0, 1.0));
-  Assert(not IsBox3dTriangleCollision(Box, Triangle));
+  Box := Box3DTranslate(Box, Vector3Single(0, 0, 1.0));
+  Assert(not IsBox3DTriangleCollision(Box, Triangle));
 
   RandomTrianglesTest(1, 1, 1);
 
@@ -219,14 +219,14 @@ begin
   RandomTrianglesTest(1, 1, 0);
 end;
 
-procedure TTestBoxes3d.TestIsBox3dTriangleCollisionEpsilons;
+procedure TTestBoxes3D.TestIsBox3DTriangleCollisionEpsilons;
 var
   EqualityEpsilon: Single;
 
-  { Modified version of IsCenteredBox3dPlaneCollision and IsBox3dTriangleCollision
+  { Modified version of IsCenteredBox3DPlaneCollision and IsBox3DTriangleCollision
     that use EqualityEpsilon variable here. Also, use Single precision calculations. }
 
-  function IsCenteredBox3dPlaneCollision(
+  function IsCenteredBox3DPlaneCollision(
     const BoxHalfSize: TVector3Single;
     const Plane: TVector4Single): boolean;
   { Implementation of this is based on
@@ -272,8 +272,8 @@ var
                Plane[3] >= EqualityEpsilon;
   end;
 
-  function IsBox3dTriangleCollision(
-    const Box: TBox3d;
+  function IsBox3DTriangleCollision(
+    const Box: TBox3D;
     const Triangle: TTriangle3Single): boolean;
 
   { Implementation of this is based on
@@ -388,7 +388,7 @@ var
     Plane: TVector4Single;
     PlaneDir: TVector3Single absolute Plane;
   begin
-    if IsEmptyBox3d(Box) then
+    if IsEmptyBox3D(Box) then
       Exit(false);
 
     { calculate BoxCenter and BoxHalfSize }
@@ -457,7 +457,7 @@ var
       compute plane equation of triangle: normal*x+d=0 }
     PlaneDir := VectorProduct(TriangleEdges[0], TriangleEdges[1]);
     Plane[3] := -VectorDotProduct(PlaneDir, TriangleMoved[0]);
-    if not IsCenteredBox3dPlaneCollision(BoxHalfSize, Plane) then
+    if not IsCenteredBox3DPlaneCollision(BoxHalfSize, Plane) then
       Exit(false);
 
     Result := true; { box and triangle overlaps }
@@ -465,28 +465,28 @@ var
 
 var
   Triangle: TTriangle3Single;
-  Box: TBox3d;
+  Box: TBox3D;
 
   procedure DoTest(const TestName: string; CorrectResult: boolean);
   begin
     { These writelns were used to experimentally check that 1e-4 is still too small,
       and 1e-3 is enough for these tests... That's assuming that we have
-      IsBox3dTriangleCollision implementation based on Single type. }
+      IsBox3DTriangleCollision implementation based on Single type. }
     {Write(TestName, ': ');
     EqualityEpsilon := 1e-3;
-    Write(IsBox3dTriangleCollision(Box, Triangle), ' ');
+    Write(IsBox3DTriangleCollision(Box, Triangle), ' ');
     EqualityEpsilon := 1e-6;
-    Write(IsBox3dTriangleCollision(Box, Triangle), ' ');
+    Write(IsBox3DTriangleCollision(Box, Triangle), ' ');
     Write(CorrectResult, ' ');
-    Write(Boxes3d.IsBox3dTriangleCollision(Box, Triangle), ' ');
+    Write(Boxes3D.IsBox3DTriangleCollision(Box, Triangle), ' ');
     Writeln;}
-    Assert(Boxes3d.IsBox3dTriangleCollision(Box, Triangle) = CorrectResult);
+    Assert(Boxes3D.IsBox3DTriangleCollision(Box, Triangle) = CorrectResult);
   end;
 
 const
   A = 1.980401039123535;
 var
-  OldBox3dPlaneCollisionEqualityEpsilon: Double;
+  OldBox3DPlaneCollisionEqualityEpsilon: Double;
 begin
   EqualityEpsilon := 1e-5;
 
@@ -507,7 +507,7 @@ begin
   Triangle[2][2] := 31.17262077331543;
   (* DoTest('1', false
     { Not sure what the result should be... ? But it sure depends on the epsilon used in
-      IsBox3dTriangleCollision. Test on Double values shows that this should be false.
+      IsBox3DTriangleCollision. Test on Double values shows that this should be false.
     }); *)
 
   Box[0][0] := 0.283733367919922;
@@ -527,16 +527,16 @@ begin
   Triangle[2][2] := -A;
 
   {$ifdef CPU64}
-  { Looks like for this test, even larger Box3dPlaneCollisionEqualityEpsilon
+  { Looks like for this test, even larger Box3DPlaneCollisionEqualityEpsilon
     is needed under x86_64 (tested on Linux with fpc 2.2.4 and trunk on 2009-08-21). }
-  OldBox3dPlaneCollisionEqualityEpsilon := Box3dPlaneCollisionEqualityEpsilon;
-  Box3dPlaneCollisionEqualityEpsilon := 1e-3;
+  OldBox3DPlaneCollisionEqualityEpsilon := Box3DPlaneCollisionEqualityEpsilon;
+  Box3DPlaneCollisionEqualityEpsilon := 1e-3;
   {$endif}
 
   DoTest('2', true);
 
   {$ifdef CPU64}
-  Box3dPlaneCollisionEqualityEpsilon := OldBox3dPlaneCollisionEqualityEpsilon;
+  Box3DPlaneCollisionEqualityEpsilon := OldBox3DPlaneCollisionEqualityEpsilon;
   {$endif}
 
   Box[0][0] := 0.283733367919922;
@@ -591,24 +591,24 @@ begin
   Triangle[2][2] := 29.618535995483398;
   (* DoTest('6', false
     { Not sure what the result should be... ? But it sure depends on the epsilon used in
-      IsBox3dTriangleCollision. Test on Double values shows that this should be false.
+      IsBox3DTriangleCollision. Test on Double values shows that this should be false.
       }); *)
 end;
 
-procedure TTestBoxes3d.TestBox3dTransform;
-{ Test Box3dTransform for correctness and speed.
+procedure TTestBoxes3D.TestBox3DTransform;
+{ Test Box3DTransform for correctness and speed.
   Compare with Slower implementation, that should be slower
   (on non-projection matrices) but give the same results. }
 
-  function Slower(const Box: TBox3d; const Matrix: TMatrix4Single): TBox3d;
+  function Slower(const Box: TBox3D; const Matrix: TMatrix4Single): TBox3D;
   var
     BoxPoints: array [0..7] of TVector3Single;
     i: integer;
   begin
-    if IsEmptyBox3d(Box) then
-      Exit(EmptyBox3d);
+    if IsEmptyBox3D(Box) then
+      Exit(EmptyBox3D);
 
-    Box3dGetAllPoints(@boxpoints, Box);
+    Box3DGetAllPoints(@boxpoints, Box);
     for i := 0 to 7 do boxpoints[i] := MatrixMultPoint(Matrix, boxpoints[i]);
 
     { Non-optimized version:
@@ -634,7 +634,7 @@ procedure TTestBoxes3d.TestBox3dTransform;
     end;
   end;
 
-  function RandomBox: TBox3d;
+  function RandomBox: TBox3D;
   var
     I: Integer;
   begin
@@ -646,7 +646,7 @@ procedure TTestBoxes3d.TestBox3dTransform;
     end;
   end;
 
-  procedure AssertBoxesEqual(const Box1, Box2: TBox3d);
+  procedure AssertBoxesEqual(const Box1, Box2: TBox3D);
   var
     I: Integer;
   begin
@@ -658,13 +658,13 @@ procedure TTestBoxes3d.TestBox3dTransform;
       end;
     except
       writeln('AssertBoxesEqual failed: ',
-        Box3dToNiceStr(Box1), ' ', Box3dToNiceStr(Box2));
+        Box3DToNiceStr(Box1), ' ', Box3DToNiceStr(Box2));
       raise;
     end;
   end;
 
 var
-  Box: TBox3d;
+  Box: TBox3D;
   I: Integer;
   Matrix: TMatrix4Single;
 begin
@@ -672,14 +672,14 @@ begin
   begin
     Box := RandomBox;
     Matrix := RandomMatrix;
-    AssertBoxesEqual(Slower(Box, Matrix), Box3dTransform(Box, Matrix));
+    AssertBoxesEqual(Slower(Box, Matrix), Box3DTransform(Box, Matrix));
   end;
 
   for I := 0 to 1000 do
   begin
     Box := RandomBox;
     Matrix := RandomNonProjectionMatrix;
-    AssertBoxesEqual(Slower(Box, Matrix), Box3dTransform(Box, Matrix));
+    AssertBoxesEqual(Slower(Box, Matrix), Box3DTransform(Box, Matrix));
   end;
 
   { $define BOX3D_TRANSFORM_SPEED_TEST}
@@ -694,8 +694,8 @@ begin
   Writeln(Format('Slower: %f', [ProcessTimerEnd]));
 
   ProcessTimerBegin;
-  for I := 0 to 1000000 do Box3dTransform(Box, Matrix);
-  Writeln(Format('Box3dTransform: %f', [ProcessTimerEnd]));
+  for I := 0 to 1000000 do Box3DTransform(Box, Matrix);
+  Writeln(Format('Box3DTransform: %f', [ProcessTimerEnd]));
 
   Writeln('On non-projection matrix:');
 
@@ -707,30 +707,30 @@ begin
   Writeln(Format('Slower: %f', [ProcessTimerEnd]));
 
   ProcessTimerBegin;
-  for I := 0 to 1000000 do Box3dTransform(Box, Matrix);
-  Writeln(Format('Box3dTransform: %f', [ProcessTimerEnd]));
+  for I := 0 to 1000000 do Box3DTransform(Box, Matrix);
+  Writeln(Format('Box3DTransform: %f', [ProcessTimerEnd]));
   {$endif BOX3D_TRANSFORM_SPEED_TEST}
 end;
 
-procedure TTestBoxes3d.TestBox3dMaximumPlane;
+procedure TTestBoxes3D.TestBox3DMaximumPlane;
 begin
   try
-    Box3dMaximumPlane(EmptyBox3d, Vector3Single(1, 1, 1));
+    Box3DMaximumPlane(EmptyBox3D, Vector3Single(1, 1, 1));
   except
-    on E: EBox3dEmpty do { Ok };
+    on E: EBox3DEmpty do { Ok };
   end;
 
-  Assert(VectorsEqual(Box3dMaximumPlane(Box3d(
+  Assert(VectorsEqual(Box3DMaximumPlane(Box3D(
     Vector3Single(2, 3, 4),
     Vector3Single(50, 60, 70)), Vector3Single(-1, 0, 0)),
     Vector4Single(-1, 0, 0, 2)));
 
-  Assert(VectorsEqual(Box3dMaximumPlane(Box3d(
+  Assert(VectorsEqual(Box3DMaximumPlane(Box3D(
     Vector3Single(2, 3, 4),
     Vector3Single(50, 60, 70)), Vector3Single(0, 0, -1)),
     Vector4Single(0, 0, -1, 4)));
 
-  Assert(VectorsEqual(Box3dMaximumPlane(Box3d(
+  Assert(VectorsEqual(Box3DMaximumPlane(Box3D(
     Vector3Single(2, 3, 4),
     Vector3Single(50, 60, 70)), Vector3Single(1, 1, 1)),
     Vector4Single(1, 1, 1,
@@ -739,25 +739,25 @@ begin
     )));
 end;
 
-procedure TTestBoxes3d.TestBox3dMinimumPlane;
+procedure TTestBoxes3D.TestBox3DMinimumPlane;
 begin
   try
-    Box3dMinimumPlane(EmptyBox3d, Vector3Single(1, 1, 1));
+    Box3DMinimumPlane(EmptyBox3D, Vector3Single(1, 1, 1));
   except
-    on E: EBox3dEmpty do { Ok };
+    on E: EBox3DEmpty do { Ok };
   end;
 
-  Assert(VectorsEqual(Box3dMinimumPlane(Box3d(
+  Assert(VectorsEqual(Box3DMinimumPlane(Box3D(
     Vector3Single(2, 3, 4),
     Vector3Single(50, 60, 70)), Vector3Single(1, 0, 0)),
     Vector4Single(1, 0, 0, -2)));
 
-  Assert(VectorsEqual(Box3dMinimumPlane(Box3d(
+  Assert(VectorsEqual(Box3DMinimumPlane(Box3D(
     Vector3Single(2, 3, 4),
     Vector3Single(50, 60, 70)), Vector3Single(0, 0, 1)),
     Vector4Single(0, 0, 1, -4)));
 
-  Assert(VectorsEqual(Box3dMinimumPlane(Box3d(
+  Assert(VectorsEqual(Box3DMinimumPlane(Box3D(
     Vector3Single(2, 3, 4),
     Vector3Single(50, 60, 70)), Vector3Single(1, 1, 1)),
     Vector4Single(1, 1, 1,
@@ -767,5 +767,5 @@ begin
 end;
 
 initialization
-  RegisterTest(TTestBoxes3d);
+  RegisterTest(TTestBoxes3D);
 end.

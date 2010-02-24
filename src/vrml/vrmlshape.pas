@@ -149,8 +149,8 @@ type
     methods of @link(TVRMLScene). }
   TVRMLShape = class(TVRMLShapeTree)
   private
-    FLocalBoundingBox: TBox3d;
-    FBoundingBox: TBox3d;
+    FLocalBoundingBox: TBox3D;
+    FBoundingBox: TBox3D;
     FVerticesCount, FTrianglesCount: array [boolean] of Cardinal;
     Validities: TVRMLShapeValidities;
     FGeometry: TVRMLGeometryNode;
@@ -215,8 +215,8 @@ type
     { Calculate bounding box and vertices/triangles count,
       see TVRMLGeometryNode methods.
       @groupBegin }
-    function LocalBoundingBox: TBox3d;
-    function BoundingBox: TBox3d;
+    function LocalBoundingBox: TBox3D;
+    function BoundingBox: TBox3D;
     function VerticesCount(OverTriangulate: boolean): Cardinal;
     function TrianglesCount(OverTriangulate: boolean): Cardinal;
     { @groupEnd }
@@ -722,7 +722,7 @@ begin
   Result := @FTriangleOctreeLimits;
 end;
 
-function TVRMLShape.LocalBoundingBox: TBox3d;
+function TVRMLShape.LocalBoundingBox: TBox3D;
 begin
   if not (svLocalBBox in Validities) then
   begin
@@ -732,7 +732,7 @@ begin
   Result := FLocalBoundingBox;
 end;
 
-function TVRMLShape.BoundingBox: TBox3d;
+function TVRMLShape.BoundingBox: TBox3D;
 begin
   if not (svBBox in Validities) then
   begin
@@ -803,7 +803,7 @@ procedure TVRMLShape.ValidateBoundingSphere;
 begin
  if not (svBoundingSphere in Validities) then
  begin
-  BoundingSphereFromBox3d(BoundingBox, FBoundingSphereCenter,
+  BoundingSphereFromBox3D(BoundingBox, FBoundingSphereCenter,
     FBoundingSphereRadiusSqr);
   Include(Validities, svBoundingSphere);
  end;
@@ -1520,18 +1520,18 @@ begin
     - A empty, and B non-empty
     - both non-empty, and A closer }
 
-  Result := (not IsEmptyBox3d(B.BoundingBox)) and
-    ( IsEmptyBox3d(A.BoundingBox) or
-      ( PointsDistanceSqr(Box3dMiddle(A.BoundingBox), SortPosition) <
-        PointsDistanceSqr(Box3dMiddle(B.BoundingBox), SortPosition)));
+  Result := (not IsEmptyBox3D(B.BoundingBox)) and
+    ( IsEmptyBox3D(A.BoundingBox) or
+      ( PointsDistanceSqr(Box3DMiddle(A.BoundingBox), SortPosition) <
+        PointsDistanceSqr(Box3DMiddle(B.BoundingBox), SortPosition)));
 end;
 
 function TVRMLShapesList.IsSmallerBackToFront(const A, B: TVRMLShape): boolean;
 begin
-  Result := (not IsEmptyBox3d(A.BoundingBox)) and
-    ( IsEmptyBox3d(B.BoundingBox) or
-      ( PointsDistanceSqr(Box3dMiddle(A.BoundingBox), SortPosition) >
-        PointsDistanceSqr(Box3dMiddle(B.BoundingBox), SortPosition)));
+  Result := (not IsEmptyBox3D(A.BoundingBox)) and
+    ( IsEmptyBox3D(B.BoundingBox) or
+      ( PointsDistanceSqr(Box3DMiddle(A.BoundingBox), SortPosition) >
+        PointsDistanceSqr(Box3DMiddle(B.BoundingBox), SortPosition)));
 end;
 
 procedure TVRMLShapesList.SortFrontToBack(const Position: TVector3Single);

@@ -38,10 +38,10 @@
     { For kambi_vrml_test_suite/vrml_1/flat_triangles_octree_test.wrl,
       this really needs some tolerance. And SingleEqualityEpsilon
       was too small. }
-    function Box3dPointInsideTolerant(
-      const pt: TVector3Single; const box: TBox3d): boolean;
+    function Box3DPointInsideTolerant(
+      const pt: TVector3Single; const box: TBox3D): boolean;
     begin
-      if IsEmptyBox3d(box) then exit(false);
+      if IsEmptyBox3D(box) then exit(false);
       result := Between(pt[0], box[0, 0] - 0.001, box[1, 0] + 0.001) and
                 Between(pt[1], box[0, 1] - 0.001, box[1, 1] + 0.001) and
                 Between(pt[2], box[0, 2] - 0.001, box[1, 2] + 0.001);
@@ -180,7 +180,7 @@
            TrySimplePlaneRayIntersection(PlaneIntersect, PlaneIntersectionDistance,
              i, MiddlePoint[i], FirstBoxIntr, RayVector)
            {$endif}
-             and Box3dPointInside(PlaneIntersect, Box);
+             and Box3DPointInside(PlaneIntersect, Box);
        end;
 
        if Exists then Inc(ExistingPlaneIntersectsCount);
@@ -298,7 +298,7 @@
       nie jest najblizszym z mozliwych) }
     if (result <> nil) and
        ((not ReturnClosestIntersection) or
-        Box3dPointInsideTolerant(Intersection, SubNode.Box)) then
+        Box3DPointInsideTolerant(Intersection, SubNode.Box)) then
      Exit;
    end;
   end;

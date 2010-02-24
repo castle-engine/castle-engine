@@ -167,7 +167,7 @@ procedure TPrimitiveRenderer.DoRender;
 
   procedure BeginPrimitives3DTextureCoords;
   var
-    Box: TBox3d;
+    Box: TBox3D;
     XStart, YStart, ZStart, XSize, YSize, ZSize: Single;
   begin
     Box := Shape.LocalBoundingBox;

@@ -16,7 +16,7 @@
 
 {$define OCTREE_STEP_INTO_SUBNODES_DECLARE:=
   var OSIS_b_low, OSIS_b_high: TOctreeSubnodeIndex;
-      OSIS_Box: TBox3d;
+      OSIS_Box: TBox3D;
       OSIS_Stop: boolean;
       OSIS_b_0, OSIS_b_1, OSIS_b_2: boolean;
   label OSIS_LoopEnd;

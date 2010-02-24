@@ -18,7 +18,7 @@
 program animate_surface;
 
 uses Cameras, Surfaces, GLWindow, GL, GLU, VectorMath,
-  KambiGLUtils, BezierCurve, Boxes3d, SysUtils, KambiUtils, KeysMouse,
+  KambiGLUtils, BezierCurve, Boxes3D, SysUtils, KambiUtils, KeysMouse,
   KambiStringUtils, GLWinMessages, KambiFilesUtils;
 
 var
@@ -31,7 +31,7 @@ var
 
 procedure CameraHome;
 begin
-  Camera.Init(Box3d(Vector3Single(0, 0, -1),
+  Camera.Init(Box3D(Vector3Single(0, 0, -1),
                     Vector3Single(1, 1,  1)), 0.0);
 end;
 

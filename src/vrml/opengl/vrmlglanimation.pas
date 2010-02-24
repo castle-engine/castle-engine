@@ -19,7 +19,7 @@ unit VRMLGLAnimation;
 interface
 
 uses SysUtils, Classes, VRMLNodes, VRMLOpenGLRenderer, VRMLScene, VRMLGLScene,
-  KambiUtils, Boxes3d, KambiClassUtils, VRMLAnimation, KeysMouse,
+  KambiUtils, Boxes3D, KambiClassUtils, VRMLAnimation, KeysMouse,
   KambiTimeUtils, Frustum, VectorMath, Base3D, VRMLTriangle;
 
 {$define read_interface}
@@ -92,7 +92,7 @@ type
     FTime: TKamTime;
 
     ValidBoundingBox: boolean;
-    FBoundingBox: TBox3d;
+    FBoundingBox: TBox3D;
     FOptimization: TGLRendererOptimization;
     FCollisionUseLastScene: boolean;
 
@@ -430,7 +430,7 @@ type
       very fast. But you have to call ChangedAll when you changed something
       inside Scenes[] using some direct Scenes[].RootNode operations,
       to force recalculation of this box. }
-    function BoundingBox: TBox3d; override;
+    function BoundingBox: TBox3D; override;
 
     { Call this when you changed something
       inside Scenes[] using some direct Scenes[].RootNode operations.
@@ -530,13 +530,13 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function MoveBoxAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
-      const ProposedNewBox: TBox3d;
+      const ProposedNewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function BoxCollision(const Box: TBox3d;
+    function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function RayCollision(
       out IntersectionDistance: Single;
@@ -1566,7 +1566,7 @@ begin
   Result := TVRMLSceneRenderingAttributes(Renderer.Attributes);
 end;
 
-function TVRMLGLAnimation.BoundingBox: TBox3d;
+function TVRMLGLAnimation.BoundingBox: TBox3D;
 
   procedure ValidateBoundingBox;
   var
@@ -1574,7 +1574,7 @@ function TVRMLGLAnimation.BoundingBox: TBox3d;
   begin
     FBoundingBox := FScenes[0].BoundingBox;
     for I := 1 to FScenes.High do
-      Box3dSumTo1st(FBoundingBox, FScenes[I].BoundingBox);
+      Box3DSumTo1st(FBoundingBox, FScenes[I].BoundingBox);
     ValidBoundingBox := true;
   end;
 
@@ -1599,13 +1599,13 @@ end;
 
 function TVRMLGLAnimation.InfoBoundingBox: string;
 var
-  BBox: TBox3d;
+  BBox: TBox3D;
 begin
   BBox := BoundingBox;
-  Result := 'Bounding box (of the whole animation) : ' + Box3dToNiceStr(BBox);
-  if not IsEmptyBox3d(BBox) then
+  Result := 'Bounding box (of the whole animation) : ' + Box3DToNiceStr(BBox);
+  if not IsEmptyBox3D(BBox) then
   begin
-    Result += ', average size : ' + FloatToNiceStr(Box3dAvgSize(BBox));
+    Result += ', average size : ' + FloatToNiceStr(Box3DAvgSize(BBox));
   end;
   Result += NL;
 end;
@@ -1899,7 +1899,7 @@ end;
 
 function TVRMLGLAnimation.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
-  const ProposedNewBox: TBox3d;
+  const ProposedNewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := (not Loaded) or (not Exists) or (not Collides) or
@@ -1932,7 +1932,7 @@ begin
 end;
 
 function TVRMLGLAnimation.BoxCollision(
-  const Box: TBox3d;
+  const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := Loaded and Exists and Collides and

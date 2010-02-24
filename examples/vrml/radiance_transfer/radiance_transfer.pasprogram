@@ -25,7 +25,7 @@
 
 program radiance_transfer;
 
-uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLWindow,
+uses VectorMath, Boxes3D, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes, RenderStateUnit,
   KambiGLUtils, VRMLGLScene, Cameras, KeysMouse, KambiSceneManager,
   KambiFilesUtils, VRMLErrors, SphericalHarmonics, Math, Images, GLCubeMap;
@@ -98,13 +98,13 @@ begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(RenderState.CameraMatrix);
 
-  if not IsEmptyBox3d(Scene.BoundingBox) then
+  if not IsEmptyBox3D(Scene.BoundingBox) then
   begin
     { SHVectorGLCapture wil draw maps, get them,
       and calculate LightSHBasis describing the light contribution
       (this will be used then by Scene.Render, during DoRadianceTransfer). }
 
-    SHVectorGLCapture(LightSHBasis, Box3dMiddle(Scene.BoundingBox),
+    SHVectorGLCapture(LightSHBasis, Box3DMiddle(Scene.BoundingBox),
       @DrawLight, 100, 100, LightIntensityScale);
     glViewport(0, 0, ContainerWidth, ContainerHeight);
   end;
@@ -182,8 +182,8 @@ procedure Idle(Glwin: TGLWindow);
   procedure ChangeLightPosition(Coord, Change: Integer);
   begin
     LightPos[Coord] += Change * Glwin.Fps.IdleSpeed *
-      { scale by Box3dAvgSize, to get similar move on all models }
-      Box3dAvgSize(Scene.BoundingBox);
+      { scale by Box3DAvgSize, to get similar move on all models }
+      Box3DAvgSize(Scene.BoundingBox);
     Glwin.PostRedisplay;
   end;
 
@@ -267,14 +267,14 @@ begin
   Scene.Load(Parameters[1]);
   Scene.Optimization := roNone;
 
-  if IsEmptyBox3d(Scene.BoundingBox) then
+  if IsEmptyBox3D(Scene.BoundingBox) then
   begin
     LightRadius := 1;
     LightPos := Vector3Single(2, 0, 0);
   end else
   begin
-    LightRadius := Box3dAvgSize(Scene.BoundingBox);
-    LightPos := Box3dMiddle(Scene.BoundingBox);
+    LightRadius := Box3DAvgSize(Scene.BoundingBox);
+    LightPos := Box3DMiddle(Scene.BoundingBox);
     LightPos[0] += Scene.BoundingBox[1][0] - Scene.BoundingBox[0][0] + LightRadius;
   end;
 

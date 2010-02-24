@@ -21,7 +21,7 @@ program design_surface;
 {$apptype GUI}
 
 uses Cameras, Surfaces, GLWindow, GL, GLU, VectorMath,
-  KambiGLUtils, Curve, BezierCurve, Boxes3d, SysUtils, KambiUtils, KeysMouse,
+  KambiGLUtils, Curve, BezierCurve, Boxes3D, SysUtils, KambiUtils, KeysMouse,
   KambiStringUtils, Math, GLWinMessages, KambiFilesUtils,
   BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts;
 
@@ -625,7 +625,7 @@ begin
 
   Camera := TExamineCamera.Create(Glw);
   Camera.OnVisibleChange := @Dummy.VisibleChange;
-  Camera.Init(Box3d(Vector3Single(0, 0, -1),
+  Camera.Init(Box3D(Vector3Single(0, 0, -1),
                     Vector3Single(1, 1,  1)));
   { conflicts with our MouseDown / MouseMove }
   Camera.MouseNavigation := false;
