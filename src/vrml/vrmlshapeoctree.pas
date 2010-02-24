@@ -212,30 +212,29 @@ type
 
 implementation
 
-{$I kambioctreemacros.inc}
-
 { TVRMLShapeOctreeNode ---------------------------------------- }
 
 procedure TVRMLShapeOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
-
-  procedure OCTREE_STEP_INTO_SUBNODES_PROC(
-    Subnode: TOctreeNode; var Stop: boolean);
-  begin
-   Subnode.AddItem(ItemIndex);
-  end;
-
-OCTREE_STEP_INTO_SUBNODES_DECLARE
+var
+  BoxLo, BoxHi: TOctreeSubnodeIndex;
+  Box: TBox3D;
+  B0, B1, B2: boolean;
 begin
- OSIS_Box := ParentTree.ShapesList[ItemIndex].BoundingBox;
+  Box := ParentTree.ShapesList[ItemIndex].BoundingBox;
 
- { For safety, I'm enlarging box a little, to be sure.
-   This way if BoundingBox will lie exactly on one of
-   3 orthogonal planes determined by MiddlePoint then
-   this ItemIndex will be said to collide with both sides
-   of this plane. }
- BoxExpandTo1st(OSIS_Box, SingleEqualityEpsilon);
+  { For safety, I'm enlarging box a little, to be sure.
+    This way if BoundingBox will lie exactly on one of
+    3 orthogonal planes determined by MiddlePoint then
+    this ItemIndex will be said to collide with both sides
+    of this plane. }
+  BoxExpandTo1st(Box, SingleEqualityEpsilon);
 
- OCTREE_STEP_INTO_SUBNODES
+  SubnodesWithBox(Box, BoxLo, BoxHi);
+
+  for B0 := BoxLo[0] to BoxHi[0] do
+    for B1 := BoxLo[1] to BoxHi[1] do
+      for B2 := BoxLo[2] to BoxHi[2] do
+        Subnode.AddItem(ItemIndex);
 end;
 
 function TVRMLShapeOctreeNode.ParentTree: TVRMLShapeOctree;

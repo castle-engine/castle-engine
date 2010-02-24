@@ -726,8 +726,6 @@ uses KambiStringUtils;
 {$define read_implementation}
 {$I dynarray_1.inc}
 
-{$I kambioctreemacros.inc}
-
 { TVRMLTriangle  ------------------------------------------------------------- }
 
 constructor TVRMLTriangle.Init(const ATriangle: TTriangle3Single;
@@ -896,24 +894,31 @@ function TVRMLBaseTrianglesOctreeNode.CommonSphere(const pos: TVector3Single;
   const Radius: Single;
   const TriangleToIgnore: PVRMLTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
-
-  procedure OCTREE_STEP_INTO_SUBNODES_PROC(subnode: TOctreeNode; var Stop: boolean);
-  begin
-    result := TVRMLBaseTrianglesOctreeNode(subnode).CommonSphere(
-      pos, Radius, TriangleToIgnore, TrianglesToIgnoreFunc);
-    Stop := result <> nil;
-  end;
-
-OCTREE_STEP_INTO_SUBNODES_DECLARE
+var
+  BoxLo, BoxHi: TOctreeSubnodeIndex;
+  Box: TBox3D;
+  B0, B1, B2: boolean;
 begin
   if not IsLeaf then
   begin
-    { TODO: traktujemy tu sfere jako szescian a wiec byc moze wejdziemy w wiecej
-      SubNode'ow niz rzeczywiscie musimy. }
-    result := nil;
-    OSIS_Box[0] := VectorSubtract(pos, Vector3Single(Radius, Radius, Radius) );
-    OSIS_Box[1] := VectorAdd(     pos, Vector3Single(Radius, Radius, Radius) );
-    OCTREE_STEP_INTO_SUBNODES
+    Result := nil;
+
+    { Visit every subnode containing this sphere, and look for collision there.
+      TODO: we take Box below, as simply bounding box of the sphere,
+      so potentially we visit more nodes than necessary. }
+    Box[0] := VectorSubtract(pos, Vector3Single(Radius, Radius, Radius) );
+    Box[1] := VectorAdd(     pos, Vector3Single(Radius, Radius, Radius) );
+
+    SubnodesWithBox(Box, BoxLo, BoxHi);
+
+    for B0 := BoxLo[0] to BoxHi[0] do
+      for B1 := BoxLo[1] to BoxHi[1] do
+        for B2 := BoxLo[2] to BoxHi[2] do
+        begin
+          Result := TVRMLBaseTrianglesOctreeNode(TreeSubNodes[B0, B1, B2]).
+            CommonSphere(Pos, Radius, TriangleToIgnore, TrianglesToIgnoreFunc);
+          if Result <> nil then Exit;
+        end;
   end else
   begin
     Result := CommonSphereLeaf(Pos, Radius, TriangleToIgnore,
@@ -924,21 +929,25 @@ end;
 function TVRMLBaseTrianglesOctreeNode.CommonBox(const ABox: TBox3D;
   const TriangleToIgnore: PVRMLTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
-
-  procedure OCTREE_STEP_INTO_SUBNODES_PROC(subnode: TOctreeNode; var Stop: boolean);
-  begin
-    Result := TVRMLBaseTrianglesOctreeNode(subnode).BoxCollision(ABox,
-      TriangleToIgnore, TrianglesToIgnoreFunc);
-    Stop := result <> nil;
-  end;
-
-OCTREE_STEP_INTO_SUBNODES_DECLARE
+var
+  BoxLo, BoxHi: TOctreeSubnodeIndex;
+  B0, B1, B2: boolean;
 begin
   if not IsLeaf then
   begin
     Result := nil;
-    OSIS_Box := ABox;
-    OCTREE_STEP_INTO_SUBNODES
+
+    { Visit every subnode containing this box, and look for collision there. }
+    SubnodesWithBox(ABox, BoxLo, BoxHi);
+
+    for B0 := BoxLo[0] to BoxHi[0] do
+      for B1 := BoxLo[1] to BoxHi[1] do
+        for B2 := BoxLo[2] to BoxHi[2] do
+        begin
+          Result := TVRMLBaseTrianglesOctreeNode(TreeSubNodes[B0, B1, B2]).
+            BoxCollision(ABox, TriangleToIgnore, TrianglesToIgnoreFunc);
+          if Result <> nil then Exit;
+        end;
   end else
   begin
     Result := CommonBoxLeaf(ABox, TriangleToIgnore, TrianglesToIgnoreFunc);
