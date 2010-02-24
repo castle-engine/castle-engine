@@ -896,7 +896,7 @@ function TVRMLBaseTrianglesOctreeNode.CommonSphere(const pos: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
 var
   BoxLo, BoxHi: TOctreeSubnodeIndex;
-  Box: TBox3D;
+  SubnodesBox: TBox3D;
   B0, B1, B2: boolean;
 begin
   if not IsLeaf then
@@ -904,12 +904,12 @@ begin
     Result := nil;
 
     { Visit every subnode containing this sphere, and look for collision there.
-      TODO: we take Box below, as simply bounding box of the sphere,
+      TODO: we take box below, as simply bounding box of the sphere,
       so potentially we visit more nodes than necessary. }
-    Box[0] := VectorSubtract(pos, Vector3Single(Radius, Radius, Radius) );
-    Box[1] := VectorAdd(     pos, Vector3Single(Radius, Radius, Radius) );
+    SubnodesBox[0] := VectorSubtract(pos, Vector3Single(Radius, Radius, Radius) );
+    SubnodesBox[1] := VectorAdd(     pos, Vector3Single(Radius, Radius, Radius) );
 
-    SubnodesWithBox(Box, BoxLo, BoxHi);
+    SubnodesWithBox(SubnodesBox, BoxLo, BoxHi);
 
     for B0 := BoxLo[0] to BoxHi[0] do
       for B1 := BoxLo[1] to BoxHi[1] do
