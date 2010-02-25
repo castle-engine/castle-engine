@@ -6141,7 +6141,9 @@ begin
   begin
     Triangle := OctreeCollisions.RayCollision(
       Intersection, IntersectionDistance, Ray0, RayVector,
-      false, nil, false, TrianglesToIgnoreFunc);
+      { ReturnClosestIntersection } true,
+      { TriangleToIgnore } nil,
+      { IgnoreMarginAtStart } false, TrianglesToIgnoreFunc);
     if Triangle <> nil then
     begin
       Result := T3DCollision.Create;
