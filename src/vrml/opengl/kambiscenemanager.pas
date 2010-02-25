@@ -1060,7 +1060,7 @@ begin
     begin
       Camera.Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, RayOrigin, RayDirection);
 
-      { We call here Items.RayCollision ourselves, to update FMouseRay
+      { We call here Items.RayCollision ourselves, to update FMouseRayHit
         (useful to e.g. update Cusdor based on it). To Items MouseMove
         we can also pass this FMouseRay, so that they know collision
         result already. }
