@@ -1070,7 +1070,7 @@ begin
         { Do not use CollisionIgnoreItem here,
           as this is not camera<->3d world collision? } nil);
 
-      { calculate MouseRayHitScene }
+      { calculate MouseRayHit3D }
       if MouseRayHit <> nil then
         MouseRayHit3D := MouseRayHit.Hierarchy.Last else
         MouseRayHit3D := nil;
