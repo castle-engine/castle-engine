@@ -5297,14 +5297,15 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if (RayHit <> nil) and RayHit.Hierarchy.IsLast(Self) then
-  begin
+  if (RayHit = nil) or (not RayHit.Hierarchy.IsLast(Self)) then
+    { If ray hit outside this scene (other 3D object, or empty space)
+      then mouse is no longer over any part of *this* scene. }
+    PointingDeviceMove(ZeroVector3Single, nil) else
     PointingDeviceMove(RayHit.Point, PVRMLTriangle(RayHit.Triangle));
 
-    { Do not treat it as handled (returning ExclusiveEvents),
-      this would disable too much (like Camera usually under Scene on Controls).
-    Result := false; }
-  end;
+  { Do not treat it as handled (returning ExclusiveEvents),
+    this would disable too much (like Camera usually under Scene on Controls).
+  Result := false; }
 end;
 
 { Time stuff ------------------------------------------------------------ }
