@@ -11,11 +11,13 @@ view3dscene 3.5 blockers:
     NurbsTextureCoordinate
     NurbsSet
 
-- castle: same plane walls on doom e1m1 level:
-  - at the first door
-  - right when opening the secret (lighter) door
-  (exist also in srcs before TLevelObject - T3D transition, so this isn't any bug from this.)
+- castle 1.0.0 blockers:
+  - same plane walls on doom e1m1 level:
+    - at the first door
+    - right when opening the secret (lighter) door
+    (exist also in srcs before TLevelObject - T3D transition, so this isn't any bug from this.)
 
+- both castle 1.0.0 and engine 2.0.0 blockers:
   - the fact that mouse is not immediately hidden when entering the game
     with mouse look is visible... Damn.
 
@@ -273,11 +275,32 @@ For view3dscene 3.6:
 fix Victor Amat problems with touch sensor picking along the way.
 
 ------------------------------------------------------------------------------
+Procedural 3d:
+
+more with terrain:
+- Planned post (but not implemented yet):
+  2. I also made there a simple renderer to show the infinite terrain with infinite detail :), using the idea from http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter02.html (reduced to absolute trivial case in my implementation :), you can probably guess how it works by looking at the screenshots).
+
+http://books.google.com/books?id=GWQ_hz2sIMcC&printsec=frontcover&hl=pl
+------------------------------------------------------------------------------
 For view3dscene 4.0:
 JavaScript, or Python/Lua?
 
 ------------------------------------------------------------------------------
 Various ideas:
+
+* something animated for shadow_volume_test caster, receiver.
+  Should be easy now with scene manager, that allows models to be animated.
+
+* make http://freewrl.sourceforge.net/images/flutter.x3d
+  read: handle data:text/plain for shader source.
+
+- view3dscene: edit->add viewport here command (asks for viewport name to put in description),
+  adds viewport to menu,
+  this viewport will be saved to file
+
+- display column / line numbers in vrml lexer errors.
+  (Not so difficult if we assume it works only for Windows/Unix, because scans only for #10. Make it as an optional (boolean property) for reader. Measure downtime, maybe enable by default for vrml lexer?)
 
 * NavigationInfo binding and changes treat better.
   - E.g. NavigationInfoStack.OnBoundChanged should cause appropriate change
