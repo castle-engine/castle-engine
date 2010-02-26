@@ -4,5 +4,5 @@
 '' + LineEnding + 
 'DEF Timer TimeSensor { loop TRUE cycleInterval 5 }' + LineEnding + 
 'ROUTE Timer.fraction_changed TO Interp.set_fraction' + LineEnding + 
-'ROUTE Interp.value_changed TO coord_MOD_Plane.point' + LineEnding + 
+'ROUTE Interp.value_changed TO $(CoordinateNodeName).point' + LineEnding + 
 ''
