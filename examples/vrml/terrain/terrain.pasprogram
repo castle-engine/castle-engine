@@ -63,10 +63,6 @@
   - controls for shifting noise (and calculated kam script) terrain.
 
   TODO: add calculating and using normals.
-
-  TODO: mark on ui that subdivision doesn't work on grid.
-  show subdivision slider also on kamscript terrain (in fact,
-  any but not grid), since it works there.
 }
 program terrain;
 
@@ -87,22 +83,28 @@ const
   ScaleHeight = 0.01;
 
 type
-  TTerrainControls = class(TGLMenu)
+  TControlsNoise = class(TGLMenu)
   public
     OctavesSlider: TGLMenuFloatSlider;
     AmplitudeSlider: TGLMenuFloatSlider;
     FrequencySlider: TGLMenuFloatSlider;
     SmoothnessSlider: TGLMenuFloatSlider;
 
-    SubdivisionSlider: TGLMenuIntegerSlider;
-
     constructor Create(AOwner: TComponent); override;
+    procedure CurrentItemAccessoryValueChanged; override;
+  end;
 
+  TControlsScript = class(TGLMenu)
+  public
+    constructor Create(AOwner: TComponent); override;
     procedure CurrentItemAccessoryValueChanged; override;
   end;
 
 var
-  GLControls: TTerrainControls;
+  { ui controls }
+  ControlsNoise: TControlsNoise;
+  ControlsScript: TControlsScript;
+  SubdivisionSlider: TGLMenuIntegerSlider;
 
 procedure ElevationVertex(const X, Y, H: Single);
 begin
@@ -180,18 +182,19 @@ begin
 end;
 
 procedure SetElevation(Value: TElevation);
-var
-  GLControlsVisible: boolean;
 begin
   if Elevation <> Value then
   begin
     FreeAndNil(Elevation);
     Elevation := Value;
-    GLControlsVisible := Elevation is TElevationNoise;
 
-    if GLControlsVisible then
-      Glw.Controls.MakeSingle(TGLMenu, GLControls, true { before camera }) else
-      Glw.Controls.Remove(GLControls);
+    if Elevation is TElevationNoise then
+      Glw.Controls.MakeSingle(TGLMenu, ControlsNoise, true { before camera }) else
+      Glw.Controls.Remove(ControlsNoise);
+
+    if Elevation is TElevationKamScript then
+      Glw.Controls.MakeSingle(TGLMenu, ControlsScript, true { before camera }) else
+      Glw.Controls.Remove(ControlsScript);
   end;
 end;
 
@@ -223,7 +226,7 @@ begin
   ProjectionGLPerspective(30, Glwin.Width / Glwin.Height, ScaleSize / 100, ScaleSize * 3);
 end;
 
-constructor TTerrainControls.Create(AOwner: TComponent);
+constructor TControlsNoise.Create(AOwner: TComponent);
 begin
   inherited;
 
@@ -231,7 +234,6 @@ begin
   AmplitudeSlider := TGLMenuFloatSlider.Create(0.5, 10.0, 1.0);
   FrequencySlider := TGLMenuFloatSlider.Create(0.5, 10.0, 1.0);
   SmoothnessSlider := TGLMenuFloatSlider.Create(1.0, 10.0, 2.0);
-  SubdivisionSlider := TGLMenuIntegerSlider.Create(4, 10, Subdivision);
 
   Items.AddObject('Octaves', OctavesSlider);
   Items.AddObject('Amplitude (scales height)', AmplitudeSlider);
@@ -245,7 +247,7 @@ begin
   Position.Init(10.00, 10.00);
 end;
 
-procedure TTerrainControls.CurrentItemAccessoryValueChanged;
+procedure TControlsNoise.CurrentItemAccessoryValueChanged;
 begin
   if not (Elevation is TElevationNoise) then Exit;
   case CurrentItem of
@@ -258,10 +260,34 @@ begin
   inherited;
 end;
 
+constructor TControlsScript.Create(AOwner: TComponent);
+begin
+  inherited;
+  Items.AddObject('Subdivision (render details)', SubdivisionSlider);
+  PositionRelativeScreenX := prLowerBorder;
+  PositionRelativeScreenY := prLowerBorder;
+  PositionRelativeMenuX := prLowerBorder;
+  PositionRelativeMenuY := prLowerBorder;
+  Position.Init(10.00, 10.00);
+end;
+
+procedure TControlsScript.CurrentItemAccessoryValueChanged;
+begin
+  if not (Elevation is TElevationKamScript) then Exit;
+  case CurrentItem of
+    0: Subdivision := SubdivisionSlider.Value;
+  end;
+  inherited;
+end;
+
 procedure Init(Glwin: TGLWindow);
 begin
-  GLControls := TTerrainControls.Create(nil);
-  Glw.Controls.Insert(0, GLControls); { add at the beginning, before camera }
+  { slider used by both Controls* }
+  SubdivisionSlider := TGLMenuIntegerSlider.Create(4, 10, Subdivision);
+  SubdivisionSlider.OwnedByParent := false;
+
+  ControlsNoise := TControlsNoise.Create(nil);
+  ControlsScript := TControlsScript.Create(nil);
 
   if Elevation = nil then
   begin
@@ -275,8 +301,9 @@ end;
 
 procedure Close(Glwin: TGLWindow);
 begin
-  Glw.Controls.Remove(GLControls);
-  FreeAndNil(GLControls);
+  FreeAndNil(ControlsNoise);
+  FreeAndNil(ControlsScript);
+  FreeAndNil(SubdivisionSlider);
   GLMenuCloseGL;
 end;
 
@@ -329,10 +356,10 @@ begin
         end;
     70: begin
           SetElevation(TElevationNoise.Create);
-          (Elevation as TElevationNoise).Octaves := GLControls.OctavesSlider.Value;
-          (Elevation as TElevationNoise).Amplitude := GLControls.AmplitudeSlider.Value;
-          (Elevation as TElevationNoise).Frequency := GLControls.FrequencySlider.Value;
-          (Elevation as TElevationNoise).Smoothness := GLControls.SmoothnessSlider.Value;
+          (Elevation as TElevationNoise).Octaves := ControlsNoise.OctavesSlider.Value;
+          (Elevation as TElevationNoise).Amplitude := ControlsNoise.AmplitudeSlider.Value;
+          (Elevation as TElevationNoise).Frequency := ControlsNoise.FrequencySlider.Value;
+          (Elevation as TElevationNoise).Smoothness := ControlsNoise.SmoothnessSlider.Value;
         end;
     100: Glwin.Close;
   end;

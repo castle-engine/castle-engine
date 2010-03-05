@@ -51,7 +51,11 @@ type
   { This is something that can be attached to some menu items of TGLMenu.
     For example, a slider --- see TGLMenuSlider. }
   TGLMenuItemAccessory = class
+  private
+    FOwnedByParent: boolean;
   public
+    constructor Create;
+
     { Return the width you will need to display yourself.
 
       Note that this will be asked only from FixItemsAreas
@@ -110,6 +114,12 @@ type
     procedure MouseMove(const NewX, NewY: Integer;
       const MousePressed: TMouseButtons;
       const Area: TArea; ParentMenu: TGLMenu); virtual;
+
+    { Should this accessory be freed when TGLMenu using it is freed.
+      Useful to set this to @false when you want to share one TGLMenuItemAccessory
+      across more than one TGLMenu. }
+    property OwnedByParent: boolean
+      read FOwnedByParent write FOwnedByParent default true;
   end;
 
   { This is TGLMenuItemAccessory that will just display
@@ -728,6 +738,12 @@ end;
 
 { TGLMenuItemAccessory ------------------------------------------------------ }
 
+constructor TGLMenuItemAccessory.Create;
+begin
+  inherited;
+  FOwnedByParent := true;
+end;
+
 function TGLMenuItemAccessory.KeyDown(Key: TKey; C: char;
   ParentMenu: TGLMenu): boolean;
 begin
@@ -1088,8 +1104,20 @@ begin
 end;
 
 destructor TGLMenu.Destroy;
+var
+  I: Integer;
 begin
-  StringList_FreeWithContentsAndNil(FItems);
+  if FItems <> nil then
+  begin
+    for I := 0 to FItems.Count - 1 do
+      if FItems.Objects[I] <> nil then
+      begin
+        if TGLMenuItemAccessory(FItems.Objects[I]).OwnedByParent then
+          FItems.Objects[I].Free;
+        FItems.Objects[I] := nil;
+      end;
+    FreeAndNil(FItems);
+  end;
 
   FreeAndNil(FAccessoryAreas);
   FreeAndNil(FAreas);
