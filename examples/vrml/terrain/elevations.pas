@@ -48,7 +48,8 @@ type
 
     "Synthesized noise" means it's not simply something random.
     We take the noise (integer noise, i.e. hash), smooth it
-    (how well, and how fast --- see NoiseInterpolation), and add several
+    (how well, and how fast --- see @link(Interpolation) and @link(Blur)),
+    and add several
     functions ("octaves") of such noise (with varying frequency and amplitude)
     together. This is the kind of noise used to synthesize textures,
     terrains and all other procedural stuff.
@@ -85,10 +86,10 @@ type
     FSmoothness: Single;
     FAmplitude: Single;
     FFrequency: Single;
-    FNoiseInterpolation: TNoiseInterpolation;
+    FInterpolation: TNoiseInterpolation;
     NoiseMethod: TNoise2DMethod;
     FBlur: boolean;
-    procedure SetNoiseInterpolation(const Value: TNoiseInterpolation);
+    procedure SetInterpolation(const Value: TNoiseInterpolation);
     procedure SetBlur(const Value: boolean);
     procedure UpdateNoiseMethod;
   public
@@ -151,15 +152,15 @@ type
       http://en.wikipedia.org/wiki/Bicubic_interpolation)
       should be implemented. I was planning it, but eventually cosine
       version turned out good and fast enough. }
-    property NoiseInterpolation: TNoiseInterpolation
-      read FNoiseInterpolation write SetNoiseInterpolation default niCosine;
+    property Interpolation: TNoiseInterpolation
+      read FInterpolation write SetInterpolation default niCosine;
 
     { Resulting noise octaves may be blurred. This helps to remove
       the inherent vertical/horizontal directionality in our 2D noise
       (it also makes it more smooth, since that's what blurring is about;
       you may want to increase Frequency * 2 to balance this).
 
-      This is independent from NoiseInterpolation. Although the need
+      This is independent from @link(Interpolation). Although the need
       for Blur is most obvious in poor/none interpolation methods
       (none, linear), it also helps for the nicer interpolation methods
       (cosine, cubic).
@@ -262,7 +263,7 @@ begin
   FSmoothness := 2.0;
   FAmplitude := 1.0;
   FFrequency := 1.0;
-  FNoiseInterpolation := niCosine;
+  FInterpolation := niCosine;
   FBlur := true;
   UpdateNoiseMethod;
 end;
@@ -270,23 +271,23 @@ end;
 procedure TElevationNoise.UpdateNoiseMethod;
 begin
   if Blur then
-    case NoiseInterpolation of
+    case Interpolation of
       niNone: NoiseMethod := @BlurredInterpolatedNoise2D_None;
       niLinear: NoiseMethod := @BlurredInterpolatedNoise2D_Linear;
       niCosine: NoiseMethod := @BlurredInterpolatedNoise2D_Cosine;
-      else raise EInternalError.Create('TElevationNoise.UpdateNoiseMethod(NoiseInterpolation?)');
+      else raise EInternalError.Create('TElevationNoise.UpdateNoiseMethod(Interpolation?)');
     end else
-    case NoiseInterpolation of
+    case Interpolation of
       niNone: NoiseMethod := @InterpolatedNoise2D_None;
       niLinear: NoiseMethod := @InterpolatedNoise2D_Linear;
       niCosine: NoiseMethod := @InterpolatedNoise2D_Cosine;
-      else raise EInternalError.Create('TElevationNoise.UpdateNoiseMethod(NoiseInterpolation?)');
+      else raise EInternalError.Create('TElevationNoise.UpdateNoiseMethod(Interpolation?)');
     end
 end;
 
-procedure TElevationNoise.SetNoiseInterpolation(const Value: TNoiseInterpolation);
+procedure TElevationNoise.SetInterpolation(const Value: TNoiseInterpolation);
 begin
-  FNoiseInterpolation := Value;
+  FInterpolation := Value;
   UpdateNoiseMethod;
 end;
 

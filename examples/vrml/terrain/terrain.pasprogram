@@ -360,7 +360,7 @@ begin
           (Elevation as TElevationNoise).Amplitude := ControlsNoise.AmplitudeSlider.Value;
           (Elevation as TElevationNoise).Frequency := ControlsNoise.FrequencySlider.Value;
           (Elevation as TElevationNoise).Smoothness := ControlsNoise.SmoothnessSlider.Value;
-          (Elevation as TElevationNoise).NoiseInterpolation := NoiseInterpolation;
+          (Elevation as TElevationNoise).Interpolation := NoiseInterpolation;
           (Elevation as TElevationNoise).Blur := NoiseBlur;
         end;
     100: Glwin.Close;
@@ -374,7 +374,7 @@ begin
       begin
         NoiseInterpolation := TNoiseInterpolation(Item.IntData - 200);
         if Elevation is TElevationNoise then
-          (Elevation as TElevationNoise).NoiseInterpolation := NoiseInterpolation;
+          (Elevation as TElevationNoise).Interpolation := NoiseInterpolation;
       end;
 
   end;
