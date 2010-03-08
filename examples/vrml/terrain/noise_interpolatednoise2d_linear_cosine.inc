@@ -20,8 +20,8 @@ begin
   Y1f := 1 - Y2f;
 
   Result :=
-    (IntegerNoise(X1, Y1, 0, NoiseIndex) / High(LongWord)) * X1f * Y1f +
-    (IntegerNoise(X2, Y1, 0, NoiseIndex) / High(LongWord)) * X2f * Y1f +
-    (IntegerNoise(X1, Y2, 0, NoiseIndex) / High(LongWord)) * X1f * Y2f +
-    (IntegerNoise(X2, Y2, 0, NoiseIndex) / High(LongWord)) * X2f * Y2f;
+    IntegerNoise(X1, Y1, NoiseIndex) * X1f * Y1f +
+    IntegerNoise(X2, Y1, NoiseIndex) * X2f * Y1f +
+    IntegerNoise(X1, Y2, NoiseIndex) * X1f * Y2f +
+    IntegerNoise(X2, Y2, NoiseIndex) * X2f * Y2f;
 end;

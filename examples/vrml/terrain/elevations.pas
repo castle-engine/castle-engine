@@ -42,8 +42,7 @@ type
   end;
 
   TNoiseInterpolation = (niNone, niLinear, niCosine);
-  TNoiseInterpolation2DMethod = function
-    (const X, Y: Single; const NoiseIndex: Cardinal): Single;
+  TNoise2DMethod = function (const X, Y: Single; const NoiseIndex: Cardinal): Single;
 
   { Procedural terrain: elevation data from a procedural noise.
 
@@ -87,8 +86,11 @@ type
     FAmplitude: Single;
     FFrequency: Single;
     FNoiseInterpolation: TNoiseInterpolation;
-    FNoiseInterpolation2DMethod: TNoiseInterpolation2DMethod;
+    NoiseMethod: TNoise2DMethod;
+    FBlur: boolean;
     procedure SetNoiseInterpolation(const Value: TNoiseInterpolation);
+    procedure SetBlur(const Value: boolean);
+    procedure UpdateNoiseMethod;
   public
     constructor Create;
     function Height(const X, Y: Single): Single; override;
@@ -151,6 +153,21 @@ type
       version turned out good and fast enough. }
     property NoiseInterpolation: TNoiseInterpolation
       read FNoiseInterpolation write SetNoiseInterpolation default niCosine;
+
+    { Resulting noise octaves may be blurred. This helps to remove
+      the inherent vertical/horizontal directionality in our 2D noise
+      (it also makes it more smooth, since that's what blurring is about;
+      you may want to increase Frequency * 2 to balance this).
+
+      This is independent from NoiseInterpolation. Although the need
+      for Blur is most obvious in poor/none interpolation methods
+      (none, linear), it also helps for the nicer interpolation methods
+      (cosine, cubic).
+
+      Note about [http://freespace.virgin.net/hugo.elias/models/m_perlin.htm]:
+      this "blurring" is called "smoothing" there.
+      I call it blurring, as it seems more precise to me. }
+    property Blur: boolean read FBlur write SetBlur default true;
   end;
 
   { Elevation data from a grid of values with specified width * height.
@@ -238,17 +255,6 @@ end;
 
 { TElevationNoise ------------------------------------------------------------ }
 
-procedure TElevationNoise.SetNoiseInterpolation(const Value: TNoiseInterpolation);
-begin
-  FNoiseInterpolation := Value;
-  case Value of
-    niNone: FNoiseInterpolation2DMethod := @InterpolatedNoise2D_None;
-    niLinear: FNoiseInterpolation2DMethod := @InterpolatedNoise2D_Linear;
-    niCosine: FNoiseInterpolation2DMethod := @InterpolatedNoise2D_Cosine;
-    else raise EInternalError.Create('TElevationNoise.SetNoiseInterpolation(value?)');
-  end;
-end;
-
 constructor TElevationNoise.Create;
 begin
   inherited Create;
@@ -256,7 +262,38 @@ begin
   FSmoothness := 2.0;
   FAmplitude := 1.0;
   FFrequency := 1.0;
-  NoiseInterpolation := niCosine;
+  FNoiseInterpolation := niCosine;
+  FBlur := true;
+  UpdateNoiseMethod;
+end;
+
+procedure TElevationNoise.UpdateNoiseMethod;
+begin
+  if Blur then
+    case NoiseInterpolation of
+      niNone: NoiseMethod := @BlurredInterpolatedNoise2D_None;
+      niLinear: NoiseMethod := @BlurredInterpolatedNoise2D_Linear;
+      niCosine: NoiseMethod := @BlurredInterpolatedNoise2D_Cosine;
+      else raise EInternalError.Create('TElevationNoise.UpdateNoiseMethod(NoiseInterpolation?)');
+    end else
+    case NoiseInterpolation of
+      niNone: NoiseMethod := @InterpolatedNoise2D_None;
+      niLinear: NoiseMethod := @InterpolatedNoise2D_Linear;
+      niCosine: NoiseMethod := @InterpolatedNoise2D_Cosine;
+      else raise EInternalError.Create('TElevationNoise.UpdateNoiseMethod(NoiseInterpolation?)');
+    end
+end;
+
+procedure TElevationNoise.SetNoiseInterpolation(const Value: TNoiseInterpolation);
+begin
+  FNoiseInterpolation := Value;
+  UpdateNoiseMethod;
+end;
+
+procedure TElevationNoise.SetBlur(const Value: boolean);
+begin
+  FBlur := Value;
+  UpdateNoiseMethod;
 end;
 
 function TElevationNoise.Height(const X, Y: Single): Single;
@@ -269,11 +306,11 @@ begin
   F := Frequency;
   for I := 1 to Trunc(Octaves) do
   begin
-    Result += FNoiseInterpolation2DMethod(X * F, Y * F, I) * A;
+    Result += NoiseMethod(X * F, Y * F, I) * A;
     F *= 2;
     A /= Smoothness;
   end;
-  Result += Frac(Octaves) * FNoiseInterpolation2DMethod(X * F, Y * F, Trunc(Octaves) + 1) * A;
+  Result += Frac(Octaves) * NoiseMethod(X * F, Y * F, Trunc(Octaves) + 1) * A;
 end;
 
 { TElevationGrid ------------------------------------------------------------- }

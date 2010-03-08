@@ -20,24 +20,36 @@ interface
 
 { Noise for 2D coords, resulting in float 0..1 range.
 
-  This is the smoothed (interpolated) integer noise. That is,
+  This is the interpolated integer noise. That is,
   values on integer grid points (when X, Y are ints)
   come from the really independent "integer noise".
   Values between integer points are interpolated.
 
   Suffix describes interpolation method.
 
+  Versions with prefix "Blurred" are also blurred, that is averaged a little
+  with neighbors (just like blur on normal 2D images). This helps for 2D noise
+  to be less vertical/horizontal oriented.
+
   @groupBegin }
 function InterpolatedNoise2D_None(const X, Y: Single; const NoiseIndex: Cardinal): Single;
 function InterpolatedNoise2D_Linear(const X, Y: Single; const NoiseIndex: Cardinal): Single;
 function InterpolatedNoise2D_Cosine(const X, Y: Single; const NoiseIndex: Cardinal): Single;
+function BlurredInterpolatedNoise2D_None(const X, Y: Single; const NoiseIndex: Cardinal): Single;
+function BlurredInterpolatedNoise2D_Linear(const X, Y: Single; const NoiseIndex: Cardinal): Single;
+function BlurredInterpolatedNoise2D_Cosine(const X, Y: Single; const NoiseIndex: Cardinal): Single;
 { @groupEnd }
 
 implementation
 
+{ Integer noise -------------------------------------------------------------- }
+
 { Make integer noise: for 3 given LongInts, generate random LongWord value.
-  This is designed to fill uniformly the LongWord range --- so if you
-  want float result in 0 ... 1, just divide by High(LongWord).
+
+  It is designed to fill uniformly the LongWord range.
+  So if you want float result in 0 ... 1, just divide by High(LongWord),
+  which is exactly what IntegerNoise (without Core suffix) does.
+
   If you want noise based on 2D coords, just pass Z = 0 -- it's Ok,
   noise will still nicely fill whole range.
 
@@ -46,9 +58,7 @@ implementation
   of prime numbers prepared, so NoiseIndex = i*100+k may be equal
   to NoiseIndex = k. }
 
-function IntegerNoise(const X, Y, Z: LongInt; const NoiseIndex: Cardinal): LongWord;
-
-{ This implementation is very close to the one on
+{ This integer noise implementation is very close to the one on
   http://freespace.virgin.net/hugo.elias/models/m_perlin.htm,
   and it follows Blender's cellNoiseU. Especially NoiseIndex = 0
   values are equal. }
@@ -157,6 +167,8 @@ const
     (1531, 588011, 19597, 4746457, 1208747233),
     (1201, 219977, 10937, 2862599, 1111733503)
   );
+
+function IntegerNoiseCore(const X, Y, Z: LongInt; const NoiseIndex: Cardinal): LongWord;
 var
   N: LongWord;
   PPrimes: PLongWord;
@@ -171,15 +183,39 @@ begin
 end;
 {$I norqcheckend.inc}
 
-{ Noise for 2D coords, resulting in float 0..1 range.
+function IntegerNoise(const X, Y, Z: LongInt; const NoiseIndex: Cardinal): Single;
+begin
+  Result := IntegerNoiseCore(X, Y, Z, NoiseIndex) / High(LongWord);
+end;
 
-  This is the smoothed IntegerNoise noise --- for X, Y being
-  close to integers, they go towards IntegerNoise(Round(X), Round(Y)).
-  For between, they nicely interpolate between. }
+function IntegerNoise(const X, Y: LongInt; const NoiseIndex: Cardinal): Single;
+begin
+  Result := IntegerNoiseCore(X, Y, 0, NoiseIndex) / High(LongWord);
+end;
+
+{ This "blurring" is called "smoothing" on
+  http://freespace.virgin.net/hugo.elias/models/m_perlin.htm.
+  I call it blurring, as it seems more precise to me. }
+
+function BlurredIntegerNoise(const X, Y: LongInt; const NoiseIndex: Cardinal): Single;
+begin
+  Result :=
+      IntegerNoise(X    , Y    , NoiseIndex) / 4 +
+    ( IntegerNoise(X - 1, Y    , NoiseIndex)  +
+      IntegerNoise(X + 1, Y    , NoiseIndex)  +
+      IntegerNoise(X    , Y - 1, NoiseIndex)  +
+      IntegerNoise(X    , Y + 1, NoiseIndex)  ) / 8 +
+    ( IntegerNoise(X - 1, Y - 1, NoiseIndex)  +
+      IntegerNoise(X - 1, Y + 1, NoiseIndex)  +
+      IntegerNoise(X + 1, Y - 1, NoiseIndex)  +
+      IntegerNoise(X + 1, Y + 1, NoiseIndex)  ) / 16;
+end;
+
+{ Interpolated noise for 2D coords ------------------------------------------- }
 
 function InterpolatedNoise2D_None(const X, Y: Single; const NoiseIndex: Cardinal): Single;
 begin
-  Result := IntegerNoise(Round(X), Round(Y), 0, NoiseIndex) / High(LongWord);
+  Result := IntegerNoise(Round(X), Round(Y), NoiseIndex);
 end;
 
 function InterpolatedNoise2D_Linear(const X, Y: Single; const NoiseIndex: Cardinal): Single;
@@ -189,5 +225,24 @@ function InterpolatedNoise2D_Cosine(const X, Y: Single; const NoiseIndex: Cardin
 {$define InterpolatedNoise2D_Cosine}
 {$I noise_interpolatednoise2d_linear_cosine.inc}
 {$undef InterpolatedNoise2D_Cosine}
+
+{ Interpolated and blurred noise for 2D coords ------------------------------- }
+
+function BlurredInterpolatedNoise2D_None(const X, Y: Single; const NoiseIndex: Cardinal): Single;
+begin
+  Result := BlurredIntegerNoise(Round(X), Round(Y), NoiseIndex);
+end;
+
+{$define IntegerNoise := BlurredIntegerNoise}
+
+function BlurredInterpolatedNoise2D_Linear(const X, Y: Single; const NoiseIndex: Cardinal): Single;
+{$I noise_interpolatednoise2d_linear_cosine.inc}
+
+function BlurredInterpolatedNoise2D_Cosine(const X, Y: Single; const NoiseIndex: Cardinal): Single;
+{$define InterpolatedNoise2D_Cosine}
+{$I noise_interpolatednoise2d_linear_cosine.inc}
+{$undef InterpolatedNoise2D_Cosine}
+
+{$undef IntegerNoise}
 
 end.
