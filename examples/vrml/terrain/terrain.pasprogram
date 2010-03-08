@@ -129,7 +129,12 @@ procedure DrawElevation(Elevation: TElevation);
     { TODO: * 1000 + 500 needed to hit interesting colors (otherwise
       it's all black around 0. Make it nicer: detect min/max height,
       adjust color range (and ScaleHeight, to see it) to it. }
-    ElevationVertex(I, J, Elevation.Height(I, J) * 1000 + 500);
+
+    { Shift I, J, to show (-0.5, -0.5, 0.5, 0.5) square.
+      This way chnging frequency scales from the middle, which looks better
+      (and allows to see more terrain). }
+
+    ElevationVertex(I, J, Elevation.Height(I - 0.5, J - 0.5) * 1000 + 500);
   end;
 
 var
