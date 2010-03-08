@@ -58,8 +58,11 @@ type
   { Elevation (height for each X, Y) data calculated from KambiScript
     expression. At construction, pass FunctionExpression,
     that is KambiScript language expression calculating height
-    based on X, Y. }
-  TElevationKamScript = class(TElevation)
+    based on X, Y.
+
+    This descends from TElevationImage, so you add an image to
+    your function result. }
+  TElevationKamScript = class(TElevationImage)
   private
     FXVariable, FYVariable: TKamScriptFloat;
     FFunction: TKamScriptExpression;
@@ -107,8 +110,10 @@ type
         [http://web.archive.org/web/20070706003038/http://www.cs.cmu.edu/~mzucker/code/perlin-noise-math-faq.html],
         [http://www.noisemachine.com/talk1/index.html].)
     )
-  }
-  TElevationNoise = class(TElevation)
+
+    This descends from TElevationImage, so you add an image to
+    your function result. }
+  TElevationNoise = class(TElevationImage)
   private
     FOctaves: Single;
     FSmoothness: Single;
@@ -327,9 +332,10 @@ end;
 
 function TElevationKamScript.Height(const X, Y: Single): Single;
 begin
+  Result := inherited;
   FXVariable.Value := X;
   FYVariable.Value := Y;
-  Result := (FFunction.Execute as TKamScriptFloat).Value;
+  Result += (FFunction.Execute as TKamScriptFloat).Value;
 end;
 
 { TElevationNoise ------------------------------------------------------------ }
@@ -380,7 +386,7 @@ var
   A, F: Single;
   I: Cardinal;
 begin
-  Result := 0;
+  Result := inherited;
   A := Amplitude;
   F := Frequency;
   for I := 1 to Trunc(Octaves) do

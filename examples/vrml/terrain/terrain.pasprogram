@@ -94,9 +94,11 @@ type
     procedure CurrentItemAccessoryValueChanged; override;
   end;
 
-  { For any TElevation except TElevationNoise (that has it's own TControlsNoise)
-    and TElevationGrid (that has quite different rendering rules). }
-  TControlsAny = class(TGLMenu)
+  { For any TElevationImage except
+    TElevationNoise (that has it's own TControlsNoise)
+    and TElevationGrid (that has quite different rendering rules;
+    for now, TElevationGrid is not TElevationImage anyway). }
+  TControlsImage = class(TGLMenu)
   public
     constructor Create(AOwner: TComponent); override;
     procedure CurrentItemAccessoryValueChanged; override;
@@ -105,8 +107,9 @@ type
 var
   { ui controls }
   ControlsNoise: TControlsNoise;
-  ControlsAny: TControlsAny;
+  ControlsImage: TControlsImage;
   SubdivisionSlider: TGLMenuIntegerSlider;
+  ImageHeightScaleSlider: TGLMenuFloatSlider;
 
 procedure ColorFromHeight(const H: Single);
 begin
@@ -245,10 +248,11 @@ begin
       Glw.Controls.MakeSingle(TGLMenu, ControlsNoise, true { before camera }) else
       Glw.Controls.Remove(ControlsNoise);
 
-    if not ( (Elevation is TElevationNoise) or
+    if (Elevation is TElevationImage) and
+       not ( (Elevation is TElevationNoise) or
              (Elevation is TElevationGrid) ) then
-      Glw.Controls.MakeSingle(TGLMenu, ControlsAny, true { before camera }) else
-      Glw.Controls.Remove(ControlsAny);
+      Glw.Controls.MakeSingle(TGLMenu, ControlsImage, true { before camera }) else
+      Glw.Controls.Remove(ControlsImage);
   end;
 end;
 
@@ -324,6 +328,7 @@ begin
   Items.AddObject('Smoothness', SmoothnessSlider);
   Items.AddObject('Seed', SeedSlider);
   Items.AddObject('Subdivision (render details)', SubdivisionSlider);
+  Items.AddObject('Image height scale', ImageHeightScaleSlider);
   PositionRelativeScreenX := prLowerBorder;
   PositionRelativeScreenY := prLowerBorder;
   PositionRelativeMenuX := prLowerBorder;
@@ -341,14 +346,16 @@ begin
     3: (Elevation as TElevationNoise).Smoothness := SmoothnessSlider.Value;
     4: (Elevation as TElevationNoise).Seed := SeedSlider.Value;
     5: Subdivision := SubdivisionSlider.Value;
+    6: (Elevation as TElevationNoise).ImageHeightScale := ImageHeightScaleSlider.Value;
   end;
   inherited;
 end;
 
-constructor TControlsAny.Create(AOwner: TComponent);
+constructor TControlsImage.Create(AOwner: TComponent);
 begin
   inherited;
   Items.AddObject('Subdivision (render details)', SubdivisionSlider);
+  Items.AddObject('Image height scale', ImageHeightScaleSlider);
   PositionRelativeScreenX := prLowerBorder;
   PositionRelativeScreenY := prLowerBorder;
   PositionRelativeMenuX := prLowerBorder;
@@ -356,38 +363,44 @@ begin
   Position.Init(10.00, 10.00);
 end;
 
-procedure TControlsAny.CurrentItemAccessoryValueChanged;
+procedure TControlsImage.CurrentItemAccessoryValueChanged;
 begin
   case CurrentItem of
     0: Subdivision := SubdivisionSlider.Value;
+    1: (Elevation as TElevationImage).ImageHeightScale := ImageHeightScaleSlider.Value;
   end;
   inherited;
 end;
 
 procedure Init(Glwin: TGLWindow);
 begin
-  { slider used by both Controls* }
+  { sliders used by both Controls* }
   SubdivisionSlider := TGLMenuIntegerSlider.Create(4, 10, Subdivision);
   SubdivisionSlider.OwnedByParent := false;
+  ImageHeightScaleSlider := TGLMenuFloatSlider.Create(0.0, 2.0, 0.25);
+  ImageHeightScaleSlider.OwnedByParent := false;
 
   ControlsNoise := TControlsNoise.Create(nil);
-  ControlsAny := TControlsAny.Create(nil);
+  ControlsImage := TControlsImage.Create(nil);
 
   if Elevation = nil then
   begin
     if Parameters.High = 1 then
       SetElevation(TElevationSRTM.CreateFromFile(Parameters[1])) else
+    begin
       { some default elevation }
       SetElevation(TElevationNoise.Create);
-  //    SetElevation(TElevationKamScript.Create('sin(x*10) * sin(y*10)'));
+      (Elevation as TElevationImage).ImageHeightScale := ImageHeightScaleSlider.Value;
+    end;
   end;
 end;
 
 procedure Close(Glwin: TGLWindow);
 begin
   FreeAndNil(ControlsNoise);
-  FreeAndNil(ControlsAny);
+  FreeAndNil(ControlsImage);
   FreeAndNil(SubdivisionSlider);
+  FreeAndNil(ImageHeightScaleSlider);
   GLMenuCloseGL;
 end;
 
@@ -426,6 +439,7 @@ begin
           begin
             try
               NewElevation := TElevationKamScript.Create(Expression);
+              (Elevation as TElevationImage).ImageHeightScale := ImageHeightScaleSlider.Value;
             except
               on E: Exception do
               begin
@@ -447,9 +461,11 @@ begin
           (Elevation as TElevationNoise).Seed := ControlsNoise.SeedSlider.Value;
           (Elevation as TElevationNoise).Interpolation := NoiseInterpolation;
           (Elevation as TElevationNoise).Blur := NoiseBlur;
+          (Elevation as TElevationNoise).ImageHeightScale := ImageHeightScaleSlider.Value;
         end;
     80: begin
           SetElevation(TElevationImage.Create);
+          (Elevation as TElevationImage).ImageHeightScale := ImageHeightScaleSlider.Value;
         end;
     100: Glwin.Close;
     110:
