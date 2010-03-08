@@ -94,6 +94,8 @@
       default true;
   end;
 
+  TMenuItemRadioGroup = class;
+
   { TMenuEntry that contains a list of menu entries.
     This is the basic class to represent a drop-down menu, a submenu etc. }
   TMenu = class(TMenuEntryWithCaption)
@@ -113,6 +115,45 @@
     procedure EntriesDeleteAll;
     constructor Create(const ACaption: String);
     destructor Destroy; override;
+
+    { Append a number of radio menu items.
+      This is a comfortable shortcut for an often task of adding
+      many TMenuItemRadio items that create a new radio group
+      (TMenuItemRadioGroup).
+
+      Otherwise, it creates new
+
+      For each item of Items list, we'll add a new TMenuItemRadio instance.
+
+      @unorderedList(
+        @item(TMenuItemRadio.Caption will be set to the Items[I]
+          string. Additionally it will be quoted by SQuoteMenuEntryCaption
+          to avoid interpreting underscore characters.)
+
+        @item(TMenuItemRadio.IntData will be set to BaseIntData + the number
+          of this item. (This is usually most comfortable,
+          you can handle this radio group by "case" with a range.))
+
+        @item(TMenuItemRadio.Group will be equal. More precisely:
+          along with creating the first TMenuItemRadio, we will also
+          create new TMenuItemRadioGroup. For the rest of TMenuItemRadio,
+          we'll assign this group.)
+
+        @item(TMenuItemRadio.Checked will be set to @true on only
+          one item: the one numbered SelectedIndex.
+          Pass SelectedIndex negative (or >= than items count)
+          to have no radio item checked by default.)
+
+        @item(TMenuItemRadio.AutoCheckedToggle will be set according
+          to ou parameter AAutoCheckedToggle.)
+      )
+
+      We return the newly created TMenuItemRadioGroup.
+      If Items is empty, this does nothing and returns @nil.
+    }
+    function AppendRadioGroup(const Items: array of string;
+      BaseIntData: Cardinal; SelectedIndex: Integer;
+      AAutoCheckedToggle: boolean): TMenuItemRadioGroup;
   end;
 
   { TMenuEntry that is a simple, clickable menu item.
@@ -288,8 +329,6 @@
     constructor Create(const ACaption: String; AIntData: Integer; AKey: TKey;
       AChecked, AAutoCheckedToggle: boolean); overload;
   end;
-
-  TMenuItemRadioGroup = class;
 
   { This is similar to TMenuItemChecked, but it belongs to a group and
     within this group only one (or none) radio button can be checked.
@@ -509,6 +548,26 @@ procedure TMenu.EntriesDeleteAll;
 begin
   FEntries.FreeContents;
   Changed;
+end;
+
+function TMenu.AppendRadioGroup(const Items: array of string;
+  BaseIntData: Cardinal; SelectedIndex: Integer;
+  AAutoCheckedToggle: boolean): TMenuItemRadioGroup;
+var
+  Radio: TMenuItemRadio;
+  I: Integer;
+begin
+  Result := nil;
+  for I := 0 to High(Items) do
+  begin
+    Radio := TMenuItemRadio.Create(
+      SQuoteMenuEntryCaption(Items[I]),
+      Cardinal(I) + BaseIntData, I = SelectedIndex, AAutoCheckedToggle);
+    if Result = nil then
+      Result := Radio.Group else
+      Radio.Group := Result;
+    Append(Radio);
+  end;
 end;
 
 { TMenuItem ------------------------------------------------------------ }
