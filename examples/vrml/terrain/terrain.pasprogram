@@ -134,8 +134,21 @@ var
 { Generic drawing of any TElevation, uses Height method }
 procedure DrawElevation(Elevation: TElevation);
 var
-  CountSteps: Cardinal;
   CountSteps1: Cardinal;
+
+  procedure Vertex(const I, J: Cardinal);
+  var
+    P, PX, PY: PVector3Single;
+  begin
+    P  := Points.Pointers[ I      * CountSteps1 + J];
+    PX := Points.Pointers[(I + 1) * CountSteps1 + J];
+    PY := Points.Pointers[ I      * CountSteps1 + J + 1];
+    glNormalv((PX^ - P^) >< (PY^ - P^));
+    ElevationVertex(P^);
+  end;
+
+var
+  CountSteps: Cardinal;
   I, J: Cardinal;
   P: PVector3Single;
 begin
@@ -172,8 +185,8 @@ begin
     glBegin(GL_QUAD_STRIP);
       for J := 0 to CountSteps - 1 do
       begin
-        ElevationVertex(Points.Items[(I - 1) * CountSteps1 + J]);
-        ElevationVertex(Points.Items[ I      * CountSteps1 + J]);
+        Vertex(I - 1, J);
+        Vertex(I    , J);
       end;
     glEnd();
   end;
@@ -245,8 +258,20 @@ begin
   end;
 
     if Elevation is TElevationGrid then
-      DrawGrid(TElevationGrid(Elevation)) else
-      DrawElevation(Elevation);
+    begin
+      { DrawGrid cannot make normals for now, so no LIGHTING or other stuff }
+      DrawGrid(TElevationGrid(Elevation));
+    end else
+    begin
+      glPushAttrib(GL_ENABLE_BIT);
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
+        glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+        glEnable(GL_COLOR_MATERIAL);
+        glEnable(GL_NORMALIZE);
+        DrawElevation(Elevation);
+      glPopAttrib;
+    end;
 
   glPopAttrib;
 end;
