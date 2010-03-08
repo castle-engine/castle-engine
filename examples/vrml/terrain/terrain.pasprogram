@@ -42,6 +42,11 @@
      in the 1st place) generate random terrain.
 
   TODO:
+  - DrawGrid is temp broken now (not visible,
+    and probably walk camera doesn't follow it correctly).
+    For now, ignore it (it messes too much otherwise clean TElevation*
+    using code).
+
   - switch view terrain:
     1. current view - "Examine the [0..1, 0..1] range of the terrain"
     2. new new - "Walk over the infinite terrain":
