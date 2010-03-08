@@ -28,9 +28,9 @@ interface
   Suffix describes interpolation method.
 
   @groupBegin }
-function InterpolatedNoise2D_None(const X, Y: Single; const NoiseIndex: Cardinal): Single;
-function InterpolatedNoise2D_Linear(const X, Y: Single; const NoiseIndex: Cardinal): Single;
-function InterpolatedNoise2D_Cosine(const X, Y: Single; const NoiseIndex: Cardinal): Single;
+function InterpolatedNoise2D_None(const X, Y: Single; const Seed: Cardinal): Single;
+function InterpolatedNoise2D_Linear(const X, Y: Single; const Seed: Cardinal): Single;
+function InterpolatedNoise2D_Cosine(const X, Y: Single; const Seed: Cardinal): Single;
 { @groupEnd }
 
 { Noise for 2D coords, resulting in float 0..1 range, additionally blurred.
@@ -45,9 +45,9 @@ function InterpolatedNoise2D_Cosine(const X, Y: Single; const NoiseIndex: Cardin
   and only then blur it), and marginally faster.
 
   @groupBegin }
-function BlurredInterpolatedNoise2D_None(const X, Y: Single; const NoiseIndex: Cardinal): Single;
-function BlurredInterpolatedNoise2D_Linear(const X, Y: Single; const NoiseIndex: Cardinal): Single;
-function BlurredInterpolatedNoise2D_Cosine(const X, Y: Single; const NoiseIndex: Cardinal): Single;
+function BlurredInterpolatedNoise2D_None(const X, Y: Single; const Seed: Cardinal): Single;
+function BlurredInterpolatedNoise2D_Linear(const X, Y: Single; const Seed: Cardinal): Single;
+function BlurredInterpolatedNoise2D_Cosine(const X, Y: Single; const Seed: Cardinal): Single;
 { @groupEnd }
 
 implementation
@@ -65,14 +65,14 @@ uses Math;
   If you want noise based on 2D coords, just pass Z = 0 -- it's Ok,
   noise will still nicely fill whole range.
 
-  NoiseIndex chooses prime numbers that are "seeds" for this noise.
+  Seed chooses prime numbers that are "seeds" for this noise.
   Any Cardinal value is Ok, although actually we have only ~100 sets
-  of prime numbers prepared, so NoiseIndex = i*100+k may be equal
-  to NoiseIndex = k. }
+  of prime numbers prepared, so Seed = i*100+k may be equal
+  to Seed = k. }
 
 { This integer noise implementation is very close to the one on
   http://freespace.virgin.net/hugo.elias/models/m_perlin.htm,
-  and it follows Blender's cellNoiseU. Especially NoiseIndex = 0
+  and it follows Blender's cellNoiseU. Especially Seed = 0
   values are equal. }
 
 const
@@ -180,14 +180,14 @@ const
     (1201, 219977, 10937, 2862599, 1111733503)
   );
 
-function IntegerNoiseCore(const X, Y, Z: LongInt; const NoiseIndex: Cardinal): LongWord;
+function IntegerNoiseCore(const X, Y, Z: LongInt; const Seed: Cardinal): LongWord;
 var
   N: LongWord;
   PPrimes: PLongWord;
 {$I norqcheckbegin.inc}
 begin
   { Choose our primes row from Primes table. }
-  PPrimes := @Primes[NoiseIndex mod (High(Primes)+1)];
+  PPrimes := @Primes[Seed mod (High(Primes)+1)];
 
   N := LongWord(x) + LongWord(y) * PPrimes[0] + LongWord(z) * PPrimes[1];
   N := N xor (N shl 13);
@@ -195,58 +195,58 @@ begin
 end;
 {$I norqcheckend.inc}
 
-function IntegerNoise(const X, Y, Z: LongInt; const NoiseIndex: Cardinal): Single;
+function IntegerNoise(const X, Y, Z: LongInt; const Seed: Cardinal): Single;
 begin
-  Result := IntegerNoiseCore(X, Y, Z, NoiseIndex) / High(LongWord);
+  Result := IntegerNoiseCore(X, Y, Z, Seed) / High(LongWord);
 end;
 
-function IntegerNoise(const X, Y: LongInt; const NoiseIndex: Cardinal): Single;
+function IntegerNoise(const X, Y: LongInt; const Seed: Cardinal): Single;
 begin
-  Result := IntegerNoiseCore(X, Y, 0, NoiseIndex) / High(LongWord);
+  Result := IntegerNoiseCore(X, Y, 0, Seed) / High(LongWord);
 end;
 
 { Interpolated noise for 2D coords ------------------------------------------- }
 
-function InterpolatedNoise2D_None(const X, Y: Single; const NoiseIndex: Cardinal): Single;
+function InterpolatedNoise2D_None(const X, Y: Single; const Seed: Cardinal): Single;
 begin
-  Result := IntegerNoise(Round(X), Round(Y), NoiseIndex);
+  Result := IntegerNoise(Round(X), Round(Y), Seed);
 end;
 
-function InterpolatedNoise2D_Linear(const X, Y: Single; const NoiseIndex: Cardinal): Single;
+function InterpolatedNoise2D_Linear(const X, Y: Single; const Seed: Cardinal): Single;
 {$I noise_interpolatednoise2d_linear_cosine.inc}
 
-function InterpolatedNoise2D_Cosine(const X, Y: Single; const NoiseIndex: Cardinal): Single;
+function InterpolatedNoise2D_Cosine(const X, Y: Single; const Seed: Cardinal): Single;
 {$define InterpolatedNoise2D_Cosine}
 {$I noise_interpolatednoise2d_linear_cosine.inc}
 {$undef InterpolatedNoise2D_Cosine}
 
 { BlurredInterpolatedNoise* -------------------------------------------------- }
 
-function BlurredIntegerNoise(const X, Y: LongInt; const NoiseIndex: Cardinal): Single;
+function BlurredIntegerNoise(const X, Y: LongInt; const Seed: Cardinal): Single;
 begin
   Result :=
-      IntegerNoise(X    , Y    , NoiseIndex) / 4 +
-    ( IntegerNoise(X - 1, Y    , NoiseIndex)  +
-      IntegerNoise(X + 1, Y    , NoiseIndex)  +
-      IntegerNoise(X    , Y - 1, NoiseIndex)  +
-      IntegerNoise(X    , Y + 1, NoiseIndex)  ) / 8 +
-    ( IntegerNoise(X - 1, Y - 1, NoiseIndex)  +
-      IntegerNoise(X - 1, Y + 1, NoiseIndex)  +
-      IntegerNoise(X + 1, Y - 1, NoiseIndex)  +
-      IntegerNoise(X + 1, Y + 1, NoiseIndex)  ) / 16;
+      IntegerNoise(X    , Y    , Seed) / 4 +
+    ( IntegerNoise(X - 1, Y    , Seed)  +
+      IntegerNoise(X + 1, Y    , Seed)  +
+      IntegerNoise(X    , Y - 1, Seed)  +
+      IntegerNoise(X    , Y + 1, Seed)  ) / 8 +
+    ( IntegerNoise(X - 1, Y - 1, Seed)  +
+      IntegerNoise(X - 1, Y + 1, Seed)  +
+      IntegerNoise(X + 1, Y - 1, Seed)  +
+      IntegerNoise(X + 1, Y + 1, Seed)  ) / 16;
 end;
 
-function BlurredInterpolatedNoise2D_None(const X, Y: Single; const NoiseIndex: Cardinal): Single;
+function BlurredInterpolatedNoise2D_None(const X, Y: Single; const Seed: Cardinal): Single;
 begin
-  Result := BlurredIntegerNoise(Round(X), Round(Y), NoiseIndex);
+  Result := BlurredIntegerNoise(Round(X), Round(Y), Seed);
 end;
 
 {$define IntegerNoise := BlurredIntegerNoise}
 
-function BlurredInterpolatedNoise2D_Linear(const X, Y: Single; const NoiseIndex: Cardinal): Single;
+function BlurredInterpolatedNoise2D_Linear(const X, Y: Single; const Seed: Cardinal): Single;
 {$I noise_interpolatednoise2d_linear_cosine.inc}
 
-function BlurredInterpolatedNoise2D_Cosine(const X, Y: Single; const NoiseIndex: Cardinal): Single;
+function BlurredInterpolatedNoise2D_Cosine(const X, Y: Single; const Seed: Cardinal): Single;
 {$define InterpolatedNoise2D_Cosine}
 {$I noise_interpolatednoise2d_linear_cosine.inc}
 {$undef InterpolatedNoise2D_Cosine}

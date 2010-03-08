@@ -41,10 +41,6 @@
   3. You can also (and this was actually the primary reason for this program
      in the 1st place) generate random terrain.
 
-  TODO: UI to
-    - starting NoiseIndex (this allows us to "seed" the terrain, instead
-      of getting just one and the same always).
-
   - switch view terrain:
     1. current view - "Examine the [0..1, 0..1] range of the terrain"
     2. new new - "Walk over the infinite terrain":
@@ -57,7 +53,6 @@
   from GLSL shader.
 
   TODO: sliders:
-  - also controls for initial NoiseIndex (to choose different seed).
   - controls for shifting noise (and calculated kam script) terrain.
 
   TODO: add calculating and using normals.
@@ -76,7 +71,7 @@ var
   Wireframe: boolean;
   Subdivision: Cardinal = 6;
   NoiseInterpolation: TNoiseInterpolation = niCosine;
-  NoiseBlur: boolean = true;
+  NoiseBlur: boolean = false;
 
 const
   ScaleSize = 100.0;
@@ -89,6 +84,7 @@ type
     AmplitudeSlider: TGLMenuFloatSlider;
     FrequencySlider: TGLMenuFloatSlider;
     SmoothnessSlider: TGLMenuFloatSlider;
+    SeedSlider: TGLMenuIntegerSlider;
 
     constructor Create(AOwner: TComponent); override;
     procedure CurrentItemAccessoryValueChanged; override;
@@ -239,11 +235,13 @@ begin
   AmplitudeSlider := TGLMenuFloatSlider.Create(0.5, 10.0, 1.0);
   FrequencySlider := TGLMenuFloatSlider.Create(0.5, 10.0, 1.0);
   SmoothnessSlider := TGLMenuFloatSlider.Create(1.0, 10.0, 2.0);
+  SeedSlider := TGLMenuIntegerSlider.Create(0, 99, 0);
 
   Items.AddObject('Octaves', OctavesSlider);
   Items.AddObject('Amplitude (scales height)', AmplitudeSlider);
   Items.AddObject('Frequency (scales size)', FrequencySlider);
   Items.AddObject('Smoothness', SmoothnessSlider);
+  Items.AddObject('Seed', SeedSlider);
   Items.AddObject('Subdivision (render details)', SubdivisionSlider);
   PositionRelativeScreenX := prLowerBorder;
   PositionRelativeScreenY := prLowerBorder;
@@ -260,7 +258,8 @@ begin
     1: (Elevation as TElevationNoise).Amplitude := AmplitudeSlider.Value;
     2: (Elevation as TElevationNoise).Frequency := FrequencySlider.Value;
     3: (Elevation as TElevationNoise).Smoothness := SmoothnessSlider.Value;
-    4: Subdivision := SubdivisionSlider.Value;
+    4: (Elevation as TElevationNoise).Seed := SeedSlider.Value;
+    5: Subdivision := SubdivisionSlider.Value;
   end;
   inherited;
 end;
@@ -365,6 +364,7 @@ begin
           (Elevation as TElevationNoise).Amplitude := ControlsNoise.AmplitudeSlider.Value;
           (Elevation as TElevationNoise).Frequency := ControlsNoise.FrequencySlider.Value;
           (Elevation as TElevationNoise).Smoothness := ControlsNoise.SmoothnessSlider.Value;
+          (Elevation as TElevationNoise).Seed := ControlsNoise.SeedSlider.Value;
           (Elevation as TElevationNoise).Interpolation := NoiseInterpolation;
           (Elevation as TElevationNoise).Blur := NoiseBlur;
         end;

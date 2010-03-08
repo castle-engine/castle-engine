@@ -42,7 +42,7 @@ type
   end;
 
   TNoiseInterpolation = (niNone, niLinear, niCosine);
-  TNoise2DMethod = function (const X, Y: Single; const NoiseIndex: Cardinal): Single;
+  TNoise2DMethod = function (const X, Y: Single; const Seed: Cardinal): Single;
 
   { Procedural terrain: elevation data from a procedural noise.
 
@@ -89,6 +89,7 @@ type
     FInterpolation: TNoiseInterpolation;
     NoiseMethod: TNoise2DMethod;
     FBlur: boolean;
+    FSeed: Cardinal;
     procedure SetInterpolation(const Value: TNoiseInterpolation);
     procedure SetBlur(const Value: boolean);
     procedure UpdateNoiseMethod;
@@ -168,7 +169,10 @@ type
       Note about [http://freespace.virgin.net/hugo.elias/models/m_perlin.htm]:
       this "blurring" is called "smoothing" there.
       I call it blurring, as it seems more precise to me. }
-    property Blur: boolean read FBlur write SetBlur default true;
+    property Blur: boolean read FBlur write SetBlur default false;
+
+    { Determines the random seeds used when generating the terrain. }
+    property Seed: Cardinal read FSeed write FSeed default 0;
   end;
 
   { Elevation data from a grid of values with specified width * height.
@@ -264,7 +268,7 @@ begin
   FAmplitude := 1.0;
   FFrequency := 1.0;
   FInterpolation := niCosine;
-  FBlur := true;
+  FBlur := false;
   UpdateNoiseMethod;
 end;
 
@@ -307,11 +311,11 @@ begin
   F := Frequency;
   for I := 1 to Trunc(Octaves) do
   begin
-    Result += NoiseMethod(X * F, Y * F, I) * A;
+    Result += NoiseMethod(X * F, Y * F, I + Seed) * A;
     F *= 2;
     A /= Smoothness;
   end;
-  Result += Frac(Octaves) * NoiseMethod(X * F, Y * F, Trunc(Octaves) + 1) * A;
+  Result += Frac(Octaves) * NoiseMethod(X * F, Y * F, Trunc(Octaves) + 1 + Seed) * A;
 end;
 
 { TElevationGrid ------------------------------------------------------------- }
