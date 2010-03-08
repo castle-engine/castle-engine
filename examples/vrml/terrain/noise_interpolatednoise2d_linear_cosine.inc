@@ -5,8 +5,8 @@ var
   X1, Y1, X2, Y2: LongInt;
   X1f, Y1f, X2f, Y2f: Single;
 begin
-  X1 := Trunc(X);
-  Y1 := Trunc(Y);
+  X1 := Floor(X);
+  Y1 := Floor(Y);
   X2 := X1 + 1;
   Y2 := Y1 + 1;
 

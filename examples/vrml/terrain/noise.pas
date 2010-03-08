@@ -42,6 +42,8 @@ function BlurredInterpolatedNoise2D_Cosine(const X, Y: Single; const NoiseIndex:
 
 implementation
 
+uses Math;
+
 { Integer noise -------------------------------------------------------------- }
 
 { Make integer noise: for 3 given LongInts, generate random LongWord value.
