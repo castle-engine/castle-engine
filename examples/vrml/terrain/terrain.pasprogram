@@ -110,12 +110,19 @@ begin
 end;
 
 procedure ElevationVertex(const X, Y, H: Single);
+var
+  HForColor: Single;
 begin
+  { scale H down by Amplitude, to keep nice colors regardless of Amplitude }
+  if Elevation is TElevationNoise then
+    HForColor := -1550 + 2.1 * H / TElevationNoise(Elevation).Amplitude else
+    HForColor := H;
+
   { Colors strategy from http://www.ii.uni.wroc.pl/~anl/dyd/PGK/pracownia.html }
-  if      (H < 0  )  then glColor3f(0,       0,         1) { blue }
-  else if (H < 500)  then glColor3f(0,       H/500,     0) { green }
-  else if (H < 1000) then glColor3f(H/500-1, 1,         0) { yellow }
-  else if (H < 1500) then glColor3f(1,       H/500-2.0, 0) { red }
+  if      (HForColor < 0  )  then glColor3f(0,       0,                 1) { blue }
+  else if (HForColor < 500)  then glColor3f(0,       HForColor/500,     0) { green }
+  else if (HForColor < 1000) then glColor3f(H/500-1, 1,                 0) { yellow }
+  else if (HForColor < 1500) then glColor3f(1,       HForColor/500-2.0, 0) { red }
   else glColor3f(1, 1, 1);                                 { white }
 
   glVertex3f(
