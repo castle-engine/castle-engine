@@ -77,6 +77,7 @@ var
   Subdivision: Cardinal = 6;
   NoiseInterpolation: TNoiseInterpolation = niCosine;
   NoiseBlur: boolean = true;
+  NoiseBlurBeforeInterpolation: boolean = true;
 
 const
   ScaleSize = 100.0;
@@ -367,6 +368,7 @@ begin
           (Elevation as TElevationNoise).Smoothness := ControlsNoise.SmoothnessSlider.Value;
           (Elevation as TElevationNoise).Interpolation := NoiseInterpolation;
           (Elevation as TElevationNoise).Blur := NoiseBlur;
+          (Elevation as TElevationNoise).BlurBeforeInterpolation := NoiseBlurBeforeInterpolation;
         end;
     100: Glwin.Close;
     110:
@@ -374,6 +376,12 @@ begin
         NoiseBlur := not NoiseBlur;
         if Elevation is TElevationNoise then
           (Elevation as TElevationNoise).Blur := NoiseBlur;
+      end;
+    120:
+      begin
+        NoiseBlurBeforeInterpolation := not NoiseBlurBeforeInterpolation;
+        if Elevation is TElevationNoise then
+          (Elevation as TElevationNoise).BlurBeforeInterpolation := NoiseBlurBeforeInterpolation;
       end;
     200..299:
       begin
@@ -407,6 +415,7 @@ begin
     M.AppendRadioGroup(NoiseInterpolationNames, 200, Ord(NoiseInterpolation), true);
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('_Blur', 110, NoiseBlur, true));
+    M.Append(TMenuItemChecked.Create('Blur Before _Interpolation', 120, NoiseBlurBeforeInterpolation, true));
     Result.Append(M);
 end;
 

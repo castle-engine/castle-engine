@@ -89,8 +89,10 @@ type
     FInterpolation: TNoiseInterpolation;
     NoiseMethod: TNoise2DMethod;
     FBlur: boolean;
+    FBlurBeforeInterpolation: boolean;
     procedure SetInterpolation(const Value: TNoiseInterpolation);
     procedure SetBlur(const Value: boolean);
+    procedure SetBlurBeforeInterpolation(const Value: boolean);
     procedure UpdateNoiseMethod;
   public
     constructor Create;
@@ -169,6 +171,9 @@ type
       this "blurring" is called "smoothing" there.
       I call it blurring, as it seems more precise to me. }
     property Blur: boolean read FBlur write SetBlur default true;
+
+    property BlurBeforeInterpolation: boolean
+      read FBlurBeforeInterpolation write SetBlurBeforeInterpolation default true;
   end;
 
   { Elevation data from a grid of values with specified width * height.
@@ -265,18 +270,28 @@ begin
   FFrequency := 1.0;
   FInterpolation := niCosine;
   FBlur := true;
+  FBlurBeforeInterpolation := true;
   UpdateNoiseMethod;
 end;
 
 procedure TElevationNoise.UpdateNoiseMethod;
 begin
   if Blur then
-    case Interpolation of
-      niNone: NoiseMethod := @BlurredInterpolatedNoise2D_None;
-      niLinear: NoiseMethod := @BlurredInterpolatedNoise2D_Linear;
-      niCosine: NoiseMethod := @BlurredInterpolatedNoise2D_Cosine;
-      else raise EInternalError.Create('TElevationNoise.UpdateNoiseMethod(Interpolation?)');
-    end else
+  begin
+    if BlurBeforeInterpolation then
+      case Interpolation of
+        niNone: NoiseMethod := @BlurredInterpolatedNoise2D_None;
+        niLinear: NoiseMethod := @BlurredInterpolatedNoise2D_Linear;
+        niCosine: NoiseMethod := @BlurredInterpolatedNoise2D_Cosine;
+        else raise EInternalError.Create('TElevationNoise.UpdateNoiseMethod(Interpolation?)');
+      end else
+      case Interpolation of
+        niNone: NoiseMethod := @InterpolatedBlurredNoise2D_None;
+        niLinear: NoiseMethod := @InterpolatedBlurredNoise2D_Linear;
+        niCosine: NoiseMethod := @InterpolatedBlurredNoise2D_Cosine;
+        else raise EInternalError.Create('TElevationNoise.UpdateNoiseMethod(Interpolation?)');
+      end;
+  end else
     case Interpolation of
       niNone: NoiseMethod := @InterpolatedNoise2D_None;
       niLinear: NoiseMethod := @InterpolatedNoise2D_Linear;
@@ -294,6 +309,12 @@ end;
 procedure TElevationNoise.SetBlur(const Value: boolean);
 begin
   FBlur := Value;
+  UpdateNoiseMethod;
+end;
+
+procedure TElevationNoise.SetBlurBeforeInterpolation(const Value: boolean);
+begin
+  FBlurBeforeInterpolation := Value;
   UpdateNoiseMethod;
 end;
 

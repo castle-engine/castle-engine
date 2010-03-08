@@ -27,17 +27,30 @@ interface
 
   Suffix describes interpolation method.
 
-  Versions with prefix "Blurred" are also blurred, that is averaged a little
-  with neighbors (just like blur on normal 2D images). This helps for 2D noise
-  to be less vertical/horizontal oriented.
-
   @groupBegin }
 function InterpolatedNoise2D_None(const X, Y: Single; const NoiseIndex: Cardinal): Single;
 function InterpolatedNoise2D_Linear(const X, Y: Single; const NoiseIndex: Cardinal): Single;
 function InterpolatedNoise2D_Cosine(const X, Y: Single; const NoiseIndex: Cardinal): Single;
+{ @groupEnd }
+
+{ Noise for 2D coords, resulting in float 0..1 range, additionally blurred.
+
+  Blurring smooths the noise by averaging values a little with neighbors
+  (just like blur on normal 2D images). This helps for 2D noise
+  to be less vertical/horizontal oriented.
+
+  BlurredInterpolatedNoise* functions first blur
+  the IntegerNoise, and then blurred noise is interpolated.
+  InterpolatedBlurredNoise* first interpolate IntegerNoise, and only then
+  blur it. Which one is better? You can test yourself...
+
+  @groupBegin }
 function BlurredInterpolatedNoise2D_None(const X, Y: Single; const NoiseIndex: Cardinal): Single;
 function BlurredInterpolatedNoise2D_Linear(const X, Y: Single; const NoiseIndex: Cardinal): Single;
 function BlurredInterpolatedNoise2D_Cosine(const X, Y: Single; const NoiseIndex: Cardinal): Single;
+function InterpolatedBlurredNoise2D_None(const X, Y: Single; const NoiseIndex: Cardinal): Single;
+function InterpolatedBlurredNoise2D_Linear(const X, Y: Single; const NoiseIndex: Cardinal): Single;
+function InterpolatedBlurredNoise2D_Cosine(const X, Y: Single; const NoiseIndex: Cardinal): Single;
 { @groupEnd }
 
 implementation
@@ -195,24 +208,6 @@ begin
   Result := IntegerNoiseCore(X, Y, 0, NoiseIndex) / High(LongWord);
 end;
 
-{ This "blurring" is called "smoothing" on
-  http://freespace.virgin.net/hugo.elias/models/m_perlin.htm.
-  I call it blurring, as it seems more precise to me. }
-
-function BlurredIntegerNoise(const X, Y: LongInt; const NoiseIndex: Cardinal): Single;
-begin
-  Result :=
-      IntegerNoise(X    , Y    , NoiseIndex) / 4 +
-    ( IntegerNoise(X - 1, Y    , NoiseIndex)  +
-      IntegerNoise(X + 1, Y    , NoiseIndex)  +
-      IntegerNoise(X    , Y - 1, NoiseIndex)  +
-      IntegerNoise(X    , Y + 1, NoiseIndex)  ) / 8 +
-    ( IntegerNoise(X - 1, Y - 1, NoiseIndex)  +
-      IntegerNoise(X - 1, Y + 1, NoiseIndex)  +
-      IntegerNoise(X + 1, Y - 1, NoiseIndex)  +
-      IntegerNoise(X + 1, Y + 1, NoiseIndex)  ) / 16;
-end;
-
 { Interpolated noise for 2D coords ------------------------------------------- }
 
 function InterpolatedNoise2D_None(const X, Y: Single; const NoiseIndex: Cardinal): Single;
@@ -228,7 +223,21 @@ function InterpolatedNoise2D_Cosine(const X, Y: Single; const NoiseIndex: Cardin
 {$I noise_interpolatednoise2d_linear_cosine.inc}
 {$undef InterpolatedNoise2D_Cosine}
 
-{ Interpolated and blurred noise for 2D coords ------------------------------- }
+{ BlurredInterpolatedNoise* -------------------------------------------------- }
+
+function BlurredIntegerNoise(const X, Y: LongInt; const NoiseIndex: Cardinal): Single;
+begin
+  Result :=
+      IntegerNoise(X    , Y    , NoiseIndex) / 4 +
+    ( IntegerNoise(X - 1, Y    , NoiseIndex)  +
+      IntegerNoise(X + 1, Y    , NoiseIndex)  +
+      IntegerNoise(X    , Y - 1, NoiseIndex)  +
+      IntegerNoise(X    , Y + 1, NoiseIndex)  ) / 8 +
+    ( IntegerNoise(X - 1, Y - 1, NoiseIndex)  +
+      IntegerNoise(X - 1, Y + 1, NoiseIndex)  +
+      IntegerNoise(X + 1, Y - 1, NoiseIndex)  +
+      IntegerNoise(X + 1, Y + 1, NoiseIndex)  ) / 16;
+end;
 
 function BlurredInterpolatedNoise2D_None(const X, Y: Single; const NoiseIndex: Cardinal): Single;
 begin
@@ -246,5 +255,49 @@ function BlurredInterpolatedNoise2D_Cosine(const X, Y: Single; const NoiseIndex:
 {$undef InterpolatedNoise2D_Cosine}
 
 {$undef IntegerNoise}
+
+{ InterpolatedBlurredNoise* -------------------------------------------------- }
+
+function InterpolatedBlurredNoise2D_None(const X, Y: Single; const NoiseIndex: Cardinal): Single;
+begin
+  Result :=
+      InterpolatedNoise2D_None(X    , Y    , NoiseIndex) / 4 +
+    ( InterpolatedNoise2D_None(X - 1, Y    , NoiseIndex)  +
+      InterpolatedNoise2D_None(X + 1, Y    , NoiseIndex)  +
+      InterpolatedNoise2D_None(X    , Y - 1, NoiseIndex)  +
+      InterpolatedNoise2D_None(X    , Y + 1, NoiseIndex)  ) / 8 +
+    ( InterpolatedNoise2D_None(X - 1, Y - 1, NoiseIndex)  +
+      InterpolatedNoise2D_None(X - 1, Y + 1, NoiseIndex)  +
+      InterpolatedNoise2D_None(X + 1, Y - 1, NoiseIndex)  +
+      InterpolatedNoise2D_None(X + 1, Y + 1, NoiseIndex)  ) / 16;
+end;
+
+function InterpolatedBlurredNoise2D_Linear(const X, Y: Single; const NoiseIndex: Cardinal): Single;
+begin
+  Result :=
+      InterpolatedNoise2D_Linear(X    , Y    , NoiseIndex) / 4 +
+    ( InterpolatedNoise2D_Linear(X - 1, Y    , NoiseIndex)  +
+      InterpolatedNoise2D_Linear(X + 1, Y    , NoiseIndex)  +
+      InterpolatedNoise2D_Linear(X    , Y - 1, NoiseIndex)  +
+      InterpolatedNoise2D_Linear(X    , Y + 1, NoiseIndex)  ) / 8 +
+    ( InterpolatedNoise2D_Linear(X - 1, Y - 1, NoiseIndex)  +
+      InterpolatedNoise2D_Linear(X - 1, Y + 1, NoiseIndex)  +
+      InterpolatedNoise2D_Linear(X + 1, Y - 1, NoiseIndex)  +
+      InterpolatedNoise2D_Linear(X + 1, Y + 1, NoiseIndex)  ) / 16;
+end;
+
+function InterpolatedBlurredNoise2D_Cosine(const X, Y: Single; const NoiseIndex: Cardinal): Single;
+begin
+  Result :=
+      InterpolatedNoise2D_Cosine(X    , Y    , NoiseIndex) / 4 +
+    ( InterpolatedNoise2D_Cosine(X - 1, Y    , NoiseIndex)  +
+      InterpolatedNoise2D_Cosine(X + 1, Y    , NoiseIndex)  +
+      InterpolatedNoise2D_Cosine(X    , Y - 1, NoiseIndex)  +
+      InterpolatedNoise2D_Cosine(X    , Y + 1, NoiseIndex)  ) / 8 +
+    ( InterpolatedNoise2D_Cosine(X - 1, Y - 1, NoiseIndex)  +
+      InterpolatedNoise2D_Cosine(X - 1, Y + 1, NoiseIndex)  +
+      InterpolatedNoise2D_Cosine(X + 1, Y - 1, NoiseIndex)  +
+      InterpolatedNoise2D_Cosine(X + 1, Y + 1, NoiseIndex)  ) / 16;
+end;
 
 end.
