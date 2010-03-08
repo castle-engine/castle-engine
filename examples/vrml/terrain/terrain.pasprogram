@@ -41,6 +41,7 @@
   3. You can also (and this was actually the primary reason for this program
      in the 1st place) generate random terrain.
 
+  TODO:
   - switch view terrain:
     1. current view - "Examine the [0..1, 0..1] range of the terrain"
     2. new new - "Walk over the infinite terrain":
@@ -54,8 +55,8 @@
 
   TODO: sliders:
   - controls for shifting noise (and calculated kam script) terrain.
-
-  TODO: add calculating and using normals.
+    Hm, not so much needed, since increasing the freq allows you to see more,
+    and in  walk mode you can explore it all.
 }
 program terrain;
 
@@ -67,6 +68,8 @@ uses SysUtils, Classes, Boxes3D,
 var
   Glw: TGLUIWindow;
   Camera: TCamera;
+  ExamineCamera: TExamineCamera;
+  WalkCamera: TWalkCamera;
   Elevation: TElevation;
   Wireframe: boolean;
   Subdivision: Cardinal = 6;
@@ -131,6 +134,19 @@ begin
     ScaleHeight * H);
 end;
 
+function FixHeight(const X, Y: Single): Single;
+begin
+  { TODO: * 1000 + 500 needed to hit interesting colors (otherwise
+    it's all black around 0. Make it nicer: detect min/max height,
+    adjust color range (and ScaleHeight, to see it) to it. }
+
+  { Shift to show (-0.5, -0.5, 0.5, 0.5) square.
+    This way changing frequency scales from the middle, which looks better
+    (and allows to see more terrain). }
+
+  Result := Elevation.Height(X - 0.5, Y - 0.5) * 1000 + 500;
+end;
+
 var
   { Helper array for calculating all elevation points *once* before passing
     them to OpenGL. This way we avoid calculating most heights twice
@@ -175,14 +191,7 @@ begin
       P^[0] := I / CountSteps;
       P^[1] := J / CountSteps;
 
-      { Shift to show (-0.5, -0.5, 0.5, 0.5) square.
-        This way changing frequency scales from the middle, which looks better
-        (and allows to see more terrain). }
-
-      { TODO: * 1000 + 500 needed to hit interesting colors (otherwise
-        it's all black around 0. Make it nicer: detect min/max height,
-        adjust color range (and ScaleHeight, to see it) to it. }
-      P^[2] := Elevation.Height(P^[0] - 0.5, P^[1] - 0.5) * 1000 + 500;
+      P^[2] := FixHeight(P^[0], P^[1]);
 
       Inc(P);
     end;
@@ -250,8 +259,24 @@ begin
 end;
 
 procedure Draw(Glwin: TGLWindow);
+
+  procedure WalkCameraAboveGround;
+  var
+    P: TVector3Single;
+  begin
+    P := WalkCamera.Position;
+    { shift by -0.5, like when rendering
+      TODO: this shift is Ok only for non-grid drawing }
+    P[2] := FixHeight(P[0], P[1]);
+    WalkCamera.Position := P;
+  end;
+
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+
+  if Camera = WalkCamera then
+    WalkCameraAboveGround;
+
   glLoadMatrix(Camera.Matrix);
 
   if Wireframe then
@@ -437,6 +462,13 @@ begin
         if Elevation is TElevationNoise then
           (Elevation as TElevationNoise).Blur := NoiseBlur;
       end;
+    120:
+      begin
+        if Camera = ExamineCamera then
+          Camera := WalkCamera else
+          Camera := ExamineCamera;
+        Glw.Controls.MakeSingle(TCamera, Camera, false);
+      end;
     200..299:
       begin
         NoiseInterpolation := TNoiseInterpolation(Item.IntData - 200);
@@ -463,6 +495,8 @@ begin
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('_Wireframe', 10, 'w', Wireframe, true));
     M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItemChecked.Create('Walk camera', 120, 'c', Camera = WalkCamera, true));
+    M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 100));
     Result.Append(M);
   M := TMenu.Create('_Noise');
@@ -481,21 +515,22 @@ begin
   Points := TDynVector3SingleArray.Create;
 
   try
-    Camera := TExamineCamera.Create(Glw);
-    Glw.Controls.Add(Camera);
-    (Camera as TExamineCamera).Init(Box3D(
+    ExamineCamera := TExamineCamera.Create(Glw);
+    ExamineCamera.Init(Box3D(
       Vector3Single(        0,         0, -ScaleHeight),
       Vector3Single(ScaleSize, ScaleSize,  ScaleHeight)));
 
-    (*
-    (Camera as TWalkCamera).Init(Vector3Single(
+    WalkCamera := TWalkCamera.Create(Glw);
+    WalkCamera.Init(Vector3Single(
       ScaleSize * 0.5,
       ScaleSize * 0.5,
-      ScaleHeight * ...notset.Height(0.5, 0.5)) { pos },
+      0),
       Vector3Single(0, 1, 0) { dir },
       Vector3Single(0, 0, 1) { up },
       Vector3Single(0, 0, 1), 0.0, 0.0 { unused, we don't use Gravity here });
-    *)
+
+    Camera := ExamineCamera;
+    Glw.Controls.Add(Camera);
 
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;
