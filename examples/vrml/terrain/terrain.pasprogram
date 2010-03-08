@@ -136,6 +136,9 @@ var
     P  := Points.Pointers[ I      * CountSteps1 + J];
     PX := Points.Pointers[(I + 1) * CountSteps1 + J];
     PY := Points.Pointers[ I      * CountSteps1 + J + 1];
+    { TODO: this is actually normal vector of 1 of the four faces around this
+      vertex. Optimally, we should calculate normals on all faces,
+      and for vertex normal take average. }
     glNormalv((PX^ - P^) >< (PY^ - P^));
 
     HForColor := P^[2];
@@ -143,7 +146,7 @@ var
     if Elevation is TElevationNoise then
       HForColor /= TElevationNoise(Elevation).Amplitude;
     { some hacks to hit interesting colors }
-    HForColor := -1550 + 2.1 * (HForColor  * 1000 + 500); { TODO: simplify }
+    HForColor := HForColor  * 2000 - 1000;
     ColorFromHeight(HForColor);
 
     glVertexv(P^);
@@ -307,7 +310,7 @@ begin
   inherited;
 
   OctavesSlider := TGLMenuFloatSlider.Create(0.0, 20.0, 4.0);
-  AmplitudeSlider := TGLMenuFloatSlider.Create(0.5, 10.0, 1.0);
+  AmplitudeSlider := TGLMenuFloatSlider.Create(0.1, 10.0, 1.0);
   FrequencySlider := TGLMenuFloatSlider.Create(0.5, 10.0, 1.0);
   SmoothnessSlider := TGLMenuFloatSlider.Create(1.0, 10.0, 2.0);
   SeedSlider := TGLMenuIntegerSlider.Create(0, 99, 0);
