@@ -41,16 +41,13 @@ function InterpolatedNoise2D_Cosine(const X, Y: Single; const NoiseIndex: Cardin
 
   BlurredInterpolatedNoise* functions first blur
   the IntegerNoise, and then blurred noise is interpolated.
-  InterpolatedBlurredNoise* first interpolate IntegerNoise, and only then
-  blur it. Which one is better? You can test yourself...
+  Results are the same as the other way around (first interpolate IntegerNoise,
+  and only then blur it), and marginally faster.
 
   @groupBegin }
 function BlurredInterpolatedNoise2D_None(const X, Y: Single; const NoiseIndex: Cardinal): Single;
 function BlurredInterpolatedNoise2D_Linear(const X, Y: Single; const NoiseIndex: Cardinal): Single;
 function BlurredInterpolatedNoise2D_Cosine(const X, Y: Single; const NoiseIndex: Cardinal): Single;
-function InterpolatedBlurredNoise2D_None(const X, Y: Single; const NoiseIndex: Cardinal): Single;
-function InterpolatedBlurredNoise2D_Linear(const X, Y: Single; const NoiseIndex: Cardinal): Single;
-function InterpolatedBlurredNoise2D_Cosine(const X, Y: Single; const NoiseIndex: Cardinal): Single;
 { @groupEnd }
 
 implementation
@@ -255,49 +252,5 @@ function BlurredInterpolatedNoise2D_Cosine(const X, Y: Single; const NoiseIndex:
 {$undef InterpolatedNoise2D_Cosine}
 
 {$undef IntegerNoise}
-
-{ InterpolatedBlurredNoise* -------------------------------------------------- }
-
-function InterpolatedBlurredNoise2D_None(const X, Y: Single; const NoiseIndex: Cardinal): Single;
-begin
-  Result :=
-      InterpolatedNoise2D_None(X    , Y    , NoiseIndex) / 4 +
-    ( InterpolatedNoise2D_None(X - 1, Y    , NoiseIndex)  +
-      InterpolatedNoise2D_None(X + 1, Y    , NoiseIndex)  +
-      InterpolatedNoise2D_None(X    , Y - 1, NoiseIndex)  +
-      InterpolatedNoise2D_None(X    , Y + 1, NoiseIndex)  ) / 8 +
-    ( InterpolatedNoise2D_None(X - 1, Y - 1, NoiseIndex)  +
-      InterpolatedNoise2D_None(X - 1, Y + 1, NoiseIndex)  +
-      InterpolatedNoise2D_None(X + 1, Y - 1, NoiseIndex)  +
-      InterpolatedNoise2D_None(X + 1, Y + 1, NoiseIndex)  ) / 16;
-end;
-
-function InterpolatedBlurredNoise2D_Linear(const X, Y: Single; const NoiseIndex: Cardinal): Single;
-begin
-  Result :=
-      InterpolatedNoise2D_Linear(X    , Y    , NoiseIndex) / 4 +
-    ( InterpolatedNoise2D_Linear(X - 1, Y    , NoiseIndex)  +
-      InterpolatedNoise2D_Linear(X + 1, Y    , NoiseIndex)  +
-      InterpolatedNoise2D_Linear(X    , Y - 1, NoiseIndex)  +
-      InterpolatedNoise2D_Linear(X    , Y + 1, NoiseIndex)  ) / 8 +
-    ( InterpolatedNoise2D_Linear(X - 1, Y - 1, NoiseIndex)  +
-      InterpolatedNoise2D_Linear(X - 1, Y + 1, NoiseIndex)  +
-      InterpolatedNoise2D_Linear(X + 1, Y - 1, NoiseIndex)  +
-      InterpolatedNoise2D_Linear(X + 1, Y + 1, NoiseIndex)  ) / 16;
-end;
-
-function InterpolatedBlurredNoise2D_Cosine(const X, Y: Single; const NoiseIndex: Cardinal): Single;
-begin
-  Result :=
-      InterpolatedNoise2D_Cosine(X    , Y    , NoiseIndex) / 4 +
-    ( InterpolatedNoise2D_Cosine(X - 1, Y    , NoiseIndex)  +
-      InterpolatedNoise2D_Cosine(X + 1, Y    , NoiseIndex)  +
-      InterpolatedNoise2D_Cosine(X    , Y - 1, NoiseIndex)  +
-      InterpolatedNoise2D_Cosine(X    , Y + 1, NoiseIndex)  ) / 8 +
-    ( InterpolatedNoise2D_Cosine(X - 1, Y - 1, NoiseIndex)  +
-      InterpolatedNoise2D_Cosine(X - 1, Y + 1, NoiseIndex)  +
-      InterpolatedNoise2D_Cosine(X + 1, Y - 1, NoiseIndex)  +
-      InterpolatedNoise2D_Cosine(X + 1, Y + 1, NoiseIndex)  ) / 16;
-end;
 
 end.
