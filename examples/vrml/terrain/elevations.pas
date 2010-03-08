@@ -29,7 +29,7 @@ type
 
   { Elevation (height for each X, Y) data taken from intensities in an image.
 
-    The image covers (0, 0) ... (1, 1) area in XY plane (it is repeated
+    The image covers (-1, -1) ... (1, 1) area in XY plane (it is repeated
     infinitely if you ask for Height outside of this range).
     Image color (converted to grayscale) acts as height (scaled by
     ImageHeightScale).
@@ -293,8 +293,8 @@ var
 begin
   if FImage <> nil then
   begin
-    PX := Floor(X * FImage.Width) mod FImage.Width;
-    PY := Floor(Y * FImage.Height) mod FImage.Height;
+    PX := Floor((X / 2 + 0.5) * FImage.Width) mod FImage.Width;
+    PY := Floor((Y / 2 + 0.5) * FImage.Height) mod FImage.Height;
     if PX < 0 then PX += FImage.Width;
     if PY < 0 then PY += FImage.Height;
     Result := (FImage.PixelPtr(PX, PY)^ / High(Byte)) * ImageHeightScale;
