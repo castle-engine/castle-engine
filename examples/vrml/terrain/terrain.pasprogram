@@ -68,7 +68,7 @@ program terrain;
 uses SysUtils, Classes, Boxes3D,
   KambiUtils, GLWindow, GL, KambiGLUtils,
   Cameras, VectorMath, KambiFilesUtils, Elevations, GLWinMessages,
-  KambiStringUtils, GLMenu, UIControls;
+  KambiStringUtils, GLMenu, UIControls, Images;
 
 var
   Glw: TGLUIWindow;
@@ -94,7 +94,9 @@ type
     procedure CurrentItemAccessoryValueChanged; override;
   end;
 
-  TControlsScript = class(TGLMenu)
+  { For any TElevation except TElevationNoise (that has it's own TControlsNoise)
+    and TElevationGrid (that has quite different rendering rules). }
+  TControlsAny = class(TGLMenu)
   public
     constructor Create(AOwner: TComponent); override;
     procedure CurrentItemAccessoryValueChanged; override;
@@ -103,7 +105,7 @@ type
 var
   { ui controls }
   ControlsNoise: TControlsNoise;
-  ControlsScript: TControlsScript;
+  ControlsAny: TControlsAny;
   SubdivisionSlider: TGLMenuIntegerSlider;
 
 procedure ColorFromHeight(const H: Single);
@@ -243,9 +245,10 @@ begin
       Glw.Controls.MakeSingle(TGLMenu, ControlsNoise, true { before camera }) else
       Glw.Controls.Remove(ControlsNoise);
 
-    if Elevation is TElevationKamScript then
-      Glw.Controls.MakeSingle(TGLMenu, ControlsScript, true { before camera }) else
-      Glw.Controls.Remove(ControlsScript);
+    if not ( (Elevation is TElevationNoise) or
+             (Elevation is TElevationGrid) ) then
+      Glw.Controls.MakeSingle(TGLMenu, ControlsAny, true { before camera }) else
+      Glw.Controls.Remove(ControlsAny);
   end;
 end;
 
@@ -342,7 +345,7 @@ begin
   inherited;
 end;
 
-constructor TControlsScript.Create(AOwner: TComponent);
+constructor TControlsAny.Create(AOwner: TComponent);
 begin
   inherited;
   Items.AddObject('Subdivision (render details)', SubdivisionSlider);
@@ -353,9 +356,8 @@ begin
   Position.Init(10.00, 10.00);
 end;
 
-procedure TControlsScript.CurrentItemAccessoryValueChanged;
+procedure TControlsAny.CurrentItemAccessoryValueChanged;
 begin
-  if not (Elevation is TElevationKamScript) then Exit;
   case CurrentItem of
     0: Subdivision := SubdivisionSlider.Value;
   end;
@@ -369,7 +371,7 @@ begin
   SubdivisionSlider.OwnedByParent := false;
 
   ControlsNoise := TControlsNoise.Create(nil);
-  ControlsScript := TControlsScript.Create(nil);
+  ControlsAny := TControlsAny.Create(nil);
 
   if Elevation = nil then
   begin
@@ -384,7 +386,7 @@ end;
 procedure Close(Glwin: TGLWindow);
 begin
   FreeAndNil(ControlsNoise);
-  FreeAndNil(ControlsScript);
+  FreeAndNil(ControlsAny);
   FreeAndNil(SubdivisionSlider);
   GLMenuCloseGL;
 end;
@@ -446,6 +448,9 @@ begin
           (Elevation as TElevationNoise).Interpolation := NoiseInterpolation;
           (Elevation as TElevationNoise).Blur := NoiseBlur;
         end;
+    80: begin
+          SetElevation(TElevationImage.Create);
+        end;
     100: Glwin.Close;
     110:
       begin
@@ -459,6 +464,33 @@ begin
           Camera := WalkCamera else
           Camera := ExamineCamera;
         Glw.Controls.MakeSingle(TCamera, Camera, false);
+      end;
+    150:
+      begin
+        if Elevation is TElevationImage then
+        begin
+          FileName := TElevationImage(Elevation).ImageFileName;
+          if Glwin.FileDialog('Open image file', FileName, true,
+            LoadImage_FileFilters) then
+          begin
+            try
+              TElevationImage(Elevation).LoadImage(FileName);
+            except
+              on E: Exception do
+              begin
+                MessageOk(Glwin, Format('Error when loading image "%s": %s',
+                  [FileName, E.Message]));
+              end;
+            end;
+          end;
+        end else
+          MessageOk(Glwin, 'Not an image elevation');
+      end;
+    160:
+      begin
+        if Elevation is TElevationImage then
+          TElevationImage(Elevation).ClearImage else
+          MessageOk(Glwin, 'Not an image elevation');
       end;
     200..299:
       begin
@@ -483,6 +515,7 @@ begin
     M.Append(TMenuItem.Create('Load terrain from SRTM (.hgt) file ...', 50, CtrlO));
     M.Append(TMenuItem.Create('Define terrain by KambiScript expression ...', 60));
     M.Append(TMenuItem.Create('Generate random terrain', 70));
+    M.Append(TMenuItem.Create('Pure image terrain', 80));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('_Wireframe', 10, 'w', Wireframe, true));
     M.Append(TMenuSeparator.Create);
@@ -494,6 +527,10 @@ begin
     M.AppendRadioGroup(NoiseInterpolationNames, 200, Ord(NoiseInterpolation), true);
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('_Blur', 110, NoiseBlur, true));
+    Result.Append(M);
+  M := TMenu.Create('_Image');
+    M.Append(TMenuItem.Create('_Load image', 150));
+    M.Append(TMenuItem.Create('_Clear image', 160));
     Result.Append(M);
 end;
 

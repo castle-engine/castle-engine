@@ -18,13 +18,41 @@ unit Elevations;
 
 interface
 
-uses SysUtils, Classes, KambiScript;
+uses SysUtils, Classes, KambiScript, Images;
 
 type
   { Elevation (height for each X, Y) data. }
   TElevation = class
   public
     function Height(const X, Y: Single): Single; virtual; abstract;
+  end;
+
+  { Elevation (height for each X, Y) data taken from intensities in an image.
+
+    The image covers (0, 0) ... (1, 1) area in XY plane (it is repeated
+    infinitely if you ask for Height outside of this range).
+    Image color (converted to grayscale) acts as height (scaled by
+    ImageHeightScale).
+
+    When image is not loaded, this always returns height = 0. }
+  TElevationImage = class(TElevation)
+  private
+    { FImage = nil and FImageFileName = '' when not loaded. }
+    FImage: TGrayscaleImage;
+    FImageFileName: string;
+    FImageHeightScale: Single;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure LoadImage(const AImageFileName: string);
+    procedure ClearImage;
+    property ImageFileName: string read FImageFileName;
+
+    property ImageHeightScale: Single
+      read FImageHeightScale write FImageHeightScale default 1.0;
+
+    function Height(const X, Y: Single): Single; override;
   end;
 
   { Elevation (height for each X, Y) data calculated from KambiScript
@@ -221,7 +249,53 @@ type
 
 implementation
 
-uses KambiUtils, KambiScriptParser, Noise;
+uses KambiUtils, KambiScriptParser, Noise, Math;
+
+{ TElevationImage ------------------------------------------------------------ }
+
+constructor TElevationImage.Create;
+begin
+  inherited;
+  FImageHeightScale := 1.0;
+end;
+
+destructor TElevationImage.Destroy;
+begin
+  ClearImage;
+  inherited;
+end;
+
+procedure TElevationImage.LoadImage(const AImageFileName: string);
+var
+  NewImage: TGrayscaleImage;
+begin
+  NewImage := Images.LoadImage(AImageFileName, [TGrayscaleImage], []) as TGrayscaleImage;
+
+  FreeAndNil(FImage);
+  FImage := NewImage;
+  FImageFileName := AImageFileName;
+end;
+
+procedure TElevationImage.ClearImage;
+begin
+  FreeAndNil(FImage);
+  FImageFileName := '';
+end;
+
+function TElevationImage.Height(const X, Y: Single): Single;
+var
+  PX, PY: Integer;
+begin
+  if FImage <> nil then
+  begin
+    PX := Floor(X * FImage.Width) mod FImage.Width;
+    PY := Floor(Y * FImage.Height) mod FImage.Height;
+    if PX < 0 then PX += FImage.Width;
+    if PY < 0 then PY += FImage.Height;
+    Result := (FImage.PixelPtr(PX, PY)^ / High(Byte)) * ImageHeightScale;
+  end else
+    Result := 0;
+end;
 
 { TElevationKamScript -------------------------------------------------------- }
 
