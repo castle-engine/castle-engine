@@ -373,6 +373,9 @@ begin
 end;
 
 function CreateMainMenu: TMenu;
+const
+  NoiseInterpolationNames: array [TNoiseInterpolation] of string =
+  ('None', 'Linear', 'Cosine');
 var
   M: TMenu;
 begin
@@ -387,8 +390,7 @@ begin
     M.Append(TMenuItem.Create('_Exit', 100));
     Result.Append(M);
   M := TMenu.Create('_Noise');
-    M.AppendRadioGroup(['None', 'Linear', 'Cosine'],
-      200, Ord(NoiseInterpolation), true);
+    M.AppendRadioGroup(NoiseInterpolationNames, 200, Ord(NoiseInterpolation), true);
     Result.Append(M);
 end;
 
