@@ -76,10 +76,6 @@ var
   NoiseInterpolation: TNoiseInterpolation = niCosine;
   NoiseBlur: boolean = false;
 
-const
-  ScaleSize = 100.0;
-  ScaleHeight = 0.01;
-
 type
   TControlsNoise = class(TGLMenu)
   public
@@ -105,46 +101,14 @@ var
   ControlsScript: TControlsScript;
   SubdivisionSlider: TGLMenuIntegerSlider;
 
-procedure ElevationVertex(const X, Y, H: Single); forward;
-
-procedure ElevationVertex(const V: TVector3Single);
+procedure ColorFromHeight(const H: Single);
 begin
-  ElevationVertex(V[0], V[1], V[2]);
-end;
-
-procedure ElevationVertex(const X, Y, H: Single);
-var
-  HForColor: Single;
-begin
-  { scale H down by Amplitude, to keep nice colors regardless of Amplitude }
-  if Elevation is TElevationNoise then
-    HForColor := -1550 + 2.1 * H / TElevationNoise(Elevation).Amplitude else
-    HForColor := H;
-
   { Colors strategy from http://www.ii.uni.wroc.pl/~anl/dyd/PGK/pracownia.html }
-  if      (HForColor < 0  )  then glColor3f(0,       0,                 1) { blue }
-  else if (HForColor < 500)  then glColor3f(0,       HForColor/500,     0) { green }
-  else if (HForColor < 1000) then glColor3f(H/500-1, 1,                 0) { yellow }
-  else if (HForColor < 1500) then glColor3f(1,       HForColor/500-2.0, 0) { red }
+  if      (H < 0  )  then glColor3f(0,       0,         1) { blue }
+  else if (H < 500)  then glColor3f(0,       H/500,     0) { green }
+  else if (H < 1000) then glColor3f(H/500-1, 1,         0) { yellow }
+  else if (H < 1500) then glColor3f(1,       H/500-2.0, 0) { red }
   else glColor3f(1, 1, 1);                                 { white }
-
-  glVertex3f(
-    ScaleSize * X,
-    ScaleSize * Y,
-    ScaleHeight * H);
-end;
-
-function FixHeight(const X, Y: Single): Single;
-begin
-  { TODO: * 1000 + 500 needed to hit interesting colors (otherwise
-    it's all black around 0. Make it nicer: detect min/max height,
-    adjust color range (and ScaleHeight, to see it) to it. }
-
-  { Shift to show (-0.5, -0.5, 0.5, 0.5) square.
-    This way changing frequency scales from the middle, which looks better
-    (and allows to see more terrain). }
-
-  Result := Elevation.Height(X - 0.5, Y - 0.5) * 1000 + 500;
 end;
 
 var
@@ -162,12 +126,22 @@ var
   procedure Vertex(const I, J: Cardinal);
   var
     P, PX, PY: PVector3Single;
+    HForColor: Single;
   begin
     P  := Points.Pointers[ I      * CountSteps1 + J];
     PX := Points.Pointers[(I + 1) * CountSteps1 + J];
     PY := Points.Pointers[ I      * CountSteps1 + J + 1];
     glNormalv((PX^ - P^) >< (PY^ - P^));
-    ElevationVertex(P^);
+
+    HForColor := P^[2];
+    { scale height down by Amplitude, to keep nice colors regardless of Amplitude }
+    if Elevation is TElevationNoise then
+      HForColor /= TElevationNoise(Elevation).Amplitude;
+    { some hacks to hit interesting colors }
+    HForColor := -1550 + 2.1 * (HForColor  * 1000 + 500); { TODO: simplify }
+    ColorFromHeight(HForColor);
+
+    glVertexv(P^);
   end;
 
 var
@@ -188,10 +162,11 @@ begin
     begin
       { calculate P^, which is Points.Items[I * CountSteps1 + J] }
 
-      P^[0] := I / CountSteps;
-      P^[1] := J / CountSteps;
+      { set XY to cover (-1, -1) ... (1, 1) rectangle with our elevation }
+      P^[0] := 2 * I / CountSteps - 1;
+      P^[1] := 2 * J / CountSteps - 1;
 
-      P^[2] := FixHeight(P^[0], P^[1]);
+      P^[2] := Elevation.Height(P^[0], P^[1]);
 
       Inc(P);
     end;
@@ -211,13 +186,21 @@ end;
 { Specialized drawing for TElevationGrid, that displays only the
   precise grid points. }
 procedure DrawGrid(Grid: TElevationGrid);
+const
+  { to scale coords to nicely fit in similar box like DrawElevation }
+  ScaleSize = 100.0;
+  ScaleHeight = 0.01;
 
   procedure Vertex(I, J: Cardinal);
+  var
+    HForColor: Single;
   begin
-    ElevationVertex(
-      I / Grid.GridSizeX,
-      J / Grid.GridSizeY,
-      Grid.GridHeight(I, J));
+    HForColor := Grid.GridHeight(I, J);
+    ColorFromHeight(HForColor);
+    glVertexv(Vector3Single(
+      ScaleSize * (I / Grid.GridSizeX),
+      ScaleSize * (J / Grid.GridSizeY),
+      HForColor * ScaleHeight));
   end;
 
 const
@@ -267,7 +250,7 @@ procedure Draw(Glwin: TGLWindow);
     P := WalkCamera.Position;
     { shift by -0.5, like when rendering
       TODO: this shift is Ok only for non-grid drawing }
-    P[2] := FixHeight(P[0], P[1]);
+    P[2] := Elevation.Height(P[0], P[1]);
     WalkCamera.Position := P;
   end;
 
@@ -311,7 +294,7 @@ end;
 procedure Resize(Glwin: TGLWindow);
 begin
   glViewport(0, 0, Glwin.Width, Glwin.Height);
-  ProjectionGLPerspective(30, Glwin.Width / Glwin.Height, ScaleSize / 100, ScaleSize * 3);
+  ProjectionGLPerspective(30, Glwin.Width / Glwin.Height, 0.1, 100);
 end;
 
 constructor TControlsNoise.Create(AOwner: TComponent);
@@ -517,13 +500,13 @@ begin
   try
     ExamineCamera := TExamineCamera.Create(Glw);
     ExamineCamera.Init(Box3D(
-      Vector3Single(        0,         0, -ScaleHeight),
-      Vector3Single(ScaleSize, ScaleSize,  ScaleHeight)));
+      Vector3Single(-1, -1, -1),
+      Vector3Single( 1,  1,  1)));
 
     WalkCamera := TWalkCamera.Create(Glw);
     WalkCamera.Init(Vector3Single(
-      ScaleSize * 0.5,
-      ScaleSize * 0.5,
+      0,
+      0,
       0),
       Vector3Single(0, 1, 0) { dir },
       Vector3Single(0, 0, 1) { up },
