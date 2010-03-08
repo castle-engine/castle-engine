@@ -123,6 +123,7 @@ type
     NoiseMethod: TNoise2DMethod;
     FBlur: boolean;
     FSeed: Cardinal;
+    FHeterogeneous: Single;
     procedure SetInterpolation(const Value: TNoiseInterpolation);
     procedure SetBlur(const Value: boolean);
     procedure UpdateNoiseMethod;
@@ -206,6 +207,23 @@ type
 
     { Determines the random seeds used when generating the terrain. }
     property Seed: Cardinal read FSeed write FSeed default 0;
+
+    { If non-zero, then we generate terrain using heterogeneous fBm.
+      Intuitively, the idea is that the terrain details (from higher octaves)
+      are more noisy when ground is higher. This is realistic
+      (debris gathers in lower terrain, smoothing it more).
+
+      More precisely, this means that we accumulate multiplied previous noise,
+      at each step dividing this accumulated result by Heterogeneous,
+      and clamping at 1.0. So when Heterogeneous is very small,
+      this always ends up 1.0, and we get normal (homogeneous) generation.
+      When Heterogeneous is larger, the details (at lower ground)
+      are scaled down (terrain is smoother).
+
+      This is called "threshold" in Musgrave's dissertation (see algorithm
+      in section 2.3.2.5 "A Large Scale Terrain Model"). }
+    property Heterogeneous: Single
+      read FHeterogeneous write FHeterogeneous default 0.0;
   end;
 
   { Elevation data from a grid of values with specified width * height.
@@ -382,20 +400,54 @@ begin
 end;
 
 function TElevationNoise.Height(const X, Y: Single): Single;
+// const
+//   { Idea, maybe useful --- apply heterogeneous only on higher octaves.
+//     Note that 1st octave is anyway always without heterogeneous,
+//     so this is really useful only if setting to >= 2. }
+//   HomogeneousOctaves = 2;
 var
-  A, F: Single;
+  A, F, NoiseAccumulator: Single;
+
+  function NextOctave(const OctaveNumber: Cardinal): Single;
+  begin
+    { I could make here an explicit check for "IsZero(Heterogeneous)",
+      if true then set NoiseAccumulator := 1.
+      But not needed, NoiseAccumulator / 0 = +infinity which will get clamped
+      to 1 anyway, this makes marginal speedup when homogeneous is used. }
+
+    NoiseAccumulator /= Heterogeneous;
+    { Following Musgrave's dissertation, we should now force
+      NoiseAccumulator to <0, 1> range.
+      We know our NoiseMethod is always positive, and we require
+      Amplitude, Heterogeneous and such to also be always positive.
+      So we already know NoiseAccumulator is always >= 0. }
+    MinTo1st(NoiseAccumulator, 1);
+
+    NoiseAccumulator *= NoiseMethod(X * F, Y * F, OctaveNumber + Seed);
+
+    Result := NoiseAccumulator * A;
+  end;
+
+var
   I: Cardinal;
 begin
   Result := inherited;
   A := Amplitude;
   F := Frequency;
+  { This will accumulate multiplication of noise octaves.
+    Initial value is chosen so that at first step (I = 1)
+    NoiseAccumulator will become 1.0, and then NoiseMethod() * A. }
+  NoiseAccumulator := Heterogeneous;
   for I := 1 to Trunc(Octaves) do
   begin
-    Result += NoiseMethod(X * F, Y * F, I + Seed) * A;
+    Result += NextOctave(I);
     F *= 2;
     A /= Smoothness;
   end;
-  Result += Frac(Octaves) * NoiseMethod(X * F, Y * F, Trunc(Octaves) + 1 + Seed) * A;
+
+  { Add last octave's remainder.
+    Just like a normal octave, but multiply by Frac(Octaves). }
+  Result += Frac(Octaves) * NextOctave(Trunc(Octaves) + 1);
 end;
 
 { TElevationGrid ------------------------------------------------------------- }
