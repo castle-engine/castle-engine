@@ -80,6 +80,7 @@ var
   NoiseInterpolation: TNoiseInterpolation = niCosine;
   NoiseBlur: boolean = false;
   Subdivision: Cardinal = 6;
+  Lighting: boolean = true;
 
 type
   TControlsNoise = class(TGLMenu)
@@ -168,11 +169,14 @@ begin
     end else
     begin
       glPushAttrib(GL_ENABLE_BIT);
-        glEnable(GL_LIGHTING);
-        glEnable(GL_LIGHT0);
-        glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-        glEnable(GL_COLOR_MATERIAL);
-        glEnable(GL_NORMALIZE);
+        if Lighting then
+        begin
+          glEnable(GL_LIGHTING);
+          glEnable(GL_LIGHT0);
+          glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+          glEnable(GL_COLOR_MATERIAL);
+          glEnable(GL_NORMALIZE);
+        end;
         DrawElevation(Elevation, Subdivision,
           WalkCamera.Position[0], WalkCamera.Position[1], 1, 3);
       glPopAttrib;
@@ -365,6 +369,7 @@ begin
           Camera := ExamineCamera;
         Glw.Controls.MakeSingle(TCamera, Camera, false);
       end;
+    130: Lighting := not Lighting;
     150:
       begin
         if Elevation is TElevationImage then
@@ -420,6 +425,8 @@ begin
     M.Append(TMenuItemChecked.Create('_Wireframe', 10, 'w', Wireframe, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('Walk camera', 120, 'c', Camera = WalkCamera, true));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItemChecked.Create('Lighting', 130, 'l', Lighting, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 100));
     Result.Append(M);
