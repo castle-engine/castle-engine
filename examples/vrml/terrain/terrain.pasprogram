@@ -140,10 +140,10 @@ begin
     if Elevation is TElevationNoise then
     begin
       TElevationNoise(Elevation).Octaves := ControlsNoise.OctavesSlider.Value;
-      TElevationNoise(Elevation).Amplitude := ControlsNoise.AmplitudeSlider.Value;
-      TElevationNoise(Elevation).Frequency := ControlsNoise.FrequencySlider.Value;
       TElevationNoise(Elevation).Smoothness := ControlsNoise.SmoothnessSlider.Value;
       TElevationNoise(Elevation).Heterogeneous := ControlsNoise.HeterogeneousSlider.Value;
+      TElevationNoise(Elevation).Amplitude := ControlsNoise.AmplitudeSlider.Value;
+      TElevationNoise(Elevation).Frequency := ControlsNoise.FrequencySlider.Value;
       TElevationNoise(Elevation).Seed := ControlsNoise.SeedSlider.Value;
       TElevationNoise(Elevation).Interpolation := NoiseInterpolation;
       TElevationNoise(Elevation).Blur := NoiseBlur;
@@ -243,17 +243,17 @@ begin
   inherited;
 
   OctavesSlider := TGLMenuFloatSlider.Create(0.0, 20.0, 4.0);
-  AmplitudeSlider := TGLMenuFloatSlider.Create(0.1, 10.0, 1.0);
-  FrequencySlider := TGLMenuFloatSlider.Create(0.5, 10.0, 1.0);
   SmoothnessSlider := TGLMenuFloatSlider.Create(1.0, 10.0, 2.0);
   HeterogeneousSlider := TGLMenuFloatSlider.Create(0.0, 2.0, 0.0);
+  AmplitudeSlider := TGLMenuFloatSlider.Create(0.1, 10.0, 1.0);
+  FrequencySlider := TGLMenuFloatSlider.Create(0.5, 10.0, 1.0);
   SeedSlider := TGLMenuIntegerSlider.Create(0, 99, 0);
 
   Items.AddObject('Octaves', OctavesSlider);
-  Items.AddObject('Amplitude (scales height)', AmplitudeSlider);
-  Items.AddObject('Frequency (scales size)', FrequencySlider);
   Items.AddObject('Smoothness', SmoothnessSlider);
   Items.AddObject('Heterogeneous', HeterogeneousSlider);
+  Items.AddObject('Amplitude (scales height)', AmplitudeSlider);
+  Items.AddObject('Frequency (scales size)', FrequencySlider);
   Items.AddObject('Seed', SeedSlider);
   Items.AddObject('Subdivision (render details)', SubdivisionSlider);
   Items.AddObject('Image height scale', ImageHeightScaleSlider);
@@ -269,10 +269,10 @@ begin
   if not (Elevation is TElevationNoise) then Exit;
   case CurrentItem of
     0: (Elevation as TElevationNoise).Octaves := OctavesSlider.Value;
-    1: (Elevation as TElevationNoise).Amplitude := AmplitudeSlider.Value;
-    2: (Elevation as TElevationNoise).Frequency := FrequencySlider.Value;
-    3: (Elevation as TElevationNoise).Smoothness := SmoothnessSlider.Value;
-    4: (Elevation as TElevationNoise).Heterogeneous := HeterogeneousSlider.Value;
+    1: (Elevation as TElevationNoise).Smoothness := SmoothnessSlider.Value;
+    2: (Elevation as TElevationNoise).Heterogeneous := HeterogeneousSlider.Value;
+    3: (Elevation as TElevationNoise).Amplitude := AmplitudeSlider.Value;
+    4: (Elevation as TElevationNoise).Frequency := FrequencySlider.Value;
     5: (Elevation as TElevationNoise).Seed := SeedSlider.Value;
     6: Subdivision := SubdivisionSlider.Value;
     7: (Elevation as TElevationNoise).ImageHeightScale := ImageHeightScaleSlider.Value;
