@@ -66,10 +66,10 @@
 program terrain;
 
 uses SysUtils, Classes, Boxes3D,
-  KambiUtils, GLWindow, GL, KambiGLUtils,
+  KambiUtils, GLWindow, GL, GLExt, KambiGLUtils,
   Cameras, VectorMath, KambiFilesUtils, Elevations, GLWinMessages,
   KambiStringUtils, GLMenu, UIControls, Images, RenderElevations,
-  GLShaders, GLExt;
+  GLShaders, GLImages;
 
 var
   Glw: TGLUIWindow;
@@ -84,6 +84,7 @@ var
   Lighting: boolean = true;
   Shader: boolean = true;
   GLSLProgram: TGLSLProgram;
+  GLTexSand, GLTexBread, GLTexRock: TGLuint;
 
 type
   TControlsNoise = class(TGLMenu)
@@ -185,15 +186,22 @@ begin
         begin
           GLSLProgram.Enable;
 
-          // glActiveTextureARB(GL_TEXTURE0);
-          // glBindTexture(GL_TEXTURE_2D, GLGrain0Tex);
-          // GLSLProgram.SetUniform('tex_grain0', 0);
+          glActiveTextureARB(GL_TEXTURE0);
+          glBindTexture(GL_TEXTURE_2D, GLTexSand);
+          GLSLProgram.SetUniform('tex_sand', 0);
 
-          // glActiveTextureARB(GL_TEXTURE1);
-          // glBindTexture(GL_TEXTURE_2D, GLGrain1Tex);
-          // GLSLProgram.SetUniform('tex_grain_1', 1);
+          glActiveTextureARB(GL_TEXTURE1);
+          glBindTexture(GL_TEXTURE_2D, GLTexBread);
+          GLSLProgram.SetUniform('tex_bread', 1);
 
-          // GLSLProgram.SetUniform('blah', Blah);
+          glActiveTextureARB(GL_TEXTURE2);
+          glBindTexture(GL_TEXTURE_2D, GLTexRock);
+          GLSLProgram.SetUniform('tex_rock', 2);
+
+          GLSLProgram.SetUniform('z0', 0.8);
+          GLSLProgram.SetUniform('z1', 1.0);
+          GLSLProgram.SetUniform('z2', 1.2);
+          GLSLProgram.SetUniform('z3', 1.5);
         end;
 
         DrawElevation(Elevation, Subdivision,
@@ -277,6 +285,13 @@ begin
 end;
 
 procedure Init(Glwin: TGLWindow);
+
+  function LoadTexture(const FileName: string): TGLuint;
+  begin
+    Result := LoadGLTexture('textures' + PathDelim + FileName,
+      GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, Texture2DRepeat);
+  end;
+
 begin
   RenderElevationsInitGL;
 
@@ -300,8 +315,14 @@ begin
     end;
   end;
 
+  { load textures }
+  GLTexSand := LoadTexture('sand.png');
+  GLTexBread := LoadTexture('bread.png');
+  GLTexRock := LoadTexture('rock_d01.png');
+
   { initialize GLSL program }
   GLSLProgram := TGLSLProgram.Create;
+  GLSLProgram.AttachVertexShader(FileToString('elevation.vs'));
   GLSLProgram.AttachFragmentShader(FileToString('elevation.fs'));
   { For this test program, we eventually allow shader to run in software.
     We display debug info, so user should know what's going on. }
