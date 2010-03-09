@@ -485,7 +485,7 @@ begin
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('Walk camera', 120, 'c', Camera = WalkCamera, true));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItemChecked.Create('Lighting', 130, 'l', Lighting, true));
+    M.Append(TMenuItemChecked.Create('Lighting (when no Shader)', 130, 'l', Lighting, true));
     M.Append(TMenuItemChecked.Create('Shader', 140, 's', Shader, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 100));
