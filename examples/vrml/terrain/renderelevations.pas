@@ -154,23 +154,77 @@ begin
     and will not be used. }
   SetLength(Points, Sqr(CountSteps1));
 
-  { calculate Points and Colors }
-  P := PElevationPoint(Points);
-  for I := 0 to CountSteps do
-    for J := 0 to CountSteps do
+  if Hole then
+  begin
+    { calculate Points and Colors }
+    for I := 0 to CountStepsQ + 1 do
     begin
-      { calculate P^, which is Points.Items[I * CountSteps1 + J] }
-      CalculatePositionColor(P^, I, J);
-      Inc(P);
+      P := @(Points[I * CountSteps1]);
+      for J := 0 to CountSteps do
+      begin
+        { calculate P^, which is Points.Items[I * CountSteps1 + J] }
+        CalculatePositionColor(P^, I, J);
+        Inc(P);
+      end;
     end;
 
-  { calculate Normals }
-  for I := 0 to CountSteps - 1 do
-    for J := 0 to CountSteps - 1 do
-      CalculateNormal(
-        Points[ I      * CountSteps1 + J],
-        Points[(I + 1) * CountSteps1 + J],
-        Points[ I      * CountSteps1 + J + 1]);
+    for I := CountStepsQ + 2 to CountStepsQ * 3 - 1 do
+    begin
+      P := @(Points[I * CountSteps1]);
+      for J := 0 to CountStepsQ + 1 do
+      begin
+        { calculate P^, which is Points.Items[I * CountSteps1 + J] }
+        CalculatePositionColor(P^, I, J);
+        Inc(P);
+      end;
+      
+      P := @(Points[I * CountSteps1 + CountStepsQ * 3]);
+      for J := CountStepsQ * 3 to CountSteps do
+      begin
+        { calculate P^, which is Points.Items[I * CountSteps1 + J] }
+        CalculatePositionColor(P^, I, J);
+        Inc(P);
+      end;
+    end;
+
+    for I := CountStepsQ * 3 to CountSteps do
+    begin
+      P := @(Points[I * CountSteps1]);
+      for J := 0 to CountSteps do
+      begin
+        { calculate P^, which is Points.Items[I * CountSteps1 + J] }
+        CalculatePositionColor(P^, I, J);
+        Inc(P);
+      end;
+    end;
+
+    { calculate Normals }
+    for I := 0 to CountSteps - 1 do
+      for J := 0 to CountSteps - 1 do
+        CalculateNormal(
+          Points[ I      * CountSteps1 + J],
+          Points[(I + 1) * CountSteps1 + J],
+          Points[ I      * CountSteps1 + J + 1]);
+  end else
+  begin
+    { calculate Points and Colors }
+    P := PElevationPoint(Points);
+    for I := 0 to CountSteps do
+      for J := 0 to CountSteps do
+      begin
+        { calculate P^, which is Points.Items[I * CountSteps1 + J] }
+        CalculatePositionColor(P^, I, J);
+        Inc(P);
+      end;
+
+    { calculate Normals }
+    for I := 0 to CountSteps - 1 do
+      for J := 0 to CountSteps - 1 do
+        CalculateNormal(
+          Points[ I      * CountSteps1 + J],
+          Points[(I + 1) * CountSteps1 + J],
+          Points[ I      * CountSteps1 + J + 1]);
+  end;
 
   { calculate PointsIndex }
   SetLength(PointsIndex, (CountSteps - 1) * CountSteps * 2);
