@@ -29,8 +29,9 @@ type
 
   { Elevation (height for each X, Y) data taken from intensities in an image.
 
-    The image covers (-1, -1) ... (1, 1) area in XY plane (it is repeated
-    infinitely if you ask for Height outside of this range).
+    The image covers (ImageX1, ImageY1) ... (ImageX2, ImageY2)
+    area in XY plane. If you ask for Height outside of this range,
+    it is repeated infinitely (if ImageRepeat) or clamped (if not ImageRepeat).
     Image color (converted to grayscale) acts as height (scaled by
     ImageHeightScale).
 
@@ -41,9 +42,13 @@ type
     FImage: TGrayscaleImage;
     FImageFileName: string;
     FImageHeightScale: Single;
+    FImageRepeat: boolean;
+    FImageX1, FImageX2, FImageY1, FImageY2: Single;
   public
     constructor Create;
     destructor Destroy; override;
+
+    function Height(const X, Y: Single): Single; override;
 
     procedure LoadImage(const AImageFileName: string);
     procedure ClearImage;
@@ -52,7 +57,13 @@ type
     property ImageHeightScale: Single
       read FImageHeightScale write FImageHeightScale default 1.0;
 
-    function Height(const X, Y: Single): Single; override;
+    property ImageRepeat: boolean
+      read FImageRepeat write FImageRepeat default false;
+
+    property ImageX1: Single read FImageX1 write FImageX1 default -1;
+    property ImageY1: Single read FImageY1 write FImageY1 default -1;
+    property ImageX2: Single read FImageX2 write FImageX2 default 1;
+    property ImageY2: Single read FImageY2 write FImageY2 default 1;
   end;
 
   { Elevation (height for each X, Y) data calculated from KambiScript
@@ -280,6 +291,10 @@ constructor TElevationImage.Create;
 begin
   inherited;
   FImageHeightScale := 1.0;
+  FImageX1 := -1;
+  FImageY1 := -1;
+  FImageX2 :=  1;
+  FImageY2 :=  1;
 end;
 
 destructor TElevationImage.Destroy;
@@ -311,10 +326,21 @@ var
 begin
   if FImage <> nil then
   begin
-    PX := Floor((X / 2 + 0.5) * FImage.Width) mod FImage.Width;
-    PY := Floor((Y / 2 + 0.5) * FImage.Height) mod FImage.Height;
-    if PX < 0 then PX += FImage.Width;
-    if PY < 0 then PY += FImage.Height;
+    PX := Floor( ((X - ImageX1) / (ImageX2 - ImageX1)) * FImage.Width );
+    PY := Floor( ((Y - ImageY1) / (ImageY2 - ImageY1)) * FImage.Height);
+
+    if ImageRepeat then
+    begin
+      PX := PX mod FImage.Width;
+      PY := PY mod FImage.Height;
+      if PX < 0 then PX += FImage.Width;
+      if PY < 0 then PY += FImage.Height;
+    end else
+    begin
+      Clamp(PX, 0, FImage.Width  - 1);
+      Clamp(PY, 0, FImage.Height - 1);
+    end;
+
     Result := (FImage.PixelPtr(PX, PY)^ / High(Byte)) * ImageHeightScale;
   end else
     Result := 0;
