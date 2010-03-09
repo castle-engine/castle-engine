@@ -133,6 +133,21 @@ begin
              (Elevation is TElevationGrid) ) then
       Glw.Controls.MakeSingle(TGLMenu, ControlsImage, true { before camera }) else
       Glw.Controls.Remove(ControlsImage);
+
+    if Elevation is TElevationImage then
+      TElevationImage(Elevation).ImageHeightScale := ImageHeightScaleSlider.Value;
+
+    if Elevation is TElevationNoise then
+    begin
+      TElevationNoise(Elevation).Octaves := ControlsNoise.OctavesSlider.Value;
+      TElevationNoise(Elevation).Amplitude := ControlsNoise.AmplitudeSlider.Value;
+      TElevationNoise(Elevation).Frequency := ControlsNoise.FrequencySlider.Value;
+      TElevationNoise(Elevation).Smoothness := ControlsNoise.SmoothnessSlider.Value;
+      TElevationNoise(Elevation).Heterogeneous := ControlsNoise.HeterogeneousSlider.Value;
+      TElevationNoise(Elevation).Seed := ControlsNoise.SeedSlider.Value;
+      TElevationNoise(Elevation).Interpolation := NoiseInterpolation;
+      TElevationNoise(Elevation).Blur := NoiseBlur;
+    end;
   end;
 end;
 
@@ -310,11 +325,8 @@ begin
   begin
     if Parameters.High = 1 then
       SetElevation(TElevationSRTM.CreateFromFile(Parameters[1])) else
-    begin
       { some default elevation }
       SetElevation(TElevationNoise.Create);
-      (Elevation as TElevationImage).ImageHeightScale := ImageHeightScaleSlider.Value;
-    end;
   end;
 
   { load textures }
@@ -397,22 +409,8 @@ begin
             SetElevation(NewElevation);
           end;
         end;
-    70: begin
-          SetElevation(TElevationNoise.Create);
-          (Elevation as TElevationNoise).Octaves := ControlsNoise.OctavesSlider.Value;
-          (Elevation as TElevationNoise).Amplitude := ControlsNoise.AmplitudeSlider.Value;
-          (Elevation as TElevationNoise).Frequency := ControlsNoise.FrequencySlider.Value;
-          (Elevation as TElevationNoise).Smoothness := ControlsNoise.SmoothnessSlider.Value;
-          (Elevation as TElevationNoise).Heterogeneous := ControlsNoise.HeterogeneousSlider.Value;
-          (Elevation as TElevationNoise).Seed := ControlsNoise.SeedSlider.Value;
-          (Elevation as TElevationNoise).Interpolation := NoiseInterpolation;
-          (Elevation as TElevationNoise).Blur := NoiseBlur;
-          (Elevation as TElevationNoise).ImageHeightScale := ImageHeightScaleSlider.Value;
-        end;
-    80: begin
-          SetElevation(TElevationImage.Create);
-          (Elevation as TElevationImage).ImageHeightScale := ImageHeightScaleSlider.Value;
-        end;
+    70: SetElevation(TElevationNoise.Create);
+    80: SetElevation(TElevationImage.Create);
     100: Glwin.Close;
     110:
       begin
