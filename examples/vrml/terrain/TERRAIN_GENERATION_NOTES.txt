@@ -174,7 +174,7 @@ Idea: ultra-simplified version of geometry clipmaps:
   (optimally, we could also copy verts
   positions from more detailed to next less detailed layer, to match perfectly).
 
-  TODO: Patch creases.
+  TODO: do copy verts. Fixes visible seams?
 
 Texture this thing to make it look Ok! (Demo with/without shaders).
 Multitexturing, blending textures based on their height.
