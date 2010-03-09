@@ -214,6 +214,8 @@ begin
           GLSLProgram.SetUniform('z3', 1.5);
           GLSLProgram.SetUniform('color_scale', 0.2);
           GLSLProgram.SetUniform('tex_scale', 0.8);
+          GLSLProgram.SetUniform('fog_start', 2.0);
+          GLSLProgram.SetUniform('fog_end', 3.0);
         end;
 
         DrawElevation(Elevation, Subdivision,

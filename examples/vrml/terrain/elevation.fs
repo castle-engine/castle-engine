@@ -1,6 +1,7 @@
 uniform sampler2D tex_sand;
 uniform sampler2D tex_bread;
 uniform sampler2D tex_rock;
+
 varying vec3 position;
 varying vec3 normal;
 
@@ -14,6 +15,12 @@ uniform float z3; // below bread + rock
 
 uniform float color_scale;
 uniform float tex_scale;
+
+#ifdef FOG
+varying float camera_distance;
+uniform float fog_start;
+uniform float fog_end;
+#endif
 
 void main(void)
 {
@@ -41,4 +48,10 @@ void main(void)
   tex *= n.z;
 
   gl_FragColor = (gl_Color * color_scale) + (tex * tex_scale);
+
+#ifdef FOG
+  if (camera_distance > fog_start)
+    gl_FragColor = mix(gl_FragColor,  vec4(0.0, 0.0, 0.0, 1.0),
+      (camera_distance - fog_start) / (fog_end - fog_start));
+#endif
 }
