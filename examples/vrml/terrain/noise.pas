@@ -211,19 +211,18 @@ end;
 
 { Interpolate along the spline. }
 function SplineInterpolate(const V0, V1, V2, V3, X: Single): Single;
-
 { Following http://www.mvps.org/directx/articles/catmull/. }
-// begin
-//   Result := 0.5 * (
-//     (2 * V1) +
-//     (-V0 + V2) * X +
-//     (2*V0 - 5*V1 + 4*V2 - V3) * Sqr(X) +
-//     (-V0 + 3*V1- 3*V2 + V3) * Sqr(X) * X
-//   );
-// end;
+begin
+  Result := 0.5 * (
+    (2 * V1) +
+    (-V0 + V2) * X +
+    (2*V0 - 5*V1 + 4*V2 - V3) * Sqr(X) +
+    (-V0 + 3*V1- 3*V2 + V3) * Sqr(X) * X
+  );
+end;
 
 { The one on http://freespace.virgin.net/hugo.elias/models/m_perlin.htm
-  seems equivalent: }
+  seems equivalent. But, uhm, missing weights?
 var
   P, Q, R, S: Single;
 begin
@@ -232,7 +231,7 @@ begin
   R := V2 - V0;
   S := V1;
   Result := (P * X + Q) * Sqr(X) + R * X + S;
-end;
+end;}
 
 { Interpolated noise for 2D coords ------------------------------------------- }
 

@@ -72,7 +72,12 @@ Simple noise synthesis:
   care of floats later, for now --- assume we want noise on ints.
 
 Smooth simple noise: box, tri, cosine or cubic spline
-  (More precisely, http://en.wikipedia.org/wiki/Cubic_Hermite_spline#Catmull.E2.80.93Rom_spline).
+  (More precisely, http://en.wikipedia.org/wiki/Cubic_Hermite_spline#Catmull.E2.80.93Rom_spline,
+  very concrete equation:
+  http://www.mvps.org/directx/articles/catmull/
+  (warning: the cubic interpolation code on
+  http://freespace.virgin.net/hugo.elias/models/m_perlin.htm
+  seems missing weights?) ).
 Show demo.
   TODO: this is awfully un-optimal now, each linear/cosine samples 4 points
   and spline samples 16 points. These points are most probably sampled
