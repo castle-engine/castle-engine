@@ -41,27 +41,21 @@
   3. You can also (and this was actually the primary reason for this program
      in the 1st place) generate random terrain.
 
+  Terrain is rendered with GLSL shader, with nice colors, multitextures etc.
+  To support large data, we render with ultra-simplified geo clipmaps
+  (look in wireframe mode to see what it does).
+
   TODO:
   - DrawGrid is temp broken now (not visible,
     and probably walk camera doesn't follow it correctly).
     For now, ignore it (it messes too much otherwise clean TElevation*
     using code).
 
-  - switch view terrain:
-    1. current view - "Examine the [0..1, 0..1] range of the terrain"
-    2. new new - "Walk over the infinite terrain":
-       Walk mode,
+    Walk mode TODOs:
        optionally keeping avatar over the ground,
        optionally with fog (since terrain is infinite in this case),
        and using the algorithm that renders infinite terrain with LOD.
        Optionally with sky displayed, just for effect.
-  Multitexture elevation, set texture mixture based on height,
-  from GLSL shader.
-
-  TODO: sliders:
-  - controls for shifting noise (and calculated kam script) terrain.
-    Hm, not so much needed, since increasing the freq allows you to see more,
-    and in  walk mode you can explore it all.
 }
 program terrain;
 
