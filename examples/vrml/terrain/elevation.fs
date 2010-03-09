@@ -2,6 +2,7 @@ uniform sampler2D tex_sand;
 uniform sampler2D tex_bread;
 uniform sampler2D tex_rock;
 varying vec3 position;
+varying vec3 normal;
 
 /* No, these can't be simple constants in the shader, fglrx is f** broken,
    see rants in my other shaders. */
@@ -11,8 +12,13 @@ uniform float z2; // below bread
 uniform float z3; // below bread + rock
 // above only rock
 
+uniform float color_scale;
+uniform float tex_scale;
+
 void main(void)
 {
+  /* calculate tex color by nicely blending textures based on
+     height (position.z) */
   vec4 tex;
   if (position.z <= z0)
     tex = texture2D(tex_sand, position.xy); else
@@ -28,5 +34,11 @@ void main(void)
                (position.z - z2) / (z3 - z2)); else
     tex = texture2D(tex_rock, position.xy);
 
-  gl_FragColor = /*gl_Color * */tex;
+  /* use normal to darken color on steep faces.
+     Steep face =~ one with small n.z */
+  vec3 n = normalize(normal);
+
+  tex *= n.z;
+
+  gl_FragColor = (gl_Color * color_scale) + (tex * tex_scale);
 }

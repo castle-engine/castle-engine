@@ -202,6 +202,8 @@ begin
           GLSLProgram.SetUniform('z1', 1.0);
           GLSLProgram.SetUniform('z2', 1.2);
           GLSLProgram.SetUniform('z3', 1.5);
+          GLSLProgram.SetUniform('color_scale', 0.2);
+          GLSLProgram.SetUniform('tex_scale', 0.8);
         end;
 
         DrawElevation(Elevation, Subdivision,
