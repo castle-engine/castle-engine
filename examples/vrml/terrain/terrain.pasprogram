@@ -83,8 +83,8 @@ var
   NoiseInterpolation: TNoiseInterpolation = niCosine;
   NoiseBlur: boolean = false;
   Subdivision: Cardinal = 6;
-  Lighting: boolean = true;
   Shader: boolean = true;
+  Lighting: boolean = true;
   KeepCameraAboveGround: boolean = true;
   BaseSize: Single = 1.0;
   LayersCount: Cardinal = 3;
@@ -512,8 +512,8 @@ begin
     M.Append(TMenuItemChecked.Create('Walk', 120, 'c', Camera = WalkCamera, true));
     M.Append(TMenuItemChecked.Create('Keep Above the Ground (in Walk)', 125, KeepCameraAboveGround, true));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItemChecked.Create('Lighting (when no Shader)', 130, 'l', Lighting, true));
     M.Append(TMenuItemChecked.Create('Shader', 140, 's', Shader, true));
+    M.Append(TMenuItemChecked.Create('Lighting (when no Shader)', 130, 'l', Lighting, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('Sliders Visible', 145, K_F1, ControlsVisible, true));
     M.Append(TMenuSeparator.Create);
