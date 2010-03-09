@@ -1,6 +1,10 @@
-TODO: render infinite
-  Idea: ultra-simplified version of
-  http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter02.html
+TODO: render nicely ~infinite terrain
+
+  Idea: ultra-simplified version of geometry clipmaps:
+  http://research.microsoft.com/en-us/um/people/hoppe/geomclipmap.pdf
+  (Of interest also GPU implementation of geometry clipmaps:
+  http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter02.html)
+
 TODO: render with multitextures mixed by shaders
 
 ------------------------------------------------------------------------------
