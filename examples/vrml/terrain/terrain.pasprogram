@@ -79,6 +79,7 @@ var
   Wireframe: boolean;
   NoiseInterpolation: TNoiseInterpolation = niCosine;
   NoiseBlur: boolean = false;
+  Subdivision: Cardinal = 6;
 
 type
   TControlsNoise = class(TGLMenu)
@@ -173,7 +174,7 @@ begin
         glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
         glEnable(GL_COLOR_MATERIAL);
         glEnable(GL_NORMALIZE);
-        DrawElevation(Elevation);
+        DrawElevation(Elevation, Subdivision);
       glPopAttrib;
     end;
 

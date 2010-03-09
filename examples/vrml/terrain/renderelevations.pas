@@ -20,11 +20,8 @@ interface
 
 uses Elevations;
 
-var
-  Subdivision: Cardinal = 6;
-
 { Generic drawing of any TElevation, relies only on TElevation.Height method }
-procedure DrawElevation(Elevation: TElevation);
+procedure DrawElevation(Elevation: TElevation; const Subdivision: Cardinal);
 
 { Specialized drawing for TElevationGrid, that displays only the
   precise grid points. }
@@ -91,7 +88,7 @@ begin
   Result := Pointer(PtrUInt( PtrUInt(@A) - PtrUInt(@B) ));
 end;
 
-procedure DrawElevation(Elevation: TElevation);
+procedure DrawElevation(Elevation: TElevation; const Subdivision: Cardinal);
 var
   CountSteps1: Cardinal;
   CountSteps: Cardinal;
