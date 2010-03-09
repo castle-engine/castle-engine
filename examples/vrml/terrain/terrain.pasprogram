@@ -67,22 +67,28 @@ uses SysUtils, Classes, Boxes3D,
   GLShaders, GLImages;
 
 var
+  { global stuff }
   Glw: TGLUIWindow;
   Camera: TCamera;
   ExamineCamera: TExamineCamera;
   WalkCamera: TWalkCamera;
   Elevation: TElevation;
-  Wireframe: boolean;
+
+  { gl helpers }
+  GLSLProgram: TGLSLProgram;
+  GLTexSand, GLTexBread, GLTexRock: TGLuint;
+
+  { settings }
+  Wireframe: boolean = false;
   NoiseInterpolation: TNoiseInterpolation = niCosine;
   NoiseBlur: boolean = false;
   Subdivision: Cardinal = 6;
   Lighting: boolean = true;
   Shader: boolean = true;
-  GLSLProgram: TGLSLProgram;
-  GLTexSand, GLTexBread, GLTexRock: TGLuint;
   KeepCameraAboveGround: boolean = true;
   BaseSize: Single = 1.0;
   LayersCount: Cardinal = 3;
+  ControlsVisible: boolean = true;
 
 type
   TControlsNoise = class(TGLMenu)
@@ -116,6 +122,18 @@ var
   LayersCountSlider: TGLMenuIntegerSlider;
   ImageHeightScaleSlider: TGLMenuFloatSlider;
 
+{ Current TGLMenu, or none, based on Elevation class and ControlsVisible. }
+function CurrentControls: TGLMenu;
+begin
+  if not ControlsVisible then Exit(nil);
+
+  if Elevation is TElevationNoise then
+    Result := ControlsNoise else
+  if (Elevation is TElevationImage) and not (Elevation is TElevationGrid) then
+    Result := ControlsImage else
+    Result := nil;
+end;
+
 procedure SetElevation(Value: TElevation);
 begin
   if Elevation <> Value then
@@ -123,15 +141,7 @@ begin
     FreeAndNil(Elevation);
     Elevation := Value;
 
-    if Elevation is TElevationNoise then
-      Glw.Controls.MakeSingle(TGLMenu, ControlsNoise, true { before camera }) else
-      Glw.Controls.Remove(ControlsNoise);
-
-    if (Elevation is TElevationImage) and
-       not ( (Elevation is TElevationNoise) or
-             (Elevation is TElevationGrid) ) then
-      Glw.Controls.MakeSingle(TGLMenu, ControlsImage, true { before camera }) else
-      Glw.Controls.Remove(ControlsImage);
+    Glw.Controls.MakeSingle(TGLMenu, CurrentControls, true { before camera });
 
     if Elevation is TElevationImage then
       TElevationImage(Elevation).ImageHeightScale := ImageHeightScaleSlider.Value;
@@ -440,6 +450,11 @@ begin
     125: KeepCameraAboveGround := not KeepCameraAboveGround;
     130: Lighting := not Lighting;
     140: Shader := not Shader;
+    145:
+      begin
+        ControlsVisible := not ControlsVisible;
+        Glw.Controls.MakeSingle(TGLMenu, CurrentControls, true { before camera });
+      end;
     150:
       begin
         if Elevation is TElevationImage then
@@ -499,6 +514,8 @@ begin
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('Lighting (when no Shader)', 130, 'l', Lighting, true));
     M.Append(TMenuItemChecked.Create('Shader', 140, 's', Shader, true));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItemChecked.Create('Sliders Visible', 145, K_F1, ControlsVisible, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 100));
     Result.Append(M);
