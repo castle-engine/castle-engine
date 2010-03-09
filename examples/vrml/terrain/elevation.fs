@@ -3,6 +3,8 @@ uniform sampler2D tex_bread;
 uniform sampler2D tex_rock;
 varying vec3 position;
 
+/* No, these can't be simple constants in the shader, fglrx is f** broken,
+   see rants in my other shaders. */
 uniform float z0; // below sand
 uniform float z1; // below sand + bread
 uniform float z2; // below bread
