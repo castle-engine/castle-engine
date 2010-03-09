@@ -171,4 +171,8 @@ Rendering:
 
   TODO: Patch creases.
 
-TODO: render with multitextures mixed by shaders
+Texture this thing to make it look Ok! (Demo with/without shaders).
+Multitexturing, blending textures based on their height.
+Additionally: darken on steep faces (when normal.z is low).
+Adding a hint of color is good also.
+
