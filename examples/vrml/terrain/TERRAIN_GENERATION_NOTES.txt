@@ -5,9 +5,10 @@ TODO: render nicely ~infinite terrain
   (Of interest also GPU implementation of geometry clipmaps:
   http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter02.html)
 
-  TODO: make right/left hole side.
+  TODO:
   We should speed up generation and rendering: don't sample elevation inside the hole.
   In fact, don't use so large vbo for hole?
+  Patch creases? Or too much work for this demo?
 
 TODO: render with multitextures mixed by shaders
 
