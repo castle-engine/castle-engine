@@ -89,7 +89,8 @@ var
 
     Finally, now this is just send into OpenGL VBO. }
   Points: array of TElevationPoint;
-  PointsIndex: array of GLuint;
+  PointsIndex: array of TGLuint;
+  TrisIndex: array of TGLuint;
 
 { Calculate shift between A and B addresses (in bytes), and cast to Pointer.
   This is simply Result := A - B, except we do some typecasting. }
@@ -292,6 +293,26 @@ begin
         Pointer(CountSteps * 2 * I * SizeOf(TGLuint)));
   end;
 
+  if BorderTriangles then
+  begin
+    SetLength(TrisIndex, ((CountSteps - 1) div 2) * 3 * 2);
+    Index := PGLuint(TrisIndex);
+    for I := 0 to (CountSteps - 1) div 2 - 1 do
+    begin
+      Index^ := I*2;     Inc(Index);
+      Index^ := I*2 + 1; Inc(Index);
+      Index^ := I*2 + 2; Inc(Index);
+
+      Index^ := (CountSteps-1)*CountSteps1 + I*2;     Inc(Index);
+      Index^ := (CountSteps-1)*CountSteps1 + I*2 + 1; Inc(Index);
+      Index^ := (CountSteps-1)*CountSteps1 + I*2 + 2; Inc(Index);
+    end;
+
+    glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Length(TrisIndex) * SizeOf(TGLuint),
+      Pointer(TrisIndex), GL_STREAM_DRAW_ARB);
+    glDrawElements(GL_TRIANGLES, Length(TrisIndex), GL_UNSIGNED_INT, nil);
+  end;
+
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_NORMAL_ARRAY);
   glDisableClientState(GL_COLOR_ARRAY);
@@ -314,7 +335,7 @@ begin
   for Layer := 0 to LayersCount - 1 do
   begin
     DrawElevationLayer(Elevation, Subdivision, X1, Y1, X2, Y2,
-      Layer <> 0, Layer < LayersCount - 1);
+      Layer <> 0, (Layer < LayersCount - 1) {}or true);
     X1 -= BaseSize;
     Y1 -= BaseSize;
     X2 += BaseSize;
