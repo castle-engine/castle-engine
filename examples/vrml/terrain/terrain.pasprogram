@@ -81,6 +81,8 @@ var
   GLSLProgram: TGLSLProgram;
   GLTexSand, GLTexBread, GLTexRock: TGLuint;
   KeepCameraAboveGround: boolean = true;
+  BaseSize: Single = 1.0;
+  LayersCount: Cardinal = 3;
 
 type
   TControlsNoise = class(TGLMenu)
@@ -111,6 +113,7 @@ var
   ControlsNoise: TControlsNoise;
   ControlsImage: TControlsImage;
   SubdivisionSlider: TGLMenuIntegerSlider;
+  LayersCountSlider: TGLMenuIntegerSlider;
   ImageHeightScaleSlider: TGLMenuFloatSlider;
 
 procedure SetElevation(Value: TElevation);
@@ -219,7 +222,7 @@ begin
         end;
 
         DrawElevation(Elevation, Subdivision,
-          WalkCamera.Position[0], WalkCamera.Position[1], 1, 3);
+          WalkCamera.Position[0], WalkCamera.Position[1], BaseSize, LayersCount);
 
         if Shader then
           GLSLProgram.Disable;
@@ -258,6 +261,7 @@ begin
   Items.AddObject('Frequency (scales size)', FrequencySlider);
   Items.AddObject('Seed', SeedSlider);
   Items.AddObject('Subdivision (render details)', SubdivisionSlider);
+  Items.AddObject('Layers Count (render farther)', LayersCountSlider);
   Items.AddObject('Image height scale', ImageHeightScaleSlider);
   PositionRelativeScreenX := prLowerBorder;
   PositionRelativeScreenY := prLowerBorder;
@@ -277,7 +281,8 @@ begin
     4: (Elevation as TElevationNoise).Frequency := FrequencySlider.Value;
     5: (Elevation as TElevationNoise).Seed := SeedSlider.Value;
     6: Subdivision := SubdivisionSlider.Value;
-    7: (Elevation as TElevationNoise).ImageHeightScale := ImageHeightScaleSlider.Value;
+    7: LayersCount := LayersCountSlider.Value;
+    8: (Elevation as TElevationNoise).ImageHeightScale := ImageHeightScaleSlider.Value;
   end;
   inherited;
 end;
@@ -286,6 +291,7 @@ constructor TControlsImage.Create(AOwner: TComponent);
 begin
   inherited;
   Items.AddObject('Subdivision (render details)', SubdivisionSlider);
+  Items.AddObject('Layers Count (render farther)', LayersCountSlider);
   Items.AddObject('Image height scale', ImageHeightScaleSlider);
   PositionRelativeScreenX := prLowerBorder;
   PositionRelativeScreenY := prLowerBorder;
@@ -298,7 +304,8 @@ procedure TControlsImage.CurrentItemAccessoryValueChanged;
 begin
   case CurrentItem of
     0: Subdivision := SubdivisionSlider.Value;
-    1: (Elevation as TElevationImage).ImageHeightScale := ImageHeightScaleSlider.Value;
+    1: LayersCount := LayersCountSlider.Value;
+    2: (Elevation as TElevationImage).ImageHeightScale := ImageHeightScaleSlider.Value;
   end;
   inherited;
 end;
@@ -317,6 +324,8 @@ begin
   { sliders used by both Controls* }
   SubdivisionSlider := TGLMenuIntegerSlider.Create(1, 10, Subdivision);
   SubdivisionSlider.OwnedByParent := false;
+  LayersCountSlider := TGLMenuIntegerSlider.Create(1, 10, LayersCount);
+  LayersCountSlider.OwnedByParent := false;
   ImageHeightScaleSlider := TGLMenuFloatSlider.Create(0.0, 2.0, 0.25);
   ImageHeightScaleSlider.OwnedByParent := false;
 
@@ -357,6 +366,7 @@ begin
   FreeAndNil(ControlsNoise);
   FreeAndNil(ControlsImage);
   FreeAndNil(SubdivisionSlider);
+  FreeAndNil(LayersCountSlider);
   FreeAndNil(ImageHeightScaleSlider);
   GLMenuCloseGL;
 

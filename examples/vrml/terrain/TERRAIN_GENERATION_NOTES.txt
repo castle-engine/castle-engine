@@ -130,14 +130,21 @@ take a slice from an other dimension. That is, if you want 2D noise,
 then implement Perlin for 3D, and take a slice with z = 0.5.
 
 ------------------------------------------------------------------------------
-Simple observation: you can add an scaled height from the image to such
-heightmap. Also other methods of affecting the terrain with images are
-possible: e.g. image color may be max value (noise is clamped to this),
-to forcibly flatten some areas.
+Simple observation: you can manually control almost everything here
+by supplying grayscale images.
+
+- Simplest use: you can add a scaled height from the image to such
+  heightmap.
+- Image color may be max value (noise is clamped to this),
+  to forcibly flatten some areas.
+- Image color may be used to affect some noise setting. Like Smoothness
+  or Heterogeneous or Amplitude. As long as change them smoothly
+  on the image (usually you'll want to filter image e.g. bilinear),
+  and you don't touch Frequency (that affects directly X, Y used for noise),
+  resulting terrain will be nice, and you can locally vary Smoothness etc.
 
 Some ideas from
-http://http.developer.nvidia.com/GPUGems3/gpugems3_ch01.html,
-still to be explored more.
+http://http.developer.nvidia.com/GPUGems3/gpugems3_ch01.html.
 
 ------------------------------------------------------------------------------
 Heterogeneous fBm:
@@ -200,6 +207,11 @@ Idea: ultra-simplified version of geometry clipmaps:
     features changes).
 
     Demo trivial fog in shader, BTW.
+
+    Is my trivial impl Ok? For walking, with ~3 layers and fog,
+    popping is not that bad. For flying, when you really want to see ~6
+    layers to "feel" tha landscape, it's not acceptable.
+    Demo.
 
 Texture this thing to make it look Ok! (Demo with/without shaders).
 Multitexturing, blending textures based on their height.
