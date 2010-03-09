@@ -193,14 +193,12 @@ begin
 
   Assert(CountStepsQ * 4 - 1 = CountSteps - 2);
 
-  { draw 1/4 of rows }
-  for I := 0 to CountStepsQ - 1 do
-    glDrawElements(GL_QUAD_STRIP, CountSteps * 2, GL_UNSIGNED_INT,
-      Pointer(CountSteps * 2 * I * SizeOf(TGLuint)));
-
-  { draw two middle rows }
   if Hole then
   begin
+    for I := 0 to CountStepsQ - 1 do
+      glDrawElements(GL_QUAD_STRIP, CountSteps * 2, GL_UNSIGNED_INT,
+        Pointer(CountSteps * 2 * I * SizeOf(TGLuint)));
+
     for I := CountStepsQ to CountStepsQ * 3 - 1  do
     begin
       glDrawElements(GL_QUAD_STRIP, (CountStepsQ+1) * 2, GL_UNSIGNED_INT,
@@ -208,16 +206,16 @@ begin
       glDrawElements(GL_QUAD_STRIP, (CountStepsQ+1) * 2, GL_UNSIGNED_INT,
         Pointer((CountSteps * 2 * I + CountStepsQ*3*2) * SizeOf(TGLuint)));
     end;
+
+    for I := CountStepsQ * 3 to CountStepsQ * 4 - 1 do
+      glDrawElements(GL_QUAD_STRIP, CountSteps * 2, GL_UNSIGNED_INT,
+        Pointer(CountSteps * 2 * I * SizeOf(TGLuint)));
   end else
   begin
-    for I := CountStepsQ to CountStepsQ * 3 - 1  do
+    for I := 0 to CountSteps - 2 do
       glDrawElements(GL_QUAD_STRIP, CountSteps * 2, GL_UNSIGNED_INT,
         Pointer(CountSteps * 2 * I * SizeOf(TGLuint)));
   end;
-
-  for I := CountStepsQ * 3 to CountStepsQ * 4 - 1 do
-    glDrawElements(GL_QUAD_STRIP, CountSteps * 2, GL_UNSIGNED_INT,
-      Pointer(CountSteps * 2 * I * SizeOf(TGLuint)));
 
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_NORMAL_ARRAY);
