@@ -109,7 +109,10 @@ var
   HForColor: Single;
   Index: PGLuint;
 begin
-  CountSteps := 1 shl Subdivision;
+  { We want Sqr(1 shl Subdivision) squares (to be able to nicely make
+    layer with hole, for geometry clipmaps). So we want
+    Sqr(1 shl Subdivision + 1) points. }
+  CountSteps := 1 shl Subdivision + 1;
   CountSteps1 := CountSteps + 1;
 
   { We will render CountSteps^2 points, but we want to calculate
