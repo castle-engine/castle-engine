@@ -204,7 +204,19 @@ begin
     end;
 
     { calculate Normals }
-    for I := 0 to CountSteps - 1 do
+    for I := 0 to CountStepsQ do
+      for J := 0 to CountSteps - 1 do
+        CalculateNormal(I, J);
+
+    for I := CountStepsQ + 1 to CountStepsQ * 3 - 1 do
+    begin
+      for J := 0 to CountStepsQ do
+        CalculateNormal(I, J);
+      for J := CountStepsQ * 3 to CountSteps - 1 do
+        CalculateNormal(I, J);
+    end;
+
+    for I := CountStepsQ * 3 to CountSteps - 1 do
       for J := 0 to CountSteps - 1 do
         CalculateNormal(I, J);
   end else
