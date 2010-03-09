@@ -174,7 +174,8 @@ begin
         glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
         glEnable(GL_COLOR_MATERIAL);
         glEnable(GL_NORMALIZE);
-        DrawElevation(Elevation, Subdivision);
+        DrawElevation(Elevation, Subdivision, 3,
+          WalkCamera.Position[0], WalkCamera.Position[1], 1);
       glPopAttrib;
     end;
 

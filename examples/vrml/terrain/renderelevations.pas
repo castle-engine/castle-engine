@@ -21,7 +21,18 @@ interface
 uses Elevations;
 
 { Generic drawing of any TElevation, relies only on TElevation.Height method }
-procedure DrawElevation(Elevation: TElevation; const Subdivision: Cardinal);
+procedure DrawElevationLayer(Elevation: TElevation; const Subdivision: Cardinal;
+  const X1, Y1, X2, Y2: Single);
+
+{ Draw TElevation with layers (like geometry clipmaps).
+
+  BaseSize * 2 is the size of the first (most detailed) square layer around
+  the (MiddleX, MiddleY). Eeach successive layer has the same subdivision
+  (although with middle square removed, as it's already done by
+  previous layer) and 2 times larger size. }
+procedure DrawElevation(Elevation: TElevation;
+  const Subdivision, LayersCount: Cardinal;
+  const MiddleX, MiddleY, BaseSize: Single);
 
 { Specialized drawing for TElevationGrid, that displays only the
   precise grid points. }
@@ -88,7 +99,8 @@ begin
   Result := Pointer(PtrUInt( PtrUInt(@A) - PtrUInt(@B) ));
 end;
 
-procedure DrawElevation(Elevation: TElevation; const Subdivision: Cardinal);
+procedure DrawElevationLayer(Elevation: TElevation; const Subdivision: Cardinal;
+  const X1, Y1, X2, Y2: Single);
 var
   CountSteps1: Cardinal;
   CountSteps: Cardinal;
@@ -113,9 +125,9 @@ begin
     begin
       { calculate P^, which is Points.Items[I * CountSteps1 + J] }
 
-      { set XY to cover (-1, -1) ... (1, 1) rectangle with our elevation }
-      P^.Position[0] := 2 * I / CountSteps - 1;
-      P^.Position[1] := 2 * J / CountSteps - 1;
+      { set XY to cover (X1, Y1) ... (X2, Y2) rectangle with our elevation }
+      P^.Position[0] := (X2 - X1) * I / CountSteps + X1;
+      P^.Position[1] := (Y2 - Y1) * J / CountSteps + Y1;
 
       P^.Position[2] := Elevation.Height(P^.Position[0], P^.Position[1]);
 
@@ -183,6 +195,27 @@ begin
   glDisableClientState(GL_NORMAL_ARRAY);
   glDisableClientState(GL_COLOR_ARRAY);
   glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+end;
+
+procedure DrawElevation(Elevation: TElevation;
+  const Subdivision, LayersCount: Cardinal;
+  const MiddleX, MiddleY, BaseSize: Single);
+var
+  Layer: Cardinal;
+  X1, Y1, X2, Y2: Single;
+begin
+  X1 := MiddleX - BaseSize;
+  Y1 := MiddleY - BaseSize;
+  X2 := MiddleX + BaseSize;
+  Y2 := MiddleY + BaseSize;
+  for Layer := 0 to LayersCount - 1 do
+  begin
+    DrawElevationLayer(Elevation, Subdivision, X1, Y1, X2, Y2);
+    X1 -= BaseSize;
+    Y1 -= BaseSize;
+    X2 += BaseSize;
+    Y2 += BaseSize;
+  end;
 end;
 
 procedure DrawGrid(Grid: TElevationGrid);
