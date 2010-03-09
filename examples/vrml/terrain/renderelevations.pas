@@ -85,7 +85,7 @@ var
 
 { Calculate shift between A and B addresses (in bytes), and cast to Pointer.
   This is simply Result := A - B, except we do some typecasting. }
-function Stride(var A, B): Pointer;
+function Offset(var A, B): Pointer;
 begin
   { additional PtrUInt typecast before Pointer, to avoid warning. }
   Result := Pointer(PtrUInt( PtrUInt(@A) - PtrUInt(@B) ));
@@ -164,13 +164,13 @@ begin
     Pointer(Points), GL_STREAM_DRAW_ARB);
 
   glEnableClientState(GL_VERTEX_ARRAY);
-  glVertexPointer(3, GL_FLOAT, SizeOf(TElevationPoint), Stride(Points[0].Position, Points[0]));
+  glVertexPointer(3, GL_FLOAT, SizeOf(TElevationPoint), Offset(Points[0].Position, Points[0]));
 
   glEnableClientState(GL_NORMAL_ARRAY);
-  glNormalPointer(GL_FLOAT, SizeOf(TElevationPoint), Stride(Points[0].Normal, Points[0]));
+  glNormalPointer(GL_FLOAT, SizeOf(TElevationPoint), Offset(Points[0].Normal, Points[0]));
 
   glEnableClientState(GL_COLOR_ARRAY);
-  glColorPointer(3, GL_FLOAT, SizeOf(TElevationPoint), Stride(Points[0].Color, Points[0]));
+  glColorPointer(3, GL_FLOAT, SizeOf(TElevationPoint), Offset(Points[0].Color, Points[0]));
 
   glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, ElevationIndexVbo);
   glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Length(PointsIndex) * SizeOf(TGLuint),
