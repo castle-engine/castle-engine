@@ -33,9 +33,9 @@
   2. You can also define terrain as an explicit function using KambiScript
      expression syntax, [http://vrmlengine.sourceforge.net/kambi_script.php].
      Try e.g. function like
-     - sin(x*10) + sin(y*10)
-     - (sin(x*10) + sin(x*20) / 2 + sin(x*40) / 4)  *
-       (sin(y*10) + sin(y*20) / 2 + sin(y*40) / 4)
+     - sin(x) + sin(y)
+     - (sin(x) + sin(x*2) / 2 + sin(x*4) / 4)  *
+       (sin(y) + sin(y*2) / 2 + sin(y*4) / 4)
        (sum sinusoides of various frequencies and amplitudes).
 
   3. You can also (and this was actually the primary reason for this program
@@ -392,11 +392,10 @@ begin
     60: begin
           Expression := '';
           if MessageInputQuery(Glwin, 'Pass KambiScript function expression, using X and Y variables, and calculating height of the terrain at given point.' + nl + nl +
-            '(For example, try "sin(x*10) + sin(x*20)").', Expression, taLeft) then
+            '(For example, try "sin(x*2) * sin(y*2)").', Expression, taLeft) then
           begin
             try
               NewElevation := TElevationKamScript.Create(Expression);
-              (Elevation as TElevationImage).ImageHeightScale := ImageHeightScaleSlider.Value;
             except
               on E: Exception do
               begin
