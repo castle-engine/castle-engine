@@ -251,6 +251,8 @@ end;
 
 procedure Init(Glwin: TGLWindow);
 begin
+  RenderElevationsInitGL;
+
   { sliders used by both Controls* }
   SubdivisionSlider := TGLMenuIntegerSlider.Create(4, 10, Subdivision);
   SubdivisionSlider.OwnedByParent := false;
@@ -270,6 +272,7 @@ begin
       (Elevation as TElevationImage).ImageHeightScale := ImageHeightScaleSlider.Value;
     end;
   end;
+
 end;
 
 procedure Close(Glwin: TGLWindow);
@@ -279,6 +282,8 @@ begin
   FreeAndNil(SubdivisionSlider);
   FreeAndNil(ImageHeightScaleSlider);
   GLMenuCloseGL;
+
+  RenderElevationsCloseGL;
 end;
 
 procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
