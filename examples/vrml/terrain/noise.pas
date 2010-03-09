@@ -207,9 +207,9 @@ begin
   Result := IntegerNoiseCore(X, Y, 0, Seed) / High(LongWord);
 end;
 
-{ Cubic spline interpolate --------------------------------------------------- }
+{ Catmull-Rom cubic spline interpolate --------------------------------------- }
 
-{ Interpolate along the cubic spline. }
+{ Interpolate along the spline. }
 function SplineInterpolate(const V0, V1, V2, V3, X: Single): Single;
 
 { Following http://www.mvps.org/directx/articles/catmull/. }
