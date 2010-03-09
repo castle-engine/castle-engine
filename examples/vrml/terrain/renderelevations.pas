@@ -295,7 +295,7 @@ begin
 
   if BorderTriangles then
   begin
-    SetLength(TrisIndex, ((CountSteps - 1) div 2) * 3 * 2);
+    SetLength(TrisIndex, ((CountSteps - 1) div 2) * 3 * 4);
     Index := PGLuint(TrisIndex);
     for I := 0 to (CountSteps - 1) div 2 - 1 do
     begin
@@ -306,6 +306,14 @@ begin
       Index^ := (CountSteps-1)*CountSteps1 + I*2;     Inc(Index);
       Index^ := (CountSteps-1)*CountSteps1 + I*2 + 1; Inc(Index);
       Index^ := (CountSteps-1)*CountSteps1 + I*2 + 2; Inc(Index);
+
+      Index^ := (I*2    )*CountSteps1; Inc(Index);
+      Index^ := (I*2 + 1)*CountSteps1; Inc(Index);
+      Index^ := (I*2 + 2)*CountSteps1; Inc(Index);
+
+      Index^ := CountSteps-1 + (I*2    )*CountSteps1; Inc(Index);
+      Index^ := CountSteps-1 + (I*2 + 1)*CountSteps1; Inc(Index);
+      Index^ := CountSteps-1 + (I*2 + 2)*CountSteps1; Inc(Index);
     end;
 
     glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Length(TrisIndex) * SizeOf(TGLuint),

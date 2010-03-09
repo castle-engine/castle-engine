@@ -164,10 +164,15 @@ Heterogeneous fBm:
 ------------------------------------------------------------------------------
 Rendering:
 
-  Idea: ultra-simplified version of geometry clipmaps:
+Idea: ultra-simplified version of geometry clipmaps:
   http://research.microsoft.com/en-us/um/people/hoppe/geomclipmap.pdf
   (Of interest also GPU implementation of geometry clipmaps:
   http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter02.html)
+
+  Just subdivided rectangles with holes, centered on viewer.
+  Problems: creases, my dumb solution: patch with triangles
+  (optimally, we could also copy verts
+  positions from more detailed to next less detailed layer, to match perfectly).
 
   TODO: Patch creases.
 
