@@ -79,6 +79,7 @@ var
   Shader: boolean = true;
   GLSLProgram: TGLSLProgram;
   GLTexSand, GLTexBread, GLTexRock: TGLuint;
+  KeepCameraAboveGround: boolean = true;
 
 type
   TControlsNoise = class(TGLMenu)
@@ -152,16 +153,15 @@ procedure Draw(Glwin: TGLWindow);
     P: TVector3Single;
   begin
     P := WalkCamera.Position;
-    P[2] := Elevation.Height(P[0], P[1]);
+    P[2] := Elevation.Height(P[0], P[1]) + 0.1;
     WalkCamera.Position := P;
   end;
 
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
 
-// TODO: make this working
-//  if Camera = WalkCamera then
-//    WalkCameraAboveGround;
+  if (Camera = WalkCamera) and KeepCameraAboveGround then
+    WalkCameraAboveGround;
 
   glLoadMatrix(Camera.Matrix);
 
@@ -227,9 +227,14 @@ begin
 end;
 
 procedure Resize(Glwin: TGLWindow);
+var
+  ProjectionNear: Single;
 begin
   glViewport(0, 0, Glwin.Width, Glwin.Height);
-  ProjectionGLPerspective(30, Glwin.Width / Glwin.Height, 0.1, 100);
+  if Camera = WalkCamera then
+    ProjectionNear := 0.01 else
+    ProjectionNear := 0.1;
+  ProjectionGLPerspective(30, Glwin.Width / Glwin.Height, ProjectionNear, 100);
 end;
 
 constructor TControlsNoise.Create(AOwner: TComponent);
@@ -417,7 +422,9 @@ begin
           Camera := WalkCamera else
           Camera := ExamineCamera;
         Glw.Controls.MakeSingle(TCamera, Camera, false);
+        Glw.EventResize; { to update ProjectionNear }
       end;
+    125: KeepCameraAboveGround := not KeepCameraAboveGround;
     130: Lighting := not Lighting;
     140: Shader := not Shader;
     150:
@@ -474,7 +481,8 @@ begin
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('_Wireframe', 10, 'w', Wireframe, true));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItemChecked.Create('Walk camera', 120, 'c', Camera = WalkCamera, true));
+    M.Append(TMenuItemChecked.Create('Walk', 120, 'c', Camera = WalkCamera, true));
+    M.Append(TMenuItemChecked.Create('Keep Above the Ground (in Walk)', 125, KeepCameraAboveGround, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('Lighting (when no Shader)', 130, 'l', Lighting, true));
     M.Append(TMenuItemChecked.Create('Shader', 140, 's', Shader, true));
@@ -512,6 +520,8 @@ begin
       Vector3Single(0, 1, 0) { dir },
       Vector3Single(0, 0, 1) { up },
       Vector3Single(0, 0, 1), 0.0, 0.0 { unused, we don't use Gravity here });
+    WalkCamera.MoveHorizontalSpeed := 0.01;
+    WalkCamera.MoveVerticalSpeed := 0.01;
 
     Camera := ExamineCamera;
     Glw.Controls.Add(Camera);
