@@ -209,9 +209,21 @@ end;
 
 { Cubic spline interpolate --------------------------------------------------- }
 
-{ Interpolate along the cubic spline, following
-  http://freespace.virgin.net/hugo.elias/models/m_perlin.htm }
+{ Interpolate along the cubic spline. }
 function SplineInterpolate(const V0, V1, V2, V3, X: Single): Single;
+
+{ Following http://www.mvps.org/directx/articles/catmull/. }
+// begin
+//   Result := 0.5 * (
+//     (2 * V1) +
+//     (-V0 + V2) * X +
+//     (2*V0 - 5*V1 + 4*V2 - V3) * Sqr(X) +
+//     (-V0 + 3*V1- 3*V2 + V3) * Sqr(X) * X
+//   );
+// end;
+
+{ The one on http://freespace.virgin.net/hugo.elias/models/m_perlin.htm
+  seems equivalent: }
 var
   P, Q, R, S: Single;
 begin
