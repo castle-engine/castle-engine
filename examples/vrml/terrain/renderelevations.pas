@@ -108,9 +108,11 @@ var
   HForColor: Single;
   Index: PGLuint;
 begin
-  { We want Sqr(1 shl Subdivision) squares (to be able to nicely make
-    layer with hole, for geometry clipmaps). So we want
-    Sqr(1 shl Subdivision + 1) points. }
+  { CountSteps-1 squares (edges) along the way,
+    CountSteps points along the way.
+    Calculate positions for CountSteps + 1 points
+    (+ 1 additional for normal calculation).
+    We want CountSteps-1 to be divisible by 4, for Hole rendering. }
   CountSteps := 1 shl Subdivision + 1;
   CountSteps1 := CountSteps + 1;
   { Quarter of CountSteps for sQuares }
@@ -130,8 +132,8 @@ begin
       { calculate P^, which is Points.Items[I * CountSteps1 + J] }
 
       { set XY to cover (X1, Y1) ... (X2, Y2) rectangle with our elevation }
-      P^.Position[0] := (X2 - X1) * I / CountSteps + X1;
-      P^.Position[1] := (Y2 - Y1) * J / CountSteps + Y1;
+      P^.Position[0] := (X2 - X1) * I / (CountSteps-1) + X1;
+      P^.Position[1] := (Y2 - Y1) * J / (CountSteps-1) + Y1;
 
       P^.Position[2] := Elevation.Height(P^.Position[0], P^.Position[1]);
 
@@ -188,7 +190,7 @@ begin
   glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, ElevationIndexVbo);
   glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Length(PointsIndex) * SizeOf(TGLuint),
     Pointer(PointsIndex), GL_STREAM_DRAW_ARB);
-    
+
   Assert(CountStepsQ * 4 - 1 = CountSteps - 2);
 
   { draw 1/4 of rows }
