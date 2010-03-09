@@ -20,19 +20,19 @@ interface
 
 uses Elevations;
 
-{ Generic drawing of any TElevation, relies only on TElevation.Height method }
-procedure DrawElevationLayer(Elevation: TElevation; const Subdivision: Cardinal;
-  const X1, Y1, X2, Y2: Single);
+{ Drawing of TElevation (relies only on TElevation.Height method).
 
-{ Draw TElevation with layers (like geometry clipmaps).
+  When LayersCount > 1, this draws elevation with layers
+  (ultra-simplified geometry clipmaps).
 
   BaseSize * 2 is the size of the first (most detailed) square layer around
   the (MiddleX, MiddleY). Eeach successive layer has the same subdivision
   (although with middle square removed, as it's already done by
   previous layer) and 2 times larger size. }
 procedure DrawElevation(Elevation: TElevation;
-  const Subdivision, LayersCount: Cardinal;
-  const MiddleX, MiddleY, BaseSize: Single);
+  const Subdivision: Cardinal;
+  const MiddleX, MiddleY: Single; BaseSize: Single;
+  const LayersCount: Cardinal);
 
 { Specialized drawing for TElevationGrid, that displays only the
   precise grid points. }
@@ -100,10 +100,9 @@ begin
 end;
 
 procedure DrawElevationLayer(Elevation: TElevation; const Subdivision: Cardinal;
-  const X1, Y1, X2, Y2: Single);
+  const X1, Y1, X2, Y2: Single; Hole: boolean);
 var
-  CountSteps1: Cardinal;
-  CountSteps: Cardinal;
+  CountSteps, CountSteps1, CountStepsQ: Cardinal;
   I, J: Cardinal;
   P, PX, PY: PElevationPoint;
   HForColor: Single;
@@ -114,6 +113,8 @@ begin
     Sqr(1 shl Subdivision + 1) points. }
   CountSteps := 1 shl Subdivision + 1;
   CountSteps1 := CountSteps + 1;
+  { Quarter of CountSteps for sQuares }
+  CountStepsQ := 1 shl (Subdivision - 2);
 
   { We will render CountSteps^2 points, but we want to calculate
     (CountSteps + 1)^2 points : to be able to calculate normal vectors.
@@ -187,12 +188,25 @@ begin
   glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, ElevationIndexVbo);
   glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Length(PointsIndex) * SizeOf(TGLuint),
     Pointer(PointsIndex), GL_STREAM_DRAW_ARB);
+    
+  Assert(CountStepsQ * 4 - 1 = CountSteps - 2);
 
-  for I := 0 to CountSteps - 2 do
-  begin
+  { draw 1/4 of rows }
+  for I := 0 to CountStepsQ - 1 do
     glDrawElements(GL_QUAD_STRIP, CountSteps * 2, GL_UNSIGNED_INT,
       Pointer((CountSteps * 2) * SizeOf(TGLuint) * I));
+
+  { draw two middle rows }
+  if not Hole then
+  begin
+    for I := CountStepsQ to CountStepsQ * 3 - 1  do
+      glDrawElements(GL_QUAD_STRIP, CountSteps * 2, GL_UNSIGNED_INT,
+        Pointer((CountSteps * 2) * SizeOf(TGLuint) * I));
   end;
+
+  for I := CountStepsQ * 3 to CountStepsQ * 4 - 1 do
+    glDrawElements(GL_QUAD_STRIP, CountSteps * 2, GL_UNSIGNED_INT,
+      Pointer((CountSteps * 2) * SizeOf(TGLuint) * I));
 
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_NORMAL_ARRAY);
@@ -201,8 +215,9 @@ begin
 end;
 
 procedure DrawElevation(Elevation: TElevation;
-  const Subdivision, LayersCount: Cardinal;
-  const MiddleX, MiddleY, BaseSize: Single);
+  const Subdivision: Cardinal;
+  const MiddleX, MiddleY: Single; BaseSize: Single;
+  const LayersCount: Cardinal);
 var
   Layer: Cardinal;
   X1, Y1, X2, Y2: Single;
@@ -213,11 +228,12 @@ begin
   Y2 := MiddleY + BaseSize;
   for Layer := 0 to LayersCount - 1 do
   begin
-    DrawElevationLayer(Elevation, Subdivision, X1, Y1, X2, Y2);
+    DrawElevationLayer(Elevation, Subdivision, X1, Y1, X2, Y2, Layer <> 0);
     X1 -= BaseSize;
     Y1 -= BaseSize;
     X2 += BaseSize;
     Y2 += BaseSize;
+    BaseSize *= 2;
   end;
 end;
 
