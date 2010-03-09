@@ -123,14 +123,19 @@ var
     P.Color := ColorFromHeight(HForColor);
   end;
 
-  procedure CalculateNormal(var P: TElevationPoint;
-    const PX, PY: TElevationPoint);
+  procedure CalculateNormal(const I, J: Cardinal);
+  var
+    P, PX, PY: PElevationPoint;
   begin
+    P  := @(Points[ I      * CountSteps1 + J]);
+    PX := @(Points[(I + 1) * CountSteps1 + J]);
+    PY := @(Points[ I      * CountSteps1 + J + 1]);
+
     { TODO: this is actually normal vector of 1 of the four faces around this
       vertex. Optimally, we should calculate normals on all faces,
       and for vertex normal take average. }
-    P.Normal := (PX.Position - P.Position) ><
-                (PY.Position - P.Position);
+    P^.Normal := (PX^.Position - P^.Position) ><
+                 (PY^.Position - P^.Position);
   end;
 
 var
@@ -177,7 +182,7 @@ begin
         CalculatePositionColor(P^, I, J);
         Inc(P);
       end;
-      
+
       P := @(Points[I * CountSteps1 + CountStepsQ * 3]);
       for J := CountStepsQ * 3 to CountSteps do
       begin
@@ -201,10 +206,7 @@ begin
     { calculate Normals }
     for I := 0 to CountSteps - 1 do
       for J := 0 to CountSteps - 1 do
-        CalculateNormal(
-          Points[ I      * CountSteps1 + J],
-          Points[(I + 1) * CountSteps1 + J],
-          Points[ I      * CountSteps1 + J + 1]);
+        CalculateNormal(I, J);
   end else
   begin
     { calculate Points and Colors }
@@ -220,10 +222,7 @@ begin
     { calculate Normals }
     for I := 0 to CountSteps - 1 do
       for J := 0 to CountSteps - 1 do
-        CalculateNormal(
-          Points[ I      * CountSteps1 + J],
-          Points[(I + 1) * CountSteps1 + J],
-          Points[ I      * CountSteps1 + J + 1]);
+        CalculateNormal(I, J);
   end;
 
   { calculate PointsIndex }
