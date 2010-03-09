@@ -68,7 +68,8 @@ program terrain;
 uses SysUtils, Classes, Boxes3D,
   KambiUtils, GLWindow, GL, KambiGLUtils,
   Cameras, VectorMath, KambiFilesUtils, Elevations, GLWinMessages,
-  KambiStringUtils, GLMenu, UIControls, Images, RenderElevations;
+  KambiStringUtils, GLMenu, UIControls, Images, RenderElevations,
+  GLShaders, GLExt;
 
 var
   Glw: TGLUIWindow;
@@ -81,6 +82,8 @@ var
   NoiseBlur: boolean = false;
   Subdivision: Cardinal = 6;
   Lighting: boolean = true;
+  Shader: boolean = true;
+  GLSLProgram: TGLSLProgram;
 
 type
   TControlsNoise = class(TGLMenu)
@@ -177,8 +180,27 @@ begin
           glEnable(GL_COLOR_MATERIAL);
           glEnable(GL_NORMALIZE);
         end;
+
+        if Shader then
+        begin
+          GLSLProgram.Enable;
+
+          // glActiveTextureARB(GL_TEXTURE0);
+          // glBindTexture(GL_TEXTURE_2D, GLGrain0Tex);
+          // GLSLProgram.SetUniform('tex_grain0', 0);
+
+          // glActiveTextureARB(GL_TEXTURE1);
+          // glBindTexture(GL_TEXTURE_2D, GLGrain1Tex);
+          // GLSLProgram.SetUniform('tex_grain_1', 1);
+
+          // GLSLProgram.SetUniform('blah', Blah);
+        end;
+
         DrawElevation(Elevation, Subdivision,
           WalkCamera.Position[0], WalkCamera.Position[1], 1, 3);
+
+        if Shader then
+          GLSLProgram.Disable;
       glPopAttrib;
     end;
 
@@ -278,10 +300,23 @@ begin
     end;
   end;
 
+  { initialize GLSL program }
+  GLSLProgram := TGLSLProgram.Create;
+  GLSLProgram.AttachFragmentShader(FileToString('elevation.fs'));
+  { For this test program, we eventually allow shader to run in software.
+    We display debug info, so user should know what's going on. }
+  GLSLProgram.Link(false);
+  { Only warn on non-used uniforms. This is more comfortable for shader
+    development, you can easily comment shader parts. }
+  GLSLProgram.UniformNotFoundAction := uaWarning;
+  Writeln('----------------------------- Shader debug info:');
+  Writeln(GLSLProgram.DebugInfo);
 end;
 
 procedure Close(Glwin: TGLWindow);
 begin
+  FreeAndNil(GLSLProgram);
+
   FreeAndNil(ControlsNoise);
   FreeAndNil(ControlsImage);
   FreeAndNil(SubdivisionSlider);
@@ -370,6 +405,7 @@ begin
         Glw.Controls.MakeSingle(TCamera, Camera, false);
       end;
     130: Lighting := not Lighting;
+    140: Shader := not Shader;
     150:
       begin
         if Elevation is TElevationImage then
@@ -427,6 +463,7 @@ begin
     M.Append(TMenuItemChecked.Create('Walk camera', 120, 'c', Camera = WalkCamera, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('Lighting', 130, 'l', Lighting, true));
+    M.Append(TMenuItemChecked.Create('Shader', 140, 's', Shader, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 100));
     Result.Append(M);
