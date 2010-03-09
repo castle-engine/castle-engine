@@ -103,9 +103,39 @@ procedure DrawElevationLayer(Elevation: TElevation; const Subdivision: Cardinal;
   const X1, Y1, X2, Y2: Single; Hole: boolean);
 var
   CountSteps, CountSteps1, CountStepsQ: Cardinal;
+
+  procedure CalculatePositionColor(var P: TElevationPoint; const I, J: Cardinal);
+  var
+    HForColor: Single;
+  begin
+    { set XY to cover (X1, Y1) ... (X2, Y2) rectangle with our elevation }
+    P.Position[0] := (X2 - X1) * I / (CountSteps-1) + X1;
+    P.Position[1] := (Y2 - Y1) * J / (CountSteps-1) + Y1;
+
+    P.Position[2] := Elevation.Height(P.Position[0], P.Position[1]);
+
+    HForColor := P.Position[2];
+    { scale height down by Amplitude, to keep nice colors regardless of Amplitude }
+    if Elevation is TElevationNoise then
+      HForColor /= TElevationNoise(Elevation).Amplitude;
+    { some hacks to hit interesting colors }
+    HForColor := HForColor  * 2000 - 1000;
+    P.Color := ColorFromHeight(HForColor);
+  end;
+
+  procedure CalculateNormal(var P: TElevationPoint;
+    const PX, PY: TElevationPoint);
+  begin
+    { TODO: this is actually normal vector of 1 of the four faces around this
+      vertex. Optimally, we should calculate normals on all faces,
+      and for vertex normal take average. }
+    P.Normal := (PX.Position - P.Position) ><
+                (PY.Position - P.Position);
+  end;
+
+var
   I, J: Cardinal;
-  P, PX, PY: PElevationPoint;
-  HForColor: Single;
+  P: PElevationPoint;
   Index: PGLuint;
 begin
   { CountSteps-1 squares (edges) along the way,
@@ -130,37 +160,17 @@ begin
     for J := 0 to CountSteps do
     begin
       { calculate P^, which is Points.Items[I * CountSteps1 + J] }
-
-      { set XY to cover (X1, Y1) ... (X2, Y2) rectangle with our elevation }
-      P^.Position[0] := (X2 - X1) * I / (CountSteps-1) + X1;
-      P^.Position[1] := (Y2 - Y1) * J / (CountSteps-1) + Y1;
-
-      P^.Position[2] := Elevation.Height(P^.Position[0], P^.Position[1]);
-
-      HForColor := P^.Position[2];
-      { scale height down by Amplitude, to keep nice colors regardless of Amplitude }
-      if Elevation is TElevationNoise then
-        HForColor /= TElevationNoise(Elevation).Amplitude;
-      { some hacks to hit interesting colors }
-      HForColor := HForColor  * 2000 - 1000;
-      P^.Color := ColorFromHeight(HForColor);
-
+      CalculatePositionColor(P^, I, J);
       Inc(P);
     end;
 
   { calculate Normals }
   for I := 0 to CountSteps - 1 do
     for J := 0 to CountSteps - 1 do
-    begin
-      P  := @(Points[ I      * CountSteps1 + J]);
-      PX := @(Points[(I + 1) * CountSteps1 + J]);
-      PY := @(Points[ I      * CountSteps1 + J + 1]);
-      { TODO: this is actually normal vector of 1 of the four faces around this
-        vertex. Optimally, we should calculate normals on all faces,
-        and for vertex normal take average. }
-      P^.Normal := (PX^.Position - P^.Position) ><
-                   (PY^.Position - P^.Position);
-    end;
+      CalculateNormal(
+        Points[ I      * CountSteps1 + J],
+        Points[(I + 1) * CountSteps1 + J],
+        Points[ I      * CountSteps1 + J + 1]);
 
   { calculate PointsIndex }
   SetLength(PointsIndex, (CountSteps - 1) * CountSteps * 2);
