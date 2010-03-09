@@ -469,7 +469,7 @@ end;
 function CreateMainMenu: TMenu;
 const
   NoiseInterpolationNames: array [TNoiseInterpolation] of string =
-  ('None', 'Linear', 'Cosine');
+  ('None', 'Linear', 'Cosine', 'Spline');
 var
   M: TMenu;
 begin

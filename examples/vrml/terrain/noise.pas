@@ -31,6 +31,7 @@ interface
 function InterpolatedNoise2D_None(const X, Y: Single; const Seed: Cardinal): Single;
 function InterpolatedNoise2D_Linear(const X, Y: Single; const Seed: Cardinal): Single;
 function InterpolatedNoise2D_Cosine(const X, Y: Single; const Seed: Cardinal): Single;
+function InterpolatedNoise2D_Spline(const X, Y: Single; const Seed: Cardinal): Single;
 { @groupEnd }
 
 { Noise for 2D coords, resulting in float 0..1 range, additionally blurred.
@@ -48,6 +49,7 @@ function InterpolatedNoise2D_Cosine(const X, Y: Single; const Seed: Cardinal): S
 function BlurredInterpolatedNoise2D_None(const X, Y: Single; const Seed: Cardinal): Single;
 function BlurredInterpolatedNoise2D_Linear(const X, Y: Single; const Seed: Cardinal): Single;
 function BlurredInterpolatedNoise2D_Cosine(const X, Y: Single; const Seed: Cardinal): Single;
+function BlurredInterpolatedNoise2D_Spline(const X, Y: Single; const Seed: Cardinal): Single;
 { @groupEnd }
 
 implementation
@@ -205,6 +207,21 @@ begin
   Result := IntegerNoiseCore(X, Y, 0, Seed) / High(LongWord);
 end;
 
+{ Cubic spline interpolate --------------------------------------------------- }
+
+{ Interpolate along the cubic spline, following
+  http://freespace.virgin.net/hugo.elias/models/m_perlin.htm }
+function SplineInterpolate(const V0, V1, V2, V3, X: Single): Single;
+var
+  P, Q, R, S: Single;
+begin
+  P := (V3 - V2) - (V0 - V1);
+  Q := (V0 - V1) - P;
+  R := V2 - V0;
+  S := V1;
+  Result := (P * X + Q) * Sqr(X) + R * X + S;
+end;
+
 { Interpolated noise for 2D coords ------------------------------------------- }
 
 function InterpolatedNoise2D_None(const X, Y: Single; const Seed: Cardinal): Single;
@@ -219,6 +236,9 @@ function InterpolatedNoise2D_Cosine(const X, Y: Single; const Seed: Cardinal): S
 {$define InterpolatedNoise2D_Cosine}
 {$I noise_interpolatednoise2d_linear_cosine.inc}
 {$undef InterpolatedNoise2D_Cosine}
+
+function InterpolatedNoise2D_Spline(const X, Y: Single; const Seed: Cardinal): Single;
+{$I noise_interpolatednoise2d_spline.inc}
 
 { BlurredInterpolatedNoise* -------------------------------------------------- }
 
@@ -250,6 +270,9 @@ function BlurredInterpolatedNoise2D_Cosine(const X, Y: Single; const Seed: Cardi
 {$define InterpolatedNoise2D_Cosine}
 {$I noise_interpolatednoise2d_linear_cosine.inc}
 {$undef InterpolatedNoise2D_Cosine}
+
+function BlurredInterpolatedNoise2D_Spline(const X, Y: Single; const Seed: Cardinal): Single;
+{$I noise_interpolatednoise2d_spline.inc}
 
 {$undef IntegerNoise}
 

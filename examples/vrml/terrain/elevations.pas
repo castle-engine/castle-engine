@@ -83,7 +83,7 @@ type
     function Height(const X, Y: Single): Single; override;
   end;
 
-  TNoiseInterpolation = (niNone, niLinear, niCosine);
+  TNoiseInterpolation = (niNone, niLinear, niCosine, niSpline);
   TNoise2DMethod = function (const X, Y: Single; const Seed: Cardinal): Single;
 
   { Procedural terrain: elevation data from a procedural noise.
@@ -192,12 +192,12 @@ type
 
       Using niCosine in right now the best.
 
-      TODO: one day cubic interpolation (using Catmull-Rom splines,
+      Using niSpline is even better looking
+      (usese Catmull-Rom splines,
       which are special case of cubic Hermite spline, see
       http://en.wikipedia.org/wiki/Cubic_Hermite_spline,
-      http://en.wikipedia.org/wiki/Bicubic_interpolation)
-      should be implemented. I was planning it, but eventually cosine
-      version turned out good and fast enough. }
+      http://en.wikipedia.org/wiki/Bicubic_interpolation).
+      But it's more time consuming under current implementation. }
     property Interpolation: TNoiseInterpolation
       read FInterpolation write SetInterpolation default niCosine;
 
@@ -403,12 +403,14 @@ begin
       niNone: NoiseMethod := @BlurredInterpolatedNoise2D_None;
       niLinear: NoiseMethod := @BlurredInterpolatedNoise2D_Linear;
       niCosine: NoiseMethod := @BlurredInterpolatedNoise2D_Cosine;
+      niSpline: NoiseMethod := @BlurredInterpolatedNoise2D_Spline;
       else raise EInternalError.Create('TElevationNoise.UpdateNoiseMethod(Interpolation?)');
     end else
     case Interpolation of
       niNone: NoiseMethod := @InterpolatedNoise2D_None;
       niLinear: NoiseMethod := @InterpolatedNoise2D_Linear;
       niCosine: NoiseMethod := @InterpolatedNoise2D_Cosine;
+      niSpline: NoiseMethod := @InterpolatedNoise2D_Spline;
       else raise EInternalError.Create('TElevationNoise.UpdateNoiseMethod(Interpolation?)');
     end
 end;
