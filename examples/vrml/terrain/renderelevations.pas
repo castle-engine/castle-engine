@@ -100,7 +100,7 @@ begin
 end;
 
 procedure DrawElevationLayer(Elevation: TElevation; const Subdivision: Cardinal;
-  const X1, Y1, X2, Y2: Single; Hole: boolean);
+  const X1, Y1, X2, Y2: Single; Hole, BorderTriangles: boolean);
 var
   CountSteps, CountSteps1, CountStepsQ: Cardinal;
 
@@ -296,6 +296,7 @@ begin
   glDisableClientState(GL_NORMAL_ARRAY);
   glDisableClientState(GL_COLOR_ARRAY);
   glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+  glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 end;
 
 procedure DrawElevation(Elevation: TElevation;
@@ -312,7 +313,8 @@ begin
   Y2 := MiddleY + BaseSize;
   for Layer := 0 to LayersCount - 1 do
   begin
-    DrawElevationLayer(Elevation, Subdivision, X1, Y1, X2, Y2, Layer <> 0);
+    DrawElevationLayer(Elevation, Subdivision, X1, Y1, X2, Y2,
+      Layer <> 0, Layer < LayersCount - 1);
     X1 -= BaseSize;
     Y1 -= BaseSize;
     X2 += BaseSize;
