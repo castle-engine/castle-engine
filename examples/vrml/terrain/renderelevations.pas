@@ -31,7 +31,7 @@ uses Elevations;
   previous layer) and 2 times larger size. }
 procedure DrawElevation(Elevation: TElevation;
   const Subdivision: Cardinal;
-  const MiddleX, MiddleY: Single; BaseSize: Single;
+  MiddleX, MiddleY: Single; BaseSize: Single;
   const LayersCount: Cardinal);
 
 { Specialized drawing for TElevationGrid, that displays only the
@@ -330,12 +330,19 @@ end;
 
 procedure DrawElevation(Elevation: TElevation;
   const Subdivision: Cardinal;
-  const MiddleX, MiddleY: Single; BaseSize: Single;
+  MiddleX, MiddleY: Single; BaseSize: Single;
   const LayersCount: Cardinal);
+const
+  RoundGridCell = 0.5;
 var
   Layer: Cardinal;
   X1, Y1, X2, Y2: Single;
 begin
+  { to somewhat cure the effect of terrain "flowing" (because every small
+    change of Middle point shifts all the points), round middle to
+    some cell size. }
+  MiddleX := Round(MiddleX / RoundGridCell) * RoundGridCell;
+  MiddleY := Round(MiddleY / RoundGridCell) * RoundGridCell;
   X1 := MiddleX - BaseSize;
   Y1 := MiddleY - BaseSize;
   X2 := MiddleX + BaseSize;

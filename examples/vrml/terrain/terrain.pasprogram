@@ -43,7 +43,9 @@
 
   Terrain is rendered with GLSL shader, with nice colors, multitextures etc.
   To support large data, we render with ultra-simplified geo clipmaps
-  (look in wireframe mode to see what it does).
+  (look in wireframe mode to see what it does). View is centered around
+  current Walk position (move in Walk mode to also change the portion
+  visible in Examine mode).
 
   TODO:
   - DrawGrid is temp broken now (not visible,
@@ -52,7 +54,6 @@
     using code).
 
     Walk mode TODOs:
-       optionally keeping avatar over the ground,
        optionally with fog (since terrain is infinite in this case),
        and using the algorithm that renders infinite terrain with LOD.
        Optionally with sky displayed, just for effect.

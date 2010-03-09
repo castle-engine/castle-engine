@@ -170,11 +170,23 @@ Idea: ultra-simplified version of geometry clipmaps:
   http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter02.html)
 
   Just subdivided rectangles with holes, centered on viewer.
-  Problems: creases, my dumb solution: patch with triangles
-  (optimally, we could also copy verts
-  positions from more detailed to next less detailed layer, to match perfectly).
+  Problems:
 
-  TODO: do copy verts. Fixes visible seams?
+  - Creases, my dumb solution: patch with triangles
+    (optimally, we could also copy verts
+    positions from more detailed to next less detailed layer, to match perfectly).
+
+    TODO: do copy verts. Fixes visible seams?
+
+  - Common problem with LODs: you either you get visible "flowing" when
+    you move camera even slightly (because every little change to Middle point
+    changes all sampled positions).
+    Or (when using my "cure"
+      MiddleX := Round(MiddleX / RoundGridCell) * RoundGridCell;
+      MiddleY := Round(MiddleY / RoundGridCell) * RoundGridCell;
+    ) you get "popping" (not only when new terrain comes into view,
+    this is unavoidable without fog, but also LOD of existing terrain
+    features changes).
 
 Texture this thing to make it look Ok! (Demo with/without shaders).
 Multitexturing, blending textures based on their height.
