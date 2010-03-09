@@ -138,8 +138,6 @@ procedure Draw(Glwin: TGLWindow);
     P: TVector3Single;
   begin
     P := WalkCamera.Position;
-    { shift by -0.5, like when rendering
-      TODO: this shift is Ok only for non-grid drawing }
     P[2] := Elevation.Height(P[0], P[1]);
     WalkCamera.Position := P;
   end;
@@ -147,8 +145,9 @@ procedure Draw(Glwin: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
 
-  if Camera = WalkCamera then
-    WalkCameraAboveGround;
+// TODO: make this working
+//  if Camera = WalkCamera then
+//    WalkCameraAboveGround;
 
   glLoadMatrix(Camera.Matrix);
 
@@ -174,7 +173,7 @@ begin
         glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
         glEnable(GL_COLOR_MATERIAL);
         glEnable(GL_NORMALIZE);
-        DrawElevation(Elevation, Subdivision, 3,
+        DrawElevation(Elevation, Subdivision, 1,
           WalkCamera.Position[0], WalkCamera.Position[1], 1);
       glPopAttrib;
     end;
@@ -256,7 +255,7 @@ begin
   RenderElevationsInitGL;
 
   { sliders used by both Controls* }
-  SubdivisionSlider := TGLMenuIntegerSlider.Create(4, 10, Subdivision);
+  SubdivisionSlider := TGLMenuIntegerSlider.Create(1, 10, Subdivision);
   SubdivisionSlider.OwnedByParent := false;
   ImageHeightScaleSlider := TGLMenuFloatSlider.Create(0.0, 2.0, 0.25);
   ImageHeightScaleSlider.OwnedByParent := false;
