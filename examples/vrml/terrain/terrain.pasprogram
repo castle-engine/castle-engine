@@ -502,10 +502,10 @@ var
 begin
   Result := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');
-    M.Append(TMenuItem.Create('Load terrain from SRTM (.hgt) file ...', 50, CtrlO));
-    M.Append(TMenuItem.Create('Define terrain by KambiScript expression ...', 60));
     M.Append(TMenuItem.Create('Generate random terrain', 70));
+    M.Append(TMenuItem.Create('Define terrain by KambiScript expression ...', 60));
     M.Append(TMenuItem.Create('Pure image terrain', 80));
+    M.Append(TMenuItem.Create('Load terrain from SRTM (.hgt) file ...', 50, CtrlO));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('Walk', 120, 'c', Camera = WalkCamera, true));
     M.Append(TMenuItemChecked.Create('Keep Above the Ground (in Walk)', 125, KeepCameraAboveGround, true));
