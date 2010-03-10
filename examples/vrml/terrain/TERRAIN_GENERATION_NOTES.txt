@@ -213,6 +213,20 @@ Idea: ultra-simplified version of geometry clipmaps:
     layers to "feel" tha landscape, it's not acceptable.
     Demo.
 
+Proper solution of geometry clipmaps (gpu and not) for both problems
+is to introduce "blending" regions, where the higher-resolution map
+values are blended with values from lower-resolution,
+such that at the critical moment (when you replace some place
+with different resolution) it isn't noticeable, as higher
+and lower resolutions represented the same (perceived) values.
+
+Also, this allows to avoid regenerating vbo data at each frame.
+Just cache the values for all levels, and regenerate them only when needed.
+My current implementation also allows this, but I would have to regenerate
+all levels at once at critical moment, so it's not very smart.
+
+------------------------------------------------------------------------------
+Other rendering notes:
 Texture this thing to make it look Ok! (Demo with/without shaders).
 Multitexturing, blending textures based on their height.
 Additionally: darken on steep faces (when normal.z is low).
