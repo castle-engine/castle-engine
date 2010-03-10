@@ -441,7 +441,15 @@ var
     { I could make here an explicit check for "IsZero(Heterogeneous)",
       if true then set NoiseAccumulator := 1.
       But not needed, NoiseAccumulator / 0 = +infinity which will get clamped
-      to 1 anyway, this makes marginal speedup when homogeneous is used. }
+      to 1 anyway, this makes marginal speedup when homogeneous is used.
+
+      Later: seems above is true for FPC 2.4.0, not 2.2.4.
+      Assuming it's a bug with FPC < 2.4.0 (we only support 2.2.x from those).
+      Direct comparison with 0 (not IsZero) seems Ok to fix. }
+    {$ifdef VER2_2}
+    if Heterogeneous = 0 then
+      Exit(NoiseMethod(X * F, Y * F, OctaveNumber + Seed) * A);
+    {$endif}
 
     NoiseAccumulator /= Heterogeneous;
     { Following Musgrave's dissertation, we should now force
