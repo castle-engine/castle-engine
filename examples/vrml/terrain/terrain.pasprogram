@@ -52,11 +52,7 @@
     and probably walk camera doesn't follow it correctly).
     For now, ignore it (it messes too much otherwise clean TElevation*
     using code).
-
-    Walk mode TODOs:
-       optionally with fog (since terrain is infinite in this case),
-       and using the algorithm that renders infinite terrain with LOD.
-       Optionally with sky displayed, just for effect.
+  - add sky, just for the effect?
 }
 program terrain;
 
@@ -89,6 +85,7 @@ var
   BaseSize: Single = 1.0;
   LayersCount: Cardinal = 3;
   ControlsVisible: boolean = true;
+  Fog: boolean = false;
 
 type
   TControlsNoise = class(TGLMenu)
@@ -227,8 +224,11 @@ begin
           GLSLProgram.SetUniform('z3', 1.5);
           GLSLProgram.SetUniform('color_scale', 0.2);
           GLSLProgram.SetUniform('tex_scale', 0.8);
-          GLSLProgram.SetUniform('fog_start', 2.0);
-          GLSLProgram.SetUniform('fog_end', 3.0);
+          if Fog then
+          begin
+            GLSLProgram.SetUniform('fog_start', 2.0);
+            GLSLProgram.SetUniform('fog_end', 3.0);
+          end;
         end;
 
         DrawElevation(Elevation, Subdivision,
@@ -320,6 +320,27 @@ begin
   inherited;
 end;
 
+{ Load GLSL program from files, add #define if Fog, relink. }
+procedure GLSLProgramRegenerate;
+var
+  Prefix: string;
+begin
+  GLSLProgram.DetachAllShaders;
+  if Fog then
+    Prefix := '#define FOG' + NL else
+    Prefix := '';
+  GLSLProgram.AttachVertexShader(Prefix + FileToString('elevation.vs'));
+  GLSLProgram.AttachFragmentShader(Prefix + FileToString('elevation.fs'));
+  { For this test program, we eventually allow shader to run in software.
+    We display debug info, so user should know what's going on. }
+  GLSLProgram.Link(false);
+  { Only warn on non-used uniforms. This is more comfortable for shader
+    development, you can easily comment shader parts. }
+  GLSLProgram.UniformNotFoundAction := uaWarning;
+  Writeln('----------------------------- Shader debug info:');
+  Writeln(GLSLProgram.DebugInfo);
+end;
+
 procedure Init(Glwin: TGLWindow);
 
   function LoadTexture(const FileName: string): TGLuint;
@@ -357,16 +378,7 @@ begin
 
   { initialize GLSL program }
   GLSLProgram := TGLSLProgram.Create;
-  GLSLProgram.AttachVertexShader(FileToString('elevation.vs'));
-  GLSLProgram.AttachFragmentShader(FileToString('elevation.fs'));
-  { For this test program, we eventually allow shader to run in software.
-    We display debug info, so user should know what's going on. }
-  GLSLProgram.Link(false);
-  { Only warn on non-used uniforms. This is more comfortable for shader
-    development, you can easily comment shader parts. }
-  GLSLProgram.UniformNotFoundAction := uaWarning;
-  Writeln('----------------------------- Shader debug info:');
-  Writeln(GLSLProgram.DebugInfo);
+  GLSLProgramRegenerate;
 end;
 
 procedure Close(Glwin: TGLWindow);
@@ -450,6 +462,11 @@ begin
     125: KeepCameraAboveGround := not KeepCameraAboveGround;
     130: Lighting := not Lighting;
     140: Shader := not Shader;
+    142:
+      begin
+        Fog := not Fog;
+        GLSLProgramRegenerate;
+      end;
     145:
       begin
         ControlsVisible := not ControlsVisible;
@@ -516,6 +533,7 @@ begin
     M.Append(TMenuItemChecked.Create('_Wireframe', 10, 'w', Wireframe, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('Shader', 140, 's', Shader, true));
+    M.Append(TMenuItemChecked.Create('Fog (when Shader)', 142, 'f', Fog, true));
     M.Append(TMenuItemChecked.Create('Lighting (when no Shader)', 130, 'l', Lighting, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('Sliders Visible', 145, K_F1, ControlsVisible, true));
