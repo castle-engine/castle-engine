@@ -540,7 +540,7 @@ begin
     M.Append(TMenuItemChecked.Create('Walk', 120, 'c', Camera = WalkCamera, true));
     M.Append(TMenuItemChecked.Create('Keep Above the Ground (in Walk)', 125, KeepCameraAboveGround, true));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('_Exit', 100));
+    M.Append(TMenuItem.Create('_Exit', 100, CtrlW));
     Result.Append(M);
   M := TMenu.Create('_View');
     M.Append(TMenuItemChecked.Create('_Wireframe', 10, 'w', Wireframe, true));
@@ -603,6 +603,8 @@ begin
       last values, elevation should be updated with sliders values;
       This isn't difficult, but would complicate source code for little gain.) }
     Glw.SwapFullScreen_Key := K_None;
+    { Closing with Escape is too easy now, you can loose careful sliders values. }
+    Glw.Close_CharKey := #0;
     Glw.InitAndRun(ProgramName, @Draw);
   finally FreeAndNil(Elevation) end;
 end.
