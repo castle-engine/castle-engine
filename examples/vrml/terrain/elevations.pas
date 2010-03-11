@@ -438,18 +438,19 @@ var
 
   function NextOctave(const OctaveNumber: Cardinal): Single;
   begin
-    { I could make here an explicit check for "IsZero(Heterogeneous)",
-      if true then set NoiseAccumulator := 1.
-      But not needed, NoiseAccumulator / 0 = +infinity which will get clamped
-      to 1 anyway, this makes marginal speedup when homogeneous is used.
+    { With FPC 2.4.0, it seems an explicit check for "Heterogeneous = 0"
+      is not needed, as NoiseAccumulator lands in +infinity which gets
+      clamped to 1.
+      However, it doesn't work with FPC 2.2.4, and seems unsafe anyway
+      (when Heterogeneous = 0, we have "0 / 0", which, at least by common
+      sense, doesn't have to be evaluated to +infinity...).
+      So better check explicitly.
 
-      Later: seems above is true for FPC 2.4.0, not 2.2.4.
-      Assuming it's a bug with FPC < 2.4.0 (we only support 2.2.x from those).
-      Direct comparison with 0 (not IsZero) seems Ok to fix. }
-    {$ifdef VER2_2}
+      Note that no need to check for IsZero(Heterogeneous).
+      When Heterogeneous is close to zero, but not exactly zero,
+      the +infinity trick should work Ok. }
     if Heterogeneous = 0 then
       Exit(NoiseMethod(X * F, Y * F, OctaveNumber + Seed) * A);
-    {$endif}
 
     NoiseAccumulator /= Heterogeneous;
     { Following Musgrave's dissertation, we should now force
