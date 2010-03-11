@@ -52,7 +52,11 @@ void main(void)
 
 #ifdef FOG
   if (camera_distance > fog_start)
-    gl_FragColor.rgb = mix(gl_FragColor.rgb,  fog_color,
-      (camera_distance - fog_start) / (fog_end - fog_start));
+  {
+    if (camera_distance > fog_end)
+      gl_FragColor.rgb = fog_color; else
+      gl_FragColor.rgb = mix(gl_FragColor.rgb,  fog_color,
+        (camera_distance - fog_start) / (fog_end - fog_start));
+  }
 #endif
 }
