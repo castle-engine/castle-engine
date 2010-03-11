@@ -168,6 +168,8 @@ procedure Draw(Glwin: TGLWindow);
     WalkCamera.Position := P;
   end;
 
+var
+  VisibilityEnd: Single;
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
 
@@ -226,8 +228,14 @@ begin
           GLSLProgram.SetUniform('tex_scale', 0.8);
           if Fog then
           begin
-            GLSLProgram.SetUniform('fog_start', 2.0);
-            GLSLProgram.SetUniform('fog_end', 3.0);
+            { This is the exact visibility end.
+              In practice, we may want to make it a litlle smaller
+              (to hide RoundGridCell hack in renderelevations.pas),
+              or ignore problems and make it a little larger
+              (otherwise, we needlessly render corners of terrain squares). }
+            VisibilityEnd := BaseSize * (1 shl (LayersCount-1));
+            GLSLProgram.SetUniform('fog_start', VisibilityEnd * 0.7);
+            GLSLProgram.SetUniform('fog_end', VisibilityEnd);
           end;
         end;
 
