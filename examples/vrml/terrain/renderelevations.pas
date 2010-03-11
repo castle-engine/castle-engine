@@ -350,7 +350,7 @@ begin
   for Layer := 0 to LayersCount - 1 do
   begin
     DrawElevationLayer(Elevation, Subdivision, X1, Y1, X2, Y2,
-      Layer <> 0, (Layer < LayersCount - 1) {}or true);
+      Layer <> 0, Layer < LayersCount - 1);
     X1 -= BaseSize;
     Y1 -= BaseSize;
     X2 += BaseSize;
