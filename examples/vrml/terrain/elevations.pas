@@ -438,17 +438,19 @@ var
 
   function NextOctave(const OctaveNumber: Cardinal): Single;
   begin
-    { With FPC 2.4.0, it seems an explicit check for "Heterogeneous = 0"
-      is not needed, as NoiseAccumulator lands in +infinity which gets
-      clamped to 1.
-      However, it doesn't work with FPC 2.2.4, and seems unsafe anyway
-      (when Heterogeneous = 0, we have "0 / 0", which, at least by common
-      sense, doesn't have to be evaluated to +infinity...).
-      So better check explicitly.
+    { An explicit check for "Heterogeneous = 0" case is needed.
 
-      Note that no need to check for IsZero(Heterogeneous).
+      Otherwise, when Heterogeneous = 0, "NoiseAccumulator /= Heterogeneous"
+      calculates "0 / 0", which will not get us what we want.
+      (What we want is to have NoiseAccumulator=+infinity,
+      so that it gets clamped to 1, but it seems FPC 2.2.4 doesn't do this.
+      FPC 2.4.0 seems to land on +infinity more often,
+      but not when using Spline interpolation... Looks like "0 / 0"
+      is simply undefined, and unsafe to use.)
+
+      Note there's no need to check for IsZero(Heterogeneous).
       When Heterogeneous is close to zero, but not exactly zero,
-      the +infinity trick should work Ok. }
+      the +infinity trick will make the later code behave Ok. }
     if Heterogeneous = 0 then
       Exit(NoiseMethod(X * F, Y * F, OctaveNumber + Seed) * A);
 

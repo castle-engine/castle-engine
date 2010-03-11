@@ -83,7 +83,6 @@ Show demo.
   and spline samples 16 points. These points are most probably sampled
   many many times. Fix, but without too much preprocessing, to keep
   Height calls nicely independent.
-  TODO: spline is broken now, some math error.
 
 Idea: we want large wide mountains, and small narrow peaks.
 So: 1 smoothed noise makes large mountains,
