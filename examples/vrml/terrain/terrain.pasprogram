@@ -86,6 +86,7 @@ var
   LayersCount: Cardinal = 3;
   ControlsVisible: boolean = true;
   Fog: boolean = false;
+  BackgroundColor: TVector3Single = (0, 0, 0);
 
 type
   TControlsNoise = class(TGLMenu)
@@ -171,6 +172,7 @@ procedure Draw(Glwin: TGLWindow);
 var
   VisibilityEnd: Single;
 begin
+  glClearColor(BackgroundColor[0], BackgroundColor[1], BackgroundColor[2], 1);
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
 
   if (Camera = WalkCamera) and KeepCameraAboveGround then
@@ -236,6 +238,7 @@ begin
             VisibilityEnd := BaseSize * (1 shl (LayersCount-1));
             GLSLProgram.SetUniform('fog_start', VisibilityEnd * 0.7);
             GLSLProgram.SetUniform('fog_end', VisibilityEnd);
+            GLSLProgram.SetUniform('fog_color', BackgroundColor);
           end;
         end;
 
@@ -507,6 +510,8 @@ begin
           TElevationImage(Elevation).ClearImage else
           MessageOk(Glwin, 'Not an image elevation');
       end;
+    170:
+      Glwin.ColorDialog(BackgroundColor);
     200..299:
       begin
         NoiseInterpolation := TNoiseInterpolation(Item.IntData - 200);
@@ -543,6 +548,8 @@ begin
     M.Append(TMenuItemChecked.Create('Shader', 140, 's', Shader, true));
     M.Append(TMenuItemChecked.Create('Fog (when Shader)', 142, 'f', Fog, true));
     M.Append(TMenuItemChecked.Create('Lighting (when no Shader)', 130, 'l', Lighting, true));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('Background and Fog Color ...', 170));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('Sliders Visible', 145, K_F1, ControlsVisible, true));
     Result.Append(M);

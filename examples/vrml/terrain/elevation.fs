@@ -20,6 +20,7 @@ uniform float tex_scale;
 varying float camera_distance;
 uniform float fog_start;
 uniform float fog_end;
+uniform vec3 fog_color;
 #endif
 
 void main(void)
@@ -51,7 +52,7 @@ void main(void)
 
 #ifdef FOG
   if (camera_distance > fog_start)
-    gl_FragColor = mix(gl_FragColor,  vec4(0.0, 0.0, 0.0, 1.0),
+    gl_FragColor.rgb = mix(gl_FragColor.rgb,  fog_color,
       (camera_distance - fog_start) / (fog_end - fog_start));
 #endif
 }
