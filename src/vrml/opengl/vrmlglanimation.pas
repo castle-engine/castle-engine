@@ -1369,6 +1369,8 @@ begin
   Times := TDynSingleArray.Create;
   RootNodes := TVRMLNodesList.Create;
   try
+    NewOptimization := FOptimization; { default NewOptimization value }
+
     LoadAsVRMLSequence(FileName, AllowStdIn,
       RootNodes, Times, ScenesPerTime, NewOptimization, EqualityEpsilon,
       NewTimeLoop, NewTimeBackwards);
