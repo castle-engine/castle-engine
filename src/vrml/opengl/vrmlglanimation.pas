@@ -258,9 +258,6 @@ type
       kanim (described on
       [http://vrmlengine.sourceforge.net/kanim_format.php]).
 
-      This changes Optimization, TimeLoop and such,
-      based on their values in the file.
-
       If you need more control over loading, for example you want to
       change some parameters at loading (for example, ScenesPerTime
       and EqualityEpsilon of kanim files), you should use
@@ -268,13 +265,23 @@ type
       LoadFromFileToVars class procedure (specialized for kanim files)
       or LoadAsVRMLSequence (if you want to handle any files).
 
-      Note that you can always change TimeLoop and TimeBackwards after
-      loading back to your desired values --- since these
-      properties are writeable at any time.
+      @link(Loaded) property changes to @true after calling this.
 
-      @link(Loaded) property changes to @true after calling this. }
+      @param(AllowStdIn If @true, then FileName = '-' is understood
+        as "standard input".)
+
+      @param(LoadTimeAndOptimization If @true then loading changes
+        current Optimization, TimeLoop, TimeBackwards properties.
+        Sometimes this is sensible (you want to allow control over them
+        from the file), sometimes not (e.g. you set suitable values for them
+        by code).
+
+        Note that, independent of this, you can always change TimeLoop,
+        TimeBackwards, Optimization properties later,
+        since these properties are writeable at any time.) }
     procedure LoadFromFile(const FileName: string;
-      const AllowStdIn: boolean = false);
+      const AllowStdIn: boolean;
+      const LoadTimeAndOptimization: boolean);
 
     { This releases all resources allocared by Load (or LoadFromFile).
       @link(Loaded) property changes to @false after calling this.
@@ -734,6 +741,7 @@ begin
     Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, nil);
   FOptimization := roSeparateShapesNoTransform;
   FTimeLoop := true;
+  FTimeBackwards := false;
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;
 end;
@@ -1154,9 +1162,6 @@ begin
 
   FScenes := TVRMLGLScenesList.Create;
 
-  FTimeLoop := true;
-  FTimeBackwards := false;
-
   { calculate FScenes contents now }
 
   { RootNodes[0] goes to FScenes[0], that's easy }
@@ -1352,24 +1357,36 @@ begin
 end;
 
 procedure TVRMLGLAnimation.LoadFromFile(const FileName: string;
-  const AllowStdIn: boolean);
+  const AllowStdIn, LoadTimeAndOptimization: boolean);
 var
   Times: TDynSingleArray;
   RootNodes: TVRMLNodesList;
   ScenesPerTime: Cardinal;
   EqualityEpsilon: Single;
-  ATimeLoop, ATimeBackwards: boolean;
+  NewTimeLoop, NewTimeBackwards: boolean;
+  NewOptimization: TGLRendererOptimization;
 begin
   Times := TDynSingleArray.Create;
   RootNodes := TVRMLNodesList.Create;
   try
     LoadAsVRMLSequence(FileName, AllowStdIn,
-      RootNodes, Times, ScenesPerTime, FOptimization, EqualityEpsilon,
-      ATimeLoop, ATimeBackwards);
+      RootNodes, Times, ScenesPerTime, NewOptimization, EqualityEpsilon,
+      NewTimeLoop, NewTimeBackwards);
+
+    if LoadTimeAndOptimization then
+      { Directly change FOptimization instead of going through SetOptimization.
+        This is valid, this way we'll not waste time on resetting optimization
+        of current scenes (that will be freed at the beginning of Load),
+        and new scenes will correctly get new optimization value anyway. }
+      FOptimization := NewOptimization;
 
     Load(RootNodes, true, Times, ScenesPerTime, EqualityEpsilon);
-    TimeLoop := ATimeLoop;
-    TimeBackwards := ATimeBackwards;
+
+    if LoadTimeAndOptimization then
+    begin
+      TimeLoop := NewTimeLoop;
+      TimeBackwards := NewTimeBackwards;
+    end;
   finally
     FreeAndNil(Times);
     FreeAndNil(RootNodes);

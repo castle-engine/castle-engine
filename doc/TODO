@@ -55,13 +55,6 @@ Scene manager / controls / better Lazarus integration:
 
 * TSceneManager: UpdateGeneratedTextures for all, see TODO in file.
 
-* TVRMLGLAnimation props make more persistent:
-
-  The fact that TimeLoop, TimeBackwards, Optimization get changed by file load
-  is confusing and bad, setting this from Lazarus makes currently little use.
-  We also had view3dscene UI problem because of this.
-  Maybe make it changing only if Load() gets argument like LoadTimeAndOptimization?
-
 (not blockers before 2.0 release) --------------------------------------------
 
 - Make XML .x3d format, loaded to any T3D (list, translated, anim, scene...)

@@ -118,7 +118,7 @@ begin
 
   { initialize Animation }
   Animation := TVRMLGLAnimation.Create(SceneManager);
-  Animation.LoadFromFile('../../../kambi_vrml_test_suite/kanim/raptor.kanim');
+  Animation.LoadFromFile('../../../kambi_vrml_test_suite/kanim/raptor.kanim', false, true);
   Animation.FirstScene.Spatial := [ssRendering, ssDynamicCollisions];
   TranslatedItems.Add(Animation);
 
