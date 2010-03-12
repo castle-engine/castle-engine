@@ -1,9 +1,14 @@
 #X3D V3.2 utf8
 PROFILE Interchange
 
-# The same old boring "castle" model, but with up vector in +Y
+# "castle" model, but with up vector in +Y
 # (this makes it matching some other models with +Y up,
 # comfortable for scene_manager_demos).
+#
+# Also add a teapot, with cubemap mirror.
+# This shows that generated cubemap textures work from scene_manager_demos
+# as well, and mirror shows all world obects (in scene manager,
+# not only in current vrml scene).
 
 NavigationInfo {
   type "WALK"
@@ -29,4 +34,34 @@ Transform {
 
     Inline { url "../../../../kambi_vrml_test_suite/vrml_2/castle_with_lights_and_camera.wrl" }
   ]
+}
+
+Transform {
+  translation -20 5 50
+  scale 6.666 6.666 6.666
+  children Shape {
+    appearance Appearance {
+      material Material {
+        diffuseColor 0.5 1 0.5
+        specularColor 1 1 1 shininess 1 }
+      texture MultiTexture {
+        texture [
+          ImageTexture { url "../terrain/textures/sand.png" }
+          GeneratedCubeMapTexture {
+            update "ALWAYS"
+            size 256
+          }
+        ]
+        mode [ "MODULATE" "ADD" ]
+      }
+    }
+    geometry Teapot {
+      texCoord MultiTextureCoordinate {
+        texCoord [
+          TextureCoordinateGenerator { mode "COORD" }
+          TextureCoordinateGenerator { mode "WORLDSPACEREFLECTIONVECTOR" }
+        ]
+      }
+    }
+  }
 }
