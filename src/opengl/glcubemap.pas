@@ -19,12 +19,10 @@ unit GLCubeMap;
 interface
 
 uses VectorMath, CubeMap, Images, DDS, GL, GLU, KambiGLUtils,
-  RenderStateUnit, GLImages;
+  RenderStateUnit, GLImages, Base3D;
 
 type
   TCubeMapRenderSimpleFunction = procedure (ForCubeMap: boolean);
-
-  TRenderFromViewFunction = procedure of object;
 
 { Calculate spherical harmonics basis describing environment rendered
   by OpenGL. Environment is rendered by

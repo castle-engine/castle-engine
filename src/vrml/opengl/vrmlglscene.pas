@@ -1329,8 +1329,8 @@ type
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
-      const OriginalViewportX, OriginalViewportY: TGLint;
-      const OriginalViewportWidth, OriginalViewportHeight: TGLsizei);
+      const OriginalViewportX, OriginalViewportY: LongInt;
+      const OriginalViewportWidth, OriginalViewportHeight: Cardinal); override;
 
     procedure ViewChangedSuddenly; override;
 
@@ -4795,8 +4795,8 @@ end;
 procedure TVRMLGLScene.UpdateGeneratedTextures(
   const RenderFunc: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
-  const OriginalViewportX, OriginalViewportY: TGLint;
-  const OriginalViewportWidth, OriginalViewportHeight: TGLsizei);
+  const OriginalViewportX, OriginalViewportY: LongInt;
+  const OriginalViewportWidth, OriginalViewportHeight: Cardinal);
 var
   I: Integer;
   NeedsRestoreViewport: boolean;

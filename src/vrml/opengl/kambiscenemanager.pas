@@ -970,16 +970,11 @@ begin
     ApplyProjection;
   end;
 
-  { TODO: do UpdateGeneratedTextures for all Items }
-
-  if MainScene <> nil then
-  begin
-    MainScene.UpdateGeneratedTextures(@RenderFromViewEverything,
-      WalkProjectionNear, WalkProjectionFar,
-      { For now assume viewport fills the whole container,
-        see ../../../doc/TODO.scene_manager_viewport }
-      0, 0, ContainerWidth, ContainerHeight);
-  end;
+  Items.UpdateGeneratedTextures(@RenderFromViewEverything,
+    WalkProjectionNear, WalkProjectionFar,
+    { For now assume viewport fills the whole container,
+      see ../../../doc/TODO.scene_manager_viewport }
+    0, 0, ContainerWidth, ContainerHeight);
 
   RenderState.Target := rtScreen;
   RenderState.CameraFromCameraObject(Camera);

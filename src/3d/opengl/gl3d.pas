@@ -90,6 +90,11 @@ type
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
+    procedure UpdateGeneratedTextures(
+      const RenderFunc: TRenderFromViewFunction;
+      const ProjectionNear, ProjectionFar: Single;
+      const OriginalViewportX, OriginalViewportY: LongInt;
+      const OriginalViewportWidth, OriginalViewportHeight: Cardinal); override;
   published
     { Translated 3D object. }
     property Child: T3D read FChild write SetChild;
@@ -418,6 +423,19 @@ begin
     if Result <> nil then
       Result.Hierarchy.Insert(0, Self);
   end;
+end;
+
+procedure T3DCustomTranslated.UpdateGeneratedTextures(
+  const RenderFunc: TRenderFromViewFunction;
+  const ProjectionNear, ProjectionFar: Single;
+  const OriginalViewportX, OriginalViewportY: LongInt;
+  const OriginalViewportWidth, OriginalViewportHeight: Cardinal);
+begin
+  if Child <> nil then
+    Child.UpdateGeneratedTextures(
+      RenderFunc, ProjectionNear, ProjectionFar,
+      OriginalViewportX, OriginalViewportY,
+      OriginalViewportWidth, OriginalViewportHeight);
 end;
 
 procedure T3DCustomTranslated.SetChild(const Value: T3D);

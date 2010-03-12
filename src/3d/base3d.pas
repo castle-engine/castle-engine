@@ -21,6 +21,8 @@ interface
 uses Classes, Math, VectorMath, Frustum, Boxes3D, KambiClassUtils, KeysMouse;
 
 type
+  TRenderFromViewFunction = procedure of object;
+
   { Triangle expessed in particular coordinate system, for T3DTriangle. }
   T3DTriangleGeometry = record
     Triangle: TTriangle3Single;
@@ -407,6 +409,12 @@ type
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; virtual;
+
+    procedure UpdateGeneratedTextures(
+      const RenderFunc: TRenderFromViewFunction;
+      const ProjectionNear, ProjectionFar: Single;
+      const OriginalViewportX, OriginalViewportY: LongInt;
+      const OriginalViewportWidth, OriginalViewportHeight: Cardinal); virtual;
   end;
 
   T3DList = class;
@@ -508,6 +516,11 @@ type
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
+    procedure UpdateGeneratedTextures(
+      const RenderFunc: TRenderFromViewFunction;
+      const ProjectionNear, ProjectionFar: Single;
+      const OriginalViewportX, OriginalViewportY: LongInt;
+      const OriginalViewportWidth, OriginalViewportHeight: Cardinal); override;
   published
     { 3D objects inside.
       Freeing these items automatically removes them from this list. }
@@ -698,6 +711,14 @@ function T3D.RayCollision(
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
 begin
   Result := nil;
+end;
+
+procedure T3D.UpdateGeneratedTextures(
+  const RenderFunc: TRenderFromViewFunction;
+  const ProjectionNear, ProjectionFar: Single;
+  const OriginalViewportX, OriginalViewportY: LongInt;
+  const OriginalViewportWidth, OriginalViewportHeight: Cardinal);
+begin
 end;
 
 { T3DListCore ------------------------------------------------------------ }
@@ -1163,6 +1184,21 @@ begin
     if Result <> nil then
       Result.Hierarchy.Insert(0, Self);
   end;
+end;
+
+procedure T3DList.UpdateGeneratedTextures(
+  const RenderFunc: TRenderFromViewFunction;
+  const ProjectionNear, ProjectionFar: Single;
+  const OriginalViewportX, OriginalViewportY: LongInt;
+  const OriginalViewportWidth, OriginalViewportHeight: Cardinal);
+var
+  I: Integer;
+begin
+  for I := 0 to List.Count - 1 do
+    List[I].UpdateGeneratedTextures(
+      RenderFunc, ProjectionNear, ProjectionFar,
+      OriginalViewportX, OriginalViewportY,
+      OriginalViewportWidth, OriginalViewportHeight);
 end;
 
 end.

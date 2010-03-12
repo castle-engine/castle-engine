@@ -549,6 +549,11 @@ type
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
+    procedure UpdateGeneratedTextures(
+      const RenderFunc: TRenderFromViewFunction;
+      const ProjectionNear, ProjectionFar: Single;
+      const OriginalViewportX, OriginalViewportY: LongInt;
+      const OriginalViewportWidth, OriginalViewportHeight: Cardinal); override;
   published
     { Is the animation time playing, and how fast.
 
@@ -1998,6 +2003,19 @@ begin
     if Result <> nil then
       Result.Hierarchy.Insert(0, Self);
   end;
+end;
+
+procedure TVRMLGLAnimation.UpdateGeneratedTextures(
+  const RenderFunc: TRenderFromViewFunction;
+  const ProjectionNear, ProjectionFar: Single;
+  const OriginalViewportX, OriginalViewportY: LongInt;
+  const OriginalViewportWidth, OriginalViewportHeight: Cardinal);
+begin
+  if Loaded then
+    CurrentScene.UpdateGeneratedTextures(
+      RenderFunc, ProjectionNear, ProjectionFar,
+      OriginalViewportX, OriginalViewportY,
+      OriginalViewportWidth, OriginalViewportHeight);
 end;
 
 end.

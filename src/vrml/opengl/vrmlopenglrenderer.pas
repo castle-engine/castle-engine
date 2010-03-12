@@ -330,7 +330,7 @@ uses
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3D, OpenGLTTFonts, Images,
   KambiGLUtils, VRMLLightSetGL, TTFontsTypes,
   VRMLErrors, GLShaders, GLImages, Videos, VRMLTime, VRMLShape,
-  GLCubeMap, TextureImages, KambiClassUtils, DDS;
+  GLCubeMap, TextureImages, KambiClassUtils, DDS, Base3D;
 
 {$define read_interface}
 
