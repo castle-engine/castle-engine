@@ -17,16 +17,6 @@ view3dscene 3.5 blockers:
     - right when opening the secret (lighter) door
     (exist also in srcs before TLevelObject - T3D transition, so this isn't any bug from this.)
 
-- both castle 1.0.0 and engine 2.0.0 blockers:
-  - the fact that mouse is not immediately hidden when entering the game
-    with mouse look is visible... Damn.
-
-    Also when mouse is outside the game
-    window (in windowed mode), you have to mouse over the window to make
-    the mouse catched and mouse look working.
-
-    Rethink the mouse look update code?
-
 ------------------------------------------------------------------------------
 Scene manager / controls / better Lazarus integration:
 
@@ -274,14 +264,6 @@ For view3dscene 3.6:
 (I want to have full coverage of X3D "Interactive" with 3.6 release),
 fix Victor Amat problems with touch sensor picking along the way.
 
-------------------------------------------------------------------------------
-Procedural 3d:
-
-more with terrain:
-- Planned post (but not implemented yet):
-  2. I also made there a simple renderer to show the infinite terrain with infinite detail :), using the idea from http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter02.html (reduced to absolute trivial case in my implementation :), you can probably guess how it works by looking at the screenshots).
-
-http://books.google.com/books?id=GWQ_hz2sIMcC&printsec=frontcover&hl=pl
 ------------------------------------------------------------------------------
 For view3dscene 4.0:
 JavaScript, or Python/Lua?

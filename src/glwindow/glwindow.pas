@@ -4430,34 +4430,6 @@ begin
   Cursor := CalculateMouseCursor;
 end;
 
-  { Initially I was doing here UpdateMouseLook, and within UpdateMouseLook:
-
-      if MouseLookActive then
-        SetMousePosition(Width div 2, Height div 2);
-
-    but this bites us when we're doing UpdateMouseLook automatically,
-    because often MouseLookActive is true for a very short time.
-
-    For example, consider castle, where MouseLook is usually true
-    during the game, but it's off in game menu (TGLMenu) and start screen.
-    So when you're in the game, and choose "End game", game menu
-    closes (immediately bringing back MouseLook = true by TGLMode.Destroy
-    restoring everything), but game mode immediately closes and goes
-    back to start screen. Effect: mouse cursor is forced to the middle
-    of the screen, without any apparent (for user) reason.
-
-    While we could argue that this is an error of the "castle" game
-    (as, in fact, mouse look was temporarily true) but fixing this
-    in "castle" would be a major pain.
-    (And making UpdateMouseLook automatic was, after all,
-    to make things work smoothly without any painful bookkeeping.)
-
-    So it's not a comfortable behavior to reset mouse position to screen
-    middle too aggressively. So don't do it. This requires the MouseMove
-    handler to only work when initial mouse position is at the screen middle,
-    otherwise initial mouse look would generate large move.
-    But in fact TWalkCamera.MouseMove already does this, so it's all Ok. }
-
 procedure TGLUIWindow.EventMouseMove(NewX, NewY: Integer);
 var
   C: TUIControl;

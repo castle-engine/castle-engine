@@ -3065,9 +3065,58 @@ var
     ScheduleVisibleChange;
   end;
 
+  procedure PositionMouseLook;
+  begin
+    { Why reposition mouse for MouseLook here?
+
+      1. Older approach was to reposition only at UpdateMouseLook,
+         which was automatically called by camera's SetMouseLook.
+         But this turned out to reposition mouse too often:
+
+         MouseLook may be true for a very short time.
+
+         For example, consider castle, where MouseLook is usually true
+         during the game, but it's off in game menu (TGLMenu) and start screen.
+         So when you're in the game, and choose "End game", game menu
+         closes (immediately bringing back MouseLook = true by TGLMode.Destroy
+         restoring everything), but game mode immediately closes and goes
+         back to start screen. Effect: mouse cursor is forced to the middle
+         of the screen, without any apparent (for user) reason.
+
+      2. Later approach: just not reposition mouse at all just
+         because MoseLook = true.  Only reposition from
+         TWalkCamera.MouseMove.
+
+         This requires the MouseMove handler to only work when initial
+         mouse position is at the screen middle,
+         otherwise initial mouse look would generate large move.
+         But in fact TWalkCamera.MouseMove already does this, so it's all Ok.
+
+         Unfortunately, this isn't so nice: sometimes you really want your
+         mouse repositioned even before you move it:
+         - e.g. when entering castle game, it's strange that mouse cursor
+           is temporarily visible, until you move the mouse.
+         - worse: when mouse cursor is outside castle window, you have
+           to move mouse first over the window, before mouse look catches up.
+
+      So we have to reposition the mouse, but not too eagerly.
+      Idle seems a good moment. }
+    if MouseLook and
+       ContainerSizeKnown and
+       (Container <> nil) and
+       { Paranoidally check is position different, to avoid calling
+         SetMousePosition in every Idle. SetMousePosition should be optimized
+         for this case (when position is already set), but let's check anyway. }
+       (Container.MouseX <> ContainerWidth div 2) and
+       (Container.MouseY <> ContainerHeight div 2) then
+      Container.SetMousePosition(ContainerWidth div 2, ContainerHeight div 2);
+  end;
+
 var
   ModsDown: TModifierKeys;
 begin
+  PositionMouseLook;
+
   ModsDown := ModifiersDown(Container.Pressed);
 
   HeadBobbingAlreadyDone := false;
