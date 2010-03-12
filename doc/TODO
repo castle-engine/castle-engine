@@ -53,7 +53,12 @@ Scene manager / controls / better Lazarus integration:
 
   Make a news item about this, with demo screenshot, on changes_log.
 
-* TSceneManager: UpdateGeneratedTextures for all, see TODO in file.
+* when one of Items makes VisibleChange, we should notify others about this
+  by calling their VisibleSceneChange (which should be in T3D).
+  Otherwise, on scene_manager_demos, when other T3D change,
+  the mirror is not updated.
+
+  Damn, watch out for loops here.
 
 (not blockers before 2.0 release) --------------------------------------------
 
