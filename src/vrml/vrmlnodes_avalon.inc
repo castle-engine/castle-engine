@@ -318,7 +318,7 @@ begin
   FFdmanifold.Exposed := false;
   Fields.Add(FFdmanifold);
 
-  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinateGenerator]);
+  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinateGenerator, TNodeMultiTextureCoordinate]);
   Fields.Add(FFdtexCoord);
 end;
 
@@ -374,8 +374,7 @@ begin
 
     IFS.FdSolid.Value := FdSolid.Value;
 
-    if (FdTexCoord.Value <> nil) and
-       (FdTexCoord.Value is TNodeTextureCoordinateGenerator) then
+    if FdTexCoord.CurrentChildAllowed then
       IFS.FdTexCoord.Value := FdTexCoord.Value;
 
     { Set CreaseAngle to anything larger than Pi, to make this completely
