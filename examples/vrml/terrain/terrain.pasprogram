@@ -107,10 +107,18 @@ type
     procedure CurrentItemAccessoryValueChanged; override;
   end;
 
+  { For any TElevation. }
+  TControlsGeneral = class(TGLMenu)
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure CurrentItemAccessoryValueChanged; override;
+  end;
+
 var
   { ui controls }
   ControlsNoise: TControlsNoise;
   ControlsImage: TControlsImage;
+  ControlsGeneral: TControlsGeneral;
   SubdivisionSlider: TGLMenuIntegerSlider;
   LayersCountSlider: TGLMenuIntegerSlider;
   ImageHeightScaleSlider: TGLMenuFloatSlider;
@@ -124,7 +132,7 @@ begin
     Result := ControlsNoise else
   if Elevation is TElevationImage then
     Result := ControlsImage else
-    Result := nil;
+    Result := ControlsGeneral;
 end;
 
 procedure SetElevation(Value: TElevation);
@@ -336,6 +344,27 @@ begin
   inherited;
 end;
 
+constructor TControlsGeneral.Create(AOwner: TComponent);
+begin
+  inherited;
+  Items.AddObject('Subdivision (render details)', SubdivisionSlider);
+  Items.AddObject('Layers Count (render farther)', LayersCountSlider);
+  PositionRelativeScreenX := prLowerBorder;
+  PositionRelativeScreenY := prLowerBorder;
+  PositionRelativeMenuX := prLowerBorder;
+  PositionRelativeMenuY := prLowerBorder;
+  Position.Init(10.00, 10.00);
+end;
+
+procedure TControlsGeneral.CurrentItemAccessoryValueChanged;
+begin
+  case CurrentItem of
+    0: Subdivision := SubdivisionSlider.Value;
+    1: LayersCount := LayersCountSlider.Value;
+  end;
+  inherited;
+end;
+
 { Load GLSL program from files, add #define if Fog, relink. }
 procedure GLSLProgramRegenerate;
 var
@@ -378,6 +407,7 @@ begin
 
   ControlsNoise := TControlsNoise.Create(nil);
   ControlsImage := TControlsImage.Create(nil);
+  ControlsGeneral := TControlsGeneral.Create(nil);
 
   if Elevation = nil then
   begin
@@ -403,6 +433,7 @@ begin
 
   FreeAndNil(ControlsNoise);
   FreeAndNil(ControlsImage);
+  FreeAndNil(ControlsGeneral);
   FreeAndNil(SubdivisionSlider);
   FreeAndNil(LayersCountSlider);
   FreeAndNil(ImageHeightScaleSlider);
