@@ -34,6 +34,16 @@ procedure DrawElevation(Elevation: TElevation;
   MiddleX, MiddleY: Single; BaseSize: Single;
   const LayersCount: Cardinal);
 
+const
+  { Scale grid coords to nicely fit in similar box like DrawElevation produces.
+    This should be set for TElevationGrid, to affect TElevationGrid.Height.
+    It's also used by DrawGrid, to produce the same sized grid. }
+  GridX1 = -1;
+  GridY1 = -1;
+  GridX2 = 1;
+  GridY2 = 1;
+  GridHeightScale = 0.0002;
+
 { Specialized drawing for TElevationGrid, that displays only the
   precise grid points. }
 procedure DrawGrid(Grid: TElevationGrid);
@@ -360,10 +370,6 @@ begin
 end;
 
 procedure DrawGrid(Grid: TElevationGrid);
-const
-  { to scale coords to nicely fit in similar box like DrawElevation }
-  ScaleSize = 100.0;
-  ScaleHeight = 0.01;
 
   procedure Vertex(I, J: Cardinal);
   var
@@ -371,10 +377,11 @@ const
   begin
     HForColor := Grid.GridHeight(I, J);
     glColorv(ColorFromHeight(HForColor));
+
     glVertexv(Vector3Single(
-      ScaleSize * (I / Grid.GridSizeX),
-      ScaleSize * (J / Grid.GridSizeY),
-      HForColor * ScaleHeight));
+      (GridX2 - GridX1) * I / Grid.GridSizeX + GridX1,
+      (GridY2 - GridY1) * J / Grid.GridSizeY + GridY1,
+      HForColor * GridHeightScale));
   end;
 
 const

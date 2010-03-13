@@ -244,7 +244,11 @@ type
     where the height data is accurate. Everything else is an interpolation
     derived from this data. }
   TElevationGrid = class(TElevation)
+  private
+    FGridX1, FGridX2, FGridY1, FGridY2, FGridHeightScale: Single;
   public
+    constructor Create;
+
     { Get height of the elevation at specified 2D point.
 
       This is implemented in TElevationGrid class, using
@@ -267,6 +271,16 @@ type
     function GridHeight(const X, Y: Cardinal): Single; virtual; abstract;
     function GridSizeX: Cardinal; virtual; abstract;
     function GridSizeY: Cardinal; virtual; abstract;
+    { @groupEnd }
+
+    { Specify where terrain is located, for @link(Height) method.
+      These do not affect GridHeight method.
+      @groupBegin }
+    property GridX1: Single read FGridX1 write FGridX1 default 0;
+    property GridY1: Single read FGridY1 write FGridY1 default 0;
+    property GridX2: Single read FGridX2 write FGridX2 default 1;
+    property GridY2: Single read FGridY2 write FGridY2 default 1;
+    property GridHeightScale: Single read FGridHeightScale write FGridHeightScale default 1;
     { @groupEnd }
   end;
 
@@ -491,12 +505,22 @@ end;
 
 { TElevationGrid ------------------------------------------------------------- }
 
+constructor TElevationGrid.Create;
+begin
+  inherited;
+  FGridX1 := 0;
+  FGridY1 := 0;
+  FGridX2 := 1;
+  FGridY2 := 1;
+  FGridHeightScale := 1;
+end;
+
 function TElevationGrid.Height(const X, Y: Single): Single;
 begin
   { TODO: for now, just take the nearest point, no bilinear filtering. }
   Result := GridHeight(
-    Clamped(Round(X * (GridSizeX - 1)), 0, GridSizeX - 1),
-    Clamped(Round(Y * (GridSizeY - 1)), 0, GridSizeY - 1));
+    Clamped(Round(MapRange(X, GridX1, GridX2, 0, GridSizeX - 1)), 0, GridSizeX - 1),
+    Clamped(Round(MapRange(Y, GridY1, GridY2, 0, GridSizeY - 1)), 0, GridSizeY - 1)) * GridHeightScale;
 end;
 
 { TElevationSRTM ------------------------------------------------------------- }

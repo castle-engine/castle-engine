@@ -48,10 +48,6 @@
   visible in Examine mode).
 
   TODO:
-  - DrawGrid is temp broken now (not visible,
-    and probably walk camera doesn't follow it correctly).
-    For now, ignore it (it messes too much otherwise clean TElevation*
-    using code).
   - add sky, just for the effect?
 }
 program terrain;
@@ -87,6 +83,7 @@ var
   ControlsVisible: boolean = true;
   Fog: boolean = false;
   BackgroundColor: TVector3Single = (0, 0, 0);
+  SpecializedGridRendering: boolean = true;
 
 type
   TControlsNoise = class(TGLMenu)
@@ -103,9 +100,7 @@ type
   end;
 
   { For any TElevationImage except
-    TElevationNoise (that has it's own TControlsNoise)
-    and TElevationGrid (that has quite different rendering rules;
-    for now, TElevationGrid is not TElevationImage anyway). }
+    TElevationNoise (that has it's own TControlsNoise). }
   TControlsImage = class(TGLMenu)
   public
     constructor Create(AOwner: TComponent); override;
@@ -127,7 +122,7 @@ begin
 
   if Elevation is TElevationNoise then
     Result := ControlsNoise else
-  if (Elevation is TElevationImage) and not (Elevation is TElevationGrid) then
+  if Elevation is TElevationImage then
     Result := ControlsImage else
     Result := nil;
 end;
@@ -154,6 +149,15 @@ begin
       TElevationNoise(Elevation).Seed := ControlsNoise.SeedSlider.Value;
       TElevationNoise(Elevation).Interpolation := NoiseInterpolation;
       TElevationNoise(Elevation).Blur := NoiseBlur;
+    end;
+
+    if Elevation is TElevationGrid then
+    begin
+      TElevationGrid(Elevation).GridX1 := GridX1;
+      TElevationGrid(Elevation).GridY1 := GridY1;
+      TElevationGrid(Elevation).GridX2 := GridX2;
+      TElevationGrid(Elevation).GridY2 := GridY2;
+      TElevationGrid(Elevation).GridHeightScale := GridHeightScale;
     end;
   end;
 end;
@@ -190,7 +194,8 @@ begin
     glEnable(GL_DEPTH_TEST);
   end;
 
-    if Elevation is TElevationGrid then
+    if (Elevation is TElevationGrid) and
+       SpecializedGridRendering then
     begin
       { DrawGrid cannot make normals for now, so no LIGHTING or other stuff }
       DrawGrid(TElevationGrid(Elevation));
@@ -483,6 +488,7 @@ begin
         ControlsVisible := not ControlsVisible;
         Glw.Controls.MakeSingle(TGLMenu, CurrentControls, true { before camera });
       end;
+    147: SpecializedGridRendering := not SpecializedGridRendering;
     150:
       begin
         if Elevation is TElevationImage then
@@ -548,6 +554,8 @@ begin
     M.Append(TMenuItemChecked.Create('Shader', 140, 's', Shader, true));
     M.Append(TMenuItemChecked.Create('Fog (when Shader)', 142, 'f', Fog, true));
     M.Append(TMenuItemChecked.Create('Lighting (when no Shader)', 130, 'l', Lighting, true));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItemChecked.Create('Specialized grid (SRTM) rendering', 147, 'g', SpecializedGridRendering, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Background and Fog Color ...', 170));
     M.Append(TMenuSeparator.Create);
