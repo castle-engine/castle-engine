@@ -2541,12 +2541,12 @@ begin
         about changes to EventsProcessor, we can also get here
         by eventIn invocation (which doesn't trigger
         EventsProcessor.ChangedFields, since it doesn't change a field...).
-        So we should explicitly do VisibleSceneChange here, to make sure
+        So we should explicitly do VisibleChangeHere here, to make sure
         it gets called when uniform changed. }
 
       EventsProcessor := GLSLProgramCache^.ProgramNode.EventsProcessor;
       if EventsProcessor <> nil then
-        EventsProcessor.VisibleSceneChange([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
+        EventsProcessor.VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
 
       Exit;
     end;

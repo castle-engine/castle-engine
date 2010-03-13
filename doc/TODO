@@ -53,13 +53,6 @@ Scene manager / controls / better Lazarus integration:
 
   Make a news item about this, with demo screenshot, on changes_log.
 
-* when one of Items makes VisibleChange, we should notify others about this
-  by calling their VisibleSceneChange (which should be in T3D).
-  Otherwise, on scene_manager_demos, when other T3D change,
-  the mirror is not updated.
-
-  Damn, watch out for loops here.
-
 (not blockers before 2.0 release) --------------------------------------------
 
 - Make XML .x3d format, loaded to any T3D (list, translated, anim, scene...)

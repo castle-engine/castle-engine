@@ -36,7 +36,7 @@ type
   T3DCustomTranslated = class(T3D)
   private
     FChild: T3D;
-    procedure ChildVisibleChange(Sender: TObject);
+    procedure ChildVisibleChange(Sender: T3D; Changes: TVisibleChanges);
     procedure ChildCursorChange(Sender: TObject);
     procedure SetChild(const Value: T3D);
   protected
@@ -95,6 +95,7 @@ type
       const ProjectionNear, ProjectionFar: Single;
       const OriginalViewportX, OriginalViewportY: LongInt;
       const OriginalViewportWidth, OriginalViewportHeight: Cardinal); override;
+    procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
   published
     { Translated 3D object. }
     property Child: T3D read FChild write SetChild;
@@ -431,11 +432,19 @@ procedure T3DCustomTranslated.UpdateGeneratedTextures(
   const OriginalViewportX, OriginalViewportY: LongInt;
   const OriginalViewportWidth, OriginalViewportHeight: Cardinal);
 begin
+  inherited;
   if Child <> nil then
     Child.UpdateGeneratedTextures(
       RenderFunc, ProjectionNear, ProjectionFar,
       OriginalViewportX, OriginalViewportY,
       OriginalViewportWidth, OriginalViewportHeight);
+end;
+
+procedure T3DCustomTranslated.VisibleChangeNotification(const Changes: TVisibleChanges);
+begin
+  inherited;
+  if Child <> nil then
+    Child.VisibleChangeNotification(Changes);
 end;
 
 procedure T3DCustomTranslated.SetChild(const Value: T3D);
@@ -444,8 +453,8 @@ begin
   begin
     if FChild <> nil then
     begin
-      if FChild.OnVisibleChange = @ChildVisibleChange then
-	FChild.OnVisibleChange := nil;
+      if FChild.OnVisibleChangeHere = @ChildVisibleChange then
+	FChild.OnVisibleChangeHere := nil;
       if FChild.OnCursorChange = @ChildCursorChange then
 	FChild.OnCursorChange := nil;
       FChild.RemoveFreeNotification(Self);
@@ -455,8 +464,8 @@ begin
 
     if FChild <> nil then
     begin
-      if FChild.OnVisibleChange = nil then
-	FChild.OnVisibleChange := @ChildVisibleChange;
+      if FChild.OnVisibleChangeHere = nil then
+	FChild.OnVisibleChangeHere := @ChildVisibleChange;
       if FChild.OnCursorChange = nil then
 	FChild.OnCursorChange := @ChildCursorChange;
       FChild.FreeNotification(Self);
@@ -466,9 +475,9 @@ begin
   end;
 end;
 
-procedure T3DCustomTranslated.ChildVisibleChange(Sender: TObject);
+procedure T3DCustomTranslated.ChildVisibleChange(Sender: T3D; Changes: TVisibleChanges);
 begin
-  VisibleChange;
+  VisibleChangeHere(Changes);
 end;
 
 procedure T3DCustomTranslated.ChildCursorChange(Sender: TObject);

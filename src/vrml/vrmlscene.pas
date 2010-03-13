@@ -1008,25 +1008,6 @@ type
     property OnBoundViewpointVectorsChanged: TVRMLSceneNotification
       read FOnBoundViewpointVectorsChanged write FOnBoundViewpointVectorsChanged;
 
-    { Something visible changed.
-
-      In this class, just calls VisibleChange, that calls OnVisibleChange
-      if assigned.
-
-      Changes is a set describing what changes occured that caused this
-      redisplay. It can be [], meaning "something else", we'll
-      still make OnVisibleChange then. See TVisibleSceneChange
-      docs for possible values. It must specify all parts that possibly
-      changed.
-
-      When you want to call OnVisibleChange from your own code,
-      and there's a chance that Changes <> [],
-      it's important that you call this (not directly call OnVisibleChange).
-      That's because descendant TVRMLGLScene does important updates for
-      generated textures (potentially instructing them to regenerate
-      next frame) when Changes <> []. }
-    procedure VisibleSceneChange(const Changes: TVisibleSceneChanges); override;
-
     { Call OnGeometryChanged, if assigned. }
     procedure DoGeometryChanged; virtual;
 
@@ -1573,7 +1554,7 @@ type
       If a change of Time will produce some visible change in VRML model
       (for example, MovieTexture will change, or TimeSensor change will be
       routed by interpolator to coordinates of some visible node) this
-      will be notified by usual method, that is OnVisibleChange.
+      will be notified by usual method, that is VisibleChangeHere.
 
       @groupBegin }
     procedure SetTime(const NewValue: TKamTime);
@@ -1659,18 +1640,18 @@ type
     { Call when viewer position/dir/up changed, to update things depending
       on viewer settings. This includes sensors like ProximitySensor,
       LOD nodes, camera settings for next RenderedTexture update and more.
-      It automatically does proper VisibleSceneChange (VisibleChange, OnVisibleChange).
+      It automatically does proper VisibleChangeHere (OnVisibleChangeHere).
 
       @param(Changes describes changes to the scene caused by viewer change.
         This is needed if some geometry / light follows the player.
 
         We'll automatically add here "prViewer", so not need to specify it.
 
-        You should add here prVisibleSceneNonGeometry if player has a headlight.
-        You should add here prVisibleSceneGeometry if player has a rendered
+        You should add here vcVisibleNonGeometry if player has a headlight.
+        You should add here vcVisibleGeometry if player has a rendered
         avatar.) }
     procedure ViewerChanged(ACamera: TCamera;
-      const Changes: TVisibleSceneChanges);
+      const Changes: TVisibleChanges);
 
     { List of handlers for VRML Script node with "compiled:" protocol.
       This is read-only, change this only by RegisterCompiledScript. }
@@ -2715,7 +2696,7 @@ begin
   ScheduledGeometryChangedAll := true;
   ScheduleGeometryChanged;
 
-  VisibleSceneChange([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
+  VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   DoViewpointsChanged;
 end;
 
@@ -2737,7 +2718,7 @@ begin
   Shape.Changed(PossiblyLocalGeometryChanged);
 
   if not InactiveOnly then
-    VisibleSceneChange([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
+    VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
 end;
 
 type
@@ -2955,7 +2936,7 @@ begin
         destroy display lists and such when rendering next time.
       }
       if Inactive = 0 then
-        ParentScene.VisibleSceneChange([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
+        ParentScene.VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
     end else
     if Node is TNodeNavigationInfo then
     begin
@@ -3207,7 +3188,7 @@ begin
       { Do nothing here, as TVRMLOpenGLRenderer registers and takes care
         to update shaders' uniform variables. We don't have to do
         anything here, no need to rebuild/recalculate anything.
-        The only thing that needs to be called is redisplay, by VisibleSceneChange
+        The only thing that needs to be called is redisplay, by VisibleChangeHere
         at the end of ChangedFields. }
     end else
     if Node is TNodeCoordinate then
@@ -3409,7 +3390,7 @@ begin
           end;
 
           if not TransformChangeHelper.AnythingChanged then
-            { No need to even VisibleSceneChange at the end. }
+            { No need to even VisibleChangeHere at the end. }
             Exit;
         finally
           FreeAndNil(TransformChangeHelper);
@@ -3446,14 +3427,14 @@ begin
     if Node is TNodeMovieTexture then
     begin
       ChangedTimeDependentNode(TNodeMovieTexture(Node).TimeDependentNodeHandler);
-      { No need to do VisibleSceneChange.
+      { No need to do VisibleChangeHere.
         Redisplay will be done by next IncreaseTime run, if active now. }
       Exit;
     end else
     if Node is TNodeTimeSensor then
     begin
       ChangedTimeDependentNode(TNodeTimeSensor(Node).TimeDependentNodeHandler);
-      { VisibleSceneChange not needed --- this is only a sensor, it's state
+      { VisibleChangeHere not needed --- this is only a sensor, it's state
         is not directly visible. }
       Exit;
     end else
@@ -3548,20 +3529,20 @@ begin
       { For generated textures nodes "update" fields:
         changes will be handled automatically
         at next UpdateGeneratedTextures call.
-        So just make VisibleSceneChange and nothing else is needed.
+        So just make VisibleChangeHere and nothing else is needed.
 
-        Note we pass Changes = [] to VisibleSceneChange.
+        Note we pass Changes = [] to VisibleChangeHere.
         That's logical --- only the change of "update" doesn't visibly
         change anything on the scene. This means that if you change "update"
         to "ALWAYS", but no visible change was registered since last update
         of the texture, the texture will not be actually immediately
         regenerated --- correct optimization!
 
-        For other fields, even VisibleSceneChange isn't needed. }
+        For other fields, even VisibleChangeHere isn't needed. }
 
       if (Field = nil) or
          (Field = TNodeGeneratedCubeMapTexture(Node).FdUpdate) then
-        VisibleSceneChange([]);
+        VisibleChangeHere([]);
       Exit;
     end else
     if Node is TNodeRenderedTexture then
@@ -3570,10 +3551,10 @@ begin
          (Field = TNodeRenderedTexture(Node).FdDimensions) or
          (Field = TNodeRenderedTexture(Node).FdViewpoint) or
          (Field = TNodeRenderedTexture(Node).FdDepthMap) then
-        { Call with prVisibleSceneGeometry, to regenerate even if UpdateNeeded = false }
-        VisibleSceneChange([prVisibleSceneGeometry]) else
+        { Call with vcVisibleGeometry, to regenerate even if UpdateNeeded = false }
+        VisibleChangeHere([vcVisibleGeometry]) else
       if (Field = TNodeRenderedTexture(Node).FdUpdate) then
-        VisibleSceneChange([]);
+        VisibleChangeHere([]);
       Exit;
     end else
     if Node is TNodeGeneratedShadowMap then
@@ -3582,10 +3563,10 @@ begin
          (Field = TNodeGeneratedShadowMap(Node).FdScale) or
          (Field = TNodeGeneratedShadowMap(Node).FdBias) or
          (Field = TNodeGeneratedShadowMap(Node).FdLight) then
-        { Call with prVisibleSceneGeometry, to regenerate even if UpdateNeeded = false }
-        VisibleSceneChange([prVisibleSceneGeometry]) else
+        { Call with vcVisibleGeometry, to regenerate even if UpdateNeeded = false }
+        VisibleChangeHere([vcVisibleGeometry]) else
       if (Field = TNodeGeneratedShadowMap(Node).FdUpdate) then
-        VisibleSceneChange([]);
+        VisibleChangeHere([]);
       Exit;
     end else
     begin
@@ -3600,7 +3581,7 @@ begin
       Exit;
     end;
 
-    VisibleSceneChange([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
+    VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   finally EndChangesSchedule end;
 end;
 
@@ -3673,11 +3654,6 @@ begin
      FMainLightForShadowsExists and
      (FMainLightForShadowsNode = LightNode) then
     CalculateMainLightForShadowsPosition;
-end;
-
-procedure TVRMLScene.VisibleSceneChange(const Changes: TVisibleSceneChanges);
-begin
-  VisibleChange;
 end;
 
 procedure TVRMLScene.DoGeometryChanged;
@@ -5338,7 +5314,7 @@ begin
         other nodes only by events, and this will change EventChanged
         to catch it). }
       if SomethingChanged then
-        VisibleSceneChange([prVisibleSceneGeometry, prVisibleSceneNonGeometry]);
+        VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
 
       for I := 0 to TimeSensorNodes.Count - 1 do
         (TimeSensorNodes.Items[I] as TNodeTimeSensor).
@@ -5588,7 +5564,7 @@ begin
 end;
 
 procedure TVRMLScene.ViewerChanged(ACamera: TCamera;
-  const Changes: TVisibleSceneChanges);
+  const Changes: TVisibleChanges);
 var
   I: Integer;
 begin
@@ -5609,7 +5585,7 @@ begin
     end;
   finally EndChangesSchedule end;
 
-  VisibleSceneChange(Changes + [prViewer]);
+  VisibleChangeHere(Changes + [vcViewer]);
 end;
 
 { compiled scripts ----------------------------------------------------------- }

@@ -1334,7 +1334,7 @@ type
 
     procedure ViewChangedSuddenly; override;
 
-    procedure VisibleSceneChange(const Changes: TVisibleSceneChanges); override;
+    procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
   published
     { Fine-tune performance of RenderFrustum when
       OctreeRendering is @italic(not) available.
@@ -4848,10 +4848,12 @@ begin
   end;
 end;
 
-procedure TVRMLGLScene.VisibleSceneChange(const Changes: TVisibleSceneChanges);
+procedure TVRMLGLScene.VisibleChangeNotification(const Changes: TVisibleChanges);
 var
   I: Integer;
 begin
+  inherited;
+
   { set UpdateNeeded := true before calling inherited (with VisibleChange
     and OnVisibleChange callback), because inside OnVisibleChange callback
     we'll actually initialize regenerating the textures. }
@@ -4861,12 +4863,12 @@ begin
     begin
       if GeneratedTextures.Items[I].TextureNode is TNodeGeneratedCubeMapTexture then
       begin
-        if [prVisibleSceneGeometry, prVisibleSceneNonGeometry] * Changes <> [] then
+        if [vcVisibleGeometry, vcVisibleNonGeometry] * Changes <> [] then
           GeneratedTextures.Items[I].Handler.UpdateNeeded := true;
       end else
       if GeneratedTextures.Items[I].TextureNode is TNodeGeneratedShadowMap then
       begin
-        if prVisibleSceneGeometry in Changes then
+        if vcVisibleGeometry in Changes then
           GeneratedTextures.Items[I].Handler.UpdateNeeded := true;
       end else
         { Even mere prViewer causes regenerate of RenderedTexture,
@@ -4877,8 +4879,6 @@ begin
         GeneratedTextures.Items[I].Handler.UpdateNeeded := true;
     end;
   end;
-
-  inherited;
 end;
 
 { TVRMLSceneRenderingAttributes ---------------------------------------------- }

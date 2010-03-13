@@ -23,6 +23,30 @@ uses Classes, Math, VectorMath, Frustum, Boxes3D, KambiClassUtils, KeysMouse;
 type
   TRenderFromViewFunction = procedure of object;
 
+  T3D = class;
+
+  { Describe what visible thing changed
+    for T3D.VisibleChange. }
+  TVisibleChange = (
+    { Something visible in the geometry changed.
+      "Geometry" means that this is applicable only to actual 3D shape
+      changes. (Think about "does depth buffer from some point in space
+      changes" --- this is actually why we have separate vcVisibleGeometry
+      and vcVisibleNonGeometry for now, as GeneratedShadowMap
+      does need to be updated only on geometry changes.) So it's not applicable
+      when only light conditions, materials, textures and such change. }
+    vcVisibleGeometry,
+
+    { Something visible changed, but not geometry.
+      For example, material or texture on visible surface changed. }
+    vcVisibleNonGeometry,
+
+    { Viewer (the settings passed to TVRMLScene.ViewerChanged) changed. }
+    vcViewer);
+  TVisibleChanges = set of TVisibleChange;
+
+  TVisibleChangeEvent = procedure (Sender: T3D; Changes: TVisibleChanges) of object;
+
   { Triangle expessed in particular coordinate system, for T3DTriangle. }
   T3DTriangleGeometry = record
     Triangle: TTriangle3Single;
@@ -145,7 +169,7 @@ type
     FCastsShadow: boolean;
     FExists: boolean;
     FCollides: boolean;
-    FOnVisibleChange: TNotifyEvent;
+    FOnVisibleChangeHere: TVisibleChangeEvent;
     FCursor: TMouseCursor;
     FOnCursorChange: TNotifyEvent;
     procedure SetCursor(const Value: TMouseCursor);
@@ -315,12 +339,24 @@ type
     { Idle event, for continously repeated tasks. }
     procedure Idle(const CompSpeed: Single); virtual;
 
-    { Called always when some visible part of this control
-      changes. In the simplest case, this is used by the controls manager to
-      know when we need to redraw the control.
+    { Something visible changed inside @italic(this) 3D object.
+      This is usually called by implementation of this 3D object,
+      to notify others that it changed.
 
-      In this class this simply calls OnVisibleChange (if assigned). }
-    procedure VisibleChange; virtual;
+      Changes is a set describing what changes occured.
+      It can be [], meaning "something else", we'll
+      still make OnVisibleChangeHere then. See TVisibleChange
+      docs for possible values. It must specify all things that possibly
+      changed.
+
+      The information about visibility changed is usually passed upward,
+      to the TKamSceneManager, that broadcasts this to all 3D objects
+      by VisibleChangeNotification. If you want to @italic(react) to visibility
+      changes, you usually should override VisibleChangeNotification,
+      not this method.
+
+      In this class this simply calls OnVisibleChangeHere (if assigned). }
+    procedure VisibleChangeHere(const Changes: TVisibleChanges); virtual;
 
     { Called when some visible part of this control changes.
       This is usually used by the scene manager
@@ -328,11 +364,21 @@ type
       so don't use it in your own programs directly.
 
       Be careful when handling this event, various changes may cause this,
-      so be prepared to handle OnVisibleChange at every time.
+      so be prepared to handle OnVisibleChangeHere at every time.
 
-      @seealso VisibleChange }
-    property OnVisibleChange: TNotifyEvent
-      read FOnVisibleChange write FOnVisibleChange;
+      @seealso VisibleChangeHere }
+    property OnVisibleChangeHere: TVisibleChangeEvent
+      read FOnVisibleChangeHere write FOnVisibleChangeHere;
+
+    { Something visible changed in the 3D world.
+      This is usually called by our container (like TKamSceneManager),
+      to allow this 3D object to react (e.g. by regenerating mirror textures)
+      to changes in the 3D world (not necessarily in this 3D object,
+      maybe in some other T3D instance).
+
+      If you want to @italic(react) to visibility
+      changes, you should override this. }
+    procedure VisibleChangeNotification(const Changes: TVisibleChanges); virtual;
 
     { Mouse cursor over this object. }
     property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
@@ -454,7 +500,7 @@ type
   T3DList = class(T3D)
   private
     FList: T3DListCore;
-    procedure ListVisibleChange(Sender: TObject);
+    procedure ListVisibleChange(Sender: T3D; Changes: TVisibleChanges);
     procedure ListCursorChange(Sender: TObject);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -521,6 +567,7 @@ type
       const ProjectionNear, ProjectionFar: Single;
       const OriginalViewportX, OriginalViewportY: LongInt;
       const OriginalViewportWidth, OriginalViewportHeight: Cardinal); override;
+    procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
   published
     { 3D objects inside.
       Freeing these items automatically removes them from this list. }
@@ -628,10 +675,14 @@ procedure T3D.Idle(const CompSpeed: Single);
 begin
 end;
 
-procedure T3D.VisibleChange;
+procedure T3D.VisibleChangeHere(const Changes: TVisibleChanges);
 begin
-  if Assigned(OnVisibleChange) then
-    OnVisibleChange(Self);
+  if Assigned(OnVisibleChangeHere) then
+    OnVisibleChangeHere(Self, Changes);
+end;
+
+procedure T3D.VisibleChangeNotification(const Changes: TVisibleChanges);
+begin
 end;
 
 procedure T3D.SetCursor(const Value: TMouseCursor);
@@ -743,9 +794,9 @@ begin
       lnAdded:
         begin
           { Make sure Owner.ListVisibleChange will be called
-            when an item calls OnVisibleChange. }
-          if B.OnVisibleChange = nil then
-            B.OnVisibleChange := @Owner.ListVisibleChange;
+            when an item calls OnVisibleChangeHere. }
+          if B.OnVisibleChangeHere = nil then
+            B.OnVisibleChangeHere := @Owner.ListVisibleChange;
           if B.OnCursorChange = nil then
             B.OnCursorChange := @Owner.ListCursorChange;
 
@@ -754,8 +805,8 @@ begin
         end;
       lnExtracted, lnDeleted:
         begin
-          if B.OnVisibleChange = @Owner.ListVisibleChange then
-            B.OnVisibleChange := nil;
+          if B.OnVisibleChangeHere = @Owner.ListVisibleChange then
+            B.OnVisibleChangeHere := nil;
           if B.OnCursorChange = @Owner.ListCursorChange then
             B.OnCursorChange := nil;
 
@@ -947,12 +998,12 @@ begin
     List[I].Idle(CompSpeed);
 end;
 
-procedure T3DList.ListVisibleChange(Sender: TObject);
+procedure T3DList.ListVisibleChange(Sender: T3D; Changes: TVisibleChanges);
 begin
-  { when an Item calls OnVisibleChange, we'll call our own OnVisibleChange,
+  { when an Item calls OnVisibleChangeHere, we'll call our own OnVisibleChangeHere,
     to pass it up the tree (eventually, to the scenemanager, that will
-    pass it by TUIControl similar OnVisibleChange mechanism to the container). }
-  VisibleChange;
+    pass it by TUIControl similar OnVisibleChangeHere mechanism to the container). }
+  VisibleChangeHere(Changes);
 end;
 
 procedure T3DList.ListCursorChange(Sender: TObject);
@@ -1194,11 +1245,21 @@ procedure T3DList.UpdateGeneratedTextures(
 var
   I: Integer;
 begin
+  inherited;
   for I := 0 to List.Count - 1 do
     List[I].UpdateGeneratedTextures(
       RenderFunc, ProjectionNear, ProjectionFar,
       OriginalViewportX, OriginalViewportY,
       OriginalViewportWidth, OriginalViewportHeight);
+end;
+
+procedure T3DList.VisibleChangeNotification(const Changes: TVisibleChanges);
+var
+  I: Integer;
+begin
+  inherited;
+  for I := 0 to List.Count - 1 do
+    List[I].VisibleChangeNotification(Changes);
 end;
 
 end.

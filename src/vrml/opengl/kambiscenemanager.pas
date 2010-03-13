@@ -96,7 +96,7 @@ type
     procedure SetCamera(const Value: TCamera);
     procedure SetShadowVolumesPossible(const Value: boolean);
 
-    procedure ItemsVisibleChange(Sender: TObject);
+    procedure ItemsVisibleChange(Sender: T3D; Changes: TVisibleChanges);
     procedure ItemsAndCameraCursorChange(Sender: TObject);
 
     { scene callbacks }
@@ -230,7 +230,7 @@ type
       You may want to use it when calling Scene.ViewerChanges.
 
       Implementation in this class is correlated with RenderHeadlight. }
-    function ViewerToChanges: TVisibleSceneChanges; virtual;
+    function ViewerToChanges: TVisibleChanges; virtual;
 
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
 
@@ -487,7 +487,7 @@ begin
   inherited;
 
   FItems := T3DList.Create(Self);
-  FItems.OnVisibleChange := @ItemsVisibleChange;
+  FItems.OnVisibleChangeHere := @ItemsVisibleChange;
   FItems.OnCursorChange := @ItemsAndCameraCursorChange;
   { Items is displayed and streamed with TKamSceneManager
     (and in the future this should allow design Items.List by IDE),
@@ -533,9 +533,12 @@ begin
   inherited;
 end;
 
-procedure TKamSceneManager.ItemsVisibleChange(Sender: TObject);
+procedure TKamSceneManager.ItemsVisibleChange(Sender: T3D; Changes: TVisibleChanges);
 begin
+  { pass visible change notification "upward" (as a TUIControl, to container) }
   VisibleChange;
+  { pass visible change notification "downward", to all children T3D }
+  Items.VisibleChangeNotification(Changes);
 end;
 
 procedure TKamSceneManager.GLContextInit;
@@ -863,7 +866,7 @@ begin
   { if MainScene = nil, do not control GL_LIGHT0 here. }
 end;
 
-function TKamSceneManager.ViewerToChanges: TVisibleSceneChanges;
+function TKamSceneManager.ViewerToChanges: TVisibleChanges;
 var
   H: TVRMLGLHeadlight;
 begin
@@ -872,7 +875,7 @@ begin
     H := nil;
 
   if H <> nil then
-    Result := [prVisibleSceneNonGeometry] else
+    Result := [vcVisibleNonGeometry] else
     Result := [];
 end;
 

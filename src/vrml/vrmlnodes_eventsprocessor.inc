@@ -18,23 +18,6 @@
 
 {$ifdef read_interface}
 
-  { Describe what visible thing changed
-    for TVRMLEventsProcessor.VisibleSceneChange. }
-  TVisibleSceneChange = (
-    { Something visible in the scene geometry changed.
-      "Geometry" means that this is applicable only to actual 3D shape
-      changes. (Think about "does depth buffer from some point in space
-      changes" --- this is actually why we have separate prVisibleSceneGeometry
-      and prVisibleSceneNonGeometry for now, as GeneratedShadowMap
-      does need to be updated only on geometry changes.) So it's not applicable
-      when only light conditions, materials, textures and such change. }
-    prVisibleSceneGeometry,
-    { Something visible,  but not geometry, in the scene changed. }
-    prVisibleSceneNonGeometry,
-    { Viewer (the settings passed to ViewerChanged) changed. }
-    prViewer);
-  TVisibleSceneChanges = set of TVisibleSceneChange;
-
   TVRMLBindableStackBasic = class(TVRMLNodesList)
   public
     { Handle set_bind event send to given Node.
@@ -54,7 +37,6 @@
     function GetFogStack: TVRMLBindableStackBasic; virtual; abstract;
 
     procedure ChangedFields(Node: TVRMLNode; FieldOrEvent: TVRMLFieldOrEvent); virtual; abstract;
-    procedure VisibleSceneChange(const Changes: TVisibleSceneChanges); virtual; abstract;
   end;
 {$endif read_interface}
 

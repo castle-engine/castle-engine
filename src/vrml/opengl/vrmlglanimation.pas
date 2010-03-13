@@ -554,6 +554,7 @@ type
       const ProjectionNear, ProjectionFar: Single;
       const OriginalViewportX, OriginalViewportY: LongInt;
       const OriginalViewportWidth, OriginalViewportHeight: Cardinal); override;
+    procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
   published
     { Is the animation time playing, and how fast.
 
@@ -666,7 +667,7 @@ type
       AParentAnimation: TVRMLGLAnimation);
     property ParentAnimation: TVRMLGLAnimation read FParentAnimation;
     procedure DoGeometryChanged; override;
-    procedure VisibleChange; override;
+    procedure VisibleChangeHere(const Changes: TVisibleChanges); override;
     procedure CursorChange; override;
   end;
 
@@ -693,10 +694,10 @@ begin
   ParentAnimation.ValidBoundingBox := false;
 end;
 
-procedure TVRMLGLAnimationScene.VisibleChange;
+procedure TVRMLGLAnimationScene.VisibleChangeHere(const Changes: TVisibleChanges);
 begin
   inherited;
-  ParentAnimation.VisibleChange;
+  ParentAnimation.VisibleChangeHere(Changes);
 end;
 
 procedure TVRMLGLAnimationScene.CursorChange;
@@ -1814,12 +1815,12 @@ begin
     if ScenesCount = 1 then
       Scenes[0].SetTime(Time);
 
-    { Call VisibleChange only if the displayed animation frame actually changed.
+    { Call VisibleChangeHere only if the displayed animation frame actually changed.
       This way, we avoid wasting CPU cycles if the loaded scene is actually
       still, or if the animation stopped running. }
     if (SceneFromTime(OldTime) <>
         SceneFromTime(Time)) then
-      VisibleChange;
+      VisibleChangeHere([]);
   end;
 end;
 
@@ -2011,11 +2012,19 @@ procedure TVRMLGLAnimation.UpdateGeneratedTextures(
   const OriginalViewportX, OriginalViewportY: LongInt;
   const OriginalViewportWidth, OriginalViewportHeight: Cardinal);
 begin
+  inherited;
   if Loaded then
     CurrentScene.UpdateGeneratedTextures(
       RenderFunc, ProjectionNear, ProjectionFar,
       OriginalViewportX, OriginalViewportY,
       OriginalViewportWidth, OriginalViewportHeight);
+end;
+
+procedure TVRMLGLAnimation.VisibleChangeNotification(const Changes: TVisibleChanges);
+begin
+  inherited;
+  if Loaded then
+    CurrentScene.VisibleChangeNotification(Changes);
 end;
 
 end.
