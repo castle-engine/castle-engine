@@ -126,11 +126,18 @@ var
     P.Position[2] := Elevation.Height(P.Position[0], P.Position[1]);
 
     HForColor := P.Position[2];
-    { scale height down by Amplitude, to keep nice colors regardless of Amplitude }
-    if Elevation is TElevationNoise then
-      HForColor /= TElevationNoise(Elevation).Amplitude;
-    { some hacks to hit interesting colors }
-    HForColor := HForColor  * 2000 - 1000;
+    if Elevation is TElevationGrid then
+    begin
+      { For TElevationGrid, HForColor is original GridHeight result. }
+      HForColor /= GridHeightScale;
+    end else
+    begin
+      { scale height down by Amplitude, to keep nice colors regardless of Amplitude }
+      if Elevation is TElevationNoise then
+        HForColor /= TElevationNoise(Elevation).Amplitude;
+      { some hacks to hit interesting colors }
+      HForColor := HForColor  * 2000 - 1000;
+    end;
     P.Color := ColorFromHeight(HForColor);
   end;
 
