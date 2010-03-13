@@ -586,7 +586,7 @@ begin
     M.Append(TMenuItemChecked.Create('Fog (when Shader)', 142, 'f', Fog, true));
     M.Append(TMenuItemChecked.Create('Lighting (when no Shader)', 130, 'l', Lighting, true));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItemChecked.Create('Specialized grid (SRTM) rendering', 147, 'g', SpecializedGridRendering, true));
+    M.Append(TMenuItemChecked.Create('Specialized grid (SRTM) rendering (also ignores Subdivision and Layers count)', 147, 'g', SpecializedGridRendering, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Background and Fog Color ...', 170));
     M.Append(TMenuSeparator.Create);
