@@ -10,13 +10,14 @@ unit AllKambi3dUnits;
 interface
 
 uses
-  base3d,
   backgroundbase,
+  base3d,
   boxes3d,
   convexhullunit,
   cubemap,
   frustum,
   kambioctree,
+  kambipolynomials,
   nurbs,
   object3dgeo,
   object3dmd3,
@@ -24,7 +25,6 @@ uses
   object3ds,
   object3dschunks,
   object3dsmaterial,
-  kambipolynomials,
   quaternions,
   rayswindow,
   renderstateunit,

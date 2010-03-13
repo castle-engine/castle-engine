@@ -158,32 +158,32 @@ clean_container_units:
 
 src/3d/allkambi3dunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
-  (write-unit-all-units-in-dir \"3d/\" \"AllKambi3dUnits\") \
+  (write-unit-all-units-in-dir \"src/3d/\" \"AllKambi3dUnits\") \
   (save-buffer))"
 
 src/3d/opengl/allkambi3dglunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
-  (write-unit-all-units-in-dir \"3d/opengl/\" \"AllKambi3dGLUnits\") \
+  (write-unit-all-units-in-dir \"src/3d/opengl/\" \"AllKambi3dGLUnits\") \
   (save-buffer))"
 
 src/vrml/opengl/allkambivrmlglunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
-  (write-unit-all-units-in-dir \"vrml/opengl/\" \"AllKambiVRMLGLUnits\") \
+  (write-unit-all-units-in-dir \"src/vrml/opengl/\" \"AllKambiVRMLGLUnits\") \
   (save-buffer))"
 
 src/vrml/allkambivrmlunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
-  (write-unit-all-units-in-dir \"vrml/\" \"AllKambiVRMLUnits\") \
+  (write-unit-all-units-in-dir \"src/vrml/\" \"AllKambiVRMLUnits\") \
   (save-buffer))"
 
 src/audio/allkambiaudiounits.pas:
 	$(EMACS_BATCH) --eval="(progn \
-  (write-unit-all-units-in-dir \"audio/\" \"AllKambiAudioUnits\") \
+  (write-unit-all-units-in-dir \"src/audio/\" \"AllKambiAudioUnits\") \
   (save-buffer))"
 
 src/base/allkambibaseunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
-  (write-unit-all-units-in-dir \"base/\" \"AllKambiBaseUnits\") \
+  (write-unit-all-units-in-dir \"src/base/\" \"AllKambiBaseUnits\") \
   (kam-simple-replace-buffer \"kambixmlread,\" \"{ kambixmlread, --- kambixmlread will be compiled only if required by other units (as it's only for some FPC versions) }\") \
   (save-buffer))"
 
@@ -191,40 +191,40 @@ src/base/allkambibaseunits.pas:
 # with all-units-in-dir
 src/fonts/allkambifontsunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
-  (write-unit-all-units-in-dir \"fonts/\" \"AllKambiFontsUnits\") \
+  (write-unit-all-units-in-dir \"src/fonts/\" \"AllKambiFontsUnits\") \
   (kam-simple-replace-buffer \"ttfontstypes,\" \"ttfontstypes {\$$ifdef MSWINDOWS}, {\$$endif}\") \
   (save-buffer))"
 
 src/images/allkambiimagesunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
-  (write-unit-all-units-in-dir \"images/\" \"AllKambiImagesUnits\") \
+  (write-unit-all-units-in-dir \"src/images/\" \"AllKambiImagesUnits\") \
   (kam-simple-replace-buffer \"imagesfftw,\" \"{ imagesfftw, --- imagesfftw is not compiled here for now, as it requires FPC > 2.2.x, and is not actually used by anything else from the engine }\") \
   (save-buffer))"
 
 src/opengl/allkambiopenglunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
-  (write-unit-all-units-in-dir \"opengl/\" \"AllKambiOpenGLUnits\") \
-  (kam-simple-replace-buffer \"shadowvolumes,\" \"shadowvolumes {\$$ifdef MSWINDOWS}, {\$$endif}\") \
+  (write-unit-all-units-in-dir \"src/opengl/\" \"AllKambiOpenGLUnits\") \
+  (kam-simple-replace-buffer \"openglttfonts,\" \"openglttfonts {\$$ifdef MSWINDOWS}, {\$$endif}\") \
   (save-buffer))"
 
 src/kambiscript/allkambiscriptunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
-  (write-unit-all-units-in-dir \"kambiscript/\" \"AllKambiScriptUnits\") \
+  (write-unit-all-units-in-dir \"src/kambiscript/\" \"AllKambiScriptUnits\") \
   (save-buffer))"
 
 src/ui/allkambiuiunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
-  (write-unit-all-units-in-dir \"ui/\" \"AllKambiUIUnits\") \
+  (write-unit-all-units-in-dir \"src/ui/\" \"AllKambiUIUnits\") \
   (save-buffer))"
 
 src/ui/opengl/allkambiuiglunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
-  (write-unit-all-units-in-dir \"ui/opengl/\" \"AllKambiUIGLUnits\") \
+  (write-unit-all-units-in-dir \"src/ui/opengl/\" \"AllKambiUIGLUnits\") \
   (save-buffer))"
 
 src/glwindow/allkambiglwindowunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
-  (write-unit-all-units-in-dir \"glwindow/\" \"AllKambiGLWindowUnits\") \
+  (write-unit-all-units-in-dir \"src/glwindow/\" \"AllKambiGLWindowUnits\") \
   (save-buffer))"
 
 # examples and tools -----------------------------------------------------------

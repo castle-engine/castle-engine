@@ -16,14 +16,14 @@ uses
   glcubemap,
   glimages,
   glshaders,
+  glshadowvolumerenderer,
   glversionunit,
   kambiglut,
   kambiglutils,
   normalizationcubemap,
   openglbmpfonts,
   openglfonts,
-  openglttfonts,
-  glshadowvolumerenderer {$ifdef MSWINDOWS}, {$endif}
+  openglttfonts {$ifdef MSWINDOWS}, {$endif}
   {$ifdef MSWINDOWS}
   openglwindowsfonts
   {$endif MSWINDOWS}

@@ -30,6 +30,7 @@ uses
   parseparametersunit,
   progressconsole,
   progressunit,
+  recentfiles,
   rects,
   vectormath
   ;
