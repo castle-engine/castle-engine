@@ -78,12 +78,15 @@
     property Transform: TMatrix4Single read FTransform;
     { @groupEnd }
 
-    { Matrices for rendering shadow map from this light.
+    { Matrices and vectors for rendering shadow map from this light.
       Identity in this class, override for subclases able to do shadow mapping.
       @groupBegin }
     function MapProjectionMatrix: TMatrix4Single; virtual;
     function MapModelviewMatrix: TMatrix4Single; virtual;
     function MapModelviewRotationMatrix: TMatrix4Single; virtual;
+    function MapPosition: TVector3Single; virtual;
+    function MapDirection: TVector3Single; virtual;
+    function MapUp: TVector3Single; virtual;
     { @groupEnd }
   end;
 
@@ -144,6 +147,9 @@
     function MapProjectionMatrix: TMatrix4Single; override;
     function MapModelviewMatrix: TMatrix4Single; override;
     function MapModelviewRotationMatrix: TMatrix4Single; override;
+    function MapPosition: TVector3Single; override;
+    function MapDirection: TVector3Single; override;
+    function MapUp: TVector3Single; override;
   end;
 
   TVRMLPositionalLightNode = class(TVRMLLightNode)
@@ -238,6 +244,9 @@
     function MapProjectionMatrix: TMatrix4Single; override;
     function MapModelviewMatrix: TMatrix4Single; override;
     function MapModelviewRotationMatrix: TMatrix4Single; override;
+    function MapPosition: TVector3Single; override;
+    function MapDirection: TVector3Single; override;
+    function MapUp: TVector3Single; override;
   end;
 
 {$endif read_interface}
@@ -307,6 +316,21 @@ end;
 function TNodeX3DLightNode.MapModelviewRotationMatrix: TMatrix4Single;
 begin
   Result := IdentityMatrix4Single;
+end;
+
+function TNodeX3DLightNode.MapPosition: TVector3Single;
+begin
+  Result := ZeroVector3Single;
+end;
+
+function TNodeX3DLightNode.MapDirection: TVector3Single;
+begin
+  Result := ZeroVector3Single;
+end;
+
+function TNodeX3DLightNode.MapUp: TVector3Single;
+begin
+  Result := ZeroVector3Single;
 end;
 
 function TVRMLLightNode.CreateActiveLight(
@@ -379,18 +403,27 @@ end;
 
 function TVRMLDirectionalLightNode.MapModelviewMatrix: TMatrix4Single;
 begin
-  Result := LookDirMatrix(
-    MatrixMultPoint(Transform, FdProjectionLocation.Value),
-    MatrixMultDirection(Transform, FdDirection.Value),
-    MatrixMultDirection(Transform, FdUp.Value));
+  Result := LookDirMatrix(MapPosition, MapDirection, MapUp);
 end;
 
 function TVRMLDirectionalLightNode.MapModelviewRotationMatrix: TMatrix4Single;
 begin
-  Result := LookDirMatrix(
-    ZeroVector3Single,
-    MatrixMultDirection(Transform, FdDirection.Value),
-    MatrixMultDirection(Transform, FdUp.Value));
+  Result := LookDirMatrix(ZeroVector3Single, MapDirection, MapUp);
+end;
+
+function TVRMLDirectionalLightNode.MapPosition: TVector3Single;
+begin
+  Result := MatrixMultPoint(Transform, FdProjectionLocation.Value);
+end;
+
+function TVRMLDirectionalLightNode.MapDirection: TVector3Single;
+begin
+  Result := MatrixMultDirection(Transform, FdDirection.Value);
+end;
+
+function TVRMLDirectionalLightNode.MapUp: TVector3Single;
+begin
+  Result := MatrixMultDirection(Transform, FdUp.Value);
 end;
 
 constructor TVRMLPositionalLightNode.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -634,18 +667,27 @@ end;
 
 function TNodeSpotLight_2.MapModelviewMatrix: TMatrix4Single;
 begin
-  Result := LookDirMatrix(
-    MatrixMultPoint(Transform, FdLocation.Value),
-    MatrixMultDirection(Transform, FdDirection.Value),
-    MatrixMultDirection(Transform, FdUp.Value));
+  Result := LookDirMatrix(MapPosition, MapDirection, MapUp);
 end;
 
 function TNodeSpotLight_2.MapModelviewRotationMatrix: TMatrix4Single;
 begin
-  Result := LookDirMatrix(
-    ZeroVector3Single,
-    MatrixMultDirection(Transform, FdDirection.Value),
-    MatrixMultDirection(Transform, FdUp.Value));
+  Result := LookDirMatrix(ZeroVector3Single, MapDirection, MapUp);
+end;
+
+function TNodeSpotLight_2.MapPosition: TVector3Single;
+begin
+  Result := MatrixMultPoint(Transform, FdLocation.Value);
+end;
+
+function TNodeSpotLight_2.MapDirection: TVector3Single;
+begin
+  Result := MatrixMultDirection(Transform, FdDirection.Value);
+end;
+
+function TNodeSpotLight_2.MapUp: TVector3Single;
+begin
+  Result := MatrixMultDirection(Transform, FdUp.Value);
 end;
 
 procedure RegisterLightingNodes;
