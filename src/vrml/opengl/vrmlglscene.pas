@@ -1313,7 +1313,7 @@ type
       larger, if this scene is part of a larger world. }
     procedure GLProjection(ACamera: TCamera;
       const Box: TBox3D;
-      const WindowWidth, WindowHeight: Cardinal;
+      const ViewportX, ViewportY, ViewportWidth, ViewportHeight: Cardinal;
       const ForceZFarInfinity: boolean;
       out AngleOfViewX, AngleOfViewY, WalkProjectionNear, WalkProjectionFar: Single);
 
@@ -1323,7 +1323,7 @@ type
       @deprecated }
     procedure GLProjection(ACamera: TCamera;
       const Box: TBox3D;
-      const WindowWidth, WindowHeight: Cardinal;
+      const ViewportX, ViewportY, ViewportWidth, ViewportHeight: Cardinal;
       const ForceZFarInfinity: boolean = false);
 
     procedure UpdateGeneratedTextures(
@@ -4615,18 +4615,20 @@ end;
 
 procedure TVRMLGLScene.GLProjection(ACamera: TCamera;
   const Box: TBox3D;
-  const WindowWidth, WindowHeight: Cardinal;
+  const ViewportX, ViewportY, ViewportWidth, ViewportHeight: Cardinal;
   const ForceZFarInfinity: boolean);
 var
   AngleOfViewX, AngleOfViewY, WalkProjectionNear, WalkProjectionFar: Single;
 begin
-  GLProjection(ACamera, Box, WindowWidth, WindowHeight, ForceZFarInfinity,
+  GLProjection(ACamera, Box,
+    ViewportX, ViewportY, ViewportWidth, ViewportHeight,
+    ForceZFarInfinity,
     AngleOfViewX, AngleOfViewY, WalkProjectionNear, WalkProjectionFar);
 end;
 
 procedure TVRMLGLScene.GLProjection(ACamera: TCamera;
   const Box: TBox3D;
-  const WindowWidth, WindowHeight: Cardinal;
+  const ViewportX, ViewportY, ViewportWidth, ViewportHeight: Cardinal;
   const ForceZFarInfinity: boolean;
   out AngleOfViewX, AngleOfViewY, WalkProjectionNear, WalkProjectionFar: Single);
 
@@ -4651,7 +4653,7 @@ var
     if ForceZFarInfinity then
       WalkProjectionFar := ZFarInfinity;
 
-    ProjectionGLPerspective(AngleOfViewY, WindowWidth / WindowHeight,
+    ProjectionGLPerspective(AngleOfViewY, ViewportWidth / ViewportHeight,
       ZNear, WalkProjectionFar);
   end;
 
@@ -4695,7 +4697,7 @@ var
 var
   ProjectionType: TProjectionType;
 begin
-  glViewport(0, 0, WindowWidth, WindowHeight);
+  glViewport(ViewportX, ViewportY, ViewportWidth, ViewportHeight);
 
   ViewpointNode := ViewpointStack.Top as TVRMLViewpointNode;
 
@@ -4705,10 +4707,10 @@ begin
     PerspectiveFieldOfView := DefaultViewpointFieldOfView;
 
   AngleOfViewX := RadToDeg(TNodeViewpoint.ViewpointAngleOfView(
-    PerspectiveFieldOfView, WindowWidth / WindowHeight));
+    PerspectiveFieldOfView, ViewportWidth / ViewportHeight));
 
   AngleOfViewY := AdjustViewAngleDegToAspectRatio(
-    AngleOfViewX, WindowHeight / WindowWidth);
+    AngleOfViewX, ViewportHeight / ViewportWidth);
 
   { Tests:
     Writeln(Format('Angle of view: x %f, y %f', [AngleOfViewX, AngleOfViewY])); }

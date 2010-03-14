@@ -74,6 +74,7 @@ type
     FCamera: TCamera;
     FItems: T3DList;
     FPaused: boolean;
+    FDefaultViewport: boolean;
 
     FShadowVolumesPossible: boolean;
     FShadowVolumes: boolean;
@@ -469,6 +470,61 @@ type
           key / mouse clicks.)
       ) }
     property Paused: boolean read FPaused write FPaused default false;
+
+    { Should we render the 3D world in a default viewport that covers
+      the whole window. This is usually what you want. For more complicated
+      uses, you can turn this off, and use explicit TKamViewport
+      (connected to this scene manager by TKamViewport.SceneManager property)
+      for making your world visible. }
+    property DefaultViewport: boolean
+      read FDefaultViewport write FDefaultViewport default true;
+  end;
+
+  { 2D viewport showing 3D world. This uses assigned SceneManager
+    to show 3D world on the screen.
+
+    Note that for simple uses (when you just need to display 3D content
+    on whole container), SceneManager simply acts like a viewport too.
+    Using this TKamViewport is required only for more specialized cases,
+    allowing you to specify custom viewport sizes, use many viewports
+    (and cameras) to view the 3D worls at once and such.
+
+    TODO: WORK IN PROGRESS, HIGHLY BUGGY FOR NOW! }
+  TKamViewport = class(TUIControl)
+  private
+    FLeft: TGLint;
+    FBottom: TGLint;
+    FWidth: TGLsizei;
+    FHeight: TGLsizei;
+    FSceneManager: TKamSceneManager;
+    FCamera: TCamera;
+
+    { These variables are writen by ApplyProjection. }
+    FAngleOfViewX: Single;
+    FAngleOfViewY: Single;
+    FWalkProjectionNear: Single;
+    FWalkProjectionFar : Single;
+
+    procedure ApplyProjection;
+  public
+    function DrawStyle: TUIControlDrawStyle; override;
+    function PositionInside(const X, Y: Integer): boolean; override;
+  published
+    { Viewport dimensions where the 3D world will be drawn.
+      @groupBegin }
+    property Left: TGLint read FLeft write FLeft default 0;
+    property Bottom: TGLint read FBottom write FBottom default 0;
+    property Width: TGLsizei read FWidth write FWidth default 0;
+    property Height: TGLsizei read FHeight write FHeight default 0;
+    { @groupEnd }
+
+    property SceneManager: TKamSceneManager read FSceneManager write FSceneManager;
+
+    { TODO: assign camera by a setter, to keep reference, and automatically
+      nil when freed. }
+    property Camera: TCamera read FCamera write FCamera;
+
+    procedure Draw(const Focused: boolean); override;
   end;
 
 procedure Register;
@@ -495,6 +551,8 @@ begin
   FItems.Name := 'Items';
 
   FCameraBox := EmptyBox3D;
+
+  FDefaultViewport := true;
 end;
 
 destructor TKamSceneManager.Destroy;
@@ -604,7 +662,7 @@ begin
 
   if MainScene <> nil then
     MainScene.GLProjection(Camera, Box,
-      ContainerWidth, ContainerHeight, ShadowVolumesPossible,
+      0, 0, ContainerWidth, ContainerHeight, ShadowVolumesPossible,
       FAngleOfViewX, FAngleOfViewY, FWalkProjectionNear, FWalkProjectionFar) else
     DefaultGLProjection;
 end;
@@ -960,6 +1018,8 @@ procedure TKamSceneManager.Draw(const Focused: boolean);
 begin
   inherited;
 
+  if not DefaultViewport then Exit;
+
   { This assertion can break only if you misuse UseControls property, setting it
     to false (disallowing ContainerResize), and then trying to use Render.
 
@@ -1214,6 +1274,84 @@ procedure TKamSceneManager.SceneBoundViewpointVectorsChanged(Scene: TVRMLScene);
 begin
   if Camera <> nil then
     Scene.CameraBindToViewpoint(Camera, true);
+end;
+
+{ TKamViewport --------------------------------------------------------------- }
+
+function TKamViewport.DrawStyle: TUIControlDrawStyle;
+begin
+  Result := ds3D;
+end;
+
+function TKamViewport.PositionInside(const X, Y: Integer): boolean;
+begin
+  Result := (X >= Left) and (X < Left + Width) and
+            (Y >= Bottom) and (Y < Bottom + Height);
+end;
+
+procedure TKamViewport.ApplyProjection;
+var
+  Box: TBox3D;
+
+  procedure DefaultGLProjection;
+  var
+    ProjectionMatrix: TMatrix4f;
+  begin
+    glViewport(Left, Bottom, Width, Height);
+    ProjectionGLPerspective(45.0, Width / Height,
+      Box3DAvgSize(Box, 1.0) * 0.01,
+      Box3DMaxSize(Box, 1.0) * 10.0);
+
+    { update Camera.ProjectionMatrix }
+    glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
+    Camera.ProjectionMatrix := ProjectionMatrix;
+  end;
+
+begin
+  if Camera = nil then
+    Camera := SceneManager.CreateDefaultCamera(Self);
+
+  Box := SceneManager.Items.BoundingBox;
+
+  if SceneManager.MainScene <> nil then
+    SceneManager.MainScene.GLProjection(Camera, Box,
+      Left, Bottom, Width, Height, SceneManager.ShadowVolumesPossible,
+      FAngleOfViewX, FAngleOfViewY, FWalkProjectionNear, FWalkProjectionFar) else
+    DefaultGLProjection;
+end;
+
+procedure TKamViewport.Draw(const Focused: boolean);
+begin
+  if SceneManager <> nil then
+  begin
+    glPushAttrib(GL_SCISSOR_BIT);
+      { Use Scissor to limit what glClear clears. }
+      glScissor(Left, Bottom, Width, Height); // saved by GL_SCISSOR_BIT
+      glEnable(GL_SCISSOR_TEST); // saved by GL_SCISSOR_BIT
+
+      { make sure also SceneManager.Camera is assigned. This is needed
+        by some SceneManager stuff (like headlight).
+        TODO: make it not needed, or set our camera?
+        But using our camera is non-orthogonal (as SceneManager.Camera
+        has some special meaning). }
+      if SceneManager.Camera = nil then
+        SceneManager.Camera := SceneManager.CreateDefaultCamera(Self);
+
+      { always apply viewport projection before rendering }
+      ApplyProjection;
+
+      (* TODO: Where to do it?
+      SceneManager.Items.UpdateGeneratedTextures(@RenderFromViewEverything,
+        WalkProjectionNear, WalkProjectionFar,
+        Left, Bottom, Width, Height);
+      *)
+
+      RenderState.Target := rtScreen;
+      RenderState.CameraFromCameraObject(Camera);
+      SceneManager.RenderFromViewEverything;
+
+    glPopAttrib;
+  end;
 end;
 
 end.

@@ -281,6 +281,7 @@ EXAMPLES_BASE_NAMES := \
   examples/vrml/tools/xmlportals_to_x3d \
   examples/vrml/direct_vrmlglscene_test_1 \
   examples/vrml/direct_vrmlglscene_test_2 \
+  examples/vrml/multiple_viewports \
   examples/vrml/demo_animation \
   examples/vrml/fog_culling \
   examples/vrml/shadow_volume_test/shadow_volume_test \

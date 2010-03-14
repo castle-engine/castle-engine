@@ -1,0 +1,9 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+Background { skyColor 1 1 0.6 }
+
+Shape {
+  appearance Appearance { material Material { } }
+  geometry Teapot { solid FALSE }
+}

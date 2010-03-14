@@ -1,24 +1,3 @@
-  private
-    FViewportX: TGLint;
-    FViewportY: TGLint;
-    FViewportWidth: TGLsizei;
-    FViewportHeight: TGLsizei;
-  published
-    { Viewport dimensions where the 3D world will be drawn.
-
-      This isn't fully usable now, for now only serving for
-      Scene.UpdateGeneratedTextures to restore original viewport settings,
-      while some other stuff (notably, GLProjection) assumes that the 3D content
-      simply takes the whole screen. That's why it's in private section now.
-
-      It's initialized to cover the whole container (0, 0) to
-      (Container.Width, Container.Height) in each ContainerResize event.
-
-    property ViewportX: TGLint read FViewportX write FViewportX;
-    property ViewportY: TGLint read FViewportY write FViewportY;
-    property ViewportWidth: TGLsizei read FViewportWidth write FViewportWidth;
-    property ViewportHeight: TGLsizei read FViewportHeight write FViewportHeight;
-
 TODO: the plan is to restore these properties, and even make them published, in TSceneManager.
 Also, ViewportAutoResize: boolean (default true) should be published, to (dis)allow
 updating this in each ContainerResize event.
@@ -42,63 +21,64 @@ so we cannot make assumption 1 SceneManager <=> 1 viewport.
   like it is now.
 
 1. Should we make TKamViewport as TUIControl, separate from TKamSceneManager,
-that only has a link to TKamSceneManager? This would make TKamSceneManager
-with DefaultViewport to not work as TUIControl. Advantage: TKamViewport
-is a natural 2D control, it has sensible and simple PositionInside,
-and placing many TKamViewport instances on Controls follows the way
-Controls work.
+   that only has a link to TKamSceneManager?
+
+   Advantage: TKamViewport
+   is a natural 2D control, it has sensible and simple PositionInside,
+   and placing many TKamViewport instances on Controls follows the way
+   Controls work.
+
+   Disadvantage: hmmm, TheDefaultViewport idea (link from TKamSceneManager
+   to viewport for DefaultViewport = true) gets harder.
 
 2. Or maybe make a list of viewports inside TKamSceneManager?
-Disadvantage: SceneManager would have to walk over it's CustomViewports
-list, checking their PositionInside, essentially duplicating what
-TGLUIWindow.Controls / TKamOpenGLControl.Controls already can do for
-their lists of TUIControls.
+
+   type
+     TKamSceneManager = class
+       { Additional viewports to display 3D world.
+
+	 This is independent from DefaultViewport.
+
+	 When DefaultViewport = @true, this specifies additional viewports.
+	 Example usage: imagine a space shooter, like Epic or Wing Commander.
+	 You display in a default viewport FPS view from your space ship.
+	 And additionally you have a small viewport in upper-right corner
+	 that displays view from currently fired rocket.
+
+	 When DefaultViewport = @true, this specifies viewports to use
+	 @italic(instead) of default viewport. Example usage:
+	 in a typical 3D modeling programs, you like to have 4 viewports
+	 with 4 different cameras (front view, side view, top view,
+	 and free perspective view). Or when you make a split-screen game,
+	 played by 2 people on a single monitor.
+
+	 In any case, viewports (DefaultViewport and CustomViewports) may overlap
+	 with each. We first render the DefaultViewport, and then
+	 CustomViewports in downto order. So the first viewport on
+	 CustomViewports is considered to be the front one, this is consistent
+	 with TGLUIWindow.Controls and TKamOpenGLControl.Controls treatment. }
+       property CustomViewports: list of TKamViewport;
+     end;
+
+  Disadvantage: SceneManager would have to walk over it's CustomViewports
+  list, checking their PositionInside, essentially duplicating what
+  TGLUIWindow.Controls / TKamOpenGLControl.Controls already can do for
+  their lists of TUIControls.
 
 In any case:
 - We want, for DefaultViewport = true, to have some
   TheDefaultViewport: TKamViewport instance created,
   with sizes synched (in each ContainerResize) to contained sizes,
-  and with Camera synched to our Camera.t
+  and with Camera synched to our Camera.
+
+  TODO: this is not done yet. Which makes code awful,
+  since the code must stay in TKamSceneManager,
+  and TKamViewport duplicates it somewhat (like ApplyProjection),
+  or calls it from TKamSceneManager (like RenderEverything,
+  which is unclean --- it should be scene manager calling viewport,
+  not the other way around, sensibly).
+
 - Each TKamViewport takes care of passing it's events to it's Camera.
-
-type
-  TKamViewport = class
-    property Left:
-    property Bottom:
-    property Width:
-    property Height:
-    property Camera: TCamera
-  end;
-
-  TKamSceneManager = class
-    { Should we render the 3D world in a default viewport that covers
-      the whole window. }
-    property DefaultViewport: boolean default true;
-
-    { Additional viewports to display 3D world.
-
-      This is independent from DefaultViewport.
-
-      When DefaultViewport = @true, this specifies additional viewports.
-      Example usage: imagine a space shooter, like Epic or Wing Commander.
-      You display in a default viewport FPS view from your space ship.
-      And additionally you have a small viewport in upper-right corner
-      that displays view from currently fired rocket.
-
-      When DefaultViewport = @true, this specifies viewports to use
-      @italic(instead) of default viewport. Example usage:
-      in a typical 3D modeling programs, you like to have 4 viewports
-      with 4 different cameras (front view, side view, top view,
-      and free perspective view). Or when you make a split-screen game,
-      played by 2 people on a single monitor.
-
-      In any case, viewports (DefaultViewport and CustomViewports) may overlap
-      with each. We first render the DefaultViewport, and then
-      CustomViewports in downto order. So the first viewport on
-      CustomViewports is considered to be the front one, this is consistent
-      with TGLUIWindow.Controls and TKamOpenGLControl.Controls treatment. }
-    property CustomViewports: list of TKamViewport;
-  end;
 
 For later, something like KeyPreview for viewport would be useful
 to split-screen games, to catch keys (but not mouse clicks) regardless

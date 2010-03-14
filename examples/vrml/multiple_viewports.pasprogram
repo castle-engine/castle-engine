@@ -1,0 +1,95 @@
+uses GL, GLWindow, VRMLNodes, VRMLScene, VRMLGLScene, KambiSceneManager,
+  UIControls, Cameras, Quaternions, VectorMath, Math;
+
+var
+  Window: TGLUIWindow;
+  SceneManager: TKamSceneManager;
+  Scene: TVRMLGLScene;
+  Viewports: array [0..3] of TKamViewport;
+
+type
+  TBackground = class(TUIControl)
+  public
+    function DrawStyle: TUIControlDrawStyle; override;
+    procedure Draw(const Focused: boolean); override;
+  end;
+
+function TBackground.DrawStyle: TUIControlDrawStyle;
+begin
+  { 3D, because we want to be drawn before other 3D objects }
+  Result := ds3D;
+end;
+
+procedure TBackground.Draw(const Focused: boolean);
+begin
+  glClearColor(0.5, 0.5, 1, 1);
+  glClear(GL_COLOR_BUFFER_BIT);
+end;
+
+procedure Resize(Glwin: TGLWindow);
+const
+  Margin = 5;
+var
+  W, H: Integer;
+begin
+  W := Glwin.Width div 2;
+  H := Glwin.Height div 2;
+
+  Viewports[0].Left   :=       Margin;
+  Viewports[0].Bottom :=       Margin;
+  Viewports[0].Width  := W - 2*Margin;
+  Viewports[0].Height := H - 2*Margin;
+
+  Viewports[1].Left   := W +   Margin;
+  Viewports[1].Bottom :=       Margin;
+  Viewports[1].Width  := W - 2*Margin;
+  Viewports[1].Height := H - 2*Margin;
+
+  Viewports[2].Left   :=       Margin;
+  Viewports[2].Bottom := H +   Margin;
+  Viewports[2].Width  := W - 2*Margin;
+  Viewports[2].Height := H - 2*Margin;
+
+  Viewports[3].Left   := W +   Margin;
+  Viewports[3].Bottom := H +   Margin;
+  Viewports[3].Width  := W - 2*Margin;
+  Viewports[3].Height := H - 2*Margin;
+end;
+
+var
+  I: Integer;
+begin
+  Scene := TVRMLGLScene.Create(Application);
+  Scene.Load('models/teapot.x3dv');
+  Scene.Spatial := [ssRendering, ssDynamicCollisions];
+  Scene.ProcessEvents := true;
+
+  Window := TGLUIWindow.Create(Application);
+
+  SceneManager := TKamSceneManager.Create(Application);
+  SceneManager.Items.Add(Scene);
+  SceneManager.MainScene := Scene;
+  SceneManager.DefaultViewport := false;
+  { With and without this should work Ok:
+  Window.Controls.Add(SceneManager); }
+
+  for I := 0 to High(Viewports) do
+  begin
+    Viewports[I] := TKamViewport.Create(Application);
+    Viewports[I].SceneManager := SceneManager;
+    Viewports[I].Camera := SceneManager.CreateDefaultCamera(SceneManager);
+    { set different camera views for all viewports, to make it interesting }
+    if (I < 3) and (Viewports[I].Camera is TExamineCamera) then
+      TExamineCamera(Viewports[I].Camera).Rotations :=
+        QuatFromAxisAngle(UnitVector3Single[I], Pi/2);
+    { The initial Resize event will position viewports correctly }
+    Window.Controls.Add(Viewports[I]);
+  end;
+
+  { add a background, since our viewpoints (deliberately, for demo)
+    do not cover whole window. }
+  Window.Controls.Add(TBackground.Create(Application));
+
+  Window.OnResize := @Resize;
+  Window.InitAndRun;
+end.
