@@ -317,7 +317,7 @@ begin
   Items.AddObject('Seed', SeedSlider);
   Items.AddObject('Subdivision (render details)', SubdivisionSlider);
   Items.AddObject('Layers Count (render farther)', LayersCountSlider);
-  Items.AddObject('Image height scale', ImageHeightScaleSlider);
+  Items.AddObject('Image scale (load image first)', ImageHeightScaleSlider);
   PositionRelativeScreenX := prLowerBorder;
   PositionRelativeScreenY := prLowerBorder;
   PositionRelativeMenuX := prLowerBorder;
@@ -347,7 +347,7 @@ begin
   inherited;
   Items.AddObject('Subdivision (render details)', SubdivisionSlider);
   Items.AddObject('Layers Count (render farther)', LayersCountSlider);
-  Items.AddObject('Image height scale', ImageHeightScaleSlider);
+  Items.AddObject('Image scale (load image first)', ImageHeightScaleSlider);
   PositionRelativeScreenX := prLowerBorder;
   PositionRelativeScreenY := prLowerBorder;
   PositionRelativeMenuX := prLowerBorder;
