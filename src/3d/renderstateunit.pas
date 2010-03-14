@@ -60,18 +60,6 @@ type
     constructor Create;
     destructor Destroy; override;
   public
-    { Value > 0 means we're inside some stencil test (like for
-      InShadow = @false pass of shadow volumes). }
-    StencilTest: Cardinal;
-
-    { Always called after camera changed.
-      This will call all registered OnCameraChanged events.
-      Remember that @link(Target) must be already set correctly when calling
-      this, registered OnCameraChanged callbacks may read it. }
-    procedure CameraChanged;
-
-    property OnCameraChanged: TDynCameraChangedEventArray read FOnCameraChanged;
-  public
     { Current camera matrix. Transforms from world space (normal 3D space)
       to camera space (camera space is the space where you're always
       standing on zero point, looking in -Z, and so on).
@@ -93,8 +81,6 @@ type
     CameraInverseMatrix: TMatrix4Single;
     CameraInverseMatrixDone: boolean;
 
-    procedure CameraInverseMatrixNeeded;
-  public
     { Camera rotation matrix. That is, this is like CameraMatrix but
       it doesn't move the camera, only rotates it.
 
@@ -112,13 +98,18 @@ type
     CameraRotationInverseMatrix: TMatrix4Single;
     CameraRotationInverseMatrixDone: boolean;
 
+    CameraFrustum: TFrustum;
+
+    { Value > 0 means we're inside some stencil test (like for
+      InShadow = @false pass of shadow volumes). }
+    StencilTest: Cardinal;
+
+    procedure CameraInverseMatrixNeeded;
     procedure CameraRotationInverseMatrixNeeded;
 
     { Camera rotation matrix, as a 3x3 matrix. }
     function CameraRotationMatrix3: TMatrix3Single;
     function CameraRotationInverseMatrix3: TMatrix3Single;
-  public
-    CameraFrustum: TFrustum;
 
     { Set all Camera* properties from TCamera instance ACamera.
 
@@ -135,6 +126,14 @@ type
       ProjectionMatrix: TMatrix4Single);
 
     property Target: TRenderTarget read FTarget write FTarget;
+
+    { Always called after camera changed.
+      This will call all registered OnCameraChanged events.
+      Remember that @link(Target) must be already set correctly when calling
+      this, registered OnCameraChanged callbacks may read it. }
+    procedure CameraChanged;
+
+    property OnCameraChanged: TDynCameraChangedEventArray read FOnCameraChanged;
   end;
 
 var
