@@ -104,6 +104,9 @@ begin
     Window.Controls.Add(Viewports[I]);
   end;
 
+  { scene manager needs assigned camera to make a headlight }
+  SceneManager.Camera := Viewports[0].Camera;
+
   { add a background, since our viewpoints (deliberately, for demo)
     do not cover whole window. }
   Window.Controls.Add(TBackground.Create(Application));

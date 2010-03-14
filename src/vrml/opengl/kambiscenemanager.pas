@@ -915,8 +915,21 @@ end;
 
 procedure TKamSceneManager.RenderHeadLight;
 begin
-  if MainScene <> nil then
+  if (MainScene <> nil) and (Camera <> nil) then
   begin
+    { Camera may be nil here, when SceneManager is not in Controls
+      and rendering is done by custom viewport.
+      In such case, we have to assume headlight doesn't shine.
+
+      No, we cannot use camera settings from current viewport:
+      this would mean that mirror textures (like GeneratedCubeMapTexture)
+      will need to have different contents in different viewpoints,
+      which isn't possible.
+
+      So if you use custom viewports and want headlight Ok,
+      be sure to explicitly set TKamSceneManager.Camera
+      (probably, to one of your viewpoints' cameras). }
+
     TVRMLGLHeadlight.RenderOrDisable(MainScene.Headlight,
       0, RenderState.Target = rtScreen, Camera);
   end;
@@ -1211,8 +1224,8 @@ end;
 
 procedure TKamSceneManager.CameraVisibleChange(ACamera: TObject);
 begin
-  if MainScene <> nil then
-    { MainScene.ViewerChanged will cause MainScene.[On]VisibleChange,
+  if (MainScene <> nil) and (ACamera = Camera) then
+    { MainScene.ViewerChanged will cause MainScene.[On]VisibleChangeHere,
       that (assuming here that MainScene is also on Items) will cause
       ItemsVisibleChange that will cause our own VisibleChange.
       So this way MainScene.ViewerChanged will also cause our VisibleChange. }
@@ -1329,17 +1342,8 @@ begin
       glScissor(Left, Bottom, Width, Height); // saved by GL_SCISSOR_BIT
       glEnable(GL_SCISSOR_TEST); // saved by GL_SCISSOR_BIT
 
-      { make sure also SceneManager.Camera is assigned. This is needed
-        by some SceneManager stuff (like headlight).
-        TODO: make it not needed, or set our camera?
-        But using our camera is non-orthogonal (as SceneManager.Camera
-        has some special meaning). }
-      if SceneManager.Camera = nil then
-        SceneManager.Camera := SceneManager.CreateDefaultCamera(Self);
-
       { always apply viewport projection before rendering }
       ApplyProjection;
-
       (* TODO: Where to do it?
       SceneManager.Items.UpdateGeneratedTextures(@RenderFromViewEverything,
         WalkProjectionNear, WalkProjectionFar,
