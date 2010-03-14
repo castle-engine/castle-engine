@@ -28,8 +28,7 @@ Scene manager / controls / better Lazarus integration:
 
   make sure that "interact" key (not mouse down/up)
   govern scene pointingdeviceactive := false/true;
-  TVRMLScene will need some "input" instance (like cameras) instead of blindly
-  looking at mouse mbLeft button,
+  Use TVRMLScene.Input_PointingDeviceActivate,
   castle's LoadScene and TLevel.Create will set scene's this input
   (and will update it when player changes inputs, just like player's
   inputs are updated).

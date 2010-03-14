@@ -515,6 +515,7 @@ type
     FTimePlaying: boolean;
     FTimePlayingSpeed: Single;
     FFileName: string;
+    FInput_PointingDeviceActivate: TInputShortcut;
 
     { This always holds pointers to all TVRMLShapeTreeLOD instances in Shapes
       tree. }
@@ -1517,13 +1518,19 @@ type
       make sure you have non-nil OctreeCollisions (e.g. include
       ssDynamicCollisions in @link(Spatial)).
 
-
       @groupBegin }
     function MouseDown(const Button: TMouseButton): boolean; override;
     function MouseUp(const Button: TMouseButton): boolean; override;
     function MouseMove(const RayOrigin, RayDirection: TVector3Single;
       RayHit: T3DCollision): boolean; override;
     { @groupEnd }
+
+    { Input (mouse / key combination) to make pointing devive active
+      (that is, to activate VRML/X3D TouchSensor and such).
+      By default this requires left mouse button click.
+      You can change it to any other mouse button or even to key combination. }
+    property Input_PointingDeviceActivate: TInputShortcut
+      read FInput_PointingDeviceActivate;
 
     procedure Idle(const CompSpeed: Single); override;
 
@@ -2171,6 +2178,8 @@ begin
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;
 
+  FInput_PointingDeviceActivate := TInputShortcut.Create(K_None, K_None, #0, true, mbLeft);
+
   { We could call here ScheduleChangedAll (or directly ChangedAll),
     but there should be no need. FRootNode remains nil,
     and our current state should be equal to what ScheduleChangedAll
@@ -2194,6 +2203,8 @@ begin
 
   { frees FManifoldEdges, FBorderEdges if needed }
   InvalidateManifoldAndBorderEdges;
+
+  FreeAndNil(FInput_PointingDeviceActivate);
 
   FreeAndNil(GeneratedTextures);
   FreeAndNil(TransformNodesInfo);
@@ -4914,6 +4925,9 @@ begin
       end;
     finally EndChangesSchedule; end;
   end;
+
+  if Input_PointingDeviceActivate.IsKey(Key, C) then
+    PointingDeviceActive := true;
 end;
 
 function TVRMLScene.KeyUp(Key: TKey; C: char): boolean;
@@ -4952,6 +4966,9 @@ begin
       end;
     finally EndChangesSchedule; end;
   end;
+
+  if Input_PointingDeviceActivate.IsKey(Key, C) then
+    PointingDeviceActive := false;
 end;
 
 { pointing device handling --------------------------------------------------- }
@@ -5244,7 +5261,7 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if Button = mbLeft then
+  if Input_PointingDeviceActivate.IsMouseButton(Button) then
   begin
     PointingDeviceActive := true;
     { Do not treat it as handled (returning ExclusiveEvents),
@@ -5258,7 +5275,7 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if Button = mbLeft then
+  if Input_PointingDeviceActivate.IsMouseButton(Button) then
   begin
     PointingDeviceActive := false;
     { Do not treat it as handled (returning ExclusiveEvents),
