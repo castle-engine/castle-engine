@@ -516,6 +516,7 @@ type
     FTimePlayingSpeed: Single;
     FFileName: string;
     FInput_PointingDeviceActivate: TInputShortcut;
+    FOwnsInput_PointingDeviceActivate: boolean;
 
     { This always holds pointers to all TVRMLShapeTreeLOD instances in Shapes
       tree. }
@@ -525,6 +526,7 @@ type
     procedure UpdateLODLevel(LODTree: TVRMLShapeTreeLOD);
 
     procedure SetFileName(const AValue: string);
+    procedure SetInput_PointingDeviceActivate(const Value: TInputShortcut);
   private
     TransformNodesInfo: TDynTransformNodeInfoArray;
 
@@ -1528,9 +1530,18 @@ type
     { Input (mouse / key combination) to make pointing devive active
       (that is, to activate VRML/X3D TouchSensor and such).
       By default this requires left mouse button click.
-      You can change it to any other mouse button or even to key combination. }
+
+      You can change it to any other mouse button or even to key combination.
+      You can simply change properties of existing
+      Input_PointingDeviceActivate value (like TInputShortcut.Key1
+      or TInputShortcut.MouseButtonUse).
+
+      Or you can even assign here your own TInputShortcut instance.
+      Then you're responsible for freeing it yourself.
+      This may be comfortable e.g. to share your own TInputShortcut instance
+      among many TVRMLScene instances. }
     property Input_PointingDeviceActivate: TInputShortcut
-      read FInput_PointingDeviceActivate;
+      read FInput_PointingDeviceActivate write SetInput_PointingDeviceActivate;
 
     procedure Idle(const CompSpeed: Single); override;
 
@@ -2179,6 +2190,7 @@ begin
   FTimePlayingSpeed := 1.0;
 
   FInput_PointingDeviceActivate := TInputShortcut.Create(K_None, K_None, #0, true, mbLeft);
+  FOwnsInput_PointingDeviceActivate := true;
 
   { We could call here ScheduleChangedAll (or directly ChangedAll),
     but there should be no need. FRootNode remains nil,
@@ -2204,7 +2216,9 @@ begin
   { frees FManifoldEdges, FBorderEdges if needed }
   InvalidateManifoldAndBorderEdges;
 
-  FreeAndNil(FInput_PointingDeviceActivate);
+  if FOwnsInput_PointingDeviceActivate then
+    FreeAndNil(FInput_PointingDeviceActivate) else
+    FInput_PointingDeviceActivate := nil;
 
   FreeAndNil(GeneratedTextures);
   FreeAndNil(TransformNodesInfo);
@@ -5254,6 +5268,19 @@ begin
   if PointingDeviceOverItem <> nil then
     Result := PointingDeviceOverItem^.State.PointingDeviceSensors else
     Result := nil;
+end;
+
+procedure TVRMLScene.SetInput_PointingDeviceActivate(const Value: TInputShortcut);
+begin
+  if FInput_PointingDeviceActivate <> Value then
+  begin
+    { first, free the old one }
+    if FOwnsInput_PointingDeviceActivate then
+      FreeAndNil(FInput_PointingDeviceActivate);
+
+    FInput_PointingDeviceActivate := Value;
+    FOwnsInput_PointingDeviceActivate := false;
+  end;
 end;
 
 function TVRMLScene.MouseDown(const Button: TMouseButton): boolean;
