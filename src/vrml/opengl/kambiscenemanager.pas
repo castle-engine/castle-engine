@@ -506,9 +506,31 @@ type
     FWalkProjectionFar : Single;
 
     procedure ApplyProjection;
+    procedure SetCamera(const Value: TCamera);
+    procedure CameraVisibleChange(ACamera: TObject); virtual;
+  protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
+    destructor Destroy; override;
     function DrawStyle: TUIControlDrawStyle; override;
+    procedure Draw(const Focused: boolean); override;
     function PositionInside(const X, Y: Integer): boolean; override;
+
+    procedure SetContainer(const Value: IUIContainer); override;
+    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
+
+    function AllowSuspendForInput: boolean; override;
+
+    procedure Idle(const CompSpeed: Single;
+      const HandleMouseAndKeys: boolean;
+      var LetOthersHandleMouseAndKeys: boolean); override;
+
+    function KeyDown(Key: TKey; C: char): boolean; override;
+    function KeyUp(Key: TKey; C: char): boolean; override;
+
+    function MouseDown(const Button: TMouseButton): boolean; override;
+    function MouseUp(const Button: TMouseButton): boolean; override;
+    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
   published
     { Viewport dimensions where the 3D world will be drawn.
       @groupBegin }
@@ -520,11 +542,31 @@ type
 
     property SceneManager: TKamSceneManager read FSceneManager write FSceneManager;
 
-    { TODO: assign camera by a setter, to keep reference, and automatically
-      nil when freed. }
-    property Camera: TCamera read FCamera write FCamera;
+    { Camera used to render this viewport.
 
-    procedure Draw(const Focused: boolean); override;
+      See TKamSceneManager.Camera, most comments there apply also here:
+      Camera cannot be @nil (default camera object will be created by
+      SceneManager.CreateDefaultCamera at the nearest draw).
+      Camera @italic(should not) be inside some other container
+      (like on TGLUIWindow.Controls or TKamOpenGLControl.Controls list),
+      we will pass events by ourselves.
+      We will "hijack" some Camera events (subset of what scene manager hijacks),
+      because we can handle them Ok.
+
+      The viewport's camera is slightly less important than
+      TKamSceneManager.Camera, because TKamSceneManager.Camera may be treated
+      as "central" camera. Viewport's camera may not (because you may
+      have many viewports and they all deserve fair treatment).
+      So e.g. headlight is done only from TKamSceneManager.Camera
+      (for mirror textures, there must be one headlight for your 3D world).
+      Also VRML/X3D ProximitySensors receive events only from
+      TKamSceneManager.Camera.
+
+      If you want, it's absolutely Ok (even encouraged) to assign
+      camera from viewport also to TKamSceneManager.Camera.
+
+      @seealso TKamSceneManager.Camera }
+    property Camera: TCamera read FCamera write SetCamera;
   end;
 
 procedure Register;
@@ -1046,10 +1088,10 @@ begin
     ApplyProjection;
   end;
 
+  { When DefaultViewport, we safely assume below that we cover the whole
+    viewport. (For custom viewports, it's their problem to do this.) }
   Items.UpdateGeneratedTextures(@RenderFromViewEverything,
     WalkProjectionNear, WalkProjectionFar,
-    { For now assume viewport fills the whole container,
-      see ../../../doc/TODO.scene_manager_viewport }
     0, 0, ContainerWidth, ContainerHeight);
 
   RenderState.Target := rtScreen;
@@ -1291,6 +1333,98 @@ end;
 
 { TKamViewport --------------------------------------------------------------- }
 
+destructor TKamViewport.Destroy;
+begin
+  { unregister self from Camera callbacs, etc. }
+  Camera := nil;
+
+  inherited;
+end;
+
+{TODO:
+bind to
+
+CameraMoveAllowed
+CameraGetHeight
+}
+
+procedure TKamViewport.SetCamera(const Value: TCamera);
+begin
+  if FCamera <> Value then
+  begin
+    if FCamera <> nil then
+    begin
+      FCamera.RemoveFreeNotification(Self);
+      FCamera.OnVisibleChange := nil;
+      FCamera.OnCursorChange := nil;
+      if FCamera is TWalkCamera then
+      begin
+        TWalkCamera(FCamera).OnMoveAllowed := nil;
+        TWalkCamera(FCamera).OnGetHeightAbove := nil;
+      end;
+
+      FCamera.Container := nil;
+    end;
+
+    FCamera := Value;
+
+    if FCamera <> nil then
+    begin
+      FCamera.FreeNotification(Self);
+      { Unconditionally change FCamera.OnVisibleChange callback,
+        to override TGLUIWindow / TKamOpenGLControl that also try
+        to "hijack" this camera's event. }
+      FCamera.OnVisibleChange := @CameraVisibleChange;
+      { TODO: FCamera.OnCursorChange := @ItemsAndCameraCursorChange; }
+      if FCamera is TWalkCamera then
+      begin
+        { TODO: TWalkCamera(FCamera).OnMoveAllowed := @CameraMoveAllowed; }
+        { TODO: TWalkCamera(FCamera).OnGetHeightAbove := @CameraGetHeight; }
+      end;
+
+      FCamera.Container := Container;
+      if ContainerSizeKnown then
+        FCamera.ContainerResize(ContainerWidth, ContainerHeight);
+    end;
+  end;
+end;
+
+procedure TKamViewport.CameraVisibleChange(ACamera: TObject);
+begin
+  VisibleChange;
+end;
+
+{ TODO: own ItemsAndCameraCursorChange? Control own Cursor? }
+
+procedure TKamViewport.SetContainer(const Value: IUIContainer);
+begin
+  inherited;
+
+  { Keep Camera.Container always the same as our Container }
+  if Camera <> nil then
+    Camera.Container := Container;
+end;
+
+procedure TKamViewport.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+
+  if Operation = opRemove then
+  begin
+    { set to nil by SetCamera, to clean nicely }
+    if AComponent = FCamera then
+      Camera := nil;
+  end;
+end;
+
+procedure TKamViewport.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
+begin
+  inherited;
+
+  if Camera <> nil then
+    Camera.ContainerResize(AContainerWidth, AContainerHeight);
+end;
+
 function TKamViewport.DrawStyle: TUIControlDrawStyle;
 begin
   Result := ds3D;
@@ -1298,8 +1432,11 @@ end;
 
 function TKamViewport.PositionInside(const X, Y: Integer): boolean;
 begin
-  Result := (X >= Left) and (X < Left + Width) and
-            (Y >= Bottom) and (Y < Bottom + Height);
+  Result :=
+    (X >= Left) and
+    (X  < Left + Width) and
+    (ContainerHeight - Y >= Bottom) and
+    (ContainerHeight - Y  < Bottom + Height);
 end;
 
 procedure TKamViewport.ApplyProjection;
@@ -1344,7 +1481,10 @@ begin
 
       { always apply viewport projection before rendering }
       ApplyProjection;
-      (* TODO: Where to do it?
+
+      (* TODO: Where to do it? It would be wasteful to update
+         for *every* viewport...
+
       SceneManager.Items.UpdateGeneratedTextures(@RenderFromViewEverything,
         WalkProjectionNear, WalkProjectionFar,
         Left, Bottom, Width, Height);
@@ -1356,6 +1496,123 @@ begin
 
     glPopAttrib;
   end;
+end;
+
+{ TODO:
+  how to replicate
+  TKamViewport.PrepareRender?
+}
+
+function TKamViewport.AllowSuspendForInput: boolean;
+begin
+  Result := (Camera = nil) or Camera.AllowSuspendForInput;
+end;
+
+procedure TKamViewport.Idle(const CompSpeed: Single;
+  const HandleMouseAndKeys: boolean;
+  var LetOthersHandleMouseAndKeys: boolean);
+begin
+  inherited;
+
+  if Camera <> nil then
+  begin
+    LetOthersHandleMouseAndKeys := not Camera.ExclusiveEvents;
+    Camera.Idle(CompSpeed, HandleMouseAndKeys, LetOthersHandleMouseAndKeys);
+  end else
+    LetOthersHandleMouseAndKeys := true;
+end;
+
+function TKamViewport.KeyDown(Key: TKey; C: char): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if Camera <> nil then
+  begin
+    Result := Camera.KeyDown(Key, C);
+    if Result then Exit;
+  end;
+end;
+
+function TKamViewport.KeyUp(Key: TKey; C: char): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if Camera <> nil then
+  begin
+    Result := Camera.KeyUp(Key, C);
+    if Result then Exit;
+  end;
+end;
+
+function TKamViewport.MouseDown(const Button: TMouseButton): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if Camera <> nil then
+  begin
+    Result := Camera.MouseDown(Button);
+    if Result then Exit;
+  end;
+end;
+
+function TKamViewport.MouseUp(const Button: TMouseButton): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if Camera <> nil then
+  begin
+    Result := Camera.MouseUp(Button);
+    if Result then Exit;
+  end;
+end;
+
+function TKamViewport.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
+{var
+  RayOrigin, RayDirection: TVector3Single;
+  Dummy: Single;}
+begin
+  Result := inherited;
+  if (not Result) and (Camera <> nil) then
+  begin
+    Result := Camera.MouseMove(OldX, OldY, NewX, NewY);
+
+    { TODO: like TKamSceneManager, shoot with our own Camera.Ray
+      (probably, Ray need to be adjusted, our AngleOfViewX / AngleOfViewY
+      are only for our Left/Bottom/Width/Height...
+
+      We want our own version, that will use our own Camera, although the rest
+      (MouseHit3D etc.) still stays in scene manager. }
+    (*
+    if not Result then
+    begin
+      Camera.Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, RayOrigin, RayDirection);
+
+      { We call here Items.RayCollision ourselves, to update FMouseRayHit
+        (useful to e.g. update Cusdor based on it). To Items MouseMove
+        we can also pass this FMouseRay, so that they know collision
+        result already. }
+
+      FreeAndNil(FMouseRayHit);
+      FMouseRayHit := Items.RayCollision(Dummy, RayOrigin, RayDirection,
+        { Do not use CollisionIgnoreItem here,
+          as this is not camera<->3d world collision? } nil);
+
+      { calculate MouseRayHit3D }
+      if MouseRayHit <> nil then
+        MouseRayHit3D := MouseRayHit.Hierarchy.Last else
+        MouseRayHit3D := nil;
+
+      Items.MouseMove(RayOrigin, RayDirection, FMouseRayHit);
+    end;
+    *)
+  end;
+
+  { update the cursor, since scene under the cursor possibly changed. }
+  { TODO: ItemsAndCameraCursorChange(Self); }
 end;
 
 end.

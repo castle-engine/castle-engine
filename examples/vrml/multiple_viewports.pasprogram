@@ -105,7 +105,10 @@ begin
   end;
 
   { scene manager needs assigned camera to make a headlight }
-  SceneManager.Camera := Viewports[0].Camera;
+  { TODO: this resets Camera events and Container.
+    Right now, one camera cannot be simultaneously on scnee manager
+    and viewports. So assign here new camera... }
+  SceneManager.Camera := SceneManager.CreateDefaultCamera(SceneManager);
 
   { add a background, since our viewpoints (deliberately, for demo)
     do not cover whole window. }
