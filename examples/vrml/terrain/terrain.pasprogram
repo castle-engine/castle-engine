@@ -58,6 +58,9 @@ uses SysUtils, Classes, Boxes3D,
   KambiStringUtils, GLMenu, UIControls, Images, RenderElevations,
   GLShaders, GLImages;
 
+type
+  TTerrainType = (ttNoise, ttKamScript, ttImage, ttGrid);
+
 var
   { global stuff }
   Glw: TGLUIWindow;
@@ -65,12 +68,14 @@ var
   ExamineCamera: TExamineCamera;
   WalkCamera: TWalkCamera;
   Elevation: TElevation;
+  TerrainTypeRadio: TMenuItemRadioGroup;
 
   { gl helpers }
   GLSLProgram: TGLSLProgram;
   GLTexSand, GLTexBread, GLTexRock: TGLuint;
 
   { settings }
+  TerrainType: TTerrainType = ttNoise; {< this is tied with Elevation class }
   Wireframe: boolean = false;
   NoiseInterpolation: TNoiseInterpolation = niCosine;
   NoiseBlur: boolean = false;
@@ -167,6 +172,22 @@ begin
       TElevationGrid(Elevation).GridY2 := GridY2;
       TElevationGrid(Elevation).GridHeightScale := GridHeightScale;
     end;
+
+    { calculate TerrainType }
+    if Elevation is TElevationGrid then
+      TerrainType := ttGrid else
+    if Elevation is TElevationNoise then
+      TerrainType := ttNoise else
+    if Elevation is TElevationKamScript then
+      TerrainType := ttKamScript else
+    if Elevation is TElevationImage then
+      TerrainType := ttImage else
+      raise EInternalError.Create('Unknown TerrainType from Elevation class');
+
+    { set TerrainTypeRadio.Selected (since these radios do not have AutoChecked,
+      and this is good (because some have Ok/Cancel dialog and user can
+      cancel)). }
+    TerrainTypeRadio.Selected := TerrainTypeRadio.Items[Ord(TerrainType)];
   end;
 end;
 
@@ -563,16 +584,29 @@ end;
 function CreateMainMenu: TMenu;
 const
   NoiseInterpolationNames: array [TNoiseInterpolation] of string =
-  ('None', 'Linear', 'Cosine', 'Spline');
+  ('None', 'Linear', 'Cosine (Default)', 'Spline');
 var
   M: TMenu;
+  Radio: TMenuItemRadio;
 begin
   Result := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');
-    M.Append(TMenuItem.Create('Generate random terrain', 70));
-    M.Append(TMenuItem.Create('Define terrain by KambiScript expression ...', 60));
-    M.Append(TMenuItem.Create('Pure image terrain', 80));
-    M.Append(TMenuItem.Create('Load terrain from SRTM (.hgt) file ...', 50, CtrlO));
+    Radio := TMenuItemRadio.Create('Random terrain', 70, TerrainType = ttNoise, false);
+    TerrainTypeRadio := Radio.Group;
+    M.Append(Radio);
+
+    Radio := TMenuItemRadio.Create('Terrain defined by KambiScript expression ...', 60, TerrainType = ttKamScript, false);
+    Radio.Group := TerrainTypeRadio;
+    M.Append(Radio);
+
+    Radio := TMenuItemRadio.Create('Pure image terrain', 80, TerrainType = ttImage, false);
+    Radio.Group := TerrainTypeRadio;
+    M.Append(Radio);
+
+    Radio := TMenuItemRadio.Create('Terrain from SRTM (.hgt) file ...', 50, CtrlO, TerrainType = ttGrid, false);
+    Radio.Group := TerrainTypeRadio;
+    M.Append(Radio);
+
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('Walk', 120, 'c', Camera = WalkCamera, true));
     M.Append(TMenuItemChecked.Create('Keep Above the Ground (in Walk)', 125, KeepCameraAboveGround, true));
