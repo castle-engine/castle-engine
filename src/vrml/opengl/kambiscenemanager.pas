@@ -498,6 +498,7 @@ type
     FHeight: TGLsizei;
     FSceneManager: TKamSceneManager;
     FCamera: TCamera;
+    FPaused: boolean;
 
     { These variables are writen by ApplyProjection. }
     FAngleOfViewX: Single;
@@ -567,6 +568,10 @@ type
 
       @seealso TKamSceneManager.Camera }
     property Camera: TCamera read FCamera write SetCamera;
+
+    { When @true, the camera of this viewpoint is paused (not responsive).
+      This is somewhat a subset of what TKamSceneManager.Paused does. }
+    property Paused: boolean read FPaused write FPaused default false;
   end;
 
 procedure Register;
@@ -1505,7 +1510,7 @@ end;
 
 function TKamViewport.AllowSuspendForInput: boolean;
 begin
-  Result := (Camera = nil) or Camera.AllowSuspendForInput;
+  Result := (Camera = nil) or Paused or Camera.AllowSuspendForInput;
 end;
 
 procedure TKamViewport.Idle(const CompSpeed: Single;
@@ -1513,6 +1518,12 @@ procedure TKamViewport.Idle(const CompSpeed: Single;
   var LetOthersHandleMouseAndKeys: boolean);
 begin
   inherited;
+
+  if Paused then
+  begin
+    LetOthersHandleMouseAndKeys := true;
+    Exit;
+  end;
 
   if Camera <> nil then
   begin
@@ -1525,7 +1536,7 @@ end;
 function TKamViewport.KeyDown(Key: TKey; C: char): boolean;
 begin
   Result := inherited;
-  if Result then Exit;
+  if Result or Paused then Exit;
 
   if Camera <> nil then
   begin
@@ -1537,7 +1548,7 @@ end;
 function TKamViewport.KeyUp(Key: TKey; C: char): boolean;
 begin
   Result := inherited;
-  if Result then Exit;
+  if Result or Paused then Exit;
 
   if Camera <> nil then
   begin
@@ -1549,7 +1560,7 @@ end;
 function TKamViewport.MouseDown(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
-  if Result then Exit;
+  if Result or Paused then Exit;
 
   if Camera <> nil then
   begin
@@ -1561,7 +1572,7 @@ end;
 function TKamViewport.MouseUp(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
-  if Result then Exit;
+  if Result or Paused then Exit;
 
   if Camera <> nil then
   begin
@@ -1576,7 +1587,7 @@ function TKamViewport.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
   Dummy: Single;}
 begin
   Result := inherited;
-  if (not Result) and (Camera <> nil) then
+  if (not Result) and (not Paused) and (Camera <> nil) then
   begin
     Result := Camera.MouseMove(OldX, OldY, NewX, NewY);
 
