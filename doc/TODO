@@ -23,8 +23,6 @@ Scene manager / controls / better Lazarus integration:
 (blockers before 2.0 release) ------------------------------------------------
 
 * Making Viewport*, see TODO.scene_manager_viewport, should be trivial now!
-  - Like on TODO.scene_manager_viewport, we'll need ViewportAutoResize default true
-  - use it in tscenemanager
   - also, in tscenemanager, add property AlwaysApplyProjection, default false,
     use "AlwaysApplyProjection and ApplyProjectionNeeded" in render,
   - make laz demo, with 4 scene managers, each having other corner of window,
@@ -34,9 +32,6 @@ Scene manager / controls / better Lazarus integration:
     when resing control the scene managers are resized to occupy appropriate
     screen corner. Make sure to use something mith generatedcubemap,
     to test that getting back viewport is Ok.
-  - TSceneManager.PositionInside could use Viewport*, if not ViewportAutoResize.
-  - currently, TKamViewport doesn't even pass events to camera,
-    so cameras there don't work...
 
   - remove comment "WORK IN PROGRESS, HIGHLY BUGGY FOR NOW" then...
 
