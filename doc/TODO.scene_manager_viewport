@@ -1,40 +1,12 @@
-TODO: the plan is to restore these properties, and even make them published, in TSceneManager.
-Also, ViewportAutoResize: boolean (default true) should be published, to (dis)allow
-updating this in each ContainerResize event.
-Also, GLProjection and TSceneManager.Render (when it calls Scene.UpdateGeneratedTextures)
-should use this.
+Make FillWindow (or some better name), @true (default for scene manager)
+then Left/Bottom/Width/Height are ignored.
+This way both TKamSceneManager and TKamViewport may have
+FillWindow = true/false, so FillWindow is orthogonal to the fact if you
+use scene manager or TkamViewport.
 
-The goal is to allow split-screen rendering and such tricks trivial,
-just set ViewportAutoResize = false and set remaining Viewport* however you want.
-
-For now, if you need this functionality, you cannot use TSceneManager (you have to do
-the equivalent job of managing TVRMLGLScene and such manually), and you cannot use
-GLProjection.
 ------------------------------------------------------------------------------
-Later plans:
+Move this docs somewhere?
 
-To make this really great, we'll have to do a little more.
-We want to keep only one SceneManager (to avoid calling e.g. Idle many times),
-so we cannot make assumption 1 SceneManager <=> 1 viewport.
-- We need a list of viewports.
-- We also need SceneManager to work, by default, as a single viewport --
-  like it is now.
-
-1. Should we make TKamViewport as TUIControl, separate from TKamSceneManager,
-   that only has a link to TKamSceneManager?
-
-   Advantage: TKamViewport
-   is a natural 2D control, it has sensible and simple PositionInside,
-   and placing many TKamViewport instances on Controls follows the way
-   Controls work.
-
-   Disadvantage: hmmm, TheDefaultViewport idea (link from TKamSceneManager
-   to viewport for DefaultViewport = true) gets harder.
-
-2. Or maybe make a list of viewports inside TKamSceneManager?
-
-   type
-     TKamSceneManager = class
        { Additional viewports to display 3D world.
 
 	 This is independent from DefaultViewport.
@@ -57,32 +29,11 @@ so we cannot make assumption 1 SceneManager <=> 1 viewport.
 	 CustomViewports in downto order. So the first viewport on
 	 CustomViewports is considered to be the front one, this is consistent
 	 with TGLUIWindow.Controls and TKamOpenGLControl.Controls treatment. }
-       property CustomViewports: list of TKamViewport;
-     end;
 
-  Disadvantage: SceneManager would have to walk over it's CustomViewports
-  list, checking their PositionInside, essentially duplicating what
-  TGLUIWindow.Controls / TKamOpenGLControl.Controls already can do for
-  their lists of TUIControls.
-
-New idea: Make TKamSceneManager a descendant of TKamAbstractViewport.
-This way we share code, and no need for dumb calls from TKamSceneManager
-to TheDefaultViewport are even needed.
-
-In any case:
-- We want, for DefaultViewport = true, to have some
-  TheDefaultViewport: TKamViewport instance created,
-  with sizes synched (in each ContainerResize) to contained sizes,
-  and with Camera synched to our Camera.
-
-  TODO: this is not done yet. Which makes code awful,
-  since the code must stay in TKamSceneManager,
-  and TKamViewport duplicates it somewhat (like ApplyProjection),
-  or calls it from TKamSceneManager (like RenderEverything,
-  which is unclean --- it should be scene manager calling viewport,
-  not the other way around, sensibly).
-
-- Each TKamViewport takes care of passing it's events to it's Camera.
+- You always want to have exactly one scene manager for your 3D world,
+  and placed on the Controls (even if you use DefaultViewport = false).
+  This way your Items get Idle called once, and exactly once (not more, not less).
+------------------------------------------------------------------------------
 
 For later, something like KeyPreview for viewport would be useful
 to split-screen games, to catch keys (but not mouse clicks) regardless
@@ -99,3 +50,6 @@ common Render* methods, from which TKamSceneManager and TkamViewport derive?
 This would allow making descendants of TkamViewport with specialized
 rendering methods.
 E.g. make in multple_viewports two viewports render with wireframe.
+
+ApplyProjection move also to TKamAbstractViewport.
+Render / Draw stuff move also there (like RenderEverything).
