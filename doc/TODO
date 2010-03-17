@@ -33,8 +33,6 @@ Scene manager / controls / better Lazarus integration:
     screen corner. Make sure to use something mith generatedcubemap,
     to test that getting back viewport is Ok.
 
-  - remove comment "WORK IN PROGRESS, HIGHLY BUGGY FOR NOW" then...
-
   Make a news item about this, with demo screenshot, on changes_log.
 
 (not blockers before 2.0 release) --------------------------------------------

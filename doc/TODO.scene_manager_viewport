@@ -1,34 +1,3 @@
-------------------------------------------------------------------------------
-Move this docs somewhere?
-
-       { Additional viewports to display 3D world.
-
-	 This is independent from DefaultViewport.
-
-	 When DefaultViewport = @true, this specifies additional viewports.
-	 Example usage: imagine a space shooter, like Epic or Wing Commander.
-	 You display in a default viewport FPS view from your space ship.
-	 And additionally you have a small viewport in upper-right corner
-	 that displays view from currently fired rocket.
-
-	 When DefaultViewport = @true, this specifies viewports to use
-	 @italic(instead) of default viewport. Example usage:
-	 in a typical 3D modeling programs, you like to have 4 viewports
-	 with 4 different cameras (front view, side view, top view,
-	 and free perspective view). Or when you make a split-screen game,
-	 played by 2 people on a single monitor.
-
-	 In any case, viewports (DefaultViewport and CustomViewports) may overlap
-	 with each. We first render the DefaultViewport, and then
-	 CustomViewports in downto order. So the first viewport on
-	 CustomViewports is considered to be the front one, this is consistent
-	 with TGLUIWindow.Controls and TKamOpenGLControl.Controls treatment. }
-
-- You always want to have exactly one scene manager for your 3D world,
-  and placed on the Controls (even if you use DefaultViewport = false).
-  This way your Items get Idle called once, and exactly once (not more, not less).
-------------------------------------------------------------------------------
-
 TODO: use Focused = true to draw border around focused viewport
 in multple_viewports.
 

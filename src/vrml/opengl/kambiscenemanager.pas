@@ -275,7 +275,10 @@ type
     This is a TUIControl descendant, which means it's adviced usage
     is to add this to TGLUIWindow.Controls or TKamOpenGLControl.Controls.
     This passes relevant TUIControl events to all the T3D objects inside.
-  }
+    Note that even when you set DefaultViewport = @false
+    (and use custom viewports, by TKamViewport class, to render your 3D world),
+    you still should add scene manager to the controls list
+    (this allows e.g. 3D items to receive Idle events). }
   TKamSceneManager = class(TKamAbstractViewport)
   private
     FMainScene: TVRMLGLScene;
@@ -577,16 +580,46 @@ type
       read FDefaultViewport write FDefaultViewport default true;
   end;
 
-  { 2D viewport showing 3D world. This uses assigned SceneManager
+  { Custom 2D viewport showing 3D world. This uses assigned SceneManager
     to show 3D world on the screen.
 
-    Note that for simple uses (when you just need to display 3D content
-    on whole container), SceneManager simply acts like a viewport too.
-    Using this TKamViewport is required only for more specialized cases,
-    allowing you to specify custom viewport sizes, use many viewports
-    (and cameras) to view the 3D worls at once and such.
+    For simple games, using this is not needed, because TKamSceneManager
+    also acts as a viewport (when TKamSceneManager.DefaultViewport is @true,
+    which is the default).
+    Using custom viewports (implemented by this class)
+    is useful when you want to have more than one viewport showing
+    the same 3D world. Different viewports may have different cameras,
+    but they always share the same 3D world (in scene manager).
 
-    TODO: WORK IN PROGRESS, HIGHLY BUGGY FOR NOW! }
+    You can control the size of this viewport by FullSize, @link(Left),
+    @link(Bottom), @link(Width), @link(Height) properties. For custom
+    viewports, you often want to set FullSize = @false
+    and control viewport's position and size explicitly.
+
+    Example usages:
+    in a typical 3D modeling programs, you like to have 4 viewports
+    with 4 different cameras (front view, side view, top view,
+    and free perspective view). See examples/vrml/multiple_viewports.pasprogram
+    in engine sources for demo of this. Or when you make a split-screen game,
+    played by 2 people on a single monitor.
+
+    Viewports may be overlapping, that is one viewport may (partially)
+    obscure another viewport. Just like with any other TUIControl,
+    position of viewport on the Controls list
+    (like TKamOpenGLControl.Controls or TGLUIWindow.Controls)
+    is important: Controls are specified in the front-to-back order.
+    That is, if the viewport X may obscure viewport Y,
+    then X must be before Y on the Controls list.
+
+    Example usage of overlapping viewports:
+    imagine a space shooter, like Epic or Wing Commander.
+    You can imagine that a camera is mounted on each rocket fired
+    by the player.
+    You can display in one viewport (with FullSize = @true) normal
+    (first person) view from your space ship.
+    And additionally you can place a small viewport
+    (with FullSize = @false and small @link(Width) / @link(Height))
+    in the upper-right corner that displays view from last fired rocket. }
   TKamViewport = class(TKamAbstractViewport)
   private
     FSceneManager: TKamSceneManager;

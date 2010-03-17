@@ -2455,7 +2455,12 @@ type
       Usually you explicitly add / delete controls to this list.
       Also, freeing the control that is on this list
       automatically removes it from this list (using the TComponent.Notification
-      mechanism). }
+      mechanism).
+
+      Controls on the list should be specified in front-to-back order.
+      That is, controls at the beginning of this list are first to catch
+      some events, and are rendered as the last ones (to cover controls
+      beneath them). }
     property Controls: TUIControlList read FControls;
 
     { Returns the control that should receive input events first,
