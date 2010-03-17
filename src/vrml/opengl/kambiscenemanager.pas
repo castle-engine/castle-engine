@@ -32,23 +32,128 @@ type
     TKamSceneManager and TKamViewport. }
   TKamAbstractViewport = class(TUIControl)
   private
+    FLeft, FBottom: Integer;
+    FWidth, FHeight: Cardinal;
+    FFullSize: boolean;
     FCamera: TCamera;
     FPaused: boolean;
   protected
+    { These variables are writeable from overridden ApplyProjection. }
+    FAngleOfViewX: Single;
+    FAngleOfViewY: Single;
+    FWalkProjectionNear: Single;
+    FWalkProjectionFar : Single;
+
+    { Sets OpenGL projection matrix, based on scene manager MainScene's
+      currently bound Viewpoint, NavigationInfo and used @link(Camera).
+      Viewport's @link(Camera), if not assigned, is automatically created here,
+      see @link(Camera) and CreateDefaultCamera.
+      If scene manager's MainScene is not assigned, we use some default
+      sensible perspective projection.
+
+      Takes care of updating Camera.ProjectionMatrix,
+      AngleOfViewX, AngleOfViewY, WalkProjectionNear, WalkProjectionFar.
+
+      This is automatically called at the beginning of our Render method,
+      if it's needed.
+
+      @seealso TVRMLGLScene.GLProjection }
+    procedure ApplyProjection; virtual;
+
     procedure SetCamera(const Value: TCamera); virtual;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure SetContainer(const Value: IUIContainer); override;
+
+    { Information about the 3D world.
+      For scene maager, these methods simply return it's own properties.
+      For TKamViewport, these methods refer to scene manager.
+      @groupBegin }
+    function GetItems: T3D; virtual; abstract;
+    function GetMainScene: TVRMLGLScene; virtual; abstract;
+    function GetShadowVolumesPossible: boolean; virtual; abstract;
+    { @groupEnd }
   public
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    { Camera angles of view, in degrees.
+      Set by every ApplyProjection call.
+
+      @groupBegin }
+    property AngleOfViewX: Single read FAngleOfViewX write FAngleOfViewX;
+    property AngleOfViewY: Single read FAngleOfViewY write FAngleOfViewY;
+    { @groupEnd }
+
+    { Projection near/far values, for Walk navigation.
+      ApplyProjection calculates it.
+
+      This is the best projection near/far for Walk mode
+      (although GLProjection may use some other values for other modes
+      (like Examine), it will always calculate values for Walk mode anyway.)
+
+      WalkProjectionFar may be ZFarInfinity.
+
+      @groupBegin }
+    property WalkProjectionNear: Single read FWalkProjectionNear;
+    property WalkProjectionFar : Single read FWalkProjectionFar ;
+    { @groupEnd }
+
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
+    function PositionInside(const X, Y: Integer): boolean; override;
 
     function AllowSuspendForInput: boolean; override;
-
     function KeyDown(Key: TKey; C: char): boolean; override;
     function KeyUp(Key: TKey; C: char): boolean; override;
     function MouseDown(const Button: TMouseButton): boolean; override;
     function MouseUp(const Button: TMouseButton): boolean; override;
+
+    { Actual position and size of the viewport. Calculated looking
+      at @link(FullSize) value, at the current container sizes
+      (when @link(FullSize) is @false), and at the properties
+      @link(Left), @link(Bottom), @link(Width), @link(Height)
+      (when @link(FullSize) is true).
+
+      @groupBegin }
+    function CorrectLeft: Integer;
+    function CorrectBottom: Integer;
+    function CorrectWidth: Cardinal;
+    function CorrectHeight: Cardinal;
+    { @groupEnd }
+
+    { Create default TCamera suitable for navigating in this scene.
+      This is automatically used to initialize @link(Camera) property
+      when @link(Camera) is @nil at ApplyProjection call.
+
+      The implementation in base TKamSceneManager uses MainScene.CreateCamera
+      (so it will follow your VRML/X3D scene Viewpoint, NavigationInfo and such).
+      If MainScene is not assigned, we will just create a simple
+      TExamineCamera.
+
+      The implementation in TKamViewport simply calls
+      SceneManager.CreateDefaultCamera. So by default all the viewport's
+      cameras are created the same way, by refering to the scene manager.
+      If you want you can override it to specialize CreateDefaultCamera
+      for specific viewport classes. }
+    function CreateDefaultCamera(AOwner: TComponent): TCamera; virtual; abstract;
   published
+    { Viewport dimensions where the 3D world will be drawn.
+      When FullSize is @true (the default), the viewport always fills
+      the whole container (OpenGL context area, like a window for TGLWindow),
+      and the values of Left, Bottom, Width, Height are ignored here.
+
+      @seealso CorrectLeft
+      @seealso CorrectBottom
+      @seealso CorrectWidth
+      @seealso CorrectHeight
+
+      @groupBegin }
+    property FullSize: boolean read FFullSize write FFullSize default true;
+    property Left: Integer read FLeft write FLeft default 0;
+    property Bottom: Integer read FBottom write FBottom default 0;
+    property Width: Cardinal read FWidth write FWidth default 0;
+    property Height: Cardinal read FHeight write FHeight default 0;
+    { @groupEnd }
+
     { Camera used to render.
 
       Cannot be @nil when rendering. If you don't assign anything here,
@@ -207,12 +312,6 @@ type
     procedure SetMouseRayHit3D(const Value: T3D);
     property MouseRayHit3D: T3D read FMouseRayHit3D write SetMouseRayHit3D;
   protected
-    { These variables are writeable from overridden ApplyProjection. }
-    FAngleOfViewX: Single;
-    FAngleOfViewY: Single;
-    FWalkProjectionNear: Single;
-    FWalkProjectionFar : Single;
-
     procedure SetCamera(const Value: TCamera); override;
 
     { Triangles to ignore by all collision detection in scene manager.
@@ -265,22 +364,11 @@ type
       matrix) is done and all that remains is to pass to OpenGL actual 3D world. }
     procedure RenderFromView3D; virtual;
 
-    { Sets OpenGL projection matrix, based on MainScene's currently
-      bound Viewpoint, NavigationInfo and used @link(Camera).
-      Used @link(Camera), if not assigned, is automatically created here,
-      see @link(Camera) and CreateDefaultCamera.
-      If MainScene is not assigned, we use some default sensible perspective
-      projection.
-
-      Takes care of updating Camera.ProjectionMatrix,
-      AngleOfViewX, AngleOfViewY, WalkProjectionNear, WalkProjectionFar.
-
-      This is automatically called at the beginning of our Render method,
-      if it's needed (after MainScene or Container sizes or some other
-      stuff changed).
-
-      @seealso TVRMLGLScene.GLProjection }
-    procedure ApplyProjection; virtual;
+    { Render everything (by RenderFromViewEverything) on the screen.
+      Takes care to set RenderState (Target = rtScreen and camera as given),
+      and takes care to apply glScissor if not FullSize,
+      and calls RenderFromViewEverything. }
+    procedure RenderOnScreen(ACamera: TCamera);
 
     { The background used during rendering.
       @nil if no background should be rendered.
@@ -308,6 +396,10 @@ type
       out AboveGround: P3DTriangle); virtual;
     procedure CameraVisibleChange(ACamera: TObject); virtual;
     { @groupEnd }
+
+    function GetItems: T3D; override;
+    function GetMainScene: TVRMLGLScene; override;
+    function GetShadowVolumesPossible: boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -345,40 +437,7 @@ type
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
 
-    { Overridden in TKamSceneManager to catch events regardless of mouse position. }
-    function PositionInside(const X, Y: Integer): boolean; override;
-
-    { Camera angles of view, in degrees.
-      Set by every ApplyProjection call.
-
-      @groupBegin }
-    property AngleOfViewX: Single read FAngleOfViewX write FAngleOfViewX;
-    property AngleOfViewY: Single read FAngleOfViewY write FAngleOfViewY;
-    { @groupEnd }
-
-    { Projection near/far values, for Walk navigation.
-      ApplyProjection calculates it.
-
-      This is the best projection near/far for Walk mode
-      (although GLProjection may use some other values for other modes
-      (like Examine), it will always calculate values for Walk mode anyway.)
-
-      WalkProjectionFar may be ZFarInfinity.
-
-      @groupBegin }
-    property WalkProjectionNear: Single read FWalkProjectionNear;
-    property WalkProjectionFar : Single read FWalkProjectionFar ;
-    { @groupEnd }
-
-    { Create default TCamera suitable for navigating in this scene.
-      This is automatically used to initialize @link(Camera) property
-      when @link(Camera) is @nil at ApplyProjection call.
-
-      The implementation in base TKamSceneManager uses MainScene.CreateCamera
-      (so it will follow your VRML/X3D scene Viewpoint, NavigationInfo and such).
-      If MainScene is not assigned, we will just create a simple
-      TExamineCamera. }
-    function CreateDefaultCamera(AOwner: TComponent): TCamera; virtual;
+    function CreateDefaultCamera(AOwner: TComponent): TCamera; override;
 
     { If non-empty, then camera position will be limited to this box.
 
@@ -530,41 +589,25 @@ type
     TODO: WORK IN PROGRESS, HIGHLY BUGGY FOR NOW! }
   TKamViewport = class(TKamAbstractViewport)
   private
-    FLeft: TGLint;
-    FBottom: TGLint;
-    FWidth: TGLsizei;
-    FHeight: TGLsizei;
     FSceneManager: TKamSceneManager;
-
-    { These variables are writen by ApplyProjection. }
-    FAngleOfViewX: Single;
-    FAngleOfViewY: Single;
-    FWalkProjectionNear: Single;
-    FWalkProjectionFar : Single;
-
-    procedure ApplyProjection;
     procedure CameraVisibleChange(ACamera: TObject); virtual;
   protected
     procedure SetCamera(const Value: TCamera); override;
+    function GetItems: T3D; override;
+    function GetMainScene: TVRMLGLScene; override;
+    function GetShadowVolumesPossible: boolean; override;
   public
     function DrawStyle: TUIControlDrawStyle; override;
     procedure Draw(const Focused: boolean); override;
-    function PositionInside(const X, Y: Integer): boolean; override;
 
     procedure Idle(const CompSpeed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
 
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
-  published
-    { Viewport dimensions where the 3D world will be drawn.
-      @groupBegin }
-    property Left: TGLint read FLeft write FLeft default 0;
-    property Bottom: TGLint read FBottom write FBottom default 0;
-    property Width: TGLsizei read FWidth write FWidth default 0;
-    property Height: TGLsizei read FHeight write FHeight default 0;
-    { @groupEnd }
 
+    function CreateDefaultCamera(AOwner: TComponent): TCamera; override;
+  published
     property SceneManager: TKamSceneManager read FSceneManager write FSceneManager;
   end;
 
@@ -580,6 +623,12 @@ begin
 end;
 
 { TKamAbstractViewport ------------------------------------------------------- }
+
+constructor TKamAbstractViewport.Create(AOwner: TComponent);
+begin
+  inherited;
+  FFullSize := true;
+end;
 
 destructor TKamAbstractViewport.Destroy;
 begin
@@ -699,6 +748,67 @@ begin
   Result := (Camera = nil) or Paused or Camera.AllowSuspendForInput;
 end;
 
+function TKamAbstractViewport.CorrectLeft: Integer;
+begin
+  if FullSize then Result := 0 else Result := Left;
+end;
+
+function TKamAbstractViewport.CorrectBottom: Integer;
+begin
+  if FullSize then Result := 0 else Result := Bottom;
+end;
+
+function TKamAbstractViewport.CorrectWidth: Cardinal;
+begin
+  if FullSize then Result := ContainerWidth else Result := Width;
+end;
+
+function TKamAbstractViewport.CorrectHeight: Cardinal;
+begin
+  if FullSize then Result := ContainerHeight else Result := Height;
+end;
+
+function TKamAbstractViewport.PositionInside(const X, Y: Integer): boolean;
+begin
+  Result :=
+    FullSize or
+    ( (X >= Left) and
+      (X  < Left + Width) and
+      (ContainerHeight - Y >= Bottom) and
+      (ContainerHeight - Y  < Bottom + Height) );
+end;
+
+procedure TKamAbstractViewport.ApplyProjection;
+var
+  Box: TBox3D;
+
+  procedure DefaultGLProjection;
+  var
+    ProjectionMatrix: TMatrix4f;
+  begin
+    glViewport(CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
+    ProjectionGLPerspective(45.0, CorrectWidth / CorrectHeight,
+      Box3DAvgSize(Box, 1.0) * 0.01,
+      Box3DMaxSize(Box, 1.0) * 10.0);
+
+    { update Camera.ProjectionMatrix }
+    glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
+    Camera.ProjectionMatrix := ProjectionMatrix;
+  end;
+
+begin
+  if Camera = nil then
+    Camera := CreateDefaultCamera(Self);
+
+  Box := GetItems.BoundingBox;
+
+  if GetMainScene <> nil then
+    GetMainScene.GLProjection(Camera, Box,
+      CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight, GetShadowVolumesPossible,
+      FAngleOfViewX, FAngleOfViewY, FWalkProjectionNear, FWalkProjectionFar) else
+    DefaultGLProjection;
+end;
+
 { TKamSceneManager ----------------------------------------------------------- }
 
 constructor TKamSceneManager.Create(AOwner: TComponent);
@@ -776,37 +886,6 @@ begin
     (Result as TExamineCamera).Init(Box,
       { CameraRadius = } Box3DAvgSize(Box, 1.0) * 0.005);
   end;
-end;
-
-procedure TKamSceneManager.ApplyProjection;
-var
-  Box: TBox3D;
-
-  procedure DefaultGLProjection;
-  var
-    ProjectionMatrix: TMatrix4f;
-  begin
-    glViewport(0, 0, ContainerWidth, ContainerHeight);
-    ProjectionGLPerspective(45.0, ContainerWidth / ContainerHeight,
-      Box3DAvgSize(Box, 1.0) * 0.01,
-      Box3DMaxSize(Box, 1.0) * 10.0);
-
-    { update Camera.ProjectionMatrix }
-    glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
-    Camera.ProjectionMatrix := ProjectionMatrix;
-  end;
-
-begin
-  if Camera = nil then
-    Camera := CreateDefaultCamera(Self);
-
-  Box := Items.BoundingBox;
-
-  if MainScene <> nil then
-    MainScene.GLProjection(Camera, Box,
-      0, 0, ContainerWidth, ContainerHeight, ShadowVolumesPossible,
-      FAngleOfViewX, FAngleOfViewY, FWalkProjectionNear, FWalkProjectionFar) else
-    DefaultGLProjection;
 end;
 
 function TKamSceneManager.Background: TBackgroundGL;
@@ -1174,11 +1253,27 @@ begin
     viewport. (For custom viewports, it's their problem to do this.) }
   Items.UpdateGeneratedTextures(@RenderFromViewEverything,
     WalkProjectionNear, WalkProjectionFar,
-    0, 0, ContainerWidth, ContainerHeight);
+    CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
+
+  RenderOnScreen(Camera);
+end;
+
+procedure TKamSceneManager.RenderOnScreen(ACamera: TCamera);
+begin
+  if not FullSize then
+  begin
+    glPushAttrib(GL_SCISSOR_BIT);
+      { Use Scissor to limit what glClear clears. }
+      glScissor(Left, Bottom, Width, Height); // saved by GL_SCISSOR_BIT
+      glEnable(GL_SCISSOR_TEST); // saved by GL_SCISSOR_BIT
+  end;
 
   RenderState.Target := rtScreen;
-  RenderState.CameraFromCameraObject(Camera);
+  RenderState.CameraFromCameraObject(ACamera);
   RenderFromViewEverything;
+
+  if not FullSize then
+    glPopAttrib;
 end;
 
 function TKamSceneManager.DrawStyle: TUIControlDrawStyle;
@@ -1312,11 +1407,6 @@ begin
   Items.Idle(CompSpeed);
 end;
 
-function TKamSceneManager.PositionInside(const X, Y: Integer): boolean;
-begin
-  Result := true;
-end;
-
 procedure TKamSceneManager.CameraVisibleChange(ACamera: TObject);
 begin
   if (MainScene <> nil) and (ACamera = Camera) then
@@ -1384,6 +1474,21 @@ begin
     Scene.CameraBindToViewpoint(Camera, true);
 end;
 
+function TKamSceneManager.GetItems: T3D;
+begin
+  Result := Items;
+end;
+
+function TKamSceneManager.GetMainScene: TVRMLGLScene;
+begin
+  Result := MainScene;
+end;
+
+function TKamSceneManager.GetShadowVolumesPossible: boolean;
+begin
+  Result := ShadowVolumesPossible;
+end;
+
 { TKamViewport --------------------------------------------------------------- }
 
 {TODO:
@@ -1439,71 +1544,42 @@ begin
   Result := ds3D;
 end;
 
-function TKamViewport.PositionInside(const X, Y: Integer): boolean;
+function TKamViewport.CreateDefaultCamera(AOwner: TComponent): TCamera;
 begin
-  Result :=
-    (X >= Left) and
-    (X  < Left + Width) and
-    (ContainerHeight - Y >= Bottom) and
-    (ContainerHeight - Y  < Bottom + Height);
+  Result := SceneManager.CreateDefaultCamera(AOwner);
 end;
 
-procedure TKamViewport.ApplyProjection;
-var
-  Box: TBox3D;
-
-  procedure DefaultGLProjection;
-  var
-    ProjectionMatrix: TMatrix4f;
-  begin
-    glViewport(Left, Bottom, Width, Height);
-    ProjectionGLPerspective(45.0, Width / Height,
-      Box3DAvgSize(Box, 1.0) * 0.01,
-      Box3DMaxSize(Box, 1.0) * 10.0);
-
-    { update Camera.ProjectionMatrix }
-    glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
-    Camera.ProjectionMatrix := ProjectionMatrix;
-  end;
-
+function TKamViewport.GetItems: T3D;
 begin
-  if Camera = nil then
-    Camera := SceneManager.CreateDefaultCamera(Self);
+  Result := SceneManager.Items;
+end;
 
-  Box := SceneManager.Items.BoundingBox;
+function TKamViewport.GetMainScene: TVRMLGLScene;
+begin
+  Result := SceneManager.MainScene;
+end;
 
-  if SceneManager.MainScene <> nil then
-    SceneManager.MainScene.GLProjection(Camera, Box,
-      Left, Bottom, Width, Height, SceneManager.ShadowVolumesPossible,
-      FAngleOfViewX, FAngleOfViewY, FWalkProjectionNear, FWalkProjectionFar) else
-    DefaultGLProjection;
+function TKamViewport.GetShadowVolumesPossible: boolean;
+begin
+  Result := SceneManager.ShadowVolumesPossible;
 end;
 
 procedure TKamViewport.Draw(const Focused: boolean);
 begin
   if SceneManager <> nil then
   begin
-    glPushAttrib(GL_SCISSOR_BIT);
-      { Use Scissor to limit what glClear clears. }
-      glScissor(Left, Bottom, Width, Height); // saved by GL_SCISSOR_BIT
-      glEnable(GL_SCISSOR_TEST); // saved by GL_SCISSOR_BIT
+    { always apply viewport projection before rendering }
+    ApplyProjection;
 
-      { always apply viewport projection before rendering }
-      ApplyProjection;
+    (* TODO: Where to do it? It would be wasteful to update
+       for *every* viewport...
 
-      (* TODO: Where to do it? It would be wasteful to update
-         for *every* viewport...
+    SceneManager.Items.UpdateGeneratedTextures(@RenderFromViewEverything,
+      WalkProjectionNear, WalkProjectionFar,
+      CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
+    *)
 
-      SceneManager.Items.UpdateGeneratedTextures(@RenderFromViewEverything,
-        WalkProjectionNear, WalkProjectionFar,
-        Left, Bottom, Width, Height);
-      *)
-
-      RenderState.Target := rtScreen;
-      RenderState.CameraFromCameraObject(Camera);
-      SceneManager.RenderFromViewEverything;
-
-    glPopAttrib;
+    SceneManager.RenderOnScreen(Camera);
   end;
 end;
 

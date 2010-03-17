@@ -1,9 +1,3 @@
-Make FillWindow (or some better name), @true (default for scene manager)
-then Left/Bottom/Width/Height are ignored.
-This way both TKamSceneManager and TKamViewport may have
-FillWindow = true/false, so FillWindow is orthogonal to the fact if you
-use scene manager or TkamViewport.
-
 ------------------------------------------------------------------------------
 Move this docs somewhere?
 
@@ -51,9 +45,7 @@ This would allow making descendants of TkamViewport with specialized
 rendering methods.
 E.g. make in multple_viewports two viewports render with wireframe.
 
-ApplyProjection move also to TKamAbstractViewport.
-Render / Draw stuff move also there (like RenderEverything).
-
+Render / Draw stuff move also to TKamAbstractViewport (like RenderEverything).
 
 Fix:
       If you want, it's absolutely Ok (even encouraged) to assign
