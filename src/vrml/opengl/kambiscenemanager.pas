@@ -23,9 +23,9 @@ uses Classes, VectorMath, VRMLNodes, VRMLGLScene, VRMLScene, Cameras,
   KeysMouse, VRMLTriangle, Boxes3D, BackgroundGL;
 
 type
-  TKamSceneManager = class;
+  TKamAbstractViewport = class;
 
-  TRender3DEvent = procedure (SceneManager: TKamSceneManager;
+  TRender3DEvent = procedure (Viewport: TKamAbstractViewport;
     TransparentGroup: TTransparentGroup; InShadow: boolean) of object;
 
   { Common abstract class for things that may act as a viewport:
@@ -37,6 +37,13 @@ type
     FFullSize: boolean;
     FCamera: TCamera;
     FPaused: boolean;
+
+    FShadowVolumesPossible: boolean;
+    FShadowVolumes: boolean;
+    FShadowVolumesDraw: boolean;
+
+    FBackgroundWireframe: boolean;
+    FOnRender3D: TRender3DEvent;
   protected
     { These variables are writeable from overridden ApplyProjection. }
     FAngleOfViewX: Single;
@@ -60,9 +67,73 @@ type
       @seealso TVRMLGLScene.GLProjection }
     procedure ApplyProjection; virtual;
 
+    { Render one pass, from current (saved in RenderState) camera view,
+      for specific lights setup, for given TransparentGroup.
+
+      If you want to add something 3D to your scene during rendering,
+      this is the simplest method to override. (Or you can use OnRender3D
+      event, which is called at the end of this method.)
+      Just pass to OpenGL your 3D geometry here. }
+    procedure Render3D(TransparentGroup: TTransparentGroup; InShadow: boolean); virtual;
+
+    { Render 3D items that are never in shadows (are not shadow receivers).
+      This will always be called once with tgOpaque, and once with tgTransparent
+      argument, from RenderFromView. }
+    procedure RenderNeverShadowed(TransparentGroup: TTransparentGroup); virtual;
+
+    { Render shadow quads for all the things rendered by @link(Render).
+      You can use here ShadowVolumeRenderer instance, which is guaranteed
+      to be initialized with TGLShadowVolumeRenderer.InitFrustumAndLight,
+      so you can do shadow volumes culling. }
+    procedure RenderShadowVolume; virtual;
+
+    { Render everything from current (in RenderState) camera view.
+      Current RenderState.Target says to where we generate the image.
+      Takes method must take care of making many rendering passes
+      for shadow volumes, but doesn't take care of updating generated textures. }
+    procedure RenderFromViewEverything; virtual;
+
+    { Render the headlight. Called by RenderFromViewEverything,
+      when camera matrix is set.
+      Should enable or disable OpenGL GL_LIGHT0 for headlight.
+
+      Implementation in this class uses headlight defined
+      in the MainScene, following NavigationInfo.headlight and KambiHeadlight
+      nodes. If MainScene is not assigned, this does nothing (doesn't touch
+      GL_LIGHT0). }
+    procedure RenderHeadLight; virtual;
+
+    { Render the 3D part of scene. Called by RenderFromViewEverything at the end,
+      when everything (clearing, background, headlight, loading camera
+      matrix) is done and all that remains is to pass to OpenGL actual 3D world. }
+    procedure RenderFromView3D; virtual;
+
+    { Render everything (by RenderFromViewEverything) on the screen.
+      Takes care to set RenderState (Target = rtScreen and camera as given),
+      and takes care to apply glScissor if not FullSize,
+      and calls RenderFromViewEverything. }
+    procedure RenderOnScreen(ACamera: TCamera);
+
+    { The background used during rendering.
+      @nil if no background should be rendered.
+
+      The default implementation in this class does what is usually
+      most natural: return MainScene.Background, if MainScene assigned. }
+    function Background: TBackgroundGL; virtual;
+
+    { Detect position/direction of the main light that produces shadows.
+      The default implementation in this class looks at
+      MainScene.MainLightForShadows.
+
+      @seealso TVRMLLightSet.MainLightForShadows
+      @seealso TVRMLScene.MainLightForShadows }
+    function MainLightForShadows(
+      out AMainLightPosition: TVector4Single): boolean; virtual;
+
     procedure SetCamera(const Value: TCamera); virtual;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure SetContainer(const Value: IUIContainer); override;
+    procedure SetShadowVolumesPossible(const Value: boolean); virtual;
 
     { Information about the 3D world.
       For scene maager, these methods simply return it's own properties.
@@ -70,7 +141,8 @@ type
       @groupBegin }
     function GetItems: T3D; virtual; abstract;
     function GetMainScene: TVRMLGLScene; virtual; abstract;
-    function GetShadowVolumesPossible: boolean; virtual; abstract;
+    function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; virtual; abstract;
+    function GetHeadlightCamera: TCamera; virtual; abstract;
     { @groupEnd }
   public
     constructor Create(AOwner: TComponent); override;
@@ -100,6 +172,7 @@ type
 
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
     function PositionInside(const X, Y: Integer): boolean; override;
+    function DrawStyle: TUIControlDrawStyle; override;
 
     function AllowSuspendForInput: boolean; override;
     function KeyDown(Key: TKey; C: char): boolean; override;
@@ -234,6 +307,53 @@ type
           key / mouse clicks.)
       ) }
     property Paused: boolean read FPaused write FPaused default false;
+
+    { See Render3D method. }
+    property OnRender3D: TRender3DEvent read FOnRender3D write FOnRender3D;
+
+    { Should we make shadow volumes possible.
+      This should indicate if OpenGL context was (possibly) initialized
+      with stencil buffer. }
+    property ShadowVolumesPossible: boolean read FShadowVolumesPossible write SetShadowVolumesPossible default false;
+
+    { Should we render with shadow volumes.
+      You can change this at any time, to switch rendering shadows on/off.
+
+      This works only if ShadowVolumesPossible is @true.
+
+      Note that the shadow volumes algorithm makes some requirements
+      about the 3D model: it must be 2-manifold, that is have a correctly
+      closed volume. Otherwise, rendering results may be bad. You can check
+      Scene.BorderEdges.Count before using this: BorderEdges.Count = 0 means
+      that model is Ok, correct manifold.
+
+      For shadows to be actually used you still need a light source
+      marked as the main shadows light (kambiShadows = kambiShadowsMain = TRUE),
+      see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows]. }
+    property ShadowVolumes: boolean read FShadowVolumes write FShadowVolumes default false;
+
+    { Actually draw the shadow volumes to the color buffer, for debugging.
+      If shadows are rendered (see ShadowVolumesPossible and ShadowVolumes),
+      you can use this to actually see shadow volumes, for debug / demo
+      purposes. Shadow volumes will be rendered on top of the scene,
+      as yellow blended polygons. }
+    property ShadowVolumesDraw: boolean read FShadowVolumesDraw write FShadowVolumesDraw default false;
+
+    { If yes then the scene background will be rendered wireframe,
+      over the background filled with glClearColor.
+
+      There's a catch here: this works only if the background is actually
+      internally rendered as a geometry. If the background is rendered
+      by clearing the screen (this is an optimized case of sky color
+      being just one simple color, and no textures),
+      then it will just cover the screen as normal, like without wireframe.
+      This is uncertain situation anyway (what should the wireframe
+      look like in this case anyway?), so I don't consider it a bug.
+
+      Useful especially for debugging when you want to see how your background
+      geometry looks like. }
+    property BackgroundWireframe: boolean
+      read FBackgroundWireframe write FBackgroundWireframe default false;
   end;
 
   { Scene manager that knows about all 3D things inside your world.
@@ -285,17 +405,10 @@ type
     FItems: T3DList;
     FDefaultViewport: boolean;
 
-    FShadowVolumesPossible: boolean;
-    FShadowVolumes: boolean;
-    FShadowVolumesDraw: boolean;
-
-    FBackgroundWireframe: boolean;
-
     ApplyProjectionNeeded: boolean;
     FOnCameraChanged: TNotifyEvent;
     FOnBoundViewpointChanged: TNotifyEvent;
     FCameraBox: TBox3D;
-    FOnRender3D: TRender3DEvent;
     FShadowVolumeRenderer: TGLShadowVolumeRenderer;
 
     FMouseRayHit: T3DCollision;
@@ -303,7 +416,6 @@ type
     FMouseRayHit3D: T3D;
 
     procedure SetMainScene(const Value: TVRMLGLScene);
-    procedure SetShadowVolumesPossible(const Value: boolean);
 
     procedure ItemsVisibleChange(Sender: T3D; Changes: TVisibleChanges);
     procedure ItemsAndCameraCursorChange(Sender: TObject);
@@ -316,6 +428,7 @@ type
     property MouseRayHit3D: T3D read FMouseRayHit3D write SetMouseRayHit3D;
   protected
     procedure SetCamera(const Value: TCamera); override;
+    procedure SetShadowVolumesPossible(const Value: boolean); override;
 
     { Triangles to ignore by all collision detection in scene manager.
       The default implementation in this class resturns always @false,
@@ -325,69 +438,6 @@ type
       const Triangle: P3DTriangle): boolean; virtual;
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-
-    { Render one pass, from current (saved in RenderState) camera view,
-      for specific lights setup, for given TransparentGroup.
-
-      If you want to add something 3D to your scene during rendering,
-      this is the simplest method to override. (Or you can use OnRender3D
-      event, which is called at the end of this method.)
-      Just pass to OpenGL your 3D geometry here. }
-    procedure Render3D(TransparentGroup: TTransparentGroup; InShadow: boolean); virtual;
-
-    { Render 3D items that are never in shadows (are not shadow receivers).
-      This will always be called once with tgOpaque, and once with tgTransparent
-      argument, from RenderFromView. }
-    procedure RenderNeverShadowed(TransparentGroup: TTransparentGroup); virtual;
-
-    { Render shadow quads for all the things rendered by @link(Render).
-      You can use here ShadowVolumeRenderer instance, which is guaranteed
-      to be initialized with TGLShadowVolumeRenderer.InitFrustumAndLight,
-      so you can do shadow volumes culling. }
-    procedure RenderShadowVolume; virtual;
-
-    { Render everything from current (in RenderState) camera view.
-      Current RenderState.Target says to where we generate the image.
-      Takes method must take care of making many rendering passes
-      for shadow volumes, but doesn't take care of updating generated textures. }
-    procedure RenderFromViewEverything; virtual;
-
-    { Render the headlight. Called by RenderFromViewEverything,
-      when camera matrix is set.
-      Should enable or disable OpenGL GL_LIGHT0 for headlight.
-
-      Implementation in this class uses headlight defined
-      in the MainScene, following NavigationInfo.headlight and KambiHeadlight
-      nodes. If MainScene is not assigned, this does nothing (doesn't touch
-      GL_LIGHT0). }
-    procedure RenderHeadLight; virtual;
-
-    { Render the 3D part of scene. Called by RenderFromViewEverything at the end,
-      when everything (clearing, background, headlight, loading camera
-      matrix) is done and all that remains is to pass to OpenGL actual 3D world. }
-    procedure RenderFromView3D; virtual;
-
-    { Render everything (by RenderFromViewEverything) on the screen.
-      Takes care to set RenderState (Target = rtScreen and camera as given),
-      and takes care to apply glScissor if not FullSize,
-      and calls RenderFromViewEverything. }
-    procedure RenderOnScreen(ACamera: TCamera);
-
-    { The background used during rendering.
-      @nil if no background should be rendered.
-
-      The default implementation in this class does what is usually
-      most natural: return MainScene.Background, if MainScene assigned. }
-    function Background: TBackgroundGL; virtual;
-
-    { Detect position/direction of the main light that produces shadows.
-      The default implementation in this class looks at
-      MainScene.MainLightForShadows.
-
-      @seealso TVRMLLightSet.MainLightForShadows
-      @seealso TVRMLScene.MainLightForShadows }
-    function MainLightForShadows(
-      out AMainLightPosition: TVector4Single): boolean; virtual;
 
     { Handle camera events.
       @groupBegin }
@@ -402,7 +452,8 @@ type
 
     function GetItems: T3D; override;
     function GetMainScene: TVRMLGLScene; override;
-    function GetShadowVolumesPossible: boolean; override;
+    function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
+    function GetHeadlightCamera: TCamera; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -420,7 +471,6 @@ type
 
     procedure BeforeDraw; override;
     procedure Draw(const Focused: boolean); override;
-    function DrawStyle: TUIControlDrawStyle; override;
 
     { What changes happen when viewer camera changes.
       You may want to use it when calling Scene.ViewerChanges.
@@ -516,50 +566,6 @@ type
       Freeing MainScene will automatically set this to @nil. }
     property MainScene: TVRMLGLScene read FMainScene write SetMainScene;
 
-    { Should we make shadow volumes possible.
-      This should indicate if OpenGL context was (possibly) initialized
-      with stencil buffer. }
-    property ShadowVolumesPossible: boolean read FShadowVolumesPossible write SetShadowVolumesPossible default false;
-
-    { Should we render with shadow volumes.
-      You can change this at any time, to switch rendering shadows on/off.
-
-      This works only if ShadowVolumesPossible is @true.
-
-      Note that the shadow volumes algorithm makes some requirements
-      about the 3D model: it must be 2-manifold, that is have a correctly
-      closed volume. Otherwise, rendering results may be bad. You can check
-      Scene.BorderEdges.Count before using this: BorderEdges.Count = 0 means
-      that model is Ok, correct manifold.
-
-      For shadows to be actually used you still need a light source
-      marked as the main shadows light (kambiShadows = kambiShadowsMain = TRUE),
-      see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows]. }
-    property ShadowVolumes: boolean read FShadowVolumes write FShadowVolumes default false;
-
-    { Actually draw the shadow volumes to the color buffer, for debugging.
-      If shadows are rendered (see ShadowVolumesPossible and ShadowVolumes),
-      you can use this to actually see shadow volumes, for debug / demo
-      purposes. Shadow volumes will be rendered on top of the scene,
-      as yellow blended polygons. }
-    property ShadowVolumesDraw: boolean read FShadowVolumesDraw write FShadowVolumesDraw default false;
-
-    { If yes then the scene background will be rendered wireframe,
-      over the background filled with glClearColor.
-
-      There's a catch here: this works only if the background is actually
-      internally rendered as a geometry. If the background is rendered
-      by clearing the screen (this is an optimized case of sky color
-      being just one simple color, and no textures),
-      then it will just cover the screen as normal, like without wireframe.
-      This is uncertain situation anyway (what should the wireframe
-      look like in this case anyway?), so I don't consider it a bug.
-
-      Useful especially for debugging when you want to see how your background
-      geometry looks like. }
-    property BackgroundWireframe: boolean
-      read FBackgroundWireframe write FBackgroundWireframe default false;
-
     { Called on any camera change. Exactly when TCamera generates it's
       OnVisibleChange event. }
     property OnCameraChanged: TNotifyEvent read FOnCameraChanged write FOnCameraChanged;
@@ -567,9 +573,6 @@ type
     { Called when bound Viewpoint node changes. This is called exactly when
       TVRMLScene.ViewpointStack.OnBoundChanged is called. }
     property OnBoundViewpointChanged: TNotifyEvent read FOnBoundViewpointChanged write FOnBoundViewpointChanged;
-
-    { See Render3D method. }
-    property OnRender3D: TRender3DEvent read FOnRender3D write FOnRender3D;
 
     { Should we render the 3D world in a default viewport that covers
       the whole window. This is usually what you want. For more complicated
@@ -628,9 +631,9 @@ type
     procedure SetCamera(const Value: TCamera); override;
     function GetItems: T3D; override;
     function GetMainScene: TVRMLGLScene; override;
-    function GetShadowVolumesPossible: boolean; override;
+    function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
+    function GetHeadlightCamera: TCamera; override;
   public
-    function DrawStyle: TUIControlDrawStyle; override;
     procedure Draw(const Focused: boolean); override;
 
     procedure Idle(const CompSpeed: Single;
@@ -837,9 +840,167 @@ begin
 
   if GetMainScene <> nil then
     GetMainScene.GLProjection(Camera, Box,
-      CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight, GetShadowVolumesPossible,
+      CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight, ShadowVolumesPossible,
       FAngleOfViewX, FAngleOfViewY, FWalkProjectionNear, FWalkProjectionFar) else
     DefaultGLProjection;
+end;
+
+procedure TKamAbstractViewport.SetShadowVolumesPossible(const Value: boolean);
+begin
+  FShadowVolumesPossible := Value;
+end;
+
+function TKamAbstractViewport.Background: TBackgroundGL;
+begin
+  if GetMainScene <> nil then
+    Result := GetMainScene.Background else
+    Result := nil;
+end;
+
+function TKamAbstractViewport.MainLightForShadows(
+  out AMainLightPosition: TVector4Single): boolean;
+begin
+  if GetMainScene <> nil then
+    Result := GetMainScene.MainLightForShadows(AMainLightPosition) else
+    Result := false;
+end;
+
+procedure TKamAbstractViewport.Render3D(TransparentGroup: TTransparentGroup; InShadow: boolean);
+begin
+  GetItems.Render(RenderState.CameraFrustum, TransparentGroup, InShadow);
+  if Assigned(OnRender3D) then
+    OnRender3D(Self, TransparentGroup, InShadow);
+end;
+
+procedure TKamAbstractViewport.RenderShadowVolume;
+begin
+  GetItems.RenderShadowVolume(GetShadowVolumeRenderer, true, IdentityMatrix4Single);
+end;
+
+procedure TKamAbstractViewport.RenderHeadLight;
+begin
+  if (GetMainScene <> nil) and (GetHeadlightCamera <> nil) then
+  begin
+    { GetHeadlightCamera (SceneManager.Camera) may be nil here, when
+      rendering is done by custom viewport.
+      In such case, we have to assume headlight doesn't shine.
+
+      No, we cannot use camera settings from current viewport:
+      this would mean that mirror textures (like GeneratedCubeMapTexture)
+      will need to have different contents in different viewpoints,
+      which isn't possible. We also want to use scene manager's camera,
+      to have it tied with scene manager's ViewerToChanges implementation.
+
+      So if you use custom viewports and want headlight Ok,
+      be sure to explicitly set TKamSceneManager.Camera
+      (probably, to one of your viewpoints' cameras). }
+
+    TVRMLGLHeadlight.RenderOrDisable(GetMainScene.Headlight,
+      0, (RenderState.Target = rtScreen) {TODO:and (RenderViewport = nil)},
+      GetHeadlightCamera);
+  end;
+
+  { if MainScene = nil, do not control GL_LIGHT0 here. }
+end;
+
+procedure TKamAbstractViewport.RenderNeverShadowed(TransparentGroup: TTransparentGroup);
+begin
+  { Nothing to do in this class }
+end;
+
+procedure TKamAbstractViewport.RenderFromView3D;
+
+  procedure RenderNoShadows;
+  begin
+    { We must first render all non-transparent objects,
+      then all transparent objects. Otherwise transparent objects
+      (that must be rendered without updating depth buffer) could get brutally
+      covered by non-transparent objects (that are in fact further away from
+      the camera). }
+
+    RenderNeverShadowed(tgOpaque);
+    Render3D(tgOpaque, false);
+    Render3D(tgTransparent, false);
+    RenderNeverShadowed(tgTransparent);
+  end;
+
+  procedure RenderWithShadows(const MainLightPosition: TVector4Single);
+  begin
+    GetShadowVolumeRenderer.InitFrustumAndLight(RenderState.CameraFrustum, MainLightPosition);
+    GetShadowVolumeRenderer.Render(@RenderNeverShadowed, @Render3D, @RenderShadowVolume, ShadowVolumesDraw);
+  end;
+
+var
+  MainLightPosition: TVector4Single;
+begin
+  if ShadowVolumesPossible and
+     ShadowVolumes and
+     MainLightForShadows(MainLightPosition) then
+    RenderWithShadows(MainLightPosition) else
+    RenderNoShadows;
+end;
+
+procedure TKamAbstractViewport.RenderFromViewEverything;
+var
+  ClearBuffers: TGLbitfield;
+  UsedBackground: TBackgroundGL;
+  MainLightPosition: TVector4Single; { ignored }
+begin
+  ClearBuffers := GL_DEPTH_BUFFER_BIT;
+
+  UsedBackground := Background;
+  if UsedBackground <> nil then
+  begin
+    glLoadMatrix(RenderState.CameraRotationMatrix);
+
+    if BackgroundWireframe then
+    begin
+      { Color buffer needs clear *now*, before drawing background. }
+      glClear(GL_COLOR_BUFFER_BIT);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      try
+        UsedBackground.Render;
+      finally glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); end;
+    end else
+      UsedBackground.Render;
+  end else
+    ClearBuffers := ClearBuffers or GL_COLOR_BUFFER_BIT;
+
+  if ShadowVolumesPossible and
+     ShadowVolumes and
+     MainLightForShadows(MainLightPosition) then
+    ClearBuffers := ClearBuffers or GL_STENCIL_BUFFER_BIT;
+
+  glClear(ClearBuffers);
+
+  glLoadMatrix(RenderState.CameraMatrix);
+
+  RenderHeadLight;
+
+  RenderFromView3D;
+end;
+
+procedure TKamAbstractViewport.RenderOnScreen(ACamera: TCamera);
+begin
+  if not FullSize then
+  begin
+    glPushAttrib(GL_SCISSOR_BIT);
+      { Use Scissor to limit what glClear clears. }
+      glScissor(Left, Bottom, Width, Height); // saved by GL_SCISSOR_BIT
+      glEnable(GL_SCISSOR_TEST); // saved by GL_SCISSOR_BIT
+  end;
+
+  RenderState.Target := rtScreen;
+  RenderState.CameraFromCameraObject(ACamera);
+  RenderFromViewEverything;
+
+  if not FullSize then
+    glPopAttrib;
+end;
+
+function TKamAbstractViewport.DrawStyle: TUIControlDrawStyle;
+begin
+  Result := ds3D;
 end;
 
 { TKamSceneManager ----------------------------------------------------------- }
@@ -888,7 +1049,7 @@ procedure TKamSceneManager.GLContextInit;
 begin
   inherited;
 
-  { We actually need to do it only if ShadowVolumesPossible.
+  { We actually need to do it only if ShadowVolumesPossible for any viewport.
     But we can as well do it always, it's harmless (just checks some GL
     extensions). (Otherwise we'd have to handle SetShadowVolumesPossible.) }
   if ShadowVolumeRenderer = nil then
@@ -919,21 +1080,6 @@ begin
     (Result as TExamineCamera).Init(Box,
       { CameraRadius = } Box3DAvgSize(Box, 1.0) * 0.005);
   end;
-end;
-
-function TKamSceneManager.Background: TBackgroundGL;
-begin
-  if MainScene <> nil then
-    Result := MainScene.Background else
-    Result := nil;
-end;
-
-function TKamSceneManager.MainLightForShadows(
-  out AMainLightPosition: TVector4Single): boolean;
-begin
-  if MainScene <> nil then
-    Result := MainScene.MainLightForShadows(AMainLightPosition) else
-    Result := false;
 end;
 
 procedure TKamSceneManager.SetMainScene(const Value: TVRMLGLScene);
@@ -1072,11 +1218,10 @@ end;
 
 procedure TKamSceneManager.SetShadowVolumesPossible(const Value: boolean);
 begin
-  if FShadowVolumesPossible <> Value then
-  begin
-    FShadowVolumesPossible := Value;
+  if ShadowVolumesPossible <> Value then
     ApplyProjectionNeeded := true;
-  end;
+
+  inherited;
 end;
 
 procedure TKamSceneManager.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
@@ -1089,7 +1234,7 @@ procedure TKamSceneManager.PrepareRender(const DisplayProgressTitle: string);
 var
   Options: TPrepareRenderOptions;
   TG: TTransparentGroups;
-  MainLightPosition: TVector4Single; { ignored }
+  //MainLightPosition: TVector4Single; { ignored }
 begin
   Options := [prBackground, prBoundingBox];
   { We never call tgAll from scene manager. Even for non-shadowed rendering
@@ -1097,9 +1242,9 @@ begin
     before all tgTransparent. }
   TG := [tgOpaque, tgTransparent];
 
-  if ShadowVolumesPossible and
+  if {ShadowVolumesPossible and
      ShadowVolumes and
-     MainLightForShadows(MainLightPosition) then
+     MainLightForShadows(MainLightPosition)}true{TODO} then
   begin
     Options := Options + prShadowVolume;
   end;
@@ -1119,6 +1264,7 @@ begin
   { RenderState.Camera* must be already set,
     since PrepareRender may do some operations on texture gen modes
     in WORLDSPACE*. }
+    {TODO: should use viewport's camera... }
   RenderState.CameraFromCameraObject(Camera);
 
   if DisplayProgressTitle <> '' then
@@ -1137,42 +1283,6 @@ begin
   PrepareRender;
 end;
 
-procedure TKamSceneManager.Render3D(TransparentGroup: TTransparentGroup; InShadow: boolean);
-begin
-  Items.Render(RenderState.CameraFrustum, TransparentGroup, InShadow);
-  if Assigned(OnRender3D) then
-    OnRender3D(Self, TransparentGroup, InShadow);
-end;
-
-procedure TKamSceneManager.RenderShadowVolume;
-begin
-  Items.RenderShadowVolume(ShadowVolumeRenderer, true, IdentityMatrix4Single);
-end;
-
-procedure TKamSceneManager.RenderHeadLight;
-begin
-  if (MainScene <> nil) and (Camera <> nil) then
-  begin
-    { Camera may be nil here, when SceneManager is not in Controls
-      and rendering is done by custom viewport.
-      In such case, we have to assume headlight doesn't shine.
-
-      No, we cannot use camera settings from current viewport:
-      this would mean that mirror textures (like GeneratedCubeMapTexture)
-      will need to have different contents in different viewpoints,
-      which isn't possible.
-
-      So if you use custom viewports and want headlight Ok,
-      be sure to explicitly set TKamSceneManager.Camera
-      (probably, to one of your viewpoints' cameras). }
-
-    TVRMLGLHeadlight.RenderOrDisable(MainScene.Headlight,
-      0, (RenderState.Target = rtScreen) {TODO:and (RenderViewport = nil)}, Camera);
-  end;
-
-  { if MainScene = nil, do not control GL_LIGHT0 here. }
-end;
-
 function TKamSceneManager.ViewerToChanges: TVisibleChanges;
 var
   H: TVRMLGLHeadlight;
@@ -1184,83 +1294,6 @@ begin
   if H <> nil then
     Result := [vcVisibleNonGeometry] else
     Result := [];
-end;
-
-procedure TKamSceneManager.RenderNeverShadowed(TransparentGroup: TTransparentGroup);
-begin
-  { Nothing to do in this class }
-end;
-
-procedure TKamSceneManager.RenderFromView3D;
-
-  procedure RenderNoShadows;
-  begin
-    { We must first render all non-transparent objects,
-      then all transparent objects. Otherwise transparent objects
-      (that must be rendered without updating depth buffer) could get brutally
-      covered by non-transparent objects (that are in fact further away from
-      the camera). }
-
-    RenderNeverShadowed(tgOpaque);
-    Render3D(tgOpaque, false);
-    Render3D(tgTransparent, false);
-    RenderNeverShadowed(tgTransparent);
-  end;
-
-  procedure RenderWithShadows(const MainLightPosition: TVector4Single);
-  begin
-    ShadowVolumeRenderer.InitFrustumAndLight(RenderState.CameraFrustum, MainLightPosition);
-    ShadowVolumeRenderer.Render(@RenderNeverShadowed, @Render3D, @RenderShadowVolume, ShadowVolumesDraw);
-  end;
-
-var
-  MainLightPosition: TVector4Single;
-begin
-  if ShadowVolumesPossible and
-     ShadowVolumes and
-     MainLightForShadows(MainLightPosition) then
-    RenderWithShadows(MainLightPosition) else
-    RenderNoShadows;
-end;
-
-procedure TKamSceneManager.RenderFromViewEverything;
-var
-  ClearBuffers: TGLbitfield;
-  UsedBackground: TBackgroundGL;
-  MainLightPosition: TVector4Single; { ignored }
-begin
-  ClearBuffers := GL_DEPTH_BUFFER_BIT;
-
-  UsedBackground := Background;
-  if UsedBackground <> nil then
-  begin
-    glLoadMatrix(RenderState.CameraRotationMatrix);
-
-    if BackgroundWireframe then
-    begin
-      { Color buffer needs clear *now*, before drawing background. }
-      glClear(GL_COLOR_BUFFER_BIT);
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-      try
-        UsedBackground.Render;
-      finally glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); end;
-    end else
-      UsedBackground.Render;
-  end else
-    ClearBuffers := ClearBuffers or GL_COLOR_BUFFER_BIT;
-
-  if ShadowVolumesPossible and
-     ShadowVolumes and
-     MainLightForShadows(MainLightPosition) then
-    ClearBuffers := ClearBuffers or GL_STENCIL_BUFFER_BIT;
-
-  glClear(ClearBuffers);
-
-  glLoadMatrix(RenderState.CameraMatrix);
-
-  RenderHeadLight;
-
-  RenderFromView3D;
 end;
 
 procedure TKamSceneManager.Draw(const Focused: boolean);
@@ -1289,29 +1322,6 @@ begin
     CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
 
   RenderOnScreen(Camera);
-end;
-
-procedure TKamSceneManager.RenderOnScreen(ACamera: TCamera);
-begin
-  if not FullSize then
-  begin
-    glPushAttrib(GL_SCISSOR_BIT);
-      { Use Scissor to limit what glClear clears. }
-      glScissor(Left, Bottom, Width, Height); // saved by GL_SCISSOR_BIT
-      glEnable(GL_SCISSOR_TEST); // saved by GL_SCISSOR_BIT
-  end;
-
-  RenderState.Target := rtScreen;
-  RenderState.CameraFromCameraObject(ACamera);
-  RenderFromViewEverything;
-
-  if not FullSize then
-    glPopAttrib;
-end;
-
-function TKamSceneManager.DrawStyle: TUIControlDrawStyle;
-begin
-  Result := ds3D;
 end;
 
 function TKamSceneManager.KeyDown(Key: TKey; C: char): boolean;
@@ -1517,9 +1527,14 @@ begin
   Result := MainScene;
 end;
 
-function TKamSceneManager.GetShadowVolumesPossible: boolean;
+function TKamSceneManager.GetShadowVolumeRenderer: TGLShadowVolumeRenderer;
 begin
-  Result := ShadowVolumesPossible;
+  Result := ShadowVolumeRenderer;
+end;
+
+function TKamSceneManager.GetHeadlightCamera: TCamera;
+begin
+  Result := Camera;
 end;
 
 { TKamViewport --------------------------------------------------------------- }
@@ -1572,11 +1587,6 @@ end;
 
 { TODO: own ItemsAndCameraCursorChange? Control own Cursor? }
 
-function TKamViewport.DrawStyle: TUIControlDrawStyle;
-begin
-  Result := ds3D;
-end;
-
 function TKamViewport.CreateDefaultCamera(AOwner: TComponent): TCamera;
 begin
   Result := SceneManager.CreateDefaultCamera(AOwner);
@@ -1592,28 +1602,30 @@ begin
   Result := SceneManager.MainScene;
 end;
 
-function TKamViewport.GetShadowVolumesPossible: boolean;
+function TKamViewport.GetShadowVolumeRenderer: TGLShadowVolumeRenderer;
 begin
-  Result := SceneManager.ShadowVolumesPossible;
+  Result := SceneManager.ShadowVolumeRenderer;
+end;
+
+function TKamViewport.GetHeadlightCamera: TCamera;
+begin
+  Result := SceneManager.Camera;
 end;
 
 procedure TKamViewport.Draw(const Focused: boolean);
 begin
-  if SceneManager <> nil then
-  begin
-    { always apply viewport projection before rendering }
-    ApplyProjection;
+  { always apply viewport projection before rendering }
+  ApplyProjection;
 
-    (* TODO: Where to do it? It would be wasteful to update
-       for *every* viewport...
+  (* TODO: Where to do it? It would be wasteful to update
+     for *every* viewport...
 
-    SceneManager.Items.UpdateGeneratedTextures(@RenderFromViewEverything,
-      WalkProjectionNear, WalkProjectionFar,
-      CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
-    *)
+  SceneManager.Items.UpdateGeneratedTextures(@RenderFromViewEverything,
+    WalkProjectionNear, WalkProjectionFar,
+    CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
+  *)
 
-    SceneManager.RenderOnScreen(Camera);
-  end;
+  RenderOnScreen(Camera);
 end;
 
 { TODO:

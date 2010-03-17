@@ -1,14 +1,6 @@
 TODO: use Focused = true to draw border around focused viewport
 in multple_viewports.
 
-Hm, maybe TKamCustomViewport, a common ancestor, with
-common Render* methods, from which TKamSceneManager and TkamViewport derive?
-This would allow making descendants of TkamViewport with specialized
-rendering methods.
-E.g. make in multple_viewports two viewports render with wireframe.
-
-Render / Draw stuff move also to TKamAbstractViewport (like RenderEverything).
-
 Fix:
       If you want, it's absolutely Ok (even encouraged) to assign
       camera from viewport also to TKamSceneManager.Camera.
@@ -19,3 +11,10 @@ Fix:
 TKamSceneManager.MouseMove
 TKamSceneManager.Idle
 merge into TKamAbstractViewport
+
+multiple_viewports:
+  make one viewport without shadows, other with, screenshot
+  implement button as TUIControl, place at the bottom of multiple_viewports
+    to fire open 3d file window.
+    Also use in terrain to place "open image" near the slider?
+  some viewports render with wireframe, by overriding Render* methods.
