@@ -480,10 +480,6 @@ type
 
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
 
-    function KeyDown(Key: TKey; C: char): boolean; override;
-    function KeyUp(Key: TKey; C: char): boolean; override;
-    function MouseDown(const Button: TMouseButton): boolean; override;
-    function MouseUp(const Button: TMouseButton): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
 
     procedure Idle(const CompSpeed: Single;
@@ -749,7 +745,12 @@ begin
   if Result or Paused then Exit;
 
   if Camera <> nil then
+  begin
     Result := Camera.KeyDown(Key, C);
+    if Result then Exit;
+  end;
+
+  Result := GetItems.KeyDown(Key, C);
 end;
 
 function TKamAbstractViewport.KeyUp(Key: TKey; C: char): boolean;
@@ -758,7 +759,12 @@ begin
   if Result or Paused then Exit;
 
   if Camera <> nil then
+  begin
     Result := Camera.KeyUp(Key, C);
+    if Result then Exit;
+  end;
+
+  Result := GetItems.KeyUp(Key, C);
 end;
 
 function TKamAbstractViewport.MouseDown(const Button: TMouseButton): boolean;
@@ -767,7 +773,12 @@ begin
   if Result or Paused then Exit;
 
   if Camera <> nil then
+  begin
     Result := Camera.MouseDown(Button);
+    if Result then Exit;
+  end;
+
+  Result := GetItems.MouseDown(Button);
 end;
 
 function TKamAbstractViewport.MouseUp(const Button: TMouseButton): boolean;
@@ -776,7 +787,12 @@ begin
   if Result or Paused then Exit;
 
   if Camera <> nil then
+  begin
     Result := Camera.MouseUp(Button);
+    if Result then Exit;
+  end;
+
+  Result := GetItems.MouseUp(Button);
 end;
 
 function TKamAbstractViewport.AllowSuspendForInput: boolean;
@@ -1322,38 +1338,6 @@ begin
     CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
 
   RenderOnScreen(Camera);
-end;
-
-function TKamSceneManager.KeyDown(Key: TKey; C: char): boolean;
-begin
-  Result := inherited;
-  if Result or Paused then Exit;
-
-  Result := Items.KeyDown(Key, C);
-end;
-
-function TKamSceneManager.KeyUp(Key: TKey; C: char): boolean;
-begin
-  Result := inherited;
-  if Result or Paused then Exit;
-
-  Result := Items.KeyUp(Key, C);
-end;
-
-function TKamSceneManager.MouseDown(const Button: TMouseButton): boolean;
-begin
-  Result := inherited;
-  if Result or Paused then Exit;
-
-  Result := Items.MouseDown(Button);
-end;
-
-function TKamSceneManager.MouseUp(const Button: TMouseButton): boolean;
-begin
-  Result := inherited;
-  if Result or Paused then Exit;
-
-  Result := Items.MouseUp(Button);
 end;
 
 function TKamSceneManager.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
