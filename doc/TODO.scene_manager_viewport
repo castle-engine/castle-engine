@@ -65,6 +65,10 @@ so we cannot make assumption 1 SceneManager <=> 1 viewport.
   TGLUIWindow.Controls / TKamOpenGLControl.Controls already can do for
   their lists of TUIControls.
 
+New idea: Make TKamSceneManager a descendant of TKamAbstractViewport.
+This way we share code, and no need for dumb calls from TKamSceneManager
+to TheDefaultViewport are even needed.
+
 In any case:
 - We want, for DefaultViewport = true, to have some
   TheDefaultViewport: TKamViewport instance created,
@@ -86,3 +90,12 @@ of mouse position (to handle keys from both players at once, assuming
 not conflicting). So, actually (since TKamViewport will decide about it,
 and TCamera.PositionInside is ignored), TKamViewport.KeyPreview is needed.
 Maybe just make TUIControl.KeyPreview property?
+
+TODO: use Focused = true to draw border around focused viewport
+in multple_viewports.
+
+Hm, maybe TKamCustomViewport, a common ancestor, with
+common Render* methods, from which TKamSceneManager and TkamViewport derive?
+This would allow making descendants of TkamViewport with specialized
+rendering methods.
+E.g. make in multple_viewports two viewports render with wireframe.

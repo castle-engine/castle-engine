@@ -28,6 +28,45 @@ type
   TRender3DEvent = procedure (SceneManager: TKamSceneManager;
     TransparentGroup: TTransparentGroup; InShadow: boolean) of object;
 
+  { Common abstract class for things that may act as a viewport:
+    TKamSceneManager and TKamViewport. }
+  TKamAbstractViewport = class(TUIControl)
+  private
+    FCamera: TCamera;
+  protected
+    procedure SetCamera(const Value: TCamera); virtual;
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    procedure SetContainer(const Value: IUIContainer); override;
+  public
+    destructor Destroy; override;
+    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
+  published
+    { Camera used to render.
+
+      Cannot be @nil when rendering. If you don't assign anything here,
+      we'll create a default camera object at the nearest ApplyProjection
+      call (this is the first moment when we really must have some camera).
+      This default camera will be created by CreateDefaultCamera.
+
+      This camera @italic(should not) be inside some other container
+      (like on TGLUIWindow.Controls or TKamOpenGLControl.Controls list).
+      Scene manager / viewport will handle passing events to the camera on it's own,
+      we will also pass our own Container to Camera.Container.
+      This is desired, this way events are correctly passed
+      and interpreted before passing them to 3D objects.
+      And this way we avoid the question whether camera should be before
+      or after the scene manager / viewport on the Controls list (as there's really
+      no perfect ordering for them).
+
+      TKamSceneManager only: Scene manager will "hijack" some Camera events:
+      TCamera.OnVisibleChange, TWalkCamera.OnMoveAllowed,
+      TWalkCamera.OnGetHeightAbove, TCamera.OnCursorChange.
+      Scene manager will handle them in a proper way.
+
+      @seealso TKamSceneManager.OnCameraChanged }
+    property Camera: TCamera read FCamera write SetCamera;
+  end;
+
   { Scene manager that knows about all 3D things inside your world.
 
     Single scenes/models (like TVRMLGLScene or TVRMLGLAnimation instances)
@@ -68,10 +107,9 @@ type
     is to add this to TGLUIWindow.Controls or TKamOpenGLControl.Controls.
     This passes relevant TUIControl events to all the T3D objects inside.
   }
-  TKamSceneManager = class(TUIControl)
+  TKamSceneManager = class(TKamAbstractViewport)
   private
     FMainScene: TVRMLGLScene;
-    FCamera: TCamera;
     FItems: T3DList;
     FPaused: boolean;
     FDefaultViewport: boolean;
@@ -94,7 +132,6 @@ type
     FMouseRayHit3D: T3D;
 
     procedure SetMainScene(const Value: TVRMLGLScene);
-    procedure SetCamera(const Value: TCamera);
     procedure SetShadowVolumesPossible(const Value: boolean);
 
     procedure ItemsVisibleChange(Sender: T3D; Changes: TVisibleChanges);
@@ -113,7 +150,7 @@ type
     FWalkProjectionNear: Single;
     FWalkProjectionFar : Single;
 
-    procedure SetContainer(const Value: IUIContainer); override;
+    procedure SetCamera(const Value: TCamera); override;
 
     { Triangles to ignore by all collision detection in scene manager.
       The default implementation in this class resturns always @false,
@@ -355,31 +392,6 @@ type
       Freeing MainScene will automatically set this to @nil. }
     property MainScene: TVRMLGLScene read FMainScene write SetMainScene;
 
-    { Camera used to render.
-
-      Cannot be @nil when rendering. If you don't assign anything here,
-      we'll create a default camera object at the nearest ApplyProjection
-      call (this is the first moment when we really must have some camera).
-      This default camera will be created by CreateDefaultCamera.
-
-      This camera @italic(should not) be inside some other container
-      (like on TGLUIWindow.Controls or TKamOpenGLControl.Controls list).
-      Scene manager will handle passing events to the camera on it's own,
-      we will also pass our own Container to Camera.Container.
-      This is desired, this way events are correctly passed
-      and interpreted before passing them to 3D objects.
-      And this way we avoid the question whether camera should be before
-      or after the scene manager on the Controls list (as there's really
-      no perfect ordering for them).
-
-      Scene manager will "hijack" some Camera events:
-      TCamera.OnVisibleChange, TWalkCamera.OnMoveAllowed,
-      TWalkCamera.OnGetHeightAbove, TCamera.OnCursorChange.
-      Scene manager will handle them in a proper way.
-
-      @seealso OnCameraChanged }
-    property Camera: TCamera read FCamera write SetCamera;
-
     { Should we make shadow volumes possible.
       This should indicate if OpenGL context was (possibly) initialized
       with stencil buffer. }
@@ -490,14 +502,13 @@ type
     (and cameras) to view the 3D worls at once and such.
 
     TODO: WORK IN PROGRESS, HIGHLY BUGGY FOR NOW! }
-  TKamViewport = class(TUIControl)
+  TKamViewport = class(TKamAbstractViewport)
   private
     FLeft: TGLint;
     FBottom: TGLint;
     FWidth: TGLsizei;
     FHeight: TGLsizei;
     FSceneManager: TKamSceneManager;
-    FCamera: TCamera;
     FPaused: boolean;
 
     { These variables are writen by ApplyProjection. }
@@ -507,18 +518,13 @@ type
     FWalkProjectionFar : Single;
 
     procedure ApplyProjection;
-    procedure SetCamera(const Value: TCamera);
     procedure CameraVisibleChange(ACamera: TObject); virtual;
   protected
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    procedure SetCamera(const Value: TCamera); override;
   public
-    destructor Destroy; override;
     function DrawStyle: TUIControlDrawStyle; override;
     procedure Draw(const Focused: boolean); override;
     function PositionInside(const X, Y: Integer): boolean; override;
-
-    procedure SetContainer(const Value: IUIContainer); override;
-    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
 
     function AllowSuspendForInput: boolean; override;
 
@@ -585,6 +591,87 @@ begin
   RegisterComponents('Kambi', [TKamSceneManager]);
 end;
 
+{ TKamAbstractViewport ------------------------------------------------------- }
+
+destructor TKamAbstractViewport.Destroy;
+begin
+  { unregister self from Camera callbacs, etc.
+
+    This includes setting FCamera to nil.
+    Yes, this setting FCamera to nil is needed, it's not just paranoia.
+
+    Consider e.g. when our Camera is owned by Self
+    (e.g. because it was created in ApplyProjection by CreateDefaultCamera).
+    This means that this camera will be freed in "inherited" destructor call
+    below. Since we just did FCamera.RemoveFreeNotification, we would have
+    no way to set FCamera to nil, and FCamera would then remain as invalid
+    pointer.
+
+    And when SceneManager is freed it sends a free notification
+    (this is also done in "inherited" destructor) to TGLUIWindow instance,
+    which causes removing us from TGLUIWindow.Controls list,
+    which causes SetContainer(nil) call that tries to access Camera.
+
+    This scenario would cause segfault, as FCamera pointer is invalid
+    at this time. }
+  Camera := nil;
+
+  inherited;
+end;
+
+procedure TKamAbstractViewport.SetCamera(const Value: TCamera);
+begin
+  if FCamera <> Value then
+  begin
+    if FCamera <> nil then
+    begin
+      FCamera.RemoveFreeNotification(Self);
+      FCamera.Container := nil;
+    end;
+
+    FCamera := Value;
+
+    if FCamera <> nil then
+    begin
+      FCamera.FreeNotification(Self);
+      FCamera.Container := Container;
+      if ContainerSizeKnown then
+        FCamera.ContainerResize(ContainerWidth, ContainerHeight);
+    end;
+  end;
+end;
+
+procedure TKamAbstractViewport.SetContainer(const Value: IUIContainer);
+begin
+  inherited;
+
+  { Keep Camera.Container always the same as our Container }
+  if Camera <> nil then
+    Camera.Container := Container;
+end;
+
+procedure TKamAbstractViewport.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+
+  if Operation = opRemove then
+  begin
+    { set to nil by SetCamera, to clean nicely }
+    if AComponent = FCamera then
+      Camera := nil;
+  end;
+end;
+
+procedure TKamAbstractViewport.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
+begin
+  inherited;
+
+  if Camera <> nil then
+    Camera.ContainerResize(AContainerWidth, AContainerHeight);
+end;
+
+{ TKamSceneManager ----------------------------------------------------------- }
+
 constructor TKamSceneManager.Create(AOwner: TComponent);
 begin
   inherited;
@@ -610,27 +697,6 @@ begin
     make MainScene.RemoveFreeNotification(Self)... this is all
     done by SetMainScene(nil) already. }
   MainScene := nil;
-
-  { unregister self from Camera callbacs, etc.
-
-    This includes setting FCamera to nil.
-    Yes, this setting FCamera to nil is needed, it's not just paranoia.
-
-    Consider e.g. when our Camera is owned by Self
-    (e.g. because it was created in ApplyProjection by CreateDefaultCamera).
-    This means that this camera will be freed in "inherited" destructor call
-    below. Since we just did FCamera.RemoveFreeNotification, we would have
-    no way to set FCamera to nil, and FCamera would then remain as invalid
-    pointer.
-
-    And when SceneManager is freed it sends a free notification
-    (this is also done in "inherited" destructor) to TGLUIWindow instance,
-    which causes removing us from TGLUIWindow.Controls list,
-    which causes SetContainer(nil) call that tries to access Camera.
-
-    This scenario would cause segfault, as FCamera pointer is invalid
-    at this time. }
-  Camera := nil;
 
   { unregister free notification from MouseRayHit3D }
   MouseRayHit3D := nil;
@@ -791,7 +857,6 @@ begin
   begin
     if FCamera <> nil then
     begin
-      FCamera.RemoveFreeNotification(Self);
       FCamera.OnVisibleChange := nil;
       FCamera.OnCursorChange := nil;
       if FCamera is TWalkCamera then
@@ -799,15 +864,12 @@ begin
         TWalkCamera(FCamera).OnMoveAllowed := nil;
         TWalkCamera(FCamera).OnGetHeightAbove := nil;
       end;
-
-      FCamera.Container := nil;
     end;
 
-    FCamera := Value;
+    inherited;
 
     if FCamera <> nil then
     begin
-      FCamera.FreeNotification(Self);
       { Unconditionally change FCamera.OnVisibleChange callback,
         to override TGLUIWindow / TKamOpenGLControl that also try
         to "hijack" this camera's event. }
@@ -818,10 +880,6 @@ begin
         TWalkCamera(FCamera).OnMoveAllowed := @CameraMoveAllowed;
         TWalkCamera(FCamera).OnGetHeightAbove := @CameraGetHeight;
       end;
-
-      FCamera.Container := Container;
-      if ContainerSizeKnown then
-        FCamera.ContainerResize(ContainerWidth, ContainerHeight);
 
       { Call initial ViewerChanged (this allows ProximitySensors to work
         as soon as ProcessEvents becomes true). }
@@ -834,32 +892,27 @@ begin
       MainScene.ViewChangedSuddenly;
 
     ApplyProjectionNeeded := true;
-  end;
-end;
-
-procedure TKamSceneManager.SetContainer(const Value: IUIContainer);
-begin
-  inherited;
-
-  { Keep Camera.Container always the same as our Container }
-  if Camera <> nil then
-    Camera.Container := Container;
+  end else
+    inherited; { not really needed for now, but for safety --- always call inherited }
 end;
 
 procedure TKamSceneManager.Notification(AComponent: TComponent; Operation: TOperation);
 begin
+  if Operation = opRemove then
+  begin
+    if AComponent = FCamera then
+    begin
+      { This will already be done by inherited: Camera := nil; }
+      { Need ApplyProjection, to create new default camera before rendering. }
+      ApplyProjectionNeeded := true;
+    end;
+  end;
+
   inherited;
 
   if Operation = opRemove then
   begin
-    { set to nil by methods (like SetCamera, SetMainScene), to clean nicely }
-    if AComponent = FCamera then
-    begin
-      Camera := nil;
-      { Need ApplyProjection, to create new default camera before rendering. }
-      ApplyProjectionNeeded := true;
-    end;
-
+    { set to nil by methods (like SetMainScene), to clean nicely }
     if AComponent = FMainScene then
       MainScene := nil;
 
@@ -889,11 +942,6 @@ procedure TKamSceneManager.ContainerResize(const AContainerWidth, AContainerHeig
 begin
   inherited;
   ApplyProjectionNeeded := true;
-
-  if Camera <> nil then
-  begin
-    Camera.ContainerResize(AContainerWidth, AContainerHeight);
-  end;
 end;
 
 procedure TKamSceneManager.PrepareRender(const DisplayProgressTitle: string);
@@ -978,7 +1026,7 @@ begin
       (probably, to one of your viewpoints' cameras). }
 
     TVRMLGLHeadlight.RenderOrDisable(MainScene.Headlight,
-      0, RenderState.Target = rtScreen, Camera);
+      0, (RenderState.Target = rtScreen) {TODO:and (RenderViewport = nil)}, Camera);
   end;
 
   { if MainScene = nil, do not control GL_LIGHT0 here. }
@@ -1338,14 +1386,6 @@ end;
 
 { TKamViewport --------------------------------------------------------------- }
 
-destructor TKamViewport.Destroy;
-begin
-  { unregister self from Camera callbacs, etc. }
-  Camera := nil;
-
-  inherited;
-end;
-
 {TODO:
 bind to
 
@@ -1359,7 +1399,6 @@ begin
   begin
     if FCamera <> nil then
     begin
-      FCamera.RemoveFreeNotification(Self);
       FCamera.OnVisibleChange := nil;
       FCamera.OnCursorChange := nil;
       if FCamera is TWalkCamera then
@@ -1367,15 +1406,12 @@ begin
         TWalkCamera(FCamera).OnMoveAllowed := nil;
         TWalkCamera(FCamera).OnGetHeightAbove := nil;
       end;
-
-      FCamera.Container := nil;
     end;
 
-    FCamera := Value;
+    inherited;
 
     if FCamera <> nil then
     begin
-      FCamera.FreeNotification(Self);
       { Unconditionally change FCamera.OnVisibleChange callback,
         to override TGLUIWindow / TKamOpenGLControl that also try
         to "hijack" this camera's event. }
@@ -1386,12 +1422,9 @@ begin
         { TODO: TWalkCamera(FCamera).OnMoveAllowed := @CameraMoveAllowed; }
         { TODO: TWalkCamera(FCamera).OnGetHeightAbove := @CameraGetHeight; }
       end;
-
-      FCamera.Container := Container;
-      if ContainerSizeKnown then
-        FCamera.ContainerResize(ContainerWidth, ContainerHeight);
     end;
-  end;
+  end else
+    inherited; { not really needed for now, but for safety --- always call inherited }
 end;
 
 procedure TKamViewport.CameraVisibleChange(ACamera: TObject);
@@ -1400,35 +1433,6 @@ begin
 end;
 
 { TODO: own ItemsAndCameraCursorChange? Control own Cursor? }
-
-procedure TKamViewport.SetContainer(const Value: IUIContainer);
-begin
-  inherited;
-
-  { Keep Camera.Container always the same as our Container }
-  if Camera <> nil then
-    Camera.Container := Container;
-end;
-
-procedure TKamViewport.Notification(AComponent: TComponent; Operation: TOperation);
-begin
-  inherited;
-
-  if Operation = opRemove then
-  begin
-    { set to nil by SetCamera, to clean nicely }
-    if AComponent = FCamera then
-      Camera := nil;
-  end;
-end;
-
-procedure TKamViewport.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
-begin
-  inherited;
-
-  if Camera <> nil then
-    Camera.ContainerResize(AContainerWidth, AContainerHeight);
-end;
 
 function TKamViewport.DrawStyle: TUIControlDrawStyle;
 begin
@@ -1504,8 +1508,11 @@ begin
 end;
 
 { TODO:
-  how to replicate
-  TKamViewport.PrepareRender?
+  how to replicate TKamViewport.PrepareRender?
+
+  Or maybe just say that TKamSceneManager must be on Controls list anyway
+  --- sounds sensible, since Items.Idle must be called from
+  TKamSceneManager.Idle anyway.
 }
 
 function TKamViewport.AllowSuspendForInput: boolean;

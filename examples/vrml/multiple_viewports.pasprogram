@@ -88,8 +88,7 @@ begin
   SceneManager.Items.Add(Scene);
   SceneManager.MainScene := Scene;
   SceneManager.DefaultViewport := false;
-  { With and without this should work Ok:
-  Window.Controls.Add(SceneManager); }
+  Window.Controls.Add(SceneManager);
 
   for I := 0 to High(Viewports) do
   begin
