@@ -39,6 +39,20 @@ Scene manager / controls / better Lazarus integration:
 
 (not blockers before 2.0 release) --------------------------------------------
 
+- For later, something like KeyPreview for viewport would be useful
+  to split-screen games, to catch keys (but not mouse clicks) regardless
+  of mouse position (to handle keys from both players at once, assuming
+  not conflicting). So, actually (since TKamViewport will decide about it,
+  and TCamera.PositionInside is ignored), TKamViewport.KeyPreview is needed.
+  Maybe just make TUIControl.KeyPreview property?
+
+  Note: normal handling of keys in OnKeyDown would not be enough here,
+  since keys could be catched earlier by any TUIControl?
+
+  Maybe TUIControl.KeyPreview simply changes KeyDown/Up interpretation:
+  when KeyPreview = true, then control gets key events regardless of mouse
+  positions. This is trivial to implement and should be enough?
+
 - Make XML .x3d format, loaded to any T3D (list, translated, anim, scene...)
   Make Load3D, loading this.
   Rename Object3dAsVRML to load3d unit.

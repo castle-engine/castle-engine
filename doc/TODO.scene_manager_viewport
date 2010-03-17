@@ -29,13 +29,6 @@ Move this docs somewhere?
   This way your Items get Idle called once, and exactly once (not more, not less).
 ------------------------------------------------------------------------------
 
-For later, something like KeyPreview for viewport would be useful
-to split-screen games, to catch keys (but not mouse clicks) regardless
-of mouse position (to handle keys from both players at once, assuming
-not conflicting). So, actually (since TKamViewport will decide about it,
-and TCamera.PositionInside is ignored), TKamViewport.KeyPreview is needed.
-Maybe just make TUIControl.KeyPreview property?
-
 TODO: use Focused = true to draw border around focused viewport
 in multple_viewports.
 
