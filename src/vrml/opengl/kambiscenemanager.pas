@@ -33,6 +33,7 @@ type
   TKamAbstractViewport = class(TUIControl)
   private
     FCamera: TCamera;
+    FPaused: boolean;
   protected
     procedure SetCamera(const Value: TCamera); virtual;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -40,6 +41,13 @@ type
   public
     destructor Destroy; override;
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
+
+    function AllowSuspendForInput: boolean; override;
+
+    function KeyDown(Key: TKey; C: char): boolean; override;
+    function KeyUp(Key: TKey; C: char): boolean; override;
+    function MouseDown(const Button: TMouseButton): boolean; override;
+    function MouseUp(const Button: TMouseButton): boolean; override;
   published
     { Camera used to render.
 
@@ -80,6 +88,47 @@ type
 
       @seealso TKamSceneManager.OnCameraChanged }
     property Camera: TCamera read FCamera write SetCamera;
+
+    { For scene manager: you can pause everything inside your 3D world,
+      for viewport: you can make the camera of this viewpoint paused
+      (not responsive).
+
+      @italic(For scene manager:)
+
+      "Paused" means that no events (key, mouse, idle) are passed to any
+      @link(TKamSceneManager.Items) or the @link(Camera).
+      This is suitable if you really want to totally, unconditionally,
+      make your 3D world view temporary still (for example,
+      useful when entering some modal dialog box and you want
+      3D scene to behave as a still background).
+
+      You can of course still directly change some scene property,
+      and then 3D world will change.
+      But no change will be initialized automatically by scene manager events.
+
+      @italic(See also): For less drastic pausing methods,
+      there are other methods of pausing / disabling
+      some events processing for the 3D world:
+
+      @unorderedList(
+        @item(You can set TVRMLGLScene.TimePlaying or TVRMLGLAnimation.TimePlaying
+          to @false. This is roughly equivalent to not running their Idle methods.
+          This means that time will "stand still" for them,
+          so their animations will not play. Although they may
+          still react and change in response to mouse clicks / key presses,
+          if TVRMLGLScene.ProcessEvents.)
+
+        @item(You can set TVRMLGLScene.ProcessEvents to @false.
+          This means that scene will not receive and process any
+          key / mouse and other events (through VRML/X3D sensors).
+          Some animations (not depending on VRML/X3D events processing)
+          may still run, for example MovieTexture will still animate,
+          if only TVRMLGLScene.TimePlaying.)
+
+        @item(For cameras, you can set TCamera.IgnoreAllInputs to ignore
+          key / mouse clicks.)
+      ) }
+    property Paused: boolean read FPaused write FPaused default false;
   end;
 
   { Scene manager that knows about all 3D things inside your world.
@@ -126,7 +175,6 @@ type
   private
     FMainScene: TVRMLGLScene;
     FItems: T3DList;
-    FPaused: boolean;
     FDefaultViewport: boolean;
 
     FShadowVolumesPossible: boolean;
@@ -296,7 +344,6 @@ type
     procedure Idle(const CompSpeed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
-    function AllowSuspendForInput: boolean; override;
 
     { Overridden in TKamSceneManager to catch events regardless of mouse position. }
     function PositionInside(const X, Y: Integer): boolean; override;
@@ -462,42 +509,6 @@ type
     { See Render3D method. }
     property OnRender3D: TRender3DEvent read FOnRender3D write FOnRender3D;
 
-    { When @true, everything inside the scene manager is paused.
-      Which means that no events (key, mouse, idle) are passed to any
-      @link(Items) or the @link(Camera).
-      This is suitable if you really want to totally, unconditionally,
-      make your 3D world view temporary still (for example,
-      useful when entering some modal dialog box and you want
-      3D scene to behave as a still background).
-
-      You can of course still directly change some scene property,
-      and then 3D world will change.
-      But no change will be initialized automatically by scene manager events.
-
-      @italic(See also): For less drastic pausing methods,
-      there are other methods of pausing / disabling
-      some events processing for the 3D world:
-
-      @unorderedList(
-        @item(You can set TVRMLGLScene.TimePlaying or TVRMLGLAnimation.TimePlaying
-          to @false. This is roughly equivalent to not running their Idle methods.
-          This means that time will "stand still" for them,
-          so their animations will not play. Although they may
-          still react and change in response to mouse clicks / key presses,
-          if TVRMLGLScene.ProcessEvents.)
-
-        @item(You can set TVRMLGLScene.ProcessEvents to @false.
-          This means that scene will not receive and process any
-          key / mouse and other events (through VRML/X3D sensors).
-          Some animations (not depending on VRML/X3D events processing)
-          may still run, for example MovieTexture will still animate,
-          if only TVRMLGLScene.TimePlaying.)
-
-        @item(For cameras, you can set TCamera.IgnoreAllInputs to ignore
-          key / mouse clicks.)
-      ) }
-    property Paused: boolean read FPaused write FPaused default false;
-
     { Should we render the 3D world in a default viewport that covers
       the whole window. This is usually what you want. For more complicated
       uses, you can turn this off, and use explicit TKamViewport
@@ -524,7 +535,6 @@ type
     FWidth: TGLsizei;
     FHeight: TGLsizei;
     FSceneManager: TKamSceneManager;
-    FPaused: boolean;
 
     { These variables are writen by ApplyProjection. }
     FAngleOfViewX: Single;
@@ -541,17 +551,10 @@ type
     procedure Draw(const Focused: boolean); override;
     function PositionInside(const X, Y: Integer): boolean; override;
 
-    function AllowSuspendForInput: boolean; override;
-
     procedure Idle(const CompSpeed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
 
-    function KeyDown(Key: TKey; C: char): boolean; override;
-    function KeyUp(Key: TKey; C: char): boolean; override;
-
-    function MouseDown(const Button: TMouseButton): boolean; override;
-    function MouseUp(const Button: TMouseButton): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
   published
     { Viewport dimensions where the 3D world will be drawn.
@@ -563,10 +566,6 @@ type
     { @groupEnd }
 
     property SceneManager: TKamSceneManager read FSceneManager write FSceneManager;
-
-    { When @true, the camera of this viewpoint is paused (not responsive).
-      This is somewhat a subset of what TKamSceneManager.Paused does. }
-    property Paused: boolean read FPaused write FPaused default false;
   end;
 
 procedure Register;
@@ -657,6 +656,47 @@ begin
 
   if Camera <> nil then
     Camera.ContainerResize(AContainerWidth, AContainerHeight);
+end;
+
+function TKamAbstractViewport.KeyDown(Key: TKey; C: char): boolean;
+begin
+  Result := inherited;
+  if Result or Paused then Exit;
+
+  if Camera <> nil then
+    Result := Camera.KeyDown(Key, C);
+end;
+
+function TKamAbstractViewport.KeyUp(Key: TKey; C: char): boolean;
+begin
+  Result := inherited;
+  if Result or Paused then Exit;
+
+  if Camera <> nil then
+    Result := Camera.KeyUp(Key, C);
+end;
+
+function TKamAbstractViewport.MouseDown(const Button: TMouseButton): boolean;
+begin
+  Result := inherited;
+  if Result or Paused then Exit;
+
+  if Camera <> nil then
+    Result := Camera.MouseDown(Button);
+end;
+
+function TKamAbstractViewport.MouseUp(const Button: TMouseButton): boolean;
+begin
+  Result := inherited;
+  if Result or Paused then Exit;
+
+  if Camera <> nil then
+    Result := Camera.MouseUp(Button);
+end;
+
+function TKamAbstractViewport.AllowSuspendForInput: boolean;
+begin
+  Result := (Camera = nil) or Paused or Camera.AllowSuspendForInput;
 end;
 
 { TKamSceneManager ----------------------------------------------------------- }
@@ -1151,12 +1191,6 @@ begin
   Result := inherited;
   if Result or Paused then Exit;
 
-  if Camera <> nil then
-  begin
-    Result := Camera.KeyDown(Key, C);
-    if Result then Exit;
-  end;
-
   Result := Items.KeyDown(Key, C);
 end;
 
@@ -1164,12 +1198,6 @@ function TKamSceneManager.KeyUp(Key: TKey; C: char): boolean;
 begin
   Result := inherited;
   if Result or Paused then Exit;
-
-  if Camera <> nil then
-  begin
-    Result := Camera.KeyUp(Key, C);
-    if Result then Exit;
-  end;
 
   Result := Items.KeyUp(Key, C);
 end;
@@ -1179,12 +1207,6 @@ begin
   Result := inherited;
   if Result or Paused then Exit;
 
-  if Camera <> nil then
-  begin
-    Result := Camera.MouseDown(Button);
-    if Result then Exit;
-  end;
-
   Result := Items.MouseDown(Button);
 end;
 
@@ -1192,12 +1214,6 @@ function TKamSceneManager.MouseUp(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
   if Result or Paused then Exit;
-
-  if Camera <> nil then
-  begin
-    Result := Camera.MouseUp(Button);
-    if Result then Exit;
-  end;
 
   Result := Items.MouseUp(Button);
 end;
@@ -1294,11 +1310,6 @@ begin
     LetOthersHandleMouseAndKeys := true;
 
   Items.Idle(CompSpeed);
-end;
-
-function TKamSceneManager.AllowSuspendForInput: boolean;
-begin
-  Result := (Camera = nil) or Paused or Camera.AllowSuspendForInput;
 end;
 
 function TKamSceneManager.PositionInside(const X, Y: Integer): boolean;
@@ -1504,11 +1515,6 @@ end;
   TKamSceneManager.Idle anyway.
 }
 
-function TKamViewport.AllowSuspendForInput: boolean;
-begin
-  Result := (Camera = nil) or Paused or Camera.AllowSuspendForInput;
-end;
-
 procedure TKamViewport.Idle(const CompSpeed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
@@ -1527,54 +1533,6 @@ begin
     Camera.Idle(CompSpeed, HandleMouseAndKeys, LetOthersHandleMouseAndKeys);
   end else
     LetOthersHandleMouseAndKeys := true;
-end;
-
-function TKamViewport.KeyDown(Key: TKey; C: char): boolean;
-begin
-  Result := inherited;
-  if Result or Paused then Exit;
-
-  if Camera <> nil then
-  begin
-    Result := Camera.KeyDown(Key, C);
-    if Result then Exit;
-  end;
-end;
-
-function TKamViewport.KeyUp(Key: TKey; C: char): boolean;
-begin
-  Result := inherited;
-  if Result or Paused then Exit;
-
-  if Camera <> nil then
-  begin
-    Result := Camera.KeyUp(Key, C);
-    if Result then Exit;
-  end;
-end;
-
-function TKamViewport.MouseDown(const Button: TMouseButton): boolean;
-begin
-  Result := inherited;
-  if Result or Paused then Exit;
-
-  if Camera <> nil then
-  begin
-    Result := Camera.MouseDown(Button);
-    if Result then Exit;
-  end;
-end;
-
-function TKamViewport.MouseUp(const Button: TMouseButton): boolean;
-begin
-  Result := inherited;
-  if Result or Paused then Exit;
-
-  if Camera <> nil then
-  begin
-    Result := Camera.MouseUp(Button);
-    if Result then Exit;
-  end;
 end;
 
 function TKamViewport.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;

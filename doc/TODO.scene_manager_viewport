@@ -61,3 +61,7 @@ Fix:
       TODO: for now it doesn't work.
   or fix comments, and add some checks, to disallow it?
   What about camera for headlight?
+
+TKamSceneManager.MouseMove
+TKamSceneManager.Idle
+merge into TKamAbstractViewport
