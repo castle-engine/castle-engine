@@ -94,6 +94,7 @@ begin
   begin
     Viewports[I] := TKamViewport.Create(Application);
     Viewports[I].SceneManager := SceneManager;
+    Viewports[I].FullSize := false;
     Viewports[I].Camera := SceneManager.CreateDefaultCamera(SceneManager);
     { set different camera views for all viewports, to make it interesting }
     if (I < 3) and (Viewports[I].Camera is TExamineCamera) then
