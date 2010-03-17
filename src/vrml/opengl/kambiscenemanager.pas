@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Scene manager: TKamSceneManager class. }
+{ Scene manager (TKamSceneManager) and viewport (TKamViewport) classes. }
 unit KambiSceneManager;
 
 interface
@@ -354,6 +354,35 @@ type
       geometry looks like. }
     property BackgroundWireframe: boolean
       read FBackgroundWireframe write FBackgroundWireframe default false;
+
+    { When @true then headlight is always rendered from custom viewport's
+      (TKamViewport) camera, not from central camera (the one in scene manager).
+      This is meaningless in TKamSceneManager.
+
+      By default this is @false, which means that when rendering
+      custom viewport (TKamViewport) we render headlight from
+      TKamViewport.SceneManager.Camera (not from current viewport's
+      TKamViewport.Camera). On one hand, this is sensible: there is exactly one
+      headlight in your 3D world, and it shines from a central camera
+      in SceneManager.Camera. When SceneManager.Camera is @nil (which
+      may happen if you set SceneManager.DefaultViewport := false and you
+      didn't assign SceneManager.Camera explicitly) headlight is never done.
+      This means that when observing 3D world from other cameras,
+      you will see a light shining from SceneManager.Camera.
+      This is also the only way to make headlight lighting correctly reflected
+      in mirror textures (like GeneratedCubeMapTexture) --- since we render
+      to one mirror texture, we need a knowledge of "cental" camera for this.
+
+      When this is @true, then each viewport actually renders headlight
+      from it's current camera. This means that actually each viewport
+      has it's own, independent headlight (althoug they all follow VRML/X3D
+      NavigationInfo.headlight and KambiNavigationInfo settings).
+      This may allow you to light your view better (if you only use
+      headlight to "just make the view brighter"), but it's not entirely
+      correct (in particular, mirror reflections of the headlight are
+      undefined then). }
+    property HeadlightFromViewport: boolean
+      read FHeadlightFromViewport write FHeadlightFromViewport default false;
   end;
 
   { Scene manager that knows about all 3D things inside your world.
@@ -511,6 +540,21 @@ type
     { Current 3D objects under the mouse cursor.
       Updated in every mouse move. }
     property MouseRayHit: T3DCollision read FMouseRayHit;
+
+    { List of viewports connected to this scene manager.
+      This contains all TKamViewport instances that have
+      TKamViewport.SceneManager set to us. Also it contains Self
+      (this very scene manager) if and only if DefaultViewport = @true
+      (because when DefaultViewport, scene manager acts as an
+      additional viewport too).
+
+      This list is read-only from the outside! It's automatically managed
+      in this unit (when you change TKamViewport.SceneManager
+      or TKamSceneManager.DefaultViewport, we automatically update this list
+      as appropriate). }
+    { TODO: property Viewports: TKamAbstractViewportsList;
+      TODO: use this for PrepareRender (do at all only when Viewports.Count > 0,
+      check Viewports.ShadowVolumesNeeded) }
   published
     { Tree of 3D objects within your world. This is the place where you should
       add your scenes to have them handled by scene manager.
@@ -1331,9 +1375,12 @@ begin
     ApplyProjection;
   end;
 
+  { TODO: pass CorrectLeft etc for chosen viewport, so it only if some viewport
+    exists. }
   { When DefaultViewport, we safely assume below that we cover the whole
     viewport. (For custom viewports, it's their problem to do this.) }
   Items.UpdateGeneratedTextures(@RenderFromViewEverything,
+    { TODO: use WalkProjectionNear, WalkProjectionFar from existing viewport }
     WalkProjectionNear, WalkProjectionFar,
     CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
 
