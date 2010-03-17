@@ -58,10 +58,25 @@ type
       or after the scene manager / viewport on the Controls list (as there's really
       no perfect ordering for them).
 
-      TKamSceneManager only: Scene manager will "hijack" some Camera events:
+      @italic(For TKamSceneManager only:)
+      Scene manager will "hijack" some Camera events:
       TCamera.OnVisibleChange, TWalkCamera.OnMoveAllowed,
       TWalkCamera.OnGetHeightAbove, TCamera.OnCursorChange.
       Scene manager will handle them in a proper way.
+
+      @italic(For TKamViewport only:)
+      The TKamViewport's camera is slightly less important than
+      TKamSceneManager.Camera, because TKamSceneManager.Camera may be treated
+      as a "central" camera. Viewport's camera may not (because you may
+      have many viewports and they all deserve fair treatment).
+      So e.g. headlight is done only from TKamSceneManager.Camera
+      (for mirror textures, there must be one headlight for your 3D world).
+      Also VRML/X3D ProximitySensors receive events only from
+      TKamSceneManager.Camera.
+
+      If you want, it's absolutely Ok (even encouraged) to assign
+      camera from viewport also to TKamSceneManager.Camera.
+      TODO: for now it doesn't work.
 
       @seealso TKamSceneManager.OnCameraChanged }
     property Camera: TCamera read FCamera write SetCamera;
@@ -548,32 +563,6 @@ type
     { @groupEnd }
 
     property SceneManager: TKamSceneManager read FSceneManager write FSceneManager;
-
-    { Camera used to render this viewport.
-
-      See TKamSceneManager.Camera, most comments there apply also here:
-      Camera cannot be @nil (default camera object will be created by
-      SceneManager.CreateDefaultCamera at the nearest draw).
-      Camera @italic(should not) be inside some other container
-      (like on TGLUIWindow.Controls or TKamOpenGLControl.Controls list),
-      we will pass events by ourselves.
-      We will "hijack" some Camera events (subset of what scene manager hijacks),
-      because we can handle them Ok.
-
-      The viewport's camera is slightly less important than
-      TKamSceneManager.Camera, because TKamSceneManager.Camera may be treated
-      as "central" camera. Viewport's camera may not (because you may
-      have many viewports and they all deserve fair treatment).
-      So e.g. headlight is done only from TKamSceneManager.Camera
-      (for mirror textures, there must be one headlight for your 3D world).
-      Also VRML/X3D ProximitySensors receive events only from
-      TKamSceneManager.Camera.
-
-      If you want, it's absolutely Ok (even encouraged) to assign
-      camera from viewport also to TKamSceneManager.Camera.
-
-      @seealso TKamSceneManager.Camera }
-    property Camera: TCamera read FCamera write SetCamera;
 
     { When @true, the camera of this viewpoint is paused (not responsive).
       This is somewhat a subset of what TKamSceneManager.Paused does. }

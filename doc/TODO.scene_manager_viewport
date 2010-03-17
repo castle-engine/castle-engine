@@ -53,3 +53,11 @@ E.g. make in multple_viewports two viewports render with wireframe.
 
 ApplyProjection move also to TKamAbstractViewport.
 Render / Draw stuff move also there (like RenderEverything).
+
+
+Fix:
+      If you want, it's absolutely Ok (even encouraged) to assign
+      camera from viewport also to TKamSceneManager.Camera.
+      TODO: for now it doesn't work.
+  or fix comments, and add some checks, to disallow it?
+  What about camera for headlight?
