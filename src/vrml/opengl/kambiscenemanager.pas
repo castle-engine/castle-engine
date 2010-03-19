@@ -44,6 +44,7 @@ type
 
     FBackgroundWireframe: boolean;
     FOnRender3D: TRender3DEvent;
+    FHeadlightFromViewport: boolean;
   protected
     { These variables are writeable from overridden ApplyProjection. }
     FAngleOfViewX: Single;
@@ -939,25 +940,34 @@ end;
 
 procedure TKamAbstractViewport.RenderHeadLight;
 begin
-  if (GetMainScene <> nil) and (GetHeadlightCamera <> nil) then
+  if GetMainScene <> nil then
   begin
-    { GetHeadlightCamera (SceneManager.Camera) may be nil here, when
-      rendering is done by custom viewport.
-      In such case, we have to assume headlight doesn't shine.
+    if HeadlightFromViewport then
+    begin
+      if Camera <> nil then
+        TVRMLGLHeadlight.RenderOrDisable(GetMainScene.Headlight,
+          0, RenderState.Target = rtScreen, Camera);
+    end else
+    begin
+      { GetHeadlightCamera (SceneManager.Camera) may be nil here, when
+        rendering is done by custom viewport.
+        In such case, we have to assume headlight doesn't shine.
 
-      No, we cannot use camera settings from current viewport:
-      this would mean that mirror textures (like GeneratedCubeMapTexture)
-      will need to have different contents in different viewpoints,
-      which isn't possible. We also want to use scene manager's camera,
-      to have it tied with scene manager's ViewerToChanges implementation.
+        No, we cannot use camera settings from current viewport:
+        this would mean that mirror textures (like GeneratedCubeMapTexture)
+        will need to have different contents in different viewpoints,
+        which isn't possible. We also want to use scene manager's camera,
+        to have it tied with scene manager's ViewerToChanges implementation.
 
-      So if you use custom viewports and want headlight Ok,
-      be sure to explicitly set TKamSceneManager.Camera
-      (probably, to one of your viewpoints' cameras). }
+        So if you use custom viewports and want headlight Ok,
+        be sure to explicitly set TKamSceneManager.Camera
+        (probably, to one of your viewpoints' cameras). }
 
-    TVRMLGLHeadlight.RenderOrDisable(GetMainScene.Headlight,
-      0, (RenderState.Target = rtScreen) {TODO:and (RenderViewport = nil)},
-      GetHeadlightCamera);
+      if GetHeadlightCamera <> nil then
+        TVRMLGLHeadlight.RenderOrDisable(GetMainScene.Headlight,
+          0, (RenderState.Target = rtScreen) and (Self is TKamSceneManager),
+          GetHeadlightCamera);
+    end;
   end;
 
   { if MainScene = nil, do not control GL_LIGHT0 here. }
