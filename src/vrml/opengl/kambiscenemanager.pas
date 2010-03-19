@@ -490,6 +490,7 @@ type
 
     procedure GLContextInit; override;
     procedure GLContextClose; override;
+    function PositionInside(const X, Y: Integer): boolean; override;
 
     { Prepare rendering resources, to make next @link(Render) call execute fast.
 
@@ -1284,6 +1285,12 @@ begin
     { Maybe ApplyProjectionNeeded := true also for MainScene cleaning?
       But ApplyProjection doesn't set projection now, when MainScene is @nil. }
   end;
+end;
+
+function TKamSceneManager.PositionInside(const X, Y: Integer): boolean;
+begin
+  { When not DefaultViewport, then scene manager is not visible. }
+  Result := DefaultViewport and (inherited PositionInside(X, Y));
 end;
 
 procedure TKamSceneManager.SetShadowVolumesPossible(const Value: boolean);
