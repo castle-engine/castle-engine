@@ -106,18 +106,22 @@ begin
 end;
 
 function TGLBitmapFont.TextHeight(const s: string): integer;
-var i: integer;
-    minY, maxY: integer;
+var
+  i: integer;
+  minY, maxY, YOrig: integer;
 begin
- minY := 0;
- maxY := 0;
- for i := 1 to length(s) do
- begin
-  minY := min(minY, -Round(BmpFont^[s[i]]^.Info.YOrig));
-  maxY := max(maxY, BmpFont^[s[i]]^.Info.Height -
-              Round(BmpFont^[s[i]]^.Info.YOrig));
- end;
- result := maxY-minY;
+  minY := 0;
+  maxY := 0;
+  for i := 1 to length(s) do
+  begin
+    YOrig := Round(BmpFont^[s[i]]^.Info.YOrig);
+    MinTo1st(minY, -YOrig);
+    { TODO: this should probably be "+ YOrig", but some things are tied
+      now to the "- YOrig" look (like TGLMenu, that adds a "descend", that
+      should not be needed? }
+    MaxTo1st(maxY, BmpFont^[s[i]]^.Info.Height - YOrig);
+  end;
+  result := maxY - minY;
 end;
 
 end.
