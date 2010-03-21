@@ -93,7 +93,7 @@ begin
   { This sets OpenGL projection, also updating Camera.ProjectionMatrix,
     which is important for having correct Camera.Frustum. }
   Scene.GLProjection(Camera, Scene.BoundingBox,
-    Glwin.Width, Glwin.Height);
+    0, 0, Glwin.Width, Glwin.Height);
 end;
 
 type

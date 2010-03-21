@@ -73,7 +73,7 @@ end;
 procedure Resize(Glwin: TGLWindow);
 begin
   Scene.GLProjection(Camera, Scene.BoundingBox,
-    Glwin.Width, Glwin.Height);
+    0, 0, Glwin.Width, Glwin.Height);
 end;
 
 begin

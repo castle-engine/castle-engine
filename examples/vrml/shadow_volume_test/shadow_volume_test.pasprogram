@@ -435,7 +435,7 @@ end;
 type
   TStatusText = class(TUIControl)
     function DrawStyle: TUIControlDrawStyle; override;
-    procedure Draw(const Focused: boolean); override;
+    procedure Draw; override;
   end;
 
 function TStatusText.DrawStyle: TUIControlDrawStyle;
@@ -443,7 +443,7 @@ begin
   Result := ds2D;
 end;
 
-procedure TStatusText.Draw(const Focused: boolean);
+procedure TStatusText.Draw;
 begin
   if IsRenderStatus then
   begin

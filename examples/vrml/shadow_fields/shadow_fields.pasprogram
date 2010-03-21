@@ -235,7 +235,7 @@ end;
 procedure Resize(Glwin: TGLWindow);
 begin
   SceneReceiver.GLProjection(NavigatorCurrent, SceneReceiver.BoundingBox,
-    Glwin.Width, Glwin.Height);
+    0, 0, Glwin.Width, Glwin.Height);
 end;
 
 type
