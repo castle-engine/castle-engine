@@ -20,7 +20,10 @@ interface
 
 uses Classes, VectorMath, VRMLNodes, VRMLGLScene, VRMLScene, Cameras,
   VRMLGLHeadLight, GLShadowVolumeRenderer, GL, UIControls, Base3D,
-  KeysMouse, VRMLTriangle, Boxes3D, BackgroundGL;
+  KeysMouse, VRMLTriangle, Boxes3D, BackgroundGL, KambiUtils, KambiClassUtils;
+
+
+{$define read_interface}
 
 type
   TKamAbstractViewport = class;
@@ -386,6 +389,12 @@ type
       read FHeadlightFromViewport write FHeadlightFromViewport default false;
   end;
 
+
+  TObjectsListItem_1 = TKamAbstractViewport;
+  {$I objectslist_1.inc}
+  TKamAbstractViewportsList = class(TObjectsList_1)
+  end;
+
   { Scene manager that knows about all 3D things inside your world.
 
     Single scenes/models (like TVRMLGLScene or TVRMLGLAnimation instances)
@@ -434,6 +443,7 @@ type
     FMainScene: TVRMLGLScene;
     FItems: T3DList;
     FDefaultViewport: boolean;
+    FViewports: TKamAbstractViewportsList;
 
     ApplyProjectionNeeded: boolean;
     FOnCameraChanged: TNotifyEvent;
@@ -446,6 +456,7 @@ type
     FMouseRayHit3D: T3D;
 
     procedure SetMainScene(const Value: TVRMLGLScene);
+    procedure SetDefaultViewport(const Value: boolean);
 
     procedure ItemsVisibleChange(Sender: T3D; Changes: TVisibleChanges);
     procedure ItemsAndCameraCursorChange(Sender: TObject);
@@ -554,7 +565,8 @@ type
       in this unit (when you change TKamViewport.SceneManager
       or TKamSceneManager.DefaultViewport, we automatically update this list
       as appropriate). }
-    { TODO: property Viewports: TKamAbstractViewportsList;
+    property Viewports: TKamAbstractViewportsList read FViewports;
+    {
       TODO: use this for PrepareRender (do at all only when Viewports.Count > 0,
       check Viewports.ShadowVolumesNeeded) }
   published
@@ -622,7 +634,7 @@ type
       (connected to this scene manager by TKamViewport.SceneManager property)
       for making your world visible. }
     property DefaultViewport: boolean
-      read FDefaultViewport write FDefaultViewport default true;
+      read FDefaultViewport write SetDefaultViewport default true;
   end;
 
   { Custom 2D viewport showing 3D world. This uses assigned SceneManager
@@ -668,6 +680,7 @@ type
   TKamViewport = class(TKamAbstractViewport)
   private
     FSceneManager: TKamSceneManager;
+    procedure SetSceneManager(const Value: TKamSceneManager);
     procedure CameraVisibleChange(ACamera: TObject); virtual;
   protected
     procedure SetCamera(const Value: TCamera); override;
@@ -676,6 +689,8 @@ type
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetHeadlightCamera: TCamera; override;
   public
+    destructor Destroy; override;
+
     procedure Draw(const Focused: boolean); override;
 
     procedure Idle(const CompSpeed: Single;
@@ -686,14 +701,19 @@ type
 
     function CreateDefaultCamera(AOwner: TComponent): TCamera; override;
   published
-    property SceneManager: TKamSceneManager read FSceneManager write FSceneManager;
+    property SceneManager: TKamSceneManager read FSceneManager write SetSceneManager;
   end;
 
 procedure Register;
 
+{$undef read_interface}
+
 implementation
 
 uses SysUtils, RenderStateUnit, KambiGLUtils, ProgressUnit;
+
+{$define read_implementation}
+{$I objectslist_1.inc}
 
 procedure Register;
 begin
@@ -1091,9 +1111,14 @@ begin
   FCameraBox := EmptyBox3D;
 
   FDefaultViewport := true;
+
+  FViewports := TKamAbstractViewportsList.Create;
+  if DefaultViewport then FViewports.Add(Self);
 end;
 
 destructor TKamSceneManager.Destroy;
+var
+  I: Integer;
 begin
   FreeAndNil(FMouseRayHit);
 
@@ -1104,6 +1129,17 @@ begin
 
   { unregister free notification from MouseRayHit3D }
   MouseRayHit3D := nil;
+
+  if FViewports <> nil then
+  begin
+    for I := 0 to FViewports.High do
+      if FViewports[I] is TKamViewport then
+      begin
+        Assert(TKamViewport(FViewports[I]).SceneManager = Self);
+        TKamViewport(FViewports[I]).SceneManager := nil;
+      end;
+    FreeAndNil(FViewports);
+  end;
 
   inherited;
 end;
@@ -1585,7 +1621,24 @@ begin
   Result := Camera;
 end;
 
+procedure TKamSceneManager.SetDefaultViewport(const Value: boolean);
+begin
+  if Value <> FDefaultViewport then
+  begin
+    FDefaultViewport := Value;
+    if DefaultViewport then
+      Viewports.Add(Self) else
+      Viewports.Remove(Self);
+  end;
+end;
+
 { TKamViewport --------------------------------------------------------------- }
+
+destructor TKamViewport.Destroy;
+begin
+  SceneManager := nil; { remove Self from SceneManager.Viewports }
+  inherited;
+end;
 
 {TODO:
 bind to
@@ -1747,6 +1800,18 @@ begin
 
   { update the cursor, since scene under the cursor possibly changed. }
   { TODO: ItemsAndCameraCursorChange(Self); }
+end;
+
+procedure TKamViewport.SetSceneManager(const Value: TKamSceneManager);
+begin
+  if Value <> FSceneManager then
+  begin
+    if SceneManager <> nil then
+      SceneManager.Viewports.Remove(Self);
+    FSceneManager := Value;
+    if SceneManager <> nil then
+      SceneManager.Viewports.Add(Self);
+  end;
 end;
 
 end.
