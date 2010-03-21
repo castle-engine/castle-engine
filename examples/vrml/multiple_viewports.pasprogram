@@ -24,7 +24,7 @@ var
   SceneManager: TKamSceneManager;
   Scene: TVRMLGLScene;
   Viewports: array [0..3] of TKamViewport;
-  OpenButton, QuitButton: TGLButton;
+  OpenButton, QuitButton: TKamGLButton;
 
 type
   TBackground = class(TUIControl)
@@ -146,12 +146,12 @@ begin
     and viewports. So assign here new camera... }
   SceneManager.Camera := SceneManager.CreateDefaultCamera(SceneManager);
 
-  OpenButton := TGLButton.Create(Application);
+  OpenButton := TKamGLButton.Create(Application);
   OpenButton.Caption := 'Open 3D file';
   OpenButton.OnClick := @TDummy(nil).OpenButtonClick;
   Window.Controls.Add(OpenButton);
 
-  QuitButton := TGLButton.Create(Application);
+  QuitButton := TKamGLButton.Create(Application);
   QuitButton.Caption := 'Quit';
   QuitButton.OnClick := @TDummy(nil).QuitButtonClick;
   Window.Controls.Add(QuitButton);

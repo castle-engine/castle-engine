@@ -17,9 +17,9 @@
 
   This is TUIControl descendant, so to use it just add it to
   the TGLUIWindow.Controls or TKamOpenGLControl.Controls list.
-  You will also usually want to adjust position (TGLButton.Left,
-  TGLButton.Bottom), TGLButton.Caption,
-  and assign TGLButton.OnClick (or ovevrride TGLButton.DoClick). }
+  You will also usually want to adjust position (TKamGLButton.Left,
+  TKamGLButton.Bottom), TKamGLButton.Caption,
+  and assign TKamGLButton.OnClick (or ovevrride TKamGLButton.DoClick). }
 unit GLButtons;
 
 interface
@@ -27,7 +27,7 @@ interface
 uses UIControls, OpenGLFonts, KeysMouse, Classes;
 
 type
-  TGLButton = class(TUIControl)
+  TKamGLButton = class(TUIControl)
   private
     Font: TGLBitmapFont_Abstract;
     FLeft: Integer;
@@ -92,26 +92,33 @@ function CreateUIFont: TGLBitmapFont_Abstract;
 procedure DestroyUIFont(var Font: TGLBitmapFont_Abstract);
 { @groupEnd }
 
+procedure Register;
+
 implementation
 
 uses SysUtils, GL, BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, VectorMath,
   KambiGLUtils;
 
-{ TGLButton ------------------------------------------------------------------ }
+procedure Register;
+begin
+  RegisterComponents('Kambi', [TKamGLButton]);
+end;
 
-constructor TGLButton.Create(AOwner: TComponent);
+{ TKamGLButton ------------------------------------------------------------------ }
+
+constructor TKamGLButton.Create(AOwner: TComponent);
 begin
   inherited;
   FAutoSize := true;
   { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
 end;
 
-function TGLButton.DrawStyle: TUIControlDrawStyle;
+function TKamGLButton.DrawStyle: TUIControlDrawStyle;
 begin
   Result := ds2D;
 end;
 
-procedure TGLButton.Draw;
+procedure TKamGLButton.Draw;
 const
   { These colors match somewhat our TGLMenu slider images }
   { Original TGLMenu inside color: (143, 213, 182); }
@@ -160,7 +167,7 @@ begin
   glPopAttrib;
 end;
 
-function TGLButton.PositionInside(const X, Y: Integer): boolean;
+function TKamGLButton.PositionInside(const X, Y: Integer): boolean;
 begin
   Result :=
     (X >= Left) and
@@ -169,20 +176,20 @@ begin
     (ContainerHeight - Y  < Bottom + Height);
 end;
 
-procedure TGLButton.GLContextInit;
+procedure TKamGLButton.GLContextInit;
 begin
   inherited;
   Font := CreateUIFont;
   UpdateTextSize;
 end;
 
-procedure TGLButton.GLContextClose;
+procedure TKamGLButton.GLContextClose;
 begin
   DestroyUIFont(Font);
   inherited;
 end;
 
-function TGLButton.MouseDown(const Button: KeysMouse.TMouseButton): boolean;
+function TKamGLButton.MouseDown(const Button: KeysMouse.TMouseButton): boolean;
 begin
   Result := true;
   Pressed := true;
@@ -190,7 +197,7 @@ begin
   VisibleChange;
 end;
 
-function TGLButton.MouseUp(const Button: KeysMouse.TMouseButton): boolean;
+function TKamGLButton.MouseUp(const Button: KeysMouse.TMouseButton): boolean;
 begin
   Result := Pressed;
   if Pressed then
@@ -212,13 +219,13 @@ begin
   end;
 end;
 
-procedure TGLButton.DoClick;
+procedure TKamGLButton.DoClick;
 begin
   if Assigned(OnClick) then
     OnClick(Self);
 end;
 
-procedure TGLButton.SetCaption(const Value: string);
+procedure TKamGLButton.SetCaption(const Value: string);
 begin
   if Value <> FCaption then
   begin
@@ -227,7 +234,7 @@ begin
   end;
 end;
 
-procedure TGLButton.SetAutoSize(const Value: boolean);
+procedure TKamGLButton.SetAutoSize(const Value: boolean);
 begin
   if Value <> FAutoSize then
   begin
@@ -236,7 +243,7 @@ begin
   end;
 end;
 
-procedure TGLButton.UpdateTextSize;
+procedure TKamGLButton.UpdateTextSize;
 const
   HorizontalMargin = 10;
   VerticalMargin = 10;
@@ -254,7 +261,7 @@ begin
   end;
 end;
 
-procedure TGLButton.SetFocused(const Value: boolean);
+procedure TKamGLButton.SetFocused(const Value: boolean);
 begin
   if Value <> Focused then
   begin
