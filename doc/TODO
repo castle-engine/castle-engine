@@ -22,6 +22,24 @@ Scene manager / controls / better Lazarus integration:
 
 (blockers before 2.0 release) ------------------------------------------------
 
+cd ~/sources/vrmlengine/trunk/kambi_vrml_test_suite/x3d/shadow_maps/
+multiple_viewports axes.x3dv
+open simple_shadow_teapots.x3dv
+open anything else?
+
+  segfauls.
+  In TVRMLOpenGLRendererContextCache.GLSLProgram_DecReference,
+  at
+        IDecls := GLSLProgramCache^.ProgramNode.InterfaceDeclarations;
+        for J := 0 to IDecls.Count - 1 do
+  Just like previous trouble: ProgramNode no longer exists.
+  Except it's unsure how to fix it now...
+
+  Hm, think about changing Unprepare meaning: you *have* to keep references
+  while vrml nodes are prepared? This would mean ChangedAll should be split
+  into ChangedAllBegin (to unprepare everything, before freeing some nodes),
+  and then ChangedAll (to prepare again, possibly after e.g. adding some nodes).
+
 * Making Viewport*, see TODO.scene_manager_viewport, should be trivial now!
   - make laz demo, with 4 scene managers, each having other corner of window,
     maybe 2 left share the same scene and 2 right share the same scene,
@@ -35,7 +53,7 @@ Scene manager / controls / better Lazarus integration:
 
 (not blockers before 2.0 release) --------------------------------------------
 
-- Also use  TButton in terrain to place "open image" near the slider?
+- Also use TButton in terrain to place "open image" near the slider?
 
 - For later, something like KeyPreview for viewport would be useful
   to split-screen games, to catch keys (but not mouse clicks) regardless
