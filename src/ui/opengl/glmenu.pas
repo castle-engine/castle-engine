@@ -487,7 +487,7 @@ type
     { @groupEnd }
 
     function DrawStyle: TUIControlDrawStyle; override;
-    procedure Draw(const Focused: boolean); override;
+    procedure Draw; override;
 
     property KeyNextItem: TKey read FKeyNextItem write FKeyNextItem
       default DefaultGLMenuKeyNextItem;
@@ -1325,7 +1325,7 @@ begin
   Result := ds2D;
 end;
 
-procedure TGLMenu.Draw(const Focused: boolean);
+procedure TGLMenu.Draw;
 
   procedure DrawPositionRelativeLine;
   begin

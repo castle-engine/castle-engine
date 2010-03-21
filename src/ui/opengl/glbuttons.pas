@@ -46,7 +46,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     function DrawStyle: TUIControlDrawStyle; override;
-    procedure Draw(const Focused: boolean); override;
+    procedure Draw; override;
     function PositionInside(const X, Y: Integer): boolean; override;
     procedure GLContextInit; override;
     procedure GLContextClose; override;
@@ -108,7 +108,7 @@ begin
   Result := ds2D;
 end;
 
-procedure TGLButton.Draw(const Focused: boolean);
+procedure TGLButton.Draw;
 const
   { These colors match somewhat our TGLMenu slider images }
   { Original TGLMenu inside color: (143, 213, 182); }

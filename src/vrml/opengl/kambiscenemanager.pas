@@ -533,7 +533,7 @@ type
     procedure PrepareRender(const DisplayProgressTitle: string = '');
 
     procedure BeforeDraw; override;
-    procedure Draw(const Focused: boolean); override;
+    procedure Draw; override;
 
     { What changes happen when viewer camera changes.
       You may want to use it when calling Scene.ViewerChanges.
@@ -709,7 +709,7 @@ type
   public
     destructor Destroy; override;
 
-    procedure Draw(const Focused: boolean); override;
+    procedure Draw; override;
 
     procedure Idle(const CompSpeed: Single;
       const HandleMouseAndKeys: boolean;
@@ -1447,7 +1447,7 @@ begin
     Result := [];
 end;
 
-procedure TKamSceneManager.Draw(const Focused: boolean);
+procedure TKamSceneManager.Draw;
 begin
   inherited;
 
@@ -1740,7 +1740,7 @@ begin
   Result := SceneManager.Camera;
 end;
 
-procedure TKamViewport.Draw(const Focused: boolean);
+procedure TKamViewport.Draw;
 begin
   { always apply viewport projection before rendering }
   ApplyProjection;

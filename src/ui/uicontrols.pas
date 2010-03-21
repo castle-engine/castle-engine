@@ -60,7 +60,7 @@ type
       from the Controls list, or when you move mouse (focused changes)
       this will also be automatically called
       (since final container cursor may also change then). }
-    procedure UpdateMouseCursor;
+    procedure UpdateFocusAndMouseCursor;
   end;
 
   { In what projection TUIControl.Draw will be called.
@@ -99,6 +99,7 @@ type
     FCursor: TMouseCursor;
     FOnCursorChange: TNotifyEvent;
     FDisableContextInitClose: Cardinal;
+    FFocused: boolean;
     procedure SetCursor(const Value: TMouseCursor);
   protected
     { Container (window containing the control) size, as known by this control,
@@ -266,7 +267,7 @@ type
 
       @groupBegin }
     function DrawStyle: TUIControlDrawStyle; virtual;
-    procedure Draw(const Focused: boolean); virtual;
+    procedure Draw; virtual;
     { @groupEnd }
 
     { Called always when containing window size changes.
@@ -358,6 +359,12 @@ type
       so you should not use it in your own programs. }
     property OnCursorChange: TNotifyEvent
       read FOnCursorChange write FOnCursorChange;
+
+    { Called when this control becomes or stops being focused.
+      In this class, they simply update Focused property. }
+    procedure SetFocused(const Value: boolean);
+
+    property Focused: boolean read FFocused write SetFocused;
   end;
 
   TUIControlList = class(TKamObjectList)
@@ -452,7 +459,7 @@ procedure TUIControl.BeforeDraw;
 begin
 end;
 
-procedure TUIControl.Draw(const Focused: boolean);
+procedure TUIControl.Draw;
 begin
 end;
 
@@ -476,7 +483,7 @@ begin
   if Value <> FCursor then
   begin
     FCursor := Value;
-    if Container <> nil then Container.UpdateMouseCursor;
+    if Container <> nil then Container.UpdateFocusAndMouseCursor;
     if Assigned(OnCursorChange) then OnCursorChange(Self);
   end;
 end;
@@ -484,6 +491,11 @@ end;
 procedure TUIControl.SetContainer(const Value: IUIContainer);
 begin
   FContainer := Value;
+end;
+
+procedure TUIControl.SetFocused(const Value: boolean);
+begin
+  FFocused := Value;
 end;
 
 { TUIControlList ------------------------------------------------------------- }

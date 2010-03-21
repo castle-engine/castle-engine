@@ -2427,9 +2427,10 @@ type
     FControls: TUIControlList;
     FUseControls: boolean;
     FOnDrawStyle: TUIControlDrawStyle;
+    FFocus: TUIControl;
     procedure ControlsVisibleChange(Sender: TObject);
     procedure SetUseControls(const Value: boolean);
-    procedure UpdateMouseCursor;
+    procedure UpdateFocusAndMouseCursor;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -2468,7 +2469,7 @@ type
       list that is enabled and under the mouse cursor.
       @nil is returned when there's no enabled control under the mouse cursor,
       or when UseControls = @false. }
-    function Focus: TUIControl;
+    property Focus: TUIControl read FFocus;
 
     { How OnDraw callback fits within various Draw methods of our
       @link(Controls).
@@ -4228,7 +4229,7 @@ begin
     getting remove notification for all items (as FreeAndNil first sets
     object to nil). Testcase: lets_take_a_walk exit. }
   if Container.FControls <> nil then
-    Container.UpdateMouseCursor;
+    Container.UpdateFocusAndMouseCursor;
 end;
 
 { TGLUIWindow --------------------------------------------------------- }
@@ -4255,23 +4256,52 @@ begin
     the Controls list are always valid objects (no invalid references,
     even for a short time). }
   if (Operation = opRemove) and (AComponent is TUIControl) then
+  begin
     Controls.DeleteAll(AComponent);
+    if AComponent = FFocus then FFocus := nil;
+  end;
 end;
 
-function TGLUIWindow.Focus: TUIControl;
-var
-  I: Integer;
-begin
-  if not UseControls then Exit(nil);
+procedure TGLUIWindow.UpdateFocusAndMouseCursor;
 
-  for I := 0 to Controls.Count - 1 do
+  function CalculateFocus: TUIControl;
+  var
+    I: Integer;
   begin
-    Result := Controls.Items[I];
-    if Result.PositionInside(MouseX, MouseY) then
-      Exit;
+    if not UseControls then Exit(nil);
+
+    for I := 0 to Controls.Count - 1 do
+    begin
+      Result := Controls.Items[I];
+      if Result.PositionInside(MouseX, MouseY) then
+        Exit;
+    end;
+
+    Result := nil;
   end;
 
-  Result := nil;
+  function CalculateMouseCursor: TMouseCursor;
+  begin
+    if Focus <> nil then
+      Result := Focus.Cursor else
+      Result := mcDefault;
+  end;
+
+var
+  NewFocus: TUIControl;
+begin
+  NewFocus := CalculateFocus;
+
+  if NewFocus <> Focus then
+  begin
+    if (Focus <> nil) and UseControls then Focus.Focused := false;
+    FFocus := NewFocus;
+    { No need to check UseControls above: if Focus <> nil then we know
+      UseControls was true during CalculateFocus. }
+    if (Focus <> nil) then Focus.Focused := true;
+  end;
+
+  Cursor := CalculateMouseCursor;
 end;
 
 procedure TGLUIWindow.EventIdle;
@@ -4415,24 +4445,9 @@ begin
   if Value <> UseControls then
   begin
     FUseControls := Value;
-    UpdateMouseCursor;
+    { Focus must always be @nil when UseControls = false }
+    UpdateFocusAndMouseCursor;
   end;
-end;
-
-procedure TGLUIWindow.UpdateMouseCursor;
-
-  function CalculateMouseCursor: TMouseCursor;
-  var
-    F: TUIControl;
-  begin
-    F := Focus;
-    if F <> nil then
-      Result := F.Cursor else
-      Result := mcDefault;
-  end;
-
-begin
-  Cursor := CalculateMouseCursor;
 end;
 
 procedure TGLUIWindow.EventMouseMove(NewX, NewY: Integer);
@@ -4440,7 +4455,7 @@ var
   C: TUIControl;
   I: Integer;
 begin
-  UpdateMouseCursor;
+  UpdateFocusAndMouseCursor;
 
   if UseControls then
   begin
@@ -4474,8 +4489,6 @@ begin
 end;
 
 procedure TGLUIWindow.EventDraw;
-var
-  Focused: TUIControl;
 
   { Call Draw for all controls having DrawStyle = ds3D.
 
@@ -4502,7 +4515,7 @@ var
               { Set OpenGL state that may be changed carelessly, and has some
                 guanteed value, for TUIControl.Draw calls. }
               glLoadIdentity;
-              C.Draw(C = Focused);
+              C.Draw;
             end;
         end;
       end;
@@ -4553,7 +4566,7 @@ var
                 guanteed value, for Draw2d calls. }
               glLoadIdentity;
               glRasterPos2i(0, 0);
-              C.Draw(C = Focused);
+              C.Draw;
             end;
           end;
         end;
@@ -4576,8 +4589,6 @@ var
 var
   AnythingWants2D: boolean;
 begin
-  Focused := Focus;
-
   Draw3D(AnythingWants2D);
 
   if AnythingWants2D then
