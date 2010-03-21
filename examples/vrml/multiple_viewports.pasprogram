@@ -24,7 +24,7 @@ var
   SceneManager: TKamSceneManager;
   Scene: TVRMLGLScene;
   Viewports: array [0..3] of TKamViewport;
-  OpenButton: TGLButton;
+  OpenButton, QuitButton: TGLButton;
 
 type
   TBackground = class(TUIControl)
@@ -77,6 +77,9 @@ begin
 
   OpenButton.Left := Margin;
   OpenButton.Bottom := Glwin.Height - ButtonHeight + Margin;
+  
+  QuitButton.Left := Glwin.Width - Margin - QuitButton.Width;
+  QuitButton.Bottom := OpenButton.Bottom;
 end;
 
 var
@@ -86,12 +89,18 @@ var
 type
   TDummy = class
     procedure OpenButtonClick(Sender: TObject);
+    procedure QuitButtonClick(Sender: TObject);
   end;
 
 procedure TDummy.OpenButtonClick(Sender: TObject);
 begin
   if Window.FileDialog('Open 3D file', FileName, true) then
     Scene.Load(FileName);
+end;
+
+procedure TDummy.QuitButtonClick(Sender: TObject);
+begin
+  Application.Quit;
 end;
 
 var
@@ -139,6 +148,11 @@ begin
   OpenButton.Caption := 'Open 3D file';
   OpenButton.OnClick := @TDummy(nil).OpenButtonClick;
   Window.Controls.Add(OpenButton);
+
+  QuitButton := TGLButton.Create(Application);
+  QuitButton.Caption := 'Quit';
+  QuitButton.OnClick := @TDummy(nil).QuitButtonClick;
+  Window.Controls.Add(QuitButton);
 
   { add a background, since our viewpoints (deliberately, for demo)
     do not cover whole window. }
