@@ -56,27 +56,27 @@ begin
   H := (Glwin.Height - ButtonHeight) div 2;
 
   Viewports[0].Left   :=       Margin;
-  Viewports[0].Bottom :=       Margin + ButtonHeight;
+  Viewports[0].Bottom :=       Margin;
   Viewports[0].Width  := W - 2*Margin;
   Viewports[0].Height := H - 2*Margin;
 
   Viewports[1].Left   := W +   Margin;
-  Viewports[1].Bottom :=       Margin + ButtonHeight;
+  Viewports[1].Bottom :=       Margin;
   Viewports[1].Width  := W - 2*Margin;
   Viewports[1].Height := H - 2*Margin;
 
   Viewports[2].Left   :=       Margin;
-  Viewports[2].Bottom := H +   Margin + ButtonHeight;
+  Viewports[2].Bottom := H +   Margin;
   Viewports[2].Width  := W - 2*Margin;
   Viewports[2].Height := H - 2*Margin;
 
   Viewports[3].Left   := W +   Margin;
-  Viewports[3].Bottom := H +   Margin + ButtonHeight;
+  Viewports[3].Bottom := H +   Margin;
   Viewports[3].Width  := W - 2*Margin;
   Viewports[3].Height := H - 2*Margin;
 
   OpenButton.Left := Margin;
-  OpenButton.Bottom := Margin;
+  OpenButton.Bottom := Glwin.Height - ButtonHeight + Margin;
 end;
 
 var
