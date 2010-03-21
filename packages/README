@@ -1,9 +1,10 @@
-In this directory you can find Lazarus packages that allow
+In this directory you can find Lazarus packages that allow you
 to easily use Kambi VRML game engine in Lazarus programs.
 
-----------------------------------------
-I. Packages without components (kambi_base, kambi_glwindow):
+Short instructions: just compile and install kambi_base and kambi_components.
+*Do not* install kambi_glwindow in Lazarus.
 
+----------------------------------------
 Usage:
 
   1. Open wanted kambi_xxx.lpk file in Lazarus and compile the package.
@@ -19,6 +20,26 @@ Usage:
      appropriate -Fu command-line options for FPC so that FPC
      "sees" units in the package when compiling your program.
 
+  3. For kambi_base and kambi_components: you usually want to install
+     these packages in Lazarus. This way you get Kambi components
+     in the Lazarus palette (tab "Kambi"), you can drop them on the form,
+     operate with the object inspector etc.
+
+     Installing isn't really stricly required (you could just create
+     all components by code, and add package to "Required Package"
+     of your project) but usually it's much more comfortable to have them
+     installed.
+
+     For kambi_glwindow: *do not* install this in Lazarus.
+     This package uses GLWindow unit, and merely using this unit
+     will cause the program to initialize TGLApplication instance,
+     which in turn initiates some talk with WindowManager, GTK toolkit, etc.
+     This would conflict with what Lazarus IDE (and LCL) does,
+     causing unpredictable results.
+
+     So kambi_glwindow package is supposed only to be "used" (that is, required
+     by other projects), never installed in Lazarus IDE.
+
 Mini-FAQ about these packages:
 
 - Do I need Lazarus to compile Kambi VRML game engine ?
@@ -26,7 +47,7 @@ Mini-FAQ about these packages:
   No. Packages here are provided to easily compile and use the engine
   with Lazarus. But actually units in kambi_vrml_game_engine don't use
   any Lazarus units (LCL) (besides Lazarus-specific components in
-  ../src/components/ subdirectory).
+  ../src/components/ subdirectory, corresponding to kambi_components package).
 
   So all you actually need is bare FPC installation.
   Use kambi_vrml_game_engine/Makefile to compile all units and use compile.sh
@@ -34,34 +55,18 @@ Mini-FAQ about these packages:
   take a look at kambi_vrml_game_engine/kambi.cfg, this specifies actual options
   used by kambi_vrml_game_engine/Makefile and all compile.sh scripts.
 
-- Should I install these packages ?
+- What is the difference between kambi_base and kambi_components:
 
-  Usually, no. Unless you also install kambi_components package (see section below),
-  in which case installing kambi_components will require installing also
-  kambi_base package.
+  kambi_components has classes (components) depending on Lazarus LCL.
+  You really cannot use them without Lazarus.
 
-  If you don't want kambi_components, then there's no point in installing
-  kambi_base package (kambi_base doesn't register any components etc.).
+  kambi_base doesn't depend on Lazarus LCL. This is the stuff available
+  to you also when you don't use Lazarus (or even LCL) at all.
 
-  For kambi_glwindow package: you even *should not* install it in Lazarus.
-  This package uses GLWindow unit, and merely using this unit
-  will cause the program to initialize TGLApplication instance,
-  which in turn initiates some talk with WindowManager, GTK toolkit, etc.
-  You usually don't want your Lazarus installation to do this.
+  kambi_components requires (that is, automatically installs) also kambi_base
+  package --- that's OK.
 
-  So kambi_glwindow package is supposed only to be "used" (that is, required
-  by other projects), never installed in Lazarus.
-
-----------------------------------------
-II. Package with components (kambi_components):
-
-This is a "normal" Lazarus package, which means that it registers
-some Lazarus components (that use my units), and you're supposed to just
-install this package in Lazarus. This also automatically installs kambi_base
-package --- that's OK.
-
-See ../examples/lazarus/vrml_browser/
-for demo program using this package.
+See ../examples/lazarus/ for demo Lazarus programs using these packages.
 
 ------------------------------------------------------------------------------
 Development notes:
