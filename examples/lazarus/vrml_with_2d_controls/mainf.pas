@@ -46,7 +46,7 @@ type
   public
     function MouseDown(const Button: KeysMouse.TMouseButton): boolean; override;
     function DrawStyle: TUIControlDrawStyle; override;
-    procedure Draw(const Focused: boolean); override;
+    procedure Draw; override;
     function PositionInside(const X, Y: Integer): boolean; override;
     procedure GLContextInit; override;
     procedure GLContextClose; override;
@@ -63,7 +63,7 @@ begin
   Result := ds2D;
 end;
 
-procedure TClickableRect.Draw(const Focused: boolean);
+procedure TClickableRect.Draw;
 begin
   glColor3f(1, 1, 0);
   glRectf(10, 10, ContainerWidth - 10, 100);
