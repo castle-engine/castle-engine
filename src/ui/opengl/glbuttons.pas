@@ -37,10 +37,10 @@ type
     FOnClick: TNotifyEvent;
     FCaption: string;
     FAutoSize: boolean;
-    TextWidth, TextHeight: Cardinal;
+    TextWidth, TextHeightBase: Cardinal;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
-    { Calculate TextWidth, TextHeight and (if AutoSize) update Width, Height.
+    { Calculate TextWidth, TextHeightBase and (if AutoSize) update Width, Height.
       This depends on Caption, AutoSize, Font availability. }
     procedure UpdateTextSize;
   public
@@ -115,7 +115,7 @@ begin
   glColor3f(0.2, 0.2, 0.2);
   glRasterPos2i(
     Left + (Width - TextWidth) div 2,
-    Bottom + (Height - TextHeight) div 2);
+    Bottom + (Height - TextHeightBase) div 2);
   Font.Print(Caption);
 end;
 
@@ -183,12 +183,12 @@ begin
   if Font <> nil then
   begin
     TextWidth := Font.TextWidth(Caption);
-    TextHeight := Font.RowHeight;
+    TextHeightBase := Font.RowHeightBase;
 
     if AutoSize then
     begin
       Width := TextWidth + HorizontalMargin * 2;
-      Height := TextHeight + VerticalMargin * 2;
+      Height := TextHeightBase + VerticalMargin * 2;
     end;
   end;
 end;

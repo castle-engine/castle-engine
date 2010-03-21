@@ -53,6 +53,7 @@ type
   TGLBitmapFont_Abstract = class
   protected
     fRowHeight: Integer;
+    FRowHeightBase: Integer;
   public
     { PrintAndMove wypisuje string s przesuwajac raster pos po wypisaniu
       kazdej literki. W rezultacie, po zakonczeniu mozesz np. wywolac
@@ -76,10 +77,17 @@ type
     function TextWidth(const s: string): integer; virtual; abstract;
     function TextHeight(const s: string): integer; virtual; abstract;
 
+    { This is the height of the text above the baseline.
+      Bear in mind that this is not the full height of the text
+      --- this doesn't take into account height of the text below the baseline
+      (like lower "y" has the tail below baseline in most fonts). }
+    function TextHeightBase(const s: string): integer; virtual; abstract;
+
     { co do RowHeight : to nie musi byc DOKLADNIE TextHeight('Wy') -
       bedzie bardzo dobrze jesli wlasnie w RowHeight bedzie dodany jakis maly
       odstep miedzy liniami, np. +2 dla bitmap fontow. }
     property RowHeight: integer read fRowHeight;
+    property RowHeightBase: Integer read FRowHeightBase;
 
     { Descend : jak gleboko moze spasc charakter ponizej wysokosci 0 ?
       Domyslnie brane jest TextHeight('y')-TextHeight('a'), mozesz pokryc ta

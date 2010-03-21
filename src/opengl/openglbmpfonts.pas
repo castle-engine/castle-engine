@@ -48,6 +48,7 @@ type
     procedure printAndMove(const s: string); override;
     function TextWidth(const s: string): integer; override;
     function TextHeight(const s: string): integer; override;
+    function TextHeightBase(const s: string): integer; override;
   end;
 
 implementation
@@ -79,8 +80,11 @@ begin
  end;
  glPixelStorei(GL_UNPACK_ALIGNMENT, Saved_Unpack_Alignment);
 
- fRowHeight := TextHeight('Wy') + 2;
- { RowHeight zwiekszylem o +2 zeby byl odstep miedzy liniami. }
+ FRowHeight := TextHeight('Wy') + 2;
+ { RowHeight zwiekszylem o +2 zeby byl odstep miedzy liniami.
+   TODO: this +2 is actually a bad idea, but can't remove now without careful testing. }
+ { For RowHeightBase, I do not use +2. }
+ FRowHeightBase := TextHeightBase('W');
 end;
 
 destructor TGLBitmapFont.Destroy;
@@ -116,12 +120,25 @@ begin
   begin
     YOrig := Round(BmpFont^[s[i]]^.Info.YOrig);
     MinTo1st(minY, -YOrig);
-    { TODO: this should probably be "+ YOrig", but some things are tied
-      now to the "- YOrig" look (like TGLMenu, that adds a "descend", that
-      should not be needed? }
+    { Yes, YOrig is *subtracted* here, see glBitmap meaning of yorig. }
     MaxTo1st(maxY, BmpFont^[s[i]]^.Info.Height - YOrig);
   end;
   result := maxY - minY;
+end;
+
+function TGLBitmapFont.TextHeightBase(const s: string): integer;
+var
+  I: integer;
+  YOrig: integer;
+begin
+  Result := 0;
+  { This is just like TGLBitmapFont.TextHeight implementation, except we only
+    calculate (as Result) the MaxY value (assuming that MinY is zero). }
+  for i := 1 to length(s) do
+  begin
+    YOrig := Round(BmpFont^[s[i]]^.Info.YOrig);
+    MaxTo1st(Result, BmpFont^[s[i]]^.Info.Height - YOrig);
+  end;
 end;
 
 end.
