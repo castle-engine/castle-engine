@@ -98,6 +98,9 @@ type
     function PositionInside(const X, Y: Integer): boolean; override;
     procedure GLContextInit; override;
     procedure GLContextClose; override;
+    procedure Idle(const CompSpeed: Single;
+      const HandleMouseAndKeys: boolean;
+      var LetOthersHandleMouseAndKeys: boolean); override;
   published
     property Left: Integer read FLeft write FLeft default 0;
     property Bottom: Integer read FBottom write FBottom default 0;
@@ -380,6 +383,16 @@ procedure TKamGLImage.GLContextClose;
 begin
   glFreeDisplayList(FGLImage);
   inherited;
+end;
+
+procedure TKamGLImage.Idle(const CompSpeed: Single;
+  const HandleMouseAndKeys: boolean;
+  var LetOthersHandleMouseAndKeys: boolean);
+begin
+  inherited;
+  { let controls under the TKamGLImage handle keys/mouse,
+    because TKamGLImage doesn't do anything with them by default. }
+  LetOthersHandleMouseAndKeys := true;
 end;
 
 { UIFont --------------------------------------------------------------------- }
