@@ -136,26 +136,28 @@ const
   end;
 
 begin
-  glShadeModel(GL_SMOOTH);
-  glBegin(GL_QUADS);
-    glColorv(ColInsideDown[Focused and not Pressed]);
-    glVertex2i(Left        , Bottom);
-    glVertex2i(Left + Width, Bottom);
-    glColorv(ColInsideUp[Focused and not Pressed]);
-    glVertex2i(Left + Width, Bottom + Height);
-    glVertex2i(Left        , Bottom + Height);
-  glEnd;
+  glPushAttrib(GL_LIGHTING_BIT);
+    glShadeModel(GL_SMOOTH); // saved by GL_LIGHTING_BIT
+    glBegin(GL_QUADS);
+      glColorv(ColInsideDown[Focused and not Pressed]);
+      glVertex2i(Left        , Bottom);
+      glVertex2i(Left + Width, Bottom);
+      glColorv(ColInsideUp[Focused and not Pressed]);
+      glVertex2i(Left + Width, Bottom + Height);
+      glVertex2i(Left        , Bottom + Height);
+    glEnd;
 
-  glBegin(GL_LINES);
-    DrawFrame(0, Pressed);
-    DrawFrame(1, Pressed);
-  glEnd;
+    glBegin(GL_LINES);
+      DrawFrame(0, Pressed);
+      DrawFrame(1, Pressed);
+    glEnd;
 
-  glColorv(ColText);
-  glRasterPos2i(
-    Left + (Width - TextWidth) div 2,
-    Bottom + (Height - TextHeightBase) div 2);
-  Font.Print(Caption);
+    glColorv(ColText);
+    glRasterPos2i(
+      Left + (Width - TextWidth) div 2,
+      Bottom + (Height - TextHeightBase) div 2);
+    Font.Print(Caption);
+  glPopAttrib;
 end;
 
 function TGLButton.PositionInside(const X, Y: Integer): boolean;
