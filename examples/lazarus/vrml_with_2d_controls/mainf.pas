@@ -12,16 +12,11 @@ type
   TForm1 = class(TForm)
     Browser: TKamVRMLBrowser;
     SampleButton: TKamGLButton;
-    procedure BrowserDraw(Sender: TObject);
-    procedure BrowserGLContextClose(Sender: TObject);
-    procedure BrowserGLContextInit(Sender: TObject);
+    SampleImage: TKamGLImage;
+    SampleImageAlpha: TKamGLImage;
     procedure FormCreate(Sender: TObject);
     procedure BrowserResize(Sender: TObject);
     procedure SampleButtonClick(Sender: TObject);
-  private
-    GLSampleImage, GLSampleImageAlpha: TGLuint;
-  public
-    { public declarations }
   end;
 
 var
@@ -29,7 +24,7 @@ var
 
 implementation
 
-uses VRMLErrors, VRMLScene, KambiGLUtils, GLImages, KambiUtils;
+uses VRMLErrors, VRMLScene, KambiUtils;
 
 { TForm1 --------------------------------------------------------------------- }
 
@@ -48,12 +43,28 @@ begin
   { Thanks to using this button as a TUIControl descendant
     (placing it on Browser.Controls list), VRML scene sensors
     (like TouchSensor) will not intercept mouse clicks. That is, button
-    obscures anything clickable on VRML scene (like TouchSensor)
-    underneath. }
+    obscures anything clickable on VRML scene (like TouchSensor) underneath.
+
+    (If you would like to change this, you can set SampleButton.ExlusiveEvents
+    to false.)
+
+    (Images (TKamGLImage) actually also obscure scene underneath, but since
+    they do not handle any keys or mouse by default, they let themn through
+    to 3d scene. This could be changed by overriding their MouseDown etc.) }
   Browser.Controls.Insert(0, SampleButton);
+  Browser.Controls.Insert(0, SampleImage);
+  Browser.Controls.Insert(0, SampleImageAlpha);
+
+  { Load images (do not do this at design-time, as relative path to the images
+    may be not right then) }
+  SampleImage.FileName := 'sample_image.png';
+  SampleImageAlpha.FileName := 'sample_image_with_alpha.png';
+
   { TODO: setting this in object inspector is messed up with "magic"
     non-visual components's Left. }
   SampleButton.Left := 10;
+  SampleImage.Left := 10;
+  SampleImageAlpha.Left := 310;
 end;
 
 procedure TForm1.BrowserResize(Sender: TObject);
@@ -64,42 +75,6 @@ end;
 procedure TForm1.SampleButtonClick(Sender: TObject);
 begin
   ShowMessage('Button clicked !');
-end;
-
-procedure Draw2D(Draw2DData: Pointer);
-begin
-  glLoadIdentity;
-
-  glRasterPos2i(10, 150);
-  glCallList(Form1.GLSampleImage);
-
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glEnable(GL_BLEND);
-    glRasterPos2i(310, 150);
-    glCallList(Form1.GLSampleImageAlpha);
-  glDisable(GL_BLEND);
-end;
-
-procedure TForm1.BrowserDraw(Sender: TObject);
-begin
-  glPushAttrib(GL_ENABLE_BIT);
-    glDisable(GL_LIGHTING);
-    glProjectionPushPopOrtho2D(@Draw2d, nil, 0, Browser.Width, 0, Browser.Height);
-  glPopAttrib;
-end;
-
-procedure TForm1.BrowserGLContextInit(Sender: TObject);
-begin
-  GLSampleImage := LoadImageToDisplayList('sample_image.png', [], [], 0, 0);
-  GLSampleImageAlpha := LoadImageToDisplayList('sample_image_with_alpha.png', [], [], 0, 0);
-end;
-
-procedure TForm1.BrowserGLContextClose(Sender: TObject);
-begin
-  { Calling glFreeDisplayList is not needed here (when GL context is closed,
-    all display lists are freed anyway). I just do it for elegance. }
-  glFreeDisplayList(GLSampleImage);
-  glFreeDisplayList(GLSampleImageAlpha);
 end;
 
 initialization

@@ -100,6 +100,7 @@ type
     FOnCursorChange: TNotifyEvent;
     FDisableContextInitClose: Cardinal;
     FFocused: boolean;
+    FGLContextInitialized: boolean;
     procedure SetCursor(const Value: TMouseCursor);
   protected
     { Container (window containing the control) size, as known by this control,
@@ -309,6 +310,8 @@ type
       OpenGL context. In particular, the ones created in GLContextInit. }
     procedure GLContextClose; virtual;
 
+    property GLContextInitialized: boolean read FGLContextInitialized default false;
+
     { When non-zero, container will not call GLContextInit and
       GLContextClose (when control is added/removed to/from the
       @code(Controls) list).
@@ -472,10 +475,12 @@ end;
 
 procedure TUIControl.GLContextInit;
 begin
+  FGLContextInitialized := true;
 end;
 
 procedure TUIControl.GLContextClose;
 begin
+  FGLContextInitialized := false;
 end;
 
 procedure TUIControl.SetCursor(const Value: TMouseCursor);

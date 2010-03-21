@@ -18,7 +18,7 @@ unit GLControls;
 
 interface
 
-uses UIControls, OpenGLFonts, KeysMouse, Classes;
+uses UIControls, OpenGLFonts, KeysMouse, Classes, Images, GL;
 
 type
   { Button drawn inside OpenGL context.
@@ -78,6 +78,35 @@ type
     property Caption: string read FCaption write SetCaption;
   end;
 
+  { Simple control that displays an image.
+    Size is automatically adjusted to the image size.
+    You should set TKamGLImage.Left, TKamGLImage.Bottom properties,
+    and load your image by setting TKamGLImage.FileName property. }
+  TKamGLImage = class(TUIControl)
+  private
+    FLeft: Integer;
+    FBottom: Integer;
+    FFileName: string;
+    FImage: TImage;
+    FGLImage: TGLuint;
+    FBlending: boolean;
+    procedure SetFileName(const Value: string);
+  public
+    destructor Destroy; override;
+    function DrawStyle: TUIControlDrawStyle; override;
+    procedure Draw; override;
+    function PositionInside(const X, Y: Integer): boolean; override;
+    procedure GLContextInit; override;
+    procedure GLContextClose; override;
+  published
+    property Left: Integer read FLeft write FLeft default 0;
+    property Bottom: Integer read FBottom write FBottom default 0;
+    property FileName: string read FFileName write SetFileName;
+    { Set to @true to draw image with blending. This is suitable for images
+      that (may) have nice alpha channel. }
+    property Blending: boolean read FBlending write FBlending default false;
+  end;
+
 { Create and destroy the default UI interface bitmap font.
 
   They don't actually create new font each time --- first create
@@ -97,12 +126,12 @@ procedure Register;
 
 implementation
 
-uses SysUtils, GL, BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, VectorMath,
-  KambiGLUtils;
+uses SysUtils, BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, VectorMath,
+  KambiGLUtils, GLImages;
 
 procedure Register;
 begin
-  RegisterComponents('Kambi', [TKamGLButton]);
+  RegisterComponents('Kambi', [TKamGLButton, TKamGLImage]);
 end;
 
 { TKamGLButton ------------------------------------------------------------------ }
@@ -192,7 +221,10 @@ end;
 
 function TKamGLButton.MouseDown(const Button: KeysMouse.TMouseButton): boolean;
 begin
-  Result := true;
+  Result := inherited;
+  if Result then Exit;
+
+  Result := ExclusiveEvents;
   Pressed := true;
   { We base our Draw on Pressed value. }
   VisibleChange;
@@ -200,9 +232,12 @@ end;
 
 function TKamGLButton.MouseUp(const Button: KeysMouse.TMouseButton): boolean;
 begin
-  Result := Pressed;
+  Result := inherited;
+  if Result then Exit;
+
   if Pressed then
   begin
+    Result := ExclusiveEvents;
     Pressed := false;
     { We base our Draw on Pressed value. }
     VisibleChange;
@@ -272,6 +307,74 @@ begin
     VisibleChange;
   end;
 
+  inherited;
+end;
+
+{ TKamGLImage ---------------------------------------------------------------- }
+
+destructor TKamGLImage.Destroy;
+begin
+  FreeAndNil(FImage);
+  glFreeDisplayList(FGLImage);
+  inherited;
+end;
+
+procedure TKamGLImage.SetFileName(const Value: string);
+var
+  NewImage: TImage;
+begin
+  NewImage := LoadImage(Value, [], [], 0, 0);
+
+  { only once NewImage is successfully loaded, do the rest }
+  FreeAndNil(FImage);
+  glFreeDisplayList(FGLImage);
+
+  FImage := NewImage;
+  FFileName := Value;
+  if GLContextInitialized then
+    FGLImage := ImageDrawToDisplayList(FImage);
+end;
+
+function TKamGLImage.DrawStyle: TUIControlDrawStyle;
+begin
+  Result := ds2D;
+end;
+
+procedure TKamGLImage.Draw;
+begin
+  if Blending then
+  begin
+    glPushAttrib(GL_COLOR_BUFFER_BIT);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
+    glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
+  end;
+
+  glRasterPos2i(Left, Bottom);
+  glCallList(FGLImage);
+
+  if Blending then
+    glPopAttrib;
+end;
+
+function TKamGLImage.PositionInside(const X, Y: Integer): boolean;
+begin
+  Result := (FImage <> nil) and
+    (X >= Left) and
+    (X  < Left + FImage.Width) and
+    (ContainerHeight - Y >= Bottom) and
+    (ContainerHeight - Y  < Bottom + FImage.Height);
+end;
+
+procedure TKamGLImage.GLContextInit;
+begin
+  inherited;
+  if (FGLImage = 0) and (FImage <> nil) then
+    FGLImage := ImageDrawToDisplayList(FImage);
+end;
+
+procedure TKamGLImage.GLContextClose;
+begin
+  glFreeDisplayList(FGLImage);
   inherited;
 end;
 
