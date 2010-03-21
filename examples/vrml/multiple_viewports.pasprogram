@@ -136,7 +136,7 @@ begin
   SceneManager.Camera := SceneManager.CreateDefaultCamera(SceneManager);
 
   OpenButton := TGLButton.Create(Application);
-  OpenButton.Caption := 'Open';
+  OpenButton.Caption := 'Open 3D file';
   OpenButton.OnClick := @TDummy(nil).OpenButtonClick;
   Window.Controls.Add(OpenButton);
 
