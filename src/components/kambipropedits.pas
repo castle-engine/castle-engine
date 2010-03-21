@@ -25,10 +25,15 @@ procedure Register;
 implementation
 
 uses VRMLScene, PropEdits, KambiLCLUtils, Object3DAsVRML, UIControls,
-  KambiGLControl;
+  KambiGLControl, GLControls, Images;
 
 type
   TVRMLSceneFileNamePropertyEditor = class(TFileNamePropertyEditor)
+  public
+    function GetFilter: String; override;
+  end;
+
+  TImageFileNamePropertyEditor = class(TFileNamePropertyEditor)
   public
     function GetFilter: String; override;
   end;
@@ -46,10 +51,22 @@ begin
   Result := LCLFilter + (inherited GetFilter);
 end;
 
+function TImageFileNamePropertyEditor.GetFilter: String;
+var
+  LCLFilter: string;
+  FilterIndex: Integer;
+begin
+  { TODO: use LoadImage_FileFilters without "All Files" part. }
+  FileFiltersToOpenDialog(LoadImage_FileFilters, LCLFilter, FilterIndex);
+  Result := LCLFilter + (inherited GetFilter);
+end;
+
 procedure Register;
 begin
   RegisterPropertyEditor(TypeInfo(AnsiString), TVRMLScene,
     'FileName', TVRMLSceneFileNamePropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TKamGLImage,
+    'FileName', TImageFileNamePropertyEditor);
   { TODO: crashes
   RegisterPropertyEditor(TypeInfo(TUIControlList), TKamOpenGLControl,
     'Controls', TUIControlListPropertyEditor);
