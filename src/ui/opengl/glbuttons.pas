@@ -177,8 +177,8 @@ end;
 
 procedure TGLButton.UpdateTextSize;
 const
-  HorizontalMargin = 5;
-  VerticalMargin = 5;
+  HorizontalMargin = 10;
+  VerticalMargin = 10;
 begin
   if Font <> nil then
   begin
