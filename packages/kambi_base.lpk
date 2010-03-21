@@ -533,6 +533,7 @@
       </Item119>
       <Item120>
         <Filename Value="../src/ui/opengl/glbuttons.pas"/>
+        <HasRegisterProc Value="True"/>
         <UnitName Value="GLButtons"/>
       </Item120>
       <Item121>
