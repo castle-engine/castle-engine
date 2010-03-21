@@ -34,7 +34,8 @@
     class function IsImageTexture(ANode: TVRMLNode): boolean;
     class function IsGLImageTexture(GLNode: TGLTextureNode): boolean;
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer; ANode: TNodeKambiAppearance);
+    { ANode must be TNodeKambiAppearance }
+    constructor Create(ARenderer: TVRMLOpenGLRenderer; ANode: TVRMLNode); override;
 
     function Node: TNodeKambiAppearance;
 
@@ -98,10 +99,10 @@
 
 {$ifdef read_implementation}
 
-constructor TBumpMappingRenderer.Create(ARenderer: TVRMLOpenGLRenderer;
-  ANode: TNodeKambiAppearance);
+constructor TBumpMappingRenderer.Create(ARenderer: TVRMLOpenGLRenderer; ANode: TVRMLNode);
 begin
-  inherited Create(ARenderer, ANode);
+  Assert(ANode is TNodeKambiAppearance, 'TBumpMappingRenderer.Create acceps as Node only TNodeKambiAppearance');
+  inherited;
 end;
 
 function TBumpMappingRenderer.Node: TNodeKambiAppearance;

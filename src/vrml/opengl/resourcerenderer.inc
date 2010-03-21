@@ -8,7 +8,7 @@
     FRenderer: TVRMLOpenGLRenderer;
     FNode: TVRMLNode;
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer; ANode: TVRMLNode);
+    constructor Create(ARenderer: TVRMLOpenGLRenderer; ANode: TVRMLNode); virtual;
 
     property Renderer: TVRMLOpenGLRenderer read FRenderer;
 

@@ -10,7 +10,8 @@
       it from Cache (as Cache doesn't have this program). }
     GLSLProgram: TGLSLProgram;
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer; ANode: TNodeComposedShader);
+    { ANode must be TNodeComposedShader }
+    constructor Create(ARenderer: TVRMLOpenGLRenderer; ANode: TVRMLNode); override;
 
     function Node: TNodeComposedShader;
 
@@ -62,10 +63,10 @@
 
 {$ifdef read_implementation}
 
-constructor TGLSLRenderer.Create(ARenderer: TVRMLOpenGLRenderer;
-  ANode: TNodeComposedShader);
+constructor TGLSLRenderer.Create(ARenderer: TVRMLOpenGLRenderer; ANode: TVRMLNode);
 begin
-  inherited Create(ARenderer, ANode);
+  Assert(ANode is TNodeComposedShader, 'TGLSLRenderer.Create acceps as Node only TNodeComposedShader');
+  inherited;
 end;
 
 function TGLSLRenderer.Node: TNodeComposedShader;

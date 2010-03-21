@@ -46,7 +46,8 @@
       having to be prepared to finilizing incomplete instance. }
     procedure PrepareCore(State: TVRMLGraphTraverseState); virtual; abstract;
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer; ATextureNode: TNodeX3DTextureNode);
+    { ANode must be TNodeX3DTextureNode }
+    constructor Create(ARenderer: TVRMLOpenGLRenderer; ANode: TVRMLNode); override;
 
     { Reference to handled texture node.
       Never @nil.
@@ -224,11 +225,17 @@
     handlers to handle single textures inside --- but this is completely
     hidden from the interface. }
   TGLMultiTextureNode = class(TGLTextureNode)
+  private
+    PreparedTextureChildren: TVRMLNodesList;
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
       ANode: TNodeX3DTextureNode): boolean; override;
     procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
+    { ANode must be TNodeMultiTexture }
+    constructor Create(ARenderer: TVRMLOpenGLRenderer; ANode: TVRMLNode); override;
+    destructor Destroy; override;
+
     function TextureNode: TNodeMultiTexture;
 
     procedure Unprepare; override;
@@ -431,10 +438,10 @@ const
 
 { TGLTextureNode ------------------------------------------------------------- }
 
-constructor TGLTextureNode.Create(ARenderer: TVRMLOpenGLRenderer;
-  ATextureNode: TNodeX3DTextureNode);
+constructor TGLTextureNode.Create(ARenderer: TVRMLOpenGLRenderer; ANode: TVRMLNode);
 begin
-  inherited Create(ARenderer, ATextureNode);
+  Assert(ANode is TNodeX3DTextureNode, 'TGLTextureNode.Create acceps as Node only TNodeX3DTextureNode');
+  inherited;
 end;
 
 procedure TGLTextureNode.HandleTexturePropertiesCore(
@@ -712,6 +719,19 @@ end;
 
 { TGLMultiTextureNode -------------------------------------------------------- }
 
+constructor TGLMultiTextureNode.Create(ARenderer: TVRMLOpenGLRenderer; ANode: TVRMLNode);
+begin
+  Assert(ANode is TNodeMultiTexture, 'TGLMultiTextureNode.Create acceps as Node only TNodeMultiTexture');
+  inherited;
+  PreparedTextureChildren := TVRMLNodesList.Create;
+end;
+
+destructor TGLMultiTextureNode.Destroy;
+begin
+  FreeAndNil(PreparedTextureChildren);
+  inherited;
+end;
+
 class function TGLMultiTextureNode.IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
   ANode: TNodeX3DTextureNode): boolean;
 begin
@@ -749,6 +769,10 @@ begin
 
   AlphaChannelType := atNone; { default value, but set for paranoia anyway }
 
+  { fill PreparedTextureChildren along the way.
+    This will be used in Unprepare. }
+  PreparedTextureChildren.Count := 0;
+
   for I := 0 to TextureNode.FdTexture.Count - 1 do
   begin
     ChildTex := TextureNode.FdTexture.Items[I];
@@ -758,6 +782,7 @@ begin
       if ChildTex is TNodeMultiTexture then
         VRMLWarning(vwSerious, 'Child of MultiTexture node cannot be another MultiTexture node') else
       begin
+        PreparedTextureChildren.Add(ChildTex);
         ChildPrepared := Renderer.GLTextureNodes.Prepare(State, TNodeX3DTextureNode(ChildTex), Renderer);
         if ChildPrepared <> nil then
           MaxTo1st(AlphaChannelType, ChildPrepared.AlphaChannelType);
@@ -768,16 +793,29 @@ end;
 
 procedure TGLMultiTextureNode.Unprepare;
 var
-  ChildTex: TVRMLNode;
   I: Integer;
 begin
-  for I := 0 to TextureNode.FdTexture.Count - 1 do
-  begin
-    ChildTex := TextureNode.FdTexture.Items[I];
-    if (ChildTex <> nil) and
-       (ChildTex is TNodeX3DTextureNode) then
-      Renderer.GLTextureNodes.Unprepare(TNodeX3DTextureNode(ChildTex));
-  end;
+  { We cannot look at TextureNode.FdTexture here !
+
+    Reason: TextureNode may be already freed at the Unprepare time.
+    VRMLOpenGLRenderer explicitly allows to free vrml nodes before
+    unpreparing them. This is used e.g. by doing TVRMLScene.Load
+    (that calls ChangedAll, that calls Unprepare, only at the end,
+    *after* old nodes have been already freed.)
+
+    Accessing here TextureNode.FdTexture.Count e.g. crashes on
+    multiple_viewports: open models/castle_y_up.x3dv, then open
+    models/boxes.x3dv. (Note that multiple_viewports loads new scene
+    by simple Scene.Load.)
+
+    That's why we use PreparedTextureChildren saved.
+
+    Note: we cannot save TGLTextureNode values, as they could be freed
+    by something beside our control. So PreparedTextureChildren holds
+    only vrml nodes, passed to Renderer.GLTextureNodes.Unprepare. }
+
+  for I := 0 to PreparedTextureChildren.Count - 1 do
+    Renderer.GLTextureNodes.Unprepare(PreparedTextureChildren[I]);
 end;
 
 function TGLMultiTextureNode.Bind(const TextureUnit: Cardinal): boolean;
