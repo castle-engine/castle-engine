@@ -362,7 +362,7 @@ type
 
     { Called when this control becomes or stops being focused.
       In this class, they simply update Focused property. }
-    procedure SetFocused(const Value: boolean);
+    procedure SetFocused(const Value: boolean); virtual;
 
     property Focused: boolean read FFocused write SetFocused;
   end;

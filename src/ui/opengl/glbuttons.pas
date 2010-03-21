@@ -38,6 +38,7 @@ type
     FCaption: string;
     FAutoSize: boolean;
     TextWidth, TextHeightBase: Cardinal;
+    Pressed: boolean;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
     { Calculate TextWidth, TextHeightBase and (if AutoSize) update Width, Height.
@@ -51,9 +52,11 @@ type
     procedure GLContextInit; override;
     procedure GLContextClose; override;
     function MouseDown(const Button: TMouseButton): boolean; override;
+    function MouseUp(const Button: TMouseButton): boolean; override;
     { Called when user clicks the button. In this class, simply calls
       OnClick callback. }
     procedure DoClick; virtual;
+    procedure SetFocused(const Value: boolean); override;
   published
     property Left: Integer read FLeft write FLeft default 0;
     property Bottom: Integer read FBottom write FBottom default 0;
@@ -112,8 +115,8 @@ procedure TGLButton.Draw;
 const
   { These colors match somewhat our TGLMenu slider images }
   { Original TGLMenu inside color: (143, 213, 182); }
-  ColInsideUp: TVector3Byte = (165, 245, 210);
-  ColInsideDown: TVector3Byte = (126, 188, 161);
+  ColInsideUp: array[boolean] of TVector3Byte = ( (165, 245, 210), (126, 188, 161) );
+  ColInsideDown: array[boolean] of TVector3Byte = ( (126, 188, 161), (165, 245, 210) );
   ColDarkFrame: TVector3Byte = (99, 99, 99);
   ColLightFrame: TVector3Byte = (221, 221, 221);
   ColText: TVector3Byte = (0, 0, 0);
@@ -135,17 +138,17 @@ const
 begin
   glShadeModel(GL_SMOOTH);
   glBegin(GL_QUADS);
-    glColorv(ColInsideDown);
+    glColorv(ColInsideDown[Focused]);
     glVertex2i(Left        , Bottom);
     glVertex2i(Left + Width, Bottom);
-    glColorv(ColInsideUp);
+    glColorv(ColInsideUp[Focused]);
     glVertex2i(Left + Width, Bottom + Height);
     glVertex2i(Left        , Bottom + Height);
   glEnd;
 
   glBegin(GL_LINES);
-    DrawFrame(0, false);
-    DrawFrame(1, false);
+    DrawFrame(0, Pressed);
+    DrawFrame(1, Pressed);
   glEnd;
 
   glColorv(ColText);
@@ -179,12 +182,32 @@ end;
 
 function TGLButton.MouseDown(const Button: KeysMouse.TMouseButton): boolean;
 begin
-  { TODO: it would be better to make "mouse capture" in containers,
-    and generate there click only when you press moue button over this control,
-    and then release over this control. (and in between, all mouse events
-    go to the "captured" control.) }
-  DoClick;
   Result := true;
+  Pressed := true;
+  { We base our Draw on Pressed value. }
+  VisibleChange;
+end;
+
+function TGLButton.MouseUp(const Button: KeysMouse.TMouseButton): boolean;
+begin
+  Result := Pressed;
+  if Pressed then
+  begin
+    Pressed := false;
+    { We base our Draw on Pressed value. }
+    VisibleChange;
+
+    { This is normal behavior of buttons: to click them, you have to make
+      mouse down on the button, and then release mouse while still over
+      the button.
+
+      (Larger UI toolkits have also the concept of "capturing",
+      that a Focused control with Pressed captures remaining
+      mouse/key events even when mouse goes out. This allows the user
+      to move mouse out from the control, and still go back to make mouse up
+      and make "click". }
+    DoClick;
+  end;
 end;
 
 procedure TGLButton.DoClick;
@@ -227,6 +250,19 @@ begin
       Height := TextHeightBase + VerticalMargin * 2;
     end;
   end;
+end;
+
+procedure TGLButton.SetFocused(const Value: boolean);
+begin
+  if Value <> Focused then
+  begin
+    if not Value then
+      Pressed := false;
+    { We base our Draw on Pressed and Focused value. }
+    VisibleChange;
+  end;
+
+  inherited;
 end;
 
 { UIFont --------------------------------------------------------------------- }
