@@ -91,7 +91,8 @@ procedure DestroyUIFont(var Font: TGLBitmapFont_Abstract);
 
 implementation
 
-uses SysUtils, GL, BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts;
+uses SysUtils, GL, BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, VectorMath,
+  KambiGLUtils;
 
 { TGLButton ------------------------------------------------------------------ }
 
@@ -108,11 +109,46 @@ begin
 end;
 
 procedure TGLButton.Draw(const Focused: boolean);
-begin
-  glColor3f(1, 1, 0);
-  glRectf(Left, Bottom, Left + Width, Bottom + Height);
+const
+  { These colors match somewhat our TGLMenu slider images }
+  { Original TGLMenu inside color: (143, 213, 182); }
+  ColInsideUp: TVector3Byte = (126, 188, 161);
+  ColInsideDown: TVector3Byte = (165, 245, 210);
+  ColDarkFrame: TVector3Byte = (99, 99, 99);
+  ColLightFrame: TVector3Byte = (221, 221, 221);
+  ColText: TVector3Byte = (0, 0, 0);
 
-  glColor3f(0.2, 0.2, 0.2);
+  procedure DrawFrame(const Level: Cardinal; const Inset: boolean);
+  begin
+    if Inset then glColorv(ColLightFrame) else glColorv(ColDarkFrame);
+    glVertex2i( Level + Left            ,  Level + Bottom);
+    glVertex2i(-Level + Left + Width - 1,  Level + Bottom);
+    glVertex2i(-Level + Left + Width - 1,  Level + Bottom);
+    glVertex2i(-Level + Left + Width - 1, -Level + Bottom + Height - 1);
+    if Inset then glColorv(ColDarkFrame) else glColorv(ColLightFrame);
+    glVertex2i( Level + Left            ,  Level + Bottom + 1);
+    glVertex2i( Level + Left            , -Level + Bottom + Height - 1);
+    glVertex2i( Level + Left            , -Level + Bottom + Height - 1);
+    glVertex2i(-Level + Left + Width    , -Level + Bottom + Height - 1);
+  end;
+
+begin
+  glShadeModel(GL_SMOOTH);
+  glBegin(GL_QUADS);
+    glColorv(ColInsideDown);
+    glVertex2i(Left        , Bottom);
+    glVertex2i(Left + Width, Bottom);
+    glColorv(ColInsideUp);
+    glVertex2i(Left + Width, Bottom + Height);
+    glVertex2i(Left        , Bottom + Height);
+  glEnd;
+
+  glBegin(GL_LINES);
+    DrawFrame(0, false);
+    DrawFrame(1, false);
+  glEnd;
+
+  glColorv(ColText);
   glRasterPos2i(
     Left + (Width - TextWidth) div 2,
     Bottom + (Height - TextHeightBase) div 2);
