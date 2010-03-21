@@ -17,7 +17,7 @@
   (scene manager in TKamSceneManager). }
 
 uses GL, GLWindow, VRMLNodes, VRMLScene, VRMLGLScene, KambiSceneManager,
-  UIControls, Cameras, Quaternions, VectorMath, Math, GLButtons;
+  UIControls, Cameras, Quaternions, VectorMath, Math, GLControls;
 
 var
   Window: TGLUIWindow;

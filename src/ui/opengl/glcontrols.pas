@@ -13,20 +13,21 @@
   ----------------------------------------------------------------------------
 }
 
-{ Button drawn inside OpenGL context.
-
-  This is TUIControl descendant, so to use it just add it to
-  the TGLUIWindow.Controls or TKamOpenGLControl.Controls list.
-  You will also usually want to adjust position (TKamGLButton.Left,
-  TKamGLButton.Bottom), TKamGLButton.Caption,
-  and assign TKamGLButton.OnClick (or ovevrride TKamGLButton.DoClick). }
-unit GLButtons;
+{ Controls drawn inside OpenGL context. }
+unit GLControls;
 
 interface
 
 uses UIControls, OpenGLFonts, KeysMouse, Classes;
 
 type
+  { Button drawn inside OpenGL context.
+
+    This is TUIControl descendant, so to use it just add it to
+    the TGLUIWindow.Controls or TKamOpenGLControl.Controls list.
+    You will also usually want to adjust position (TKamGLButton.Left,
+    TKamGLButton.Bottom), TKamGLButton.Caption,
+    and assign TKamGLButton.OnClick (or ovevrride TKamGLButton.DoClick). }
   TKamGLButton = class(TUIControl)
   private
     Font: TGLBitmapFont_Abstract;

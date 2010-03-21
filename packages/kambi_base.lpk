@@ -532,9 +532,9 @@
         <UnitName Value="KeysMouse"/>
       </Item119>
       <Item120>
-        <Filename Value="../src/ui/opengl/glbuttons.pas"/>
+        <Filename Value="../src/ui/opengl/glcontrols.pas"/>
         <HasRegisterProc Value="True"/>
-        <UnitName Value="GLButtons"/>
+        <UnitName Value="GLControls"/>
       </Item120>
       <Item121>
         <Filename Value="../src/ui/opengl/glmenu.pas"/>

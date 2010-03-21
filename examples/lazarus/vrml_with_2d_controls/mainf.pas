@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  KambiVRMLBrowser, GL, GLButtons;
+  KambiVRMLBrowser, GL, GLControls;
 
 type
   TForm1 = class(TForm)
@@ -29,7 +29,7 @@ var
 
 implementation
 
-uses VRMLErrors, VRMLScene, KambiGLUtils, GLImages, Areas, KeysMouse, KambiUtils;
+uses VRMLErrors, VRMLScene, KambiGLUtils, GLImages, KambiUtils;
 
 { TForm1 --------------------------------------------------------------------- }
 

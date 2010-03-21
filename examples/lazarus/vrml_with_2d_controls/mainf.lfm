@@ -22,14 +22,14 @@ object Form1: TForm1
     OnDraw = BrowserDraw
   end
   object SampleButton: TKamGLButton
-    Left = 10
+    Left = 78
     Bottom = 10
     Width = 100
     Height = 100
     AutoSize = False
     OnClick = SampleButtonClick
     Caption = 'Sample clickable button on GL area.'
-    left = 78
-    top = 71
+    left = 48
+    top = 40
   end
 end
