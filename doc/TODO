@@ -23,8 +23,6 @@ Scene manager / controls / better Lazarus integration:
 (blockers before 2.0 release) ------------------------------------------------
 
 * Making Viewport*, see TODO.scene_manager_viewport, should be trivial now!
-  - also, in tscenemanager, add property AlwaysApplyProjection, default false,
-    use "AlwaysApplyProjection and ApplyProjectionNeeded" in render,
   - make laz demo, with 4 scene managers, each having other corner of window,
     maybe 2 left share the same scene and 2 right share the same scene,
     but from different views (only in one view is scene set as MainScene,

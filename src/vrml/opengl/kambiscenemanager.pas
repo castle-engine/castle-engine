@@ -48,12 +48,15 @@ type
     FBackgroundWireframe: boolean;
     FOnRender3D: TRender3DEvent;
     FHeadlightFromViewport: boolean;
+    FAlwaysApplyProjection: boolean;
   protected
     { These variables are writeable from overridden ApplyProjection. }
     FAngleOfViewX: Single;
     FAngleOfViewY: Single;
     FWalkProjectionNear: Single;
     FWalkProjectionFar : Single;
+
+    ApplyProjectionNeeded: boolean;
 
     { Sets OpenGL projection matrix, based on scene manager MainScene's
       currently bound Viewpoint, NavigationInfo and used @link(Camera).
@@ -387,6 +390,23 @@ type
       undefined then). }
     property HeadlightFromViewport: boolean
       read FHeadlightFromViewport write FHeadlightFromViewport default false;
+
+    { If @false, then we can assume that we're the only thing controlling
+      OpenGL projection matrix. This means that we're the only viewport,
+      and you do not change OpenGL projection matrix yourself.
+
+      By default for custom viewports this is @true,
+      which is safer solution (we always apply
+      OpenGL projection matrix in ApplyProjection method), but also may
+      be slightly slower.
+
+      Note that for TKamSceneManager, this is by default @false (that is,
+      we assume that scene manager, if used for rendering at all
+      (DefaultViewport = @true), is the only viewport). You should change
+      AlwaysApplyProjection to @true for TKamSceneManager, if you have
+      both custom viewports and DefaultViewport = @true }
+    property AlwaysApplyProjection: boolean
+      read FAlwaysApplyProjection write FAlwaysApplyProjection default true;
   end;
 
 
@@ -448,7 +468,6 @@ type
     FDefaultViewport: boolean;
     FViewports: TKamAbstractViewportsList;
 
-    ApplyProjectionNeeded: boolean;
     FOnCameraChanged: TNotifyEvent;
     FOnBoundViewpointChanged: TNotifyEvent;
     FCameraBox: TBox3D;
@@ -472,7 +491,6 @@ type
     property MouseRayHit3D: T3D read FMouseRayHit3D write SetMouseRayHit3D;
   protected
     procedure SetCamera(const Value: TCamera); override;
-    procedure SetShadowVolumesPossible(const Value: boolean); override;
 
     { Triangles to ignore by all collision detection in scene manager.
       The default implementation in this class resturns always @false,
@@ -522,8 +540,6 @@ type
 
       Implementation in this class is correlated with RenderHeadlight. }
     function ViewerToChanges: TVisibleChanges; virtual;
-
-    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
 
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
 
@@ -635,6 +651,8 @@ type
       for making your world visible. }
     property DefaultViewport: boolean
       read FDefaultViewport write SetDefaultViewport default true;
+
+    property AlwaysApplyProjection default false;
   end;
 
   { Custom 2D viewport showing 3D world. This uses assigned SceneManager
@@ -726,6 +744,7 @@ constructor TKamAbstractViewport.Create(AOwner: TComponent);
 begin
   inherited;
   FFullSize := true;
+  FAlwaysApplyProjection := true;
 end;
 
 destructor TKamAbstractViewport.Destroy;
@@ -773,6 +792,8 @@ begin
       if ContainerSizeKnown then
         FCamera.ContainerResize(ContainerWidth, ContainerHeight);
     end;
+
+    ApplyProjectionNeeded := true;
   end;
 end;
 
@@ -791,15 +812,21 @@ begin
 
   if Operation = opRemove then
   begin
-    { set to nil by SetCamera, to clean nicely }
     if AComponent = FCamera then
+    begin
+      { set to nil by SetCamera, to clean nicely }
       Camera := nil;
+      { Need ApplyProjection, to create new default camera before rendering. }
+      ApplyProjectionNeeded := true;
+    end;
   end;
 end;
 
 procedure TKamAbstractViewport.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
 begin
   inherited;
+
+  ApplyProjectionNeeded := true;
 
   if Camera <> nil then
     Camera.ContainerResize(AContainerWidth, AContainerHeight);
@@ -918,18 +945,33 @@ begin
   if Camera = nil then
     Camera := CreateDefaultCamera(Self);
 
-  Box := GetItems.BoundingBox;
+  if AlwaysApplyProjection or ApplyProjectionNeeded then
+  begin
+    { We need to know container size now.
+      This assertion can break only if you misuse UseControls property, setting it
+      to false (disallowing ContainerResize), and then trying to use
+      PrepareRender or Render (that call ApplyProjection). }
+    Assert(ContainerSizeKnown, ClassName + ' did not receive ContainerResize event yet, cannnot apply OpenGL projection');
 
-  if GetMainScene <> nil then
-    GetMainScene.GLProjection(Camera, Box,
-      CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight, ShadowVolumesPossible,
-      FAngleOfViewX, FAngleOfViewY, FWalkProjectionNear, FWalkProjectionFar) else
-    DefaultGLProjection;
+    Box := GetItems.BoundingBox;
+
+    if GetMainScene <> nil then
+      GetMainScene.GLProjection(Camera, Box,
+        CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight, ShadowVolumesPossible,
+        FAngleOfViewX, FAngleOfViewY, FWalkProjectionNear, FWalkProjectionFar) else
+      DefaultGLProjection;
+
+    ApplyProjectionNeeded := false;
+  end;
 end;
 
 procedure TKamAbstractViewport.SetShadowVolumesPossible(const Value: boolean);
 begin
-  FShadowVolumesPossible := Value;
+  if ShadowVolumesPossible <> Value then
+  begin
+    FShadowVolumesPossible := Value;
+    ApplyProjectionNeeded := true;
+  end;
 end;
 
 function TKamAbstractViewport.Background: TBackgroundGL;
@@ -1130,6 +1172,7 @@ begin
   FCameraBox := EmptyBox3D;
 
   FDefaultViewport := true;
+  FAlwaysApplyProjection := false;
 
   FViewports := TKamAbstractViewportsList.Create;
   if DefaultViewport then FViewports.Add(Self);
@@ -1303,24 +1346,12 @@ begin
     { Changing camera changes also the view rapidly. }
     if MainScene <> nil then
       MainScene.ViewChangedSuddenly;
-
-    ApplyProjectionNeeded := true;
   end else
     inherited; { not really needed for now, but for safety --- always call inherited }
 end;
 
 procedure TKamSceneManager.Notification(AComponent: TComponent; Operation: TOperation);
 begin
-  if Operation = opRemove then
-  begin
-    if AComponent = FCamera then
-    begin
-      { This will already be done by inherited: Camera := nil; }
-      { Need ApplyProjection, to create new default camera before rendering. }
-      ApplyProjectionNeeded := true;
-    end;
-  end;
-
   inherited;
 
   if Operation = opRemove then
@@ -1346,20 +1377,6 @@ function TKamSceneManager.PositionInside(const X, Y: Integer): boolean;
 begin
   { When not DefaultViewport, then scene manager is not visible. }
   Result := DefaultViewport and (inherited PositionInside(X, Y));
-end;
-
-procedure TKamSceneManager.SetShadowVolumesPossible(const Value: boolean);
-begin
-  if ShadowVolumesPossible <> Value then
-    ApplyProjectionNeeded := true;
-
-  inherited;
-end;
-
-procedure TKamSceneManager.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
-begin
-  inherited;
-  ApplyProjectionNeeded := true;
 end;
 
 procedure TKamSceneManager.PrepareRender(const DisplayProgressTitle: string);
@@ -1393,16 +1410,7 @@ begin
       Otherwise our preparations of "prBackground" here would be useless,
       as BackgroundSkySphereRadius will change later, and MainScene.Background
       will have to be recreated. }
-    Assert(ChosenViewport.ContainerSizeKnown, 'SceneManager or Viewport did not receive ContainerResize event yet, cannnot PrepareRender');
-    if ChosenViewport is TKamSceneManager then
-    begin
-      if TKamSceneManager(ChosenViewport).ApplyProjectionNeeded then
-      begin
-        TKamSceneManager(ChosenViewport).ApplyProjectionNeeded := false;
-        ChosenViewport.ApplyProjection;
-      end;
-    end else
-      ChosenViewport.ApplyProjection;
+    ChosenViewport.ApplyProjection;
 
     { RenderState.Camera* must be already set,
       since PrepareRender may do some operations on texture gen modes
@@ -1445,18 +1453,7 @@ begin
 
   if not DefaultViewport then Exit;
 
-  { This assertion can break only if you misuse UseControls property, setting it
-    to false (disallowing ContainerResize), and then trying to use Render.
-
-    We need to know container size now, for UpdateGeneratedTextures lower
-    and for ApplyProjection. }
-  Assert(ContainerSizeKnown, 'SceneManager did not receive ContainerResize event yet, cannnot Render');
-
-  if ApplyProjectionNeeded then
-  begin
-    ApplyProjectionNeeded := false;
-    ApplyProjection;
-  end;
+  ApplyProjection;
 
   { TODO: pass CorrectLeft etc for chosen viewport, so it only if some viewport
     exists. }
@@ -1758,14 +1755,6 @@ begin
 
   RenderOnScreen(Camera);
 end;
-
-{ TODO:
-  how to replicate TKamViewport.PrepareRender?
-
-  Or maybe just say that TKamSceneManager must be on Controls list anyway
-  --- sounds sensible, since Items.Idle must be called from
-  TKamSceneManager.Idle anyway.
-}
 
 procedure TKamViewport.Idle(const CompSpeed: Single;
   const HandleMouseAndKeys: boolean;
