@@ -17,13 +17,14 @@
   (scene manager in TKamSceneManager). }
 
 uses GL, GLWindow, VRMLNodes, VRMLScene, VRMLGLScene, KambiSceneManager,
-  UIControls, Cameras, Quaternions, VectorMath, Math;
+  UIControls, Cameras, Quaternions, VectorMath, Math, GLButtons;
 
 var
   Window: TGLUIWindow;
   SceneManager: TKamSceneManager;
   Scene: TVRMLGLScene;
   Viewports: array [0..3] of TKamViewport;
+  OpenButton: TGLButton;
 
 type
   TBackground = class(TUIControl)
@@ -47,31 +48,37 @@ end;
 procedure Resize(Glwin: TGLWindow);
 const
   Margin = 5;
+  ButtonHeight = 100;
 var
   W, H: Integer;
 begin
   W := Glwin.Width div 2;
-  H := Glwin.Height div 2;
+  H := (Glwin.Height - ButtonHeight) div 2;
 
   Viewports[0].Left   :=       Margin;
-  Viewports[0].Bottom :=       Margin;
+  Viewports[0].Bottom :=       Margin + ButtonHeight;
   Viewports[0].Width  := W - 2*Margin;
   Viewports[0].Height := H - 2*Margin;
 
   Viewports[1].Left   := W +   Margin;
-  Viewports[1].Bottom :=       Margin;
+  Viewports[1].Bottom :=       Margin + ButtonHeight;
   Viewports[1].Width  := W - 2*Margin;
   Viewports[1].Height := H - 2*Margin;
 
   Viewports[2].Left   :=       Margin;
-  Viewports[2].Bottom := H +   Margin;
+  Viewports[2].Bottom := H +   Margin + ButtonHeight;
   Viewports[2].Width  := W - 2*Margin;
   Viewports[2].Height := H - 2*Margin;
 
   Viewports[3].Left   := W +   Margin;
-  Viewports[3].Bottom := H +   Margin;
+  Viewports[3].Bottom := H +   Margin + ButtonHeight;
   Viewports[3].Width  := W - 2*Margin;
   Viewports[3].Height := H - 2*Margin;
+
+  OpenButton.Left := Margin;
+  OpenButton.Bottom := Margin;
+  OpenButton.Width := Glwin.Width - 2*Margin;
+  OpenButton.Height := ButtonHeight - 2*Margin;
 end;
 
 var
@@ -115,6 +122,10 @@ begin
     Right now, one camera cannot be simultaneously on scnee manager
     and viewports. So assign here new camera... }
   SceneManager.Camera := SceneManager.CreateDefaultCamera(SceneManager);
+
+  OpenButton := TGLButton.Create(Application);
+  OpenButton.Caption := 'Open';
+  Window.Controls.Add(OpenButton);
 
   { add a background, since our viewpoints (deliberately, for demo)
     do not cover whole window. }

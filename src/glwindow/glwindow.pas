@@ -4523,7 +4523,7 @@ var
     C: TUIControl;
     I: Integer;
   begin
-    glPushAttrib(GL_ENABLE_BIT);
+    glPushAttrib(GL_ENABLE_BIT or GL_VIEWPORT_BIT);
       { Set and push/pop OpenGL state that is guaranteed for Draw2D calls,
         but TUIControl.Draw cannot change it carelessly. }
       glDisable(GL_LIGHTING);
@@ -4531,6 +4531,7 @@ var
       glDisable(GL_TEXTURE_2D);
       if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
       if GL_EXT_texture3D        then glDisable(GL_TEXTURE_3D_EXT);
+      glViewport(0, 0, Width, Height); // saved by GL_VIEWPORT_BIT
 
       glMatrixMode(GL_PROJECTION);
       glPushMatrix;

@@ -27,8 +27,8 @@ var
 
 implementation
 
-uses VRMLErrors, VRMLScene, KambiGLUtils, OpenGLBmpFonts,
-  BFNT_BitstreamVeraSans_Unit, GLImages, Areas, KeysMouse, KambiUtils;
+uses VRMLErrors, VRMLScene, KambiGLUtils, GLImages, Areas, KeysMouse, KambiUtils,
+  GLButtons;
 
 { TClickableRect ------------------------------------------------------------- }
 
@@ -42,7 +42,7 @@ type
     underneath. }
   TClickableRect = class(TUIControl)
   private
-    GLFont: TGLBitmapFont_Abstract;
+    Font: TGLBitmapFont_Abstract;
   public
     function MouseDown(const Button: KeysMouse.TMouseButton): boolean; override;
     function DrawStyle: TUIControlDrawStyle; override;
@@ -70,7 +70,7 @@ begin
 
   glColor3f(0.2, 0.2, 0.2);
   glRasterPos2i(20, 80);
-  GLFont.Print('Sample text drawn on GL area. Yellow rect is clickable.');
+  Font.Print('Sample text drawn on GL area. Yellow rect is clickable.');
 end;
 
 function TClickableRect.PositionInside(const X, Y: Integer): boolean;
@@ -83,13 +83,13 @@ end;
 procedure TClickableRect.GLContextInit;
 begin
   inherited;
-  GLFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
+  Font := CreateUIFont;
   Cursor := mcHand;
 end;
 
 procedure TClickableRect.GLContextClose;
 begin
-  FreeAndNil(GLFont);
+  DestroyUIFont(Font);
   inherited;
 end;
 

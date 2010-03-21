@@ -242,7 +242,8 @@ type
 
           Then al controls with DrawStyle = ds2D are drawn.
           For them, OpenGL projection is guaranteed to be set to standard 2D
-          projection, like by @code(gluOrtho2D(0, Container.Width, 0, Container.Height)).)
+          projection, like by @code(gluOrtho2D(0, Container.Width, 0, Container.Height)).
+          And OpenGL viewport is guaranteed to contain whole container.)
 
         @item(The only OpenGL state you can change carelessly is:
           @unorderedList(
