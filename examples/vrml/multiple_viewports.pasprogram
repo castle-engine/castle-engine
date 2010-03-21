@@ -80,11 +80,25 @@ begin
 end;
 
 var
+  FileName: string = 'models/teapot.x3dv';
+  //  '../../../kambi_vrml_test_suite/x3d/kambi_extensions/shadows_dynamic.x3dv'
+
+type
+  TDummy = class
+    procedure OpenButtonClick(Sender: TObject);
+  end;
+
+procedure TDummy.OpenButtonClick(Sender: TObject);
+begin
+  if Window.FileDialog('Open 3D file', FileName, true) then
+    Scene.Load(FileName);
+end;
+
+var
   I: Integer;
 begin
   Scene := TVRMLGLScene.Create(Application);
-  //Scene.Load('../../../kambi_vrml_test_suite/x3d/kambi_extensions/shadows_dynamic.x3dv');
-  Scene.Load('models/teapot.x3dv');
+  Scene.Load(FileName);
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
 
@@ -123,6 +137,7 @@ begin
 
   OpenButton := TGLButton.Create(Application);
   OpenButton.Caption := 'Open';
+  OpenButton.OnClick := @TDummy(nil).OpenButtonClick;
   Window.Controls.Add(OpenButton);
 
   { add a background, since our viewpoints (deliberately, for demo)
