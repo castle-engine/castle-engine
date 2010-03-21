@@ -323,7 +323,7 @@ procedure TKamGLImage.SetFileName(const Value: string);
 var
   NewImage: TImage;
 begin
-  if FileName <> '' then
+  if Value <> '' then
     NewImage := LoadImage(Value, [], [], 0, 0) else
     NewImage := nil;
 
@@ -344,6 +344,8 @@ end;
 
 procedure TKamGLImage.Draw;
 begin
+  if FGLImage = 0 then Exit;
+
   if Blending then
   begin
     glPushAttrib(GL_COLOR_BUFFER_BIT);
