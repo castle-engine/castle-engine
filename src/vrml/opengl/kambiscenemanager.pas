@@ -393,6 +393,9 @@ type
   TObjectsListItem_1 = TKamAbstractViewport;
   {$I objectslist_1.inc}
   TKamAbstractViewportsList = class(TObjectsList_1)
+  public
+    { Does any viewport on the list has shadow volumes all set up? }
+    function UsesShadowVolumes: boolean;
   end;
 
   { Scene manager that knows about all 3D things inside your world.
@@ -566,9 +569,6 @@ type
       or TKamSceneManager.DefaultViewport, we automatically update this list
       as appropriate). }
     property Viewports: TKamAbstractViewportsList read FViewports;
-    {
-      TODO: use this for PrepareRender (do at all only when Viewports.Count > 0,
-      check Viewports.ShadowVolumesNeeded) }
   published
     { Tree of 3D objects within your world. This is the place where you should
       add your scenes to have them handled by scene manager.
@@ -1094,6 +1094,25 @@ begin
   Result := ds3D;
 end;
 
+{ TKamAbstractViewportsList -------------------------------------------------- }
+
+function TKamAbstractViewportsList.UsesShadowVolumes: boolean;
+var
+  I: Integer;
+  MainLightPosition: TVector4Single; { ignored }
+  V: TKamAbstractViewport;
+begin
+  for I := 0 to High do
+  begin
+    V := Items[I];
+    if V.ShadowVolumesPossible and
+       V.ShadowVolumes and
+       V.MainLightForShadows(MainLightPosition) then
+      Exit(true);
+  end;
+  Result := false;
+end;
+
 { TKamSceneManager ----------------------------------------------------------- }
 
 constructor TKamSceneManager.Create(AOwner: TComponent);
@@ -1347,47 +1366,58 @@ procedure TKamSceneManager.PrepareRender(const DisplayProgressTitle: string);
 var
   Options: TPrepareRenderOptions;
   TG: TTransparentGroups;
-  //MainLightPosition: TVector4Single; { ignored }
+  ChosenViewport: TKamAbstractViewport;
 begin
-  Options := [prBackground, prBoundingBox];
-  { We never call tgAll from scene manager. Even for non-shadowed rendering
-    (one pass), we still may have many Items, so we always call all tgOpaque
-    before all tgTransparent. }
-  TG := [tgOpaque, tgTransparent];
-
-  if {ShadowVolumesPossible and
-     ShadowVolumes and
-     MainLightForShadows(MainLightPosition)}true{TODO} then
+  { This preparation is done only once, before rendering all viewports.
+    No point in doing this when no viewport is configured.
+    Also, we'll need to use one of viewport's projection here. }
+  if Viewports.Count <> 0 then
   begin
-    Options := Options + prShadowVolume;
+    Options := [prBackground, prBoundingBox];
+    { We never call tgAll from scene manager. Even for non-shadowed rendering
+      (one pass), we still may have many Items, so we always call all tgOpaque
+      before all tgTransparent. }
+    TG := [tgOpaque, tgTransparent];
+
+    if Viewports.UsesShadowVolumes then
+      Options := Options + prShadowVolume;
+
+    { We need one viewport, to setup it's projection and to setup it's camera.
+      There really no perfect choice, although in practice any viewport
+      should do just fine. For now: use the 1st one on the list.
+      Maybe in the future we'll need more intelligent method of choosing. }
+    ChosenViewport := Viewports[0];
+
+    { Apply projection now, as TVRMLGLScene.GLProjection calculates
+      BackgroundSkySphereRadius, which is used by MainScene.Background.
+      Otherwise our preparations of "prBackground" here would be useless,
+      as BackgroundSkySphereRadius will change later, and MainScene.Background
+      will have to be recreated. }
+    Assert(ChosenViewport.ContainerSizeKnown, 'SceneManager or Viewport did not receive ContainerResize event yet, cannnot PrepareRender');
+    if ChosenViewport is TKamSceneManager then
+    begin
+      if TKamSceneManager(ChosenViewport).ApplyProjectionNeeded then
+      begin
+        TKamSceneManager(ChosenViewport).ApplyProjectionNeeded := false;
+        ChosenViewport.ApplyProjection;
+      end;
+    end else
+      ChosenViewport.ApplyProjection;
+
+    { RenderState.Camera* must be already set,
+      since PrepareRender may do some operations on texture gen modes
+      in WORLDSPACE*. }
+    RenderState.CameraFromCameraObject(ChosenViewport.Camera);
+
+    if DisplayProgressTitle <> '' then
+    begin
+      Progress.Init(Items.PrepareRenderSteps, DisplayProgressTitle, true);
+      try
+        Items.PrepareRender(TG, Options, true);
+      finally Progress.Fini end;
+    end else
+      Items.PrepareRender(TG, Options, false);
   end;
-
-  { Apply projection now, as TVRMLGLScene.GLProjection calculates
-    BackgroundSkySphereRadius, which is used by MainScene.Background.
-    Otherwise our preparations of "prBackground" here would be useless,
-    as BackgroundSkySphereRadius will change later, and MainScene.Background
-    will have to be recreated. }
-  Assert(ContainerSizeKnown, 'SceneManager did not receive ContainerResize event yet, cannnot PrepareRender');
-  if ApplyProjectionNeeded then
-  begin
-    ApplyProjectionNeeded := false;
-    ApplyProjection;
-  end;
-
-  { RenderState.Camera* must be already set,
-    since PrepareRender may do some operations on texture gen modes
-    in WORLDSPACE*. }
-    {TODO: should use viewport's camera... }
-  RenderState.CameraFromCameraObject(Camera);
-
-  if DisplayProgressTitle <> '' then
-  begin
-    Progress.Init(Items.PrepareRenderSteps, DisplayProgressTitle, true);
-    try
-      Items.PrepareRender(TG, Options, true);
-    finally Progress.Fini end;
-  end else
-    Items.PrepareRender(TG, Options, false);
 end;
 
 procedure TKamSceneManager.BeforeDraw;
