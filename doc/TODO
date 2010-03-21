@@ -22,9 +22,6 @@ Scene manager / controls / better Lazarus integration:
 
 (blockers before 2.0 release) ------------------------------------------------
 
-open in multiple_viewports
-castle_yup.x3dv, then open boxes.x3dv -- segfaults.
-
 * Making Viewport*, see TODO.scene_manager_viewport, should be trivial now!
   - make laz demo, with 4 scene managers, each having other corner of window,
     maybe 2 left share the same scene and 2 right share the same scene,
