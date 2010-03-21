@@ -1,9 +1,6 @@
 TODO: use Focused = true to draw border around focused viewport
 in multple_viewports.
 
-use Focused = true to indicate mouse hovering over button.
-(when to make VisibleChange then?)
-
 Fix:
       If you want, it's absolutely Ok (even encouraged) to assign
       camera from viewport also to TKamSceneManager.Camera.
