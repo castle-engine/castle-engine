@@ -115,8 +115,8 @@ procedure TGLButton.Draw;
 const
   { These colors match somewhat our TGLMenu slider images }
   { Original TGLMenu inside color: (143, 213, 182); }
-  ColInsideUp: array[boolean] of TVector3Byte = ( (165, 245, 210), (126, 188, 161) );
-  ColInsideDown: array[boolean] of TVector3Byte = ( (126, 188, 161), (165, 245, 210) );
+  ColInsideUp: array[boolean] of TVector3Byte = ( (165, 245, 210), (169, 251, 216) );
+  ColInsideDown: array[boolean] of TVector3Byte = ( (126, 188, 161), (139, 207, 177) );
   ColDarkFrame: TVector3Byte = (99, 99, 99);
   ColLightFrame: TVector3Byte = (221, 221, 221);
   ColText: TVector3Byte = (0, 0, 0);
@@ -138,10 +138,10 @@ const
 begin
   glShadeModel(GL_SMOOTH);
   glBegin(GL_QUADS);
-    glColorv(ColInsideDown[Focused]);
+    glColorv(ColInsideDown[Focused and not Pressed]);
     glVertex2i(Left        , Bottom);
     glVertex2i(Left + Width, Bottom);
-    glColorv(ColInsideUp[Focused]);
+    glColorv(ColInsideUp[Focused and not Pressed]);
     glVertex2i(Left + Width, Bottom + Height);
     glVertex2i(Left        , Bottom + Height);
   glEnd;
