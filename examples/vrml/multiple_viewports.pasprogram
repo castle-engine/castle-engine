@@ -78,6 +78,7 @@ var
   I: Integer;
 begin
   Scene := TVRMLGLScene.Create(Application);
+  //Scene.Load('../../../kambi_vrml_test_suite/x3d/kambi_extensions/shadows_dynamic.x3dv');
   Scene.Load('models/teapot.x3dv');
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
@@ -96,6 +97,9 @@ begin
     Viewports[I].SceneManager := SceneManager;
     Viewports[I].FullSize := false;
     Viewports[I].Camera := SceneManager.CreateDefaultCamera(SceneManager);
+    { test shadows: }
+    Viewports[I].ShadowVolumesPossible := true;
+    Viewports[I].ShadowVolumes := true;
     { set different camera views for all viewports, to make it interesting }
     if (I < 3) and (Viewports[I].Camera is TExamineCamera) then
       TExamineCamera(Viewports[I].Camera).Rotations :=
