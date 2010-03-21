@@ -6,18 +6,20 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  KambiVRMLBrowser, OpenGLFonts, GL, UIControls;
+  KambiVRMLBrowser, GL, GLButtons;
 
 type
   TForm1 = class(TForm)
     Browser: TKamVRMLBrowser;
+    SampleButton: TKamGLButton;
     procedure BrowserDraw(Sender: TObject);
     procedure BrowserGLContextClose(Sender: TObject);
     procedure BrowserGLContextInit(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure BrowserResize(Sender: TObject);
+    procedure SampleButtonClick(Sender: TObject);
   private
     GLSampleImage, GLSampleImageAlpha: TGLuint;
-    ClickableRect: TUIControl;
   public
     { public declarations }
   end;
@@ -27,71 +29,7 @@ var
 
 implementation
 
-uses VRMLErrors, VRMLScene, KambiGLUtils, GLImages, Areas, KeysMouse, KambiUtils,
-  GLButtons;
-
-{ TClickableRect ------------------------------------------------------------- }
-
-type
-  { Clickable rectangular area on 2D screen.
-
-    Thanks to making this rectangle a TUIControl descendant,
-    and placing it on Browser.Controls list, VRML scene sensors
-    (like TouchSensor) will not intercept mouse clicks. That is, yellow
-    rectangle obscures anything clickable on VRML scene (like TouchSensor)
-    underneath. }
-  TClickableRect = class(TUIControl)
-  private
-    Font: TGLBitmapFont_Abstract;
-  public
-    function MouseDown(const Button: KeysMouse.TMouseButton): boolean; override;
-    function DrawStyle: TUIControlDrawStyle; override;
-    procedure Draw; override;
-    function PositionInside(const X, Y: Integer): boolean; override;
-    procedure GLContextInit; override;
-    procedure GLContextClose; override;
-  end;
-
-function TClickableRect.MouseDown(const Button: KeysMouse.TMouseButton): boolean;
-begin
-  ShowMessage('Clicked yellow rect !');
-  Result := true;
-end;
-
-function TClickableRect.DrawStyle: TUIControlDrawStyle;
-begin
-  Result := ds2D;
-end;
-
-procedure TClickableRect.Draw;
-begin
-  glColor3f(1, 1, 0);
-  glRectf(10, 10, ContainerWidth - 10, 100);
-
-  glColor3f(0.2, 0.2, 0.2);
-  glRasterPos2i(20, 80);
-  Font.Print('Sample text drawn on GL area. Yellow rect is clickable.');
-end;
-
-function TClickableRect.PositionInside(const X, Y: Integer): boolean;
-begin
-  { This is the same area that is drawn by glRectf. }
-  Result := Between(X, 10, ContainerWidth - 10) and
-            Between(Y, ContainerHeight - 100, ContainerHeight - 10);
-end;
-
-procedure TClickableRect.GLContextInit;
-begin
-  inherited;
-  Font := CreateUIFont;
-  Cursor := mcHand;
-end;
-
-procedure TClickableRect.GLContextClose;
-begin
-  DestroyUIFont(Font);
-  inherited;
-end;
+uses VRMLErrors, VRMLScene, KambiGLUtils, GLImages, Areas, KeysMouse, KambiUtils;
 
 { TForm1 --------------------------------------------------------------------- }
 
@@ -107,8 +45,25 @@ begin
   Browser.Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Browser.Scene.ProcessEvents := true;
 
-  ClickableRect := TClickableRect.Create(Self);
-  Browser.Controls.Insert(0, ClickableRect);
+  { Thanks to using this button as a TUIControl descendant
+    (placing it on Browser.Controls list), VRML scene sensors
+    (like TouchSensor) will not intercept mouse clicks. That is, button
+    obscures anything clickable on VRML scene (like TouchSensor)
+    underneath. }
+  Browser.Controls.Insert(0, SampleButton);
+  { TODO: setting this in object inspector is messed up with "magic"
+    non-visual components's Left. }
+  SampleButton.Left := 10;
+end;
+
+procedure TForm1.BrowserResize(Sender: TObject);
+begin
+  SampleButton.Width := Browser.Width - 20;
+end;
+
+procedure TForm1.SampleButtonClick(Sender: TObject);
+begin
+  ShowMessage('Button clicked !');
 end;
 
 procedure Draw2D(Draw2DData: Pointer);

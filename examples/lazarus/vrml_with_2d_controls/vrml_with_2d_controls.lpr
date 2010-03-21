@@ -8,7 +8,7 @@ uses
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
   Forms
-  { you can add units after this }, MainF, LResources;
+  { you can add units after this }, MainF, LResources, kambi_base;
 
 begin
   Application.Initialize;

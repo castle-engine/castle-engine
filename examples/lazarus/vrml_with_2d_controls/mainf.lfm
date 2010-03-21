@@ -16,8 +16,20 @@ object Form1: TForm1
     Top = 0
     Width = 630
     Align = alClient
+    OnResize = BrowserResize
     OnGLContextInit = BrowserGLContextInit
     OnGLContextClose = BrowserGLContextClose
     OnDraw = BrowserDraw
+  end
+  object SampleButton: TKamGLButton
+    Left = 10
+    Bottom = 10
+    Width = 100
+    Height = 100
+    AutoSize = False
+    OnClick = SampleButtonClick
+    Caption = 'Sample clickable button on GL area.'
+    left = 78
+    top = 71
   end
 end
