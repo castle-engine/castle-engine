@@ -112,8 +112,8 @@ procedure TGLButton.Draw(const Focused: boolean);
 const
   { These colors match somewhat our TGLMenu slider images }
   { Original TGLMenu inside color: (143, 213, 182); }
-  ColInsideUp: TVector3Byte = (126, 188, 161);
-  ColInsideDown: TVector3Byte = (165, 245, 210);
+  ColInsideUp: TVector3Byte = (165, 245, 210);
+  ColInsideDown: TVector3Byte = (126, 188, 161);
   ColDarkFrame: TVector3Byte = (99, 99, 99);
   ColLightFrame: TVector3Byte = (221, 221, 221);
   ColText: TVector3Byte = (0, 0, 0);
