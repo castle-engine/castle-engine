@@ -17,8 +17,8 @@
 
   This is TUIControl descendant, so to use it just add it to
   the TGLUIWindow.Controls or TKamOpenGLControl.Controls list.
-  You will also want to adjust position/size (TGLButton.Left,
-  TGLButton.Bottom, TGLButton.Width, TGLButton.Height)
+  You will also usually want to adjust position (TGLButton.Left,
+  TGLButton.Bottom), TGLButton.Caption,
   and assign TGLButton.OnClick (or ovevrride TGLButton.DoClick). }
 unit GLButtons;
 
@@ -36,7 +36,15 @@ type
     FHeight: Cardinal;
     FOnClick: TNotifyEvent;
     FCaption: string;
+    FAutoSize: boolean;
+    TextWidth, TextHeight: Cardinal;
+    procedure SetCaption(const Value: string);
+    procedure SetAutoSize(const Value: boolean);
+    { Calculate TextWidth, TextHeight and (if AutoSize) update Width, Height.
+      This depends on Caption, AutoSize, Font availability. }
+    procedure UpdateTextSize;
   public
+    constructor Create(AOwner: TComponent); override;
     function DrawStyle: TUIControlDrawStyle; override;
     procedure Draw(const Focused: boolean); override;
     function PositionInside(const X, Y: Integer): boolean; override;
@@ -51,8 +59,19 @@ type
     property Bottom: Integer read FBottom write FBottom default 0;
     property Width: Cardinal read FWidth write FWidth default 100;
     property Height: Cardinal read FHeight write FHeight default 100;
+
+    { When AutoSize is @true (the default) then Width/Height are automatically
+      adjusted when you change the Caption. They take into account Caption
+      width/height with current font, and add some margin to make it look good.
+
+      Note that this adjustment happens only when OpenGL context is initialized
+      (because only then we actually know the font used).
+      So don't depend on Width/Height values calculated correctly before
+      OpenGL context is ready. }
+    property AutoSize: boolean read FAutoSize write SetAutoSize default true;
+
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
-    property Caption: string read FCaption write FCaption;
+    property Caption: string read FCaption write SetCaption;
   end;
 
 { Create and destroy the default UI interface bitmap font.
@@ -76,6 +95,13 @@ uses SysUtils, GL, BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts;
 
 { TGLButton ------------------------------------------------------------------ }
 
+constructor TGLButton.Create(AOwner: TComponent);
+begin
+  inherited;
+  FAutoSize := true;
+  { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
+end;
+
 function TGLButton.DrawStyle: TUIControlDrawStyle;
 begin
   Result := ds2D;
@@ -87,7 +113,9 @@ begin
   glRectf(Left, Bottom, Left + Width, Bottom + Height);
 
   glColor3f(0.2, 0.2, 0.2);
-  glRasterPos2i(20, 80);
+  glRasterPos2i(
+    Left + (Width - TextWidth) div 2,
+    Bottom + (Height - TextHeight) div 2);
   Font.Print(Caption);
 end;
 
@@ -104,6 +132,7 @@ procedure TGLButton.GLContextInit;
 begin
   inherited;
   Font := CreateUIFont;
+  UpdateTextSize;
 end;
 
 procedure TGLButton.GLContextClose;
@@ -126,6 +155,42 @@ procedure TGLButton.DoClick;
 begin
   if Assigned(OnClick) then
     OnClick(Self);
+end;
+
+procedure TGLButton.SetCaption(const Value: string);
+begin
+  if Value <> FCaption then
+  begin
+    FCaption := Value;
+    UpdateTextSize;
+  end;
+end;
+
+procedure TGLButton.SetAutoSize(const Value: boolean);
+begin
+  if Value <> FAutoSize then
+  begin
+    FAutoSize := Value;
+    UpdateTextSize;
+  end;
+end;
+
+procedure TGLButton.UpdateTextSize;
+const
+  HorizontalMargin = 5;
+  VerticalMargin = 5;
+begin
+  if Font <> nil then
+  begin
+    TextWidth := Font.TextWidth(Caption);
+    TextHeight := Font.RowHeight;
+
+    if AutoSize then
+    begin
+      Width := TextWidth + HorizontalMargin * 2;
+      Height := TextHeight + VerticalMargin * 2;
+    end;
+  end;
 end;
 
 { UIFont --------------------------------------------------------------------- }

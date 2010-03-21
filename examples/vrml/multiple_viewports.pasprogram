@@ -48,10 +48,10 @@ end;
 procedure Resize(Glwin: TGLWindow);
 const
   Margin = 5;
-  ButtonHeight = 100;
 var
-  W, H: Integer;
+  W, H, ButtonHeight: Integer;
 begin
+  ButtonHeight := OpenButton.Height + 2*Margin;
   W := Glwin.Width div 2;
   H := (Glwin.Height - ButtonHeight) div 2;
 
@@ -77,8 +77,6 @@ begin
 
   OpenButton.Left := Margin;
   OpenButton.Bottom := Margin;
-  OpenButton.Width := Glwin.Width - 2*Margin;
-  OpenButton.Height := ButtonHeight - 2*Margin;
 end;
 
 var
