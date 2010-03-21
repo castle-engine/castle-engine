@@ -57,8 +57,8 @@ type
   published
     property Left: Integer read FLeft write FLeft default 0;
     property Bottom: Integer read FBottom write FBottom default 0;
-    property Width: Cardinal read FWidth write FWidth default 100;
-    property Height: Cardinal read FHeight write FHeight default 100;
+    property Width: Cardinal read FWidth write FWidth default 0;
+    property Height: Cardinal read FHeight write FHeight default 0;
 
     { When AutoSize is @true (the default) then Width/Height are automatically
       adjusted when you change the Caption. They take into account Caption
