@@ -7,10 +7,11 @@ LazarusResources.Add('TForm1','FORMDATA',[
   +'ion'#7#15'poDesktopCenter'#10'LCLVersion'#6#6'0.9.29'#0#15'TKamVRMLBrowser'
   +#7'Browser'#4'Left'#2#0#6'Height'#3#214#1#3'Top'#2#0#5'Width'#3'v'#2#5'Align'
   +#7#8'alClient'#8'OnResize'#7#13'BrowserResize'#0#0#12'TKamGLButton'#12'Sampl'
-  +'eButton'#4'Left'#2'0'#6'Bottom'#2#10#5'Width'#2'd'#6'Height'#2'd'#8'AutoSiz'
-  +'e'#8#7'OnClick'#7#17'SampleButtonClick'#7'Caption'#6'#Sample clickable butt'
-  +'on on GL area.'#4'left'#2'P'#3'top'#2'('#0#0#11'TKamGLImage'#11'SampleImage'
-  +#4'Left'#2'Y'#6'Bottom'#3#150#0#4'left'#2'P'#3'top'#3#128#0#0#0#11'TKamGLIma'
-  +'ge'#16'SampleImageAlpha'#4'Left'#3#180#0#6'Bottom'#3#150#0#8'Blending'#9#4
-  +'left'#2'P'#3'top'#3#232#0#0#0#0
+  +'eButton'#6'Bottom'#2#10#5'Width'#2'd'#6'Height'#2'd'#8'AutoSize'#8#7'OnClic'
+  +'k'#7#17'SampleButtonClick'#7'Caption'#6'#Sample clickable button on GL area'
+  +'.'#4'left'#2'H'#3'top'#2'@'#22'TUIControlPos_RealLeft'#2#10#0#0#11'TKamGLIm'
+  +'age'#11'SampleImage'#6'Bottom'#3#150#0#4'left'#2'H'#3'top'#3#144#0#22'TUICo'
+  +'ntrolPos_RealLeft'#2#10#0#0#11'TKamGLImage'#16'SampleImageAlpha'#6'Bottom'#3
+  +#150#0#8'Blending'#9#4'left'#2'H'#3'top'#3#232#0#22'TUIControlPos_RealLeft'#3
+  +'6'#1#0#0#0
 ]);

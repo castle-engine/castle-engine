@@ -28,11 +28,9 @@ type
     You will also usually want to adjust position (TKamGLButton.Left,
     TKamGLButton.Bottom), TKamGLButton.Caption,
     and assign TKamGLButton.OnClick (or ovevrride TKamGLButton.DoClick). }
-  TKamGLButton = class(TUIControl)
+  TKamGLButton = class(TUIControlPos)
   private
     Font: TGLBitmapFont_Abstract;
-    FLeft: Integer;
-    FBottom: Integer;
     FWidth: Cardinal;
     FHeight: Cardinal;
     FOnClick: TNotifyEvent;
@@ -59,8 +57,6 @@ type
     procedure DoClick; virtual;
     procedure SetFocused(const Value: boolean); override;
   published
-    property Left: Integer read FLeft write FLeft default 0;
-    property Bottom: Integer read FBottom write FBottom default 0;
     property Width: Cardinal read FWidth write FWidth default 0;
     property Height: Cardinal read FHeight write FHeight default 0;
 
@@ -82,10 +78,8 @@ type
     Size is automatically adjusted to the image size.
     You should set TKamGLImage.Left, TKamGLImage.Bottom properties,
     and load your image by setting TKamGLImage.FileName property. }
-  TKamGLImage = class(TUIControl)
+  TKamGLImage = class(TUIControlPos)
   private
-    FLeft: Integer;
-    FBottom: Integer;
     FFileName: string;
     FImage: TImage;
     FGLImage: TGLuint;
@@ -102,8 +96,6 @@ type
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
   published
-    property Left: Integer read FLeft write FLeft default 0;
-    property Bottom: Integer read FBottom write FBottom default 0;
     property FileName: string read FFileName write SetFileName;
     { Set to @true to draw image with blending. This is suitable for images
       that (may) have nice alpha channel. }

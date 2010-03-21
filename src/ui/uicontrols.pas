@@ -370,6 +370,25 @@ type
     property Focused: boolean read FFocused write SetFocused;
   end;
 
+  { TUIControl with position (in Left, Bottom fields).
+
+    This takes care of some internal quirks with saving Left property
+    right. (Because TComponent doesn't declare, but saves/loads a "magic"
+    property named Left during streaming. This is used to place non-visual
+    components on the form. Our Left is completely independent from this.) }
+  TUIControlPos = class(TUIControl)
+  private
+    FLeft: Integer;
+    FBottom: Integer;
+    procedure ReadLeft(Reader: TReader);
+    procedure WriteLeft(Writer: TWriter);
+  protected
+    procedure DefineProperties(Filer: TFiler); override;
+  published
+    property Left: Integer read FLeft write FLeft stored false default 0;
+    property Bottom: Integer read FBottom write FBottom default 0;
+  end;
+
   TUIControlList = class(TKamObjectList)
   private
     function GetItem(const I: Integer): TUIControl;
@@ -501,6 +520,30 @@ end;
 procedure TUIControl.SetFocused(const Value: boolean);
 begin
   FFocused := Value;
+end;
+
+{ TUIControlPos -------------------------------------------------------------- }
+
+{ We store Left property value in file under "tuicontrolpos_real_left" name,
+  to avoid clashing with TComponent magic "left" property name.
+  The idea how to do this is taken from TComponent's own implementation
+  of it's "left" magic property (rtl/objpas/classes/compon.inc). }
+
+procedure TUIControlPos.ReadLeft(Reader: TReader);
+begin
+  FLeft := Reader.ReadInteger;
+end;
+
+procedure TUIControlPos.WriteLeft(Writer: TWriter);
+begin
+  Writer.WriteInteger(FLeft);
+end;
+
+procedure TUIControlPos.DefineProperties(Filer: TFiler);
+begin
+  inherited;
+  Filer.DefineProperty('TUIControlPos_RealLeft', @ReadLeft, @WriteLeft,
+    FLeft <> 0);
 end;
 
 { TUIControlList ------------------------------------------------------------- }

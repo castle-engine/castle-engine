@@ -59,12 +59,6 @@ begin
     may be not right then) }
   SampleImage.FileName := 'sample_image.png';
   SampleImageAlpha.FileName := 'sample_image_with_alpha.png';
-
-  { TODO: setting this in object inspector is messed up with "magic"
-    non-visual components's Left. }
-  SampleButton.Left := 10;
-  SampleImage.Left := 10;
-  SampleImageAlpha.Left := 310;
 end;
 
 procedure TForm1.BrowserResize(Sender: TObject);

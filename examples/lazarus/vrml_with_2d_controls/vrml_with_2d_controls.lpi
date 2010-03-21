@@ -41,7 +41,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="10">
+    <Units Count="11">
       <Unit0>
         <Filename Value="vrml_with_2d_controls.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -56,8 +56,8 @@
         <ComponentName Value="Form1"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MainF"/>
-        <CursorPos X="29" Y="27"/>
-        <TopLine Value="10"/>
+        <CursorPos X="5" Y="55"/>
+        <TopLine Value="43"/>
         <EditorIndex Value="0"/>
         <UsageCount Value="34"/>
         <Loaded Value="True"/>
@@ -118,8 +118,17 @@
         <TopLine Value="12"/>
         <UsageCount Value="10"/>
       </Unit9>
+      <Unit10>
+        <Filename Value="..\..\..\src\ui\opengl\glcontrols.pas"/>
+        <UnitName Value="GLControls"/>
+        <CursorPos X="9" Y="71"/>
+        <TopLine Value="55"/>
+        <EditorIndex Value="1"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit10>
     </Units>
-    <JumpHistory Count="6" HistoryIndex="5">
+    <JumpHistory Count="7" HistoryIndex="6">
       <Position1>
         <Filename Value="mainf.pas"/>
         <Caret Line="22" Column="35" TopLine="1"/>
@@ -144,6 +153,10 @@
         <Filename Value="mainf.pas"/>
         <Caret Line="17" Column="1" TopLine="1"/>
       </Position6>
+      <Position7>
+        <Filename Value="..\..\..\src\ui\opengl\glcontrols.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position7>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

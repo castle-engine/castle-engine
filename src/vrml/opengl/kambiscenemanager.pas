@@ -33,9 +33,8 @@ type
 
   { Common abstract class for things that may act as a viewport:
     TKamSceneManager and TKamViewport. }
-  TKamAbstractViewport = class(TUIControl)
+  TKamAbstractViewport = class(TUIControlPos)
   private
-    FLeft, FBottom: Integer;
     FWidth, FHeight: Cardinal;
     FFullSize: boolean;
     FCamera: TCamera;
@@ -228,8 +227,6 @@ type
 
       @groupBegin }
     property FullSize: boolean read FFullSize write FFullSize default true;
-    property Left: Integer read FLeft write FLeft default 0;
-    property Bottom: Integer read FBottom write FBottom default 0;
     property Width: Cardinal read FWidth write FWidth default 0;
     property Height: Cardinal read FHeight write FHeight default 0;
     { @groupEnd }

@@ -19,27 +19,27 @@ object Form1: TForm1
     OnResize = BrowserResize
   end
   object SampleButton: TKamGLButton
-    Left = 48
     Bottom = 10
     Width = 100
     Height = 100
     AutoSize = False
     OnClick = SampleButtonClick
     Caption = 'Sample clickable button on GL area.'
-    left = 80
-    top = 40
+    left = 72
+    top = 64
+    TUIControlPos_RealLeft = 10
   end
   object SampleImage: TKamGLImage
-    Left = 89
     Bottom = 150
-    left = 80
-    top = 128
+    left = 72
+    top = 144
+    TUIControlPos_RealLeft = 10
   end
   object SampleImageAlpha: TKamGLImage
-    Left = 180
     Bottom = 150
     Blending = True
-    left = 80
+    left = 72
     top = 232
+    TUIControlPos_RealLeft = 310
   end
 end
