@@ -323,7 +323,9 @@ procedure TKamGLImage.SetFileName(const Value: string);
 var
   NewImage: TImage;
 begin
-  NewImage := LoadImage(Value, [], [], 0, 0);
+  if FileName <> '' then
+    NewImage := LoadImage(Value, [], [], 0, 0) else
+    NewImage := nil;
 
   { only once NewImage is successfully loaded, do the rest }
   FreeAndNil(FImage);
@@ -331,7 +333,7 @@ begin
 
   FImage := NewImage;
   FFileName := Value;
-  if GLContextInitialized then
+  if GLContextInitialized and (FImage <> nil) then
     FGLImage := ImageDrawToDisplayList(FImage);
 end;
 
