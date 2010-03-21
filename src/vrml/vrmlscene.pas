@@ -2244,6 +2244,21 @@ end;
 procedure TVRMLScene.Load(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
   const AResetTime: boolean);
 begin
+  { Release all associations with OpenGL context before freeing the nodes.
+    This means vrml nodes are still valid during VRMLOpenGLRenderer unprepare
+    calls. Although this should not be needed (VRMLOpenGLRenderer was prepared
+    to not require this), in practice there are currently bugs that require it
+    (see kambi_vrml_game_engine/doc/TODO, about
+    TVRMLOpenGLRendererContextCache.GLSLProgram_DecReference).
+
+    TODO: this should either be removed from here (when VRMLOpenGLRenderer
+    is fixed), or (because fixing it is difficult and gain is none?)
+    a decision to change VRMLOpenGLRenderer requirements may be made
+    (then this line is justified).
+
+    Then this could be wrapped into something like BeforeNodesFreed. }
+  GLContextClose;
+
   PointingDeviceClear;
   if OwnsRootNode then FreeAndNil(FRootNode);
 
