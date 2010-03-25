@@ -18,7 +18,7 @@
 
 uses GL, GLWindow, VRMLNodes, VRMLScene, VRMLGLScene, KambiSceneManager,
   UIControls, Cameras, Quaternions, VectorMath, Math, GLControls,
-  KambiUtils;
+  KambiUtils, KambiGLUtils;
 
 var
   Window: TGLUIWindow;
@@ -26,6 +26,8 @@ var
   Scene: TVRMLGLScene;
   Viewports: array [0..3] of TKamViewport;
   OpenButton, QuitButton: TKamGLButton;
+
+{ TBackground ---------------------------------------------------------------- }
 
 type
   TBackground = class(TUIControl)
@@ -47,6 +49,52 @@ begin
     glClear(GL_COLOR_BUFFER_BIT);
   glPopAttrib;
 end;
+
+{ TMyViewport ---------------------------------------------------------------- }
+
+type
+  { Derive our own TKamViewport descendants, just to demo that we can. }
+  TMyViewport = class(TKamViewport)
+    procedure Draw; override;
+    procedure SetFocused(const Value: boolean); override;
+  end;
+
+procedure ViewportDraw2D(ViewportPtr: Pointer);
+var
+  Viewport: TMyViewport absolute ViewportPtr;
+begin
+  glLoadIdentity;
+  if Viewport.Focused then
+  begin
+    glColor3f(1, 1, 1);
+    glLineWidth(3.0); { saved by GL_LINE_BIT }
+    DrawGLRectBorder(0, 0, 1, 1);
+  end;
+end;
+
+procedure TMyViewport.Draw;
+begin
+  inherited;
+
+  glPushAttrib(GL_ENABLE_BIT or GL_LINE_BIT);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DEPTH_TEST);
+    glProjectionPushPopOrtho2D(@ViewportDraw2D, Self, 0, 1, 0, 1);
+  glPopAttrib;
+end;
+
+procedure TMyViewport.SetFocused(const Value: boolean);
+begin
+  if Value <> Focused then
+  begin
+    { We base our Draw on Focused value. }
+    VisibleChange;
+  end;
+
+  inherited;
+end;
+
+{ ---------------------------------------------------------------------------- }
 
 procedure Resize(Glwin: TGLWindow);
 const
@@ -152,7 +200,7 @@ begin
 
   for I := 0 to High(Viewports) do
   begin
-    Viewports[I] := TKamViewport.Create(Application);
+    Viewports[I] := TMyViewport.Create(Application);
     Viewports[I].SceneManager := SceneManager;
     Viewports[I].FullSize := false;
     { test shadows: }

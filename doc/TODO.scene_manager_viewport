@@ -1,6 +1,3 @@
-TODO: use Focused = true to draw border around focused viewport
-in multple_viewports.
-
 Fix:
       If you want, it's absolutely Ok (even encouraged) to assign
       camera from viewport also to TKamSceneManager.Camera.
