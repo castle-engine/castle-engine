@@ -795,7 +795,10 @@ procedure TGLMultiTextureNode.Unprepare;
 var
   I: Integer;
 begin
-  { We cannot look at TextureNode.FdTexture here !
+  { Below comments concerns engine before 2.0.0. After 2.0.0 this could actually
+    by simplified, no need for PreparedTextureChildren.
+
+    We cannot look at TextureNode.FdTexture here.
 
     Reason: TextureNode may be already freed at the Unprepare time.
     VRMLOpenGLRenderer explicitly allows to free vrml nodes before

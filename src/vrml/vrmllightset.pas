@@ -73,7 +73,7 @@ type
       (positional light) or 0 (indicates that this is a directional light).
 
       @seealso TVRMLScene.MainLightForShadows
-      @seealso TKamSceneManager.MainLightForShadows }
+      @seealso TKamAbstractViewport.MainLightForShadows }
     function MainLightForShadows(
       out AMainLightPosition: TVector4Single): boolean;
   end;
