@@ -1929,6 +1929,7 @@ end;
 
 procedure TVRMLGLScene.GLContextClose;
 begin
+  inherited;
   CloseGLRenderer;
   FBackgroundInvalidate;
 end;
