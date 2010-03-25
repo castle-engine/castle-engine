@@ -85,6 +85,28 @@ begin
   QuitButton.Bottom := OpenButton.Bottom;
 end;
 
+procedure CameraReinitialize;
+var
+  I: Integer;
+begin
+  for I := 0 to High(Viewports) do
+  begin
+    { set different camera views for all viewports, to make it interesting }
+    Viewports[I].Camera.Free;
+    Viewports[I].Camera := SceneManager.CreateDefaultCamera(SceneManager);
+    if (I < 3) and (Viewports[I].Camera is TExamineCamera) then
+      TExamineCamera(Viewports[I].Camera).Rotations :=
+        QuatFromAxisAngle(UnitVector3Single[I], Pi/2);
+  end;
+
+  { scene manager needs assigned camera to make a headlight }
+  { TODO: this resets Camera events and Container.
+    Right now, one camera cannot be simultaneously on scnee manager
+    and viewports. So assign here new camera... }
+  SceneManager.Camera.Free;
+  SceneManager.Camera := SceneManager.CreateDefaultCamera(SceneManager);
+end;
+
 var
   FileName: string = 'models/teapot.x3dv';
   //  '../../../kambi_vrml_test_suite/x3d/kambi_extensions/shadows_dynamic.x3dv'
@@ -98,7 +120,10 @@ type
 procedure TDummy.OpenButtonClick(Sender: TObject);
 begin
   if Window.FileDialog('Open 3D file', FileName, true) then
+  begin
     Scene.Load(FileName);
+    CameraReinitialize;
+  end;
 end;
 
 procedure TDummy.QuitButtonClick(Sender: TObject);
@@ -130,25 +155,15 @@ begin
     Viewports[I] := TKamViewport.Create(Application);
     Viewports[I].SceneManager := SceneManager;
     Viewports[I].FullSize := false;
-    Viewports[I].Camera := SceneManager.CreateDefaultCamera(SceneManager);
     { test shadows: }
     Viewports[I].ShadowVolumesPossible := true;
     Viewports[I].ShadowVolumes := true;
-    { set different camera views for all viewports, to make it interesting }
-    if (I < 3) and (Viewports[I].Camera is TExamineCamera) then
-      TExamineCamera(Viewports[I].Camera).Rotations :=
-        QuatFromAxisAngle(UnitVector3Single[I], Pi/2);
     { The initial Resize event will position viewports correctly }
     Window.Controls.Add(Viewports[I]);
   end;
-
   Assert(SceneManager.Viewports.Count = High(Viewports) + 1);
 
-  { scene manager needs assigned camera to make a headlight }
-  { TODO: this resets Camera events and Container.
-    Right now, one camera cannot be simultaneously on scnee manager
-    and viewports. So assign here new camera... }
-  SceneManager.Camera := SceneManager.CreateDefaultCamera(SceneManager);
+  CameraReinitialize;
 
   OpenButton := TKamGLButton.Create(Application);
   OpenButton.Caption := 'Open 3D file';
