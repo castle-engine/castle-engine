@@ -511,13 +511,10 @@ begin
         if Glwin.FileDialog('Open 3d model (VRML etc.) file', S, true,
           LoadAsVRML_FileFilters) then
         begin
-          Scene.RootNode.Free;
-          Scene.RootNode := nil;
-          Scene.RootNode := LoadAsVRML(S, false);
-          Scene.ChangedAll;
+          SceneForShadow.BeforeNodesFree; { loading Scene will free also SceneForShadow.RootNode }
 
-          SceneForShadow.RootNode := Scene.RootNode;
-          SceneForShadow.ChangedAll;
+          Scene.Load(S, false);
+          SceneForShadow.Load(Scene.RootNode, false);
 
           SceneFileName := S;
           { refresh projection matrix, since Scene.BoundingBox changed }

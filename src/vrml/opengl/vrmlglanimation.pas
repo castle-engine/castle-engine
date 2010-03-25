@@ -439,6 +439,9 @@ type
       to force recalculation of this box. }
     function BoundingBox: TBox3D; override;
 
+    { Call this before directly freeing some VRML nodes in animation scenes. }
+    procedure BeforeNodesFree;
+
     { Call this when you changed something
       inside Scenes[] using some direct Scenes[].RootNode operations.
       This calls TVRMLGLScene.ChangedAll on all Scenes[]
@@ -1611,6 +1614,14 @@ begin
     Result := FBoundingBox;
   end else
     Result := EmptyBox3D;
+end;
+
+procedure TVRMLGLAnimation.BeforeNodesFree;
+var
+  I: Integer;
+begin
+  for I := 0 to FScenes.High do
+    FScenes[I].BeforeNodesFree;
 end;
 
 procedure TVRMLGLAnimation.ChangedAll;

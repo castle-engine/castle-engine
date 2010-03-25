@@ -22,8 +22,6 @@ Scene manager / controls / better Lazarus integration:
 
 (blockers before 2.0 release) ------------------------------------------------
 
-- finish BeforeNodesFree: grep for ChangedAll, and add BeforeNodesFree before.
-
 * multiple_viewports: why it's dark on shadow_maps/trees_final?
   multiple_viewports: why on castle_yup no gravity?
 
