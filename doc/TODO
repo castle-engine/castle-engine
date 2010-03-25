@@ -24,16 +24,16 @@ Scene manager / controls / better Lazarus integration:
 
 - finish BeforeNodesFree: grep for ChangedAll, and add BeforeNodesFree before.
 
-* Making Viewport*, see TODO.scene_manager_viewport, should be trivial now!
-  - make laz demo, with 4 scene managers, each having other corner of window,
-    maybe 2 left share the same scene and 2 right share the same scene,
-    but from different views (only in one view is scene set as MainScene,
-    in others it's just added to the tree, this should work without problems),
-    when resing control the scene managers are resized to occupy appropriate
-    screen corner. Make sure to use something mith generatedcubemap,
-    to test that getting back viewport is Ok.
+* multiple_viewports: why it's dark on shadow_maps/trees_final?
+  multiple_viewports: why on castle_yup no gravity?
 
-  Make a news item about this, with demo screenshot, on changes_log.
+  does generatedcubemap work on castle_yup? Screenshot that
+  cubemap mirror works with custom viewports, for changes_log.
+
+* Finish multiple_viewports and making custom viewports
+  (see kambiscenemanager.pas TODOs and TODO.scene_manager_viewport):
+
+* Make a news item about this, with demo screenshot, on changes_log.
 
 (not blockers before 2.0 release) --------------------------------------------
 
