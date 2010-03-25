@@ -904,9 +904,17 @@ type
       graph. Since this class caches some things, it has to be notified
       when you manually change something within RootNode graph. }
 
+    { Release all internal associations with your VRML nodes.
+      In particular, this will release OpenGL resources connected to your nodes.
+      You should always call this @italic(before) you (may) free some nodes in
+      @link(RootNode). }
+    procedure BeforeNodesFree; virtual;
+
     { Notify scene that potentially everything changed
       in the VRML graph. This includes adding/removal of some nodes within
       RootNode graph and changing their fields' values.
+      (Before freeing the nodes, remember to also call BeforeNodesFree
+      earlier.)
 
       ChangedAll causes recalculation of all things dependent on RootNode,
       so it's very costly to call this. While you have to call some ChangedXxx
@@ -917,7 +925,10 @@ type
       ChangedShapeFields are virtual, so of course you can override them
       (remember to always call @code(inherited)). ChangedAll is also
       called by constructor of this class, so you can put a lot of your
-      initialization there (instead of in the constructor). }
+      initialization there (instead of in the constructor).
+
+      ChangedAll calls BeforeNodesFree first, for safety (and TVRMLGLShape
+      actually depends on it, see implementation comments). }
     procedure ChangedAll; virtual;
 
     { Notify scene that you changed field values of given Node.
@@ -2241,24 +2252,18 @@ begin
   inherited;
 end;
 
-procedure TVRMLScene.Load(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-  const AResetTime: boolean);
+procedure TVRMLScene.BeforeNodesFree;
 begin
   { Release all associations with OpenGL context before freeing the nodes.
     This means vrml nodes are still valid during VRMLOpenGLRenderer unprepare
-    calls. Although this should not be needed (VRMLOpenGLRenderer was prepared
-    to not require this), in practice there are currently bugs that require it
-    (see kambi_vrml_game_engine/doc/TODO, about
-    TVRMLOpenGLRendererContextCache.GLSLProgram_DecReference).
-
-    TODO: this should either be removed from here (when VRMLOpenGLRenderer
-    is fixed), or (because fixing it is difficult and gain is none?)
-    a decision to change VRMLOpenGLRenderer requirements may be made
-    (then this line is justified).
-
-    Then this could be wrapped into something like BeforeNodesFreed. }
+    calls. }
   GLContextClose;
+end;
 
+procedure TVRMLScene.Load(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
+  const AResetTime: boolean);
+begin
+  BeforeNodesFree;
   PointingDeviceClear;
   if OwnsRootNode then FreeAndNil(FRootNode);
 
@@ -2685,6 +2690,8 @@ var
 begin
   if Log and LogChanges then
     WritelnLog('VRML changes', 'ChangedAll');
+
+  BeforeNodesFree;
 
   { TransformNodesInfo will be recalculated by ChangedAll }
   TransformNodesInfo.Count := 0;

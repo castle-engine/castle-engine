@@ -999,7 +999,7 @@ type
     class procedure LightRenderInShadow(const Light: TActiveLight;
       var LightOn: boolean);
 
-    procedure ChangedAll; override;
+    procedure BeforeNodesFree; override;
     procedure ChangedShapeFields(Shape: TVRMLShape;
       Node: TVRMLNode; FieldOrEvent: TVRMLFieldOrEvent; Field: TVRMLField;
       const TransformOnly, InactiveOnly, TextureImageChanged, PossiblyLocalGeometryChanged: boolean); override;
@@ -3315,28 +3315,36 @@ begin
     LightOn := false;
 end;
 
-procedure TVRMLGLScene.ChangedAll;
+procedure TVRMLGLScene.BeforeNodesFree;
 begin
-  { Although we don't really want to lose our connection with OpenGL
+  inherited;
+
+  { Release all associations with OpenGL context before freeing the nodes.
+    This means vrml nodes are still valid during VRMLOpenGLRenderer unprepare
+    calls.
+
+    Although we don't really want to lose our connection with OpenGL
     context, in fact that's the only sensible thing to do now: since
     everything possibly changed, we have to unprepare all now,
     and invalidate all display lists.
 
-    Note that we do this before calling inherited "ChangedAll",
-    as inherited will actually destroy and rebuild Shapes tree
+    Note that this is also done at the beginning of inherited "ChangedAll",
+    and that's good: as inherited will actually destroy and rebuild Shapes tree
     (clearing per-shape information about referenced display lists etc.). }
+
   GLContextClose;
-
-  inherited;
-
-  { inherited created new shapes anyway, so they are already
-    initialized as required:
-
-    for roSeparateShapes, roSeparateShapesNoTransform:
-    - they have SSSX_DisplayList = 0.
-    - they have PreparedForRenderer, PreparedUseBlending  = false,
-    - OcclusionQueryId = 0. }
 end;
+
+{ No need for our TVRMLGLScene.ChangedAll override.
+
+  inherited created new shapes anyway, so they are already
+  initialized as required:
+
+  for roSeparateShapes, roSeparateShapesNoTransform:
+  - they have SSSX_DisplayList = 0.
+  - they have PreparedForRenderer, PreparedUseBlending  = false,
+  - OcclusionQueryId = 0.
+}
 
 procedure TVRMLGLScene.ChangedShapeFields(Shape: TVRMLShape;
   Node: TVRMLNode; FieldOrEvent: TVRMLFieldOrEvent; Field: TVRMLField;
