@@ -94,6 +94,19 @@ begin
   inherited;
 end;
 
+{ TWireViewport -------------------------------------------------------------- }
+
+type
+  TWireViewport = class(TKamViewport)
+    procedure Draw; override;
+  end;
+
+procedure TWireViewport.Draw;
+begin
+  { TODO }
+  inherited;
+end;
+
 { ---------------------------------------------------------------------------- }
 
 procedure Resize(Glwin: TGLWindow);
