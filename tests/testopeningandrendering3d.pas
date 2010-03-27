@@ -16,6 +16,8 @@
 
 unit TestOpeningAndRendering3D;
 
+{$I tests.inc}
+
 interface
 
 uses fpcunit, testutils, testregistry, EnumerateFiles,
@@ -38,7 +40,7 @@ type
 
 implementation
 
-uses SysUtils, VRMLErrors, KambiUtils, KambiGLUtils;
+uses SysUtils, VRMLErrors, KambiUtils, KambiGLUtils, GLVersionUnit;
 
 procedure TTestOpeningAndRendering3D.TestScene(const FileName: string);
 begin
@@ -69,18 +71,28 @@ begin
   ParentDirName := ExtractFileName(ExclPathDelim(ExtractFileDir(FileInfo.FullFileName)));
   if ParentDirName = 'errors' then Exit;
 
+  if GLVersion.IsFglrx and
+    ( (FileInfo.SearchRec.Name = 'ssao_stairs.x3dv') or
+      (FileInfo.SearchRec.Name = 'twoboxes_ssao.x3dv') or
+      (FileInfo.SearchRec.Name = 'ssao_barna29_0.x3dv') or
+      (FileInfo.SearchRec.Name = 'ssao_stairs_with_test_plane.x3dv')
+    ) then
+  begin
+    Writeln('Not testing "' + FileInfo.FullFileName + '": known to fail on fglrx (fucking ATI)');
+    Exit;
+  end;
+
   TestScene(FileInfo.FullFileName);
 end;
 
 procedure TTestOpeningAndRendering3D.Test1;
-const
-  VrmlTestSuite = '..' + PathDelim + '..' + PathDelim + 'kambi_vrml_test_suite' + PathDelim;
 
   procedure TestScenesInDir(const Path: string);
 
     procedure DoMask(const Mask: string);
     begin
-      EnumFilesObj(Path + Mask, faReallyAnyFile, @TestSceneFromEnum, [eoRecursive]);
+      EnumFilesObj(InclPathDelim(Path) + Mask, faReallyAnyFile,
+        @TestSceneFromEnum, [eoRecursive]);
     end;
 
   begin
@@ -114,13 +126,15 @@ begin
     Window.Init;
 
     TestScene('');
+    TestScenesInDir('data');
 
-    TestScene(VrmlTestSuite + 'x3d' + PathDelim + 'follow_camera_by_proximity_sensor.x3dv');
-    TestScene(VrmlTestSuite + 'x3d' + PathDelim + 'follow_camera_by_proximity_sensor.x3dv');
-
-    TestScenesInDir(VrmlTestSuite);
-
-    //TestScenesInDir(VrmlTestSuite + 'x3d/shadow_maps/');
+    {$ifdef VRMLENGINE_TRUNK_AVAILABLE}
+    TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'kambi_vrml_test_suite');
+    TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'castle' + PathDelim + 'data');
+    TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'vrml_engine_doc' + PathDelim + 'examples');
+    TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'rift' + PathDelim + 'data');
+    TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'www' + PathDelim + 'htdocs');
+    {$endif VRMLENGINE_TRUNK_AVAILABLE}
 
     Window.Close;
   finally FreeAndNil(Window) end;
