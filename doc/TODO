@@ -22,9 +22,6 @@ Scene manager / controls / better Lazarus integration:
 
 (blockers before 2.0 release) ------------------------------------------------
 
-* multiple_viewports: why it's dark on shadow_maps/trees_final?
-  Light appears after 1st redraw... Why?
-
 * Make a news item about this, with demo screenshot, on changes_log.
 
   Screenshots we have already:

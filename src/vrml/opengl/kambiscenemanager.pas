@@ -503,6 +503,11 @@ type
 
     { calculated by every PrepareRender }
     ChosenViewport: TKamAbstractViewport;
+    NeedsUpdateGeneratedTextures: boolean;
+
+    { Call at the beginning of Draw (from both scene manager and custom viewport),
+      to make sure UpdateGeneratedTextures was done before actual drawing. }
+    procedure UpdateGeneratedTexturesIfNeeded;
 
     procedure SetMainScene(const Value: TVRMLGLScene);
     procedure SetDefaultViewport(const Value: boolean);
@@ -1491,6 +1496,7 @@ var
   TG: TTransparentGroups;
 begin
   ChosenViewport := nil;
+  NeedsUpdateGeneratedTextures := false;
 
   { This preparation is done only once, before rendering all viewports.
     No point in doing this when no viewport is configured.
@@ -1532,6 +1538,8 @@ begin
       finally Progress.Fini end;
     end else
       Items.PrepareRender(TG, Options, false);
+
+    NeedsUpdateGeneratedTextures := true;
   end;
 end;
 
@@ -1554,25 +1562,35 @@ begin
     Result := [];
 end;
 
+procedure TKamSceneManager.UpdateGeneratedTexturesIfNeeded;
+begin
+  if NeedsUpdateGeneratedTextures then
+  begin
+    NeedsUpdateGeneratedTextures := false;
+
+    { We depend here that right before Draw, BeforeDraw was called.
+      We depend on BeforeDraw (actually PrepareRender) to set
+      ChosenViewport and make ChosenViewport.ApplyProjection.
+
+      This way below we can use sensible projection near/far calculated
+      by previous ChosenViewport.ApplyProjection,
+      and restore viewport used by previous ChosenViewport.ApplyProjection.
+
+      This could be moved to PrepareRender without problems, but we want
+      time needed to render textures be summed into "FPS frame time". }
+    Items.UpdateGeneratedTextures(@RenderFromViewEverything,
+      ChosenViewport.WalkProjectionNear,
+      ChosenViewport.WalkProjectionFar,
+      ChosenViewport.CorrectLeft,
+      ChosenViewport.CorrectBottom,
+      ChosenViewport.CorrectWidth,
+      ChosenViewport.CorrectHeight);
+  end;
+end;
+
 procedure TKamSceneManager.Draw;
 begin
-  { We depend here that right before Draw, BeforeDraw was called.
-    We depend on BeforeDraw (actually PrepareRender) to set
-    ChosenViewport and make ChosenViewport.ApplyProjection.
-
-    This way below we can use sensible projection near/far calculated
-    by previous ChosenViewport.ApplyProjection,
-    and restore viewport used by previous ChosenViewport.ApplyProjection.
-
-    This could be moved to PrepareRender without problems, but we want
-    time needed to render textures be summed into "FPS frame time". }
-  Items.UpdateGeneratedTextures(@RenderFromViewEverything,
-    ChosenViewport.WalkProjectionNear,
-    ChosenViewport.WalkProjectionFar,
-    ChosenViewport.CorrectLeft,
-    ChosenViewport.CorrectBottom,
-    ChosenViewport.CorrectWidth,
-    ChosenViewport.CorrectHeight);
+  UpdateGeneratedTexturesIfNeeded;
 
   inherited;
   if not DefaultViewport then Exit;
@@ -1787,6 +1805,8 @@ end;
 
 procedure TKamViewport.Draw;
 begin
+  SceneManager.UpdateGeneratedTexturesIfNeeded;
+
   inherited;
   ApplyProjection;
   RenderOnScreen(Camera);
