@@ -489,6 +489,9 @@ type
 
     FMouseRayHit3D: T3D;
 
+    { calculated by every PrepareRender }
+    ChosenViewport: TKamAbstractViewport;
+
     procedure SetMainScene(const Value: TVRMLGLScene);
     procedure SetDefaultViewport(const Value: boolean);
 
@@ -1401,8 +1404,9 @@ procedure TKamSceneManager.PrepareRender(const DisplayProgressTitle: string);
 var
   Options: TPrepareRenderOptions;
   TG: TTransparentGroups;
-  ChosenViewport: TKamAbstractViewport;
 begin
+  ChosenViewport := nil;
+
   { This preparation is done only once, before rendering all viewports.
     No point in doing this when no viewport is configured.
     Also, we'll need to use one of viewport's projection here. }
@@ -1467,21 +1471,27 @@ end;
 
 procedure TKamSceneManager.Draw;
 begin
-  inherited;
+  { We depend here that right before Draw, BeforeDraw was called.
+    We depend on BeforeDraw (actually PrepareRender) to set
+    ChosenViewport and make ChosenViewport.ApplyProjection.
 
-  if not DefaultViewport then Exit;
+    This way below we can use sensible projection near/far calculated
+    by previous ChosenViewport.ApplyProjection,
+    and restore viewport used by previous ChosenViewport.ApplyProjection.
 
-  ApplyProjection;
-
-  { TODO: pass CorrectLeft etc for chosen viewport, so it only if some viewport
-    exists. }
-  { When DefaultViewport, we safely assume below that we cover the whole
-    viewport. (For custom viewports, it's their problem to do this.) }
+    This could be moved to PrepareRender without problems, but we want
+    time needed to render textures be summed into "FPS frame time". }
   Items.UpdateGeneratedTextures(@RenderFromViewEverything,
-    { TODO: use WalkProjectionNear, WalkProjectionFar from existing viewport }
-    WalkProjectionNear, WalkProjectionFar,
-    CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
+    ChosenViewport.WalkProjectionNear,
+    ChosenViewport.WalkProjectionFar,
+    ChosenViewport.CorrectLeft,
+    ChosenViewport.CorrectBottom,
+    ChosenViewport.CorrectWidth,
+    ChosenViewport.CorrectHeight);
 
+  inherited;
+  if not DefaultViewport then Exit;
+  ApplyProjection;
   RenderOnScreen(Camera);
 end;
 
@@ -1765,17 +1775,8 @@ end;
 
 procedure TKamViewport.Draw;
 begin
-  { always apply viewport projection before rendering }
+  inherited;
   ApplyProjection;
-
-  (* TODO: Where to do it? It would be wasteful to update
-     for *every* viewport...
-
-  SceneManager.Items.UpdateGeneratedTextures(@RenderFromViewEverything,
-    WalkProjectionNear, WalkProjectionFar,
-    CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
-  *)
-
   RenderOnScreen(Camera);
 end;
 
