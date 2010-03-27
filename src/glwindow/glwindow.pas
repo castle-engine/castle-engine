@@ -2210,18 +2210,17 @@ type
       Returns true and sets FileName accordingly if user chooses some filename and
       accepts it. Returns false if user cancels.
 
-      if OpenDialog: may try to force user to only enter existing (and readable)
-      FileName. (It may be unable to force this from user, or it may fail,
-      so you should watch for some exceptions when opening a file
-      (as it always the case with opening files, anyway)).
-      The intention is that you should be able to open FileName for reading
-      (or reading and writing; anyway, file contents should exist).
+      If OpenDialog: force the user to only choose existing
+      (and readable) file. The intention is that you should be able to open
+      FileName for at least reading. We may be unable to force this
+      (especially the "readable" requirement),
+      so you still should watch for some exceptions when opening a file
+      (as is always the case when opening files, anyway).
 
-      if not OpenDialog: allows user to select a non-existent filename.
+      If not OpenDialog: allows user to select a non-existent filename.
       Still, it may try to force ExtractFilePath(FileName) to be valid,
       i.e. user may be forced to choose only filenames with existing paths.
-      (of course, here it may fail TOO. So you should not assume for sure
-      that ExtractFilePath(FileName) is valid).
+      (But, again, no guarantees.)
       Some warning to user may be shown if FileName already exists, like
       "are you sure you want to overwrite this file ?".
       The intention is that you should be able to open FileName for writing.
