@@ -16,9 +16,16 @@
 { Demo of using custom viewports (TKamViewport) to view the same 3D world
   (scene manager in TKamSceneManager). }
 
+{ If defined, then the 3D world will contain a translated TVRMLGLAnimation
+  with a dinosaur. It's most suitable when as the main scene you load
+  models/castle_y_up.x3dv, then you get a setup similar to scene_manager_demos.
+  This shows that animated TVRMLGLAnimation works fully with mirrors
+  by GeneratedCubeMapTexture, also in custom viewports. }
+{ $define ADD_GL_ANIMATION}
+
 uses GL, GLWindow, VRMLNodes, VRMLScene, VRMLGLScene, KambiSceneManager,
   UIControls, Cameras, Quaternions, VectorMath, Math, GLControls,
-  KambiUtils, KambiGLUtils, OpenGLFonts;
+  KambiUtils, KambiGLUtils, OpenGLFonts, VRMLGLAnimation, GL3D;
 
 { TBackground ---------------------------------------------------------------- }
 
@@ -235,6 +242,10 @@ end;
 
 var
   I: Integer;
+  {$ifdef ADD_GL_ANIMATION}
+  Animation: TVRMLGLAnimation;
+  Translation: T3DTranslated;
+  {$endif ADD_GL_ANIMATION}
 begin
   if Parameters.High = 1 then
     FileName := Parameters[1];
@@ -251,6 +262,19 @@ begin
   SceneManager.MainScene := Scene;
   SceneManager.DefaultViewport := false;
   Window.Controls.Add(SceneManager);
+
+  {$ifdef ADD_GL_ANIMATION}
+  { initialize Translation }
+  Translation := T3DTranslated.Create(SceneManager);
+  Translation.Translation := Vector3Single(5, 3, 60);
+  SceneManager.Items.Add(Translation);
+
+  { initialize Animation }
+  Animation := TVRMLGLAnimation.Create(SceneManager);
+  Animation.LoadFromFile('../../../kambi_vrml_test_suite/kanim/raptor.kanim', false, true);
+  Animation.FirstScene.Spatial := [ssRendering, ssDynamicCollisions];
+  Translation.Child := Animation;
+  {$endif ADD_GL_ANIMATION}
 
   { one viewport shows only wireframe }
   Viewports[0] := TWireViewport.Create(Application);

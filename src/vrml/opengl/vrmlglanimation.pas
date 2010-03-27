@@ -1831,7 +1831,7 @@ begin
       still, or if the animation stopped running. }
     if (SceneFromTime(OldTime) <>
         SceneFromTime(Time)) then
-      VisibleChangeHere([]);
+      VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
 end;
 
