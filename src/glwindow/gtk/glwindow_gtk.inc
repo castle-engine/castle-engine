@@ -1634,6 +1634,7 @@ begin
         end else
           gtk_file_chooser_set_filename(Dialog, PChar(ExpandedFileName));
       end;
+      FindClose(SearchRecord);
     end else
     begin
       Dir := ExtractFileDir(ExpandedFileName);
