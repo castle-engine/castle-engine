@@ -77,7 +77,7 @@ begin
   begin
     glColor3f(1, 1, 1);
     glLineWidth(3.0); { saved by GL_LINE_BIT }
-    DrawGLRectBorder(0, 0, 1, 1);
+    DrawGLRectBorder(0, 0, Viewport.Width, Viewport.Height);
   end;
 
   if Viewport.Caption <> '' then
@@ -87,10 +87,10 @@ begin
     glColor4f(0, 0, 0, 0.5);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); { saved by GL_POLYGON_BIT }
     glRectf(
-      (10 - Margin) / Viewport.Width,
-      (10 - Margin) / Viewport.Height,
-      (10 + Viewport.Font.TextWidth(Viewport.Caption) + Margin) / Viewport.Width,
-      (10 + Viewport.Font.RowHeight + Margin) / Viewport.Height);
+      10 - Margin,
+      10 - Margin,
+      10 + Viewport.Font.TextWidth(Viewport.Caption) + Margin,
+      10 + Viewport.Font.RowHeight + Margin);
     glDisable(GL_BLEND); { saved by GL_COLOR_BUFFER_BIT }
 
     glColor3f(1, 1, 0);
@@ -106,7 +106,7 @@ begin
   glPushAttrib(GL_ENABLE_BIT or GL_LINE_BIT or GL_COLOR_BUFFER_BIT or GL_ENABLE_BIT or GL_POLYGON_BIT);
     glDisable(GL_LIGHTING);
     glDisable(GL_DEPTH_TEST);
-    glProjectionPushPopOrtho2D(@ViewportDraw2D, Self, 0, 1, 0, 1);
+    glProjectionPushPopOrtho2D(@ViewportDraw2D, Self, 0, Width, 0, Height);
   glPopAttrib;
 end;
 
