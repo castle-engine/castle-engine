@@ -3318,8 +3318,6 @@ end;
 
 procedure TVRMLGLScene.BeforeNodesFree(const InternalChangedAll: boolean);
 begin
-  inherited;
-
   { Release all associations with OpenGL context before freeing the nodes.
     This means vrml nodes are still valid during VRMLOpenGLRenderer unprepare
     calls.
@@ -3329,11 +3327,11 @@ begin
     everything possibly changed, we have to unprepare all now,
     and invalidate all display lists.
 
-    Note that this is also done at the beginning of inherited "ChangedAll",
-    and that's good: as inherited will actually destroy and rebuild Shapes tree
+    This is done before inherited, as inherited may clear Shapes tree
     (clearing per-shape information about referenced display lists etc.). }
-
   GLContextClose;
+
+  inherited;
 end;
 
 { No need for our TVRMLGLScene.ChangedAll override.
