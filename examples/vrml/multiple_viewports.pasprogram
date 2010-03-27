@@ -25,7 +25,8 @@
 
 uses SysUtils, GL, GLWindow, VRMLNodes, VRMLScene, VRMLGLScene, KambiSceneManager,
   UIControls, Cameras, Quaternions, VectorMath, Math, GLControls,
-  KambiUtils, KambiGLUtils, OpenGLFonts, VRMLGLAnimation, GL3D;
+  KambiUtils, KambiGLUtils, OpenGLFonts, VRMLGLAnimation, GL3D,
+  Object3DAsVRML;
 
 { TBackground ---------------------------------------------------------------- }
 
@@ -231,8 +232,9 @@ procedure TDummy.OpenButtonClick(Sender: TObject);
 var
   NewFileName: string;
 begin
-  NewFileName := FileName;
-  if Window.FileDialog('Open 3D file', NewFileName, true) then
+  NewFileName := ExtractFilePath(FileName);
+  if Window.FileDialog('Open 3D file', NewFileName, true,
+    LoadAsVRML_FileFilters) then
   begin
     try
       Scene.Load(NewFileName);
