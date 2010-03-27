@@ -593,6 +593,11 @@ type
     KeySensorNodes, TimeSensorNodes, MovieTextureNodes: TVRMLNodesList;
     ProximitySensorInstances: TDynProximitySensorInstanceArray;
 
+    procedure ClearCollectedNodesForEvents;
+    { CollectNodesForEvents also calls ClearCollectedNodesForEvents
+      at the beginning. But for safety (e.g. if some nodes may no longer
+      be valid) you may want to call ClearCollectedNodesForEvents explicitly
+      earlier. }
     procedure CollectNodesForEvents;
     procedure TraverseForEvents(
       Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
@@ -2699,6 +2704,12 @@ begin
   { GeneratedTextures will be recalculated by ChangedAll }
   GeneratedTextures.Count := 0;
 
+  { clear nodes before doing CheckForDeletedNodes below, as CheckForDeletedNodes
+    may send some events so no invalid pointers (e.g. on ProximitySensorInstance
+    list) must exist. }
+  if ProcessEvents then
+    ClearCollectedNodesForEvents;
+
   BackgroundStack.CheckForDeletedNodes(RootNode, true);
   FogStack.CheckForDeletedNodes(RootNode, true);
   NavigationInfoStack.CheckForDeletedNodes(RootNode, true);
@@ -4797,12 +4808,17 @@ begin
   PSI^.IsActive := false; { IsActive = false initially }
 end;
 
-procedure TVRMLScene.CollectNodesForEvents;
+procedure TVRMLScene.ClearCollectedNodesForEvents;
 begin
   KeySensorNodes.Clear;
   TimeSensorNodes.Clear;
   MovieTextureNodes.Clear;
   ProximitySensorInstances.Count := 0;
+end;
+
+procedure TVRMLScene.CollectNodesForEvents;
+begin
+  ClearCollectedNodesForEvents;
 
   if RootNode <> nil then
   begin
