@@ -48,6 +48,8 @@ type
     FOnRender3D: TRender3DEvent;
     FHeadlightFromViewport: boolean;
     FAlwaysApplyProjection: boolean;
+
+    procedure ItemsAndCameraCursorChange(Sender: TObject);
   protected
     { These variables are writeable from overridden ApplyProjection. }
     FAngleOfViewX: Single;
@@ -148,8 +150,12 @@ type
     function GetItems: T3D; virtual; abstract;
     function GetMainScene: TVRMLGLScene; virtual; abstract;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; virtual; abstract;
+    function GetMouseRayHit3D: T3D; virtual; abstract;
     function GetHeadlightCamera: TCamera; virtual; abstract;
     { @groupEnd }
+
+    { Pass mouse move event to 3D world. }
+    procedure MouseMove3D(const RayOrigin, RayDirection: TVector3Single); virtual; abstract;
 
     { Handle camera events.
 
@@ -200,6 +206,7 @@ type
     function KeyUp(Key: TKey; C: char): boolean; override;
     function MouseDown(const Button: TMouseButton): boolean; override;
     function MouseUp(const Button: TMouseButton): boolean; override;
+    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
 
     { Actual position and size of the viewport. Calculated looking
       at @link(FullSize) value, at the current container sizes
@@ -496,7 +503,6 @@ type
     procedure SetDefaultViewport(const Value: boolean);
 
     procedure ItemsVisibleChange(Sender: T3D; Changes: TVisibleChanges);
-    procedure ItemsAndCameraCursorChange(Sender: TObject);
 
     { scene callbacks }
     procedure SceneBoundViewpointChanged(Scene: TVRMLScene);
@@ -527,7 +533,9 @@ type
     function GetItems: T3D; override;
     function GetMainScene: TVRMLGLScene; override;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
+    function GetMouseRayHit3D: T3D; override;
     function GetHeadlightCamera: TCamera; override;
+    procedure MouseMove3D(const RayOrigin, RayDirection: TVector3Single); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -552,8 +560,6 @@ type
 
       Implementation in this class is correlated with RenderHeadlight. }
     function ViewerToChanges: TVisibleChanges; virtual;
-
-    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
 
     procedure Idle(const CompSpeed: Single;
       const HandleMouseAndKeys: boolean;
@@ -712,11 +718,12 @@ type
     FSceneManager: TKamSceneManager;
     procedure SetSceneManager(const Value: TKamSceneManager);
   protected
-    procedure SetCamera(const Value: TCamera); override;
     function GetItems: T3D; override;
     function GetMainScene: TVRMLGLScene; override;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
+    function GetMouseRayHit3D: T3D; override;
     function GetHeadlightCamera: TCamera; override;
+    procedure MouseMove3D(const RayOrigin, RayDirection: TVector3Single); override;
 
     function CameraMoveAllowed(ACamera: TWalkCamera;
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
@@ -733,8 +740,6 @@ type
     procedure Idle(const CompSpeed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
-
-    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
 
     function CreateDefaultCamera(AOwner: TComponent): TCamera; override;
   published
@@ -799,6 +804,7 @@ begin
     if FCamera <> nil then
     begin
       FCamera.OnVisibleChange := nil;
+      FCamera.OnCursorChange := nil;
       if FCamera is TWalkCamera then
       begin
         TWalkCamera(FCamera).OnMoveAllowed := nil;
@@ -817,6 +823,7 @@ begin
         to override TGLUIWindow / TKamOpenGLControl that also try
         to "hijack" this camera's event. }
       FCamera.OnVisibleChange := @CameraVisibleChange;
+      FCamera.OnCursorChange := @ItemsAndCameraCursorChange;
       if FCamera is TWalkCamera then
       begin
         TWalkCamera(FCamera).OnMoveAllowed := @CameraMoveAllowed;
@@ -922,6 +929,58 @@ begin
   end;
 
   Result := GetItems.MouseUp(Button);
+end;
+
+function TKamAbstractViewport.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
+var
+  RayOrigin, RayDirection: TVector3Single;
+begin
+  Result := inherited;
+  if (not Result) and (not Paused) and (Camera <> nil) then
+  begin
+    Result := Camera.MouseMove(OldX, OldY, NewX, NewY);
+    if not Result then
+    begin
+      Camera.CustomRay(
+        CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight, ContainerHeight,
+        NewX, NewY, AngleOfViewX, AngleOfViewY, RayOrigin, RayDirection);
+      MouseMove3D(RayOrigin, RayDirection);
+    end;
+  end;
+
+  { update the cursor, since 3D object the cursor possibly changed.
+
+    Accidentaly, this also workaround the problem of TKamViewport:
+    when the 3D object stayed the same but it's Cursor value changed,
+    Items.OnCursorChange notify only TKamSceneManager (not custom viewport).
+    But thanks to doing ItemsAndCameraCursorChange below, this isn't
+    a problem for now, as we'll update cursor anyway, as long as it changes
+    only during mouse move. }
+  ItemsAndCameraCursorChange(Self);
+end;
+
+procedure TKamAbstractViewport.ItemsAndCameraCursorChange(Sender: TObject);
+begin
+  { We have to treat Camera.Cursor specially:
+    - mcNone because of mouse look means result in unconditionally mcNone.
+      Other Items.Cursor, MainScene.Cursor etc. is ignored then.
+    - otherwise, Camera.Cursor is ignored, show 3D objects cursor. }
+  if (Camera <> nil) and (Camera.Cursor = mcNone) then
+  begin
+    Cursor := mcNone;
+    Exit;
+  end;
+
+  { We show mouse cursor from top-most 3D object.
+    This is sensible, if multiple 3D scenes obscure each other at the same
+    pixel --- the one "on the top" (visible by the player at that pixel)
+    determines the mouse cursor. }
+
+  if GetMouseRayHit3D <> nil then
+  begin
+    Cursor := GetMouseRayHit3D.Cursor;
+  end else
+    Cursor := mcDefault;
 end;
 
 function TKamAbstractViewport.AllowSuspendForInput: boolean;
@@ -1347,17 +1406,10 @@ procedure TKamSceneManager.SetCamera(const Value: TCamera);
 begin
   if FCamera <> Value then
   begin
-    if FCamera <> nil then
-    begin
-      FCamera.OnCursorChange := nil;
-    end;
-
     inherited;
 
     if FCamera <> nil then
     begin
-      FCamera.OnCursorChange := @ItemsAndCameraCursorChange;
-
       { Call initial ViewerChanged (this allows ProximitySensors to work
         as soon as ProcessEvents becomes true). }
       if MainScene <> nil then
@@ -1495,64 +1547,26 @@ begin
   RenderOnScreen(Camera);
 end;
 
-function TKamSceneManager.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
+procedure TKamSceneManager.MouseMove3D(const RayOrigin, RayDirection: TVector3Single);
 var
-  RayOrigin, RayDirection: TVector3Single;
   Dummy: Single;
 begin
-  Result := inherited;
-  if (not Result) and (not Paused) and (Camera <> nil) then
-  begin
-    Result := Camera.MouseMove(OldX, OldY, NewX, NewY);
-    if not Result then
-    begin
-      Camera.Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, RayOrigin, RayDirection);
+  { We call here Items.RayCollision ourselves, to update FMouseRayHit
+    (useful to e.g. update Cusdor based on it). To Items.MouseMove
+    we can also pass this FMouseRay, so that they know collision
+    result already. }
 
-      { We call here Items.RayCollision ourselves, to update FMouseRayHit
-        (useful to e.g. update Cusdor based on it). To Items MouseMove
-        we can also pass this FMouseRay, so that they know collision
-        result already. }
+  FreeAndNil(FMouseRayHit);
+  FMouseRayHit := Items.RayCollision(Dummy, RayOrigin, RayDirection,
+    { Do not use CollisionIgnoreItem here,
+      as this is not camera<->3d world collision? } nil);
 
-      FreeAndNil(FMouseRayHit);
-      FMouseRayHit := Items.RayCollision(Dummy, RayOrigin, RayDirection,
-        { Do not use CollisionIgnoreItem here,
-          as this is not camera<->3d world collision? } nil);
+  { calculate MouseRayHit3D }
+  if MouseRayHit <> nil then
+    MouseRayHit3D := MouseRayHit.Hierarchy.Last else
+    MouseRayHit3D := nil;
 
-      { calculate MouseRayHit3D }
-      if MouseRayHit <> nil then
-        MouseRayHit3D := MouseRayHit.Hierarchy.Last else
-        MouseRayHit3D := nil;
-
-      Items.MouseMove(RayOrigin, RayDirection, FMouseRayHit);
-    end;
-  end;
-
-  { update the cursor, since scene under the cursor possibly changed. }
-  ItemsAndCameraCursorChange(Self);
-end;
-
-procedure TKamSceneManager.ItemsAndCameraCursorChange(Sender: TObject);
-begin
-  { We have to treat Camera.Cursor specially:
-    - mcNone because of mouse look means result in unconditionally mcNone.
-      Other Items.Cursor, MainScene.Cursor etc. is ignored then.
-    - otherwise, Camera.Cursor is ignored, show 3D objects cursor. }
-  if (Camera <> nil) and (Camera.Cursor = mcNone) then
-  begin
-    Cursor := mcNone;
-    Exit;
-  end;
-
-  { We show mouse cursor from top-most 3D object.
-    This is sensible, if multiple 3D scenes obscure each other at the same
-    pixel --- the one "on the top" (visible by the player at that pixel)
-    determines the mouse cursor. }
-
-  if MouseRayHit3D <> nil then
-  begin
-    Cursor := MouseRayHit3D.Cursor;
-  end else
-    Cursor := mcDefault;
+  Items.MouseMove(RayOrigin, RayDirection, FMouseRayHit);
 end;
 
 procedure TKamSceneManager.Idle(const CompSpeed: Single;
@@ -1671,6 +1685,11 @@ begin
   Result := ShadowVolumeRenderer;
 end;
 
+function TKamSceneManager.GetMouseRayHit3D: T3D;
+begin
+  Result := MouseRayHit3D;
+end;
+
 function TKamSceneManager.GetHeadlightCamera: TCamera;
 begin
   Result := Camera;
@@ -1693,25 +1712,6 @@ destructor TKamViewport.Destroy;
 begin
   SceneManager := nil; { remove Self from SceneManager.Viewports }
   inherited;
-end;
-
-procedure TKamViewport.SetCamera(const Value: TCamera);
-begin
-  if FCamera <> Value then
-  begin
-    if FCamera <> nil then
-    begin
-      { TODO: FCamera.OnCursorChange := nil; }
-    end;
-
-    inherited;
-
-    if FCamera <> nil then
-    begin
-      { TODO: FCamera.OnCursorChange := @ItemsAndCameraCursorChange; }
-    end;
-  end else
-    inherited; { not really needed for now, but for safety --- always call inherited }
 end;
 
 procedure TKamViewport.CameraVisibleChange(ACamera: TObject);
@@ -1746,8 +1746,6 @@ begin
   end;
 end;
 
-{ TODO: own ItemsAndCameraCursorChange? Control own Cursor? }
-
 function TKamViewport.CreateDefaultCamera(AOwner: TComponent): TCamera;
 begin
   Result := SceneManager.CreateDefaultCamera(AOwner);
@@ -1766,6 +1764,11 @@ end;
 function TKamViewport.GetShadowVolumeRenderer: TGLShadowVolumeRenderer;
 begin
   Result := SceneManager.ShadowVolumeRenderer;
+end;
+
+function TKamViewport.GetMouseRayHit3D: T3D;
+begin
+  Result := SceneManager.MouseRayHit3D;
 end;
 
 function TKamViewport.GetHeadlightCamera: TCamera;
@@ -1800,49 +1803,10 @@ begin
     LetOthersHandleMouseAndKeys := true;
 end;
 
-function TKamViewport.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
-{var
-  RayOrigin, RayDirection: TVector3Single;
-  Dummy: Single;}
+procedure TKamViewport.MouseMove3D(const RayOrigin, RayDirection: TVector3Single);
 begin
-  Result := inherited;
-  if (not Result) and (not Paused) and (Camera <> nil) then
-  begin
-    Result := Camera.MouseMove(OldX, OldY, NewX, NewY);
-
-    { TODO: like TKamSceneManager, shoot with our own Camera.Ray
-      (probably, Ray need to be adjusted, our AngleOfViewX / AngleOfViewY
-      are only for our Left/Bottom/Width/Height...
-
-      We want our own version, that will use our own Camera, although the rest
-      (MouseHit3D etc.) still stays in scene manager. }
-    (*
-    if not Result then
-    begin
-      Camera.Ray(NewX, NewY, AngleOfViewX, AngleOfViewY, RayOrigin, RayDirection);
-
-      { We call here Items.RayCollision ourselves, to update FMouseRayHit
-        (useful to e.g. update Cusdor based on it). To Items MouseMove
-        we can also pass this FMouseRay, so that they know collision
-        result already. }
-
-      FreeAndNil(FMouseRayHit);
-      FMouseRayHit := Items.RayCollision(Dummy, RayOrigin, RayDirection,
-        { Do not use CollisionIgnoreItem here,
-          as this is not camera<->3d world collision? } nil);
-
-      { calculate MouseRayHit3D }
-      if MouseRayHit <> nil then
-        MouseRayHit3D := MouseRayHit.Hierarchy.Last else
-        MouseRayHit3D := nil;
-
-      Items.MouseMove(RayOrigin, RayDirection, FMouseRayHit);
-    end;
-    *)
-  end;
-
-  { update the cursor, since scene under the cursor possibly changed. }
-  { TODO: ItemsAndCameraCursorChange(Self); }
+  if SceneManager <> nil then
+    SceneManager.MouseMove3D(RayOrigin, RayDirection);
 end;
 
 procedure TKamViewport.SetSceneManager(const Value: TKamSceneManager);
