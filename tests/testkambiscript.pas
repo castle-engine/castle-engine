@@ -117,7 +117,7 @@ begin
   end;
 
   try
-    Prog := ParseProgram(FileToString('test_script.kscript'), VarsAsValue);
+    Prog := ParseProgram(FileToString('data' + PathDelim + 'test_script.kscript'), VarsAsValue);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
 
@@ -169,7 +169,7 @@ begin
     Assert((Vars[2] as TKamScriptBoolean).Value = false);
     Assert((Vars[3] as TKamScriptString).Value = 'foo');
 
-    Prog := ParseProgram(FileToString('test_script2.kscript'), Vars);
+    Prog := ParseProgram(FileToString('data' + PathDelim + 'test_script2.kscript'), Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
 
@@ -356,7 +356,7 @@ begin
 
     { test if() }
 
-    Prog := ParseProgram(FileToString('test_script3.kscript'), Vars);
+    Prog := ParseProgram(FileToString('data' + PathDelim + 'test_script3.kscript'), Vars);
     Prog.ExecuteFunction('main', []);
     Assert((Vars[0] as TKamScriptInteger).Value = 12);
     Assert((Vars[1] as TKamScriptFloat).Value = 0);
@@ -430,7 +430,7 @@ begin
     Vars[3].Name := 'my_string';
     Vars[4].Name := 'a_int';
 
-    Prog := ParseProgram(FileToString('test_script_array.kscript'), Vars);
+    Prog := ParseProgram(FileToString('data' + PathDelim + 'test_script_array.kscript'), Vars);
 
     Prog.ExecuteFunction('main', []);
     Assert(TKamScriptInteger(Vars[0]).Value = 1 + 4 + 9 + 1 + 1 + 1);
@@ -444,7 +444,7 @@ begin
 
     FreeAndNil(Prog);
 
-    Prog := ParseProgram(FileToString('test_script_string_as_array.kscript'), Vars);
+    Prog := ParseProgram(FileToString('data' + PathDelim + 'test_script_string_as_array.kscript'), Vars);
     Prog.ExecuteFunction('main', []);
     Assert(TKamScriptString(Vars[3]).Value = 'bbbbbbbbbbbb' + #123 + '13');
 

@@ -37,7 +37,7 @@ uses SysUtils, VectorMath, Images;
 procedure TTestImages.TestLoadAnyImage;
 { testuje czy mechanizm argumentow dla LoadAnyImage (AllowedImageClasses,
   ForbiddenConvs) dziala dobrze w kazdym przypadku. }
-const ImagesPath = './images/';
+const ImagesPath = 'data' + PathDelim +  'images' + PathDelim;
 
   procedure DoTest(const fname: string;
     const AllowedImageClasses: array of TImageClass;

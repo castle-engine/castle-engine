@@ -27,7 +27,7 @@ var
 begin
   Scene := TVRMLScene.Create(nil);
   try
-    Scene.Load('model_manifold.wrl');
+    Scene.Load('data' + PathDelim + 'model_manifold.wrl');
     Assert(Scene.BorderEdges.Count = 0);
   finally FreeAndNil(Scene) end;
 end;
@@ -81,8 +81,8 @@ begin
   CheckIteratorSpeed('../../kambi_vrml_test_suite/x3d/switches_and_transforms.x3dv');
   CheckIteratorSpeed('../../kambi_vrml_test_suite/x3d/key_sensor.x3dv');
 
-  CheckIteratorSpeed('switches_and_transforms_2.x3dv');
-  CheckIteratorSpeed('key_sensor_2.x3dv');
+  CheckIteratorSpeed('data' + PathDelim + 'switches_and_transforms_2.x3dv');
+  CheckIteratorSpeed('data' + PathDelim + 'key_sensor_2.x3dv');
 
   CheckIteratorSpeed('/home/michalis/sources/rrtankticks2/rrtankticks3/rrtt.wrl');
 end;
@@ -130,8 +130,8 @@ begin
   CheckIterator('../../kambi_vrml_test_suite/x3d/switches_and_transforms.x3dv');
   CheckIterator('../../kambi_vrml_test_suite/x3d/key_sensor.x3dv');
 
-  CheckIterator('switches_and_transforms_2.x3dv');
-  CheckIterator('key_sensor_2.x3dv');
+  CheckIterator('data' + PathDelim + 'switches_and_transforms_2.x3dv');
+  CheckIterator('data' + PathDelim + 'key_sensor_2.x3dv');
 end;
 
 initialization
