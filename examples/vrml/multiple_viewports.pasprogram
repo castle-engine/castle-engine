@@ -208,10 +208,11 @@ begin
         QuatFromAxisAngle(UnitVector3Single[I], Pi/2);
   end;
 
-  { scene manager needs assigned camera to make a headlight }
-  { TODO: this resets Camera events and Container.
+  { scene manager needs assigned camera to make a headlight.
+
     Right now, one camera cannot be simultaneously on scnee manager
-    and viewports. So assign here new camera... }
+    and viewports. So assign here new camera.
+    See TODO at TKamAbstractViewport.Camera. }
   SceneManager.Camera.Free;
   SceneManager.Camera := SceneManager.CreateDefaultCamera(SceneManager);
 end;

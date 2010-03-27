@@ -273,11 +273,10 @@ type
       or after the scene manager / viewport on the Controls list (as there's really
       no perfect ordering for them).
 
-      @italic(For TKamSceneManager only:)
-      Scene manager will "hijack" some Camera events:
+      Scene manager / viewport will "hijack" some Camera events:
       TCamera.OnVisibleChange, TWalkCamera.OnMoveAllowed,
       TWalkCamera.OnGetHeightAbove, TCamera.OnCursorChange.
-      Scene manager will handle them in a proper way.
+      We will handle them in a proper way.
 
       @italic(For TKamViewport only:)
       The TKamViewport's camera is slightly less important than
@@ -289,9 +288,12 @@ type
       Also VRML/X3D ProximitySensors receive events only from
       TKamSceneManager.Camera.
 
-      If you want, it's absolutely Ok (even encouraged) to assign
-      camera from viewport also to TKamSceneManager.Camera.
-      TODO: for now it doesn't work.
+      TODO: In the future it should be possible (even encouraged) to assign
+      one of your custom viewport cameras also to TKamSceneManager.Camera.
+      It should also be possible to share one camera instance among a couple
+      of viewports.
+      For now, it doesn't work (last viewport/scene manager will hijack some
+      camera events making it not working in other ones).
 
       @seealso TKamSceneManager.OnCameraChanged }
     property Camera: TCamera read FCamera write SetCamera;

@@ -30,13 +30,6 @@ Scene manager / controls / better Lazarus integration:
 * multiple_viewports: why it's dark on shadow_maps/trees_final?
   Light appears after 1st redraw... Why?
 
-* Fix:
-      If you want, it's absolutely Ok (even encouraged) to assign
-      camera from viewport also to TKamSceneManager.Camera.
-      TODO: for now it doesn't work.
-  or fix comments, and add some checks, to disallow it?
-  What about camera for headlight?
-
 * Make a news item about this, with demo screenshot, on changes_log.
 
   Screenshots we have already:
@@ -45,6 +38,9 @@ Scene manager / controls / better Lazarus integration:
   multiple_viewports_tower_mirror_raptor.png
 
 (not blockers before 2.0 release) --------------------------------------------
+
+* TODO at TKamAbstractViewport.Camera: allow one camera instance be shared
+  by a couple of viewports/scene manager. Also fix multiple_viewports then.
 
 - Also use TButton in terrain to place "open image" near the slider?
 
