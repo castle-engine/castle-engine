@@ -4804,25 +4804,28 @@ begin
   MovieTextureNodes.Clear;
   ProximitySensorInstances.Count := 0;
 
-  RootNode.EnumerateNodes(TVRMLNode, @CollectNodeForEvents, false);
+  if RootNode <> nil then
+  begin
+    RootNode.EnumerateNodes(TVRMLNode, @CollectNodeForEvents, false);
 
-  { Proximity sensors collecting requires a State.Transform, so
-    we must do full Traverse, EnumerateNodes is not enough.
-    Also, this means that ProximitySensor are detected only in active
-    VRML graph part. }
-  RootNode.Traverse(TNodeProximitySensor, @TraverseForEvents);
+    { Proximity sensors collecting requires a State.Transform, so
+      we must do full Traverse, EnumerateNodes is not enough.
+      Also, this means that ProximitySensor are detected only in active
+      VRML graph part. }
+    RootNode.Traverse(TNodeProximitySensor, @TraverseForEvents);
 
-  BeginChangesSchedule;
-  try
-    { We have to initialize scripts only after all other initialization
-      is done, in particular after CollectNodeForEvents was called
-      for all and set their EventsProcessor. Reason: scripts
-      initialize() methods may already cause some events, that should
-      notify us appropriately.
+    BeginChangesSchedule;
+    try
+      { We have to initialize scripts only after all other initialization
+        is done, in particular after CollectNodeForEvents was called
+        for all and set their EventsProcessor. Reason: scripts
+        initialize() methods may already cause some events, that should
+        notify us appropriately.
 
-      This is also why Begin/EndChangesSchedule around is useful. }
-    RootNode.EnumerateNodes(TNodeScript, @ScriptsInitialize, false);
-  finally EndChangesSchedule end;
+        This is also why Begin/EndChangesSchedule around is useful. }
+      RootNode.EnumerateNodes(TNodeScript, @ScriptsInitialize, false);
+    finally EndChangesSchedule end;
+  end;
 end;
 
 procedure TVRMLScene.UnCollectForEvents(Node: TVRMLNode);
