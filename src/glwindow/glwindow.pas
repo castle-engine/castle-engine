@@ -2235,16 +2235,7 @@ type
       allows you to pass file filters encoded in a single string,
       this may be slightly more comfortable for call, see
       TFileFiltersList.AddFiltersFromString
-      for explanation how to encode filters in a string.
-
-      @italic(Known GTK 2 problems:) If as FileName you pass full filename
-      (not only a directory) and you pass FileFilters with some designated
-      default filter -> unfortunately, the default filter will be ignored
-      (even if your FileName matches with the default filter).
-      See e.g. [http://www.mail-archive.com/gtk-list@gnome.org/msg29044.html]
-      Make sure you pass only ExtractFilePath(of your filename) if you
-      want default filter to be really selected by default.
-    }
+      for explanation how to encode filters in a string. }
     function FileDialog(const Title: string; var FileName: string;
       OpenDialog: boolean; FileFilters: TFileFiltersList = nil): boolean; overload;
     function FileDialog(const Title: string; var FileName: string;

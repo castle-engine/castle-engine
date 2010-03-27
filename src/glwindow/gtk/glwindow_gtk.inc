@@ -1511,6 +1511,8 @@ function TGLWindow.FileDialog(const Title: string; var FileName: string;
 {$endif GLWINDOW_GTK_1}
 
 {$ifdef USE_FILE_CHOOSER}
+var
+  HasDefaultFilter: boolean;
 
   procedure DialogAddFilters(Dialog: PGtkFileChooserDialog;
     FileFilters: TFileFiltersList);
@@ -1530,7 +1532,10 @@ function TGLWindow.FileDialog(const Title: string; var FileName: string;
       gtk_file_chooser_add_filter(Dialog, GtkFilter);
 
       if I = FileFilters.DefaultFilter then
+      begin
         gtk_file_chooser_set_filter(Dialog, GtkFilter);
+        HasDefaultFilter := true;
+      end;
     end;
   end;
 
@@ -1558,6 +1563,8 @@ begin
     PChar(GTK_STOCK_CANCEL), [ GTK_RESPONSE_CANCEL,
     OkButtonText, GTK_RESPONSE_ACCEPT,
     nil ]));
+
+  HasDefaultFilter := false;
 
   if FileFilters <> nil then
     DialogAddFilters(Dialog, FileFilters);
@@ -1600,7 +1607,20 @@ begin
     begin
       if (faDirectory and SearchRecord.Attr) <> 0 then
         gtk_file_chooser_set_current_folder(Dialog, PChar(ExpandedFileName)) else
-        gtk_file_chooser_set_filename(Dialog, PChar(ExpandedFileName));
+      begin
+        if HasDefaultFilter then
+        begin
+          { Unfortunately, the default filter will be ignored after set_filename,
+            (even if your FileName matches with the default filter).
+            See e.g. [http://www.mail-archive.com/gtk-list@gnome.org/msg29044.html]
+            This makes ugly dialog (with by default all files shown, and no
+            filter selected in combo box), so avoid it:
+            workaround: set only directory. }
+          ExpandedFileName := ExtractFilePath(ExpandedFileName);
+          gtk_file_chooser_set_current_folder(Dialog, PChar(ExpandedFileName));
+        end else
+          gtk_file_chooser_set_filename(Dialog, PChar(ExpandedFileName));
+      end;
     end else
     begin
       Dir := ExtractFileDir(ExpandedFileName);
