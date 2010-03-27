@@ -207,6 +207,9 @@ type
     function MouseDown(const Button: TMouseButton): boolean; override;
     function MouseUp(const Button: TMouseButton): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
+    procedure Idle(const CompSpeed: Single;
+      const HandleMouseAndKeys: boolean;
+      var LetOthersHandleMouseAndKeys: boolean); override;
 
     { Actual position and size of the viewport. Calculated looking
       at @link(FullSize) value, at the current container sizes
@@ -737,10 +740,6 @@ type
 
     procedure Draw; override;
 
-    procedure Idle(const CompSpeed: Single;
-      const HandleMouseAndKeys: boolean;
-      var LetOthersHandleMouseAndKeys: boolean); override;
-
     function CreateDefaultCamera(AOwner: TComponent): TCamera; override;
   published
     property SceneManager: TKamSceneManager read FSceneManager write SetSceneManager;
@@ -981,6 +980,38 @@ begin
     Cursor := GetMouseRayHit3D.Cursor;
   end else
     Cursor := mcDefault;
+end;
+
+procedure TKamAbstractViewport.Idle(const CompSpeed: Single;
+  const HandleMouseAndKeys: boolean;
+  var LetOthersHandleMouseAndKeys: boolean);
+begin
+  inherited;
+
+  if Paused then
+  begin
+    LetOthersHandleMouseAndKeys := true;
+    Exit;
+  end;
+
+  { As for LetOthersHandleMouseAndKeys: let Camera decide it.
+    By default, camera has ExclusiveEvents = false and will let
+    LetOthersHandleMouseAndKeys remain = true, that's Ok.
+
+    Our Items do not have HandleMouseAndKeys or LetOthersHandleMouseAndKeys
+    stuff, as it would not be controllable for them: 3D objects do not
+    have strict front-to-back order, so we would not know in what order
+    call their Idle methods, so we have to let many Items handle keys anyway.
+    So, it's consistent to just treat 3D objects as "cannot definitely
+    mark keys/mouse as handled". Besides, currently 3D objects do not
+    get Pressed information at all. }
+
+  if Camera <> nil then
+  begin
+    LetOthersHandleMouseAndKeys := not Camera.ExclusiveEvents;
+    Camera.Idle(CompSpeed, HandleMouseAndKeys, LetOthersHandleMouseAndKeys);
+  end else
+    LetOthersHandleMouseAndKeys := true;
 end;
 
 function TKamAbstractViewport.AllowSuspendForInput: boolean;
@@ -1575,32 +1606,8 @@ procedure TKamSceneManager.Idle(const CompSpeed: Single;
 begin
   inherited;
 
-  if Paused then
-  begin
-    LetOthersHandleMouseAndKeys := true;
-    Exit;
-  end;
-
-  { As for LetOthersHandleMouseAndKeys: let Camera decide it.
-    By default, camera has ExclusiveEvents = false and will let
-    LetOthersHandleMouseAndKeys remain = true, that's Ok.
-
-    Our Items do not have HandleMouseAndKeys or LetOthersHandleMouseAndKeys
-    stuff, as it would not be controllable for them: 3D objects do not
-    have strict front-to-back order, so we would not know in what order
-    call their Idle methods, so we have to let many Items handle keys anyway.
-    So, it's consistent to just treat 3D objects as "cannot definitely
-    mark keys/mouse as handled". Besides, currently 3D objects do not
-    get Pressed information at all. }
-
-  if Camera <> nil then
-  begin
-    LetOthersHandleMouseAndKeys := not Camera.ExclusiveEvents;
-    Camera.Idle(CompSpeed, HandleMouseAndKeys, LetOthersHandleMouseAndKeys);
-  end else
-    LetOthersHandleMouseAndKeys := true;
-
-  Items.Idle(CompSpeed);
+  if not Paused then
+    Items.Idle(CompSpeed);
 end;
 
 procedure TKamSceneManager.CameraVisibleChange(ACamera: TObject);
@@ -1781,26 +1788,6 @@ begin
   inherited;
   ApplyProjection;
   RenderOnScreen(Camera);
-end;
-
-procedure TKamViewport.Idle(const CompSpeed: Single;
-  const HandleMouseAndKeys: boolean;
-  var LetOthersHandleMouseAndKeys: boolean);
-begin
-  inherited;
-
-  if Paused then
-  begin
-    LetOthersHandleMouseAndKeys := true;
-    Exit;
-  end;
-
-  if Camera <> nil then
-  begin
-    LetOthersHandleMouseAndKeys := not Camera.ExclusiveEvents;
-    Camera.Idle(CompSpeed, HandleMouseAndKeys, LetOthersHandleMouseAndKeys);
-  end else
-    LetOthersHandleMouseAndKeys := true;
 end;
 
 procedure TKamViewport.MouseMove3D(const RayOrigin, RayDirection: TVector3Single);
