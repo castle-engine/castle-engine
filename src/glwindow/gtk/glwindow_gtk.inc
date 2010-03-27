@@ -149,7 +149,7 @@ protected
     about what to display in OpenGL area), than using GLWindow unit
     may be more straightforward as you have to write much less code in Gtk.
 
-    Example of using this can be found in ../examples/test_glwindow_gtk_mix }
+    Example of using this can be found in examples/glwindow/test_glwindow_gtk_mix }
   function MakeGLAreaContainer(GLArea: PGtkGLArea): PGtkWidget; virtual;
 {$endif read_tglwindow_interface}
 
