@@ -912,7 +912,11 @@ type
     { Release all internal associations with your VRML nodes.
       In particular, this will release OpenGL resources connected to your nodes.
       You should always call this @italic(before) you (may) free some nodes in
-      @link(RootNode). }
+      @link(RootNode).
+
+      @italic(You have to call ChangedAll or Load at sometime
+      after BeforeNodesFree, and before you try actual rendering, events etc.)
+      Otherwise some stuff may not get recalculated. }
     procedure BeforeNodesFree; virtual;
 
     { Notify scene that potentially everything changed
@@ -2257,14 +2261,6 @@ begin
   inherited;
 end;
 
-procedure TVRMLScene.BeforeNodesFree;
-begin
-  { Release all associations with OpenGL context before freeing the nodes.
-    This means vrml nodes are still valid during VRMLOpenGLRenderer unprepare
-    calls. }
-  GLContextClose;
-end;
-
 procedure TVRMLScene.Load(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
   const AResetTime: boolean);
 begin
@@ -2635,6 +2631,21 @@ begin
   end;
 end;
 
+procedure TVRMLScene.BeforeNodesFree;
+begin
+  { TransformNodesInfo will be recalculated by ChangedAll }
+  TransformNodesInfo.Count := 0;
+
+  { GeneratedTextures will be recalculated by ChangedAll }
+  GeneratedTextures.Count := 0;
+
+  { clear nodes before doing CheckForDeletedNodes below, as CheckForDeletedNodes
+    may send some events so no invalid pointers (e.g. on ProximitySensorInstance
+    list) must exist. }
+  if ProcessEvents then
+    ClearCollectedNodesForEvents;
+end;
+
 procedure TVRMLScene.ChangedAll;
 
   procedure UpdateVRML2ActiveLights;
@@ -2697,18 +2708,6 @@ begin
     WritelnLog('VRML changes', 'ChangedAll');
 
   BeforeNodesFree;
-
-  { TransformNodesInfo will be recalculated by ChangedAll }
-  TransformNodesInfo.Count := 0;
-
-  { GeneratedTextures will be recalculated by ChangedAll }
-  GeneratedTextures.Count := 0;
-
-  { clear nodes before doing CheckForDeletedNodes below, as CheckForDeletedNodes
-    may send some events so no invalid pointers (e.g. on ProximitySensorInstance
-    list) must exist. }
-  if ProcessEvents then
-    ClearCollectedNodesForEvents;
 
   BackgroundStack.CheckForDeletedNodes(RootNode, true);
   FogStack.CheckForDeletedNodes(RootNode, true);
