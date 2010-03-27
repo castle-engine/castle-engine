@@ -4919,7 +4919,7 @@ begin
       RenderState.OnCameraChanged.Add(@CameraChanged);
     end else
     begin
-      UnregisterProcessEvents(RootNode);
+      if RootNode <> nil then UnregisterProcessEvents(RootNode);
       FreeAndNil(KeySensorNodes);
       FreeAndNil(TimeSensorNodes);
       FreeAndNil(MovieTextureNodes);
