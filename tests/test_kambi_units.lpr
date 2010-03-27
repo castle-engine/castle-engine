@@ -1,11 +1,9 @@
 { -*- compile-command: "./compile_console.sh" -*- }
 program test_kambi_units;
 
+{ Define this if you use text runner for our tests.
+  Usually this is automatically defined by calling compile_console.sh. }
 { $define TEXT_RUNNER}
-
-{ This one requires you have checked out from SVN ../kambi_vrml_test_suite/
-  directory, so disabled by default. }
-{ $define TEST_OPENING_AND_RENDERING_3D}
 
 {$mode objfpc}{$H+}
 
@@ -41,14 +39,11 @@ uses
   TestShadowFields,
   TestGLVersion,
   TestURLUtils,
-  TestDDS
-  {$ifdef TEXT_RUNNER}
+  TestDDS {$ifdef TEXT_RUNNER},
   { These require GLWindow initializing it's own window,
     so they conflict with LCL windows. }
-  ,TestGLWindow
-  {$ifdef TEST_OPENING_AND_RENDERING_3D}
-  ,TestOpeningAndRendering3D
-  {$endif}
+  TestGLWindow,
+  TestOpeningAndRendering3D
   {$endif};
 
 {var
@@ -60,6 +55,7 @@ begin
   T := TTestOpeningAndRendering3D.Create;
   T.Test1;
   T.Free;
+  Exit;
 }
   Application.Initialize;
   {$ifndef TEXT_RUNNER}
