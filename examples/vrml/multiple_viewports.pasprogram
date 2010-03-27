@@ -23,7 +23,7 @@
   by GeneratedCubeMapTexture, also in custom viewports. }
 { $define ADD_GL_ANIMATION}
 
-uses GL, GLWindow, VRMLNodes, VRMLScene, VRMLGLScene, KambiSceneManager,
+uses SysUtils, GL, GLWindow, VRMLNodes, VRMLScene, VRMLGLScene, KambiSceneManager,
   UIControls, Cameras, Quaternions, VectorMath, Math, GLControls,
   KambiUtils, KambiGLUtils, OpenGLFonts, VRMLGLAnimation, GL3D;
 
@@ -227,10 +227,22 @@ type
   end;
 
 procedure TDummy.OpenButtonClick(Sender: TObject);
+var
+  NewFileName: string;
 begin
-  if Window.FileDialog('Open 3D file', FileName, true) then
+  NewFileName := FileName;
+  if Window.FileDialog('Open 3D file', NewFileName, true) then
   begin
-    Scene.Load(FileName);
+    try
+      Scene.Load(NewFileName);
+    except
+      on E: Exception do
+      begin
+        Window.MessageOk('Cannot open file "' + NewFileName + '": ' + E.Message, mtError);
+        Exit;
+      end;
+    end;
+    FileName := NewFileName;
     CameraReinitialize;
   end;
 end;
