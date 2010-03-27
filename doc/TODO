@@ -23,10 +23,11 @@ Scene manager / controls / better Lazarus integration:
 (blockers before 2.0 release) ------------------------------------------------
 
 * multiple_viewports: why it's dark on shadow_maps/trees_final?
-  multiple_viewports: why on castle_yup no gravity?
 
-  does generatedcubemap work on castle_yup? Screenshot that
-  cubemap mirror works with custom viewports, for changes_log.
+  does generatedcubemap work on castle_yup?
+  Not yet, updateGeneratedTextures is not called now when only TKamViewport present
+  and no DefaultViewport.
+  Screenshot that cubemap mirror works with custom viewports, for changes_log.
 
 * Finish multiple_viewports and making custom viewports
   (see kambiscenemanager.pas TODOs and TODO.scene_manager_viewport):

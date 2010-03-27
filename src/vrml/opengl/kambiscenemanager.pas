@@ -150,6 +150,21 @@ type
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; virtual; abstract;
     function GetHeadlightCamera: TCamera; virtual; abstract;
     { @groupEnd }
+
+    { Handle camera events.
+
+      Scene manager implements collisions by looking at 3D scene,
+      custom viewports implements collisions by calling their scene manager.
+
+      @groupBegin }
+    function CameraMoveAllowed(ACamera: TWalkCamera;
+      const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const BecauseOfGravity: boolean): boolean; virtual; abstract;
+    procedure CameraGetHeight(ACamera: TWalkCamera;
+      out IsAbove: boolean; out AboveHeight: Single;
+      out AboveGround: P3DTriangle); virtual; abstract;
+    procedure CameraVisibleChange(ACamera: TObject); virtual; abstract;
+    { @groupEnd }
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -498,16 +513,13 @@ type
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
-    { Handle camera events.
-      @groupBegin }
     function CameraMoveAllowed(ACamera: TWalkCamera;
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-      const BecauseOfGravity: boolean): boolean; virtual;
+      const BecauseOfGravity: boolean): boolean; override;
     procedure CameraGetHeight(ACamera: TWalkCamera;
       out IsAbove: boolean; out AboveHeight: Single;
-      out AboveGround: P3DTriangle); virtual;
-    procedure CameraVisibleChange(ACamera: TObject); virtual;
-    { @groupEnd }
+      out AboveGround: P3DTriangle); override;
+    procedure CameraVisibleChange(ACamera: TObject); override;
 
     function GetItems: T3D; override;
     function GetMainScene: TVRMLGLScene; override;
@@ -696,13 +708,20 @@ type
   private
     FSceneManager: TKamSceneManager;
     procedure SetSceneManager(const Value: TKamSceneManager);
-    procedure CameraVisibleChange(ACamera: TObject); virtual;
   protected
     procedure SetCamera(const Value: TCamera); override;
     function GetItems: T3D; override;
     function GetMainScene: TVRMLGLScene; override;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetHeadlightCamera: TCamera; override;
+
+    function CameraMoveAllowed(ACamera: TWalkCamera;
+      const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const BecauseOfGravity: boolean): boolean; override;
+    procedure CameraGetHeight(ACamera: TWalkCamera;
+      out IsAbove: boolean; out AboveHeight: Single;
+      out AboveGround: P3DTriangle); override;
+    procedure CameraVisibleChange(ACamera: TObject); override;
   public
     destructor Destroy; override;
 
@@ -776,6 +795,13 @@ begin
   begin
     if FCamera <> nil then
     begin
+      FCamera.OnVisibleChange := nil;
+      if FCamera is TWalkCamera then
+      begin
+        TWalkCamera(FCamera).OnMoveAllowed := nil;
+        TWalkCamera(FCamera).OnGetHeightAbove := nil;
+      end;
+
       FCamera.RemoveFreeNotification(Self);
       FCamera.Container := nil;
     end;
@@ -784,6 +810,16 @@ begin
 
     if FCamera <> nil then
     begin
+      { Unconditionally change FCamera.OnVisibleChange callback,
+        to override TGLUIWindow / TKamOpenGLControl that also try
+        to "hijack" this camera's event. }
+      FCamera.OnVisibleChange := @CameraVisibleChange;
+      if FCamera is TWalkCamera then
+      begin
+        TWalkCamera(FCamera).OnMoveAllowed := @CameraMoveAllowed;
+        TWalkCamera(FCamera).OnGetHeightAbove := @CameraGetHeight;
+      end;
+
       FCamera.FreeNotification(Self);
       FCamera.Container := Container;
       if ContainerSizeKnown then
@@ -1310,29 +1346,14 @@ begin
   begin
     if FCamera <> nil then
     begin
-      FCamera.OnVisibleChange := nil;
       FCamera.OnCursorChange := nil;
-      if FCamera is TWalkCamera then
-      begin
-        TWalkCamera(FCamera).OnMoveAllowed := nil;
-        TWalkCamera(FCamera).OnGetHeightAbove := nil;
-      end;
     end;
 
     inherited;
 
     if FCamera <> nil then
     begin
-      { Unconditionally change FCamera.OnVisibleChange callback,
-        to override TGLUIWindow / TKamOpenGLControl that also try
-        to "hijack" this camera's event. }
-      FCamera.OnVisibleChange := @CameraVisibleChange;
       FCamera.OnCursorChange := @ItemsAndCameraCursorChange;
-      if FCamera is TWalkCamera then
-      begin
-        TWalkCamera(FCamera).OnMoveAllowed := @CameraMoveAllowed;
-        TWalkCamera(FCamera).OnGetHeightAbove := @CameraGetHeight;
-      end;
 
       { Call initial ViewerChanged (this allows ProximitySensors to work
         as soon as ProcessEvents becomes true). }
@@ -1664,42 +1685,20 @@ begin
   inherited;
 end;
 
-{TODO:
-bind to
-
-CameraMoveAllowed
-CameraGetHeight
-}
-
 procedure TKamViewport.SetCamera(const Value: TCamera);
 begin
   if FCamera <> Value then
   begin
     if FCamera <> nil then
     begin
-      FCamera.OnVisibleChange := nil;
-      FCamera.OnCursorChange := nil;
-      if FCamera is TWalkCamera then
-      begin
-        TWalkCamera(FCamera).OnMoveAllowed := nil;
-        TWalkCamera(FCamera).OnGetHeightAbove := nil;
-      end;
+      { TODO: FCamera.OnCursorChange := nil; }
     end;
 
     inherited;
 
     if FCamera <> nil then
     begin
-      { Unconditionally change FCamera.OnVisibleChange callback,
-        to override TGLUIWindow / TKamOpenGLControl that also try
-        to "hijack" this camera's event. }
-      FCamera.OnVisibleChange := @CameraVisibleChange;
       { TODO: FCamera.OnCursorChange := @ItemsAndCameraCursorChange; }
-      if FCamera is TWalkCamera then
-      begin
-        { TODO: TWalkCamera(FCamera).OnMoveAllowed := @CameraMoveAllowed; }
-        { TODO: TWalkCamera(FCamera).OnGetHeightAbove := @CameraGetHeight; }
-      end;
     end;
   end else
     inherited; { not really needed for now, but for safety --- always call inherited }
@@ -1708,6 +1707,33 @@ end;
 procedure TKamViewport.CameraVisibleChange(ACamera: TObject);
 begin
   VisibleChange;
+end;
+
+function TKamViewport.CameraMoveAllowed(ACamera: TWalkCamera;
+  const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+  const BecauseOfGravity: boolean): boolean;
+begin
+  if SceneManager <> nil then
+    Result := SceneManager.CameraMoveAllowed(
+      ACamera, ProposedNewPos, NewPos, BecauseOfGravity) else
+  begin
+    Result := true;
+    NewPos := ProposedNewPos;
+  end;
+end;
+
+procedure TKamViewport.CameraGetHeight(ACamera: TWalkCamera;
+  out IsAbove: boolean; out AboveHeight: Single;
+  out AboveGround: P3DTriangle);
+begin
+  if SceneManager <> nil then
+    SceneManager.CameraGetHeight(
+      ACamera, IsAbove, AboveHeight, AboveGround) else
+  begin
+    IsAbove := false;
+    AboveHeight := MaxSingle;
+    AboveGround := nil;
+  end;
 end;
 
 { TODO: own ItemsAndCameraCursorChange? Control own Cursor? }
