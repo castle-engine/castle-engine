@@ -30,10 +30,22 @@ type
     Window: TGLUIWindow;
     SceneManager: TKamSceneManager;
     Scene: TVRMLGLScene;
+    RecreateSceneEachTime: boolean;
 
     { FileName empty means to load empty scene. }
     procedure TestScene(const FileName: string);
     procedure TestSceneFromEnum(const FileInfo: TEnumeratedFileInfo);
+    { If RecreateSceneEachTime, Scene will be destroyed and then created
+      again before each load.
+
+      Both values make sense for testing:
+
+      false checks that pure "Load" properly deals (clears) with
+      previously loaded content, so it mostly checks BeforeNodesFree
+      and ChangedAll.
+
+      true checks that destructions properly deals with a scene. }
+    procedure TestOpenAndRender(const ARecreateSceneEachTime: boolean);
   published
     procedure Test1;
   end;
@@ -44,6 +56,23 @@ uses SysUtils, VRMLErrors, KambiUtils, KambiGLUtils, GLVersionUnit;
 
 procedure TTestOpeningAndRendering3D.TestScene(const FileName: string);
 begin
+  if RecreateSceneEachTime then
+  begin
+    Write('Recreating scene... ');
+
+    FreeAndNil(Scene);
+    Assert(SceneManager.MainScene = nil);
+    Assert(SceneManager.Items.List.Count = 0);
+
+    Scene := TVRMLGLScene.Create(Window);
+    Scene.Spatial := [ssRendering, ssDynamicCollisions];
+    Scene.ProcessEvents := true;
+
+    SceneManager := TKamSceneManager.Create(Window);
+    SceneManager.Items.Add(Scene);
+    SceneManager.MainScene := Scene;
+  end;
+
   Writeln('Testing "' + FileName + '"');
 
   if FileName = '' then
@@ -85,7 +114,7 @@ begin
   TestScene(FileInfo.FullFileName);
 end;
 
-procedure TTestOpeningAndRendering3D.Test1;
+procedure TTestOpeningAndRendering3D.TestOpenAndRender(const ARecreateSceneEachTime: boolean);
 
   procedure TestScenesInDir(const Path: string);
 
@@ -111,6 +140,8 @@ procedure TTestOpeningAndRendering3D.Test1;
 
 begin
   VRMLWarning := @VRMLWarning_Ignore;
+
+  RecreateSceneEachTime := ARecreateSceneEachTime;
 
   Window := TGLUIWindow.Create(nil);
   try
@@ -138,6 +169,12 @@ begin
 
     Window.Close;
   finally FreeAndNil(Window) end;
+end;
+
+procedure TTestOpeningAndRendering3D.Test1;
+begin
+  TestOpenAndRender(false);
+  TestOpenAndRender(true);
 end;
 
 initialization
