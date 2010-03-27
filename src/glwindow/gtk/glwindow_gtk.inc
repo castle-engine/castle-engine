@@ -1475,12 +1475,13 @@ function TGLWindow.GtkDialogRun(ADialog: PGtkDialog): gint;
 var
   Data: TDialogData;
   Mode: TGLModeFrozenScreen;
+  SigHandle1, SigHandle2, SigHandle3: GULong;
 begin
-  gtk_signal_connect(GTK_OBJECT(ADialog),
+  SigHandle1 := gtk_signal_connect(GTK_OBJECT(ADialog),
     'response',    GTK_SIGNAL_FUNC(@signal_dialog_response),     @Data);
-  gtk_signal_connect(GTK_OBJECT(ADialog),
+  SigHandle2 := gtk_signal_connect(GTK_OBJECT(ADialog),
     'unmap',       GTK_SIGNAL_FUNC(@signal_dialog_unmap),        @Data);
-  gtk_signal_connect(GTK_OBJECT(ADialog),
+  SigHandle3 := gtk_signal_connect(GTK_OBJECT(ADialog),
     'delete_event',GTK_SIGNAL_FUNC(@signal_dialog_delete_event), @Data);
 
   { gtk_dialog_run contains here also safeguards against destroying
@@ -1497,6 +1498,18 @@ begin
     gtk_widget_show(GTK_WIDGET(ADialog));
     while not Data.Answered do Application.ProcessMessage(true);
   finally Mode.Free end;
+
+  { Disconnect these signal handlers. gtk_dialog_run also does this.
+
+    Otherwise under x86_64/Linux we get segfaults at gtk_widget_destroy
+    (usually done by the caller of GtkDialogRun).
+    Seen both with FPC 2.2.4 and 2.4.0, probably FPC version doesn't matter.
+    These are probably caused by gtk_widget_destroy calling some signal
+    (probably 'unmap') when destroying, that gets invalid @Data pointer
+    and messes with memory. }
+  gtk_signal_disconnect(GTK_OBJECT(ADialog), SigHandle1);
+  gtk_signal_disconnect(GTK_OBJECT(ADialog), SigHandle2);
+  gtk_signal_disconnect(GTK_OBJECT(ADialog), SigHandle3);
 
   Result := Data.Answer;
 end;
