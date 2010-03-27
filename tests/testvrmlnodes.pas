@@ -16,6 +16,8 @@
 
 unit TestVRMLNodes;
 
+{$I tests.inc}
+
 interface
 
 uses
@@ -251,8 +253,10 @@ procedure TTestVRMLNodes.TestParseSaveToFile;
   end;
 
 begin
+  {$ifdef VRMLENGINE_TRUNK_AVAILABLE}
   TestReadWrite('../../kambi_vrml_test_suite/x3d/proto_sfnode_default.x3dv');
   TestReadWrite('../../kambi_vrml_test_suite/x3d/tricky_def_use.x3dv');
+  {$endif VRMLENGINE_TRUNK_AVAILABLE}
 end;
 
 procedure TTestVRMLNodes.TestInterfaceSupports;

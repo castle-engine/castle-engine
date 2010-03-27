@@ -1,5 +1,7 @@
 unit TestVRMLScene;
 
+{$I tests.inc}
+
 interface
 
 uses
@@ -125,10 +127,12 @@ procedure TTestVRMLScene.TestIterator;
 
 
 begin
+  {$ifdef VRMLENGINE_TRUNK_AVAILABLE}
   CheckIterator('../../kambi_vrml_test_suite/x3d/deranged_house_final.x3dv');
   CheckIterator('../../kambi_vrml_test_suite/x3d/anchor_test.x3dv');
   CheckIterator('../../kambi_vrml_test_suite/x3d/switches_and_transforms.x3dv');
   CheckIterator('../../kambi_vrml_test_suite/x3d/key_sensor.x3dv');
+  {$endif VRMLENGINE_TRUNK_AVAILABLE}
 
   CheckIterator('data' + PathDelim + 'switches_and_transforms_2.x3dv');
   CheckIterator('data' + PathDelim + 'key_sensor_2.x3dv');
