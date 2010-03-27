@@ -353,17 +353,19 @@ type
       const ViewAngleDegX, ViewAngleDegY: Single;
       out Ray0, RayVector: TVector3Single);
 
-    { Calculate a ray picked by WindowX, WindowY position on the window,
-      assuming current container (window) is recorded in AContainer.
+    { Calculate a ray picked by WindowX, WindowY position on the viewport,
+      assuming current viewport dimensions are as given.
+      This doesn't look at our container sizes at all.
 
       ViewAngleDegX, ViewAngleDegY are your camera view angles.
 
       WindowX, WindowY are given in the same style as MouseX, MouseY:
       WindowX = 0 is left, WindowY = 0 is top.
-
-      This uses @link(PrimaryRay) call. }
-    procedure RayFromCustomContainer(
-      AContainer: IUIContainer;
+      To understand WindowY (with respect to bottom),
+      we also need separate WindowHeight. }
+    procedure CustomRay(
+      const ViewportLeft, ViewportBottom: Integer;
+      const ViewportWidth, ViewportHeight, WindowHeight: Cardinal;
       const WindowX, WindowY: Integer;
       const ViewAngleDegX, ViewAngleDegY: Single;
       out Ray0, RayVector: TVector3Single);
@@ -1661,7 +1663,8 @@ procedure TCamera.Ray(const WindowX, WindowY: Integer;
   const ViewAngleDegX, ViewAngleDegY: Single;
   out Ray0, RayVector: TVector3Single);
 begin
-  RayFromCustomContainer(Container,
+  Assert(ContainerSizeKnown, 'Camera container size not known yet (probably camera not added to Controls list), cannot use TCamera.Ray');
+  CustomRay(0, 0, ContainerWidth, ContainerHeight, ContainerHeight,
     WindowX, WindowY, ViewAngleDegX, ViewAngleDegY, Ray0, RayVector);
 end;
 
@@ -1669,12 +1672,14 @@ procedure TCamera.MouseRay(
   const ViewAngleDegX, ViewAngleDegY: Single;
   out Ray0, RayVector: TVector3Single);
 begin
-  RayFromCustomContainer(Container,
+  Assert(ContainerSizeKnown, 'Camera container size not known yet (probably camera not added to Controls list), cannot use TCamera.MouseRay');
+  CustomRay(0, 0, ContainerWidth, ContainerHeight, ContainerHeight,
     Container.MouseX, Container.MouseY, ViewAngleDegX, ViewAngleDegY, Ray0, RayVector);
 end;
 
-procedure TCamera.RayFromCustomContainer(
-  AContainer: IUIContainer;
+procedure TCamera.CustomRay(
+  const ViewportLeft, ViewportBottom: Integer;
+  const ViewportWidth, ViewportHeight, WindowHeight: Cardinal;
   const WindowX, WindowY: Integer;
   const ViewAngleDegX, ViewAngleDegY: Single;
   out Ray0, RayVector: TVector3Single);
@@ -1683,8 +1688,10 @@ var
 begin
   GetCameraVectors(Pos, Dir, Up);
   Ray0 := Pos;
-  RayVector := PrimaryRay(WindowX, AContainer.Height - WindowY,
-    AContainer.Width, AContainer.Height,
+
+  RayVector := PrimaryRay(
+    WindowX - ViewportLeft, (WindowHeight - WindowY) - ViewportBottom,
+    ViewportWidth, ViewportHeight,
     Pos, Dir, Up,
     ViewAngleDegX, ViewAngleDegY);
 end;
