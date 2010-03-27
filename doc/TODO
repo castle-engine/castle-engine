@@ -22,6 +22,11 @@ Scene manager / controls / better Lazarus integration:
 
 (blockers before 2.0 release) ------------------------------------------------
 
+* LoadAsVRML_FileFilters in multiple_viewports causes strange problems:
+  default filter (All 3d models) seems not selected by default?
+  Works in view3dscene, even I change to LoadAsVRML_FileFilters
+  instead of LoadAsVRMLSequence_FileFilters.
+
 * multiple_viewports: why it's dark on shadow_maps/trees_final?
 
 * Finish multiple_viewports and making custom viewports
