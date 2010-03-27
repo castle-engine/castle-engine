@@ -20,15 +20,6 @@ view3dscene 3.5 blockers:
 ------------------------------------------------------------------------------
 Scene manager / controls / better Lazarus integration:
 
-(blockers before 2.0 release) ------------------------------------------------
-
-* Make a news item about this, with demo screenshot, on changes_log.
-
-  Screenshots we have already:
-  multiple_viewports_shadows.png
-  multiple_viewports_teapot.png
-  multiple_viewports_tower_mirror_raptor.png
-
 (not blockers before 2.0 release) --------------------------------------------
 
 * TODO at TKamAbstractViewport.Camera: allow one camera instance be shared
