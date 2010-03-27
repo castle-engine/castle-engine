@@ -30,8 +30,12 @@ Scene manager / controls / better Lazarus integration:
 * multiple_viewports: why it's dark on shadow_maps/trees_final?
   Light appears after 1st redraw... Why?
 
-* Finish multiple_viewports and making custom viewports
-  (see kambiscenemanager.pas TODOs and TODO.scene_manager_viewport):
+* Fix:
+      If you want, it's absolutely Ok (even encouraged) to assign
+      camera from viewport also to TKamSceneManager.Camera.
+      TODO: for now it doesn't work.
+  or fix comments, and add some checks, to disallow it?
+  What about camera for headlight?
 
 * Make a news item about this, with demo screenshot, on changes_log.
 
