@@ -28,6 +28,7 @@ Scene manager / controls / better Lazarus integration:
   instead of LoadAsVRMLSequence_FileFilters.
 
 * multiple_viewports: why it's dark on shadow_maps/trees_final?
+  Light appears after 1st redraw... Why?
 
 * Finish multiple_viewports and making custom viewports
   (see kambiscenemanager.pas TODOs and TODO.scene_manager_viewport):
