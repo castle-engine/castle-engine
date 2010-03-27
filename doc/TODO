@@ -4,13 +4,6 @@ In paricular, ../../www/TODO contains "next-release" stuff,
 usually has a list of blockers typically worked upon right before release.
 
 ------------------------------------------------------------------------------
-view3dscene 3.5 blockers:
-- finish X3D nurbs component up to level 2, update vrml_impl_status about it.
-  Remaining:
-    CoordinateDouble
-    NurbsTextureCoordinate
-    NurbsSet
-
 - castle 1.0.0 blockers:
   - same plane walls on doom e1m1 level:
     - at the first door
@@ -313,6 +306,13 @@ Various ideas:
   For view3dscene 3.4, this will have to be enough.
 
 - fix vrmlengine for seamless avatars - or is it javascript lack?
+
+- view3dscene: rest of nurbs:
+  finish X3D nurbs component up to level 2, update vrml_impl_status about it.
+  Remaining:
+    CoordinateDouble
+    NurbsTextureCoordinate
+    NurbsSet
 
 ------------------------------------------------------------------------------
 Effects, techniques, passes:
