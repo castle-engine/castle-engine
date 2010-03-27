@@ -999,7 +999,7 @@ type
     class procedure LightRenderInShadow(const Light: TActiveLight;
       var LightOn: boolean);
 
-    procedure BeforeNodesFree; override;
+    procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
     procedure ChangedShapeFields(Shape: TVRMLShape;
       Node: TVRMLNode; FieldOrEvent: TVRMLFieldOrEvent; Field: TVRMLField;
       const TransformOnly, InactiveOnly, TextureImageChanged, PossiblyLocalGeometryChanged: boolean); override;
@@ -3316,7 +3316,7 @@ begin
     LightOn := false;
 end;
 
-procedure TVRMLGLScene.BeforeNodesFree;
+procedure TVRMLGLScene.BeforeNodesFree(const InternalChangedAll: boolean);
 begin
   inherited;
 

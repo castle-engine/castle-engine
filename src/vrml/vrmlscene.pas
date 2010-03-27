@@ -916,8 +916,14 @@ type
 
       @italic(You have to call ChangedAll or Load at sometime
       after BeforeNodesFree, and before you try actual rendering, events etc.)
-      Otherwise some stuff may not get recalculated. }
-    procedure BeforeNodesFree; virtual;
+      Otherwise some stuff may not get recalculated.
+
+      InternalChangedAll is for internal use. This is @true when ChangedAll
+      calls it at the beginning of work, and means that nothing is freed,
+      and we only require necessary cleanup at the beginning of ChangedAll.
+      This way ChangedAll (when it wasn't preceeded by explicit
+      BeforeNodesFree(false)) produces events from stacks CheckForDeletedNodes. }
+    procedure BeforeNodesFree(const InternalChangedAll: boolean = false); virtual;
 
     { Notify scene that potentially everything changed
       in the VRML graph. This includes adding/removal of some nodes within
@@ -936,7 +942,7 @@ type
       called by constructor of this class, so you can put a lot of your
       initialization there (instead of in the constructor).
 
-      ChangedAll calls BeforeNodesFree first, for safety (and TVRMLGLShape
+      ChangedAll calls BeforeNodesFree(true) first, for safety (and TVRMLGLShape
       actually depends on it, see implementation comments). }
     procedure ChangedAll; virtual;
 
@@ -2631,7 +2637,7 @@ begin
   end;
 end;
 
-procedure TVRMLScene.BeforeNodesFree;
+procedure TVRMLScene.BeforeNodesFree(const InternalChangedAll: boolean);
 begin
   { TransformNodesInfo will be recalculated by ChangedAll }
   TransformNodesInfo.Count := 0;
@@ -2644,6 +2650,14 @@ begin
     list) must exist. }
   if ProcessEvents then
     ClearCollectedNodesForEvents;
+
+  if not InternalChangedAll then
+  begin
+    { Clean Shapes, ShapeLODs }
+    FreeAndNil(FShapes);
+    FShapes := TVRMLShapeTreeGroup.Create(Self);
+    ShapeLODs.Clear;
+  end;
 end;
 
 procedure TVRMLScene.ChangedAll;
@@ -2707,7 +2721,7 @@ begin
   if Log and LogChanges then
     WritelnLog('VRML changes', 'ChangedAll');
 
-  BeforeNodesFree;
+  BeforeNodesFree(true);
 
   BackgroundStack.CheckForDeletedNodes(RootNode, true);
   FogStack.CheckForDeletedNodes(RootNode, true);
