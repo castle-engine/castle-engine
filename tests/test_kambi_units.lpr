@@ -1,6 +1,11 @@
+{ -*- compile-command: "./compile_console.sh" -*- }
 program test_kambi_units;
 
 { $define TEXT_RUNNER}
+
+{ This one requires you have checked out from SVN ../kambi_vrml_test_suite/
+  directory, so disabled by default. }
+{ $define TEST_OPENING_AND_RENDERING_3D}
 
 {$mode objfpc}{$H+}
 
@@ -8,7 +13,7 @@ uses
   {$ifdef TEXT_RUNNER}
   ConsoleTestRunner,
   {$else}
-  Interfaces, Forms, GuiTestRunner,
+  Interfaces, Forms, GuiTestRunner, kambi_base,
   {$endif}
 
   { Test units (their order determines default tests order) }
@@ -29,9 +34,6 @@ uses
   TestIntRects,
   TestSpaceFillingCurves,
   TestObjectsList,
-  {$ifndef TEXT_RUNNER}
-  kambi_base,
-  {$endif}
   TestKambiStringUtils,
   TestKambiScript,
   TestKambiScriptVectors,
@@ -39,18 +41,26 @@ uses
   TestShadowFields,
   TestGLVersion,
   TestURLUtils,
-  TestDDS;
+  TestDDS
+  {$ifdef TEXT_RUNNER}
+  { These require GLWindow initializing it's own window,
+    so they conflict with LCL windows. }
+  ,TestGLWindow
+  {$ifdef TEST_OPENING_AND_RENDERING_3D}
+  ,TestOpeningAndRendering3D
+  {$endif}
+  {$endif};
 
 {var
-  T: TTestKambiScript;}
+  T: TTestOpeningAndRendering3D;}
 begin
-{ Sometimes it's comfortable to just run the rest directly, to get
-  full backtrace from FPC.
-
-  T := TTestKambiScript.Create;
-  T.TestArrays;
-  T.Free;}
-
+{ Sometimes it's comfortable to just run the test directly, to get
+  full backtrace from FPC. }
+{
+  T := TTestOpeningAndRendering3D.Create;
+  T.Test1;
+  T.Free;
+}
   Application.Initialize;
   {$ifndef TEXT_RUNNER}
   Application.CreateForm(TGuiTestRunner, TestRunner);
