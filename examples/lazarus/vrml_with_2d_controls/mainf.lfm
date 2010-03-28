@@ -25,20 +25,20 @@ object Form1: TForm1
     AutoSize = False
     OnClick = SampleButtonClick
     Caption = 'Sample clickable button on GL area.'
-    left = 72
+    left = 80
     top = 64
     TUIControlPos_RealLeft = 10
   end
   object SampleImage: TKamGLImage
     Bottom = 150
-    left = 72
+    left = 80
     top = 144
     TUIControlPos_RealLeft = 10
   end
   object SampleImageAlpha: TKamGLImage
     Bottom = 150
     Blending = True
-    left = 72
+    left = 80
     top = 232
     TUIControlPos_RealLeft = 310
   end
