@@ -399,6 +399,9 @@ operator = (const W1, W2: TTextureWrap3D): boolean;
 const
   Texture2DRepeat: TTextureWrap2D = (GL_REPEAT, GL_REPEAT);
 
+{ Return wrap GL_CLAMP_TO_EDGE in both directions. }
+function Texture2DClampToEdge: TTextureWrap2D;
+
 { Loading textures ----------------------------------------------------------- }
 
 type
@@ -1262,6 +1265,12 @@ end;
 operator = (const W1, W2: TTextureWrap3D): boolean;
 begin
   Result := CompareMem(@W1, @W2, SizeOf(W1));
+end;
+
+function Texture2DClampToEdge: TTextureWrap2D;
+begin
+  Result[0] := KamGL_CLAMP_TO_EDGE;
+  Result[1] := Result[0];
 end;
 
 { 2D texture loading --------------------------------------------------------- }

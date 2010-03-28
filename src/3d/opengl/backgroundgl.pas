@@ -370,12 +370,6 @@ var CubeSize, CubeSize2: Single;
   function GroundColorModulated(Index: Integer): TVector3Single;
   begin result := ColorModulated(GroundColor^[Index]); end;
 
-const
-  { poniewaz rozciagamy teksture przy pomocy GL_LINEAR a nie chce nam
-    sie robic teksturze borderow - musimy uzyc GL_CLAMP_TO_EDGE
-    aby uzyskac dobry efekt na krancach }
-  SkyTexWrap: TTextureWrap2D = (GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-
 var bs: TBackgroundSide;
     TexturedSides: TBackgroundSides;
     i: Integer;
@@ -399,7 +393,10 @@ begin
   if (Imgs[bs] <> nil) and (not Imgs[bs].IsNull) then
   begin
    nieboTex[bs] := LoadGLTextureModulated(Imgs[bs], GL_LINEAR, GL_LINEAR,
-     SkyTexWrap, FColorModulatorByte);
+     { poniewaz rozciagamy teksture przy pomocy GL_LINEAR a nie chce nam
+       sie robic teksturze borderow - musimy uzyc GL_CLAMP_TO_EDGE
+       aby uzyskac dobry efekt na krancach }
+     Texture2DClampToEdge, FColorModulatorByte);
    Include(TexturedSides, bs);
    if Imgs[bs].HasAlpha then SomeTexturesWithAlpha := true;
   end else

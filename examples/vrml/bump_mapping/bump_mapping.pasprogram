@@ -993,7 +993,6 @@ procedure InitGL(glwin: TGLWindow);
 const
   MinFilter = GL_LINEAR_MIPMAP_LINEAR;
   MagFilter = GL_LINEAR;
-  WrapClamp: TTextureWrap2D = (GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
   procedure LoadTextureBumpMap(const BaseFileName, BumpFileName: string;
     var Tex: TGLuint);
@@ -1018,10 +1017,10 @@ const
       Image := TRGBAlphaImage.Create;
       Image.Compose(BaseImage, BumpImage);
 
-      Tex := LoadGLTexture(Image, MinFilter, MagFilter, WrapClamp);
+      Tex := LoadGLTexture(Image, MinFilter, MagFilter, Texture2DClampToEdge);
 
       { BumpTex := LoadGLTexture(BumpImage, MinFilter, MagFilter,
-        WrapClamp, true); }
+        Texture2DClampToEdge, true); }
     finally
       FreeAndNil(BaseImage);
       FreeAndNil(BumpImage);
@@ -1034,7 +1033,7 @@ const
   begin
     { This is quite simple... }
     Tex := LoadGLTexture('textures/' + FileName, MinFilter, MagFilter,
-      WrapClamp);
+      Texture2DClampToEdge);
   end;
 
 begin

@@ -195,10 +195,8 @@ end;
 procedure InitGL(glwin: TGLWindow);
 
   function LoadTexture(const FileName: string): TGLuint;
-  const
-    Wrap: TTextureWrap2D = (GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
   begin
-    Result := LoadGLTexture(FileName, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, Wrap);
+    Result := LoadGLTexture(FileName, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, Texture2DClampToEdge);
   end;
 
 const

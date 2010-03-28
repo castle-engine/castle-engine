@@ -425,16 +425,18 @@
 
 {$ifdef read_implementation}
 
-const
-  TextureRepeatToGL: array [boolean] of TGLenum = (
+function TextureRepeatToGL(const VrmlTextureRepeat: boolean): TGLenum;
+begin
+  if VrmlTextureRepeat then
+    Result := GL_REPEAT else
     { GL_CLAMP is useless if VRML doesn't allow to control texture border color,
       and CLAMP_TO_EDGE is the more natural clamping method anyway...
       Hm, but X3D specification seems to indicate that normal clamp is OpenGL's CLAMP,
       and CLAMP_TO_EDGE is available by TextureProperties.boundaryMode*.
       But until this will get implemented, it's much safer (and more sensible?)
       to use GL_CLAMP_TO_EDGE here. }
-    GL_CLAMP_TO_EDGE,
-    GL_REPEAT);
+    Result := KamGL_CLAMP_TO_EDGE;
+end;
 
 { TGLTextureNode ------------------------------------------------------------- }
 
@@ -1345,8 +1347,8 @@ begin
   HandleTexturePropertiesCore(TextureNode.TextureProperties,
     MinFilter, MagFilter, Anisotropy);
 
-  TextureWrap[0] := TextureRepeatToGL[TextureNode.RepeatS];
-  TextureWrap[1] := TextureRepeatToGL[TextureNode.RepeatT];
+  TextureWrap[0] := TextureRepeatToGL(TextureNode.RepeatS);
+  TextureWrap[1] := TextureRepeatToGL(TextureNode.RepeatT);
 
   SetTextureRGBFromImage(TextureNode.TextureImage);
 
@@ -1430,8 +1432,8 @@ begin
   HandleTexturePropertiesCore(TextureNode.TextureProperties,
     MinFilter, MagFilter, Anisotropy);
 
-  TextureWrap[0] := TextureRepeatToGL[TextureNode.RepeatS];
-  TextureWrap[1] := TextureRepeatToGL[TextureNode.RepeatT];
+  TextureWrap[0] := TextureRepeatToGL(TextureNode.RepeatS);
+  TextureWrap[1] := TextureRepeatToGL(TextureNode.RepeatT);
 
   SetTextureRGBFromImage(TextureNode.TextureVideo.Items[0]);
 
@@ -1525,8 +1527,8 @@ begin
     NeedsMipmaps := false;
   end;
 
-  TextureWrap[0] := TextureRepeatToGL[TextureNode.FdRepeatS.Value];
-  TextureWrap[1] := TextureRepeatToGL[TextureNode.FdRepeatT.Value];
+  TextureWrap[0] := TextureRepeatToGL(TextureNode.FdRepeatS.Value);
+  TextureWrap[1] := TextureRepeatToGL(TextureNode.FdRepeatT.Value);
 
   { calculate Width, Height }
   if TextureNode.FdDimensions.Items.High >= 0 then
@@ -2153,9 +2155,9 @@ begin
     MinFilter, MagFilter, Anisotropy);
 
   { calculate TextureWrap }
-  TextureWrap[0] := TextureRepeatToGL[TextureNode.FdRepeatS.Value];
-  TextureWrap[1] := TextureRepeatToGL[TextureNode.FdRepeatT.Value];
-  TextureWrap[2] := TextureRepeatToGL[TextureNode.FdRepeatR.Value];
+  TextureWrap[0] := TextureRepeatToGL(TextureNode.FdRepeatS.Value);
+  TextureWrap[1] := TextureRepeatToGL(TextureNode.FdRepeatT.Value);
+  TextureWrap[2] := TextureRepeatToGL(TextureNode.FdRepeatR.Value);
 
   SetTextureRGBFromImage(TextureNode.TextureImage);
 

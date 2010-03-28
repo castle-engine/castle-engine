@@ -1121,6 +1121,15 @@ procedure SetWindowPos(const X, Y: TGLint); overload;
 procedure SetWindowPosZero;
 { @groupEnd }
 
+{ Return GL_CLAMP_TO_EDGE, if available in current OpenGL version.
+  Otherwise returns GL_CLAMP.
+
+  Use this (insteaf of direct GL_CLAMP_TO_EDGE)
+  to work with @italic(really ancient) OpenGL versions before 1.2.
+  Note that our engine officially supports only OpenGL >= 1.2,
+  so don't expect everything to work smootly with such ancient OpenGL anyway! }
+function KamGL_CLAMP_TO_EDGE: TGLenum;
+
 {$undef read_interface}
 
 implementation
@@ -2698,6 +2707,13 @@ begin
 
     SetWindowPos_HackEnd;
   end;
+end;
+
+function KamGL_CLAMP_TO_EDGE: TGLenum;
+begin
+  if GL_version_1_2 then
+    Result := GL_CLAMP_TO_EDGE else
+    Result := GL_CLAMP;
 end;
 
 initialization
