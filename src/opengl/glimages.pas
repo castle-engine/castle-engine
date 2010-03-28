@@ -1427,6 +1427,12 @@ var
       Result := false;
     end;
 
+    if Result and (not GL_version_1_2) then
+    begin
+      DataWarning('Cannot load DDS image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
+      Result := false;
+    end;
+
     if Result then
     begin
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, DDS.MipmapsCount - 1);
@@ -1779,6 +1785,12 @@ procedure glTextureCubeMap(
     end;
 
   begin
+    if not GL_version_1_2 then
+    begin
+      DataWarning('Cannot load DDS image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
+      Exit;
+    end;
+
     glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_MAX_LEVEL, DDS.MipmapsCount - 1);
     LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, dcsPositiveX);
     LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB, dcsNegativeX);
@@ -1866,6 +1878,12 @@ var
     if Result and (DDS.DDSType <> dtVolume) then
     begin
       DataWarning('DDS image contains mipmaps, but not for 3D (volume) texture');
+      Result := false;
+    end;
+
+    if Result and (not GL_version_1_2) then
+    begin
+      DataWarning('Cannot load DDS image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
       Result := false;
     end;
 
