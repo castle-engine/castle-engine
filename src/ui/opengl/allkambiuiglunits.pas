@@ -10,6 +10,7 @@ unit AllKambiUIGLUnits;
 interface
 
 uses
+  glcontrols,
   glmenu,
   imageslider_base,
   imageslider_position
