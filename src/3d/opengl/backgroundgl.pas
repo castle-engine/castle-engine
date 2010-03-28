@@ -188,7 +188,7 @@ type
 
 implementation
 
-uses GLImages;
+uses DataErrors, GLImages;
 
 { TBackgroundGL ------------------------------------------------------------ }
 
@@ -390,17 +390,30 @@ begin
  TexturedSides := [];
  for bs := Low(bs) to High(bs) do
  begin
+  nieboTex[bs] := 0;
   if (Imgs[bs] <> nil) and (not Imgs[bs].IsNull) then
   begin
-   nieboTex[bs] := LoadGLTextureModulated(Imgs[bs], GL_LINEAR, GL_LINEAR,
-     { poniewaz rozciagamy teksture przy pomocy GL_LINEAR a nie chce nam
-       sie robic teksturze borderow - musimy uzyc GL_CLAMP_TO_EDGE
-       aby uzyskac dobry efekt na krancach }
-     Texture2DClampToEdge, FColorModulatorByte);
+   try
+     nieboTex[bs] := LoadGLTextureModulated(Imgs[bs], GL_LINEAR, GL_LINEAR,
+       { poniewaz rozciagamy teksture przy pomocy GL_LINEAR a nie chce nam
+         sie robic teksturze borderow - musimy uzyc GL_CLAMP_TO_EDGE
+         aby uzyskac dobry efekt na krancach }
+       Texture2DClampToEdge, FColorModulatorByte);
+   except
+     { Although texture image is already loaded in Imgs[bs],
+       still texture loading may fail, e.g. with ECannotLoadS3TCTexture
+       when OpenGL doesn't have proper extensions. Secure against this by
+       making nice DataWarning. }
+     on E: ETextureLoadError do
+     begin
+       DataWarning('Texture load error: ' + E.Message);
+       Continue;
+     end;
+   end;
+
    Include(TexturedSides, bs);
    if Imgs[bs].HasAlpha then SomeTexturesWithAlpha := true;
-  end else
-   nieboTex[bs] := 0;
+  end;
  end;
 
  CubeSize := SkySphereRadius * SphereRadiusToCubeSize;
