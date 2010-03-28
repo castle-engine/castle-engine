@@ -1233,7 +1233,7 @@ begin
         Success := Renderer.GLTextureNodes.Enable(TNodeX3DTextureNode(ChildTex),
           I, Primitives3DTextureCoords);
 
-      if Success then
+      if Success and UseMultiTexturing { needed OpenGL exts available } then
       begin
         { Set all the multitexture mode-related stuff.
           Below we handle TextureNode.mode, source, color, alpha,
