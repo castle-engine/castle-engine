@@ -26,7 +26,7 @@
 uses SysUtils, GL, GLWindow, VRMLNodes, VRMLScene, VRMLGLScene, KambiSceneManager,
   UIControls, Cameras, Quaternions, VectorMath, Math, GLControls,
   KambiUtils, KambiGLUtils, OpenGLFonts, VRMLGLAnimation, GL3D,
-  Object3DAsVRML;
+  Object3DAsVRML, VRMLErrors;
 
 { TBackground ---------------------------------------------------------------- }
 
@@ -264,6 +264,8 @@ var
 begin
   if Parameters.High = 1 then
     FileName := Parameters[1];
+
+  VRMLWarning := @VRMLWarning_Write;
 
   Scene := TVRMLGLScene.Create(Application);
   Scene.Load(FileName);
