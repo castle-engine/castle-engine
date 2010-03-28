@@ -3,7 +3,7 @@
   This is an alternative (to Makefile) way to compile (and install if you want)
   all engine units. Simple instructions:
 
-  export FPCDIR=..../lib/fpc/2.2.4/ # not needed if FPC installed in std location on Unix
+  export FPCDIR=..../lib/fpc/2.4.0/ # not needed if FPC installed in std location on Unix
   fpc fpmake.pp
   ./fpmake compile # with -v to get more info
   ./fpmake install # with -v to get more info
@@ -25,7 +25,7 @@ begin
       OSes below are actually tested. }
     P.OSes := [darwin, linux, freebsd, win32];
 
-    P.Options := '@kambi.cfg';
+    P.Options {$ifndef VER2_2} .Text {$endif} := '@kambi.cfg';
 
     { Add dependencies on FPC packages.
       These aren't really needed, as your default fpc.cfg should
