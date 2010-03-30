@@ -1924,7 +1924,7 @@ begin
     to prevent doing Idle / Draw when we're clogged with events
     (typically happens when walking with mouse look, then we're clogged
     with mouse move events). }
-  if Result and (gtk_events_pending() = 0) then
+  if gtk_events_pending() = 0 then
   begin
     ProcessUpdates;
     if QuitPosted then Exit(false);
