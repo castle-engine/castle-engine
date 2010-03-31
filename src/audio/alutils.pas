@@ -429,6 +429,22 @@ function alSourcePlayingOrPaused(ALSource: TALuint): boolean;
 const
   BoolToAL: array[boolean] of TALint = (AL_FALSE, AL_TRUE);
 
+{ Pass resource to alDeleteSources or alDeleteBuffers,
+  checking and setting it to zero.
+
+  These are trivial wrappers over alDeleteSources(1, @Source),
+  alDeleteBuffers(1, @Buffer). They first check is resource is non-zero,
+  and after freeing set it to zero. This makes calling them many times
+  (e.g. on already freed resources) harmless.
+
+  alFreeSource also calls alSourceStop first, because we cannot free playing
+  sources.
+
+  @groupBegin }
+procedure alFreeSource(var Source: TALuint);
+procedure alFreeBuffer(var Buffer: TALuint);
+{ @groupEnd }
+
 {$undef read_interface}
 
 implementation
@@ -1019,6 +1035,25 @@ var
 begin
   SourceState := alGetSource1i(ALSource, AL_SOURCE_STATE);
   Result := (SourceState = AL_PLAYING) or (SourceState = AL_PAUSED);
+end;
+
+procedure alFreeSource(var Source: TALuint);
+begin
+  if Source <> 0 then
+  begin
+    alSourceStop(Source);
+    alDeleteSources(1, @Source);
+    Source := 0;
+  end;
+end;
+
+procedure alFreeBuffer(var Buffer: TALuint);
+begin
+  if Buffer <> 0 then
+  begin
+    alDeleteBuffers(1, @Buffer);
+    Buffer := 0;
+  end;
 end;
 
 end.
