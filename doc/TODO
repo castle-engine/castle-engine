@@ -601,4 +601,16 @@ Things for much later:
   Decide when really nice docs are made.
 
 ------------------------------------------------------------------------------
-- check does kambi_lines work on Windows in ii 107 now.
+
+macosx glViewImage -dRELEASE fpc 2.4.0:
+  tiling on kambi_vrml_test_suite/textures/17_gris_... looks bad.
+  Start screen tiling works fine.
+
+  Images on kambi_lines are also broken the same way.
+
+  glViewImage: view kambi_lines/images, with and without tiling, various erros.
+  Seems radeon things line alignment is bad, and/or pixel format is bad,
+  and it jumps eating too many/too few bytes per image row.
+
+  On linux 32 bit (nvidia on kocury, and radeon on chantal) all works fine.
+  So -> radeon on macosx opengl bug?
