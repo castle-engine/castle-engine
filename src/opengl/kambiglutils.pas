@@ -2520,6 +2520,17 @@ begin
   VendorReport(GLVersion) +nl+
   nl+
 
+  '------------------------' +nl+
+  'Real versions available:' +nl+
+  '(checks both version string and actual functions availability in GL library, to secure from buggy OpenGL implementations)' +nl+
+  nl+
+  '  1.2 : ' + BoolToStr[GL_version_1_2] +nl+
+  '  1.3 : ' + BoolToStr[GL_version_1_3] +nl+
+  '  1.4 : ' + BoolToStr[GL_version_1_4] +nl+
+  '  1.5 : ' + BoolToStr[GL_version_1_5] +nl+
+  '  2.0 : ' + BoolToStr[GL_version_2_0] +nl+
+  nl+
+
   '---------' +nl+
   'Features:' +nl+
   '  GLSL shaders support: ' + GLSupportNames[TGLSLProgram.ClassSupport] +nl+
@@ -2530,64 +2541,62 @@ begin
   '  Extensions: ' +glGetString(GL_EXTENSIONS) +nl+
   nl+
 
-  '--- Which OpenGL entry points are actually available ?' +nl+
-  '    (checks both version string and actual availability, to detect buggy OpenGL)' +nl+
-  '1.2 : ' + BoolToStr[GL_version_1_2] +nl+
-  '1.3 : ' + BoolToStr[GL_version_1_3] +nl+
-  '1.4 : ' + BoolToStr[GL_version_1_4] +nl+
-  '1.5 : ' + BoolToStr[GL_version_1_5] +nl+
-  '2.0 : ' + BoolToStr[GL_version_2_0] +nl+
-  nl+
-
-  '--- GLU string queries : '+nl+
+  '----------------------------' +nl+
+  'OpenGL utlity (GLU) version:' +nl+
   '  Version string: ' +gluGetString(GLU_VERSION) +nl+
   VersionReport(GLUVersion) +nl+
   nl+
   '  Extensions: '+gluGetString(GLU_EXTENSIONS) +nl+
   nl+
 
-  '--- Current buffer bit depths : ' +nl+
-  'GL_RED/GREEN/BLUE/ALPHA_BITS : ' +GetInteger(GL_RED_BITS) +' / '
-                                    +GetInteger(GL_GREEN_BITS) +' / '
-                                    +GetInteger(GL_BLUE_BITS) +' / '
-                                    +GetInteger(GL_ALPHA_BITS) +nl+
-  'GL_DEPTH_BITS : ' +GetInteger(GL_DEPTH_BITS) +nl+
-  'GL_INDEX_BITS : ' +GetInteger(GL_INDEX_BITS) +nl+
-  'GL_STENCIL_BITS : ' +GetInteger(GL_STENCIL_BITS) +nl+
-  'GL_ACCUM_RED/GREEN/BLUE/ALPHA_BITS : ' +GetInteger(GL_ACCUM_RED_BITS) +' / '
-                                          +GetInteger(GL_ACCUM_GREEN_BITS) +' / '
-                                          +GetInteger(GL_ACCUM_BLUE_BITS) +' / '
-                                          +GetInteger(GL_ACCUM_ALPHA_BITS) +nl+
-  'GL_DOUBLEBUFFER : ' + GetBoolean(GL_DOUBLEBUFFER) +nl+
-  NL+
-  'GL_SAMPLE_BUFFERS_ARB : ' + GetSampleBuffers + NL+
-  'GL_SAMPLES_ARB : ' + GetSamples + NL+
+  '---------------------------' +nl+
+  'Current buffers bit depths:' +nl+
+  '  Color (red / greeen / blue / alpha): '
+    +GetInteger(GL_RED_BITS) +' / '
+    +GetInteger(GL_GREEN_BITS) +' / '
+    +GetInteger(GL_BLUE_BITS) +' / '
+    +GetInteger(GL_ALPHA_BITS) +nl+
+  '  Depth: ' +GetInteger(GL_DEPTH_BITS) +nl+
+  '  Index: ' +GetInteger(GL_INDEX_BITS) +nl+
+  '  Stencil: ' +GetInteger(GL_STENCIL_BITS) +nl+
+  '  Accumulation (red / greeen / blue / alpha): '
+    +GetInteger(GL_ACCUM_RED_BITS) +' / '
+    +GetInteger(GL_ACCUM_GREEN_BITS) +' / '
+    +GetInteger(GL_ACCUM_BLUE_BITS) +' / '
+    +GetInteger(GL_ACCUM_ALPHA_BITS) +nl+
+  '  Double buffer: ' + GetBoolean(GL_DOUBLEBUFFER) +nl+
+  nl+
+  '  Multisampling (full-screen antialiasing):' +nl+
+  '    Sample buffers: ' + GetSampleBuffers +nl+
+  '    Samples: ' + GetSamples +nl+
   nl+
 
-  '--- Max capabilities (stack depths) :' +nl+
-  'GL_MAX_ATTRIB_STACK_DEPTH : ' +GetInteger(GL_MAX_ATTRIB_STACK_DEPTH) +nl+
-  'GL_MAX_CLIENT_ATTRIB_STACK_DEPTH : ' +GetInteger(GL_MAX_CLIENT_ATTRIB_STACK_DEPTH) +nl+
-  'GL_MAX_MODELVIEW_STACK_DEPTH : ' +GetInteger(GL_MAX_MODELVIEW_STACK_DEPTH) +nl+
-  'GL_MAX_PROJECTION_STACK_DEPTH : ' +GetInteger(GL_MAX_PROJECTION_STACK_DEPTH) +nl+
-  'GL_MAX_TEXTURE_STACK_DEPTH : ' +GetInteger(GL_MAX_TEXTURE_STACK_DEPTH) +nl+
-  'GL_MAX_NAME_STACK_DEPTH : ' +GetInteger(GL_MAX_NAME_STACK_DEPTH) +nl+
+  '-------------' +nl+
+  'Stack depths:' +nl+
+  '  Attributes: ' +GetInteger(GL_MAX_ATTRIB_STACK_DEPTH) +nl+
+  '  Client attributes : ' +GetInteger(GL_MAX_CLIENT_ATTRIB_STACK_DEPTH) +nl+
+  '  Modelview: ' +GetInteger(GL_MAX_MODELVIEW_STACK_DEPTH) +nl+
+  '  Projection: ' +GetInteger(GL_MAX_PROJECTION_STACK_DEPTH) +nl+
+  '  Texture: ' +GetInteger(GL_MAX_TEXTURE_STACK_DEPTH) +nl+
+  '  Name: ' +GetInteger(GL_MAX_NAME_STACK_DEPTH) +nl+
   nl+
 
-  '--- Max capabilities (others) : ' +nl+
-  'GL_MAX_CLIP_PLANES : ' +GetInteger(GL_MAX_CLIP_PLANES) +nl+
-  'GL_MAX_EVAL_ORDER : ' +GetInteger(GL_MAX_EVAL_ORDER) +nl+
-  'GL_MAX_LIGHTS : ' +GetInteger(GL_MAX_LIGHTS) +nl+
-  'GL_MAX_LIST_NESTING : ' +GetInteger(GL_MAX_LIST_NESTING) +nl+
-  'GL_MAX_PIXEL_MAP_TABLE : ' +GetInteger(GL_MAX_PIXEL_MAP_TABLE) +nl+
-  'GL_MAX_TEXTURE_SIZE : ' + IntToStr(GLMaxTextureSize) +nl+
-  'GL_MAX_VIEWPORT_DIMS : ' +GetInteger2(GL_MAX_VIEWPORT_DIMS, 'width %d / height %d') +nl+
-  'GL_MAX_TEXTURE_UNITS_ARB : ' + GetMaxTextureUnits +nl+
-  'GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB : ' + GetMaxCubeMapTextureSize +nl+
-  'GL_MAX_3D_TEXTURE_SIZE_EXT : ' + GetMaxTexture3DSize +nl+
-  'GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT : ' + GetMaxTextureMaxAnisotropy +nl+
-  'GL_QUERY_COUNTER_BITS_ARB (for occlusion query GL_SAMPLES_PASSED_ARB) : ' +
+  '-------' +nl+
+  'Limits:' +nl+
+  '  GL_MAX_CLIP_PLANES : ' +GetInteger(GL_MAX_CLIP_PLANES) +nl+
+  '  GL_MAX_EVAL_ORDER : ' +GetInteger(GL_MAX_EVAL_ORDER) +nl+
+  '  GL_MAX_LIGHTS : ' +GetInteger(GL_MAX_LIGHTS) +nl+
+  '  GL_MAX_LIST_NESTING : ' +GetInteger(GL_MAX_LIST_NESTING) +nl+
+  '  GL_MAX_PIXEL_MAP_TABLE : ' +GetInteger(GL_MAX_PIXEL_MAP_TABLE) +nl+
+  '  GL_MAX_TEXTURE_SIZE : ' + IntToStr(GLMaxTextureSize) +nl+
+  '  GL_MAX_VIEWPORT_DIMS : ' +GetInteger2(GL_MAX_VIEWPORT_DIMS, 'width %d / height %d') +nl+
+  '  GL_MAX_TEXTURE_UNITS_ARB : ' + GetMaxTextureUnits +nl+
+  '  GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB : ' + GetMaxCubeMapTextureSize +nl+
+  '  GL_MAX_3D_TEXTURE_SIZE_EXT : ' + GetMaxTexture3DSize +nl+
+  '  GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT : ' + GetMaxTextureMaxAnisotropy +nl+
+  '  GL_QUERY_COUNTER_BITS_ARB (for occlusion query GL_SAMPLES_PASSED_ARB) : ' +
     GetQueryCounterBits +nl+
-  'GL_MAX_RENDERBUFFER_SIZE_EXT : ' + GetMaxRenderbufferSize;
+  '  GL_MAX_RENDERBUFFER_SIZE_EXT : ' + GetMaxRenderbufferSize;
 
  CheckGLErrors;
 end;
