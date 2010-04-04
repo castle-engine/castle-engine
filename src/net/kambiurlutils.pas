@@ -27,7 +27,7 @@ procedure URLExtractAnchor(var URL: string; out Anchor: string);
 { Returns S with all sequences like %xx replaced with their actual
   8-bit characters.
 
-  The intention is that this is similat to PHP function with the same name.
+  The intention is that this is similar to PHP function with the same name.
 
   To account for badly encoded strings, invalid encoded URLs do not
   raise an error --- they are only reported to DataWarning.
