@@ -1186,8 +1186,8 @@ begin
 
  GL_version_1_2 := GLVersion.AtLeast(1, 2) and Load_GL_version_1_2;
  GL_version_1_3 := GLVersion.AtLeast(1, 3) and Load_GL_version_1_3;
- GL_version_1_4 := GLVersion.AtLeast(1, 3) and Load_GL_version_1_4;
- GL_version_1_5 := GLVersion.AtLeast(1, 3) and Load_GL_version_1_5;
+ GL_version_1_4 := GLVersion.AtLeast(1, 4) and Load_GL_version_1_4;
+ GL_version_1_5 := GLVersion.AtLeast(1, 5) and Load_GL_version_1_5;
  GL_version_2_0 := GLVersion.AtLeast(2, 0) and Load_GL_version_2_0;
 
  GL_ARB_imaging := Load_GL_ARB_imaging;
