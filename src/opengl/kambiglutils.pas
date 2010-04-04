@@ -2542,7 +2542,7 @@ begin
   nl+
 
   '----------------------------' +nl+
-  'OpenGL utlity (GLU) version:' +nl+
+  'OpenGL utility (GLU) version:' +nl+
   '  Version string: ' +gluGetString(GLU_VERSION) +nl+
   VersionReport(GLUVersion) +nl+
   nl+
@@ -2583,20 +2583,20 @@ begin
 
   '-------' +nl+
   'Limits:' +nl+
-  '  GL_MAX_CLIP_PLANES : ' +GetInteger(GL_MAX_CLIP_PLANES) +nl+
-  '  GL_MAX_EVAL_ORDER : ' +GetInteger(GL_MAX_EVAL_ORDER) +nl+
-  '  GL_MAX_LIGHTS : ' +GetInteger(GL_MAX_LIGHTS) +nl+
-  '  GL_MAX_LIST_NESTING : ' +GetInteger(GL_MAX_LIST_NESTING) +nl+
-  '  GL_MAX_PIXEL_MAP_TABLE : ' +GetInteger(GL_MAX_PIXEL_MAP_TABLE) +nl+
-  '  GL_MAX_TEXTURE_SIZE : ' + IntToStr(GLMaxTextureSize) +nl+
-  '  GL_MAX_VIEWPORT_DIMS : ' +GetInteger2(GL_MAX_VIEWPORT_DIMS, 'width %d / height %d') +nl+
-  '  GL_MAX_TEXTURE_UNITS_ARB : ' + GetMaxTextureUnits +nl+
-  '  GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB : ' + GetMaxCubeMapTextureSize +nl+
-  '  GL_MAX_3D_TEXTURE_SIZE_EXT : ' + GetMaxTexture3DSize +nl+
-  '  GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT : ' + GetMaxTextureMaxAnisotropy +nl+
-  '  GL_QUERY_COUNTER_BITS_ARB (for occlusion query GL_SAMPLES_PASSED_ARB) : ' +
+  '  Max clip planes: ' +GetInteger(GL_MAX_CLIP_PLANES) +nl+
+  '  Max eval order: ' +GetInteger(GL_MAX_EVAL_ORDER) +nl+
+  '  Max lights: ' +GetInteger(GL_MAX_LIGHTS) +nl+
+  '  Max list nesting: ' +GetInteger(GL_MAX_LIST_NESTING) +nl+
+  '  Max pixel map table: ' +GetInteger(GL_MAX_PIXEL_MAP_TABLE) +nl+
+  '  Max texture size: ' + IntToStr(GLMaxTextureSize) +nl+
+  '  Max viewport dims: ' +GetInteger2(GL_MAX_VIEWPORT_DIMS, 'width %d / height %d') +nl+
+  '  Max texture units: ' + GetMaxTextureUnits +nl+
+  '  Max cube map texture size: ' + GetMaxCubeMapTextureSize +nl+
+  '  Max 3d texture size: ' + GetMaxTexture3DSize +nl+
+  '  Max texture max anisotropy: ' + GetMaxTextureMaxAnisotropy +nl+
+  '  Query counter bits (for occlusion query) : ' + { for occlusion query  GL_SAMPLES_PASSED_ARB }
     GetQueryCounterBits +nl+
-  '  GL_MAX_RENDERBUFFER_SIZE_EXT : ' + GetMaxRenderbufferSize;
+  '  Max renderbuffer size: ' + GetMaxRenderbufferSize;
 
  CheckGLErrors;
 end;
