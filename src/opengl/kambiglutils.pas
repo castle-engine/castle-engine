@@ -2420,20 +2420,20 @@ function GLCapsString: string;
     Result := BoolToStr[glGetInteger(Param) = GL_TRUE];
   end;
 
-  function ParsedVersionReport(Version: TGenericGLVersion): string;
+  function VersionReport(Version: TGenericGLVersion): string;
   begin
-    Result := Format('Detected: version major: %d, minor: %d, release exists: %s, ' +
+    Result := Format('  Version parsed: major: %d, minor: %d, release exists: %s, ' +
       'release: %d, vendor-specific version: "%s"',
       [ Version.Major, Version.Minor, BoolToStr[Version.ReleaseExists],
         Version.Release,  Version.VendorVersion ]);
   end;
 
-  function ParsedGLVersionReport(Version: TGLVersion): string;
+  function VendorReport(Version: TGLVersion): string;
   begin
-    Result := ParsedVersionReport(Version) +nl+
+    Result :=
       Format(
         '  Vendor NVidia: %s' +nl+
-        '  Vendor Mesa: %s (Mesa major: %d, minor: %d, release: %d)' +nl+
+        '  Vendor Mesa: %s (Mesa parsed version major: %d, minor: %d, release: %d)' +nl+
         '  Vendor ATI: %s (fglrx: %s)' +nl+
         '  Buggy glPushAttrib(GL_POINT_SET): %s' +nl+
         '  Buggy glDrawPixels for odd widths: %s',
@@ -2507,22 +2507,27 @@ function GLCapsString: string;
 
 begin
  result:=
-  ProgramName +' - OpenGL capabilities : ' +nl+
+  'OpenGL information (detected by ' + ProgramName +'):' +nl+
   nl+
 
-  '--- Version :' +nl+
-  'GL_VERSION : ' +glGetString(GL_VERSION) +nl+
-  'GL_VENDOR : ' +glGetString(GL_VENDOR) +nl+
-  'GL_RENDERER : ' +glGetString(GL_RENDERER) +nl+
-  ParsedGLVersionReport(GLVersion) +nl+
+  '--------' +nl+
+  'Version:' +nl+
+  '  Version string: ' +glGetString(GL_VERSION) +nl+
+  VersionReport(GLVersion) +nl+
   nl+
-  '--- Capabilities :' +nl+
-  'GL_EXTENSIONS : ' +glGetString(GL_EXTENSIONS) +nl+
+  '  Vendor: ' +glGetString(GL_VENDOR) +nl+
+  '  Renderer: ' +glGetString(GL_RENDERER) +nl+
+  VendorReport(GLVersion) +nl+
   nl+
-  'GLSL shaders support: ' + GLSupportNames[TGLSLProgram.ClassSupport] +nl+
-  'Assembly ARB vertex program support: ' + GLSupportNames[TARBVertexProgram.ClassSupport] +nl+
-  'Assembly ARB fragment program support: ' + GLSupportNames[TARBFragmentProgram.ClassSupport] +nl+
-  'GenerateMipmap available: ' + BoolToStr[HasGenerateMipmap] +nl+
+
+  '---------' +nl+
+  'Features:' +nl+
+  '  GLSL shaders support: ' + GLSupportNames[TGLSLProgram.ClassSupport] +nl+
+  '  Assembly ARB vertex program support: ' + GLSupportNames[TARBVertexProgram.ClassSupport] +nl+
+  '  Assembly ARB fragment program support: ' + GLSupportNames[TARBFragmentProgram.ClassSupport] +nl+
+  '  GenerateMipmap available: ' + BoolToStr[HasGenerateMipmap] +nl+
+  nl+
+  '  Extensions: ' +glGetString(GL_EXTENSIONS) +nl+
   nl+
 
   '--- Which OpenGL entry points are actually available ?' +nl+
@@ -2535,10 +2540,10 @@ begin
   nl+
 
   '--- GLU string queries : '+nl+
-  'GLU_VERSION : ' +gluGetString(GLU_VERSION) +nl+
-  ParsedVersionReport(GLUVersion) +nl+
+  '  Version string: ' +gluGetString(GLU_VERSION) +nl+
+  VersionReport(GLUVersion) +nl+
   nl+
-  'GLU_EXTENSIONS : '+gluGetString(GLU_EXTENSIONS) +nl+
+  '  Extensions: '+gluGetString(GLU_EXTENSIONS) +nl+
   nl+
 
   '--- Current buffer bit depths : ' +nl+
