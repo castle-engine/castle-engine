@@ -2514,7 +2514,6 @@ begin
   'Version:' +nl+
   '  Version string: ' +glGetString(GL_VERSION) +nl+
   VersionReport(GLVersion) +nl+
-  nl+
   '  Vendor: ' +glGetString(GL_VENDOR) +nl+
   '  Renderer: ' +glGetString(GL_RENDERER) +nl+
   VendorReport(GLVersion) +nl+
@@ -2524,11 +2523,11 @@ begin
   'Real versions available:' +nl+
   '(checks both version string and actual functions availability in GL library, to secure from buggy OpenGL implementations)' +nl+
   nl+
-  '  1.2 : ' + BoolToStr[GL_version_1_2] +nl+
-  '  1.3 : ' + BoolToStr[GL_version_1_3] +nl+
-  '  1.4 : ' + BoolToStr[GL_version_1_4] +nl+
-  '  1.5 : ' + BoolToStr[GL_version_1_5] +nl+
-  '  2.0 : ' + BoolToStr[GL_version_2_0] +nl+
+  '  1.2: ' + BoolToStr[GL_version_1_2] +nl+
+  '  1.3: ' + BoolToStr[GL_version_1_3] +nl+
+  '  1.4: ' + BoolToStr[GL_version_1_4] +nl+
+  '  1.5: ' + BoolToStr[GL_version_1_5] +nl+
+  '  2.0: ' + BoolToStr[GL_version_2_0] +nl+
   nl+
 
   '---------' +nl+
@@ -2537,7 +2536,6 @@ begin
   '  Assembly ARB vertex program support: ' + GLSupportNames[TARBVertexProgram.ClassSupport] +nl+
   '  Assembly ARB fragment program support: ' + GLSupportNames[TARBFragmentProgram.ClassSupport] +nl+
   '  GenerateMipmap available: ' + BoolToStr[HasGenerateMipmap] +nl+
-  nl+
   '  Extensions: ' +glGetString(GL_EXTENSIONS) +nl+
   nl+
 
@@ -2545,7 +2543,6 @@ begin
   'OpenGL utility (GLU) version:' +nl+
   '  Version string: ' +gluGetString(GLU_VERSION) +nl+
   VersionReport(GLUVersion) +nl+
-  nl+
   '  Extensions: '+gluGetString(GLU_EXTENSIONS) +nl+
   nl+
 
@@ -2565,7 +2562,6 @@ begin
     +GetInteger(GL_ACCUM_BLUE_BITS) +' / '
     +GetInteger(GL_ACCUM_ALPHA_BITS) +nl+
   '  Double buffer: ' + GetBoolean(GL_DOUBLEBUFFER) +nl+
-  nl+
   '  Multisampling (full-screen antialiasing):' +nl+
   '    Sample buffers: ' + GetSampleBuffers +nl+
   '    Samples: ' + GetSamples +nl+
@@ -2574,7 +2570,7 @@ begin
   '-------------' +nl+
   'Stack depths:' +nl+
   '  Attributes: ' +GetInteger(GL_MAX_ATTRIB_STACK_DEPTH) +nl+
-  '  Client attributes : ' +GetInteger(GL_MAX_CLIENT_ATTRIB_STACK_DEPTH) +nl+
+  '  Client attributes: ' +GetInteger(GL_MAX_CLIENT_ATTRIB_STACK_DEPTH) +nl+
   '  Modelview: ' +GetInteger(GL_MAX_MODELVIEW_STACK_DEPTH) +nl+
   '  Projection: ' +GetInteger(GL_MAX_PROJECTION_STACK_DEPTH) +nl+
   '  Texture: ' +GetInteger(GL_MAX_TEXTURE_STACK_DEPTH) +nl+
@@ -2594,7 +2590,7 @@ begin
   '  Max cube map texture size: ' + GetMaxCubeMapTextureSize +nl+
   '  Max 3d texture size: ' + GetMaxTexture3DSize +nl+
   '  Max texture max anisotropy: ' + GetMaxTextureMaxAnisotropy +nl+
-  '  Query counter bits (for occlusion query) : ' + { for occlusion query  GL_SAMPLES_PASSED_ARB }
+  '  Query counter bits (for occlusion query): ' + { for occlusion query  GL_SAMPLES_PASSED_ARB }
     GetQueryCounterBits +nl+
   '  Max renderbuffer size: ' + GetMaxRenderbufferSize;
 
