@@ -382,7 +382,7 @@ procedure ReportGLError(ErrorCode: TGLenum);
   glGet*v bedzie blednym wywolaniem (wiec wedlug specyfikacji OpenGL'a
   zostanie zignorowane i zostanie ustawione odpowiednie glGetError)
   to result bedzie jakby po FillChar(result, SizeOf(result), 0).
-  Np. w GLCapsString robimy glGetInteger(GL_MAX_CLIENT_ATTRIB_STACK),
+  Np. w GLInformationString robimy glGetInteger(GL_MAX_CLIENT_ATTRIB_STACK),
   jezeli aktualna wersja OpenGL'a w ogole nie ma czegos takiego
   jak client attrib stack to zapytanie
   glGetIntegerv(GL_MAX_CLIENT_ATTRIB_STACK, wynik) spowoduje blad i nie zwroci
@@ -1026,8 +1026,8 @@ procedure DrawGLBlackOutRect(const BlackOutColor: TVector3f;
 
   Note that the last line of returned string does not terminate
   with newline character (so e.g. you may want to do
-  Writeln(GLCapsString) instead of just Write(GLCapsString)). }
-function GLCapsString: string;
+  Writeln(GLInformationString) instead of just Write(GLInformationString)). }
+function GLInformationString: string;
 
 { Vector version of glClearColor, equivalent to
   glClearColor(v[0], v[1], v[2], alpha) }
@@ -2401,7 +2401,7 @@ begin
   end;
 end;
 
-function GLCapsString: string;
+function GLInformationString: string;
 
   function GetInteger(param: TGLenum): string;
   begin

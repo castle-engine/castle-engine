@@ -223,7 +223,7 @@ function TGLWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT
      WM_NCDESTROY
 
      WM_SIZE (yes, tested on Windows 2000 Prof, when running my progs
-       with --fullscreen-custom, e.g. glcaps --fullscreen-custom 640x480
+       with --fullscreen-custom, e.g. glinformation --fullscreen-custom 640x480
        or glplotter --fullscreen-custom 640x480)
 }
 

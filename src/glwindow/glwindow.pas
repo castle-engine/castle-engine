@@ -3033,7 +3033,7 @@ begin
   LoadAllExtensions;
 
   if Log then
-    WritelnLogMultiline('OpenGL context initialization', GLCapsString);
+    WritelnLogMultiline('OpenGL context initialization', GLInformationString);
 
   { zsynchronizuj glViewport z naszymi Width/Height (bo one moga sie roznic od
     rzeczywistych rozmiarow okienka) }

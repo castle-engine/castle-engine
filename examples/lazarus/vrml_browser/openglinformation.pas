@@ -33,7 +33,7 @@ var
 begin
   F := TOpenGLInformation.Create(nil);
   try
-    F.MemoInfo.Lines.Text := GLCapsString;
+    F.MemoInfo.Lines.Text := GLInformationString;
     F.ShowModal;
   finally FreeAndNil(F) end;
 end;
