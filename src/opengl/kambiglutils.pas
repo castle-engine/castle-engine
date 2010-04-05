@@ -2539,7 +2539,7 @@ begin
   '  Extensions: ' +glGetString(GL_EXTENSIONS) +nl+
   nl+
 
-  '----------------------------' +nl+
+  '-----------------------------' +nl+
   'OpenGL utility (GLU) version:' +nl+
   '  Version string: ' +gluGetString(GLU_VERSION) +nl+
   VersionReport(GLUVersion) +nl+
