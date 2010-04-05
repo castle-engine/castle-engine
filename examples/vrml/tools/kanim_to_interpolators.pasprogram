@@ -70,7 +70,7 @@ begin
 
   Anim := TVRMLGLAnimation.Create(nil);
   try
-    Anim.LoadFromFile(InputFileName);
+    Anim.LoadFromFile(InputFileName, false, false);
     Vrml := Anim.Scenes[0].RootNode.DeepCopy;
     try
       Interp := TNodeCoordinateInterpolator.Create('Interp', '');
