@@ -176,6 +176,7 @@ type
     FBlendingSourceFactor: TGLenum;
     FBlendingDestinationFactor: TGLenum;
     FBlendingSort: boolean;
+    FControlBlending: boolean;
     FWireframeColor: TVector3Single;
     FWireframeWidth: Single;
     FWireframeEffect: TVRMLWireframeEffect;
@@ -226,6 +227,7 @@ type
     procedure SetBlendingSourceFactor(const Value: TGLenum); virtual;
     procedure SetBlendingDestinationFactor(const Value: TGLenum); virtual;
     procedure SetBlendingSort(const Value: boolean); virtual;
+    procedure SetControlBlending(const Value: boolean); virtual;
     procedure SetOnBeforeShapeRender(const Value: TBeforeShapeRenderProc); virtual;
     procedure SetUseOcclusionQuery(const Value: boolean); virtual;
   public
@@ -292,6 +294,14 @@ type
       read FBlendingSort write SetBlendingSort
       default DefaultBlendingSort;
     { @groupEnd }
+
+    { Setting this to @false disables any modification of OpenGL
+      blending (and depth mask) state by TVRMLGLScene.
+      This makes every other @link(Blending) setting ignored,
+      and is useful only if you set your own OpenGL blending parameters
+      when rendering this scene. }
+    property ControlBlending: boolean
+      read FControlBlending write SetControlBlending default true;
 
     { You can use this to turn on some effects related to rendering model
       in special modes.
@@ -2633,9 +2643,12 @@ begin
       begin
         glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
         try
-          glDepthMask(GL_TRUE);
-          glDisable(GL_BLEND);
-          if Attributes.Blending then
+          if Attributes.ControlBlending then
+          begin
+            glDepthMask(GL_TRUE);
+            glDisable(GL_BLEND);
+          end;
+          if Attributes.ControlBlending and Attributes.Blending then
           begin
             VRMLShapesSplitBlending(Shapes, true, true, false,
               TestShapeVisibility,
@@ -4899,7 +4912,8 @@ begin
   FBlending := true;
   FBlendingSourceFactor := DefaultBlendingSourceFactor;
   FBlendingDestinationFactor := DefaultBlendingDestinationFactor;
-  FBlendingSort := false;
+  FBlendingSort := DefaultBlendingSort;
+  FControlBlending := true;
 
   FWireframeEffect := weNormal;
   FWireframeWidth := DefaultWireframeWidth;
@@ -4923,8 +4937,9 @@ begin
     S := TVRMLSceneRenderingAttributes(Source);
     Blending := S.Blending;
     BlendingSourceFactor := S.BlendingSourceFactor;
-    BlendingSort := S.BlendingSort;
     BlendingDestinationFactor := S.BlendingDestinationFactor;
+    BlendingSort := S.BlendingSort;
+    ControlBlending := S.ControlBlending;
     OnBeforeShapeRender := S.OnBeforeShapeRender;
     UseOcclusionQuery := S.UseOcclusionQuery;
     UseHierarchicalOcclusionQuery := S.UseHierarchicalOcclusionQuery;
@@ -4941,6 +4956,7 @@ begin
     (TVRMLSceneRenderingAttributes(SecondValue).BlendingSourceFactor = BlendingSourceFactor) and
     (TVRMLSceneRenderingAttributes(SecondValue).BlendingDestinationFactor = BlendingDestinationFactor) and
     (TVRMLSceneRenderingAttributes(SecondValue).BlendingSort = BlendingSort) and
+    (TVRMLSceneRenderingAttributes(SecondValue).ControlBlending = ControlBlending) and
     (TVRMLSceneRenderingAttributes(SecondValue).OnBeforeShapeRender = OnBeforeShapeRender) and
     (TVRMLSceneRenderingAttributes(SecondValue).UseOcclusionQuery = UseOcclusionQuery) and
     (TVRMLSceneRenderingAttributes(SecondValue).UseHierarchicalOcclusionQuery = UseHierarchicalOcclusionQuery);
@@ -4976,6 +4992,16 @@ begin
   end;
 end;
 
+procedure TVRMLSceneRenderingAttributes.SetBlendingDestinationFactor(
+  const Value: TGLenum);
+begin
+  if BlendingDestinationFactor <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    FBlendingDestinationFactor := Value;
+  end;
+end;
+
 procedure TVRMLSceneRenderingAttributes.SetBlendingSort(const Value: boolean);
 begin
   if BlendingSort <> Value then
@@ -4985,13 +5011,12 @@ begin
   end;
 end;
 
-procedure TVRMLSceneRenderingAttributes.SetBlendingDestinationFactor(
-  const Value: TGLenum);
+procedure TVRMLSceneRenderingAttributes.SetControlBlending(const Value: boolean);
 begin
-  if BlendingDestinationFactor <> Value then
+  if ControlBlending <> Value then
   begin
     FScenes.CloseGLRenderer;
-    FBlendingDestinationFactor := Value;
+    FControlBlending := Value;
   end;
 end;
 
