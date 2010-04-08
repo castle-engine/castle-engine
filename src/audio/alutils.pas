@@ -87,55 +87,36 @@ var
     that your program will require only one OpenAL context at any time. }
   ALCDevice: string = BestALCDevice;
 
-{ Checks if ALC_ENUMERATION_EXT is present.
-  If it is, pDeviceList is initialized.
+{ Check and use OpenAL enumeration extension.
+  If OpenAL supports ALC_ENUMERATION_EXT, then we return @true
+  and pDeviceList is initialized to the null-separated list of
+  possible OpenAL devices.
 
-  Below is some description of how it works:
-
-  This used to be trivial:
-  @orderedList(
-    @item(check
-      alcIsExtensionPresent(nil, 'ALC_ENUMERATION_EXT'))
-    @item(if true, then extension is supported, and get
-      @longCode(#
-  pDeviceList := alcGetString(nil, ALC_DEVICE_SPECIFIER);
-  Assert(pDeviceList <> nil);
-#)))
-
-  But then buggy Apple openal implementation came. With this
-  implementation
-  @orderedList(
-    @item(alcIsExtensionPresent(nil, 'ALC_ENUMERATION_EXT')
-      returns true (confirmed by looking at trunk source code:
-      oalImp.cpp, line 75, alcExtensionsList contains ALC_ENUMERATION_EXT,
-      so alcIsExtensionPresent always returns true for it.))
-    @item(But alcGetString(nil, ALC_DEVICE_SPECIFIER) returns nil,
-      so this extension is not actually implemented...
-      Moreover, the second thing is that alGetError reports AL_INVALID_VALUE
-      error after this (which should be in alcError instead).)
-  )
-}
+  @groupBegin }
 function EnumerationExtPresent(out pDeviceList: PChar): boolean; overload;
 function EnumerationExtPresent: boolean; overload;
+{ @groupEnd }
 
-{ This appends to DevicesList object list of available OpenAL devices.
+{ Append to DevicesList a list of available OpenAL devices.
+  OpenAL context must be already initialized when calling this
+  (ALActive must be @true).
 
-  It uses ALC_ENUMERATION_EXT extension, so ALInited must be true
-  and ALC_ENUMERATION_EXT. If ALC_ENUMERATION_EXT extension is not supported
-  but ALInited is @true and we're compiled under Unix, then it assumes
-  that devices supported by default [http://www.openal.org/] Linux OpenAL
-  implementation are supported and returns them.
-  (so in the 2 most common situations --- current Creative's Windows OpenAL
-  and current Linux OpenAL from [http://www.openal.org/] --- it is able
-  to return list of devices).
+  It tries to use ALC_ENUMERATION_EXT extension, available on all modern
+  OpenAL implementations. If it fails, and we're dealing with
+  OpenAL "sample implementation" (older OpenAL Unix implementation)
+  then we return a hardcoded list of devices known to be supported
+  by this implementation.
+  This makes it working sensibly under all OpenAL implementations in use
+  today.
 
-  Otherwise it doesn't append anything to DevicesList.
+  If it fails (you have some really weird / old OpenAL implementation)
+  it doesn't append anything to the DevicesList.
 
   Remember that for every OpenAL implementation, there is also an implicit
   OpenAL device named '' (empty string) supported. }
 procedure GetOpenALDevices(DevicesList: TStringList);
 
-{ This returns nice, user-readable description of OpenAL device named
+{ Return nice, user-readable description of OpenAL device named
   ALCDevice. Currently this returns nice string for
   @unorderedList(
     @item(Empty string (means "Default OpenAL device"))
