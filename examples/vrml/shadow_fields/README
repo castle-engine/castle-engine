@@ -43,7 +43,7 @@ Describe compression of env maps.
 
 - compare various SHCount values (speed/accuracy balance)
 
-My current demo implementation in shadow_fields.pasprogram:
+My current demo implementation in shadow_fields.lpr:
 - there is only one shadow caster (TODO: although may be instanced many times)
 - there is only one shadow receiver (this also means that shadow casters
   and receivers are different things, no shadowing between shadow casters)

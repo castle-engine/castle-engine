@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Somewhat more involved version of change_vrml_by_code.pasprogram,
+{ Somewhat more involved version of change_vrml_by_code.lpr,
   this constructs VRML graph by code and then animates it by code
   (showing a little more interesting animation, sin*cos displayed in 3D). }
 

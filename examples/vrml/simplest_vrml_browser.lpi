@@ -41,7 +41,7 @@
     </RequiredPackages>
     <Units Count="3">
       <Unit0>
-        <Filename Value="simplest_vrml_browser.pasprogram"/>
+        <Filename Value="simplest_vrml_browser.lpr"/>
         <IsPartOfProject Value="True"/>
         <CursorPos X="41" Y="24"/>
         <TopLine Value="1"/>
@@ -66,7 +66,7 @@
     </Units>
     <JumpHistory Count="1" HistoryIndex="0">
       <Position1>
-        <Filename Value="simplest_vrml_browser.pasprogram"/>
+        <Filename Value="simplest_vrml_browser.lpr"/>
         <Caret Line="24" Column="41" TopLine="1"/>
       </Position1>
     </JumpHistory>

@@ -48,8 +48,8 @@ About idle priority:
     mysterious problems.
 
     Simple test case with some comments is in
-    ../../../examples/glwindow/menu_test_alternative.pasprogram
-    (and also gtk/tests/test_changing_menu/test_changing_menu.pasprogram
+    ../../../examples/glwindow/menu_test_alternative.lpr
+    (and also gtk/tests/test_changing_menu/test_changing_menu.lpr
     on michalis.ii SVN, temporarily private (too obscure...)).
 
     G_PRIORITY_DEFAULT_IDLE doesn't have this problem, but it's leaving

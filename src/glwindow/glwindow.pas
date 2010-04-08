@@ -166,7 +166,7 @@
       TGLWindow.EventMenuCommand (TGLWindow.OnMenuCommand) when user clicks some menu item.
       Other implementations (XLIB for now) ignore MainMenu.
 
-      See @code(kambi_vrml_game_engine/examples/glwindow/menu_test.pasprogram)
+      See @code(kambi_vrml_game_engine/examples/glwindow/menu_test.lpr)
       for an example how to use the menu.)
 
     @item(Changing screen resolution and bit depth,
@@ -1331,7 +1331,7 @@ type
 
       This is a sensible and consequential approach -- EventInit (OnInit)
       is always the first executed callback and EventClose (OnClose)
-      is always last. Some examples (like gl_win_events.pasprogram)
+      is always last. Some examples (like gl_win_events.lpr)
       confirm that this is really useful.
 
       One more thing: in EventInit (OnInit) you already have valid
@@ -1806,7 +1806,7 @@ type
       can assign other MainMenu values while not Closed, but only values
       <>nil. I.e. you can't set MainMenu to nil if you called Init
       with MainMenu <> nil.
-      See @code(kambi_vrml_game_engine/examples/glwindow/menu_test_alternative.pasprogram)
+      See @code(kambi_vrml_game_engine/examples/glwindow/menu_test_alternative.lpr)
       for demo of changing value of MainMenu while window is not Closed.
 
       Note that MainMenu.Enabled is honoured (as well as Enabled

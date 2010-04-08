@@ -19,7 +19,7 @@
   This demo remains just to show that it's possible (even if
   uncomfortable) to work without the SceneManager.
 
-  This is the next version of direct_vrmlglscene_test_1.pasprogram,
+  This is the next version of direct_vrmlglscene_test_1.lpr,
   see there for initial comments.
 
   This version adds:

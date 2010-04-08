@@ -177,7 +177,7 @@
       @code(Scale(1, 1, -1)) trick. See
       [http://www.opengl.org/resources/code/samples/mjktips/Reflect.html]
       and example program
-      @code(kambi_vrml_game_engine/examples/vrml/plane_mirror_and_shadow.pasprogram).
+      @code(kambi_vrml_game_engine/examples/vrml/plane_mirror_and_shadow.lpr).
       With such strange scale, CCW and CW invert places. Sides that were
       CCW normally are now CW. This means that you want to call @code(glFrontFace(GL_CW))
       temporarily when rendering scene in the mirror. This way scene in the mirror
@@ -761,7 +761,7 @@ type
       want, for whatever reason, to set glColor and/or glMaterial
       and/or texturing by yourself, for the whole model.
       A practical example of use is to render plane-projected shadows,
-      see kambi_vrml_game_engine/examples/vrml/plane_projected_shadow_demo.pasprogram.
+      see kambi_vrml_game_engine/examples/vrml/plane_projected_shadow_demo.lpr.
       In this program, we must be able to render any VRML model with pure
       black color, possibly (when using stenciling) withuout even depth
       testing. }

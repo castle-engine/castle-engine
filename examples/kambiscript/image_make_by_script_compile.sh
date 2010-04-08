@@ -2,10 +2,10 @@
 set -eu
 
 # Hack to allow calling this script from it's dir.
-if [ -f image_make_by_script.pasprogram ]; then
+if [ -f image_make_by_script.lpr ]; then
   cd ../../
 fi
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg examples/kambiscript/image_make_by_script.pasprogram
+fpc -dRELEASE @kambi.cfg examples/kambiscript/image_make_by_script.lpr

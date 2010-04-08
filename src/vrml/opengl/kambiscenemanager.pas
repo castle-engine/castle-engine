@@ -702,7 +702,7 @@ type
     Example usages:
     in a typical 3D modeling programs, you like to have 4 viewports
     with 4 different cameras (front view, side view, top view,
-    and free perspective view). See examples/vrml/multiple_viewports.pasprogram
+    and free perspective view). See examples/vrml/multiple_viewports.lpr
     in engine sources for demo of this. Or when you make a split-screen game,
     played by 2 people on a single monitor.
 

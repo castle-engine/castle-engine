@@ -44,7 +44,7 @@ type
     playing...).
 
     See example program
-    @code(kambi_vrml_game_engine/examples/glwindow/simple_video_image_viewer.pasprogram)
+    @code(kambi_vrml_game_engine/examples/glwindow/simple_video_image_viewer.lpr)
     in our engine for example of a simple movie player implemented on top
     of this class.
 
@@ -643,7 +643,7 @@ begin
   { TODO: this is not good for the cache, if the image is referenced
     more than one time than you will modify all occurences.
     Some MakeUnique method for TImagesCache needed.
-    Also, simple_video_image_viewer.pasprogram should use it too
+    Also, simple_video_image_viewer.lpr should use it too
     before editing. }
 
   if ProgressTitle <> '' then

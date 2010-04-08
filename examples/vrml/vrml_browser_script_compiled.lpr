@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ A simple extension of simplest_vrml_browser.pasprogram,
+{ A simple extension of simplest_vrml_browser.lpr,
   registers handles for compiled: Script protocol.
 
   Run with $1 = 3D model to load.

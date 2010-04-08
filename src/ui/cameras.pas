@@ -221,7 +221,7 @@ type
     using TKamSceneManager, you do not have to do anything to use a camera)
     --- default camera will be created and automatically used for you.
 
-    See @code(kambi_vrml_game_engine/examples/glwindow/demo_camera.pasprogram)
+    See @code(kambi_vrml_game_engine/examples/glwindow/demo_camera.lpr)
     example program in engine sources for simple demo how to use this class. }
   TCamera = class(TUIControl)
   private

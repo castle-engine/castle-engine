@@ -178,7 +178,7 @@ type
 
     { Constructor.
       This is virtual because it's called by CreateDivideKamScriptCurve.
-      It's also useful in many places in curves.pasprogram. }
+      It's also useful in many places in curves.lpr. }
     constructor Create(const ATBegin, ATEnd: Float); virtual;
 
     { Calculates ControlPoints taking Point(i, ControlPointsCount-1)

@@ -80,7 +80,7 @@ uses Math;
 const
   Primes: array [0..99] of array [0..4] of LongWord = (
     (1301, 314159, 15731, 789221, 1376312589),
-    { Following rows were generated. See gen_primes.pasprogram to know how }
+    { Following rows were generated. See gen_primes.lpr to know how }
     (1847, 423307, 10139, 1249603, 1665650897),
     (1987, 728471, 14081, 2490529, 1392026473),
     (1523, 311111, 12149, 4335337, 1415538263),

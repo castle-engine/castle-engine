@@ -48,7 +48,7 @@
      (instead of TGLWindowVRMLBrowser). This way you get a little more control
      and understanding of our scene manager, which is really the core
      of our engine since version 2.0. It's quite easy, see
-     scene_manager_demos.pasprogram example.
+     scene_manager_demos.lpr example.
 }
 
 program simplest_vrml_browser;

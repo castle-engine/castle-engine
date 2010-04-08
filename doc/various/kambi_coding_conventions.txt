@@ -7,15 +7,16 @@ of documentation, see
 - *.pas files are units, *.inc are files to be included in other Pascal
   source files using $Include.
 
-  *.pasprogram are main program files.
-  This extension is quite non-standard, but I couldn't find any other
-  good standard. Some people use *.pp for units
+  *.lpr are main program files.
+
+  Previously I used *.pasprogram extension (to signal that my programs
+  don't actually require Lazarus or LCL), but it was too non-standard,
+  and thus making more trouble than it was worth.
+  Some people use *.pp for units
   and *.pas to indicate main program file, but that's not a clear
-  thing for most people (especially from Delphi background, where units
-  are *.pas). Delphi people use *.dpr, but that's Delphi, and my programs
-  are for FPC. Lazarus people use *.lpr, but that usually indicates
-  dependency on Lazarus library LCL, while almost all of my programs don't
-  depend on it and can be compiled with pure FPC installation.
+  thing (especially from Delphi background, where units are *.pas).
+  Delphi people use *.dpr, but that's Delphi, and my programs
+  are for FPC.
 
 - Whenever I was modifying Pascal sources of someone else
   I was marking my modifications by word "Kambi" somewhere in comments.
@@ -82,7 +83,7 @@ of documentation, see
   Besides standard FPC, GPC and Delphi ones (like MSWINDOWS, UNIX, LINUX,
   CPUI386, CPUX86_64 to differentiate between compilation platforms,
   FPC and __GPC__ to differentiate between compiler versions).
-  
+
   Since 2007-10-12, I use MSWINDOWS symbol to designate both 32 bit and 64 bit
   Windows. WIN32 symbol is only for 32 bit Windows.
   FPC >= 2.2.0 defines MSWINDOWS as it should, so there's no problem.

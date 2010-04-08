@@ -15,7 +15,7 @@
 
 { Demo of using SceneManager. Shows how you can add many 3D objects to
   SceneManager.Items tree. For simpler usage,
-  see simplest_vrml_browser.pasprogram first.
+  see simplest_vrml_browser.lpr first.
 
   This reads a couple of 3D files from ../../../kambi_vrml_test_suite/
   directory, thus assuming you have

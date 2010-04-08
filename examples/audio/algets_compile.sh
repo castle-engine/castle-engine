@@ -3,4 +3,4 @@ set -eu
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg examples/audio/algets.pasprogram
+fpc -dRELEASE @kambi.cfg examples/audio/algets.lpr

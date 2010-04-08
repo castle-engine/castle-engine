@@ -15,7 +15,7 @@
 
 { Simplest demo of using TKamSceneManager.
 
-  For even simpler usage, you can see at simplest_vrml_browser.pasprogram.
+  For even simpler usage, you can see at simplest_vrml_browser.lpr.
   Program below explicitly creates SceneManager and Scene instances,
   to make more clear what's going on. }
 program scene_manager_basic;

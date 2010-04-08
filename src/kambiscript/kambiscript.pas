@@ -920,7 +920,7 @@ uses KambiScriptCoreFunctions, DataErrors;
     Invalid floating point operation
     An unhandled exception occurred at $080488B5 :
     EInvalidOp : Invalid floating point operation
-      $080488B5  main,  line 127 of gen_function.pasprogram
+      $080488B5  main,  line 127 of gen_function.lpr
 
   I tried to make more elegant workarounds by doing dummy fp
   operations at the end of function calculation or Execute, to cause

@@ -144,7 +144,7 @@ type
       and jump to viewpoint named "Frustum needs double-precision".
 
       Turn "Show viewing frustum" on and you will see that frustum
-      looks good. But when you change implementation of view3dscene.pasprogram
+      looks good. But when you change implementation of view3dscene.lpr
       to use TFrustumPointsSingle (and change GL_DOUBLE at glVertexPointer
       to GL_FLOAT) then frustum will look bad (both near and far quads
       will look obviously slightly assymetrical).
