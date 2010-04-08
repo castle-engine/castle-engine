@@ -109,11 +109,11 @@ Scene manager / controls / better Lazarus integration:
   pure OpenGL demos (no VRML code), possibly let them use Glw.Camera?
     For direct_vrmlglscene_xxx, it's even by design (this shows that without
     scenemanager you can also work):
-    ../examples/vrml/direct_vrmlglscene_test_1.pasprogram:58:  glLoadMatrix(Camera.Matrix);
-    ../examples/vrml/direct_vrmlglscene_test_2.pasprogram:76:  glLoadMatrix(Camera.Matrix);
-    ../examples/vrml/terrain/terrain.pasprogram:200:  glLoadMatrix(Camera.Matrix);
-    ../examples/glwindow/bezier_surfaces/animate_surface.pasprogram:95:  glLoadMatrix(Camera.Matrix);
-    ../examples/glwindow/bezier_surfaces/design_surface.pasprogram:202:  glLoadMatrix(Camera.Matrix);
+    ../examples/vrml/direct_vrmlglscene_test_1.lpr:58:  glLoadMatrix(Camera.Matrix);
+    ../examples/vrml/direct_vrmlglscene_test_2.lpr:76:  glLoadMatrix(Camera.Matrix);
+    ../examples/vrml/terrain/terrain.lpr:200:  glLoadMatrix(Camera.Matrix);
+    ../examples/glwindow/bezier_surfaces/animate_surface.lpr:95:  glLoadMatrix(Camera.Matrix);
+    ../examples/glwindow/bezier_surfaces/design_surface.lpr:202:  glLoadMatrix(Camera.Matrix);
 
   If TCamera removed from TUIControl, maybe make some common class,
   like TInputListener, for TUIControl, TCamera, TBase3D.
