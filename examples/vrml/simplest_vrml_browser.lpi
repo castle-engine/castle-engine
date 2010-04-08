@@ -27,7 +27,6 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="../../../kambi_vrml_test_suite/x3d/anchor_test.x3dv"/>
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
@@ -43,8 +42,8 @@
       <Unit0>
         <Filename Value="simplest_vrml_browser.lpr"/>
         <IsPartOfProject Value="True"/>
-        <CursorPos X="41" Y="24"/>
-        <TopLine Value="1"/>
+        <CursorPos X="60" Y="60"/>
+        <TopLine Value="46"/>
         <EditorIndex Value="0"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
@@ -64,11 +63,15 @@
         <UsageCount Value="10"/>
       </Unit2>
     </Units>
-    <JumpHistory Count="1" HistoryIndex="0">
+    <JumpHistory Count="2" HistoryIndex="1">
       <Position1>
         <Filename Value="simplest_vrml_browser.lpr"/>
         <Caret Line="24" Column="41" TopLine="1"/>
       </Position1>
+      <Position2>
+        <Filename Value="simplest_vrml_browser.lpr"/>
+        <Caret Line="75" Column="30" TopLine="44"/>
+      </Position2>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

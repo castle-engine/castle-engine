@@ -56,20 +56,23 @@ program simplest_vrml_browser;
 {$apptype CONSOLE}
 
 uses KambiUtils, GLWindow, GLWindowVRMLBrowser, ProgressUnit, ProgressConsole,
-  VRMLScene, VRMLErrors;
+  VRMLScene, VRMLErrors, SysUtils;
 
 var
   BrowserWindow: TGLWindowVRMLBrowser;
+  FileName: string = 'models' + PathDelim + 'teapot.x3dv';
 
 begin
-  Parameters.CheckHigh(1);
+  Parameters.CheckHighAtMost(1);
+  if Parameters.High = 1 then
+    FileName := Parameters[1];
 
   VRMLWarning := @VRMLWarning_Write;
   Progress.UserInterface := ProgressConsoleInterface;
 
   BrowserWindow := TGLWindowVRMLBrowser.Create(Application);
 
-  BrowserWindow.Load(Parameters[1]);
+  BrowserWindow.Load(FileName);
   Writeln(BrowserWindow.Scene.Info(true, true, false));
   BrowserWindow.Scene.Spatial := [ssRendering, ssDynamicCollisions];
   BrowserWindow.Scene.ProcessEvents := true;
