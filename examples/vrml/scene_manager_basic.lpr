@@ -28,7 +28,7 @@ var
   Scene: TVRMLGLScene;
 begin
   Scene := TVRMLGLScene.Create(Application { Owner that will free the Scene });
-  Scene.Load('models/boxes.x3d');
+  Scene.Load('models/boxes.x3dv');
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
 

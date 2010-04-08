@@ -41,6 +41,7 @@
       <Unit0>
         <Filename Value="scene_manager_basic.lpr"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="scene_manager_basic"/>
         <UsageCount Value="20"/>
       </Unit0>
     </Units>

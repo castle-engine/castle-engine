@@ -11,6 +11,7 @@
       </Flags>
       <MainUnit Value="0"/>
       <TargetFileExt Value=""/>
+      <ActiveEditorIndexAtStart Value="0"/>
     </General>
     <VersionInfo>
       <ProjectVersion Value=""/>
@@ -26,6 +27,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
+        <CommandLineParams Value="../../../kambi_vrml_test_suite/x3d/simple_script_tests.x3dv"/>
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
@@ -41,7 +43,11 @@
       <Unit0>
         <Filename Value="vrml_browser_script_compiled.lpr"/>
         <IsPartOfProject Value="True"/>
+        <CursorPos X="93" Y="22"/>
+        <TopLine Value="1"/>
+        <EditorIndex Value="0"/>
         <UsageCount Value="20"/>
+        <Loaded Value="True"/>
       </Unit0>
     </Units>
     <JumpHistory Count="0" HistoryIndex="-1"/>
