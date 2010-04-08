@@ -24,6 +24,13 @@
       <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
       <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
     </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <CommandLineParams Value="../../../kambi_vrml_test_suite/kanim/raptor.kanim"/>
+        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+      </local>
+    </RunParams>
     <RequiredPackages Count="2">
       <Item1>
         <PackageName Value="kambi_glwindow"/>
@@ -32,20 +39,60 @@
         <PackageName Value="kambi_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="1">
+    <Units Count="3">
       <Unit0>
         <Filename Value="demo_animation.lpr"/>
         <IsPartOfProject Value="True"/>
-        <CursorPos X="41" Y="24"/>
-        <TopLine Value="1"/>
+        <CursorPos X="44" Y="155"/>
+        <TopLine Value="133"/>
         <EditorIndex Value="0"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit0>
+      <Unit1>
+        <Filename Value="../../src/base/parseparametersunit.pas"/>
+        <UnitName Value="ParseParametersUnit"/>
+        <CursorPos X="10" Y="788"/>
+        <TopLine Value="770"/>
+        <UsageCount Value="10"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="../../src/glwindow/gtk/glwindow_gtk.inc"/>
+        <CursorPos X="1" Y="474"/>
+        <TopLine Value="457"/>
+        <UsageCount Value="10"/>
+      </Unit2>
     </Units>
+    <JumpHistory Count="5" HistoryIndex="4">
+      <Position1>
+        <Filename Value="demo_animation.lpr"/>
+        <Caret Line="24" Column="41" TopLine="1"/>
+      </Position1>
+      <Position2>
+        <Filename Value="demo_animation.lpr"/>
+        <Caret Line="163" Column="45" TopLine="146"/>
+      </Position2>
+      <Position3>
+        <Filename Value="demo_animation.lpr"/>
+        <Caret Line="163" Column="44" TopLine="146"/>
+      </Position3>
+      <Position4>
+        <Filename Value="demo_animation.lpr"/>
+        <Caret Line="63" Column="2" TopLine="56"/>
+      </Position4>
+      <Position5>
+        <Filename Value="demo_animation.lpr"/>
+        <Caret Line="163" Column="1" TopLine="151"/>
+      </Position5>
+    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="8"/>
+    <Parsing>
+      <SyntaxOptions>
+        <UseAnsiStrings Value="True"/>
+      </SyntaxOptions>
+    </Parsing>
     <Other>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
