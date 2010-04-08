@@ -35,9 +35,10 @@ type
   private
     FImage: TRGBImage;
     FImageF, FImageComplex: TImageComplex;
-    function GetImageF(Color: Integer): Pcomplex_single;
     FSize: Cardinal;
     PlanDFT, PlanIDFT: array [0..2] of fftw_plan_single;
+
+    function GetImageF(Color: Integer): Pcomplex_single;
 
     { Convert real values of image encoded in Complex
       into normal RGB image in Img. Apply scaling Scale by the way. }

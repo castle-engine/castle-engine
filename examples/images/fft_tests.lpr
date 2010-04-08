@@ -29,10 +29,9 @@ uses SysUtils, KambiUtils, Images, ImagesFftw, GLWindow, GL, GLImages,
 type
   TGLWindowImage = class(TGLWindowDemo)
   public
-    destructor Destroy; override;
-
     Image: TRGBImage;
     ImageDL: TGLuint;
+    destructor Destroy; override;
     procedure UpdateDL;
     procedure EventDraw; override;
     procedure EventInit; override;
@@ -236,7 +235,7 @@ end;
 begin
   Parameters.CheckHigh(1);
   try
-    Source := TGLWindowImage.Create;
+    Source := TGLWindowImage.Create(nil);
     Source.Image := LoadImage(Parameters[1], [TRGBImage], []) as TRGBImage;
     Source.Width  := Source.Image.Width ;
     Source.Height := Source.Image.Height;
@@ -246,7 +245,7 @@ begin
     Source.Top := 10;
     Source.Close_CharKey := #0;
 
-    Freq := TGLWindowImage.Create;
+    Freq := TGLWindowImage.Create(nil);
     Freq.Image := TRGBImage.Create(Source.Image.Width, Source.Image.Height);
     Freq.Width  := Freq.Image.Width ;
     Freq.Height := Freq.Image.Height;
@@ -256,7 +255,7 @@ begin
     Freq.Top := Source.Top + Source.Height + 10;
     Freq.Close_CharKey := #0;
 
-    Output := TGLWindowImage.Create;
+    Output := TGLWindowImage.Create(nil);
     Output.Image := TRGBImage.Create(Source.Image.Width, Source.Image.Height);
     Output.Width  := Output.Image.Width ;
     Output.Height := Output.Image.Height;
