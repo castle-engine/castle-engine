@@ -457,11 +457,8 @@ begin
 end;
 
 function EnumerationExtPresent: boolean;
-var
-  pDeviceList: PChar;
 begin
-  Result := EnumerationExtPresent(pDeviceList);
-  { Ignore pDeviceList }
+  Result := alcIsExtensionPresent(nil, 'ALC_ENUMERATION_EXT');
 end;
 
 procedure GetOpenALDevices(DevicesList: TStringList);
