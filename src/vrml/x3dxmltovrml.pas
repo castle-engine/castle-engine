@@ -104,6 +104,50 @@ const
     Route.SetDestination(DestinationNodeName, DestinationEventName, Names.Nodes);
   end;
 
+  procedure ParseImport(Element: TDOMElement; ParentNode: TVRMLNode; PositionInParent: Integer);
+  var
+    InlineNodeName, ImportedNodeName, ImportedNodeAlias: string;
+  begin
+    if not DOMGetAttribute(Element, 'inlineDEF', InlineNodeName) then
+    begin
+      VRMLWarning(vwSerious, 'Missing IMPORT "inlineDEF" attribute');
+      Exit;
+    end;
+
+    if not DOMGetAttribute(Element, 'importedDEF', ImportedNodeName) then
+    begin
+      VRMLWarning(vwSerious, 'Missing IMPORT "importedDEF" attribute, looking for older "exportedDEF"');
+      if not DOMGetAttribute(Element, 'exportedDEF', ImportedNodeName) then
+      begin
+        VRMLWarning(vwSerious, 'Missing IMPORT attribute: neighter "importedDEF" nor older "exportedDEF" found');
+        Exit;
+      end;
+    end;
+
+    if not DOMGetAttribute(Element, 'AS', ImportedNodeAlias) then
+      ImportedNodeAlias := ImportedNodeName;
+
+    { TODO: Names.Import() call
+      TODO: save the import clause, to later save it back to file }
+  end;
+
+  procedure ParseExport(Element: TDOMElement; ParentNode: TVRMLNode; PositionInParent: Integer);
+  var
+    ExportedNodeName, ExportedNodeAlias: string;
+  begin
+    if not DOMGetAttribute(Element, 'localDEF', ExportedNodeName) then
+    begin
+      VRMLWarning(vwSerious, 'Missing EXPORT "localDEF" attribute');
+      Exit;
+    end;
+
+    if not DOMGetAttribute(Element, 'AS', ExportedNodeAlias) then
+      ExportedNodeAlias := ExportedNodeName;
+
+    { TODO: Names.Export() call
+      TODO: save the export clause, to later save it back to file }
+  end;
+
   procedure ParseFieldValueFromAttribute(Field: TVRMLField;
     const Value: string);
   var
@@ -357,6 +401,16 @@ const
           begin
             ParseISStatement(Node, I.Current, PositionInParent);
           end else
+          { In X3D XML, IMPORT/EXPORT may be inside the nodes
+            (not only at top-level "statements"), just like "ROUTE".
+            The "X3D XML encoding" spec doesn't say it explicitly,
+            but I *think* the schema says so (on http://www.web3d.org/specifications/x3d-3.2.xsd ),
+            also example http://www.web3d.org/x3d/content/examples/Basic/development/ImportExportSyntax.x3d
+            uses it. }
+          if I.Current.TagName = 'IMPORT' then
+            ParseImport(I.Current, Node, PositionInParent) else
+          if I.Current.TagName = 'EXPORT' then
+            ParseExport(I.Current, Node, PositionInParent) else
           if I.Current.TagName = 'ProtoDeclare' then
           begin
             Proto := TVRMLPrototype.Create;
@@ -992,6 +1046,10 @@ const
       if (Element.TagName = 'ProtoDeclare') or
          (Element.TagName = 'ExternProtoDeclare') then
         ParseProtoStatement else
+      if Element.TagName = 'IMPORT' then
+        ParseImport(Element, Result, PositionInParent) else
+      if Element.TagName = 'EXPORT' then
+        ParseExport(Element, Result, PositionInParent) else
         ParseNodeInternal;
     end;
 
