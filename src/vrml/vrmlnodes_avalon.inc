@@ -447,6 +447,7 @@ procedure TNodeLogger.EventWriteReceive(
   var
     S: string;
     SaveProperties: TVRMLSaveToStreamProperties;
+    NodeNames: TVRMLNodeNames;
   begin
     S := Format('Logger "%s": received field "%s" (%s). Time: %f.',
       [NodeName, Value.Name, Value.VRMLTypeName, Time.Seconds]);
@@ -467,18 +468,18 @@ procedure TNodeLogger.EventWriteReceive(
 
       WriteStr(WriteStream, S + ' Value: ');
 
+      NodeNames := TVRMLNodeNames.Create(false);
       SaveProperties := TVRMLSaveToStreamProperties.Create(WriteStream);
       try
         { Just use X3D 3.2 format. }
         SaveProperties.VerMajor := 3;
         SaveProperties.VerMinor := 2;
 
-        if (Value is TSFNode) or (Value is TMFNode) then
-          { Cannot display SFNode/MFNode here, as we don't have NodeNames
-            binding now. }
-          WriteStr(WriteStream, Value.VRMLTypeName + ' value') else
-          Value.FieldSaveToStream(SaveProperties, nil, true);
-      finally FreeAndNil(SaveProperties) end;
+        Value.FieldSaveToStream(SaveProperties, NodeNames, true);
+      finally
+        FreeAndNil(SaveProperties);
+        FreeAndNil(NodeNames);
+      end;
     end;
   end;
 
