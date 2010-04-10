@@ -111,7 +111,6 @@ const
     SF: TSFNode;
     MF: TMFNode;
     Node: TVRMLNode;
-    NodeIndex: Integer;
   begin
     if Field is TSFString then
     begin
@@ -144,15 +143,14 @@ const
       SF := Field as TSFNode;
 
       { get appropriate node }
-      NodeIndex := Names.Nodes.IndexOf(Value);
-      if NodeIndex = -1 then
+      Node := Names.Nodes.Bound(Value);
+      if Node = nil then
       begin
         if Value = SNull then
           SF.Value := nil else
           VRMLWarning(vwSerious, Format('Invalid node name for SFNode field: "%s"', [Value]));
       end else
       begin
-        Node := TVRMLNode(Names.Nodes.Objects[NodeIndex]);
         SF.Value := Node;
         SF.WarningIfChildNotAllowed(Node);
       end;
@@ -162,14 +160,13 @@ const
       MF := Field as TMFNode;
 
       { get appropriate node }
-      NodeIndex := Names.Nodes.IndexOf(Value);
-      if NodeIndex = -1 then
+      Node := Names.Nodes.Bound(Value);
+      if Node = nil then
       begin
-        { NULL not allowed for MFNode, like for SFNode }
+        { NULL not allowed for MFNode, unlike the SFNode }
         VRMLWarning(vwSerious, Format('Invalid node name for MFNode field: "%s"', [Value]));
       end else
       begin
-        Node := TVRMLNode(Names.Nodes.Objects[NodeIndex]);
         MF.AddItem(Node);
         MF.WarningIfChildNotAllowed(Node);
       end;
@@ -535,7 +532,6 @@ const
       NodeClass: TVRMLNodeClass;
       NodeTypeName: string;
       ProtoName: string;
-      ProtoIndex: Integer;
       Proto: TVRMLPrototypeBase;
       ProtoIter: TXMLElementIterator;
       FieldActualValue, FieldName: string;
@@ -550,11 +546,10 @@ const
         if not DOMGetAttribute(Element, 'name', ProtoName) then
           raise EX3DXmlError.Create('<ProtoInstance> doesn''t specify "name" of the prototype');
 
-        ProtoIndex := Names.Prototypes.IndexOf(ProtoName);
-        if ProtoIndex = -1 then
+        Proto := Names.Prototypes.Bound(ProtoName);
+        if Proto = nil then
           raise EX3DXmlError.CreateFmt('<ProtoInstance> specifies unknown prototype name "%s"', [ProtoName]);
 
-        Proto := Names.Prototypes.Objects[ProtoIndex] as TVRMLPrototypeBase;
         if (Proto is TVRMLExternalPrototype) and
            (TVRMLExternalPrototype(Proto).ReferencedClass <> nil) then
           Result := TVRMLExternalPrototype(Proto).ReferencedClass.Create(NodeName, WWWBasePath) else
@@ -645,26 +640,21 @@ const
 
   var
     NodeName, S: string;
-    i: integer;
   begin
     Result := nil;
     try
       if DOMGetAttribute(Element, 'USE', NodeName) then
       begin
         { get appropriate node }
-        I := Names.Nodes.IndexOf(NodeName);
-        if I = -1 then
+        Result := Names.Nodes.Bound(NodeName);
+        if Result = nil then
         begin
           S := Format('Incorrect USE element: node name "%s" undefined',
             [NodeName]);
           if NilIfUnresolvedUSE then
-          begin
-            Result := nil;
-            VRMLWarning(vwSerious, S);
-          end else
+            VRMLWarning(vwSerious, S) else
             raise EX3DXmlNotAllowedError.Create(S);
-        end else
-          Result := TVRMLNode(Names.Nodes.Objects[i]);
+        end;
       end else
       begin
         if DOMGetAttribute(Element, SAttrDEF, NodeName) then

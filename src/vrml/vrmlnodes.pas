@@ -3185,11 +3185,27 @@ type
     property AutoRemove: boolean read FAutoRemove;
 
     procedure Bind(Node: TVRMLNode);
+
+    { Find node bound to given name. @nil if none. }
+    function Bound(const Name: string): TVRMLNode;
+
+    { Check is Node bound in the current namespace.
+      @false means that node is not within this namespace,
+      possibly it's name was hidden by other node with the same name.
+
+      Doesn't check is Node bound to it's name (Node.NodeName) or something
+      else. So this assumes that node can only be bound (if at all)
+      only to it's own name, which is true during parsing
+      (when nothing can change in the middle of parsing). }
+    function Bound(Node: TVRMLNode): boolean;
   end;
 
   TVRMLPrototypeNames = class(TStringListCaseSens)
   public
     procedure Bind(Proto: TVRMLPrototypeBase);
+
+    { Find proto bound to given name. @nil if none. }
+    function Bound(const Name: string): TVRMLPrototypeBase;
   end;
 
   { Container tracking VRML/X3D node and prototype names during parsing.
@@ -5073,7 +5089,7 @@ begin
 
     (NodeNames as TVRMLNodeNames).Bind(Self);
   end else
-  if (NodeNames as TVRMLNodeNames).IndexOfObject(Self) >= 0 then
+  if (NodeNames as TVRMLNodeNames).Bound(Self) then
   begin
     SaveProperties.WritelnIndent('USE ' + NodeName);
   end else
@@ -7716,18 +7732,18 @@ procedure TVRMLRoute.SetEnding(const NodeName, FieldOrEventName: string;
   var Node: TVRMLNode; var Event: TVRMLEvent;
   const DestEnding: boolean);
 var
-  Index: Integer;
+  N: TVRMLNode;
   FieldOrEvent: TVRMLFieldOrEvent;
 begin
   UnsetEnding(Node, Event, DestEnding);
 
   try
-    Index := NodeNames.IndexOf(NodeName);
-    if Index = -1 then
+    N := NodeNames.Bound(NodeName);
+    if N = nil then
       raise ERouteSetEndingError.CreateFmt('Route %s node name "%s" not found',
         [ DestEndingNames[DestEnding], NodeName ]);
 
-    Node := NodeNames.Objects[Index] as TVRMLNode;
+    Node := N;
     if Node.PrototypeInstanceSourceNode <> nil then
     begin
       Node := Node.PrototypeInstanceSourceNode;
@@ -7966,10 +7982,25 @@ begin
   if Node.NodeName <> '' then
   begin
     I := IndexOf(Node.NodeName);
-    if I >= 0 then
+    if I <> -1 then
       Objects[I] := Node else
       AddObject(Node.NodeName, Node);
   end;
+end;
+
+function TVRMLNodeNames.Bound(const Name: string): TVRMLNode;
+var
+  I: Integer;
+begin
+  I := IndexOf(Name);
+  if I <> -1 then
+    Result := Objects[I] as TVRMLNode else
+    Result := nil;
+end;
+
+function TVRMLNodeNames.Bound(Node: TVRMLNode): boolean;
+begin
+  Result := IndexOfObject(Node) <> -1;
 end;
 
 { TVRMLPrototypeNames -------------------------------------------------------- }
@@ -7982,6 +8013,16 @@ begin
   if I <> - 1 then
     Objects[I] := Proto else
     AddObject(Proto.Name, Proto);
+end;
+
+function TVRMLPrototypeNames.Bound(const Name: string): TVRMLPrototypeBase;
+var
+  I: Integer;
+begin
+  I := IndexOf(Name);
+  if I <> -1 then
+    Result := Objects[I] as TVRMLPrototypeBase else
+    Result := nil;
 end;
 
 { TVRMLNames ----------------------------------------------------------------- }
@@ -8045,7 +8086,6 @@ function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
   var
     NodeClass: TVRMLNodeClass;
     NodeTypeName: string;
-    ProtoIndex: Integer;
     Proto: TVRMLPrototypeBase;
   begin
     Lexer.CheckTokenIs(vtName, 'node type');
@@ -8068,10 +8108,9 @@ function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
       Only when this failed, we look at built-in nodes in NodesManager.
     }
 
-    ProtoIndex := Names.Prototypes.IndexOf(NodeTypeName);
-    if ProtoIndex <> -1 then
+    Proto := Names.Prototypes.Bound(NodeTypeName);
+    if Proto <> nil then
     begin
-      Proto := Names.Prototypes.Objects[ProtoIndex] as TVRMLPrototypeBase;
       if (Proto is TVRMLExternalPrototype) and
          (TVRMLExternalPrototype(Proto).ReferencedClass <> nil) then
         Result := TVRMLExternalPrototype(Proto).ReferencedClass.Create(NodeName, '') else
@@ -8153,7 +8192,6 @@ function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
 
 var
   NodeName, S: string;
-  i: integer;
 begin
   Result := nil;
   try
@@ -8179,19 +8217,15 @@ begin
            nodename := Lexer.TokenName;
 
            {get appropriate node}
-           i := Names.Nodes.IndexOf(nodename);
-           if i = -1 then
+           Result := Names.Nodes.Bound(nodename);
+           if Result = nil then
            begin
              S := Format('Incorrect USE clause: node name "%s" undefined',
                [NodeName]);
              if NilIfUnresolvedUSE then
-             begin
-               Result := nil;
-               VRMLWarning(vwSerious, S);
-             end else
+               VRMLWarning(vwSerious, S) else
                raise EVRMLParserError.Create(Lexer, S);
-           end else
-             Result := TVRMLNode(Names.Nodes.Objects[i]);
+           end;
 
            Lexer.NextToken;
           end;
