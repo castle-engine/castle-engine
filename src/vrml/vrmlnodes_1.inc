@@ -537,7 +537,7 @@
 
   TNodeShapeHints = class(TNodeX3DChildNode)
   protected
-    function ParseNodeBodyElement(Lexer: TVRMLLexer;
+    function ParseNodeBodyElement(Lexer: TVRMLLexer; Names: TVRMLNames;
       const APositionInParent: Integer): boolean; override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -1834,7 +1834,7 @@ begin
   result := 'ShapeHints';
 end;
 
-function TNodeShapeHints.ParseNodeBodyElement(Lexer: TVRMLLexer;
+function TNodeShapeHints.ParseNodeBodyElement(Lexer: TVRMLLexer; Names: TVRMLNames;
   const APositionInParent: Integer): boolean;
 var
   Hints: TSFBitMask;
@@ -1853,7 +1853,7 @@ begin
         [ false,   true,      true]);
       try
         Lexer.NextToken;
-        Hints.Parse(Lexer, false);
+        Hints.Parse(Lexer, Names, false);
         if Hints.Flags[0] then
           FdShapeType.Value := SHTYPE_SOLID else
           FdShapeType.Value := SHTYPE_UNKNOWN;

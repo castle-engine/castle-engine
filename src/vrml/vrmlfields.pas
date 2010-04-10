@@ -41,7 +41,7 @@ type
   public
     Stream: TStream;
 
-    NodeNameBinding: TStringList;
+    NodeNames: TStringList;
 
     { Which VRML version are we writing. }
     VerMajor, VerMinor: Integer;
@@ -366,16 +366,15 @@ type
       actually parse field's value.
       Descendants should override ParseValue.
 
-      Note that Lexer.NodeNameBinding is ignored by all
-      TVRMLField descendants defined in this unit (it's used only
-      by TSFNode and TMFNode). }
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
+      Names may be @nil and is unused for descendants other than TSFNode
+      and TMFNode. }
+    procedure Parse(Lexer: TVRMLLexer; Names: TObject; IsClauseAllowed: boolean);
 
-    procedure ParseValue(Lexer: TVRMLLexer); virtual; abstract;
+    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); virtual; abstract;
 
     { Parse field value from X3D XML encoded attribute.
       Attributes in X3D are generally encoded such that normal
-      @code(ParseValue(Lexer)) call is appropriate,
+      @code(ParseValue(Lexer, nil)) call is appropriate,
       so this is done in this class. }
     procedure ParseX3DXmlAttr(Lexer: TVRMLLexer); virtual;
 
@@ -390,7 +389,7 @@ type
       Note that when Name is '', this also works (writes only field value
       / "IS" clause then).
 
-      SaveProperties.NodeNameBinding has the same meaning as for
+      SaveProperties.NodeNames has the same meaning as for
       TVRMLNode.SaveToStream,
       see there. It can be ignored, and in fact it is ignored by all
       TVRMLField descendants defined in this unit (it's used only
@@ -729,7 +728,7 @@ type
 
     { Parse MF field. This class handles parsing fully, usually no need to
       override this more in descendants. It uses ItemClass.Parse method. }
-    procedure ParseValue(Lexer: TVRMLLexer); override;
+    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
 
     destructor Destroy; override;
 
@@ -787,7 +786,7 @@ type
     property NoneString: string read fNoneString;
     { @groupEnd }
 
-    procedure ParseValue(Lexer: TVRMLLexer); override;
+    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
 
     { Are all flag values set to @true currently. }
     function AreAllFlags(value: boolean): boolean;
@@ -825,7 +824,7 @@ type
     DefaultValue: boolean;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TVRMLLexer); override;
+    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
@@ -864,7 +863,7 @@ type
 
     property EnumNames[i: integer]:string read GetEnumNames;
     function EnumNamesCount: integer;
-    procedure ParseValue(Lexer: TVRMLLexer); override;
+    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -903,7 +902,7 @@ type
       negative sphere radius. }
     property MustBeNonnegative: boolean read FMustBeNonnegative default false;
 
-    procedure ParseValue(Lexer: TVRMLLexer); override;
+    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -936,7 +935,7 @@ type
     DefaultValue: Double;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TVRMLLexer); override;
+    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -984,7 +983,7 @@ type
 
     destructor Destroy; override;
 
-    procedure ParseValue(Lexer: TVRMLLexer); override;
+    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
 
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
@@ -1017,7 +1016,7 @@ type
 
     { See TSFFloat.MustBeNonnegative for explanation of this. }
     property MustBeNonnegative: boolean read FMustBeNonnegative default false;
-    procedure ParseValue(Lexer: TVRMLLexer); override;
+    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1049,7 +1048,7 @@ type
 
     property Value: TMatrix3Single read FValue write FValue;
 
-    procedure ParseValue(Lexer: TVRMLLexer); override;
+    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1078,7 +1077,7 @@ type
 
     property Value: TMatrix3Double read FValue write FValue;
 
-    procedure ParseValue(Lexer: TVRMLLexer); override;
+    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1107,7 +1106,7 @@ type
 
     property Value: TMatrix4Single read FValue write FValue;
 
-    procedure ParseValue(Lexer: TVRMLLexer); override;
+    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1150,7 +1149,7 @@ type
 
     property Value: TMatrix4Double read FValue write FValue;
 
-    procedure ParseValue(Lexer: TVRMLLexer); override;
+    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1202,7 +1201,7 @@ type
       it only presents them to you differently. }
     property ValueDeg: TVector4Single read GetValueDeg write SetValueDeg;
 
-    procedure ParseValue(Lexer: TVRMLLexer); override;
+    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
     { Rotate point Pt around Self. }
     function RotatedPoint(const pt: TVector3Single): TVector3Single;
 
@@ -1233,7 +1232,7 @@ type
     DefaultValue: string;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TVRMLLexer); override;
+    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1260,7 +1259,7 @@ type
     DefaultValue: TVector2Single;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TVRMLLexer); override;
+    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1289,7 +1288,7 @@ type
     DefaultValue: TVector3Single;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TVRMLLexer); override;
+    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1323,7 +1322,7 @@ type
     DefaultValue: TVector4Single;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TVRMLLexer); override;
+    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1357,7 +1356,7 @@ type
     DefaultValue: TVector2Double;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TVRMLLexer); override;
+    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1386,7 +1385,7 @@ type
     DefaultValue: TVector3Double;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TVRMLLexer); override;
+    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1415,7 +1414,7 @@ type
     DefaultValue: TVector4Double;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TVRMLLexer); override;
+    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
@@ -2053,12 +2052,12 @@ constructor TVRMLSaveToStreamProperties.Create(AStream: TStream);
 begin
   inherited Create;
   Stream := AStream;
-  NodeNameBinding := TStringListCaseSens.Create;
+  NodeNames := TStringListCaseSens.Create;
 end;
 
 destructor TVRMLSaveToStreamProperties.Destroy;
 begin
-  FreeAndNil(NodeNameBinding);
+  FreeAndNil(NodeNames);
   inherited;
 end;
 
@@ -2411,16 +2410,16 @@ begin
   Result := false;
 end;
 
-procedure TVRMLField.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
+procedure TVRMLField.Parse(Lexer: TVRMLLexer; Names: TObject; IsClauseAllowed: boolean);
 begin
   if IsClauseAllowed and Lexer.TokenIsKeyword(vkIS) then
     ParseIsClause(Lexer) else
-    ParseValue(Lexer);
+    ParseValue(Lexer, Names);
 end;
 
 procedure TVRMLField.ParseX3DXmlAttr(Lexer: TVRMLLexer);
 begin
-  ParseValue(Lexer);
+  ParseValue(Lexer, nil);
 end;
 
 procedure TVRMLField.VRMLFieldAssignCommon(Source: TVRMLField);
@@ -2608,7 +2607,7 @@ begin
  result := ItemClass.CreateUndefined(ParentNode, '');
 end;
 
-procedure TVRMLSimpleMultField.ParseValue(Lexer: TVRMLLexer);
+procedure TVRMLSimpleMultField.ParseValue(Lexer: TVRMLLexer; Names: TObject);
 var SingleItem: TVRMLSingleField;
 begin
   RawItems.SetLength(0);
@@ -2625,7 +2624,7 @@ begin
     while Lexer.Token <> vtCloseSqBracket do
     {zawsze w tym miejscu albo stoimy na "]" albo na kolejnej wartosci pola SF}
     begin
-     SingleItem.ParseValue(Lexer);
+     SingleItem.ParseValue(Lexer, Names);
      RawItemsAdd(SingleItem);
 
      if Lexer.Token = vtCloseSqBracket then break;
@@ -2648,7 +2647,7 @@ begin
    end else
    begin
     {one single field - not enclosed in [] brackets}
-    SingleItem.ParseValue(Lexer);
+    SingleItem.ParseValue(Lexer, Names);
     RawItemsAdd(SingleItem);
    end;
 
@@ -2674,7 +2673,7 @@ begin
   try
     while Lexer.Token <> vtEnd do
     begin
-      SingleItem.ParseValue(Lexer);
+      SingleItem.ParseValue(Lexer, nil);
       RawItemsAdd(SingleItem);
     end;
   finally
@@ -2793,7 +2792,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSFBool.ParseValue(Lexer: TVRMLLexer);
+procedure TSFBool.ParseValue(Lexer: TVRMLLexer; Names: TObject);
 
   procedure VRML2BooleanIntegerWarning;
   begin
@@ -2914,7 +2913,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSFFloat.ParseValue(Lexer: TVRMLLexer);
+procedure TSFFloat.ParseValue(Lexer: TVRMLLexer; Names: TObject);
 begin
   Value := ParseFloat(Lexer);
 end;
@@ -3005,7 +3004,7 @@ begin
   FValue := AValue;
 end;
 
-procedure TSFDouble.ParseValue(Lexer: TVRMLLexer);
+procedure TSFDouble.ParseValue(Lexer: TVRMLLexer; Names: TObject);
 begin
   Value := ParseFloat(Lexer);
 end;
@@ -3172,7 +3171,7 @@ end;
 {$include norqcheckend.inc}
 
 
-procedure TSFImage.ParseValue(Lexer: TVRMLLexer);
+procedure TSFImage.ParseValue(Lexer: TVRMLLexer; Names: TObject);
 
   procedure ReplaceValue(NewValue: TImage);
   begin
@@ -3364,7 +3363,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSFLong.ParseValue(Lexer: TVRMLLexer);
+procedure TSFLong.ParseValue(Lexer: TVRMLLexer; Names: TObject);
 begin
   Lexer.CheckTokenIs(vtInteger);
 
@@ -3464,7 +3463,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSF_CLASS.ParseValue(Lexer: TVRMLLexer);
+procedure TSF_CLASS.ParseValue(Lexer: TVRMLLexer; Names: TObject);
 var
   Column: integer;
 begin
@@ -3650,7 +3649,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSFRotation.ParseValue(Lexer: TVRMLLexer);
+procedure TSFRotation.ParseValue(Lexer: TVRMLLexer; Names: TObject);
 begin
   ParseVector(Axis, Lexer);
   RotationRad := ParseFloat(Lexer);
@@ -3782,7 +3781,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSFString.ParseValue(Lexer: TVRMLLexer);
+procedure TSFString.ParseValue(Lexer: TVRMLLexer; Names: TObject);
 begin
   Lexer.CheckTokenIs(vtString);
   Value := Lexer.TokenString;
@@ -3860,7 +3859,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSF_CLASS.ParseValue(Lexer: TVRMLLexer);
+procedure TSF_CLASS.ParseValue(Lexer: TVRMLLexer; Names: TObject);
 begin
   ParseVector(Value, Lexer);
 end;
@@ -4049,7 +4048,7 @@ begin result := fFlagNames.Count end;
 function TSFBitMask.GetFlagNames(i: integer): string;
 begin result := fFlagNames[i] end;
 
-procedure TSFBitMask.ParseValue(Lexer: TVRMLLexer);
+procedure TSFBitMask.ParseValue(Lexer: TVRMLLexer; Names: TObject);
 
   procedure InterpretTokenAsFlagName;
   var i: integer;
@@ -4182,7 +4181,7 @@ begin result := fEnumNames[i] end;
 function TSFEnum.EnumNamesCount: integer;
 begin result := fEnumNames.Count end;
 
-procedure TSFEnum.ParseValue(Lexer: TVRMLLexer);
+procedure TSFEnum.ParseValue(Lexer: TVRMLLexer; Names: TObject);
 var
   val: integer;
 begin

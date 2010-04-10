@@ -714,6 +714,7 @@ type
   TVRMLPrototypeBasesList = class;
   TVRMLRoutesList = class;
   TVRMLInterfaceDeclaration = class;
+  TVRMLNames = class;
 
   TVRMLAccessType = (atInputOnly, atOutputOnly, atInitializeOnly, atInputOutput);
   TVRMLAccessTypes = set of TVRMLAccessType;
@@ -920,7 +921,7 @@ type
       Otherwise either read your stuff and return @true
       (Lexer should advance to the position of next "nodeBodyElement").
       Or return @false without changing Lexer position. }
-    function ParseNodeBodyElement(Lexer: TVRMLLexer;
+    function ParseNodeBodyElement(Lexer: TVRMLLexer; Names: TVRMLNames;
       const APositionInParent: Integer): boolean; virtual;
 
     (* This will be called by SaveToStream within { }.
@@ -1175,7 +1176,7 @@ type
       In special cases like TVRMLUnknownNode this may
       actually initialize whole Fields list (by VRML 1.0 "fields" extensibility
       feature). }
-    procedure Parse(Lexer: TVRMLLexer); virtual;
+    procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); virtual;
 
     { Konstruktor. Inicjuje wszystko (jak to konstruktor), w szczegolnosci :
       @unorderedList(
@@ -1196,7 +1197,7 @@ type
     constructor Create(const ANodeName: string; const AWWWBasePath: string); virtual;
 
     { CreateParse simply does Create and then calls Parse. }
-    constructor CreateParse(const ANodeName: string; Lexer: TVRMLLexer);
+    constructor CreateParse(const ANodeName: string; Lexer: TVRMLLexer; Names: TVRMLNames);
 
     destructor Destroy; override;
 
@@ -1457,7 +1458,7 @@ type
     (*Save node to stream. This saves everything, including node name,
       node type, then node contents within { }.
 
-      We use SaveProperties.NodeNameBinding, pretty much like when parsing.
+      We use SaveProperties.NodeNames, pretty much like when parsing.
       If a node name is already bound with this node, then we know
       we have to write only USE ... statement. Otherwise we write
       full node contents, with eventual DEF ... statement.
@@ -1652,7 +1653,7 @@ type
 
     { Add Self (NodeName must be initialized) to nodes namespace.
       Doesn't do anything if NodeName = ''. }
-    procedure Bind(NodeNameBinding: TStringList);
+    procedure Bind(NodeNames: TStringList);
 
     { PrototypeInstance = @true indicates that this node was created
       from a non-external prototype instantiation.
@@ -1966,7 +1967,7 @@ type
       read FDefaultValueExists write SetDefaultValueExists default false;
 
     property Value: TVRMLNode read FValue write SetValue;
-    procedure ParseValue(Lexer: TVRMLLexer); override;
+    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -2093,7 +2094,7 @@ type
     { Just a shortcut for Items.Count }
     function Count: integer; override;
 
-    procedure ParseValue(Lexer: TVRMLLexer); override;
+    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -2605,14 +2606,14 @@ type
     function DeepCopyCreate(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; override;
   public
     function NodeTypeName: string; override;
-    procedure Parse(Lexer: TVRMLLexer); override;
+    procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); override;
 
     { base Create will throw exception. Always use CreateUnknown* }
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
     constructor CreateUnknown(const ANodeName, AWWWBasePath, ANodeTypeName :string);
     constructor CreateUnknownParse(const ANodeName, ANodeTypeName :string;
-      Lexer: TVRMLLexer);
+      Lexer: TVRMLLexer; Names: TVRMLNames);
   end;
 
 { TVRMLInterfaceDeclaration -------------------------------------------------- }
@@ -2690,7 +2691,7 @@ type
     property Event: TVRMLEvent read FEvent;
     { @groupEnd }
 
-    procedure Parse(Lexer: TVRMLLexer;
+    procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames;
       FieldValue, IsClauseAllowed: boolean); virtual;
 
     { Save this interface declaration to stream.
@@ -2909,7 +2910,7 @@ type
     { Parses InterfaceDeclarations. Also inits WWWBasePath from
       Lexer.WWWBasePath, by the way. }
     procedure ParseInterfaceDeclarations(ExternalProto: boolean;
-      Lexer: TVRMLLexer);
+      Lexer: TVRMLLexer; Names: TVRMLNames);
 
     { Saves Name, and interface declarations enclosed
       within [ ]. In descendant, you should first write the keyword PROTO
@@ -2924,11 +2925,11 @@ type
     property InterfaceDeclarations: TVRMLInterfaceDeclarationsList
       read FInterfaceDeclarations;
 
-    { Parse prototype, and add it to Lexer.ProtoNameBinding by @link(Bind). }
-    procedure Parse(Lexer: TVRMLLexer); virtual; abstract;
+    { Parse prototype, and add it to Names.Prototypes by @link(Bind). }
+    procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); virtual; abstract;
 
     { Add Self (at least Name must be initialized) to prototypes namespace. }
-    procedure Bind(ProtoNameBinding: TStringList);
+    procedure Bind(PrototypeNames: TStringList);
 
     { The base URL path used to resolve urls inside.
       For now, used by EXTERNPROTO urls.
@@ -2946,7 +2947,7 @@ type
   public
     destructor Destroy; override;
 
-    procedure Parse(Lexer: TVRMLLexer); override;
+    procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); override;
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
 
     { These are actual prototype contents: all nodes, prototypes, routes
@@ -2986,7 +2987,7 @@ type
     destructor Destroy; override;
     property URLList: TMFString read FURLList;
 
-    procedure Parse(Lexer: TVRMLLexer); override;
+    procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); override;
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
 
     property ReferencedPrototype: TVRMLPrototype read FReferencedPrototype;
@@ -3020,7 +3021,7 @@ type
       RemoveFromDestructionNotification: boolean = true);
 
     procedure SetEnding(const NodeName, FieldOrEventName: string;
-      NodeNameBinding: TStringList;
+      NodeNames: TStringList;
       var Node: TVRMLNode; var Event: TVRMLEvent;
       const DestEnding: boolean);
 
@@ -3074,7 +3075,7 @@ type
 
       This does everything that VRML parser should
       do when parsed VRML route. It looks for given node name in
-      NodeNameBinding, then it looks for field/event within this node,
+      NodeNames, then it looks for field/event within this node,
       and if everything is successfull --- sets route properties.
 
       If something goes wrong, VRMLWarning is generated
@@ -3083,11 +3084,11 @@ type
       @groupBegin }
     procedure SetSource(
       const SourceNodeName, SourceFieldOrEventName: string;
-      NodeNameBinding: TStringList);
+      NodeNames: TStringList);
 
     procedure SetDestination(
       const DestinationNodeName, DestinationFieldOrEventName: string;
-      NodeNameBinding: TStringList);
+      NodeNames: TStringList);
     { @groupEnd }
 
     { These set source/destination of the route in more direct way.
@@ -3120,7 +3121,7 @@ type
     { Parses the route statement.
       Implementation should be able to safely assume that current token
       is ROUTE. }
-    procedure Parse(Lexer: TVRMLLexer);
+    procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
 
     { Save a ROUTE to VRML file.
 
@@ -3128,7 +3129,7 @@ type
       This can happen when SourceNode or SourceEvent
       or DestinationNode or DestinationEvent are @nil.
       Also, if SourceNode and DestinationNode are without a name,
-      or the name is not currently bound in SaveProperties.NodeNameBinding.
+      or the name is not currently bound in SaveProperties.NodeNames.
     }
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
 
@@ -3163,6 +3164,53 @@ type
   TVRMLRoutesList = class(TObjectsList_5);
 
 {$I vrmlnodes_eventsprocessor.inc}
+
+{ Node names ----------------------------------------------------------------- }
+
+  { List to keep node names while parsing VRML file.
+    This assumes that all strings are node names and their Objects[]
+    are TVRMLNode instances with given names. }
+  TVRMLNodeNames = class(TStringListCaseSens)
+  private
+    FAutoRemove: boolean;
+    procedure DestructionNotification(Node: TVRMLNode);
+  public
+    constructor Create(const AAutoRemove: boolean);
+    destructor Destroy; override;
+
+    { If @true (determined at construction time),
+      then destroyed nodes will be automatically removed from this list.
+      This allows you to safely destroy node instances during this
+      objects lifetime, without worrying that some dangling pointers remain
+      on this list.
+
+      Internally, this is done by registering
+      itself for AnyNodeDestructionNotifications. }
+    property AutoRemove: boolean read FAutoRemove;
+  end;
+
+  { Container tracking VRML/X3D node and prototype names during parsing.
+    Used by both classic and XML VRML/X3D readers. }
+  TVRMLNames = class
+  public
+    { Current namespace for DEF/USE.
+
+      This is a list without duplicates with all
+      currently known node names. Objects[] of this list point to
+      actual TVRMLNode instances. If many instances had the same NodeName,
+      only the last instance will be referenced here, following VRML spec
+      (last DEF takes precedence).
+
+      Internal notes: ParseNode doesn't modify this, only TVRMLNode.Parse
+      can do this. }
+    Nodes: TVRMLNodeNames;
+
+    { Current namespace of PROTO names. }
+    Prototypes: TStringList;
+
+    constructor Create(const AAutoRemoveNodes: boolean);
+    destructor Destroy; override;
+  end;
 
 { TraverseStateLastNodesClasses ---------------------------------------------- }
 
@@ -3265,7 +3313,7 @@ var
 
   @raises(EVRMLParserError On various parsing errors.)
 *)
-function ParseNode(Lexer: TVRMLLexer;
+function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
   NilIfUnresolvedUSE: boolean = false): TVRMLNode;
 
 { Parse whole VRML file, return it's root node.
@@ -3281,13 +3329,14 @@ function ParseNode(Lexer: TVRMLLexer;
   sometimes compressed with gzip). You should already pass here a stream
   with uncompressed text data.
 
-  @param(ProtoNameBinding If <> @nil, will be filled with global
-    prototype namespace at the end of parsing the file. Usually not useful.)
+  @param(PrototypeNames If <> @nil, will be filled with global
+    prototype namespace at the end of parsing the file.
+    Useful mostly for EXTERNPROTO implementation.)
 
   @raises(EVRMLGzipCompressed If the Stream starts with gzip file header.) }
 function ParseVRMLFile(Stream: TPeekCharStream;
   const WWWBasePath: string;
-  ProtoNameBinding: TStringList = nil): TVRMLNode; overload;
+  PrototypeNames: TStringList = nil): TVRMLNode; overload;
 
 function ParseVRMLFileFromString(const VRMLContents: string;
   const WWWBasePath: string): TVRMLNode; overload;
@@ -3300,11 +3349,12 @@ function ParseVRMLFileFromString(const VRMLContents: string;
   (it just internally filters file contents with TGZFileStream,
   uncompressing it on the fly).
 
-  @param(ProtoNameBinding If <> @nil, will be filled with global
-    prototype namespace at the end of parsing the file. Usually not useful.) }
+  @param(PrototypeNames If <> @nil, will be filled with global
+    prototype namespace at the end of parsing the file.
+    Useful mostly for EXTERNPROTO implementation.) }
 function ParseVRMLFile(const FileName: string;
   AllowStdIn: boolean;
-  ProtoNameBinding: TStringList = nil): TVRMLNode; overload;
+  PrototypeNames: TStringList = nil): TVRMLNode; overload;
 
 { SaveToVRMLFile writes whole VRML file with given root Node.
   This includes writing VRML header '#VRML ...'.
@@ -3470,22 +3520,6 @@ const
 const
   AllAccessTypes = [atInputOnly, atOutputOnly, atInitializeOnly, atInputOutput];
   RestrictedAccessTypes = [atInputOnly, atOutputOnly, atInitializeOnly];
-
-type
-  { List to keep node names while parsing VRML file.
-    This assumes that all strings are node names and their Objects[]
-    are TVRMLNode instances with given names.
-
-    The only advantage of using this is that it registers and unregisters
-    itself for AnyNodeDestructionNotifications, so if any node may be
-    destroyed during parsing, it will also be removed from this list. }
-  TNodeNameBinding = class(TStringListCaseSens)
-  private
-    procedure DestructionNotification(Node: TVRMLNode);
-  public
-    constructor Create;
-    destructor Destroy; override;
-  end;
 
 var
   { Functions registered here will be called when any TVRMLNode descendant
@@ -4362,10 +4396,10 @@ begin
  result := '';
 end;
 
-constructor TVRMLNode.CreateParse(const ANodeName: string; Lexer: TVRMLLexer);
+constructor TVRMLNode.CreateParse(const ANodeName: string; Lexer: TVRMLLexer; Names: TVRMLNames);
 begin
   Create(ANodeName, '');
-  Parse(Lexer);
+  Parse(Lexer, Names);
 end;
 
 function TVRMLNode.PathFromWWWBasePath(const RelativePath: string): string;
@@ -4379,7 +4413,7 @@ begin
     Result := CombinePaths(WWWBasePath, RelativePath);
 end;
 
-procedure TVRMLNode.Parse(Lexer: TVRMLLexer);
+procedure TVRMLNode.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
 var
   Handled: boolean;
   Position: Integer;
@@ -4397,7 +4431,7 @@ begin
   Lexer.NextToken;
   while Lexer.Token <> vtCloseCurlyBracket do
   begin
-    Handled := ParseNodeBodyElement(Lexer, Position);
+    Handled := ParseNodeBodyElement(Lexer, Names, Position);
 
     { VRML 1.0 children nodes are handled as a last resort here
       (that's also why they can't be inside our ParseNodeBodyElement).
@@ -4408,7 +4442,7 @@ begin
     begin
       if ParsingAllowedChildren then
       begin
-        ChildNode := ParseNode(Lexer);
+        ChildNode := ParseNode(Lexer, Names);
         ChildNode.PositionInParent := Position;
         AddChild(ChildNode);
       end else
@@ -4427,7 +4461,7 @@ begin
   FWWWBasePath := Lexer.WWWBasePath;
 end;
 
-function TVRMLNode.ParseNodeBodyElement(Lexer: TVRMLLexer;
+function TVRMLNode.ParseNodeBodyElement(Lexer: TVRMLLexer; Names: TVRMLNames;
   const APositionInParent: Integer): boolean;
 
   procedure ParseExtensibilityFields;
@@ -4494,7 +4528,7 @@ function TVRMLNode.ParseNodeBodyElement(Lexer: TVRMLLexer;
   begin
     IsAField := TMFString.Create(Self, '', []);
     try
-      IsAField.Parse(Lexer, false);
+      IsAField.Parse(Lexer, Names, false);
 
       { TODO: we should actually do something with obtained here
         isA value }
@@ -4533,7 +4567,7 @@ begin
         Lexer.NextTokenForceVTString else
         Lexer.NextToken;
 
-      Fields[I].Parse(Lexer, true);
+      Fields[I].Parse(Lexer, Names, true);
       Fields[I].PositionInParent := APositionInParent;
     end else
     begin
@@ -4568,7 +4602,7 @@ begin
 
     IDecl := TVRMLInterfaceDeclaration.Create(Self);
     InterfaceDeclarations.Add(IDecl);
-    IDecl.Parse(Lexer, true, true);
+    IDecl.Parse(Lexer, Names, true, true);
     IDecl.PositionInParent := APositionInParent;
     PostAddInterfaceDeclaration(IDecl);
   end else
@@ -4578,7 +4612,7 @@ begin
 
     Proto := TVRMLPrototype.Create;
     Prototypes.Add(Proto);
-    Proto.Parse(Lexer);
+    Proto.Parse(Lexer, Names);
     Proto.PositionInParent := APositionInParent;
   end else
   if Lexer.TokenIsKeyword(vkEXTERNPROTO) then
@@ -4587,7 +4621,7 @@ begin
 
     Proto := TVRMLExternalPrototype.Create;
     Prototypes.Add(Proto);
-    Proto.Parse(Lexer);
+    Proto.Parse(Lexer, Names);
     Proto.PositionInParent := APositionInParent;
   end else
   if Lexer.TokenIsKeyword(vkROUTE) then
@@ -4596,7 +4630,7 @@ begin
 
     Route := TVRMLRoute.Create;
     Routes.Add(Route);
-    Route.Parse(Lexer);
+    Route.Parse(Lexer, Names);
     Route.PositionInParent := APositionInParent;
   end;
 end;
@@ -5024,7 +5058,7 @@ begin
     PrototypeInstanceSourceNode.SaveToStream(SaveProperties);
 
     { What to do about
-        Bind(SaveProperties.NodeNameBinding)
+        Bind(SaveProperties.NodeNames)
       called from PrototypeInstanceSourceNode.SaveToStream ?
       This means that PrototypeInstanceSourceNode (TVRMLPrototypeNode)
       is bound to given name.
@@ -5034,9 +5068,9 @@ begin
       So we bind again Self, instead of PrototypeInstanceSourceNode,
       to this name. }
 
-    Bind(SaveProperties.NodeNameBinding);
+    Bind(SaveProperties.NodeNames);
   end else
-  if SaveProperties.NodeNameBinding.IndexOfObject(Self) >= 0 then
+  if SaveProperties.NodeNames.IndexOfObject(Self) >= 0 then
   begin
     SaveProperties.WritelnIndent('USE ' + NodeName);
   end else
@@ -5052,13 +5086,13 @@ begin
 
     SaveProperties.WritelnIndent('}');
 
-    { update NodeNameBinding.
+    { update NodeNames.
 
       TODO: same problem here as when reading VRML file.
-      We call Bind(NodeNameBinding) after writing node contents, because
+      We call Bind(NodeNames) after writing node contents, because
       we assume there are no cycles... but in case of Script nodes,
       cycles are unfortunately possible. }
-    Bind(SaveProperties.NodeNameBinding);
+    Bind(SaveProperties.NodeNames);
   end;
 end;
 
@@ -5304,16 +5338,16 @@ begin
   finally FreeAndNil(Helper) end;
 end;
 
-procedure TVRMLNode.Bind(NodeNameBinding: TStringList);
+procedure TVRMLNode.Bind(NodeNames: TStringList);
 var
   I: Integer;
 begin
   if NodeName <> '' then
   begin
-    I := NodeNameBinding.IndexOf(NodeName);
+    I := NodeNames.IndexOf(NodeName);
     if I >= 0 then
-      NodeNameBinding.Objects[I] := Self else
-      NodeNameBinding.AddObject(NodeName, Self);
+      NodeNames.Objects[I] := Self else
+      NodeNames.AddObject(NodeName, Self);
   end;
 end;
 
@@ -5773,7 +5807,7 @@ begin
     ChildNotAllowed;
 end;
 
-procedure TSFNode.ParseValue(Lexer: TVRMLLexer);
+procedure TSFNode.ParseValue(Lexer: TVRMLLexer; Names: TObject);
 begin
   if (Lexer.Token = vtKeyword) and (Lexer.TokenKeyword = vkNULL) then
   begin
@@ -5782,7 +5816,7 @@ begin
   end else
   begin
     { This is one case when we can use NilIfUnresolvedUSE = @true }
-    Value := ParseNode(Lexer, true);
+    Value := ParseNode(Lexer, Names as TVRMLNames, true);
     if Value <> nil then
       WarningIfChildNotAllowed(Value);
   end;
@@ -6087,13 +6121,13 @@ begin
     ChildNotAllowed;
 end;
 
-procedure TMFNode.ParseValue(Lexer: TVRMLLexer);
+procedure TMFNode.ParseValue(Lexer: TVRMLLexer; Names: TObject);
 
   procedure ParseOneItem;
   var
     Node: TVRMLNode;
   begin
-    Node := ParseNode(Lexer);
+    Node := ParseNode(Lexer, Names as TVRMLNames);
     AddItem(Node);
     WarningIfChildNotAllowed(Node);
   end;
@@ -6291,9 +6325,9 @@ begin
  result := fNodeTypeName;
 end;
 
-procedure ParseIgnoreToMatchingCurlyBracket(Lexer: TVRMLLexer); forward;
+procedure ParseIgnoreToMatchingCurlyBracket(Lexer: TVRMLLexer; Names: TVRMLNames); forward;
 
-procedure TVRMLUnknownNode.Parse(Lexer: TVRMLLexer);
+procedure TVRMLUnknownNode.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
 { TODO: tutaj zrobic parsowanie node'ow unknown typu 2) i 3),
   VRMLWarning tez nie trzeba zawsze rzucac. }
 begin
@@ -6304,7 +6338,7 @@ begin
 
   Lexer.CheckTokenIs(vtOpenCurlyBracket);
   Lexer.NextToken;
-  ParseIgnoreToMatchingCurlyBracket(Lexer);
+  ParseIgnoreToMatchingCurlyBracket(Lexer, Names);
 
   FWWWBasePath := Lexer.WWWBasePath;
 
@@ -6326,10 +6360,10 @@ begin
 end;
 
 constructor TVRMLUnknownNode.CreateUnknownParse(const ANodeName, ANodeTypeName :string;
-  Lexer: TVRMLLexer);
+  Lexer: TVRMLLexer; Names: TVRMLNames);
 begin
  CreateUnknown(ANodeName, '', ANodeTypeName);
- Parse(Lexer);
+ Parse(Lexer, Names);
 end;
 
 function TVRMLUnknownNode.DeepCopyCreate(
@@ -6379,7 +6413,7 @@ begin
   end;
 end;
 
-procedure TVRMLInterfaceDeclaration.Parse(Lexer: TVRMLLexer;
+procedure TVRMLInterfaceDeclaration.Parse(Lexer: TVRMLLexer; Names: TVRMLNames;
   FieldValue, IsClauseAllowed: boolean);
 var
   FieldTypeName: string;
@@ -6438,7 +6472,7 @@ begin
   end else
   begin
     if FieldValue then
-      Field.Parse(Lexer, IsClauseAllowed) else
+      Field.Parse(Lexer, Names, IsClauseAllowed) else
     if IsClauseAllowed then
       Field.ParseIsClause(Lexer);
   end;
@@ -7131,7 +7165,7 @@ begin
 end;
 
 procedure TVRMLPrototypeBase.ParseInterfaceDeclarations(ExternalProto: boolean;
-  Lexer: TVRMLLexer);
+  Lexer: TVRMLLexer; Names: TVRMLNames);
 var
   I: TVRMLInterfaceDeclaration;
 begin
@@ -7142,7 +7176,7 @@ begin
 
     if Lexer.TokenIsKeyword(InterfaceDeclarationKeywords(AllAccessTypes)) then
     begin
-      I.Parse(Lexer, not ExternalProto, false);
+      I.Parse(Lexer, Names, not ExternalProto, false);
     end else
       raise EVRMLParserError.Create(
         Lexer, Format(SExpectedInterfaceDeclaration, [Lexer.DescribeToken]));
@@ -7154,14 +7188,14 @@ begin
   FWWWBasePath := Lexer.WWWBasePath;
 end;
 
-procedure TVRMLPrototypeBase.Bind(ProtoNameBinding: TStringList);
+procedure TVRMLPrototypeBase.Bind(PrototypeNames: TStringList);
 var
   I: Integer;
 begin
-  I := ProtoNameBinding.IndexOf(Name);
+  I := PrototypeNames.IndexOf(Name);
   if I <> - 1 then
-    ProtoNameBinding.Objects[I] := Self else
-    ProtoNameBinding.AddObject(Name, Self);
+    PrototypeNames.Objects[I] := Self else
+    PrototypeNames.AddObject(Name, Self);
 end;
 
 procedure TVRMLPrototypeBase.SaveInterfaceDeclarationsToStream(
@@ -7190,14 +7224,13 @@ begin
 end;
 
 function ParseVRMLStatements(
-  Lexer: TVRMLLexer;
+  Lexer: TVRMLLexer; Names: TVRMLNames;
   const EndToken: TVRMLToken;
   ParseX3DHeader: boolean): TVRMLNode; forward;
 
-procedure TVRMLPrototype.Parse(Lexer: TVRMLLexer);
+procedure TVRMLPrototype.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
 var
-  OldNodeNameBinding: TStringList;
-  OldProtoNameBinding: TStringList;
+  OldNames: TVRMLNames;
 begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName);
@@ -7207,7 +7240,7 @@ begin
   Lexer.CheckTokenIs(vtOpenSqBracket);
 
   Lexer.NextToken;
-  ParseInterfaceDeclarations(false, Lexer);
+  ParseInterfaceDeclarations(false, Lexer, Names);
 
   Lexer.CheckTokenIs(vtOpenCurlyBracket);
 
@@ -7215,47 +7248,40 @@ begin
   FreeAndNil(FNode);
 
   { VRML 2.0 spec explicitly says that inside prototype has it's own DEF/USE
-    scope, completely independent from the outside. So we create
-    new NodeNameBinding for parsing prototype. }
-  OldNodeNameBinding := Lexer.NodeNameBinding;
-  Lexer.NodeNameBinding := TStringListCaseSens.Create;
+    scope, completely independent from the outside.
+
+    Also prototype name scope is local within the prototype,
+    however it starts from current prototype name scope (not empty,
+    like in case of Names.Nodes). So prototypes defined outside
+    are available inside, but nested prototypes inside are not
+    available outside. }
+  OldNames := Names;
+  Names := TVRMLNames.Create(true);
   try
-    { Also prototype name scope is local within the prototype,
-      however it starts from current prototype name scope (not empty,
-      like in case of NodeNameBinding). So prototypes defined outside
-      are available inside, but nested prototypes inside are not
-      available outside. }
-    OldProtoNameBinding := Lexer.ProtoNameBinding;
-    Lexer.ProtoNameBinding := TStringListCaseSens.Create;
-    try
-      Lexer.ProtoNameBinding.Assign(OldProtoNameBinding);
-      FNode := ParseVRMLStatements(Lexer, vtCloseCurlyBracket, false);
-    finally
-      FreeAndNil(Lexer.ProtoNameBinding);
-      Lexer.ProtoNameBinding := OldProtoNameBinding;
-    end;
+    Names.Prototypes.Assign(OldNames.Prototypes);
+    FNode := ParseVRMLStatements(Lexer, Names, vtCloseCurlyBracket, false);
   finally
-    FreeAndNil(Lexer.NodeNameBinding);
-    Lexer.NodeNameBinding := OldNodeNameBinding;
+    FreeAndNil(Names);
+    Names := OldNames;
   end;
 
   { consume last vtCloseCurlyBracket, ParseVRMLStatements doesn't do it }
   Lexer.NextToken;
 
-  Bind(Lexer.ProtoNameBinding);
+  Bind(Names.Prototypes);
 end;
 
 procedure TVRMLPrototype.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
 var
-  OldNodeNameBinding: TStringList;
+  OldNodeNames: TStringList;
 begin
   SaveProperties.WriteIndent('PROTO ');
 
   SaveInterfaceDeclarationsToStream(SaveProperties, false);
 
   { Inside prototype has it's own DEF/USE scope. }
-  OldNodeNameBinding := SaveProperties.NodeNameBinding;
-  SaveProperties.NodeNameBinding := TStringListCaseSens.Create;
+  OldNodeNames := SaveProperties.NodeNames;
+  SaveProperties.NodeNames := TStringListCaseSens.Create;
   try
     SaveProperties.WritelnIndent('{');
     { Node may be TVRMLRootNode_* here, that's OK,
@@ -7265,8 +7291,8 @@ begin
     SaveProperties.DecIndent;
     SaveProperties.WritelnIndent('}');
   finally
-    FreeAndNil(SaveProperties.NodeNameBinding);
-    SaveProperties.NodeNameBinding := OldNodeNameBinding;
+    FreeAndNil(SaveProperties.NodeNames);
+    SaveProperties.NodeNames := OldNodeNames;
   end;
 end;
 
@@ -7285,7 +7311,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLExternalPrototype.Parse(Lexer: TVRMLLexer);
+procedure TVRMLExternalPrototype.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
 begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName);
@@ -7295,11 +7321,11 @@ begin
   Lexer.CheckTokenIs(vtOpenSqBracket);
 
   Lexer.NextToken;
-  ParseInterfaceDeclarations(true, Lexer);
+  ParseInterfaceDeclarations(true, Lexer, Names);
 
-  URLList.Parse(Lexer, false);
+  URLList.Parse(Lexer, Names, false);
 
-  Bind(Lexer.ProtoNameBinding);
+  Bind(Names.Prototypes);
 
   LoadReferenced;
 end;
@@ -7311,7 +7337,7 @@ begin
 
   SaveInterfaceDeclarationsToStream(SaveProperties, true);
 
-  { SaveProperties.NodeNameBinding will be ignored by URLList
+  { SaveProperties.NodeNames will be ignored by URLList
     (TMFString.SaveToStream), don't worry about it. }
 
   URLList.SaveToStream(SaveProperties);
@@ -7356,7 +7382,7 @@ procedure TVRMLExternalPrototype.LoadReferenced;
   end;
 
 var
-  ProtoNameBinding: TStringList;
+  PrototypeNames: TStringList;
 
   function LoadFromExternalVRML(const RelativeURL: string): boolean;
   var
@@ -7375,10 +7401,10 @@ var
     var
       I: Integer;
     begin
-      for I := 0 to ProtoNameBinding.Count - 1 do
-        if ProtoNameBinding.Objects[I] is TVRMLPrototype then
+      for I := 0 to PrototypeNames.Count - 1 do
+        if PrototypeNames.Objects[I] is TVRMLPrototype then
         begin
-          Result := TVRMLPrototype(ProtoNameBinding.Objects[I]);
+          Result := TVRMLPrototype(PrototypeNames.Objects[I]);
           if (Name = '') or (Result.Name = Name) then
             Exit;
         end;
@@ -7396,7 +7422,7 @@ var
     URL := CombinePaths(WWWBasePath, RelativeURL);
     URLExtractAnchor(URL, Anchor);
     try
-      ReferencedPrototypeNode := LoadAsVRML(URL, false, ProtoNameBinding);
+      ReferencedPrototypeNode := LoadAsVRML(URL, false, PrototypeNames);
     except
       on E: Exception do
       begin
@@ -7435,7 +7461,7 @@ var
 begin
   UnloadReferenced;
 
-  ProtoNameBinding := TStringList.Create;
+  PrototypeNames := TStringList.Create;
   try
     for I := 0 to URLList.Count - 1 do
     begin
@@ -7446,7 +7472,7 @@ begin
       if Loaded then
         Break;
     end;
-  finally FreeAndNil(ProtoNameBinding); end;
+  finally FreeAndNil(PrototypeNames); end;
 end;
 
 procedure TVRMLExternalPrototype.UnloadReferenced;
@@ -7569,7 +7595,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLRoute.Parse(Lexer: TVRMLLexer);
+procedure TVRMLRoute.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
 var
   SourceNodeName, SourceEventName: string;
   DestinationNodeName, DestinationEventName: string;
@@ -7605,8 +7631,8 @@ begin
 
   Lexer.NextToken;
 
-  SetSource     (SourceNodeName     , SourceEventName     , Lexer.NodeNameBinding);
-  SetDestination(DestinationNodeName, DestinationEventName, Lexer.NodeNameBinding);
+  SetSource     (SourceNodeName     , SourceEventName     , Names.Nodes);
+  SetDestination(DestinationNodeName, DestinationEventName, Names.Nodes);
 end;
 
 procedure TVRMLRoute.UnsetEnding(
@@ -7703,7 +7729,7 @@ begin
 end;
 
 procedure TVRMLRoute.SetEnding(const NodeName, FieldOrEventName: string;
-  NodeNameBinding: TStringList;
+  NodeNames: TStringList;
   var Node: TVRMLNode; var Event: TVRMLEvent;
   const DestEnding: boolean);
 var
@@ -7713,12 +7739,12 @@ begin
   UnsetEnding(Node, Event, DestEnding);
 
   try
-    Index := NodeNameBinding.IndexOf(NodeName);
+    Index := NodeNames.IndexOf(NodeName);
     if Index = -1 then
       raise ERouteSetEndingError.CreateFmt('Route %s node name "%s" not found',
         [ DestEndingNames[DestEnding], NodeName ]);
 
-    Node := NodeNameBinding.Objects[Index] as TVRMLNode;
+    Node := NodeNames.Objects[Index] as TVRMLNode;
     if Node.PrototypeInstanceSourceNode <> nil then
     begin
       Node := Node.PrototypeInstanceSourceNode;
@@ -7748,20 +7774,20 @@ end;
 
 procedure TVRMLRoute.SetSource(
   const SourceNodeName, SourceFieldOrEventName: string;
-  NodeNameBinding: TStringList);
+  NodeNames: TStringList);
 begin
   SetEnding(SourceNodeName, SourceFieldOrEventName,
-    NodeNameBinding,
+    NodeNames,
     FSourceNode, FSourceEvent,
     false);
 end;
 
 procedure TVRMLRoute.SetDestination(
   const DestinationNodeName, DestinationFieldOrEventName: string;
-  NodeNameBinding: TStringList);
+  NodeNames: TStringList);
 begin
   SetEnding(DestinationNodeName, DestinationFieldOrEventName,
-    NodeNameBinding,
+    NodeNames,
     FDestinationNode, FDestinationEvent,
     true);
 end;
@@ -7833,12 +7859,12 @@ var
     if Node.NodeName = '' then
       raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s node not named', [S]);
 
-    Index := SaveProperties.NodeNameBinding.IndexOf(Node.NodeName);
+    Index := SaveProperties.NodeNames.IndexOf(Node.NodeName);
     if Index = -1 then
       raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s node name "%s" not bound',
         [S, Node.NodeName]);
 
-    BoundNode := SaveProperties.NodeNameBinding.Objects[Index] as TVRMLNode;
+    BoundNode := SaveProperties.NodeNames.Objects[Index] as TVRMLNode;
     { Just like when setting node by TVRMLRoute.SetEnding:
       we actually keep the Node that contains the route, which is
       sometimes TVRMLPrototypeNode hidden inside PrototypeInstanceSourceNode. }
@@ -7928,12 +7954,54 @@ begin
   end;
 end;
 
+{ TVRMLNodeNames ----------------------------------------------------------- }
+
+constructor TVRMLNodeNames.Create(const AAutoRemove: boolean);
+begin
+  inherited Create;
+  FAutoRemove := AAutoRemove;
+  if AutoRemove then
+    AnyNodeDestructionNotifications.Add(@DestructionNotification);
+end;
+
+destructor TVRMLNodeNames.Destroy;
+begin
+  if AutoRemove then
+    AnyNodeDestructionNotifications.Remove(@DestructionNotification);
+  inherited;
+end;
+
+procedure TVRMLNodeNames.DestructionNotification(Node: TVRMLNode);
+var
+  I: Integer;
+begin
+  I := IndexOfObject(Node);
+  if I >= 0 then
+    Delete(I);
+end;
+
+{ TVRMLNames ----------------------------------------------------------------- }
+
+constructor TVRMLNames.Create(const AAutoRemoveNodes: boolean);
+begin
+  inherited Create;
+  Nodes := TVRMLNodeNames.Create(AAutoRemoveNodes);
+  Prototypes := TStringListCaseSens.Create;
+end;
+
+destructor TVRMLNames.Destroy;
+begin
+  FreeAndNil(Nodes);
+  FreeAndNil(Prototypes);
+  inherited;
+end;
+
 { global procedures ---------------------------------------------------------- }
 
 { Internal for ParseIgnoreToMatchingSqBracket and
   ParseIgnoreToMatchingCurlyBracket }
 procedure ParseIgnoreToMatchingBracket(
-  Lexer: TVRMLLexer;
+  Lexer: TVRMLLexer; Names: TVRMLNames;
   LevelSqBracket, LevelCurlyBracket: integer);
 begin
   while (LevelSqBracket > 0) or
@@ -7954,19 +8022,19 @@ end;
    Read everything up to (and including) matching "]".
    This is a hack to omit (not really parse) interface sections
    of prototypes. *)
-procedure ParseIgnoreToMatchingSqBracket(Lexer: TVRMLLexer);
+procedure ParseIgnoreToMatchingSqBracket(Lexer: TVRMLLexer; Names: TVRMLNames);
 begin
-  ParseIgnoreToMatchingBracket(Lexer, 1, 0);
+  ParseIgnoreToMatchingBracket(Lexer, Names, 1, 0);
 end;
 
 (* Just like ParseIgnoreToMatchingSqBracket, but here for "{" and "}" brackets.
    This is a hack to omit (not really parse) unknown VRML nodes. *)
-procedure ParseIgnoreToMatchingCurlyBracket(Lexer: TVRMLLexer);
+procedure ParseIgnoreToMatchingCurlyBracket(Lexer: TVRMLLexer; Names: TVRMLNames);
 begin
-  ParseIgnoreToMatchingBracket(Lexer, 0, 1);
+  ParseIgnoreToMatchingBracket(Lexer, Names, 0, 1);
 end;
 
-function ParseNode(Lexer: TVRMLLexer;
+function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
   NilIfUnresolvedUSE: boolean = false): TVRMLNode;
 
   procedure ParseNamedNode(const nodename: string);
@@ -7996,10 +8064,10 @@ function ParseNode(Lexer: TVRMLLexer;
       Only when this failed, we look at built-in nodes in NodesManager.
     }
 
-    ProtoIndex := Lexer.ProtoNameBinding.IndexOf(NodeTypeName);
+    ProtoIndex := Names.Prototypes.IndexOf(NodeTypeName);
     if ProtoIndex <> -1 then
     begin
-      Proto := Lexer.ProtoNameBinding.Objects[ProtoIndex] as TVRMLPrototypeBase;
+      Proto := Names.Prototypes.Objects[ProtoIndex] as TVRMLPrototypeBase;
       if (Proto is TVRMLExternalPrototype) and
          (TVRMLExternalPrototype(Proto).ReferencedClass <> nil) then
         Result := TVRMLExternalPrototype(Proto).ReferencedClass.Create(NodeName, '') else
@@ -8017,7 +8085,7 @@ function ParseNode(Lexer: TVRMLLexer;
       end;
     end;
 
-    Result.Parse(Lexer);
+    Result.Parse(Lexer, Names);
 
     if Result is TVRMLPrototypeNode then
     try
@@ -8042,7 +8110,7 @@ function ParseNode(Lexer: TVRMLLexer;
       Moreover, this is needed in the light of possible
         "Result := TVRMLPrototypeNode(Result).Instantiate"
       which means that before parsing, our Result is possibly not something
-      that we wanted to insert to NodeNameBinding.
+      that we wanted to insert to NodeNames.
 
       So there I was, swimming in joy with ultra-simple and 100% correct
       solution. Until I found a problem with it...
@@ -8076,7 +8144,7 @@ function ParseNode(Lexer: TVRMLLexer;
       any scripting, this is not a problem in practice. But some day it'll
       have to be fixed... }
 
-    Result.Bind(Lexer.NodeNameBinding);
+    Result.Bind(Names.Nodes);
   end;
 
 var
@@ -8107,7 +8175,7 @@ begin
            nodename := Lexer.TokenName;
 
            {get appropriate node}
-           i := Lexer.NodeNameBinding.IndexOf(nodename);
+           i := Names.Nodes.IndexOf(nodename);
            if i = -1 then
            begin
              S := Format('Incorrect USE clause: node name "%s" undefined',
@@ -8119,7 +8187,7 @@ begin
              end else
                raise EVRMLParserError.Create(Lexer, S);
            end else
-             Result := TVRMLNode(Lexer.NodeNameBinding.Objects[i]);
+             Result := TVRMLNode(Names.Nodes.Objects[i]);
 
            Lexer.NextToken;
           end;
@@ -8142,7 +8210,7 @@ end;
   returns everything read wrapped in artifical TVRMLRootNode_1
   or TVRMLRootNode_2 instance. }
 function ParseVRMLStatements(
-  Lexer: TVRMLLexer;
+  Lexer: TVRMLLexer; Names: TVRMLNames;
   const EndToken: TVRMLToken;
   ParseX3DHeader: boolean): TVRMLNode;
 var
@@ -8234,7 +8302,7 @@ var
     begin
       Route := TVRMLRoute.Create;
       try
-        Route.Parse(Lexer);
+        Route.Parse(Lexer, Names);
         Route.PositionInParent := PositionInParent;
         Result.Routes.Add(Route);
       except
@@ -8252,7 +8320,7 @@ var
         Proto := TVRMLPrototype.Create else
         Proto := TVRMLExternalPrototype.Create;
       try
-        Proto.Parse(Lexer);
+        Proto.Parse(Lexer, Names);
         Proto.PositionInParent := PositionInParent;
         Result.Prototypes.Add(Proto);
       except
@@ -8265,7 +8333,7 @@ var
     var
       NewNode: TVRMLNode;
     begin
-      NewNode := ParseNode(Lexer);
+      NewNode := ParseNode(Lexer, Names);
       NewNode.PositionInParent := PositionInParent;
       Result.SmartAddChild(NewNode);
     end;
@@ -8354,22 +8422,25 @@ end;
 
 function ParseVRMLFile(Stream: TPeekCharStream;
   const WWWBasePath: string;
-  ProtoNameBinding: TStringList): TVRMLNode;
+  PrototypeNames: TStringList): TVRMLNode;
 var
   Lexer: TVRMLLexer;
+  Names: TVRMLNames;
 begin
+  Names := TVRMLNames.Create(false);
   Lexer := TVRMLLexer.Create(Stream, false, WWWBasePath);
   try
-    Result := ParseVRMLStatements(Lexer, vtEnd, true);
-    if ProtoNameBinding <> nil then
-      ProtoNameBinding.Assign(Lexer.ProtoNameBinding);
+    Result := ParseVRMLStatements(Lexer, Names, vtEnd, true);
+    if PrototypeNames <> nil then
+      PrototypeNames.Assign(Names.Prototypes);
   finally
-    Lexer.Free;
+    FreeAndNil(Lexer);
+    FreeAndNil(Names);
   end;
 end;
 
 function ParseVRMLFile(const FileName: string; AllowStdIn: boolean;
-  ProtoNameBinding: TStringList): TVRMLNode;
+  PrototypeNames: TStringList): TVRMLNode;
 
   function DoIt(BaseStream: TStream; FreeBaseStream: boolean;
     const WWWBasePath: string): TVRMLNode;
@@ -8378,7 +8449,7 @@ function ParseVRMLFile(const FileName: string; AllowStdIn: boolean;
   begin
     Stream := TBufferedReadStream.Create(BaseStream, FreeBaseStream);
     try
-      Result := ParseVRMLFile(Stream, WWWBasePath, ProtoNameBinding);
+      Result := ParseVRMLFile(Stream, WWWBasePath, PrototypeNames);
     finally Stream.Free end;
   end;
 
@@ -8663,29 +8734,6 @@ begin
     Result := OriginalNode.DeepCopyCore(Self);
   end else
     Result := New[I];
-end;
-
-{ TNodeNameBinding ----------------------------------------------------------- }
-
-constructor TNodeNameBinding.Create;
-begin
-  inherited;
-  AnyNodeDestructionNotifications.Add(@DestructionNotification);
-end;
-
-destructor TNodeNameBinding.Destroy;
-begin
-  AnyNodeDestructionNotifications.Remove(@DestructionNotification);
-  inherited;
-end;
-
-procedure TNodeNameBinding.DestructionNotification(Node: TVRMLNode);
-var
-  I: Integer;
-begin
-  I := IndexOfObject(Node);
-  if I >= 0 then
-    Delete(I);
 end;
 
 { unit init/fini ------------------------------------------------------------ }

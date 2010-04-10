@@ -101,12 +101,12 @@ procedure LoadMD3AsVRMLSequence(
   @param(AllowStdIn If AllowStdIn and FileName = '-' then it will load
     a VRML file from StdInStream (using GetCurrentDir as WWWBasePath).)
 
-  @param(CopyProtoNameBinding If <> @nil, will be filled with global
+  @param(PrototypeNames If <> @nil, will be filled with global
     prototype namespace at the end of parsing the file.
     This will only be used if loaded file is VRML/X3D.
     Useful mostly for EXTERNPROTO implementation.) }
 function LoadAsVRML(const filename: string; AllowStdIn: boolean = false;
-  CopyProtoNameBinding: TStringList = nil): TVRMLNode;
+  PrototypeNames: TStringList = nil): TVRMLNode;
 
 const
   { File filters for files loaded by LoadAsVRML, suitable
@@ -813,7 +813,7 @@ begin
 end;
 
 function LoadAsVRML(const filename: string; AllowStdIn: boolean;
-  CopyProtoNameBinding: TStringList): TVRMLNode;
+  PrototypeNames: TStringList): TVRMLNode;
 const
   GzExt = '.gz';
   Extensions: array [0..14] of string =
@@ -827,7 +827,7 @@ var
   Ext: string;
 begin
   if AllowStdIn and (FileName = '-') then
-    result := ParseVRMLFile('-', true, CopyProtoNameBinding) else
+    result := ParseVRMLFile('-', true, PrototypeNames) else
   begin
     Ext := ExtractFileExt(filename);
     if Ext = '.gz' then
@@ -836,11 +836,11 @@ begin
       0: result := LoadGEOAsVRML(filename);
       1: result := Load3dsAsVRML(filename);
       2: result := LoadOBJAsVRML(filename);
-      3..9: result := ParseVRMLFile(filename, false, CopyProtoNameBinding);
+      3..9: result := ParseVRMLFile(filename, false, PrototypeNames);
       10: Result := LoadMD3AsVRML(FileName);
       11: Result := LoadColladaAsVRML(FileName);
-      12: Result := LoadX3DXmlAsVRML(FileName, false, CopyProtoNameBinding);
-      13, 14: Result := LoadX3DXmlAsVRML(FileName, true, CopyProtoNameBinding);
+      12: Result := LoadX3DXmlAsVRML(FileName, false, PrototypeNames);
+      13, 14: Result := LoadX3DXmlAsVRML(FileName, true, PrototypeNames);
       else raise Exception.CreateFmt(
         'Unrecognized file extension "%s" for 3D model file "%s"',
         [Ext, FileName]);

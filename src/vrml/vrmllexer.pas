@@ -317,21 +317,6 @@ type
       to something sensible. It is just some information
       "carried with" the lexer. We will use it when we parse nodes. }
     WWWBasePath: string;
-
-    { This is used when parsing to keep current namespace for DEF/USE.
-
-      NodeNameBinding is a list without duplicates with all
-      currently known node names. Objects[] of this list point to
-      actual TVRMLNode instances. If many instances had the same NodeName,
-      only the last instance will be referenced here, following VRML spec
-      (last DEF takes precedence).
-
-      Internal notes: ParseNode doesn't modify this, only TVRMLNode.Parse
-      can do this. }
-    NodeNameBinding: TStringList;
-
-    { This is used when parsing to keep current namespace of prototypes. }
-    ProtoNameBinding: TStringList;
   end;
 
   EVRMLLexerError = class(EVRMLError)
@@ -414,9 +399,6 @@ begin
   FStream := AStream;
   FOwnsStream := AOwnsStream;
   WWWBasePath := AWWWBasePath;
-
-  NodeNameBinding := TStringListCaseSens.Create;
-  ProtoNameBinding := TStringListCaseSens.Create;
 end;
 
 procedure TVRMLLexer.CreateCommonEnd;
@@ -646,8 +628,6 @@ end;
 
 destructor TVRMLLexer.Destroy;
 begin
-  FreeAndNil(NodeNameBinding);
-  FreeAndNil(ProtoNameBinding);
   if FOwnsStream then
     FreeAndNil(FStream);
   inherited;

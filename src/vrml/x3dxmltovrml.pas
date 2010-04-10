@@ -24,12 +24,12 @@ uses VRMLNodes, Classes;
 
 { Read X3D encoded in XML, and convert it to VRML/X3D nodes graph.
 
-  @param(CopyProtoNameBinding If <> @nil, will be filled with global
+  @param(PrototypeNames If <> @nil, will be filled with global
   prototype namespace at the end of parsing the file.
   Useful mostly for EXTERNPROTO implementation.) }
 function LoadX3DXmlAsVRML(const FileName: string;
   Gzipped: boolean;
-  CopyProtoNameBinding: TStringList = nil): TVRMLNode;
+  PrototypeNames: TStringList = nil): TVRMLNode;
 
 implementation
 
@@ -47,7 +47,7 @@ type
   See 4.3.12 IMPORT/EXPORT statement syntax. }
 
 function LoadX3DXmlAsVRML(const FileName: string;
-  Gzipped: boolean; CopyProtoNameBinding: TStringList): TVRMLNode;
+  Gzipped: boolean; PrototypeNames: TStringList): TVRMLNode;
 var
   WWWBasePath: string;
 
@@ -55,14 +55,9 @@ var
   VRMLVerMajor: Integer;
   VRMLVerMinor: Integer;
 
-  { This is used the same way as Lexer.NodeNameBinding when
-    reading VRML files (that is, in classic VRML encoding).
-
-    TODO: this means that each USE must occur after it's DEF,
+  { TODO: each USE must occur after it's DEF,
     does X3D XML encoding guarantee this? }
-  NodeNameBinding: TNodeNameBinding;
-
-  ProtoNamebinding: TStringList;
+  Names: TVRMLNames;
 
 const
   SAttrContainerField = 'containerField';
@@ -105,8 +100,8 @@ const
     DestinationNodeName := RequiredAttrib('toNode');
     DestinationEventName := RequiredAttrib('toField');
 
-    Route.SetSource     (SourceNodeName     , SourceEventName     , NodeNameBinding);
-    Route.SetDestination(DestinationNodeName, DestinationEventName, NodeNameBinding);
+    Route.SetSource     (SourceNodeName     , SourceEventName     , Names.Nodes);
+    Route.SetDestination(DestinationNodeName, DestinationEventName, Names.Nodes);
   end;
 
   procedure ParseFieldValueFromAttribute(Field: TVRMLField;
@@ -149,7 +144,7 @@ const
       SF := Field as TSFNode;
 
       { get appropriate node }
-      NodeIndex := NodeNameBinding.IndexOf(Value);
+      NodeIndex := Names.Nodes.IndexOf(Value);
       if NodeIndex = -1 then
       begin
         if Value = SNull then
@@ -157,7 +152,7 @@ const
           VRMLWarning(vwSerious, Format('Invalid node name for SFNode field: "%s"', [Value]));
       end else
       begin
-        Node := TVRMLNode(NodeNameBinding.Objects[NodeIndex]);
+        Node := TVRMLNode(Names.Nodes.Objects[NodeIndex]);
         SF.Value := Node;
         SF.WarningIfChildNotAllowed(Node);
       end;
@@ -167,14 +162,14 @@ const
       MF := Field as TMFNode;
 
       { get appropriate node }
-      NodeIndex := NodeNameBinding.IndexOf(Value);
+      NodeIndex := Names.Nodes.IndexOf(Value);
       if NodeIndex = -1 then
       begin
         { NULL not allowed for MFNode, like for SFNode }
         VRMLWarning(vwSerious, Format('Invalid node name for MFNode field: "%s"', [Value]));
       end else
       begin
-        Node := TVRMLNode(NodeNameBinding.Objects[NodeIndex]);
+        Node := TVRMLNode(Names.Nodes.Objects[NodeIndex]);
         MF.AddItem(Node);
         MF.WarningIfChildNotAllowed(Node);
       end;
@@ -555,11 +550,11 @@ const
         if not DOMGetAttribute(Element, 'name', ProtoName) then
           raise EX3DXmlError.Create('<ProtoInstance> doesn''t specify "name" of the prototype');
 
-        ProtoIndex := ProtoNameBinding.IndexOf(ProtoName);
+        ProtoIndex := Names.Prototypes.IndexOf(ProtoName);
         if ProtoIndex = -1 then
           raise EX3DXmlError.CreateFmt('<ProtoInstance> specifies unknown prototype name "%s"', [ProtoName]);
 
-        Proto := ProtoNameBinding.Objects[ProtoIndex] as TVRMLPrototypeBase;
+        Proto := Names.Prototypes.Objects[ProtoIndex] as TVRMLPrototypeBase;
         if (Proto is TVRMLExternalPrototype) and
            (TVRMLExternalPrototype(Proto).ReferencedClass <> nil) then
           Result := TVRMLExternalPrototype(Proto).ReferencedClass.Create(NodeName, WWWBasePath) else
@@ -642,7 +637,7 @@ const
       { TODO: this has a problem, see classic VRML ParseNode
         comment starting with "Cycles in VRML graph are bad..." }
 
-      Result.Bind(NodeNameBinding);
+      Result.Bind(Names.Nodes);
 
       if DOMGetAttribute(Element, SAttrContainerField, ExplicitContainerField) then
         Result.ExplicitContainerField := ExplicitContainerField;
@@ -657,7 +652,7 @@ const
       if DOMGetAttribute(Element, 'USE', NodeName) then
       begin
         { get appropriate node }
-        I := NodeNameBinding.IndexOf(NodeName);
+        I := Names.Nodes.IndexOf(NodeName);
         if I = -1 then
         begin
           S := Format('Incorrect USE element: node name "%s" undefined',
@@ -669,7 +664,7 @@ const
           end else
             raise EX3DXmlNotAllowedError.Create(S);
         end else
-          Result := TVRMLNode(NodeNameBinding.Objects[i]);
+          Result := TVRMLNode(Names.Nodes.Objects[i]);
       end else
       begin
         if DOMGetAttribute(Element, SAttrDEF, NodeName) then
@@ -814,8 +809,7 @@ const
   { Equivalent to TVRMLPrototype.Parse }
   procedure ParsePrototype(Proto: TVRMLPrototype; Element: TDOMElement);
   var
-    OldNodeNameBinding: TNodeNameBinding;
-    OldProtoNameBinding: TStringList;
+    OldNames: TVRMLNames;
     Name: string;
     E: TDOMElement;
   begin
@@ -836,31 +830,24 @@ const
     Proto.Node.Free; Proto.Node := nil;
 
     { VRML 2.0 spec explicitly says that inside prototype has it's own DEF/USE
-      scope, completely independent from the outside. So we create
-      new NodeNameBinding for parsing prototype. }
-    OldNodeNameBinding := NodeNameBinding;
-    NodeNameBinding := TNodeNameBinding.Create;
+      scope, completely independent from the outside.
+
+      Also prototype name scope is local within the prototype,
+      however it starts from current prototype name scope (not empty,
+      like in case of Names.Nodes). So prototypes defined outside
+      are available inside, but nested prototypes inside are not
+      available outside. }
+    OldNames := Names;
+    Names := TVRMLNames.Create(true);
     try
-      { Also prototype name scope is local within the prototype,
-        however it starts from current prototype name scope (not empty,
-        like in case of NodeNameBinding). So prototypes defined outside
-        are available inside, but nested prototypes inside are not
-        available outside. }
-      OldProtoNameBinding := ProtoNameBinding;
-      ProtoNameBinding := TStringListCaseSens.Create;
-      try
-        ProtoNameBinding.Assign(OldProtoNameBinding);
-        Proto.Node := ParseVRMLStatements(E, false, nil);
-      finally
-        FreeAndNil(ProtoNameBinding);
-        ProtoNameBinding := OldProtoNameBinding;
-      end;
+      Names.Prototypes.Assign(OldNames.Prototypes);
+      Proto.Node := ParseVRMLStatements(E, false, nil);
     finally
-      FreeAndNil(NodeNameBinding);
-      NodeNameBinding := OldNodeNameBinding;
+      FreeAndNil(Names);
+      Names := OldNames;
     end;
 
-    Proto.Bind(ProtoNameBinding);
+    Proto.Bind(Names.Prototypes);
   end;
 
   { Equivalent to TVRMLExternalPrototype.Parse }
@@ -881,7 +868,7 @@ const
       ParseFieldValueFromAttribute(Proto.URLList, URLListValue) else
       raise EX3DXmlError.Create('Missing "url" for <ExternProtoDeclare> element');
 
-    Proto.Bind(ProtoNameBinding);
+    Proto.Bind(Names.Prototypes);
 
     Proto.LoadReferenced;
   end;
@@ -1054,11 +1041,10 @@ begin
   WWWBasePath := ExtractFilePath(ExpandFileName(FileName));
 
   Stream := nil;
-  NodeNameBinding := nil;
-  ProtoNameBinding := nil;
+
+  { X3D XML requires AutoRemove = true below }
+  Names := TVRMLNames.Create(true);
   try
-    NodeNameBinding := TNodeNameBinding.Create;
-    ProtoNameBinding := TStringList.Create;
 
     if Gzipped then
     begin
@@ -1092,11 +1078,10 @@ begin
       Result := ParseVRMLStatements(SceneElement, true, Doc.DocumentElement);
     finally FreeAndNil(Doc) end;
 
-    if CopyProtoNameBinding <> nil then
-      CopyProtoNameBinding.Assign(ProtoNameBinding);
+    if PrototypeNames <> nil then
+      PrototypeNames.Assign(Names.Prototypes);
   finally
-    FreeAndNil(NodeNameBinding);
-    FreeAndNil(ProtoNameBinding);
+    FreeAndNil(Names);
     FreeAndNil(Stream);
   end;
 end;
