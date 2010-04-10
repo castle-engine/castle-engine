@@ -198,7 +198,6 @@ src/fonts/allkambifontsunits.pas:
 src/images/allkambiimagesunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
   (write-unit-all-units-in-dir \"src/images/\" \"AllKambiImagesUnits\") \
-  (kam-simple-replace-buffer \"imagesfftw,\" \"{ imagesfftw, --- imagesfftw is not compiled here for now, as it requires FPC > 2.2.x, and is not actually used by anything else from the engine }\") \
   (save-buffer))"
 
 src/opengl/allkambiopenglunits.pas:

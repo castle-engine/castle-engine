@@ -8,4 +8,4 @@ fi
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg examples/images/fft_tests.lpr
+fpc -dRELEASE @kambi.cfg examples/images/fft/fft_tests.lpr

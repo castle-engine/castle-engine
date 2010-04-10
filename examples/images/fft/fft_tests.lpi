@@ -27,6 +27,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
+        <CommandLineParams Value="../../vrml/terrain/dump.png"/>
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
@@ -49,39 +50,31 @@
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="../../src/images/imagesfftw.pas"/>
-        <IsPartOfProject Value="True"/>
+        <Filename Value="imagesfftw.pas"/>
         <UnitName Value="ImagesFftw"/>
         <CursorPos X="5" Y="40"/>
         <TopLine Value="21"/>
         <UsageCount Value="20"/>
       </Unit1>
       <Unit2>
-        <Filename Value="../../src/opengl/kambiglutils.pas"/>
-        <UnitName Value="KambiGLUtils"/>
-        <CursorPos X="64" Y="27"/>
-        <TopLine Value="9"/>
-        <UsageCount Value="10"/>
+        <Filename Value="fftwutils.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="20"/>
       </Unit2>
     </Units>
-    <JumpHistory Count="1" HistoryIndex="0">
-      <Position1>
-        <Filename Value="fft_tests.lpr"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
-      </Position1>
-    </JumpHistory>
+    <JumpHistory Count="0" HistoryIndex="-1"/>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="8"/>
-    <SearchPaths>
-      <OtherUnitFiles Value="/home/michalis/sources/vrmlengine/trunk/kambi_vrml_game_engine/src/images/"/>
-    </SearchPaths>
     <Parsing>
       <SyntaxOptions>
         <UseAnsiStrings Value="True"/>
       </SyntaxOptions>
     </Parsing>
     <Other>
+      <Verbosity>
+        <ShowHints Value="False"/>
+      </Verbosity>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
