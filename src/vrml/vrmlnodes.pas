@@ -793,6 +793,7 @@ type
   private
     FPrototypes: TVRMLPrototypeBasesList;
     FRoutes: TVRMLRoutesList;
+    FImportsList, FExportsList: TVRMLFileItemsList;
     FFields: TVRMLFieldsList;
     FEvents: TVRMLEventsList;
     FPrototypeInstance: boolean;
@@ -1633,6 +1634,8 @@ type
 
     property Prototypes: TVRMLPrototypeBasesList read FPrototypes;
     property Routes: TVRMLRoutesList read FRoutes;
+    property ImportsList: TVRMLFileItemsList read FImportsList;
+    property ExportsList: TVRMLFileItemsList read FExportsList;
 
     { Create a deep copy of this node and all it's children.
 
@@ -2498,7 +2501,11 @@ type
       about "load" field. It's the caller's job to keep loaded state
       synchronized with "load" field value.
 
-      LoadInlined(false) will be called automatically in BeforeTraverse. }
+      LoadInlined(false) will be called automatically, to ensure the inlined
+      contents are always loaded. It will be called at the end of Parse
+      (this is needed to handle VRML/X3D IMPORT/EXPORT mechanism),
+      it will also be called in BeforeTraverse (in case you constructed node
+      by code, not by parsing). }
     procedure LoadInlined(CanReload: boolean);
   end;
 
@@ -3158,6 +3165,24 @@ type
   TObjectsListItem_5 = TVRMLRoute;
   {$I objectslist_5.inc}
   TVRMLRoutesList = class(TObjectsList_5);
+
+  TVRMLImport = class(TVRMLFileItem)
+  public
+    InlineNodeName, ImportedNodeName, ImportedNodeAlias: string;
+
+    procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
+    function DeepCopy(CopyState: TVRMLNodeDeepCopyState): TVRMLImport;
+  end;
+
+  TVRMLExport = class(TVRMLFileItem)
+  public
+    ExportedNodeName, ExportedNodeAlias: string;
+
+    procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
+    function DeepCopy(CopyState: TVRMLNodeDeepCopyState): TVRMLExport;
+  end;
 
 {$I vrmlnodes_eventsprocessor.inc}
 
@@ -4032,6 +4057,8 @@ begin
 
   FPrototypes := TVRMLPrototypeBasesList.Create;
   FRoutes := TVRMLRoutesList.Create;
+  FImportsList := TVRMLFileItemsList.Create;
+  FExportsList := TVRMLFileItemsList.Create;
 
   FHasInterfaceDeclarations := [];
   FInterfaceDeclarations := nil;
@@ -4066,6 +4093,8 @@ begin
   FreeWithContentsAndNil(FPrototypes);
 
   FreeWithContentsAndNil(FRoutes);
+  FreeWithContentsAndNil(FImportsList);
+  FreeWithContentsAndNil(FExportsList);
 
   { First free Fields and Events, before freeing InterfaceDeclarations.
     Reason: Fields and Events may contains references to InterfaceDeclarations
@@ -4560,6 +4589,8 @@ var
   Proto: TVRMLPrototypeBase;
   Event: TVRMLEvent;
   IDecl: TVRMLInterfaceDeclaration;
+  Import: TVRMLImport;
+  ExportItem: TVRMLExport; { "export" is a keyword in Pascal }
 begin
   Result := false;
 
@@ -4651,6 +4682,24 @@ begin
     Routes.Add(Route);
     Route.Parse(Lexer, Names);
     Route.PositionInParent := APositionInParent;
+  end else
+  if Lexer.TokenIsKeyword(vkIMPORT) then
+  begin
+    Result := true;
+
+    Import := TVRMLImport.Create;
+    ImportsList.Add(Import);
+    Import.Parse(Lexer, Names);
+    Import.PositionInParent := APositionInParent;
+  end else
+  if Lexer.TokenIsKeyword(vkEXPORT) then
+  begin
+    Result := true;
+
+    ExportItem := TVRMLExport.Create;
+    ExportsList.Add(ExportItem);
+    ExportItem.Parse(Lexer, Names);
+    ExportItem.PositionInParent := APositionInParent;
   end;
 end;
 
@@ -5055,6 +5104,12 @@ begin
 
     for I := 0 to Routes.Count - 1 do
       FileItems.Add(Routes[I]);
+
+    for I := 0 to ImportsList.Count - 1 do
+      FileItems.Add(ImportsList[I]);
+
+    for I := 0 to ExportsList.Count - 1 do
+      FileItems.Add(ExportsList[I]);
 
     FileItems.SaveToStream(SaveProperties, NodeNames);
   finally FreeAndNil(FileItems) end;
@@ -5618,6 +5673,12 @@ begin
 
     for I := 0 to Routes.Count - 1 do
       Result.Routes.Add(Routes[I].DeepCopy(CopyState));
+
+    for I := 0 to ImportsList.Count - 1 do
+      Result.ImportsList.Add((ImportsList[I] as TVRMLImport).DeepCopy(CopyState));
+
+    for I := 0 to ExportsList.Count - 1 do
+      Result.ExportsList.Add((ExportsList[I] as TVRMLExport).DeepCopy(CopyState));
 
     if PrototypeInstance then
     begin
@@ -7949,6 +8010,82 @@ begin
   end;
 end;
 
+{ TVRMLImport ---------------------------------------------------------------- }
+
+procedure TVRMLImport.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
+begin
+  Lexer.NextToken;
+  Lexer.CheckTokenIs(vtName, 'Inline node name');
+  InlineNodeName := Lexer.TokenName;
+
+  Lexer.NextToken;
+  Lexer.CheckTokenIs(vtPeriod);
+
+  Lexer.NextToken;
+  Lexer.CheckTokenIs(vtName, 'imported node name');
+  ImportedNodeName := Lexer.TokenName;
+
+  Lexer.NextToken;
+  if Lexer.TokenIsKeyword(vkAS) then
+  begin
+    Lexer.NextToken;
+    Lexer.CheckTokenIs(vtName, 'alias for imported node name');
+    ImportedNodeAlias := Lexer.TokenName;
+
+    Lexer.NextToken;
+  end else
+    ImportedNodeAlias := ImportedNodeName;
+
+  { TODO: Names.Import() call }
+end;
+
+procedure TVRMLImport.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
+begin
+  { TODO }
+end;
+
+function TVRMLImport.DeepCopy(CopyState: TVRMLNodeDeepCopyState): TVRMLImport;
+begin
+  Result := TVRMLImport.Create;
+  Result.InlineNodeName := InlineNodeName;
+  Result.ImportedNodeName := ImportedNodeName;
+  Result.ImportedNodeAlias := ImportedNodeAlias;
+end;
+
+{ TVRMLExport ---------------------------------------------------------------- }
+
+procedure TVRMLExport.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
+begin
+  Lexer.NextToken;
+  Lexer.CheckTokenIs(vtName, 'exported node name');
+  ExportedNodeName := Lexer.TokenName;
+
+  Lexer.NextToken;
+  if Lexer.TokenIsKeyword(vkAS) then
+  begin
+    Lexer.NextToken;
+    Lexer.CheckTokenIs(vtName, 'alias for exported node name');
+    ExportedNodeAlias := Lexer.TokenName;
+
+    Lexer.NextToken;
+  end else
+    ExportedNodeAlias := ExportedNodeName;
+
+  { TODO: Names.Export() call }
+end;
+
+procedure TVRMLExport.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
+begin
+  { TODO }
+end;
+
+function TVRMLExport.DeepCopy(CopyState: TVRMLNodeDeepCopyState): TVRMLExport;
+begin
+  Result := TVRMLExport.Create;
+  Result.ExportedNodeName := ExportedNodeName;
+  Result.ExportedNodeAlias := ExportedNodeAlias;
+end;
+
 { TVRMLNodeNames ----------------------------------------------------------- }
 
 constructor TVRMLNodeNames.Create(const AAutoRemove: boolean);
@@ -8335,21 +8472,6 @@ var
 
   procedure ParseVRMLStatement;
 
-    procedure ParseRouteInternal;
-    var
-      Route: TVRMLRoute;
-    begin
-      Route := TVRMLRoute.Create;
-      try
-        Route.Parse(Lexer, Names);
-        Route.PositionInParent := PositionInParent;
-        Result.Routes.Add(Route);
-      except
-        FreeAndNil(Route); { do not add invalid Route, free it }
-        raise;
-      end;
-    end;
-
     { You can safely assume that current token is PROTO or EXTERNPROTO. }
     procedure ParseProtoStatement;
     var
@@ -8368,60 +8490,52 @@ var
       end;
     end;
 
-    procedure ParseImport;
+    procedure ParseRouteStatement;
     var
-      InlineNodeName, ImportedNodeName, ImportedNodeAlias: string;
+      Route: TVRMLRoute;
     begin
-      Lexer.NextToken;
-      Lexer.CheckTokenIs(vtName, 'Inline node name');
-      InlineNodeName := Lexer.TokenName;
-
-      Lexer.NextToken;
-      Lexer.CheckTokenIs(vtPeriod);
-
-      Lexer.NextToken;
-      Lexer.CheckTokenIs(vtName, 'imported node name');
-      ImportedNodeName := Lexer.TokenName;
-
-      Lexer.NextToken;
-      if Lexer.TokenIsKeyword(vkAS) then
-      begin
-        Lexer.NextToken;
-        Lexer.CheckTokenIs(vtName, 'alias for imported node name');
-        ImportedNodeAlias := Lexer.TokenName;
-
-        Lexer.NextToken;
-      end else
-        ImportedNodeAlias := ImportedNodeName;
-
-      { TODO: Names.Import() call
-        TODO: save the import clause, to later save it back to file }
+      Route := TVRMLRoute.Create;
+      try
+        Route.Parse(Lexer, Names);
+        Route.PositionInParent := PositionInParent;
+        Result.Routes.Add(Route);
+      except
+        FreeAndNil(Route); { do not add invalid Route, free it }
+        raise;
+      end;
     end;
 
-    procedure ParseExport;
+    procedure ParseImportStatement;
     var
-      ExportedNodeName, ExportedNodeAlias: string;
+      Import: TVRMLImport;
     begin
-      Lexer.NextToken;
-      Lexer.CheckTokenIs(vtName, 'exported node name');
-      ExportedNodeName := Lexer.TokenName;
-
-      Lexer.NextToken;
-      if Lexer.TokenIsKeyword(vkAS) then
-      begin
-        Lexer.NextToken;
-        Lexer.CheckTokenIs(vtName, 'alias for exported node name');
-        ExportedNodeAlias := Lexer.TokenName;
-
-        Lexer.NextToken;
-      end else
-        ExportedNodeAlias := ExportedNodeName;
-
-      { TODO: Names.Export() call
-        TODO: save the export clause, to later save it back to file }
+      Import := TVRMLImport.Create;
+      try
+        Import.Parse(Lexer, Names);
+        Import.PositionInParent := PositionInParent;
+        Result.ImportsList.Add(Import);
+      except
+        FreeAndNil(Import); { do not add invalid Import, free it }
+        raise;
+      end;
     end;
 
-    procedure ParseNodeInternal;
+    procedure ParseExportStatement;
+    var
+      Export: TVRMLExport;
+    begin
+      Export := TVRMLExport.Create;
+      try
+        Export.Parse(Lexer, Names);
+        Export.PositionInParent := PositionInParent;
+        Result.ExportsList.Add(Export);
+      except
+        FreeAndNil(Export); { do not add invalid Export, free it }
+        raise;
+      end;
+    end;
+
+    procedure ParseNodeStatement;
     var
       NewNode: TVRMLNode;
     begin
@@ -8432,16 +8546,15 @@ var
 
   begin
     if (Lexer.Token = vtKeyword) and
-       (Lexer.TokenKeyword = vkROUTE) then
-      ParseRouteInternal else
-    if (Lexer.Token = vtKeyword) and
        (Lexer.TokenKeyword in [vkPROTO, vkEXTERNPROTO]) then
       ParseProtoStatement else
-    if (Lexer.Token = vtKeyword) and (Lexer.TokenKeyword = vkIMPORT) then
-      ParseImport else
-    if (Lexer.Token = vtKeyword) and (Lexer.TokenKeyword = vkEXPORT) then
-      ParseExport else
-      ParseNodeInternal;
+    if Lexer.TokenIsKeyword(vkROUTE) then
+      ParseRouteStatement else
+    if Lexer.TokenIsKeyword(vkIMPORT) then
+      ParseImportStatement else
+    if Lexer.TokenIsKeyword(vkEXPORT) then
+      ParseExportStatement else
+      ParseNodeStatement;
   end;
 
 begin

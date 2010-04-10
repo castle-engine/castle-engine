@@ -925,6 +925,7 @@
 
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+    procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); override;
 
     private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
@@ -2515,6 +2516,12 @@ end;
 class function TNodeWWWInline.ClassNodeTypeName: string;
 begin
   result := 'WWWInline';
+end;
+
+procedure TNodeWWWInline.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
+begin
+  inherited;
+  LoadInlined(false);
 end;
 
 procedure TNodeWWWInline.UnLoadInlined;

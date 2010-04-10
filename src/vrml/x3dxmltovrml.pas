@@ -401,12 +401,6 @@ const
           begin
             ParseISStatement(Node, I.Current, PositionInParent);
           end else
-          { In X3D XML, IMPORT/EXPORT may be inside the nodes
-            (not only at top-level "statements"), just like "ROUTE".
-            The "X3D XML encoding" spec doesn't say it explicitly,
-            but I *think* the schema says so (on http://www.web3d.org/specifications/x3d-3.2.xsd ),
-            also example http://www.web3d.org/x3d/content/examples/Basic/development/ImportExportSyntax.x3d
-            uses it. }
           if I.Current.TagName = 'IMPORT' then
             ParseImport(I.Current, Node, PositionInParent) else
           if I.Current.TagName = 'EXPORT' then

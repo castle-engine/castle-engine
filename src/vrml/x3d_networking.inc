@@ -129,6 +129,7 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+    procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); override;
 
     private FFdload: TSFBool;
     public property Fdload: TSFBool read FFdload;
@@ -421,6 +422,12 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+procedure TNodeInline.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
+begin
+  inherited;
+  LoadInlined(false);
+end;
+
 procedure TNodeInline.UnLoadInlined;
 begin
   RemoveAllChildren;
@@ -485,7 +492,7 @@ begin
 
   { Whether or not we successfully got FInlined <> nil, we always set
     Loaded to true here. This way we will not try to reload this inline
-    at next BeforeTraverse (this would be bad, as we already did
+    at next LoadInlined(false) (this would be bad, as we already did
     VRMLWarning in case loading failed and such). }
   Loaded := true;
 end;
