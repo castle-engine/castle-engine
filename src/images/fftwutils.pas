@@ -52,7 +52,7 @@ begin
 {$ENDIF}
 end;
 
-procedure kam_fftw_freemem(p:pointer);inline;
+procedure kam_fftw_freemem(p:pointer);
 
 begin
 {$IFDEF align}
