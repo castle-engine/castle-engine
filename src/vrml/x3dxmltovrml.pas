@@ -637,7 +637,7 @@ const
       { TODO: this has a problem, see classic VRML ParseNode
         comment starting with "Cycles in VRML graph are bad..." }
 
-      Result.Bind(Names.Nodes);
+      Names.Nodes.Bind(Result);
 
       if DOMGetAttribute(Element, SAttrContainerField, ExplicitContainerField) then
         Result.ExplicitContainerField := ExplicitContainerField;
@@ -847,7 +847,7 @@ const
       Names := OldNames;
     end;
 
-    Proto.Bind(Names.Prototypes);
+    Names.Prototypes.Bind(Proto);
   end;
 
   { Equivalent to TVRMLExternalPrototype.Parse }
@@ -868,7 +868,7 @@ const
       ParseFieldValueFromAttribute(Proto.URLList, URLListValue) else
       raise EX3DXmlError.Create('Missing "url" for <ExternProtoDeclare> element');
 
-    Proto.Bind(Names.Prototypes);
+    Names.Prototypes.Bind(Proto);
 
     Proto.LoadReferenced;
   end;

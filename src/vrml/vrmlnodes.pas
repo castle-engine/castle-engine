@@ -1653,10 +1653,6 @@ type
       it's not linked anywhere. }
     function DeepCopy: TVRMLNode;
 
-    { Add Self (NodeName must be initialized) to nodes namespace.
-      Doesn't do anything if NodeName = ''. }
-    procedure Bind(NodeNames: TVRMLNodeNames);
-
     { PrototypeInstance = @true indicates that this node was created
       from a non-external prototype instantiation.
 
@@ -2931,9 +2927,6 @@ type
     { Parse prototype, and add it to Names.Prototypes by @link(Bind). }
     procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); virtual; abstract;
 
-    { Add Self (at least Name must be initialized) to prototypes namespace. }
-    procedure Bind(PrototypeNames: TVRMLPrototypeNames);
-
     { The base URL path used to resolve urls inside.
       For now, used by EXTERNPROTO urls.
       See TVRMLNode.WWWBasePath for more comments. }
@@ -3190,9 +3183,13 @@ type
       Internally, this is done by registering
       itself for AnyNodeDestructionNotifications. }
     property AutoRemove: boolean read FAutoRemove;
+
+    procedure Bind(Node: TVRMLNode);
   end;
 
   TVRMLPrototypeNames = class(TStringListCaseSens)
+  public
+    procedure Bind(Proto: TVRMLPrototypeBase);
   end;
 
   { Container tracking VRML/X3D node and prototype names during parsing.
@@ -5064,7 +5061,7 @@ begin
     PrototypeInstanceSourceNode.SaveToStream(SaveProperties, NodeNames);
 
     { What to do about
-        Bind(NodeNames)
+        NodeNames.Bind(Self)
       called from PrototypeInstanceSourceNode.SaveToStream ?
       This means that PrototypeInstanceSourceNode (TVRMLPrototypeNode)
       is bound to given name.
@@ -5074,7 +5071,7 @@ begin
       So we bind again Self, instead of PrototypeInstanceSourceNode,
       to this name. }
 
-    Bind(NodeNames as TVRMLNodeNames);
+    (NodeNames as TVRMLNodeNames).Bind(Self);
   end else
   if (NodeNames as TVRMLNodeNames).IndexOfObject(Self) >= 0 then
   begin
@@ -5095,10 +5092,10 @@ begin
     { update NodeNames.
 
       TODO: same problem here as when reading VRML file.
-      We call Bind(NodeNames) after writing node contents, because
+      We call Bind after writing node contents, because
       we assume there are no cycles... but in case of Script nodes,
       cycles are unfortunately possible. }
-    Bind(NodeNames as TVRMLNodeNames);
+    (NodeNames as TVRMLNodeNames).Bind(Self);
   end;
 end;
 
@@ -5342,19 +5339,6 @@ begin
     Helper.IgnoreCase := IgnoreCase;
     Result := EnumerateReplaceChildren(@Helper.DoIt);
   finally FreeAndNil(Helper) end;
-end;
-
-procedure TVRMLNode.Bind(NodeNames: TVRMLNodeNames);
-var
-  I: Integer;
-begin
-  if NodeName <> '' then
-  begin
-    I := NodeNames.IndexOf(NodeName);
-    if I >= 0 then
-      NodeNames.Objects[I] := Self else
-      NodeNames.AddObject(NodeName, Self);
-  end;
 end;
 
 class function TVRMLNode.URNMatching(const URN: string): boolean;
@@ -7196,16 +7180,6 @@ begin
   FWWWBasePath := Lexer.WWWBasePath;
 end;
 
-procedure TVRMLPrototypeBase.Bind(PrototypeNames: TVRMLPrototypeNames);
-var
-  I: Integer;
-begin
-  I := PrototypeNames.IndexOf(Name);
-  if I <> - 1 then
-    PrototypeNames.Objects[I] := Self else
-    PrototypeNames.AddObject(Name, Self);
-end;
-
 procedure TVRMLPrototypeBase.SaveInterfaceDeclarationsToStream(
   SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TVRMLNodeNames;
   ExternalProto: boolean);
@@ -7276,7 +7250,7 @@ begin
   { consume last vtCloseCurlyBracket, ParseVRMLStatements doesn't do it }
   Lexer.NextToken;
 
-  Bind(Names.Prototypes);
+  Names.Prototypes.Bind(Self);
 end;
 
 procedure TVRMLPrototype.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
@@ -7333,7 +7307,7 @@ begin
 
   URLList.Parse(Lexer, Names, false);
 
-  Bind(Names.Prototypes);
+  Names.Prototypes.Bind(Self);
 
   LoadReferenced;
 end;
@@ -7985,6 +7959,31 @@ begin
     Delete(I);
 end;
 
+procedure TVRMLNodeNames.Bind(Node: TVRMLNode);
+var
+  I: Integer;
+begin
+  if Node.NodeName <> '' then
+  begin
+    I := IndexOf(Node.NodeName);
+    if I >= 0 then
+      Objects[I] := Node else
+      AddObject(Node.NodeName, Node);
+  end;
+end;
+
+{ TVRMLPrototypeNames -------------------------------------------------------- }
+
+procedure TVRMLPrototypeNames.Bind(Proto: TVRMLPrototypeBase);
+var
+  I: Integer;
+begin
+  I := IndexOf(Proto.Name);
+  if I <> - 1 then
+    Objects[I] := Proto else
+    AddObject(Proto.Name, Proto);
+end;
+
 { TVRMLNames ----------------------------------------------------------------- }
 
 constructor TVRMLNames.Create(const AAutoRemoveNodes: boolean);
@@ -8149,7 +8148,7 @@ function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
       any scripting, this is not a problem in practice. But some day it'll
       have to be fixed... }
 
-    Result.Bind(Names.Nodes);
+    Names.Nodes.Bind(Result);
   end;
 
 var
