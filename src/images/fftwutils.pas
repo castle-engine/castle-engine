@@ -18,17 +18,20 @@ unit FftwUtils;
 
 interface
 
-{$MACRO on}
-{$INLINE on}
-
 { Fixed versions of fftw_s get/freemem, see
   http://bugs.freepascal.org/view.php?id=13463 }
 
 { }
 procedure kam_fftw_getmem(var p:pointer;size:sizeint);
-procedure kam_fftw_freemem(p:pointer);inline;
+procedure kam_fftw_freemem(p:pointer);
 
 implementation
+
+{$macro on}
+
+{$IF defined(cpui386) or defined(cpupowerpc)}
+  {$DEFINE align:=16}
+{$ENDIF}
 
 procedure kam_fftw_getmem(var p:pointer;size:sizeint);
 
