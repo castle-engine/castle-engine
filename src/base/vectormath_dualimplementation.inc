@@ -669,17 +669,20 @@ begin
               (Abs(v1[3]-v2[3]) < EqualityEpsilon);
 end;
 
-function VectorsPerfectlyEqual(const v1, v2: TYPE_VECTOR2): boolean; inline;
+function VectorsPerfectlyEqual(const v1, v2: TYPE_VECTOR2): boolean;
+{$ifdef SUPPORTS_INLINE} inline; {$endif}
 begin
   Result := CompareMem(@V1, @V2, SizeOf(V1));
 end;
 
-function VectorsPerfectlyEqual(const v1, v2: TYPE_VECTOR3): boolean; inline;
+function VectorsPerfectlyEqual(const v1, v2: TYPE_VECTOR3): boolean;
+{$ifdef SUPPORTS_INLINE} inline; {$endif}
 begin
   Result := CompareMem(@V1, @V2, SizeOf(V1));
 end;
 
-function VectorsPerfectlyEqual(const v1, v2: TYPE_VECTOR4): boolean; inline;
+function VectorsPerfectlyEqual(const v1, v2: TYPE_VECTOR4): boolean;
+{$ifdef SUPPORTS_INLINE} inline; {$endif}
 begin
   Result := CompareMem(@V1, @V2, SizeOf(V1));
 end;
