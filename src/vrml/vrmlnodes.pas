@@ -8240,7 +8240,8 @@ begin
 end;
 
 { This parses a sequence of VRML statements: any number of nodes,
-  (external) protypes, routes. This is good to use to parse whole VRML file,
+  (external) protypes, routes, import/export declarations.
+  This is good to use to parse whole VRML file,
   or a (non-external) prototype content.
 
   Returns a single VRML node. If there was exactly one statement
@@ -8367,6 +8368,59 @@ var
       end;
     end;
 
+    procedure ParseImport;
+    var
+      InlineNodeName, ImportedNodeName, ImportedNodeAlias: string;
+    begin
+      Lexer.NextToken;
+      Lexer.CheckTokenIs(vtName, 'Inline node name');
+      InlineNodeName := Lexer.TokenName;
+
+      Lexer.NextToken;
+      Lexer.CheckTokenIs(vtPeriod);
+
+      Lexer.NextToken;
+      Lexer.CheckTokenIs(vtName, 'imported node name');
+      ImportedNodeName := Lexer.TokenName;
+
+      Lexer.NextToken;
+      if Lexer.TokenIsKeyword(vkAS) then
+      begin
+        Lexer.NextToken;
+        Lexer.CheckTokenIs(vtName, 'alias for imported node name');
+        ImportedNodeAlias := Lexer.TokenName;
+
+        Lexer.NextToken;
+      end else
+        ImportedNodeAlias := ImportedNodeName;
+
+      { TODO: Names.Import() call
+        TODO: save the import clause, to later save it back to file }
+    end;
+
+    procedure ParseExport;
+    var
+      ExportedNodeName, ExportedNodeAlias: string;
+    begin
+      Lexer.NextToken;
+      Lexer.CheckTokenIs(vtName, 'exported node name');
+      ExportedNodeName := Lexer.TokenName;
+
+      Lexer.NextToken;
+      if Lexer.TokenIsKeyword(vkAS) then
+      begin
+        Lexer.NextToken;
+        Lexer.CheckTokenIs(vtName, 'alias for exported node name');
+        ExportedNodeAlias := Lexer.TokenName;
+
+        Lexer.NextToken;
+      end else
+        ExportedNodeAlias := ExportedNodeName;
+
+      { TODO: Names.Export() call
+        TODO: save the export clause, to later save it back to file }
+    end;
+
     procedure ParseNodeInternal;
     var
       NewNode: TVRMLNode;
@@ -8383,6 +8437,10 @@ var
     if (Lexer.Token = vtKeyword) and
        (Lexer.TokenKeyword in [vkPROTO, vkEXTERNPROTO]) then
       ParseProtoStatement else
+    if (Lexer.Token = vtKeyword) and (Lexer.TokenKeyword = vkIMPORT) then
+      ParseImport else
+    if (Lexer.Token = vtKeyword) and (Lexer.TokenKeyword = vkEXPORT) then
+      ParseExport else
       ParseNodeInternal;
   end;
 
