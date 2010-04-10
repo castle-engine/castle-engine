@@ -562,6 +562,12 @@ begin
       for I := 0 to Routes.Count - 1 do
         FileItems.Add(Routes[I]);
 
+      for I := 0 to ImportsList.Count - 1 do
+        FileItems.Add(ImportsList[I]);
+
+      for I := 0 to ExportsList.Count - 1 do
+        FileItems.Add(ExportsList[I]);
+
       FileItems.SaveToStream(SaveProperties, NodeNames);
     finally FreeAndNil(FileItems) end;
   end else

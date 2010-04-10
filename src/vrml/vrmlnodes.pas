@@ -8041,7 +8041,10 @@ end;
 
 procedure TVRMLImport.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
 begin
-  { TODO }
+  SaveProperties.WriteIndent('IMPORT ' + InlineNodeName + '.' + ImportedNodeName);
+  if ImportedNodeName <> ImportedNodeAlias then
+    SaveProperties.Write(' AS ' + ImportedNodeAlias);
+  SaveProperties.Writeln('');
 end;
 
 function TVRMLImport.DeepCopy(CopyState: TVRMLNodeDeepCopyState): TVRMLImport;
@@ -8076,7 +8079,10 @@ end;
 
 procedure TVRMLExport.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
 begin
-  { TODO }
+  SaveProperties.WriteIndent('EXPORT ' + ExportedNodeName);
+  if ExportedNodeName <> ExportedNodeAlias then
+    SaveProperties.Write(' AS ' + ExportedNodeAlias);
+  SaveProperties.Writeln('');
 end;
 
 function TVRMLExport.DeepCopy(CopyState: TVRMLNodeDeepCopyState): TVRMLExport;
