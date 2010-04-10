@@ -29,7 +29,7 @@ uses VRMLNodes, Classes;
   Useful mostly for EXTERNPROTO implementation.) }
 function LoadX3DXmlAsVRML(const FileName: string;
   Gzipped: boolean;
-  PrototypeNames: TStringList = nil): TVRMLNode;
+  PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode;
 
 implementation
 
@@ -47,7 +47,7 @@ type
   See 4.3.12 IMPORT/EXPORT statement syntax. }
 
 function LoadX3DXmlAsVRML(const FileName: string;
-  Gzipped: boolean; PrototypeNames: TStringList): TVRMLNode;
+  Gzipped: boolean; PrototypeNames: TVRMLPrototypeNames): TVRMLNode;
 var
   WWWBasePath: string;
 

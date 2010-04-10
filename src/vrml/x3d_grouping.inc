@@ -141,7 +141,7 @@
       only it's contents are written, without surrounding { } braces.
       This way, when saving, we "undo" the artificial wrapping in
       TVRMLRootNode_* that was done by ParseVRMLStatements and ParseVRMLFile. *)
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);  override;
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);  override;
 
     { Set ForceVersion to @true to make SuggestedVRMLVersion of this class
       return suggest ForceVersionMajor, ForceVersionMinor with strong
@@ -538,7 +538,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLRootNode_2.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TVRMLRootNode_2.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
 var
   I: integer;
   FileItems: TVRMLFileItemsList;
@@ -562,7 +562,7 @@ begin
       for I := 0 to Routes.Count - 1 do
         FileItems.Add(Routes[I]);
 
-      FileItems.SaveToStream(SaveProperties);
+      FileItems.SaveToStream(SaveProperties, NodeNames);
     finally FreeAndNil(FileItems) end;
   end else
     inherited;

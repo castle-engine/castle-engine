@@ -41,8 +41,6 @@ type
   public
     Stream: TStream;
 
-    NodeNames: TStringList;
-
     { Which VRML version are we writing. }
     VerMajor, VerMinor: Integer;
 
@@ -113,8 +111,8 @@ type
       read FPositionInParent write FPositionInParent default -1;
 
     { Save to stream in VRML classic encoding. }
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
-      virtual; abstract;
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); virtual; abstract;
   end;
 
   TObjectsListItem_4 = TVRMLFileItem;
@@ -125,7 +123,8 @@ type
   public
     procedure SortPositionInParent;
     { Sort all items by PositionInParent and then save them all to stream. }
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject);
   end;
 
   { Common class for VRML field or event. }
@@ -306,8 +305,8 @@ type
       we will not call SaveToStreamValue. So when overriding
       SaveToStreamValue, you can safely assume that ValueFromIsClause
       is @false. }
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
-      virtual; abstract;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); virtual; abstract;
 
     { Call this inside overriden Assign methods.
       I don't want to place this inside TVRMLField.Assign, since I want
@@ -389,12 +388,11 @@ type
       Note that when Name is '', this also works (writes only field value
       / "IS" clause then).
 
-      SaveProperties.NodeNames has the same meaning as for
-      TVRMLNode.SaveToStream,
-      see there. It can be ignored, and in fact it is ignored by all
-      TVRMLField descendants defined in this unit (it's used only
-      by TSFNode and TMFNode). }
+      NodeNames has the same meaning as for
+      TVRMLNode.SaveToStream, see there. It is ignored, and may be @nil,
+      for all TVRMLField descendants except TSFNode and TMFNode. }
     procedure FieldSaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject;
       FieldSaveWhenDefault: boolean = false;
       AllowSavingFieldValue: boolean = true);
 
@@ -406,7 +404,8 @@ type
 
       See FieldSaveToStream for more comments and when you need control over
       FieldSaveWhenDefault behavior. }
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
 
     { Does current field value came from expanding "IS" clause.
       If yes, then saving this field to stream will only save it's "IS" clauses,
@@ -700,7 +699,8 @@ type
     { SaveToStreamValue overriden for MF fields. This class handles
       SaveToStreamValue fully, no need to override it again in
       descendants. }
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
 
     { RawItemToString(i) must change RawItems[i] into a string that can be used to
       store this is text stream. In descendants, you have to override this. }
@@ -764,7 +764,8 @@ type
     procedure SetFlags(i: integer; value: boolean);
     function GetFlagNames(i: integer): string;
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
   public
     { Value of this field. You can use Index from the range 0 .. FlagsCount - 1. }
     property Flags[i: integer]:boolean read GetFlags write SetFlags;
@@ -813,7 +814,8 @@ type
 
   TSFBool = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: boolean);
@@ -847,7 +849,8 @@ type
     fEnumNames: TStringList;
     function GetEnumNames(i: integer): string;
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string;
@@ -882,7 +885,8 @@ type
     FValue: Single;
     procedure SetValue(const AValue: Single);
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: Single); overload;
@@ -924,7 +928,8 @@ type
     FValue: Double;
     procedure SetValue(const AValue: Double);
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: Double);
@@ -957,7 +962,8 @@ type
 
   TSFImage = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
   public
 
     { Value is owned by this object - i.e. in destructor we do Value.Free.
@@ -1000,7 +1006,8 @@ type
     FValue: Longint;
     procedure SetValue(const AValue: Longint);
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: Longint); overload;
@@ -1041,7 +1048,8 @@ type
     DefaultValue: TMatrix3Single;
     DefaultValueExists: boolean;
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TMatrix3Single);
@@ -1070,7 +1078,8 @@ type
     DefaultValue: TMatrix3Double;
     DefaultValueExists: boolean;
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TMatrix3Double);
@@ -1099,7 +1108,8 @@ type
     DefaultValue: TMatrix4Single;
     DefaultValueExists: boolean;
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TMatrix4Single);
@@ -1142,7 +1152,8 @@ type
     DefaultValue: TMatrix4Double;
     DefaultValueExists: boolean;
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TMatrix4Double);
@@ -1171,7 +1182,8 @@ type
     DefaultRotationRad: Single;
     DefaultValueExists: boolean;
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
     function GetValue: TVector4Single;
     procedure SetValue(const AValue: TVector4Single);
     function GetValueDeg: TVector4Single;
@@ -1221,7 +1233,8 @@ type
 
   TSFString = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: string);
@@ -1248,7 +1261,8 @@ type
 
   TSFVec2f = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TVector2Single);
@@ -1277,7 +1291,8 @@ type
 
   TSFVec3f = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TVector3Single);
@@ -1311,7 +1326,8 @@ type
 
   TSFVec4f = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TVector4Single);
@@ -1345,7 +1361,8 @@ type
 
   TSFVec2d = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TVector2Double);
@@ -1374,7 +1391,8 @@ type
 
   TSFVec3d = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TVector3Double);
@@ -1403,7 +1421,8 @@ type
 
   TSFVec4d = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TVector4Double);
@@ -2052,12 +2071,10 @@ constructor TVRMLSaveToStreamProperties.Create(AStream: TStream);
 begin
   inherited Create;
   Stream := AStream;
-  NodeNames := TStringListCaseSens.Create;
 end;
 
 destructor TVRMLSaveToStreamProperties.Destroy;
 begin
-  FreeAndNil(NodeNames);
   inherited;
 end;
 
@@ -2132,13 +2149,13 @@ begin
 end;
 
 procedure TVRMLFileItemsList.SaveToStream(
-  SaveProperties: TVRMLSaveToStreamProperties);
+  SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
 var
   I: Integer;
 begin
   SortPositionInParent;
   for I := 0 to Count - 1 do
-    Items[I].SaveToStream(SaveProperties);
+    Items[I].SaveToStream(SaveProperties, NodeNames);
 end;
 
 { TVRMLFieldOrEvent ---------------------------------------------------------- }
@@ -2360,7 +2377,7 @@ begin
 end;
 
 procedure TVRMLField.FieldSaveToStream(
-  SaveProperties: TVRMLSaveToStreamProperties;
+  SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject;
   FieldSaveWhenDefault, AllowSavingFieldValue: boolean);
 var
   N: string;
@@ -2384,14 +2401,15 @@ begin
   begin
     if N <> '' then
       SaveProperties.WriteIndent(N + ' ');
-    SaveToStreamValue(SaveProperties);
+    SaveToStreamValue(SaveProperties, NodeNames);
     SaveProperties.Writeln;
   end;
 end;
 
-procedure TVRMLField.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TVRMLField.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject);
 begin
-  FieldSaveToStream(SaveProperties);
+  FieldSaveToStream(SaveProperties, NodeNames);
 end;
 
 function TVRMLField.EqualsDefaultValue: boolean;
@@ -2682,7 +2700,8 @@ begin
   end;
 end;
 
-procedure TVRMLSimpleMultField.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TVRMLSimpleMultField.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject);
 var
   i: integer;
   WriteIndentNextTime: boolean;
@@ -2829,7 +2848,8 @@ begin
   Lexer.NextToken;
 end;
 
-procedure TSFBool.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TSFBool.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject);
 begin
  if Value then SaveProperties.Write(VRMLKeywords[vkTrue]) else
                SaveProperties.Write(VRMLKeywords[vkFalse])
@@ -2918,7 +2938,8 @@ begin
   Value := ParseFloat(Lexer);
 end;
 
-procedure TSFFloat.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TSFFloat.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject);
 begin
   SaveProperties.Write(FloatToRawStr(Value));
 end;
@@ -3009,7 +3030,8 @@ begin
   Value := ParseFloat(Lexer);
 end;
 
-procedure TSFDouble.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TSFDouble.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject);
 begin
   SaveProperties.Write(FloatToRawStr(Value));
 end;
@@ -3245,7 +3267,8 @@ begin
   end;
 end;
 
-procedure TSFImage.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TSFImage.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject);
 var
   ga: TVector2Byte;
   rgb: TVector3Byte;
@@ -3382,7 +3405,8 @@ begin
   Lexer.NextToken;
 end;
 
-procedure TSFLong.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TSFLong.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject);
 begin
   SaveProperties.Write(IntToStr(Value));
 end;
@@ -3471,7 +3495,8 @@ begin
     ParseVector(FValue[Column], Lexer);
 end;
 
-procedure TSF_CLASS.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TSF_CLASS.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject);
 var
   Column: integer;
 begin
@@ -3683,7 +3708,8 @@ begin
  RotationRad := DegToRad(AValue[3]);
 end;
 
-procedure TSFRotation.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TSFRotation.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject);
 begin
   SaveProperties.Write(VectorToRawStr(Axis) +' ' +FloatToRawStr(RotationRad));
 end;
@@ -3788,7 +3814,8 @@ begin
   Lexer.NextToken;
 end;
 
-procedure TSFString.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TSFString.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject);
 begin
  SaveProperties.Write(StringToVRMLStringToken(Value));
 end;
@@ -3864,7 +3891,8 @@ begin
   ParseVector(Value, Lexer);
 end;
 
-procedure TSF_CLASS.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TSF_CLASS.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject);
 begin
   SaveProperties.Write(VectorToRawStr(Value));
 end;
@@ -4093,7 +4121,8 @@ begin
  exit(true);
 end;
 
-procedure TSFBitMask.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TSFBitMask.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject);
 var i: integer;
     PrecedeWithBar: boolean;
 begin
@@ -4194,7 +4223,8 @@ begin
   Lexer.NextToken;
 end;
 
-procedure TSFEnum.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TSFEnum.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject);
 begin
   SaveProperties.Write(EnumNames[Value]);
 end;

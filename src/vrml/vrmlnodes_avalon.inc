@@ -473,7 +473,11 @@ procedure TNodeLogger.EventWriteReceive(
         SaveProperties.VerMajor := 3;
         SaveProperties.VerMinor := 2;
 
-        Value.FieldSaveToStream(SaveProperties, true);
+        if (Value is TSFNode) or (Value is TMFNode) then
+          { Cannot display SFNode/MFNode here, as we don't have NodeNames
+            binding now. }
+          WriteStr(WriteStream, Value.VRMLTypeName + ' value') else
+          Value.FieldSaveToStream(SaveProperties, nil, true);
       finally FreeAndNil(SaveProperties) end;
     end;
   end;

@@ -65,7 +65,8 @@
     procedure EventSaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
       WriteExactlyOnce: boolean);
 
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
 
     { If this event is an exposed event belonging to some field,
       this references parent field. Otherwise it's @nil. }
@@ -236,7 +237,8 @@ begin
   end;
 end;
 
-procedure TVRMLEvent.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TVRMLEvent.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject);
 begin
   EventSaveToStream(SaveProperties, false);
 end;

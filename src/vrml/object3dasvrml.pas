@@ -106,7 +106,7 @@ procedure LoadMD3AsVRMLSequence(
     This will only be used if loaded file is VRML/X3D.
     Useful mostly for EXTERNPROTO implementation.) }
 function LoadAsVRML(const filename: string; AllowStdIn: boolean = false;
-  PrototypeNames: TStringList = nil): TVRMLNode;
+  PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode;
 
 const
   { File filters for files loaded by LoadAsVRML, suitable
@@ -813,7 +813,7 @@ begin
 end;
 
 function LoadAsVRML(const filename: string; AllowStdIn: boolean;
-  PrototypeNames: TStringList): TVRMLNode;
+  PrototypeNames: TVRMLPrototypeNames): TVRMLNode;
 const
   GzExt = '.gz';
   Extensions: array [0..14] of string =

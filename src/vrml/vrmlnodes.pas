@@ -715,6 +715,8 @@ type
   TVRMLRoutesList = class;
   TVRMLInterfaceDeclaration = class;
   TVRMLNames = class;
+  TVRMLNodeNames = class;
+  TVRMLPrototypeNames = class;
 
   TVRMLAccessType = (atInputOnly, atOutputOnly, atInitializeOnly, atInputOutput);
   TVRMLAccessTypes = set of TVRMLAccessType;
@@ -927,8 +929,8 @@ type
     (* This will be called by SaveToStream within { }.
        Usually you want to save here what you read in your overridden
        ParseNodeBodyElement. *)
-    procedure SaveContentsToStream(SaveProperties: TVRMLSaveToStreamProperties);
-      virtual;
+    procedure SaveContentsToStream(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TVRMLNodeNames); virtual;
   public
     { Node fields.
 
@@ -1467,7 +1469,7 @@ type
       we don't write our Children. Currently this is used by various inline
       nodes (WWWInline, Inline, etc.).
     *)
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
 
     { szuka tej klasy node'a (rzeczywistej koncowej klasy, z ClassType) w
       TraverseStateLastNodesClasses. Zwraca indeks lub -1 jesli nie znalazl. }
@@ -1653,7 +1655,7 @@ type
 
     { Add Self (NodeName must be initialized) to nodes namespace.
       Doesn't do anything if NodeName = ''. }
-    procedure Bind(NodeNames: TStringList);
+    procedure Bind(NodeNames: TVRMLNodeNames);
 
     { PrototypeInstance = @true indicates that this node was created
       from a non-external prototype instantiation.
@@ -1908,7 +1910,8 @@ type
     procedure SetDefaultValue(ADefaultValue: TVRMLNode);
     procedure SetDefaultValueExists(AValue: boolean);
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
   public
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
       const AName: string); override;
@@ -2039,7 +2042,8 @@ type
     FAllowedChildren: TVRMLNodeClassesList;
     FAllowedChildrenAll: boolean;
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject); override;
   public
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
       const AName: string); override;
@@ -2706,16 +2710,15 @@ type
         if present.)
     }
     procedure IDeclSaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
-      FieldValue: boolean);
+      NodeNames: TVRMLNodeNames; FieldValue: boolean);
 
     { Save this interface declaration to stream.
 
       Saves with field value, just by calling
-      IDeclSaveToStream(SaveProperties, true).
+      IDeclSaveToStream(SaveProperties, NodeNames, true).
 
       @seealso IDeclSaveToStream }
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
-      override;
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
 
     { Returns access type, corresponding to current @link(Event)
       and @link(Field) values.
@@ -2916,7 +2919,7 @@ type
       within [ ]. In descendant, you should first write the keyword PROTO
       or EXTERNPROTO, then call this, then write the rest of your prototype. }
     procedure SaveInterfaceDeclarationsToStream(
-      SaveProperties: TVRMLSaveToStreamProperties;
+      SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TVRMLNodeNames;
       ExternalProto: boolean);
   public
     constructor Create;
@@ -2929,7 +2932,7 @@ type
     procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); virtual; abstract;
 
     { Add Self (at least Name must be initialized) to prototypes namespace. }
-    procedure Bind(PrototypeNames: TStringList);
+    procedure Bind(PrototypeNames: TVRMLPrototypeNames);
 
     { The base URL path used to resolve urls inside.
       For now, used by EXTERNPROTO urls.
@@ -2948,7 +2951,7 @@ type
     destructor Destroy; override;
 
     procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); override;
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
 
     { These are actual prototype contents: all nodes, prototypes, routes
       defined within this prototype.
@@ -2988,7 +2991,7 @@ type
     property URLList: TMFString read FURLList;
 
     procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); override;
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
 
     property ReferencedPrototype: TVRMLPrototype read FReferencedPrototype;
     property ReferencedClass: TVRMLNodeClass read FReferencedClass;
@@ -3021,7 +3024,7 @@ type
       RemoveFromDestructionNotification: boolean = true);
 
     procedure SetEnding(const NodeName, FieldOrEventName: string;
-      NodeNames: TStringList;
+      NodeNames: TVRMLNodeNames;
       var Node: TVRMLNode; var Event: TVRMLEvent;
       const DestEnding: boolean);
 
@@ -3084,11 +3087,11 @@ type
       @groupBegin }
     procedure SetSource(
       const SourceNodeName, SourceFieldOrEventName: string;
-      NodeNames: TStringList);
+      NodeNames: TVRMLNodeNames);
 
     procedure SetDestination(
       const DestinationNodeName, DestinationFieldOrEventName: string;
-      NodeNames: TStringList);
+      NodeNames: TVRMLNodeNames);
     { @groupEnd }
 
     { These set source/destination of the route in more direct way.
@@ -3131,7 +3134,7 @@ type
       Also, if SourceNode and DestinationNode are without a name,
       or the name is not currently bound in SaveProperties.NodeNames.
     }
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
 
     { Clear the memory when the last event passed through this route.
       Route must remember such thing, to avoid loops in routes.
@@ -3189,6 +3192,9 @@ type
     property AutoRemove: boolean read FAutoRemove;
   end;
 
+  TVRMLPrototypeNames = class(TStringListCaseSens)
+  end;
+
   { Container tracking VRML/X3D node and prototype names during parsing.
     Used by both classic and XML VRML/X3D readers. }
   TVRMLNames = class
@@ -3206,7 +3212,7 @@ type
     Nodes: TVRMLNodeNames;
 
     { Current namespace of PROTO names. }
-    Prototypes: TStringList;
+    Prototypes: TVRMLPrototypeNames;
 
     constructor Create(const AAutoRemoveNodes: boolean);
     destructor Destroy; override;
@@ -3336,7 +3342,7 @@ function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
   @raises(EVRMLGzipCompressed If the Stream starts with gzip file header.) }
 function ParseVRMLFile(Stream: TPeekCharStream;
   const WWWBasePath: string;
-  PrototypeNames: TStringList = nil): TVRMLNode; overload;
+  PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode; overload;
 
 function ParseVRMLFileFromString(const VRMLContents: string;
   const WWWBasePath: string): TVRMLNode; overload;
@@ -3354,7 +3360,7 @@ function ParseVRMLFileFromString(const VRMLContents: string;
     Useful mostly for EXTERNPROTO implementation.) }
 function ParseVRMLFile(const FileName: string;
   AllowStdIn: boolean;
-  PrototypeNames: TStringList = nil): TVRMLNode; overload;
+  PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode; overload;
 
 { SaveToVRMLFile writes whole VRML file with given root Node.
   This includes writing VRML header '#VRML ...'.
@@ -4992,8 +4998,8 @@ begin
   finally C.Free end;
 end;
 
-procedure TVRMLNode.SaveContentsToStream(
-  SaveProperties: TVRMLSaveToStreamProperties);
+procedure TVRMLNode.SaveContentsToStream(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TVRMLNodeNames);
 var
   I: integer;
   FileItems: TVRMLFileItemsList;
@@ -5037,11 +5043,11 @@ begin
     for I := 0 to Routes.Count - 1 do
       FileItems.Add(Routes[I]);
 
-    FileItems.SaveToStream(SaveProperties);
+    FileItems.SaveToStream(SaveProperties, NodeNames);
   finally FreeAndNil(FileItems) end;
 end;
 
-procedure TVRMLNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TVRMLNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
 begin
   if PrototypeInstance and
      { TVRMLPrototypeNode has somewhat different meaning of PrototypeInstance,
@@ -5055,10 +5061,10 @@ begin
   begin
     { If this is an expanded prototype, than delegate writing to the
       PrototypeInstanceSourceNode. }
-    PrototypeInstanceSourceNode.SaveToStream(SaveProperties);
+    PrototypeInstanceSourceNode.SaveToStream(SaveProperties, NodeNames);
 
     { What to do about
-        Bind(SaveProperties.NodeNames)
+        Bind(NodeNames)
       called from PrototypeInstanceSourceNode.SaveToStream ?
       This means that PrototypeInstanceSourceNode (TVRMLPrototypeNode)
       is bound to given name.
@@ -5068,9 +5074,9 @@ begin
       So we bind again Self, instead of PrototypeInstanceSourceNode,
       to this name. }
 
-    Bind(SaveProperties.NodeNames);
+    Bind(NodeNames as TVRMLNodeNames);
   end else
-  if SaveProperties.NodeNames.IndexOfObject(Self) >= 0 then
+  if (NodeNames as TVRMLNodeNames).IndexOfObject(Self) >= 0 then
   begin
     SaveProperties.WritelnIndent('USE ' + NodeName);
   end else
@@ -5081,7 +5087,7 @@ begin
     SaveProperties.Writeln(NodeTypeName +' {');
 
     SaveProperties.IncIndent;
-    SaveContentsToStream(SaveProperties);
+    SaveContentsToStream(SaveProperties, NodeNames as TVRMLNodeNames);
     SaveProperties.DecIndent;
 
     SaveProperties.WritelnIndent('}');
@@ -5092,7 +5098,7 @@ begin
       We call Bind(NodeNames) after writing node contents, because
       we assume there are no cycles... but in case of Script nodes,
       cycles are unfortunately possible. }
-    Bind(SaveProperties.NodeNames);
+    Bind(NodeNames as TVRMLNodeNames);
   end;
 end;
 
@@ -5338,7 +5344,7 @@ begin
   finally FreeAndNil(Helper) end;
 end;
 
-procedure TVRMLNode.Bind(NodeNames: TStringList);
+procedure TVRMLNode.Bind(NodeNames: TVRMLNodeNames);
 var
   I: Integer;
 begin
@@ -5822,7 +5828,8 @@ begin
   end;
 end;
 
-procedure TSFNode.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TSFNode.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject);
 begin
   if Value = nil then
     SaveProperties.Write('NULL') else
@@ -5831,7 +5838,7 @@ begin
       In this case, we want it to start on the same line, so indent must
       be discarded. }
     SaveProperties.DiscardNextIndent;
-    Value.SaveToStream(SaveProperties);
+    Value.SaveToStream(SaveProperties, NodeNames);
   end;
 end;
 
@@ -5984,7 +5991,8 @@ begin
   inherited;
 end;
 
-procedure TMFNode.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TMFNode.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject);
 var
   I: Integer;
 begin
@@ -5998,13 +6006,13 @@ begin
       In this case, we want it to start on the same line, so indent must
       be discarded. }
     SaveProperties.DiscardNextIndent;
-    Items[0].SaveToStream(SaveProperties);
+    Items[0].SaveToStream(SaveProperties, NodeNames);
   end else
   begin
     SaveProperties.Writeln('[');
     SaveProperties.IncIndent;
     for I := 0 to Count - 1 do
-      Items[I].SaveToStream(SaveProperties);
+      Items[I].SaveToStream(SaveProperties, NodeNames);
     SaveProperties.DecIndent;
     SaveProperties.WriteIndent(']');
   end;
@@ -6549,7 +6557,7 @@ begin
 end;
 
 procedure TVRMLInterfaceDeclaration.IDeclSaveToStream(
-  SaveProperties: TVRMLSaveToStreamProperties;
+  SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TVRMLNodeNames;
   FieldValue: boolean);
 
   function ATName(const AcessType: TVRMLAccessType): string;
@@ -6592,7 +6600,7 @@ begin
         In this case, we want it to start on the same line, so indent must
         be discarded. }
       SaveProperties.DiscardNextIndent;
-      Field.FieldSaveToStream(SaveProperties, true, true);
+      Field.FieldSaveToStream(SaveProperties, NodeNames, true, true);
       { In this case, SaveProperties.Writeln will be done by Field.SaveToStream.
         (we pass SaveWhenDefault anyway, so we can be sure that
         this newline will be done). }
@@ -6601,7 +6609,7 @@ begin
     if Field.IsClauseNames.Count = 1 then
     begin
       SaveProperties.DiscardNextIndent;
-      Field.FieldSaveToStream(SaveProperties, true, false);
+      Field.FieldSaveToStream(SaveProperties, NodeNames, true, false);
     end else
 
     begin
@@ -6611,9 +6619,9 @@ begin
 end;
 
 procedure TVRMLInterfaceDeclaration.SaveToStream(
-  SaveProperties: TVRMLSaveToStreamProperties);
+  SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
 begin
-  IDeclSaveToStream(SaveProperties, true);
+  IDeclSaveToStream(SaveProperties, NodeNames as TVRMLNodeNames, true);
 end;
 
 function TVRMLInterfaceDeclaration.AccessType: TVRMLAccessType;
@@ -7188,7 +7196,7 @@ begin
   FWWWBasePath := Lexer.WWWBasePath;
 end;
 
-procedure TVRMLPrototypeBase.Bind(PrototypeNames: TStringList);
+procedure TVRMLPrototypeBase.Bind(PrototypeNames: TVRMLPrototypeNames);
 var
   I: Integer;
 begin
@@ -7199,7 +7207,7 @@ begin
 end;
 
 procedure TVRMLPrototypeBase.SaveInterfaceDeclarationsToStream(
-  SaveProperties: TVRMLSaveToStreamProperties;
+  SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TVRMLNodeNames;
   ExternalProto: boolean);
 var
   I: Integer;
@@ -7209,7 +7217,7 @@ begin
   for I := 0 to InterfaceDeclarations.Count - 1 do
   begin
     InterfaceDeclarations.Items[I].IDeclSaveToStream(
-      SaveProperties, not ExternalProto);
+      SaveProperties, NodeNames, not ExternalProto);
   end;
   SaveProperties.DecIndent;
   SaveProperties.WritelnIndent(']');
@@ -7271,28 +7279,28 @@ begin
   Bind(Names.Prototypes);
 end;
 
-procedure TVRMLPrototype.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TVRMLPrototype.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
 var
-  OldNodeNames: TStringList;
+  OldNodeNames: TVRMLNodeNames;
 begin
   SaveProperties.WriteIndent('PROTO ');
 
-  SaveInterfaceDeclarationsToStream(SaveProperties, false);
+  SaveInterfaceDeclarationsToStream(SaveProperties, NodeNames as TVRMLNodeNames, false);
 
   { Inside prototype has it's own DEF/USE scope. }
-  OldNodeNames := SaveProperties.NodeNames;
-  SaveProperties.NodeNames := TStringListCaseSens.Create;
+  OldNodeNames := NodeNames as TVRMLNodeNames;
+  NodeNames := TVRMLNodeNames.Create(false);
   try
     SaveProperties.WritelnIndent('{');
     { Node may be TVRMLRootNode_* here, that's OK,
       TVRMLRootNode_*.SaveToStream will magically handle this right. }
     SaveProperties.IncIndent;
-    Node.SaveToStream(SaveProperties);
+    Node.SaveToStream(SaveProperties, NodeNames);
     SaveProperties.DecIndent;
     SaveProperties.WritelnIndent('}');
   finally
-    FreeAndNil(SaveProperties.NodeNames);
-    SaveProperties.NodeNames := OldNodeNames;
+    FreeAndNil(NodeNames);
+    NodeNames := OldNodeNames;
   end;
 end;
 
@@ -7331,16 +7339,17 @@ begin
 end;
 
 procedure TVRMLExternalPrototype.SaveToStream(
-  SaveProperties: TVRMLSaveToStreamProperties);
+  SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
 begin
   SaveProperties.WriteIndent('EXTERNPROTO ');
 
-  SaveInterfaceDeclarationsToStream(SaveProperties, true);
+  SaveInterfaceDeclarationsToStream(SaveProperties,
+    NodeNames as TVRMLNodeNames, true);
 
   { SaveProperties.NodeNames will be ignored by URLList
     (TMFString.SaveToStream), don't worry about it. }
 
-  URLList.SaveToStream(SaveProperties);
+  URLList.SaveToStream(SaveProperties, NodeNames);
 end;
 
 procedure TVRMLExternalPrototype.LoadReferenced;
@@ -7382,7 +7391,7 @@ procedure TVRMLExternalPrototype.LoadReferenced;
   end;
 
 var
-  PrototypeNames: TStringList;
+  PrototypeNames: TVRMLPrototypeNames;
 
   function LoadFromExternalVRML(const RelativeURL: string): boolean;
   var
@@ -7461,7 +7470,7 @@ var
 begin
   UnloadReferenced;
 
-  PrototypeNames := TStringList.Create;
+  PrototypeNames := TVRMLPrototypeNames.Create;
   try
     for I := 0 to URLList.Count - 1 do
     begin
@@ -7729,7 +7738,7 @@ begin
 end;
 
 procedure TVRMLRoute.SetEnding(const NodeName, FieldOrEventName: string;
-  NodeNames: TStringList;
+  NodeNames: TVRMLNodeNames;
   var Node: TVRMLNode; var Event: TVRMLEvent;
   const DestEnding: boolean);
 var
@@ -7774,22 +7783,18 @@ end;
 
 procedure TVRMLRoute.SetSource(
   const SourceNodeName, SourceFieldOrEventName: string;
-  NodeNames: TStringList);
+  NodeNames: TVRMLNodeNames);
 begin
   SetEnding(SourceNodeName, SourceFieldOrEventName,
-    NodeNames,
-    FSourceNode, FSourceEvent,
-    false);
+    NodeNames, FSourceNode, FSourceEvent, false);
 end;
 
 procedure TVRMLRoute.SetDestination(
   const DestinationNodeName, DestinationFieldOrEventName: string;
-  NodeNames: TStringList);
+  NodeNames: TVRMLNodeNames);
 begin
   SetEnding(DestinationNodeName, DestinationFieldOrEventName,
-    NodeNames,
-    FDestinationNode, FDestinationEvent,
-    true);
+    NodeNames, FDestinationNode, FDestinationEvent, true);
 end;
 
 procedure TVRMLRoute.SetEndingDirectly(
@@ -7843,7 +7848,7 @@ end;
 type
   EVRMLRouteSaveError = class(EVRMLError);
 
-procedure TVRMLRoute.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TVRMLRoute.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
 var
   Output: string;
 
@@ -7859,12 +7864,12 @@ var
     if Node.NodeName = '' then
       raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s node not named', [S]);
 
-    Index := SaveProperties.NodeNames.IndexOf(Node.NodeName);
+    Index := (NodeNames as TVRMLNodeNames).IndexOf(Node.NodeName);
     if Index = -1 then
       raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s node name "%s" not bound',
         [S, Node.NodeName]);
 
-    BoundNode := SaveProperties.NodeNames.Objects[Index] as TVRMLNode;
+    BoundNode := (NodeNames as TVRMLNodeNames).Objects[Index] as TVRMLNode;
     { Just like when setting node by TVRMLRoute.SetEnding:
       we actually keep the Node that contains the route, which is
       sometimes TVRMLPrototypeNode hidden inside PrototypeInstanceSourceNode. }
@@ -7986,7 +7991,7 @@ constructor TVRMLNames.Create(const AAutoRemoveNodes: boolean);
 begin
   inherited Create;
   Nodes := TVRMLNodeNames.Create(AAutoRemoveNodes);
-  Prototypes := TStringListCaseSens.Create;
+  Prototypes := TVRMLPrototypeNames.Create;
 end;
 
 destructor TVRMLNames.Destroy;
@@ -8422,7 +8427,7 @@ end;
 
 function ParseVRMLFile(Stream: TPeekCharStream;
   const WWWBasePath: string;
-  PrototypeNames: TStringList): TVRMLNode;
+  PrototypeNames: TVRMLPrototypeNames): TVRMLNode;
 var
   Lexer: TVRMLLexer;
   Names: TVRMLNames;
@@ -8440,7 +8445,7 @@ begin
 end;
 
 function ParseVRMLFile(const FileName: string; AllowStdIn: boolean;
-  PrototypeNames: TStringList): TVRMLNode;
+  PrototypeNames: TVRMLPrototypeNames): TVRMLNode;
 
   function DoIt(BaseStream: TStream; FreeBaseStream: boolean;
     const WWWBasePath: string): TVRMLNode;
@@ -8570,7 +8575,9 @@ const
 var
   VerMajor, VerMinor, SuggestionPriority: Integer;
   VRMLHeader: string;
+  NodeNames: TVRMLNodeNames;
 begin
+  NodeNames := TVRMLNodeNames.Create(false);
   SaveProperties := TVRMLSaveToStreamProperties.Create(Stream);
   try
     if not Node.SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority) then
@@ -8609,8 +8616,11 @@ begin
 
     { Node may be TVRMLRootNode_* here, that's OK,
       TVRMLRootNode_*.SaveToStream will magically handle this right. }
-    Node.SaveToStream(SaveProperties);
-  finally FreeAndNil(SaveProperties) end;
+    Node.SaveToStream(SaveProperties, NodeNames);
+  finally
+    FreeAndNil(SaveProperties);
+    FreeAndNil(NodeNames);
+  end;
 end;
 
 procedure SaveToVRMLFile(Node: TVRMLNode;
