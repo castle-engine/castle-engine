@@ -87,7 +87,7 @@ type
 { Basic functions to operate on complex numbers.
   FFTW library unfortunately uses different complex type than
   UComplex standard unit (no surprise, they cannot depend on each other...),
-  so unfortunately we have to write out own routines. }
+  so we have to write our own routines. }
 
 { }
 const
