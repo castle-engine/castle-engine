@@ -48,7 +48,7 @@ procedure TTestVRMLScene.TestIteratorSpeed;
   const
     TestCount = 1000;
   begin
-    Scene := TVRMLScene.Create(LoadAsVRML(FileName), true);
+    Scene := TVRMLScene.Create(LoadVRML(FileName), true);
     try
       for OnlyActive := false to true do
       begin

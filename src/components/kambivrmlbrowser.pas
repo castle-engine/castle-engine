@@ -105,7 +105,7 @@ end;
 
 procedure TKamVRMLBrowser.Load(const SceneFileName: string);
 begin
-  Load(LoadAsVRML(SceneFileName, false), true);
+  Load(LoadVRML(SceneFileName, false), true);
 end;
 
 procedure TKamVRMLBrowser.Load(ARootNode: TVRMLNode; const OwnsRootNode: boolean);

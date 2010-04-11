@@ -254,7 +254,7 @@ type
       (models to use, times to use etc.) from given file.
 
       Various file formats are possible, everything that can be handled by
-      LoadAsVRMLSequence, in particular simple 3D model files, MD3,
+      LoadVRMLSequence, in particular simple 3D model files, MD3,
       kanim (described on
       [http://vrmlengine.sourceforge.net/kanim_format.php]).
 
@@ -263,7 +263,7 @@ type
       and EqualityEpsilon of kanim files), you should use
       more flexible (and less comfortable to use)
       LoadFromFileToVars class procedure (specialized for kanim files)
-      or LoadAsVRMLSequence (if you want to handle any files).
+      or LoadVRMLSequence (if you want to handle any files).
 
       @link(Loaded) property changes to @true after calling this.
 
@@ -1380,7 +1380,7 @@ begin
   try
     NewOptimization := FOptimization; { default NewOptimization value }
 
-    LoadAsVRMLSequence(FileName, AllowStdIn,
+    LoadVRMLSequence(FileName, AllowStdIn,
       RootNodes, Times, ScenesPerTime, NewOptimization, EqualityEpsilon,
       NewTimeLoop, NewTimeBackwards);
 

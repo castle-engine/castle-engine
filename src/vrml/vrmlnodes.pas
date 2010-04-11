@@ -173,7 +173,7 @@
     @item(
       no i mozemy w ten sposob latwo wykorzystac nasz kod VRMLa do pisania
       konwerterow innych formatow na VRMLa. Uzywajac modulu Object3DAsVRML
-      i tutejszego SaveToVRMLFile mamy sliczny konwerter 3ds, obj, geo -> VRML.)
+      i tutejszego SaveVRMLClassic mamy sliczny konwerter 3ds, obj, geo -> VRML.)
   )
 
   Specyfikacja VRMLa 1.0 z dodanymi "moimi rozszerzeniami VMRLa"
@@ -4434,7 +4434,7 @@ var
     URL := CombinePaths(WWWBasePath, RelativeURL);
     URLExtractAnchor(URL, Anchor);
     try
-      ReferencedPrototypeNode := LoadAsVRML(URL, false, PrototypeNames);
+      ReferencedPrototypeNode := LoadVRML(URL, false, PrototypeNames);
     except
       on E: Exception do
       begin

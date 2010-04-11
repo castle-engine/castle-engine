@@ -21,7 +21,7 @@
 
   @unorderedList(
     @item(The proper place to "plug" another 3D model format into the engine
-      is in this unit, make your format handled by LoadAsVRML or LoadAsVRMLSequence.
+      is in this unit, make your format handled by LoadVRML or LoadVRMLSequence.
       This way all you
       have to do is to implement convertion, in memory, from your 3D model
       file to a VRML / X3D nodes graph (TVRMLNode instances graph).
@@ -32,7 +32,7 @@
       bounding volume calculation, and everything else.)
 
     @item(Remember to add new file format to file filters:
-      possibly LoadAsVRML_FileFilters and LoadAsVRMLSequence_FileFilters.
+      possibly LoadVRML_FileFilters and LoadVRMLSequence_FileFilters.
       Remember to add extensions of your format twice
       (once for filter specific to this format, and once for line
       "All 3D models").)
@@ -67,24 +67,24 @@ interface
 uses VectorMath, SysUtils, VRMLNodes, Object3DMD3,
   KambiUtils, VRMLRendererOptimization, Classes;
 
-function LoadGEOAsVRML(const filename: string): TVRMLNode;
+function LoadGEO(const filename: string): TVRMLNode;
 
-function LoadOBJAsVRML(const filename: string): TVRMLNode;
+function LoadWavefrontOBJ(const filename: string): TVRMLNode;
 
-function Load3dsAsVRML(const filename: string): TVRMLNode;
+function Load3DS(const filename: string): TVRMLNode;
 
-function LoadMD3AsVRML(const FileName: string): TVRMLNode;
+function LoadMD3(const FileName: string): TVRMLNode;
 
 { Load a specific animation frame from a given Md3 model.
   @param Md3 is the MD3 file to use.
   @param FrameNumber is the frame number to load, must be < Md3.Count.
   @param WWBasePath is WWBasePath value to set in resulting VRML nodes. }
-function LoadMD3FrameAsVRML(Md3: TObject3DMD3; FrameNumber: Cardinal;
+function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
   const WWWBasePath: string): TVRMLNode;
 
-{ This is much like LoadAsVRMLSequence, but it only handles MD3 files.
-  Usually you want to use LoadAsVRMLSequence, not this procedure. }
-procedure LoadMD3AsVRMLSequence(
+{ This is much like LoadVRMLSequence, but it only handles MD3 files.
+  Usually you want to use LoadVRMLSequence, not this procedure. }
+procedure LoadMD3Sequence(
   const FileName: string;
   RootNodes: TVRMLNodesList;
   Times: TDynSingleArray;
@@ -94,9 +94,7 @@ procedure LoadMD3AsVRMLSequence(
   out TimeLoop, TimeBackwards: boolean);
 
 { This guesses model format basing on ExtractFileExt(filename),
-  then loads model converting it to VRML with appropriate
-  LoadXxxAsVRML functions above in this unit or using
-  @link(ParseVRMLFile) if this seems to be a VRML file.
+  then loads model converting it to VRML.
 
   @param(AllowStdIn If AllowStdIn and FileName = '-' then it will load
     a VRML file from StdInStream (using GetCurrentDir as WWWBasePath).)
@@ -105,14 +103,18 @@ procedure LoadMD3AsVRMLSequence(
     prototype namespace at the end of parsing the file.
     This will only be used if loaded file is VRML/X3D.
     Useful mostly for EXTERNPROTO implementation.) }
+function LoadVRML(const filename: string; AllowStdIn: boolean = false;
+  PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode;
+
+{ Deprecated name for LoadVRML. @deprecated }
 function LoadAsVRML(const filename: string; AllowStdIn: boolean = false;
   PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode;
 
 const
-  { File filters for files loaded by LoadAsVRML, suitable
+  { File filters for files loaded by LoadVRML, suitable
     for TFileFiltersList.AddFiltersFromString and
     TGLWindow.FileDialog. }
-  LoadAsVRML_FileFilters =
+  LoadVRML_FileFilters =
   'All Files|*|' +
   '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo|' +
   'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
@@ -132,14 +134,14 @@ const
 
   For model formats that cannot express animations (like GEO or Wavefront OBJ)
   or that express animations in a single VRML file (like VRML >= 2.0)
-  this just loads them like LoadAsVRML, adding exactly one item
+  this just loads them like LoadVRML, adding exactly one item
   to RootNodes.
   This guarantees that this function handles @italic(at least)
-  the same model formats as LoadAsVRML --- but actually it may
+  the same model formats as LoadVRML --- but actually it may
   handle more.
 
   And indeed, it currently handles kanim, that
-  is completely unrecognized by LoadAsVRML.
+  is completely unrecognized by LoadVRML.
 
   This handles animations in kanim and MD3 formats.
 
@@ -156,7 +158,7 @@ const
     So you should set this to "preferred Optimization value for
     other formats than kanim".)
 }
-procedure LoadAsVRMLSequence(
+procedure LoadVRMLSequence(
   const FileName: string; AllowStdIn: boolean;
   RootNodes: TVRMLNodesList;
   Times: TDynSingleArray;
@@ -166,10 +168,10 @@ procedure LoadAsVRMLSequence(
   out TimeLoop, TimeBackwards: boolean);
 
 const
-  { File filters for files loaded by LoadAsVRMLSequence, suitable
+  { File filters for files loaded by LoadVRMLSequence, suitable
     for TFileFiltersList.AddFiltersFromString and
     TGLWindow.FileDialog. }
-  LoadAsVRMLSequence_FileFilters =
+  LoadVRMLSequence_FileFilters =
   'All Files|*|' +
   '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo|' +
   'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
@@ -214,7 +216,7 @@ begin  result := 'File_' + ToVRMLName(filename)  end;
 
 { Load* ---------------------------------------------------------------------- }
 
-function LoadGEOAsVRML(const filename: string): TVRMLNode;
+function LoadGEO(const filename: string): TVRMLNode;
 var geo: TObject3DGEO;
     verts: TNodeCoordinate3;
     faces: TNodeIndexedFaceSet_1;
@@ -246,12 +248,12 @@ begin
  finally geo.Free end;
 end;
 
-function LoadOBJAsVRML(const filename: string): TVRMLNode;
+function LoadWavefrontOBJ(const filename: string): TVRMLNode;
 const
   { na czas konstruowania duzych tablic indeksow pozwalamy sobie ustawiac
     bardzo duze dopuszczalne AllowedCapacityOverflow zeby wszystko bylo szybko.
 
-    TODO: powinienes unikac uzywania tego, zrob tu tak jak w Load3dsAsVRML.}
+    TODO: powinienes unikac uzywania tego, zrob tu tak jak w Load3DS.}
   ALLOWED_INDICES_ARRAYS_OVERFLOWS = 100;
 
   function MatOBJNameToVRMLName(const MatOBJName: string): string;
@@ -421,7 +423,7 @@ begin
  finally obj.Free end;
 end;
 
-function Load3dsAsVRML(const filename: string): TVRMLNode;
+function Load3DS(const filename: string): TVRMLNode;
 var WWWBasePath: string;
 
   const
@@ -664,7 +666,7 @@ begin
  finally obj3ds.Free end;
 end;
 
-function LoadMD3FrameAsVRML(Md3: TObject3DMD3; FrameNumber: Cardinal;
+function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
   const WWWBasePath: string): TVRMLNode;
 
   function MakeCoordinates(Vertexes: TDynMd3VertexArray;
@@ -761,7 +763,7 @@ begin
     Result.AddChild(MakeSeparator(Md3.Surfaces[I]));
 end;
 
-function LoadMD3AsVRML(const FileName: string): TVRMLNode;
+function LoadMD3(const FileName: string): TVRMLNode;
 var
   Md3: TObject3DMD3;
   WWWBasePath: string;
@@ -769,11 +771,11 @@ begin
   WWWBasePath := ExtractFilePath(ExpandFilename(FileName));
   Md3 := TObject3DMD3.Create(FileName);
   try
-    Result := LoadMD3FrameAsVRML(Md3, 0, WWWBasePath);
+    Result := LoadMD3Frame(Md3, 0, WWWBasePath);
   finally FreeAndNil(Md3) end;
 end;
 
-procedure LoadMD3AsVRMLSequence(
+procedure LoadMD3Sequence(
   const FileName: string;
   RootNodes: TVRMLNodesList;
   Times: TDynSingleArray;
@@ -792,7 +794,7 @@ begin
     { handle each MD3 frame }
     for I := 0 to Md3.FramesCount - 1 do
     begin
-      RootNodes.Add(LoadMD3FrameAsVRML(Md3, I, WWWBasePath));
+      RootNodes.Add(LoadMD3Frame(Md3, I, WWWBasePath));
       Times.Add(I / 30);
     end;
 
@@ -811,7 +813,7 @@ begin
   finally FreeAndNil(Md3) end;
 end;
 
-function LoadAsVRML(const filename: string; AllowStdIn: boolean;
+function LoadVRML(const filename: string; AllowStdIn: boolean;
   PrototypeNames: TVRMLPrototypeNames): TVRMLNode;
 const
   GzExt = '.gz';
@@ -826,20 +828,20 @@ var
   Ext: string;
 begin
   if AllowStdIn and (FileName = '-') then
-    result := ParseVRMLFile('-', true, PrototypeNames) else
+    result := LoadVRMLClassic('-', true, PrototypeNames) else
   begin
     Ext := ExtractFileExt(filename);
     if Ext = '.gz' then
       Ext := ExtractFileExt(DeleteFileExt(FileName)) + Ext;
     case ArrayPosText(Ext, Extensions) of
-      0: result := LoadGEOAsVRML(filename);
-      1: result := Load3dsAsVRML(filename);
-      2: result := LoadOBJAsVRML(filename);
-      3..9: result := ParseVRMLFile(filename, false, PrototypeNames);
-      10: Result := LoadMD3AsVRML(FileName);
-      11: Result := LoadColladaAsVRML(FileName);
-      12: Result := LoadX3DXmlAsVRML(FileName, false, PrototypeNames);
-      13, 14: Result := LoadX3DXmlAsVRML(FileName, true, PrototypeNames);
+      0: result := LoadGEO(filename);
+      1: result := Load3DS(filename);
+      2: result := LoadWavefrontOBJ(filename);
+      3..9: result := LoadVRMLClassic(filename, false, PrototypeNames);
+      10: Result := LoadMD3(FileName);
+      11: Result := LoadCollada(FileName);
+      12: Result := LoadX3DXml(FileName, false, PrototypeNames);
+      13, 14: Result := LoadX3DXml(FileName, true, PrototypeNames);
       else raise Exception.CreateFmt(
         'Unrecognized file extension "%s" for 3D model file "%s"',
         [Ext, FileName]);
@@ -847,7 +849,13 @@ begin
   end;
 end;
 
-procedure LoadAsVRMLSequence(const FileName: string; AllowStdIn: boolean;
+function LoadAsVRML(const filename: string; AllowStdIn: boolean = false;
+  PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode;
+begin
+  Result := LoadVRML(FileName, AllowStdIn, PrototypeNames);
+end;
+
+procedure LoadVRMLSequence(const FileName: string; AllowStdIn: boolean;
   RootNodes: TVRMLNodesList;
   Times: TDynSingleArray;
   out ScenesPerTime: Cardinal;
@@ -873,7 +881,7 @@ procedure LoadAsVRMLSequence(const FileName: string; AllowStdIn: boolean;
       RootNodes.Count := ModelFileNames.Count;
       for I := 0 to ModelFileNames.High do
       try
-        RootNodes[I] := LoadAsVRML(ModelFileNames[I]);
+        RootNodes[I] := LoadVRML(ModelFileNames[I]);
       except
         for J := 0 to I - 1 do
           RootNodes.FreeAndNil(J);
@@ -902,9 +910,9 @@ begin
   if SameText(Ext, '.kanim') then
     LoadKanim else
   if SameText(Ext, '.md3') then
-    LoadMD3AsVRMLSequence(FileName, RootNodes, Times, ScenesPerTime,
+    LoadMD3Sequence(FileName, RootNodes, Times, ScenesPerTime,
       Optimization, EqualityEpsilon, TimeLoop, TimeBackwards) else
-    LoadSingle(LoadAsVRML(FileName, AllowStdIn));
+    LoadSingle(LoadVRML(FileName, AllowStdIn));
 end;
 
 end.

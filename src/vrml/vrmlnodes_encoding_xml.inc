@@ -22,7 +22,7 @@
   @param(PrototypeNames If <> @nil, will be filled with global
   prototype namespace at the end of parsing the file.
   Useful mostly for EXTERNPROTO implementation.) }
-function LoadX3DXmlAsVRML(const FileName: string;
+function LoadX3DXml(const FileName: string;
   Gzipped: boolean;
   PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode;
 
@@ -468,7 +468,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function LoadX3DXmlAsVRML(const FileName: string;
+function LoadX3DXml(const FileName: string;
   Gzipped: boolean; PrototypeNames: TVRMLPrototypeNames): TVRMLNode;
 var
   Doc: TXMLDocument;

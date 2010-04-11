@@ -798,7 +798,7 @@
       If SaveAsRootNode then TVRMLRootNode_* is saved to stream in a special way, so that actually
       only it's contents are written, without surrounding { } braces.
       This way, when saving, we "undo" the artificial wrapping in
-      TVRMLRootNode_* that was done by ParseVRMLStatements and ParseVRMLFile. *)
+      TVRMLRootNode_* that was done by ParseVRMLStatements and LoadVRMLClassic. *)
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);  override;
 
     { Set ForceVersion to @true to make SuggestedVRMLVersion of this class
@@ -2569,7 +2569,7 @@ begin
 
   FullUrl := PathFromWWWBasePath(FdName.Value);
   try
-    FInlined := LoadAsVRML(FullUrl, false);
+    FInlined := LoadVRML(FullUrl, false);
   except
     on E: Exception do
       { Careful here, as VRMLWarning may also raise exception. }

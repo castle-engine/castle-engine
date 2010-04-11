@@ -237,9 +237,9 @@ procedure TTestVRMLNodes.TestParseSaveToFile;
       First := TDynVRMLTokenInfoArray.Create;
       First.ReadFromFile(FileName);
 
-      Node := ParseVRMLFile(FileName, false);
+      Node := LoadVRMLClassic(FileName, false);
       NewFile := GetTempPath + 'test_kambi_vrml_game_engine.wrl';
-      SaveToVRMLFile(Node, NewFile, '');
+      SaveVRMLClassic(Node, NewFile, '');
 
       Second := TDynVRMLTokenInfoArray.Create;
       Second.ReadFromFile(NewFile);

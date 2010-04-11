@@ -39,7 +39,7 @@ uses VRMLNodes;
   standard (without shaders) materials.
 
   Resulting VRML is VRML 2.0. }
-function LoadColladaAsVRML(const FileName: string): TVRMLNode;
+function LoadCollada(const FileName: string): TVRMLNode;
 
 implementation
 
@@ -75,9 +75,9 @@ begin
   Result := -1;
 end;
 
-{ LoadColladaAsVRML ---------------------------------------------------------- }
+{ LoadCollada ---------------------------------------------------------- }
 
-function LoadColladaAsVRML(const FileName: string): TVRMLNode;
+function LoadCollada(const FileName: string): TVRMLNode;
 var
   WWWBasePath: string;
 

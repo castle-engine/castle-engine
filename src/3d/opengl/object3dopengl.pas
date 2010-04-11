@@ -19,7 +19,7 @@
 
   Note that you will usually do not want to use this unit in your programs,
   since it's much better to convert all OBJ, GEO and 3DS models to VRML
-  (e.g. load them using LoadAsVRML) and then render using sophisticated
+  (e.g. load them using LoadVRML) and then render using sophisticated
   and really optimized VRML renderer in @link(VRMLGLScene).
 
   This unit just demonstrates that you can, if you really want,

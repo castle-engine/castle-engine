@@ -19,25 +19,25 @@
 
 const
   { File filters for TGLWindow.FileDialog if you want to open a file and then
-    pass it to ParseVRMLFile. Note that only ParseVRMLFile that takes a FileName
+    pass it to LoadVRMLClassic. Note that only LoadVRMLClassic that takes a FileName
     parameter (as a string) can deal with gzip compressed files. }
-  ParseVRMLFile_FileFilters =
+  LoadVRMLClassic_FileFilters =
   'All files|*|' +
   '*VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz';
 
   { File filters for TGLWindow.FileDialog if you want to save a file using
-    SaveToVRMLFile. }
-  SaveToVRMLFile_FileFilters =
+    SaveVRMLClassic. }
+  SaveVRMLClassic_FileFilters =
   'All files|*|' +
   '*VRML (not compressed) (*.wrl)|*.wrl';
 
-{ Parse whole VRML file, return it's root node.
+{ Load VRML/X3D file in classic encoding from stream. Return it's root node.
 
   Note that you must pass here TPeekCharStream class, not just any
   generic TStream class. But it's not a problem, really, because
   you can wrap any class inside TPeekCharStream descendant. E.g. do
   @longcode(#
-    ParseVRMLFile(TBufferedReadStream.Create(MyStream, false), WWWBasePath)
+    LoadVRMLClassic(TBufferedReadStream.Create(MyStream, false), WWWBasePath)
   #)
 
   Note that this function can't handle compressed data (VRML files are
@@ -49,27 +49,33 @@ const
     Useful mostly for EXTERNPROTO implementation.)
 
   @raises(EVRMLGzipCompressed If the Stream starts with gzip file header.) }
-function ParseVRMLFile(Stream: TPeekCharStream;
+function LoadVRMLClassic(Stream: TPeekCharStream;
   const WWWBasePath: string;
   PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode; overload;
 
-function ParseVRMLFileFromString(const VRMLContents: string;
+function LoadVRMLClassicFromString(const VRMLContents: string;
   const WWWBasePath: string): TVRMLNode; overload;
 
-{ FileName to nazwa istniejacego pliku (wzgledna lub bezwzgledna).
-  Jezeli AllowStdIn to jesli filename = '-' to odczytamy model z StdInStream,
-  w tym przypadku WWWBasePath bedzie ustawione na GetCurrentDir.
+{ Load VRML/X3D file in classic encoding, return it's root node.
 
-  This function can handle files compressed with gzip
+  This handles also VRML files compressed with gzip
   (it just internally filters file contents with TGZFileStream,
   uncompressing it on the fly).
+
+  If AllowStdIn then FileName = '-' is understood as "standard input"
+  (StdInStream). Base path for resolving URLs in this case is GetCurrentDir.
 
   @param(PrototypeNames If <> @nil, will be filled with global
     prototype namespace at the end of parsing the file.
     Useful mostly for EXTERNPROTO implementation.) }
-function ParseVRMLFile(const FileName: string;
+function LoadVRMLClassic(const FileName: string;
   AllowStdIn: boolean;
   PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode; overload;
+
+{ Deprecated name for LoadVRMLClassic. @deprecated }
+function ParseVRMLFile(const FileName: string;
+  AllowStdIn: boolean;
+  PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode;
 
 { Write VRML file with given root Node.
   This includes writing VRML header '#VRML ...'.
@@ -79,10 +85,14 @@ function ParseVRMLFile(const FileName: string;
     '# '+ PrecedingComment at the beginning. This is for you
     to optionally put name of the generator program or source filename
     or time/date of generation etc.) }
-procedure SaveToVRMLFile(Node: TVRMLNode;
+procedure SaveVRMLClassic(Node: TVRMLNode;
   Stream: TStream; const PrecedingComment: string); overload;
-procedure SaveToVRMLFile(Node: TVRMLNode;
+procedure SaveVRMLClassic(Node: TVRMLNode;
   const Filename, PrecedingComment: string); overload;
+
+{ Deprecated name for SaveVRMLClassic. @deprecated }
+procedure SaveToVRMLFile(Node: TVRMLNode;
+  const Filename, PrecedingComment: string);
 
 {$endif read_interface}
 
@@ -553,7 +563,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function ParseVRMLFile(Stream: TPeekCharStream;
+function LoadVRMLClassic(Stream: TPeekCharStream;
   const WWWBasePath: string;
   PrototypeNames: TVRMLPrototypeNames): TVRMLNode;
 var
@@ -571,7 +581,7 @@ begin
   finally FreeAndNil(Lexer) end;
 end;
 
-function ParseVRMLFile(const FileName: string; AllowStdIn: boolean;
+function LoadVRMLClassic(const FileName: string; AllowStdIn: boolean;
   PrototypeNames: TVRMLPrototypeNames): TVRMLNode;
 
   function DoIt(BaseStream: TStream; FreeBaseStream: boolean;
@@ -581,7 +591,7 @@ function ParseVRMLFile(const FileName: string; AllowStdIn: boolean;
   begin
     Stream := TBufferedReadStream.Create(BaseStream, FreeBaseStream);
     try
-      Result := ParseVRMLFile(Stream, WWWBasePath, PrototypeNames);
+      Result := LoadVRMLClassic(Stream, WWWBasePath, PrototypeNames);
     finally Stream.Free end;
   end;
 
@@ -641,7 +651,7 @@ begin
   end;
 end;
 
-function ParseVRMLFileFromString(const VRMLContents: string;
+function LoadVRMLClassicFromString(const VRMLContents: string;
   const WWWBasePath: string): TVRMLNode; overload;
 var
   Stream: TPeekCharStream;
@@ -649,13 +659,20 @@ begin
   Stream := TSimplePeekCharStream.Create(
     TStringStream.Create(VRMLContents), true);
   try
-    Result := ParseVRMLFile(Stream, WWWBasePath);
+    Result := LoadVRMLClassic(Stream, WWWBasePath);
   finally FreeAndNil(Stream) end;
+end;
+
+function ParseVRMLFile(const FileName: string;
+  AllowStdIn: boolean;
+  PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode;
+begin
+  Result := LoadVRMLClassic(FileName, AllowStdIn, PrototypeNames);
 end;
 
 { saving --------------------------------------------------------------------- }
 
-procedure SaveToVRMLFile(Node: TVRMLNode; Stream: TStream;
+procedure SaveVRMLClassic(Node: TVRMLNode; Stream: TStream;
   const PrecedingComment: string);
 var
   SaveProperties: TVRMLSaveToStreamProperties;
@@ -752,15 +769,21 @@ begin
   end;
 end;
 
-procedure SaveToVRMLFile(Node: TVRMLNode;
+procedure SaveVRMLClassic(Node: TVRMLNode;
   const Filename, PrecedingComment: string);
 var
   Stream: TFileStream;
 begin
   Stream := TFileStream.Create(Filename, fmCreate);
   try
-    SaveToVRMLFile(Node, Stream, PrecedingComment);
+    SaveVRMLClassic(Node, Stream, PrecedingComment);
   finally Stream.Free end;
+end;
+
+procedure SaveToVRMLFile(Node: TVRMLNode;
+  const Filename, PrecedingComment: string);
+begin
+  SaveVRMLClassic(Node, FileName, PrecedingComment);
 end;
 
 {$endif read_implementation}
