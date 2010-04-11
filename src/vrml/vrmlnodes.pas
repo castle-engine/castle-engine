@@ -4060,7 +4060,7 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
 
          PressedText { string "zero" }
 
-       (this is a simplified part of ../../kambi_vrml_test_suite/x3d/key_sensor.x3dv
+       (this is a simplified part of ../../../kambi_vrml_test_suite/x3d/key_sensor.x3dv
        file). In such case, when PressedText, you may get Shape that already
        was expanded from SimpleText. So NodeCopy will have PrototypeInstance
        = true. Or NodeCopy may be TVRMLRootNode_1/2 wrapper, then it's
