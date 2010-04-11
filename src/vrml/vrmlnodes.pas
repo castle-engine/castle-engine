@@ -1817,21 +1817,16 @@ type
   private
     FVRMLVerMajor, FVRMLVerMinor: integer;
     FWWWBasePath: string;
+    FNodes: TVRMLNodeNames;
+    FPrototypes: TVRMLPrototypeNames;
+    FImported: TVRMLNodeNames;
+    FExported: TVRMLNodeNames;
+    FImportable: TStringList;
   public
-    { Current namespace for DEF/USE.
-
-      This is a list without duplicates with all
-      currently known node names. Objects[] of this list point to
-      actual TVRMLNode instances. If many instances had the same NodeName,
-      only the last instance will be referenced here, following VRML spec
-      (last DEF takes precedence).
-
-      Internal notes: ParseNode doesn't modify this, only TVRMLNode.Parse
-      can do this. }
-    Nodes: TVRMLNodeNames;
-
-    { Current namespace of PROTO names. }
-    Prototypes: TVRMLPrototypeNames;
+    constructor Create(const AAutoRemoveNodes: boolean;
+      const AWWWBasePath: string;
+      const AVRMLVerMajor, AVRMLVerMinor: Integer);
+    destructor Destroy; override;
 
     { Base path for resolving URLs from nodes in this namespace.
       See TVRMLNode.WWWBasePath. }
@@ -1843,10 +1838,51 @@ type
     property VRMLVerMajor: Integer read FVRMLVerMajor;
     property VRMLVerMinor: Integer read FVRMLVerMinor;
 
-    constructor Create(const AAutoRemoveNodes: boolean;
-      const AWWWBasePath: string;
-      const AVRMLVerMajor, AVRMLVerMinor: Integer);
-    destructor Destroy; override;
+    { Current namespace for DEF/USE.
+
+      This is a list without duplicates with all
+      currently known node names. Objects[] of this list point to
+      actual TVRMLNode instances. If many instances had the same NodeName,
+      only the last instance will be referenced here, following VRML spec
+      (last DEF takes precedence).
+
+      Internal notes: ParseNode doesn't modify this, only TVRMLNode.Parse
+      can do this. }
+    property Nodes: TVRMLNodeNames read FNodes;
+
+    { Current namespace of PROTO names. }
+    property Prototypes: TVRMLPrototypeNames read FPrototypes;
+
+    { Currently IMPORTed nodes.
+
+      The nodes on this list are "bound" to their aliases,
+      as this is the name under which they are visible in the current namespace.
+      Alias is the identifier after the "AS" keyword in the "IMPORT" declaration
+      (or, if no "AS xxx" clause was present, then alias is just the name
+      under which node was exported). }
+    property Imported: TVRMLNodeNames read FImported;
+
+    { Currently EXPORTed nodes from this scene.
+
+      The nodes on this list are "bound" to their
+      aliases, as this is the name under which they are visible for
+      the outside VRML scenes (that can import these nodes).
+      Alias is the identifier after the "AS" keyword in "EXPORT" declaration
+      (or, if no "AS xxx" clause, then alias is just normal node name). }
+    property Exported: TVRMLNodeNames read FExported;
+
+    { Currently loaded Inlines with importable nodes.
+
+      The mechanism is that when you load an Inline node, the resulting
+      "Exported" nodes (from the namespace within the Inline) get added
+      to this "Importable" list. Then the "IMPORT" clause in this
+      namespace can make "Importable" nodes into actually "Imported".
+
+      This is a list with strings representing Inline node names
+      (there's no way to IMPORT from unnamed Inline nodes).
+      Objects[] of this list are instances of TVRMLNodeNames
+      corresponding to exported names within the inline. }
+    property Importable: TStringList read FImportable;
   end;
 
 { TraverseStateLastNodesClasses ---------------------------------------------- }
@@ -5166,17 +5202,23 @@ constructor TVRMLNames.Create(const AAutoRemoveNodes: boolean;
   const AVRMLVerMajor, AVRMLVerMinor: Integer);
 begin
   inherited Create;
-  Nodes := TVRMLNodeNames.Create(AAutoRemoveNodes);
-  Prototypes := TVRMLPrototypeNames.Create;
   FWWWBasePath := AWWWBasePath;
   FVRMLVerMajor := AVRMLVerMajor;
   FVRMLVerMinor := AVRMLVerMinor;
+  FNodes := TVRMLNodeNames.Create(AAutoRemoveNodes);
+  FPrototypes := TVRMLPrototypeNames.Create;
+  FImported := TVRMLNodeNames.Create(AAutoRemoveNodes);
+  FExported := TVRMLNodeNames.Create(AAutoRemoveNodes);
+  FImportable := TStringList.Create;
 end;
 
 destructor TVRMLNames.Destroy;
 begin
-  FreeAndNil(Nodes);
-  FreeAndNil(Prototypes);
+  FreeAndNil(FNodes);
+  FreeAndNil(FPrototypes);
+  FreeAndNil(FImported);
+  FreeAndNil(FExported);
+  FreeAndNil(FImportable);
   inherited;
 end;
 
