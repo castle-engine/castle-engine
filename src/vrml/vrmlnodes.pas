@@ -272,7 +272,7 @@ interface
 uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
   VRMLFields, Boxes3D, Images, TTFontsTypes, BackgroundBase, VRMLErrors,
   Videos, VRMLTime, Base3D,
-  KambiScript, VRMLKambiScript, KambiOctree, DDS, TextureImages;
+  KambiScript, VRMLKambiScript, KambiOctree, DDS, TextureImages, DOM;
 
 {$define read_interface}
 
@@ -3121,10 +3121,14 @@ type
     procedure SetDestinationDirectly(const FieldOrEvent: TVRMLFieldOrEvent);
     { @groupEnd }
 
-    { Parses the route statement.
+    { Parse the route (classic VRML encoding).
       Implementation should be able to safely assume that current token
       is ROUTE. }
     procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
+
+    { Parse the route (XML encoding).
+      Given Element here must have TagName = 'ROUTE'. }
+    procedure ParseXML(Element: TDOMElement; Names: TVRMLNames);
 
     { Save a ROUTE to VRML file.
 
@@ -3171,6 +3175,11 @@ type
     InlineNodeName, ImportedNodeName, ImportedNodeAlias: string;
 
     procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
+
+    { Parse the IMPORT declaration (XML encoding).
+      Given Element here must have TagName = 'IMPORT'. }
+    procedure ParseXML(Element: TDOMElement; Names: TVRMLNames);
+
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
     function DeepCopy(CopyState: TVRMLNodeDeepCopyState): TVRMLImport;
   end;
@@ -3180,6 +3189,11 @@ type
     ExportedNodeName, ExportedNodeAlias: string;
 
     procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
+
+    { Parse the EXPORT declaration (XML encoding).
+      Given Element here must have TagName = 'EXPORT'. }
+    procedure ParseXML(Element: TDOMElement; Names: TVRMLNames);
+
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
     function DeepCopy(CopyState: TVRMLNodeDeepCopyState): TVRMLExport;
   end;
@@ -3621,7 +3635,7 @@ uses
   Math, Triangulator, Object3DAsVRML, KambiZStream, VRMLCameraUtils,
   KambiStringUtils, KambiFilesUtils, RaysWindow, StrUtils, KambiURLUtils,
   VRMLGeometry, KambiLog, KambiScriptParser, Base64,
-  {$ifdef KAMBI_HAS_NURBS} NURBS, {$endif} Quaternions, Cameras;
+  {$ifdef KAMBI_HAS_NURBS} NURBS, {$endif} Quaternions, Cameras, KambiXMLUtils;
 
 {$define read_implementation}
 
@@ -7695,6 +7709,30 @@ begin
   SetDestination(DestinationNodeName, DestinationEventName, Names.Nodes);
 end;
 
+procedure TVRMLRoute.ParseXML(Element: TDOMElement; Names: TVRMLNames);
+
+  function RequiredAttrib(const AttrName: string): string;
+  begin
+    if not DOMGetAttribute(Element, AttrName, Result) then
+    begin
+      VRMLWarning(vwSerious, 'Missing ROUTE ' + AttrName + ' attribute');
+      Result := '';
+    end;
+  end;
+
+var
+  SourceNodeName, SourceEventName: string;
+  DestinationNodeName, DestinationEventName: string;
+begin
+  SourceNodeName := RequiredAttrib('fromNode');
+  SourceEventName := RequiredAttrib('fromField');
+  DestinationNodeName := RequiredAttrib('toNode');
+  DestinationEventName := RequiredAttrib('toField');
+
+  SetSource     (SourceNodeName     , SourceEventName     , Names.Nodes);
+  SetDestination(DestinationNodeName, DestinationEventName, Names.Nodes);
+end;
+
 procedure TVRMLRoute.UnsetEnding(
   var Node: TVRMLNode; var Event: TVRMLEvent;
   const DestEnding: boolean;
@@ -8039,6 +8077,30 @@ begin
   { TODO: Names.Import() call }
 end;
 
+procedure TVRMLImport.ParseXML(Element: TDOMElement; Names: TVRMLNames);
+begin
+  if not DOMGetAttribute(Element, 'inlineDEF', InlineNodeName) then
+  begin
+    VRMLWarning(vwSerious, 'Missing IMPORT "inlineDEF" attribute');
+    Exit;
+  end;
+
+  if not DOMGetAttribute(Element, 'importedDEF', ImportedNodeName) then
+  begin
+    VRMLWarning(vwSerious, 'Missing IMPORT "importedDEF" attribute, looking for older "exportedDEF"');
+    if not DOMGetAttribute(Element, 'exportedDEF', ImportedNodeName) then
+    begin
+      VRMLWarning(vwSerious, 'Missing IMPORT attribute: neighter "importedDEF" nor older "exportedDEF" found');
+      Exit;
+    end;
+  end;
+
+  if not DOMGetAttribute(Element, 'AS', ImportedNodeAlias) then
+    ImportedNodeAlias := ImportedNodeName;
+
+  { TODO: Names.Import() call }
+end;
+
 procedure TVRMLImport.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
 begin
   SaveProperties.WriteIndent('IMPORT ' + InlineNodeName + '.' + ImportedNodeName);
@@ -8072,6 +8134,20 @@ begin
 
     Lexer.NextToken;
   end else
+    ExportedNodeAlias := ExportedNodeName;
+
+  { TODO: Names.Export() call }
+end;
+
+procedure TVRMLExport.ParseXML(Element: TDOMElement; Names: TVRMLNames);
+begin
+  if not DOMGetAttribute(Element, 'localDEF', ExportedNodeName) then
+  begin
+    VRMLWarning(vwSerious, 'Missing EXPORT "localDEF" attribute');
+    Exit;
+  end;
+
+  if not DOMGetAttribute(Element, 'AS', ExportedNodeAlias) then
     ExportedNodeAlias := ExportedNodeName;
 
   { TODO: Names.Export() call }

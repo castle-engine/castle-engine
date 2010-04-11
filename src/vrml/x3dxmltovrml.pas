@@ -77,71 +77,6 @@ const
     I: TVRMLInterfaceDeclaration; Element: TDOMElement;
     FieldValue: boolean); forward;
 
-  { Parse ROUTE. Conceptually equivalent to TVRMLRoute.Parse in classic VRML
-    encoding. }
-  procedure ParseRoute(Route: TVRMLRoute;
-    Element: TDOMElement);
-
-    function RequiredAttrib(const AttrName: string): string;
-    begin
-      if not DOMGetAttribute(Element, AttrName, Result) then
-      begin
-        VRMLWarning(vwSerious, 'Missing ROUTE ' + AttrName + ' attribute');
-        Result := '';
-      end;
-    end;
-
-  var
-    SourceNodeName, SourceEventName: string;
-    DestinationNodeName, DestinationEventName: string;
-  begin
-    SourceNodeName := RequiredAttrib('fromNode');
-    SourceEventName := RequiredAttrib('fromField');
-    DestinationNodeName := RequiredAttrib('toNode');
-    DestinationEventName := RequiredAttrib('toField');
-
-    Route.SetSource     (SourceNodeName     , SourceEventName     , Names.Nodes);
-    Route.SetDestination(DestinationNodeName, DestinationEventName, Names.Nodes);
-  end;
-
-  procedure ParseImport(Import: TVRMLImport; Element: TDOMElement);
-  begin
-    if not DOMGetAttribute(Element, 'inlineDEF', Import.InlineNodeName) then
-    begin
-      VRMLWarning(vwSerious, 'Missing IMPORT "inlineDEF" attribute');
-      Exit;
-    end;
-
-    if not DOMGetAttribute(Element, 'importedDEF', Import.ImportedNodeName) then
-    begin
-      VRMLWarning(vwSerious, 'Missing IMPORT "importedDEF" attribute, looking for older "exportedDEF"');
-      if not DOMGetAttribute(Element, 'exportedDEF', Import.ImportedNodeName) then
-      begin
-        VRMLWarning(vwSerious, 'Missing IMPORT attribute: neighter "importedDEF" nor older "exportedDEF" found');
-        Exit;
-      end;
-    end;
-
-    if not DOMGetAttribute(Element, 'AS', Import.ImportedNodeAlias) then
-      Import.ImportedNodeAlias := Import.ImportedNodeName;
-
-    { TODO: Names.Import() call }
-  end;
-
-  procedure ParseExport(ExportItem: TVRMLExport; Element: TDOMElement);
-  begin
-    if not DOMGetAttribute(Element, 'localDEF', ExportItem.ExportedNodeName) then
-    begin
-      VRMLWarning(vwSerious, 'Missing EXPORT "localDEF" attribute');
-      Exit;
-    end;
-
-    if not DOMGetAttribute(Element, 'AS', ExportItem.ExportedNodeAlias) then
-      ExportItem.ExportedNodeAlias := ExportItem.ExportedNodeName;
-
-    { TODO: Names.Export() call }
-  end;
-
   procedure ParseFieldValueFromAttribute(Field: TVRMLField;
     const Value: string);
   var
@@ -391,7 +326,7 @@ const
             Route := TVRMLRoute.Create;
             Route.PositionInParent := PositionInParent;
             Node.Routes.Add(Route);
-            ParseRoute(Route, I.Current);
+            Route.ParseXML(I.Current, Names);
           end else
           if I.Current.TagName = 'IS' then
           begin
@@ -402,14 +337,14 @@ const
             Import := TVRMLImport.Create;
             Import.PositionInParent := PositionInParent;
             Node.ImportsList.Add(Import);
-            ParseImport(Import, I.Current);
+            Import.ParseXML(I.Current, Names);
           end else
           if I.Current.TagName = 'EXPORT' then
           begin
             ExportItem := TVRMLExport.Create;
             ExportItem.PositionInParent := PositionInParent;
             Node.ExportsList.Add(ExportItem);
-            ParseExport(ExportItem, I.Current);
+            ExportItem.ParseXML(I.Current, Names);
           end else
           if I.Current.TagName = 'ProtoDeclare' then
           begin
@@ -1027,7 +962,7 @@ const
         Route := TVRMLRoute.Create;
         Route.PositionInParent := PositionInParent;
         Result.Routes.Add(Route);
-        ParseRoute(Route, Element);
+        Route.ParseXML(Element, Names);
       end;
 
       procedure ParseImportStatement;
@@ -1037,7 +972,7 @@ const
         Import := TVRMLImport.Create;
         Import.PositionInParent := PositionInParent;
         Result.ImportsList.Add(Import);
-        ParseImport(Import, Element);
+        Import.ParseXML(Element, Names);
       end;
 
       procedure ParseExportStatement;
@@ -1047,7 +982,7 @@ const
         ExportItem := TVRMLExport.Create;
         ExportItem.PositionInParent := PositionInParent;
         Result.ExportsList.Add(ExportItem);
-        ParseExport(ExportItem, Element);
+        ExportItem.ParseXML(Element, Names);
       end;
 
       procedure ParseNodeStatement;
