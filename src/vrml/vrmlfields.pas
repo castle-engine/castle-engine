@@ -371,11 +371,20 @@ type
 
     procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); virtual; abstract;
 
-    { Parse field value from X3D XML encoded attribute.
+    { Parse field value from X3D XML encoded attribute using a Lexer.
       Attributes in X3D are generally encoded such that normal
       @code(ParseValue(Lexer, nil)) call is appropriate,
       so this is done in this class. }
-    procedure ParseX3DXmlAttr(Lexer: TVRMLLexer); virtual;
+    procedure ParseXMLAttributeLexer(Lexer: TVRMLLexer); virtual;
+
+    { Parse field value from X3D XML encoded attribute.
+
+      Implementation in this class creates a Lexer to parse the string,
+      and calls ParseXMLAttributeLexer. Lexer is created with
+      empty WWWBasePath (it should not matter for fields from XML,
+      as nodes inside SFNode / MFNode are not in XML attributes)
+      and VRMLVerMajor.VRMLVerMinor = 3.2 (always X3D version 3.2). }
+    procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); virtual;
 
     { Save the field to the stream.
       If the current field value equals default value and
@@ -739,7 +748,7 @@ type
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
 
-    procedure ParseX3DXmlAttr(Lexer: TVRMLLexer); override;
+    procedure ParseXMLAttributeLexer(Lexer: TVRMLLexer); override;
   end;
 
 { ---------------------------------------------------------------------------- }
@@ -1257,6 +1266,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
   end;
 
   TSFVec2f = class(TVRMLSingleField)
@@ -2011,6 +2022,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
   end;
 
   { Stores information about available VRML field classes.
@@ -2435,9 +2448,24 @@ begin
     ParseValue(Lexer, Names);
 end;
 
-procedure TVRMLField.ParseX3DXmlAttr(Lexer: TVRMLLexer);
+procedure TVRMLField.ParseXMLAttributeLexer(Lexer: TVRMLLexer);
 begin
   ParseValue(Lexer, nil);
+end;
+
+procedure TVRMLField.ParseXMLAttribute(const AttributeValue: string; Names: TObject);
+var
+  Lexer: TVRMLLexer;
+begin
+  Lexer := TVRMLLexer.CreateForPartialStream(AttributeValue, '', 3, 2);
+  try
+    try
+      ParseXMLAttributeLexer(Lexer);
+    except
+      on E: EVRMLParserError do
+        VRMLWarning(vwSerious, 'Error when parsing field "' + Name + '" value: ' + E.Message);
+    end;
+  finally FreeAndNil(Lexer) end;
 end;
 
 procedure TVRMLField.VRMLFieldAssignCommon(Source: TVRMLField);
@@ -2675,7 +2703,7 @@ begin
   end;
 end;
 
-procedure TVRMLSimpleMultField.ParseX3DXmlAttr(Lexer: TVRMLLexer);
+procedure TVRMLSimpleMultField.ParseXMLAttributeLexer(Lexer: TVRMLLexer);
 var
   SingleItem: TVRMLSingleField;
 begin
@@ -3873,6 +3901,28 @@ begin
   Result := 'SFString';
 end;
 
+procedure TSFString.ParseXMLAttribute(const AttributeValue: string; Names: TObject);
+begin
+  { SFString has quite special interpretation, it's just attrib
+    name. It would not be usefull trying to use TVRMLLexer here,
+    it's easier just to handle this as a special case.
+
+    Uhm... some X3D XML files commit the reverse mistake
+    as for MFString: they *include* additional quotes around the string.
+    Spec says that for SFString, such quotes are not needed.
+    Example: openlibraries trunk/media files.
+
+    I detect this, warn and strip quotes. }
+  if (Length(AttributeValue) >= 2) and
+     (AttributeValue[1] = '"') and
+     (AttributeValue[Length(AttributeValue)] = '"') then
+  begin
+    VRMLWarning(vwSerious, 'X3D XML: found quotes around SFString value. Assuming incorrect X3D file, and stripping quotes from ''' + AttributeValue + '''. Note: this may cause accidental stripping of legal quotes (that could actually be wanted in string content). Well, thank the authors of many incorrect X3D files... this hack may hopefully be removed in the future.');
+    Value := Copy(AttributeValue, 2, Length(AttributeValue) - 2);
+  end else
+    Value := AttributeValue;
+end;
+
 { ----------------------------------------------------------------------------
   Common SF fields based on vectors implementation }
 
@@ -4998,6 +5048,33 @@ begin result := StringToVRMLStringToken(Items.Items[ItemNum]) end;
 class function TMFString.VRMLTypeName: string;
 begin
   Result := 'MFString';
+end;
+
+procedure TMFString.ParseXMLAttribute(const AttributeValue: string; Names: TObject);
+var
+  Lexer: TVRMLLexer;
+begin
+  { For MFString, it's very common that normal parsing fails because
+    of missing double quotes, even in models from
+    http://www.web3d.org/x3d/content/examples/Basic/
+    Although specification clearly says that MFString
+    components should always be enclosed within double
+    quotes. We just do what Xj3D seems to do, that is
+    we handle this as a single string (producing a warning). }
+
+  Lexer := TVRMLLexer.CreateForPartialStream(AttributeValue, '', 3, 2);
+  try
+    try
+      ParseXMLAttributeLexer(Lexer);
+    except
+      on E: EVRMLParserError do
+      begin
+        VRMLWarning(vwSerious, 'Error when parsing MFString field "' + Name + '" value, probably missing double quotes (treating as a single string): ' + E.Message);
+        Items.Count := 0;
+        Items.Add(AttributeValue);
+      end;
+    end;
+  finally FreeAndNil(Lexer) end;
 end;
 
 { TVRMLFieldsManager --------------------------------------------------------- }

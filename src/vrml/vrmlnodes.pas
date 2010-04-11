@@ -1970,6 +1970,7 @@ type
 
     property Value: TVRMLNode read FValue write SetValue;
     procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -2098,6 +2099,7 @@ type
     function Count: integer; override;
 
     procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -5903,6 +5905,26 @@ begin
   end;
 end;
 
+procedure TSFNode.ParseXMLAttribute(const AttributeValue: string; Names: TObject);
+const
+  SNull = 'NULL';
+begin
+  { For SFNode and MFNode, X3D XML encoding has special handling:
+    field value just indicates the node name, or NULL.
+    (other values for SFNode / MFNode cannot be expressed inside
+    the attribute). }
+
+  Value := (Names as TVRMLNames).Nodes.Bound(AttributeValue);
+  if Value = nil then
+  begin
+    if AttributeValue <> SNull then
+      VRMLWarning(vwSerious, Format('Invalid node name for SFNode field: "%s"', [AttributeValue]));
+  end else
+  begin
+    WarningIfChildNotAllowed(Value);
+  end;
+end;
+
 procedure TSFNode.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
   NodeNames: TObject);
 begin
@@ -6231,6 +6253,22 @@ begin
   begin
     { one single item - not enclosed in [] brackets }
     ParseOneItem;
+  end;
+end;
+
+procedure TMFNode.ParseXMLAttribute(const AttributeValue: string; Names: TObject);
+var
+  Node: TVRMLNode;
+begin
+  Node := (Names as TVRMLNames).Nodes.Bound(AttributeValue);
+  if Node = nil then
+  begin
+    { NULL not allowed for MFNode, unlike the SFNode }
+    VRMLWarning(vwSerious, Format('Invalid node name for MFNode field: "%s"', [AttributeValue]));
+  end else
+  begin
+    AddItem(Node);
+    WarningIfChildNotAllowed(Node);
   end;
 end;
 

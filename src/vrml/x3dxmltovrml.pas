@@ -77,101 +77,6 @@ const
     I: TVRMLInterfaceDeclaration; Element: TDOMElement;
     FieldValue: boolean); forward;
 
-  procedure ParseFieldValueFromAttribute(Field: TVRMLField;
-    const Value: string);
-  var
-    Lexer: TVRMLLexer;
-    SF: TSFNode;
-    MF: TMFNode;
-    Node: TVRMLNode;
-  begin
-    if Field is TSFString then
-    begin
-      { SFString has quite special interpretation, it's just attrib
-        name. It would not be usefull trying to use TVRMLLexer here,
-        it's easier just to handle this as a special case.
-
-        Uhm... some X3D XML files commit the reverse mistake
-        as for MFString: they *include* additional quotes around the string.
-        Spec says that for SFString, such quotes are not needed.
-        Example: openlibraries trunk/media files.
-
-        I detect this, warn and strip quotes. }
-      if (Length(Value) >= 2) and
-         (Value[1] = '"') and
-         (Value[Length(Value)] = '"') then
-      begin
-        VRMLWarning(vwSerious, 'X3D XML: found quotes around SFString value. Assuming incorrect X3D file, and stripping quotes from ''' + Value + '''. Note: this may cause accidental stripping of legal quotes (that could actually be wanted in string content). Well, thank the authors of many incorrect X3D files... this hack may hopefully be removed in the future.');
-        TSFString(Field).Value := Copy(Value, 2, Length(Value) - 2);
-      end else
-        TSFString(Field).Value := Value;
-    end else
-    if Field is TSFNode then
-    begin
-      { For SFNode and MFNode, X3D XML encoding has special handling:
-        field value just indicates the node name, or NULL.
-        (other values for SFNode / MFNode cannot be expressed inside
-        the attribute). }
-
-      SF := Field as TSFNode;
-
-      { get appropriate node }
-      Node := Names.Nodes.Bound(Value);
-      if Node = nil then
-      begin
-        if Value = SNull then
-          SF.Value := nil else
-          VRMLWarning(vwSerious, Format('Invalid node name for SFNode field: "%s"', [Value]));
-      end else
-      begin
-        SF.Value := Node;
-        SF.WarningIfChildNotAllowed(Node);
-      end;
-    end else
-    if Field is TMFNode then
-    begin
-      MF := Field as TMFNode;
-
-      { get appropriate node }
-      Node := Names.Nodes.Bound(Value);
-      if Node = nil then
-      begin
-        { NULL not allowed for MFNode, unlike the SFNode }
-        VRMLWarning(vwSerious, Format('Invalid node name for MFNode field: "%s"', [Value]));
-      end else
-      begin
-        MF.AddItem(Node);
-        MF.WarningIfChildNotAllowed(Node);
-      end;
-    end else
-    begin
-      Lexer := TVRMLLexer.CreateForPartialStream(Value, WWWBasePath,
-        VRMLVerMajor, VRMLVerMinor);
-      try
-        try
-          Field.ParseX3DXmlAttr(Lexer);
-        except
-          on E: EVRMLParserError do
-          begin
-            if Field is TMFString then
-            begin
-              { This is very common error, even in models from
-                http://www.web3d.org/x3d/content/examples/Basic/
-                Although specification clearly says that MFString
-                components should always be enclosed within double
-                quotes. We just do what Xj3D seems to do, that is
-                we handle this as a single string (producing a warning). }
-              VRMLWarning(vwSerious, 'Error when parsing MFString field "' + Field.Name + '" value, probably missing double quotes (treating as a single string): ' + E.Message);
-              TMFString(Field).Items.Count := 0;
-              TMFString(Field).Items.Add(Value);
-            end else
-              VRMLWarning(vwSerious, 'Error when parsing field "' + Field.Name + '" value: ' + E.Message);
-          end;
-        end;
-      finally FreeAndNil(Lexer) end;
-    end;
-  end;
-
   { Checks is Element a correct <connect> element, extracting
     nodeField and protoField value. Returns @true if all Ok, otherwise
     returns @false. }
@@ -294,7 +199,7 @@ const
         Index := Node.Fields.IndexOf(Attr.Name);
         if Index >= 0 then
         begin
-          ParseFieldValueFromAttribute(Node.Fields[Index], Attr.Value);
+          Node.Fields[Index].ParseXMLAttribute(Attr.Value, Names);
           Node.Fields[Index].PositionInParent := PositionInParent;
           Inc(PositionInParent);
         end else
@@ -567,7 +472,7 @@ const
               end;
 
               if DOMGetAttribute(ProtoIter.Current, 'value', FieldActualValue) then
-                ParseFieldValueFromAttribute(Result.Fields[FieldIndex], FieldActualValue) else
+                Result.Fields[FieldIndex].ParseXMLAttribute(FieldActualValue, Names) else
                 ParseFieldValueFromElement(Result.Fields[FieldIndex], ProtoIter.Current);
 
               Result.Fields[FieldIndex].PositionInParent := PositionInParent;
@@ -748,7 +653,7 @@ const
       if FieldValue then
       begin
         if DOMGetAttribute(Element, 'value', FieldActualValue) then
-          ParseFieldValueFromAttribute(I.Field, FieldActualValue) else
+          I.Field.ParseXMLAttribute(FieldActualValue, Names) else
           ParseFieldValueFromElement(I.Field, Element);
       end;
 
@@ -844,7 +749,7 @@ const
     ParseInterfaceDeclarations(Proto, Element, true);
 
     if DOMGetAttribute(Element, 'url', URLListValue) then
-      ParseFieldValueFromAttribute(Proto.URLList, URLListValue) else
+      Proto.URLList.ParseXMLAttribute(URLListValue, Names) else
       raise EX3DXmlError.Create('Missing "url" for <ExternProtoDeclare> element');
 
     Names.Prototypes.Bind(Proto);
