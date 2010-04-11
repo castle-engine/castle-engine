@@ -380,10 +380,7 @@ type
     { Parse field value from X3D XML encoded attribute.
 
       Implementation in this class creates a Lexer to parse the string,
-      and calls ParseXMLAttributeLexer. Lexer is created with
-      empty WWWBasePath (it should not matter for fields from XML,
-      as nodes inside SFNode / MFNode are not in XML attributes)
-      and VRMLVerMajor.VRMLVerMinor = 3.2 (always X3D version 3.2). }
+      and calls ParseXMLAttributeLexer. }
     procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); virtual;
 
     { Save the field to the stream.
@@ -2457,7 +2454,9 @@ procedure TVRMLField.ParseXMLAttribute(const AttributeValue: string; Names: TObj
 var
   Lexer: TVRMLLexer;
 begin
-  Lexer := TVRMLLexer.CreateForPartialStream(AttributeValue, '', 3, 2);
+  Lexer := TVRMLLexer.CreateForPartialStream(AttributeValue,
+    (Names as TVRMLNames).VRMLVerMajor,
+    (Names as TVRMLNames).VRMLVerMinor);
   try
     try
       ParseXMLAttributeLexer(Lexer);
@@ -5062,7 +5061,9 @@ begin
     quotes. We just do what Xj3D seems to do, that is
     we handle this as a single string (producing a warning). }
 
-  Lexer := TVRMLLexer.CreateForPartialStream(AttributeValue, '', 3, 2);
+  Lexer := TVRMLLexer.CreateForPartialStream(AttributeValue,
+    (Names as TVRMLNames).VRMLVerMajor,
+    (Names as TVRMLNames).VRMLVerMinor);
   try
     try
       ParseXMLAttributeLexer(Lexer);

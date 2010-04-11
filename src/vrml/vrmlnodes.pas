@@ -2916,7 +2916,7 @@ type
     FWWWBasePath: string;
 
     { Parses InterfaceDeclarations. Also inits WWWBasePath from
-      Lexer.WWWBasePath, by the way. }
+      Names.WWWBasePath, by the way. }
     procedure ParseInterfaceDeclarations(ExternalProto: boolean;
       Lexer: TVRMLLexer; Names: TVRMLNames);
 
@@ -3252,6 +3252,9 @@ type
   { Container tracking VRML/X3D node and prototype names during parsing.
     Used by both classic and XML VRML/X3D readers. }
   TVRMLNames = class
+  private
+    FVRMLVerMajor, FVRMLVerMinor: integer;
+    FWWWBasePath: string;
   public
     { Current namespace for DEF/USE.
 
@@ -3268,7 +3271,19 @@ type
     { Current namespace of PROTO names. }
     Prototypes: TVRMLPrototypeNames;
 
-    constructor Create(const AAutoRemoveNodes: boolean);
+    { Base path for resolving URLs from nodes in this namespace.
+      See TVRMLNode.WWWBasePath. }
+    property WWWBasePath: string read FWWWBasePath;
+
+    { VRML version numbers, for resolving node class names.
+      Conventions the same as for TVRMLLexer.VRMLVerMajor,
+      TVRMLLexer.VRMLVerMinor. }
+    property VRMLVerMajor: Integer read FVRMLVerMajor;
+    property VRMLVerMinor: Integer read FVRMLVerMinor;
+
+    constructor Create(const AAutoRemoveNodes: boolean;
+      const AWWWBasePath: string;
+      const AVRMLVerMajor, AVRMLVerMinor: Integer);
     destructor Destroy; override;
   end;
 
@@ -4522,7 +4537,7 @@ begin
   end;
   Lexer.NextToken;
 
-  FWWWBasePath := Lexer.WWWBasePath;
+  FWWWBasePath := Names.WWWBasePath;
 end;
 
 function TVRMLNode.ParseNodeBodyElement(Lexer: TVRMLLexer; Names: TVRMLNames;
@@ -6461,7 +6476,7 @@ begin
   Lexer.NextToken;
   ParseIgnoreToMatchingCurlyBracket(Lexer, Names);
 
-  FWWWBasePath := Lexer.WWWBasePath;
+  FWWWBasePath := Names.WWWBasePath;
 
   VRMLWarning(vwSerious, 'Unknown VRML node of type '''+NodeTypeName+
     ''' (named '''+NodeName+''')');
@@ -7306,7 +7321,7 @@ begin
   { eat "]" token }
   Lexer.NextToken;
 
-  FWWWBasePath := Lexer.WWWBasePath;
+  FWWWBasePath := Names.WWWBasePath;
 end;
 
 procedure TVRMLPrototypeBase.SaveInterfaceDeclarationsToStream(
@@ -7367,7 +7382,8 @@ begin
     are available inside, but nested prototypes inside are not
     available outside. }
   OldNames := Names;
-  Names := TVRMLNames.Create(true);
+  Names := TVRMLNames.Create(true,
+    OldNames.WWWBasePath, OldNames.VRMLVerMajor, OldNames.VRMLVerMinor);
   try
     Names.Prototypes.Assign(OldNames.Prototypes);
     FNode := ParseVRMLStatements(Lexer, Names, vtCloseCurlyBracket, false);
@@ -8284,11 +8300,16 @@ end;
 
 { TVRMLNames ----------------------------------------------------------------- }
 
-constructor TVRMLNames.Create(const AAutoRemoveNodes: boolean);
+constructor TVRMLNames.Create(const AAutoRemoveNodes: boolean;
+  const AWWWBasePath: string;
+  const AVRMLVerMajor, AVRMLVerMinor: Integer);
 begin
   inherited Create;
   Nodes := TVRMLNodeNames.Create(AAutoRemoveNodes);
   Prototypes := TVRMLPrototypeNames.Create;
+  FWWWBasePath := AWWWBasePath;
+  FVRMLVerMajor := AVRMLVerMajor;
+  FVRMLVerMinor := AVRMLVerMinor;
 end;
 
 destructor TVRMLNames.Destroy;
@@ -8518,13 +8539,13 @@ var
     if TVRMLRootNode_1.ForVRMLVersion(
         Lexer.VRMLVerMajor, Lexer.VRMLVerMinor) then
     begin
-      Result := TVRMLRootNode_1.Create('', Lexer.WWWBasePath);
+      Result := TVRMLRootNode_1.Create('', Names.WWWBasePath);
       TVRMLRootNode_1(Result).ForceVersion := true;
       TVRMLRootNode_1(Result).ForceVersionMajor := Lexer.VRMLVerMajor;
       TVRMLRootNode_1(Result).ForceVersionMinor := Lexer.VRMLVerMinor;
     end else
     begin
-      Result := TVRMLRootNode_2.Create('', Lexer.WWWBasePath);
+      Result := TVRMLRootNode_2.Create('', Names.WWWBasePath);
       TVRMLRootNode_2(Result).ForceVersion := true;
       TVRMLRootNode_2(Result).ForceVersionMajor := Lexer.VRMLVerMajor;
       TVRMLRootNode_2(Result).ForceVersionMinor := Lexer.VRMLVerMinor;
@@ -8756,16 +8777,15 @@ var
   Lexer: TVRMLLexer;
   Names: TVRMLNames;
 begin
-  Names := TVRMLNames.Create(false);
-  Lexer := TVRMLLexer.Create(Stream, false, WWWBasePath);
+  Lexer := TVRMLLexer.Create(Stream, false);
   try
-    Result := ParseVRMLStatements(Lexer, Names, vtEnd, true);
-    if PrototypeNames <> nil then
-      PrototypeNames.Assign(Names.Prototypes);
-  finally
-    FreeAndNil(Lexer);
-    FreeAndNil(Names);
-  end;
+    Names := TVRMLNames.Create(false, WWWBasePath, Lexer.VRMLVerMajor, Lexer.VRMLVerMinor);
+    try
+      Result := ParseVRMLStatements(Lexer, Names, vtEnd, true);
+      if PrototypeNames <> nil then
+        PrototypeNames.Assign(Names.Prototypes);
+    finally FreeAndNil(Names) end;
+  finally FreeAndNil(Lexer) end;
 end;
 
 function ParseVRMLFile(const FileName: string; AllowStdIn: boolean;

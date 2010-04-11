@@ -716,7 +716,7 @@ const
       are available inside, but nested prototypes inside are not
       available outside. }
     OldNames := Names;
-    Names := TVRMLNames.Create(true);
+    Names := TVRMLNames.Create(true, WWWBasePath, VRMLVerMajor, VRMLVerMinor);
     try
       Names.Prototypes.Assign(OldNames.Prototypes);
       Proto.Node := ParseVRMLStatements(E, false, nil);
@@ -943,9 +943,6 @@ begin
   WWWBasePath := ExtractFilePath(ExpandFileName(FileName));
 
   Stream := nil;
-
-  { X3D XML requires AutoRemove = true below }
-  Names := TVRMLNames.Create(true);
   try
 
     if Gzipped then
@@ -977,15 +974,17 @@ begin
       end;
 
       SceneElement := DOMGetChildElement(Doc.DocumentElement, 'Scene', true);
-      Result := ParseVRMLStatements(SceneElement, true, Doc.DocumentElement);
-    finally FreeAndNil(Doc) end;
 
-    if PrototypeNames <> nil then
-      PrototypeNames.Assign(Names.Prototypes);
-  finally
-    FreeAndNil(Names);
-    FreeAndNil(Stream);
-  end;
+      { X3D XML requires AutoRemove = true below }
+      Names := TVRMLNames.Create(true, WWWBasePath, VRMLVerMajor, VRMLVerMinor);
+      try
+        Result := ParseVRMLStatements(SceneElement, true, Doc.DocumentElement);
+
+        if PrototypeNames <> nil then
+          PrototypeNames.Assign(Names.Prototypes);
+      finally FreeAndNil(Names) end;
+    finally FreeAndNil(Doc) end;
+  finally FreeAndNil(Stream) end;
 end;
 
 end.

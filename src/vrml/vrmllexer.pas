@@ -144,8 +144,7 @@ type
 
       @groupBegin }
     procedure CreateCommonBegin(AStream: TPeekCharStream;
-      AOwnsStream: boolean;
-      const AWWWBasePath: string);
+      AOwnsStream: boolean);
     procedure CreateCommonEnd;
     { @groupEnd }
   public
@@ -154,8 +153,7 @@ type
       it's checked that file is not compressed by gzip, and the first
       Token is already read.
       @raises(EVRMLGzipCompressed If the Stream starts with gzip file header.) }
-    constructor Create(AStream: TPeekCharStream; AOwnsStream: boolean;
-      const AWWWBasePath: string);
+    constructor Create(AStream: TPeekCharStream; AOwnsStream: boolean);
 
     constructor CreateFromFile(const FileName: string);
 
@@ -178,10 +176,8 @@ type
       @groupBegin }
     constructor CreateForPartialStream(
       AStream: TPeekCharStream; AOwnsStream: boolean;
-      const AWWWBasePath: string;
       const AVRMLVerMajor, AVRMLVerMinor: Integer); overload;
     constructor CreateForPartialStream(const S: string;
-      const AWWWBasePath: string;
       const AVRMLVerMajor, AVRMLVerMinor: Integer); overload;
     { @groupEnd }
 
@@ -309,14 +305,6 @@ type
     procedure CheckTokenIs(Tok: TVRMLToken; const TokDescription: string); overload;
     procedure CheckTokenIs(const Toks: TVRMLTokens; const ToksDescription: string); overload;
     procedure CheckTokenIsKeyword(const Keyword: TVRMLKeyword);
-
-  public
-    { See TVRMLNode.WWWBasePath for a description of this field.
-
-      This field is not used anywhere in the Lexer but it MUST be defined
-      to something sensible. It is just some information
-      "carried with" the lexer. We will use it when we parse nodes. }
-    WWWBasePath: string;
   end;
 
   EVRMLLexerError = class(EVRMLError)
@@ -391,14 +379,12 @@ end;
 { TVRMLLexer ------------------------------------------------------------- }
 
 procedure TVRMLLexer.CreateCommonBegin(AStream: TPeekCharStream;
-  AOwnsStream: boolean;
-  const AWWWBasePath: string);
+  AOwnsStream: boolean);
 begin
   inherited Create;
 
   FStream := AStream;
   FOwnsStream := AOwnsStream;
-  WWWBasePath := AWWWBasePath;
 end;
 
 procedure TVRMLLexer.CreateCommonEnd;
@@ -429,8 +415,7 @@ begin
   NextToken;
 end;
 
-constructor TVRMLLexer.Create(AStream: TPeekCharStream; AOwnsStream: boolean;
-  const AWWWBasePath: string);
+constructor TVRMLLexer.Create(AStream: TPeekCharStream; AOwnsStream: boolean);
 const
   GzipHeader = #$1F + #$8B;
 
@@ -526,7 +511,7 @@ const
 var
   Line: string;
 begin
-  CreateCommonBegin(AStream, AOwnsStream, AWWWBasePath);
+  CreateCommonBegin(AStream, AOwnsStream);
 
   { Read first line = signature. }
   Line := Stream.ReadUpto(VRMLLineTerm);
@@ -599,23 +584,20 @@ var
 begin
   FileStream := TFileStream.Create(FileName, fmOpenRead);
   Create(
-    TBufferedReadStream.Create(FileStream, true), true,
-    ExtractFilePath(ExpandFilename(FileName)));
+    TBufferedReadStream.Create(FileStream, true), true);
 end;
 
 constructor TVRMLLexer.CreateForPartialStream(
   AStream: TPeekCharStream; AOwnsStream: boolean;
-  const AWWWBasePath: string;
   const AVRMLVerMajor, AVRMLVerMinor: Integer);
 begin
-  CreateCommonBegin(AStream, AOwnsStream, AWWWBasePath);
+  CreateCommonBegin(AStream, AOwnsStream);
   FVRMLVerMajor := AVRMLVerMajor;
   FVRMLVerMinor := AVRMLVerMinor;
   CreateCommonEnd;
 end;
 
 constructor TVRMLLexer.CreateForPartialStream(const S: string;
-  const AWWWBasePath: string;
   const AVRMLVerMajor, AVRMLVerMinor: Integer);
 var
   StringStream: TStringStream;
@@ -623,7 +605,7 @@ begin
   StringStream := TStringStream.Create(S);
   CreateForPartialStream(
     TBufferedReadStream.Create(StringStream, true), true,
-    AWWWBasePath, AVRMLVerMajor, AVRMLVerMinor);
+    AVRMLVerMajor, AVRMLVerMinor);
 end;
 
 destructor TVRMLLexer.Destroy;
