@@ -99,6 +99,32 @@
       CurrentRootNode: TVRMLNode): boolean;
   end;
 
+  { Interface implemented by all Inline VRML nodes. }
+  IVRMLInlineNode = interface(IVRMLNode)
+  ['{70E19208-A2EF-4883-BD04-E7EFF7932F3A}']
+    { Call LoadInlined to load inlined VRML content @bold(now).
+      If Inlined is already loaded,
+      than: if CanReload = @true Inlined will be freed and loaded again,
+      else (if CanReload = @false) nothing will happen.
+
+      Note that this has a really simple support for "load" field
+      (this concerns VRML 97 amendment 1 "InlineLoadControl.load" and
+      X3D (actually used also in VRML 97 handling) "Inline.load" fields).
+      It simply doesn't do any loading when load = @false.
+
+      Note that this doesn't perform setting the "load" field,
+      or sending any notifications to EventsProcessor
+      about "load" field. It's the caller's job to keep loaded state
+      synchronized with "load" field value.
+
+      LoadInlined(false) will be called automatically, to ensure the inlined
+      contents are always loaded. It will be called at the end of Parse
+      (this is needed to handle VRML/X3D IMPORT/EXPORT mechanism),
+      it will also be called in BeforeTraverse (in case you constructed node
+      by code, not by parsing). }
+    procedure LoadInlined(CanReload: boolean);
+  end;
+
   TNodeInline = class(TVRMLGroupingNode, INodeX3DBoundedObject, INodeX3DUrlObject,
     IVRMLInlineNode)
   private
