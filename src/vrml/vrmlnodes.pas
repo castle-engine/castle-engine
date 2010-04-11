@@ -2921,6 +2921,16 @@ type
     procedure ParseInterfaceDeclarations(ExternalProto: boolean;
       Lexer: TVRMLLexer; Names: TVRMLNames);
 
+    { Parse interface declarations in XML encoding.
+      Handle sequence of <field> elements.
+
+      Note: unlike classic ParseInterfaceDeclarations,
+      this doesn't set WWWBasePath, do it yourself (because often
+      you do not have 'ProtoInterface', so you would have to do it yourself
+      anyway). }
+    procedure ParseInterfaceDeclarationsXML(ExternalProto: boolean;
+      Element: TDOMElement; Names: TVRMLNames);
+
     { Saves Name, and interface declarations enclosed
       within [ ]. In descendant, you should first write the keyword PROTO
       or EXTERNPROTO, then call this, then write the rest of your prototype. }
@@ -7253,6 +7263,27 @@ begin
   Lexer.NextToken;
 
   FWWWBasePath := Names.WWWBasePath;
+end;
+
+procedure TVRMLPrototypeBase.ParseInterfaceDeclarationsXML(ExternalProto: boolean;
+  Element: TDOMElement; Names: TVRMLNames);
+var
+  I: TVRMLInterfaceDeclaration;
+  Iter: TXMLElementIterator;
+begin
+  Iter := TXMLElementIterator.Create(Element);
+  try
+    while Iter.GetNext do
+    begin
+      if Iter.Current.TagName = 'field' then
+      begin
+        I := TVRMLInterfaceDeclaration.Create(nil);
+        InterfaceDeclarations.Add(I);
+        ParseInterfaceDeclaration(I, Iter.Current, not ExternalProto, Names);
+      end else
+        VRMLWarning(vwSerious, 'X3D XML: only <field> elements expected in prototype interface');
+    end;
+  finally FreeAndNil(Iter) end;
 end;
 
 procedure TVRMLPrototypeBase.SaveInterfaceDeclarationsToStream(

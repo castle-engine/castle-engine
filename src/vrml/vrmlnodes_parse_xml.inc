@@ -641,31 +641,6 @@ const
     I.FieldOrEvent.ParentInterfaceDeclaration := I;
   end;
 
-  { Handle sequence of <field> elements.
-    This is equivalent to TVRMLPrototypeBase.ParseInterfaceDeclarations
-    in classic VRML parser. }
-  procedure ParseInterfaceDeclarations(
-    Proto: TVRMLPrototypeBase;
-    Element: TDOMElement; ExternalProto: boolean; Names: TVRMLNames);
-  var
-    I: TVRMLInterfaceDeclaration;
-    Iter: TXMLElementIterator;
-  begin
-    Iter := TXMLElementIterator.Create(Element);
-    try
-      while Iter.GetNext do
-      begin
-        if Iter.Current.TagName = 'field' then
-        begin
-          I := TVRMLInterfaceDeclaration.Create(nil);
-          Proto.InterfaceDeclarations.Add(I);
-          ParseInterfaceDeclaration(I, Iter.Current, not ExternalProto, Names);
-        end else
-          VRMLWarning(vwSerious, 'X3D XML: only <field> elements expected in prototype interface');
-      end;
-    finally FreeAndNil(Iter) end;
-  end;
-
   { Equivalent to TVRMLPrototype.Parse }
   procedure ParsePrototype(Proto: TVRMLPrototype; Element: TDOMElement;
     Names: TVRMLNames);
@@ -682,7 +657,7 @@ const
 
     E := DOMGetChildElement(Element, 'ProtoInterface', false);
     if E <> nil then
-      ParseInterfaceDeclarations(Proto, E, false, Names);
+      Proto.ParseInterfaceDeclarationsXML(false, E, Names);
 
     E := DOMGetChildElement(Element, 'ProtoBody', false);
     if E = nil then
@@ -724,7 +699,7 @@ const
       Proto.Name := Name else
       raise EX3DXmlError.Create('Missing "name" for <ExternProtoDeclare> element');
 
-    ParseInterfaceDeclarations(Proto, Element, true, Names);
+    Proto.ParseInterfaceDeclarationsXML(true, Element, Names);
 
     if DOMGetAttribute(Element, 'url', URLListValue) then
       Proto.URLList.ParseXMLAttribute(URLListValue, Names) else
