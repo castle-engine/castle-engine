@@ -14,6 +14,14 @@
 }
 
 {$ifdef read_interface}
+  { List of pointing device sensors: only nodes descending from
+    X3DPointingDeviceSensorNode, and additionally an Anchor node. }
+  TPointingDeviceSensorsList = class(TVRMLNodesList)
+  public
+    function EnabledCount: Integer;
+    function Enabled(Index: Integer): boolean;
+  end;
+
   { }
   TNodeX3DPointingDeviceSensorNode = class(TNodeX3DSensorNode)
   public
@@ -141,6 +149,27 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{ TPointingDeviceSensorsList ------------------------------------------------- }
+
+function TPointingDeviceSensorsList.EnabledCount: Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to Count - 1 do
+    if Enabled(I) then
+      Inc(Result);
+end;
+
+function TPointingDeviceSensorsList.Enabled(Index: Integer): boolean;
+begin
+  Result := (not (Items[Index] is TNodeX3DPointingDeviceSensorNode)) or
+    TNodeX3DPointingDeviceSensorNode(Items[Index]).FdEnabled.Value;
+end;
+
+{ Rest of nodes -------------------------------------------------------------- }
+
 constructor TNodeX3DPointingDeviceSensorNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin

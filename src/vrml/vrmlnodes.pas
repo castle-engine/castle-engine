@@ -350,7 +350,7 @@ type
          );
   end;
 
-  { This is used in TVRMLGraphTraverseState to keep track of used light.
+  { Keep track of a used light.
     When the light is used, not only it's node is important (in LightNode),
     but also current transformation (this transformation affects things
     like actual position and direction). This record keeps it all.
@@ -758,14 +758,6 @@ type
   end;
 
 {$I vrmlnodes_node.inc}
-
-  { List that can contain only nodes descending from
-    X3DPointingDeviceSensorNode, and additionally an Anchor node. }
-  TPointingDeviceSensorsList = class(TVRMLNodesList)
-  public
-    function EnabledCount: Integer;
-    function Enabled(Index: Integer): boolean;
-  end;
 
   TVRMLNodeClassesList = class(TList)
   private
@@ -2306,24 +2298,6 @@ begin
     for I := 0 to High do
       if not ActiveLightEquals(Items[I], TDynActiveLightArray(SecondValue).Items[I]) then
         Exit(false);
-end;
-
-{ TPointingDeviceSensorsList ------------------------------------------------- }
-
-function TPointingDeviceSensorsList.EnabledCount: Integer;
-var
-  I: Integer;
-begin
-  Result := 0;
-  for I := 0 to Count - 1 do
-    if Enabled(I) then
-      Inc(Result);
-end;
-
-function TPointingDeviceSensorsList.Enabled(Index: Integer): boolean;
-begin
-  Result := (not (Items[Index] is TNodeX3DPointingDeviceSensorNode)) or
-    TNodeX3DPointingDeviceSensorNode(Items[Index]).FdEnabled.Value;
 end;
 
 { TVRMLGraphTraverseState ---------------------------------------------------- }
